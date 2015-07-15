@@ -27,7 +27,7 @@
 
 PETSC_EXTERN PetscBool NEPRegisterAllCalled;
 PETSC_EXTERN PetscErrorCode NEPRegisterAll(void);
-PETSC_EXTERN PetscLogEvent NEP_SetUp,NEP_Solve,NEP_Refine,NEP_FunctionEval,NEP_JacobianEval;
+PETSC_EXTERN PetscLogEvent NEP_SetUp,NEP_Solve,NEP_Refine,NEP_FunctionEval,NEP_JacobianEval,NEP_DerivativesEval;
 
 typedef struct _NEPOps *NEPOps;
 
@@ -56,9 +56,11 @@ typedef enum { NEP_STATE_INITIAL,
      How the problem function T(lambda) has been defined by the user
      - Callback: one callback to build the function matrix, another one for the Jacobian
      - Split: in split form sum_j(A_j*f_j(lambda))
+     - Derivatives: a single callback for all the derivatives (including the 0th derivative)
 */
 typedef enum { NEP_USER_INTERFACE_CALLBACK,
-               NEP_USER_INTERFACE_SPLIT } NEPUserInterface;
+               NEP_USER_INTERFACE_SPLIT,
+               NEP_USER_INTERFACE_DERIVATIVES } NEPUserInterface;
 
 /*
    Defines the NEP data structure.
@@ -90,6 +92,8 @@ struct _p_NEP {
   PetscErrorCode (*computejacobian)(NEP,PetscScalar,Mat,void*);
   void           *functionctx;
   void           *jacobianctx;
+  PetscErrorCode (*computederivatives)(NEP,PetscScalar,PetscInt,Mat,void*);
+  void           *derivativesctx;
   PetscErrorCode (*converged)(NEP,PetscInt,PetscReal,PetscReal,PetscReal,NEPConvergedReason*,void*);
   PetscErrorCode (*convergeddestroy)(void*);
   void           *convergedctx;
@@ -108,6 +112,7 @@ struct _p_NEP {
   Mat            function;         /* function matrix */
   Mat            function_pre;     /* function matrix (preconditioner) */
   Mat            jacobian;         /* Jacobian matrix */
+  Mat            derivatives;      /* derivatives matrix */
   Mat            *A;               /* matrix coefficients of split form */
   FN             *f;               /* matrix functions of split form */
   PetscInt       nt;               /* number of terms in split form */

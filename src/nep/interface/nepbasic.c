@@ -26,7 +26,7 @@
 PetscFunctionList NEPList = 0;
 PetscBool         NEPRegisterAllCalled = PETSC_FALSE;
 PetscClassId      NEP_CLASSID = 0;
-PetscLogEvent     NEP_SetUp = 0,NEP_Solve = 0,NEP_Refine = 0,NEP_FunctionEval = 0,NEP_JacobianEval = 0;
+PetscLogEvent     NEP_SetUp = 0,NEP_Solve = 0,NEP_Refine = 0,NEP_FunctionEval = 0,NEP_JacobianEval = 0,NEP_DerivativesEval = 0;
 
 #undef __FUNCT__
 #define __FUNCT__ "NEPCreate"
@@ -81,6 +81,8 @@ PetscErrorCode NEPCreate(MPI_Comm comm,NEP *outnep)
   nep->computejacobian = NULL;
   nep->functionctx     = NULL;
   nep->jacobianctx     = NULL;
+  nep->computederivatives = NULL;
+  nep->derivativesctx  = NULL;
   nep->converged       = NEPConvergedDefault;
   nep->convergeddestroy= NULL;
   nep->convergedctx    = NULL;
@@ -94,6 +96,7 @@ PetscErrorCode NEPCreate(MPI_Comm comm,NEP *outnep)
   nep->function        = NULL;
   nep->function_pre    = NULL;
   nep->jacobian        = NULL;
+  nep->derivatives     = NULL;
   nep->A               = NULL;
   nep->f               = NULL;
   nep->nt              = 0;
@@ -268,6 +271,7 @@ PetscErrorCode NEPReset(NEP nep)
   ierr = MatDestroy(&nep->function);CHKERRQ(ierr);
   ierr = MatDestroy(&nep->function_pre);CHKERRQ(ierr);
   ierr = MatDestroy(&nep->jacobian);CHKERRQ(ierr);
+  ierr = MatDestroy(&nep->derivatives);CHKERRQ(ierr);
   if (nep->fui==NEP_USER_INTERFACE_SPLIT) {
     ierr = MatDestroyMatrices(nep->nt,&nep->A);CHKERRQ(ierr);
     for (i=0;i<nep->nt;i++) {
@@ -786,7 +790,7 @@ PetscErrorCode NEPSetJacobian(NEP nep,Mat A,PetscErrorCode (*jac)(NEP,PetscScala
 #define __FUNCT__ "NEPGetJacobian"
 /*@C
    NEPGetJacobian - Returns the Jacobian matrix and optionally the user
-   provided context for evaluating the Jacobian.
+   provided routine and context for evaluating the Jacobian.
 
    Not Collective, but Mat object will be parallel if NEP object is
 
@@ -863,6 +867,7 @@ PetscErrorCode NEPSetSplitOperator(NEP nep,PetscInt n,Mat A[],FN f[],MatStructur
   ierr = MatDestroy(&nep->function);CHKERRQ(ierr);
   ierr = MatDestroy(&nep->function_pre);CHKERRQ(ierr);
   ierr = MatDestroy(&nep->jacobian);CHKERRQ(ierr);
+  ierr = MatDestroy(&nep->derivatives);CHKERRQ(ierr);
   if (nep->fui==NEP_USER_INTERFACE_SPLIT) {
     ierr = MatDestroyMatrices(nep->nt,&nep->A);CHKERRQ(ierr);
     for (i=0;i<nep->nt;i++) {
@@ -946,6 +951,76 @@ PetscErrorCode NEPGetSplitOperatorInfo(NEP nep,PetscInt *n,MatStructure *str)
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
   if (n) *n = nep->nt;
   if (str) *str = nep->mstr;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "NEPSetDerivatives"
+/*@C
+   NEPSetDerivatives - Sets the function to compute the k-th derivative T^(k)(lambda)
+   for any value of k (including 0), as well as the location to store the matrix.
+
+   Logically Collective on NEP and Mat
+
+   Input Parameters:
++  nep - the NEP context
+.  A   - the matrix to store the computed derivative
+.  der - routing to evaluate the k-th derivative (if NULL then NEP retains any
+         previously set value)
+-  ctx - [optional] user-defined context for private data for the derivatives
+         evaluation routine (may be NULL) (if NULL then NEP retains any
+         previously set value)
+
+   Level: beginner
+
+.seealso: NEPSetFunction(), NEPGetDerivatives()
+@*/
+PetscErrorCode NEPSetDerivatives(NEP nep,Mat A,PetscErrorCode (*der)(NEP,PetscScalar,PetscInt,Mat,void*),void *ctx)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
+  if (A) PetscValidHeaderSpecific(A,MAT_CLASSID,2);
+  if (A) PetscCheckSameComm(nep,1,A,2);
+  if (der) nep->computederivatives = der;
+  if (ctx) nep->derivativesctx     = ctx;
+  if (A) {
+    ierr = PetscObjectReference((PetscObject)A);CHKERRQ(ierr);
+    ierr = MatDestroy(&nep->derivatives);CHKERRQ(ierr);
+    nep->derivatives = A;
+  }
+  nep->fui = NEP_USER_INTERFACE_DERIVATIVES;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "NEPGetDerivatives"
+/*@C
+   NEPGetDerivatives - Returns the derivatives matrix and optionally the user
+   provided routine and context for evaluating the derivatives.
+
+   Not Collective, but Mat object will be parallel if NEP object is
+
+   Input Parameter:
+.  nep - the nonlinear eigensolver context
+
+   Output Parameters:
++  A   - location to stash the derivatives matrix (or NULL)
+.  der - location to put derivatives function (or NULL)
+-  ctx - location to stash derivatives context (or NULL)
+
+   Level: advanced
+
+.seealso: NEPSetDerivatives()
+@*/
+PetscErrorCode NEPGetDerivatives(NEP nep,Mat *A,PetscErrorCode (**der)(NEP,PetscScalar,PetscInt,Mat,void*),void **ctx)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
+  if (A)   *A   = nep->derivatives;
+  if (der) *der = nep->computederivatives;
+  if (ctx) *ctx = nep->derivativesctx;
   PetscFunctionReturn(0);
 }
 

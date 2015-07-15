@@ -80,6 +80,7 @@ PetscErrorCode NEPInitializePackage(void)
   ierr = PetscLogEventRegister("NEPRefine",NEP_CLASSID,&NEP_Refine);CHKERRQ(ierr);
   ierr = PetscLogEventRegister("NEPFunctionEval",NEP_CLASSID,&NEP_FunctionEval);CHKERRQ(ierr);
   ierr = PetscLogEventRegister("NEPJacobianEval",NEP_CLASSID,&NEP_JacobianEval);CHKERRQ(ierr);
+  ierr = PetscLogEventRegister("NEPDerivativesEval",NEP_CLASSID,&NEP_DerivativesEval);CHKERRQ(ierr);
   /* Process info exclusions */
   ierr = PetscOptionsGetString(NULL,"-info_exclude",logList,256,&opt);CHKERRQ(ierr);
   if (opt) {
