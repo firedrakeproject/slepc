@@ -153,7 +153,7 @@ PetscErrorCode NEPProjectOperator(NEP nep,PetscInt j0,PetscInt j1)
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
   PetscValidLogicalCollectiveInt(nep,j0,2);
   PetscValidLogicalCollectiveInt(nep,j1,3);
-  if (!nep->split) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_WRONGSTATE,"This solver requires a split operator");
+  if (nep->fui!=NEP_USER_INTERFACE_SPLIT) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_WRONGSTATE,"This solver requires a split operator");
   ierr = BVSetActiveColumns(nep->V,j0,j1);CHKERRQ(ierr);
   for (k=0;k<nep->nt;k++) {
     ierr = DSGetMat(nep->ds,DSMatExtra[k],&G);CHKERRQ(ierr);
@@ -204,7 +204,7 @@ PetscErrorCode NEPApplyFunction(NEP nep,PetscScalar lambda,Vec x,Vec v,Vec y,Mat
   PetscValidHeaderSpecific(x,VEC_CLASSID,3);
   PetscValidHeaderSpecific(y,VEC_CLASSID,4);
   PetscValidHeaderSpecific(y,VEC_CLASSID,5);
-  if (nep->split) {
+  if (nep->fui==NEP_USER_INTERFACE_SPLIT) {
     ierr = VecSet(y,0.0);CHKERRQ(ierr);
     for (i=0;i<nep->nt;i++) {
       ierr = FNEvaluateFunction(nep->f[i],lambda,&alpha);CHKERRQ(ierr);
@@ -258,7 +258,7 @@ PetscErrorCode NEPApplyJacobian(NEP nep,PetscScalar lambda,Vec x,Vec v,Vec y,Mat
   PetscValidHeaderSpecific(x,VEC_CLASSID,3);
   PetscValidHeaderSpecific(y,VEC_CLASSID,4);
   PetscValidHeaderSpecific(y,VEC_CLASSID,5);
-  if (nep->split) {
+  if (nep->fui==NEP_USER_INTERFACE_SPLIT) {
     ierr = VecSet(y,0.0);CHKERRQ(ierr);
     for (i=0;i<nep->nt;i++) {
       ierr = FNEvaluateDerivative(nep->f[i],lambda,&alpha);CHKERRQ(ierr);
@@ -622,7 +622,7 @@ PetscErrorCode NEPComputeFunction(NEP nep,PetscScalar lambda,Mat A,Mat B)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
 
-  if (nep->split) {
+  if (nep->fui==NEP_USER_INTERFACE_SPLIT) {
 
     ierr = MatZeroEntries(A);CHKERRQ(ierr);
     for (i=0;i<nep->nt;i++) {
@@ -680,7 +680,7 @@ PetscErrorCode NEPComputeJacobian(NEP nep,PetscScalar lambda,Mat A)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
 
-  if (nep->split) {
+  if (nep->fui==NEP_USER_INTERFACE_SPLIT) {
 
     ierr = MatZeroEntries(A);CHKERRQ(ierr);
     for (i=0;i<nep->nt;i++) {

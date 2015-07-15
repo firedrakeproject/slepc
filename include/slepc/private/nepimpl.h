@@ -53,6 +53,14 @@ typedef enum { NEP_STATE_INITIAL,
                NEP_STATE_EIGENVECTORS } NEPStateType;
 
 /*
+     How the problem function T(lambda) has been defined by the user
+     - Callback: one callback to build the function matrix, another one for the Jacobian
+     - Split: in split form sum_j(A_j*f_j(lambda))
+*/
+typedef enum { NEP_USER_INTERFACE_CALLBACK,
+               NEP_USER_INTERFACE_SPLIT } NEPUserInterface;
+
+/*
    Defines the NEP data structure.
 */
 struct _p_NEP {
@@ -118,8 +126,7 @@ struct _p_NEP {
   PetscInt       its;              /* number of iterations so far computed */
   PetscInt       n,nloc;           /* problem dimensions (global, local) */
   PetscInt       nfuncs;           /* number of function evaluations */
-  PetscBool      split;            /* the nonlinear operator has been set in
-                                      split form, otherwise user callbacks are used */
+  NEPUserInterface fui;            /* how the user has defined the nonlinear operator */
   NEPConvergedReason reason;
 };
 

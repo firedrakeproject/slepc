@@ -80,7 +80,7 @@ PetscErrorCode NEPSetUp(NEP nep)
   if (!nep->which) nep->which = NEP_TARGET_MAGNITUDE;
 
   /* set problem dimensions */
-  if (nep->split) {
+  if (nep->fui==NEP_USER_INTERFACE_SPLIT) {
     ierr = MatDuplicate(nep->A[0],MAT_DO_NOT_COPY_VALUES,&nep->function);CHKERRQ(ierr);
     ierr = MatDuplicate(nep->A[0],MAT_DO_NOT_COPY_VALUES,&nep->jacobian);CHKERRQ(ierr);
     ierr = PetscLogObjectParent((PetscObject)nep,(PetscObject)nep->function);CHKERRQ(ierr);
@@ -264,7 +264,7 @@ PetscErrorCode NEPAllocateSolution(NEP nep,PetscInt extra)
     if (!((PetscObject)(nep->V))->type_name) {
       ierr = BVSetType(nep->V,BVSVEC);CHKERRQ(ierr);
     }
-    if (nep->split) T = nep->A[0];
+    if (nep->fui==NEP_USER_INTERFACE_SPLIT) T = nep->A[0];
     else {
       ierr = NEPGetFunction(nep,&T,NULL,NULL,NULL);CHKERRQ(ierr);
     }

@@ -113,7 +113,7 @@ PetscErrorCode NEPCreate(MPI_Comm comm,NEP *outnep)
   nep->n               = 0;
   nep->nloc            = 0;
   nep->nfuncs          = 0;
-  nep->split           = PETSC_FALSE;
+  nep->fui             = NEP_USER_INTERFACE_CALLBACK;
   nep->reason          = NEP_CONVERGED_ITERATING;
 
   ierr = PetscNewLog(nep,&nep->sc);CHKERRQ(ierr);
@@ -268,7 +268,7 @@ PetscErrorCode NEPReset(NEP nep)
   ierr = MatDestroy(&nep->function);CHKERRQ(ierr);
   ierr = MatDestroy(&nep->function_pre);CHKERRQ(ierr);
   ierr = MatDestroy(&nep->jacobian);CHKERRQ(ierr);
-  if (nep->split) {
+  if (nep->fui==NEP_USER_INTERFACE_SPLIT) {
     ierr = MatDestroyMatrices(nep->nt,&nep->A);CHKERRQ(ierr);
     for (i=0;i<nep->nt;i++) {
       ierr = FNDestroy(&nep->f[i]);CHKERRQ(ierr);
@@ -706,7 +706,7 @@ PetscErrorCode NEPSetFunction(NEP nep,Mat A,Mat B,PetscErrorCode (*fun)(NEP,Pets
     ierr = MatDestroy(&nep->function_pre);CHKERRQ(ierr);
     nep->function_pre = B;
   }
-  nep->split = PETSC_FALSE;
+  nep->fui = NEP_USER_INTERFACE_CALLBACK;
   PetscFunctionReturn(0);
 }
 
@@ -778,7 +778,7 @@ PetscErrorCode NEPSetJacobian(NEP nep,Mat A,PetscErrorCode (*jac)(NEP,PetscScala
     ierr = MatDestroy(&nep->jacobian);CHKERRQ(ierr);
     nep->jacobian = A;
   }
-  nep->split = PETSC_FALSE;
+  nep->fui = NEP_USER_INTERFACE_CALLBACK;
   PetscFunctionReturn(0);
 }
 
@@ -863,7 +863,7 @@ PetscErrorCode NEPSetSplitOperator(NEP nep,PetscInt n,Mat A[],FN f[],MatStructur
   ierr = MatDestroy(&nep->function);CHKERRQ(ierr);
   ierr = MatDestroy(&nep->function_pre);CHKERRQ(ierr);
   ierr = MatDestroy(&nep->jacobian);CHKERRQ(ierr);
-  if (nep->split) {
+  if (nep->fui==NEP_USER_INTERFACE_SPLIT) {
     ierr = MatDestroyMatrices(nep->nt,&nep->A);CHKERRQ(ierr);
     for (i=0;i<nep->nt;i++) {
       ierr = FNDestroy(&nep->f[i]);CHKERRQ(ierr);
@@ -885,9 +885,9 @@ PetscErrorCode NEPSetSplitOperator(NEP nep,PetscInt n,Mat A[],FN f[],MatStructur
     ierr = PetscObjectReference((PetscObject)f[i]);CHKERRQ(ierr);
     nep->f[i] = f[i];
   }
-  nep->nt    = n;
-  nep->mstr  = str;
-  nep->split = PETSC_TRUE;
+  nep->nt   = n;
+  nep->mstr = str;
+  nep->fui  = NEP_USER_INTERFACE_SPLIT;
   PetscFunctionReturn(0);
 }
 
