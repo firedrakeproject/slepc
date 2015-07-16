@@ -153,7 +153,8 @@ PetscErrorCode NEPProjectOperator(NEP nep,PetscInt j0,PetscInt j1)
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
   PetscValidLogicalCollectiveInt(nep,j0,2);
   PetscValidLogicalCollectiveInt(nep,j1,3);
-  if (nep->fui!=NEP_USER_INTERFACE_SPLIT) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_WRONGSTATE,"This solver requires a split operator");
+  NEPCheckProblem(nep,1);
+  NEPCheckSplit(nep,1);
   ierr = BVSetActiveColumns(nep->V,j0,j1);CHKERRQ(ierr);
   for (k=0;k<nep->nt;k++) {
     ierr = DSGetMat(nep->ds,DSMatExtra[k],&G);CHKERRQ(ierr);
@@ -621,6 +622,7 @@ PetscErrorCode NEPComputeFunction(NEP nep,PetscScalar lambda,Mat A,Mat B)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
+  NEPCheckProblem(nep,1);
   switch (nep->fui) {
   case NEP_USER_INTERFACE_CALLBACK:
     if (!nep->computefunction) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_USER,"Must call NEPSetFunction() first");
@@ -640,7 +642,6 @@ PetscErrorCode NEPComputeFunction(NEP nep,PetscScalar lambda,Mat A,Mat B)
     if (A != B) SETERRQ(PetscObjectComm((PetscObject)nep),1,"Not implemented");
     break;
   case NEP_USER_INTERFACE_DERIVATIVES:
-    if (!nep->computederivatives) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_USER,"Must call NEPSetDerivatives() first");
     ierr = PetscLogEventBegin(NEP_DerivativesEval,nep,A,B,0);CHKERRQ(ierr);
     PetscStackPush("NEP user Derivatives function");
     ierr = (*nep->computederivatives)(nep,lambda,0,A,nep->derivativesctx);CHKERRQ(ierr);
@@ -682,6 +683,7 @@ PetscErrorCode NEPComputeJacobian(NEP nep,PetscScalar lambda,Mat A)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
+  NEPCheckProblem(nep,1);
   switch (nep->fui) {
   case NEP_USER_INTERFACE_CALLBACK:
     if (!nep->computejacobian) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_USER,"Must call NEPSetJacobian() first");
@@ -699,7 +701,6 @@ PetscErrorCode NEPComputeJacobian(NEP nep,PetscScalar lambda,Mat A)
     }
     break;
   case NEP_USER_INTERFACE_DERIVATIVES:
-    if (!nep->computederivatives) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_USER,"Must call NEPSetDerivatives() first");
     ierr = PetscLogEventBegin(NEP_DerivativesEval,nep,A,0,0);CHKERRQ(ierr);
     PetscStackPush("NEP user Derivatives function");
     ierr = (*nep->computederivatives)(nep,lambda,1,A,nep->derivativesctx);CHKERRQ(ierr);

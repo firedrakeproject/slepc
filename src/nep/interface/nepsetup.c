@@ -52,6 +52,7 @@ PetscErrorCode NEPSetUp(NEP nep)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
+  NEPCheckProblem(nep,1);
   if (nep->state) PetscFunctionReturn(0);
   ierr = PetscLogEventBegin(NEP_SetUp,nep,0,0,0);CHKERRQ(ierr);
 

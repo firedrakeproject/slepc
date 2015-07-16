@@ -58,7 +58,7 @@ typedef enum { NEP_STATE_INITIAL,
      - Split: in split form sum_j(A_j*f_j(lambda))
      - Derivatives: a single callback for all the derivatives (including the 0th derivative)
 */
-typedef enum { NEP_USER_INTERFACE_CALLBACK,
+typedef enum { NEP_USER_INTERFACE_CALLBACK=1,
                NEP_USER_INTERFACE_SPLIT,
                NEP_USER_INTERFACE_DERIVATIVES } NEPUserInterface;
 
@@ -140,9 +140,33 @@ struct _p_NEP {
 */
 #if !defined(PETSC_USE_DEBUG)
 
+#define NEPCheckProblem(h,arg) do {} while (0)
+#define NEPCheckCallback(h,arg) do {} while (0)
+#define NEPCheckSplit(h,arg) do {} while (0)
+#define NEPCheckDerivatives(h,arg) do {} while (0)
 #define NEPCheckSolved(h,arg) do {} while (0)
 
 #else
+
+#define NEPCheckProblem(h,arg) \
+  do { \
+    if (!(h->fui)) SETERRQ1(PetscObjectComm((PetscObject)h),PETSC_ERR_ARG_WRONGSTATE,"The nonlinear eigenproblem has not been specified yet. Parameter #%d",arg); \
+  } while (0)
+
+#define NEPCheckCallback(h,arg) \
+  do { \
+    if (h->fui!=NEP_USER_INTERFACE_CALLBACK) SETERRQ1(PetscObjectComm((PetscObject)h),PETSC_ERR_ARG_WRONGSTATE,"This operation requires the nonlinear eigenproblem specified with callbacks. Parameter #%d",arg); \
+  } while (0)
+
+#define NEPCheckSplit(h,arg) \
+  do { \
+    if (h->fui!=NEP_USER_INTERFACE_SPLIT) SETERRQ1(PetscObjectComm((PetscObject)h),PETSC_ERR_ARG_WRONGSTATE,"This operation requires the nonlinear eigenproblem in split form. Parameter #%d",arg); \
+  } while (0)
+
+#define NEPCheckDerivatives(h,arg) \
+  do { \
+    if (h->fui!=NEP_USER_INTERFACE_DERIVATIVES) SETERRQ1(PetscObjectComm((PetscObject)h),PETSC_ERR_ARG_WRONGSTATE,"This operation requires the nonlinear eigenproblem specified with derivatives callback. Parameter #%d",arg); \
+  } while (0)
 
 #define NEPCheckSolved(h,arg) \
   do { \
@@ -166,6 +190,7 @@ PETSC_STATIC_INLINE PetscErrorCode NEP_KSPSolve(NEP nep,Vec b,Vec x)
 }
 
 PETSC_INTERN PetscErrorCode NEPComputeVectors(NEP);
+PETSC_INTERN PetscErrorCode NEPReset_Problem(NEP);
 PETSC_INTERN PetscErrorCode NEPGetDefaultShift(NEP,PetscScalar*);
 PETSC_INTERN PetscErrorCode NEPComputeResidualNorm_Private(NEP,PetscScalar,Vec,Vec*,PetscReal*);
 PETSC_INTERN PetscErrorCode NEPNewtonRefinementSimple(NEP,PetscInt*,PetscReal*,PetscInt);

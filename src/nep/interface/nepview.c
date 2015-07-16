@@ -73,10 +73,20 @@ PetscErrorCode NEPView(NEP nep,PetscViewer viewer)
       ierr = (*nep->ops->view)(nep,viewer);CHKERRQ(ierr);
       ierr = PetscViewerASCIIPopTab(viewer);CHKERRQ(ierr);
     }
-    if (nep->fui==NEP_USER_INTERFACE_SPLIT) {
-      ierr = PetscViewerASCIIPrintf(viewer,"  nonlinear operator in split form\n");CHKERRQ(ierr);
+    if (nep->fui) {
+      switch (nep->fui) {
+      case NEP_USER_INTERFACE_CALLBACK:
+        ierr = PetscViewerASCIIPrintf(viewer,"  nonlinear operator from user callbacks\n");CHKERRQ(ierr);
+        break;
+      case NEP_USER_INTERFACE_SPLIT:
+        ierr = PetscViewerASCIIPrintf(viewer,"  nonlinear operator in split form\n");CHKERRQ(ierr);
+        break;
+      case NEP_USER_INTERFACE_DERIVATIVES:
+        ierr = PetscViewerASCIIPrintf(viewer,"  nonlinear operator from user callbacks for the successive derivatives\n");CHKERRQ(ierr);
+        break;
+      }
     } else {
-      ierr = PetscViewerASCIIPrintf(viewer,"  nonlinear operator from user callbacks\n");CHKERRQ(ierr);
+      ierr = PetscViewerASCIIPrintf(viewer,"  nonlinear operator not specified yet\n");CHKERRQ(ierr);
     }
     ierr = PetscViewerASCIIPrintf(viewer,"  iterative refinement: %s\n",NEPRefineTypes[nep->refine]);CHKERRQ(ierr);
     if (nep->refine) {
