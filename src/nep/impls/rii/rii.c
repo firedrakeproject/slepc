@@ -75,7 +75,7 @@ PetscErrorCode NEPSolve_RII(NEP nep)
   PetscErrorCode     ierr;
   Mat                T=nep->function,Tp=nep->jacobian,Tsigma;
   Vec                u,r=nep->work[0],delta=nep->work[1];
-  PetscScalar        lambda,a1,a2;
+  PetscScalar        lambda,a1,a2,corr;
   PetscReal          relerr;
   PetscBool          hascopy;
   KSPConvergedReason kspreason;
@@ -87,14 +87,7 @@ PetscErrorCode NEPSolve_RII(NEP nep)
     ierr = BVSetRandomColumn(nep->V,0,nep->rand);CHKERRQ(ierr);
   }
   ierr = BVGetColumn(nep->V,0,&u);CHKERRQ(ierr);
-
-  /* correct eigenvalue approximation: lambda = lambda - (u'*T*u)/(u'*Tp*u) */
   ierr = NEPComputeFunction(nep,lambda,T,T);CHKERRQ(ierr);
-  ierr = MatMult(T,u,r);CHKERRQ(ierr);
-  ierr = VecDot(u,r,&a1);CHKERRQ(ierr);
-  ierr = NEPApplyJacobian(nep,lambda,u,delta,r,Tp);CHKERRQ(ierr);
-  ierr = VecDot(u,r,&a2);CHKERRQ(ierr);
-  lambda = lambda - a1/a2;
 
   /* prepare linear solver */
   ierr = MatDuplicate(T,MAT_COPY_VALUES,&Tsigma);CHKERRQ(ierr);
@@ -149,12 +142,15 @@ PetscErrorCode NEPSolve_RII(NEP nep)
       /* normalize eigenvector */
       ierr = VecNormalize(u,NULL);CHKERRQ(ierr);
 
-      /* correct eigenvalue: lambda = lambda - (u'*T*u)/(u'*Tp*u) */
-      ierr = NEPApplyFunction(nep,lambda,u,delta,r,T,T);CHKERRQ(ierr);
-      ierr = VecDot(u,r,&a1);CHKERRQ(ierr);
-      ierr = NEPApplyJacobian(nep,lambda,u,delta,r,Tp);CHKERRQ(ierr);
-      ierr = VecDot(u,r,&a2);CHKERRQ(ierr);
-      lambda = lambda - a1/a2;
+      do {
+        /* correct eigenvalue: lambda = lambda - (u'*T*u)/(u'*Tp*u) */
+        ierr = NEPApplyFunction(nep,lambda,u,delta,r,T,T);CHKERRQ(ierr);
+        ierr = VecDot(u,r,&a1);CHKERRQ(ierr);
+        ierr = NEPApplyJacobian(nep,lambda,u,delta,r,Tp);CHKERRQ(ierr);
+        ierr = VecDot(u,r,&a2);CHKERRQ(ierr);
+        corr = a1/a2;
+        lambda = lambda - corr;
+      } while (PetscAbsScalar(corr)>PETSC_SQRT_MACHINE_EPSILON);
     }
     if (nep->its >= nep->max_it) nep->reason = NEP_DIVERGED_MAX_IT;
   }
