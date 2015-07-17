@@ -78,6 +78,7 @@ PetscErrorCode NEPSolve_RII(NEP nep)
   PetscScalar        lambda,a1,a2,corr;
   PetscReal          relerr;
   PetscBool          hascopy;
+  PetscInt           inner_iteration_count;
   KSPConvergedReason kspreason;
 
   PetscFunctionBegin;
@@ -96,6 +97,19 @@ PetscErrorCode NEPSolve_RII(NEP nep)
   /* Restart loop */
   while (nep->reason == NEP_CONVERGED_ITERATING) {
     nep->its++;
+
+    /* Use Newton's method to compute nonlinear Rayleigh functional. Current eigenvalue 
+       estimate as starting value. */
+    inner_iteration_count=0;
+    do {
+      ierr = NEPApplyFunction(nep,lambda,u,delta,r,T,T);CHKERRQ(ierr);
+      ierr = VecDot(r,u,&a1);CHKERRQ(ierr);
+      ierr = NEPApplyJacobian(nep,lambda,u,delta,r,Tp);CHKERRQ(ierr);
+      ierr = VecDot(r,u,&a2);CHKERRQ(ierr);
+      corr = a1/a2;
+      lambda = lambda - corr;
+      inner_iteration_count++;
+    } while (PetscAbsScalar(corr)>PETSC_SQRT_MACHINE_EPSILON && inner_iteration_count<10);
 
     /* update preconditioner and set adaptive tolerance */
     if (nep->lag && !(nep->its%nep->lag) && nep->its>2*nep->lag && relerr<1e-2) {
@@ -141,16 +155,6 @@ PetscErrorCode NEPSolve_RII(NEP nep)
 
       /* normalize eigenvector */
       ierr = VecNormalize(u,NULL);CHKERRQ(ierr);
-
-      do {
-        /* correct eigenvalue: lambda = lambda - (u'*T*u)/(u'*Tp*u) */
-        ierr = NEPApplyFunction(nep,lambda,u,delta,r,T,T);CHKERRQ(ierr);
-        ierr = VecDot(u,r,&a1);CHKERRQ(ierr);
-        ierr = NEPApplyJacobian(nep,lambda,u,delta,r,Tp);CHKERRQ(ierr);
-        ierr = VecDot(u,r,&a2);CHKERRQ(ierr);
-        corr = a1/a2;
-        lambda = lambda - corr;
-      } while (PetscAbsScalar(corr)>PETSC_SQRT_MACHINE_EPSILON);
     }
     if (nep->its >= nep->max_it) nep->reason = NEP_DIVERGED_MAX_IT;
   }
