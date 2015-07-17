@@ -267,7 +267,7 @@ static PetscErrorCode NEPInterpolGetDegree_Interpol(NEP nep,PetscInt *deg)
 .  nep - nonlinear eigenvalue solver
 
    Output Parameter:
-.  pep - the polynomial degree
+.  deg - the polynomial degree
 
    Level: advanced
 

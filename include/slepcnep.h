@@ -216,6 +216,9 @@ PETSC_EXTERN PetscErrorCode NEPAllocateSolution(NEP,PetscInt);
 
 /* --------- options specific to particular eigensolvers -------- */
 
+PETSC_EXTERN PetscErrorCode NEPRIISetMaximumIterations(NEP,PetscInt);
+PETSC_EXTERN PetscErrorCode NEPRIIGetMaximumIterations(NEP,PetscInt*);
+
 PETSC_EXTERN PetscErrorCode NEPSLPSetEPS(NEP,EPS);
 PETSC_EXTERN PetscErrorCode NEPSLPGetEPS(NEP,EPS*);
 
