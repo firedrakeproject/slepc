@@ -715,6 +715,11 @@ PetscErrorCode EPSValuesViewFromOptions(EPS eps)
    Options Database Keys:
 .  -eps_view_vectors - output eigenvectors.
 
+   Note:
+   If PETSc was configured with real scalars, complex conjugate eigenvectors
+   will be viewed as two separate real vectors, one containing the real part
+   and another one containing the imaginary part.
+
    Level: intermediate
 
 .seealso: EPSSolve(), EPSValuesView(), EPSErrorView()

@@ -393,7 +393,7 @@ static PetscErrorCode PEPTOARTrunc(PEP pep,PetscScalar *S,PetscInt ld,PetscInt d
   }
   nnc = cs1-lock-newc;
   nrow = rs1-lock;
-  ierr = PetscMalloc4(deg*newc*nnc,&SS,newc*nnc,&SS2,(rs1+lock+newc)*n,&pU,deg*rs1,&tau);
+  ierr = PetscMalloc4(deg*newc*nnc,&SS,newc*nnc,&SS2,(rs1+lock+newc)*n,&pU,deg*rs1,&tau);CHKERRQ(ierr);
   offu = lock*(rs1+1);
   M = work+nwu;
   nwu += rs1*cs1*deg;

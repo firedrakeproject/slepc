@@ -297,11 +297,11 @@ PetscErrorCode MatGetDiagonal_Fun(Mat A,Vec diag)
 
   PetscFunctionBeginUser;
   ierr = MatShellGetContext(A,(void**)&ctx);CHKERRQ(ierr);
+  ierr = VecGetSize(diag,&n);CHKERRQ(ierr);
   h = ctx->h;
   c = ctx->kappa/(ctx->lambda-ctx->kappa);
   d = n;
   ierr = VecSet(diag,2.0*(d-ctx->lambda*h/3.0));CHKERRQ(ierr);
-  ierr = VecGetSize(diag,&n);CHKERRQ(ierr);
   ierr = VecGetArray(diag,&pd);CHKERRQ(ierr);
   pd[n-1] = d-ctx->lambda*h/3.0+ctx->lambda*c;
   ierr = VecRestoreArray(diag,&pd);CHKERRQ(ierr);

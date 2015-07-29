@@ -255,7 +255,11 @@ PetscErrorCode BVDotVec_BLAS_Private(BV bv,PetscInt n_,PetscInt k_,const PetscSc
   ierr = PetscBLASIntCast(k_,&k);CHKERRQ(ierr);
   if (mpi) {
     ierr = BVAllocateWork_Private(bv,k);CHKERRQ(ierr);
-    if (n) PetscStackCallBLAS("BLASgemv",BLASgemv_("C",&n,&k,&done,A,&n,x,&one,&zero,bv->work,&one));
+    if (n) {
+      PetscStackCallBLAS("BLASgemv",BLASgemv_("C",&n,&k,&done,A,&n,x,&one,&zero,bv->work,&one));
+    } else {
+      ierr = PetscMemzero(bv->work,k*sizeof(PetscScalar));CHKERRQ(ierr);
+    }
     ierr = MPI_Allreduce(bv->work,y,k,MPIU_SCALAR,MPIU_SUM,PetscObjectComm((PetscObject)bv));CHKERRQ(ierr);
   } else {
     if (n) PetscStackCallBLAS("BLASgemv",BLASgemv_("C",&n,&k,&done,A,&n,x,&one,&zero,y,&one));

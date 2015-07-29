@@ -57,7 +57,7 @@ PetscErrorCode NEPView(NEP nep,PetscViewer viewer)
 {
   PetscErrorCode ierr;
   char           str[50];
-  PetscBool      isascii,isslp,istrivial;
+  PetscBool      isascii,isslp,istrivial,nods;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
@@ -145,8 +145,11 @@ PetscErrorCode NEPView(NEP nep,PetscViewer viewer)
   if (!nep->rg) { ierr = NEPGetRG(nep,&nep->rg);CHKERRQ(ierr); }
   ierr = RGIsTrivial(nep->rg,&istrivial);CHKERRQ(ierr);
   if (!istrivial) { ierr = RGView(nep->rg,viewer);CHKERRQ(ierr); }
-  if (!nep->ds) { ierr = NEPGetDS(nep,&nep->ds);CHKERRQ(ierr); }
-  ierr = DSView(nep->ds,viewer);CHKERRQ(ierr);
+  ierr = PetscObjectTypeCompareAny((PetscObject)nep,&nods,NEPRII,NEPSLP,NEPINTERPOL,"");CHKERRQ(ierr);
+  if (!nods) {
+    if (!nep->ds) { ierr = NEPGetDS(nep,&nep->ds);CHKERRQ(ierr); }
+    ierr = DSView(nep->ds,viewer);CHKERRQ(ierr);
+  }
   ierr = PetscViewerPopFormat(viewer);CHKERRQ(ierr);
   ierr = PetscObjectTypeCompare((PetscObject)nep,NEPSLP,&isslp);CHKERRQ(ierr);
   if (!isslp) {
@@ -636,6 +639,11 @@ PetscErrorCode NEPValuesViewFromOptions(NEP nep)
 
    Options Database Keys:
 .  -nep_view_vectors - output eigenvectors.
+
+   Note:
+   If PETSc was configured with real scalars, complex conjugate eigenvectors
+   will be viewed as two separate real vectors, one containing the real part
+   and another one containing the imaginary part.
 
    Level: intermediate
 
