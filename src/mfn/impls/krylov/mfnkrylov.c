@@ -36,6 +36,9 @@
 
 #include <slepc/private/mfnimpl.h>
 
+PETSC_INTERN PetscErrorCode MFNSolve_Krylov_Exp(MFN mfn,Vec b,Vec x);
+PETSC_INTERN PetscErrorCode MFNSolve_Krylov(MFN mfn,Vec b,Vec x);
+
 #undef __FUNCT__
 #define __FUNCT__ "MFNSetUp_Krylov"
 PetscErrorCode MFNSetUp_Krylov(MFN mfn)
@@ -45,38 +48,41 @@ PetscErrorCode MFNSetUp_Krylov(MFN mfn)
   PetscBool       isexp;
 
   PetscFunctionBegin;
-  ierr = PetscObjectTypeCompare((PetscObject)mfn->fn,FNEXP,&isexp);CHKERRQ(ierr);
-  if (!isexp) SETERRQ(PetscObjectComm((PetscObject)mfn),PETSC_ERR_SUP,"Only the exponential function is supported in this version, use the development version or a later release");
   ierr = MatGetSize(mfn->A,&N,NULL);CHKERRQ(ierr);
   if (!mfn->ncv) mfn->ncv = PetscMin(30,N);
   if (!mfn->max_it) mfn->max_it = PetscMax(100,2*N/mfn->ncv);
   ierr = MFNAllocateSolution(mfn,2);CHKERRQ(ierr);
+
+  /* dispatch solver */
+  ierr = PetscObjectTypeCompare((PetscObject)mfn->fn,FNEXP,&isexp);CHKERRQ(ierr);
+  if (isexp) mfn->ops->solve = MFNSolve_Krylov_Exp;
+  else       mfn->ops->solve = MFNSolve_Krylov;
   PetscFunctionReturn(0);
 }
 
 #undef __FUNCT__
 #define __FUNCT__ "MFNBasicArnoldi"
-static PetscErrorCode MFNBasicArnoldi(BV V, Mat A,PetscScalar *H,PetscInt ldh,PetscInt k,PetscInt *M,PetscBool *breakdown)
+static PetscErrorCode MFNBasicArnoldi(BV V, Mat A,PetscScalar *H,PetscInt ldh,PetscInt k,PetscInt *M,PetscReal *beta,PetscBool *breakdown)
 {
   PetscErrorCode ierr;
   PetscInt       j,m = *M;
-  PetscReal      norm;
   Vec            vj,vj1;
 
   PetscFunctionBegin;
+  ierr = BVSetActiveColumns(V,0,m);CHKERRQ(ierr);
   for (j=k;j<m;j++) {
     ierr = BVGetColumn(V,j,&vj);CHKERRQ(ierr);
     ierr = BVGetColumn(V,j+1,&vj1);CHKERRQ(ierr);
     ierr = MatMult(A,vj,vj1);CHKERRQ(ierr);
     ierr = BVRestoreColumn(V,j,&vj);CHKERRQ(ierr);
     ierr = BVRestoreColumn(V,j+1,&vj1);CHKERRQ(ierr);
-    ierr = BVOrthogonalizeColumn(V,j+1,H+ldh*j,&norm,breakdown);CHKERRQ(ierr);
-    H[j+1+ldh*j] = norm;
+    ierr = BVOrthogonalizeColumn(V,j+1,H+ldh*j,beta,breakdown);CHKERRQ(ierr);
+    H[j+1+ldh*j] = *beta;
     if (*breakdown) {
       *M = j+1;
-      PetscFunctionReturn(0);
+      break;
     } else {
-      ierr = BVScaleColumn(V,j+1,1/norm);CHKERRQ(ierr);
+      ierr = BVScaleColumn(V,j+1,1.0/(*beta));CHKERRQ(ierr);
     }
   }
   PetscFunctionReturn(0);
@@ -110,7 +116,70 @@ static PetscErrorCode CreateDenseMat(PetscInt k,Mat *A)
 
 #undef __FUNCT__
 #define __FUNCT__ "MFNSolve_Krylov"
+/*
+   Generic Krylov method for any function
+ */
 PetscErrorCode MFNSolve_Krylov(MFN mfn,Vec b,Vec x)
+{
+  PetscErrorCode ierr;
+  PetscInt       m,ld,j;
+  Mat            H=NULL,F=NULL;
+  PetscScalar    *array,*harray,*farray;
+  PetscReal      normb,beta;
+  PetscBool      breakdown,set,flg,symm=PETSC_FALSE;
+
+  PetscFunctionBegin;
+  m  = mfn->ncv;
+  ld = m+1;
+  ierr = PetscMalloc1(ld*ld,&array);CHKERRQ(ierr);
+  ierr = CreateDenseMat(m,&F);CHKERRQ(ierr);
+  ierr = CreateDenseMat(m,&H);CHKERRQ(ierr);
+
+  /* build Arnoldi decomposition with start vector b/||b|| */
+  ierr = VecNorm(b,NORM_2,&normb);CHKERRQ(ierr);
+  if (!normb) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Cannot pass a zero b vector to MFNSolve()");
+  ierr = BVInsertVec(mfn->V,0,b);CHKERRQ(ierr);
+  ierr = BVScaleColumn(mfn->V,0,1.0/normb);CHKERRQ(ierr);
+  ierr = MFNBasicArnoldi(mfn->V,mfn->A,array,ld,0,&m,&beta,&breakdown);CHKERRQ(ierr);
+
+  ierr = MatDenseGetArray(H,&harray);CHKERRQ(ierr);
+  for (j=0;j<m;j++) {
+    ierr = PetscMemcpy(harray+j*m,array+j*ld,m*sizeof(PetscScalar));CHKERRQ(ierr);
+  }
+  ierr = MatDenseRestoreArray(H,&harray);CHKERRQ(ierr);
+
+  /* set symmetry flag of H from A */
+  ierr = MatIsHermitianKnown(mfn->A,&set,&flg);CHKERRQ(ierr);
+  symm = set? flg: PETSC_FALSE;
+  if (symm) {
+    ierr = MatSetOption(H,MAT_HERMITIAN,PETSC_TRUE);CHKERRQ(ierr);
+  }
+
+  /* evaluate f(H) */
+  ierr = FNEvaluateFunctionMat(mfn->fn,H,F);CHKERRQ(ierr);
+
+  /* x = ||b||*V*f(H)*e_1 */
+  ierr = MatDenseGetArray(F,&farray);CHKERRQ(ierr);
+  for (j=0;j<m;j++) farray[j] *= normb;
+  ierr = BVSetActiveColumns(mfn->V,0,m);CHKERRQ(ierr);
+  ierr = BVMultVec(mfn->V,1.0,0.0,x,farray);CHKERRQ(ierr);
+  ierr = MatDenseRestoreArray(F,&farray);CHKERRQ(ierr);
+
+  /* there is no known way to assess accuracy for general f, so just pretend it works */
+  mfn->reason = MFN_CONVERGED_TOL;
+
+  ierr = MatDestroy(&H);CHKERRQ(ierr);
+  ierr = MatDestroy(&F);CHKERRQ(ierr);
+  ierr = PetscFree(array);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "MFNSolve_Krylov_Exp"
+/*
+   Krylov method taylored for the exponential, based on the implementation in Expokit
+ */
+PetscErrorCode MFNSolve_Krylov_Exp(MFN mfn,Vec b,Vec x)
 {
   PetscErrorCode ierr;
   PetscInt       mxstep,mxrej,m,mb,ld,i,j,ireject,mx,k1;
@@ -120,7 +189,7 @@ PetscErrorCode MFNSolve_Krylov(MFN mfn,Vec b,Vec x)
   PetscReal      anorm,normb,avnorm,tol,err_loc,rndoff;
   PetscReal      t_out,t_new,t_now,t_step;
   PetscReal      xm,fact,s,p1,p2;
-  PetscReal      beta,gamma,delta;
+  PetscReal      beta,beta2,gamma,delta;
   PetscBool      breakdown;
 
   PetscFunctionBegin;
@@ -159,7 +228,7 @@ PetscErrorCode MFNSolve_Krylov(MFN mfn,Vec b,Vec x)
     t_step = PetscMin(t_out-t_now,t_new);
     ierr = BVInsertVec(mfn->V,0,x);CHKERRQ(ierr);
     ierr = BVScaleColumn(mfn->V,0,1.0/beta);CHKERRQ(ierr);
-    ierr = MFNBasicArnoldi(mfn->V,mfn->A,H,ld,0,&mb,&breakdown);CHKERRQ(ierr);
+    ierr = MFNBasicArnoldi(mfn->V,mfn->A,H,ld,0,&mb,&beta2,&breakdown);CHKERRQ(ierr);
     if (breakdown) {
       k1 = 0;
       t_step = t_out-t_now;
@@ -186,10 +255,8 @@ PetscErrorCode MFNSolve_Krylov(MFN mfn,Vec b,Vec x)
       ierr = CreateDenseMat(mx,&M);CHKERRQ(ierr);
       ierr = CreateDenseMat(mx,&K);CHKERRQ(ierr);
       ierr = MatDenseGetArray(M,&F);CHKERRQ(ierr);
-      for (i=0;i<mx;i++) {
-        for (j=0;j<mx;j++) {
-          F[i+j*mx] = H[i+j*ld];
-        }
+      for (j=0;j<mx;j++) {
+        ierr = PetscMemcpy(F+j*mx,H+j*ld,mx*sizeof(PetscScalar));CHKERRQ(ierr);
       }
       ierr = MatDenseRestoreArray(M,&F);CHKERRQ(ierr);
       ierr = FNEvaluateFunctionMat(mfn->fn,M,K);CHKERRQ(ierr);
