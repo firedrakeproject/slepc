@@ -527,7 +527,7 @@ Iterative refinement can be very costly (sometimes a single refinement step is m
 	\findex{PEPSetRefine}
 	\begin{Verbatim}[fontsize=\small]
 	PEPSetRefine(PEP pep,PEPRefine refine,PetscInt npart,
-                     PetscReal tol,PetscInt its,PetscBool schur);
+                     PetscReal tol,PetscInt its,PEPRefineScheme scheme);
 	\end{Verbatim}
 
 There are two types of refinement, identified as \emph{simple} and \emph{multiple}. The first one performs refinement on each eigenpair individually, while the second one considers the computed invariant pair as a whole \citep{Betcke:2011:PER}. This latter approach is more costly but it is expected to be more robust in the presence of multiple eigenvalues.
