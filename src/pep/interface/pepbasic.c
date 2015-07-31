@@ -620,6 +620,7 @@ PetscErrorCode PEPGetST(PEP pep,ST *st)
 PetscErrorCode PEPRefineGetKSP(PEP pep,KSP *ksp)
 {
   PetscErrorCode ierr;
+  PC             pc;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
@@ -637,6 +638,9 @@ PetscErrorCode PEPRefineGetKSP(PEP pep,KSP *ksp)
     ierr = KSPSetOptionsPrefix(*ksp,((PetscObject)pep)->prefix);CHKERRQ(ierr);
     ierr = KSPAppendOptionsPrefix(*ksp,"pep_refine_");CHKERRQ(ierr);
     ierr = KSPSetErrorIfNotConverged(*ksp,PETSC_TRUE);CHKERRQ(ierr);
+    ierr = KSPSetType(*ksp,KSPPREONLY);CHKERRQ(ierr);
+    ierr = KSPGetPC(*ksp,&pc);CHKERRQ(ierr);
+    ierr = PCSetType(pc,PCLU);CHKERRQ(ierr);
   }
   *ksp = pep->refineksp;
   PetscFunctionReturn(0);
