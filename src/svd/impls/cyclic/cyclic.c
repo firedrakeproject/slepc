@@ -86,11 +86,13 @@ PetscErrorCode SVDSetUp_Cyclic(SVD svd)
   PetscInt          M,N,m,n,i,isl,Istart,Iend;
   const PetscScalar *isa;
   PetscScalar       *va;
-  PetscBool         trackall;
+  PetscBool         trackall,gpu;
   Vec               v;
   Mat               Zm,Zn;
 
   PetscFunctionBegin;
+  ierr = PetscObjectTypeCompareAny((PetscObject)svd->A,&gpu,MATSEQAIJCUSP,MATMPIAIJCUSP,MATSEQAIJCUSPARSE,MATMPIAIJCUSPARSE,"");CHKERRQ(ierr);
+  if (gpu) SETERRQ(PetscObjectComm((PetscObject)svd),PETSC_ERR_SUP,"Solver not implemented for GPU matrices");
   ierr = SVDMatGetSize(svd,&M,&N);CHKERRQ(ierr);
   ierr = SVDMatGetLocalSize(svd,&m,&n);CHKERRQ(ierr);
   if (!cyclic->mat) {
