@@ -59,10 +59,10 @@ static PetscErrorCode MatCreateVecs_Cross(Mat B,Vec *right,Vec *left)
   PetscFunctionBegin;
   ierr = MatShellGetContext(B,(void**)&svd);CHKERRQ(ierr);
   if (right) {
-    ierr = SVDMatCreateVecs(svd,NULL,right);CHKERRQ(ierr);
+    ierr = SVDMatCreateVecs(svd,right,NULL);CHKERRQ(ierr);
     if (left) { ierr = VecDuplicate(*right,left);CHKERRQ(ierr); }
   } else {
-    ierr = SVDMatCreateVecs(svd,NULL,left);CHKERRQ(ierr);
+    ierr = SVDMatCreateVecs(svd,left,NULL);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }
