@@ -3,7 +3,7 @@
 
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
-   Copyright (c) 2002-2014, Universitat Politecnica de Valencia, Spain
+   Copyright (c) 2002-2015, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
 
@@ -48,6 +48,8 @@ typedef const char* PEPType;
 #define PEPLINEAR    "linear"
 #define PEPQARNOLDI  "qarnoldi"
 #define PEPTOAR      "toar"
+#define PEPSTOAR     "stoar"
+#define PEPJD        "jd"
 
 /* Logging support */
 PETSC_EXTERN PetscClassId PEP_CLASSID;
@@ -158,6 +160,7 @@ E*/
 typedef enum { PEP_CONV_ABS,
                PEP_CONV_EIG,
                PEP_CONV_LINEAR,
+               PEP_CONV_NORM,
                PEP_CONV_USER } PEPConv;
 
 PETSC_EXTERN PetscErrorCode PEPCreate(MPI_Comm,PEP*);
@@ -176,7 +179,7 @@ PETSC_EXTERN PetscErrorCode PEPSetFromOptions(PEP);
 PETSC_EXTERN PetscErrorCode PEPSetUp(PEP);
 PETSC_EXTERN PetscErrorCode PEPSolve(PEP);
 PETSC_EXTERN PetscErrorCode PEPView(PEP,PetscViewer);
-PETSC_STATIC_INLINE PetscErrorCode PEPViewFromOptions(PEP pep,const char prefix[],const char name[]) {return PetscObjectViewFromOptions((PetscObject)pep,prefix,name);}
+PETSC_STATIC_INLINE PetscErrorCode PEPViewFromOptions(PEP pep,PetscObject obj,const char name[]) {return PetscObjectViewFromOptions((PetscObject)pep,obj,name);}
 PETSC_EXTERN PetscErrorCode PEPErrorView(PEP,PEPErrorType,PetscViewer);
 PETSC_DEPRECATED("Use PEPErrorView()") PETSC_STATIC_INLINE PetscErrorCode PEPPrintSolution(PEP pep,PetscViewer v) {return PEPErrorView(pep,PEP_ERROR_BACKWARD,v);}
 PETSC_EXTERN PetscErrorCode PEPErrorViewFromOptions(PEP);
@@ -203,11 +206,12 @@ PETSC_EXTERN PetscErrorCode PEPSetConvergenceTest(PEP,PEPConv);
 PETSC_EXTERN PetscErrorCode PEPGetConvergenceTest(PEP,PEPConv*);
 PETSC_EXTERN PetscErrorCode PEPConvergedEigRelative(PEP,PetscScalar,PetscScalar,PetscReal,PetscReal*,void*);
 PETSC_EXTERN PetscErrorCode PEPConvergedLinear(PEP,PetscScalar,PetscScalar,PetscReal,PetscReal*,void*);
+PETSC_EXTERN PetscErrorCode PEPConvergedNorm(PEP,PetscScalar,PetscScalar,PetscReal,PetscReal*,void*);
 PETSC_EXTERN PetscErrorCode PEPConvergedAbsolute(PEP,PetscScalar,PetscScalar,PetscReal,PetscReal*,void*);
 PETSC_EXTERN PetscErrorCode PEPSetDimensions(PEP,PetscInt,PetscInt,PetscInt);
 PETSC_EXTERN PetscErrorCode PEPGetDimensions(PEP,PetscInt*,PetscInt*,PetscInt*);
-PETSC_EXTERN PetscErrorCode PEPSetScale(PEP,PEPScale,PetscReal,PetscInt,PetscReal);
-PETSC_EXTERN PetscErrorCode PEPGetScale(PEP,PEPScale*,PetscReal*,PetscInt*,PetscReal*);
+PETSC_EXTERN PetscErrorCode PEPSetScale(PEP,PEPScale,PetscReal,Vec,Vec,PetscInt,PetscReal);
+PETSC_EXTERN PetscErrorCode PEPGetScale(PEP,PEPScale*,PetscReal*,Vec*,Vec*,PetscInt*,PetscReal*);
 PETSC_EXTERN PetscErrorCode PEPSetRefine(PEP,PEPRefine,PetscInt,PetscReal,PetscInt,PetscBool);
 PETSC_EXTERN PetscErrorCode PEPGetRefine(PEP,PEPRefine*,PetscInt*,PetscReal*,PetscInt*,PetscBool*);
 PETSC_EXTERN PetscErrorCode PEPSetExtract(PEP,PEPExtract);
@@ -250,7 +254,7 @@ PETSC_EXTERN PetscErrorCode PEPGetOptionsPrefix(PEP,const char*[]);
     PEPConvergedReason - Reason an eigensolver was said to
          have converged or diverged
 
-    Level: beginner
+    Level: intermediate
 
 .seealso: PEPSolve(), PEPGetConvergedReason(), PEPSetTolerances()
 E*/
@@ -259,6 +263,7 @@ typedef enum {/* converged */
               /* diverged */
               PEP_DIVERGED_ITS                 = -3,
               PEP_DIVERGED_BREAKDOWN           = -4,
+              PEP_DIVERGED_SYMMETRY_LOST       = -5,
               PEP_CONVERGED_ITERATING          =  0} PEPConvergedReason;
 PETSC_EXTERN const char *const*PEPConvergedReasons;
 
@@ -288,6 +293,14 @@ PETSC_EXTERN PetscErrorCode PEPTOARSetRestart(PEP,PetscReal);
 PETSC_EXTERN PetscErrorCode PEPTOARGetRestart(PEP,PetscReal*);
 PETSC_EXTERN PetscErrorCode PEPTOARSetLocking(PEP,PetscBool);
 PETSC_EXTERN PetscErrorCode PEPTOARGetLocking(PEP,PetscBool*);
+
+PETSC_EXTERN PetscErrorCode PEPSTOARSetLocking(PEP,PetscBool);
+PETSC_EXTERN PetscErrorCode PEPSTOARGetLocking(PEP,PetscBool*);
+
+PETSC_EXTERN PetscErrorCode PEPJDSetRestart(PEP,PetscReal);
+PETSC_EXTERN PetscErrorCode PEPJDGetRestart(PEP,PetscReal*);
+PETSC_EXTERN PetscErrorCode PEPJDSetTolerances(PEP,PetscReal,PetscReal,PetscReal);
+PETSC_EXTERN PetscErrorCode PEPJDGetTolerances(PEP,PetscReal*,PetscReal*,PetscReal*);
 
 #endif
 

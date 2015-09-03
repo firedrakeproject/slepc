@@ -15,7 +15,7 @@
 
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
-   Copyright (c) 2002-2014, Universitat Politecnica de Valencia, Spain
+   Copyright (c) 2002-2015, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
 
@@ -52,7 +52,7 @@ PetscErrorCode EPSSetUp_Arnoldi(EPS eps)
   if (eps->ncv>eps->nev+eps->mpd) SETERRQ(PetscObjectComm((PetscObject)eps),1,"The value of ncv must not be larger than nev+mpd");
   if (!eps->max_it) eps->max_it = PetscMax(100,2*eps->n/eps->ncv);
   if (!eps->which) { ierr = EPSSetWhichEigenpairs_Default(eps);CHKERRQ(ierr); }
-  if (eps->ishermitian && (eps->which==EPS_LARGEST_IMAGINARY || eps->which==EPS_SMALLEST_IMAGINARY)) SETERRQ(PetscObjectComm((PetscObject)eps),1,"Wrong value of eps->which");
+  if (eps->ishermitian && eps->ispositive && (eps->which==EPS_LARGEST_IMAGINARY || eps->which==EPS_SMALLEST_IMAGINARY)) SETERRQ(PetscObjectComm((PetscObject)eps),1,"Wrong value of eps->which");
 
   if (!eps->extraction) {
     ierr = EPSSetExtraction(eps,EPS_RITZ);CHKERRQ(ierr);
@@ -91,7 +91,7 @@ PetscErrorCode EPSSolve_Arnoldi(EPS eps)
   ierr = DSGetLeadingDimension(eps->ds,&ld);CHKERRQ(ierr);
   ierr = DSGetRefined(eps->ds,&refined);CHKERRQ(ierr);
   harmonic = (eps->extraction==EPS_HARMONIC || eps->extraction==EPS_REFINED_HARMONIC)?PETSC_TRUE:PETSC_FALSE;
-  ierr = BVGetOrthogonalization(eps->V,NULL,&orthog_ref,NULL);CHKERRQ(ierr);
+  ierr = BVGetOrthogonalization(eps->V,NULL,&orthog_ref,NULL,NULL);CHKERRQ(ierr);
 
   /* Get the starting Arnoldi vector */
   ierr = EPSGetStartVector(eps,0,NULL);CHKERRQ(ierr);
@@ -156,7 +156,7 @@ PetscErrorCode EPSSolve_Arnoldi(EPS eps)
   }
 
   /* truncate Schur decomposition and change the state to raw so that
-     PSVectors() computes eigenvectors from scratch */
+     DSVectors() computes eigenvectors from scratch */
   ierr = DSSetDimensions(eps->ds,eps->nconv,0,0,0);CHKERRQ(ierr);
   ierr = DSSetState(eps->ds,DS_STATE_RAW);CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -239,7 +239,7 @@ static PetscErrorCode EPSArnoldiGetDelayed_Arnoldi(EPS eps,PetscBool *delayed)
 
 #undef __FUNCT__
 #define __FUNCT__ "EPSArnoldiGetDelayed"
-/*@C
+/*@
    EPSArnoldiGetDelayed - Gets the type of reorthogonalization used during the Arnoldi
    iteration.
 

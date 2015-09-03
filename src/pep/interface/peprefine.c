@@ -3,7 +3,7 @@
 
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
-   Copyright (c) 2002-2014, Universitat Politecnica de Valencia, Spain
+   Copyright (c) 2002-2015, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
 
@@ -289,13 +289,13 @@ PetscErrorCode PEPNewtonRefinementSimple(PEP pep,PetscInt *maxits,PetscReal *tol
   PetscReal         norm,error;
   PetscBool         ini=PETSC_TRUE,sc_pend,solved=PETSC_FALSE;
   PEPSimpNRefctx    *ctx;
+  KSPConvergedReason reason;
 
   PetscFunctionBegin;
   ierr = PetscLogEventBegin(PEP_Refine,pep,0,0,0);CHKERRQ(ierr);
   ierr = PEPSimpleNRefSetUp(pep,&ctx);CHKERRQ(ierr);
   its = (maxits)?*maxits:NREF_MAXIT;
   comm = (pep->npart==1)?PetscObjectComm((PetscObject)pep):PetscSubcommChild(pep->refinesubc);
-  ierr = KSPDestroy(&ksp);CHKERRQ(ierr);
   ierr = PEPRefineGetKSP(pep,&ksp);CHKERRQ(ierr);
   if (pep->npart==1) {
     ierr = BVGetColumn(pep->V,0,&v);CHKERRQ(ierr);
@@ -345,7 +345,7 @@ PetscErrorCode PEPNewtonRefinementSimple(PEP pep,PetscInt *maxits,PetscReal *tol
     for (i=0;i<pep->npart&&solved;i++) solved = (idx_sc[i]<k)?PETSC_FALSE:PETSC_TRUE;
     if (idx_sc[color]<k) {
 #if !defined(PETSC_USE_COMPLEX)
-      if (pep->eigi[idx_sc[color]]!=0.0) SETERRQ(PetscObjectComm((PetscObject)pep),1,"Simple Refinement not implemented in real scalar for complex eigenvalues");
+      if (pep->eigi[idx_sc[color]]!=0.0) SETERRQ(PetscObjectComm((PetscObject)pep),1,"Simple Refinement not implemented in real scalars for complex eigenvalues");
 #endif
       if (pep->npart==1) {
         ierr = BVGetColumn(pep->V,idx_sc[color],&v);CHKERRQ(ierr);
@@ -369,6 +369,8 @@ PetscErrorCode PEPNewtonRefinementSimple(PEP pep,PetscInt *maxits,PetscReal *tol
         ierr = VecPlaceArray(rr,array);CHKERRQ(ierr);
       }
       ierr = KSPSolve(ksp,rr,dvv);CHKERRQ(ierr);
+      ierr = KSPGetConvergedReason(ksp,&reason);CHKERRQ(ierr);
+      if (reason<0) SETERRQ1(PetscObjectComm((PetscObject)ksp),PETSC_ERR_NOT_CONVERGED,"KSP did not converge (reason=%s)",KSPConvergedReasons[reason]);
       if (rank != size-1) {
         ierr = VecResetArray(rr);CHKERRQ(ierr);
       }

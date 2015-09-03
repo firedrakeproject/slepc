@@ -3,7 +3,7 @@
 
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
-   Copyright (c) 2002-2014, Universitat Politecnica de Valencia, Spain
+   Copyright (c) 2002-2015, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
 
@@ -54,7 +54,7 @@ PetscErrorCode NEPCreate(MPI_Comm comm,NEP *outnep)
   PetscValidPointer(outnep,2);
   *outnep = 0;
   ierr = NEPInitializePackage();CHKERRQ(ierr);
-  ierr = SlepcHeaderCreate(nep,_p_NEP,struct _NEPOps,NEP_CLASSID,"NEP","Nonlinear Eigenvalue Problem","NEP",comm,NEPDestroy,NEPView);CHKERRQ(ierr);
+  ierr = SlepcHeaderCreate(nep,NEP_CLASSID,"NEP","Nonlinear Eigenvalue Problem","NEP",comm,NEPDestroy,NEPView);CHKERRQ(ierr);
 
   nep->max_it          = 0;
   nep->max_funcs       = 0;
@@ -542,7 +542,7 @@ PetscErrorCode NEPGetDS(NEP nep,DS *ds)
    Use NEPGetKSP() to retrieve the linear solver context (for example,
    to free it at the end of the computations).
 
-   Level: developer
+   Level: advanced
 
 .seealso: NEPGetKSP()
 @*/
@@ -575,7 +575,7 @@ PetscErrorCode NEPSetKSP(NEP nep,KSP ksp)
    Output Parameter:
 .  ksp - linear solver context
 
-   Level: beginner
+   Level: advanced
 
 .seealso: NEPSetKSP()
 @*/
@@ -592,6 +592,7 @@ PetscErrorCode NEPGetKSP(NEP nep,KSP *ksp)
     ierr = KSPAppendOptionsPrefix(nep->ksp,"nep_");CHKERRQ(ierr);
     ierr = PetscObjectIncrementTabLevel((PetscObject)nep->ksp,(PetscObject)nep,1);CHKERRQ(ierr);
     ierr = PetscLogObjectParent((PetscObject)nep,(PetscObject)nep->ksp);CHKERRQ(ierr);
+    ierr = KSPSetErrorIfNotConverged(nep->ksp,PETSC_TRUE);CHKERRQ(ierr);
   }
   *ksp = nep->ksp;
   PetscFunctionReturn(0);
@@ -619,7 +620,7 @@ PetscErrorCode NEPGetKSP(NEP nep,KSP *ksp)
    command line with [+/-][realnumber][+/-]realnumberi with no spaces, e.g.
    -nep_target 1.0+2.0i
 
-   Level: beginner
+   Level: intermediate
 
 .seealso: NEPGetTarget(), NEPSetWhichEigenpairs()
 @*/
@@ -648,7 +649,7 @@ PetscErrorCode NEPSetTarget(NEP nep,PetscScalar target)
    Note:
    If the target was not set by the user, then zero is returned.
 
-   Level: beginner
+   Level: intermediate
 
 .seealso: NEPSetTarget()
 @*/
@@ -840,7 +841,7 @@ PetscErrorCode NEPGetJacobian(NEP nep,Mat *A,PetscErrorCode (**jac)(NEP,PetscSca
    This function must be called before NEPSetUp(). If it is called again
    after NEPSetUp() then the NEP object is reset.
 
-   Level: intermediate
+   Level: beginner
 
 .seealso: NEPGetSplitOperatorTerm(), NEPGetSplitOperatorInfo()
  @*/

@@ -1,7 +1,7 @@
 /*
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
-   Copyright (c) 2002-2014, Universitat Politecnica de Valencia, Spain
+   Copyright (c) 2002-2015, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
 
@@ -170,6 +170,7 @@ int main(int argc,char **argv)
     ierr = NEPErrorView(nep,NEP_ERROR_RELATIVE,NULL);CHKERRQ(ierr);
   } else {
     ierr = PetscViewerPushFormat(PETSC_VIEWER_STDOUT_WORLD,PETSC_VIEWER_ASCII_INFO_DETAIL);CHKERRQ(ierr);
+    ierr = NEPReasonView(nep,PETSC_VIEWER_STDOUT_WORLD);CHKERRQ(ierr);
     ierr = NEPErrorView(nep,NEP_ERROR_RELATIVE,PETSC_VIEWER_STDOUT_WORLD);CHKERRQ(ierr);
     ierr = PetscViewerPopFormat(PETSC_VIEWER_STDOUT_WORLD);CHKERRQ(ierr);
   }
@@ -296,11 +297,11 @@ PetscErrorCode MatGetDiagonal_Fun(Mat A,Vec diag)
 
   PetscFunctionBeginUser;
   ierr = MatShellGetContext(A,(void**)&ctx);CHKERRQ(ierr);
+  ierr = VecGetSize(diag,&n);CHKERRQ(ierr);
   h = ctx->h;
   c = ctx->kappa/(ctx->lambda-ctx->kappa);
   d = n;
   ierr = VecSet(diag,2.0*(d-ctx->lambda*h/3.0));CHKERRQ(ierr);
-  ierr = VecGetSize(diag,&n);CHKERRQ(ierr);
   ierr = VecGetArray(diag,&pd);CHKERRQ(ierr);
   pd[n-1] = d-ctx->lambda*h/3.0+ctx->lambda*c;
   ierr = VecRestoreArray(diag,&pd);CHKERRQ(ierr);

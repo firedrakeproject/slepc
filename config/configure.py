@@ -2,7 +2,7 @@
 #
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #  SLEPc - Scalable Library for Eigenvalue Problem Computations
-#  Copyright (c) 2002-2014, Universitat Politecnica de Valencia, Spain
+#  Copyright (c) 2002-2015, Universitat Politecnica de Valencia, Spain
 #
 #  This file is part of SLEPc.
 #
@@ -267,11 +267,11 @@ slepcvars.write('TEST_RUNS = '+' '.join(testruns)+'\n')
 # Write initial part of file slepcconf.h
 slepcconf.write('#if !defined(__SLEPCCONF_H)\n')
 slepcconf.write('#define __SLEPCCONF_H\n\n')
+AddDefine(slepcconf,'LIB_DIR',os.path.join(slepc.prefixdir,'lib'))
 if slepc.isrepo:
   AddDefine(slepcconf,'VERSION_GIT',slepc.gitrev)
   AddDefine(slepcconf,'VERSION_DATE_GIT',slepc.gitdate)
   AddDefine(slepcconf,'VERSION_BRANCH_GIT',slepc.branch)
-  AddDefine(slepcconf,'LIB_DIR',os.path.join(slepc.prefixdir,'lib'))
 
 # Create global configuration file for the case of empty PETSC_ARCH
 if emptyarch:

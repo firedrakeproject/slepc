@@ -4,7 +4,7 @@
 
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
-   Copyright (c) 2002-2014, Universitat Politecnica de Valencia, Spain
+   Copyright (c) 2002-2015, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
 
@@ -22,8 +22,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include <slepcbv.h>
-#include <petscvec.h>
+#include <slepc/private/bvimpl.h>
 #include <stdlib.h>
 #include <blopex_interpreter.h>
 #include <blopex_temp_multivector.h>
@@ -31,18 +30,18 @@
 
 static void* mv_TempMultiVectorCreateFromBV(void* ii_,BlopexInt n,void* sample)
 {
-  int i;
-  BV  bv = (BV)sample;
-  Vec v;
-
-  mv_TempMultiVector* x;
-  mv_InterfaceInterpreter* ii = (mv_InterfaceInterpreter*)ii_;
+  PetscErrorCode          ierr;
+  BV                      bv = (BV)sample;
+  Vec                     v;
+  PetscInt                i,l,k,nc,useconstr=PETSC_FALSE,flg;
+  mv_TempMultiVector      *x;
+  mv_InterfaceInterpreter *ii = (mv_InterfaceInterpreter*)ii_;
 
   x = (mv_TempMultiVector*)malloc(sizeof(mv_TempMultiVector));
   if (!x) SETERRABORT(PETSC_COMM_SELF,PETSC_ERR_PLIB,"Allocation for x failed");
 
   x->interpreter = ii;
-  x->numVectors = n;
+  x->numVectors  = n;
 
   x->vector = (void**)calloc(n,sizeof(void*));
   if (!x->vector) SETERRABORT(PETSC_COMM_SELF,PETSC_ERR_PLIB,"Allocation for x->vector failed");
@@ -51,11 +50,18 @@ static void* mv_TempMultiVectorCreateFromBV(void* ii_,BlopexInt n,void* sample)
   x->mask = NULL;
   x->ownsMask = 0;
 
+  ierr = BVGetActiveColumns(bv,&l,&k);CHKERRABORT(PETSC_COMM_SELF,ierr);
+  ierr = PetscObjectComposedDataGetInt((PetscObject)bv,SLEPC_BLOPEX_USECONSTR,useconstr,flg);CHKERRABORT(PETSC_COMM_SELF,ierr);
+  if (!l && useconstr) {
+    ierr = BVGetNumConstraints(bv,&nc);CHKERRABORT(PETSC_COMM_SELF,ierr);
+    l = -nc;
+  }
+  if (n != k-l) SETERRABORT(PETSC_COMM_SELF,PETSC_ERR_PLIB,"BV active columns plus constraints do not match argument n");
   for (i=0;i<n;i++) {
-    BVGetColumn(bv,i,&v);
-    PetscObjectReference((PetscObject)v);
+    ierr = BVGetColumn(bv,l+i,&v);CHKERRABORT(PETSC_COMM_SELF,ierr);
+    ierr = PetscObjectReference((PetscObject)v);CHKERRABORT(PETSC_COMM_SELF,ierr);
     x->vector[i] = (void*)v;
-    BVRestoreColumn(bv,i,&v);
+    ierr = BVRestoreColumn(bv,l+i,&v);CHKERRABORT(PETSC_COMM_SELF,ierr);
   }
   return x;
 }

@@ -1,7 +1,7 @@
 /*
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
-   Copyright (c) 2002-2014, Universitat Politecnica de Valencia, Spain
+   Copyright (c) 2002-2015, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
 
@@ -71,7 +71,7 @@ PetscErrorCode NEPInitializePackage(void)
   if (NEPPackageInitialized) PetscFunctionReturn(0);
   NEPPackageInitialized = PETSC_TRUE;
   /* Register Classes */
-  ierr = PetscClassIdRegister("Nonlinear Eigenvalue Problem solver",&NEP_CLASSID);CHKERRQ(ierr);
+  ierr = PetscClassIdRegister("NEP Solver",&NEP_CLASSID);CHKERRQ(ierr);
   /* Register Constructors */
   ierr = NEPRegisterAll();CHKERRQ(ierr);
   /* Register Events */

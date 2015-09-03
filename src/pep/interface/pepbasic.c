@@ -3,7 +3,7 @@
 
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
-   Copyright (c) 2002-2014, Universitat Politecnica de Valencia, Spain
+   Copyright (c) 2002-2015, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
 
@@ -57,7 +57,7 @@ PetscErrorCode PEPCreate(MPI_Comm comm,PEP *outpep)
   PetscValidPointer(outpep,2);
   *outpep = 0;
   ierr = PEPInitializePackage();CHKERRQ(ierr);
-  ierr = SlepcHeaderCreate(pep,_p_PEP,struct _PEPOps,PEP_CLASSID,"PEP","Polynomial Eigenvalue Problem","PEP",comm,PEPDestroy,PEPView);CHKERRQ(ierr);
+  ierr = SlepcHeaderCreate(pep,PEP_CLASSID,"PEP","Polynomial Eigenvalue Problem","PEP",comm,PEPDestroy,PEPView);CHKERRQ(ierr);
 
   pep->max_it          = 0;
   pep->nev             = 1;
@@ -117,6 +117,7 @@ PetscErrorCode PEPCreate(MPI_Comm comm,PEP *outpep)
   pep->nloc            = 0;
   pep->nrma            = NULL;
   pep->sfactor_set     = PETSC_FALSE;
+  pep->lineariz        = PETSC_FALSE;
   pep->reason          = PEP_CONVERGED_ITERATING;
 
   ierr = PetscNewLog(pep,&pep->sc);CHKERRQ(ierr);
@@ -546,7 +547,7 @@ PetscErrorCode PEPGetDS(PEP pep,DS *ds)
    Use PEPGetST() to retrieve the spectral transformation context (for example,
    to free it at the end of the computations).
 
-   Level: developer
+   Level: advanced
 
 .seealso: PEPGetST()
 @*/
@@ -579,7 +580,7 @@ PetscErrorCode PEPSetST(PEP pep,ST st)
    Output Parameter:
 .  st - spectral transformation context
 
-   Level: beginner
+   Level: intermediate
 
 .seealso: PEPSetST()
 @*/
@@ -600,7 +601,7 @@ PetscErrorCode PEPGetST(PEP pep,ST *st)
 
 #undef __FUNCT__
 #define __FUNCT__ "PEPRefineGetKSP"
-/*@C
+/*@
    PEPRefineGetKSP - Obtain the ksp object used by the eigensolver
    object in the refinement phase.
 
@@ -635,6 +636,7 @@ PetscErrorCode PEPRefineGetKSP(PEP pep,KSP *ksp)
     ierr = PetscLogObjectParent((PetscObject)pep,(PetscObject)pep->refineksp);CHKERRQ(ierr);
     ierr = KSPSetOptionsPrefix(*ksp,((PetscObject)pep)->prefix);CHKERRQ(ierr);
     ierr = KSPAppendOptionsPrefix(*ksp,"pep_refine_");CHKERRQ(ierr);
+    ierr = KSPSetErrorIfNotConverged(*ksp,PETSC_TRUE);CHKERRQ(ierr);
   }
   *ksp = pep->refineksp;
   PetscFunctionReturn(0);
@@ -662,7 +664,7 @@ PetscErrorCode PEPRefineGetKSP(PEP pep,KSP *ksp)
    command line with [+/-][realnumber][+/-]realnumberi with no spaces, e.g.
    -pep_target 1.0+2.0i
 
-   Level: beginner
+   Level: intermediate
 
 .seealso: PEPGetTarget(), PEPSetWhichEigenpairs()
 @*/
@@ -695,7 +697,7 @@ PetscErrorCode PEPSetTarget(PEP pep,PetscScalar target)
    Note:
    If the target was not set by the user, then zero is returned.
 
-   Level: beginner
+   Level: intermediate
 
 .seealso: PEPSetTarget()
 @*/

@@ -1,7 +1,7 @@
 /*
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
-   Copyright (c) 2002-2014, Universitat Politecnica de Valencia, Spain
+   Copyright (c) 2002-2015, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
 
@@ -24,6 +24,7 @@
 PETSC_EXTERN PetscErrorCode NEPCreate_RII(NEP);
 PETSC_EXTERN PetscErrorCode NEPCreate_SLP(NEP);
 PETSC_EXTERN PetscErrorCode NEPCreate_NArnoldi(NEP);
+PETSC_EXTERN PetscErrorCode NEPCreate_CISS(NEP);
 PETSC_EXTERN PetscErrorCode NEPCreate_Interpol(NEP);
 PETSC_EXTERN PetscErrorCode NEPCreate_NLEIGS(NEP);
 
@@ -49,6 +50,9 @@ PetscErrorCode NEPRegisterAll(void)
   ierr = NEPRegister(NEPSLP,NEPCreate_SLP);CHKERRQ(ierr);
   ierr = NEPRegister(NEPNARNOLDI,NEPCreate_NArnoldi);CHKERRQ(ierr);
   ierr = NEPRegister(NEPINTERPOL,NEPCreate_Interpol);CHKERRQ(ierr);
+#if defined(PETSC_USE_COMPLEX)
+  ierr = NEPRegister(NEPCISS,NEPCreate_CISS);CHKERRQ(ierr);
+#endif
   /*ierr = NEPRegister(NEPNLEIGS,NEPCreate_NLEIGS);CHKERRQ(ierr);*/
   PetscFunctionReturn(0);
 }

@@ -4,7 +4,7 @@
 
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
-   Copyright (c) 2002-2014, Universitat Politecnica de Valencia, Spain
+   Copyright (c) 2002-2015, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
 
@@ -30,7 +30,7 @@ PetscErrorCode EPSSetUp_LAPACK(EPS eps)
 {
   PetscErrorCode ierr,ierra,ierrb;
   PetscBool      isshift,denseok=PETSC_FALSE;
-  Mat            A,B,OP,Adense,Bdense;
+  Mat            A,B,OP,Adense=NULL,Bdense=NULL;
   PetscScalar    shift,*Ap,*Bp;
   PetscInt       i,ld,nmat;
   KSP            ksp;
@@ -60,7 +60,7 @@ PetscErrorCode EPSSetUp_LAPACK(EPS eps)
     }
     PetscPopErrorHandler();
     denseok = (ierra == 0 && ierrb == 0)? PETSC_TRUE: PETSC_FALSE;
-  } else Adense = NULL;
+  }
 
   /* setup DS */
   if (denseok) {

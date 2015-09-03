@@ -4,7 +4,7 @@
 
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
-   Copyright (c) 2002-2014, Universitat Politecnica de Valencia, Spain
+   Copyright (c) 2002-2015, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
 
@@ -66,7 +66,7 @@ PetscErrorCode NEPSetFromOptions(NEP nep)
     ierr = PetscOptionsEnum("-nep_refine","Iterative refinement method","NEPSetRefine",NEPRefineTypes,(PetscEnum)nep->refine,(PetscEnum*)&nep->refine,NULL);CHKERRQ(ierr);
 
     i = nep->npart;
-    ierr = PetscOptionsInt("-nep_refine_partitions","Number of partitions of the communicator for iterative refinement","PEPSetRefine",nep->npart,&i,&flg1);CHKERRQ(ierr);
+    ierr = PetscOptionsInt("-nep_refine_partitions","Number of partitions of the communicator for iterative refinement","NEPSetRefine",nep->npart,&i,&flg1);CHKERRQ(ierr);
     r1 = nep->reftol;
     ierr = PetscOptionsReal("-nep_refine_tol","Tolerance for iterative refinement","NEPSetRefine",nep->reftol,&r1,&flg2);CHKERRQ(ierr);
     j = nep->rits;
@@ -486,7 +486,7 @@ PetscErrorCode NEPSetWhichEigenpairs(NEP nep,NEPWhich which)
 
 #undef __FUNCT__
 #define __FUNCT__ "NEPGetWhichEigenpairs"
-/*@C
+/*@
     NEPGetWhichEigenpairs - Returns which portion of the spectrum is to be
     sought.
 
@@ -701,7 +701,7 @@ PetscErrorCode NEPSetConvergenceTest(NEP nep,PetscErrorCode (*func)(NEP,PetscInt
    The options '-nep_monitor_all' and '-nep_monitor_lg_all' automatically
    activate this option.
 
-   Level: intermediate
+   Level: developer
 
 .seealso: NEPGetTrackAll()
 @*/
@@ -728,7 +728,7 @@ PetscErrorCode NEPSetTrackAll(NEP nep,PetscBool trackall)
    Output Parameter:
 .  trackall - the returned flag
 
-   Level: intermediate
+   Level: developer
 
 .seealso: NEPSetTrackAll()
 @*/

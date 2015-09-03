@@ -5,7 +5,7 @@
 
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
-   Copyright (c) 2002-2014, Universitat Politecnica de Valencia, Spain
+   Copyright (c) 2002-2015, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
 
@@ -219,7 +219,7 @@ static PetscErrorCode STShellSetBackTransform_Shell(ST st,PetscErrorCode (*backt
 .  xin  - input vector
 -  xout - output vector
 
-   Level: developer
+   Level: advanced
 
 .seealso: STShellSetBackTransform(), STShellSetApplyTranspose()
 @*/
@@ -254,7 +254,7 @@ PetscErrorCode STShellSetApply(ST st,PetscErrorCode (*apply)(ST,Vec,Vec))
 .  xin  - input vector
 -  xout - output vector
 
-   Level: developer
+   Level: advanced
 
 .seealso: STShellSetApply(), STShellSetBackTransform()
 @*/
@@ -290,7 +290,7 @@ PetscErrorCode STShellSetApplyTranspose(ST st,PetscErrorCode (*applytrans)(ST,Ve
 .  eigr - pointer ot the real part of the eigenvalue to transform back
 -  eigi - pointer ot the imaginary part
 
-   Level: developer
+   Level: advanced
 
 .seealso: STShellSetApply(), STShellSetApplyTranspose()
 @*/

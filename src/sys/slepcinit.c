@@ -1,7 +1,7 @@
 /*
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
-   Copyright (c) 2002-2014, Universitat Politecnica de Valencia, Spain
+   Copyright (c) 2002-2015, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
 
@@ -36,7 +36,7 @@
     Fortran Note:
     This routine is not supported in Fortran.
 
-    Level: developer
+    Level: intermediate
 @*/
 PetscErrorCode SlepcGetVersion(char version[],size_t len)
 {
@@ -171,6 +171,32 @@ PetscErrorCode SlepcInitialize_DynamicLibraries(void)
 #endif
 
 #undef __FUNCT__
+#define __FUNCT__ "SlepcCitationsInitialize"
+PetscErrorCode SlepcCitationsInitialize()
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  ierr = PetscCitationsRegister("@Article{slepc-toms,\n"
+    "   author = \"Vicente Hernandez and Jose E. Roman and Vicente Vidal\",\n"
+    "   title = \"{SLEPc}: A Scalable and Flexible Toolkit for the Solution of Eigenvalue Problems\",\n"
+    "   journal = \"{ACM} Trans. Math. Software\",\n"
+    "   volume = \"31\",\n"
+    "   number = \"3\",\n"
+    "   pages = \"351--362\",\n"
+    "   year = \"2005\"\n"
+    "}\n",NULL);CHKERRQ(ierr);
+  ierr = PetscCitationsRegister("@TechReport{slepc-manual,\n"
+    "   author = \"J. E. Roman and C. Campos and E. Romero and A. Tomas\",\n"
+    "   title = \"{SLEPc} Users Manual\",\n"
+    "   number = \"DSIC-II/24/02 - Revision 3.6\",\n"
+    "   institution = \"D. Sistemes Inform\\`atics i Computaci\\'o, Universitat Polit\\`ecnica de Val\\`encia\",\n"
+    "   year = \"2015\"\n"
+    "}\n",NULL);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
 #define __FUNCT__ "SlepcInitialize"
 /*@C
    SlepcInitialize - Initializes the SLEPc library. SlepcInitialize() calls
@@ -206,6 +232,8 @@ PetscErrorCode SlepcInitialize(int *argc,char ***args,const char file[],const ch
     ierr = PetscInitialize(argc,args,file,help);CHKERRQ(ierr);
     SlepcBeganPetsc = PETSC_TRUE;
   }
+
+  ierr = SlepcCitationsInitialize();CHKERRQ(ierr);
 
 #if defined(PETSC_HAVE_DYNAMIC_LIBRARIES)
   ierr = SlepcInitialize_DynamicLibraries();CHKERRQ(ierr);

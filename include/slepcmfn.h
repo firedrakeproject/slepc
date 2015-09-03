@@ -3,7 +3,7 @@
 
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
-   Copyright (c) 2002-2014, Universitat Politecnica de Valencia, Spain
+   Copyright (c) 2002-2015, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
 
@@ -61,7 +61,7 @@ PETSC_EXTERN PetscErrorCode MFNSetFromOptions(MFN);
 PETSC_EXTERN PetscErrorCode MFNSetUp(MFN);
 PETSC_EXTERN PetscErrorCode MFNSolve(MFN,Vec,Vec);
 PETSC_EXTERN PetscErrorCode MFNView(MFN,PetscViewer);
-PETSC_STATIC_INLINE PetscErrorCode MFNViewFromOptions(MFN mfn,const char prefix[],const char name[]) {return PetscObjectViewFromOptions((PetscObject)mfn,prefix,name);}
+PETSC_STATIC_INLINE PetscErrorCode MFNViewFromOptions(MFN mfn,PetscObject obj,const char name[]) {return PetscObjectViewFromOptions((PetscObject)mfn,obj,name);}
 PETSC_EXTERN PetscErrorCode MFNReasonView(MFN,PetscViewer);
 PETSC_EXTERN PetscErrorCode MFNReasonViewFromOptions(MFN);
 
@@ -94,7 +94,7 @@ PETSC_EXTERN PetscErrorCode MFNGetOptionsPrefix(MFN,const char*[]);
     MFNConvergedReason - reason a matrix function iteration was said to
          have converged or diverged
 
-    Level: beginner
+    Level: intermediate
 
 .seealso: MFNSolve(), MFNGetConvergedReason(), MFNSetTolerances()
 E*/

@@ -4,7 +4,7 @@
 !
 !  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !  SLEPc - Scalable Library for Eigenvalue Problem Computations
-!  Copyright (c) 2002-2014, Universitat Politecnica de Valencia, Spain
+!  Copyright (c) 2002-2015, Universitat Politecnica de Valencia, Spain
 !
 !  This file is part of SLEPc.
 !
@@ -29,11 +29,13 @@
       PetscEnum EPS_CONVERGED_TOL
       PetscEnum EPS_DIVERGED_ITS
       PetscEnum EPS_DIVERGED_BREAKDOWN
+      PetscEnum EPS_DIVERGED_SYMMETRY_LOST
       PetscEnum EPS_CONVERGED_ITERATING
 
       parameter (EPS_CONVERGED_TOL          =  2)
       parameter (EPS_DIVERGED_ITS           = -3)
       parameter (EPS_DIVERGED_BREAKDOWN     = -4)
+      parameter (EPS_DIVERGED_SYMMETRY_LOST = -5)
       parameter (EPS_CONVERGED_ITERATING    =  0)
 
       PetscEnum EPS_HEP

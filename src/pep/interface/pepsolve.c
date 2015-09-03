@@ -3,7 +3,7 @@
 
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
-   Copyright (c) 2002-2014, Universitat Politecnica de Valencia, Spain
+   Copyright (c) 2002-2015, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
 
@@ -46,6 +46,26 @@ PetscErrorCode PEPComputeVectors(PEP pep)
 }
 
 #undef __FUNCT__
+#define __FUNCT__ "PEPExtractVectors"
+PetscErrorCode PEPExtractVectors(PEP pep)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PEPCheckSolved(pep,1);
+  switch (pep->state) {
+  case PEP_STATE_SOLVED:
+    if (pep->ops->extractvectors) {
+      ierr = (*pep->ops->extractvectors)(pep);CHKERRQ(ierr);
+    }
+    break;
+  default:
+    break;
+  }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
 #define __FUNCT__ "PEPSolve"
 /*@
    PEPSolve - Solves the polynomial eigensystem.
@@ -73,7 +93,7 @@ PetscErrorCode PEPComputeVectors(PEP pep)
 PetscErrorCode PEPSolve(PEP pep)
 {
   PetscErrorCode ierr;
-  PetscInt       i;
+  PetscInt       i,k;
   PetscBool      flg,islinear;
 #define OPTLEN 16
   char           str[OPTLEN];
@@ -86,13 +106,14 @@ PetscErrorCode PEPSolve(PEP pep)
   ierr = PEPSetUp(pep);CHKERRQ(ierr);
   pep->nconv = 0;
   pep->its   = 0;
-  for (i=0;i<pep->ncv;i++) {
+  k = pep->lineariz? pep->ncv: pep->ncv*(pep->nmat-1);
+  for (i=0;i<k;i++) {
     pep->eigr[i]   = 0.0;
     pep->eigi[i]   = 0.0;
     pep->errest[i] = 0.0;
     pep->perm[i]   = i;
   }
-  ierr = PEPMonitor(pep,pep->its,pep->nconv,pep->eigr,pep->eigi,pep->errest,pep->ncv);CHKERRQ(ierr);
+  ierr = PEPMonitor(pep,pep->its,pep->nconv,pep->eigr,pep->eigi,pep->errest,k);CHKERRQ(ierr);
   ierr = PEPViewFromOptions(pep,NULL,"-pep_view_pre");CHKERRQ(ierr);
 
   ierr = (*pep->ops->solve)(pep);CHKERRQ(ierr);
@@ -104,8 +125,8 @@ PetscErrorCode PEPSolve(PEP pep)
     ierr = STPostSolve(pep->st);CHKERRQ(ierr);
     /* Map eigenvalues back to the original problem */
     ierr = STGetTransform(pep->st,&flg);CHKERRQ(ierr);
-    if (flg) {
-      ierr = STBackTransform(pep->st,pep->nconv,pep->eigr,pep->eigi);CHKERRQ(ierr);
+    if (flg && pep->ops->backtransform) {
+      ierr = (*pep->ops->backtransform)(pep);CHKERRQ(ierr);
     }
   }
 
@@ -114,7 +135,6 @@ PetscErrorCode PEPSolve(PEP pep)
   if (pep->refine==PEP_REFINE_SIMPLE && pep->rits>0) {
     ierr = PEPComputeVectors(pep);CHKERRQ(ierr);
     ierr = PEPNewtonRefinementSimple(pep,&pep->rits,&pep->rtol,pep->nconv);CHKERRQ(ierr);
-    pep->state = PEP_STATE_EIGENVECTORS;
   }
 
 #if !defined(PETSC_USE_COMPLEX)
@@ -145,7 +165,7 @@ PetscErrorCode PEPSolve(PEP pep)
   ierr = PEPVectorsViewFromOptions(pep);CHKERRQ(ierr);
   for (i=0;i<pep->nmat;i++) {
     ierr = PetscSNPrintf(str,OPTLEN,"-pep_view_mat%d",(int)i);CHKERRQ(ierr);
-    ierr = MatViewFromOptions(pep->A[i],((PetscObject)pep)->prefix,str);CHKERRQ(ierr);
+    ierr = MatViewFromOptions(pep->A[i],(PetscObject)pep,str);CHKERRQ(ierr);
   }
 
   /* Remove the initial subspace */
@@ -235,7 +255,8 @@ PetscErrorCode PEPGetConverged(PEP pep,PetscInt *nconv)
    Possible values for reason:
 +  PEP_CONVERGED_TOL - converged up to tolerance
 .  PEP_DIVERGED_ITS - required more than its to reach convergence
--  PEP_DIVERGED_BREAKDOWN - generic breakdown in method
+.  PEP_DIVERGED_BREAKDOWN - generic breakdown in method
+-  PEP_DIVERGED_SYMMETRY_LOST - pseudo-Lanczos was not able to keep symmetry
 
    Note:
    Can only be called after the call to PEPSolve() is complete.
@@ -273,10 +294,14 @@ PetscErrorCode PEPGetConvergedReason(PEP pep,PEPConvergedReason *reason)
 -  Vi   - imaginary part of eigenvector
 
    Notes:
+   It is allowed to pass NULL for Vr and Vi, if the eigenvector is not
+   required. Otherwise, the caller must provide valid Vec objects, i.e.,
+   they must be created by the calling program with e.g. MatCreateVecs().
+
    If the eigenvalue is real, then eigi and Vi are set to zero. If PETSc is
    configured with complex scalars the eigenvalue is stored
    directly in eigr (eigi is set to zero) and the eigenvector in Vr (Vi is
-   set to zero).
+   set to zero). In both cases, the user can pass NULL in eigi and Vi.
 
    The index i should be a value between 0 and nconv-1 (see PEPGetConverged()).
    Eigenpairs are indexed according to the ordering criterion established
@@ -373,14 +398,19 @@ PetscErrorCode PEPGetErrorEstimate(PEP pep,PetscInt i,PetscReal *errest)
 /*
    PEPComputeResidualNorm_Private - Computes the norm of the residual vector
    associated with an eigenpair.
+
+   Input Parameters:
+     kr,ki - eigenvalue
+     xr,xi - eigenvector
+     z     - array of 4 work vectors (z[2],z[3] not referenced in complex scalars)
 */
-PetscErrorCode PEPComputeResidualNorm_Private(PEP pep,PetscScalar kr,PetscScalar ki,Vec xr,Vec xi,PetscReal *norm)
+PetscErrorCode PEPComputeResidualNorm_Private(PEP pep,PetscScalar kr,PetscScalar ki,Vec xr,Vec xi,Vec *z,PetscReal *norm)
 {
   PetscErrorCode ierr;
-  Vec            u,w;
   Mat            *A=pep->A;
   PetscInt       i,nmat=pep->nmat;
   PetscScalar    t[20],*vals=t,*ivals=NULL;
+  Vec            u,w;
 #if !defined(PETSC_USE_COMPLEX)
   Vec            ui,wi;
   PetscReal      ni;
@@ -389,10 +419,10 @@ PetscErrorCode PEPComputeResidualNorm_Private(PEP pep,PetscScalar kr,PetscScalar
 #endif
 
   PetscFunctionBegin;
-  ierr = BVGetVec(pep->V,&u);CHKERRQ(ierr);
-  ierr = BVGetVec(pep->V,&w);CHKERRQ(ierr);
+  u = z[0]; w = z[1];
   ierr = VecSet(u,0.0);CHKERRQ(ierr);
 #if !defined(PETSC_USE_COMPLEX)
+  ui = z[2]; wi = z[3];
   ivals = it; 
 #endif
   if (nmat>20) {
@@ -407,8 +437,6 @@ PetscErrorCode PEPComputeResidualNorm_Private(PEP pep,PetscScalar kr,PetscScalar
     imag = PETSC_FALSE;
   else {
     imag = PETSC_TRUE;
-    ierr = VecDuplicate(u,&ui);CHKERRQ(ierr);
-    ierr = VecDuplicate(u,&wi);CHKERRQ(ierr);
     ierr = VecSet(ui,0.0);CHKERRQ(ierr);
   }
 #endif
@@ -442,20 +470,12 @@ PetscErrorCode PEPComputeResidualNorm_Private(PEP pep,PetscScalar kr,PetscScalar
     *norm = SlepcAbsEigenvalue(*norm,ni);
   }
 #endif
-  ierr = VecDestroy(&w);CHKERRQ(ierr);
-  ierr = VecDestroy(&u);CHKERRQ(ierr);
   if (nmat>20) {
     ierr = PetscFree(vals);CHKERRQ(ierr);
 #if !defined(PETSC_USE_COMPLEX)
     ierr = PetscFree(ivals);CHKERRQ(ierr);
 #endif
   }
-#if !defined(PETSC_USE_COMPLEX)
-  if (imag) {
-    ierr = VecDestroy(&wi);CHKERRQ(ierr);
-    ierr = VecDestroy(&ui);CHKERRQ(ierr);
-  }
-#endif
   PetscFunctionReturn(0);
 }
 
@@ -487,7 +507,7 @@ PetscErrorCode PEPComputeResidualNorm_Private(PEP pep,PetscScalar kr,PetscScalar
 PetscErrorCode PEPComputeError(PEP pep,PetscInt i,PEPErrorType type,PetscReal *error)
 {
   PetscErrorCode ierr;
-  Vec            xr,xi;
+  Vec            xr,xi,w[4];
   PetscScalar    kr,ki;
   PetscReal      t,z=0.0;
   PetscInt       j;
@@ -499,11 +519,28 @@ PetscErrorCode PEPComputeError(PEP pep,PetscInt i,PEPErrorType type,PetscReal *e
   PetscValidLogicalCollectiveEnum(pep,type,3);
   PetscValidPointer(error,4);
   PEPCheckSolved(pep,1);
-  ierr = BVGetVec(pep->V,&xr);CHKERRQ(ierr);
-  ierr = BVGetVec(pep->V,&xi);CHKERRQ(ierr);
+
+  /* allocate work vectors */
+#if defined(PETSC_USE_COMPLEX)
+  ierr = PEPSetWorkVecs(pep,3);CHKERRQ(ierr);
+  xi   = NULL;
+  w[2] = NULL;
+  w[3] = NULL;
+#else
+  ierr = PEPSetWorkVecs(pep,6);CHKERRQ(ierr);
+  xi   = pep->work[3];
+  w[2] = pep->work[4];
+  w[3] = pep->work[5];
+#endif
+  xr   = pep->work[0];
+  w[0] = pep->work[1];
+  w[1] = pep->work[2];
+
+  /* compute residual norms */
   ierr = PEPGetEigenpair(pep,i,&kr,&ki,xr,xi);CHKERRQ(ierr);
-  ierr = PEPComputeResidualNorm_Private(pep,kr,ki,xr,xi,error);CHKERRQ(ierr);
-  if (type==PETSC_DEFAULT) type = PEP_ERROR_BACKWARD;
+  ierr = PEPComputeResidualNorm_Private(pep,kr,ki,xr,xi,w,error);CHKERRQ(ierr);
+
+  /* compute error */
   switch (type) {
     case PEP_ERROR_ABSOLUTE:
       break;
@@ -528,8 +565,6 @@ PetscErrorCode PEPComputeError(PEP pep,PetscInt i,PEPErrorType type,PetscReal *e
     default:
       SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"Invalid error type");
   }
-  ierr = VecDestroy(&xr);CHKERRQ(ierr);
-  ierr = VecDestroy(&xi);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

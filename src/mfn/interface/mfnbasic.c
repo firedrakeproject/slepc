@@ -3,7 +3,7 @@
 
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
-   Copyright (c) 2002-2014, Universitat Politecnica de Valencia, Spain
+   Copyright (c) 2002-2015, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
 
@@ -107,7 +107,7 @@ PetscErrorCode MFNView(MFN mfn,PetscViewer viewer)
    Options Database Keys:
 .  -mfn_converged_reason - print reason for convergence, and number of iterations
 
-   Level: beginner
+   Level: intermediate
 
 .seealso: MFNSetTolerances(), MFNGetIterationNumber()
 @*/
@@ -141,7 +141,7 @@ PetscErrorCode MFNReasonView(MFN mfn,PetscViewer viewer)
    Input Parameters:
 .  mfn - the matrix function context
 
-   Level: intermediate
+   Level: developer
 @*/
 PetscErrorCode MFNReasonViewFromOptions(MFN mfn)
 {
@@ -194,7 +194,7 @@ PetscErrorCode MFNCreate(MPI_Comm comm,MFN *outmfn)
   PetscValidPointer(outmfn,2);
   *outmfn = 0;
   ierr = MFNInitializePackage();CHKERRQ(ierr);
-  ierr = SlepcHeaderCreate(mfn,_p_MFN,struct _MFNOps,MFN_CLASSID,"MFN","Matrix Function","MFN",comm,MFNDestroy,MFNView);CHKERRQ(ierr);
+  ierr = SlepcHeaderCreate(mfn,MFN_CLASSID,"MFN","Matrix Function","MFN",comm,MFNDestroy,MFNView);CHKERRQ(ierr);
 
   mfn->A               = NULL;
   mfn->fn              = NULL;
@@ -484,7 +484,7 @@ PetscErrorCode MFNGetBV(MFN mfn,BV *bv)
    Use MFNGetFN() to retrieve the math function context (for example,
    to free it at the end of the computations).
 
-   Level: advanced
+   Level: beginner
 
 .seealso: MFNGetFN()
 @*/
@@ -516,7 +516,7 @@ PetscErrorCode MFNSetFN(MFN mfn,FN fn)
    Output Parameter:
 .  fn - math function context
 
-   Level: advanced
+   Level: intermediate
 
 .seealso: MFNSetFN()
 @*/

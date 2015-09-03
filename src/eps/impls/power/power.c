@@ -20,7 +20,7 @@
 
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
-   Copyright (c) 2002-2014, Universitat Politecnica de Valencia, Spain
+   Copyright (c) 2002-2015, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
 
@@ -321,7 +321,7 @@ static PetscErrorCode EPSPowerGetShiftType_Power(EPS eps,EPSPowerShiftType *shif
 
 #undef __FUNCT__
 #define __FUNCT__ "EPSPowerGetShiftType"
-/*@C
+/*@
    EPSPowerGetShiftType - Gets the type of shifts used during the power
    iteration.
 

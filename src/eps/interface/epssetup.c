@@ -3,7 +3,7 @@
 
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
-   Copyright (c) 2002-2014, Universitat Politecnica de Valencia, Spain
+   Copyright (c) 2002-2015, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
 
@@ -40,7 +40,7 @@
    calls it. It can be useful when one wants to measure the set-up time
    separately from the solve time.
 
-   Level: advanced
+   Level: developer
 
 .seealso: EPSCreate(), EPSSolve(), EPSDestroy(), STSetUp(), EPSSetInitialSpace()
 @*/
@@ -195,7 +195,7 @@ PetscErrorCode EPSSetUp(EPS eps)
   /* Build balancing matrix if required */
   if (!eps->ishermitian && (eps->balance==EPS_BALANCE_ONESIDE || eps->balance==EPS_BALANCE_TWOSIDE)) {
     if (!eps->D) {
-      ierr = BVGetVec(eps->V,&eps->D);CHKERRQ(ierr);
+      ierr = BVCreateVec(eps->V,&eps->D);CHKERRQ(ierr);
       ierr = PetscLogObjectParent((PetscObject)eps,(PetscObject)eps->D);CHKERRQ(ierr);
     } else {
       ierr = VecSet(eps->D,1.0);CHKERRQ(ierr);
@@ -293,7 +293,7 @@ PetscErrorCode EPSSetOperators(EPS eps,Mat A,Mat B)
 
 #undef __FUNCT__
 #define __FUNCT__ "EPSGetOperators"
-/*@C
+/*@
    EPSGetOperators - Gets the matrices associated with the eigensystem.
 
    Collective on EPS and Mat
@@ -480,7 +480,7 @@ PetscErrorCode EPSAllocateSolution(EPS eps,PetscInt extra)
   newc = PetscMax(0,requested-oldsize);
 
   /* allocate space for eigenvalues and friends */
-  if (requested != oldsize) {
+  if (requested != oldsize || !eps->eigr) {
     if (oldsize) {
       ierr = PetscFree4(eps->eigr,eps->eigi,eps->errest,eps->perm);CHKERRQ(ierr);
     }

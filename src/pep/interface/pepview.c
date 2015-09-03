@@ -3,7 +3,7 @@
 
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
-   Copyright (c) 2002-2014, Universitat Politecnica de Valencia, Spain
+   Copyright (c) 2002-2015, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
 
@@ -58,7 +58,7 @@ PetscErrorCode PEPView(PEP pep,PetscViewer viewer)
   PetscErrorCode ierr;
   const char     *type;
   char           str[50];
-  PetscBool      isascii,islinear,istrivial;
+  PetscBool      isascii,istrivial;
   PetscInt       i;
   PetscViewer    sviewer;
 
@@ -170,6 +170,16 @@ PetscErrorCode PEPView(PEP pep,PetscViewer viewer)
         ierr = PetscViewerASCIIPrintf(viewer,"\n");CHKERRQ(ierr);
       }
       break;
+    case PEP_CONV_NORM:
+      ierr = PetscViewerASCIIPrintf(viewer,"related to the matrix norms\n");CHKERRQ(ierr);
+      if (pep->nrma) {
+        ierr = PetscViewerASCIIPrintf(viewer,"  computed matrix norms: %g",(double)pep->nrma[0]);CHKERRQ(ierr);
+        for (i=1;i<pep->nmat;i++) {
+          ierr = PetscViewerASCIIPrintf(viewer,", %g",(double)pep->nrma[i]);CHKERRQ(ierr);
+        }
+        ierr = PetscViewerASCIIPrintf(viewer,"\n");CHKERRQ(ierr);
+      }
+      break;
     case PEP_CONV_USER:
       ierr = PetscViewerASCIIPrintf(viewer,"user-defined\n");CHKERRQ(ierr);break;
     }
@@ -181,20 +191,15 @@ PetscErrorCode PEPView(PEP pep,PetscViewer viewer)
       ierr = (*pep->ops->view)(pep,viewer);CHKERRQ(ierr);
     }
   }
-  ierr = PetscObjectTypeCompare((PetscObject)pep,PEPLINEAR,&islinear);CHKERRQ(ierr);
-  if (!islinear) {
-    ierr = PetscViewerPushFormat(viewer,PETSC_VIEWER_ASCII_INFO);CHKERRQ(ierr);
-    if (!pep->V) { ierr = PEPGetBV(pep,&pep->V);CHKERRQ(ierr); }
-    ierr = BVView(pep->V,viewer);CHKERRQ(ierr);
-    if (!pep->rg) { ierr = PEPGetRG(pep,&pep->rg);CHKERRQ(ierr); }
-    ierr = RGIsTrivial(pep->rg,&istrivial);CHKERRQ(ierr);
-    if (!istrivial) { ierr = RGView(pep->rg,viewer);CHKERRQ(ierr); }
-    if (!pep->ds) { ierr = PEPGetDS(pep,&pep->ds);CHKERRQ(ierr); }
-    ierr = DSView(pep->ds,viewer);CHKERRQ(ierr);
-    ierr = PetscViewerPopFormat(viewer);CHKERRQ(ierr);
-    if (!pep->st) { ierr = PEPGetST(pep,&pep->st);CHKERRQ(ierr); }
-    ierr = STView(pep->st,viewer);CHKERRQ(ierr);
-  }
+  ierr = PetscViewerPushFormat(viewer,PETSC_VIEWER_ASCII_INFO);CHKERRQ(ierr);
+  if (!pep->V) { ierr = PEPGetBV(pep,&pep->V);CHKERRQ(ierr); }
+  ierr = BVView(pep->V,viewer);CHKERRQ(ierr);
+  if (!pep->rg) { ierr = PEPGetRG(pep,&pep->rg);CHKERRQ(ierr); }
+  ierr = RGIsTrivial(pep->rg,&istrivial);CHKERRQ(ierr);
+  if (!istrivial) { ierr = RGView(pep->rg,viewer);CHKERRQ(ierr); }
+  if (!pep->ds) { ierr = PEPGetDS(pep,&pep->ds);CHKERRQ(ierr); }
+  ierr = DSView(pep->ds,viewer);CHKERRQ(ierr);
+  ierr = PetscViewerPopFormat(viewer);CHKERRQ(ierr);
   if (!pep->st) { ierr = PEPGetST(pep,&pep->st);CHKERRQ(ierr); }
   ierr = STView(pep->st,viewer);CHKERRQ(ierr);
   if (pep->refine!=PEP_REFINE_NONE) {
@@ -224,7 +229,7 @@ PetscErrorCode PEPView(PEP pep,PetscViewer viewer)
    Options Database Keys:
 .  -pep_converged_reason - print reason for convergence, and number of iterations
 
-   Level: beginner
+   Level: intermediate
 
 .seealso: PEPSetConvergenceTest(), PEPSetTolerances(), PEPGetIterationNumber()
 @*/
@@ -258,7 +263,7 @@ PetscErrorCode PEPReasonView(PEP pep,PetscViewer viewer)
    Input Parameters:
 .  pep - the eigensolver context
 
-   Level: intermediate
+   Level: developer
 @*/
 PetscErrorCode PEPReasonViewFromOptions(PEP pep)
 {
@@ -368,7 +373,7 @@ static PetscErrorCode PEPErrorView_DETAIL(PEP pep,PEPErrorType etype,PetscViewer
     im = ki;
 #endif
     if (im!=0.0) {
-      ierr = PetscViewerASCIIPrintf(viewer,"  % 9f%+9f i     %12g\n",(double)re,(double)im,(double)error);CHKERRQ(ierr);
+      ierr = PetscViewerASCIIPrintf(viewer,"  % 9f%+9fi      %12g\n",(double)re,(double)im,(double)error);CHKERRQ(ierr);
     } else {
       ierr = PetscViewerASCIIPrintf(viewer,"    % 12f           %12g\n",(double)re,(double)error);CHKERRQ(ierr);
     }
@@ -469,7 +474,7 @@ PetscErrorCode PEPErrorView(PEP pep,PEPErrorType etype,PetscViewer viewer)
    Input Parameters:
 .  pep - the eigensolver context
 
-   Level: intermediate
+   Level: developer
 @*/
 PetscErrorCode PEPErrorViewFromOptions(PEP pep)
 {
@@ -664,7 +669,7 @@ PetscErrorCode PEPValuesView(PEP pep,PetscViewer viewer)
    Input Parameters:
 .  pep - the eigensolver context
 
-   Level: intermediate
+   Level: developer
 @*/
 PetscErrorCode PEPValuesViewFromOptions(PEP pep)
 {
@@ -701,6 +706,11 @@ PetscErrorCode PEPValuesViewFromOptions(PEP pep)
 
    Options Database Keys:
 .  -pep_view_vectors - output eigenvectors.
+
+   Note:
+   If PETSc was configured with real scalars, complex conjugate eigenvectors
+   will be viewed as two separate real vectors, one containing the real part
+   and another one containing the imaginary part.
 
    Level: intermediate
 
@@ -747,7 +757,7 @@ PetscErrorCode PEPVectorsView(PEP pep,PetscViewer viewer)
    Input Parameters:
 .  pep - the eigensolver context
 
-   Level: intermediate
+   Level: developer
 @*/
 PetscErrorCode PEPVectorsViewFromOptions(PEP pep)
 {

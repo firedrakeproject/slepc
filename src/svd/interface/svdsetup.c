@@ -3,7 +3,7 @@
 
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
-   Copyright (c) 2002-2014, Universitat Politecnica de Valencia, Spain
+   Copyright (c) 2002-2015, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
 
@@ -90,12 +90,12 @@ PetscErrorCode SVDGetOperator(SVD svd,Mat *A)
    Input Parameter:
 .  svd   - singular value solver context
 
-   Level: advanced
-
    Notes:
    This function need not be called explicitly in most cases, since SVDSolve()
    calls it. It can be useful when one wants to measure the set-up time
    separately from the solve time.
+
+   Level: developer
 
 .seealso: SVDCreate(), SVDSolve(), SVDDestroy()
 @*/
@@ -364,7 +364,7 @@ PetscErrorCode SVDAllocateSolution(SVD svd,PetscInt extra)
   ierr = BVGetSizes(svd->V,NULL,NULL,&oldsize);CHKERRQ(ierr);
 
   /* allocate sigma */
-  if (requested != oldsize) {
+  if (requested != oldsize || !svd->sigma) {
     if (oldsize) {
       ierr = PetscFree3(svd->sigma,svd->perm,svd->errest);CHKERRQ(ierr);
     }

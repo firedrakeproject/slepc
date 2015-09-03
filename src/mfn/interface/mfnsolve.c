@@ -3,7 +3,7 @@
 
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
-   Copyright (c) 2002-2014, Universitat Politecnica de Valencia, Spain
+   Copyright (c) 2002-2015, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
 
@@ -88,9 +88,9 @@ PetscErrorCode MFNSolve(MFN mfn,Vec b,Vec x)
   /* various viewers */
   ierr = MFNViewFromOptions(mfn,NULL,"-mfn_view");CHKERRQ(ierr);
   ierr = MFNReasonViewFromOptions(mfn);CHKERRQ(ierr);
-  ierr = MatViewFromOptions(mfn->A,((PetscObject)mfn)->prefix,"-mfn_view_mat");CHKERRQ(ierr);
-  ierr = VecViewFromOptions(b,((PetscObject)mfn)->prefix,"-mfn_view_rhs");CHKERRQ(ierr);
-  ierr = VecViewFromOptions(x,((PetscObject)mfn)->prefix,"-mfn_view_solution");CHKERRQ(ierr);
+  ierr = MatViewFromOptions(mfn->A,(PetscObject)mfn,"-mfn_view_mat");CHKERRQ(ierr);
+  ierr = VecViewFromOptions(b,(PetscObject)mfn,"-mfn_view_rhs");CHKERRQ(ierr);
+  ierr = VecViewFromOptions(x,(PetscObject)mfn,"-mfn_view_solution");CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

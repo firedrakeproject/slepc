@@ -1,6 +1,6 @@
 <html>
 <head>
-  <link rel="stylesheet" href="/slepc/slepc.css" type="text/css">
+  <link rel="stylesheet" href="/slepc.css" type="text/css">
   <title>Mathematical Function - FN</title>
 </head>
 
@@ -9,6 +9,6 @@
 <h2>Mathematical Function - FN</h2>
 
 <p>
-The FN package provides the functionality to represent a simple mathematical function such as an exponential, a polynomial or a rational function. This is used as a building block for defining the function associated to the nonlinear eigenproblem.
+The FN package provides the functionality to represent a simple mathematical function such as an exponential, a polynomial or a rational function. This is used as a building block for defining the function associated to the nonlinear eigenproblem, as well as for specifying which function to use when computing the action of a matrix function on a vector.
 </p>
 

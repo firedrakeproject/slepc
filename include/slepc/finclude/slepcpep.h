@@ -4,7 +4,7 @@
 !
 !  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !  SLEPc - Scalable Library for Eigenvalue Problem Computations
-!  Copyright (c) 2002-2014, Universitat Politecnica de Valencia, Spain
+!  Copyright (c) 2002-2015, Universitat Politecnica de Valencia, Spain
 !
 !  This file is part of SLEPc.
 !
@@ -29,11 +29,13 @@
       PetscEnum PEP_CONVERGED_TOL
       PetscEnum PEP_DIVERGED_ITS
       PetscEnum PEP_DIVERGED_BREAKDOWN
+      PetscEnum PEP_DIVERGED_SYMMETRY_LOST
       PetscEnum PEP_CONVERGED_ITERATING
 
       parameter (PEP_CONVERGED_TOL          =  2)
       parameter (PEP_DIVERGED_ITS           = -3)
       parameter (PEP_DIVERGED_BREAKDOWN     = -4)
+      parameter (PEP_DIVERGED_SYMMETRY_LOST = -5)
       parameter (PEP_CONVERGED_ITERATING    =  0)
 
       PetscEnum PEP_GENERAL
@@ -119,12 +121,14 @@
       PetscEnum PEP_CONV_ABS
       PetscEnum PEP_CONV_EIG
       PetscEnum PEP_CONV_LINEAR
+      PetscEnum PEP_CONV_NORM
       PetscEnum PEP_CONV_USER
 
       parameter (PEP_CONV_ABS               =  0)
       parameter (PEP_CONV_EIG               =  1)
       parameter (PEP_CONV_LINEAR            =  2)
-      parameter (PEP_CONV_USER              =  3)
+      parameter (PEP_CONV_NORM              =  3)
+      parameter (PEP_CONV_USER              =  4)
 
 !
 !   Possible arguments to PEPMonitorSet()

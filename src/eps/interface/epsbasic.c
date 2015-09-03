@@ -3,7 +3,7 @@
 
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
-   Copyright (c) 2002-2014, Universitat Politecnica de Valencia, Spain
+   Copyright (c) 2002-2015, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
 
@@ -57,7 +57,7 @@ PetscErrorCode EPSCreate(MPI_Comm comm,EPS *outeps)
   PetscValidPointer(outeps,2);
   *outeps = 0;
   ierr = EPSInitializePackage();CHKERRQ(ierr);
-  ierr = SlepcHeaderCreate(eps,_p_EPS,struct _EPSOps,EPS_CLASSID,"EPS","Eigenvalue Problem Solver","EPS",comm,EPSDestroy,EPSView);CHKERRQ(ierr);
+  ierr = SlepcHeaderCreate(eps,EPS_CLASSID,"EPS","Eigenvalue Problem Solver","EPS",comm,EPSDestroy,EPSView);CHKERRQ(ierr);
 
   eps->max_it          = 0;
   eps->nev             = 1;
@@ -342,7 +342,7 @@ PetscErrorCode EPSDestroy(EPS *eps)
    command line with [+/-][realnumber][+/-]realnumberi with no spaces, e.g.
    -eps_target 1.0+2.0i
 
-   Level: beginner
+   Level: intermediate
 
 .seealso: EPSGetTarget(), EPSSetWhichEigenpairs()
 @*/
@@ -375,7 +375,7 @@ PetscErrorCode EPSSetTarget(EPS eps,PetscScalar target)
    Note:
    If the target was not set by the user, then zero is returned.
 
-   Level: beginner
+   Level: intermediate
 
 .seealso: EPSSetTarget()
 @*/
@@ -478,7 +478,7 @@ PetscErrorCode EPSGetInterval(EPS eps,PetscReal* inta,PetscReal* intb)
    Use EPSGetST() to retrieve the spectral transformation context (for example,
    to free it at the end of the computations).
 
-   Level: developer
+   Level: advanced
 
 .seealso: EPSGetST()
 @*/
@@ -511,7 +511,7 @@ PetscErrorCode EPSSetST(EPS eps,ST st)
    Output Parameter:
 .  st - spectral transformation context
 
-   Level: beginner
+   Level: intermediate
 
 .seealso: EPSSetST()
 @*/

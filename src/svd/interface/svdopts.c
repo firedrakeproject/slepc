@@ -3,7 +3,7 @@
 
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
-   Copyright (c) 2002-2014, Universitat Politecnica de Valencia, Spain
+   Copyright (c) 2002-2015, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
 
@@ -313,7 +313,7 @@ PetscErrorCode SVDSetWhichSingularTriplets(SVD svd,SVDWhich which)
 
 #undef __FUNCT__
 #define __FUNCT__ "SVDGetWhichSingularTriplets"
-/*@C
+/*@
     SVDGetWhichSingularTriplets - Returns which singular triplets are
     to be sought.
 
@@ -491,7 +491,7 @@ PetscErrorCode SVDSetFromOptions(SVD svd)
    The options '-svd_monitor_all' and '-svd_monitor_lg_all' automatically
    activate this option.
 
-   Level: intermediate
+   Level: developer
 
 .seealso: SVDGetTrackAll()
 @*/
@@ -518,7 +518,7 @@ PetscErrorCode SVDSetTrackAll(SVD svd,PetscBool trackall)
    Output Parameter:
 .  trackall - the returned flag
 
-   Level: intermediate
+   Level: developer
 
 .seealso: SVDSetTrackAll()
 @*/

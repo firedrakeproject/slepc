@@ -3,7 +3,7 @@
 
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
-   Copyright (c) 2002-2014, Universitat Politecnica de Valencia, Spain
+   Copyright (c) 2002-2015, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
 
@@ -71,7 +71,6 @@ PetscErrorCode STSetUp_Precond(ST st)
   if (!st->sigma_set) st->sigma = st->defsigma;
 
   /* If either pc is none and no matrix has to be set, or pc is shell , exit */
-  /*ierr = STSetFromOptions_Precond(st);CHKERRQ(ierr); */  /* TODO: fix this */
   if (!st->ksp) { ierr = STGetKSP(st,&st->ksp);CHKERRQ(ierr); }
   ierr = KSPGetPC(st->ksp,&pc);CHKERRQ(ierr);
   ierr = PetscObjectTypeCompare((PetscObject)pc,PCSHELL,&t0);CHKERRQ(ierr);

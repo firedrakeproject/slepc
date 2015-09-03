@@ -1,7 +1,7 @@
 /*
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
-   Copyright (c) 2002-2014, Universitat Politecnica de Valencia, Spain
+   Copyright (c) 2002-2015, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
 
@@ -156,7 +156,7 @@ PETSC_STATIC_INLINE PetscErrorCode NEP_KSPSolve(NEP nep,Vec b,Vec x)
 PETSC_INTERN PetscErrorCode NEPComputeVectors(NEP);
 PETSC_INTERN PetscErrorCode NEPGetDefaultShift(NEP,PetscScalar*);
 PETSC_INTERN PetscErrorCode NEPComputeVectors_Schur(NEP);
-PETSC_INTERN PetscErrorCode NEPComputeResidualNorm_Private(NEP,PetscScalar,Vec,PetscReal*);
+PETSC_INTERN PetscErrorCode NEPComputeResidualNorm_Private(NEP,PetscScalar,Vec,Vec*,PetscReal*);
 PETSC_INTERN PetscErrorCode NEPNewtonRefinementSimple(NEP,PetscInt*,PetscReal*,PetscInt);
 PETSC_INTERN PetscErrorCode NEPKrylovConvergence(NEP,PetscBool,PetscInt,PetscInt,PetscInt,PetscReal,PetscInt*);
 

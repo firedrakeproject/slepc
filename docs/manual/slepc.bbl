@@ -1,4 +1,4 @@
-\begin{thebibliography}{33}
+\begin{thebibliography}{37}
 \expandafter\ifx\csname natexlab\endcsname\relax\def\natexlab#1{#1}\fi
 
 \bibitem[{Anderson {\em et~al.\/}(1992)Anderson, Bai, Bischof, Demmel,
@@ -16,12 +16,14 @@ Bai, Z., J.~Demmel, J.~Dongarra, A.~Ruhe, and H.~van~der Vorst (eds.) (2000).
   Practical Guide\/}.
 \newblock Society for Industrial and Applied Mathematics, Philadelphia, PA.
 
-\bibitem[{Balay {\em et~al.\/}(2014)Balay, Abhyankar, Adams, Brown, Brune, Buschelman,
-  Eijkhout, Gropp, Kaushik, Knepley, McInnes, Rupp, Smith, and Zhang}]{Balay:2014:PUM}
-Balay, S., S.~Abhyankar, M.~Adams, J.~Brown, P.~Brune, K.~Buschelman, V.~Eijkhout,
-  W.~Gropp, D.~Kaushik, M.~Knepley, L.~C. McInnes, K.~Rupp, B.~Smith, and H.~Zhang (2014).
+\bibitem[{Balay {\em et~al.\/}(2015)Balay, Abhyankar, Adams, Brown, Brune,
+  Buschelman, Dalcin, Eijkhout, Gropp, Kaushik, Knepley, McInnes, Rupp, Smith,
+  Zampini, and Zhang}]{Balay:2015:PUM}
+Balay, S., S.~Abhyankar, M.~Adams, J.~Brown, P.~Brune, K.~Buschelman,
+  L.~Dalcin, V.~Eijkhout, W.~Gropp, D.~Kaushik, M.~Knepley, L.~C. McInnes,
+  K.~Rupp, B.~Smith, S.~Zampini, and H.~Zhang (2015).
 \newblock {PETSc} Users Manual.
-\newblock Technical Report ANL-95/11 - Revision 3.5, Argonne National
+\newblock Technical Report ANL-95/11 - Revision 3.6, Argonne National
   Laboratory.
 
 \bibitem[{Balay {\em et~al.\/}(1997)Balay, Gropp, McInnes, and
@@ -41,7 +43,7 @@ Betcke, T. (2008).
 Betcke, T. and D.~Kressner (2011).
 \newblock Perturbation, extraction and refinement of invariant pairs for matrix
   polynomials.
-\newblock {\em Linear Algebra and its Applications\/}, 435(3):514--536.
+\newblock {\em Linear Algebra Appl.\/}, 435(3):514--536.
 
 \bibitem[{Bj{\"o}rck(1996)}]{Bjorck:1996:NML}
 Bj{\"o}rck, {\AA}. (1996).
@@ -52,6 +54,12 @@ Bj{\"o}rck, {\AA}. (1996).
 Campos, C. and J.~E. Roman (2012).
 \newblock Strategies for spectrum slicing based on restarted {Lanczos} methods.
 \newblock {\em Numer. Algorithms\/}, 60(2):279--295.
+
+\bibitem[{Campos and Roman(2015)}]{Campos:2015:PKS}
+Campos, C. and J.~E. Roman (2015).
+\newblock Parallel {Krylov} solvers for the polynomial eigenvalue problem in
+  {SLEPc}.
+\newblock Submitted.
 
 \bibitem[{Canning {\em et~al.\/}(2000)Canning, Wang, Williamson, and
   Zunger}]{Canning:2000:PEP}

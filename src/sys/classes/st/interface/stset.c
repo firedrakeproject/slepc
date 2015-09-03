@@ -3,7 +3,7 @@
 
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
-   Copyright (c) 2002-2014, Universitat Politecnica de Valencia, Spain
+   Copyright (c) 2002-2015, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
 
@@ -50,7 +50,7 @@ PetscFunctionList STList = 0;
    this routine.  Using the options database provides the user with
    maximum flexibility in evaluating the many different transformations.
 
-   Level: intermediate
+   Level: beginner
 
 .seealso: EPSSetType()
 
@@ -301,7 +301,7 @@ PetscErrorCode STSetMatMode(ST st,STMatMode mode)
 
 #undef __FUNCT__
 #define __FUNCT__ "STGetMatMode"
-/*@C
+/*@
    STGetMatMode - Gets a flag that indicates how the transformed matrices
    are stored in spectral transformations.
 

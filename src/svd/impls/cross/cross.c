@@ -6,7 +6,7 @@
 
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
-   Copyright (c) 2002-2014, Universitat Politecnica de Valencia, Spain
+   Copyright (c) 2002-2015, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
 
@@ -46,6 +46,24 @@ static PetscErrorCode MatMult_Cross(Mat B,Vec x,Vec y)
   cross = (SVD_CROSS*)svd->data;
   ierr = SVDMatMult(svd,PETSC_FALSE,x,cross->w);CHKERRQ(ierr);
   ierr = SVDMatMult(svd,PETSC_TRUE,cross->w,y);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "MatCreateVecs_Cross"
+static PetscErrorCode MatCreateVecs_Cross(Mat B,Vec *right,Vec *left)
+{
+  PetscErrorCode ierr;
+  SVD            svd;
+
+  PetscFunctionBegin;
+  ierr = MatShellGetContext(B,(void**)&svd);CHKERRQ(ierr);
+  if (right) {
+    ierr = SVDMatCreateVecs(svd,right,NULL);CHKERRQ(ierr);
+    if (left) { ierr = VecDuplicate(*right,left);CHKERRQ(ierr); }
+  } else {
+    ierr = SVDMatCreateVecs(svd,left,NULL);CHKERRQ(ierr);
+  }
   PetscFunctionReturn(0);
 }
 
@@ -113,6 +131,7 @@ PetscErrorCode SVDSetUp_Cross(SVD svd)
     ierr = SVDMatGetLocalSize(svd,NULL,&n);CHKERRQ(ierr);
     ierr = MatCreateShell(PetscObjectComm((PetscObject)svd),n,n,PETSC_DETERMINE,PETSC_DETERMINE,svd,&cross->mat);CHKERRQ(ierr);
     ierr = MatShellSetOperation(cross->mat,MATOP_MULT,(void(*)(void))MatMult_Cross);CHKERRQ(ierr);
+    ierr = MatShellSetOperation(cross->mat,MATOP_GET_VECS,(void(*)(void))MatCreateVecs_Cross);CHKERRQ(ierr);
     ierr = MatShellSetOperation(cross->mat,MATOP_GET_DIAGONAL,(void(*)(void))MatGetDiagonal_Cross);CHKERRQ(ierr);
     ierr = SVDMatCreateVecs(svd,NULL,&cross->w);CHKERRQ(ierr);
     ierr = PetscLogObjectParent((PetscObject)svd,(PetscObject)cross->mat);CHKERRQ(ierr);

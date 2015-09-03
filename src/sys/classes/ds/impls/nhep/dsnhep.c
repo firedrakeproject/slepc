@@ -1,7 +1,7 @@
 /*
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
-   Copyright (c) 2002-2014, Universitat Politecnica de Valencia, Spain
+   Copyright (c) 2002-2015, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
 
@@ -211,8 +211,11 @@ PetscErrorCode DSVectors_NHEP_Eigen_All(DS ds,PetscBool left)
   SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"TREVC - Lapack routine is unavailable");
 #else
   PetscErrorCode ierr;
-  PetscBLASInt   n,ld,mout,info;
-  PetscScalar    *X,*Y,*A = ds->mat[DS_MAT_A];
+  PetscInt       i;
+  PetscBLASInt   n,ld,mout,info,inc = 1;
+  PetscBool      iscomplex = PETSC_FALSE;
+  PetscScalar    *X,*Y,*Z,*A = ds->mat[DS_MAT_A],tmp;
+  PetscReal      norm;
   const char     *side,*back;
 
   PetscFunctionBegin;
@@ -227,10 +230,11 @@ PetscErrorCode DSVectors_NHEP_Eigen_All(DS ds,PetscBool left)
     Y = NULL;
     side = "R";
   }
+  Z = left? Y: X;
   if (ds->state>=DS_STATE_CONDENSED) {
     /* DSSolve() has been called, backtransform with matrix Q */
     back = "B";
-    ierr = PetscMemcpy(left?Y:X,ds->mat[DS_MAT_Q],ld*ld*sizeof(PetscScalar));CHKERRQ(ierr);
+    ierr = PetscMemcpy(Z,ds->mat[DS_MAT_Q],ld*ld*sizeof(PetscScalar));CHKERRQ(ierr);
   } else back = "A";
 #if !defined(PETSC_USE_COMPLEX)
   ierr = DSAllocateWork_Private(ds,3*ld,0,0);CHKERRQ(ierr);
@@ -240,6 +244,24 @@ PetscErrorCode DSVectors_NHEP_Eigen_All(DS ds,PetscBool left)
   PetscStackCallBLAS("LAPACKtrevc",LAPACKtrevc_(side,back,NULL,&n,A,&ld,Y,&ld,X,&ld,&n,&mout,ds->work,ds->rwork,&info));
 #endif
   if (info) SETERRQ1(PetscObjectComm((PetscObject)ds),PETSC_ERR_LIB,"Error in Lapack xTREVC %i",info);
+
+  /* normalize eigenvectors */
+  for (i=0;i<n;i++) {
+    if (i<n-1 && A[i+1+i*ld]!=0.0) iscomplex = PETSC_TRUE;
+    norm = BLASnrm2_(&n,Z+i*ld,&inc);
+#if !defined(PETSC_USE_COMPLEX)
+    if (iscomplex) {
+      tmp = BLASnrm2_(&n,Z+(i+1)*ld,&inc);
+      norm = SlepcAbsEigenvalue(norm,tmp);
+    }
+#endif
+    tmp = 1.0 / norm;
+    PetscStackCallBLAS("BLASscal",BLASscal_(&n,&tmp,Z+i*ld,&inc));
+#if !defined(PETSC_USE_COMPLEX)
+    if (iscomplex) PetscStackCallBLAS("BLASscal",BLASscal_(&n,&tmp,Z+(i+1)*ld,&inc));
+#endif
+    if (iscomplex) i++;
+  }
   PetscFunctionReturn(0);
 #endif
 }

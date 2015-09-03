@@ -1,6 +1,6 @@
 !  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !  SLEPc - Scalable Library for Eigenvalue Problem Computations
-!  Copyright (c) 2002-2014, Universitat Politecnica de Valencia, Spain
+!  Copyright (c) 2002-2015, Universitat Politecnica de Valencia, Spain
 !
 !  This file is part of SLEPc.
 !     
@@ -148,6 +148,7 @@
       else
         call PetscViewerPushFormat(PETSC_VIEWER_STDOUT_WORLD,           &
      &                   PETSC_VIEWER_ASCII_INFO_DETAIL,ierr)
+        call EPSReasonView(eps,PETSC_VIEWER_STDOUT_WORLD,ierr)
         call EPSErrorView(eps,EPS_ERROR_RELATIVE,                       &
      &                   PETSC_VIEWER_STDOUT_WORLD,ierr)
         call PetscViewerPopFormat(PETSC_VIEWER_STDOUT_WORLD,ierr)

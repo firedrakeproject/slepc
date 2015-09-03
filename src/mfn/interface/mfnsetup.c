@@ -3,7 +3,7 @@
 
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
-   Copyright (c) 2002-2014, Universitat Politecnica de Valencia, Spain
+   Copyright (c) 2002-2015, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
 
@@ -39,7 +39,7 @@
    calls it. It can be useful when one wants to measure the set-up time
    separately from the solve time.
 
-   Level: advanced
+   Level: developer
 
 .seealso: MFNCreate(), MFNSolve(), MFNDestroy()
 @*/

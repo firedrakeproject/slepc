@@ -3,7 +3,7 @@
 
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
-   Copyright (c) 2002-2014, Universitat Politecnica de Valencia, Spain
+   Copyright (c) 2002-2015, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
 
@@ -57,7 +57,7 @@ PetscErrorCode NEPView(NEP nep,PetscViewer viewer)
 {
   PetscErrorCode ierr;
   char           str[50];
-  PetscBool      isascii,isslp,istrivial;
+  PetscBool      isascii,isslp,istrivial,nods;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
@@ -145,8 +145,11 @@ PetscErrorCode NEPView(NEP nep,PetscViewer viewer)
   if (!nep->rg) { ierr = NEPGetRG(nep,&nep->rg);CHKERRQ(ierr); }
   ierr = RGIsTrivial(nep->rg,&istrivial);CHKERRQ(ierr);
   if (!istrivial) { ierr = RGView(nep->rg,viewer);CHKERRQ(ierr); }
-  if (!nep->ds) { ierr = NEPGetDS(nep,&nep->ds);CHKERRQ(ierr); }
-  ierr = DSView(nep->ds,viewer);CHKERRQ(ierr);
+  ierr = PetscObjectTypeCompareAny((PetscObject)nep,&nods,NEPRII,NEPSLP,NEPINTERPOL,"");CHKERRQ(ierr);
+  if (!nods) {
+    if (!nep->ds) { ierr = NEPGetDS(nep,&nep->ds);CHKERRQ(ierr); }
+    ierr = DSView(nep->ds,viewer);CHKERRQ(ierr);
+  }
   ierr = PetscViewerPopFormat(viewer);CHKERRQ(ierr);
   ierr = PetscObjectTypeCompare((PetscObject)nep,NEPSLP,&isslp);CHKERRQ(ierr);
   if (!isslp) {
@@ -170,7 +173,7 @@ PetscErrorCode NEPView(NEP nep,PetscViewer viewer)
    Options Database Keys:
 .  -nep_converged_reason - print reason for convergence, and number of iterations
 
-   Level: beginner
+   Level: intermediate
 
 .seealso: NEPSetConvergenceTest(), NEPSetTolerances(), NEPGetIterationNumber()
 @*/
@@ -204,7 +207,7 @@ PetscErrorCode NEPReasonView(NEP nep,PetscViewer viewer)
    Input Parameters:
 .  nep - the nonlinear eigensolver context
 
-   Level: intermediate
+   Level: developer
 @*/
 PetscErrorCode NEPReasonViewFromOptions(NEP nep)
 {
@@ -296,7 +299,7 @@ static PetscErrorCode NEPErrorView_DETAIL(NEP nep,NEPErrorType etype,PetscViewer
       ierr = PetscSNPrintf(ex,EXLEN,"    ||T(k)x||");CHKERRQ(ierr);
       break;
     case NEP_ERROR_RELATIVE:
-      ierr = PetscSNPrintf(ex,EXLEN," ||T(x)x||/||kx||");CHKERRQ(ierr);
+      ierr = PetscSNPrintf(ex,EXLEN," ||T(k)x||/||kx||");CHKERRQ(ierr);
       break;
   }
   ierr = PetscViewerASCIIPrintf(viewer,"%s            k             %s\n%s",sep,ex,sep);CHKERRQ(ierr);
@@ -311,7 +314,7 @@ static PetscErrorCode NEPErrorView_DETAIL(NEP nep,NEPErrorType etype,PetscViewer
     im = ki;
 #endif
     if (im!=0.0) {
-      ierr = PetscViewerASCIIPrintf(viewer,"  % 9f%+9f i     %12g\n",(double)re,(double)im,(double)error);CHKERRQ(ierr);
+      ierr = PetscViewerASCIIPrintf(viewer,"  % 9f%+9fi      %12g\n",(double)re,(double)im,(double)error);CHKERRQ(ierr);
     } else {
       ierr = PetscViewerASCIIPrintf(viewer,"    % 12f           %12g\n",(double)re,(double)error);CHKERRQ(ierr);
     }
@@ -411,7 +414,7 @@ PetscErrorCode NEPErrorView(NEP nep,NEPErrorType etype,PetscViewer viewer)
    Input Parameters:
 .  nep - the nonlinear eigensolver context
 
-   Level: intermediate
+   Level: developer
 @*/
 PetscErrorCode NEPErrorViewFromOptions(NEP nep)
 {
@@ -599,7 +602,7 @@ PetscErrorCode NEPValuesView(NEP nep,PetscViewer viewer)
    Input Parameters:
 .  nep - the nonlinear eigensolver context
 
-   Level: intermediate
+   Level: developer
 @*/
 PetscErrorCode NEPValuesViewFromOptions(NEP nep)
 {
@@ -636,6 +639,11 @@ PetscErrorCode NEPValuesViewFromOptions(NEP nep)
 
    Options Database Keys:
 .  -nep_view_vectors - output eigenvectors.
+
+   Note:
+   If PETSc was configured with real scalars, complex conjugate eigenvectors
+   will be viewed as two separate real vectors, one containing the real part
+   and another one containing the imaginary part.
 
    Level: intermediate
 
@@ -682,7 +690,7 @@ PetscErrorCode NEPVectorsView(NEP nep,PetscViewer viewer)
    Input Parameters:
 .  nep - the nonlinear eigensolver context
 
-   Level: intermediate
+   Level: developer
 @*/
 PetscErrorCode NEPVectorsViewFromOptions(NEP nep)
 {
