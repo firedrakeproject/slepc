@@ -53,7 +53,7 @@ PetscErrorCode NEPRegisterAll(void)
 #if defined(PETSC_USE_COMPLEX)
   ierr = NEPRegister(NEPCISS,NEPCreate_CISS);CHKERRQ(ierr);
 #endif
-  /*ierr = NEPRegister(NEPNLEIGS,NEPCreate_NLEIGS);CHKERRQ(ierr);*/
+  ierr = NEPRegister(NEPNLEIGS,NEPCreate_NLEIGS);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
