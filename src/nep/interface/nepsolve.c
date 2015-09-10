@@ -95,7 +95,8 @@ PetscErrorCode NEPSolve(NEP nep)
 
   if (!nep->reason) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_PLIB,"Internal error, solver returned without setting converged reason");
 
-  if (nep->refine==NEP_REFINE_SIMPLE && nep->rits>0) {
+  if (nep->refine==NEP_REFINE_SIMPLE && nep->rits>0 && nep->nconv>0) {
+    if (nep->fui!=NEP_USER_INTERFACE_SPLIT) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"Iterative refinement only implemented in split form");
     ierr = NEPComputeVectors(nep);CHKERRQ(ierr);
     ierr = NEPNewtonRefinementSimple(nep,&nep->rits,&nep->reftol,nep->nconv);CHKERRQ(ierr);
     nep->state = NEP_STATE_EIGENVECTORS;
