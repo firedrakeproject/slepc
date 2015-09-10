@@ -49,6 +49,7 @@ PetscErrorCode NEPSetUp(NEP nep)
   PetscInt       k;
   SlepcSC        sc;
   Mat            T;
+  PetscBool      flg;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
@@ -154,9 +155,11 @@ PetscErrorCode NEPSetUp(NEP nep)
   ierr = DSGetSlepcSC(nep->ds,&sc);CHKERRQ(ierr);
   sc->comparison    = nep->sc->comparison;
   sc->comparisonctx = nep->sc->comparisonctx;
-  sc->map           = NULL;
-  sc->mapobj        = NULL;
-
+  ierr = PetscObjectTypeCompare((PetscObject)nep,NEPNLEIGS,&flg);CHKERRQ(ierr);
+  if (!flg) {
+    sc->map    = NULL;
+    sc->mapobj = NULL;
+  }
   if (nep->ncv > nep->n) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_OUTOFRANGE,"ncv must be the problem size at most");
   if (nep->nev > nep->ncv) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_OUTOFRANGE,"nev bigger than ncv");
 

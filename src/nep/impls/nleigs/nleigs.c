@@ -57,11 +57,11 @@ static PetscErrorCode NEPNLEIGSLejaBagbyPoints(NEP nep)
   PetscReal      h,maxnrs,minnrxi;
 
   PetscFunctionBegin;
-  ierr = PetscMalloc4(ndpt,&ds,ndpt,&dxi,ndpt,&nrs,ndpt,&nrxi);CHKERRQ(ierr);
+  ierr = PetscMalloc4(ndpt+1,&ds,ndpt,&dxi,ndpt+1,&nrs,ndpt,&nrxi);CHKERRQ(ierr);
   /* Discretize the target region boundary (linspace)
     (this will be a region object function) */
-  h = PetscAbsScalar(ctx->s1-ctx->s0)/(ndpt-1);
-  for (i=0;i<ndpt;i++) ds[i] = ctx->s0+i*h;
+  h = PetscAbsScalar(ctx->s1-ctx->s0)/(ndpt);
+  for (i=0;i<=ndpt;i++) ds[i] = ctx->s0+i*h;
   /* Discretize the singularity region (logspace)
     (by the moment is (0,-inf)~(10e-6,10e+6)) */
   h = 12.0/(ndpt-1);
@@ -79,6 +79,8 @@ static PetscErrorCode NEPNLEIGSLejaBagbyPoints(NEP nep)
     nrxi[i] = (dxi[i]-s[0])/(1.0-dxi[i]/xi[0]);
     if (PetscAbsScalar(nrxi[i])<minnrxi) {minnrxi = PetscAbsScalar(nrxi[i]); xi[1] = dxi[i];}
   }
+  nrs[ndpt]  = (ds[ndpt]-s[0])/(1.0-ds[ndpt]/xi[0]);
+  if (PetscAbsScalar(nrs[ndpt])>maxnrs) {maxnrs = PetscAbsScalar(nrs[ndpt]); s[1] = ds[ndpt];}
   beta[1] = maxnrs;
   for (k=2;k<MAX_LBPOINTS;k++) {
     maxnrs = 0.0;
@@ -89,6 +91,8 @@ static PetscErrorCode NEPNLEIGSLejaBagbyPoints(NEP nep)
       nrxi[i] *= ((dxi[i]-s[k-1])/(1.0-dxi[i]/xi[k-1]))/beta[k-1];
       if (PetscAbsScalar(nrxi[i])<minnrxi) {minnrxi = PetscAbsScalar(nrxi[i]); xi[k] = dxi[i];}
     }
+    nrs[i]  *= ((ds[ndpt]-s[k-1])/(1.0-ds[ndpt]/xi[k-1]))/beta[k-1];
+    if (PetscAbsScalar(nrs[ndpt])>maxnrs) {maxnrs = PetscAbsScalar(nrs[ndpt]); s[k] = ds[ndpt];}
     beta[k] = maxnrs;
   }
   ierr = PetscFree4(ds,dxi,nrs,nrxi);CHKERRQ(ierr);
@@ -119,7 +123,7 @@ static PetscErrorCode NEPNLEIGSDividedDifferences(NEP nep)
   NEP_NLEIGS     *ctx=(NEP_NLEIGS*)nep->data;
   PetscInt       k,j;
   PetscReal      norm0,norm;
-  PetscScalar    *s=ctx->s,*beta=ctx->beta,b[MAX_LBPOINTS];
+  PetscScalar    *s=ctx->s,*beta=ctx->beta,b[MAX_LBPOINTS+1];
   Mat            *D=ctx->D,T=nep->function;
   MatStructure   str;
   PetscBool      flg=PETSC_TRUE;
@@ -157,7 +161,7 @@ PetscErrorCode NEPSetUp_NLEIGS(NEP nep)
 {
   PetscErrorCode ierr;
   PetscInt       k;
-  PetscScalar    coeffs[MAX_LBPOINTS];
+  PetscScalar    coeffs[MAX_LBPOINTS+1];
   NEP_NLEIGS     *ctx=(NEP_NLEIGS*)nep->data;
   SlepcSC        sc;
 
@@ -303,6 +307,7 @@ static PetscErrorCode NEPTOARExtendBasis(NEP nep,PetscScalar sigma,PetscScalar *
   PetscScalar    *beta=ctx->beta,*s=ctx->s,*xi=ctx->xi;
 
   PetscFunctionBegin;
+  ierr = BVSetActiveColumns(nep->V,0,nv);CHKERRQ(ierr);
   if (PetscAbsScalar(s[deg-2]-sigma)<100*PETSC_MACHINE_EPSILON) SETERRQ(PETSC_COMM_SELF,1,"Breakdown in NLEIGS");
   for (j=0;j<nv;j++) {
     r[(deg-2)*lr+j] = (S[(deg-2)*ls+j]+(beta[deg-1]/xi[deg-2])*S[(deg-1)*ls+j])/(s[deg-2]-sigma);
@@ -502,7 +507,7 @@ PetscErrorCode NEPDebugShowResidual(NEP nep)
   PetscErrorCode ierr;
   NEP_NLEIGS     *ctx=(NEP_NLEIGS*)nep->data;
   PetscReal      re,im,norm;
-  PetscScalar    coeffs[ctx->nmat];
+  PetscScalar    coeffs[ctx->nmat+1];
   Vec            x,t,v;
   PetscInt       i,j,deg=ctx->nmat;
   
@@ -670,10 +675,10 @@ PetscErrorCode NEPSolve_NLEIGS(NEP nep)
     ierr = NEPTOARTrunc(nep,S,ld,deg,nv+deg,nep->nconv,work+nwu,lwa-nwu,rwork+nrwu,lrwa-nrwu);CHKERRQ(ierr);
     /* Update vectors V = V*S */    
     /* RM ierr = SlepcUpdateVectors(nep->nconv+deg-1,nep->V,0,nep->nconv,S,lds,PETSC_FALSE);CHKERRQ(ierr); */
-    rs1 = (nep->nconv+deg-1);
+    rs1 = (nep->nconv);
     ierr = PetscMalloc1(rs1*nep->nconv,&pU);CHKERRQ(ierr);
     for (i=0;i<nep->nconv;i++) {
-      ierr = PetscMemcpy(pU+i*rs1,S+i*lds,rs1);CHKERRQ(ierr);
+      ierr = PetscMemcpy(pU+i*rs1,S+i*lds,rs1*sizeof(PetscScalar));CHKERRQ(ierr);
     }
     ierr = MatCreateSeqDense(PETSC_COMM_SELF,rs1,nep->nconv,pU,&U);CHKERRQ(ierr);
     ierr = BVSetActiveColumns(nep->V,0,rs1);CHKERRQ(ierr);
@@ -739,7 +744,6 @@ PETSC_EXTERN PetscErrorCode NEPCreate_NLEIGS(NEP nep)
 
   nep->ops->solve          = NEPSolve_NLEIGS;
   nep->ops->setup          = NEPSetUp_NLEIGS;
-  nep->ops->reset          = NEPReset;
   nep->ops->destroy        = NEPDestroy_NLEIGS;
   nep->ops->computevectors = NEPComputeVectors_Schur;
   PetscFunctionReturn(0);
