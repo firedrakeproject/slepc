@@ -185,6 +185,7 @@ PetscErrorCode NEPSetUp_NLEIGS(NEP nep)
     ierr = STCreate(PetscObjectComm((PetscObject)nep),&ctx->st);CHKERRQ(ierr);
     ierr = PetscLogObjectParent((PetscObject)nep,(PetscObject)ctx->st);CHKERRQ(ierr);
   }
+  if (nep->ksp) {ierr = STSetKSP(ctx->st,nep->ksp);CHKERRQ(ierr);}
   ierr = STSetDefaultShift(ctx->st,nep->target);CHKERRQ(ierr);
   ierr = STSetType(ctx->st,STSINVERT);CHKERRQ(ierr);
   if (!nep->which) nep->which = NEP_TARGET_MAGNITUDE;
@@ -206,6 +207,9 @@ PetscErrorCode NEPSetUp_NLEIGS(NEP nep)
   ierr = NEPNLEIGSDividedDifferences(nep);CHKERRQ(ierr);
   ierr = STSetOperators(ctx->st,ctx->nmat,ctx->D);CHKERRQ(ierr);
   ierr = STSetUp(ctx->st);CHKERRQ(ierr);
+  if (!nep->ksp) {
+    ierr = STGetKSP(ctx->st,&nep->ksp);CHKERRQ(ierr);
+  }
   ierr = NEPNLEIGSEvalNRTFunct(nep,ctx->nmat,nep->target,coeffs);CHKERRQ(ierr);
   ierr = STMatSetUp(ctx->st,1.0,coeffs);CHKERRQ(ierr);
   ierr = NEPAllocateSolution(nep,ctx->nmat);CHKERRQ(ierr);
