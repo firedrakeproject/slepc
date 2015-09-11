@@ -36,14 +36,16 @@
 
 #define  MAX_LBPOINTS  100
 #define  DDTOL         1e-6
+#define  NDPOINTS      1e4
 
 typedef struct {        /* context structure for the NLEIGS solver */
   PetscScalar  s0,s1;   /* target interval ends */
-  PetscInt     ndpt,nmat; 
+  PetscInt     nmat; 
   PetscScalar  *s,*xi;  /* Leja-Bagby points */
   PetscScalar  *beta;   /* scaling factors */
   Mat          *D;      /* divided difference matrices */
-  ST           st;
+  ST           st;      /* auxiliary ST object */
+  PetscScalar  *singset;/* values defining the singularities (discretization) */
 } NEP_NLEIGS;
 
 #undef __FUNCT__
@@ -52,16 +54,17 @@ static PetscErrorCode NEPNLEIGSLejaBagbyPoints(NEP nep)
 {
   PetscErrorCode ierr;
   NEP_NLEIGS     *ctx=(NEP_NLEIGS*)nep->data;
-  PetscInt       i,k,ndpt=ctx->ndpt;
+  PetscInt       i,k,ndpt=NDPOINTS;
   PetscScalar    *ds,*dxi,*nrs,*nrxi,*s=ctx->s,*xi=ctx->xi,*beta=ctx->beta;
   PetscReal      h,maxnrs,minnrxi;
 
   PetscFunctionBegin;
   ierr = PetscMalloc4(ndpt+1,&ds,ndpt,&dxi,ndpt+1,&nrs,ndpt,&nrxi);CHKERRQ(ierr);
-  /* Discretize the target region boundary (linspace)
-    (this will be a region object function) */
-  h = PetscAbsScalar(ctx->s1-ctx->s0)/(ndpt);
-  for (i=0;i<=ndpt;i++) ds[i] = ctx->s0+i*h;
+
+  /* Discretize the target region boundary */
+  if (!nep->rg) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"Solver requires a target set defined with a region, see NEPSetRG"); 
+  ierr = RGComputeContour(nep->rg,ndpt,ds,NULL);CHKERRQ(ierr);
+
   /* Discretize the singularity region (logspace)
     (by the moment is (0,-inf)~(10e-6,10e+6)) */
   h = 12.0/(ndpt-1);
@@ -79,8 +82,6 @@ static PetscErrorCode NEPNLEIGSLejaBagbyPoints(NEP nep)
     nrxi[i] = (dxi[i]-s[0])/(1.0-dxi[i]/xi[0]);
     if (PetscAbsScalar(nrxi[i])<minnrxi) {minnrxi = PetscAbsScalar(nrxi[i]); xi[1] = dxi[i];}
   }
-  nrs[ndpt]  = (ds[ndpt]-s[0])/(1.0-ds[ndpt]/xi[0]);
-  if (PetscAbsScalar(nrs[ndpt])>maxnrs) {maxnrs = PetscAbsScalar(nrs[ndpt]); s[1] = ds[ndpt];}
   beta[1] = maxnrs;
   for (k=2;k<MAX_LBPOINTS;k++) {
     maxnrs = 0.0;
@@ -91,8 +92,6 @@ static PetscErrorCode NEPNLEIGSLejaBagbyPoints(NEP nep)
       nrxi[i] *= ((dxi[i]-s[k-1])/(1.0-dxi[i]/xi[k-1]))/beta[k-1];
       if (PetscAbsScalar(nrxi[i])<minnrxi) {minnrxi = PetscAbsScalar(nrxi[i]); xi[k] = dxi[i];}
     }
-    nrs[i]  *= ((ds[ndpt]-s[k-1])/(1.0-ds[ndpt]/xi[k-1]))/beta[k-1];
-    if (PetscAbsScalar(nrs[ndpt])>maxnrs) {maxnrs = PetscAbsScalar(nrs[ndpt]); s[k] = ds[ndpt];}
     beta[k] = maxnrs;
   }
   ierr = PetscFree4(ds,dxi,nrs,nrxi);CHKERRQ(ierr);
@@ -193,13 +192,7 @@ PetscErrorCode NEPSetUp_NLEIGS(NEP nep)
   k = MAX_LBPOINTS;
   ierr = PetscMalloc4(k,&ctx->s,k,&ctx->xi,k,&ctx->beta,k,&ctx->D);CHKERRQ(ierr);
   nep->data = ctx;
-  ctx->s0 = -1.0;
-  ctx->s1 = 1.0;
-  ctx->ndpt = 1000; /* default number of discretization points */
-  ierr = PetscOptionsGetScalar(NULL,"-nleigs_a",&ctx->s0,NULL);CHKERRQ(ierr);
-  ierr = PetscOptionsGetScalar(NULL,"-nleigs_b",&ctx->s1,NULL);CHKERRQ(ierr);
-  ierr = PetscOptionsGetInt(NULL,"-nleigs_npts",&ctx->ndpt,NULL);CHKERRQ(ierr);
-  ctx->ndpt = PetscMax(ctx->ndpt,2); /* ndpt=2 for no points other than s0 and s1*/
+
   /* Compute Leja-Bagby points and scaling values */
   ierr = NEPNLEIGSLejaBagbyPoints(nep);
 
