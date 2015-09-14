@@ -62,7 +62,6 @@ static PetscErrorCode NEPNLEIGSLejaBagbyPoints(NEP nep)
   ierr = PetscMalloc4(ndpt+1,&ds,ndpt,&dxi,ndpt+1,&nrs,ndpt,&nrxi);CHKERRQ(ierr);
 
   /* Discretize the target region boundary */
-  if (!nep->rg) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"Solver requires a target set defined with a region, see NEPSetRG"); 
   ierr = RGComputeContour(nep->rg,ndpt,ds,NULL);CHKERRQ(ierr);
 
   /* Discretize the singularity region (logspace)
@@ -163,6 +162,7 @@ PetscErrorCode NEPSetUp_NLEIGS(NEP nep)
   PetscScalar    coeffs[MAX_LBPOINTS+1];
   NEP_NLEIGS     *ctx=(NEP_NLEIGS*)nep->data;
   SlepcSC        sc;
+  PetscBool      istrivial;
 
   PetscFunctionBegin;
   if (nep->ncv) { /* ncv set */
@@ -215,6 +215,12 @@ PetscErrorCode NEPSetUp_NLEIGS(NEP nep)
   ierr = DSGetSlepcSC(nep->ds,&sc);CHKERRQ(ierr);
   sc->map = SlepcMap_ST;
   sc->mapobj = (PetscObject)ctx->st;
+  ierr = RGIsTrivial(nep->rg,&istrivial);CHKERRQ(ierr);
+  if (istrivial) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"NEPNLEIGS requires a nontrivial region definig the target set");
+  sc->rg            = nep->rg;
+  sc->comparison    = nep->sc->comparison;
+  sc->comparisonctx = nep->sc->comparisonctx;
+
   PetscFunctionReturn(0);
 }
 
