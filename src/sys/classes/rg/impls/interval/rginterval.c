@@ -172,7 +172,7 @@ PetscErrorCode RGComputeContour_Interval(RG rg,PetscInt n,PetscScalar *cr,PetscS
   if (!(ctx->a>-PETSC_MAX_REAL && ctx->b<PETSC_MAX_REAL && ctx->c>-PETSC_MAX_REAL && ctx->d<PETSC_MAX_REAL)) SETERRQ(PetscObjectComm((PetscObject)rg),PETSC_ERR_SUP,"Contour not defined in unbounded regions");
   if (ctx->a==ctx->b || ctx->c==ctx->d) {
     if (ctx->a==ctx->b) {hi[0] = (ctx->d-ctx->c)/(n-1); hr[0] = 0.0;}
-    else {hr[0] = (ctx->d-ctx->c)/(n-1); hi[0] = 0.0;}
+    else {hr[0] = (ctx->b-ctx->a)/(n-1); hi[0] = 0.0;}
     for (i=0;i<n;i++) {
 #if defined(PETSC_USE_COMPLEX)
       cr[i] = ctx->a+hr[0]*i + (ctx->c+hi[0]*i)*PETSC_i;
