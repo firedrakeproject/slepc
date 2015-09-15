@@ -45,7 +45,8 @@ typedef struct {        /* context structure for the NLEIGS solver */
   PetscScalar  *beta;   /* scaling factors */
   Mat          *D;      /* divided difference matrices */
   ST           st;      /* auxiliary ST object */
-  PetscScalar  *singset;/* values defining the singularities (discretization) */
+  void         *singularitiesctx;
+  PetscErrorCode (*computesingularities)(NEP,PetscInt,PetscScalar*);
 } NEP_NLEIGS;
 
 #undef __FUNCT__
@@ -56,7 +57,7 @@ static PetscErrorCode NEPNLEIGSLejaBagbyPoints(NEP nep)
   NEP_NLEIGS     *ctx=(NEP_NLEIGS*)nep->data;
   PetscInt       i,k,ndpt=NDPOINTS;
   PetscScalar    *ds,*dxi,*nrs,*nrxi,*s=ctx->s,*xi=ctx->xi,*beta=ctx->beta;
-  PetscReal      h,maxnrs,minnrxi;
+  PetscReal      maxnrs,minnrxi;
 
   PetscFunctionBegin;
   ierr = PetscMalloc4(ndpt+1,&ds,ndpt,&dxi,ndpt+1,&nrs,ndpt,&nrxi);CHKERRQ(ierr);
@@ -64,11 +65,9 @@ static PetscErrorCode NEPNLEIGSLejaBagbyPoints(NEP nep)
   /* Discretize the target region boundary */
   ierr = RGComputeContour(nep->rg,ndpt,ds,NULL);CHKERRQ(ierr);
 
-  /* Discretize the singularity region (logspace)
-    (by the moment is (0,-inf)~(10e-6,10e+6)) */
-  h = 12.0/(ndpt-1);
-  dxi[0] = -1e-6; dxi[ndpt-1] = -1e+6;
-  for (i=1;i<ndpt-1;i++) dxi[i] = -PetscPowReal(10,-6+h*i);
+  /* Discretize the singularity region */
+  ierr = (ctx->computesingularities)(nep,ndpt,dxi);CHKERRQ(ierr);
+
   /* loop to look for Leja-Bagby points in the discretization sets 
      now both sets have the same number of points */
   s[0] = ds[0]; xi[0] = dxi[0];
@@ -777,6 +776,65 @@ PetscErrorCode NEPNLEIGSGetST(NEP nep,ST *st)
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
   PetscValidPointer(st,2);
   ierr = PetscTryMethod(nep,"NEPNLEIGSGetST_C",(NEP,ST*),(nep,st));CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "NEPNLEIGSSetSingularitiesFunction"
+/*@C
+   NEPNLEIGSSetSingularitiesFunction - Sets a user function to compute a discretization
+   of the singularity set (where T(lambda) is not analytic).
+
+   Logically Collective on NEP
+
+   Input Parameters:
++  nep - the NEP context
+.  fun - user function (if NULL then NEP retains any previously set value)
+-  ctx - [optional] user-defined context for private data for the function
+         (may be NULL) (if NULL then NEP retains any previously set value)
+
+   Level: beginner
+
+.seealso: NEPNLEIGSGetSingularitiesFunction()
+@*/
+PetscErrorCode NEPNLEIGSSetSingularitiesFunction(NEP nep,PetscErrorCode (*fun)(NEP,PetscInt,PetscScalar*),void *ctx)
+{
+  NEP_NLEIGS *nepctx = (NEP_NLEIGS*)nep->data;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
+  if (fun) nepctx->computesingularities = fun;
+  if (ctx) nepctx->singularitiesctx     = ctx;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "NEPNLEIGSGetSingularitiesFunction"
+/*@C
+   NEPNLEIGSGetSingularitiesFunction - Returns the Function and optionally the user
+   provided context for computing a discretization of the singularity set.
+
+   Not Collective
+
+   Input Parameter:
+.  nep - the nonlinear eigensolver context
+
+   Output Parameters:
++  fun - location to put the function (or NULL)
+-  ctx - location to stash the function context (or NULL)
+
+   Level: advanced
+
+.seealso: NEPNLEIGSSetSingularitiesFunction()
+@*/
+PetscErrorCode NEPNLEIGSGetSingularitiesFunction(NEP nep,PetscErrorCode (**fun)(NEP,PetscInt,PetscScalar*),void **ctx)
+{
+  NEP_NLEIGS *nepctx = (NEP_NLEIGS*)nep->data;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
+  if (fun) *fun = nepctx->computesingularities;
+  if (ctx) *ctx = nepctx->singularitiesctx;
   PetscFunctionReturn(0);
 }
 

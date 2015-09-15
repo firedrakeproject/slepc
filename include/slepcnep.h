@@ -238,6 +238,8 @@ PETSC_EXTERN PetscErrorCode NEPInterpolGetDegree(NEP,PetscInt*);
 
 PETSC_EXTERN PetscErrorCode NEPNLEIGSSetST(NEP,ST);
 PETSC_EXTERN PetscErrorCode NEPNLEIGSGetST(NEP,ST*);
+PETSC_EXTERN PetscErrorCode NEPNLEIGSSetSingularitiesFunction(NEP,PetscErrorCode (*)(NEP,PetscInt,PetscScalar*),void*);
+PETSC_EXTERN PetscErrorCode NEPNLEIGSGetSingularitiesFunction(NEP nep,PetscErrorCode (**)(NEP,PetscInt,PetscScalar*),void **);
 
 #endif
 
