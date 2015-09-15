@@ -95,7 +95,8 @@ PetscErrorCode NEPSolve(NEP nep)
 
   if (!nep->reason) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_PLIB,"Internal error, solver returned without setting converged reason");
 
-  if (nep->refine==NEP_REFINE_SIMPLE && nep->rits>0) {
+  if (nep->refine==NEP_REFINE_SIMPLE && nep->rits>0 && nep->nconv>0) {
+    if (nep->fui!=NEP_USER_INTERFACE_SPLIT) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"Iterative refinement only implemented in split form");
     ierr = NEPComputeVectors(nep);CHKERRQ(ierr);
     ierr = NEPNewtonRefinementSimple(nep,&nep->rits,&nep->reftol,nep->nconv);CHKERRQ(ierr);
     nep->state = NEP_STATE_EIGENVECTORS;
@@ -153,7 +154,8 @@ PetscErrorCode NEPProjectOperator(NEP nep,PetscInt j0,PetscInt j1)
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
   PetscValidLogicalCollectiveInt(nep,j0,2);
   PetscValidLogicalCollectiveInt(nep,j1,3);
-  if (!nep->split) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_WRONGSTATE,"This solver requires a split operator");
+  NEPCheckProblem(nep,1);
+  NEPCheckSplit(nep,1);
   ierr = BVSetActiveColumns(nep->V,j0,j1);CHKERRQ(ierr);
   for (k=0;k<nep->nt;k++) {
     ierr = DSGetMat(nep->ds,DSMatExtra[k],&G);CHKERRQ(ierr);
@@ -204,7 +206,7 @@ PetscErrorCode NEPApplyFunction(NEP nep,PetscScalar lambda,Vec x,Vec v,Vec y,Mat
   PetscValidHeaderSpecific(x,VEC_CLASSID,3);
   PetscValidHeaderSpecific(y,VEC_CLASSID,4);
   PetscValidHeaderSpecific(y,VEC_CLASSID,5);
-  if (nep->split) {
+  if (nep->fui==NEP_USER_INTERFACE_SPLIT) {
     ierr = VecSet(y,0.0);CHKERRQ(ierr);
     for (i=0;i<nep->nt;i++) {
       ierr = FNEvaluateFunction(nep->f[i],lambda,&alpha);CHKERRQ(ierr);
@@ -258,7 +260,7 @@ PetscErrorCode NEPApplyJacobian(NEP nep,PetscScalar lambda,Vec x,Vec v,Vec y,Mat
   PetscValidHeaderSpecific(x,VEC_CLASSID,3);
   PetscValidHeaderSpecific(y,VEC_CLASSID,4);
   PetscValidHeaderSpecific(y,VEC_CLASSID,5);
-  if (nep->split) {
+  if (nep->fui==NEP_USER_INTERFACE_SPLIT) {
     ierr = VecSet(y,0.0);CHKERRQ(ierr);
     for (i=0;i<nep->nt;i++) {
       ierr = FNEvaluateDerivative(nep->f[i],lambda,&alpha);CHKERRQ(ierr);
@@ -621,29 +623,32 @@ PetscErrorCode NEPComputeFunction(NEP nep,PetscScalar lambda,Mat A,Mat B)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
-
-  if (nep->split) {
-
+  NEPCheckProblem(nep,1);
+  switch (nep->fui) {
+  case NEP_USER_INTERFACE_CALLBACK:
+    if (!nep->computefunction) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_USER,"Must call NEPSetFunction() first");
+    ierr = PetscLogEventBegin(NEP_FunctionEval,nep,A,B,0);CHKERRQ(ierr);
+    PetscStackPush("NEP user Function function");
+    ierr = (*nep->computefunction)(nep,lambda,A,B,nep->functionctx);CHKERRQ(ierr);
+    PetscStackPop;
+    ierr = PetscLogEventEnd(NEP_FunctionEval,nep,A,B,0);CHKERRQ(ierr);
+    nep->nfuncs++;
+    break;
+  case NEP_USER_INTERFACE_SPLIT:
     ierr = MatZeroEntries(A);CHKERRQ(ierr);
     for (i=0;i<nep->nt;i++) {
       ierr = FNEvaluateFunction(nep->f[i],lambda,&alpha);CHKERRQ(ierr);
       ierr = MatAXPY(A,alpha,nep->A[i],nep->mstr);CHKERRQ(ierr);
     }
     if (A != B) SETERRQ(PetscObjectComm((PetscObject)nep),1,"Not implemented");
-
-  } else {
-
-    if (!nep->computefunction) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_USER,"Must call NEPSetFunction() first");
-
-    ierr = PetscLogEventBegin(NEP_FunctionEval,nep,A,B,0);CHKERRQ(ierr);
-
-    PetscStackPush("NEP user Function function");
-    ierr = (*nep->computefunction)(nep,lambda,A,B,nep->functionctx);CHKERRQ(ierr);
+    break;
+  case NEP_USER_INTERFACE_DERIVATIVES:
+    ierr = PetscLogEventBegin(NEP_DerivativesEval,nep,A,B,0);CHKERRQ(ierr);
+    PetscStackPush("NEP user Derivatives function");
+    ierr = (*nep->computederivatives)(nep,lambda,0,A,nep->derivativesctx);CHKERRQ(ierr);
     PetscStackPop;
-
-    ierr = PetscLogEventEnd(NEP_FunctionEval,nep,A,B,0);CHKERRQ(ierr);
-    nep->nfuncs++;
-
+    ierr = PetscLogEventEnd(NEP_DerivativesEval,nep,A,B,0);CHKERRQ(ierr);
+    break;
   }
   PetscFunctionReturn(0);
 }
@@ -679,27 +684,30 @@ PetscErrorCode NEPComputeJacobian(NEP nep,PetscScalar lambda,Mat A)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
-
-  if (nep->split) {
-
+  NEPCheckProblem(nep,1);
+  switch (nep->fui) {
+  case NEP_USER_INTERFACE_CALLBACK:
+    if (!nep->computejacobian) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_USER,"Must call NEPSetJacobian() first");
+    ierr = PetscLogEventBegin(NEP_JacobianEval,nep,A,0,0);CHKERRQ(ierr);
+    PetscStackPush("NEP user Jacobian function");
+    ierr = (*nep->computejacobian)(nep,lambda,A,nep->jacobianctx);CHKERRQ(ierr);
+    PetscStackPop;
+    ierr = PetscLogEventEnd(NEP_JacobianEval,nep,A,0,0);CHKERRQ(ierr);
+    break;
+  case NEP_USER_INTERFACE_SPLIT:
     ierr = MatZeroEntries(A);CHKERRQ(ierr);
     for (i=0;i<nep->nt;i++) {
       ierr = FNEvaluateDerivative(nep->f[i],lambda,&alpha);CHKERRQ(ierr);
       ierr = MatAXPY(A,alpha,nep->A[i],nep->mstr);CHKERRQ(ierr);
     }
-
-  } else {
-
-    if (!nep->computejacobian) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_USER,"Must call NEPSetJacobian() first");
-
-    ierr = PetscLogEventBegin(NEP_JacobianEval,nep,A,0,0);CHKERRQ(ierr);
-
-    PetscStackPush("NEP user Jacobian function");
-    ierr = (*nep->computejacobian)(nep,lambda,A,nep->jacobianctx);CHKERRQ(ierr);
+    break;
+  case NEP_USER_INTERFACE_DERIVATIVES:
+    ierr = PetscLogEventBegin(NEP_DerivativesEval,nep,A,0,0);CHKERRQ(ierr);
+    PetscStackPush("NEP user Derivatives function");
+    ierr = (*nep->computederivatives)(nep,lambda,1,A,nep->derivativesctx);CHKERRQ(ierr);
     PetscStackPop;
-
-    ierr = PetscLogEventEnd(NEP_JacobianEval,nep,A,0,0);CHKERRQ(ierr);
-
+    ierr = PetscLogEventEnd(NEP_DerivativesEval,nep,A,0,0);CHKERRQ(ierr);
+    break;
   }
   PetscFunctionReturn(0);
 }

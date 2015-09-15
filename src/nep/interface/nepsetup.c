@@ -53,6 +53,7 @@ PetscErrorCode NEPSetUp(NEP nep)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
+  NEPCheckProblem(nep,1);
   if (nep->state) PetscFunctionReturn(0);
   ierr = PetscLogEventBegin(NEP_SetUp,nep,0,0,0);CHKERRQ(ierr);
 
@@ -81,17 +82,25 @@ PetscErrorCode NEPSetUp(NEP nep)
   if (!nep->which) nep->which = NEP_TARGET_MAGNITUDE;
 
   /* set problem dimensions */
-  if (nep->split) {
+  switch (nep->fui) {
+  case NEP_USER_INTERFACE_CALLBACK:
+    ierr = NEPGetFunction(nep,&T,NULL,NULL,NULL);CHKERRQ(ierr);
+    ierr = MatGetSize(T,&nep->n,NULL);CHKERRQ(ierr);
+    ierr = MatGetLocalSize(T,&nep->nloc,NULL);CHKERRQ(ierr);
+    break;
+  case NEP_USER_INTERFACE_SPLIT:
     ierr = MatDuplicate(nep->A[0],MAT_DO_NOT_COPY_VALUES,&nep->function);CHKERRQ(ierr);
     ierr = MatDuplicate(nep->A[0],MAT_DO_NOT_COPY_VALUES,&nep->jacobian);CHKERRQ(ierr);
     ierr = PetscLogObjectParent((PetscObject)nep,(PetscObject)nep->function);CHKERRQ(ierr);
     ierr = PetscLogObjectParent((PetscObject)nep,(PetscObject)nep->jacobian);CHKERRQ(ierr);
     ierr = MatGetSize(nep->A[0],&nep->n,NULL);CHKERRQ(ierr);
     ierr = MatGetLocalSize(nep->A[0],&nep->nloc,NULL);CHKERRQ(ierr);
-  } else {
-    ierr = NEPGetFunction(nep,&T,NULL,NULL,NULL);CHKERRQ(ierr);
+    break;
+  case NEP_USER_INTERFACE_DERIVATIVES:
+    ierr = NEPGetDerivatives(nep,&T,NULL,NULL);CHKERRQ(ierr);
     ierr = MatGetSize(T,&nep->n,NULL);CHKERRQ(ierr);
     ierr = MatGetLocalSize(T,&nep->nloc,NULL);CHKERRQ(ierr);
+    break;
   }
 
   /* call specific solver setup */
@@ -267,7 +276,7 @@ PetscErrorCode NEPAllocateSolution(NEP nep,PetscInt extra)
     if (!((PetscObject)(nep->V))->type_name) {
       ierr = BVSetType(nep->V,BVSVEC);CHKERRQ(ierr);
     }
-    if (nep->split) T = nep->A[0];
+    if (nep->fui==NEP_USER_INTERFACE_SPLIT) T = nep->A[0];
     else {
       ierr = NEPGetFunction(nep,&T,NULL,NULL,NULL);CHKERRQ(ierr);
     }

@@ -26,7 +26,7 @@
 PetscFunctionList NEPList = 0;
 PetscBool         NEPRegisterAllCalled = PETSC_FALSE;
 PetscClassId      NEP_CLASSID = 0;
-PetscLogEvent     NEP_SetUp = 0,NEP_Solve = 0,NEP_Refine = 0,NEP_FunctionEval = 0,NEP_JacobianEval = 0;
+PetscLogEvent     NEP_SetUp = 0,NEP_Solve = 0,NEP_Refine = 0,NEP_FunctionEval = 0,NEP_JacobianEval = 0,NEP_DerivativesEval = 0;
 
 #undef __FUNCT__
 #define __FUNCT__ "NEPCreate"
@@ -81,6 +81,8 @@ PetscErrorCode NEPCreate(MPI_Comm comm,NEP *outnep)
   nep->computejacobian = NULL;
   nep->functionctx     = NULL;
   nep->jacobianctx     = NULL;
+  nep->computederivatives = NULL;
+  nep->derivativesctx  = NULL;
   nep->converged       = NEPConvergedDefault;
   nep->convergeddestroy= NULL;
   nep->convergedctx    = NULL;
@@ -94,6 +96,7 @@ PetscErrorCode NEPCreate(MPI_Comm comm,NEP *outnep)
   nep->function        = NULL;
   nep->function_pre    = NULL;
   nep->jacobian        = NULL;
+  nep->derivatives     = NULL;
   nep->A               = NULL;
   nep->f               = NULL;
   nep->nt              = 0;
@@ -113,7 +116,7 @@ PetscErrorCode NEPCreate(MPI_Comm comm,NEP *outnep)
   nep->n               = 0;
   nep->nloc            = 0;
   nep->nfuncs          = 0;
-  nep->split           = PETSC_FALSE;
+  nep->fui             = (NEPUserInterface)0;
   nep->reason          = NEP_CONVERGED_ITERATING;
 
   ierr = PetscNewLog(nep,&nep->sc);CHKERRQ(ierr);
@@ -242,6 +245,31 @@ PetscErrorCode NEPRegister(const char *name,PetscErrorCode (*function)(NEP))
 }
 
 #undef __FUNCT__
+#define __FUNCT__ "NEPReset_Problem"
+/*
+   NEPReset_Problem - Destroys the problem matrices.
+@*/
+PetscErrorCode NEPReset_Problem(NEP nep)
+{
+  PetscErrorCode ierr;
+  PetscInt       i;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
+  ierr = MatDestroy(&nep->function);CHKERRQ(ierr);
+  ierr = MatDestroy(&nep->function_pre);CHKERRQ(ierr);
+  ierr = MatDestroy(&nep->jacobian);CHKERRQ(ierr);
+  ierr = MatDestroy(&nep->derivatives);CHKERRQ(ierr);
+  if (nep->fui==NEP_USER_INTERFACE_SPLIT) {
+    ierr = MatDestroyMatrices(nep->nt,&nep->A);CHKERRQ(ierr);
+    for (i=0;i<nep->nt;i++) {
+      ierr = FNDestroy(&nep->f[i]);CHKERRQ(ierr);
+    }
+    ierr = PetscFree(nep->f);CHKERRQ(ierr);
+  }
+  PetscFunctionReturn(0);
+}
+#undef __FUNCT__
 #define __FUNCT__ "NEPReset"
 /*@
    NEPReset - Resets the NEP context to the initial state and removes any
@@ -259,22 +287,13 @@ PetscErrorCode NEPRegister(const char *name,PetscErrorCode (*function)(NEP))
 PetscErrorCode NEPReset(NEP nep)
 {
   PetscErrorCode ierr;
-  PetscInt       i,ncols;
+  PetscInt       ncols;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
   if (nep->ops->reset) { ierr = (nep->ops->reset)(nep);CHKERRQ(ierr); }
   if (nep->ds) { ierr = DSReset(nep->ds);CHKERRQ(ierr); }
-  ierr = MatDestroy(&nep->function);CHKERRQ(ierr);
-  ierr = MatDestroy(&nep->function_pre);CHKERRQ(ierr);
-  ierr = MatDestroy(&nep->jacobian);CHKERRQ(ierr);
-  if (nep->split) {
-    ierr = MatDestroyMatrices(nep->nt,&nep->A);CHKERRQ(ierr);
-    for (i=0;i<nep->nt;i++) {
-      ierr = FNDestroy(&nep->f[i]);CHKERRQ(ierr);
-    }
-    ierr = PetscFree(nep->f);CHKERRQ(ierr);
-  }
+  ierr = NEPReset_Problem(nep);CHKERRQ(ierr);
   ierr = BVGetSizes(nep->V,NULL,NULL,&ncols);CHKERRQ(ierr);
   if (ncols) {
     ierr = PetscFree4(nep->eigr,nep->eigi,nep->errest,nep->perm);CHKERRQ(ierr);
@@ -694,6 +713,11 @@ PetscErrorCode NEPSetFunction(NEP nep,Mat A,Mat B,PetscErrorCode (*fun)(NEP,Pets
   if (B) PetscValidHeaderSpecific(B,MAT_CLASSID,3);
   if (A) PetscCheckSameComm(nep,1,A,2);
   if (B) PetscCheckSameComm(nep,1,B,3);
+
+  if (nep->fui && nep->fui!=NEP_USER_INTERFACE_CALLBACK) {  /* clean previous user info */
+    ierr = NEPReset_Problem(nep);CHKERRQ(ierr);
+  }
+
   if (fun) nep->computefunction = fun;
   if (ctx) nep->functionctx     = ctx;
   if (A) {
@@ -706,7 +730,7 @@ PetscErrorCode NEPSetFunction(NEP nep,Mat A,Mat B,PetscErrorCode (*fun)(NEP,Pets
     ierr = MatDestroy(&nep->function_pre);CHKERRQ(ierr);
     nep->function_pre = B;
   }
-  nep->split = PETSC_FALSE;
+  nep->fui = NEP_USER_INTERFACE_CALLBACK;
   PetscFunctionReturn(0);
 }
 
@@ -735,6 +759,7 @@ PetscErrorCode NEPGetFunction(NEP nep,Mat *A,Mat *B,PetscErrorCode (**fun)(NEP,P
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
+  NEPCheckCallback(nep,1);
   if (A)   *A   = nep->function;
   if (B)   *B   = nep->function_pre;
   if (fun) *fun = nep->computefunction;
@@ -771,6 +796,11 @@ PetscErrorCode NEPSetJacobian(NEP nep,Mat A,PetscErrorCode (*jac)(NEP,PetscScala
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
   if (A) PetscValidHeaderSpecific(A,MAT_CLASSID,2);
   if (A) PetscCheckSameComm(nep,1,A,2);
+
+  if (nep->fui && nep->fui!=NEP_USER_INTERFACE_CALLBACK) {  /* clean previous user info */
+    ierr = NEPReset_Problem(nep);CHKERRQ(ierr);
+  }
+
   if (jac) nep->computejacobian = jac;
   if (ctx) nep->jacobianctx     = ctx;
   if (A) {
@@ -778,7 +808,7 @@ PetscErrorCode NEPSetJacobian(NEP nep,Mat A,PetscErrorCode (*jac)(NEP,PetscScala
     ierr = MatDestroy(&nep->jacobian);CHKERRQ(ierr);
     nep->jacobian = A;
   }
-  nep->split = PETSC_FALSE;
+  nep->fui = NEP_USER_INTERFACE_CALLBACK;
   PetscFunctionReturn(0);
 }
 
@@ -786,7 +816,7 @@ PetscErrorCode NEPSetJacobian(NEP nep,Mat A,PetscErrorCode (*jac)(NEP,PetscScala
 #define __FUNCT__ "NEPGetJacobian"
 /*@C
    NEPGetJacobian - Returns the Jacobian matrix and optionally the user
-   provided context for evaluating the Jacobian.
+   provided routine and context for evaluating the Jacobian.
 
    Not Collective, but Mat object will be parallel if NEP object is
 
@@ -806,6 +836,7 @@ PetscErrorCode NEPGetJacobian(NEP nep,Mat *A,PetscErrorCode (**jac)(NEP,PetscSca
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
+  NEPCheckCallback(nep,1);
   if (A)   *A   = nep->jacobian;
   if (jac) *jac = nep->computejacobian;
   if (ctx) *ctx = nep->jacobianctx;
@@ -860,16 +891,7 @@ PetscErrorCode NEPSetSplitOperator(NEP nep,PetscInt n,Mat A[],FN f[],MatStructur
   PetscCheckSameComm(nep,1,*f,4);
   if (nep->state) { ierr = NEPReset(nep);CHKERRQ(ierr); }
   /* clean previously stored information */
-  ierr = MatDestroy(&nep->function);CHKERRQ(ierr);
-  ierr = MatDestroy(&nep->function_pre);CHKERRQ(ierr);
-  ierr = MatDestroy(&nep->jacobian);CHKERRQ(ierr);
-  if (nep->split) {
-    ierr = MatDestroyMatrices(nep->nt,&nep->A);CHKERRQ(ierr);
-    for (i=0;i<nep->nt;i++) {
-      ierr = FNDestroy(&nep->f[i]);CHKERRQ(ierr);
-    }
-    ierr = PetscFree(nep->f);CHKERRQ(ierr);
-  }
+  ierr = NEPReset_Problem(nep);CHKERRQ(ierr);
   /* allocate space and copy matrices and functions */
   ierr = PetscMalloc1(n,&nep->A);CHKERRQ(ierr);
   ierr = PetscLogObjectMemory((PetscObject)nep,n*sizeof(Mat));CHKERRQ(ierr);
@@ -885,9 +907,9 @@ PetscErrorCode NEPSetSplitOperator(NEP nep,PetscInt n,Mat A[],FN f[],MatStructur
     ierr = PetscObjectReference((PetscObject)f[i]);CHKERRQ(ierr);
     nep->f[i] = f[i];
   }
-  nep->nt    = n;
-  nep->mstr  = str;
-  nep->split = PETSC_TRUE;
+  nep->nt   = n;
+  nep->mstr = str;
+  nep->fui  = NEP_USER_INTERFACE_SPLIT;
   PetscFunctionReturn(0);
 }
 
@@ -915,6 +937,7 @@ PetscErrorCode NEPGetSplitOperatorTerm(NEP nep,PetscInt k,Mat *A,FN *f)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
+  NEPCheckSplit(nep,1);
   if (k<0 || k>=nep->nt) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_OUTOFRANGE,"k must be between 0 and %d",nep->nt-1);
   if (A) *A = nep->A[k];
   if (f) *f = nep->f[k];
@@ -944,8 +967,85 @@ PetscErrorCode NEPGetSplitOperatorInfo(NEP nep,PetscInt *n,MatStructure *str)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
-  if (n) *n = nep->nt;
+  NEPCheckSplit(nep,1);
+  if (n)   *n = nep->nt;
   if (str) *str = nep->mstr;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "NEPSetDerivatives"
+/*@C
+   NEPSetDerivatives - Sets the function to compute the k-th derivative T^(k)(lambda)
+   for any value of k (including 0), as well as the location to store the matrix.
+
+   Logically Collective on NEP and Mat
+
+   Input Parameters:
++  nep - the NEP context
+.  A   - the matrix to store the computed derivative
+.  der - routing to evaluate the k-th derivative (if NULL then NEP retains any
+         previously set value)
+-  ctx - [optional] user-defined context for private data for the derivatives
+         evaluation routine (may be NULL) (if NULL then NEP retains any
+         previously set value)
+
+   Level: beginner
+
+.seealso: NEPSetFunction(), NEPGetDerivatives()
+@*/
+PetscErrorCode NEPSetDerivatives(NEP nep,Mat A,PetscErrorCode (*der)(NEP,PetscScalar,PetscInt,Mat,void*),void *ctx)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
+  if (A) PetscValidHeaderSpecific(A,MAT_CLASSID,2);
+  if (A) PetscCheckSameComm(nep,1,A,2);
+
+  if (nep->fui && nep->fui!=NEP_USER_INTERFACE_DERIVATIVES) {  /* clean previous user info */
+    ierr = NEPReset_Problem(nep);CHKERRQ(ierr);
+  }
+
+  if (der) nep->computederivatives = der;
+  if (ctx) nep->derivativesctx     = ctx;
+  if (A) {
+    ierr = PetscObjectReference((PetscObject)A);CHKERRQ(ierr);
+    ierr = MatDestroy(&nep->derivatives);CHKERRQ(ierr);
+    nep->derivatives = A;
+  }
+  nep->fui = NEP_USER_INTERFACE_DERIVATIVES;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "NEPGetDerivatives"
+/*@C
+   NEPGetDerivatives - Returns the derivatives matrix and optionally the user
+   provided routine and context for evaluating the derivatives.
+
+   Not Collective, but Mat object will be parallel if NEP object is
+
+   Input Parameter:
+.  nep - the nonlinear eigensolver context
+
+   Output Parameters:
++  A   - location to stash the derivatives matrix (or NULL)
+.  der - location to put derivatives function (or NULL)
+-  ctx - location to stash derivatives context (or NULL)
+
+   Level: advanced
+
+.seealso: NEPSetDerivatives()
+@*/
+PetscErrorCode NEPGetDerivatives(NEP nep,Mat *A,PetscErrorCode (**der)(NEP,PetscScalar,PetscInt,Mat,void*),void **ctx)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
+  NEPCheckDerivatives(nep,1);
+  if (A)   *A   = nep->derivatives;
+  if (der) *der = nep->computederivatives;
+  if (ctx) *ctx = nep->derivativesctx;
   PetscFunctionReturn(0);
 }
 
