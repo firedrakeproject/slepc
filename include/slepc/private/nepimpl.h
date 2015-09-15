@@ -27,7 +27,7 @@
 
 PETSC_EXTERN PetscBool NEPRegisterAllCalled;
 PETSC_EXTERN PetscErrorCode NEPRegisterAll(void);
-PETSC_EXTERN PetscLogEvent NEP_SetUp,NEP_Solve,NEP_Refine,NEP_FunctionEval,NEP_JacobianEval;
+PETSC_EXTERN PetscLogEvent NEP_SetUp,NEP_Solve,NEP_Refine,NEP_FunctionEval,NEP_JacobianEval,NEP_DerivativesEval;
 
 typedef struct _NEPOps *NEPOps;
 
@@ -51,6 +51,16 @@ typedef enum { NEP_STATE_INITIAL,
                NEP_STATE_SETUP,
                NEP_STATE_SOLVED,
                NEP_STATE_EIGENVECTORS } NEPStateType;
+
+/*
+     How the problem function T(lambda) has been defined by the user
+     - Callback: one callback to build the function matrix, another one for the Jacobian
+     - Split: in split form sum_j(A_j*f_j(lambda))
+     - Derivatives: a single callback for all the derivatives (including the 0th derivative)
+*/
+typedef enum { NEP_USER_INTERFACE_CALLBACK=1,
+               NEP_USER_INTERFACE_SPLIT,
+               NEP_USER_INTERFACE_DERIVATIVES } NEPUserInterface;
 
 /*
    Defines the NEP data structure.
@@ -82,6 +92,8 @@ struct _p_NEP {
   PetscErrorCode (*computejacobian)(NEP,PetscScalar,Mat,void*);
   void           *functionctx;
   void           *jacobianctx;
+  PetscErrorCode (*computederivatives)(NEP,PetscScalar,PetscInt,Mat,void*);
+  void           *derivativesctx;
   PetscErrorCode (*converged)(NEP,PetscInt,PetscReal,PetscReal,PetscReal,NEPConvergedReason*,void*);
   PetscErrorCode (*convergeddestroy)(void*);
   void           *convergedctx;
@@ -100,6 +112,7 @@ struct _p_NEP {
   Mat            function;         /* function matrix */
   Mat            function_pre;     /* function matrix (preconditioner) */
   Mat            jacobian;         /* Jacobian matrix */
+  Mat            derivatives;      /* derivatives matrix */
   Mat            *A;               /* matrix coefficients of split form */
   FN             *f;               /* matrix functions of split form */
   PetscInt       nt;               /* number of terms in split form */
@@ -118,8 +131,7 @@ struct _p_NEP {
   PetscInt       its;              /* number of iterations so far computed */
   PetscInt       n,nloc;           /* problem dimensions (global, local) */
   PetscInt       nfuncs;           /* number of function evaluations */
-  PetscBool      split;            /* the nonlinear operator has been set in
-                                      split form, otherwise user callbacks are used */
+  NEPUserInterface fui;            /* how the user has defined the nonlinear operator */
   NEPConvergedReason reason;
 };
 
@@ -128,9 +140,33 @@ struct _p_NEP {
 */
 #if !defined(PETSC_USE_DEBUG)
 
+#define NEPCheckProblem(h,arg) do {} while (0)
+#define NEPCheckCallback(h,arg) do {} while (0)
+#define NEPCheckSplit(h,arg) do {} while (0)
+#define NEPCheckDerivatives(h,arg) do {} while (0)
 #define NEPCheckSolved(h,arg) do {} while (0)
 
 #else
+
+#define NEPCheckProblem(h,arg) \
+  do { \
+    if (!(h->fui)) SETERRQ1(PetscObjectComm((PetscObject)h),PETSC_ERR_ARG_WRONGSTATE,"The nonlinear eigenproblem has not been specified yet. Parameter #%d",arg); \
+  } while (0)
+
+#define NEPCheckCallback(h,arg) \
+  do { \
+    if (h->fui!=NEP_USER_INTERFACE_CALLBACK) SETERRQ1(PetscObjectComm((PetscObject)h),PETSC_ERR_ARG_WRONGSTATE,"This operation requires the nonlinear eigenproblem specified with callbacks. Parameter #%d",arg); \
+  } while (0)
+
+#define NEPCheckSplit(h,arg) \
+  do { \
+    if (h->fui!=NEP_USER_INTERFACE_SPLIT) SETERRQ1(PetscObjectComm((PetscObject)h),PETSC_ERR_ARG_WRONGSTATE,"This operation requires the nonlinear eigenproblem in split form. Parameter #%d",arg); \
+  } while (0)
+
+#define NEPCheckDerivatives(h,arg) \
+  do { \
+    if (h->fui!=NEP_USER_INTERFACE_DERIVATIVES) SETERRQ1(PetscObjectComm((PetscObject)h),PETSC_ERR_ARG_WRONGSTATE,"This operation requires the nonlinear eigenproblem specified with derivatives callback. Parameter #%d",arg); \
+  } while (0)
 
 #define NEPCheckSolved(h,arg) \
   do { \
@@ -154,6 +190,7 @@ PETSC_STATIC_INLINE PetscErrorCode NEP_KSPSolve(NEP nep,Vec b,Vec x)
 }
 
 PETSC_INTERN PetscErrorCode NEPComputeVectors(NEP);
+PETSC_INTERN PetscErrorCode NEPReset_Problem(NEP);
 PETSC_INTERN PetscErrorCode NEPGetDefaultShift(NEP,PetscScalar*);
 PETSC_INTERN PetscErrorCode NEPComputeResidualNorm_Private(NEP,PetscScalar,Vec,Vec*,PetscReal*);
 PETSC_INTERN PetscErrorCode NEPNewtonRefinementSimple(NEP,PetscInt*,PetscReal*,PetscInt);

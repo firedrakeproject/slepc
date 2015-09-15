@@ -144,6 +144,8 @@ PETSC_EXTERN PetscErrorCode NEPSetFunction(NEP,Mat,Mat,PetscErrorCode (*)(NEP,Pe
 PETSC_EXTERN PetscErrorCode NEPGetFunction(NEP,Mat*,Mat*,PetscErrorCode (**)(NEP,PetscScalar,Mat,Mat,void*),void**);
 PETSC_EXTERN PetscErrorCode NEPSetJacobian(NEP,Mat,PetscErrorCode (*)(NEP,PetscScalar,Mat,void*),void*);
 PETSC_EXTERN PetscErrorCode NEPGetJacobian(NEP,Mat*,PetscErrorCode (**)(NEP,PetscScalar,Mat,void*),void**);
+PETSC_EXTERN PetscErrorCode NEPSetDerivatives(NEP,Mat,PetscErrorCode (*)(NEP,PetscScalar,PetscInt,Mat,void*),void*);
+PETSC_EXTERN PetscErrorCode NEPGetDerivatives(NEP,Mat*,PetscErrorCode (**)(NEP,PetscScalar,PetscInt,Mat,void*),void**);
 PETSC_EXTERN PetscErrorCode NEPSetSplitOperator(NEP,PetscInt,Mat*,FN*,MatStructure);
 PETSC_EXTERN PetscErrorCode NEPGetSplitOperatorTerm(NEP,PetscInt,Mat*,FN*);
 PETSC_EXTERN PetscErrorCode NEPGetSplitOperatorInfo(NEP,PetscInt*,MatStructure*);
@@ -213,6 +215,9 @@ PETSC_EXTERN PetscErrorCode NEPSetWorkVecs(NEP,PetscInt);
 PETSC_EXTERN PetscErrorCode NEPAllocateSolution(NEP,PetscInt);
 
 /* --------- options specific to particular eigensolvers -------- */
+
+PETSC_EXTERN PetscErrorCode NEPRIISetMaximumIterations(NEP,PetscInt);
+PETSC_EXTERN PetscErrorCode NEPRIIGetMaximumIterations(NEP,PetscInt*);
 
 PETSC_EXTERN PetscErrorCode NEPSLPSetEPS(NEP,EPS);
 PETSC_EXTERN PetscErrorCode NEPSLPGetEPS(NEP,EPS*);
