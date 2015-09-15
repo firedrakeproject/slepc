@@ -231,5 +231,8 @@ PETSC_EXTERN PetscErrorCode NEPInterpolGetPEP(NEP,PEP*);
 PETSC_EXTERN PetscErrorCode NEPInterpolSetDegree(NEP,PetscInt);
 PETSC_EXTERN PetscErrorCode NEPInterpolGetDegree(NEP,PetscInt*);
 
+PETSC_EXTERN PetscErrorCode NEPNLEIGSSetST(NEP,ST);
+PETSC_EXTERN PetscErrorCode NEPNLEIGSGetST(NEP,ST*);
+
 #endif
 

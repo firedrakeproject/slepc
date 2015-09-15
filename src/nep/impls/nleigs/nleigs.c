@@ -216,7 +216,7 @@ PetscErrorCode NEPSetUp_NLEIGS(NEP nep)
   sc->map = SlepcMap_ST;
   sc->mapobj = (PetscObject)ctx->st;
   ierr = RGIsTrivial(nep->rg,&istrivial);CHKERRQ(ierr);
-  if (istrivial) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"NEPNLEIGS requires a nontrivial region definig the target set");
+  if (istrivial) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"NEPNLEIGS requires a nontrivial region defining the target set");
   sc->rg            = nep->rg;
   sc->comparison    = nep->sc->comparison;
   sc->comparisonctx = nep->sc->comparisonctx;
@@ -315,14 +315,12 @@ static PetscErrorCode NEPTOARExtendBasis(NEP nep,PetscScalar sigma,PetscScalar *
   for (j=0;j<nv;j++) {
     r[(deg-2)*lr+j] = (S[(deg-2)*ls+j]+(beta[deg-1]/xi[deg-2])*S[(deg-1)*ls+j])/(s[deg-2]-sigma);
   }
-  /* RM ierr = SlepcVecMAXPBY(v,0.0,1.0,nv,r+(deg-2)*lr,V);CHKERRQ(ierr);*/
   /* NoteUP */
   ierr = BVMultVec(V,1.0,0.0,v,r+(deg-2)*lr);CHKERRQ(ierr);
   ierr = STMatMult(ctx->st,deg-2,v,q);CHKERRQ(ierr);
   for (k=deg-2;k>0;k--) {
     if (PetscAbsScalar(s[k-1]-sigma)<100*PETSC_MACHINE_EPSILON) SETERRQ(PETSC_COMM_SELF,1,"Breakdown in NLEIGS");
     for (j=0;j<nv;j++) r[(k-1)*lr+j] = (S[(k-1)*ls+j]+(beta[k]/xi[k-1])*S[k*ls+j]-beta[k]*(1.0-sigma/xi[k-1])*r[(k)*lr+j])/(s[k-1]-sigma);
-    /* RM ierr = SlepcVecMAXPBY(v,0.0,1.0,nv,r+(k-1)*lr,V);CHKERRQ(ierr); */
     ierr = BVMultVec(V,1.0,0.0,v,r+(k-1)*lr);CHKERRQ(ierr);
     ierr = STMatMult(ctx->st,k-1,v,t);CHKERRQ(ierr);
     ierr = VecAXPY(q,1.0,t);CHKERRQ(ierr);
@@ -379,7 +377,6 @@ static PetscErrorCode NEPTOARrun(NEP nep,PetscScalar *S,PetscInt ld,PetscScalar 
     ierr = NEPTOARExtendBasis(nep,sigma,S+j*lds,ld,j+deg,V,t,S+(j+1)*lds,ld,t_+1,2);CHKERRQ(ierr);
     ierr = BVRestoreColumn(nep->V,j+deg,&t);CHKERRQ(ierr);
     /* orthogonalize */
-    /* RM ierr = IPOrthogonalize(nep->ip,0,NULL,j+deg,NULL,nep->V,t,x,&norm,breakdown);CHKERRQ(ierr); */
     ierr = BVOrthogonalizeColumn(nep->V,j+deg,x,&norm,breakdown);CHKERRQ(ierr);
     x[j+deg] = norm;
     ierr = BVScaleColumn(nep->V,j+deg,1.0/norm);CHKERRQ(ierr);
@@ -447,7 +444,6 @@ PetscErrorCode NEPTOARTrunc(NEP nep,PetscScalar *S,PetscInt ld,PetscInt deg,Pets
   if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xGESVD %d",info);
   
   /* Update the corresponding vectors V(:,idx) = V*Q(:,idx) */
-  /* RM ierr = SlepcUpdateVectors(rs1,nep->V,0,cs1+deg-1,pU,rs1,PETSC_FALSE);CHKERRQ(ierr); */
   ierr = MatCreateSeqDense(PETSC_COMM_SELF,rs1,cs1+deg-1,pU,&U);CHKERRQ(ierr);
   ierr = BVSetActiveColumns(nep->V,0,rs1);CHKERRQ(ierr);
   ierr = BVMultInPlace(nep->V,U,0,cs1+deg-1);CHKERRQ(ierr);
@@ -515,8 +511,6 @@ PetscErrorCode NEPDebugShowResidual(NEP nep)
   PetscInt       i,j,deg=ctx->nmat;
   
   PetscFunctionBegin;
-  /* RM ierr = VecDuplicate(nep->V[0],&x);CHKERRQ(ierr); */
-  /* RM ierr = VecDuplicate(nep->V[0],&t);CHKERRQ(ierr); */
   ierr = BVCreateVec(nep->V,&x);CHKERRQ(ierr);
   ierr = BVCreateVec(nep->V,&t);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD," Showing absolute residual for the interpolation function eigenpairs\n",nep->nconv);CHKERRQ(ierr);
@@ -564,20 +558,9 @@ PetscErrorCode NEPSolve_NLEIGS(NEP nep)
   PetscScalar    *S,*Q,*work,*H,*pU;
   PetscReal      beta,norm,*rwork;
   PetscBool      breakdown,lindep;
-  /* RM NEPSortForSTData  data; */
   Mat            U;
     
   PetscFunctionBegin;
-/* /////// */
-  /* temporarily change eigenvalue comparison function */
-/*  data.comparison    = nep->comparison;
-    data.comparisonctx = nep->comparisonctx;
-    data.st            = ctx->st;
-    nep->comparison    = NEPSortForSTFunc;
-    nep->comparisonctx = &data;
-    ierr = DSSetEigenvalueComparison(nep->ds,nep->comparison,nep->comparisonctx);CHKERRQ(ierr); */
-/* /////// */
-
   /* Restart loop */
   ld = nep->ncv+deg;
   lds = deg*ld;
@@ -590,7 +573,6 @@ PetscErrorCode NEPSolve_NLEIGS(NEP nep)
   /* Get the starting Lanczos vector */
   if (nep->nini==0) { /* NoteUP  ////////////////  */
     ierr = BVSetRandomColumn(nep->V,0,nep->rand);CHKERRQ(ierr);
-    /* RM ierr = SlepcVecSetRandom(nep->V[0],nep->rand);CHKERRQ(ierr); */
   }
   ierr = BVOrthogonalizeColumn(nep->V,0,S,&norm,&lindep);CHKERRQ(ierr);
   if (!lindep) {
@@ -598,7 +580,6 @@ PetscErrorCode NEPSolve_NLEIGS(NEP nep)
     S[0] = norm;
   } else SETERRQ(PetscObjectComm((PetscObject)nep),1,"NEP: Problem with initial vector");
   for (i=1;i<deg;i++) {
-    /* RM ierr = SlepcVecSetRandom(nep->V[i],nep->rand);CHKERRQ(ierr); */
     ierr = BVSetRandomColumn(nep->V,i,nep->rand);CHKERRQ(ierr);
     ierr = BVOrthogonalizeColumn(nep->V,i,S+i*ld,&norm,&lindep);CHKERRQ(ierr);
     if (!lindep) {
@@ -677,7 +658,6 @@ PetscErrorCode NEPSolve_NLEIGS(NEP nep)
     /* Extract invariant pair */
     ierr = NEPTOARTrunc(nep,S,ld,deg,nv+deg,nep->nconv,work+nwu,lwa-nwu,rwork+nrwu,lrwa-nrwu);CHKERRQ(ierr);
     /* Update vectors V = V*S */    
-    /* RM ierr = SlepcUpdateVectors(nep->nconv+deg-1,nep->V,0,nep->nconv,S,lds,PETSC_FALSE);CHKERRQ(ierr); */
     rs1 = (nep->nconv);
     ierr = PetscMalloc1(rs1*nep->nconv,&pU);CHKERRQ(ierr);
     for (i=0;i<nep->nconv;i++) {
@@ -696,13 +676,6 @@ PetscErrorCode NEPSolve_NLEIGS(NEP nep)
   ierr = DSSetState(nep->ds,DS_STATE_RAW);CHKERRQ(ierr);
 
   ierr = PetscFree3(work,rwork,S);CHKERRQ(ierr);
-  /* //  // */
-  /* restore comparison function */
-/*
-  nep->comparison    = data.comparison;
-  nep->comparisonctx = data.comparisonctx;
-*/
-  /* /////// */
   /* Map eigenvalues back to the original problem */
   ierr = STBackTransform(ctx->st,nep->nconv,nep->eigr,NULL);CHKERRQ(ierr);
 
@@ -713,6 +686,127 @@ PetscErrorCode NEPSolve_NLEIGS(NEP nep)
     ierr = NEPDebugShowResidual(nep);CHKERRQ(ierr);
   }
   /* /////// */
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "NEPNLEIGSSetST_NLEIGS"
+static PetscErrorCode NEPNLEIGSSetST_NLEIGS(NEP nep,ST st)
+{
+  PetscErrorCode ierr;
+  NEP_NLEIGS     *ctx = (NEP_NLEIGS*)nep->data;
+
+  PetscFunctionBegin;
+  ierr = PetscObjectReference((PetscObject)st);CHKERRQ(ierr);
+  ierr = STDestroy(&ctx->st);CHKERRQ(ierr);
+  ctx->st = st;
+  ierr = PetscLogObjectParent((PetscObject)nep,(PetscObject)ctx->st);CHKERRQ(ierr);
+  nep->state = NEP_STATE_INITIAL;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "NEPNLEIGSSetST"
+/*@
+   NEPNLEIGSSetST - Associate a spectral transformation object (ST) to the
+   nonlinear eigenvalue solver.
+
+   Collective on NEP
+
+   Input Parameters:
++  nep - nonlinear eigenvalue solver
+-  st - the spectral transformation object
+
+   Level: advanced
+
+.seealso: NEPNLEIGSGetST()
+@*/
+PetscErrorCode NEPNLEIGSSetST(NEP nep,ST st)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
+  PetscValidHeaderSpecific(st,ST_CLASSID,2);
+  PetscCheckSameComm(nep,1,st,2);
+  ierr = PetscTryMethod(nep,"NEPNLEIGSSetST_C",(NEP,ST),(nep,st));CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "NEPNLEIGSGetST_NLEIGS"
+static PetscErrorCode NEPNLEIGSGetST_NLEIGS(NEP nep,ST *st)
+{
+  PetscErrorCode ierr;
+  NEP_NLEIGS     *ctx = (NEP_NLEIGS*)nep->data;
+
+  PetscFunctionBegin;
+  if (!ctx->st) {
+    ierr = STCreate(PetscObjectComm((PetscObject)nep),&ctx->st);CHKERRQ(ierr);
+    ierr = STSetOptionsPrefix(ctx->st,((PetscObject)nep)->prefix);CHKERRQ(ierr);
+    ierr = STAppendOptionsPrefix(ctx->st,"nep_");CHKERRQ(ierr);
+    ierr = PetscLogObjectParent((PetscObject)nep,(PetscObject)ctx->st);CHKERRQ(ierr);
+  }
+  *st = ctx->st;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "NEPNLEIGSGetST"
+/*@
+   NEPNLEIGSGetST - Retrieve the spectral transformation object (ST)
+   associated with the nonlinear eigenvalue solver.
+
+   Not Collective
+
+   Input Parameter:
+.  nep - nonlinear eigenvalue solver
+
+   Output Parameter:
+.  st - the spectral transformation object
+
+   Level: advanced
+
+.seealso: NEPNLEIGSSetST()
+@*/
+PetscErrorCode NEPNLEIGSGetST(NEP nep,ST *st)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
+  PetscValidPointer(st,2);
+  ierr = PetscTryMethod(nep,"NEPNLEIGSGetST_C",(NEP,ST*),(nep,st));CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "NEPSetFromOptions_NLEIGS"
+PetscErrorCode NEPSetFromOptions_NLEIGS(PetscOptions *PetscOptionsObject,NEP nep)
+{
+  PetscErrorCode ierr;
+  NEP_NLEIGS     *ctx = (NEP_NLEIGS*)nep->data;
+
+  PetscFunctionBegin;
+  if (!ctx->st) { ierr = NEPNLEIGSGetST(nep,&ctx->st);CHKERRQ(ierr); }
+  ierr = STSetFromOptions(ctx->st);CHKERRQ(ierr);
+  ierr = PetscOptionsHead(PetscOptionsObject,"NEP NLEIGS Options");CHKERRQ(ierr);
+  ierr = PetscOptionsTail();CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "NEPView_NLEIGS"
+PetscErrorCode NEPView_NLEIGS(NEP nep,PetscViewer viewer)
+{
+  PetscErrorCode ierr;
+  NEP_NLEIGS     *ctx = (NEP_NLEIGS*)nep->data;
+
+  PetscFunctionBegin;
+  if (!ctx->st) { ierr = NEPNLEIGSGetST(nep,&ctx->st);CHKERRQ(ierr); }
+  ierr = PetscViewerASCIIPushTab(viewer);CHKERRQ(ierr);
+  ierr = STView(ctx->st,viewer);CHKERRQ(ierr);
+  ierr = PetscViewerASCIIPopTab(viewer);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -731,6 +825,8 @@ PetscErrorCode NEPDestroy_NLEIGS(NEP nep)
   }
   ierr = PetscFree4(ctx->s,ctx->xi,ctx->beta,ctx->D);CHKERRQ(ierr);
   ierr = PetscFree(nep->data);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPNLEIGSSetST_C",NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPNLEIGSGetST_C",NULL);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -747,8 +843,12 @@ PETSC_EXTERN PetscErrorCode NEPCreate_NLEIGS(NEP nep)
 
   nep->ops->solve          = NEPSolve_NLEIGS;
   nep->ops->setup          = NEPSetUp_NLEIGS;
+  nep->ops->setfromoptions = NEPSetFromOptions_NLEIGS;
   nep->ops->destroy        = NEPDestroy_NLEIGS;
   nep->ops->computevectors = NEPComputeVectors_Schur;
+  nep->ops->view           = NEPView_NLEIGS;
+  ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPNLEIGSSetST_C",NEPNLEIGSSetST_NLEIGS);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPNLEIGSGetST_C",NEPNLEIGSGetST_NLEIGS);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
