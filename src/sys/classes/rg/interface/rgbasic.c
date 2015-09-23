@@ -452,7 +452,7 @@ PetscErrorCode RGCheckInside(RG rg,PetscInt n,PetscScalar *ar,PetscScalar *ai,Pe
   PetscValidHeaderSpecific(rg,RG_CLASSID,1);
   PetscValidType(rg,1);
   PetscValidPointer(ar,3);
-#if defined(PETSC_USE_COMPLEX)
+#if !defined(PETSC_USE_COMPLEX)
   PetscValidPointer(ai,4);
 #endif
   PetscValidPointer(inside,5);
