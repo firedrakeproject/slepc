@@ -727,7 +727,9 @@ PetscErrorCode EPSSetUp_CISS(EPS eps)
   Mat            A;
 
   PetscFunctionBegin;
-  eps->ncv = PetscMin(eps->n,ctx->L_max*ctx->M);
+  ierr = EPSSetDimensions_Default(eps,eps->nev,&eps->ncv,&eps->mpd);CHKERRQ(ierr);
+  ctx->L_max = (int)eps->ncv/ctx->M;
+  if (ctx->L > ctx->L_max)ctx->L = ctx->L_max;
   if (!eps->mpd) eps->mpd = eps->ncv;
   if (!eps->which) eps->which = EPS_ALL;
   if (!eps->extraction) { ierr = EPSSetExtraction(eps,EPS_RITZ);CHKERRQ(ierr); } 
