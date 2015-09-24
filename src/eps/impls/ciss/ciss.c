@@ -56,7 +56,6 @@ typedef struct {
   PetscReal   spurious_threshold; /* discard spurious eigenpairs */
   PetscBool   isreal;     /* A and B are real */
   PetscInt    refine_inner;
-  PetscInt    refine_outer;
   PetscInt    refine_blocksize;
   /* private data */
   PetscReal    *sigma;     /* threshold for numerical rank */
@@ -842,7 +841,7 @@ PetscErrorCode EPSSolve_CISS(EPS eps)
   PetscErrorCode ierr;
   EPS_CISS       *ctx = (EPS_CISS*)eps->data;
   Mat            A,B,X,M,pA,pB;
-  PetscInt       i,ld,nmat,L_add=0,nv=0,L_base=ctx->L,inner,outer,nlocal,*inside;
+  PetscInt       i,ld,nmat,L_add=0,nv=0,L_base=ctx->L,inner,nlocal,*inside;
   PetscScalar    *Mu,*H0,*rr,*temp;
   PetscReal      error,max_error;
   PetscBool      *fl1;
@@ -1258,7 +1257,7 @@ PetscErrorCode EPSCISSGetThreshold(EPS eps,PetscReal *delta,PetscReal *spur)
 
 #undef __FUNCT__
 #define __FUNCT__ "EPSCISSSetRefinement_CISS"
-static PetscErrorCode EPSCISSSetRefinement_CISS(EPS eps,PetscInt inner,PetscInt outer,PetscInt blsize)
+static PetscErrorCode EPSCISSSetRefinement_CISS(EPS eps,PetscInt inner,PetscInt blsize)
 {
   EPS_CISS *ctx = (EPS_CISS*)eps->data;
 
@@ -1268,12 +1267,6 @@ static PetscErrorCode EPSCISSSetRefinement_CISS(EPS eps,PetscInt inner,PetscInt 
   } else {
     if (inner<0) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"The refine inner argument must be >= 0");
     ctx->refine_inner = inner;
-  }
-  if (outer == PETSC_DEFAULT) {
-    ctx->refine_outer = 0;
-  } else {
-    if (outer<0) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"The refine outer argument must be >= 0");
-    ctx->refine_outer = outer;
   }
   if (blsize == PETSC_DEFAULT) {
     ctx->refine_blocksize = 0;
@@ -1295,40 +1288,36 @@ static PetscErrorCode EPSCISSSetRefinement_CISS(EPS eps,PetscInt inner,PetscInt 
    Input Parameters:
 +  eps    - the eigenproblem solver context
 .  inner  - number of iterative refinement iterations (inner loop)
-.  outer  - number of iterative refinement iterations (outer loop)
 -  blsize - number of iterative refinement iterations (blocksize loop)
 
    Options Database Keys:
 +  -eps_ciss_refine_inner - Sets number of inner iterations
-.  -eps_ciss_refine_outer - Sets number of outer iterations
 -  -eps_ciss_refine_blocksize - Sets number of blocksize iterations
 
    Level: advanced
 
 .seealso: EPSCISSGetRefinement()
 @*/
-PetscErrorCode EPSCISSSetRefinement(EPS eps,PetscInt inner,PetscInt outer,PetscInt blsize)
+PetscErrorCode EPSCISSSetRefinement(EPS eps,PetscInt inner,PetscInt blsize)
 {
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidLogicalCollectiveInt(eps,inner,2);
-  PetscValidLogicalCollectiveInt(eps,outer,3);
-  PetscValidLogicalCollectiveInt(eps,blsize,4);
-  ierr = PetscTryMethod(eps,"EPSCISSSetRefinement_C",(EPS,PetscInt,PetscInt,PetscInt),(eps,inner,outer,blsize));CHKERRQ(ierr);
+  PetscValidLogicalCollectiveInt(eps,blsize,3);
+  ierr = PetscTryMethod(eps,"EPSCISSSetRefinement_C",(EPS,PetscInt,PetscInt),(eps,inner,blsize));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
 #undef __FUNCT__
 #define __FUNCT__ "EPSCISSGetRefinement_CISS"
-static PetscErrorCode EPSCISSGetRefinement_CISS(EPS eps,PetscInt *inner,PetscInt *outer,PetscInt *blsize)
+static PetscErrorCode EPSCISSGetRefinement_CISS(EPS eps,PetscInt *inner,PetscInt *blsize)
 {
   EPS_CISS *ctx = (EPS_CISS*)eps->data;
 
   PetscFunctionBegin;
   if (inner)  *inner = ctx->refine_inner;
-  if (outer)  *outer = ctx->refine_outer;
   if (blsize) *blsize = ctx->refine_blocksize;
   PetscFunctionReturn(0);
 }
@@ -1346,20 +1335,19 @@ static PetscErrorCode EPSCISSGetRefinement_CISS(EPS eps,PetscInt *inner,PetscInt
 
    Output Parameters:
 +  inner  - number of iterative refinement iterations (inner loop)
-.  outer  - number of iterative refinement iterations (outer loop)
 -  blsize - number of iterative refinement iterations (blocksize loop)
 
    Level: advanced
 
 .seealso: EPSCISSSetRefinement()
 @*/
-PetscErrorCode EPSCISSGetRefinement(EPS eps, PetscInt *inner, PetscInt *outer,PetscInt *blsize)
+PetscErrorCode EPSCISSGetRefinement(EPS eps, PetscInt *inner, PetscInt *blsize)
 {
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  ierr = PetscTryMethod(eps,"EPSCISSGetRefinement_C",(EPS,PetscInt*,PetscInt*,PetscInt*),(eps,inner,outer,blsize));CHKERRQ(ierr);
+  ierr = PetscTryMethod(eps,"EPSCISSGetRefinement_C",(EPS,PetscInt*,PetscInt*),(eps,inner,blsize));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -1483,7 +1471,7 @@ PetscErrorCode EPSSetFromOptions_CISS(PetscOptions *PetscOptionsObject,EPS eps)
 {
   PetscErrorCode ierr;
   PetscReal      r3,r4;
-  PetscInt       i1,i2,i3,i4,i5,i6,i7,i8;
+  PetscInt       i1,i2,i3,i4,i5,i6,i7;
   PetscBool      b1,b2;
 
   PetscFunctionBegin;
@@ -1502,11 +1490,10 @@ PetscErrorCode EPSSetFromOptions_CISS(PetscOptions *PetscOptionsObject,EPS eps)
   ierr = PetscOptionsReal("-eps_ciss_spurious_threshold","CISS threshold for the spurious eigenpairs","EPSCISSSetThreshold",r4,&r4,NULL);CHKERRQ(ierr);
   ierr = EPSCISSSetThreshold(eps,r3,r4);CHKERRQ(ierr);
 
-  ierr = EPSCISSGetRefinement(eps,&i6,&i7,&i8);CHKERRQ(ierr);
+  ierr = EPSCISSGetRefinement(eps,&i6,&i7);CHKERRQ(ierr);
   ierr = PetscOptionsInt("-eps_ciss_refine_inner","CISS number of inner iterative refinement iterations","EPSCISSSetRefinement",i6,&i6,NULL);CHKERRQ(ierr);
-  ierr = PetscOptionsInt("-eps_ciss_refine_outer","CISS number of outer iterative refinement iterations","EPSCISSSetRefinement",i7,&i7,NULL);CHKERRQ(ierr);
-  ierr = PetscOptionsInt("-eps_ciss_refine_blocksize","CISS number of blocksize iterative refinement iterations","EPSCISSSetRefinement",i8,&i8,NULL);CHKERRQ(ierr);
-  ierr = EPSCISSSetRefinement(eps,i6,i7,i8);CHKERRQ(ierr);
+  ierr = PetscOptionsInt("-eps_ciss_refine_blocksize","CISS number of blocksize iterative refinement iterations","EPSCISSSetRefinement",i7,&i7,NULL);CHKERRQ(ierr);
+  ierr = EPSCISSSetRefinement(eps,i6,i7);CHKERRQ(ierr);
 
   ierr = EPSCISSGetUseST(eps,&b2);CHKERRQ(ierr);
   ierr = PetscOptionsBool("-eps_ciss_usest","CISS use ST for linear solves","EPSCISSSetUseST",b2,&b2,NULL);CHKERRQ(ierr);
@@ -1551,7 +1538,7 @@ PetscErrorCode EPSView_CISS(EPS eps,PetscViewer viewer)
       ierr = PetscViewerASCIIPrintf(viewer,"  CISS: exploiting symmetry of integration points\n");CHKERRQ(ierr);
     }
     ierr = PetscViewerASCIIPrintf(viewer,"  CISS: threshold { delta: %g, spurious threshold: %g }\n",(double)ctx->delta,(double)ctx->spurious_threshold);CHKERRQ(ierr);
-    ierr = PetscViewerASCIIPrintf(viewer,"  CISS: iterative refinement  { inner: %D, outer: %D, blocksize: %D }\n",ctx->refine_inner,ctx->refine_outer, ctx->refine_blocksize);CHKERRQ(ierr);
+    ierr = PetscViewerASCIIPrintf(viewer,"  CISS: iterative refinement  { inner: %D, blocksize: %D }\n",ctx->refine_inner, ctx->refine_blocksize);CHKERRQ(ierr);
     if (ctx->usest) {
       ierr = PetscViewerASCIIPrintf(viewer,"  CISS: using ST for linear solves\n");CHKERRQ(ierr);
     }
@@ -1596,7 +1583,6 @@ PETSC_EXTERN PetscErrorCode EPSCreate_CISS(EPS eps)
   ctx->spurious_threshold = 1e-4;
   ctx->usest   = PETSC_FALSE;
   ctx->isreal  = PETSC_FALSE;
-  ctx->refine_outer = 1;
   ctx->refine_inner = 1;
   ctx->refine_blocksize = 1;
   ctx->num_subcomm = 1;
