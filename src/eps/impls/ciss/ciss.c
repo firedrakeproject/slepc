@@ -298,9 +298,6 @@ static PetscErrorCode SolveLinearSystem(EPS eps,Mat A,Mat B,BV V,PetscInt L_star
   if (ctx->usest) {
     ierr = MatDuplicate(A,MAT_DO_NOT_COPY_VALUES,&Fz);CHKERRQ(ierr);
   }
-  if (ctx->usest && ctx->pA) {
-    ierr = KSPCreate(PetscSubcommChild(ctx->subcomm),&ksp);CHKERRQ(ierr);
-  }
   for (i=0;i<ctx->num_solve_point;i++) {
     p_id = i*ctx->subcomm->n + ctx->subcomm_id;
     if (!ctx->usest && initksp == PETSC_TRUE) {
@@ -316,19 +313,7 @@ static PetscErrorCode SolveLinearSystem(EPS eps,Mat A,Mat B,BV V,PetscInt L_star
       ierr = KSPGetPC(ctx->ksp[i],&pc);CHKERRQ(ierr);
       ierr = PCSetType(pc,PCREDUNDANT);CHKERRQ(ierr);
       ierr = KSPSetFromOptions(ctx->ksp[i]);CHKERRQ(ierr);
-    } else if (ctx->usest && ctx->pA) {
-      ierr = MatCopy(A,Fz,DIFFERENT_NONZERO_PATTERN);CHKERRQ(ierr);
-      if (B) {
-        ierr = MatAXPY(Fz,-ctx->omega[p_id],B,DIFFERENT_NONZERO_PATTERN);CHKERRQ(ierr);
-      } else {
-        ierr = MatShift(Fz,-ctx->omega[p_id]);CHKERRQ(ierr);
-      }
-      ierr = KSPSetOperators(ksp,Fz,Fz);CHKERRQ(ierr);
-      ierr = KSPSetType(ksp,KSPPREONLY);CHKERRQ(ierr);
-      ierr = KSPGetPC(ksp,&pc);CHKERRQ(ierr);
-      ierr = PCSetType(pc,PCREDUNDANT);CHKERRQ(ierr);
-      ierr = KSPSetFromOptions(ksp);CHKERRQ(ierr);
-    } else if (ctx->usest && !ctx->pA) {
+    } else if (ctx->usest) {
       ierr = STSetShift(eps->st,ctx->omega[p_id]);CHKERRQ(ierr);
       ierr = STGetKSP(eps->st,&ksp);CHKERRQ(ierr);
     }
@@ -357,9 +342,6 @@ static PetscErrorCode SolveLinearSystem(EPS eps,Mat A,Mat B,BV V,PetscInt L_star
   }
   if (ctx->usest) { ierr = MatDestroy(&Fz);CHKERRQ(ierr); }
   ierr = VecDestroy(&Bvj);CHKERRQ(ierr);
-  if (ctx->usest && ctx->pA) {
-    ierr = KSPDestroy(&ksp);CHKERRQ(ierr);
-  }
   PetscFunctionReturn(0);
 }
 
@@ -804,7 +786,9 @@ PetscErrorCode EPSSetUp_CISS(EPS eps)
 
   ierr = STGetOperators(eps->st,0,&A);CHKERRQ(ierr);
   ierr = PetscObjectTypeCompare((PetscObject)A,MATSHELL,&flg);CHKERRQ(ierr);
-  if (flg) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Matrix type shell not supported in this solver");
+  if (flg) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Matrix type shell is not supported in this solver");
+
+  if (ctx->usest && ctx->num_subcomm>1) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"The usest is not supported when partitons > 1");
 
   ierr = CISSRedundantMat(eps);CHKERRQ(ierr);
   if (ctx->pA) {
