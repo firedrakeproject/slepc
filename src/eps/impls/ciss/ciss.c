@@ -727,7 +727,7 @@ PetscErrorCode EPSSetUp_CISS(EPS eps)
   Mat            A;
 
   PetscFunctionBegin;
-  if (eps->ncv == 0) eps->ncv = ctx->L_max*ctx->M;
+  if (!eps->ncv) eps->ncv = ctx->L_max*ctx->M;
   else {
     ierr = EPSSetDimensions_Default(eps,eps->nev,&eps->ncv,&eps->mpd);CHKERRQ(ierr);
     ctx->L_max = (int)eps->ncv/ctx->M;
@@ -737,6 +737,7 @@ PetscErrorCode EPSSetUp_CISS(EPS eps)
     }
     if (ctx->L > ctx->L_max)ctx->L = ctx->L_max;
   }
+  if (!eps->max_it) eps->max_it = 0;
   if (!eps->mpd) eps->mpd = eps->ncv;
   if (!eps->which) eps->which = EPS_ALL;
   if (!eps->extraction) { ierr = EPSSetExtraction(eps,EPS_RITZ);CHKERRQ(ierr); } 
@@ -917,7 +918,8 @@ PetscErrorCode EPSSolve_CISS(EPS eps)
   }
   ierr = PetscFree2(Mu,H0);CHKERRQ(ierr);
 
-  for (outer=0;outer<=ctx->refine_outer;outer++) {
+  while (eps->reason == EPS_CONVERGED_ITERATING) {
+    eps->its++;
     for (inner=0;inner<=ctx->refine_inner;inner++) {
       ierr = ConstructS(eps);CHKERRQ(ierr);
       ierr = BVSetActiveColumns(ctx->S,0,ctx->L);CHKERRQ(ierr);
@@ -934,80 +936,83 @@ PetscErrorCode EPSSolve_CISS(EPS eps)
     }
 
     eps->nconv = 0;
-    if (nv == 0) break;
-    ierr = DSSetDimensions(eps->ds,nv,0,0,0);CHKERRQ(ierr);
-    ierr = DSSetState(eps->ds,DS_STATE_RAW);CHKERRQ(ierr);
-
-    ierr = BVSetActiveColumns(ctx->S,0,nv);CHKERRQ(ierr);
-    ierr = DSGetMat(eps->ds,DS_MAT_A,&pA);CHKERRQ(ierr);
-    ierr = MatZeroEntries(pA);CHKERRQ(ierr);
-    ierr = BVMatProject(ctx->S,A,ctx->S,pA);CHKERRQ(ierr);
-    ierr = DSRestoreMat(eps->ds,DS_MAT_A,&pA);CHKERRQ(ierr);
-    ierr = DSGetMat(eps->ds,DS_MAT_B,&pB);CHKERRQ(ierr);
-    ierr = MatZeroEntries(pB);CHKERRQ(ierr);
-    if (B) { ierr = BVMatProject(ctx->S,B,ctx->S,pB);CHKERRQ(ierr); }
-    else { ierr = MatShift(pB,1);CHKERRQ(ierr); }
-    ierr = DSRestoreMat(eps->ds,DS_MAT_B,&pB);CHKERRQ(ierr);
-
-    ierr = DSSolve(eps->ds,eps->eigr,eps->eigi);CHKERRQ(ierr);
-    ierr = DSVectors(eps->ds,DS_MAT_X,NULL,NULL);CHKERRQ(ierr);
-
-    ierr = PetscMalloc3(nv,&fl1,nv,&inside,nv,&rr);CHKERRQ(ierr);
-    ierr = isGhost(eps,ld,nv,fl1);CHKERRQ(ierr);
-    ierr = RGCheckInside(eps->rg,nv,eps->eigr,eps->eigi,inside);CHKERRQ(ierr);
-    for (i=0;i<nv;i++) {
-      if (fl1[i] && inside[i]>0) {
-        rr[i] = 1.0;
-        eps->nconv++;
-      } else rr[i] = 0.0;
-    }
-    ierr = DSSort(eps->ds,eps->eigr,eps->eigi,rr,NULL,&eps->nconv);CHKERRQ(ierr);
-    ierr = PetscFree3(fl1,inside,rr);CHKERRQ(ierr);
-    ierr = BVSetActiveColumns(eps->V,0,nv);CHKERRQ(ierr);
-    ierr = BVSetActiveColumns(ctx->S,0,nv);CHKERRQ(ierr);
-    ierr = BVCopy(ctx->S,eps->V);CHKERRQ(ierr);
-
-    ierr = DSVectors(eps->ds,DS_MAT_X,NULL,NULL);CHKERRQ(ierr);
-    ierr = DSGetMat(eps->ds,DS_MAT_X,&X);CHKERRQ(ierr);
-    ierr = BVMultInPlace(ctx->S,X,0,eps->nconv);CHKERRQ(ierr);
-    if (eps->ishermitian) {
-      ierr = BVMultInPlace(eps->V,X,0,eps->nconv);CHKERRQ(ierr);
-    }
-    ierr = MatDestroy(&X);CHKERRQ(ierr);
-    max_error = 0.0;
-    for (i=0;i<eps->nconv;i++) {
-      ierr = BVGetColumn(ctx->S,i,&si);CHKERRQ(ierr);
-      ierr = VecNormalize(si,NULL);CHKERRQ(ierr);
-      ierr = EPSComputeResidualNorm_Private(eps,eps->eigr[i],0,si,NULL,w,&error);CHKERRQ(ierr);
-      ierr = (*eps->converged)(eps,eps->eigr[i],0,error,&error,eps->convergedctx);CHKERRQ(ierr);
-      ierr = BVRestoreColumn(ctx->S,i,&si);CHKERRQ(ierr);
-      max_error = PetscMax(max_error,error);
-    }
-
-    if (max_error <= eps->tol || outer == ctx->refine_outer) break;
-
-    if (eps->nconv > ctx->L) nv = eps->nconv;
-    else if (ctx->L > nv) nv = ctx->L;
-    ierr = MatCreateSeqDense(PETSC_COMM_SELF,nv,ctx->L,NULL,&M);CHKERRQ(ierr);
-    ierr = MatDenseGetArray(M,&temp);CHKERRQ(ierr);
-    for (i=0;i<ctx->L*nv;i++) {
-      ierr = PetscRandomGetValue(eps->rand,&temp[i]);CHKERRQ(ierr);
-      temp[i] = PetscRealPart(temp[i]);
-    }
-    ierr = MatDenseRestoreArray(M,&temp);CHKERRQ(ierr);
-    ierr = BVSetActiveColumns(ctx->S,0,nv);CHKERRQ(ierr);
-    ierr = BVMultInPlace(ctx->S,M,0,ctx->L);CHKERRQ(ierr);
-    ierr = MatDestroy(&M);CHKERRQ(ierr);
-    ierr = BVSetActiveColumns(ctx->S,0,ctx->L);CHKERRQ(ierr);
-    ierr = BVCopy(ctx->S,ctx->V);CHKERRQ(ierr);
-    if (ctx->pA) {
-      ierr = VecScatterVecs(eps,ctx->V,ctx->L);CHKERRQ(ierr);
-      ierr = SolveLinearSystem(eps,ctx->pA,ctx->pB,ctx->pV,0,ctx->L,PETSC_FALSE);CHKERRQ(ierr);
-    } else {
-      ierr = SolveLinearSystem(eps,A,B,ctx->V,0,ctx->L,PETSC_FALSE);CHKERRQ(ierr);
+    if (nv == 0) eps->reason = EPS_CONVERGED_TOL;
+    else {
+      ierr = DSSetDimensions(eps->ds,nv,0,0,0);CHKERRQ(ierr);
+      ierr = DSSetState(eps->ds,DS_STATE_RAW);CHKERRQ(ierr);
+      
+      ierr = BVSetActiveColumns(ctx->S,0,nv);CHKERRQ(ierr);
+      ierr = DSGetMat(eps->ds,DS_MAT_A,&pA);CHKERRQ(ierr);
+      ierr = MatZeroEntries(pA);CHKERRQ(ierr);
+      ierr = BVMatProject(ctx->S,A,ctx->S,pA);CHKERRQ(ierr);
+      ierr = DSRestoreMat(eps->ds,DS_MAT_A,&pA);CHKERRQ(ierr);
+      ierr = DSGetMat(eps->ds,DS_MAT_B,&pB);CHKERRQ(ierr);
+      ierr = MatZeroEntries(pB);CHKERRQ(ierr);
+      if (B) { ierr = BVMatProject(ctx->S,B,ctx->S,pB);CHKERRQ(ierr); }
+      else { ierr = MatShift(pB,1);CHKERRQ(ierr); }
+      ierr = DSRestoreMat(eps->ds,DS_MAT_B,&pB);CHKERRQ(ierr);
+      
+      ierr = DSSolve(eps->ds,eps->eigr,eps->eigi);CHKERRQ(ierr);
+      ierr = DSVectors(eps->ds,DS_MAT_X,NULL,NULL);CHKERRQ(ierr);
+      
+      ierr = PetscMalloc3(nv,&fl1,nv,&inside,nv,&rr);CHKERRQ(ierr);
+      ierr = isGhost(eps,ld,nv,fl1);CHKERRQ(ierr);
+      ierr = RGCheckInside(eps->rg,nv,eps->eigr,eps->eigi,inside);CHKERRQ(ierr);
+      for (i=0;i<nv;i++) {
+	if (fl1[i] && inside[i]>0) {
+	  rr[i] = 1.0;
+	  eps->nconv++;
+	} else rr[i] = 0.0;
+      }
+      ierr = DSSort(eps->ds,eps->eigr,eps->eigi,rr,NULL,&eps->nconv);CHKERRQ(ierr);
+      ierr = PetscFree3(fl1,inside,rr);CHKERRQ(ierr);
+      ierr = BVSetActiveColumns(eps->V,0,nv);CHKERRQ(ierr);
+      ierr = BVSetActiveColumns(ctx->S,0,nv);CHKERRQ(ierr);
+      ierr = BVCopy(ctx->S,eps->V);CHKERRQ(ierr);
+      
+      ierr = DSVectors(eps->ds,DS_MAT_X,NULL,NULL);CHKERRQ(ierr);
+      ierr = DSGetMat(eps->ds,DS_MAT_X,&X);CHKERRQ(ierr);
+      ierr = BVMultInPlace(ctx->S,X,0,eps->nconv);CHKERRQ(ierr);
+      if (eps->ishermitian) {
+	ierr = BVMultInPlace(eps->V,X,0,eps->nconv);CHKERRQ(ierr);
+      }
+      ierr = MatDestroy(&X);CHKERRQ(ierr);
+      max_error = 0.0;
+      for (i=0;i<eps->nconv;i++) {
+	ierr = BVGetColumn(ctx->S,i,&si);CHKERRQ(ierr);
+	ierr = VecNormalize(si,NULL);CHKERRQ(ierr);
+	ierr = EPSComputeResidualNorm_Private(eps,eps->eigr[i],0,si,NULL,w,&error);CHKERRQ(ierr);
+	ierr = (*eps->converged)(eps,eps->eigr[i],0,error,&error,eps->convergedctx);CHKERRQ(ierr);
+	ierr = BVRestoreColumn(ctx->S,i,&si);CHKERRQ(ierr);
+	max_error = PetscMax(max_error,error);
+      }
+      
+      if (eps->its >= eps->max_it) eps->reason = EPS_DIVERGED_ITS;
+      if (max_error <= eps->tol) eps->reason = EPS_CONVERGED_TOL;
+      else {
+	if (eps->nconv > ctx->L) nv = eps->nconv;
+	else if (ctx->L > nv) nv = ctx->L;
+	ierr = MatCreateSeqDense(PETSC_COMM_SELF,nv,ctx->L,NULL,&M);CHKERRQ(ierr);
+	ierr = MatDenseGetArray(M,&temp);CHKERRQ(ierr);
+	for (i=0;i<ctx->L*nv;i++) {
+	  ierr = PetscRandomGetValue(eps->rand,&temp[i]);CHKERRQ(ierr);
+	  temp[i] = PetscRealPart(temp[i]);
+	}
+	ierr = MatDenseRestoreArray(M,&temp);CHKERRQ(ierr);
+	ierr = BVSetActiveColumns(ctx->S,0,nv);CHKERRQ(ierr);
+	ierr = BVMultInPlace(ctx->S,M,0,ctx->L);CHKERRQ(ierr);
+	ierr = MatDestroy(&M);CHKERRQ(ierr);
+	ierr = BVSetActiveColumns(ctx->S,0,ctx->L);CHKERRQ(ierr);
+	ierr = BVCopy(ctx->S,ctx->V);CHKERRQ(ierr);
+	if (ctx->pA) {
+	  ierr = VecScatterVecs(eps,ctx->V,ctx->L);CHKERRQ(ierr);
+	  ierr = SolveLinearSystem(eps,ctx->pA,ctx->pB,ctx->pV,0,ctx->L,PETSC_FALSE);CHKERRQ(ierr);
+	} else {
+	  ierr = SolveLinearSystem(eps,A,B,ctx->V,0,ctx->L,PETSC_FALSE);CHKERRQ(ierr);
+	}
+      }
     }
   }
-  eps->reason = EPS_CONVERGED_TOL;
   PetscFunctionReturn(0);
 }
 
