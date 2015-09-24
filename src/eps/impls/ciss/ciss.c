@@ -175,17 +175,31 @@ static PetscErrorCode SetPathParameter(EPS eps)
   EPS_CISS       *ctx = (EPS_CISS*)eps->data;
   PetscInt       i;
   PetscScalar    center;
-  PetscReal      theta,radius,vscale,start_ang,end_ang,width;
-  PetscBool      isring=PETSC_FALSE,isellipse=PETSC_FALSE;
+  PetscReal      theta,radius,vscale,start_ang,end_ang,width,a,b,c,d;
+  PetscBool      isring=PETSC_FALSE,isellipse=PETSC_FALSE,isinterval=PETSC_FALSE;
 
   PetscFunctionBegin;
   ierr = PetscObjectTypeCompare((PetscObject)eps->rg,RGELLIPSE,&isellipse);CHKERRQ(ierr);
+  ierr = PetscObjectTypeCompare((PetscObject)eps->rg,RGRING,&isring);CHKERRQ(ierr);
+  ierr = PetscObjectTypeCompare((PetscObject)eps->rg,RGINTERVAL,&isinterval);CHKERRQ(ierr);
+  if (!isellipse && !isring && !isinterval) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Region must be Interval, Ellipse or Ring");
   if (isellipse) {
     ierr = RGEllipseGetParameters(eps->rg,&center,&radius,&vscale);CHKERRQ(ierr);
-  } else {
-    ierr = PetscObjectTypeCompare((PetscObject)eps->rg,RGRING,&isring);CHKERRQ(ierr);
-    if (!isring) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Region must be Ellipse or Ring");
+  } 
+  if (isring) {
     ierr = RGRingGetParameters(eps->rg,&center,&radius,&vscale,&start_ang,&end_ang,&width);CHKERRQ(ierr);
+  }
+  if (isinterval) {
+    ierr = RGIntervalGetEndpoints(eps->rg,&a,&b,&c,&d);CHKERRQ(ierr);
+    if (c==d) { 
+      center = (b+a)/2;
+      radius = (b-a)/2;
+      vscale = 0.1;
+    } else {
+      center = (b+a)/2 + (d+c)/2*PETSC_i;
+      radius = (b-a)/2;
+      vscale = (d-c)/(2*radius);
+    }
   }
   for (i=0;i<ctx->N;i++) {
     if (isring) {
@@ -721,8 +735,9 @@ PetscErrorCode EPSSetUp_CISS(EPS eps)
   EPS_CISS       *ctx = (EPS_CISS*)eps->data;
   const char     *prefix;
   PetscInt       i;
-  PetscBool      issinvert,istrivial,isring,isellipse,flg;
+  PetscBool      issinvert,istrivial,isring,isellipse,isinterval,flg;
   PetscScalar    center;
+  PetscReal      c,d;
   Mat            A;
 
   PetscFunctionBegin;
@@ -748,16 +763,27 @@ PetscErrorCode EPSSetUp_CISS(EPS eps)
   if (istrivial) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"EPSCISS requires a nontrivial region, e.g. -rg_type ellipse ...");
   ierr = PetscObjectTypeCompare((PetscObject)eps->rg,RGELLIPSE,&isellipse);CHKERRQ(ierr);
   ierr = PetscObjectTypeCompare((PetscObject)eps->rg,RGRING,&isring);CHKERRQ(ierr);
-  if (!isellipse && !isring) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Currently only implemented for elliptic or ring regions");
+  ierr = PetscObjectTypeCompare((PetscObject)eps->rg,RGINTERVAL,&isinterval);CHKERRQ(ierr);
+  if (!isellipse && !isring && !isinterval) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Currently only implemented for interval, elliptic or ring regions");
   if (isring) {
 #if !defined(PETSC_USE_COMPLEX)
     SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Currently only implemented for elliptic regions");
 #endif
     ctx->useconj = PETSC_FALSE;
-  } else {
+  }
+  if (isellipse) {
     ierr = RGEllipseGetParameters(eps->rg,&center,NULL,NULL);CHKERRQ(ierr);
 #if defined(PETSC_USE_COMPLEX)
     if (ctx->isreal && PetscImaginaryPart(center) == 0.0) ctx->useconj = PETSC_TRUE;
+    else ctx->useconj = PETSC_FALSE;
+#else
+    ctx->useconj = PETSC_FALSE;
+#endif
+  }
+  if (isinterval) {
+    ierr = RGIntervalGetEndpoints(eps->rg,NULL,NULL,&c,&d);CHKERRQ(ierr);
+#if defined(PETSC_USE_COMPLEX)
+    if (ctx->isreal && c==d) ctx->useconj = PETSC_TRUE;
     else ctx->useconj = PETSC_FALSE;
 #else
     ctx->useconj = PETSC_FALSE;
@@ -843,8 +869,8 @@ PetscErrorCode EPSSolve_CISS(EPS eps)
   Mat            A,B,X,M,pA,pB;
   PetscInt       i,ld,nmat,L_add=0,nv=0,L_base=ctx->L,inner,nlocal,*inside;
   PetscScalar    *Mu,*H0,*rr,*temp;
-  PetscReal      error,max_error;
-  PetscBool      *fl1;
+  PetscReal      error,max_error,c,d;
+  PetscBool      *fl1,isinterval;
   Vec            si,w[3];
   SlepcSC        sc;
 #if defined(PETSC_USE_COMPLEX)
@@ -956,9 +982,22 @@ PetscErrorCode EPSSolve_CISS(EPS eps)
       
       ierr = PetscMalloc3(nv,&fl1,nv,&inside,nv,&rr);CHKERRQ(ierr);
       ierr = isGhost(eps,ld,nv,fl1);CHKERRQ(ierr);
+      ierr = PetscObjectTypeCompare((PetscObject)eps->rg,RGINTERVAL,&isinterval);CHKERRQ(ierr);
+      if (isinterval) {
+	ierr = RGIntervalGetEndpoints(eps->rg,NULL,NULL,&c,&d);CHKERRQ(ierr);
+	if (c==d) { 
+	  for (i=0;i<nv;i++) {
+#if defined(PETSC_USE_COMPLEX)
+	    eps->eigr[i] = PetscRealPart(eps->eigr[i]);
+#else
+	    eps->eigi[i] = 0;
+#endif
+	  }
+	}
+      }
       ierr = RGCheckInside(eps->rg,nv,eps->eigr,eps->eigi,inside);CHKERRQ(ierr);
       for (i=0;i<nv;i++) {
-	if (fl1[i] && inside[i]>0) {
+	if (fl1[i] && inside[i]>=0) {
 	  rr[i] = 1.0;
 	  eps->nconv++;
 	} else rr[i] = 0.0;
