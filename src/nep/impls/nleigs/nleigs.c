@@ -46,7 +46,7 @@ typedef struct {        /* context structure for the NLEIGS solver */
   Mat          *D;      /* divided difference matrices */
   ST           st;      /* auxiliary ST object */
   void         *singularitiesctx;
-  PetscErrorCode (*computesingularities)(NEP,PetscInt,PetscScalar*);
+  PetscErrorCode (*computesingularities)(NEP,PetscInt*,PetscScalar*,void*);
 } NEP_NLEIGS;
 
 #undef __FUNCT__
@@ -55,7 +55,7 @@ static PetscErrorCode NEPNLEIGSLejaBagbyPoints(NEP nep)
 {
   PetscErrorCode ierr;
   NEP_NLEIGS     *ctx=(NEP_NLEIGS*)nep->data;
-  PetscInt       i,k,ndpt=NDPOINTS;
+  PetscInt       i,k,ndpt=NDPOINTS,ndptx=NDPOINTS;
   PetscScalar    *ds,*dxi,*nrs,*nrxi,*s=ctx->s,*xi=ctx->xi,*beta=ctx->beta;
   PetscReal      maxnrs,minnrxi;
 
@@ -66,7 +66,9 @@ static PetscErrorCode NEPNLEIGSLejaBagbyPoints(NEP nep)
   ierr = RGComputeContour(nep->rg,ndpt,ds,NULL);CHKERRQ(ierr);
 
   /* Discretize the singularity region */
-  ierr = (ctx->computesingularities)(nep,ndpt,dxi);CHKERRQ(ierr);
+  ierr = (ctx->computesingularities)(nep,&ndptx,dxi,ctx->singularitiesctx);CHKERRQ(ierr);
+  /* A temporary restriction to prevent single singularities */
+  if (ndptx<ndpt) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"NLEIGS: not enough points in the discretization of the singularity set");
 
   /* loop to look for Leja-Bagby points in the discretization sets 
      now both sets have the same number of points */
@@ -77,9 +79,12 @@ static PetscErrorCode NEPNLEIGSLejaBagbyPoints(NEP nep)
   for (i=0;i<ndpt;i++) {
     nrs[i]  = (ds[i]-s[0])/(1.0-ds[i]/xi[0]);
     if (PetscAbsScalar(nrs[i])>maxnrs) {maxnrs = PetscAbsScalar(nrs[i]); s[1] = ds[i];}
+  }
+  for (i=0;i<ndptx;i++) {
     nrxi[i] = (dxi[i]-s[0])/(1.0-dxi[i]/xi[0]);
     if (PetscAbsScalar(nrxi[i])<minnrxi) {minnrxi = PetscAbsScalar(nrxi[i]); xi[1] = dxi[i];}
   }
+
   beta[1] = maxnrs;
   for (k=2;k<MAX_LBPOINTS;k++) {
     maxnrs = 0.0;
@@ -87,6 +92,8 @@ static PetscErrorCode NEPNLEIGSLejaBagbyPoints(NEP nep)
     for (i=0;i<ndpt;i++) {
       nrs[i]  *= ((ds[i]-s[k-1])/(1.0-ds[i]/xi[k-1]))/beta[k-1];
       if (PetscAbsScalar(nrs[i])>maxnrs) {maxnrs = PetscAbsScalar(nrs[i]); s[k] = ds[i];}
+    }
+    for (i=0;i<ndptx;i++) {
       nrxi[i] *= ((dxi[i]-s[k-1])/(1.0-dxi[i]/xi[k-1]))/beta[k-1];
       if (PetscAbsScalar(nrxi[i])<minnrxi) {minnrxi = PetscAbsScalar(nrxi[i]); xi[k] = dxi[i];}
     }
@@ -157,11 +164,11 @@ static PetscErrorCode NEPNLEIGSDividedDifferences(NEP nep)
 PetscErrorCode NEPSetUp_NLEIGS(NEP nep)
 {
   PetscErrorCode ierr;
-  PetscInt       k;
+  PetscInt       k,in;
   PetscScalar    coeffs[MAX_LBPOINTS+1];
   NEP_NLEIGS     *ctx=(NEP_NLEIGS*)nep->data;
   SlepcSC        sc;
-  PetscBool      istrivial;
+  PetscBool      istrivial,flg;
 
   PetscFunctionBegin;
   if (nep->ncv) { /* ncv set */
@@ -183,9 +190,14 @@ PetscErrorCode NEPSetUp_NLEIGS(NEP nep)
     ierr = STCreate(PetscObjectComm((PetscObject)nep),&ctx->st);CHKERRQ(ierr);
     ierr = PetscLogObjectParent((PetscObject)nep,(PetscObject)ctx->st);CHKERRQ(ierr);
   }
+  ierr = RGIsTrivial(nep->rg,&istrivial);CHKERRQ(ierr);
+  if (istrivial) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"NEPNLEIGS requires a nontrivial region defining the target set");
   if (nep->ksp) {ierr = STSetKSP(ctx->st,nep->ksp);CHKERRQ(ierr);}
+  ierr = PetscObjectTypeCompare((PetscObject)ctx->st,STSINVERT,&flg);CHKERRQ(ierr);
+  if (!flg) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"Currently, the NEPNLEIGS solver requires to be solved using the STSINVERT spectral transformation");
+  ierr = RGCheckInside(nep->rg,1,&nep->target,NULL,&in);CHKERRQ(ierr);
+  if (in<0) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"The target is not inside the target set");
   ierr = STSetDefaultShift(ctx->st,nep->target);CHKERRQ(ierr);
-  ierr = STSetType(ctx->st,STSINVERT);CHKERRQ(ierr);
   if (!nep->which) nep->which = NEP_TARGET_MAGNITUDE;
   /* Initialize the NLEIGS context structure */
   k = MAX_LBPOINTS;
@@ -214,8 +226,6 @@ PetscErrorCode NEPSetUp_NLEIGS(NEP nep)
   ierr = DSGetSlepcSC(nep->ds,&sc);CHKERRQ(ierr);
   sc->map = SlepcMap_ST;
   sc->mapobj = (PetscObject)ctx->st;
-  ierr = RGIsTrivial(nep->rg,&istrivial);CHKERRQ(ierr);
-  if (istrivial) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"NEPNLEIGS requires a nontrivial region defining the target set");
   sc->rg            = nep->rg;
   sc->comparison    = nep->sc->comparison;
   sc->comparisonctx = nep->sc->comparisonctx;
@@ -783,7 +793,7 @@ PetscErrorCode NEPNLEIGSGetST(NEP nep,ST *st)
 #define __FUNCT__ "NEPNLEIGSSetSingularitiesFunction"
 /*@C
    NEPNLEIGSSetSingularitiesFunction - Sets a user function to compute a discretization
-   of the singularity set (where T(lambda) is not analytic).
+   of the singularity set (where T(.) is not analytic).
 
    Logically Collective on NEP
 
@@ -797,7 +807,7 @@ PetscErrorCode NEPNLEIGSGetST(NEP nep,ST *st)
 
 .seealso: NEPNLEIGSGetSingularitiesFunction()
 @*/
-PetscErrorCode NEPNLEIGSSetSingularitiesFunction(NEP nep,PetscErrorCode (*fun)(NEP,PetscInt,PetscScalar*),void *ctx)
+PetscErrorCode NEPNLEIGSSetSingularitiesFunction(NEP nep,PetscErrorCode (*fun)(NEP,PetscInt*,PetscScalar*,void*),void *ctx)
 {
   NEP_NLEIGS *nepctx = (NEP_NLEIGS*)nep->data;
 
@@ -827,7 +837,7 @@ PetscErrorCode NEPNLEIGSSetSingularitiesFunction(NEP nep,PetscErrorCode (*fun)(N
 
 .seealso: NEPNLEIGSSetSingularitiesFunction()
 @*/
-PetscErrorCode NEPNLEIGSGetSingularitiesFunction(NEP nep,PetscErrorCode (**fun)(NEP,PetscInt,PetscScalar*),void **ctx)
+PetscErrorCode NEPNLEIGSGetSingularitiesFunction(NEP nep,PetscErrorCode (**fun)(NEP,PetscInt*,PetscScalar*,void*),void **ctx)
 {
   NEP_NLEIGS *nepctx = (NEP_NLEIGS*)nep->data;
 

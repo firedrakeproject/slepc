@@ -47,6 +47,10 @@ ex22: ex22.o chkopts
 	-${CLINKER} -o ex22 ex22.o ${SLEPC_NEP_LIB}
 	${RM} ex22.o
 
+ex27: ex27.o chkopts
+	-${CLINKER} -o ex27 ex27.o ${SLEPC_NEP_LIB}
+	${RM} ex27.o
+
 #------------------------------------------------------------------------------------
 
 runex20_1:
