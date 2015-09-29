@@ -9,11 +9,11 @@
        [1] S. Guttel et al., "NLEIGS: A class of robust fully rational Krylov
            method for nonlinear eigenvalue problems", 2014.
 
-   Last update: Mar 2013
+   Last update: Sep 2015
 
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
-   Copyright (c) 2002-2013, Universitat Politecnica de Valencia, Spain
+   Copyright (c) 2002-2015, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
 
@@ -56,15 +56,18 @@ static PetscErrorCode NEPNLEIGSLejaBagbyPoints(NEP nep)
   PetscErrorCode ierr;
   NEP_NLEIGS     *ctx=(NEP_NLEIGS*)nep->data;
   PetscInt       i,k,ndpt=NDPOINTS,ndptx=NDPOINTS;
-  PetscScalar    *ds,*dxi,*nrs,*nrxi,*s=ctx->s,*xi=ctx->xi,*beta=ctx->beta;
+  PetscScalar    *ds,*dsi,*dxi,*nrs,*nrxi,*s=ctx->s,*xi=ctx->xi,*beta=ctx->beta;
   PetscReal      maxnrs,minnrxi;
 
   PetscFunctionBegin;
-  ierr = PetscMalloc4(ndpt+1,&ds,ndpt,&dxi,ndpt+1,&nrs,ndpt,&nrxi);CHKERRQ(ierr);
+  ierr = PetscMalloc5(ndpt+1,&ds,ndpt+1,&dsi,ndpt,&dxi,ndpt+1,&nrs,ndpt,&nrxi);CHKERRQ(ierr);
 
   /* Discretize the target region boundary */
-  ierr = RGComputeContour(nep->rg,ndpt,ds,NULL);CHKERRQ(ierr);
-
+  ierr = RGComputeContour(nep->rg,ndpt,ds,dsi);CHKERRQ(ierr);
+#if !defined(PETSC_USE_COMPLEX)
+  for (i=0;i<ndpt;i++) if (dsi[i]!=0.0) break;
+  if (i<ndpt) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"NLEIGS with real arithmetic requires the target set to be included in the real axis");
+#endif
   /* Discretize the singularity region */
   ierr = (ctx->computesingularities)(nep,&ndptx,dxi,ctx->singularitiesctx);CHKERRQ(ierr);
   /* A temporary restriction to prevent single singularities */
@@ -99,7 +102,7 @@ static PetscErrorCode NEPNLEIGSLejaBagbyPoints(NEP nep)
     }
     beta[k] = maxnrs;
   }
-  ierr = PetscFree4(ds,dxi,nrs,nrxi);CHKERRQ(ierr);
+  ierr = PetscFree5(ds,dsi,dxi,nrs,nrxi);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -165,7 +168,7 @@ PetscErrorCode NEPSetUp_NLEIGS(NEP nep)
 {
   PetscErrorCode ierr;
   PetscInt       k,in;
-  PetscScalar    coeffs[MAX_LBPOINTS+1];
+  PetscScalar    coeffs[MAX_LBPOINTS+1],zero=0.0;
   NEP_NLEIGS     *ctx=(NEP_NLEIGS*)nep->data;
   SlepcSC        sc;
   PetscBool      istrivial,flg;
@@ -195,7 +198,7 @@ PetscErrorCode NEPSetUp_NLEIGS(NEP nep)
   if (nep->ksp) {ierr = STSetKSP(ctx->st,nep->ksp);CHKERRQ(ierr);}
   ierr = PetscObjectTypeCompare((PetscObject)ctx->st,STSINVERT,&flg);CHKERRQ(ierr);
   if (!flg) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"Currently, the NEPNLEIGS solver requires to be solved using the STSINVERT spectral transformation");
-  ierr = RGCheckInside(nep->rg,1,&nep->target,NULL,&in);CHKERRQ(ierr);
+  ierr = RGCheckInside(nep->rg,1,&nep->target,&zero,&in);CHKERRQ(ierr);
   if (in<0) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"The target is not inside the target set");
   ierr = STSetDefaultShift(ctx->st,nep->target);CHKERRQ(ierr);
   if (!nep->which) nep->which = NEP_TARGET_MAGNITUDE;
@@ -205,7 +208,7 @@ PetscErrorCode NEPSetUp_NLEIGS(NEP nep)
   nep->data = ctx;
 
   /* Compute Leja-Bagby points and scaling values */
-  ierr = NEPNLEIGSLejaBagbyPoints(nep);
+  ierr = NEPNLEIGSLejaBagbyPoints(nep);CHKERRQ(ierr);
 
   /* Compute the divided difference matrices */
   ierr = NEPNLEIGSDividedDifferences(nep);CHKERRQ(ierr);
@@ -324,7 +327,6 @@ static PetscErrorCode NEPTOARExtendBasis(NEP nep,PetscScalar sigma,PetscScalar *
   for (j=0;j<nv;j++) {
     r[(deg-2)*lr+j] = (S[(deg-2)*ls+j]+(beta[deg-1]/xi[deg-2])*S[(deg-1)*ls+j])/(s[deg-2]-sigma);
   }
-  /* NoteUP */
   ierr = BVMultVec(V,1.0,0.0,v,r+(deg-2)*lr);CHKERRQ(ierr);
   ierr = STMatMult(ctx->st,deg-2,v,q);CHKERRQ(ierr);
   for (k=deg-2;k>0;k--) {
@@ -580,7 +582,7 @@ PetscErrorCode NEPSolve_NLEIGS(NEP nep)
   ierr = DSGetLeadingDimension(nep->ds,&ldds);CHKERRQ(ierr);
 
   /* Get the starting Lanczos vector */
-  if (nep->nini==0) { /* NoteUP  ////////////////  */
+  if (nep->nini==0) { 
     ierr = BVSetRandomColumn(nep->V,0,nep->rand);CHKERRQ(ierr);
   }
   ierr = BVOrthogonalizeColumn(nep->V,0,S,&norm,&lindep);CHKERRQ(ierr);
@@ -619,8 +621,8 @@ PetscErrorCode NEPSolve_NLEIGS(NEP nep)
     }
 
     /* Solve projected problem */
-    ierr = DSSolve(nep->ds,nep->eigr,NULL);CHKERRQ(ierr);
-    ierr = DSSort(nep->ds,nep->eigr,NULL,NULL,NULL,NULL);CHKERRQ(ierr);;
+    ierr = DSSolve(nep->ds,nep->eigr,nep->eigi);CHKERRQ(ierr);
+    ierr = DSSort(nep->ds,nep->eigr,nep->eigi,NULL,NULL,NULL);CHKERRQ(ierr);;
     ierr = DSUpdateExtraRow(nep->ds);CHKERRQ(ierr);
 
     /* Check convergence */
@@ -686,7 +688,7 @@ PetscErrorCode NEPSolve_NLEIGS(NEP nep)
 
   ierr = PetscFree3(work,rwork,S);CHKERRQ(ierr);
   /* Map eigenvalues back to the original problem */
-  ierr = STBackTransform(ctx->st,nep->nconv,nep->eigr,NULL);CHKERRQ(ierr);
+  ierr = STBackTransform(ctx->st,nep->nconv,nep->eigr,nep->eigi);CHKERRQ(ierr);
 
   /* /////// */
   /* For testing, before destroying the solver context 
