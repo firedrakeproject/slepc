@@ -757,6 +757,8 @@ static PetscErrorCode NEPNLEIGSGetST_NLEIGS(NEP nep,ST *st)
     ierr = STSetOptionsPrefix(ctx->st,((PetscObject)nep)->prefix);CHKERRQ(ierr);
     ierr = STAppendOptionsPrefix(ctx->st,"nep_");CHKERRQ(ierr);
     ierr = PetscLogObjectParent((PetscObject)nep,(PetscObject)ctx->st);CHKERRQ(ierr);
+    if(!nep->ksp) {ierr = NEPGetKSP(nep,&nep->ksp);CHKERRQ(ierr);}
+    ierr = STSetKSP(ctx->st,nep->ksp);CHKERRQ(ierr);
   }
   *st = ctx->st;
   PetscFunctionReturn(0);
