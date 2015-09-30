@@ -726,14 +726,14 @@ PetscErrorCode EPSSetUp_CISS(EPS eps)
   if (!eps->ncv) eps->ncv = ctx->L_max*ctx->M;
   else {
     ierr = EPSSetDimensions_Default(eps,eps->nev,&eps->ncv,&eps->mpd);CHKERRQ(ierr);
-    ctx->L_max = (int)eps->ncv/ctx->M;
+    ctx->L_max = eps->ncv/ctx->M;
     if (ctx->L_max == 0) { 
       ctx->L_max = 1;
       eps->ncv = ctx->L_max*ctx->M;
     }
-    if (ctx->L > ctx->L_max)ctx->L = ctx->L_max;
+    if (ctx->L > ctx->L_max) ctx->L = ctx->L_max;
   }
-  if (!eps->max_it) eps->max_it = 0;
+  if (!eps->max_it) eps->max_it = 1;
   if (!eps->mpd) eps->mpd = eps->ncv;
   if (!eps->which) eps->which = EPS_ALL;
   if (!eps->extraction) { ierr = EPSSetExtraction(eps,EPS_RITZ);CHKERRQ(ierr); } 
@@ -788,7 +788,7 @@ PetscErrorCode EPSSetUp_CISS(EPS eps)
   ierr = PetscObjectTypeCompare((PetscObject)A,MATSHELL,&flg);CHKERRQ(ierr);
   if (flg) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Matrix type shell is not supported in this solver");
 
-  if (ctx->usest && ctx->num_subcomm>1) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"The usest is not supported when partitons > 1");
+  if (ctx->usest && ctx->num_subcomm>1) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"The usest flag is not supported when partitions > 1");
 
   ierr = CISSRedundantMat(eps);CHKERRQ(ierr);
   if (ctx->pA) {
@@ -879,6 +879,7 @@ PetscErrorCode EPSSolve_CISS(EPS eps)
   else B = NULL;
   ierr = SetPathParameter(eps);CHKERRQ(ierr);
   ierr = CISSVecSetRandom(ctx->V,0,ctx->L,eps->rand);CHKERRQ(ierr);
+  ierr = PetscObjectTypeCompare((PetscObject)eps->rg,RGINTERVAL,&isinterval);CHKERRQ(ierr);
 
   if (ctx->pA) {
     ierr = VecScatterVecs(eps,ctx->V,ctx->L);CHKERRQ(ierr);
@@ -966,7 +967,6 @@ PetscErrorCode EPSSolve_CISS(EPS eps)
       
       ierr = PetscMalloc3(nv,&fl1,nv,&inside,nv,&rr);CHKERRQ(ierr);
       ierr = isGhost(eps,ld,nv,fl1);CHKERRQ(ierr);
-      ierr = PetscObjectTypeCompare((PetscObject)eps->rg,RGINTERVAL,&isinterval);CHKERRQ(ierr);
       if (isinterval) {
 	ierr = RGIntervalGetEndpoints(eps->rg,NULL,NULL,&c,&d);CHKERRQ(ierr);
 	if (c==d) { 
@@ -1009,8 +1009,8 @@ PetscErrorCode EPSSolve_CISS(EPS eps)
 	max_error = PetscMax(max_error,error);
       }
       
-      if (eps->its >= eps->max_it) eps->reason = EPS_DIVERGED_ITS;
       if (max_error <= eps->tol) eps->reason = EPS_CONVERGED_TOL;
+      else if (eps->its > eps->max_it) eps->reason = EPS_DIVERGED_ITS;
       else {
 	if (eps->nconv > ctx->L) nv = eps->nconv;
 	else if (ctx->L > nv) nv = ctx->L;
