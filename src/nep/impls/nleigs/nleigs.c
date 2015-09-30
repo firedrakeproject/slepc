@@ -9,8 +9,6 @@
        [1] S. Guttel et al., "NLEIGS: A class of robust fully rational Krylov
            method for nonlinear eigenvalue problems", 2014.
 
-   Last update: Sep 2015
-
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
    Copyright (c) 2002-2015, Universitat Politecnica de Valencia, Spain
@@ -190,12 +188,10 @@ PetscErrorCode NEPSetUp_NLEIGS(NEP nep)
   if (!nep->max_it) nep->max_it = PetscMax(5000,2*nep->n/nep->ncv);
   if (!nep->max_funcs) nep->max_funcs = nep->max_it;
   if (!ctx->st) { 
-    ierr = STCreate(PetscObjectComm((PetscObject)nep),&ctx->st);CHKERRQ(ierr);
-    ierr = PetscLogObjectParent((PetscObject)nep,(PetscObject)ctx->st);CHKERRQ(ierr);
+    ierr = NEPNLEIGSGetST(nep,&ctx->st);CHKERRQ(ierr);
   }
   ierr = RGIsTrivial(nep->rg,&istrivial);CHKERRQ(ierr);
   if (istrivial) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"NEPNLEIGS requires a nontrivial region defining the target set");
-  if (nep->ksp) {ierr = STSetKSP(ctx->st,nep->ksp);CHKERRQ(ierr);}
   ierr = PetscObjectTypeCompare((PetscObject)ctx->st,STSINVERT,&flg);CHKERRQ(ierr);
   if (!flg) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"Currently, the NEPNLEIGS solver requires to be solved using the STSINVERT spectral transformation");
   ierr = RGCheckInside(nep->rg,1,&nep->target,&zero,&in);CHKERRQ(ierr);
@@ -528,8 +524,8 @@ PetscErrorCode NEPDebugShowResidual(NEP nep)
   ierr = PetscPrintf(PETSC_COMM_WORLD," Number of converged approximate eigenpairs: %d\n",nep->nconv);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD," Number of iterations: %d\n\n",nep->its);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD,
-         "           k              ||Q%d(k)x||           error\n"
-         "   ----------------- ------------------ ------------------\n",deg);CHKERRQ(ierr);
+         "           k              ||Q%d(k)x|| \n"
+         "   ----------------- ------------------\n",deg);CHKERRQ(ierr);
   for (i=0;i<nep->nconv;i++) {
     ierr = NEPNLEIGSEvalNRTFunct(nep,ctx->nmat,nep->eigr[i],coeffs);CHKERRQ(ierr);
     ierr = BVGetColumn(nep->V,i,&v);CHKERRQ(ierr);
