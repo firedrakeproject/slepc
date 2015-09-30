@@ -345,6 +345,8 @@ static PetscErrorCode NEPInterpolGetPEP_Interpol(NEP nep,PEP *pep)
     ierr = STSetOptionsPrefix(st,((PetscObject)ctx->pep)->prefix);CHKERRQ(ierr);
     ierr = PetscObjectIncrementTabLevel((PetscObject)ctx->pep,(PetscObject)nep,1);CHKERRQ(ierr);
     ierr = PetscLogObjectParent((PetscObject)nep,(PetscObject)ctx->pep);CHKERRQ(ierr);
+    if (!nep->ksp) {ierr = NEPGetKSP(nep,&nep->ksp);CHKERRQ(ierr);}
+    ierr = STSetKSP(st,nep->ksp);CHKERRQ(ierr);
   }
   *pep = ctx->pep;
   PetscFunctionReturn(0);
