@@ -24,11 +24,12 @@ FFLAGS     =
 CPPFLAGS   =
 FPPFLAGS   =
 LOCDIR     = src/pep/examples/tutorials/
-EXAMPLESC  = ex16.c ex17.c
+EXAMPLESC  = ex16.c ex17.c ex28.c
 EXAMPLESF  = ex16f90.F90
 MANSEC     = PEP
 
-TESTEXAMPLES_C           = ex16.PETSc runex16_1 ex16.rm
+TESTEXAMPLES_C           = ex16.PETSc runex16_1 ex16.rm \
+                           ex28.PETSc runex28_1 ex28.rm
 TESTEXAMPLES_C_NOCOMPLEX = ex17.PETSc runex17_1 ex17.rm
 TESTEXAMPLES_F90         = ex16f90.PETSc runex16f90_1 ex16f90.rm
 
@@ -45,6 +46,10 @@ ex16f90: ex16f90.o chkopts
 ex17: ex17.o chkopts
 	-${CLINKER} -o ex17 ex17.o ${SLEPC_PEP_LIB}
 	${RM} ex17.o
+
+ex28: ex28.o chkopts
+	-${CLINKER} -o ex28 ex28.o ${SLEPC_PEP_LIB}
+	${RM} ex28.o
 
 #------------------------------------------------------------------------------------
 DATAPATH = ${SLEPC_DIR}/share/slepc/datafiles/matrices
@@ -70,4 +75,10 @@ runex17_1:
 	   else echo "Possible problem with ex17_1, diffs above"; fi; \
 	   ${RM} -f ex17_1.tmp; \
          fi
+
+runex28_1:
+	-@${MPIEXEC} -np 1 ./ex28 -pep_nev 4 -terse > ex28_1.tmp 2>&1; \
+	   if (${DIFF} output/ex28_1.out ex28_1.tmp) then true; \
+	   else echo "Possible problem with ex28_1, diffs above"; fi; \
+	   ${RM} -f ex28_1.tmp
 

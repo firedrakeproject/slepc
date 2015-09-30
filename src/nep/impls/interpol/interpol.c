@@ -51,8 +51,9 @@ PetscErrorCode NEPSetUp_Interpol(NEP nep)
   ST             st;
   RG             rg;
   PetscReal      a,b,c,d,s,tol;
+  PetscScalar    zero=0.0;
   PetscBool      flg,istrivial;
-  PetscInt       its;
+  PetscInt       its,in;
 
   PetscFunctionBegin;
   if (nep->ncv) { /* ncv set */
@@ -77,7 +78,6 @@ PetscErrorCode NEPSetUp_Interpol(NEP nep)
   ierr = PEPSetBV(ctx->pep,nep->V);CHKERRQ(ierr);
   ierr = PEPSetBasis(ctx->pep,PEP_BASIS_CHEBYSHEV1);CHKERRQ(ierr);
   ierr = PEPSetWhichEigenpairs(ctx->pep,PEP_TARGET_MAGNITUDE);CHKERRQ(ierr);
-  ierr = PEPSetTarget(ctx->pep,0.0);CHKERRQ(ierr);
   ierr = PEPGetST(ctx->pep,&st);CHKERRQ(ierr);
   ierr = STSetType(st,STSINVERT);CHKERRQ(ierr);
   ierr = PEPSetDimensions(ctx->pep,nep->nev,nep->ncv?nep->ncv:PETSC_DEFAULT,nep->mpd?nep->mpd:PETSC_DEFAULT);CHKERRQ(ierr);
@@ -103,6 +103,9 @@ PetscErrorCode NEPSetUp_Interpol(NEP nep)
     d = (d==0)? PETSC_MAX_REAL: d*s;
     ierr = RGIntervalSetEndpoints(rg,-1.0,1.0,c,d);CHKERRQ(ierr);
   }
+  ierr = RGCheckInside(nep->rg,1,&nep->target,&zero,&in);CHKERRQ(ierr);
+  if (in<0) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"The target is not inside the target set");
+  ierr = PEPSetTarget(ctx->pep,(nep->target-(a+b)/2)*s);CHKERRQ(ierr);
 
   ierr = NEPAllocateSolution(nep,0);CHKERRQ(ierr);
   PetscFunctionReturn(0);

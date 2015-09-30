@@ -169,7 +169,7 @@ PetscErrorCode BVSetSizes(BV bv,PetscInt n,PetscInt N,PetscInt m)
 
    Input Parameters:
 +  bv - the basis vectors
-.  t  - the template vectors
+.  t  - the template vector
 -  m  - the number of columns
 
    Level: beginner
