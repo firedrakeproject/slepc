@@ -804,6 +804,7 @@ PetscErrorCode EPSSetUp_CISS(EPS eps)
     ierr = PetscObjectTypeCompare((PetscObject)eps->st,STSINVERT,&issinvert);CHKERRQ(ierr);
     if (!issinvert) { ierr = STSetType(eps->st,STSINVERT);CHKERRQ(ierr); }
   } else {
+    ierr = STSetType(eps->st,STSHIFT);CHKERRQ(ierr);  /* we are not going to use ST, so avoid problems in case the user provided one */
     ierr = PetscMalloc2(ctx->num_solve_point,&ctx->ksp,ctx->num_solve_point,&ctx->kspMat);CHKERRQ(ierr);
     ierr = PetscLogObjectMemory((PetscObject)eps,ctx->num_solve_point*sizeof(KSP)+ctx->num_solve_point*sizeof(Mat));CHKERRQ(ierr);
     for (i=0;i<ctx->num_solve_point;i++) {
