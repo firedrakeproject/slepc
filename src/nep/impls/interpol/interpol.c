@@ -95,14 +95,12 @@ PetscErrorCode NEPSetUp_Interpol(NEP nep)
   ierr = RGIntervalGetEndpoints(nep->rg,&a,&b,&c,&d);CHKERRQ(ierr);
   if (a<=-PETSC_MAX_REAL || b>=PETSC_MAX_REAL) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"Only implemented for bounded intervals");
   ierr = PEPGetRG(ctx->pep,&rg);CHKERRQ(ierr);
-  ierr = RGIsTrivial(rg,&istrivial);CHKERRQ(ierr);
-  if (istrivial) {   /* user did not give region options */
-    ierr = RGSetType(rg,RGINTERVAL);CHKERRQ(ierr);
-    s = 2.0/(b-a);
-    c = (c==0)? -PETSC_MAX_REAL: c*s;
-    d = (d==0)? PETSC_MAX_REAL: d*s;
-    ierr = RGIntervalSetEndpoints(rg,-1.0,1.0,c,d);CHKERRQ(ierr);
-  }
+  ierr = RGSetType(rg,RGINTERVAL);CHKERRQ(ierr);
+  if (a==b) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"Only implemented for intervals on the real axis");
+  s = 2.0/(b-a);
+  c = (c==0)? -PETSC_MAX_REAL: c*s;
+  d = (d==0)? PETSC_MAX_REAL: d*s;
+  ierr = RGIntervalSetEndpoints(rg,-1.0,1.0,c,d);CHKERRQ(ierr);
   ierr = RGCheckInside(nep->rg,1,&nep->target,&zero,&in);CHKERRQ(ierr);
   if (in<0) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"The target is not inside the target set");
   ierr = PEPSetTarget(ctx->pep,(nep->target-(a+b)/2)*s);CHKERRQ(ierr);
