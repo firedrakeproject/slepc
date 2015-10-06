@@ -166,7 +166,7 @@ argdb.ErrorIfNotEmpty()
 
 # Check enviroment and PETSc version
 print 'Checking environment...',
-petsc.InitDir()
+petsc.InitDir(slepc.prefixdir)
 slepc.InitDir()
 petsc.LoadVersion()
 slepc.LoadVersion()

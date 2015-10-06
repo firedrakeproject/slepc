@@ -66,7 +66,7 @@ PetscErrorCode NEPSetFromOptions(NEP nep)
     ierr = PetscOptionsEnum("-nep_refine","Iterative refinement method","NEPSetRefine",NEPRefineTypes,(PetscEnum)nep->refine,(PetscEnum*)&nep->refine,NULL);CHKERRQ(ierr);
 
     i = nep->npart;
-    ierr = PetscOptionsInt("-nep_refine_partitions","Number of partitions of the communicator for iterative refinement","PEPSetRefine",nep->npart,&i,&flg1);CHKERRQ(ierr);
+    ierr = PetscOptionsInt("-nep_refine_partitions","Number of partitions of the communicator for iterative refinement","NEPSetRefine",nep->npart,&i,&flg1);CHKERRQ(ierr);
     r1 = nep->reftol;
     ierr = PetscOptionsReal("-nep_refine_tol","Tolerance for iterative refinement","NEPSetRefine",nep->reftol,&r1,&flg2);CHKERRQ(ierr);
     j = nep->rits;

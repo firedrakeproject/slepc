@@ -51,8 +51,9 @@ PetscErrorCode NEPSetUp_Interpol(NEP nep)
   ST             st;
   RG             rg;
   PetscReal      a,b,c,d,s,tol;
+  PetscScalar    zero=0.0;
   PetscBool      flg,istrivial;
-  PetscInt       its;
+  PetscInt       its,in;
 
   PetscFunctionBegin;
   if (nep->ncv) { /* ncv set */
@@ -70,14 +71,13 @@ PetscErrorCode NEPSetUp_Interpol(NEP nep)
   if (nep->ncv>nep->nev+nep->mpd) SETERRQ(PetscObjectComm((PetscObject)nep),1,"The value of ncv must not be larger than nev+mpd");
   if (!nep->max_it) nep->max_it = PetscMax(5000,2*nep->n/nep->ncv);
   if (!nep->max_funcs) nep->max_funcs = nep->max_it;
-  if (!nep->split) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"NEPINTERPOL only available for split operator");
+  if (nep->fui!=NEP_USER_INTERFACE_SPLIT) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"NEPINTERPOL only available for split operator");
 
   /* transfer PEP options */
   if (!ctx->pep) { ierr = NEPInterpolGetPEP(nep,&ctx->pep);CHKERRQ(ierr); }
   ierr = PEPSetBV(ctx->pep,nep->V);CHKERRQ(ierr);
   ierr = PEPSetBasis(ctx->pep,PEP_BASIS_CHEBYSHEV1);CHKERRQ(ierr);
   ierr = PEPSetWhichEigenpairs(ctx->pep,PEP_TARGET_MAGNITUDE);CHKERRQ(ierr);
-  ierr = PEPSetTarget(ctx->pep,0.0);CHKERRQ(ierr);
   ierr = PEPGetST(ctx->pep,&st);CHKERRQ(ierr);
   ierr = STSetType(st,STSINVERT);CHKERRQ(ierr);
   ierr = PEPSetDimensions(ctx->pep,nep->nev,nep->ncv?nep->ncv:PETSC_DEFAULT,nep->mpd?nep->mpd:PETSC_DEFAULT);CHKERRQ(ierr);
@@ -95,14 +95,15 @@ PetscErrorCode NEPSetUp_Interpol(NEP nep)
   ierr = RGIntervalGetEndpoints(nep->rg,&a,&b,&c,&d);CHKERRQ(ierr);
   if (a<=-PETSC_MAX_REAL || b>=PETSC_MAX_REAL) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"Only implemented for bounded intervals");
   ierr = PEPGetRG(ctx->pep,&rg);CHKERRQ(ierr);
-  ierr = RGIsTrivial(rg,&istrivial);CHKERRQ(ierr);
-  if (istrivial) {   /* user did not give region options */
-    ierr = RGSetType(rg,RGINTERVAL);CHKERRQ(ierr);
-    s = 2.0/(b-a);
-    c = (c==0)? -PETSC_MAX_REAL: c*s;
-    d = (d==0)? PETSC_MAX_REAL: d*s;
-    ierr = RGIntervalSetEndpoints(rg,-1.0,1.0,c,d);CHKERRQ(ierr);
-  }
+  ierr = RGSetType(rg,RGINTERVAL);CHKERRQ(ierr);
+  if (a==b) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"Only implemented for intervals on the real axis");
+  s = 2.0/(b-a);
+  c = (c==0)? -PETSC_MAX_REAL: c*s;
+  d = (d==0)? PETSC_MAX_REAL: d*s;
+  ierr = RGIntervalSetEndpoints(rg,-1.0,1.0,c,d);CHKERRQ(ierr);
+  ierr = RGCheckInside(nep->rg,1,&nep->target,&zero,&in);CHKERRQ(ierr);
+  if (in<0) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"The target is not inside the target set");
+  ierr = PEPSetTarget(ctx->pep,(nep->target-(a+b)/2)*s);CHKERRQ(ierr);
 
   ierr = NEPAllocateSolution(nep,0);CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -267,7 +268,7 @@ static PetscErrorCode NEPInterpolGetDegree_Interpol(NEP nep,PetscInt *deg)
 .  nep - nonlinear eigenvalue solver
 
    Output Parameter:
-.  pep - the polynomial degree
+.  deg - the polynomial degree
 
    Level: advanced
 

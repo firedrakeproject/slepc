@@ -57,11 +57,12 @@ PetscErrorCode EPSBasicArnoldi(EPS eps,PetscBool trans,PetscScalar *H,PetscInt l
     ierr = BVRestoreColumn(eps->V,j,&vj);CHKERRQ(ierr);
     ierr = BVRestoreColumn(eps->V,j+1,&vj1);CHKERRQ(ierr);
     ierr = BVOrthogonalizeColumn(eps->V,j+1,H+ldh*j,beta,breakdown);CHKERRQ(ierr);
-    H[j+1+ldh*j] = *beta;
     if (*breakdown) {
+      H[j+1+ldh*j] = 0.0;
       *M = j+1;
       break;
     } else {
+      H[j+1+ldh*j] = *beta;
       ierr = BVScaleColumn(eps->V,j+1,1.0/(*beta));CHKERRQ(ierr);
     }
   }
