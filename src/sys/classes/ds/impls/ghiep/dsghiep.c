@@ -731,7 +731,7 @@ PetscErrorCode DSSolve_GHIEP_QR_II(DS ds,PetscScalar *wr,PetscScalar *wi)
       while (j<ds->n && (PetscAbsScalar(wr[i]-PetscConj(wr[j]))>PetscAbsScalar(wr[i])*PETSC_SQRT_MACHINE_EPSILON)) j++;
       if (j==ds->n) {
         if (PetscAbsReal(PetscImaginaryPart(wr[i]))<PetscAbsScalar(wr[i])*PETSC_SQRT_MACHINE_EPSILON) wr[i]=PetscRealPart(wr[i]);
-        else SETERRQ(PETSC_COMM_SELF,PETSC_ERR_LIB,"In QR_II complex without conjugate pair");
+        else SETERRQ(PETSC_COMM_SELF,PETSC_ERR_LIB,"Found complex without conjugate pair");
       } else { /* complex eigenvalue */
         wr[j] = wr[i+1];
         if (PetscImaginaryPart(wr[i])<0) wr[i] = PetscConj(wr[i]);
@@ -759,15 +759,15 @@ PetscErrorCode DSSolve_GHIEP_QR_II(DS ds,PetscScalar *wr,PetscScalar *wi)
 #define __FUNCT__ "DSSolve_GHIEP_QR"
 PetscErrorCode DSSolve_GHIEP_QR(DS ds,PetscScalar *wr,PetscScalar *wi)
 {
-#if defined(SLEPC_MISSING_LAPACK_GEHRD) || defined(SLEPC_MISSING_LAPACK_ORGHR) || defined(PETSC_MISSING_LAPACK_HSEQR)
+#if defined(SLEPC_MISSING_LAPACK_GEEVX)
   PetscFunctionBegin;
-  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"GEHRD/ORGHR/HSEQR - Lapack routines are unavailable");
+  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"GEEVX - Lapack routine is unavailable");
 #else
   PetscErrorCode ierr;
-  PetscInt       i,off,nwu=0,n,lw;
-  PetscBLASInt   n_,ld,info,lwork;
+  PetscInt       i,off,nwu=0,n,lw,lwr,nwru=0;
+  PetscBLASInt   n_,ld,info,lwork,ilo,ihi;
   PetscScalar    *H,*A,*B,*Q,*X;
-  PetscReal      *d,*s;
+  PetscReal      *d,*s,*scale,nrm,*rcde,*rcdv;
 #if defined(PETSC_USE_COMPLEX)
   PetscInt       j,k;
 #endif
@@ -786,8 +786,14 @@ PetscErrorCode DSSolve_GHIEP_QR(DS ds,PetscScalar *wr,PetscScalar *wi)
   d = ds->rmat[DS_MAT_T];
   s = ds->rmat[DS_MAT_D];
   lw = 14*ld+ld*ld;
-  ierr = DSAllocateWork_Private(ds,lw,2*ld,0);CHKERRQ(ierr);
-
+  lwr = 7*ld;
+  ierr = DSAllocateWork_Private(ds,lw,lwr,0);CHKERRQ(ierr);
+  scale = ds->rwork+nwru;
+  nwru += ld;
+  rcde = ds->rwork+nwru;
+  nwru += ld;
+  rcdv = ds->rwork+nwru;
+  nwru += ld;
   /* Quick return if possible */
   if (n_ == 1) {
     *(Q+off) = 1;
@@ -833,9 +839,9 @@ PetscErrorCode DSSolve_GHIEP_QR(DS ds,PetscScalar *wr,PetscScalar *wi)
   ierr = DSAllocateMat_Private(ds,DS_MAT_X);CHKERRQ(ierr);
   X = ds->mat[DS_MAT_X];
 #if !defined(PETSC_USE_COMPLEX)
-  PetscStackCallBLAS("LAPACKgeev",LAPACKgeev_("N","V",&n_,H,&n_,wr+ds->l,wi+ds->l,NULL,&ld,X+off,&ld,ds->work+nwu,&lwork,&info));
+  PetscStackCallBLAS("LAPACKgeevx",LAPACKgeevx_("B","N","V","N",&n_,H,&n_,wr+ds->l,wi+ds->l,NULL,&ld,X+off,&ld,&ilo,&ihi,scale,&nrm,rcde,rcdv,ds->work+nwu,&lwork,NULL,&info));
 #else
-  PetscStackCallBLAS("LAPACKgeev",LAPACKgeev_("N","V",&n_,H,&n_,wr+ds->l,NULL,&ld,X+off,&ld,ds->work+nwu,&lwork,ds->rwork,&info));
+  PetscStackCallBLAS("LAPACKgeevx",LAPACKgeevx_("B","N","V","N",&n_,H,&n_,wr+ds->l,NULL,&ld,X+off,&ld,&ilo,&ihi,scale,&nrm,rcde,rcdv,ds->work+nwu,&lwork,ds->rwork+nwru,&info));
 
   /* Sort to have consecutive conjugate pairs 
      Separate real and imaginary part of complex eigenvectors*/
@@ -848,7 +854,7 @@ PetscErrorCode DSSolve_GHIEP_QR(DS ds,PetscScalar *wr,PetscScalar *wi)
         for (k=ds->l;k<ds->n;k++) {
           X[k+i*ds->ld] = PetscRealPart(X[k+i*ds->ld]);
         }
-      } else SETERRQ(PETSC_COMM_SELF,PETSC_ERR_LIB,"In QR_II complex without conjugate pair");
+      } else SETERRQ(PETSC_COMM_SELF,PETSC_ERR_LIB,"Found complex without conjugate pair");
     } else { /* complex eigenvalue */
       if (j!=i+1) {
         wr[j] = wr[i+1];
