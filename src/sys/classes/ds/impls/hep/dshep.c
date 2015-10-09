@@ -802,7 +802,7 @@ PetscErrorCode DSCond_HEP(DS ds,PetscReal *cond)
 #define __FUNCT__ "DSTranslateRKS_HEP"
 PetscErrorCode DSTranslateRKS_HEP(DS ds,PetscScalar alpha)
 {
-#if defined(PETSC_MISSING_LAPACK_GEQRF) || defined(SLEPC_MISSING_LAPACK_ORGQR)
+#if defined(PETSC_MISSING_LAPACK_GEQRF) || defined(PETSC_MISSING_LAPACK_ORGQR)
   PetscFunctionBegin;
   SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"GEQRF/ORGQR - Lapack routines are unavailable");
 #else
@@ -838,7 +838,7 @@ PetscErrorCode DSTranslateRKS_HEP(DS ds,PetscScalar alpha)
     for (i=0;i<=j;i++)
       R[i+j*ld] = Q[i+j*ld];
   /* Compute orthogonal matrix in Q */
-  PetscStackCallBLAS("LAPACKorgqr",LAPACKorgqr_(&n1,&n1,&n0,Q,&ld,tau,work,&lwork,&info));
+  PetscStackCallBLAS("LAPACKungqr",LAPACKungqr_(&n1,&n1,&n0,Q,&ld,tau,work,&lwork,&info));
   if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xORGQR %d",info);
   /* Compute the updated matrix of projected problem */
   for (j=0;j<k;j++)
