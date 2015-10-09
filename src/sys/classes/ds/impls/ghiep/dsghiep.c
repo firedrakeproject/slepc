@@ -446,7 +446,7 @@ PetscErrorCode DSSort_GHIEP(DS ds,PetscScalar *wr,PetscScalar *wi,PetscScalar *r
 */
 PetscErrorCode DSGHIEPInverseIteration(DS ds,PetscScalar *wr,PetscScalar *wi)
 {
-#if defined(PETSC_MISSING_LAPACK_HSEIN)
+#if defined(SLEPC_MISSING_LAPACK_HSEIN)
   PetscFunctionBegin;
   SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"HSEIN - Lapack routine is unavailable");
 #else

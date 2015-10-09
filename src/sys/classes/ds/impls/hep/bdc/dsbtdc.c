@@ -267,7 +267,7 @@ PetscErrorCode BDC_dsbtdc_(const char *jobz,const char *jobacc,PetscBLASInt n,
 /*                          NOTE: in the routine DIBTDC, the value */
 /*                                1.D-1 is hardcoded for TOLMAX ! */
 
-#if defined(SLEPC_MISSING_LAPACK_SYEVD) || defined(SLEPC_MISSING_LAPACK_GESVD) || defined(SLEPC_MISSING_LAPACK_LASET) || defined(SLEPC_MISSING_LAPACK_LASCL)
+#if defined(SLEPC_MISSING_LAPACK_SYEVD) || defined(PETSC_MISSING_LAPACK_GESVD) || defined(SLEPC_MISSING_LAPACK_LASET) || defined(SLEPC_MISSING_LAPACK_LASCL)
   PetscFunctionBegin;
   SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"SYEVD/GESVD/LASET/LASCL - Lapack routine is unavailable");
 #else

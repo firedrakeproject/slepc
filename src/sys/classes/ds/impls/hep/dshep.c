@@ -600,9 +600,9 @@ PetscErrorCode DSSolve_HEP_MRRR(DS ds,PetscScalar *wr,PetscScalar *wi)
 #define __FUNCT__ "DSSolve_HEP_DC"
 PetscErrorCode DSSolve_HEP_DC(DS ds,PetscScalar *wr,PetscScalar *wi)
 {
-#if defined(SLEPC_MISSING_LAPACK_STEDC) || defined(SLEPC_MISSING_LAPACK_ORMTR)
+#if defined(SLEPC_MISSING_LAPACK_STEDC)
   PetscFunctionBegin;
-  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"STEDC/ORMTR - Lapack routine is unavailable");
+  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"STEDC - Lapack routine is unavailable");
 #else
   PetscErrorCode ierr;
   PetscInt       i;
