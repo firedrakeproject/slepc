@@ -314,6 +314,10 @@ static PetscErrorCode PEPSTOARrun(PEP pep,PetscReal *a,PetscReal *b,PetscReal *o
 #define __FUNCT__ "PEPSTOARTrunc"
 static PetscErrorCode PEPSTOARTrunc(PEP pep,PetscInt rs1,PetscInt cs1,PetscScalar *work,PetscInt nw,PetscReal *rwork,PetscInt nrw)
 {
+#if defined(SLEPC_MISSING_LAPACK_GESVD)
+  PetscFunctionBegin;
+  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"GESVD - Lapack routine is unavailable");
+#else
   PetscErrorCode ierr;
   PEP_TOAR      *ctx = (PEP_TOAR*)pep->data;
   Mat            G;
@@ -388,6 +392,7 @@ static PetscErrorCode PEPSTOARTrunc(PEP pep,PetscInt rs1,PetscInt cs1,PetscScala
   PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&rs1_,&cs1p1,&rs1_,&sone,qM,&ld_,U,&rs1_,&zero,work+nwu,&rs1_));
   PetscStackCallBLAS("BLASgemm",BLASgemm_("C","N",&cs1p1,&cs1p1,&rs1_,&sone,U,&rs1_,work+nwu,&rs1_,&zero,qM,&ld_));
   PetscFunctionReturn(0);
+#endif
 }
 
 #undef __FUNCT__

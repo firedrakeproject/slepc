@@ -54,6 +54,10 @@ typedef struct {
 #define __FUNCT__ "MatFSMult"
 static PetscErrorCode MatFSMult(Mat M ,Vec x,Vec y)
 {
+#if defined(SLEPC_MISSING_LAPACK_GETRS)
+  PetscFunctionBegin;
+  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"GETRS - Lapack routine is unavailable");
+#else
   PetscErrorCode ierr;
   FSubctx        *ctx;
   PetscInt       k,i;
@@ -73,6 +77,7 @@ static PetscErrorCode MatFSMult(Mat M ,Vec x,Vec y)
   PetscStackCallBLAS("LAPACKgetrs",LAPACKgetrs_("N",&k_,&one,ctx->M4,&k_,ctx->pM4,c,&k_,&info));
   ierr = BVMultVec(ctx->M2,-1.0,1.0,y,c);CHKERRQ(ierr);
   PetscFunctionReturn(0);
+#endif
 }
 
 #undef __FUNCT__
@@ -129,6 +134,10 @@ static PetscErrorCode PEPEvaluateBasisforMatrix(PEP pep,PetscInt nm,PetscInt k,P
 #define __FUNCT__ "NRefSysSetup_shell"
 static PetscErrorCode NRefSysSetup_shell(PEP pep,PetscInt k,PetscScalar *fH,PetscScalar *S,PetscInt lds,PetscScalar *fh,PetscScalar h,FSubctx *ctx)
 {
+#if defined(SLEPC_MISSING_LAPACK_GESV)
+  PetscFunctionBegin;
+  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"GESV - Lapack routine is unavailable");
+#else
   PetscErrorCode ierr;
   PetscScalar    *DHii,*T12,*Tr,*Ts,*array,s,ss,sone=1.0,zero=0.0,*M4=ctx->M4,t,*m3,*m2,*v,*T;
   PetscInt       i,d,j,nmat=pep->nmat,lda=nmat*k,deg=nmat-1,nloc;
@@ -225,12 +234,17 @@ static PetscErrorCode NRefSysSetup_shell(PEP pep,PetscInt k,PetscScalar *fH,Pets
   ierr = PetscFree(T);CHKERRQ(ierr);
   ierr = KSPSetUp(pep->refineksp);CHKERRQ(ierr);
   PetscFunctionReturn(0); 
+#endif
 }
 
 #undef __FUNCT__
 #define __FUNCT__ "NRefSysSolve_shell"
 static PetscErrorCode NRefSysSolve_shell(KSP ksp,PetscInt nmat,Vec Rv,PetscScalar *Rh,PetscInt k,Vec dVi,PetscScalar *dHi)
 {
+#if defined(SLEPC_MISSING_LAPACK_GETRS)
+  PetscFunctionBegin;
+  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"GETRS - Lapack routine is unavailable");
+#else
   PetscErrorCode ierr;
   PetscScalar    *t0;
   PetscBLASInt   k_,one=1,info,lda_;
@@ -258,6 +272,7 @@ static PetscErrorCode NRefSysSolve_shell(KSP ksp,PetscInt nmat,Vec Rv,PetscScala
   PetscStackCallBLAS("LAPACKgetrs",LAPACKgetrs_("N",&k_,&one,ctx->M4,&k_,ctx->pM4,dHi,&k_,&info));
   ierr = PetscFree(t0);CHKERRQ(ierr);
   PetscFunctionReturn(0);
+#endif
 }
 
 #undef __FUNCT__
@@ -943,6 +958,10 @@ static PetscErrorCode PEPNRefForwardSubstitution(PEP pep,PetscInt k,PetscScalar 
 #define __FUNCT__ "NRefOrthogStep"
 static PetscErrorCode NRefOrthogStep(PEP pep,PetscInt k,PetscScalar *H,PetscInt ldh,PetscScalar *fH,PetscScalar *S,PetscInt lds,PetscInt *prs)
 {
+#if defined(SLEPC_MISSING_LAPACK_GEQRF) || defined(SLEPC_MISSING_LAPACK_ORGQR) 
+  PetscFunctionBegin;
+  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"GEQRF/ORGQR - Lapack routine is unavailable");
+#else
   PetscErrorCode ierr;
   PetscInt       i,j,nmat=pep->nmat,deg=nmat-1,lda=nmat*k,rs=*prs,ldg;
   PetscScalar    *T,*G,*tau,*array,sone=1.0,zero=0.0,*work;
@@ -996,12 +1015,17 @@ static PetscErrorCode NRefOrthogStep(PEP pep,PetscInt k,PetscScalar *H,PetscInt 
   PetscStackCallBLAS("BLAStrsm",BLAStrsm_("R","U","N","N",&k_,&k_,&sone,G,&ldg_,H,&ldh_));
   ierr = PetscFree4(T,tau,work,G);CHKERRQ(ierr);
   PetscFunctionReturn(0);
+#endif
 }
 
 #undef __FUNCT__
 #define __FUNCT__ "PEPNRefUpdateInvPair"
 static PetscErrorCode PEPNRefUpdateInvPair(PEP pep,PetscInt k,PetscScalar *H,PetscInt ldh,PetscScalar *fH,PetscScalar *dH,PetscScalar *S,PetscInt lds,BV dV,PetscScalar *dVS,PetscInt rds)
 {
+#if defined(SLEPC_MISSING_LAPACK_GEQRF) || defined(SLEPC_MISSING_LAPACK_ORGQR)
+  PetscFunctionBegin;
+  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"GEQRF/ORGQR - Lapack routine is unavailable");
+#else
   PetscErrorCode ierr;
   PetscInt       i,j,nmat=pep->nmat,lda=nmat*k;
   PetscScalar    *tau,*array,*work;
@@ -1054,6 +1078,7 @@ static PetscErrorCode PEPNRefUpdateInvPair(PEP pep,PetscInt k,PetscScalar *H,Pet
   ierr = NRefOrthogStep(pep,k,H,ldh,fH,S,lds,&k);CHKERRQ(ierr);
   ierr = PetscFree2(tau,work);CHKERRQ(ierr);
   PetscFunctionReturn(0);
+#endif
 }
 
 #undef __FUNCT__
@@ -1381,6 +1406,10 @@ static PetscErrorCode NRefSubcommDestroy(PEP pep,MatExplicitCtx *matctx)
 #define __FUNCT__ "PEPNewtonRefinement_TOAR"
 PetscErrorCode PEPNewtonRefinement_TOAR(PEP pep,PetscScalar sigma,PetscInt *maxits,PetscReal *tol,PetscInt k,PetscScalar *S,PetscInt lds,PetscInt *prs)
 {
+#if defined(SLEPC_MISSING_LAPACK_GETRF) || defined(SLEPC_MISSING_LAPACK_GETRI)
+  PetscFunctionBegin;
+  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"GETRF/GETRI - Lapack routine is unavailable");
+#else
   PetscErrorCode ierr;
   PetscScalar    *H,*work,*dH,*fH,*dVS;
   PetscInt       ldh,i,j,its=1,nmat=pep->nmat,nsubc=pep->npart,rds;
@@ -1532,5 +1561,6 @@ PetscErrorCode PEPNewtonRefinement_TOAR(PEP pep,PetscScalar sigma,PetscInt *maxi
   } 
   ierr = PetscLogEventEnd(PEP_Refine,pep,0,0,0);CHKERRQ(ierr);
   PetscFunctionReturn(0);
+#endif
 }
 
