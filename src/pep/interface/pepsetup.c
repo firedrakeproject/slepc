@@ -104,8 +104,8 @@ PetscErrorCode PEPSetUp(PEP pep)
     }
     if (!flg) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"The MBE scheme for refinement requires a direct solver in KSP");
     ierr = MPI_Comm_size(PetscObjectComm((PetscObject)pc),&size);CHKERRQ(ierr);
-    ierr = PCFactorGetMatSolverPackage(pc,&stype);CHKERRQ(ierr);
     if (size>1) {   /* currently selected PC is a factorization */
+      ierr = PCFactorGetMatSolverPackage(pc,&stype);CHKERRQ(ierr);
       ierr = PetscStrcmp(stype,MATSOLVERPETSC,&flg);CHKERRQ(ierr);
       if (flg) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"For Newton refinement, you chose to solve linear systems with a factorization, but in parallel runs you need to select an external package");
     }
