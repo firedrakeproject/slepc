@@ -998,7 +998,7 @@ static PetscErrorCode EPSKrylovSchurGetSubcommInfo_KrylovSchur(EPS eps,PetscInt 
 .  eps - the eigenproblem solver context
 
    Output Parameters:
-+  k - number of the subinterval for the calling process
++  k - index of the subinterval for the calling process
 .  n - number of eigenvalues found in the k-th subinterval
 -  v - a vector owned by processes in the subcommunicator with dimensions
        compatible for locally computed eigenvectors (or NULL)
