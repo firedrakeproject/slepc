@@ -54,7 +54,7 @@ typedef struct {
 #define __FUNCT__ "MatFSMult"
 static PetscErrorCode MatFSMult(Mat M ,Vec x,Vec y)
 {
-#if defined(SLEPC_MISSING_LAPACK_GETRS)
+#if defined(PETSC_MISSING_LAPACK_GETRS)
   PetscFunctionBegin;
   SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"GETRS - Lapack routine is unavailable");
 #else
@@ -134,7 +134,7 @@ static PetscErrorCode PEPEvaluateBasisforMatrix(PEP pep,PetscInt nm,PetscInt k,P
 #define __FUNCT__ "NRefSysSetup_shell"
 static PetscErrorCode NRefSysSetup_shell(PEP pep,PetscInt k,PetscScalar *fH,PetscScalar *S,PetscInt lds,PetscScalar *fh,PetscScalar h,FSubctx *ctx)
 {
-#if defined(SLEPC_MISSING_LAPACK_GESV)
+#if defined(PETSC_MISSING_LAPACK_GESV)
   PetscFunctionBegin;
   SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"GESV - Lapack routine is unavailable");
 #else
@@ -241,7 +241,7 @@ static PetscErrorCode NRefSysSetup_shell(PEP pep,PetscInt k,PetscScalar *fH,Pets
 #define __FUNCT__ "NRefSysSolve_shell"
 static PetscErrorCode NRefSysSolve_shell(KSP ksp,PetscInt nmat,Vec Rv,PetscScalar *Rh,PetscInt k,Vec dVi,PetscScalar *dHi)
 {
-#if defined(SLEPC_MISSING_LAPACK_GETRS)
+#if defined(PETSC_MISSING_LAPACK_GETRS)
   PetscFunctionBegin;
   SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"GETRS - Lapack routine is unavailable");
 #else
@@ -960,7 +960,7 @@ static PetscErrorCode PEPNRefForwardSubstitution(PEP pep,PetscInt k,PetscScalar 
 #define __FUNCT__ "NRefOrthogStep"
 static PetscErrorCode NRefOrthogStep(PEP pep,PetscInt k,PetscScalar *H,PetscInt ldh,PetscScalar *fH,PetscScalar *S,PetscInt lds,PetscInt *prs)
 {
-#if defined(SLEPC_MISSING_LAPACK_GEQRF) || defined(SLEPC_MISSING_LAPACK_ORGQR) 
+#if defined(PETSC_MISSING_LAPACK_GEQRF) || defined(SLEPC_MISSING_LAPACK_ORGQR) 
   PetscFunctionBegin;
   SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"GEQRF/ORGQR - Lapack routine is unavailable");
 #else
@@ -1024,7 +1024,7 @@ static PetscErrorCode NRefOrthogStep(PEP pep,PetscInt k,PetscScalar *H,PetscInt 
 #define __FUNCT__ "PEPNRefUpdateInvPair"
 static PetscErrorCode PEPNRefUpdateInvPair(PEP pep,PetscInt k,PetscScalar *H,PetscInt ldh,PetscScalar *fH,PetscScalar *dH,PetscScalar *S,PetscInt lds,BV dV,PetscScalar *dVS,PetscInt rds)
 {
-#if defined(SLEPC_MISSING_LAPACK_GEQRF) || defined(SLEPC_MISSING_LAPACK_ORGQR)
+#if defined(PETSC_MISSING_LAPACK_GEQRF) || defined(SLEPC_MISSING_LAPACK_ORGQR)
   PetscFunctionBegin;
   SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"GEQRF/ORGQR - Lapack routine is unavailable");
 #else
@@ -1429,7 +1429,7 @@ static PetscErrorCode NRefSubcommDestroy(PEP pep,MatExplicitCtx *matctx)
 #define __FUNCT__ "PEPNewtonRefinement_TOAR"
 PetscErrorCode PEPNewtonRefinement_TOAR(PEP pep,PetscScalar sigma,PetscInt *maxits,PetscReal *tol,PetscInt k,PetscScalar *S,PetscInt lds,PetscInt *prs)
 {
-#if defined(SLEPC_MISSING_LAPACK_GETRF) || defined(SLEPC_MISSING_LAPACK_GETRI)
+#if defined(PETSC_MISSING_LAPACK_GETRF) || defined(SLEPC_MISSING_LAPACK_GETRI)
   PetscFunctionBegin;
   SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"GETRF/GETRI - Lapack routine is unavailable");
 #else
