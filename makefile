@@ -112,10 +112,10 @@ info: chk_makej
 	   grep "\#define " ${PETSC_DIR}/${PETSC_ARCH}/include/petscconf.h; \
          fi
 	-@echo "-----------------------------------------"
-	-@echo "Using C/C++ include paths: ${SLEPC_INCLUDE} ${PETSC_CC_INCLUDES}"
+	-@echo "Using C/C++ include paths: ${SLEPC_CC_INCLUDES}"
 	-@echo "Using C/C++ compiler: ${PCC} ${PCC_FLAGS} ${COPTFLAGS} ${CFLAGS}"
 	-@if [ "${FC}" != "" ]; then \
-	   echo "Using Fortran include/module paths: ${PETSC_FC_INCLUDES}";\
+	   echo "Using Fortran include/module paths: ${SLEPC_FC_INCLUDES}";\
 	   echo "Using Fortran compiler: ${FC} ${FC_FLAGS} ${FFLAGS} ${FPP_FLAGS}";\
          fi
 	-@echo "-----------------------------------------"

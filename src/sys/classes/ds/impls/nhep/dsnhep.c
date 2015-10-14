@@ -61,7 +61,7 @@ PetscErrorCode DSView_NHEP(DS ds,PetscViewer viewer)
 #define __FUNCT__ "DSVectors_NHEP_Refined_Some"
 PetscErrorCode DSVectors_NHEP_Refined_Some(DS ds,PetscInt *k,PetscReal *rnorm,PetscBool left)
 {
-#if defined(SLEPC_MISSING_LAPACK_GESVD)
+#if defined(PETSC_MISSING_LAPACK_GESVD)
   PetscFunctionBegin;
   SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"GESVD - Lapack routine is unavailable");
 #else

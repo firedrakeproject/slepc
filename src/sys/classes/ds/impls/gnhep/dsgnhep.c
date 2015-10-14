@@ -275,7 +275,7 @@ PetscErrorCode DSNormalize_GNHEP(DS ds,DSMatType mat,PetscInt col)
 #define __FUNCT__ "DSSort_GNHEP_Arbitrary"
 PetscErrorCode DSSort_GNHEP_Arbitrary(DS ds,PetscScalar *wr,PetscScalar *wi,PetscScalar *rr,PetscScalar *ri,PetscInt *k)
 {
-#if defined(SLEPC_MISSING_LAPACK_TGSEN)
+#if defined(PETSC_MISSING_LAPACK_TGSEN)
   PetscFunctionBegin;
   SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"TGSEN - Lapack routine is unavailable");
 #else

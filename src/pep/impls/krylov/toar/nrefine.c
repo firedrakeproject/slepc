@@ -985,7 +985,7 @@ static PetscErrorCode NRefOrthogStep(PEP pep,PetscInt k,PetscScalar *H,PetscInt 
     /* Copy triangular matrix in S */
     ierr = PetscMemzero(S,lds*k*sizeof(PetscScalar));CHKERRQ(ierr);
     for (j=0;j<k;j++) for (i=0;i<=j;i++) S[j*lds+i] = T[j*rs+i];
-    PetscStackCallBLAS("LAPACKorgqr",LAPACKorgqr_(&rs_,&k_,&k_,T,&rs_,tau,work,&k_,&info));
+    PetscStackCallBLAS("LAPACKungqr",LAPACKungqr_(&rs_,&k_,&k_,T,&rs_,tau,work,&k_,&info));
     if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xORGQR %d",info);
     ierr = MatCreateSeqDense(PETSC_COMM_SELF,rs,k,NULL,&M0);CHKERRQ(ierr);
     ierr = MatDenseGetArray(M0,&array);CHKERRQ(ierr);
@@ -1058,7 +1058,7 @@ static PetscErrorCode PEPNRefUpdateInvPair(PEP pep,PetscInt k,PetscScalar *H,Pet
     for (i=0;i<=j;i++) S[i+j*lds] = dVS[i+j*2*k];
     for (i=j+1;i<k;i++) S[i+j*lds] = 0.0;
   }
-  PetscStackCallBLAS("LAPACKorgqr",LAPACKorgqr_(&k2_,&k_,&k_,dVS,&k2_,tau,work,&k_,&info));
+  PetscStackCallBLAS("LAPACKungqr",LAPACKungqr_(&k2_,&k_,&k_,dVS,&k2_,tau,work,&k_,&info));
   if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xORGQR %d",info);
   ierr = MatCreateSeqDense(PETSC_COMM_SELF,k,k,NULL,&M0);CHKERRQ(ierr);
   ierr = MatDenseGetArray(M0,&array);CHKERRQ(ierr);

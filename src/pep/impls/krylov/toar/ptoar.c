@@ -501,7 +501,7 @@ static PetscErrorCode PEPTOARTrunc(PEP pep,PetscScalar *S,PetscInt ld,PetscInt d
   for (i=0;i<deg;i++) {
     PetscStackCallBLAS("BLAStrmm",BLAStrmm_("L","U","N","N",&rk_,&nnc_,&sone,pU+offu,&rs1_,S+lock*lds+lock+i*ld,&lds_));
   }  
-  PetscStackCallBLAS("LAPACKorgqr",LAPACKorgqr_(&nrow_,&rk_,&rk_,pU+offu,&rs1_,tau,work+nwu,&lw_,&info));
+  PetscStackCallBLAS("LAPACKungqr",LAPACKungqr_(&nrow_,&rk_,&rk_,pU+offu,&rs1_,tau,work+nwu,&lw_,&info));
 
   /* update vectors V(:,idx) = V*Q(:,idx) */
   rk = rk+lock;

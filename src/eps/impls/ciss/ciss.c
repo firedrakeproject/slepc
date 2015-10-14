@@ -474,7 +474,7 @@ static PetscErrorCode BlockHankel(EPS eps,PetscScalar *Mu,PetscInt s,PetscScalar
 #define __FUNCT__ "SVD_H0"
 static PetscErrorCode SVD_H0(EPS eps,PetscScalar *S,PetscInt *K)
 {
-#if defined(SLEPC_MISSING_LAPACK_GESVD)
+#if defined(PETSC_MISSING_LAPACK_GESVD)
   PetscFunctionBegin;
   SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"GESVD - Lapack routine is unavailable");
 #else
@@ -568,7 +568,7 @@ static PetscErrorCode ConstructS(EPS eps)
 #define __FUNCT__ "SVD_S"
 static PetscErrorCode SVD_S(BV S,PetscInt ml,PetscReal delta,PetscReal *sigma,PetscInt *K)
 {
-#if defined(SLEPC_MISSING_LAPACK_GESVD)
+#if defined(PETSC_MISSING_LAPACK_GESVD)
   PetscFunctionBegin;
   SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"GESVD - Lapack routine is unavailable");
 #else
