@@ -407,7 +407,7 @@ PetscErrorCode PEPNewtonRefinementSimple(PEP pep,PetscInt *maxits,PetscReal *tol
   PetscReal          norm,error;
   PetscBool          ini=PETSC_TRUE,sc_pend,solved=PETSC_FALSE;
   PEPSimpNRefctx     *ctx;
-  FSubctx            *fctx;
+  FSubctx            *fctx=NULL;
   KSPConvergedReason reason;
 
   PetscFunctionBegin;
@@ -565,7 +565,6 @@ PetscErrorCode PEPNewtonRefinementSimple(PEP pep,PetscInt *maxits,PetscReal *tol
       if (pep->npart==1) { ierr = BVRestoreColumn(pep->V,idx_sc[color],&v);CHKERRQ(ierr); } 
     }
   }
-  ierr = MatDestroy(&T);CHKERRQ(ierr);
   ierr = VecDestroy(&t[0]);CHKERRQ(ierr);
   ierr = VecDestroy(&t[1]);CHKERRQ(ierr);
   ierr = VecDestroy(&dv);CHKERRQ(ierr);
@@ -584,7 +583,7 @@ PetscErrorCode PEPNewtonRefinementSimple(PEP pep,PetscInt *maxits,PetscReal *tol
     }
     ierr = PetscFree2(ctx->A,ctx->scatter_id);CHKERRQ(ierr);
   }
-  if (pep->scheme==PEP_REFINE_SCHEME_SCHUR) {
+  if (fctx && pep->scheme==PEP_REFINE_SCHEME_SCHUR) {
     ierr = MatDestroy(&P);CHKERRQ(ierr);
     ierr = MatDestroy(&fctx->M1);CHKERRQ(ierr);
     ierr = PetscFree(fctx);CHKERRQ(ierr);
@@ -595,6 +594,7 @@ PetscErrorCode PEPNewtonRefinementSimple(PEP pep,PetscInt *maxits,PetscReal *tol
     ierr = VecDestroy(&rr);CHKERRQ(ierr);
     ierr = VecDestroy(&ctx->nv);CHKERRQ(ierr);
   }
+  ierr = MatDestroy(&T);CHKERRQ(ierr);
   ierr = PetscFree(ctx);CHKERRQ(ierr);
   ierr = PetscLogEventEnd(PEP_Refine,pep,0,0,0);CHKERRQ(ierr);
   PetscFunctionReturn(0);

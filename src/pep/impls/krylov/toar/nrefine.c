@@ -1234,19 +1234,15 @@ static PetscErrorCode PEPNRefSetUp(PEP pep,PetscInt k,PetscScalar *H,PetscInt ld
       for (j=1;j<nmat;j++) {
         ierr = MatAXPY(ctx->M1,coef[j],At[j],str);CHKERRQ(ierr);
       }
-    }
-    /* Compute a precond matrix for the system */
-    t = H[0];
-    if (ini) {
       ierr = MatDuplicate(At[0],MAT_COPY_VALUES,&P);CHKERRQ(ierr);
-    } else {
-      ierr = MatCopy(At[0],P,str);CHKERRQ(ierr);
+      /* Compute a precond matrix for the system */
+      t = H[0];
+      ierr = PEPEvaluateBasis(pep,t,0,coef,NULL);CHKERRQ(ierr);
+      for (j=1;j<nmat;j++) {
+        ierr = MatAXPY(P,coef[j],At[j],str);CHKERRQ(ierr);
+      }
+      ctx->compM1 = PETSC_TRUE;
     }
-    ierr = PEPEvaluateBasis(pep,t,0,coef,NULL);CHKERRQ(ierr);
-    for (j=1;j<nmat;j++) {
-      ierr = MatAXPY(P,coef[j],At[j],str);CHKERRQ(ierr);
-    }
-    ctx->compM1 = PETSC_TRUE;
     break;
   case PEP_REFINE_SCHEME_MBE:
     if (ini) {
@@ -1277,11 +1273,13 @@ static PetscErrorCode PEPNRefSetUp(PEP pep,PetscInt k,PetscScalar *H,PetscInt ld
       P = M;
     }
   }
-  ierr = PEPRefineGetKSP(pep,&pep->refineksp);CHKERRQ(ierr);
-  ierr = KSPSetOperators(pep->refineksp,M,P);CHKERRQ(ierr);
-  if (ini) { ierr = KSPSetFromOptions(pep->refineksp);CHKERRQ(ierr); }
+  if (ini) {
+    ierr = PEPRefineGetKSP(pep,&pep->refineksp);CHKERRQ(ierr);
+    ierr = KSPSetOperators(pep->refineksp,M,P);CHKERRQ(ierr);
+    ierr = KSPSetFromOptions(pep->refineksp);CHKERRQ(ierr);
+  }
 
-  if (!ini && matctx->subc) {
+  if (!ini && matctx && matctx->subc) {
      /* Scatter vectors pep->V */
     for (i=0;i<k;i++) {
       ierr = BVGetColumn(pep->V,i,&v);CHKERRQ(ierr);
