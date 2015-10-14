@@ -450,9 +450,9 @@ PetscErrorCode FNEvaluateDerivative(FN fn,PetscScalar x,PetscScalar *y)
 */
 static PetscErrorCode FNEvaluateFunctionMat_Sym_Default(FN fn,Mat A,Mat B)
 {
-#if defined(PETSC_MISSING_LAPACK_SYEV)
+#if defined(PETSC_MISSING_LAPACK_SYEV) || defined(SLEPC_MISSING_LAPACK_LACPY)
   PetscFunctionBegin;
-  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"SYEV - Lapack routines are unavailable");
+  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"SYEV/LACPY - Lapack routines are unavailable");
 #else
   PetscErrorCode ierr;
   PetscInt       i,j,m;

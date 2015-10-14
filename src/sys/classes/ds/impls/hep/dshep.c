@@ -756,9 +756,9 @@ PetscErrorCode DSTruncate_HEP(DS ds,PetscInt n)
 #define __FUNCT__ "DSCond_HEP"
 PetscErrorCode DSCond_HEP(DS ds,PetscReal *cond)
 {
-#if defined(PETSC_MISSING_LAPACK_GETRF) || defined(SLEPC_MISSING_LAPACK_GETRI) || defined(SLEPC_MISSING_LAPACK_LANGE) || defined(SLEPC_MISSING_LAPACK_LANHS)
+#if defined(PETSC_MISSING_LAPACK_GETRF) || defined(SLEPC_MISSING_LAPACK_GETRI) || defined(SLEPC_MISSING_LAPACK_LANGE)
   PetscFunctionBegin;
-  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"GETRF/GETRI/LANGE/LANHS - Lapack routines are unavailable");
+  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"GETRF/GETRI/LANGE - Lapack routines are unavailable");
 #else
   PetscErrorCode ierr;
   PetscScalar    *work;
