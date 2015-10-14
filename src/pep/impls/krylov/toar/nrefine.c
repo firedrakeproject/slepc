@@ -802,9 +802,11 @@ static PetscErrorCode NRefSysIter(PetscInt i,PEP pep,PetscInt k,KSP ksp,PetscSca
       switch (pep->scheme) {
       case PEP_REFINE_SCHEME_EXPLICIT:
         ierr = NRefSysSetup_explicit(pep,k,ksp,fH,S,lds,fh,h,matctx->V,matctx,matctx->W);CHKERRQ(ierr);
+        matctx->compM1 = PETSC_FALSE;
         break;
       case PEP_REFINE_SCHEME_MBE:
         ierr = NRefSysSetup_mbe(pep,k,ksp,fH,S,lds,fh,h,matctx->V,matctx);CHKERRQ(ierr);
+        matctx->compM1 = PETSC_FALSE;
         break;
       default:;
       }
@@ -1192,8 +1194,23 @@ static PetscErrorCode PEPNRefSetUp(PEP pep,PetscInt k,PetscScalar *H,PetscInt ld
         ierr = VecScatterCreateToAll(matctx->t1,&matctx->scatterctx,&matctx->vseq);CHKERRQ(ierr);
       }
       P = M;
+    } else {
+       if (matctx->subc) {
+        /* Scatter vectors pep->V */
+        for (i=0;i<k;i++) {
+          ierr = BVGetColumn(pep->V,i,&v);CHKERRQ(ierr);
+          ierr = VecScatterBegin(matctx->scatter_sub,v,matctx->tg,INSERT_VALUES,SCATTER_FORWARD);CHKERRQ(ierr);
+          ierr = VecScatterEnd(matctx->scatter_sub,v,matctx->tg,INSERT_VALUES,SCATTER_FORWARD);CHKERRQ(ierr);
+          ierr = BVRestoreColumn(pep->V,i,&v);CHKERRQ(ierr);
+          ierr = VecGetArrayRead(matctx->tg,&array);CHKERRQ(ierr);
+          ierr = VecPlaceArray(matctx->t,(const PetscScalar*)array);CHKERRQ(ierr);
+          ierr = BVInsertVec(matctx->V,i,matctx->t);CHKERRQ(ierr);
+          ierr = VecResetArray(matctx->t);CHKERRQ(ierr);
+          ierr = VecRestoreArrayRead(matctx->tg,&array);CHKERRQ(ierr);
+        }
+      }
     }
-    break;
+   break;
   case PEP_REFINE_SCHEME_SCHUR:
     if (ini) {
       ierr = PetscObjectGetComm((PetscObject)pep,&comm);CHKERRQ(ierr);
@@ -1353,7 +1370,9 @@ static PetscErrorCode NRefSubcommSetup(PEP pep,PetscInt k,MatExplicitCtx *matctx
   ierr = BVCreate(PetscSubcommChild(matctx->subc),&matctx->V);CHKERRQ(ierr);
   ierr = BVSetType(matctx->V,type);CHKERRQ(ierr);
   ierr = BVSetSizesFromVec(matctx->V,matctx->t,k);CHKERRQ(ierr);
-  ierr = BVDuplicateResize(matctx->V,PetscMax(k,pep->nmat),&matctx->W);CHKERRQ(ierr);
+  if (pep->scheme==PEP_REFINE_SCHEME_EXPLICIT) {
+    ierr = BVDuplicateResize(matctx->V,PetscMax(k,pep->nmat),&matctx->W);CHKERRQ(ierr);
+  }
   for (i=0;i<k;i++) {
     ierr = BVGetColumn(pep->V,i,&v);CHKERRQ(ierr);
     ierr = VecScatterBegin(matctx->scatter_sub,v,matctx->tg,INSERT_VALUES,SCATTER_FORWARD);CHKERRQ(ierr);
@@ -1385,18 +1404,22 @@ static PetscErrorCode NRefSubcommDestroy(PEP pep,MatExplicitCtx *matctx)
   ierr = VecScatterDestroy(&matctx->scatter_sub);CHKERRQ(ierr);
   for (i=0;i<matctx->subc->n;i++) {
     ierr = VecScatterDestroy(&matctx->scatter_id[i]);CHKERRQ(ierr);
-    ierr = VecScatterDestroy(&matctx->scatterp_id[i]);CHKERRQ(ierr);
   }
   for (i=0;i<pep->nmat;i++) {
     ierr = MatDestroy(&matctx->A[i]);CHKERRQ(ierr);
   }
+  if (pep->scheme==PEP_REFINE_SCHEME_EXPLICIT) {
+    for (i=0;i<matctx->subc->n;i++) {
+      ierr = VecScatterDestroy(&matctx->scatterp_id[i]);CHKERRQ(ierr);
+    }
+    ierr = VecDestroy(&matctx->tp);CHKERRQ(ierr);
+    ierr = VecDestroy(&matctx->tpg);CHKERRQ(ierr);
+    ierr = BVDestroy(&matctx->W);CHKERRQ(ierr);
+  }
   ierr = PetscFree3(matctx->A,matctx->scatter_id,matctx->scatterp_id);CHKERRQ(ierr);
   ierr = BVDestroy(&matctx->V);CHKERRQ(ierr);
-  ierr = BVDestroy(&matctx->W);CHKERRQ(ierr);
   ierr = VecDestroy(&matctx->t);CHKERRQ(ierr);
   ierr = VecDestroy(&matctx->tg);CHKERRQ(ierr);
-  ierr = VecDestroy(&matctx->tp);CHKERRQ(ierr);
-  ierr = VecDestroy(&matctx->tpg);CHKERRQ(ierr);
   ierr = VecDestroy(&matctx->Rv);CHKERRQ(ierr);
   ierr = VecDestroy(&matctx->Vi);CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -1554,11 +1577,11 @@ PetscErrorCode PEPNewtonRefinement_TOAR(PEP pep,PetscScalar sigma,PetscInt *maxi
     ierr = MatDestroy(&matctx->M1);CHKERRQ(ierr);
     ierr = VecDestroy(&matctx->t);CHKERRQ(ierr);
     ierr = PetscFree5(matctx->M4,matctx->w,matctx->wt,matctx->d,matctx->dt);CHKERRQ(ierr);
+    if (nsubc>1) {
+      ierr = NRefSubcommDestroy(pep,matctx);CHKERRQ(ierr);
+    } 
     ierr = PetscFree(matctx);CHKERRQ(ierr);
   }
-  if (nsubc>1) {
-    ierr = NRefSubcommDestroy(pep,matctx);CHKERRQ(ierr);
-  } 
   ierr = PetscLogEventEnd(PEP_Refine,pep,0,0,0);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 #endif
