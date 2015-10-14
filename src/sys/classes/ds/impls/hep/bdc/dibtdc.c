@@ -329,7 +329,7 @@ PetscErrorCode BDC_dibtdc_(const char *jobz,PetscBLASInt n,PetscBLASInt nblks,
 
 /*  ===================================================================== */
 
-#if defined(SLEPC_MISSING_LAPACK_LACPY) || defined(SLEPC_MISSING_LAPACK_SYEV)
+#if defined(SLEPC_MISSING_LAPACK_LACPY) || defined(PETSC_MISSING_LAPACK_SYEV)
   PetscFunctionBegin;
   SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"LACPY/SYEV - Lapack routine is unavailable");
 #else

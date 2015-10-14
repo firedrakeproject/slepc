@@ -497,6 +497,10 @@ static PetscErrorCode BVOrthogonalize_GS(BV V,Mat R)
  */
 static PetscErrorCode MatCholeskyFactorInvert(Mat R,PetscInt l,Mat *S)
 {
+#if defined(PETSC_MISSING_LAPACK_POTRF)
+  PetscFunctionBegin;
+  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"POTRF - Lapack routine is unavailable");
+#else
   PetscErrorCode ierr;
   PetscInt       i,n,m,ld;
   PetscScalar    *pR,*pS,done=1.0;
@@ -532,6 +536,7 @@ static PetscErrorCode MatCholeskyFactorInvert(Mat R,PetscInt l,Mat *S)
   ierr = MatDenseRestoreArray(R,&pR);CHKERRQ(ierr);
   ierr = MatDenseRestoreArray(*S,&pS);CHKERRQ(ierr);
   PetscFunctionReturn(0);
+#endif
 }
 
 #undef __FUNCT__

@@ -352,7 +352,7 @@ PetscErrorCode BVNorm_LAPACK_Private(BV bv,PetscInt m_,PetscInt n_,const PetscSc
 */
 PetscErrorCode BVOrthogonalize_LAPACK_Private(BV bv,PetscInt m_,PetscInt n_,PetscScalar *Q,PetscScalar *R,PetscBool mpi)
 {
-#if defined(PETSC_MISSING_LAPACK_GEQRF) || defined(SLEPC_MISSING_LAPACK_ORGQR)
+#if defined(PETSC_MISSING_LAPACK_GEQRF) || defined(PETSC_MISSING_LAPACK_ORGQR)
   PetscFunctionBegin;
   SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"GEQRF/ORGQR - Lapack routines are unavailable");
 #else
@@ -399,7 +399,7 @@ PetscErrorCode BVOrthogonalize_LAPACK_Private(BV bv,PetscInt m_,PetscInt n_,Pets
   }
 
   /* Compute orthogonal matrix in Q */
-  PetscStackCallBLAS("LAPACKorgqr",LAPACKorgqr_(&m,&n,&k,Q,&m,tau,work,&lwork,&info));
+  PetscStackCallBLAS("LAPACKungqr",LAPACKungqr_(&m,&n,&k,Q,&m,tau,work,&lwork,&info));
   if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xORGQR %d",info);
 
   if (mpi) {
@@ -423,7 +423,7 @@ PetscErrorCode BVOrthogonalize_LAPACK_Private(BV bv,PetscInt m_,PetscInt n_,Pets
     }
 
     /* Accumulate orthogonal matrix */
-    PetscStackCallBLAS("LAPACKorgqr",LAPACKorgqr_(&l,&n,&n,A,&l,tau,work,&lwork,&info));
+    PetscStackCallBLAS("LAPACKungqr",LAPACKungqr_(&l,&n,&n,A,&l,tau,work,&lwork,&info));
     if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xORGQR %d",info);
     PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&m,&n,&n,&one,Q,&m,A+rank*n,&l,&zero,C,&m));
     ierr = PetscMemcpy(Q,C,m*n*sizeof(PetscScalar));CHKERRQ(ierr);

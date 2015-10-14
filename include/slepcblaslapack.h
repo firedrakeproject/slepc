@@ -115,10 +115,8 @@
 #define LAPACKlapy2_ SLEPC_BLASLAPACKREAL(lapy2,LAPY2)
 #if !defined(PETSC_USE_COMPLEX)
 #define LAPACKorghr_ SLEPC_BLASLAPACK(orghr,ORGHR)
-#define LAPACKorgqr_ SLEPC_BLASLAPACK(orgqr,ORGQR)
 #else
 #define LAPACKorghr_ SLEPC_BLASLAPACK(unghr,UNGHR)
-#define LAPACKorgqr_ SLEPC_BLASLAPACK(ungqr,UNGQR)
 #endif
 /* the next one needs a special treatment due to the special names:
    srot, drot, csrot, zdrot */
@@ -259,11 +257,9 @@ PETSC_EXTERN void      BLASrot_(PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscSc
 #if !defined(PETSC_USE_COMPLEX)
 PETSC_EXTERN void      SLEPC_BLASLAPACK(tgexc,TGEXC) (PetscBLASInt*,PetscBLASInt*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscBLASInt*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscBLASInt*);
 PETSC_EXTERN void      SLEPC_BLASLAPACK(orghr,ORGHR) (PetscBLASInt*,PetscBLASInt*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscScalar*,PetscScalar*,PetscBLASInt*,PetscBLASInt*);
-PETSC_EXTERN void      SLEPC_BLASLAPACK(orgqr,ORGQR) (PetscBLASInt*,PetscBLASInt*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscScalar*,PetscScalar*,PetscBLASInt*,PetscBLASInt*);
 #else
 PETSC_EXTERN void      SLEPC_BLASLAPACK(tgexc,TGEXC) (PetscBLASInt*,PetscBLASInt*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscBLASInt*,PetscBLASInt*,PetscBLASInt*);
 PETSC_EXTERN void      SLEPC_BLASLAPACK(unghr,UNGHR) (PetscBLASInt*,PetscBLASInt*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscScalar*,PetscScalar*,PetscBLASInt*,PetscBLASInt*);
-PETSC_EXTERN void      SLEPC_BLASLAPACK(ungqr,UNGQR) (PetscBLASInt*,PetscBLASInt*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscScalar*,PetscScalar*,PetscBLASInt*,PetscBLASInt*);
 #endif
 
 /* LAPACK functions with string parameters */
@@ -335,11 +331,9 @@ PETSC_EXTERN void PETSC_STDCALL BLASrot_(PetscBLASInt*,PetscScalar*,PetscBLASInt
 #if !defined(PETSC_USE_COMPLEX)
 PETSC_EXTERN void PETSC_STDCALL SLEPC_BLASLAPACK(tgexc,TGEXC) (PetscBLASInt*,PetscBLASInt*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscBLASInt*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscBLASInt*);
 PETSC_EXTERN void PETSC_STDCALL SLEPC_BLASLAPACK(orghr,ORGHR) (PetscBLASInt*,PetscBLASInt*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscScalar*,PetscScalar*,PetscBLASInt*,PetscBLASInt*);
-PETSC_EXTERN void PETSC_STDCALL SLEPC_BLASLAPACK(orgqr,ORGQR) (PetscBLASInt*,PetscBLASInt*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscScalar*,PetscScalar*,PetscBLASInt*,PetscBLASInt*);
 #else
 PETSC_EXTERN void PETSC_STDCALL SLEPC_BLASLAPACK(tgexc,TGEXC) (PetscBLASInt*,PetscBLASInt*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscBLASInt*,PetscBLASInt*,PetscBLASInt*);
 PETSC_EXTERN void PETSC_STDCALL SLEPC_BLASLAPACK(unghr,UNGHR) (PetscBLASInt*,PetscBLASInt*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscScalar*,PetscScalar*,PetscBLASInt*,PetscBLASInt*);
-PETSC_EXTERN void PETSC_STDCALL SLEPC_BLASLAPACK(ungqr,UNGQR) (PetscBLASInt*,PetscBLASInt*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscScalar*,PetscScalar*,PetscBLASInt*,PetscBLASInt*);
 #endif
 
 /* LAPACK functions with string parameters */

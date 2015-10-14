@@ -30,13 +30,13 @@ class Lapack(package.Package):
 
   def ShowInfo(self):
     if hasattr(self,'missing'):
-      log.Println('LAPACK missing functions:')
-      log.Print('  ')
-      for i in self.missing: log.Print(i)
-      log.Println('')
-      log.Println('')
-      log.Println('WARNING: Some SLEPc functionality will not be available')
-      log.Println('PLEASE reconfigure and recompile PETSc with a full LAPACK implementation')
+      self.log.Println('LAPACK missing functions:')
+      self.log.Print('  ')
+      for i in self.missing: self.log.Print(i)
+      self.log.Println('')
+      self.log.Println('')
+      self.log.Println('WARNING: Some SLEPc functionality will not be available')
+      self.log.Println('PLEASE reconfigure and recompile PETSc with a full LAPACK implementation')
 
   def Process(self,conf,vars,cmake,petsc,archdir=''):
     self.make = petsc.make
@@ -47,11 +47,11 @@ class Lapack(package.Package):
   def Check(self,conf,vars,cmake,petsc):
 
     # LAPACK standard functions
-    l = ['laev2','gehrd','lanhs','lange','getri','trexc','trevc','geevx','ggevx','gelqf','gesdd','tgexc','tgevc','pbtrf','stedc','hsein','larfg','larf','trsen','tgsen','lacpy','lascl','lansy','laset']
+    l = ['laev2','gehrd','lanhs','lange','getri','trexc','trevc','geevx','ggev','ggevx','gelqf','gesdd','tgexc','tgevc','pbtrf','stedc','hsein','larfg','larf','trsen','tgsen','lacpy','lascl','lansy','laset']
 
     # LAPACK functions with different real and complex versions
     if petsc.scalar == 'real':
-      l += ['orghr','syevr','syevd','sytrd','sygvd','ormlq','orgqr','orgtr']
+      l += ['orghr','syevr','syevd','sytrd','sygvd','ormlq','orgtr']
       if petsc.precision == 'single':
         prefix = 's'
       elif petsc.precision == '__float128':
@@ -59,7 +59,7 @@ class Lapack(package.Package):
       else:
         prefix = 'd'
     else:
-      l += ['unghr','heevr','heevd','hetrd','hegvd','unmlq','ungqr','ungtr']
+      l += ['unghr','heevr','heevd','hetrd','hegvd','unmlq','ungtr']
       if petsc.precision == 'single':
         prefix = 'c'
       elif petsc.precision == '__float128':
@@ -73,7 +73,7 @@ class Lapack(package.Package):
       functions.append(prefix + i)
 
     # in this case, the real name represents both versions
-    namesubst = {'unghr':'orghr', 'heevr':'syevr', 'heevd':'syevd', 'hetrd':'sytrd', 'hegvd':'sygvd', 'unmlq':'ormlq', 'ungqr':'orgqr', 'ungtr':'orgtr'}
+    namesubst = {'unghr':'orghr', 'heevr':'syevr', 'heevd':'syevd', 'hetrd':'sytrd', 'hegvd':'sygvd', 'unmlq':'ormlq', 'ungtr':'orgtr'}
 
     # LAPACK functions which are always used in real version
     if petsc.precision == 'single':
