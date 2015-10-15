@@ -244,7 +244,7 @@ pkgconfdir = CreateDir(libdir,'pkgconfig',log)
 slepcvars  = CreateFile(confdir,'slepcvariables',log)
 slepcrules = CreateFile(confdir,'slepcrules',log)
 slepcconf  = CreateFile(includedir,'slepcconf.h',log)
-cmakeconf  = CreateFile(confdir,'SLEPcConfig.cmake',log)
+cmakeconf  = CreateFile(confdir,'SLEPcBuildInternal.cmake',log)
 pkgconfig  = CreateFile(pkgconfdir,'SLEPc.pc',log)
 if slepc.isinstall:
   modules  = CreateFile(modulesdir,slepc.lversion,log)
