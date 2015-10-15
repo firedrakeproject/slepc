@@ -161,6 +161,55 @@ static PetscErrorCode NEPNLEIGSDividedDifferences(NEP nep)
 }
 
 #undef __FUNCT__
+#define __FUNCT__ "NEPNLEIGSKrylovConvergence"
+/*
+   NEPKrylovConvergence - This is the analogue to EPSKrylovConvergence.
+*/
+static PetscErrorCode NEPNLEIGSKrylovConvergence(NEP nep,PetscBool getall,PetscInt kini,PetscInt nits,PetscInt nv,PetscReal beta,PetscInt *kout)
+{
+  PetscErrorCode ierr;
+  PetscInt       k,newk,marker,inside;
+  PetscScalar    re,im;
+  PetscReal      resnorm;
+  PetscBool      istrivial;
+  NEP_NLEIGS     *ctx=(NEP_NLEIGS*)nep->data;
+
+  PetscFunctionBegin;
+  ierr = RGIsTrivial(nep->rg,&istrivial);CHKERRQ(ierr);
+  marker = -1;
+  if (nep->trackall) getall = PETSC_TRUE;
+  for (k=kini;k<kini+nits;k++) {
+    /* eigenvalue */
+    re = nep->eigr[k];
+    im = nep->eigi[k];
+    if (!istrivial) {
+      ierr = STBackTransform(ctx->st,1,&re,&im);CHKERRQ(ierr);
+      ierr = RGCheckInside(nep->rg,1,&re,&im,&inside);CHKERRQ(ierr);
+      if (marker==-1 && inside<0) marker = k;
+      re = nep->eigr[k];
+      im = nep->eigi[k];
+    }
+    newk = k;
+    ierr = DSVectors(nep->ds,DS_MAT_X,&newk,&resnorm);CHKERRQ(ierr);
+    resnorm *= beta;
+    /* error estimate */
+    nep->errest[k] = resnorm/SlepcAbsEigenvalue(nep->eigr[k],nep->eigi[k]);
+    /*
+    ierr = (*nep->converged)(nep,re,im,resnorm,&nep->errest[k],nep->convergedctx);CHKERRQ(ierr);
+    */
+    if (marker==-1 && nep->errest[k] >= nep->rtol) marker = k;
+    if (newk==k+1) {
+      nep->errest[k+1] = nep->errest[k];
+      k++;
+    }
+    if (marker!=-1 && !getall) break;
+  }
+  if (marker!=-1) k = marker;
+  *kout = k;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
 #define __FUNCT__ "NEPSetUp_NLEIGS"
 PetscErrorCode NEPSetUp_NLEIGS(NEP nep)
 {
@@ -622,7 +671,7 @@ PetscErrorCode NEPSolve_NLEIGS(NEP nep)
     ierr = DSUpdateExtraRow(nep->ds);CHKERRQ(ierr);
 
     /* Check convergence */
-    ierr = NEPKrylovConvergence(nep,PETSC_FALSE,nep->nconv,nv-nep->nconv,nv,beta,&k);CHKERRQ(ierr);
+    ierr = NEPNLEIGSKrylovConvergence(nep,PETSC_FALSE,nep->nconv,nv-nep->nconv,nv,beta,&k);CHKERRQ(ierr);
     if (nep->its >= nep->max_it) nep->reason = NEP_DIVERGED_MAX_IT;
     if (k >= nep->nev) nep->reason = NEP_CONVERGED_TOL;
 

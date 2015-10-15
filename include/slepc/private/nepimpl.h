@@ -195,6 +195,5 @@ PETSC_INTERN PetscErrorCode NEPGetDefaultShift(NEP,PetscScalar*);
 PETSC_INTERN PetscErrorCode NEPComputeVectors_Schur(NEP);
 PETSC_INTERN PetscErrorCode NEPComputeResidualNorm_Private(NEP,PetscScalar,Vec,Vec*,PetscReal*);
 PETSC_INTERN PetscErrorCode NEPNewtonRefinementSimple(NEP,PetscInt*,PetscReal*,PetscInt);
-PETSC_INTERN PetscErrorCode NEPKrylovConvergence(NEP,PetscBool,PetscInt,PetscInt,PetscInt,PetscReal,PetscInt*);
 
 #endif

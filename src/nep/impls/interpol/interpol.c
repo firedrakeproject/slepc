@@ -98,8 +98,8 @@ PetscErrorCode NEPSetUp_Interpol(NEP nep)
   ierr = RGSetType(rg,RGINTERVAL);CHKERRQ(ierr);
   if (a==b) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"Only implemented for intervals on the real axis");
   s = 2.0/(b-a);
-  c = (c==0)? -PETSC_MAX_REAL: c*s;
-  d = (d==0)? PETSC_MAX_REAL: d*s;
+  c = c*s;
+  d = d*s;
   ierr = RGIntervalSetEndpoints(rg,-1.0,1.0,c,d);CHKERRQ(ierr);
   ierr = RGCheckInside(nep->rg,1,&nep->target,&zero,&in);CHKERRQ(ierr);
   if (in<0) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"The target is not inside the target set");
