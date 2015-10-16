@@ -33,7 +33,7 @@
 #include <slepcblaslapack.h>
 
 #define  MAX_LBPOINTS  100
-#define  DDTOL         1e-6
+#define  DDTOL         1e-15
 #define  NDPOINTS      1e4
 
 typedef struct {        /* context structure for the NLEIGS solver */
@@ -734,7 +734,7 @@ PetscErrorCode NEPSolve_NLEIGS(NEP nep)
   ierr = PetscFree3(work,rwork,S);CHKERRQ(ierr);
   /* Map eigenvalues back to the original problem */
   ierr = STBackTransform(ctx->st,nep->nconv,nep->eigr,nep->eigi);CHKERRQ(ierr);
-
+  ierr = NEPComputeVectors_Schur(nep);CHKERRQ(ierr);/* ///////////////////////// */
   /* /////// */
   /* For testing, before destroying the solver context 
      the residual for the interpolation is shown */
@@ -962,7 +962,7 @@ PETSC_EXTERN PetscErrorCode NEPCreate_NLEIGS(NEP nep)
   nep->ops->setup          = NEPSetUp_NLEIGS;
   nep->ops->setfromoptions = NEPSetFromOptions_NLEIGS;
   nep->ops->destroy        = NEPDestroy_NLEIGS;
-  nep->ops->computevectors = NEPComputeVectors_Schur;
+/*  nep->ops->computevectors = NEPComputeVectors_Schur; */
   nep->ops->view           = NEPView_NLEIGS;
   ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPNLEIGSSetST_C",NEPNLEIGSSetST_NLEIGS);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPNLEIGSGetST_C",NEPNLEIGSGetST_NLEIGS);CHKERRQ(ierr);

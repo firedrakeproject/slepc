@@ -167,7 +167,7 @@ PetscErrorCode NEPSolve_Interpol(NEP nep)
       for (i=0;i<deg+1;i++) t += fx[i+j*(deg+1)]*cs[i*(deg+1)+k];
       t *= 2.0/(deg+1); 
       if (k==0) t /= 2.0;
-      ierr = MatAXPY(A[k],t,nep->A[j],SUBSET_NONZERO_PATTERN);CHKERRQ(ierr);
+      ierr = MatAXPY(A[k],t,nep->A[j],nep->mstr);CHKERRQ(ierr);
     }
   }
 

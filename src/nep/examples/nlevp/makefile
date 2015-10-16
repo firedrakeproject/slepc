@@ -37,6 +37,10 @@ loaded_string: loaded_string.o chkopts
 	-${CLINKER} -o loaded_string loaded_string.o ${SLEPC_NEP_LIB}
 	${RM} loaded_string.o
 
+gun: gun.o chkopts
+	-${CLINKER} -o gun gun.o ${SLEPC_NEP_LIB}
+	${RM} gun.o
+
 #------------------------------------------------------------------------------------
 DATAPATH = ${SLEPC_DIR}/share/slepc/datafiles/matrices
 
