@@ -37,6 +37,7 @@ PetscErrorCode FNEvaluateFunction_Log(FN fn,PetscScalar x,PetscScalar *y)
 PetscErrorCode FNEvaluateDerivative_Log(FN fn,PetscScalar x,PetscScalar *y)
 {
   PetscFunctionBegin;
+  if (!x) SETERRQ(PETSC_COMM_SELF,1,"Derivative not defined in the requested value");
   *y = 1.0/x;
   PetscFunctionReturn(0);
 }
