@@ -15,6 +15,6 @@ FN Object: 1 MPI processes
   f'(2.2)=0.0975289
 FN Object: 1 MPI processes
   type: rational
-    Constant: 5
-  f(2.2)=5
-  f'(2.2)=0
+    Constant: 5.
+  f(2.2)=5.
+  f'(2.2)=0.

@@ -3,64 +3,64 @@ BV Object:X 1 MPI processes
   type: vecs
   Vec Object:  X_0   1 MPI processes
     type: seq
-  -2
-  1
-  4
-  7
-  0
-  0
-  0
-  0
-  0
-  0
+  -2.
+  1.
+  4.
+  7.
+  0.
+  0.
+  0.
+  0.
+  0.
+  0.
   Vec Object:  X_1   1 MPI processes
     type: seq
-  0
-  -1
-  2
-  5
-  8
-  0
-  0
-  0
-  0
-  0
+  0.
+  -1.
+  2.
+  5.
+  8.
+  0.
+  0.
+  0.
+  0.
+  0.
   Vec Object:  X_2   1 MPI processes
     type: seq
-  0
-  0
-  0
-  3
-  6
-  9
-  0
-  0
-  0
-  0
+  0.
+  0.
+  0.
+  3.
+  6.
+  9.
+  0.
+  0.
+  0.
+  0.
   Vec Object:  X_3   1 MPI processes
     type: seq
-  0
-  0
-  0
-  1
-  4
-  7
-  10
-  0
-  0
-  0
+  0.
+  0.
+  0.
+  1.
+  4.
+  7.
+  10.
+  0.
+  0.
+  0.
   Vec Object:  X_4   1 MPI processes
     type: seq
-  0
-  0
-  0
-  0
-  2
-  5
-  8
-  11
-  0
-  0
+  0.
+  0.
+  0.
+  0.
+  2.
+  5.
+  8.
+  11.
+  0.
+  0.
 BV Object:Y 1 MPI processes
   type: vecs
   Vec Object:  Y_0   1 MPI processes
@@ -153,8 +153,8 @@ BV Object:Y 1 MPI processes
   6.25
   -2.75
   -11.75
-  -26
-  -14
+  -26.
+  -14.
   -24.125
   -16.25
   -12.125
@@ -197,69 +197,69 @@ Vec Object:z 1 MPI processes
 -262.75
 -379.125
 -413.375
--412
+-412.
 After BVMultInPlace - - - - -
 BV Object:X 1 MPI processes
   type: vecs
   Vec Object:  X_0   1 MPI processes
     type: seq
-  -4
-  2
-  8
-  14
-  0
-  0
-  0
-  0
-  0
-  0
+  -4.
+  2.
+  8.
+  14.
+  0.
+  0.
+  0.
+  0.
+  0.
+  0.
   Vec Object:  X_1   1 MPI processes
     type: seq
-  -8
-  5
-  14
-  19
-  -20
-  -21
-  -18
-  -11
-  0
-  0
+  -8.
+  5.
+  14.
+  19.
+  -20.
+  -21.
+  -18.
+  -11.
+  0.
+  0.
   Vec Object:  X_2   1 MPI processes
     type: seq
-  -8
-  0
-  24
-  44
-  20
-  -21
-  -18
-  -11
-  0
-  0
+  -8.
+  0.
+  24.
+  44.
+  20.
+  -21.
+  -18.
+  -11.
+  0.
+  0.
   Vec Object:  X_3   1 MPI processes
     type: seq
-  0
-  0
-  0
-  2
-  8
-  14
-  20
-  0
-  0
-  0
+  0.
+  0.
+  0.
+  2.
+  8.
+  14.
+  20.
+  0.
+  0.
+  0.
   Vec Object:  X_4   1 MPI processes
     type: seq
-  0
-  0
-  0
-  0
-  4
-  10
-  16
-  22
-  0
-  0
+  0.
+  0.
+  0.
+  0.
+  4.
+  10.
+  16.
+  22.
+  0.
+  0.
 2-Norm or X[0] = 16.7332
 Frobenius Norm or X = 87.1436
