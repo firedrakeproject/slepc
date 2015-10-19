@@ -79,7 +79,7 @@ struct _p_PEP {
   PetscInt       npart;            /* number of partitions of the communicator */
   PetscReal      rtol;             /* tolerance for refinement */
   PetscInt       rits;             /* number of iterations of the refinement method */
-  PetscBool      schur;            /* use Schur complement in refinement method */
+  PEPRefineScheme scheme;          /* scheme for solving linear systems within refinement */
   PEPExtract     extract;          /* type of extraction used */
   PetscBool      trackall;         /* whether all the residuals must be computed */
 

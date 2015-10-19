@@ -39,6 +39,7 @@
 #define PEPBasis           PetscEnum
 #define PEPScale           PetscEnum
 #define PEPRefine          PetscEnum
+#define PEPRefineScheme    PetscEnum
 #define PEPExtract         PetscEnum
 #define PEPConv            PetscEnum
 #define PEPErrorType       PetscEnum

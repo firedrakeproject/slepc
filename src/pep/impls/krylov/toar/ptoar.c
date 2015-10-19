@@ -43,7 +43,7 @@
 #undef __FUNCT__
 #define __FUNCT__ "PEPTOARSNorm2"
 /*
-  Norm of [sp;sq] 
+  Norm of [sp;sq]
 */
 static PetscErrorCode PEPTOARSNorm2(PetscInt n,PetscScalar *S,PetscReal *norm)
 {
@@ -70,7 +70,7 @@ PetscErrorCode PEPSetUp_TOAR(PEP pep)
   pep->lineariz = PETSC_TRUE;
   ierr = PEPSetDimensions_Default(pep,pep->nev,&pep->ncv,&pep->mpd);CHKERRQ(ierr);
   if (!ctx->lock && pep->mpd<pep->ncv) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Should not use mpd parameter in non-locking variant");
-  if (!pep->max_it) pep->max_it = PetscMax(100,2*(pep->nmat-1)*pep->n/pep->ncv); 
+  if (!pep->max_it) pep->max_it = PetscMax(100,2*(pep->nmat-1)*pep->n/pep->ncv);
   if (!pep->which) {
     ierr = PetscObjectTypeCompare((PetscObject)pep->st,STSINVERT,&sinv);CHKERRQ(ierr);
     if (sinv) pep->which = PEP_TARGET_MAGNITUDE;
@@ -107,7 +107,7 @@ PetscErrorCode PEPSetUp_TOAR(PEP pep)
   /* process starting vector */
   ctx->nq = 0;
   for (i=0;i<deg;i++) {
-    if (pep->nini>-deg) {  
+    if (pep->nini>-deg) {
       ierr = BVSetRandomColumn(pep->V,ctx->nq,pep->rand);CHKERRQ(ierr);
     } else {
       ierr = BVInsertVec(pep->V,ctx->nq,pep->IS[i]);CHKERRQ(ierr);
@@ -145,7 +145,7 @@ static PetscErrorCode PEPTOAROrth2(PEP pep,PetscScalar *S,PetscInt ld,PetscInt d
   PetscScalar    sonem=-1.0,sone=1.0,szero=0.0,*x0,*x,*c;
   PetscInt       lwa,nwu=0,i,lds=deg*ld,n;
   PetscReal      eta,onorm;
-  
+
   PetscFunctionBegin;
   ierr = BVGetOrthogonalization(pep->V,NULL,NULL,&eta,NULL);CHKERRQ(ierr);
   n = k+deg-1;
@@ -258,15 +258,15 @@ static PetscErrorCode PEPTOARExtendBasis(PEP pep,PetscBool sinvert,PetscScalar s
     }
     a *= pep->sfactor;
     ierr = STMatMult(pep->st,deg-1,ve,t);CHKERRQ(ierr);
-    ierr = VecAXPY(q,a,t);CHKERRQ(ierr);    
+    ierr = VecAXPY(q,a,t);CHKERRQ(ierr);
     a *= pep->sfactor;
   }
   if (flg || !sinvert) alpha /= a;
   ierr = STMatSolve(pep->st,q,t);CHKERRQ(ierr);
   ierr = VecScale(t,alpha);CHKERRQ(ierr);
   if (!sinvert) {
-    if (cg[deg-1]!=0) {ierr = VecAXPY(t,cg[deg-1],v);CHKERRQ(ierr);}    
-    if (cb[deg-1]!=0) {ierr = VecAXPY(t,cb[deg-1],ve);CHKERRQ(ierr);}    
+    if (cg[deg-1]!=0) { ierr = VecAXPY(t,cg[deg-1],v);CHKERRQ(ierr); }
+    if (cb[deg-1]!=0) { ierr = VecAXPY(t,cb[deg-1],ve);CHKERRQ(ierr); }
   }
   if (pep->Dr) {
     ierr = VecPointwiseDivide(t,t,pep->Dr);CHKERRQ(ierr);
@@ -370,6 +370,10 @@ static PetscErrorCode PEPTOARrun(PEP pep,PetscScalar sigma,PetscInt *nq,PetscSca
 #define __FUNCT__ "PEPTOARTrunc"
 static PetscErrorCode PEPTOARTrunc(PEP pep,PetscScalar *S,PetscInt ld,PetscInt deg,PetscInt *rs1a,PetscInt cs1,PetscInt lock,PetscInt newc,PetscBool final,PetscScalar *work,PetscInt nw,PetscReal *rwork,PetscInt nrw)
 {
+#if defined(PETSC_MISSING_LAPACK_GESVD) || defined(PETSC_MISSING_LAPACK_GEQRF) || defined(PETSC_MISSING_LAPACK_ORGQR)
+  PetscFunctionBegin;
+  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"GESVD/GEQRF/ORGQR - Lapack routine is unavailable");
+#else
   PetscErrorCode ierr;
   PetscInt       lwa,nwu=0,lrwa,nrwu=0,nnc,nrow;
   PetscInt       j,i,k,n,lds=deg*ld,rs1=*rs1a,rk=0,offu;
@@ -418,12 +422,12 @@ static PetscErrorCode PEPTOARTrunc(PEP pep,PetscScalar *S,PetscInt ld,PetscInt d
     for (j=0;j<deg;j++) {
       for (i=lock;i<lock+newc;i++) {
         ierr = PetscMemcpy(M+(i-lock+j*newc)*nrow,S+i*lds+j*ld+lock,nrow*sizeof(PetscScalar));CHKERRQ(ierr);
-      } 
+      }
     }
 #if !defined (PETSC_USE_COMPLEX)
     PetscStackCallBLAS("LAPACKgesvd",LAPACKgesvd_("S","S",&nrow_,&newctdeg,M,&nrow_,sg,pU+offu,&rs1_,V,&n_,work+nwu,&lw_,&info));
 #else
-    PetscStackCallBLAS("LAPACKgesvd",LAPACKgesvd_("S","S",&nrow_,&newctdeg,M,&nrow_,sg,pU+offu,&rs1_,V,&n_,work+nwu,&lw_,rwork+nrwu,&info));  
+    PetscStackCallBLAS("LAPACKgesvd",LAPACKgesvd_("S","S",&nrow_,&newctdeg,M,&nrow_,sg,pU+offu,&rs1_,V,&n_,work+nwu,&lw_,rwork+nrwu,&info));
 #endif
     if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xGESVD %d",info);
     /* SVD has rank min(newc,nrow) */
@@ -455,12 +459,12 @@ static PetscErrorCode PEPTOARTrunc(PEP pep,PetscScalar *S,PetscInt ld,PetscInt d
   for (j=0;j<deg;j++) {
     for (i=lock+newc;i<cs1;i++) {
       ierr = PetscMemcpy(M+(i-lock-newc+j*nnc)*nrow,S+i*lds+j*ld+lock,nrow*sizeof(PetscScalar));CHKERRQ(ierr);
-    } 
+    }
   }
 #if !defined (PETSC_USE_COMPLEX)
   PetscStackCallBLAS("LAPACKgesvd",LAPACKgesvd_("S","S",&nrow_,&nnctdeg,M,&nrow_,sg,pU+offu+newc*rs1,&rs1_,V,&n_,work+nwu,&lw_,&info));
 #else
-  PetscStackCallBLAS("LAPACKgesvd",LAPACKgesvd_("S","S",&nrow_,&nnctdeg,M,&nrow_,sg,pU+offu+newc*rs1,&rs1_,V,&n_,work+nwu,&lw_,rwork+nrwu,&info));  
+  PetscStackCallBLAS("LAPACKgesvd",LAPACKgesvd_("S","S",&nrow_,&nnctdeg,M,&nrow_,sg,pU+offu+newc*rs1,&rs1_,V,&n_,work+nwu,&lw_,rwork+nrwu,&info));
 #endif
   if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xGESVD %d",info);
   tol = PetscMax(rs1,deg*cs1)*PETSC_MACHINE_EPSILON*sg[0];
@@ -496,7 +500,7 @@ static PetscErrorCode PEPTOARTrunc(PEP pep,PetscScalar *S,PetscInt ld,PetscInt d
   PetscStackCallBLAS("LAPACKgeqrf",LAPACKgeqrf_(&nrow_,&rk_,pU+offu,&rs1_,tau,work+nwu,&lw_,&info));
   for (i=0;i<deg;i++) {
     PetscStackCallBLAS("BLAStrmm",BLAStrmm_("L","U","N","N",&rk_,&nnc_,&sone,pU+offu,&rs1_,S+lock*lds+lock+i*ld,&lds_));
-  }  
+  }
   PetscStackCallBLAS("LAPACKungqr",LAPACKungqr_(&nrow_,&rk_,&rk_,pU+offu,&rs1_,tau,work+nwu,&lw_,&info));
 
   /* update vectors V(:,idx) = V*Q(:,idx) */
@@ -506,18 +510,19 @@ static PetscErrorCode PEPTOARTrunc(PEP pep,PetscScalar *S,PetscInt ld,PetscInt d
   ierr = BVSetActiveColumns(pep->V,lock,rs1);CHKERRQ(ierr);
   ierr = BVMultInPlace(pep->V,U,lock,rk);CHKERRQ(ierr);
   ierr = BVSetActiveColumns(pep->V,0,rk);CHKERRQ(ierr);
-  ierr = MatDestroy(&U);CHKERRQ(ierr);  
+  ierr = MatDestroy(&U);CHKERRQ(ierr);
   *rs1a = rk;
 
   /* free work space */
   ierr = PetscFree4(SS,SS2,pU,tau);CHKERRQ(ierr);
   PetscFunctionReturn(0);
+#endif
 }
 
 #undef __FUNCT__
 #define __FUNCT__ "PEPTOARSupdate"
 /*
-  S <- S*Q 
+  S <- S*Q
   columns s-s+ncu of S
   rows 0-sr of S
   size(Q) qr x ncu
@@ -568,9 +573,7 @@ static PetscErrorCode PEPEvaluateBasisM(PEP pep,PetscInt k,PetscScalar *T,PetscI
   if (idx==0) {
     ierr = PetscMemzero(*Tj,k*k*sizeof(PetscScalar));CHKERRQ(ierr);
     ierr = PetscMemzero(*Tp,k*k*sizeof(PetscScalar));CHKERRQ(ierr);
-    for (i=0;i<k;i++) {
-      (*Tj)[i+i*k] = 1.0;
-    }
+    for (i=0;i<k;i++) (*Tj)[i+i*k] = 1.0;
   } else {
     ierr = PetscBLASIntCast(ldt,&ldt_);CHKERRQ(ierr);
     ierr = PetscBLASIntCast(k,&k_);CHKERRQ(ierr);
@@ -578,7 +581,7 @@ static PetscErrorCode PEPEvaluateBasisM(PEP pep,PetscInt k,PetscScalar *T,PetscI
     for (i=0;i<k;i++) T[i*ldt+i] -= cb[idx-1];
     a = 1/ca[idx-1];
     g = (idx==1)?0.0:-cg[idx-1]/ca[idx-1];
-    PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&k_,&k_,&k_,&a,T,&ldt_,*Tj,&k_,&g,*Tp,&k_));    
+    PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&k_,&k_,&k_,&a,T,&ldt_,*Tj,&k_,&g,*Tp,&k_));
     pt = *Tj; *Tj = *Tp; *Tp = pt;
     for (i=0;i<k;i++) T[i*ldt+i] += cb[idx-1];
   }
@@ -589,6 +592,10 @@ static PetscErrorCode PEPEvaluateBasisM(PEP pep,PetscInt k,PetscScalar *T,PetscI
 #define __FUNCT__ "PEPExtractInvariantPair"
 static PetscErrorCode PEPExtractInvariantPair(PEP pep,PetscScalar sigma,PetscInt sr,PetscInt k,PetscScalar *S,PetscInt ld,PetscInt deg,PetscScalar *H,PetscInt ldh,PetscScalar *work,PetscInt nw)
 {
+#if defined(PETSC_MISSING_LAPACK_GESV) || defined(SLEPC_MISSING_LAPACK_GETRI) || defined(PETSC_MISSING_LAPACK_GETRF)
+  PetscFunctionBegin;
+  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"GESV/GETRI/GETRF - Lapack routine is unavailable");
+#else
   PetscErrorCode ierr;
   PetscInt       i,j,jj,nwu=0,lwa,lds,ldt,d=pep->nmat-1,idxcpy=0;
   PetscScalar    *At,*Bt,*Hj,*Hp,*T,sone=1.0,g,a,*pM;
@@ -637,7 +644,7 @@ static PetscErrorCode PEPExtractInvariantPair(PEP pep,PetscScalar sigma,PetscInt
     if (flg) {
       PetscStackCallBLAS("LAPACKgetrf",LAPACKgetrf_(&k_,&k_,T,&k_,p,&info));
       ierr = PetscBLASIntCast(nw-nwu,&lwork);CHKERRQ(ierr);
-      PetscStackCallBLAS("LAPACKgetri",LAPACKgetri_(&k_,T,&k_,p,work+nwu,&lwork,&info));  
+      PetscStackCallBLAS("LAPACKgetri",LAPACKgetri_(&k_,T,&k_,p,work+nwu,&lwork,&info));
     }
     if (sigma!=0.0) for (i=0;i<k;i++) T[i+k*i] += sigma;
   } else {
@@ -692,7 +699,7 @@ static PetscErrorCode PEPExtractInvariantPair(PEP pep,PetscScalar sigma,PetscInt
     g = 0.0; a = 1.0;
     ierr = BVSetActiveColumns(pep->V,0,sr);CHKERRQ(ierr);
     for (j=0;j<pep->nmat;j++) {
-      ierr = BVMatMult(pep->V,A[j],Y);CHKERRQ(ierr);    
+      ierr = BVMatMult(pep->V,A[j],Y);CHKERRQ(ierr);
       ierr = PEPEvaluateBasisM(pep,k,T,ldt,i,&Hp,&Hj);CHKERRQ(ierr);
       for (i=0;i<pep->nmat-1;i++) {
         PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&sr_,&k_,&k_,&a,S+i*ld,&lds_,Hj,&k_,&g,At,&sr_));
@@ -704,14 +711,14 @@ static PetscErrorCode PEPExtractInvariantPair(PEP pep,PetscScalar sigma,PetscInt
         ierr = BVMult(R[i],1.0,(i==0)?0.0:1.0,Y,M);CHKERRQ(ierr);
       }
     }
-    
+
     /* frobenius norm */
     maxnrm = 0.0;
     for (i=0;i<pep->nmat-1;i++) {
       norm = 0.0;
       for (j=0;j<k;j++) {
         ierr = BVGetColumn(R[i],j,&v);CHKERRQ(ierr);
-        ierr = VecNorm(v,NORM_2,&nrm);CHKERRQ(ierr); 
+        ierr = VecNorm(v,NORM_2,&nrm);CHKERRQ(ierr);
         ierr = BVRestoreColumn(R[i],j,&v);CHKERRQ(ierr);
         norm += nrm*nrm;
       }
@@ -750,18 +757,19 @@ static PetscErrorCode PEPExtractInvariantPair(PEP pep,PetscScalar sigma,PetscInt
     if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xGESV %d",info);
     for (j=0;j<sr;j++) {
       for (i=0;i<k;i++) S[i*lds+j] = PetscConj(At[j*k+i]);
-    } 
+    }
     break;
   default:
     SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Extraction not implemented in this solver");
   }
   ierr = PetscFree(p);CHKERRQ(ierr);
   PetscFunctionReturn(0);
+#endif
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "PEPLookfordeflation"
-static PetscErrorCode PEPLookfordeflation(PEP pep,PetscInt *nl)
+#define __FUNCT__ "PEPLookForDeflation"
+static PetscErrorCode PEPLookForDeflation(PEP pep,PetscInt *nl)
 {
   PetscErrorCode ierr;
   PetscInt       i,l,n,ld;
@@ -782,7 +790,7 @@ static PetscErrorCode PEPLookfordeflation(PEP pep,PetscInt *nl)
     cplx = pep->eigi[i]?PETSC_TRUE:PETSC_FALSE;
     norm = SlepcAbsEigenvalue(pep->eigr[i],pep->eigi[i]);
 #endif
-    if (PetscAbsScalar(H[n+i*ld])/norm < pep->tol){
+    if (PetscAbsScalar(H[n+i*ld])/norm < pep->tol) {
       if (cplx) {
         if (PetscAbsScalar(H[n+(i+1)*ld])/norm < pep->tol) (*nl)++;
         else break;
@@ -818,7 +826,7 @@ PetscErrorCode PEPSolve_TOAR(PEP pep)
   lwa = (deg+6)*ld*lds;
   lrwa = 7*lds;
   ierr = PetscMalloc2(lwa,&work,lrwa,&rwork);CHKERRQ(ierr);
-  ierr = DSGetLeadingDimension(pep->ds,&ldds);CHKERRQ(ierr); 
+  ierr = DSGetLeadingDimension(pep->ds,&ldds);CHKERRQ(ierr);
   ierr = STGetShift(pep->st,&sigma);CHKERRQ(ierr);
 
   /* update polynomial basis coefficients */
@@ -826,7 +834,7 @@ PetscErrorCode PEPSolve_TOAR(PEP pep)
   if (pep->sfactor!=1.0) {
     for (i=0;i<nmat;i++) {
       pep->pbc[nmat+i] /= pep->sfactor;
-      pep->pbc[2*nmat+i] /= pep->sfactor*pep->sfactor; 
+      pep->pbc[2*nmat+i] /= pep->sfactor*pep->sfactor;
     }
     if (!flg) {
       pep->target /= pep->sfactor;
@@ -846,7 +854,7 @@ PetscErrorCode PEPSolve_TOAR(PEP pep)
   l = 0;
   while (pep->reason == PEP_CONVERGED_ITERATING) {
     pep->its++;
-    
+
     /* compute an nv-step Lanczos factorization */
     nv = PetscMax(PetscMin(nconv+pep->mpd,pep->ncv),nv);
     ierr = DSGetArray(pep->ds,DS_MAT_A,&H);CHKERRQ(ierr);
@@ -884,9 +892,9 @@ PetscErrorCode PEPSolve_TOAR(PEP pep)
     nconv = k;
     /* decide on deflating Krylov vectors */
     if (def) {
-      ierr = PEPLookfordeflation(pep,&nl);CHKERRQ(ierr);
+      ierr = PEPLookForDeflation(pep,&nl);CHKERRQ(ierr);
       nl = PetscMin(nl,k-pep->nconv);
-      if (ctx->lock && pep->reason == PEP_CONVERGED_ITERATING && !breakdown) { 
+      if (ctx->lock && pep->reason == PEP_CONVERGED_ITERATING && !breakdown) {
         k = pep->nconv+nl; l = newn-k;
       }
     } else nl = k-pep->nconv;
