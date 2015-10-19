@@ -50,7 +50,7 @@ runloaded_string:
 	   ${RM} -f loaded_string_1.tmp
 
 rungun:
-	-@${MPIEXEC} -np 1 ./gun -K $(DATAFILESPATH)/gun_K.petsc -M $(DATAFILESPATH)/gun_M.petsc -W1 $(DATAFILESPATH)/gun_W1.petsc -W2 $(DATAFILESPATH)/gun_W2.petsc -nep_type nleigs -rg_type interval -rg_interval_endpoints 12500,120500,-1,25000 -nep_target 65000 -nep_nev 4 -nep_rtol 1e-12 -terse > gun_1.tmp 2>&1; \
+	-@${MPIEXEC} -np 1 ./gun -K $(DATAFILESPATH)/matrices/complex/gun_K.petsc -M $(DATAFILESPATH)/matrices/complex/gun_M.petsc -W1 $(DATAFILESPATH)/matrices/complex/gun_W1.petsc -W2 $(DATAFILESPATH)/matrices/complex/gun_W2.petsc -nep_type nleigs -rg_type interval -rg_interval_endpoints 12500,120500,-1,25000 -nep_target 65000 -nep_nev 4 -nep_rtol 1e-12 -terse > gun_1.tmp 2>&1; \
 	   if (${DIFF} output/gun_1.out gun_1.tmp) then true; \
 	   else echo "Possible problem with gun_1, diffs above"; fi; \
 	   ${RM} -f gun_1.tmp;
