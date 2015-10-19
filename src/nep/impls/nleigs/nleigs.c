@@ -391,12 +391,12 @@ static PetscErrorCode NEPTOARExtendBasis(NEP nep,PetscScalar sigma,PetscScalar *
 /*
   Compute TOAR coefficients of the blocks of the new Arnoldi vector computed
 */
-static PetscErrorCode NEPTOARCoefficients(NEP nep,PetscScalar sigma,PetscInt nv,PetscScalar *S,PetscInt ls,PetscScalar *r,PetscInt lr,PetscScalar *x)
+static PetscErrorCode NEPTOARCoefficients(NEP nep,PetscScalar sigma,PetscInt nv,PetscScalar *S,PetscInt ls,PetscScalar *r,PetscInt lr,PetscScalar *x,PetscScalar *work)
 {
   PetscErrorCode ierr;
   NEP_NLEIGS     *ctx=(NEP_NLEIGS*)nep->data;
   PetscInt       k,j,d=ctx->nmat;
-  PetscScalar    t[d];
+  PetscScalar    *t=work;
 
   PetscFunctionBegin;
   ierr = NEPNLEIGSEvalNRTFunct(nep,d-1,nep->target,t);CHKERRQ(ierr);
@@ -412,20 +412,19 @@ static PetscErrorCode NEPTOARCoefficients(NEP nep,PetscScalar sigma,PetscInt nv,
 /*
   Compute a run of Arnoldi iterations
 */
-static PetscErrorCode NEPTOARrun(NEP nep,PetscScalar *S,PetscInt ld,PetscScalar *H,PetscInt ldh,BV V,PetscInt k,PetscInt *M,PetscBool *breakdown,PetscScalar *work,PetscInt nw,Vec *t_,PetscInt nwv)
+static PetscErrorCode NEPTOARrun(NEP nep,PetscScalar *S,PetscInt ld,PetscScalar *H,PetscInt ldh,BV V,PetscInt k,PetscInt *M,PetscBool *breakdown,Vec *t_,PetscInt nwv)
 {
   PetscErrorCode ierr;
   NEP_NLEIGS     *ctx=(NEP_NLEIGS*)nep->data;
-  PetscInt       i,j,p,m=*M,nwu=0,lwa,deg=ctx->nmat;
+  PetscInt       i,j,p,m=*M,lwa,deg=ctx->nmat;
   PetscInt       lds=ld*deg;
   Vec            t=t_[0];
   PetscReal      norm;
-  PetscScalar    sigma=0.0,x[ld];
+  PetscScalar    sigma=0.0,*x,*work;
 
   PetscFunctionBegin;
-  if (!t_||nwv<4) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Invalid argument %d",12);
-  lwa = ld;
-  if (!work||nw<lwa) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Invalid argument %d",10);
+  lwa = PetscMax(ld,deg);
+  ierr = PetscMalloc2(ld,&x,lwa,&work);CHKERRQ(ierr);
   ierr = STGetShift(ctx->st,&sigma);CHKERRQ(ierr); 
   for (j=k;j<m;j++) {
     /* apply operator */
@@ -436,9 +435,9 @@ static PetscErrorCode NEPTOARrun(NEP nep,PetscScalar *S,PetscInt ld,PetscScalar 
     ierr = BVOrthogonalizeColumn(nep->V,j+deg,x,&norm,breakdown);CHKERRQ(ierr);
     x[j+deg] = norm;
     ierr = BVScaleColumn(nep->V,j+deg,1.0/norm);CHKERRQ(ierr);
-    ierr = NEPTOARCoefficients(nep,sigma,j+deg,S+j*lds,ld,S+(j+1)*lds,ld,x);CHKERRQ(ierr);
+    ierr = NEPTOARCoefficients(nep,sigma,j+deg,S+j*lds,ld,S+(j+1)*lds,ld,x,work);CHKERRQ(ierr);
     /* Level-2 orthogonalization */
-    ierr = NEPTOAROrth2(S,ld,deg,j+1,H+j*ldh,work+nwu,lwa-nwu);CHKERRQ(ierr);
+    ierr = NEPTOAROrth2(S,ld,deg,j+1,H+j*ldh,work,lwa);CHKERRQ(ierr);
     ierr = NEPTOARSNorm2(lds,S+(j+1)*lds,&norm);CHKERRQ(ierr);
     for (p=0;p<deg;p++) {
       for (i=0;i<=j+deg;i++) {
@@ -447,6 +446,7 @@ static PetscErrorCode NEPTOARrun(NEP nep,PetscScalar *S,PetscInt ld,PetscScalar 
     }
     H[j+1+ldh*j] = norm;
   }
+  ierr = PetscFree2(x,work);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -562,11 +562,12 @@ PetscErrorCode NEPDebugShowResidual(NEP nep)
   PetscErrorCode ierr;
   NEP_NLEIGS     *ctx=(NEP_NLEIGS*)nep->data;
   PetscReal      re,im,norm;
-  PetscScalar    coeffs[ctx->nmat+1];
+  PetscScalar    *coeffs;
   Vec            x,t,v;
   PetscInt       i,j,deg=ctx->nmat;
   
   PetscFunctionBegin;
+  ierr = PetscMalloc1(ctx->nmat+1,&coeffs);CHKERRQ(ierr);
   ierr = BVCreateVec(nep->V,&x);CHKERRQ(ierr);
   ierr = BVCreateVec(nep->V,&t);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD," Showing absolute residual for the interpolation function eigenpairs\n",nep->nconv);CHKERRQ(ierr);
@@ -600,6 +601,7 @@ PetscErrorCode NEPDebugShowResidual(NEP nep)
   } 
   ierr = VecDestroy(&x);CHKERRQ(ierr);
   ierr = VecDestroy(&t);CHKERRQ(ierr);
+  ierr = PetscFree(coeffs);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -655,7 +657,7 @@ PetscErrorCode NEPSolve_NLEIGS(NEP nep)
     /* Compute an nv-step Lanczos factorization */
     nv = PetscMin(nep->nconv+nep->mpd,nep->ncv);
     ierr = DSGetArray(nep->ds,DS_MAT_A,&H);CHKERRQ(ierr);
-    ierr = NEPTOARrun(nep,S,ld,H,ldds,nep->V,nep->nconv+l,&nv,&breakdown,work+nwu,lwa-nwu,nep->work,4);CHKERRQ(ierr);
+    ierr = NEPTOARrun(nep,S,ld,H,ldds,nep->V,nep->nconv+l,&nv,&breakdown,nep->work,4);CHKERRQ(ierr);
     beta = PetscAbsScalar(H[(nv-1)*ldds+nv]);
     ierr = DSRestoreArray(nep->ds,DS_MAT_A,&H);CHKERRQ(ierr);
     ierr = DSSetDimensions(nep->ds,nv,0,nep->nconv,nep->nconv+l);CHKERRQ(ierr);
