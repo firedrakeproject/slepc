@@ -4,16 +4,16 @@
 ST type shift
 Vec Object: 1 MPI processes
   type: seq
-1
-0
-0
-0
-0
-0
-0
-0
-0
-1
+1.
+0.
+0.
+0.
+0.
+0.
+0.
+0.
+0.
+1.
 With shift=0.1
 Vec Object: 1 MPI processes
   type: seq
@@ -81,7 +81,7 @@ Vec Object: 1 MPI processes
 -2.89831
 -2.53432
 -0.48258
-With shift=1.1, antishift=-1
+With shift=1.1, antishift=-1.
 Vec Object: 1 MPI processes
   type: seq
 0.93261
@@ -96,13 +96,13 @@ Vec Object: 1 MPI processes
 0.93261
 Vec Object: 1 MPI processes
   type: seq
-0
--1
--1
--1
--1
--1
--1
--1
--1
-0
+0.
+-1.
+-1.
+-1.
+-1.
+-1.
+-1.
+-1.
+-1.
+0.

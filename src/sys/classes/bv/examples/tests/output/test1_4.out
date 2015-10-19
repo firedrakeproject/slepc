@@ -77,7 +77,7 @@ Vec Object:z 1 MPI processes
 -262.75
 -379.125
 -413.375
--412
+-412.
 After BVMultInPlace - - - - -
 BV Object:X 1 MPI processes
   type: mat

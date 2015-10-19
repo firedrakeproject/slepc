@@ -79,7 +79,7 @@ PetscErrorCode PEPCreate(MPI_Comm comm,PEP *outpep)
   pep->npart           = 1;
   pep->rtol            = PETSC_DEFAULT;
   pep->rits            = PETSC_DEFAULT;
-  pep->schur           = PETSC_FALSE;
+  pep->scheme          = PEP_REFINE_SCHEME_MBE;
   pep->extract         = (PEPExtract)0;
   pep->trackall        = PETSC_FALSE;
 
