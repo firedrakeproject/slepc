@@ -100,6 +100,14 @@
       parameter (PEP_REFINE_SIMPLE          =  1)
       parameter (PEP_REFINE_MULTIPLE        =  2)
 
+      PetscEnum PEP_REFINE_SCHEME_EXPLICIT
+      PetscEnum PEP_REFINE_SCHEME_MBE
+      PetscEnum PEP_REFINE_SCHEME_SCHUR
+
+      parameter (PEP_REFINE_SCHEME_EXPLICIT =  0)
+      parameter (PEP_REFINE_SCHEME_MBE      =  1)
+      parameter (PEP_REFINE_SCHEME_SCHUR    =  2)
+
       PetscEnum PEP_EXTRACT_NONE
       PetscEnum PEP_EXTRACT_NORM
       PetscEnum PEP_EXTRACT_RESIDUAL

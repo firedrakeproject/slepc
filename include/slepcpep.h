@@ -126,6 +126,18 @@ typedef enum { PEP_REFINE_NONE,
 PETSC_EXTERN const char *PEPRefineTypes[];
 
 /*E
+    PEPRefineScheme - The scheme used for solving linear systems during iterative refinement
+
+    Level: intermediate
+
+.seealso: PEPSetRefine()
+E*/
+typedef enum { PEP_REFINE_SCHEME_EXPLICIT,
+               PEP_REFINE_SCHEME_MBE,
+               PEP_REFINE_SCHEME_SCHUR } PEPRefineScheme;
+PETSC_EXTERN const char *PEPRefineSchemes[];
+
+/*E
     PEPExtract - The extraction type
 
     Level: intermediate
@@ -212,8 +224,8 @@ PETSC_EXTERN PetscErrorCode PEPSetDimensions(PEP,PetscInt,PetscInt,PetscInt);
 PETSC_EXTERN PetscErrorCode PEPGetDimensions(PEP,PetscInt*,PetscInt*,PetscInt*);
 PETSC_EXTERN PetscErrorCode PEPSetScale(PEP,PEPScale,PetscReal,Vec,Vec,PetscInt,PetscReal);
 PETSC_EXTERN PetscErrorCode PEPGetScale(PEP,PEPScale*,PetscReal*,Vec*,Vec*,PetscInt*,PetscReal*);
-PETSC_EXTERN PetscErrorCode PEPSetRefine(PEP,PEPRefine,PetscInt,PetscReal,PetscInt,PetscBool);
-PETSC_EXTERN PetscErrorCode PEPGetRefine(PEP,PEPRefine*,PetscInt*,PetscReal*,PetscInt*,PetscBool*);
+PETSC_EXTERN PetscErrorCode PEPSetRefine(PEP,PEPRefine,PetscInt,PetscReal,PetscInt,PEPRefineScheme);
+PETSC_EXTERN PetscErrorCode PEPGetRefine(PEP,PEPRefine*,PetscInt*,PetscReal*,PetscInt*,PEPRefineScheme*);
 PETSC_EXTERN PetscErrorCode PEPSetExtract(PEP,PEPExtract);
 PETSC_EXTERN PetscErrorCode PEPGetExtract(PEP,PEPExtract*);
 PETSC_EXTERN PetscErrorCode PEPSetBasis(PEP,PEPBasis);

@@ -45,7 +45,7 @@ PetscErrorCode PEPSetFromOptions(PEP pep)
 {
   PetscErrorCode   ierr;
   char             type[256],monfilename[PETSC_MAX_PATH_LEN];
-  PetscBool        flg,flg1,flg2,flg3,flg4;
+  PetscBool        flg,flg1,flg2,flg3;
   PetscReal        r,t;
   PetscScalar      s;
   PetscInt         i,j,k;
@@ -92,11 +92,11 @@ PetscErrorCode PEPSetFromOptions(PEP pep)
     ierr = PetscOptionsReal("-pep_refine_tol","Tolerance for iterative refinement","PEPSetRefine",pep->rtol,&r,&flg2);CHKERRQ(ierr);
     j = pep->rits;
     ierr = PetscOptionsInt("-pep_refine_its","Maximum number of iterations for iterative refinement","PEPSetRefine",pep->rits,&j,&flg3);CHKERRQ(ierr);
-    flg = pep->schur;
-    ierr = PetscOptionsBool("-pep_refine_schur","Use Schur complement for iterative refinement","PEPSetRefine",pep->schur,&flg,&flg4);CHKERRQ(ierr);
-    if (flg1 || flg2 || flg3 || flg4) {
-      ierr = PEPSetRefine(pep,pep->refine,i,r,j,flg);CHKERRQ(ierr);
+    if (flg1 || flg2 || flg3) {
+      ierr = PEPSetRefine(pep,pep->refine,i,r,j,pep->scheme);CHKERRQ(ierr);
     }
+
+    ierr = PetscOptionsEnum("-pep_refine_scheme","Scheme used for linear systems within iterative refinement","PEPSetRefine",PEPRefineSchemes,(PetscEnum)pep->scheme,(PetscEnum*)&pep->scheme,NULL);CHKERRQ(ierr);
 
     i = pep->max_it? pep->max_it: PETSC_DEFAULT;
     ierr = PetscOptionsInt("-pep_max_it","Maximum number of iterations","PEPSetTolerances",pep->max_it,&i,&flg1);CHKERRQ(ierr);
@@ -1065,14 +1065,14 @@ PetscErrorCode PEPGetExtract(PEP pep,PEPExtract *extract)
 .  npart  - number of partitions of the communicator
 .  tol    - the convergence tolerance
 .  its    - maximum number of refinement iterations
--  schur  - boolean flag to activate the Schur complement approach
+-  scheme - which scheme to be used for solving the involved linear systems
 
    Options Database Keys:
 +  -pep_refine <type> - refinement type, one of <none,simple,multiple>
 .  -pep_refine_partitions <n> - the number of partitions
 .  -pep_refine_tol <tol> - the tolerance
 .  -pep_refine_its <its> - number of iterations
--  -pep_refine_schur - to set the Schur complement approach
+-  -pep_refine_scheme - to set the scheme for the linear solves
 
    Notes:
    By default, iterative refinement is disabled, since it may be very
@@ -1093,15 +1093,15 @@ PetscErrorCode PEPGetExtract(PEP pep,PEPExtract *extract)
    different value). In contrast, the multiple method simply performs its
    refinement iterations (just one by default).
 
-   The schur flag is used to change the way in which linear systems are
-   solved, so that a Schur complement approach is used instead of explicitly
-   building the coefficient matrix.
+   The scheme argument is used to change the way in which linear systems are
+   solved. Possible choices are: explicit, mixed block elimination (MBE), 
+   and Schur complement.
 
    Level: intermediate
 
 .seealso: PEPGetRefine()
 @*/
-PetscErrorCode PEPSetRefine(PEP pep,PEPRefine refine,PetscInt npart,PetscReal tol,PetscInt its,PetscBool schur)
+PetscErrorCode PEPSetRefine(PEP pep,PEPRefine refine,PetscInt npart,PetscReal tol,PetscInt its,PEPRefineScheme scheme)
 {
   PetscErrorCode ierr;
   PetscMPIInt    size;
@@ -1112,7 +1112,7 @@ PetscErrorCode PEPSetRefine(PEP pep,PEPRefine refine,PetscInt npart,PetscReal to
   PetscValidLogicalCollectiveInt(pep,npart,3);
   PetscValidLogicalCollectiveReal(pep,tol,4);
   PetscValidLogicalCollectiveInt(pep,its,5);
-  PetscValidLogicalCollectiveBool(pep,schur,6);
+  PetscValidLogicalCollectiveEnum(pep,scheme,6);
   pep->refine = refine;
   if (refine) {  /* process parameters only if not REFINE_NONE */
     if (npart!=pep->npart) {
@@ -1138,7 +1138,7 @@ PetscErrorCode PEPSetRefine(PEP pep,PEPRefine refine,PetscInt npart,PetscReal to
       if (its<0) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of its. Must be >= 0");
       pep->rits = its;
     }
-    pep->schur = schur;
+    pep->scheme = scheme;
   }
   pep->state = PEP_STATE_INITIAL;
   PetscFunctionReturn(0);
@@ -1160,7 +1160,7 @@ PetscErrorCode PEPSetRefine(PEP pep,PEPRefine refine,PetscInt npart,PetscReal to
 .  npart  - number of partitions of the communicator
 .  tol    - the convergence tolerance
 .  its    - maximum number of refinement iterations
--  schur  - whether the Schur complement approach is being used
+-  scheme - the scheme used for solving linear systems
 
    Level: intermediate
 
@@ -1169,7 +1169,7 @@ PetscErrorCode PEPSetRefine(PEP pep,PEPRefine refine,PetscInt npart,PetscReal to
 
 .seealso: PEPSetRefine()
 @*/
-PetscErrorCode PEPGetRefine(PEP pep,PEPRefine *refine,PetscInt *npart,PetscReal *tol,PetscInt *its,PetscBool *schur)
+PetscErrorCode PEPGetRefine(PEP pep,PEPRefine *refine,PetscInt *npart,PetscReal *tol,PetscInt *its,PEPRefineScheme *scheme)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
@@ -1177,7 +1177,7 @@ PetscErrorCode PEPGetRefine(PEP pep,PEPRefine *refine,PetscInt *npart,PetscReal 
   if (npart)  *npart  = pep->npart;
   if (tol)    *tol    = pep->rtol;
   if (its)    *its    = pep->rits;
-  if (schur)  *schur  = pep->schur;
+  if (scheme) *scheme = pep->scheme;
   PetscFunctionReturn(0);
 }
 

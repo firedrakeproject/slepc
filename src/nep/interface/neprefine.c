@@ -293,7 +293,7 @@ PetscErrorCode NEPNewtonRefinementSimple(NEP nep,PetscInt *maxits,PetscReal *tol
   ierr = NEPSimpleNRefSetUp(nep,&ctx);CHKERRQ(ierr);
   its = (maxits)?*maxits:NREF_MAXIT;
   comm = (nep->npart==1)?PetscObjectComm((PetscObject)nep):PetscSubcommChild(ctx->subc);
-  ierr = KSPCreate(comm,&ksp);
+  ierr = KSPCreate(comm,&ksp);CHKERRQ(ierr);
   if (nep->npart==1) {
     ierr = BVGetColumn(nep->V,0,&v);CHKERRQ(ierr);
   } else v = ctx->v;
