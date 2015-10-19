@@ -69,8 +69,8 @@ PetscErrorCode SlepcSCCompare(SlepcSC sc,PetscScalar ar,PetscScalar ai,PetscScal
   }
   if (sc->rg) {
     ierr = RGCheckInside(sc->rg,2,re,im,cin);CHKERRQ(ierr);
-    inside[0] = (cin[0]>0)? PETSC_TRUE: PETSC_FALSE;
-    inside[1] = (cin[1]>0)? PETSC_TRUE: PETSC_FALSE;
+    inside[0] = (cin[0]>=0)? PETSC_TRUE: PETSC_FALSE;
+    inside[1] = (cin[1]>=0)? PETSC_TRUE: PETSC_FALSE;
     if (inside[0] && !inside[1]) *res = -1;
     else if (!inside[0] && inside[1]) *res = 1;
     else {
