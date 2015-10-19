@@ -28,7 +28,9 @@
 
    */
 
-static char help[] = "NLEVP problem: gun.\n\n";
+static char help[] = "NLEVP problem: gun.\n\n"
+  "The command line options are:\n"
+  "-K <filename1> -M  <filename2> -W1 <filename3> -W2 <filename4> , where filename1,..,filename4 are filenames containing the matrices in PETSc binary form defining the GUN problem.\n\n";
 
 #include <slepcnep.h>
 
@@ -44,10 +46,11 @@ int main(int argc,char **argv)
   PetscErrorCode ierr;
   Mat            A[NMAT];         /* problem matrices */
   FN             f[NMAT];         /* functions to define the nonlinear operator */
-  FN             ff[2];           /* auxiliar functions to define the nonlinear operator */
+  FN             ff[2];           /* auxiliary functions to define the nonlinear operator */
   NEP            nep;             /* nonlinear eigensolver context */
   PetscBool      terse,flg;
-  const char*    filenames[NMAT]={"gun_K.petsc","gun_M.petsc","gun_W1.petsc","gun_W2.petsc"};
+  const char*    string[NMAT]={"-K","-M","-W1","-W2"};
+  char           filename[PETSC_MAX_PATH_LEN];
   PetscScalar    numer[2],sigma;
   PetscInt       i;
   PetscViewer    viewer;
@@ -60,8 +63,10 @@ int main(int argc,char **argv)
                        Load the problem matrices 
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  for (i=0;i<NMAT;i++) { 
-    ierr = PetscViewerBinaryOpen(PETSC_COMM_WORLD,filenames[i],FILE_MODE_READ,&viewer);CHKERRQ(ierr);
+  for (i=0;i<NMAT;i++) {
+    ierr = PetscOptionsGetString(NULL,string[i],filename,PETSC_MAX_PATH_LEN,&flg);CHKERRQ(ierr);
+    if (!flg) SETERRQ1(PETSC_COMM_WORLD,1,"Must indicate a filename with the %s option",string[i]);
+    ierr = PetscViewerBinaryOpen(PETSC_COMM_WORLD,filename,FILE_MODE_READ,&viewer);CHKERRQ(ierr);
     ierr = MatCreate(PETSC_COMM_WORLD,&A[i]);CHKERRQ(ierr);
     ierr = MatSetFromOptions(A[i]);CHKERRQ(ierr);
     ierr = MatLoad(A[i],viewer);CHKERRQ(ierr);
