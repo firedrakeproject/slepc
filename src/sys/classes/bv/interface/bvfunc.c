@@ -27,6 +27,11 @@ PetscClassId     BV_CLASSID = 0;
 PetscLogEvent    BV_Create = 0,BV_Copy = 0,BV_Mult = 0,BV_Dot = 0,BV_Orthogonalize = 0,BV_Scale = 0,BV_Norm = 0,BV_SetRandom = 0,BV_MatMult = 0,BV_MatProject = 0,BV_AXPY = 0;
 static PetscBool BVPackageInitialized = PETSC_FALSE;
 
+const char *BVOrthogTypes[] = {"CGS","MGS","BVOrthogType","BV_ORTHOG_",0};
+const char *BVOrthogRefineTypes[] = {"IFNEEDED","NEVER","ALWAYS","BVOrthogRefineType","BV_ORTHOG_REFINE_",0};
+const char *BVOrthogBlockTypes[] = {"GS","CHOL","BVOrthogBlockType","BV_ORTHOG_BLOCK_",0};
+const char *BVMatMultTypes[] = {"VECS","MAT","MAT_SAVE","BVMatMultType","BV_MATMULT_",0};
+
 #undef __FUNCT__
 #define __FUNCT__ "BVFinalizePackage"
 /*@C

@@ -62,6 +62,7 @@ PETSC_EXTERN PetscClassId BV_CLASSID;
 E*/
 typedef enum { BV_ORTHOG_CGS,
                BV_ORTHOG_MGS } BVOrthogType;
+PETSC_EXTERN const char *BVOrthogTypes[];
 
 /*E
     BVOrthogRefineType - Determines what type of refinement to use
@@ -74,6 +75,7 @@ E*/
 typedef enum { BV_ORTHOG_REFINE_IFNEEDED,
                BV_ORTHOG_REFINE_NEVER,
                BV_ORTHOG_REFINE_ALWAYS } BVOrthogRefineType;
+PETSC_EXTERN const char *BVOrthogRefineTypes[];
 
 /*E
     BVOrthogBlockType - Determines the method used in block
@@ -85,6 +87,7 @@ typedef enum { BV_ORTHOG_REFINE_IFNEEDED,
 E*/
 typedef enum { BV_ORTHOG_BLOCK_GS,
                BV_ORTHOG_BLOCK_CHOL } BVOrthogBlockType;
+PETSC_EXTERN const char *BVOrthogBlockTypes[];
 
 /*E
     BVMatMultType - Determines how to perform the BVMatMult() operation:
@@ -100,6 +103,7 @@ E*/
 typedef enum { BV_MATMULT_VECS,
                BV_MATMULT_MAT,
                BV_MATMULT_MAT_SAVE } BVMatMultType;
+PETSC_EXTERN const char *BVMatMultTypes[];
 
 PETSC_EXTERN PetscErrorCode BVCreate(MPI_Comm,BV*);
 PETSC_EXTERN PetscErrorCode BVDestroy(BV*);
