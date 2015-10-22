@@ -245,11 +245,10 @@ PetscErrorCode EPSSolve_LOBPCG(EPS eps)
       ierr = BVSetActiveColumns(Y,nc+bdone*ctx->bs,nc+(bdone+1)*ctx->bs);CHKERRQ(ierr);
       ierr = BVCopy(Z,Y);CHKERRQ(ierr);
       for (j=0;j<ctx->bs;j++) {
-        ierr = BVSetActiveColumns(Y,0,nc+bdone*ctx->bs+j);CHKERRQ(ierr);
-        ierr = BVGetColumn(Y,nc+bdone*ctx->bs+j,&v);CHKERRQ(ierr);
-        ierr = BVOrthogonalizeVec(Y,v,NULL,NULL,NULL);CHKERRQ(ierr);
-        ierr = VecNormalize(v,NULL);CHKERRQ(ierr);
-        ierr = BVRestoreColumn(Y,nc+bdone*ctx->bs+j,&v);CHKERRQ(ierr);
+        ierr = BVOrthogonalizeColumn(Y,nc+bdone*ctx->bs+j,NULL,&norm,&breakdown);CHKERRQ(ierr);
+        if (norm>0.0 && !breakdown) {
+          ierr = BVScaleColumn(Y,nc+bdone*ctx->bs+j,1.0/norm);CHKERRQ(ierr);
+        } else SETERRQ(PetscObjectComm((PetscObject)eps),1,"Orthogonalization of constraints failed");
       }
       ierr = BVSetActiveColumns(Y,0,nc+(bdone+1)*ctx->bs);CHKERRQ(ierr);
 
@@ -271,7 +270,7 @@ PetscErrorCode EPSSolve_LOBPCG(EPS eps)
 
       /* B-orthogonalize initial vectors */
       if (B) {
-        ierr = BVMatMult(X,B,BX);CHKERRQ(ierr);
+        ierr = BVOrthogonalize(X,NULL);CHKERRQ(ierr);
       }
 
       /* Compute initial Ritz vectors */
@@ -281,19 +280,12 @@ PetscErrorCode EPSSolve_LOBPCG(EPS eps)
       ierr = DSGetMat(eps->ds,DS_MAT_A,&M);CHKERRQ(ierr);
       ierr = BVMatProject(AX,NULL,X,M);CHKERRQ(ierr);
       ierr = DSRestoreMat(eps->ds,DS_MAT_A,&M);CHKERRQ(ierr);
-      ierr = DSGetMat(eps->ds,DS_MAT_B,&M);CHKERRQ(ierr);
-      if (B) {
-        ierr = BVMatProject(Z,B,Z,M);CHKERRQ(ierr);
-      } else {
-        ierr = BVDot(Z,Z,M);CHKERRQ(ierr);
-      }
-      ierr = DSRestoreMat(eps->ds,DS_MAT_B,&M);CHKERRQ(ierr);
+      ierr = DSSetIdentity(eps->ds,DS_MAT_B);CHKERRQ(ierr);
       ierr = DSSetState(eps->ds,DS_STATE_RAW);CHKERRQ(ierr);
       ierr = DSSolve(eps->ds,eps->eigr+bdone*ctx->bs,eps->eigi);CHKERRQ(ierr);
       ierr = DSSort(eps->ds,eps->eigr+bdone*ctx->bs,eps->eigi,NULL,NULL,NULL);CHKERRQ(ierr);
       ierr = DSVectors(eps->ds,DS_MAT_X,NULL,NULL);CHKERRQ(ierr);
       ierr = DSGetMat(eps->ds,DS_MAT_X,&M);CHKERRQ(ierr);
-      ierr = BVMultInPlace(Z,M,0,nv);CHKERRQ(ierr);
       ierr = BVMultInPlace(X,M,0,nv);CHKERRQ(ierr);
       ierr = BVMultInPlace(AX,M,0,nv);CHKERRQ(ierr);
       ierr = DSRestoreMat(eps->ds,DS_MAT_X,&M);CHKERRQ(ierr);
@@ -312,6 +304,7 @@ PetscErrorCode EPSSolve_LOBPCG(EPS eps)
       ierr = DSGetMat(eps->ds,DS_MAT_A,&M);CHKERRQ(ierr);
       ierr = BVCopy(AX,R);CHKERRQ(ierr);
       if (B) {
+        ierr = BVMatMult(X,B,BX);CHKERRQ(ierr);
         ierr = BVMult(R,-1.0,1.0,BX,M);CHKERRQ(ierr);
       } else {
         ierr = BVMult(R,-1.0,1.0,X,M);CHKERRQ(ierr);
