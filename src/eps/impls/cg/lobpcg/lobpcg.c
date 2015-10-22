@@ -235,8 +235,10 @@ PetscErrorCode EPSSolve_LOBPCG(EPS eps)
       ierr = BVCopy(X,eps->V);CHKERRQ(ierr);
       ierr = BVCopy(X,Z);CHKERRQ(ierr);
     }
-    if (eps->reason != EPS_CONVERGED_ITERATING) break;
-    else if (nconv == ctx->bs) {
+    if (eps->reason != EPS_CONVERGED_ITERATING) {
+      eps->its += its;
+      break;
+    } else if (nconv == ctx->bs) {
       eps->its += its;
       its = 0;
     }
