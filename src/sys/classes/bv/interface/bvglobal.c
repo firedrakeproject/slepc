@@ -98,6 +98,7 @@ PetscErrorCode BVDot(BV X,BV Y,Mat M)
   PetscErrorCode ierr;
   PetscBool      match;
   PetscInt       m,n;
+  Mat            B;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(X,BV_CLASSID,1);
@@ -120,8 +121,18 @@ PetscErrorCode BVDot(BV X,BV Y,Mat M)
   if (X->l==X->k || Y->l==Y->k) PetscFunctionReturn(0);
 
   ierr = PetscLogEventBegin(BV_Dot,X,Y,0,0);CHKERRQ(ierr);
-  if (X->matrix) { /* non-standard inner product: cast into dotvec ops */
-    ierr = BVDot_Private(X,Y,M);CHKERRQ(ierr);
+  if (X->matrix) { /* non-standard inner product */
+    if (X->vmm==BV_MATMULT_VECS) {
+      /* perform computation column by column */
+      ierr = BVDot_Private(X,Y,M);CHKERRQ(ierr);
+    } else {
+      /* compute BX first */
+      ierr = BV_IPMatMultBV(X);CHKERRQ(ierr);
+      B = X->matrix;
+      X->matrix = NULL;
+      ierr = (*X->ops->dot)(X->cached,Y,M);CHKERRQ(ierr);
+      X->matrix = B;
+    }
   } else {
     ierr = (*X->ops->dot)(X,Y,M);CHKERRQ(ierr);
   }

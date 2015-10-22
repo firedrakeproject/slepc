@@ -547,21 +547,13 @@ static PetscErrorCode MatCholeskyFactorInvert(Mat R,PetscInt l,Mat *S)
 static PetscErrorCode BVOrthogonalize_Chol(BV V,Mat Rin)
 {
   PetscErrorCode ierr;
-  Mat            S,R=Rin,B;
+  Mat            S,R=Rin;
 
   PetscFunctionBegin;
   if (!Rin) {
     ierr = MatCreateSeqDense(PETSC_COMM_SELF,V->k,V->k,NULL,&R);CHKERRQ(ierr);
   }
-  if (V->matrix) {
-    ierr = BV_IPMatMultBV(V);CHKERRQ(ierr);
-    B = V->matrix;
-    V->matrix = NULL;
-    ierr = BVDot(V->cached,V,R);CHKERRQ(ierr);
-    V->matrix = B;
-  } else {
-    ierr = BVDot(V,V,R);CHKERRQ(ierr);
-  }
+  ierr = BVDot(V,V,R);CHKERRQ(ierr);
   ierr = MatCholeskyFactorInvert(R,V->l,&S);CHKERRQ(ierr);
   ierr = BVMultInPlace(V,S,V->l,V->k);CHKERRQ(ierr);
   ierr = MatDestroy(&S);CHKERRQ(ierr);
