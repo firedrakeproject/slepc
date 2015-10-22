@@ -223,21 +223,24 @@ PetscErrorCode EPSSolve_LOBPCG(EPS eps)
     if (eps->its+its) {
       ierr = EPSMonitor(eps,eps->its+its,eps->nconv,eps->eigr,eps->eigi,eps->errest,(bdone+1)*ctx->bs);CHKERRQ(ierr);
     }
-    if (eps->nconv >= eps->nev || nconv == ctx->bs) {
-      ierr = BVSetActiveColumns(eps->V,bdone*ctx->bs,bdone*ctx->bs+nconv);CHKERRQ(ierr);
+    if (eps->nconv >= eps->nev) eps->reason = EPS_CONVERGED_TOL;
+    else if (eps->its+its >= eps->max_it) {
+      eps->its += its;
+      eps->reason = EPS_DIVERGED_ITS;
+    }
+    if (eps->reason != EPS_CONVERGED_ITERATING || nconv == ctx->bs) {
+      ierr = BVSetActiveColumns(eps->V,bdone*ctx->bs,eps->nconv);CHKERRQ(ierr);
       ierr = BVSetActiveColumns(Z,0,nconv);CHKERRQ(ierr);
       ierr = BVSetActiveColumns(X,0,nconv);CHKERRQ(ierr);
       ierr = BVCopy(X,eps->V);CHKERRQ(ierr);
       ierr = BVCopy(X,Z);CHKERRQ(ierr);
     }
-    if (eps->nconv >= eps->nev) eps->reason = EPS_CONVERGED_TOL;
-    else if (eps->its+its >= eps->max_it) eps->reason = EPS_DIVERGED_ITS;
-    if (eps->nconv >= eps->nev || nconv == ctx->bs) {
+    if (eps->reason != EPS_CONVERGED_ITERATING) break;
+    else if (nconv == ctx->bs) {
       eps->its += its;
       its = 0;
     }
     its++;
-    if (eps->reason != EPS_CONVERGED_ITERATING) break;
 
     if (nconv == ctx->bs) {  /* block finished: lock eigenvectors and compute new R */
 
