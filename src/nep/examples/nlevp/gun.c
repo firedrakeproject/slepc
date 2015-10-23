@@ -125,9 +125,6 @@ int main(int argc,char **argv)
 
   ierr = PetscObjectTypeCompare((PetscObject)nep,NEPNLEIGS,&flg);CHKERRQ(ierr);
   if (flg) {
-    ST st;
-    ierr = NEPNLEIGSGetST(nep,&st);CHKERRQ(ierr);
-    ierr = STSetType(st,STSINVERT);CHKERRQ(ierr);
     ierr = NEPNLEIGSSetSingularitiesFunction(nep,ComputeSingularities,NULL);CHKERRQ(ierr);
   }
 

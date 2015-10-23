@@ -51,7 +51,6 @@ int main(int argc,char **argv)
   PetscErrorCode ierr;
   PetscBool      split=PETSC_TRUE;
   RG             rg;
-  ST             st;
   FN             f[2];
   PetscScalar    coeffs;
 
@@ -71,8 +70,6 @@ int main(int argc,char **argv)
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
   ierr = NEPSetType(nep,NEPNLEIGS);CHKERRQ(ierr);
-  ierr = NEPNLEIGSGetST(nep,&st);CHKERRQ(ierr);
-  ierr = STSetType(st,STSINVERT);CHKERRQ(ierr);
   ierr = NEPNLEIGSSetSingularitiesFunction(nep,ComputeSingularities,NULL);CHKERRQ(ierr);
   ierr = NEPGetRG(nep,&rg);CHKERRQ(ierr);
   ierr = RGSetType(rg,RGINTERVAL);CHKERRQ(ierr);
