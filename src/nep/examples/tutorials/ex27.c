@@ -76,7 +76,11 @@ int main(int argc,char **argv)
   ierr = NEPNLEIGSSetSingularitiesFunction(nep,ComputeSingularities,NULL);CHKERRQ(ierr);
   ierr = NEPGetRG(nep,&rg);CHKERRQ(ierr);
   ierr = RGSetType(rg,RGINTERVAL);CHKERRQ(ierr);
-  ierr = RGIntervalSetEndpoints(rg,0.01,16.0,0.0,0.0);CHKERRQ(ierr);
+#if defined(PETSC_USE_COMPLEX)
+  ierr = RGIntervalSetEndpoints(rg,0.01,16.0,-0.001,0.001);CHKERRQ(ierr);
+#else
+  ierr = RGIntervalSetEndpoints(rg,0.01,16.0,0,0);CHKERRQ(ierr);
+#endif
   ierr = NEPSetTarget(nep,1.0);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
