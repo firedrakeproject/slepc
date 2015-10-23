@@ -276,8 +276,10 @@ PetscErrorCode EPSSolve_LOBPCG(EPS eps)
       ierr = BVCopy(eps->V,X);CHKERRQ(ierr);
       for (j=ctx->bs-nconv;j<ctx->bs;j++) {
         ierr = BVGetColumn(X,j,&v);CHKERRQ(ierr);
-        ierr = BVOrthogonalizeVec(Y,v,NULL,NULL,NULL);CHKERRQ(ierr);
-        ierr = VecNormalize(v,NULL);CHKERRQ(ierr);
+        ierr = BVOrthogonalizeVec(Y,v,NULL,&norm,&breakdown);CHKERRQ(ierr);
+        if (norm>0.0 && !breakdown) {
+          ierr = VecScale(v,1.0/norm);CHKERRQ(ierr);
+        } else SETERRQ(PetscObjectComm((PetscObject)eps),1,"Orthogonalization of initial vector failed");
         ierr = BVRestoreColumn(X,j,&v);CHKERRQ(ierr);
       }
       locked += nconv;
@@ -326,8 +328,10 @@ PetscErrorCode EPSSolve_LOBPCG(EPS eps)
       ierr = BVGetColumn(R,j,&v);CHKERRQ(ierr);
       ierr = STMatSolve(eps->st,v,w);CHKERRQ(ierr);
       if (nc+locked>0) {
-        ierr = BVOrthogonalizeVec(Y,w,NULL,NULL,NULL);CHKERRQ(ierr);
-        ierr = VecNormalize(w,NULL);CHKERRQ(ierr);
+        ierr = BVOrthogonalizeVec(Y,w,NULL,&norm,&breakdown);CHKERRQ(ierr);
+        if (norm>0.0 && !breakdown) {
+          ierr = VecScale(w,1.0/norm);CHKERRQ(ierr);
+        } else SETERRQ(PetscObjectComm((PetscObject)eps),1,"Orthogonalization of preconditioned residual failed");
       }
       ierr = VecCopy(w,v);CHKERRQ(ierr);
       ierr = BVRestoreColumn(R,j,&v);CHKERRQ(ierr);
