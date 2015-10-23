@@ -43,8 +43,9 @@
 #include <slepc/private/dsimpl.h>                 /*I "slepcds.h" I*/
 
 typedef struct {
-  PetscInt  bs;     /* block size */
-  PetscBool lock;   /* soft locking active/inactive */
+  PetscInt  bs;        /* block size */
+  PetscBool lock;      /* soft locking active/inactive */
+  PetscReal restart;   /* restart parameter */
 } EPS_LOBPCG;
 
 #undef __FUNCT__
@@ -85,6 +86,8 @@ PetscErrorCode EPSSetUp_LOBPCG(EPS eps)
   ierr = RGIsTrivial(eps->rg,&istrivial);CHKERRQ(ierr);
   if (!istrivial) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"This solver does not support region filtering");
 
+  if (!ctx->restart) ctx->restart = 0.6;
+
   ierr = STSetUp(eps->st);CHKERRQ(ierr);
   ierr = PetscObjectTypeCompare((PetscObject)eps->st,STPRECOND,&precond);CHKERRQ(ierr);
   if (!precond) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"LOBPCG only works with precond ST");
@@ -103,8 +106,9 @@ PetscErrorCode EPSSolve_LOBPCG(EPS eps)
 {
   PetscErrorCode ierr;
   EPS_LOBPCG     *ctx = (EPS_LOBPCG*)eps->data;
-  PetscInt       i,j,k,ld,nv,ini,kini,nmat,nc,nconv,bdone,its;
+  PetscInt       i,j,k,ld,nv,ini,kini,nmat,nc,nconv,locked,guard,its;
   PetscReal      norm;
+  PetscScalar    *eigr;
   PetscBool      breakdown,countc;
   Mat            A,B,M;
   Vec            v,w=eps->work[0];
@@ -117,7 +121,10 @@ PetscErrorCode EPSSolve_LOBPCG(EPS eps)
   if (nmat>1) { ierr = STGetOperators(eps->st,1,&B);CHKERRQ(ierr); }
   else B = NULL;
 
+  guard = (PetscInt)((1.0-ctx->restart)*ctx->bs);  /* number of guard vectors */
+
   /* 1. Allocate memory */
+  ierr = PetscCalloc1(3*ctx->bs,&eigr);CHKERRQ(ierr);
   ierr = BVDuplicateResize(eps->V,3*ctx->bs,&Z);CHKERRQ(ierr);
   ierr = BVDuplicateResize(eps->V,ctx->bs,&X);CHKERRQ(ierr);
   ierr = BVDuplicateResize(eps->V,ctx->bs,&R);CHKERRQ(ierr);
@@ -127,7 +134,7 @@ PetscErrorCode EPSSolve_LOBPCG(EPS eps)
     ierr = BVDuplicateResize(eps->V,ctx->bs,&BX);CHKERRQ(ierr);
   }
   nc = eps->nds;
-  if (nc>0 || eps->nev>ctx->bs) {
+  if (nc>0 || eps->nev>ctx->bs-guard) {
     ierr = BVDuplicateResize(eps->V,nc+eps->nev,&Y);CHKERRQ(ierr);
   }
   if (nc>0) {
@@ -141,7 +148,7 @@ PetscErrorCode EPSSolve_LOBPCG(EPS eps)
 
   /* 2. Apply the constraints to the initial vectors */
   kini = eps->nini;
-  while (kini<eps->ncv-2*ctx->bs) { /* Generate more initial vectors if necessary */
+  while (kini<eps->ncv-ctx->bs) { /* Generate more initial vectors if necessary */
     ierr = BVSetRandomColumn(eps->V,kini,eps->rand);CHKERRQ(ierr);
     ierr = BVOrthogonalizeColumn(eps->V,kini,NULL,&norm,&breakdown);CHKERRQ(ierr);
     if (norm>0.0 && !breakdown) {
@@ -156,9 +163,6 @@ PetscErrorCode EPSSolve_LOBPCG(EPS eps)
   ierr = BVCopy(Z,X);CHKERRQ(ierr);
 
   /* 3. B-orthogonalize initial vectors */
-  if (B) {
-    ierr = BVMatMult(X,B,BX);CHKERRQ(ierr);
-  }
 
   /* 4. Compute initial Ritz vectors */
   ierr = BVMatMult(X,A,AX);CHKERRQ(ierr);
@@ -168,8 +172,8 @@ PetscErrorCode EPSSolve_LOBPCG(EPS eps)
   ierr = DSRestoreMat(eps->ds,DS_MAT_A,&M);CHKERRQ(ierr);
   ierr = DSSetIdentity(eps->ds,DS_MAT_B);CHKERRQ(ierr);
   ierr = DSSetState(eps->ds,DS_STATE_RAW);CHKERRQ(ierr);
-  ierr = DSSolve(eps->ds,eps->eigr,eps->eigi);CHKERRQ(ierr);
-  ierr = DSSort(eps->ds,eps->eigr,eps->eigi,NULL,NULL,NULL);CHKERRQ(ierr);
+  ierr = DSSolve(eps->ds,eps->eigr,NULL);CHKERRQ(ierr);
+  ierr = DSSort(eps->ds,eps->eigr,NULL,NULL,NULL,NULL);CHKERRQ(ierr);
   ierr = DSVectors(eps->ds,DS_MAT_X,NULL,NULL);CHKERRQ(ierr);
   ierr = DSGetMat(eps->ds,DS_MAT_X,&M);CHKERRQ(ierr);
   ierr = BVMultInPlace(X,M,0,nv);CHKERRQ(ierr);
@@ -177,9 +181,9 @@ PetscErrorCode EPSSolve_LOBPCG(EPS eps)
   ierr = DSRestoreMat(eps->ds,DS_MAT_X,&M);CHKERRQ(ierr);
 
   /* 5. Initialize range of active iterates */
-  bdone = 0;  /* finished blocks, the leading bdone*bs columns of V are eigenvectors */
-  nconv = 0;  /* number of converged eigenvalues in the current block */
-  its   = 0;  /* iterations for the current block */
+  locked = 0;  /* hard-locked vectors, the leading locked columns of V are eigenvectors */
+  nconv  = 0;  /* number of converged eigenvalues in the current block */
+  its    = 0;  /* iterations for the current block */
 
   /* 6. Main loop */
   while (eps->reason == EPS_CONVERGED_ITERATING) {
@@ -196,6 +200,7 @@ PetscErrorCode EPSSolve_LOBPCG(EPS eps)
     ierr = DSGetMat(eps->ds,DS_MAT_A,&M);CHKERRQ(ierr);
     ierr = BVCopy(AX,R);CHKERRQ(ierr);
     if (B) {
+      ierr = BVMatMult(X,B,BX);CHKERRQ(ierr);
       ierr = BVMult(R,-1.0,1.0,BX,M);CHKERRQ(ierr);
     } else {
       ierr = BVMult(R,-1.0,1.0,X,M);CHKERRQ(ierr);
@@ -207,7 +212,7 @@ PetscErrorCode EPSSolve_LOBPCG(EPS eps)
     k = ini;
     countc = PETSC_TRUE;
     for (j=ini;j<ctx->bs;j++) {
-      i = bdone*ctx->bs+j;
+      i = locked+j;
       ierr = BVGetColumn(R,j,&v);CHKERRQ(ierr);
       ierr = VecNorm(v,NORM_2,&norm);CHKERRQ(ierr);
       ierr = BVRestoreColumn(R,j,&v);CHKERRQ(ierr);
@@ -219,66 +224,73 @@ PetscErrorCode EPSSolve_LOBPCG(EPS eps)
       if (!countc && !eps->trackall) break;
     }
     nconv = k;
-    eps->nconv = bdone*ctx->bs + nconv;
-    if (eps->its+its) {
-      ierr = EPSMonitor(eps,eps->its+its,eps->nconv,eps->eigr,eps->eigi,eps->errest,(bdone+1)*ctx->bs);CHKERRQ(ierr);
+    eps->nconv = locked + nconv;
+    if (its) {
+      ierr = EPSMonitor(eps,eps->its+its,eps->nconv,eps->eigr,eps->eigi,eps->errest,locked+ctx->bs);CHKERRQ(ierr);
     }
     if (eps->nconv >= eps->nev) eps->reason = EPS_CONVERGED_TOL;
     else if (eps->its+its >= eps->max_it) {
       eps->its += its;
       eps->reason = EPS_DIVERGED_ITS;
     }
-    if (eps->reason != EPS_CONVERGED_ITERATING || nconv == ctx->bs) {
-      ierr = BVSetActiveColumns(eps->V,bdone*ctx->bs,eps->nconv);CHKERRQ(ierr);
-      ierr = BVSetActiveColumns(Z,0,nconv);CHKERRQ(ierr);
+    if (eps->reason != EPS_CONVERGED_ITERATING || nconv >= ctx->bs-guard) {
+      ierr = BVSetActiveColumns(eps->V,locked,eps->nconv);CHKERRQ(ierr);
       ierr = BVSetActiveColumns(X,0,nconv);CHKERRQ(ierr);
       ierr = BVCopy(X,eps->V);CHKERRQ(ierr);
-      ierr = BVCopy(X,Z);CHKERRQ(ierr);
     }
     if (eps->reason != EPS_CONVERGED_ITERATING) {
       eps->its += its;
       break;
-    } else if (nconv == ctx->bs) {
+    } else if (nconv >= ctx->bs-guard) {
       eps->its += its;
       its = 0;
-    }
-    its++;
+    } else its++;
 
-    if (nconv == ctx->bs) {  /* block finished: lock eigenvectors and compute new R */
+    if (nconv >= ctx->bs-guard) {  /* force hard locking of vectors and compute new R */
 
       /* extend constraints */
-      ierr = BVSetActiveColumns(Y,nc+bdone*ctx->bs,nc+(bdone+1)*ctx->bs);CHKERRQ(ierr);
-      ierr = BVCopy(Z,Y);CHKERRQ(ierr);
-      for (j=0;j<ctx->bs;j++) {
-        ierr = BVOrthogonalizeColumn(Y,nc+bdone*ctx->bs+j,NULL,&norm,&breakdown);CHKERRQ(ierr);
+      ierr = BVSetActiveColumns(Y,nc+locked,nc+locked+nconv);CHKERRQ(ierr);
+      ierr = BVCopy(X,Y);CHKERRQ(ierr);
+      for (j=0;j<nconv;j++) {
+        ierr = BVOrthogonalizeColumn(Y,nc+locked+j,NULL,&norm,&breakdown);CHKERRQ(ierr);
         if (norm>0.0 && !breakdown) {
-          ierr = BVScaleColumn(Y,nc+bdone*ctx->bs+j,1.0/norm);CHKERRQ(ierr);
+          ierr = BVScaleColumn(Y,nc+locked+j,1.0/norm);CHKERRQ(ierr);
         } else SETERRQ(PetscObjectComm((PetscObject)eps),1,"Orthogonalization of constraints failed");
       }
-      ierr = BVSetActiveColumns(Y,0,nc+(bdone+1)*ctx->bs);CHKERRQ(ierr);
+      ierr = BVSetActiveColumns(Y,0,nc+locked+nconv);CHKERRQ(ierr);
 
-      bdone++;
-      nconv = 0;
+      /* shift work BV's */
+      for (j=nconv;j<ctx->bs;j++) {
+        ierr = BVCopyColumn(X,j,j-nconv);CHKERRQ(ierr);
+        ierr = BVCopyColumn(R,j,j-nconv);CHKERRQ(ierr);
+        ierr = BVCopyColumn(P,j,j-nconv);CHKERRQ(ierr);
+        ierr = BVCopyColumn(AX,j,j-nconv);CHKERRQ(ierr);
+        if (B) {
+          ierr = BVCopyColumn(BX,j,j-nconv);CHKERRQ(ierr);
+        }
+      }
 
       /* set new initial vectors */
-      ierr = BVSetActiveColumns(eps->V,bdone*ctx->bs,(bdone+1)*ctx->bs);CHKERRQ(ierr);
-      ierr = BVCopy(eps->V,Z);CHKERRQ(ierr);
-      for (j=0;j<ctx->bs;j++) {
-        ierr = BVGetColumn(Z,j,&v);CHKERRQ(ierr);
+      ierr = BVSetActiveColumns(eps->V,locked+ctx->bs,locked+ctx->bs+nconv);CHKERRQ(ierr);
+      ierr = BVSetActiveColumns(X,ctx->bs-nconv,ctx->bs);CHKERRQ(ierr);
+      ierr = BVCopy(eps->V,X);CHKERRQ(ierr);
+      for (j=ctx->bs-nconv;j<ctx->bs;j++) {
+        ierr = BVGetColumn(X,j,&v);CHKERRQ(ierr);
         ierr = BVOrthogonalizeVec(Y,v,NULL,NULL,NULL);CHKERRQ(ierr);
         ierr = VecNormalize(v,NULL);CHKERRQ(ierr);
-        ierr = BVRestoreColumn(Z,j,&v);CHKERRQ(ierr);
+        ierr = BVRestoreColumn(X,j,&v);CHKERRQ(ierr);
       }
+      locked += nconv;
+      nconv = 0;
       ierr = BVSetActiveColumns(X,nconv,ctx->bs);CHKERRQ(ierr);
-      ierr = BVSetActiveColumns(AX,nconv,ctx->bs);CHKERRQ(ierr);
-      ierr = BVCopy(Z,X);CHKERRQ(ierr);
 
       /* B-orthogonalize initial vectors */
-      if (B) {
-        ierr = BVOrthogonalize(X,NULL);CHKERRQ(ierr);
-      }
+      ierr = BVOrthogonalize(X,NULL);CHKERRQ(ierr);
+      ierr = BVSetActiveColumns(Z,nconv,ctx->bs);CHKERRQ(ierr);
+      ierr = BVSetActiveColumns(AX,nconv,ctx->bs);CHKERRQ(ierr);
+      ierr = BVCopy(X,Z);CHKERRQ(ierr);
 
-      /* Compute initial Ritz vectors */
+      /* compute initial Ritz vectors */
       nv = ctx->bs;
       ierr = BVMatMult(X,A,AX);CHKERRQ(ierr);
       ierr = DSSetDimensions(eps->ds,nv,0,0,0);CHKERRQ(ierr);
@@ -287,34 +299,16 @@ PetscErrorCode EPSSolve_LOBPCG(EPS eps)
       ierr = DSRestoreMat(eps->ds,DS_MAT_A,&M);CHKERRQ(ierr);
       ierr = DSSetIdentity(eps->ds,DS_MAT_B);CHKERRQ(ierr);
       ierr = DSSetState(eps->ds,DS_STATE_RAW);CHKERRQ(ierr);
-      ierr = DSSolve(eps->ds,eps->eigr+bdone*ctx->bs,eps->eigi);CHKERRQ(ierr);
-      ierr = DSSort(eps->ds,eps->eigr+bdone*ctx->bs,eps->eigi,NULL,NULL,NULL);CHKERRQ(ierr);
+      ierr = DSSolve(eps->ds,eigr,NULL);CHKERRQ(ierr);
+      ierr = DSSort(eps->ds,eigr,NULL,NULL,NULL,NULL);CHKERRQ(ierr);
+      for (j=0;j<nv;j++) if (locked+j<eps->ncv) eps->eigr[locked+j] = eigr[j];
       ierr = DSVectors(eps->ds,DS_MAT_X,NULL,NULL);CHKERRQ(ierr);
       ierr = DSGetMat(eps->ds,DS_MAT_X,&M);CHKERRQ(ierr);
       ierr = BVMultInPlace(X,M,0,nv);CHKERRQ(ierr);
       ierr = BVMultInPlace(AX,M,0,nv);CHKERRQ(ierr);
       ierr = DSRestoreMat(eps->ds,DS_MAT_X,&M);CHKERRQ(ierr);
 
-      ierr = EPSMonitor(eps,eps->its+its-1,eps->nconv,eps->eigr,eps->eigi,eps->errest,(bdone+1)*ctx->bs);CHKERRQ(ierr);
-
-      if (ctx->lock) {
-        ierr = BVSetActiveColumns(R,nconv,ctx->bs);CHKERRQ(ierr);
-        ierr = BVSetActiveColumns(AX,nconv,ctx->bs);CHKERRQ(ierr);
-        if (B) {
-          ierr = BVSetActiveColumns(BX,nconv,ctx->bs);CHKERRQ(ierr);
-        }
-      }
-
-      /* compute residuals */
-      ierr = DSGetMat(eps->ds,DS_MAT_A,&M);CHKERRQ(ierr);
-      ierr = BVCopy(AX,R);CHKERRQ(ierr);
-      if (B) {
-        ierr = BVMatMult(X,B,BX);CHKERRQ(ierr);
-        ierr = BVMult(R,-1.0,1.0,BX,M);CHKERRQ(ierr);
-      } else {
-        ierr = BVMult(R,-1.0,1.0,X,M);CHKERRQ(ierr);
-      }
-      ierr = DSRestoreMat(eps->ds,DS_MAT_A,&M);CHKERRQ(ierr);
+      continue;   /* skip the rest of the iteration */
     }
 
     ini = (ctx->lock)? nconv: 0;
@@ -331,7 +325,7 @@ PetscErrorCode EPSSolve_LOBPCG(EPS eps)
     for (j=ini;j<ctx->bs;j++) {
       ierr = BVGetColumn(R,j,&v);CHKERRQ(ierr);
       ierr = STMatSolve(eps->st,v,w);CHKERRQ(ierr);
-      if (nc+bdone*ctx->bs>0) {
+      if (nc+locked>0) {
         ierr = BVOrthogonalizeVec(Y,w,NULL,NULL,NULL);CHKERRQ(ierr);
         ierr = VecNormalize(w,NULL);CHKERRQ(ierr);
       }
@@ -376,8 +370,9 @@ PetscErrorCode EPSSolve_LOBPCG(EPS eps)
     
     /* 24. Solve the generalized eigenvalue problem */
     ierr = DSSetState(eps->ds,DS_STATE_RAW);CHKERRQ(ierr);
-    ierr = DSSolve(eps->ds,eps->eigr+bdone*ctx->bs,eps->eigi);CHKERRQ(ierr);
-    ierr = DSSort(eps->ds,eps->eigr+bdone*ctx->bs,eps->eigi,NULL,NULL,NULL);CHKERRQ(ierr);
+    ierr = DSSolve(eps->ds,eigr,NULL);CHKERRQ(ierr);
+    ierr = DSSort(eps->ds,eigr,NULL,NULL,NULL,NULL);CHKERRQ(ierr);
+    for (j=0;j<nv;j++) if (locked+j<eps->ncv) eps->eigr[locked+j] = eigr[j];
     ierr = DSVectors(eps->ds,DS_MAT_X,NULL,NULL);CHKERRQ(ierr);
     
     /* 25-33. Compute Ritz vectors */
@@ -397,12 +392,10 @@ PetscErrorCode EPSSolve_LOBPCG(EPS eps)
       ierr = BVSetActiveColumns(X,nconv,ctx->bs);CHKERRQ(ierr);
     }
     ierr = BVMatMult(X,A,AX);CHKERRQ(ierr);
-    if (B) {
-      ierr = BVMatMult(X,B,BX);CHKERRQ(ierr);
-    }
     ierr = DSRestoreMat(eps->ds,DS_MAT_X,&M);CHKERRQ(ierr);
   }
 
+  ierr = PetscFree(eigr);CHKERRQ(ierr);
   ierr = BVDestroy(&Z);CHKERRQ(ierr);
   ierr = BVDestroy(&X);CHKERRQ(ierr);
   ierr = BVDestroy(&R);CHKERRQ(ierr);
@@ -411,7 +404,7 @@ PetscErrorCode EPSSolve_LOBPCG(EPS eps)
   if (B) {
     ierr = BVDestroy(&BX);CHKERRQ(ierr);
   }
-  if (nc>0 || eps->nev>ctx->bs) {
+  if (nc>0 || eps->nev>ctx->bs-guard) {
     ierr = BVDestroy(&Y);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
@@ -493,6 +486,95 @@ PetscErrorCode EPSLOBPCGGetBlockSize(EPS eps,PetscInt *bs)
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidPointer(bs,2);
   ierr = PetscTryMethod(eps,"EPSLOBPCGGetBlockSize_C",(EPS,PetscInt*),(eps,bs));CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "EPSLOBPCGSetRestart_LOBPCG"
+static PetscErrorCode EPSLOBPCGSetRestart_LOBPCG(EPS eps,PetscReal restart)
+{
+  EPS_LOBPCG *ctx = (EPS_LOBPCG*)eps->data;
+
+  PetscFunctionBegin;
+  if (restart==PETSC_DEFAULT) ctx->restart = 0.6;
+  else {
+    if (restart<0.1 || restart>1.0) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"The restart argument must be in the range [0.1,1.0]");
+    ctx->restart = restart;
+  }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "EPSLOBPCGSetRestart"
+/*@
+   EPSLOBPCGSetRestart - Sets the restart parameter for the LOBPCG method.
+   The meaning of this parameter is the proportion of vectors within the
+   current block iterate that must have converged in order to force a
+   restart with hard locking.
+
+   Logically Collective on EPS
+
+   Input Parameters:
++  eps - the eigenproblem solver context
+-  restart - the percentage of the block of vectors to force a restart
+
+   Options Database Key:
+.  -eps_lobpcg_restart - Sets the restart parameter
+
+   Notes:
+   Allowed values are in the range [0.1,1.0]. The default is 0.6.
+
+   Level: advanced
+
+.seealso: EPSLOBPCGGetRestart()
+@*/
+PetscErrorCode EPSLOBPCGSetRestart(EPS eps,PetscReal restart)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
+  PetscValidLogicalCollectiveReal(eps,restart,2);
+  ierr = PetscTryMethod(eps,"EPSLOBPCGSetRestart_C",(EPS,PetscReal),(eps,restart));CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "EPSLOBPCGGetRestart_LOBPCG"
+static PetscErrorCode EPSLOBPCGGetRestart_LOBPCG(EPS eps,PetscReal *restart)
+{
+  EPS_LOBPCG *ctx = (EPS_LOBPCG*)eps->data;
+
+  PetscFunctionBegin;
+  *restart = ctx->restart;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "EPSLOBPCGGetRestart"
+/*@
+   EPSLOBPCGGetRestart - Gets the restart parameter used in the LOBPCG method.
+
+   Not Collective
+
+   Input Parameter:
+.  eps - the eigenproblem solver context
+
+   Output Parameter:
+.  restart - the restart parameter
+
+   Level: advanced
+
+.seealso: EPSLOBPCGSetRestart()
+@*/
+PetscErrorCode EPSLOBPCGGetRestart(EPS eps,PetscReal *restart)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
+  PetscValidPointer(restart,2);
+  ierr = PetscTryMethod(eps,"EPSLOBPCGGetRestart_C",(EPS,PetscReal*),(eps,restart));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -593,6 +675,7 @@ PetscErrorCode EPSView_LOBPCG(EPS eps,PetscViewer viewer)
   ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
   if (isascii) {
     ierr = PetscViewerASCIIPrintf(viewer,"  LOBPCG: block size %D\n",ctx->bs);CHKERRQ(ierr);
+    ierr = PetscViewerASCIIPrintf(viewer,"  LOBPCG: restart parameter=%g (using %d guard vectors)\n",(double)ctx->restart,(int)((1.0-ctx->restart)*ctx->bs));CHKERRQ(ierr);
     ierr = PetscViewerASCIIPrintf(viewer,"  LOBPCG: soft locking %sactivated\n",ctx->lock?"":"de");CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
@@ -605,6 +688,7 @@ PetscErrorCode EPSSetFromOptions_LOBPCG(PetscOptions *PetscOptionsObject,EPS eps
   PetscErrorCode ierr;
   PetscBool      lock,flg;
   PetscInt       bs;
+  PetscReal      restart;
   KSP            ksp;
 
   PetscFunctionBegin;
@@ -612,6 +696,10 @@ PetscErrorCode EPSSetFromOptions_LOBPCG(PetscOptions *PetscOptionsObject,EPS eps
   ierr = PetscOptionsInt("-eps_lobpcg_blocksize","LOBPCG block size","EPSLOBPCGSetBlockSize",20,&bs,&flg);CHKERRQ(ierr);
   if (flg) {
     ierr = EPSLOBPCGSetBlockSize(eps,bs);CHKERRQ(ierr);
+  }
+  ierr = PetscOptionsReal("-eps_lobpcg_restart","Percentage of the block of vectors to force a restart","EPSLOBPCGSetRestart",0.5,&restart,&flg);CHKERRQ(ierr);
+  if (flg) {
+    ierr = EPSLOBPCGSetRestart(eps,restart);CHKERRQ(ierr);
   }
   ierr = PetscOptionsBool("-eps_lobpcg_locking","Choose between locking and non-locking variants","EPSLOBPCGSetLocking",PETSC_TRUE,&lock,&flg);CHKERRQ(ierr);
   if (flg) {
@@ -642,6 +730,8 @@ PetscErrorCode EPSDestroy_LOBPCG(EPS eps)
   ierr = PetscFree(eps->data);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSLOBPCGSetBlockSize_C",NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSLOBPCGGetBlockSize_C",NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSLOBPCGSetRestart_C",NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSLOBPCGGetRestart_C",NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSLOBPCGSetLocking_C",NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSLOBPCGGetLocking_C",NULL);CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -669,6 +759,8 @@ PETSC_EXTERN PetscErrorCode EPSCreate_LOBPCG(EPS eps)
   ierr = STPrecondSetKSPHasMat(eps->st,PETSC_TRUE);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSLOBPCGSetBlockSize_C",EPSLOBPCGSetBlockSize_LOBPCG);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSLOBPCGGetBlockSize_C",EPSLOBPCGGetBlockSize_LOBPCG);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSLOBPCGSetRestart_C",EPSLOBPCGSetRestart_LOBPCG);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSLOBPCGGetRestart_C",EPSLOBPCGGetRestart_LOBPCG);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSLOBPCGSetLocking_C",EPSLOBPCGSetLocking_LOBPCG);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSLOBPCGGetLocking_C",EPSLOBPCGGetLocking_LOBPCG);CHKERRQ(ierr);
   PetscFunctionReturn(0);
