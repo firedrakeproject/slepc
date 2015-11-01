@@ -50,6 +50,10 @@ PetscErrorCode NEPSetUp(NEP nep)
   SlepcSC        sc;
   Mat            T;
   PetscBool      flg;
+  KSP            ksp;
+  PC             pc;
+  PetscMPIInt    size;
+  const MatSolverPackage stype;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
@@ -103,6 +107,29 @@ PetscErrorCode NEPSetUp(NEP nep)
     break;
   }
 
+  /* check consistency of refinement options */
+  if (nep->refine) {
+    if (nep->fui!=NEP_USER_INTERFACE_SPLIT) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"Iterative refinement only implemented in split form");
+    if (nep->scheme==NEP_REFINE_SCHEME_MBE) {
+      ierr = NEPRefineGetKSP(nep,&ksp);CHKERRQ(ierr);
+      ierr = KSPGetPC(ksp,&pc);CHKERRQ(ierr);
+      ierr = PetscObjectTypeCompare((PetscObject)ksp,KSPPREONLY,&flg);CHKERRQ(ierr);
+      if (flg) {
+        ierr = PetscObjectTypeCompareAny((PetscObject)pc,&flg,PCLU,PCCHOLESKY);CHKERRQ(ierr);
+      }
+      if (!flg) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"The MBE scheme for refinement requires a direct solver in KSP");
+      ierr = MPI_Comm_size(PetscObjectComm((PetscObject)pc),&size);CHKERRQ(ierr);
+      if (size>1) {   /* currently selected PC is a factorization */
+        ierr = PCFactorGetMatSolverPackage(pc,&stype);CHKERRQ(ierr);
+        ierr = PetscStrcmp(stype,MATSOLVERPETSC,&flg);CHKERRQ(ierr);
+        if (flg) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"For Newton refinement, you chose to solve linear systems with a factorization, but in parallel runs you need to select an external package");
+      }
+    }
+    if (nep->scheme==NEP_REFINE_SCHEME_SCHUR) {
+      if (nep->nt<=2) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"The Schur scheme for refinement is only available for problems defined with more than 2 matrices");
+      if (nep->npart>1) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"The Schur scheme for refinement does not support subcommunicators"); 
+    }
+  }
   /* call specific solver setup */
   ierr = (*nep->ops->setup)(nep);CHKERRQ(ierr);
 
@@ -113,7 +140,7 @@ PetscErrorCode NEPSetUp(NEP nep)
   nep->ktol   = 0.1;
   nep->nfuncs = 0;
   if (nep->refine) {
-    if (nep->reftol==PETSC_DEFAULT) nep->reftol = SLEPC_DEFAULT_TOL;
+    if (nep->reftol==PETSC_DEFAULT) nep->reftol = nep->rtol;
     if (nep->rits==PETSC_DEFAULT) nep->rits = (nep->refine==NEP_REFINE_SIMPLE)? 10: 1;
   }
 

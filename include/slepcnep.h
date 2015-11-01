@@ -98,6 +98,18 @@ typedef enum { NEP_REFINE_NONE,
 PETSC_EXTERN const char *NEPRefineTypes[];
 
 /*E
+    NEPRefineScheme - The scheme used for solving linear systems during iterative refinement
+
+    Level: intermediate
+
+.seealso: NEPSetRefine()
+E*/
+typedef enum { NEP_REFINE_SCHEME_EXPLICIT,
+               NEP_REFINE_SCHEME_MBE,
+               NEP_REFINE_SCHEME_SCHUR } NEPRefineScheme;
+PETSC_EXTERN const char *NEPRefineSchemes[];
+
+/*E
     NEPConvergedReason - Reason a nonlinear eigensolver was said to
          have converged or diverged
 
@@ -158,14 +170,15 @@ PETSC_EXTERN PetscErrorCode NEPSetRG(NEP,RG);
 PETSC_EXTERN PetscErrorCode NEPGetRG(NEP,RG*);
 PETSC_EXTERN PetscErrorCode NEPSetDS(NEP,DS);
 PETSC_EXTERN PetscErrorCode NEPGetDS(NEP,DS*);
+PETSC_EXTERN PetscErrorCode NEPRefineGetKSP(NEP,KSP*);
 PETSC_EXTERN PetscErrorCode NEPSetTolerances(NEP,PetscReal,PetscReal,PetscReal,PetscInt,PetscInt);
 PETSC_EXTERN PetscErrorCode NEPGetTolerances(NEP,PetscReal*,PetscReal*,PetscReal*,PetscInt*,PetscInt*);
 PETSC_EXTERN PetscErrorCode NEPSetConvergenceTest(NEP,PetscErrorCode (*)(NEP,PetscInt,PetscReal,PetscReal,PetscReal,NEPConvergedReason*,void*),void*,PetscErrorCode (*)(void*));
 PETSC_EXTERN PetscErrorCode NEPConvergedDefault(NEP,PetscInt,PetscReal,PetscReal,PetscReal,NEPConvergedReason*,void*);
 PETSC_EXTERN PetscErrorCode NEPSetDimensions(NEP,PetscInt,PetscInt,PetscInt);
 PETSC_EXTERN PetscErrorCode NEPGetDimensions(NEP,PetscInt*,PetscInt*,PetscInt*);
-PETSC_EXTERN PetscErrorCode NEPSetRefine(NEP,NEPRefine,PetscInt,PetscReal,PetscInt);
-PETSC_EXTERN PetscErrorCode NEPGetRefine(NEP,NEPRefine*,PetscInt*,PetscReal*,PetscInt*);
+PETSC_EXTERN PetscErrorCode NEPSetRefine(NEP,NEPRefine,PetscInt,PetscReal,PetscInt,NEPRefineScheme);
+PETSC_EXTERN PetscErrorCode NEPGetRefine(NEP,NEPRefine*,PetscInt*,PetscReal*,PetscInt*,NEPRefineScheme*);
 PETSC_EXTERN PetscErrorCode NEPSetLagPreconditioner(NEP,PetscInt);
 PETSC_EXTERN PetscErrorCode NEPGetLagPreconditioner(NEP,PetscInt*);
 PETSC_EXTERN PetscErrorCode NEPSetConstCorrectionTol(NEP,PetscBool);

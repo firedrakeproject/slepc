@@ -67,7 +67,7 @@ static PetscErrorCode NEPNLEIGSBackTransform(PetscObject ob,PetscInt n,PetscScal
     if (vali[j] == 0) valr[j] = 1.0 / valr[j] + ctx->shift;
     else {
       t = valr[j] * valr[j] + vali[j] * vali[j];
-      valr[j] = eval[j] / t + ctx->shift;
+      valr[j] = valr[j] / t + ctx->shift;
       vali[j] = - vali[j] / t;
     }
   }
@@ -581,7 +581,6 @@ static PetscErrorCode NEPTOARrun(NEP nep,PetscInt *nq,PetscScalar *S,PetscInt ld
 
     /* Level-2 orthogonalization */
     ierr = NEPTOAROrth2(nep,S,ld,deg,j+1,H+j*ldh,&norm,breakdown,work,lwa);CHKERRQ(ierr);
-    //ierr = NEPTOARSNorm2(lds,S+(j+1)*lds,&norm);CHKERRQ(ierr);
     if (!*breakdown) {
       for (p=0;p<deg;p++) {
         for (i=0;i<=j+deg;i++) {

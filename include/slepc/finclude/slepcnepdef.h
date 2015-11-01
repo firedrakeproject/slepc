@@ -39,6 +39,7 @@
 #define NEPErrorType       PetscEnum
 #define NEPWhich           PetscEnum
 #define NEPRefine          PetscEnum
+#define PEPRefineScheme    PetscEnum
 
 #define NEPRII       'rii'
 #define NEPSLP       'slp'
