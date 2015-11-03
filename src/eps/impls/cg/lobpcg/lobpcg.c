@@ -86,7 +86,7 @@ PetscErrorCode EPSSetUp_LOBPCG(EPS eps)
   ierr = RGIsTrivial(eps->rg,&istrivial);CHKERRQ(ierr);
   if (!istrivial) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"This solver does not support region filtering");
 
-  if (!ctx->restart) ctx->restart = 0.6;
+  if (!ctx->restart) ctx->restart = 0.9;
 
   ierr = STSetUp(eps->st);CHKERRQ(ierr);
   ierr = PetscObjectTypeCompare((PetscObject)eps->st,STPRECOND,&precond);CHKERRQ(ierr);
