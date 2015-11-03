@@ -33,7 +33,6 @@
 #include <slepcblaslapack.h>
 
 #define  MAX_LBPOINTS  100
-#define  DDTOL         1e-15
 #define  NDPOINTS      1e4
 
 typedef struct {        /* context structure for the NLEIGS solver */
@@ -42,6 +41,7 @@ typedef struct {        /* context structure for the NLEIGS solver */
   PetscScalar  *beta;   /* scaling factors */
   Mat          *D;      /* divided difference matrices */
   PetscScalar  *coeffD;
+  PetscReal    ddtol;   /* Tolerance for divided difference convergence */
   BV           W;       /* auxiliary BV object */
   PetscScalar  shift;
   void         *singularitiesctx;
@@ -99,24 +99,24 @@ static PetscErrorCode NEPNLEIGSLejaBagbyPoints(NEP nep)
   if (i<ndpt) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"NLEIGS with real arithmetic requires the target set to be included in the real axis");
 #endif
   /* Discretize the singularity region */
-  ierr = (ctx->computesingularities)(nep,&ndptx,dxi,ctx->singularitiesctx);CHKERRQ(ierr);
-  /* A temporary restriction to prevent single singularities */
-  if (ndptx<ndpt) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"NLEIGS: not enough points in the discretization of the singularity set");
+  if (ctx->computesingularities) {
+    ierr = (ctx->computesingularities)(nep,&ndptx,dxi,ctx->singularitiesctx);CHKERRQ(ierr);
+  } else ndptx = 0;
 
-  /* loop to look for Leja-Bagby points in the discretization sets 
-     now both sets have the same number of points */
-  s[0] = ds[0]; xi[0] = dxi[0];
+  /* Look for Leja-Bagby points in the discretization sets */
+  s[0] = ds[0]; xi[0] = (ndptx>0)?dxi[0]:PETSC_INFINITY;
   beta[0] = 1.0; /* scaling factors are also computed here */
   maxnrs = 0.0;
   minnrxi = PETSC_MAX_REAL; 
   for (i=0;i<ndpt;i++) {
     nrs[i]  = (ds[i]-s[0])/(1.0-ds[i]/xi[0]);
-    if (PetscAbsScalar(nrs[i])>maxnrs) {maxnrs = PetscAbsScalar(nrs[i]); s[1] = ds[i];}
+    if (PetscAbsScalar(nrs[i])>=maxnrs) {maxnrs = PetscAbsScalar(nrs[i]); s[1] = ds[i];}
   }
-  for (i=0;i<ndptx;i++) {
+  for (i=1;i<ndptx;i++) {
     nrxi[i] = (dxi[i]-s[0])/(1.0-dxi[i]/xi[0]);
-    if (PetscAbsScalar(nrxi[i])<minnrxi) {minnrxi = PetscAbsScalar(nrxi[i]); xi[1] = dxi[i];}
+    if (PetscAbsScalar(nrxi[i])<=minnrxi) {minnrxi = PetscAbsScalar(nrxi[i]); xi[1] = dxi[i];}
   }
+  if (ndptx<2) xi[1] = PETSC_INFINITY;
 
   beta[1] = maxnrs;
   for (k=2;k<MAX_LBPOINTS;k++) {
@@ -126,10 +126,12 @@ static PetscErrorCode NEPNLEIGSLejaBagbyPoints(NEP nep)
       nrs[i]  *= ((ds[i]-s[k-1])/(1.0-ds[i]/xi[k-1]))/beta[k-1];
       if (PetscAbsScalar(nrs[i])>maxnrs) {maxnrs = PetscAbsScalar(nrs[i]); s[k] = ds[i];}
     }
-    for (i=0;i<ndptx;i++) {
-      nrxi[i] *= ((dxi[i]-s[k-1])/(1.0-dxi[i]/xi[k-1]))/beta[k-1];
-      if (PetscAbsScalar(nrxi[i])<minnrxi) {minnrxi = PetscAbsScalar(nrxi[i]); xi[k] = dxi[i];}
-    }
+    if (ndptx>=k) {
+      for (i=0;i<ndptx;i++) {
+        nrxi[i] *= ((dxi[i]-s[k-1])/(1.0-dxi[i]/xi[k-1]))/beta[k-1];
+        if (PetscAbsScalar(nrxi[i])<minnrxi) {minnrxi = PetscAbsScalar(nrxi[i]); xi[k] = dxi[i];}
+      }
+    }  else xi[k] = PETSC_INFINITY;
     beta[k] = maxnrs;
   }
   ierr = PetscFree5(ds,dsi,dxi,nrs,nrxi);CHKERRQ(ierr);
@@ -159,56 +161,40 @@ static PetscErrorCode NEPNLEIGSDividedDifferences_split(NEP nep)
   PetscErrorCode ierr;
   NEP_NLEIGS     *ctx=(NEP_NLEIGS*)nep->data;
   PetscInt       k,j,i;
-  PetscReal      norm0,norm;
+  PetscReal      norm0,norm,max;
   PetscScalar    *s=ctx->s,*beta=ctx->beta,b[MAX_LBPOINTS+1],alpha,coeffs[MAX_LBPOINTS+1];
   PetscBool      flg=PETSC_TRUE;
   Mat            T;
 
   PetscFunctionBegin;
   ierr = PetscMalloc1(nep->nt*MAX_LBPOINTS,&ctx->coeffD);CHKERRQ(ierr);
+  max = 0.0;
   for (j=0;j<nep->nt;j++) {
     ierr = FNEvaluateFunction(nep->f[j],s[0],ctx->coeffD+j);CHKERRQ(ierr);
     ctx->coeffD[j] /= beta[0];
+    max = PetscMax(PetscAbsScalar(ctx->coeffD[j]),max);
   }
-  /* /////// */
-  if (!nep->ksp) {ierr = NEPGetKSP(nep,&nep->ksp);CHKERRQ(ierr);}
-  ierr = KSPGetOperators(nep->ksp,&T,NULL);CHKERRQ(ierr);
-  ierr = MatDuplicate(nep->A[0],MAT_COPY_VALUES,&T);CHKERRQ(ierr);
-  if (ctx->coeffD[0]!=1.0) {
-    ierr = MatScale(T,ctx->coeffD[0]);CHKERRQ(ierr);
-  }
-  for (j=1;j<nep->nt;j++) {
-    ierr = MatAXPY(T,ctx->coeffD[j],nep->A[j],nep->mstr);CHKERRQ(ierr);
-  }
-  ierr = MatNorm(T,NORM_FROBENIUS,&norm0);CHKERRQ(ierr);
-  /* /////// */
+  norm0 = max;
   ctx->nmat = MAX_LBPOINTS;
   for (k=1;k<MAX_LBPOINTS && flg;k++) {
     ierr = NEPNLEIGSEvalNRTFunct(nep,k,s[k],b);CHKERRQ(ierr);
+    max = 0.0;
     for (i=0;i<nep->nt;i++) {
       ierr = FNEvaluateFunction(nep->f[i],s[k],ctx->coeffD+k*nep->nt+i);CHKERRQ(ierr);
       for (j=0;j<k;j++) {
         ctx->coeffD[k*nep->nt+i] -= b[j]*ctx->coeffD[i+nep->nt*j];
       }
       ctx->coeffD[k*nep->nt+i] /= b[k];
+      max = PetscMax(PetscAbsScalar(ctx->coeffD[k*nep->nt+i]),max);
     }
-    /* ////////////// */
-    ierr = MatCopy(nep->A[0],T,nep->mstr);CHKERRQ(ierr);
-    if (ctx->coeffD[k*nep->nt]!=1.0) {
-      ierr = MatScale(T,ctx->coeffD[k*nep->nt]);CHKERRQ(ierr);
-    }
-    for (j=1;j<nep->nt;j++) {
-      ierr = MatAXPY(T,ctx->coeffD[j+k*nep->nt],nep->A[j],nep->mstr);CHKERRQ(ierr);
-    }
-    ierr = MatNorm(T,NORM_FROBENIUS,&norm);CHKERRQ(ierr);
-    /* /////// */
-    if (norm/norm0 < DDTOL) {
+    norm = max;
+    if (norm/norm0 < ctx->ddtol) {
       flg = PETSC_FALSE;
       ctx->nmat = k;
     } 
   }
   ierr = NEPNLEIGSEvalNRTFunct(nep,ctx->nmat,nep->target,coeffs);CHKERRQ(ierr);
-  ierr = MatCopy(nep->A[0],T,nep->mstr);CHKERRQ(ierr);
+  ierr = MatDuplicate(nep->A[0],MAT_COPY_VALUES,&T);CHKERRQ(ierr);
   alpha = 0.0;
   for (j=0;j<ctx->nmat;j++) alpha += coeffs[j]*ctx->coeffD[j*nep->nt];
   ierr = MatScale(T,alpha);CHKERRQ(ierr);
@@ -253,7 +239,7 @@ static PetscErrorCode NEPNLEIGSDividedDifferences_callback(NEP nep)
     }
     ierr = MatScale(D[k],1.0/b[k]);CHKERRQ(ierr);
     ierr = MatNorm(D[k],NORM_FROBENIUS,&norm);CHKERRQ(ierr);
-    if (norm/norm0 < DDTOL) {
+    if (norm/norm0 < ctx->ddtol) {
       flg = PETSC_FALSE;
       ctx->nmat = k;
       ierr = MatDestroy(&D[k]);CHKERRQ(ierr);
@@ -356,6 +342,8 @@ PetscErrorCode NEPSetUp_NLEIGS(NEP nep)
   k = MAX_LBPOINTS;
   ierr = PetscMalloc4(k,&ctx->s,k,&ctx->xi,k,&ctx->beta,k,&ctx->D);CHKERRQ(ierr);
   nep->data = ctx;
+  if (nep->rtol==PETSC_DEFAULT) nep->rtol = SLEPC_DEFAULT_TOL;
+  ctx->ddtol = nep->rtol/10;
 
   /* Compute Leja-Bagby points and scaling values */
   ierr = NEPNLEIGSLejaBagbyPoints(nep);CHKERRQ(ierr);
