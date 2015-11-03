@@ -230,7 +230,6 @@ PetscErrorCode EPSSolve_LOBPCG(EPS eps)
     }
     if (eps->nconv >= eps->nev) eps->reason = EPS_CONVERGED_TOL;
     else if (eps->its+its >= eps->max_it) {
-      eps->its += its;
       eps->reason = EPS_DIVERGED_ITS;
     }
     if (eps->reason != EPS_CONVERGED_ITERATING || nconv >= ctx->bs-guard) {
