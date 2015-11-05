@@ -587,7 +587,10 @@ PetscErrorCode PEPSetProblemType(PEP pep,PEPProblemType type)
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
   PetscValidLogicalCollectiveEnum(pep,type,2);
   if (type!=PEP_GENERAL && type!=PEP_HERMITIAN && type!=PEP_GYROSCOPIC) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_WRONG,"Unknown eigenvalue problem type");
-  pep->problem_type = type;
+  if (type != pep->problem_type) {
+    pep->problem_type = type;
+    pep->state = PEP_STATE_INITIAL;
+  }
   PetscFunctionReturn(0);
 }
 
