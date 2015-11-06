@@ -34,6 +34,14 @@
       parameter (NEP_REFINE_SIMPLE          =  1)
       parameter (NEP_REFINE_MULTIPLE        =  2)
 
+      PetscEnum NEP_REFINE_SCHEME_EXPLICIT
+      PetscEnum NEP_REFINE_SCHEME_MBE
+      PetscEnum NEP_REFINE_SCHEME_SCHUR
+
+      parameter (NEP_REFINE_SCHEME_EXPLICIT =  0)
+      parameter (NEP_REFINE_SCHEME_MBE      =  1)
+      parameter (NEP_REFINE_SCHEME_SCHUR    =  2)
+
       PetscEnum NEP_CONVERGED_FNORM_ABS
       PetscEnum NEP_CONVERGED_FNORM_RELATIVE
       PetscEnum NEP_CONVERGED_SNORM_RELATIVE

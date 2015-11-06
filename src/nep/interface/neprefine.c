@@ -114,11 +114,11 @@ static PetscErrorCode NEPSimpleNRefSetUp(NEP nep,NEPSimpNRefctx **ctx_)
     }
     ierr = PetscFree2(idx1,idx2);CHKERRQ(ierr);
   }
-  if (nep->scheme==NEP_REFINE_SCHEME_EXPLICIT){
+  if (nep->scheme==NEP_REFINE_SCHEME_EXPLICIT) {
     ierr = MPI_Comm_rank(PetscObjectComm((PetscObject)ctx->A[0]),&rank);CHKERRQ(ierr);
     ierr = MPI_Comm_size(PetscObjectComm((PetscObject)ctx->A[0]),&size);CHKERRQ(ierr);
     if (size>1) {
-      if (nep->npart==1){
+      if (nep->npart==1) {
         ierr = BVGetColumn(nep->V,0,&v);CHKERRQ(ierr);
       } else {v = ctx->v;}
       ierr = VecGetOwnershipRange(v,&n0,&m0);CHKERRQ(ierr);
@@ -131,7 +131,7 @@ static PetscErrorCode NEPSimpleNRefSetUp(NEP nep,NEPSimpNRefctx **ctx_)
       }
       ierr = ISCreateGeneral(PetscObjectComm((PetscObject)nep),(m0-n0),idx1,PETSC_COPY_VALUES,&is1);CHKERRQ(ierr);
       ierr = VecScatterCreate(v,is1,ctx->nv,is1,&ctx->nst);CHKERRQ(ierr);
-      if (nep->npart==1){
+      if (nep->npart==1) {
         ierr = BVRestoreColumn(nep->V,0,&v);CHKERRQ(ierr);
       }
       ierr = PetscFree(idx1);CHKERRQ(ierr);
@@ -242,8 +242,12 @@ static PetscErrorCode NEPSimpleNRefSetUpSystem(NEP nep,NEPSimpNRefctx *ctx,Mat *
     }    
     M=fctx->M1;
     break;
-  case NEP_REFINE_SCHEME_MBE: M=*T; break;
-  case NEP_REFINE_SCHEME_EXPLICIT: M=*Mt;
+  case NEP_REFINE_SCHEME_MBE:
+    M=*T;
+    break;
+  case NEP_REFINE_SCHEME_EXPLICIT:
+    M=*Mt;
+    break;
   }
   if (ini) {
     ierr = MatDuplicate(A[0],MAT_COPY_VALUES,&M);CHKERRQ(ierr);
@@ -379,6 +383,7 @@ static PetscErrorCode NEPSimpleNRefSetUpSystem(NEP nep,NEPSimpNRefctx *ctx,Mat *
   case NEP_REFINE_SCHEME_MBE:
     *T = M;
     *P = M;
+    break;
   }
   ierr = PetscFree2(coeffs,coeffs2);CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -407,7 +412,7 @@ PetscErrorCode NEPNewtonRefinementSimple(NEP nep,PetscInt *maxits,PetscReal *tol
   ierr = NEPSimpleNRefSetUp(nep,&ctx);CHKERRQ(ierr);
   its = (maxits)?*maxits:NREF_MAXIT;
   comm = (nep->npart==1)?PetscObjectComm((PetscObject)nep):PetscSubcommChild(ctx->subc);
-  if (!nep->refineksp) {ierr = NEPRefineGetKSP(nep,&nep->refineksp);CHKERRQ(ierr);}
+  if (!nep->refineksp) { ierr = NEPRefineGetKSP(nep,&nep->refineksp);CHKERRQ(ierr); }
   if (nep->npart==1) {
     ierr = BVGetColumn(nep->V,0,&v);CHKERRQ(ierr);
   } else v = ctx->v;
