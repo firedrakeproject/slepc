@@ -22,14 +22,13 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-
 #if !defined(SLEPC_INTERFACE_HEADER)
 #define SLEPC_INTERFACE_HEADER
 
 #include <blopex_lobpcg.h>
 #include "petsc-interface.h"
 
-#define SLEPC_BLOPEX_USECONSTR 1121
+PETSC_INTERN PetscInt slepc_blopex_useconstr;
 
 extern int
 SLEPCSetupInterpreter(mv_InterfaceInterpreter *ii);
