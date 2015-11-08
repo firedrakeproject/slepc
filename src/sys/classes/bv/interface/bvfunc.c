@@ -24,8 +24,13 @@
 #include <slepc/private/bvimpl.h>            /*I "slepcbv.h" I*/
 
 PetscClassId     BV_CLASSID = 0;
-PetscLogEvent    BV_Create = 0,BV_Copy = 0,BV_Mult = 0,BV_Dot = 0,BV_Orthogonalize = 0,BV_Scale = 0,BV_Norm = 0,BV_SetRandom = 0,BV_MatMult = 0,BV_MatProject = 0,BV_AXPY = 0;
+PetscLogEvent    BV_Create = 0,BV_Copy = 0,BV_Mult = 0,BV_MultVec = 0,BV_MultInPlace = 0,BV_Dot = 0,BV_DotVec = 0,BV_Orthogonalize = 0,BV_OrthogonalizeVec = 0,BV_Scale = 0,BV_Norm = 0,BV_NormVec = 0,BV_SetRandom = 0,BV_MatMult = 0,BV_MatMultVec = 0,BV_MatProject = 0,BV_AXPY = 0;
 static PetscBool BVPackageInitialized = PETSC_FALSE;
+
+const char *BVOrthogTypes[] = {"CGS","MGS","BVOrthogType","BV_ORTHOG_",0};
+const char *BVOrthogRefineTypes[] = {"IFNEEDED","NEVER","ALWAYS","BVOrthogRefineType","BV_ORTHOG_REFINE_",0};
+const char *BVOrthogBlockTypes[] = {"GS","CHOL","BVOrthogBlockType","BV_ORTHOG_BLOCK_",0};
+const char *BVMatMultTypes[] = {"VECS","MAT","MAT_SAVE","BVMatMultType","BV_MATMULT_",0};
 
 #undef __FUNCT__
 #define __FUNCT__ "BVFinalizePackage"
@@ -77,12 +82,18 @@ PetscErrorCode BVInitializePackage(void)
   ierr = PetscLogEventRegister("BVCreate",BV_CLASSID,&BV_Create);CHKERRQ(ierr);
   ierr = PetscLogEventRegister("BVCopy",BV_CLASSID,&BV_Copy);CHKERRQ(ierr);
   ierr = PetscLogEventRegister("BVMult",BV_CLASSID,&BV_Mult);CHKERRQ(ierr);
+  ierr = PetscLogEventRegister("BVMultVec",BV_CLASSID,&BV_MultVec);CHKERRQ(ierr);
+  ierr = PetscLogEventRegister("BVMultInPlace",BV_CLASSID,&BV_MultInPlace);CHKERRQ(ierr);
   ierr = PetscLogEventRegister("BVDot",BV_CLASSID,&BV_Dot);CHKERRQ(ierr);
+  ierr = PetscLogEventRegister("BVDotVec",BV_CLASSID,&BV_DotVec);CHKERRQ(ierr);
   ierr = PetscLogEventRegister("BVOrthogonalize",BV_CLASSID,&BV_Orthogonalize);CHKERRQ(ierr);
+  ierr = PetscLogEventRegister("BVOrthogonalizeV",BV_CLASSID,&BV_OrthogonalizeVec);CHKERRQ(ierr);
   ierr = PetscLogEventRegister("BVScale",BV_CLASSID,&BV_Scale);CHKERRQ(ierr);
   ierr = PetscLogEventRegister("BVNorm",BV_CLASSID,&BV_Norm);CHKERRQ(ierr);
+  ierr = PetscLogEventRegister("BVNormVec",BV_CLASSID,&BV_NormVec);CHKERRQ(ierr);
   ierr = PetscLogEventRegister("BVSetRandom",BV_CLASSID,&BV_SetRandom);CHKERRQ(ierr);
   ierr = PetscLogEventRegister("BVMatMult",BV_CLASSID,&BV_MatMult);CHKERRQ(ierr);
+  ierr = PetscLogEventRegister("BVMatMultVec",BV_CLASSID,&BV_MatMultVec);CHKERRQ(ierr);
   ierr = PetscLogEventRegister("BVMatProject",BV_CLASSID,&BV_MatProject);CHKERRQ(ierr);
   ierr = PetscLogEventRegister("BVAXPY",BV_CLASSID,&BV_AXPY);CHKERRQ(ierr);
   /* Process info exclusions */

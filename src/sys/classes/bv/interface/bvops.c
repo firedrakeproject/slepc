@@ -142,9 +142,9 @@ PetscErrorCode BVMultVec(BV X,PetscScalar alpha,PetscScalar beta,Vec y,PetscScal
   ierr = VecGetLocalSize(y,&n);CHKERRQ(ierr);
   if (N!=X->N || n!=X->n) SETERRQ4(PetscObjectComm((PetscObject)X),PETSC_ERR_ARG_INCOMP,"Vec sizes (global %D, local %D) do not match BV sizes (global %D, local %D)",N,n,X->N,X->n);
 
-  ierr = PetscLogEventBegin(BV_Mult,X,y,0,0);CHKERRQ(ierr);
+  ierr = PetscLogEventBegin(BV_MultVec,X,y,0,0);CHKERRQ(ierr);
   ierr = (*X->ops->multvec)(X,alpha,beta,y,q);CHKERRQ(ierr);
-  ierr = PetscLogEventEnd(BV_Mult,X,y,0,0);CHKERRQ(ierr);
+  ierr = PetscLogEventEnd(BV_MultVec,X,y,0,0);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -192,14 +192,14 @@ PetscErrorCode BVMultColumn(BV X,PetscScalar alpha,PetscScalar beta,PetscInt j,P
   if (j<0) SETERRQ(PetscObjectComm((PetscObject)X),PETSC_ERR_ARG_OUTOFRANGE,"Index j must be non-negative");
   if (j>=X->m) SETERRQ2(PetscObjectComm((PetscObject)X),PETSC_ERR_ARG_OUTOFRANGE,"Index j=%D but BV only has %D columns",j,X->m);
 
-  ierr = PetscLogEventBegin(BV_Mult,X,0,0,0);CHKERRQ(ierr);
+  ierr = PetscLogEventBegin(BV_MultVec,X,0,0,0);CHKERRQ(ierr);
   ksave = X->k;
   X->k = j;
   ierr = BVGetColumn(X,j,&y);CHKERRQ(ierr);
   ierr = (*X->ops->multvec)(X,alpha,beta,y,q);CHKERRQ(ierr);
   ierr = BVRestoreColumn(X,j,&y);CHKERRQ(ierr);
   X->k = ksave;
-  ierr = PetscLogEventEnd(BV_Mult,X,0,0,0);CHKERRQ(ierr);
+  ierr = PetscLogEventEnd(BV_MultVec,X,0,0,0);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -255,9 +255,9 @@ PetscErrorCode BVMultInPlace(BV V,Mat Q,PetscInt s,PetscInt e)
   if (e>n) SETERRQ2(PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_SIZ,"Mat argument only has %D columns, the requested value of e is larger: %D",n,e);
   if (s>=e) PetscFunctionReturn(0);
 
-  ierr = PetscLogEventBegin(BV_Mult,V,Q,0,0);CHKERRQ(ierr);
+  ierr = PetscLogEventBegin(BV_MultInPlace,V,Q,0,0);CHKERRQ(ierr);
   ierr = (*V->ops->multinplace)(V,Q,s,e);CHKERRQ(ierr);
-  ierr = PetscLogEventEnd(BV_Mult,V,Q,0,0);CHKERRQ(ierr);
+  ierr = PetscLogEventEnd(BV_MultInPlace,V,Q,0,0);CHKERRQ(ierr);
   ierr = PetscObjectStateIncrease((PetscObject)V);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -309,9 +309,9 @@ PetscErrorCode BVMultInPlaceTranspose(BV V,Mat Q,PetscInt s,PetscInt e)
   if (e>m) SETERRQ2(PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_SIZ,"Mat argument only has %D rows, the requested value of e is larger: %D",m,e);
   if (s>=e || !V->n) PetscFunctionReturn(0);
 
-  ierr = PetscLogEventBegin(BV_Mult,V,Q,0,0);CHKERRQ(ierr);
+  ierr = PetscLogEventBegin(BV_MultInPlace,V,Q,0,0);CHKERRQ(ierr);
   ierr = (*V->ops->multinplacetrans)(V,Q,s,e);CHKERRQ(ierr);
-  ierr = PetscLogEventEnd(BV_Mult,V,Q,0,0);CHKERRQ(ierr);
+  ierr = PetscLogEventEnd(BV_MultInPlace,V,Q,0,0);CHKERRQ(ierr);
   ierr = PetscObjectStateIncrease((PetscObject)V);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -650,13 +650,13 @@ PetscErrorCode BVMatMultColumn(BV V,Mat A,PetscInt j)
   if (j<0) SETERRQ(PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_OUTOFRANGE,"Index j must be non-negative");
   if (j+1>=V->m) SETERRQ2(PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_OUTOFRANGE,"Result should go in index j+1=%D but BV only has %D columns",j+1,V->m);
 
-  ierr = PetscLogEventBegin(BV_MatMult,V,A,0,0);CHKERRQ(ierr);
+  ierr = PetscLogEventBegin(BV_MatMultVec,V,A,0,0);CHKERRQ(ierr);
   ierr = BVGetColumn(V,j,&vj);CHKERRQ(ierr);
   ierr = BVGetColumn(V,j+1,&vj1);CHKERRQ(ierr);
   ierr = MatMult(A,vj,vj1);CHKERRQ(ierr);
   ierr = BVRestoreColumn(V,j,&vj);CHKERRQ(ierr);
   ierr = BVRestoreColumn(V,j+1,&vj1);CHKERRQ(ierr);
-  ierr = PetscLogEventEnd(BV_MatMult,V,A,0,0);CHKERRQ(ierr);
+  ierr = PetscLogEventEnd(BV_MatMultVec,V,A,0,0);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

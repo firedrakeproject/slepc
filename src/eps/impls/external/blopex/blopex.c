@@ -28,6 +28,8 @@
 #include <blopex_multivector.h>
 #include <blopex_temp_multivector.h>
 
+PetscInt slepc_blopex_useconstr = -1;
+
 PetscErrorCode EPSSolve_BLOPEX(EPS);
 
 typedef struct {
@@ -243,12 +245,12 @@ PetscErrorCode EPSSolve_BLOPEX(EPS eps)
   while (eps->reason == EPS_CONVERGED_ITERATING) {
 
     /* Create multivector of constraints from leading columns of V */
-    ierr = PetscObjectComposedDataSetInt((PetscObject)eps->V,SLEPC_BLOPEX_USECONSTR,1);CHKERRQ(ierr);
+    ierr = PetscObjectComposedDataSetInt((PetscObject)eps->V,slepc_blopex_useconstr,1);CHKERRQ(ierr);
     ierr = BVSetActiveColumns(eps->V,0,eps->nconv);CHKERRQ(ierr);
     constraints = mv_MultiVectorCreateFromSampleVector(&blopex->ii,eps->nds+eps->nconv,eps->V);
 
     /* Create multivector where eigenvectors of this run will be stored */
-    ierr = PetscObjectComposedDataSetInt((PetscObject)eps->V,SLEPC_BLOPEX_USECONSTR,0);CHKERRQ(ierr);
+    ierr = PetscObjectComposedDataSetInt((PetscObject)eps->V,slepc_blopex_useconstr,0);CHKERRQ(ierr);
     ierr = BVSetActiveColumns(eps->V,eps->nconv,eps->nconv+blopex->bs);CHKERRQ(ierr);
     eigenvectors = mv_MultiVectorCreateFromSampleVector(&blopex->ii,blopex->bs,eps->V);
 
@@ -486,6 +488,7 @@ PETSC_EXTERN PetscErrorCode EPSCreate_BLOPEX(EPS eps)
   LOBPCG_InitRandomContext(PetscObjectComm((PetscObject)eps),eps->rand);
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSBLOPEXSetBlockSize_C",EPSBLOPEXSetBlockSize_BLOPEX);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSBLOPEXGetBlockSize_C",EPSBLOPEXGetBlockSize_BLOPEX);CHKERRQ(ierr);
+  if (slepc_blopex_useconstr < 0) { ierr = PetscObjectComposedDataRegister(&slepc_blopex_useconstr);CHKERRQ(ierr); }
   PetscFunctionReturn(0);
 }
 
