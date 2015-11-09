@@ -223,7 +223,7 @@ PetscErrorCode EPSSetFromOptions(EPS eps)
     if (eps->ops->setfromoptions) {
       ierr = (*eps->ops->setfromoptions)(PetscOptionsObject,eps);CHKERRQ(ierr);
     }
-    ierr = PetscObjectProcessOptionsHandlers((PetscObject)eps);CHKERRQ(ierr);
+    ierr = PetscObjectProcessOptionsHandlers(PetscOptionsObject,(PetscObject)eps);CHKERRQ(ierr);
   ierr = PetscOptionsEnd();CHKERRQ(ierr);
 
   if (!eps->V) { ierr = EPSGetBV(eps,&eps->V);CHKERRQ(ierr); }

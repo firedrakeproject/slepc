@@ -808,7 +808,7 @@ PetscErrorCode BVSetFromOptions(BV bv)
     else if (bv->ops->setfromoptions) {
       ierr = (*bv->ops->setfromoptions)(PetscOptionsObject,bv);CHKERRQ(ierr);
     }
-    ierr = PetscObjectProcessOptionsHandlers((PetscObject)bv);CHKERRQ(ierr);
+    ierr = PetscObjectProcessOptionsHandlers(PetscOptionsObject,(PetscObject)bv);CHKERRQ(ierr);
   ierr = PetscOptionsEnd();CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

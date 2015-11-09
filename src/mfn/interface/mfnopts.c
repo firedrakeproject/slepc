@@ -110,7 +110,7 @@ PetscErrorCode MFNSetFromOptions(MFN mfn)
     if (mfn->ops->setfromoptions) {
       ierr = (*mfn->ops->setfromoptions)(PetscOptionsObject,mfn);CHKERRQ(ierr);
     }
-    ierr = PetscObjectProcessOptionsHandlers((PetscObject)mfn);CHKERRQ(ierr);
+    ierr = PetscObjectProcessOptionsHandlers(PetscOptionsObject,(PetscObject)mfn);CHKERRQ(ierr);
   ierr = PetscOptionsEnd();CHKERRQ(ierr);
 
   if (!mfn->V) { ierr = MFNGetBV(mfn,&mfn->V);CHKERRQ(ierr); }

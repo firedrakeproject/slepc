@@ -64,7 +64,7 @@ static PetscErrorCode EPSSliceResetSR(EPS eps) {
     }
     ierr = PetscFree(sr);CHKERRQ(ierr);
   }
-  ctx->sr = PETSC_NULL;
+  ctx->sr = NULL;
   PetscFunctionReturn(0);
 }
 

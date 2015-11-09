@@ -37,9 +37,9 @@ int main(int argc,char **argv)
   PetscBool      verbose;
 
   SlepcInitialize(&argc,&argv,(char*)0,help);
-  ierr = PetscOptionsGetInt(NULL,"-n",&n,NULL);CHKERRQ(ierr);
+  ierr = PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD,"Solve a Dense System of type PEP - n=%D.\n",n);CHKERRQ(ierr);
-  ierr = PetscOptionsHasName(NULL,"-verbose",&verbose);CHKERRQ(ierr);
+  ierr = PetscOptionsHasName(NULL,NULL,"-verbose",&verbose);CHKERRQ(ierr);
 
   /* Create DS object */
   ierr = DSCreate(PETSC_COMM_WORLD,&ds);CHKERRQ(ierr);

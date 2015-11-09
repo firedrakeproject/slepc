@@ -40,8 +40,8 @@ int main(int argc,char **argv)
 
   SlepcInitialize(&argc,&argv,(char*)0,help);
 
-  ierr = PetscOptionsGetInt(NULL,"-n",&n,NULL);CHKERRQ(ierr);
-  ierr = PetscOptionsGetReal(NULL,"-mu",&mu,NULL);CHKERRQ(ierr);
+  ierr = PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL);CHKERRQ(ierr);
+  ierr = PetscOptionsGetReal(NULL,NULL,"-mu",&mu,NULL);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD,"\nLauchli singular value decomposition, (%D x %D) mu=%g\n\n",n+1,n,(double)mu);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

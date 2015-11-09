@@ -270,7 +270,7 @@ static PetscErrorCode SVDMonitor_Cyclic(EPS eps,PetscInt its,PetscInt nconv,Pets
 
 #undef __FUNCT__
 #define __FUNCT__ "SVDSetFromOptions_Cyclic"
-PetscErrorCode SVDSetFromOptions_Cyclic(PetscOptions *PetscOptionsObject,SVD svd)
+PetscErrorCode SVDSetFromOptions_Cyclic(PetscOptionItems *PetscOptionsObject,SVD svd)
 {
   PetscErrorCode ierr;
   PetscBool      set,val;

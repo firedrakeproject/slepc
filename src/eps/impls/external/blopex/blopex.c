@@ -436,7 +436,7 @@ PetscErrorCode EPSView_BLOPEX(EPS eps,PetscViewer viewer)
 
 #undef __FUNCT__
 #define __FUNCT__ "EPSSetFromOptions_BLOPEX"
-PetscErrorCode EPSSetFromOptions_BLOPEX(PetscOptions *PetscOptionsObject,EPS eps)
+PetscErrorCode EPSSetFromOptions_BLOPEX(PetscOptionItems *PetscOptionsObject,EPS eps)
 {
   PetscErrorCode ierr;
   KSP            ksp;

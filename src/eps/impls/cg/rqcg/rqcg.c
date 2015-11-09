@@ -394,7 +394,7 @@ PetscErrorCode EPSReset_RQCG(EPS eps)
 
 #undef __FUNCT__
 #define __FUNCT__ "EPSSetFromOptions_RQCG"
-PetscErrorCode EPSSetFromOptions_RQCG(PetscOptions *PetscOptionsObject,EPS eps)
+PetscErrorCode EPSSetFromOptions_RQCG(PetscOptionItems *PetscOptionsObject,EPS eps)
 {
   PetscErrorCode ierr;
   PetscBool      flg;

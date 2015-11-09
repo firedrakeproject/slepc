@@ -164,7 +164,7 @@ PetscErrorCode EPSSolve_Arnoldi(EPS eps)
 
 #undef __FUNCT__
 #define __FUNCT__ "EPSSetFromOptions_Arnoldi"
-PetscErrorCode EPSSetFromOptions_Arnoldi(PetscOptions *PetscOptionsObject,EPS eps)
+PetscErrorCode EPSSetFromOptions_Arnoldi(PetscOptionItems *PetscOptionsObject,EPS eps)
 {
   PetscErrorCode ierr;
   PetscBool      set,val;

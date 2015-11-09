@@ -76,7 +76,7 @@ PetscErrorCode MFNInitializePackage(void)
   ierr = PetscLogEventRegister("MFNSetUp",MFN_CLASSID,&MFN_SetUp);CHKERRQ(ierr);
   ierr = PetscLogEventRegister("MFNSolve",MFN_CLASSID,&MFN_Solve);CHKERRQ(ierr);
   /* Process info exclusions */
-  ierr = PetscOptionsGetString(NULL,"-info_exclude",logList,256,&opt);CHKERRQ(ierr);
+  ierr = PetscOptionsGetString(NULL,NULL,"-info_exclude",logList,256,&opt);CHKERRQ(ierr);
   if (opt) {
     ierr = PetscStrstr(logList,"mfn",&className);CHKERRQ(ierr);
     if (className) {
@@ -84,7 +84,7 @@ PetscErrorCode MFNInitializePackage(void)
     }
   }
   /* Process summary exclusions */
-  ierr = PetscOptionsGetString(NULL,"-log_summary_exclude",logList,256,&opt);CHKERRQ(ierr);
+  ierr = PetscOptionsGetString(NULL,NULL,"-log_summary_exclude",logList,256,&opt);CHKERRQ(ierr);
   if (opt) {
     ierr = PetscStrstr(logList,"mfn",&className);CHKERRQ(ierr);
     if (className) {

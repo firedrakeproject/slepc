@@ -1080,7 +1080,7 @@ PetscErrorCode EPSKrylovSchurGetSubcommPairs(EPS eps,PetscInt i,PetscScalar *eig
 
 #undef __FUNCT__
 #define __FUNCT__ "EPSSetFromOptions_KrylovSchur"
-PetscErrorCode EPSSetFromOptions_KrylovSchur(PetscOptions *PetscOptionsObject,EPS eps)
+PetscErrorCode EPSSetFromOptions_KrylovSchur(PetscOptionItems *PetscOptionsObject,EPS eps)
 {
   PetscErrorCode  ierr;
   EPS_KRYLOVSCHUR *ctx = (EPS_KRYLOVSCHUR*)eps->data;

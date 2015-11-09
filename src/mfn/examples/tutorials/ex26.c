@@ -42,13 +42,13 @@ int main(int argc,char **argv)
 
   SlepcInitialize(&argc,&argv,(char*)0,help);
 
-  ierr = PetscOptionsGetInt(NULL,"-n",&n,NULL);CHKERRQ(ierr);
-  ierr = PetscOptionsGetInt(NULL,"-m",&m,&flag);CHKERRQ(ierr);
+  ierr = PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL);CHKERRQ(ierr);
+  ierr = PetscOptionsGetInt(NULL,NULL,"-m",&m,&flag);CHKERRQ(ierr);
   if (!flag) m=n;
   N = n*m;
   ierr = PetscPrintf(PETSC_COMM_WORLD,"\nSquare root of Laplacian y=sqrt(A)*e_1, N=%D (%Dx%D grid)\n\n",N,n,m);CHKERRQ(ierr);
 
-  ierr = PetscOptionsHasName(PETSC_NULL,"-draw_sol",&draw_sol);CHKERRQ(ierr);
+  ierr = PetscOptionsHasName(NULL,NULL,"-draw_sol",&draw_sol);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
                  Compute the discrete 2-D Laplacian, A
@@ -76,7 +76,7 @@ int main(int argc,char **argv)
   ierr = MatSetOption(A,MAT_HERMITIAN,PETSC_TRUE);CHKERRQ(ierr);
 
   /* set v = e_1 */
-  ierr = MatCreateVecs(A,PETSC_NULL,&v);CHKERRQ(ierr);
+  ierr = MatCreateVecs(A,NULL,&v);CHKERRQ(ierr);
   ierr = VecSetValue(v,0,1.0,INSERT_VALUES);CHKERRQ(ierr);
   ierr = VecAssemblyBegin(v);CHKERRQ(ierr);
   ierr = VecAssemblyEnd(v);CHKERRQ(ierr);

@@ -35,8 +35,8 @@ int main(int argc,char **argv)
   PetscReal      nrm;
 
   SlepcInitialize(&argc,&argv,(char*)0,help);
-  ierr = PetscOptionsGetInt(NULL,"-n",&n,NULL);CHKERRQ(ierr);
-  ierr = PetscOptionsGetInt(NULL,"-k",&k,NULL);CHKERRQ(ierr);
+  ierr = PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL);CHKERRQ(ierr);
+  ierr = PetscOptionsGetInt(NULL,NULL,"-k",&k,NULL);CHKERRQ(ierr);
   if (k<3) SETERRQ(PETSC_COMM_SELF,1,"Should specify at least k=3 columns");
   ierr = PetscPrintf(PETSC_COMM_WORLD,"BV split ops (%D columns of dimension %D).\n",k,n);CHKERRQ(ierr);
 

@@ -46,12 +46,12 @@ int main(int argc,char **argv)
 
   SlepcInitialize(&argc,&argv,(char*)0,help);
 
-  ierr = PetscOptionsGetInt(NULL,"-n",&n,NULL);CHKERRQ(ierr);
-  ierr = PetscOptionsGetInt(NULL,"-m",&m,&flag);CHKERRQ(ierr);
+  ierr = PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL);CHKERRQ(ierr);
+  ierr = PetscOptionsGetInt(NULL,NULL,"-m",&m,&flag);CHKERRQ(ierr);
   if (!flag) m=n;
   N = n*m;
-  ierr = PetscOptionsGetString(NULL,"-type",peptype,30,NULL);CHKERRQ(ierr);
-  ierr = PetscOptionsGetString(NULL,"-epstype",epstype,30,&epsgiven);CHKERRQ(ierr);
+  ierr = PetscOptionsGetString(NULL,NULL,"-type",peptype,30,NULL);CHKERRQ(ierr);
+  ierr = PetscOptionsGetString(NULL,NULL,"-epstype",epstype,30,&epsgiven);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD,"\nQuadratic Eigenproblem, N=%D (%Dx%D grid)",N,n,m);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD,"\nPEP type: %s",peptype);CHKERRQ(ierr);
   if (epsgiven) {

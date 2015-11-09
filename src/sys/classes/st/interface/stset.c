@@ -167,7 +167,7 @@ PetscErrorCode STSetFromOptions(ST st)
     if (st->ops->setfromoptions) {
       ierr = (*st->ops->setfromoptions)(PetscOptionsObject,st);CHKERRQ(ierr);
     }
-    ierr = PetscObjectProcessOptionsHandlers((PetscObject)st);CHKERRQ(ierr);
+    ierr = PetscObjectProcessOptionsHandlers(PetscOptionsObject,(PetscObject)st);CHKERRQ(ierr);
   ierr = PetscOptionsEnd();CHKERRQ(ierr);
   if (!st->ksp) { ierr = STGetKSP(st,&st->ksp);CHKERRQ(ierr); }
   ierr = KSPSetFromOptions(st->ksp);CHKERRQ(ierr);

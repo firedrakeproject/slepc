@@ -1028,7 +1028,7 @@ PetscErrorCode NEPReset_CISS(NEP nep)
 
 #undef __FUNCT__
 #define __FUNCT__ "NEPSetFromOptions_CISS"
-PetscErrorCode NEPSetFromOptions_CISS(PetscOptions *PetscOptionsObject,NEP nep)
+PetscErrorCode NEPSetFromOptions_CISS(PetscOptionItems *PetscOptionsObject,NEP nep)
 {
   PetscErrorCode ierr;
   PetscReal      r1,r2;

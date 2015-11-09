@@ -55,7 +55,7 @@ int main(int argc,char **argv)
 
   SlepcInitialize(&argc,&argv,(char*)0,help);
 
-  ierr = PetscOptionsGetInt(NULL,"-n",&N,NULL);CHKERRQ(ierr);
+  ierr = PetscOptionsGetInt(NULL,NULL,"-n",&N,NULL);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD,"\nEstimate the condition number of a Grcar matrix, n=%D\n\n",N);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

@@ -220,7 +220,7 @@ PetscErrorCode PEPJDGetRestart(PEP pep,PetscReal *keep)
 
 #undef __FUNCT__
 #define __FUNCT__ "PEPSetFromOptions_JD"
-PetscErrorCode PEPSetFromOptions_JD(PetscOptions *PetscOptionsObject,PEP pep)
+PetscErrorCode PEPSetFromOptions_JD(PetscOptionItems *PetscOptionsObject,PEP pep)
 {
   PetscErrorCode ierr;
   PEP_JD         *pjd = (PEP_JD*)pep->data;

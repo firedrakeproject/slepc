@@ -63,10 +63,10 @@ int main(int argc,char **argv)
 
   SlepcInitialize(&argc,&argv,(char*)0,help);
 
-  ierr = PetscOptionsGetInt(NULL,"-n",&n,NULL);CHKERRQ(ierr);
-  ierr = PetscOptionsGetInt(NULL,"-m",&m,&flag);CHKERRQ(ierr);
+  ierr = PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL);CHKERRQ(ierr);
+  ierr = PetscOptionsGetInt(NULL,NULL,"-m",&m,&flag);CHKERRQ(ierr);
   if (!flag) m=n;
-  ierr = PetscOptionsGetReal(NULL,"-target",&target,NULL);CHKERRQ(ierr);
+  ierr = PetscOptionsGetReal(NULL,NULL,"-target",&target,NULL);CHKERRQ(ierr);
   N = n*m;
   ierr = PetscPrintf(PETSC_COMM_WORLD,"\nSpectrum Folding, N=%D (%Dx%D grid) target=%f\n\n",N,n,m,(double)target);CHKERRQ(ierr);
 

@@ -600,7 +600,7 @@ PetscErrorCode EPSView_LOBPCG(EPS eps,PetscViewer viewer)
 
 #undef __FUNCT__
 #define __FUNCT__ "EPSSetFromOptions_LOBPCG"
-PetscErrorCode EPSSetFromOptions_LOBPCG(PetscOptions *PetscOptionsObject,EPS eps)
+PetscErrorCode EPSSetFromOptions_LOBPCG(PetscOptionItems *PetscOptionsObject,EPS eps)
 {
   PetscErrorCode ierr;
   PetscBool      lock,flg;

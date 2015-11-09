@@ -170,7 +170,7 @@ PetscErrorCode NEPSolve_RII(NEP nep)
 
 #undef __FUNCT__
 #define __FUNCT__ "NEPSetFromOptions_RII"
-PetscErrorCode NEPSetFromOptions_RII(PetscOptions *PetscOptionsObject,NEP nep)
+PetscErrorCode NEPSetFromOptions_RII(PetscOptionItems *PetscOptionsObject,NEP nep)
 {
   PetscErrorCode ierr;
   NEP_RII        *ctx = (NEP_RII*)nep->data;
