@@ -283,7 +283,7 @@ PetscErrorCode SVDSolve_Lanczos(SVD svd)
 
 #undef __FUNCT__
 #define __FUNCT__ "SVDSetFromOptions_Lanczos"
-PetscErrorCode SVDSetFromOptions_Lanczos(PetscOptions *PetscOptionsObject,SVD svd)
+PetscErrorCode SVDSetFromOptions_Lanczos(PetscOptionItems *PetscOptionsObject,SVD svd)
 {
   PetscErrorCode ierr;
   PetscBool      set,val;

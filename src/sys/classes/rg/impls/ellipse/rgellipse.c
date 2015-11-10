@@ -205,7 +205,7 @@ PetscErrorCode RGCheckInside_Ellipse(RG rg,PetscReal px,PetscReal py,PetscInt *i
 
 #undef __FUNCT__
 #define __FUNCT__ "RGSetFromOptions_Ellipse"
-PetscErrorCode RGSetFromOptions_Ellipse(PetscOptions *PetscOptionsObject,RG rg)
+PetscErrorCode RGSetFromOptions_Ellipse(PetscOptionItems *PetscOptionsObject,RG rg)
 {
   PetscErrorCode ierr;
   PetscScalar    s;

@@ -75,7 +75,7 @@ PetscErrorCode RGInitializePackage(void)
   /* Register Constructors */
   ierr = RGRegisterAll();CHKERRQ(ierr);
   /* Process info exclusions */
-  ierr = PetscOptionsGetString(NULL,"-info_exclude",logList,256,&opt);CHKERRQ(ierr);
+  ierr = PetscOptionsGetString(NULL,NULL,"-info_exclude",logList,256,&opt);CHKERRQ(ierr);
   if (opt) {
     ierr = PetscStrstr(logList,"rg",&className);CHKERRQ(ierr);
     if (className) {
@@ -83,7 +83,7 @@ PetscErrorCode RGInitializePackage(void)
     }
   }
   /* Process summary exclusions */
-  ierr = PetscOptionsGetString(NULL,"-log_summary_exclude",logList,256,&opt);CHKERRQ(ierr);
+  ierr = PetscOptionsGetString(NULL,NULL,"-log_summary_exclude",logList,256,&opt);CHKERRQ(ierr);
   if (opt) {
     ierr = PetscStrstr(logList,"rg",&className);CHKERRQ(ierr);
     if (className) {
@@ -327,7 +327,7 @@ PetscErrorCode RGSetFromOptions(RG rg)
     if (rg->ops->setfromoptions) {
       ierr = (*rg->ops->setfromoptions)(PetscOptionsObject,rg);CHKERRQ(ierr);
     }
-    ierr = PetscObjectProcessOptionsHandlers((PetscObject)rg);CHKERRQ(ierr);
+    ierr = PetscObjectProcessOptionsHandlers(PetscOptionsObject,(PetscObject)rg);CHKERRQ(ierr);
   ierr = PetscOptionsEnd();CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

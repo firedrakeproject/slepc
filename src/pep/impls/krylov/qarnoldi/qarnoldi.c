@@ -527,7 +527,7 @@ PetscErrorCode PEPQArnoldiGetLocking(PEP pep,PetscBool *lock)
 
 #undef __FUNCT__
 #define __FUNCT__ "PEPSetFromOptions_QArnoldi"
-PetscErrorCode PEPSetFromOptions_QArnoldi(PetscOptions *PetscOptionsObject,PEP pep)
+PetscErrorCode PEPSetFromOptions_QArnoldi(PetscOptionItems *PetscOptionsObject,PEP pep)
 {
   PetscErrorCode ierr;
   PetscBool      flg,lock;

@@ -189,7 +189,7 @@ PetscErrorCode STSetShift_Sinvert(ST st,PetscScalar newshift)
 
 #undef __FUNCT__
 #define __FUNCT__ "STSetFromOptions_Sinvert"
-PetscErrorCode STSetFromOptions_Sinvert(PetscOptions *PetscOptionsObject,ST st)
+PetscErrorCode STSetFromOptions_Sinvert(PetscOptionItems *PetscOptionsObject,ST st)
 {
   PetscErrorCode ierr;
   PC             pc;

@@ -44,7 +44,7 @@
 
 #undef __FUNCT__
 #define __FUNCT__ "EPSSetFromOptions_JD"
-PetscErrorCode EPSSetFromOptions_JD(PetscOptions *PetscOptionsObject,EPS eps)
+PetscErrorCode EPSSetFromOptions_JD(PetscOptionItems *PetscOptionsObject,EPS eps)
 {
   PetscErrorCode ierr;
   PetscBool      flg,op;

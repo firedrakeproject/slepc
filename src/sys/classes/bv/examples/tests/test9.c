@@ -38,12 +38,12 @@ int main(int argc,char **argv)
   PetscBool      verbose;
 
   SlepcInitialize(&argc,&argv,(char*)0,help);
-  ierr = PetscOptionsGetInt(NULL,"-n",&n,NULL);CHKERRQ(ierr);
-  ierr = PetscOptionsGetInt(NULL,"-kx",&kx,NULL);CHKERRQ(ierr);
-  ierr = PetscOptionsGetInt(NULL,"-lx",&lx,NULL);CHKERRQ(ierr);
-  ierr = PetscOptionsGetInt(NULL,"-ky",&ky,NULL);CHKERRQ(ierr);
-  ierr = PetscOptionsGetInt(NULL,"-ly",&ly,NULL);CHKERRQ(ierr);
-  ierr = PetscOptionsHasName(NULL,"-verbose",&verbose);CHKERRQ(ierr);
+  ierr = PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL);CHKERRQ(ierr);
+  ierr = PetscOptionsGetInt(NULL,NULL,"-kx",&kx,NULL);CHKERRQ(ierr);
+  ierr = PetscOptionsGetInt(NULL,NULL,"-lx",&lx,NULL);CHKERRQ(ierr);
+  ierr = PetscOptionsGetInt(NULL,NULL,"-ky",&ky,NULL);CHKERRQ(ierr);
+  ierr = PetscOptionsGetInt(NULL,NULL,"-ly",&ly,NULL);CHKERRQ(ierr);
+  ierr = PetscOptionsHasName(NULL,NULL,"-verbose",&verbose);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD,"Test BV projection (n=%D).\n",n);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD,"X has %D active columns (%D leading columns).\n",kx,lx);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD,"Y has %D active columns (%D leading columns).\n",ky,ly);CHKERRQ(ierr);

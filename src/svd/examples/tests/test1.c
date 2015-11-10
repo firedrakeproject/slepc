@@ -58,9 +58,9 @@ int main(int argc,char **argv)
 
   SlepcInitialize(&argc,&argv,(char*)0,help);
 
-  ierr = PetscOptionsGetInt(NULL,"-n",&N,NULL);CHKERRQ(ierr);
-  ierr = PetscOptionsGetString(NULL,"-type",svdtype,30,NULL);CHKERRQ(ierr);
-  ierr = PetscOptionsGetString(NULL,"-epstype",epstype,30,&flg);CHKERRQ(ierr);
+  ierr = PetscOptionsGetInt(NULL,NULL,"-n",&N,NULL);CHKERRQ(ierr);
+  ierr = PetscOptionsGetString(NULL,NULL,"-type",svdtype,30,NULL);CHKERRQ(ierr);
+  ierr = PetscOptionsGetString(NULL,NULL,"-epstype",epstype,30,&flg);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD,"\nEstimate the condition number of a Grcar matrix, n=%D",N);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD,"\nSVD type: %s",svdtype);CHKERRQ(ierr);
   if (flg) {

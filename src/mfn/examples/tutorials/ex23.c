@@ -47,12 +47,12 @@ int main(int argc,char **argv)
 
   SlepcInitialize(&argc,&argv,(char*)0,help);
 
-  ierr = PetscOptionsGetInt(NULL,"-m",&m,NULL);CHKERRQ(ierr);
-  ierr = PetscOptionsGetScalar(NULL,"-t",&t,NULL);CHKERRQ(ierr);
+  ierr = PetscOptionsGetInt(NULL,NULL,"-m",&m,NULL);CHKERRQ(ierr);
+  ierr = PetscOptionsGetScalar(NULL,NULL,"-t",&t,NULL);CHKERRQ(ierr);
   N = m*(m+1)/2;
   ierr = PetscPrintf(PETSC_COMM_WORLD,"\nMarkov y=exp(t*A)*e_1, N=%D (m=%D)\n\n",N,m);CHKERRQ(ierr);
 
-  ierr = PetscOptionsHasName(PETSC_NULL,"-draw_sol",&draw_sol);CHKERRQ(ierr);
+  ierr = PetscOptionsHasName(NULL,NULL,"-draw_sol",&draw_sol);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
             Compute the transition probability matrix, A
@@ -65,8 +65,8 @@ int main(int argc,char **argv)
   ierr = MatMarkovModel(m,A);CHKERRQ(ierr);
 
   /* set v = e_1 */
-  ierr = MatCreateVecs(A,PETSC_NULL,&y);CHKERRQ(ierr);
-  ierr = MatCreateVecs(A,PETSC_NULL,&v);CHKERRQ(ierr);
+  ierr = MatCreateVecs(A,NULL,&y);CHKERRQ(ierr);
+  ierr = MatCreateVecs(A,NULL,&v);CHKERRQ(ierr);
   ierr = VecSetValue(v,0,1.0,INSERT_VALUES);CHKERRQ(ierr);
   ierr = VecAssemblyBegin(v);CHKERRQ(ierr);
   ierr = VecAssemblyEnd(v);CHKERRQ(ierr);

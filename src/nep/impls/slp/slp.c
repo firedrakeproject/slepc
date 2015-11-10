@@ -148,7 +148,7 @@ PetscErrorCode NEPSolve_SLP(NEP nep)
 
 #undef __FUNCT__
 #define __FUNCT__ "NEPSetFromOptions_SLP"
-PetscErrorCode NEPSetFromOptions_SLP(PetscOptions *PetscOptionsObject,NEP nep)
+PetscErrorCode NEPSetFromOptions_SLP(PetscOptionItems *PetscOptionsObject,NEP nep)
 {
   PetscErrorCode ierr;
   NEP_SLP        *ctx = (NEP_SLP*)nep->data;
