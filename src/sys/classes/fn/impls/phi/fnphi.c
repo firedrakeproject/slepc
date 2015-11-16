@@ -205,7 +205,7 @@ PetscErrorCode FNView_Phi(FN fn,PetscViewer viewer)
 
 #undef __FUNCT__
 #define __FUNCT__ "FNSetFromOptions_Phi"
-PetscErrorCode FNSetFromOptions_Phi(PetscOptions *PetscOptionsObject,FN fn)
+PetscErrorCode FNSetFromOptions_Phi(PetscOptionItems *PetscOptionsObject,FN fn)
 {
   PetscErrorCode ierr;
   FN_PHI         *ctx = (FN_PHI*)fn->data;

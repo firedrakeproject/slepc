@@ -454,7 +454,7 @@ PetscErrorCode BVRestoreArray_Vecs(BV bv,PetscScalar **a)
 
 #undef __FUNCT__
 #define __FUNCT__ "BVSetFromOptions_Vecs"
-PetscErrorCode BVSetFromOptions_Vecs(PetscOptions *PetscOptionsObject,BV bv)
+PetscErrorCode BVSetFromOptions_Vecs(PetscOptionItems *PetscOptionsObject,BV bv)
 {
   PetscErrorCode ierr;
   BV_VECS        *ctx = (BV_VECS*)bv->data;

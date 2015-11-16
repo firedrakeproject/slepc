@@ -207,7 +207,7 @@ PetscErrorCode PEPSetFromOptions(PEP pep)
     if (pep->ops->setfromoptions) {
       ierr = (*pep->ops->setfromoptions)(PetscOptionsObject,pep);CHKERRQ(ierr);
     }
-    ierr = PetscObjectProcessOptionsHandlers((PetscObject)pep);CHKERRQ(ierr);
+    ierr = PetscObjectProcessOptionsHandlers(PetscOptionsObject,(PetscObject)pep);CHKERRQ(ierr);
   ierr = PetscOptionsEnd();CHKERRQ(ierr);
 
   if (!pep->V) { ierr = PEPGetBV(pep,&pep->V);CHKERRQ(ierr); }

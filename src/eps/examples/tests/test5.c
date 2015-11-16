@@ -44,8 +44,8 @@ int main(int argc,char **argv)
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         Load the operator matrix that defines the eigensystem, Ax=kx
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-  ierr = PetscOptionsHasName(NULL,"-symm",&symm);CHKERRQ(ierr);
-  ierr = PetscOptionsHasName(NULL,"-herm",&flg);CHKERRQ(ierr);
+  ierr = PetscOptionsHasName(NULL,NULL,"-symm",&symm);CHKERRQ(ierr);
+  ierr = PetscOptionsHasName(NULL,NULL,"-herm",&flg);CHKERRQ(ierr);
   if (flg) symm=PETSC_TRUE;
 #if defined(PETSC_USE_COMPLEX)
   prefix = symm? "hpd": "nh";

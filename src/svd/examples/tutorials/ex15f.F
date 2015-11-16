@@ -62,9 +62,11 @@
       call SlepcInitialize(PETSC_NULL_CHARACTER,ierr)
       call MPI_Comm_rank(PETSC_COMM_WORLD,rank,ierr)
       n = 100
-      call PetscOptionsGetInt(PETSC_NULL_CHARACTER,'-n',n,flg,ierr)
+      call PetscOptionsGetInt(PETSC_NULL_OBJECT,PETSC_NULL_CHARACTER,   &
+     &                        '-n',n,flg,ierr)
       mu = PETSC_SQRT_MACHINE_EPSILON
-      call PetscOptionsGetReal(PETSC_NULL_CHARACTER,'-mu',mu,flg,ierr)
+      call PetscOptionsGetReal(PETSC_NULL_OBJECT,PETSC_NULL_CHARACTER,   &
+     &                        '-mu',mu,flg,ierr)
 
       if (rank .eq. 0) then
         write(*,100) n, mu

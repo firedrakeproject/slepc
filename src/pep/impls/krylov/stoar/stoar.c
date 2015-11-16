@@ -602,7 +602,7 @@ PetscErrorCode PEPSolve_STOAR(PEP pep)
 
 #undef __FUNCT__
 #define __FUNCT__ "PEPSetFromOptions_STOAR"
-PetscErrorCode PEPSetFromOptions_STOAR(PetscOptions *PetscOptionsObject,PEP pep)
+PetscErrorCode PEPSetFromOptions_STOAR(PetscOptionItems *PetscOptionsObject,PEP pep)
 {
   PetscErrorCode ierr;
   PetscBool      flg,lock;

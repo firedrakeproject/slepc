@@ -429,7 +429,7 @@ PetscErrorCode FNRationalGetDenominator(FN fn,PetscInt *nq,PetscScalar *qcoeff[]
 
 #undef __FUNCT__
 #define __FUNCT__ "FNSetFromOptions_Rational"
-PetscErrorCode FNSetFromOptions_Rational(PetscOptions *PetscOptionsObject,FN fn)
+PetscErrorCode FNSetFromOptions_Rational(PetscOptionItems *PetscOptionsObject,FN fn)
 {
   PetscErrorCode ierr;
 #define PARMAX 10

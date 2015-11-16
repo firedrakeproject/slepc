@@ -344,7 +344,7 @@ PetscErrorCode EPSView_BLZPACK(EPS eps,PetscViewer viewer)
 
 #undef __FUNCT__
 #define __FUNCT__ "EPSSetFromOptions_BLZPACK"
-PetscErrorCode EPSSetFromOptions_BLZPACK(PetscOptions *PetscOptionsObject,EPS eps)
+PetscErrorCode EPSSetFromOptions_BLZPACK(PetscOptionItems *PetscOptionsObject,EPS eps)
 {
   PetscErrorCode ierr;
   EPS_BLZPACK    *blz = (EPS_BLZPACK*)eps->data;

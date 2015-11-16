@@ -34,7 +34,7 @@ struct _RGOps {
   PetscErrorCode (*istrivial)(RG,PetscBool*);
   PetscErrorCode (*computecontour)(RG,PetscInt,PetscScalar*,PetscScalar*);
   PetscErrorCode (*checkinside)(RG,PetscReal,PetscReal,PetscInt*);
-  PetscErrorCode (*setfromoptions)(PetscOptions*,RG);
+  PetscErrorCode (*setfromoptions)(PetscOptionItems*,RG);
   PetscErrorCode (*view)(RG,PetscViewer);
   PetscErrorCode (*destroy)(RG);
 };

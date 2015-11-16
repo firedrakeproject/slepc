@@ -71,8 +71,10 @@
       call SlepcInitialize(PETSC_NULL_CHARACTER,ierr)
       call MPI_Comm_rank(PETSC_COMM_WORLD,rank,ierr)
       nx = 10
-      call PetscOptionsGetInt(PETSC_NULL_CHARACTER,'-n',nx,flg,ierr)
-      call PetscOptionsGetInt(PETSC_NULL_CHARACTER,'-m',ny,flg,ierr)
+      call PetscOptionsGetInt(PETSC_NULL_OBJECT,PETSC_NULL_CHARACTER,   &
+     &                        '-n',nx,flg,ierr)
+      call PetscOptionsGetInt(PETSC_NULL_OBJECT,PETSC_NULL_CHARACTER,   &
+     &                        '-m',ny,flg,ierr)
       if (.not. flg) then
         ny = nx
       endif
@@ -177,7 +179,8 @@
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
 !     ** show detailed info unless -terse option is given by user
-      call PetscOptionsHasName(PETSC_NULL_CHARACTER,'-terse',terse,ierr)
+      call PetscOptionsHasName(PETSC_NULL_OBJECT,PETSC_NULL_CHARACTER,  &
+     &                        '-terse',terse,ierr)
       if (terse) then
         call PEPErrorView(pep,PEP_ERROR_BACKWARD,PETSC_NULL_OBJECT,ierr)
       else

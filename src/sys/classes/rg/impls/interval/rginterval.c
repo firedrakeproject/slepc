@@ -191,7 +191,7 @@ PetscErrorCode RGCheckInside_Interval(RG rg,PetscReal dx,PetscReal dy,PetscInt *
 
 #undef __FUNCT__
 #define __FUNCT__ "RGSetFromOptions_Interval"
-PetscErrorCode RGSetFromOptions_Interval(PetscOptions *PetscOptionsObject,RG rg)
+PetscErrorCode RGSetFromOptions_Interval(PetscOptionItems *PetscOptionsObject,RG rg)
 {
   PetscErrorCode ierr;
   PetscBool      flg;
