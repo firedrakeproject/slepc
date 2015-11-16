@@ -198,7 +198,7 @@ PetscErrorCode PEPSolve_JD(PEP pep)
   PetscFunctionBegin;
   /* //////////// */
   PetscBool new=PETSC_FALSE;
-  ierr = PetscOptionsGetBool(NULL,"-newjd",&new,NULL);
+  ierr = PetscOptionsGetBool(NULL,NULL,"-newjd",&new,NULL);
   /* //////////// */
   ierr = DSGetLeadingDimension(pep->ds,&ld);CHKERRQ(ierr);
   ierr = PetscMalloc1(pep->nmat,&vals);CHKERRQ(ierr);
