@@ -37,6 +37,7 @@ PetscErrorCode DSAllocate_PEP(DS ds,PetscInt ld)
   PetscFunctionBegin;
   if (!ctx->d) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONGSTATE,"DSPEP requires specifying the polynomial degree via DSPEPSetDegree()");
   ierr = DSAllocateMat_Private(ds,DS_MAT_X);CHKERRQ(ierr);
+  ierr = DSAllocateMat_Private(ds,DS_MAT_Y);CHKERRQ(ierr);
   for (i=0;i<=ctx->d;i++) {
     ierr = DSAllocateMat_Private(ds,DSMatExtra[i]);CHKERRQ(ierr);
   }
@@ -80,7 +81,6 @@ PetscErrorCode DSVectors_PEP(DS ds,DSMatType mat,PetscInt *j,PetscReal *rnorm)
     case DS_MAT_X:
       break;
     case DS_MAT_Y:
-      SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"Not implemented yet");
       break;
     default:
       SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_OUTOFRANGE,"Invalid mat parameter");
@@ -97,7 +97,6 @@ PetscErrorCode DSNormalize_PEP(DS ds,DSMatType mat,PetscInt col)
     case DS_MAT_X:
       break;
     case DS_MAT_Y:
-      SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"Not implemented yet");
       break;
     default:
       SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_OUTOFRANGE,"Invalid mat parameter");
@@ -112,7 +111,7 @@ PetscErrorCode DSSort_PEP(DS ds,PetscScalar *wr,PetscScalar *wi,PetscScalar *rr,
   PetscErrorCode ierr;
   DS_PEP         *ctx = (DS_PEP*)ds->data;
   PetscInt       n,i,j,k,p,*perm,told,ld;
-  PetscScalar    *A,*X,rtmp;
+  PetscScalar    *A,*X,*Y,rtmp,rtmp2;
 
   PetscFunctionBegin;
   if (!ds->sc) PetscFunctionReturn(0);
@@ -135,6 +134,7 @@ PetscErrorCode DSSort_PEP(DS ds,PetscScalar *wr,PetscScalar *wi,PetscScalar *rr,
   /* cannot use DSPermuteColumns_Private() since matrix is not square */
   ld = ds->ld;
   X  = ds->mat[DS_MAT_X];
+  Y  = ds->mat[DS_MAT_Y];
   for (i=0;i<n;i++) {
     p = perm[i];
     if (p != i) {
@@ -143,7 +143,8 @@ PetscErrorCode DSSort_PEP(DS ds,PetscScalar *wr,PetscScalar *wi,PetscScalar *rr,
       perm[j] = p; perm[i] = i;
       /* swap columns i and j */
       for (k=0;k<ds->n;k++) {
-        rtmp = X[k+p*ld]; X[k+p*ld] = X[k+i*ld]; X[k+i*ld] = rtmp;
+        rtmp  = X[k+p*ld]; X[k+p*ld] = X[k+i*ld]; X[k+i*ld] = rtmp;
+        rtmp2 = Y[k+p*ld]; Y[k+p*ld] = Y[k+i*ld]; Y[k+i*ld] = rtmp2;
       }
     }
   }
@@ -161,7 +162,7 @@ PetscErrorCode DSSolve_PEP_QZ(DS ds,PetscScalar *wr,PetscScalar *wi)
   PetscErrorCode ierr;
   DS_PEP         *ctx = (DS_PEP*)ds->data;
   PetscInt       i,j,off;
-  PetscScalar    *A,*B,*W,*X,*E,*work,*beta,norm;
+  PetscScalar    *A,*B,*W,*X,*U,*Y,*E,*work,*beta,norm;
   PetscBLASInt   info,n,ldd,nd,lrwork=0,lwork,one=1;
 #if defined(PETSC_USE_COMPLEX)
   PetscReal      *rwork;
@@ -179,6 +180,9 @@ PetscErrorCode DSSolve_PEP_QZ(DS ds,PetscScalar *wr,PetscScalar *wi)
   if (!ds->mat[DS_MAT_W]) {
     ierr = DSAllocateMat_Private(ds,DS_MAT_W);CHKERRQ(ierr);
   }
+  if (!ds->mat[DS_MAT_U]) {
+    ierr = DSAllocateMat_Private(ds,DS_MAT_U);CHKERRQ(ierr);
+  }
   ierr = PetscBLASIntCast(ds->n*ctx->d,&nd);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(ds->n,&n);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(ds->ld*ctx->d,&ldd);CHKERRQ(ierr);
@@ -195,7 +199,9 @@ PetscErrorCode DSSolve_PEP_QZ(DS ds,PetscScalar *wr,PetscScalar *wi)
   A = ds->mat[DS_MAT_A];
   B = ds->mat[DS_MAT_B];
   W = ds->mat[DS_MAT_W];
+  U = ds->mat[DS_MAT_U];
   X = ds->mat[DS_MAT_X];
+  Y = ds->mat[DS_MAT_Y];
   E = ds->mat[DSMatExtra[ctx->d]];
 
   /* build matrices A and B of the linearization */
@@ -217,10 +223,10 @@ PetscErrorCode DSSolve_PEP_QZ(DS ds,PetscScalar *wr,PetscScalar *wi)
   /* solve generalized eigenproblem */
 #if defined(PETSC_USE_COMPLEX)
   rwork = ds->rwork;
-  PetscStackCallBLAS("LAPACKggev",LAPACKggev_("N","V",&nd,A,&ldd,B,&ldd,wr,beta,NULL,&ldd,W,&ldd,work,&lwork,rwork,&info));
+  PetscStackCallBLAS("LAPACKggev",LAPACKggev_("V","V",&nd,A,&ldd,B,&ldd,wr,beta,U,&ldd,W,&ldd,work,&lwork,rwork,&info));
   if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack ZGGEV %d",info);
 #else
-  PetscStackCallBLAS("LAPACKggev",LAPACKggev_("N","V",&nd,A,&ldd,B,&ldd,wr,wi,beta,NULL,&ldd,W,&ldd,work,&lwork,&info));
+  PetscStackCallBLAS("LAPACKggev",LAPACKggev_("V","V",&nd,A,&ldd,B,&ldd,wr,wi,beta,U,&ldd,W,&ldd,work,&lwork,&info));
   if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack DGGEV %d",info);
 #endif
 
@@ -239,6 +245,7 @@ PetscErrorCode DSSolve_PEP_QZ(DS ds,PetscScalar *wr,PetscScalar *wi)
   /* copy and normalize eigenvectors */
   for (j=0;j<nd;j++) {
     ierr = PetscMemcpy(X+j*ds->ld,W+j*ldd,ds->n*sizeof(PetscScalar));CHKERRQ(ierr);
+    ierr = PetscMemcpy(Y+j*ds->ld,U+ds->n*(ctx->d-1)+j*ldd,ds->n*sizeof(PetscScalar));CHKERRQ(ierr);
   }
   for (j=0;j<nd;j++) {
 #if !defined(PETSC_USE_COMPLEX)
@@ -248,12 +255,19 @@ PetscErrorCode DSSolve_PEP_QZ(DS ds,PetscScalar *wr,PetscScalar *wi)
       norm = 1.0/SlepcAbsEigenvalue(norm,norm0);
       PetscStackCallBLAS("BLASscal",BLASscal_(&n,&norm,X+j*ds->ld,&one));
       PetscStackCallBLAS("BLASscal",BLASscal_(&n,&norm,X+(j+1)*ds->ld,&one));
+      norm = BLASnrm2_(&n,Y+j*ds->ld,&one);
+      norm0 = BLASnrm2_(&n,Y+(j+1)*ds->ld,&one);
+      norm = 1.0/SlepcAbsEigenvalue(norm,norm0);
+      PetscStackCallBLAS("BLASscal",BLASscal_(&n,&norm,Y+j*ds->ld,&one));
+      PetscStackCallBLAS("BLASscal",BLASscal_(&n,&norm,Y+(j+1)*ds->ld,&one));
       j++;
     } else
 #endif
     {
       norm = 1.0/BLASnrm2_(&n,X+j*ds->ld,&one);
       PetscStackCallBLAS("BLASscal",BLASscal_(&n,&norm,X+j*ds->ld,&one));
+      norm = 1.0/BLASnrm2_(&n,Y+j*ds->ld,&one);
+      PetscStackCallBLAS("BLASscal",BLASscal_(&n,&norm,Y+j*ds->ld,&one));
     }
   }
   PetscFunctionReturn(0);
