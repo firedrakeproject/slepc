@@ -305,7 +305,7 @@ PetscErrorCode EPSView_PRIMME(EPS eps,PetscViewer viewer)
 
 #undef __FUNCT__
 #define __FUNCT__ "EPSSetFromOptions_PRIMME"
-PetscErrorCode EPSSetFromOptions_PRIMME(PetscOptions *PetscOptionsObject,EPS eps)
+PetscErrorCode EPSSetFromOptions_PRIMME(PetscOptionItems *PetscOptionsObject,EPS eps)
 {
   PetscErrorCode  ierr;
   EPS_PRIMME      *ctx = (EPS_PRIMME*)eps->data;

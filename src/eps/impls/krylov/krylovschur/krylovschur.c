@@ -1080,11 +1080,11 @@ PetscErrorCode EPSKrylovSchurGetSubcommPairs(EPS eps,PetscInt i,PetscScalar *eig
 
 #undef __FUNCT__
 #define __FUNCT__ "EPSSetFromOptions_KrylovSchur"
-PetscErrorCode EPSSetFromOptions_KrylovSchur(PetscOptions *PetscOptionsObject,EPS eps)
+PetscErrorCode EPSSetFromOptions_KrylovSchur(PetscOptionItems *PetscOptionsObject,EPS eps)
 {
   PetscErrorCode  ierr;
   EPS_KRYLOVSCHUR *ctx = (EPS_KRYLOVSCHUR*)eps->data;
-  PetscBool       flg,lock,b;
+  PetscBool       flg,lock,b,f1,f2,f3;
   PetscReal       keep;
   PetscInt        i,j,k;
 
@@ -1110,10 +1110,12 @@ PetscErrorCode EPSSetFromOptions_KrylovSchur(PetscOptions *PetscOptionsObject,EP
   }
   i = 1;
   j = k = PETSC_DECIDE;
-  ierr = PetscOptionsInt("-eps_krylovschur_nev","Number of eigenvalues to compute in each subsolve (only for spectrum slicing)","EPSKrylovSchurSetDimensions",40,&i,NULL);CHKERRQ(ierr);
-  ierr = PetscOptionsInt("-eps_krylovschur_ncv","Number of basis vectors in each subsolve (only for spectrum slicing)","EPSKrylovSchurSetDimensions",80,&j,NULL);CHKERRQ(ierr);
-  ierr = PetscOptionsInt("-eps_krylovschur_mpd","Maximum dimension of projected problem in each subsolve (only for spectrum slicing)","EPSKrylovSchurSetDimensions",80,&k,NULL);CHKERRQ(ierr);
-  ierr = EPSKrylovSchurSetDimensions(eps,i,j,k);CHKERRQ(ierr);
+  ierr = PetscOptionsInt("-eps_krylovschur_nev","Number of eigenvalues to compute in each subsolve (only for spectrum slicing)","EPSKrylovSchurSetDimensions",40,&i,&f1);CHKERRQ(ierr);
+  ierr = PetscOptionsInt("-eps_krylovschur_ncv","Number of basis vectors in each subsolve (only for spectrum slicing)","EPSKrylovSchurSetDimensions",80,&j,&f2);CHKERRQ(ierr);
+  ierr = PetscOptionsInt("-eps_krylovschur_mpd","Maximum dimension of projected problem in each subsolve (only for spectrum slicing)","EPSKrylovSchurSetDimensions",80,&k,&f3);CHKERRQ(ierr);
+  if (f1 || f2 || f3) {
+    ierr = EPSKrylovSchurSetDimensions(eps,i,j,k);CHKERRQ(ierr);
+  }
   ierr = PetscOptionsTail();CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

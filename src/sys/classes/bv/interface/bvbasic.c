@@ -767,10 +767,6 @@ PetscErrorCode BVSetFromOptions(BV bv)
   char           type[256];
   PetscBool      flg;
   PetscReal      r;
-  PetscInt       i,j,k;
-  const char     *orth_list[2] = {"cgs","mgs"};
-  const char     *ref_list[3] = {"ifneeded","never","always"};
-  const char     *borth_list[2] = {"gs","chol"};
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(bv,BV_CLASSID,1);
@@ -787,28 +783,20 @@ PetscErrorCode BVSetFromOptions(BV bv)
       ierr = BVSetType(bv,BVSVEC);CHKERRQ(ierr);
     }
 
-    i = bv->orthog_type;
-    ierr = PetscOptionsEList("-bv_orthog_type","Orthogonalization method","BVSetOrthogonalization",orth_list,2,orth_list[i],&i,NULL);CHKERRQ(ierr);
-    j = bv->orthog_ref;
-    ierr = PetscOptionsEList("-bv_orthog_refine","Iterative refinement mode during orthogonalization","BVSetOrthogonalization",ref_list,3,ref_list[j],&j,NULL);CHKERRQ(ierr);
+    ierr = PetscOptionsEnum("-bv_orthog_type","Orthogonalization method","BVSetOrthogonalization",BVOrthogTypes,(PetscEnum)bv->orthog_type,(PetscEnum*)&bv->orthog_type,NULL);CHKERRQ(ierr);
+    ierr = PetscOptionsEnum("-bv_orthog_refine","Iterative refinement mode during orthogonalization","BVSetOrthogonalization",BVOrthogRefineTypes,(PetscEnum)bv->orthog_ref,(PetscEnum*)&bv->orthog_ref,NULL);CHKERRQ(ierr);
+    ierr = PetscOptionsEnum("-bv_orthog_block","Block orthogonalization method","BVSetOrthogonalization",BVOrthogBlockTypes,(PetscEnum)bv->orthog_block,(PetscEnum*)&bv->orthog_block,NULL);CHKERRQ(ierr);
     r = bv->orthog_eta;
     ierr = PetscOptionsReal("-bv_orthog_eta","Parameter of iterative refinement during orthogonalization","BVSetOrthogonalization",r,&r,NULL);CHKERRQ(ierr);
-    k = bv->orthog_block;
-    ierr = PetscOptionsEList("-bv_orthog_block","Block orthogonalization method","BVSetOrthogonalization",borth_list,2,borth_list[k],&k,NULL);CHKERRQ(ierr);
-    ierr = BVSetOrthogonalization(bv,(BVOrthogType)i,(BVOrthogRefineType)j,r,(BVOrthogBlockType)k);CHKERRQ(ierr);
+    ierr = BVSetOrthogonalization(bv,bv->orthog_type,bv->orthog_ref,r,bv->orthog_block);CHKERRQ(ierr);
 
-    ierr = PetscOptionsBoolGroupBegin("-bv_matmult_vecs","Do matmult as matrix-vector products","BVSetMatMultMethod",&flg);CHKERRQ(ierr);
-    if (flg) { ierr = BVSetMatMultMethod(bv,BV_MATMULT_VECS);CHKERRQ(ierr); }
-    ierr = PetscOptionsBoolGroup("-bv_matmult_mat","Do matmult as a single matrix-matrix product","BVSetMatMultMethod",&flg);CHKERRQ(ierr);
-    if (flg) { ierr = BVSetMatMultMethod(bv,BV_MATMULT_MAT);CHKERRQ(ierr); }
-    ierr = PetscOptionsBoolGroupEnd("-bv_matmult_mat_save","Do matmult as a single matrix-matrix product and save auxiliary matrices","BVSetMatMultMethod",&flg);CHKERRQ(ierr);
-    if (flg) { ierr = BVSetMatMultMethod(bv,BV_MATMULT_MAT_SAVE);CHKERRQ(ierr); }
+    ierr = PetscOptionsEnum("-bv_matmult","Method for BVMatMult","BVSetMatMultMethod",BVMatMultTypes,(PetscEnum)bv->vmm,(PetscEnum*)&bv->vmm,NULL);CHKERRQ(ierr);
 
     if (bv->ops->create) bv->defersfo = PETSC_TRUE;   /* defer call to setfromoptions */
     else if (bv->ops->setfromoptions) {
       ierr = (*bv->ops->setfromoptions)(PetscOptionsObject,bv);CHKERRQ(ierr);
     }
-    ierr = PetscObjectProcessOptionsHandlers((PetscObject)bv);CHKERRQ(ierr);
+    ierr = PetscObjectProcessOptionsHandlers(PetscOptionsObject,(PetscObject)bv);CHKERRQ(ierr);
   ierr = PetscOptionsEnd();CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

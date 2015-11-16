@@ -133,7 +133,7 @@ int main(int argc,char **argv)
 
   /* create random initial vector */
   seed = 1;
-  ierr = PetscOptionsGetInt(NULL,"-seed",&seed,NULL);CHKERRQ(ierr);
+  ierr = PetscOptionsGetInt(NULL,NULL,"-seed",&seed,NULL);CHKERRQ(ierr);
   if (seed<0) SETERRQ(PETSC_COMM_WORLD,1,"Seed must be >=0");
   ierr = MatCreateVecs(A,&v0,NULL);CHKERRQ(ierr);
   ierr = PetscRandomCreate(PETSC_COMM_WORLD,&rctx);CHKERRQ(ierr);
@@ -241,7 +241,7 @@ int main(int argc,char **argv)
   /*
      Show computing times
   */
-  ierr = PetscOptionsHasName(NULL,"-showtimes",&flg);CHKERRQ(ierr);
+  ierr = PetscOptionsHasName(NULL,NULL,"-showtimes",&flg);CHKERRQ(ierr);
   if (flg) {
     ierr = PetscPrintf(PETSC_COMM_WORLD," Elapsed time: %g (setup), %g (solve)\n",(double)(t2-t1),(double)(t3-t2));CHKERRQ(ierr);
   }

@@ -400,6 +400,8 @@ PETSC_EXTERN PetscErrorCode EPSRQCGGetReset(EPS,PetscInt*);
 
 PETSC_EXTERN PetscErrorCode EPSLOBPCGSetBlockSize(EPS,PetscInt);
 PETSC_EXTERN PetscErrorCode EPSLOBPCGGetBlockSize(EPS,PetscInt*);
+PETSC_EXTERN PetscErrorCode EPSLOBPCGSetRestart(EPS,PetscReal);
+PETSC_EXTERN PetscErrorCode EPSLOBPCGGetRestart(EPS,PetscReal*);
 PETSC_EXTERN PetscErrorCode EPSLOBPCGSetLocking(EPS,PetscBool);
 PETSC_EXTERN PetscErrorCode EPSLOBPCGGetLocking(EPS,PetscBool*);
 

@@ -29,7 +29,7 @@ typedef struct {
 
 #undef __FUNCT__
 #define __FUNCT__ "STSetFromOptions_Precond"
-PetscErrorCode STSetFromOptions_Precond(PetscOptions *PetscOptionsObject,ST st)
+PetscErrorCode STSetFromOptions_Precond(PetscOptionItems *PetscOptionsObject,ST st)
 {
   PetscErrorCode ierr;
   PC             pc;

@@ -746,7 +746,7 @@ PetscErrorCode EPSSolve_Lanczos(EPS eps)
 
 #undef __FUNCT__
 #define __FUNCT__ "EPSSetFromOptions_Lanczos"
-PetscErrorCode EPSSetFromOptions_Lanczos(PetscOptions *PetscOptionsObject,EPS eps)
+PetscErrorCode EPSSetFromOptions_Lanczos(PetscOptionItems *PetscOptionsObject,EPS eps)
 {
   PetscErrorCode         ierr;
   EPS_LANCZOS            *lanczos = (EPS_LANCZOS*)eps->data;

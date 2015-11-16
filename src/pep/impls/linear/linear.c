@@ -756,7 +756,7 @@ static PetscErrorCode EPSMonitor_Linear(EPS eps,PetscInt its,PetscInt nconv,Pets
 
 #undef __FUNCT__
 #define __FUNCT__ "PEPSetFromOptions_Linear"
-PetscErrorCode PEPSetFromOptions_Linear(PetscOptions *PetscOptionsObject,PEP pep)
+PetscErrorCode PEPSetFromOptions_Linear(PetscOptionItems *PetscOptionsObject,PEP pep)
 {
   PetscErrorCode ierr;
   PetscBool      set,val;

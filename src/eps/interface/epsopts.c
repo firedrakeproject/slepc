@@ -223,7 +223,7 @@ PetscErrorCode EPSSetFromOptions(EPS eps)
     if (eps->ops->setfromoptions) {
       ierr = (*eps->ops->setfromoptions)(PetscOptionsObject,eps);CHKERRQ(ierr);
     }
-    ierr = PetscObjectProcessOptionsHandlers((PetscObject)eps);CHKERRQ(ierr);
+    ierr = PetscObjectProcessOptionsHandlers(PetscOptionsObject,(PetscObject)eps);CHKERRQ(ierr);
   ierr = PetscOptionsEnd();CHKERRQ(ierr);
 
   if (!eps->V) { ierr = EPSGetBV(eps,&eps->V);CHKERRQ(ierr); }
@@ -800,6 +800,7 @@ PetscErrorCode EPSSetProblemType(EPS eps,EPSProblemType type)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidLogicalCollectiveEnum(eps,type,2);
+  if (type == eps->problem_type) PetscFunctionReturn(0);
   switch (type) {
     case EPS_HEP:
       eps->isgeneralized = PETSC_FALSE;
@@ -835,6 +836,7 @@ PetscErrorCode EPSSetProblemType(EPS eps,EPSProblemType type)
       SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_WRONG,"Unknown eigenvalue problem type");
   }
   eps->problem_type = type;
+  eps->state = EPS_STATE_INITIAL;
   PetscFunctionReturn(0);
 }
 

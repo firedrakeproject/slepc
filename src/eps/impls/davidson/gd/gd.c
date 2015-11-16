@@ -43,7 +43,7 @@
 
 #undef __FUNCT__
 #define __FUNCT__ "EPSSetFromOptions_GD"
-PetscErrorCode EPSSetFromOptions_GD(PetscOptions *PetscOptionsObject,EPS eps)
+PetscErrorCode EPSSetFromOptions_GD(PetscOptionItems *PetscOptionsObject,EPS eps)
 {
   PetscErrorCode ierr;
   PetscBool      flg,op;

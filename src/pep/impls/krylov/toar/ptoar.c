@@ -817,8 +817,8 @@ PetscErrorCode PEPSolve_TOAR(PEP pep)
 
   PetscFunctionBegin;
   if (ctx->lock) {
-    ierr = PetscOptionsGetBool(NULL,"-pep_toar_falselocking",&falselock,NULL);CHKERRQ(ierr);
-    ierr = PetscOptionsGetBool(NULL,"-pep_toar_lockdeflated",&def,NULL);CHKERRQ(ierr);
+    ierr = PetscOptionsGetBool(NULL,NULL,"-pep_toar_falselocking",&falselock,NULL);CHKERRQ(ierr);
+    ierr = PetscOptionsGetBool(NULL,NULL,"-pep_toar_lockdeflated",&def,NULL);CHKERRQ(ierr);
   }
   ld = ctx->ld;
   S = ctx->S;
@@ -1163,7 +1163,7 @@ PetscErrorCode PEPTOARGetLocking(PEP pep,PetscBool *lock)
 
 #undef __FUNCT__
 #define __FUNCT__ "PEPSetFromOptions_TOAR"
-PetscErrorCode PEPSetFromOptions_TOAR(PetscOptions *PetscOptionsObject,PEP pep)
+PetscErrorCode PEPSetFromOptions_TOAR(PetscOptionItems *PetscOptionsObject,PEP pep)
 {
   PetscErrorCode ierr;
   PetscBool      flg,lock;

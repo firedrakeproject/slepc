@@ -202,7 +202,7 @@ PetscErrorCode EPSDestroy_FEAST(EPS eps)
 
 #undef __FUNCT__
 #define __FUNCT__ "EPSSetFromOptions_FEAST"
-PetscErrorCode EPSSetFromOptions_FEAST(PetscOptions *PetscOptionsObject,EPS eps)
+PetscErrorCode EPSSetFromOptions_FEAST(PetscOptionItems *PetscOptionsObject,EPS eps)
 {
   PetscErrorCode ierr;
   EPS_FEAST      *ctx = (EPS_FEAST*)eps->data;

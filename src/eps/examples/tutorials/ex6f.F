@@ -79,7 +79,8 @@
          SETERRQ(PETSC_COMM_WORLD,1,' ',ierr)
       endif
       m = 30
-      call PetscOptionsGetInt(PETSC_NULL_CHARACTER,'-m',m,flg,ierr)
+      call PetscOptionsGetInt(PETSC_NULL_OBJECT,PETSC_NULL_CHARACTER,   &
+     &                        '-m',m,flg,ierr)
       N = 2*m
 
       if (rank .eq. 0) then
@@ -142,7 +143,8 @@
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
 !     ** show detailed info unless -terse option is given by user
-      call PetscOptionsHasName(PETSC_NULL_CHARACTER,'-terse',terse,ierr)
+      call PetscOptionsHasName(PETSC_NULL_OBJECT,PETSC_NULL_CHARACTER,  &
+     &                        '-terse',terse,ierr)
       if (terse) then
         call EPSErrorView(eps,EPS_ERROR_RELATIVE,PETSC_NULL_OBJECT,ierr)
       else

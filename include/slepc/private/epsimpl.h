@@ -34,7 +34,7 @@ typedef struct _EPSOps *EPSOps;
 struct _EPSOps {
   PetscErrorCode (*solve)(EPS);
   PetscErrorCode (*setup)(EPS);
-  PetscErrorCode (*setfromoptions)(PetscOptions*,EPS);
+  PetscErrorCode (*setfromoptions)(PetscOptionItems*,EPS);
   PetscErrorCode (*publishoptions)(EPS);
   PetscErrorCode (*destroy)(EPS);
   PetscErrorCode (*reset)(EPS);

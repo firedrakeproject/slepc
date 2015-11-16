@@ -120,7 +120,7 @@ static PetscErrorCode PEPJDDiffMatMult(PEP pep,PetscScalar theta,Vec x,Vec y,Vec
   PetscInt       i;
 
   PetscFunctionBegin;
-  ierr = VecSet(y,1.0);CHKERRQ(ierr);
+  ierr = VecSet(y,0.0);CHKERRQ(ierr);
   for (i=1;i<pep->nmat;i++) {
     ierr = MatMult(pep->A[i],x,w);CHKERRQ(ierr);
     ierr = VecAXPY(y,fact*(PetscReal)i,w);CHKERRQ(ierr);

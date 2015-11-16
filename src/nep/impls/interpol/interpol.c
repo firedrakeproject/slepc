@@ -195,7 +195,7 @@ PetscErrorCode NEPSolve_Interpol(NEP nep)
 
 #undef __FUNCT__
 #define __FUNCT__ "NEPSetFromOptions_Interpol"
-PetscErrorCode NEPSetFromOptions_Interpol(PetscOptions *PetscOptionsObject,NEP nep)
+PetscErrorCode NEPSetFromOptions_Interpol(PetscOptionItems *PetscOptionsObject,NEP nep)
 {
   PetscErrorCode ierr;
   NEP_INTERPOL   *ctx = (NEP_INTERPOL*)nep->data;

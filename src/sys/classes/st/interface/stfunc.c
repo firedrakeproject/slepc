@@ -83,7 +83,7 @@ PetscErrorCode STInitializePackage(void)
   ierr = PetscLogEventRegister("STMatSolve",ST_CLASSID,&ST_MatSolve);CHKERRQ(ierr);
   ierr = PetscLogEventRegister("STMatSolveTranspose",ST_CLASSID,&ST_MatSolveTranspose);CHKERRQ(ierr);
   /* Process info exclusions */
-  ierr = PetscOptionsGetString(NULL,"-info_exclude",logList,256,&opt);CHKERRQ(ierr);
+  ierr = PetscOptionsGetString(NULL,NULL,"-info_exclude",logList,256,&opt);CHKERRQ(ierr);
   if (opt) {
     ierr = PetscStrstr(logList,"st",&className);CHKERRQ(ierr);
     if (className) {
@@ -91,7 +91,7 @@ PetscErrorCode STInitializePackage(void)
     }
   }
   /* Process summary exclusions */
-  ierr = PetscOptionsGetString(NULL,"-log_summary_exclude",logList,256,&opt);CHKERRQ(ierr);
+  ierr = PetscOptionsGetString(NULL,NULL,"-log_summary_exclude",logList,256,&opt);CHKERRQ(ierr);
   if (opt) {
     ierr = PetscStrstr(logList,"st",&className);CHKERRQ(ierr);
     if (className) {

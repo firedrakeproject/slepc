@@ -228,7 +228,7 @@ PetscErrorCode EPSBackTransform_Power(EPS eps)
 
 #undef __FUNCT__
 #define __FUNCT__ "EPSSetFromOptions_Power"
-PetscErrorCode EPSSetFromOptions_Power(PetscOptions *PetscOptionsObject,EPS eps)
+PetscErrorCode EPSSetFromOptions_Power(PetscOptionItems *PetscOptionsObject,EPS eps)
 {
   PetscErrorCode    ierr;
   EPS_POWER         *power = (EPS_POWER*)eps->data;

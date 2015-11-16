@@ -190,7 +190,7 @@ PetscErrorCode NEPSetFromOptions(NEP nep)
     if (nep->ops->setfromoptions) {
       ierr = (*nep->ops->setfromoptions)(PetscOptionsObject,nep);CHKERRQ(ierr);
     }
-    ierr = PetscObjectProcessOptionsHandlers((PetscObject)nep);CHKERRQ(ierr);
+    ierr = PetscObjectProcessOptionsHandlers(PetscOptionsObject,(PetscObject)nep);CHKERRQ(ierr);
   ierr = PetscOptionsEnd();CHKERRQ(ierr);
 
   if (!nep->V) { ierr = NEPGetBV(nep,&nep->V);CHKERRQ(ierr); }

@@ -52,9 +52,9 @@ int main(int argc,char **argv)
 
   SlepcInitialize(&argc,&argv,(char*)0,help);
 
-  ierr = PetscOptionsGetInt(NULL,"-m",&m,NULL);CHKERRQ(ierr);
+  ierr = PetscOptionsGetInt(NULL,NULL,"-m",&m,NULL);CHKERRQ(ierr);
   if (m<2) SETERRQ(PETSC_COMM_SELF,1,"m must be at least 2");
-  ierr = PetscOptionsGetScalar(NULL,"-z",&z,NULL);CHKERRQ(ierr);
+  ierr = PetscOptionsGetScalar(NULL,NULL,"-z",&z,NULL);CHKERRQ(ierr);
   h = 1.0/m;
   n = m*(m-1);
   ierr = SlepcSNPrintfScalar(str,50,z,PETSC_FALSE);CHKERRQ(ierr);
@@ -130,7 +130,7 @@ int main(int argc,char **argv)
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
   
   /* show detailed info unless -terse option is given by user */
-  ierr = PetscOptionsHasName(NULL,"-terse",&terse);CHKERRQ(ierr);
+  ierr = PetscOptionsHasName(NULL,NULL,"-terse",&terse);CHKERRQ(ierr);
   if (terse) {
     ierr = PEPErrorView(pep,PEP_ERROR_BACKWARD,NULL);CHKERRQ(ierr);
   } else {

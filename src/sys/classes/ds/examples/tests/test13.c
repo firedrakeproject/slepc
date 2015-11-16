@@ -36,12 +36,12 @@ int main(int argc,char **argv)
   PetscBool      verbose;
 
   SlepcInitialize(&argc,&argv,(char*)0,help);
-  ierr = PetscOptionsGetInt(NULL,"-maxbw",&maxbw,NULL);CHKERRQ(ierr);
-  ierr = PetscOptionsGetInt(NULL,"-nblks",&nblks,NULL);CHKERRQ(ierr);
+  ierr = PetscOptionsGetInt(NULL,NULL,"-maxbw",&maxbw,NULL);CHKERRQ(ierr);
+  ierr = PetscOptionsGetInt(NULL,NULL,"-nblks",&nblks,NULL);CHKERRQ(ierr);
   n = maxbw*nblks;
   bs = maxbw;
   ierr = PetscPrintf(PETSC_COMM_WORLD,"Solve a block HEP Dense System - dimension %D (bandwidth=%D, blocks=%D).\n",n,maxbw,nblks);CHKERRQ(ierr);
-  ierr = PetscOptionsHasName(NULL,"-verbose",&verbose);CHKERRQ(ierr);
+  ierr = PetscOptionsHasName(NULL,NULL,"-verbose",&verbose);CHKERRQ(ierr);
 
   /* Create DS object */
   ierr = DSCreate(PETSC_COMM_WORLD,&ds);CHKERRQ(ierr);

@@ -271,7 +271,7 @@ PetscErrorCode RGCheckInside_Ring(RG rg,PetscReal px,PetscReal py,PetscInt *insi
 
 #undef __FUNCT__
 #define __FUNCT__ "RGSetFromOptions_Ring"
-PetscErrorCode RGSetFromOptions_Ring(PetscOptions *PetscOptionsObject,RG rg)
+PetscErrorCode RGSetFromOptions_Ring(PetscOptionItems *PetscOptionsObject,RG rg)
 {
   PetscErrorCode ierr;
   PetscScalar    s;

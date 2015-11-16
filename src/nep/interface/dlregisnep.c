@@ -83,7 +83,7 @@ PetscErrorCode NEPInitializePackage(void)
   ierr = PetscLogEventRegister("NEPJacobianEval",NEP_CLASSID,&NEP_JacobianEval);CHKERRQ(ierr);
   ierr = PetscLogEventRegister("NEPDerivativesEval",NEP_CLASSID,&NEP_DerivativesEval);CHKERRQ(ierr);
   /* Process info exclusions */
-  ierr = PetscOptionsGetString(NULL,"-info_exclude",logList,256,&opt);CHKERRQ(ierr);
+  ierr = PetscOptionsGetString(NULL,NULL,"-info_exclude",logList,256,&opt);CHKERRQ(ierr);
   if (opt) {
     ierr = PetscStrstr(logList,"nep",&className);CHKERRQ(ierr);
     if (className) {
@@ -91,7 +91,7 @@ PetscErrorCode NEPInitializePackage(void)
     }
   }
   /* Process summary exclusions */
-  ierr = PetscOptionsGetString(NULL,"-log_summary_exclude",logList,256,&opt);CHKERRQ(ierr);
+  ierr = PetscOptionsGetString(NULL,NULL,"-log_summary_exclude",logList,256,&opt);CHKERRQ(ierr);
   if (opt) {
     ierr = PetscStrstr(logList,"nep",&className);CHKERRQ(ierr);
     if (className) {

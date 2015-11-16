@@ -98,6 +98,7 @@ PetscErrorCode BVDot(BV X,BV Y,Mat M)
   PetscErrorCode ierr;
   PetscBool      match;
   PetscInt       m,n;
+  Mat            B;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(X,BV_CLASSID,1);
@@ -120,8 +121,18 @@ PetscErrorCode BVDot(BV X,BV Y,Mat M)
   if (X->l==X->k || Y->l==Y->k) PetscFunctionReturn(0);
 
   ierr = PetscLogEventBegin(BV_Dot,X,Y,0,0);CHKERRQ(ierr);
-  if (X->matrix) { /* non-standard inner product: cast into dotvec ops */
-    ierr = BVDot_Private(X,Y,M);CHKERRQ(ierr);
+  if (X->matrix) { /* non-standard inner product */
+    if (X->vmm==BV_MATMULT_VECS) {
+      /* perform computation column by column */
+      ierr = BVDot_Private(X,Y,M);CHKERRQ(ierr);
+    } else {
+      /* compute BX first */
+      ierr = BV_IPMatMultBV(X);CHKERRQ(ierr);
+      B = X->matrix;
+      X->matrix = NULL;
+      ierr = (*X->ops->dot)(X->cached,Y,M);CHKERRQ(ierr);
+      X->matrix = B;
+    }
   } else {
     ierr = (*X->ops->dot)(X,Y,M);CHKERRQ(ierr);
   }
@@ -176,9 +187,9 @@ PetscErrorCode BVDotVec(BV X,Vec y,PetscScalar *m)
   ierr = VecGetLocalSize(y,&n);CHKERRQ(ierr);
   if (X->n!=n) SETERRQ2(PETSC_COMM_SELF,PETSC_ERR_ARG_INCOMP,"Mismatching local dimension X %D, y %D",X->n,n);
 
-  ierr = PetscLogEventBegin(BV_Dot,X,y,0,0);CHKERRQ(ierr);
+  ierr = PetscLogEventBegin(BV_DotVec,X,y,0,0);CHKERRQ(ierr);
   ierr = (*X->ops->dotvec)(X,y,m);CHKERRQ(ierr);
-  ierr = PetscLogEventEnd(BV_Dot,X,y,0,0);CHKERRQ(ierr);
+  ierr = PetscLogEventEnd(BV_DotVec,X,y,0,0);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -231,10 +242,10 @@ PetscErrorCode BVDotVecBegin(BV X,Vec y,PetscScalar *m)
       sr->reducetype[sr->numopsbegin+i] = REDUCE_SUM;
       sr->invecs[sr->numopsbegin+i]     = (void*)X;
     }
-    ierr = PetscLogEventBegin(BV_Dot,X,y,0,0);CHKERRQ(ierr);
+    ierr = PetscLogEventBegin(BV_DotVec,X,y,0,0);CHKERRQ(ierr);
     ierr = (*X->ops->dotvec_local)(X,y,sr->lvalues+sr->numopsbegin);CHKERRQ(ierr);
     sr->numopsbegin += nv;
-    ierr = PetscLogEventEnd(BV_Dot,X,y,0,0);CHKERRQ(ierr);
+    ierr = PetscLogEventEnd(BV_DotVec,X,y,0,0);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }
@@ -333,14 +344,14 @@ PetscErrorCode BVDotColumn(BV X,PetscInt j,PetscScalar *m)
   if (j<0) SETERRQ(PetscObjectComm((PetscObject)X),PETSC_ERR_ARG_OUTOFRANGE,"Index j must be non-negative");
   if (j>=X->m) SETERRQ2(PetscObjectComm((PetscObject)X),PETSC_ERR_ARG_OUTOFRANGE,"Index j=%D but BV only has %D columns",j,X->m);
 
-  ierr = PetscLogEventBegin(BV_Dot,X,0,0,0);CHKERRQ(ierr);
+  ierr = PetscLogEventBegin(BV_DotVec,X,0,0,0);CHKERRQ(ierr);
   ksave = X->k;
   X->k = j;
   ierr = BVGetColumn(X,j,&y);CHKERRQ(ierr);
   ierr = (*X->ops->dotvec)(X,y,m);CHKERRQ(ierr);
   ierr = BVRestoreColumn(X,j,&y);CHKERRQ(ierr);
   X->k = ksave;
-  ierr = PetscLogEventEnd(BV_Dot,X,0,0,0);CHKERRQ(ierr);
+  ierr = PetscLogEventEnd(BV_DotVec,X,0,0,0);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -395,10 +406,10 @@ PetscErrorCode BVDotColumnBegin(BV X,PetscInt j,PetscScalar *m)
       sr->reducetype[sr->numopsbegin+i] = REDUCE_SUM;
       sr->invecs[sr->numopsbegin+i]     = (void*)X;
     }
-    ierr = PetscLogEventBegin(BV_Dot,X,0,0,0);CHKERRQ(ierr);
+    ierr = PetscLogEventBegin(BV_DotVec,X,0,0,0);CHKERRQ(ierr);
     ierr = (*X->ops->dotvec_local)(X,y,sr->lvalues+sr->numopsbegin);CHKERRQ(ierr);
     sr->numopsbegin += nv;
-    ierr = PetscLogEventEnd(BV_Dot,X,0,0,0);CHKERRQ(ierr);
+    ierr = PetscLogEventEnd(BV_DotVec,X,0,0,0);CHKERRQ(ierr);
   }
   ierr = BVRestoreColumn(X,j,&y);CHKERRQ(ierr);
   X->k = ksave;
@@ -612,7 +623,7 @@ PetscErrorCode BVNormVec(BV bv,Vec v,NormType type,PetscReal *val)
 
   if (type==NORM_1_AND_2) SETERRQ(PetscObjectComm((PetscObject)bv),PETSC_ERR_SUP,"Requested norm not available");
 
-  ierr = PetscLogEventBegin(BV_Norm,bv,0,0,0);CHKERRQ(ierr);
+  ierr = PetscLogEventBegin(BV_NormVec,bv,0,0,0);CHKERRQ(ierr);
   if (bv->matrix) { /* non-standard inner product */
     ierr = VecGetLocalSize(v,&n);CHKERRQ(ierr);
     if (bv->n!=n) SETERRQ2(PETSC_COMM_SELF,PETSC_ERR_ARG_INCOMP,"Mismatching local dimension bv %D, v %D",bv->n,n);
@@ -620,7 +631,7 @@ PetscErrorCode BVNormVec(BV bv,Vec v,NormType type,PetscReal *val)
   } else {
     ierr = VecNorm(v,type,val);CHKERRQ(ierr);
   }
-  ierr = PetscLogEventEnd(BV_Norm,bv,0,0,0);CHKERRQ(ierr);
+  ierr = PetscLogEventEnd(BV_NormVec,bv,0,0,0);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -659,7 +670,7 @@ PetscErrorCode BVNormVecBegin(BV bv,Vec v,NormType type,PetscReal *val)
 
   if (type==NORM_1_AND_2) SETERRQ(PetscObjectComm((PetscObject)bv),PETSC_ERR_SUP,"Requested norm not available");
 
-  ierr = PetscLogEventBegin(BV_Norm,bv,0,0,0);CHKERRQ(ierr);
+  ierr = PetscLogEventBegin(BV_NormVec,bv,0,0,0);CHKERRQ(ierr);
   if (bv->matrix) { /* non-standard inner product */
     ierr = VecGetLocalSize(v,&n);CHKERRQ(ierr);
     if (bv->n!=n) SETERRQ2(PETSC_COMM_SELF,PETSC_ERR_ARG_INCOMP,"Mismatching local dimension bv %D, v %D",bv->n,n);
@@ -667,7 +678,7 @@ PetscErrorCode BVNormVecBegin(BV bv,Vec v,NormType type,PetscReal *val)
   } else {
     ierr = VecNormBegin(v,type,val);CHKERRQ(ierr);
   }
-  ierr = PetscLogEventEnd(BV_Norm,bv,0,0,0);CHKERRQ(ierr);
+  ierr = PetscLogEventEnd(BV_NormVec,bv,0,0,0);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -751,7 +762,7 @@ PetscErrorCode BVNormColumn(BV bv,PetscInt j,NormType type,PetscReal *val)
   if (j<0 || j>=bv->m) SETERRQ2(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_OUTOFRANGE,"Argument j has wrong value %D, the number of columns is %D",j,bv->m);
   if (type==NORM_1_AND_2) SETERRQ(PetscObjectComm((PetscObject)bv),PETSC_ERR_SUP,"Requested norm not available");
 
-  ierr = PetscLogEventBegin(BV_Norm,bv,0,0,0);CHKERRQ(ierr);
+  ierr = PetscLogEventBegin(BV_NormVec,bv,0,0,0);CHKERRQ(ierr);
   if (bv->matrix) { /* non-standard inner product */
     ierr = BVGetColumn(bv,j,&z);CHKERRQ(ierr);
     ierr = BVNorm_Private(bv,z,type,val);CHKERRQ(ierr);
@@ -759,7 +770,7 @@ PetscErrorCode BVNormColumn(BV bv,PetscInt j,NormType type,PetscReal *val)
   } else {
     ierr = (*bv->ops->norm)(bv,j,type,val);CHKERRQ(ierr);
   }
-  ierr = PetscLogEventEnd(BV_Norm,bv,0,0,0);CHKERRQ(ierr);
+  ierr = PetscLogEventEnd(BV_NormVec,bv,0,0,0);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -800,7 +811,7 @@ PetscErrorCode BVNormColumnBegin(BV bv,PetscInt j,NormType type,PetscReal *val)
   if (j<0 || j>=bv->m) SETERRQ2(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_OUTOFRANGE,"Argument j has wrong value %D, the number of columns is %D",j,bv->m);
   if (type==NORM_1_AND_2) SETERRQ(PetscObjectComm((PetscObject)bv),PETSC_ERR_SUP,"Requested norm not available");
 
-  ierr = PetscLogEventBegin(BV_Norm,bv,0,0,0);CHKERRQ(ierr);
+  ierr = PetscLogEventBegin(BV_NormVec,bv,0,0,0);CHKERRQ(ierr);
   ierr = BVGetColumn(bv,j,&z);CHKERRQ(ierr);
   if (bv->matrix) { /* non-standard inner product */
     ierr = BVNorm_Begin_Private(bv,z,type,val);CHKERRQ(ierr);
@@ -821,7 +832,7 @@ PetscErrorCode BVNormColumnBegin(BV bv,PetscInt j,NormType type,PetscReal *val)
     sr->lvalues[sr->numopsbegin++] = lresult;
   }
   ierr = BVRestoreColumn(bv,j,&z);CHKERRQ(ierr);
-  ierr = PetscLogEventEnd(BV_Norm,bv,0,0,0);CHKERRQ(ierr);
+  ierr = PetscLogEventEnd(BV_NormVec,bv,0,0,0);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

@@ -133,7 +133,7 @@ PetscErrorCode SlepcInitialize_DynamicLibraries(void)
 
   PetscFunctionBegin;
   preload = PETSC_FALSE;
-  ierr = PetscOptionsGetBool(NULL,"-dynamic_library_preload",&preload,NULL);CHKERRQ(ierr);
+  ierr = PetscOptionsGetBool(NULL,NULL,"-dynamic_library_preload",&preload,NULL);CHKERRQ(ierr);
   if (preload) {
 #if defined(PETSC_USE_SINGLE_LIBRARY)
     ierr = SlepcLoadDynamicLibrary("",&found);CHKERRQ(ierr);
