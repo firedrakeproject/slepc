@@ -959,7 +959,7 @@ PetscErrorCode NEPNLEIGSGetSingularitiesFunction(NEP nep,PetscErrorCode (**fun)(
 
 #undef __FUNCT__
 #define __FUNCT__ "NEPSetFromOptions_NLEIGS"
-PetscErrorCode NEPSetFromOptions_NLEIGS(PetscOptions *PetscOptionsObject,NEP nep)
+PetscErrorCode NEPSetFromOptions_NLEIGS(PetscOptionItems *PetscOptionsObject,NEP nep)
 {
   PetscErrorCode ierr;
   PC             pc;
