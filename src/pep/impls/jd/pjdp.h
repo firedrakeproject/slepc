@@ -34,14 +34,18 @@ typedef struct {
   PetscBool   custpc;        /* use custom correction equation preconditioner */
   PetscBool   flglk;         /* whether in locking step */
   PetscBool   flgre;         /* whether in restarting step */
-  BV          *W;            /* work basis vectors to store A_i*V */
+  BV          W;             /* work basis vectors to store the test space */
+  BV          *AV;           /* work basis vectors to store A_i*V */
   PC          pcshell;       /* preconditioner including basic precond+projector */
+  KSP         ksp;           /* auxiliary ksp */
+  Vec         kspvec;        
 } PEP_JD;
 
 typedef struct {
   PC          pc;            /* basic preconditioner */
   Vec         Bp;            /* preconditioned residual of derivative polynomial, B\p */
   Vec         u;             /* Ritz vector */
+  Vec         kspvec;        /* vec of size compatible with the auxiliary KSP */
   PetscScalar gamma;         /* precomputed scalar u'*B\p */
 } PEP_JD_PCSHELL;
 
