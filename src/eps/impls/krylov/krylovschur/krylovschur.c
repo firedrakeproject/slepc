@@ -1043,7 +1043,7 @@ static PetscErrorCode EPSKrylovSchurGetSubcommPairs_KrylovSchur(EPS eps,PetscInt
 #define __FUNCT__ "EPSKrylovSchurGetSubcommPairs"
 /*@C
    EPSKrylovSchurGetSubcommPairs - Gets the i-th eigenpair stored
-   internally in the multi-communicator to which the calling process belongs.
+   internally in the subcommunicator to which the calling process belongs.
 
    Collective on the subcommunicator (if v is given)
 
@@ -1065,7 +1065,7 @@ static PetscErrorCode EPSKrylovSchurGetSubcommPairs_KrylovSchur(EPS eps,PetscInt
 
    Level: advanced
 
-.seealso: EPSSetInterval(), EPSKrylovSchurSetPartitions(), EPSKrylovSchurGetSubcommInfo()
+.seealso: EPSSetInterval(), EPSKrylovSchurSetPartitions(), EPSKrylovSchurGetSubcommInfo(), EPSKrylovSchurGetSubcommMats()
 @*/
 PetscErrorCode EPSKrylovSchurGetSubcommPairs(EPS eps,PetscInt i,PetscScalar *eig,Vec v)
 {
@@ -1075,6 +1075,55 @@ PetscErrorCode EPSKrylovSchurGetSubcommPairs(EPS eps,PetscInt i,PetscScalar *eig
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   if (v) PetscValidLogicalCollectiveInt(v,i,2);
   ierr = PetscTryMethod(eps,"EPSKrylovSchurGetSubcommPairs_C",(EPS,PetscInt,PetscScalar*,Vec),(eps,i,eig,v));CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "EPSKrylovSchurGetSubcommMats_KrylovSchur"
+static PetscErrorCode EPSKrylovSchurGetSubcommMats_KrylovSchur(EPS eps,Mat *A,Mat *B)
+{
+  PetscErrorCode  ierr;
+  EPS_KRYLOVSCHUR *ctx = (EPS_KRYLOVSCHUR*)eps->data;
+
+  PetscFunctionBegin;
+  if (!ctx->sr) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_WRONGSTATE,"Only available in interval computations, see EPSSetInterval()");
+  if (!eps->state) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_WRONGSTATE,"Must call EPSSetUp() first");
+  ierr = EPSGetOperators(ctx->eps,A,B);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "EPSKrylovSchurGetSubcommMats"
+/*@C
+   EPSKrylovSchurGetSubcommMats - Gets the eigenproblem matrices stored
+   internally in the subcommunicator to which the calling process belongs.
+
+   Collective on the subcommunicator
+
+   Input Parameter:
+.  eps - the eigenproblem solver context
+
+   Output Parameters:
++  A  - the matrix associated with the eigensystem
+-  B  - the second matrix in the case of generalized eigenproblems
+
+   Notes:
+   This is the analog of EPSGetOperators(), but returns the matrices distributed
+   differently (in the subcommunicator rather than in the parent communicator).
+
+   These matrices should not be modified by the user.
+
+   Level: advanced
+
+.seealso: EPSSetInterval(), EPSKrylovSchurSetPartitions(), EPSKrylovSchurGetSubcommInfo()
+@*/
+PetscErrorCode EPSKrylovSchurGetSubcommMats(EPS eps,Mat *A,Mat *B)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
+  ierr = PetscTryMethod(eps,"EPSKrylovSchurGetSubcommMats_C",(EPS,Mat*,Mat*),(eps,A,B));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -1167,6 +1216,7 @@ PetscErrorCode EPSDestroy_KrylovSchur(EPS eps)
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSKrylovSchurGetInertias_C",NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSKrylovSchurGetSubcommInfo_C",NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSKrylovSchurGetSubcommPairs_C",NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSKrylovSchurGetSubcommMats_C",NULL);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -1219,6 +1269,7 @@ PETSC_EXTERN PetscErrorCode EPSCreate_KrylovSchur(EPS eps)
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSKrylovSchurGetInertias_C",EPSKrylovSchurGetInertias_KrylovSchur);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSKrylovSchurGetSubcommInfo_C",EPSKrylovSchurGetSubcommInfo_KrylovSchur);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSKrylovSchurGetSubcommPairs_C",EPSKrylovSchurGetSubcommPairs_KrylovSchur);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSKrylovSchurGetSubcommMats_C",EPSKrylovSchurGetSubcommMats_KrylovSchur);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

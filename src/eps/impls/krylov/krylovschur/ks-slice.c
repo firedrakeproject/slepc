@@ -313,6 +313,7 @@ PetscErrorCode EPSSetUp_KrylovSchur_Slice(EPS eps)
   PetscInt        nEigs,dssz=1,i,zeros=0,off=0;
   PetscMPIInt     nproc,rank,aux;
   MPI_Request     req;
+  Mat             A,B=NULL;
 
   PetscFunctionBegin;
   if (ctx->global) {
@@ -462,6 +463,11 @@ PetscErrorCode EPSSetUp_KrylovSchur_Slice(EPS eps)
   ierr = DSSetType(eps->ds,DSHEP);CHKERRQ(ierr);
   ierr = DSSetCompact(eps->ds,PETSC_TRUE);CHKERRQ(ierr);
   ierr = DSAllocate(eps->ds,dssz);CHKERRQ(ierr);
+  /* keep state of subcomm matrices to check that the user does not modify them */
+  ierr = EPSGetOperators(eps,&A,&B);CHKERRQ(ierr);
+  ierr = PetscObjectStateGet((PetscObject)A,&ctx->Astate);CHKERRQ(ierr);
+  if (B) { ierr = PetscObjectStateGet((PetscObject)B,&ctx->Bstate);CHKERRQ(ierr); }
+  else ctx->Bstate=0;
   PetscFunctionReturn(0);
 }
 
@@ -1282,11 +1288,13 @@ static PetscErrorCode EPSLookForDeflation(EPS eps)
 #define __FUNCT__ "EPSSolve_KrylovSchur_Slice"
 PetscErrorCode EPSSolve_KrylovSchur_Slice(EPS eps)
 {
-  PetscErrorCode  ierr;
-  PetscInt        i,lds;
-  PetscReal       newS;
-  EPS_KRYLOVSCHUR *ctx=(EPS_KRYLOVSCHUR*)eps->data;
-  EPS_SR          sr=ctx->sr;
+  PetscErrorCode   ierr;
+  PetscInt         i,lds;
+  PetscReal        newS;
+  EPS_KRYLOVSCHUR  *ctx=(EPS_KRYLOVSCHUR*)eps->data;
+  EPS_SR           sr=ctx->sr;
+  Mat              A,B=NULL;
+  PetscObjectState Astate,Bstate=0;
 
   PetscFunctionBegin;
   if (ctx->global) {
@@ -1311,6 +1319,11 @@ PetscErrorCode EPSSolve_KrylovSchur_Slice(EPS eps)
       sr->errest = ctx->eps->errest;
       sr->V      = ctx->eps->V;
     }
+    /* Check that the user did not modify subcomm matrices */
+    ierr = EPSGetOperators(eps,&A,&B);CHKERRQ(ierr);
+    ierr = PetscObjectStateGet((PetscObject)A,&Astate);CHKERRQ(ierr);
+    if (B) { ierr = PetscObjectStateGet((PetscObject)B,&Bstate);CHKERRQ(ierr); }
+    if (Astate!=ctx->Astate || Bstate!=ctx->Bstate) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONGSTATE,"Subcomm matrices have been modified by user");
     /* Only with eigenvalues present in the interval ...*/
     if (sr->numEigs==0) {
       eps->reason = EPS_CONVERGED_TOL;
