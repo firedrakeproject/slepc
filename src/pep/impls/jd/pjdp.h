@@ -26,19 +26,18 @@
 
 typedef struct {
   PetscReal   keep;          /* restart parameter */
-  PetscReal   mtol;          /* tolerance for eigenvalue multiplicity */
-  PetscReal   htol;          /* tolerance for harmonic JD */
-  PetscReal   stol;          /* tolerance for harmonic shift */
   PetscInt    fnini;         /* first initial search space */
-  PetscBool   randini;       /* use random initial search space */
   PetscBool   custpc;        /* use custom correction equation preconditioner */
   PetscBool   flglk;         /* whether in locking step */
   PetscBool   flgre;         /* whether in restarting step */
+  BV          V;             /* work basis vectors to store the search space */
+  PetscScalar *v;            /* extended part of V */
   BV          W;             /* work basis vectors to store the test space */
-  BV          *AV;           /* work basis vectors to store A_i*V */
+  BV          *TV;           /* work basis vectors to store T*V (each TV[i] is the coeficient for \lambda^i of T*V for the extended T) */
+  BV          *AX;           /* work basis vectors to store A_i*X for locked eigenvectors */
   PC          pcshell;       /* preconditioner including basic precond+projector */
-  KSP         ksp;           /* auxiliary ksp */
-  Vec         kspvec;        
+  Mat         Pshell;        /* auxiliaty shell matrix */
+  Vec         vex;           /* auxiliary extended Vec*/
 } PEP_JD;
 
 typedef struct {
@@ -49,11 +48,13 @@ typedef struct {
   PetscScalar gamma;         /* precomputed scalar u'*B\p */
 } PEP_JD_PCSHELL;
 
+typedef struct {
+  Mat         P;             /*  */
+} PEP_JD_MATSHELL;
+
 PETSC_INTERN PetscErrorCode PEPView_JD(PEP,PetscViewer);
 PETSC_INTERN PetscErrorCode PEPSetFromOptions_JD(PetscOptionItems*,PEP);
 PETSC_INTERN PetscErrorCode PEPJDSetRestart_JD(PEP,PetscReal);
 PETSC_INTERN PetscErrorCode PEPJDGetRestart_JD(PEP,PetscReal*);
-PETSC_INTERN PetscErrorCode PEPJDSetTolerances_JD(PEP,PetscReal,PetscReal,PetscReal);
-PETSC_INTERN PetscErrorCode PEPJDGetTolerances_JD(PEP,PetscReal*,PetscReal*,PetscReal*);
 
 #endif

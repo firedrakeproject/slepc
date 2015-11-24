@@ -24,6 +24,7 @@
 #include <slepc/private/pepimpl.h>    /*I "slepcpep.h" I*/
 #include "pjdp.h"
 
+#if 0
 #undef __FUNCT__
 #define __FUNCT__ "PEPJDSetTolerances_JD"
 PetscErrorCode PEPJDSetTolerances_JD(PEP pep,PetscReal mtol,PetscReal htol,PetscReal stol)
@@ -31,17 +32,17 @@ PetscErrorCode PEPJDSetTolerances_JD(PEP pep,PetscReal mtol,PetscReal htol,Petsc
   PEP_JD *pjd = (PEP_JD*)pep->data;
 
   PetscFunctionBegin;
-  if (mtol==PETSC_DEFAULT) pjd->mtol = 1e-5;
+  if (mtol==PETSC_DEFAULT); pjd->mtol = 1e-5;
   else {
     if (mtol<0.0) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of mtol. Must be > 0");
     pjd->mtol = mtol;
   }
-  if (htol==PETSC_DEFAULT) pjd->htol = 1e-2;
+  if (htol==PETSC_DEFAULT); pjd->htol = 1e-2;
   else {
     if (htol<0.0) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of htol. Must be > 0");
     pjd->htol = htol;
   }
-  if (stol==PETSC_DEFAULT) pjd->stol = 1e-2;
+  if (stol==PETSC_DEFAULT); pjd->stol = 1e-2;
   else {
     if (stol<0.0) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of stol. Must be > 0");
     pjd->stol = stol;
@@ -129,6 +130,7 @@ PetscErrorCode PEPJDGetTolerances(PEP pep,PetscReal *mtol,PetscReal *htol,PetscR
   ierr = PetscTryMethod(pep,"PEPJDGetTolerances_C",(PEP,PetscReal*,PetscReal*,PetscReal*),(pep,mtol,htol,stol));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
+#endif
 
 #undef __FUNCT__
 #define __FUNCT__ "PEPJDSetRestart_JD"
@@ -223,9 +225,9 @@ PetscErrorCode PEPJDGetRestart(PEP pep,PetscReal *keep)
 PetscErrorCode PEPSetFromOptions_JD(PetscOptionItems *PetscOptionsObject,PEP pep)
 {
   PetscErrorCode ierr;
-  PEP_JD         *pjd = (PEP_JD*)pep->data;
-  PetscBool      flg,flg1,flg2,flg3;
-  PetscReal      r1,r2,r3;
+  /* PEP_JD         *pjd = (PEP_JD*)pep->data; */
+  PetscBool      flg; /* ,flg1,flg2,flg3; */
+  PetscReal      r1; /* ,r2,r3; */
 
   PetscFunctionBegin;
   ierr = PetscOptionsHead(PetscOptionsObject,"PEP JD Options");CHKERRQ(ierr);
@@ -233,16 +235,17 @@ PetscErrorCode PEPSetFromOptions_JD(PetscOptionItems *PetscOptionsObject,PEP pep
   if (flg) {
     ierr = PEPJDSetRestart(pep,r1);CHKERRQ(ierr);
   }
-
+/*
   r1 = pjd->mtol;
-  ierr = PetscOptionsReal("-pep_jd_mtol","Multiplicity tolerance","PEPJDSetTolerances",pjd->mtol,&r1,&flg1);CHKERRQ(ierr);
+  ierr = PetscOptionsReal("-pep_jd_mtol","Multiplicity tolerance","PEPJDSetTolerances",1,&r1,&flg1);CHKERRQ(ierr);
   r2 = pjd->htol;
-  ierr = PetscOptionsReal("-pep_jd_htol","Harmonic tolerance","PEPJDSetTolerances",pjd->htol,&r2,&flg2);CHKERRQ(ierr);
+  ierr = PetscOptionsReal("-pep_jd_htol","Harmonic tolerance","PEPJDSetTolerances",1,&r2,&flg2);CHKERRQ(ierr);
   r3 = pjd->stol;
-  ierr = PetscOptionsReal("-pep_jd_stol","Shift tolerance","PEPJDSetTolerances",pjd->stol,&r3,&flg3);CHKERRQ(ierr);
+  ierr = PetscOptionsReal("-pep_jd_stol","Shift tolerance","PEPJDSetTolerances",1,&r3,&flg3);CHKERRQ(ierr);
   if (flg1 || flg2 || flg3) {
     ierr = PEPJDSetTolerances(pep,r1,r2,r3);CHKERRQ(ierr);
   }
+*/
   ierr = PetscOptionsTail();CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -259,9 +262,9 @@ PetscErrorCode PEPView_JD(PEP pep,PetscViewer viewer)
   ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
   if (isascii) {
     ierr = PetscViewerASCIIPrintf(viewer,"  JD: %d%% of basis vectors kept after restart\n",(int)(100*pjd->keep));CHKERRQ(ierr);
-    ierr = PetscViewerASCIIPrintf(viewer,"  JD: multiplicity tolerance = %g\n",(double)pjd->mtol);CHKERRQ(ierr);
-    ierr = PetscViewerASCIIPrintf(viewer,"  JD: harmonic tolerance = %g\n",(double)pjd->htol);CHKERRQ(ierr);
-    ierr = PetscViewerASCIIPrintf(viewer,"  JD: shift tolerance = %g\n",(double)pjd->stol);CHKERRQ(ierr);
+ /*   ierr = PetscViewerASCIIPrintf(viewer,"  JD: multiplicity tolerance = %g\n",(double)1);CHKERRQ(ierr);
+    ierr = PetscViewerASCIIPrintf(viewer,"  JD: harmonic tolerance = %g\n",(double)1);CHKERRQ(ierr);
+    ierr = PetscViewerASCIIPrintf(viewer,"  JD: shift tolerance = %g\n",(double)1);CHKERRQ(ierr);*/
   }
   PetscFunctionReturn(0);
 }
