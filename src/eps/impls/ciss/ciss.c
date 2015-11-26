@@ -406,7 +406,7 @@ static PetscErrorCode EstimateNumberEigs(EPS eps,PetscInt *L_add)
 static PetscErrorCode CalcMu(EPS eps,PetscScalar *Mu)
 {
   PetscErrorCode ierr;
-  PetscMPIInt    sub_size;
+  PetscMPIInt    sub_size,len;
   PetscInt       i,j,k,s;
   PetscScalar    *m,*temp,*temp2,*ppk,alp;
   EPS_CISS       *ctx = (EPS_CISS*)eps->data;
@@ -449,7 +449,8 @@ static PetscErrorCode CalcMu(EPS eps,PetscScalar *Mu)
       ppk[i] *= ctx->pp[i*ctx->subcomm->n + ctx->subcomm_id];
   }
   for (i=0;i<2*ctx->M*ctx->L*ctx->L;i++) temp2[i] /= sub_size;
-  ierr = MPI_Allreduce(temp2,Mu,2*ctx->M*ctx->L*ctx->L,MPIU_SCALAR,MPIU_SUM,(PetscObjectComm((PetscObject)eps)));CHKERRQ(ierr);
+  ierr = PetscMPIIntCast(2*ctx->M*ctx->L*ctx->L,&len);CHKERRQ(ierr);
+  ierr = MPI_Allreduce(temp2,Mu,len,MPIU_SCALAR,MPIU_SUM,PetscObjectComm((PetscObject)eps));CHKERRQ(ierr);
   ierr = PetscFree3(temp,temp2,ppk);CHKERRQ(ierr);
   ierr = MatDestroy(&M);CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -574,6 +575,7 @@ static PetscErrorCode SVD_S(BV S,PetscInt ml,PetscReal delta,PetscReal *sigma,Pe
 #else
   PetscErrorCode ierr;
   PetscInt       i,j,k,local_size;
+  PetscMPIInt    len;
   PetscScalar    *work,*temp,*B,*tempB,*s_data,*Q1,*Q2,*temp2,alpha=1,beta=0;
   PetscBLASInt   l,m,n,lda,ldu,ldvt,lwork,info,ldb,ldc;
 #if defined(PETSC_USE_COMPLEX)
@@ -604,7 +606,8 @@ static PetscErrorCode SVD_S(BV S,PetscInt ml,PetscReal delta,PetscReal *sigma,Pe
       PetscStackCallBLAS("BLASgemm",BLASgemm_("C","N",&l,&n,&m,&alpha,Q2,&lda,Q2,&ldb,&beta,temp,&ldc));
     }
     ierr = PetscMemzero(temp2,ml*ml*sizeof(PetscScalar));CHKERRQ(ierr);
-    ierr = MPI_Allreduce(temp,temp2,ml*ml,MPIU_SCALAR,MPIU_SUM,(PetscObjectComm((PetscObject)S)));CHKERRQ(ierr);
+    ierr = PetscMPIIntCast(ml*ml,&len);CHKERRQ(ierr);
+    ierr = MPI_Allreduce(temp,temp2,len,MPIU_SCALAR,MPIU_SUM,PetscObjectComm((PetscObject)S));CHKERRQ(ierr);
 
     ierr = PetscBLASIntCast(ml,&m);CHKERRQ(ierr);
     n = m; lda = m; lwork = 5*m, ldu = 1; ldvt = 1;
