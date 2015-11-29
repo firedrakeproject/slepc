@@ -39,24 +39,6 @@ typedef struct {
   PetscReal target;               /* a copy of eps's target */
 } EPS_PRIMME;
 
-EPSPRIMMEMethod methodN[] = {
-  EPS_PRIMME_DYNAMIC,
-  EPS_PRIMME_DEFAULT_MIN_TIME,
-  EPS_PRIMME_DEFAULT_MIN_MATVECS,
-  EPS_PRIMME_ARNOLDI,
-  EPS_PRIMME_GD,
-  EPS_PRIMME_GD_PLUSK,
-  EPS_PRIMME_GD_OLSEN_PLUSK,
-  EPS_PRIMME_JD_OLSEN_PLUSK,
-  EPS_PRIMME_RQI,
-  EPS_PRIMME_JDQR,
-  EPS_PRIMME_JDQMR,
-  EPS_PRIMME_JDQMR_ETOL,
-  EPS_PRIMME_SUBSPACE_ITERATION,
-  EPS_PRIMME_LOBPCG_ORTHOBASIS,
-  EPS_PRIMME_LOBPCG_ORTHOBASISW
-};
-
 static void multMatvec_PRIMME(void *in,void *out,int *blockSize,primme_params *primme);
 static void applyPreconditioner_PRIMME(void *in,void *out,int *blockSize,struct primme_params *primme);
 
@@ -436,8 +418,7 @@ static PetscErrorCode EPSPRIMMESetMethod_PRIMME(EPS eps,EPSPRIMMEMethod method)
   EPS_PRIMME *ops = (EPS_PRIMME*)eps->data;
 
   PetscFunctionBegin;
-  if (method == PETSC_DEFAULT) ops->method = DEFAULT_MIN_TIME;
-  else ops->method = (primme_preset_method)method;
+  ops->method = (primme_preset_method)method;
   PetscFunctionReturn(0);
 }
 
