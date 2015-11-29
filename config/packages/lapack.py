@@ -25,6 +25,7 @@ class Lapack(package.Package):
 
   def __init__(self,argdb,log):
     self.packagename  = 'lapack'
+    self.installable  = False
     self.downloadable = False
     self.log          = log
 

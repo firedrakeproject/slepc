@@ -25,6 +25,7 @@ class Blzpack(package.Package):
 
   def __init__(self,argdb,log):
     self.packagename  = 'blzpack'
+    self.installable  = True
     self.downloadable = False
     self.packagedir   = ''
     self.packagelibs  = []

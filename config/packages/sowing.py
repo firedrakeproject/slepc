@@ -26,6 +26,7 @@ class Sowing(package.Package):
 
   def __init__(self,argdb,log):
     self.packagename     = 'sowing'
+    self.installable     = False
     self.downloadable    = True
     self.downloadpackage = 0
     self.packageurl      = ''

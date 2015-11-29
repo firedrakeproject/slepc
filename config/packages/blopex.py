@@ -19,7 +19,7 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-import os, sys, commands
+import os, sys, commands, shutil
 import urllib, urlparse
 import log, package
 
@@ -27,6 +27,7 @@ class Blopex(package.Package):
 
   def __init__(self,argdb,log):
     self.packagename     = 'blopex'
+    self.installable     = False
     self.downloadable    = True
     self.downloadpackage = 0
     self.packageurl      = ''
@@ -126,7 +127,7 @@ Unable to download package %s from: %s
     os.rename(os.path.join(builddir,'lib','libBLOPEX.'+petsc.ar_lib_suffix),os.path.join(libDir,'libBLOPEX.'+petsc.ar_lib_suffix))
     for root, dirs, files in os.walk(os.path.join(builddir,'include')):
       for name in files:
-        os.rename(os.path.join(builddir,'include',name),os.path.join(incDir,name))
+        shutil.copyfile(os.path.join(builddir,'include',name),os.path.join(incDir,name))
 
     if 'rpath' in petsc.slflag:
       l = petsc.slflag + libDir + ' -L' + libDir + ' -lBLOPEX'

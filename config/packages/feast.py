@@ -25,6 +25,7 @@ class Feast(package.Package):
 
   def __init__(self,argdb,log):
     self.packagename  = 'feast'
+    self.installable  = True
     self.downloadable = False
     self.packagedir   = ''
     self.packagelibs  = []

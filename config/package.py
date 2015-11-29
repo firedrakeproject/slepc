@@ -27,13 +27,7 @@ class Package:
   def ProcessArgs(self,argdb):
     self.requested = False
     self.havepackage = False
-    if self.downloadable:
-      url,flag,found = argdb.PopUrl('download-'+self.packagename)
-      if found:
-        self.requested = True
-        self.packageurl = url
-        self.downloadpackage = flag
-    else:
+    if self.installable:
       string,found = argdb.PopPath('with-'+self.packagename+'-dir')
       if found:
         self.requested = True
@@ -44,27 +38,35 @@ class Package:
         self.packagelibs = string.split(',')
       if argdb.PopBool('with-'+self.packagename):
         self.requested = True
+    if self.downloadable:
+      url,flag,found = argdb.PopUrl('download-'+self.packagename)
+      if found:
+        if self.requested:
+          self.log.Exit('ERROR: Cannot request both download and install simultaneously')
+        self.requested = True
+        self.download = True
+        self.packageurl = url
+        self.downloadpackage = flag
 
   def Process(self,conf,vars,cmake,petsc,archdir=''):
     self.make = petsc.make
     self.slflag = petsc.slflag
     if self.requested:
       name = self.packagename.upper()
-      if self.downloadable:
-        if self.downloadpackage:
-          self.log.NewSection('Installing '+name+'...')
-          self.Install(conf,vars,cmake,petsc,archdir)
-      else:
+      if self.downloadpackage:
+        self.log.NewSection('Installing '+name+'...')
+        self.Install(conf,vars,cmake,petsc,archdir)
+      elif self.installable:
         self.log.NewSection('Checking '+name+' library...')
         self.Check(conf,vars,cmake,petsc)
 
   def ShowHelp(self):
     wd = 31
+    if self.downloadable or self.installable:
+      print self.packagename.upper()+':'
     if self.downloadable:
-      print self.packagename.upper()+':'
       print ('  --download-'+self.packagename+'[=<fname>]').ljust(wd)+': Download and install '+self.packagename.upper()+' in SLEPc directory'
-    else:
-      print self.packagename.upper()+':'
+    if self.installable:
       print ('  --with-'+self.packagename+'=<bool>').ljust(wd)+': Indicate if you wish to test for '+self.packagename.upper()
       print ('  --with-'+self.packagename+'-dir=<dir>').ljust(wd)+': Indicate the directory for '+self.packagename.upper()+' libraries'
       print ('  --with-'+self.packagename+'-flags=<flags>').ljust(wd)+': Indicate comma-separated flags for linking '+self.packagename.upper()
