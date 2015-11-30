@@ -167,6 +167,7 @@ Unable to download package %s from: %s
     g.write('ZLIBRARY    = libzprimme.a\n')
     g.write('CC          = '+petsc.cc+'\n')
     g.write('DEFINES     = -DF77UNDERSCORE\n')
+    g.write('INCLUDE     = \n')
     g.write('CFLAGS      = '+petsc.cc_flags.replace('-Wall','').replace('-Wshadow','')+'\n')
     g.write('RANLIB      = '+petsc.ranlib+'\n')
     g.close()
