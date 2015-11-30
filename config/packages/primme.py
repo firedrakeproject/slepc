@@ -186,6 +186,16 @@ Unable to download package %s from: %s
       l = petsc.slflag + libDir + ' -L' + libDir + ' -lprimme'
     else:
       l = '-L' + libDir + ' -lprimme'
+    f = '-I' + incDir
+
+    # Check build
+    functions_base = ['primme_set_method','primme_Free','primme_initialize']
+    if petsc.scalar == 'real':
+      functions = functions_base + ['dprimme']
+    else:
+      functions = functions_base + ['zprimme']
+    if not self.Link(functions,[],[l]+[f]):
+      self.log.Exit('\nERROR: Unable to link with downloaded PRIMME')
 
     # Write configuration files
     conf.write('#ifndef SLEPC_HAVE_PRIMME\n#define SLEPC_HAVE_PRIMME 1\n#endif\n\n')
@@ -195,5 +205,5 @@ Unable to download package %s from: %s
     cmake.write('find_path (PRIMME_INCLUDE primme.h ' + incDir + ')\n')
 
     self.havepackage = True
-    self.packageflags = [l] + ['-I' + incDir]
+    self.packageflags = [l] + [f]
 

@@ -133,6 +133,15 @@ Unable to download package %s from: %s
       l = petsc.slflag + libDir + ' -L' + libDir + ' -lBLOPEX'
     else:
       l = '-L' + libDir + ' -lBLOPEX'
+    f = '-I' + incDir
+
+    # Check build
+    if petsc.scalar == 'real':
+      functions = ['lobpcg_solve_double']
+    else:
+      functions = ['lobpcg_solve_complex']
+    if not self.Link(functions,[],[l]+[f]):
+      self.log.Exit('\nERROR: Unable to link with downloaded BLOPEX')
 
     # Write configuration files
     conf.write('#ifndef SLEPC_HAVE_BLOPEX\n#define SLEPC_HAVE_BLOPEX 1\n#endif\n\n')
@@ -141,5 +150,5 @@ Unable to download package %s from: %s
     cmake.write('find_library (BLOPEX_LIB BLOPEX HINTS '+ libDir +')\n')
 
     self.havepackage = True
-    self.packageflags = [l] + ['-I' + incDir]
+    self.packageflags = [l] + [f]
 
