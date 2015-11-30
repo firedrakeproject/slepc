@@ -166,7 +166,12 @@ Unable to download package %s from: %s
     g.write('DLIBRARY    = libdprimme.a\n')
     g.write('ZLIBRARY    = libzprimme.a\n')
     g.write('CC          = '+petsc.cc+'\n')
-    g.write('DEFINES     = -DF77UNDERSCORE\n')
+    g.write('DEFINES     = ')
+    if petsc.blaslapackunderscore:
+      g.write('-DF77UNDERSCORE ')
+    if petsc.blaslapackint64:
+      g.write('-DPRIMME_BLASINT_SIZE=64')
+    g.write('\n')
     g.write('INCLUDE     = \n')
     g.write('CFLAGS      = '+petsc.cc_flags.replace('-Wall','').replace('-Wshadow','')+'\n')
     g.write('RANLIB      = '+petsc.ranlib+'\n')
