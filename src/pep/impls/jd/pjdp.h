@@ -37,19 +37,21 @@ typedef struct {
   BV          *AX;           /* work basis vectors to store A_i*X for locked eigenvectors */
   PC          pcshell;       /* preconditioner including basic precond+projector */
   Mat         Pshell;        /* auxiliaty shell matrix */
-  Vec         vex;           /* auxiliary extended Vec*/
 } PEP_JD;
 
 typedef struct {
   PC          pc;            /* basic preconditioner */
   Vec         Bp;            /* preconditioned residual of derivative polynomial, B\p */
   Vec         u;             /* Ritz vector */
-  Vec         kspvec;        /* vec of size compatible with the auxiliary KSP */
   PetscScalar gamma;         /* precomputed scalar u'*B\p */
+  Vec         *work;
 } PEP_JD_PCSHELL;
 
 typedef struct {
   Mat         P;             /*  */
+  PEP         pep;
+  Vec         *work;
+  PetscScalar theta;
 } PEP_JD_MATSHELL;
 
 PETSC_INTERN PetscErrorCode PEPView_JD(PEP,PetscViewer);

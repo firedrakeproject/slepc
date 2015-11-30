@@ -311,8 +311,6 @@ PETSC_EXTERN PetscErrorCode PEPSTOARGetLocking(PEP,PetscBool*);
 
 PETSC_EXTERN PetscErrorCode PEPJDSetRestart(PEP,PetscReal);
 PETSC_EXTERN PetscErrorCode PEPJDGetRestart(PEP,PetscReal*);
-PETSC_EXTERN PetscErrorCode PEPJDSetTolerances(PEP,PetscReal,PetscReal,PetscReal);
-PETSC_EXTERN PetscErrorCode PEPJDGetTolerances(PEP,PetscReal*,PetscReal*,PetscReal*);
 
 #endif
 
