@@ -24,12 +24,9 @@ import log, package
 class Blzpack(package.Package):
 
   def __init__(self,argdb,log):
-    self.packagename  = 'blzpack'
-    self.installable  = True
-    self.downloadable = False
-    self.packagedir   = ''
-    self.packagelibs  = []
-    self.log          = log
+    package.Package.__init__(self,argdb,log)
+    self.packagename = 'blzpack'
+    self.installable = True
     self.ProcessArgs(argdb)
 
   def Check(self,conf,vars,cmake,petsc):

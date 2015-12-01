@@ -25,12 +25,9 @@ import log, package
 class Sowing(package.Package):
 
   def __init__(self,argdb,log):
-    self.packagename     = 'sowing'
-    self.installable     = False
-    self.downloadable    = True
-    self.downloadpackage = 0
-    self.packageurl      = ''
-    self.log             = log
+    package.Package.__init__(self,argdb,log)
+    self.packagename  = 'sowing'
+    self.downloadable = True
     self.ProcessArgs(argdb)
 
   def Install(self,archdir,make):

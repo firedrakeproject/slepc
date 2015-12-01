@@ -26,12 +26,9 @@ import log, package
 class Blopex(package.Package):
 
   def __init__(self,argdb,log):
-    self.packagename     = 'blopex'
-    self.installable     = False
-    self.downloadable    = True
-    self.downloadpackage = 0
-    self.packageurl      = ''
-    self.log             = log
+    package.Package.__init__(self,argdb,log)
+    self.packagename  = 'blopex'
+    self.downloadable = True
     self.ProcessArgs(argdb)
 
   def Install(self,conf,vars,cmake,petsc,archdir):

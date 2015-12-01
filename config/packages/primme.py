@@ -26,13 +26,10 @@ import log, package
 class Primme(package.Package):
 
   def __init__(self,argdb,log):
-    self.packagename     = 'primme'
-    self.installable     = True
-    self.downloadable    = True
-    self.downloadpackage = 0
-    self.packagedir      = ''
-    self.packagelibs     = []
-    self.log             = log
+    package.Package.__init__(self,argdb,log)
+    self.packagename  = 'primme'
+    self.installable  = True
+    self.downloadable = True
     self.ProcessArgs(argdb)
 
   def Check(self,conf,vars,cmake,petsc):

@@ -24,10 +24,8 @@ import package, os, sys, commands
 class PETSc(package.Package):
 
   def __init__(self,argdb,log):
-    self.packagename  = 'petsc'
-    self.installable  = False
-    self.downloadable = False
-    self.log          = log
+    package.Package.__init__(self,argdb,log)
+    self.packagename = 'petsc'
 
   def Check(self):
     self.havepackage = self.Link([],[],[])

@@ -24,6 +24,15 @@ import log, argdb
 
 class Package:
 
+  def __init__(self,argdb,log):
+    self.installable     = False
+    self.downloadable    = False
+    self.downloadpackage = 0
+    self.packagedir      = ''
+    self.packagelibs     = []
+    self.packageurl      = ''
+    self.log             = log
+
   def ProcessArgs(self,argdb):
     self.requested = False
     self.havepackage = False
