@@ -31,10 +31,11 @@ typedef struct {
   PetscBool   flglk;         /* whether in locking step */
   PetscBool   flgre;         /* whether in restarting step */
   BV          V;             /* work basis vectors to store the search space */
-  PetscScalar *v;            /* extended part of V */
   BV          W;             /* work basis vectors to store the test space */
   BV          *TV;           /* work basis vectors to store T*V (each TV[i] is the coeficient for \lambda^i of T*V for the extended T) */
   BV          *AX;           /* work basis vectors to store A_i*X for locked eigenvectors */
+  BV          X;
+  PetscScalar *XpX;           /* X^H*X */
   PC          pcshell;       /* preconditioner including basic precond+projector */
   Mat         Pshell;        /* auxiliaty shell matrix */
 } PEP_JD;
