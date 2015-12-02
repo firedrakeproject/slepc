@@ -259,7 +259,7 @@ static PetscErrorCode EstimateNumberEigs(NEP nep,PetscInt *L_add)
 static PetscErrorCode CalcMu(NEP nep, PetscScalar *Mu)
 {
   PetscErrorCode ierr;
-  PetscMPIInt    sub_size;
+  PetscMPIInt    sub_size,len;
   PetscInt       i,j,k,s;
   PetscScalar    *m,*temp,*temp2,*ppk,alp;
   NEP_CISS       *ctx = (NEP_CISS*)nep->data;
@@ -297,7 +297,8 @@ static PetscErrorCode CalcMu(NEP nep, PetscScalar *Mu)
       ppk[i] *= ctx->pp[i*ctx->subcomm->n + ctx->subcomm_id];
   }
   for (i=0;i<2*ctx->M*ctx->L*ctx->L;i++) temp2[i] /= sub_size;
-  ierr = MPI_Allreduce(temp2,Mu,2*ctx->M*ctx->L*ctx->L,MPIU_SCALAR,MPIU_SUM,(PetscObjectComm((PetscObject)nep)));CHKERRQ(ierr);
+  ierr = PetscMPIIntCast(2*ctx->M*ctx->L*ctx->L,&len);CHKERRQ(ierr);
+  ierr = MPI_Allreduce(temp2,Mu,len,MPIU_SCALAR,MPIU_SUM,PetscObjectComm((PetscObject)nep));CHKERRQ(ierr);
   ierr = PetscFree3(temp,temp2,ppk);CHKERRQ(ierr);
   ierr = MatDestroy(&M);CHKERRQ(ierr);
   PetscFunctionReturn(0);
