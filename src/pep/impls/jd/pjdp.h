@@ -45,7 +45,12 @@ typedef struct {
   Vec         Bp;            /* preconditioned residual of derivative polynomial, B\p */
   Vec         u;             /* Ritz vector */
   PetscScalar gamma;         /* precomputed scalar u'*B\p */
+  PetscScalar *M;
+  PetscScalar *ps;
+  PetscInt    ld;
   Vec         *work;
+  BV          X;
+  PetscInt    n;
 } PEP_JD_PCSHELL;
 
 typedef struct {
