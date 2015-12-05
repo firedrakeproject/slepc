@@ -29,17 +29,15 @@ class Trlan(package.Package):
     self.installable = True
     self.ProcessArgs(argdb)
 
-  def Check(self,conf,vars,cmake,petsc):
-
+  def Precondition(self,petsc):
+    package.Package.Precondition(self,petsc)
     if petsc.scalar == 'complex':
       self.log.Exit('ERROR: TRLAN is not available for complex scalars.')
 
     if petsc.precision != 'double':
       self.log.Exit('ERROR: TRLAN is supported only in double precision.')
 
-    if petsc.ind64:
-      self.log.Exit('ERROR: Cannot use external packages with 64-bit indices.')
-
+  def Check(self,conf,vars,cmake,petsc):
     functions = ['trlan77']
     if self.packagelibs:
       libs = [self.packagelibs]

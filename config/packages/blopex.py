@@ -31,16 +31,12 @@ class Blopex(package.Package):
     self.downloadable = True
     self.ProcessArgs(argdb)
 
-  def Install(self,conf,vars,cmake,petsc,archdir):
-    '''
-    Download and uncompress the BLOPEX tarball
-    '''
+  def Precondition(self,petsc):
+    package.Package.Precondition(self,petsc)
     if petsc.precision != 'double':
       self.log.Exit('ERROR: BLOPEX is supported only in double precision.')
 
-    if petsc.ind64:
-      self.log.Exit('ERROR: Cannot use external packages with 64-bit indices.')
-
+  def Install(self,conf,vars,cmake,petsc,archdir):
     packagename = 'blopex-1.1.2'
     externdir   = os.path.join(archdir,'externalpackages')
     builddir    = os.path.join(externdir,packagename)

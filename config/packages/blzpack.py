@@ -29,17 +29,15 @@ class Blzpack(package.Package):
     self.installable = True
     self.ProcessArgs(argdb)
 
-  def Check(self,conf,vars,cmake,petsc):
-
+  def Precondition(self,petsc):
+    package.Package.Precondition(self,petsc)
     if petsc.scalar == 'complex':
       self.log.Exit('ERROR: BLZPACK does not support complex numbers.')
 
     if (petsc.precision != 'single') & (petsc.precision != 'double'):
       self.log.Exit('ERROR: BLZPACK is supported only in single or double precision.')
 
-    if petsc.ind64:
-      self.log.Exit('ERROR: Cannot use external packages with 64-bit indices.')
-
+  def Check(self,conf,vars,cmake,petsc):
     if petsc.precision == 'single':
       functions = ['blzdrs']
     else:

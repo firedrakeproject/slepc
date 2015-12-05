@@ -32,14 +32,12 @@ class Primme(package.Package):
     self.downloadable = True
     self.ProcessArgs(argdb)
 
-  def Check(self,conf,vars,cmake,petsc):
-
+  def Precondition(self,petsc):
+    package.Package.Precondition(self,petsc)
     if petsc.precision != 'double':
       self.log.Exit('ERROR: PRIMME is supported only in double precision.')
 
-    if petsc.ind64:
-      self.log.Exit('ERROR: Cannot use external packages with 64-bit indices.')
-
+  def Check(self,conf,vars,cmake,petsc):
     functions_base = ['primme_set_method','primme_Free','primme_initialize']
     if self.packagedir:
       dirs = [self.packagedir]
@@ -82,15 +80,6 @@ class Primme(package.Package):
 
 
   def Install(self,conf,vars,cmake,petsc,archdir):
-    '''
-    Download and uncompress the PRIMME tarball
-    '''
-    if petsc.precision != 'double':
-      self.log.Exit('ERROR: PRIMME is supported only in double precision.')
-
-    if petsc.ind64:
-      self.log.Exit('ERROR: Cannot use external packages with 64-bit indices.')
-
     packagename = 'PRIMME'
     externdir   = os.path.join(archdir,'externalpackages')
     builddir    = os.path.join(externdir,packagename)

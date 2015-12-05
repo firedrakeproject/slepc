@@ -31,9 +31,6 @@ class Sowing(package.Package):
     self.ProcessArgs(argdb)
 
   def Install(self,archdir,make):
-    '''
-    Download and install Sowing
-    '''
     name = self.packagename.upper()
     self.log.NewSection('Installing '+name+'...')
 

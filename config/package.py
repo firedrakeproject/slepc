@@ -64,10 +64,16 @@ class Package:
       name = self.packagename.upper()
       if self.downloadpackage:
         self.log.NewSection('Installing '+name+'...')
+        self.Precondition(petsc)
         self.Install(conf,vars,cmake,petsc,archdir)
       elif self.installable:
-        self.log.NewSection('Checking '+name+' library...')
+        self.log.NewSection('Checking '+name+'...')
+        self.Precondition(petsc)
         self.Check(conf,vars,cmake,petsc)
+
+  def Precondition(self,petsc):
+    if petsc.ind64:
+      self.log.Exit('ERROR: Cannot use external packages with 64-bit indices.')
 
   def ShowHelp(self):
     wd = 31

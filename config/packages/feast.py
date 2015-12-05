@@ -29,17 +29,15 @@ class Feast(package.Package):
     self.installable = True
     self.ProcessArgs(argdb)
 
-  def Check(self,conf,vars,cmake,petsc):
-
+  def Precondition(self,petsc):
+    package.Package.Precondition(self,petsc)
     if petsc.scalar != 'complex':
       self.log.Exit('ERROR: FEAST is supported only with complex numbers.')
 
     if (petsc.precision != 'single') & (petsc.precision != 'double'):
       self.log.Exit('ERROR: FEAST is supported only in single or double precision.')
 
-    if petsc.ind64:
-      self.log.Exit('ERROR: Cannot use external packages with 64-bit indices.')
-
+  def Check(self,conf,vars,cmake,petsc):
     functions = ['feastinit']
     if petsc.scalar == 'real':
       if petsc.precision == 'single':
