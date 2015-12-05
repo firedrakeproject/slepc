@@ -19,7 +19,7 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-import os, commands, tempfile, shutil
+import os, sys, commands, tempfile, shutil, urllib, urlparse, tarfile
 import log, argdb
 
 class Package:
@@ -74,6 +74,67 @@ class Package:
   def Precondition(self,petsc):
     if petsc.ind64:
       self.log.Exit('ERROR: Cannot use external packages with 64-bit indices.')
+
+  def Download(self,externdir,builddir,prefix=None):
+    # Create externalpackages directory
+    if not os.path.exists(externdir):
+      try:
+        os.mkdir(externdir)
+      except:
+        self.log.Exit('ERROR: Cannot create directory ' + externdir)
+
+    # Check if source is already available
+    if os.path.exists(builddir):
+      self.log.write('Using '+builddir)
+    else:
+
+      # Download tarball
+      url = self.packageurl
+      if url=='':
+        url = self.url
+      localFile = os.path.join(externdir,self.archive)
+      self.log.write('Downloading '+url+' to '+localFile)
+
+      if os.path.exists(localFile):
+        os.remove(localFile)
+      try:
+        urllib.urlretrieve(url, localFile)
+      except Exception, e:
+        filename = os.path.basename(urlparse.urlparse(url)[2])
+        failureMessage = '''\
+Unable to download package %s from: %s
+* If your network is disconnected - please reconnect and rerun ./configure
+* Alternatively, you can download the above URL manually, to /yourselectedlocation/%s
+  and use the configure option:
+  --download-%s=/yourselectedlocation/%s
+''' % (self.packagename, url, filename, self.packagename, filename)
+        self.log.Exit(failureMessage)
+
+      # Uncompress tarball
+      self.log.write('Uncompressing '+localFile+' to directory '+builddir)
+      if os.path.exists(builddir):
+        for root, dirs, files in os.walk(builddir, topdown=False):
+          for name in files:
+            os.remove(os.path.join(root,name))
+          for name in dirs:
+            os.rmdir(os.path.join(root,name))
+      try:
+        if sys.version_info >= (2,5):
+          tar = tarfile.open(localFile, 'r:gz')
+          tar.extractall(path=externdir)
+          tar.close()
+          os.remove(localFile)
+        else:
+          result,output = commands.getstatusoutput('cd '+externdir+'; gunzip '+self.archive+'; tar -xf '+self.archive.split('.gz')[0])
+          os.remove(localFile.split('.gz')[0])
+      except RuntimeError, e:
+        self.log.Exit('Error uncompressing '+self.archive+': '+str(e))
+
+      # Rename directory
+      if prefix is not None:
+        for filename in os.listdir(externdir):
+          if filename.startswith(prefix):
+            os.rename(os.path.join(externdir,filename),builddir)
 
   def ShowHelp(self):
     wd = 31

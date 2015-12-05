@@ -19,8 +19,7 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-import os, sys, commands, shutil
-import urllib, urlparse
+import os, commands, shutil
 import log, package
 
 class Primme(package.Package):
@@ -30,6 +29,9 @@ class Primme(package.Package):
     self.packagename  = 'primme'
     self.installable  = True
     self.downloadable = True
+    self.url          = 'https://github.com/primme/primme/tarball/release-1.2.2'
+    self.archive      = 'primme-1.2.2.tar.gz'
+    self.dirname      = 'PRIMME'
     self.ProcessArgs(argdb)
 
   def Precondition(self,petsc):
@@ -80,71 +82,9 @@ class Primme(package.Package):
 
 
   def Install(self,conf,vars,cmake,petsc,archdir):
-    packagename = 'PRIMME'
-    externdir   = os.path.join(archdir,'externalpackages')
-    builddir    = os.path.join(externdir,packagename)
-
-    # Create externalpackages directory
-    if not os.path.exists(externdir):
-      try:
-        os.mkdir(externdir)
-      except:
-        self.log.Exit('ERROR: Cannot create directory ' + externdir)
-
-    # Check if source is already available
-    if os.path.exists(builddir):
-      self.log.write('Using '+builddir)
-    else:
-
-      # Download tarball
-      url = self.packageurl
-      if url=='':
-        url = 'https://github.com/primme/primme/tarball/release-1.2.2'
-      archiveZip = 'primme-1.2.2.tar.gz'
-      localFile = os.path.join(externdir,archiveZip)
-      self.log.write('Downloading '+url+' to '+localFile)
-
-      if os.path.exists(localFile):
-        os.remove(localFile)
-      try:
-        urllib.urlretrieve(url, localFile)
-      except Exception, e:
-        name = 'primme'
-        filename = os.path.basename(urlparse.urlparse(url)[2])
-        failureMessage = '''\
-Unable to download package %s from: %s
-* If your network is disconnected - please reconnect and rerun ./configure
-* Alternatively, you can download the above URL manually, to /yourselectedlocation/%s
-  and use the configure option:
-  --download-%s=/yourselectedlocation/%s
-''' % (name, url, filename, name, filename)
-        self.log.Exit(failureMessage)
-
-      # Uncompress tarball
-      self.log.write('Uncompressing '+localFile+' to directory '+builddir)
-      if os.path.exists(builddir):
-        for root, dirs, files in os.walk(builddir, topdown=False):
-          for name in files:
-            os.remove(os.path.join(root,name))
-          for name in dirs:
-            os.rmdir(os.path.join(root,name))
-      try:
-        if sys.version_info >= (2,5):
-          import tarfile
-          tar = tarfile.open(localFile, 'r:gz')
-          tar.extractall(path=externdir)
-          tar.close()
-          os.remove(localFile)
-        else:
-          result,output = commands.getstatusoutput('cd '+externdir+'; gunzip '+archiveZip+'; tar -xf '+archiveZip.split('.gz')[0])
-          os.remove(localFile.split('.gz')[0])
-      except RuntimeError, e:
-        self.log.Exit('Error uncompressing '+archiveZip+': '+str(e))
-
-      # Rename directory
-      for filename in os.listdir(externdir):
-        if filename.startswith('primme-'):
-          os.rename(os.path.join(externdir,filename),builddir)
+    externdir = os.path.join(archdir,'externalpackages')
+    builddir  = os.path.join(externdir,self.dirname)
+    self.Download(externdir,builddir,'primme-')
 
     # Configure
     g = open(os.path.join(builddir,'Make_flags'),'w')
