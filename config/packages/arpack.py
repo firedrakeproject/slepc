@@ -19,6 +19,7 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
+import os, commands, shutil
 import log, package
 
 class Arpack(package.Package):
@@ -27,6 +28,10 @@ class Arpack(package.Package):
     package.Package.__init__(self,argdb,log)
     self.packagename = 'arpack'
     self.installable = True
+    self.downloadable = True
+    self.url          = 'https://github.com/opencollab/arpack-ng/archive/3.3.0.tar.gz'
+    self.archive      = 'arpack-ng-3.3.0.tar.gz'
+    self.dirname      = 'arpack-ng-3.3.0'
     self.ProcessArgs(argdb)
 
   def Precondition(self,petsc):
@@ -72,4 +77,37 @@ class Arpack(package.Package):
       dirs = self.GenerateGuesses('Arpack')
 
     self.FortranLib(conf,vars,cmake,dirs,libs,functions)
+
+
+  def Install(self,conf,vars,cmake,petsc,archdir):
+    externdir = os.path.join(archdir,'externalpackages')
+    builddir  = os.path.join(externdir,self.dirname)
+    self.Download(externdir,builddir)
+
+    # Build package
+    confopt = '--prefix='+archdir
+    if not petsc.mpiuni:
+      confopt = confopt+' --enable-mpi'
+    result,output = commands.getstatusoutput('cd '+builddir+'&& sh bootstrap && ./configure '+confopt+' && '+petsc.make+' && '+petsc.make+' install')
+    self.log.write(output)
+
+    # Check build
+    if petsc.scalar == 'real':
+      if petsc.precision == 'single':
+        functions = ['psnaupd','psneupd','pssaupd','psseupd']
+      else:
+        functions = ['pdnaupd','pdneupd','pdsaupd','pdseupd']
+    else:
+      if petsc.precision == 'single':
+        functions = ['pcnaupd','pcneupd']
+      else:
+        functions = ['pznaupd','pzneupd']
+    if petsc.mpiuni:
+      libs = [['-larpack']]
+    else:
+      libs = [['-lparpack','-larpack']]
+    libDir = os.path.join(archdir,'lib')
+    dirs = [libDir]
+    self.FortranLib(conf,vars,cmake,dirs,libs,functions)
+    self.havepackage = True
 
