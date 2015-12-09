@@ -106,6 +106,8 @@ class Primme(package.Package):
     # Build package
     result,output = commands.getstatusoutput('cd '+builddir+'&&'+petsc.make+' clean &&'+petsc.make)
     self.log.write(output)
+    if result:
+      self.log.Exit('ERROR: installation of PRIMME failed.')
 
     # Move files
     incDir = os.path.join(archdir,'include')

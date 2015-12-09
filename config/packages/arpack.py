@@ -85,11 +85,13 @@ class Arpack(package.Package):
     self.Download(externdir,builddir)
 
     # Build package
-    confopt = '--prefix='+archdir
+    confopt = '--prefix='+archdir+' F77="'+petsc.fc+'" FFLAGS="'+petsc.fc_flags.replace('-Wall','').replace('-Wshadow','')+'"'
     if not petsc.mpiuni:
       confopt = confopt+' --enable-mpi'
     result,output = commands.getstatusoutput('cd '+builddir+'&& sh bootstrap && ./configure '+confopt+' && '+petsc.make+' && '+petsc.make+' install')
     self.log.write(output)
+    if result:
+      self.log.Exit('ERROR: installation of ARPACK failed.')
 
     # Check build
     if petsc.scalar == 'real':
