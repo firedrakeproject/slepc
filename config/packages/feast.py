@@ -25,17 +25,11 @@ class Feast(package.Package):
 
   def __init__(self,argdb,log):
     package.Package.__init__(self,argdb,log)
-    self.packagename = 'feast'
-    self.installable = True
+    self.packagename    = 'feast'
+    self.installable    = True
+    self.supportsscalar = ['complex']
+    self.supportssingle = True
     self.ProcessArgs(argdb)
-
-  def Precondition(self,petsc):
-    package.Package.Precondition(self,petsc)
-    if petsc.scalar != 'complex':
-      self.log.Exit('ERROR: FEAST is supported only with complex numbers.')
-
-    if (petsc.precision != 'single') & (petsc.precision != 'double'):
-      self.log.Exit('ERROR: FEAST is supported only in single or double precision.')
 
   def Check(self,conf,vars,cmake,petsc):
     functions = ['feastinit']

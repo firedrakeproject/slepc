@@ -32,6 +32,9 @@ class Package:
     self.packagelibs     = []
     self.packageurl      = ''
     self.log             = log
+    self.supportsscalar  = ['real', 'complex']
+    self.supportssingle  = False
+    self.supports64bint  = False
 
   def ProcessArgs(self,argdb):
     self.requested = False
@@ -72,8 +75,20 @@ class Package:
         self.Check(conf,vars,cmake,petsc)
 
   def Precondition(self,petsc):
-    if petsc.ind64:
-      self.log.Exit('ERROR: Cannot use external packages with 64-bit indices.')
+    package = self.packagename.upper()
+    if petsc.scalar == 'complex':
+      if 'complex' not in self.supportsscalar:
+        self.log.Exit('ERROR: '+package+' does not support complex scalars.')
+    elif petsc.scalar == 'real':
+      if 'real' not in self.supportsscalar:
+        self.log.Exit('ERROR: '+package+' is supported only with complex scalars.')
+    if petsc.precision == 'single':
+      if not self.supportssingle:
+        self.log.Exit('ERROR: '+package+' is supported only in double precision.')
+    elif petsc.precision != 'double':
+      self.log.Exit('ERROR: precision '+petsc.precision+' is not supported for external packages.')
+    if petsc.ind64 and not self.supports64bint:
+      self.log.Exit('ERROR: '+package+' cannot be used with 64-bit integers.')
 
   def Download(self,externdir,builddir,prefix=None):
     # Create externalpackages directory

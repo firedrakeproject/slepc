@@ -34,11 +34,6 @@ class Primme(package.Package):
     self.dirname      = 'PRIMME'
     self.ProcessArgs(argdb)
 
-  def Precondition(self,petsc):
-    package.Package.Precondition(self,petsc)
-    if petsc.precision != 'double':
-      self.log.Exit('ERROR: PRIMME is supported only in double precision.')
-
   def Check(self,conf,vars,cmake,petsc):
     functions_base = ['primme_set_method','primme_Free','primme_initialize']
     if self.packagedir:

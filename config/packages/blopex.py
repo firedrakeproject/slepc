@@ -33,11 +33,6 @@ class Blopex(package.Package):
     self.dirname      = 'blopex-1.1.2'
     self.ProcessArgs(argdb)
 
-  def Precondition(self,petsc):
-    package.Package.Precondition(self,petsc)
-    if petsc.precision != 'double':
-      self.log.Exit('ERROR: BLOPEX is supported only in double precision.')
-
   def Install(self,conf,vars,cmake,petsc,archdir):
     externdir = os.path.join(archdir,'externalpackages')
     builddir  = os.path.join(externdir,self.dirname)

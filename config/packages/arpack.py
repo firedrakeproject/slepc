@@ -26,18 +26,14 @@ class Arpack(package.Package):
 
   def __init__(self,argdb,log):
     package.Package.__init__(self,argdb,log)
-    self.packagename = 'arpack'
-    self.installable = True
-    self.downloadable = True
-    self.url          = 'https://github.com/opencollab/arpack-ng/archive/3.3.0.tar.gz'
-    self.archive      = 'arpack-ng-3.3.0.tar.gz'
-    self.dirname      = 'arpack-ng-3.3.0'
+    self.packagename    = 'arpack'
+    self.installable    = True
+    self.downloadable   = True
+    self.url            = 'https://github.com/opencollab/arpack-ng/archive/3.3.0.tar.gz'
+    self.archive        = 'arpack-ng-3.3.0.tar.gz'
+    self.dirname        = 'arpack-ng-3.3.0'
+    self.supportssingle = True
     self.ProcessArgs(argdb)
-
-  def Precondition(self,petsc):
-    package.Package.Precondition(self,petsc)
-    if (petsc.precision != 'single') & (petsc.precision != 'double'):
-      self.log.Exit('ERROR: ARPACK is supported only in single or double precision.')
 
   def Check(self,conf,vars,cmake,petsc):
     if petsc.mpiuni:
