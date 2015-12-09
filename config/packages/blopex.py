@@ -19,18 +19,16 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-import os, sys, commands
+import os, sys, commands, shutil
 import urllib, urlparse
 import log, package
 
 class Blopex(package.Package):
 
   def __init__(self,argdb,log):
-    self.packagename     = 'blopex'
-    self.downloadable    = True
-    self.downloadpackage = 0
-    self.packageurl      = ''
-    self.log             = log
+    package.Package.__init__(self,argdb,log)
+    self.packagename  = 'blopex'
+    self.downloadable = True
     self.ProcessArgs(argdb)
 
   def Install(self,conf,vars,cmake,petsc,archdir):
@@ -126,12 +124,21 @@ Unable to download package %s from: %s
     os.rename(os.path.join(builddir,'lib','libBLOPEX.'+petsc.ar_lib_suffix),os.path.join(libDir,'libBLOPEX.'+petsc.ar_lib_suffix))
     for root, dirs, files in os.walk(os.path.join(builddir,'include')):
       for name in files:
-        os.rename(os.path.join(builddir,'include',name),os.path.join(incDir,name))
+        shutil.copyfile(os.path.join(builddir,'include',name),os.path.join(incDir,name))
 
     if 'rpath' in petsc.slflag:
       l = petsc.slflag + libDir + ' -L' + libDir + ' -lBLOPEX'
     else:
       l = '-L' + libDir + ' -lBLOPEX'
+    f = '-I' + incDir
+
+    # Check build
+    if petsc.scalar == 'real':
+      functions = ['lobpcg_solve_double']
+    else:
+      functions = ['lobpcg_solve_complex']
+    if not self.Link(functions,[],[l]+[f]):
+      self.log.Exit('\nERROR: Unable to link with downloaded BLOPEX')
 
     # Write configuration files
     conf.write('#ifndef SLEPC_HAVE_BLOPEX\n#define SLEPC_HAVE_BLOPEX 1\n#endif\n\n')
@@ -140,5 +147,5 @@ Unable to download package %s from: %s
     cmake.write('find_library (BLOPEX_LIB BLOPEX HINTS '+ libDir +')\n')
 
     self.havepackage = True
-    self.packageflags = [l] + ['-I' + incDir]
+    self.packageflags = [l] + [f]
 

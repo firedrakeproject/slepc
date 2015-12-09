@@ -24,11 +24,9 @@ import log, package
 class Trlan(package.Package):
 
   def __init__(self,argdb,log):
-    self.packagename  = 'trlan'
-    self.downloadable = False
-    self.packagedir   = ''
-    self.packagelibs  = []
-    self.log          = log
+    package.Package.__init__(self,argdb,log)
+    self.packagename = 'trlan'
+    self.installable = True
     self.ProcessArgs(argdb)
 
   def Check(self,conf,vars,cmake,petsc):

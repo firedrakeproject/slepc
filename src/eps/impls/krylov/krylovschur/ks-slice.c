@@ -230,7 +230,7 @@ static PetscErrorCode EPSSliceGetEPS(EPS eps)
     ierr = PCFactorSetMatSolverPackage(pc,stype);CHKERRQ(ierr);
 
     /* Create subcommunicator grouping processes with same rank */
-    if (ctx->commrank) { ierr = MPI_Comm_free(&ctx->commrank);CHKERRQ(ierr); }
+    if (ctx->commset) { ierr = MPI_Comm_free(&ctx->commrank);CHKERRQ(ierr); }
     ierr = MPI_Comm_rank(PetscSubcommChild(ctx->subc),&rank);CHKERRQ(ierr);
     ierr = MPI_Comm_split(((PetscObject)eps)->comm,rank,ctx->subc->color,&ctx->commrank);CHKERRQ(ierr);
     ctx->commset = PETSC_TRUE;

@@ -24,9 +24,8 @@ import log, package
 class Lapack(package.Package):
 
   def __init__(self,argdb,log):
-    self.packagename  = 'lapack'
-    self.downloadable = False
-    self.log          = log
+    package.Package.__init__(self,argdb,log)
+    self.packagename = 'lapack'
 
   def ShowInfo(self):
     if hasattr(self,'missing'):
