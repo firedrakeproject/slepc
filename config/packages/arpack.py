@@ -80,6 +80,11 @@ class Arpack(package.Package):
     builddir  = os.path.join(externdir,self.dirname)
     self.Download(externdir,builddir)
 
+    # Check for autoreconf
+    result,output = commands.getstatusoutput('autoreconf --help')
+    if result:
+      self.log.Exit('ERROR: --download-arpack requires that the command autoreconf is available on your PATH.')
+
     # Build package
     confopt = '--prefix='+archdir+' F77="'+petsc.fc+'" FFLAGS="'+petsc.fc_flags.replace('-Wall','').replace('-Wshadow','')+'"'
     if not petsc.mpiuni:
