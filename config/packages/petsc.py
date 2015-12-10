@@ -114,6 +114,8 @@ class PETSc(package.Package):
           self.cc_flags = v
         elif k == 'FC' and not v=='':
           self.fc = v
+        elif k == 'FC_FLAGS':
+          self.fc_flags = v
         elif k == 'AR':
           self.ar = v
         elif k == 'AR_FLAGS':
