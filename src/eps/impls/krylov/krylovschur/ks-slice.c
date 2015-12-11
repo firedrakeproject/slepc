@@ -284,6 +284,7 @@ static PetscErrorCode EPSSliceGetInertia(EPS eps,PetscReal shift,PetscInt *inert
   KSP            ksp;
   PC             pc;
   Mat            F;
+  PetscReal      nzshift;
 
   PetscFunctionBegin;
   if (shift >= PETSC_MAX_REAL) { /* Right-open interval */
@@ -292,7 +293,11 @@ static PetscErrorCode EPSSliceGetInertia(EPS eps,PetscReal shift,PetscInt *inert
     if (inertia) *inertia = 0;
     if (zeros) *zeros = 0;
   } else {
-    ierr = STSetShift(eps->st,shift);CHKERRQ(ierr);
+    /* If the shift is zero, perturb it to a very small positive value.
+       The goal is that the nonzero pattern is the same in all cases and reuse
+       the symbolic factorizations */
+    nzshift = (shift==0.0)? 10.0/PETSC_MAX_REAL: shift;
+    ierr = STSetShift(eps->st,nzshift);CHKERRQ(ierr);
     ierr = STSetUp(eps->st);CHKERRQ(ierr);
     ierr = STGetKSP(eps->st,&ksp);CHKERRQ(ierr);
     ierr = KSPGetPC(ksp,&pc);CHKERRQ(ierr);
