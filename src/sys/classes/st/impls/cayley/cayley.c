@@ -177,8 +177,9 @@ PetscErrorCode STSetUp_Cayley(ST st)
 
   /* T[1] = A-sigma*B */
   ierr = STMatMAXPY_Private(st,-st->sigma,0.0,0,NULL,PETSC_TRUE,&st->T[1]);CHKERRQ(ierr);
+  ierr = PetscObjectReference((PetscObject)st->T[1]);CHKERRQ(ierr);
+  ierr = MatDestroy(&st->P);CHKERRQ(ierr);
   st->P = st->T[1];
-  ierr = PetscObjectReference((PetscObject)st->P);CHKERRQ(ierr);
   if (st->nmat>1) {
     ierr = VecDestroy(&ctx->w2);CHKERRQ(ierr);
     ierr = MatCreateVecs(st->A[1],&ctx->w2,NULL);CHKERRQ(ierr);

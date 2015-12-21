@@ -239,6 +239,7 @@ PetscErrorCode STSetOperators(ST st,PetscInt n,Mat A[])
 {
   PetscInt       i;
   PetscErrorCode ierr;
+  PetscBool      same=PETSC_TRUE;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
@@ -246,16 +247,25 @@ PetscErrorCode STSetOperators(ST st,PetscInt n,Mat A[])
   if (n <= 0) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_OUTOFRANGE,"Must have one or more matrices, you have %D",n);
   PetscValidPointer(A,3);
   PetscCheckSameComm(st,1,*A,3);
-  if (st->setupcalled) { ierr = STReset(st);CHKERRQ(ierr); }
-  ierr = MatDestroyMatrices(PetscMax(2,st->nmat),&st->A);CHKERRQ(ierr);
-  ierr = PetscMalloc(PetscMax(2,n)*sizeof(Mat),&st->A);CHKERRQ(ierr);
-  ierr = PetscLogObjectMemory((PetscObject)st,PetscMax(2,n)*sizeof(Mat));CHKERRQ(ierr);
-  ierr = PetscFree(st->Astate);CHKERRQ(ierr);
-  ierr = PetscMalloc(PetscMax(2,n)*sizeof(PetscObjectState),&st->Astate);CHKERRQ(ierr);
-  ierr = PetscLogObjectMemory((PetscObject)st,PetscMax(2,n)*sizeof(PetscInt));CHKERRQ(ierr);
+  if (st->setupcalled) {
+    if (n!=st->nmat) same = PETSC_FALSE;
+    for (i=0;same&&i<n;i++) {
+      if (A[i]!=st->A[i]) same = PETSC_FALSE;
+    }
+    if (!same) { ierr = STReset(st);CHKERRQ(ierr); }
+  } else same = PETSC_FALSE;
+  if (!same) {
+    ierr = MatDestroyMatrices(PetscMax(2,st->nmat),&st->A);CHKERRQ(ierr);
+    ierr = PetscCalloc1(PetscMax(2,n),&st->A);CHKERRQ(ierr);
+    ierr = PetscLogObjectMemory((PetscObject)st,PetscMax(2,n)*sizeof(Mat));CHKERRQ(ierr);
+    ierr = PetscFree(st->Astate);CHKERRQ(ierr);
+    ierr = PetscMalloc(PetscMax(2,n)*sizeof(PetscObjectState),&st->Astate);CHKERRQ(ierr);
+    ierr = PetscLogObjectMemory((PetscObject)st,PetscMax(2,n)*sizeof(PetscInt));CHKERRQ(ierr);
+  }
   for (i=0;i<n;i++) {
     PetscValidHeaderSpecific(A[i],MAT_CLASSID,3);
     ierr = PetscObjectReference((PetscObject)A[i]);CHKERRQ(ierr);
+    ierr = MatDestroy(&st->A[i]);CHKERRQ(ierr);
     st->A[i] = A[i];
     st->Astate[i] = ((PetscObject)A[i])->state;
   }
@@ -264,6 +274,8 @@ PetscErrorCode STSetOperators(ST st,PetscInt n,Mat A[])
     st->Astate[1] = 0;
   }
   st->nmat = n;
+  if (same) st->updated = 1;
+  st->setupcalled = 0;
   PetscFunctionReturn(0);
 }
 
