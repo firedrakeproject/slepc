@@ -356,8 +356,10 @@ PetscErrorCode STSetTransform(ST st,PetscBool flg)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
   PetscValidLogicalCollectiveBool(st,flg,2);
-  st->transform = flg;
-  st->setupcalled = 0;
+  if (st->transform != flg) {
+    st->transform = flg;
+    st->setupcalled = 0;
+  }
   PetscFunctionReturn(0);
 }
 

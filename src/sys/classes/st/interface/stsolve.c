@@ -283,12 +283,12 @@ PetscErrorCode STSetUp(ST st)
     ierr = PetscMalloc(PetscMax(2,st->nmat)*sizeof(Mat),&st->T);CHKERRQ(ierr);
     ierr = PetscLogObjectMemory((PetscObject)st,PetscMax(2,st->nmat)*sizeof(Mat));CHKERRQ(ierr);
     for (i=0;i<PetscMax(2,st->nmat);i++) st->T[i] = NULL;
-  } else {
+  } else if (!st->updated) {
     for (i=0;i<PetscMax(2,st->nmat);i++) {
       ierr = MatDestroy(&st->T[i]);CHKERRQ(ierr);
     }
   }
-  ierr = MatDestroy(&st->P);CHKERRQ(ierr);
+  if (!st->updated) { ierr = MatDestroy(&st->P);CHKERRQ(ierr); }
   if (!st->w) {
     ierr = MatCreateVecs(st->A[0],&st->w,NULL);CHKERRQ(ierr);
     ierr = PetscLogObjectParent((PetscObject)st,(PetscObject)st->w);CHKERRQ(ierr);
@@ -304,6 +304,7 @@ PetscErrorCode STSetUp(ST st)
   }
   if (st->ops->setup) { ierr = (*st->ops->setup)(st);CHKERRQ(ierr); }
   st->setupcalled = 1;
+  st->updated = 0;
   ierr = PetscLogEventEnd(ST_SetUp,st,0,0,0);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

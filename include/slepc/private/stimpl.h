@@ -68,6 +68,7 @@ struct _p_ST {
   Vec              wb;               /* balancing requires an extra work vector */
   void             *data;
   PetscInt         setupcalled;
+  PetscInt         updated;
 };
 
 /*

@@ -111,6 +111,7 @@ PetscErrorCode STSetUp_Shift(ST st)
     /* T[n] = A_n */
     k = nmat-1;
     ierr = PetscObjectReference((PetscObject)st->A[k]);CHKERRQ(ierr);
+    ierr = MatDestroy(&st->T[k]);CHKERRQ(ierr);
     st->T[k] = st->A[k];
     for (k=0;k<nmat-1;k++) {
       ierr = STMatMAXPY_Private(st,nmat>2?st->sigma:-st->sigma,0.0,k,coeffs?coeffs+((nmat-k)*(nmat-k-1))/2:NULL,PETSC_TRUE,&st->T[k]);CHKERRQ(ierr);
@@ -119,12 +120,14 @@ PetscErrorCode STSetUp_Shift(ST st)
   } else {
     for (k=0;k<nmat;k++) {
       ierr = PetscObjectReference((PetscObject)st->A[k]);CHKERRQ(ierr);
+      ierr = MatDestroy(&st->T[k]);CHKERRQ(ierr);
       st->T[k] = st->A[k];
     }
   }
   if (nmat>=2 && st->transform) {
+    ierr = PetscObjectReference((PetscObject)st->T[nmat-1]);CHKERRQ(ierr);
+    ierr = MatDestroy(&st->P);CHKERRQ(ierr);
     st->P = st->T[nmat-1];
-    ierr = PetscObjectReference((PetscObject)st->P);CHKERRQ(ierr);
   }
   if (st->P) {
     if (!st->ksp) { ierr = STGetKSP(st,&st->ksp);CHKERRQ(ierr); }
