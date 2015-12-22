@@ -1128,6 +1128,119 @@ PetscErrorCode EPSKrylovSchurGetSubcommMats(EPS eps,Mat *A,Mat *B)
 }
 
 #undef __FUNCT__
+#define __FUNCT__ "EPSKrylovSchurUpdateSubcommMats_KrylovSchur"
+static PetscErrorCode EPSKrylovSchurUpdateSubcommMats_KrylovSchur(EPS eps,PetscScalar a,PetscScalar ap,Mat Au,PetscScalar b,PetscScalar bp, Mat Bu,MatStructure str,PetscBool globalup)
+{
+  PetscErrorCode  ierr;
+  EPS_KRYLOVSCHUR *ctx = (EPS_KRYLOVSCHUR*)eps->data,*subctx;
+  Mat             A,B=NULL,Ag,Bg=NULL;
+  PetscBool       reuse=PETSC_TRUE;
+   
+  PetscFunctionBegin;
+  if (!eps->state) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_WRONGSTATE,"Must call EPSSetUp() first");
+  ierr = EPSGetOperators(eps,&Ag,&Bg);CHKERRQ(ierr);
+  ierr = EPSGetOperators(ctx->eps,&A,&B);CHKERRQ(ierr);
+  
+  if (Au) {
+    ierr = MatScale(A,a);CHKERRQ(ierr);
+    ierr = MatAXPY(A,ap,Au,str);CHKERRQ(ierr);
+  }
+  if (Bu) {
+    ierr = MatScale(B,b);CHKERRQ(ierr);
+    ierr = MatAXPY(B,bp,Bu,str);CHKERRQ(ierr);
+  }
+  ierr = EPSSetOperators(ctx->eps,A,B);CHKERRQ(ierr);
+
+  /* Update stored matrix state */
+  subctx = (EPS_KRYLOVSCHUR*)ctx->eps->data;
+  ierr = PetscObjectStateGet((PetscObject)A,&subctx->Astate);CHKERRQ(ierr);
+  if (B) { ierr = PetscObjectStateGet((PetscObject)B,&subctx->Bstate);CHKERRQ(ierr); }
+
+  /* Update matrices in the parent communicator if requested by user */
+  if (globalup) {
+    if (ctx->npart>1) {
+      if (!ctx->isrow) {
+        ierr = MatGetOwnershipIS(Ag,&ctx->isrow,&ctx->iscol);CHKERRQ(ierr);
+        reuse = PETSC_FALSE;
+      }
+      if (str==DIFFERENT_NONZERO_PATTERN) reuse = PETSC_FALSE;
+      if (ctx->submata && !reuse) {
+        ierr = MatDestroyMatrices(1,&ctx->submata);CHKERRQ(ierr);
+      }
+      ierr = MatGetSubMatrices(A,1,&ctx->isrow,&ctx->iscol,(reuse)?MAT_REUSE_MATRIX:MAT_INITIAL_MATRIX,&ctx->submata);CHKERRQ(ierr);
+      ierr = MatCreateMPIMatConcatenateSeqMat(((PetscObject)Ag)->comm,ctx->submata[0],PETSC_DECIDE,MAT_REUSE_MATRIX,&Ag);CHKERRQ(ierr);
+      if (B) {
+        if (ctx->submatb && !reuse) {
+          ierr = MatDestroyMatrices(1,&ctx->submatb);CHKERRQ(ierr);
+        }
+        ierr = MatGetSubMatrices(B,1,&ctx->isrow,&ctx->iscol,(reuse)?MAT_REUSE_MATRIX:MAT_INITIAL_MATRIX,&ctx->submatb);CHKERRQ(ierr);
+        ierr = MatCreateMPIMatConcatenateSeqMat(((PetscObject)Bg)->comm,ctx->submatb[0],PETSC_DECIDE,MAT_REUSE_MATRIX,&Bg);CHKERRQ(ierr);
+      }
+    }
+    ierr = PetscObjectStateGet((PetscObject)Ag,&ctx->Astate);CHKERRQ(ierr);
+    if (Bg) { ierr = PetscObjectStateGet((PetscObject)Bg,&ctx->Bstate);CHKERRQ(ierr); }
+  }
+  ierr = EPSSetOperators(eps,Ag,Bg);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "EPSKrylovSchurUpdateSubcommMats"
+/*@C
+   EPSKrylovSchurUpdateSubcommMats - Update the eigenproblem matrices stored
+   internally in the subcommunicator to which the calling process belongs.
+
+   Collective on EPS
+
+   Input Parameters:
++  eps - the eigenproblem solver context
+.  s   - scalar that multiplies the existing A matrix
+.  a   - scalar used in the axpy operation on A
+.  Au  - matrix used in the axpy operation on A
+.  t   - scalar that multiplies the existing B matrix
+.  b   - scalar used in the axpy operation on B
+.  Bu  - matrix used in the axpy operation on B
+.  str - structure flag
+-  globalup - flag indicating if global matrices must be updated
+
+   Notes:
+   This function modifies the eigenproblem matrices at the subcommunicator level,
+   and optionally updates the global matrices in the parent communicator. The updates
+   are expressed as A <-- s*A + a*Au,  B <-- t*B + b*Bu.
+
+   It is possible to update one of the matrices, or both.
+
+   The matrices Au and Bu must be equal in all subcommunicators.
+
+   The str flag is passed to the MatAXPY() operations to perform the updates.
+
+   If globalup is true, communication is carried out to reconstruct the updated
+   matrices in the parent communicator. The user must be warned that if global
+   matrices are not in sync with subcommunicator matrices, the errors computed
+   by EPSComputeError() will be wrong even if the computed solution is correct
+   (the synchronization may be done only once at the end).
+
+   Level: developer
+
+.seealso: EPSSetInterval(), EPSKrylovSchurSetPartitions(), EPSKrylovSchurGetSubcommMats()
+@*/
+PetscErrorCode EPSKrylovSchurUpdateSubcommMats(EPS eps,PetscScalar s,PetscScalar a,Mat Au,PetscScalar t,PetscScalar b, Mat Bu,MatStructure str,PetscBool globalup)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
+  PetscValidLogicalCollectiveScalar(eps,s,2);
+  PetscValidLogicalCollectiveScalar(eps,a,3);
+  PetscValidLogicalCollectiveScalar(eps,t,5);
+  PetscValidLogicalCollectiveScalar(eps,b,6);
+  PetscValidLogicalCollectiveEnum(eps,str,8);
+  PetscValidLogicalCollectiveBool(eps,globalup,9);
+  ierr = PetscTryMethod(eps,"EPSKrylovSchurUpdateSubcommMats_C",(EPS,PetscScalar,PetscScalar,Mat,PetscScalar,PetscScalar,Mat,MatStructure,PetscBool),(eps,s,a,Au,t,b,Bu,str,globalup));CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
 #define __FUNCT__ "EPSSetFromOptions_KrylovSchur"
 PetscErrorCode EPSSetFromOptions_KrylovSchur(PetscOptionItems *PetscOptionsObject,EPS eps)
 {
@@ -1217,6 +1330,7 @@ PetscErrorCode EPSDestroy_KrylovSchur(EPS eps)
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSKrylovSchurGetSubcommInfo_C",NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSKrylovSchurGetSubcommPairs_C",NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSKrylovSchurGetSubcommMats_C",NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSKrylovSchurUpdateSubcommMats_C",NULL);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -1270,6 +1384,7 @@ PETSC_EXTERN PetscErrorCode EPSCreate_KrylovSchur(EPS eps)
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSKrylovSchurGetSubcommInfo_C",EPSKrylovSchurGetSubcommInfo_KrylovSchur);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSKrylovSchurGetSubcommPairs_C",EPSKrylovSchurGetSubcommPairs_KrylovSchur);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSKrylovSchurGetSubcommMats_C",EPSKrylovSchurGetSubcommMats_KrylovSchur);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSKrylovSchurUpdateSubcommMats_C",EPSKrylovSchurUpdateSubcommMats_KrylovSchur);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
