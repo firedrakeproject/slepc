@@ -182,7 +182,7 @@ static PetscErrorCode EPSSliceGetEPS(EPS eps)
   if (ctx->npart==1) {
     if (!ctx->eps) { ierr = EPSCreate(((PetscObject)eps)->comm,&ctx->eps);CHKERRQ(ierr); }
     ierr = EPSSetType(ctx->eps,((PetscObject)eps)->type_name);CHKERRQ(ierr);
-    ierr = EPSSetST(ctx->eps,eps->st);CHKERRQ(ierr);
+    ierr = EPSSetOperators(ctx->eps,A,B);CHKERRQ(ierr);
     a = eps->inta; b = eps->intb;
   } else {
     if (!ctx->subc) {
@@ -219,21 +219,6 @@ static PetscErrorCode EPSSliceGetEPS(EPS eps)
       ierr = MatDestroy(&Ar);CHKERRQ(ierr);
       ierr = MatDestroy(&Br);CHKERRQ(ierr);
     }
-    ierr = EPSSetType(ctx->eps,((PetscObject)eps)->type_name);CHKERRQ(ierr);
-
-    /* Transfer options for ST, KSP and PC */
-    ierr = STGetType(eps->st,&sttype);CHKERRQ(ierr);
-    ierr = STSetType(ctx->eps->st,sttype);CHKERRQ(ierr);
-    ierr = STGetKSP(eps->st,&ksp);CHKERRQ(ierr);
-    ierr = KSPGetType(ksp,&ksptype);CHKERRQ(ierr);
-    ierr = KSPGetPC(ksp,&pc);CHKERRQ(ierr);
-    ierr = PCGetType(pc,&pctype);CHKERRQ(ierr);
-    ierr = PCFactorGetMatSolverPackage(pc,&stype);CHKERRQ(ierr);
-    ierr = STGetKSP(ctx->eps->st,&ksp);CHKERRQ(ierr);
-    ierr = KSPSetType(ksp,ksptype);CHKERRQ(ierr);
-    ierr = KSPGetPC(ksp,&pc);CHKERRQ(ierr);
-    ierr = PCSetType(pc,pctype);CHKERRQ(ierr);
-    ierr = PCFactorSetMatSolverPackage(pc,stype);CHKERRQ(ierr);
 
     /* Create subcommunicator grouping processes with same rank */
     if (ctx->commset) { ierr = MPI_Comm_free(&ctx->commrank);CHKERRQ(ierr); }
@@ -241,6 +226,22 @@ static PetscErrorCode EPSSliceGetEPS(EPS eps)
     ierr = MPI_Comm_split(((PetscObject)eps)->comm,rank,ctx->subc->color,&ctx->commrank);CHKERRQ(ierr);
     ctx->commset = PETSC_TRUE;
   }
+  ierr = EPSSetType(ctx->eps,((PetscObject)eps)->type_name);CHKERRQ(ierr);
+
+  /* Transfer options for ST, KSP and PC */
+  ierr = STGetType(eps->st,&sttype);CHKERRQ(ierr);
+  ierr = STSetType(ctx->eps->st,sttype);CHKERRQ(ierr);
+  ierr = STGetKSP(eps->st,&ksp);CHKERRQ(ierr);
+  ierr = KSPGetType(ksp,&ksptype);CHKERRQ(ierr);
+  ierr = KSPGetPC(ksp,&pc);CHKERRQ(ierr);
+  ierr = PCGetType(pc,&pctype);CHKERRQ(ierr);
+  ierr = PCFactorGetMatSolverPackage(pc,&stype);CHKERRQ(ierr);
+  ierr = STGetKSP(ctx->eps->st,&ksp);CHKERRQ(ierr);
+  ierr = KSPSetType(ksp,ksptype);CHKERRQ(ierr);
+  ierr = KSPGetPC(ksp,&pc);CHKERRQ(ierr);
+  ierr = PCSetType(pc,pctype);CHKERRQ(ierr);
+  ierr = PCFactorSetMatSolverPackage(pc,stype);CHKERRQ(ierr);
+
   ierr = EPSSetConvergenceTest(ctx->eps,eps->conv);CHKERRQ(ierr);
   ierr = EPSSetInterval(ctx->eps,a,b);CHKERRQ(ierr);
   ctx_local = (EPS_KRYLOVSCHUR*)ctx->eps->data;
@@ -372,10 +373,8 @@ PetscErrorCode EPSSetUp_KrylovSchur_Slice(EPS eps)
     }
   }
   if (ctx->global) {
-    if (ctx->npart>1) {
-      /* prevent computation of factorization in global eps unless npart==1 */
-      ierr = STSetTransform(eps->st,PETSC_FALSE);CHKERRQ(ierr);
-    }
+    /* prevent computation of factorization in global eps unless npart==1 */
+    ierr = STSetTransform(eps->st,PETSC_FALSE);CHKERRQ(ierr);
     ierr = EPSSetDimensions_Default(eps,ctx->nev,&ctx->ncv,&ctx->mpd);CHKERRQ(ierr);
     /* create subintervals and initialize auxiliary eps for slicing runs */
     ierr = EPSSliceGetEPS(eps);CHKERRQ(ierr);

@@ -1141,12 +1141,12 @@ static PetscErrorCode EPSKrylovSchurUpdateSubcommMats_KrylovSchur(EPS eps,PetscS
   ierr = EPSGetOperators(eps,&Ag,&Bg);CHKERRQ(ierr);
   ierr = EPSGetOperators(ctx->eps,&A,&B);CHKERRQ(ierr);
   
+  ierr = MatScale(A,a);CHKERRQ(ierr);
   if (Au) {
-    ierr = MatScale(A,a);CHKERRQ(ierr);
     ierr = MatAXPY(A,ap,Au,str);CHKERRQ(ierr);
   }
+  ierr = MatScale(B,b);CHKERRQ(ierr);
   if (Bu) {
-    ierr = MatScale(B,b);CHKERRQ(ierr);
     ierr = MatAXPY(B,bp,Bu,str);CHKERRQ(ierr);
   }
   ierr = EPSSetOperators(ctx->eps,A,B);CHKERRQ(ierr);
@@ -1227,15 +1227,19 @@ static PetscErrorCode EPSKrylovSchurUpdateSubcommMats_KrylovSchur(EPS eps,PetscS
 PetscErrorCode EPSKrylovSchurUpdateSubcommMats(EPS eps,PetscScalar s,PetscScalar a,Mat Au,PetscScalar t,PetscScalar b, Mat Bu,MatStructure str,PetscBool globalup)
 {
   PetscErrorCode ierr;
+  EPS_KRYLOVSCHUR *ctx = (EPS_KRYLOVSCHUR*)eps->data;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidLogicalCollectiveScalar(eps,s,2);
   PetscValidLogicalCollectiveScalar(eps,a,3);
+  if (Au) PetscValidHeaderSpecific(Au,MAT_CLASSID,4);
   PetscValidLogicalCollectiveScalar(eps,t,5);
   PetscValidLogicalCollectiveScalar(eps,b,6);
+  if (Bu) PetscValidHeaderSpecific(Bu,MAT_CLASSID,7);
   PetscValidLogicalCollectiveEnum(eps,str,8);
   PetscValidLogicalCollectiveBool(eps,globalup,9);
+  if (!ctx->sr) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_WRONGSTATE,"Only available in interval computations, see EPSSetInterval()");
   ierr = PetscTryMethod(eps,"EPSKrylovSchurUpdateSubcommMats_C",(EPS,PetscScalar,PetscScalar,Mat,PetscScalar,PetscScalar,Mat,MatStructure,PetscBool),(eps,s,a,Au,t,b,Bu,str,globalup));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
