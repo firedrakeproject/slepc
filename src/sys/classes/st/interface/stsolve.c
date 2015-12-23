@@ -374,6 +374,7 @@ PetscErrorCode STMatMAXPY_Private(ST st,PetscScalar alpha,PetscScalar beta,Petsc
       *S = st->A[k+ini];
     } else {
       if (*S && *S!=st->A[k+ini]) {
+        ierr = MatSetOption(*S,MAT_NEW_NONZERO_ALLOCATION_ERR,PETSC_FALSE);CHKERRQ(ierr);
         ierr = MatCopy(st->A[k+ini],*S,DIFFERENT_NONZERO_PATTERN);CHKERRQ(ierr);
       } else {
         ierr = MatDestroy(S);CHKERRQ(ierr);
