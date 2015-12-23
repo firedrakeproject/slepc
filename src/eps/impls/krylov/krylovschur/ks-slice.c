@@ -373,7 +373,7 @@ PetscErrorCode EPSSetUp_KrylovSchur_Slice(EPS eps)
     }
   }
   if (ctx->global) {
-    /* prevent computation of factorization in global eps unless npart==1 */
+    /* prevent computation of factorization in global eps */
     ierr = STSetTransform(eps->st,PETSC_FALSE);CHKERRQ(ierr);
     ierr = EPSSetDimensions_Default(eps,ctx->nev,&ctx->ncv,&ctx->mpd);CHKERRQ(ierr);
     /* create subintervals and initialize auxiliary eps for slicing runs */
