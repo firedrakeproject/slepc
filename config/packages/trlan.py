@@ -29,9 +29,10 @@ class Trlan(package.Package):
     self.packagename    = 'trlan'
     self.installable    = True
     self.downloadable   = True
-    self.url            = 'https://codeforge.lbl.gov/frs/download.php/210/trlan-201009.tar.gz'
-    self.archive        = 'trlan-201009.tar.gz'
-    self.dirname        = 'trlan-201009'
+    self.version        = '201009'
+    self.url            = 'https://codeforge.lbl.gov/frs/download.php/210/trlan-'+self.version+'.tar.gz'
+    self.archive        = 'trlan-'+self.version+'.tar.gz'
+    self.dirname        = 'trlan-'+self.version
     self.supportsscalar = ['real']
     self.ProcessArgs(argdb)
 

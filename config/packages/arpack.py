@@ -19,7 +19,7 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-import os, commands, shutil
+import os, commands
 import log, package
 
 class Arpack(package.Package):
@@ -29,9 +29,10 @@ class Arpack(package.Package):
     self.packagename    = 'arpack'
     self.installable    = True
     self.downloadable   = True
-    self.url            = 'https://github.com/opencollab/arpack-ng/archive/3.3.0.tar.gz'
-    self.archive        = 'arpack-ng-3.3.0.tar.gz'
-    self.dirname        = 'arpack-ng-3.3.0'
+    self.version        = '3.3.0'
+    self.url            = 'https://github.com/opencollab/arpack-ng/archive/'+self.version+'.tar.gz'
+    self.archive        = 'arpack-ng-'+self.version+'.tar.gz'
+    self.dirname        = 'arpack-ng-'+self.version
     self.supportssingle = True
     self.ProcessArgs(argdb)
 
