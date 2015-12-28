@@ -645,9 +645,8 @@ PetscErrorCode EPSSetArbitrarySelection(EPS eps,PetscErrorCode (*func)(PetscScal
    Input Parameters:
 +  eps     - eigensolver context obtained from EPSCreate()
 .  func    - a pointer to the convergence test function
-.  ctx     - [optional] context for private data for the convergence routine
--  destroy - [optional] destructor for the context (may be NULL;
-             PETSC_NULL_FUNCTION in Fortran)
+.  ctx     - context for private data for the convergence routine (may be null)
+-  destroy - a routine for destroying the context (may be null)
 
    Calling Sequence of func:
 $   func(EPS eps,PetscScalar eigr,PetscScalar eigi,PetscReal res,PetscReal *errest,void *ctx)
@@ -657,7 +656,7 @@ $   func(EPS eps,PetscScalar eigr,PetscScalar eigi,PetscReal res,PetscReal *erre
 .   eigi   - imaginary part of the eigenvalue
 .   res    - residual norm associated to the eigenpair
 .   errest - (output) computed error estimate
--   ctx    - optional context, as set by EPSSetConvergenceTest()
+-   ctx    - optional context, as set by EPSSetConvergenceTestFunction()
 
    Note:
    If the error estimate returned by the convergence test function is less than
@@ -713,7 +712,7 @@ PetscErrorCode EPSSetConvergenceTestFunction(EPS eps,PetscErrorCode (*func)(EPS,
 
    Level: intermediate
 
-.seealso: EPSGetConvergenceTest(), EPSSetConvergenceTestFunction(), EPSConv
+.seealso: EPSGetConvergenceTest(), EPSSetConvergenceTestFunction(), EPSSetStoppingTest(), EPSConv
 @*/
 PetscErrorCode EPSSetConvergenceTest(EPS eps,EPSConv conv)
 {
@@ -756,6 +755,125 @@ PetscErrorCode EPSGetConvergenceTest(EPS eps,EPSConv *conv)
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidPointer(conv,2);
   *conv = eps->conv;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "EPSSetStoppingTestFunction"
+/*@C
+   EPSSetStoppingTestFunction - Sets a function to decide when to stop the outer
+   iteration of the eigensolver.
+
+   Logically Collective on EPS
+
+   Input Parameters:
++  eps     - eigensolver context obtained from EPSCreate()
+.  func    - pointer to the stopping test function
+.  ctx     - context for private data for the stopping routine (may be null)
+-  destroy - a routine for destroying the context (may be null)
+
+   Calling Sequence of func:
+$   func(EPS eps,PetscInt its,PetscInt max_it,PetscInt nconv,PetscInt nev,EPSConvergedReason *reason,void *ctx)
+
++   eps    - eigensolver context obtained from EPSCreate()
+.   its    - current number of iterations
+.   max_it - maximum number of iterations
+.   nconv  - number of currently converged eigenpairs
+.   nev    - number of requested eigenpairs
+.   reason - (output) result of the stopping test
+-   ctx    - optional context, as set by EPSSetStoppingTestFunction()
+
+   Note:
+   Normal usage is to first call the default routine EPSStoppingBasic() and then
+   set reason to EPS_CONVERGED_USER if some user-defined conditions have been
+   met. To let the eigensolver continue iterating, the result must be left as
+   EPS_CONVERGED_ITERATING.
+
+   Level: advanced
+
+.seealso: EPSSetStoppingTest(), EPSStoppingBasic()
+@*/
+PetscErrorCode EPSSetStoppingTestFunction(EPS eps,PetscErrorCode (*func)(EPS,PetscInt,PetscInt,PetscInt,PetscInt,EPSConvergedReason*,void*),void* ctx,PetscErrorCode (*destroy)(void*))
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
+  if (eps->stoppingdestroy) {
+    ierr = (*eps->stoppingdestroy)(eps->stoppingctx);CHKERRQ(ierr);
+  }
+  eps->stopping        = func;
+  eps->stoppingdestroy = destroy;
+  eps->stoppingctx     = ctx;
+  if (func == EPSStoppingBasic) eps->stop = EPS_STOP_BASIC;
+  else eps->stop = EPS_STOP_USER;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "EPSSetStoppingTest"
+/*@
+   EPSSetStoppingTest - Specifies how to decide the termination of the outer
+   loop of the eigensolver.
+
+   Logically Collective on EPS
+
+   Input Parameters:
++  eps  - eigensolver context obtained from EPSCreate()
+-  stop - the type of stopping test
+
+   Options Database Keys:
++  -eps_stop_basic - Sets the default stopping test
+-  -eps_stop_user  - Selects the user-defined stopping test
+
+   Note:
+   The parameter 'stop' can have one of these values
++     EPS_STOP_BASIC - default stopping test
+-     EPS_STOP_USER  - function set by EPSSetStoppingTestFunction()
+
+   Level: advanced
+
+.seealso: EPSGetStoppingTest(), EPSSetStoppingTestFunction(), EPSSetConvergenceTest(), EPSStop
+@*/
+PetscErrorCode EPSSetStoppingTest(EPS eps,EPSStop stop)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
+  PetscValidLogicalCollectiveEnum(eps,stop,2);
+  switch (stop) {
+    case EPS_STOP_BASIC: eps->stopping = EPSStoppingBasic; break;
+    case EPS_STOP_USER:  break;
+    default:
+      SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"Invalid 'stop' value");
+  }
+  eps->stop = stop;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "EPSGetStoppingTest"
+/*@
+   EPSGetStoppingTest - Gets the method used to decide the termination of the outer
+   loop of the eigensolver.
+
+   Not Collective
+
+   Input Parameters:
+.  eps   - eigensolver context obtained from EPSCreate()
+
+   Output Parameters:
+.  stop  - the type of stopping test
+
+   Level: advanced
+
+.seealso: EPSSetStoppingTest(), EPSStop
+@*/
+PetscErrorCode EPSGetStoppingTest(EPS eps,EPSStop *stop)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
+  PetscValidPointer(stop,2);
+  *stop = eps->stop;
   PetscFunctionReturn(0);
 }
 

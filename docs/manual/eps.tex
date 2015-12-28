@@ -513,6 +513,8 @@ The default is to use the criterion relative to the eigenvalue (note: for comput
 	EPSGetErrorEstimate(EPS eps,PetscInt j,PetscReal *errest);
 	\end{Verbatim}
 
+	By default, the eigensolver will stop iterating when the current number of eigenpairs satisfying the convergence test is equal to (or greater than) the number of requested eigenpairs (or if the maximum number of iterations has been reached). However, it is also possible to provide a user-defined stopping test that may decide to quit earlier, see \ident{EPSSetStoppingTest}.
+
 \paragraph{Monitors.}
 
 	Error estimates can be displayed during execution of the solution algorithm, as a way of monitoring convergence. There are several such monitors available. The user can activate them via the options database (see examples below), or within the code with \ident{EPSMonitorSet}. By default, the solvers run silently without displaying information about the iteration. Also, application programmers can provide their own routines to perform the monitoring by using the function \ident{EPSMonitorSet}.

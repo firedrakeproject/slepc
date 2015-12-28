@@ -11,6 +11,7 @@ native EPSWhich
 native EPSBalance
 native EPSErrorType
 native EPSConv
+native EPSStop
 native EPSConvergedReason
 native EPSPowerShiftType
 native EPSLanczosReorthogType
