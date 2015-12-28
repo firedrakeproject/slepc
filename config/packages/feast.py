@@ -58,9 +58,9 @@ class Feast(package.Package):
       libs = [self.packagelibs]
     else:
       if petsc.mpiuni:
-        libs = [['-lpfeast']]
-      else:
         libs = [['-lfeast']]
+      else:
+        libs = [['-lpfeast']]
 
     if self.packagedir:
       dirs = [self.packagedir]
