@@ -35,7 +35,7 @@ class Arpack(package.Package):
     self.supportssingle = True
     self.ProcessArgs(argdb)
 
-  def Check(self,conf,vars,cmake,petsc):
+  def Functions(self,petsc):
     if petsc.mpiuni:
       if petsc.scalar == 'real':
         if petsc.precision == 'single':
@@ -58,7 +58,11 @@ class Arpack(package.Package):
           functions = ['pcnaupd','pcneupd']
         else:
           functions = ['pznaupd','pzneupd']
+    return functions
 
+
+  def Check(self,conf,vars,cmake,petsc):
+    functions = self.Functions(petsc)
     if self.packagelibs:
       libs = [self.packagelibs]
     else:
@@ -95,16 +99,7 @@ class Arpack(package.Package):
       self.log.Exit('ERROR: installation of ARPACK failed.')
 
     # Check build
-    if petsc.scalar == 'real':
-      if petsc.precision == 'single':
-        functions = ['psnaupd','psneupd','pssaupd','psseupd']
-      else:
-        functions = ['pdnaupd','pdneupd','pdsaupd','pdseupd']
-    else:
-      if petsc.precision == 'single':
-        functions = ['pcnaupd','pcneupd']
-      else:
-        functions = ['pznaupd','pzneupd']
+    functions = self.Functions(petsc)
     if petsc.mpiuni:
       libs = [['-larpack']]
     else:
