@@ -74,6 +74,7 @@ static PetscErrorCode MatGetDiagonal_Cross(Mat B,Vec d)
   PetscErrorCode    ierr;
   SVD               svd;
   SVD_CROSS         *cross;
+  PetscMPIInt       len;
   PetscInt          N,n,i,j,start,end,ncols;
   PetscScalar       *work1,*work2,*diag;
   const PetscInt    *cols;
@@ -106,7 +107,8 @@ static PetscErrorCode MatGetDiagonal_Cross(Mat B,Vec d)
         ierr = MatRestoreRow(svd->A,i,&ncols,&cols,&vals);CHKERRQ(ierr);
       }
     }
-    ierr = MPI_Allreduce(work1,work2,N,MPIU_SCALAR,MPIU_SUM,PetscObjectComm((PetscObject)svd));CHKERRQ(ierr);
+    ierr = PetscMPIIntCast(N,&len);CHKERRQ(ierr);
+    ierr = MPI_Allreduce(work1,work2,len,MPIU_SCALAR,MPIU_SUM,PetscObjectComm((PetscObject)svd));CHKERRQ(ierr);
     ierr = VecGetOwnershipRange(cross->diag,&start,&end);CHKERRQ(ierr);
     ierr = VecGetArray(cross->diag,&diag);CHKERRQ(ierr);
     for (i=start;i<end;i++) diag[i-start] = work2[i];

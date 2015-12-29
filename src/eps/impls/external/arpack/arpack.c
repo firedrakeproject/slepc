@@ -78,6 +78,7 @@ PetscErrorCode EPSSetUp_ARPACK(EPS eps)
   if (eps->arbitrary) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Arbitrary selection of eigenpairs not supported in this solver");
 
   ierr = EPSAllocateSolution(eps,0);CHKERRQ(ierr);
+  ierr = EPS_SetInnerProduct(eps);CHKERRQ(ierr);
   ierr = EPSSetWorkVecs(eps,2);CHKERRQ(ierr);
 
   ierr = PetscObjectTypeCompare((PetscObject)eps->V,BVVECS,&flg);CHKERRQ(ierr);
