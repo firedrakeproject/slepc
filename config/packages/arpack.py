@@ -19,7 +19,7 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-import os, commands, shutil
+import os, commands
 import log, package
 
 class Arpack(package.Package):
@@ -29,13 +29,14 @@ class Arpack(package.Package):
     self.packagename    = 'arpack'
     self.installable    = True
     self.downloadable   = True
-    self.url            = 'https://github.com/opencollab/arpack-ng/archive/3.3.0.tar.gz'
-    self.archive        = 'arpack-ng-3.3.0.tar.gz'
-    self.dirname        = 'arpack-ng-3.3.0'
+    self.version        = '3.3.0'
+    self.url            = 'https://github.com/opencollab/arpack-ng/archive/'+self.version+'.tar.gz'
+    self.archive        = 'arpack-ng-'+self.version+'.tar.gz'
+    self.dirname        = 'arpack-ng-'+self.version
     self.supportssingle = True
     self.ProcessArgs(argdb)
 
-  def Check(self,conf,vars,cmake,petsc):
+  def Functions(self,petsc):
     if petsc.mpiuni:
       if petsc.scalar == 'real':
         if petsc.precision == 'single':
@@ -58,7 +59,11 @@ class Arpack(package.Package):
           functions = ['pcnaupd','pcneupd']
         else:
           functions = ['pznaupd','pzneupd']
+    return functions
 
+
+  def Check(self,conf,vars,cmake,petsc):
+    functions = self.Functions(petsc)
     if self.packagelibs:
       libs = [self.packagelibs]
     else:
@@ -95,16 +100,7 @@ class Arpack(package.Package):
       self.log.Exit('ERROR: installation of ARPACK failed.')
 
     # Check build
-    if petsc.scalar == 'real':
-      if petsc.precision == 'single':
-        functions = ['psnaupd','psneupd','pssaupd','psseupd']
-      else:
-        functions = ['pdnaupd','pdneupd','pdsaupd','pdseupd']
-    else:
-      if petsc.precision == 'single':
-        functions = ['pcnaupd','pcneupd']
-      else:
-        functions = ['pznaupd','pzneupd']
+    functions = self.Functions(petsc)
     if petsc.mpiuni:
       libs = [['-larpack']]
     else:

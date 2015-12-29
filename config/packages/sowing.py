@@ -28,6 +28,7 @@ class Sowing(package.Package):
     package.Package.__init__(self,argdb,log)
     self.packagename  = 'sowing'
     self.downloadable = True
+    self.url          = 'https://bitbucket.org/petsc/pkg-sowing.git'
     self.ProcessArgs(argdb)
 
   def Install(self,archdir,make):
@@ -49,7 +50,7 @@ class Sowing(package.Package):
     else: # clone Sowing repo
       url = self.packageurl
       if url=='':
-        url = 'https://bitbucket.org/petsc/pkg-sowing.git'
+        url = self.url
       try:
         result,output = commands.getstatusoutput('cd '+externdir+'&& git clone '+url)
         self.log.write(output)
