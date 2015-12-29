@@ -121,7 +121,7 @@ PetscErrorCode PEPSetUp_JD(PEP pep)
       ierr = BVDuplicateResize(pep->V,pep->nev-1,pjd->AX+i);CHKERRQ(ierr);
     }
     ierr = BVDuplicateResize(pep->V,pep->nev,&pjd->X);CHKERRQ(ierr);
-    ierr = PetscMalloc1((pep->nev-1)*(pep->nev-1),&pjd->XpX);CHKERRQ(ierr);
+    ierr = PetscMalloc2((pep->nev-1)*(pep->nev-1),&pjd->XpX,pep->nev*pep->nev,&pjd->T);CHKERRQ(ierr);
   } else pjd->V = pep->V;
   ierr = DSSetType(pep->ds,DSPEP);CHKERRQ(ierr);
   ierr = DSPEPSetDegree(pep->ds,pep->nmat-1);CHKERRQ(ierr);
@@ -144,7 +144,7 @@ static PetscErrorCode PEPJDUpdateTV(PEP pep,PetscInt low,PetscInt high,Vec *w)
   PetscMPIInt    rk,np,count;
 
   PetscFunctionBegin;
-  nconv = pep->nconv;
+  nconv = pjd->nconv;
   ierr = PetscMalloc3(nconv,&tt,nconv,&x2,nconv,&xx);CHKERRQ(ierr);
   ierr = MPI_Comm_rank(PetscObjectComm((PetscObject)pep),&rk);CHKERRQ(ierr);
   ierr = MPI_Comm_size(PetscObjectComm((PetscObject)pep),&np);CHKERRQ(ierr);
@@ -169,21 +169,21 @@ static PetscErrorCode PEPJDUpdateTV(PEP pep,PetscInt low,PetscInt high,Vec *w)
         for (j=0;j<nconv;j++) tt[j] = x2[j];
         for (i=pp+1;i<pep->nmat;i++) {
           ierr = BVMultVec(pjd->AX[i],1.0,1.0,t2,tt);CHKERRQ(ierr);
-          if (pp<pep->nmat-1) for (j=0;j<nconv;j++) tt[j] *= pep->eigr[j];
+          if (pp<pep->nmat-1) for (j=0;j<nconv;j++) tt[j] *= pjd->T[(pep->nev+1)*j];
         }
         ierr = BVDotVec(pjd->X,t1,xx);CHKERRQ(ierr);
         if (rk==np-1) {
           y2 = array2+nloc;
           for (j=0;j<nconv;j++) {
             tt[j] = 1.0;
-            for (i=0;i<pp;i++) tt[j] *= pep->eigr[j];
-            tt[j] = PetscConj(fact);
-            y2[j] = fact*xx[j];
+            for (i=0;i<pp;i++) tt[j] *= pjd->T[(pep->nev+1)*j];
+            tt[j] = PetscConj(tt[j]);
+            y2[j] = tt[j]*xx[j];
             fact = 1.0;
             for (i=pp+1;i<pep->nmat;i++) {
-              tt[j] *= PetscConj(pep->eigr[j]);
-              for (k=0;k<nconv;k++) y2[j] += tt[j]*fact*xx[k]*x2[k];
-              fact *= pep->eigr[j];
+              tt[j] *= PetscConj(pjd->T[(pep->nev+1)*j]);
+              for (k=0;k<nconv;k++) y2[j] += tt[j]*fact*pjd->XpX[k]*x2[k];
+              fact *= pjd->T[(pep->nev+1)*j];
             }
           }
         }
@@ -300,7 +300,7 @@ static PetscErrorCode PEPJDExtendedPCApply(PC pc,Vec x,Vec y)
       t[j] = 0.0;
       for (i=0;i<n;i++) t[j] += ctx->M[i+j*ld]*x2[i];
     }
-    if (rk==np-1) for (i=0;i<n;i++) array2[nloc+i] = t[j];
+    if (rk==np-1) for (i=0;i<n;i++) array2[nloc+i] = t[i];
     for (j=0;j<n;j++) t[j] *= ps[j];
     ierr = BVMultVec(ctx->X,-1.0,1.0,ty,t);CHKERRQ(ierr);
     ierr = PetscFree2(x2,t);CHKERRQ(ierr);
@@ -383,8 +383,8 @@ static PetscErrorCode PEPJDComputePResidual(PEP pep,Vec u,PetscScalar theta,Vec 
   PetscErrorCode ierr;
   PetscMPIInt    rk,np,count;
   Vec            tu,tp,w;
-  PetscScalar    *array1,*array2,*x2,*y2,fact=1.0,*q,*tt,*xx,*eigr;
-  PetscInt       i,j,nconv=pep->nconv,nloc,k;
+  PetscScalar    *array1,*array2,*x2,*y2,fact=1.0,*q,*tt,*xx;
+  PetscInt       i,j,nconv=pjd->nconv,nloc,k;
 
   PetscFunctionBegin;
   if (nconv>0) {
@@ -403,7 +403,6 @@ static PetscErrorCode PEPJDComputePResidual(PEP pep,Vec u,PetscScalar theta,Vec 
   tu = work[0];
   tp = work[1];
   w  = work[2];
-  eigr = pep->eigr;
   ierr = VecGetArray(u,&array1);CHKERRQ(ierr);
   ierr = VecPlaceArray(tu,array1);CHKERRQ(ierr);
   ierr = VecGetArray(p,&array2);CHKERRQ(ierr);
@@ -419,26 +418,26 @@ static PetscErrorCode PEPJDComputePResidual(PEP pep,Vec u,PetscScalar theta,Vec 
     fact = theta;
     for (i=2;i<pep->nmat;i++) {
       ierr = BVMultVec(pjd->AX[i],1.0,1.0,tp,q);CHKERRQ(ierr);
-      for (j=0;j<nconv;j++) q[j] = q[j]*eigr[j]+ i*fact*x2[j]; /* i-1 for the next it */
+      for (j=0;j<nconv;j++) q[j] = q[j]*pjd->T[(pep->nev+1)*j]+ i*fact*x2[j]; /* i-1 for the next it */
       fact *= theta;
     }
-    ierr = BVSetActiveColumns(pjd->V,0,nconv);CHKERRQ(ierr);
-    ierr = BVDotVec(pjd->V,tu,xx);CHKERRQ(ierr);
+    ierr = BVSetActiveColumns(pjd->X,0,nconv);CHKERRQ(ierr);
+    ierr = BVDotVec(pjd->X,tu,xx);CHKERRQ(ierr);
     if (rk==np-1) {
       y2 = array2+nloc;
       for (i=0;i<nconv;i++) {
-        tt[i] = PetscConj(eigr[i]);
+        tt[i] = PetscConj(pjd->T[(pep->nev+1)*i]);
         y2[i] = tt[i]*xx[i];
         q[i]  = x2[i];
       }
       fact = theta;
       for (j=2;j<pep->nmat;j++) {
         for (i=0;i<nconv;i++) {
-          tt[i] *= PetscConj(eigr[i]);
+          tt[i] *= PetscConj(pjd->T[(pep->nev+1)*i]);
           y2[i] += tt[i]*j*fact*xx[i];
           for (k=0;k<nconv;k++) y2[i] += tt[i]*pjd->XpX[k]*q[k];
         }
-        for(i=0;i<nconv;i++) q[i] = q[i]*eigr[i]+j*fact*x2[i];
+        for(i=0;i<nconv;i++) q[i] = q[i]*pjd->T[(pep->nev+1)*i]+j*fact*x2[i];
         fact *= theta;
       }
     }
@@ -501,19 +500,18 @@ static PetscErrorCode PEPJDShellMatMult(Mat P,Vec x,Vec y)
   PEP_JD_MATSHELL *matctx;
   PEP_JD          *pjd;
   PetscMPIInt     rk,np,count;
-  PetscInt        i,j,nconv,nloc,nmat,k;
+  PetscInt        i,j,nconv,nloc,nmat,k,ldt;
   Vec             tx,ty;
-  PetscScalar     *array2,*x2,*y2,fact=1.0,*q,*tt,*xx,*eigr,theta,*yy,eigc;
+  PetscScalar     *array2,*x2,*y2,fact=1.0,*q,*tt,*xx,theta,*yy;
   const PetscScalar *array1;
 
   PetscFunctionBegin;
-  ierr = MatShellGetContext(P,(void**)&matctx);CHKERRQ(ierr);
-  pjd = (PEP_JD*)(matctx->pep->data);
-  nconv = matctx->pep->nconv;
-  eigr = matctx->pep->eigr;
+  ierr  = MatShellGetContext(P,(void**)&matctx);CHKERRQ(ierr);
+  pjd   = (PEP_JD*)(matctx->pep->data);
+  nconv = pjd->nconv;
   theta = matctx->theta;
-  nconv = matctx->pep->nconv;
-  nmat = matctx->pep->nmat;
+  nmat  = matctx->pep->nmat;
+  ldt   = matctx->pep->nev;  
   if (nconv>0) {
     ierr = PetscMalloc5(nconv,&tt,nconv,&x2,nconv,&q,nconv,&xx,nconv,&yy);CHKERRQ(ierr);
     ierr = MPI_Comm_rank(PetscObjectComm((PetscObject)P),&rk);CHKERRQ(ierr);
@@ -541,7 +539,7 @@ static PetscErrorCode PEPJDShellMatMult(Mat P,Vec x,Vec y)
     fact = theta;
     for (i=1;i<nmat;i++) {
       ierr = BVMultVec(pjd->AX[i],1.0,1.0,ty,q);CHKERRQ(ierr);
-      for (j=0;j<nconv;j++) q[j] = q[j]*eigr[j]+ fact*x2[j];
+      for (j=0;j<nconv;j++) q[j] = q[j]*pjd->T[(ldt+1)*j]+ fact*x2[j];
       fact *= theta;
     }
     ierr = BVDotVec(pjd->X,tx,xx);CHKERRQ(ierr);
@@ -549,30 +547,18 @@ static PetscErrorCode PEPJDShellMatMult(Mat P,Vec x,Vec y)
       y2 = array2+nloc;
       for (i=0;i<nconv;i++) {
         y2[i] = xx[i];
-        tt[i] = PetscConj(eigr[i]);
+        tt[i] = PetscConj(pjd->T[(ldt+1)*i]);
         q[i]  = x2[i];
       }
       fact = theta;
       for (j=1;j<nmat;j++) {
         for (i=0;i<nconv;i++) {
-          y2[i] = tt[i]*(fact*xx[i]+q[i]);
-          tt[i] = PetscConj(eigr[i]);
-          q[i]  = q[i]*eigr[i]+fact*x2[i];
+          y2[i] += tt[i]*fact*xx[i];
+          for (k=0;k<nconv;k++) y2[i] += tt[i]*pjd->XpX[k]*q[k];
+          tt[i] *= PetscConj(pjd->T[(ldt+1)*i]);
         }
+        for(i=0;i<nconv;i++) q[i] = q[i]*pjd->T[(ldt+1)*i]+fact*x2[i];
         fact *= theta;
-      }
-      for (i=0;i<nconv;i++) {
-        eigc = 1.0;
-        fact = 1.0;
-        for (k=0;k<nconv;k++) q[i] = x2[k];
-        for (j=1;j<nmat;j++) {
-          eigc *= PetscConj(eigr[i]);
-          fact *= theta;
-          for (k=0;k<nconv;k++) {
-            y2[i] += eigc*pjd->XpX[k]*q[k];
-            q[k]  = q[k]*eigr[k]+fact*x2[k];
-          }
-        }
       }
     }
     ierr = PetscFree5(tt,x2,q,xx,yy);CHKERRQ(ierr);
@@ -636,7 +622,7 @@ PetscErrorCode PEPJDUpdateExtendedPC(PEP pep,PetscScalar theta)
   PetscErrorCode  ierr;
   PEP_JD          *pjd = (PEP_JD*)pep->data;
   PEP_JD_PCSHELL  *pcctx;  
-  PetscInt        i,j,k,n=pep->nconv,ld=pep->nev-1;
+  PetscInt        i,j,k,n=pjd->nconv,ld=pep->nev-1;
   PetscScalar     *q,fact,*M,*ps,*h,*t,*work;
   PetscReal       tol,maxeig=0.0;
   PetscBLASInt    n_,info,ld_,*p;
@@ -644,16 +630,16 @@ PetscErrorCode PEPJDUpdateExtendedPC(PEP pep,PetscScalar theta)
   PetscFunctionBegin;
   if (n) { 
     ierr = PCShellGetContext(pjd->pcshell,(void**)&pcctx);CHKERRQ(ierr);
-    n = pcctx->n;
+    pcctx->n = n;
     /* h, q, and t are vectors containing diagonal matrices */
     ierr = PetscMalloc5(n,&q,n,&h,n,&t,n,&p,n,&work);CHKERRQ(ierr);
-    for (i=0;i<n;i++) maxeig = PetscMax(maxeig,PetscAbsScalar(pep->eigr[i]));
+    for (i=0;i<n;i++) maxeig = PetscMax(maxeig,PetscAbsScalar(pjd->T[(pep->nev+1)*i]));
     tol = PETSC_MACHINE_EPSILON*n*maxeig;
     M  = pcctx->M;
     ps = pcctx->ps;
     /* pseudo-inverse */
     for (i=0;i<n;i++) {
-      ps[i] = theta-pep->eigr[i];
+      ps[i] = theta-pjd->T[(pep->nev+1)*i];
       if (PetscAbsScalar(ps[i])<tol) ps[i] = 0.0;
       else ps[i] = 1.0/ps[i];
     }
@@ -669,7 +655,7 @@ PetscErrorCode PEPJDUpdateExtendedPC(PEP pep,PetscScalar theta)
           M[i+j*ld] = h[i]*pjd->XpX[i+j*ld]*t[j];
         }
         q[j] = theta*q[j]+fact;
-        h[j] *= PetscConj(pep->eigr[j]);
+        h[j] *= PetscConj(pjd->T[(pep->nev+1)*j]);
         fact *= theta;
       }
     }
@@ -717,9 +703,9 @@ PetscErrorCode PEPSolve_JD(PEP pep)
 {
   PetscErrorCode    ierr;
   PEP_JD            *pjd = (PEP_JD*)pep->data;
-  PetscInt          k,nv,ld,minv,low,high,*P;
-  PetscScalar       theta,*pX,*stt,*exu,*exr,*exp,*R;
-  PetscReal         norm;
+  PetscInt          k,nv,ld,minv,low,high,*P,dim;
+  PetscScalar       theta,*pX,*stt,*exu,*exr,*exp,*R,*eig;
+  PetscReal         norm,*res;
   PetscBool         lindep,initial=PETSC_FALSE;
   Vec               t,u,p,r,*ww=pep->work,v;
   Mat               G,X,Y;
@@ -734,7 +720,8 @@ PetscErrorCode PEPSolve_JD(PEP pep)
   ierr = PetscOptionsGetBool(NULL,NULL,"-newjd",&new,NULL);
   /* //////////// */
   ierr = DSGetLeadingDimension(pep->ds,&ld);CHKERRQ(ierr);
-  ierr = PetscMalloc6(ld,&P,ld,&stt,pep->nev-1,&exu,pep->nev-1,&exr,pep->nev-1,&exp,ld*ld,&R);CHKERRQ(ierr);
+  ierr = PetscMalloc5(ld,&P,ld,&stt,pep->nev-1,&exu,pep->nev-1,&exr,pep->nev-1,&exp);CHKERRQ(ierr);
+  ierr = PetscMalloc3(ld*ld,&R,pep->ncv,&eig,pep->ncv,&res);CHKERRQ(ierr);
   ierr = BVCreateVec(pjd->V,&u);CHKERRQ(ierr);
   ierr = VecDuplicate(u,&p);CHKERRQ(ierr);
   ierr = VecDuplicate(u,&r);CHKERRQ(ierr);
@@ -769,12 +756,12 @@ PetscErrorCode PEPSolve_JD(PEP pep)
     if (new) { ierr = BVSetActiveColumns(pjd->W,0,nv);CHKERRQ(ierr); }
 
     /* Solve projected problem */
-    if (nv>1 || initial) {
+    if (nv>1 || initial || pjd->flglk) {
       ierr = DSSetState(pep->ds,DS_STATE_RAW);CHKERRQ(ierr);
       ierr = DSSolve(pep->ds,pep->eigr+pep->nconv,pep->eigi+pep->nconv);CHKERRQ(ierr);
       ierr = DSSort(pep->ds,pep->eigr+pep->nconv,pep->eigi+pep->nconv,NULL,NULL,NULL);CHKERRQ(ierr);
       ierr = DSSort(pep->ds,pep->eigr+pep->nconv,pep->eigi+pep->nconv,NULL,NULL,NULL);CHKERRQ(ierr);
-      theta = pep->eigr[pep->nconv];
+      theta = pep->eigr[0];
 #if !defined(PETSC_USE_COMPLEX)
       if (PetscAbsScalar(pep->eigi[pep->nconv])!=0.0) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"PJD solver not implemented for complex Ritz values in real arithmetic");
 #endif
@@ -785,6 +772,9 @@ PetscErrorCode PEPSolve_JD(PEP pep)
       ierr = BVMultVec(pjd->V,1.0,0.0,u,pX);CHKERRQ(ierr);
       ierr = DSRestoreArray(pep->ds,DS_MAT_X,&pX);CHKERRQ(ierr);
     }
+    if (pjd->flglk) {
+        ierr = PEPJDUpdateExtendedPC(pep,theta);CHKERRQ(ierr);
+    }
 
     /* Replace preconditioner with one containing projectors */
     if (!pjd->pcshell) {
@@ -794,11 +784,10 @@ PetscErrorCode PEPSolve_JD(PEP pep)
       matctx->work = ww;
       pcctx->work  = ww;
     }
-    
     ierr = PEPJDPCMatSetUp(pep,theta);CHKERRQ(ierr);
+    
     /* Compute r and r' */
     ierr = MatMult(pjd->Pshell,u,r);CHKERRQ(ierr);
-    /* Compute p=P'(theta)*u  */
     ierr = PEPJDComputePResidual(pep,u,theta,p,ww);CHKERRQ(ierr);
     pcctx->u = u;
 
@@ -806,65 +795,79 @@ PetscErrorCode PEPSolve_JD(PEP pep)
     ierr = VecNorm(r,NORM_2,&norm);CHKERRQ(ierr);
     ierr = (*pep->converged)(pep,theta,0,norm,&pep->errest[pep->nconv],pep->convergedctx);CHKERRQ(ierr);
     if (pep->its >= pep->max_it) pep->reason = PEP_DIVERGED_ITS;
+    for (k=pjd->nconv;k<nv;k++) {
+      eig[k] = pep->eigr[k-pjd->nconv];
+      res[k] = pep->errest[k-pjd->nconv];
+    }
 
     if (pep->errest[pep->nconv]<pep->tol) {
+
       /* Ritz pair converged */
       minv = PetscMin(nv,pjd->keep*pep->ncv);
       if (pep->nev>1) {
-        ierr = BVGetColumn(pjd->X,pep->nconv,&v);CHKERRQ(ierr);
+        ierr = BVGetColumn(pjd->X,pjd->nconv,&v);CHKERRQ(ierr);
         ierr = PEPJDCopyToExtendedVec(pep,v,NULL,u,PETSC_TRUE);CHKERRQ(ierr);
-        ierr = BVRestoreColumn(pjd->X,pep->nconv,&v);CHKERRQ(ierr);
-        ierr = BVSetActiveColumns(pjd->X,0,pep->nconv+1);CHKERRQ(ierr);
+        ierr = BVRestoreColumn(pjd->X,pjd->nconv,&v);CHKERRQ(ierr);
+        ierr = BVSetActiveColumns(pjd->X,0,pjd->nconv+1);CHKERRQ(ierr);
+        ierr = BVNormColumn(pjd->X,pjd->nconv,NORM_2,&norm);CHKERRQ(ierr);
+        ierr = BVScaleColumn(pjd->X,pjd->nconv,1.0/norm);CHKERRQ(ierr);
+        pjd->T[(pep->nev+1)*pjd->nconv] = pep->eigr[0];
       } else {
         ierr = BVInsertVec(pep->V,pep->nconv,u);CHKERRQ(ierr);
       }
-/*
-      ierr = DSGetArray(pep->ds,DS_MAT_X,&pX);CHKERRQ(ierr);
-      ierr = DSGetDimensions(pep->ds,&dim,NULL,NULL,NULL,NULL);CHKERRQ(ierr);
-      ierr = PEPJDOrthogonalize(dim,minv,pX,ld,&rk,P,R,ld);CHKERRQ(ierr);
-      ierr = DSRestoreArray(pep->ds,DS_MAT_X,&pX);CHKERRQ(ierr);
-      ierr = DSGetMat(pep->ds,DS_MAT_X,&X);CHKERRQ(ierr);
-      ierr = BVMultInPlace(pjd->V,X,pep->nconv,minv);CHKERRQ(ierr);
-      ierr = DSRestoreMat(pep->ds,DS_MAT_X,&X);CHKERRQ(ierr);
-*/
-      pep->nconv++;
-      /* if (pep->nconv >= pep->nev) pep->reason = PEP_CONVERGED_TOL; */
-      if (pep->nconv == 1) pep->reason = PEP_CONVERGED_TOL;
-      else nv = minv + pep->nconv;
+      pjd->nconv++;
+      if (pjd->nconv >= pep->nev) pep->reason = PEP_CONVERGED_TOL;
       if (pep->reason==PEP_CONVERGED_ITERATING) {
-        /* permute eig (only eigr) */
-/*
-        ierr = PetscMemcpy(stt,pep->eigr+pep->nconv-1,minv*sizeof(PetscScalar));CHKERRQ(ierr);
-        for (k=0;k<minv;k++) pep->eigr[k+pep->nconv-1] = stt[P[k]];
-*/
+
         /* update AX and XpX */
         ierr = VecGetArrayRead(u,&array);CHKERRQ(ierr);
         ierr = VecPlaceArray(ww[0],array);CHKERRQ(ierr);
         for (k=0;k<pep->nmat;k++) {
-          ierr = BVGetColumn(pjd->AX[k],pep->nconv-1,&v);CHKERRQ(ierr);
+          ierr = BVGetColumn(pjd->AX[k],pjd->nconv-1,&v);CHKERRQ(ierr);
           ierr = MatMult(pep->A[k],ww[0],v);CHKERRQ(ierr);
-          ierr = BVRestoreColumn(pjd->AX[k],pep->nconv-1,&v);CHKERRQ(ierr);
-          ierr = BVSetActiveColumns(pjd->AX[k],0,pep->nconv);CHKERRQ(ierr);
+          ierr = BVRestoreColumn(pjd->AX[k],pjd->nconv-1,&v);CHKERRQ(ierr);
+          ierr = BVSetActiveColumns(pjd->AX[k],0,pjd->nconv);CHKERRQ(ierr);
         }
-        ierr = BVDotVec(pjd->X,ww[0],pjd->XpX+(pep->nconv-1)*(pep->nev-1));CHKERRQ(ierr);
-        for (k=0;k<pep->nconv-1;k++) pjd->XpX[k*(pep->nev-1)+pep->nconv-1] = pjd->XpX[(pep->nconv-1)*(pep->nev-1)+k];
+        ierr = BVDotVec(pjd->X,ww[0],pjd->XpX+(pjd->nconv-1)*(pep->nev-1));CHKERRQ(ierr);
+        for (k=0;k<pjd->nconv-1;k++) pjd->XpX[k*(pep->nev-1)+pjd->nconv-1] = pjd->XpX[(pjd->nconv-1)*(pep->nev-1)+k];
         ierr = VecResetArray(ww[0]);CHKERRQ(ierr);
         ierr = VecRestoreArrayRead(u,&array);CHKERRQ(ierr);
 
         /* update extended preconditioner */
-        ierr = PEPJDUpdateExtendedPC(pep,theta);CHKERRQ(ierr);
+       /* ierr = PEPJDUpdateExtendedPC(pep,theta);CHKERRQ(ierr);*/
 
+       /* do not save old search space by the moment 
+        ierr = DSGetDimensions(pep->ds,&dim,NULL,NULL,NULL,NULL);CHKERRQ(ierr);
+        ierr = DSGetArray(pep->ds,DS_MAT_X,&pX);CHKERRQ(ierr);
+        ierr = PEPJDOrthogonalize(dim,minv,pX,ld,NULL,NULL,NULL,0);CHKERRQ(ierr);
+        ierr = DSRestoreArray(pep->ds,DS_MAT_X,&pX);CHKERRQ(ierr);
+        //ierr = DSOrthogonalize(pep->ds,DS_MAT_X,minv,PETSC_NULL);CHKERRQ(ierr);
+        ierr = DSGetMat(pep->ds,DS_MAT_X,&X);CHKERRQ(ierr);
+        ierr = BVMultInPlace(pjd->V,X,pep->nconv,minv);CHKERRQ(ierr);
+        ierr = DSRestoreMat(pep->ds,DS_MAT_X,&X);CHKERRQ(ierr);
+        ierr = BVCopyColumn(pjd->V,minv-1,0);CHKERRQ(ierr);
+        ierr = DSGetArray(pep->ds,DS_MAT_Y,&pX);CHKERRQ(ierr);
+        ierr = PEPJDOrthogonalize(dim,minv,pX,ld,NULL,NULL,NULL,0);CHKERRQ(ierr);
+        ierr = DSRestoreArray(pep->ds,DS_MAT_Y,&pX);CHKERRQ(ierr);
+        //ierr = DSOrthogonalize(pep->ds,DS_MAT_Y,nv,NULL);CHKERRQ(ierr);
+        ierr = DSGetMat(pep->ds,DS_MAT_Y,&Y);CHKERRQ(ierr);
+        ierr = BVMultInPlace(pjd->W,Y,pep->nconv,minv);CHKERRQ(ierr);
+        ierr = DSRestoreMat(pep->ds,DS_MAT_Y,&Y);CHKERRQ(ierr);
+        ierr = BVCopyColumn(pjd->W,minv-1,0);CHKERRQ(ierr);
+       */
+       ierr = PEPJDProcessInitialSpace(pep,ww);CHKERRQ(ierr);
+       ierr = BVCopyVec(pjd->V,0,u);CHKERRQ(ierr);
+       nv = 1;
+       /* nv = minv; ///// */
       }
       pjd->flglk = PETSC_TRUE;
     } else if (nv==pep->ncv-1) {
+
       /* Basis full, force restart */
       minv = PetscMin(nv,pjd->keep*pep->ncv);
-/*
       ierr = DSGetArray(pep->ds,DS_MAT_X,&pX);CHKERRQ(ierr);
       ierr = DSGetDimensions(pep->ds,&dim,NULL,NULL,NULL,NULL);CHKERRQ(ierr);
-      ierr = PEPJDOrthogonalize(dim,minv,pX,ld,NULL,NULL,NULL,0);CHKERRQ(ierr);
       ierr = DSRestoreArray(pep->ds,DS_MAT_X,&pX);CHKERRQ(ierr);
-*/
       ierr = DSOrthogonalize(pep->ds,DS_MAT_X,minv,PETSC_NULL);CHKERRQ(ierr);
       ierr = DSGetMat(pep->ds,DS_MAT_X,&X);CHKERRQ(ierr);
       ierr = BVMultInPlace(pjd->V,X,pep->nconv,minv);CHKERRQ(ierr);
@@ -875,10 +878,10 @@ PetscErrorCode PEPSolve_JD(PEP pep)
         ierr = BVMultInPlace(pjd->W,Y,pep->nconv,minv);CHKERRQ(ierr);
         ierr = DSRestoreMat(pep->ds,DS_MAT_Y,&Y);CHKERRQ(ierr);
       }
-      nv = minv + pep->nconv;
+      nv = minv;
       pjd->flgre = PETSC_TRUE;
-
     } else {
+
       /* Solve correction equation to expand basis */
       ierr = PEPJDExtendedPCApply(pjd->pcshell,p,pcctx->Bp);CHKERRQ(ierr);
       if (!new) {
@@ -902,17 +905,18 @@ PetscErrorCode PEPSolve_JD(PEP pep)
       pjd->flgre = PETSC_FALSE;
     }
 
-    ierr = PEPMonitor(pep,pep->its,pep->nconv,pep->eigr,pep->eigi,pep->errest,nv);CHKERRQ(ierr);
+    ierr = PEPMonitor(pep,pep->its,pjd->nconv,eig,pep->eigi,res,nv);CHKERRQ(ierr);
   }
   if (pep->nev>1) {
-    for (k=0;k<pep->nconv;k++) {
+    for (k=0;k<pjd->nconv;k++) {
       ierr = BVGetColumn(pjd->X,k,&v);CHKERRQ(ierr);
       ierr = BVInsertVec(pep->V,k,v);CHKERRQ(ierr);
       ierr = BVRestoreColumn(pjd->X,k,&v);CHKERRQ(ierr);
+      pep->eigr[k] = pjd->T[(pep->nev+1)*k]; 
     }
     ierr = PetscFree2(pcctx->M,pcctx->ps);CHKERRQ(ierr); 
   }
-  
+  pep->nconv = pjd->nconv; 
   ierr = KSPSetPC(ksp,pcctx->pc);CHKERRQ(ierr);
   ierr = MatDestroy(&matctx->P);CHKERRQ(ierr);
   ierr = VecDestroy(&pcctx->Bp);CHKERRQ(ierr);
@@ -921,7 +925,8 @@ PetscErrorCode PEPSolve_JD(PEP pep)
   ierr = PetscFree(pcctx);CHKERRQ(ierr);
   ierr = PetscFree(matctx);CHKERRQ(ierr);
   ierr = PCDestroy(&pjd->pcshell);CHKERRQ(ierr);
-  ierr = PetscFree6(P,stt,exu,exr,exp,R);CHKERRQ(ierr);
+  ierr = PetscFree5(P,stt,exu,exr,exp);CHKERRQ(ierr);
+  ierr = PetscFree3(R,eig,res);CHKERRQ(ierr);
   ierr = VecDestroy(&u);CHKERRQ(ierr);
   ierr = VecDestroy(&r);CHKERRQ(ierr);
   ierr = VecDestroy(&p);CHKERRQ(ierr);
@@ -943,10 +948,10 @@ PetscErrorCode PEPComputeVectors_JD(PEP pep)
   PetscFunctionBegin;
 #if 0
   T = (pep->nev>1)?pjd->AX:pjd->TV;
-  ierr = DSSetDimensions(pep->ds,pep->nconv,0,0,0);CHKERRQ(ierr);
-  ierr = BVSetActiveColumns(pep->V,0,pep->nconv);CHKERRQ(ierr);
+  ierr = DSSetDimensions(pep->ds,pjd->nconv,0,0,0);CHKERRQ(ierr);
+  ierr = BVSetActiveColumns(pep->V,0,pjd->nconv);CHKERRQ(ierr);
   for (k=0;k<pep->nmat;k++) {
-    ierr = BVSetActiveColumns(T[k],0,pep->nconv);CHKERRQ(ierr);
+    ierr = BVSetActiveColumns(T[k],0,pjd->nconv);CHKERRQ(ierr);
     ierr = BVMatMult(pep->V,pep->A[k],T[k]);CHKERRQ(ierr);
     ierr = DSGetMat(pep->ds,DSMatExtra[k],&G);CHKERRQ(ierr);
     ierr = BVMatProject(T[k],NULL,pep->V,G);CHKERRQ(ierr);
@@ -960,7 +965,7 @@ PetscErrorCode PEPComputeVectors_JD(PEP pep)
 
   /* Compute Ritz vectors */
   ierr = DSGetMat(pep->ds,DS_MAT_X,&X);CHKERRQ(ierr);
-  ierr = BVMultInPlace(pep->V,X,0,pep->nconv);CHKERRQ(ierr);
+  ierr = BVMultInPlace(pep->V,X,0,pjd->nconv);CHKERRQ(ierr);
   ierr = DSRestoreMat(pep->ds,DS_MAT_X,&X);CHKERRQ(ierr);
 #endif
   PetscFunctionReturn(0);
@@ -985,7 +990,7 @@ PetscErrorCode PEPReset_JD(PEP pep)
       ierr = BVDestroy(pjd->AX+i);CHKERRQ(ierr);
     }
     ierr = BVDestroy(&pjd->X);CHKERRQ(ierr);
-    ierr = PetscFree(pjd->XpX);CHKERRQ(ierr);
+    ierr = PetscFree2(pjd->XpX,pjd->T);CHKERRQ(ierr);
   }
   ierr = PetscFree2(pjd->TV,pjd->AX);CHKERRQ(ierr);
   PetscFunctionReturn(0);

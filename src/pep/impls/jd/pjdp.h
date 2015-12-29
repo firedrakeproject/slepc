@@ -34,10 +34,12 @@ typedef struct {
   BV          W;             /* work basis vectors to store the test space */
   BV          *TV;           /* work basis vectors to store T*V (each TV[i] is the coeficient for \lambda^i of T*V for the extended T) */
   BV          *AX;           /* work basis vectors to store A_i*X for locked eigenvectors */
-  BV          X;
-  PetscScalar *XpX;           /* X^H*X */
+  BV          X;             /* locked eigenvectors */
+  PetscScalar *T;            /* matrix of the invariant pair */
+  PetscScalar *XpX;          /* X^H*X */
   PC          pcshell;       /* preconditioner including basic precond+projector */
   Mat         Pshell;        /* auxiliaty shell matrix */
+  PetscInt    nconv;         /* number of locked vectors in the invariant pair */
 } PEP_JD;
 
 typedef struct {
