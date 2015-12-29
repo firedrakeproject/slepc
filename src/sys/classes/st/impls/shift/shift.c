@@ -87,7 +87,7 @@ PetscErrorCode STPostSolve_Shift(ST st)
       ierr = MatShift(st->A[0],st->sigma);CHKERRQ(ierr);
     }
     st->Astate[0] = ((PetscObject)st->A[0])->state;
-    st->setupcalled = 0;
+    st->state = ST_STATE_INITIAL;
   }
   PetscFunctionReturn(0);
 }
@@ -149,7 +149,7 @@ PetscErrorCode STSetShift_Shift(ST st,PetscScalar newshift)
 
   PetscFunctionBegin;
   /* Nothing to be done if STSetUp has not been called yet */
-  if (!st->setupcalled) PetscFunctionReturn(0);
+  if (!st->state) PetscFunctionReturn(0);
 
   if (st->transform) {
     if (st->shift_matrix == ST_MATMODE_COPY && nmat>2) {

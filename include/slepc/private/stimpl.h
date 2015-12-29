@@ -46,17 +46,25 @@ struct _STOps {
   PetscErrorCode (*checknullspace)(ST,BV);
 };
 
+/*
+     'Updated' state means STSetUp must be called because matrices have been
+     modified, but the pattern is the same (hence reuse symbolic factorization)
+*/
+typedef enum { ST_STATE_INITIAL,
+               ST_STATE_SETUP,
+               ST_STATE_UPDATED } STStateType;
+
 struct _p_ST {
   PETSCHEADER(struct _STOps);
   /*------------------------- User parameters --------------------------*/
-  Mat              *A;               /* Matrices that define the eigensystem */
-  PetscObjectState *Astate;          /* State (to identify the original matrices) */
-  Mat              *T;               /* Matrices resulting from transformation */
-  Mat              P;                /* Matrix from which preconditioner is built */
-  PetscInt         nmat;             /* Number of matrices */
-  PetscScalar      sigma;            /* Value of the shift */
+  Mat              *A;               /* matrices that define the eigensystem */
+  PetscObjectState *Astate;          /* state (to identify the original matrices) */
+  Mat              *T;               /* matrices resulting from transformation */
+  Mat              P;                /* matrix from which preconditioner is built */
+  PetscInt         nmat;             /* number of matrices */
+  PetscScalar      sigma;            /* value of the shift */
   PetscBool        sigma_set;        /* whether the user provided the shift or not */
-  PetscScalar      defsigma;         /* Default value of the shift */
+  PetscScalar      defsigma;         /* default value of the shift */
   STMatMode        shift_matrix;
   MatStructure     str;              /* whether matrices have the same pattern or not */
   PetscBool        transform;        /* whether transformed matrices are computed */
@@ -67,8 +75,7 @@ struct _p_ST {
   Vec              D;                /* diagonal matrix for balancing */
   Vec              wb;               /* balancing requires an extra work vector */
   void             *data;
-  PetscInt         setupcalled;
-  PetscInt         updated;
+  STStateType      state;            /* initial -> setup -> with updated matrices */
 };
 
 /*
