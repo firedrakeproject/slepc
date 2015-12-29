@@ -228,10 +228,7 @@ PetscErrorCode EPSSolve_LOBPCG(EPS eps)
     if (its) {
       ierr = EPSMonitor(eps,eps->its+its,eps->nconv,eps->eigr,eps->eigi,eps->errest,locked+ctx->bs);CHKERRQ(ierr);
     }
-    if (eps->nconv >= eps->nev) eps->reason = EPS_CONVERGED_TOL;
-    else if (eps->its+its >= eps->max_it) {
-      eps->reason = EPS_DIVERGED_ITS;
-    }
+    ierr = (*eps->stopping)(eps,eps->its+its,eps->max_it,eps->nconv,eps->nev,&eps->reason,NULL);CHKERRQ(ierr);
     if (eps->reason != EPS_CONVERGED_ITERATING || nconv >= ctx->bs-guard) {
       ierr = BVSetActiveColumns(eps->V,locked,eps->nconv);CHKERRQ(ierr);
       ierr = BVSetActiveColumns(X,0,nconv);CHKERRQ(ierr);

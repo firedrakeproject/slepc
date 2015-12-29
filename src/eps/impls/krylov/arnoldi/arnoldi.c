@@ -140,10 +140,8 @@ PetscErrorCode EPSSolve_Arnoldi(EPS eps)
       ierr = BVMultInPlace(eps->V,U,eps->nconv,nv);CHKERRQ(ierr);
       ierr = MatDestroy(&U);CHKERRQ(ierr);
     }
-    eps->nconv = k;
-
-    ierr = EPSMonitor(eps,eps->its,eps->nconv,eps->eigr,eps->eigi,eps->errest,nv);CHKERRQ(ierr);
-    if (breakdown && k<eps->nev) {
+    ierr = (*eps->stopping)(eps,eps->its,eps->max_it,k,eps->nev,&eps->reason,NULL);CHKERRQ(ierr);
+    if (eps->reason == EPS_CONVERGED_ITERATING && breakdown) {
       ierr = PetscInfo2(eps,"Breakdown in Arnoldi method (it=%D norm=%g)\n",eps->its,(double)beta);CHKERRQ(ierr);
       ierr = EPSGetStartVector(eps,k,&breakdown);CHKERRQ(ierr);
       if (breakdown) {
@@ -151,8 +149,8 @@ PetscErrorCode EPSSolve_Arnoldi(EPS eps)
         ierr = PetscInfo(eps,"Unable to generate more start vectors\n");CHKERRQ(ierr);
       }
     }
-    if (eps->its >= eps->max_it) eps->reason = EPS_DIVERGED_ITS;
-    if (eps->nconv >= eps->nev) eps->reason = EPS_CONVERGED_TOL;
+    eps->nconv = k;
+    ierr = EPSMonitor(eps,eps->its,eps->nconv,eps->eigr,eps->eigi,eps->errest,nv);CHKERRQ(ierr);
   }
 
   /* truncate Schur decomposition and change the state to raw so that

@@ -97,8 +97,7 @@ PetscErrorCode EPSSolve_KrylovSchur_Indefinite(EPS eps)
     beta1 = PetscMax(beta1,beta2);
 #endif
     ierr = EPSKrylovConvergence(eps,PETSC_FALSE,eps->nconv,t-eps->nconv,beta*beta1,1.0,&k);CHKERRQ(ierr);
-    if (eps->its >= eps->max_it) eps->reason = EPS_DIVERGED_ITS;
-    if (k >= eps->nev) eps->reason = EPS_CONVERGED_TOL;
+    ierr = (*eps->stopping)(eps,eps->its,eps->max_it,k,eps->nev,&eps->reason,NULL);CHKERRQ(ierr);
     nconv = k;
 
     /* Update l */

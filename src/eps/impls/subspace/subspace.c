@@ -198,7 +198,7 @@ PetscErrorCode EPSSolve_Subspace(EPS eps)
     }
   }
 
-  while (eps->its<eps->max_it) {
+  while (eps->reason == EPS_CONVERGED_ITERATING) {
     eps->its++;
     nv = PetscMin(eps->nconv+eps->mpd,ncv);
     ierr = DSSetDimensions(eps->ds,nv,0,eps->nconv,0);CHKERRQ(ierr);
@@ -257,7 +257,8 @@ PetscErrorCode EPSSolve_Subspace(EPS eps)
     }
 
     ierr = EPSMonitor(eps,eps->its,eps->nconv,eps->eigr,eps->eigi,eps->errest,nv);CHKERRQ(ierr);
-    if (eps->nconv>=eps->nev) break;
+    ierr = (*eps->stopping)(eps,eps->its,eps->max_it,eps->nconv,eps->nev,&eps->reason,NULL);CHKERRQ(ierr);
+    if (eps->reason != EPS_CONVERGED_ITERATING) break;
 
     /* Compute nxtsrr (iteration of next projection step) */
     nxtsrr = PetscMin(eps->max_it,PetscMax((PetscInt)PetscFloorReal(stpfac*its),init));
@@ -310,9 +311,6 @@ PetscErrorCode EPSSolve_Subspace(EPS eps)
   }
 
   ierr = PetscFree3(rsd,itrsd,itrsdold);CHKERRQ(ierr);
-
-  if (eps->nconv == eps->nev) eps->reason = EPS_CONVERGED_TOL;
-  else eps->reason = EPS_DIVERGED_ITS;
   ierr = BVDestroy(&AV);CHKERRQ(ierr);
   /* truncate Schur decomposition and change the state to raw so that
      DSVectors() computes eigenvectors from scratch */

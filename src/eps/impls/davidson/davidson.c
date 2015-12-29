@@ -270,7 +270,8 @@ PetscErrorCode EPSSolve_XD(EPS eps)
   /* Call the starting routines */
   ierr = EPSDavidsonFLCall(d->startList,d);CHKERRQ(ierr);
 
-  for (eps->its=0;eps->its<eps->max_it;eps->its++) {
+  while (eps->reason == EPS_CONVERGED_ITERATING) {
+
     /* Initialize V, if it is needed */
     ierr = BVGetActiveColumns(d->eps->V,&l,&k);CHKERRQ(ierr);
     if (l == k) { ierr = d->initV(d);CHKERRQ(ierr); }
@@ -279,22 +280,21 @@ PetscErrorCode EPSSolve_XD(EPS eps)
     ierr = d->calcPairs(d);CHKERRQ(ierr);
 
     /* Test for convergence */
-    if (eps->nconv >= eps->nev) break;
+    ierr = (*eps->stopping)(eps,eps->its,eps->max_it,eps->nconv,eps->nev,&eps->reason,NULL);CHKERRQ(ierr);
+    if (eps->reason != EPS_CONVERGED_ITERATING) break;
 
     /* Expand the subspace */
     ierr = d->updateV(d);CHKERRQ(ierr);
 
     /* Monitor progress */
     eps->nconv = d->nconv;
+    eps->its++;
     ierr = BVGetActiveColumns(d->eps->V,&l,&k);CHKERRQ(ierr);
-    ierr = EPSMonitor(eps,eps->its+1,eps->nconv,eps->eigr,eps->eigi,eps->errest,k);CHKERRQ(ierr);
+    ierr = EPSMonitor(eps,eps->its,eps->nconv,eps->eigr,eps->eigi,eps->errest,k);CHKERRQ(ierr);
   }
 
   /* Call the ending routines */
   ierr = EPSDavidsonFLCall(d->endList,d);CHKERRQ(ierr);
-
-  if (eps->nconv >= eps->nev) eps->reason = EPS_CONVERGED_TOL;
-  else eps->reason = EPS_DIVERGED_ITS;
   PetscFunctionReturn(0);
 }
 

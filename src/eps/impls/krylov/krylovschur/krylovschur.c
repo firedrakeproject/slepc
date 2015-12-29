@@ -150,6 +150,7 @@ PetscErrorCode EPSSetUp_KrylovSchur(EPS eps)
       ierr = DSAllocate(eps->ds,eps->ncv+1);CHKERRQ(ierr);
       break;
     case EPS_KS_SLICE:
+      if (eps->stopping!=EPSStoppingBasic) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Spectrum slicing does not support user-defined stopping test");
       eps->ops->solve = EPSSolve_KrylovSchur_Slice;
       eps->ops->computevectors = EPSComputeVectors_Slice;
       break;
@@ -223,8 +224,7 @@ PetscErrorCode EPSSolve_KrylovSchur_Default(EPS eps)
 
     /* Check convergence */
     ierr = EPSKrylovConvergence(eps,PETSC_FALSE,eps->nconv,nv-eps->nconv,beta,gamma,&k);CHKERRQ(ierr);
-    if (eps->its >= eps->max_it) eps->reason = EPS_DIVERGED_ITS;
-    if (k >= eps->nev) eps->reason = EPS_CONVERGED_TOL;
+    ierr = (*eps->stopping)(eps,eps->its,eps->max_it,k,eps->nev,&eps->reason,NULL);CHKERRQ(ierr);
     nconv = k;
 
     /* Update l */
