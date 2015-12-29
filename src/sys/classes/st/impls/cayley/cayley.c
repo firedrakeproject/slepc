@@ -172,11 +172,11 @@ PetscErrorCode STSetUp_Cayley(ST st)
     ierr = MatShellSetOperation(st->T[0],MATOP_MULT,(void(*)(void))MatMult_Cayley);CHKERRQ(ierr);
     ierr = PetscLogObjectParent((PetscObject)st,(PetscObject)st->T[0]);CHKERRQ(ierr);
   } else {
-    ierr = STMatMAXPY_Private(st,ctx->nu,0.0,0,NULL,PETSC_TRUE,&st->T[0]);CHKERRQ(ierr);
+    ierr = STMatMAXPY_Private(st,ctx->nu,0.0,0,NULL,st->state==ST_STATE_UPDATED?PETSC_FALSE:PETSC_TRUE,&st->T[0]);CHKERRQ(ierr);
   }
 
   /* T[1] = A-sigma*B */
-  ierr = STMatMAXPY_Private(st,-st->sigma,0.0,0,NULL,PETSC_TRUE,&st->T[1]);CHKERRQ(ierr);
+  ierr = STMatMAXPY_Private(st,-st->sigma,0.0,0,NULL,st->state==ST_STATE_UPDATED?PETSC_FALSE:PETSC_TRUE,&st->T[1]);CHKERRQ(ierr);
   ierr = PetscObjectReference((PetscObject)st->T[1]);CHKERRQ(ierr);
   ierr = MatDestroy(&st->P);CHKERRQ(ierr);
   st->P = st->T[1];
