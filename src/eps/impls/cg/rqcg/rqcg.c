@@ -217,7 +217,7 @@ PetscErrorCode EPSSolve_RQCG(EPS eps)
       if (k==-1 && eps->errest[i] >= eps->tol) k = i;
     }
     if (k==-1) k = nv;
-    ierr = (*eps->stopping)(eps,eps->its,eps->max_it,k,eps->nev,&eps->reason,NULL);CHKERRQ(ierr);
+    ierr = (*eps->stopping)(eps,eps->its,eps->max_it,k,eps->nev,&eps->reason,eps->stoppingctx);CHKERRQ(ierr);
 
     /* The next lines are necessary to avoid DS zeroing eigr */
     ierr = DSGetArray(eps->ds,DS_MAT_A,&C);CHKERRQ(ierr);

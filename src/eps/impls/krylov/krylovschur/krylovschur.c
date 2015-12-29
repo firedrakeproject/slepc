@@ -224,7 +224,7 @@ PetscErrorCode EPSSolve_KrylovSchur_Default(EPS eps)
 
     /* Check convergence */
     ierr = EPSKrylovConvergence(eps,PETSC_FALSE,eps->nconv,nv-eps->nconv,beta,gamma,&k);CHKERRQ(ierr);
-    ierr = (*eps->stopping)(eps,eps->its,eps->max_it,k,eps->nev,&eps->reason,NULL);CHKERRQ(ierr);
+    ierr = (*eps->stopping)(eps,eps->its,eps->max_it,k,eps->nev,&eps->reason,eps->stoppingctx);CHKERRQ(ierr);
     nconv = k;
 
     /* Update l */

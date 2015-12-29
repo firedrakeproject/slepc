@@ -140,7 +140,7 @@ PetscErrorCode EPSSolve_Arnoldi(EPS eps)
       ierr = BVMultInPlace(eps->V,U,eps->nconv,nv);CHKERRQ(ierr);
       ierr = MatDestroy(&U);CHKERRQ(ierr);
     }
-    ierr = (*eps->stopping)(eps,eps->its,eps->max_it,k,eps->nev,&eps->reason,NULL);CHKERRQ(ierr);
+    ierr = (*eps->stopping)(eps,eps->its,eps->max_it,k,eps->nev,&eps->reason,eps->stoppingctx);CHKERRQ(ierr);
     if (eps->reason == EPS_CONVERGED_ITERATING && breakdown) {
       ierr = PetscInfo2(eps,"Breakdown in Arnoldi method (it=%D norm=%g)\n",eps->its,(double)beta);CHKERRQ(ierr);
       ierr = EPSGetStartVector(eps,k,&breakdown);CHKERRQ(ierr);

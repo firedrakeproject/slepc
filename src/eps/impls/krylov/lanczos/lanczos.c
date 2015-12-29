@@ -717,7 +717,7 @@ PetscErrorCode EPSSolve_Lanczos(EPS eps)
     }
     ierr = EPSMonitor(eps,eps->its,nconv,eps->eigr,eps->eigi,eps->errest,n);CHKERRQ(ierr);
     nconv = k;
-    ierr = (*eps->stopping)(eps,eps->its,eps->max_it,nconv,eps->nev,&eps->reason,NULL);CHKERRQ(ierr);
+    ierr = (*eps->stopping)(eps,eps->its,eps->max_it,nconv,eps->nev,&eps->reason,eps->stoppingctx);CHKERRQ(ierr);
 
     if (eps->reason == EPS_CONVERGED_ITERATING) { /* copy restart vector */
       ierr = BVCopyColumn(eps->V,n,nconv);CHKERRQ(ierr);

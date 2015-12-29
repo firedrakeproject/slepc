@@ -280,7 +280,7 @@ PetscErrorCode EPSSolve_XD(EPS eps)
     ierr = d->calcPairs(d);CHKERRQ(ierr);
 
     /* Test for convergence */
-    ierr = (*eps->stopping)(eps,eps->its,eps->max_it,eps->nconv,eps->nev,&eps->reason,NULL);CHKERRQ(ierr);
+    ierr = (*eps->stopping)(eps,eps->its,eps->max_it,eps->nconv,eps->nev,&eps->reason,eps->stoppingctx);CHKERRQ(ierr);
     if (eps->reason != EPS_CONVERGED_ITERATING) break;
 
     /* Expand the subspace */

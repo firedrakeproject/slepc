@@ -206,7 +206,7 @@ PetscErrorCode EPSSolve_Power(EPS eps)
         }
       }
     }
-    ierr = (*eps->stopping)(eps,eps->its,eps->max_it,eps->nconv,eps->nev,&eps->reason,NULL);CHKERRQ(ierr);
+    ierr = (*eps->stopping)(eps,eps->its,eps->max_it,eps->nconv,eps->nev,&eps->reason,eps->stoppingctx);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 #endif

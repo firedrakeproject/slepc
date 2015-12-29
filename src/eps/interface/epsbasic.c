@@ -87,6 +87,7 @@ PetscErrorCode EPSCreate(MPI_Comm comm,EPS *outeps)
   eps->stoppingdestroy = NULL;
   eps->arbitrary       = NULL;
   eps->convergedctx    = NULL;
+  eps->stoppingctx     = NULL;
   eps->arbitraryctx    = NULL;
   eps->numbermonitors  = 0;
 
