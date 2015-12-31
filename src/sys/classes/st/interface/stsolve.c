@@ -56,7 +56,7 @@ PetscErrorCode STApply(ST st,Vec x,Vec y)
   if (x == y) SETERRQ(PetscObjectComm((PetscObject)st),PETSC_ERR_ARG_IDN,"x and y must be different vectors");
   VecLocked(y,3);
 
-  if (!st->setupcalled) { ierr = STSetUp(st);CHKERRQ(ierr); }
+  if (st->state!=ST_STATE_SETUP) { ierr = STSetUp(st);CHKERRQ(ierr); }
 
   if (!st->ops->apply) SETERRQ(PetscObjectComm((PetscObject)st),PETSC_ERR_SUP,"ST does not have apply");
   ierr = VecLockPush(x);CHKERRQ(ierr);
@@ -106,7 +106,7 @@ PetscErrorCode STApplyTranspose(ST st,Vec x,Vec y)
   if (x == y) SETERRQ(PetscObjectComm((PetscObject)st),PETSC_ERR_ARG_IDN,"x and y must be different vectors");
   VecLocked(y,3);
 
-  if (!st->setupcalled) { ierr = STSetUp(st);CHKERRQ(ierr); }
+  if (st->state!=ST_STATE_SETUP) { ierr = STSetUp(st);CHKERRQ(ierr); }
 
   if (!st->ops->applytrans) SETERRQ(PetscObjectComm((PetscObject)st),PETSC_ERR_SUP,"ST does not have applytrans");
   ierr = VecLockPush(x);CHKERRQ(ierr);
@@ -273,7 +273,7 @@ PetscErrorCode STSetUp(ST st)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
   STCheckMatrices(st,1);
-  if (st->setupcalled) PetscFunctionReturn(0);
+  if (st->state==ST_STATE_SETUP) PetscFunctionReturn(0);
   ierr = PetscInfo(st,"Setting up new ST\n");CHKERRQ(ierr);
   ierr = PetscLogEventBegin(ST_SetUp,st,0,0,0);CHKERRQ(ierr);
   if (!((PetscObject)st)->type_name) {
@@ -283,12 +283,12 @@ PetscErrorCode STSetUp(ST st)
     ierr = PetscMalloc(PetscMax(2,st->nmat)*sizeof(Mat),&st->T);CHKERRQ(ierr);
     ierr = PetscLogObjectMemory((PetscObject)st,PetscMax(2,st->nmat)*sizeof(Mat));CHKERRQ(ierr);
     for (i=0;i<PetscMax(2,st->nmat);i++) st->T[i] = NULL;
-  } else {
+  } else if (st->state!=ST_STATE_UPDATED) {
     for (i=0;i<PetscMax(2,st->nmat);i++) {
       ierr = MatDestroy(&st->T[i]);CHKERRQ(ierr);
     }
   }
-  ierr = MatDestroy(&st->P);CHKERRQ(ierr);
+  if (st->state!=ST_STATE_UPDATED) { ierr = MatDestroy(&st->P);CHKERRQ(ierr); }
   if (!st->w) {
     ierr = MatCreateVecs(st->A[0],&st->w,NULL);CHKERRQ(ierr);
     ierr = PetscLogObjectParent((PetscObject)st,(PetscObject)st->w);CHKERRQ(ierr);
@@ -303,7 +303,7 @@ PetscErrorCode STSetUp(ST st)
     }
   }
   if (st->ops->setup) { ierr = (*st->ops->setup)(st);CHKERRQ(ierr); }
-  st->setupcalled = 1;
+  st->state = ST_STATE_SETUP;
   ierr = PetscLogEventEnd(ST_SetUp,st,0,0,0);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -373,6 +373,7 @@ PetscErrorCode STMatMAXPY_Private(ST st,PetscScalar alpha,PetscScalar beta,Petsc
       *S = st->A[k+ini];
     } else {
       if (*S && *S!=st->A[k+ini]) {
+        ierr = MatSetOption(*S,MAT_NEW_NONZERO_ALLOCATION_ERR,PETSC_FALSE);CHKERRQ(ierr);
         ierr = MatCopy(st->A[k+ini],*S,DIFFERENT_NONZERO_PATTERN);CHKERRQ(ierr);
       } else {
         ierr = MatDestroy(S);CHKERRQ(ierr);
