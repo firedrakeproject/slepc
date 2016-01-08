@@ -195,6 +195,19 @@ static PetscErrorCode EPSSliceGetEPS(EPS eps)
       /* Duplicate matrices */
       ierr = MatCreateRedundantMatrix(A,0,PetscSubcommChild(ctx->subc),MAT_INITIAL_MATRIX,&Ar);CHKERRQ(ierr);
       if (B) { ierr = MatCreateRedundantMatrix(B,0,PetscSubcommChild(ctx->subc),MAT_INITIAL_MATRIX,&Br);CHKERRQ(ierr); }
+      ctx->Agstate = ((PetscObject)A)->state;
+      ctx->Bgstate = ((PetscObject)B)->state;
+    } else {
+      if (ctx->Agstate != ((PetscObject)A)->state || (B && ctx->Bgstate != ((PetscObject)B)->state)) {
+        ierr = EPSGetOperators(ctx->eps,&Ar,&Br);CHKERRQ(ierr);
+        ierr = MatCreateRedundantMatrix(A,0,PetscSubcommChild(ctx->subc),MAT_INITIAL_MATRIX,&Ar);CHKERRQ(ierr);
+        ierr = MatCreateRedundantMatrix(B,0,PetscSubcommChild(ctx->subc),MAT_INITIAL_MATRIX,&Br);CHKERRQ(ierr);
+        ctx->Agstate = ((PetscObject)A)->state;
+        ctx->Bgstate = ((PetscObject)B)->state;
+        ierr = EPSSetOperators(ctx->eps,Ar,Br);CHKERRQ(ierr);
+        ierr = MatDestroy(&Ar);CHKERRQ(ierr);
+        ierr = MatDestroy(&Br);CHKERRQ(ierr);
+      }
     }
 
     /* Determine subintervals */
