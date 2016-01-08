@@ -194,19 +194,19 @@ static PetscErrorCode EPSSliceGetEPS(EPS eps)
 
       /* Duplicate matrices */
       ierr = MatCreateRedundantMatrix(A,0,PetscSubcommChild(ctx->subc),MAT_INITIAL_MATRIX,&Ar);CHKERRQ(ierr);
-      ctx->Agstate = ((PetscObject)A)->state;
+      ctx->Astate = ((PetscObject)A)->state;
       if (B) {
         ierr = MatCreateRedundantMatrix(B,0,PetscSubcommChild(ctx->subc),MAT_INITIAL_MATRIX,&Br);CHKERRQ(ierr);
-        ctx->Bgstate = ((PetscObject)B)->state;
+        ctx->Bstate = ((PetscObject)B)->state;
       }
     } else {
-      if (ctx->Agstate != ((PetscObject)A)->state || (B && ctx->Bgstate != ((PetscObject)B)->state)) {
+      if (ctx->Astate != ((PetscObject)A)->state || (B && ctx->Bstate != ((PetscObject)B)->state)) {
         ierr = EPSGetOperators(ctx->eps,&Ar,&Br);CHKERRQ(ierr);
         ierr = MatCreateRedundantMatrix(A,0,PetscSubcommChild(ctx->subc),MAT_INITIAL_MATRIX,&Ar);CHKERRQ(ierr);
-        ctx->Agstate = ((PetscObject)A)->state;
+        ctx->Astate = ((PetscObject)A)->state;
         if (B) {
           ierr = MatCreateRedundantMatrix(B,0,PetscSubcommChild(ctx->subc),MAT_INITIAL_MATRIX,&Br);CHKERRQ(ierr);
-          ctx->Bgstate = ((PetscObject)B)->state;
+          ctx->Bstate = ((PetscObject)B)->state;
         }
         ierr = EPSSetOperators(ctx->eps,Ar,Br);CHKERRQ(ierr);
         ierr = MatDestroy(&Ar);CHKERRQ(ierr);

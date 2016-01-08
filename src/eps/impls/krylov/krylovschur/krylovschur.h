@@ -99,7 +99,6 @@ typedef struct {
   MPI_Comm         commrank;           /* group processes with same rank in subcommunicators */
   PetscBool        commset;            /* flag indicating that commrank was created */
   PetscObjectState Astate,Bstate;      /* state of subcommunicator matrices */
-  PetscObjectState Agstate,Bgstate;    /* state of global matrices */
   IS               isrow,iscol;        /* index sets used in update of subcomm mats */
   Mat              *submata,*submatb;  /* seq matrices used in update of subcomm mats */
 } EPS_KRYLOVSCHUR;
