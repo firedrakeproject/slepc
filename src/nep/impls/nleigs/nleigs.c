@@ -834,6 +834,18 @@ PetscErrorCode NEPSolve_NLEIGS(NEP nep)
 }
 
 #undef __FUNCT__
+#define __FUNCT__ "NEPNLEIGSSetSingularitiesFunction_NLEIGS"
+static PetscErrorCode NEPNLEIGSSetSingularitiesFunction_NLEIGS(NEP nep,PetscErrorCode (*fun)(NEP,PetscInt*,PetscScalar*,void*),void *ctx)
+{
+  NEP_NLEIGS *nepctx = (NEP_NLEIGS*)nep->data;
+
+  PetscFunctionBegin;
+  if (fun) nepctx->computesingularities = fun;
+  if (ctx) nepctx->singularitiesctx     = ctx;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
 #define __FUNCT__ "NEPNLEIGSSetSingularitiesFunction"
 /*@C
    NEPNLEIGSSetSingularitiesFunction - Sets a user function to compute a discretization
@@ -853,12 +865,24 @@ PetscErrorCode NEPSolve_NLEIGS(NEP nep)
 @*/
 PetscErrorCode NEPNLEIGSSetSingularitiesFunction(NEP nep,PetscErrorCode (*fun)(NEP,PetscInt*,PetscScalar*,void*),void *ctx)
 {
-  NEP_NLEIGS *nepctx = (NEP_NLEIGS*)nep->data;
+  PetscErrorCode ierr;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
-  if (fun) nepctx->computesingularities = fun;
-  if (ctx) nepctx->singularitiesctx     = ctx;
+  PetscValidPointer(fun,2);
+  ierr = PetscTryMethod(nep,"NEPNLEIGSSetSingularitiesFunction_C",(NEP,PetscErrorCode(*)(NEP,PetscInt*,PetscScalar*,void*),void*),(nep,fun,ctx));CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "NEPNLEIGSGetSingularitiesFunction_NLEIGS"
+static PetscErrorCode NEPNLEIGSGetSingularitiesFunction_NLEIGS(NEP nep,PetscErrorCode (**fun)(NEP,PetscInt*,PetscScalar*,void*),void **ctx)
+{
+  NEP_NLEIGS *nepctx = (NEP_NLEIGS*)nep->data;
+
+  PetscFunctionBegin;
+  if (fun) *fun = nepctx->computesingularities;
+  if (ctx) *ctx = nepctx->singularitiesctx;
   PetscFunctionReturn(0);
 }
 
@@ -883,12 +907,11 @@ PetscErrorCode NEPNLEIGSSetSingularitiesFunction(NEP nep,PetscErrorCode (*fun)(N
 @*/
 PetscErrorCode NEPNLEIGSGetSingularitiesFunction(NEP nep,PetscErrorCode (**fun)(NEP,PetscInt*,PetscScalar*,void*),void **ctx)
 {
-  NEP_NLEIGS *nepctx = (NEP_NLEIGS*)nep->data;
+  PetscErrorCode ierr;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
-  if (fun) *fun = nepctx->computesingularities;
-  if (ctx) *ctx = nepctx->singularitiesctx;
+  ierr = PetscTryMethod(nep,"NEPNLEIGSGetSingularitiesFunction_C",(NEP,PetscErrorCode(**)(NEP,PetscInt*,PetscScalar*,void*),void**),(nep,fun,ctx));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -942,6 +965,8 @@ PetscErrorCode NEPDestroy_NLEIGS(NEP nep)
   PetscFunctionBegin;
   ierr = PetscFree4(ctx->s,ctx->xi,ctx->beta,ctx->D);CHKERRQ(ierr);
   ierr = PetscFree(nep->data);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPNLEIGSSetSingularitiesFunction_C",NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPNLEIGSGetSingularitiesFunction_C",NULL);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -962,6 +987,8 @@ PETSC_EXTERN PetscErrorCode NEPCreate_NLEIGS(NEP nep)
   nep->ops->destroy        = NEPDestroy_NLEIGS;
   nep->ops->reset          = NEPReset_NLEIGS;
   nep->ops->computevectors = NEPComputeVectors_Schur;
+  ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPNLEIGSSetSingularitiesFunction_C",NEPNLEIGSSetSingularitiesFunction_NLEIGS);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPNLEIGSGetSingularitiesFunction_C",NEPNLEIGSGetSingularitiesFunction_NLEIGS);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

@@ -213,7 +213,7 @@ PetscErrorCode NEPSetFromOptions_Interpol(PetscOptionItems *PetscOptionsObject,N
 #define __FUNCT__ "NEPInterpolSetDegree_Interpol"
 static PetscErrorCode NEPInterpolSetDegree_Interpol(NEP nep,PetscInt deg)
 {
-  NEP_INTERPOL   *ctx = (NEP_INTERPOL*)nep->data;
+  NEP_INTERPOL *ctx = (NEP_INTERPOL*)nep->data;
 
   PetscFunctionBegin;
   ctx->deg = deg;
@@ -250,7 +250,7 @@ PetscErrorCode NEPInterpolSetDegree(NEP nep,PetscInt deg)
 #define __FUNCT__ "NEPInterpolGetDegree_Interpol"
 static PetscErrorCode NEPInterpolGetDegree_Interpol(NEP nep,PetscInt *deg)
 {
-  NEP_INTERPOL   *ctx = (NEP_INTERPOL*)nep->data;
+  NEP_INTERPOL *ctx = (NEP_INTERPOL*)nep->data;
 
   PetscFunctionBegin;
   *deg = ctx->deg;
