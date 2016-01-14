@@ -4,10 +4,15 @@
 
    Method: NLEIGS
 
+   Algorithm:
+
+       Fully rational Krylov method for nonlinear eigenvalue problems.
+
    References:
 
        [1] S. Guttel et al., "NLEIGS: A class of robust fully rational Krylov
-           method for nonlinear eigenvalue problems", 2014.
+           method for nonlinear eigenvalue problems", SIAM J. Sci. Comput.
+           36(6):A2842-A2864, 2014.
 
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
@@ -35,16 +40,16 @@
 #define  MAX_LBPOINTS  100
 #define  NDPOINTS      1e4
 
-typedef struct {        /* context structure for the NLEIGS solver */
-  PetscInt     nmat; 
-  PetscScalar  *s,*xi;  /* Leja-Bagby points */
-  PetscScalar  *beta;   /* scaling factors */
-  Mat          *D;      /* divided difference matrices */
-  PetscScalar  *coeffD;
-  PetscReal    ddtol;   /* Tolerance for divided difference convergence */
-  BV           W;       /* auxiliary BV object */
-  PetscScalar  shift;
-  void         *singularitiesctx;
+typedef struct {
+  PetscInt       nmat;      /* number of interpolation points */
+  PetscScalar    *s,*xi;    /* Leja-Bagby points */
+  PetscScalar    *beta;     /* scaling factors */
+  Mat            *D;        /* divided difference matrices */
+  PetscScalar    *coeffD;   /* coefficients for divided differences in split form */
+  PetscReal      ddtol;     /* tolerance for divided difference convergence */
+  BV             W;         /* auxiliary BV object */
+  PetscScalar    shift;     /* the target value */
+  void           *singularitiesctx;
   PetscErrorCode (*computesingularities)(NEP,PetscInt*,PetscScalar*,void*);
 } NEP_NLEIGS;
 
@@ -104,12 +109,13 @@ static PetscErrorCode NEPNLEIGSLejaBagbyPoints(NEP nep)
   } else ndptx = 0;
 
   /* Look for Leja-Bagby points in the discretization sets */
-  s[0] = ds[0]; xi[0] = (ndptx>0)?dxi[0]:PETSC_INFINITY;
+  s[0]    = ds[0];
+  xi[0]   = (ndptx>0)?dxi[0]:PETSC_INFINITY;
   beta[0] = 1.0; /* scaling factors are also computed here */
-  maxnrs = 0.0;
+  maxnrs  = 0.0;
   minnrxi = PETSC_MAX_REAL; 
   for (i=0;i<ndpt;i++) {
-    nrs[i]  = (ds[i]-s[0])/(1.0-ds[i]/xi[0]);
+    nrs[i] = (ds[i]-s[0])/(1.0-ds[i]/xi[0]);
     if (PetscAbsScalar(nrs[i])>=maxnrs) {maxnrs = PetscAbsScalar(nrs[i]); s[1] = ds[i];}
   }
   for (i=1;i<ndptx;i++) {
@@ -123,7 +129,7 @@ static PetscErrorCode NEPNLEIGSLejaBagbyPoints(NEP nep)
     maxnrs = 0.0;
     minnrxi = PETSC_MAX_REAL;
     for (i=0;i<ndpt;i++) {
-      nrs[i]  *= ((ds[i]-s[k-1])/(1.0-ds[i]/xi[k-1]))/beta[k-1];
+      nrs[i] *= ((ds[i]-s[k-1])/(1.0-ds[i]/xi[k-1]))/beta[k-1];
       if (PetscAbsScalar(nrs[i])>maxnrs) {maxnrs = PetscAbsScalar(nrs[i]); s[k] = ds[i];}
     }
     if (ndptx>=k) {
@@ -163,7 +169,6 @@ static PetscErrorCode NEPNLEIGSDividedDifferences_split(NEP nep)
   PetscInt       k,j,i;
   PetscReal      norm0,norm,max;
   PetscScalar    *s=ctx->s,*beta=ctx->beta,b[MAX_LBPOINTS+1],alpha,coeffs[MAX_LBPOINTS+1];
-  PetscBool      flg=PETSC_TRUE;
   Mat            T;
 
   PetscFunctionBegin;
@@ -176,7 +181,7 @@ static PetscErrorCode NEPNLEIGSDividedDifferences_split(NEP nep)
   }
   norm0 = max;
   ctx->nmat = MAX_LBPOINTS;
-  for (k=1;k<MAX_LBPOINTS && flg;k++) {
+  for (k=1;k<MAX_LBPOINTS;k++) {
     ierr = NEPNLEIGSEvalNRTFunct(nep,k,s[k],b);CHKERRQ(ierr);
     max = 0.0;
     for (i=0;i<nep->nt;i++) {
@@ -189,8 +194,8 @@ static PetscErrorCode NEPNLEIGSDividedDifferences_split(NEP nep)
     }
     norm = max;
     if (norm/norm0 < ctx->ddtol) {
-      flg = PETSC_FALSE;
       ctx->nmat = k;
+      break;
     } 
   }
   ierr = NEPNLEIGSEvalNRTFunct(nep,ctx->nmat,nep->target,coeffs);CHKERRQ(ierr);
@@ -209,6 +214,7 @@ static PetscErrorCode NEPNLEIGSDividedDifferences_split(NEP nep)
   ierr = MatDestroy(&T);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
+
 #undef __FUNCT__
 #define __FUNCT__ "NEPNLEIGSDividedDifferences_callback"
 static PetscErrorCode NEPNLEIGSDividedDifferences_callback(NEP nep)
@@ -219,7 +225,6 @@ static PetscErrorCode NEPNLEIGSDividedDifferences_callback(NEP nep)
   PetscReal      norm0,norm;
   PetscScalar    *s=ctx->s,*beta=ctx->beta,b[MAX_LBPOINTS+1],coeffs[MAX_LBPOINTS+1];
   Mat            *D=ctx->D,T;
-  PetscBool      flg=PETSC_TRUE;
 
   PetscFunctionBegin;
   T = nep->function;
@@ -230,7 +235,7 @@ static PetscErrorCode NEPNLEIGSDividedDifferences_callback(NEP nep)
   }
   ierr = MatNorm(D[0],NORM_FROBENIUS,&norm0);CHKERRQ(ierr);
   ctx->nmat = MAX_LBPOINTS;
-  for (k=1;k<MAX_LBPOINTS && flg;k++) {
+  for (k=1;k<MAX_LBPOINTS;k++) {
     ierr = NEPNLEIGSEvalNRTFunct(nep,k,s[k],b);CHKERRQ(ierr);
     ierr = NEPComputeFunction(nep,s[k],T,T);CHKERRQ(ierr);
     ierr = MatDuplicate(T,MAT_COPY_VALUES,&D[k]);CHKERRQ(ierr);
@@ -240,9 +245,9 @@ static PetscErrorCode NEPNLEIGSDividedDifferences_callback(NEP nep)
     ierr = MatScale(D[k],1.0/b[k]);CHKERRQ(ierr);
     ierr = MatNorm(D[k],NORM_FROBENIUS,&norm);CHKERRQ(ierr);
     if (norm/norm0 < ctx->ddtol) {
-      flg = PETSC_FALSE;
       ctx->nmat = k;
       ierr = MatDestroy(&D[k]);CHKERRQ(ierr);
+      break;
     } 
   }
   ierr = NEPNLEIGSEvalNRTFunct(nep,ctx->nmat,nep->target,coeffs);CHKERRQ(ierr);
@@ -338,18 +343,19 @@ PetscErrorCode NEPSetUp_NLEIGS(NEP nep)
   ierr = RGCheckInside(nep->rg,1,&nep->target,&zero,&in);CHKERRQ(ierr);
   if (in<0) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"The target is not inside the target set");
   if (!nep->which) nep->which = NEP_TARGET_MAGNITUDE;
+
   /* Initialize the NLEIGS context structure */
   k = MAX_LBPOINTS;
   ierr = PetscMalloc4(k,&ctx->s,k,&ctx->xi,k,&ctx->beta,k,&ctx->D);CHKERRQ(ierr);
   nep->data = ctx;
   if (nep->rtol==PETSC_DEFAULT) nep->rtol = SLEPC_DEFAULT_TOL;
-  ctx->ddtol = nep->rtol/10;
+  ctx->ddtol = nep->rtol/10.0;
 
   /* Compute Leja-Bagby points and scaling values */
   ierr = NEPNLEIGSLejaBagbyPoints(nep);CHKERRQ(ierr);
 
   /* Compute the divided difference matrices */
-  if (!nep->ksp) {ierr = NEPGetKSP(nep,&nep->ksp);CHKERRQ(ierr);}
+  if (!nep->ksp) { ierr = NEPGetKSP(nep,&nep->ksp);CHKERRQ(ierr); }
   if (nep->fui==NEP_USER_INTERFACE_SPLIT) {
     ierr = NEPNLEIGSDividedDifferences_split(nep);CHKERRQ(ierr);
   } else {
@@ -363,12 +369,11 @@ PetscErrorCode NEPSetUp_NLEIGS(NEP nep)
   ierr = DSAllocate(nep->ds,nep->ncv+1);CHKERRQ(ierr);
   ierr = DSSetExtraRow(nep->ds,PETSC_TRUE);CHKERRQ(ierr);
   ierr = DSGetSlepcSC(nep->ds,&sc);CHKERRQ(ierr);
-  sc->map = NEPNLEIGSBackTransform;
-  sc->mapobj = (PetscObject)nep;
+  sc->map           = NEPNLEIGSBackTransform;
+  sc->mapobj        = (PetscObject)nep;
   sc->rg            = nep->rg;
   sc->comparison    = nep->sc->comparison;
   sc->comparisonctx = nep->sc->comparisonctx;
-
   PetscFunctionReturn(0);
 }
 
@@ -699,69 +704,6 @@ PetscErrorCode NEPTOARSupdate(PetscScalar *S,PetscInt ld,PetscInt deg,PetscInt s
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "NEPDebugShowResidual"
-PetscErrorCode NEPDebugShowResidual(NEP nep)
-{
-  PetscErrorCode ierr;
-  NEP_NLEIGS     *ctx=(NEP_NLEIGS*)nep->data;
-  PetscReal      re,im,norm;
-  PetscScalar    *coeffs,cc;
-  Vec            x,t,v;
-  PetscInt       i,j,k,deg=ctx->nmat;
-  
-  PetscFunctionBegin;
-  ierr = PetscMalloc1(ctx->nmat+1,&coeffs);CHKERRQ(ierr);
-  ierr = BVCreateVec(nep->V,&x);CHKERRQ(ierr);
-  ierr = BVCreateVec(nep->V,&t);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," Showing absolute residual for the interpolation function eigenpairs\n",nep->nconv);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," Number of converged approximate eigenpairs: %d\n",nep->nconv);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," Number of iterations: %d\n\n",nep->its);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,
-         "           k              ||Q%d(k)x|| \n"
-         "   ----------------- ------------------\n",deg);CHKERRQ(ierr);
-  for (i=0;i<nep->nconv;i++) {
-    ierr = NEPNLEIGSEvalNRTFunct(nep,ctx->nmat,nep->eigr[i],coeffs);CHKERRQ(ierr);
-    ierr = BVGetColumn(nep->V,i,&v);CHKERRQ(ierr);
-    if (nep->fui==NEP_USER_INTERFACE_SPLIT) {
-      cc = 0.0;
-      for (j=0;j<ctx->nmat;j++) cc += coeffs[j]*ctx->coeffD[j*nep->nt]; 
-      ierr = MatMult(nep->A[0],v,x);CHKERRQ(ierr);
-      if (cc!=1.0) ierr = VecScale(x,cc);CHKERRQ(ierr);
-      for (k=1;k<nep->nt;k++) {
-        cc = 0.0;
-        for (j=0;j<ctx->nmat;j++) cc += coeffs[j]*ctx->coeffD[j*nep->nt+k]; 
-        ierr = MatMult(nep->A[k],v,t);CHKERRQ(ierr);
-        ierr = VecAXPY(x,cc,t);CHKERRQ(ierr);
-      }
-    } else {
-      ierr = MatMult(ctx->D[0],v,x);CHKERRQ(ierr);
-      for (j=1;j<ctx->nmat;j++) {
-        ierr = MatMult(ctx->D[j],v,t);CHKERRQ(ierr);
-        ierr = VecAXPY(x,coeffs[j],t);CHKERRQ(ierr);
-      }
-    }
-    ierr = BVRestoreColumn(nep->V,i,&v);CHKERRQ(ierr);
-    ierr = VecNorm(x,NORM_2,&norm);CHKERRQ(ierr);
-#if defined(PETSC_USE_COMPLEX)
-    re = PetscRealPart(nep->eigr[i]);
-    im = PetscImaginaryPart(nep->eigr[i]);
-#else
-    re = nep->eigr[i];
-    im = 0.0;
-#endif
-    if (im!=0.0) {
-      ierr = PetscPrintf(PETSC_COMM_WORLD," %9f%+9f j %12g\n",(double)re,(double)im,(double)norm);CHKERRQ(ierr);
-    } else {
-      ierr = PetscPrintf(PETSC_COMM_WORLD,"   %12f         %12g\n",(double)re,(double)norm);CHKERRQ(ierr);
-    }
-  } 
-  ierr = VecDestroy(&x);CHKERRQ(ierr);
-  ierr = VecDestroy(&t);CHKERRQ(ierr);
-  ierr = PetscFree(coeffs);CHKERRQ(ierr);
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
 #define __FUNCT__ "NEPSolve_NLEIGS"
 PetscErrorCode NEPSolve_NLEIGS(NEP nep)
 {
@@ -799,12 +741,13 @@ PetscErrorCode NEPSolve_NLEIGS(NEP nep)
   for (j=0;j<deg;j++) {
     for (i=0;i<=j;i++) S[i+j*ld] /= norm;
   }
+
   /* Restart loop */
   l = 0;
   while (nep->reason == NEP_CONVERGED_ITERATING) {
     nep->its++;
     
-    /* Compute an nv-step Lanczos factorization */
+    /* Compute an nv-step Krylov relation */
     nv = PetscMin(nep->nconv+nep->mpd,nep->ncv);
     ierr = DSGetArray(nep->ds,DS_MAT_A,&H);CHKERRQ(ierr);
     ierr = NEPTOARrun(nep,&nq,S,ld,H,ldds,nep->V,nep->nconv+l,&nv,&breakdown,nep->work,4);CHKERRQ(ierr);
@@ -886,14 +829,6 @@ PetscErrorCode NEPSolve_NLEIGS(NEP nep)
   ierr = PetscFree3(work,rwork,S);CHKERRQ(ierr);
   /* Map eigenvalues back to the original problem */
   ierr = NEPNLEIGSBackTransform((PetscObject)nep,nep->nconv,nep->eigr,nep->eigi);CHKERRQ(ierr);
-  ierr = NEPComputeVectors_Schur(nep);CHKERRQ(ierr);/* ///////////////////////// */
-  /* /////// */
-  /* For testing, before destroying the solver context 
-     the residual for the interpolation is shown */
-  if (nep->nconv>0) {
-    ierr = NEPDebugShowResidual(nep);CHKERRQ(ierr);
-  }
-  /* /////// */
   ierr = BVDestroy(&ctx->W);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -910,7 +845,7 @@ PetscErrorCode NEPSolve_NLEIGS(NEP nep)
 +  nep - the NEP context
 .  fun - user function (if NULL then NEP retains any previously set value)
 -  ctx - [optional] user-defined context for private data for the function
-         (may be NULL) (if NULL then NEP retains any previously set value)
+         (may be NULL, in which case NEP retains any previously set value)
 
    Level: beginner
 
@@ -968,8 +903,7 @@ PetscErrorCode NEPSetFromOptions_NLEIGS(PetscOptionItems *PetscOptionsObject,NEP
 
   PetscFunctionBegin;
   ierr = PetscOptionsHead(PetscOptionsObject,"NEP NLEIGS Options");CHKERRQ(ierr);
-  ierr = PetscOptionsTail();CHKERRQ(ierr);
-  if (!nep->ksp)  {ierr = NEPGetKSP(nep,&nep->ksp);CHKERRQ(ierr);}
+  if (!nep->ksp) { ierr = NEPGetKSP(nep,&nep->ksp);CHKERRQ(ierr); }
   ierr = KSPGetPC(nep->ksp,&pc);CHKERRQ(ierr);
   ierr = KSPGetType(nep->ksp,&ksptype);CHKERRQ(ierr);
   ierr = PCGetType(pc,&pctype);CHKERRQ(ierr);
@@ -977,9 +911,9 @@ PetscErrorCode NEPSetFromOptions_NLEIGS(PetscOptionItems *PetscOptionsObject,NEP
     ierr = KSPSetType(nep->ksp,KSPPREONLY);CHKERRQ(ierr);
     ierr = PCSetType(pc,PCLU);CHKERRQ(ierr);
   }
+  ierr = PetscOptionsTail();CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
-
 
 #undef __FUNCT__
 #define __FUNCT__ "NEPReset_NLEIGS"
@@ -1027,7 +961,7 @@ PETSC_EXTERN PetscErrorCode NEPCreate_NLEIGS(NEP nep)
   nep->ops->setfromoptions = NEPSetFromOptions_NLEIGS;
   nep->ops->destroy        = NEPDestroy_NLEIGS;
   nep->ops->reset          = NEPReset_NLEIGS;
-/*  nep->ops->computevectors = NEPComputeVectors_Schur; */
+  nep->ops->computevectors = NEPComputeVectors_Schur;
   PetscFunctionReturn(0);
 }
 
