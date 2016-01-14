@@ -347,7 +347,7 @@ static PetscErrorCode NEPSimpleNRefSetUpSystem(NEP nep,NEPSimpNRefctx *ctx,Mat *
         ierr = MatSetValues(*T,1,&mg,nep->n,cols2,array,INSERT_VALUES);CHKERRQ(ierr);
         ierr = MatSetValues(*T,1,&mg,1,&mg,&zero,INSERT_VALUES);CHKERRQ(ierr);
       }
-        ierr = VecRestoreArrayRead(ctx->nv,&array);CHKERRQ(ierr);
+      ierr = VecRestoreArrayRead(ctx->nv,&array);CHKERRQ(ierr);
     } else {  
       ierr = PetscMalloc1(m1-m0,&cols2);CHKERRQ(ierr);
       for (i=0;i<m1-m0;i++) cols2[i]=m0+i;
@@ -486,7 +486,7 @@ PetscErrorCode NEPNewtonRefinementSimple(NEP nep,PetscInt *maxits,PetscReal *tol
           ierr = VecGetArray(rr,&array2);
           ierr = PetscMemcpy(array2,array,n*sizeof(PetscScalar));CHKERRQ(ierr);
           array2[n] = 0.0;
-          ierr = VecRestoreArray(rr,&array2);
+          ierr = VecRestoreArray(rr,&array2);CHKERRQ(ierr);
         } else {
           ierr = VecPlaceArray(rr,array);CHKERRQ(ierr);
         }
