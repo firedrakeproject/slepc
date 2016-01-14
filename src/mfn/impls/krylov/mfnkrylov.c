@@ -131,7 +131,7 @@ PetscErrorCode MFNSolve_Krylov(MFN mfn,Vec b,Vec x)
   PetscFunctionBegin;
   m  = mfn->ncv;
   ld = m+1;
-  ierr = PetscMalloc1(ld*ld,&array);CHKERRQ(ierr);
+  ierr = PetscCalloc1(ld*ld,&array);CHKERRQ(ierr);
   ierr = CreateDenseMat(m,&F);CHKERRQ(ierr);
   ierr = CreateDenseMat(m,&H);CHKERRQ(ierr);
 
@@ -220,7 +220,7 @@ PetscErrorCode MFNSolve_Krylov_Exp(MFN mfn,Vec b,Vec x)
 
   ierr = VecCopy(b,x);CHKERRQ(ierr);
   ld = m+2;
-  ierr = PetscMalloc3(m+1,&betaF,ld*ld,&H,ld*ld,&B);CHKERRQ(ierr);
+  ierr = PetscCalloc3(m+1,&betaF,ld*ld,&H,ld*ld,&B);CHKERRQ(ierr);
 
   while (mfn->reason == MFN_CONVERGED_ITERATING) {
     mfn->its++;

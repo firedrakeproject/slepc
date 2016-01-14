@@ -775,6 +775,7 @@ static PetscErrorCode NRefSysIter(PetscInt i,PEP pep,PetscInt k,KSP ksp,PetscSca
 {
   PetscErrorCode    ierr;
   PetscInt          j,m,lda=pep->nmat*k,n0,m0,idx;
+  PetscMPIInt       root,len;
   PetscScalar       *array2,h;
   const PetscScalar *array;
   Vec               R,Vi;
@@ -868,9 +869,10 @@ static PetscErrorCode NRefSysIter(PetscInt i,PEP pep,PetscInt k,KSP ksp,PetscSca
       ierr = VecRestoreArrayRead(matctx->tpg,&array);CHKERRQ(ierr);
       break;
      case PEP_REFINE_SCHEME_MBE:
-      m = 0;
-      for (j=0;j<i%matctx->subc->n;j++) m += matctx->subc->subsize[j];
-      ierr = MPI_Bcast(dHi,k,MPIU_SCALAR,m,matctx->subc->dupparent);CHKERRQ(ierr);
+      root = 0;
+      for (j=0;j<i%matctx->subc->n;j++) root += matctx->subc->subsize[j];
+      ierr = PetscMPIIntCast(k,&len);CHKERRQ(ierr);
+      ierr = MPI_Bcast(dHi,len,MPIU_SCALAR,root,matctx->subc->dupparent);CHKERRQ(ierr);
       break;
     case PEP_REFINE_SCHEME_SCHUR:
       break;

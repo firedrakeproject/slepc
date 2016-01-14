@@ -19,26 +19,24 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
+import os, commands
 import log, package
 
 class Arpack(package.Package):
 
   def __init__(self,argdb,log):
-    self.packagename  = 'arpack'
-    self.downloadable = False
-    self.packagedir   = ''
-    self.packagelibs  = []
-    self.log          = log
+    package.Package.__init__(self,argdb,log)
+    self.packagename    = 'arpack'
+    self.installable    = True
+    self.downloadable   = True
+    self.version        = '3.3.0'
+    self.url            = 'https://github.com/opencollab/arpack-ng/archive/'+self.version+'.tar.gz'
+    self.archive        = 'arpack-ng-'+self.version+'.tar.gz'
+    self.dirname        = 'arpack-ng-'+self.version
+    self.supportssingle = True
     self.ProcessArgs(argdb)
 
-  def Check(self,conf,vars,cmake,petsc):
-
-    if (petsc.precision != 'single') & (petsc.precision != 'double'):
-      self.log.Exit('ERROR: ARPACK is supported only in single or double precision.')
-
-    if petsc.ind64:
-      self.log.Exit('ERROR: Cannot use external packages with 64-bit indices.')
-
+  def Functions(self,petsc):
     if petsc.mpiuni:
       if petsc.scalar == 'real':
         if petsc.precision == 'single':
@@ -61,7 +59,11 @@ class Arpack(package.Package):
           functions = ['pcnaupd','pcneupd']
         else:
           functions = ['pznaupd','pzneupd']
+    return functions
 
+
+  def Check(self,conf,vars,cmake,petsc):
+    functions = self.Functions(petsc)
     if self.packagelibs:
       libs = [self.packagelibs]
     else:
@@ -76,4 +78,35 @@ class Arpack(package.Package):
       dirs = self.GenerateGuesses('Arpack')
 
     self.FortranLib(conf,vars,cmake,dirs,libs,functions)
+
+
+  def Install(self,conf,vars,cmake,petsc,archdir):
+    externdir = os.path.join(archdir,'externalpackages')
+    builddir  = os.path.join(externdir,self.dirname)
+    self.Download(externdir,builddir)
+
+    # Check for autoreconf
+    result,output = commands.getstatusoutput('autoreconf --help')
+    if result:
+      self.log.Exit('ERROR: --download-arpack requires that the command autoreconf is available on your PATH.')
+
+    # Build package
+    confopt = '--prefix='+archdir+' F77="'+petsc.fc+'" FFLAGS="'+petsc.fc_flags.replace('-Wall','').replace('-Wshadow','')+'"'
+    if not petsc.mpiuni:
+      confopt = confopt+' --enable-mpi'
+    result,output = commands.getstatusoutput('cd '+builddir+'&& sh bootstrap && ./configure '+confopt+' && '+petsc.make+' && '+petsc.make+' install')
+    self.log.write(output)
+    if result:
+      self.log.Exit('ERROR: installation of ARPACK failed.')
+
+    # Check build
+    functions = self.Functions(petsc)
+    if petsc.mpiuni:
+      libs = [['-larpack']]
+    else:
+      libs = [['-lparpack','-larpack']]
+    libDir = os.path.join(archdir,'lib')
+    dirs = [libDir]
+    self.FortranLib(conf,vars,cmake,dirs,libs,functions)
+    self.havepackage = True
 

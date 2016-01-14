@@ -24,24 +24,14 @@ import log, package
 class Feast(package.Package):
 
   def __init__(self,argdb,log):
-    self.packagename  = 'feast'
-    self.downloadable = False
-    self.packagedir   = ''
-    self.packagelibs  = []
-    self.log          = log
+    package.Package.__init__(self,argdb,log)
+    self.packagename    = 'feast'
+    self.installable    = True
+    self.supportsscalar = ['complex']
+    self.supportssingle = True
     self.ProcessArgs(argdb)
 
   def Check(self,conf,vars,cmake,petsc):
-
-    if petsc.scalar != 'complex':
-      self.log.Exit('ERROR: FEAST is supported only with complex numbers.')
-
-    if (petsc.precision != 'single') & (petsc.precision != 'double'):
-      self.log.Exit('ERROR: FEAST is supported only in single or double precision.')
-
-    if petsc.ind64:
-      self.log.Exit('ERROR: Cannot use external packages with 64-bit indices.')
-
     functions = ['feastinit']
     if petsc.scalar == 'real':
       if petsc.precision == 'single':
@@ -58,9 +48,9 @@ class Feast(package.Package):
       libs = [self.packagelibs]
     else:
       if petsc.mpiuni:
-        libs = [['-lpfeast']]
-      else:
         libs = [['-lfeast']]
+      else:
+        libs = [['-lpfeast']]
 
     if self.packagedir:
       dirs = [self.packagedir]

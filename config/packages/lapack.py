@@ -24,9 +24,8 @@ import log, package
 class Lapack(package.Package):
 
   def __init__(self,argdb,log):
-    self.packagename  = 'lapack'
-    self.downloadable = False
-    self.log          = log
+    package.Package.__init__(self,argdb,log)
+    self.packagename = 'lapack'
 
   def ShowInfo(self):
     if hasattr(self,'missing'):
@@ -47,7 +46,7 @@ class Lapack(package.Package):
   def Check(self,conf,vars,cmake,petsc):
 
     # LAPACK standard functions
-    l = ['laev2','gehrd','lanhs','lange','getri','trexc','trevc','geevx','ggev','ggevx','gelqf','gesdd','tgexc','tgevc','pbtrf','stedc','hsein','larfg','larf','trsen','tgsen','lacpy','lascl','lansy','laset']
+    l = ['laev2','gehrd','lanhs','lange','getri','trexc','trevc','geevx','ggev','ggevx','gelqf','geqp3','gesdd','tgexc','tgevc','pbtrf','stedc','hsein','larfg','larf','trsen','tgsen','lacpy','lascl','lansy','laset']
 
     # LAPACK functions with different real and complex versions
     if petsc.scalar == 'real':
