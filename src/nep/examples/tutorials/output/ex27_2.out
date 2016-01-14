@@ -1,0 +1,10 @@
+
+Square root eigenproblem, n=100
+
+ Number of NEP iterations = 1
+
+ Solution method: nleigs
+ Number of requested eigenvalues: 3
+ All requested eigenvalues computed up to the required tolerance:
+     1.03635, 0.92988, 1.15063
+

@@ -52,12 +52,13 @@ int main(int argc,char **argv)
   PetscBool      split=PETSC_TRUE;
   RG             rg;
   FN             f[2];
+  PetscBool      terse;
   PetscScalar    coeffs;
 
   SlepcInitialize(&argc,&argv,(char*)0,help);
   ierr = PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL);CHKERRQ(ierr);
   ierr = PetscOptionsGetBool(NULL,NULL,"-split",&split,NULL);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"\nNonlinear Eigenproblem, n=%D\n\n",n);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"\nSquare root eigenproblem, n=%D%s\n\n",n,split?" (in split form)":"");CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
      Create nonlinear eigensolver context
@@ -85,10 +86,9 @@ int main(int argc,char **argv)
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
   
   if (split) {
-    /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    /*
        Create matrices for the split form 
-       - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-
+    */
     ierr = MatCreate(PETSC_COMM_WORLD,&A[0]);CHKERRQ(ierr);
     ierr = MatSetSizes(A[0],PETSC_DECIDE,PETSC_DECIDE,n,n);CHKERRQ(ierr);
     ierr = MatSetFromOptions(A[0]);CHKERRQ(ierr);
@@ -110,10 +110,9 @@ int main(int argc,char **argv)
     ierr = MatAssemblyEnd(A[1],MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
     ierr = MatShift(A[1],1.0);CHKERRQ(ierr);
 
-    /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    /*
        Define funcions for the split form 
-       - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-    
+     */
     ierr = FNCreate(PETSC_COMM_WORLD,&f[0]);CHKERRQ(ierr);
     ierr = FNSetType(f[0],FNRATIONAL);CHKERRQ(ierr);
     coeffs = 1.0;
@@ -123,21 +122,15 @@ int main(int argc,char **argv)
     ierr = NEPSetSplitOperator(nep,2,A,f,SUBSET_NONZERO_PATTERN);CHKERRQ(ierr);
 
   } else {
-    /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-       Create matrix data structure; set Function evaluation routine
-       - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-
+    /*
+       Callback form: create matrix and set Function evaluation routine
+     */
     ierr = MatCreate(PETSC_COMM_WORLD,&F);CHKERRQ(ierr);
     ierr = MatSetSizes(F,PETSC_DECIDE,PETSC_DECIDE,n,n);CHKERRQ(ierr);
     ierr = MatSetFromOptions(F);CHKERRQ(ierr);
     ierr = MatSeqAIJSetPreallocation(F,3,NULL);CHKERRQ(ierr);
     ierr = MatMPIAIJSetPreallocation(F,3,NULL,1,NULL);CHKERRQ(ierr);
     ierr = MatSetUp(F);CHKERRQ(ierr);
-
-    /*
-       Set Function matrix data structure and default Function evaluation
-       routine
-    */
     ierr = NEPSetFunction(nep,F,F,FormFunction,NULL);CHKERRQ(ierr);
   }
 
@@ -165,11 +158,16 @@ int main(int argc,char **argv)
                     Display solution and clean up
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  ierr = PetscViewerPushFormat(PETSC_VIEWER_STDOUT_WORLD,PETSC_VIEWER_ASCII_INFO_DETAIL);CHKERRQ(ierr);
-  ierr = NEPReasonView(nep,PETSC_VIEWER_STDOUT_WORLD);CHKERRQ(ierr);
-  ierr = NEPErrorView(nep,NEP_ERROR_RELATIVE,PETSC_VIEWER_STDOUT_WORLD);CHKERRQ(ierr);
-  ierr = PetscViewerPopFormat(PETSC_VIEWER_STDOUT_WORLD);CHKERRQ(ierr);
-
+  /* show detailed info unless -terse option is given by user */
+  ierr = PetscOptionsHasName(NULL,NULL,"-terse",&terse);CHKERRQ(ierr);
+  if (terse) {
+    ierr = NEPErrorView(nep,NEP_ERROR_RELATIVE,NULL);CHKERRQ(ierr);
+  } else {
+    ierr = PetscViewerPushFormat(PETSC_VIEWER_STDOUT_WORLD,PETSC_VIEWER_ASCII_INFO_DETAIL);CHKERRQ(ierr);
+    ierr = NEPReasonView(nep,PETSC_VIEWER_STDOUT_WORLD);CHKERRQ(ierr);
+    ierr = NEPErrorView(nep,NEP_ERROR_RELATIVE,PETSC_VIEWER_STDOUT_WORLD);CHKERRQ(ierr);
+    ierr = PetscViewerPopFormat(PETSC_VIEWER_STDOUT_WORLD);CHKERRQ(ierr);
+  }
   ierr = NEPDestroy(&nep);CHKERRQ(ierr);
   if (split) {
     ierr = MatDestroy(&A[0]);CHKERRQ(ierr);
@@ -182,7 +180,6 @@ int main(int argc,char **argv)
   ierr = SlepcFinalize();
   return 0;
 }
-
 
 /* ------------------------------------------------------------------- */
 #undef __FUNCT__
@@ -251,3 +248,4 @@ PetscErrorCode ComputeSingularities(NEP nep,PetscInt *maxnp,PetscScalar *xi,void
   for (i=1;i<*maxnp-1;i++) xi[i] = -PetscPowReal(10,-6+h*i);
   PetscFunctionReturn(0);
 }
+
