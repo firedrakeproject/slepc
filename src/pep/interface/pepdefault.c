@@ -205,14 +205,13 @@ PetscErrorCode PEPComputeVectors_Default(PEP pep)
 PetscErrorCode PEPKrylovConvergence(PEP pep,PetscBool getall,PetscInt kini,PetscInt nits,PetscReal beta,PetscInt *kout)
 {
   PetscErrorCode ierr;
-  PetscInt       k,newk,marker,ld,inside;
+  PetscInt       k,newk,marker,inside;
   PetscScalar    re,im;
   PetscReal      resnorm;
   PetscBool      istrivial;
 
   PetscFunctionBegin;
   ierr = RGIsTrivial(pep->rg,&istrivial);CHKERRQ(ierr);
-  ierr = DSGetLeadingDimension(pep->ds,&ld);CHKERRQ(ierr);
   marker = -1;
   if (pep->trackall) getall = PETSC_TRUE;
   for (k=kini;k<kini+nits;k++) {
@@ -222,7 +221,7 @@ PetscErrorCode PEPKrylovConvergence(PEP pep,PetscBool getall,PetscInt kini,Petsc
     if (!istrivial) {
       ierr = STBackTransform(pep->st,1,&re,&im);CHKERRQ(ierr);
       ierr = RGCheckInside(pep->rg,1,&re,&im,&inside);CHKERRQ(ierr);
-      if (marker==-1 && inside<=0) marker = k;
+      if (marker==-1 && inside<0) marker = k;
       re = pep->eigr[k];
       im = pep->eigi[k];
     }

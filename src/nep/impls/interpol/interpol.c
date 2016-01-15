@@ -98,8 +98,8 @@ PetscErrorCode NEPSetUp_Interpol(NEP nep)
   ierr = RGSetType(rg,RGINTERVAL);CHKERRQ(ierr);
   if (a==b) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"Only implemented for intervals on the real axis");
   s = 2.0/(b-a);
-  c = (c==0)? -PETSC_MAX_REAL: c*s;
-  d = (d==0)? PETSC_MAX_REAL: d*s;
+  c = c*s;
+  d = d*s;
   ierr = RGIntervalSetEndpoints(rg,-1.0,1.0,c,d);CHKERRQ(ierr);
   ierr = RGCheckInside(nep->rg,1,&nep->target,&zero,&in);CHKERRQ(ierr);
   if (in<0) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"The target is not inside the target set");
@@ -167,7 +167,7 @@ PetscErrorCode NEPSolve_Interpol(NEP nep)
       for (i=0;i<deg+1;i++) t += fx[i+j*(deg+1)]*cs[i*(deg+1)+k];
       t *= 2.0/(deg+1); 
       if (k==0) t /= 2.0;
-      ierr = MatAXPY(A[k],t,nep->A[j],SUBSET_NONZERO_PATTERN);CHKERRQ(ierr);
+      ierr = MatAXPY(A[k],t,nep->A[j],nep->mstr);CHKERRQ(ierr);
     }
   }
 
@@ -213,7 +213,7 @@ PetscErrorCode NEPSetFromOptions_Interpol(PetscOptionItems *PetscOptionsObject,N
 #define __FUNCT__ "NEPInterpolSetDegree_Interpol"
 static PetscErrorCode NEPInterpolSetDegree_Interpol(NEP nep,PetscInt deg)
 {
-  NEP_INTERPOL   *ctx = (NEP_INTERPOL*)nep->data;
+  NEP_INTERPOL *ctx = (NEP_INTERPOL*)nep->data;
 
   PetscFunctionBegin;
   ctx->deg = deg;
@@ -250,7 +250,7 @@ PetscErrorCode NEPInterpolSetDegree(NEP nep,PetscInt deg)
 #define __FUNCT__ "NEPInterpolGetDegree_Interpol"
 static PetscErrorCode NEPInterpolGetDegree_Interpol(NEP nep,PetscInt *deg)
 {
-  NEP_INTERPOL   *ctx = (NEP_INTERPOL*)nep->data;
+  NEP_INTERPOL *ctx = (NEP_INTERPOL*)nep->data;
 
   PetscFunctionBegin;
   *deg = ctx->deg;
@@ -346,6 +346,8 @@ static PetscErrorCode NEPInterpolGetPEP_Interpol(NEP nep,PEP *pep)
     ierr = STSetOptionsPrefix(st,((PetscObject)ctx->pep)->prefix);CHKERRQ(ierr);
     ierr = PetscObjectIncrementTabLevel((PetscObject)ctx->pep,(PetscObject)nep,1);CHKERRQ(ierr);
     ierr = PetscLogObjectParent((PetscObject)nep,(PetscObject)ctx->pep);CHKERRQ(ierr);
+    if (!nep->ksp) { ierr = NEPGetKSP(nep,&nep->ksp);CHKERRQ(ierr); }
+    ierr = STSetKSP(st,nep->ksp);CHKERRQ(ierr);
   }
   *pep = ctx->pep;
   PetscFunctionReturn(0);

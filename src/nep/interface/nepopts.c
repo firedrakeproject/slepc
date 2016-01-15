@@ -72,8 +72,10 @@ PetscErrorCode NEPSetFromOptions(NEP nep)
     j = nep->rits;
     ierr = PetscOptionsInt("-nep_refine_its","Maximum number of iterations for iterative refinement","NEPSetRefine",nep->rits,&j,&flg3);CHKERRQ(ierr);
     if (flg1 || flg2 || flg3) {
-      ierr = NEPSetRefine(nep,nep->refine,i,r1,j);CHKERRQ(ierr);
+      ierr = NEPSetRefine(nep,nep->refine,i,r1,j,nep->scheme);CHKERRQ(ierr);
     }
+
+    ierr = PetscOptionsEnum("-nep_refine_scheme","Scheme used for linear systems within iterative refinement","NEPSetRefine",NEPRefineSchemes,(PetscEnum)nep->scheme,(PetscEnum*)&nep->scheme,NULL);CHKERRQ(ierr);
 
     i = nep->max_it? nep->max_it: PETSC_DEFAULT;
     ierr = PetscOptionsInt("-nep_max_it","Maximum number of iterations","NEPSetTolerances",nep->max_it,&i,&flg1);CHKERRQ(ierr);
@@ -200,6 +202,8 @@ PetscErrorCode NEPSetFromOptions(NEP nep)
   if (!nep->ksp) { ierr = NEPGetKSP(nep,&nep->ksp);CHKERRQ(ierr); }
   ierr = KSPSetOperators(nep->ksp,nep->function,nep->function_pre);CHKERRQ(ierr);
   ierr = KSPSetFromOptions(nep->ksp);CHKERRQ(ierr);
+  if (!nep->refineksp) { ierr = NEPRefineGetKSP(nep,&nep->refineksp);CHKERRQ(ierr); }
+  ierr = KSPSetFromOptions(nep->refineksp);CHKERRQ(ierr);
   ierr = PetscRandomSetFromOptions(nep->rand);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -754,13 +758,15 @@ PetscErrorCode NEPGetTrackAll(NEP nep,PetscBool *trackall)
 .  refine - refinement type
 .  npart  - number of partitions of the communicator
 .  tol    - the convergence tolerance
--  its    - maximum number of refinement iterations
+.  its    - maximum number of refinement iterations
+-  scheme - which scheme to be used for solving the involved linear systems
 
    Options Database Keys:
 +  -nep_refine <type> - refinement type, one of <none,simple,multiple>
 .  -nep_refine_partitions <n> - the number of partitions
 .  -nep_refine_tol <tol> - the tolerance
--  -nep_refine_its <its> - number of iterations
+.  -nep_refine_its <its> - number of iterations
+-  -nep_refine_scheme - to set the scheme for the linear solves
 
    Notes:
    By default, iterative refinement is disabled, since it may be very
@@ -781,11 +787,15 @@ PetscErrorCode NEPGetTrackAll(NEP nep,PetscBool *trackall)
    different value). In contrast, the multiple method simply performs its
    refinement iterations (just one by default).
 
+   The scheme argument is used to change the way in which linear systems are
+   solved. Possible choices are: explicit, mixed block elimination (MBE), 
+   and Schur complement.
+
    Level: intermediate
 
 .seealso: NEPGetRefine()
 @*/
-PetscErrorCode NEPSetRefine(NEP nep,NEPRefine refine,PetscInt npart,PetscReal tol,PetscInt its)
+PetscErrorCode NEPSetRefine(NEP nep,NEPRefine refine,PetscInt npart,PetscReal tol,PetscInt its,NEPRefineScheme scheme)
 {
   PetscErrorCode ierr;
   PetscMPIInt    size;
@@ -796,6 +806,7 @@ PetscErrorCode NEPSetRefine(NEP nep,NEPRefine refine,PetscInt npart,PetscReal to
   PetscValidLogicalCollectiveInt(nep,npart,3);
   PetscValidLogicalCollectiveReal(nep,tol,4);
   PetscValidLogicalCollectiveInt(nep,its,5);
+  PetscValidLogicalCollectiveEnum(nep,scheme,6);
   nep->refine = refine;
   if (refine) {  /* process parameters only if not REFINE_NONE */
     if (npart == PETSC_DEFAULT || npart == PETSC_DECIDE) {
@@ -817,6 +828,7 @@ PetscErrorCode NEPSetRefine(NEP nep,NEPRefine refine,PetscInt npart,PetscReal to
       if (its<0) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of its. Must be >= 0");
       nep->rits = its;
     }
+    nep->scheme = scheme;
   }
   nep->state = NEP_STATE_INITIAL;
   PetscFunctionReturn(0);
@@ -838,6 +850,7 @@ PetscErrorCode NEPSetRefine(NEP nep,NEPRefine refine,PetscInt npart,PetscReal to
 .  npart  - number of partitions of the communicator
 .  tol    - the convergence tolerance
 -  its    - maximum number of refinement iterations
+-  scheme - the scheme used for solving linear systems
 
    Level: intermediate
 
@@ -846,7 +859,7 @@ PetscErrorCode NEPSetRefine(NEP nep,NEPRefine refine,PetscInt npart,PetscReal to
 
 .seealso: NEPSetRefine()
 @*/
-PetscErrorCode NEPGetRefine(NEP nep,NEPRefine *refine,PetscInt *npart,PetscReal *tol,PetscInt *its)
+PetscErrorCode NEPGetRefine(NEP nep,NEPRefine *refine,PetscInt *npart,PetscReal *tol,PetscInt *its,NEPRefineScheme *scheme)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
@@ -854,6 +867,7 @@ PetscErrorCode NEPGetRefine(NEP nep,NEPRefine *refine,PetscInt *npart,PetscReal 
   if (npart)  *npart  = nep->npart;
   if (tol)    *tol    = nep->reftol;
   if (its)    *its    = nep->rits;
+  if (scheme) *scheme = nep->scheme;
   PetscFunctionReturn(0);
 }
 

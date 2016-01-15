@@ -85,6 +85,7 @@ struct _p_NEP {
   PetscInt       npart;            /* number of partitions of the communicator */
   PetscReal      reftol;           /* tolerance for refinement */
   PetscInt       rits;             /* number of iterations of the refinement method */
+  NEPRefineScheme scheme;          /* scheme for solving linear systems within refinement */
   PetscBool      trackall;         /* whether all the residuals must be computed */
 
   /*-------------- User-provided functions and contexts -----------------*/
@@ -123,6 +124,8 @@ struct _p_NEP {
   PetscInt       *perm;            /* permutation for eigenvalue ordering */
   PetscInt       nwork;            /* number of work vectors */
   Vec            *work;            /* work vectors */
+  KSP            refineksp;        /* ksp used in refinement */
+  PetscSubcomm   refinesubc;       /* context for sub-communicators */
   void           *data;            /* placeholder for solver-specific stuff */
 
   /* ----------------------- Status variables --------------------------*/
@@ -192,6 +195,7 @@ PETSC_STATIC_INLINE PetscErrorCode NEP_KSPSolve(NEP nep,Vec b,Vec x)
 PETSC_INTERN PetscErrorCode NEPComputeVectors(NEP);
 PETSC_INTERN PetscErrorCode NEPReset_Problem(NEP);
 PETSC_INTERN PetscErrorCode NEPGetDefaultShift(NEP,PetscScalar*);
+PETSC_INTERN PetscErrorCode NEPComputeVectors_Schur(NEP);
 PETSC_INTERN PetscErrorCode NEPComputeResidualNorm_Private(NEP,PetscScalar,Vec,Vec*,PetscReal*);
 PETSC_INTERN PetscErrorCode NEPNewtonRefinementSimple(NEP,PetscInt*,PetscReal*,PetscInt);
 
