@@ -42,6 +42,7 @@
       parameter (NEP_REFINE_SCHEME_MBE      =  1)
       parameter (NEP_REFINE_SCHEME_SCHUR    =  2)
 
+      PetscEnum NEP_CONVERGED_TOL
       PetscEnum NEP_CONVERGED_FNORM_ABS
       PetscEnum NEP_CONVERGED_FNORM_RELATIVE
       PetscEnum NEP_CONVERGED_SNORM_RELATIVE
@@ -52,6 +53,7 @@
       PetscEnum NEP_DIVERGED_FNORM_NAN
       PetscEnum NEP_CONVERGED_ITERATING
 
+      parameter (NEP_CONVERGED_TOL            =  1)
       parameter (NEP_CONVERGED_FNORM_ABS      =  2)
       parameter (NEP_CONVERGED_FNORM_RELATIVE =  3)
       parameter (NEP_CONVERGED_SNORM_RELATIVE =  4)
