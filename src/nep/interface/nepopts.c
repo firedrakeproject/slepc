@@ -311,7 +311,7 @@ PetscErrorCode NEPSetTolerances(NEP nep,PetscReal abstol,PetscReal rtol,PetscRea
     nep->max_it = maxit;
   }
   if (maxf == PETSC_DEFAULT || maxf == PETSC_DECIDE) {
-    nep->max_it = 0;
+    nep->max_funcs = 0;
     nep->state = NEP_STATE_INITIAL;
   } else {
     if (maxf < 0) SETERRQ1(PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_OUTOFRANGE,"Maximum number of function evaluations %D must be non-negative",maxf);
