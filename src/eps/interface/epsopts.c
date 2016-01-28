@@ -122,6 +122,11 @@ PetscErrorCode EPSSetFromOptions(EPS eps)
     ierr = PetscOptionsBoolGroupEnd("-eps_conv_user","User-defined convergence test","EPSSetConvergenceTest",&flg);CHKERRQ(ierr);
     if (flg) { ierr = EPSSetConvergenceTest(eps,EPS_CONV_USER);CHKERRQ(ierr); }
 
+    ierr = PetscOptionsBoolGroupBegin("-eps_stop_basic","Stop iteration if all eigenvalues converged or max_it reached","EPSSetStoppingTest",&flg);CHKERRQ(ierr);
+    if (flg) { ierr = EPSSetStoppingTest(eps,EPS_STOP_BASIC);CHKERRQ(ierr); }
+    ierr = PetscOptionsBoolGroupEnd("-eps_stop_user","User-defined stopping test","EPSSetStoppingTest",&flg);CHKERRQ(ierr);
+    if (flg) { ierr = EPSSetStoppingTest(eps,EPS_STOP_USER);CHKERRQ(ierr); }
+
     i = eps->nev;
     ierr = PetscOptionsInt("-eps_nev","Number of eigenvalues to compute","EPSSetDimensions",eps->nev,&i,&flg1);CHKERRQ(ierr);
     j = eps->ncv? eps->ncv: PETSC_DEFAULT;
