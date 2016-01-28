@@ -10,9 +10,9 @@
 
    References:
 
-       [1] C. Campos and J.E. Roman, " Restarted Q-Arnoldi-type methods
-           exploiting symmetry in quadratic eigenvalue problems",
-           submitted, 2015.
+       [1] C. Campos and J.E. Roman, "Restarted Q-Arnoldi-type methods
+           exploiting symmetry in quadratic eigenvalue problems", BIT
+           (in press), 2016.
 
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
@@ -516,8 +516,7 @@ PetscErrorCode PEPSolve_STOAR(PEP pep)
     ierr = DSGetDimensions(pep->ds,NULL,NULL,NULL,NULL,&t);CHKERRQ(ierr);
     ierr = PEPKrylovConvergence(pep,PETSC_FALSE,pep->nconv,t-pep->nconv,PetscAbsReal(beta)*norm,&k);CHKERRQ(ierr);
     nconv = k;
-    if (pep->its >= pep->max_it) pep->reason = PEP_DIVERGED_ITS;
-    if (k >= pep->nev) pep->reason = PEP_CONVERGED_TOL;
+    ierr = (*pep->stopping)(pep,pep->its,pep->max_it,k,pep->nev,&pep->reason,pep->stoppingctx);CHKERRQ(ierr);
 
     /* Update l */
     if (pep->reason != PEP_CONVERGED_ITERATING || breakdown) l = 0;

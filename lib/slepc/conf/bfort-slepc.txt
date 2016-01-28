@@ -30,6 +30,7 @@ native PEPRefine
 native PEPExtract
 native PEPErrorType
 native PEPConv
+native PEPStop
 native PEPConvergedReason
 native STMatMode
 native SVDWhich

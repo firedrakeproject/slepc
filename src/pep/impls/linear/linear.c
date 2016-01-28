@@ -276,6 +276,7 @@ PetscErrorCode PEPSetUp_Linear(PEP pep)
   };
 
   PetscFunctionBegin;
+  if (pep->stopping!=PEPStoppingBasic) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"User-defined stopping test not supported");
   pep->lineariz = PETSC_TRUE;
   if (!ctx->cform) ctx->cform = 1;
   ierr = STGetTransform(pep->st,&transf);CHKERRQ(ierr);
