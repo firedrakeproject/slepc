@@ -198,11 +198,67 @@ PetscErrorCode RGIsTrivial_Polygon(RG rg,PetscBool *trivial)
 #define __FUNCT__ "RGComputeContour_Polygon"
 PetscErrorCode RGComputeContour_Polygon(RG rg,PetscInt n,PetscScalar *cr,PetscScalar *ci)
 {
-  RG_POLYGON *ctx = (RG_POLYGON*)rg->data;
+  RG_POLYGON  *ctx = (RG_POLYGON*)rg->data;
+  PetscReal   length,h,d,rem=0.0;
+  PetscInt    k=1,idx=ctx->n-1,i;
+  PetscBool   ini=PETSC_FALSE;
+  PetscScalar incr;
+#if !defined(PETSC_USE_COMPLEX)
+  PetscScalar inci;
+#endif
 
   PetscFunctionBegin;
   if (!ctx->n) SETERRQ(PetscObjectComm((PetscObject)rg),PETSC_ERR_ARG_WRONGSTATE,"No vertices have been set yet");
-  SETERRQ(PetscObjectComm((PetscObject)rg),1,"Not implemented yet");
+  length = SlepcAbsEigenvalue(ctx->vr[0]-ctx->vr[ctx->n-1],ctx->vi[0]-ctx->vi[ctx->n-1]);
+  for (i=0;i<ctx->n-1;i++) length += SlepcAbsEigenvalue(ctx->vr[i]-ctx->vr[i+1],ctx->vi[i]-ctx->vi[i+1]);
+  h = length/n;
+  cr[0] = ctx->vr[0];
+#if !defined(PETSC_USE_COMPLEX)
+  ci[0] = ctx->vi[0];
+#endif
+  incr = ctx->vr[ctx->n-1]-ctx->vr[0];
+#if !defined(PETSC_USE_COMPLEX)
+  inci = ctx->vi[ctx->n-1]-ctx->vi[0];
+#endif
+  d = SlepcAbsEigenvalue(incr,inci);
+  incr /= d;
+#if !defined(PETSC_USE_COMPLEX)
+  inci /= d;
+#endif
+  while (k<n) {
+    if (ini) {
+      incr = ctx->vr[idx]-ctx->vr[idx+1];
+#if !defined(PETSC_USE_COMPLEX)
+      inci = ctx->vi[idx]-ctx->vi[idx+1];
+#endif
+      d = SlepcAbsEigenvalue(incr,inci);
+      incr /= d;
+#if !defined(PETSC_USE_COMPLEX)
+      inci /= d;
+#endif
+      if (rem+d>h) {
+        cr[k] = ctx->vr[idx+1]+incr*(h-rem);
+#if !defined(PETSC_USE_COMPLEX)
+        ci[k] = ctx->vi[idx+1]+inci*(h-rem);
+#endif
+        k++;
+        ini = PETSC_FALSE;
+      } else {rem += d; idx--;}
+    } else {
+#if !defined(PETSC_USE_COMPLEX)
+      rem = SlepcAbsEigenvalue(ctx->vr[idx]-cr[k-1],ctx->vi[idx]-ci[k-1]);
+#else
+      rem = PetscAbsScalar(ctx->vr[idx]-cr[k-1]);
+#endif
+      if (rem>h) {
+        cr[k] = cr[k-1]+incr*h;
+#if !defined(PETSC_USE_COMPLEX)
+        ci[k] = ci[k-1]+inci*h;
+#endif
+        k++;
+      } else {ini = PETSC_TRUE; idx--;}
+    }
+  }
   PetscFunctionReturn(0);
 }
 

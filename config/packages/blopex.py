@@ -28,9 +28,10 @@ class Blopex(package.Package):
     package.Package.__init__(self,argdb,log)
     self.packagename  = 'blopex'
     self.downloadable = True
-    self.url          = 'http://slepc.upv.es/download/external/blopex-1.1.2.tar.gz'
+    self.version      = '1.1.2'
+    self.url          = 'http://slepc.upv.es/download/external/blopex-'+self.version+'.tar.gz'
     self.archive      = 'blopex.tar.gz'
-    self.dirname      = 'blopex-1.1.2'
+    self.dirname      = 'blopex-'+self.version
     self.ProcessArgs(argdb)
 
   def Install(self,conf,vars,cmake,petsc,archdir):

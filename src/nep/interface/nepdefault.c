@@ -132,3 +132,29 @@ PetscErrorCode NEPConvergedDefault(NEP nep,PetscInt it,PetscReal xnorm,PetscReal
   PetscFunctionReturn(0);
 }
 
+#undef __FUNCT__
+#define __FUNCT__ "NEPComputeVectors_Schur"
+PetscErrorCode NEPComputeVectors_Schur(NEP nep)
+{
+  PetscErrorCode ierr;
+  PetscInt       n,i;
+  Mat            Z;
+  Vec            v;
+
+  PetscFunctionBegin;
+  ierr = DSGetDimensions(nep->ds,&n,NULL,NULL,NULL,NULL);CHKERRQ(ierr);
+  ierr = DSVectors(nep->ds,DS_MAT_X,NULL,NULL);CHKERRQ(ierr);
+  ierr = DSGetMat(nep->ds,DS_MAT_X,&Z);CHKERRQ(ierr);
+  ierr = BVSetActiveColumns(nep->V,0,n);CHKERRQ(ierr);
+  ierr = BVMultInPlace(nep->V,Z,0,n);CHKERRQ(ierr);
+  ierr = MatDestroy(&Z);CHKERRQ(ierr);
+
+  /* normalization */
+  for (i=0;i<n;i++) {
+    ierr = BVGetColumn(nep->V,i,&v);CHKERRQ(ierr);
+    ierr = VecNormalize(v,NULL);CHKERRQ(ierr);
+    ierr = BVRestoreColumn(nep->V,i,&v);CHKERRQ(ierr);
+  }
+  PetscFunctionReturn(0);
+}
+

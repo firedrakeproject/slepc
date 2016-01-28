@@ -75,6 +75,7 @@ PetscErrorCode NEPCreate(MPI_Comm comm,NEP *outnep)
   nep->npart           = 1;
   nep->reftol          = PETSC_DEFAULT;
   nep->rits            = PETSC_DEFAULT;
+  nep->scheme          = NEP_REFINE_SCHEME_MBE;
   nep->trackall        = PETSC_FALSE;
 
   nep->computefunction = NULL;
@@ -300,6 +301,8 @@ PetscErrorCode NEPReset(NEP nep)
   }
   ierr = BVDestroy(&nep->V);CHKERRQ(ierr);
   ierr = VecDestroyVecs(nep->nwork,&nep->work);CHKERRQ(ierr);
+  ierr = KSPDestroy(&nep->refineksp);CHKERRQ(ierr);
+  ierr = PetscSubcommDestroy(&nep->refinesubc);CHKERRQ(ierr);
   nep->nwork  = 0;
   nep->nfuncs = 0;
   nep->state  = NEP_STATE_INITIAL;
@@ -614,6 +617,49 @@ PetscErrorCode NEPGetKSP(NEP nep,KSP *ksp)
     ierr = KSPSetErrorIfNotConverged(nep->ksp,PETSC_TRUE);CHKERRQ(ierr);
   }
   *ksp = nep->ksp;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "NEPRefineGetKSP"
+/*@
+   NEPRefineGetKSP - Obtain the ksp object used by the eigensolver
+   object in the refinement phase.
+
+   Not Collective
+
+   Input Parameters:
+.  nep - eigensolver context obtained from NEPCreate()
+
+   Output Parameter:
+.  ksp - ksp context
+
+   Level: advanced
+
+.seealso: NEPSetRefine()
+@*/
+PetscErrorCode NEPRefineGetKSP(NEP nep,KSP *ksp)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
+  PetscValidPointer(ksp,2);
+  if (!nep->refineksp) {
+    if (nep->npart>1) {
+      /* Split in subcomunicators */
+      ierr = PetscSubcommCreate(PetscObjectComm((PetscObject)nep),&nep->refinesubc);CHKERRQ(ierr);
+      ierr = PetscSubcommSetNumber(nep->refinesubc,nep->npart);CHKERRQ(ierr);CHKERRQ(ierr);
+      ierr = PetscSubcommSetType(nep->refinesubc,PETSC_SUBCOMM_CONTIGUOUS);CHKERRQ(ierr);
+      ierr = PetscLogObjectMemory((PetscObject)nep,sizeof(PetscSubcomm));CHKERRQ(ierr);
+    }
+    ierr = KSPCreate((nep->npart==1)?PetscObjectComm((PetscObject)nep):PetscSubcommChild(nep->refinesubc),&nep->refineksp);CHKERRQ(ierr);
+    ierr = PetscLogObjectParent((PetscObject)nep,(PetscObject)nep->refineksp);CHKERRQ(ierr);
+    ierr = KSPSetOptionsPrefix(*ksp,((PetscObject)nep)->prefix);CHKERRQ(ierr);
+    ierr = KSPAppendOptionsPrefix(*ksp,"nep_refine_");CHKERRQ(ierr);
+    ierr = KSPSetErrorIfNotConverged(*ksp,PETSC_TRUE);CHKERRQ(ierr);
+  }
+  *ksp = nep->refineksp;
   PetscFunctionReturn(0);
 }
 

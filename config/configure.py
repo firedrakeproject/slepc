@@ -259,7 +259,10 @@ if petsc.precision != '__float128':
   testruns = testruns.union(set(['C_NoF128']))
 if slepc.datadir:
   slepcvars.write('DATAFILESPATH = '+slepc.datadir+'\n')
-  testruns = testruns.union(set(['DATAFILESPATH']))
+  if petsc.scalar == 'complex':
+    testruns = testruns.union(set(['DATAFILESPATH_Complex']))
+  else:
+    testruns = testruns.union(set(['DATAFILESPATH']))
 slepcvars.write('TEST_RUNS = '+' '.join(testruns)+'\n')
 
 # Write initial part of file slepcconf.h

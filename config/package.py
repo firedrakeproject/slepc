@@ -66,7 +66,10 @@ class Package:
     if self.requested:
       name = self.packagename.upper()
       if self.downloadpackage:
-        self.log.NewSection('Installing '+name+'...')
+        if hasattr(self,'version'):
+          self.log.NewSection('Installing '+name+' version '+self.version+'...')
+        else:
+          self.log.NewSection('Installing '+name+'...')
         self.Precondition(petsc)
         self.Install(conf,vars,cmake,petsc,archdir)
       elif self.installable:
