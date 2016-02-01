@@ -150,7 +150,7 @@ PetscErrorCode STSetShift_Precond(ST st,PetscScalar newshift)
 
   PetscFunctionBegin;
   /* Nothing to be done if STSetUp has not been called yet */
-  if (!st->setupcalled) PetscFunctionReturn(0);
+  if (!st->state) PetscFunctionReturn(0);
   st->sigma = newshift;
   if (st->shift_matrix != ST_MATMODE_SHELL) {
     ierr = STSetUp_Precond(st);CHKERRQ(ierr);

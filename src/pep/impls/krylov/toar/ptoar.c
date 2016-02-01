@@ -348,20 +348,17 @@ static PetscErrorCode PEPTOARrun(PEP pep,PetscScalar sigma,PetscInt *nq,PetscSca
     ierr = PEPTOARCoefficients(pep,sinvert,sigma,nqt-1,S+j*lds,ld,S+(j+1)*lds,ld,x);CHKERRQ(ierr);
     /* level-2 orthogonalization */
     ierr = PEPTOAROrth2(pep,S,ld,deg,j+1,H+j*ldh,&norm,breakdown,work+nwu,lwa-nwu);CHKERRQ(ierr);
-    if (!*breakdown) {
-      for (p=0;p<deg;p++) {
-        for (i=0;i<=j+deg;i++) {
-          S[i+p*ld+(j+1)*lds] /= norm;
-        }
-      }
-      H[j+1+ldh*j] = norm;
-    } else {
-      H[j+1+ldh*j] = norm;
-      *M = j+1;
-      *nq = nqt;
-      PetscFunctionReturn(0);
-    }
+    H[j+1+ldh*j] = norm;
     *nq = nqt;
+    if (*breakdown) {
+      *M = j+1;
+      break;
+    }
+    for (p=0;p<deg;p++) {
+      for (i=0;i<=j+deg;i++) {
+        S[i+p*ld+(j+1)*lds] /= norm;
+      }
+    }
   }
   PetscFunctionReturn(0);
 }

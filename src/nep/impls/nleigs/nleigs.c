@@ -574,21 +574,17 @@ static PetscErrorCode NEPTOARrun(NEP nep,PetscInt *nq,PetscScalar *S,PetscInt ld
 
     /* Level-2 orthogonalization */
     ierr = NEPTOAROrth2(nep,S,ld,deg,j+1,H+j*ldh,&norm,breakdown,work,lwa);CHKERRQ(ierr);
-    if (!*breakdown) {
-      for (p=0;p<deg;p++) {
-        for (i=0;i<=j+deg;i++) {
-          S[i+p*ld+(j+1)*lds] /= norm;
-        }
-      }
-      H[j+1+ldh*j] = norm;
-    } else {
-      H[j+1+ldh*j] = norm;
-      *M = j+1;
-      *nq = nqt;
-      ierr = PetscFree2(x,work);CHKERRQ(ierr);
-      PetscFunctionReturn(0);
-    }
+    H[j+1+ldh*j] = norm;
     *nq = nqt;
+    if (*breakdown) {
+      *M = j+1;
+      break;
+    }
+    for (p=0;p<deg;p++) {
+      for (i=0;i<=j+deg;i++) {
+        S[i+p*ld+(j+1)*lds] /= norm;
+      }
+    }
   } 
   ierr = PetscFree2(x,work);CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -784,7 +780,7 @@ PetscErrorCode NEPSolve_NLEIGS(NEP nep)
         l = newn-k;
       }
     }
-    if(!lock && l>0) { l += k; k = 0; }
+    if (!lock && l>0) { l += k; k = 0; }
     /* Update S */
     off = nep->nconv*ldds;
     ierr = DSGetArray(nep->ds,DS_MAT_Q,&Q);CHKERRQ(ierr);
@@ -873,7 +869,6 @@ PetscErrorCode NEPNLEIGSSetSingularitiesFunction(NEP nep,PetscErrorCode (*fun)(N
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
-  PetscValidPointer(fun,2);
   ierr = PetscTryMethod(nep,"NEPNLEIGSSetSingularitiesFunction_C",(NEP,PetscErrorCode(*)(NEP,PetscInt*,PetscScalar*,void*),void*),(nep,fun,ctx));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
