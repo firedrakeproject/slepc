@@ -133,7 +133,7 @@ static PetscErrorCode NEPNLEIGSLejaBagbyPoints(NEP nep)
       if (PetscAbsScalar(nrs[i])>maxnrs) {maxnrs = PetscAbsScalar(nrs[i]); s[k] = ds[i];}
     }
     if (ndptx>=k) {
-      for (i=0;i<ndptx;i++) {
+      for (i=1;i<ndptx;i++) {
         nrxi[i] *= ((dxi[i]-s[k-1])/(1.0-dxi[i]/xi[k-1]))/beta[k-1];
         if (PetscAbsScalar(nrxi[i])<minnrxi) {minnrxi = PetscAbsScalar(nrxi[i]); xi[k] = dxi[i];}
       }
@@ -574,20 +574,17 @@ static PetscErrorCode NEPTOARrun(NEP nep,PetscInt *nq,PetscScalar *S,PetscInt ld
 
     /* Level-2 orthogonalization */
     ierr = NEPTOAROrth2(nep,S,ld,deg,j+1,H+j*ldh,&norm,breakdown,work,lwa);CHKERRQ(ierr);
-    if (!*breakdown) {
-      for (p=0;p<deg;p++) {
-        for (i=0;i<=j+deg;i++) {
-          S[i+p*ld+(j+1)*lds] /= norm;
-        }
-      }
-      H[j+1+ldh*j] = norm;
-    } else {
-      H[j+1+ldh*j] = norm;
-      *M = j+1;
-      *nq = nqt;
-      PetscFunctionReturn(0);
-    }
+    H[j+1+ldh*j] = norm;
     *nq = nqt;
+    if (*breakdown) {
+      *M = j+1;
+      break;
+    }
+    for (p=0;p<deg;p++) {
+      for (i=0;i<=j+deg;i++) {
+        S[i+p*ld+(j+1)*lds] /= norm;
+      }
+    }
   } 
   ierr = PetscFree2(x,work);CHKERRQ(ierr);
   PetscFunctionReturn(0);
