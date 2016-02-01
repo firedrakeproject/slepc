@@ -133,7 +133,7 @@ static PetscErrorCode NEPNLEIGSLejaBagbyPoints(NEP nep)
       if (PetscAbsScalar(nrs[i])>maxnrs) {maxnrs = PetscAbsScalar(nrs[i]); s[k] = ds[i];}
     }
     if (ndptx>=k) {
-      for (i=0;i<ndptx;i++) {
+      for (i=1;i<ndptx;i++) {
         nrxi[i] *= ((dxi[i]-s[k-1])/(1.0-dxi[i]/xi[k-1]))/beta[k-1];
         if (PetscAbsScalar(nrxi[i])<minnrxi) {minnrxi = PetscAbsScalar(nrxi[i]); xi[k] = dxi[i];}
       }
@@ -585,6 +585,7 @@ static PetscErrorCode NEPTOARrun(NEP nep,PetscInt *nq,PetscScalar *S,PetscInt ld
       H[j+1+ldh*j] = norm;
       *M = j+1;
       *nq = nqt;
+      ierr = PetscFree2(x,work);CHKERRQ(ierr);
       PetscFunctionReturn(0);
     }
     *nq = nqt;
@@ -710,13 +711,14 @@ PetscErrorCode NEPSolve_NLEIGS(NEP nep)
   PetscErrorCode ierr;
   NEP_NLEIGS     *ctx=(NEP_NLEIGS*)nep->data;
   PetscInt       i,j,k=0,l,nv=0,ld,lds,off,ldds,newn,rs1,nq=0;
-  PetscInt       lwa,lrwa,nwu=0,nrwu=0,deg=ctx->nmat;
+  PetscInt       lwa,lrwa,nwu=0,nrwu=0,deg=ctx->nmat,nconv;
   PetscScalar    *S,*Q,*work,*H,*pU;
   PetscReal      beta,norm,*rwork;
-  PetscBool      breakdown=PETSC_FALSE,lindep;
+  PetscBool      breakdown=PETSC_FALSE,lindep,lock=PETSC_TRUE;
   Mat            U;
-    
+
   PetscFunctionBegin;
+  ierr = PetscOptionsGetBool(NULL,NULL,"-nep_nleigs_locking",&lock,NULL);CHKERRQ(ierr);
   ld = nep->ncv+deg;
   lds = deg*ld;
   lwa = (deg+6)*ld*lds;
@@ -769,6 +771,7 @@ PetscErrorCode NEPSolve_NLEIGS(NEP nep)
     ierr = NEPNLEIGSKrylovConvergence(nep,PETSC_FALSE,nep->nconv,nv-nep->nconv,beta,&k);CHKERRQ(ierr);
     if (nep->its >= nep->max_it) nep->reason = NEP_DIVERGED_MAX_IT;
     if (k >= nep->nev) nep->reason = NEP_CONVERGED_TOL;
+    nconv = k;
 
     /* Update l */
     if (nep->reason != NEP_CONVERGED_ITERATING || breakdown) l = 0;
@@ -781,7 +784,7 @@ PetscErrorCode NEPSolve_NLEIGS(NEP nep)
         l = newn-k;
       }
     }
-
+    if(!lock && l>0) { l += k; k = 0; }
     /* Update S */
     off = nep->nconv*ldds;
     ierr = DSGetArray(nep->ds,DS_MAT_Q,&Q);CHKERRQ(ierr);
@@ -803,8 +806,9 @@ PetscErrorCode NEPSolve_NLEIGS(NEP nep)
       }
     }
     nep->nconv = k;
-    ierr = NEPMonitor(nep,nep->its,nep->nconv,nep->eigr,nep->errest,nv);CHKERRQ(ierr);
+    ierr = NEPMonitor(nep,nep->its,nconv,nep->eigr,nep->errest,nv);CHKERRQ(ierr);
   }
+  nep->nconv = nconv;
   if (nep->nconv>0) {
     /* Extract invariant pair */
     ierr = NEPTOARTrunc(nep,S,ld,deg,&nq,nep->nconv,work+nwu,lwa-nwu,rwork+nrwu,lrwa-nrwu);CHKERRQ(ierr);
