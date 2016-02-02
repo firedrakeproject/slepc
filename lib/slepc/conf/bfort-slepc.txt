@@ -35,6 +35,7 @@ native PEPConvergedReason
 native STMatMode
 native SVDWhich
 native SVDConv
+native SVDStop
 native SVDErrorType
 native SVDConvergedReason
 #

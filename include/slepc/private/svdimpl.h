@@ -65,6 +65,7 @@ struct _p_SVD {
   PetscInt       nini,ninil;       /* number of initial vecs (negative means not copied yet) */
   PetscReal      tol;              /* tolerance */
   SVDConv        conv;             /* convergence test */
+  SVDStop        stop;             /* stopping test */
   SVDWhich       which;            /* which singular values are computed */
   PetscBool      impltrans;        /* implicit transpose mode */
   PetscBool      trackall;         /* whether all the residuals must be computed */
@@ -72,7 +73,10 @@ struct _p_SVD {
   /*-------------- User-provided functions and contexts -----------------*/
   PetscErrorCode (*converged)(SVD,PetscReal,PetscReal,PetscReal*,void*);
   PetscErrorCode (*convergeddestroy)(void*);
+  PetscErrorCode (*stopping)(SVD,PetscInt,PetscInt,PetscInt,PetscInt,SVDConvergedReason*,void*);
+  PetscErrorCode (*stoppingdestroy)(void*);
   void           *convergedctx;
+  void           *stoppingctx;
   PetscErrorCode (*monitor[MAXSVDMONITORS])(SVD,PetscInt,PetscInt,PetscReal*,PetscReal*,PetscInt,void*);
   PetscErrorCode (*monitordestroy[MAXSVDMONITORS])(void**);
   void           *monitorcontext[MAXSVDMONITORS];

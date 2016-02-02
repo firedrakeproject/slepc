@@ -68,13 +68,17 @@ PetscErrorCode SVDCreate(MPI_Comm comm,SVD *outsvd)
   svd->ninil            = 0;
   svd->tol              = PETSC_DEFAULT;
   svd->conv             = SVD_CONV_REL;
+  svd->stop             = SVD_STOP_BASIC;
   svd->which            = SVD_LARGEST;
   svd->impltrans        = PETSC_FALSE;
   svd->trackall         = PETSC_FALSE;
 
   svd->converged        = SVDConvergedRelative;
   svd->convergeddestroy = NULL;
+  svd->stopping         = SVDStoppingBasic;
+  svd->stoppingdestroy  = NULL;
   svd->convergedctx     = NULL;
+  svd->stoppingctx      = NULL;
   svd->numbermonitors   = 0;
 
   svd->ds               = NULL;

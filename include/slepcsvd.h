@@ -90,6 +90,16 @@ typedef enum { SVD_CONV_ABS,
                SVD_CONV_USER } SVDConv;
 
 /*E
+    SVDStop - Determines the stopping test
+
+    Level: advanced
+
+.seealso: SVDSetStoppingTest(), SVDSetStoppingTestFunction()
+E*/
+typedef enum { SVD_STOP_BASIC,
+               SVD_STOP_USER } SVDStop;
+
+/*E
     SVDConvergedReason - Reason a singular value solver was said to
          have converged or diverged
 
@@ -136,6 +146,10 @@ PETSC_EXTERN PetscErrorCode SVDSetConvergenceTest(SVD,SVDConv);
 PETSC_EXTERN PetscErrorCode SVDGetConvergenceTest(SVD,SVDConv*);
 PETSC_EXTERN PetscErrorCode SVDConvergedRelative(SVD,PetscReal,PetscReal,PetscReal*,void*);
 PETSC_EXTERN PetscErrorCode SVDConvergedAbsolute(SVD,PetscReal,PetscReal,PetscReal*,void*);
+PETSC_EXTERN PetscErrorCode SVDSetStoppingTestFunction(SVD,PetscErrorCode (*)(SVD,PetscInt,PetscInt,PetscInt,PetscInt,SVDConvergedReason*,void*),void*,PetscErrorCode (*)(void*));
+PETSC_EXTERN PetscErrorCode SVDSetStoppingTest(SVD,SVDStop);
+PETSC_EXTERN PetscErrorCode SVDGetStoppingTest(SVD,SVDStop*);
+PETSC_EXTERN PetscErrorCode SVDStoppingBasic(SVD,PetscInt,PetscInt,PetscInt,PetscInt,SVDConvergedReason*,void*);
 PETSC_EXTERN PetscErrorCode SVDGetConvergedReason(SVD,SVDConvergedReason*);
 PETSC_EXTERN PetscErrorCode SVDGetConverged(SVD,PetscInt*);
 PETSC_EXTERN PetscErrorCode SVDGetSingularTriplet(SVD,PetscInt,PetscReal*,Vec,Vec);
