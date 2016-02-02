@@ -342,6 +342,125 @@ PetscErrorCode SVDGetWhichSingularTriplets(SVD svd,SVDWhich *which)
 }
 
 #undef __FUNCT__
+#define __FUNCT__ "SVDSetConvergenceTestFunction"
+/*@C
+   SVDSetConvergenceTestFunction - Sets a function to compute the error estimate
+   used in the convergence test.
+
+   Logically Collective on SVD
+
+   Input Parameters:
++  svd     - singular value solver context obtained from SVDCreate()
+.  func    - a pointer to the convergence test function
+.  ctx     - context for private data for the convergence routine (may be null)
+-  destroy - a routine for destroying the context (may be null)
+
+   Calling Sequence of func:
+$   func(SVD svd,PetscReal sigma,PetscReal res,PetscReal *errest,void *ctx)
+
++   svd    - singular value solver context obtained from SVDCreate()
+.   sigma  - computed singular value
+.   res    - residual norm associated to the singular triplet
+.   errest - (output) computed error estimate
+-   ctx    - optional context, as set by SVDSetConvergenceTestFunction()
+
+   Note:
+   If the error estimate returned by the convergence test function is less than
+   the tolerance, then the eigenvalue is accepted as converged.
+
+   Level: advanced
+
+.seealso: SVDSetConvergenceTest(), SVDSetTolerances()
+@*/
+PetscErrorCode SVDSetConvergenceTestFunction(SVD svd,PetscErrorCode (*func)(SVD,PetscReal,PetscReal,PetscReal*,void*),void* ctx,PetscErrorCode (*destroy)(void*))
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
+  if (svd->convergeddestroy) {
+    ierr = (*svd->convergeddestroy)(svd->convergedctx);CHKERRQ(ierr);
+  }
+  svd->converged        = func;
+  svd->convergeddestroy = destroy;
+  svd->convergedctx     = ctx;
+  if (func == SVDConvergedRelative) svd->conv = SVD_CONV_REL;
+  else if (func == SVDConvergedAbsolute) svd->conv = SVD_CONV_ABS;
+  else svd->conv = SVD_CONV_USER;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "SVDSetConvergenceTest"
+/*@
+   SVDSetConvergenceTest - Specifies how to compute the error estimate
+   used in the convergence test.
+
+   Logically Collective on SVD
+
+   Input Parameters:
++  svd  - singular value solver context obtained from SVDCreate()
+-  conv - the type of convergence test
+
+   Options Database Keys:
++  -svd_conv_abs  - Sets the absolute convergence test
+.  -svd_conv_rel  - Sets the convergence test relative to the singular value
+-  -svd_conv_user - Selects the user-defined convergence test
+
+   Note:
+   The parameter 'conv' can have one of these values
++     SVD_CONV_ABS  - absolute error ||r||
+.     SVD_CONV_REL  - error relative to the singular value l, ||r||/sigma
+-     SVD_CONV_USER - function set by SVDSetConvergenceTestFunction()
+
+   Level: intermediate
+
+.seealso: SVDGetConvergenceTest(), SVDSetConvergenceTestFunction(), SVDConv
+@*/
+PetscErrorCode SVDSetConvergenceTest(SVD svd,SVDConv conv)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
+  PetscValidLogicalCollectiveEnum(svd,conv,2);
+  switch (conv) {
+    case SVD_CONV_ABS:  svd->converged = SVDConvergedAbsolute; break;
+    case SVD_CONV_REL:  svd->converged = SVDConvergedRelative; break;
+    case SVD_CONV_USER: break;
+    default:
+      SETERRQ(PetscObjectComm((PetscObject)svd),PETSC_ERR_ARG_OUTOFRANGE,"Invalid 'conv' value");
+  }
+  svd->conv = conv;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "SVDGetConvergenceTest"
+/*@
+   SVDGetConvergenceTest - Gets the method used to compute the error estimate
+   used in the convergence test.
+
+   Not Collective
+
+   Input Parameters:
+.  svd   - singular value solver context obtained from SVDCreate()
+
+   Output Parameters:
+.  conv  - the type of convergence test
+
+   Level: intermediate
+
+.seealso: SVDSetConvergenceTest(), SVDConv
+@*/
+PetscErrorCode SVDGetConvergenceTest(SVD svd,SVDConv *conv)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
+  PetscValidPointer(conv,2);
+  *conv = svd->conv;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
 #define __FUNCT__ "SVDSetFromOptions"
 /*@
    SVDSetFromOptions - Sets SVD options from the options database.
@@ -400,6 +519,13 @@ PetscErrorCode SVDSetFromOptions(SVD svd)
     if (flg1 || flg2) {
       ierr = SVDSetTolerances(svd,r,i);CHKERRQ(ierr);
     }
+
+    ierr = PetscOptionsBoolGroupBegin("-svd_conv_rel","Relative error convergence test","SVDSetConvergenceTest",&flg);CHKERRQ(ierr);
+    if (flg) { ierr = SVDSetConvergenceTest(svd,SVD_CONV_REL);CHKERRQ(ierr); }
+    ierr = PetscOptionsBoolGroup("-svd_conv_abs","Absolute error convergence test","SVDSetConvergenceTest",&flg);CHKERRQ(ierr);
+    if (flg) { ierr = SVDSetConvergenceTest(svd,SVD_CONV_ABS);CHKERRQ(ierr); }
+    ierr = PetscOptionsBoolGroupEnd("-svd_conv_user","User-defined convergence test","SVDSetConvergenceTest",&flg);CHKERRQ(ierr);
+    if (flg) { ierr = SVDSetConvergenceTest(svd,SVD_CONV_USER);CHKERRQ(ierr); }
 
     i = svd->nsv;
     ierr = PetscOptionsInt("-svd_nsv","Number of singular values to compute","SVDSetDimensions",svd->nsv,&i,&flg1);CHKERRQ(ierr);

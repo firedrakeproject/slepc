@@ -57,41 +57,45 @@ typedef enum { SVD_STATE_INITIAL,
 struct _p_SVD {
   PETSCHEADER(struct _SVDOps);
   /*------------------------- User parameters ---------------------------*/
-  Mat              OP;          /* problem matrix */
-  PetscInt         max_it;      /* max iterations */
-  PetscInt         nsv;         /* number of requested values */
-  PetscInt         ncv;         /* basis size */
-  PetscInt         mpd;         /* maximum dimension of projected problem */
-  PetscInt         nini,ninil;  /* number of initial vectors (negative means not copied yet) */
-  PetscReal        tol;         /* tolerance */
-  SVDWhich         which;       /* which singular values are computed */
-  PetscBool        impltrans;   /* implicit transpose mode */
-  PetscBool        trackall;    /* whether all the residuals must be computed */
+  Mat            OP;               /* problem matrix */
+  PetscInt       max_it;           /* max iterations */
+  PetscInt       nsv;              /* number of requested values */
+  PetscInt       ncv;              /* basis size */
+  PetscInt       mpd;              /* maximum dimension of projected problem */
+  PetscInt       nini,ninil;       /* number of initial vecs (negative means not copied yet) */
+  PetscReal      tol;              /* tolerance */
+  SVDConv        conv;             /* convergence test */
+  SVDWhich       which;            /* which singular values are computed */
+  PetscBool      impltrans;        /* implicit transpose mode */
+  PetscBool      trackall;         /* whether all the residuals must be computed */
 
   /*-------------- User-provided functions and contexts -----------------*/
-  PetscErrorCode   (*monitor[MAXSVDMONITORS])(SVD,PetscInt,PetscInt,PetscReal*,PetscReal*,PetscInt,void*);
-  PetscErrorCode   (*monitordestroy[MAXSVDMONITORS])(void**);
-  void             *monitorcontext[MAXSVDMONITORS];
-  PetscInt         numbermonitors;
+  PetscErrorCode (*converged)(SVD,PetscReal,PetscReal,PetscReal*,void*);
+  PetscErrorCode (*convergeddestroy)(void*);
+  void           *convergedctx;
+  PetscErrorCode (*monitor[MAXSVDMONITORS])(SVD,PetscInt,PetscInt,PetscReal*,PetscReal*,PetscInt,void*);
+  PetscErrorCode (*monitordestroy[MAXSVDMONITORS])(void**);
+  void           *monitorcontext[MAXSVDMONITORS];
+  PetscInt       numbermonitors;
 
   /*----------------- Child objects and working data -------------------*/
-  DS               ds;          /* direct solver object */
-  BV               U,V;         /* left and right singular vectors */
-  PetscRandom      rand;        /* random number generator */
-  SlepcSC          sc;          /* sorting criterion data */
-  Mat              A;           /* problem matrix (m>n) */
-  Mat              AT;          /* transposed matrix */
-  Vec              *IS,*ISL;    /* placeholder for references to user-provided initial space */
-  PetscReal        *sigma;      /* singular values */
-  PetscInt         *perm;       /* permutation for singular value ordering */
-  PetscReal        *errest;     /* error estimates */
-  void             *data;       /* placeholder for solver-specific stuff */
+  DS             ds;               /* direct solver object */
+  BV             U,V;              /* left and right singular vectors */
+  PetscRandom    rand;             /* random number generator */
+  SlepcSC        sc;               /* sorting criterion data */
+  Mat            A;                /* problem matrix (m>n) */
+  Mat            AT;               /* transposed matrix */
+  Vec            *IS,*ISL;         /* placeholder for references to user initial space */
+  PetscReal      *sigma;           /* singular values */
+  PetscInt       *perm;            /* permutation for singular value ordering */
+  PetscReal      *errest;          /* error estimates */
+  void           *data;            /* placeholder for solver-specific stuff */
 
   /* ----------------------- Status variables -------------------------- */
-  SVDStateType     state;       /* initial -> setup -> solved -> vectors */
-  PetscInt         nconv;       /* number of converged values */
-  PetscInt         its;         /* iteration counter */
-  PetscBool        leftbasis;   /* if U is filled by the solver */
+  SVDStateType   state;            /* initial -> setup -> solved -> vectors */
+  PetscInt       nconv;            /* number of converged values */
+  PetscInt       its;              /* iteration counter */
+  PetscBool      leftbasis;        /* if U is filled by the solver */
   SVDConvergedReason reason;
 };
 

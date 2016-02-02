@@ -271,7 +271,7 @@ PetscErrorCode SVDSolve_TRLanczos(SVD svd)
 {
   PetscErrorCode ierr;
   SVD_TRLANCZOS  *lanczos = (SVD_TRLANCZOS*)svd->data;
-  PetscReal      *alpha,*beta,lastbeta,norm;
+  PetscReal      *alpha,*beta,lastbeta,norm,resnorm;
   PetscScalar    *Q,*swork=NULL,*w;
   PetscInt       i,k,l,nv,ld;
   Mat            U,VT;
@@ -336,8 +336,8 @@ PetscErrorCode SVDSolve_TRLanczos(SVD svd)
     for (i=svd->nconv;i<nv;i++) {
       svd->sigma[i] = PetscRealPart(w[i]);
       beta[i] = PetscRealPart(Q[nv-1+i*ld])*lastbeta;
-      svd->errest[i] = PetscAbsReal(beta[i]);
-      if (svd->sigma[i] > svd->tol) svd->errest[i] /= svd->sigma[i];
+      resnorm = PetscAbsReal(beta[i]);
+      ierr = (*svd->converged)(svd,svd->sigma[i],resnorm,&svd->errest[i],svd->convergedctx);CHKERRQ(ierr);
       if (conv) {
         if (svd->errest[i] < svd->tol) k++;
         else conv = PETSC_FALSE;

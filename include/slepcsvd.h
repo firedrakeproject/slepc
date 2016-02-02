@@ -79,6 +79,17 @@ typedef enum { SVD_ERROR_ABSOLUTE,
 PETSC_EXTERN const char *SVDErrorTypes[];
 
 /*E
+    SVDConv - Determines the convergence test
+
+    Level: intermediate
+
+.seealso: SVDSetConvergenceTest(), SVDSetConvergenceTestFunction()
+E*/
+typedef enum { SVD_CONV_ABS,
+               SVD_CONV_REL,
+               SVD_CONV_USER } SVDConv;
+
+/*E
     SVDConvergedReason - Reason a singular value solver was said to
          have converged or diverged
 
@@ -120,6 +131,11 @@ PETSC_EXTERN PetscErrorCode SVDGetOptionsPrefix(SVD,const char*[]);
 PETSC_EXTERN PetscErrorCode SVDSetUp(SVD);
 PETSC_EXTERN PetscErrorCode SVDSolve(SVD);
 PETSC_EXTERN PetscErrorCode SVDGetIterationNumber(SVD,PetscInt*);
+PETSC_EXTERN PetscErrorCode SVDSetConvergenceTestFunction(SVD,PetscErrorCode (*)(SVD,PetscReal,PetscReal,PetscReal*,void*),void*,PetscErrorCode (*)(void*));
+PETSC_EXTERN PetscErrorCode SVDSetConvergenceTest(SVD,SVDConv);
+PETSC_EXTERN PetscErrorCode SVDGetConvergenceTest(SVD,SVDConv*);
+PETSC_EXTERN PetscErrorCode SVDConvergedRelative(SVD,PetscReal,PetscReal,PetscReal*,void*);
+PETSC_EXTERN PetscErrorCode SVDConvergedAbsolute(SVD,PetscReal,PetscReal,PetscReal*,void*);
 PETSC_EXTERN PetscErrorCode SVDGetConvergedReason(SVD,SVDConvergedReason*);
 PETSC_EXTERN PetscErrorCode SVDGetConverged(SVD,PetscInt*);
 PETSC_EXTERN PetscErrorCode SVDGetSingularTriplet(SVD,PetscInt,PetscReal*,Vec,Vec);

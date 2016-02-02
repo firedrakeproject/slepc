@@ -48,6 +48,14 @@
       parameter (SVD_ERROR_ABSOLUTE         =  0)
       parameter (SVD_ERROR_RELATIVE         =  1)
 
+      PetscEnum SVD_CONV_ABS
+      PetscEnum SVD_CONV_REL
+      PetscEnum SVD_CONV_USER
+
+      parameter (SVD_CONV_ABS               =  0)
+      parameter (SVD_CONV_REL               =  1)
+      parameter (SVD_CONV_USER              =  2)
+
 !
 !   Possible arguments to SVDMonitorSet()
 !
