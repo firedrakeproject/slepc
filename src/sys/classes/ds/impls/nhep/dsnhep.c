@@ -138,11 +138,10 @@ PetscErrorCode DSVectors_NHEP_Eigen_Some(DS ds,PetscInt *k,PetscReal *rnorm,Pets
 #else
   PetscErrorCode ierr;
   PetscInt       i;
-  PetscBLASInt   mm=1,mout,info,ld,n,inc = 1;
+  PetscBLASInt   mm=1,mout,info,ld,n,*select,inc = 1;
   PetscScalar    tmp,done=1.0,zero=0.0;
   PetscReal      norm;
   PetscBool      iscomplex = PETSC_FALSE;
-  PetscBLASInt   *select;
   PetscScalar    *A = ds->mat[DS_MAT_A];
   PetscScalar    *Q = ds->mat[DS_MAT_Q];
   PetscScalar    *X = ds->mat[left?DS_MAT_Y:DS_MAT_X];
@@ -155,7 +154,7 @@ PetscErrorCode DSVectors_NHEP_Eigen_Some(DS ds,PetscInt *k,PetscReal *rnorm,Pets
   select = ds->iwork;
   for (i=0;i<n;i++) select[i] = (PetscBLASInt)PETSC_FALSE;
 
-  /* Compute k-th eigenvector Y of A */
+  /* compute k-th eigenvector Y of A */
   Y = X+(*k)*ld;
   select[*k] = (PetscBLASInt)PETSC_TRUE;
 #if !defined(PETSC_USE_COMPLEX)

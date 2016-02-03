@@ -738,10 +738,8 @@ static PetscErrorCode dvd_improvex_jd_gen(dvdDashboard *d,PetscInt r_s,PetscInt 
     /* Compute u, v and kr */
     k = r_s+i;
     ierr = DSVectors(d->eps->ds,DS_MAT_X,&k,NULL);CHKERRQ(ierr);
-    ierr = DSNormalize(d->eps->ds,DS_MAT_X,r_s+i);CHKERRQ(ierr);
     k = r_s+i;
     ierr = DSVectors(d->eps->ds,DS_MAT_Y,&k,NULL);CHKERRQ(ierr);
-    ierr = DSNormalize(d->eps->ds,DS_MAT_Y,r_s+i);CHKERRQ(ierr);
     ierr = DSGetArray(d->eps->ds,DS_MAT_X,&pX);CHKERRQ(ierr);
     ierr = DSGetArray(d->eps->ds,DS_MAT_Y,&pY);CHKERRQ(ierr);
     ierr = dvd_improvex_jd_proj_cuv(d,r_s+i,r_s+i+s,kr,data->theta,data->thetai,pX,pY,ld);CHKERRQ(ierr);
