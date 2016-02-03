@@ -82,7 +82,7 @@ PetscErrorCode DSView_GNHEP(DS ds,PetscViewer viewer)
 
 #undef __FUNCT__
 #define __FUNCT__ "DSVectors_GNHEP_Eigen_Some"
-PetscErrorCode DSVectors_GNHEP_Eigen_Some(DS ds,PetscInt *k,PetscReal *rnorm,PetscBool left)
+static PetscErrorCode DSVectors_GNHEP_Eigen_Some(DS ds,PetscInt *k,PetscReal *rnorm,PetscBool left)
 {
 #if defined(SLEPC_MISSING_LAPACK_TGEVC)
   PetscFunctionBegin;
@@ -164,7 +164,7 @@ PetscErrorCode DSVectors_GNHEP_Eigen_Some(DS ds,PetscInt *k,PetscReal *rnorm,Pet
 
 #undef __FUNCT__
 #define __FUNCT__ "DSVectors_GNHEP_Eigen_All"
-PetscErrorCode DSVectors_GNHEP_Eigen_All(DS ds,PetscBool left)
+static PetscErrorCode DSVectors_GNHEP_Eigen_All(DS ds,PetscBool left)
 {
 #if defined(SLEPC_MISSING_LAPACK_TGEVC)
   PetscFunctionBegin;
@@ -316,7 +316,7 @@ PetscErrorCode DSNormalize_GNHEP(DS ds,DSMatType mat,PetscInt col)
 
 #undef __FUNCT__
 #define __FUNCT__ "DSSort_GNHEP_Arbitrary"
-PetscErrorCode DSSort_GNHEP_Arbitrary(DS ds,PetscScalar *wr,PetscScalar *wi,PetscScalar *rr,PetscScalar *ri,PetscInt *k)
+static PetscErrorCode DSSort_GNHEP_Arbitrary(DS ds,PetscScalar *wr,PetscScalar *wi,PetscScalar *rr,PetscScalar *ri,PetscInt *k)
 {
 #if defined(PETSC_MISSING_LAPACK_TGSEN)
   PetscFunctionBegin;
@@ -369,7 +369,7 @@ PetscErrorCode DSSort_GNHEP_Arbitrary(DS ds,PetscScalar *wr,PetscScalar *wi,Pets
 
 #undef __FUNCT__
 #define __FUNCT__ "DSSort_GNHEP_Total"
-PetscErrorCode DSSort_GNHEP_Total(DS ds,PetscScalar *wr,PetscScalar *wi)
+static PetscErrorCode DSSort_GNHEP_Total(DS ds,PetscScalar *wr,PetscScalar *wi)
 {
 #if defined(SLEPC_MISSING_LAPACK_TGEXC) || !defined(PETSC_USE_COMPLEX) && (defined(SLEPC_MISSING_LAPACK_LAMCH) || defined(SLEPC_MISSING_LAPACK_LAG2))
   PetscFunctionBegin;

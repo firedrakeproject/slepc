@@ -59,7 +59,7 @@ PetscErrorCode DSView_NHEP(DS ds,PetscViewer viewer)
 
 #undef __FUNCT__
 #define __FUNCT__ "DSVectors_NHEP_Refined_Some"
-PetscErrorCode DSVectors_NHEP_Refined_Some(DS ds,PetscInt *k,PetscReal *rnorm,PetscBool left)
+static PetscErrorCode DSVectors_NHEP_Refined_Some(DS ds,PetscInt *k,PetscReal *rnorm,PetscBool left)
 {
 #if defined(PETSC_MISSING_LAPACK_GESVD)
   PetscFunctionBegin;
@@ -116,7 +116,7 @@ PetscErrorCode DSVectors_NHEP_Refined_Some(DS ds,PetscInt *k,PetscReal *rnorm,Pe
 
 #undef __FUNCT__
 #define __FUNCT__ "DSVectors_NHEP_Refined_All"
-PetscErrorCode DSVectors_NHEP_Refined_All(DS ds,PetscBool left)
+static PetscErrorCode DSVectors_NHEP_Refined_All(DS ds,PetscBool left)
 {
   PetscErrorCode ierr;
   PetscInt       i;
@@ -130,7 +130,7 @@ PetscErrorCode DSVectors_NHEP_Refined_All(DS ds,PetscBool left)
 
 #undef __FUNCT__
 #define __FUNCT__ "DSVectors_NHEP_Eigen_Some"
-PetscErrorCode DSVectors_NHEP_Eigen_Some(DS ds,PetscInt *k,PetscReal *rnorm,PetscBool left)
+static PetscErrorCode DSVectors_NHEP_Eigen_Some(DS ds,PetscInt *k,PetscReal *rnorm,PetscBool left)
 {
 #if defined(SLEPC_MISSING_LAPACK_TREVC)
   PetscFunctionBegin;
@@ -203,7 +203,7 @@ PetscErrorCode DSVectors_NHEP_Eigen_Some(DS ds,PetscInt *k,PetscReal *rnorm,Pets
 
 #undef __FUNCT__
 #define __FUNCT__ "DSVectors_NHEP_Eigen_All"
-PetscErrorCode DSVectors_NHEP_Eigen_All(DS ds,PetscBool left)
+static PetscErrorCode DSVectors_NHEP_Eigen_All(DS ds,PetscBool left)
 {
 #if defined(SLEPC_MISSING_LAPACK_TREVC)
   PetscFunctionBegin;
@@ -369,7 +369,7 @@ PetscErrorCode DSNormalize_NHEP(DS ds,DSMatType mat,PetscInt col)
 
 #undef __FUNCT__
 #define __FUNCT__ "DSSort_NHEP_Arbitrary"
-PetscErrorCode DSSort_NHEP_Arbitrary(DS ds,PetscScalar *wr,PetscScalar *wi,PetscScalar *rr,PetscScalar *ri,PetscInt *k)
+static PetscErrorCode DSSort_NHEP_Arbitrary(DS ds,PetscScalar *wr,PetscScalar *wi,PetscScalar *rr,PetscScalar *ri,PetscInt *k)
 {
 #if defined(SLEPC_MISSING_LAPACK_TRSEN)
   PetscFunctionBegin;
@@ -419,7 +419,7 @@ PetscErrorCode DSSort_NHEP_Arbitrary(DS ds,PetscScalar *wr,PetscScalar *wi,Petsc
 
 #undef __FUNCT__
 #define __FUNCT__ "DSSort_NHEP_Total"
-PetscErrorCode DSSort_NHEP_Total(DS ds,PetscScalar *wr,PetscScalar *wi)
+static PetscErrorCode DSSort_NHEP_Total(DS ds,PetscScalar *wr,PetscScalar *wi)
 {
 #if defined(SLEPC_MISSING_LAPACK_TREXC)
   PetscFunctionBegin;
