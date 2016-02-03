@@ -353,14 +353,11 @@ PetscErrorCode NEPGetConverged(NEP nep,PetscInt *nconv)
 .  reason - negative value indicates diverged, positive value converged
 
    Possible values for reason:
-+  NEP_CONVERGED_FNORM_ABS - function norm satisfied absolute tolerance
-.  NEP_CONVERGED_FNORM_RELATIVE - function norm satisfied relative tolerance
-.  NEP_CONVERGED_SNORM_RELATIVE - step norm satisfied relative tolerance
++  NEP_CONVERGED_TOL - converged up to tolerance
+.  NEP_CONVERGED_USER - converged due to a user-defined condition
 .  NEP_DIVERGED_LINEAR_SOLVE - inner linear solve failed
-.  NEP_DIVERGED_FUNCTION_COUNT - reached maximum allowed function evaluations
-.  NEP_DIVERGED_MAX_IT - required more than its to reach convergence
-.  NEP_DIVERGED_BREAKDOWN - generic breakdown in method
--  NEP_DIVERGED_FNORM_NAN - Inf or NaN detected in function evaluation
+.  NEP_DIVERGED_ITS - required more than its to reach convergence
+-  NEP_DIVERGED_BREAKDOWN - generic breakdown in method
 
    Note:
    Can only be called after the call to NEPSolve() is complete.

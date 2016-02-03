@@ -39,6 +39,7 @@
 #define NEPErrorType       PetscEnum
 #define NEPWhich           PetscEnum
 #define NEPConv            PetscEnum
+#define NEPStop            PetscEnum
 #define NEPRefine          PetscEnum
 #define NEPRefineScheme    PetscEnum
 

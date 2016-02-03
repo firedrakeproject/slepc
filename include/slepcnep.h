@@ -121,6 +121,16 @@ typedef enum { NEP_CONV_ABS,
                NEP_CONV_USER } NEPConv;
 
 /*E
+    NEPStop - Determines the stopping test
+
+    Level: advanced
+
+.seealso: NEPSetStoppingTest(), NEPSetStoppingTestFunction()
+E*/
+typedef enum { NEP_STOP_BASIC,
+               NEP_STOP_USER } NEPStop;
+
+/*E
     NEPConvergedReason - Reason a nonlinear eigensolver was said to
          have converged or diverged
 
@@ -130,9 +140,10 @@ typedef enum { NEP_CONV_ABS,
 E*/
 typedef enum {/* converged */
               NEP_CONVERGED_TOL                =  1,
+              NEP_CONVERGED_USER               =  2,
               /* diverged */
               NEP_DIVERGED_LINEAR_SOLVE        = -1,
-              NEP_DIVERGED_MAX_IT              = -3,
+              NEP_DIVERGED_ITS                 = -3,
               NEP_DIVERGED_BREAKDOWN           = -4,
               NEP_CONVERGED_ITERATING          =  0} NEPConvergedReason;
 PETSC_EXTERN const char *const*NEPConvergedReasons;
@@ -184,6 +195,10 @@ PETSC_EXTERN PetscErrorCode NEPSetConvergenceTest(NEP,NEPConv);
 PETSC_EXTERN PetscErrorCode NEPGetConvergenceTest(NEP,NEPConv*);
 PETSC_EXTERN PetscErrorCode NEPConvergedEigRelative(NEP,PetscScalar,PetscScalar,PetscReal,PetscReal*,void*);
 PETSC_EXTERN PetscErrorCode NEPConvergedAbsolute(NEP,PetscScalar,PetscScalar,PetscReal,PetscReal*,void*);
+PETSC_EXTERN PetscErrorCode NEPSetStoppingTestFunction(NEP,PetscErrorCode (*)(NEP,PetscInt,PetscInt,PetscInt,PetscInt,NEPConvergedReason*,void*),void*,PetscErrorCode (*)(void*));
+PETSC_EXTERN PetscErrorCode NEPSetStoppingTest(NEP,NEPStop);
+PETSC_EXTERN PetscErrorCode NEPGetStoppingTest(NEP,NEPStop*);
+PETSC_EXTERN PetscErrorCode NEPStoppingBasic(NEP,PetscInt,PetscInt,PetscInt,PetscInt,NEPConvergedReason*,void*);
 PETSC_EXTERN PetscErrorCode NEPSetDimensions(NEP,PetscInt,PetscInt,PetscInt);
 PETSC_EXTERN PetscErrorCode NEPGetDimensions(NEP,PetscInt*,PetscInt*,PetscInt*);
 PETSC_EXTERN PetscErrorCode NEPSetRefine(NEP,NEPRefine,PetscInt,PetscReal,PetscInt,NEPRefineScheme);

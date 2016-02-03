@@ -118,6 +118,56 @@ PetscErrorCode NEPConvergedAbsolute(NEP nep,PetscScalar eigr,PetscScalar eigi,Pe
 }
 
 #undef __FUNCT__
+#define __FUNCT__ "NEPStoppingBasic"
+/*@C
+   NEPStoppingBasic - Default routine to determine whether the outer eigensolver
+   iteration must be stopped.
+
+   Collective on NEP
+
+   Input Parameters:
++  nep    - nonlinear eigensolver context obtained from NEPCreate()
+.  its    - current number of iterations
+.  max_it - maximum number of iterations
+.  nconv  - number of currently converged eigenpairs
+.  nev    - number of requested eigenpairs
+-  ctx    - context (not used here)
+
+   Output Parameter:
+.  reason - result of the stopping test
+
+   Notes:
+   A positive value of reason indicates that the iteration has finished successfully
+   (converged), and a negative value indicates an error condition (diverged). If
+   the iteration needs to be continued, reason must be set to NEP_CONVERGED_ITERATING
+   (zero).
+
+   NEPStoppingBasic() will stop if all requested eigenvalues are converged, or if
+   the maximum number of iterations has been reached.
+
+   Use NEPSetStoppingTest() to provide your own test instead of using this one.
+
+   Level: advanced
+
+.seealso: NEPSetStoppingTest(), NEPConvergedReason, NEPGetConvergedReason()
+@*/
+PetscErrorCode NEPStoppingBasic(NEP nep,PetscInt its,PetscInt max_it,PetscInt nconv,PetscInt nev,NEPConvergedReason *reason,void *ctx)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  *reason = NEP_CONVERGED_ITERATING;
+  if (nconv >= nev) {
+    ierr = PetscInfo2(nep,"Nonlinear eigensolver finished successfully: %D eigenpairs converged at iteration %D\n",nconv,its);CHKERRQ(ierr);
+    *reason = NEP_CONVERGED_TOL;
+  } else if (its >= max_it) {
+    *reason = NEP_DIVERGED_ITS;
+    ierr = PetscInfo1(nep,"Nonlinear eigensolver iteration reached maximum number of iterations (%D)\n",its);CHKERRQ(ierr);
+  }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
 #define __FUNCT__ "NEPComputeVectors_Schur"
 PetscErrorCode NEPComputeVectors_Schur(NEP nep)
 {

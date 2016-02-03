@@ -58,6 +58,12 @@
       parameter (SVD_CONV_REL               =  1)
       parameter (SVD_CONV_USER              =  2)
 
+      PetscEnum SVD_STOP_BASIC
+      PetscEnum SVD_STOP_USER
+
+      parameter (SVD_STOP_BASIC             =  0)
+      parameter (SVD_STOP_USER              =  1)
+
 !
 !   Possible arguments to SVDMonitorSet()
 !

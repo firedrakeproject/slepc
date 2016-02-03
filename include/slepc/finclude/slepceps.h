@@ -122,6 +122,12 @@
       parameter (EPS_CONV_NORM              =  2)
       parameter (EPS_CONV_USER              =  3)
 
+      PetscEnum EPS_STOP_BASIC
+      PetscEnum EPS_STOP_USER
+
+      parameter (EPS_STOP_BASIC             =  0)
+      parameter (EPS_STOP_USER              =  1)
+
       PetscEnum EPS_POWER_SHIFT_CONSTANT
       PetscEnum EPS_POWER_SHIFT_RAYLEIGH
       PetscEnum EPS_POWER_SHIFT_WILKINSON

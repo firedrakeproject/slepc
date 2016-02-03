@@ -160,7 +160,7 @@ PetscErrorCode NEPSolve_RII(NEP nep)
       /* normalize eigenvector */
       ierr = VecNormalize(u,NULL);CHKERRQ(ierr);
     }
-    if (nep->its >= nep->max_it) nep->reason = NEP_DIVERGED_MAX_IT;
+    if (nep->its >= nep->max_it) nep->reason = NEP_DIVERGED_ITS;
   }
   ierr = MatDestroy(&Tsigma);CHKERRQ(ierr);
   ierr = BVRestoreColumn(nep->V,0,&u);CHKERRQ(ierr);

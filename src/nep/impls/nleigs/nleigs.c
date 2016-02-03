@@ -763,7 +763,7 @@ PetscErrorCode NEPSolve_NLEIGS(NEP nep)
 
     /* Check convergence */
     ierr = NEPNLEIGSKrylovConvergence(nep,PETSC_FALSE,nep->nconv,nv-nep->nconv,beta,&k);CHKERRQ(ierr);
-    if (nep->its >= nep->max_it) nep->reason = NEP_DIVERGED_MAX_IT;
+    if (nep->its >= nep->max_it) nep->reason = NEP_DIVERGED_ITS;
     if (k >= nep->nev) nep->reason = NEP_CONVERGED_TOL;
 
     /* Update l */

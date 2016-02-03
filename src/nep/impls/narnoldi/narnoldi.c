@@ -160,7 +160,7 @@ PetscErrorCode NEPSolve_NArnoldi(NEP nep)
       ierr = NEPProjectOperator(nep,n,n+1);CHKERRQ(ierr);
       n++;
     }
-    if (nep->its >= nep->max_it) nep->reason = NEP_DIVERGED_MAX_IT;
+    if (nep->its >= nep->max_it) nep->reason = NEP_DIVERGED_ITS;
   }
   ierr = MatDestroy(&Tsigma);CHKERRQ(ierr);
   PetscFunctionReturn(0);

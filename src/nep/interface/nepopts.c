@@ -92,6 +92,11 @@ PetscErrorCode NEPSetFromOptions(NEP nep)
     ierr = PetscOptionsBoolGroupEnd("-nep_conv_user","User-defined convergence test","NEPSetConvergenceTest",&flg);CHKERRQ(ierr);
     if (flg) { ierr = NEPSetConvergenceTest(nep,NEP_CONV_USER);CHKERRQ(ierr); }
 
+    ierr = PetscOptionsBoolGroupBegin("-nep_stop_basic","Stop iteration if all eigenvalues converged or max_it reached","NEPSetStoppingTest",&flg);CHKERRQ(ierr);
+    if (flg) { ierr = NEPSetStoppingTest(nep,NEP_STOP_BASIC);CHKERRQ(ierr); }
+    ierr = PetscOptionsBoolGroupEnd("-nep_stop_user","User-defined stopping test","NEPSetStoppingTest",&flg);CHKERRQ(ierr);
+    if (flg) { ierr = NEPSetStoppingTest(nep,NEP_STOP_USER);CHKERRQ(ierr); }
+
     i = nep->nev;
     ierr = PetscOptionsInt("-nep_nev","Number of eigenvalues to compute","NEPSetDimensions",nep->nev,&i,&flg1);CHKERRQ(ierr);
     j = nep->ncv? nep->ncv: PETSC_DEFAULT;
@@ -717,6 +722,125 @@ PetscErrorCode NEPGetConvergenceTest(NEP nep,NEPConv *conv)
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
   PetscValidPointer(conv,2);
   *conv = nep->conv;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "NEPSetStoppingTestFunction"
+/*@C
+   NEPSetStoppingTestFunction - Sets a function to decide when to stop the outer
+   iteration of the eigensolver.
+
+   Logically Collective on NEP
+
+   Input Parameters:
++  nep     - nonlinear eigensolver context obtained from NEPCreate()
+.  func    - pointer to the stopping test function
+.  ctx     - context for private data for the stopping routine (may be null)
+-  destroy - a routine for destroying the context (may be null)
+
+   Calling Sequence of func:
+$   func(NEP nep,PetscInt its,PetscInt max_it,PetscInt nconv,PetscInt nev,NEPConvergedReason *reason,void *ctx)
+
++   nep    - nonlinear eigensolver context obtained from NEPCreate()
+.   its    - current number of iterations
+.   max_it - maximum number of iterations
+.   nconv  - number of currently converged eigenpairs
+.   nev    - number of requested eigenpairs
+.   reason - (output) result of the stopping test
+-   ctx    - optional context, as set by NEPSetStoppingTestFunction()
+
+   Note:
+   Normal usage is to first call the default routine NEPStoppingBasic() and then
+   set reason to NEP_CONVERGED_USER if some user-defined conditions have been
+   met. To let the eigensolver continue iterating, the result must be left as
+   NEP_CONVERGED_ITERATING.
+
+   Level: advanced
+
+.seealso: NEPSetStoppingTest(), NEPStoppingBasic()
+@*/
+PetscErrorCode NEPSetStoppingTestFunction(NEP nep,PetscErrorCode (*func)(NEP,PetscInt,PetscInt,PetscInt,PetscInt,NEPConvergedReason*,void*),void* ctx,PetscErrorCode (*destroy)(void*))
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
+  if (nep->stoppingdestroy) {
+    ierr = (*nep->stoppingdestroy)(nep->stoppingctx);CHKERRQ(ierr);
+  }
+  nep->stopping        = func;
+  nep->stoppingdestroy = destroy;
+  nep->stoppingctx     = ctx;
+  if (func == NEPStoppingBasic) nep->stop = NEP_STOP_BASIC;
+  else nep->stop = NEP_STOP_USER;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "NEPSetStoppingTest"
+/*@
+   NEPSetStoppingTest - Specifies how to decide the termination of the outer
+   loop of the eigensolver.
+
+   Logically Collective on NEP
+
+   Input Parameters:
++  nep  - nonlinear eigensolver context obtained from NEPCreate()
+-  stop - the type of stopping test
+
+   Options Database Keys:
++  -nep_stop_basic - Sets the default stopping test
+-  -nep_stop_user  - Selects the user-defined stopping test
+
+   Note:
+   The parameter 'stop' can have one of these values
++     NEP_STOP_BASIC - default stopping test
+-     NEP_STOP_USER  - function set by NEPSetStoppingTestFunction()
+
+   Level: advanced
+
+.seealso: NEPGetStoppingTest(), NEPSetStoppingTestFunction(), NEPSetConvergenceTest(), NEPStop
+@*/
+PetscErrorCode NEPSetStoppingTest(NEP nep,NEPStop stop)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
+  PetscValidLogicalCollectiveEnum(nep,stop,2);
+  switch (stop) {
+    case NEP_STOP_BASIC: nep->stopping = NEPStoppingBasic; break;
+    case NEP_STOP_USER:  break;
+    default:
+      SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_OUTOFRANGE,"Invalid 'stop' value");
+  }
+  nep->stop = stop;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "NEPGetStoppingTest"
+/*@
+   NEPGetStoppingTest - Gets the method used to decide the termination of the outer
+   loop of the eigensolver.
+
+   Not Collective
+
+   Input Parameters:
+.  nep   - nonlinear eigensolver context obtained from NEPCreate()
+
+   Output Parameters:
+.  stop  - the type of stopping test
+
+   Level: advanced
+
+.seealso: NEPSetStoppingTest(), NEPStop
+@*/
+PetscErrorCode NEPGetStoppingTest(NEP nep,NEPStop *stop)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
+  PetscValidPointer(stop,2);
+  *stop = nep->stop;
   PetscFunctionReturn(0);
 }
 

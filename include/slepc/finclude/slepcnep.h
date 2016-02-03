@@ -50,15 +50,23 @@
       parameter (NEP_CONV_EIG               =  1)
       parameter (NEP_CONV_USER              =  2)
 
+      PetscEnum NEP_STOP_BASIC
+      PetscEnum NEP_STOP_USER
+
+      parameter (NEP_STOP_BASIC             =  0)
+      parameter (NEP_STOP_USER              =  1)
+
       PetscEnum NEP_CONVERGED_TOL
+      PetscEnum NEP_CONVERGED_USER
       PetscEnum NEP_DIVERGED_LINEAR_SOLVE
-      PetscEnum NEP_DIVERGED_MAX_IT
+      PetscEnum NEP_DIVERGED_ITS
       PetscEnum NEP_DIVERGED_BREAKDOWN
       PetscEnum NEP_CONVERGED_ITERATING
 
       parameter (NEP_CONVERGED_TOL            =  1)
+      parameter (NEP_CONVERGED_USER           =  2)
       parameter (NEP_DIVERGED_LINEAR_SOLVE    = -1)
-      parameter (NEP_DIVERGED_MAX_IT          = -3)
+      parameter (NEP_DIVERGED_ITS             = -3)
       parameter (NEP_DIVERGED_BREAKDOWN       = -4)
       parameter (NEP_CONVERGED_ITERATING      =  0)
 

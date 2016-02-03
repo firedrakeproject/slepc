@@ -79,6 +79,7 @@ struct _p_NEP {
   PetscReal      ktol;             /* tolerance for linear solver */
   PetscBool      cctol;            /* constant correction tolerance */
   NEPConv        conv;             /* convergence test */
+  NEPStop        stop;             /* stopping test */
   NEPWhich       which;            /* which part of the spectrum to be sought */
   NEPRefine      refine;           /* type of refinement to be applied after solve */
   PetscInt       npart;            /* number of partitions of the communicator */
@@ -96,7 +97,10 @@ struct _p_NEP {
   void           *derivativesctx;
   PetscErrorCode (*converged)(NEP,PetscScalar,PetscScalar,PetscReal,PetscReal*,void*);
   PetscErrorCode (*convergeddestroy)(void*);
+  PetscErrorCode (*stopping)(NEP,PetscInt,PetscInt,PetscInt,PetscInt,NEPConvergedReason*,void*);
+  PetscErrorCode (*stoppingdestroy)(void*);
   void           *convergedctx;
+  void           *stoppingctx;
   PetscErrorCode (*monitor[MAXNEPMONITORS])(NEP,PetscInt,PetscInt,PetscScalar*,PetscReal*,PetscInt,void*);
   PetscErrorCode (*monitordestroy[MAXNEPMONITORS])(void**);
   void           *monitorcontext[MAXNEPMONITORS];

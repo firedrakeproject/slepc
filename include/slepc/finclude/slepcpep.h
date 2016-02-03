@@ -140,6 +140,12 @@
       parameter (PEP_CONV_NORM              =  3)
       parameter (PEP_CONV_USER              =  4)
 
+      PetscEnum PEP_STOP_BASIC
+      PetscEnum PEP_STOP_USER
+
+      parameter (PEP_STOP_BASIC             =  0)
+      parameter (PEP_STOP_USER              =  1)
+
 !
 !   Possible arguments to PEPMonitorSet()
 !

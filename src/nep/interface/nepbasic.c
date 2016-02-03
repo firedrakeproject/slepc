@@ -67,6 +67,7 @@ PetscErrorCode NEPCreate(MPI_Comm comm,NEP *outnep)
   nep->ktol            = 0.1;
   nep->cctol           = PETSC_FALSE;
   nep->conv            = NEP_CONV_EIG;
+  nep->stop            = NEP_STOP_BASIC;
   nep->which           = (NEPWhich)0;
   nep->refine          = NEP_REFINE_NONE;
   nep->npart           = 1;
@@ -83,7 +84,10 @@ PetscErrorCode NEPCreate(MPI_Comm comm,NEP *outnep)
   nep->derivativesctx  = NULL;
   nep->converged       = NEPConvergedEigRelative;
   nep->convergeddestroy= NULL;
+  nep->stopping        = NEPStoppingBasic;
+  nep->stoppingdestroy = NULL;
   nep->convergedctx    = NULL;
+  nep->stoppingctx     = NULL;
   nep->numbermonitors  = 0;
 
   nep->ds              = NULL;

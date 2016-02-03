@@ -139,7 +139,7 @@ PetscErrorCode NEPSolve_SLP(NEP nep)
       /* correct eigenvalue */
       lambda = lambda - mu;
     }
-    if (nep->its >= nep->max_it) nep->reason = NEP_DIVERGED_MAX_IT;
+    if (nep->its >= nep->max_it) nep->reason = NEP_DIVERGED_ITS;
   }
   ierr = BVRestoreColumn(nep->V,0,&u);CHKERRQ(ierr);
   PetscFunctionReturn(0);

@@ -26,7 +26,7 @@ static PetscBool NEPPackageInitialized = PETSC_FALSE;
 const char *NEPErrorTypes[] = {"ABSOLUTE","RELATIVE","NEPErrorType","NEP_ERROR_",0};
 const char *NEPRefineTypes[] = {"NONE","SIMPLE","MULTIPLE","NEPRefine","NEP_REFINE_",0};
 const char *NEPRefineSchemes[] = {"EXPLICIT","MBE","SCHUR","NEPRefineScheme","NEP_REFINE_SCHEME_",0};
-const char *const NEPConvergedReasons_Shifted[] = {"DIVERGED_FNORM_NAN","DIVERGED_BREAKDOWN","DIVERGED_MAX_IT","DIVERGED_FUNCTION_COUNT","DIVERGED_LINEAR_SOLVE","CONVERGED_ITERATING","CONVERGED_TOL","CONVERGED_FNORM_ABS","CONVERGED_FNORM_RELATIVE","CONVERGED_SNORM_RELATIVE","NEPConvergedReason","NEP_",0};
+const char *const NEPConvergedReasons_Shifted[] = {"DIVERGED_BREAKDOWN","DIVERGED_ITS","","DIVERGED_LINEAR_SOLVE","CONVERGED_ITERATING","CONVERGED_TOL","CONVERGED_USER","NEPConvergedReason","NEP_",0};
 const char *const*NEPConvergedReasons = NEPConvergedReasons_Shifted + 5;
 
 #undef __FUNCT__
