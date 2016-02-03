@@ -19,6 +19,7 @@ native EPSPRIMMEMethod
 native FNCombineType
 native MFNConvergedReason
 native NEPWhich
+native NEPConv
 native NEPErrorType
 native NEPRefine
 native NEPConvergedReason

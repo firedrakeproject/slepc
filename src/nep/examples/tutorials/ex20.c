@@ -60,8 +60,8 @@ int main(int argc,char **argv)
   Mat            F,J;             /* Function and Jacobian matrices */
   ApplicationCtx ctx;             /* user-defined context */
   NEPType        type;
-  PetscInt       n=128,nev,i,its,maxit,maxf,nconv;
-  PetscReal      re,im,abstol,rtol,stol,norm,error;
+  PetscInt       n=128,nev,i,its,maxit,nconv;
+  PetscReal      re,im,tol,norm,error;
   PetscBool      draw_sol;
   PetscErrorCode ierr;
 
@@ -116,7 +116,7 @@ int main(int argc,char **argv)
      Customize nonlinear solver; set runtime options
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  ierr = NEPSetTolerances(nep,PETSC_DEFAULT,1e-9,PETSC_DEFAULT,PETSC_DEFAULT,PETSC_DEFAULT);CHKERRQ(ierr);
+  ierr = NEPSetTolerances(nep,1e-9,PETSC_DEFAULT);CHKERRQ(ierr);
   ierr = NEPSetDimensions(nep,1,PETSC_DEFAULT,PETSC_DEFAULT);CHKERRQ(ierr);
   ierr = NEPSetLagPreconditioner(nep,0);CHKERRQ(ierr);
 
@@ -151,8 +151,8 @@ int main(int argc,char **argv)
   ierr = PetscPrintf(PETSC_COMM_WORLD," Solution method: %s\n",type);CHKERRQ(ierr);
   ierr = NEPGetDimensions(nep,&nev,NULL,NULL);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD," Number of requested eigenvalues: %D\n",nev);CHKERRQ(ierr);
-  ierr = NEPGetTolerances(nep,&abstol,&rtol,&stol,&maxit,&maxf);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," Stopping condition: atol=%g, rtol=%g, stol=%g, maxit=%D, maxf=%D\n",(double)abstol,(double)rtol,(double)stol,maxit,maxf);CHKERRQ(ierr);
+  ierr = NEPGetTolerances(nep,&tol,&maxit);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD," Stopping condition: tol=%g, maxit=%D\n",(double)tol,maxit);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                     Display solution and clean up

@@ -110,6 +110,17 @@ typedef enum { NEP_REFINE_SCHEME_EXPLICIT,
 PETSC_EXTERN const char *NEPRefineSchemes[];
 
 /*E
+    NEPConv - Determines the convergence test
+
+    Level: intermediate
+
+.seealso: NEPSetConvergenceTest(), NEPSetConvergenceTestFunction()
+E*/
+typedef enum { NEP_CONV_ABS,
+               NEP_CONV_EIG,
+               NEP_CONV_USER } NEPConv;
+
+/*E
     NEPConvergedReason - Reason a nonlinear eigensolver was said to
          have converged or diverged
 
@@ -119,15 +130,10 @@ PETSC_EXTERN const char *NEPRefineSchemes[];
 E*/
 typedef enum {/* converged */
               NEP_CONVERGED_TOL                =  1,
-              NEP_CONVERGED_FNORM_ABS          =  2,
-              NEP_CONVERGED_FNORM_RELATIVE     =  3,
-              NEP_CONVERGED_SNORM_RELATIVE     =  4,
               /* diverged */
               NEP_DIVERGED_LINEAR_SOLVE        = -1,
-              NEP_DIVERGED_FUNCTION_COUNT      = -2,
               NEP_DIVERGED_MAX_IT              = -3,
               NEP_DIVERGED_BREAKDOWN           = -4,
-              NEP_DIVERGED_FNORM_NAN           = -5,
               NEP_CONVERGED_ITERATING          =  0} NEPConvergedReason;
 PETSC_EXTERN const char *const*NEPConvergedReasons;
 
@@ -171,10 +177,13 @@ PETSC_EXTERN PetscErrorCode NEPGetRG(NEP,RG*);
 PETSC_EXTERN PetscErrorCode NEPSetDS(NEP,DS);
 PETSC_EXTERN PetscErrorCode NEPGetDS(NEP,DS*);
 PETSC_EXTERN PetscErrorCode NEPRefineGetKSP(NEP,KSP*);
-PETSC_EXTERN PetscErrorCode NEPSetTolerances(NEP,PetscReal,PetscReal,PetscReal,PetscInt,PetscInt);
-PETSC_EXTERN PetscErrorCode NEPGetTolerances(NEP,PetscReal*,PetscReal*,PetscReal*,PetscInt*,PetscInt*);
-PETSC_EXTERN PetscErrorCode NEPSetConvergenceTest(NEP,PetscErrorCode (*)(NEP,PetscInt,PetscReal,PetscReal,PetscReal,NEPConvergedReason*,void*),void*,PetscErrorCode (*)(void*));
-PETSC_EXTERN PetscErrorCode NEPConvergedDefault(NEP,PetscInt,PetscReal,PetscReal,PetscReal,NEPConvergedReason*,void*);
+PETSC_EXTERN PetscErrorCode NEPSetTolerances(NEP,PetscReal,PetscInt);
+PETSC_EXTERN PetscErrorCode NEPGetTolerances(NEP,PetscReal*,PetscInt*);
+PETSC_EXTERN PetscErrorCode NEPSetConvergenceTestFunction(NEP,PetscErrorCode (*)(NEP,PetscScalar,PetscScalar,PetscReal,PetscReal*,void*),void*,PetscErrorCode (*)(void*));
+PETSC_EXTERN PetscErrorCode NEPSetConvergenceTest(NEP,NEPConv);
+PETSC_EXTERN PetscErrorCode NEPGetConvergenceTest(NEP,NEPConv*);
+PETSC_EXTERN PetscErrorCode NEPConvergedEigRelative(NEP,PetscScalar,PetscScalar,PetscReal,PetscReal*,void*);
+PETSC_EXTERN PetscErrorCode NEPConvergedAbsolute(NEP,PetscScalar,PetscScalar,PetscReal,PetscReal*,void*);
 PETSC_EXTERN PetscErrorCode NEPSetDimensions(NEP,PetscInt,PetscInt,PetscInt);
 PETSC_EXTERN PetscErrorCode NEPGetDimensions(NEP,PetscInt*,PetscInt*,PetscInt*);
 PETSC_EXTERN PetscErrorCode NEPSetRefine(NEP,NEPRefine,PetscInt,PetscReal,PetscInt,NEPRefineScheme);

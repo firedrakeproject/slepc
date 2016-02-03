@@ -64,7 +64,6 @@ PetscErrorCode NEPSetUp_SLP(NEP nep)
   if (nep->ncv>nep->nev+nep->mpd) SETERRQ(PetscObjectComm((PetscObject)nep),1,"The value of ncv must not be larger than nev+mpd");
   if (nep->nev>1) { ierr = PetscInfo(nep,"Warning: requested more than one eigenpair but SLP can only compute one\n");CHKERRQ(ierr); }
   if (!nep->max_it) nep->max_it = PetscMax(5000,2*nep->n/nep->ncv);
-  if (!nep->max_funcs) nep->max_funcs = nep->max_it;
 
   ierr = RGIsTrivial(nep->rg,&istrivial);CHKERRQ(ierr);
   if (!istrivial) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"This solver does not support region filtering");
@@ -75,7 +74,7 @@ PetscErrorCode NEPSetUp_SLP(NEP nep)
   ierr = EPSGetST(ctx->eps,&st);CHKERRQ(ierr);
   ierr = STSetType(st,STSINVERT);CHKERRQ(ierr);
   ierr = EPSSetDimensions(ctx->eps,1,nep->ncv?nep->ncv:PETSC_DEFAULT,nep->mpd?nep->mpd:PETSC_DEFAULT);CHKERRQ(ierr);
-  ierr = EPSSetTolerances(ctx->eps,nep->rtol==PETSC_DEFAULT?SLEPC_DEFAULT_TOL/10.0:nep->rtol/10.0,nep->max_it?nep->max_it:PETSC_DEFAULT);CHKERRQ(ierr);
+  ierr = EPSSetTolerances(ctx->eps,nep->tol==PETSC_DEFAULT?SLEPC_DEFAULT_TOL/10.0:nep->tol/10.0,nep->max_it?nep->max_it:PETSC_DEFAULT);CHKERRQ(ierr);
 
   ierr = NEPAllocateSolution(nep,0);CHKERRQ(ierr);
   ierr = NEPSetWorkVecs(nep,1);CHKERRQ(ierr);
@@ -91,7 +90,7 @@ PetscErrorCode NEPSolve_SLP(NEP nep)
   Mat            T=nep->function,Tp=nep->jacobian;
   Vec            u,r=nep->work[0];
   PetscScalar    lambda,mu,im;
-  PetscReal      relerr;
+  PetscReal      resnorm;
   PetscInt       nconv;
 
   PetscFunctionBegin;
@@ -114,12 +113,12 @@ PetscErrorCode NEPSolve_SLP(NEP nep)
     ierr = MatMult(T,u,r);CHKERRQ(ierr);
 
     /* convergence test */
-    ierr = VecNorm(r,NORM_2,&relerr);CHKERRQ(ierr);
-    nep->errest[nep->nconv] = relerr;
+    ierr = VecNorm(r,NORM_2,&resnorm);CHKERRQ(ierr);
+    ierr = (*nep->converged)(nep,lambda,0,resnorm,&nep->errest[nep->nconv],nep->convergedctx);CHKERRQ(ierr);
     nep->eigr[nep->nconv] = lambda;
-    if (relerr<=nep->rtol) {
+    if (nep->errest[nep->nconv]<=nep->tol) {
       nep->nconv = nep->nconv + 1;
-      nep->reason = NEP_CONVERGED_FNORM_RELATIVE;
+      nep->reason = NEP_CONVERGED_TOL;
     }
     ierr = NEPMonitor(nep,nep->its,nep->nconv,nep->eigr,nep->errest,1);CHKERRQ(ierr);
 

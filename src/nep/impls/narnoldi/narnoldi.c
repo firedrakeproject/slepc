@@ -57,7 +57,6 @@ PetscErrorCode NEPSetUp_NArnoldi(NEP nep)
   if (!nep->mpd) nep->mpd = nep->ncv;
   if (nep->ncv>nep->nev+nep->mpd) SETERRQ(PetscObjectComm((PetscObject)nep),1,"The value of ncv must not be larger than nev+mpd");
   if (!nep->max_it) nep->max_it = PetscMax(5000,2*nep->n/nep->ncv);
-  if (!nep->max_funcs) nep->max_funcs = nep->max_it;
   if (nep->fui!=NEP_USER_INTERFACE_SPLIT) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"NARNOLDI only available for split operator");
 
   ierr = RGIsTrivial(nep->rg,&istrivial);CHKERRQ(ierr);
@@ -126,11 +125,11 @@ PetscErrorCode NEPSolve_NArnoldi(NEP nep)
 
     /* convergence test */
     ierr = VecNorm(r,NORM_2,&resnorm);CHKERRQ(ierr);
-    nep->errest[nep->nconv] = resnorm;
-    if (resnorm<=nep->rtol) {
+    ierr = (*nep->converged)(nep,lambda,0,resnorm,&nep->errest[nep->nconv],nep->convergedctx);CHKERRQ(ierr);
+    if (nep->errest[nep->nconv]<=nep->tol) {
       ierr = BVInsertVec(nep->V,nep->nconv,x);CHKERRQ(ierr);
       nep->nconv = nep->nconv + 1;
-      nep->reason = NEP_CONVERGED_FNORM_RELATIVE;
+      nep->reason = NEP_CONVERGED_TOL;
     }
     ierr = NEPMonitor(nep,nep->its,nep->nconv,nep->eigr,nep->errest,1);CHKERRQ(ierr);
 

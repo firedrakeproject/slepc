@@ -631,7 +631,6 @@ PetscErrorCode NEPComputeFunction(NEP nep,PetscScalar lambda,Mat A,Mat B)
     ierr = (*nep->computefunction)(nep,lambda,A,B,nep->functionctx);CHKERRQ(ierr);
     PetscStackPop;
     ierr = PetscLogEventEnd(NEP_FunctionEval,nep,A,B,0);CHKERRQ(ierr);
-    nep->nfuncs++;
     break;
   case NEP_USER_INTERFACE_SPLIT:
     ierr = MatZeroEntries(A);CHKERRQ(ierr);

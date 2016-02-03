@@ -133,13 +133,21 @@ PetscErrorCode NEPView(NEP nep,PetscViewer viewer)
     ierr = PetscViewerASCIIPrintf(viewer,"  number of column vectors (ncv): %D\n",nep->ncv);CHKERRQ(ierr);
     ierr = PetscViewerASCIIPrintf(viewer,"  maximum dimension of projected problem (mpd): %D\n",nep->mpd);CHKERRQ(ierr);
     ierr = PetscViewerASCIIPrintf(viewer,"  maximum number of iterations: %D\n",nep->max_it);CHKERRQ(ierr);
-    ierr = PetscViewerASCIIPrintf(viewer,"  maximum number of function evaluations: %D\n",nep->max_funcs);CHKERRQ(ierr);
-    ierr = PetscViewerASCIIPrintf(viewer,"  tolerances: relative=%g, absolute=%g, solution=%g\n",(double)nep->rtol,(double)nep->abstol,(double)nep->stol);CHKERRQ(ierr);
+    ierr = PetscViewerASCIIPrintf(viewer,"  tolerance: %g\n",(double)nep->tol);CHKERRQ(ierr);
     if (nep->lag) {
       ierr = PetscViewerASCIIPrintf(viewer,"  updating the preconditioner every %D iterations\n",nep->lag);CHKERRQ(ierr);
     }
     if (nep->cctol) {
       ierr = PetscViewerASCIIPrintf(viewer,"  using a constant tolerance for the linear solver\n");CHKERRQ(ierr);
+    }
+    ierr = PetscViewerASCIIPrintf(viewer,"  convergence test: ");CHKERRQ(ierr);
+    switch (nep->conv) {
+    case NEP_CONV_ABS:
+      ierr = PetscViewerASCIIPrintf(viewer,"absolute\n");CHKERRQ(ierr);break;
+    case NEP_CONV_EIG:
+      ierr = PetscViewerASCIIPrintf(viewer,"relative to the eigenvalue\n");CHKERRQ(ierr);break;
+    case NEP_CONV_USER:
+      ierr = PetscViewerASCIIPrintf(viewer,"user-defined\n");CHKERRQ(ierr);break;
     }
     if (nep->nini) {
       ierr = PetscViewerASCIIPrintf(viewer,"  dimension of user-provided initial space: %D\n",PetscAbs(nep->nini));CHKERRQ(ierr);
@@ -259,7 +267,7 @@ static PetscErrorCode NEPErrorView_ASCII(NEP nep,NEPErrorType etype,PetscViewer 
   errok = PETSC_TRUE;
   for (i=0;i<nep->nev;i++) {
     ierr = NEPComputeError(nep,i,etype,&error);CHKERRQ(ierr);
-    errok = (errok && error<5.0*nep->rtol)? PETSC_TRUE: PETSC_FALSE;
+    errok = (errok && error<5.0*nep->tol)? PETSC_TRUE: PETSC_FALSE;
   }
   if (!errok) {
     ierr = PetscViewerASCIIPrintf(viewer," Problem: some of the first %D relative errors are higher than the tolerance\n\n",nep->nev);CHKERRQ(ierr);
