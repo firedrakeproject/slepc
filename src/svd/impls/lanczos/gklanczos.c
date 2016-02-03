@@ -244,8 +244,7 @@ PetscErrorCode SVDSolve_Lanczos(SVD svd)
     ierr = DSRestoreArray(svd->ds,DS_MAT_U,&Q);CHKERRQ(ierr);
 
     /* check convergence */
-    if (svd->its >= svd->max_it) svd->reason = SVD_DIVERGED_ITS;
-    if (svd->nconv+k >= svd->nsv) svd->reason = SVD_CONVERGED_TOL;
+    ierr = (*svd->stopping)(svd,svd->its,svd->max_it,svd->nconv+k,svd->nsv,&svd->reason,svd->stoppingctx);CHKERRQ(ierr);
 
     /* compute restart vector */
     ierr = DSGetArray(svd->ds,DS_MAT_VT,&PT);CHKERRQ(ierr);

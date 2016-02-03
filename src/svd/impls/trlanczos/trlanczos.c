@@ -347,8 +347,7 @@ PetscErrorCode SVDSolve_TRLanczos(SVD svd)
     ierr = DSRestoreArray(svd->ds,DS_MAT_U,&Q);CHKERRQ(ierr);
 
     /* check convergence and update l */
-    if (svd->its >= svd->max_it) svd->reason = SVD_DIVERGED_ITS;
-    if (svd->nconv+k >= svd->nsv) svd->reason = SVD_CONVERGED_TOL;
+    ierr = (*svd->stopping)(svd,svd->its,svd->max_it,svd->nconv+k,svd->nsv,&svd->reason,svd->stoppingctx);CHKERRQ(ierr);
     if (svd->reason != SVD_CONVERGED_ITERATING) l = 0;
     else l = PetscMax((nv-svd->nconv-k)/2,0);
 

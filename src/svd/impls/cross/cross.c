@@ -154,6 +154,7 @@ PetscErrorCode SVDSetUp_Cross(SVD svd)
   case SVD_CONV_USER:
     SETERRQ(PetscObjectComm((PetscObject)svd),PETSC_ERR_SUP,"User-defined convergence test not supported in this solver");
   }
+  if (svd->stop!=SVD_STOP_BASIC) SETERRQ(PetscObjectComm((PetscObject)svd),PETSC_ERR_SUP,"User-defined stopping test not supported in this solver");
   /* Transfer the trackall option from svd to eps */
   ierr = SVDGetTrackAll(svd,&trackall);CHKERRQ(ierr);
   ierr = EPSSetTrackAll(cross->eps,trackall);CHKERRQ(ierr);
