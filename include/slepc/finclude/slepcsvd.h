@@ -27,11 +27,13 @@
 !  They sould match the flags in $SLEPC_DIR/include/slepcsvd.h
 
       PetscEnum SVD_CONVERGED_TOL
+      PetscEnum SVD_CONVERGED_USER
       PetscEnum SVD_DIVERGED_ITS
       PetscEnum SVD_DIVERGED_BREAKDOWN
       PetscEnum SVD_CONVERGED_ITERATING
 
       parameter (SVD_CONVERGED_TOL          =  2)
+      parameter (SVD_CONVERGED_USER         =  3)
       parameter (SVD_DIVERGED_ITS           = -3)
       parameter (SVD_DIVERGED_BREAKDOWN     = -4)
       parameter (SVD_CONVERGED_ITERATING    =  0)

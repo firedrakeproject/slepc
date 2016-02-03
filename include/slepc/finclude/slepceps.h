@@ -27,12 +27,14 @@
 !  They sould match the flags in $SLEPC_DIR/include/slepceps.h
 
       PetscEnum EPS_CONVERGED_TOL
+      PetscEnum EPS_CONVERGED_USER
       PetscEnum EPS_DIVERGED_ITS
       PetscEnum EPS_DIVERGED_BREAKDOWN
       PetscEnum EPS_DIVERGED_SYMMETRY_LOST
       PetscEnum EPS_CONVERGED_ITERATING
 
       parameter (EPS_CONVERGED_TOL          =  2)
+      parameter (EPS_CONVERGED_USER         =  3)
       parameter (EPS_DIVERGED_ITS           = -3)
       parameter (EPS_DIVERGED_BREAKDOWN     = -4)
       parameter (EPS_DIVERGED_SYMMETRY_LOST = -5)

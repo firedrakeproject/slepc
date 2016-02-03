@@ -109,6 +109,7 @@ typedef enum { SVD_STOP_BASIC,
 E*/
 typedef enum {/* converged */
               SVD_CONVERGED_TOL                =  2,
+              SVD_CONVERGED_USER               =  3,
               /* diverged */
               SVD_DIVERGED_ITS                 = -3,
               SVD_DIVERGED_BREAKDOWN           = -4,

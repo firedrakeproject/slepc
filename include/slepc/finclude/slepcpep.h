@@ -27,12 +27,14 @@
 !  They should match the flags in $SLEPC_DIR/include/slepcpep.h
 
       PetscEnum PEP_CONVERGED_TOL
+      PetscEnum PEP_CONVERGED_USER
       PetscEnum PEP_DIVERGED_ITS
       PetscEnum PEP_DIVERGED_BREAKDOWN
       PetscEnum PEP_DIVERGED_SYMMETRY_LOST
       PetscEnum PEP_CONVERGED_ITERATING
 
       parameter (PEP_CONVERGED_TOL          =  2)
+      parameter (PEP_CONVERGED_USER         =  3)
       parameter (PEP_DIVERGED_ITS           = -3)
       parameter (PEP_DIVERGED_BREAKDOWN     = -4)
       parameter (PEP_DIVERGED_SYMMETRY_LOST = -5)
