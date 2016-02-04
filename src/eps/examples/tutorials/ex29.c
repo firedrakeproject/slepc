@@ -97,12 +97,12 @@ int main(int argc,char **argv)
   } else {
     ierr = PetscViewerASCIIGetStdout(PETSC_COMM_WORLD,&viewer);CHKERRQ(ierr);
     ierr = PetscViewerPushFormat(viewer,PETSC_VIEWER_ASCII_INFO_DETAIL);CHKERRQ(ierr);
-    ierr = EPSGetConverged(eps,&nconv);CHKERRQ(ierr);
     ierr = EPSGetConvergedReason(eps,&reason);CHKERRQ(ierr);
     if (reason!=EPS_CONVERGED_USER) {
       ierr = EPSReasonView(eps,viewer);CHKERRQ(ierr);
       ierr = EPSErrorView(eps,EPS_ERROR_RELATIVE,viewer);CHKERRQ(ierr);
     } else {
+      ierr = EPSGetConverged(eps,&nconv);CHKERRQ(ierr);
       ierr = PetscViewerASCIIPrintf(viewer,"Eigensolve finished with %d converged eigenpairs; reason=%s\n",nconv,EPSConvergedReasons[reason]);CHKERRQ(ierr);
     }
     ierr = PetscViewerPopFormat(viewer);CHKERRQ(ierr);
