@@ -29,8 +29,8 @@ const char *PEPRefineTypes[] = {"NONE","SIMPLE","MULTIPLE","PEPRefine","PEP_REFI
 const char *PEPRefineSchemes[] = {"EXPLICIT","MBE","SCHUR","PEPRefineScheme","PEP_REFINE_SCHEME_",0};
 const char *PEPExtractTypes[] = {"","NONE","NORM","RESIDUAL","STRUCTURED","PEPExtract","PEP_EXTRACT_",0};
 const char *PEPErrorTypes[] = {"ABSOLUTE","RELATIVE","BACKWARD","PEPErrorType","PEP_ERROR_",0};
-const char *const PEPConvergedReasons_Shifted[] = {"DIVERGED_SYMMETRY_LOST","DIVERGED_BREAKDOWN","DIVERGED_ITS","","","CONVERGED_ITERATING","","CONVERGED_TOL","CONVERGED_USER","PEPConvergedReason","PEP_",0};
-const char *const*PEPConvergedReasons = PEPConvergedReasons_Shifted + 5;
+const char *const PEPConvergedReasons_Shifted[] = {"","DIVERGED_SYMMETRY_LOST","DIVERGED_BREAKDOWN","DIVERGED_ITS","CONVERGED_ITERATING","CONVERGED_TOL","CONVERGED_USER","PEPConvergedReason","PEP_",0};
+const char *const*PEPConvergedReasons = PEPConvergedReasons_Shifted + 4;
 
 #undef __FUNCT__
 #define __FUNCT__ "PEPFinalizePackage"

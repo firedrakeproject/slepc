@@ -194,12 +194,12 @@ typedef enum { PEP_STOP_BASIC,
 .seealso: PEPSolve(), PEPGetConvergedReason(), PEPSetTolerances()
 E*/
 typedef enum {/* converged */
-              PEP_CONVERGED_TOL                =  2,
-              PEP_CONVERGED_USER               =  3,
+              PEP_CONVERGED_TOL                =  1,
+              PEP_CONVERGED_USER               =  2,
               /* diverged */
-              PEP_DIVERGED_ITS                 = -3,
-              PEP_DIVERGED_BREAKDOWN           = -4,
-              PEP_DIVERGED_SYMMETRY_LOST       = -5,
+              PEP_DIVERGED_ITS                 = -1,
+              PEP_DIVERGED_BREAKDOWN           = -2,
+              PEP_DIVERGED_SYMMETRY_LOST       = -3,
               PEP_CONVERGED_ITERATING          =  0} PEPConvergedReason;
 PETSC_EXTERN const char *const*PEPConvergedReasons;
 

@@ -355,9 +355,9 @@ PetscErrorCode NEPGetConverged(NEP nep,PetscInt *nconv)
    Possible values for reason:
 +  NEP_CONVERGED_TOL - converged up to tolerance
 .  NEP_CONVERGED_USER - converged due to a user-defined condition
-.  NEP_DIVERGED_LINEAR_SOLVE - inner linear solve failed
 .  NEP_DIVERGED_ITS - required more than its to reach convergence
--  NEP_DIVERGED_BREAKDOWN - generic breakdown in method
+.  NEP_DIVERGED_BREAKDOWN - generic breakdown in method
+-  NEP_DIVERGED_LINEAR_SOLVE - inner linear solve failed
 
    Note:
    Can only be called after the call to NEPSolve() is complete.

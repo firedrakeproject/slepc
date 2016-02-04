@@ -142,9 +142,10 @@ typedef enum {/* converged */
               NEP_CONVERGED_TOL                =  1,
               NEP_CONVERGED_USER               =  2,
               /* diverged */
-              NEP_DIVERGED_LINEAR_SOLVE        = -1,
-              NEP_DIVERGED_ITS                 = -3,
-              NEP_DIVERGED_BREAKDOWN           = -4,
+              NEP_DIVERGED_ITS                 = -1,
+              NEP_DIVERGED_BREAKDOWN           = -2,
+                    /* unused                  = -3 */
+              NEP_DIVERGED_LINEAR_SOLVE        = -4,
               NEP_CONVERGED_ITERATING          =  0} NEPConvergedReason;
 PETSC_EXTERN const char *const*NEPConvergedReasons;
 

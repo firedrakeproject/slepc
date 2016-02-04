@@ -108,11 +108,11 @@ typedef enum { SVD_STOP_BASIC,
 .seealso: SVDSolve(), SVDGetConvergedReason(), SVDSetTolerances()
 E*/
 typedef enum {/* converged */
-              SVD_CONVERGED_TOL                =  2,
-              SVD_CONVERGED_USER               =  3,
+              SVD_CONVERGED_TOL                =  1,
+              SVD_CONVERGED_USER               =  2,
               /* diverged */
-              SVD_DIVERGED_ITS                 = -3,
-              SVD_DIVERGED_BREAKDOWN           = -4,
+              SVD_DIVERGED_ITS                 = -1,
+              SVD_DIVERGED_BREAKDOWN           = -2,
               SVD_CONVERGED_ITERATING          =  0 } SVDConvergedReason;
 PETSC_EXTERN const char *const*SVDConvergedReasons;
 

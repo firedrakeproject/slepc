@@ -33,11 +33,11 @@
       PetscEnum EPS_DIVERGED_SYMMETRY_LOST
       PetscEnum EPS_CONVERGED_ITERATING
 
-      parameter (EPS_CONVERGED_TOL          =  2)
-      parameter (EPS_CONVERGED_USER         =  3)
-      parameter (EPS_DIVERGED_ITS           = -3)
-      parameter (EPS_DIVERGED_BREAKDOWN     = -4)
-      parameter (EPS_DIVERGED_SYMMETRY_LOST = -5)
+      parameter (EPS_CONVERGED_TOL          =  1)
+      parameter (EPS_CONVERGED_USER         =  2)
+      parameter (EPS_DIVERGED_ITS           = -1)
+      parameter (EPS_DIVERGED_BREAKDOWN     = -2)
+      parameter (EPS_DIVERGED_SYMMETRY_LOST = -3)
       parameter (EPS_CONVERGED_ITERATING    =  0)
 
       PetscEnum EPS_HEP

@@ -32,10 +32,10 @@
       PetscEnum SVD_DIVERGED_BREAKDOWN
       PetscEnum SVD_CONVERGED_ITERATING
 
-      parameter (SVD_CONVERGED_TOL          =  2)
-      parameter (SVD_CONVERGED_USER         =  3)
-      parameter (SVD_DIVERGED_ITS           = -3)
-      parameter (SVD_DIVERGED_BREAKDOWN     = -4)
+      parameter (SVD_CONVERGED_TOL          =  1)
+      parameter (SVD_CONVERGED_USER         =  2)
+      parameter (SVD_DIVERGED_ITS           = -1)
+      parameter (SVD_DIVERGED_BREAKDOWN     = -2)
       parameter (SVD_CONVERGED_ITERATING    =  0)
 
       integer SVD_LARGEST

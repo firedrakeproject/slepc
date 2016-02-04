@@ -174,12 +174,12 @@ typedef enum { EPS_STOP_BASIC,
 .seealso: EPSSolve(), EPSGetConvergedReason(), EPSSetTolerances()
 E*/
 typedef enum {/* converged */
-              EPS_CONVERGED_TOL                =  2,
-              EPS_CONVERGED_USER               =  3,
+              EPS_CONVERGED_TOL                =  1,
+              EPS_CONVERGED_USER               =  2,
               /* diverged */
-              EPS_DIVERGED_ITS                 = -3,
-              EPS_DIVERGED_BREAKDOWN           = -4,
-              EPS_DIVERGED_SYMMETRY_LOST       = -5,
+              EPS_DIVERGED_ITS                 = -1,
+              EPS_DIVERGED_BREAKDOWN           = -2,
+              EPS_DIVERGED_SYMMETRY_LOST       = -3,
               EPS_CONVERGED_ITERATING          =  0} EPSConvergedReason;
 PETSC_EXTERN const char *const*EPSConvergedReasons;
 
