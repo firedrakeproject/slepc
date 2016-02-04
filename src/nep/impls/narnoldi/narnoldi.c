@@ -129,8 +129,8 @@ PetscErrorCode NEPSolve_NArnoldi(NEP nep)
     if (nep->errest[nep->nconv]<=nep->tol) {
       ierr = BVInsertVec(nep->V,nep->nconv,x);CHKERRQ(ierr);
       nep->nconv = nep->nconv + 1;
-      nep->reason = NEP_CONVERGED_TOL;
     }
+    ierr = (*nep->stopping)(nep,nep->its,nep->max_it,nep->nconv,nep->nev,&nep->reason,nep->stoppingctx);CHKERRQ(ierr);
     ierr = NEPMonitor(nep,nep->its,nep->nconv,nep->eigr,nep->errest,1);CHKERRQ(ierr);
 
     if (nep->reason == NEP_CONVERGED_ITERATING) {
@@ -160,7 +160,6 @@ PetscErrorCode NEPSolve_NArnoldi(NEP nep)
       ierr = NEPProjectOperator(nep,n,n+1);CHKERRQ(ierr);
       n++;
     }
-    if (nep->its >= nep->max_it) nep->reason = NEP_DIVERGED_ITS;
   }
   ierr = MatDestroy(&Tsigma);CHKERRQ(ierr);
   PetscFunctionReturn(0);

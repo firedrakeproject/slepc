@@ -27,7 +27,7 @@ const char *NEPErrorTypes[] = {"ABSOLUTE","RELATIVE","NEPErrorType","NEP_ERROR_"
 const char *NEPRefineTypes[] = {"NONE","SIMPLE","MULTIPLE","NEPRefine","NEP_REFINE_",0};
 const char *NEPRefineSchemes[] = {"EXPLICIT","MBE","SCHUR","NEPRefineScheme","NEP_REFINE_SCHEME_",0};
 const char *const NEPConvergedReasons_Shifted[] = {"DIVERGED_BREAKDOWN","DIVERGED_ITS","","DIVERGED_LINEAR_SOLVE","CONVERGED_ITERATING","CONVERGED_TOL","CONVERGED_USER","NEPConvergedReason","NEP_",0};
-const char *const*NEPConvergedReasons = NEPConvergedReasons_Shifted + 5;
+const char *const*NEPConvergedReasons = NEPConvergedReasons_Shifted + 4;
 
 #undef __FUNCT__
 #define __FUNCT__ "NEPFinalizePackage"

@@ -140,11 +140,11 @@ PetscErrorCode NEPSolve_RII(NEP nep)
     nep->eigr[nep->nconv] = lambda;
     if (nep->errest[nep->nconv]<=nep->tol) {
       nep->nconv = nep->nconv + 1;
-      nep->reason = NEP_CONVERGED_TOL;
     }
+    ierr = (*nep->stopping)(nep,nep->its,nep->max_it,nep->nconv,nep->nev,&nep->reason,nep->stoppingctx);CHKERRQ(ierr);
     ierr = NEPMonitor(nep,nep->its,nep->nconv,nep->eigr,nep->errest,1);CHKERRQ(ierr);
 
-    if (!nep->nconv) {
+    if (nep->reason == NEP_CONVERGED_ITERATING) {
       /* eigenvector correction: delta = T(sigma)\r */
       ierr = NEP_KSPSolve(nep,r,delta);CHKERRQ(ierr);
       ierr = KSPGetConvergedReason(nep->ksp,&kspreason);CHKERRQ(ierr);
@@ -160,7 +160,6 @@ PetscErrorCode NEPSolve_RII(NEP nep)
       /* normalize eigenvector */
       ierr = VecNormalize(u,NULL);CHKERRQ(ierr);
     }
-    if (nep->its >= nep->max_it) nep->reason = NEP_DIVERGED_ITS;
   }
   ierr = MatDestroy(&Tsigma);CHKERRQ(ierr);
   ierr = BVRestoreColumn(nep->V,0,&u);CHKERRQ(ierr);

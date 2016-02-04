@@ -459,6 +459,7 @@ PetscErrorCode NEPSetUp_CISS(NEP nep)
   nep->ncv = PetscMin(nep->n,ctx->L*ctx->M);
   if (!nep->mpd) nep->mpd = nep->ncv;
   if (!nep->which) nep->which = NEP_LARGEST_MAGNITUDE;
+  if (nep->stopping!=NEPStoppingBasic) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"This solver does not support user-defined stopping test");
 
   /* check region */
   ierr = RGIsTrivial(nep->rg,&istrivial);CHKERRQ(ierr);

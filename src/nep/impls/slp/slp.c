@@ -118,11 +118,11 @@ PetscErrorCode NEPSolve_SLP(NEP nep)
     nep->eigr[nep->nconv] = lambda;
     if (nep->errest[nep->nconv]<=nep->tol) {
       nep->nconv = nep->nconv + 1;
-      nep->reason = NEP_CONVERGED_TOL;
     }
+    ierr = (*nep->stopping)(nep,nep->its,nep->max_it,nep->nconv,nep->nev,&nep->reason,nep->stoppingctx);CHKERRQ(ierr);
     ierr = NEPMonitor(nep,nep->its,nep->nconv,nep->eigr,nep->errest,1);CHKERRQ(ierr);
 
-    if (!nep->nconv) {
+    if (nep->reason == NEP_CONVERGED_ITERATING) {
       /* compute eigenvalue correction mu and eigenvector approximation u */
       ierr = EPSSetOperators(ctx->eps,T,Tp);CHKERRQ(ierr);
       ierr = EPSSetInitialSpace(ctx->eps,1,&u);CHKERRQ(ierr);
@@ -139,7 +139,6 @@ PetscErrorCode NEPSolve_SLP(NEP nep)
       /* correct eigenvalue */
       lambda = lambda - mu;
     }
-    if (nep->its >= nep->max_it) nep->reason = NEP_DIVERGED_ITS;
   }
   ierr = BVRestoreColumn(nep->V,0,&u);CHKERRQ(ierr);
   PetscFunctionReturn(0);
