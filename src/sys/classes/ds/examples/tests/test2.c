@@ -30,7 +30,8 @@ int main(int argc,char **argv)
   PetscErrorCode ierr;
   DS             ds;
   SlepcSC        sc;
-  PetscScalar    *A,*eig;
+  PetscScalar    *A,*X,*eig;
+  PetscReal      rnorm,aux;
   PetscInt       i,j,n=10,ld;
   PetscViewer    viewer;
   PetscBool      verbose,extrarow;
@@ -92,6 +93,26 @@ int main(int argc,char **argv)
   ierr = PetscPrintf(PETSC_COMM_WORLD,"Computed eigenvalues =\n");CHKERRQ(ierr);
   for (i=0;i<n;i++) {
     ierr = PetscViewerASCIIPrintf(viewer,"  %.5f\n",(double)PetscRealPart(eig[i]));CHKERRQ(ierr);
+  }
+
+  /* Eigenvectors */
+  j = 2;
+  ierr = DSVectors(ds,DS_MAT_X,&j,&rnorm);CHKERRQ(ierr);  /* third eigenvector */
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"Value of rnorm for 3rd vector = %.3f\n",(double)rnorm);CHKERRQ(ierr);
+  ierr = DSVectors(ds,DS_MAT_X,NULL,NULL);CHKERRQ(ierr);  /* all eigenvectors */
+  j = 0;
+  rnorm = 0.0;
+  ierr = DSGetArray(ds,DS_MAT_X,&X);CHKERRQ(ierr);
+  for (i=0;i<n;i++) {
+    aux = PetscAbsScalar(X[i+j*ld]);
+    rnorm += aux*aux;
+  }
+  ierr = DSRestoreArray(ds,DS_MAT_X,&X);CHKERRQ(ierr);
+  rnorm = PetscSqrtReal(rnorm);
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"Norm of 1st vector = %.3f\n",(double)rnorm);CHKERRQ(ierr);
+  if (verbose) {
+    ierr = PetscPrintf(PETSC_COMM_WORLD,"After vectors - - - - - - - - -\n");CHKERRQ(ierr);
+    ierr = DSView(ds,viewer);CHKERRQ(ierr);
   }
 
   ierr = PetscFree(eig);CHKERRQ(ierr);

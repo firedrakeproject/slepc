@@ -1008,7 +1008,6 @@ PetscErrorCode EPSSolve_CISS(EPS eps)
       max_error = 0.0;
       for (i=0;i<eps->nconv;i++) {
 	ierr = BVGetColumn(ctx->S,i,&si);CHKERRQ(ierr);
-	ierr = VecNormalize(si,NULL);CHKERRQ(ierr);
 	ierr = EPSComputeResidualNorm_Private(eps,eps->eigr[i],0,si,NULL,w,&error);CHKERRQ(ierr);
 	ierr = (*eps->converged)(eps,eps->eigr[i],0,error,&error,eps->convergedctx);CHKERRQ(ierr);
 	ierr = BVRestoreColumn(ctx->S,i,&si);CHKERRQ(ierr);

@@ -178,7 +178,7 @@ PetscErrorCode DSView_GHIEP(DS ds,PetscViewer viewer)
 
 #undef __FUNCT__
 #define __FUNCT__ "DSVectors_GHIEP_Eigen_Some"
-PetscErrorCode DSVectors_GHIEP_Eigen_Some(DS ds,PetscInt *idx,PetscReal *rnorm)
+static PetscErrorCode DSVectors_GHIEP_Eigen_Some(DS ds,PetscInt *idx,PetscReal *rnorm)
 {
 #if defined(SLEPC_MISSING_LAPACK_LAG2)
   PetscFunctionBegin;

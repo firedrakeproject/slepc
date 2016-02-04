@@ -589,7 +589,6 @@ PetscErrorCode EPSComputeVectors_XD(EPS eps)
   ierr = PetscObjectTypeCompareAny((PetscObject)eps->ds,&symm,DSHEP,"");CHKERRQ(ierr);
   if (symm) PetscFunctionReturn(0);
   ierr = DSVectors(eps->ds,DS_MAT_X,NULL,NULL);CHKERRQ(ierr);
-  ierr = DSNormalize(eps->ds,DS_MAT_X,-1);CHKERRQ(ierr);
 
   /* V <- V * X */
   ierr = DSGetMat(eps->ds,DS_MAT_X,&X);CHKERRQ(ierr);

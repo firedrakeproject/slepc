@@ -30,8 +30,8 @@ int main(int argc,char **argv)
   PetscErrorCode ierr;
   DS             ds;
   SlepcSC        sc;
-  PetscScalar    *A,*wr,*wi;
-  PetscReal      re,im;
+  PetscScalar    *A,*X,*wr,*wi;
+  PetscReal      re,im,rnorm,aux;
   PetscInt       i,j,n=10,ld;
   PetscViewer    viewer;
   PetscBool      verbose,extrarow;
@@ -104,6 +104,31 @@ int main(int argc,char **argv)
     } else {
       ierr = PetscViewerASCIIPrintf(viewer,"  %.5f%+.5fi\n",(double)re,(double)im);CHKERRQ(ierr);
     }
+  }
+
+  /* Eigenvectors */
+  j = 2;
+  ierr = DSVectors(ds,DS_MAT_X,&j,&rnorm);CHKERRQ(ierr);  /* third eigenvector */
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"Value of rnorm for 3rd vector = %.3f\n",(double)rnorm);CHKERRQ(ierr);
+  ierr = DSVectors(ds,DS_MAT_X,NULL,NULL);CHKERRQ(ierr);  /* all eigenvectors */
+  j = 0;
+  rnorm = 0.0;
+  ierr = DSGetArray(ds,DS_MAT_X,&X);CHKERRQ(ierr);
+  for (i=0;i<n;i++) {
+#if defined(PETSC_USE_COMPLEX)
+    aux = PetscAbsScalar(X[i+j*ld]);
+#else
+    if (PetscAbs(wi[j])==0.0) aux = PetscAbsScalar(X[i+j*ld]);
+    else aux = SlepcAbsEigenvalue(X[i+j*ld],X[i+(j+1)*ld]);
+#endif
+    rnorm += aux*aux;
+  }
+  ierr = DSRestoreArray(ds,DS_MAT_X,&X);CHKERRQ(ierr);
+  rnorm = PetscSqrtReal(rnorm);
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"Norm of 1st vector = %.3f\n",(double)rnorm);CHKERRQ(ierr);
+  if (verbose) {
+    ierr = PetscPrintf(PETSC_COMM_WORLD,"After vectors - - - - - - - - -\n");CHKERRQ(ierr);
+    ierr = DSView(ds,viewer);CHKERRQ(ierr);
   }
 
   ierr = PetscFree2(wr,wi);CHKERRQ(ierr);
