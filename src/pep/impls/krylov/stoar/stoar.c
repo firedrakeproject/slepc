@@ -71,7 +71,7 @@ static PetscErrorCode PEPSTOARNorm(PEP pep,PetscInt j,PetscReal *norm)
 
 #undef __FUNCT__
 #define __FUNCT__ "PEPSTOARqKqMupdates"
-static PetscErrorCode PEPSTOARqKqMupdates(PEP pep,PetscInt j,Vec *wv,PetscInt nwv)
+static PetscErrorCode PEPSTOARqKqMupdates(PEP pep,PetscInt j,Vec *wv)
 {
   PetscErrorCode ierr;
   PEP_TOAR       *ctx = (PEP_TOAR*)pep->data;
@@ -82,10 +82,6 @@ static PetscErrorCode PEPSTOARqKqMupdates(PEP pep,PetscInt j,Vec *wv,PetscInt nw
   PetscFunctionBegin;
   qK = ctx->qB;
   qM = ctx->qB+ctx->ld*ctx->ld;
-  if (!wv||nwv<2) {
-    if (!wv) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Invalid argument %d",3);
-    else SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Invalid argument %d",4);
-  }
   v1 = wv[0];
   v2 = wv[1];
   ierr = BVGetColumn(pep->V,j,&vj);CHKERRQ(ierr);
@@ -159,13 +155,13 @@ PetscErrorCode PEPSetUp_STOAR(PEP pep)
   if (!lindep) {
     ierr = BVScaleColumn(pep->V,0,1.0/norm);CHKERRQ(ierr);
     ctx->S[0] = norm;
-    ierr = PEPSTOARqKqMupdates(pep,0,pep->work,2);CHKERRQ(ierr);
+    ierr = PEPSTOARqKqMupdates(pep,0,pep->work);CHKERRQ(ierr);
   } else SETERRQ(PetscObjectComm((PetscObject)pep),1,"Problem with initial vector");
   ierr = BVOrthogonalizeColumn(pep->V,1,ctx->S+ld,&norm,&lindep);CHKERRQ(ierr);
   if (!lindep) {
     ierr = BVScaleColumn(pep->V,1,1.0/norm);CHKERRQ(ierr);
     ctx->S[1] = norm;
-    ierr = PEPSTOARqKqMupdates(pep,1,pep->work,2);CHKERRQ(ierr);
+    ierr = PEPSTOARqKqMupdates(pep,1,pep->work);CHKERRQ(ierr);
   } else SETERRQ(PetscObjectComm((PetscObject)pep),1,"Problem with initial vector");
 
   ierr = PEPSTOARNorm(pep,0,&norm);CHKERRQ(ierr);
@@ -230,13 +226,13 @@ static PetscErrorCode PEPSTOAROrth2(PEP pep,PetscInt k,PetscReal *Omega,PetscSca
 #undef __FUNCT__
 #define __FUNCT__ "PEPSTOARrun"
 /*
-  Compute a run of Lanczos iterations
+  Compute a run of Lanczos iterations. dim(work)=(ctx->ld)*4
 */
-static PetscErrorCode PEPSTOARrun(PEP pep,PetscReal *a,PetscReal *b,PetscReal *omega,PetscInt k,PetscInt *M,PetscBool *breakdown,PetscBool *symmlost,PetscScalar *work,PetscInt nw,Vec *t_,PetscInt nwv)
+static PetscErrorCode PEPSTOARrun(PEP pep,PetscReal *a,PetscReal *b,PetscReal *omega,PetscInt k,PetscInt *M,PetscBool *breakdown,PetscBool *symmlost,PetscScalar *work,Vec *t_)
 {
   PetscErrorCode ierr;
   PEP_TOAR       *ctx = (PEP_TOAR*)pep->data;
-  PetscInt       i,j,m=*M,nwu=0,lwa,l;
+  PetscInt       i,j,m=*M,nwu=0,l;
   PetscInt       lds=ctx->d*ctx->ld,offq=ctx->ld;
   Vec            v=t_[0],t=t_[1],q=t_[2];
   PetscReal      norm,sym=0.0,fro=0.0,*f;
@@ -246,9 +242,6 @@ static PetscErrorCode PEPSTOARrun(PEP pep,PetscReal *a,PetscReal *b,PetscReal *o
 
   PetscFunctionBegin;
   *breakdown = PETSC_FALSE; /* ----- */
-  if (!t_||nwv<3) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Invalid argument %d",12);
-  lwa = (ctx->ld)*4;
-  if (!work||nw<lwa) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Invalid argument %d",10);
   ierr = DSGetDimensions(pep->ds,NULL,NULL,&l,NULL,NULL);CHKERRQ(ierr);
   y = work;
   nwu += ctx->ld;
@@ -272,7 +265,7 @@ static PetscErrorCode PEPSTOARrun(PEP pep,PetscReal *a,PetscReal *b,PetscReal *o
     for (i=0;i<=j+1;i++) *(S+(j+1)*lds+i) = *(S+offq+j*lds+i);
 
     /* update qK and qM */
-    ierr = PEPSTOARqKqMupdates(pep,j+2,t_,2);CHKERRQ(ierr);
+    ierr = PEPSTOARqKqMupdates(pep,j+2,t_);CHKERRQ(ierr);
 
     /* level-2 orthogonalization */
     ierr = PEPSTOAROrth2(pep,j+1,omega,y);CHKERRQ(ierr);
@@ -308,7 +301,7 @@ static PetscErrorCode PEPSTOARrun(PEP pep,PetscReal *a,PetscReal *b,PetscReal *o
 
 #undef __FUNCT__
 #define __FUNCT__ "PEPSTOARTrunc"
-static PetscErrorCode PEPSTOARTrunc(PEP pep,PetscInt rs1,PetscInt cs1,PetscScalar *work,PetscInt nw,PetscReal *rwork,PetscInt nrw)
+static PetscErrorCode PEPSTOARTrunc(PEP pep,PetscInt rs1,PetscInt cs1,PetscScalar *work,PetscReal *rwork)
 {
 #if defined(PETSC_MISSING_LAPACK_GESVD)
   PetscFunctionBegin;
@@ -317,7 +310,7 @@ static PetscErrorCode PEPSTOARTrunc(PEP pep,PetscInt rs1,PetscInt cs1,PetscScala
   PetscErrorCode ierr;
   PEP_TOAR       *ctx = (PEP_TOAR*)pep->data;
   Mat            G;
-  PetscInt       lwa,nwu=0,lrwa,nrwu=0;
+  PetscInt       lwa,nwu=0,nrwu=0;
   PetscInt       i,n,lds=2*ctx->ld;
   PetscScalar    *M,*V,*U,*S=ctx->S,sone=1.0,zero=0.0,t,*qK,*qM;
   PetscReal      *sg;
@@ -328,15 +321,6 @@ static PetscErrorCode PEPSTOARTrunc(PEP pep,PetscInt rs1,PetscInt cs1,PetscScala
   qM = ctx->qB+ctx->ld*ctx->ld;
   n = (rs1>2*cs1)?2*cs1:rs1;
   lwa = cs1*rs1*4+n*(rs1+2*cs1)+(cs1+1)*(cs1+2);
-  lrwa = n+cs1+1+5*n;
-  if (!work||nw<lwa) {
-    if (nw<lwa) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Invalid argument %d",6);
-    if (!work) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Invalid argument %d",5);
-  }
-  if (!rwork||nrw<lrwa) {
-    if (nrw<lrwa) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Invalid argument %d",8);
-    if (!work) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Invalid argument %d",7);
-  }
   M = work+nwu;
   nwu += rs1*cs1*2;
   U = work+nwu;
@@ -398,20 +382,16 @@ static PetscErrorCode PEPSTOARTrunc(PEP pep,PetscInt rs1,PetscInt cs1,PetscScala
   columns s-s+ncu of S
   rows 0-sr of S
   size(Q) qr x ncu
+  dim(work)=sr*ncu;
 */
-static PetscErrorCode PEPSTOARSupdate(PetscScalar *S,PetscInt ld,PetscInt sr,PetscInt s,PetscInt ncu,PetscInt qr,PetscScalar *Q,PetscInt ldq,PetscScalar *work,PetscInt nw)
+static PetscErrorCode PEPSTOARSupdate(PetscScalar *S,PetscInt ld,PetscInt sr,PetscInt s,PetscInt ncu,PetscInt qr,PetscScalar *Q,PetscInt ldq,PetscScalar *work)
 {
   PetscErrorCode ierr;
   PetscScalar    a=1.0,b=0.0;
   PetscBLASInt   sr_,ncu_,ldq_,lds_,qr_;
-  PetscInt       lwa,j,lds=2*ld;
+  PetscInt       j,lds=2*ld;
 
   PetscFunctionBegin;
-  lwa = sr*ncu;
-  if (!work||nw<lwa) {
-    if (nw<lwa) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Invalid argument %d",10);
-    if (!work) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Invalid argument %d",9);
-  }
   ierr = PetscBLASIntCast(sr,&sr_);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(qr,&qr_);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(ncu,&ncu_);CHKERRQ(ierr);
@@ -491,7 +471,7 @@ PetscErrorCode PEPSolve_STOAR(PEP pep)
 
     /* Compute an nv-step Lanczos factorization */
     nv = PetscMin(pep->nconv+pep->mpd,pep->ncv);
-    ierr = PEPSTOARrun(pep,a,b,omega,pep->nconv+l,&nv,&breakdown,&symmlost,work+nwu,lwa-nwu,pep->work,3);CHKERRQ(ierr);
+    ierr = PEPSTOARrun(pep,a,b,omega,pep->nconv+l,&nv,&breakdown,&symmlost,work+nwu,pep->work);CHKERRQ(ierr);
     beta = b[nv-1];
     if (symmlost) {
       pep->reason = PEP_DIVERGED_SYMMETRY_LOST;
@@ -536,7 +516,7 @@ PetscErrorCode PEPSolve_STOAR(PEP pep)
     /* Update S */
     off = pep->nconv*ldds;
     ierr = DSGetArray(pep->ds,DS_MAT_Q,&Q);CHKERRQ(ierr);
-    ierr = PEPSTOARSupdate(S,ld,nv+2,pep->nconv,k+l-pep->nconv,nv,Q+off,ldds,work+nwu,lwa-nwu);CHKERRQ(ierr);
+    ierr = PEPSTOARSupdate(S,ld,nv+2,pep->nconv,k+l-pep->nconv,nv,Q+off,ldds,work+nwu);CHKERRQ(ierr);
     ierr = DSRestoreArray(pep->ds,DS_MAT_Q,&Q);CHKERRQ(ierr);
 
     /* Copy last column of S */
@@ -564,7 +544,7 @@ PetscErrorCode PEPSolve_STOAR(PEP pep)
         ierr = DSRestoreArrayReal(pep->ds,DS_MAT_D,&omega);CHKERRQ(ierr);
         /* Truncate S */
         ierr = DSGetArrayReal(pep->ds,DS_MAT_D,&omega);CHKERRQ(ierr);
-        ierr = PEPSTOARTrunc(pep,nv+2,k+l+1,work+nwu,lwa-nwu,rwork+nrwu,lrwa-nrwu);CHKERRQ(ierr);
+        ierr = PEPSTOARTrunc(pep,nv+2,k+l+1,work+nwu,rwork+nrwu);CHKERRQ(ierr);
         ierr = DSRestoreArrayReal(pep->ds,DS_MAT_D,&omega);CHKERRQ(ierr);
       }
     }
@@ -577,7 +557,7 @@ PetscErrorCode PEPSolve_STOAR(PEP pep)
   if (pep->nconv>0) {
     /* Truncate S */
     ierr = DSGetArrayReal(pep->ds,DS_MAT_D,&omega);CHKERRQ(ierr);
-    ierr = PEPSTOARTrunc(pep,nv+2,pep->nconv,work+nwu,lwa-nwu,rwork+nrwu,lrwa-nrwu);CHKERRQ(ierr);
+    ierr = PEPSTOARTrunc(pep,nv+2,pep->nconv,work+nwu,rwork+nrwu);CHKERRQ(ierr);
     ierr = DSRestoreArrayReal(pep->ds,DS_MAT_D,&omega);CHKERRQ(ierr);
 
     /* Extraction */
