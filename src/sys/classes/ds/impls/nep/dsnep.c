@@ -381,7 +381,7 @@ static PetscErrorCode DSNEPGetFN_NEP(DS ds,PetscInt k,FN *fn)
   DS_NEP *ctx = (DS_NEP*)ds->data;
 
   PetscFunctionBegin;
-  if (k<0 || k>=ctx->nf) SETERRQ1(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_OUTOFRANGE,"k must be between 0 and %d",ctx->nf-1);
+  if (k<0 || k>=ctx->nf) SETERRQ1(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_OUTOFRANGE,"k must be between 0 and %D",ctx->nf-1);
   *fn = ctx->f[k];
   PetscFunctionReturn(0);
 }

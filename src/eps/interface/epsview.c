@@ -251,7 +251,7 @@ PetscErrorCode EPSReasonView(EPS eps,PetscViewer viewer)
   if (isAscii) {
     ierr = PetscViewerASCIIAddTab(viewer,((PetscObject)eps)->tablevel);CHKERRQ(ierr);
     if (eps->reason > 0) {
-      ierr = PetscViewerASCIIPrintf(viewer,"%s Linear eigensolve converged (%d eigenpair%s) due to %s; iterations %D\n",((PetscObject)eps)->prefix?((PetscObject)eps)->prefix:"",eps->nconv,(eps->nconv>1)?"s":"",EPSConvergedReasons[eps->reason],eps->its);CHKERRQ(ierr);
+      ierr = PetscViewerASCIIPrintf(viewer,"%s Linear eigensolve converged (%D eigenpair%s) due to %s; iterations %D\n",((PetscObject)eps)->prefix?((PetscObject)eps)->prefix:"",eps->nconv,(eps->nconv>1)?"s":"",EPSConvergedReasons[eps->reason],eps->its);CHKERRQ(ierr);
     } else {
       ierr = PetscViewerASCIIPrintf(viewer,"%s Linear eigensolve did not converge due to %s; iterations %D\n",((PetscObject)eps)->prefix?((PetscObject)eps)->prefix:"",EPSConvergedReasons[eps->reason],eps->its);CHKERRQ(ierr);
     }
@@ -744,7 +744,7 @@ PetscErrorCode EPSVectorsView(EPS eps,PetscViewer viewer)
     ierr = EPSComputeVectors(eps);CHKERRQ(ierr);
     for (i=0;i<eps->nconv;i++) {
       k = eps->perm[i];
-      ierr = PetscSNPrintf(vname,NMLEN,"V%d_%s",i,ename);CHKERRQ(ierr);
+      ierr = PetscSNPrintf(vname,NMLEN,"V%d_%s",(int)i,ename);CHKERRQ(ierr);
       ierr = BVGetColumn(eps->V,k,&x);CHKERRQ(ierr);
       ierr = PetscObjectSetName((PetscObject)x,vname);CHKERRQ(ierr);
       ierr = VecView(x,viewer);CHKERRQ(ierr);

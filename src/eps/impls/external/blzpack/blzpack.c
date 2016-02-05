@@ -142,6 +142,7 @@ lrstor*=10;
   if (flg) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"This solver requires a BV with contiguous storage");
   ierr = RGIsTrivial(eps->rg,&istrivial);CHKERRQ(ierr);
   if (!istrivial) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"This solver does not support region filtering");
+  if (eps->stopping!=EPSStoppingBasic) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"External packages do not support user-defined stopping test");
 
   /* dispatch solve method */
   eps->ops->solve = EPSSolve_BLZPACK;

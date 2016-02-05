@@ -526,8 +526,8 @@ PetscErrorCode DSGHIEPInverseIteration(DS ds,PetscScalar *wr,PetscScalar *wi)
     }
   }
 #endif
-  if (info<0) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in hsein routine %d",-i);
-  if (info>0) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Convergence error in hsein routine %d",i);
+  if (info<0) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in hsein routine %D",-i);
+  if (info>0) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Convergence error in hsein routine %D",i);
   ierr = DSGHIEPOrthogEigenv(ds,DS_MAT_X,wr,wi,PETSC_TRUE);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 #endif

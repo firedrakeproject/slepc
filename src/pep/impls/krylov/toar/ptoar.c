@@ -872,8 +872,7 @@ PetscErrorCode PEPSolve_TOAR(PEP pep)
 
     /* check convergence */
     ierr = PEPKrylovConvergence(pep,PETSC_FALSE,pep->nconv,nv-pep->nconv,beta,&k);CHKERRQ(ierr);
-    if (pep->its >= pep->max_it) pep->reason = PEP_DIVERGED_ITS;
-    if (k >= pep->nev) pep->reason = PEP_CONVERGED_TOL;
+    ierr = (*pep->stopping)(pep,pep->its,pep->max_it,k,pep->nev,&pep->reason,pep->stoppingctx);CHKERRQ(ierr);
 
     /* update l */
     if (pep->reason != PEP_CONVERGED_ITERATING || breakdown) l = 0;

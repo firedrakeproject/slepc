@@ -241,7 +241,7 @@ static PetscErrorCode EstimateNumberEigs(NEP nep,PetscInt *L_add)
     else sum += tmp;
   }
   ctx->est_eig = PetscAbsScalar(sum/(PetscReal)ctx->L);
-  eta = PetscPowReal(10,-PetscLog10Real(nep->rtol)/ctx->N);
+  eta = PetscPowReal(10,-PetscLog10Real(nep->tol)/ctx->N);
   ierr = PetscInfo1(nep,"Estimation_#Eig %f\n",(double)ctx->est_eig);CHKERRQ(ierr);
   *L_add = (PetscInt)PetscCeilReal((ctx->est_eig*eta)/ctx->M) - ctx->L;
   if (*L_add < 0) *L_add = 0;
@@ -459,6 +459,7 @@ PetscErrorCode NEPSetUp_CISS(NEP nep)
   nep->ncv = PetscMin(nep->n,ctx->L*ctx->M);
   if (!nep->mpd) nep->mpd = nep->ncv;
   if (!nep->which) nep->which = NEP_LARGEST_MAGNITUDE;
+  if (nep->stopping!=NEPStoppingBasic) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"This solver does not support user-defined stopping test");
 
   /* check region */
   ierr = RGIsTrivial(nep->rg,&istrivial);CHKERRQ(ierr);
@@ -630,10 +631,11 @@ PetscErrorCode NEPSolve_CISS(NEP nep)
       ierr = BVGetColumn(nep->V,i,&si);CHKERRQ(ierr);
       ierr = VecNormalize(si,NULL);CHKERRQ(ierr);
       ierr = NEPComputeResidualNorm_Private(nep,nep->eigr[i],si,w,&error);CHKERRQ(ierr);
+      ierr = (*nep->converged)(nep,nep->eigr[i],0,error,&error,nep->convergedctx);CHKERRQ(ierr);
       ierr = BVRestoreColumn(nep->V,i,&si);CHKERRQ(ierr);
       max_error = PetscMax(max_error,error);
     }
-    if (max_error <= nep->rtol || outer == ctx->refine_outer) break;
+    if (max_error <= nep->tol || outer == ctx->refine_outer) break;
 
     if (nep->nconv > ctx->L) nv = nep->nconv;
     else if (ctx->L > nv) nv = ctx->L;
@@ -652,7 +654,7 @@ PetscErrorCode NEPSolve_CISS(NEP nep)
     ierr = SolveLinearSystem(nep,nep->function,nep->jacobian,ctx->V,0,ctx->L,PETSC_FALSE);CHKERRQ(ierr);
   }
   ierr = PetscFree3(Mu,H0,H1);CHKERRQ(ierr);  
-  nep->reason = NEP_CONVERGED_FNORM_RELATIVE;
+  nep->reason = NEP_CONVERGED_TOL;
   PetscFunctionReturn(0);
 }
 

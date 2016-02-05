@@ -186,6 +186,7 @@ PetscErrorCode SVDGetIterationNumber(SVD svd,PetscInt *its)
 
    Possible values for reason:
 +  SVD_CONVERGED_TOL - converged up to tolerance
+.  SVD_CONVERGED_USER - converged due to a user-defined condition
 .  SVD_DIVERGED_ITS - required more than its to reach convergence
 -  SVD_DIVERGED_BREAKDOWN - generic breakdown in method
 

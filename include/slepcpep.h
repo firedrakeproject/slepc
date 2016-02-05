@@ -175,6 +175,34 @@ typedef enum { PEP_CONV_ABS,
                PEP_CONV_NORM,
                PEP_CONV_USER } PEPConv;
 
+/*E
+    PEPStop - Determines the stopping test
+
+    Level: advanced
+
+.seealso: PEPSetStoppingTest(), PEPSetStoppingTestFunction()
+E*/
+typedef enum { PEP_STOP_BASIC,
+               PEP_STOP_USER } PEPStop;
+
+/*E
+    PEPConvergedReason - Reason an eigensolver was said to
+         have converged or diverged
+
+    Level: intermediate
+
+.seealso: PEPSolve(), PEPGetConvergedReason(), PEPSetTolerances()
+E*/
+typedef enum {/* converged */
+              PEP_CONVERGED_TOL                =  1,
+              PEP_CONVERGED_USER               =  2,
+              /* diverged */
+              PEP_DIVERGED_ITS                 = -1,
+              PEP_DIVERGED_BREAKDOWN           = -2,
+              PEP_DIVERGED_SYMMETRY_LOST       = -3,
+              PEP_CONVERGED_ITERATING          =  0} PEPConvergedReason;
+PETSC_EXTERN const char *const*PEPConvergedReasons;
+
 PETSC_EXTERN PetscErrorCode PEPCreate(MPI_Comm,PEP*);
 PETSC_EXTERN PetscErrorCode PEPDestroy(PEP*);
 PETSC_EXTERN PetscErrorCode PEPReset(PEP);
@@ -220,6 +248,12 @@ PETSC_EXTERN PetscErrorCode PEPConvergedEigRelative(PEP,PetscScalar,PetscScalar,
 PETSC_EXTERN PetscErrorCode PEPConvergedLinear(PEP,PetscScalar,PetscScalar,PetscReal,PetscReal*,void*);
 PETSC_EXTERN PetscErrorCode PEPConvergedNorm(PEP,PetscScalar,PetscScalar,PetscReal,PetscReal*,void*);
 PETSC_EXTERN PetscErrorCode PEPConvergedAbsolute(PEP,PetscScalar,PetscScalar,PetscReal,PetscReal*,void*);
+PETSC_EXTERN PetscErrorCode PEPSetStoppingTestFunction(PEP,PetscErrorCode (*)(PEP,PetscInt,PetscInt,PetscInt,PetscInt,PEPConvergedReason*,void*),void*,PetscErrorCode (*)(void*));
+PETSC_EXTERN PetscErrorCode PEPSetStoppingTest(PEP,PEPStop);
+PETSC_EXTERN PetscErrorCode PEPGetStoppingTest(PEP,PEPStop*);
+PETSC_EXTERN PetscErrorCode PEPStoppingBasic(PEP,PetscInt,PetscInt,PetscInt,PetscInt,PEPConvergedReason*,void*);
+PETSC_EXTERN PetscErrorCode PEPGetConvergedReason(PEP,PEPConvergedReason *);
+
 PETSC_EXTERN PetscErrorCode PEPSetDimensions(PEP,PetscInt,PetscInt,PetscInt);
 PETSC_EXTERN PetscErrorCode PEPGetDimensions(PEP,PetscInt*,PetscInt*,PetscInt*);
 PETSC_EXTERN PetscErrorCode PEPSetScale(PEP,PEPScale,PetscReal,Vec,Vec,PetscInt,PetscReal);
@@ -261,25 +295,6 @@ PETSC_EXTERN PetscErrorCode PEPGetTrackAll(PEP,PetscBool*);
 PETSC_EXTERN PetscErrorCode PEPSetOptionsPrefix(PEP,const char*);
 PETSC_EXTERN PetscErrorCode PEPAppendOptionsPrefix(PEP,const char*);
 PETSC_EXTERN PetscErrorCode PEPGetOptionsPrefix(PEP,const char*[]);
-
-/*E
-    PEPConvergedReason - Reason an eigensolver was said to
-         have converged or diverged
-
-    Level: intermediate
-
-.seealso: PEPSolve(), PEPGetConvergedReason(), PEPSetTolerances()
-E*/
-typedef enum {/* converged */
-              PEP_CONVERGED_TOL                =  2,
-              /* diverged */
-              PEP_DIVERGED_ITS                 = -3,
-              PEP_DIVERGED_BREAKDOWN           = -4,
-              PEP_DIVERGED_SYMMETRY_LOST       = -5,
-              PEP_CONVERGED_ITERATING          =  0} PEPConvergedReason;
-PETSC_EXTERN const char *const*PEPConvergedReasons;
-
-PETSC_EXTERN PetscErrorCode PEPGetConvergedReason(PEP,PEPConvergedReason *);
 
 PETSC_EXTERN PetscFunctionList PEPList;
 PETSC_EXTERN PetscErrorCode PEPRegister(const char[],PetscErrorCode(*)(PEP));
