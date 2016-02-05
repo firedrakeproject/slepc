@@ -504,57 +504,6 @@ PetscErrorCode PEPComputeScaleFactor(PEP pep)
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "PEPComputeLinearNorms"
-/*
-   PEPComputeLinearNorms - compute norm for the linearized problem.
-*/
-PetscErrorCode PEPComputeLinearNorms(PEP pep)
-{
-  PetscErrorCode    ierr;
-  PetscReal         out=0.0,nrmd=0.0,max=0.0,summ,summrow,summd=0.0;
-  PetscReal         *pbc,*a,*b,*g,t;
-  PetscInt          i,m0,m1,ncols,j,k;
-  const PetscScalar *vals;
-  Mat               *T;
-
-  PetscFunctionBegin;
-  ierr = PetscMalloc2(3*pep->nmat,&pbc,pep->nmat,&T);CHKERRQ(ierr);
-  for (i=0;i<pep->nmat;i++) {
-    ierr = STGetTOperators(pep->st,i,&T[i]);CHKERRQ(ierr);
-  }
-  a=pbc; b=pbc+pep->nmat; g = b+pep->nmat;
-  ierr = PEPBasisCoefficients(pep,pbc);CHKERRQ(ierr);
-  out = b[0]+a[0];
-  for (i=1;i<pep->nmat-2;i++) out = PetscMax(out,a[i]+b[i]+g[i]);
-  ierr = MatGetOwnershipRange(T[0],&m0,&m1);CHKERRQ(ierr);
-  for (i=m0;i<m1;i++) {
-    summrow = 0.0;
-    t = 1.0;
-    for (j=0;j<pep->nmat;j++) {
-      summ = 0.0;
-      ierr = MatGetRow(T[j],i,&ncols,NULL,&vals);CHKERRQ(ierr);
-      for (k=0;k<ncols;k++) summ += PetscAbsScalar(vals[k]);
-      ierr = MatRestoreRow(T[j],i,&ncols,NULL,&vals);CHKERRQ(ierr);
-      summ *= t;
-      if (j==pep->nmat-1) {
-        summd = summ;
-        summ *= (b[pep->nmat-2]+g[pep->nmat-2])/a[pep->nmat-2];
-      } else summ *= a[pep->nmat-2];
-      summrow += summ;
-      t *= pep->sfactor;
-    }
-    nrmd = PetscMax(nrmd,summd);
-    max = PetscMax(max,summrow);
-  }
-  max = PetscMax(max*pep->dsfactor,out);
-  ierr = MPI_Allreduce(&max,&pep->nrml[0],1,MPIU_REAL,MPIU_MAX,PetscObjectComm((PetscObject)pep));CHKERRQ(ierr);
-  ierr = MPI_Allreduce(&nrmd,&pep->nrml[1],1,MPIU_REAL,MPIU_MAX,PetscObjectComm((PetscObject)pep));CHKERRQ(ierr);
-  pep->nrml[1] = PetscMax(1.0,pep->nrml[1]*pep->dsfactor);
-  ierr = PetscFree2(pbc,T);CHKERRQ(ierr);
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
 #define __FUNCT__ "PEPBasisCoefficients"
 /*
    PEPBasisCoefficients - compute polynomial basis coefficients

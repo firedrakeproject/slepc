@@ -160,16 +160,6 @@ PetscErrorCode PEPView(PEP pep,PetscViewer viewer)
       ierr = PetscViewerASCIIPrintf(viewer,"absolute\n");CHKERRQ(ierr);break;
     case PEP_CONV_EIG:
       ierr = PetscViewerASCIIPrintf(viewer,"relative to the eigenvalue\n");CHKERRQ(ierr);break;
-    case PEP_CONV_LINEAR:
-      ierr = PetscViewerASCIIPrintf(viewer,"related to the linearized eigenproblem\n");CHKERRQ(ierr);
-      if (pep->nrma) {
-        ierr = PetscViewerASCIIPrintf(viewer,"  computed matrix norms: %g",(double)pep->nrma[0]);CHKERRQ(ierr);
-        for (i=1;i<pep->nmat;i++) {
-          ierr = PetscViewerASCIIPrintf(viewer,", %g",(double)pep->nrma[i]);CHKERRQ(ierr);
-        }
-        ierr = PetscViewerASCIIPrintf(viewer,"\n");CHKERRQ(ierr);
-      }
-      break;
     case PEP_CONV_NORM:
       ierr = PetscViewerASCIIPrintf(viewer,"related to the matrix norms\n");CHKERRQ(ierr);
       if (pep->nrma) {

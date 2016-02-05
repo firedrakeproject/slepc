@@ -211,10 +211,6 @@ PetscErrorCode PEPSetUp(PEP pep)
     ierr = PEPBuildDiagonalScaling(pep);CHKERRQ(ierr);
   }
 
-  if (pep->conv==PEP_CONV_LINEAR) {
-    ierr = PEPComputeLinearNorms(pep);CHKERRQ(ierr);
-  }
-
   /* process initial vectors */
   if (pep->nini<0) {
     k = -pep->nini;

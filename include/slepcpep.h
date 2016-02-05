@@ -171,7 +171,6 @@ PETSC_EXTERN const char *PEPErrorTypes[];
 E*/
 typedef enum { PEP_CONV_ABS,
                PEP_CONV_EIG,
-               PEP_CONV_LINEAR,
                PEP_CONV_NORM,
                PEP_CONV_USER } PEPConv;
 

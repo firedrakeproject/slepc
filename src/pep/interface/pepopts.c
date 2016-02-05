@@ -108,8 +108,6 @@ PetscErrorCode PEPSetFromOptions(PEP pep)
 
     ierr = PetscOptionsBoolGroupBegin("-pep_conv_eig","Relative error convergence test","PEPSetConvergenceTest",&flg);CHKERRQ(ierr);
     if (flg) { ierr = PEPSetConvergenceTest(pep,PEP_CONV_EIG);CHKERRQ(ierr); }
-    ierr = PetscOptionsBoolGroup("-pep_conv_linear","Convergence test related to the linearized eigenproblem","PEPSetConvergenceTest",&flg);CHKERRQ(ierr);
-    if (flg) { ierr = PEPSetConvergenceTest(pep,PEP_CONV_LINEAR);CHKERRQ(ierr); }
     ierr = PetscOptionsBoolGroupBegin("-pep_conv_norm","Convergence test related to the matrix norms","PEPSetConvergenceTest",&flg);CHKERRQ(ierr);
     if (flg) { ierr = PEPSetConvergenceTest(pep,PEP_CONV_NORM);CHKERRQ(ierr); }
     ierr = PetscOptionsBoolGroup("-pep_conv_abs","Absolute error convergence test","PEPSetConvergenceTest",&flg);CHKERRQ(ierr);
@@ -791,7 +789,6 @@ PetscErrorCode PEPSetConvergenceTestFunction(PEP pep,PetscErrorCode (*func)(PEP,
   pep->convergeddestroy = destroy;
   pep->convergedctx     = ctx;
   if (func == PEPConvergedEigRelative) pep->conv = PEP_CONV_EIG;
-  else if (func == PEPConvergedLinear) pep->conv = PEP_CONV_LINEAR;
   else if (func == PEPConvergedNorm) pep->conv = PEP_CONV_NORM;
   else if (func == PEPConvergedAbsolute) pep->conv = PEP_CONV_ABS;
   else pep->conv = PEP_CONV_USER;
@@ -813,14 +810,13 @@ PetscErrorCode PEPSetConvergenceTestFunction(PEP pep,PetscErrorCode (*func)(PEP,
    Options Database Keys:
 +  -pep_conv_abs    - Sets the absolute convergence test
 .  -pep_conv_eig    - Sets the convergence test relative to the eigenvalue
-.  -pep_conv_linear - Sets the convergence test related to the linearized eigenproblem
+.  -pep_conv_norm   - Sets the convergence test relative to the matrix norms
 -  -pep_conv_user   - Selects the user-defined convergence test
 
    Note:
    The parameter 'conv' can have one of these values
 +     PEP_CONV_ABS    - absolute error ||r||
 .     PEP_CONV_EIG    - error relative to the eigenvalue l, ||r||/|l|
-.     PEP_CONV_LINEAR - error related to the linearized eigenproblem
 .     PEP_CONV_NORM   - error relative matrix norms, ||r||/sum_i(l^i*||A_i||)
 -     PEP_CONV_USER   - function set by PEPSetConvergenceTestFunction()
 
@@ -836,7 +832,6 @@ PetscErrorCode PEPSetConvergenceTest(PEP pep,PEPConv conv)
   switch (conv) {
     case PEP_CONV_ABS:    pep->converged = PEPConvergedAbsolute; break;
     case PEP_CONV_EIG:    pep->converged = PEPConvergedEigRelative; break;
-    case PEP_CONV_LINEAR: pep->converged = PEPConvergedLinear; break;
     case PEP_CONV_NORM:   pep->converged = PEPConvergedNorm; break;
     case PEP_CONV_USER: break;
     default:
