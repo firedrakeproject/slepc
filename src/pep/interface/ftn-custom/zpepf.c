@@ -44,6 +44,7 @@
 #define pepconvergedeigrelative_    PEPCONVERGEDEIGRELATIVE
 #define pepconvergedlinear_         PEPCONVERGEDLINEAR
 #define pepsetconvergencetestfunction_ PEPSETCONVERGENCETESTFUNCTION
+#define pepsetstoppingtestfunction_ PEPSETSTOPPINGTESTFUNCTION
 #define pepseteigenvaluecomparison_ PEPSETEIGENVALUECOMPARISON
 #elif !defined(PETSC_HAVE_FORTRAN_UNDERSCORE)
 #define pepview_                    pepview
@@ -66,6 +67,7 @@
 #define pepconvergedeigrelative_    pepconvergedeigrelative
 #define pepconvergedlinear_	    pepconvergedlinear
 #define pepsetconvergencetestfunction_ pepsetconvergencetestfunction
+#define pepsetstoppingtestfunction_ pepsetstoppingtestfunction
 #define pepseteigenvaluecomparison_ pepseteigenvaluecomparison
 #endif
 
@@ -103,6 +105,8 @@ static struct {
   PetscFortranCallbackId monitordestroy;
   PetscFortranCallbackId convergence;
   PetscFortranCallbackId convdestroy;
+  PetscFortranCallbackId stopping;
+  PetscFortranCallbackId stopdestroy;
   PetscFortranCallbackId comparison;
 } _cb;
 
@@ -135,6 +139,21 @@ static PetscErrorCode ourconvdestroy(void *ctx)
 {
   PEP pep = (PEP)ctx;
   PetscObjectUseFortranCallback(pep,_cb.convdestroy,(void*,PetscErrorCode*),(_ctx,&ierr));
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "ourstopping"
+static PetscErrorCode ourstopping(PEP pep,PetscInt its,PetscInt max_it,PetscInt nconv,PetscInt nev,PEPConvergedReason *reason,void *ctx)
+{
+  PetscObjectUseFortranCallback(pep,_cb.stopping,(PEP*,PetscInt*,PetscInt*,PetscInt*,PetscInt*,PEPConvergedReason*,void*,PetscErrorCode*),(&pep,&its,&max_it,&nconv,&nev,reason,_ctx,&ierr));
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "ourstopdestroy"
+static PetscErrorCode ourstopdestroy(void *ctx)
+{
+  PEP pep = (PEP)ctx;
+  PetscObjectUseFortranCallback(pep,_cb.stopdestroy,(void*,PetscErrorCode*),(_ctx,&ierr));
 }
 
 #undef __FUNCT__
@@ -291,6 +310,28 @@ PETSC_EXTERN void PETSC_STDCALL pepsetconvergencetestfunction_(PEP *pep,void (PE
     } else {
       *ierr = PetscObjectSetFortranCallback((PetscObject)*pep,PETSC_FORTRAN_CALLBACK_CLASS,&_cb.convdestroy,(PetscVoidFunction)destroy,ctx); if (*ierr) return;
       *ierr = PEPSetConvergenceTestFunction(*pep,ourconvergence,*pep,ourconvdestroy);
+    }
+  }
+}
+
+PETSC_EXTERN void PETSC_STDCALL pepstoppingbasic_(PEP *pep,PetscInt *its,PetscInt *max_it,PetscInt *nconv,PetscInt *nev,PEPConvergedReason *reason,void *ctx,PetscErrorCode *ierr)
+{
+  *ierr = PEPStoppingBasic(*pep,*its,*max_it,*nconv,*nev,reason,ctx);
+}
+
+PETSC_EXTERN void PETSC_STDCALL pepsetstoppingtestfunction_(PEP *pep,void (PETSC_STDCALL *func)(PEP*,PetscInt,PetscInt,PetscInt,PetscInt,PEPConvergedReason*,void*,PetscErrorCode*),void* ctx,void (PETSC_STDCALL *destroy)(void*,PetscErrorCode*),PetscErrorCode *ierr)
+{
+  CHKFORTRANNULLOBJECT(ctx);
+  CHKFORTRANNULLFUNCTION(destroy);
+  if ((PetscVoidFunction)func == (PetscVoidFunction)pepstoppingbasic_) {
+    *ierr = PEPSetStoppingTest(*pep,PEP_STOP_BASIC);
+  } else {
+    *ierr = PetscObjectSetFortranCallback((PetscObject)*pep,PETSC_FORTRAN_CALLBACK_CLASS,&_cb.stopping,(PetscVoidFunction)func,ctx); if (*ierr) return;
+    if (!destroy) {
+      *ierr = PEPSetStoppingTestFunction(*pep,ourstopping,*pep,NULL);
+    } else {
+      *ierr = PetscObjectSetFortranCallback((PetscObject)*pep,PETSC_FORTRAN_CALLBACK_CLASS,&_cb.stopdestroy,(PetscVoidFunction)destroy,ctx); if (*ierr) return;
+      *ierr = PEPSetStoppingTestFunction(*pep,ourstopping,*pep,ourstopdestroy);
     }
   }
 }

@@ -79,7 +79,7 @@ int main(int argc,char **argv)
 #else
   ierr = RGIntervalSetEndpoints(rg,0.01,16.0,0,0);CHKERRQ(ierr);
 #endif
-  ierr = NEPSetTarget(nep,1.0);CHKERRQ(ierr);
+  ierr = NEPSetTarget(nep,1.1);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
      Define the nonlinear problem

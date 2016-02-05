@@ -40,6 +40,10 @@
 #define svdsetoptionsprefix_         SVDSETOPTIONSPREFIX
 #define svdappendoptionsprefix_      SVDAPPENDOPTIONSPREFIX
 #define svdgetoptionsprefix_         SVDGETOPTIONSPREFIX
+#define svdconvergedabsolute_        SVDCONVERGEDABSOLUTE
+#define svdconvergedrelative_        SVDCONVERGEDRELATIVE
+#define svdsetconvergencetestfunction_ SVDSETCONVERGENCETESTFUNCTION
+#define svdsetstoppingtestfunction_  SVDSETSTOPPINGTESTFUNCTION
 #elif !defined(PETSC_HAVE_FORTRAN_UNDERSCORE)
 #define svdmonitorall_               svdmonitorall
 #define svdmonitorlg_                svdmonitorlg
@@ -57,6 +61,10 @@
 #define svdsetoptionsprefix_         svdsetoptionsprefix
 #define svdappendoptionsprefix_      svdappendoptionsprefix
 #define svdgetoptionsprefix_         svdgetoptionsprefix
+#define svdconvergedabsolute_        svdconvergedabsolute
+#define svdconvergedrelative_        svdconvergedrelative
+#define svdsetconvergencetestfunction_ svdsetconvergencetestfunction
+#define svdsetstoppingtestfunction_  svdsetstoppingtestfunction
 #endif
 
 /*
@@ -91,6 +99,10 @@ PETSC_EXTERN void svdmonitorfirst_(SVD *svd,PetscInt *it,PetscInt *nconv,PetscRe
 static struct {
   PetscFortranCallbackId monitor;
   PetscFortranCallbackId monitordestroy;
+  PetscFortranCallbackId convergence;
+  PetscFortranCallbackId convdestroy;
+  PetscFortranCallbackId stopping;
+  PetscFortranCallbackId stopdestroy;
 } _cb;
 
 /* These are not extern C because they are passed into non-extern C user level functions */
@@ -107,6 +119,36 @@ static PetscErrorCode ourdestroy(void** ctx)
 {
   SVD svd = (SVD)*ctx;
   PetscObjectUseFortranCallback(svd,_cb.monitordestroy,(void*,PetscErrorCode*),(_ctx,&ierr));
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "ourconvergence"
+static PetscErrorCode ourconvergence(SVD svd,PetscReal sigma,PetscReal res,PetscReal *errest,void *ctx)
+{
+  PetscObjectUseFortranCallback(svd,_cb.convergence,(SVD*,PetscReal*,PetscReal*,PetscReal*,void*,PetscErrorCode*),(&svd,&sigma,&res,errest,_ctx,&ierr));
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "ourconvdestroy"
+static PetscErrorCode ourconvdestroy(void *ctx)
+{
+  SVD svd = (SVD)ctx;
+  PetscObjectUseFortranCallback(svd,_cb.convdestroy,(void*,PetscErrorCode*),(_ctx,&ierr));
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "ourstopping"
+static PetscErrorCode ourstopping(SVD svd,PetscInt its,PetscInt max_it,PetscInt nconv,PetscInt nsv,SVDConvergedReason *reason,void *ctx)
+{
+  PetscObjectUseFortranCallback(svd,_cb.stopping,(SVD*,PetscInt*,PetscInt*,PetscInt*,PetscInt*,SVDConvergedReason*,void*,PetscErrorCode*),(&svd,&its,&max_it,&nconv,&nsv,reason,_ctx,&ierr));
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "ourstopdestroy"
+static PetscErrorCode ourstopdestroy(void *ctx)
+{
+  SVD svd = (SVD)ctx;
+  PetscObjectUseFortranCallback(svd,_cb.stopdestroy,(void*,PetscErrorCode*),(_ctx,&ierr));
 }
 
 PETSC_EXTERN void PETSC_STDCALL svdview_(SVD *svd,PetscViewer *viewer,PetscErrorCode *ierr)
@@ -221,5 +263,56 @@ PETSC_EXTERN void PETSC_STDCALL svdgetoptionsprefix_(SVD *svd,CHAR prefix PETSC_
 
   *ierr = SVDGetOptionsPrefix(*svd,&tname); if (*ierr) return;
   *ierr = PetscStrncpy(prefix,tname,len);
+}
+
+PETSC_EXTERN void PETSC_STDCALL svdconvergedabsolute_(SVD *svd,PetscReal *sigma,PetscReal *res,PetscReal *errest,void *ctx,PetscErrorCode *ierr)
+{
+  *ierr = SVDConvergedAbsolute(*svd,*sigma,*res,errest,ctx);
+}
+
+PETSC_EXTERN void PETSC_STDCALL svdconvergedrelative_(SVD *svd,PetscReal *sigma,PetscReal *res,PetscReal *errest,void *ctx,PetscErrorCode *ierr)
+{
+  *ierr = SVDConvergedRelative(*svd,*sigma,*res,errest,ctx);
+}
+
+PETSC_EXTERN void PETSC_STDCALL svdsetconvergencetestfunction_(SVD *svd,void (PETSC_STDCALL *func)(SVD*,PetscReal*,PetscReal*,PetscReal*,void*,PetscErrorCode*),void* ctx,void (PETSC_STDCALL *destroy)(void*,PetscErrorCode*),PetscErrorCode *ierr)
+{
+  CHKFORTRANNULLOBJECT(ctx);
+  CHKFORTRANNULLFUNCTION(destroy);
+  if ((PetscVoidFunction)func == (PetscVoidFunction)svdconvergedabsolute_) {
+    *ierr = SVDSetConvergenceTest(*svd,SVD_CONV_ABS);
+  } else if ((PetscVoidFunction)func == (PetscVoidFunction)svdconvergedrelative_) {
+    *ierr = SVDSetConvergenceTest(*svd,SVD_CONV_REL);
+  } else {
+    *ierr = PetscObjectSetFortranCallback((PetscObject)*svd,PETSC_FORTRAN_CALLBACK_CLASS,&_cb.convergence,(PetscVoidFunction)func,ctx); if (*ierr) return;
+    if (!destroy) {
+      *ierr = SVDSetConvergenceTestFunction(*svd,ourconvergence,*svd,NULL);
+    } else {
+      *ierr = PetscObjectSetFortranCallback((PetscObject)*svd,PETSC_FORTRAN_CALLBACK_CLASS,&_cb.convdestroy,(PetscVoidFunction)destroy,ctx); if (*ierr) return;
+      *ierr = SVDSetConvergenceTestFunction(*svd,ourconvergence,*svd,ourconvdestroy);
+    }
+  }
+}
+
+PETSC_EXTERN void PETSC_STDCALL svdstoppingbasic_(SVD *svd,PetscInt *its,PetscInt *max_it,PetscInt *nconv,PetscInt *nsv,SVDConvergedReason *reason,void *ctx,PetscErrorCode *ierr)
+{
+  *ierr = SVDStoppingBasic(*svd,*its,*max_it,*nconv,*nsv,reason,ctx);
+}
+
+PETSC_EXTERN void PETSC_STDCALL svdsetstoppingtestfunction_(SVD *svd,void (PETSC_STDCALL *func)(SVD*,PetscInt,PetscInt,PetscInt,PetscInt,SVDConvergedReason*,void*,PetscErrorCode*),void* ctx,void (PETSC_STDCALL *destroy)(void*,PetscErrorCode*),PetscErrorCode *ierr)
+{
+  CHKFORTRANNULLOBJECT(ctx);
+  CHKFORTRANNULLFUNCTION(destroy);
+  if ((PetscVoidFunction)func == (PetscVoidFunction)svdstoppingbasic_) {
+    *ierr = SVDSetStoppingTest(*svd,SVD_STOP_BASIC);
+  } else {
+    *ierr = PetscObjectSetFortranCallback((PetscObject)*svd,PETSC_FORTRAN_CALLBACK_CLASS,&_cb.stopping,(PetscVoidFunction)func,ctx); if (*ierr) return;
+    if (!destroy) {
+      *ierr = SVDSetStoppingTestFunction(*svd,ourstopping,*svd,NULL);
+    } else {
+      *ierr = PetscObjectSetFortranCallback((PetscObject)*svd,PETSC_FORTRAN_CALLBACK_CLASS,&_cb.stopdestroy,(PetscVoidFunction)destroy,ctx); if (*ierr) return;
+      *ierr = SVDSetStoppingTestFunction(*svd,ourstopping,*svd,ourstopdestroy);
+    }
+  }
 }
 

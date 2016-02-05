@@ -295,11 +295,8 @@ static PetscErrorCode NEPNLEIGSKrylovConvergence(NEP nep,PetscBool getall,PetscI
     ierr = DSVectors(nep->ds,DS_MAT_X,&newk,&resnorm);CHKERRQ(ierr);
     resnorm *= beta;
     /* error estimate */
-    nep->errest[k] = resnorm/SlepcAbsEigenvalue(nep->eigr[k],nep->eigi[k]);
-    /*
     ierr = (*nep->converged)(nep,re,im,resnorm,&nep->errest[k],nep->convergedctx);CHKERRQ(ierr);
-    */
-    if (marker==-1 && nep->errest[k] >= nep->rtol) marker = k;
+    if (marker==-1 && nep->errest[k] >= nep->tol) marker = k;
     if (newk==k+1) {
       nep->errest[k+1] = nep->errest[k];
       k++;
@@ -337,7 +334,6 @@ PetscErrorCode NEPSetUp_NLEIGS(NEP nep)
   if (!nep->mpd) nep->mpd = nep->ncv;
   if (nep->ncv>nep->nev+nep->mpd) SETERRQ(PetscObjectComm((PetscObject)nep),1,"The value of ncv must not be larger than nev+mpd");
   if (!nep->max_it) nep->max_it = PetscMax(5000,2*nep->n/nep->ncv);
-  if (!nep->max_funcs) nep->max_funcs = nep->max_it;
   ierr = RGIsTrivial(nep->rg,&istrivial);CHKERRQ(ierr);
   if (istrivial) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"NEPNLEIGS requires a nontrivial region defining the target set");
   ierr = RGCheckInside(nep->rg,1,&nep->target,&zero,&in);CHKERRQ(ierr);
@@ -348,8 +344,8 @@ PetscErrorCode NEPSetUp_NLEIGS(NEP nep)
   k = MAX_LBPOINTS;
   ierr = PetscMalloc4(k,&ctx->s,k,&ctx->xi,k,&ctx->beta,k,&ctx->D);CHKERRQ(ierr);
   nep->data = ctx;
-  if (nep->rtol==PETSC_DEFAULT) nep->rtol = SLEPC_DEFAULT_TOL;
-  ctx->ddtol = nep->rtol/10.0;
+  if (nep->tol==PETSC_DEFAULT) nep->tol = SLEPC_DEFAULT_TOL;
+  ctx->ddtol = nep->tol/10.0;
 
   /* Compute Leja-Bagby points and scaling values */
   ierr = NEPNLEIGSLejaBagbyPoints(nep);CHKERRQ(ierr);
@@ -751,8 +747,7 @@ PetscErrorCode NEPSolve_NLEIGS(NEP nep)
 
     /* Check convergence */
     ierr = NEPNLEIGSKrylovConvergence(nep,PETSC_FALSE,nep->nconv,nv-nep->nconv,beta,&k);CHKERRQ(ierr);
-    if (nep->its >= nep->max_it) nep->reason = NEP_DIVERGED_MAX_IT;
-    if (k >= nep->nev) nep->reason = NEP_CONVERGED_TOL;
+    ierr = (*nep->stopping)(nep,nep->its,nep->max_it,k,nep->nev,&nep->reason,nep->stoppingctx);CHKERRQ(ierr);
 
     /* Update l */
     if (nep->reason != NEP_CONVERGED_ITERATING || breakdown) l = 0;
