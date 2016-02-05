@@ -56,7 +56,7 @@ int main(int argc,char **argv)
   N = m*(m+1)/2;
   ierr = PetscPrintf(PETSC_COMM_WORLD,"\nMarkov Model, N=%D (m=%D)\n",N,m);CHKERRQ(ierr);
   ierr = PetscOptionsGetReal(NULL,NULL,"-seconds",&seconds,NULL);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"Maximum time for computation is set to %g seconds.\n\n",seconds);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"Maximum time for computation is set to %g seconds.\n\n",(double)seconds);CHKERRQ(ierr);
   deadline = seconds;
   ierr = PetscTimeAdd(&deadline);CHKERRQ(ierr);
 
@@ -103,7 +103,7 @@ int main(int argc,char **argv)
       ierr = EPSErrorView(eps,EPS_ERROR_RELATIVE,viewer);CHKERRQ(ierr);
     } else {
       ierr = EPSGetConverged(eps,&nconv);CHKERRQ(ierr);
-      ierr = PetscViewerASCIIPrintf(viewer,"Eigensolve finished with %d converged eigenpairs; reason=%s\n",nconv,EPSConvergedReasons[reason]);CHKERRQ(ierr);
+      ierr = PetscViewerASCIIPrintf(viewer,"Eigensolve finished with %D converged eigenpairs; reason=%s\n",nconv,EPSConvergedReasons[reason]);CHKERRQ(ierr);
     }
     ierr = PetscViewerPopFormat(viewer);CHKERRQ(ierr);
   }

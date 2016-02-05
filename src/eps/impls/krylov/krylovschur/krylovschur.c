@@ -1136,7 +1136,7 @@ PetscErrorCode EPSView_KrylovSchur(EPS eps,PetscViewer viewer)
     if (eps->which==EPS_ALL) {
       ierr = PetscViewerASCIIPrintf(viewer,"  Krylov-Schur: doing spectrum slicing with nev=%D, ncv=%D, mpd=%D\n",ctx->nev,ctx->ncv,ctx->mpd);CHKERRQ(ierr);
       if (ctx->npart>1) {
-        ierr = PetscViewerASCIIPrintf(viewer,"  Krylov-Schur: multi-communicator spectrum slicing with %d partitions\n",ctx->npart);CHKERRQ(ierr);
+        ierr = PetscViewerASCIIPrintf(viewer,"  Krylov-Schur: multi-communicator spectrum slicing with %D partitions\n",ctx->npart);CHKERRQ(ierr);
         if (ctx->detect) { ierr = PetscViewerASCIIPrintf(viewer,"  Krylov-Schur: detecting zeros when factorizing at subinterval boundaries\n");CHKERRQ(ierr); }
       }
     }

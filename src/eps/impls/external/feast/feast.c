@@ -234,7 +234,7 @@ PetscErrorCode EPSView_FEAST(EPS eps,PetscViewer viewer)
   PetscFunctionBegin;
   ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
   if (isascii) {
-    ierr = PetscViewerASCIIPrintf(viewer,"  FEAST: number of contour integration points=%d\n",ctx->npoints);CHKERRQ(ierr);
+    ierr = PetscViewerASCIIPrintf(viewer,"  FEAST: number of contour integration points=%D\n",ctx->npoints);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }

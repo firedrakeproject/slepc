@@ -275,7 +275,7 @@ PetscErrorCode EPSView_PRIMME(EPS eps,PetscViewer viewer)
   PetscFunctionBegin;
   ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
   if (isascii) {
-    ierr = PetscViewerASCIIPrintf(viewer,"  PRIMME: block size=%d\n",primme->maxBlockSize);CHKERRQ(ierr);
+    ierr = PetscViewerASCIIPrintf(viewer,"  PRIMME: block size=%D\n",primme->maxBlockSize);CHKERRQ(ierr);
     ierr = EPSPRIMMEGetMethod(eps,&methodn);CHKERRQ(ierr);
     ierr = PetscViewerASCIIPrintf(viewer,"  PRIMME: solver method: %s\n",EPSPRIMMEMethods[methodn]);CHKERRQ(ierr);
 
