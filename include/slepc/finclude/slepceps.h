@@ -113,12 +113,12 @@
       parameter (EPS_ERROR_BACKWARD         =  2)
 
       PetscEnum EPS_CONV_ABS
-      PetscEnum EPS_CONV_EIG
+      PetscEnum EPS_CONV_REL
       PetscEnum EPS_CONV_NORM
       PetscEnum EPS_CONV_USER
 
       parameter (EPS_CONV_ABS               =  0)
-      parameter (EPS_CONV_EIG               =  1)
+      parameter (EPS_CONV_REL               =  1)
       parameter (EPS_CONV_NORM              =  2)
       parameter (EPS_CONV_USER              =  3)
 

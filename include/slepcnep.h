@@ -117,7 +117,7 @@ PETSC_EXTERN const char *NEPRefineSchemes[];
 .seealso: NEPSetConvergenceTest(), NEPSetConvergenceTestFunction()
 E*/
 typedef enum { NEP_CONV_ABS,
-               NEP_CONV_EIG,
+               NEP_CONV_REL,
                NEP_CONV_USER } NEPConv;
 
 /*E

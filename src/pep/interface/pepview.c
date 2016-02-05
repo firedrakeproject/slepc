@@ -158,7 +158,7 @@ PetscErrorCode PEPView(PEP pep,PetscViewer viewer)
     switch (pep->conv) {
     case PEP_CONV_ABS:
       ierr = PetscViewerASCIIPrintf(viewer,"absolute\n");CHKERRQ(ierr);break;
-    case PEP_CONV_EIG:
+    case PEP_CONV_REL:
       ierr = PetscViewerASCIIPrintf(viewer,"relative to the eigenvalue\n");CHKERRQ(ierr);break;
     case PEP_CONV_NORM:
       ierr = PetscViewerASCIIPrintf(viewer,"related to the matrix norms\n");CHKERRQ(ierr);

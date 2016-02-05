@@ -129,12 +129,12 @@
       parameter (PEP_ERROR_BACKWARD         =  2)
 
       PetscEnum PEP_CONV_ABS
-      PetscEnum PEP_CONV_EIG
+      PetscEnum PEP_CONV_REL
       PetscEnum PEP_CONV_NORM
       PetscEnum PEP_CONV_USER
 
       parameter (PEP_CONV_ABS               =  0)
-      parameter (PEP_CONV_EIG               =  1)
+      parameter (PEP_CONV_REL               =  1)
       parameter (PEP_CONV_NORM              =  2)
       parameter (PEP_CONV_USER              =  3)
 

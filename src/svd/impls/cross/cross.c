@@ -150,7 +150,7 @@ PetscErrorCode SVDSetUp_Cross(SVD svd)
   case SVD_CONV_ABS:
     ierr = EPSSetConvergenceTest(cross->eps,EPS_CONV_ABS);CHKERRQ(ierr);break;
   case SVD_CONV_REL:
-    ierr = EPSSetConvergenceTest(cross->eps,EPS_CONV_EIG);CHKERRQ(ierr);break;
+    ierr = EPSSetConvergenceTest(cross->eps,EPS_CONV_REL);CHKERRQ(ierr);break;
   case SVD_CONV_USER:
     SETERRQ(PetscObjectComm((PetscObject)svd),PETSC_ERR_SUP,"User-defined convergence test not supported in this solver");
   }

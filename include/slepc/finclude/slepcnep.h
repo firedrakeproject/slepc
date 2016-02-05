@@ -43,11 +43,11 @@
       parameter (NEP_REFINE_SCHEME_SCHUR    =  2)
 
       PetscEnum NEP_CONV_ABS
-      PetscEnum NEP_CONV_EIG
+      PetscEnum NEP_CONV_REL
       PetscEnum NEP_CONV_USER
 
       parameter (NEP_CONV_ABS               =  0)
-      parameter (NEP_CONV_EIG               =  1)
+      parameter (NEP_CONV_REL               =  1)
       parameter (NEP_CONV_USER              =  2)
 
       PetscEnum NEP_STOP_BASIC

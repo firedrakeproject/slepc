@@ -178,7 +178,7 @@ PetscErrorCode EPSView(EPS eps,PetscViewer viewer)
     switch (eps->conv) {
     case EPS_CONV_ABS:
       ierr = PetscViewerASCIIPrintf(viewer,"absolute\n");CHKERRQ(ierr);break;
-    case EPS_CONV_EIG:
+    case EPS_CONV_REL:
       ierr = PetscViewerASCIIPrintf(viewer,"relative to the eigenvalue\n");CHKERRQ(ierr);break;
     case EPS_CONV_NORM:
       ierr = PetscViewerASCIIPrintf(viewer,"relative to the eigenvalue and matrix norms\n");CHKERRQ(ierr);

@@ -144,7 +144,7 @@ PetscErrorCode NEPView(NEP nep,PetscViewer viewer)
     switch (nep->conv) {
     case NEP_CONV_ABS:
       ierr = PetscViewerASCIIPrintf(viewer,"absolute\n");CHKERRQ(ierr);break;
-    case NEP_CONV_EIG:
+    case NEP_CONV_REL:
       ierr = PetscViewerASCIIPrintf(viewer,"relative to the eigenvalue\n");CHKERRQ(ierr);break;
     case NEP_CONV_USER:
       ierr = PetscViewerASCIIPrintf(viewer,"user-defined\n");CHKERRQ(ierr);break;

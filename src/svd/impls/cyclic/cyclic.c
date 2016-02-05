@@ -153,7 +153,7 @@ PetscErrorCode SVDSetUp_Cyclic(SVD svd)
   case SVD_CONV_ABS:
     ierr = EPSSetConvergenceTest(cyclic->eps,EPS_CONV_ABS);CHKERRQ(ierr);break;
   case SVD_CONV_REL:
-    ierr = EPSSetConvergenceTest(cyclic->eps,EPS_CONV_EIG);CHKERRQ(ierr);break;
+    ierr = EPSSetConvergenceTest(cyclic->eps,EPS_CONV_REL);CHKERRQ(ierr);break;
   case SVD_CONV_USER:
     SETERRQ(PetscObjectComm((PetscObject)svd),PETSC_ERR_SUP,"User-defined convergence test not supported in this solver");
   }

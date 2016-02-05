@@ -282,7 +282,7 @@ PETSC_EXTERN void PETSC_STDCALL nepsetconvergencetestfunction_(NEP *nep,void (PE
   if ((PetscVoidFunction)func == (PetscVoidFunction)nepconvergedabsolute_) {
     *ierr = NEPSetConvergenceTest(*nep,NEP_CONV_ABS);
   } else if ((PetscVoidFunction)func == (PetscVoidFunction)nepconvergedeigrelative_) {
-    *ierr = NEPSetConvergenceTest(*nep,NEP_CONV_EIG);
+    *ierr = NEPSetConvergenceTest(*nep,NEP_CONV_REL);
   } else {
     *ierr = PetscObjectSetFortranCallback((PetscObject)*nep,PETSC_FORTRAN_CALLBACK_CLASS,&_cb.convergence,(PetscVoidFunction)func,ctx); if (*ierr) return;
     if (!destroy) {

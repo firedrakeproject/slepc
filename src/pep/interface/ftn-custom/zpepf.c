@@ -293,7 +293,7 @@ PETSC_EXTERN void PETSC_STDCALL pepsetconvergencetestfunction_(PEP *pep,void (PE
   if ((PetscVoidFunction)func == (PetscVoidFunction)pepconvergedabsolute_) {
     *ierr = PEPSetConvergenceTest(*pep,PEP_CONV_ABS);
   } else if ((PetscVoidFunction)func == (PetscVoidFunction)pepconvergedeigrelative_) {
-    *ierr = PEPSetConvergenceTest(*pep,PEP_CONV_EIG);
+    *ierr = PEPSetConvergenceTest(*pep,PEP_CONV_REL);
   } else {
     *ierr = PetscObjectSetFortranCallback((PetscObject)*pep,PETSC_FORTRAN_CALLBACK_CLASS,&_cb.convergence,(PetscVoidFunction)func,ctx); if (*ierr) return;
     if (!destroy) {

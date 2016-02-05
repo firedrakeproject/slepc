@@ -311,7 +311,7 @@ PETSC_EXTERN void PETSC_STDCALL epssetconvergencetestfunction_(EPS *eps,void (PE
   if ((PetscVoidFunction)func == (PetscVoidFunction)epsconvergedabsolute_) {
     *ierr = EPSSetConvergenceTest(*eps,EPS_CONV_ABS);
   } else if ((PetscVoidFunction)func == (PetscVoidFunction)epsconvergedeigrelative_) {
-    *ierr = EPSSetConvergenceTest(*eps,EPS_CONV_EIG);
+    *ierr = EPSSetConvergenceTest(*eps,EPS_CONV_REL);
   } else if ((PetscVoidFunction)func == (PetscVoidFunction)epsconvergednormrelative_) {
     *ierr = EPSSetConvergenceTest(*eps,EPS_CONV_NORM);
   } else {

@@ -85,8 +85,8 @@ PetscErrorCode NEPSetFromOptions(NEP nep)
       ierr = NEPSetTolerances(nep,r,i);CHKERRQ(ierr);
     }
 
-    ierr = PetscOptionsBoolGroupBegin("-nep_conv_eig","Relative error convergence test","NEPSetConvergenceTest",&flg);CHKERRQ(ierr);
-    if (flg) { ierr = NEPSetConvergenceTest(nep,NEP_CONV_EIG);CHKERRQ(ierr); }
+    ierr = PetscOptionsBoolGroupBegin("-nep_conv_rel","Relative error convergence test","NEPSetConvergenceTest",&flg);CHKERRQ(ierr);
+    if (flg) { ierr = NEPSetConvergenceTest(nep,NEP_CONV_REL);CHKERRQ(ierr); }
     ierr = PetscOptionsBoolGroup("-nep_conv_abs","Absolute error convergence test","NEPSetConvergenceTest",&flg);CHKERRQ(ierr);
     if (flg) { ierr = NEPSetConvergenceTest(nep,NEP_CONV_ABS);CHKERRQ(ierr); }
     ierr = PetscOptionsBoolGroupEnd("-nep_conv_user","User-defined convergence test","NEPSetConvergenceTest",&flg);CHKERRQ(ierr);
@@ -649,7 +649,7 @@ PetscErrorCode NEPSetConvergenceTestFunction(NEP nep,PetscErrorCode (*func)(NEP,
   nep->converged        = func;
   nep->convergeddestroy = destroy;
   nep->convergedctx     = ctx;
-  if (func == NEPConvergedEigRelative) nep->conv = NEP_CONV_EIG;
+  if (func == NEPConvergedEigRelative) nep->conv = NEP_CONV_REL;
   else if (func == NEPConvergedAbsolute) nep->conv = NEP_CONV_ABS;
   else nep->conv = NEP_CONV_USER;
   PetscFunctionReturn(0);
@@ -669,13 +669,13 @@ PetscErrorCode NEPSetConvergenceTestFunction(NEP nep,PetscErrorCode (*func)(NEP,
 
    Options Database Keys:
 +  -nep_conv_abs  - Sets the absolute convergence test
-.  -nep_conv_eig  - Sets the convergence test relative to the eigenvalue
+.  -nep_conv_rel  - Sets the convergence test relative to the eigenvalue
 -  -nep_conv_user - Selects the user-defined convergence test
 
    Note:
    The parameter 'conv' can have one of these values
 +     NEP_CONV_ABS  - absolute error ||r||
-.     NEP_CONV_EIG  - error relative to the eigenvalue l, ||r||/|l|
+.     NEP_CONV_REL  - error relative to the eigenvalue l, ||r||/|l|
 -     NEP_CONV_USER - function set by NEPSetConvergenceTestFunction()
 
    Level: intermediate
@@ -689,7 +689,7 @@ PetscErrorCode NEPSetConvergenceTest(NEP nep,NEPConv conv)
   PetscValidLogicalCollectiveEnum(nep,conv,2);
   switch (conv) {
     case NEP_CONV_ABS:  nep->converged = NEPConvergedAbsolute; break;
-    case NEP_CONV_EIG:  nep->converged = NEPConvergedEigRelative; break;
+    case NEP_CONV_REL:  nep->converged = NEPConvergedEigRelative; break;
     case NEP_CONV_USER: break;
     default:
       SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_OUTOFRANGE,"Invalid 'conv' value");
