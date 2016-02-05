@@ -55,6 +55,8 @@ struct _BVOps {
   PetscErrorCode (*restorecolumn)(BV,PetscInt,Vec*);
   PetscErrorCode (*getarray)(BV,PetscScalar**);
   PetscErrorCode (*restorearray)(BV,PetscScalar**);
+  PetscErrorCode (*getarrayread)(BV,const PetscScalar**);
+  PetscErrorCode (*restorearrayread)(BV,const PetscScalar**);
   PetscErrorCode (*create)(BV);
   PetscErrorCode (*setfromoptions)(PetscOptionItems*,BV);
   PetscErrorCode (*view)(BV,PetscViewer);

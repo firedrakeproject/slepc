@@ -404,6 +404,30 @@ PetscErrorCode BVRestoreArray_Mat(BV bv,PetscScalar **a)
 }
 
 #undef __FUNCT__
+#define __FUNCT__ "BVGetArrayRead_Mat"
+PetscErrorCode BVGetArrayRead_Mat(BV bv,const PetscScalar **a)
+{
+  PetscErrorCode ierr;
+  BV_MAT         *ctx = (BV_MAT*)bv->data;
+
+  PetscFunctionBegin;
+  ierr = MatDenseGetArray(ctx->A,(PetscScalar**)a);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "BVRestoreArrayRead_Mat"
+PetscErrorCode BVRestoreArrayRead_Mat(BV bv,const PetscScalar **a)
+{
+  PetscErrorCode ierr;
+  BV_MAT         *ctx = (BV_MAT*)bv->data;
+
+  PetscFunctionBegin;
+  if (a) { ierr = MatDenseRestoreArray(ctx->A,(PetscScalar**)a);CHKERRQ(ierr); }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
 #define __FUNCT__ "BVView_Mat"
 PetscErrorCode BVView_Mat(BV bv,PetscViewer viewer)
 {
@@ -503,6 +527,8 @@ PETSC_EXTERN PetscErrorCode BVCreate_Mat(BV bv)
   bv->ops->restorecolumn    = BVRestoreColumn_Mat;
   bv->ops->getarray         = BVGetArray_Mat;
   bv->ops->restorearray     = BVRestoreArray_Mat;
+  bv->ops->getarrayread     = BVGetArrayRead_Mat;
+  bv->ops->restorearrayread = BVRestoreArrayRead_Mat;
   bv->ops->destroy          = BVDestroy_Mat;
   if (!ctx->mpi) bv->ops->view = BVView_Mat;
   PetscFunctionReturn(0);

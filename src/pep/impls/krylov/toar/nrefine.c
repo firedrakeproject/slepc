@@ -147,15 +147,16 @@ static PetscErrorCode NRefSysSetup_shell(PEP pep,PetscInt k,PetscScalar *fH,Pets
   PetscFunctionBegin;
   SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"GESV - Lapack routine is unavailable");
 #else
-  PetscErrorCode ierr;
-  PetscScalar    *DHii,*T12,*Tr,*Ts,*array,s,ss,sone=1.0,zero=0.0,*M4=ctx->M4,t,*m3,*m2,*v,*T;
-  PetscInt       i,d,j,nmat=pep->nmat,lda=nmat*k,deg=nmat-1,nloc;
-  PetscReal      *a=pep->pbc,*b=pep->pbc+nmat,*g=pep->pbc+2*nmat;
-  PetscBLASInt   k_,lda_,lds_,nloc_,one=1,info;
-  Mat            *A=ctx->A,Mk,M1=ctx->M1,P;
-  BV             V=ctx->V,M2=ctx->M2,M3=ctx->M3,W=ctx->W;
-  MatStructure   str;
-  Vec            vc;
+  PetscErrorCode    ierr;
+  PetscScalar       *DHii,*T12,*Tr,*Ts,*array,s,ss,sone=1.0,zero=0.0,*M4=ctx->M4,t,*v,*T;
+  const PetscScalar *m3,*m2;
+  PetscInt          i,d,j,nmat=pep->nmat,lda=nmat*k,deg=nmat-1,nloc;
+  PetscReal         *a=pep->pbc,*b=pep->pbc+nmat,*g=pep->pbc+2*nmat;
+  PetscBLASInt      k_,lda_,lds_,nloc_,one=1,info;
+  Mat               *A=ctx->A,Mk,M1=ctx->M1,P;
+  BV                V=ctx->V,M2=ctx->M2,M3=ctx->M3,W=ctx->W;
+  MatStructure      str;
+  Vec               vc;
 
   PetscFunctionBegin;
   ierr = STGetMatStructure(pep->st,&str);CHKERRQ(ierr);
@@ -230,15 +231,15 @@ static PetscErrorCode NRefSysSetup_shell(PEP pep,PetscInt k,PetscScalar *fH,Pets
   ierr = PetscMalloc1(nloc*k,&T);CHKERRQ(ierr);
   ierr = KSPGetOperators(pep->refineksp,NULL,&P);CHKERRQ(ierr);
   if (!ctx->compM1) { ierr = MatCopy(ctx->M1,P,SAME_NONZERO_PATTERN);CHKERRQ(ierr); }
-  ierr = BVGetArray(ctx->M2,&m2);CHKERRQ(ierr);
-  ierr = BVGetArray(ctx->M3,&m3);CHKERRQ(ierr);
+  ierr = BVGetArrayRead(ctx->M2,&m2);CHKERRQ(ierr);
+  ierr = BVGetArrayRead(ctx->M3,&m3);CHKERRQ(ierr);
   ierr = VecGetArray(ctx->t,&v);CHKERRQ(ierr);
   for (i=0;i<nloc;i++) for (j=0;j<k;j++) T[j+i*k] = m3[i+j*nloc];
   PetscStackCallBLAS("LAPACKgesv",LAPACKgesv_(&k_,&nloc_,ctx->M4,&k_,ctx->pM4,T,&k_,&info));
   for (i=0;i<nloc;i++) v[i] = BLASdot_(&k_,m2+i,&nloc_,T+i*k,&one);
   ierr = VecRestoreArray(ctx->t,&v);CHKERRQ(ierr);
-  ierr = BVRestoreArray(ctx->M2,&m2);CHKERRQ(ierr);
-  ierr = BVRestoreArray(ctx->M3,&m3);CHKERRQ(ierr);
+  ierr = BVRestoreArrayRead(ctx->M2,&m2);CHKERRQ(ierr);
+  ierr = BVRestoreArrayRead(ctx->M3,&m3);CHKERRQ(ierr);
   ierr = MatDiagonalSet(P,ctx->t,ADD_VALUES);CHKERRQ(ierr);
   ierr = PetscFree(T);CHKERRQ(ierr);
   ierr = KSPSetUp(pep->refineksp);CHKERRQ(ierr);

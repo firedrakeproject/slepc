@@ -120,6 +120,8 @@ PETSC_EXTERN PetscErrorCode BVGetColumn(BV,PetscInt,Vec*);
 PETSC_EXTERN PetscErrorCode BVRestoreColumn(BV,PetscInt,Vec*);
 PETSC_EXTERN PetscErrorCode BVGetArray(BV,PetscScalar**);
 PETSC_EXTERN PetscErrorCode BVRestoreArray(BV,PetscScalar**);
+PETSC_EXTERN PetscErrorCode BVGetArrayRead(BV,const PetscScalar**);
+PETSC_EXTERN PetscErrorCode BVRestoreArrayRead(BV,const PetscScalar**);
 PETSC_EXTERN PetscErrorCode BVCreateVec(BV,Vec*);
 PETSC_EXTERN PetscErrorCode BVSetActiveColumns(BV,PetscInt,PetscInt);
 PETSC_EXTERN PetscErrorCode BVGetActiveColumns(BV,PetscInt*,PetscInt*);

@@ -445,6 +445,36 @@ PetscErrorCode BVRestoreArray_Vecs(BV bv,PetscScalar **a)
 }
 
 #undef __FUNCT__
+#define __FUNCT__ "BVGetArrayRead_Vecs"
+PetscErrorCode BVGetArrayRead_Vecs(BV bv,const PetscScalar **a)
+{
+  PetscErrorCode    ierr;
+  BV_VECS           *ctx = (BV_VECS*)bv->data;
+  PetscInt          j;
+  const PetscScalar *p;
+
+  PetscFunctionBegin;
+  ierr = PetscMalloc((bv->nc+bv->m)*bv->n*sizeof(PetscScalar),a);CHKERRQ(ierr);
+  for (j=0;j<bv->nc+bv->m;j++) {
+    ierr = VecGetArrayRead(ctx->V[j],&p);CHKERRQ(ierr);
+    ierr = PetscMemcpy((PetscScalar**)*a+j*bv->n,p,bv->n*sizeof(PetscScalar));CHKERRQ(ierr);
+    ierr = VecRestoreArrayRead(ctx->V[j],&p);CHKERRQ(ierr);
+  }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "BVRestoreArrayRead_Vecs"
+PetscErrorCode BVRestoreArrayRead_Vecs(BV bv,const PetscScalar **a)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  ierr = PetscFree(*a);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
 #define __FUNCT__ "BVSetFromOptions_Vecs"
 PetscErrorCode BVSetFromOptions_Vecs(PetscOptionItems *PetscOptionsObject,BV bv)
 {
@@ -557,6 +587,8 @@ PETSC_EXTERN PetscErrorCode BVCreate_Vecs(BV bv)
   bv->ops->getcolumn        = BVGetColumn_Vecs;
   bv->ops->getarray         = BVGetArray_Vecs;
   bv->ops->restorearray     = BVRestoreArray_Vecs;
+  bv->ops->getarrayread     = BVGetArrayRead_Vecs;
+  bv->ops->restorearrayread = BVRestoreArrayRead_Vecs;
   bv->ops->destroy          = BVDestroy_Vecs;
   bv->ops->setfromoptions   = BVSetFromOptions_Vecs;
   bv->ops->view             = BVView_Vecs;
