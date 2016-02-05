@@ -203,7 +203,7 @@ static PetscErrorCode NRefSysSetup_shell(PEP pep,PetscInt k,PetscScalar *fH,Pets
       ierr = BVMatMult(W,A[i],M2);CHKERRQ(ierr);
     } else {
       ierr = BVMatMult(W,A[i],M3);CHKERRQ(ierr); /* using M3 as work space */
-      ierr = BVAXPY(M2,1.0,M3);CHKERRQ(ierr);
+      ierr = BVMult(M2,1.0,1.0,M3,NULL);CHKERRQ(ierr);
     }
   }
 
@@ -515,7 +515,7 @@ static PetscErrorCode NRefSysSetup_mbe(PEP pep,PetscInt k,KSP ksp,PetscScalar *f
       ierr = BVMatMult(W,A[i],M2);CHKERRQ(ierr);
     } else {
       ierr = BVMatMult(W,A[i],M3);CHKERRQ(ierr); /* using M3 as work space */
-      ierr = BVAXPY(M2,1.0,M3);CHKERRQ(ierr);
+      ierr = BVMult(M2,1.0,1.0,M3,NULL);CHKERRQ(ierr);
     }
   }
 
@@ -1090,7 +1090,7 @@ static PetscErrorCode PEPNRefUpdateInvPair(PEP pep,PetscInt k,PetscScalar *H,Pet
     }
     ierr = MatDenseRestoreArray(M0,&array);CHKERRQ(ierr);
     ierr = BVMultInPlace(dV,M0,0,k);CHKERRQ(ierr);
-    ierr = BVAXPY(pep->V,1.0,dV);CHKERRQ(ierr);
+    ierr = BVMult(pep->V,1.0,1.0,dV,NULL);CHKERRQ(ierr);
   }
   ierr = MatDestroy(&M0);CHKERRQ(ierr);
   ierr = NRefOrthogStep(pep,k,H,ldh,fH,S,lds,&k);CHKERRQ(ierr);

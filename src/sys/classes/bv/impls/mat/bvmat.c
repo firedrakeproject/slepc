@@ -38,12 +38,16 @@ PetscErrorCode BVMult_Mat(BV Y,PetscScalar alpha,PetscScalar beta,BV X,Mat Q)
   PetscInt       ldq;
 
   PetscFunctionBegin;
-  ierr = MatGetSize(Q,&ldq,NULL);CHKERRQ(ierr);
   ierr = MatDenseGetArray(x->A,&px);CHKERRQ(ierr);
   ierr = MatDenseGetArray(y->A,&py);CHKERRQ(ierr);
-  ierr = MatDenseGetArray(Q,&q);CHKERRQ(ierr);
-  ierr = BVMult_BLAS_Private(Y,Y->n,Y->k-Y->l,X->k-X->l,ldq,alpha,px+(X->nc+X->l)*X->n,q+Y->l*ldq+X->l,beta,py+(Y->nc+Y->l)*Y->n);CHKERRQ(ierr);
-  ierr = MatDenseRestoreArray(Q,&q);CHKERRQ(ierr);
+  if (Q) {
+    ierr = MatGetSize(Q,&ldq,NULL);CHKERRQ(ierr);
+    ierr = MatDenseGetArray(Q,&q);CHKERRQ(ierr);
+    ierr = BVMult_BLAS_Private(Y,Y->n,Y->k-Y->l,X->k-X->l,ldq,alpha,px+(X->nc+X->l)*X->n,q+Y->l*ldq+X->l,beta,py+(Y->nc+Y->l)*Y->n);CHKERRQ(ierr);
+    ierr = MatDenseRestoreArray(Q,&q);CHKERRQ(ierr);
+  } else {
+    ierr = BVAXPY_BLAS_Private(Y,Y->n,Y->k-Y->l,alpha,px+(X->nc+X->l)*X->n,beta,py+(Y->nc+Y->l)*Y->n);CHKERRQ(ierr);
+  }
   ierr = MatDenseRestoreArray(x->A,&px);CHKERRQ(ierr);
   ierr = MatDenseRestoreArray(y->A,&py);CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -101,23 +105,6 @@ PetscErrorCode BVMultInPlaceTranspose_Mat(BV V,Mat Q,PetscInt s,PetscInt e)
   ierr = BVMultInPlace_BLAS_Private(V,V->n,V->k-V->l,ldq,s-V->l,e-V->l,pv+(V->nc+V->l)*V->n,q+V->l*ldq+V->l,PETSC_TRUE);CHKERRQ(ierr);
   ierr = MatDenseRestoreArray(Q,&q);CHKERRQ(ierr);
   ierr = MatDenseRestoreArray(ctx->A,&pv);CHKERRQ(ierr);
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
-#define __FUNCT__ "BVAXPY_Mat"
-PetscErrorCode BVAXPY_Mat(BV Y,PetscScalar alpha,BV X)
-{
-  PetscErrorCode ierr;
-  BV_MAT         *x = (BV_MAT*)X->data,*y = (BV_MAT*)Y->data;
-  PetscScalar    *px,*py;
-
-  PetscFunctionBegin;
-  ierr = MatDenseGetArray(x->A,&px);CHKERRQ(ierr);
-  ierr = MatDenseGetArray(y->A,&py);CHKERRQ(ierr);
-  ierr = BVAXPY_BLAS_Private(Y,Y->n,Y->k-Y->l,alpha,px+(X->nc+X->l)*X->n,py+(Y->nc+Y->l)*Y->n);CHKERRQ(ierr);
-  ierr = MatDenseRestoreArray(x->A,&px);CHKERRQ(ierr);
-  ierr = MatDenseRestoreArray(y->A,&py);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -502,7 +489,6 @@ PETSC_EXTERN PetscErrorCode BVCreate_Mat(BV bv)
   bv->ops->multvec          = BVMultVec_Mat;
   bv->ops->multinplace      = BVMultInPlace_Mat;
   bv->ops->multinplacetrans = BVMultInPlaceTranspose_Mat;
-  bv->ops->axpy             = BVAXPY_Mat;
   bv->ops->dot              = BVDot_Mat;
   bv->ops->dotvec           = BVDotVec_Mat;
   bv->ops->dotvec_local     = BVDotVec_Local_Mat;

@@ -39,12 +39,16 @@ PetscErrorCode BVMult_Svec(BV Y,PetscScalar alpha,PetscScalar beta,BV X,Mat Q)
   PetscInt          ldq;
 
   PetscFunctionBegin;
-  ierr = MatGetSize(Q,&ldq,NULL);CHKERRQ(ierr);
   ierr = VecGetArrayRead(x->v,&px);CHKERRQ(ierr);
   ierr = VecGetArray(y->v,&py);CHKERRQ(ierr);
-  ierr = MatDenseGetArray(Q,&q);CHKERRQ(ierr);
-  ierr = BVMult_BLAS_Private(Y,Y->n,Y->k-Y->l,X->k-X->l,ldq,alpha,px+(X->nc+X->l)*X->n,q+Y->l*ldq+X->l,beta,py+(Y->nc+Y->l)*Y->n);CHKERRQ(ierr);
-  ierr = MatDenseRestoreArray(Q,&q);CHKERRQ(ierr);
+  if (Q) {
+    ierr = MatGetSize(Q,&ldq,NULL);CHKERRQ(ierr);
+    ierr = MatDenseGetArray(Q,&q);CHKERRQ(ierr);
+    ierr = BVMult_BLAS_Private(Y,Y->n,Y->k-Y->l,X->k-X->l,ldq,alpha,px+(X->nc+X->l)*X->n,q+Y->l*ldq+X->l,beta,py+(Y->nc+Y->l)*Y->n);CHKERRQ(ierr);
+    ierr = MatDenseRestoreArray(Q,&q);CHKERRQ(ierr);
+  } else {
+    ierr = BVAXPY_BLAS_Private(Y,Y->n,Y->k-Y->l,alpha,px+(X->nc+X->l)*X->n,beta,py+(Y->nc+Y->l)*Y->n);CHKERRQ(ierr);
+  }
   ierr = VecRestoreArrayRead(x->v,&px);CHKERRQ(ierr);
   ierr = VecRestoreArray(y->v,&py);CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -102,23 +106,6 @@ PetscErrorCode BVMultInPlaceTranspose_Svec(BV V,Mat Q,PetscInt s,PetscInt e)
   ierr = BVMultInPlace_BLAS_Private(V,V->n,V->k-V->l,ldq,s-V->l,e-V->l,pv+(V->nc+V->l)*V->n,q+V->l*ldq+V->l,PETSC_TRUE);CHKERRQ(ierr);
   ierr = MatDenseRestoreArray(Q,&q);CHKERRQ(ierr);
   ierr = VecRestoreArray(ctx->v,&pv);CHKERRQ(ierr);
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
-#define __FUNCT__ "BVAXPY_Svec"
-PetscErrorCode BVAXPY_Svec(BV Y,PetscScalar alpha,BV X)
-{
-  PetscErrorCode ierr;
-  BV_SVEC        *x = (BV_SVEC*)X->data,*y = (BV_SVEC*)Y->data;
-  PetscScalar    *px,*py;
-
-  PetscFunctionBegin;
-  ierr = VecGetArray(x->v,&px);CHKERRQ(ierr);
-  ierr = VecGetArray(y->v,&py);CHKERRQ(ierr);
-  ierr = BVAXPY_BLAS_Private(Y,Y->n,Y->k-Y->l,alpha,px+(X->nc+X->l)*X->n,py+(Y->nc+Y->l)*Y->n);CHKERRQ(ierr);
-  ierr = VecRestoreArray(x->v,&px);CHKERRQ(ierr);
-  ierr = VecRestoreArray(y->v,&py);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -506,7 +493,6 @@ PETSC_EXTERN PetscErrorCode BVCreate_Svec(BV bv)
   bv->ops->multvec          = BVMultVec_Svec;
   bv->ops->multinplace      = BVMultInPlace_Svec;
   bv->ops->multinplacetrans = BVMultInPlaceTranspose_Svec;
-  bv->ops->axpy             = BVAXPY_Svec;
   bv->ops->dot              = BVDot_Svec;
   bv->ops->dotvec           = BVDotVec_Svec;
   bv->ops->dotvec_local     = BVDotVec_Local_Svec;

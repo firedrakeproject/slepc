@@ -40,20 +40,27 @@ PetscErrorCode BVMult_Vecs(BV Y,PetscScalar alpha,PetscScalar beta,BV X,Mat Q)
   PetscInt       i,j,ldq;
 
   PetscFunctionBegin;
-  ierr = MatGetSize(Q,&ldq,NULL);CHKERRQ(ierr);
-  if (alpha!=1.0) {
-    ierr = BVAllocateWork_Private(Y,X->k-X->l);CHKERRQ(ierr);
-    s = Y->work;
-  }
-  ierr = MatDenseGetArray(Q,&q);CHKERRQ(ierr);
-  for (j=Y->l;j<Y->k;j++) {
-    ierr = VecScale(y->V[Y->nc+j],beta);CHKERRQ(ierr);
+  if (Q) {
+    ierr = MatGetSize(Q,&ldq,NULL);CHKERRQ(ierr);
     if (alpha!=1.0) {
-      for (i=X->l;i<X->k;i++) s[i-X->l] = alpha*q[i+j*ldq];
-    } else s = q+j*ldq+X->l;
-    ierr = VecMAXPY(y->V[Y->nc+j],X->k-X->l,s,x->V+X->nc+X->l);CHKERRQ(ierr);
+      ierr = BVAllocateWork_Private(Y,X->k-X->l);CHKERRQ(ierr);
+      s = Y->work;
+    }
+    ierr = MatDenseGetArray(Q,&q);CHKERRQ(ierr);
+    for (j=Y->l;j<Y->k;j++) {
+      ierr = VecScale(y->V[Y->nc+j],beta);CHKERRQ(ierr);
+      if (alpha!=1.0) {
+        for (i=X->l;i<X->k;i++) s[i-X->l] = alpha*q[i+j*ldq];
+      } else s = q+j*ldq+X->l;
+      ierr = VecMAXPY(y->V[Y->nc+j],X->k-X->l,s,x->V+X->nc+X->l);CHKERRQ(ierr);
+    }
+    ierr = MatDenseRestoreArray(Q,&q);CHKERRQ(ierr);
+  } else {
+    for (j=0;j<Y->k-Y->l;j++) {
+      ierr = VecScale(y->V[Y->nc+Y->l+j],beta);CHKERRQ(ierr);
+      ierr = VecAXPY(y->V[Y->nc+Y->l+j],alpha,x->V[X->nc+X->l+j]);CHKERRQ(ierr);
+    }
   }
-  ierr = MatDenseRestoreArray(Q,&q);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -172,21 +179,6 @@ PetscErrorCode BVMultInPlaceTranspose_Vecs(BV V,Mat Q,PetscInt s,PetscInt e)
     }
   }
   ierr = MatDenseRestoreArray(Q,&q);CHKERRQ(ierr);
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
-#define __FUNCT__ "BVAXPY_Vecs"
-PetscErrorCode BVAXPY_Vecs(BV Y,PetscScalar alpha,BV X)
-{
-  PetscErrorCode ierr;
-  BV_VECS        *y = (BV_VECS*)Y->data,*x = (BV_VECS*)X->data;
-  PetscInt       j;
-
-  PetscFunctionBegin;
-  for (j=0;j<Y->k-Y->l;j++) {
-    ierr = VecAXPY(y->V[Y->nc+Y->l+j],alpha,x->V[X->nc+X->l+j]);CHKERRQ(ierr);
-  }
   PetscFunctionReturn(0);
 }
 
@@ -551,7 +543,6 @@ PETSC_EXTERN PetscErrorCode BVCreate_Vecs(BV bv)
   bv->ops->multvec          = BVMultVec_Vecs;
   bv->ops->multinplace      = multinplace[ctx->vmip];
   bv->ops->multinplacetrans = BVMultInPlaceTranspose_Vecs;
-  bv->ops->axpy             = BVAXPY_Vecs;
   bv->ops->dot              = BVDot_Vecs;
   bv->ops->dotvec           = BVDotVec_Vecs;
   bv->ops->dotvec_begin     = BVDotVec_Begin_Vecs;

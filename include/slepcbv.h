@@ -150,7 +150,6 @@ PETSC_EXTERN PetscErrorCode BVMatMult(BV,Mat,BV);
 PETSC_EXTERN PetscErrorCode BVMatMultHermitianTranspose(BV,Mat,BV);
 PETSC_EXTERN PetscErrorCode BVMatMultColumn(BV,Mat,PetscInt);
 PETSC_EXTERN PetscErrorCode BVMatProject(BV,Mat,BV,Mat);
-PETSC_EXTERN PetscErrorCode BVAXPY(BV,PetscScalar,BV);
 PETSC_EXTERN PetscErrorCode BVDot(BV,BV,Mat);
 PETSC_EXTERN PetscErrorCode BVDotVec(BV,Vec,PetscScalar*);
 PETSC_EXTERN PetscErrorCode BVDotVecBegin(BV,Vec,PetscScalar*);
