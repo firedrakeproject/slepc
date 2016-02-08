@@ -49,6 +49,7 @@ typedef struct {
   PetscReal      ddtol;     /* tolerance for divided difference convergence */
   BV             W;         /* auxiliary BV object */
   PetscScalar    shift;     /* the target value */
+  PetscBool      lock;      /* locking/non-locking variant */
   void           *singularitiesctx;
   PetscErrorCode (*computesingularities)(NEP,PetscInt*,PetscScalar*,void*);
 } NEP_NLEIGS;
@@ -894,16 +895,107 @@ PetscErrorCode NEPNLEIGSGetSingularitiesFunction(NEP nep,PetscErrorCode (**fun)(
 }
 
 #undef __FUNCT__
+#define __FUNCT__ "NEPNLEIGSSetLocking_NLEIGS"
+static PetscErrorCode NEPNLEIGSSetLocking_NLEIGS(NEP nep,PetscBool lock)
+{
+  NEP_NLEIGS *ctx = (NEP_NLEIGS*)nep->data;
+
+  PetscFunctionBegin;
+  ctx->lock = lock;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "NEPNLEIGSSetLocking"
+/*@
+   NEPNLEIGSSetLocking - Choose between locking and non-locking variants of
+   the NLEIGS method.
+
+   Logically Collective on NEP
+
+   Input Parameters:
++  nep  - the nonlinear eigensolver context
+-  lock - true if the locking variant must be selected
+
+   Options Database Key:
+.  -nep_nleigs_locking - Sets the locking flag
+
+   Notes:
+   The default is to lock converged eigenpairs when the method restarts.
+   This behaviour can be changed so that all directions are kept in the
+   working subspace even if already converged to working accuracy (the
+   non-locking variant).
+
+   Level: advanced
+
+.seealso: NEPNLEIGSGetLocking()
+@*/
+PetscErrorCode NEPNLEIGSSetLocking(NEP nep,PetscBool lock)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
+  PetscValidLogicalCollectiveBool(nep,lock,2);
+  ierr = PetscTryMethod(nep,"NEPNLEIGSSetLocking_C",(NEP,PetscBool),(nep,lock));CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "NEPNLEIGSGetLocking_NLEIGS"
+static PetscErrorCode NEPNLEIGSGetLocking_NLEIGS(NEP nep,PetscBool *lock)
+{
+  NEP_NLEIGS *ctx = (NEP_NLEIGS*)nep->data;
+
+  PetscFunctionBegin;
+  *lock = ctx->lock;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "NEPNLEIGSGetLocking"
+/*@
+   NEPNLEIGSGetLocking - Gets the locking flag used in the NLEIGS method.
+
+   Not Collective
+
+   Input Parameter:
+.  nep - the nonlinear eigensolver context
+
+   Output Parameter:
+.  lock - the locking flag
+
+   Level: advanced
+
+.seealso: NEPNLEIGSSetLocking()
+@*/
+PetscErrorCode NEPNLEIGSGetLocking(NEP nep,PetscBool *lock)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
+  PetscValidPointer(lock,2);
+  ierr = PetscTryMethod(nep,"NEPNLEIGSGetLocking_C",(NEP,PetscBool*),(nep,lock));CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
 #define __FUNCT__ "NEPSetFromOptions_NLEIGS"
 PetscErrorCode NEPSetFromOptions_NLEIGS(PetscOptionItems *PetscOptionsObject,NEP nep)
 {
   PetscErrorCode ierr;
+  PetscBool      flg,lock;
   PC             pc;
   PCType         pctype;
   KSPType        ksptype;
 
   PetscFunctionBegin;
   ierr = PetscOptionsHead(PetscOptionsObject,"NEP NLEIGS Options");CHKERRQ(ierr);
+  ierr = PetscOptionsBool("-nep_nleigs_locking","Choose between locking and non-locking variants","NEPNLEIGSSetLocking",PETSC_FALSE,&lock,&flg);CHKERRQ(ierr);
+  if (flg) {
+    ierr = NEPNLEIGSSetLocking(nep,lock);CHKERRQ(ierr);
+  }
   if (!nep->ksp) { ierr = NEPGetKSP(nep,&nep->ksp);CHKERRQ(ierr); }
   ierr = KSPGetPC(nep->ksp,&pc);CHKERRQ(ierr);
   ierr = KSPGetType(nep->ksp,&ksptype);CHKERRQ(ierr);
@@ -945,6 +1037,8 @@ PetscErrorCode NEPDestroy_NLEIGS(NEP nep)
   ierr = PetscFree(nep->data);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPNLEIGSSetSingularitiesFunction_C",NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPNLEIGSGetSingularitiesFunction_C",NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPNLEIGSSetLocking_C",NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPNLEIGSGetLocking_C",NULL);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -967,6 +1061,8 @@ PETSC_EXTERN PetscErrorCode NEPCreate_NLEIGS(NEP nep)
   nep->ops->computevectors = NEPComputeVectors_Schur;
   ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPNLEIGSSetSingularitiesFunction_C",NEPNLEIGSSetSingularitiesFunction_NLEIGS);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPNLEIGSGetSingularitiesFunction_C",NEPNLEIGSGetSingularitiesFunction_NLEIGS);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPNLEIGSSetLocking_C",NEPNLEIGSSetLocking_NLEIGS);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPNLEIGSGetLocking_C",NEPNLEIGSGetLocking_NLEIGS);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
