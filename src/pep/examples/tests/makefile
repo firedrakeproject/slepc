@@ -24,13 +24,15 @@ FFLAGS     =
 CPPFLAGS   =
 FPPFLAGS   =
 LOCDIR     = src/pep/examples/tests/
-EXAMPLESC  = test1.c test2.c
-EXAMPLESF  =
+EXAMPLESC  = test1.c test2.c test3.c
+EXAMPLESF  = test3f.F
 MANSEC     = PEP
-TESTS      = test1 test2
+TESTS      = test1 test2 test3 test3f
 
 TESTEXAMPLES_C       = test1.PETSc runtest1_1 test1.rm \
-                       test2.PETSc runtest2_1 runtest2_2 test2.rm
+                       test2.PETSc runtest2_1 runtest2_2 test2.rm \
+                       test3.PETSc runtest3_1 test3.rm
+TESTEXAMPLES_FORTRAN = test3f.PETSc runtest3f_1 test3f.rm \
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common
 
@@ -41,6 +43,14 @@ test1: test1.o chkopts
 test2: test2.o chkopts
 	-${CLINKER} -o test2 test2.o ${SLEPC_PEP_LIB}
 	${RM} test2.o
+
+test3: test3.o chkopts
+	-${CLINKER} -o test3 test3.o ${SLEPC_PEP_LIB}
+	${RM} test3.o
+
+test3f: test3f.o chkopts
+	-${FLINKER} -o test3f test3f.o ${SLEPC_EPS_LIB}
+	${RM} test3f.o
 
 #------------------------------------------------------------------------------------
 PEP = toar qarnoldi
@@ -89,5 +99,15 @@ runtest2_2:
 	${MPIEXEC} -np 1 ./test2 -pep_type qarnoldi -st_type sinvert -pep_target -0.4 -pep_nev 4 -st_transform 2>&1 >> $${test}.tmp; \
 	echo "linear with shift-and-invert" >> $${test}.tmp; \
 	${MPIEXEC} -np 1 ./test2 -pep_type linear -pep_target -0.4 -pep_nev 4 -st_type sinvert 2>&1 >> $${test}.tmp; \
+	${TESTCODE}
+
+runtest3_1:
+	-@test=test3_1; \
+	${MPIEXEC} -np 1 ./test3 2>&1 > $${test}.tmp; \
+	${TESTCODE}
+
+runtest3f_1:
+	-@test=test3f_1; \
+	${MPIEXEC} -np 1 ./test3f 2>&1 > $${test}.tmp; \
 	${TESTCODE}
 
