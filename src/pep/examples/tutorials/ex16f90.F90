@@ -62,7 +62,7 @@
       PetscMPIInt    rank
       PetscErrorCode ierr
       PetscBool      flg, terse
-      PetscScalar    one, mone, four
+      PetscScalar    one, mone, two, four, val
 
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !     Beginning of program
@@ -116,23 +116,36 @@
       call MatAssemblyBegin(K,MAT_FINAL_ASSEMBLY,ierr)
       call MatAssemblyEnd(K,MAT_FINAL_ASSEMBLY,ierr)
 
-!     ** C is the zero matrix
+!     ** C is the 1-D Laplacian on horizontal lines
       call MatCreate(PETSC_COMM_WORLD,C,ierr)
       call MatSetSizes(C,PETSC_DECIDE,PETSC_DECIDE,N,N,ierr)
       call MatSetFromOptions(C,ierr)
       call MatSetUp(C,ierr)
+      call MatGetOwnershipRange(C,Istart,Iend,ierr)
+      two = 2.0
+      do II=Istart,Iend-1
+        i = II/nx
+        j = II-i*nx
+        if (j .gt. 0) then 
+          call MatSetValue(C,II,II-1,mone,INSERT_VALUES,ierr)
+        endif
+        if (j .lt. nx-1) then 
+          call MatSetValue(C,II,II+1,mone,INSERT_VALUES,ierr)
+        endif
+        call MatSetValue(C,II,II,two,INSERT_VALUES,ierr)
+      end do
       call MatAssemblyBegin(C,MAT_FINAL_ASSEMBLY,ierr)
       call MatAssemblyEnd(C,MAT_FINAL_ASSEMBLY,ierr)
 
-!     ** M is the identity matrix
+!     ** M is a diagonal matrix
       call MatCreate(PETSC_COMM_WORLD,M,ierr)
       call MatSetSizes(M,PETSC_DECIDE,PETSC_DECIDE,N,N,ierr)
       call MatSetFromOptions(M,ierr)
       call MatSetUp(M,ierr)
       call MatGetOwnershipRange(M,Istart,Iend,ierr)
-      one = 1.0
       do II=Istart,Iend-1
-        call MatSetValue(M,II,II,one,INSERT_VALUES,ierr)
+        val = II+1
+        call MatSetValue(M,II,II,val,INSERT_VALUES,ierr)
       end do
       call MatAssemblyBegin(M,MAT_FINAL_ASSEMBLY,ierr)
       call MatAssemblyEnd(M,MAT_FINAL_ASSEMBLY,ierr)
