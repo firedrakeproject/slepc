@@ -49,6 +49,7 @@ typedef struct {
   PetscReal      ddtol;     /* tolerance for divided difference convergence */
   BV             W;         /* auxiliary BV object */
   PetscScalar    shift;     /* the target value */
+  PetscReal      keep;      /* restart parameter */
   PetscBool      lock;      /* locking/non-locking variant */
   void           *singularitiesctx;
   PetscErrorCode (*computesingularities)(NEP,PetscInt*,PetscScalar*,void*);
@@ -347,6 +348,7 @@ PetscErrorCode NEPSetUp_NLEIGS(NEP nep)
   nep->data = ctx;
   if (nep->tol==PETSC_DEFAULT) nep->tol = SLEPC_DEFAULT_TOL;
   ctx->ddtol = nep->tol/10.0;
+  if (!ctx->keep) ctx->keep = 0.5;
 
   /* Compute Leja-Bagby points and scaling values */
   ierr = NEPNLEIGSLejaBagbyPoints(nep);CHKERRQ(ierr);
@@ -753,7 +755,7 @@ PetscErrorCode NEPSolve_NLEIGS(NEP nep)
     /* Update l */
     if (nep->reason != NEP_CONVERGED_ITERATING || breakdown) l = 0;
     else {
-      l = PetscMax(1,(PetscInt)((nv-k)/2));
+      l = PetscMax(1,(PetscInt)((nv-k)*ctx->keep));
       if (!breakdown) {
         /* Prepare the Rayleigh quotient for restart */
         ierr = DSTruncate(nep->ds,k+l);CHKERRQ(ierr);
@@ -895,6 +897,94 @@ PetscErrorCode NEPNLEIGSGetSingularitiesFunction(NEP nep,PetscErrorCode (**fun)(
 }
 
 #undef __FUNCT__
+#define __FUNCT__ "NEPNLEIGSSetRestart_NLEIGS"
+static PetscErrorCode NEPNLEIGSSetRestart_NLEIGS(NEP nep,PetscReal keep)
+{
+  NEP_NLEIGS *ctx = (NEP_NLEIGS*)nep->data;
+
+  PetscFunctionBegin;
+  if (keep==PETSC_DEFAULT) ctx->keep = 0.5;
+  else {
+    if (keep<0.1 || keep>0.9) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_OUTOFRANGE,"The keep argument must be in the range [0.1,0.9]");
+    ctx->keep = keep;
+  }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "NEPNLEIGSSetRestart"
+/*@
+   NEPNLEIGSSetRestart - Sets the restart parameter for the NLEIGS
+   method, in particular the proportion of basis vectors that must be kept
+   after restart.
+
+   Logically Collective on NEP
+
+   Input Parameters:
++  nep  - the nonlinear eigensolver context
+-  keep - the number of vectors to be kept at restart
+
+   Options Database Key:
+.  -nep_nleigs_restart - Sets the restart parameter
+
+   Notes:
+   Allowed values are in the range [0.1,0.9]. The default is 0.5.
+
+   Level: advanced
+
+.seealso: NEPNLEIGSGetRestart()
+@*/
+PetscErrorCode NEPNLEIGSSetRestart(NEP nep,PetscReal keep)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
+  PetscValidLogicalCollectiveReal(nep,keep,2);
+  ierr = PetscTryMethod(nep,"NEPNLEIGSSetRestart_C",(NEP,PetscReal),(nep,keep));CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "NEPNLEIGSGetRestart_NLEIGS"
+static PetscErrorCode NEPNLEIGSGetRestart_NLEIGS(NEP nep,PetscReal *keep)
+{
+  NEP_NLEIGS *ctx = (NEP_NLEIGS*)nep->data;
+
+  PetscFunctionBegin;
+  *keep = ctx->keep;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "NEPNLEIGSGetRestart"
+/*@
+   NEPNLEIGSGetRestart - Gets the restart parameter used in the NLEIGS method.
+
+   Not Collective
+
+   Input Parameter:
+.  nep - the nonlinear eigensolver context
+
+   Output Parameter:
+.  keep - the restart parameter
+
+   Level: advanced
+
+.seealso: NEPNLEIGSSetRestart()
+@*/
+PetscErrorCode NEPNLEIGSGetRestart(NEP nep,PetscReal *keep)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
+  PetscValidPointer(keep,2);
+  ierr = PetscTryMethod(nep,"NEPNLEIGSGetRestart_C",(NEP,PetscReal*),(nep,keep));CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
 #define __FUNCT__ "NEPNLEIGSSetLocking_NLEIGS"
 static PetscErrorCode NEPNLEIGSSetLocking_NLEIGS(NEP nep,PetscBool lock)
 {
@@ -986,12 +1076,17 @@ PetscErrorCode NEPSetFromOptions_NLEIGS(PetscOptionItems *PetscOptionsObject,NEP
 {
   PetscErrorCode ierr;
   PetscBool      flg,lock;
+  PetscReal      keep;
   PC             pc;
   PCType         pctype;
   KSPType        ksptype;
 
   PetscFunctionBegin;
   ierr = PetscOptionsHead(PetscOptionsObject,"NEP NLEIGS Options");CHKERRQ(ierr);
+  ierr = PetscOptionsReal("-nep_nleigs_restart","Proportion of vectors kept after restart","NEPNLEIGSSetRestart",0.5,&keep,&flg);CHKERRQ(ierr);
+  if (flg) {
+    ierr = NEPNLEIGSSetRestart(nep,keep);CHKERRQ(ierr);
+  }
   ierr = PetscOptionsBool("-nep_nleigs_locking","Choose between locking and non-locking variants","NEPNLEIGSSetLocking",PETSC_FALSE,&lock,&flg);CHKERRQ(ierr);
   if (flg) {
     ierr = NEPNLEIGSSetLocking(nep,lock);CHKERRQ(ierr);
@@ -1005,6 +1100,23 @@ PetscErrorCode NEPSetFromOptions_NLEIGS(PetscOptionItems *PetscOptionsObject,NEP
     ierr = PCSetType(pc,PCLU);CHKERRQ(ierr);
   }
   ierr = PetscOptionsTail();CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "NEPView_NLEIGS"
+PetscErrorCode NEPView_NLEIGS(NEP pep,PetscViewer viewer)
+{
+  PetscErrorCode ierr;
+  NEP_NLEIGS     *ctx = (NEP_NLEIGS*)pep->data;
+  PetscBool      isascii;
+
+  PetscFunctionBegin;
+  ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
+  if (isascii) {
+    ierr = PetscViewerASCIIPrintf(viewer,"  NLEIGS: %d%% of basis vectors kept after restart\n",(int)(100*ctx->keep));CHKERRQ(ierr);
+    ierr = PetscViewerASCIIPrintf(viewer,"  NLEIGS: using the %slocking variant\n",ctx->lock?"":"non-");CHKERRQ(ierr);
+  }
   PetscFunctionReturn(0);
 }
 
@@ -1037,6 +1149,8 @@ PetscErrorCode NEPDestroy_NLEIGS(NEP nep)
   ierr = PetscFree(nep->data);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPNLEIGSSetSingularitiesFunction_C",NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPNLEIGSGetSingularitiesFunction_C",NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPNLEIGSSetRestart_C",NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPNLEIGSGetRestart_C",NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPNLEIGSSetLocking_C",NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPNLEIGSGetLocking_C",NULL);CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -1052,15 +1166,19 @@ PETSC_EXTERN PetscErrorCode NEPCreate_NLEIGS(NEP nep)
   PetscFunctionBegin;
   ierr = PetscNewLog(nep,&ctx);CHKERRQ(ierr);
   nep->data = (void*)ctx;
+  ctx->lock = PETSC_TRUE;
 
   nep->ops->solve          = NEPSolve_NLEIGS;
   nep->ops->setup          = NEPSetUp_NLEIGS;
   nep->ops->setfromoptions = NEPSetFromOptions_NLEIGS;
+  nep->ops->view           = NEPView_NLEIGS;
   nep->ops->destroy        = NEPDestroy_NLEIGS;
   nep->ops->reset          = NEPReset_NLEIGS;
   nep->ops->computevectors = NEPComputeVectors_Schur;
   ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPNLEIGSSetSingularitiesFunction_C",NEPNLEIGSSetSingularitiesFunction_NLEIGS);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPNLEIGSGetSingularitiesFunction_C",NEPNLEIGSGetSingularitiesFunction_NLEIGS);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPNLEIGSSetRestart_C",NEPNLEIGSSetRestart_NLEIGS);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPNLEIGSGetRestart_C",NEPNLEIGSGetRestart_NLEIGS);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPNLEIGSSetLocking_C",NEPNLEIGSSetLocking_NLEIGS);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPNLEIGSGetLocking_C",NEPNLEIGSGetLocking_NLEIGS);CHKERRQ(ierr);
   PetscFunctionReturn(0);
