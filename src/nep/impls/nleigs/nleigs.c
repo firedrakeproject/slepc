@@ -545,7 +545,7 @@ static PetscErrorCode NEPTOARrun(NEP nep,PetscInt *nq,PetscScalar *S,PetscInt ld
 {
   PetscErrorCode ierr;
   NEP_NLEIGS     *ctx=(NEP_NLEIGS*)nep->data;
-  PetscInt       i,j,p,m=*M,lwa,deg=ctx->nmat,lds=ld*deg,nqt=*nq;
+  PetscInt       i,j,p,m=*M,lwa,deg=ctx->nmat-1,lds=ld*deg,nqt=*nq;
   Vec            t=t_[0];
   PetscReal      norm;
   PetscScalar    *x,*work;
@@ -693,7 +693,7 @@ PetscErrorCode NEPSolve_NLEIGS(NEP nep)
   PetscErrorCode ierr;
   NEP_NLEIGS     *ctx=(NEP_NLEIGS*)nep->data;
   PetscInt       i,j,k=0,l,nv=0,ld,lds,off,ldds,newn,rs1,nq=0;
-  PetscInt       lwa,lrwa,nwu=0,nrwu=0,deg=ctx->nmat;
+  PetscInt       lwa,lrwa,nwu=0,nrwu=0,deg=ctx->nmat-1,nconv;
   PetscScalar    *S,*Q,*work,*H,*pU;
   PetscReal      beta,norm,*rwork;
   PetscBool      breakdown=PETSC_FALSE,lindep;
@@ -751,6 +751,7 @@ PetscErrorCode NEPSolve_NLEIGS(NEP nep)
     /* Check convergence */
     ierr = NEPNLEIGSKrylovConvergence(nep,PETSC_FALSE,nep->nconv,nv-nep->nconv,beta,&k);CHKERRQ(ierr);
     ierr = (*nep->stopping)(nep,nep->its,nep->max_it,k,nep->nev,&nep->reason,nep->stoppingctx);CHKERRQ(ierr);
+    nconv = k;
 
     /* Update l */
     if (nep->reason != NEP_CONVERGED_ITERATING || breakdown) l = 0;
@@ -763,6 +764,7 @@ PetscErrorCode NEPSolve_NLEIGS(NEP nep)
         l = newn-k;
       }
     }
+    if (!ctx->lock && l>0) { l += k; k = 0; }
 
     /* Update S */
     off = nep->nconv*ldds;
@@ -785,8 +787,9 @@ PetscErrorCode NEPSolve_NLEIGS(NEP nep)
       }
     }
     nep->nconv = k;
-    ierr = NEPMonitor(nep,nep->its,nep->nconv,nep->eigr,nep->errest,nv);CHKERRQ(ierr);
+    ierr = NEPMonitor(nep,nep->its,nconv,nep->eigr,nep->errest,nv);CHKERRQ(ierr);
   }
+  nep->nconv = nconv;
   if (nep->nconv>0) {
     /* Extract invariant pair */
     ierr = NEPTOARTrunc(nep,S,ld,deg,&nq,nep->nconv,work+nwu,rwork+nrwu);CHKERRQ(ierr);
