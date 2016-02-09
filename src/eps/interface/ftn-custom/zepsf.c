@@ -41,8 +41,8 @@
 #define epsmonitorconverged_        EPSMONITORCONVERGED
 #define epsmonitorfirst_            EPSMONITORFIRST
 #define epsconvergedabsolute_       EPSCONVERGEDABSOLUTE
-#define epsconvergedeigrelative_    EPSCONVERGEDEIGRELATIVE
-#define epsconvergednormrelative_   EPSCONVERGEDNORMRELATIVE
+#define epsconvergedrelative_       EPSCONVERGEDRELATIVE
+#define epsconvergednorm_           EPSCONVERGEDNORM
 #define epssetconvergencetestfunction_ EPSSETCONVERGENCETESTFUNCTION
 #define epssetstoppingtestfunction_ EPSSETSTOPPINGTESTFUNCTION
 #define epsseteigenvaluecomparison_ EPSSETEIGENVALUECOMPARISON
@@ -65,8 +65,8 @@
 #define epsmonitorconverged_        epsmonitorconverged
 #define epsmonitorfirst_            epsmonitorfirst
 #define epsconvergedabsolute_       epsconvergedabsolute
-#define epsconvergedeigrelative_    epsconvergedeigrelative
-#define epsconvergednormrelative_   epsconvergednormrelative
+#define epsconvergedrelative_       epsconvergedrelative
+#define epsconvergednorm_           epsconvergednorm
 #define epssetconvergencetestfunction_ epssetconvergencetestfunction
 #define epssetstoppingtestfunction_ epssetstoppingtestfunction
 #define epsseteigenvaluecomparison_ epsseteigenvaluecomparison
@@ -294,14 +294,14 @@ PETSC_EXTERN void PETSC_STDCALL epsconvergedabsolute_(EPS *eps,PetscScalar *eigr
   *ierr = EPSConvergedAbsolute(*eps,*eigr,*eigi,*res,errest,ctx);
 }
 
-PETSC_EXTERN void PETSC_STDCALL epsconvergedeigrelative_(EPS *eps,PetscScalar *eigr,PetscScalar *eigi,PetscReal *res,PetscReal *errest,void *ctx,PetscErrorCode *ierr)
+PETSC_EXTERN void PETSC_STDCALL epsconvergedrelative_(EPS *eps,PetscScalar *eigr,PetscScalar *eigi,PetscReal *res,PetscReal *errest,void *ctx,PetscErrorCode *ierr)
 {
-  *ierr = EPSConvergedEigRelative(*eps,*eigr,*eigi,*res,errest,ctx);
+  *ierr = EPSConvergedRelative(*eps,*eigr,*eigi,*res,errest,ctx);
 }
 
-PETSC_EXTERN void PETSC_STDCALL epsconvergednormrelative_(EPS *eps,PetscScalar *eigr,PetscScalar *eigi,PetscReal *res,PetscReal *errest,void *ctx,PetscErrorCode *ierr)
+PETSC_EXTERN void PETSC_STDCALL epsconvergednorm_(EPS *eps,PetscScalar *eigr,PetscScalar *eigi,PetscReal *res,PetscReal *errest,void *ctx,PetscErrorCode *ierr)
 {
-  *ierr = EPSConvergedNormRelative(*eps,*eigr,*eigi,*res,errest,ctx);
+  *ierr = EPSConvergedNorm(*eps,*eigr,*eigi,*res,errest,ctx);
 }
 
 PETSC_EXTERN void PETSC_STDCALL epssetconvergencetestfunction_(EPS *eps,void (PETSC_STDCALL *func)(EPS*,PetscScalar*,PetscScalar*,PetscReal*,PetscReal*,void*,PetscErrorCode*),void* ctx,void (PETSC_STDCALL *destroy)(void*,PetscErrorCode*),PetscErrorCode *ierr)
@@ -310,9 +310,9 @@ PETSC_EXTERN void PETSC_STDCALL epssetconvergencetestfunction_(EPS *eps,void (PE
   CHKFORTRANNULLFUNCTION(destroy);
   if ((PetscVoidFunction)func == (PetscVoidFunction)epsconvergedabsolute_) {
     *ierr = EPSSetConvergenceTest(*eps,EPS_CONV_ABS);
-  } else if ((PetscVoidFunction)func == (PetscVoidFunction)epsconvergedeigrelative_) {
+  } else if ((PetscVoidFunction)func == (PetscVoidFunction)epsconvergedrelative_) {
     *ierr = EPSSetConvergenceTest(*eps,EPS_CONV_REL);
-  } else if ((PetscVoidFunction)func == (PetscVoidFunction)epsconvergednormrelative_) {
+  } else if ((PetscVoidFunction)func == (PetscVoidFunction)epsconvergednorm_) {
     *ierr = EPSSetConvergenceTest(*eps,EPS_CONV_NORM);
   } else {
     *ierr = PetscObjectSetFortranCallback((PetscObject)*eps,PETSC_FORTRAN_CALLBACK_CLASS,&_cb.convergence,(PetscVoidFunction)func,ctx); if (*ierr) return;

@@ -180,7 +180,7 @@ PetscErrorCode EPSSetUp_BLOPEX(EPS eps)
   if (!isPrecond) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"blopex only works with STPRECOND");
   blopex->st = eps->st;
 
-  if (eps->converged == EPSConvergedEigRelative) {
+  if (eps->converged == EPSConvergedRelative) {
     blopex->tol.absolute = 0.0;
     blopex->tol.relative = eps->tol==PETSC_DEFAULT?SLEPC_DEFAULT_TOL:eps->tol;
   } else if (eps->converged == EPSConvergedAbsolute) {

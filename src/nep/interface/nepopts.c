@@ -649,7 +649,7 @@ PetscErrorCode NEPSetConvergenceTestFunction(NEP nep,PetscErrorCode (*func)(NEP,
   nep->converged        = func;
   nep->convergeddestroy = destroy;
   nep->convergedctx     = ctx;
-  if (func == NEPConvergedEigRelative) nep->conv = NEP_CONV_REL;
+  if (func == NEPConvergedRelative) nep->conv = NEP_CONV_REL;
   else if (func == NEPConvergedAbsolute) nep->conv = NEP_CONV_ABS;
   else nep->conv = NEP_CONV_USER;
   PetscFunctionReturn(0);
@@ -689,7 +689,7 @@ PetscErrorCode NEPSetConvergenceTest(NEP nep,NEPConv conv)
   PetscValidLogicalCollectiveEnum(nep,conv,2);
   switch (conv) {
     case NEP_CONV_ABS:  nep->converged = NEPConvergedAbsolute; break;
-    case NEP_CONV_REL:  nep->converged = NEPConvergedEigRelative; break;
+    case NEP_CONV_REL:  nep->converged = NEPConvergedRelative; break;
     case NEP_CONV_USER: break;
     default:
       SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_OUTOFRANGE,"Invalid 'conv' value");

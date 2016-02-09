@@ -788,7 +788,7 @@ PetscErrorCode PEPSetConvergenceTestFunction(PEP pep,PetscErrorCode (*func)(PEP,
   pep->converged        = func;
   pep->convergeddestroy = destroy;
   pep->convergedctx     = ctx;
-  if (func == PEPConvergedEigRelative) pep->conv = PEP_CONV_REL;
+  if (func == PEPConvergedRelative) pep->conv = PEP_CONV_REL;
   else if (func == PEPConvergedNorm) pep->conv = PEP_CONV_NORM;
   else if (func == PEPConvergedAbsolute) pep->conv = PEP_CONV_ABS;
   else pep->conv = PEP_CONV_USER;
@@ -831,7 +831,7 @@ PetscErrorCode PEPSetConvergenceTest(PEP pep,PEPConv conv)
   PetscValidLogicalCollectiveEnum(pep,conv,2);
   switch (conv) {
     case PEP_CONV_ABS:    pep->converged = PEPConvergedAbsolute; break;
-    case PEP_CONV_REL:    pep->converged = PEPConvergedEigRelative; break;
+    case PEP_CONV_REL:    pep->converged = PEPConvergedRelative; break;
     case PEP_CONV_NORM:   pep->converged = PEPConvergedNorm; break;
     case PEP_CONV_USER: break;
     default:

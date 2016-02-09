@@ -41,7 +41,7 @@
 #define nepmonitorconverged_        NEPMONITORCONVERGED
 #define nepmonitorfirst_            NEPMONITORFIRST
 #define nepconvergedabsolute_       NEPCONVERGEDABSOLUTE
-#define nepconvergedeigrelative_    NEPCONVERGEDEIGRELATIVE
+#define nepconvergedrelative_       NEPCONVERGEDRELATIVE
 #define nepsetconvergencetestfunction_ NEPSETCONVERGENCETESTFUNCTION
 #define nepsetstoppingtestfunction_ NEPSETSTOPPINGTESTFUNCTION
 #elif !defined(PETSC_HAVE_FORTRAN_UNDERSCORE)
@@ -62,7 +62,7 @@
 #define nepmonitorconverged_        nepmonitorconverged
 #define nepmonitorfirst_            nepmonitorfirst
 #define nepconvergedabsolute_       nepconvergedabsolute
-#define nepconvergedeigrelative_    nepconvergedeigrelative
+#define nepconvergedrelative_       nepconvergedrelative
 #define nepsetconvergencetestfunction_ nepsetconvergencetestfunction
 #define nepsetstoppingtestfunction_ nepsetstoppingtestfunction
 #endif
@@ -270,9 +270,9 @@ PETSC_EXTERN void PETSC_STDCALL nepconvergedabsolute_(NEP *nep,PetscScalar *eigr
   *ierr = NEPConvergedAbsolute(*nep,*eigr,*eigi,*res,errest,ctx);
 }
 
-PETSC_EXTERN void PETSC_STDCALL nepconvergedeigrelative_(NEP *nep,PetscScalar *eigr,PetscScalar *eigi,PetscReal *res,PetscReal *errest,void *ctx,PetscErrorCode *ierr)
+PETSC_EXTERN void PETSC_STDCALL nepconvergedrelative_(NEP *nep,PetscScalar *eigr,PetscScalar *eigi,PetscReal *res,PetscReal *errest,void *ctx,PetscErrorCode *ierr)
 {
-  *ierr = NEPConvergedEigRelative(*nep,*eigr,*eigi,*res,errest,ctx);
+  *ierr = NEPConvergedRelative(*nep,*eigr,*eigi,*res,errest,ctx);
 }
 
 PETSC_EXTERN void PETSC_STDCALL nepsetconvergencetestfunction_(NEP *nep,void (PETSC_STDCALL *func)(NEP*,PetscScalar*,PetscScalar*,PetscReal*,PetscReal*,void*,PetscErrorCode*),void* ctx,void (PETSC_STDCALL *destroy)(void*,PetscErrorCode*),PetscErrorCode *ierr)
@@ -281,7 +281,7 @@ PETSC_EXTERN void PETSC_STDCALL nepsetconvergencetestfunction_(NEP *nep,void (PE
   CHKFORTRANNULLFUNCTION(destroy);
   if ((PetscVoidFunction)func == (PetscVoidFunction)nepconvergedabsolute_) {
     *ierr = NEPSetConvergenceTest(*nep,NEP_CONV_ABS);
-  } else if ((PetscVoidFunction)func == (PetscVoidFunction)nepconvergedeigrelative_) {
+  } else if ((PetscVoidFunction)func == (PetscVoidFunction)nepconvergedrelative_) {
     *ierr = NEPSetConvergenceTest(*nep,NEP_CONV_REL);
   } else {
     *ierr = PetscObjectSetFortranCallback((PetscObject)*nep,PETSC_FORTRAN_CALLBACK_CLASS,&_cb.convergence,(PetscVoidFunction)func,ctx); if (*ierr) return;

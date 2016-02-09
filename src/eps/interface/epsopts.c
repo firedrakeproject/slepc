@@ -683,8 +683,8 @@ PetscErrorCode EPSSetConvergenceTestFunction(EPS eps,PetscErrorCode (*func)(EPS,
   eps->converged        = func;
   eps->convergeddestroy = destroy;
   eps->convergedctx     = ctx;
-  if (func == EPSConvergedEigRelative) eps->conv = EPS_CONV_REL;
-  else if (func == EPSConvergedNormRelative) eps->conv = EPS_CONV_NORM;
+  if (func == EPSConvergedRelative) eps->conv = EPS_CONV_REL;
+  else if (func == EPSConvergedNorm) eps->conv = EPS_CONV_NORM;
   else if (func == EPSConvergedAbsolute) eps->conv = EPS_CONV_ABS;
   else eps->conv = EPS_CONV_USER;
   PetscFunctionReturn(0);
@@ -726,8 +726,8 @@ PetscErrorCode EPSSetConvergenceTest(EPS eps,EPSConv conv)
   PetscValidLogicalCollectiveEnum(eps,conv,2);
   switch (conv) {
     case EPS_CONV_ABS:  eps->converged = EPSConvergedAbsolute; break;
-    case EPS_CONV_REL:  eps->converged = EPSConvergedEigRelative; break;
-    case EPS_CONV_NORM: eps->converged = EPSConvergedNormRelative; break;
+    case EPS_CONV_REL:  eps->converged = EPSConvergedRelative; break;
+    case EPS_CONV_NORM: eps->converged = EPSConvergedNorm; break;
     case EPS_CONV_USER: break;
     default:
       SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"Invalid 'conv' value");

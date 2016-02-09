@@ -82,7 +82,7 @@ PetscErrorCode NEPCreate(MPI_Comm comm,NEP *outnep)
   nep->jacobianctx     = NULL;
   nep->computederivatives = NULL;
   nep->derivativesctx  = NULL;
-  nep->converged       = NEPConvergedEigRelative;
+  nep->converged       = NEPConvergedRelative;
   nep->convergeddestroy= NULL;
   nep->stopping        = NEPStoppingBasic;
   nep->stoppingdestroy = NULL;

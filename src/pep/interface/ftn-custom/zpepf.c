@@ -41,7 +41,7 @@
 #define pepmonitorconverged_        PEPMONITORCONVERGED
 #define pepmonitorfirst_            PEPMONITORFIRST
 #define pepconvergedabsolute_       PEPCONVERGEDABSOLUTE
-#define pepconvergedeigrelative_    PEPCONVERGEDEIGRELATIVE
+#define pepconvergedrelative_       PEPCONVERGEDRELATIVE
 #define pepsetconvergencetestfunction_ PEPSETCONVERGENCETESTFUNCTION
 #define pepsetstoppingtestfunction_ PEPSETSTOPPINGTESTFUNCTION
 #define pepseteigenvaluecomparison_ PEPSETEIGENVALUECOMPARISON
@@ -63,7 +63,7 @@
 #define pepmonitorconverged_        pepmonitorconverged
 #define pepmonitorfirst_            pepmonitorfirst
 #define pepconvergedabsolute_       pepconvergedabsolute
-#define pepconvergedeigrelative_    pepconvergedeigrelative
+#define pepconvergedrelative_       pepconvergedrelative
 #define pepsetconvergencetestfunction_ pepsetconvergencetestfunction
 #define pepsetstoppingtestfunction_ pepsetstoppingtestfunction
 #define pepseteigenvaluecomparison_ pepseteigenvaluecomparison
@@ -281,9 +281,9 @@ PETSC_EXTERN void PETSC_STDCALL pepconvergedabsolute_(PEP *pep,PetscScalar *eigr
   *ierr = PEPConvergedAbsolute(*pep,*eigr,*eigi,*res,errest,ctx);
 }
 
-PETSC_EXTERN void PETSC_STDCALL pepconvergedeigrelative_(PEP *pep,PetscScalar *eigr,PetscScalar *eigi,PetscReal *res,PetscReal *errest,void *ctx,PetscErrorCode *ierr)
+PETSC_EXTERN void PETSC_STDCALL pepconvergedrelative_(PEP *pep,PetscScalar *eigr,PetscScalar *eigi,PetscReal *res,PetscReal *errest,void *ctx,PetscErrorCode *ierr)
 {
-  *ierr = PEPConvergedEigRelative(*pep,*eigr,*eigi,*res,errest,ctx);
+  *ierr = PEPConvergedRelative(*pep,*eigr,*eigi,*res,errest,ctx);
 }
 
 PETSC_EXTERN void PETSC_STDCALL pepsetconvergencetestfunction_(PEP *pep,void (PETSC_STDCALL *func)(PEP*,PetscScalar*,PetscScalar*,PetscReal*,PetscReal*,void*,PetscErrorCode*),void* ctx,void (PETSC_STDCALL *destroy)(void*,PetscErrorCode*),PetscErrorCode *ierr)
@@ -292,7 +292,7 @@ PETSC_EXTERN void PETSC_STDCALL pepsetconvergencetestfunction_(PEP *pep,void (PE
   CHKFORTRANNULLFUNCTION(destroy);
   if ((PetscVoidFunction)func == (PetscVoidFunction)pepconvergedabsolute_) {
     *ierr = PEPSetConvergenceTest(*pep,PEP_CONV_ABS);
-  } else if ((PetscVoidFunction)func == (PetscVoidFunction)pepconvergedeigrelative_) {
+  } else if ((PetscVoidFunction)func == (PetscVoidFunction)pepconvergedrelative_) {
     *ierr = PEPSetConvergenceTest(*pep,PEP_CONV_REL);
   } else {
     *ierr = PetscObjectSetFortranCallback((PetscObject)*pep,PETSC_FORTRAN_CALLBACK_CLASS,&_cb.convergence,(PetscVoidFunction)func,ctx); if (*ierr) return;

@@ -58,39 +58,17 @@ PetscErrorCode PEPSetWorkVecs(PEP pep,PetscInt nw)
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "PEPConvergedEigRelative"
+#define __FUNCT__ "PEPConvergedRelative"
 /*
-  PEPConvergedEigRelative - Checks convergence relative to the eigenvalue.
+  PEPConvergedRelative - Checks convergence relative to the eigenvalue.
 */
-PetscErrorCode PEPConvergedEigRelative(PEP pep,PetscScalar eigr,PetscScalar eigi,PetscReal res,PetscReal *errest,void *ctx)
+PetscErrorCode PEPConvergedRelative(PEP pep,PetscScalar eigr,PetscScalar eigi,PetscReal res,PetscReal *errest,void *ctx)
 {
   PetscReal w;
 
   PetscFunctionBegin;
   w = SlepcAbsEigenvalue(eigr,eigi);
   *errest = res/w;
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
-#define __FUNCT__ "PEPConvergedLinear"
-/*
-  PEPConvergedLinear - Checks convergence related to the linearized eigenproblem.
-*/
-PetscErrorCode PEPConvergedLinear(PEP pep,PetscScalar eigr,PetscScalar eigi,PetscReal res,PetscReal *errest,void *ctx)
-{
-  PetscErrorCode ierr;
-  PetscScalar    er,ei;
-  PetscBool      flg;
-  PetscFunctionBegin;
-  ierr = STGetTransform(pep->st,&flg);CHKERRQ(ierr);
-  if (!flg) {
-    ierr = PetscObjectTypeCompare((PetscObject)pep->st,STSINVERT,&flg);CHKERRQ(ierr);
-  } else flg = PETSC_FALSE;
-  er = eigr; ei = eigi;
-  ierr = STBackTransform(pep->st,1,&er,&ei);CHKERRQ(ierr);
-  if (flg) *errest = res*((pep->nrml[0]+PetscAbsScalar(pep->target)*pep->nrml[1])/SlepcAbsEigenvalue(eigr,eigi))/(pep->nrml[0]+SlepcAbsEigenvalue(er,ei)*pep->nrml[1]);
-  else *errest = res*pep->nrml[1]/(pep->nrml[0]+SlepcAbsEigenvalue(er,ei)*pep->nrml[1]);
   PetscFunctionReturn(0);
 }
 

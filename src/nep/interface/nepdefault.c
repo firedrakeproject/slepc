@@ -91,11 +91,11 @@ PetscErrorCode NEPGetDefaultShift(NEP nep,PetscScalar *sigma)
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "NEPConvergedEigRelative"
+#define __FUNCT__ "NEPConvergedRelative"
 /*
-  NEPConvergedEigRelative - Checks convergence relative to the eigenvalue.
+  NEPConvergedRelative - Checks convergence relative to the eigenvalue.
 */
-PetscErrorCode NEPConvergedEigRelative(NEP nep,PetscScalar eigr,PetscScalar eigi,PetscReal res,PetscReal *errest,void *ctx)
+PetscErrorCode NEPConvergedRelative(NEP nep,PetscScalar eigr,PetscScalar eigi,PetscReal res,PetscReal *errest,void *ctx)
 {
   PetscReal w;
 
