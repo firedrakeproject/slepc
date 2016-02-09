@@ -118,6 +118,37 @@ PetscErrorCode NEPConvergedAbsolute(NEP nep,PetscScalar eigr,PetscScalar eigi,Pe
 }
 
 #undef __FUNCT__
+#define __FUNCT__ "NEPConvergedNorm"
+/*
+  NEPConvergedNorm - Checks convergence relative to the matrix norms.
+*/
+PetscErrorCode NEPConvergedNorm(NEP nep,PetscScalar eigr,PetscScalar eigi,PetscReal res,PetscReal *errest,void *ctx)
+{
+  PetscScalar    s;
+  PetscReal      w=0.0;
+  PetscInt       j;
+  PetscBool      flg;
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  if (nep->fui!=NEP_USER_INTERFACE_SPLIT) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"Backward error only available in split form");
+  /* initialization of matrix norms */
+  if (!nep->nrma[0]) {
+    for (j=0;j<nep->nt;j++) {
+      ierr = MatHasOperation(nep->A[j],MATOP_NORM,&flg);CHKERRQ(ierr);
+      if (!flg) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_WRONG,"The convergence test related to the matrix norms requires a matrix norm operation");
+      ierr = MatNorm(nep->A[j],NORM_INFINITY,&nep->nrma[j]);CHKERRQ(ierr);
+    }
+  }
+  for (j=0;j<nep->nt;j++) {
+    ierr = FNEvaluateFunction(nep->f[j],eigr,&s);CHKERRQ(ierr);
+    w = w + nep->nrma[j]*PetscAbsScalar(s);
+  }
+  *errest = res/w;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
 #define __FUNCT__ "NEPStoppingBasic"
 /*@C
    NEPStoppingBasic - Default routine to determine whether the outer eigensolver

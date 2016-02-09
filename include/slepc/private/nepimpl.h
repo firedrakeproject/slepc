@@ -136,6 +136,7 @@ struct _p_NEP {
   PetscInt       nconv;            /* number of converged eigenvalues */
   PetscInt       its;              /* number of iterations so far computed */
   PetscInt       n,nloc;           /* problem dimensions (global, local) */
+  PetscReal      *nrma;            /* computed matrix norms */
   NEPUserInterface fui;            /* how the user has defined the nonlinear operator */
   NEPConvergedReason reason;
 };

@@ -117,6 +117,7 @@ PetscErrorCode NEPCreate(MPI_Comm comm,NEP *outnep)
   nep->its             = 0;
   nep->n               = 0;
   nep->nloc            = 0;
+  nep->nrma            = NULL;
   nep->fui             = (NEPUserInterface)0;
   nep->reason          = NEP_CONVERGED_ITERATING;
 
@@ -267,6 +268,7 @@ PetscErrorCode NEPReset_Problem(NEP nep)
       ierr = FNDestroy(&nep->f[i]);CHKERRQ(ierr);
     }
     ierr = PetscFree(nep->f);CHKERRQ(ierr);
+    ierr = PetscFree(nep->nrma);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }
@@ -952,6 +954,8 @@ PetscErrorCode NEPSetSplitOperator(NEP nep,PetscInt n,Mat A[],FN f[],MatStructur
     ierr = PetscObjectReference((PetscObject)f[i]);CHKERRQ(ierr);
     nep->f[i] = f[i];
   }
+  ierr = PetscCalloc1(n,&nep->nrma);CHKERRQ(ierr);
+  ierr = PetscLogObjectMemory((PetscObject)nep,n*sizeof(PetscReal));CHKERRQ(ierr);
   nep->nt   = n;
   nep->mstr = str;
   nep->fui  = NEP_USER_INTERFACE_SPLIT;

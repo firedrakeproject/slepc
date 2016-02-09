@@ -44,11 +44,13 @@
 
       PetscEnum NEP_CONV_ABS
       PetscEnum NEP_CONV_REL
+      PetscEnum NEP_CONV_NORM
       PetscEnum NEP_CONV_USER
 
       parameter (NEP_CONV_ABS               =  0)
       parameter (NEP_CONV_REL               =  1)
-      parameter (NEP_CONV_USER              =  2)
+      parameter (NEP_CONV_NORM              =  2)
+      parameter (NEP_CONV_USER              =  3)
 
       PetscEnum NEP_STOP_BASIC
       PetscEnum NEP_STOP_USER
@@ -92,9 +94,11 @@
 
       PetscEnum NEP_ERROR_ABSOLUTE
       PetscEnum NEP_ERROR_RELATIVE
+      PetscEnum NEP_ERROR_BACKWARD
 
       parameter (NEP_ERROR_ABSOLUTE         =  0)
       parameter (NEP_ERROR_RELATIVE         =  1)
+      parameter (NEP_ERROR_BACKWARD         =  2)
 
 !
 !   Possible arguments to NEPMonitorSet()

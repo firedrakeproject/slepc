@@ -87,6 +87,8 @@ PetscErrorCode NEPSetFromOptions(NEP nep)
 
     ierr = PetscOptionsBoolGroupBegin("-nep_conv_rel","Relative error convergence test","NEPSetConvergenceTest",&flg);CHKERRQ(ierr);
     if (flg) { ierr = NEPSetConvergenceTest(nep,NEP_CONV_REL);CHKERRQ(ierr); }
+    ierr = PetscOptionsBoolGroup("-nep_conv_norm","Convergence test relative to the matrix norms","NEPSetConvergenceTest",&flg);CHKERRQ(ierr);
+    if (flg) { ierr = NEPSetConvergenceTest(nep,NEP_CONV_NORM);CHKERRQ(ierr); }
     ierr = PetscOptionsBoolGroup("-nep_conv_abs","Absolute error convergence test","NEPSetConvergenceTest",&flg);CHKERRQ(ierr);
     if (flg) { ierr = NEPSetConvergenceTest(nep,NEP_CONV_ABS);CHKERRQ(ierr); }
     ierr = PetscOptionsBoolGroupEnd("-nep_conv_user","User-defined convergence test","NEPSetConvergenceTest",&flg);CHKERRQ(ierr);
@@ -650,6 +652,7 @@ PetscErrorCode NEPSetConvergenceTestFunction(NEP nep,PetscErrorCode (*func)(NEP,
   nep->convergeddestroy = destroy;
   nep->convergedctx     = ctx;
   if (func == NEPConvergedRelative) nep->conv = NEP_CONV_REL;
+  else if (func == NEPConvergedNorm) nep->conv = NEP_CONV_NORM;
   else if (func == NEPConvergedAbsolute) nep->conv = NEP_CONV_ABS;
   else nep->conv = NEP_CONV_USER;
   PetscFunctionReturn(0);
@@ -676,6 +679,7 @@ PetscErrorCode NEPSetConvergenceTestFunction(NEP nep,PetscErrorCode (*func)(NEP,
    The parameter 'conv' can have one of these values
 +     NEP_CONV_ABS  - absolute error ||r||
 .     NEP_CONV_REL  - error relative to the eigenvalue l, ||r||/|l|
+.     NEP_CONV_NORM - error relative matrix norms, ||r||/sum_i(|f_i(l)|*||A_i||)
 -     NEP_CONV_USER - function set by NEPSetConvergenceTestFunction()
 
    Level: intermediate
@@ -690,6 +694,7 @@ PetscErrorCode NEPSetConvergenceTest(NEP nep,NEPConv conv)
   switch (conv) {
     case NEP_CONV_ABS:  nep->converged = NEPConvergedAbsolute; break;
     case NEP_CONV_REL:  nep->converged = NEPConvergedRelative; break;
+    case NEP_CONV_NORM: nep->converged = NEPConvergedNorm; break;
     case NEP_CONV_USER: break;
     default:
       SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_OUTOFRANGE,"Invalid 'conv' value");

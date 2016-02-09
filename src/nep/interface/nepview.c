@@ -57,6 +57,7 @@ PetscErrorCode NEPView(NEP nep,PetscViewer viewer)
 {
   PetscErrorCode ierr;
   char           str[50];
+  PetscInt       i;
   PetscBool      isascii,isslp,istrivial,nods;
 
   PetscFunctionBegin;
@@ -146,6 +147,16 @@ PetscErrorCode NEPView(NEP nep,PetscViewer viewer)
       ierr = PetscViewerASCIIPrintf(viewer,"absolute\n");CHKERRQ(ierr);break;
     case NEP_CONV_REL:
       ierr = PetscViewerASCIIPrintf(viewer,"relative to the eigenvalue\n");CHKERRQ(ierr);break;
+    case NEP_CONV_NORM:
+      ierr = PetscViewerASCIIPrintf(viewer,"relative to the matrix norms\n");CHKERRQ(ierr);
+      if (nep->nrma) {
+        ierr = PetscViewerASCIIPrintf(viewer,"  computed matrix norms: %g",(double)nep->nrma[0]);CHKERRQ(ierr);
+        for (i=1;i<nep->nt;i++) {
+          ierr = PetscViewerASCIIPrintf(viewer,", %g",(double)nep->nrma[i]);CHKERRQ(ierr);
+        }
+        ierr = PetscViewerASCIIPrintf(viewer,"\n");CHKERRQ(ierr);
+      }
+      break;
     case NEP_CONV_USER:
       ierr = PetscViewerASCIIPrintf(viewer,"user-defined\n");CHKERRQ(ierr);break;
     }
@@ -319,6 +330,9 @@ static PetscErrorCode NEPErrorView_DETAIL(NEP nep,NEPErrorType etype,PetscViewer
     case NEP_ERROR_RELATIVE:
       ierr = PetscSNPrintf(ex,EXLEN," ||T(k)x||/||kx||");CHKERRQ(ierr);
       break;
+    case NEP_ERROR_BACKWARD:
+      ierr = PetscSNPrintf(ex,EXLEN,"    eta(x,k)");CHKERRQ(ierr);
+      break;
   }
   ierr = PetscViewerASCIIPrintf(viewer,"%s            k             %s\n%s",sep,ex,sep);CHKERRQ(ierr);
   for (i=0;i<nep->nconv;i++) {
@@ -376,7 +390,8 @@ static PetscErrorCode NEPErrorView_MATLAB(NEP nep,NEPErrorType etype,PetscViewer
 
    Options Database Key:
 +  -nep_error_absolute - print absolute errors of each eigenpair
--  -nep_error_relative - print relative errors of each eigenpair
+.  -nep_error_relative - print relative errors of each eigenpair
+-  -nep_error_backward - print backward errors of each eigenpair
 
    Notes:
    By default, this function checks the error of all eigenpairs and prints
@@ -456,6 +471,13 @@ PetscErrorCode NEPErrorViewFromOptions(NEP nep)
   if (flg) {
     ierr = PetscViewerPushFormat(viewer,format);CHKERRQ(ierr);
     ierr = NEPErrorView(nep,NEP_ERROR_RELATIVE,viewer);CHKERRQ(ierr);
+    ierr = PetscViewerPopFormat(viewer);CHKERRQ(ierr);
+    ierr = PetscViewerDestroy(&viewer);CHKERRQ(ierr);
+  }
+  ierr = PetscOptionsGetViewer(PetscObjectComm((PetscObject)nep),((PetscObject)nep)->prefix,"-nep_error_backward",&viewer,&format,&flg);CHKERRQ(ierr);
+  if (flg) {
+    ierr = PetscViewerPushFormat(viewer,format);CHKERRQ(ierr);
+    ierr = NEPErrorView(nep,NEP_ERROR_BACKWARD,viewer);CHKERRQ(ierr);
     ierr = PetscViewerPopFormat(viewer);CHKERRQ(ierr);
     ierr = PetscViewerDestroy(&viewer);CHKERRQ(ierr);
   }

@@ -161,7 +161,7 @@ PetscErrorCode PEPView(PEP pep,PetscViewer viewer)
     case PEP_CONV_REL:
       ierr = PetscViewerASCIIPrintf(viewer,"relative to the eigenvalue\n");CHKERRQ(ierr);break;
     case PEP_CONV_NORM:
-      ierr = PetscViewerASCIIPrintf(viewer,"related to the matrix norms\n");CHKERRQ(ierr);
+      ierr = PetscViewerASCIIPrintf(viewer,"relative to the matrix norms\n");CHKERRQ(ierr);
       if (pep->nrma) {
         ierr = PetscViewerASCIIPrintf(viewer,"  computed matrix norms: %g",(double)pep->nrma[0]);CHKERRQ(ierr);
         for (i=1;i<pep->nmat;i++) {

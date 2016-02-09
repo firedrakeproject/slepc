@@ -82,7 +82,8 @@ typedef enum { NEP_LARGEST_MAGNITUDE=1,
 .seealso: NEPComputeError()
 E*/
 typedef enum { NEP_ERROR_ABSOLUTE,
-               NEP_ERROR_RELATIVE } NEPErrorType;
+               NEP_ERROR_RELATIVE,
+               NEP_ERROR_BACKWARD } NEPErrorType;
 PETSC_EXTERN const char *NEPErrorTypes[];
 
 /*E
@@ -118,6 +119,7 @@ PETSC_EXTERN const char *NEPRefineSchemes[];
 E*/
 typedef enum { NEP_CONV_ABS,
                NEP_CONV_REL,
+               NEP_CONV_NORM,
                NEP_CONV_USER } NEPConv;
 
 /*E
@@ -196,6 +198,7 @@ PETSC_EXTERN PetscErrorCode NEPSetConvergenceTest(NEP,NEPConv);
 PETSC_EXTERN PetscErrorCode NEPGetConvergenceTest(NEP,NEPConv*);
 PETSC_EXTERN PetscErrorCode NEPConvergedAbsolute(NEP,PetscScalar,PetscScalar,PetscReal,PetscReal*,void*);
 PETSC_EXTERN PetscErrorCode NEPConvergedRelative(NEP,PetscScalar,PetscScalar,PetscReal,PetscReal*,void*);
+PETSC_EXTERN PetscErrorCode NEPConvergedNorm(NEP,PetscScalar,PetscScalar,PetscReal,PetscReal*,void*);
 PETSC_EXTERN PetscErrorCode NEPSetStoppingTestFunction(NEP,PetscErrorCode (*)(NEP,PetscInt,PetscInt,PetscInt,PetscInt,NEPConvergedReason*,void*),void*,PetscErrorCode (*)(void*));
 PETSC_EXTERN PetscErrorCode NEPSetStoppingTest(NEP,NEPStop);
 PETSC_EXTERN PetscErrorCode NEPGetStoppingTest(NEP,NEPStop*);
