@@ -35,6 +35,8 @@
 #define SVDConvergedReason PetscEnum
 #define SVDErrorType       PetscEnum
 #define SVDWhich           PetscEnum
+#define SVDConv            PetscEnum
+#define SVDStop            PetscEnum
 
 #define SVDCROSS     'cross'
 #define SVDCYCLIC    'cyclic'

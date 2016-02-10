@@ -70,8 +70,8 @@ PetscErrorCode NEPSetUp_Interpol(NEP nep)
   if (!nep->mpd) nep->mpd = nep->ncv;
   if (nep->ncv>nep->nev+nep->mpd) SETERRQ(PetscObjectComm((PetscObject)nep),1,"The value of ncv must not be larger than nev+mpd");
   if (!nep->max_it) nep->max_it = PetscMax(5000,2*nep->n/nep->ncv);
-  if (!nep->max_funcs) nep->max_funcs = nep->max_it;
   if (nep->fui!=NEP_USER_INTERFACE_SPLIT) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"NEPINTERPOL only available for split operator");
+  if (nep->stopping!=NEPStoppingBasic) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"This solver does not support user-defined stopping test");
 
   /* transfer PEP options */
   if (!ctx->pep) { ierr = NEPInterpolGetPEP(nep,&ctx->pep);CHKERRQ(ierr); }
@@ -82,7 +82,7 @@ PetscErrorCode NEPSetUp_Interpol(NEP nep)
   ierr = STSetType(st,STSINVERT);CHKERRQ(ierr);
   ierr = PEPSetDimensions(ctx->pep,nep->nev,nep->ncv?nep->ncv:PETSC_DEFAULT,nep->mpd?nep->mpd:PETSC_DEFAULT);CHKERRQ(ierr);
   tol=ctx->pep->tol;
-  if (tol==PETSC_DEFAULT) tol = (nep->rtol==PETSC_DEFAULT)?SLEPC_DEFAULT_TOL/10.0:nep->rtol/10.0;
+  if (tol==PETSC_DEFAULT) tol = (nep->tol==PETSC_DEFAULT)?SLEPC_DEFAULT_TOL/10.0:nep->tol/10.0;
   its=ctx->pep->max_it;
   if (!its) its = nep->max_it?nep->max_it:PETSC_DEFAULT;
   ierr = PEPSetTolerances(ctx->pep,tol,its);CHKERRQ(ierr);

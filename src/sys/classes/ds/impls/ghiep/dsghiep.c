@@ -178,7 +178,7 @@ PetscErrorCode DSView_GHIEP(DS ds,PetscViewer viewer)
 
 #undef __FUNCT__
 #define __FUNCT__ "DSVectors_GHIEP_Eigen_Some"
-PetscErrorCode DSVectors_GHIEP_Eigen_Some(DS ds,PetscInt *idx,PetscReal *rnorm)
+static PetscErrorCode DSVectors_GHIEP_Eigen_Some(DS ds,PetscInt *idx,PetscReal *rnorm)
 {
 #if defined(SLEPC_MISSING_LAPACK_LAG2)
   PetscFunctionBegin;
@@ -526,8 +526,8 @@ PetscErrorCode DSGHIEPInverseIteration(DS ds,PetscScalar *wr,PetscScalar *wi)
     }
   }
 #endif
-  if (info<0) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in hsein routine %d",-i);
-  if (info>0) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Convergence error in hsein routine %d",i);
+  if (info<0) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in hsein routine %D",-i);
+  if (info>0) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Convergence error in hsein routine %D",i);
   ierr = DSGHIEPOrthogEigenv(ds,DS_MAT_X,wr,wi,PETSC_TRUE);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 #endif

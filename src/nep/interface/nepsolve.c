@@ -353,14 +353,11 @@ PetscErrorCode NEPGetConverged(NEP nep,PetscInt *nconv)
 .  reason - negative value indicates diverged, positive value converged
 
    Possible values for reason:
-+  NEP_CONVERGED_FNORM_ABS - function norm satisfied absolute tolerance
-.  NEP_CONVERGED_FNORM_RELATIVE - function norm satisfied relative tolerance
-.  NEP_CONVERGED_SNORM_RELATIVE - step norm satisfied relative tolerance
-.  NEP_DIVERGED_LINEAR_SOLVE - inner linear solve failed
-.  NEP_DIVERGED_FUNCTION_COUNT - reached maximum allowed function evaluations
-.  NEP_DIVERGED_MAX_IT - required more than its to reach convergence
++  NEP_CONVERGED_TOL - converged up to tolerance
+.  NEP_CONVERGED_USER - converged due to a user-defined condition
+.  NEP_DIVERGED_ITS - required more than its to reach convergence
 .  NEP_DIVERGED_BREAKDOWN - generic breakdown in method
--  NEP_DIVERGED_FNORM_NAN - Inf or NaN detected in function evaluation
+-  NEP_DIVERGED_LINEAR_SOLVE - inner linear solve failed
 
    Note:
    Can only be called after the call to NEPSolve() is complete.
@@ -548,8 +545,10 @@ PetscErrorCode NEPComputeError(NEP nep,PetscInt i,NEPErrorType type,PetscReal *e
 {
   PetscErrorCode ierr;
   Vec            xr,xi=NULL,w;
-  PetscScalar    kr,ki;
-  PetscReal      er;
+  PetscInt       j;
+  PetscScalar    kr,ki,s;
+  PetscReal      er,z=0.0;
+  PetscBool      flg;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
@@ -582,6 +581,26 @@ PetscErrorCode NEPComputeError(NEP nep,PetscInt i,NEPErrorType type,PetscReal *e
       break;
     case NEP_ERROR_RELATIVE:
       *error /= PetscAbsScalar(kr)*er;
+      break;
+    case NEP_ERROR_BACKWARD:
+      if (nep->fui!=NEP_USER_INTERFACE_SPLIT) {
+        *error = 0.0;
+        ierr = PetscInfo(nep,"Backward error only available in split form\n");CHKERRQ(ierr);
+        break;
+      }
+      /* initialization of matrix norms */
+      if (!nep->nrma[0]) {
+        for (j=0;j<nep->nt;j++) {
+          ierr = MatHasOperation(nep->A[j],MATOP_NORM,&flg);CHKERRQ(ierr);
+          if (!flg) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_WRONG,"The computation of backward errors requires a matrix norm operation");
+          ierr = MatNorm(nep->A[j],NORM_INFINITY,&nep->nrma[j]);CHKERRQ(ierr);
+        }
+      }
+      for (j=0;j<nep->nt;j++) {
+        ierr = FNEvaluateFunction(nep->f[j],kr,&s);CHKERRQ(ierr);
+        z = z + nep->nrma[j]*PetscAbsScalar(s);
+      }
+      *error /= z;
       break;
     default:
       SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_OUTOFRANGE,"Invalid error type");
@@ -631,7 +650,6 @@ PetscErrorCode NEPComputeFunction(NEP nep,PetscScalar lambda,Mat A,Mat B)
     ierr = (*nep->computefunction)(nep,lambda,A,B,nep->functionctx);CHKERRQ(ierr);
     PetscStackPop;
     ierr = PetscLogEventEnd(NEP_FunctionEval,nep,A,B,0);CHKERRQ(ierr);
-    nep->nfuncs++;
     break;
   case NEP_USER_INTERFACE_SPLIT:
     ierr = MatZeroEntries(A);CHKERRQ(ierr);

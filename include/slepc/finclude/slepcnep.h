@@ -42,26 +42,34 @@
       parameter (NEP_REFINE_SCHEME_MBE      =  1)
       parameter (NEP_REFINE_SCHEME_SCHUR    =  2)
 
+      PetscEnum NEP_CONV_ABS
+      PetscEnum NEP_CONV_REL
+      PetscEnum NEP_CONV_NORM
+      PetscEnum NEP_CONV_USER
+
+      parameter (NEP_CONV_ABS               =  0)
+      parameter (NEP_CONV_REL               =  1)
+      parameter (NEP_CONV_NORM              =  2)
+      parameter (NEP_CONV_USER              =  3)
+
+      PetscEnum NEP_STOP_BASIC
+      PetscEnum NEP_STOP_USER
+
+      parameter (NEP_STOP_BASIC             =  0)
+      parameter (NEP_STOP_USER              =  1)
+
       PetscEnum NEP_CONVERGED_TOL
-      PetscEnum NEP_CONVERGED_FNORM_ABS
-      PetscEnum NEP_CONVERGED_FNORM_RELATIVE
-      PetscEnum NEP_CONVERGED_SNORM_RELATIVE
-      PetscEnum NEP_DIVERGED_LINEAR_SOLVE
-      PetscEnum NEP_DIVERGED_FUNCTION_COUNT
-      PetscEnum NEP_DIVERGED_MAX_IT
+      PetscEnum NEP_CONVERGED_USER
+      PetscEnum NEP_DIVERGED_ITS
       PetscEnum NEP_DIVERGED_BREAKDOWN
-      PetscEnum NEP_DIVERGED_FNORM_NAN
+      PetscEnum NEP_DIVERGED_LINEAR_SOLVE
       PetscEnum NEP_CONVERGED_ITERATING
 
       parameter (NEP_CONVERGED_TOL            =  1)
-      parameter (NEP_CONVERGED_FNORM_ABS      =  2)
-      parameter (NEP_CONVERGED_FNORM_RELATIVE =  3)
-      parameter (NEP_CONVERGED_SNORM_RELATIVE =  4)
-      parameter (NEP_DIVERGED_LINEAR_SOLVE    = -1)
-      parameter (NEP_DIVERGED_FUNCTION_COUNT  = -2)
-      parameter (NEP_DIVERGED_MAX_IT          = -3)
-      parameter (NEP_DIVERGED_BREAKDOWN       = -4)
-      parameter (NEP_DIVERGED_FNORM_NAN       = -5)
+      parameter (NEP_CONVERGED_USER           =  2)
+      parameter (NEP_DIVERGED_ITS             = -1)
+      parameter (NEP_DIVERGED_BREAKDOWN       = -2)
+      parameter (NEP_DIVERGED_LINEAR_SOLVE    = -4)
       parameter (NEP_CONVERGED_ITERATING      =  0)
 
       PetscEnum NEP_LARGEST_MAGNITUDE
@@ -86,9 +94,11 @@
 
       PetscEnum NEP_ERROR_ABSOLUTE
       PetscEnum NEP_ERROR_RELATIVE
+      PetscEnum NEP_ERROR_BACKWARD
 
       parameter (NEP_ERROR_ABSOLUTE         =  0)
       parameter (NEP_ERROR_RELATIVE         =  1)
+      parameter (NEP_ERROR_BACKWARD         =  2)
 
 !
 !   Possible arguments to NEPMonitorSet()

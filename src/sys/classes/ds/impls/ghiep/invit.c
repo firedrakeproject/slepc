@@ -132,7 +132,7 @@ static PetscErrorCode HRApply(PetscInt n,PetscScalar *x1,PetscInt inc1,PetscScal
     s
     Q s-orthogonal matrix with Q^T*A*Q = T (symmetric tridiagonal matrix)
 */
-static PetscErrorCode TridiagDiag_HHR(PetscInt n,PetscScalar *A,PetscInt lda,PetscReal *s,PetscScalar* Q,PetscInt ldq,PetscBool flip,PetscReal *d,PetscReal *e,PetscInt *perm_,PetscScalar *work,PetscInt nw,PetscReal *rwork,PetscInt nwr,PetscBLASInt *iwork,PetscInt nwi)
+static PetscErrorCode TridiagDiag_HHR(PetscInt n,PetscScalar *A,PetscInt lda,PetscReal *s,PetscScalar* Q,PetscInt ldq,PetscBool flip,PetscReal *d,PetscReal *e,PetscInt *perm_,PetscScalar *work,PetscReal *rwork,PetscBLASInt *iwork)
 {
 #if defined(SLEPC_MISSING_LAPACK_LARFG) || defined(SLEPC_MISSING_LAPACK_LARF)
   PetscFunctionBegin;
@@ -140,7 +140,7 @@ static PetscErrorCode TridiagDiag_HHR(PetscInt n,PetscScalar *A,PetscInt lda,Pet
 #else
   PetscErrorCode ierr;
   PetscInt       i,j,k,*ii,*jj,i0=0,ik=0,tmp,type;
-  PetscInt       nwall,nwu=0,nwallr,nwur=0,nwalli,nwui=0;
+  PetscInt       nwu=0,nwur=0,nwui=0;
   PetscReal      *ss,cond=1.0,cs,sn,r;
   PetscScalar    tau,t,*AA;
   PetscBLASInt   n0,n1,ni,inc=1,m,n_,lda_,ldq_,*perm;
@@ -158,14 +158,8 @@ static PetscErrorCode TridiagDiag_HHR(PetscInt n,PetscScalar *A,PetscInt lda,Pet
   ierr = PetscBLASIntCast(lda,&lda_);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(n,&n_);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(ldq,&ldq_);CHKERRQ(ierr);
-  nwall = n*n+n;
-  if (!work || nw<nwall) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Invalid argument %d",12);
-  nwallr = n;
-  if (!rwork || nwr<nwallr) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Invalid argument %d",14);
   ss = rwork;
   nwur += n;
-  nwalli = n;
-  if (!iwork || nwi<nwalli) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Invalid argument %d",16);
   perm = iwork;
   nwui += n;
   AA = work;
@@ -316,7 +310,7 @@ static PetscErrorCode TridiagDiag_HHR(PetscInt n,PetscScalar *A,PetscInt lda,Pet
 
 #undef __FUNCT__
 #define __FUNCT__ "MadeHRtr"
-static PetscErrorCode MadeHRtr(PetscInt sz,PetscInt n,PetscInt idx0,PetscInt n0,PetscInt idx1,PetscInt n1,struct HRtr *tr1,struct HRtr *tr2,PetscReal *ncond,PetscScalar *work,PetscInt lw)
+static PetscErrorCode MadeHRtr(PetscInt sz,PetscInt n,PetscInt idx0,PetscInt n0,PetscInt idx1,PetscInt n1,struct HRtr *tr1,struct HRtr *tr2,PetscReal *ncond,PetscScalar *work)
 {
 #if defined(SLEPC_MISSING_LAPACK_LARFG) || defined(SLEPC_MISSING_LAPACK_LARF)
   PetscFunctionBegin;
@@ -328,7 +322,6 @@ static PetscErrorCode MadeHRtr(PetscInt sz,PetscInt n,PetscInt idx0,PetscInt n0,
   PetscBLASInt   n0_,n1_,inc=1;
 
   PetscFunctionBegin;
-  if (lw<n) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Invalid argument %d",11);
   /* Hyperbolic transformation to make zeros in x */
   x = tr1->data;
   tr1->n[0] = n0;
@@ -405,7 +398,7 @@ static PetscErrorCode MadeHRtr(PetscInt sz,PetscInt n,PetscInt idx0,PetscInt n0,
   transformation to H and R, if not, ok=false and it do nothing
   tolE, tolerance to exchange complex pairs to improve conditioning
 */
-static PetscErrorCode TryHRIt(PetscInt n,PetscInt j,PetscInt sz,PetscScalar *H,PetscInt ldh,PetscScalar *R,PetscInt ldr,PetscReal *s,PetscBool *exg,PetscBool *ok,PetscInt *n0,PetscInt *n1,PetscInt *idx0,PetscInt *idx1,PetscReal *cond,PetscScalar *work,PetscInt nw)
+static PetscErrorCode TryHRIt(PetscInt n,PetscInt j,PetscInt sz,PetscScalar *H,PetscInt ldh,PetscScalar *R,PetscInt ldr,PetscReal *s,PetscBool *exg,PetscBool *ok,PetscInt *n0,PetscInt *n1,PetscInt *idx0,PetscInt *idx1,PetscReal *cond,PetscScalar *work)
 {
 #if defined(SLEPC_MISSING_LAPACK_LARF)
   PetscFunctionBegin;
@@ -415,7 +408,7 @@ static PetscErrorCode TryHRIt(PetscInt n,PetscInt j,PetscInt sz,PetscScalar *H,P
   struct HRtr    *tr1,*tr2,tr1_t,tr2_t,tr1_te,tr2_te;
   PetscScalar    *x,*y;
   PetscReal      ncond,ncond_e;
-  PetscInt       nwu=0,nwall,i,d=1;
+  PetscInt       nwu=0,i,d=1;
   PetscBLASInt   n0_,n1_,inc=1,mh,mr,n_,ldr_,ldh_;
   PetscReal      tolD = 1e+5;
 
@@ -424,8 +417,6 @@ static PetscErrorCode TryHRIt(PetscInt n,PetscInt j,PetscInt sz,PetscScalar *H,P
   ierr = PetscBLASIntCast(n,&n_);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(ldr,&ldr_);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(ldh,&ldh_);CHKERRQ(ierr);
-  nwall = 5*n;
-  if (!work || nw<nwall) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Invalid argument %d",16);
   x = work+nwu;
   nwu += n;
   ierr = PetscMemcpy(x,R+j*ldr,n*sizeof(PetscScalar));CHKERRQ(ierr);
@@ -434,7 +425,7 @@ static PetscErrorCode TryHRIt(PetscInt n,PetscInt j,PetscInt sz,PetscScalar *H,P
   tr1_t.data = x;
   if (sz==1) {
     /* Hyperbolic transformation to make zeros in x */
-    ierr = MadeHRtr(sz,n,*idx0,*n0,*idx1,*n1,&tr1_t,NULL,&ncond,work+nwu,nwall-nwu);CHKERRQ(ierr);
+    ierr = MadeHRtr(sz,n,*idx0,*n0,*idx1,*n1,&tr1_t,NULL,&ncond,work+nwu);CHKERRQ(ierr);
     /* Check condition number to single column*/
     if (ncond>tolD) {
       *ok = PETSC_FALSE;
@@ -446,7 +437,7 @@ static PetscErrorCode TryHRIt(PetscInt n,PetscInt j,PetscInt sz,PetscScalar *H,P
     nwu += n;
     ierr = PetscMemcpy(y,R+(j+1)*ldr,n*sizeof(PetscScalar));CHKERRQ(ierr);
     tr2_t.data = y;
-    ierr = MadeHRtr(sz,n,*idx0,*n0,*idx1,*n1,&tr1_t,&tr2_t,&ncond,work+nwu,nwall-nwu);CHKERRQ(ierr);
+    ierr = MadeHRtr(sz,n,*idx0,*n0,*idx1,*n1,&tr1_t,&tr2_t,&ncond,work+nwu);CHKERRQ(ierr);
     /* Computing hyperbolic transformations also for exchanged vectors */
     tr1_te.data = work+nwu;
     nwu += n;
@@ -454,7 +445,7 @@ static PetscErrorCode TryHRIt(PetscInt n,PetscInt j,PetscInt sz,PetscScalar *H,P
     tr2_te.data = work+nwu;
     nwu += n;
     ierr = PetscMemcpy(tr2_te.data,R+j*ldr,n*sizeof(PetscScalar));CHKERRQ(ierr);
-    ierr = MadeHRtr(sz,n,*idx0,*n0,*idx1,*n1,&tr1_te,&tr2_te,&ncond_e,work+nwu,nwall-nwu);CHKERRQ(ierr);
+    ierr = MadeHRtr(sz,n,*idx0,*n0,*idx1,*n1,&tr1_te,&tr2_te,&ncond_e,work+nwu);CHKERRQ(ierr);
     if (ncond > d*ncond_e) {
       *exg = PETSC_TRUE;
       tr1 = &tr1_te;
@@ -560,17 +551,15 @@ static PetscErrorCode TryHRIt(PetscInt n,PetscInt j,PetscInt sz,PetscScalar *H,P
 /*
   compute V = HR whit H s-orthogonal and R upper triangular
 */
-static PetscErrorCode PseudoOrthog_HR(PetscInt *nv,PetscScalar *V,PetscInt ldv,PetscReal *s,PetscScalar *R,PetscInt ldr,PetscBLASInt *perm,PetscBLASInt *cmplxEig,PetscBool *breakdown,PetscScalar *work,PetscInt nw)
+static PetscErrorCode PseudoOrthog_HR(PetscInt *nv,PetscScalar *V,PetscInt ldv,PetscReal *s,PetscScalar *R,PetscInt ldr,PetscBLASInt *perm,PetscBLASInt *cmplxEig,PetscBool *breakdown,PetscScalar *work)
 {
   PetscErrorCode ierr;
-  PetscInt       i,j,n,n0,n1,np,idx0,idx1,sz=1,k=0,t1,t2,nwall,nwu=0;
+  PetscInt       i,j,n,n0,n1,np,idx0,idx1,sz=1,k=0,t1,t2,nwu=0;
   PetscScalar    *col1,*col2;
   PetscBool      exg=PETSC_FALSE,ok=PETSC_FALSE;
 
   PetscFunctionBegin;
   n = *nv;
-  nwall = 7*n;
-  if (!work || nw<nwall) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Invalid argument %d",11);
   col1 = work+nwu;
   nwu += n;
   col2 = work+nwu;
@@ -607,7 +596,7 @@ static PetscErrorCode PseudoOrthog_HR(PetscInt *nv,PetscScalar *V,PetscInt ldv,P
       if (cmplxEig[j]==0) sz=1;
       else sz=2;
     }
-    ierr = TryHRIt(n,j,sz,V,ldv,R,ldr,s,&exg,&ok,&n0,&n1,&idx0,&idx1,NULL,work+nwu,nw-nwu);CHKERRQ(ierr);
+    ierr = TryHRIt(n,j,sz,V,ldv,R,ldr,s,&exg,&ok,&n0,&n1,&idx0,&idx1,NULL,work+nwu);CHKERRQ(ierr);
     if (ok) {
       if (exg) cmplxEig[j] = -cmplxEig[j];
       j = j+sz;
@@ -707,7 +696,7 @@ PetscErrorCode DSGHIEPOrthogEigenv(DS ds,DSMatType mat,PetscScalar *wr,PetscScal
   
   /* Perform HR decomposition */
   /* Hyperbolic rotators */
-  ierr = PseudoOrthog_HR(&nv,X+off,ld,s+l,R,ldr,perm,cmplxEig,NULL,ds->work+nwus,lws-nwus);CHKERRQ(ierr);
+  ierr = PseudoOrthog_HR(&nv,X+off,ld,s+l,R,ldr,perm,cmplxEig,NULL,ds->work+nwus);CHKERRQ(ierr);
   /* Sort wr,wi perm */ 
   ts = ds->work+nwus;
   nwus += n;
@@ -790,14 +779,14 @@ PetscErrorCode DSIntermediate_GHIEP(DS ds)
   if (ds->compact) {
     if (ds->state < DS_STATE_INTERMEDIATE) {
       ierr = DSSwitchFormat_GHIEP(ds,PETSC_FALSE);CHKERRQ(ierr);
-      ierr = TridiagDiag_HHR(ds->k-ds->l+1,A+off,ld,s+ds->l,Q+off,ld,PETSC_TRUE,d+ds->l,e+ds->l,ds->perm,ds->work+nwu,nwall-nwu,ds->rwork+nwur,nwallr-nwur,ds->iwork+nwui,nwalli-nwui);CHKERRQ(ierr);
+      ierr = TridiagDiag_HHR(ds->k-ds->l+1,A+off,ld,s+ds->l,Q+off,ld,PETSC_TRUE,d+ds->l,e+ds->l,ds->perm,ds->work+nwu,ds->rwork+nwur,ds->iwork+nwui);CHKERRQ(ierr);
       ds->k = ds->l;
       ierr = PetscMemzero(d+2*ld+ds->l,(ds->n-ds->l)*sizeof(PetscReal));CHKERRQ(ierr);
     }
   } else {
     if (ds->state < DS_STATE_INTERMEDIATE) {
       for (i=0;i<ds->n;i++) s[i] = PetscRealPart(B[i+i*ld]);
-      ierr = TridiagDiag_HHR(ds->n-ds->l,A+off,ld,s+ds->l,Q+off,ld,PETSC_FALSE,d+ds->l,e+ds->l,ds->perm,ds->work+nwu,nwall-nwu,ds->rwork+nwur,nwallr-nwur,ds->iwork+nwui,nwalli-nwui);CHKERRQ(ierr);
+      ierr = TridiagDiag_HHR(ds->n-ds->l,A+off,ld,s+ds->l,Q+off,ld,PETSC_FALSE,d+ds->l,e+ds->l,ds->perm,ds->work+nwu,ds->rwork+nwur,ds->iwork+nwui);CHKERRQ(ierr);
       ierr = PetscMemzero(d+2*ld,(ds->n)*sizeof(PetscReal));CHKERRQ(ierr);
       ds->k = ds->l;
       ierr = DSSwitchFormat_GHIEP(ds,PETSC_FALSE);CHKERRQ(ierr);

@@ -27,15 +27,17 @@
 !  They sould match the flags in $SLEPC_DIR/include/slepceps.h
 
       PetscEnum EPS_CONVERGED_TOL
+      PetscEnum EPS_CONVERGED_USER
       PetscEnum EPS_DIVERGED_ITS
       PetscEnum EPS_DIVERGED_BREAKDOWN
       PetscEnum EPS_DIVERGED_SYMMETRY_LOST
       PetscEnum EPS_CONVERGED_ITERATING
 
-      parameter (EPS_CONVERGED_TOL          =  2)
-      parameter (EPS_DIVERGED_ITS           = -3)
-      parameter (EPS_DIVERGED_BREAKDOWN     = -4)
-      parameter (EPS_DIVERGED_SYMMETRY_LOST = -5)
+      parameter (EPS_CONVERGED_TOL          =  1)
+      parameter (EPS_CONVERGED_USER         =  2)
+      parameter (EPS_DIVERGED_ITS           = -1)
+      parameter (EPS_DIVERGED_BREAKDOWN     = -2)
+      parameter (EPS_DIVERGED_SYMMETRY_LOST = -3)
       parameter (EPS_CONVERGED_ITERATING    =  0)
 
       PetscEnum EPS_HEP
@@ -111,14 +113,20 @@
       parameter (EPS_ERROR_BACKWARD         =  2)
 
       PetscEnum EPS_CONV_ABS
-      PetscEnum EPS_CONV_EIG
+      PetscEnum EPS_CONV_REL
       PetscEnum EPS_CONV_NORM
       PetscEnum EPS_CONV_USER
 
       parameter (EPS_CONV_ABS               =  0)
-      parameter (EPS_CONV_EIG               =  1)
+      parameter (EPS_CONV_REL               =  1)
       parameter (EPS_CONV_NORM              =  2)
       parameter (EPS_CONV_USER              =  3)
+
+      PetscEnum EPS_STOP_BASIC
+      PetscEnum EPS_STOP_USER
+
+      parameter (EPS_STOP_BASIC             =  0)
+      parameter (EPS_STOP_USER              =  1)
 
       PetscEnum EPS_POWER_SHIFT_CONSTANT
       PetscEnum EPS_POWER_SHIFT_RAYLEIGH

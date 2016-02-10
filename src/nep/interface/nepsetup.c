@@ -133,14 +133,11 @@ PetscErrorCode NEPSetUp(NEP nep)
   /* call specific solver setup */
   ierr = (*nep->ops->setup)(nep);CHKERRQ(ierr);
 
-  /* set tolerances if not yet set */
-  if (nep->abstol==PETSC_DEFAULT) nep->abstol = 1e-50;
-  if (nep->rtol==PETSC_DEFAULT) nep->rtol = 100*SLEPC_DEFAULT_TOL;
-  if (nep->stol==PETSC_DEFAULT) nep->stol = SLEPC_DEFAULT_TOL;
-  nep->ktol   = 0.1;
-  nep->nfuncs = 0;
+  /* set tolerance if not yet set */
+  if (nep->tol==PETSC_DEFAULT) nep->tol = SLEPC_DEFAULT_TOL;
+  nep->ktol = 0.1;
   if (nep->refine) {
-    if (nep->reftol==PETSC_DEFAULT) nep->reftol = nep->rtol;
+    if (nep->reftol==PETSC_DEFAULT) nep->reftol = nep->tol;
     if (nep->rits==PETSC_DEFAULT) nep->rits = (nep->refine==NEP_REFINE_SIMPLE)? 10: 1;
   }
 

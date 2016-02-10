@@ -304,7 +304,7 @@ PetscErrorCode STGetOperators(ST st,PetscInt k,Mat *A)
   PetscValidLogicalCollectiveInt(st,k,2);
   PetscValidPointer(A,3);
   STCheckMatrices(st,1);
-  if (k<0 || k>=st->nmat) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_OUTOFRANGE,"k must be between 0 and %d",st->nmat-1);
+  if (k<0 || k>=st->nmat) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_OUTOFRANGE,"k must be between 0 and %D",st->nmat-1);
   if (((PetscObject)st->A[k])->state!=st->Astate[k]) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"Cannot retrieve original matrices (have been modified)");
   *A = st->A[k];
   PetscFunctionReturn(0);
@@ -335,7 +335,7 @@ PetscErrorCode STGetTOperators(ST st,PetscInt k,Mat *T)
   PetscValidLogicalCollectiveInt(st,k,2);
   PetscValidPointer(T,3);
   STCheckMatrices(st,1);
-  if (k<0 || k>=st->nmat) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_OUTOFRANGE,"k must be between 0 and %d",st->nmat-1);
+  if (k<0 || k>=st->nmat) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_OUTOFRANGE,"k must be between 0 and %D",st->nmat-1);
   if (!st->T) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_POINTER,"There are no transformed matrices");
   *T = st->T[k];
   PetscFunctionReturn(0);

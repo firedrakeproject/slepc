@@ -170,6 +170,7 @@ PetscErrorCode EPSSetUp_BLOPEX(EPS eps)
   if (!eps->which) eps->which = EPS_SMALLEST_REAL;
   if (eps->which!=EPS_SMALLEST_REAL) SETERRQ(PetscObjectComm((PetscObject)eps),1,"Wrong value of eps->which");
   if (eps->arbitrary) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Arbitrary selection of eigenpairs not supported in this solver");
+  if (eps->stopping!=EPSStoppingBasic) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"External packages do not support user-defined stopping test");
   if (eps->extraction) { ierr = PetscInfo(eps,"Warning: extraction type ignored\n");CHKERRQ(ierr); }
   ierr = RGIsTrivial(eps->rg,&istrivial);CHKERRQ(ierr);
   if (!istrivial) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"This solver does not support region filtering");
@@ -179,7 +180,7 @@ PetscErrorCode EPSSetUp_BLOPEX(EPS eps)
   if (!isPrecond) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"blopex only works with STPRECOND");
   blopex->st = eps->st;
 
-  if (eps->converged == EPSConvergedEigRelative) {
+  if (eps->converged == EPSConvergedRelative) {
     blopex->tol.absolute = 0.0;
     blopex->tol.relative = eps->tol==PETSC_DEFAULT?SLEPC_DEFAULT_TOL:eps->tol;
   } else if (eps->converged == EPSConvergedAbsolute) {

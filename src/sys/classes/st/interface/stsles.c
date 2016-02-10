@@ -54,7 +54,7 @@ PetscErrorCode STMatMult(ST st,PetscInt k,Vec x,Vec y)
   PetscValidHeaderSpecific(x,VEC_CLASSID,3);
   PetscValidHeaderSpecific(y,VEC_CLASSID,4);
   STCheckMatrices(st,1);
-  if (k<0 || k>=PetscMax(2,st->nmat)) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_OUTOFRANGE,"k must be between 0 and %d",st->nmat);
+  if (k<0 || k>=PetscMax(2,st->nmat)) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_OUTOFRANGE,"k must be between 0 and %D",st->nmat);
   if (x == y) SETERRQ(PetscObjectComm((PetscObject)st),PETSC_ERR_ARG_IDN,"x and y must be different vectors");
   VecLocked(y,3);
 
@@ -102,7 +102,7 @@ PetscErrorCode STMatMultTranspose(ST st,PetscInt k,Vec x,Vec y)
   PetscValidHeaderSpecific(x,VEC_CLASSID,3);
   PetscValidHeaderSpecific(y,VEC_CLASSID,4);
   STCheckMatrices(st,1);
-  if (k<0 || k>=PetscMax(2,st->nmat)) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_OUTOFRANGE,"k must be between 0 and %d",st->nmat);
+  if (k<0 || k>=PetscMax(2,st->nmat)) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_OUTOFRANGE,"k must be between 0 and %D",st->nmat);
   if (x == y) SETERRQ(PetscObjectComm((PetscObject)st),PETSC_ERR_ARG_IDN,"x and y must be different vectors");
   VecLocked(y,3);
 
