@@ -693,7 +693,7 @@ PetscErrorCode NEPSolve_NLEIGS(NEP nep)
   PetscErrorCode ierr;
   NEP_NLEIGS     *ctx=(NEP_NLEIGS*)nep->data;
   PetscInt       i,j,k=0,l,nv=0,ld,lds,off,ldds,newn,rs1,nq=0;
-  PetscInt       lwa,lrwa,nwu=0,nrwu=0,deg=ctx->nmat-1,nconv;
+  PetscInt       lwa,lrwa,nwu=0,nrwu=0,deg=ctx->nmat-1,nconv=0;
   PetscScalar    *S,*Q,*work,*H,*pU;
   PetscReal      beta,norm,*rwork;
   PetscBool      breakdown=PETSC_FALSE,lindep;
