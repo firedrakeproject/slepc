@@ -196,18 +196,18 @@ static PetscErrorCode NEPNLEIGSDividedDifferences_split(NEP nep)
     }
     norm = max;
     if (norm/norm0 < ctx->ddtol) {
-      ctx->nmat = k;
+      ctx->nmat = k+1;
       break;
     } 
   }
   ierr = NEPNLEIGSEvalNRTFunct(nep,ctx->nmat,nep->target,coeffs);CHKERRQ(ierr);
   ierr = MatDuplicate(nep->A[0],MAT_COPY_VALUES,&T);CHKERRQ(ierr);
   alpha = 0.0;
-  for (j=0;j<ctx->nmat;j++) alpha += coeffs[j]*ctx->coeffD[j*nep->nt];
+  for (j=0;j<ctx->nmat-1;j++) alpha += coeffs[j]*ctx->coeffD[j*nep->nt];
   ierr = MatScale(T,alpha);CHKERRQ(ierr);
   for (k=1;k<nep->nt;k++) {
     alpha = 0.0;
-    for (j=0;j<ctx->nmat;j++) alpha += coeffs[j]*ctx->coeffD[j*nep->nt+k];
+    for (j=0;j<ctx->nmat-1;j++) alpha += coeffs[j]*ctx->coeffD[j*nep->nt+k];
     ierr = MatAXPY(T,alpha,nep->A[k],nep->mstr);CHKERRQ(ierr);
   }
   ctx->shift = nep->target;
@@ -247,7 +247,7 @@ static PetscErrorCode NEPNLEIGSDividedDifferences_callback(NEP nep)
     ierr = MatScale(D[k],1.0/b[k]);CHKERRQ(ierr);
     ierr = MatNorm(D[k],NORM_FROBENIUS,&norm);CHKERRQ(ierr);
     if (norm/norm0 < ctx->ddtol) {
-      ctx->nmat = k;
+      ctx->nmat = k+1; /* increment (the last matrix is not used) */
       ierr = MatDestroy(&D[k]);CHKERRQ(ierr);
       break;
     } 
@@ -255,7 +255,7 @@ static PetscErrorCode NEPNLEIGSDividedDifferences_callback(NEP nep)
   ierr = NEPNLEIGSEvalNRTFunct(nep,ctx->nmat,nep->target,coeffs);CHKERRQ(ierr);
   ierr = MatDuplicate(ctx->D[0],MAT_COPY_VALUES,&T);CHKERRQ(ierr);
   if (coeffs[0]!=1.0) { ierr = MatScale(T,coeffs[0]);CHKERRQ(ierr);}
-  for (j=1;j<ctx->nmat;j++) {
+  for (j=1;j<ctx->nmat-1;j++) {
     ierr = MatAXPY(T,coeffs[j],ctx->D[j],nep->mstr);CHKERRQ(ierr);
   }
   ctx->shift = nep->target;
@@ -472,15 +472,16 @@ static PetscErrorCode NEPTOARExtendBasis(NEP nep,PetscScalar sigma,PetscScalar *
   PetscFunctionBegin;
   ierr = BVSetActiveColumns(nep->V,0,nv);CHKERRQ(ierr);
   ierr = PetscMalloc1(ctx->nmat-1,&coeffs);CHKERRQ(ierr);
-  if (PetscAbsScalar(s[deg-1]-sigma)<100*PETSC_MACHINE_EPSILON) SETERRQ(PETSC_COMM_SELF,1,"Breakdown in NLEIGS");
+  if (PetscAbsScalar(s[deg-2]-sigma)<100*PETSC_MACHINE_EPSILON) SETERRQ(PETSC_COMM_SELF,1,"Breakdown in NLEIGS");
+  /* i-part stored in (i-1) position */
   for (j=0;j<nv;j++) {
-    r[(deg-1)*lr+j] = (S[(deg-1)*ls+j]+(beta[deg]/xi[deg-1])*S[(deg)*ls+j])/(s[deg-1]-sigma);
+    r[(deg-2)*lr+j] = (S[(deg-2)*ls+j]+(beta[deg-1]/xi[deg-2])*S[(deg-1)*ls+j])/(s[deg-2]-sigma);
   }
-  ierr = BVSetActiveColumns(ctx->W,0,ctx->nmat-1);CHKERRQ(ierr);
-  ierr = BVGetColumn(ctx->W,deg-1,&w);CHKERRQ(ierr);
-  ierr = BVMultVec(V,1.0,0.0,w,r+(deg-1)*lr);CHKERRQ(ierr);
-  ierr = BVRestoreColumn(ctx->W,deg-1,&w);CHKERRQ(ierr);
-  for (k=deg-1;k>0;k--) {
+  ierr = BVSetActiveColumns(ctx->W,0,deg-1);CHKERRQ(ierr);
+  ierr = BVGetColumn(ctx->W,deg-2,&w);CHKERRQ(ierr);
+  ierr = BVMultVec(V,1.0,0.0,w,r+(deg-2)*lr);CHKERRQ(ierr);
+  ierr = BVRestoreColumn(ctx->W,deg-2,&w);CHKERRQ(ierr);
+  for (k=deg-2;k>0;k--) {
     if (PetscAbsScalar(s[k-1]-sigma)<100*PETSC_MACHINE_EPSILON) SETERRQ(PETSC_COMM_SELF,1,"Breakdown in NLEIGS");
     for (j=0;j<nv;j++) r[(k-1)*lr+j] = (S[(k-1)*ls+j]+(beta[k]/xi[k-1])*S[k*ls+j]-beta[k]*(1.0-sigma/xi[k-1])*r[(k)*lr+j])/(s[k-1]-sigma);
     ierr = BVGetColumn(ctx->W,k-1,&w);CHKERRQ(ierr);
@@ -500,7 +501,7 @@ static PetscErrorCode NEPTOARExtendBasis(NEP nep,PetscScalar sigma,PetscScalar *
     ierr = KSPSolve(nep->ksp,q,t);CHKERRQ(ierr);
     ierr = VecScale(t,-1.0);CHKERRQ(ierr);
   } else {
-    for (k=0;k<ctx->nmat-1;k++) {
+    for (k=0;k<deg-1;k++) {
       ierr = BVGetColumn(ctx->W,k,&w);CHKERRQ(ierr);
       ierr = MatMult(ctx->D[k],w,q);CHKERRQ(ierr);
       ierr = BVRestoreColumn(ctx->W,k,&w);CHKERRQ(ierr);
@@ -524,7 +525,7 @@ static PetscErrorCode NEPTOARCoefficients(NEP nep,PetscScalar sigma,PetscInt nv,
 {
   PetscErrorCode ierr;
   NEP_NLEIGS     *ctx=(NEP_NLEIGS*)nep->data;
-  PetscInt       k,j,d=ctx->nmat;
+  PetscInt       k,j,d=ctx->nmat-1;
   PetscScalar    *t=work;
 
   PetscFunctionBegin;
