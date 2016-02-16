@@ -173,57 +173,22 @@ static PetscErrorCode SetPathParameter(EPS eps)
 {
   PetscErrorCode ierr;
   EPS_CISS       *ctx = (EPS_CISS*)eps->data;
-  PetscInt       i,j;
-  PetscScalar    center,tmp,tmp2;
-  PetscReal      max_w=0.0;
-  PetscReal      theta,radius,vscale,start_ang,end_ang,width,a,b,c,d;
-  PetscBool      isring=PETSC_FALSE,isellipse=PETSC_FALSE,isinterval=PETSC_FALSE;
+  PetscInt       i,j,N=ctx->N;
+  PetscScalar    center,tmp,tmp2,omegai[ctx->N];
+  PetscReal      theta,radius,vscale,a,b,c,d,max_w=0.0;
+  PetscBool      isellipse=PETSC_FALSE,isinterval=PETSC_FALSE;
 
   PetscFunctionBegin;
   ierr = PetscObjectTypeCompare((PetscObject)eps->rg,RGELLIPSE,&isellipse);CHKERRQ(ierr);
-  ierr = PetscObjectTypeCompare((PetscObject)eps->rg,RGRING,&isring);CHKERRQ(ierr);
   ierr = PetscObjectTypeCompare((PetscObject)eps->rg,RGINTERVAL,&isinterval);CHKERRQ(ierr);
-  if (!isellipse && !isring && !isinterval) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Region must be Interval, Ellipse or Ring");
-  if (isellipse) 
-    RGComputeContour(eps->rg,ctx->N,ctx->omega,NULL);
-  if (isring) {
-    ierr = RGRingGetParameters(eps->rg,&center,&radius,&vscale,&start_ang,&end_ang,&width);CHKERRQ(ierr);
-  }
-  if (isinterval) {
-    ierr = RGIntervalGetEndpoints(eps->rg,&a,&b,&c,&d);CHKERRQ(ierr);
-    if (c==d) {
-      RGComputeContour(eps->rg,ctx->N,ctx->omega,NULL);
-      center = (b+a)/2.0;
-      radius = (b-a)/2.0;
-      vscale = 0.1;
-    } else {
-      RGComputeContour(eps->rg,ctx->N-1,ctx->omega,NULL);
-#if defined(PETSC_USE_COMPLEX)
-#else
-      center = (b+a)/2.0;  /* we know c=-d since the region is symmetric wrt the real axis */
-#endif
-      radius = (b-a)/2.0;
-    }
-  }
-
-  for (i=0;i<ctx->N;i++) {
-    if (isring) {
-      /* Ring region only supported for complex scalars */
-#if defined(PETSC_USE_COMPLEX)
-      theta = (PETSC_PI/ctx->N)*(i+0.5);
-      ctx->pp[i] = PetscCosReal(theta);
-      ctx->weight[i] = PetscCosReal((ctx->N-1)*theta)/ctx->N;
-      theta = (start_ang*2.0+(end_ang-start_ang)*(PetscCosReal(theta)+1.0))*PETSC_PI;
-      ctx->omega[i] = center + radius*(PetscCosReal(theta)+PETSC_i*vscale*PetscSinReal(theta));
-#endif
-    } else {
-#if defined(PETSC_USE_COMPLEX)
-      //theta = ((2.0*PETSC_PI)/ctx->N)*(i+0.5);
-      //ctx->pp[i] = PetscCosReal(theta) + PETSC_i*vscale*PetscSinReal(theta);
-      //ctx->weight[i] = radius*(vscale*PetscCosReal(theta) + PETSC_i*PetscSinReal(theta))/(PetscReal)ctx->N;
-      //ctx->omega[i] = center + radius*ctx->pp[i];
-      //ctx->pp[i]=(ctx->omega[i] -center)/(PetscScalar)radius;
-      ctx->pp[i]=ctx->omega[i];
+  if (isellipse) {
+    ierr = RGComputeContour(eps->rg,N,ctx->omega,omegai);CHKERRQ(ierr);
+    ierr = RGEllipseGetParameters(eps->rg,&center,&radius,&vscale);CHKERRQ(ierr);
+    for (i=0;i<ctx->N;i++) {
+#if defined(PETSC_USE_COMPLEX) 
+      theta = 2.0*PETSC_PI*(i+0.5)/ctx->N;
+      ctx->pp[i] = PetscCosReal(theta)+vscale*PetscSinReal(theta)*PETSC_i;
+      ctx->weight[i] = radius*(vscale*PetscCosReal(theta)+PetscSinReal(theta)*PETSC_i)/(PetscReal)ctx->N;
 #else
       theta = (PETSC_PI/ctx->N)*(i+0.5);
       ctx->pp[i] = PetscCosReal(theta);
@@ -231,19 +196,23 @@ static PetscErrorCode SetPathParameter(EPS eps)
       ctx->omega[i] = center + radius*ctx->pp[i];
 #endif
     }
-  }
-  for (i=0;i<ctx->N;i++) {
-    tmp = 1; tmp2 = 1;
-    for (j=0;j<ctx->N;j++) {
-      tmp *= ctx->omega[j];
-      if (i != j)
-	tmp2 *= ctx->omega[j]-ctx->omega[i];
+  } else {
+    if (isinterval) {
+      ierr = RGIntervalGetEndpoints(eps->rg,&a,&b,&c,&d);CHKERRQ(ierr);
+      if (c!=d && a!=b) {N = ctx->N-1;}
     }
-    ctx->weight[i] = tmp/tmp2;
-    max_w=PetscMax((PetscAbsScalar(ctx->weight[i])),max_w);
-  }
-  for (i=0;i<ctx->N;i++) {
-    ctx->weight[i] /= (PetscScalar)max_w;
+    ierr = RGComputeContour(eps->rg,N,ctx->omega,omegai);CHKERRQ(ierr);
+    for (i=0;i<ctx->N;i++) { 
+      ctx->pp[i]=ctx->omega[i];
+      tmp = 1; tmp2 = 1;
+      for (j=0;j<ctx->N;j++) {
+	tmp *= ctx->omega[j];
+	if (i != j) {tmp2 *= ctx->omega[j]-ctx->omega[i];}
+      }
+      ctx->weight[i] = tmp/tmp2;
+      max_w=PetscMax((PetscAbsScalar(ctx->weight[i])),max_w);
+    }
+    for (i=0;i<ctx->N;i++) {ctx->weight[i] /= (PetscScalar)max_w;}
   }
   PetscFunctionReturn(0);
 }
@@ -536,7 +505,7 @@ static PetscErrorCode ConstructS(EPS eps)
 {
   PetscErrorCode ierr;
   EPS_CISS       *ctx = (EPS_CISS*)eps->data;
-  PetscInt       i,j,k,vec_local_size,p_id,tmp,tmp2;
+  PetscInt       i,j,k,vec_local_size,p_id;
   Vec            v,sj,yj;
   PetscScalar    *ppk, *v_data, m = 1;
 
@@ -789,6 +758,7 @@ PetscErrorCode EPSSetUp_CISS(EPS eps)
     if (ctx->isreal && c==d) ctx->useconj = PETSC_TRUE;
     else ctx->useconj = PETSC_FALSE;
 #else
+    if (c!=d) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"In real scalars, endpoints of the imaginary axis must be both zero");
     ctx->useconj = PETSC_FALSE;
 #endif
   }
