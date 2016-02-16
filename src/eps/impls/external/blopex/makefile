@@ -22,7 +22,6 @@
 ALL: lib
 
 #requiresdefine  'SLEPC_HAVE_BLOPEX'
-#requiresprecision double
 
 CFLAGS   = ${BLOPEX_INCLUDE} -DBlopexInt=PetscInt
 FFLAGS   =
