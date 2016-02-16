@@ -173,8 +173,9 @@ static PetscErrorCode SetPathParameter(EPS eps)
 {
   PetscErrorCode ierr;
   EPS_CISS       *ctx = (EPS_CISS*)eps->data;
-  PetscInt       i;
-  PetscScalar    center;
+  PetscInt       i,j;
+  PetscScalar    center,tmp,tmp2;
+  PetscReal      max_w=0.0;
   PetscReal      theta,radius,vscale,start_ang,end_ang,width,a,b,c,d;
   PetscBool      isring=PETSC_FALSE,isellipse=PETSC_FALSE,isinterval=PETSC_FALSE;
 
@@ -183,28 +184,28 @@ static PetscErrorCode SetPathParameter(EPS eps)
   ierr = PetscObjectTypeCompare((PetscObject)eps->rg,RGRING,&isring);CHKERRQ(ierr);
   ierr = PetscObjectTypeCompare((PetscObject)eps->rg,RGINTERVAL,&isinterval);CHKERRQ(ierr);
   if (!isellipse && !isring && !isinterval) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Region must be Interval, Ellipse or Ring");
-  if (isellipse) {
-    ierr = RGEllipseGetParameters(eps->rg,&center,&radius,&vscale);CHKERRQ(ierr);
-  }
+  if (isellipse) 
+    RGComputeContour(eps->rg,ctx->N,ctx->omega,NULL);
   if (isring) {
     ierr = RGRingGetParameters(eps->rg,&center,&radius,&vscale,&start_ang,&end_ang,&width);CHKERRQ(ierr);
   }
   if (isinterval) {
     ierr = RGIntervalGetEndpoints(eps->rg,&a,&b,&c,&d);CHKERRQ(ierr);
     if (c==d) {
+      RGComputeContour(eps->rg,ctx->N,ctx->omega,NULL);
       center = (b+a)/2.0;
       radius = (b-a)/2.0;
       vscale = 0.1;
     } else {
+      RGComputeContour(eps->rg,ctx->N-1,ctx->omega,NULL);
 #if defined(PETSC_USE_COMPLEX)
-      center = (b+a)/2.0 + (d+c)/2.0*PETSC_i;
 #else
       center = (b+a)/2.0;  /* we know c=-d since the region is symmetric wrt the real axis */
 #endif
       radius = (b-a)/2.0;
-      vscale = (d-c)/(2.0*radius);
     }
   }
+
   for (i=0;i<ctx->N;i++) {
     if (isring) {
       /* Ring region only supported for complex scalars */
@@ -217,10 +218,12 @@ static PetscErrorCode SetPathParameter(EPS eps)
 #endif
     } else {
 #if defined(PETSC_USE_COMPLEX)
-      theta = ((2.0*PETSC_PI)/ctx->N)*(i+0.5);
-      ctx->pp[i] = PetscCosReal(theta) + PETSC_i*vscale*PetscSinReal(theta);
-      ctx->weight[i] = radius*(vscale*PetscCosReal(theta) + PETSC_i*PetscSinReal(theta))/(PetscReal)ctx->N;
-      ctx->omega[i] = center + radius*ctx->pp[i];
+      //theta = ((2.0*PETSC_PI)/ctx->N)*(i+0.5);
+      //ctx->pp[i] = PetscCosReal(theta) + PETSC_i*vscale*PetscSinReal(theta);
+      //ctx->weight[i] = radius*(vscale*PetscCosReal(theta) + PETSC_i*PetscSinReal(theta))/(PetscReal)ctx->N;
+      //ctx->omega[i] = center + radius*ctx->pp[i];
+      //ctx->pp[i]=(ctx->omega[i] -center)/(PetscScalar)radius;
+      ctx->pp[i]=ctx->omega[i];
 #else
       theta = (PETSC_PI/ctx->N)*(i+0.5);
       ctx->pp[i] = PetscCosReal(theta);
@@ -228,6 +231,19 @@ static PetscErrorCode SetPathParameter(EPS eps)
       ctx->omega[i] = center + radius*ctx->pp[i];
 #endif
     }
+  }
+  for (i=0;i<ctx->N;i++) {
+    tmp = 1; tmp2 = 1;
+    for (j=0;j<ctx->N;j++) {
+      tmp *= ctx->omega[j];
+      if (i != j)
+	tmp2 *= ctx->omega[j]-ctx->omega[i];
+    }
+    ctx->weight[i] = tmp/tmp2;
+    max_w=PetscMax((PetscAbsScalar(ctx->weight[i])),max_w);
+  }
+  for (i=0;i<ctx->N;i++) {
+    ctx->weight[i] /= (PetscScalar)max_w;
   }
   PetscFunctionReturn(0);
 }
@@ -321,7 +337,6 @@ static PetscErrorCode SolveLinearSystem(EPS eps,Mat A,Mat B,BV V,PetscInt L_star
       ierr = STSetShift(eps->st,ctx->omega[p_id]);CHKERRQ(ierr);
       ierr = STGetKSP(eps->st,&ksp);CHKERRQ(ierr);
     }
-
     for (j=L_start;j<L_end;j++) {
       ierr = BVGetColumn(V,j,&vj);CHKERRQ(ierr);
       ierr = BVGetColumn(ctx->Y,i*ctx->L_max+j,&yj);CHKERRQ(ierr);
@@ -521,7 +536,7 @@ static PetscErrorCode ConstructS(EPS eps)
 {
   PetscErrorCode ierr;
   EPS_CISS       *ctx = (EPS_CISS*)eps->data;
-  PetscInt       i,j,k,vec_local_size,p_id;
+  PetscInt       i,j,k,vec_local_size,p_id,tmp,tmp2;
   Vec            v,sj,yj;
   PetscScalar    *ppk, *v_data, m = 1;
 
@@ -538,7 +553,7 @@ static PetscErrorCode ConstructS(EPS eps)
       for (i=0;i<ctx->num_solve_point;i++) {
         p_id = i*ctx->subcomm->n + ctx->subcomm_id;
         ierr = BVSetActiveColumns(ctx->Y,i*ctx->L_max+j,i*ctx->L_max+j+1);CHKERRQ(ierr);
-        ierr = BVMultVec(ctx->Y,ppk[i]*ctx->weight[p_id],1,v,&m);CHKERRQ(ierr);
+        ierr = BVMultVec(ctx->Y,ppk[i]*ctx->weight[p_id],1.0,v,&m);CHKERRQ(ierr);
       }
       if (ctx->useconj) {
         ierr = VecGetArray(v,&v_data);CHKERRQ(ierr);
@@ -1612,8 +1627,8 @@ PETSC_EXTERN PetscErrorCode EPSCreate_CISS(EPS eps)
   ctx->spurious_threshold = 1e-4;
   ctx->usest   = PETSC_FALSE;
   ctx->isreal  = PETSC_FALSE;
-  ctx->refine_inner = 1;
-  ctx->refine_blocksize = 1;
+  ctx->refine_inner = 0;
+  ctx->refine_blocksize = 0;
   ctx->num_subcomm = 1;
   PetscFunctionReturn(0);
 }
