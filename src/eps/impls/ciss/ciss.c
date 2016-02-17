@@ -79,6 +79,7 @@ typedef struct {
   Mat          pA,pB;
   PetscSubcomm subcomm;
   PetscBool    usest;
+  EPSCISSQuadRule quad;
 } EPS_CISS;
 
 #undef __FUNCT__
@@ -173,16 +174,17 @@ static PetscErrorCode SetPathParameter(EPS eps)
 {
   PetscErrorCode ierr;
   EPS_CISS       *ctx = (EPS_CISS*)eps->data;
-  PetscInt       i,j,N=ctx->N;
-  PetscScalar    center,tmp,tmp2,omegai[ctx->N];
-  PetscReal      theta,radius,vscale,a,b,c,d,max_w=0.0;
-  PetscBool      isellipse=PETSC_FALSE,isinterval=PETSC_FALSE;
+  PetscInt       i,j;
+  PetscScalar    center,tmp,tmp2,omegai[ctx->N+1];
+  PetscReal      theta,radius,vscale,start_ang,end_ang,width,a,b,c,d,max_w=0.0;
+  PetscBool      isring=PETSC_FALSE,isellipse=PETSC_FALSE,isinterval=PETSC_FALSE;
 
   PetscFunctionBegin;
   ierr = PetscObjectTypeCompare((PetscObject)eps->rg,RGELLIPSE,&isellipse);CHKERRQ(ierr);
+  ierr = PetscObjectTypeCompare((PetscObject)eps->rg,RGRING,&isring);CHKERRQ(ierr);
   ierr = PetscObjectTypeCompare((PetscObject)eps->rg,RGINTERVAL,&isinterval);CHKERRQ(ierr);
+  ierr = RGComputeContour(eps->rg,ctx->N,ctx->omega,omegai);CHKERRQ(ierr);
   if (isellipse) {
-    ierr = RGComputeContour(eps->rg,N,ctx->omega,omegai);CHKERRQ(ierr);
     ierr = RGEllipseGetParameters(eps->rg,&center,&radius,&vscale);CHKERRQ(ierr);
     for (i=0;i<ctx->N;i++) {
 #if defined(PETSC_USE_COMPLEX) 
@@ -196,12 +198,28 @@ static PetscErrorCode SetPathParameter(EPS eps)
       ctx->omega[i] = center + radius*ctx->pp[i];
 #endif
     }
-  } else {
+  } else if (ctx->quad == EPS_CISS_QUAD_CHEBYSHEV) {
+    for (i=0;i<ctx->N;i++) {
+      theta = (PETSC_PI/ctx->N)*(i+0.5);
+      ctx->pp[i] = PetscCosReal(theta);
+      ctx->weight[i] = PetscCosReal((ctx->N-1)*theta)/ctx->N;
+    }
     if (isinterval) {
       ierr = RGIntervalGetEndpoints(eps->rg,&a,&b,&c,&d);CHKERRQ(ierr);
-      if (c!=d && a!=b) {N = ctx->N-1;}
+      if (c!=d && a!=b) {SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"endpoints of the imaginary axis or the real axis must be both zero");}
+      for (i=0;i<ctx->N;i++) {
+	if (c==d){ctx->omega[i] = (b-a)*(ctx->pp[i]+1.0)/2+a;} 
+	if (a==b){ctx->omega[i] = ((d-c)*(ctx->pp[i]+1.0)/2+c)*PETSC_i;}
+      }
     }
-    ierr = RGComputeContour(eps->rg,N,ctx->omega,omegai);CHKERRQ(ierr);
+    if (isring) {
+      ierr = RGRingGetParameters(eps->rg,&center,&radius,&vscale,&start_ang,&end_ang,&width);CHKERRQ(ierr);
+      for (i=0;i<ctx->N;i++) {
+	theta = (start_ang*2.0+(end_ang-start_ang)*(ctx->pp[i]+1.0))*PETSC_PI;
+	ctx->omega[i] = center + radius*(PetscCosReal(theta)+PETSC_i*vscale*PetscSinReal(theta));
+      }
+    }
+  } else {
     for (i=0;i<ctx->N;i++) { 
       ctx->pp[i]=ctx->omega[i];
       tmp = 1; tmp2 = 1;
@@ -766,7 +784,7 @@ PetscErrorCode EPSSetUp_CISS(EPS eps)
   ierr = SetSolverComm(eps);CHKERRQ(ierr);
 
   ierr = EPSAllocateSolution(eps,0);CHKERRQ(ierr);
-  ierr = PetscMalloc4(ctx->N,&ctx->weight,ctx->N,&ctx->omega,ctx->N,&ctx->pp,ctx->L_max*ctx->M,&ctx->sigma);CHKERRQ(ierr);
+  ierr = PetscMalloc4(ctx->N,&ctx->weight,ctx->N+1,&ctx->omega,ctx->N,&ctx->pp,ctx->L_max*ctx->M,&ctx->sigma);CHKERRQ(ierr);
   ierr = PetscLogObjectMemory((PetscObject)eps,3*ctx->N*sizeof(PetscScalar)+ctx->L_max*ctx->N*sizeof(PetscReal));CHKERRQ(ierr);
 
   /* allocate basis vectors */
@@ -1446,6 +1464,94 @@ PetscErrorCode EPSCISSGetUseST(EPS eps, PetscBool *usest)
 }
 
 #undef __FUNCT__
+#define __FUNCT__ "EPSCISSSetQuadRule_CISS"
+static PetscErrorCode EPSCISSSetQuadRule_CISS(EPS eps,EPSCISSQuadRule quad)
+{
+  EPS_CISS *ctx = (EPS_CISS*)eps->data;
+
+  PetscFunctionBegin;
+  ctx->quad = quad;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "EPSCISSSetQuadRule"
+/*@
+   EPSCISSSetQuadRule - Sets the quadrature rule used during the CISS
+   solver. 
+
+   Logically Collective on EPS
+
+   Input Parameters:
++  eps  - the eigenproblem solver context
+-  quad - the quadrature rule
+
+   Options Database Key:
+.  -eps_ciss_quad_rule - Sets the quadrature rule (either 'trapezoidal' or
+                           'chebyshev')
+
+   Notes:
+   By default, trapezoidal rule is used (EPS_CISS_QUAD_TRAPEZOIDAL).
+
+   A chebyshev can be specified (EPS_CISS_QUAD_CHEBYSHEV). In this case,
+   Chebyshev points are used as quadrature points.
+
+   Level: advanced
+
+.seealso: EPSCISSGetQuadRule(), EPSCISSQuadRule
+@*/
+PetscErrorCode EPSCISSSetQuadRule(EPS eps,EPSCISSQuadRule quad)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
+  PetscValidLogicalCollectiveEnum(eps,quad,2);
+  ierr = PetscTryMethod(eps,"EPSCISSSetQuadRule_C",(EPS,EPSCISSQuadRule),(eps,quad));CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "EPSCISSGetQuadRule_CISS"
+static PetscErrorCode EPSCISSGetQuadRule_CISS(EPS eps,EPSCISSQuadRule *quad)
+{
+  EPS_CISS *ctx = (EPS_CISS*)eps->data;
+
+  PetscFunctionBegin;
+  *quad = ctx->quad;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "EPSCISSGetQuadRule"
+/*@
+   EPSCISSGetQuadRule - Gets the quadrature rule in the 
+   CISS solver.
+   
+   Not Collective
+
+   Input Parameter:
+.  eps - the eigenproblem solver context
+
+   Output Parameters:
++  quad - quadrature rule
+
+   Level: advanced
+
+.seealso: EPSCISSSetQuadRule() EPSCISSQuadRule
+@*/
+PetscErrorCode EPSCISSGetQuadRule(EPS eps, EPSCISSQuadRule *quad)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
+  ierr = PetscTryMethod(eps,"EPSCISSGetQuadRule_C",(EPS,EPSCISSQuadRule*),(eps,quad));CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+
+#undef __FUNCT__
 #define __FUNCT__ "EPSReset_CISS"
 PetscErrorCode EPSReset_CISS(EPS eps)
 {
@@ -1487,6 +1593,9 @@ PetscErrorCode EPSSetFromOptions_CISS(PetscOptionItems *PetscOptionsObject,EPS e
   PetscReal      r3,r4;
   PetscInt       i1,i2,i3,i4,i5,i6,i7;
   PetscBool      b1,b2;
+  EPS_CISS       *ctx = (EPS_CISS*)eps->data;
+  PetscBool      flg;
+  EPSCISSQuadRule quad;
 
   PetscFunctionBegin;
   ierr = PetscOptionsHead(PetscOptionsObject,"EPS CISS Options");CHKERRQ(ierr);
@@ -1513,6 +1622,9 @@ PetscErrorCode EPSSetFromOptions_CISS(PetscOptionItems *PetscOptionsObject,EPS e
   ierr = PetscOptionsBool("-eps_ciss_usest","CISS use ST for linear solves","EPSCISSSetUseST",b2,&b2,NULL);CHKERRQ(ierr);
   ierr = EPSCISSSetUseST(eps,b2);CHKERRQ(ierr);
 
+  ierr = PetscOptionsEnum("-eps_ciss_quad_rule","Quadrature rule","EPSCISSSetQuadRule",EPSCISSQuadRules,(PetscEnum)ctx->quad,(PetscEnum*)&quad,&flg);CHKERRQ(ierr);
+  if (flg) {ierr = EPSCISSSetQuadRule(eps,quad);CHKERRQ(ierr);}
+
   ierr = PetscOptionsTail();CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -1533,6 +1645,8 @@ PetscErrorCode EPSDestroy_CISS(EPS eps)
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSCISSGetRefinement_C",NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSCISSSetUseST_C",NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSCISSGetUseST_C",NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSCISSSetQuadRule_C",NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSCISSGetQuadRule_C",NULL);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -1556,6 +1670,7 @@ PetscErrorCode EPSView_CISS(EPS eps,PetscViewer viewer)
     if (ctx->usest) {
       ierr = PetscViewerASCIIPrintf(viewer,"  CISS: using ST for linear solves\n");CHKERRQ(ierr);
     }
+    ierr = PetscViewerASCIIPrintf(viewer,"  CISS: quadrature rule: %s\n",EPSCISSQuadRules[ctx->quad]);CHKERRQ(ierr);
     ierr = PetscViewerASCIIPushTab(viewer);CHKERRQ(ierr);
     /*ierr = KSPView(ctx->ksp[0],viewer);CHKERRQ(ierr);*/
     ierr = PetscViewerASCIIPopTab(viewer);CHKERRQ(ierr);
@@ -1588,6 +1703,8 @@ PETSC_EXTERN PetscErrorCode EPSCreate_CISS(EPS eps)
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSCISSGetRefinement_C",EPSCISSGetRefinement_CISS);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSCISSSetUseST_C",EPSCISSSetUseST_CISS);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSCISSGetUseST_C",EPSCISSGetUseST_CISS);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSCISSSetQuadRule_C",EPSCISSSetQuadRule_CISS);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSCISSGetQuadRule_C",EPSCISSGetQuadRule_CISS);CHKERRQ(ierr);
   /* set default values of parameters */
   ctx->N       = 32;
   ctx->L       = 16;
@@ -1600,6 +1717,7 @@ PETSC_EXTERN PetscErrorCode EPSCreate_CISS(EPS eps)
   ctx->refine_inner = 0;
   ctx->refine_blocksize = 0;
   ctx->num_subcomm = 1;
+  ctx->quad = EPS_CISS_QUAD_TRAPEZOIDAL;
   PetscFunctionReturn(0);
 }
 

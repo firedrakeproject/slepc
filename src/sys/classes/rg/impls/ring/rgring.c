@@ -287,7 +287,7 @@ PetscErrorCode RGCheckInside_Ring(RG rg,PetscReal px,PetscReal py,PetscInt *insi
     else r = r/(2*PETSC_PI)+1;
   } else r = PetscAtanReal((dy/ctx->vscale)/dx)/(2*PETSC_PI)+0.5;
   if (r>=ctx->start_ang && r<=ctx->end_ang && *inside == 1) *inside = 1;
-  else *inside = 0;
+  else *inside = -1;
   PetscFunctionReturn(0);
 }
 

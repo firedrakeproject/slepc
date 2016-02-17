@@ -300,6 +300,7 @@ PETSC_EXTERN PetscErrorCode EPSAllocateSolution(EPS,PetscInt);
 
 .seealso: EPSPowerSetShiftType(), EPSPowerGetShiftType()
 E*/
+
 typedef enum { EPS_POWER_SHIFT_CONSTANT,
                EPS_POWER_SHIFT_RAYLEIGH,
                EPS_POWER_SHIFT_WILKINSON } EPSPowerShiftType;
@@ -420,6 +421,19 @@ PETSC_EXTERN PetscErrorCode EPSLOBPCGGetRestart(EPS,PetscReal*);
 PETSC_EXTERN PetscErrorCode EPSLOBPCGSetLocking(EPS,PetscBool);
 PETSC_EXTERN PetscErrorCode EPSLOBPCGGetLocking(EPS,PetscBool*);
 
+/*E
+    EPSCISSQuadRule - determines the quadrature rule in the CISS solver
+
+    Level: advanced
+
+.seealso: EPSCISSSetQuadRule(), EPSCISSGetQuadRule()
+E*/
+typedef enum { EPS_CISS_QUAD_TRAPEZOIDAL,
+               EPS_CISS_QUAD_CHEBYSHEV} EPSCISSQuadRule;
+PETSC_EXTERN const char *EPSCISSQuadRules[];
+
+PETSC_EXTERN PetscErrorCode EPSCISSSetQuadRule(EPS,EPSCISSQuadRule);
+PETSC_EXTERN PetscErrorCode EPSCISSGetQuadRule(EPS,EPSCISSQuadRule*);
 PETSC_EXTERN PetscErrorCode EPSCISSSetRegion(EPS,PetscScalar,PetscReal,PetscReal);
 PETSC_EXTERN PetscErrorCode EPSCISSGetRegion(EPS,PetscScalar*,PetscReal*,PetscReal*);
 PETSC_EXTERN PetscErrorCode EPSCISSSetSizes(EPS,PetscInt,PetscInt,PetscInt,PetscInt,PetscInt,PetscBool);
