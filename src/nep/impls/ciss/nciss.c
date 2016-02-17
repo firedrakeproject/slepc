@@ -455,7 +455,16 @@ PetscErrorCode NEPSetUp_CISS(NEP nep)
   PetscScalar    center;
 
   PetscFunctionBegin;
-  nep->ncv = PetscMin(nep->n,ctx->L*ctx->M);
+  if (!nep->ncv) nep->ncv = ctx->L_max*ctx->M;
+  else {
+    ctx->L_max = nep->ncv/ctx->M;
+    if (ctx->L_max == 0) {
+      ctx->L_max = 1;
+      nep->ncv = ctx->L_max*ctx->M;
+    }
+    if (ctx->L > ctx->L_max) ctx->L = ctx->L_max;
+  }
+  if (!nep->max_it) nep->max_it = 1;
   if (!nep->mpd) nep->mpd = nep->ncv;
   if (!nep->which) nep->which = NEP_LARGEST_MAGNITUDE;
   if (nep->stopping!=NEPStoppingBasic) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"This solver does not support user-defined stopping test");
