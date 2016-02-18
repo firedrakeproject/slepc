@@ -517,7 +517,7 @@ PetscErrorCode NEPSolve_CISS(NEP nep)
   PetscErrorCode ierr;
   NEP_CISS       *ctx = (NEP_CISS*)nep->data;
   Mat            X,M;
-  PetscInt       i,j,ld,L_add=0,nv=0,L_base=ctx->L,inner,outer,nlocal,*inside;
+  PetscInt       i,j,ld,L_add=0,nv=0,L_base=ctx->L,inner,outer,*inside;
   PetscScalar    *Mu,*H0,*H1,*rr,*temp,center;
   PetscReal      error,max_error,radius;
   PetscBool      *fl1;
@@ -530,7 +530,6 @@ PetscErrorCode NEPSolve_CISS(NEP nep)
   sc->comparisonctx = NULL;
   sc->map           = NULL;
   sc->mapobj        = NULL;
-  nlocal            = nep->nloc;
   ierr = DSGetLeadingDimension(nep->ds,&ld);CHKERRQ(ierr);
   ierr = SetPathParameter(nep);CHKERRQ(ierr);
   ierr = CISSVecSetRandom(ctx->V,0,ctx->L,nep->rand);CHKERRQ(ierr);
