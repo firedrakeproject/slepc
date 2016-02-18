@@ -30,10 +30,10 @@ PETSC_EXTERN PetscErrorCode EPSCreate_KrylovSchur(EPS);
 PETSC_EXTERN PetscErrorCode EPSCreate_ARPACK(EPS);
 #endif
 PETSC_EXTERN PetscErrorCode EPSCreate_LAPACK(EPS);
-#if defined(SLEPC_HAVE_BLZPACK) && !defined(PETSC_USE_COMPLEX)
+#if defined(SLEPC_HAVE_BLZPACK)
 PETSC_EXTERN PetscErrorCode EPSCreate_BLZPACK(EPS);
 #endif
-#if defined(SLEPC_HAVE_TRLAN) && !defined(PETSC_USE_COMPLEX)
+#if defined(SLEPC_HAVE_TRLAN)
 PETSC_EXTERN PetscErrorCode EPSCreate_TRLAN(EPS);
 #endif
 #if defined(SLEPC_HAVE_BLOPEX)
@@ -83,10 +83,10 @@ PetscErrorCode EPSRegisterAll(void)
 #if defined(SLEPC_HAVE_ARPACK)
   ierr = EPSRegister(EPSARPACK,EPSCreate_ARPACK);CHKERRQ(ierr);
 #endif
-#if defined(SLEPC_HAVE_BLZPACK) && !defined(PETSC_USE_COMPLEX)
+#if defined(SLEPC_HAVE_BLZPACK)
   ierr = EPSRegister(EPSBLZPACK,EPSCreate_BLZPACK);CHKERRQ(ierr);
 #endif
-#if defined(SLEPC_HAVE_TRLAN) && !defined(PETSC_USE_COMPLEX)
+#if defined(SLEPC_HAVE_TRLAN)
   ierr = EPSRegister(EPSTRLAN,EPSCreate_TRLAN);CHKERRQ(ierr);
 #endif
 #if defined(SLEPC_HAVE_BLOPEX)
@@ -95,7 +95,7 @@ PetscErrorCode EPSRegisterAll(void)
 #if defined(SLEPC_HAVE_PRIMME)
   ierr = EPSRegister(EPSPRIMME,EPSCreate_PRIMME);CHKERRQ(ierr);
 #endif
-#if defined(SLEPC_HAVE_FEAST) && defined(PETSC_USE_COMPLEX)
+#if defined(SLEPC_HAVE_FEAST)
   ierr = EPSRegister(EPSFEAST,EPSCreate_FEAST);CHKERRQ(ierr);
 #endif
   PetscFunctionReturn(0);

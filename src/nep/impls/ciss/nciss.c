@@ -451,7 +451,7 @@ PetscErrorCode NEPSetUp_CISS(NEP nep)
   PetscErrorCode ierr;
   NEP_CISS       *ctx = (NEP_CISS*)nep->data;
   const char     *prefix;
-  PetscInt       i;
+  PetscInt       i,nwork;
   PetscBool      istrivial,isellipse;
   PetscScalar    center;
 
@@ -502,7 +502,8 @@ PetscErrorCode NEPSetUp_CISS(NEP nep)
 
   ierr = DSSetType(nep->ds,DSGNHEP);CHKERRQ(ierr);
   ierr = DSAllocate(nep->ds,nep->ncv);CHKERRQ(ierr);
-  ierr = NEPSetWorkVecs(nep,2);CHKERRQ(ierr);
+  nwork = (nep->fui==NEP_USER_INTERFACE_SPLIT)? 2: 1;
+  ierr = NEPSetWorkVecs(nep,nwork);CHKERRQ(ierr);
 
   /* dispatch solve method */
   nep->ops->solve = NEPSolve_CISS;
@@ -516,23 +517,19 @@ PetscErrorCode NEPSolve_CISS(NEP nep)
   PetscErrorCode ierr;
   NEP_CISS       *ctx = (NEP_CISS*)nep->data;
   Mat            X,M;
-  PetscInt       i,j,ld,L_add=0,nv=0,L_base=ctx->L,inner,outer,nlocal,*inside;
+  PetscInt       i,j,ld,L_add=0,nv=0,L_base=ctx->L,inner,outer,*inside;
   PetscScalar    *Mu,*H0,*H1,*rr,*temp,center;
   PetscReal      error,max_error,radius;
   PetscBool      *fl1;
-  Vec            si,w[3];
+  Vec            si;
   SlepcSC        sc;
 
   PetscFunctionBegin;
-  w[0] = nep->work[0];
-  w[1] = NULL;
-  w[2] = nep->work[1];
   ierr = DSGetSlepcSC(nep->ds,&sc);CHKERRQ(ierr);
   sc->comparison    = SlepcCompareLargestMagnitude;
   sc->comparisonctx = NULL;
   sc->map           = NULL;
   sc->mapobj        = NULL;
-  ierr = VecGetLocalSize(w[0],&nlocal);CHKERRQ(ierr);
   ierr = DSGetLeadingDimension(nep->ds,&ld);CHKERRQ(ierr);
   ierr = SetPathParameter(nep);CHKERRQ(ierr);
   ierr = CISSVecSetRandom(ctx->V,0,ctx->L,nep->rand);CHKERRQ(ierr);
@@ -630,7 +627,7 @@ PetscErrorCode NEPSolve_CISS(NEP nep)
     for (i=0;i<nep->nconv;i++) {
       ierr = BVGetColumn(nep->V,i,&si);CHKERRQ(ierr);
       ierr = VecNormalize(si,NULL);CHKERRQ(ierr);
-      ierr = NEPComputeResidualNorm_Private(nep,nep->eigr[i],si,w,&error);CHKERRQ(ierr);
+      ierr = NEPComputeResidualNorm_Private(nep,nep->eigr[i],si,nep->work,&error);CHKERRQ(ierr);
       ierr = (*nep->converged)(nep,nep->eigr[i],0,error,&error,nep->convergedctx);CHKERRQ(ierr);
       ierr = BVRestoreColumn(nep->V,i,&si);CHKERRQ(ierr);
       max_error = PetscMax(max_error,error);
