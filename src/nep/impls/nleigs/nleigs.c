@@ -52,6 +52,7 @@ typedef struct {
   PetscScalar    shift;     /* the target value */
   PetscReal      keep;      /* restart parameter */
   PetscBool      lock;      /* locking/non-locking variant */
+  PetscBool      trueres;   /* whether the true residual norm must be computed */
   void           *singularitiesctx;
   PetscErrorCode (*computesingularities)(NEP,PetscInt*,PetscScalar*,void*);
 } NEP_NLEIGS;
@@ -1178,12 +1179,99 @@ PetscErrorCode NEPNLEIGSGetInterpolation(NEP nep,PetscReal *tol,PetscInt *maxits
 }
 
 #undef __FUNCT__
+#define __FUNCT__ "NEPNLEIGSSetTrueResidual_NLEIGS"
+static PetscErrorCode NEPNLEIGSSetTrueResidual_NLEIGS(NEP nep,PetscBool trueres)
+{
+  NEP_NLEIGS *ctx = (NEP_NLEIGS*)nep->data;
+
+  PetscFunctionBegin;
+  ctx->trueres = trueres;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "NEPNLEIGSSetTrueResidual"
+/*@
+   NEPNLEIGSSetTrueResidual - Specifies if the solver must compute the true residual
+   explicitly or not.
+
+   Logically Collective on NEP
+
+   Input Parameters:
++  nep - the nonlinear eigensolver context
+-  trueres - whether true residuals are required or not
+
+   Options Database Key:
+.  -nep_nleigs_true_residual <boolean> - Sets/resets the boolean flag 'trueres'
+
+   Notes:
+   If the user sets trueres=PETSC_TRUE then the solver explicitly computes
+   the true residual norm for each eigenpair approximation, and uses it for
+   convergence testing. The default is to use the cheaper approximation 
+   available from the (rational) Krylov iteration.
+
+   Level: advanced
+
+.seealso: NEPNLEIGSGetTrueResidual()
+@*/
+PetscErrorCode NEPNLEIGSSetTrueResidual(NEP nep,PetscBool trueres)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
+  PetscValidLogicalCollectiveBool(nep,trueres,2);
+  ierr = PetscTryMethod(nep,"NEPNLEIGSSetTrueResidual_C",(NEP,PetscBool),(nep,trueres));CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "NEPNLEIGSGetTrueResidual_NLEIGS"
+static PetscErrorCode NEPNLEIGSGetTrueResidual_NLEIGS(NEP nep,PetscBool *trueres)
+{
+  NEP_NLEIGS *ctx = (NEP_NLEIGS*)nep->data;
+
+  PetscFunctionBegin;
+  *trueres = ctx->trueres;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "NEPNLEIGSGetTrueResidual"
+/*@
+   NEPNLEIGSGetTrueResidual - Returns the flag indicating whether true
+   residuals must be computed explicitly or not.
+
+   Not Collective
+
+   Input Parameter:
+.  nep - the nonlinear eigensolver context
+
+   Output Parameter:
+.  trueres - the returned flag
+
+   Level: advanced
+
+.seealso: NEPNLEIGSSetTrueResidual()
+@*/
+PetscErrorCode NEPNLEIGSGetTrueResidual(NEP nep,PetscBool *trueres)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
+  PetscValidPointer(trueres,2);
+  ierr = PetscTryMethod(nep,"NEPNLEIGSGetTrueResidual_C",(NEP,PetscBool*),(nep,trueres));CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
 #define __FUNCT__ "NEPSetFromOptions_NLEIGS"
 PetscErrorCode NEPSetFromOptions_NLEIGS(PetscOptionItems *PetscOptionsObject,NEP nep)
 {
   PetscErrorCode ierr;
   PetscInt       i;
-  PetscBool      flg1,flg2,lock;
+  PetscBool      flg1,flg2,b;
   PetscReal      r;
   PC             pc;
   PCType         pctype;
@@ -1195,9 +1283,13 @@ PetscErrorCode NEPSetFromOptions_NLEIGS(PetscOptionItems *PetscOptionsObject,NEP
   if (flg1) {
     ierr = NEPNLEIGSSetRestart(nep,r);CHKERRQ(ierr);
   }
-  ierr = PetscOptionsBool("-nep_nleigs_locking","Choose between locking and non-locking variants","NEPNLEIGSSetLocking",PETSC_FALSE,&lock,&flg1);CHKERRQ(ierr);
+  ierr = PetscOptionsBool("-nep_nleigs_locking","Choose between locking and non-locking variants","NEPNLEIGSSetLocking",PETSC_FALSE,&b,&flg1);CHKERRQ(ierr);
   if (flg1) {
-    ierr = NEPNLEIGSSetLocking(nep,lock);CHKERRQ(ierr);
+    ierr = NEPNLEIGSSetLocking(nep,b);CHKERRQ(ierr);
+  }
+  ierr = PetscOptionsBool("-nep_nleigs_true_residual","Compute true residuals explicitly","NEPNLEIGSSetTrueResidual",PETSC_FALSE,&b,&flg1);CHKERRQ(ierr);
+  if (flg1) {
+    ierr = NEPNLEIGSSetTrueResidual(nep,b);CHKERRQ(ierr);
   }
   ierr = NEPNLEIGSGetInterpolation(nep,&r,&i);CHKERRQ(ierr);
   if (!i) i = PETSC_DEFAULT;
@@ -1234,6 +1326,7 @@ PetscErrorCode NEPView_NLEIGS(NEP pep,PetscViewer viewer)
     ierr = PetscViewerASCIIPrintf(viewer,"  NLEIGS: using the %slocking variant\n",ctx->lock?"":"non-");CHKERRQ(ierr);
     ierr = PetscViewerASCIIPrintf(viewer,"  NLEIGS: maximum number of divided difference terms: %D\n",ctx->ddmaxit);CHKERRQ(ierr);
     ierr = PetscViewerASCIIPrintf(viewer,"  NLEIGS: tolerance for divided difference convergence: %g\n",(double)ctx->ddtol);CHKERRQ(ierr);
+    if (ctx->trueres) { ierr = PetscViewerASCIIPrintf(viewer,"  NLEIGS: computing true residuals for convergence check\n");CHKERRQ(ierr); }
   }
   PetscFunctionReturn(0);
 }
@@ -1273,6 +1366,8 @@ PetscErrorCode NEPDestroy_NLEIGS(NEP nep)
   ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPNLEIGSGetLocking_C",NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPNLEIGSSetInterpolation_C",NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPNLEIGSGetInterpolation_C",NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPNLEIGSSetTrueResidual_C",NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPNLEIGSGetTrueResidual_C",NULL);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -1305,6 +1400,8 @@ PETSC_EXTERN PetscErrorCode NEPCreate_NLEIGS(NEP nep)
   ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPNLEIGSGetLocking_C",NEPNLEIGSGetLocking_NLEIGS);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPNLEIGSSetInterpolation_C",NEPNLEIGSSetInterpolation_NLEIGS);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPNLEIGSGetInterpolation_C",NEPNLEIGSGetInterpolation_NLEIGS);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPNLEIGSSetTrueResidual_C",NEPNLEIGSSetTrueResidual_NLEIGS);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPNLEIGSGetTrueResidual_C",NEPNLEIGSGetTrueResidual_NLEIGS);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
