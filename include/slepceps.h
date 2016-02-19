@@ -300,7 +300,6 @@ PETSC_EXTERN PetscErrorCode EPSAllocateSolution(EPS,PetscInt);
 
 .seealso: EPSPowerSetShiftType(), EPSPowerGetShiftType()
 E*/
-
 typedef enum { EPS_POWER_SHIFT_CONSTANT,
                EPS_POWER_SHIFT_RAYLEIGH,
                EPS_POWER_SHIFT_WILKINSON } EPSPowerShiftType;

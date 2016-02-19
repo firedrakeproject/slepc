@@ -48,37 +48,37 @@ PetscErrorCode EPSSolve_CISS(EPS);
 
 typedef struct {
   /* parameters */
-  PetscInt    N;          /* number of integration points (32) */
-  PetscInt    L;          /* block size (16) */
-  PetscInt    M;          /* moment degree (N/4 = 4) */
-  PetscReal   delta;      /* threshold of singular value (1e-12) */
-  PetscInt    L_max;      /* maximum number of columns of the source matrix V */
-  PetscReal   spurious_threshold; /* discard spurious eigenpairs */
-  PetscBool   isreal;     /* A and B are real */
-  PetscInt    refine_inner;
-  PetscInt    refine_blocksize;
+  PetscInt        N;          /* number of integration points (32) */
+  PetscInt        L;          /* block size (16) */
+  PetscInt        M;          /* moment degree (N/4 = 4) */
+  PetscReal       delta;      /* threshold of singular value (1e-12) */
+  PetscInt        L_max;      /* maximum number of columns of the source matrix V */
+  PetscReal       spurious_threshold; /* discard spurious eigenpairs */
+  PetscBool       isreal;     /* A and B are real */
+  PetscInt        refine_inner;
+  PetscInt        refine_blocksize;
   /* private data */
-  PetscReal    *sigma;     /* threshold for numerical rank */
-  PetscInt     num_subcomm;
-  PetscInt     subcomm_id;
-  PetscInt     num_solve_point;
-  PetscScalar  *weight;
-  PetscScalar  *omega;
-  PetscScalar  *pp;
-  BV           V;
-  BV           S;
-  BV           pV;
-  BV           Y;
-  Vec          xsub;
-  Vec          xdup;
-  KSP          *ksp;
-  Mat          *kspMat;
-  PetscBool    useconj;
-  PetscReal    est_eig;
-  VecScatter   scatterin;
-  Mat          pA,pB;
-  PetscSubcomm subcomm;
-  PetscBool    usest;
+  PetscReal       *sigma;     /* threshold for numerical rank */
+  PetscInt        num_subcomm;
+  PetscInt        subcomm_id;
+  PetscInt        num_solve_point;
+  PetscScalar     *weight;
+  PetscScalar     *omega;
+  PetscScalar     *pp;
+  BV              V;
+  BV              S;
+  BV              pV;
+  BV              Y;
+  Vec             xsub;
+  Vec             xdup;
+  KSP             *ksp;
+  Mat             *kspMat;
+  PetscBool       useconj;
+  PetscReal       est_eig;
+  VecScatter      scatterin;
+  Mat             pA,pB;
+  PetscSubcomm    subcomm;
+  PetscBool       usest;
   EPSCISSQuadRule quad;
 } EPS_CISS;
 
@@ -206,31 +206,31 @@ static PetscErrorCode SetPathParameter(EPS eps)
     }
     if (isinterval) {
       ierr = RGIntervalGetEndpoints(eps->rg,&a,&b,&c,&d);CHKERRQ(ierr);
-      if (c!=d && a!=b) {SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"endpoints of the imaginary axis or the real axis must be both zero");}
+      if (c!=d && a!=b) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Endpoints of the imaginary axis or the real axis must be both zero");
       for (i=0;i<ctx->N;i++) {
-	if (c==d){ctx->omega[i] = (b-a)*(ctx->pp[i]+1.0)/2+a;} 
-	if (a==b){ctx->omega[i] = ((d-c)*(ctx->pp[i]+1.0)/2+c)*PETSC_i;}
+        if (c==d) ctx->omega[i] = (b-a)*(ctx->pp[i]+1.0)/2+a;
+        if (a==b) ctx->omega[i] = ((d-c)*(ctx->pp[i]+1.0)/2+c)*PETSC_i;
       }
     }
     if (isring) {
       ierr = RGRingGetParameters(eps->rg,&center,&radius,&vscale,&start_ang,&end_ang,&width);CHKERRQ(ierr);
       for (i=0;i<ctx->N;i++) {
-	theta = (start_ang*2.0+(end_ang-start_ang)*(ctx->pp[i]+1.0))*PETSC_PI;
-	ctx->omega[i] = center + radius*(PetscCosReal(theta)+PETSC_i*vscale*PetscSinReal(theta));
+        theta = (start_ang*2.0+(end_ang-start_ang)*(ctx->pp[i]+1.0))*PETSC_PI;
+        ctx->omega[i] = center + radius*(PetscCosReal(theta)+PETSC_i*vscale*PetscSinReal(theta));
       }
     }
   } else {
     for (i=0;i<ctx->N;i++) { 
-      ctx->pp[i]=ctx->omega[i];
+      ctx->pp[i] = ctx->omega[i];
       tmp = 1; tmp2 = 1;
       for (j=0;j<ctx->N;j++) {
-	tmp *= ctx->omega[j];
-	if (i != j) {tmp2 *= ctx->omega[j]-ctx->omega[i];}
+        tmp *= ctx->omega[j];
+        if (i != j) tmp2 *= ctx->omega[j]-ctx->omega[i];
       }
       ctx->weight[i] = tmp/tmp2;
-      max_w=PetscMax((PetscAbsScalar(ctx->weight[i])),max_w);
+      max_w = PetscMax(PetscAbsScalar(ctx->weight[i]),max_w);
     }
-    for (i=0;i<ctx->N;i++) {ctx->weight[i] /= (PetscScalar)max_w;}
+    for (i=0;i<ctx->N;i++) ctx->weight[i] /= (PetscScalar)max_w;
   }
   PetscFunctionReturn(0);
 }
@@ -1477,8 +1477,7 @@ static PetscErrorCode EPSCISSSetQuadRule_CISS(EPS eps,EPSCISSQuadRule quad)
 #undef __FUNCT__
 #define __FUNCT__ "EPSCISSSetQuadRule"
 /*@
-   EPSCISSSetQuadRule - Sets the quadrature rule used during the CISS
-   solver. 
+   EPSCISSSetQuadRule - Sets the quadrature rule used in the CISS solver. 
 
    Logically Collective on EPS
 
@@ -1491,9 +1490,9 @@ static PetscErrorCode EPSCISSSetQuadRule_CISS(EPS eps,EPSCISSQuadRule quad)
                            'chebyshev')
 
    Notes:
-   By default, trapezoidal rule is used (EPS_CISS_QUAD_TRAPEZOIDAL).
+   By default, the trapezoidal rule is used (EPS_CISS_QUAD_TRAPEZOIDAL).
 
-   A chebyshev can be specified (EPS_CISS_QUAD_CHEBYSHEV). In this case,
+   If the 'chebyshev' option is specified (EPS_CISS_QUAD_CHEBYSHEV), then
    Chebyshev points are used as quadrature points.
 
    Level: advanced
@@ -1525,8 +1524,7 @@ static PetscErrorCode EPSCISSGetQuadRule_CISS(EPS eps,EPSCISSQuadRule *quad)
 #undef __FUNCT__
 #define __FUNCT__ "EPSCISSGetQuadRule"
 /*@
-   EPSCISSGetQuadRule - Gets the quadrature rule in the 
-   CISS solver.
+   EPSCISSGetQuadRule - Gets the quadrature rule used in the CISS solver.
    
    Not Collective
 
@@ -1589,12 +1587,12 @@ PetscErrorCode EPSReset_CISS(EPS eps)
 #define __FUNCT__ "EPSSetFromOptions_CISS"
 PetscErrorCode EPSSetFromOptions_CISS(PetscOptionItems *PetscOptionsObject,EPS eps)
 {
-  PetscErrorCode ierr;
-  PetscReal      r3,r4;
-  PetscInt       i1,i2,i3,i4,i5,i6,i7;
-  PetscBool      b1,b2;
-  EPS_CISS       *ctx = (EPS_CISS*)eps->data;
-  PetscBool      flg;
+  PetscErrorCode  ierr;
+  PetscReal       r3,r4;
+  PetscInt        i1,i2,i3,i4,i5,i6,i7;
+  PetscBool       b1,b2;
+  EPS_CISS        *ctx = (EPS_CISS*)eps->data;
+  PetscBool       flg;
   EPSCISSQuadRule quad;
 
   PetscFunctionBegin;
@@ -1623,7 +1621,7 @@ PetscErrorCode EPSSetFromOptions_CISS(PetscOptionItems *PetscOptionsObject,EPS e
   ierr = EPSCISSSetUseST(eps,b2);CHKERRQ(ierr);
 
   ierr = PetscOptionsEnum("-eps_ciss_quad_rule","Quadrature rule","EPSCISSSetQuadRule",EPSCISSQuadRules,(PetscEnum)ctx->quad,(PetscEnum*)&quad,&flg);CHKERRQ(ierr);
-  if (flg) {ierr = EPSCISSSetQuadRule(eps,quad);CHKERRQ(ierr);}
+  if (flg) { ierr = EPSCISSSetQuadRule(eps,quad);CHKERRQ(ierr); }
 
   ierr = PetscOptionsTail();CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -1706,18 +1704,18 @@ PETSC_EXTERN PetscErrorCode EPSCreate_CISS(EPS eps)
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSCISSSetQuadRule_C",EPSCISSSetQuadRule_CISS);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSCISSGetQuadRule_C",EPSCISSGetQuadRule_CISS);CHKERRQ(ierr);
   /* set default values of parameters */
-  ctx->N       = 32;
-  ctx->L       = 16;
-  ctx->M       = ctx->N/4;
-  ctx->delta   = 1e-12;
-  ctx->L_max   = 64;
+  ctx->N                  = 32;
+  ctx->L                  = 16;
+  ctx->M                  = ctx->N/4;
+  ctx->delta              = 1e-12;
+  ctx->L_max              = 64;
   ctx->spurious_threshold = 1e-4;
-  ctx->usest   = PETSC_FALSE;
-  ctx->isreal  = PETSC_FALSE;
-  ctx->refine_inner = 0;
-  ctx->refine_blocksize = 0;
-  ctx->num_subcomm = 1;
-  ctx->quad = EPS_CISS_QUAD_TRAPEZOIDAL;
+  ctx->usest              = PETSC_FALSE;
+  ctx->isreal             = PETSC_FALSE;
+  ctx->refine_inner       = 0;
+  ctx->refine_blocksize   = 0;
+  ctx->num_subcomm        = 1;
+  ctx->quad               = EPS_CISS_QUAD_TRAPEZOIDAL;
   PetscFunctionReturn(0);
 }
 

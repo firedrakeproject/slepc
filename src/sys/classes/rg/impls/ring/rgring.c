@@ -214,9 +214,9 @@ PetscErrorCode RGIsTrivial_Ring(RG rg,PetscBool *trivial)
 #define __FUNCT__ "RGComputeContour_Ring"
 PetscErrorCode RGComputeContour_Ring(RG rg,PetscInt n,PetscScalar *cr,PetscScalar *ci)
 {
-  RG_RING  *ctx = (RG_RING*)rg->data;
-  PetscReal   theta;
-  PetscInt    i,n2=n/2;
+  RG_RING   *ctx = (RG_RING*)rg->data;
+  PetscReal theta;
+  PetscInt  i,n2=n/2;
 
   PetscFunctionBegin;
   for (i=0;i<n;i++) {
