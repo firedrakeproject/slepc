@@ -47,6 +47,7 @@ typedef struct {
   Mat            *D;        /* divided difference matrices */
   PetscScalar    *coeffD;   /* coefficients for divided differences in split form */
   PetscReal      ddtol;     /* tolerance for divided difference convergence */
+  PetscInt       ddmaxit;   /* maximum number of divided difference terms */
   BV             W;         /* auxiliary BV object */
   PetscScalar    shift;     /* the target value */
   PetscReal      keep;      /* restart parameter */
@@ -336,6 +337,7 @@ PetscErrorCode NEPSetUp_NLEIGS(NEP nep)
   if (!nep->mpd) nep->mpd = nep->ncv;
   if (nep->ncv>nep->nev+nep->mpd) SETERRQ(PetscObjectComm((PetscObject)nep),1,"The value of ncv must not be larger than nev+mpd");
   if (!nep->max_it) nep->max_it = PetscMax(5000,2*nep->n/nep->ncv);
+  if (!ctx->ddmaxit) ctx->ddmaxit = MAX_LBPOINTS;
   ierr = RGIsTrivial(nep->rg,&istrivial);CHKERRQ(ierr);
   if (istrivial) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"NEPNLEIGS requires a nontrivial region defining the target set");
   ierr = RGCheckInside(nep->rg,1,&nep->target,&zero,&in);CHKERRQ(ierr);
@@ -347,7 +349,7 @@ PetscErrorCode NEPSetUp_NLEIGS(NEP nep)
   ierr = PetscMalloc4(k,&ctx->s,k,&ctx->xi,k,&ctx->beta,k,&ctx->D);CHKERRQ(ierr);
   nep->data = ctx;
   if (nep->tol==PETSC_DEFAULT) nep->tol = SLEPC_DEFAULT_TOL;
-  ctx->ddtol = nep->tol/10.0;
+  if (ctx->ddtol==PETSC_DEFAULT) ctx->ddtol = nep->tol/10.0;
   if (!ctx->keep) ctx->keep = 0.5;
 
   /* Compute Leja-Bagby points and scaling values */
@@ -1075,26 +1077,136 @@ PetscErrorCode NEPNLEIGSGetLocking(NEP nep,PetscBool *lock)
 }
 
 #undef __FUNCT__
+#define __FUNCT__ "NEPNLEIGSSetInterpolation_NLEIGS"
+static PetscErrorCode NEPNLEIGSSetInterpolation_NLEIGS(NEP nep,PetscReal tol,PetscInt maxits)
+{
+  NEP_NLEIGS *ctx = (NEP_NLEIGS*)nep->data;
+
+  PetscFunctionBegin;
+  if (tol == PETSC_DEFAULT) {
+    ctx->ddtol = PETSC_DEFAULT;
+    nep->state = NEP_STATE_INITIAL;
+  } else {
+    if (tol <= 0.0) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of tol. Must be > 0");
+    ctx->ddtol = tol;
+  }
+  if (maxits == PETSC_DEFAULT || maxits == PETSC_DECIDE) {
+    ctx->ddmaxit = 0;
+    nep->state   = NEP_STATE_INITIAL;
+  } else {
+    if (maxits <= 0) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of maxits. Must be > 0");
+    ctx->ddmaxit = maxits;
+  }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "NEPNLEIGSSetInterpolation"
+/*@
+   NEPNLEIGSSetInterpolation - Sets the tolerance and maximum iteration count used
+   by the NLEIGS method when building the interpolation via divided differences.
+
+   Logically Collective on NEP
+
+   Input Parameters:
++  nep    - the nonlinear eigensolver context
+.  tol    - the convergence tolerance
+-  maxits - maximum number of iterations to use
+
+   Options Database Key:
+.  -nep_nleigs_interpolation_tol <tol> - Sets the convergence tolerance
+-  -nep_nleigs_interpolation_max_it <maxits> - Sets the maximum number of iterations
+
+   Notes:
+   Use PETSC_DEFAULT for either argument to assign a reasonably good value.
+
+   Level: advanced
+
+.seealso: NEPNLEIGSGetInterpolation()
+@*/
+PetscErrorCode NEPNLEIGSSetInterpolation(NEP nep,PetscReal tol,PetscInt maxits)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
+  PetscValidLogicalCollectiveReal(nep,tol,2);
+  PetscValidLogicalCollectiveInt(nep,maxits,3);
+  ierr = PetscTryMethod(nep,"NEPNLEIGSSetInterpolation_C",(NEP,PetscReal,PetscInt),(nep,tol,maxits));CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "NEPNLEIGSGetInterpolation_NLEIGS"
+static PetscErrorCode NEPNLEIGSGetInterpolation_NLEIGS(NEP nep,PetscReal *tol,PetscInt *maxits)
+{
+  NEP_NLEIGS *ctx = (NEP_NLEIGS*)nep->data;
+
+  PetscFunctionBegin;
+  if (tol)    *tol    = ctx->ddtol;
+  if (maxits) *maxits = ctx->ddmaxit;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "NEPNLEIGSGetInterpolation"
+/*@
+   NEPNLEIGSGetInterpolation - Gets the tolerance and maximum iteration count used
+   by the NLEIGS method when building the interpolation via divided differences.
+
+   Not Collective
+
+   Input Parameter:
+.  nep - the nonlinear eigensolver context
+
+   Output Parameter:
++  tol    - the convergence tolerance
+-  maxits - maximum number of iterations
+
+   Level: advanced
+
+.seealso: NEPNLEIGSSetInterpolation()
+@*/
+PetscErrorCode NEPNLEIGSGetInterpolation(NEP nep,PetscReal *tol,PetscInt *maxits)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
+  ierr = PetscTryMethod(nep,"NEPNLEIGSGetInterpolation_C",(NEP,PetscReal*,PetscInt*),(nep,tol,maxits));CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
 #define __FUNCT__ "NEPSetFromOptions_NLEIGS"
 PetscErrorCode NEPSetFromOptions_NLEIGS(PetscOptionItems *PetscOptionsObject,NEP nep)
 {
   PetscErrorCode ierr;
-  PetscBool      flg,lock;
-  PetscReal      keep;
+  PetscInt       i;
+  PetscBool      flg1,flg2,lock;
+  PetscReal      r;
   PC             pc;
   PCType         pctype;
   KSPType        ksptype;
 
   PetscFunctionBegin;
   ierr = PetscOptionsHead(PetscOptionsObject,"NEP NLEIGS Options");CHKERRQ(ierr);
-  ierr = PetscOptionsReal("-nep_nleigs_restart","Proportion of vectors kept after restart","NEPNLEIGSSetRestart",0.5,&keep,&flg);CHKERRQ(ierr);
-  if (flg) {
-    ierr = NEPNLEIGSSetRestart(nep,keep);CHKERRQ(ierr);
+  ierr = PetscOptionsReal("-nep_nleigs_restart","Proportion of vectors kept after restart","NEPNLEIGSSetRestart",0.5,&r,&flg1);CHKERRQ(ierr);
+  if (flg1) {
+    ierr = NEPNLEIGSSetRestart(nep,r);CHKERRQ(ierr);
   }
-  ierr = PetscOptionsBool("-nep_nleigs_locking","Choose between locking and non-locking variants","NEPNLEIGSSetLocking",PETSC_FALSE,&lock,&flg);CHKERRQ(ierr);
-  if (flg) {
+  ierr = PetscOptionsBool("-nep_nleigs_locking","Choose between locking and non-locking variants","NEPNLEIGSSetLocking",PETSC_FALSE,&lock,&flg1);CHKERRQ(ierr);
+  if (flg1) {
     ierr = NEPNLEIGSSetLocking(nep,lock);CHKERRQ(ierr);
   }
+  ierr = NEPNLEIGSGetInterpolation(nep,&r,&i);CHKERRQ(ierr);
+  if (!i) i = PETSC_DEFAULT;
+  ierr = PetscOptionsInt("-nep_nleigs_interpolation_max_it","Maximum number of terms for interpolation via divided differences","NEPNLEIGSSetInterpolation",i,&i,&flg1);CHKERRQ(ierr);
+  ierr = PetscOptionsReal("-nep_nleigs_interpolation_tol","Tolerance for interpolation via divided differences","NEPNLEIGSSetInterpolation",r,&r,&flg2);CHKERRQ(ierr);
+  if (flg1 || flg2) {
+    ierr = NEPNLEIGSSetInterpolation(nep,r,i);CHKERRQ(ierr);
+  }
+
   if (!nep->ksp) { ierr = NEPGetKSP(nep,&nep->ksp);CHKERRQ(ierr); }
   ierr = KSPGetPC(nep->ksp,&pc);CHKERRQ(ierr);
   ierr = KSPGetType(nep->ksp,&ksptype);CHKERRQ(ierr);
@@ -1120,6 +1232,8 @@ PetscErrorCode NEPView_NLEIGS(NEP pep,PetscViewer viewer)
   if (isascii) {
     ierr = PetscViewerASCIIPrintf(viewer,"  NLEIGS: %d%% of basis vectors kept after restart\n",(int)(100*ctx->keep));CHKERRQ(ierr);
     ierr = PetscViewerASCIIPrintf(viewer,"  NLEIGS: using the %slocking variant\n",ctx->lock?"":"non-");CHKERRQ(ierr);
+    ierr = PetscViewerASCIIPrintf(viewer,"  NLEIGS: maximum number of divided difference terms: %D\n",ctx->ddmaxit);CHKERRQ(ierr);
+    ierr = PetscViewerASCIIPrintf(viewer,"  NLEIGS: tolerance for divided difference convergence: %g\n",(double)ctx->ddtol);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }
@@ -1157,6 +1271,8 @@ PetscErrorCode NEPDestroy_NLEIGS(NEP nep)
   ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPNLEIGSGetRestart_C",NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPNLEIGSSetLocking_C",NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPNLEIGSGetLocking_C",NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPNLEIGSSetInterpolation_C",NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPNLEIGSGetInterpolation_C",NULL);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -1170,7 +1286,9 @@ PETSC_EXTERN PetscErrorCode NEPCreate_NLEIGS(NEP nep)
   PetscFunctionBegin;
   ierr = PetscNewLog(nep,&ctx);CHKERRQ(ierr);
   nep->data = (void*)ctx;
-  ctx->lock = PETSC_TRUE;
+  ctx->lock    = PETSC_TRUE;
+  ctx->ddtol   = PETSC_DEFAULT;
+  ctx->ddmaxit = 0;
 
   nep->ops->solve          = NEPSolve_NLEIGS;
   nep->ops->setup          = NEPSetUp_NLEIGS;
@@ -1185,6 +1303,8 @@ PETSC_EXTERN PetscErrorCode NEPCreate_NLEIGS(NEP nep)
   ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPNLEIGSGetRestart_C",NEPNLEIGSGetRestart_NLEIGS);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPNLEIGSSetLocking_C",NEPNLEIGSSetLocking_NLEIGS);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPNLEIGSGetLocking_C",NEPNLEIGSGetLocking_NLEIGS);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPNLEIGSSetInterpolation_C",NEPNLEIGSSetInterpolation_NLEIGS);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPNLEIGSGetInterpolation_C",NEPNLEIGSGetInterpolation_NLEIGS);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
