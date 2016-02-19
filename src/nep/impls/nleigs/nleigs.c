@@ -46,6 +46,8 @@ typedef struct {
   PetscScalar    *beta;     /* scaling factors */
   Mat            *D;        /* divided difference matrices */
   PetscScalar    *coeffD;   /* coefficients for divided differences in split form */
+  PetscInt       nshifts;   /* number of shifts */
+  PetscScalar    *shifts;   /* user-provided shifts for the Rational Krylov variant */
   PetscReal      ddtol;     /* tolerance for divided difference convergence */
   PetscInt       ddmaxit;   /* maximum number of divided difference terms */
   BV             W;         /* auxiliary BV object */
@@ -1115,7 +1117,7 @@ static PetscErrorCode NEPNLEIGSSetInterpolation_NLEIGS(NEP nep,PetscReal tol,Pet
 -  maxits - maximum number of iterations to use
 
    Options Database Key:
-.  -nep_nleigs_interpolation_tol <tol> - Sets the convergence tolerance
++  -nep_nleigs_interpolation_tol <tol> - Sets the convergence tolerance
 -  -nep_nleigs_interpolation_max_it <maxits> - Sets the maximum number of iterations
 
    Notes:
@@ -1266,13 +1268,123 @@ PetscErrorCode NEPNLEIGSGetTrueResidual(NEP nep,PetscBool *trueres)
 }
 
 #undef __FUNCT__
+#define __FUNCT__ "NEPNLEIGSSetRKShifts_NLEIGS"
+static PetscErrorCode NEPNLEIGSSetRKShifts_NLEIGS(NEP nep,PetscInt ns,PetscScalar *shifts)
+{
+  PetscErrorCode ierr;
+  NEP_NLEIGS     *ctx = (NEP_NLEIGS*)nep->data;
+  PetscInt       i;
+
+  PetscFunctionBegin;
+  if (ns<=0) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_WRONG,"Number of shifts must be positive");
+  if (ctx->nshifts) { ierr = PetscFree(ctx->shifts);CHKERRQ(ierr); }
+  ierr = PetscMalloc1(ns,&ctx->shifts);CHKERRQ(ierr);
+  for (i=0;i<ns;i++) ctx->shifts[i] = shifts[i];
+  ctx->nshifts = ns;
+  nep->state   = NEP_STATE_INITIAL;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "NEPNLEIGSSetRKShifts"
+/*@C
+   NEPNLEIGSSetRKShifts - Sets a list of shifts to be used in the Rational
+   Krylov method.
+
+   Logically Collective on NEP
+
+   Input Parameters:
++  nep    - the nonlinear eigensolver context
+.  ns     - number of shifts
+-  shifts - array of scalar values specifying the shifts
+
+   Options Database Key:
+.  -nep_nleigs_rk_shifts - Sets the list of shifts
+
+   Notes:
+   If only one shift is provided, the subspace is built with the simpler
+   shift-and-invert Krylov-Schur.
+
+   In the case of real scalars, complex shifts are not allowed. In the
+   command line, a comma-separated list of complex values can be provided with
+   the format [+/-][realnumber][+/-]realnumberi with no spaces, e.g.
+   -nep_nleigs_rk_shifts 1.0+2.0i,1.5+2.0i,1.0+1.5i
+
+   Level: advanced
+
+.seealso: NEPNLEIGSGetRKShifts()
+@*/
+PetscErrorCode NEPNLEIGSSetRKShifts(NEP nep,PetscInt ns,PetscScalar *shifts)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
+  PetscValidLogicalCollectiveInt(nep,ns,2);
+  PetscValidPointer(nep,shifts);
+  ierr = PetscTryMethod(nep,"NEPNLEIGSSetRKShifts_C",(NEP,PetscInt,PetscScalar*),(nep,ns,shifts));CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "NEPNLEIGSGetRKShifts_NLEIGS"
+static PetscErrorCode NEPNLEIGSGetRKShifts_NLEIGS(NEP nep,PetscInt *ns,PetscScalar **shifts)
+{
+  PetscErrorCode ierr;
+  NEP_NLEIGS     *ctx = (NEP_NLEIGS*)nep->data;
+  PetscInt       i;
+
+  PetscFunctionBegin;
+  *ns = ctx->nshifts;
+  if (ctx->nshifts) {
+    ierr = PetscMalloc1(ctx->nshifts,shifts);CHKERRQ(ierr);
+    for (i=0;i<ctx->nshifts;i++) (*shifts)[i] = ctx->shifts[i];
+  }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "NEPNLEIGSGetRKShifts"
+/*@C
+   NEPNLEIGSGetRKShifts - Gets the list of shifts used in the Rational
+   Krylov method.
+
+   Not Collective
+
+   Input Parameter:
+.  nep - the nonlinear eigensolver context
+
+   Output Parameter:
++  ns     - number of shifts
+-  shifts - array of shifts
+
+   Level: advanced
+
+.seealso: NEPNLEIGSSetRKShifts()
+@*/
+PetscErrorCode NEPNLEIGSGetRKShifts(NEP nep,PetscInt *ns,PetscScalar **shifts)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
+  PetscValidPointer(nep,ns);
+  PetscValidPointer(nep,shifts);
+  ierr = PetscTryMethod(nep,"NEPNLEIGSGetRKShifts_C",(NEP,PetscInt*,PetscScalar**),(nep,ns,shifts));CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#define SHIFTMAX 30
+
+#undef __FUNCT__
 #define __FUNCT__ "NEPSetFromOptions_NLEIGS"
 PetscErrorCode NEPSetFromOptions_NLEIGS(PetscOptionItems *PetscOptionsObject,NEP nep)
 {
   PetscErrorCode ierr;
-  PetscInt       i;
+  PetscInt       i,k;
   PetscBool      flg1,flg2,b;
   PetscReal      r;
+  PetscScalar    array[SHIFTMAX];
   PC             pc;
   PCType         pctype;
   KSPType        ksptype;
@@ -1298,6 +1410,12 @@ PetscErrorCode NEPSetFromOptions_NLEIGS(PetscOptionItems *PetscOptionsObject,NEP
   if (flg1 || flg2) {
     ierr = NEPNLEIGSSetInterpolation(nep,r,i);CHKERRQ(ierr);
   }
+  k = SHIFTMAX;
+  for (i=0;i<k;i++) array[i] = 0;
+  ierr = PetscOptionsScalarArray("-nep_nleigs_rk_shifts","Shifts for Rational Krylov","NEPNLEIGSSetRKShifts",array,&k,&flg1);CHKERRQ(ierr);
+  if (flg1) {
+    ierr = NEPNLEIGSSetRKShifts(nep,k,array);CHKERRQ(ierr);
+  }
 
   if (!nep->ksp) { ierr = NEPGetKSP(nep,&nep->ksp);CHKERRQ(ierr); }
   ierr = KSPGetPC(nep->ksp,&pc);CHKERRQ(ierr);
@@ -1318,6 +1436,8 @@ PetscErrorCode NEPView_NLEIGS(NEP pep,PetscViewer viewer)
   PetscErrorCode ierr;
   NEP_NLEIGS     *ctx = (NEP_NLEIGS*)pep->data;
   PetscBool      isascii;
+  PetscInt       i;
+  char           str[50];
 
   PetscFunctionBegin;
   ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
@@ -1326,6 +1446,14 @@ PetscErrorCode NEPView_NLEIGS(NEP pep,PetscViewer viewer)
     ierr = PetscViewerASCIIPrintf(viewer,"  NLEIGS: using the %slocking variant\n",ctx->lock?"":"non-");CHKERRQ(ierr);
     ierr = PetscViewerASCIIPrintf(viewer,"  NLEIGS: maximum number of divided difference terms: %D\n",ctx->ddmaxit);CHKERRQ(ierr);
     ierr = PetscViewerASCIIPrintf(viewer,"  NLEIGS: tolerance for divided difference convergence: %g\n",(double)ctx->ddtol);CHKERRQ(ierr);
+    if (ctx->nshifts) {
+      ierr = PetscViewerASCIIPrintf(viewer,"  NLEIGS: RK shifts: ");CHKERRQ(ierr);
+      for (i=0;i<ctx->nshifts;i++) {
+        ierr = SlepcSNPrintfScalar(str,50,ctx->shifts[i],PETSC_FALSE);CHKERRQ(ierr);
+        ierr = PetscViewerASCIIPrintf(viewer,"%s%s",str,(i<ctx->nshifts-1)?",":"");CHKERRQ(ierr);
+      }
+      ierr = PetscViewerASCIIPrintf(viewer,"\n");CHKERRQ(ierr);
+    }
     if (ctx->trueres) { ierr = PetscViewerASCIIPrintf(viewer,"  NLEIGS: computing true residuals for convergence check\n");CHKERRQ(ierr); }
   }
   PetscFunctionReturn(0);
@@ -1357,6 +1485,7 @@ PetscErrorCode NEPDestroy_NLEIGS(NEP nep)
 
   PetscFunctionBegin;
   ierr = PetscFree4(ctx->s,ctx->xi,ctx->beta,ctx->D);CHKERRQ(ierr);
+  if (ctx->nshifts) { ierr = PetscFree(ctx->shifts);CHKERRQ(ierr); }
   ierr = PetscFree(nep->data);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPNLEIGSSetSingularitiesFunction_C",NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPNLEIGSGetSingularitiesFunction_C",NULL);CHKERRQ(ierr);
@@ -1368,6 +1497,8 @@ PetscErrorCode NEPDestroy_NLEIGS(NEP nep)
   ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPNLEIGSGetInterpolation_C",NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPNLEIGSSetTrueResidual_C",NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPNLEIGSGetTrueResidual_C",NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPNLEIGSSetRKShifts_C",NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPNLEIGSGetRKShifts_C",NULL);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -1384,6 +1515,8 @@ PETSC_EXTERN PetscErrorCode NEPCreate_NLEIGS(NEP nep)
   ctx->lock    = PETSC_TRUE;
   ctx->ddtol   = PETSC_DEFAULT;
   ctx->ddmaxit = 0;
+  ctx->trueres = PETSC_FALSE;
+  ctx->nshifts = 0;
 
   nep->ops->solve          = NEPSolve_NLEIGS;
   nep->ops->setup          = NEPSetUp_NLEIGS;
@@ -1402,6 +1535,8 @@ PETSC_EXTERN PetscErrorCode NEPCreate_NLEIGS(NEP nep)
   ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPNLEIGSGetInterpolation_C",NEPNLEIGSGetInterpolation_NLEIGS);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPNLEIGSSetTrueResidual_C",NEPNLEIGSSetTrueResidual_NLEIGS);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPNLEIGSGetTrueResidual_C",NEPNLEIGSGetTrueResidual_NLEIGS);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPNLEIGSSetRKShifts_C",NEPNLEIGSSetRKShifts_NLEIGS);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPNLEIGSGetRKShifts_C",NEPNLEIGSGetRKShifts_NLEIGS);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
