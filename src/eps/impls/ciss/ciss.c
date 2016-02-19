@@ -175,7 +175,7 @@ static PetscErrorCode SetPathParameter(EPS eps)
   PetscErrorCode ierr;
   EPS_CISS       *ctx = (EPS_CISS*)eps->data;
   PetscInt       i,j;
-  PetscScalar    center,tmp,tmp2,omegai[ctx->N+1];
+  PetscScalar    center,tmp,tmp2,*omegai;
   PetscReal      theta,radius,vscale,start_ang,end_ang,width,a,b,c,d,max_w=0.0;
   PetscBool      isring=PETSC_FALSE,isellipse=PETSC_FALSE,isinterval=PETSC_FALSE;
 
@@ -183,6 +183,7 @@ static PetscErrorCode SetPathParameter(EPS eps)
   ierr = PetscObjectTypeCompare((PetscObject)eps->rg,RGELLIPSE,&isellipse);CHKERRQ(ierr);
   ierr = PetscObjectTypeCompare((PetscObject)eps->rg,RGRING,&isring);CHKERRQ(ierr);
   ierr = PetscObjectTypeCompare((PetscObject)eps->rg,RGINTERVAL,&isinterval);CHKERRQ(ierr);
+  ierr = PetscMalloc1(ctx->N+1l,&omegai);CHKERRQ(ierr);
   ierr = RGComputeContour(eps->rg,ctx->N,ctx->omega,omegai);CHKERRQ(ierr);
   if (isellipse) {
     ierr = RGEllipseGetParameters(eps->rg,&center,&radius,&vscale);CHKERRQ(ierr);
@@ -206,7 +207,7 @@ static PetscErrorCode SetPathParameter(EPS eps)
     }
     if (isinterval) {
       ierr = RGIntervalGetEndpoints(eps->rg,&a,&b,&c,&d);CHKERRQ(ierr);
-      if (c!=d && a!=b) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Endpoints of the imaginary axis or the real axis must be both zero");
+      if ((c!=d || c!=0.0) && (a!=b || a!=0.0)) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Endpoints of the imaginary axis or the real axis must be both zero");
       for (i=0;i<ctx->N;i++) {
         if (c==d) ctx->omega[i] = (b-a)*(ctx->pp[i]+1.0)/2+a;
         if (a==b) ctx->omega[i] = ((d-c)*(ctx->pp[i]+1.0)/2+c)*PETSC_i;
@@ -232,6 +233,7 @@ static PetscErrorCode SetPathParameter(EPS eps)
     }
     for (i=0;i<ctx->N;i++) ctx->weight[i] /= (PetscScalar)max_w;
   }
+  ierr = PetscFree(omegai);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -776,7 +778,7 @@ PetscErrorCode EPSSetUp_CISS(EPS eps)
     if (ctx->isreal && c==d) ctx->useconj = PETSC_TRUE;
     else ctx->useconj = PETSC_FALSE;
 #else
-    if (c!=d) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"In real scalars, endpoints of the imaginary axis must be both zero");
+    if (c!=d || c!=0.0) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"In real scalars, endpoints of the imaginary axis must be both zero");
     ctx->useconj = PETSC_FALSE;
 #endif
   }
