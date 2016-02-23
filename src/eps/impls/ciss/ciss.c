@@ -227,6 +227,9 @@ static PetscErrorCode SetPathParameter(EPS eps)
       center = (b+a)/2+(d+c)/2*PETSC_PI;
       radius = PetscSqrtReal(PetscPowRealInt((b-a)/2,2)+PetscPowRealInt((d-c)/2,2));
     }
+    if (isring) {
+      ierr = RGRingGetParameters(eps->rg,&center,&radius,&vscale,&start_ang,&end_ang,&width);CHKERRQ(ierr);
+    }
     for (i=0;i<ctx->N;i++) { 
       ctx->pp[i] = (ctx->omega[i]-center)/radius;
       tmp = 1; tmp2 = 1;
@@ -771,8 +774,8 @@ static PetscErrorCode rescale_eig(EPS eps, PetscInt nv)
       ierr = RGRingGetParameters(eps->rg,&center,&radius,&vscale,&start_ang,&end_ang,NULL);CHKERRQ(ierr);
       if (ctx->quad == EPS_CISS_QUAD_CHEBYSHEV){
 	for (i=0;i<nv;i++) {
-	  theta = (start_ang*2.0+(end_ang-start_ang)*(eps->eigr[i]+1.0))*PETSC_PI;
-	  eps->eigr[i] = center + radius*(PetscCosReal(theta)+PETSC_i*vscale*PetscSinReal(theta));
+	  theta = (start_ang*2.0+(end_ang-start_ang)*(PetscRealPart(eps->eigr[i])+1.0))*PETSC_PI;
+	  eps->eigr[i] = center + (radius+PetscImaginaryPart(eps->eigr[i]))*(PetscCosReal(theta)+PETSC_i*vscale*PetscSinReal(theta));
 	}
       } else {
 	for (i=0;i<nv;i++) eps->eigr[i] = center + radius*eps->eigr[i];
