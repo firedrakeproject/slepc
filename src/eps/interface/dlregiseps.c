@@ -29,6 +29,7 @@ const char *EPSPowerShiftTypes[] = {"CONSTANT","RAYLEIGH","WILKINSON","EPSPowerS
 const char *EPSLanczosReorthogTypes[] = {"LOCAL","FULL","SELECTIVE","PERIODIC","PARTIAL","DELAYED","EPSLanczosReorthogType","EPS_LANCZOS_REORTHOG_",0};
 const char *EPSPRIMMEMethods[] = {"DYNAMIC","DEFAULT_MIN_TIME","DEFAULT_MIN_MATVECS","ARNOLDI","GD","GD_PLUSK","GD_OLSEN_PLUSK","JD_OLSEN_PLUSK","RQI","JDQR","JDQMR","JDQMR_ETOL","SUBSPACE_ITERATION","LOBPCG_ORTHOBASIS","LOBPCG_ORTHOBASISW","EPSPRIMMEMethod","EPS_PRIMME_",0};
 const char *EPSCISSQuadRules[] = {"TRAPEZOIDAL","CHEBYSHEV","EPSCISSQuadRule","EPS_CISS_QUAD_",0};
+const char *EPSCISSExtractions[] = {"RITZ","HANKEL","EPSCISSExtraction","EPS_CISS_EXT_",0};
 const char *const EPSConvergedReasons_Shifted[] = {"","DIVERGED_SYMMETRY_LOST","DIVERGED_BREAKDOWN","DIVERGED_ITS","CONVERGED_ITERATING","CONVERGED_TOL","CONVERGED_USER","EPSConvergedReason","EPS_",0};
 const char *const*EPSConvergedReasons = EPSConvergedReasons_Shifted + 4;
 

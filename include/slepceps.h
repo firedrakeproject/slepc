@@ -431,6 +431,19 @@ typedef enum { EPS_CISS_QUAD_TRAPEZOIDAL,
                EPS_CISS_QUAD_CHEBYSHEV} EPSCISSQuadRule;
 PETSC_EXTERN const char *EPSCISSQuadRules[];
 
+/*E
+    EPSCISSExtraction - determines the extraction technique in the CISS solver
+
+    Level: advanced
+
+.seealso: EPSCISSSetExtraction(), EPSCISSGetExtraction()
+E*/
+typedef enum { EPS_CISS_EXT_RITZ,
+               EPS_CISS_EXT_HANKEL} EPSCISSExtraction;
+PETSC_EXTERN const char *EPSCISSExtractions[];
+
+PETSC_EXTERN PetscErrorCode EPSCISSSetExtraction(EPS,EPSCISSExtraction);
+PETSC_EXTERN PetscErrorCode EPSCISSGetExtraction(EPS,EPSCISSExtraction*);
 PETSC_EXTERN PetscErrorCode EPSCISSSetQuadRule(EPS,EPSCISSQuadRule);
 PETSC_EXTERN PetscErrorCode EPSCISSGetQuadRule(EPS,EPSCISSQuadRule*);
 PETSC_EXTERN PetscErrorCode EPSCISSSetRegion(EPS,PetscScalar,PetscReal,PetscReal);
