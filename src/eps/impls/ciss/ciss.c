@@ -200,7 +200,7 @@ static PetscErrorCode SetPathParameter(EPS eps)
       ctx->omega[i] = center + radius*ctx->pp[i];
 #endif
     }
-  } else if (ctx->quad == EPS_CISS_QUAD_CHEBYSHEV) {
+  } else if (ctx->quad == EPS_CISS_QUADRULE_CHEBYSHEV) {
     for (i=0;i<ctx->N;i++) {
       theta = (PETSC_PI/ctx->N)*(i+0.5);
       ctx->pp[i] = PetscCosReal(theta);
@@ -754,13 +754,13 @@ static PetscErrorCode rescale_eig(EPS eps, PetscInt nv)
       }
     }
   }
-  if (ctx->extraction == EPS_CISS_EXT_HANKEL) {
+  if (ctx->extraction == EPS_CISS_EXTRACTION_HANKEL) {
     if (isellipse) {
       ierr = RGEllipseGetParameters(eps->rg,&center,&radius,NULL);CHKERRQ(ierr);
       for (i=0;i<nv;i++) eps->eigr[i] = center + radius*eps->eigr[i];
     } else if (isinterval) {
       ierr = RGIntervalGetEndpoints(eps->rg,&a,&b,&c,&d);CHKERRQ(ierr);
-      if (ctx->quad == EPS_CISS_QUAD_CHEBYSHEV){
+      if (ctx->quad == EPS_CISS_QUADRULE_CHEBYSHEV){
 	for (i=0;i<nv;i++) {
 	  if (c==d) eps->eigr[i] = (b-a)*(eps->eigr[i]+1.0)/2+a;
 	  if (a==b) eps->eigr[i] = ((d-c)*(eps->eigr[i]+1.0)/2+c)*PETSC_i;
@@ -772,7 +772,7 @@ static PetscErrorCode rescale_eig(EPS eps, PetscInt nv)
       }
     } else if (isring) {
       ierr = RGRingGetParameters(eps->rg,&center,&radius,&vscale,&start_ang,&end_ang,NULL);CHKERRQ(ierr);
-      if (ctx->quad == EPS_CISS_QUAD_CHEBYSHEV){
+      if (ctx->quad == EPS_CISS_QUADRULE_CHEBYSHEV){
 	for (i=0;i<nv;i++) {
 	  theta = (start_ang*2.0+(end_ang-start_ang)*(PetscRealPart(eps->eigr[i])+1.0))*PETSC_PI;
 	  eps->eigr[i] = center + (radius+PetscImaginaryPart(eps->eigr[i]))*(PetscCosReal(theta)+PETSC_i*vscale*PetscSinReal(theta));
@@ -1005,14 +1005,14 @@ PetscErrorCode EPSSolve_CISS(EPS eps)
     ctx->L += L_add;
   }
   ierr = PetscFree2(Mu,H0);CHKERRQ(ierr);
-  if (ctx->extraction == EPS_CISS_EXT_HANKEL) {
+  if (ctx->extraction == EPS_CISS_EXTRACTION_HANKEL) {
     ierr = PetscMalloc3(ctx->L*ctx->L*ctx->M*2,&Mu,ctx->L*ctx->M*ctx->L*ctx->M,&H0,ctx->L*ctx->M*ctx->L*ctx->M,&H1);CHKERRQ(ierr);
   }
 
   while (eps->reason == EPS_CONVERGED_ITERATING) {
     eps->its++;
     for (inner=0;inner<=ctx->refine_inner;inner++) {
-      if (ctx->extraction == EPS_CISS_EXT_HANKEL) {
+      if (ctx->extraction == EPS_CISS_EXTRACTION_HANKEL) {
 	ierr = CalcMu(eps,Mu);CHKERRQ(ierr);
 	ierr = BlockHankel(eps,Mu,0,H0);CHKERRQ(ierr);
 	ierr = SVD_H0(eps,H0,&nv);CHKERRQ(ierr);
@@ -1038,7 +1038,7 @@ PetscErrorCode EPSSolve_CISS(EPS eps)
       ierr = DSSetDimensions(eps->ds,nv,0,0,0);CHKERRQ(ierr);
       ierr = DSSetState(eps->ds,DS_STATE_RAW);CHKERRQ(ierr);
 
-      if (ctx->extraction == EPS_CISS_EXT_HANKEL) {
+      if (ctx->extraction == EPS_CISS_EXTRACTION_HANKEL) {
 	ierr = BlockHankel(eps,Mu,0,H0);CHKERRQ(ierr);
 	ierr = BlockHankel(eps,Mu,1,H1);CHKERRQ(ierr);
 	ierr = DSGetArray(eps->ds,DS_MAT_A,&temp);CHKERRQ(ierr);
@@ -1085,7 +1085,7 @@ PetscErrorCode EPSSolve_CISS(EPS eps)
       ierr = rescale_eig(eps,nv);CHKERRQ(ierr);
       ierr = PetscFree3(fl1,inside,rr);CHKERRQ(ierr);
       ierr = BVSetActiveColumns(eps->V,0,nv);CHKERRQ(ierr);
-      if (ctx->extraction == EPS_CISS_EXT_HANKEL) {
+      if (ctx->extraction == EPS_CISS_EXTRACTION_HANKEL) {
 	ierr = ConstructS(eps);CHKERRQ(ierr);
       }
       ierr = BVSetActiveColumns(ctx->S,0,nv);CHKERRQ(ierr);
@@ -1133,7 +1133,7 @@ PetscErrorCode EPSSolve_CISS(EPS eps)
       }
     }
   }
-  if (ctx->extraction == EPS_CISS_EXT_HANKEL) {
+  if (ctx->extraction == EPS_CISS_EXTRACTION_HANKEL) {
     ierr = PetscFree3(Mu,H0,H1);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
@@ -1578,13 +1578,13 @@ static PetscErrorCode EPSCISSSetQuadRule_CISS(EPS eps,EPSCISSQuadRule quad)
 -  quad - the quadrature rule
 
    Options Database Key:
-.  -eps_ciss_quad_rule - Sets the quadrature rule (either 'trapezoidal' or
+.  -eps_ciss_quadrule - Sets the quadrature rule (either 'trapezoidal' or
                            'chebyshev')
 
    Notes:
-   By default, the trapezoidal rule is used (EPS_CISS_QUAD_TRAPEZOIDAL).
+   By default, the trapezoidal rule is used (EPS_CISS_QUADRULE_TRAPEZOIDAL).
 
-   If the 'chebyshev' option is specified (EPS_CISS_QUAD_CHEBYSHEV), then
+   If the 'chebyshev' option is specified (EPS_CISS_QUADRULE_CHEBYSHEV), then
    Chebyshev points are used as quadrature points.
 
    Level: advanced
@@ -1667,9 +1667,9 @@ static PetscErrorCode EPSCISSSetExtraction_CISS(EPS eps,EPSCISSExtraction extrac
                            'hankel')
 
    Notes:
-   By default, the Rayleigh-Ritz extraction is used (EPS_CISS_EXT_RITZ).
+   By default, the Rayleigh-Ritz extraction is used (EPS_CISS_EXTRACTION_RITZ).
 
-   If the 'hankel' option is specified (EPS_CISS_EXT_HANKEL), then
+   If the 'hankel' option is specified (EPS_CISS_EXTRACTION_HANKEL), then
    Block Hankel are used for extracting eigenpairs.
 
    Level: advanced
@@ -1798,7 +1798,7 @@ PetscErrorCode EPSSetFromOptions_CISS(PetscOptionItems *PetscOptionsObject,EPS e
   ierr = PetscOptionsBool("-eps_ciss_usest","CISS use ST for linear solves","EPSCISSSetUseST",b2,&b2,NULL);CHKERRQ(ierr);
   ierr = EPSCISSSetUseST(eps,b2);CHKERRQ(ierr);
 
-  ierr = PetscOptionsEnum("-eps_ciss_quad_rule","Quadrature rule","EPSCISSSetQuadRule",EPSCISSQuadRules,(PetscEnum)ctx->quad,(PetscEnum*)&quad,&flg);CHKERRQ(ierr);
+  ierr = PetscOptionsEnum("-eps_ciss_quadrule","Quadrature rule","EPSCISSSetQuadRule",EPSCISSQuadRules,(PetscEnum)ctx->quad,(PetscEnum*)&quad,&flg);CHKERRQ(ierr);
   if (flg) { ierr = EPSCISSSetQuadRule(eps,quad);CHKERRQ(ierr); }
 
   ierr = PetscOptionsEnum("-eps_ciss_extraction","Extraction technique","EPSCISSSetExtraction",EPSCISSExtractions,(PetscEnum)ctx->extraction,(PetscEnum*)&extraction,&flg);CHKERRQ(ierr);
@@ -1901,8 +1901,8 @@ PETSC_EXTERN PetscErrorCode EPSCreate_CISS(EPS eps)
   ctx->refine_inner       = 0;
   ctx->refine_blocksize   = 0;
   ctx->num_subcomm        = 1;
-  ctx->quad               = EPS_CISS_QUAD_TRAPEZOIDAL;
-  ctx->extraction         = EPS_CISS_EXT_RITZ;
+  ctx->quad               = EPS_CISS_QUADRULE_TRAPEZOIDAL;
+  ctx->extraction         = EPS_CISS_EXTRACTION_RITZ;
   PetscFunctionReturn(0);
 }
 

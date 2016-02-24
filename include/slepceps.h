@@ -427,8 +427,8 @@ PETSC_EXTERN PetscErrorCode EPSLOBPCGGetLocking(EPS,PetscBool*);
 
 .seealso: EPSCISSSetQuadRule(), EPSCISSGetQuadRule()
 E*/
-typedef enum { EPS_CISS_QUAD_TRAPEZOIDAL,
-               EPS_CISS_QUAD_CHEBYSHEV} EPSCISSQuadRule;
+typedef enum { EPS_CISS_QUADRULE_TRAPEZOIDAL,
+               EPS_CISS_QUADRULE_CHEBYSHEV} EPSCISSQuadRule;
 PETSC_EXTERN const char *EPSCISSQuadRules[];
 
 /*E
@@ -438,8 +438,8 @@ PETSC_EXTERN const char *EPSCISSQuadRules[];
 
 .seealso: EPSCISSSetExtraction(), EPSCISSGetExtraction()
 E*/
-typedef enum { EPS_CISS_EXT_RITZ,
-               EPS_CISS_EXT_HANKEL} EPSCISSExtraction;
+typedef enum { EPS_CISS_EXTRACTION_RITZ,
+               EPS_CISS_EXTRACTION_HANKEL} EPSCISSExtraction;
 PETSC_EXTERN const char *EPSCISSExtractions[];
 
 PETSC_EXTERN PetscErrorCode EPSCISSSetExtraction(EPS,EPSCISSExtraction);
