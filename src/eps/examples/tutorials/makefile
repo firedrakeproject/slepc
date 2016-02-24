@@ -207,7 +207,7 @@ runex9_2:
 	   ${RM} -f ex9_2.tmp
 
 runex10_1:
-	-@${MPIEXEC} -n 1 ./ex10 -eps_nev 4 -st_type shell -terse > ex10_1.tmp 2>&1; \
+	-@${MPIEXEC} -n 1 ./ex10 -eps_nev 5 -st_type shell -terse > ex10_1.tmp 2>&1; \
 	   if (${DIFF} output/ex10_1.out ex10_1.tmp) then true; \
 	   else echo "Possible problem with ex10_1, diffs above"; fi; \
 	   ${RM} -f ex10_1.tmp
