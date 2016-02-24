@@ -17,7 +17,7 @@
 !  along with SLEPc. If not, see <http://www.gnu.org/licenses/>.
 !  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !
-!  Program usage: mpirun -np n ex6f [-help] [-m <m>] [all SLEPc options] 
+!  Program usage: mpiexec -n <np> ./ex6f [-help] [-m <m>] [all SLEPc options] 
 !
 !  Description: This example solves the eigensystem arising in the Ising
 !  model for ferromagnetic materials. The file mvmisg.f must be linked

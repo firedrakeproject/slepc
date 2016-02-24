@@ -62,61 +62,61 @@ TESTCODE = \
 
 runtest1_1:
 	-@test=test1_1; \
-	${MPIEXEC} -np 1 ./test1 -st_matmode inplace 2>&1 > $${test}.tmp; \
+	${MPIEXEC} -n 1 ./test1 -st_matmode inplace 2>&1 > $${test}.tmp; \
 	${TESTCODE}
 
 runtest1_2:
 	-@test=test1_1; \
-	${MPIEXEC} -np 1 ./test1 -st_matmode shell 2>&1 > $${test}.tmp; \
+	${MPIEXEC} -n 1 ./test1 -st_matmode shell 2>&1 > $${test}.tmp; \
 	${TESTCODE}
 
 runtest2_1:
 	-@test=test2_1; \
-	${MPIEXEC} -np 1 ./test2 2>&1 > $${test}.tmp; \
+	${MPIEXEC} -n 1 ./test2 2>&1 > $${test}.tmp; \
 	${TESTCODE}
 
 runtest2_2:
 	-@test=test2_1; \
-	${MPIEXEC} -np 1 ./test2 -st_matmode inplace 2>&1 > $${test}.tmp; \
+	${MPIEXEC} -n 1 ./test2 -st_matmode inplace 2>&1 > $${test}.tmp; \
 	${TESTCODE}
 
 runtest2_3:
 	-@test=test2_1; \
-	${MPIEXEC} -np 1 ./test2 -st_matmode shell 2>&1 > $${test}.tmp; \
+	${MPIEXEC} -n 1 ./test2 -st_matmode shell 2>&1 > $${test}.tmp; \
 	${TESTCODE}
 
 runtest3_1:
 	-@test=test3_1; \
-	${MPIEXEC} -np 1 ./test3 2>&1 > $${test}.tmp; \
+	${MPIEXEC} -n 1 ./test3 2>&1 > $${test}.tmp; \
 	${TESTCODE}
 
 runtest3_2:
 	-@test=test3_1; \
-	${MPIEXEC} -np 1 ./test3 -st_matmode inplace 2>&1 > $${test}.tmp; \
+	${MPIEXEC} -n 1 ./test3 -st_matmode inplace 2>&1 > $${test}.tmp; \
 	${TESTCODE}
 
 runtest3_3:
 	-@test=test3_1; \
-	${MPIEXEC} -np 1 ./test3 -st_matmode shell 2>&1 > $${test}.tmp; \
+	${MPIEXEC} -n 1 ./test3 -st_matmode shell 2>&1 > $${test}.tmp; \
 	${TESTCODE}
 
 runtest4_1:
 	-@test=test4_1; \
-	${MPIEXEC} -np 1 ./test4 -st_transform 2>&1 > $${test}.tmp; \
+	${MPIEXEC} -n 1 ./test4 -st_transform 2>&1 > $${test}.tmp; \
 	${TESTCODE}
 
 runtest4_2:
 	-@test=test4_1; \
-	${MPIEXEC} -np 1 ./test4 -st_transform -st_matmode shell 2>&1 > $${test}.tmp; \
+	${MPIEXEC} -n 1 ./test4 -st_transform -st_matmode shell 2>&1 > $${test}.tmp; \
 	${TESTCODE}
 
 runtest4_3:
 	-@test=test4_2; \
-	${MPIEXEC} -np 1 ./test4 2>&1 > $${test}.tmp; \
+	${MPIEXEC} -n 1 ./test4 2>&1 > $${test}.tmp; \
 	${TESTCODE}
 
 runtest4_4:
 	-@test=test4_2; \
-	${MPIEXEC} -np 1 ./test4 -st_matmode shell 2>&1 > $${test}.tmp; \
+	${MPIEXEC} -n 1 ./test4 -st_matmode shell 2>&1 > $${test}.tmp; \
 	${TESTCODE}
 
