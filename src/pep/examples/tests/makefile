@@ -49,7 +49,7 @@ test3: test3.o chkopts
 	${RM} test3.o
 
 test3f: test3f.o chkopts
-	-${FLINKER} -o test3f test3f.o ${SLEPC_EPS_LIB}
+	-${FLINKER} -o test3f test3f.o ${SLEPC_PEP_LIB}
 	${RM} test3f.o
 
 #------------------------------------------------------------------------------------
