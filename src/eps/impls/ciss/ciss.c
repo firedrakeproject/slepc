@@ -1025,9 +1025,8 @@ PetscErrorCode EPSSolve_CISS(EPS eps)
     }
     ctx->L += L_add;
   }
-  ierr = PetscFree2(Mu,H0);CHKERRQ(ierr);
   if (ctx->extraction == EPS_CISS_EXTRACTION_HANKEL) {
-    ierr = PetscMalloc3(ctx->L*ctx->L*ctx->M*2,&Mu,ctx->L*ctx->M*ctx->L*ctx->M,&H0,ctx->L*ctx->M*ctx->L*ctx->M,&H1);CHKERRQ(ierr);
+    ierr = PetscMalloc1(ctx->L*ctx->M*ctx->L*ctx->M,&H1);CHKERRQ(ierr);
   }
 
   while (eps->reason == EPS_CONVERGED_ITERATING) {
@@ -1155,8 +1154,9 @@ PetscErrorCode EPSSolve_CISS(EPS eps)
     }
   }
   if (ctx->extraction == EPS_CISS_EXTRACTION_HANKEL) {
-    ierr = PetscFree3(Mu,H0,H1);CHKERRQ(ierr);
+    ierr = PetscFree(H1);CHKERRQ(ierr);
   }
+  ierr = PetscFree2(Mu,H0);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
