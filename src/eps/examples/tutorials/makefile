@@ -201,7 +201,7 @@ runex9_1:
 	   ${RM} -f ex9_1.tmp
 
 runex9_2:
-	-@${MPIEXEC} -n 1 ./ex9 -eps_nev 8 -eps_max_it 300 -rg_type interval -rg_interval_endpoints -40,-20,-.1,.1 -terse > ex9_2.tmp 2>&1; \
+	-@${MPIEXEC} -n 1 ./ex9 -eps_nev 8 -eps_max_it 300 -eps_target -28 -rg_type interval -rg_interval_endpoints -40,-20,-.1,.1 -terse > ex9_2.tmp 2>&1; \
 	   if (${DIFF} output/ex9_2.out ex9_2.tmp) then true; \
 	   else echo "Possible problem with ex9_2, diffs above"; fi; \
 	   ${RM} -f ex9_2.tmp

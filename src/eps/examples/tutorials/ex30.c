@@ -147,13 +147,16 @@ int main(int argc,char **argv)
   ierr = RGSetType(rg,RGINTERVAL);CHKERRQ(ierr);
   ierr = RGIntervalSetEndpoints(rg,-PETSC_INFINITY,PETSC_INFINITY,-0.01,0.01);CHKERRQ(ierr);
   ierr = RGSetComplement(rg,PETSC_TRUE);CHKERRQ(ierr);
+  /* sort eigenvalue approximations wrt a target, otherwise convergence will be erratic */
+  ierr = EPSSetTarget(eps,0.0);CHKERRQ(ierr);
+  ierr = EPSSetWhichEigenpairs(eps,EPS_TARGET_MAGNITUDE);CHKERRQ(ierr);
 
   /*
      Set solver options. In particular, we must allocate sufficient
      storage for all eigenpairs that may converge (ncv). This is
      application-dependent.
   */
-  mpd = 50;
+  mpd = 40;
   ierr = EPSSetDimensions(eps,2*mpd,3*mpd,mpd);CHKERRQ(ierr);
   ierr = EPSSetTolerances(eps,1e-7,2000);CHKERRQ(ierr);
   ctx->lastnconv = 0;
