@@ -103,11 +103,11 @@ runtest2_2:
 
 runtest3_1:
 	-@test=test3_1; \
-	${MPIEXEC} -n 1 ./test3 2>&1 > $${test}.tmp; \
+	${MPIEXEC} -n 1 ./test3 -pep_tol 1e-7 2>&1 > $${test}.tmp; \
 	${TESTCODE}
 
 runtest3f_1:
 	-@test=test3f_1; \
-	${MPIEXEC} -n 1 ./test3f 2>&1 > $${test}.tmp; \
+	${MPIEXEC} -n 1 ./test3f -pep_tol 1e-7 2>&1 > $${test}.tmp; \
 	${TESTCODE}
 
