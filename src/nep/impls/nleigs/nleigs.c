@@ -265,7 +265,7 @@ static PetscErrorCode NEPNLEIGSLejaBagbyPoints(NEP nep)
   if (ndptx<2) xi[1] = PETSC_INFINITY;
 
   beta[1] = maxnrs;
-  for (k=2;k<MAX_LBPOINTS;k++) {
+  for (k=2;k<ctx->ddmaxit;k++) {
     maxnrs = 0.0;
     minnrxi = PETSC_MAX_REAL;
     for (i=0;i<ndpt;i++) {
@@ -308,11 +308,11 @@ static PetscErrorCode NEPNLEIGSDividedDifferences_split(NEP nep)
   NEP_NLEIGS     *ctx=(NEP_NLEIGS*)nep->data;
   PetscInt       k,j,i;
   PetscReal      norm0,norm,max;
-  PetscScalar    *s=ctx->s,*beta=ctx->beta,b[MAX_LBPOINTS+1],alpha,coeffs[MAX_LBPOINTS+1];
+  PetscScalar    *s=ctx->s,*beta=ctx->beta,b[ctx->ddmaxit+1],alpha,coeffs[ctx->ddmaxit+1];
   Mat            T;
 
   PetscFunctionBegin;
-  ierr = PetscMalloc1(nep->nt*MAX_LBPOINTS,&ctx->coeffD);CHKERRQ(ierr);
+  ierr = PetscMalloc1(nep->nt*ctx->ddmaxit,&ctx->coeffD);CHKERRQ(ierr);
   max = 0.0;
   for (j=0;j<nep->nt;j++) {
     ierr = FNEvaluateFunction(nep->f[j],s[0],ctx->coeffD+j);CHKERRQ(ierr);
@@ -320,8 +320,8 @@ static PetscErrorCode NEPNLEIGSDividedDifferences_split(NEP nep)
     max = PetscMax(PetscAbsScalar(ctx->coeffD[j]),max);
   }
   norm0 = max;
-  ctx->nmat = MAX_LBPOINTS;
-  for (k=1;k<MAX_LBPOINTS;k++) {
+  ctx->nmat = ctx->ddmaxit;
+  for (k=1;k<ctx->ddmaxit;k++) {
     ierr = NEPNLEIGSEvalNRTFunct(nep,k,s[k],b);CHKERRQ(ierr);
     max = 0.0;
     for (i=0;i<nep->nt;i++) {
@@ -364,7 +364,7 @@ static PetscErrorCode NEPNLEIGSDividedDifferences_callback(NEP nep)
   NEP_NLEIGS     *ctx=(NEP_NLEIGS*)nep->data;
   PetscInt       k,j,i;
   PetscReal      norm0,norm;
-  PetscScalar    *s=ctx->s,*beta=ctx->beta,b[MAX_LBPOINTS+1],coeffs[MAX_LBPOINTS+1];
+  PetscScalar    *s=ctx->s,*beta=ctx->beta,b[ctx->ddmaxit+1],coeffs[ctx->ddmaxit+1];
   Mat            *D=ctx->D,T;
 
   PetscFunctionBegin;
@@ -375,8 +375,8 @@ static PetscErrorCode NEPNLEIGSDividedDifferences_callback(NEP nep)
     ierr = MatScale(D[0],1.0/beta[0]);CHKERRQ(ierr);
   }
   ierr = MatNorm(D[0],NORM_FROBENIUS,&norm0);CHKERRQ(ierr);
-  ctx->nmat = MAX_LBPOINTS;
-  for (k=1;k<MAX_LBPOINTS;k++) {
+  ctx->nmat = ctx->ddmaxit;
+  for (k=1;k<ctx->ddmaxit;k++) {
     ierr = NEPNLEIGSEvalNRTFunct(nep,k,s[k],b);CHKERRQ(ierr);
     ierr = NEPComputeFunction(nep,s[k],T,T);CHKERRQ(ierr);
     ierr = MatDuplicate(T,MAT_COPY_VALUES,&D[k]);CHKERRQ(ierr);
@@ -525,7 +525,7 @@ PetscErrorCode NEPSetUp_NLEIGS(NEP nep)
   if (!nep->which) nep->which = NEP_TARGET_MAGNITUDE;
 
   /* Initialize the NLEIGS context structure */
-  k = MAX_LBPOINTS;
+  k = ctx->ddmaxit;
   ierr = PetscMalloc4(k,&ctx->s,k,&ctx->xi,k,&ctx->beta,k,&ctx->D);CHKERRQ(ierr);
   nep->data = ctx;
   if (nep->tol==PETSC_DEFAULT) nep->tol = SLEPC_DEFAULT_TOL;
