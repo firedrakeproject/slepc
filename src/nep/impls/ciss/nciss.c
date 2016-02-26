@@ -194,9 +194,9 @@ static PetscErrorCode SolveLinearSystem(NEP nep,Mat T,Mat dT,BV V,PetscInt L_sta
       ierr = BVGetColumn(ctx->Y,i*ctx->L_max+j,&yj);CHKERRQ(ierr);
       ierr = MatMult(dT,vj,Bvj);CHKERRQ(ierr);
       if (ctx->usest) {
-	ierr = KSPSolve(ksp,Bvj,yj);CHKERRQ(ierr);
+        ierr = KSPSolve(ksp,Bvj,yj);CHKERRQ(ierr);
       } else {
-	ierr = KSPSolve(ctx->ksp[i],Bvj,yj);CHKERRQ(ierr);
+        ierr = KSPSolve(ctx->ksp[i],Bvj,yj);CHKERRQ(ierr);
       }
       ierr = BVRestoreColumn(V,j,&vj);CHKERRQ(ierr);
       ierr = BVRestoreColumn(ctx->Y,i*ctx->L_max+j,&yj);CHKERRQ(ierr);
@@ -277,7 +277,7 @@ static PetscErrorCode CalcMu(NEP nep, PetscScalar *Mu)
   for (i=0;i<ctx->num_solve_point;i++) {
     for (j=0;j<ctx->L;j++) {
       for (k=0;k<ctx->L;k++) {
-	temp[k+j*ctx->L+i*ctx->L*ctx->L]=m[k+j*ctx->L+i*ctx->L*ctx->L_max];
+        temp[k+j*ctx->L+i*ctx->L*ctx->L]=m[k+j*ctx->L+i*ctx->L*ctx->L_max];
       }
     }
   }
@@ -315,7 +315,7 @@ static PetscErrorCode BlockHankel(NEP nep,PetscScalar *Mu,PetscInt s,PetscScalar
   for (k=0;k<L*M;k++)
     for (j=0;j<M;j++) 
       for (i=0;i<L;i++) 
-	H[j*L+i+k*L*M] = Mu[i+k*L+(j+s)*L*L];
+        H[j*L+i+k*L*M] = Mu[i+k*L+(j+s)*L*L];
   PetscFunctionReturn(0);
 }
 
@@ -385,8 +385,8 @@ static PetscErrorCode ConstructS(NEP nep)
       ierr = VecSet(v,0);CHKERRQ(ierr);
       for (i=0;i<ctx->num_solve_point;i++) {
         p_id = i*ctx->subcomm->n + ctx->subcomm_id;
-	ierr = BVSetActiveColumns(ctx->Y,i*ctx->L_max+j,i*ctx->L_max+j+1);CHKERRQ(ierr);
-	ierr = BVMultVec(ctx->Y,ppk[i]*ctx->weight[p_id],1,v,&m);CHKERRQ(ierr);
+        ierr = BVSetActiveColumns(ctx->Y,i*ctx->L_max+j,i*ctx->L_max+j+1);CHKERRQ(ierr);
+        ierr = BVMultVec(ctx->Y,ppk[i]*ctx->weight[p_id],1,v,&m);CHKERRQ(ierr);
       }
       if (ctx->useconj) {
         ierr = VecGetArray(v,&v_data);CHKERRQ(ierr);
@@ -564,10 +564,10 @@ PetscErrorCode NEPSolve_CISS(NEP nep)
       ierr = BlockHankel(nep,Mu,0,H0);CHKERRQ(ierr);
       ierr = SVD_H0(nep,H0,&nv);CHKERRQ(ierr);
       if (ctx->sigma[0]>ctx->delta && nv==ctx->L*ctx->M && inner!=ctx->refine_inner) {
-	ierr = ConstructS(nep);CHKERRQ(ierr);
-	ierr = BVSetActiveColumns(ctx->S,0,ctx->L);CHKERRQ(ierr);
-	ierr = BVCopy(ctx->S,ctx->V);CHKERRQ(ierr);
-	ierr = SolveLinearSystem(nep,nep->function,nep->jacobian,ctx->V,0,ctx->L,PETSC_FALSE);CHKERRQ(ierr);
+        ierr = ConstructS(nep);CHKERRQ(ierr);
+        ierr = BVSetActiveColumns(ctx->S,0,ctx->L);CHKERRQ(ierr);
+        ierr = BVCopy(ctx->S,ctx->V);CHKERRQ(ierr);
+        ierr = SolveLinearSystem(nep,nep->function,nep->jacobian,ctx->V,0,ctx->L,PETSC_FALSE);CHKERRQ(ierr);
       } else break;
     }
 
@@ -580,12 +580,12 @@ PetscErrorCode NEPSolve_CISS(NEP nep)
     ierr = DSGetArray(nep->ds,DS_MAT_A,&temp);CHKERRQ(ierr);
     for (j=0;j<nv;j++)
       for (i=0;i<nv;i++)
-	temp[i+j*ld] = H1[i+j*ctx->L*ctx->M];
+        temp[i+j*ld] = H1[i+j*ctx->L*ctx->M];
     ierr = DSRestoreArray(nep->ds,DS_MAT_A,&temp);CHKERRQ(ierr);
     ierr = DSGetArray(nep->ds,DS_MAT_B,&temp);CHKERRQ(ierr);
     for (j=0;j<nv;j++) 
       for (i=0;i<nv;i++)
-	temp[i+j*ld] = H0[i+j*ctx->L*ctx->M];
+        temp[i+j*ld] = H0[i+j*ctx->L*ctx->M];
     ierr = DSRestoreArray(nep->ds,DS_MAT_B,&temp);CHKERRQ(ierr);
     ierr = DSSolve(nep->ds,nep->eigr,nep->eigi);CHKERRQ(ierr);
     ierr = DSVectors(nep->ds,DS_MAT_X,NULL,NULL);CHKERRQ(ierr);
