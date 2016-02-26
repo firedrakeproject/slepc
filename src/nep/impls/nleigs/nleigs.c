@@ -417,7 +417,8 @@ static PetscErrorCode NEPNLEIGSRitzVector(NEP nep,PetscScalar *S,PetscInt ld,Pet
 
   PetscFunctionBegin;
   ierr = DSGetDimensions(nep->ds,&n,NULL,NULL,NULL,NULL);CHKERRQ(ierr);
-  ierr = PetscMalloc2(n,&x,nq,&y);CHKERRQ(ierr);
+  ierr = PetscMalloc1(n+nq,&y);CHKERRQ(ierr);
+  x = y+nq;
   ierr = DSGetLeadingDimension(nep->ds,&ldds);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(n,&n_);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(nq,&nq_);CHKERRQ(ierr);
@@ -432,7 +433,7 @@ static PetscErrorCode NEPNLEIGSRitzVector(NEP nep,PetscScalar *S,PetscInt ld,Pet
   ierr = BVSetActiveColumns(nep->V,0,nq);CHKERRQ(ierr);
   ierr = BVMultVec(nep->V,1.0,0.0,t,y);CHKERRQ(ierr);
   ierr = VecNormalize(t,NULL);CHKERRQ(ierr);
-  ierr = PetscFree2(x,y);CHKERRQ(ierr);
+  ierr = PetscFree(y);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -465,15 +466,13 @@ static PetscErrorCode NEPNLEIGSKrylovConvergence(NEP nep,PetscScalar *S, PetscIn
       }
       ierr = RGCheckInside(nep->rg,1,&re,&im,&inside);CHKERRQ(ierr);
       if (marker==-1 && inside<0) marker = k;
-      re = nep->eigr[k];
-      im = nep->eigi[k];
     }
     newk = k;
     ierr = DSVectors(nep->ds,DS_MAT_X,&newk,&resnorm);CHKERRQ(ierr);
-    tt = (ctx->nshifts)?betak-re*betah:betah;
+    tt = (ctx->nshifts)?betak-nep->eigr[k]*betah:betah;
     resnorm *=  PetscAbsScalar(tt);
     /* error estimate */
-    ierr = (*nep->converged)(nep,re,im,resnorm,&nep->errest[k],nep->convergedctx);CHKERRQ(ierr);
+    ierr = (*nep->converged)(nep,nep->eigr[k],nep->eigi[k],resnorm,&nep->errest[k],nep->convergedctx);CHKERRQ(ierr);
     if (ctx->trueres && (nep->errest[k] < nep->tol) ) {
       /* check explicit residual */
       ierr = NEPNLEIGSRitzVector(nep,S,ld,nq,H,k,t);CHKERRQ(ierr);
