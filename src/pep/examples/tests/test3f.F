@@ -109,13 +109,15 @@
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
       call PEPCreate(PETSC_COMM_WORLD,pep,ierr)
-      call PEPSetOperators(pep,3,A,ierr)
+      nmat = 3
+      call PEPSetOperators(pep,nmat,A,ierr)
       call PEPGetNumMatrices(pep,nmat,ierr)
       if (rank .eq. 0) then
         write(*,110) nmat-1
       endif
  110  format (' Polynomial of degree ',I2)
-      call PEPGetOperators(pep,0,B,ierr)
+      i = 0
+      call PEPGetOperators(pep,i,B,ierr)
       call MatView(B,PETSC_NULL_OBJECT,ierr)
 
       call PEPSetType(pep,PEPTOAR,ierr)
