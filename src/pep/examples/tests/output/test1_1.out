@@ -8,7 +8,7 @@ PEP type: toar
  Number of requested eigenvalues: 4
  Stopping condition: maxit=100
  All requested eigenvalues computed up to the required tolerance:
-     0.00000+2.80193i, 0.00000-2.80193i, 0.00000+2.76605i, 0.00000-2.76605i
+     -1.16404+1.65363i, -1.16404-1.65363i, -0.51784+1.31039i, -0.51784-1.31039i
 
 pep type qarnoldi
 
@@ -20,7 +20,7 @@ PEP type: qarnoldi
  Number of requested eigenvalues: 4
  Stopping condition: maxit=100
  All requested eigenvalues computed up to the required tolerance:
-     0.00000+2.80193i, 0.00000-2.80193i, 0.00000+2.76605i, 0.00000-2.76605i
+     -1.16404+1.65363i, -1.16404-1.65363i, -0.51784+1.31039i, -0.51784-1.31039i
 
 pep type linear, eps type krylovschur
 
@@ -33,7 +33,7 @@ EPS type: krylovschur
  Number of requested eigenvalues: 4
  Stopping condition: maxit=100
  All requested eigenvalues computed up to the required tolerance:
-     0.00000+2.80193i, 0.00000-2.80193i, 0.00000+2.76605i, 0.00000-2.76605i
+     -1.16404+1.65363i, -1.16404-1.65363i, -0.51784+1.31039i, -0.51784-1.31039i
 
 pep type linear, eps type gd
 
@@ -46,5 +46,5 @@ EPS type: gd
  Number of requested eigenvalues: 4
  Stopping condition: maxit=2000
  All requested eigenvalues computed up to the required tolerance:
-     0.00000+2.80193i, 0.00000-2.80193i, 0.00000+2.76605i, 0.00000-2.76605i
+     -1.16404+1.65363i, -1.16404-1.65363i, -0.51784+1.31039i, -0.51784-1.31039i
 

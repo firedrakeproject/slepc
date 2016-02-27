@@ -54,7 +54,7 @@ int main(int argc,char **argv)
   FN             funs[3];
   NEPType        type;
   PetscScalar    coeffs[2],b;
-  PetscInt       n=128,nev,Istart,Iend,i,its;
+  PetscInt       n=128,nev,Istart,Iend,i;
   PetscReal      tau=0.001,h,a=20,xi;
   PetscBool      terse;
   PetscErrorCode ierr;
@@ -168,12 +168,6 @@ int main(int argc,char **argv)
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
   ierr = NEPSolve(nep);CHKERRQ(ierr);
-  ierr = NEPGetIterationNumber(nep,&its);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," Number of NEP iterations = %D\n\n",its);CHKERRQ(ierr);
-
-  /*
-     Optional: Get some information from the solver and display it
-  */
   ierr = NEPGetType(nep,&type);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD," Solution method: %s\n",type);CHKERRQ(ierr);
   ierr = NEPGetDimensions(nep,&nev,NULL,NULL);CHKERRQ(ierr);

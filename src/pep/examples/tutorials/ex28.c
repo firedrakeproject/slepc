@@ -19,9 +19,9 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-static char help[] = "Solves the same eigenproblem as in example ex16 taking n=m and using shell matrices.\n\n"
+static char help[] = "A quadratic eigenproblem defined using shell matrices.\n\n"
   "The command line options are:\n"
-  "  -n <n>, where <n> = number of grid subdivisions in x dimension.\n\n";
+  "  -n <n>, where <n> = number of grid subdivisions in x and y dimensions.\n\n";
 
 #include <slepcpep.h>
 

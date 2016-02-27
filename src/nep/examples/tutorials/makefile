@@ -55,31 +55,31 @@ ex27: ex27.o chkopts
 #------------------------------------------------------------------------------------
 
 runex20_1:
-	-@${MPIEXEC} -np 1 ./ex20 > ex20_1.tmp 2>&1; \
+	-@${MPIEXEC} -n 1 ./ex20 > ex20_1.tmp 2>&1; \
 	   if (${DIFF} output/ex20_1.out ex20_1.tmp) then true; \
 	   else echo "Possible problem with ex20_1, diffs above"; fi; \
 	   ${RM} -f ex20_1.tmp
 
 runex21_1:
-	-@${MPIEXEC} -np 1 ./ex21 -terse > ex21_1.tmp 2>&1; \
+	-@${MPIEXEC} -n 1 ./ex21 -terse > ex21_1.tmp 2>&1; \
 	   if (${DIFF} output/ex21_1.out ex21_1.tmp) then true; \
 	   else echo "Possible problem with ex21_1, diffs above"; fi; \
 	   ${RM} -f ex21_1.tmp
 
 runex22_1:
-	-@${MPIEXEC} -np 1 ./ex22 -terse > ex22_1.tmp 2>&1; \
+	-@${MPIEXEC} -n 1 ./ex22 -terse > ex22_1.tmp 2>&1; \
 	   if (${DIFF} output/ex22_1.out ex22_1.tmp) then true; \
 	   else echo "Possible problem with ex22_1, diffs above"; fi; \
 	   ${RM} -f ex22_1.tmp
 
 runex27_1:
-	-@${MPIEXEC} -np 1 ./ex27 -nep_tol 1e-6 -nep_nev 3 -terse > ex27_1.tmp 2>&1; \
+	-@${MPIEXEC} -n 1 ./ex27 -nep_tol 1e-6 -nep_nev 3 -terse > ex27_1.tmp 2>&1; \
 	   if (${DIFF} output/ex27_1.out ex27_1.tmp) then true; \
 	   else echo "Possible problem with ex27_1, diffs above"; fi; \
 	   ${RM} -f ex27_1.tmp
 
 runex27_2:
-	-@${MPIEXEC} -np 1 ./ex27 -split 0 -nep_tol 1e-6 -nep_nev 3 -terse > ex27_2.tmp 2>&1; \
+	-@${MPIEXEC} -n 1 ./ex27 -split 0 -nep_tol 1e-6 -nep_nev 3 -terse > ex27_2.tmp 2>&1; \
 	   if (${DIFF} output/ex27_2.out ex27_2.tmp) then true; \
 	   else echo "Possible problem with ex27_2, diffs above"; fi; \
 	   ${RM} -f ex27_2.tmp

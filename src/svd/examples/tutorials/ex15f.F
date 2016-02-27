@@ -17,7 +17,7 @@
 !  along with SLEPc. If not, see <http://www.gnu.org/licenses/>.
 !  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !
-!  Program usage: mpirun -np n ex15f [-help] [-n <n>] [-mu <mu>] [all SLEPc options] 
+!  Program usage: mpiexec -n <np> ./ex15f [-help] [-n <n>] [-mu <mu>] [all SLEPc options] 
 !
 !  Description: Singular value decomposition of the Lauchli matrix. 
 !

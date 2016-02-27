@@ -25,21 +25,22 @@ CPPFLAGS   =
 FPPFLAGS   =
 LOCDIR     = src/eps/examples/tutorials/
 EXAMPLESC  = ex1.c ex2.c ex3.c ex4.c ex5.c ex7.c ex9.c ex10.c ex11.c ex12.c ex13.c \
-             ex18.c ex19.c ex24.c ex25.c ex29.c
+             ex18.c ex19.c ex24.c ex25.c ex29.c ex30.c
 EXAMPLESF  = ex1f.F ex1f90.F90 ex6f.F
 MANSEC     = EPS
 
 TESTEXAMPLES_C                 = ex2.PETSc runex2_1 ex2.rm \
                                  ex3.PETSc runex3_1 ex3.rm \
                                  ex5.PETSc runex5_1 ex5.rm \
-                                 ex9.PETSc runex9_1 ex9.rm \
+                                 ex9.PETSc runex9_1 runex9_2 ex9.rm \
                                  ex10.PETSc runex10_1 ex10.rm \
                                  ex11.PETSc runex11_1 ex11.rm \
                                  ex12.PETSc runex12_1 ex12.rm \
                                  ex13.PETSc runex13_1 ex13.rm \
                                  ex18.PETSc runex18_1 ex18.rm \
                                  ex24.PETSc runex24_1 ex24.rm \
-                                 ex29.PETSc runex29_1 ex29.rm
+                                 ex29.PETSc runex29_1 ex29.rm \
+                                 ex30.PETSc runex30_1 ex30.rm
 TESTEXAMPLES_C_NOCOMPLEX       = ex4.PETSc runex4_1 ex4.rm \
                                  ex7.PETSc runex7_1 ex7.rm \
                                  ex25.PETSc runex25_1 ex25.rm
@@ -124,35 +125,39 @@ ex29: ex29.o chkopts
 	-${CLINKER} -o ex29 ex29.o ${SLEPC_EPS_LIB}
 	${RM} ex29.o
 
+ex30: ex30.o chkopts
+	-${CLINKER} -o ex30 ex30.o ${SLEPC_EPS_LIB}
+	${RM} ex30.o
+
 #------------------------------------------------------------------------------------
 DATAPATH = ${SLEPC_DIR}/share/slepc/datafiles/matrices
 
 runex1_1:
-	-@${MPIEXEC} -np 1 ./ex1 > ex1_1.tmp 2>&1; \
+	-@${MPIEXEC} -n 1 ./ex1 > ex1_1.tmp 2>&1; \
 	   if (${DIFF} output/ex1_1.out ex1_1.tmp) then true; \
 	   else echo "Possible problem with ex1_1, diffs above"; fi; \
 	   ${RM} -f ex1_1.tmp
 
 runex1f_1:
-	-@${MPIEXEC} -np 1 ./ex1f > ex1f_1.tmp 2>&1; \
+	-@${MPIEXEC} -n 1 ./ex1f > ex1f_1.tmp 2>&1; \
 	   if (${DIFF} output/ex1f_1.out ex1f_1.tmp) then true; \
 	   else echo "Possible problem with ex1f_1, diffs above"; fi; \
 	   ${RM} -f ex1f_1.tmp
 
 runex1f90_1:
-	-@${MPIEXEC} -np 1 ./ex1f90 -eps_nev 4 -terse > ex1f90_1.tmp 2>&1; \
+	-@${MPIEXEC} -n 1 ./ex1f90 -eps_nev 4 -terse > ex1f90_1.tmp 2>&1; \
 	   if (${DIFF} output/ex1f90_1.out ex1f90_1.tmp) then true; \
 	   else echo "Possible problem with ex1f90_1, diffs above"; fi; \
 	   ${RM} -f ex1f90_1.tmp
 
 runex2_1:
-	-@${MPIEXEC} -np 1 ./ex2 -eps_nev 4 -terse > ex2_1.tmp 2>&1; \
+	-@${MPIEXEC} -n 1 ./ex2 -eps_nev 4 -terse > ex2_1.tmp 2>&1; \
 	   if (${DIFF} output/ex2_1.out ex2_1.tmp) then true; \
 	   else echo "Possible problem with ex2_1, diffs above"; fi; \
 	   ${RM} -f ex2_1.tmp
 
 runex3_1:
-	-@${MPIEXEC} -np 1 ./ex3 -eps_nev 4 -terse > ex3_1.tmp 2>&1; \
+	-@${MPIEXEC} -n 1 ./ex3 -eps_nev 4 -terse > ex3_1.tmp 2>&1; \
 	   if (${DIFF} output/ex3_1.out ex3_1.tmp) then true; \
 	   else echo "Possible problem with ex3_1, diffs above"; fi; \
 	   ${RM} -f ex3_1.tmp
@@ -161,20 +166,20 @@ runex4_1:
 	-@if [ "${PETSC_PRECISION}" != "double" ] || (${GREP} USE_64BIT_INDICES ${PETSC_DIR}/${PETSC_ARCH}/include/petscconf.h > /dev/null 2>&1) then \
            echo "Skipping ex4 test"; \
          else \
-           ${MPIEXEC} -np 1 ./ex4 -file ${DATAPATH}/rdb200.petsc -eps_nev 4 -terse > ex4_1.tmp 2>&1; \
+           ${MPIEXEC} -n 1 ./ex4 -file ${DATAPATH}/rdb200.petsc -eps_nev 4 -terse > ex4_1.tmp 2>&1; \
 	   if (${DIFF} output/ex4_1.out ex4_1.tmp) then true; \
 	   else echo "Possible problem with ex4_1, diffs above"; fi; \
 	   ${RM} -f ex4_1.tmp; \
          fi
 
 runex5_1:
-	-@${MPIEXEC} -np 1 ./ex5 -st_shift 1 -eps_nev 4 -terse > ex5_1.tmp 2>&1; \
+	-@${MPIEXEC} -n 1 ./ex5 -st_shift 1 -eps_nev 4 -terse > ex5_1.tmp 2>&1; \
 	   if (${DIFF} output/ex5_1.out ex5_1.tmp) then true; \
 	   else echo "Possible problem with ex5_1, diffs above"; fi; \
 	   ${RM} -f ex5_1.tmp
 
 runex6f_1:
-	-@${MPIEXEC} -np 1 ./ex6f -eps_max_it 1000 -eps_ncv 12 -eps_tol 1e-5 -eps_nev 4 -terse > ex6f_1.tmp 2>&1; \
+	-@${MPIEXEC} -n 1 ./ex6f -eps_max_it 1000 -eps_ncv 12 -eps_tol 1e-5 -eps_nev 4 -terse > ex6f_1.tmp 2>&1; \
 	   if (${DIFF} output/ex6f_1.out ex6f_1.tmp) then true; \
 	   else echo "Possible problem with ex6f_1, diffs above"; fi; \
 	   ${RM} -f ex6f_1.tmp
@@ -183,68 +188,80 @@ runex7_1:
 	-@if [ "${PETSC_PRECISION}" != "double" ] || (${GREP} USE_64BIT_INDICES ${PETSC_DIR}/${PETSC_ARCH}/include/petscconf.h > /dev/null 2>&1) then \
            echo "Skipping ex7 test"; \
          else \
-           ${MPIEXEC} -np 1 ./ex7 -f1 ${DATAPATH}/bfw62a.petsc -f2 ${DATAPATH}/bfw62b.petsc -eps_nev 4 -terse > ex7_1.tmp 2>&1; \
+           ${MPIEXEC} -n 1 ./ex7 -f1 ${DATAPATH}/bfw62a.petsc -f2 ${DATAPATH}/bfw62b.petsc -eps_nev 4 -terse > ex7_1.tmp 2>&1; \
 	   if (${DIFF} output/ex7_1.out ex7_1.tmp) then true; \
 	   else echo "Possible problem with ex7_1, diffs above"; fi; \
 	   ${RM} -f ex7_1.tmp; \
          fi
 
 runex9_1:
-	-@${MPIEXEC} -np 1 ./ex9 -eps_nev 4 -terse > ex9_1.tmp 2>&1; \
+	-@${MPIEXEC} -n 1 ./ex9 -eps_nev 4 -terse > ex9_1.tmp 2>&1; \
 	   if (${DIFF} output/ex9_1.out ex9_1.tmp) then true; \
 	   else echo "Possible problem with ex9_1, diffs above"; fi; \
 	   ${RM} -f ex9_1.tmp
 
+runex9_2:
+	-@${MPIEXEC} -n 1 ./ex9 -eps_nev 8 -eps_max_it 300 -eps_target -28 -rg_type interval -rg_interval_endpoints -40,-20,-.1,.1 -terse > ex9_2.tmp 2>&1; \
+	   if (${DIFF} output/ex9_2.out ex9_2.tmp) then true; \
+	   else echo "Possible problem with ex9_2, diffs above"; fi; \
+	   ${RM} -f ex9_2.tmp
+
 runex10_1:
-	-@${MPIEXEC} -np 1 ./ex10 -eps_nev 4 -st_type shell -terse > ex10_1.tmp 2>&1; \
+	-@${MPIEXEC} -n 1 ./ex10 -eps_nev 5 -st_type shell -terse > ex10_1.tmp 2>&1; \
 	   if (${DIFF} output/ex10_1.out ex10_1.tmp) then true; \
 	   else echo "Possible problem with ex10_1, diffs above"; fi; \
 	   ${RM} -f ex10_1.tmp
 runex11_1:
-	-@${MPIEXEC} -np 1 ./ex11 -eps_nev 4 -terse > ex11_1.tmp 2>&1; \
+	-@${MPIEXEC} -n 1 ./ex11 -eps_nev 4 -terse > ex11_1.tmp 2>&1; \
 	   if (${DIFF} output/ex11_1.out ex11_1.tmp) then true; \
 	   else echo "Possible problem with ex11_1, diffs above"; fi; \
 	   ${RM} -f ex11_1.tmp
 
 runex12_1:
-	-@${MPIEXEC} -np 1 ./ex12 > ex12_1.tmp 2>&1; \
+	-@${MPIEXEC} -n 1 ./ex12 > ex12_1.tmp 2>&1; \
 	   if (${DIFF} output/ex12_1.out ex12_1.tmp) then true; \
 	   else echo "Possible problem with ex12_1, diffs above"; fi; \
 	   ${RM} -f ex12_1.tmp
 
 runex13_1:
-	-@${MPIEXEC} -np 1 ./ex13 -eps_nev 4 -terse > ex13_1.tmp 2>&1; \
+	-@${MPIEXEC} -n 1 ./ex13 -eps_nev 4 -terse > ex13_1.tmp 2>&1; \
 	   if (${DIFF} output/ex13_1.out ex13_1.tmp) then true; \
 	   else echo "Possible problem with ex13_1, diffs above"; fi; \
 	   ${RM} -f ex13_1.tmp
 
 runex18_1:
-	-@${MPIEXEC} -np 1 ./ex18 -eps_nev 4 -terse > ex18_1.tmp 2>&1; \
+	-@${MPIEXEC} -n 1 ./ex18 -eps_nev 4 -terse > ex18_1.tmp 2>&1; \
 	   if (${DIFF} output/ex18_1.out ex18_1.tmp) then true; \
 	   else echo "Possible problem with ex18_1, diffs above"; fi; \
 	   ${RM} -f ex18_1.tmp
 
 runex19_1:
-	-@${MPIEXEC} -np 1 ./ex19 -eps_nev 8 -eps_ncv 64 > ex19_1.tmp 2>&1; \
+	-@${MPIEXEC} -n 1 ./ex19 -eps_nev 8 -eps_ncv 64 > ex19_1.tmp 2>&1; \
 	   if (${DIFF} output/ex19_1.out ex19_1.tmp) then true; \
 	   else echo "Possible problem with ex19_1, diffs above"; fi; \
 	   ${RM} -f ex19_1.tmp
 
 runex24_1:
-	-@${MPIEXEC} -np 1 ./ex24 > ex24_1.tmp 2>&1; \
+	-@${MPIEXEC} -n 1 ./ex24 -n 15 -eps_ncv 20 -terse > ex24_1.tmp 2>&1; \
 	   if (${DIFF} output/ex24_1.out ex24_1.tmp) then true; \
 	   else echo "Possible problem with ex24_1, diffs above"; fi; \
 	   ${RM} -f ex24_1.tmp
 
 runex25_1:
-	-@${MPIEXEC} -np 1 ./ex25 -terse > ex25_1.tmp 2>&1; \
+	-@${MPIEXEC} -n 1 ./ex25 -terse > ex25_1.tmp 2>&1; \
 	   if (${DIFF} output/ex25_1.out ex25_1.tmp) then true; \
 	   else echo "Possible problem with ex25_1, diffs above"; fi; \
 	   ${RM} -f ex25_1.tmp
 
 runex29_1:
-	-@${MPIEXEC} -np 1 ./ex29 -m 350 > ex29_1.tmp 2>&1; \
+	-@${MPIEXEC} -n 1 ./ex29 -m 350 > ex29_1.tmp 2>&1; \
 	   if (${DIFF} output/ex29_1.out ex29_1.tmp) then true; \
 	   else echo "Possible problem with ex29_1, diffs above"; fi; \
 	   ${RM} -f ex29_1.tmp
+
+runex30_1:
+	-@${MPIEXEC} -n 1 ./ex30 -n 100 -terse > ex30_1.tmp 2>&1; \
+	   if (${DIFF} output/ex30_1.out ex30_1.tmp) then true; \
+	   else echo "Possible problem with ex30_1, diffs above"; fi; \
+	   ${RM} -f ex30_1.tmp
 

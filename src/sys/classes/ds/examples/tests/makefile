@@ -102,79 +102,79 @@ test15: test15.o chkopts
 #------------------------------------------------------------------------------------
 
 runtest1_1:
-	-@${MPIEXEC} -np 1 ./test1 > test1_1.tmp 2>&1; \
+	-@${MPIEXEC} -n 1 ./test1 > test1_1.tmp 2>&1; \
 	  if (${DIFF} output/test1_1.out test1_1.tmp) then true; \
 	  else echo "Possible problem with test1_1, diffs above"; fi; \
 	  ${RM} -f test1_1.tmp
 
 runtest2_1:
-	-@${MPIEXEC} -np 1 ./test2 -n 12 > test2_1.tmp 2>&1; \
+	-@${MPIEXEC} -n 1 ./test2 -n 12 > test2_1.tmp 2>&1; \
 	  if (${DIFF} output/test2_1.out test2_1.tmp) then true; \
 	  else echo "Possible problem with test2_1, diffs above"; fi; \
 	  ${RM} -f test2_1.tmp
 
 runtest3_1:
-	-@${MPIEXEC} -np 1 ./test3 > test3_1.tmp 2>&1; \
+	-@${MPIEXEC} -n 1 ./test3 > test3_1.tmp 2>&1; \
 	  if (${DIFF} output/test3_1.out test3_1.tmp) then true; \
 	  else echo "Possible problem with test3_1, diffs above"; fi; \
 	  ${RM} -f test3_1.tmp
 
 runtest4_1:
-	-@${MPIEXEC} -np 1 ./test4 > test4_1.tmp 2>&1; \
+	-@${MPIEXEC} -n 1 ./test4 > test4_1.tmp 2>&1; \
 	  if (${DIFF} output/test4_1.out test4_1.tmp) then true; \
 	  else echo "Possible problem with test4_1, diffs above"; fi; \
 	  ${RM} -f test4_1.tmp
 
 runtest5_1:
-	-@${MPIEXEC} -np 1 ./test5 > test5_1.tmp 2>&1; \
+	-@${MPIEXEC} -n 1 ./test5 > test5_1.tmp 2>&1; \
 	  if (${DIFF} output/test5_1.out test5_1.tmp) then true; \
 	  else echo "Possible problem with test5_1, diffs above"; fi; \
 	  ${RM} -f test5_1.tmp
 
 runtest6_1:
-	-@${MPIEXEC} -np 1 ./test6 > test6_1.tmp 2>&1; \
+	-@${MPIEXEC} -n 1 ./test6 > test6_1.tmp 2>&1; \
 	  if (${DIFF} output/test6_1.out test6_1.tmp) then true; \
 	  else echo "Possible problem with test6_1, diffs above"; fi; \
 	  ${RM} -f test6_1.tmp
 
 runtest7_1:
-	-@${MPIEXEC} -np 1 ./test7 > test7_1.tmp 2>&1; \
+	-@${MPIEXEC} -n 1 ./test7 > test7_1.tmp 2>&1; \
 	  if (${DIFF} output/test7_1.out test7_1.tmp) then true; \
 	  else echo "Possible problem with test7_1, diffs above"; fi; \
 	  ${RM} -f test7_1.tmp
 
 runtest8_1:
-	-@${MPIEXEC} -np 1 ./test8 > test8_1.tmp 2>&1; \
+	-@${MPIEXEC} -n 1 ./test8 > test8_1.tmp 2>&1; \
 	  if (${DIFF} output/test8_1.out test8_1.tmp) then true; \
 	  else echo "Possible problem with test8_1, diffs above"; fi; \
 	  ${RM} -f test8_1.tmp
 
 runtest9_1:
-	-@${MPIEXEC} -np 1 ./test9 > test9_1.tmp 2>&1; \
+	-@${MPIEXEC} -n 1 ./test9 > test9_1.tmp 2>&1; \
 	  if (${DIFF} output/test9_1.out test9_1.tmp) then true; \
 	  else echo "Possible problem with test9_1, diffs above"; fi; \
 	  ${RM} -f test9_1.tmp
 
 runtest12_1:
-	-@${MPIEXEC} -np 1 ./test12 > test12_1.tmp 2>&1; \
+	-@${MPIEXEC} -n 1 ./test12 > test12_1.tmp 2>&1; \
 	  if (${DIFF} output/test12_1.out test12_1.tmp) then true; \
 	  else echo "Possible problem with test12_1, diffs above"; fi; \
 	  ${RM} -f test12_1.tmp
 
 runtest13_1:
-	-@${MPIEXEC} -np 1 ./test13 > test13_1.tmp 2>&1; \
+	-@${MPIEXEC} -n 1 ./test13 > test13_1.tmp 2>&1; \
 	  if (${DIFF} output/test13_1.out test13_1.tmp) then true; \
 	  else echo "Possible problem with test13_1, diffs above"; fi; \
 	  ${RM} -f test13_1.tmp
 
 runtest14f_1:
-	-@${MPIEXEC} -np 1 ./test14f > test14f_1.tmp 2>&1; \
+	-@${MPIEXEC} -n 1 ./test14f > test14f_1.tmp 2>&1; \
 	  if (${DIFF} output/test14f_1.out test14f_1.tmp) then true; \
 	  else echo "Possible problem with test14f_1, diffs above"; fi; \
 	  ${RM} -f test14f_1.tmp
 
 runtest15_1:
-	-@${MPIEXEC} -np 1 ./test15 > test15_1.tmp 2>&1; \
+	-@${MPIEXEC} -n 1 ./test15 > test15_1.tmp 2>&1; \
 	  if (${DIFF} output/test15_1.out test15_1.tmp) then true; \
 	  else echo "Possible problem with test15_1, diffs above"; fi; \
 	  ${RM} -f test15_1.tmp

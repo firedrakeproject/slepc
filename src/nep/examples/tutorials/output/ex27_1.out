@@ -1,8 +1,6 @@
 
 Square root eigenproblem, n=100 (in split form)
 
- Number of NEP iterations = 1
-
  Solution method: nleigs
  Number of requested eigenvalues: 3
  All requested eigenvalues computed up to the required tolerance:

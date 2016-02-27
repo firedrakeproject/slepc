@@ -47,7 +47,7 @@ int main(int argc,char **argv)
   NEP            nep;             /* nonlinear eigensolver context */
   Mat            F,A[2];             
   NEPType        type;
-  PetscInt       n=100,nev,its,Istart,Iend,i;
+  PetscInt       n=100,nev,Istart,Iend,i;
   PetscErrorCode ierr;
   PetscBool      split=PETSC_TRUE;
   RG             rg;
@@ -143,12 +143,6 @@ int main(int argc,char **argv)
                       Solve the eigensystem
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
   ierr = NEPSolve(nep);CHKERRQ(ierr);
-  ierr = NEPGetIterationNumber(nep,&its);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," Number of NEP iterations = %D\n\n",its);CHKERRQ(ierr);
-
-  /*
-     Optional: Get some information from the solver and display it
-  */
   ierr = NEPGetType(nep,&type);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD," Solution method: %s\n",type);CHKERRQ(ierr);
   ierr = NEPGetDimensions(nep,&nev,NULL,NULL);CHKERRQ(ierr);

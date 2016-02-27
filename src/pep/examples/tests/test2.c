@@ -67,7 +67,7 @@ int main(int argc,char **argv)
   ierr = MatSetUp(K);CHKERRQ(ierr);
 
   ierr = MatGetOwnershipRange(K,&Istart,&Iend);CHKERRQ(ierr);
-  for (i=Istart; i<Iend; i++) {
+  for (i=Istart;i<Iend;i++) {
     if (i>0) {
       ierr = MatSetValue(K,i,i-1,-kappa,INSERT_VALUES);CHKERRQ(ierr);
     }
@@ -87,7 +87,7 @@ int main(int argc,char **argv)
   ierr = MatSetUp(C);CHKERRQ(ierr);
 
   ierr = MatGetOwnershipRange(C,&Istart,&Iend);CHKERRQ(ierr);
-  for (i=Istart; i<Iend; i++) {
+  for (i=Istart;i<Iend;i++) {
     if (i>0) {
       ierr = MatSetValue(C,i,i-1,-tau,INSERT_VALUES);CHKERRQ(ierr);
     }
@@ -106,7 +106,7 @@ int main(int argc,char **argv)
   ierr = MatSetFromOptions(M);CHKERRQ(ierr);
   ierr = MatSetUp(M);CHKERRQ(ierr);
   ierr = MatGetOwnershipRange(M,&Istart,&Iend);CHKERRQ(ierr);
-  for (i=Istart; i<Iend; i++) {
+  for (i=Istart;i<Iend;i++) {
     ierr = MatSetValue(M,i,i,mu,INSERT_VALUES);CHKERRQ(ierr);
   }
   ierr = MatAssemblyBegin(M,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
@@ -116,14 +116,7 @@ int main(int argc,char **argv)
                 Create the eigensolver and set various options
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  /*
-     Create eigensolver context
-  */
   ierr = PEPCreate(PETSC_COMM_WORLD,&pep);CHKERRQ(ierr);
-
-  /*
-     Set matrices, the problem type and other settings
-  */
   A[0] = K; A[1] = C; A[2] = M;
   ierr = PEPSetOperators(pep,3,A);CHKERRQ(ierr);
   ierr = PEPSetProblemType(pep,PEP_GENERAL);CHKERRQ(ierr);

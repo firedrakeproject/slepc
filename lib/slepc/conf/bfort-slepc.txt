@@ -23,12 +23,14 @@ native NEPConv
 native NEPStop
 native NEPErrorType
 native NEPRefine
+native NEPRefineScheme
 native NEPConvergedReason
 native PEPProblemType
 native PEPWhich
 native PEPBasis
 native PEPScale
 native PEPRefine
+native PEPRefineScheme
 native PEPExtract
 native PEPErrorType
 native PEPConv
