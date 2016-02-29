@@ -22,8 +22,8 @@
 
 import os, sys, time, shutil
 
-def AddDefine(conffile,name,value):
-  conffile.write('#ifndef SLEPC_'+name+'\n#define SLEPC_'+name+' "'+value+'"\n#endif\n\n')
+def AddDefine(conffile,name,value,prefix='SLEPC_'):
+  conffile.write('#ifndef '+prefix+name+'\n#define '+prefix+name+' "'+value+'"\n#endif\n\n')
 
 def CreateFile(basedir,fname,log):
   ''' Create file basedir/fname and return path string '''
@@ -268,6 +268,9 @@ slepcvars.write('TEST_RUNS = '+' '.join(testruns)+'\n')
 # Write initial part of file slepcconf.h
 slepcconf.write('#if !defined(__SLEPCCONF_H)\n')
 slepcconf.write('#define __SLEPCCONF_H\n\n')
+AddDefine(slepcconf,'DIR',petsc.dir,'PETSC_')
+AddDefine(slepcconf,'ARCH',petsc.arch,'PETSC_')
+AddDefine(slepcconf,'DIR',slepc.dir)
 AddDefine(slepcconf,'LIB_DIR',os.path.join(slepc.prefixdir,'lib'))
 if slepc.isrepo:
   AddDefine(slepcconf,'VERSION_GIT',slepc.gitrev)
