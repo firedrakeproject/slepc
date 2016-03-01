@@ -268,8 +268,8 @@ slepcvars.write('TEST_RUNS = '+' '.join(testruns)+'\n')
 # Write initial part of file slepcconf.h
 slepcconf.write('#if !defined(__SLEPCCONF_H)\n')
 slepcconf.write('#define __SLEPCCONF_H\n\n')
-AddDefine(slepcconf,'DIR',petsc.dir,'PETSC_')
-AddDefine(slepcconf,'ARCH',petsc.arch,'PETSC_')
+AddDefine(slepcconf,'PETSC_DIR',petsc.dir)
+AddDefine(slepcconf,'PETSC_ARCH',petsc.arch)
 AddDefine(slepcconf,'DIR',slepc.dir)
 AddDefine(slepcconf,'LIB_DIR',os.path.join(slepc.prefixdir,'lib'))
 if slepc.isrepo:
