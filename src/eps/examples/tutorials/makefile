@@ -218,7 +218,7 @@ runex11_1:
 	   ${RM} -f ex11_1.tmp
 
 runex12_1:
-	-@${MPIEXEC} -n 1 ./ex12 > ex12_1.tmp 2>&1; \
+	-@${MPIEXEC} -n 1 ./ex12 -eps_krylovschur_nev 30 > ex12_1.tmp 2>&1; \
 	   if (${DIFF} output/ex12_1.out ex12_1.tmp) then true; \
 	   else echo "Possible problem with ex12_1, diffs above"; fi; \
 	   ${RM} -f ex12_1.tmp
