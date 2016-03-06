@@ -302,27 +302,32 @@ static PetscErrorCode EPSErrorView_ASCII(EPS eps,EPSErrorType etype,PetscViewer 
   PetscBool      errok;
   PetscReal      error,re,im;
   PetscScalar    kr,ki;
-  PetscInt       i,j;
+  PetscInt       i,j,nvals;
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  if (eps->nconv<eps->nev) {
+  if (eps->which!=EPS_ALL && eps->nconv<eps->nev) {
     ierr = PetscViewerASCIIPrintf(viewer," Problem: less than %D eigenvalues converged\n\n",eps->nev);CHKERRQ(ierr);
     PetscFunctionReturn(0);
   }
   errok = PETSC_TRUE;
-  for (i=0;i<eps->nev;i++) {
+  nvals = (eps->which==EPS_ALL)? eps->nconv: eps->nev;
+  for (i=0;i<nvals;i++) {
     ierr = EPSComputeError(eps,i,etype,&error);CHKERRQ(ierr);
     errok = (errok && error<5.0*eps->tol)? PETSC_TRUE: PETSC_FALSE;
   }
   if (!errok) {
-    ierr = PetscViewerASCIIPrintf(viewer," Problem: some of the first %D relative errors are higher than the tolerance\n\n",eps->nev);CHKERRQ(ierr);
+    ierr = PetscViewerASCIIPrintf(viewer," Problem: some of the first %D relative errors are higher than the tolerance\n\n",nvals);CHKERRQ(ierr);
     PetscFunctionReturn(0);
   }
-  ierr = PetscViewerASCIIPrintf(viewer," All requested eigenvalues computed up to the required tolerance:");CHKERRQ(ierr);
-  for (i=0;i<=(eps->nev-1)/8;i++) {
+  if (eps->which==EPS_ALL) {
+    ierr = PetscViewerASCIIPrintf(viewer," Found %D eigenvalues, all of them computed up to the required tolerance:",nvals);CHKERRQ(ierr);
+  } else {
+    ierr = PetscViewerASCIIPrintf(viewer," All requested eigenvalues computed up to the required tolerance:");CHKERRQ(ierr);
+  }
+  for (i=0;i<=(nvals-1)/8;i++) {
     ierr = PetscViewerASCIIPrintf(viewer,"\n     ");CHKERRQ(ierr);
-    for (j=0;j<PetscMin(8,eps->nev-8*i);j++) {
+    for (j=0;j<PetscMin(8,nvals-8*i);j++) {
       ierr = EPSGetEigenpair(eps,8*i+j,&kr,&ki,NULL,NULL);CHKERRQ(ierr);
 #if defined(PETSC_USE_COMPLEX)
       re = PetscRealPart(kr);
@@ -338,7 +343,7 @@ static PetscErrorCode EPSErrorView_ASCII(EPS eps,EPSErrorType etype,PetscViewer 
       } else {
         ierr = PetscViewerASCIIPrintf(viewer,"%.5f",(double)re);CHKERRQ(ierr);
       }
-      if (8*i+j+1<eps->nev) { ierr = PetscViewerASCIIPrintf(viewer,", ");CHKERRQ(ierr); }
+      if (8*i+j+1<nvals) { ierr = PetscViewerASCIIPrintf(viewer,", ");CHKERRQ(ierr); }
     }
   }
   ierr = PetscViewerASCIIPrintf(viewer,"\n\n");CHKERRQ(ierr);
