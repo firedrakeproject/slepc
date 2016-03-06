@@ -504,7 +504,7 @@ PetscErrorCode EPSJDSetConstCorrectionTol_JD(EPS eps,PetscBool constant)
   EPS_DAVIDSON *data = (EPS_DAVIDSON*)eps->data;
 
   PetscFunctionBegin;
-  data->dynamic = (!constant)? PETSC_TRUE: PETSC_FALSE;
+  data->dynamic = PetscNot(constant);
   PetscFunctionReturn(0);
 }
 
@@ -515,7 +515,7 @@ PetscErrorCode EPSJDGetConstCorrectionTol_JD(EPS eps,PetscBool *constant)
   EPS_DAVIDSON *data = (EPS_DAVIDSON*)eps->data;
 
   PetscFunctionBegin;
-  *constant = (!data->dynamic)? PETSC_TRUE: PETSC_FALSE;
+  *constant = PetscNot(data->dynamic);
   PetscFunctionReturn(0);
 }
 

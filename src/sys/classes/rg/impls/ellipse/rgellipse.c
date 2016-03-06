@@ -157,8 +157,8 @@ PetscErrorCode RGIsTrivial_Ellipse(RG rg,PetscBool *trivial)
   RG_ELLIPSE *ctx = (RG_ELLIPSE*)rg->data;
 
   PetscFunctionBegin;
-  if (rg->complement) *trivial = (ctx->radius==0.0)? PETSC_TRUE: PETSC_FALSE;
-  else *trivial = (ctx->radius>=PETSC_MAX_REAL)? PETSC_TRUE: PETSC_FALSE;
+  if (rg->complement) *trivial = PetscNot(ctx->radius);
+  else *trivial = PetscNot(ctx->radius<PETSC_MAX_REAL);
   PetscFunctionReturn(0);
 }
 

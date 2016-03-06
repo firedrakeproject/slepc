@@ -1538,7 +1538,7 @@ PetscErrorCode PEPNewtonRefinement_TOAR(PEP pep,PetscScalar sigma,PetscInt *maxi
   for (i=0;i<its;i++) {
     /* Pre-compute the polynomial basis evaluated in H */
     ierr = PEPEvaluateBasisforMatrix(pep,nmat,k,H,ldh,fH);
-    ierr = PEPNRefSetUp(pep,k,H,ldh,matctx,(i==0)?PETSC_TRUE:PETSC_FALSE);CHKERRQ(ierr);
+    ierr = PEPNRefSetUp(pep,k,H,ldh,matctx,PetscNot(i));CHKERRQ(ierr);
     /* Solve the linear system */
     ierr = PEPNRefForwardSubstitution(pep,k,S,lds,H,ldh,fH,dV,dVS,&rds,dH,k,pep->refineksp,matctx);CHKERRQ(ierr);
     /* Update X (=V*S) and H, and orthogonalize [X;X*fH1;...;XfH(deg-1)] */

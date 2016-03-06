@@ -60,7 +60,7 @@ PetscErrorCode EPSSetUp_LAPACK(EPS eps)
       ierrb = 0;
     }
     PetscPopErrorHandler();
-    denseok = (ierra == 0 && ierrb == 0)? PETSC_TRUE: PETSC_FALSE;
+    denseok = PetscNot(ierra || ierrb);
   }
 
   /* setup DS */

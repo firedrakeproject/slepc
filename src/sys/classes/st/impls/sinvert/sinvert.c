@@ -129,7 +129,7 @@ PetscErrorCode STSetUp_Sinvert(ST st)
     ierr = MatDestroy(&st->T[0]);CHKERRQ(ierr);
     st->T[0] = st->A[k];
     for (k=1;k<nmat;k++) {
-      ierr = STMatMAXPY_Private(st,nmat>2?st->sigma:-st->sigma,0.0,nmat-k-1,coeffs?coeffs+(k*(k+1))/2:NULL,st->state==ST_STATE_UPDATED?PETSC_FALSE:PETSC_TRUE,&st->T[k]);CHKERRQ(ierr);
+      ierr = STMatMAXPY_Private(st,nmat>2?st->sigma:-st->sigma,0.0,nmat-k-1,coeffs?coeffs+(k*(k+1))/2:NULL,PetscNot(st->state==ST_STATE_UPDATED),&st->T[k]);CHKERRQ(ierr);
     }
     if (nmat>2) { ierr = PetscFree(coeffs);CHKERRQ(ierr); }
     ierr = PetscObjectReference((PetscObject)st->T[nmat-1]);CHKERRQ(ierr);
