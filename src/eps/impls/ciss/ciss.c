@@ -927,10 +927,18 @@ PetscErrorCode EPSSetUp_CISS(EPS eps)
   }
   ierr = PetscLogObjectParent((PetscObject)eps,(PetscObject)ctx->Y);CHKERRQ(ierr);
 
-  if (eps->ishermitian && eps->ispositive) {
-    ierr = DSSetType(eps->ds,DSGHEP);CHKERRQ(ierr);
+  if (eps->isgeneralized) {
+    if (eps->ishermitian && eps->ispositive) {
+      ierr = DSSetType(eps->ds,DSGHEP);CHKERRQ(ierr);
+    } else {
+      ierr = DSSetType(eps->ds,DSGNHEP);CHKERRQ(ierr);
+    }
   } else {
-    ierr = DSSetType(eps->ds,DSGNHEP);CHKERRQ(ierr);
+    if (eps->ishermitian) {
+      ierr = DSSetType(eps->ds,DSGHEP);CHKERRQ(ierr);
+    } else {
+      ierr = DSSetType(eps->ds,DSGNHEP);CHKERRQ(ierr);
+    }
   }
   ierr = DSAllocate(eps->ds,eps->ncv);CHKERRQ(ierr);
   ierr = EPSSetWorkVecs(eps,2);CHKERRQ(ierr);
