@@ -181,7 +181,7 @@ PetscErrorCode SVDSolve_Lanczos(SVD svd)
 {
   PetscErrorCode ierr;
   SVD_LANCZOS    *lanczos = (SVD_LANCZOS*)svd->data;
-  PetscReal      *alpha,*beta,lastbeta,norm;
+  PetscReal      *alpha,*beta,lastbeta,norm,resnorm;
   PetscScalar    *swork,*w,*Q,*PT;
   PetscInt       i,k,j,nv,ld;
   Vec            u=0,u_1=0;
@@ -234,8 +234,8 @@ PetscErrorCode SVDSolve_Lanczos(SVD svd)
     ierr = DSGetArray(svd->ds,DS_MAT_U,&Q);CHKERRQ(ierr);
     for (i=svd->nconv;i<nv;i++) {
       svd->sigma[i] = PetscRealPart(w[i]);
-      svd->errest[i] = PetscAbsScalar(Q[nv-1+i*ld])*lastbeta;
-      if (svd->sigma[i] > svd->tol) svd->errest[i] /= svd->sigma[i];
+      resnorm = PetscAbsScalar(Q[nv-1+i*ld])*lastbeta;
+      ierr = (*svd->converged)(svd,svd->sigma[i],resnorm,&svd->errest[i],svd->convergedctx);CHKERRQ(ierr);
       if (conv) {
         if (svd->errest[i] < svd->tol) k++;
         else conv = PETSC_FALSE;
@@ -244,8 +244,7 @@ PetscErrorCode SVDSolve_Lanczos(SVD svd)
     ierr = DSRestoreArray(svd->ds,DS_MAT_U,&Q);CHKERRQ(ierr);
 
     /* check convergence */
-    if (svd->its >= svd->max_it) svd->reason = SVD_DIVERGED_ITS;
-    if (svd->nconv+k >= svd->nsv) svd->reason = SVD_CONVERGED_TOL;
+    ierr = (*svd->stopping)(svd,svd->its,svd->max_it,svd->nconv+k,svd->nsv,&svd->reason,svd->stoppingctx);CHKERRQ(ierr);
 
     /* compute restart vector */
     ierr = DSGetArray(svd->ds,DS_MAT_VT,&PT);CHKERRQ(ierr);

@@ -96,7 +96,6 @@ PetscErrorCode NEPSolve(NEP nep)
   if (!nep->reason) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_PLIB,"Internal error, solver returned without setting converged reason");
 
   if (nep->refine==NEP_REFINE_SIMPLE && nep->rits>0 && nep->nconv>0) {
-    if (nep->fui!=NEP_USER_INTERFACE_SPLIT) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"Iterative refinement only implemented in split form");
     ierr = NEPComputeVectors(nep);CHKERRQ(ierr);
     ierr = NEPNewtonRefinementSimple(nep,&nep->rits,&nep->reftol,nep->nconv);CHKERRQ(ierr);
     nep->state = NEP_STATE_EIGENVECTORS;
@@ -176,7 +175,7 @@ PetscErrorCode NEPProjectOperator(NEP nep,PetscInt j0,PetscInt j1)
 +  nep    - the nonlinear eigensolver context
 .  lambda - scalar argument
 .  x      - vector to be multiplied against
--  v      - workspace vector
+-  v      - workspace vector (used only in the case of split form)
 
    Output Parameters:
 +  y   - result vector
@@ -204,8 +203,11 @@ PetscErrorCode NEPApplyFunction(NEP nep,PetscScalar lambda,Vec x,Vec v,Vec y,Mat
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
   PetscValidLogicalCollectiveScalar(nep,lambda,2);
   PetscValidHeaderSpecific(x,VEC_CLASSID,3);
-  PetscValidHeaderSpecific(y,VEC_CLASSID,4);
+  if (v) PetscValidHeaderSpecific(v,VEC_CLASSID,4);
   PetscValidHeaderSpecific(y,VEC_CLASSID,5);
+  if (A) PetscValidHeaderSpecific(A,MAT_CLASSID,6);
+  if (B) PetscValidHeaderSpecific(B,MAT_CLASSID,7);
+
   if (nep->fui==NEP_USER_INTERFACE_SPLIT) {
     ierr = VecSet(y,0.0);CHKERRQ(ierr);
     for (i=0;i<nep->nt;i++) {
@@ -231,7 +233,7 @@ PetscErrorCode NEPApplyFunction(NEP nep,PetscScalar lambda,Vec x,Vec v,Vec y,Mat
 +  nep    - the nonlinear eigensolver context
 .  lambda - scalar argument
 .  x      - vector to be multiplied against
--  v      - workspace vector
+-  v      - workspace vector (used only in the case of split form)
 
    Output Parameters:
 +  y   - result vector
@@ -258,8 +260,10 @@ PetscErrorCode NEPApplyJacobian(NEP nep,PetscScalar lambda,Vec x,Vec v,Vec y,Mat
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
   PetscValidLogicalCollectiveScalar(nep,lambda,2);
   PetscValidHeaderSpecific(x,VEC_CLASSID,3);
-  PetscValidHeaderSpecific(y,VEC_CLASSID,4);
+  if (v) PetscValidHeaderSpecific(v,VEC_CLASSID,4);
   PetscValidHeaderSpecific(y,VEC_CLASSID,5);
+  if (A) PetscValidHeaderSpecific(A,MAT_CLASSID,6);
+
   if (nep->fui==NEP_USER_INTERFACE_SPLIT) {
     ierr = VecSet(y,0.0);CHKERRQ(ierr);
     for (i=0;i<nep->nt;i++) {
@@ -354,14 +358,11 @@ PetscErrorCode NEPGetConverged(NEP nep,PetscInt *nconv)
 .  reason - negative value indicates diverged, positive value converged
 
    Possible values for reason:
-+  NEP_CONVERGED_FNORM_ABS - function norm satisfied absolute tolerance
-.  NEP_CONVERGED_FNORM_RELATIVE - function norm satisfied relative tolerance
-.  NEP_CONVERGED_SNORM_RELATIVE - step norm satisfied relative tolerance
-.  NEP_DIVERGED_LINEAR_SOLVE - inner linear solve failed
-.  NEP_DIVERGED_FUNCTION_COUNT - reached maximum allowed function evaluations
-.  NEP_DIVERGED_MAX_IT - required more than its to reach convergence
++  NEP_CONVERGED_TOL - converged up to tolerance
+.  NEP_CONVERGED_USER - converged due to a user-defined condition
+.  NEP_DIVERGED_ITS - required more than its to reach convergence
 .  NEP_DIVERGED_BREAKDOWN - generic breakdown in method
--  NEP_DIVERGED_FNORM_NAN - Inf or NaN detected in function evaluation
+-  NEP_DIVERGED_LINEAR_SOLVE - inner linear solve failed
 
    Note:
    Can only be called after the call to NEPSolve() is complete.
@@ -506,17 +507,18 @@ PetscErrorCode NEPGetErrorEstimate(NEP nep,PetscInt i,PetscReal *errest)
    Input Parameters:
      lambda - eigenvalue
      x      - eigenvector
-     w      - array of work vectors (only one vector)
+     w      - array of work vectors (two vectors in split form, one vector otherwise)
 */
 PetscErrorCode NEPComputeResidualNorm_Private(NEP nep,PetscScalar lambda,Vec x,Vec *w,PetscReal *norm)
 {
   PetscErrorCode ierr;
-  Mat            T=nep->function;
+  Vec            y,z=NULL;
 
   PetscFunctionBegin;
-  ierr = NEPComputeFunction(nep,lambda,T,T);CHKERRQ(ierr);
-  ierr = MatMult(T,x,*w);CHKERRQ(ierr);
-  ierr = VecNorm(*w,NORM_2,norm);CHKERRQ(ierr);
+  y = w[0];
+  if (nep->fui==NEP_USER_INTERFACE_SPLIT) z = w[1];
+  ierr = NEPApplyFunction(nep,lambda,x,z,y,nep->function,nep->function_pre);CHKERRQ(ierr);
+  ierr = VecNorm(y,NORM_2,norm);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -548,9 +550,11 @@ PetscErrorCode NEPComputeResidualNorm_Private(NEP nep,PetscScalar lambda,Vec x,V
 PetscErrorCode NEPComputeError(NEP nep,PetscInt i,NEPErrorType type,PetscReal *error)
 {
   PetscErrorCode ierr;
-  Vec            xr,xi=NULL,w;
-  PetscScalar    kr,ki;
-  PetscReal      er;
+  Vec            xr,xi=NULL;
+  PetscInt       j,nwork,issplit=0;
+  PetscScalar    kr,ki,s;
+  PetscReal      er,z=0.0;
+  PetscBool      flg;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
@@ -561,20 +565,26 @@ PetscErrorCode NEPComputeError(NEP nep,PetscInt i,NEPErrorType type,PetscReal *e
 
   /* allocate work vectors */
 #if defined(PETSC_USE_COMPLEX)
-  ierr = NEPSetWorkVecs(nep,2);CHKERRQ(ierr);
+  nwork = 2;
 #else
-  ierr = NEPSetWorkVecs(nep,3);CHKERRQ(ierr);
-  xi = nep->work[2];
+  nwork = 3;
 #endif
-  xr = nep->work[0];
-  w  = nep->work[1];
+  if (nep->fui==NEP_USER_INTERFACE_SPLIT) {
+    issplit = 1;
+    nwork++;  /* need an extra work vector for NEPComputeResidualNorm_Private */
+  }
+  ierr = NEPSetWorkVecs(nep,nwork);CHKERRQ(ierr);
+  xr = nep->work[issplit+1];
+#if !defined(PETSC_USE_COMPLEX)
+  xi = nep->work[issplit+2];
+#endif
 
   /* compute residual norms */
   ierr = NEPGetEigenpair(nep,i,&kr,&ki,xr,xi);CHKERRQ(ierr);
 #if !defined(PETSC_USE_COMPLEX)
   if (ki) SETERRQ(PETSC_COMM_SELF,1,"Not implemented for complex eigenvalues with real scalars");
 #endif
-  ierr = NEPComputeResidualNorm_Private(nep,kr,xr,&w,error);CHKERRQ(ierr);
+  ierr = NEPComputeResidualNorm_Private(nep,kr,xr,nep->work,error);CHKERRQ(ierr);
   ierr = VecNorm(xr,NORM_2,&er);CHKERRQ(ierr);
 
   /* compute error */
@@ -583,6 +593,26 @@ PetscErrorCode NEPComputeError(NEP nep,PetscInt i,NEPErrorType type,PetscReal *e
       break;
     case NEP_ERROR_RELATIVE:
       *error /= PetscAbsScalar(kr)*er;
+      break;
+    case NEP_ERROR_BACKWARD:
+      if (nep->fui!=NEP_USER_INTERFACE_SPLIT) {
+        *error = 0.0;
+        ierr = PetscInfo(nep,"Backward error only available in split form\n");CHKERRQ(ierr);
+        break;
+      }
+      /* initialization of matrix norms */
+      if (!nep->nrma[0]) {
+        for (j=0;j<nep->nt;j++) {
+          ierr = MatHasOperation(nep->A[j],MATOP_NORM,&flg);CHKERRQ(ierr);
+          if (!flg) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_WRONG,"The computation of backward errors requires a matrix norm operation");
+          ierr = MatNorm(nep->A[j],NORM_INFINITY,&nep->nrma[j]);CHKERRQ(ierr);
+        }
+      }
+      for (j=0;j<nep->nt;j++) {
+        ierr = FNEvaluateFunction(nep->f[j],kr,&s);CHKERRQ(ierr);
+        z = z + nep->nrma[j]*PetscAbsScalar(s);
+      }
+      *error /= z;
       break;
     default:
       SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_OUTOFRANGE,"Invalid error type");
@@ -632,7 +662,6 @@ PetscErrorCode NEPComputeFunction(NEP nep,PetscScalar lambda,Mat A,Mat B)
     ierr = (*nep->computefunction)(nep,lambda,A,B,nep->functionctx);CHKERRQ(ierr);
     PetscStackPop;
     ierr = PetscLogEventEnd(NEP_FunctionEval,nep,A,B,0);CHKERRQ(ierr);
-    nep->nfuncs++;
     break;
   case NEP_USER_INTERFACE_SPLIT:
     ierr = MatZeroEntries(A);CHKERRQ(ierr);

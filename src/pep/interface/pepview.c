@@ -158,20 +158,10 @@ PetscErrorCode PEPView(PEP pep,PetscViewer viewer)
     switch (pep->conv) {
     case PEP_CONV_ABS:
       ierr = PetscViewerASCIIPrintf(viewer,"absolute\n");CHKERRQ(ierr);break;
-    case PEP_CONV_EIG:
+    case PEP_CONV_REL:
       ierr = PetscViewerASCIIPrintf(viewer,"relative to the eigenvalue\n");CHKERRQ(ierr);break;
-    case PEP_CONV_LINEAR:
-      ierr = PetscViewerASCIIPrintf(viewer,"related to the linearized eigenproblem\n");CHKERRQ(ierr);
-      if (pep->nrma) {
-        ierr = PetscViewerASCIIPrintf(viewer,"  computed matrix norms: %g",(double)pep->nrma[0]);CHKERRQ(ierr);
-        for (i=1;i<pep->nmat;i++) {
-          ierr = PetscViewerASCIIPrintf(viewer,", %g",(double)pep->nrma[i]);CHKERRQ(ierr);
-        }
-        ierr = PetscViewerASCIIPrintf(viewer,"\n");CHKERRQ(ierr);
-      }
-      break;
     case PEP_CONV_NORM:
-      ierr = PetscViewerASCIIPrintf(viewer,"related to the matrix norms\n");CHKERRQ(ierr);
+      ierr = PetscViewerASCIIPrintf(viewer,"relative to the matrix norms\n");CHKERRQ(ierr);
       if (pep->nrma) {
         ierr = PetscViewerASCIIPrintf(viewer,"  computed matrix norms: %g",(double)pep->nrma[0]);CHKERRQ(ierr);
         for (i=1;i<pep->nmat;i++) {
@@ -246,7 +236,7 @@ PetscErrorCode PEPReasonView(PEP pep,PetscViewer viewer)
   if (isAscii) {
     ierr = PetscViewerASCIIAddTab(viewer,((PetscObject)pep)->tablevel);CHKERRQ(ierr);
     if (pep->reason > 0) {
-      ierr = PetscViewerASCIIPrintf(viewer,"%s Polynomial eigensolve converged (%d eigenpair%s) due to %s; iterations %D\n",((PetscObject)pep)->prefix?((PetscObject)pep)->prefix:"",pep->nconv,(pep->nconv>1)?"s":"",PEPConvergedReasons[pep->reason],pep->its);CHKERRQ(ierr);
+      ierr = PetscViewerASCIIPrintf(viewer,"%s Polynomial eigensolve converged (%D eigenpair%s) due to %s; iterations %D\n",((PetscObject)pep)->prefix?((PetscObject)pep)->prefix:"",pep->nconv,(pep->nconv>1)?"s":"",PEPConvergedReasons[pep->reason],pep->its);CHKERRQ(ierr);
     } else {
       ierr = PetscViewerASCIIPrintf(viewer,"%s Polynomial eigensolve did not converge due to %s; iterations %D\n",((PetscObject)pep)->prefix?((PetscObject)pep)->prefix:"",PEPConvergedReasons[pep->reason],pep->its);CHKERRQ(ierr);
     }
@@ -739,7 +729,7 @@ PetscErrorCode PEPVectorsView(PEP pep,PetscViewer viewer)
     ierr = PEPComputeVectors(pep);CHKERRQ(ierr);
     for (i=0;i<pep->nconv;i++) {
       k = pep->perm[i];
-      ierr = PetscSNPrintf(vname,NMLEN,"V%d_%s",i,ename);CHKERRQ(ierr);
+      ierr = PetscSNPrintf(vname,NMLEN,"V%d_%s",(int)i,ename);CHKERRQ(ierr);
       ierr = BVGetColumn(pep->V,k,&x);CHKERRQ(ierr);
       ierr = PetscObjectSetName((PetscObject)x,vname);CHKERRQ(ierr);
       ierr = VecView(x,viewer);CHKERRQ(ierr);

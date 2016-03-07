@@ -194,9 +194,9 @@ static PetscErrorCode SolveLinearSystem(NEP nep,Mat T,Mat dT,BV V,PetscInt L_sta
       ierr = BVGetColumn(ctx->Y,i*ctx->L_max+j,&yj);CHKERRQ(ierr);
       ierr = MatMult(dT,vj,Bvj);CHKERRQ(ierr);
       if (ctx->usest) {
-	ierr = KSPSolve(ksp,Bvj,yj);CHKERRQ(ierr);
+        ierr = KSPSolve(ksp,Bvj,yj);CHKERRQ(ierr);
       } else {
-	ierr = KSPSolve(ctx->ksp[i],Bvj,yj);CHKERRQ(ierr);
+        ierr = KSPSolve(ctx->ksp[i],Bvj,yj);CHKERRQ(ierr);
       }
       ierr = BVRestoreColumn(V,j,&vj);CHKERRQ(ierr);
       ierr = BVRestoreColumn(ctx->Y,i*ctx->L_max+j,&yj);CHKERRQ(ierr);
@@ -241,7 +241,7 @@ static PetscErrorCode EstimateNumberEigs(NEP nep,PetscInt *L_add)
     else sum += tmp;
   }
   ctx->est_eig = PetscAbsScalar(sum/(PetscReal)ctx->L);
-  eta = PetscPowReal(10,-PetscLog10Real(nep->rtol)/ctx->N);
+  eta = PetscPowReal(10,-PetscLog10Real(nep->tol)/ctx->N);
   ierr = PetscInfo1(nep,"Estimation_#Eig %f\n",(double)ctx->est_eig);CHKERRQ(ierr);
   *L_add = (PetscInt)PetscCeilReal((ctx->est_eig*eta)/ctx->M) - ctx->L;
   if (*L_add < 0) *L_add = 0;
@@ -277,7 +277,7 @@ static PetscErrorCode CalcMu(NEP nep, PetscScalar *Mu)
   for (i=0;i<ctx->num_solve_point;i++) {
     for (j=0;j<ctx->L;j++) {
       for (k=0;k<ctx->L;k++) {
-	temp[k+j*ctx->L+i*ctx->L*ctx->L]=m[k+j*ctx->L+i*ctx->L*ctx->L_max];
+        temp[k+j*ctx->L+i*ctx->L*ctx->L]=m[k+j*ctx->L+i*ctx->L*ctx->L_max];
       }
     }
   }
@@ -315,7 +315,7 @@ static PetscErrorCode BlockHankel(NEP nep,PetscScalar *Mu,PetscInt s,PetscScalar
   for (k=0;k<L*M;k++)
     for (j=0;j<M;j++) 
       for (i=0;i<L;i++) 
-	H[j*L+i+k*L*M] = Mu[i+k*L+(j+s)*L*L];
+        H[j*L+i+k*L*M] = Mu[i+k*L+(j+s)*L*L];
   PetscFunctionReturn(0);
 }
 
@@ -385,8 +385,8 @@ static PetscErrorCode ConstructS(NEP nep)
       ierr = VecSet(v,0);CHKERRQ(ierr);
       for (i=0;i<ctx->num_solve_point;i++) {
         p_id = i*ctx->subcomm->n + ctx->subcomm_id;
-	ierr = BVSetActiveColumns(ctx->Y,i*ctx->L_max+j,i*ctx->L_max+j+1);CHKERRQ(ierr);
-	ierr = BVMultVec(ctx->Y,ppk[i]*ctx->weight[p_id],1,v,&m);CHKERRQ(ierr);
+        ierr = BVSetActiveColumns(ctx->Y,i*ctx->L_max+j,i*ctx->L_max+j+1);CHKERRQ(ierr);
+        ierr = BVMultVec(ctx->Y,ppk[i]*ctx->weight[p_id],1,v,&m);CHKERRQ(ierr);
       }
       if (ctx->useconj) {
         ierr = VecGetArray(v,&v_data);CHKERRQ(ierr);
@@ -451,7 +451,7 @@ PetscErrorCode NEPSetUp_CISS(NEP nep)
   PetscErrorCode ierr;
   NEP_CISS       *ctx = (NEP_CISS*)nep->data;
   const char     *prefix;
-  PetscInt       i;
+  PetscInt       i,nwork;
   PetscBool      istrivial,isellipse;
   PetscScalar    center;
 
@@ -459,6 +459,7 @@ PetscErrorCode NEPSetUp_CISS(NEP nep)
   nep->ncv = PetscMin(nep->n,ctx->L*ctx->M);
   if (!nep->mpd) nep->mpd = nep->ncv;
   if (!nep->which) nep->which = NEP_LARGEST_MAGNITUDE;
+  if (nep->stopping!=NEPStoppingBasic) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"This solver does not support user-defined stopping test");
 
   /* check region */
   ierr = RGIsTrivial(nep->rg,&istrivial);CHKERRQ(ierr);
@@ -501,7 +502,8 @@ PetscErrorCode NEPSetUp_CISS(NEP nep)
 
   ierr = DSSetType(nep->ds,DSGNHEP);CHKERRQ(ierr);
   ierr = DSAllocate(nep->ds,nep->ncv);CHKERRQ(ierr);
-  ierr = NEPSetWorkVecs(nep,2);CHKERRQ(ierr);
+  nwork = (nep->fui==NEP_USER_INTERFACE_SPLIT)? 2: 1;
+  ierr = NEPSetWorkVecs(nep,nwork);CHKERRQ(ierr);
 
   /* dispatch solve method */
   nep->ops->solve = NEPSolve_CISS;
@@ -515,23 +517,19 @@ PetscErrorCode NEPSolve_CISS(NEP nep)
   PetscErrorCode ierr;
   NEP_CISS       *ctx = (NEP_CISS*)nep->data;
   Mat            X,M;
-  PetscInt       i,j,ld,L_add=0,nv=0,L_base=ctx->L,inner,outer,nlocal,*inside;
+  PetscInt       i,j,ld,L_add=0,nv=0,L_base=ctx->L,inner,outer,*inside;
   PetscScalar    *Mu,*H0,*H1,*rr,*temp,center;
   PetscReal      error,max_error,radius;
   PetscBool      *fl1;
-  Vec            si,w[3];
+  Vec            si;
   SlepcSC        sc;
 
   PetscFunctionBegin;
-  w[0] = nep->work[0];
-  w[1] = NULL;
-  w[2] = nep->work[1];
   ierr = DSGetSlepcSC(nep->ds,&sc);CHKERRQ(ierr);
   sc->comparison    = SlepcCompareLargestMagnitude;
   sc->comparisonctx = NULL;
   sc->map           = NULL;
   sc->mapobj        = NULL;
-  ierr = VecGetLocalSize(w[0],&nlocal);CHKERRQ(ierr);
   ierr = DSGetLeadingDimension(nep->ds,&ld);CHKERRQ(ierr);
   ierr = SetPathParameter(nep);CHKERRQ(ierr);
   ierr = CISSVecSetRandom(ctx->V,0,ctx->L,nep->rand);CHKERRQ(ierr);
@@ -566,10 +564,10 @@ PetscErrorCode NEPSolve_CISS(NEP nep)
       ierr = BlockHankel(nep,Mu,0,H0);CHKERRQ(ierr);
       ierr = SVD_H0(nep,H0,&nv);CHKERRQ(ierr);
       if (ctx->sigma[0]>ctx->delta && nv==ctx->L*ctx->M && inner!=ctx->refine_inner) {
-	ierr = ConstructS(nep);CHKERRQ(ierr);
-	ierr = BVSetActiveColumns(ctx->S,0,ctx->L);CHKERRQ(ierr);
-	ierr = BVCopy(ctx->S,ctx->V);CHKERRQ(ierr);
-	ierr = SolveLinearSystem(nep,nep->function,nep->jacobian,ctx->V,0,ctx->L,PETSC_FALSE);CHKERRQ(ierr);
+        ierr = ConstructS(nep);CHKERRQ(ierr);
+        ierr = BVSetActiveColumns(ctx->S,0,ctx->L);CHKERRQ(ierr);
+        ierr = BVCopy(ctx->S,ctx->V);CHKERRQ(ierr);
+        ierr = SolveLinearSystem(nep,nep->function,nep->jacobian,ctx->V,0,ctx->L,PETSC_FALSE);CHKERRQ(ierr);
       } else break;
     }
 
@@ -582,12 +580,12 @@ PetscErrorCode NEPSolve_CISS(NEP nep)
     ierr = DSGetArray(nep->ds,DS_MAT_A,&temp);CHKERRQ(ierr);
     for (j=0;j<nv;j++)
       for (i=0;i<nv;i++)
-	temp[i+j*ld] = H1[i+j*ctx->L*ctx->M];
+        temp[i+j*ld] = H1[i+j*ctx->L*ctx->M];
     ierr = DSRestoreArray(nep->ds,DS_MAT_A,&temp);CHKERRQ(ierr);
     ierr = DSGetArray(nep->ds,DS_MAT_B,&temp);CHKERRQ(ierr);
     for (j=0;j<nv;j++) 
       for (i=0;i<nv;i++)
-	temp[i+j*ld] = H0[i+j*ctx->L*ctx->M];
+        temp[i+j*ld] = H0[i+j*ctx->L*ctx->M];
     ierr = DSRestoreArray(nep->ds,DS_MAT_B,&temp);CHKERRQ(ierr);
     ierr = DSSolve(nep->ds,nep->eigr,nep->eigi);CHKERRQ(ierr);
     ierr = DSVectors(nep->ds,DS_MAT_X,NULL,NULL);CHKERRQ(ierr);
@@ -629,11 +627,12 @@ PetscErrorCode NEPSolve_CISS(NEP nep)
     for (i=0;i<nep->nconv;i++) {
       ierr = BVGetColumn(nep->V,i,&si);CHKERRQ(ierr);
       ierr = VecNormalize(si,NULL);CHKERRQ(ierr);
-      ierr = NEPComputeResidualNorm_Private(nep,nep->eigr[i],si,w,&error);CHKERRQ(ierr);
+      ierr = NEPComputeResidualNorm_Private(nep,nep->eigr[i],si,nep->work,&error);CHKERRQ(ierr);
+      ierr = (*nep->converged)(nep,nep->eigr[i],0,error,&error,nep->convergedctx);CHKERRQ(ierr);
       ierr = BVRestoreColumn(nep->V,i,&si);CHKERRQ(ierr);
       max_error = PetscMax(max_error,error);
     }
-    if (max_error <= nep->rtol || outer == ctx->refine_outer) break;
+    if (max_error <= nep->tol || outer == ctx->refine_outer) break;
 
     if (nep->nconv > ctx->L) nv = nep->nconv;
     else if (ctx->L > nv) nv = ctx->L;
@@ -652,7 +651,7 @@ PetscErrorCode NEPSolve_CISS(NEP nep)
     ierr = SolveLinearSystem(nep,nep->function,nep->jacobian,ctx->V,0,ctx->L,PETSC_FALSE);CHKERRQ(ierr);
   }
   ierr = PetscFree3(Mu,H0,H1);CHKERRQ(ierr);  
-  nep->reason = NEP_CONVERGED_FNORM_RELATIVE;
+  nep->reason = NEP_CONVERGED_TOL;
   PetscFunctionReturn(0);
 }
 
@@ -1052,7 +1051,6 @@ PetscErrorCode NEPSetFromOptions_CISS(PetscOptionItems *PetscOptionsObject,NEP n
   ierr = PetscOptionsReal("-nep_ciss_delta","CISS threshold for numerical rank","NEPCISSSetThreshold",r1,&r1,NULL);CHKERRQ(ierr);
   ierr = PetscOptionsReal("-nep_ciss_spurious_threshold","CISS threshold for the spurious eigenpairs","NEPCISSSetThreshold",r2,&r2,NULL);CHKERRQ(ierr);
   ierr = NEPCISSSetThreshold(nep,r1,r2);CHKERRQ(ierr);
-  ierr = PetscOptionsTail();CHKERRQ(ierr);
 
   ierr = NEPCISSGetRefinement(nep,&i6,&i7,&i8);CHKERRQ(ierr);
   ierr = PetscOptionsInt("-nep_ciss_refine_inner","CISS number of inner iterative refinement iterations","NEPCISSSetRefinement",i6,&i6,NULL);CHKERRQ(ierr);
@@ -1060,6 +1058,7 @@ PetscErrorCode NEPSetFromOptions_CISS(PetscOptionItems *PetscOptionsObject,NEP n
   ierr = PetscOptionsInt("-nep_ciss_refine_blocksize","CISS number of blocksize iterative refinement iterations","NEPCISSSetRefinement",i8,&i8,NULL);CHKERRQ(ierr);
   ierr = NEPCISSSetRefinement(nep,i6,i7,i8);CHKERRQ(ierr);
 
+  ierr = PetscOptionsTail();CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

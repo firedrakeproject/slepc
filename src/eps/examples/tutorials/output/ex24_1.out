@@ -1,12 +1,8 @@
 
-Spectrum Folding, N=100 (10x10 grid) target=2.100000
+Spectrum Folding, N=225 (15x15 grid) target=2.100000
 
- Number of iterations of the method: 25
  Solution method: krylovschur
 
  Number of converged eigenpairs: 1
 
-           k              ||Ax-kx||
-   ----------------- ------------------
-       2.032863            1.4e-11
-
+ nconv=1 eigenvalues computed up to the required tolerance: 2.12349

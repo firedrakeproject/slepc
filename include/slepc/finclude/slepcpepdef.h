@@ -42,6 +42,7 @@
 #define PEPRefineScheme    PetscEnum
 #define PEPExtract         PetscEnum
 #define PEPConv            PetscEnum
+#define PEPStop            PetscEnum
 #define PEPErrorType       PetscEnum
 #define PEPConvergedReason PetscEnum
 

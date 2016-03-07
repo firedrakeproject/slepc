@@ -150,6 +150,7 @@ PetscErrorCode EPSSetUp_KrylovSchur(EPS eps)
       ierr = DSAllocate(eps->ds,eps->ncv+1);CHKERRQ(ierr);
       break;
     case EPS_KS_SLICE:
+      if (eps->stopping!=EPSStoppingBasic) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Spectrum slicing does not support user-defined stopping test");
       eps->ops->solve = EPSSolve_KrylovSchur_Slice;
       eps->ops->computevectors = EPSComputeVectors_Slice;
       break;
@@ -223,8 +224,7 @@ PetscErrorCode EPSSolve_KrylovSchur_Default(EPS eps)
 
     /* Check convergence */
     ierr = EPSKrylovConvergence(eps,PETSC_FALSE,eps->nconv,nv-eps->nconv,beta,gamma,&k);CHKERRQ(ierr);
-    if (eps->its >= eps->max_it) eps->reason = EPS_DIVERGED_ITS;
-    if (k >= eps->nev) eps->reason = EPS_CONVERGED_TOL;
+    ierr = (*eps->stopping)(eps,eps->its,eps->max_it,k,eps->nev,&eps->reason,eps->stoppingctx);CHKERRQ(ierr);
     nconv = k;
 
     /* Update l */
@@ -1136,7 +1136,7 @@ PetscErrorCode EPSView_KrylovSchur(EPS eps,PetscViewer viewer)
     if (eps->which==EPS_ALL) {
       ierr = PetscViewerASCIIPrintf(viewer,"  Krylov-Schur: doing spectrum slicing with nev=%D, ncv=%D, mpd=%D\n",ctx->nev,ctx->ncv,ctx->mpd);CHKERRQ(ierr);
       if (ctx->npart>1) {
-        ierr = PetscViewerASCIIPrintf(viewer,"  Krylov-Schur: multi-communicator spectrum slicing with %d partitions\n",ctx->npart);CHKERRQ(ierr);
+        ierr = PetscViewerASCIIPrintf(viewer,"  Krylov-Schur: multi-communicator spectrum slicing with %D partitions\n",ctx->npart);CHKERRQ(ierr);
         if (ctx->detect) { ierr = PetscViewerASCIIPrintf(viewer,"  Krylov-Schur: detecting zeros when factorizing at subinterval boundaries\n");CHKERRQ(ierr); }
       }
     }

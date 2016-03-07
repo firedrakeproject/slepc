@@ -100,7 +100,7 @@ PetscErrorCode STPostSolve_Sinvert(ST st)
       ierr = MatShift(st->A[0],st->sigma);CHKERRQ(ierr);
     }
     st->Astate[0] = ((PetscObject)st->A[0])->state;
-    st->setupcalled = 0;
+    st->state = ST_STATE_INITIAL;
   }
   PetscFunctionReturn(0);
 }
@@ -126,16 +126,19 @@ PetscErrorCode STSetUp_Sinvert(ST st)
     /* T[0] = A_n */
     k = nmat-1;
     ierr = PetscObjectReference((PetscObject)st->A[k]);CHKERRQ(ierr);
+    ierr = MatDestroy(&st->T[0]);CHKERRQ(ierr);
     st->T[0] = st->A[k];
     for (k=1;k<nmat;k++) {
-      ierr = STMatMAXPY_Private(st,nmat>2?st->sigma:-st->sigma,0.0,nmat-k-1,coeffs?coeffs+(k*(k+1))/2:NULL,PETSC_TRUE,&st->T[k]);CHKERRQ(ierr);
+      ierr = STMatMAXPY_Private(st,nmat>2?st->sigma:-st->sigma,0.0,nmat-k-1,coeffs?coeffs+(k*(k+1))/2:NULL,st->state==ST_STATE_UPDATED?PETSC_FALSE:PETSC_TRUE,&st->T[k]);CHKERRQ(ierr);
     }
     if (nmat>2) { ierr = PetscFree(coeffs);CHKERRQ(ierr); }
+    ierr = PetscObjectReference((PetscObject)st->T[nmat-1]);CHKERRQ(ierr);
+    ierr = MatDestroy(&st->P);CHKERRQ(ierr);
     st->P = st->T[nmat-1];
-    ierr = PetscObjectReference((PetscObject)st->P);CHKERRQ(ierr);
   } else {
     for (k=0;k<nmat;k++) {
       ierr = PetscObjectReference((PetscObject)st->A[k]);CHKERRQ(ierr);
+      ierr = MatDestroy(&st->T[k]);CHKERRQ(ierr);
       st->T[k] = st->A[k];
     }
   } 
@@ -159,7 +162,7 @@ PetscErrorCode STSetShift_Sinvert(ST st,PetscScalar newshift)
 
   PetscFunctionBegin;
   /* Nothing to be done if STSetUp has not been called yet */
-  if (!st->setupcalled) PetscFunctionReturn(0);
+  if (!st->state) PetscFunctionReturn(0);
   if (st->transform) {
     if (st->shift_matrix == ST_MATMODE_COPY && nmat>2) {
       nc = (nmat*(nmat+1))/2;

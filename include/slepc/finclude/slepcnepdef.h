@@ -38,11 +38,16 @@
 #define NEPConvergedReason PetscEnum
 #define NEPErrorType       PetscEnum
 #define NEPWhich           PetscEnum
+#define NEPConv            PetscEnum
+#define NEPStop            PetscEnum
 #define NEPRefine          PetscEnum
+#define NEPRefineScheme    PetscEnum
 
 #define NEPRII       'rii'
 #define NEPSLP       'slp'
 #define NEPNARNOLDI  'narnoldi'
 #define NEPCISS      'ciss'
 #define NEPINTERPOL  'interpol'
+#define NEPNLEIGS    'nleigs'
+
 #endif

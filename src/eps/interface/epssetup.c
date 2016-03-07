@@ -278,7 +278,7 @@ PetscErrorCode EPSSetOperators(EPS eps,Mat A,Mat B)
     if (m0!=n) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_WRONG,"B is a non-square matrix");
     if (m!=m0) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_INCOMP,"Dimensions of A and B do not match");
   }
-  if (eps->state) { ierr = EPSReset(eps);CHKERRQ(ierr); }
+  if (eps->state && n!=eps->n) { ierr = EPSReset(eps);CHKERRQ(ierr); }
   eps->nrma = 0.0;
   eps->nrmb = 0.0;
   if (!eps->st) { ierr = EPSGetST(eps,&eps->st);CHKERRQ(ierr); }
@@ -288,6 +288,7 @@ PetscErrorCode EPSSetOperators(EPS eps,Mat A,Mat B)
     nmat = 2;
   } else nmat = 1;
   ierr = STSetOperators(eps->st,nmat,mat);CHKERRQ(ierr);
+  eps->state = EPS_STATE_INITIAL;
   PetscFunctionReturn(0);
 }
 

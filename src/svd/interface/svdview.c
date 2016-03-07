@@ -83,6 +83,15 @@ PetscErrorCode SVDView(SVD svd,PetscViewer viewer)
     ierr = PetscViewerASCIIPrintf(viewer,"  maximum dimension of projected problem (mpd): %D\n",svd->mpd);CHKERRQ(ierr);
     ierr = PetscViewerASCIIPrintf(viewer,"  maximum number of iterations: %D\n",svd->max_it);CHKERRQ(ierr);
     ierr = PetscViewerASCIIPrintf(viewer,"  tolerance: %g\n",(double)svd->tol);CHKERRQ(ierr);
+    ierr = PetscViewerASCIIPrintf(viewer,"  convergence test: ");CHKERRQ(ierr);
+    switch (svd->conv) {
+    case SVD_CONV_ABS:
+      ierr = PetscViewerASCIIPrintf(viewer,"absolute\n");CHKERRQ(ierr);break;
+    case SVD_CONV_REL:
+      ierr = PetscViewerASCIIPrintf(viewer,"relative to the singular value\n");CHKERRQ(ierr);break;
+    case SVD_CONV_USER:
+      ierr = PetscViewerASCIIPrintf(viewer,"user-defined\n");CHKERRQ(ierr);break;
+    }
     if (svd->nini) {
       ierr = PetscViewerASCIIPrintf(viewer,"  dimension of user-provided initial space: %D\n",PetscAbs(svd->nini));CHKERRQ(ierr);
     }
@@ -134,7 +143,7 @@ PetscErrorCode SVDReasonView(SVD svd,PetscViewer viewer)
   if (isAscii) {
     ierr = PetscViewerASCIIAddTab(viewer,((PetscObject)svd)->tablevel);CHKERRQ(ierr);
     if (svd->reason > 0) {
-      ierr = PetscViewerASCIIPrintf(viewer,"%s SVD solve converged (%d singular triplet%s) due to %s; iterations %D\n",((PetscObject)svd)->prefix?((PetscObject)svd)->prefix:"",svd->nconv,(svd->nconv>1)?"s":"",SVDConvergedReasons[svd->reason],svd->its);CHKERRQ(ierr);
+      ierr = PetscViewerASCIIPrintf(viewer,"%s SVD solve converged (%D singular triplet%s) due to %s; iterations %D\n",((PetscObject)svd)->prefix?((PetscObject)svd)->prefix:"",svd->nconv,(svd->nconv>1)?"s":"",SVDConvergedReasons[svd->reason],svd->its);CHKERRQ(ierr);
     } else {
       ierr = PetscViewerASCIIPrintf(viewer,"%s SVD solve did not converge due to %s; iterations %D\n",((PetscObject)svd)->prefix?((PetscObject)svd)->prefix:"",SVDConvergedReasons[svd->reason],svd->its);CHKERRQ(ierr);
     }
@@ -550,12 +559,12 @@ PetscErrorCode SVDVectorsView(SVD svd,PetscViewer viewer)
     ierr = SVDComputeVectors(svd);CHKERRQ(ierr);
     for (i=0;i<svd->nconv;i++) {
       k = svd->perm[i];
-      ierr = PetscSNPrintf(vname,NMLEN,"V%d_%s",i,ename);CHKERRQ(ierr);
+      ierr = PetscSNPrintf(vname,NMLEN,"V%d_%s",(int)i,ename);CHKERRQ(ierr);
       ierr = BVGetColumn(svd->V,k,&x);CHKERRQ(ierr);
       ierr = PetscObjectSetName((PetscObject)x,vname);CHKERRQ(ierr);
       ierr = VecView(x,viewer);CHKERRQ(ierr);
       ierr = BVRestoreColumn(svd->V,k,&x);CHKERRQ(ierr);
-      ierr = PetscSNPrintf(vname,NMLEN,"U%d_%s",i,ename);CHKERRQ(ierr);
+      ierr = PetscSNPrintf(vname,NMLEN,"U%d_%s",(int)i,ename);CHKERRQ(ierr);
       ierr = BVGetColumn(svd->U,k,&x);CHKERRQ(ierr);
       ierr = PetscObjectSetName((PetscObject)x,vname);CHKERRQ(ierr);
       ierr = VecView(x,viewer);CHKERRQ(ierr);

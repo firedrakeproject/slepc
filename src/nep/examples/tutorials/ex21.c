@@ -71,7 +71,7 @@ int main(int argc,char **argv)
   ApplicationCtx ctx;             /* user-defined context */
   MatCtx         *ctxF,*ctxJ;     /* contexts for shell matrices */
   NEPType        type;
-  PetscInt       n=128,nev,its;
+  PetscInt       n=128,nev;
   KSP            ksp;
   PC             pc;
   PetscMPIInt    size;
@@ -149,12 +149,6 @@ int main(int argc,char **argv)
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
   ierr = NEPSolve(nep);CHKERRQ(ierr);
-  ierr = NEPGetIterationNumber(nep,&its);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," Number of NEP iterations = %D\n\n",its);CHKERRQ(ierr);
-
-  /*
-     Optional: Get some information from the solver and display it
-  */
   ierr = NEPGetType(nep,&type);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD," Solution method: %s\n",type);CHKERRQ(ierr);
   ierr = NEPGetDimensions(nep,&nev,NULL,NULL);CHKERRQ(ierr);

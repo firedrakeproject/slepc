@@ -45,8 +45,8 @@ PetscErrorCode NEPSetFromOptions(NEP nep)
 {
   PetscErrorCode   ierr;
   char             type[256],monfilename[PETSC_MAX_PATH_LEN];
-  PetscBool        flg,flg1,flg2,flg3,flg4,flg5;
-  PetscReal        r1,r2,r3;
+  PetscBool        flg,flg1,flg2,flg3;
+  PetscReal        r;
   PetscScalar      s;
   PetscInt         i,j,k;
   PetscViewer      monviewer;
@@ -67,33 +67,37 @@ PetscErrorCode NEPSetFromOptions(NEP nep)
 
     i = nep->npart;
     ierr = PetscOptionsInt("-nep_refine_partitions","Number of partitions of the communicator for iterative refinement","NEPSetRefine",nep->npart,&i,&flg1);CHKERRQ(ierr);
-    r1 = nep->reftol;
-    ierr = PetscOptionsReal("-nep_refine_tol","Tolerance for iterative refinement","NEPSetRefine",nep->reftol,&r1,&flg2);CHKERRQ(ierr);
+    r = nep->reftol;
+    ierr = PetscOptionsReal("-nep_refine_tol","Tolerance for iterative refinement","NEPSetRefine",nep->reftol,&r,&flg2);CHKERRQ(ierr);
     j = nep->rits;
     ierr = PetscOptionsInt("-nep_refine_its","Maximum number of iterations for iterative refinement","NEPSetRefine",nep->rits,&j,&flg3);CHKERRQ(ierr);
     if (flg1 || flg2 || flg3) {
-      ierr = NEPSetRefine(nep,nep->refine,i,r1,j);CHKERRQ(ierr);
+      ierr = NEPSetRefine(nep,nep->refine,i,r,j,nep->scheme);CHKERRQ(ierr);
     }
+
+    ierr = PetscOptionsEnum("-nep_refine_scheme","Scheme used for linear systems within iterative refinement","NEPSetRefine",NEPRefineSchemes,(PetscEnum)nep->scheme,(PetscEnum*)&nep->scheme,NULL);CHKERRQ(ierr);
 
     i = nep->max_it? nep->max_it: PETSC_DEFAULT;
     ierr = PetscOptionsInt("-nep_max_it","Maximum number of iterations","NEPSetTolerances",nep->max_it,&i,&flg1);CHKERRQ(ierr);
-    j = nep->max_funcs? nep->max_funcs: PETSC_DEFAULT;
-    ierr = PetscOptionsInt("-nep_max_funcs","Maximum number of function evaluations","NEPSetTolerances",nep->max_funcs,&j,&flg2);CHKERRQ(ierr);
-    r1 = nep->abstol;
-    ierr = PetscOptionsReal("-nep_atol","Absolute tolerance for residual norm","NEPSetTolerances",nep->abstol==PETSC_DEFAULT?SLEPC_DEFAULT_TOL:nep->abstol,&r1,&flg3);CHKERRQ(ierr);
-    r2 = nep->rtol;
-    ierr = PetscOptionsReal("-nep_rtol","Relative tolerance for residual norm","NEPSetTolerances",nep->rtol==PETSC_DEFAULT?SLEPC_DEFAULT_TOL:nep->rtol,&r2,&flg4);CHKERRQ(ierr);
-    r3 = nep->stol;
-    ierr = PetscOptionsReal("-nep_stol","Relative tolerance for step length","NEPSetTolerances",nep->stol==PETSC_DEFAULT?SLEPC_DEFAULT_TOL:nep->stol,&r3,&flg5);CHKERRQ(ierr);
-    if (flg1 || flg2 || flg3 || flg4 || flg5) {
-      ierr = NEPSetTolerances(nep,r1,r2,r3,i,j);CHKERRQ(ierr);
+    r = nep->tol;
+    ierr = PetscOptionsReal("-nep_tol","Tolerance","NEPSetTolerances",nep->tol==PETSC_DEFAULT?SLEPC_DEFAULT_TOL:nep->tol,&r,&flg2);CHKERRQ(ierr);
+    if (flg1 || flg2) {
+      ierr = NEPSetTolerances(nep,r,i);CHKERRQ(ierr);
     }
 
-    flg  = PETSC_FALSE;
-    ierr = PetscOptionsBool("-nep_convergence_default","Default (relative error) convergence test","NEPSetConvergenceTest",flg,&flg,NULL);CHKERRQ(ierr);
-    if (flg) {
-      ierr = NEPSetConvergenceTest(nep,NEPConvergedDefault,NULL,NULL);CHKERRQ(ierr);
-    }
+    ierr = PetscOptionsBoolGroupBegin("-nep_conv_rel","Relative error convergence test","NEPSetConvergenceTest",&flg);CHKERRQ(ierr);
+    if (flg) { ierr = NEPSetConvergenceTest(nep,NEP_CONV_REL);CHKERRQ(ierr); }
+    ierr = PetscOptionsBoolGroup("-nep_conv_norm","Convergence test relative to the matrix norms","NEPSetConvergenceTest",&flg);CHKERRQ(ierr);
+    if (flg) { ierr = NEPSetConvergenceTest(nep,NEP_CONV_NORM);CHKERRQ(ierr); }
+    ierr = PetscOptionsBoolGroup("-nep_conv_abs","Absolute error convergence test","NEPSetConvergenceTest",&flg);CHKERRQ(ierr);
+    if (flg) { ierr = NEPSetConvergenceTest(nep,NEP_CONV_ABS);CHKERRQ(ierr); }
+    ierr = PetscOptionsBoolGroupEnd("-nep_conv_user","User-defined convergence test","NEPSetConvergenceTest",&flg);CHKERRQ(ierr);
+    if (flg) { ierr = NEPSetConvergenceTest(nep,NEP_CONV_USER);CHKERRQ(ierr); }
+
+    ierr = PetscOptionsBoolGroupBegin("-nep_stop_basic","Stop iteration if all eigenvalues converged or max_it reached","NEPSetStoppingTest",&flg);CHKERRQ(ierr);
+    if (flg) { ierr = NEPSetStoppingTest(nep,NEP_STOP_BASIC);CHKERRQ(ierr); }
+    ierr = PetscOptionsBoolGroupEnd("-nep_stop_user","User-defined stopping test","NEPSetStoppingTest",&flg);CHKERRQ(ierr);
+    if (flg) { ierr = NEPSetStoppingTest(nep,NEP_STOP_USER);CHKERRQ(ierr); }
 
     i = nep->nev;
     ierr = PetscOptionsInt("-nep_nev","Number of eigenvalues to compute","NEPSetDimensions",nep->nev,&i,&flg1);CHKERRQ(ierr);
@@ -200,6 +204,8 @@ PetscErrorCode NEPSetFromOptions(NEP nep)
   if (!nep->ksp) { ierr = NEPGetKSP(nep,&nep->ksp);CHKERRQ(ierr); }
   ierr = KSPSetOperators(nep->ksp,nep->function,nep->function_pre);CHKERRQ(ierr);
   ierr = KSPSetFromOptions(nep->ksp);CHKERRQ(ierr);
+  if (!nep->refineksp) { ierr = NEPRefineGetKSP(nep,&nep->refineksp);CHKERRQ(ierr); }
+  ierr = KSPSetFromOptions(nep->refineksp);CHKERRQ(ierr);
   ierr = PetscRandomSetFromOptions(nep->rand);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -216,12 +222,8 @@ PetscErrorCode NEPSetFromOptions(NEP nep)
 .  nep - the nonlinear eigensolver context
 
    Output Parameters:
-+  abstol - absolute convergence tolerance
-.  rtol   - relative convergence tolerance
-.  stol   - convergence tolerance in terms of the norm of the change in the
-           solution between steps, || delta x || < stol*|| x ||
-.  maxit  - maximum number of iterations
--  maxf   - maximum number of function evaluations
++  tol - the convergence tolerance
+-  maxits - maximum number of iterations
 
    Notes:
    The user can specify NULL for any parameter that is not needed.
@@ -230,40 +232,31 @@ PetscErrorCode NEPSetFromOptions(NEP nep)
 
 .seealso: NEPSetTolerances()
 @*/
-PetscErrorCode NEPGetTolerances(NEP nep,PetscReal *abstol,PetscReal *rtol,PetscReal *stol,PetscInt *maxit,PetscInt *maxf)
+PetscErrorCode NEPGetTolerances(NEP nep,PetscReal *rtol,PetscInt *maxits)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
-  if (abstol) *abstol = nep->abstol;
-  if (rtol)   *rtol   = nep->rtol;
-  if (stol)   *stol   = nep->stol;
-  if (maxit)  *maxit  = nep->max_it;
-  if (maxf)   *maxf   = nep->max_funcs;
+  if (rtol)   *rtol   = nep->tol;
+  if (maxits) *maxits = nep->max_it;
   PetscFunctionReturn(0);
 }
 
 #undef __FUNCT__
 #define __FUNCT__ "NEPSetTolerances"
 /*@
-   NEPSetTolerances - Sets various parameters used in convergence tests.
+   NEPSetTolerances - Sets the tolerance and maximum iteration count used
+   by the NEP convergence tests.
 
    Logically Collective on NEP
 
    Input Parameters:
 +  nep    - the nonlinear eigensolver context
-.  abstol - absolute convergence tolerance
-.  rtol   - relative convergence tolerance
-.  stol   - convergence tolerance in terms of the norm of the change in the
-            solution between steps, || delta x || < stol*|| x ||
-.  maxit  - maximum number of iterations
--  maxf   - maximum number of function evaluations
+.  tol    - the convergence tolerance
+-  maxits - maximum number of iterations to use
 
    Options Database Keys:
-+    -nep_atol <abstol> - Sets abstol
-.    -nep_rtol <rtol> - Sets rtol
-.    -nep_stol <stol> - Sets stol
-.    -nep_max_it <maxit> - Sets maxit
--    -nep_max_funcs <maxf> - Sets maxf
++  -nep_tol <tol> - Sets the convergence tolerance
+-  -nep_max_it <maxits> - Sets the maximum number of iterations allowed
 
    Notes:
    Use PETSC_DEFAULT for either argument to assign a reasonably good value.
@@ -272,46 +265,25 @@ PetscErrorCode NEPGetTolerances(NEP nep,PetscReal *abstol,PetscReal *rtol,PetscR
 
 .seealso: NEPGetTolerances()
 @*/
-PetscErrorCode NEPSetTolerances(NEP nep,PetscReal abstol,PetscReal rtol,PetscReal stol,PetscInt maxit,PetscInt maxf)
+PetscErrorCode NEPSetTolerances(NEP nep,PetscReal tol,PetscInt maxits)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
-  PetscValidLogicalCollectiveReal(nep,abstol,2);
-  PetscValidLogicalCollectiveReal(nep,rtol,3);
-  PetscValidLogicalCollectiveReal(nep,stol,4);
-  PetscValidLogicalCollectiveInt(nep,maxit,5);
-  PetscValidLogicalCollectiveInt(nep,maxf,6);
-  if (abstol == PETSC_DEFAULT) {
-    nep->abstol = PETSC_DEFAULT;
-  } else {
-    if (abstol < 0.0) SETERRQ1(PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_OUTOFRANGE,"Absolute tolerance %g must be non-negative",(double)abstol);
-    nep->abstol = abstol;
-  }
-  if (rtol == PETSC_DEFAULT) {
-    nep->rtol = PETSC_DEFAULT;
-  } else {
-    if (rtol < 0.0 || 1.0 <= rtol) SETERRQ1(PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_OUTOFRANGE,"Relative tolerance %g must be non-negative and less than 1.0",(double)rtol);
-    nep->rtol = rtol;
-  }
-  if (stol == PETSC_DEFAULT) {
-    nep->stol = PETSC_DEFAULT;
-  } else {
-    if (stol < 0.0) SETERRQ1(PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_OUTOFRANGE,"Step tolerance %g must be non-negative",(double)stol);
-    nep->stol = stol;
-  }
-  if (maxit == PETSC_DEFAULT || maxit == PETSC_DECIDE) {
-    nep->max_it = 0;
+  PetscValidLogicalCollectiveReal(nep,tol,2);
+  PetscValidLogicalCollectiveInt(nep,maxits,3);
+  if (tol == PETSC_DEFAULT) {
+    nep->tol   = PETSC_DEFAULT;
     nep->state = NEP_STATE_INITIAL;
   } else {
-    if (maxit < 0) SETERRQ1(PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_OUTOFRANGE,"Maximum number of iterations %D must be non-negative",maxit);
-    nep->max_it = maxit;
+    if (tol <= 0.0) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of tol. Must be > 0");
+    nep->tol = tol;
   }
-  if (maxf == PETSC_DEFAULT || maxf == PETSC_DECIDE) {
+  if (maxits == PETSC_DEFAULT || maxits == PETSC_DECIDE) {
     nep->max_it = 0;
-    nep->state = NEP_STATE_INITIAL;
+    nep->state  = NEP_STATE_INITIAL;
   } else {
-    if (maxf < 0) SETERRQ1(PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_OUTOFRANGE,"Maximum number of function evaluations %D must be non-negative",maxf);
-    nep->max_funcs = maxf;
+    if (maxits <= 0) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of maxits. Must be > 0");
+    nep->max_it = maxits;
   }
   PetscFunctionReturn(0);
 }
@@ -636,37 +608,38 @@ PetscErrorCode NEPGetConstCorrectionTol(NEP nep,PetscBool *cct)
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "NEPSetConvergenceTest"
+#define __FUNCT__ "NEPSetConvergenceTestFunction"
 /*@C
-    NEPSetConvergenceTest - Sets the function to be used to test convergence
-    of the nonlinear iterative solution.
+   NEPSetConvergenceTestFunction - Sets a function to compute the error estimate
+   used in the convergence test.
 
-    Logically Collective on NEP
+   Logically Collective on NEP
 
-    Input Parameters:
-+   nep     - the NEP context
-.   func    - a pointer to the convergence test function
-.   ctx     - [optional] context for private data for the convergence routine
-              (may be NULL)
--   destroy - [optional] destructor for the context (may be NULL;
-              PETSC_NULL_FUNCTION in Fortran)
+   Input Parameters:
++  nep     - nonlinear eigensolver context obtained from NEPCreate()
+.  func    - a pointer to the convergence test function
+.  ctx     - context for private data for the convergence routine (may be null)
+-  destroy - a routine for destroying the context (may be null)
 
-    Calling Sequence of func:
-$   func(NEP nep,PetscInt it,PetscReal xnorm,PetscReal snorm,PetscReal fnorm,NEPConvergedReason reason*,void *fctx)
+   Calling Sequence of func:
+$   func(NEP nep,PetscScalar eigr,PetscScalar eigi,PetscReal res,PetscReal *errest,void *ctx)
 
-+   nep    - the NEP context
-.   it     - iteration number
-.   xnorm  - norm of the current solution
-.   snorm  - norm of the step (difference between two consecutive solutions)
-.   fnorm  - norm of the function (residual)
-.   reason - (output) result of the convergence test
--   fctx   - optional context, as set by NEPSetConvergenceTest()
++   nep    - nonlinear eigensolver context obtained from NEPCreate()
+.   eigr   - real part of the eigenvalue
+.   eigi   - imaginary part of the eigenvalue
+.   res    - residual norm associated to the eigenpair
+.   errest - (output) computed error estimate
+-   ctx    - optional context, as set by NEPSetConvergenceTestFunction()
 
-    Level: advanced
+   Note:
+   If the error estimate returned by the convergence test function is less than
+   the tolerance, then the eigenvalue is accepted as converged.
 
-.seealso: NEPSetTolerances()
+   Level: advanced
+
+.seealso: NEPSetConvergenceTest(), NEPSetTolerances()
 @*/
-PetscErrorCode NEPSetConvergenceTest(NEP nep,PetscErrorCode (*func)(NEP,PetscInt,PetscReal,PetscReal,PetscReal,NEPConvergedReason*,void*),void* ctx,PetscErrorCode (*destroy)(void*))
+PetscErrorCode NEPSetConvergenceTestFunction(NEP nep,PetscErrorCode (*func)(NEP,PetscScalar,PetscScalar,PetscReal,PetscReal*,void*),void* ctx,PetscErrorCode (*destroy)(void*))
 {
   PetscErrorCode ierr;
 
@@ -678,6 +651,201 @@ PetscErrorCode NEPSetConvergenceTest(NEP nep,PetscErrorCode (*func)(NEP,PetscInt
   nep->converged        = func;
   nep->convergeddestroy = destroy;
   nep->convergedctx     = ctx;
+  if (func == NEPConvergedRelative) nep->conv = NEP_CONV_REL;
+  else if (func == NEPConvergedNorm) nep->conv = NEP_CONV_NORM;
+  else if (func == NEPConvergedAbsolute) nep->conv = NEP_CONV_ABS;
+  else nep->conv = NEP_CONV_USER;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "NEPSetConvergenceTest"
+/*@
+   NEPSetConvergenceTest - Specifies how to compute the error estimate
+   used in the convergence test.
+
+   Logically Collective on NEP
+
+   Input Parameters:
++  nep  - nonlinear eigensolver context obtained from NEPCreate()
+-  conv - the type of convergence test
+
+   Options Database Keys:
++  -nep_conv_abs  - Sets the absolute convergence test
+.  -nep_conv_rel  - Sets the convergence test relative to the eigenvalue
+-  -nep_conv_user - Selects the user-defined convergence test
+
+   Note:
+   The parameter 'conv' can have one of these values
++     NEP_CONV_ABS  - absolute error ||r||
+.     NEP_CONV_REL  - error relative to the eigenvalue l, ||r||/|l|
+.     NEP_CONV_NORM - error relative matrix norms, ||r||/sum_i(|f_i(l)|*||A_i||)
+-     NEP_CONV_USER - function set by NEPSetConvergenceTestFunction()
+
+   Level: intermediate
+
+.seealso: NEPGetConvergenceTest(), NEPSetConvergenceTestFunction(), NEPSetStoppingTest(), NEPConv
+@*/
+PetscErrorCode NEPSetConvergenceTest(NEP nep,NEPConv conv)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
+  PetscValidLogicalCollectiveEnum(nep,conv,2);
+  switch (conv) {
+    case NEP_CONV_ABS:  nep->converged = NEPConvergedAbsolute; break;
+    case NEP_CONV_REL:  nep->converged = NEPConvergedRelative; break;
+    case NEP_CONV_NORM: nep->converged = NEPConvergedNorm; break;
+    case NEP_CONV_USER: break;
+    default:
+      SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_OUTOFRANGE,"Invalid 'conv' value");
+  }
+  nep->conv = conv;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "NEPGetConvergenceTest"
+/*@
+   NEPGetConvergenceTest - Gets the method used to compute the error estimate
+   used in the convergence test.
+
+   Not Collective
+
+   Input Parameters:
+.  nep   - nonlinear eigensolver context obtained from NEPCreate()
+
+   Output Parameters:
+.  conv  - the type of convergence test
+
+   Level: intermediate
+
+.seealso: NEPSetConvergenceTest(), NEPConv
+@*/
+PetscErrorCode NEPGetConvergenceTest(NEP nep,NEPConv *conv)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
+  PetscValidPointer(conv,2);
+  *conv = nep->conv;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "NEPSetStoppingTestFunction"
+/*@C
+   NEPSetStoppingTestFunction - Sets a function to decide when to stop the outer
+   iteration of the eigensolver.
+
+   Logically Collective on NEP
+
+   Input Parameters:
++  nep     - nonlinear eigensolver context obtained from NEPCreate()
+.  func    - pointer to the stopping test function
+.  ctx     - context for private data for the stopping routine (may be null)
+-  destroy - a routine for destroying the context (may be null)
+
+   Calling Sequence of func:
+$   func(NEP nep,PetscInt its,PetscInt max_it,PetscInt nconv,PetscInt nev,NEPConvergedReason *reason,void *ctx)
+
++   nep    - nonlinear eigensolver context obtained from NEPCreate()
+.   its    - current number of iterations
+.   max_it - maximum number of iterations
+.   nconv  - number of currently converged eigenpairs
+.   nev    - number of requested eigenpairs
+.   reason - (output) result of the stopping test
+-   ctx    - optional context, as set by NEPSetStoppingTestFunction()
+
+   Note:
+   Normal usage is to first call the default routine NEPStoppingBasic() and then
+   set reason to NEP_CONVERGED_USER if some user-defined conditions have been
+   met. To let the eigensolver continue iterating, the result must be left as
+   NEP_CONVERGED_ITERATING.
+
+   Level: advanced
+
+.seealso: NEPSetStoppingTest(), NEPStoppingBasic()
+@*/
+PetscErrorCode NEPSetStoppingTestFunction(NEP nep,PetscErrorCode (*func)(NEP,PetscInt,PetscInt,PetscInt,PetscInt,NEPConvergedReason*,void*),void* ctx,PetscErrorCode (*destroy)(void*))
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
+  if (nep->stoppingdestroy) {
+    ierr = (*nep->stoppingdestroy)(nep->stoppingctx);CHKERRQ(ierr);
+  }
+  nep->stopping        = func;
+  nep->stoppingdestroy = destroy;
+  nep->stoppingctx     = ctx;
+  if (func == NEPStoppingBasic) nep->stop = NEP_STOP_BASIC;
+  else nep->stop = NEP_STOP_USER;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "NEPSetStoppingTest"
+/*@
+   NEPSetStoppingTest - Specifies how to decide the termination of the outer
+   loop of the eigensolver.
+
+   Logically Collective on NEP
+
+   Input Parameters:
++  nep  - nonlinear eigensolver context obtained from NEPCreate()
+-  stop - the type of stopping test
+
+   Options Database Keys:
++  -nep_stop_basic - Sets the default stopping test
+-  -nep_stop_user  - Selects the user-defined stopping test
+
+   Note:
+   The parameter 'stop' can have one of these values
++     NEP_STOP_BASIC - default stopping test
+-     NEP_STOP_USER  - function set by NEPSetStoppingTestFunction()
+
+   Level: advanced
+
+.seealso: NEPGetStoppingTest(), NEPSetStoppingTestFunction(), NEPSetConvergenceTest(), NEPStop
+@*/
+PetscErrorCode NEPSetStoppingTest(NEP nep,NEPStop stop)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
+  PetscValidLogicalCollectiveEnum(nep,stop,2);
+  switch (stop) {
+    case NEP_STOP_BASIC: nep->stopping = NEPStoppingBasic; break;
+    case NEP_STOP_USER:  break;
+    default:
+      SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_OUTOFRANGE,"Invalid 'stop' value");
+  }
+  nep->stop = stop;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "NEPGetStoppingTest"
+/*@
+   NEPGetStoppingTest - Gets the method used to decide the termination of the outer
+   loop of the eigensolver.
+
+   Not Collective
+
+   Input Parameters:
+.  nep   - nonlinear eigensolver context obtained from NEPCreate()
+
+   Output Parameters:
+.  stop  - the type of stopping test
+
+   Level: advanced
+
+.seealso: NEPSetStoppingTest(), NEPStop
+@*/
+PetscErrorCode NEPGetStoppingTest(NEP nep,NEPStop *stop)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
+  PetscValidPointer(stop,2);
+  *stop = nep->stop;
   PetscFunctionReturn(0);
 }
 
@@ -754,13 +922,15 @@ PetscErrorCode NEPGetTrackAll(NEP nep,PetscBool *trackall)
 .  refine - refinement type
 .  npart  - number of partitions of the communicator
 .  tol    - the convergence tolerance
--  its    - maximum number of refinement iterations
+.  its    - maximum number of refinement iterations
+-  scheme - which scheme to be used for solving the involved linear systems
 
    Options Database Keys:
 +  -nep_refine <type> - refinement type, one of <none,simple,multiple>
 .  -nep_refine_partitions <n> - the number of partitions
 .  -nep_refine_tol <tol> - the tolerance
--  -nep_refine_its <its> - number of iterations
+.  -nep_refine_its <its> - number of iterations
+-  -nep_refine_scheme - to set the scheme for the linear solves
 
    Notes:
    By default, iterative refinement is disabled, since it may be very
@@ -781,11 +951,15 @@ PetscErrorCode NEPGetTrackAll(NEP nep,PetscBool *trackall)
    different value). In contrast, the multiple method simply performs its
    refinement iterations (just one by default).
 
+   The scheme argument is used to change the way in which linear systems are
+   solved. Possible choices are: explicit, mixed block elimination (MBE), 
+   and Schur complement.
+
    Level: intermediate
 
 .seealso: NEPGetRefine()
 @*/
-PetscErrorCode NEPSetRefine(NEP nep,NEPRefine refine,PetscInt npart,PetscReal tol,PetscInt its)
+PetscErrorCode NEPSetRefine(NEP nep,NEPRefine refine,PetscInt npart,PetscReal tol,PetscInt its,NEPRefineScheme scheme)
 {
   PetscErrorCode ierr;
   PetscMPIInt    size;
@@ -796,6 +970,7 @@ PetscErrorCode NEPSetRefine(NEP nep,NEPRefine refine,PetscInt npart,PetscReal to
   PetscValidLogicalCollectiveInt(nep,npart,3);
   PetscValidLogicalCollectiveReal(nep,tol,4);
   PetscValidLogicalCollectiveInt(nep,its,5);
+  PetscValidLogicalCollectiveEnum(nep,scheme,6);
   nep->refine = refine;
   if (refine) {  /* process parameters only if not REFINE_NONE */
     if (npart == PETSC_DEFAULT || npart == PETSC_DECIDE) {
@@ -806,7 +981,7 @@ PetscErrorCode NEPSetRefine(NEP nep,NEPRefine refine,PetscInt npart,PetscReal to
       nep->npart = npart;
     }
     if (tol == PETSC_DEFAULT || tol == PETSC_DECIDE) {
-      nep->reftol = nep->rtol;
+      nep->reftol = nep->tol;
     } else {
       if (tol<=0.0) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of tol. Must be > 0");
       nep->reftol = tol;
@@ -817,6 +992,7 @@ PetscErrorCode NEPSetRefine(NEP nep,NEPRefine refine,PetscInt npart,PetscReal to
       if (its<0) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of its. Must be >= 0");
       nep->rits = its;
     }
+    nep->scheme = scheme;
   }
   nep->state = NEP_STATE_INITIAL;
   PetscFunctionReturn(0);
@@ -838,6 +1014,7 @@ PetscErrorCode NEPSetRefine(NEP nep,NEPRefine refine,PetscInt npart,PetscReal to
 .  npart  - number of partitions of the communicator
 .  tol    - the convergence tolerance
 -  its    - maximum number of refinement iterations
+-  scheme - the scheme used for solving linear systems
 
    Level: intermediate
 
@@ -846,7 +1023,7 @@ PetscErrorCode NEPSetRefine(NEP nep,NEPRefine refine,PetscInt npart,PetscReal to
 
 .seealso: NEPSetRefine()
 @*/
-PetscErrorCode NEPGetRefine(NEP nep,NEPRefine *refine,PetscInt *npart,PetscReal *tol,PetscInt *its)
+PetscErrorCode NEPGetRefine(NEP nep,NEPRefine *refine,PetscInt *npart,PetscReal *tol,PetscInt *its,NEPRefineScheme *scheme)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
@@ -854,6 +1031,7 @@ PetscErrorCode NEPGetRefine(NEP nep,NEPRefine *refine,PetscInt *npart,PetscReal 
   if (npart)  *npart  = nep->npart;
   if (tol)    *tol    = nep->reftol;
   if (its)    *its    = nep->rits;
+  if (scheme) *scheme = nep->scheme;
   PetscFunctionReturn(0);
 }
 
