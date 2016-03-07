@@ -427,7 +427,7 @@ PETSC_EXTERN PetscErrorCode EPSLOBPCGGetLocking(EPS,PetscBool*);
 
 .seealso: EPSCISSSetQuadRule(), EPSCISSGetQuadRule()
 E*/
-typedef enum { EPS_CISS_QUADRULE_TRAPEZOIDAL,
+typedef enum { EPS_CISS_QUADRULE_TRAPEZOIDAL=1,
                EPS_CISS_QUADRULE_CHEBYSHEV } EPSCISSQuadRule;
 PETSC_EXTERN const char *EPSCISSQuadRules[];
 

@@ -869,7 +869,9 @@ PetscErrorCode EPSSetUp_CISS(EPS eps)
     if (c!=d || c!=0.0) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"In real scalars, endpoints of the imaginary axis must be both zero");
     ctx->useconj = PETSC_FALSE;
 #endif
+    if (!ctx->quad && c==d) ctx->quad = EPS_CISS_QUADRULE_CHEBYSHEV;
   }
+  if (!ctx->quad) ctx->quad = EPS_CISS_QUADRULE_TRAPEZOIDAL;
   /* create split comm */
   ierr = SetSolverComm(eps);CHKERRQ(ierr);
 
@@ -1930,7 +1932,7 @@ PETSC_EXTERN PetscErrorCode EPSCreate_CISS(EPS eps)
   ctx->refine_inner       = 0;
   ctx->refine_blocksize   = 0;
   ctx->num_subcomm        = 1;
-  ctx->quad               = EPS_CISS_QUADRULE_TRAPEZOIDAL;
+  ctx->quad               = (EPSCISSQuadRule)0;
   ctx->extraction         = EPS_CISS_EXTRACTION_RITZ;
   PetscFunctionReturn(0);
 }
