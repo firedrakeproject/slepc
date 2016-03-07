@@ -103,16 +103,19 @@ PetscErrorCode STShellSetContext(ST st,void *ctx)
 #define __FUNCT__ "STApply_Shell"
 PetscErrorCode STApply_Shell(ST st,Vec x,Vec y)
 {
-  PetscErrorCode ierr;
-  ST_SHELL       *shell = (ST_SHELL*)st->data;
+  PetscErrorCode   ierr;
+  ST_SHELL         *shell = (ST_SHELL*)st->data;
+  PetscObjectState instate,outstate;
 
   PetscFunctionBegin;
   if (!shell->apply) SETERRQ(PetscObjectComm((PetscObject)st),PETSC_ERR_USER,"No apply() routine provided to Shell ST");
-  PetscStackPush("STSHELL apply() user function");
-  CHKMEMQ;
-  ierr = (*shell->apply)(st,x,y);CHKERRQ(ierr);
-  CHKMEMQ;
-  PetscStackPop;
+  ierr = PetscObjectStateGet((PetscObject)y,&instate);CHKERRQ(ierr);
+  PetscStackCall("STSHELL user function apply()",ierr = (*shell->apply)(st,x,y);CHKERRQ(ierr));
+  ierr = PetscObjectStateGet((PetscObject)y,&outstate);CHKERRQ(ierr);
+  if (instate == outstate) {
+    /* user forgot to increase the state of the output vector */
+    ierr = PetscObjectStateIncrease((PetscObject)y);CHKERRQ(ierr);
+  }
   PetscFunctionReturn(0);
 }
 
@@ -122,14 +125,17 @@ PetscErrorCode STApplyTranspose_Shell(ST st,Vec x,Vec y)
 {
   PetscErrorCode ierr;
   ST_SHELL       *shell = (ST_SHELL*)st->data;
+  PetscObjectState instate,outstate;
 
   PetscFunctionBegin;
   if (!shell->applytrans) SETERRQ(PetscObjectComm((PetscObject)st),PETSC_ERR_USER,"No applytranspose() routine provided to Shell ST");
-  PetscStackPush("STSHELL applytranspose() user function");
-  CHKMEMQ;
-  ierr = (*shell->applytrans)(st,x,y);CHKERRQ(ierr);
-  CHKMEMQ;
-  PetscStackPop;
+  ierr = PetscObjectStateGet((PetscObject)y,&instate);CHKERRQ(ierr);
+  PetscStackCall("STSHELL user function applytrans()",ierr = (*shell->applytrans)(st,x,y);CHKERRQ(ierr));
+  ierr = PetscObjectStateGet((PetscObject)y,&outstate);CHKERRQ(ierr);
+  if (instate == outstate) {
+    /* user forgot to increase the state of the output vector */
+    ierr = PetscObjectStateIncrease((PetscObject)y);CHKERRQ(ierr);
+  }
   PetscFunctionReturn(0);
 }
 
@@ -141,13 +147,7 @@ PetscErrorCode STBackTransform_Shell(ST st,PetscInt n,PetscScalar *eigr,PetscSca
   ST_SHELL       *shell = (ST_SHELL*)st->data;
 
   PetscFunctionBegin;
-  if (shell->backtransform) {
-    PetscStackPush("STSHELL backtransform() user function");
-    CHKMEMQ;
-    ierr = (*shell->backtransform)(st,n,eigr,eigi);CHKERRQ(ierr);
-    CHKMEMQ;
-    PetscStackPop;
-  }
+  if (shell->backtransform) PetscStackCall("STSHELL user function backtransform()",ierr = (*shell->backtransform)(st,n,eigr,eigi);CHKERRQ(ierr));
   PetscFunctionReturn(0);
 }
 

@@ -17,7 +17,7 @@
 !  along with SLEPc. If not, see <http://www.gnu.org/licenses/>.
 !  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !
-!  Program usage: mpirun -np n ex1f [-help] [-n <n>] [all SLEPc options] 
+!  Program usage: mpiexec -n <np> ./ex1f [-help] [-n <n>] [all SLEPc options] 
 !
 !  Description: Simple example that solves an eigensystem with the EPS object.
 !  The standard symmetric eigenvalue problem to be solved corresponds to the 

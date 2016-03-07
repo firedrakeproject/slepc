@@ -69,22 +69,23 @@ struct _p_NEP {
   PETSCHEADER(struct _NEPOps);
   /*------------------------- User parameters ---------------------------*/
   PetscInt       max_it;           /* maximum number of iterations */
-  PetscInt       max_funcs;        /* maximum number of function evaluations */
   PetscInt       nev;              /* number of eigenvalues to compute */
   PetscInt       ncv;              /* number of basis vectors */
   PetscInt       mpd;              /* maximum dimension of projected problem */
   PetscInt       lag;              /* interval to rebuild preconditioner */
   PetscInt       nini;             /* number of initial vectors (negative means not copied yet) */
   PetscScalar    target;           /* target value */
-  PetscReal      abstol,rtol,stol; /* user tolerances */
+  PetscReal      tol;              /* tolerance */
   PetscReal      ktol;             /* tolerance for linear solver */
   PetscBool      cctol;            /* constant correction tolerance */
-  PetscReal      ttol;             /* tolerance used in the convergence criterion */
+  NEPConv        conv;             /* convergence test */
+  NEPStop        stop;             /* stopping test */
   NEPWhich       which;            /* which part of the spectrum to be sought */
   NEPRefine      refine;           /* type of refinement to be applied after solve */
   PetscInt       npart;            /* number of partitions of the communicator */
   PetscReal      reftol;           /* tolerance for refinement */
   PetscInt       rits;             /* number of iterations of the refinement method */
+  NEPRefineScheme scheme;          /* scheme for solving linear systems within refinement */
   PetscBool      trackall;         /* whether all the residuals must be computed */
 
   /*-------------- User-provided functions and contexts -----------------*/
@@ -94,9 +95,12 @@ struct _p_NEP {
   void           *jacobianctx;
   PetscErrorCode (*computederivatives)(NEP,PetscScalar,PetscInt,Mat,void*);
   void           *derivativesctx;
-  PetscErrorCode (*converged)(NEP,PetscInt,PetscReal,PetscReal,PetscReal,NEPConvergedReason*,void*);
+  PetscErrorCode (*converged)(NEP,PetscScalar,PetscScalar,PetscReal,PetscReal*,void*);
   PetscErrorCode (*convergeddestroy)(void*);
+  PetscErrorCode (*stopping)(NEP,PetscInt,PetscInt,PetscInt,PetscInt,NEPConvergedReason*,void*);
+  PetscErrorCode (*stoppingdestroy)(void*);
   void           *convergedctx;
+  void           *stoppingctx;
   PetscErrorCode (*monitor[MAXNEPMONITORS])(NEP,PetscInt,PetscInt,PetscScalar*,PetscReal*,PetscInt,void*);
   PetscErrorCode (*monitordestroy[MAXNEPMONITORS])(void**);
   void           *monitorcontext[MAXNEPMONITORS];
@@ -123,6 +127,8 @@ struct _p_NEP {
   PetscInt       *perm;            /* permutation for eigenvalue ordering */
   PetscInt       nwork;            /* number of work vectors */
   Vec            *work;            /* work vectors */
+  KSP            refineksp;        /* ksp used in refinement */
+  PetscSubcomm   refinesubc;       /* context for sub-communicators */
   void           *data;            /* placeholder for solver-specific stuff */
 
   /* ----------------------- Status variables --------------------------*/
@@ -130,7 +136,7 @@ struct _p_NEP {
   PetscInt       nconv;            /* number of converged eigenvalues */
   PetscInt       its;              /* number of iterations so far computed */
   PetscInt       n,nloc;           /* problem dimensions (global, local) */
-  PetscInt       nfuncs;           /* number of function evaluations */
+  PetscReal      *nrma;            /* computed matrix norms */
   NEPUserInterface fui;            /* how the user has defined the nonlinear operator */
   NEPConvergedReason reason;
 };
@@ -192,6 +198,7 @@ PETSC_STATIC_INLINE PetscErrorCode NEP_KSPSolve(NEP nep,Vec b,Vec x)
 PETSC_INTERN PetscErrorCode NEPComputeVectors(NEP);
 PETSC_INTERN PetscErrorCode NEPReset_Problem(NEP);
 PETSC_INTERN PetscErrorCode NEPGetDefaultShift(NEP,PetscScalar*);
+PETSC_INTERN PetscErrorCode NEPComputeVectors_Schur(NEP);
 PETSC_INTERN PetscErrorCode NEPComputeResidualNorm_Private(NEP,PetscScalar,Vec,Vec*,PetscReal*);
 PETSC_INTERN PetscErrorCode NEPNewtonRefinementSimple(NEP,PetscInt*,PetscReal*,PetscInt);
 

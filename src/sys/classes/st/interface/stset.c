@@ -73,7 +73,7 @@ PetscErrorCode STSetType(ST st,STType type)
   if (st->ops->destroy) { ierr = (*st->ops->destroy)(st);CHKERRQ(ierr); }
   ierr = PetscMemzero(st->ops,sizeof(struct _STOps));CHKERRQ(ierr);
 
-  st->setupcalled = 0;
+  st->state = ST_STATE_INITIAL;
   ierr = PetscObjectChangeTypeName((PetscObject)st,type);CHKERRQ(ierr);
   ierr = (*r)(st);CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -295,7 +295,7 @@ PetscErrorCode STSetMatMode(ST st,STMatMode mode)
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
   PetscValidLogicalCollectiveEnum(st,mode,2);
   st->shift_matrix = mode;
-  st->setupcalled = 0;
+  st->state = ST_STATE_INITIAL;
   PetscFunctionReturn(0);
 }
 
@@ -356,8 +356,10 @@ PetscErrorCode STSetTransform(ST st,PetscBool flg)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
   PetscValidLogicalCollectiveBool(st,flg,2);
-  st->transform = flg;
-  st->setupcalled = 0;
+  if (st->transform != flg) {
+    st->transform = flg;
+    st->state = ST_STATE_INITIAL;
+  }
   PetscFunctionReturn(0);
 }
 

@@ -472,15 +472,15 @@ The division of the interval in subintervals is done blindly, and this may resul
 
 An additional benefit of multi-communicator support is that it enables parallel spectrum slicing runs without the need to install a parallel direct solver (MUMPS). The following command-line example uses sequential linear solves in 4 partitions, one process each:
 \begin{Verbatim}[fontsize=\small]
-	$ mpirun -np 4 ./ex25 -eps_interval 0.4,0.8 -eps_krylovschur_partitions 4
-                 -st_type sinvert -st_ksp_type preonly -st_pc_type cholesky
+	$ mpiexec -n 4 ./ex25 -eps_interval 0.4,0.8 -eps_krylovschur_partitions 4
+                  -st_type sinvert -st_ksp_type preonly -st_pc_type cholesky
 \end{Verbatim}
 
 The analogue example using MUMPS with 5 processes in each partition:
 \begin{Verbatim}[fontsize=\small]
-	$ mpirun -np 20 ./ex25 -eps_interval 0.4,0.8 -eps_krylovschur_partitions 4
-                 -st_type sinvert -st_ksp_type preonly -st_pc_type cholesky
-                 -st_pc_factor_mat_solver_package mumps -mat_mumps_icntl_13 1
+	$ mpiexec -n 20 ./ex25 -eps_interval 0.4,0.8 -eps_krylovschur_partitions 4
+                  -st_type sinvert -st_ksp_type preonly -st_pc_type cholesky
+                  -st_pc_factor_mat_solver_package mumps -mat_mumps_icntl_13 1
 \end{Verbatim}
 
 \subsection{Spectrum Folding}

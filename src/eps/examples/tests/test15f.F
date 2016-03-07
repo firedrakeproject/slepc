@@ -17,7 +17,7 @@
 !  along with SLEPc. If not, see <http://www.gnu.org/licenses/>.
 !  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !
-!  Program usage: mpirun -np n test15f [-help] [-n <n>] [all SLEPc options] 
+!  Program usage: mpiexec -n <np> ./test15f [-help] [-n <n>] [all SLEPc options] 
 !
 !  Description: Tests custom monitors from Fortran.
 !

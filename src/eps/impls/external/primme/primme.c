@@ -39,24 +39,6 @@ typedef struct {
   PetscReal target;               /* a copy of eps's target */
 } EPS_PRIMME;
 
-EPSPRIMMEMethod methodN[] = {
-  EPS_PRIMME_DYNAMIC,
-  EPS_PRIMME_DEFAULT_MIN_TIME,
-  EPS_PRIMME_DEFAULT_MIN_MATVECS,
-  EPS_PRIMME_ARNOLDI,
-  EPS_PRIMME_GD,
-  EPS_PRIMME_GD_PLUSK,
-  EPS_PRIMME_GD_OLSEN_PLUSK,
-  EPS_PRIMME_JD_OLSEN_PLUSK,
-  EPS_PRIMME_RQI,
-  EPS_PRIMME_JDQR,
-  EPS_PRIMME_JDQMR,
-  EPS_PRIMME_JDQMR_ETOL,
-  EPS_PRIMME_SUBSPACE_ITERATION,
-  EPS_PRIMME_LOBPCG_ORTHOBASIS,
-  EPS_PRIMME_LOBPCG_ORTHOBASISW
-};
-
 static void multMatvec_PRIMME(void *in,void *out,int *blockSize,primme_params *primme);
 static void applyPreconditioner_PRIMME(void *in,void *out,int *blockSize,struct primme_params *primme);
 
@@ -86,6 +68,7 @@ PetscErrorCode EPSSetUp_PRIMME(EPS eps)
   if (!eps->ishermitian) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"PRIMME is only available for Hermitian problems");
   if (eps->isgeneralized) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"PRIMME is not available for generalized problems");
   if (eps->arbitrary) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Arbitrary selection of eigenpairs not supported in this solver");
+  if (eps->stopping!=EPSStoppingBasic) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"External packages do not support user-defined stopping test");
   if (!eps->which) eps->which = EPS_LARGEST_REAL;
   if (eps->converged != EPSConvergedAbsolute) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"PRIMME only supports absolute convergence test");
   ierr = RGIsTrivial(eps->rg,&istrivial);CHKERRQ(ierr);
@@ -292,7 +275,7 @@ PetscErrorCode EPSView_PRIMME(EPS eps,PetscViewer viewer)
   PetscFunctionBegin;
   ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
   if (isascii) {
-    ierr = PetscViewerASCIIPrintf(viewer,"  PRIMME: block size=%d\n",primme->maxBlockSize);CHKERRQ(ierr);
+    ierr = PetscViewerASCIIPrintf(viewer,"  PRIMME: block size=%D\n",primme->maxBlockSize);CHKERRQ(ierr);
     ierr = EPSPRIMMEGetMethod(eps,&methodn);CHKERRQ(ierr);
     ierr = PetscViewerASCIIPrintf(viewer,"  PRIMME: solver method: %s\n",EPSPRIMMEMethods[methodn]);CHKERRQ(ierr);
 
@@ -436,8 +419,7 @@ static PetscErrorCode EPSPRIMMESetMethod_PRIMME(EPS eps,EPSPRIMMEMethod method)
   EPS_PRIMME *ops = (EPS_PRIMME*)eps->data;
 
   PetscFunctionBegin;
-  if (method == PETSC_DEFAULT) ops->method = DEFAULT_MIN_TIME;
-  else ops->method = (primme_preset_method)method;
+  ops->method = (primme_preset_method)method;
   PetscFunctionReturn(0);
 }
 

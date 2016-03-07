@@ -40,9 +40,12 @@
 #define EPSExtraction          PetscEnum
 #define EPSBalance             PetscEnum
 #define EPSConv                PetscEnum
+#define EPSStop                PetscEnum
 #define EPSPowerShiftType      PetscEnum
 #define EPSLanczosReorthogType PetscEnum
 #define EPSPRIMMEMethod        PetscEnum
+#define EPSCISSQuadRule        PetscEnum
+#define EPSCISSExtraction      PetscEnum
 
 
 #define EPSPOWER       'power'

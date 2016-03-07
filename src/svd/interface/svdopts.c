@@ -199,7 +199,7 @@ PetscErrorCode SVDGetTolerances(SVD svd,PetscReal *tol,PetscInt *maxits)
    (b) in cases where nsv is large, the user sets mpd.
 
    The value of ncv should always be between nsv and (nsv+mpd), typically
-   ncv=nsv+mpd. If nev is not too large, mpd=nsv is a reasonable choice, otherwise
+   ncv=nsv+mpd. If nsv is not too large, mpd=nsv is a reasonable choice, otherwise
    a smaller value should be used.
 
    Level: intermediate
@@ -342,6 +342,244 @@ PetscErrorCode SVDGetWhichSingularTriplets(SVD svd,SVDWhich *which)
 }
 
 #undef __FUNCT__
+#define __FUNCT__ "SVDSetConvergenceTestFunction"
+/*@C
+   SVDSetConvergenceTestFunction - Sets a function to compute the error estimate
+   used in the convergence test.
+
+   Logically Collective on SVD
+
+   Input Parameters:
++  svd     - singular value solver context obtained from SVDCreate()
+.  func    - a pointer to the convergence test function
+.  ctx     - context for private data for the convergence routine (may be null)
+-  destroy - a routine for destroying the context (may be null)
+
+   Calling Sequence of func:
+$   func(SVD svd,PetscReal sigma,PetscReal res,PetscReal *errest,void *ctx)
+
++   svd    - singular value solver context obtained from SVDCreate()
+.   sigma  - computed singular value
+.   res    - residual norm associated to the singular triplet
+.   errest - (output) computed error estimate
+-   ctx    - optional context, as set by SVDSetConvergenceTestFunction()
+
+   Note:
+   If the error estimate returned by the convergence test function is less than
+   the tolerance, then the singular value is accepted as converged.
+
+   Level: advanced
+
+.seealso: SVDSetConvergenceTest(), SVDSetTolerances()
+@*/
+PetscErrorCode SVDSetConvergenceTestFunction(SVD svd,PetscErrorCode (*func)(SVD,PetscReal,PetscReal,PetscReal*,void*),void* ctx,PetscErrorCode (*destroy)(void*))
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
+  if (svd->convergeddestroy) {
+    ierr = (*svd->convergeddestroy)(svd->convergedctx);CHKERRQ(ierr);
+  }
+  svd->converged        = func;
+  svd->convergeddestroy = destroy;
+  svd->convergedctx     = ctx;
+  if (func == SVDConvergedRelative) svd->conv = SVD_CONV_REL;
+  else if (func == SVDConvergedAbsolute) svd->conv = SVD_CONV_ABS;
+  else svd->conv = SVD_CONV_USER;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "SVDSetConvergenceTest"
+/*@
+   SVDSetConvergenceTest - Specifies how to compute the error estimate
+   used in the convergence test.
+
+   Logically Collective on SVD
+
+   Input Parameters:
++  svd  - singular value solver context obtained from SVDCreate()
+-  conv - the type of convergence test
+
+   Options Database Keys:
++  -svd_conv_abs  - Sets the absolute convergence test
+.  -svd_conv_rel  - Sets the convergence test relative to the singular value
+-  -svd_conv_user - Selects the user-defined convergence test
+
+   Note:
+   The parameter 'conv' can have one of these values
++     SVD_CONV_ABS  - absolute error ||r||
+.     SVD_CONV_REL  - error relative to the singular value l, ||r||/sigma
+-     SVD_CONV_USER - function set by SVDSetConvergenceTestFunction()
+
+   Level: intermediate
+
+.seealso: SVDGetConvergenceTest(), SVDSetConvergenceTestFunction(), SVDSetStoppingTest(), SVDConv
+@*/
+PetscErrorCode SVDSetConvergenceTest(SVD svd,SVDConv conv)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
+  PetscValidLogicalCollectiveEnum(svd,conv,2);
+  switch (conv) {
+    case SVD_CONV_ABS:  svd->converged = SVDConvergedAbsolute; break;
+    case SVD_CONV_REL:  svd->converged = SVDConvergedRelative; break;
+    case SVD_CONV_USER: break;
+    default:
+      SETERRQ(PetscObjectComm((PetscObject)svd),PETSC_ERR_ARG_OUTOFRANGE,"Invalid 'conv' value");
+  }
+  svd->conv = conv;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "SVDGetConvergenceTest"
+/*@
+   SVDGetConvergenceTest - Gets the method used to compute the error estimate
+   used in the convergence test.
+
+   Not Collective
+
+   Input Parameters:
+.  svd   - singular value solver context obtained from SVDCreate()
+
+   Output Parameters:
+.  conv  - the type of convergence test
+
+   Level: intermediate
+
+.seealso: SVDSetConvergenceTest(), SVDConv
+@*/
+PetscErrorCode SVDGetConvergenceTest(SVD svd,SVDConv *conv)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
+  PetscValidPointer(conv,2);
+  *conv = svd->conv;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "SVDSetStoppingTestFunction"
+/*@C
+   SVDSetStoppingTestFunction - Sets a function to decide when to stop the outer
+   iteration of the singular value solver.
+
+   Logically Collective on SVD
+
+   Input Parameters:
++  svd     - singular value solver context obtained from SVDCreate()
+.  func    - pointer to the stopping test function
+.  ctx     - context for private data for the stopping routine (may be null)
+-  destroy - a routine for destroying the context (may be null)
+
+   Calling Sequence of func:
+$   func(SVD svd,PetscInt its,PetscInt max_it,PetscInt nconv,PetscInt nsv,SVDConvergedReason *reason,void *ctx)
+
++   svd    - singular value solver context obtained from SVDCreate()
+.   its    - current number of iterations
+.   max_it - maximum number of iterations
+.   nconv  - number of currently converged singular triplets
+.   nsv    - number of requested singular triplets
+.   reason - (output) result of the stopping test
+-   ctx    - optional context, as set by SVDSetStoppingTestFunction()
+
+   Note:
+   Normal usage is to first call the default routine SVDStoppingBasic() and then
+   set reason to SVD_CONVERGED_USER if some user-defined conditions have been
+   met. To let the singular value solver continue iterating, the result must be
+   left as SVD_CONVERGED_ITERATING.
+
+   Level: advanced
+
+.seealso: SVDSetStoppingTest(), SVDStoppingBasic()
+@*/
+PetscErrorCode SVDSetStoppingTestFunction(SVD svd,PetscErrorCode (*func)(SVD,PetscInt,PetscInt,PetscInt,PetscInt,SVDConvergedReason*,void*),void* ctx,PetscErrorCode (*destroy)(void*))
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
+  if (svd->stoppingdestroy) {
+    ierr = (*svd->stoppingdestroy)(svd->stoppingctx);CHKERRQ(ierr);
+  }
+  svd->stopping        = func;
+  svd->stoppingdestroy = destroy;
+  svd->stoppingctx     = ctx;
+  if (func == SVDStoppingBasic) svd->stop = SVD_STOP_BASIC;
+  else svd->stop = SVD_STOP_USER;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "SVDSetStoppingTest"
+/*@
+   SVDSetStoppingTest - Specifies how to decide the termination of the outer
+   loop of the singular value solver.
+
+   Logically Collective on SVD
+
+   Input Parameters:
++  svd  - singular value solver context obtained from SVDCreate()
+-  stop - the type of stopping test
+
+   Options Database Keys:
++  -svd_stop_basic - Sets the default stopping test
+-  -svd_stop_user  - Selects the user-defined stopping test
+
+   Note:
+   The parameter 'stop' can have one of these values
++     SVD_STOP_BASIC - default stopping test
+-     SVD_STOP_USER  - function set by SVDSetStoppingTestFunction()
+
+   Level: advanced
+
+.seealso: SVDGetStoppingTest(), SVDSetStoppingTestFunction(), SVDSetConvergenceTest(), SVDStop
+@*/
+PetscErrorCode SVDSetStoppingTest(SVD svd,SVDStop stop)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
+  PetscValidLogicalCollectiveEnum(svd,stop,2);
+  switch (stop) {
+    case SVD_STOP_BASIC: svd->stopping = SVDStoppingBasic; break;
+    case SVD_STOP_USER:  break;
+    default:
+      SETERRQ(PetscObjectComm((PetscObject)svd),PETSC_ERR_ARG_OUTOFRANGE,"Invalid 'stop' value");
+  }
+  svd->stop = stop;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "SVDGetStoppingTest"
+/*@
+   SVDGetStoppingTest - Gets the method used to decide the termination of the outer
+   loop of the singular value solver.
+
+   Not Collective
+
+   Input Parameters:
+.  svd   - singular value solver context obtained from SVDCreate()
+
+   Output Parameters:
+.  stop  - the type of stopping test
+
+   Level: advanced
+
+.seealso: SVDSetStoppingTest(), SVDStop
+@*/
+PetscErrorCode SVDGetStoppingTest(SVD svd,SVDStop *stop)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
+  PetscValidPointer(stop,2);
+  *stop = svd->stop;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
 #define __FUNCT__ "SVDSetFromOptions"
 /*@
    SVDSetFromOptions - Sets SVD options from the options database.
@@ -400,6 +638,18 @@ PetscErrorCode SVDSetFromOptions(SVD svd)
     if (flg1 || flg2) {
       ierr = SVDSetTolerances(svd,r,i);CHKERRQ(ierr);
     }
+
+    ierr = PetscOptionsBoolGroupBegin("-svd_conv_rel","Relative error convergence test","SVDSetConvergenceTest",&flg);CHKERRQ(ierr);
+    if (flg) { ierr = SVDSetConvergenceTest(svd,SVD_CONV_REL);CHKERRQ(ierr); }
+    ierr = PetscOptionsBoolGroup("-svd_conv_abs","Absolute error convergence test","SVDSetConvergenceTest",&flg);CHKERRQ(ierr);
+    if (flg) { ierr = SVDSetConvergenceTest(svd,SVD_CONV_ABS);CHKERRQ(ierr); }
+    ierr = PetscOptionsBoolGroupEnd("-svd_conv_user","User-defined convergence test","SVDSetConvergenceTest",&flg);CHKERRQ(ierr);
+    if (flg) { ierr = SVDSetConvergenceTest(svd,SVD_CONV_USER);CHKERRQ(ierr); }
+
+    ierr = PetscOptionsBoolGroupBegin("-svd_stop_basic","Stop iteration if all singular values converged or max_it reached","SVDSetStoppingTest",&flg);CHKERRQ(ierr);
+    if (flg) { ierr = SVDSetStoppingTest(svd,SVD_STOP_BASIC);CHKERRQ(ierr); }
+    ierr = PetscOptionsBoolGroupEnd("-svd_stop_user","User-defined stopping test","SVDSetStoppingTest",&flg);CHKERRQ(ierr);
+    if (flg) { ierr = SVDSetStoppingTest(svd,SVD_STOP_USER);CHKERRQ(ierr); }
 
     i = svd->nsv;
     ierr = PetscOptionsInt("-svd_nsv","Number of singular values to compute","SVDSetDimensions",svd->nsv,&i,&flg1);CHKERRQ(ierr);

@@ -65,37 +65,37 @@ test6: test6.o chkopts
 #------------------------------------------------------------------------------------
 
 runtest1_1:
-	-@${MPIEXEC} -np 1 ./test1 > test1_1.tmp 2>&1; \
+	-@${MPIEXEC} -n 1 ./test1 > test1_1.tmp 2>&1; \
 	  if (${DIFF} output/test1_1.out test1_1.tmp) then true; \
 	  else echo "Possible problem with test1_1, diffs above"; fi; \
 	  ${RM} -f test1_1.tmp
 
 runtest2_1:
-	-@${MPIEXEC} -np 1 ./test2 > test2_1.tmp 2>&1; \
+	-@${MPIEXEC} -n 1 ./test2 > test2_1.tmp 2>&1; \
 	  if (${DIFF} output/test2_1.out test2_1.tmp) then true; \
 	  else echo "Possible problem with test2_1, diffs above"; fi; \
 	  ${RM} -f test2_1.tmp
 
 runtest3_1:
-	-@${MPIEXEC} -np 1 ./test3 > test3_1.tmp 2>&1; \
+	-@${MPIEXEC} -n 1 ./test3 > test3_1.tmp 2>&1; \
 	  if (${DIFF} output/test3_1.out test3_1.tmp) then true; \
 	  else echo "Possible problem with test3_1, diffs above"; fi; \
 	  ${RM} -f test3_1.tmp
 
 runtest4_1:
-	-@${MPIEXEC} -np 1 ./test4 -f1_fn_type exp -f1_fn_scale -2.5 -f2_fn_type rational -f2_fn_rational_numerator -1,1 -f2_fn_rational_denominator 1,-6,4 > test4_1.tmp 2>&1; \
+	-@${MPIEXEC} -n 1 ./test4 -f1_fn_type exp -f1_fn_scale -2.5 -f2_fn_type rational -f2_fn_rational_numerator -1,1 -f2_fn_rational_denominator 1,-6,4 > test4_1.tmp 2>&1; \
 	  if (${DIFF} output/test4_1.out test4_1.tmp) then true; \
 	  else echo "Possible problem with test4_1, diffs above"; fi; \
 	  ${RM} -f test4_1.tmp
 
 runtest5_1:
-	-@${MPIEXEC} -np 1 ./test5 > test5_1.tmp 2>&1; \
+	-@${MPIEXEC} -n 1 ./test5 > test5_1.tmp 2>&1; \
 	  if (${DIFF} output/test5_1.out test5_1.tmp) then true; \
 	  else echo "Possible problem with test5_1, diffs above"; fi; \
 	  ${RM} -f test5_1.tmp
 
 runtest6_1:
-	-@${MPIEXEC} -np 1 ./test6 > test6_1.tmp 2>&1; \
+	-@${MPIEXEC} -n 1 ./test6 > test6_1.tmp 2>&1; \
 	  if (${DIFF} output/test6_1.out test6_1.tmp) then true; \
 	  else echo "Possible problem with test6_1, diffs above"; fi; \
 	  ${RM} -f test6_1.tmp

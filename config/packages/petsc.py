@@ -24,9 +24,8 @@ import package, os, sys, commands
 class PETSc(package.Package):
 
   def __init__(self,argdb,log):
-    self.packagename  = 'petsc'
-    self.downloadable = False
-    self.log          = log
+    package.Package.__init__(self,argdb,log)
+    self.packagename = 'petsc'
 
   def Check(self):
     self.havepackage = self.Link([],[],[])
@@ -115,6 +114,8 @@ class PETSc(package.Package):
           self.cc_flags = v
         elif k == 'FC' and not v=='':
           self.fc = v
+        elif k == 'FC_FLAGS':
+          self.fc_flags = v
         elif k == 'AR':
           self.ar = v
         elif k == 'AR_FLAGS':
@@ -139,6 +140,8 @@ class PETSc(package.Package):
     self.mpiuni = False
     self.debug = False
     self.singlelib = False
+    self.blaslapackunderscore = False
+    self.blaslapackint64 = False
     try:
       f = open(petscconf_h)
       for l in f.readlines():
@@ -151,6 +154,10 @@ class PETSc(package.Package):
           self.debug = True
         elif len(l)==3 and l[0]=='#define' and l[1]=='PETSC_USE_SINGLE_LIBRARY' and l[2]=='1':
           self.singlelib = True
+        elif len(l)==3 and l[0]=='#define' and l[1]=='PETSC_BLASLAPACK_UNDERSCORE' and l[2]=='1':
+          self.blaslapackunderscore = True
+        elif len(l)==3 and l[0]=='#define' and l[1]=='HAVE_64BIT_BLAS_INDICES' and l[2]=='1':
+          self.blaslapackint64 = True
         elif self.isinstall and len(l)==3 and l[0]=='#define' and l[1]=='PETSC_ARCH':
           self.arch = l[2].strip('"')
       f.close()

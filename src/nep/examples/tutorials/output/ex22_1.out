@@ -1,8 +1,6 @@
 
 1-D Delay Eigenproblem, n=128, tau=0.001
 
- Number of NEP iterations = 12
-
  Solution method: rii
  Number of requested eigenvalues: 1
  All requested eigenvalues computed up to the required tolerance:

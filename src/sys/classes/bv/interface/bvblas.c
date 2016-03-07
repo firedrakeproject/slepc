@@ -209,7 +209,7 @@ PetscErrorCode BVDot_BLAS_Private(BV bv,PetscInt m_,PetscInt n_,PetscInt k_,Pets
 {
   PetscErrorCode ierr;
   PetscScalar    zero=0.0,one=1.0,*CC;
-  PetscBLASInt   m,n,k,ldc,j;
+  PetscBLASInt   m,n,k,ldc,j,len;
 
   PetscFunctionBegin;
   ierr = PetscBLASIntCast(m_,&m);CHKERRQ(ierr);
@@ -221,13 +221,15 @@ PetscErrorCode BVDot_BLAS_Private(BV bv,PetscInt m_,PetscInt n_,PetscInt k_,Pets
       ierr = BVAllocateWork_Private(bv,m*n);CHKERRQ(ierr);
       if (k) PetscStackCallBLAS("BLASgemm",BLASgemm_("C","N",&m,&n,&k,&one,(PetscScalar*)A,&k,(PetscScalar*)B,&k,&zero,bv->work,&ldc));
       else { ierr = PetscMemzero(bv->work,m*n*sizeof(PetscScalar));CHKERRQ(ierr); }
-      ierr = MPI_Allreduce(bv->work,C,m*n,MPIU_SCALAR,MPIU_SUM,PetscObjectComm((PetscObject)bv));CHKERRQ(ierr);
+      ierr = PetscMPIIntCast(m*n,&len);CHKERRQ(ierr);
+      ierr = MPI_Allreduce(bv->work,C,len,MPIU_SCALAR,MPIU_SUM,PetscObjectComm((PetscObject)bv));CHKERRQ(ierr);
     } else {
       ierr = BVAllocateWork_Private(bv,2*m*n);CHKERRQ(ierr);
       CC = bv->work+m*n;
       if (k) PetscStackCallBLAS("BLASgemm",BLASgemm_("C","N",&m,&n,&k,&one,(PetscScalar*)A,&k,(PetscScalar*)B,&k,&zero,bv->work,&m));
       else { ierr = PetscMemzero(bv->work,m*n*sizeof(PetscScalar));CHKERRQ(ierr); }
-      ierr = MPI_Allreduce(bv->work,CC,m*n,MPIU_SCALAR,MPIU_SUM,PetscObjectComm((PetscObject)bv));CHKERRQ(ierr);
+      ierr = PetscMPIIntCast(m*n,&len);CHKERRQ(ierr);
+      ierr = MPI_Allreduce(bv->work,CC,len,MPIU_SCALAR,MPIU_SUM,PetscObjectComm((PetscObject)bv));CHKERRQ(ierr);
       for (j=0;j<n;j++) {
         ierr = PetscMemcpy(C+j*ldc,CC+j*m,m*sizeof(PetscScalar));CHKERRQ(ierr);
       }
@@ -250,7 +252,7 @@ PetscErrorCode BVDotVec_BLAS_Private(BV bv,PetscInt n_,PetscInt k_,const PetscSc
 {
   PetscErrorCode ierr;
   PetscScalar    zero=0.0,done=1.0;
-  PetscBLASInt   n,k,one=1;
+  PetscBLASInt   n,k,one=1,len;
 
   PetscFunctionBegin;
   ierr = PetscBLASIntCast(n_,&n);CHKERRQ(ierr);
@@ -262,7 +264,8 @@ PetscErrorCode BVDotVec_BLAS_Private(BV bv,PetscInt n_,PetscInt k_,const PetscSc
     } else {
       ierr = PetscMemzero(bv->work,k*sizeof(PetscScalar));CHKERRQ(ierr);
     }
-    ierr = MPI_Allreduce(bv->work,y,k,MPIU_SCALAR,MPIU_SUM,PetscObjectComm((PetscObject)bv));CHKERRQ(ierr);
+    ierr = PetscMPIIntCast(k,&len);CHKERRQ(ierr);
+    ierr = MPI_Allreduce(bv->work,y,len,MPIU_SCALAR,MPIU_SUM,PetscObjectComm((PetscObject)bv));CHKERRQ(ierr);
   } else {
     if (n) PetscStackCallBLAS("BLASgemv",BLASgemv_("C",&n,&k,&done,A,&n,x,&one,&zero,y,&one));
   }
@@ -300,6 +303,7 @@ PetscErrorCode BVNorm_LAPACK_Private(BV bv,PetscInt m_,PetscInt n_,const PetscSc
 {
   PetscErrorCode ierr;
   PetscBLASInt   m,n,i,j;
+  PetscMPIInt    len;
   PetscReal      lnrm,*rwork=NULL,*rwork2=NULL;
 
   PetscFunctionBegin;
@@ -326,7 +330,9 @@ PetscErrorCode BVNorm_LAPACK_Private(BV bv,PetscInt m_,PetscInt n_,const PetscSc
           rwork[j] += PetscAbsScalar(A[i+j*m_]);
         }
       }
-      ierr = MPI_Allreduce(rwork,rwork2,n_,MPIU_REAL,MPIU_SUM,PetscObjectComm((PetscObject)bv));CHKERRQ(ierr);
+      ierr = PetscMPIIntCast(n_,&len);CHKERRQ(ierr);
+      ierr = MPI_Allreduce(rwork,rwork2,len,MPIU_REAL,MPIU_SUM,PetscObjectComm((PetscObject)bv));CHKERRQ(ierr);
+      *nrm = 0.0;
       for (j=0;j<n_;j++) if (rwork2[j] > *nrm) *nrm = rwork2[j];
     } else {
       *nrm = LAPACKlange_("O",&m,&n,(PetscScalar*)A,&m,rwork);
@@ -359,7 +365,7 @@ PetscErrorCode BVOrthogonalize_LAPACK_Private(BV bv,PetscInt m_,PetscInt n_,Pets
   PetscErrorCode ierr;
   PetscBLASInt   m,n,i,j,k,l,nb,lwork,info;
   PetscScalar    *tau,*work,*Rl=NULL,*A=NULL,*C=NULL,one=1.0,zero=0.0;
-  PetscMPIInt    rank,size;
+  PetscMPIInt    rank,size,len;
 
   PetscFunctionBegin;
   ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
@@ -406,8 +412,9 @@ PetscErrorCode BVOrthogonalize_LAPACK_Private(BV bv,PetscInt m_,PetscInt n_,Pets
 
     /* Stack triangular matrices */
     ierr = PetscBLASIntCast(n*size,&l);CHKERRQ(ierr);
+    ierr = PetscMPIIntCast(n,&len);CHKERRQ(ierr);
     for (j=0;j<n;j++) {
-      ierr = MPI_Allgather(Rl+j*n,n,MPIU_SCALAR,A+j*l,n,MPIU_SCALAR,PetscObjectComm((PetscObject)bv));CHKERRQ(ierr);
+      ierr = MPI_Allgather(Rl+j*n,len,MPIU_SCALAR,A+j*l,len,MPIU_SCALAR,PetscObjectComm((PetscObject)bv));CHKERRQ(ierr);
     }
 
     /* Compute QR */

@@ -57,24 +57,23 @@ PetscErrorCode NEPCreate(MPI_Comm comm,NEP *outnep)
   ierr = SlepcHeaderCreate(nep,NEP_CLASSID,"NEP","Nonlinear Eigenvalue Problem","NEP",comm,NEPDestroy,NEPView);CHKERRQ(ierr);
 
   nep->max_it          = 0;
-  nep->max_funcs       = 0;
   nep->nev             = 1;
   nep->ncv             = 0;
   nep->mpd             = 0;
   nep->lag             = 1;
   nep->nini            = 0;
   nep->target          = 0.0;
-  nep->abstol          = PETSC_DEFAULT;
-  nep->rtol            = PETSC_DEFAULT;
-  nep->stol            = PETSC_DEFAULT;
+  nep->tol             = PETSC_DEFAULT;
   nep->ktol            = 0.1;
   nep->cctol           = PETSC_FALSE;
-  nep->ttol            = 0.0;
+  nep->conv            = NEP_CONV_REL;
+  nep->stop            = NEP_STOP_BASIC;
   nep->which           = (NEPWhich)0;
   nep->refine          = NEP_REFINE_NONE;
   nep->npart           = 1;
   nep->reftol          = PETSC_DEFAULT;
   nep->rits            = PETSC_DEFAULT;
+  nep->scheme          = NEP_REFINE_SCHEME_MBE;
   nep->trackall        = PETSC_FALSE;
 
   nep->computefunction = NULL;
@@ -83,9 +82,12 @@ PetscErrorCode NEPCreate(MPI_Comm comm,NEP *outnep)
   nep->jacobianctx     = NULL;
   nep->computederivatives = NULL;
   nep->derivativesctx  = NULL;
-  nep->converged       = NEPConvergedDefault;
+  nep->converged       = NEPConvergedRelative;
   nep->convergeddestroy= NULL;
+  nep->stopping        = NEPStoppingBasic;
+  nep->stoppingdestroy = NULL;
   nep->convergedctx    = NULL;
+  nep->stoppingctx     = NULL;
   nep->numbermonitors  = 0;
 
   nep->ds              = NULL;
@@ -115,7 +117,7 @@ PetscErrorCode NEPCreate(MPI_Comm comm,NEP *outnep)
   nep->its             = 0;
   nep->n               = 0;
   nep->nloc            = 0;
-  nep->nfuncs          = 0;
+  nep->nrma            = NULL;
   nep->fui             = (NEPUserInterface)0;
   nep->reason          = NEP_CONVERGED_ITERATING;
 
@@ -266,6 +268,7 @@ PetscErrorCode NEPReset_Problem(NEP nep)
       ierr = FNDestroy(&nep->f[i]);CHKERRQ(ierr);
     }
     ierr = PetscFree(nep->f);CHKERRQ(ierr);
+    ierr = PetscFree(nep->nrma);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }
@@ -300,9 +303,10 @@ PetscErrorCode NEPReset(NEP nep)
   }
   ierr = BVDestroy(&nep->V);CHKERRQ(ierr);
   ierr = VecDestroyVecs(nep->nwork,&nep->work);CHKERRQ(ierr);
-  nep->nwork  = 0;
-  nep->nfuncs = 0;
-  nep->state  = NEP_STATE_INITIAL;
+  ierr = KSPDestroy(&nep->refineksp);CHKERRQ(ierr);
+  ierr = PetscSubcommDestroy(&nep->refinesubc);CHKERRQ(ierr);
+  nep->nwork = 0;
+  nep->state = NEP_STATE_INITIAL;
   PetscFunctionReturn(0);
 }
 
@@ -618,6 +622,49 @@ PetscErrorCode NEPGetKSP(NEP nep,KSP *ksp)
 }
 
 #undef __FUNCT__
+#define __FUNCT__ "NEPRefineGetKSP"
+/*@
+   NEPRefineGetKSP - Obtain the ksp object used by the eigensolver
+   object in the refinement phase.
+
+   Not Collective
+
+   Input Parameters:
+.  nep - eigensolver context obtained from NEPCreate()
+
+   Output Parameter:
+.  ksp - ksp context
+
+   Level: advanced
+
+.seealso: NEPSetRefine()
+@*/
+PetscErrorCode NEPRefineGetKSP(NEP nep,KSP *ksp)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
+  PetscValidPointer(ksp,2);
+  if (!nep->refineksp) {
+    if (nep->npart>1) {
+      /* Split in subcomunicators */
+      ierr = PetscSubcommCreate(PetscObjectComm((PetscObject)nep),&nep->refinesubc);CHKERRQ(ierr);
+      ierr = PetscSubcommSetNumber(nep->refinesubc,nep->npart);CHKERRQ(ierr);CHKERRQ(ierr);
+      ierr = PetscSubcommSetType(nep->refinesubc,PETSC_SUBCOMM_CONTIGUOUS);CHKERRQ(ierr);
+      ierr = PetscLogObjectMemory((PetscObject)nep,sizeof(PetscSubcomm));CHKERRQ(ierr);
+    }
+    ierr = KSPCreate((nep->npart==1)?PetscObjectComm((PetscObject)nep):PetscSubcommChild(nep->refinesubc),&nep->refineksp);CHKERRQ(ierr);
+    ierr = PetscLogObjectParent((PetscObject)nep,(PetscObject)nep->refineksp);CHKERRQ(ierr);
+    ierr = KSPSetOptionsPrefix(*ksp,((PetscObject)nep)->prefix);CHKERRQ(ierr);
+    ierr = KSPAppendOptionsPrefix(*ksp,"nep_refine_");CHKERRQ(ierr);
+    ierr = KSPSetErrorIfNotConverged(*ksp,PETSC_TRUE);CHKERRQ(ierr);
+  }
+  *ksp = nep->refineksp;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
 #define __FUNCT__ "NEPSetTarget"
 /*@
    NEPSetTarget - Sets the value of the target.
@@ -907,6 +954,8 @@ PetscErrorCode NEPSetSplitOperator(NEP nep,PetscInt n,Mat A[],FN f[],MatStructur
     ierr = PetscObjectReference((PetscObject)f[i]);CHKERRQ(ierr);
     nep->f[i] = f[i];
   }
+  ierr = PetscCalloc1(n,&nep->nrma);CHKERRQ(ierr);
+  ierr = PetscLogObjectMemory((PetscObject)nep,n*sizeof(PetscReal));CHKERRQ(ierr);
   nep->nt   = n;
   nep->mstr = str;
   nep->fui  = NEP_USER_INTERFACE_SPLIT;
@@ -938,7 +987,7 @@ PetscErrorCode NEPGetSplitOperatorTerm(NEP nep,PetscInt k,Mat *A,FN *f)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
   NEPCheckSplit(nep,1);
-  if (k<0 || k>=nep->nt) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_OUTOFRANGE,"k must be between 0 and %d",nep->nt-1);
+  if (k<0 || k>=nep->nt) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_OUTOFRANGE,"k must be between 0 and %D",nep->nt-1);
   if (A) *A = nep->A[k];
   if (f) *f = nep->f[k];
   PetscFunctionReturn(0);

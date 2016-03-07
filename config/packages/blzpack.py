@@ -24,24 +24,14 @@ import log, package
 class Blzpack(package.Package):
 
   def __init__(self,argdb,log):
-    self.packagename  = 'blzpack'
-    self.downloadable = False
-    self.packagedir   = ''
-    self.packagelibs  = []
-    self.log          = log
+    package.Package.__init__(self,argdb,log)
+    self.packagename    = 'blzpack'
+    self.installable    = True
+    self.supportsscalar = ['real']
+    self.supportssingle = True
     self.ProcessArgs(argdb)
 
   def Check(self,conf,vars,cmake,petsc):
-
-    if petsc.scalar == 'complex':
-      self.log.Exit('ERROR: BLZPACK does not support complex numbers.')
-
-    if (petsc.precision != 'single') & (petsc.precision != 'double'):
-      self.log.Exit('ERROR: BLZPACK is supported only in single or double precision.')
-
-    if petsc.ind64:
-      self.log.Exit('ERROR: Cannot use external packages with 64-bit indices.')
-
     if petsc.precision == 'single':
       functions = ['blzdrs']
     else:

@@ -151,9 +151,37 @@ PETSC_EXTERN const char *EPSErrorTypes[];
 .seealso: EPSSetConvergenceTest(), EPSSetConvergenceTestFunction()
 E*/
 typedef enum { EPS_CONV_ABS,
-               EPS_CONV_EIG,
+               EPS_CONV_REL,
                EPS_CONV_NORM,
                EPS_CONV_USER } EPSConv;
+
+/*E
+    EPSStop - Determines the stopping test
+
+    Level: advanced
+
+.seealso: EPSSetStoppingTest(), EPSSetStoppingTestFunction()
+E*/
+typedef enum { EPS_STOP_BASIC,
+               EPS_STOP_USER } EPSStop;
+
+/*E
+    EPSConvergedReason - Reason an eigensolver was said to
+         have converged or diverged
+
+    Level: intermediate
+
+.seealso: EPSSolve(), EPSGetConvergedReason(), EPSSetTolerances()
+E*/
+typedef enum {/* converged */
+              EPS_CONVERGED_TOL                =  1,
+              EPS_CONVERGED_USER               =  2,
+              /* diverged */
+              EPS_DIVERGED_ITS                 = -1,
+              EPS_DIVERGED_BREAKDOWN           = -2,
+              EPS_DIVERGED_SYMMETRY_LOST       = -3,
+              EPS_CONVERGED_ITERATING          =  0} EPSConvergedReason;
+PETSC_EXTERN const char *const*EPSConvergedReasons;
 
 PETSC_EXTERN PetscErrorCode EPSCreate(MPI_Comm,EPS*);
 PETSC_EXTERN PetscErrorCode EPSDestroy(EPS*);
@@ -200,9 +228,15 @@ PETSC_EXTERN PetscErrorCode EPSGetTolerances(EPS,PetscReal*,PetscInt*);
 PETSC_EXTERN PetscErrorCode EPSSetConvergenceTestFunction(EPS,PetscErrorCode (*)(EPS,PetscScalar,PetscScalar,PetscReal,PetscReal*,void*),void*,PetscErrorCode (*)(void*));
 PETSC_EXTERN PetscErrorCode EPSSetConvergenceTest(EPS,EPSConv);
 PETSC_EXTERN PetscErrorCode EPSGetConvergenceTest(EPS,EPSConv*);
-PETSC_EXTERN PetscErrorCode EPSConvergedEigRelative(EPS,PetscScalar,PetscScalar,PetscReal,PetscReal*,void*);
 PETSC_EXTERN PetscErrorCode EPSConvergedAbsolute(EPS,PetscScalar,PetscScalar,PetscReal,PetscReal*,void*);
-PETSC_EXTERN PetscErrorCode EPSConvergedNormRelative(EPS,PetscScalar,PetscScalar,PetscReal,PetscReal*,void*);
+PETSC_EXTERN PetscErrorCode EPSConvergedRelative(EPS,PetscScalar,PetscScalar,PetscReal,PetscReal*,void*);
+PETSC_EXTERN PetscErrorCode EPSConvergedNorm(EPS,PetscScalar,PetscScalar,PetscReal,PetscReal*,void*);
+PETSC_EXTERN PetscErrorCode EPSSetStoppingTestFunction(EPS,PetscErrorCode (*)(EPS,PetscInt,PetscInt,PetscInt,PetscInt,EPSConvergedReason*,void*),void*,PetscErrorCode (*)(void*));
+PETSC_EXTERN PetscErrorCode EPSSetStoppingTest(EPS,EPSStop);
+PETSC_EXTERN PetscErrorCode EPSGetStoppingTest(EPS,EPSStop*);
+PETSC_EXTERN PetscErrorCode EPSStoppingBasic(EPS,PetscInt,PetscInt,PetscInt,PetscInt,EPSConvergedReason*,void*);
+PETSC_EXTERN PetscErrorCode EPSGetConvergedReason(EPS,EPSConvergedReason*);
+
 PETSC_EXTERN PetscErrorCode EPSSetDimensions(EPS,PetscInt,PetscInt,PetscInt);
 PETSC_EXTERN PetscErrorCode EPSGetDimensions(EPS,PetscInt*,PetscInt*,PetscInt*);
 
@@ -250,25 +284,6 @@ PETSC_EXTERN PetscErrorCode EPSSetInitialSpace(EPS,PetscInt,Vec*);
 PETSC_EXTERN PetscErrorCode EPSSetOptionsPrefix(EPS,const char*);
 PETSC_EXTERN PetscErrorCode EPSAppendOptionsPrefix(EPS,const char*);
 PETSC_EXTERN PetscErrorCode EPSGetOptionsPrefix(EPS,const char*[]);
-
-/*E
-    EPSConvergedReason - Reason an eigensolver was said to
-         have converged or diverged
-
-    Level: intermediate
-
-.seealso: EPSSolve(), EPSGetConvergedReason(), EPSSetTolerances()
-E*/
-typedef enum {/* converged */
-              EPS_CONVERGED_TOL                =  2,
-              /* diverged */
-              EPS_DIVERGED_ITS                 = -3,
-              EPS_DIVERGED_BREAKDOWN           = -4,
-              EPS_DIVERGED_SYMMETRY_LOST       = -5,
-              EPS_CONVERGED_ITERATING          =  0} EPSConvergedReason;
-PETSC_EXTERN const char *const*EPSConvergedReasons;
-
-PETSC_EXTERN PetscErrorCode EPSGetConvergedReason(EPS,EPSConvergedReason*);
 
 PETSC_EXTERN PetscFunctionList EPSList;
 PETSC_EXTERN PetscErrorCode EPSRegister(const char[],PetscErrorCode(*)(EPS));
@@ -405,6 +420,32 @@ PETSC_EXTERN PetscErrorCode EPSLOBPCGGetRestart(EPS,PetscReal*);
 PETSC_EXTERN PetscErrorCode EPSLOBPCGSetLocking(EPS,PetscBool);
 PETSC_EXTERN PetscErrorCode EPSLOBPCGGetLocking(EPS,PetscBool*);
 
+/*E
+    EPSCISSQuadRule - determines the quadrature rule in the CISS solver
+
+    Level: advanced
+
+.seealso: EPSCISSSetQuadRule(), EPSCISSGetQuadRule()
+E*/
+typedef enum { EPS_CISS_QUADRULE_TRAPEZOIDAL,
+               EPS_CISS_QUADRULE_CHEBYSHEV } EPSCISSQuadRule;
+PETSC_EXTERN const char *EPSCISSQuadRules[];
+
+/*E
+    EPSCISSExtraction - determines the extraction technique in the CISS solver
+
+    Level: advanced
+
+.seealso: EPSCISSSetExtraction(), EPSCISSGetExtraction()
+E*/
+typedef enum { EPS_CISS_EXTRACTION_RITZ,
+               EPS_CISS_EXTRACTION_HANKEL } EPSCISSExtraction;
+PETSC_EXTERN const char *EPSCISSExtractions[];
+
+PETSC_EXTERN PetscErrorCode EPSCISSSetExtraction(EPS,EPSCISSExtraction);
+PETSC_EXTERN PetscErrorCode EPSCISSGetExtraction(EPS,EPSCISSExtraction*);
+PETSC_EXTERN PetscErrorCode EPSCISSSetQuadRule(EPS,EPSCISSQuadRule);
+PETSC_EXTERN PetscErrorCode EPSCISSGetQuadRule(EPS,EPSCISSQuadRule*);
 PETSC_EXTERN PetscErrorCode EPSCISSSetRegion(EPS,PetscScalar,PetscReal,PetscReal);
 PETSC_EXTERN PetscErrorCode EPSCISSGetRegion(EPS,PetscScalar*,PetscReal*,PetscReal*);
 PETSC_EXTERN PetscErrorCode EPSCISSSetSizes(EPS,PetscInt,PetscInt,PetscInt,PetscInt,PetscInt,PetscBool);

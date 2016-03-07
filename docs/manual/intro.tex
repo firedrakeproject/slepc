@@ -308,7 +308,7 @@ for message-passing communication \citep{MPI-Forum:1994:MMI}.  Thus, to execute
 \slepc programs, users must know the procedure for launching MPI jobs
 on their selected computer system(s).  Usually, the \texttt{mpiexec} command can be used to initiate a program as in the following example that uses eight processes:
 	\begin{Verbatim}[fontsize=\small]
-	$ mpiexec -np 8 slepc_program [command-line options]
+	$ mpiexec -n 8 slepc_program [command-line options]
 	\end{Verbatim}
 Note that MPI may be deactivated during configuration of \petsc, if one wants to run only serial programs in a laptop, for example.
 

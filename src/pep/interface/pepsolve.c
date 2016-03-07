@@ -132,11 +132,6 @@ PetscErrorCode PEPSolve(PEP pep)
 
   pep->state = PEP_STATE_SOLVED;
 
-  if (pep->refine==PEP_REFINE_SIMPLE && pep->rits>0 && pep->nconv>0) {
-    ierr = PEPComputeVectors(pep);CHKERRQ(ierr);
-    ierr = PEPNewtonRefinementSimple(pep,&pep->rits,&pep->rtol,pep->nconv);CHKERRQ(ierr);
-  }
-
 #if !defined(PETSC_USE_COMPLEX)
   /* reorder conjugate eigenvalues (positive imaginary first) */
   for (i=0;i<pep->nconv-1;i++) {
@@ -152,6 +147,11 @@ PetscErrorCode PEPSolve(PEP pep)
     }
   }
 #endif
+
+  if (pep->refine==PEP_REFINE_SIMPLE && pep->rits>0 && pep->nconv>0) {
+    ierr = PEPComputeVectors(pep);CHKERRQ(ierr);
+    ierr = PEPNewtonRefinementSimple(pep,&pep->rits,&pep->rtol,pep->nconv);CHKERRQ(ierr);
+  }
 
   /* sort eigenvalues according to pep->which parameter */
   ierr = SlepcSortEigenvalues(pep->sc,pep->nconv,pep->eigr,pep->eigi,pep->perm);CHKERRQ(ierr);
@@ -254,6 +254,7 @@ PetscErrorCode PEPGetConverged(PEP pep,PetscInt *nconv)
 
    Possible values for reason:
 +  PEP_CONVERGED_TOL - converged up to tolerance
+.  PEP_CONVERGED_USER - converged due to a user-defined condition
 .  PEP_DIVERGED_ITS - required more than its to reach convergence
 .  PEP_DIVERGED_BREAKDOWN - generic breakdown in method
 -  PEP_DIVERGED_SYMMETRY_LOST - pseudo-Lanczos was not able to keep symmetry
