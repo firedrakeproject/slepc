@@ -158,10 +158,7 @@ static PetscErrorCode BVOrthogonalizeMGS(BV bv,PetscInt j,Vec v,PetscBool *which
       ierr = BVOrthogonalizeMGS1(bv,k,w,which,bv->c);CHKERRQ(ierr);
       ierr = BVNormVec(bv,w,NORM_2,&nrm);CHKERRQ(ierr);
     }
-    if (lindep) {
-      if (nrm < bv->orthog_eta*onrm) *lindep = PETSC_TRUE;
-      else *lindep = PETSC_FALSE;
-    }
+    if (lindep) *lindep = PetscNot(nrm >= bv->orthog_eta*onrm);
     break;
 
   case BV_ORTHOG_REFINE_NEVER:
@@ -171,7 +168,7 @@ static PetscErrorCode BVOrthogonalizeMGS(BV bv,PetscInt j,Vec v,PetscBool *which
       ierr = BVNormVec(bv,w,NORM_2,&nrm);CHKERRQ(ierr);
     }
     /* linear dependence check: just test for exactly zero norm */
-    if (lindep) *lindep = nrm? PETSC_FALSE: PETSC_TRUE;
+    if (lindep) *lindep = PetscNot(nrm);
     break;
 
   case BV_ORTHOG_REFINE_ALWAYS:
@@ -185,10 +182,7 @@ static PetscErrorCode BVOrthogonalizeMGS(BV bv,PetscInt j,Vec v,PetscBool *which
     if (norm || lindep) {
       ierr = BVNormVec(bv,w,NORM_2,&nrm);CHKERRQ(ierr);
     }
-    if (lindep) {
-      if (nrm==0.0 || nrm < bv->orthog_eta*onrm) *lindep = PETSC_TRUE;
-      else *lindep = PETSC_FALSE;
-    }
+    if (lindep) *lindep = PetscNot(nrm && nrm >= bv->orthog_eta*onrm);
     break;
   }
   if (bv->indef) {
@@ -226,10 +220,7 @@ static PetscErrorCode BVOrthogonalizeCGS(BV bv,PetscInt j,Vec v,PetscScalar *H,P
       for (i=0;i<bv->nc+k;i++) bv->h[i] += bv->c[i];
     }
     if (norm) *norm = nrm;
-    if (lindep) {
-      if (nrm < bv->orthog_eta*onrm) *lindep = PETSC_TRUE;
-      else *lindep = PETSC_FALSE;
-    }
+    if (lindep) *lindep = PetscNot(nrm >= bv->orthog_eta*onrm);
     break;
 
   case BV_ORTHOG_REFINE_NEVER:
@@ -241,7 +232,7 @@ static PetscErrorCode BVOrthogonalizeCGS(BV bv,PetscInt j,Vec v,PetscScalar *H,P
     }
     if (norm) *norm = nrm;
     /* linear dependence check: just test for exactly zero norm */
-    if (lindep) *lindep = nrm? PETSC_FALSE: PETSC_TRUE;
+    if (lindep) *lindep = PetscNot(nrm);
     break;
 
   case BV_ORTHOG_REFINE_ALWAYS:
@@ -249,8 +240,7 @@ static PetscErrorCode BVOrthogonalizeCGS(BV bv,PetscInt j,Vec v,PetscScalar *H,P
     if (lindep) {
       ierr = BVOrthogonalizeCGS1(bv,k,v,bv->c,&onrm,&nrm);CHKERRQ(ierr);
       if (norm) *norm = nrm;
-      if (nrm==0.0 || nrm < bv->orthog_eta*onrm) *lindep = PETSC_TRUE;
-      else *lindep = PETSC_FALSE;
+      *lindep = PetscNot(nrm && nrm >= bv->orthog_eta*onrm);
     } else {
       ierr = BVOrthogonalizeCGS1(bv,k,v,bv->c,NULL,norm);CHKERRQ(ierr);
     }

@@ -35,7 +35,7 @@ static PetscBool dvd_testconv_basic_0(dvdDashboard *d,PetscScalar eigvr,PetscSca
   PetscFunctionBegin;
   eig_norm = SlepcAbsEigenvalue(eigvr, eigvi);
   errest = r/eig_norm;
-  conv = (errest <= d->tol)? PETSC_TRUE: PETSC_FALSE;
+  conv = PetscNot(errest > d->tol);
   if (err) *err = errest;
   PetscFunctionReturn(conv);
 }
@@ -63,7 +63,7 @@ static PetscBool dvd_testconv_slepc_0(dvdDashboard *d,PetscScalar eigvr,PetscSca
 
   PetscFunctionBegin;
   ierr = (*d->eps->converged)(d->eps,eigvr,eigvi,r,err,d->eps->convergedctx);CHKERRABORT(PetscObjectComm((PetscObject)d->eps),ierr);
-  PetscFunctionReturn((*err<d->eps->tol)? PETSC_TRUE: PETSC_FALSE);
+  PetscFunctionReturn(PetscNot(*err>=d->eps->tol));
 }
 
 #undef __FUNCT__

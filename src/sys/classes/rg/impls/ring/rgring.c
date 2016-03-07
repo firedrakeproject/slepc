@@ -205,8 +205,8 @@ PetscErrorCode RGIsTrivial_Ring(RG rg,PetscBool *trivial)
   RG_RING *ctx = (RG_RING*)rg->data;
 
   PetscFunctionBegin;
-  if (rg->complement) *trivial = (ctx->radius==0.0)? PETSC_TRUE: PETSC_FALSE;
-  else *trivial = (ctx->radius>=PETSC_MAX_REAL)? PETSC_TRUE: PETSC_FALSE;
+  if (rg->complement) *trivial = PetscNot(ctx->radius);
+  else *trivial = PetscNot(ctx->radius<PETSC_MAX_REAL);
   PetscFunctionReturn(0);
 }
 
