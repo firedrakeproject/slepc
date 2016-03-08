@@ -1119,9 +1119,9 @@ PetscErrorCode EPSSolve_CISS(EPS eps)
       ierr = BVSetActiveColumns(eps->V,0,nv);CHKERRQ(ierr);
       if (ctx->extraction == EPS_CISS_EXTRACTION_HANKEL) {
         ierr = ConstructS(eps);CHKERRQ(ierr);
-	ierr = BVSetActiveColumns(ctx->S,0,ctx->L);CHKERRQ(ierr);
-	ierr = BVCopy(ctx->S,ctx->V);CHKERRQ(ierr);
-	ierr = BVSetActiveColumns(ctx->S,0,nv);CHKERRQ(ierr);
+        ierr = BVSetActiveColumns(ctx->S,0,ctx->L);CHKERRQ(ierr);
+        ierr = BVCopy(ctx->S,ctx->V);CHKERRQ(ierr);
+        ierr = BVSetActiveColumns(ctx->S,0,nv);CHKERRQ(ierr);
       }
       ierr = BVCopy(ctx->S,eps->V);CHKERRQ(ierr);
 
@@ -1145,20 +1145,20 @@ PetscErrorCode EPSSolve_CISS(EPS eps)
       else if (eps->its >= eps->max_it) eps->reason = EPS_DIVERGED_ITS;
       else {
         if (eps->nconv > ctx->L) {
-	  ierr = MatCreateSeqDense(PETSC_COMM_SELF,eps->nconv,ctx->L,NULL,&M);CHKERRQ(ierr);
-	  ierr = MatDenseGetArray(M,&temp);CHKERRQ(ierr);
-	  for (i=0;i<ctx->L*eps->nconv;i++) {
-	    ierr = PetscRandomGetValue(eps->rand,&temp[i]);CHKERRQ(ierr);
-	    temp[i] = PetscRealPart(temp[i]);
-	  }
-	  ierr = MatDenseRestoreArray(M,&temp);CHKERRQ(ierr);
-	  ierr = BVSetActiveColumns(ctx->S,0,eps->nconv);CHKERRQ(ierr);
-	  ierr = BVMultInPlace(ctx->S,M,0,ctx->L);CHKERRQ(ierr);
-	  ierr = MatDestroy(&M);CHKERRQ(ierr);
-	  ierr = BVSetActiveColumns(ctx->S,0,ctx->L);CHKERRQ(ierr);
-	  ierr = BVCopy(ctx->S,ctx->V);CHKERRQ(ierr);
-	}
-	if (ctx->pA) {
+          ierr = MatCreateSeqDense(PETSC_COMM_SELF,eps->nconv,ctx->L,NULL,&M);CHKERRQ(ierr);
+          ierr = MatDenseGetArray(M,&temp);CHKERRQ(ierr);
+          for (i=0;i<ctx->L*eps->nconv;i++) {
+            ierr = PetscRandomGetValue(eps->rand,&temp[i]);CHKERRQ(ierr);
+            temp[i] = PetscRealPart(temp[i]);
+          }
+          ierr = MatDenseRestoreArray(M,&temp);CHKERRQ(ierr);
+          ierr = BVSetActiveColumns(ctx->S,0,eps->nconv);CHKERRQ(ierr);
+          ierr = BVMultInPlace(ctx->S,M,0,ctx->L);CHKERRQ(ierr);
+          ierr = MatDestroy(&M);CHKERRQ(ierr);
+          ierr = BVSetActiveColumns(ctx->S,0,ctx->L);CHKERRQ(ierr);
+          ierr = BVCopy(ctx->S,ctx->V);CHKERRQ(ierr);
+        }
+        if (ctx->pA) {
           ierr = VecScatterVecs(eps,ctx->V,ctx->L);CHKERRQ(ierr);
           ierr = SolveLinearSystem(eps,ctx->pA,ctx->pB,ctx->pV,0,ctx->L,PETSC_FALSE);CHKERRQ(ierr);
         } else {
