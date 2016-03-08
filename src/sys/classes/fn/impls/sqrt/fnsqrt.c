@@ -43,6 +43,34 @@ PetscErrorCode FNEvaluateDerivative_Sqrt(FN fn,PetscScalar x,PetscScalar *y)
 }
 
 #undef __FUNCT__
+#define __FUNCT__ "FNEvaluateFunctionMat_Sqrt"
+PetscErrorCode FNEvaluateFunctionMat_Sqrt(FN fn,Mat A,Mat B)
+{
+  PetscErrorCode ierr;
+  PetscBLASInt   n,ld;
+  PetscScalar    *Aa,*T;
+  PetscInt       m,i,j,k;
+
+  PetscFunctionBegin;
+  ierr = MatCopy(A,B,SAME_NONZERO_PATTERN);CHKERRQ(ierr);
+  ierr = MatDenseGetArray(A,&Aa);CHKERRQ(ierr);
+  ierr = MatDenseGetArray(B,&T);CHKERRQ(ierr);
+  ierr = MatGetSize(A,&m,NULL);CHKERRQ(ierr);
+  ierr = PetscBLASIntCast(m,&n);CHKERRQ(ierr);
+  ld = n;
+  for (j=0;j<m;j++) {
+    T[j+j*ld] = PetscSqrtScalar(T[j+j*ld]);
+    for (i=j-1;i>=0;i--) {
+      T[i+j*ld] /= (T[i+i*ld]+T[j+j*ld]);
+      for (k=0;k<i;k++) T[k+j*ld] -= T[k+i*ld]*T[i+j*ld];
+    }
+  }
+  ierr = MatDenseRestoreArray(A,&Aa);CHKERRQ(ierr);
+  ierr = MatDenseRestoreArray(B,&T);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
 #define __FUNCT__ "FNView_Sqrt"
 PetscErrorCode FNView_Sqrt(FN fn,PetscViewer viewer)
 {
@@ -81,6 +109,7 @@ PETSC_EXTERN PetscErrorCode FNCreate_Sqrt(FN fn)
   PetscFunctionBegin;
   fn->ops->evaluatefunction    = FNEvaluateFunction_Sqrt;
   fn->ops->evaluatederivative  = FNEvaluateDerivative_Sqrt;
+  fn->ops->evaluatefunctionmat = FNEvaluateFunctionMat_Sqrt;
   fn->ops->view                = FNView_Sqrt;
   PetscFunctionReturn(0);
 }
