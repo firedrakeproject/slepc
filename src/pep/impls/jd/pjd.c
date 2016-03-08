@@ -249,7 +249,7 @@ PetscErrorCode PEPSolve_JD(PEP pep)
     if (pep->errest[pep->nconv]<pep->tol) {
 
       /* Ritz pair converged */
-      minv = PetscMin(nv,pjd->keep*pep->ncv);
+      minv = PetscMin(nv,(PetscInt)pjd->keep*pep->ncv);
       ierr = DSOrthogonalize(pep->ds,DS_MAT_X,nv,NULL);CHKERRQ(ierr);
       ierr = DSGetMat(pep->ds,DS_MAT_X,&X);CHKERRQ(ierr);
       ierr = BVMultInPlace(pep->V,X,pep->nconv,minv);CHKERRQ(ierr);
@@ -262,7 +262,7 @@ PetscErrorCode PEPSolve_JD(PEP pep)
     } else if (nv==pep->ncv-1) {
 
       /* Basis full, force restart */
-      minv = PetscMin(nv,pjd->keep*pep->ncv);
+      minv = PetscMin(nv,(PetscInt)pjd->keep*pep->ncv);
       ierr = DSOrthogonalize(pep->ds,DS_MAT_X,nv,NULL);CHKERRQ(ierr);
       ierr = DSGetMat(pep->ds,DS_MAT_X,&X);CHKERRQ(ierr);
       ierr = BVMultInPlace(pep->V,X,pep->nconv,minv);CHKERRQ(ierr);
