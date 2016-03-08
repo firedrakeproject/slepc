@@ -22,6 +22,7 @@
 */
 
 #include <slepc/private/fnimpl.h>      /*I "slepcfn.h" I*/
+#include <slepcblaslapack.h>
 
 #undef __FUNCT__
 #define __FUNCT__ "FNEvaluateFunction_Sqrt"
@@ -46,10 +47,19 @@ PetscErrorCode FNEvaluateDerivative_Sqrt(FN fn,PetscScalar x,PetscScalar *y)
 #define __FUNCT__ "FNEvaluateFunctionMat_Sqrt"
 PetscErrorCode FNEvaluateFunctionMat_Sqrt(FN fn,Mat A,Mat B)
 {
+#if defined(SLEPC_MISSING_LAPACK_GEES)
+  PetscFunctionBegin;
+  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"GEES - Lapack routines are unavailable");
+#else
   PetscErrorCode ierr;
-  PetscBLASInt   n,ld;
-  PetscScalar    *Aa,*T;
+  PetscBLASInt   n,ld,sdim,lwork,info;
+  PetscScalar    *wr,*Aa,*T,*W,*Q,*work,one=1.0,zero=0.0;
   PetscInt       m,i,j,k;
+#if !defined(PETSC_USE_COMPLEX)
+  PetscScalar    *wi;
+#else
+  PetscReal      *rwork;
+#endif
 
   PetscFunctionBegin;
   ierr = MatCopy(A,B,SAME_NONZERO_PATTERN);CHKERRQ(ierr);
@@ -58,6 +68,20 @@ PetscErrorCode FNEvaluateFunctionMat_Sqrt(FN fn,Mat A,Mat B)
   ierr = MatGetSize(A,&m,NULL);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(m,&n);CHKERRQ(ierr);
   ld = n;
+  lwork = 5*n;
+
+  /* compute Schur decomposition A*Q = Q*T */
+#if !defined(PETSC_USE_COMPLEX)
+  ierr = PetscMalloc5(m,&wr,m,&wi,m*m,&W,m*m,&Q,lwork,&work);CHKERRQ(ierr);
+  PetscStackCallBLAS("LAPACKgees",LAPACKgees_("V","N",NULL,&n,T,&ld,&sdim,wr,wi,Q,&ld,work,&lwork,NULL,&info));
+  if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xGEES %d",info);
+#else
+  ierr = PetscMalloc5(m,&wr,m,&rwork,m*m,&W,m*m,&Q,lwork,&work);CHKERRQ(ierr);
+  PetscStackCallBLAS("LAPACKgees",LAPACKgees_("V","N",NULL,&n,T,&ld,&sdim,wr,Q,&ld,work,&lwork,rwork,NULL,&info));
+  if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xGEES %d",info);
+#endif
+
+  /* evaluate sqrt(T) */
   for (j=0;j<m;j++) {
     T[j+j*ld] = PetscSqrtScalar(T[j+j*ld]);
     for (i=j-1;i>=0;i--) {
@@ -65,9 +89,20 @@ PetscErrorCode FNEvaluateFunctionMat_Sqrt(FN fn,Mat A,Mat B)
       for (k=0;k<i;k++) T[k+j*ld] -= T[k+i*ld]*T[i+j*ld];
     }
   }
+
+  /* backtransform B = Q*T*Q' */
+  PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&n,&n,&n,&one,Q,&ld,T,&ld,&zero,W,&ld));
+  PetscStackCallBLAS("BLASgemm",BLASgemm_("N","C",&n,&n,&n,&one,W,&ld,Q,&ld,&zero,T,&ld));
+
   ierr = MatDenseRestoreArray(A,&Aa);CHKERRQ(ierr);
   ierr = MatDenseRestoreArray(B,&T);CHKERRQ(ierr);
+#if !defined(PETSC_USE_COMPLEX)
+  ierr = PetscFree5(wr,wi,W,Q,work);CHKERRQ(ierr);
+#else
+  ierr = PetscFree5(wr,rwork,W,Q,work);CHKERRQ(ierr);
+#endif
   PetscFunctionReturn(0);
+#endif
 }
 
 #undef __FUNCT__
