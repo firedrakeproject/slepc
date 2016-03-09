@@ -477,16 +477,7 @@ PETSC_STATIC_INLINE PetscErrorCode BVNorm_Private(BV bv,Vec z,NormType type,Pets
   PetscFunctionBegin;
   ierr = BV_IPMatMult(bv,z);CHKERRQ(ierr);
   ierr = VecDot(bv->Bx,z,&p);CHKERRQ(ierr);
-  if (PetscAbsScalar(p)<PETSC_MACHINE_EPSILON)
-    ierr = PetscInfo(bv,"Zero norm, either the vector is zero or a semi-inner product is being used\n");CHKERRQ(ierr);
-  if (bv->indef) {
-    if (PetscAbsReal(PetscImaginaryPart(p))/PetscAbsScalar(p)>PETSC_MACHINE_EPSILON) SETERRQ(PetscObjectComm((PetscObject)bv),1,"BVNorm: The inner product is not well defined");
-    if (PetscRealPart(p)<0.0) *val = -PetscSqrtScalar(-PetscRealPart(p));
-    else *val = PetscSqrtScalar(PetscRealPart(p));
-  } else { 
-    if (PetscRealPart(p)<0.0 || PetscAbsReal(PetscImaginaryPart(p))/PetscAbsScalar(p)>PETSC_MACHINE_EPSILON) SETERRQ(PetscObjectComm((PetscObject)bv),1,"BVNorm: The inner product is not well defined");
-    *val = PetscSqrtScalar(PetscRealPart(p));
-  }
+  ierr = BV_SafeSqrt(bv,p,val);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -512,16 +503,7 @@ PETSC_STATIC_INLINE PetscErrorCode BVNorm_End_Private(BV bv,Vec z,NormType type,
 
   PetscFunctionBegin;
   ierr = VecDotEnd(bv->Bx,z,&p);CHKERRQ(ierr);
-  if (PetscAbsScalar(p)<PETSC_MACHINE_EPSILON)
-    ierr = PetscInfo(bv,"Zero norm, either the vector is zero or a semi-inner product is being used\n");CHKERRQ(ierr);
-  if (bv->indef) {
-    if (PetscAbsReal(PetscImaginaryPart(p))/PetscAbsScalar(p)>PETSC_MACHINE_EPSILON) SETERRQ(PetscObjectComm((PetscObject)bv),1,"BVNorm: The inner product is not well defined");
-    if (PetscRealPart(p)<0.0) *val = -PetscSqrtScalar(-PetscRealPart(p));
-    else *val = PetscSqrtScalar(PetscRealPart(p));
-  } else { 
-    if (PetscRealPart(p)<0.0 || PetscAbsReal(PetscImaginaryPart(p))/PetscAbsScalar(p)>PETSC_MACHINE_EPSILON) SETERRQ(PetscObjectComm((PetscObject)bv),1,"BVNorm: The inner product is not well defined");
-    *val = PetscSqrtScalar(PetscRealPart(p));
-  }
+  ierr = BV_SafeSqrt(bv,p,val);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
