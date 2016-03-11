@@ -1235,7 +1235,7 @@ static PetscErrorCode EPSCISSSetSizes_CISS(EPS eps,PetscInt ip,PetscInt bs,Petsc
 .  ms    - moment size
 .  npart - number of partitions when splitting the communicator
 .  bsmax - max block size
--  isreal - A and B are real
+-  realmats - A and B are real
 
    Options Database Keys:
 +  -eps_ciss_integration_points - Sets the number of integration points
@@ -1254,7 +1254,7 @@ static PetscErrorCode EPSCISSSetSizes_CISS(EPS eps,PetscInt ip,PetscInt bs,Petsc
 
 .seealso: EPSCISSGetSizes()
 @*/
-PetscErrorCode EPSCISSSetSizes(EPS eps,PetscInt ip,PetscInt bs,PetscInt ms,PetscInt npart,PetscInt bsmax,PetscBool isreal)
+PetscErrorCode EPSCISSSetSizes(EPS eps,PetscInt ip,PetscInt bs,PetscInt ms,PetscInt npart,PetscInt bsmax,PetscBool realmats)
 {
   PetscErrorCode ierr;
 
@@ -1265,14 +1265,14 @@ PetscErrorCode EPSCISSSetSizes(EPS eps,PetscInt ip,PetscInt bs,PetscInt ms,Petsc
   PetscValidLogicalCollectiveInt(eps,ms,4);
   PetscValidLogicalCollectiveInt(eps,npart,5);
   PetscValidLogicalCollectiveInt(eps,bsmax,6);
-  PetscValidLogicalCollectiveBool(eps,isreal,7);
-  ierr = PetscTryMethod(eps,"EPSCISSSetSizes_C",(EPS,PetscInt,PetscInt,PetscInt,PetscInt,PetscInt,PetscBool),(eps,ip,bs,ms,npart,bsmax,isreal));CHKERRQ(ierr);
+  PetscValidLogicalCollectiveBool(eps,realmats,7);
+  ierr = PetscTryMethod(eps,"EPSCISSSetSizes_C",(EPS,PetscInt,PetscInt,PetscInt,PetscInt,PetscInt,PetscBool),(eps,ip,bs,ms,npart,bsmax,realmats));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
 #undef __FUNCT__
 #define __FUNCT__ "EPSCISSGetSizes_CISS"
-static PetscErrorCode EPSCISSGetSizes_CISS(EPS eps,PetscInt *ip,PetscInt *bs,PetscInt *ms,PetscInt *npart,PetscInt *bsmax,PetscBool *isreal)
+static PetscErrorCode EPSCISSGetSizes_CISS(EPS eps,PetscInt *ip,PetscInt *bs,PetscInt *ms,PetscInt *npart,PetscInt *bsmax,PetscBool *realmats)
 {
   EPS_CISS *ctx = (EPS_CISS*)eps->data;
 
@@ -1282,7 +1282,7 @@ static PetscErrorCode EPSCISSGetSizes_CISS(EPS eps,PetscInt *ip,PetscInt *bs,Pet
   if (ms) *ms = ctx->M;
   if (npart) *npart = ctx->num_subcomm;
   if (bsmax) *bsmax = ctx->L_max;
-  if (isreal) *isreal = ctx->isreal;
+  if (realmats) *realmats = ctx->isreal;
   PetscFunctionReturn(0);
 }
 
@@ -1302,19 +1302,19 @@ static PetscErrorCode EPSCISSGetSizes_CISS(EPS eps,PetscInt *ip,PetscInt *bs,Pet
 .  ms    - moment size
 .  npart - number of partitions when splitting the communicator
 .  bsmax - max block size
--  isreal - A and B are real
+-  realmats - A and B are real
 
    Level: advanced
 
 .seealso: EPSCISSSetSizes()
 @*/
-PetscErrorCode EPSCISSGetSizes(EPS eps,PetscInt *ip,PetscInt *bs,PetscInt *ms,PetscInt *npart,PetscInt *bsmax,PetscBool *isreal)
+PetscErrorCode EPSCISSGetSizes(EPS eps,PetscInt *ip,PetscInt *bs,PetscInt *ms,PetscInt *npart,PetscInt *bsmax,PetscBool *realmats)
 {
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  ierr = PetscTryMethod(eps,"EPSCISSGetSizes_C",(EPS,PetscInt*,PetscInt*,PetscInt*,PetscInt*,PetscInt*,PetscBool*),(eps,ip,bs,ms,npart,bsmax,isreal));CHKERRQ(ierr);
+  ierr = PetscTryMethod(eps,"EPSCISSGetSizes_C",(EPS,PetscInt*,PetscInt*,PetscInt*,PetscInt*,PetscInt*,PetscBool*),(eps,ip,bs,ms,npart,bsmax,realmats));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
