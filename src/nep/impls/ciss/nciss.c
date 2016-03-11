@@ -54,7 +54,7 @@ typedef struct {
   PetscReal    delta;      /* threshold of singular value (1e-12) */
   PetscInt     L_max;      /* maximum number of columns of the source matrix V */
   PetscReal    spurious_threshold; /* discard spurious eigenpairs */
-  PetscBool    isreal;     /* A and B are real */
+  PetscBool    isreal;     /* T(z) is real for real z */
   PetscInt     refine_inner;
   PetscInt     refine_blocksize;
   /* private data */
@@ -724,7 +724,7 @@ static PetscErrorCode NEPCISSSetSizes_CISS(NEP nep,PetscInt ip,PetscInt bs,Petsc
 .  ms    - moment size
 .  npart - number of partitions when splitting the communicator
 .  bsmax - max block size
--  realmats - A and B are real
+-  realmats - T(z) is real for real z
 
    Options Database Keys:
 +  -nep_ciss_integration_points - Sets the number of integration points
@@ -732,12 +732,16 @@ static PetscErrorCode NEPCISSSetSizes_CISS(NEP nep,PetscInt ip,PetscInt bs,Petsc
 .  -nep_ciss_moments - Sets the moment size
 .  -nep_ciss_partitions - Sets the number of partitions
 .  -nep_ciss_maxblocksize - Sets the maximum block size
--  -nep_ciss_realmats - A and B are real
+-  -nep_ciss_realmats - T(z) is real for real z
 
    Note:
    The default number of partitions is 1. This means the internal KSP object is shared
    among all processes of the NEP communicator. Otherwise, the communicator is split
    into npart communicators, so that npart KSP solves proceed simultaneously.
+
+   The realmats flag can be set to true when T(·) is guaranteed to be real
+   when the argument is a real value, for example, when all matrices in
+   the split form are real. When set to true, the solver avoids some computations.
 
    Level: advanced
 
@@ -791,7 +795,7 @@ static PetscErrorCode NEPCISSGetSizes_CISS(NEP nep,PetscInt *ip,PetscInt *bs,Pet
 .  ms    - moment size
 .  npart - number of partitions when splitting the communicator
 .  bsmax - max block size
--  realmats - A and B are real
+-  realmats - T(z) is real for real z
 
    Level: advanced
 
@@ -1043,7 +1047,7 @@ PetscErrorCode NEPSetFromOptions_CISS(PetscOptionItems *PetscOptionsObject,NEP n
   ierr = PetscOptionsInt("-nep_ciss_moments","CISS moment size","NEPCISSSetSizes",i3,&i3,NULL);CHKERRQ(ierr);
   ierr = PetscOptionsInt("-nep_ciss_partitions","CISS number of partitions","NEPCISSSetSizes",i4,&i4,NULL);CHKERRQ(ierr);
   ierr = PetscOptionsInt("-nep_ciss_maxblocksize","CISS maximum block size","NEPCISSSetSizes",i5,&i5,NULL);CHKERRQ(ierr);
-  ierr = PetscOptionsBool("-nep_ciss_realmats","CISS A and B are real","NEPCISSSetSizes",b1,&b1,NULL);CHKERRQ(ierr);
+  ierr = PetscOptionsBool("-nep_ciss_realmats","CISS flag indicating that T(z) is real for real z","NEPCISSSetSizes",b1,&b1,NULL);CHKERRQ(ierr);
   ierr = NEPCISSSetSizes(nep,i1,i2,i3,i4,i5,b1);CHKERRQ(ierr);
 
   ierr = NEPCISSGetThreshold(nep,&r1,&r2);CHKERRQ(ierr);
