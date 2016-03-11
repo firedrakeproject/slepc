@@ -178,14 +178,14 @@ static PetscErrorCode SolveLinearSystem(NEP nep,Mat T,Mat dT,BV V,PetscInt L_sta
       ierr = KSPSetOperators(ctx->ksp[i],ctx->kspMat[i],ctx->kspMat[i]);CHKERRQ(ierr);
       ierr = KSPSetType(ctx->ksp[i],KSPPREONLY);CHKERRQ(ierr);
       ierr = KSPGetPC(ctx->ksp[i],&pc);CHKERRQ(ierr);
-      ierr = PCSetType(pc,PCREDUNDANT);CHKERRQ(ierr);
+      ierr = PCSetType(pc,PCLU);CHKERRQ(ierr);
       ierr = KSPSetFromOptions(ctx->ksp[i]);CHKERRQ(ierr);
     } else if (ctx->usest) {
       ierr = MatCopy(T,Fz,DIFFERENT_NONZERO_PATTERN);CHKERRQ(ierr);
       ierr = KSPSetOperators(ksp,Fz,Fz);CHKERRQ(ierr);
       ierr = KSPSetType(ksp,KSPPREONLY);CHKERRQ(ierr);
       ierr = KSPGetPC(ksp,&pc);CHKERRQ(ierr);
-      ierr = PCSetType(pc,PCREDUNDANT);CHKERRQ(ierr);
+      ierr = PCSetType(pc,PCLU);CHKERRQ(ierr);
       ierr = KSPSetFromOptions(ksp);CHKERRQ(ierr);
     }
     for (j=L_start;j<L_end;j++) {
