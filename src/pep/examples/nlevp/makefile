@@ -118,7 +118,7 @@ runsleeper:
 	   ${RM} -f sleeper_1.tmp
 
 runspring:
-	-@${MPIEXEC} -n 1 ./spring -pep_nev 4 -n 24 -st_type sinvert -terse > spring_1.tmp 2>&1; \
+	-@${MPIEXEC} -n 1 ./spring -pep_nev 4 -n 24 -st_type sinvert -pep_ncv 18 -terse > spring_1.tmp 2>&1; \
 	   if (${DIFF} output/spring_1.out spring_1.tmp) then true; \
 	   else echo "Possible problem with spring_1, diffs above"; fi; \
 	   ${RM} -f spring_1.tmp
