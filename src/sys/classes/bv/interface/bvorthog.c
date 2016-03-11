@@ -82,7 +82,7 @@ PetscErrorCode BVOrthogonalizeCGS1(BV bv,PetscInt j,Vec v,PetscScalar *H,PetscRe
     if (!v) {
       ierr = BVRestoreColumn(bv,j,&w);CHKERRQ(ierr);
       bv->k--;
-      beta = PetscSqrtReal(PetscRealPart(H[bv->nc+j]));
+      ierr = BV_SafeSqrt(bv,H[bv->nc+j],&beta);CHKERRQ(ierr);
     } else {
       ierr = BVNormVec(bv,w,NORM_2,&beta);CHKERRQ(ierr);
     }
