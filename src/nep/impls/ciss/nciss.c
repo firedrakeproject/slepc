@@ -525,7 +525,7 @@ PetscErrorCode NEPSolve_CISS(NEP nep)
   PetscErrorCode ierr;
   NEP_CISS       *ctx = (NEP_CISS*)nep->data;
   Mat            X,M;
-  PetscInt       i,j,ld,L_add=0,nv=0,L_base=ctx->L,inner,nlocal,*inside;
+  PetscInt       i,j,ld,L_add=0,nv=0,L_base=ctx->L,inner,*inside;
   PetscScalar    *Mu,*H0,*H1,*rr,*temp,center;
   PetscReal      error,max_error,radius;
   PetscBool      *fl1;
@@ -538,7 +538,6 @@ PetscErrorCode NEPSolve_CISS(NEP nep)
   sc->comparisonctx = NULL;
   sc->map           = NULL;
   sc->mapobj        = NULL;
-  nlocal            = nep->nloc;
   ierr = DSGetLeadingDimension(nep->ds,&ld);CHKERRQ(ierr);
   ierr = SetPathParameter(nep);CHKERRQ(ierr);
   ierr = CISSVecSetRandom(ctx->V,0,ctx->L,nep->rand);CHKERRQ(ierr);
@@ -668,7 +667,7 @@ PetscErrorCode NEPSolve_CISS(NEP nep)
 
 #undef __FUNCT__
 #define __FUNCT__ "NEPCISSSetSizes_CISS"
-static PetscErrorCode NEPCISSSetSizes_CISS(NEP nep,PetscInt ip,PetscInt bs,PetscInt ms,PetscInt npart,PetscInt bsmax,PetscBool isreal)
+static PetscErrorCode NEPCISSSetSizes_CISS(NEP nep,PetscInt ip,PetscInt bs,PetscInt ms,PetscInt npart,PetscInt bsmax,PetscBool realmats)
 {
   NEP_CISS *ctx = (NEP_CISS*)nep->data;
 
@@ -707,7 +706,7 @@ static PetscErrorCode NEPCISSSetSizes_CISS(NEP nep,PetscInt ip,PetscInt bs,Petsc
     if (bsmax<ctx->L) ctx->L_max = ctx->L;
     else ctx->L_max = bsmax;
   }
-  ctx->isreal = isreal;
+  ctx->isreal = realmats;
   PetscFunctionReturn(0);
 }
 
@@ -725,7 +724,7 @@ static PetscErrorCode NEPCISSSetSizes_CISS(NEP nep,PetscInt ip,PetscInt bs,Petsc
 .  ms    - moment size
 .  npart - number of partitions when splitting the communicator
 .  bsmax - max block size
--  isreal - A and B are real
+-  realmats - A and B are real
 
    Options Database Keys:
 +  -nep_ciss_integration_points - Sets the number of integration points
@@ -744,7 +743,7 @@ static PetscErrorCode NEPCISSSetSizes_CISS(NEP nep,PetscInt ip,PetscInt bs,Petsc
 
 .seealso: NEPCISSGetSizes()
 @*/
-PetscErrorCode NEPCISSSetSizes(NEP nep,PetscInt ip,PetscInt bs,PetscInt ms,PetscInt npart,PetscInt bsmax,PetscBool isreal)
+PetscErrorCode NEPCISSSetSizes(NEP nep,PetscInt ip,PetscInt bs,PetscInt ms,PetscInt npart,PetscInt bsmax,PetscBool realmats)
 {
   PetscErrorCode ierr;
 
@@ -755,14 +754,14 @@ PetscErrorCode NEPCISSSetSizes(NEP nep,PetscInt ip,PetscInt bs,PetscInt ms,Petsc
   PetscValidLogicalCollectiveInt(nep,ms,4);
   PetscValidLogicalCollectiveInt(nep,npart,5);
   PetscValidLogicalCollectiveInt(nep,bsmax,6);
-  PetscValidLogicalCollectiveBool(nep,isreal,7);
-  ierr = PetscTryMethod(nep,"NEPCISSSetSizes_C",(NEP,PetscInt,PetscInt,PetscInt,PetscInt,PetscInt,PetscBool),(nep,ip,bs,ms,npart,bsmax,isreal));CHKERRQ(ierr);
+  PetscValidLogicalCollectiveBool(nep,realmats,7);
+  ierr = PetscTryMethod(nep,"NEPCISSSetSizes_C",(NEP,PetscInt,PetscInt,PetscInt,PetscInt,PetscInt,PetscBool),(nep,ip,bs,ms,npart,bsmax,realmats));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
 #undef __FUNCT__
 #define __FUNCT__ "NEPCISSGetSizes_CISS"
-static PetscErrorCode NEPCISSGetSizes_CISS(NEP nep,PetscInt *ip,PetscInt *bs,PetscInt *ms,PetscInt *npart,PetscInt *bsmax,PetscBool *isreal)
+static PetscErrorCode NEPCISSGetSizes_CISS(NEP nep,PetscInt *ip,PetscInt *bs,PetscInt *ms,PetscInt *npart,PetscInt *bsmax,PetscBool *realmats)
 {
   NEP_CISS *ctx = (NEP_CISS*)nep->data;
 
@@ -772,7 +771,7 @@ static PetscErrorCode NEPCISSGetSizes_CISS(NEP nep,PetscInt *ip,PetscInt *bs,Pet
   if (ms) *ms = ctx->M;
   if (npart) *npart = ctx->num_subcomm;
   if (bsmax) *bsmax = ctx->L_max;
-  if (isreal) *isreal = ctx->isreal;
+  if (realmats) *realmats = ctx->isreal;
   PetscFunctionReturn(0);
 }
 
@@ -792,19 +791,19 @@ static PetscErrorCode NEPCISSGetSizes_CISS(NEP nep,PetscInt *ip,PetscInt *bs,Pet
 .  ms    - moment size
 .  npart - number of partitions when splitting the communicator
 .  bsmax - max block size
--  isreal - A and B are real
+-  realmats - A and B are real
 
    Level: advanced
 
 .seealso: NEPCISSSetSizes()
 @*/
-PetscErrorCode NEPCISSGetSizes(NEP nep,PetscInt *ip,PetscInt *bs,PetscInt *ms,PetscInt *npart,PetscInt *bsmax,PetscBool *isreal)
+PetscErrorCode NEPCISSGetSizes(NEP nep,PetscInt *ip,PetscInt *bs,PetscInt *ms,PetscInt *npart,PetscInt *bsmax,PetscBool *realmats)
 {
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
-  ierr = PetscTryMethod(nep,"NEPCISSGetSizes_C",(NEP,PetscInt*,PetscInt*,PetscInt*,PetscInt*,PetscInt*,PetscBool*),(nep,ip,bs,ms,npart,bsmax,isreal));CHKERRQ(ierr);
+  ierr = PetscTryMethod(nep,"NEPCISSGetSizes_C",(NEP,PetscInt*,PetscInt*,PetscInt*,PetscInt*,PetscInt*,PetscBool*),(nep,ip,bs,ms,npart,bsmax,realmats));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
