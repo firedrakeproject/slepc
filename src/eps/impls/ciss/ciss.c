@@ -1176,7 +1176,7 @@ PetscErrorCode EPSSolve_CISS(EPS eps)
 
 #undef __FUNCT__
 #define __FUNCT__ "EPSCISSSetSizes_CISS"
-static PetscErrorCode EPSCISSSetSizes_CISS(EPS eps,PetscInt ip,PetscInt bs,PetscInt ms,PetscInt npart,PetscInt bsmax,PetscBool isreal)
+static PetscErrorCode EPSCISSSetSizes_CISS(EPS eps,PetscInt ip,PetscInt bs,PetscInt ms,PetscInt npart,PetscInt bsmax,PetscBool realmats)
 {
   PetscErrorCode ierr;
   EPS_CISS       *ctx = (EPS_CISS*)eps->data;
@@ -1216,7 +1216,7 @@ static PetscErrorCode EPSCISSSetSizes_CISS(EPS eps,PetscInt ip,PetscInt bs,Petsc
     if (bsmax<ctx->L) ctx->L_max = ctx->L;
     else ctx->L_max = bsmax;
   }
-  ctx->isreal = isreal;
+  ctx->isreal = realmats;
   ierr = EPSReset(eps);CHKERRQ(ierr);   /* clean allocated arrays and force new setup */
   PetscFunctionReturn(0);
 }
