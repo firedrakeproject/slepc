@@ -339,7 +339,7 @@ static PetscErrorCode SolveLinearSystem(EPS eps,Mat A,Mat B,BV V,PetscInt L_star
       ierr = KSPSetOperators(ctx->ksp[i],ctx->kspMat[i],ctx->kspMat[i]);CHKERRQ(ierr);
       ierr = KSPSetType(ctx->ksp[i],KSPPREONLY);CHKERRQ(ierr);
       ierr = KSPGetPC(ctx->ksp[i],&pc);CHKERRQ(ierr);
-      ierr = PCSetType(pc,PCREDUNDANT);CHKERRQ(ierr);
+      ierr = PCSetType(pc,PCLU);CHKERRQ(ierr);
       ierr = KSPSetFromOptions(ctx->ksp[i]);CHKERRQ(ierr);
     } else if (ctx->usest) {
       ierr = STSetShift(eps->st,ctx->omega[p_id]);CHKERRQ(ierr);
@@ -1931,7 +1931,7 @@ PETSC_EXTERN PetscErrorCode EPSCreate_CISS(EPS eps)
   ctx->delta              = 1e-12;
   ctx->L_max              = 64;
   ctx->spurious_threshold = 1e-4;
-  ctx->usest              = PETSC_FALSE;
+  ctx->usest              = PETSC_TRUE;
   ctx->isreal             = PETSC_FALSE;
   ctx->refine_inner       = 0;
   ctx->refine_blocksize   = 0;
