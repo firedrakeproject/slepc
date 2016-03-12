@@ -54,9 +54,8 @@ typedef struct {
   PetscReal    delta;      /* threshold of singular value (1e-12) */
   PetscInt     L_max;      /* maximum number of columns of the source matrix V */
   PetscReal    spurious_threshold; /* discard spurious eigenpairs */
-  PetscBool    isreal;     /* A and B are real */
+  PetscBool    isreal;     /* T(z) is real for real z */
   PetscInt     refine_inner;
-  PetscInt     refine_outer;
   PetscInt     refine_blocksize;
   /* private data */
   PetscReal    *sigma;     /* threshold for numerical rank */
@@ -179,14 +178,14 @@ static PetscErrorCode SolveLinearSystem(NEP nep,Mat T,Mat dT,BV V,PetscInt L_sta
       ierr = KSPSetOperators(ctx->ksp[i],ctx->kspMat[i],ctx->kspMat[i]);CHKERRQ(ierr);
       ierr = KSPSetType(ctx->ksp[i],KSPPREONLY);CHKERRQ(ierr);
       ierr = KSPGetPC(ctx->ksp[i],&pc);CHKERRQ(ierr);
-      ierr = PCSetType(pc,PCREDUNDANT);CHKERRQ(ierr);
+      ierr = PCSetType(pc,PCLU);CHKERRQ(ierr);
       ierr = KSPSetFromOptions(ctx->ksp[i]);CHKERRQ(ierr);
     } else if (ctx->usest) {
       ierr = MatCopy(T,Fz,DIFFERENT_NONZERO_PATTERN);CHKERRQ(ierr);
       ierr = KSPSetOperators(ksp,Fz,Fz);CHKERRQ(ierr);
       ierr = KSPSetType(ksp,KSPPREONLY);CHKERRQ(ierr);
       ierr = KSPGetPC(ksp,&pc);CHKERRQ(ierr);
-      ierr = PCSetType(pc,PCREDUNDANT);CHKERRQ(ierr);
+      ierr = PCSetType(pc,PCLU);CHKERRQ(ierr);
       ierr = KSPSetFromOptions(ksp);CHKERRQ(ierr);
     }
     for (j=L_start;j<L_end;j++) {
@@ -456,7 +455,16 @@ PetscErrorCode NEPSetUp_CISS(NEP nep)
   PetscScalar    center;
 
   PetscFunctionBegin;
-  nep->ncv = PetscMin(nep->n,ctx->L*ctx->M);
+  if (!nep->ncv) nep->ncv = ctx->L_max*ctx->M;
+  else {
+    ctx->L_max = nep->ncv/ctx->M;
+    if (ctx->L_max == 0) {
+      ctx->L_max = 1;
+      nep->ncv = ctx->L_max*ctx->M;
+    }
+    if (ctx->L > ctx->L_max) ctx->L = ctx->L_max;
+  }
+  if (!nep->max_it) nep->max_it = 1;
   if (!nep->mpd) nep->mpd = nep->ncv;
   if (!nep->which) nep->which = NEP_LARGEST_MAGNITUDE;
   if (nep->stopping!=NEPStoppingBasic) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"This solver does not support user-defined stopping test");
@@ -517,7 +525,7 @@ PetscErrorCode NEPSolve_CISS(NEP nep)
   PetscErrorCode ierr;
   NEP_CISS       *ctx = (NEP_CISS*)nep->data;
   Mat            X,M;
-  PetscInt       i,j,ld,L_add=0,nv=0,L_base=ctx->L,inner,outer,*inside;
+  PetscInt       i,j,ld,L_add=0,nv=0,L_base=ctx->L,inner,*inside;
   PetscScalar    *Mu,*H0,*H1,*rr,*temp,center;
   PetscReal      error,max_error,radius;
   PetscBool      *fl1;
@@ -558,7 +566,8 @@ PetscErrorCode NEPSolve_CISS(NEP nep)
   ierr = PetscFree2(Mu,H0);CHKERRQ(ierr);
 
   ierr = PetscMalloc3(ctx->L*ctx->L*ctx->M*2,&Mu,ctx->L*ctx->M*ctx->L*ctx->M,&H0,ctx->L*ctx->M*ctx->L*ctx->M,&H1);CHKERRQ(ierr);
-  for (outer=0;outer<=ctx->refine_outer;outer++) {
+  while (nep->reason == NEP_CONVERGED_ITERATING) {
+    nep->its++;
     for (inner=0;inner<=ctx->refine_inner;inner++) {
       ierr = CalcMu(nep,Mu);CHKERRQ(ierr);
       ierr = BlockHankel(nep,Mu,0,H0);CHKERRQ(ierr);
@@ -632,32 +641,33 @@ PetscErrorCode NEPSolve_CISS(NEP nep)
       ierr = BVRestoreColumn(nep->V,i,&si);CHKERRQ(ierr);
       max_error = PetscMax(max_error,error);
     }
-    if (max_error <= nep->tol || outer == ctx->refine_outer) break;
-
-    if (nep->nconv > ctx->L) nv = nep->nconv;
-    else if (ctx->L > nv) nv = ctx->L;
-    ierr = MatCreateSeqDense(PETSC_COMM_SELF,nv,ctx->L,NULL,&M);CHKERRQ(ierr);
-    ierr = MatDenseGetArray(M,&temp);CHKERRQ(ierr);
-    for (i=0;i<ctx->L*nv;i++) {
-      ierr = PetscRandomGetValue(nep->rand,&temp[i]);CHKERRQ(ierr);
-      temp[i] = PetscRealPart(temp[i]);
+    if (max_error <= nep->tol) nep->reason = NEP_CONVERGED_TOL;
+    else if (nep->its > nep->max_it) nep->reason = NEP_DIVERGED_ITS;
+    else {
+      if (nep->nconv > ctx->L) nv = nep->nconv;
+      else if (ctx->L > nv) nv = ctx->L;
+      ierr = MatCreateSeqDense(PETSC_COMM_SELF,nv,ctx->L,NULL,&M);CHKERRQ(ierr);
+      ierr = MatDenseGetArray(M,&temp);CHKERRQ(ierr);
+      for (i=0;i<ctx->L*nv;i++) {
+        ierr = PetscRandomGetValue(nep->rand,&temp[i]);CHKERRQ(ierr);
+        temp[i] = PetscRealPart(temp[i]);
+      }
+      ierr = MatDenseRestoreArray(M,&temp);CHKERRQ(ierr);
+      ierr = BVSetActiveColumns(ctx->S,0,nv);CHKERRQ(ierr);
+      ierr = BVMultInPlace(ctx->S,M,0,ctx->L);CHKERRQ(ierr);
+      ierr = MatDestroy(&M);CHKERRQ(ierr);
+      ierr = BVSetActiveColumns(ctx->S,0,ctx->L);CHKERRQ(ierr);
+      ierr = BVCopy(ctx->S,ctx->V);CHKERRQ(ierr);
+      ierr = SolveLinearSystem(nep,nep->function,nep->jacobian,ctx->V,0,ctx->L,PETSC_FALSE);CHKERRQ(ierr);
     }
-    ierr = MatDenseRestoreArray(M,&temp);CHKERRQ(ierr);
-    ierr = BVSetActiveColumns(ctx->S,0,nv);CHKERRQ(ierr);
-    ierr = BVMultInPlace(ctx->S,M,0,ctx->L);CHKERRQ(ierr);
-    ierr = MatDestroy(&M);CHKERRQ(ierr);
-    ierr = BVSetActiveColumns(ctx->S,0,ctx->L);CHKERRQ(ierr);
-    ierr = BVCopy(ctx->S,ctx->V);CHKERRQ(ierr);
-    ierr = SolveLinearSystem(nep,nep->function,nep->jacobian,ctx->V,0,ctx->L,PETSC_FALSE);CHKERRQ(ierr);
   }
   ierr = PetscFree3(Mu,H0,H1);CHKERRQ(ierr);  
-  nep->reason = NEP_CONVERGED_TOL;
   PetscFunctionReturn(0);
 }
 
 #undef __FUNCT__
 #define __FUNCT__ "NEPCISSSetSizes_CISS"
-static PetscErrorCode NEPCISSSetSizes_CISS(NEP nep,PetscInt ip,PetscInt bs,PetscInt ms,PetscInt npart,PetscInt bsmax,PetscBool isreal)
+static PetscErrorCode NEPCISSSetSizes_CISS(NEP nep,PetscInt ip,PetscInt bs,PetscInt ms,PetscInt npart,PetscInt bsmax,PetscBool realmats)
 {
   NEP_CISS *ctx = (NEP_CISS*)nep->data;
 
@@ -696,7 +706,7 @@ static PetscErrorCode NEPCISSSetSizes_CISS(NEP nep,PetscInt ip,PetscInt bs,Petsc
     if (bsmax<ctx->L) ctx->L_max = ctx->L;
     else ctx->L_max = bsmax;
   }
-  ctx->isreal = isreal;
+  ctx->isreal = realmats;
   PetscFunctionReturn(0);
 }
 
@@ -714,7 +724,7 @@ static PetscErrorCode NEPCISSSetSizes_CISS(NEP nep,PetscInt ip,PetscInt bs,Petsc
 .  ms    - moment size
 .  npart - number of partitions when splitting the communicator
 .  bsmax - max block size
--  isreal - A and B are real
+-  realmats - T(z) is real for real z
 
    Options Database Keys:
 +  -nep_ciss_integration_points - Sets the number of integration points
@@ -722,18 +732,22 @@ static PetscErrorCode NEPCISSSetSizes_CISS(NEP nep,PetscInt ip,PetscInt bs,Petsc
 .  -nep_ciss_moments - Sets the moment size
 .  -nep_ciss_partitions - Sets the number of partitions
 .  -nep_ciss_maxblocksize - Sets the maximum block size
--  -nep_ciss_realmats - A and B are real
+-  -nep_ciss_realmats - T(z) is real for real z
 
    Note:
    The default number of partitions is 1. This means the internal KSP object is shared
    among all processes of the NEP communicator. Otherwise, the communicator is split
    into npart communicators, so that npart KSP solves proceed simultaneously.
 
+   The realmats flag can be set to true when T(·) is guaranteed to be real
+   when the argument is a real value, for example, when all matrices in
+   the split form are real. When set to true, the solver avoids some computations.
+
    Level: advanced
 
 .seealso: NEPCISSGetSizes()
 @*/
-PetscErrorCode NEPCISSSetSizes(NEP nep,PetscInt ip,PetscInt bs,PetscInt ms,PetscInt npart,PetscInt bsmax,PetscBool isreal)
+PetscErrorCode NEPCISSSetSizes(NEP nep,PetscInt ip,PetscInt bs,PetscInt ms,PetscInt npart,PetscInt bsmax,PetscBool realmats)
 {
   PetscErrorCode ierr;
 
@@ -744,14 +758,14 @@ PetscErrorCode NEPCISSSetSizes(NEP nep,PetscInt ip,PetscInt bs,PetscInt ms,Petsc
   PetscValidLogicalCollectiveInt(nep,ms,4);
   PetscValidLogicalCollectiveInt(nep,npart,5);
   PetscValidLogicalCollectiveInt(nep,bsmax,6);
-  PetscValidLogicalCollectiveBool(nep,isreal,7);
-  ierr = PetscTryMethod(nep,"NEPCISSSetSizes_C",(NEP,PetscInt,PetscInt,PetscInt,PetscInt,PetscInt,PetscBool),(nep,ip,bs,ms,npart,bsmax,isreal));CHKERRQ(ierr);
+  PetscValidLogicalCollectiveBool(nep,realmats,7);
+  ierr = PetscTryMethod(nep,"NEPCISSSetSizes_C",(NEP,PetscInt,PetscInt,PetscInt,PetscInt,PetscInt,PetscBool),(nep,ip,bs,ms,npart,bsmax,realmats));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
 #undef __FUNCT__
 #define __FUNCT__ "NEPCISSGetSizes_CISS"
-static PetscErrorCode NEPCISSGetSizes_CISS(NEP nep,PetscInt *ip,PetscInt *bs,PetscInt *ms,PetscInt *npart,PetscInt *bsmax,PetscBool *isreal)
+static PetscErrorCode NEPCISSGetSizes_CISS(NEP nep,PetscInt *ip,PetscInt *bs,PetscInt *ms,PetscInt *npart,PetscInt *bsmax,PetscBool *realmats)
 {
   NEP_CISS *ctx = (NEP_CISS*)nep->data;
 
@@ -761,7 +775,7 @@ static PetscErrorCode NEPCISSGetSizes_CISS(NEP nep,PetscInt *ip,PetscInt *bs,Pet
   if (ms) *ms = ctx->M;
   if (npart) *npart = ctx->num_subcomm;
   if (bsmax) *bsmax = ctx->L_max;
-  if (isreal) *isreal = ctx->isreal;
+  if (realmats) *realmats = ctx->isreal;
   PetscFunctionReturn(0);
 }
 
@@ -781,19 +795,19 @@ static PetscErrorCode NEPCISSGetSizes_CISS(NEP nep,PetscInt *ip,PetscInt *bs,Pet
 .  ms    - moment size
 .  npart - number of partitions when splitting the communicator
 .  bsmax - max block size
--  isreal - A and B are real
+-  realmats - T(z) is real for real z
 
    Level: advanced
 
 .seealso: NEPCISSSetSizes()
 @*/
-PetscErrorCode NEPCISSGetSizes(NEP nep,PetscInt *ip,PetscInt *bs,PetscInt *ms,PetscInt *npart,PetscInt *bsmax,PetscBool *isreal)
+PetscErrorCode NEPCISSGetSizes(NEP nep,PetscInt *ip,PetscInt *bs,PetscInt *ms,PetscInt *npart,PetscInt *bsmax,PetscBool *realmats)
 {
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
-  ierr = PetscTryMethod(nep,"NEPCISSGetSizes_C",(NEP,PetscInt*,PetscInt*,PetscInt*,PetscInt*,PetscInt*,PetscBool*),(nep,ip,bs,ms,npart,bsmax,isreal));CHKERRQ(ierr);
+  ierr = PetscTryMethod(nep,"NEPCISSGetSizes_C",(NEP,PetscInt*,PetscInt*,PetscInt*,PetscInt*,PetscInt*,PetscBool*),(nep,ip,bs,ms,npart,bsmax,realmats));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -895,7 +909,7 @@ PetscErrorCode NEPCISSGetThreshold(NEP nep,PetscReal *delta,PetscReal *spur)
 
 #undef __FUNCT__
 #define __FUNCT__ "NEPCISSSetRefinement_CISS"
-static PetscErrorCode NEPCISSSetRefinement_CISS(NEP nep,PetscInt inner,PetscInt outer,PetscInt blsize)
+static PetscErrorCode NEPCISSSetRefinement_CISS(NEP nep,PetscInt inner,PetscInt blsize)
 {
   NEP_CISS *ctx = (NEP_CISS*)nep->data;
 
@@ -905,12 +919,6 @@ static PetscErrorCode NEPCISSSetRefinement_CISS(NEP nep,PetscInt inner,PetscInt 
   } else {
     if (inner<0) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_OUTOFRANGE,"The refine inner argument must be >= 0");
     ctx->refine_inner = inner;
-  }
-  if (outer == PETSC_DEFAULT) {
-    ctx->refine_outer = 0;
-  } else {
-    if (outer<0) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_OUTOFRANGE,"The refine outer argument must be >= 0");
-    ctx->refine_outer = outer;
   }
   if (blsize == PETSC_DEFAULT) {
     ctx->refine_blocksize = 0;
@@ -932,40 +940,36 @@ static PetscErrorCode NEPCISSSetRefinement_CISS(NEP nep,PetscInt inner,PetscInt 
    Input Parameters:
 +  nep    - the eigenproblem solver context
 .  inner  - number of iterative refinement iterations (inner loop)
-.  outer  - number of iterative refinement iterations (outer loop)
 -  blsize - number of iterative refinement iterations (blocksize loop)
 
    Options Database Keys:
 +  -nep_ciss_refine_inner - Sets number of inner iterations
-.  -nep_ciss_refine_outer - Sets number of outer iterations
 -  -nep_ciss_refine_blocksize - Sets number of blocksize iterations
 
    Level: advanced
 
 .seealso: NEPCISSGetRefinement()
 @*/
-PetscErrorCode NEPCISSSetRefinement(NEP nep,PetscInt inner,PetscInt outer,PetscInt blsize)
+PetscErrorCode NEPCISSSetRefinement(NEP nep,PetscInt inner,PetscInt blsize)
 {
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
   PetscValidLogicalCollectiveInt(nep,inner,2);
-  PetscValidLogicalCollectiveInt(nep,outer,3);
-  PetscValidLogicalCollectiveInt(nep,blsize,4);
-  ierr = PetscTryMethod(nep,"NEPCISSSetRefinement_C",(NEP,PetscInt,PetscInt,PetscInt),(nep,inner,outer,blsize));CHKERRQ(ierr);
+  PetscValidLogicalCollectiveInt(nep,blsize,3);
+  ierr = PetscTryMethod(nep,"NEPCISSSetRefinement_C",(NEP,PetscInt,PetscInt),(nep,inner,blsize));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
 #undef __FUNCT__
 #define __FUNCT__ "NEPCISSGetRefinement_CISS"
-static PetscErrorCode NEPCISSGetRefinement_CISS(NEP nep,PetscInt *inner,PetscInt *outer,PetscInt *blsize)
+static PetscErrorCode NEPCISSGetRefinement_CISS(NEP nep,PetscInt *inner,PetscInt *blsize)
 {
   NEP_CISS *ctx = (NEP_CISS*)nep->data;
 
   PetscFunctionBegin;
   if (inner)  *inner = ctx->refine_inner;
-  if (outer)  *outer = ctx->refine_outer;
   if (blsize) *blsize = ctx->refine_blocksize;
   PetscFunctionReturn(0);
 }
@@ -983,20 +987,19 @@ static PetscErrorCode NEPCISSGetRefinement_CISS(NEP nep,PetscInt *inner,PetscInt
 
    Output Parameters:
 +  inner  - number of iterative refinement iterations (inner loop)
-.  outer  - number of iterative refinement iterations (outer loop)
 -  blsize - number of iterative refinement iterations (blocksize loop)
 
    Level: advanced
 
 .seealso: NEPCISSSetRefinement()
 @*/
-PetscErrorCode NEPCISSGetRefinement(NEP nep, PetscInt *inner, PetscInt *outer,PetscInt *blsize)
+PetscErrorCode NEPCISSGetRefinement(NEP nep, PetscInt *inner, PetscInt *blsize)
 {
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
-  ierr = PetscTryMethod(nep,"NEPCISSGetRefinement_C",(NEP,PetscInt*,PetscInt*,PetscInt*),(nep,inner,outer,blsize));CHKERRQ(ierr);
+  ierr = PetscTryMethod(nep,"NEPCISSGetRefinement_C",(NEP,PetscInt*,PetscInt*),(nep,inner,blsize));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -1032,7 +1035,7 @@ PetscErrorCode NEPSetFromOptions_CISS(PetscOptionItems *PetscOptionsObject,NEP n
 {
   PetscErrorCode ierr;
   PetscReal      r1,r2;
-  PetscInt       i1,i2,i3,i4,i5,i6,i7,i8;
+  PetscInt       i1,i2,i3,i4,i5,i6,i7;
   PetscBool      b1;
 
   PetscFunctionBegin;
@@ -1044,7 +1047,7 @@ PetscErrorCode NEPSetFromOptions_CISS(PetscOptionItems *PetscOptionsObject,NEP n
   ierr = PetscOptionsInt("-nep_ciss_moments","CISS moment size","NEPCISSSetSizes",i3,&i3,NULL);CHKERRQ(ierr);
   ierr = PetscOptionsInt("-nep_ciss_partitions","CISS number of partitions","NEPCISSSetSizes",i4,&i4,NULL);CHKERRQ(ierr);
   ierr = PetscOptionsInt("-nep_ciss_maxblocksize","CISS maximum block size","NEPCISSSetSizes",i5,&i5,NULL);CHKERRQ(ierr);
-  ierr = PetscOptionsBool("-nep_ciss_realmats","CISS A and B are real","NEPCISSSetSizes",b1,&b1,NULL);CHKERRQ(ierr);
+  ierr = PetscOptionsBool("-nep_ciss_realmats","CISS flag indicating that T(z) is real for real z","NEPCISSSetSizes",b1,&b1,NULL);CHKERRQ(ierr);
   ierr = NEPCISSSetSizes(nep,i1,i2,i3,i4,i5,b1);CHKERRQ(ierr);
 
   ierr = NEPCISSGetThreshold(nep,&r1,&r2);CHKERRQ(ierr);
@@ -1052,11 +1055,10 @@ PetscErrorCode NEPSetFromOptions_CISS(PetscOptionItems *PetscOptionsObject,NEP n
   ierr = PetscOptionsReal("-nep_ciss_spurious_threshold","CISS threshold for the spurious eigenpairs","NEPCISSSetThreshold",r2,&r2,NULL);CHKERRQ(ierr);
   ierr = NEPCISSSetThreshold(nep,r1,r2);CHKERRQ(ierr);
 
-  ierr = NEPCISSGetRefinement(nep,&i6,&i7,&i8);CHKERRQ(ierr);
+  ierr = NEPCISSGetRefinement(nep,&i6,&i7);CHKERRQ(ierr);
   ierr = PetscOptionsInt("-nep_ciss_refine_inner","CISS number of inner iterative refinement iterations","NEPCISSSetRefinement",i6,&i6,NULL);CHKERRQ(ierr);
-  ierr = PetscOptionsInt("-nep_ciss_refine_outer","CISS number of outer iterative refinement iterations","NEPCISSSetRefinement",i7,&i7,NULL);CHKERRQ(ierr);
-  ierr = PetscOptionsInt("-nep_ciss_refine_blocksize","CISS number of blocksize iterative refinement iterations","NEPCISSSetRefinement",i8,&i8,NULL);CHKERRQ(ierr);
-  ierr = NEPCISSSetRefinement(nep,i6,i7,i8);CHKERRQ(ierr);
+  ierr = PetscOptionsInt("-nep_ciss_refine_blocksize","CISS number of blocksize iterative refinement iterations","NEPCISSSetRefinement",i7,&i7,NULL);CHKERRQ(ierr);
+  ierr = NEPCISSSetRefinement(nep,i6,i7);CHKERRQ(ierr);
 
   ierr = PetscOptionsTail();CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -1095,7 +1097,7 @@ PetscErrorCode NEPView_CISS(NEP nep,PetscViewer viewer)
       ierr = PetscViewerASCIIPrintf(viewer,"  CISS: exploiting symmetry of integration points\n");CHKERRQ(ierr);
     }
     ierr = PetscViewerASCIIPrintf(viewer,"  CISS: threshold { delta: %g, spurious threshold: %g }\n",(double)ctx->delta,(double)ctx->spurious_threshold);CHKERRQ(ierr);
-    ierr = PetscViewerASCIIPrintf(viewer,"  CISS: iterative refinement  { inner: %D, outer: %D, blocksize: %D }\n",ctx->refine_inner,ctx->refine_outer, ctx->refine_blocksize);CHKERRQ(ierr);
+    ierr = PetscViewerASCIIPrintf(viewer,"  CISS: iterative refinement  { inner: %D, blocksize: %D }\n",ctx->refine_inner, ctx->refine_blocksize);CHKERRQ(ierr);
     ierr = PetscViewerASCIIPushTab(viewer);CHKERRQ(ierr);
     /*ierr = KSPView(ctx->ksp[0],viewer);CHKERRQ(ierr);*/
     ierr = PetscViewerASCIIPopTab(viewer);CHKERRQ(ierr);
@@ -1134,9 +1136,8 @@ PETSC_EXTERN PetscErrorCode NEPCreate_CISS(NEP nep)
   ctx->spurious_threshold = 1e-4;
   ctx->usest   = PETSC_FALSE;
   ctx->isreal  = PETSC_FALSE;
-  ctx->refine_outer = 1;
-  ctx->refine_inner = 1;
-  ctx->refine_blocksize = 1;
+  ctx->refine_inner = 0;
+  ctx->refine_blocksize = 0;
   ctx->num_subcomm = 1;
   PetscFunctionReturn(0);
 }
