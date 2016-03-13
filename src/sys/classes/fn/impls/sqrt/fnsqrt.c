@@ -53,12 +53,14 @@ PetscErrorCode FNEvaluateFunctionMat_Sqrt(FN fn,Mat A,Mat B)
 #else
   PetscErrorCode ierr;
   PetscBLASInt   n,ld,sdim,lwork,info;
-  PetscScalar    *wr,*Aa,*T,*W,*Q,*work,one=1.0,zero=0.0;
-  PetscInt       m,i,j,k;
-#if !defined(PETSC_USE_COMPLEX)
-  PetscScalar    *wi;
-#else
+  PetscScalar    *wr,*Aa,*T,*W,*Q,*work,one=1.0,mone=-1.0,zero=0.0;
+  PetscInt       m,i,j;
+#if defined(PETSC_USE_COMPLEX)
+  PetscInt       k;
   PetscReal      *rwork;
+#else
+  PetscBLASInt   si,sj,r,l,ipiv[4],ione=1;
+  PetscReal      *wi,alpha,theta,mu,mu2,M[16],Z[4];
 #endif
 
   PetscFunctionBegin;
@@ -82,6 +84,7 @@ PetscErrorCode FNEvaluateFunctionMat_Sqrt(FN fn,Mat A,Mat B)
 #endif
 
   /* evaluate sqrt(T) */
+#if defined(PETSC_USE_COMPLEX)
   for (j=0;j<m;j++) {
     T[j+j*ld] = PetscSqrtScalar(T[j+j*ld]);
     for (i=j-1;i>=0;i--) {
@@ -89,6 +92,87 @@ PetscErrorCode FNEvaluateFunctionMat_Sqrt(FN fn,Mat A,Mat B)
       for (k=0;k<i;k++) T[k+j*ld] -= T[k+i*ld]*T[i+j*ld];
     }
   }
+#else
+  /* real Schur form, use algorithm of Higham (LAA 88, 1987) */
+  for (j=0;j<m;j++) {
+    sj = (j==m-1 || T[j+1+j*ld] == 0.0)? 1: 2;
+    if (sj==1) {
+      if (T[j+j*ld]<0.0) SETERRQ(PETSC_COMM_SELF,1,"Matrix has a real negative eigenvalue, no real primary square root exists");
+      T[j+j*ld] = PetscSqrtReal(T[j+j*ld]);
+    } else {
+      /* square root of 2x2 block */
+      theta = (T[j+j*ld]+T[j+1+(j+1)*ld])/2.0;
+      mu = (T[j+j*ld]-T[j+1+(j+1)*ld])/2.0;
+      mu2 = -mu*mu-T[j+1+j*ld]*T[j+(j+1)*ld];
+      mu = PetscSqrtReal(mu2);
+      if (theta>0.0) alpha = PetscSqrtReal((theta+PetscSqrtReal(theta*theta+mu2))/2.0);
+      else alpha = mu/PetscSqrtReal(2.0*(-theta+PetscSqrtReal(theta*theta+mu2)));
+      T[j+j*ld]       /= 2.0*alpha;
+      T[j+1+(j+1)*ld] /= 2.0*alpha;
+      T[j+(j+1)*ld]   /= 2.0*alpha;
+      T[j+1+j*ld]     /= 2.0*alpha;
+      T[j+j*ld]       += alpha-theta/(2.0*alpha);
+      T[j+1+(j+1)*ld] += alpha-theta/(2.0*alpha);
+    }
+    for (i=j-1;i>=0;i--) {
+      si = (i==0 || T[i+(i-1)*ld] == 0.0)? 1: 2;
+      if (si==2) i--;
+      /* solve Sylvester equation of order si x sj by vectorization */
+      /* system matrix */
+      if (si==1 && sj==1) {
+        M[0] = T[i+i*ld]+T[j+j*ld];
+      } else if (si==2 && sj==1) {
+        M[0] = T[i+i*ld]+T[j+j*ld];
+        M[1] = T[i+1+i*ld];
+        M[2] = T[i+(i+1)*ld];
+        M[3] = T[i+1+(i+1)*ld]+T[j+j*ld];
+      } else if (si==1 && sj==2) {
+        M[0] = T[j+j*ld]+T[i+i*ld];
+        M[1] = T[j+(j+1)*ld];
+        M[2] = T[j+1+j*ld];
+        M[3] = T[j+1+(j+1)*ld]+T[i+i*ld];
+      } else {  /* si==2 && sj==2 */
+        M[0+0*4] = T[i+i*ld]+T[j+j*ld];
+        M[1+0*4] = T[i+1+i*ld];
+        M[0+1*4] = T[i+(i+1)*ld];
+        M[1+1*4] = T[i+1+(i+1)*ld]+T[j+j*ld];
+        M[0+2*4] = T[(j+1)+j*ld];
+        M[1+2*4] = 0.0;
+        M[0+3*4] = 0.0;
+        M[1+3*4] = T[(j+1)+j*ld];
+        M[2+0*4] = T[j+(j+1)*ld];
+        M[3+0*4] = 0.0;
+        M[2+1*4] = 0.0;
+        M[3+1*4] = T[j+(j+1)*ld];
+        M[2+2*4] = T[i+i*ld]+T[j+1+(j+1)*ld];
+        M[3+2*4] = T[i+1+i*ld];
+        M[2+3*4] = T[i+(i+1)*ld];
+        M[3+3*4] = T[i+1+(i+1)*ld]+T[j+1+(j+1)*ld];
+      }
+      /* right-hand side */
+      Z[0] = T[i+j*ld];
+      if (si==2) Z[1] = T[i+1+j*ld];
+      else if (sj==2) Z[1] = T[i+(j+1)*ld];
+      if (si==2 && sj==2) {
+        Z[2] = T[i+(j+1)*ld];
+        Z[3] = T[i+1+(j+1)*ld];
+      }
+      r = j-i-si;
+      if (r) PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&si,&sj,&r,&mone,T+i+(i+si)*ld,&ld,T+i+si+j*ld,&ld,&one,Z,&si));
+      /* compute solution and store it in T */
+      l = si*sj;
+      PetscStackCallBLAS("LAPACKgesv",LAPACKgesv_(&l,&ione,M,&l,ipiv,Z,&l,&info));
+      T[i+j*ld] = Z[0];
+      if (si==2) T[i+1+j*ld] = Z[1];
+      else if (sj==2) T[i+(j+1)*ld] = Z[1];
+      if (si==2 && sj==2) {
+        T[i+(j+1)*ld] = Z[2];
+        T[i+1+(j+1)*ld] = Z[3];
+      }
+    }
+    if (sj==2) j++;
+  }
+#endif
 
   /* backtransform B = Q*T*Q' */
   PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&n,&n,&n,&one,Q,&ld,T,&ld,&zero,W,&ld));

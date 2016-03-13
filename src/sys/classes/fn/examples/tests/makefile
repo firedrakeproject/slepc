@@ -106,7 +106,7 @@ runtest6_1:
 	  ${RM} -f test6_1.tmp
 
 runtest7_1:
-	-@${MPIEXEC} -n 1 ./test7 -tau .4 -eta 2 > test7_1.tmp 2>&1; \
+	-@${MPIEXEC} -n 1 ./test7 -tau .13 -eta 2 -n 19 > test7_1.tmp 2>&1; \
 	  if (${DIFF} output/test7_1.out test7_1.tmp) then true; \
 	  else echo "Possible problem with test7_1, diffs above"; fi; \
 	  ${RM} -f test7_1.tmp

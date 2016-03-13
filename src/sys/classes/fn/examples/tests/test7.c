@@ -80,6 +80,8 @@ int main(int argc,char **argv)
   PetscScalar    *As,tau=1.0,eta=1.0;
   PetscViewer    viewer;
   PetscBool      verbose;
+  PetscRandom    myrand;
+  PetscReal      v;
 
   SlepcInitialize(&argc,&argv,(char*)0,help);
   ierr = PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL);CHKERRQ(ierr);
@@ -104,7 +106,7 @@ int main(int argc,char **argv)
   ierr = MatCreateSeqDense(PETSC_COMM_SELF,n,n,NULL,&A);CHKERRQ(ierr);
   ierr = PetscObjectSetName((PetscObject)A,"A");CHKERRQ(ierr);
 
-  /* Compute matrix square root of a symmetric */
+  /* Compute square root of a symmetric matrix A */
   ierr = MatDenseGetArray(A,&As);CHKERRQ(ierr);
   for (i=0;i<n;i++) As[i+i*n]=2.5;
   for (j=1;j<3;j++) {
@@ -117,9 +119,25 @@ int main(int argc,char **argv)
   /* Repeat with upper triangular A */
   ierr = MatDenseGetArray(A,&As);CHKERRQ(ierr);
   for (j=1;j<3;j++) {
-    for (i=0;i<n-j;i++) { As[(i+j)+i*n]=0.0; }
+    for (i=0;i<n-j;i++) As[(i+j)+i*n]=0.0;
   }
   ierr = MatDenseRestoreArray(A,&As);CHKERRQ(ierr);
+  ierr = MatSetOption(A,MAT_HERMITIAN,PETSC_FALSE);CHKERRQ(ierr);
+  ierr = TestMatSqrt(fn,A,viewer,verbose);CHKERRQ(ierr);
+
+  /* Repeat with non-symmetic A */
+  ierr = PetscRandomCreate(PETSC_COMM_WORLD,&myrand);CHKERRQ(ierr);
+  ierr = PetscRandomSetFromOptions(myrand);CHKERRQ(ierr);
+  ierr = PetscRandomSetInterval(myrand,0.0,1.0);CHKERRQ(ierr);
+  ierr = MatDenseGetArray(A,&As);CHKERRQ(ierr);
+  for (j=1;j<3;j++) {
+    for (i=0;i<n-j;i++) { 
+      ierr = PetscRandomGetValueReal(myrand,&v);CHKERRQ(ierr);
+      As[(i+j)+i*n]=v;
+    }
+  }
+  ierr = MatDenseRestoreArray(A,&As);CHKERRQ(ierr);
+  ierr = PetscRandomDestroy(&myrand);CHKERRQ(ierr);
   ierr = MatSetOption(A,MAT_HERMITIAN,PETSC_FALSE);CHKERRQ(ierr);
   ierr = TestMatSqrt(fn,A,viewer,verbose);CHKERRQ(ierr);
 
