@@ -201,7 +201,6 @@ PetscErrorCode MFNCreate(MPI_Comm comm,MFN *outmfn)
   mfn->max_it          = 0;
   mfn->ncv             = 0;
   mfn->tol             = PETSC_DEFAULT;
-  mfn->sfactor         = 1.0;
   mfn->errorifnotconverged = PETSC_FALSE;
 
   mfn->numbermonitors  = 0;

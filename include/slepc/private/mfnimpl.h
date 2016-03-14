@@ -57,7 +57,6 @@ struct _p_MFN {
   PetscInt       max_it;         /* maximum number of iterations */
   PetscInt       ncv;            /* number of basis vectors */
   PetscReal      tol;            /* tolerance */
-  PetscScalar    sfactor;        /* scaling factor */
   PetscBool      errorifnotconverged;    /* error out if MFNSolve() does not converge */
 
   /*-------------- User-provided functions and contexts -----------------*/

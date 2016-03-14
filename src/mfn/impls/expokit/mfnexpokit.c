@@ -47,7 +47,7 @@ PetscErrorCode MFNSetUp_Expokit(MFN mfn)
   PetscFunctionBegin;
   ierr = MatGetSize(mfn->A,&N,NULL);CHKERRQ(ierr);
   if (!mfn->ncv) mfn->ncv = PetscMin(30,N);
-  if (!mfn->max_it) mfn->max_it = PetscMax(100,2*N/mfn->ncv);
+  if (!mfn->max_it) mfn->max_it = 100;
   ierr = MFNAllocateSolution(mfn,2);CHKERRQ(ierr);
 
   ierr = PetscObjectTypeCompare((PetscObject)mfn->fn,FNEXP,&isexp);CHKERRQ(ierr);
@@ -63,7 +63,8 @@ PetscErrorCode MFNSolve_Expokit(MFN mfn,Vec b,Vec x)
   PetscInt       mxstep,mxrej,m,mb,ld,i,j,ireject,mx,k1;
   Vec            v,r;
   Mat            M=NULL,K=NULL;
-  PetscScalar    *H,*B,*F,*betaF,t,sgn;
+  FN             fn;
+  PetscScalar    *H,*B,*F,*betaF,t,sgn,sfactor;
   PetscReal      anorm,normb,avnorm,tol,err_loc,rndoff;
   PetscReal      t_out,t_new,t_now,t_step;
   PetscReal      xm,fact,s,p1,p2;
@@ -78,7 +79,9 @@ PetscErrorCode MFNSolve_Expokit(MFN mfn,Vec b,Vec x)
   gamma = 0.9;
   delta = 1.2;
   mb    = m;
-  t     = mfn->sfactor;
+  ierr = FNGetScale(mfn->fn,&t,&sfactor);CHKERRQ(ierr);
+  ierr = FNDuplicate(mfn->fn,PetscObjectComm((PetscObject)mfn->fn),&fn);CHKERRQ(ierr);
+  ierr = FNSetScale(fn,1.0,1.0);CHKERRQ(ierr);
   t_out = PetscAbsScalar(t);
   t_new = 0.0;
   t_now = 0.0;
@@ -137,7 +140,7 @@ PetscErrorCode MFNSolve_Expokit(MFN mfn,Vec b,Vec x)
         ierr = PetscMemcpy(F+j*mx,H+j*ld,mx*sizeof(PetscScalar));CHKERRQ(ierr);
       }
       ierr = MatDenseRestoreArray(M,&F);CHKERRQ(ierr);
-      ierr = FNEvaluateFunctionMat(mfn->fn,M,K);CHKERRQ(ierr);
+      ierr = FNEvaluateFunctionMat(fn,M,K);CHKERRQ(ierr);
 
       if (k1==0) {
         err_loc = tol;
@@ -186,9 +189,11 @@ PetscErrorCode MFNSolve_Expokit(MFN mfn,Vec b,Vec x)
     if (mfn->its==mxstep) mfn->reason = MFN_DIVERGED_ITS;
     ierr = MFNMonitor(mfn,mfn->its,t_now);CHKERRQ(ierr);
   }
+  ierr = VecScale(x,sfactor);CHKERRQ(ierr);
 
   ierr = MatDestroy(&M);CHKERRQ(ierr);
   ierr = MatDestroy(&K);CHKERRQ(ierr);
+  ierr = FNDestroy(&fn);CHKERRQ(ierr);
   ierr = PetscFree3(betaF,H,B);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
