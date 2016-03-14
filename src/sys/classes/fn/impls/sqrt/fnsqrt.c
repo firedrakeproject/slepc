@@ -53,13 +53,14 @@ PetscErrorCode FNEvaluateFunctionMat_Sqrt(FN fn,Mat A,Mat B)
 #else
   PetscErrorCode ierr;
   PetscBLASInt   n,ld,sdim,lwork,info;
-  PetscScalar    *wr,*Aa,*T,*W,*Q,*work,one=1.0,mone=-1.0,zero=0.0;
+  PetscScalar    *wr,*Aa,*T,*W,*Q,*work,one=1.0,zero=0.0;
   PetscInt       m,i,j;
 #if defined(PETSC_USE_COMPLEX)
   PetscInt       k;
   PetscReal      *rwork;
 #else
   PetscBLASInt   si,sj,r,l,ipiv[4],ione=1;
+  PetscScalar    mone=-1.0;
   PetscReal      *wi,alpha,theta,mu,mu2,M[16],Z[4];
 #endif
 
