@@ -65,7 +65,7 @@ PetscErrorCode MFNSolve_Expokit(MFN mfn,Vec b,Vec x)
   Mat            M=NULL,K=NULL;
   FN             fn;
   PetscScalar    *H,*B,*F,*betaF,t,sgn,sfactor;
-  PetscReal      anorm,normb,avnorm,tol,err_loc,rndoff;
+  PetscReal      anorm,avnorm,tol,err_loc,rndoff;
   PetscReal      t_out,t_new,t_now,t_step;
   PetscReal      xm,fact,s,p1,p2;
   PetscReal      beta,beta2,gamma,delta;
@@ -90,9 +90,7 @@ PetscErrorCode MFNSolve_Expokit(MFN mfn,Vec b,Vec x)
 
   k1 = 2;
   xm = 1.0/(PetscReal)m;
-  ierr = VecNorm(b,NORM_2,&normb);CHKERRQ(ierr);
-  if (!normb) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Cannot pass a zero b vector to MFNSolve()");
-  beta = normb;
+  beta = mfn->bnorm;
   fact = PetscPowRealInt((m+1)/2.72,m+1)*PetscSqrtReal(2*PETSC_PI*(m+1));
   t_new = (1.0/anorm)*PetscPowReal((fact*tol)/(4.0*beta*anorm),xm);
   s = PetscPowReal(10.0,PetscFloorReal(PetscLog10Real(t_new))-1);

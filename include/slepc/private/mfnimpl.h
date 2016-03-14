@@ -76,6 +76,7 @@ struct _p_MFN {
   PetscInt       its;            /* number of iterations so far computed */
   PetscInt       nv;             /* size of current Schur decomposition */
   PetscReal      errest;         /* error estimate */
+  PetscReal      bnorm;          /* computed norm of right-hand side in current solve */
   PetscInt       setupcalled;
   MFNConvergedReason reason;
 };

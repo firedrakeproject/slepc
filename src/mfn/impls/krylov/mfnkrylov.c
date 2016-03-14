@@ -87,7 +87,7 @@ PetscErrorCode MFNSolve_Krylov(MFN mfn,Vec b,Vec x)
   PetscInt       m,ld,j;
   Mat            H=NULL,F=NULL;
   PetscScalar    *array,*harray,*farray;
-  PetscReal      normb,beta;
+  PetscReal      beta;
   PetscBool      breakdown,set,flg,symm=PETSC_FALSE;
 
   PetscFunctionBegin;
@@ -98,10 +98,8 @@ PetscErrorCode MFNSolve_Krylov(MFN mfn,Vec b,Vec x)
   ierr = MFN_CreateDenseMat(m,&H);CHKERRQ(ierr);
 
   /* build Arnoldi decomposition with start vector b/||b|| */
-  ierr = VecNorm(b,NORM_2,&normb);CHKERRQ(ierr);
-  if (!normb) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Cannot pass a zero b vector to MFNSolve()");
   ierr = BVInsertVec(mfn->V,0,b);CHKERRQ(ierr);
-  ierr = BVScaleColumn(mfn->V,0,1.0/normb);CHKERRQ(ierr);
+  ierr = BVScaleColumn(mfn->V,0,1.0/mfn->bnorm);CHKERRQ(ierr);
   ierr = MFNBasicArnoldi(mfn,array,ld,0,&m,&beta,&breakdown);CHKERRQ(ierr);
 
   ierr = MatDenseGetArray(H,&harray);CHKERRQ(ierr);
@@ -122,7 +120,7 @@ PetscErrorCode MFNSolve_Krylov(MFN mfn,Vec b,Vec x)
 
   /* x = ||b||*V*f(H)*e_1 */
   ierr = MatDenseGetArray(F,&farray);CHKERRQ(ierr);
-  for (j=0;j<m;j++) farray[j] *= normb;
+  for (j=0;j<m;j++) farray[j] *= mfn->bnorm;
   ierr = BVSetActiveColumns(mfn->V,0,m);CHKERRQ(ierr);
   ierr = BVMultVec(mfn->V,1.0,0.0,x,farray);CHKERRQ(ierr);
   ierr = MatDenseRestoreArray(F,&farray);CHKERRQ(ierr);
