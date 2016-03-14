@@ -46,6 +46,7 @@ typedef struct _p_MFN* MFN;
 J*/
 typedef const char* MFNType;
 #define MFNKRYLOV   "krylov"
+#define MFNEXPOKIT  "expokit"
 
 /* Logging support */
 PETSC_EXTERN PetscClassId MFN_CLASSID;

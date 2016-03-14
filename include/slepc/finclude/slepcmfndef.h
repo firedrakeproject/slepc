@@ -36,5 +36,6 @@
 
 
 #define MFNKRYLOV      'krylov'
+#define MFNEXPOKIT     'expokit'
 
 #endif
