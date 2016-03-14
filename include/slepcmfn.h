@@ -101,6 +101,7 @@ PETSC_EXTERN PetscErrorCode MFNGetOptionsPrefix(MFN,const char*[]);
 E*/
 typedef enum {/* converged */
               MFN_CONVERGED_TOL                =  2,
+              MFN_CONVERGED_ITS                =  3,
               /* diverged */
               MFN_DIVERGED_ITS                 = -3,
               MFN_DIVERGED_BREAKDOWN           = -4,

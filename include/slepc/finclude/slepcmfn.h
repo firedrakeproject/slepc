@@ -28,11 +28,13 @@
 !  They sould match the flags in $SLEPC_DIR/include/slepcmfn.h
 
       PetscEnum MFN_CONVERGED_TOL
+      PetscEnum MFN_CONVERGED_ITS
       PetscEnum MFN_DIVERGED_ITS
       PetscEnum MFN_DIVERGED_BREAKDOWN
       PetscEnum MFN_CONVERGED_ITERATING
 
       parameter (MFN_CONVERGED_TOL          =  2)
+      parameter (MFN_CONVERGED_ITS          =  3)
       parameter (MFN_DIVERGED_ITS           = -3)
       parameter (MFN_DIVERGED_BREAKDOWN     = -4)
       parameter (MFN_CONVERGED_ITERATING    =  0)

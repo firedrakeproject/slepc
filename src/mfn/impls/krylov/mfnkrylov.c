@@ -128,7 +128,7 @@ PetscErrorCode MFNSolve_Krylov(MFN mfn,Vec b,Vec x)
   ierr = MatDenseRestoreArray(F,&farray);CHKERRQ(ierr);
 
   /* there is no known way to assess accuracy for general f, so just pretend it works */
-  mfn->reason = MFN_CONVERGED_TOL;
+  mfn->reason = MFN_CONVERGED_ITS;
   mfn->its = 1;
 
   ierr = MatDestroy(&H);CHKERRQ(ierr);

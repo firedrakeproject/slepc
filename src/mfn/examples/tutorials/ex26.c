@@ -98,7 +98,7 @@ int main(int argc,char **argv)
 
   ierr = MFNSolve(mfn,v,y);CHKERRQ(ierr);
   ierr = MFNGetConvergedReason(mfn,&reason);CHKERRQ(ierr);
-  if (reason!=MFN_CONVERGED_TOL) SETERRQ(PETSC_COMM_WORLD,1,"Solver did not converge");
+  if (reason<0) SETERRQ(PETSC_COMM_WORLD,1,"Solver did not converge");
   ierr = VecNorm(y,NORM_2,&norm);CHKERRQ(ierr);
   
   ierr = PetscPrintf(PETSC_COMM_WORLD," Intermediate vector has norm %g\n",(double)norm);CHKERRQ(ierr);
@@ -113,7 +113,7 @@ int main(int argc,char **argv)
 
   ierr = MFNSolve(mfn,y,z);CHKERRQ(ierr);
   ierr = MFNGetConvergedReason(mfn,&reason);CHKERRQ(ierr);
-  if (reason!=MFN_CONVERGED_TOL) SETERRQ(PETSC_COMM_WORLD,1,"Solver did not converge");
+  if (reason<0) SETERRQ(PETSC_COMM_WORLD,1,"Solver did not converge");
 
   ierr = MatMult(A,v,y);CHKERRQ(ierr);   /* overwrite y */
   ierr = VecAXPY(y,-1.0,z);CHKERRQ(ierr);
