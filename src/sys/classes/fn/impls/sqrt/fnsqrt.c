@@ -47,9 +47,9 @@ PetscErrorCode FNEvaluateDerivative_Sqrt(FN fn,PetscScalar x,PetscScalar *y)
 #define __FUNCT__ "FNEvaluateFunctionMat_Sqrt"
 PetscErrorCode FNEvaluateFunctionMat_Sqrt(FN fn,Mat A,Mat B)
 {
-#if defined(SLEPC_MISSING_LAPACK_GEES)
+#if defined(SLEPC_MISSING_LAPACK_GEES) || defined(SLEPC_MISSING_LAPACK_TRSYL)
   PetscFunctionBegin;
-  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"GEES - Lapack routines are unavailable");
+  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"GEES/TRSYL - Lapack routines are unavailable");
 #else
   PetscErrorCode ierr;
   PetscBLASInt   n,ld,sdim,lwork,info;
@@ -59,9 +59,9 @@ PetscErrorCode FNEvaluateFunctionMat_Sqrt(FN fn,Mat A,Mat B)
   PetscInt       k;
   PetscReal      *rwork;
 #else
-  PetscBLASInt   si,sj,r,l,ipiv[4],ione=1;
+  PetscBLASInt   si,sj,r,ione=1;
   PetscScalar    mone=-1.0;
-  PetscReal      *wi,alpha,theta,mu,mu2,M[16],Z[4];
+  PetscReal      *wi,alpha,theta,mu,mu2;
 #endif
 
   PetscFunctionBegin;
@@ -118,58 +118,10 @@ PetscErrorCode FNEvaluateFunctionMat_Sqrt(FN fn,Mat A,Mat B)
     for (i=j-1;i>=0;i--) {
       si = (i==0 || T[i+(i-1)*ld] == 0.0)? 1: 2;
       if (si==2) i--;
-      /* solve Sylvester equation of order si x sj by vectorization */
-      /* system matrix */
-      if (si==1 && sj==1) {
-        M[0] = T[i+i*ld]+T[j+j*ld];
-      } else if (si==2 && sj==1) {
-        M[0] = T[i+i*ld]+T[j+j*ld];
-        M[1] = T[i+1+i*ld];
-        M[2] = T[i+(i+1)*ld];
-        M[3] = T[i+1+(i+1)*ld]+T[j+j*ld];
-      } else if (si==1 && sj==2) {
-        M[0] = T[j+j*ld]+T[i+i*ld];
-        M[1] = T[j+(j+1)*ld];
-        M[2] = T[j+1+j*ld];
-        M[3] = T[j+1+(j+1)*ld]+T[i+i*ld];
-      } else {  /* si==2 && sj==2 */
-        M[0+0*4] = T[i+i*ld]+T[j+j*ld];
-        M[1+0*4] = T[i+1+i*ld];
-        M[0+1*4] = T[i+(i+1)*ld];
-        M[1+1*4] = T[i+1+(i+1)*ld]+T[j+j*ld];
-        M[0+2*4] = T[(j+1)+j*ld];
-        M[1+2*4] = 0.0;
-        M[0+3*4] = 0.0;
-        M[1+3*4] = T[(j+1)+j*ld];
-        M[2+0*4] = T[j+(j+1)*ld];
-        M[3+0*4] = 0.0;
-        M[2+1*4] = 0.0;
-        M[3+1*4] = T[j+(j+1)*ld];
-        M[2+2*4] = T[i+i*ld]+T[j+1+(j+1)*ld];
-        M[3+2*4] = T[i+1+i*ld];
-        M[2+3*4] = T[i+(i+1)*ld];
-        M[3+3*4] = T[i+1+(i+1)*ld]+T[j+1+(j+1)*ld];
-      }
-      /* right-hand side */
-      Z[0] = T[i+j*ld];
-      if (si==2) Z[1] = T[i+1+j*ld];
-      else if (sj==2) Z[1] = T[i+(j+1)*ld];
-      if (si==2 && sj==2) {
-        Z[2] = T[i+(j+1)*ld];
-        Z[3] = T[i+1+(j+1)*ld];
-      }
+      /* solve Sylvester equation of order si x sj */
       r = j-i-si;
-      if (r) PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&si,&sj,&r,&mone,T+i+(i+si)*ld,&ld,T+i+si+j*ld,&ld,&one,Z,&si));
-      /* compute solution and store it in T */
-      l = si*sj;
-      PetscStackCallBLAS("LAPACKgesv",LAPACKgesv_(&l,&ione,M,&l,ipiv,Z,&l,&info));
-      T[i+j*ld] = Z[0];
-      if (si==2) T[i+1+j*ld] = Z[1];
-      else if (sj==2) T[i+(j+1)*ld] = Z[1];
-      if (si==2 && sj==2) {
-        T[i+(j+1)*ld] = Z[2];
-        T[i+1+(j+1)*ld] = Z[3];
-      }
+      if (r) PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&si,&sj,&r,&mone,T+i+(i+si)*ld,&ld,T+i+si+j*ld,&ld,&one,T+i+j*ld,&ld));
+      PetscStackCallBLAS("LAPACKtrsyl",LAPACKtrsyl_("N","N",&ione,&si,&sj,T+i+i*ld,&ld,T+j+j*ld,&ld,T+i+j*ld,&ld,&one,&info));
     }
     if (sj==2) j++;
   }
