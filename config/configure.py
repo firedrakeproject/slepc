@@ -168,7 +168,7 @@ petsc.InitDir(slepc.prefixdir)
 slepc.InitDir()
 petsc.LoadVersion()
 slepc.LoadVersion()
-if petsc.version < slepc.version:
+if petsc.version != slepc.version:
   sys.exit('ERROR: This SLEPc version is not compatible with PETSc version '+petsc.version)
 
 # Check some information about PETSc configuration
