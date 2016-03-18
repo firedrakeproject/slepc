@@ -371,7 +371,7 @@ PetscErrorCode DSNormalize_NHEP(DS ds,DSMatType mat,PetscInt col)
 #define __FUNCT__ "DSSort_NHEP_Arbitrary"
 static PetscErrorCode DSSort_NHEP_Arbitrary(DS ds,PetscScalar *wr,PetscScalar *wi,PetscScalar *rr,PetscScalar *ri,PetscInt *k)
 {
-#if defined(SLEPC_MISSING_LAPACK_TRSEN)
+#if defined(PETSC_MISSING_LAPACK_TRSEN)
   PetscFunctionBegin;
   SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"TRSEN - Lapack routine is unavailable");
 #else
@@ -653,7 +653,7 @@ PetscErrorCode DSTruncate_NHEP(DS ds,PetscInt n)
 #define __FUNCT__ "DSCond_NHEP"
 PetscErrorCode DSCond_NHEP(DS ds,PetscReal *cond)
 {
-#if defined(PETSC_MISSING_LAPACK_GETRF) || defined(SLEPC_MISSING_LAPACK_GETRI) || defined(SLEPC_MISSING_LAPACK_LANGE) || defined(SLEPC_MISSING_LAPACK_LANHS)
+#if defined(PETSC_MISSING_LAPACK_GETRF) || defined(PETSC_MISSING_LAPACK_GETRI) || defined(SLEPC_MISSING_LAPACK_LANGE) || defined(SLEPC_MISSING_LAPACK_LANHS)
   PetscFunctionBegin;
   SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"GETRF/GETRI/LANGE/LANHS - Lapack routines are unavailable");
 #else

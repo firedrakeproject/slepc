@@ -1443,7 +1443,7 @@ static PetscErrorCode NRefSubcommDestroy(PEP pep,MatExplicitCtx *matctx)
 #define __FUNCT__ "PEPNewtonRefinement_TOAR"
 PetscErrorCode PEPNewtonRefinement_TOAR(PEP pep,PetscScalar sigma,PetscInt *maxits,PetscReal *tol,PetscInt k,PetscScalar *S,PetscInt lds,PetscInt *prs)
 {
-#if defined(PETSC_MISSING_LAPACK_GETRF) || defined(SLEPC_MISSING_LAPACK_GETRI)
+#if defined(PETSC_MISSING_LAPACK_GETRF) || defined(PETSC_MISSING_LAPACK_GETRI)
   PetscFunctionBegin;
   SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"GETRF/GETRI - Lapack routine is unavailable");
 #else
