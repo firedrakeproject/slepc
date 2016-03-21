@@ -149,6 +149,9 @@ PetscErrorCode MFNSolve_Krylov(MFN mfn,Vec b,Vec x)
     if (mfn->its>1) {
       ierr = PetscBLASIntCast(m,&m_);CHKERRQ(ierr);
       nrm = BLASnrm2_(&m_,farray+n,&inc);   /* relative norm of the update ||u||/||b|| */
+      ierr = MFNMonitor(mfn,mfn->its,nrm);CHKERRQ(ierr);
+    } else {
+      ierr = MFNMonitor(mfn,1,1.0);CHKERRQ(ierr);   /* no error estimate available */
     }
     for (j=0;j<m;j++) farray[j+n] *= mfn->bnorm;
     ierr = BVSetActiveColumns(mfn->V,0,m);CHKERRQ(ierr);

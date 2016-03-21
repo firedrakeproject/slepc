@@ -185,7 +185,7 @@ PetscErrorCode MFNSolve_Expokit(MFN mfn,Vec b,Vec x)
     }
     err_loc = PetscMax(err_loc,rndoff);
     if (mfn->its==mxstep) mfn->reason = MFN_DIVERGED_ITS;
-    ierr = MFNMonitor(mfn,mfn->its,t_now);CHKERRQ(ierr);
+    ierr = MFNMonitor(mfn,mfn->its,err_loc);CHKERRQ(ierr);
   }
   ierr = VecScale(x,sfactor);CHKERRQ(ierr);
 

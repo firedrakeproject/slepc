@@ -176,11 +176,12 @@ PetscErrorCode MFNMonitorDefault(MFN mfn,PetscInt its,PetscReal errest,void *mon
   PetscViewer    viewer = monctx? (PetscViewer)monctx: PETSC_VIEWER_STDOUT_(PetscObjectComm((PetscObject)mfn));
 
   PetscFunctionBegin;
+  if (!its) PetscFunctionReturn(0);
   ierr = PetscViewerASCIIAddTab(viewer,((PetscObject)mfn)->tablevel);CHKERRQ(ierr);
-  if (its == 0 && ((PetscObject)mfn)->prefix) {
-    ierr = PetscViewerASCIIPrintf(viewer,"  Monitor for %s solve.\n",((PetscObject)mfn)->prefix);CHKERRQ(ierr);
+  if (its == 1 && ((PetscObject)mfn)->prefix) {
+    ierr = PetscViewerASCIIPrintf(viewer,"  Error estimates for %s solve.\n",((PetscObject)mfn)->prefix);CHKERRQ(ierr);
   }
-  ierr = PetscViewerASCIIPrintf(viewer,"%3D MFN value %14.12e\n",its,(double)errest);CHKERRQ(ierr);
+  ierr = PetscViewerASCIIPrintf(viewer,"%3D MFN Error estimate %14.12e\n",its,(double)errest);CHKERRQ(ierr);
   ierr = PetscViewerASCIISubtractTab(viewer,((PetscObject)mfn)->tablevel);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
