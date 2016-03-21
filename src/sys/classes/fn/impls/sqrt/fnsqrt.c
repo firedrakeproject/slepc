@@ -44,68 +44,40 @@ PetscErrorCode FNEvaluateDerivative_Sqrt(FN fn,PetscScalar x,PetscScalar *y)
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "FNEvaluateFunctionMat_Sqrt"
-PetscErrorCode FNEvaluateFunctionMat_Sqrt(FN fn,Mat A,Mat B)
+#define __FUNCT__ "DenseMatSqrt_Unblocked"
+/*
+   Compute the square root of an upper quasi-triangular matrix T,
+   using Higham's algorithm (LAA 88, 1987). T is overwritten with sqrtm(T).
+ */
+static PetscErrorCode DenseMatSqrt_Unblocked(PetscBLASInt n,PetscScalar *T,PetscBLASInt ld)
 {
-#if defined(SLEPC_MISSING_LAPACK_GEES)
+#if defined(SLEPC_MISSING_LAPACK_TRSYL)
   PetscFunctionBegin;
-  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"GEES - Lapack routines are unavailable");
+  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"TRSYL - Lapack routine unavailable");
 #else
-  PetscErrorCode ierr;
-  PetscBLASInt   n,ld,sdim,lwork,info;
-  PetscScalar    *wr,*Aa,*T,*W,*Q,*work,one=1.0,zero=0.0;
-  PetscInt       m,i,j;
-#if defined(PETSC_USE_COMPLEX)
-  PetscInt       k;
-  PetscReal      *rwork;
-#else
-  PetscBLASInt   si,sj,r,l,ipiv[4],ione=1;
-  PetscScalar    mone=-1.0;
-  PetscReal      *wi,alpha,theta,mu,mu2,M[16],Z[4];
-#endif
-
-  PetscFunctionBegin;
-  ierr = MatCopy(A,B,SAME_NONZERO_PATTERN);CHKERRQ(ierr);
-  ierr = MatDenseGetArray(A,&Aa);CHKERRQ(ierr);
-  ierr = MatDenseGetArray(B,&T);CHKERRQ(ierr);
-  ierr = MatGetSize(A,&m,NULL);CHKERRQ(ierr);
-  ierr = PetscBLASIntCast(m,&n);CHKERRQ(ierr);
-  ld = n;
-  lwork = 5*n;
-
-  /* compute Schur decomposition A*Q = Q*T */
+  PetscScalar  one=1.0,mone=-1.0;
+  PetscReal    done=1.0;
+  PetscBLASInt i,j,si,sj,r,ione=1,info;
 #if !defined(PETSC_USE_COMPLEX)
-  ierr = PetscMalloc5(m,&wr,m,&wi,m*m,&W,m*m,&Q,lwork,&work);CHKERRQ(ierr);
-  PetscStackCallBLAS("LAPACKgees",LAPACKgees_("V","N",NULL,&n,T,&ld,&sdim,wr,wi,Q,&ld,work,&lwork,NULL,&info));
-  if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xGEES %d",info);
-#else
-  ierr = PetscMalloc5(m,&wr,m,&rwork,m*m,&W,m*m,&Q,lwork,&work);CHKERRQ(ierr);
-  PetscStackCallBLAS("LAPACKgees",LAPACKgees_("V","N",NULL,&n,T,&ld,&sdim,wr,Q,&ld,work,&lwork,rwork,NULL,&info));
-  if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xGEES %d",info);
+  PetscReal    alpha,theta,mu,mu2;
 #endif
 
-  /* evaluate sqrt(T) */
+  PetscFunctionBegin;
+  for (j=0;j<n;j++) {
 #if defined(PETSC_USE_COMPLEX)
-  for (j=0;j<m;j++) {
+    sj = 1;
     T[j+j*ld] = PetscSqrtScalar(T[j+j*ld]);
-    for (i=j-1;i>=0;i--) {
-      T[i+j*ld] /= (T[i+i*ld]+T[j+j*ld]);
-      for (k=0;k<i;k++) T[k+j*ld] -= T[k+i*ld]*T[i+j*ld];
-    }
-  }
 #else
-  /* real Schur form, use algorithm of Higham (LAA 88, 1987) */
-  for (j=0;j<m;j++) {
-    sj = (j==m-1 || T[j+1+j*ld] == 0.0)? 1: 2;
+    sj = (j==n-1 || T[j+1+j*ld] == 0.0)? 1: 2;
     if (sj==1) {
       if (T[j+j*ld]<0.0) SETERRQ(PETSC_COMM_SELF,1,"Matrix has a real negative eigenvalue, no real primary square root exists");
       T[j+j*ld] = PetscSqrtReal(T[j+j*ld]);
     } else {
       /* square root of 2x2 block */
       theta = (T[j+j*ld]+T[j+1+(j+1)*ld])/2.0;
-      mu = (T[j+j*ld]-T[j+1+(j+1)*ld])/2.0;
-      mu2 = -mu*mu-T[j+1+j*ld]*T[j+(j+1)*ld];
-      mu = PetscSqrtReal(mu2);
+      mu    = (T[j+j*ld]-T[j+1+(j+1)*ld])/2.0;
+      mu2   = -mu*mu-T[j+1+j*ld]*T[j+(j+1)*ld];
+      mu    = PetscSqrtReal(mu2);
       if (theta>0.0) alpha = PetscSqrtReal((theta+PetscSqrtReal(theta*theta+mu2))/2.0);
       else alpha = mu/PetscSqrtReal(2.0*(-theta+PetscSqrtReal(theta*theta+mu2)));
       T[j+j*ld]       /= 2.0*alpha;
@@ -115,65 +87,93 @@ PetscErrorCode FNEvaluateFunctionMat_Sqrt(FN fn,Mat A,Mat B)
       T[j+j*ld]       += alpha-theta/(2.0*alpha);
       T[j+1+(j+1)*ld] += alpha-theta/(2.0*alpha);
     }
+#endif
     for (i=j-1;i>=0;i--) {
+#if defined(PETSC_USE_COMPLEX)
+      si = 1;
+#else
       si = (i==0 || T[i+(i-1)*ld] == 0.0)? 1: 2;
       if (si==2) i--;
-      /* solve Sylvester equation of order si x sj by vectorization */
-      /* system matrix */
-      if (si==1 && sj==1) {
-        M[0] = T[i+i*ld]+T[j+j*ld];
-      } else if (si==2 && sj==1) {
-        M[0] = T[i+i*ld]+T[j+j*ld];
-        M[1] = T[i+1+i*ld];
-        M[2] = T[i+(i+1)*ld];
-        M[3] = T[i+1+(i+1)*ld]+T[j+j*ld];
-      } else if (si==1 && sj==2) {
-        M[0] = T[j+j*ld]+T[i+i*ld];
-        M[1] = T[j+(j+1)*ld];
-        M[2] = T[j+1+j*ld];
-        M[3] = T[j+1+(j+1)*ld]+T[i+i*ld];
-      } else {  /* si==2 && sj==2 */
-        M[0+0*4] = T[i+i*ld]+T[j+j*ld];
-        M[1+0*4] = T[i+1+i*ld];
-        M[0+1*4] = T[i+(i+1)*ld];
-        M[1+1*4] = T[i+1+(i+1)*ld]+T[j+j*ld];
-        M[0+2*4] = T[(j+1)+j*ld];
-        M[1+2*4] = 0.0;
-        M[0+3*4] = 0.0;
-        M[1+3*4] = T[(j+1)+j*ld];
-        M[2+0*4] = T[j+(j+1)*ld];
-        M[3+0*4] = 0.0;
-        M[2+1*4] = 0.0;
-        M[3+1*4] = T[j+(j+1)*ld];
-        M[2+2*4] = T[i+i*ld]+T[j+1+(j+1)*ld];
-        M[3+2*4] = T[i+1+i*ld];
-        M[2+3*4] = T[i+(i+1)*ld];
-        M[3+3*4] = T[i+1+(i+1)*ld]+T[j+1+(j+1)*ld];
-      }
-      /* right-hand side */
-      Z[0] = T[i+j*ld];
-      if (si==2) Z[1] = T[i+1+j*ld];
-      else if (sj==2) Z[1] = T[i+(j+1)*ld];
-      if (si==2 && sj==2) {
-        Z[2] = T[i+(j+1)*ld];
-        Z[3] = T[i+1+(j+1)*ld];
-      }
+#endif
+      /* solve Sylvester equation of order si x sj */
       r = j-i-si;
-      if (r) PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&si,&sj,&r,&mone,T+i+(i+si)*ld,&ld,T+i+si+j*ld,&ld,&one,Z,&si));
-      /* compute solution and store it in T */
-      l = si*sj;
-      PetscStackCallBLAS("LAPACKgesv",LAPACKgesv_(&l,&ione,M,&l,ipiv,Z,&l,&info));
-      T[i+j*ld] = Z[0];
-      if (si==2) T[i+1+j*ld] = Z[1];
-      else if (sj==2) T[i+(j+1)*ld] = Z[1];
-      if (si==2 && sj==2) {
-        T[i+(j+1)*ld] = Z[2];
-        T[i+1+(j+1)*ld] = Z[3];
-      }
+      if (r) PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&si,&sj,&r,&mone,T+i+(i+si)*ld,&ld,T+i+si+j*ld,&ld,&one,T+i+j*ld,&ld));
+      PetscStackCallBLAS("LAPACKtrsyl",LAPACKtrsyl_("N","N",&ione,&si,&sj,T+i+i*ld,&ld,T+j+j*ld,&ld,T+i+j*ld,&ld,&done,&info));
+      if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xTRSYL %d",info);
     }
     if (sj==2) j++;
   }
+  PetscFunctionReturn(0);
 #endif
+}
+
+#define BLOCKSIZE 64
+
+#undef __FUNCT__
+#define __FUNCT__ "FNEvaluateFunctionMat_Sqrt"
+PetscErrorCode FNEvaluateFunctionMat_Sqrt(FN fn,Mat A,Mat B)
+{
+#if defined(SLEPC_MISSING_LAPACK_GEES) || defined(SLEPC_MISSING_LAPACK_TRSYL)
+  PetscFunctionBegin;
+  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"GEES/TRSYL - Lapack routines are unavailable");
+#else
+  PetscErrorCode ierr;
+  PetscBLASInt   i,j,r,ione=1,n,ld,sdim,lwork,*s,*p,info,bs=BLOCKSIZE;
+  PetscScalar    *wr,*Aa,*T,*W,*Q,*work,one=1.0,zero=0.0,mone=-1.0;
+  PetscInt       m,nblk;
+  PetscReal      done=1.0;
+#if defined(PETSC_USE_COMPLEX)
+  PetscReal      *rwork;
+#else
+  PetscReal      *wi;
+#endif
+
+  PetscFunctionBegin;
+  ierr = MatCopy(A,B,SAME_NONZERO_PATTERN);CHKERRQ(ierr);
+  ierr = MatDenseGetArray(A,&Aa);CHKERRQ(ierr);
+  ierr = MatDenseGetArray(B,&T);CHKERRQ(ierr);
+  ierr = MatGetSize(A,&m,NULL);CHKERRQ(ierr);
+  ierr = PetscBLASIntCast(m,&n);CHKERRQ(ierr);
+  ld = n;
+  nblk = (m+bs-1)/bs;
+  lwork = 5*n;
+
+  /* compute Schur decomposition A*Q = Q*T */
+#if !defined(PETSC_USE_COMPLEX)
+  ierr = PetscMalloc7(m,&wr,m,&wi,m*m,&W,m*m,&Q,lwork,&work,nblk,&s,nblk,&p);CHKERRQ(ierr);
+  PetscStackCallBLAS("LAPACKgees",LAPACKgees_("V","N",NULL,&n,T,&ld,&sdim,wr,wi,Q,&ld,work,&lwork,NULL,&info));
+  if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xGEES %d",info);
+#else
+  ierr = PetscMalloc7(m,&wr,m,&rwork,m*m,&W,m*m,&Q,lwork,&work,nblk,&s,nblk,&p);CHKERRQ(ierr);
+  PetscStackCallBLAS("LAPACKgees",LAPACKgees_("V","N",NULL,&n,T,&ld,&sdim,wr,Q,&ld,work,&lwork,rwork,NULL,&info));
+  if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xGEES %d",info);
+#endif
+
+  /* determine block sizes and positions, to avoid cutting 2x2 blocks */
+  j = 0;
+  p[j] = 0;
+  do {
+    s[j] = PetscMin(bs,n-p[j]);
+#if !defined(PETSC_USE_COMPLEX)
+    if (p[j]+s[j]!=n && T[p[j]+s[j]+(p[j]+s[j]-1)*ld]!=0.0) s[j]++;
+#endif
+    if (p[j]+s[j]==n) break;
+    j++;
+    p[j] = p[j-1]+s[j-1];
+  } while (1);
+  nblk = j+1;
+
+  /* evaluate sqrt(T) */
+  for (j=0;j<nblk;j++) {
+    ierr = DenseMatSqrt_Unblocked(s[j],T+p[j]+p[j]*ld,ld);CHKERRQ(ierr);
+    for (i=j-1;i>=0;i--) {
+      /* solve Sylvester equation for block (i,j) */
+      r = p[j]-p[i]-s[i];
+      if (r) PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",s+i,s+j,&r,&mone,T+p[i]+(p[i]+s[i])*ld,&ld,T+p[i]+s[i]+p[j]*ld,&ld,&one,T+p[i]+p[j]*ld,&ld));
+      PetscStackCallBLAS("LAPACKtrsyl",LAPACKtrsyl_("N","N",&ione,s+i,s+j,T+p[i]+p[i]*ld,&ld,T+p[j]+p[j]*ld,&ld,T+p[i]+p[j]*ld,&ld,&done,&info));
+      if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xTRSYL %d",info);
+    }
+  }
 
   /* backtransform B = Q*T*Q' */
   PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&n,&n,&n,&one,Q,&ld,T,&ld,&zero,W,&ld));
@@ -182,9 +182,9 @@ PetscErrorCode FNEvaluateFunctionMat_Sqrt(FN fn,Mat A,Mat B)
   ierr = MatDenseRestoreArray(A,&Aa);CHKERRQ(ierr);
   ierr = MatDenseRestoreArray(B,&T);CHKERRQ(ierr);
 #if !defined(PETSC_USE_COMPLEX)
-  ierr = PetscFree5(wr,wi,W,Q,work);CHKERRQ(ierr);
+  ierr = PetscFree7(wr,wi,W,Q,work,s,p);CHKERRQ(ierr);
 #else
-  ierr = PetscFree5(wr,rwork,W,Q,work);CHKERRQ(ierr);
+  ierr = PetscFree7(wr,rwork,W,Q,work,s,p);CHKERRQ(ierr);
 #endif
   PetscFunctionReturn(0);
 #endif
