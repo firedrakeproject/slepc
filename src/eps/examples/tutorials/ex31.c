@@ -136,17 +136,14 @@ const PetscScalar ld_alphaq[3] = {0.0,0.0,1.0};
 const PetscScalar ld_betaq[3]  = {2.0,1.0,0.0};
 
 typedef struct {
-  DM          dmgen, dmnet; /* DMs to manage generator and network subsystem */
-  DM          dmpgrid; /* Composite DM to manage the entire power grid */
-  Mat         Ybus; /* Network admittance matrix */
-  Vec         V0;  /* Initial voltage vector (Power flow solution) */
-  PetscInt    neqs_gen,neqs_net,neqs_pgrid;
-  PetscInt    stepnum;
-  IS          is_diff; /* indices for differential equations */
-  IS          is_alg; /* indices for algebraic equations */
-  PetscBool   setisdiff; /* TS computes truncation error based only on the differential variables */
+  DM       dmgen, dmnet; /* DMs to manage generator and network subsystem */
+  DM       dmpgrid;      /* Composite DM to manage the entire power grid */
+  Mat      Ybus;         /* Network admittance matrix */
+  Vec      V0;           /* Initial voltage vector (Power flow solution) */
+  PetscInt neqs_gen,neqs_net,neqs_pgrid;
+  IS       is_diff;      /* indices for differential equations */
+  IS       is_alg;       /* indices for algebraic equations */
 } Userctx;
-
 
 /* Converts from machine frame (dq) to network (phase a real,imag) reference frame */
 #undef __FUNCT__
@@ -340,9 +337,9 @@ PetscErrorCode ResidualJacobian(Vec X,Mat J,void *ctx)
 
 
   PetscFunctionBegin;
-  ierr  = MatZeroEntries(J);CHKERRQ(ierr);
-  ierr  = DMCompositeGetLocalVectors(user->dmpgrid,&Xgen,&Xnet);CHKERRQ(ierr);
-  ierr  = DMCompositeScatter(user->dmpgrid,X,Xgen,Xnet);CHKERRQ(ierr);
+  ierr = MatZeroEntries(J);CHKERRQ(ierr);
+  ierr = DMCompositeGetLocalVectors(user->dmpgrid,&Xgen,&Xnet);CHKERRQ(ierr);
+  ierr = DMCompositeScatter(user->dmpgrid,X,Xgen,Xnet);CHKERRQ(ierr);
 
   ierr = VecGetArray(Xgen,&xgen);CHKERRQ(ierr);
   ierr = VecGetArray(Xnet,&xnet);CHKERRQ(ierr);
@@ -453,16 +450,16 @@ PetscErrorCode ResidualJacobian(Vec X,Mat J,void *ctx)
     /*    fgen[idx+8] = (VR - KA[i]*RF + KA[i]*KF[i]*Efd/TF[i] - KA[i]*(Vref[i] - Vm))/TA[i]; */
     /* Vm = (Vd^2 + Vq^2)^0.5; */
 
-    dVm_dVd    = Vd/Vm; dVm_dVq = Vq/Vm;
-    dVm_dVr    = dVm_dVd*dVd_dVr + dVm_dVq*dVq_dVr;
-    dVm_dVi    = dVm_dVd*dVd_dVi + dVm_dVq*dVq_dVi;
-    row[0]     = idx + 8;
-    col[0]     = idx + 6;           col[1] = idx + 7; col[2] = idx + 8;
-    val[0]     = (KA[i]*KF[i]/TF[i])/TA[i]; val[1] = -KA[i]/TA[i];  val[2] = 1/TA[i];
-    col[3]     = net_start + 2*gbus[i]; col[4] = net_start + 2*gbus[i]+1;
-    val[3]     = KA[i]*dVm_dVr/TA[i];         val[4] = KA[i]*dVm_dVi/TA[i];
-    ierr       = MatSetValues(J,1,row,5,col,val,INSERT_VALUES);CHKERRQ(ierr);
-    idx        = idx + 9;
+    dVm_dVd = Vd/Vm; dVm_dVq = Vq/Vm;
+    dVm_dVr = dVm_dVd*dVd_dVr + dVm_dVq*dVq_dVr;
+    dVm_dVi = dVm_dVd*dVd_dVi + dVm_dVq*dVq_dVi;
+    row[0]  = idx + 8;
+    col[0]  = idx + 6;           col[1] = idx + 7; col[2] = idx + 8;
+    val[0]  = (KA[i]*KF[i]/TF[i])/TA[i]; val[1] = -KA[i]/TA[i];  val[2] = 1/TA[i];
+    col[3]  = net_start + 2*gbus[i]; col[4] = net_start + 2*gbus[i]+1;
+    val[3]  = KA[i]*dVm_dVr/TA[i];         val[4] = KA[i]*dVm_dVi/TA[i];
+    ierr    = MatSetValues(J,1,row,5,col,val,INSERT_VALUES);CHKERRQ(ierr);
+    idx     = idx + 9;
   }
 
   for (i=0; i<nbus; i++) {
@@ -554,7 +551,6 @@ int main(int argc,char **argv)
   Mat            J,Jred=NULL;
   IS             is0,is1;
   PetscInt       i,*idx2,its,nev,nconv;
-  Vec            vatol;
   PetscReal      error,re,im;
   PetscScalar    kr,ki;
   PetscBool      terse;
@@ -571,7 +567,6 @@ int main(int argc,char **argv)
   ierr = PetscPrintf(PETSC_COMM_WORLD,"\nStability analysis in a network with %D buses and %D generators\n\n",nbus,ngen);CHKERRQ(ierr);
 
   /* Create indices for differential and algebraic equations */
-
   ierr = PetscMalloc1(7*ngen,&idx2);CHKERRQ(ierr);
   for (i=0; i<ngen; i++) {
     idx2[7*i]   = 9*i;   idx2[7*i+1] = 9*i+1; idx2[7*i+2] = 9*i+2; idx2[7*i+3] = 9*i+3;
@@ -595,14 +590,6 @@ int main(int argc,char **argv)
   /*  ierr = MatSetBlockSize(user.Ybus,2);CHKERRQ(ierr); */
   ierr = MatLoad(user.Ybus,Ybusview);CHKERRQ(ierr);
 
-  /* Set run time options */
-  ierr = PetscOptionsBegin(PETSC_COMM_WORLD,NULL,"Transient stability fault options","");CHKERRQ(ierr);
-  {
-    user.setisdiff = PETSC_FALSE;
-    ierr           = PetscOptionsBool("-setisdiff","","",user.setisdiff,&user.setisdiff,NULL);CHKERRQ(ierr);
-  }
-  ierr = PetscOptionsEnd();CHKERRQ(ierr);
-
   ierr = PetscViewerDestroy(&Xview);CHKERRQ(ierr);
   ierr = PetscViewerDestroy(&Ybusview);CHKERRQ(ierr);
 
@@ -623,9 +610,6 @@ int main(int argc,char **argv)
   ierr = MatSetSizes(J,PETSC_DECIDE,PETSC_DECIDE,user.neqs_pgrid,user.neqs_pgrid);CHKERRQ(ierr);
   ierr = MatSetFromOptions(J);CHKERRQ(ierr);
   ierr = PreallocateJacobian(J,&user);CHKERRQ(ierr);
-
-  /* Create matrix to save solutions at each time step */
-  user.stepnum = 0;
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
      Set initial conditions
@@ -717,10 +701,6 @@ int main(int argc,char **argv)
   ierr = DMDestroy(&user.dmpgrid);CHKERRQ(ierr);
   ierr = ISDestroy(&user.is_diff);CHKERRQ(ierr);
   ierr = ISDestroy(&user.is_alg);CHKERRQ(ierr);
-
-  if (user.setisdiff) {
-    ierr = VecDestroy(&vatol);CHKERRQ(ierr);
-  }
   ierr = PetscFinalize();
-  return(0);
+  return 0;
 }
