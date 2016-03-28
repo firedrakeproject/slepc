@@ -29,7 +29,7 @@ EXAMPLESC  = ex1.c ex2.c ex3.c ex4.c ex5.c ex7.c ex9.c ex10.c ex11.c ex12.c ex13
 EXAMPLESF  = ex1f.F ex1f90.F90 ex6f.F
 MANSEC     = EPS
 
-TESTEXAMPLES_C                 = ex2.PETSc runex2_1 ex2.rm \
+TESTEXAMPLES_C                 = ex2.PETSc runex2_1 runex2_ciss_1 runex2_ciss_2 ex2.rm \
                                  ex3.PETSc runex3_1 ex3.rm \
                                  ex5.PETSc runex5_1 ex5.rm \
                                  ex9.PETSc runex9_1 runex9_2 ex9.rm \
@@ -155,6 +155,18 @@ runex2_1:
 	   if (${DIFF} output/ex2_1.out ex2_1.tmp) then true; \
 	   else echo "Possible problem with ex2_1, diffs above"; fi; \
 	   ${RM} -f ex2_1.tmp
+
+runex2_ciss_1:
+	-@${MPIEXEC} -n 1 ./ex2 -n 30 -eps_type ciss -rg_type interval -rg_interval_endpoints 1.1,1.25 -terse > ex2_ciss.tmp 2>&1; \
+	   if (${DIFF} output/ex2_ciss.out ex2_ciss.tmp) then true; \
+	   else echo "Possible problem with ex2_ciss_1, diffs above"; fi; \
+	   ${RM} -f ex2_ciss.tmp
+
+runex2_ciss_2:
+	-@${MPIEXEC} -n 2 ./ex2 -n 30 -eps_type ciss -rg_type ellipse -rg_ellipse_center 1.175 -rg_ellipse_radius 0.075 -eps_ciss_partitions 2 -terse > ex2_ciss.tmp 2>&1; \
+	   if (${DIFF} output/ex2_ciss.out ex2_ciss.tmp) then true; \
+	   else echo "Possible problem with ex2_ciss_2, diffs above"; fi; \
+	   ${RM} -f ex2_ciss.tmp
 
 runex3_1:
 	-@${MPIEXEC} -n 1 ./ex3 -eps_nev 4 -terse > ex3_1.tmp 2>&1; \
