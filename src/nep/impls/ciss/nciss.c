@@ -464,7 +464,7 @@ PetscErrorCode NEPSetUp_CISS(NEP nep)
   }
   if (!nep->max_it) nep->max_it = 1;
   if (!nep->mpd) nep->mpd = nep->ncv;
-  if (!nep->which) nep->which = NEP_LARGEST_MAGNITUDE;
+  if (!nep->which) nep->which = NEP_ALL;
   if (nep->stopping!=NEPStoppingBasic) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"This solver does not support user-defined stopping test");
 
   /* check region */

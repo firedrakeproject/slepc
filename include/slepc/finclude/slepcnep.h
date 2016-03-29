@@ -81,6 +81,7 @@
       PetscEnum NEP_TARGET_MAGNITUDE
       PetscEnum NEP_TARGET_REAL
       PetscEnum NEP_TARGET_IMAGINARY
+      PetscEnum NEP_ALL
 
       parameter (NEP_LARGEST_MAGNITUDE      =  1)
       parameter (NEP_SMALLEST_MAGNITUDE     =  2)
@@ -91,6 +92,7 @@
       parameter (NEP_TARGET_MAGNITUDE       =  7)
       parameter (NEP_TARGET_REAL            =  8)
       parameter (NEP_TARGET_IMAGINARY       =  9)
+      parameter (NEP_ALL                    = 10)
 
       PetscEnum NEP_ERROR_ABSOLUTE
       PetscEnum NEP_ERROR_RELATIVE
