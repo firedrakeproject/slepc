@@ -25,7 +25,7 @@ CPPFLAGS   =
 FPPFLAGS   =
 LOCDIR     = src/eps/examples/tutorials/
 EXAMPLESC  = ex1.c ex2.c ex3.c ex4.c ex5.c ex7.c ex9.c ex10.c ex11.c ex12.c ex13.c \
-             ex18.c ex19.c ex24.c ex25.c ex29.c ex30.c
+             ex18.c ex19.c ex24.c ex25.c ex29.c ex30.c ex31.c
 EXAMPLESF  = ex1f.F ex1f90.F90 ex6f.F
 MANSEC     = EPS
 
@@ -43,7 +43,8 @@ TESTEXAMPLES_C                 = ex2.PETSc runex2_1 ex2.rm \
                                  ex30.PETSc runex30_1 ex30.rm
 TESTEXAMPLES_C_NOCOMPLEX       = ex4.PETSc runex4_1 ex4.rm \
                                  ex7.PETSc runex7_1 ex7.rm \
-                                 ex25.PETSc runex25_1 ex25.rm
+                                 ex25.PETSc runex25_1 ex25.rm \
+                                 ex31.PETSc runex31_1 ex31.rm
 TESTEXAMPLES_FORTRAN_NOCOMPLEX = ex6f.PETSc runex6f_1 ex6f.rm
 TESTEXAMPLES_F90               = ex1f90.PETSc runex1f90_1 ex1f90.rm
 
@@ -128,6 +129,10 @@ ex29: ex29.o chkopts
 ex30: ex30.o chkopts
 	-${CLINKER} -o ex30 ex30.o ${SLEPC_EPS_LIB}
 	${RM} ex30.o
+
+ex31: ex31.o chkopts
+	-${CLINKER} -o ex31 ex31.o ${SLEPC_EPS_LIB}
+	${RM} ex31.o
 
 #------------------------------------------------------------------------------------
 DATAPATH = ${SLEPC_DIR}/share/slepc/datafiles/matrices
@@ -264,4 +269,14 @@ runex30_1:
 	   if (${DIFF} output/ex30_1.out ex30_1.tmp) then true; \
 	   else echo "Possible problem with ex30_1, diffs above"; fi; \
 	   ${RM} -f ex30_1.tmp
+
+runex31_1:
+	-@if [ "${PETSC_PRECISION}" != "double" ] || (${GREP} USE_64BIT_INDICES ${PETSC_DIR}/${PETSC_ARCH}/include/petscconf.h > /dev/null 2>&1) then \
+           echo "Skipping ex31 test"; \
+         else \
+	   ${MPIEXEC} -n 1 ./ex31 -terse > ex31_1.tmp 2>&1; \
+	   if (${DIFF} output/ex31_1.out ex31_1.tmp) then true; \
+	   else echo "Possible problem with ex31_1, diffs above"; fi; \
+	   ${RM} -f ex31_1.tmp; \
+         fi
 
