@@ -271,8 +271,12 @@ runex30_1:
 	   ${RM} -f ex30_1.tmp
 
 runex31_1:
-	-@${MPIEXEC} -n 1 ./ex31 -terse > ex31_1.tmp 2>&1; \
+	-@if [ "${PETSC_PRECISION}" != "double" ] || (${GREP} USE_64BIT_INDICES ${PETSC_DIR}/${PETSC_ARCH}/include/petscconf.h > /dev/null 2>&1) then \
+           echo "Skipping ex31 test"; \
+         else \
+	   ${MPIEXEC} -n 1 ./ex31 -terse > ex31_1.tmp 2>&1; \
 	   if (${DIFF} output/ex31_1.out ex31_1.tmp) then true; \
 	   else echo "Possible problem with ex31_1, diffs above"; fi; \
-	   ${RM} -f ex31_1.tmp
+	   ${RM} -f ex31_1.tmp; \
+         fi
 
