@@ -44,8 +44,6 @@
 #include <slepc/private/epsimpl.h>                /*I "slepceps.h" I*/
 #include <slepcblaslapack.h>
 
-PetscErrorCode EPSSolve_CISS(EPS);
-
 typedef struct {
   /* parameters */
   PetscInt          N;          /* number of integration points (32) */
@@ -952,9 +950,6 @@ PetscErrorCode EPSSetUp_CISS(EPS eps)
 #if !defined(PETSC_USE_COMPLEX)
   if (!eps->ishermitian) { ierr = PetscInfo(eps,"Warning: complex eigenvalues are not calculated exactly without --with-scalar-type=complex in PETSc\n");CHKERRQ(ierr); }
 #endif
-
-  /* dispatch solve method */
-  eps->ops->solve = EPSSolve_CISS;
   PetscFunctionReturn(0);
 }
 
@@ -1907,6 +1902,7 @@ PETSC_EXTERN PetscErrorCode EPSCreate_CISS(EPS eps)
   PetscFunctionBegin;
   ierr = PetscNewLog(eps,&ctx);CHKERRQ(ierr);
   eps->data = ctx;
+  eps->ops->solve          = EPSSolve_CISS;
   eps->ops->setup          = EPSSetUp_CISS;
   eps->ops->setfromoptions = EPSSetFromOptions_CISS;
   eps->ops->destroy        = EPSDestroy_CISS;
