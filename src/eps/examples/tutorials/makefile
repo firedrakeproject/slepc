@@ -46,6 +46,8 @@ TESTEXAMPLES_C_NOCOMPLEX       = ex4.PETSc runex4_1 ex4.rm \
                                  ex25.PETSc runex25_1 ex25.rm
 TESTEXAMPLES_FORTRAN_NOCOMPLEX = ex6f.PETSc runex6f_1 ex6f.rm
 TESTEXAMPLES_F90               = ex1f90.PETSc runex1f90_1 ex1f90.rm
+TESTEXAMPLES_DATAFILESPATH_COMPLEX = ex4.PETSc runex4_ciss_1 ex4.rm \
+                                 ex7.PETSc runex7_ciss_1 ex7.rm
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common
 
@@ -184,6 +186,12 @@ runex4_1:
 	   ${RM} -f ex4_1.tmp; \
          fi
 
+runex4_ciss_1:
+	-@${MPIEXEC} -n 1 ./ex4 -file $(DATAFILESPATH)/matrices/complex/qc324.petsc -eps_type ciss -rg_type ellipse -rg_ellipse_center -.012-.08i -rg_ellipse_radius .05 -terse > ex4_ciss_1.tmp 2>&1; \
+	   if (${DIFF} output/ex4_ciss_1.out ex4_ciss_1.tmp) then true; \
+	   else echo "Possible problem with ex4_ciss_1, diffs above"; fi; \
+	   ${RM} -f ex4_ciss_1.tmp;
+
 runex5_1:
 	-@${MPIEXEC} -n 1 ./ex5 -st_shift 1 -eps_nev 4 -terse > ex5_1.tmp 2>&1; \
 	   if (${DIFF} output/ex5_1.out ex5_1.tmp) then true; \
@@ -205,6 +213,12 @@ runex7_1:
 	   else echo "Possible problem with ex7_1, diffs above"; fi; \
 	   ${RM} -f ex7_1.tmp; \
          fi
+
+runex7_ciss_1:
+	-@${MPIEXEC} -n 1 ./ex7 -f1 $(DATAFILESPATH)/matrices/complex/mhd1280a.petsc -f2 $(DATAFILESPATH)/matrices/complex/mhd1280b.petsc -eps_type ciss -eps_ciss_usest 0 -eps_ciss_quadrule chebyshev -rg_type ring -rg_ring_center 0 -rg_ring_radius .5 -rg_ring_width 0.2 -rg_ring_startangle .25 -rg_ring_endangle .5 -terse > ex7_ciss_1.tmp 2>&1; \
+	   if (${DIFF} output/ex7_ciss_1.out ex7_ciss_1.tmp) then true; \
+	   else echo "Possible problem with ex7_ciss_1, diffs above"; fi; \
+	   ${RM} -f ex7_ciss_1.tmp;
 
 runex9_1:
 	-@${MPIEXEC} -n 1 ./ex9 -eps_nev 4 -terse > ex9_1.tmp 2>&1; \
