@@ -127,7 +127,7 @@ PetscErrorCode STReset(ST st)
   ierr = MatDestroyMatrices(PetscMax(2,st->nmat),&st->T);CHKERRQ(ierr);
   ierr = VecDestroy(&st->w);CHKERRQ(ierr);
   ierr = VecDestroy(&st->wb);CHKERRQ(ierr);
-  st->setupcalled = 0;
+  st->state = ST_STATE_INITIAL;
   PetscFunctionReturn(0);
 }
 
@@ -209,7 +209,7 @@ PetscErrorCode STCreate(MPI_Comm comm,ST *newst)
   st->D            = NULL;
   st->wb           = NULL;
   st->data         = NULL;
-  st->setupcalled  = 0;
+  st->state        = ST_STATE_INITIAL;
 
   *newst = st;
   PetscFunctionReturn(0);
@@ -247,7 +247,7 @@ PetscErrorCode STSetOperators(ST st,PetscInt n,Mat A[])
   if (n <= 0) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_OUTOFRANGE,"Must have one or more matrices, you have %D",n);
   PetscValidPointer(A,3);
   PetscCheckSameComm(st,1,*A,3);
-  if (st->setupcalled) {
+  if (st->state) {
     if (n!=st->nmat) same = PETSC_FALSE;
     for (i=0;same&&i<n;i++) {
       if (A[i]!=st->A[i]) same = PETSC_FALSE;
@@ -274,8 +274,8 @@ PetscErrorCode STSetOperators(ST st,PetscInt n,Mat A[])
     st->Astate[1] = 0;
   }
   st->nmat = n;
-  if (same) st->updated = 1;
-  st->setupcalled = 0;
+  if (same) st->state = ST_STATE_UPDATED;
+  else st->state = ST_STATE_INITIAL;
   PetscFunctionReturn(0);
 }
 
@@ -304,7 +304,7 @@ PetscErrorCode STGetOperators(ST st,PetscInt k,Mat *A)
   PetscValidLogicalCollectiveInt(st,k,2);
   PetscValidPointer(A,3);
   STCheckMatrices(st,1);
-  if (k<0 || k>=st->nmat) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_OUTOFRANGE,"k must be between 0 and %d",st->nmat-1);
+  if (k<0 || k>=st->nmat) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_OUTOFRANGE,"k must be between 0 and %D",st->nmat-1);
   if (((PetscObject)st->A[k])->state!=st->Astate[k]) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"Cannot retrieve original matrices (have been modified)");
   *A = st->A[k];
   PetscFunctionReturn(0);
@@ -335,7 +335,7 @@ PetscErrorCode STGetTOperators(ST st,PetscInt k,Mat *T)
   PetscValidLogicalCollectiveInt(st,k,2);
   PetscValidPointer(T,3);
   STCheckMatrices(st,1);
-  if (k<0 || k>=st->nmat) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_OUTOFRANGE,"k must be between 0 and %d",st->nmat-1);
+  if (k<0 || k>=st->nmat) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_OUTOFRANGE,"k must be between 0 and %D",st->nmat-1);
   if (!st->T) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_POINTER,"There are no transformed matrices");
   *T = st->T[k];
   PetscFunctionReturn(0);
@@ -517,7 +517,7 @@ PetscErrorCode STSetBalanceMatrix(ST st,Vec D)
   ierr = PetscObjectReference((PetscObject)D);CHKERRQ(ierr);
   ierr = VecDestroy(&st->D);CHKERRQ(ierr);
   st->D = D;
-  st->setupcalled = 0;
+  st->state = ST_STATE_INITIAL;
   PetscFunctionReturn(0);
 }
 

@@ -94,13 +94,14 @@ static PetscErrorCode ScanJ(PetscInt n,PetscReal *a,PetscReal *b,PetscReal *gl,P
     m        - its multiplicity    (m=0 if there isn't a multiple eigenvalue)
     X        - matrix of generalized eigenvectors
     shift
+    dim(work)=5*n+4
 */
-static PetscErrorCode Prologue(PetscInt n,PetscReal *a,PetscReal *b,PetscReal gl,PetscReal gr,PetscInt *m,PetscReal *shift,PetscReal *work,PetscReal nw)
+static PetscErrorCode Prologue(PetscInt n,PetscReal *a,PetscReal *b,PetscReal gl,PetscReal gr,PetscInt *m,PetscReal *shift,PetscReal *work)
 {
 
   PetscErrorCode ierr;
   PetscReal      mu,tol,*a1,*y,*yp,*x,*xp;
-  PetscInt       i,k,nwall=0;
+  PetscInt       i,k;
 
   PetscFunctionBegin;
   *m = 0;
@@ -108,8 +109,6 @@ static PetscErrorCode Prologue(PetscInt n,PetscReal *a,PetscReal *b,PetscReal gl
   for (i=0;i<n;i++) mu += a[i];
   mu /= n;
   tol = n*PETSC_MACHINE_EPSILON*(gr-gl);
-  nwall = 5*n+4;
-  if (!work || nw<nwall) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Invalid argument %d",9);
   a1 = work; /* size n */
   y = work+n; /* size n+1 */
   yp = y+n+1; /* size n+1. yp is the derivative of y (p for "prime") */
@@ -161,14 +160,12 @@ static PetscErrorCode Prologue(PetscInt n,PetscReal *a,PetscReal *b,PetscReal gl
 
 #undef __FUNCT__
 #define __FUNCT__ "LUfac"
-static PetscErrorCode LUfac(PetscInt n,PetscReal *a,PetscReal *b,PetscReal shift,PetscReal tol,PetscReal norm,PetscReal *L,PetscReal *U,PetscInt *fail,PetscReal *work,PetscInt nw)
+static PetscErrorCode LUfac(PetscInt n,PetscReal *a,PetscReal *b,PetscReal shift,PetscReal tol,PetscReal norm,PetscReal *L,PetscReal *U,PetscInt *fail,PetscReal *work)
 {
-  PetscInt       nwall,i;
+  PetscInt       i;
   PetscReal      *a1;
 
   PetscFunctionBegin;
-  nwall = n;
-  if (!work || nw<nwall) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Invalid argument %d",11);
   a1 = work;
   for (i=0;i<n;i++) a1[i] = a[i]-shift;
   *fail = 0;
@@ -446,7 +443,7 @@ static PetscErrorCode TridqdsZhuang(PetscInt n,PetscReal *e,PetscReal *q,PetscRe
 
 #undef __FUNCT__
 #define __FUNCT__ "DSGHIEP_Eigen3DQDS"
-static PetscErrorCode DSGHIEP_Eigen3DQDS(PetscInt n,PetscReal *a,PetscReal *b,PetscReal *c,PetscScalar *wr,PetscScalar *wi,PetscReal *work,PetscInt nw)
+static PetscErrorCode DSGHIEP_Eigen3DQDS(PetscInt n,PetscReal *a,PetscReal *b,PetscReal *c,PetscScalar *wr,PetscScalar *wi,PetscReal *work)
 {
   PetscInt       totalIt=0;       /* Total Number of Iterations  */
   PetscInt       totalFail=0;     /* Total number of failures */
@@ -457,7 +454,7 @@ static PetscErrorCode DSGHIEP_Eigen3DQDS(PetscInt n,PetscReal *a,PetscReal *b,Pe
   PetscReal      tolDef=PETSC_MACHINE_EPSILON;  /* Tolerance for deflation eps, 10*eps, 100*eps */
   PetscReal      tolGrowth=100000;
   PetscErrorCode ierr;
-  PetscInt       i,k,nwu=0,nwall,begin,ind,flag,dim,m,*split,lastSplit;
+  PetscInt       i,k,nwu=0,begin,ind,flag,dim,m,*split,lastSplit;
   PetscReal      norm,gr,gl,sigma,delta,meanEig,*U,*L,*U1,*L1;
   PetscReal      acShift,initialShift,shift=0.0,sum,det,disc,prod,x1,x2;
   PetscBool      test1,test2;
@@ -468,8 +465,6 @@ static PetscErrorCode DSGHIEP_Eigen3DQDS(PetscInt n,PetscReal *a,PetscReal *b,Pe
   for (i=0;i<n-1;i++) {
     if (PetscAbsReal(b[i])==0.0 || PetscAbsReal(c[i])==0.0) SETERRQ(PETSC_COMM_SELF,1,"Initial tridiagonal matrix is not unreduced");
   }
-  nwall = 9*n+4;
-  if (!work || nw<nwall) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Invalid argument %d",8);
   U = work;
   L = work+n;
   U1 = work+2*n;
@@ -492,7 +487,7 @@ static PetscErrorCode DSGHIEP_Eigen3DQDS(PetscInt n,PetscReal *a,PetscReal *b,Pe
   meanEig = 0.0;
   for (i=0;i<n;i++) meanEig += a[i];
   meanEig /= n; /* shift = initial shift = mean of eigenvalues */
-  ierr = Prologue(n,a,b,gl,gr,&m,&shift,work+nwu,nwall-nwu);CHKERRQ(ierr);
+  ierr = Prologue(n,a,b,gl,gr,&m,&shift,work+nwu);CHKERRQ(ierr);
   if (m==n) { /* Multiple eigenvalue, we have the one-point spectrum case */
     for (i=0;i<dim;i++) {
       wr[i] = shift;
@@ -502,7 +497,7 @@ static PetscErrorCode DSGHIEP_Eigen3DQDS(PetscInt n,PetscReal *a,PetscReal *b,Pe
   }
   /* Initial LU Factorization */
   if (delta==0.0) shift=0.0;  /* The case when all eigenvalues are pure imaginary */
-  ierr = LUfac(n,a,b,shift,tolGrowth,norm,L,U,&flag,work+nwu,nwall-nwu);CHKERRQ(ierr); /* flag=1 failure; flag=0 successful transformation*/
+  ierr = LUfac(n,a,b,shift,tolGrowth,norm,L,U,&flag,work+nwu);CHKERRQ(ierr); /* flag=1 failure; flag=0 successful transformation*/
   while (flag==1 && nFail<maxFail) {
     shift=shift+delta;
     if (shift>gr || shift<gl) { /* Successive failures */
@@ -510,7 +505,7 @@ static PetscErrorCode DSGHIEP_Eigen3DQDS(PetscInt n,PetscReal *a,PetscReal *b,Pe
       delta=-delta;
     }
     nFail=nFail+1;
-    ierr = LUfac(n,a,b,shift,tolGrowth,norm,L,U,&flag,work+nwu,nwall-nwu);CHKERRQ(ierr); /* flag=1 failure; flag=0 successful transformation*/
+    ierr = LUfac(n,a,b,shift,tolGrowth,norm,L,U,&flag,work+nwu);CHKERRQ(ierr); /* flag=1 failure; flag=0 successful transformation*/
   }
   if (nFail==maxFail) SETERRQ(PETSC_COMM_SELF,1,"Maximun number of failures reached in Initial LU factorization");
   /* Successful Initial transformation */
@@ -805,7 +800,7 @@ PetscErrorCode DSSolve_GHIEP_DQDS_II(DS ds,PetscScalar *wr,PetscScalar *wi)
     a[ds->n-1] = PetscRealPart(A[ds->n-1+(ds->n-1)*ld]*B[ds->n-1+(ds->n-1)*ld]);
   }
   vi = (wi)?wi+ds->l:NULL;
-  ierr = DSGHIEP_Eigen3DQDS(ds->n-ds->l,a+ds->l,b+ds->l,c+ds->l,wr+ds->l,vi,ds->rwork+nwu,nwall-nwu);CHKERRQ(ierr);
+  ierr = DSGHIEP_Eigen3DQDS(ds->n-ds->l,a+ds->l,b+ds->l,c+ds->l,wr+ds->l,vi,ds->rwork+nwu);CHKERRQ(ierr);
 
   /* Compute Eigenvectors with Inverse Iteration */
   ierr = DSGHIEPInverseIteration(ds,wr,wi);CHKERRQ(ierr);

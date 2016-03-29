@@ -321,7 +321,7 @@ PetscErrorCode NEPMonitorLG(NEP nep,PetscInt its,PetscInt nconv,PetscScalar *eig
     ierr = PetscDrawSetDoubleBuffer(draw);CHKERRQ(ierr);
     ierr = PetscDrawLGSetDimension(lg,1);CHKERRQ(ierr);
     ierr = PetscDrawLGReset(lg);CHKERRQ(ierr);
-    ierr = PetscDrawLGSetLimits(lg,0,1.0,PetscLog10Real(nep->rtol)-2,0.0);CHKERRQ(ierr);
+    ierr = PetscDrawLGSetLimits(lg,0,1.0,PetscLog10Real(nep->tol)-2,0.0);CHKERRQ(ierr);
   }
 
   x = (PetscReal)its;
@@ -352,7 +352,7 @@ PetscErrorCode NEPMonitorLGAll(NEP nep,PetscInt its,PetscInt nconv,PetscScalar *
     ierr = PetscDrawSetDoubleBuffer(draw);CHKERRQ(ierr);
     ierr = PetscDrawLGSetDimension(lg,n);CHKERRQ(ierr);
     ierr = PetscDrawLGReset(lg);CHKERRQ(ierr);
-    ierr = PetscDrawLGSetLimits(lg,0,1.0,PetscLog10Real(nep->rtol)-2,0.0);CHKERRQ(ierr);
+    ierr = PetscDrawLGSetLimits(lg,0,1.0,PetscLog10Real(nep->tol)-2,0.0);CHKERRQ(ierr);
   }
 
   ierr = PetscMalloc2(n,&x,n,&y);CHKERRQ(ierr);

@@ -27,13 +27,15 @@
 !  They sould match the flags in $SLEPC_DIR/include/slepcsvd.h
 
       PetscEnum SVD_CONVERGED_TOL
+      PetscEnum SVD_CONVERGED_USER
       PetscEnum SVD_DIVERGED_ITS
       PetscEnum SVD_DIVERGED_BREAKDOWN
       PetscEnum SVD_CONVERGED_ITERATING
 
-      parameter (SVD_CONVERGED_TOL          =  2)
-      parameter (SVD_DIVERGED_ITS           = -3)
-      parameter (SVD_DIVERGED_BREAKDOWN     = -4)
+      parameter (SVD_CONVERGED_TOL          =  1)
+      parameter (SVD_CONVERGED_USER         =  2)
+      parameter (SVD_DIVERGED_ITS           = -1)
+      parameter (SVD_DIVERGED_BREAKDOWN     = -2)
       parameter (SVD_CONVERGED_ITERATING    =  0)
 
       integer SVD_LARGEST
@@ -47,6 +49,20 @@
 
       parameter (SVD_ERROR_ABSOLUTE         =  0)
       parameter (SVD_ERROR_RELATIVE         =  1)
+
+      PetscEnum SVD_CONV_ABS
+      PetscEnum SVD_CONV_REL
+      PetscEnum SVD_CONV_USER
+
+      parameter (SVD_CONV_ABS               =  0)
+      parameter (SVD_CONV_REL               =  1)
+      parameter (SVD_CONV_USER              =  2)
+
+      PetscEnum SVD_STOP_BASIC
+      PetscEnum SVD_STOP_USER
+
+      parameter (SVD_STOP_BASIC             =  0)
+      parameter (SVD_STOP_USER              =  1)
 
 !
 !   Possible arguments to SVDMonitorSet()

@@ -27,15 +27,17 @@
 !  They should match the flags in $SLEPC_DIR/include/slepcpep.h
 
       PetscEnum PEP_CONVERGED_TOL
+      PetscEnum PEP_CONVERGED_USER
       PetscEnum PEP_DIVERGED_ITS
       PetscEnum PEP_DIVERGED_BREAKDOWN
       PetscEnum PEP_DIVERGED_SYMMETRY_LOST
       PetscEnum PEP_CONVERGED_ITERATING
 
-      parameter (PEP_CONVERGED_TOL          =  2)
-      parameter (PEP_DIVERGED_ITS           = -3)
-      parameter (PEP_DIVERGED_BREAKDOWN     = -4)
-      parameter (PEP_DIVERGED_SYMMETRY_LOST = -5)
+      parameter (PEP_CONVERGED_TOL          =  1)
+      parameter (PEP_CONVERGED_USER         =  2)
+      parameter (PEP_DIVERGED_ITS           = -1)
+      parameter (PEP_DIVERGED_BREAKDOWN     = -2)
+      parameter (PEP_DIVERGED_SYMMETRY_LOST = -3)
       parameter (PEP_CONVERGED_ITERATING    =  0)
 
       PetscEnum PEP_GENERAL
@@ -127,16 +129,20 @@
       parameter (PEP_ERROR_BACKWARD         =  2)
 
       PetscEnum PEP_CONV_ABS
-      PetscEnum PEP_CONV_EIG
-      PetscEnum PEP_CONV_LINEAR
+      PetscEnum PEP_CONV_REL
       PetscEnum PEP_CONV_NORM
       PetscEnum PEP_CONV_USER
 
       parameter (PEP_CONV_ABS               =  0)
-      parameter (PEP_CONV_EIG               =  1)
-      parameter (PEP_CONV_LINEAR            =  2)
-      parameter (PEP_CONV_NORM              =  3)
-      parameter (PEP_CONV_USER              =  4)
+      parameter (PEP_CONV_REL               =  1)
+      parameter (PEP_CONV_NORM              =  2)
+      parameter (PEP_CONV_USER              =  3)
+
+      PetscEnum PEP_STOP_BASIC
+      PetscEnum PEP_STOP_USER
+
+      parameter (PEP_STOP_BASIC             =  0)
+      parameter (PEP_STOP_USER              =  1)
 
 !
 !   Possible arguments to PEPMonitorSet()

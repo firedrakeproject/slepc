@@ -55,10 +55,10 @@ int main(int argc,char **argv)
   PC             pc;
   EPSType        type;
   CTX_FOLD       *ctx;
-  PetscInt       nconv,N,n=10,m,Istart,Iend,II,its,i,j;
-  PetscReal      error,re,target=2.1;
+  PetscInt       nconv,N,n=10,m,Istart,Iend,II,i,j;
+  PetscReal      *error,*evals,target=2.1,tol;
   PetscScalar    lambda;
-  PetscBool      flag;
+  PetscBool      flag,terse,errok;
   PetscErrorCode ierr;
 
   SlepcInitialize(&argc,&argv,(char*)0,help);
@@ -145,11 +145,9 @@ int main(int argc,char **argv)
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
   ierr = EPSSolve(eps);CHKERRQ(ierr);
-
-  ierr = EPSGetIterationNumber(eps,&its);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," Number of iterations of the method: %D\n",its);CHKERRQ(ierr);
   ierr = EPSGetType(eps,&type);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD," Solution method: %s\n\n",type);CHKERRQ(ierr);
+  ierr = EPSGetTolerances(eps,&tol,NULL);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                     Display solution and clean up
@@ -158,30 +156,41 @@ int main(int argc,char **argv)
   ierr = EPSGetConverged(eps,&nconv);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD," Number of converged eigenpairs: %D\n\n",nconv);CHKERRQ(ierr);
   if (nconv>0) {
-    /*
-       Display result
-    */
-    ierr = PetscPrintf(PETSC_COMM_WORLD,
-         "           k              ||Ax-kx||\n"
-         "   ----------------- ------------------\n");CHKERRQ(ierr);
-
+    ierr = PetscMalloc2(nconv,&evals,nconv,&error);CHKERRQ(ierr);
     for (i=0;i<nconv;i++) {
-      /*
-        Get i-th eigenvector, compute eigenvalue approximation from
-        Rayleigh quotient and compute residual norm
-      */
+      /*  Get i-th eigenvector, compute eigenvalue approximation from
+          Rayleigh quotient and compute residual norm */
       ierr = EPSGetEigenpair(eps,i,NULL,NULL,x,NULL);CHKERRQ(ierr);
       ierr = RayleighQuotient(A,x,&lambda);CHKERRQ(ierr);
-      ierr = ComputeResidualNorm(A,lambda,x,&error);CHKERRQ(ierr);
-
+      ierr = ComputeResidualNorm(A,lambda,x,&error[i]);CHKERRQ(ierr);
 #if defined(PETSC_USE_COMPLEX)
-      re = PetscRealPart(lambda);
+      evals[i] = PetscRealPart(lambda);
 #else
-      re = lambda;
+      evals[i] = lambda;
 #endif
-      ierr = PetscPrintf(PETSC_COMM_WORLD,"   %12f       %12.2g\n",(double)re,(double)error);CHKERRQ(ierr);
+    }
+    ierr = PetscOptionsHasName(NULL,NULL,"-terse",&terse);CHKERRQ(ierr);
+    if (!terse) {
+      ierr = PetscPrintf(PETSC_COMM_WORLD,
+           "           k              ||Ax-kx||\n"
+           "   ----------------- ------------------\n");CHKERRQ(ierr);
+      for (i=0;i<nconv;i++) {
+        ierr = PetscPrintf(PETSC_COMM_WORLD,"   %12f       %12.2g\n",(double)evals[i],(double)error[i]);CHKERRQ(ierr);
+      }
+    } else {
+      errok = PETSC_TRUE;
+      for (i=0;i<nconv;i++) errok = (errok && error[i]<5.0*tol)? PETSC_TRUE: PETSC_FALSE;
+      if (!errok) {
+        ierr = PetscPrintf(PETSC_COMM_WORLD," Problem: some of the first %D relative errors are higher than the tolerance\n\n",nconv);CHKERRQ(ierr);
+      } else {
+        ierr = PetscPrintf(PETSC_COMM_WORLD," nconv=%D eigenvalues computed up to the required tolerance:",nconv);CHKERRQ(ierr);
+        for (i=0;i<nconv;i++) {
+          ierr = PetscPrintf(PETSC_COMM_WORLD," %.5f",(double)evals[i]);CHKERRQ(ierr);
+        }
+      }
     }
     ierr = PetscPrintf(PETSC_COMM_WORLD,"\n");CHKERRQ(ierr);
+    ierr = PetscFree2(evals,error);CHKERRQ(ierr);
   }
 
   ierr = EPSDestroy(&eps);CHKERRQ(ierr);

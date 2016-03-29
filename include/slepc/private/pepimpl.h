@@ -68,6 +68,7 @@ struct _p_PEP {
   PetscScalar    target;           /* target value */
   PetscReal      tol;              /* tolerance */
   PEPConv        conv;             /* convergence test */
+  PEPStop        stop;             /* stopping test */
   PEPWhich       which;            /* which part of the spectrum to be sought */
   PEPBasis       basis;            /* polynomial basis used to represent the problem */
   PEPProblemType problem_type;     /* which kind of problem to be solved */
@@ -86,7 +87,10 @@ struct _p_PEP {
   /*-------------- User-provided functions and contexts -----------------*/
   PetscErrorCode (*converged)(PEP,PetscScalar,PetscScalar,PetscReal,PetscReal*,void*);
   PetscErrorCode (*convergeddestroy)(void*);
+  PetscErrorCode (*stopping)(PEP,PetscInt,PetscInt,PetscInt,PetscInt,PEPConvergedReason*,void*);
+  PetscErrorCode (*stoppingdestroy)(void*);
   void           *convergedctx;
+  void           *stoppingctx;
   PetscErrorCode (*monitor[MAXPEPMONITORS])(PEP,PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscReal*,PetscInt,void*);
   PetscErrorCode (*monitordestroy[MAXPEPMONITORS])(void**);
   void           *monitorcontext[MAXPEPMONITORS];
@@ -156,6 +160,5 @@ PETSC_INTERN PetscErrorCode PEPBasisCoefficients(PEP,PetscReal*);
 PETSC_INTERN PetscErrorCode PEPEvaluateBasis(PEP,PetscScalar,PetscScalar,PetscScalar*,PetscScalar*);
 PETSC_INTERN PetscErrorCode PEPNewtonRefinement_TOAR(PEP,PetscScalar,PetscInt*,PetscReal*,PetscInt,PetscScalar*,PetscInt,PetscInt*);
 PETSC_INTERN PetscErrorCode PEPNewtonRefinementSimple(PEP,PetscInt*,PetscReal*,PetscInt);
-PETSC_INTERN PetscErrorCode PEPComputeLinearNorms(PEP);
 
 #endif

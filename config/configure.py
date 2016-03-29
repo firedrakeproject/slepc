@@ -22,8 +22,8 @@
 
 import os, sys, time, shutil
 
-def AddDefine(conffile,name,value):
-  conffile.write('#ifndef SLEPC_'+name+'\n#define SLEPC_'+name+' "'+value+'"\n#endif\n\n')
+def AddDefine(conffile,name,value,prefix='SLEPC_'):
+  conffile.write('#ifndef '+prefix+name+'\n#define '+prefix+name+' "'+value+'"\n#endif\n\n')
 
 def CreateFile(basedir,fname,log):
   ''' Create file basedir/fname and return path string '''
@@ -168,7 +168,7 @@ petsc.InitDir(slepc.prefixdir)
 slepc.InitDir()
 petsc.LoadVersion()
 slepc.LoadVersion()
-if petsc.version < slepc.version:
+if petsc.version != slepc.version:
   sys.exit('ERROR: This SLEPc version is not compatible with PETSc version '+petsc.version)
 
 # Check some information about PETSc configuration
@@ -259,12 +259,18 @@ if petsc.precision != '__float128':
   testruns = testruns.union(set(['C_NoF128']))
 if slepc.datadir:
   slepcvars.write('DATAFILESPATH = '+slepc.datadir+'\n')
-  testruns = testruns.union(set(['DATAFILESPATH']))
+  if petsc.scalar == 'complex':
+    testruns = testruns.union(set(['DATAFILESPATH_Complex']))
+  else:
+    testruns = testruns.union(set(['DATAFILESPATH']))
 slepcvars.write('TEST_RUNS = '+' '.join(testruns)+'\n')
 
 # Write initial part of file slepcconf.h
 slepcconf.write('#if !defined(__SLEPCCONF_H)\n')
 slepcconf.write('#define __SLEPCCONF_H\n\n')
+AddDefine(slepcconf,'PETSC_DIR',petsc.dir)
+AddDefine(slepcconf,'PETSC_ARCH',petsc.arch)
+AddDefine(slepcconf,'DIR',slepc.dir)
 AddDefine(slepcconf,'LIB_DIR',os.path.join(slepc.prefixdir,'lib'))
 if slepc.isrepo:
   AddDefine(slepcconf,'VERSION_GIT',slepc.gitrev)

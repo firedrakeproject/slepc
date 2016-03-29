@@ -127,8 +127,8 @@ static PetscErrorCode PEPSimpleNRefSetUp(PEP pep,PEPSimpNRefctx **ctx_)
       }
       ierr = PetscFree(idx1);CHKERRQ(ierr);
       ierr = ISDestroy(&is1);CHKERRQ(ierr);
-     }
-   } 
+    }
+  } 
   PetscFunctionReturn(0);  
 }
 
@@ -398,7 +398,6 @@ PetscErrorCode PEPNewtonRefinementSimple(PEP pep,PetscInt *maxits,PetscReal *tol
   PetscErrorCode     ierr;
   PetscInt           i,n,its,idx=0,*idx_sc,*its_sc,color,*fail_sc;
   PetscMPIInt        rank,size;
-  KSP                ksp;
   Mat                Mt=NULL,T=NULL,P=NULL;
   MPI_Comm           comm;
   Vec                r,v,dv,rr=NULL,dvv=NULL,t[2];
@@ -414,7 +413,7 @@ PetscErrorCode PEPNewtonRefinementSimple(PEP pep,PetscInt *maxits,PetscReal *tol
   ierr = PetscLogEventBegin(PEP_Refine,pep,0,0,0);CHKERRQ(ierr);
   ierr = PEPSimpleNRefSetUp(pep,&ctx);CHKERRQ(ierr);
   its = (maxits)?*maxits:NREF_MAXIT;
-  ierr = PEPRefineGetKSP(pep,&ksp);CHKERRQ(ierr);
+  if (!pep->refineksp) { ierr = PEPRefineGetKSP(pep,&pep->refineksp);CHKERRQ(ierr); }
   comm = (pep->npart==1)?PetscObjectComm((PetscObject)pep):PetscSubcommChild(pep->refinesubc);
   if (pep->npart==1) {
     ierr = BVGetColumn(pep->V,0,&v);CHKERRQ(ierr);
@@ -463,7 +462,7 @@ PetscErrorCode PEPNewtonRefinementSimple(PEP pep,PetscInt *maxits,PetscReal *tol
       }
     }
     solved = PETSC_TRUE;
-    for (i=0;i<pep->npart&&solved;i++) solved = (idx_sc[i]<k)?PETSC_FALSE:PETSC_TRUE;
+    for (i=0;i<pep->npart&&solved;i++) solved = PetscNot(idx_sc[i]<k);
     if (idx_sc[color]<k) {
 #if !defined(PETSC_USE_COMPLEX)
       if (pep->eigi[idx_sc[color]]!=0.0) SETERRQ(PetscObjectComm((PetscObject)pep),1,"Simple Refinement not implemented in real scalars for complex eigenvalues");
@@ -472,9 +471,9 @@ PetscErrorCode PEPNewtonRefinementSimple(PEP pep,PetscInt *maxits,PetscReal *tol
         ierr = BVGetColumn(pep->V,idx_sc[color],&v);CHKERRQ(ierr);
       } else v = ctx->v; 
       ierr = PEPSimpleNRefSetUpSystem(pep,ctx->A,ctx,idx_sc[color],&Mt,&T,&P,ini,t[0],v);CHKERRQ(ierr);
-      ierr = KSPSetOperators(ksp,T,P);CHKERRQ(ierr);
+      ierr = KSPSetOperators(pep->refineksp,T,P);CHKERRQ(ierr);
       if (ini) {
-        ierr = KSPSetFromOptions(ksp);CHKERRQ(ierr);
+        ierr = KSPSetFromOptions(pep->refineksp);CHKERRQ(ierr);
         if (pep->scheme==PEP_REFINE_SCHEME_EXPLICIT) {
           ierr = MatCreateVecs(T,&dvv,NULL);CHKERRQ(ierr);
           ierr = VecDuplicate(dvv,&rr);CHKERRQ(ierr);
@@ -494,8 +493,8 @@ PetscErrorCode PEPNewtonRefinementSimple(PEP pep,PetscInt *maxits,PetscReal *tol
         } else {
           ierr = VecPlaceArray(rr,array);CHKERRQ(ierr);
         }
-        ierr = KSPSolve(ksp,rr,dvv);CHKERRQ(ierr);
-        ierr = KSPGetConvergedReason(ksp,&reason);CHKERRQ(ierr);
+        ierr = KSPSolve(pep->refineksp,rr,dvv);CHKERRQ(ierr);
+        ierr = KSPGetConvergedReason(pep->refineksp,&reason);CHKERRQ(ierr);
         if (reason>0) {
           if (rank != size-1) {
             ierr = VecResetArray(rr);CHKERRQ(ierr);
@@ -515,20 +514,20 @@ PetscErrorCode PEPNewtonRefinementSimple(PEP pep,PetscInt *maxits,PetscReal *tol
         ierr = MatMult(T,v,r);CHKERRQ(ierr);
         /* Mixed block elimination */
         ierr = VecConjugate(v);CHKERRQ(ierr);
-        ierr = KSPSolveTranspose(ksp,v,t[0]);CHKERRQ(ierr);
-        ierr = KSPGetConvergedReason(ksp,&reason);CHKERRQ(ierr);
+        ierr = KSPSolveTranspose(pep->refineksp,v,t[0]);CHKERRQ(ierr);
+        ierr = KSPGetConvergedReason(pep->refineksp,&reason);CHKERRQ(ierr);
         if (reason>0) {
           ierr = VecConjugate(t[0]);CHKERRQ(ierr);
           ierr = VecDot(ctx->w,t[0],&tt[0]);CHKERRQ(ierr);
-          ierr = KSPSolve(ksp,ctx->w,t[1]);CHKERRQ(ierr);
-          ierr = KSPGetConvergedReason(ksp,&reason);CHKERRQ(ierr);
+          ierr = KSPSolve(pep->refineksp,ctx->w,t[1]);CHKERRQ(ierr);
+          ierr = KSPGetConvergedReason(pep->refineksp,&reason);CHKERRQ(ierr);
           if (reason>0) {
             ierr = VecDot(t[1],v,&tt[1]);CHKERRQ(ierr);
             ierr = VecDot(r,t[0],&ttt);CHKERRQ(ierr);
             tt[0] = ttt/tt[0];
             ierr = VecAXPY(r,-tt[0],ctx->w);CHKERRQ(ierr);
-            ierr = KSPSolve(ksp,r,dv);CHKERRQ(ierr);
-            ierr = KSPGetConvergedReason(ksp,&reason);CHKERRQ(ierr);
+            ierr = KSPSolve(pep->refineksp,r,dv);CHKERRQ(ierr);
+            ierr = KSPGetConvergedReason(pep->refineksp,&reason);CHKERRQ(ierr);
             if (reason>0) {
               ierr = VecDot(dv,v,&ttt);CHKERRQ(ierr);
               tt[1] = ttt/tt[1];
@@ -550,8 +549,8 @@ PetscErrorCode PEPNewtonRefinementSimple(PEP pep,PetscInt *maxits,PetscReal *tol
       case PEP_REFINE_SCHEME_SCHUR:
         ierr = MatShellGetContext(T,&fctx);CHKERRQ(ierr);
         ierr = MatMult(fctx->M1,v,r);CHKERRQ(ierr);
-        ierr = KSPSolve(ksp,r,dv);CHKERRQ(ierr);
-        ierr = KSPGetConvergedReason(ksp,&reason);CHKERRQ(ierr);
+        ierr = KSPSolve(pep->refineksp,r,dv);CHKERRQ(ierr);
+        ierr = KSPGetConvergedReason(pep->refineksp,&reason);CHKERRQ(ierr);
         if (reason>0) {
           ierr = VecDot(dv,v,&deig);CHKERRQ(ierr);
           deig *= -fctx->m3/fctx->M4;

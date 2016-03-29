@@ -409,7 +409,7 @@ PetscErrorCode RGIsTrivial(RG rg,PetscBool *trivial)
   PetscValidHeaderSpecific(rg,RG_CLASSID,1);
   PetscValidType(rg,1);
   PetscValidPointer(trivial,2);
-  if (*rg->ops->istrivial) {
+  if (rg->ops->istrivial) {
     ierr = (*rg->ops->istrivial)(rg,trivial);CHKERRQ(ierr);
   } else *trivial = PETSC_FALSE;
   PetscFunctionReturn(0);

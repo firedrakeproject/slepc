@@ -205,8 +205,8 @@ PetscErrorCode RGIsTrivial_Ring(RG rg,PetscBool *trivial)
   RG_RING *ctx = (RG_RING*)rg->data;
 
   PetscFunctionBegin;
-  if (rg->complement) *trivial = (ctx->radius==0.0)? PETSC_TRUE: PETSC_FALSE;
-  else *trivial = (ctx->radius>=PETSC_MAX_REAL)? PETSC_TRUE: PETSC_FALSE;
+  if (rg->complement) *trivial = PetscNot(ctx->radius);
+  else *trivial = PetscNot(ctx->radius<PETSC_MAX_REAL);
   PetscFunctionReturn(0);
 }
 
@@ -214,8 +214,30 @@ PetscErrorCode RGIsTrivial_Ring(RG rg,PetscBool *trivial)
 #define __FUNCT__ "RGComputeContour_Ring"
 PetscErrorCode RGComputeContour_Ring(RG rg,PetscInt n,PetscScalar *cr,PetscScalar *ci)
 {
+  RG_RING   *ctx = (RG_RING*)rg->data;
+  PetscReal theta;
+  PetscInt  i,n2=n/2;
+
   PetscFunctionBegin;
-  SETERRQ(PetscObjectComm((PetscObject)rg),1,"Not implemented yet");
+  for (i=0;i<n;i++) {
+    if (i < n2) {
+      theta = ((ctx->end_ang-ctx->start_ang)*i/n2 + ctx->start_ang)*2.0*PETSC_PI;
+#if defined(PETSC_USE_COMPLEX)
+      cr[i] = ctx->center + (ctx->radius+ctx->width/2.0)*(PetscCosReal(theta)+ctx->vscale*PetscSinReal(theta)*PETSC_i);
+#else
+      cr[i] = ctx->center + (ctx->radius+ctx->width/2.0)*PetscCosReal(theta);
+      ci[i] = (ctx->radius+ctx->width/2.0)*ctx->vscale*PetscSinReal(theta);
+#endif
+    } else {
+      theta = ((ctx->end_ang-ctx->start_ang)*(n-i)/n2 + ctx->start_ang)*2.0*PETSC_PI;
+#if defined(PETSC_USE_COMPLEX)
+      cr[i] = ctx->center + (ctx->radius-ctx->width/2.0)*(PetscCosReal(theta)+ctx->vscale*PetscSinReal(theta)*PETSC_i);
+#else
+      cr[i] = ctx->center + (ctx->radius-ctx->width/2.0)*PetscCosReal(theta);
+      ci[i] = (ctx->radius-ctx->width/2.0)*ctx->vscale*PetscSinReal(theta);
+#endif
+    }
+  }
   PetscFunctionReturn(0);
 }
 
@@ -265,7 +287,7 @@ PetscErrorCode RGCheckInside_Ring(RG rg,PetscReal px,PetscReal py,PetscInt *insi
     else r = r/(2*PETSC_PI)+1;
   } else r = PetscAtanReal((dy/ctx->vscale)/dx)/(2*PETSC_PI)+0.5;
   if (r>=ctx->start_ang && r<=ctx->end_ang && *inside == 1) *inside = 1;
-  else *inside = 0;
+  else *inside = -1;
   PetscFunctionReturn(0);
 }
 

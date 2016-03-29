@@ -332,6 +332,7 @@ PetscErrorCode BVNorm_LAPACK_Private(BV bv,PetscInt m_,PetscInt n_,const PetscSc
       }
       ierr = PetscMPIIntCast(n_,&len);CHKERRQ(ierr);
       ierr = MPI_Allreduce(rwork,rwork2,len,MPIU_REAL,MPIU_SUM,PetscObjectComm((PetscObject)bv));CHKERRQ(ierr);
+      *nrm = 0.0;
       for (j=0;j<n_;j++) if (rwork2[j] > *nrm) *nrm = rwork2[j];
     } else {
       *nrm = LAPACKlange_("O",&m,&n,(PetscScalar*)A,&m,rwork);

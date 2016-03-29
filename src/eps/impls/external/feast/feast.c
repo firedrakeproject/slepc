@@ -63,6 +63,7 @@ PetscErrorCode EPSSetUp_FEAST(EPS eps)
   if (!eps->ishermitian) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"FEAST only available for symmetric/Hermitian eigenproblems");
   if (eps->balance!=EPS_BALANCE_NONE) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Balancing not supported in the FEAST interface");
   if (eps->arbitrary) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Arbitrary selection of eigenpairs not supported in this solver");
+  if (eps->stopping!=EPSStoppingBasic) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"External packages do not support user-defined stopping test");
 
   if (!ctx->npoints) ctx->npoints = 8;
 
@@ -233,7 +234,7 @@ PetscErrorCode EPSView_FEAST(EPS eps,PetscViewer viewer)
   PetscFunctionBegin;
   ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
   if (isascii) {
-    ierr = PetscViewerASCIIPrintf(viewer,"  FEAST: number of contour integration points=%d\n",ctx->npoints);CHKERRQ(ierr);
+    ierr = PetscViewerASCIIPrintf(viewer,"  FEAST: number of contour integration points=%D\n",ctx->npoints);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }

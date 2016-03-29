@@ -87,7 +87,7 @@ PetscErrorCode STPostSolve_Shift(ST st)
       ierr = MatShift(st->A[0],st->sigma);CHKERRQ(ierr);
     }
     st->Astate[0] = ((PetscObject)st->A[0])->state;
-    st->setupcalled = 0;
+    st->state = ST_STATE_INITIAL;
   }
   PetscFunctionReturn(0);
 }
@@ -114,7 +114,7 @@ PetscErrorCode STSetUp_Shift(ST st)
     ierr = MatDestroy(&st->T[k]);CHKERRQ(ierr);
     st->T[k] = st->A[k];
     for (k=0;k<nmat-1;k++) {
-      ierr = STMatMAXPY_Private(st,nmat>2?st->sigma:-st->sigma,0.0,k,coeffs?coeffs+((nmat-k)*(nmat-k-1))/2:NULL,PETSC_TRUE,&st->T[k]);CHKERRQ(ierr);
+      ierr = STMatMAXPY_Private(st,nmat>2?st->sigma:-st->sigma,0.0,k,coeffs?coeffs+((nmat-k)*(nmat-k-1))/2:NULL,PetscNot(st->state==ST_STATE_UPDATED),&st->T[k]);CHKERRQ(ierr);
     }
      if (nmat>2) { ierr = PetscFree(coeffs);CHKERRQ(ierr); }
   } else {
@@ -149,7 +149,7 @@ PetscErrorCode STSetShift_Shift(ST st,PetscScalar newshift)
 
   PetscFunctionBegin;
   /* Nothing to be done if STSetUp has not been called yet */
-  if (!st->setupcalled) PetscFunctionReturn(0);
+  if (!st->state) PetscFunctionReturn(0);
 
   if (st->transform) {
     if (st->shift_matrix == ST_MATMODE_COPY && nmat>2) {

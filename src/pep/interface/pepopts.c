@@ -106,16 +106,19 @@ PetscErrorCode PEPSetFromOptions(PEP pep)
       ierr = PEPSetTolerances(pep,r,i);CHKERRQ(ierr);
     }
 
-    ierr = PetscOptionsBoolGroupBegin("-pep_conv_eig","Relative error convergence test","PEPSetConvergenceTest",&flg);CHKERRQ(ierr);
-    if (flg) { ierr = PEPSetConvergenceTest(pep,PEP_CONV_EIG);CHKERRQ(ierr); }
-    ierr = PetscOptionsBoolGroup("-pep_conv_linear","Convergence test related to the linearized eigenproblem","PEPSetConvergenceTest",&flg);CHKERRQ(ierr);
-    if (flg) { ierr = PEPSetConvergenceTest(pep,PEP_CONV_LINEAR);CHKERRQ(ierr); }
-    ierr = PetscOptionsBoolGroupBegin("-pep_conv_norm","Convergence test related to the matrix norms","PEPSetConvergenceTest",&flg);CHKERRQ(ierr);
+    ierr = PetscOptionsBoolGroupBegin("-pep_conv_rel","Relative error convergence test","PEPSetConvergenceTest",&flg);CHKERRQ(ierr);
+    if (flg) { ierr = PEPSetConvergenceTest(pep,PEP_CONV_REL);CHKERRQ(ierr); }
+    ierr = PetscOptionsBoolGroupBegin("-pep_conv_norm","Convergence test relative to the matrix norms","PEPSetConvergenceTest",&flg);CHKERRQ(ierr);
     if (flg) { ierr = PEPSetConvergenceTest(pep,PEP_CONV_NORM);CHKERRQ(ierr); }
     ierr = PetscOptionsBoolGroup("-pep_conv_abs","Absolute error convergence test","PEPSetConvergenceTest",&flg);CHKERRQ(ierr);
     if (flg) { ierr = PEPSetConvergenceTest(pep,PEP_CONV_ABS);CHKERRQ(ierr); }
     ierr = PetscOptionsBoolGroupEnd("-pep_conv_user","User-defined convergence test","PEPSetConvergenceTest",&flg);CHKERRQ(ierr);
     if (flg) { ierr = PEPSetConvergenceTest(pep,PEP_CONV_USER);CHKERRQ(ierr); }
+
+    ierr = PetscOptionsBoolGroupBegin("-pep_stop_basic","Stop iteration if all eigenvalues converged or max_it reached","PEPSetStoppingTest",&flg);CHKERRQ(ierr);
+    if (flg) { ierr = PEPSetStoppingTest(pep,PEP_STOP_BASIC);CHKERRQ(ierr); }
+    ierr = PetscOptionsBoolGroupEnd("-pep_stop_user","User-defined stopping test","PEPSetStoppingTest",&flg);CHKERRQ(ierr);
+    if (flg) { ierr = PEPSetStoppingTest(pep,PEP_STOP_USER);CHKERRQ(ierr); }
 
     i = pep->nev;
     ierr = PetscOptionsInt("-pep_nev","Number of eigenvalues to compute","PEPSetDimensions",pep->nev,&i,&flg1);CHKERRQ(ierr);
@@ -752,9 +755,8 @@ PetscErrorCode PEPGetTrackAll(PEP pep,PetscBool *trackall)
    Input Parameters:
 +  pep     - eigensolver context obtained from PEPCreate()
 .  func    - a pointer to the convergence test function
-.  ctx     - [optional] context for private data for the convergence routine
--  destroy - [optional] destructor for the context (may be NULL;
-             PETSC_NULL_FUNCTION in Fortran)
+.  ctx     - context for private data for the convergence routine (may be null)
+-  destroy - a routine for destroying the context (may be null)
 
    Calling Sequence of func:
 $   func(PEP pep,PetscScalar eigr,PetscScalar eigi,PetscReal res,PetscReal *errest,void *ctx)
@@ -764,7 +766,7 @@ $   func(PEP pep,PetscScalar eigr,PetscScalar eigi,PetscReal res,PetscReal *erre
 .   eigi   - imaginary part of the eigenvalue
 .   res    - residual norm associated to the eigenpair
 .   errest - (output) computed error estimate
--   ctx    - optional context, as set by PEPSetConvergenceTest()
+-   ctx    - optional context, as set by PEPSetConvergenceTestFunction()
 
    Note:
    If the error estimate returned by the convergence test function is less than
@@ -786,8 +788,7 @@ PetscErrorCode PEPSetConvergenceTestFunction(PEP pep,PetscErrorCode (*func)(PEP,
   pep->converged        = func;
   pep->convergeddestroy = destroy;
   pep->convergedctx     = ctx;
-  if (func == PEPConvergedEigRelative) pep->conv = PEP_CONV_EIG;
-  else if (func == PEPConvergedLinear) pep->conv = PEP_CONV_LINEAR;
+  if (func == PEPConvergedRelative) pep->conv = PEP_CONV_REL;
   else if (func == PEPConvergedNorm) pep->conv = PEP_CONV_NORM;
   else if (func == PEPConvergedAbsolute) pep->conv = PEP_CONV_ABS;
   else pep->conv = PEP_CONV_USER;
@@ -808,21 +809,20 @@ PetscErrorCode PEPSetConvergenceTestFunction(PEP pep,PetscErrorCode (*func)(PEP,
 
    Options Database Keys:
 +  -pep_conv_abs    - Sets the absolute convergence test
-.  -pep_conv_eig    - Sets the convergence test relative to the eigenvalue
-.  -pep_conv_linear - Sets the convergence test related to the linearized eigenproblem
+.  -pep_conv_rel    - Sets the convergence test relative to the eigenvalue
+.  -pep_conv_norm   - Sets the convergence test relative to the matrix norms
 -  -pep_conv_user   - Selects the user-defined convergence test
 
    Note:
    The parameter 'conv' can have one of these values
 +     PEP_CONV_ABS    - absolute error ||r||
-.     PEP_CONV_EIG    - error relative to the eigenvalue l, ||r||/|l|
-.     PEP_CONV_LINEAR - error related to the linearized eigenproblem
+.     PEP_CONV_REL    - error relative to the eigenvalue l, ||r||/|l|
 .     PEP_CONV_NORM   - error relative matrix norms, ||r||/sum_i(l^i*||A_i||)
 -     PEP_CONV_USER   - function set by PEPSetConvergenceTestFunction()
 
    Level: intermediate
 
-.seealso: PEPGetConvergenceTest(), PEPSetConvergenceTestFunction(), PEPConv
+.seealso: PEPGetConvergenceTest(), PEPSetConvergenceTestFunction(), PEPSetStoppingTest(), PEPConv
 @*/
 PetscErrorCode PEPSetConvergenceTest(PEP pep,PEPConv conv)
 {
@@ -831,8 +831,7 @@ PetscErrorCode PEPSetConvergenceTest(PEP pep,PEPConv conv)
   PetscValidLogicalCollectiveEnum(pep,conv,2);
   switch (conv) {
     case PEP_CONV_ABS:    pep->converged = PEPConvergedAbsolute; break;
-    case PEP_CONV_EIG:    pep->converged = PEPConvergedEigRelative; break;
-    case PEP_CONV_LINEAR: pep->converged = PEPConvergedLinear; break;
+    case PEP_CONV_REL:    pep->converged = PEPConvergedRelative; break;
     case PEP_CONV_NORM:   pep->converged = PEPConvergedNorm; break;
     case PEP_CONV_USER: break;
     default:
@@ -866,6 +865,125 @@ PetscErrorCode PEPGetConvergenceTest(PEP pep,PEPConv *conv)
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
   PetscValidPointer(conv,2);
   *conv = pep->conv;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "PEPSetStoppingTestFunction"
+/*@C
+   PEPSetStoppingTestFunction - Sets a function to decide when to stop the outer
+   iteration of the eigensolver.
+
+   Logically Collective on PEP
+
+   Input Parameters:
++  pep     - eigensolver context obtained from PEPCreate()
+.  func    - pointer to the stopping test function
+.  ctx     - context for private data for the stopping routine (may be null)
+-  destroy - a routine for destroying the context (may be null)
+
+   Calling Sequence of func:
+$   func(PEP pep,PetscInt its,PetscInt max_it,PetscInt nconv,PetscInt nev,PEPConvergedReason *reason,void *ctx)
+
++   pep    - eigensolver context obtained from PEPCreate()
+.   its    - current number of iterations
+.   max_it - maximum number of iterations
+.   nconv  - number of currently converged eigenpairs
+.   nev    - number of requested eigenpairs
+.   reason - (output) result of the stopping test
+-   ctx    - optional context, as set by PEPSetStoppingTestFunction()
+
+   Note:
+   Normal usage is to first call the default routine PEPStoppingBasic() and then
+   set reason to PEP_CONVERGED_USER if some user-defined conditions have been
+   met. To let the eigensolver continue iterating, the result must be left as
+   PEP_CONVERGED_ITERATING.
+
+   Level: advanced
+
+.seealso: PEPSetStoppingTest(), PEPStoppingBasic()
+@*/
+PetscErrorCode PEPSetStoppingTestFunction(PEP pep,PetscErrorCode (*func)(PEP,PetscInt,PetscInt,PetscInt,PetscInt,PEPConvergedReason*,void*),void* ctx,PetscErrorCode (*destroy)(void*))
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
+  if (pep->stoppingdestroy) {
+    ierr = (*pep->stoppingdestroy)(pep->stoppingctx);CHKERRQ(ierr);
+  }
+  pep->stopping        = func;
+  pep->stoppingdestroy = destroy;
+  pep->stoppingctx     = ctx;
+  if (func == PEPStoppingBasic) pep->stop = PEP_STOP_BASIC;
+  else pep->stop = PEP_STOP_USER;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "PEPSetStoppingTest"
+/*@
+   PEPSetStoppingTest - Specifies how to decide the termination of the outer
+   loop of the eigensolver.
+
+   Logically Collective on PEP
+
+   Input Parameters:
++  pep  - eigensolver context obtained from PEPCreate()
+-  stop - the type of stopping test
+
+   Options Database Keys:
++  -pep_stop_basic - Sets the default stopping test
+-  -pep_stop_user  - Selects the user-defined stopping test
+
+   Note:
+   The parameter 'stop' can have one of these values
++     PEP_STOP_BASIC - default stopping test
+-     PEP_STOP_USER  - function set by PEPSetStoppingTestFunction()
+
+   Level: advanced
+
+.seealso: PEPGetStoppingTest(), PEPSetStoppingTestFunction(), PEPSetConvergenceTest(), PEPStop
+@*/
+PetscErrorCode PEPSetStoppingTest(PEP pep,PEPStop stop)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
+  PetscValidLogicalCollectiveEnum(pep,stop,2);
+  switch (stop) {
+    case PEP_STOP_BASIC: pep->stopping = PEPStoppingBasic; break;
+    case PEP_STOP_USER:  break;
+    default:
+      SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"Invalid 'stop' value");
+  }
+  pep->stop = stop;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "PEPGetStoppingTest"
+/*@
+   PEPGetStoppingTest - Gets the method used to decide the termination of the outer
+   loop of the eigensolver.
+
+   Not Collective
+
+   Input Parameters:
+.  pep   - eigensolver context obtained from PEPCreate()
+
+   Output Parameters:
+.  stop  - the type of stopping test
+
+   Level: advanced
+
+.seealso: PEPSetStoppingTest(), PEPStop
+@*/
+PetscErrorCode PEPGetStoppingTest(PEP pep,PEPStop *stop)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
+  PetscValidPointer(stop,2);
+  *stop = pep->stop;
   PetscFunctionReturn(0);
 }
 

@@ -21,7 +21,7 @@
 
 ALL: lib
 
-#requiresdefine   'SLEPC_HAVE_PRIMME'
+#requiresdefine  'SLEPC_HAVE_PRIMME'
 
 CFLAGS   = ${PRIMME_FLAGS}
 FFLAGS   =

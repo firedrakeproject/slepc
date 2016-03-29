@@ -37,7 +37,7 @@ PetscErrorCode dvd_schm_basic_preconf(dvdDashboard *d,dvdBlackboard *b,PetscInt 
   for (check_sum0=-1,check_sum1=DVD_CHECKSUM(b); check_sum0 != check_sum1; check_sum0 = check_sum1, check_sum1 = DVD_CHECKSUM(b)) {
 
     /* Setup basic management of V */
-    ierr = dvd_managementV_basic(d,b,bs,mpd,min_size_V,plusk,harmMode==DVD_HARM_NONE?PETSC_FALSE:PETSC_TRUE,allResiduals);CHKERRQ(ierr);
+    ierr = dvd_managementV_basic(d,b,bs,mpd,min_size_V,plusk,PetscNot(harmMode==DVD_HARM_NONE),allResiduals);CHKERRQ(ierr);
 
     /* Setup the initial subspace for V */
     ierr = dvd_initV(d,b,ini_size_V,size_initV,(init==DVD_INITV_KRYLOV)?PETSC_TRUE:PETSC_FALSE);CHKERRQ(ierr);
@@ -46,7 +46,7 @@ PetscErrorCode dvd_schm_basic_preconf(dvdDashboard *d,dvdBlackboard *b,PetscInt 
     ierr = dvd_testconv_slepc(d,b);CHKERRQ(ierr);
 
     /* Setup Raileigh-Ritz for selecting the best eigenpairs in V */
-    ierr = dvd_calcpairs_qz(d,b,orth,cX_proj,(harmMode==DVD_HARM_NONE)?PETSC_FALSE:PETSC_TRUE);CHKERRQ(ierr);
+    ierr = dvd_calcpairs_qz(d,b,orth,cX_proj,PetscNot(harmMode==DVD_HARM_NONE));CHKERRQ(ierr);
     if (harmMode != DVD_HARM_NONE) {
       ierr = dvd_harm_conf(d,b,harmMode,PETSC_FALSE,0.0);CHKERRQ(ierr);
     }
@@ -80,7 +80,7 @@ PetscErrorCode dvd_schm_basic_conf(dvdDashboard *d,dvdBlackboard *b,PetscInt mpd
   check_sum0 = DVD_CHECKSUM(b);
 
   /* Setup basic management of V */
-  ierr = dvd_managementV_basic(d,b,bs,mpd,min_size_V,plusk,(harmMode==DVD_HARM_NONE)?PETSC_FALSE:PETSC_TRUE,allResiduals);CHKERRQ(ierr);
+  ierr = dvd_managementV_basic(d,b,bs,mpd,min_size_V,plusk,PetscNot(harmMode==DVD_HARM_NONE),allResiduals);CHKERRQ(ierr);
 
   /* Setup the initial subspace for V */
   ierr = dvd_initV(d,b,ini_size_V,size_initV,(init==DVD_INITV_KRYLOV)?PETSC_TRUE:PETSC_FALSE);CHKERRQ(ierr);
@@ -89,7 +89,7 @@ PetscErrorCode dvd_schm_basic_conf(dvdDashboard *d,dvdBlackboard *b,PetscInt mpd
   ierr = dvd_testconv_slepc(d,b);CHKERRQ(ierr);
 
   /* Setup Raileigh-Ritz for selecting the best eigenpairs in V */
-  ierr = dvd_calcpairs_qz(d,b,orth,cX_proj,(harmMode==DVD_HARM_NONE)?PETSC_FALSE:PETSC_TRUE);CHKERRQ(ierr);
+  ierr = dvd_calcpairs_qz(d,b,orth,cX_proj,PetscNot(harmMode==DVD_HARM_NONE));CHKERRQ(ierr);
   if (harmMode != DVD_HARM_NONE) {
     ierr = dvd_harm_conf(d,b,harmMode,fixedTarget,t);CHKERRQ(ierr);
   }

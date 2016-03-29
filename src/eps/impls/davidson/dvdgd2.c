@@ -83,7 +83,6 @@ static PetscErrorCode dvd_improvex_gd2_gen(dvdDashboard *d,PetscInt r_s,PetscInt
   for (i=0;i<n;) {
     k = r_s+i;
     ierr = DSVectors(d->eps->ds,DS_MAT_X,&k,NULL);CHKERRQ(ierr);
-    ierr = DSNormalize(d->eps->ds,DS_MAT_X,r_s+i);CHKERRQ(ierr);
     i = k+1; /* skip complex conjugate pairs */
   }
   ierr = DSGetArray(d->eps->ds,DS_MAT_X,&pX);CHKERRQ(ierr);

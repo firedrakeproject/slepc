@@ -24,12 +24,13 @@ FFLAGS     =
 CPPFLAGS   =
 FPPFLAGS   =
 LOCDIR     = src/nep/examples/tutorials/
-EXAMPLESC  = ex20.c ex21.c ex22.c
+EXAMPLESC  = ex20.c ex21.c ex22.c ex27.c
 EXAMPLESF  =
 MANSEC     = NEP
 
 TESTEXAMPLES_C           = ex21.PETSc runex21_1 ex21.rm \
-                           ex22.PETSc runex22_1 ex22.rm
+                           ex22.PETSc runex22_1 ex22.rm \
+                           ex27.PETSc runex27_1 runex27_2 ex27.rm
 TESTEXAMPLES_C_NOCOMPLEX =
 TESTEXAMPLES_F90         =
 
@@ -47,23 +48,39 @@ ex22: ex22.o chkopts
 	-${CLINKER} -o ex22 ex22.o ${SLEPC_NEP_LIB}
 	${RM} ex22.o
 
+ex27: ex27.o chkopts
+	-${CLINKER} -o ex27 ex27.o ${SLEPC_NEP_LIB}
+	${RM} ex27.o
+
 #------------------------------------------------------------------------------------
 
 runex20_1:
-	-@${MPIEXEC} -np 1 ./ex20 > ex20_1.tmp 2>&1; \
+	-@${MPIEXEC} -n 1 ./ex20 > ex20_1.tmp 2>&1; \
 	   if (${DIFF} output/ex20_1.out ex20_1.tmp) then true; \
 	   else echo "Possible problem with ex20_1, diffs above"; fi; \
 	   ${RM} -f ex20_1.tmp
 
 runex21_1:
-	-@${MPIEXEC} -np 1 ./ex21 -terse > ex21_1.tmp 2>&1; \
+	-@${MPIEXEC} -n 1 ./ex21 -terse > ex21_1.tmp 2>&1; \
 	   if (${DIFF} output/ex21_1.out ex21_1.tmp) then true; \
 	   else echo "Possible problem with ex21_1, diffs above"; fi; \
 	   ${RM} -f ex21_1.tmp
 
 runex22_1:
-	-@${MPIEXEC} -np 1 ./ex22 -terse > ex22_1.tmp 2>&1; \
+	-@${MPIEXEC} -n 1 ./ex22 -terse > ex22_1.tmp 2>&1; \
 	   if (${DIFF} output/ex22_1.out ex22_1.tmp) then true; \
 	   else echo "Possible problem with ex22_1, diffs above"; fi; \
 	   ${RM} -f ex22_1.tmp
+
+runex27_1:
+	-@${MPIEXEC} -n 1 ./ex27 -nep_nev 3 -terse > ex27_1.tmp 2>&1; \
+	   if (${DIFF} output/ex27_1.out ex27_1.tmp) then true; \
+	   else echo "Possible problem with ex27_1, diffs above"; fi; \
+	   ${RM} -f ex27_1.tmp
+
+runex27_2:
+	-@${MPIEXEC} -n 1 ./ex27 -split 0 -nep_nev 3 -terse > ex27_2.tmp 2>&1; \
+	   if (${DIFF} output/ex27_2.out ex27_2.tmp) then true; \
+	   else echo "Possible problem with ex27_2, diffs above"; fi; \
+	   ${RM} -f ex27_2.tmp
 

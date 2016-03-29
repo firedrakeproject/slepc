@@ -211,10 +211,6 @@ PetscErrorCode PEPSetUp(PEP pep)
     ierr = PEPBuildDiagonalScaling(pep);CHKERRQ(ierr);
   }
 
-  if (pep->conv==PEP_CONV_LINEAR) {
-    ierr = PEPComputeLinearNorms(pep);CHKERRQ(ierr);
-  }
-
   /* process initial vectors */
   if (pep->nini<0) {
     k = -pep->nini;
@@ -305,7 +301,7 @@ PetscErrorCode PEPGetOperators(PEP pep,PetscInt k,Mat *A)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
   PetscValidPointer(A,3);
-  if (k<0 || k>=pep->nmat) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_OUTOFRANGE,"k must be between 0 and %d",pep->nmat-1);
+  if (k<0 || k>=pep->nmat) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_OUTOFRANGE,"k must be between 0 and %D",pep->nmat-1);
   *A = pep->A[k];
   PetscFunctionReturn(0);
 }

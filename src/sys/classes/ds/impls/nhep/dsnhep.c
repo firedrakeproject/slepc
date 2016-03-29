@@ -59,7 +59,7 @@ PetscErrorCode DSView_NHEP(DS ds,PetscViewer viewer)
 
 #undef __FUNCT__
 #define __FUNCT__ "DSVectors_NHEP_Refined_Some"
-PetscErrorCode DSVectors_NHEP_Refined_Some(DS ds,PetscInt *k,PetscReal *rnorm,PetscBool left)
+static PetscErrorCode DSVectors_NHEP_Refined_Some(DS ds,PetscInt *k,PetscReal *rnorm,PetscBool left)
 {
 #if defined(PETSC_MISSING_LAPACK_GESVD)
   PetscFunctionBegin;
@@ -116,7 +116,7 @@ PetscErrorCode DSVectors_NHEP_Refined_Some(DS ds,PetscInt *k,PetscReal *rnorm,Pe
 
 #undef __FUNCT__
 #define __FUNCT__ "DSVectors_NHEP_Refined_All"
-PetscErrorCode DSVectors_NHEP_Refined_All(DS ds,PetscBool left)
+static PetscErrorCode DSVectors_NHEP_Refined_All(DS ds,PetscBool left)
 {
   PetscErrorCode ierr;
   PetscInt       i;
@@ -130,7 +130,7 @@ PetscErrorCode DSVectors_NHEP_Refined_All(DS ds,PetscBool left)
 
 #undef __FUNCT__
 #define __FUNCT__ "DSVectors_NHEP_Eigen_Some"
-PetscErrorCode DSVectors_NHEP_Eigen_Some(DS ds,PetscInt *k,PetscReal *rnorm,PetscBool left)
+static PetscErrorCode DSVectors_NHEP_Eigen_Some(DS ds,PetscInt *k,PetscReal *rnorm,PetscBool left)
 {
 #if defined(SLEPC_MISSING_LAPACK_TREVC)
   PetscFunctionBegin;
@@ -138,11 +138,10 @@ PetscErrorCode DSVectors_NHEP_Eigen_Some(DS ds,PetscInt *k,PetscReal *rnorm,Pets
 #else
   PetscErrorCode ierr;
   PetscInt       i;
-  PetscBLASInt   mm=1,mout,info,ld,n,inc = 1;
+  PetscBLASInt   mm=1,mout,info,ld,n,*select,inc = 1;
   PetscScalar    tmp,done=1.0,zero=0.0;
   PetscReal      norm;
   PetscBool      iscomplex = PETSC_FALSE;
-  PetscBLASInt   *select;
   PetscScalar    *A = ds->mat[DS_MAT_A];
   PetscScalar    *Q = ds->mat[DS_MAT_Q];
   PetscScalar    *X = ds->mat[left?DS_MAT_Y:DS_MAT_X];
@@ -155,7 +154,7 @@ PetscErrorCode DSVectors_NHEP_Eigen_Some(DS ds,PetscInt *k,PetscReal *rnorm,Pets
   select = ds->iwork;
   for (i=0;i<n;i++) select[i] = (PetscBLASInt)PETSC_FALSE;
 
-  /* Compute k-th eigenvector Y of A */
+  /* compute k-th eigenvector Y of A */
   Y = X+(*k)*ld;
   select[*k] = (PetscBLASInt)PETSC_TRUE;
 #if !defined(PETSC_USE_COMPLEX)
@@ -204,7 +203,7 @@ PetscErrorCode DSVectors_NHEP_Eigen_Some(DS ds,PetscInt *k,PetscReal *rnorm,Pets
 
 #undef __FUNCT__
 #define __FUNCT__ "DSVectors_NHEP_Eigen_All"
-PetscErrorCode DSVectors_NHEP_Eigen_All(DS ds,PetscBool left)
+static PetscErrorCode DSVectors_NHEP_Eigen_All(DS ds,PetscBool left)
 {
 #if defined(SLEPC_MISSING_LAPACK_TREVC)
   PetscFunctionBegin;
@@ -370,9 +369,9 @@ PetscErrorCode DSNormalize_NHEP(DS ds,DSMatType mat,PetscInt col)
 
 #undef __FUNCT__
 #define __FUNCT__ "DSSort_NHEP_Arbitrary"
-PetscErrorCode DSSort_NHEP_Arbitrary(DS ds,PetscScalar *wr,PetscScalar *wi,PetscScalar *rr,PetscScalar *ri,PetscInt *k)
+static PetscErrorCode DSSort_NHEP_Arbitrary(DS ds,PetscScalar *wr,PetscScalar *wi,PetscScalar *rr,PetscScalar *ri,PetscInt *k)
 {
-#if defined(SLEPC_MISSING_LAPACK_TRSEN)
+#if defined(PETSC_MISSING_LAPACK_TRSEN)
   PetscFunctionBegin;
   SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"TRSEN - Lapack routine is unavailable");
 #else
@@ -420,7 +419,7 @@ PetscErrorCode DSSort_NHEP_Arbitrary(DS ds,PetscScalar *wr,PetscScalar *wi,Petsc
 
 #undef __FUNCT__
 #define __FUNCT__ "DSSort_NHEP_Total"
-PetscErrorCode DSSort_NHEP_Total(DS ds,PetscScalar *wr,PetscScalar *wi)
+static PetscErrorCode DSSort_NHEP_Total(DS ds,PetscScalar *wr,PetscScalar *wi)
 {
 #if defined(SLEPC_MISSING_LAPACK_TREXC)
   PetscFunctionBegin;
@@ -654,7 +653,7 @@ PetscErrorCode DSTruncate_NHEP(DS ds,PetscInt n)
 #define __FUNCT__ "DSCond_NHEP"
 PetscErrorCode DSCond_NHEP(DS ds,PetscReal *cond)
 {
-#if defined(PETSC_MISSING_LAPACK_GETRF) || defined(SLEPC_MISSING_LAPACK_GETRI) || defined(SLEPC_MISSING_LAPACK_LANGE) || defined(SLEPC_MISSING_LAPACK_LANHS)
+#if defined(PETSC_MISSING_LAPACK_GETRF) || defined(PETSC_MISSING_LAPACK_GETRI) || defined(SLEPC_MISSING_LAPACK_LANGE) || defined(SLEPC_MISSING_LAPACK_LANHS)
   PetscFunctionBegin;
   SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"GETRF/GETRI/LANGE/LANHS - Lapack routines are unavailable");
 #else

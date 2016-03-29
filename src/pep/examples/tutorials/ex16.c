@@ -19,7 +19,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-static char help[] = "Quadratic eigenproblem for testing the PEP object.\n\n"
+static char help[] = "Simple quadratic eigenvalue problem.\n\n"
   "The command line options are:\n"
   "  -n <n>, where <n> = number of grid subdivisions in x dimension.\n"
   "  -m <m>, where <m> = number of grid subdivisions in y dimension.\n\n";
@@ -54,7 +54,6 @@ int main(int argc,char **argv)
   ierr = MatSetSizes(K,PETSC_DECIDE,PETSC_DECIDE,N,N);CHKERRQ(ierr);
   ierr = MatSetFromOptions(K);CHKERRQ(ierr);
   ierr = MatSetUp(K);CHKERRQ(ierr);
-
   ierr = MatGetOwnershipRange(K,&Istart,&Iend);CHKERRQ(ierr);
   for (II=Istart;II<Iend;II++) {
     i = II/n; j = II-i*n;
@@ -64,26 +63,32 @@ int main(int argc,char **argv)
     if (j<n-1) { ierr = MatSetValue(K,II,II+1,-1.0,INSERT_VALUES);CHKERRQ(ierr); }
     ierr = MatSetValue(K,II,II,4.0,INSERT_VALUES);CHKERRQ(ierr);
   }
-
   ierr = MatAssemblyBegin(K,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
   ierr = MatAssemblyEnd(K,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
 
-  /* C is the zero matrix */
+  /* C is the 1-D Laplacian on horizontal lines */
   ierr = MatCreate(PETSC_COMM_WORLD,&C);CHKERRQ(ierr);
   ierr = MatSetSizes(C,PETSC_DECIDE,PETSC_DECIDE,N,N);CHKERRQ(ierr);
   ierr = MatSetFromOptions(C);CHKERRQ(ierr);
   ierr = MatSetUp(C);CHKERRQ(ierr);
+  ierr = MatGetOwnershipRange(C,&Istart,&Iend);CHKERRQ(ierr);
+  for (II=Istart;II<Iend;II++) {
+    i = II/n; j = II-i*n;
+    if (j>0) { ierr = MatSetValue(C,II,II-1,-1.0,INSERT_VALUES);CHKERRQ(ierr); }
+    if (j<n-1) { ierr = MatSetValue(C,II,II+1,-1.0,INSERT_VALUES);CHKERRQ(ierr); }
+    ierr = MatSetValue(C,II,II,2.0,INSERT_VALUES);CHKERRQ(ierr);
+  }
   ierr = MatAssemblyBegin(C,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
   ierr = MatAssemblyEnd(C,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
 
-  /* M is the identity matrix */
+  /* M is a diagonal matrix */
   ierr = MatCreate(PETSC_COMM_WORLD,&M);CHKERRQ(ierr);
   ierr = MatSetSizes(M,PETSC_DECIDE,PETSC_DECIDE,N,N);CHKERRQ(ierr);
   ierr = MatSetFromOptions(M);CHKERRQ(ierr);
   ierr = MatSetUp(M);CHKERRQ(ierr);
   ierr = MatGetOwnershipRange(M,&Istart,&Iend);CHKERRQ(ierr);
-  for (i=Istart;i<Iend;i++) {
-    ierr = MatSetValue(M,i,i,1.0,INSERT_VALUES);CHKERRQ(ierr);
+  for (II=Istart;II<Iend;II++) {
+    ierr = MatSetValue(M,II,II,(PetscReal)(II+1),INSERT_VALUES);CHKERRQ(ierr);
   }
   ierr = MatAssemblyBegin(M,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
   ierr = MatAssemblyEnd(M,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);

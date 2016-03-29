@@ -71,7 +71,7 @@ else				# Show the full command line
   quiet = $($1)
 endif
 
-$(PETSC_ARCH)/lib/slepc/conf/files :
+$(PETSC_ARCH)/lib/slepc/conf/files : $(PETSC_ARCH)/include/slepcconf.h
 	$(PYTHON) ./config/gmakegen.py --petsc-arch=$(PETSC_ARCH) --installed-petsc=$(INSTALLED_PETSC)
 
 -include $(generated)

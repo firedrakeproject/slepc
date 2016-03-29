@@ -178,7 +178,7 @@ PetscErrorCode EPSView(EPS eps,PetscViewer viewer)
     switch (eps->conv) {
     case EPS_CONV_ABS:
       ierr = PetscViewerASCIIPrintf(viewer,"absolute\n");CHKERRQ(ierr);break;
-    case EPS_CONV_EIG:
+    case EPS_CONV_REL:
       ierr = PetscViewerASCIIPrintf(viewer,"relative to the eigenvalue\n");CHKERRQ(ierr);break;
     case EPS_CONV_NORM:
       ierr = PetscViewerASCIIPrintf(viewer,"relative to the eigenvalue and matrix norms\n");CHKERRQ(ierr);
@@ -251,7 +251,7 @@ PetscErrorCode EPSReasonView(EPS eps,PetscViewer viewer)
   if (isAscii) {
     ierr = PetscViewerASCIIAddTab(viewer,((PetscObject)eps)->tablevel);CHKERRQ(ierr);
     if (eps->reason > 0) {
-      ierr = PetscViewerASCIIPrintf(viewer,"%s Linear eigensolve converged (%d eigenpair%s) due to %s; iterations %D\n",((PetscObject)eps)->prefix?((PetscObject)eps)->prefix:"",eps->nconv,(eps->nconv>1)?"s":"",EPSConvergedReasons[eps->reason],eps->its);CHKERRQ(ierr);
+      ierr = PetscViewerASCIIPrintf(viewer,"%s Linear eigensolve converged (%D eigenpair%s) due to %s; iterations %D\n",((PetscObject)eps)->prefix?((PetscObject)eps)->prefix:"",eps->nconv,(eps->nconv>1)?"s":"",EPSConvergedReasons[eps->reason],eps->its);CHKERRQ(ierr);
     } else {
       ierr = PetscViewerASCIIPrintf(viewer,"%s Linear eigensolve did not converge due to %s; iterations %D\n",((PetscObject)eps)->prefix?((PetscObject)eps)->prefix:"",EPSConvergedReasons[eps->reason],eps->its);CHKERRQ(ierr);
     }
@@ -302,27 +302,32 @@ static PetscErrorCode EPSErrorView_ASCII(EPS eps,EPSErrorType etype,PetscViewer 
   PetscBool      errok;
   PetscReal      error,re,im;
   PetscScalar    kr,ki;
-  PetscInt       i,j;
+  PetscInt       i,j,nvals;
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  if (eps->nconv<eps->nev) {
+  if (eps->which!=EPS_ALL && eps->nconv<eps->nev) {
     ierr = PetscViewerASCIIPrintf(viewer," Problem: less than %D eigenvalues converged\n\n",eps->nev);CHKERRQ(ierr);
     PetscFunctionReturn(0);
   }
   errok = PETSC_TRUE;
-  for (i=0;i<eps->nev;i++) {
+  nvals = (eps->which==EPS_ALL)? eps->nconv: eps->nev;
+  for (i=0;i<nvals;i++) {
     ierr = EPSComputeError(eps,i,etype,&error);CHKERRQ(ierr);
     errok = (errok && error<5.0*eps->tol)? PETSC_TRUE: PETSC_FALSE;
   }
   if (!errok) {
-    ierr = PetscViewerASCIIPrintf(viewer," Problem: some of the first %D relative errors are higher than the tolerance\n\n",eps->nev);CHKERRQ(ierr);
+    ierr = PetscViewerASCIIPrintf(viewer," Problem: some of the first %D relative errors are higher than the tolerance\n\n",nvals);CHKERRQ(ierr);
     PetscFunctionReturn(0);
   }
-  ierr = PetscViewerASCIIPrintf(viewer," All requested eigenvalues computed up to the required tolerance:");CHKERRQ(ierr);
-  for (i=0;i<=(eps->nev-1)/8;i++) {
+  if (eps->which==EPS_ALL) {
+    ierr = PetscViewerASCIIPrintf(viewer," Found %D eigenvalues, all of them computed up to the required tolerance:",nvals);CHKERRQ(ierr);
+  } else {
+    ierr = PetscViewerASCIIPrintf(viewer," All requested eigenvalues computed up to the required tolerance:");CHKERRQ(ierr);
+  }
+  for (i=0;i<=(nvals-1)/8;i++) {
     ierr = PetscViewerASCIIPrintf(viewer,"\n     ");CHKERRQ(ierr);
-    for (j=0;j<PetscMin(8,eps->nev-8*i);j++) {
+    for (j=0;j<PetscMin(8,nvals-8*i);j++) {
       ierr = EPSGetEigenpair(eps,8*i+j,&kr,&ki,NULL,NULL);CHKERRQ(ierr);
 #if defined(PETSC_USE_COMPLEX)
       re = PetscRealPart(kr);
@@ -338,7 +343,7 @@ static PetscErrorCode EPSErrorView_ASCII(EPS eps,EPSErrorType etype,PetscViewer 
       } else {
         ierr = PetscViewerASCIIPrintf(viewer,"%.5f",(double)re);CHKERRQ(ierr);
       }
-      if (8*i+j+1<eps->nev) { ierr = PetscViewerASCIIPrintf(viewer,", ");CHKERRQ(ierr); }
+      if (8*i+j+1<nvals) { ierr = PetscViewerASCIIPrintf(viewer,", ");CHKERRQ(ierr); }
     }
   }
   ierr = PetscViewerASCIIPrintf(viewer,"\n\n");CHKERRQ(ierr);
@@ -744,7 +749,7 @@ PetscErrorCode EPSVectorsView(EPS eps,PetscViewer viewer)
     ierr = EPSComputeVectors(eps);CHKERRQ(ierr);
     for (i=0;i<eps->nconv;i++) {
       k = eps->perm[i];
-      ierr = PetscSNPrintf(vname,NMLEN,"V%d_%s",i,ename);CHKERRQ(ierr);
+      ierr = PetscSNPrintf(vname,NMLEN,"V%d_%s",(int)i,ename);CHKERRQ(ierr);
       ierr = BVGetColumn(eps->V,k,&x);CHKERRQ(ierr);
       ierr = PetscObjectSetName((PetscObject)x,vname);CHKERRQ(ierr);
       ierr = VecView(x,viewer);CHKERRQ(ierr);

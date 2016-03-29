@@ -386,7 +386,7 @@ PetscErrorCode EPSSetUp_KrylovSchur_Slice(EPS eps)
       sr->int0 = eps->intb;
       sr->int1 = eps->inta;
       sr->dir = -1;
-      sr->hasEnd = (eps->inta <= PETSC_MIN_REAL)?PETSC_FALSE:PETSC_TRUE;
+      sr->hasEnd = PetscNot(eps->inta <= PETSC_MIN_REAL);
     }
   }
   if (ctx->global) {
@@ -1071,8 +1071,8 @@ static PetscErrorCode EPSKrylovSchur_Slice(EPS eps)
     if ((sr->dir)*PetscRealPart(eps->eigr[i])>0) sPres->nconv[1]++;
     else sPres->nconv[0]++;
   }
-  sPres->comp[0] = (count0 >= sPres->nsch[0])?PETSC_TRUE:PETSC_FALSE;
-  sPres->comp[1] = (count1 >= sPres->nsch[1])?PETSC_TRUE:PETSC_FALSE;
+  sPres->comp[0] = PetscNot(count0 < sPres->nsch[0]);
+  sPres->comp[1] = PetscNot(count1 < sPres->nsch[1]);
   if (count0 > sPres->nsch[0] || count1 > sPres->nsch[1])SETERRQ(PetscObjectComm((PetscObject)eps),1,"Mismatch between number of values found and information from inertia, consider using EPSKrylovSchurSetDetectZeros()");
   ierr = PetscFree(iwork);CHKERRQ(ierr);
   PetscFunctionReturn(0);

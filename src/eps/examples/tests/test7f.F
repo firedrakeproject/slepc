@@ -17,7 +17,7 @@
 !  along with SLEPc. If not, see <http://www.gnu.org/licenses/>.
 !  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !
-!  Program usage: mpirun -np n test7f [-help] [-n <n>] [all SLEPc options] 
+!  Program usage: mpiexec -n <np> ./test7f [-help] [-n <n>] [all SLEPc options] 
 !
 !  Description: Simple example that solves an eigensystem with the EPS object.
 !  Same problem as ex1f but with simplified output.

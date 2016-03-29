@@ -145,7 +145,7 @@ PetscErrorCode STPostSolve_Cayley(ST st)
       ierr = MatShift(st->A[0],st->sigma);CHKERRQ(ierr);
     }
     st->Astate[0] = ((PetscObject)st->A[0])->state;
-    st->setupcalled = 0;
+    st->state = ST_STATE_INITIAL;
   }
   PetscFunctionReturn(0);
 }
@@ -172,11 +172,11 @@ PetscErrorCode STSetUp_Cayley(ST st)
     ierr = MatShellSetOperation(st->T[0],MATOP_MULT,(void(*)(void))MatMult_Cayley);CHKERRQ(ierr);
     ierr = PetscLogObjectParent((PetscObject)st,(PetscObject)st->T[0]);CHKERRQ(ierr);
   } else {
-    ierr = STMatMAXPY_Private(st,ctx->nu,0.0,0,NULL,PETSC_TRUE,&st->T[0]);CHKERRQ(ierr);
+    ierr = STMatMAXPY_Private(st,ctx->nu,0.0,0,NULL,PetscNot(st->state==ST_STATE_UPDATED),&st->T[0]);CHKERRQ(ierr);
   }
 
   /* T[1] = A-sigma*B */
-  ierr = STMatMAXPY_Private(st,-st->sigma,0.0,0,NULL,PETSC_TRUE,&st->T[1]);CHKERRQ(ierr);
+  ierr = STMatMAXPY_Private(st,-st->sigma,0.0,0,NULL,PetscNot(st->state==ST_STATE_UPDATED),&st->T[1]);CHKERRQ(ierr);
   ierr = PetscObjectReference((PetscObject)st->T[1]);CHKERRQ(ierr);
   ierr = MatDestroy(&st->P);CHKERRQ(ierr);
   st->P = st->T[1];
@@ -203,7 +203,7 @@ PetscErrorCode STSetShift_Cayley(ST st,PetscScalar newshift)
   if (newshift==0.0 && (!ctx->nu_set || (ctx->nu_set && ctx->nu==0.0))) SETERRQ(PetscObjectComm((PetscObject)st),1,"Values of shift and antishift cannot be zero simultaneously");
 
   /* Nothing to be done if STSetUp has not been called yet */
-  if (!st->setupcalled) PetscFunctionReturn(0);
+  if (!st->state) PetscFunctionReturn(0);
 
   if (!ctx->nu_set) {
     if (st->shift_matrix!=ST_MATMODE_INPLACE) {
@@ -268,7 +268,7 @@ static PetscErrorCode STCayleySetAntishift_Cayley(ST st,PetscScalar newshift)
   ST_CAYLEY *ctx = (ST_CAYLEY*)st->data;
 
   PetscFunctionBegin;
-  if (st->setupcalled && st->shift_matrix!=ST_MATMODE_INPLACE) {
+  if (st->state && st->shift_matrix!=ST_MATMODE_INPLACE) {
     ierr = STMatMAXPY_Private(st,newshift,ctx->nu,0,NULL,PETSC_FALSE,&st->T[0]);CHKERRQ(ierr);
   }
   ctx->nu     = newshift;

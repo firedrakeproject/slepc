@@ -58,39 +58,17 @@ PetscErrorCode PEPSetWorkVecs(PEP pep,PetscInt nw)
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "PEPConvergedEigRelative"
+#define __FUNCT__ "PEPConvergedRelative"
 /*
-  PEPConvergedEigRelative - Checks convergence relative to the eigenvalue.
+  PEPConvergedRelative - Checks convergence relative to the eigenvalue.
 */
-PetscErrorCode PEPConvergedEigRelative(PEP pep,PetscScalar eigr,PetscScalar eigi,PetscReal res,PetscReal *errest,void *ctx)
+PetscErrorCode PEPConvergedRelative(PEP pep,PetscScalar eigr,PetscScalar eigi,PetscReal res,PetscReal *errest,void *ctx)
 {
   PetscReal w;
 
   PetscFunctionBegin;
   w = SlepcAbsEigenvalue(eigr,eigi);
   *errest = res/w;
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
-#define __FUNCT__ "PEPConvergedLinear"
-/*
-  PEPConvergedLinear - Checks convergence related to the linearized eigenproblem.
-*/
-PetscErrorCode PEPConvergedLinear(PEP pep,PetscScalar eigr,PetscScalar eigi,PetscReal res,PetscReal *errest,void *ctx)
-{
-  PetscErrorCode ierr;
-  PetscScalar    er,ei;
-  PetscBool      flg;
-  PetscFunctionBegin;
-  ierr = STGetTransform(pep->st,&flg);CHKERRQ(ierr);
-  if (!flg) {
-    ierr = PetscObjectTypeCompare((PetscObject)pep->st,STSINVERT,&flg);CHKERRQ(ierr);
-  } else flg = PETSC_FALSE;
-  er = eigr; ei = eigi;
-  ierr = STBackTransform(pep->st,1,&er,&ei);CHKERRQ(ierr);
-  if (flg) *errest = res*((pep->nrml[0]+PetscAbsScalar(pep->target)*pep->nrml[1])/SlepcAbsEigenvalue(eigr,eigi))/(pep->nrml[0]+SlepcAbsEigenvalue(er,ei)*pep->nrml[1]);
-  else *errest = res*pep->nrml[1]/(pep->nrml[0]+SlepcAbsEigenvalue(er,ei)*pep->nrml[1]);
   PetscFunctionReturn(0);
 }
 
@@ -132,6 +110,56 @@ PetscErrorCode PEPConvergedAbsolute(PEP pep,PetscScalar eigr,PetscScalar eigi,Pe
 {
   PetscFunctionBegin;
   *errest = res;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "PEPStoppingBasic"
+/*@C
+   PEPStoppingBasic - Default routine to determine whether the outer eigensolver
+   iteration must be stopped.
+
+   Collective on PEP
+
+   Input Parameters:
++  pep    - eigensolver context obtained from PEPCreate()
+.  its    - current number of iterations
+.  max_it - maximum number of iterations
+.  nconv  - number of currently converged eigenpairs
+.  nev    - number of requested eigenpairs
+-  ctx    - context (not used here)
+
+   Output Parameter:
+.  reason - result of the stopping test
+
+   Notes:
+   A positive value of reason indicates that the iteration has finished successfully
+   (converged), and a negative value indicates an error condition (diverged). If
+   the iteration needs to be continued, reason must be set to PEP_CONVERGED_ITERATING
+   (zero).
+
+   PEPStoppingBasic() will stop if all requested eigenvalues are converged, or if
+   the maximum number of iterations has been reached.
+
+   Use PEPSetStoppingTest() to provide your own test instead of using this one.
+
+   Level: advanced
+
+.seealso: PEPSetStoppingTest(), PEPConvergedReason, PEPGetConvergedReason()
+@*/
+PetscErrorCode PEPStoppingBasic(PEP pep,PetscInt its,PetscInt max_it,PetscInt nconv,PetscInt nev,PEPConvergedReason *reason,void *ctx)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  *reason = PEP_CONVERGED_ITERATING;
+  if (nconv >= nev) {
+    ierr = PetscInfo2(pep,"Polynomial eigensolver finished successfully: %D eigenpairs converged at iteration %D\n",nconv,its);CHKERRQ(ierr);
+    *reason = PEP_CONVERGED_TOL;
+  } else if (its >= max_it) {
+    *reason = PEP_DIVERGED_ITS;
+    ierr = PetscInfo1(pep,"Polynomial eigensolver iteration reached maximum number of iterations (%D)\n",its);CHKERRQ(ierr);
+  }
   PetscFunctionReturn(0);
 }
 
@@ -205,14 +233,13 @@ PetscErrorCode PEPComputeVectors_Default(PEP pep)
 PetscErrorCode PEPKrylovConvergence(PEP pep,PetscBool getall,PetscInt kini,PetscInt nits,PetscReal beta,PetscInt *kout)
 {
   PetscErrorCode ierr;
-  PetscInt       k,newk,marker,ld,inside;
+  PetscInt       k,newk,marker,inside;
   PetscScalar    re,im;
   PetscReal      resnorm;
   PetscBool      istrivial;
 
   PetscFunctionBegin;
   ierr = RGIsTrivial(pep->rg,&istrivial);CHKERRQ(ierr);
-  ierr = DSGetLeadingDimension(pep->ds,&ld);CHKERRQ(ierr);
   marker = -1;
   if (pep->trackall) getall = PETSC_TRUE;
   for (k=kini;k<kini+nits;k++) {
@@ -222,7 +249,7 @@ PetscErrorCode PEPKrylovConvergence(PEP pep,PetscBool getall,PetscInt kini,Petsc
     if (!istrivial) {
       ierr = STBackTransform(pep->st,1,&re,&im);CHKERRQ(ierr);
       ierr = RGCheckInside(pep->rg,1,&re,&im,&inside);CHKERRQ(ierr);
-      if (marker==-1 && inside<=0) marker = k;
+      if (marker==-1 && inside<0) marker = k;
       re = pep->eigr[k];
       im = pep->eigi[k];
     }
@@ -282,7 +309,7 @@ PetscErrorCode PEPBuildDiagonalScaling(PEP pep)
     ierr = MatDuplicate(T[0],MAT_COPY_VALUES,&M);CHKERRQ(ierr);
   }
   ierr = MatGetInfo(M,MAT_LOCAL,&info);CHKERRQ(ierr);
-  nz = info.nz_used;
+  nz = (PetscInt)info.nz_used;
   ierr = MatSeqAIJGetArray(M,&array);CHKERRQ(ierr);
   for (i=0;i<nz;i++) {
     t = PetscAbsScalar(array[i]);
@@ -300,7 +327,7 @@ PetscErrorCode PEPBuildDiagonalScaling(PEP pep)
       }
     }
     ierr = MatGetInfo(A,MAT_LOCAL,&info);CHKERRQ(ierr);
-    nz = info.nz_used;
+    nz = (PetscInt)info.nz_used;
     ierr = MatSeqAIJGetArray(A,&array);CHKERRQ(ierr);
     for (i=0;i<nz;i++) {
       t = PetscAbsScalar(array[i]);
@@ -316,7 +343,7 @@ PetscErrorCode PEPBuildDiagonalScaling(PEP pep)
   ierr = MatGetRowIJ(M,0,PETSC_FALSE,PETSC_FALSE,&nr,&ridx,&cidx,&cont);CHKERRQ(ierr);
   if (!cont) SETERRQ(PetscObjectComm((PetscObject)T[0]), PETSC_ERR_SUP,"It is not possible to compute scaling diagonals for these PEP matrices");
   ierr = MatGetInfo(M,MAT_LOCAL,&info);CHKERRQ(ierr);
-  nz = info.nz_used;
+  nz = (PetscInt)info.nz_used;
   ierr = VecGetOwnershipRange(pep->Dl,&lst,&lend);CHKERRQ(ierr);
   ierr = PetscMalloc4(nr,&rsum,pep->n,&csum,pep->n,&aux,PetscMin(pep->n-lend+lst,nz),&cols);CHKERRQ(ierr);
   ierr = VecSet(pep->Dr,1.0);CHKERRQ(ierr);
@@ -451,57 +478,6 @@ PetscErrorCode PEPComputeScaleFactor(PEP pep)
       } 
     }
   } 
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
-#define __FUNCT__ "PEPComputeLinearNorms"
-/*
-   PEPComputeLinearNorms - compute norm for the linearized problem.
-*/
-PetscErrorCode PEPComputeLinearNorms(PEP pep)
-{
-  PetscErrorCode    ierr;
-  PetscReal         out=0.0,nrmd=0.0,max=0.0,summ,summrow,summd=0.0;
-  PetscReal         *pbc,*a,*b,*g,t;
-  PetscInt          i,m0,m1,ncols,j,k;
-  const PetscScalar *vals;
-  Mat               *T;
-
-  PetscFunctionBegin;
-  ierr = PetscMalloc2(3*pep->nmat,&pbc,pep->nmat,&T);CHKERRQ(ierr);
-  for (i=0;i<pep->nmat;i++) {
-    ierr = STGetTOperators(pep->st,i,&T[i]);CHKERRQ(ierr);
-  }
-  a=pbc; b=pbc+pep->nmat; g = b+pep->nmat;
-  ierr = PEPBasisCoefficients(pep,pbc);CHKERRQ(ierr);
-  out = b[0]+a[0];
-  for (i=1;i<pep->nmat-2;i++) out = PetscMax(out,a[i]+b[i]+g[i]);
-  ierr = MatGetOwnershipRange(T[0],&m0,&m1);CHKERRQ(ierr);
-  for (i=m0;i<m1;i++) {
-    summrow = 0.0;
-    t = 1.0;
-    for (j=0;j<pep->nmat;j++) {
-      summ = 0.0;
-      ierr = MatGetRow(T[j],i,&ncols,NULL,&vals);CHKERRQ(ierr);
-      for (k=0;k<ncols;k++) summ += PetscAbsScalar(vals[k]);
-      ierr = MatRestoreRow(T[j],i,&ncols,NULL,&vals);CHKERRQ(ierr);
-      summ *= t;
-      if (j==pep->nmat-1) {
-        summd = summ;
-        summ *= (b[pep->nmat-2]+g[pep->nmat-2])/a[pep->nmat-2];
-      } else summ *= a[pep->nmat-2];
-      summrow += summ;
-      t *= pep->sfactor;
-    }
-    nrmd = PetscMax(nrmd,summd);
-    max = PetscMax(max,summrow);
-  }
-  max = PetscMax(max*pep->dsfactor,out);
-  ierr = MPI_Allreduce(&max,&pep->nrml[0],1,MPIU_REAL,MPIU_MAX,PetscObjectComm((PetscObject)pep));CHKERRQ(ierr);
-  ierr = MPI_Allreduce(&nrmd,&pep->nrml[1],1,MPIU_REAL,MPIU_MAX,PetscObjectComm((PetscObject)pep));CHKERRQ(ierr);
-  pep->nrml[1] = PetscMax(1.0,pep->nrml[1]*pep->dsfactor);
-  ierr = PetscFree2(pbc,T);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

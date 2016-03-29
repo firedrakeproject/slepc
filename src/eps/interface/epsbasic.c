@@ -67,7 +67,8 @@ PetscErrorCode EPSCreate(MPI_Comm comm,EPS *outeps)
   eps->nds             = 0;
   eps->target          = 0.0;
   eps->tol             = PETSC_DEFAULT;
-  eps->conv            = EPS_CONV_EIG;
+  eps->conv            = EPS_CONV_REL;
+  eps->stop            = EPS_STOP_BASIC;
   eps->which           = (EPSWhich)0;
   eps->inta            = 0.0;
   eps->intb            = 0.0;
@@ -80,10 +81,13 @@ PetscErrorCode EPSCreate(MPI_Comm comm,EPS *outeps)
   eps->trackall        = PETSC_FALSE;
   eps->purify          = PETSC_TRUE;
 
-  eps->converged       = EPSConvergedEigRelative;
+  eps->converged       = EPSConvergedRelative;
   eps->convergeddestroy= NULL;
+  eps->stopping        = EPSStoppingBasic;
+  eps->stoppingdestroy = NULL;
   eps->arbitrary       = NULL;
   eps->convergedctx    = NULL;
+  eps->stoppingctx     = NULL;
   eps->arbitraryctx    = NULL;
   eps->numbermonitors  = 0;
 

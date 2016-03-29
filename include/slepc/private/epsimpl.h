@@ -68,6 +68,7 @@ struct _p_EPS {
   PetscScalar    target;           /* target value */
   PetscReal      tol;              /* tolerance */
   EPSConv        conv;             /* convergence test */
+  EPSStop        stop;             /* stopping test */
   EPSWhich       which;            /* which part of the spectrum to be sought */
   PetscReal      inta,intb;        /* interval [a,b] for spectrum slicing */
   EPSProblemType problem_type;     /* which kind of problem to be solved */
@@ -82,8 +83,11 @@ struct _p_EPS {
   /*-------------- User-provided functions and contexts -----------------*/
   PetscErrorCode (*converged)(EPS,PetscScalar,PetscScalar,PetscReal,PetscReal*,void*);
   PetscErrorCode (*convergeddestroy)(void*);
+  PetscErrorCode (*stopping)(EPS,PetscInt,PetscInt,PetscInt,PetscInt,EPSConvergedReason*,void*);
+  PetscErrorCode (*stoppingdestroy)(void*);
   PetscErrorCode (*arbitrary)(PetscScalar,PetscScalar,Vec,Vec,PetscScalar*,PetscScalar*,void*);
   void           *convergedctx;
+  void           *stoppingctx;
   void           *arbitraryctx;
   PetscErrorCode (*monitor[MAXEPSMONITORS])(EPS,PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscReal*,PetscInt,void*);
   PetscErrorCode (*monitordestroy[MAXEPSMONITORS])(void**);
@@ -150,7 +154,7 @@ PETSC_STATIC_INLINE PetscErrorCode EPS_SetInnerProduct(EPS eps)
   if (!eps->V) { ierr = EPSGetBV(eps,&eps->V);CHKERRQ(ierr); }
   if (eps->ispositive || (eps->isgeneralized && eps->ishermitian)) {
     ierr = STGetBilinearForm(eps->st,&B);CHKERRQ(ierr);
-    ierr = BVSetMatrix(eps->V,B,eps->ispositive?PETSC_FALSE:PETSC_TRUE);CHKERRQ(ierr);
+    ierr = BVSetMatrix(eps->V,B,PetscNot(eps->ispositive));CHKERRQ(ierr);
     ierr = MatDestroy(&B);CHKERRQ(ierr);
   } else {
     ierr = BVSetMatrix(eps->V,NULL,PETSC_FALSE);CHKERRQ(ierr);
