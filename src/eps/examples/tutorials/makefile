@@ -159,16 +159,24 @@ runex2_1:
 	   ${RM} -f ex2_1.tmp
 
 runex2_ciss_1:
-	-@${MPIEXEC} -n 1 ./ex2 -n 30 -eps_type ciss -rg_type interval -rg_interval_endpoints 1.1,1.25 -terse > ex2_ciss.tmp 2>&1; \
+	-@if [ "${PETSC_PRECISION}" != "double" ]; then \
+	   echo "Skipping ex2_ciss_1 test"; \
+	 else \
+	   ${MPIEXEC} -n 1 ./ex2 -n 30 -eps_type ciss -rg_type interval -rg_interval_endpoints 1.1,1.25 -terse > ex2_ciss.tmp 2>&1; \
 	   if (${DIFF} output/ex2_ciss.out ex2_ciss.tmp) then true; \
 	   else echo "Possible problem with ex2_ciss_1, diffs above"; fi; \
-	   ${RM} -f ex2_ciss.tmp
+	   ${RM} -f ex2_ciss.tmp; \
+	 fi
 
 runex2_ciss_2:
-	-@${MPIEXEC} -n 2 ./ex2 -n 30 -eps_type ciss -rg_type ellipse -rg_ellipse_center 1.175 -rg_ellipse_radius 0.075 -eps_ciss_partitions 2 -terse > ex2_ciss.tmp 2>&1; \
+	-@if [ "${PETSC_PRECISION}" != "double" ]; then \
+	   echo "Skipping ex2_ciss_2 test"; \
+	 else \
+	   ${MPIEXEC} -n 2 ./ex2 -n 30 -eps_type ciss -rg_type ellipse -rg_ellipse_center 1.175 -rg_ellipse_radius 0.075 -eps_ciss_partitions 2 -terse > ex2_ciss.tmp 2>&1; \
 	   if (${DIFF} output/ex2_ciss.out ex2_ciss.tmp) then true; \
 	   else echo "Possible problem with ex2_ciss_2, diffs above"; fi; \
-	   ${RM} -f ex2_ciss.tmp
+	   ${RM} -f ex2_ciss.tmp; \
+	 fi
 
 runex3_1:
 	-@${MPIEXEC} -n 1 ./ex3 -eps_nev 4 -terse > ex3_1.tmp 2>&1; \
@@ -178,13 +186,13 @@ runex3_1:
 
 runex4_1:
 	-@if [ "${PETSC_PRECISION}" != "double" ] || (${GREP} USE_64BIT_INDICES ${PETSC_DIR}/${PETSC_ARCH}/include/petscconf.h > /dev/null 2>&1) then \
-           echo "Skipping ex4 test"; \
-         else \
-           ${MPIEXEC} -n 1 ./ex4 -file ${DATAPATH}/rdb200.petsc -eps_nev 4 -terse > ex4_1.tmp 2>&1; \
+	   echo "Skipping ex4 test"; \
+	 else \
+	   ${MPIEXEC} -n 1 ./ex4 -file ${DATAPATH}/rdb200.petsc -eps_nev 4 -terse > ex4_1.tmp 2>&1; \
 	   if (${DIFF} output/ex4_1.out ex4_1.tmp) then true; \
 	   else echo "Possible problem with ex4_1, diffs above"; fi; \
 	   ${RM} -f ex4_1.tmp; \
-         fi
+	 fi
 
 runex4_ciss_1:
 	-@${MPIEXEC} -n 1 ./ex4 -file $(DATAFILESPATH)/matrices/complex/qc324.petsc -eps_type ciss -rg_type ellipse -rg_ellipse_center -.012-.08i -rg_ellipse_radius .05 -terse > ex4_ciss_1.tmp 2>&1; \
@@ -206,13 +214,13 @@ runex6f_1:
 
 runex7_1:
 	-@if [ "${PETSC_PRECISION}" != "double" ] || (${GREP} USE_64BIT_INDICES ${PETSC_DIR}/${PETSC_ARCH}/include/petscconf.h > /dev/null 2>&1) then \
-           echo "Skipping ex7 test"; \
-         else \
+	   echo "Skipping ex7 test"; \
+	 else \
            ${MPIEXEC} -n 1 ./ex7 -f1 ${DATAPATH}/bfw62a.petsc -f2 ${DATAPATH}/bfw62b.petsc -eps_nev 4 -terse > ex7_1.tmp 2>&1; \
 	   if (${DIFF} output/ex7_1.out ex7_1.tmp) then true; \
 	   else echo "Possible problem with ex7_1, diffs above"; fi; \
 	   ${RM} -f ex7_1.tmp; \
-         fi
+	 fi
 
 runex7_ciss_1:
 	-@${MPIEXEC} -n 1 ./ex7 -f1 $(DATAFILESPATH)/matrices/complex/mhd1280a.petsc -f2 $(DATAFILESPATH)/matrices/complex/mhd1280b.petsc -eps_type ciss -eps_ciss_usest 0 -eps_ciss_quadrule chebyshev -rg_type ring -rg_ring_center 0 -rg_ring_radius .5 -rg_ring_width 0.2 -rg_ring_startangle .25 -rg_ring_endangle .5 -terse > ex7_ciss_1.tmp 2>&1; \
