@@ -179,7 +179,7 @@
 
       call PetscViewerAndFormatCreate(PETSC_VIEWER_STDOUT_WORLD,        &
      &                   PETSC_VIEWER_DEFAULT,vf,ierr)
-      call EPSMonitorSet(eps,EPSMonitorFirst,vf,                        &
+      call EPSMonitorSet(eps,EPSMONITORFIRST,vf,                        &
      &                   PetscViewerAndFormatDestroy,ierr)
       call SlepcConvMonitorCreate(PETSC_VIEWER_STDOUT_WORLD,            &
      &                   PETSC_VIEWER_DEFAULT,ctx,ierr)

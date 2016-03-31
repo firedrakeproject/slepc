@@ -25,6 +25,44 @@
 #include <slepc/private/mfnimpl.h>   /*I "slepcmfn.h" I*/
 
 #undef __FUNCT__
+#define __FUNCT__ "MFNMonitorSetFromOptions"
+/*@C
+   MFNMonitorSetFromOptions - Sets a monitor function and viewer appropriate for the type
+   indicated by the user.
+
+   Collective on MFN
+
+   Input Parameters:
++  mfn      - the eigensolver context
+.  name     - the monitor option name
+.  help     - message indicating what monitoring is done
+.  manual   - manual page for the monitor
+.  monitor  - the monitor function, whose context is a PetscViewerAndFormat
+-  trackall - whether this monitor tracks all eigenvalues or not
+
+   Level: developer
+
+.seealso: MFNMonitorSet(), MFNSetTrackAll(), MFNConvMonitorSetFromOptions()
+@*/
+PetscErrorCode MFNMonitorSetFromOptions(MFN mfn,const char name[],const char help[],const char manual[],PetscErrorCode (*monitor)(MFN,PetscInt,PetscReal,PetscViewerAndFormat*))
+{
+  PetscErrorCode       ierr;
+  PetscBool            flg;
+  PetscViewer          viewer;
+  PetscViewerFormat    format;
+  PetscViewerAndFormat *vf;
+
+  PetscFunctionBegin;
+  ierr = PetscOptionsGetViewer(PetscObjectComm((PetscObject)mfn),((PetscObject)mfn)->prefix,name,&viewer,&format,&flg);CHKERRQ(ierr);
+  if (flg) {
+    ierr = PetscViewerAndFormatCreate(viewer,format,&vf);CHKERRQ(ierr);
+    ierr = PetscObjectDereference((PetscObject)viewer);CHKERRQ(ierr);
+    ierr = MFNMonitorSet(mfn,(PetscErrorCode (*)(MFN,PetscInt,PetscReal,void*))monitor,vf,(PetscErrorCode (*)(void**))PetscViewerAndFormatDestroy);CHKERRQ(ierr);
+  }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
 #define __FUNCT__ "MFNSetFromOptions"
 /*@
    MFNSetFromOptions - Sets MFN options from the options database.
@@ -43,12 +81,11 @@
 @*/
 PetscErrorCode MFNSetFromOptions(MFN mfn)
 {
-  PetscErrorCode   ierr;
-  char             type[256],monfilename[PETSC_MAX_PATH_LEN];
-  PetscBool        flg,flg1,flg2;
-  PetscReal        r;
-  PetscInt         i;
-  PetscViewer      monviewer;
+  PetscErrorCode ierr;
+  char           type[256];
+  PetscBool      set,flg,flg1,flg2;
+  PetscReal      r;
+  PetscInt       i;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(mfn,MFN_CLASSID,1);
@@ -85,27 +122,24 @@ PetscErrorCode MFNSetFromOptions(MFN mfn)
     /*
       Cancels all monitors hardwired into code before call to MFNSetFromOptions()
     */
-    flg = PETSC_FALSE;
-    ierr = PetscOptionsBool("-mfn_monitor_cancel","Remove any hardwired monitor routines","MFNMonitorCancel",flg,&flg,NULL);CHKERRQ(ierr);
-    if (flg) {
+    ierr = PetscOptionsBool("-mfn_monitor_cancel","Remove any hardwired monitor routines","MFNMonitorCancel",PETSC_FALSE,&flg,&set);CHKERRQ(ierr);
+    if (set && flg) {
       ierr = MFNMonitorCancel(mfn);CHKERRQ(ierr);
     }
     /*
-      Prints error estimate at each iteration
+      Text monitors
     */
-    ierr = PetscOptionsString("-mfn_monitor","Monitor error estimate","MFNMonitorSet","stdout",monfilename,PETSC_MAX_PATH_LEN,&flg);CHKERRQ(ierr);
-    if (flg) {
-      ierr = PetscViewerASCIIOpen(PetscObjectComm((PetscObject)mfn),monfilename,&monviewer);CHKERRQ(ierr);
-      ierr = MFNMonitorSet(mfn,MFNMonitorDefault,monviewer,(PetscErrorCode (*)(void**))PetscViewerDestroy);CHKERRQ(ierr);
-    }
-    flg = PETSC_FALSE;
-    ierr = PetscOptionsBool("-mfn_monitor_lg","Monitor error estimate graphically","MFNMonitorSet",flg,&flg,NULL);CHKERRQ(ierr);
-    if (flg) {
+    ierr = MFNMonitorSetFromOptions(mfn,"-mfn_monitor","Monitor error estimate","MFNMonitorDefault",MFNMonitorDefault);CHKERRQ(ierr);
+    /*
+      Line graph monitors
+    */
+    ierr = PetscOptionsBool("-mfn_monitor_lg","Monitor error estimate graphically","MFNMonitorSet",PETSC_FALSE,&flg,&set);CHKERRQ(ierr);
+    if (set && flg) {
       ierr = MFNMonitorSet(mfn,MFNMonitorLG,NULL,NULL);CHKERRQ(ierr);
     }
   /* -----------------------------------------------------------------------*/
 
-    ierr = PetscOptionsName("-mfn_view","Print detailed information on solver used","MFNView",0);CHKERRQ(ierr);
+    ierr = PetscOptionsName("-mfn_view","Print detailed information on solver used","MFNView",NULL);CHKERRQ(ierr);
 
     if (mfn->ops->setfromoptions) {
       ierr = (*mfn->ops->setfromoptions)(PetscOptionsObject,mfn);CHKERRQ(ierr);

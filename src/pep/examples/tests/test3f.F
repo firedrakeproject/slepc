@@ -27,6 +27,7 @@
 #include <petsc/finclude/petscsys.h>
 #include <petsc/finclude/petscvec.h>
 #include <petsc/finclude/petscmat.h>
+#include <petsc/finclude/petscviewer.h>
 #include <slepc/finclude/slepcsys.h>
 #include <slepc/finclude/slepcpep.h>
 
@@ -55,6 +56,8 @@
       PEPProblemType     ptype
       PetscMPIInt        rank
       PetscErrorCode     ierr
+      SlepcConvMonitor   ctx
+      PetscViewerAndFormat vf
 
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !     Beginning of program
@@ -221,8 +224,14 @@
       endif
  230  format (' Convergence test =',I2,', stopping test =',I2)
 
-      call PEPMonitorSet(pep,PEPMONITORFIRST,PETSC_NULL_OBJECT,         &
-     &                   PETSC_NULL_FUNCTION,ierr)
+      call PetscViewerAndFormatCreate(PETSC_VIEWER_STDOUT_WORLD,        &
+     &                   PETSC_VIEWER_DEFAULT,vf,ierr)
+      call PEPMonitorSet(pep,PEPMONITORFIRST,vf,                        &
+     &                   PetscViewerAndFormatDestroy,ierr)
+      call SlepcConvMonitorCreate(PETSC_VIEWER_STDOUT_WORLD,            &
+     &                   PETSC_VIEWER_DEFAULT,ctx,ierr)
+      call PEPMonitorSet(pep,PEPMONITORCONVERGED,ctx,                   &
+     &                   SlepcConvMonitorDestroy,ierr)
       call PEPMonitorCancel(pep,ierr)
 
       call PEPGetST(pep,st,ierr) 
