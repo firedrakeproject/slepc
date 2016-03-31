@@ -24,5 +24,7 @@
 #if !defined(__SLEPCSYSDEF_H)
 #define __SLEPCSYSDEF_H
 
+#define SlepcConvMonitor PetscFortranAddr
+
 #endif
 
