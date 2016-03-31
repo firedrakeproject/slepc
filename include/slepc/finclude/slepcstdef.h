@@ -20,22 +20,22 @@
 !  along with SLEPc. If not, see <http://www.gnu.org/licenses/>.
 !  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !
-#if !defined(__SLEPCST_H)
-#define __SLEPCST_H
+#if !defined(__SLEPCSTDEF_H)
+#define __SLEPCSTDEF_H
 
 #include "petsc/finclude/petsckspdef.h"
 
 #if !defined(PETSC_USE_FORTRAN_DATATYPES)
-#define ST        PetscFortranAddr
+#define ST PetscFortranAddr
 #endif
 
-#define STType    character*(80)
-#define STMatMode PetscEnum
+#define STType     character*(80)
+#define STMatMode  PetscEnum
 
-#define STSHELL     'shell'
-#define STSHIFT     'shift'
-#define STSINVERT   'sinvert'
-#define STCAYLEY    'cayley'
-#define STPRECOND   'precond'
+#define STSHELL    'shell'
+#define STSHIFT    'shift'
+#define STSINVERT  'sinvert'
+#define STCAYLEY   'cayley'
+#define STPRECOND  'precond'
 
 #endif

@@ -21,8 +21,8 @@
 !  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !
 
-#if !defined(__SLEPCSYS_H)
-#define __SLEPCSYS_H
+#if !defined(__SLEPCSYSDEF_H)
+#define __SLEPCSYSDEF_H
 
 #endif
 

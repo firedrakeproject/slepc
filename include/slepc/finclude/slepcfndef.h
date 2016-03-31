@@ -20,15 +20,15 @@
 !  along with SLEPc. If not, see <http://www.gnu.org/licenses/>.
 !  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !
-#if !defined(__SLEPCFN_H)
-#define __SLEPCFN_H
+#if !defined(__SLEPCFNDEF_H)
+#define __SLEPCFNDEF_H
 
 #if !defined(PETSC_USE_FORTRAN_DATATYPES)
 #define FN PetscFortranAddr
 #endif
 
-#define FNType             character*(80)
-#define FNCombineType      PetscEnum
+#define FNType        character*(80)
+#define FNCombineType PetscEnum
 
 #define FNCOMBINE  'combine'
 #define FNRATIONAL 'rational'

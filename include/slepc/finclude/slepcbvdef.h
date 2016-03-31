@@ -20,14 +20,14 @@
 !  along with SLEPc. If not, see <http://www.gnu.org/licenses/>.
 !  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !
-#if !defined(__SLEPCBV_H)
-#define __SLEPCBV_H
+#if !defined(__SLEPCBVDEF_H)
+#define __SLEPCBVDEF_H
 
 #if !defined(PETSC_USE_FORTRAN_DATATYPES)
-#define BV        PetscFortranAddr
+#define BV PetscFortranAddr
 #endif
 
-#define BVType    character*(80)
+#define BVType             character*(80)
 #define BVOrthogType       PetscEnum
 #define BVOrthogRefineType PetscEnum
 #define BVOrthogBlockType  PetscEnum
