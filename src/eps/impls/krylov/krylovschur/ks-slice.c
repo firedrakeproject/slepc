@@ -175,6 +175,8 @@ static PetscErrorCode EPSSliceGetEPS(EPS eps)
   KSP                ksp;
   KSPType            ksptype;
   STType             sttype;
+  PetscObjectState   Astate,Bstate=0;
+  PetscObjectId      Aid,Bid=0;
   const MatSolverPackage stype;
 
   PetscFunctionBegin;
@@ -185,6 +187,12 @@ static PetscErrorCode EPSSliceGetEPS(EPS eps)
     ierr = EPSSetOperators(ctx->eps,A,B);CHKERRQ(ierr);
     a = eps->inta; b = eps->intb;
   } else {
+    ierr = PetscObjectStateGet((PetscObject)A,&Astate);CHKERRQ(ierr);
+    ierr = PetscObjectGetId((PetscObject)A,&Aid);CHKERRQ(ierr);
+    if (B) {
+      ierr = PetscObjectStateGet((PetscObject)B,&Bstate);CHKERRQ(ierr);
+      ierr = PetscObjectGetId((PetscObject)B,&Bid);CHKERRQ(ierr);
+    }
     if (!ctx->subc) {
       /* Create context for subcommunicators */
       ierr = PetscSubcommCreate(PetscObjectComm((PetscObject)eps),&ctx->subc);CHKERRQ(ierr);
@@ -194,19 +202,23 @@ static PetscErrorCode EPSSliceGetEPS(EPS eps)
 
       /* Duplicate matrices */
       ierr = MatCreateRedundantMatrix(A,0,PetscSubcommChild(ctx->subc),MAT_INITIAL_MATRIX,&Ar);CHKERRQ(ierr);
-      ctx->Astate = ((PetscObject)A)->state;
+      ctx->Astate = Astate;
+      ctx->Aid = Aid;
       if (B) {
         ierr = MatCreateRedundantMatrix(B,0,PetscSubcommChild(ctx->subc),MAT_INITIAL_MATRIX,&Br);CHKERRQ(ierr);
-        ctx->Bstate = ((PetscObject)B)->state;
+        ctx->Bstate = Bstate;
+        ctx->Bid = Bid;
       }
     } else {
-      if (ctx->Astate != ((PetscObject)A)->state || (B && ctx->Bstate != ((PetscObject)B)->state)) {
+      if (ctx->Astate != Astate || (B && ctx->Bstate != Bstate) || ctx->Aid != Aid || (B && ctx->Bid != Bid)) {
         ierr = EPSGetOperators(ctx->eps,&Ar,&Br);CHKERRQ(ierr);
         ierr = MatCreateRedundantMatrix(A,0,PetscSubcommChild(ctx->subc),MAT_INITIAL_MATRIX,&Ar);CHKERRQ(ierr);
-        ctx->Astate = ((PetscObject)A)->state;
+        ctx->Astate = Astate;
+        ctx->Aid = Aid;
         if (B) {
           ierr = MatCreateRedundantMatrix(B,0,PetscSubcommChild(ctx->subc),MAT_INITIAL_MATRIX,&Br);CHKERRQ(ierr);
-          ctx->Bstate = ((PetscObject)B)->state;
+          ctx->Bstate = Bstate;
+          ctx->Bid = Bid;
         }
         ierr = EPSSetOperators(ctx->eps,Ar,Br);CHKERRQ(ierr);
         ierr = MatDestroy(&Ar);CHKERRQ(ierr);
@@ -493,8 +505,14 @@ PetscErrorCode EPSSetUp_KrylovSchur_Slice(EPS eps)
   /* keep state of subcomm matrices to check that the user does not modify them */
   ierr = EPSGetOperators(eps,&A,&B);CHKERRQ(ierr);
   ierr = PetscObjectStateGet((PetscObject)A,&ctx->Astate);CHKERRQ(ierr);
-  if (B) { ierr = PetscObjectStateGet((PetscObject)B,&ctx->Bstate);CHKERRQ(ierr); }
-  else ctx->Bstate=0;
+  ierr = PetscObjectGetId((PetscObject)A,&ctx->Aid);CHKERRQ(ierr);
+  if (B) { 
+    ierr = PetscObjectStateGet((PetscObject)B,&ctx->Bstate);CHKERRQ(ierr);
+    ierr = PetscObjectGetId((PetscObject)B,&ctx->Bid);CHKERRQ(ierr);
+  } else {
+    ctx->Bstate=0;
+    ctx->Bid=0;
+  }
   PetscFunctionReturn(0);
 }
 
@@ -1322,6 +1340,7 @@ PetscErrorCode EPSSolve_KrylovSchur_Slice(EPS eps)
   EPS_SR           sr=ctx->sr;
   Mat              A,B=NULL;
   PetscObjectState Astate,Bstate=0;
+  PetscObjectId    Aid,Bid=0;
 
   PetscFunctionBegin;
   if (ctx->global) {
@@ -1349,8 +1368,12 @@ PetscErrorCode EPSSolve_KrylovSchur_Slice(EPS eps)
     /* Check that the user did not modify subcomm matrices */
     ierr = EPSGetOperators(eps,&A,&B);CHKERRQ(ierr);
     ierr = PetscObjectStateGet((PetscObject)A,&Astate);CHKERRQ(ierr);
-    if (B) { ierr = PetscObjectStateGet((PetscObject)B,&Bstate);CHKERRQ(ierr); }
-    if (Astate!=ctx->Astate || Bstate!=ctx->Bstate) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONGSTATE,"Subcomm matrices have been modified by user");
+    ierr = PetscObjectGetId((PetscObject)A,&Aid);CHKERRQ(ierr);
+    if (B) { 
+      ierr = PetscObjectStateGet((PetscObject)B,&Bstate);CHKERRQ(ierr);
+      ierr = PetscObjectGetId((PetscObject)B,&Bid);CHKERRQ(ierr);
+    }
+    if (Astate!=ctx->Astate || (B && Bstate!=ctx->Bstate) || Aid!=ctx->Aid || (B && Bid!=ctx->Bid)) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONGSTATE,"Subcomm matrices have been modified by user");
     /* Only with eigenvalues present in the interval ...*/
     if (sr->numEigs==0) {
       eps->reason = EPS_CONVERGED_TOL;
