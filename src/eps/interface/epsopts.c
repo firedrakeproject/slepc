@@ -196,7 +196,7 @@ PetscErrorCode EPSSetFromOptions(EPS eps)
     if (flg) { ierr = EPSSetWhichEigenpairs(eps,EPS_TARGET_REAL);CHKERRQ(ierr); }
     ierr = PetscOptionsBoolGroup("-eps_target_imaginary","compute eigenvalues with imaginary parts close to target","EPSSetWhichEigenpairs",&flg);CHKERRQ(ierr);
     if (flg) { ierr = EPSSetWhichEigenpairs(eps,EPS_TARGET_IMAGINARY);CHKERRQ(ierr); }
-    ierr = PetscOptionsBoolGroupEnd("-eps_all","compute all eigenvalues in an interval","EPSSetWhichEigenpairs",&flg);CHKERRQ(ierr);
+    ierr = PetscOptionsBoolGroupEnd("-eps_all","compute all eigenvalues in an interval or a region","EPSSetWhichEigenpairs",&flg);CHKERRQ(ierr);
     if (flg) { ierr = EPSSetWhichEigenpairs(eps,EPS_ALL);CHKERRQ(ierr); }
 
     ierr = PetscOptionsScalar("-eps_target","Value of the target","EPSSetTarget",eps->target,&s,&flg);CHKERRQ(ierr);
@@ -440,7 +440,7 @@ PetscErrorCode EPSSetDimensions(EPS eps,PetscInt nev,PetscInt ncv,PetscInt mpd)
 .     EPS_TARGET_MAGNITUDE - eigenvalues closest to the target (in magnitude)
 .     EPS_TARGET_REAL - eigenvalues with real part closest to target
 .     EPS_TARGET_IMAGINARY - eigenvalues with imaginary part closest to target
-.     EPS_ALL - all eigenvalues contained in a given interval
+.     EPS_ALL - all eigenvalues contained in a given interval or region
 -     EPS_WHICH_USER - user defined ordering set with EPSSetEigenvalueComparison()
 
    Options Database Keys:
@@ -453,7 +453,7 @@ PetscErrorCode EPSSetDimensions(EPS eps,PetscInt nev,PetscInt ncv,PetscInt mpd)
 .   -eps_target_magnitude - Sets eigenvalues closest to target
 .   -eps_target_real - Sets real parts closest to target
 .   -eps_target_imaginary - Sets imaginary parts closest to target
--   -eps_all - Sets all eigenvalues in an interval
+-   -eps_all - Sets all eigenvalues in an interval or region
 
    Notes:
    Not all eigensolvers implemented in EPS account for all the possible values
@@ -468,8 +468,9 @@ PetscErrorCode EPSSetDimensions(EPS eps,PetscInt nev,PetscInt ncv,PetscInt mpd)
    SLEPc have been built with complex scalars.
 
    EPS_ALL is intended for use in combination with an interval (see
-   EPSSetInterval()), when all eigenvalues within the interval are requested.
-   In that case, the number of eigenvalues is unknown, so the nev parameter
+   EPSSetInterval()), when all eigenvalues within the interval are requested,
+   or in the context of the CISS solver for computing all eigenvalues in a region.
+   In those cases, the number of eigenvalues is unknown, so the nev parameter
    has a different sense, see EPSSetDimensions().
 
    Level: intermediate

@@ -44,8 +44,6 @@
 #include <slepc/private/epsimpl.h>                /*I "slepceps.h" I*/
 #include <slepcblaslapack.h>
 
-PetscErrorCode EPSSolve_CISS(EPS);
-
 typedef struct {
   /* parameters */
   PetscInt          N;          /* number of integration points (32) */
@@ -79,6 +77,7 @@ typedef struct {
   Mat               pA,pB;
   PetscSubcomm      subcomm;
   PetscBool         usest;
+  PetscBool         usest_set;  /* whether the user set the usest flag or not */
   EPSCISSQuadRule   quad;
   EPSCISSExtraction extraction;
 } EPS_CISS;
@@ -889,6 +888,7 @@ PetscErrorCode EPSSetUp_CISS(EPS eps)
   ierr = PetscObjectTypeCompare((PetscObject)A,MATSHELL,&flg);CHKERRQ(ierr);
   if (flg) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Matrix type shell is not supported in this solver");
 
+  if (!ctx->usest_set) ctx->usest = (ctx->num_subcomm>1)? PETSC_FALSE: PETSC_TRUE;
   if (ctx->usest && ctx->num_subcomm>1) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"The usest flag is not supported when partitions > 1");
 
   ierr = CISSRedundantMat(eps);CHKERRQ(ierr);
@@ -950,9 +950,6 @@ PetscErrorCode EPSSetUp_CISS(EPS eps)
 #if !defined(PETSC_USE_COMPLEX)
   if (!eps->ishermitian) { ierr = PetscInfo(eps,"Warning: complex eigenvalues are not calculated exactly without --with-scalar-type=complex in PETSc\n");CHKERRQ(ierr); }
 #endif
-
-  /* dispatch solve method */
-  eps->ops->solve = EPSSolve_CISS;
   PetscFunctionReturn(0);
 }
 
@@ -1517,7 +1514,8 @@ static PetscErrorCode EPSCISSSetUseST_CISS(EPS eps,PetscBool usest)
   EPS_CISS *ctx = (EPS_CISS*)eps->data;
 
   PetscFunctionBegin;
-  ctx->usest = usest;
+  ctx->usest     = usest;
+  ctx->usest_set = PETSC_TRUE;
   PetscFunctionReturn(0);
 }
 
@@ -1802,9 +1800,8 @@ PetscErrorCode EPSSetFromOptions_CISS(PetscOptionItems *PetscOptionsObject,EPS e
   PetscErrorCode    ierr;
   PetscReal         r3,r4;
   PetscInt          i1,i2,i3,i4,i5,i6,i7;
-  PetscBool         b1,b2;
+  PetscBool         b1,b2,flg;
   EPS_CISS          *ctx = (EPS_CISS*)eps->data;
-  PetscBool         flg;
   EPSCISSQuadRule   quad;
   EPSCISSExtraction extraction;
 
@@ -1830,8 +1827,8 @@ PetscErrorCode EPSSetFromOptions_CISS(PetscOptionItems *PetscOptionsObject,EPS e
   ierr = EPSCISSSetRefinement(eps,i6,i7);CHKERRQ(ierr);
 
   ierr = EPSCISSGetUseST(eps,&b2);CHKERRQ(ierr);
-  ierr = PetscOptionsBool("-eps_ciss_usest","CISS use ST for linear solves","EPSCISSSetUseST",b2,&b2,NULL);CHKERRQ(ierr);
-  ierr = EPSCISSSetUseST(eps,b2);CHKERRQ(ierr);
+  ierr = PetscOptionsBool("-eps_ciss_usest","CISS use ST for linear solves","EPSCISSSetUseST",b2,&b2,&flg);CHKERRQ(ierr);
+  if (flg) { ierr = EPSCISSSetUseST(eps,b2);CHKERRQ(ierr); }
 
   ierr = PetscOptionsEnum("-eps_ciss_quadrule","Quadrature rule","EPSCISSSetQuadRule",EPSCISSQuadRules,(PetscEnum)ctx->quad,(PetscEnum*)&quad,&flg);CHKERRQ(ierr);
   if (flg) { ierr = EPSCISSSetQuadRule(eps,quad);CHKERRQ(ierr); }
@@ -1905,6 +1902,7 @@ PETSC_EXTERN PetscErrorCode EPSCreate_CISS(EPS eps)
   PetscFunctionBegin;
   ierr = PetscNewLog(eps,&ctx);CHKERRQ(ierr);
   eps->data = ctx;
+  eps->ops->solve          = EPSSolve_CISS;
   eps->ops->setup          = EPSSetUp_CISS;
   eps->ops->setfromoptions = EPSSetFromOptions_CISS;
   eps->ops->destroy        = EPSDestroy_CISS;
@@ -1932,6 +1930,7 @@ PETSC_EXTERN PetscErrorCode EPSCreate_CISS(EPS eps)
   ctx->L_max              = 64;
   ctx->spurious_threshold = 1e-4;
   ctx->usest              = PETSC_TRUE;
+  ctx->usest_set          = PETSC_FALSE;
   ctx->isreal             = PETSC_FALSE;
   ctx->refine_inner       = 0;
   ctx->refine_blocksize   = 0;

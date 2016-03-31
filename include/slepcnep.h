@@ -72,7 +72,8 @@ typedef enum { NEP_LARGEST_MAGNITUDE=1,
                NEP_SMALLEST_IMAGINARY,
                NEP_TARGET_MAGNITUDE,
                NEP_TARGET_REAL,
-               NEP_TARGET_IMAGINARY} NEPWhich;
+               NEP_TARGET_IMAGINARY,
+               NEP_ALL } NEPWhich;
 
 /*E
     NEPErrorType - The error type used to assess accuracy of computed solutions

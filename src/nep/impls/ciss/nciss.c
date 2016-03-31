@@ -44,8 +44,6 @@
 #include <slepc/private/nepimpl.h>         /*I "slepcnep.h" I*/
 #include <slepcblaslapack.h>
 
-PetscErrorCode NEPSolve_CISS(NEP);
-
 typedef struct {
   /* parameters */
   PetscInt     N;          /* number of integration points (32) */
@@ -466,7 +464,7 @@ PetscErrorCode NEPSetUp_CISS(NEP nep)
   }
   if (!nep->max_it) nep->max_it = 1;
   if (!nep->mpd) nep->mpd = nep->ncv;
-  if (!nep->which) nep->which = NEP_LARGEST_MAGNITUDE;
+  if (!nep->which) nep->which = NEP_ALL;
   if (nep->stopping!=NEPStoppingBasic) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"This solver does not support user-defined stopping test");
 
   /* check region */
@@ -512,9 +510,6 @@ PetscErrorCode NEPSetUp_CISS(NEP nep)
   ierr = DSAllocate(nep->ds,nep->ncv);CHKERRQ(ierr);
   nwork = (nep->fui==NEP_USER_INTERFACE_SPLIT)? 2: 1;
   ierr = NEPSetWorkVecs(nep,nwork);CHKERRQ(ierr);
-
-  /* dispatch solve method */
-  nep->ops->solve = NEPSolve_CISS;
   PetscFunctionReturn(0);
 }
 

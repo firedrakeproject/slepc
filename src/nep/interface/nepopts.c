@@ -179,8 +179,10 @@ PetscErrorCode NEPSetFromOptions(NEP nep)
     if (flg) { ierr = NEPSetWhichEigenpairs(nep,NEP_TARGET_MAGNITUDE);CHKERRQ(ierr); }
     ierr = PetscOptionsBoolGroup("-nep_target_real","compute eigenvalues with real parts close to target","NEPSetWhichEigenpairs",&flg);CHKERRQ(ierr);
     if (flg) { ierr = NEPSetWhichEigenpairs(nep,NEP_TARGET_REAL);CHKERRQ(ierr); }
-    ierr = PetscOptionsBoolGroupEnd("-nep_target_imaginary","compute eigenvalues with imaginary parts close to target","NEPSetWhichEigenpairs",&flg);CHKERRQ(ierr);
+    ierr = PetscOptionsBoolGroup("-nep_target_imaginary","compute eigenvalues with imaginary parts close to target","NEPSetWhichEigenpairs",&flg);CHKERRQ(ierr);
     if (flg) { ierr = NEPSetWhichEigenpairs(nep,NEP_TARGET_IMAGINARY);CHKERRQ(ierr); }
+    ierr = PetscOptionsBoolGroupEnd("-nep_all","compute all eigenvalues in a region","NEPSetWhichEigenpairs",&flg);CHKERRQ(ierr);
+    if (flg) { ierr = NEPSetWhichEigenpairs(nep,NEP_ALL);CHKERRQ(ierr); }
 
     ierr = PetscOptionsName("-nep_view","Print detailed information on solver used","NEPView",0);CHKERRQ(ierr);
     ierr = PetscOptionsName("-nep_view_vectors","View computed eigenvectors","NEPVectorsView",0);CHKERRQ(ierr);
@@ -405,7 +407,8 @@ PetscErrorCode NEPSetDimensions(NEP nep,PetscInt nev,PetscInt ncv,PetscInt mpd)
 .     NEP_SMALLEST_IMAGINARY - smallest imaginary parts
 .     NEP_TARGET_MAGNITUDE - eigenvalues closest to the target (in magnitude)
 .     NEP_TARGET_REAL - eigenvalues with real part closest to target
--     NEP_TARGET_IMAGINARY - eigenvalues with imaginary part closest to target
+.     NEP_TARGET_IMAGINARY - eigenvalues with imaginary part closest to target
+.     NEP_ALL - all eigenvalues contained in a given region
 
     Options Database Keys:
 +   -nep_largest_magnitude - Sets largest eigenvalues in magnitude
@@ -416,7 +419,8 @@ PetscErrorCode NEPSetDimensions(NEP nep,PetscInt nev,PetscInt ncv,PetscInt mpd)
 .   -nep_smallest_imaginary - Sets smallest imaginary parts
 .   -nep_target_magnitude - Sets eigenvalues closest to target
 .   -nep_target_real - Sets real parts closest to target
--   -nep_target_imaginary - Sets imaginary parts closest to target
+.   -nep_target_imaginary - Sets imaginary parts closest to target
+-   -nep_all - Sets all eigenvalues in a region
 
     Notes:
     Not all eigensolvers implemented in NEP account for all the possible values
@@ -424,9 +428,14 @@ PetscErrorCode NEPSetDimensions(NEP nep,PetscInt nev,PetscInt ncv,PetscInt mpd)
     and NEP_SMALLEST_IMAGINARY use the absolute value of the imaginary part
     for eigenvalue selection.
 
+    The target is a scalar value provided with NEPSetTarget().
+
+    NEP_ALL is intended for use in the context of the CISS solver for
+    computing all eigenvalues in a region.
+
     Level: intermediate
 
-.seealso: NEPGetWhichEigenpairs(), NEPWhich
+.seealso: NEPGetWhichEigenpairs(), NEPSetTarget(), NEPWhich
 @*/
 PetscErrorCode NEPSetWhichEigenpairs(NEP nep,NEPWhich which)
 {
@@ -445,6 +454,7 @@ PetscErrorCode NEPSetWhichEigenpairs(NEP nep,NEPWhich which)
 #if defined(PETSC_USE_COMPLEX)
     case NEP_TARGET_IMAGINARY:
 #endif
+    case EPS_ALL:
       if (nep->which != which) {
         nep->state = NEP_STATE_INITIAL;
         nep->which = which;

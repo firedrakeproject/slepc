@@ -69,6 +69,7 @@ PetscErrorCode NEPGetDefaultShift(NEP nep,PetscScalar *sigma)
   switch (nep->which) {
     case NEP_LARGEST_MAGNITUDE:
     case NEP_LARGEST_IMAGINARY:
+    case NEP_ALL:
       *sigma = 1.0;   /* arbitrary value */
       break;
     case NEP_SMALLEST_MAGNITUDE:

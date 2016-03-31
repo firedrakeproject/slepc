@@ -81,10 +81,6 @@ PetscErrorCode NEPSetUp(NEP nep)
     ierr = NEPGetKSP(nep,&nep->ksp);CHKERRQ(ierr);
   }
 
-  /* by default, compute eigenvalues close to target */
-  /* nep->target should contain the initial guess for the eigenvalue */
-  if (!nep->which) nep->which = NEP_TARGET_MAGNITUDE;
-
   /* set problem dimensions */
   switch (nep->fui) {
   case NEP_USER_INTERFACE_CALLBACK:
@@ -133,6 +129,10 @@ PetscErrorCode NEPSetUp(NEP nep)
   /* call specific solver setup */
   ierr = (*nep->ops->setup)(nep);CHKERRQ(ierr);
 
+  /* by default, compute eigenvalues close to target */
+  /* nep->target should contain the initial guess for the eigenvalue */
+  if (!nep->which) nep->which = NEP_TARGET_MAGNITUDE;
+
   /* set tolerance if not yet set */
   if (nep->tol==PETSC_DEFAULT) nep->tol = SLEPC_DEFAULT_TOL;
   nep->ktol = 0.1;
@@ -178,6 +178,10 @@ PetscErrorCode NEPSetUp(NEP nep)
     case NEP_TARGET_IMAGINARY:
       nep->sc->comparison    = SlepcCompareTargetImaginary;
       nep->sc->comparisonctx = &nep->target;
+      break;
+    case NEP_ALL:
+      nep->sc->comparison    = SlepcCompareSmallestReal;
+      nep->sc->comparisonctx = NULL;
       break;
   }
 
