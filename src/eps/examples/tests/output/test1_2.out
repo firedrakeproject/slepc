@@ -1,7 +1,7 @@
 
 Generalized Symmetric Eigenproblem, N=2025 (45x45 grid)
 
- All requested eigenvalues computed up to the required tolerance:
+ Found 48 eigenvalues, all of them computed up to the required tolerance:
      0.12369, 0.15282, 0.15532, 0.19855, 0.20105, 0.25744, 0.25947, 0.27505, 
      0.30293, 0.30894, 0.37736, 0.38239, 0.38822, 0.39051, 0.43542, 0.44727, 
      0.48344, 0.51036, 0.51809, 0.53715, 0.55101, 0.59457, 0.60776, 0.61641, 

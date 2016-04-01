@@ -16,6 +16,8 @@ native EPSConvergedReason
 native EPSPowerShiftType
 native EPSLanczosReorthogType
 native EPSPRIMMEMethod
+native EPSCISSQuadRule
+native EPSCISSExtraction
 native FNCombineType
 native MFNConvergedReason
 native NEPWhich

@@ -100,6 +100,37 @@ struct _p_BV {
 };
 
 #undef __FUNCT__
+#define __FUNCT__ "BV_SafeSqrt"
+/*
+  BV_SafeSqrt - Computes the square root of a scalar value alpha, which is
+  assumed to be z'*B*z. The result is
+    if definite inner product:     res = sqrt(alpha)
+    if indefinite inner product:   res = sgn(alpha)*sqrt(abs(alpha))
+*/
+PETSC_STATIC_INLINE PetscErrorCode BV_SafeSqrt(BV bv,PetscScalar alpha,PetscReal *res)
+{
+  PetscErrorCode ierr;
+  PetscReal      absal,realp;
+
+  PetscFunctionBegin;
+  absal = PetscAbsScalar(alpha);
+  realp = PetscRealPart(alpha);
+  if (absal<PETSC_MACHINE_EPSILON) {
+    ierr = PetscInfo(bv,"Zero norm, either the vector is zero or a semi-inner product is being used\n");CHKERRQ(ierr);
+  }
+#if defined(PETSC_USE_COMPLEX)
+  if (PetscAbsReal(PetscImaginaryPart(alpha))/absal>PETSC_MACHINE_EPSILON) SETERRQ(PetscObjectComm((PetscObject)bv),1,"The inner product is not well defined: nonzero imaginary part");
+#endif
+  if (bv->indef) {
+    *res = (realp<0.0)? -PetscSqrtReal(-realp): PetscSqrtReal(realp);
+  } else { 
+    if (realp<0.0) SETERRQ(PetscObjectComm((PetscObject)bv),1,"The inner product is not well defined: indefinite matrix");
+    *res = PetscSqrtReal(realp);
+  }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
 #define __FUNCT__ "BV_IPMatMult"
 /*
   BV_IPMatMult - Multiply a vector x by the inner-product matrix, cache the

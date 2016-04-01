@@ -31,7 +31,7 @@ MANSEC     = NEP
 TESTEXAMPLES_C           = ex21.PETSc runex21_1 ex21.rm \
                            ex22.PETSc runex22_1 ex22.rm \
                            ex27.PETSc runex27_1 runex27_2 ex27.rm
-TESTEXAMPLES_C_NOCOMPLEX =
+TESTEXAMPLES_C_COMPLEX   = ex22.PETSc runex22_ciss_1 ex22.rm
 TESTEXAMPLES_F90         =
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common
@@ -72,14 +72,20 @@ runex22_1:
 	   else echo "Possible problem with ex22_1, diffs above"; fi; \
 	   ${RM} -f ex22_1.tmp
 
+runex22_ciss_1:
+	-@${MPIEXEC} -n 1 ./ex22 -nep_type ciss -rg_type ellipse -rg_ellipse_center 10 -rg_ellipse_radius 9.5 -nep_ncv 24 -terse > ex22_ciss_1.tmp 2>&1; \
+	   if (${DIFF} output/ex22_ciss_1.out ex22_ciss_1.tmp) then true; \
+	   else echo "Possible problem with ex22_ciss_1, diffs above"; fi; \
+	   ${RM} -f ex22_ciss_1.tmp
+
 runex27_1:
-	-@${MPIEXEC} -n 1 ./ex27 -nep_tol 1e-6 -nep_nev 3 -terse > ex27_1.tmp 2>&1; \
+	-@${MPIEXEC} -n 1 ./ex27 -nep_nev 3 -terse > ex27_1.tmp 2>&1; \
 	   if (${DIFF} output/ex27_1.out ex27_1.tmp) then true; \
 	   else echo "Possible problem with ex27_1, diffs above"; fi; \
 	   ${RM} -f ex27_1.tmp
 
 runex27_2:
-	-@${MPIEXEC} -n 1 ./ex27 -split 0 -nep_tol 1e-6 -nep_nev 3 -terse > ex27_2.tmp 2>&1; \
+	-@${MPIEXEC} -n 1 ./ex27 -split 0 -nep_nev 3 -terse > ex27_2.tmp 2>&1; \
 	   if (${DIFF} output/ex27_2.out ex27_2.tmp) then true; \
 	   else echo "Possible problem with ex27_2, diffs above"; fi; \
 	   ${RM} -f ex27_2.tmp

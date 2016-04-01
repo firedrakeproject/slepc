@@ -25,6 +25,84 @@
 #include <slepc/private/nepimpl.h>       /*I "slepcnep.h" I*/
 
 #undef __FUNCT__
+#define __FUNCT__ "NEPMonitorSetFromOptions"
+/*@C
+   NEPMonitorSetFromOptions - Sets a monitor function and viewer appropriate for the type
+   indicated by the user.
+
+   Collective on NEP
+
+   Input Parameters:
++  nep      - the nonlinear eigensolver context
+.  name     - the monitor option name
+.  help     - message indicating what monitoring is done
+.  manual   - manual page for the monitor
+.  monitor  - the monitor function, whose context is a PetscViewerAndFormat
+-  trackall - whether this monitor tracks all eigenvalues or not
+
+   Level: developer
+
+.seealso: NEPMonitorSet(), NEPSetTrackAll(), NEPConvMonitorSetFromOptions()
+@*/
+PetscErrorCode NEPMonitorSetFromOptions(NEP nep,const char name[],const char help[],const char manual[],PetscErrorCode (*monitor)(NEP,PetscInt,PetscInt,PetscScalar*,PetscReal*,PetscInt,PetscViewerAndFormat*),PetscBool trackall)
+{
+  PetscErrorCode       ierr;
+  PetscBool            flg;
+  PetscViewer          viewer;
+  PetscViewerFormat    format;
+  PetscViewerAndFormat *vf;
+
+  PetscFunctionBegin;
+  ierr = PetscOptionsGetViewer(PetscObjectComm((PetscObject)nep),((PetscObject)nep)->prefix,name,&viewer,&format,&flg);CHKERRQ(ierr);
+  if (flg) {
+    ierr = PetscViewerAndFormatCreate(viewer,format,&vf);CHKERRQ(ierr);
+    ierr = PetscObjectDereference((PetscObject)viewer);CHKERRQ(ierr);
+    ierr = NEPMonitorSet(nep,(PetscErrorCode (*)(NEP,PetscInt,PetscInt,PetscScalar*,PetscReal*,PetscInt,void*))monitor,vf,(PetscErrorCode (*)(void**))PetscViewerAndFormatDestroy);CHKERRQ(ierr);
+    if (trackall) {
+      ierr = NEPSetTrackAll(nep,PETSC_TRUE);CHKERRQ(ierr);
+    }
+  }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "NEPConvMonitorSetFromOptions"
+/*@C
+   NEPConvMonitorSetFromOptions - Sets a monitor function and viewer appropriate for the type
+   indicated by the user (for monitors that only show iteration numbers of convergence).
+
+   Collective on NEP
+
+   Input Parameters:
++  nep      - the nonlinear eigensolver context
+.  name     - the monitor option name
+.  help     - message indicating what monitoring is done
+.  manual   - manual page for the monitor
+-  monitor  - the monitor function, whose context is a SlepcConvMonitor
+
+   Level: developer
+
+.seealso: NEPMonitorSet(), NEPMonitorSetFromOptions()
+@*/
+PetscErrorCode NEPConvMonitorSetFromOptions(NEP nep,const char name[],const char help[],const char manual[],PetscErrorCode (*monitor)(NEP,PetscInt,PetscInt,PetscScalar*,PetscReal*,PetscInt,SlepcConvMonitor))
+{
+  PetscErrorCode    ierr;
+  PetscBool         flg;
+  PetscViewer       viewer;
+  PetscViewerFormat format;
+  SlepcConvMonitor  ctx;
+
+  PetscFunctionBegin;
+  ierr = PetscOptionsGetViewer(PetscObjectComm((PetscObject)nep),((PetscObject)nep)->prefix,name,&viewer,&format,&flg);CHKERRQ(ierr);
+  if (flg) {
+    ierr = SlepcConvMonitorCreate(viewer,format,&ctx);CHKERRQ(ierr);
+    ierr = PetscObjectDereference((PetscObject)viewer);CHKERRQ(ierr);
+    ierr = NEPMonitorSet(nep,(PetscErrorCode (*)(NEP,PetscInt,PetscInt,PetscScalar*,PetscReal*,PetscInt,void*))monitor,ctx,(PetscErrorCode (*)(void**))SlepcConvMonitorDestroy);CHKERRQ(ierr);
+  }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
 #define __FUNCT__ "NEPSetFromOptions"
 /*@
    NEPSetFromOptions - Sets NEP options from the options database.
@@ -43,14 +121,12 @@
 @*/
 PetscErrorCode NEPSetFromOptions(NEP nep)
 {
-  PetscErrorCode   ierr;
-  char             type[256],monfilename[PETSC_MAX_PATH_LEN];
-  PetscBool        flg,flg1,flg2,flg3;
-  PetscReal        r;
-  PetscScalar      s;
-  PetscInt         i,j,k;
-  PetscViewer      monviewer;
-  SlepcConvMonitor ctx;
+  PetscErrorCode ierr;
+  char           type[256];
+  PetscBool      set,flg,flg1,flg2,flg3;
+  PetscReal      r;
+  PetscScalar    s;
+  PetscInt       i,j,k;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
@@ -125,39 +201,25 @@ PetscErrorCode NEPSetFromOptions(NEP nep)
     /*
       Cancels all monitors hardwired into code before call to NEPSetFromOptions()
     */
-    flg = PETSC_FALSE;
-    ierr = PetscOptionsBool("-nep_monitor_cancel","Remove any hardwired monitor routines","NEPMonitorCancel",flg,&flg,NULL);CHKERRQ(ierr);
-    if (flg) {
+    ierr = PetscOptionsBool("-nep_monitor_cancel","Remove any hardwired monitor routines","NEPMonitorCancel",PETSC_FALSE,&flg,&set);CHKERRQ(ierr);
+    if (set && flg) {
       ierr = NEPMonitorCancel(nep);CHKERRQ(ierr);
     }
     /*
-      Prints approximate eigenvalues and error estimates at each iteration
+      Text monitors
     */
-    ierr = PetscOptionsString("-nep_monitor","Monitor first unconverged approximate eigenvalue and error estimate","NEPMonitorSet","stdout",monfilename,PETSC_MAX_PATH_LEN,&flg);CHKERRQ(ierr);
-    if (flg) {
-      ierr = PetscViewerASCIIOpen(PetscObjectComm((PetscObject)nep),monfilename,&monviewer);CHKERRQ(ierr);
-      ierr = NEPMonitorSet(nep,NEPMonitorFirst,monviewer,(PetscErrorCode (*)(void**))PetscViewerDestroy);CHKERRQ(ierr);
-    }
-    ierr = PetscOptionsString("-nep_monitor_conv","Monitor approximate eigenvalues and error estimates as they converge","NEPMonitorSet","stdout",monfilename,PETSC_MAX_PATH_LEN,&flg);CHKERRQ(ierr);
-    if (flg) {
-      ierr = PetscNew(&ctx);CHKERRQ(ierr);
-      ierr = PetscViewerASCIIOpen(PetscObjectComm((PetscObject)nep),monfilename,&ctx->viewer);CHKERRQ(ierr);
-      ierr = NEPMonitorSet(nep,NEPMonitorConverged,ctx,(PetscErrorCode (*)(void**))SlepcConvMonitorDestroy);CHKERRQ(ierr);
-    }
-    ierr = PetscOptionsString("-nep_monitor_all","Monitor approximate eigenvalues and error estimates","NEPMonitorSet","stdout",monfilename,PETSC_MAX_PATH_LEN,&flg);CHKERRQ(ierr);
-    if (flg) {
-      ierr = PetscViewerASCIIOpen(PetscObjectComm((PetscObject)nep),monfilename,&monviewer);CHKERRQ(ierr);
-      ierr = NEPMonitorSet(nep,NEPMonitorAll,monviewer,(PetscErrorCode (*)(void**))PetscViewerDestroy);CHKERRQ(ierr);
-      ierr = NEPSetTrackAll(nep,PETSC_TRUE);CHKERRQ(ierr);
-    }
-    flg = PETSC_FALSE;
-    ierr = PetscOptionsBool("-nep_monitor_lg","Monitor first unconverged approximate error estimate graphically","NEPMonitorSet",flg,&flg,NULL);CHKERRQ(ierr);
-    if (flg) {
+    ierr = NEPMonitorSetFromOptions(nep,"-nep_monitor","Monitor first unconverged approximate eigenvalue and error estimate","NEPMonitorFirst",NEPMonitorFirst,PETSC_FALSE);CHKERRQ(ierr);
+    ierr = NEPConvMonitorSetFromOptions(nep,"-nep_monitor_conv","Monitor approximate eigenvalues and error estimates as they converge","NEPMonitorConverged",NEPMonitorConverged);CHKERRQ(ierr);
+    ierr = NEPMonitorSetFromOptions(nep,"-nep_monitor_all","Monitor approximate eigenvalues and error estimates","NEPMonitorAll",NEPMonitorAll,PETSC_TRUE);CHKERRQ(ierr);
+    /*
+      Line graph monitors
+    */
+    ierr = PetscOptionsBool("-nep_monitor_lg","Monitor first unconverged approximate error estimate graphically","NEPMonitorSet",PETSC_FALSE,&flg,&set);CHKERRQ(ierr);
+    if (set && flg) {
       ierr = NEPMonitorSet(nep,NEPMonitorLG,NULL,NULL);CHKERRQ(ierr);
     }
-    flg = PETSC_FALSE;
-    ierr = PetscOptionsBool("-nep_monitor_lg_all","Monitor error estimates graphically","NEPMonitorSet",flg,&flg,NULL);CHKERRQ(ierr);
-    if (flg) {
+    ierr = PetscOptionsBool("-nep_monitor_lg_all","Monitor error estimates graphically","NEPMonitorSet",PETSC_FALSE,&flg,&set);CHKERRQ(ierr);
+    if (set && flg) {
       ierr = NEPMonitorSet(nep,NEPMonitorLGAll,NULL,NULL);CHKERRQ(ierr);
       ierr = NEPSetTrackAll(nep,PETSC_TRUE);CHKERRQ(ierr);
     }
@@ -179,15 +241,17 @@ PetscErrorCode NEPSetFromOptions(NEP nep)
     if (flg) { ierr = NEPSetWhichEigenpairs(nep,NEP_TARGET_MAGNITUDE);CHKERRQ(ierr); }
     ierr = PetscOptionsBoolGroup("-nep_target_real","compute eigenvalues with real parts close to target","NEPSetWhichEigenpairs",&flg);CHKERRQ(ierr);
     if (flg) { ierr = NEPSetWhichEigenpairs(nep,NEP_TARGET_REAL);CHKERRQ(ierr); }
-    ierr = PetscOptionsBoolGroupEnd("-nep_target_imaginary","compute eigenvalues with imaginary parts close to target","NEPSetWhichEigenpairs",&flg);CHKERRQ(ierr);
+    ierr = PetscOptionsBoolGroup("-nep_target_imaginary","compute eigenvalues with imaginary parts close to target","NEPSetWhichEigenpairs",&flg);CHKERRQ(ierr);
     if (flg) { ierr = NEPSetWhichEigenpairs(nep,NEP_TARGET_IMAGINARY);CHKERRQ(ierr); }
+    ierr = PetscOptionsBoolGroupEnd("-nep_all","compute all eigenvalues in a region","NEPSetWhichEigenpairs",&flg);CHKERRQ(ierr);
+    if (flg) { ierr = NEPSetWhichEigenpairs(nep,NEP_ALL);CHKERRQ(ierr); }
 
-    ierr = PetscOptionsName("-nep_view","Print detailed information on solver used","NEPView",0);CHKERRQ(ierr);
-    ierr = PetscOptionsName("-nep_view_vectors","View computed eigenvectors","NEPVectorsView",0);CHKERRQ(ierr);
-    ierr = PetscOptionsName("-nep_view_values","View computed eigenvalues","NEPValuesView",0);CHKERRQ(ierr);
-    ierr = PetscOptionsName("-nep_converged_reason","Print reason for convergence, and number of iterations","NEPReasonView",0);CHKERRQ(ierr);
-    ierr = PetscOptionsName("-nep_error_absolute","Print absolute errors of each eigenpair","NEPErrorView",0);CHKERRQ(ierr);
-    ierr = PetscOptionsName("-nep_error_relative","Print relative errors of each eigenpair","NEPErrorView",0);CHKERRQ(ierr);
+    ierr = PetscOptionsName("-nep_view","Print detailed information on solver used","NEPView",NULL);CHKERRQ(ierr);
+    ierr = PetscOptionsName("-nep_view_vectors","View computed eigenvectors","NEPVectorsView",NULL);CHKERRQ(ierr);
+    ierr = PetscOptionsName("-nep_view_values","View computed eigenvalues","NEPValuesView",NULL);CHKERRQ(ierr);
+    ierr = PetscOptionsName("-nep_converged_reason","Print reason for convergence, and number of iterations","NEPReasonView",NULL);CHKERRQ(ierr);
+    ierr = PetscOptionsName("-nep_error_absolute","Print absolute errors of each eigenpair","NEPErrorView",NULL);CHKERRQ(ierr);
+    ierr = PetscOptionsName("-nep_error_relative","Print relative errors of each eigenpair","NEPErrorView",NULL);CHKERRQ(ierr);
 
     if (nep->ops->setfromoptions) {
       ierr = (*nep->ops->setfromoptions)(PetscOptionsObject,nep);CHKERRQ(ierr);
@@ -405,7 +469,8 @@ PetscErrorCode NEPSetDimensions(NEP nep,PetscInt nev,PetscInt ncv,PetscInt mpd)
 .     NEP_SMALLEST_IMAGINARY - smallest imaginary parts
 .     NEP_TARGET_MAGNITUDE - eigenvalues closest to the target (in magnitude)
 .     NEP_TARGET_REAL - eigenvalues with real part closest to target
--     NEP_TARGET_IMAGINARY - eigenvalues with imaginary part closest to target
+.     NEP_TARGET_IMAGINARY - eigenvalues with imaginary part closest to target
+.     NEP_ALL - all eigenvalues contained in a given region
 
     Options Database Keys:
 +   -nep_largest_magnitude - Sets largest eigenvalues in magnitude
@@ -416,7 +481,8 @@ PetscErrorCode NEPSetDimensions(NEP nep,PetscInt nev,PetscInt ncv,PetscInt mpd)
 .   -nep_smallest_imaginary - Sets smallest imaginary parts
 .   -nep_target_magnitude - Sets eigenvalues closest to target
 .   -nep_target_real - Sets real parts closest to target
--   -nep_target_imaginary - Sets imaginary parts closest to target
+.   -nep_target_imaginary - Sets imaginary parts closest to target
+-   -nep_all - Sets all eigenvalues in a region
 
     Notes:
     Not all eigensolvers implemented in NEP account for all the possible values
@@ -424,9 +490,14 @@ PetscErrorCode NEPSetDimensions(NEP nep,PetscInt nev,PetscInt ncv,PetscInt mpd)
     and NEP_SMALLEST_IMAGINARY use the absolute value of the imaginary part
     for eigenvalue selection.
 
+    The target is a scalar value provided with NEPSetTarget().
+
+    NEP_ALL is intended for use in the context of the CISS solver for
+    computing all eigenvalues in a region.
+
     Level: intermediate
 
-.seealso: NEPGetWhichEigenpairs(), NEPWhich
+.seealso: NEPGetWhichEigenpairs(), NEPSetTarget(), NEPWhich
 @*/
 PetscErrorCode NEPSetWhichEigenpairs(NEP nep,NEPWhich which)
 {
@@ -445,6 +516,7 @@ PetscErrorCode NEPSetWhichEigenpairs(NEP nep,NEPWhich which)
 #if defined(PETSC_USE_COMPLEX)
     case NEP_TARGET_IMAGINARY:
 #endif
+    case EPS_ALL:
       if (nep->which != which) {
         nep->state = NEP_STATE_INITIAL;
         nep->which = which;

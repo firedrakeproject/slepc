@@ -803,7 +803,7 @@ PetscErrorCode PEPSolve_JD(PEP pep)
     if (pep->errest[pep->nconv]<pep->tol) {
 
       /* Ritz pair converged */
-      minv = PetscMin(nv,pjd->keep*pep->ncv);
+      minv = PetscMin(nv,(PetscInt)pjd->keep*pep->ncv);
       if (pep->nev>1) {
         ierr = BVGetColumn(pjd->X,pjd->nconv,&v);CHKERRQ(ierr);
         ierr = PEPJDCopyToExtendedVec(pep,v,NULL,u,PETSC_TRUE);CHKERRQ(ierr);
@@ -864,7 +864,7 @@ PetscErrorCode PEPSolve_JD(PEP pep)
     } else if (nv==pep->ncv-1) {
 
       /* Basis full, force restart */
-      minv = PetscMin(nv,pjd->keep*pep->ncv);
+      minv = PetscMin(nv,(PetscInt)pjd->keep*pep->ncv);
       ierr = DSGetArray(pep->ds,DS_MAT_X,&pX);CHKERRQ(ierr);
       ierr = DSGetDimensions(pep->ds,&dim,NULL,NULL,NULL,NULL);CHKERRQ(ierr);
       ierr = DSRestoreArray(pep->ds,DS_MAT_X,&pX);CHKERRQ(ierr);

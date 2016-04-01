@@ -190,7 +190,7 @@ PetscErrorCode RGIsTrivial_Polygon(RG rg,PetscBool *trivial)
   RG_POLYGON *ctx = (RG_POLYGON*)rg->data;
 
   PetscFunctionBegin;
-  *trivial = (ctx->n)? PETSC_FALSE: PETSC_TRUE;
+  *trivial = PetscNot(ctx->n);
   PetscFunctionReturn(0);
 }
 
@@ -284,10 +284,10 @@ PetscErrorCode RGCheckInside_Polygon(RG rg,PetscReal px,PetscReal py,PetscInt *i
   *inout = -1;
   for (i=0;i<ctx->n;i++) {
     j = (i+1)%ctx->n;
-    mx = (x[i]>=0.0)? PETSC_TRUE: PETSC_FALSE;
-    nx = (x[j]>=0.0)? PETSC_TRUE: PETSC_FALSE;
-    my = (y[i]>=0.0)? PETSC_TRUE: PETSC_FALSE;
-    ny = (y[j]>=0.0)? PETSC_TRUE: PETSC_FALSE;
+    mx = PetscNot(x[i]<0.0);
+    nx = PetscNot(x[j]<0.0);
+    my = PetscNot(y[i]<0.0);
+    ny = PetscNot(y[j]<0.0);
     if (!((my||ny) && (mx||nx)) || (mx&&nx)) continue;
     if (((my && ny && (mx||nx)) && (!(mx&&nx)))) {
       *inout = -*inout;

@@ -23,9 +23,6 @@
 !
 #include "slepc/finclude/slepcepsdef.h"
 
-!  Convergence flags.
-!  They sould match the flags in $SLEPC_DIR/include/slepceps.h
-
       PetscEnum EPS_CONVERGED_TOL
       PetscEnum EPS_CONVERGED_USER
       PetscEnum EPS_DIVERGED_ITS
@@ -185,8 +182,8 @@
       PetscEnum EPS_CISS_QUADRULE_TRAPEZOIDAL
       PetscEnum EPS_CISS_QUADRULE_CHEBYSHEV
 
-      parameter (EPS_CISS_QUADRULE_TRAPEZOIDAL  =  0)
-      parameter (EPS_CISS_QUADRULE_CHEBYSHEV    =  1)
+      parameter (EPS_CISS_QUADRULE_TRAPEZOIDAL  =  1)
+      parameter (EPS_CISS_QUADRULE_CHEBYSHEV    =  2)
 
       PetscEnum EPS_CISS_EXTRACTION_RITZ
       PetscEnum EPS_CISS_EXTRACTION_HANKEL

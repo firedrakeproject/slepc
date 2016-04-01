@@ -47,6 +47,7 @@ int main(int argc,char **argv)
   PEPStop            stop;
   PEPProblemType     ptype;
   PetscErrorCode     ierr;
+  PetscViewerAndFormat *vf;
 
   SlepcInitialize(&argc,&argv,(char*)0,help);
   ierr = PetscPrintf(PETSC_COMM_WORLD,"\nDiagonal Quadratic Eigenproblem, n=%D\n\n",n);CHKERRQ(ierr);
@@ -142,7 +143,8 @@ int main(int argc,char **argv)
   ierr = PEPGetStoppingTest(pep,&stop);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD," Convergence test = %d, stopping test = %d\n",(int)conv,(int)stop);CHKERRQ(ierr);
 
-  ierr = PEPMonitorSet(pep,PEPMonitorFirst,NULL,NULL);CHKERRQ(ierr);
+  ierr = PetscViewerAndFormatCreate(PETSC_VIEWER_STDOUT_WORLD,PETSC_VIEWER_DEFAULT,&vf);CHKERRQ(ierr);
+  ierr = PEPMonitorSet(pep,(PetscErrorCode (*)(PEP,PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscReal*,PetscInt,void*))PEPMonitorFirst,vf,(PetscErrorCode (*)(void**))PetscViewerAndFormatDestroy);CHKERRQ(ierr);
   ierr = PEPMonitorCancel(pep);CHKERRQ(ierr);
 
   ierr = PEPGetST(pep,&st);CHKERRQ(ierr);

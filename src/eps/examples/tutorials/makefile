@@ -25,11 +25,11 @@ CPPFLAGS   =
 FPPFLAGS   =
 LOCDIR     = src/eps/examples/tutorials/
 EXAMPLESC  = ex1.c ex2.c ex3.c ex4.c ex5.c ex7.c ex9.c ex10.c ex11.c ex12.c ex13.c \
-             ex18.c ex19.c ex24.c ex25.c ex29.c ex30.c
+             ex18.c ex19.c ex24.c ex25.c ex29.c ex30.c ex31.c
 EXAMPLESF  = ex1f.F ex1f90.F90 ex6f.F
 MANSEC     = EPS
 
-TESTEXAMPLES_C                 = ex2.PETSc runex2_1 ex2.rm \
+TESTEXAMPLES_C                 = ex2.PETSc runex2_1 runex2_ciss_1 runex2_ciss_2 ex2.rm \
                                  ex3.PETSc runex3_1 ex3.rm \
                                  ex5.PETSc runex5_1 ex5.rm \
                                  ex9.PETSc runex9_1 runex9_2 ex9.rm \
@@ -43,9 +43,12 @@ TESTEXAMPLES_C                 = ex2.PETSc runex2_1 ex2.rm \
                                  ex30.PETSc runex30_1 ex30.rm
 TESTEXAMPLES_C_NOCOMPLEX       = ex4.PETSc runex4_1 ex4.rm \
                                  ex7.PETSc runex7_1 ex7.rm \
-                                 ex25.PETSc runex25_1 ex25.rm
+                                 ex25.PETSc runex25_1 ex25.rm \
+                                 ex31.PETSc runex31_1 ex31.rm
 TESTEXAMPLES_FORTRAN_NOCOMPLEX = ex6f.PETSc runex6f_1 ex6f.rm
 TESTEXAMPLES_F90               = ex1f90.PETSc runex1f90_1 ex1f90.rm
+TESTEXAMPLES_DATAFILESPATH_COMPLEX = ex4.PETSc runex4_ciss_1 ex4.rm \
+                                 ex7.PETSc runex7_ciss_1 ex7.rm
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common
 
@@ -129,6 +132,10 @@ ex30: ex30.o chkopts
 	-${CLINKER} -o ex30 ex30.o ${SLEPC_EPS_LIB}
 	${RM} ex30.o
 
+ex31: ex31.o chkopts
+	-${CLINKER} -o ex31 ex31.o ${SLEPC_EPS_LIB}
+	${RM} ex31.o
+
 #------------------------------------------------------------------------------------
 DATAPATH = ${SLEPC_DIR}/share/slepc/datafiles/matrices
 
@@ -156,6 +163,26 @@ runex2_1:
 	   else echo "Possible problem with ex2_1, diffs above"; fi; \
 	   ${RM} -f ex2_1.tmp
 
+runex2_ciss_1:
+	-@if [ "${PETSC_PRECISION}" != "double" ]; then \
+	   echo "Skipping ex2_ciss_1 test"; \
+	 else \
+	   ${MPIEXEC} -n 1 ./ex2 -n 30 -eps_type ciss -rg_type interval -rg_interval_endpoints 1.1,1.25 -terse > ex2_ciss.tmp 2>&1; \
+	   if (${DIFF} output/ex2_ciss.out ex2_ciss.tmp) then true; \
+	   else echo "Possible problem with ex2_ciss_1, diffs above"; fi; \
+	   ${RM} -f ex2_ciss.tmp; \
+	 fi
+
+runex2_ciss_2:
+	-@if [ "${PETSC_PRECISION}" != "double" ]; then \
+	   echo "Skipping ex2_ciss_2 test"; \
+	 else \
+	   ${MPIEXEC} -n 2 ./ex2 -n 30 -eps_type ciss -rg_type ellipse -rg_ellipse_center 1.175 -rg_ellipse_radius 0.075 -eps_ciss_partitions 2 -terse > ex2_ciss.tmp 2>&1; \
+	   if (${DIFF} output/ex2_ciss.out ex2_ciss.tmp) then true; \
+	   else echo "Possible problem with ex2_ciss_2, diffs above"; fi; \
+	   ${RM} -f ex2_ciss.tmp; \
+	 fi
+
 runex3_1:
 	-@${MPIEXEC} -n 1 ./ex3 -eps_nev 4 -terse > ex3_1.tmp 2>&1; \
 	   if (${DIFF} output/ex3_1.out ex3_1.tmp) then true; \
@@ -164,13 +191,19 @@ runex3_1:
 
 runex4_1:
 	-@if [ "${PETSC_PRECISION}" != "double" ] || (${GREP} USE_64BIT_INDICES ${PETSC_DIR}/${PETSC_ARCH}/include/petscconf.h > /dev/null 2>&1) then \
-           echo "Skipping ex4 test"; \
-         else \
-           ${MPIEXEC} -n 1 ./ex4 -file ${DATAPATH}/rdb200.petsc -eps_nev 4 -terse > ex4_1.tmp 2>&1; \
+	   echo "Skipping ex4 test"; \
+	 else \
+	   ${MPIEXEC} -n 1 ./ex4 -file ${DATAPATH}/rdb200.petsc -eps_nev 4 -terse > ex4_1.tmp 2>&1; \
 	   if (${DIFF} output/ex4_1.out ex4_1.tmp) then true; \
 	   else echo "Possible problem with ex4_1, diffs above"; fi; \
 	   ${RM} -f ex4_1.tmp; \
-         fi
+	 fi
+
+runex4_ciss_1:
+	-@${MPIEXEC} -n 1 ./ex4 -file $(DATAFILESPATH)/matrices/complex/qc324.petsc -eps_type ciss -rg_type ellipse -rg_ellipse_center -.012-.08i -rg_ellipse_radius .05 -terse > ex4_ciss_1.tmp 2>&1; \
+	   if (${DIFF} output/ex4_ciss_1.out ex4_ciss_1.tmp) then true; \
+	   else echo "Possible problem with ex4_ciss_1, diffs above"; fi; \
+	   ${RM} -f ex4_ciss_1.tmp;
 
 runex5_1:
 	-@${MPIEXEC} -n 1 ./ex5 -st_shift 1 -eps_nev 4 -terse > ex5_1.tmp 2>&1; \
@@ -186,13 +219,19 @@ runex6f_1:
 
 runex7_1:
 	-@if [ "${PETSC_PRECISION}" != "double" ] || (${GREP} USE_64BIT_INDICES ${PETSC_DIR}/${PETSC_ARCH}/include/petscconf.h > /dev/null 2>&1) then \
-           echo "Skipping ex7 test"; \
-         else \
+	   echo "Skipping ex7 test"; \
+	 else \
            ${MPIEXEC} -n 1 ./ex7 -f1 ${DATAPATH}/bfw62a.petsc -f2 ${DATAPATH}/bfw62b.petsc -eps_nev 4 -terse > ex7_1.tmp 2>&1; \
 	   if (${DIFF} output/ex7_1.out ex7_1.tmp) then true; \
 	   else echo "Possible problem with ex7_1, diffs above"; fi; \
 	   ${RM} -f ex7_1.tmp; \
-         fi
+	 fi
+
+runex7_ciss_1:
+	-@${MPIEXEC} -n 1 ./ex7 -f1 $(DATAFILESPATH)/matrices/complex/mhd1280a.petsc -f2 $(DATAFILESPATH)/matrices/complex/mhd1280b.petsc -eps_type ciss -eps_ciss_usest 0 -eps_ciss_quadrule chebyshev -rg_type ring -rg_ring_center 0 -rg_ring_radius .5 -rg_ring_width 0.2 -rg_ring_startangle .25 -rg_ring_endangle .5 -terse > ex7_ciss_1.tmp 2>&1; \
+	   if (${DIFF} output/ex7_ciss_1.out ex7_ciss_1.tmp) then true; \
+	   else echo "Possible problem with ex7_ciss_1, diffs above"; fi; \
+	   ${RM} -f ex7_ciss_1.tmp;
 
 runex9_1:
 	-@${MPIEXEC} -n 1 ./ex9 -eps_nev 4 -terse > ex9_1.tmp 2>&1; \
@@ -218,7 +257,7 @@ runex11_1:
 	   ${RM} -f ex11_1.tmp
 
 runex12_1:
-	-@${MPIEXEC} -n 1 ./ex12 > ex12_1.tmp 2>&1; \
+	-@${MPIEXEC} -n 1 ./ex12 -eps_krylovschur_nev 30 > ex12_1.tmp 2>&1; \
 	   if (${DIFF} output/ex12_1.out ex12_1.tmp) then true; \
 	   else echo "Possible problem with ex12_1, diffs above"; fi; \
 	   ${RM} -f ex12_1.tmp
@@ -264,4 +303,14 @@ runex30_1:
 	   if (${DIFF} output/ex30_1.out ex30_1.tmp) then true; \
 	   else echo "Possible problem with ex30_1, diffs above"; fi; \
 	   ${RM} -f ex30_1.tmp
+
+runex31_1:
+	-@if [ "${PETSC_PRECISION}" != "double" ] || (${GREP} USE_64BIT_INDICES ${PETSC_DIR}/${PETSC_ARCH}/include/petscconf.h > /dev/null 2>&1) then \
+           echo "Skipping ex31 test"; \
+         else \
+	   ${MPIEXEC} -n 1 ./ex31 -terse > ex31_1.tmp 2>&1; \
+	   if (${DIFF} output/ex31_1.out ex31_1.tmp) then true; \
+	   else echo "Possible problem with ex31_1, diffs above"; fi; \
+	   ${RM} -f ex31_1.tmp; \
+         fi
 

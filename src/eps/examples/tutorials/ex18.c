@@ -38,7 +38,6 @@ PetscErrorCode MatMarkovModel(PetscInt m,Mat A);
 #define __FUNCT__ "main"
 int main(int argc,char **argv)
 {
-  Vec            v0;              /* initial vector */
   Mat            A;               /* operator matrix */
   EPS            eps;             /* eigenproblem solver context */
   EPSType        type;
@@ -94,14 +93,6 @@ int main(int argc,char **argv)
   */
   ierr = EPSSetFromOptions(eps);CHKERRQ(ierr);
 
-  /*
-     Set the initial vector. This is optional, if not done the initial
-     vector is set to random values
-  */
-  ierr = MatCreateVecs(A,&v0,NULL);CHKERRQ(ierr);
-  ierr = VecSet(v0,1.0);CHKERRQ(ierr);
-  ierr = EPSSetInitialSpace(eps,1,&v0);CHKERRQ(ierr);
-
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                       Solve the eigensystem
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
@@ -133,7 +124,6 @@ int main(int argc,char **argv)
   }
   ierr = EPSDestroy(&eps);CHKERRQ(ierr);
   ierr = MatDestroy(&A);CHKERRQ(ierr);
-  ierr = VecDestroy(&v0);CHKERRQ(ierr);
   ierr = SlepcFinalize();
   return 0;
 }
