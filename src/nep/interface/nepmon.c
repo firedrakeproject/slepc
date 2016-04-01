@@ -177,20 +177,25 @@ PetscErrorCode NEPGetMonitorContext(NEP nep,void **ctx)
 .  eig    - eigenvalues
 .  errest - error estimates
 .  nest   - number of error estimates to display
--  monctx - monitor context (contains viewer, can be NULL)
+-  vf     - viewer and format for monitoring
 
    Level: intermediate
 
 .seealso: NEPMonitorSet(), NEPMonitorFirst(), NEPMonitorConverged()
 @*/
-PetscErrorCode NEPMonitorAll(NEP nep,PetscInt its,PetscInt nconv,PetscScalar *eig,PetscReal *errest,PetscInt nest,void *monctx)
+PetscErrorCode NEPMonitorAll(NEP nep,PetscInt its,PetscInt nconv,PetscScalar *eig,PetscReal *errest,PetscInt nest,PetscViewerAndFormat *vf)
 {
   PetscErrorCode ierr;
   PetscInt       i;
-  PetscViewer    viewer = monctx? (PetscViewer)monctx: PETSC_VIEWER_STDOUT_(PetscObjectComm((PetscObject)nep));
+  PetscViewer    viewer;
 
   PetscFunctionBegin;
+  PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
+  PetscValidPointer(vf,7);
+  viewer = vf->viewer;
+  PetscValidHeaderSpecific(viewer,PETSC_VIEWER_CLASSID,7);
   if (its) {
+    ierr = PetscViewerPushFormat(viewer,vf->format);CHKERRQ(ierr);
     ierr = PetscViewerASCIIAddTab(viewer,((PetscObject)nep)->tablevel);CHKERRQ(ierr);
     ierr = PetscViewerASCIIPrintf(viewer,"%3D NEP nconv=%D Values (Errors)",its,nconv);CHKERRQ(ierr);
     for (i=0;i<nest;i++) {
@@ -203,6 +208,7 @@ PetscErrorCode NEPMonitorAll(NEP nep,PetscInt its,PetscInt nconv,PetscScalar *ei
     }
     ierr = PetscViewerASCIIPrintf(viewer,"\n");CHKERRQ(ierr);
     ierr = PetscViewerASCIISubtractTab(viewer,((PetscObject)nep)->tablevel);CHKERRQ(ierr);
+    ierr = PetscViewerPopFormat(viewer);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }
@@ -222,19 +228,24 @@ PetscErrorCode NEPMonitorAll(NEP nep,PetscInt its,PetscInt nconv,PetscScalar *ei
 .  eig    - eigenvalues
 .  errest - error estimates
 .  nest   - number of error estimates to display
--  monctx - monitor context (contains viewer, can be NULL)
+-  vf     - viewer and format for monitoring
 
    Level: intermediate
 
 .seealso: NEPMonitorSet(), NEPMonitorAll(), NEPMonitorConverged()
 @*/
-PetscErrorCode NEPMonitorFirst(NEP nep,PetscInt its,PetscInt nconv,PetscScalar *eig,PetscReal *errest,PetscInt nest,void *monctx)
+PetscErrorCode NEPMonitorFirst(NEP nep,PetscInt its,PetscInt nconv,PetscScalar *eig,PetscReal *errest,PetscInt nest,PetscViewerAndFormat *vf)
 {
   PetscErrorCode ierr;
-  PetscViewer    viewer = monctx? (PetscViewer)monctx: PETSC_VIEWER_STDOUT_(PetscObjectComm((PetscObject)nep));
+  PetscViewer    viewer;
 
   PetscFunctionBegin;
+  PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
+  PetscValidPointer(vf,7);
+  viewer = vf->viewer;
+  PetscValidHeaderSpecific(viewer,PETSC_VIEWER_CLASSID,7);
   if (its && nconv<nest) {
+    ierr = PetscViewerPushFormat(viewer,vf->format);CHKERRQ(ierr);
     ierr = PetscViewerASCIIAddTab(viewer,((PetscObject)nep)->tablevel);CHKERRQ(ierr);
     ierr = PetscViewerASCIIPrintf(viewer,"%3D NEP nconv=%D first unconverged value (error)",its,nconv);CHKERRQ(ierr);
 #if defined(PETSC_USE_COMPLEX)
@@ -244,6 +255,7 @@ PetscErrorCode NEPMonitorFirst(NEP nep,PetscInt its,PetscInt nconv,PetscScalar *
 #endif
     ierr = PetscViewerASCIIPrintf(viewer," (%10.8e)\n",(double)errest[nconv]);CHKERRQ(ierr);
     ierr = PetscViewerASCIISubtractTab(viewer,((PetscObject)nep)->tablevel);CHKERRQ(ierr);
+    ierr = PetscViewerPopFormat(viewer);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }
@@ -263,31 +275,29 @@ PetscErrorCode NEPMonitorFirst(NEP nep,PetscInt its,PetscInt nconv,PetscScalar *
 .  eig    - eigenvalues
 .  errest - error estimates
 .  nest   - number of error estimates to display
--  monctx - monitor context
+-  ctx    - monitor context
 
    Level: intermediate
 
-   Note:
-   The monitor context must contain a struct with a PetscViewer and a
-   PetscInt. In Fortran, pass a PETSC_NULL_OBJECT.
-
 .seealso: NEPMonitorSet(), NEPMonitorFirst(), NEPMonitorAll()
 @*/
-PetscErrorCode NEPMonitorConverged(NEP nep,PetscInt its,PetscInt nconv,PetscScalar *eig,PetscReal *errest,PetscInt nest,void *monctx)
+PetscErrorCode NEPMonitorConverged(NEP nep,PetscInt its,PetscInt nconv,PetscScalar *eig,PetscReal *errest,PetscInt nest,SlepcConvMonitor ctx)
 {
-  PetscErrorCode   ierr;
-  PetscInt         i;
-  PetscViewer      viewer;
-  SlepcConvMonitor ctx = (SlepcConvMonitor)monctx;
+  PetscErrorCode ierr;
+  PetscInt       i;
+  PetscViewer    viewer;
 
   PetscFunctionBegin;
-  if (!monctx) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_WRONG,"Must provide a context for NEPMonitorConverged");
+  PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
+  PetscValidPointer(ctx,7);
+  viewer = ctx->viewer;
+  PetscValidHeaderSpecific(viewer,PETSC_VIEWER_CLASSID,7);
   if (!its) {
     ctx->oldnconv = 0;
-  } else {
-    viewer = ctx->viewer? ctx->viewer: PETSC_VIEWER_STDOUT_(PetscObjectComm((PetscObject)nep));
+  } else if (ctx->oldnconv!=nconv) {
+    ierr = PetscViewerPushFormat(viewer,ctx->format);CHKERRQ(ierr);
+    ierr = PetscViewerASCIIAddTab(viewer,((PetscObject)nep)->tablevel);CHKERRQ(ierr);
     for (i=ctx->oldnconv;i<nconv;i++) {
-      ierr = PetscViewerASCIIAddTab(viewer,((PetscObject)nep)->tablevel);CHKERRQ(ierr);
       ierr = PetscViewerASCIIPrintf(viewer,"%3D NEP converged value (error) #%D",its,i);CHKERRQ(ierr);
 #if defined(PETSC_USE_COMPLEX)
       ierr = PetscViewerASCIIPrintf(viewer," %g%+gi",(double)PetscRealPart(eig[i]),(double)PetscImaginaryPart(eig[i]));CHKERRQ(ierr);
@@ -295,8 +305,9 @@ PetscErrorCode NEPMonitorConverged(NEP nep,PetscInt its,PetscInt nconv,PetscScal
       ierr = PetscViewerASCIIPrintf(viewer," %g",(double)eig[i]);CHKERRQ(ierr);
 #endif
       ierr = PetscViewerASCIIPrintf(viewer," (%10.8e)\n",(double)errest[i]);CHKERRQ(ierr);
-      ierr = PetscViewerASCIISubtractTab(viewer,((PetscObject)nep)->tablevel);CHKERRQ(ierr);
     }
+    ierr = PetscViewerASCIISubtractTab(viewer,((PetscObject)nep)->tablevel);CHKERRQ(ierr);
+    ierr = PetscViewerPopFormat(viewer);CHKERRQ(ierr);
     ctx->oldnconv = nconv;
   }
   PetscFunctionReturn(0);

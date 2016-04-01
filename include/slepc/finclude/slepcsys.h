@@ -26,6 +26,10 @@
 #include "slepcversion.h"
 #include "slepc/finclude/slepcsysdef.h"
 
+#if !defined(PETSC_USE_FORTRAN_DATATYPES)
+      external SlepcConvMonitorDestroy
+#endif
+
 ! Default tolerance for the different solvers, depending on the precision
 
       PetscReal SLEPC_DEFAULT_TOL

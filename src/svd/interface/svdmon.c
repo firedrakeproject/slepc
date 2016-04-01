@@ -175,20 +175,25 @@ PetscErrorCode SVDGetMonitorContext(SVD svd,void **ctx)
 .  sigma  - singular values
 .  errest - error estimates
 .  nest   - number of error estimates to display
--  monctx - monitor context (contains viewer, can be NULL)
+-  vf     - viewer and format for monitoring
 
    Level: intermediate
 
 .seealso: SVDMonitorSet(), SVDMonitorFirst(), SVDMonitorConverged()
 @*/
-PetscErrorCode SVDMonitorAll(SVD svd,PetscInt its,PetscInt nconv,PetscReal *sigma,PetscReal *errest,PetscInt nest,void *monctx)
+PetscErrorCode SVDMonitorAll(SVD svd,PetscInt its,PetscInt nconv,PetscReal *sigma,PetscReal *errest,PetscInt nest,PetscViewerAndFormat *vf)
 {
   PetscErrorCode ierr;
   PetscInt       i;
-  PetscViewer    viewer = monctx? (PetscViewer)monctx: PETSC_VIEWER_STDOUT_(PetscObjectComm((PetscObject)svd));
+  PetscViewer    viewer;
 
   PetscFunctionBegin;
+  PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
+  PetscValidPointer(vf,7);
+  viewer = vf->viewer;
+  PetscValidHeaderSpecific(viewer,PETSC_VIEWER_CLASSID,7);
   if (its) {
+    ierr = PetscViewerPushFormat(viewer,vf->format);CHKERRQ(ierr);
     ierr = PetscViewerASCIIAddTab(viewer,((PetscObject)svd)->tablevel);CHKERRQ(ierr);
     ierr = PetscViewerASCIIPrintf(viewer,"%3D SVD nconv=%D Values (Errors)",its,nconv);CHKERRQ(ierr);
     for (i=0;i<nest;i++) {
@@ -196,6 +201,7 @@ PetscErrorCode SVDMonitorAll(SVD svd,PetscInt its,PetscInt nconv,PetscReal *sigm
     }
     ierr = PetscViewerASCIIPrintf(viewer,"\n");CHKERRQ(ierr);
     ierr = PetscViewerASCIISubtractTab(viewer,((PetscObject)svd)->tablevel);CHKERRQ(ierr);
+    ierr = PetscViewerPopFormat(viewer);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }
@@ -215,23 +221,29 @@ PetscErrorCode SVDMonitorAll(SVD svd,PetscInt its,PetscInt nconv,PetscReal *sigm
 .  sigma  - singular values
 .  errest - error estimates
 .  nest   - number of error estimates to display
--  monctx - monitor context (contains viewer, can be NULL)
+-  vf     - viewer and format for monitoring
 
    Level: intermediate
 
 .seealso: SVDMonitorSet(), SVDMonitorAll(), SVDMonitorConverged()
 @*/
-PetscErrorCode SVDMonitorFirst(SVD svd,PetscInt its,PetscInt nconv,PetscReal *sigma,PetscReal *errest,PetscInt nest,void *monctx)
+PetscErrorCode SVDMonitorFirst(SVD svd,PetscInt its,PetscInt nconv,PetscReal *sigma,PetscReal *errest,PetscInt nest,PetscViewerAndFormat *vf)
 {
   PetscErrorCode ierr;
-  PetscViewer    viewer = monctx? (PetscViewer)monctx: PETSC_VIEWER_STDOUT_(PetscObjectComm((PetscObject)svd));
+  PetscViewer    viewer;
 
   PetscFunctionBegin;
+  PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
+  PetscValidPointer(vf,7);
+  viewer = vf->viewer;
+  PetscValidHeaderSpecific(viewer,PETSC_VIEWER_CLASSID,7);
   if (its && nconv<nest) {
+    ierr = PetscViewerPushFormat(viewer,vf->format);CHKERRQ(ierr);
     ierr = PetscViewerASCIIAddTab(viewer,((PetscObject)svd)->tablevel);CHKERRQ(ierr);
     ierr = PetscViewerASCIIPrintf(viewer,"%3D SVD nconv=%D first unconverged value (error)",its,nconv);CHKERRQ(ierr);
     ierr = PetscViewerASCIIPrintf(viewer," %g (%10.8e)\n",(double)sigma[nconv],(double)errest[nconv]);CHKERRQ(ierr);
     ierr = PetscViewerASCIISubtractTab(viewer,((PetscObject)svd)->tablevel);CHKERRQ(ierr);
+    ierr = PetscViewerPopFormat(viewer);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }
@@ -250,35 +262,34 @@ PetscErrorCode SVDMonitorFirst(SVD svd,PetscInt its,PetscInt nconv,PetscReal *si
 .  sigma  - singular values
 .  errest - error estimates
 .  nest   - number of error estimates to display
--  monctx - monitor context
-
-   Note:
-   The monitor context must contain a struct with a PetscViewer and a
-   PetscInt. In Fortran, pass a PETSC_NULL_OBJECT.
+-  ctx    - monitor context
 
    Level: intermediate
 
 .seealso: SVDMonitorSet(), SVDMonitorFirst(), SVDMonitorAll()
 @*/
-PetscErrorCode SVDMonitorConverged(SVD svd,PetscInt its,PetscInt nconv,PetscReal *sigma,PetscReal *errest,PetscInt nest,void *monctx)
+PetscErrorCode SVDMonitorConverged(SVD svd,PetscInt its,PetscInt nconv,PetscReal *sigma,PetscReal *errest,PetscInt nest,SlepcConvMonitor ctx)
 {
-  PetscErrorCode   ierr;
-  PetscInt         i;
-  PetscViewer      viewer;
-  SlepcConvMonitor ctx = (SlepcConvMonitor)monctx;
+  PetscErrorCode ierr;
+  PetscInt       i;
+  PetscViewer    viewer;
 
   PetscFunctionBegin;
-  if (!monctx) SETERRQ(PetscObjectComm((PetscObject)svd),PETSC_ERR_ARG_WRONG,"Must provide a context for SVDMonitorConverged");
+  PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
+  PetscValidPointer(ctx,7);
+  viewer = ctx->viewer;
+  PetscValidHeaderSpecific(viewer,PETSC_VIEWER_CLASSID,7);
   if (!its) {
     ctx->oldnconv = 0;
-  } else {
-    viewer = ctx->viewer? ctx->viewer: PETSC_VIEWER_STDOUT_(PetscObjectComm((PetscObject)svd));
+  } else if (ctx->oldnconv!=nconv) {
+    ierr = PetscViewerPushFormat(viewer,ctx->format);CHKERRQ(ierr);
+    ierr = PetscViewerASCIIAddTab(viewer,((PetscObject)svd)->tablevel);CHKERRQ(ierr);
     for (i=ctx->oldnconv;i<nconv;i++) {
-      ierr = PetscViewerASCIIAddTab(viewer,((PetscObject)svd)->tablevel);CHKERRQ(ierr);
       ierr = PetscViewerASCIIPrintf(viewer,"%3D SVD converged value (error) #%D",its,i);CHKERRQ(ierr);
       ierr = PetscViewerASCIIPrintf(viewer," %g (%10.8e)\n",(double)sigma[i],(double)errest[i]);CHKERRQ(ierr);
-      ierr = PetscViewerASCIISubtractTab(viewer,((PetscObject)svd)->tablevel);CHKERRQ(ierr);
     }
+    ierr = PetscViewerASCIISubtractTab(viewer,((PetscObject)svd)->tablevel);CHKERRQ(ierr);
+    ierr = PetscViewerPopFormat(viewer);CHKERRQ(ierr);
     ctx->oldnconv = nconv;
   }
   PetscFunctionReturn(0);

@@ -23,7 +23,7 @@
 ALL: lib
 CFLAGS   = -DSLEPC_LIB_DIR='"${SLEPC_DESTDIR}/lib"'
 FFLAGS   =
-SOURCEC  = zslepc_start.c zslepc_startf.c
+SOURCEC  = zslepcutil.c zslepc_start.c zslepc_startf.c
 SOURCEF  =
 SOURCEH  =
 DIRS     =

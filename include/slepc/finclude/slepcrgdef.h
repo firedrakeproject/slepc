@@ -20,14 +20,14 @@
 !  along with SLEPc. If not, see <http://www.gnu.org/licenses/>.
 !  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !
-#if !defined(__SLEPCRG_H)
-#define __SLEPCRG_H
+#if !defined(__SLEPCRGDEF_H)
+#define __SLEPCRGDEF_H
 
 #if !defined(PETSC_USE_FORTRAN_DATATYPES)
 #define RG PetscFortranAddr
 #endif
 
-#define RGType             character*(80)
+#define RGType      character*(80)
 
 #define RGNONE      'none'
 #define RGINTERVAL  'interval'

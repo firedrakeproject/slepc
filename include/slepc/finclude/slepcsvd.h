@@ -23,9 +23,6 @@
 !
 #include "slepc/finclude/slepcsvddef.h"
 
-!  Convergence flags.
-!  They sould match the flags in $SLEPC_DIR/include/slepcsvd.h
-
       PetscEnum SVD_CONVERGED_TOL
       PetscEnum SVD_CONVERGED_USER
       PetscEnum SVD_DIVERGED_ITS

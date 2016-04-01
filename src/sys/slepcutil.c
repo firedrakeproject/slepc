@@ -546,11 +546,56 @@ PetscErrorCode SlepcCheckOrthogonality(Vec *V,PetscInt nv,Vec *W,PetscInt nw,Mat
 }
 
 #undef __FUNCT__
+#define __FUNCT__ "SlepcConvMonitorCreate"
+/*@C
+   SlepcConvMonitorCreate - Creates a SlepcConvMonitor context.
+
+   Collective on PetscViewer
+
+   Input Parameters:
++  viewer - the viewer where the monitor must send data
+-  format - the format 
+
+   Output Parameter:
+.  ctx - the created context
+
+   Notes:
+   The created context is used for EPS, SVD, PEP, and NEP monitor functions that just
+   print the iteration numbers at which convergence takes place (XXXMonitorConverged).
+
+   This function increases the reference count of the viewer so you can destroy the
+   viewer object after this call.
+
+   Level: developer
+
+.seealso: SlepcConvMonitorDestroy()
+@*/
+PetscErrorCode SlepcConvMonitorCreate(PetscViewer viewer,PetscViewerFormat format,SlepcConvMonitor *ctx)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  ierr = PetscObjectReference((PetscObject)viewer);CHKERRQ(ierr);
+  ierr = PetscNew(ctx);CHKERRQ(ierr);
+  (*ctx)->viewer = viewer;
+  (*ctx)->format = format;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
 #define __FUNCT__ "SlepcConvMonitorDestroy"
-/*
-  Clean up context used in monitors of type XXXMonitorConverged.
-  This function is shared by EPS, SVD, PEP
-*/
+/*@C
+   SlepcConvMonitorDestroy - Destroys a SlepcConvMonitor context.
+
+   Collective on PetscViewer
+
+   Input Parameters:
+.  ctx - the SlepcConvMonitor context to be destroyed.
+
+   Level: developer
+
+.seealso: SlepcConvMonitorCreate()
+@*/
 PetscErrorCode SlepcConvMonitorDestroy(SlepcConvMonitor *ctx)
 {
   PetscErrorCode ierr;
