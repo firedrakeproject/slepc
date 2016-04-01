@@ -44,6 +44,7 @@ int main(int argc,char **argv)
   EPSConv            conv;
   EPSProblemType     ptype;
   PetscErrorCode     ierr;
+  PetscViewerAndFormat *vf;
 
   SlepcInitialize(&argc,&argv,(char*)0,help);
   ierr = PetscPrintf(PETSC_COMM_WORLD,"\nDiagonal Eigenproblem, n=%D\n\n",n);CHKERRQ(ierr);
@@ -111,7 +112,8 @@ int main(int argc,char **argv)
   ierr = EPSGetConvergenceTest(eps,&conv);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD," Convergence test = %d\n",(int)conv);CHKERRQ(ierr);
 
-  ierr = EPSMonitorSet(eps,EPSMonitorFirst,NULL,NULL);CHKERRQ(ierr);
+  ierr = PetscViewerAndFormatCreate(PETSC_VIEWER_STDOUT_WORLD,PETSC_VIEWER_DEFAULT,&vf);CHKERRQ(ierr);
+  ierr = EPSMonitorSet(eps,(PetscErrorCode (*)(EPS,PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscReal*,PetscInt,void*))EPSMonitorFirst,vf,(PetscErrorCode (*)(void**))PetscViewerAndFormatDestroy);CHKERRQ(ierr);
   ierr = EPSMonitorCancel(eps);CHKERRQ(ierr);
 
   ierr = EPSGetST(eps,&st);CHKERRQ(ierr);
