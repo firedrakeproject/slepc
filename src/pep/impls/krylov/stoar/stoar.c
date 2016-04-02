@@ -12,7 +12,7 @@
 
        [1] C. Campos and J.E. Roman, "Restarted Q-Arnoldi-type methods
            exploiting symmetry in quadratic eigenvalue problems", BIT
-           (in press), 2016.
+           Numer. Math. (in press), 2016.
 
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
@@ -37,6 +37,19 @@
 #include <slepc/private/pepimpl.h>         /*I "slepcpep.h" I*/
 #include "../src/pep/impls/krylov/pepkrylov.h"
 #include <slepcblaslapack.h>
+
+static PetscBool  cited = PETSC_FALSE;
+static const char citation[] =
+  "@Article{slepc-stoar,\n"
+  "   author = \"C. Campos and J. E. Roman\",\n"
+  "   title = \"Restarted {Q-Arnoldi-type} methods exploiting symmetry in quadratic eigenvalue problems\",\n"
+  "   journal = \"{BIT} Numer. Math.\",\n"
+  "   volume = \"to appear\",\n"
+  "   number = \"\",\n"
+  "   pages = \"\",\n"
+  "   year = \"2016,\"\n"
+  "   doi = \"http://dx.doi.org/10.1007/s10543-016-0601-5\"\n"
+  "}\n";
 
 #undef __FUNCT__
 #define __FUNCT__ "PEPSTOARNorm"
@@ -451,6 +464,7 @@ PetscErrorCode PEPSolve_STOAR(PEP pep)
   PetscBool      breakdown,symmlost=PETSC_FALSE,sinv;
 
   PetscFunctionBegin;
+  ierr = PetscCitationsRegister(citation,&cited);CHKERRQ(ierr);
   ierr = BVSetMatrix(pep->V,NULL,PETSC_FALSE);CHKERRQ(ierr);
   lwa = 9*ld*ld+5*ld;
   lrwa = 8*ld;

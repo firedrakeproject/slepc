@@ -14,7 +14,8 @@
            polynomial eigenvalue problems", talk presented at RANMEP 2008.
 
        [2] C. Campos and J.E. Roman, "Parallel Krylov solvers for the
-           polynomial eigenvalue problem in SLEPc", submitted, 2015.
+           polynomial eigenvalue problem in SLEPc", SIAM J. Sci. Comput.
+           to appear, 2016.
 
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
@@ -39,6 +40,19 @@
 #include <slepc/private/pepimpl.h>    /*I "slepcpep.h" I*/
 #include "../src/pep/impls/krylov/pepkrylov.h"
 #include <slepcblaslapack.h>
+
+static PetscBool  cited = PETSC_FALSE;
+static const char citation[] =
+  "@Article{slepc-pep,\n"
+  "   author = \"C. Campos and J. E. Roman\",\n"
+  "   title = \"Parallel {Krylov} solvers for the polynomial eigenvalue problem in {SLEPc}\",\n"
+  "   journal = \"{SIAM} J. Sci. Comput.\",\n"
+  "   volume = \"to appear\",\n"
+  "   number = \"\",\n"
+  "   pages = \"\",\n"
+  "   year = \"2016,\"\n"
+  "   doi = \"http://dx.doi.org/10.xxxx/yyyy\"\n"
+  "}\n";
 
 #undef __FUNCT__
 #define __FUNCT__ "PEPTOARSNorm2"
@@ -795,6 +809,7 @@ PetscErrorCode PEPSolve_TOAR(PEP pep)
   PetscBool      breakdown=PETSC_FALSE,flg,falselock=PETSC_FALSE,def=PETSC_FALSE,sinv;
 
   PetscFunctionBegin;
+  ierr = PetscCitationsRegister(citation,&cited);CHKERRQ(ierr);
   if (ctx->lock) {
     ierr = PetscOptionsGetBool(NULL,NULL,"-pep_toar_falselocking",&falselock,NULL);CHKERRQ(ierr);
     ierr = PetscOptionsGetBool(NULL,NULL,"-pep_toar_lockdeflated",&def,NULL);CHKERRQ(ierr);

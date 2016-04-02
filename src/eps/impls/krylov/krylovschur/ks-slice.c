@@ -37,6 +37,19 @@
 #include <slepc/private/epsimpl.h>
 #include "krylovschur.h"
 
+static PetscBool  cited = PETSC_FALSE;
+static const char citation[] =
+  "@Article{slepc-slice,\n"
+  "   author = \"C. Campos and J. E. Roman\",\n"
+  "   title = \"Strategies for spectrum slicing based on restarted {Lanczos} methods\",\n"
+  "   journal = \"Numer. Algorithms\",\n"
+  "   volume = \"60\",\n"
+  "   number = \"2\",\n"
+  "   pages = \"279--295\",\n"
+  "   year = \"2012,\"\n"
+  "   doi = \"http://dx.doi.org/10.1007/s11075-012-9564-z\"\n"
+  "}\n";
+
 #define SLICE_PTOL PETSC_SQRT_MACHINE_EPSILON
 
 #undef __FUNCT__
@@ -1289,6 +1302,7 @@ PetscErrorCode EPSSolve_KrylovSchur_Slice(EPS eps)
   EPS_SR          sr=ctx->sr;
 
   PetscFunctionBegin;
+  ierr = PetscCitationsRegister(citation,&cited);CHKERRQ(ierr);
   if (ctx->global) {
     ierr = EPSSolve_KrylovSchur_Slice(ctx->eps);CHKERRQ(ierr);
     ctx->eps->state = EPS_STATE_SOLVED;

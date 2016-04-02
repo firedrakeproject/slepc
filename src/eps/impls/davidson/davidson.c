@@ -23,6 +23,19 @@
 
 #include "davidson.h"
 
+static PetscBool  cited = PETSC_FALSE;
+static const char citation[] =
+  "@Article{slepc-davidson,\n"
+  "   author = \"E. Romero and J. E. Roman\",\n"
+  "   title = \"A parallel implementation of {Davidson} methods for large-scale eigenvalue problems in {SLEPc}\",\n"
+  "   journal = \"{ACM} Trans. Math. Software\",\n"
+  "   volume = \"40\",\n"
+  "   number = \"2\",\n"
+  "   pages = \"13:1--13:29\",\n"
+  "   year = \"2014,\"\n"
+  "   doi = \"http://dx.doi.org/10.1145/2543696\"\n"
+  "}\n";
+
 PetscErrorCode EPSView_XD(EPS eps,PetscViewer viewer);
 
 typedef struct {
@@ -267,6 +280,7 @@ PetscErrorCode EPSSolve_XD(EPS eps)
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
+  ierr = PetscCitationsRegister(citation,&cited);CHKERRQ(ierr);
   /* Call the starting routines */
   ierr = EPSDavidsonFLCall(d->startList,d);CHKERRQ(ierr);
 

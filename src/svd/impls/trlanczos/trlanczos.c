@@ -41,6 +41,17 @@
 
 #include <slepc/private/svdimpl.h>          /*I "slepcsvd.h" I*/
 
+static PetscBool  cited = PETSC_FALSE;
+static const char citation[] =
+  "@Article{slepc-svd,\n"
+  "   author = \"V. Hern{\\'a}ndez and J. E. Rom{\\'a}n and A. Tom{\\'a}s\",\n"
+  "   title = \"A robust and efficient parallel {SVD} solver based on restarted {Lanczos} bidiagonalization\",\n"
+  "   journal = \"Electron. Trans. Numer. Anal.\",\n"
+  "   volume = \"31\",\n"
+  "   pages = \"68--85\",\n"
+  "   year = \"2008\"\n"
+  "}\n";
+
 typedef struct {
   PetscBool oneside;
 } SVD_TRLANCZOS;
@@ -279,6 +290,7 @@ PetscErrorCode SVDSolve_TRLanczos(SVD svd)
   BVOrthogType   orthog;
 
   PetscFunctionBegin;
+  ierr = PetscCitationsRegister(citation,&cited);CHKERRQ(ierr);
   /* allocate working space */
   ierr = DSGetLeadingDimension(svd->ds,&ld);CHKERRQ(ierr);
   ierr = BVGetOrthogonalization(svd->V,&orthog,NULL,NULL,NULL);CHKERRQ(ierr);
