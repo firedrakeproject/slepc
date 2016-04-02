@@ -343,10 +343,12 @@ PetscErrorCode BVScale(BV bv,PetscScalar alpha)
   PetscValidLogicalCollectiveScalar(bv,alpha,2);
   PetscValidType(bv,1);
   BVCheckSizes(bv,1);
-  if (!bv->n || alpha == (PetscScalar)1.0) PetscFunctionReturn(0);
+  if (alpha == (PetscScalar)1.0) PetscFunctionReturn(0);
 
   ierr = PetscLogEventBegin(BV_Scale,bv,0,0,0);CHKERRQ(ierr);
-  ierr = (*bv->ops->scale)(bv,-1,alpha);CHKERRQ(ierr);
+  if (bv->n) {
+    ierr = (*bv->ops->scale)(bv,-1,alpha);CHKERRQ(ierr);
+  }
   ierr = PetscLogEventEnd(BV_Scale,bv,0,0,0);CHKERRQ(ierr);
   ierr = PetscObjectStateIncrease((PetscObject)bv);CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -380,10 +382,12 @@ PetscErrorCode BVScaleColumn(BV bv,PetscInt j,PetscScalar alpha)
   BVCheckSizes(bv,1);
 
   if (j<0 || j>=bv->m) SETERRQ2(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_OUTOFRANGE,"Argument j has wrong value %D, the number of columns is %D",j,bv->m);
-  if (!bv->n || alpha == (PetscScalar)1.0) PetscFunctionReturn(0);
+  if (alpha == (PetscScalar)1.0) PetscFunctionReturn(0);
 
   ierr = PetscLogEventBegin(BV_Scale,bv,0,0,0);CHKERRQ(ierr);
-  ierr = (*bv->ops->scale)(bv,j,alpha);CHKERRQ(ierr);
+  if (bv->n) {
+    ierr = (*bv->ops->scale)(bv,j,alpha);CHKERRQ(ierr);
+  }
   ierr = PetscLogEventEnd(BV_Scale,bv,0,0,0);CHKERRQ(ierr);
   ierr = PetscObjectStateIncrease((PetscObject)bv);CHKERRQ(ierr);
   PetscFunctionReturn(0);
