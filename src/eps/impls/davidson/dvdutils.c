@@ -593,36 +593,3 @@ PetscErrorCode dvd_harm_conf(dvdDashboard *d,dvdBlackboard *b,HarmType_t mode,Pe
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "BVMultS"
-/*
-   H = [H              Y(old)'*X(new);
-        Y(new)'*X(old) Y(new)'*X(new) ],
-     being old=0:l-1, new=l:k-1
- */
-PetscErrorCode BVMultS(BV X,BV Y,PetscScalar *H,PetscInt ldh)
-{
-  PetscErrorCode ierr;
-  PetscInt       j,lx,ly,kx,ky;
-  PetscScalar    *array;
-  Mat            M;
-
-  PetscFunctionBegin;
-  ierr = BVGetActiveColumns(X,&lx,&kx);CHKERRQ(ierr);
-  ierr = BVGetActiveColumns(Y,&ly,&ky);CHKERRQ(ierr);
-  ierr = MatCreateSeqDense(PETSC_COMM_SELF,ky,kx,NULL,&M);CHKERRQ(ierr);
-  ierr = BVMatProject(X,NULL,Y,M);CHKERRQ(ierr);
-  ierr = MatDenseGetArray(M,&array);CHKERRQ(ierr);
-  /* upper part */
-  for (j=lx;j<kx;j++) {
-    ierr = PetscMemcpy(&H[ldh*j],&array[j*ky],ly*sizeof(PetscScalar));CHKERRQ(ierr);
-  }
-  /* lower part */
-  for (j=0;j<kx;j++) {
-    ierr = PetscMemcpy(&H[ldh*j+ly],&array[j*ky+ly],(ky-ly)*sizeof(PetscScalar));CHKERRQ(ierr);
-  }
-  ierr = MatDenseRestoreArray(M,&array);CHKERRQ(ierr);
-  ierr = MatDestroy(&M);CHKERRQ(ierr);
-  PetscFunctionReturn(0);
-}
-
