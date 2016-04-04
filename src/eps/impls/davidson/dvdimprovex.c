@@ -1239,3 +1239,46 @@ PetscErrorCode dvd_improvex_jd_proj_uv(dvdDashboard *d,dvdBlackboard *b,ProjType
   PetscFunctionReturn(0);
 }
 
+#undef __FUNCT__
+#define __FUNCT__ "dvd_improvex_compute_X"
+PetscErrorCode dvd_improvex_compute_X(dvdDashboard *d,PetscInt i_s,PetscInt i_e,Vec *u_,PetscScalar *pX,PetscInt ld)
+{
+  PetscErrorCode ierr;
+  PetscInt       n = i_e - i_s,i;
+  Vec            *u;
+
+  PetscFunctionBegin;
+  if (u_) u = u_;
+  else if (d->correctXnorm) {
+    ierr = SlepcVecPoolGetVecs(d->auxV,i_e-i_s,&u);CHKERRQ(ierr);
+  }
+  if (u_ || d->correctXnorm) {
+    for (i=0; i<n; i++) {
+      ierr = BVMultVec(d->eps->V,1.0,0.0,u[i],&pX[ld*(i+i_s)]);CHKERRQ(ierr);
+    }
+  }
+  /* nX(i) <- ||X(i)|| */
+  if (d->correctXnorm) {
+    for (i=0; i<n; i++) {
+      ierr = VecNormBegin(u[i],NORM_2,&d->nX[i_s+i]);CHKERRQ(ierr);
+    }
+    for (i=0; i<n; i++) {
+      ierr = VecNormEnd(u[i],NORM_2,&d->nX[i_s+i]);CHKERRQ(ierr);
+    }
+#if !defined(PETSC_USE_COMPLEX)
+    for (i=0;i<n;i++) {
+      if (d->eigi[i_s+i] != 0.0) {
+        d->nX[i_s+i] = d->nX[i_s+i+1] = PetscSqrtScalar(d->nX[i_s+i]*d->nX[i_s+i]+d->nX[i_s+i+1]*d->nX[i_s+i+1]);
+        i++;
+      }
+    }
+#endif
+  } else {
+    for (i=0;i<n;i++) d->nX[i_s+i] = 1.0;
+  }
+  if (d->correctXnorm && !u_) {
+    ierr = SlepcVecPoolRestoreVecs(d->auxV,i_e-i_s,&u);CHKERRQ(ierr);
+  }
+  PetscFunctionReturn(0);
+}
+
