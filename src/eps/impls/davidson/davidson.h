@@ -168,8 +168,6 @@ typedef struct _dvdDashboard {
   PetscInt  V_new_e;           /* added to V the columns V_new_s:V_new_e */
   PetscBool BV_shift;          /* if true BV is shifted when vectors converge */
   PetscBool W_shift;           /* if true W is shifted when vectors converge */
-
-  void* prof_data;             /* profiler data */
 } dvdDashboard;
 
 #undef __FUNCT__
