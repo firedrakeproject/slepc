@@ -181,7 +181,7 @@ static PetscErrorCode PEPQArnoldi(PEP pep,PetscScalar *H,PetscInt ldh,PetscInt k
   PetscInt           i,j,l,m = *M;
   Vec                t = pep->work[2],u = pep->work[3];
   BVOrthogRefineType refinement;
-  PetscReal          norm,onorm,eta;
+  PetscReal          norm=0.0,onorm,eta;
   PetscScalar        *c = work + m;
 
   PetscFunctionBegin;

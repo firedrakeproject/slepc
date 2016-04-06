@@ -245,7 +245,7 @@ static PetscErrorCode PEPSTOARrun(PEP pep,PetscReal *a,PetscReal *b,PetscReal *o
 {
   PetscErrorCode ierr;
   PEP_TOAR       *ctx = (PEP_TOAR*)pep->data;
-  PetscInt       i,j,m=*M,nwu=0,l;
+  PetscInt       i,j,m=*M,l;
   PetscInt       lds=ctx->d*ctx->ld,offq=ctx->ld;
   Vec            v=t_[0],t=t_[1],q=t_[2];
   PetscReal      norm,sym=0.0,fro=0.0,*f;
@@ -257,7 +257,6 @@ static PetscErrorCode PEPSTOARrun(PEP pep,PetscReal *a,PetscReal *b,PetscReal *o
   *breakdown = PETSC_FALSE; /* ----- */
   ierr = DSGetDimensions(pep->ds,NULL,NULL,&l,NULL,NULL);CHKERRQ(ierr);
   y = work;
-  nwu += ctx->ld;
   for (j=k;j<m;j++) {
     /* apply operator */
     ierr = BVSetActiveColumns(pep->V,0,j+2);CHKERRQ(ierr);
@@ -480,7 +479,6 @@ PetscErrorCode PEPSolve_STOAR(PEP pep)
     pep->its++;
     ierr = DSGetArrayReal(pep->ds,DS_MAT_T,&a);CHKERRQ(ierr);
     b = a+ldds;
-    r = b+ldds;
     ierr = DSGetArrayReal(pep->ds,DS_MAT_D,&omega);CHKERRQ(ierr);
 
     /* Compute an nv-step Lanczos factorization */

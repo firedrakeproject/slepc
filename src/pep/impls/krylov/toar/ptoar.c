@@ -158,7 +158,7 @@ static PetscErrorCode PEPTOAROrth2(PEP pep,PetscScalar *S,PetscInt ld,PetscInt d
   PetscErrorCode ierr;
   PetscBLASInt   n_,lds_,k_,one=1;
   PetscScalar    sonem=-1.0,sone=1.0,szero=0.0,*x0,*x,*c;
-  PetscInt       nwu=0,i,lds=deg*ld,n;
+  PetscInt       i,lds=deg*ld,n;
   PetscReal      eta,onorm;
 
   PetscFunctionBegin;
@@ -167,8 +167,7 @@ static PetscErrorCode PEPTOAROrth2(PEP pep,PetscScalar *S,PetscInt ld,PetscInt d
   ierr = PetscBLASIntCast(n,&n_);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(deg*ld,&lds_);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(k,&k_);CHKERRQ(ierr); /* number of vectors to orthogonalize against them */
-  c = work+nwu;
-  nwu += k;
+  c = work;
   x0 = S+k*lds;
   PetscStackCallBLAS("BLASgemv",BLASgemv_("C",&n_,&k_,&sone,S,&lds_,x0,&one,&szero,y,&one));
   for (i=1;i<deg;i++) {
@@ -806,7 +805,7 @@ PetscErrorCode PEPSolve_TOAR(PEP pep)
   PetscInt       lwa,lrwa,nwu=0,nrwu=0,nmat=pep->nmat,deg=nmat-1;
   PetscScalar    *S,*Q,*work,*H,sigma;
   PetscReal      beta,*rwork;
-  PetscBool      breakdown=PETSC_FALSE,flg,falselock=PETSC_FALSE,def=PETSC_FALSE,sinv;
+  PetscBool      breakdown=PETSC_FALSE,flg,falselock=PETSC_FALSE,def=PETSC_FALSE,sinv=PETSC_FALSE;
 
   PetscFunctionBegin;
   ierr = PetscCitationsRegister(citation,&cited);CHKERRQ(ierr);

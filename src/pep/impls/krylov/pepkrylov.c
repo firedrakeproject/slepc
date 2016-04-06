@@ -141,7 +141,6 @@ PetscErrorCode PEPExtractVectors_TOAR(PEP pep)
 #endif
         t = 0.0;
         ierr = PEPEvaluateBasis(pep,er[i],ei[i],vals,ivals);CHKERRQ(ierr);
-        yr = X+i*ldds; yi = NULL;
         for (j=0;j<deg;j++) {
           alpha = PetscConj(vals[j]);
 #if !defined(PETSC_USE_COMPLEX)
@@ -166,7 +165,7 @@ PetscErrorCode PEPExtractVectors_TOAR(PEP pep)
         }
         t = 1.0/t;
         PetscStackCallBLAS("BLASscal",BLASscal_(&k_,&t,SS+i*k,&one));
-        if (yi) {
+        if (ei[i]!=0.0) {
           PetscStackCallBLAS("BLASscal",BLASscal_(&k_,&t,SS+(i+1)*k,&one));
           i++;
         }

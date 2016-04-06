@@ -286,8 +286,6 @@ static PetscErrorCode VecCreate_Comp_Private(Vec v,Vec *x,PetscInt nx,PetscBool 
     n->lN = lN;
     n->friends = 1;
   } else { /* If not, check in the vector in the shared structure */
-    N = n->N;
-    lN = n->lN;
     s->n = n;
     s->n->friends++;
   }
@@ -630,10 +628,13 @@ PetscErrorCode VecMax_Comp(Vec v,PetscInt *idx,PetscReal *z)
 
   if (vs->n->n > 0) {
     ierr = VecMax(vs->x[0],idx?&idxp:NULL,&zp);CHKERRQ(ierr);
+  } else {
+    zp = PETSC_MIN_REAL;
+    if (idx) idxp = -1;
   }
   for (i=1;i<vs->n->n;i++) {
     ierr = VecGetSize(vs->x[i-1],&s0);CHKERRQ(ierr);
-    s+= s0;
+    s += s0;
     ierr = VecMax(vs->x[i],idx?&idxp:NULL,&z0);CHKERRQ(ierr);
     if (zp < z0) {
       if (idx) *idx = s+idxp;
@@ -660,10 +661,13 @@ PetscErrorCode VecMin_Comp(Vec v,PetscInt *idx,PetscReal *z)
 
   if (vs->n->n > 0) {
     ierr = VecMin(vs->x[0],idx?&idxp:NULL,&zp);CHKERRQ(ierr);
+  } else {
+    zp = PETSC_MAX_REAL;
+    if (idx) idxp = -1;
   }
   for (i=1;i<vs->n->n;i++) {
     ierr = VecGetSize(vs->x[i-1],&s0);CHKERRQ(ierr);
-    s+= s0;
+    s += s0;
     ierr = VecMin(vs->x[i],idx?&idxp:NULL,&z0);CHKERRQ(ierr);
     if (zp > z0) {
       if (idx) *idx = s+idxp;
