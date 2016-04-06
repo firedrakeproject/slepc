@@ -140,7 +140,7 @@ static PetscErrorCode TridiagDiag_HHR(PetscInt n,PetscScalar *A,PetscInt lda,Pet
 #else
   PetscErrorCode ierr;
   PetscInt       i,j,k,*ii,*jj,i0=0,ik=0,tmp,type;
-  PetscInt       nwu=0,nwui=0;
+  PetscInt       nwu=0;
   PetscReal      *ss,cond=1.0,cs,sn,r;
   PetscScalar    tau,t,*AA;
   PetscBLASInt   n0,n1,ni,inc=1,m,n_,lda_,ldq_,*perm;
@@ -160,7 +160,6 @@ static PetscErrorCode TridiagDiag_HHR(PetscInt n,PetscScalar *A,PetscInt lda,Pet
   ierr = PetscBLASIntCast(ldq,&ldq_);CHKERRQ(ierr);
   ss = rwork;
   perm = iwork;
-  nwui += n;
   AA = work;
   for (i=0;i<n;i++) {
     ierr = PetscMemcpy(AA+i*n,A+i*lda,n*sizeof(PetscScalar));CHKERRQ(ierr);
@@ -591,10 +590,8 @@ static PetscErrorCode PseudoOrthog_HR(PetscInt *nv,PetscScalar *V,PetscInt ldv,P
   for (i=0;i<n;i++) perm[i] = i;
   j = 0;
   while (j<n-k) {
-    if (cmplxEig) {
-      if (cmplxEig[j]==0) sz=1;
-      else sz=2;
-    }
+    if (cmplxEig[j]==0) sz=1;
+    else sz=2;
     ierr = TryHRIt(n,j,sz,V,ldv,R,ldr,s,&exg,&ok,&n0,&n1,&idx0,&idx1,NULL,work+nwu);CHKERRQ(ierr);
     if (ok) {
       if (exg) cmplxEig[j] = -cmplxEig[j];

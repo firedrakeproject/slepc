@@ -192,9 +192,7 @@ static PetscErrorCode PEPTOAROrth2(PEP pep,PetscScalar *S,PetscInt ld,PetscInt d
   for (i=0;i<k;i++) y[i] += c[i];
   if (norm) {
     ierr = PEPTOARSNorm2(lds,S+k*lds,norm);CHKERRQ(ierr);
-  }
-  if (lindep) {
-    *lindep = (*norm < eta * onorm)?PETSC_TRUE:PETSC_FALSE;
+    if (lindep) *lindep = (*norm < eta * onorm)?PETSC_TRUE:PETSC_FALSE;
   }
   PetscFunctionReturn(0);
 }

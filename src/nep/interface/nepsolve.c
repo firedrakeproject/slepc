@@ -97,7 +97,7 @@ PetscErrorCode NEPSolve(NEP nep)
 
   if (nep->refine==NEP_REFINE_SIMPLE && nep->rits>0 && nep->nconv>0) {
     ierr = NEPComputeVectors(nep);CHKERRQ(ierr);
-    ierr = NEPNewtonRefinementSimple(nep,&nep->rits,&nep->reftol,nep->nconv);CHKERRQ(ierr);
+    ierr = NEPNewtonRefinementSimple(nep,&nep->rits,nep->reftol,nep->nconv);CHKERRQ(ierr);
     nep->state = NEP_STATE_EIGENVECTORS;
   }
 

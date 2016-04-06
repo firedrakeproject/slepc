@@ -390,7 +390,7 @@ static PetscErrorCode PEPSimpleNRefSetUpSystem(PEP pep,Mat *A,PEPSimpNRefctx *ct
 
 #undef __FUNCT__
 #define __FUNCT__ "PEPNewtonRefinementSimple"
-PetscErrorCode PEPNewtonRefinementSimple(PEP pep,PetscInt *maxits,PetscReal *tol,PetscInt k)
+PetscErrorCode PEPNewtonRefinementSimple(PEP pep,PetscInt *maxits,PetscReal tol,PetscInt k)
 {
   PetscErrorCode     ierr;
   PetscInt           i,n,its,idx=0,*idx_sc,*its_sc,color,*fail_sc;
@@ -444,10 +444,10 @@ PetscErrorCode PEPNewtonRefinementSimple(PEP pep,PetscInt *maxits,PetscReal *tol
         ierr = PEPSimpleNRefGatherEigenpair(pep,ctx,i,idx_sc[i],&fail_sc[i]);CHKERRQ(ierr);
       }
       while (sc_pend) {
-        if (tol&&!fail_sc[i]) {
+        if (!fail_sc[i]) {
           ierr = PEPComputeError(pep,idx_sc[i],PEP_ERROR_BACKWARD,&error);CHKERRQ(ierr);
         }
-        if (error<=*tol || its_sc[i]>=its || fail_sc[i]) {
+        if (error<=tol || its_sc[i]>=its || fail_sc[i]) {
           idx_sc[i] = idx++;
           its_sc[i] = 0;
           if (idx_sc[i]<k) { ierr = PEPSimpleNRefScatterEigenvector(pep,ctx,i,idx_sc[i]);CHKERRQ(ierr); }

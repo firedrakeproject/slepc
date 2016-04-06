@@ -138,7 +138,7 @@ PetscErrorCode EPSSolve(EPS eps)
 
   /* In the case of Cayley transform, eigenvectors need to be B-normalized */
   ierr = PetscObjectTypeCompare((PetscObject)eps->st,STCAYLEY,&iscayley);CHKERRQ(ierr);
-  if (iscayley && eps->isgeneralized && eps->ishermitian) {
+  if (iscayley && nmat>1 && eps->ishermitian) {
     ierr = MatCreateVecs(B,NULL,&w);CHKERRQ(ierr);
     ierr = EPSComputeVectors(eps);CHKERRQ(ierr);
     for (i=0;i<eps->nconv;i++) {
@@ -572,7 +572,7 @@ PetscErrorCode EPSComputeResidualNorm_Private(EPS eps,PetscScalar kr,PetscScalar
 #endif
     ierr = MatMult(A,xr,u);CHKERRQ(ierr);                             /* u=A*x */
     if (PetscAbsScalar(kr) > PETSC_MACHINE_EPSILON) {
-      if (eps->isgeneralized) { ierr = MatMult(B,xr,w);CHKERRQ(ierr); }
+      if (nmat>1) { ierr = MatMult(B,xr,w);CHKERRQ(ierr); }
       else { ierr = VecCopy(xr,w);CHKERRQ(ierr); }                    /* w=B*x */
       ierr = VecAXPY(u,-kr,w);CHKERRQ(ierr);                          /* u=A*x-k*B*x */
     }
@@ -581,10 +581,10 @@ PetscErrorCode EPSComputeResidualNorm_Private(EPS eps,PetscScalar kr,PetscScalar
   } else {
     ierr = MatMult(A,xr,u);CHKERRQ(ierr);                             /* u=A*xr */
     if (SlepcAbsEigenvalue(kr,ki) > PETSC_MACHINE_EPSILON) {
-      if (eps->isgeneralized) { ierr = MatMult(B,xr,v);CHKERRQ(ierr); }
+      if (nmat>1) { ierr = MatMult(B,xr,v);CHKERRQ(ierr); }
       else { ierr = VecCopy(xr,v);CHKERRQ(ierr); }                    /* v=B*xr */
       ierr = VecAXPY(u,-kr,v);CHKERRQ(ierr);                          /* u=A*xr-kr*B*xr */
-      if (eps->isgeneralized) { ierr = MatMult(B,xi,w);CHKERRQ(ierr); }
+      if (nmat>1) { ierr = MatMult(B,xi,w);CHKERRQ(ierr); }
       else { ierr = VecCopy(xi,w);CHKERRQ(ierr); }                    /* w=B*xi */
       ierr = VecAXPY(u,ki,w);CHKERRQ(ierr);                           /* u=A*xr-kr*B*xr+ki*B*xi */
     }
