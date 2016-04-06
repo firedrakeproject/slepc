@@ -109,20 +109,17 @@ static PetscErrorCode PEPSimpleNRefSetUp(PEP pep,PEPSimpNRefctx **ctx_)
     ierr = MPI_Comm_rank(PetscObjectComm((PetscObject)ctx->A[0]),&rank);CHKERRQ(ierr);
     ierr = MPI_Comm_size(PetscObjectComm((PetscObject)ctx->A[0]),&size);CHKERRQ(ierr);
     if (size>1) {
-      if (pep->npart==1){
+      if (pep->npart==1) {
         ierr = BVGetColumn(pep->V,0,&v);CHKERRQ(ierr);
-      } else {v = ctx->v;}
+      } else v = ctx->v;
       ierr = VecGetOwnershipRange(v,&n0,&m0);CHKERRQ(ierr);
       ne = (rank == size-1)?pep->n:0;
       ierr = VecCreateMPI(PetscObjectComm((PetscObject)ctx->A[0]),ne,PETSC_DECIDE,&ctx->nv);CHKERRQ(ierr);
       ierr = PetscMalloc1(m0-n0,&idx1);CHKERRQ(ierr);
-      j = 0;
-      for (i=n0;i<m0;i++) {
-        idx1[i-n0] = i;
-      }
+      for (i=n0;i<m0;i++) idx1[i-n0] = i;
       ierr = ISCreateGeneral(PetscObjectComm((PetscObject)pep),(m0-n0),idx1,PETSC_COPY_VALUES,&is1);CHKERRQ(ierr);
       ierr = VecScatterCreate(v,is1,ctx->nv,is1,&ctx->nst);CHKERRQ(ierr);
-      if (pep->npart==1){
+      if (pep->npart==1) {
         ierr = BVRestoreColumn(pep->V,0,&v);CHKERRQ(ierr);
       }
       ierr = PetscFree(idx1);CHKERRQ(ierr);
@@ -486,10 +483,10 @@ PetscErrorCode PEPNewtonRefinementSimple(PEP pep,PetscInt *maxits,PetscReal *tol
         ierr = MatMult(Mt,v,r);CHKERRQ(ierr);
         ierr = VecGetArrayRead(r,&array);CHKERRQ(ierr);
         if (rank==size-1) {
-          ierr = VecGetArray(rr,&array2);
+          ierr = VecGetArray(rr,&array2);CHKERRQ(ierr);
           ierr = PetscMemcpy(array2,array,n*sizeof(PetscScalar));CHKERRQ(ierr);
           array2[n] = 0.0;
-          ierr = VecRestoreArray(rr,&array2);
+          ierr = VecRestoreArray(rr,&array2);CHKERRQ(ierr);
         } else {
           ierr = VecPlaceArray(rr,array);CHKERRQ(ierr);
         }

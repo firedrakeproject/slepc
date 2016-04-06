@@ -125,7 +125,6 @@ static PetscErrorCode NEPSimpleNRefSetUp(NEP nep,NEPSimpNRefctx **ctx_)
       ne = (rank == size-1)?nep->n:0;
       ierr = VecCreateMPI(PetscObjectComm((PetscObject)ctx->A[0]),ne,PETSC_DECIDE,&ctx->nv);CHKERRQ(ierr);
       ierr = PetscMalloc1(m0-n0,&idx1);CHKERRQ(ierr);
-      j = 0;
       for (i=n0;i<m0;i++) {
         idx1[i-n0] = i;
       }
@@ -483,7 +482,7 @@ PetscErrorCode NEPNewtonRefinementSimple(NEP nep,PetscInt *maxits,PetscReal *tol
         ierr = MatMult(Mt,v,r);CHKERRQ(ierr);
         ierr = VecGetArrayRead(r,&array);CHKERRQ(ierr);
         if (rank==size-1) {
-          ierr = VecGetArray(rr,&array2);
+          ierr = VecGetArray(rr,&array2);CHKERRQ(ierr);
           ierr = PetscMemcpy(array2,array,n*sizeof(PetscScalar));CHKERRQ(ierr);
           array2[n] = 0.0;
           ierr = VecRestoreArray(rr,&array2);CHKERRQ(ierr);

@@ -454,8 +454,8 @@ PetscErrorCode EPSSetUp_KrylovSchur_Slice(EPS eps)
           ierr = MPI_Isend(&(sr->int0),1,MPIU_REAL,ctx->subc->color-sr->dir,0,ctx->commrank,&req);CHKERRQ(ierr);
         }
         if ((sr->dir>0 && ctx->subc->color<ctx->npart-1)|| (sr->dir<0 && ctx->subc->color>0)) { /* receive inertia1 from neighbour1 */
-          ierr = MPI_Recv(&(sr->inertia1),1,MPIU_INT,ctx->subc->color+sr->dir,0,ctx->commrank,MPI_STATUS_IGNORE);
-          ierr = MPI_Recv(&(sr->int1),1,MPIU_REAL,ctx->subc->color+sr->dir,0,ctx->commrank,MPI_STATUS_IGNORE);
+          ierr = MPI_Recv(&(sr->inertia1),1,MPIU_INT,ctx->subc->color+sr->dir,0,ctx->commrank,MPI_STATUS_IGNORE);CHKERRQ(ierr);
+          ierr = MPI_Recv(&(sr->int1),1,MPIU_REAL,ctx->subc->color+sr->dir,0,ctx->commrank,MPI_STATUS_IGNORE);CHKERRQ(ierr);
         }
       }
       if ((sr->dir>0 && ctx->subc->color<ctx->npart-1)||(sr->dir<0 && ctx->subc->color>0)) {
@@ -821,7 +821,7 @@ static PetscErrorCode EPSExtractShift(EPS eps)
       newShift = sPres->value*(1.0+SLICE_PTOL);
       if (sr->dir*(sPres->neighb[0] && newShift-sPres->neighb[0]->value) < 0) newShift = (sPres->value+sPres->neighb[0]->value)/2;
       else if (sPres->neighb[1] && sr->dir*(sPres->neighb[1]->value-newShift) < 0) newShift = (sPres->value+sPres->neighb[1]->value)/2;
-      ierr = EPSSliceGetInertia(eps,newShift,&iner,&zeros);
+      ierr = EPSSliceGetInertia(eps,newShift,&iner,&zeros);CHKERRQ(ierr);
       if (zeros) SETERRQ1(((PetscObject)eps)->comm,PETSC_ERR_CONV_FAILED,"Inertia computation fails in %g",newShift);
       sPres->value = newShift;
     }

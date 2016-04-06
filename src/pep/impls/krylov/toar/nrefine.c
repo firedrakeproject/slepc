@@ -319,13 +319,13 @@ static PetscErrorCode NRefRightSide(PetscInt nmat,PetscReal *pcf,Mat *A,PetscInt
     ierr = BVGetColumn(W,i,&w);CHKERRQ(ierr);
     ierr = MatMult(A[i],w,t);CHKERRQ(ierr);
     ierr = BVRestoreColumn(W,i,&w);CHKERRQ(ierr);
-    ierr = VecAXPY(Rv,1.0,t);
+    ierr = VecAXPY(Rv,1.0,t);CHKERRQ(ierr);
   }
   /* Update right-hand side */
   if (j) {
     ierr = PetscBLASIntCast(ldh,&ldh_);CHKERRQ(ierr);
-    ierr = PetscMemzero(Z,k*k*sizeof(PetscScalar));
-    ierr = PetscMemzero(DS0,k*k*sizeof(PetscScalar));
+    ierr = PetscMemzero(Z,k*k*sizeof(PetscScalar));CHKERRQ(ierr);
+    ierr = PetscMemzero(DS0,k*k*sizeof(PetscScalar));CHKERRQ(ierr);
     ierr = PetscMemcpy(Z+(j-1)*k,dH+(j-1)*k,k*sizeof(PetscScalar));CHKERRQ(ierr);
     /* Update DfH */
     for (i=1;i<nmat;i++) {
@@ -352,7 +352,7 @@ static PetscErrorCode NRefRightSide(PetscInt nmat,PetscReal *pcf,Mat *A,PetscInt
     ierr = PetscBLASIntCast(j,&j_);CHKERRQ(ierr);
     ierr = PetscBLASIntCast(k+rds,&krds_);CHKERRQ(ierr);
     c0 = DS0;
-    ierr = PetscMemzero(Rh,k*sizeof(PetscScalar));
+    ierr = PetscMemzero(Rh,k*sizeof(PetscScalar));CHKERRQ(ierr);
     for (i=0;i<nmat;i++) {
       PetscStackCallBLAS("BLASgemv",BLASgemv_("N",&krds_,&j_,&sone,dVS,&k2_,fH+j*lda+i*k,&one,&zero,h,&one));
       PetscStackCallBLAS("BLASgemv",BLASgemv_("N",&k_,&k_,&sone,S,&lds_,DfH+i*k+j*lda,&one,&sone,h,&one));
@@ -671,7 +671,7 @@ static PetscErrorCode NRefSysSetup_explicit(PEP pep,PetscInt k,KSP ksp,PetscScal
   for (i=0;i<k;i++) {
     ierr = BVGetColumn(W,i,&vc);CHKERRQ(ierr);
     ierr = VecConjugate(vc);CHKERRQ(ierr);
-    ierr = VecGetArrayRead(vc,&carray);
+    ierr = VecGetArrayRead(vc,&carray);CHKERRQ(ierr);
     idx = matctx->map1[i];
     ierr = MatSetValues(M,1,&idx,m0-n0,matctx->map0+n0,carray,INSERT_VALUES);CHKERRQ(ierr);
     ierr = VecRestoreArrayRead(vc,&carray);CHKERRQ(ierr);
@@ -1537,7 +1537,7 @@ PetscErrorCode PEPNewtonRefinement_TOAR(PEP pep,PetscScalar sigma,PetscInt *maxi
   /* Loop performing iterative refinements */
   for (i=0;i<its;i++) {
     /* Pre-compute the polynomial basis evaluated in H */
-    ierr = PEPEvaluateBasisforMatrix(pep,nmat,k,H,ldh,fH);
+    ierr = PEPEvaluateBasisforMatrix(pep,nmat,k,H,ldh,fH);CHKERRQ(ierr);
     ierr = PEPNRefSetUp(pep,k,H,ldh,matctx,PetscNot(i));CHKERRQ(ierr);
     /* Solve the linear system */
     ierr = PEPNRefForwardSubstitution(pep,k,S,lds,H,ldh,fH,dV,dVS,&rds,dH,k,pep->refineksp,matctx);CHKERRQ(ierr);

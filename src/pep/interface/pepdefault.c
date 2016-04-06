@@ -292,7 +292,7 @@ PetscErrorCode PEPBuildDiagonalScaling(PEP pep)
   PetscFunctionBegin;
   l2 = 2*PetscLogReal(2.0);
   nmat = pep->nmat;
-  ierr = PetscMPIIntCast(pep->n,&n);
+  ierr = PetscMPIIntCast(pep->n,&n);CHKERRQ(ierr);
   ierr = STGetMatStructure(pep->st,&str);CHKERRQ(ierr);
   ierr = PetscMalloc1(nmat,&T);CHKERRQ(ierr);
   for (k=0;k<nmat;k++) {
@@ -367,7 +367,7 @@ PetscErrorCode PEPBuildDiagonalScaling(PEP pep)
       for (j=0;j<nz;j++) aux[cidx[j]] += PetscAbsScalar(array[j]);
       ierr = MatSeqAIJRestoreArray(M,&array);CHKERRQ(ierr); 
     }
-    ierr = MPI_Allreduce(aux,csum,n,MPIU_REAL,MPIU_SUM,PetscObjectComm((PetscObject)pep->Dr));
+    ierr = MPI_Allreduce(aux,csum,n,MPIU_REAL,MPIU_SUM,PetscObjectComm((PetscObject)pep->Dr));CHKERRQ(ierr);
     /* Update Dr */
     for (j=lst;j<lend;j++) {
       d = PetscLogReal(csum[j])/l2;
@@ -409,8 +409,8 @@ PetscErrorCode PEPBuildDiagonalScaling(PEP pep)
     }
     ierr = MatSeqAIJRestoreArray(M,&array);CHKERRQ(ierr);  
     /* Compute global max and min */
-    ierr = MPI_Allreduce(&emaxl,&emax,1,MPIU_INT,MPI_MAX,PetscObjectComm((PetscObject)pep->Dl));
-    ierr = MPI_Allreduce(&eminl,&emin,1,MPIU_INT,MPI_MIN,PetscObjectComm((PetscObject)pep->Dl));
+    ierr = MPI_Allreduce(&emaxl,&emax,1,MPIU_INT,MPI_MAX,PetscObjectComm((PetscObject)pep->Dl));CHKERRQ(ierr);
+    ierr = MPI_Allreduce(&eminl,&emin,1,MPIU_INT,MPI_MIN,PetscObjectComm((PetscObject)pep->Dl));CHKERRQ(ierr);
     if (emax<=emin+2) cont = PETSC_FALSE;
   }
   ierr = VecRestoreArray(pep->Dr,&Dr);CHKERRQ(ierr);
