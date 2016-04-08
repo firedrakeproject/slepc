@@ -280,9 +280,6 @@ static PetscErrorCode HZIteration(PetscBLASInt nn,PetscBLASInt cgd,PetscReal *aa
           bb[ntop] = 0;
           j2 = nn-cgd;
           PetscStackCallBLAS("BLASrot",BLASrot_(&j2,uu+ntop*ld+cgd,&one,uu+nbot*ld+cgd,&one,&c,&s));
-        } else {
-          dis = PetscSqrtScalar(dis);
-          if (htr < 0) dis = -dis;
         }
       }
       nbot = ntop - 1;
@@ -294,8 +291,7 @@ static PetscErrorCode HZIteration(PetscBLASInt nn,PetscBLASInt cgd,PetscReal *aa
       for (ntry=1;ntry<=6;ntry++) {
         ierr = HZStep(ntop,nbot+1,tr,dt,aa,bb,dd,uu,nn,ld,&flag);CHKERRQ(ierr);
         if (!flag) break;
-        else if (ntry == 6)
-          SETERRQ(PETSC_COMM_SELF,1,"Unable to complete hz step on six tries");
+        else if (ntry == 6) SETERRQ(PETSC_COMM_SELF,1,"Unable to complete hz step on six tries");
         else {
           tr = 0.9*tr; dt = 0.81*dt;
         }

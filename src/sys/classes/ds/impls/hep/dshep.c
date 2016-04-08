@@ -202,7 +202,7 @@ PetscErrorCode DSVectors_HEP(DS ds,DSMatType mat,PetscInt *j,PetscReal *rnorm)
           for (i=0;i<ds->n;i++) *(ds->mat[mat]+i+i*ld) = 1.0;
         }
       }
-      if (rnorm) *rnorm = PetscAbsScalar(Q[ds->n-1+(*j)*ld]);
+      if (rnorm && j) *rnorm = PetscAbsScalar(Q[ds->n-1+(*j)*ld]);
       break;
     case DS_MAT_U:
     case DS_MAT_VT:

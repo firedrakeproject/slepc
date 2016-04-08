@@ -406,7 +406,7 @@ static PetscErrorCode NEPTOAROrth2(NEP nep,PetscScalar *S,PetscInt ld,PetscInt d
   PetscErrorCode ierr;
   PetscBLASInt   n_,lds_,k_,one=1;
   PetscScalar    sonem=-1.0,sone=1.0,szero=0.0,*x0,*x,*c;
-  PetscInt       nwu=0,i,lds=deg*ld,n;
+  PetscInt       i,lds=deg*ld,n;
   PetscReal      eta,onorm;
   
   PetscFunctionBegin;
@@ -415,8 +415,7 @@ static PetscErrorCode NEPTOAROrth2(NEP nep,PetscScalar *S,PetscInt ld,PetscInt d
   ierr = PetscBLASIntCast(n,&n_);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(deg*ld,&lds_);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(k,&k_);CHKERRQ(ierr); /* Number of vectors to orthogonalize against them */
-  c = work+nwu;
-  nwu += k;
+  c = work;
   x0 = S+k*lds;
   PetscStackCall("BLASgemv",BLASgemv_("C",&n_,&k_,&sone,S,&lds_,x0,&one,&szero,y,&one));
   for (i=1;i<deg;i++) {
@@ -441,9 +440,7 @@ static PetscErrorCode NEPTOAROrth2(NEP nep,PetscScalar *S,PetscInt ld,PetscInt d
   for (i=0;i<k;i++) y[i] += c[i];
   if (norm) {
     ierr = NEPTOARSNorm2(lds,S+k*lds,norm);CHKERRQ(ierr);
-  }
-  if (lindep) {
-    *lindep = (*norm < eta * onorm)?PETSC_TRUE:PETSC_FALSE;
+    if (lindep) *lindep = (*norm < eta * onorm)?PETSC_TRUE:PETSC_FALSE;
   }
   PetscFunctionReturn(0);
 }

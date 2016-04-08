@@ -80,7 +80,7 @@ PetscErrorCode NEPSolve_RII(NEP nep)
   Mat                T=nep->function,Tp=nep->jacobian,Tsigma;
   Vec                u,r=nep->work[0],delta=nep->work[1];
   PetscScalar        lambda,a1,a2,corr;
-  PetscReal          resnorm;
+  PetscReal          resnorm=1.0;
   PetscBool          hascopy;
   PetscInt           inner_its;
   KSPConvergedReason kspreason;

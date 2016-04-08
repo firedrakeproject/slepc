@@ -14,7 +14,8 @@
            polynomial eigenvalue problems", talk presented at RANMEP 2008.
 
        [2] C. Campos and J.E. Roman, "Parallel Krylov solvers for the
-           polynomial eigenvalue problem in SLEPc", submitted, 2015.
+           polynomial eigenvalue problem in SLEPc", SIAM J. Sci. Comput.
+           to appear, 2016.
 
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
@@ -39,6 +40,19 @@
 #include <slepc/private/pepimpl.h>    /*I "slepcpep.h" I*/
 #include "../src/pep/impls/krylov/pepkrylov.h"
 #include <slepcblaslapack.h>
+
+static PetscBool  cited = PETSC_FALSE;
+static const char citation[] =
+  "@Article{slepc-pep,\n"
+  "   author = \"C. Campos and J. E. Roman\",\n"
+  "   title = \"Parallel {Krylov} solvers for the polynomial eigenvalue problem in {SLEPc}\",\n"
+  "   journal = \"{SIAM} J. Sci. Comput.\",\n"
+  "   volume = \"to appear\",\n"
+  "   number = \"\",\n"
+  "   pages = \"\",\n"
+  "   year = \"2016,\"\n"
+  "   doi = \"http://dx.doi.org/10.xxxx/yyyy\"\n"
+  "}\n";
 
 #undef __FUNCT__
 #define __FUNCT__ "PEPTOARSNorm2"
@@ -144,7 +158,7 @@ static PetscErrorCode PEPTOAROrth2(PEP pep,PetscScalar *S,PetscInt ld,PetscInt d
   PetscErrorCode ierr;
   PetscBLASInt   n_,lds_,k_,one=1;
   PetscScalar    sonem=-1.0,sone=1.0,szero=0.0,*x0,*x,*c;
-  PetscInt       nwu=0,i,lds=deg*ld,n;
+  PetscInt       i,lds=deg*ld,n;
   PetscReal      eta,onorm;
 
   PetscFunctionBegin;
@@ -153,8 +167,7 @@ static PetscErrorCode PEPTOAROrth2(PEP pep,PetscScalar *S,PetscInt ld,PetscInt d
   ierr = PetscBLASIntCast(n,&n_);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(deg*ld,&lds_);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(k,&k_);CHKERRQ(ierr); /* number of vectors to orthogonalize against them */
-  c = work+nwu;
-  nwu += k;
+  c = work;
   x0 = S+k*lds;
   PetscStackCallBLAS("BLASgemv",BLASgemv_("C",&n_,&k_,&sone,S,&lds_,x0,&one,&szero,y,&one));
   for (i=1;i<deg;i++) {
@@ -179,9 +192,7 @@ static PetscErrorCode PEPTOAROrth2(PEP pep,PetscScalar *S,PetscInt ld,PetscInt d
   for (i=0;i<k;i++) y[i] += c[i];
   if (norm) {
     ierr = PEPTOARSNorm2(lds,S+k*lds,norm);CHKERRQ(ierr);
-  }
-  if (lindep) {
-    *lindep = (*norm < eta * onorm)?PETSC_TRUE:PETSC_FALSE;
+    if (lindep) *lindep = (*norm < eta * onorm)?PETSC_TRUE:PETSC_FALSE;
   }
   PetscFunctionReturn(0);
 }
@@ -792,9 +803,10 @@ PetscErrorCode PEPSolve_TOAR(PEP pep)
   PetscInt       lwa,lrwa,nwu=0,nrwu=0,nmat=pep->nmat,deg=nmat-1;
   PetscScalar    *S,*Q,*work,*H,sigma;
   PetscReal      beta,*rwork;
-  PetscBool      breakdown=PETSC_FALSE,flg,falselock=PETSC_FALSE,def=PETSC_FALSE,sinv;
+  PetscBool      breakdown=PETSC_FALSE,flg,falselock=PETSC_FALSE,def=PETSC_FALSE,sinv=PETSC_FALSE;
 
   PetscFunctionBegin;
+  ierr = PetscCitationsRegister(citation,&cited);CHKERRQ(ierr);
   if (ctx->lock) {
     ierr = PetscOptionsGetBool(NULL,NULL,"-pep_toar_falselocking",&falselock,NULL);CHKERRQ(ierr);
     ierr = PetscOptionsGetBool(NULL,NULL,"-pep_toar_lockdeflated",&def,NULL);CHKERRQ(ierr);

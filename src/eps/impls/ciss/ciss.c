@@ -175,8 +175,8 @@ static PetscErrorCode SetPathParameter(EPS eps)
   PetscErrorCode ierr;
   EPS_CISS       *ctx = (EPS_CISS*)eps->data;
   PetscInt       i,j;
-  PetscScalar    center,tmp,tmp2,*omegai;
-  PetscReal      theta,radius,vscale,a,b,c,d,max_w=0.0;
+  PetscScalar    center=0.0,tmp,tmp2,*omegai;
+  PetscReal      theta,radius=1.0,vscale,a,b,c,d,max_w=0.0;
 #if defined(PETSC_USE_COMPLEX) 
   PetscReal      start_ang,end_ang;
 #endif

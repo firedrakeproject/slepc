@@ -83,7 +83,7 @@ PetscErrorCode EPSDelayedArnoldi(EPS eps,PetscScalar *H,PetscInt ldh,PetscInt k,
   PetscInt       i,j,m=*M;
   Vec            u,t;
   PetscScalar    shh[100],*lhh,dot,dot2;
-  PetscReal      norm1=0.0,norm2;
+  PetscReal      norm1=0.0,norm2=1.0;
   Vec            vj,vj1,vj2;
 
   PetscFunctionBegin;

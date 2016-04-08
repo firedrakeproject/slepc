@@ -200,6 +200,6 @@ PETSC_INTERN PetscErrorCode NEPReset_Problem(NEP);
 PETSC_INTERN PetscErrorCode NEPGetDefaultShift(NEP,PetscScalar*);
 PETSC_INTERN PetscErrorCode NEPComputeVectors_Schur(NEP);
 PETSC_INTERN PetscErrorCode NEPComputeResidualNorm_Private(NEP,PetscScalar,Vec,Vec*,PetscReal*);
-PETSC_INTERN PetscErrorCode NEPNewtonRefinementSimple(NEP,PetscInt*,PetscReal*,PetscInt);
+PETSC_INTERN PetscErrorCode NEPNewtonRefinementSimple(NEP,PetscInt*,PetscReal,PetscInt);
 
 #endif

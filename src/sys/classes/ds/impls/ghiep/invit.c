@@ -140,7 +140,7 @@ static PetscErrorCode TridiagDiag_HHR(PetscInt n,PetscScalar *A,PetscInt lda,Pet
 #else
   PetscErrorCode ierr;
   PetscInt       i,j,k,*ii,*jj,i0=0,ik=0,tmp,type;
-  PetscInt       nwu=0,nwur=0,nwui=0;
+  PetscInt       nwu=0;
   PetscReal      *ss,cond=1.0,cs,sn,r;
   PetscScalar    tau,t,*AA;
   PetscBLASInt   n0,n1,ni,inc=1,m,n_,lda_,ldq_,*perm;
@@ -159,9 +159,7 @@ static PetscErrorCode TridiagDiag_HHR(PetscInt n,PetscScalar *A,PetscInt lda,Pet
   ierr = PetscBLASIntCast(n,&n_);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(ldq,&ldq_);CHKERRQ(ierr);
   ss = rwork;
-  nwur += n;
   perm = iwork;
-  nwui += n;
   AA = work;
   for (i=0;i<n;i++) {
     ierr = PetscMemcpy(AA+i*n,A+i*lda,n*sizeof(PetscScalar));CHKERRQ(ierr);
@@ -592,10 +590,8 @@ static PetscErrorCode PseudoOrthog_HR(PetscInt *nv,PetscScalar *V,PetscInt ldv,P
   for (i=0;i<n;i++) perm[i] = i;
   j = 0;
   while (j<n-k) {
-    if (cmplxEig) {
-      if (cmplxEig[j]==0) sz=1;
-      else sz=2;
-    }
+    if (cmplxEig[j]==0) sz=1;
+    else sz=2;
     ierr = TryHRIt(n,j,sz,V,ldv,R,ldr,s,&exg,&ok,&n0,&n1,&idx0,&idx1,NULL,work+nwu);CHKERRQ(ierr);
     if (ok) {
       if (exg) cmplxEig[j] = -cmplxEig[j];
@@ -678,7 +674,6 @@ PetscErrorCode DSGHIEPOrthogEigenv(DS ds,DSMatType mat,PetscScalar *wr,PetscScal
   perm = ds->iwork + nwui;
   nwui += n;
   cmplxEig = ds->iwork+nwui;
-  nwui += n;
   X = ds->mat[mat];
   for (i=0;i<n;i++) {
 #if defined(PETSC_USE_COMPLEX)
@@ -699,7 +694,6 @@ PetscErrorCode DSGHIEPOrthogEigenv(DS ds,DSMatType mat,PetscScalar *wr,PetscScal
   ierr = PseudoOrthog_HR(&nv,X+off,ld,s+l,R,ldr,perm,cmplxEig,NULL,ds->work+nwus);CHKERRQ(ierr);
   /* Sort wr,wi perm */ 
   ts = ds->work+nwus;
-  nwus += n;
   ierr = PetscMemcpy(ts,wr+l,n*sizeof(PetscScalar));CHKERRQ(ierr);
   for (i=0;i<n;i++) wr[i+l] = ts[perm[i]];
 #if !defined(PETSC_USE_COMPLEX)
@@ -756,7 +750,7 @@ PetscErrorCode DSIntermediate_GHIEP(DS ds)
 {
   PetscErrorCode ierr;
   PetscInt       i,ld,off;
-  PetscInt       nwall,nwallr,nwalli,nwu=0,nwur=0,nwui=0;
+  PetscInt       nwall,nwallr,nwalli;
   PetscScalar    *A,*B,*Q;
   PetscReal      *d,*e,*s;
 
@@ -779,14 +773,14 @@ PetscErrorCode DSIntermediate_GHIEP(DS ds)
   if (ds->compact) {
     if (ds->state < DS_STATE_INTERMEDIATE) {
       ierr = DSSwitchFormat_GHIEP(ds,PETSC_FALSE);CHKERRQ(ierr);
-      ierr = TridiagDiag_HHR(ds->k-ds->l+1,A+off,ld,s+ds->l,Q+off,ld,PETSC_TRUE,d+ds->l,e+ds->l,ds->perm,ds->work+nwu,ds->rwork+nwur,ds->iwork+nwui);CHKERRQ(ierr);
+      ierr = TridiagDiag_HHR(ds->k-ds->l+1,A+off,ld,s+ds->l,Q+off,ld,PETSC_TRUE,d+ds->l,e+ds->l,ds->perm,ds->work,ds->rwork,ds->iwork);CHKERRQ(ierr);
       ds->k = ds->l;
       ierr = PetscMemzero(d+2*ld+ds->l,(ds->n-ds->l)*sizeof(PetscReal));CHKERRQ(ierr);
     }
   } else {
     if (ds->state < DS_STATE_INTERMEDIATE) {
       for (i=0;i<ds->n;i++) s[i] = PetscRealPart(B[i+i*ld]);
-      ierr = TridiagDiag_HHR(ds->n-ds->l,A+off,ld,s+ds->l,Q+off,ld,PETSC_FALSE,d+ds->l,e+ds->l,ds->perm,ds->work+nwu,ds->rwork+nwur,ds->iwork+nwui);CHKERRQ(ierr);
+      ierr = TridiagDiag_HHR(ds->n-ds->l,A+off,ld,s+ds->l,Q+off,ld,PETSC_FALSE,d+ds->l,e+ds->l,ds->perm,ds->work,ds->rwork,ds->iwork);CHKERRQ(ierr);
       ierr = PetscMemzero(d+2*ld,(ds->n)*sizeof(PetscReal));CHKERRQ(ierr);
       ds->k = ds->l;
       ierr = DSSwitchFormat_GHIEP(ds,PETSC_FALSE);CHKERRQ(ierr);

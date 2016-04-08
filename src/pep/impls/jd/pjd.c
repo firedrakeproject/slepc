@@ -227,7 +227,7 @@ PetscErrorCode PEPSolve_JD(PEP pep)
     if (!pjd->pcshell) {
       ierr = PCCreate(PetscObjectComm((PetscObject)ksp),&pjd->pcshell);CHKERRQ(ierr);
       ierr = PCSetType(pjd->pcshell,PCSHELL);CHKERRQ(ierr);
-      ierr = PCShellSetName(pjd->pcshell,"PCPEPJD");
+      ierr = PCShellSetName(pjd->pcshell,"PCPEPJD");CHKERRQ(ierr);
       ierr = PCShellSetApply(pjd->pcshell,PCShellApply_PEPJD);CHKERRQ(ierr);
       ierr = PetscNew(&pcctx);CHKERRQ(ierr);
       ierr = PCShellSetContext(pjd->pcshell,pcctx);CHKERRQ(ierr);

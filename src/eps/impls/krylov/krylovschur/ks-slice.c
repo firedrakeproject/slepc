@@ -37,6 +37,19 @@
 #include <slepc/private/epsimpl.h>
 #include "krylovschur.h"
 
+static PetscBool  cited = PETSC_FALSE;
+static const char citation[] =
+  "@Article{slepc-slice,\n"
+  "   author = \"C. Campos and J. E. Roman\",\n"
+  "   title = \"Strategies for spectrum slicing based on restarted {Lanczos} methods\",\n"
+  "   journal = \"Numer. Algorithms\",\n"
+  "   volume = \"60\",\n"
+  "   number = \"2\",\n"
+  "   pages = \"279--295\",\n"
+  "   year = \"2012,\"\n"
+  "   doi = \"http://dx.doi.org/10.1007/s11075-012-9564-z\"\n"
+  "}\n";
+
 #define SLICE_PTOL PETSC_SQRT_MACHINE_EPSILON
 
 #undef __FUNCT__
@@ -441,8 +454,8 @@ PetscErrorCode EPSSetUp_KrylovSchur_Slice(EPS eps)
           ierr = MPI_Isend(&(sr->int0),1,MPIU_REAL,ctx->subc->color-sr->dir,0,ctx->commrank,&req);CHKERRQ(ierr);
         }
         if ((sr->dir>0 && ctx->subc->color<ctx->npart-1)|| (sr->dir<0 && ctx->subc->color>0)) { /* receive inertia1 from neighbour1 */
-          ierr = MPI_Recv(&(sr->inertia1),1,MPIU_INT,ctx->subc->color+sr->dir,0,ctx->commrank,MPI_STATUS_IGNORE);
-          ierr = MPI_Recv(&(sr->int1),1,MPIU_REAL,ctx->subc->color+sr->dir,0,ctx->commrank,MPI_STATUS_IGNORE);
+          ierr = MPI_Recv(&(sr->inertia1),1,MPIU_INT,ctx->subc->color+sr->dir,0,ctx->commrank,MPI_STATUS_IGNORE);CHKERRQ(ierr);
+          ierr = MPI_Recv(&(sr->int1),1,MPIU_REAL,ctx->subc->color+sr->dir,0,ctx->commrank,MPI_STATUS_IGNORE);CHKERRQ(ierr);
         }
       }
       if ((sr->dir>0 && ctx->subc->color<ctx->npart-1)||(sr->dir<0 && ctx->subc->color>0)) {
@@ -808,7 +821,7 @@ static PetscErrorCode EPSExtractShift(EPS eps)
       newShift = sPres->value*(1.0+SLICE_PTOL);
       if (sr->dir*(sPres->neighb[0] && newShift-sPres->neighb[0]->value) < 0) newShift = (sPres->value+sPres->neighb[0]->value)/2;
       else if (sPres->neighb[1] && sr->dir*(sPres->neighb[1]->value-newShift) < 0) newShift = (sPres->value+sPres->neighb[1]->value)/2;
-      ierr = EPSSliceGetInertia(eps,newShift,&iner,&zeros);
+      ierr = EPSSliceGetInertia(eps,newShift,&iner,&zeros);CHKERRQ(ierr);
       if (zeros) SETERRQ1(((PetscObject)eps)->comm,PETSC_ERR_CONV_FAILED,"Inertia computation fails in %g",newShift);
       sPres->value = newShift;
     }
@@ -1289,6 +1302,7 @@ PetscErrorCode EPSSolve_KrylovSchur_Slice(EPS eps)
   EPS_SR          sr=ctx->sr;
 
   PetscFunctionBegin;
+  ierr = PetscCitationsRegister(citation,&cited);CHKERRQ(ierr);
   if (ctx->global) {
     ierr = EPSSolve_KrylovSchur_Slice(ctx->eps);CHKERRQ(ierr);
     ctx->eps->state = EPS_STATE_SOLVED;

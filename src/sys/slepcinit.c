@@ -184,7 +184,8 @@ PetscErrorCode SlepcCitationsInitialize()
     "   volume = \"31\",\n"
     "   number = \"3\",\n"
     "   pages = \"351--362\",\n"
-    "   year = \"2005\"\n"
+    "   year = \"2005,\"\n"
+    "   doi = \"http://dx.doi.org/10.1145/1089014.1089019\"\n"
     "}\n",NULL);CHKERRQ(ierr);
   ierr = PetscCitationsRegister("@TechReport{slepc-manual,\n"
     "   author = \"J. E. Roman and C. Campos and E. Romero and A. Tomas\",\n"

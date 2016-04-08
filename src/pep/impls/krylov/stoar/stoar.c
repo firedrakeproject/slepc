@@ -12,7 +12,7 @@
 
        [1] C. Campos and J.E. Roman, "Restarted Q-Arnoldi-type methods
            exploiting symmetry in quadratic eigenvalue problems", BIT
-           (in press), 2016.
+           Numer. Math. (in press), 2016.
 
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
@@ -37,6 +37,19 @@
 #include <slepc/private/pepimpl.h>         /*I "slepcpep.h" I*/
 #include "../src/pep/impls/krylov/pepkrylov.h"
 #include <slepcblaslapack.h>
+
+static PetscBool  cited = PETSC_FALSE;
+static const char citation[] =
+  "@Article{slepc-stoar,\n"
+  "   author = \"C. Campos and J. E. Roman\",\n"
+  "   title = \"Restarted {Q-Arnoldi-type} methods exploiting symmetry in quadratic eigenvalue problems\",\n"
+  "   journal = \"{BIT} Numer. Math.\",\n"
+  "   volume = \"to appear\",\n"
+  "   number = \"\",\n"
+  "   pages = \"\",\n"
+  "   year = \"2016,\"\n"
+  "   doi = \"http://dx.doi.org/10.1007/s10543-016-0601-5\"\n"
+  "}\n";
 
 #undef __FUNCT__
 #define __FUNCT__ "PEPSTOARNorm"
@@ -232,7 +245,7 @@ static PetscErrorCode PEPSTOARrun(PEP pep,PetscReal *a,PetscReal *b,PetscReal *o
 {
   PetscErrorCode ierr;
   PEP_TOAR       *ctx = (PEP_TOAR*)pep->data;
-  PetscInt       i,j,m=*M,nwu=0,l;
+  PetscInt       i,j,m=*M,l;
   PetscInt       lds=ctx->d*ctx->ld,offq=ctx->ld;
   Vec            v=t_[0],t=t_[1],q=t_[2];
   PetscReal      norm,sym=0.0,fro=0.0,*f;
@@ -244,7 +257,6 @@ static PetscErrorCode PEPSTOARrun(PEP pep,PetscReal *a,PetscReal *b,PetscReal *o
   *breakdown = PETSC_FALSE; /* ----- */
   ierr = DSGetDimensions(pep->ds,NULL,NULL,&l,NULL,NULL);CHKERRQ(ierr);
   y = work;
-  nwu += ctx->ld;
   for (j=k;j<m;j++) {
     /* apply operator */
     ierr = BVSetActiveColumns(pep->V,0,j+2);CHKERRQ(ierr);
@@ -451,6 +463,7 @@ PetscErrorCode PEPSolve_STOAR(PEP pep)
   PetscBool      breakdown,symmlost=PETSC_FALSE,sinv;
 
   PetscFunctionBegin;
+  ierr = PetscCitationsRegister(citation,&cited);CHKERRQ(ierr);
   ierr = BVSetMatrix(pep->V,NULL,PETSC_FALSE);CHKERRQ(ierr);
   lwa = 9*ld*ld+5*ld;
   lrwa = 8*ld;
@@ -466,7 +479,6 @@ PetscErrorCode PEPSolve_STOAR(PEP pep)
     pep->its++;
     ierr = DSGetArrayReal(pep->ds,DS_MAT_T,&a);CHKERRQ(ierr);
     b = a+ldds;
-    r = b+ldds;
     ierr = DSGetArrayReal(pep->ds,DS_MAT_D,&omega);CHKERRQ(ierr);
 
     /* Compute an nv-step Lanczos factorization */

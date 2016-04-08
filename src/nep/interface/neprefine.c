@@ -125,7 +125,6 @@ static PetscErrorCode NEPSimpleNRefSetUp(NEP nep,NEPSimpNRefctx **ctx_)
       ne = (rank == size-1)?nep->n:0;
       ierr = VecCreateMPI(PetscObjectComm((PetscObject)ctx->A[0]),ne,PETSC_DECIDE,&ctx->nv);CHKERRQ(ierr);
       ierr = PetscMalloc1(m0-n0,&idx1);CHKERRQ(ierr);
-      j = 0;
       for (i=n0;i<m0;i++) {
         idx1[i-n0] = i;
       }
@@ -391,7 +390,7 @@ static PetscErrorCode NEPSimpleNRefSetUpSystem(NEP nep,NEPSimpNRefctx *ctx,Mat *
 
 #undef __FUNCT__
 #define __FUNCT__ "NEPNewtonRefinementSimple"
-PetscErrorCode NEPNewtonRefinementSimple(NEP nep,PetscInt *maxits,PetscReal *tol,PetscInt k)
+PetscErrorCode NEPNewtonRefinementSimple(NEP nep,PetscInt *maxits,PetscReal tol,PetscInt k)
 {
   PetscErrorCode    ierr;
   PetscInt          i,n,its,idx=0,*idx_sc,*its_sc,color,*fail_sc;
@@ -445,10 +444,10 @@ PetscErrorCode NEPNewtonRefinementSimple(NEP nep,PetscInt *maxits,PetscReal *tol
         ierr = NEPSimpleNRefGatherEigenpair(nep,ctx,i,idx_sc[i],&fail_sc[i]);CHKERRQ(ierr);
       }
       while (sc_pend) {
-        if (tol&&!fail_sc[i]) {
+        if (!fail_sc[i]) {
           ierr = NEPComputeError(nep,idx_sc[i],NEP_ERROR_RELATIVE,&error);CHKERRQ(ierr);
         }
-        if (error<=*tol || its_sc[i]>=its || fail_sc[i]) {
+        if (error<=tol || its_sc[i]>=its || fail_sc[i]) {
           idx_sc[i] = idx++;
           its_sc[i] = 0;
           if (idx_sc[i]<k) { ierr = NEPSimpleNRefScatterEigenvector(nep,ctx,i,idx_sc[i]);CHKERRQ(ierr); }
@@ -483,7 +482,7 @@ PetscErrorCode NEPNewtonRefinementSimple(NEP nep,PetscInt *maxits,PetscReal *tol
         ierr = MatMult(Mt,v,r);CHKERRQ(ierr);
         ierr = VecGetArrayRead(r,&array);CHKERRQ(ierr);
         if (rank==size-1) {
-          ierr = VecGetArray(rr,&array2);
+          ierr = VecGetArray(rr,&array2);CHKERRQ(ierr);
           ierr = PetscMemcpy(array2,array,n*sizeof(PetscScalar));CHKERRQ(ierr);
           array2[n] = 0.0;
           ierr = VecRestoreArray(rr,&array2);CHKERRQ(ierr);

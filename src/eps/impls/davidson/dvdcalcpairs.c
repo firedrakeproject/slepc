@@ -519,7 +519,7 @@ static PetscErrorCode dvd_calcpairs_proj_res(dvdDashboard *d,PetscInt r_s,PetscI
 {
   PetscInt       i,l,k;
   PetscErrorCode ierr;
-  PetscBool      lindep;
+  PetscBool      lindep=PETSC_FALSE;
   BV             cX;
 
   PetscFunctionBegin;
