@@ -33,7 +33,7 @@
    Input Parameters:
 +  Y,X        - basis vectors
 .  alpha,beta - scalars
--  Q          - a sequential dense matrix
+-  Q          - (optional) sequential dense matrix
 
    Output Parameter:
 .  Y          - the modified basis vectors
@@ -42,7 +42,9 @@
    X and Y must be different objects. The case X=Y can be addressed with
    BVMultInPlace().
 
-   The matrix Q must be a sequential dense Mat, with all entries equal on
+   If matrix Q is NULL, then an AXPY operation Y = beta*Y + alpha*X is done
+   (i.e. results as if Q = identity). If provided,
+   the matrix Q must be a sequential dense Mat, with all entries equal on
    all processes (otherwise each process will compute a different update).
    The dimensions of Q must be at least m,n where m is the number of active
    columns of X and n is the number of active columns of Y.
@@ -67,20 +69,21 @@ PetscErrorCode BVMult(BV Y,PetscScalar alpha,PetscScalar beta,BV X,Mat Q)
   PetscValidLogicalCollectiveScalar(Y,alpha,2);
   PetscValidLogicalCollectiveScalar(Y,beta,3);
   PetscValidHeaderSpecific(X,BV_CLASSID,4);
-  PetscValidHeaderSpecific(Q,MAT_CLASSID,5);
+  if (Q) PetscValidHeaderSpecific(Q,MAT_CLASSID,5);
   PetscValidType(Y,1);
   BVCheckSizes(Y,1);
   PetscValidType(X,4);
   BVCheckSizes(X,4);
-  PetscValidType(Q,5);
+  if (Q) PetscValidType(Q,5);
   PetscCheckSameTypeAndComm(Y,1,X,4);
   if (X==Y) SETERRQ(PetscObjectComm((PetscObject)Y),PETSC_ERR_ARG_WRONG,"X and Y arguments must be different");
-  ierr = PetscObjectTypeCompare((PetscObject)Q,MATSEQDENSE,&match);CHKERRQ(ierr);
-  if (!match) SETERRQ(PetscObjectComm((PetscObject)Y),PETSC_ERR_SUP,"Mat argument must be of type seqdense");
-
-  ierr = MatGetSize(Q,&m,&n);CHKERRQ(ierr);
-  if (m<X->k) SETERRQ2(PetscObjectComm((PetscObject)Y),PETSC_ERR_ARG_SIZ,"Mat argument has %D rows, should have at least %D",m,X->k);
-  if (n<Y->k) SETERRQ2(PetscObjectComm((PetscObject)Y),PETSC_ERR_ARG_SIZ,"Mat argument has %D columns, should have at least %D",n,Y->k);
+  if (Q) {
+    ierr = PetscObjectTypeCompare((PetscObject)Q,MATSEQDENSE,&match);CHKERRQ(ierr);
+    if (!match) SETERRQ(PetscObjectComm((PetscObject)Y),PETSC_ERR_SUP,"Mat argument must be of type seqdense");
+    ierr = MatGetSize(Q,&m,&n);CHKERRQ(ierr);
+    if (m<X->k) SETERRQ2(PetscObjectComm((PetscObject)Y),PETSC_ERR_ARG_SIZ,"Mat argument has %D rows, should have at least %D",m,X->k);
+    if (n<Y->k) SETERRQ2(PetscObjectComm((PetscObject)Y),PETSC_ERR_ARG_SIZ,"Mat argument has %D columns, should have at least %D",n,Y->k);
+  }
   if (X->n!=Y->n) SETERRQ2(PETSC_COMM_SELF,PETSC_ERR_ARG_INCOMP,"Mismatching local dimension X %D, Y %D",X->n,Y->n);
 
   ierr = PetscLogEventBegin(BV_Mult,X,Y,0,0);CHKERRQ(ierr);
@@ -661,54 +664,6 @@ PetscErrorCode BVMatMultColumn(BV V,Mat A,PetscInt j)
   ierr = BVRestoreColumn(V,j,&vj);CHKERRQ(ierr);
   ierr = BVRestoreColumn(V,j+1,&vj1);CHKERRQ(ierr);
   ierr = PetscLogEventEnd(BV_MatMultVec,V,A,0,0);CHKERRQ(ierr);
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
-#define __FUNCT__ "BVAXPY"
-/*@C
-   BVAXPY - Computes Y = Y + alpha*X.
-
-   Logically Collective on BV
-
-   Input Parameters:
-+  Y,X   - basis vectors
--  alpha - scalar
-
-   Output Parameter:
-.  Y     - the modified basis vectors
-
-   Notes:
-   X and Y must be different objects, with compatible dimensions.
-   The effect is the same as doing a VecAXPY for each of the active
-   columns (excluding the leading ones).
-
-   Level: intermediate
-
-.seealso: BVMult(), BVSetActiveColumns()
-@*/
-PetscErrorCode BVAXPY(BV Y,PetscScalar alpha,BV X)
-{
-  PetscErrorCode ierr;
-
-  PetscFunctionBegin;
-  PetscValidHeaderSpecific(Y,BV_CLASSID,1);
-  PetscValidLogicalCollectiveScalar(Y,alpha,2);
-  PetscValidHeaderSpecific(X,BV_CLASSID,3);
-  PetscValidType(Y,1);
-  BVCheckSizes(Y,1);
-  PetscValidType(X,3);
-  BVCheckSizes(X,3);
-  PetscCheckSameTypeAndComm(Y,1,X,3);
-  if (X==Y) SETERRQ(PetscObjectComm((PetscObject)Y),PETSC_ERR_ARG_WRONG,"X and Y arguments must be different");
-  if (X->n!=Y->n) SETERRQ2(PETSC_COMM_SELF,PETSC_ERR_ARG_INCOMP,"Mismatching local dimension X %D, Y %D",X->n,Y->n);
-  if (X->k-X->l!=Y->k-Y->l) SETERRQ2(PETSC_COMM_SELF,PETSC_ERR_ARG_SIZ,"Y has %D non-leading columns, while X has %D",Y->m-Y->l,X->k-X->l);
-  if (!X->n) PetscFunctionReturn(0);
-
-  ierr = PetscLogEventBegin(BV_AXPY,X,Y,0,0);CHKERRQ(ierr);
-  ierr = (*Y->ops->axpy)(Y,alpha,X);CHKERRQ(ierr);
-  ierr = PetscLogEventEnd(BV_AXPY,X,Y,0,0);CHKERRQ(ierr);
-  ierr = PetscObjectStateIncrease((PetscObject)Y);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

@@ -39,10 +39,14 @@ PetscErrorCode BVMult_Contiguous(BV Y,PetscScalar alpha,PetscScalar beta,BV X,Ma
   PetscInt       ldq;
 
   PetscFunctionBegin;
-  ierr = MatGetSize(Q,&ldq,NULL);CHKERRQ(ierr);
-  ierr = MatDenseGetArray(Q,&q);CHKERRQ(ierr);
-  ierr = BVMult_BLAS_Private(Y,Y->n,Y->k-Y->l,X->k-X->l,ldq,alpha,x->array+(X->nc+X->l)*X->n,q+Y->l*ldq+X->l,beta,y->array+(Y->nc+Y->l)*Y->n);CHKERRQ(ierr);
-  ierr = MatDenseRestoreArray(Q,&q);CHKERRQ(ierr);
+  if (Q) {
+    ierr = MatGetSize(Q,&ldq,NULL);CHKERRQ(ierr);
+    ierr = MatDenseGetArray(Q,&q);CHKERRQ(ierr);
+    ierr = BVMult_BLAS_Private(Y,Y->n,Y->k-Y->l,X->k-X->l,ldq,alpha,x->array+(X->nc+X->l)*X->n,q+Y->l*ldq+X->l,beta,y->array+(Y->nc+Y->l)*Y->n);CHKERRQ(ierr);
+    ierr = MatDenseRestoreArray(Q,&q);CHKERRQ(ierr);
+  } else {
+    ierr = BVAXPY_BLAS_Private(Y,Y->n,Y->k-Y->l,alpha,x->array+(X->nc+X->l)*X->n,beta,y->array+(Y->nc+Y->l)*Y->n);CHKERRQ(ierr);
+  }
   PetscFunctionReturn(0);
 }
 
@@ -92,18 +96,6 @@ PetscErrorCode BVMultInPlaceTranspose_Contiguous(BV V,Mat Q,PetscInt s,PetscInt 
   ierr = MatDenseGetArray(Q,&q);CHKERRQ(ierr);
   ierr = BVMultInPlace_BLAS_Private(V,V->n,V->k-V->l,ldq,s-V->l,e-V->l,ctx->array+(V->nc+V->l)*V->n,q+V->l*ldq+V->l,PETSC_TRUE);CHKERRQ(ierr);
   ierr = MatDenseRestoreArray(Q,&q);CHKERRQ(ierr);
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
-#define __FUNCT__ "BVAXPY_Contiguous"
-PetscErrorCode BVAXPY_Contiguous(BV Y,PetscScalar alpha,BV X)
-{
-  PetscErrorCode ierr;
-  BV_CONTIGUOUS  *x = (BV_CONTIGUOUS*)X->data,*y = (BV_CONTIGUOUS*)Y->data;
-
-  PetscFunctionBegin;
-  ierr = BVAXPY_BLAS_Private(Y,Y->n,Y->k-Y->l,alpha,x->array+(X->nc+X->l)*X->n,y->array+(Y->nc+Y->l)*Y->n);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -348,6 +340,17 @@ PetscErrorCode BVGetArray_Contiguous(BV bv,PetscScalar **a)
 }
 
 #undef __FUNCT__
+#define __FUNCT__ "BVGetArrayRead_Contiguous"
+PetscErrorCode BVGetArrayRead_Contiguous(BV bv,const PetscScalar **a)
+{
+  BV_CONTIGUOUS *ctx = (BV_CONTIGUOUS*)bv->data;
+
+  PetscFunctionBegin;
+  *a = ctx->array;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
 #define __FUNCT__ "BVDestroy_Contiguous"
 PetscErrorCode BVDestroy_Contiguous(BV bv)
 {
@@ -405,7 +408,6 @@ PETSC_EXTERN PetscErrorCode BVCreate_Contiguous(BV bv)
   bv->ops->multvec          = BVMultVec_Contiguous;
   bv->ops->multinplace      = BVMultInPlace_Contiguous;
   bv->ops->multinplacetrans = BVMultInPlaceTranspose_Contiguous;
-  bv->ops->axpy             = BVAXPY_Contiguous;
   bv->ops->dot              = BVDot_Contiguous;
   bv->ops->dotvec           = BVDotVec_Contiguous;
   bv->ops->dotvec_local     = BVDotVec_Local_Contiguous;
@@ -418,6 +420,7 @@ PETSC_EXTERN PetscErrorCode BVCreate_Contiguous(BV bv)
   bv->ops->resize           = BVResize_Contiguous;
   bv->ops->getcolumn        = BVGetColumn_Contiguous;
   bv->ops->getarray         = BVGetArray_Contiguous;
+  bv->ops->getarrayread     = BVGetArrayRead_Contiguous;
   bv->ops->destroy          = BVDestroy_Contiguous;
   PetscFunctionReturn(0);
 }

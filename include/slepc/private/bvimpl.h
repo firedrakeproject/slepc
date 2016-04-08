@@ -28,7 +28,7 @@
 PETSC_EXTERN PetscBool BVRegisterAllCalled;
 PETSC_EXTERN PetscErrorCode BVRegisterAll(void);
 
-PETSC_EXTERN PetscLogEvent BV_Create,BV_Copy,BV_Mult,BV_MultVec,BV_MultInPlace,BV_Dot,BV_DotVec,BV_Orthogonalize,BV_OrthogonalizeVec,BV_Scale,BV_Norm,BV_NormVec,BV_SetRandom,BV_MatMult,BV_MatMultVec,BV_MatProject,BV_AXPY;
+PETSC_EXTERN PetscLogEvent BV_Create,BV_Copy,BV_Mult,BV_MultVec,BV_MultInPlace,BV_Dot,BV_DotVec,BV_Orthogonalize,BV_OrthogonalizeVec,BV_Scale,BV_Norm,BV_NormVec,BV_SetRandom,BV_MatMult,BV_MatMultVec,BV_MatProject;
 
 typedef struct _BVOps *BVOps;
 
@@ -37,7 +37,6 @@ struct _BVOps {
   PetscErrorCode (*multvec)(BV,PetscScalar,PetscScalar,Vec,PetscScalar*);
   PetscErrorCode (*multinplace)(BV,Mat,PetscInt,PetscInt);
   PetscErrorCode (*multinplacetrans)(BV,Mat,PetscInt,PetscInt);
-  PetscErrorCode (*axpy)(BV,PetscScalar,BV);
   PetscErrorCode (*dot)(BV,BV,Mat);
   PetscErrorCode (*dotvec)(BV,Vec,PetscScalar*);
   PetscErrorCode (*dotvec_local)(BV,Vec,PetscScalar*);
@@ -56,6 +55,8 @@ struct _BVOps {
   PetscErrorCode (*restorecolumn)(BV,PetscInt,Vec*);
   PetscErrorCode (*getarray)(BV,PetscScalar**);
   PetscErrorCode (*restorearray)(BV,PetscScalar**);
+  PetscErrorCode (*getarrayread)(BV,const PetscScalar**);
+  PetscErrorCode (*restorearrayread)(BV,const PetscScalar**);
   PetscErrorCode (*create)(BV);
   PetscErrorCode (*setfromoptions)(PetscOptionItems*,BV);
   PetscErrorCode (*view)(BV,PetscViewer);
@@ -290,7 +291,7 @@ PETSC_INTERN PetscErrorCode BVMult_BLAS_Private(BV,PetscInt,PetscInt,PetscInt,Pe
 PETSC_INTERN PetscErrorCode BVMultVec_BLAS_Private(BV,PetscInt,PetscInt,PetscScalar,const PetscScalar*,const PetscScalar*,PetscScalar,PetscScalar*);
 PETSC_INTERN PetscErrorCode BVMultInPlace_BLAS_Private(BV,PetscInt,PetscInt,PetscInt,PetscInt,PetscInt,PetscScalar*,const PetscScalar*,PetscBool);
 PETSC_INTERN PetscErrorCode BVMultInPlace_Vecs_Private(BV,PetscInt,PetscInt,PetscInt,Vec*,const PetscScalar*,PetscBool);
-PETSC_INTERN PetscErrorCode BVAXPY_BLAS_Private(BV,PetscInt,PetscInt,PetscScalar,const PetscScalar*,PetscScalar*);
+PETSC_INTERN PetscErrorCode BVAXPY_BLAS_Private(BV,PetscInt,PetscInt,PetscScalar,const PetscScalar*,PetscScalar,PetscScalar*);
 PETSC_INTERN PetscErrorCode BVDot_BLAS_Private(BV,PetscInt,PetscInt,PetscInt,PetscInt,const PetscScalar*,const PetscScalar*,PetscScalar*,PetscBool);
 PETSC_INTERN PetscErrorCode BVDotVec_BLAS_Private(BV,PetscInt,PetscInt,const PetscScalar*,const PetscScalar*,PetscScalar*,PetscBool);
 PETSC_INTERN PetscErrorCode BVScale_BLAS_Private(BV,PetscInt,PetscScalar*,PetscScalar);

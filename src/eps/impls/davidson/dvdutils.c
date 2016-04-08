@@ -287,7 +287,7 @@ static PetscErrorCode dvd_harm_updateW(dvdDashboard *d)
   ierr = BVSetActiveColumns(BX,l+d->V_new_s,l+d->V_new_e);CHKERRQ(ierr);
   ierr = BVCopy(d->AX,d->W);CHKERRQ(ierr);
   ierr = BVScale(d->W,data->Wa);CHKERRQ(ierr);
-  ierr = BVAXPY(d->W,-data->Wb,BX);CHKERRQ(ierr);
+  ierr = BVMult(d->W,-data->Wb,1.0,BX,NULL);CHKERRQ(ierr);
   ierr = BVSetActiveColumns(d->W,l,k);CHKERRQ(ierr);
   ierr = BVSetActiveColumns(d->AX,l,k);CHKERRQ(ierr);
   ierr = BVSetActiveColumns(BX,l,k);CHKERRQ(ierr);

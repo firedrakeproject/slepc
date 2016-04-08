@@ -1160,6 +1160,75 @@ PetscErrorCode BVRestoreArray(BV bv,PetscScalar **a)
 }
 
 #undef __FUNCT__
+#define __FUNCT__ "BVGetArrayRead"
+/*@C
+   BVGetArrayRead - Returns a read-only pointer to a contiguous array that
+   contains this processor's portion of the BV data.
+
+   Not Collective
+
+   Input Parameters:
+.  bv - the basis vectors context
+
+   Output Parameter:
+.  a  - location to put pointer to the array
+
+   Notes:
+   BVRestoreArrayRead() must be called when access to the array is no
+   longer needed. This operation may imply a data copy, for BV types that
+   do not store data contiguously in memory.
+
+   The pointer will normally point to the first entry of the first column,
+   but if the BV has constraints then these go before the regular columns.
+
+   Level: advanced
+
+.seealso: BVRestoreArray(), BVInsertConstraints()
+@*/
+PetscErrorCode BVGetArrayRead(BV bv,const PetscScalar **a)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(bv,BV_CLASSID,1);
+  PetscValidType(bv,1);
+  BVCheckSizes(bv,1);
+  ierr = (*bv->ops->getarrayread)(bv,a);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "BVRestoreArrayRead"
+/*@C
+   BVRestoreArrayRead - Restore the BV object after BVGetArrayRead() has
+   been called.
+
+   Logically Collective on BV
+
+   Input Parameters:
++  bv - the basis vectors context
+-  a  - location of pointer to array obtained from BVGetArrayRead()
+
+   Level: advanced
+
+.seealso: BVGetColumn()
+@*/
+PetscErrorCode BVRestoreArrayRead(BV bv,const PetscScalar **a)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(bv,BV_CLASSID,1);
+  PetscValidType(bv,1);
+  BVCheckSizes(bv,1);
+  if (bv->ops->restorearrayread) {
+    ierr = (*bv->ops->restorearrayread)(bv,a);CHKERRQ(ierr);
+  }
+  if (a) *a = NULL;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
 #define __FUNCT__ "BVCreateVec"
 /*@
    BVCreateVec - Creates a new Vec object with the same type and dimensions
