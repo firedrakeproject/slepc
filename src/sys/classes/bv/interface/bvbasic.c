@@ -1262,6 +1262,23 @@ PetscErrorCode BVCreateVec(BV bv,Vec *v)
 }
 
 #undef __FUNCT__
+#define __FUNCT__ "BVDuplicate_Private"
+PETSC_STATIC_INLINE PetscErrorCode BVDuplicate_Private(BV V,PetscInt m,BV *W)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  ierr = BVCreate(PetscObjectComm((PetscObject)V),W);CHKERRQ(ierr);
+  ierr = BVSetSizesFromVec(*W,V->t,m);CHKERRQ(ierr);
+  ierr = BVSetType(*W,((PetscObject)V)->type_name);CHKERRQ(ierr);
+  ierr = BVSetMatrix(*W,V->matrix,V->indef);CHKERRQ(ierr);
+  ierr = BVSetOrthogonalization(*W,V->orthog_type,V->orthog_ref,V->orthog_eta,V->orthog_block);CHKERRQ(ierr);
+  if (V->ops->duplicate) { ierr = (*V->ops->duplicate)(V,W);CHKERRQ(ierr); }
+  ierr = PetscObjectStateIncrease((PetscObject)*W);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
 #define __FUNCT__ "BVDuplicate"
 /*@
    BVDuplicate - Creates a new basis vector object of the same type and
@@ -1296,12 +1313,7 @@ PetscErrorCode BVDuplicate(BV V,BV *W)
   PetscValidType(V,1);
   BVCheckSizes(V,1);
   PetscValidPointer(W,2);
-  ierr = BVCreate(PetscObjectComm((PetscObject)V),W);CHKERRQ(ierr);
-  ierr = BVSetSizesFromVec(*W,V->t,V->m);CHKERRQ(ierr);
-  ierr = BVSetType(*W,((PetscObject)V)->type_name);CHKERRQ(ierr);
-  ierr = BVSetMatrix(*W,V->matrix,V->indef);CHKERRQ(ierr);
-  ierr = BVSetOrthogonalization(*W,V->orthog_type,V->orthog_ref,V->orthog_eta,V->orthog_block);CHKERRQ(ierr);
-  ierr = PetscObjectStateIncrease((PetscObject)*W);CHKERRQ(ierr);
+  ierr = BVDuplicate_Private(V,V->m,W);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -1338,12 +1350,7 @@ PetscErrorCode BVDuplicateResize(BV V,PetscInt m,BV *W)
   BVCheckSizes(V,1);
   PetscValidLogicalCollectiveInt(V,m,2);
   PetscValidPointer(W,3);
-  ierr = BVCreate(PetscObjectComm((PetscObject)V),W);CHKERRQ(ierr);
-  ierr = BVSetSizesFromVec(*W,V->t,m);CHKERRQ(ierr);
-  ierr = BVSetType(*W,((PetscObject)V)->type_name);CHKERRQ(ierr);
-  ierr = BVSetMatrix(*W,V->matrix,V->indef);CHKERRQ(ierr);
-  ierr = BVSetOrthogonalization(*W,V->orthog_type,V->orthog_ref,V->orthog_eta,V->orthog_block);CHKERRQ(ierr);
-  ierr = PetscObjectStateIncrease((PetscObject)*W);CHKERRQ(ierr);
+  ierr = BVDuplicate_Private(V,m,W);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

@@ -57,6 +57,7 @@ struct _BVOps {
   PetscErrorCode (*restorearray)(BV,PetscScalar**);
   PetscErrorCode (*getarrayread)(BV,const PetscScalar**);
   PetscErrorCode (*restorearrayread)(BV,const PetscScalar**);
+  PetscErrorCode (*duplicate)(BV,BV*);
   PetscErrorCode (*create)(BV);
   PetscErrorCode (*setfromoptions)(PetscOptionItems*,BV);
   PetscErrorCode (*view)(BV,PetscViewer);

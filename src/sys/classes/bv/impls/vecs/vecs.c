@@ -534,6 +534,35 @@ PetscErrorCode BVDestroy_Vecs(BV bv)
 }
 
 #undef __FUNCT__
+#define __FUNCT__ "BVVecsSetVmip"
+/*
+   Sets the value of vmip flag and resets ops->multinplace accordingly
+ */
+PETSC_STATIC_INLINE PetscErrorCode BVVecsSetVmip(BV bv,PetscInt vmip)
+{
+  typedef PetscErrorCode (*fmultinplace)(BV,Mat,PetscInt,PetscInt);
+  fmultinplace multinplace[2] = {BVMultInPlace_Vecs_ME, BVMultInPlace_Vecs_Alloc};
+  BV_VECS      *ctx = (BV_VECS*)bv->data;
+
+  PetscFunctionBegin;
+  ctx->vmip            = vmip;
+  bv->ops->multinplace = multinplace[vmip];
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "BVDuplicate_Vecs"
+PetscErrorCode BVDuplicate_Vecs(BV V,BV *W)
+{
+  PetscErrorCode ierr;
+  BV_VECS        *ctx = (BV_VECS*)V->data;
+
+  PetscFunctionBegin;
+  ierr = BVVecsSetVmip(*W,ctx->vmip);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
 #define __FUNCT__ "BVCreate_Vecs"
 PETSC_EXTERN PetscErrorCode BVCreate_Vecs(BV bv)
 {
@@ -542,8 +571,6 @@ PETSC_EXTERN PetscErrorCode BVCreate_Vecs(BV bv)
   PetscInt       j;
   PetscBool      iscusp;
   char           str[50];
-  typedef PetscErrorCode (*fmultinplace)(BV,Mat,PetscInt,PetscInt);
-  fmultinplace   multinplace[2] = {BVMultInPlace_Vecs_ME, BVMultInPlace_Vecs_Alloc};
 
   PetscFunctionBegin;
   ierr = PetscNewLog(bv,&ctx);CHKERRQ(ierr);
@@ -568,10 +595,10 @@ PETSC_EXTERN PetscErrorCode BVCreate_Vecs(BV bv)
     ierr = BVSetFromOptions_Vecs(PetscOptionsObject,bv);CHKERRQ(ierr);
     ierr = PetscOptionsEnd();CHKERRQ(ierr);
   }
+  ierr = BVVecsSetVmip(bv,ctx->vmip);CHKERRQ(ierr);
 
   bv->ops->mult             = BVMult_Vecs;
   bv->ops->multvec          = BVMultVec_Vecs;
-  bv->ops->multinplace      = multinplace[ctx->vmip];
   bv->ops->multinplacetrans = BVMultInPlaceTranspose_Vecs;
   bv->ops->dot              = BVDot_Vecs;
   bv->ops->dotvec           = BVDotVec_Vecs;
@@ -590,6 +617,7 @@ PETSC_EXTERN PetscErrorCode BVCreate_Vecs(BV bv)
   bv->ops->getarrayread     = BVGetArrayRead_Vecs;
   bv->ops->restorearrayread = BVRestoreArrayRead_Vecs;
   bv->ops->destroy          = BVDestroy_Vecs;
+  bv->ops->duplicate        = BVDuplicate_Vecs;
   bv->ops->setfromoptions   = BVSetFromOptions_Vecs;
   bv->ops->view             = BVView_Vecs;
   PetscFunctionReturn(0);
