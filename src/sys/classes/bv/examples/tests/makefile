@@ -41,7 +41,7 @@ TESTEXAMPLES_C       = test1.PETSc runtest1_1 runtest1_2 runtest1_3 runtest1_4 t
                        test9.PETSc runtest9_1 runtest9_2 runtest9_3 runtest9_4 test9.rm \
                        test10.PETSc runtest10_1 runtest10_2 runtest10_3 runtest10_4 test10.rm \
                        test11.PETSc runtest11_1 runtest11_2 runtest11_3 runtest11_4 \
-                       runtest11_5 runtest11_6 runtest11_7 runtest11_8 test11.rm
+                                    runtest11_5 runtest11_6 runtest11_7 runtest11_8 test11.rm
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common
 
@@ -189,7 +189,7 @@ runtest4_2:
 
 runtest4_3:
 	-@test=test4_1; \
-	${MPIEXEC} -n 1 ./test4 -n 18 -kx 12 -ky 8 -bv_type vecs -trans 2>&1 > $${test}.tmp; \
+	${MPIEXEC} -n 1 ./test4 -n 18 -kx 12 -ky 8 -bv_type svec -trans 2>&1 > $${test}.tmp; \
 	${TESTCODE}
 
 runtest4_4:
