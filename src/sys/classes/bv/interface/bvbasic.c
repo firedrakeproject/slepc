@@ -925,16 +925,18 @@ PetscErrorCode BVGetOrthogonalization(BV bv,BVOrthogType *type,BVOrthogRefineTyp
 -  method - the method for the BVMatMult() operation
 
    Options Database Keys:
-+  -bv_matmult_vecs - perform a matrix-vector multiply per each column
-.  -bv_matmult_mat - carry out a MatMatMult() product with a dense matrix
--  -bv_matmult_mat_save - call MatMatMult() and keep auxiliary matrices
+.  -bv_matmult <meth> - choose one of the methods: vecs, mat, mat_save
 
    Note:
+   Allowed values are:
++  BV_MATMULT_VECS - perform a matrix-vector multiply per each column
+.  BV_MATMULT_MAT - carry out a MatMatMult() product with a dense matrix
+-  BV_MATMULT_MAT_SAVE - call MatMatMult() and keep auxiliary matrices
    The default is BV_MATMULT_MAT.
 
    Level: advanced
 
-.seealso: BVGetMatMultMethod(), BVMatMultType
+.seealso: BVMatMult(), BVGetMatMultMethod(), BVMatMultType
 @*/
 PetscErrorCode BVSetMatMultMethod(BV bv,BVMatMultType method)
 {
@@ -968,7 +970,7 @@ PetscErrorCode BVSetMatMultMethod(BV bv,BVMatMultType method)
 
    Level: advanced
 
-.seealso: BVSetMatMultMethod(), BVMatMultType
+.seealso: BVMatMult(), BVSetMatMultMethod(), BVMatMultType
 @*/
 PetscErrorCode BVGetMatMultMethod(BV bv,BVMatMultType *method)
 {
