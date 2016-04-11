@@ -281,7 +281,7 @@ PetscErrorCode NEPInterpolGetDegree(NEP nep,PetscInt *deg)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
   PetscValidPointer(deg,2);
-  ierr = PetscTryMethod(nep,"NEPInterpolGetDegree_C",(NEP,PetscInt*),(nep,deg));CHKERRQ(ierr);
+  ierr = PetscUseMethod(nep,"NEPInterpolGetDegree_C",(NEP,PetscInt*),(nep,deg));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -378,7 +378,7 @@ PetscErrorCode NEPInterpolGetPEP(NEP nep,PEP *pep)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
   PetscValidPointer(pep,2);
-  ierr = PetscTryMethod(nep,"NEPInterpolGetPEP_C",(NEP,PEP*),(nep,pep));CHKERRQ(ierr);
+  ierr = PetscUseMethod(nep,"NEPInterpolGetPEP_C",(NEP,PEP*),(nep,pep));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

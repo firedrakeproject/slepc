@@ -371,7 +371,7 @@ PetscErrorCode EPSRQCGGetReset(EPS eps,PetscInt *nrest)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidPointer(nrest,2);
-  ierr = PetscTryMethod(eps,"EPSRQCGGetReset_C",(EPS,PetscInt*),(eps,nrest));CHKERRQ(ierr);
+  ierr = PetscUseMethod(eps,"EPSRQCGGetReset_C",(EPS,PetscInt*),(eps,nrest));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

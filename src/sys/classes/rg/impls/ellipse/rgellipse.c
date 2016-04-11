@@ -128,7 +128,7 @@ PetscErrorCode RGEllipseGetParameters(RG rg,PetscScalar *center,PetscReal *radiu
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(rg,RG_CLASSID,1);
-  ierr = PetscTryMethod(rg,"RGEllipseGetParameters_C",(RG,PetscScalar*,PetscReal*,PetscReal*),(rg,center,radius,vscale));CHKERRQ(ierr);
+  ierr = PetscUseMethod(rg,"RGEllipseGetParameters_C",(RG,PetscScalar*,PetscReal*,PetscReal*),(rg,center,radius,vscale));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

@@ -254,7 +254,7 @@ PetscErrorCode NEPRIIGetMaximumIterations(NEP nep,PetscInt *its)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
   PetscValidPointer(its,2);
-  ierr = PetscTryMethod(nep,"NEPRIIGetMaximumIterations_C",(NEP,PetscInt*),(nep,its));CHKERRQ(ierr);
+  ierr = PetscUseMethod(nep,"NEPRIIGetMaximumIterations_C",(NEP,PetscInt*),(nep,its));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
