@@ -577,7 +577,7 @@ PetscErrorCode EPSJDGetConstCorrectionTol(EPS eps,PetscBool *constant)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidPointer(constant,2);
-  ierr = PetscUseMethod(eps,"EPSJDGetConstCorrectionTol",(EPS,PetscBool*),(eps,constant));CHKERRQ(ierr);
+  ierr = PetscUseMethod(eps,"EPSJDGetConstCorrectionTol_C",(EPS,PetscBool*),(eps,constant));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
