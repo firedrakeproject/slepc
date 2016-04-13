@@ -269,7 +269,7 @@ static PetscErrorCode EPSSliceGetEPS(EPS eps)
   ierr = KSPSetType(ksp,ksptype);CHKERRQ(ierr);
   ierr = KSPGetPC(ksp,&pc);CHKERRQ(ierr);
   ierr = PCSetType(pc,pctype);CHKERRQ(ierr);
-  ierr = PCFactorSetMatSolverPackage(pc,stype);CHKERRQ(ierr);
+  if (stype) { ierr = PCFactorSetMatSolverPackage(pc,stype);CHKERRQ(ierr); }
 
   ierr = EPSSetConvergenceTest(ctx->eps,eps->conv);CHKERRQ(ierr);
   ierr = EPSSetInterval(ctx->eps,a,b);CHKERRQ(ierr);
