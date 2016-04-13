@@ -459,6 +459,17 @@ PetscErrorCode SVDTRLanczosSetOneSide(SVD svd,PetscBool oneside)
 }
 
 #undef __FUNCT__
+#define __FUNCT__ "SVDTRLanczosGetOneSide_TRLanczos"
+static PetscErrorCode SVDTRLanczosGetOneSide_TRLanczos(SVD svd,PetscBool *oneside)
+{
+  SVD_TRLANCZOS *lanczos = (SVD_TRLANCZOS*)svd->data;
+
+  PetscFunctionBegin;
+  *oneside = lanczos->oneside;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
 #define __FUNCT__ "SVDTRLanczosGetOneSide"
 /*@
    SVDTRLanczosGetOneSide - Gets if the variant of the Lanczos method
@@ -483,18 +494,7 @@ PetscErrorCode SVDTRLanczosGetOneSide(SVD svd,PetscBool *oneside)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
   PetscValidPointer(oneside,2);
-  ierr = PetscTryMethod(svd,"SVDTRLanczosGetOneSide_C",(SVD,PetscBool*),(svd,oneside));CHKERRQ(ierr);
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
-#define __FUNCT__ "SVDTRLanczosGetOneSide_TRLanczos"
-static PetscErrorCode SVDTRLanczosGetOneSide_TRLanczos(SVD svd,PetscBool *oneside)
-{
-  SVD_TRLANCZOS    *lanczos = (SVD_TRLANCZOS*)svd->data;
-
-  PetscFunctionBegin;
-  *oneside = lanczos->oneside;
+  ierr = PetscUseMethod(svd,"SVDTRLanczosGetOneSide_C",(SVD,PetscBool*),(svd,oneside));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

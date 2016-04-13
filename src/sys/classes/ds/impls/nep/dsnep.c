@@ -411,7 +411,7 @@ PetscErrorCode DSNEPGetFN(DS ds,PetscInt k,FN *fn)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
   PetscValidPointer(fn,3);
-  ierr = PetscTryMethod(ds,"DSNEPGetFN_C",(DS,PetscInt,FN*),(ds,k,fn));CHKERRQ(ierr);
+  ierr = PetscUseMethod(ds,"DSNEPGetFN_C",(DS,PetscInt,FN*),(ds,k,fn));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -451,7 +451,7 @@ PetscErrorCode DSNEPGetNumFN(DS ds,PetscInt *n)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
   PetscValidPointer(n,2);
-  ierr = PetscTryMethod(ds,"DSNEPGetNumFN_C",(DS,PetscInt*),(ds,n));CHKERRQ(ierr);
+  ierr = PetscUseMethod(ds,"DSNEPGetNumFN_C",(DS,PetscInt*),(ds,n));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

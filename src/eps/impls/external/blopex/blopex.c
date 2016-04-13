@@ -391,7 +391,7 @@ PetscErrorCode EPSBLOPEXGetBlockSize(EPS eps,PetscInt *bs)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidPointer(bs,2);
-  ierr = PetscTryMethod(eps,"EPSBLOPEXGetBlockSize_C",(EPS,PetscInt*),(eps,bs));CHKERRQ(ierr);
+  ierr = PetscUseMethod(eps,"EPSBLOPEXGetBlockSize_C",(EPS,PetscInt*),(eps,bs));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

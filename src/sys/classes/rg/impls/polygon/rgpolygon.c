@@ -148,7 +148,7 @@ PetscErrorCode RGPolygonGetVertices(RG rg,PetscInt *n,PetscScalar **vr,PetscScal
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(rg,RG_CLASSID,1);
-  ierr = PetscTryMethod(rg,"RGPolygonGetVertices_C",(RG,PetscInt*,PetscScalar**,PetscScalar**),(rg,n,vr,vi));CHKERRQ(ierr);
+  ierr = PetscUseMethod(rg,"RGPolygonGetVertices_C",(RG,PetscInt*,PetscScalar**,PetscScalar**),(rg,n,vr,vi));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

@@ -377,7 +377,7 @@ PetscErrorCode EPSKrylovSchurGetRestart(EPS eps,PetscReal *keep)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidPointer(keep,2);
-  ierr = PetscTryMethod(eps,"EPSKrylovSchurGetRestart_C",(EPS,PetscReal*),(eps,keep));CHKERRQ(ierr);
+  ierr = PetscUseMethod(eps,"EPSKrylovSchurGetRestart_C",(EPS,PetscReal*),(eps,keep));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -464,7 +464,7 @@ PetscErrorCode EPSKrylovSchurGetLocking(EPS eps,PetscBool *lock)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidPointer(lock,2);
-  ierr = PetscTryMethod(eps,"EPSKrylovSchurGetLocking_C",(EPS,PetscBool*),(eps,lock));CHKERRQ(ierr);
+  ierr = PetscUseMethod(eps,"EPSKrylovSchurGetLocking_C",(EPS,PetscBool*),(eps,lock));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -568,7 +568,7 @@ PetscErrorCode EPSKrylovSchurGetPartitions(EPS eps,PetscInt *npart)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidPointer(npart,2);
-  ierr = PetscTryMethod(eps,"EPSKrylovSchurGetPartitions_C",(EPS,PetscInt*),(eps,npart));CHKERRQ(ierr);
+  ierr = PetscUseMethod(eps,"EPSKrylovSchurGetPartitions_C",(EPS,PetscInt*),(eps,npart));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -659,7 +659,7 @@ PetscErrorCode EPSKrylovSchurGetDetectZeros(EPS eps,PetscBool *detect)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidPointer(detect,2);
-  ierr = PetscTryMethod(eps,"EPSKrylovSchurGetDetectZeros_C",(EPS,PetscBool*),(eps,detect));CHKERRQ(ierr);
+  ierr = PetscUseMethod(eps,"EPSKrylovSchurGetDetectZeros_C",(EPS,PetscBool*),(eps,detect));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -764,7 +764,7 @@ PetscErrorCode EPSKrylovSchurGetDimensions(EPS eps,PetscInt *nev,PetscInt *ncv,P
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  ierr = PetscTryMethod(eps,"EPSKrylovSchurGetDimensions_C",(EPS,PetscInt*,PetscInt*,PetscInt*),(eps,nev,ncv,mpd));CHKERRQ(ierr);
+  ierr = PetscUseMethod(eps,"EPSKrylovSchurGetDimensions_C",(EPS,PetscInt*,PetscInt*,PetscInt*),(eps,nev,ncv,mpd));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -875,7 +875,8 @@ PetscErrorCode EPSKrylovSchurGetSubintervals(EPS eps,PetscReal** subint)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  ierr = PetscTryMethod(eps,"EPSKrylovSchurGetSubintervals_C",(EPS,PetscReal**),(eps,subint));CHKERRQ(ierr);
+  PetscValidPointer(subint,2);
+  ierr = PetscUseMethod(eps,"EPSKrylovSchurGetSubintervals_C",(EPS,PetscReal**),(eps,subint));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -962,7 +963,7 @@ PetscErrorCode EPSKrylovSchurGetInertias(EPS eps,PetscInt *n,PetscReal **shifts,
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidIntPointer(n,2);
-  ierr = PetscTryMethod(eps,"EPSKrylovSchurGetInertias_C",(EPS,PetscInt*,PetscReal**,PetscInt**),(eps,n,shifts,inertias));CHKERRQ(ierr);
+  ierr = PetscUseMethod(eps,"EPSKrylovSchurGetInertias_C",(EPS,PetscInt*,PetscReal**,PetscInt**),(eps,n,shifts,inertias));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -1018,7 +1019,7 @@ PetscErrorCode EPSKrylovSchurGetSubcommInfo(EPS eps,PetscInt *k,PetscInt *n,Vec 
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  ierr = PetscTryMethod(eps,"EPSKrylovSchurGetSubcommInfo_C",(EPS,PetscInt*,PetscInt*,Vec*),(eps,k,n,v));CHKERRQ(ierr);
+  ierr = PetscUseMethod(eps,"EPSKrylovSchurGetSubcommInfo_C",(EPS,PetscInt*,PetscInt*,Vec*),(eps,k,n,v));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -1074,7 +1075,7 @@ PetscErrorCode EPSKrylovSchurGetSubcommPairs(EPS eps,PetscInt i,PetscScalar *eig
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   if (v) PetscValidLogicalCollectiveInt(v,i,2);
-  ierr = PetscTryMethod(eps,"EPSKrylovSchurGetSubcommPairs_C",(EPS,PetscInt,PetscScalar*,Vec),(eps,i,eig,v));CHKERRQ(ierr);
+  ierr = PetscUseMethod(eps,"EPSKrylovSchurGetSubcommPairs_C",(EPS,PetscInt,PetscScalar*,Vec),(eps,i,eig,v));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

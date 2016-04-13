@@ -291,7 +291,7 @@ static PetscErrorCode EPSFEASTGetNumPoints_FEAST(EPS eps,PetscInt *npoints)
   EPS_FEAST *ctx = (EPS_FEAST*)eps->data;
 
   PetscFunctionBegin;
-  if (npoints) *npoints = ctx->npoints;
+  *npoints = ctx->npoints;
   PetscFunctionReturn(0);
 }
 
@@ -319,7 +319,8 @@ PetscErrorCode EPSFEASTGetNumPoints(EPS eps,PetscInt *npoints)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  ierr = PetscTryMethod(eps,"EPSFEASTSetNumPoints_C",(EPS,PetscInt*),(eps,npoints));CHKERRQ(ierr);
+  PetscValidPointer(npoints,2);
+  ierr = PetscUseMethod(eps,"EPSFEASTGetNumPoints_C",(EPS,PetscInt*),(eps,npoints));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

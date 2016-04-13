@@ -904,7 +904,7 @@ PetscErrorCode NEPNLEIGSGetSingularitiesFunction(NEP nep,PetscErrorCode (**fun)(
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
-  ierr = PetscTryMethod(nep,"NEPNLEIGSGetSingularitiesFunction_C",(NEP,PetscErrorCode(**)(NEP,PetscInt*,PetscScalar*,void*),void**),(nep,fun,ctx));CHKERRQ(ierr);
+  ierr = PetscUseMethod(nep,"NEPNLEIGSGetSingularitiesFunction_C",(NEP,PetscErrorCode(**)(NEP,PetscInt*,PetscScalar*,void*),void**),(nep,fun,ctx));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -992,7 +992,7 @@ PetscErrorCode NEPNLEIGSGetRestart(NEP nep,PetscReal *keep)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
   PetscValidPointer(keep,2);
-  ierr = PetscTryMethod(nep,"NEPNLEIGSGetRestart_C",(NEP,PetscReal*),(nep,keep));CHKERRQ(ierr);
+  ierr = PetscUseMethod(nep,"NEPNLEIGSGetRestart_C",(NEP,PetscReal*),(nep,keep));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -1078,7 +1078,7 @@ PetscErrorCode NEPNLEIGSGetLocking(NEP nep,PetscBool *lock)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
   PetscValidPointer(lock,2);
-  ierr = PetscTryMethod(nep,"NEPNLEIGSGetLocking_C",(NEP,PetscBool*),(nep,lock));CHKERRQ(ierr);
+  ierr = PetscUseMethod(nep,"NEPNLEIGSGetLocking_C",(NEP,PetscBool*),(nep,lock));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

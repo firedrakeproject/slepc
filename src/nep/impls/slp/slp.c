@@ -250,7 +250,7 @@ PetscErrorCode NEPSLPGetEPS(NEP nep,EPS *eps)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
   PetscValidPointer(eps,2);
-  ierr = PetscTryMethod(nep,"NEPSLPGetEPS_C",(NEP,EPS*),(nep,eps));CHKERRQ(ierr);
+  ierr = PetscUseMethod(nep,"NEPSLPGetEPS_C",(NEP,EPS*),(nep,eps));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

@@ -346,7 +346,7 @@ PetscErrorCode STCayleyGetAntishift(ST st,PetscScalar *nu)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
   PetscValidScalarPointer(nu,2);
-  ierr = PetscTryMethod(st,"STCayleyGetAntishift_C",(ST,PetscScalar*),(st,nu));CHKERRQ(ierr);
+  ierr = PetscUseMethod(st,"STCayleyGetAntishift_C",(ST,PetscScalar*),(st,nu));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

@@ -127,7 +127,7 @@ PetscErrorCode RGIntervalGetEndpoints(RG rg,PetscReal *a,PetscReal *b,PetscReal 
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(rg,RG_CLASSID,1);
-  ierr = PetscTryMethod(rg,"RGIntervalGetEndpoints_C",(RG,PetscReal*,PetscReal*,PetscReal*,PetscReal*),(rg,a,b,c,d));CHKERRQ(ierr);
+  ierr = PetscUseMethod(rg,"RGIntervalGetEndpoints_C",(RG,PetscReal*,PetscReal*,PetscReal*,PetscReal*),(rg,a,b,c,d));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

@@ -311,7 +311,7 @@ PetscErrorCode FNRationalGetNumerator(FN fn,PetscInt *np,PetscScalar *pcoeff[])
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(fn,FN_CLASSID,1);
-  ierr = PetscTryMethod(fn,"FNRationalGetNumerator_C",(FN,PetscInt*,PetscScalar**),(fn,np,pcoeff));CHKERRQ(ierr);
+  ierr = PetscUseMethod(fn,"FNRationalGetNumerator_C",(FN,PetscInt*,PetscScalar**),(fn,np,pcoeff));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -423,7 +423,7 @@ PetscErrorCode FNRationalGetDenominator(FN fn,PetscInt *nq,PetscScalar *qcoeff[]
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(fn,FN_CLASSID,1);
-  ierr = PetscTryMethod(fn,"FNRationalGetDenominator_C",(FN,PetscInt*,PetscScalar**),(fn,nq,qcoeff));CHKERRQ(ierr);
+  ierr = PetscUseMethod(fn,"FNRationalGetDenominator_C",(FN,PetscInt*,PetscScalar**),(fn,nq,qcoeff));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

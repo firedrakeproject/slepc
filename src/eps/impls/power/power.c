@@ -344,7 +344,7 @@ PetscErrorCode EPSPowerGetShiftType(EPS eps,EPSPowerShiftType *shift)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidPointer(shift,2);
-  ierr = PetscTryMethod(eps,"EPSPowerGetShiftType_C",(EPS,EPSPowerShiftType*),(eps,shift));CHKERRQ(ierr);
+  ierr = PetscUseMethod(eps,"EPSPowerGetShiftType_C",(EPS,EPSPowerShiftType*),(eps,shift));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

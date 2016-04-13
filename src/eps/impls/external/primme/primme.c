@@ -381,7 +381,7 @@ static PetscErrorCode EPSPRIMMEGetBlockSize_PRIMME(EPS eps,PetscInt *bs)
   EPS_PRIMME *ops = (EPS_PRIMME*)eps->data;
 
   PetscFunctionBegin;
-  if (bs) *bs = ops->primme.maxBlockSize;
+  *bs = ops->primme.maxBlockSize;
   PetscFunctionReturn(0);
 }
 
@@ -408,7 +408,8 @@ PetscErrorCode EPSPRIMMEGetBlockSize(EPS eps,PetscInt *bs)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  ierr = PetscTryMethod(eps,"EPSPRIMMEGetBlockSize_C",(EPS,PetscInt*),(eps,bs));CHKERRQ(ierr);
+  PetscValidPointer(bs,2);
+  ierr = PetscUseMethod(eps,"EPSPRIMMEGetBlockSize_C",(EPS,PetscInt*),(eps,bs));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -471,7 +472,7 @@ static PetscErrorCode EPSPRIMMEGetMethod_PRIMME(EPS eps,EPSPRIMMEMethod *method)
   EPS_PRIMME *ops = (EPS_PRIMME*)eps->data;
 
   PetscFunctionBegin;
-  if (method) *method = (EPSPRIMMEMethod)ops->method;
+  *method = (EPSPRIMMEMethod)ops->method;
   PetscFunctionReturn(0);
 }
 
@@ -504,7 +505,8 @@ PetscErrorCode EPSPRIMMEGetMethod(EPS eps,EPSPRIMMEMethod *method)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  ierr = PetscTryMethod(eps,"EPSPRIMMEGetMethod_C",(EPS,EPSPRIMMEMethod*),(eps,method));CHKERRQ(ierr);
+  PetscValidPointer(method,2);
+  ierr = PetscUseMethod(eps,"EPSPRIMMEGetMethod_C",(EPS,EPSPRIMMEMethod*),(eps,method));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

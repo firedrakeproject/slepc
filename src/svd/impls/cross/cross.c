@@ -325,7 +325,7 @@ PetscErrorCode SVDCrossGetEPS(SVD svd,EPS *eps)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
   PetscValidPointer(eps,2);
-  ierr = PetscTryMethod(svd,"SVDCrossGetEPS_C",(SVD,EPS*),(svd,eps));CHKERRQ(ierr);
+  ierr = PetscUseMethod(svd,"SVDCrossGetEPS_C",(SVD,EPS*),(svd,eps));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
