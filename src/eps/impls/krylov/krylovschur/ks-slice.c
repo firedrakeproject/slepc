@@ -105,6 +105,12 @@ PetscErrorCode EPSReset_KrylovSchur_Slice(EPS eps)
   ierr = EPSSliceResetSR(eps);CHKERRQ(ierr);
   ierr = PetscFree(ctx->inertias);CHKERRQ(ierr);
   ierr = PetscFree(ctx->shifts);CHKERRQ(ierr);
+  if (ctx->npart>1) {
+    ierr = ISDestroy(&ctx->isrow);CHKERRQ(ierr);
+    ierr = ISDestroy(&ctx->iscol);CHKERRQ(ierr);
+    ierr = MatDestroyMatrices(1,&ctx->submata);CHKERRQ(ierr);
+    ierr = MatDestroyMatrices(1,&ctx->submatb);CHKERRQ(ierr);
+  }
   PetscFunctionReturn(0);
 }
 
@@ -182,6 +188,8 @@ static PetscErrorCode EPSSliceGetEPS(EPS eps)
   KSP                ksp;
   KSPType            ksptype;
   STType             sttype;
+  PetscObjectState   Astate,Bstate=0;
+  PetscObjectId      Aid,Bid=0;
   const MatSolverPackage stype;
 
   PetscFunctionBegin;
@@ -189,9 +197,15 @@ static PetscErrorCode EPSSliceGetEPS(EPS eps)
   if (ctx->npart==1) {
     if (!ctx->eps) { ierr = EPSCreate(((PetscObject)eps)->comm,&ctx->eps);CHKERRQ(ierr); }
     ierr = EPSSetType(ctx->eps,((PetscObject)eps)->type_name);CHKERRQ(ierr);
-    ierr = EPSSetST(ctx->eps,eps->st);CHKERRQ(ierr);
+    ierr = EPSSetOperators(ctx->eps,A,B);CHKERRQ(ierr);
     a = eps->inta; b = eps->intb;
   } else {
+    ierr = PetscObjectStateGet((PetscObject)A,&Astate);CHKERRQ(ierr);
+    ierr = PetscObjectGetId((PetscObject)A,&Aid);CHKERRQ(ierr);
+    if (B) {
+      ierr = PetscObjectStateGet((PetscObject)B,&Bstate);CHKERRQ(ierr);
+      ierr = PetscObjectGetId((PetscObject)B,&Bid);CHKERRQ(ierr);
+    }
     if (!ctx->subc) {
       /* Create context for subcommunicators */
       ierr = PetscSubcommCreate(PetscObjectComm((PetscObject)eps),&ctx->subc);CHKERRQ(ierr);
@@ -201,7 +215,28 @@ static PetscErrorCode EPSSliceGetEPS(EPS eps)
 
       /* Duplicate matrices */
       ierr = MatCreateRedundantMatrix(A,0,PetscSubcommChild(ctx->subc),MAT_INITIAL_MATRIX,&Ar);CHKERRQ(ierr);
-      if (B) { ierr = MatCreateRedundantMatrix(B,0,PetscSubcommChild(ctx->subc),MAT_INITIAL_MATRIX,&Br);CHKERRQ(ierr); }
+      ctx->Astate = Astate;
+      ctx->Aid = Aid;
+      if (B) {
+        ierr = MatCreateRedundantMatrix(B,0,PetscSubcommChild(ctx->subc),MAT_INITIAL_MATRIX,&Br);CHKERRQ(ierr);
+        ctx->Bstate = Bstate;
+        ctx->Bid = Bid;
+      }
+    } else {
+      if (ctx->Astate != Astate || (B && ctx->Bstate != Bstate) || ctx->Aid != Aid || (B && ctx->Bid != Bid)) {
+        ierr = EPSGetOperators(ctx->eps,&Ar,&Br);CHKERRQ(ierr);
+        ierr = MatCreateRedundantMatrix(A,0,PetscSubcommChild(ctx->subc),MAT_INITIAL_MATRIX,&Ar);CHKERRQ(ierr);
+        ctx->Astate = Astate;
+        ctx->Aid = Aid;
+        if (B) {
+          ierr = MatCreateRedundantMatrix(B,0,PetscSubcommChild(ctx->subc),MAT_INITIAL_MATRIX,&Br);CHKERRQ(ierr);
+          ctx->Bstate = Bstate;
+          ctx->Bid = Bid;
+        }
+        ierr = EPSSetOperators(ctx->eps,Ar,Br);CHKERRQ(ierr);
+        ierr = MatDestroy(&Ar);CHKERRQ(ierr);
+        ierr = MatDestroy(&Br);CHKERRQ(ierr);
+      }
     }
 
     /* Determine subintervals */
@@ -226,21 +261,6 @@ static PetscErrorCode EPSSliceGetEPS(EPS eps)
       ierr = MatDestroy(&Ar);CHKERRQ(ierr);
       ierr = MatDestroy(&Br);CHKERRQ(ierr);
     }
-    ierr = EPSSetType(ctx->eps,((PetscObject)eps)->type_name);CHKERRQ(ierr);
-
-    /* Transfer options for ST, KSP and PC */
-    ierr = STGetType(eps->st,&sttype);CHKERRQ(ierr);
-    ierr = STSetType(ctx->eps->st,sttype);CHKERRQ(ierr);
-    ierr = STGetKSP(eps->st,&ksp);CHKERRQ(ierr);
-    ierr = KSPGetType(ksp,&ksptype);CHKERRQ(ierr);
-    ierr = KSPGetPC(ksp,&pc);CHKERRQ(ierr);
-    ierr = PCGetType(pc,&pctype);CHKERRQ(ierr);
-    ierr = PCFactorGetMatSolverPackage(pc,&stype);CHKERRQ(ierr);
-    ierr = STGetKSP(ctx->eps->st,&ksp);CHKERRQ(ierr);
-    ierr = KSPSetType(ksp,ksptype);CHKERRQ(ierr);
-    ierr = KSPGetPC(ksp,&pc);CHKERRQ(ierr);
-    ierr = PCSetType(pc,pctype);CHKERRQ(ierr);
-    ierr = PCFactorSetMatSolverPackage(pc,stype);CHKERRQ(ierr);
 
     /* Create subcommunicator grouping processes with same rank */
     if (ctx->commset) { ierr = MPI_Comm_free(&ctx->commrank);CHKERRQ(ierr); }
@@ -248,6 +268,22 @@ static PetscErrorCode EPSSliceGetEPS(EPS eps)
     ierr = MPI_Comm_split(((PetscObject)eps)->comm,rank,ctx->subc->color,&ctx->commrank);CHKERRQ(ierr);
     ctx->commset = PETSC_TRUE;
   }
+  ierr = EPSSetType(ctx->eps,((PetscObject)eps)->type_name);CHKERRQ(ierr);
+
+  /* Transfer options for ST, KSP and PC */
+  ierr = STGetType(eps->st,&sttype);CHKERRQ(ierr);
+  ierr = STSetType(ctx->eps->st,sttype);CHKERRQ(ierr);
+  ierr = STGetKSP(eps->st,&ksp);CHKERRQ(ierr);
+  ierr = KSPGetType(ksp,&ksptype);CHKERRQ(ierr);
+  ierr = KSPGetPC(ksp,&pc);CHKERRQ(ierr);
+  ierr = PCGetType(pc,&pctype);CHKERRQ(ierr);
+  ierr = PCFactorGetMatSolverPackage(pc,&stype);CHKERRQ(ierr);
+  ierr = STGetKSP(ctx->eps->st,&ksp);CHKERRQ(ierr);
+  ierr = KSPSetType(ksp,ksptype);CHKERRQ(ierr);
+  ierr = KSPGetPC(ksp,&pc);CHKERRQ(ierr);
+  ierr = PCSetType(pc,pctype);CHKERRQ(ierr);
+  if (stype) { ierr = PCFactorSetMatSolverPackage(pc,stype);CHKERRQ(ierr); }
+
   ierr = EPSSetConvergenceTest(ctx->eps,eps->conv);CHKERRQ(ierr);
   ierr = EPSSetInterval(ctx->eps,a,b);CHKERRQ(ierr);
   ctx_local = (EPS_KRYLOVSCHUR*)ctx->eps->data;
@@ -297,6 +333,7 @@ static PetscErrorCode EPSSliceGetInertia(EPS eps,PetscReal shift,PetscInt *inert
   KSP            ksp;
   PC             pc;
   Mat            F;
+  PetscReal      nzshift;
 
   PetscFunctionBegin;
   if (shift >= PETSC_MAX_REAL) { /* Right-open interval */
@@ -305,7 +342,11 @@ static PetscErrorCode EPSSliceGetInertia(EPS eps,PetscReal shift,PetscInt *inert
     if (inertia) *inertia = 0;
     if (zeros) *zeros = 0;
   } else {
-    ierr = STSetShift(eps->st,shift);CHKERRQ(ierr);
+    /* If the shift is zero, perturb it to a very small positive value.
+       The goal is that the nonzero pattern is the same in all cases and reuse
+       the symbolic factorizations */
+    nzshift = (shift==0.0)? 10.0/PETSC_MAX_REAL: shift;
+    ierr = STSetShift(eps->st,nzshift);CHKERRQ(ierr);
     ierr = STSetUp(eps->st);CHKERRQ(ierr);
     ierr = STGetKSP(eps->st,&ksp);CHKERRQ(ierr);
     ierr = KSPGetPC(ksp,&pc);CHKERRQ(ierr);
@@ -326,6 +367,7 @@ PetscErrorCode EPSSetUp_KrylovSchur_Slice(EPS eps)
   PetscInt        nEigs,dssz=1,i,zeros=0,off=0;
   PetscMPIInt     nproc,rank,aux;
   MPI_Request     req;
+  Mat             A,B=NULL;
 
   PetscFunctionBegin;
   if (ctx->global) {
@@ -340,8 +382,8 @@ PetscErrorCode EPSSetUp_KrylovSchur_Slice(EPS eps)
     if (!issinv) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Shift-and-invert or Cayley ST is needed for spectrum slicing");
     if (eps->tol==PETSC_DEFAULT) eps->tol = SLEPC_DEFAULT_TOL*1e-2;  /* use tighter tolerance */
     if (!eps->max_it) eps->max_it = 100;
-    if (ctx->nev==1) ctx->nev = 40;  /* nev not set, use default value */
-    if (ctx->nev<10) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_WRONG,"nev cannot be less than 10 in spectrum slicing runs");
+    if (ctx->nev==1) ctx->nev = PetscMin(40,eps->n);  /* nev not set, use default value */
+    if (eps->n>10 && ctx->nev<10) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_WRONG,"nev cannot be less than 10 in spectrum slicing runs");
   }
   eps->ops->backtransform = NULL;
 
@@ -373,10 +415,8 @@ PetscErrorCode EPSSetUp_KrylovSchur_Slice(EPS eps)
     }
   }
   if (ctx->global) {
-    if (ctx->npart>1) {
-      /* prevent computation of factorization in global eps unless npart==1 */
-      ierr = STSetTransform(eps->st,PETSC_FALSE);CHKERRQ(ierr);
-    }
+    /* prevent computation of factorization in global eps */
+    ierr = STSetTransform(eps->st,PETSC_FALSE);CHKERRQ(ierr);
     ierr = EPSSetDimensions_Default(eps,ctx->nev,&ctx->ncv,&ctx->mpd);CHKERRQ(ierr);
     /* create subintervals and initialize auxiliary eps for slicing runs */
     ierr = EPSSliceGetEPS(eps);CHKERRQ(ierr);
@@ -429,12 +469,6 @@ PetscErrorCode EPSSetUp_KrylovSchur_Slice(EPS eps)
       else sr->hasEnd = PETSC_TRUE;
     }
 
-    /* last process in eps comm computes inertia1 */
-    if (ctx->npart==1 || ((sr->dir>0 && ctx->subc->color==ctx->npart-1) || (sr->dir<0 && ctx->subc->color==0))) {
-      ierr = EPSSliceGetInertia(eps,sr->int1,&sr->inertia1,ctx->detect?&zeros:NULL);CHKERRQ(ierr);
-      if (zeros) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_USER,"Found singular matrix for the transformed problem in an interval endpoint defined by user");
-    }
-
     /* compute inertia0 */
     ierr = EPSSliceGetInertia(eps,sr->int0,&sr->inertia0,ctx->detect?&zeros:NULL);CHKERRQ(ierr);
     if (zeros) { /* error in factorization */
@@ -464,6 +498,12 @@ PetscErrorCode EPSSetUp_KrylovSchur_Slice(EPS eps)
       } else sr_glob->inertia1 = sr->inertia1;
     }
 
+    /* last process in eps comm computes inertia1 */
+    if (ctx->npart==1 || ((sr->dir>0 && ctx->subc->color==ctx->npart-1) || (sr->dir<0 && ctx->subc->color==0))) {
+      ierr = EPSSliceGetInertia(eps,sr->int1,&sr->inertia1,ctx->detect?&zeros:NULL);CHKERRQ(ierr);
+      if (zeros) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_USER,"Found singular matrix for the transformed problem in an interval endpoint defined by user");
+    }
+
     /* number of eigenvalues in interval */
     sr->numEigs = (sr->dir)*(sr->inertia1 - sr->inertia0);
     if (ctx->npart>1) {
@@ -475,6 +515,17 @@ PetscErrorCode EPSSetUp_KrylovSchur_Slice(EPS eps)
   ierr = DSSetType(eps->ds,DSHEP);CHKERRQ(ierr);
   ierr = DSSetCompact(eps->ds,PETSC_TRUE);CHKERRQ(ierr);
   ierr = DSAllocate(eps->ds,dssz);CHKERRQ(ierr);
+  /* keep state of subcomm matrices to check that the user does not modify them */
+  ierr = EPSGetOperators(eps,&A,&B);CHKERRQ(ierr);
+  ierr = PetscObjectStateGet((PetscObject)A,&ctx->Astate);CHKERRQ(ierr);
+  ierr = PetscObjectGetId((PetscObject)A,&ctx->Aid);CHKERRQ(ierr);
+  if (B) { 
+    ierr = PetscObjectStateGet((PetscObject)B,&ctx->Bstate);CHKERRQ(ierr);
+    ierr = PetscObjectGetId((PetscObject)B,&ctx->Bid);CHKERRQ(ierr);
+  } else {
+    ctx->Bstate=0;
+    ctx->Bid=0;
+  }
   PetscFunctionReturn(0);
 }
 
@@ -1295,11 +1346,14 @@ static PetscErrorCode EPSLookForDeflation(EPS eps)
 #define __FUNCT__ "EPSSolve_KrylovSchur_Slice"
 PetscErrorCode EPSSolve_KrylovSchur_Slice(EPS eps)
 {
-  PetscErrorCode  ierr;
-  PetscInt        i,lds;
-  PetscReal       newS;
-  EPS_KRYLOVSCHUR *ctx=(EPS_KRYLOVSCHUR*)eps->data;
-  EPS_SR          sr=ctx->sr;
+  PetscErrorCode   ierr;
+  PetscInt         i,lds;
+  PetscReal        newS;
+  EPS_KRYLOVSCHUR  *ctx=(EPS_KRYLOVSCHUR*)eps->data;
+  EPS_SR           sr=ctx->sr;
+  Mat              A,B=NULL;
+  PetscObjectState Astate,Bstate=0;
+  PetscObjectId    Aid,Bid=0;
 
   PetscFunctionBegin;
   ierr = PetscCitationsRegister(citation,&cited);CHKERRQ(ierr);
@@ -1325,6 +1379,15 @@ PetscErrorCode EPSSolve_KrylovSchur_Slice(EPS eps)
       sr->errest = ctx->eps->errest;
       sr->V      = ctx->eps->V;
     }
+    /* Check that the user did not modify subcomm matrices */
+    ierr = EPSGetOperators(eps,&A,&B);CHKERRQ(ierr);
+    ierr = PetscObjectStateGet((PetscObject)A,&Astate);CHKERRQ(ierr);
+    ierr = PetscObjectGetId((PetscObject)A,&Aid);CHKERRQ(ierr);
+    if (B) { 
+      ierr = PetscObjectStateGet((PetscObject)B,&Bstate);CHKERRQ(ierr);
+      ierr = PetscObjectGetId((PetscObject)B,&Bid);CHKERRQ(ierr);
+    }
+    if (Astate!=ctx->Astate || (B && Bstate!=ctx->Bstate) || Aid!=ctx->Aid || (B && Bid!=ctx->Bid)) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONGSTATE,"Subcomm matrices have been modified by user");
     /* Only with eigenvalues present in the interval ...*/
     if (sr->numEigs==0) {
       eps->reason = EPS_CONVERGED_TOL;

@@ -161,8 +161,6 @@ PetscErrorCode STSetShift_Sinvert(ST st,PetscScalar newshift)
   PetscScalar    *coeffs=NULL;
 
   PetscFunctionBegin;
-  /* Nothing to be done if STSetUp has not been called yet */
-  if (!st->state) PetscFunctionReturn(0);
   if (st->transform) {
     if (st->shift_matrix == ST_MATMODE_COPY && nmat>2) {
       nc = (nmat*(nmat+1))/2;

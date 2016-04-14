@@ -75,29 +75,33 @@ struct _n_SR {
   PetscReal     *errest;      /* error estimates (for subsolve) */
   PetscInt      *perm;        /* permutation (for subsolve) */
 };
-typedef struct _n_SR  *EPS_SR;
+typedef struct _n_SR *EPS_SR;
 
 typedef struct {
-  PetscReal     keep;               /* restart parameter */
-  PetscBool     lock;               /* locking/non-locking variant */
+  PetscReal        keep;               /* restart parameter */
+  PetscBool        lock;               /* locking/non-locking variant */
   /* the following are used only in spectrum slicing */
-  EPS_SR        sr;                 /* spectrum slicing context */
-  PetscInt      nev;                /* number of eigenvalues to compute */
-  PetscInt      ncv;                /* number of basis vectors */
-  PetscInt      mpd;                /* maximum dimension of projected problem */
-  PetscInt      npart;              /* number of partitions of subcommunicator */
-  PetscBool     detect;             /* check for zeros during factorizations */
-  PetscReal     *subintervals;      /* partition of global interval */
-  PetscBool     subintset;          /* subintervals set by user */
-  PetscMPIInt   *nconv_loc;         /* converged eigenpairs for each subinterval */
-  EPS           eps;                /* additional eps for slice runs */
-  PetscBool     global;             /* flag distinguishing global from local eps */
-  PetscReal     *shifts;            /* array containing global shifts */
-  PetscInt      *inertias;          /* array containing global inertias */
-  PetscInt      nshifts;            /* elements in the arrays of shifts and inertias */
-  PetscSubcomm  subc;               /* context for subcommunicators */
-  MPI_Comm      commrank;           /* group processes with same rank in subcommunicators */
-  PetscBool     commset;            /* flag indicating that commrank was created */
+  EPS_SR           sr;                 /* spectrum slicing context */
+  PetscInt         nev;                /* number of eigenvalues to compute */
+  PetscInt         ncv;                /* number of basis vectors */
+  PetscInt         mpd;                /* maximum dimension of projected problem */
+  PetscInt         npart;              /* number of partitions of subcommunicator */
+  PetscBool        detect;             /* check for zeros during factorizations */
+  PetscReal        *subintervals;      /* partition of global interval */
+  PetscBool        subintset;          /* subintervals set by user */
+  PetscMPIInt      *nconv_loc;         /* converged eigenpairs for each subinterval */
+  EPS              eps;                /* additional eps for slice runs */
+  PetscBool        global;             /* flag distinguishing global from local eps */
+  PetscReal        *shifts;            /* array containing global shifts */
+  PetscInt         *inertias;          /* array containing global inertias */
+  PetscInt         nshifts;            /* elements in the arrays of shifts and inertias */
+  PetscSubcomm     subc;               /* context for subcommunicators */
+  MPI_Comm         commrank;           /* group processes with same rank in subcommunicators */
+  PetscBool        commset;            /* flag indicating that commrank was created */
+  PetscObjectState Astate,Bstate;      /* state of subcommunicator matrices */
+  PetscObjectId    Aid,Bid;            /* Id of subcommunicator matrices */
+  IS               isrow,iscol;        /* index sets used in update of subcomm mats */
+  Mat              *submata,*submatb;  /* seq matrices used in update of subcomm mats */
 } EPS_KRYLOVSCHUR;
 
 #endif
