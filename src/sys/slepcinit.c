@@ -264,15 +264,15 @@ PetscErrorCode SlepcInitialize(int *argc,char ***args,const char file[],const ch
 @*/
 PetscErrorCode SlepcFinalize(void)
 {
-  PetscErrorCode ierr;
+  PetscErrorCode ierr = 0;
 
   PetscFunctionBegin;
   ierr = PetscInfo(0,"SlepcFinalize() called\n");CHKERRQ(ierr);
   if (SlepcBeganPetsc) {
-    ierr = PetscFinalize();CHKERRQ(ierr);
+    ierr = PetscFinalize();
   }
   SlepcInitializeCalled = PETSC_FALSE;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(ierr);
 }
 
 #undef __FUNCT__
