@@ -22,11 +22,7 @@
 */
 
 #include <slepc/private/bvimpl.h>
-
-typedef struct {
-  Vec       v;
-  PetscBool mpi;
-} BV_SVEC;
+#include "./svecimpl.h"
 
 #undef __FUNCT__
 #define __FUNCT__ "BVMult_Svec"
@@ -486,11 +482,11 @@ PETSC_EXTERN PetscErrorCode BVCreate_Svec(BV bv)
   ierr = PetscNewLog(bv,&ctx);CHKERRQ(ierr);
   bv->data = (void*)ctx;
 
-  ierr = PetscObjectTypeCompare((PetscObject)bv->t,VECMPI,&ctx->mpi);CHKERRQ(ierr);
-  if (!ctx->mpi) {
-    ierr = PetscObjectTypeCompare((PetscObject)bv->t,VECSEQ,&seq);CHKERRQ(ierr);
-    if (!seq) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"Cannot create a BVSVEC from a non-standard template vector");
-  }
+  ierr = PetscObjectTypeCompareAny((PetscObject)bv->t,&ctx->cuda,VECSEQCUDA,VECMPICUDA,"");CHKERRQ(ierr);
+  ierr = PetscObjectTypeCompareAny((PetscObject)bv->t,&ctx->mpi,VECMPI,VECMPICUDA,"");CHKERRQ(ierr);
+
+  ierr = PetscObjectTypeCompare((PetscObject)bv->t,VECSEQ,&seq);CHKERRQ(ierr);
+  if (!seq && !ctx->mpi && !ctx->cuda) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"BVSVEC does not support the type of the provided template vector");
 
   ierr = VecGetLocalSize(bv->t,&nloc);CHKERRQ(ierr);
   ierr = VecGetBlockSize(bv->t,&bs);CHKERRQ(ierr);
@@ -513,7 +509,13 @@ PETSC_EXTERN PetscErrorCode BVCreate_Svec(BV bv)
     ierr = VecCreateSeqWithArray(PetscObjectComm((PetscObject)bv->t),bs,nloc,NULL,&bv->cv[1]);CHKERRQ(ierr);
   }
 
-  bv->ops->mult             = BVMult_Svec;
+  if (ctx->cuda) {
+#if defined(PETSC_HAVE_CUDA)
+    bv->ops->mult           = BVMult_Svec_CUDA;
+#endif
+  } else {
+    bv->ops->mult           = BVMult_Svec;
+  }
   bv->ops->multvec          = BVMultVec_Svec;
   bv->ops->multinplace      = BVMultInPlace_Svec;
   bv->ops->multinplacetrans = BVMultInPlaceTranspose_Svec;
