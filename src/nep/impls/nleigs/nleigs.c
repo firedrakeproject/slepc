@@ -56,7 +56,7 @@ typedef struct {
   PetscReal      keep;      /* restart parameter */
   PetscBool      lock;      /* locking/non-locking variant */
   PetscBool      trueres;   /* whether the true residual norm must be computed */
-  PetscInt       idxrk;     /* index next shift to use */
+  PetscInt       idxrk;     /* index of next shift to use */
   KSP            *ksps;     /* ksp array for storing shift factorizations */
   void           *singularitiesctx;
   PetscErrorCode (*computesingularities)(NEP,PetscInt*,PetscScalar*,void*);
@@ -229,7 +229,7 @@ static PetscErrorCode NEPNLEIGSBackTransform(PetscObject ob,PetscInt n,PetscScal
 static PetscErrorCode NEPNLEIGSLejaBagbyPoints(NEP nep)
 {
   PetscErrorCode ierr;
-  NEP_NLEIGS     *ctx=(NEP_NLEIGS*)nep->data;
+  NEP_NLEIGS     *ctx = (NEP_NLEIGS*)nep->data;
   PetscInt       i,k,ndpt=NDPOINTS,ndptx=NDPOINTS;
   PetscScalar    *ds,*dsi,*dxi,*nrs,*nrxi,*s=ctx->s,*xi=ctx->xi,*beta=ctx->beta;
   PetscReal      maxnrs,minnrxi;
@@ -288,7 +288,7 @@ static PetscErrorCode NEPNLEIGSLejaBagbyPoints(NEP nep)
 #define __FUNCT__ "NEPNLEIGSEvalNRTFunct"
 static PetscErrorCode NEPNLEIGSEvalNRTFunct(NEP nep,PetscInt k,PetscScalar sigma,PetscScalar *b)
 {
-  NEP_NLEIGS  *ctx=(NEP_NLEIGS*)nep->data;
+  NEP_NLEIGS  *ctx = (NEP_NLEIGS*)nep->data;
   PetscInt    i;
   PetscScalar *beta=ctx->beta,*s=ctx->s,*xi=ctx->xi;
 
@@ -305,7 +305,7 @@ static PetscErrorCode NEPNLEIGSEvalNRTFunct(NEP nep,PetscInt k,PetscScalar sigma
 static PetscErrorCode NEPNLEIGSDividedDifferences_split(NEP nep)
 {
   PetscErrorCode ierr;
-  NEP_NLEIGS     *ctx=(NEP_NLEIGS*)nep->data;
+  NEP_NLEIGS     *ctx = (NEP_NLEIGS*)nep->data;
   PetscInt       k,j,i;
   PetscReal      norm0,norm,max;
   PetscScalar    *s=ctx->s,*beta=ctx->beta,b[ctx->ddmaxit+1],alpha,coeffs[ctx->ddmaxit+1];
@@ -361,7 +361,7 @@ static PetscErrorCode NEPNLEIGSDividedDifferences_split(NEP nep)
 static PetscErrorCode NEPNLEIGSDividedDifferences_callback(NEP nep)
 {
   PetscErrorCode ierr;
-  NEP_NLEIGS     *ctx=(NEP_NLEIGS*)nep->data;
+  NEP_NLEIGS     *ctx = (NEP_NLEIGS*)nep->data;
   PetscInt       k,j,i;
   PetscReal      norm0,norm;
   PetscScalar    *s=ctx->s,*beta=ctx->beta,b[ctx->ddmaxit+1],coeffs[ctx->ddmaxit+1];
@@ -394,7 +394,7 @@ static PetscErrorCode NEPNLEIGSDividedDifferences_callback(NEP nep)
   for (i=0;i<ctx->nshiftsw;i++) {
     ierr = NEPNLEIGSEvalNRTFunct(nep,ctx->nmat,ctx->shifts[i],coeffs);CHKERRQ(ierr);
     ierr = MatDuplicate(ctx->D[0],MAT_COPY_VALUES,&T);CHKERRQ(ierr);
-    if (coeffs[0]!=1.0) { ierr = MatScale(T,coeffs[0]);CHKERRQ(ierr);}
+    if (coeffs[0]!=1.0) { ierr = MatScale(T,coeffs[0]);CHKERRQ(ierr); }
     for (j=1;j<ctx->nmat-1;j++) {
       ierr = MatAXPY(T,coeffs[j],ctx->D[j],nep->mstr);CHKERRQ(ierr);
     }
@@ -410,7 +410,7 @@ static PetscErrorCode NEPNLEIGSDividedDifferences_callback(NEP nep)
 static PetscErrorCode NEPNLEIGSRitzVector(NEP nep,PetscScalar *S,PetscInt ld,PetscInt nq,PetscScalar *H,PetscInt k,Vec t)
 {
   PetscErrorCode ierr;
-  NEP_NLEIGS     *ctx=(NEP_NLEIGS*)nep->data;
+  NEP_NLEIGS     *ctx = (NEP_NLEIGS*)nep->data;
   PetscInt       deg=ctx->nmat-1,ldds,n;
   PetscBLASInt   nq_,lds_,n_,one=1,ldds_;
   PetscScalar    sone=1.0,zero=0.0,*x,*y,*X;
@@ -425,9 +425,8 @@ static PetscErrorCode NEPNLEIGSRitzVector(NEP nep,PetscScalar *S,PetscInt ld,Pet
   ierr = PetscBLASIntCast(ldds,&ldds_);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(deg*ld,&lds_);CHKERRQ(ierr);
   ierr = DSGetArray(nep->ds,DS_MAT_X,&X);CHKERRQ(ierr);
-  if (ctx->nshifts) {
-    PetscStackCall("BLASgemv",BLASgemv_("N",&n_,&n_,&sone,H,&ldds_,X+k*ldds,&one,&zero,x,&one));
-  } else x = X+k*ldds;
+  if (ctx->nshifts) PetscStackCall("BLASgemv",BLASgemv_("N",&n_,&n_,&sone,H,&ldds_,X+k*ldds,&one,&zero,x,&one));
+  else x = X+k*ldds;
   PetscStackCall("BLASgemv",BLASgemv_("N",&nq_,&n_,&sone,S,&lds_,x,&one,&zero,y,&one));
   ierr = DSRestoreArray(nep->ds,DS_MAT_X,&X);CHKERRQ(ierr);
   ierr = BVSetActiveColumns(nep->V,0,nq);CHKERRQ(ierr);
@@ -442,7 +441,7 @@ static PetscErrorCode NEPNLEIGSRitzVector(NEP nep,PetscScalar *S,PetscInt ld,Pet
 /*
    NEPKrylovConvergence - This is the analogue to EPSKrylovConvergence.
 */
-static PetscErrorCode NEPNLEIGSKrylovConvergence(NEP nep,PetscScalar *S, PetscInt ld,PetscInt nq,PetscScalar *H,PetscBool getall,PetscInt kini,PetscInt nits,PetscScalar betak,PetscReal betah,PetscInt *kout,Vec *w)
+static PetscErrorCode NEPNLEIGSKrylovConvergence(NEP nep,PetscScalar *S,PetscInt ld,PetscInt nq,PetscScalar *H,PetscBool getall,PetscInt kini,PetscInt nits,PetscScalar betak,PetscReal betah,PetscInt *kout,Vec *w)
 {
   PetscErrorCode ierr;
   PetscInt       k,newk,marker,inside;
@@ -450,7 +449,7 @@ static PetscErrorCode NEPNLEIGSKrylovConvergence(NEP nep,PetscScalar *S, PetscIn
   PetscReal      resnorm;
   PetscBool      istrivial;
   Vec            t;
-  NEP_NLEIGS     *ctx=(NEP_NLEIGS*)nep->data;
+  NEP_NLEIGS     *ctx = (NEP_NLEIGS*)nep->data;
 
   PetscFunctionBegin;
   t = w[0];
@@ -498,7 +497,7 @@ PetscErrorCode NEPSetUp_NLEIGS(NEP nep)
   PetscErrorCode ierr;
   PetscInt       k,in,i;
   PetscScalar    zero=0.0;
-  NEP_NLEIGS     *ctx=(NEP_NLEIGS*)nep->data;
+  NEP_NLEIGS     *ctx = (NEP_NLEIGS*)nep->data;
   SlepcSC        sc;
   PetscBool      istrivial;
 
@@ -547,7 +546,7 @@ PetscErrorCode NEPSetUp_NLEIGS(NEP nep)
   /* /////////////// */
   if (!ctx->nshifts) { 
     ctx->shifts = &nep->target;
-    if(!nep->ksp) { ierr = NEPGetKSP(nep,&nep->ksp);CHKERRQ(ierr); }
+    if (!nep->ksp) { ierr = NEPGetKSP(nep,&nep->ksp);CHKERRQ(ierr); }
     ctx->ksps = &nep->ksp;
     ctx->nshiftsw = 1;
   } else ctx->nshiftsw = ctx->nshifts;
@@ -566,7 +565,7 @@ PetscErrorCode NEPSetUp_NLEIGS(NEP nep)
   ierr = DSAllocate(nep->ds,nep->ncv+1);CHKERRQ(ierr);
   ierr = DSGetSlepcSC(nep->ds,&sc);CHKERRQ(ierr);
   if (!ctx->nshifts) {
-    sc->map         = NEPNLEIGSBackTransform;
+    sc->map = NEPNLEIGSBackTransform;
     ierr = DSSetExtraRow(nep->ds,PETSC_TRUE);CHKERRQ(ierr);
   }
   sc->mapobj        = (PetscObject)nep;
@@ -664,7 +663,7 @@ static PetscErrorCode NEPTOAROrth2(NEP nep,PetscScalar *S,PetscInt ld,PetscInt d
 static PetscErrorCode NEPTOARExtendBasis(NEP nep,PetscInt idxrktg,PetscScalar *S,PetscInt ls,PetscInt nv,BV V,Vec t,PetscScalar *r,PetscInt lr,Vec *t_)
 {
   PetscErrorCode ierr;
-  NEP_NLEIGS     *ctx=(NEP_NLEIGS*)nep->data;
+  NEP_NLEIGS     *ctx = (NEP_NLEIGS*)nep->data;
   PetscInt       deg=ctx->nmat-1,k,j;
   Vec            v=t_[0],q=t_[1],w;
   PetscScalar    *beta=ctx->beta,*s=ctx->s,*xi=ctx->xi,*coeffs,sigma;
@@ -725,7 +724,7 @@ static PetscErrorCode NEPTOARExtendBasis(NEP nep,PetscInt idxrktg,PetscScalar *S
 static PetscErrorCode NEPTOARCoefficients(NEP nep,PetscScalar sigma,PetscInt nv,PetscScalar *S,PetscInt ls,PetscScalar *r,PetscInt lr,PetscScalar *x,PetscScalar *work)
 {
   PetscErrorCode ierr;
-  NEP_NLEIGS     *ctx=(NEP_NLEIGS*)nep->data;
+  NEP_NLEIGS     *ctx = (NEP_NLEIGS*)nep->data;
   PetscInt       k,j,d=ctx->nmat-1;
   PetscScalar    *t=work;
 
@@ -741,24 +740,24 @@ static PetscErrorCode NEPTOARCoefficients(NEP nep,PetscScalar sigma,PetscInt nv,
 #undef __FUNCT__
 #define __FUNCT__ "NEPNLEIGS_RKcontinuation"
 /*
-  Compute continuation vector coeficients for the Rational-Krylov run.
+  Compute continuation vector coefficients for the Rational-Krylov run.
   dim(work) >= (end-ini)*(end-ini+1) + end+1 + 2*(end-ini+1), dim(t) = end. 
 */
 static PetscErrorCode NEPNLEIGS_RKcontinuation(NEP nep,PetscInt ini,PetscInt end,PetscScalar *K,PetscScalar *H,PetscInt ld,PetscScalar sigma,PetscScalar *S,PetscInt lds,PetscScalar *cont,PetscScalar *t,PetscScalar *work)
 {
-#if defined(SLEPC_MISSING_LAPACK_LARFG) || defined(SLEPC_MISSING_LAPACK_LARF)
+#if defined(PETSC_MISSING_LAPACK_GEQRF) || defined(SLEPC_MISSING_LAPACK_LARF)
   PetscFunctionBegin;
-  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"LARFG/LARF - Lapack routines are unavailable");
+  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"GEQRF/LARF - Lapack routines are unavailable");
 #else
   PetscErrorCode ierr;
   PetscScalar    *x,*W,*tau,sone=1.0,szero=0.0;
   PetscInt       i,j,n1,n,nwu=0;
   PetscBLASInt   info,n_,n1_,one=1,dim,lds_;
-  NEP_NLEIGS     *ctx=(NEP_NLEIGS*)nep->data;
+  NEP_NLEIGS     *ctx = (NEP_NLEIGS*)nep->data;
 
   PetscFunctionBegin;
-  if (!ctx->nshifts || end==0) {
-    t[0]=1;
+  if (!ctx->nshifts || !end) {
+    t[0] = 1;
     ierr = PetscMemcpy(cont,S+end*lds,lds*sizeof(PetscScalar));CHKERRQ(ierr);
   } else {
     n   = end-ini;
@@ -801,7 +800,7 @@ static PetscErrorCode NEPNLEIGS_RKcontinuation(NEP nep,PetscInt ini,PetscInt end
 static PetscErrorCode NEPNLEIGSTOARrun(NEP nep,PetscInt *nq,PetscScalar *S,PetscInt ld,PetscScalar *K,PetscScalar *H,PetscInt ldh,BV V,PetscInt k,PetscInt *M,PetscBool *breakdown,Vec *t_)
 {
   PetscErrorCode ierr;
-  NEP_NLEIGS     *ctx=(NEP_NLEIGS*)nep->data;
+  NEP_NLEIGS     *ctx = (NEP_NLEIGS*)nep->data;
   PetscInt       i,j,p,m=*M,lwa,deg=ctx->nmat-1,lds=ld*deg,nqt=*nq;
   Vec            t=t_[0];
   PetscReal      norm;
@@ -957,7 +956,7 @@ PetscErrorCode NEPTOARSupdate(PetscScalar *S,PetscInt ld,PetscInt deg,PetscInt s
 PetscErrorCode NEPSolve_NLEIGS(NEP nep)
 {
   PetscErrorCode ierr;
-  NEP_NLEIGS     *ctx=(NEP_NLEIGS*)nep->data;
+  NEP_NLEIGS     *ctx = (NEP_NLEIGS*)nep->data;
   PetscInt       i,j,k=0,l,nv=0,ld,lds,off,ldds,rs1,nq=0;
   PetscInt       lwa,lrwa,nwu=0,nrwu=0,deg=ctx->nmat-1,nconv;
   PetscScalar    *S,*Q,*work,*H,*pU,*K,betak,*Hc;
@@ -1755,7 +1754,7 @@ PetscErrorCode NEPReset_NLEIGS(NEP nep)
 {
   PetscErrorCode ierr;
   PetscInt       k;
-  NEP_NLEIGS     *ctx=(NEP_NLEIGS*)nep->data;
+  NEP_NLEIGS     *ctx = (NEP_NLEIGS*)nep->data;
 
   PetscFunctionBegin;
   if (nep->fui==NEP_USER_INTERFACE_SPLIT) {
@@ -1772,7 +1771,7 @@ PetscErrorCode NEPDestroy_NLEIGS(NEP nep)
 {
   PetscErrorCode ierr;
   PetscInt       k;
-  NEP_NLEIGS     *ctx=(NEP_NLEIGS*)nep->data;
+  NEP_NLEIGS     *ctx = (NEP_NLEIGS*)nep->data;
 
   PetscFunctionBegin;
   for (k=0;k<ctx->nshifts;k++) { ierr = KSPDestroy(&ctx->ksps[k]);CHKERRQ(ierr); }
