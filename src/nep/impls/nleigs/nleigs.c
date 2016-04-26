@@ -308,11 +308,12 @@ static PetscErrorCode NEPNLEIGSDividedDifferences_split(NEP nep)
   NEP_NLEIGS     *ctx = (NEP_NLEIGS*)nep->data;
   PetscInt       k,j,i;
   PetscReal      norm0,norm,max;
-  PetscScalar    *s=ctx->s,*beta=ctx->beta,b[ctx->ddmaxit+1],alpha,coeffs[ctx->ddmaxit+1];
+  PetscScalar    *s=ctx->s,*beta=ctx->beta,*b,alpha,*coeffs;
   Mat            T;
 
   PetscFunctionBegin;
   ierr = PetscMalloc1(nep->nt*ctx->ddmaxit,&ctx->coeffD);CHKERRQ(ierr);
+  ierr = PetscMalloc2(ctx->ddmaxit+1,&b,ctx->ddmaxit+1,&coeffs);CHKERRQ(ierr);
   max = 0.0;
   for (j=0;j<nep->nt;j++) {
     ierr = FNEvaluateFunction(nep->f[j],s[0],ctx->coeffD+j);CHKERRQ(ierr);
@@ -353,6 +354,7 @@ static PetscErrorCode NEPNLEIGSDividedDifferences_split(NEP nep)
     ierr = KSPSetUp(ctx->ksps[i]);CHKERRQ(ierr);
     ierr = MatDestroy(&T);CHKERRQ(ierr);
   }
+  ierr = PetscFree2(b,coeffs);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -364,10 +366,11 @@ static PetscErrorCode NEPNLEIGSDividedDifferences_callback(NEP nep)
   NEP_NLEIGS     *ctx = (NEP_NLEIGS*)nep->data;
   PetscInt       k,j,i;
   PetscReal      norm0,norm;
-  PetscScalar    *s=ctx->s,*beta=ctx->beta,b[ctx->ddmaxit+1],coeffs[ctx->ddmaxit+1];
+  PetscScalar    *s=ctx->s,*beta=ctx->beta,*b,*coeffs;
   Mat            *D=ctx->D,T;
 
   PetscFunctionBegin;
+  ierr = PetscMalloc2(ctx->ddmaxit+1,&b,ctx->ddmaxit+1,&coeffs);CHKERRQ(ierr);
   T = nep->function;
   ierr = NEPComputeFunction(nep,s[0],T,T);CHKERRQ(ierr);
   ierr = MatDuplicate(T,MAT_COPY_VALUES,&D[0]);CHKERRQ(ierr);
@@ -402,6 +405,7 @@ static PetscErrorCode NEPNLEIGSDividedDifferences_callback(NEP nep)
     ierr = KSPSetUp(ctx->ksps[i]);CHKERRQ(ierr);
     ierr = MatDestroy(&T);CHKERRQ(ierr);
   }
+  ierr = PetscFree2(b,coeffs);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -535,7 +539,6 @@ PetscErrorCode NEPSetUp_NLEIGS(NEP nep)
   ierr = NEPNLEIGSLejaBagbyPoints(nep);CHKERRQ(ierr);
 
   /* SetUp KSP for different shits */
-  /* /////////////// */
   for (i=0;i<ctx->nshifts;i++) {
     if (!ctx->ksps[i]) { 
       ierr = KSPCreate(PetscObjectComm((PetscObject)nep),&ctx->ksps[i]);CHKERRQ(ierr);
@@ -543,7 +546,6 @@ PetscErrorCode NEPSetUp_NLEIGS(NEP nep)
       ierr = KSPSetFromOptions(ctx->ksps[i]);CHKERRQ(ierr);
     }
   }
-  /* /////////////// */
   if (!ctx->nshifts) { 
     ctx->shifts = &nep->target;
     if (!nep->ksp) { ierr = NEPGetKSP(nep,&nep->ksp);CHKERRQ(ierr); }
@@ -958,8 +960,8 @@ PetscErrorCode NEPSolve_NLEIGS(NEP nep)
   PetscErrorCode ierr;
   NEP_NLEIGS     *ctx = (NEP_NLEIGS*)nep->data;
   PetscInt       i,j,k=0,l,nv=0,ld,lds,off,ldds,rs1,nq=0;
-  PetscInt       lwa,lrwa,nwu=0,nrwu=0,deg=ctx->nmat-1,nconv;
-  PetscScalar    *S,*Q,*work,*H,*pU,*K,betak,*Hc;
+  PetscInt       lwa,lrwa,nwu=0,nrwu=0,deg=ctx->nmat-1,nconv=0;
+  PetscScalar    *S,*Q,*work,*H,*pU,*K,betak=0,*Hc;
   PetscReal      betah,norm,*rwork;
   PetscBool      breakdown=PETSC_FALSE,lindep;
   Mat            U;
