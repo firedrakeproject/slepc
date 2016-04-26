@@ -758,58 +758,21 @@ static PetscErrorCode PEPExtractInvariantPair(PEP pep,PetscScalar sigma,PetscInt
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "PEPLookForDeflation"
-static PetscErrorCode PEPLookForDeflation(PEP pep,PetscInt *nl)
-{
-  PetscErrorCode ierr;
-  PetscInt       i,l,n,ld;
-  PetscReal      norm;
-  PetscBool      cplx;
-  PetscScalar    *H;
-
-  PetscFunctionBegin;
-  *nl = 0;
-  ierr = DSGetDimensions(pep->ds,&n,NULL,&l,NULL,NULL);CHKERRQ(ierr);
-  ierr = DSGetLeadingDimension(pep->ds,&ld);CHKERRQ(ierr);
-  ierr = DSGetArray(pep->ds,DS_MAT_A,&H);CHKERRQ(ierr);
-  for (i=l;i<n;i++) {
-#if defined(PETSC_USE_COMPLEX)
-    cplx = PetscImaginaryPart(pep->eigr[i])?PETSC_TRUE:PETSC_FALSE;
-    norm = PetscAbsScalar(pep->eigr[i]);
-#else
-    cplx = pep->eigi[i]?PETSC_TRUE:PETSC_FALSE;
-    norm = SlepcAbsEigenvalue(pep->eigr[i],pep->eigi[i]);
-#endif
-    if (PetscAbsScalar(H[n+i*ld])/norm < pep->tol) {
-      if (cplx) {
-        if (PetscAbsScalar(H[n+(i+1)*ld])/norm < pep->tol) (*nl)++;
-        else break;
-        i++;
-      }
-      (*nl)++;
-    } else break;
-  }
-  ierr = DSRestoreArray(pep->ds,DS_MAT_A,&H);CHKERRQ(ierr);
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
 #define __FUNCT__ "PEPSolve_TOAR"
 PetscErrorCode PEPSolve_TOAR(PEP pep)
 {
   PetscErrorCode ierr;
   PEP_TOAR       *ctx = (PEP_TOAR*)pep->data;
-  PetscInt       i,j,k,l,nv=0,ld,lds,off,ldds,newn,nq=ctx->nq,nl,nconv=0,locked=0,newc;
+  PetscInt       i,j,k,l,nv=0,ld,lds,off,ldds,newn,nq=ctx->nq,nconv=0,locked=0,newc;
   PetscInt       lwa,lrwa,nwu=0,nrwu=0,nmat=pep->nmat,deg=nmat-1;
   PetscScalar    *S,*Q,*work,*H,sigma;
   PetscReal      beta,*rwork;
-  PetscBool      breakdown=PETSC_FALSE,flg,falselock=PETSC_FALSE,def=PETSC_FALSE,sinv=PETSC_FALSE;
+  PetscBool      breakdown=PETSC_FALSE,flg,falselock=PETSC_FALSE,sinv=PETSC_FALSE;
 
   PetscFunctionBegin;
   ierr = PetscCitationsRegister(citation,&cited);CHKERRQ(ierr);
   if (ctx->lock) {
     ierr = PetscOptionsGetBool(NULL,NULL,"-pep_toar_falselocking",&falselock,NULL);CHKERRQ(ierr);
-    ierr = PetscOptionsGetBool(NULL,NULL,"-pep_toar_lockdeflated",&def,NULL);CHKERRQ(ierr);
   }
   ld = ctx->ld;
   S = ctx->S;
@@ -880,15 +843,6 @@ PetscErrorCode PEPSolve_TOAR(PEP pep)
       }
     }
     nconv = k;
-    /* decide on deflating Krylov vectors */
-    if (def) {
-      ierr = PEPLookForDeflation(pep,&nl);CHKERRQ(ierr);
-      nl = PetscMin(nl,k-pep->nconv);
-      if (ctx->lock && pep->reason == PEP_CONVERGED_ITERATING && !breakdown) {
-        k = pep->nconv+nl; l = newn-k;
-      }
-    } else nl = k-pep->nconv;
-
     if (!ctx->lock && pep->reason == PEP_CONVERGED_ITERATING && !breakdown) { l += k; k = 0; } /* non-locking variant: reset no. of converged pairs */
 
     /* update S */
@@ -910,7 +864,7 @@ PetscErrorCode PEPSolve_TOAR(PEP pep)
     /* truncate S */
     if (k+l+deg<nq) {
       if (!falselock && ctx->lock) {
-        newc = flg?k-pep->nconv:nl;
+        newc = k-pep->nconv;
         ierr = PEPTOARTrunc(pep,S,ld,deg,&nq,k+l+1,locked,newc,flg,work+nwu,rwork+nrwu);CHKERRQ(ierr);
         locked += newc;
       } else {
