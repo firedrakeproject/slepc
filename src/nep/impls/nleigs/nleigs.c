@@ -829,7 +829,7 @@ static PetscErrorCode NEPNLEIGSTOARrun(NEP nep,PetscInt *nq,PetscScalar *S,Petsc
       x[nqt] = norm;
       ierr = BVScaleColumn(nep->V,nqt,1.0/norm);CHKERRQ(ierr);
       nqt++;
-    }
+    } else x[nqt] = 0.0;
 
     ierr = NEPTOARCoefficients(nep,sigma,*nq,cont,ld,S+(j+1)*lds,ld,x,work);CHKERRQ(ierr);
 
@@ -959,7 +959,7 @@ PetscErrorCode NEPSolve_NLEIGS(NEP nep)
 {
   PetscErrorCode ierr;
   NEP_NLEIGS     *ctx = (NEP_NLEIGS*)nep->data;
-  PetscInt       i,j,k=0,l,nv=0,ld,lds,off,ldds,rs1,nq=0;
+  PetscInt       i,j,k=0,l,nv=0,ld,lds,off,ldds,rs1,nq=0,newn;
   PetscInt       lwa,lrwa,nwu=0,nrwu=0,deg=ctx->nmat-1,nconv=0;
   PetscScalar    *S,*Q,*work,*H,*pU,*K,betak=0,*Hc;
   PetscReal      betah,norm,*rwork;
@@ -1040,6 +1040,8 @@ PetscErrorCode NEPSolve_NLEIGS(NEP nep)
         /* Prepare the Rayleigh quotient for restart */
         if (!ctx->nshifts) {
           ierr = DSTruncate(nep->ds,k+l);CHKERRQ(ierr);
+          ierr = DSGetDimensions(nep->ds,&newn,NULL,NULL,NULL,NULL);CHKERRQ(ierr);
+          l = newn-k;
         } else {
           ierr = DSGetArray(nep->ds,DS_MAT_Q,&Q);CHKERRQ(ierr);
           ierr = DSGetArray(nep->ds,DS_MAT_B,&H);CHKERRQ(ierr);
