@@ -296,11 +296,11 @@ PetscErrorCode NEPSetFromOptions(NEP nep)
 
 .seealso: NEPSetTolerances()
 @*/
-PetscErrorCode NEPGetTolerances(NEP nep,PetscReal *rtol,PetscInt *maxits)
+PetscErrorCode NEPGetTolerances(NEP nep,PetscReal *tol,PetscInt *maxits)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
-  if (rtol)   *rtol   = nep->tol;
+  if (tol)    *tol    = nep->tol;
   if (maxits) *maxits = nep->max_it;
   PetscFunctionReturn(0);
 }
