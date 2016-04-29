@@ -47,6 +47,7 @@ typedef const char* FNType;
 #define FNLOG      "log"
 #define FNPHI      "phi"
 #define FNSQRT     "sqrt"
+#define FNINVSQRT  "invsqrt"
 
 /* Logging support */
 PETSC_EXTERN PetscClassId FN_CLASSID;

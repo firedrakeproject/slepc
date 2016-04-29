@@ -91,13 +91,12 @@ PetscErrorCode SlepcMatDenseSqrt(PetscBLASInt n,PetscScalar *T,PetscBLASInt ld)
 #define BLOCKSIZE 64
 
 #undef __FUNCT__
-#define __FUNCT__ "SlepcSchurParlett"
+#define __FUNCT__ "SlepcSchurParlettSqrt"
 /*
-   Run the Schur-Parlett algorithm on an upper quasi-triangular matrix T.
-   T is overwritten with f(T). The provided function f is used to evaluate
-   f(T_jj) for each diagonal block T_jj.
+   Simplified Schur-Parlett algorithm on an upper quasi-triangular matrix T,
+   particularized for the square root function. T is overwritten with sqrtm(T).
  */
-PetscErrorCode SlepcSchurParlett(PetscBLASInt n,PetscScalar *T,PetscBLASInt ld,PetscErrorCode (*f)(PetscBLASInt,PetscScalar*,PetscBLASInt))
+PetscErrorCode SlepcSchurParlettSqrt(PetscBLASInt n,PetscScalar *T,PetscBLASInt ld)
 {
 #if defined(SLEPC_MISSING_LAPACK_GEES) || defined(SLEPC_MISSING_LAPACK_TRSYL)
   PetscFunctionBegin;
@@ -146,7 +145,7 @@ PetscErrorCode SlepcSchurParlett(PetscBLASInt n,PetscScalar *T,PetscBLASInt ld,P
 
   for (j=0;j<nblk;j++) {
     /* evaluate f(T_jj) */
-    ierr = (*f)(s[j],T+p[j]+p[j]*ld,ld);CHKERRQ(ierr);
+    ierr = SlepcMatDenseSqrt(s[j],T+p[j]+p[j]*ld,ld);CHKERRQ(ierr);
     for (i=j-1;i>=0;i--) {
       /* solve Sylvester equation for block (i,j) */
       r = p[j]-p[i]-s[i];
@@ -168,5 +167,4 @@ PetscErrorCode SlepcSchurParlett(PetscBLASInt n,PetscScalar *T,PetscBLASInt ld,P
   PetscFunctionReturn(0);
 #endif
 }
-
 

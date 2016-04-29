@@ -84,6 +84,6 @@ PETSC_STATIC_INLINE PetscErrorCode FN_AllocateWorkMat(FN fn,Mat A)
 }
 
 PETSC_INTERN PetscErrorCode SlepcMatDenseSqrt(PetscBLASInt,PetscScalar*,PetscBLASInt);
-PETSC_INTERN PetscErrorCode SlepcSchurParlett(PetscBLASInt,PetscScalar*,PetscBLASInt,PetscErrorCode (*)(PetscBLASInt,PetscScalar*,PetscBLASInt));
+PETSC_INTERN PetscErrorCode SlepcSchurParlettSqrt(PetscBLASInt,PetscScalar*,PetscBLASInt);
 
 #endif
