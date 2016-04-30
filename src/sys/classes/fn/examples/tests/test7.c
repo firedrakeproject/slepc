@@ -29,11 +29,12 @@ static char help[] = "Test matrix square root.\n\n";
    Compute matrix square root B = sqrtm(A)
    Check result as norm(B*B-A)
  */
-PetscErrorCode TestMatSqrt(FN fn,Mat A,PetscViewer viewer,PetscBool verbose)
+PetscErrorCode TestMatSqrt(FN fn,Mat A,PetscViewer viewer,PetscBool verbose,PetscBool inplace)
 {
   PetscErrorCode ierr;
   PetscScalar    tau,eta;
   PetscReal      nrm;
+  PetscBool      set,flg;
   PetscInt       n;
   Mat            S,R;
 
@@ -45,7 +46,14 @@ PetscErrorCode TestMatSqrt(FN fn,Mat A,PetscViewer viewer,PetscBool verbose)
   ierr = PetscObjectSetName((PetscObject)R,"R");CHKERRQ(ierr);
   ierr = FNGetScale(fn,&tau,&eta);CHKERRQ(ierr);
   /* compute square root */
-  ierr = FNEvaluateFunctionMat(fn,A,S);CHKERRQ(ierr);
+  if (inplace) {
+    ierr = MatCopy(A,S,SAME_NONZERO_PATTERN);CHKERRQ(ierr);
+    ierr = MatIsHermitianKnown(A,&set,&flg);CHKERRQ(ierr);
+    if (set && flg) { ierr = MatSetOption(S,MAT_HERMITIAN,PETSC_TRUE);CHKERRQ(ierr); }
+    ierr = FNEvaluateFunctionMat(fn,S,NULL);CHKERRQ(ierr);
+  } else {
+    ierr = FNEvaluateFunctionMat(fn,A,S);CHKERRQ(ierr);
+  }
   if (verbose) {
     ierr = PetscPrintf(PETSC_COMM_WORLD,"Matrix A - - - - - - - -\n");CHKERRQ(ierr);
     ierr = MatView(A,viewer);CHKERRQ(ierr);
@@ -79,7 +87,7 @@ int main(int argc,char **argv)
   PetscInt       i,j,n=10;
   PetscScalar    *As,tau=1.0,eta=1.0;
   PetscViewer    viewer;
-  PetscBool      verbose;
+  PetscBool      verbose,inplace;
   PetscRandom    myrand;
   PetscReal      v;
 
@@ -88,6 +96,7 @@ int main(int argc,char **argv)
   ierr = PetscOptionsGetScalar(NULL,NULL,"-tau",&tau,NULL);CHKERRQ(ierr);
   ierr = PetscOptionsGetScalar(NULL,NULL,"-eta",&eta,NULL);CHKERRQ(ierr);
   ierr = PetscOptionsHasName(NULL,NULL,"-verbose",&verbose);CHKERRQ(ierr);
+  ierr = PetscOptionsHasName(NULL,NULL,"-inplace",&inplace);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD,"Matrix square root, n=%D.\n",n);CHKERRQ(ierr);
 
   /* Create function eta*sqrt(tau*x) */
@@ -114,7 +123,7 @@ int main(int argc,char **argv)
   }
   ierr = MatDenseRestoreArray(A,&As);CHKERRQ(ierr);
   ierr = MatSetOption(A,MAT_HERMITIAN,PETSC_TRUE);CHKERRQ(ierr);
-  ierr = TestMatSqrt(fn,A,viewer,verbose);CHKERRQ(ierr);
+  ierr = TestMatSqrt(fn,A,viewer,verbose,inplace);CHKERRQ(ierr);
 
   /* Repeat with upper triangular A */
   ierr = MatDenseGetArray(A,&As);CHKERRQ(ierr);
@@ -123,7 +132,7 @@ int main(int argc,char **argv)
   }
   ierr = MatDenseRestoreArray(A,&As);CHKERRQ(ierr);
   ierr = MatSetOption(A,MAT_HERMITIAN,PETSC_FALSE);CHKERRQ(ierr);
-  ierr = TestMatSqrt(fn,A,viewer,verbose);CHKERRQ(ierr);
+  ierr = TestMatSqrt(fn,A,viewer,verbose,inplace);CHKERRQ(ierr);
 
   /* Repeat with non-symmetic A */
   ierr = PetscRandomCreate(PETSC_COMM_WORLD,&myrand);CHKERRQ(ierr);
@@ -139,7 +148,7 @@ int main(int argc,char **argv)
   ierr = MatDenseRestoreArray(A,&As);CHKERRQ(ierr);
   ierr = PetscRandomDestroy(&myrand);CHKERRQ(ierr);
   ierr = MatSetOption(A,MAT_HERMITIAN,PETSC_FALSE);CHKERRQ(ierr);
-  ierr = TestMatSqrt(fn,A,viewer,verbose);CHKERRQ(ierr);
+  ierr = TestMatSqrt(fn,A,viewer,verbose,inplace);CHKERRQ(ierr);
 
   ierr = MatDestroy(&A);CHKERRQ(ierr);
   ierr = FNDestroy(&fn);CHKERRQ(ierr);

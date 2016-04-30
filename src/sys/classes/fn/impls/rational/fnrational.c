@@ -77,8 +77,12 @@ PetscErrorCode FNEvaluateFunctionMat_Rational(FN fn,Mat A,Mat B)
   ierr = MatGetSize(A,&m,NULL);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(m,&n);CHKERRQ(ierr);
   ld  = n;
-  P   = Ba;
-  ierr = PetscMalloc3(m*m,&Q,m*m,&W,ld,&ipiv);CHKERRQ(ierr);
+  if (A==B) {
+    ierr = PetscMalloc4(m*m,&P,m*m,&Q,m*m,&W,ld,&ipiv);CHKERRQ(ierr);
+  } else {
+    P = Ba;
+    ierr = PetscMalloc3(m*m,&Q,m*m,&W,ld,&ipiv);CHKERRQ(ierr);
+  }
   ierr = PetscMemzero(P,m*m*sizeof(PetscScalar));CHKERRQ(ierr);
   if (!ctx->np) {
     for (i=0;i<m;i++) P[i+i*ld] = 1.0;
@@ -101,7 +105,12 @@ PetscErrorCode FNEvaluateFunctionMat_Rational(FN fn,Mat A,Mat B)
     PetscStackCallBLAS("LAPACKgesv",LAPACKgesv_(&n,&n,Q,&ld,ipiv,P,&ld,&info));
     if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xGESV %d",info);
   }
-  ierr = PetscFree3(Q,W,ipiv);CHKERRQ(ierr);
+  if (A==B) {
+    ierr = PetscMemcpy(Aa,P,m*m*sizeof(PetscScalar));CHKERRQ(ierr);
+    ierr = PetscFree4(P,Q,W,ipiv);CHKERRQ(ierr);
+  } else {
+    ierr = PetscFree3(Q,W,ipiv);CHKERRQ(ierr);
+  }
   ierr = MatDenseRestoreArray(A,&Aa);CHKERRQ(ierr);
   ierr = MatDenseRestoreArray(B,&Ba);CHKERRQ(ierr);
   PetscFunctionReturn(0);

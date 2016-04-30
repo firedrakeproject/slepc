@@ -34,13 +34,14 @@ int main(int argc,char **argv)
   PetscReal      nrm;
   PetscScalar    *As,tau=1.0,eta=1.0;
   PetscViewer    viewer;
-  PetscBool      verbose;
+  PetscBool      verbose,inplace;
 
   SlepcInitialize(&argc,&argv,(char*)0,help);
   ierr = PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL);CHKERRQ(ierr);
   ierr = PetscOptionsGetScalar(NULL,NULL,"-tau",&tau,NULL);CHKERRQ(ierr);
   ierr = PetscOptionsGetScalar(NULL,NULL,"-eta",&eta,NULL);CHKERRQ(ierr);
   ierr = PetscOptionsHasName(NULL,NULL,"-verbose",&verbose);CHKERRQ(ierr);
+  ierr = PetscOptionsHasName(NULL,NULL,"-inplace",&inplace);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD,"Matrix exponential, n=%D.\n",n);CHKERRQ(ierr);
 
   /* Create exponential function eta*exp(tau*x) */
@@ -75,7 +76,12 @@ int main(int argc,char **argv)
   }
 
   /* Compute matrix exponential */
-  ierr = FNEvaluateFunctionMat(fn,A,B);CHKERRQ(ierr);
+  if (inplace) {
+    ierr = MatCopy(A,B,SAME_NONZERO_PATTERN);CHKERRQ(ierr);
+    ierr = FNEvaluateFunctionMat(fn,B,NULL);CHKERRQ(ierr);
+  } else {
+    ierr = FNEvaluateFunctionMat(fn,A,B);CHKERRQ(ierr);
+  }
   if (verbose) {
     ierr = PetscPrintf(PETSC_COMM_WORLD,"Computed f(A) - - - - - - -\n");CHKERRQ(ierr);
     ierr = MatView(B,viewer);CHKERRQ(ierr);
@@ -96,7 +102,12 @@ int main(int argc,char **argv)
   }
 
   /* Compute matrix exponential */
-  ierr = FNEvaluateFunctionMat(fn,A,B);CHKERRQ(ierr);
+  if (inplace) {
+    ierr = MatCopy(A,B,SAME_NONZERO_PATTERN);CHKERRQ(ierr);
+    ierr = FNEvaluateFunctionMat(fn,B,NULL);CHKERRQ(ierr);
+  } else {
+    ierr = FNEvaluateFunctionMat(fn,A,B);CHKERRQ(ierr);
+  }
   if (verbose) {
     ierr = PetscPrintf(PETSC_COMM_WORLD,"Computed f(A) - - - - - - -\n");CHKERRQ(ierr);
     ierr = MatView(B,viewer);CHKERRQ(ierr);

@@ -56,7 +56,7 @@ PetscErrorCode FNEvaluateFunctionMat_Invsqrt(FN fn,Mat A,Mat B)
 
   PetscFunctionBegin;
   ierr = MatDuplicate(A,MAT_DO_NOT_COPY_VALUES,&W);CHKERRQ(ierr);
-  ierr = MatCopy(A,B,SAME_NONZERO_PATTERN);CHKERRQ(ierr);
+  if (A!=B) { ierr = MatCopy(A,B,SAME_NONZERO_PATTERN);CHKERRQ(ierr); }
   ierr = MatCopy(A,W,SAME_NONZERO_PATTERN);CHKERRQ(ierr);
   ierr = MatDenseGetArray(B,&Ba);CHKERRQ(ierr);
   ierr = MatDenseGetArray(W,&Wa);CHKERRQ(ierr);

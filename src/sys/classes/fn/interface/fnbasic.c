@@ -523,13 +523,14 @@ static PetscErrorCode FNEvaluateFunctionMat_Sym_Default(FN fn,Mat A,Mat B)
 -  A  - matrix on which the function must be evaluated
 
    Output Parameter:
-.  B  - matrix resulting from evaluating f(A)
+.  B  - (optional) matrix resulting from evaluating f(A)
 
    Notes:
-   The matrix A must be a sequential dense Mat, with all entries equal on
+   Matrix A must be a square sequential dense Mat, with all entries equal on
    all processes (otherwise each process will compute different results).
-   Matrix B must also be a sequential dense Mat. Both matrices must be
-   square with the same dimensions.
+   If matrix B is provided, it must also be a square sequential dense Mat, and
+   both matrices must have the same dimensions. If B is NULL (or B=A) then the
+   function will perform an in-place computation, overwriting A with f(A).
 
    If A is known to be real symmetric or complex Hermitian then it is
    recommended to set the appropriate flag with MatSetOption(), so that
@@ -545,28 +546,31 @@ static PetscErrorCode FNEvaluateFunctionMat_Sym_Default(FN fn,Mat A,Mat B)
 PetscErrorCode FNEvaluateFunctionMat(FN fn,Mat A,Mat B)
 {
   PetscErrorCode ierr;
-  PetscBool      match,set,flg,symm=PETSC_FALSE;
+  PetscBool      match,set,flg,symm=PETSC_FALSE,inplace=PETSC_FALSE;
   PetscInt       m,n,n1;
-  Mat            M;
+  Mat            M,F;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(fn,FN_CLASSID,1);
   PetscValidHeaderSpecific(A,MAT_CLASSID,2);
-  PetscValidHeaderSpecific(B,MAT_CLASSID,3);
   PetscValidType(fn,1);
   PetscValidType(A,2);
-  PetscValidType(B,3);
-  if (A==B) SETERRQ(PetscObjectComm((PetscObject)fn),PETSC_ERR_ARG_WRONG,"A and B arguments must be different");
+  if (B) {
+    PetscValidHeaderSpecific(B,MAT_CLASSID,3);
+    PetscValidType(B,3);
+  } else inplace = PETSC_TRUE;
   ierr = PetscObjectTypeCompare((PetscObject)A,MATSEQDENSE,&match);CHKERRQ(ierr);
   if (!match) SETERRQ(PetscObjectComm((PetscObject)fn),PETSC_ERR_SUP,"Mat A must be of type seqdense");
-  ierr = PetscObjectTypeCompare((PetscObject)B,MATSEQDENSE,&match);CHKERRQ(ierr);
-  if (!match) SETERRQ(PetscObjectComm((PetscObject)fn),PETSC_ERR_SUP,"Mat B must be of type seqdense");
   ierr = MatGetSize(A,&m,&n);CHKERRQ(ierr);
   if (m!=n) SETERRQ2(PetscObjectComm((PetscObject)fn),PETSC_ERR_ARG_SIZ,"Mat A is not square (has %D rows, %D cols)",m,n);
-  n1 = n;
-  ierr = MatGetSize(B,&m,&n);CHKERRQ(ierr);
-  if (m!=n) SETERRQ2(PetscObjectComm((PetscObject)fn),PETSC_ERR_ARG_SIZ,"Mat B is not square (has %D rows, %D cols)",m,n);
-  if (n1!=n) SETERRQ(PetscObjectComm((PetscObject)fn),PETSC_ERR_ARG_SIZ,"Matrices A and B must have the same dimension");
+  if (!inplace) {
+    ierr = PetscObjectTypeCompare((PetscObject)B,MATSEQDENSE,&match);CHKERRQ(ierr);
+    if (!match) SETERRQ(PetscObjectComm((PetscObject)fn),PETSC_ERR_SUP,"Mat B must be of type seqdense");
+    n1 = n;
+    ierr = MatGetSize(B,&m,&n);CHKERRQ(ierr);
+    if (m!=n) SETERRQ2(PetscObjectComm((PetscObject)fn),PETSC_ERR_ARG_SIZ,"Mat B is not square (has %D rows, %D cols)",m,n);
+    if (n1!=n) SETERRQ(PetscObjectComm((PetscObject)fn),PETSC_ERR_ARG_SIZ,"Matrices A and B must have the same dimension");
+  }
 
   /* check symmetry of A */
   ierr = MatIsHermitianKnown(A,&set,&flg);CHKERRQ(ierr);
@@ -579,25 +583,28 @@ PetscErrorCode FNEvaluateFunctionMat(FN fn,Mat A,Mat B)
     ierr = MatScale(M,fn->alpha);CHKERRQ(ierr);
   } else M = A;
 
+  /* destination matrix */
+  F = inplace? A: B;
+
   /* evaluate matrix function */
   ierr = PetscLogEventBegin(FN_Evaluate,fn,0,0,0);CHKERRQ(ierr);
   ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
   if (symm) {
     if (fn->ops->evaluatefunctionmatsym) {
-      ierr = (*fn->ops->evaluatefunctionmatsym)(fn,M,B);CHKERRQ(ierr);
+      ierr = (*fn->ops->evaluatefunctionmatsym)(fn,M,F);CHKERRQ(ierr);
     } else {
-      ierr = FNEvaluateFunctionMat_Sym_Default(fn,M,B);CHKERRQ(ierr);
+      ierr = FNEvaluateFunctionMat_Sym_Default(fn,M,F);CHKERRQ(ierr);
     }
   } else {
     if (fn->ops->evaluatefunctionmat) {
-      ierr = (*fn->ops->evaluatefunctionmat)(fn,M,B);CHKERRQ(ierr);
+      ierr = (*fn->ops->evaluatefunctionmat)(fn,M,F);CHKERRQ(ierr);
     } else SETERRQ1(PetscObjectComm((PetscObject)fn),PETSC_ERR_SUP,"Matrix functions not implemented in FN type %s",((PetscObject)fn)->type_name);
   }
   ierr = PetscFPTrapPop();CHKERRQ(ierr);
   ierr = PetscLogEventEnd(FN_Evaluate,fn,0,0,0);CHKERRQ(ierr);
 
   /* scale result */
-  ierr = MatScale(B,fn->beta);CHKERRQ(ierr);
+  ierr = MatScale(F,fn->beta);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

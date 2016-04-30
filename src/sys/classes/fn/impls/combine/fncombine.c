@@ -147,8 +147,8 @@ PetscErrorCode FNEvaluateFunctionMat_Combine(FN fn,Mat A,Mat B)
       ierr = MatDestroy(&Z);CHKERRQ(ierr);
       break;
     case FN_COMBINE_DIVIDE:
-      ierr = FNEvaluateFunctionMat(ctx->f1,A,B);CHKERRQ(ierr);
       ierr = FNEvaluateFunctionMat(ctx->f2,A,W);CHKERRQ(ierr);
+      ierr = FNEvaluateFunctionMat(ctx->f1,A,B);CHKERRQ(ierr);
       ierr = PetscMalloc1(ld,&ipiv);CHKERRQ(ierr);
       PetscStackCallBLAS("LAPACKgesv",LAPACKgesv_(&n,&n,Wa,&ld,ipiv,Ba,&ld,&info));
       if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xGESV %d",info);

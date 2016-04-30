@@ -34,11 +34,12 @@ int main(int argc,char **argv)
   PetscReal      nrm;
   PetscScalar    *As,p[10],q[10];
   PetscViewer    viewer;
-  PetscBool      verbose;
+  PetscBool      verbose,inplace;
 
   SlepcInitialize(&argc,&argv,(char*)0,help);
   ierr = PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL);CHKERRQ(ierr);
   ierr = PetscOptionsHasName(NULL,NULL,"-verbose",&verbose);CHKERRQ(ierr);
+  ierr = PetscOptionsHasName(NULL,NULL,"-inplace",&inplace);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD,"Matrix rational function, n=%D.\n",n);CHKERRQ(ierr);
 
   /* Create rational function r(x)=p(x)/q(x) */
@@ -78,7 +79,12 @@ int main(int argc,char **argv)
   }
 
   /* Evaluate matrix function */
-  ierr = FNEvaluateFunctionMat(fn,A,B);CHKERRQ(ierr);
+  if (inplace) {
+    ierr = MatCopy(A,B,SAME_NONZERO_PATTERN);CHKERRQ(ierr);
+    ierr = FNEvaluateFunctionMat(fn,B,NULL);CHKERRQ(ierr);
+  } else {
+    ierr = FNEvaluateFunctionMat(fn,A,B);CHKERRQ(ierr);
+  }
   if (verbose) {
     ierr = PetscPrintf(PETSC_COMM_WORLD,"Computed f(A) - - - - - - -\n");CHKERRQ(ierr);
     ierr = MatView(B,viewer);CHKERRQ(ierr);
@@ -90,7 +96,12 @@ int main(int argc,char **argv)
   ierr = MatSetOption(A,MAT_HERMITIAN,PETSC_FALSE);CHKERRQ(ierr);
 
   /* Evaluate matrix function */
-  ierr = FNEvaluateFunctionMat(fn,A,B);CHKERRQ(ierr);
+  if (inplace) {
+    ierr = MatCopy(A,B,SAME_NONZERO_PATTERN);CHKERRQ(ierr);
+    ierr = FNEvaluateFunctionMat(fn,B,NULL);CHKERRQ(ierr);
+  } else {
+    ierr = FNEvaluateFunctionMat(fn,A,B);CHKERRQ(ierr);
+  }
   if (verbose) {
     ierr = PetscPrintf(PETSC_COMM_WORLD,"Computed f(A) - - - - - - -\n");CHKERRQ(ierr);
     ierr = MatView(B,viewer);CHKERRQ(ierr);
