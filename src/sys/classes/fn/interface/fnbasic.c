@@ -129,7 +129,8 @@ PetscErrorCode FNCreate(MPI_Comm comm,FN *newfn)
   fn->alpha    = 1.0;
   fn->beta     = 1.0;
 
-  fn->W        = NULL;
+  fn->nw       = 0;
+  fn->cw       = 0;
   fn->data     = NULL;
 
   *newfn = fn;
@@ -578,8 +579,7 @@ PetscErrorCode FNEvaluateFunctionMat(FN fn,Mat A,Mat B)
 
   /* scale argument */
   if (fn->alpha!=(PetscScalar)1.0) {
-    ierr = FN_AllocateWorkMat(fn,A);CHKERRQ(ierr);
-    M = fn->W;
+    ierr = FN_AllocateWorkMat(fn,A,&M);CHKERRQ(ierr);
     ierr = MatScale(M,fn->alpha);CHKERRQ(ierr);
   } else M = A;
 
@@ -602,6 +602,10 @@ PetscErrorCode FNEvaluateFunctionMat(FN fn,Mat A,Mat B)
   }
   ierr = PetscFPTrapPop();CHKERRQ(ierr);
   ierr = PetscLogEventEnd(FN_Evaluate,fn,0,0,0);CHKERRQ(ierr);
+
+  if (fn->alpha!=(PetscScalar)1.0) {
+    ierr = FN_FreeWorkMat(fn,&M);CHKERRQ(ierr);
+  }
 
   /* scale result */
   ierr = MatScale(F,fn->beta);CHKERRQ(ierr);
@@ -766,13 +770,16 @@ PetscErrorCode FNDuplicate(FN fn,MPI_Comm comm,FN *newfn)
 PetscErrorCode FNDestroy(FN *fn)
 {
   PetscErrorCode ierr;
+  PetscInt       i;
 
   PetscFunctionBegin;
   if (!*fn) PetscFunctionReturn(0);
   PetscValidHeaderSpecific(*fn,FN_CLASSID,1);
   if (--((PetscObject)(*fn))->refct > 0) { *fn = 0; PetscFunctionReturn(0); }
   if ((*fn)->ops->destroy) { ierr = (*(*fn)->ops->destroy)(*fn);CHKERRQ(ierr); }
-  ierr = MatDestroy(&(*fn)->W);CHKERRQ(ierr);
+  for (i=0;i<(*fn)->nw;i++) {
+    ierr = MatDestroy(&(*fn)->W[i]);CHKERRQ(ierr);
+  }
   ierr = PetscHeaderDestroy(fn);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
