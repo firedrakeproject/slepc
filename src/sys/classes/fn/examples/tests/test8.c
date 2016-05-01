@@ -37,6 +37,7 @@ PetscErrorCode TestMatInvSqrt(FN fn,Mat A,PetscViewer viewer,PetscBool verbose,P
   PetscBool      set,flg;
   PetscInt       n;
   Mat            S,R;
+  Vec            v,f0;
 
   PetscFunctionBeginUser;
   ierr = MatGetSize(A,&n,NULL);CHKERRQ(ierr);
@@ -65,6 +66,8 @@ PetscErrorCode TestMatInvSqrt(FN fn,Mat A,PetscViewer viewer,PetscBool verbose,P
   if (eta!=1.0) {
     ierr = MatScale(R,1.0/(eta*eta));CHKERRQ(ierr);
   }
+  ierr = MatCreateVecs(A,&v,&f0);CHKERRQ(ierr);
+  ierr = MatGetColumnVector(S,f0,0);CHKERRQ(ierr);
   ierr = MatCopy(R,S,SAME_NONZERO_PATTERN);CHKERRQ(ierr);
   if (tau!=1.0) {
     ierr = MatScale(S,tau);CHKERRQ(ierr);
@@ -77,8 +80,15 @@ PetscErrorCode TestMatInvSqrt(FN fn,Mat A,PetscViewer viewer,PetscBool verbose,P
   } else {
     ierr = PetscPrintf(PETSC_COMM_WORLD,"||S*S*A-I||_F = %g\n",(double)nrm);CHKERRQ(ierr);
   }
+  /* check FNEvaluateFunctionMatVec() */
+  ierr = FNEvaluateFunctionMatVec(fn,A,v);CHKERRQ(ierr);
+  ierr = VecAXPY(v,-1.0,f0);CHKERRQ(ierr);
+  ierr = VecNorm(v,NORM_2,&nrm);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"The norm of f(A)*e_1-v is %g\n",(double)nrm);CHKERRQ(ierr);
   ierr = MatDestroy(&S);CHKERRQ(ierr);
   ierr = MatDestroy(&R);CHKERRQ(ierr);
+  ierr = VecDestroy(&v);CHKERRQ(ierr);
+  ierr = VecDestroy(&f0);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

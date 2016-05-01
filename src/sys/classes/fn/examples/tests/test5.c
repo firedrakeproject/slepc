@@ -24,14 +24,62 @@ static char help[] = "Test matrix rational function.\n\n";
 #include <slepcfn.h>
 
 #undef __FUNCT__
+#define __FUNCT__ "TestMatRational"
+/*
+   Compute matrix rational function B = q(A)\p(A)
+ */
+PetscErrorCode TestMatRational(FN fn,Mat A,PetscViewer viewer,PetscBool verbose,PetscBool inplace)
+{
+  PetscErrorCode ierr;
+  PetscBool      set,flg;
+  PetscInt       n;
+  Mat            F;
+  Vec            v,f0;
+  PetscReal      nrm;
+
+  PetscFunctionBeginUser;
+  ierr = MatGetSize(A,&n,NULL);CHKERRQ(ierr);
+  ierr = MatCreateSeqDense(PETSC_COMM_SELF,n,n,NULL,&F);CHKERRQ(ierr);
+  ierr = PetscObjectSetName((PetscObject)F,"F");CHKERRQ(ierr);
+  /* compute square root */
+  if (inplace) {
+    ierr = MatCopy(A,F,SAME_NONZERO_PATTERN);CHKERRQ(ierr);
+    ierr = MatIsHermitianKnown(A,&set,&flg);CHKERRQ(ierr);
+    if (set && flg) { ierr = MatSetOption(F,MAT_HERMITIAN,PETSC_TRUE);CHKERRQ(ierr); }
+    ierr = FNEvaluateFunctionMat(fn,F,NULL);CHKERRQ(ierr);
+  } else {
+    ierr = FNEvaluateFunctionMat(fn,A,F);CHKERRQ(ierr);
+  }
+  if (verbose) {
+    ierr = PetscPrintf(PETSC_COMM_WORLD,"Matrix A - - - - - - - -\n");CHKERRQ(ierr);
+    ierr = MatView(A,viewer);CHKERRQ(ierr);
+    ierr = PetscPrintf(PETSC_COMM_WORLD,"Computed f(A) - - - - - - -\n");CHKERRQ(ierr);
+    ierr = MatView(F,viewer);CHKERRQ(ierr);
+  }
+  /* print matrix norm for checking */
+  ierr = MatNorm(F,NORM_1,&nrm);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"The 1-norm of f(A) is %g\n",(double)nrm);CHKERRQ(ierr);
+  /* check FNEvaluateFunctionMatVec() */
+  ierr = MatCreateVecs(A,&v,&f0);CHKERRQ(ierr);
+  ierr = MatGetColumnVector(F,f0,0);CHKERRQ(ierr);
+  ierr = FNEvaluateFunctionMatVec(fn,A,v);CHKERRQ(ierr);
+  ierr = VecAXPY(v,-1.0,f0);CHKERRQ(ierr);
+  ierr = VecNorm(v,NORM_2,&nrm);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"The norm of f(A)*e_1-v is %g\n",(double)nrm);CHKERRQ(ierr);
+  ierr = MatDestroy(&F);CHKERRQ(ierr);
+  ierr = VecDestroy(&v);CHKERRQ(ierr);
+  ierr = VecDestroy(&f0);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
 #define __FUNCT__ "main"
 int main(int argc,char **argv)
 {
   PetscErrorCode ierr;
   FN             fn;
-  Mat            A,B;
+  Mat            A;
   PetscInt       i,j,n=10,np,nq;
-  PetscReal      nrm;
   PetscScalar    *As,p[10],q[10];
   PetscViewer    viewer;
   PetscBool      verbose,inplace;
@@ -62,8 +110,6 @@ int main(int argc,char **argv)
   /* Create matrices */
   ierr = MatCreateSeqDense(PETSC_COMM_SELF,n,n,NULL,&A);CHKERRQ(ierr);
   ierr = PetscObjectSetName((PetscObject)A,"A");CHKERRQ(ierr);
-  ierr = MatCreateSeqDense(PETSC_COMM_SELF,n,n,NULL,&B);CHKERRQ(ierr);
-  ierr = PetscObjectSetName((PetscObject)B,"B");CHKERRQ(ierr);
 
   /* Fill A with a symmetric Toeplitz matrix */
   ierr = MatDenseGetArray(A,&As);CHKERRQ(ierr);
@@ -73,44 +119,13 @@ int main(int argc,char **argv)
   }
   ierr = MatDenseRestoreArray(A,&As);CHKERRQ(ierr);
   ierr = MatSetOption(A,MAT_HERMITIAN,PETSC_TRUE);CHKERRQ(ierr);
-  if (verbose) {
-    ierr = PetscPrintf(PETSC_COMM_WORLD,"Matrix A - - - - - - - -\n");CHKERRQ(ierr);
-    ierr = MatView(A,viewer);CHKERRQ(ierr);
-  }
-
-  /* Evaluate matrix function */
-  if (inplace) {
-    ierr = MatCopy(A,B,SAME_NONZERO_PATTERN);CHKERRQ(ierr);
-    ierr = FNEvaluateFunctionMat(fn,B,NULL);CHKERRQ(ierr);
-  } else {
-    ierr = FNEvaluateFunctionMat(fn,A,B);CHKERRQ(ierr);
-  }
-  if (verbose) {
-    ierr = PetscPrintf(PETSC_COMM_WORLD,"Computed f(A) - - - - - - -\n");CHKERRQ(ierr);
-    ierr = MatView(B,viewer);CHKERRQ(ierr);
-  }
-  ierr = MatNorm(B,NORM_1,&nrm);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"The 1-norm of f(A) is %g\n",(double)nrm);CHKERRQ(ierr);
+  ierr = TestMatRational(fn,A,viewer,verbose,inplace);CHKERRQ(ierr);
 
   /* Repeat with same matrix as non-symmetric */
   ierr = MatSetOption(A,MAT_HERMITIAN,PETSC_FALSE);CHKERRQ(ierr);
-
-  /* Evaluate matrix function */
-  if (inplace) {
-    ierr = MatCopy(A,B,SAME_NONZERO_PATTERN);CHKERRQ(ierr);
-    ierr = FNEvaluateFunctionMat(fn,B,NULL);CHKERRQ(ierr);
-  } else {
-    ierr = FNEvaluateFunctionMat(fn,A,B);CHKERRQ(ierr);
-  }
-  if (verbose) {
-    ierr = PetscPrintf(PETSC_COMM_WORLD,"Computed f(A) - - - - - - -\n");CHKERRQ(ierr);
-    ierr = MatView(B,viewer);CHKERRQ(ierr);
-  }
-  ierr = MatNorm(B,NORM_1,&nrm);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"The 1-norm of f(A) is %g\n",(double)nrm);CHKERRQ(ierr);
+  ierr = TestMatRational(fn,A,viewer,verbose,inplace);CHKERRQ(ierr);
 
   ierr = MatDestroy(&A);CHKERRQ(ierr);
-  ierr = MatDestroy(&B);CHKERRQ(ierr);
   ierr = FNDestroy(&fn);CHKERRQ(ierr);
   ierr = SlepcFinalize();
   return 0;

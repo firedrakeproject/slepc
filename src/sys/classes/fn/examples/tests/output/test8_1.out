@@ -3,5 +3,8 @@ FN Object: 1 MPI processes
   type: invsqrt
     Inverse square root: +0.5  *(+0.9*x)^(-1/2)
 ||S*S*A-I||_F < 100*eps
+The norm of f(A)*e_1-v is 0.
 ||S*S*A-I||_F < 100*eps
+The norm of f(A)*e_1-v is 0.
 ||S*S*A-I||_F < 100*eps
+The norm of f(A)*e_1-v is 0.

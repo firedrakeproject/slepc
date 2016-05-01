@@ -36,6 +36,8 @@ struct _FNOps {
   PetscErrorCode (*evaluatederivative)(FN,PetscScalar,PetscScalar*);
   PetscErrorCode (*evaluatefunctionmat)(FN,Mat,Mat);
   PetscErrorCode (*evaluatefunctionmatsym)(FN,Mat,Mat);
+  PetscErrorCode (*evaluatefunctionmatvec)(FN,Mat,Vec);
+  PetscErrorCode (*evaluatefunctionmatvecsym)(FN,Mat,Vec);
   PetscErrorCode (*setfromoptions)(PetscOptionItems*,FN);
   PetscErrorCode (*view)(FN,PetscViewer);
   PetscErrorCode (*duplicate)(FN,MPI_Comm,FN*);

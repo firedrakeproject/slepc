@@ -542,7 +542,7 @@ static PetscErrorCode FNEvaluateFunctionMat_Sym_Default(FN fn,Mat A,Mat B)
 
    Level: advanced
 
-.seealso: FNEvaluateFunction()
+.seealso: FNEvaluateFunction(), FNEvaluateFunctionMatVec()
 @*/
 PetscErrorCode FNEvaluateFunctionMat(FN fn,Mat A,Mat B)
 {
@@ -609,6 +609,111 @@ PetscErrorCode FNEvaluateFunctionMat(FN fn,Mat A,Mat B)
 
   /* scale result */
   ierr = MatScale(F,fn->beta);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "FNEvaluateFunctionMatVec_Default"
+/*
+   FNEvaluateFunctionMatVec_Default - computes the full matrix f(A)
+   and then copies the first column.
+*/
+static PetscErrorCode FNEvaluateFunctionMatVec_Default(FN fn,Mat A,Vec v,PetscBool symm)
+{
+  PetscErrorCode ierr;
+  Mat            F;
+
+  PetscFunctionBegin;
+  ierr = FN_AllocateWorkMat(fn,A,&F);CHKERRQ(ierr);
+  if (symm) {
+    if (fn->ops->evaluatefunctionmatsym) {
+      ierr = (*fn->ops->evaluatefunctionmatsym)(fn,A,F);CHKERRQ(ierr);
+    } else {
+      ierr = FNEvaluateFunctionMat_Sym_Default(fn,A,F);CHKERRQ(ierr);
+    }
+  } else {
+    if (fn->ops->evaluatefunctionmat) {
+      ierr = (*fn->ops->evaluatefunctionmat)(fn,A,F);CHKERRQ(ierr);
+    } else SETERRQ1(PetscObjectComm((PetscObject)fn),PETSC_ERR_SUP,"Matrix functions not implemented in FN type %s",((PetscObject)fn)->type_name);
+  }
+  ierr = MatGetColumnVector(F,v,0);CHKERRQ(ierr);
+  ierr = FN_FreeWorkMat(fn,&F);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "FNEvaluateFunctionMatVec"
+/*@
+   FNEvaluateFunctionMatVec - Computes the first column of the matrix f(A)
+   for a given matrix A.
+
+   Logically Collective on FN
+
+   Input Parameters:
++  fn - the math function context
+-  A  - matrix on which the function must be evaluated
+
+   Output Parameter:
+.  v  - vector to hold the first column of f(A)
+
+   Notes:
+   This operation is similar to FNEvaluateFunctionMat() but returns only
+   the first column of f(A), hence saving computations in most cases.
+
+   Level: advanced
+
+.seealso: FNEvaluateFunction(), FNEvaluateFunctionMat()
+@*/
+PetscErrorCode FNEvaluateFunctionMatVec(FN fn,Mat A,Vec v)
+{
+  PetscErrorCode ierr;
+  PetscBool      match,set,flg,symm=PETSC_FALSE;
+  PetscInt       m,n;
+  Mat            M;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(fn,FN_CLASSID,1);
+  PetscValidHeaderSpecific(A,MAT_CLASSID,2);
+  PetscValidHeaderSpecific(v,VEC_CLASSID,3);
+  PetscValidType(fn,1);
+  PetscValidType(A,2);
+  PetscValidType(v,3);
+  ierr = PetscObjectTypeCompare((PetscObject)A,MATSEQDENSE,&match);CHKERRQ(ierr);
+  if (!match) SETERRQ(PetscObjectComm((PetscObject)fn),PETSC_ERR_SUP,"Mat A must be of type seqdense");
+  ierr = MatGetSize(A,&m,&n);CHKERRQ(ierr);
+  if (m!=n) SETERRQ2(PetscObjectComm((PetscObject)fn),PETSC_ERR_ARG_SIZ,"Mat A is not square (has %D rows, %D cols)",m,n);
+  ierr = VecGetSize(v,&m);CHKERRQ(ierr);
+  if (m!=n) SETERRQ(PetscObjectComm((PetscObject)fn),PETSC_ERR_ARG_SIZ,"Matrix A and vector v must have the same size");
+
+  /* check symmetry of A */
+  ierr = MatIsHermitianKnown(A,&set,&flg);CHKERRQ(ierr);
+  symm = set? flg: PETSC_FALSE;
+
+  /* scale argument */
+  if (fn->alpha!=(PetscScalar)1.0) {
+    ierr = FN_AllocateWorkMat(fn,A,&M);CHKERRQ(ierr);
+    ierr = MatScale(M,fn->alpha);CHKERRQ(ierr);
+  } else M = A;
+
+  /* evaluate matrix function */
+  ierr = PetscLogEventBegin(FN_Evaluate,fn,0,0,0);CHKERRQ(ierr);
+  ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
+  if (symm && fn->ops->evaluatefunctionmatvecsym) {
+    ierr = (*fn->ops->evaluatefunctionmatvecsym)(fn,M,v);CHKERRQ(ierr);
+  } else if (fn->ops->evaluatefunctionmatvec) {
+    ierr = (*fn->ops->evaluatefunctionmatvec)(fn,M,v);CHKERRQ(ierr);
+  } else {
+    ierr = FNEvaluateFunctionMatVec_Default(fn,M,v,symm);CHKERRQ(ierr);
+  }
+  ierr = PetscFPTrapPop();CHKERRQ(ierr);
+  ierr = PetscLogEventEnd(FN_Evaluate,fn,0,0,0);CHKERRQ(ierr);
+
+  if (fn->alpha!=(PetscScalar)1.0) {
+    ierr = FN_FreeWorkMat(fn,&M);CHKERRQ(ierr);
+  }
+
+  /* scale result */
+  ierr = VecScale(v,fn->beta);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
