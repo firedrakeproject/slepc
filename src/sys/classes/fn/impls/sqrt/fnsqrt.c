@@ -57,8 +57,30 @@ PetscErrorCode FNEvaluateFunctionMat_Sqrt(FN fn,Mat A,Mat B)
   ierr = MatDenseGetArray(B,&T);CHKERRQ(ierr);
   ierr = MatGetSize(A,&m,NULL);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(m,&n);CHKERRQ(ierr);
-  ierr = SlepcSchurParlettSqrt(n,T,n);CHKERRQ(ierr);
+  ierr = SlepcSchurParlettSqrt(n,T,n,PETSC_FALSE);CHKERRQ(ierr);
   ierr = MatDenseRestoreArray(B,&T);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "FNEvaluateFunctionMatVec_Sqrt"
+PetscErrorCode FNEvaluateFunctionMatVec_Sqrt(FN fn,Mat A,Vec v)
+{
+  PetscErrorCode ierr;
+  PetscBLASInt   n;
+  PetscScalar    *T;
+  PetscInt       m;
+  Mat            B;
+
+  PetscFunctionBegin;
+  ierr = FN_AllocateWorkMat(fn,A,&B);CHKERRQ(ierr);
+  ierr = MatDenseGetArray(B,&T);CHKERRQ(ierr);
+  ierr = MatGetSize(A,&m,NULL);CHKERRQ(ierr);
+  ierr = PetscBLASIntCast(m,&n);CHKERRQ(ierr);
+  ierr = SlepcSchurParlettSqrt(n,T,n,PETSC_TRUE);CHKERRQ(ierr);
+  ierr = MatDenseRestoreArray(B,&T);CHKERRQ(ierr);
+  ierr = MatGetColumnVector(B,v,0);CHKERRQ(ierr);
+  ierr = FN_FreeWorkMat(fn,&B);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -99,10 +121,11 @@ PetscErrorCode FNView_Sqrt(FN fn,PetscViewer viewer)
 PETSC_EXTERN PetscErrorCode FNCreate_Sqrt(FN fn)
 {
   PetscFunctionBegin;
-  fn->ops->evaluatefunction    = FNEvaluateFunction_Sqrt;
-  fn->ops->evaluatederivative  = FNEvaluateDerivative_Sqrt;
-  fn->ops->evaluatefunctionmat = FNEvaluateFunctionMat_Sqrt;
-  fn->ops->view                = FNView_Sqrt;
+  fn->ops->evaluatefunction       = FNEvaluateFunction_Sqrt;
+  fn->ops->evaluatederivative     = FNEvaluateDerivative_Sqrt;
+  fn->ops->evaluatefunctionmat    = FNEvaluateFunctionMat_Sqrt;
+  fn->ops->evaluatefunctionmatvec = FNEvaluateFunctionMatVec_Sqrt;
+  fn->ops->view                   = FNView_Sqrt;
   PetscFunctionReturn(0);
 }
 

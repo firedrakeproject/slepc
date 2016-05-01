@@ -95,15 +95,16 @@ PetscErrorCode SlepcMatDenseSqrt(PetscBLASInt n,PetscScalar *T,PetscBLASInt ld)
 /*
    Simplified Schur-Parlett algorithm on an upper quasi-triangular matrix T,
    particularized for the square root function. T is overwritten with sqrtm(T).
+   If firstonly then only the first column of T will contain relevant values.
  */
-PetscErrorCode SlepcSchurParlettSqrt(PetscBLASInt n,PetscScalar *T,PetscBLASInt ld)
+PetscErrorCode SlepcSchurParlettSqrt(PetscBLASInt n,PetscScalar *T,PetscBLASInt ld,PetscBool firstonly)
 {
 #if defined(SLEPC_MISSING_LAPACK_GEES) || defined(SLEPC_MISSING_LAPACK_TRSYL)
   PetscFunctionBegin;
   SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"GEES/TRSYL - Lapack routines are unavailable");
 #else
   PetscErrorCode ierr;
-  PetscBLASInt   i,j,r,ione=1,sdim,lwork,*s,*p,info,bs=BLOCKSIZE;
+  PetscBLASInt   i,j,k,r,ione=1,sdim,lwork,*s,*p,info,bs=BLOCKSIZE;
   PetscScalar    *wr,*W,*Q,*work,one=1.0,zero=0.0,mone=-1.0;
   PetscInt       m,nblk;
   PetscReal      done=1.0;
@@ -117,14 +118,15 @@ PetscErrorCode SlepcSchurParlettSqrt(PetscBLASInt n,PetscScalar *T,PetscBLASInt 
   m     = n;
   nblk  = (m+bs-1)/bs;
   lwork = 5*n;
+  k     = firstonly? 1: n;
 
   /* compute Schur decomposition A*Q = Q*T */
 #if !defined(PETSC_USE_COMPLEX)
-  ierr = PetscMalloc7(m,&wr,m,&wi,m*m,&W,m*m,&Q,lwork,&work,nblk,&s,nblk,&p);CHKERRQ(ierr);
+  ierr = PetscMalloc7(m,&wr,m,&wi,m*k,&W,m*m,&Q,lwork,&work,nblk,&s,nblk,&p);CHKERRQ(ierr);
   PetscStackCallBLAS("LAPACKgees",LAPACKgees_("V","N",NULL,&n,T,&ld,&sdim,wr,wi,Q,&ld,work,&lwork,NULL,&info));
   if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xGEES %d",info);
 #else
-  ierr = PetscMalloc7(m,&wr,m,&rwork,m*m,&W,m*m,&Q,lwork,&work,nblk,&s,nblk,&p);CHKERRQ(ierr);
+  ierr = PetscMalloc7(m,&wr,m,&rwork,m*k,&W,m*m,&Q,lwork,&work,nblk,&s,nblk,&p);CHKERRQ(ierr);
   PetscStackCallBLAS("LAPACKgees",LAPACKgees_("V","N",NULL,&n,T,&ld,&sdim,wr,Q,&ld,work,&lwork,rwork,NULL,&info));
   if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xGEES %d",info);
 #endif
@@ -156,8 +158,8 @@ PetscErrorCode SlepcSchurParlettSqrt(PetscBLASInt n,PetscScalar *T,PetscBLASInt 
   }
 
   /* backtransform B = Q*T*Q' */
-  PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&n,&n,&n,&one,Q,&ld,T,&ld,&zero,W,&ld));
-  PetscStackCallBLAS("BLASgemm",BLASgemm_("N","C",&n,&n,&n,&one,W,&ld,Q,&ld,&zero,T,&ld));
+  PetscStackCallBLAS("BLASgemm",BLASgemm_("N","C",&n,&k,&n,&one,T,&ld,Q,&ld,&zero,W,&ld));
+  PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&n,&k,&n,&one,Q,&ld,W,&ld,&zero,T,&ld));
 
 #if !defined(PETSC_USE_COMPLEX)
   ierr = PetscFree7(wr,wi,W,Q,work,s,p);CHKERRQ(ierr);

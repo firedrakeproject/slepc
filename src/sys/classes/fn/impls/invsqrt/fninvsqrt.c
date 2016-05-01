@@ -55,7 +55,7 @@ PetscErrorCode FNEvaluateFunctionMat_Invsqrt(FN fn,Mat A,Mat B)
   Mat            W;
 
   PetscFunctionBegin;
-  ierr = MatDuplicate(A,MAT_DO_NOT_COPY_VALUES,&W);CHKERRQ(ierr);
+  ierr = FN_AllocateWorkMat(fn,A,&W);CHKERRQ(ierr);
   if (A!=B) { ierr = MatCopy(A,B,SAME_NONZERO_PATTERN);CHKERRQ(ierr); }
   ierr = MatCopy(A,W,SAME_NONZERO_PATTERN);CHKERRQ(ierr);
   ierr = MatDenseGetArray(B,&Ba);CHKERRQ(ierr);
@@ -64,7 +64,7 @@ PetscErrorCode FNEvaluateFunctionMat_Invsqrt(FN fn,Mat A,Mat B)
   ierr = MatGetSize(A,&m,NULL);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(m,&n);CHKERRQ(ierr);
   ld = n;
-  ierr = SlepcSchurParlettSqrt(n,Ba,n);CHKERRQ(ierr);
+  ierr = SlepcSchurParlettSqrt(n,Ba,n,PETSC_FALSE);CHKERRQ(ierr);
   /* compute B = A\B */
   ierr = PetscMalloc1(ld,&ipiv);CHKERRQ(ierr);
   PetscStackCallBLAS("LAPACKgesv",LAPACKgesv_(&n,&n,Wa,&ld,ipiv,Ba,&ld,&info));
@@ -72,7 +72,41 @@ PetscErrorCode FNEvaluateFunctionMat_Invsqrt(FN fn,Mat A,Mat B)
   ierr = PetscFree(ipiv);CHKERRQ(ierr);
   ierr = MatDenseRestoreArray(W,&Wa);CHKERRQ(ierr);
   ierr = MatDenseRestoreArray(B,&Ba);CHKERRQ(ierr);
-  ierr = MatDestroy(&W);CHKERRQ(ierr);
+  ierr = FN_FreeWorkMat(fn,&W);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "FNEvaluateFunctionMatVec_Invsqrt"
+PetscErrorCode FNEvaluateFunctionMatVec_Invsqrt(FN fn,Mat A,Vec v)
+{
+  PetscErrorCode ierr;
+  PetscBLASInt   n,ld,*ipiv,info,one=1;
+  PetscScalar    *Ba,*Wa;
+  PetscInt       m;
+  Mat            B,W;
+
+  PetscFunctionBegin;
+  ierr = FN_AllocateWorkMat(fn,A,&B);CHKERRQ(ierr);
+  ierr = FN_AllocateWorkMat(fn,A,&W);CHKERRQ(ierr);
+  ierr = MatCopy(A,W,SAME_NONZERO_PATTERN);CHKERRQ(ierr);
+  ierr = MatDenseGetArray(B,&Ba);CHKERRQ(ierr);
+  ierr = MatDenseGetArray(W,&Wa);CHKERRQ(ierr);
+  /* compute B_1 = sqrtm(A)*e_1 */
+  ierr = MatGetSize(A,&m,NULL);CHKERRQ(ierr);
+  ierr = PetscBLASIntCast(m,&n);CHKERRQ(ierr);
+  ld = n;
+  ierr = SlepcSchurParlettSqrt(n,Ba,n,PETSC_TRUE);CHKERRQ(ierr);
+  /* compute B_1 = A\B_1 */
+  ierr = PetscMalloc1(ld,&ipiv);CHKERRQ(ierr);
+  PetscStackCallBLAS("LAPACKgesv",LAPACKgesv_(&n,&one,Wa,&ld,ipiv,Ba,&ld,&info));
+  if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xGESV %d",info);
+  ierr = PetscFree(ipiv);CHKERRQ(ierr);
+  ierr = MatDenseRestoreArray(W,&Wa);CHKERRQ(ierr);
+  ierr = MatDenseRestoreArray(B,&Ba);CHKERRQ(ierr);
+  ierr = MatGetColumnVector(B,v,0);CHKERRQ(ierr);
+  ierr = FN_FreeWorkMat(fn,&W);CHKERRQ(ierr);
+  ierr = FN_FreeWorkMat(fn,&B);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -113,10 +147,11 @@ PetscErrorCode FNView_Invsqrt(FN fn,PetscViewer viewer)
 PETSC_EXTERN PetscErrorCode FNCreate_Invsqrt(FN fn)
 {
   PetscFunctionBegin;
-  fn->ops->evaluatefunction    = FNEvaluateFunction_Invsqrt;
-  fn->ops->evaluatederivative  = FNEvaluateDerivative_Invsqrt;
-  fn->ops->evaluatefunctionmat = FNEvaluateFunctionMat_Invsqrt;
-  fn->ops->view                = FNView_Invsqrt;
+  fn->ops->evaluatefunction       = FNEvaluateFunction_Invsqrt;
+  fn->ops->evaluatederivative     = FNEvaluateDerivative_Invsqrt;
+  fn->ops->evaluatefunctionmat    = FNEvaluateFunctionMat_Invsqrt;
+  fn->ops->evaluatefunctionmatvec = FNEvaluateFunctionMatVec_Invsqrt;
+  fn->ops->view                   = FNView_Invsqrt;
   PetscFunctionReturn(0);
 }
 
