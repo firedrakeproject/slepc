@@ -443,44 +443,37 @@ PetscErrorCode FNEvaluateDerivative(FN fn,PetscScalar x,PetscScalar *y)
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "FNEvaluateFunctionMat_Sym_Default"
-/*
-   FNEvaluateFunctionMat_Sym_Default - given a symmetric matrix A,
-   compute the matrix function as f(A)=Q*f(D)*Q' where the spectral
-   decomposition of A is A=Q*D*Q' 
-*/
-static PetscErrorCode FNEvaluateFunctionMat_Sym_Default(FN fn,Mat A,Mat B)
+#define __FUNCT__ "FNEvaluateFunctionMat_Sym_Private"
+static PetscErrorCode FNEvaluateFunctionMat_Sym_Private(FN fn,PetscScalar *As,PetscScalar *Bs,PetscInt m,PetscBool firstonly)
 {
 #if defined(PETSC_MISSING_LAPACK_SYEV) || defined(SLEPC_MISSING_LAPACK_LACPY)
   PetscFunctionBegin;
   SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"SYEV/LACPY - Lapack routines are unavailable");
 #else
   PetscErrorCode ierr;
-  PetscInt       i,j,m;
-  PetscBLASInt   n,ld,lwork,info;
-  PetscScalar    *As,*Bs,*Q,*W,*work,a,x,y,one=1.0,zero=0.0;
+  PetscInt       i,j;
+  PetscBLASInt   n,k,ld,lwork,info;
+  PetscScalar    *Q,*W,*work,a,x,y,one=1.0,zero=0.0;
   PetscReal      *eig;
 #if defined(PETSC_USE_COMPLEX)
   PetscReal      *rwork;
 #endif
 
   PetscFunctionBegin;
-  ierr = MatDenseGetArray(A,&As);CHKERRQ(ierr);
-  ierr = MatDenseGetArray(B,&Bs);CHKERRQ(ierr);
-  ierr = MatGetSize(A,&m,NULL);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(m,&n);CHKERRQ(ierr);
   ld = n;
+  k = firstonly? 1: n;
 
   /* workspace query and memory allocation */
   lwork = -1;
 #if defined(PETSC_USE_COMPLEX)
   PetscStackCallBLAS("LAPACKsyev",LAPACKsyev_("V","L",&n,As,&ld,NULL,&a,&lwork,NULL,&info));
   ierr = PetscBLASIntCast((PetscInt)PetscRealPart(a),&lwork);CHKERRQ(ierr);
-  ierr = PetscMalloc5(m,&eig,m*m,&Q,m*m,&W,lwork,&work,PetscMax(1,3*m-2),&rwork);CHKERRQ(ierr);
+  ierr = PetscMalloc5(m,&eig,m*m,&Q,m*k,&W,lwork,&work,PetscMax(1,3*m-2),&rwork);CHKERRQ(ierr);
 #else
   PetscStackCallBLAS("LAPACKsyev",LAPACKsyev_("V","L",&n,As,&ld,NULL,&a,&lwork,&info));
   ierr = PetscBLASIntCast((PetscInt)PetscRealPart(a),&lwork);CHKERRQ(ierr);
-  ierr = PetscMalloc4(m,&eig,m*m,&Q,m*m,&W,lwork,&work);CHKERRQ(ierr);
+  ierr = PetscMalloc4(m,&eig,m*m,&Q,m*k,&W,lwork,&work);CHKERRQ(ierr);
 #endif
 
   /* compute eigendecomposition */
@@ -496,19 +489,40 @@ static PetscErrorCode FNEvaluateFunctionMat_Sym_Default(FN fn,Mat A,Mat B)
   for (i=0;i<n;i++) {
     x = eig[i];
     ierr = (*fn->ops->evaluatefunction)(fn,x,&y);CHKERRQ(ierr);  /* y = f(x) */
-    for (j=0;j<n;j++) W[i+j*ld] = Q[j+i*ld]*y;
+    for (j=0;j<k;j++) W[i+j*ld] = Q[j+i*ld]*y;
   }
   /* Bs = Q*W */
-  PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&n,&n,&n,&one,Q,&ld,W,&ld,&zero,Bs,&ld));
+  PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&n,&k,&n,&one,Q,&ld,W,&ld,&zero,Bs,&ld));
 #if defined(PETSC_USE_COMPLEX)
   ierr = PetscFree5(eig,Q,W,work,rwork);CHKERRQ(ierr);
 #else
   ierr = PetscFree4(eig,Q,W,work);CHKERRQ(ierr);
 #endif
+  PetscFunctionReturn(0);
+#endif
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "FNEvaluateFunctionMat_Sym_Default"
+/*
+   FNEvaluateFunctionMat_Sym_Default - given a symmetric matrix A,
+   compute the matrix function as f(A)=Q*f(D)*Q' where the spectral
+   decomposition of A is A=Q*D*Q'
+*/
+static PetscErrorCode FNEvaluateFunctionMat_Sym_Default(FN fn,Mat A,Mat B)
+{
+  PetscErrorCode ierr;
+  PetscInt       m;
+  PetscScalar    *As,*Bs;
+
+  PetscFunctionBegin;
+  ierr = MatDenseGetArray(A,&As);CHKERRQ(ierr);
+  ierr = MatDenseGetArray(B,&Bs);CHKERRQ(ierr);
+  ierr = MatGetSize(A,&m,NULL);CHKERRQ(ierr);
+  ierr = FNEvaluateFunctionMat_Sym_Private(fn,As,Bs,m,PETSC_FALSE);CHKERRQ(ierr);
   ierr = MatDenseRestoreArray(A,&As);CHKERRQ(ierr);
   ierr = MatDenseRestoreArray(B,&Bs);CHKERRQ(ierr);
   PetscFunctionReturn(0);
-#endif
 }
 
 #undef __FUNCT__
@@ -598,7 +612,7 @@ PetscErrorCode FNEvaluateFunctionMat(FN fn,Mat A,Mat B)
   } else {
     if (fn->ops->evaluatefunctionmat) {
       ierr = (*fn->ops->evaluatefunctionmat)(fn,M,F);CHKERRQ(ierr);
-    } else SETERRQ1(PetscObjectComm((PetscObject)fn),PETSC_ERR_SUP,"Matrix functions not implemented in FN type %s",((PetscObject)fn)->type_name);
+    } else SETERRQ1(PetscObjectComm((PetscObject)fn),PETSC_ERR_SUP,"Matrix function not implemented in FN type %s",((PetscObject)fn)->type_name);
   }
   ierr = PetscFPTrapPop();CHKERRQ(ierr);
   ierr = PetscLogEventEnd(FN_Evaluate,fn,0,0,0);CHKERRQ(ierr);
@@ -618,26 +632,41 @@ PetscErrorCode FNEvaluateFunctionMat(FN fn,Mat A,Mat B)
    FNEvaluateFunctionMatVec_Default - computes the full matrix f(A)
    and then copies the first column.
 */
-static PetscErrorCode FNEvaluateFunctionMatVec_Default(FN fn,Mat A,Vec v,PetscBool symm)
+static PetscErrorCode FNEvaluateFunctionMatVec_Default(FN fn,Mat A,Vec v)
 {
   PetscErrorCode ierr;
   Mat            F;
 
   PetscFunctionBegin;
   ierr = FN_AllocateWorkMat(fn,A,&F);CHKERRQ(ierr);
-  if (symm) {
-    if (fn->ops->evaluatefunctionmatsym) {
-      ierr = (*fn->ops->evaluatefunctionmatsym)(fn,A,F);CHKERRQ(ierr);
-    } else {
-      ierr = FNEvaluateFunctionMat_Sym_Default(fn,A,F);CHKERRQ(ierr);
-    }
-  } else {
-    if (fn->ops->evaluatefunctionmat) {
-      ierr = (*fn->ops->evaluatefunctionmat)(fn,A,F);CHKERRQ(ierr);
-    } else SETERRQ1(PetscObjectComm((PetscObject)fn),PETSC_ERR_SUP,"Matrix functions not implemented in FN type %s",((PetscObject)fn)->type_name);
-  }
+  if (fn->ops->evaluatefunctionmat) {
+    ierr = (*fn->ops->evaluatefunctionmat)(fn,A,F);CHKERRQ(ierr);
+  } else SETERRQ1(PetscObjectComm((PetscObject)fn),PETSC_ERR_SUP,"Matrix function not implemented in FN type %s",((PetscObject)fn)->type_name);
   ierr = MatGetColumnVector(F,v,0);CHKERRQ(ierr);
   ierr = FN_FreeWorkMat(fn,&F);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "FNEvaluateFunctionMatVec_Sym_Default"
+/*
+   FNEvaluateFunctionMatVec_Sym_Default - given a symmetric matrix A,
+   compute the matrix function as f(A)=Q*f(D)*Q' where the spectral
+   decomposition of A is A=Q*D*Q'. Only the first column is computed.
+*/
+static PetscErrorCode FNEvaluateFunctionMatVec_Sym_Default(FN fn,Mat A,Vec v)
+{
+  PetscErrorCode ierr;
+  PetscInt       m;
+  PetscScalar    *As,*vs;
+
+  PetscFunctionBegin;
+  ierr = MatDenseGetArray(A,&As);CHKERRQ(ierr);
+  ierr = VecGetArray(v,&vs);CHKERRQ(ierr);
+  ierr = MatGetSize(A,&m,NULL);CHKERRQ(ierr);
+  ierr = FNEvaluateFunctionMat_Sym_Private(fn,As,vs,m,PETSC_TRUE);CHKERRQ(ierr);
+  ierr = MatDenseRestoreArray(A,&As);CHKERRQ(ierr);
+  ierr = VecRestoreArray(v,&vs);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -698,12 +727,18 @@ PetscErrorCode FNEvaluateFunctionMatVec(FN fn,Mat A,Vec v)
   /* evaluate matrix function */
   ierr = PetscLogEventBegin(FN_Evaluate,fn,0,0,0);CHKERRQ(ierr);
   ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
-  if (symm && fn->ops->evaluatefunctionmatvecsym) {
-    ierr = (*fn->ops->evaluatefunctionmatvecsym)(fn,M,v);CHKERRQ(ierr);
-  } else if (fn->ops->evaluatefunctionmatvec) {
-    ierr = (*fn->ops->evaluatefunctionmatvec)(fn,M,v);CHKERRQ(ierr);
+  if (symm) {
+    if (fn->ops->evaluatefunctionmatvecsym) {
+      ierr = (*fn->ops->evaluatefunctionmatvecsym)(fn,M,v);CHKERRQ(ierr);
+    } else {
+      ierr = FNEvaluateFunctionMatVec_Sym_Default(fn,M,v);CHKERRQ(ierr);
+    }
   } else {
-    ierr = FNEvaluateFunctionMatVec_Default(fn,M,v,symm);CHKERRQ(ierr);
+    if (fn->ops->evaluatefunctionmatvec) {
+      ierr = (*fn->ops->evaluatefunctionmatvec)(fn,M,v);CHKERRQ(ierr);
+    } else {
+      ierr = FNEvaluateFunctionMatVec_Default(fn,M,v);CHKERRQ(ierr);
+    }
   }
   ierr = PetscFPTrapPop();CHKERRQ(ierr);
   ierr = PetscLogEventEnd(FN_Evaluate,fn,0,0,0);CHKERRQ(ierr);
