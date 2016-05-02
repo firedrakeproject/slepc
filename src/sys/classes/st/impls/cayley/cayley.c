@@ -202,9 +202,6 @@ PetscErrorCode STSetShift_Cayley(ST st,PetscScalar newshift)
   PetscFunctionBegin;
   if (newshift==0.0 && (!ctx->nu_set || (ctx->nu_set && ctx->nu==0.0))) SETERRQ(PetscObjectComm((PetscObject)st),1,"Values of shift and antishift cannot be zero simultaneously");
 
-  /* Nothing to be done if STSetUp has not been called yet */
-  if (!st->state) PetscFunctionReturn(0);
-
   if (!ctx->nu_set) {
     if (st->shift_matrix!=ST_MATMODE_INPLACE) {
       ierr = STMatMAXPY_Private(st,newshift,ctx->nu,0,NULL,PETSC_FALSE,&st->T[0]);CHKERRQ(ierr);
@@ -346,7 +343,7 @@ PetscErrorCode STCayleyGetAntishift(ST st,PetscScalar *nu)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
   PetscValidScalarPointer(nu,2);
-  ierr = PetscTryMethod(st,"STCayleyGetAntishift_C",(ST,PetscScalar*),(st,nu));CHKERRQ(ierr);
+  ierr = PetscUseMethod(st,"STCayleyGetAntishift_C",(ST,PetscScalar*),(st,nu));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

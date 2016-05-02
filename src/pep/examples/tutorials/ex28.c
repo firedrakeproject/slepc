@@ -136,7 +136,7 @@ int main(int argc,char **argv)
   ierr = MatDestroy(&C);CHKERRQ(ierr);
   ierr = MatDestroy(&K);CHKERRQ(ierr);
   ierr = SlepcFinalize();
-  return 0;
+  return ierr;
 }
 
 /*
@@ -230,7 +230,7 @@ PetscErrorCode MatMult_Zero(Mat A,Vec x,Vec y)
   PetscErrorCode ierr;
 
   PetscFunctionBeginUser;
-  ierr = VecZeroEntries(y);CHKERRQ(ierr);
+  ierr = VecSet(y,0.0);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -241,7 +241,7 @@ PetscErrorCode MatGetDiagonal_Zero(Mat A,Vec diag)
   PetscErrorCode ierr;
 
   PetscFunctionBeginUser;
-  ierr = VecZeroEntries(diag);CHKERRQ(ierr);
+  ierr = VecSet(diag,0.0);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

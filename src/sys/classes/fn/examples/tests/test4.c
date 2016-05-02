@@ -42,5 +42,5 @@ int main(int argc,char **argv)
   ierr = FNView(fn2,NULL);CHKERRQ(ierr);
   ierr = FNDestroy(&fn2);CHKERRQ(ierr);
   ierr = SlepcFinalize();
-  return 0;
+  return ierr;
 }

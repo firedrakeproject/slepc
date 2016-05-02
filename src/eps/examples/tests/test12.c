@@ -104,5 +104,5 @@ int main(int argc,char **argv)
   ierr = VecDestroy(&v0);CHKERRQ(ierr);
   ierr = PetscRandomDestroy(&rand);CHKERRQ(ierr);
   ierr = SlepcFinalize();
-  return 0;
+  return ierr;
 }

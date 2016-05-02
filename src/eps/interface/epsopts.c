@@ -25,6 +25,84 @@
 #include <slepc/private/epsimpl.h>   /*I "slepceps.h" I*/
 
 #undef __FUNCT__
+#define __FUNCT__ "EPSMonitorSetFromOptions"
+/*@C
+   EPSMonitorSetFromOptions - Sets a monitor function and viewer appropriate for the type
+   indicated by the user.
+
+   Collective on EPS
+
+   Input Parameters:
++  eps      - the eigensolver context
+.  name     - the monitor option name
+.  help     - message indicating what monitoring is done
+.  manual   - manual page for the monitor
+.  monitor  - the monitor function, whose context is a PetscViewerAndFormat
+-  trackall - whether this monitor tracks all eigenvalues or not
+
+   Level: developer
+
+.seealso: EPSMonitorSet(), EPSSetTrackAll(), EPSConvMonitorSetFromOptions()
+@*/
+PetscErrorCode EPSMonitorSetFromOptions(EPS eps,const char name[],const char help[],const char manual[],PetscErrorCode (*monitor)(EPS,PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscReal*,PetscInt,PetscViewerAndFormat*),PetscBool trackall)
+{
+  PetscErrorCode       ierr;
+  PetscBool            flg;
+  PetscViewer          viewer;
+  PetscViewerFormat    format;
+  PetscViewerAndFormat *vf;
+
+  PetscFunctionBegin;
+  ierr = PetscOptionsGetViewer(PetscObjectComm((PetscObject)eps),((PetscObject)eps)->prefix,name,&viewer,&format,&flg);CHKERRQ(ierr);
+  if (flg) {
+    ierr = PetscViewerAndFormatCreate(viewer,format,&vf);CHKERRQ(ierr);
+    ierr = PetscObjectDereference((PetscObject)viewer);CHKERRQ(ierr);
+    ierr = EPSMonitorSet(eps,(PetscErrorCode (*)(EPS,PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscReal*,PetscInt,void*))monitor,vf,(PetscErrorCode (*)(void**))PetscViewerAndFormatDestroy);CHKERRQ(ierr);
+    if (trackall) {
+      ierr = EPSSetTrackAll(eps,PETSC_TRUE);CHKERRQ(ierr);
+    }
+  }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "EPSConvMonitorSetFromOptions"
+/*@C
+   EPSConvMonitorSetFromOptions - Sets a monitor function and viewer appropriate for the type
+   indicated by the user (for monitors that only show iteration numbers of convergence).
+
+   Collective on EPS
+
+   Input Parameters:
++  eps      - the eigensolver context
+.  name     - the monitor option name
+.  help     - message indicating what monitoring is done
+.  manual   - manual page for the monitor
+-  monitor  - the monitor function, whose context is a SlepcConvMonitor
+
+   Level: developer
+
+.seealso: EPSMonitorSet(), EPSMonitorSetFromOptions()
+@*/
+PetscErrorCode EPSConvMonitorSetFromOptions(EPS eps,const char name[],const char help[],const char manual[],PetscErrorCode (*monitor)(EPS,PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscReal*,PetscInt,SlepcConvMonitor))
+{
+  PetscErrorCode    ierr;
+  PetscBool         flg;
+  PetscViewer       viewer;
+  PetscViewerFormat format;
+  SlepcConvMonitor  ctx;
+
+  PetscFunctionBegin;
+  ierr = PetscOptionsGetViewer(PetscObjectComm((PetscObject)eps),((PetscObject)eps)->prefix,name,&viewer,&format,&flg);CHKERRQ(ierr);
+  if (flg) {
+    ierr = SlepcConvMonitorCreate(viewer,format,&ctx);CHKERRQ(ierr);
+    ierr = PetscObjectDereference((PetscObject)viewer);CHKERRQ(ierr);
+    ierr = EPSMonitorSet(eps,(PetscErrorCode (*)(EPS,PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscReal*,PetscInt,void*))monitor,ctx,(PetscErrorCode (*)(void**))SlepcConvMonitorDestroy);CHKERRQ(ierr);
+  }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
 #define __FUNCT__ "EPSSetFromOptions"
 /*@
    EPSSetFromOptions - Sets EPS options from the options database.
@@ -43,14 +121,12 @@
 @*/
 PetscErrorCode EPSSetFromOptions(EPS eps)
 {
-  PetscErrorCode   ierr;
-  char             type[256],monfilename[PETSC_MAX_PATH_LEN];
-  PetscBool        flg,flg1,flg2,flg3;
-  PetscReal        r,array[2]={0,0};
-  PetscScalar      s;
-  PetscInt         i,j,k;
-  PetscViewer      monviewer;
-  SlepcConvMonitor ctx;
+  PetscErrorCode ierr;
+  char           type[256];
+  PetscBool      set,flg,flg1,flg2,flg3;
+  PetscReal      r,array[2]={0,0};
+  PetscScalar    s;
+  PetscInt       i,j,k;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
@@ -141,39 +217,25 @@ PetscErrorCode EPSSetFromOptions(EPS eps)
     /*
       Cancels all monitors hardwired into code before call to EPSSetFromOptions()
     */
-    flg = PETSC_FALSE;
-    ierr = PetscOptionsBool("-eps_monitor_cancel","Remove any hardwired monitor routines","EPSMonitorCancel",flg,&flg,NULL);CHKERRQ(ierr);
-    if (flg) {
+    ierr = PetscOptionsBool("-eps_monitor_cancel","Remove any hardwired monitor routines","EPSMonitorCancel",PETSC_FALSE,&flg,&set);CHKERRQ(ierr);
+    if (set && flg) {
       ierr = EPSMonitorCancel(eps);CHKERRQ(ierr);
     }
     /*
-      Prints approximate eigenvalues and error estimates at each iteration
+      Text monitors
     */
-    ierr = PetscOptionsString("-eps_monitor","Monitor first unconverged approximate eigenvalue and error estimate","EPSMonitorSet","stdout",monfilename,PETSC_MAX_PATH_LEN,&flg);CHKERRQ(ierr);
-    if (flg) {
-      ierr = PetscViewerASCIIOpen(PetscObjectComm((PetscObject)eps),monfilename,&monviewer);CHKERRQ(ierr);
-      ierr = EPSMonitorSet(eps,EPSMonitorFirst,monviewer,(PetscErrorCode (*)(void**))PetscViewerDestroy);CHKERRQ(ierr);
-    }
-    ierr = PetscOptionsString("-eps_monitor_conv","Monitor approximate eigenvalues and error estimates as they converge","EPSMonitorSet","stdout",monfilename,PETSC_MAX_PATH_LEN,&flg);CHKERRQ(ierr);
-    if (flg) {
-      ierr = PetscNew(&ctx);CHKERRQ(ierr);
-      ierr = PetscViewerASCIIOpen(PetscObjectComm((PetscObject)eps),monfilename,&ctx->viewer);CHKERRQ(ierr);
-      ierr = EPSMonitorSet(eps,EPSMonitorConverged,ctx,(PetscErrorCode (*)(void**))SlepcConvMonitorDestroy);CHKERRQ(ierr);
-    }
-    ierr = PetscOptionsString("-eps_monitor_all","Monitor approximate eigenvalues and error estimates","EPSMonitorSet","stdout",monfilename,PETSC_MAX_PATH_LEN,&flg);CHKERRQ(ierr);
-    if (flg) {
-      ierr = PetscViewerASCIIOpen(PetscObjectComm((PetscObject)eps),monfilename,&monviewer);CHKERRQ(ierr);
-      ierr = EPSMonitorSet(eps,EPSMonitorAll,monviewer,(PetscErrorCode (*)(void**))PetscViewerDestroy);CHKERRQ(ierr);
-      ierr = EPSSetTrackAll(eps,PETSC_TRUE);CHKERRQ(ierr);
-    }
-    flg = PETSC_FALSE;
-    ierr = PetscOptionsBool("-eps_monitor_lg","Monitor first unconverged approximate eigenvalue and error estimate graphically","EPSMonitorSet",flg,&flg,NULL);CHKERRQ(ierr);
-    if (flg) {
+    ierr = EPSMonitorSetFromOptions(eps,"-eps_monitor","Monitor first unconverged approximate eigenvalue and error estimate","EPSMonitorFirst",EPSMonitorFirst,PETSC_FALSE);CHKERRQ(ierr);
+    ierr = EPSConvMonitorSetFromOptions(eps,"-eps_monitor_conv","Monitor approximate eigenvalues and error estimates as they converge","EPSMonitorConverged",EPSMonitorConverged);CHKERRQ(ierr);
+    ierr = EPSMonitorSetFromOptions(eps,"-eps_monitor_all","Monitor approximate eigenvalues and error estimates","EPSMonitorAll",EPSMonitorAll,PETSC_TRUE);CHKERRQ(ierr);
+    /*
+      Line graph monitors
+    */
+    ierr = PetscOptionsBool("-eps_monitor_lg","Monitor first unconverged approximate eigenvalue and error estimate graphically","EPSMonitorSet",PETSC_FALSE,&flg,&set);CHKERRQ(ierr);
+    if (set && flg) {
       ierr = EPSMonitorSet(eps,EPSMonitorLG,NULL,NULL);CHKERRQ(ierr);
     }
-    flg = PETSC_FALSE;
-    ierr = PetscOptionsBool("-eps_monitor_lg_all","Monitor error estimates graphically","EPSMonitorSet",flg,&flg,NULL);CHKERRQ(ierr);
-    if (flg) {
+    ierr = PetscOptionsBool("-eps_monitor_lg_all","Monitor error estimates graphically","EPSMonitorSet",PETSC_FALSE,&flg,&set);CHKERRQ(ierr);
+    if (set && flg) {
       ierr = EPSMonitorSet(eps,EPSMonitorLGAll,NULL,NULL);CHKERRQ(ierr);
       ierr = EPSSetTrackAll(eps,PETSC_TRUE);CHKERRQ(ierr);
     }
@@ -196,7 +258,7 @@ PetscErrorCode EPSSetFromOptions(EPS eps)
     if (flg) { ierr = EPSSetWhichEigenpairs(eps,EPS_TARGET_REAL);CHKERRQ(ierr); }
     ierr = PetscOptionsBoolGroup("-eps_target_imaginary","compute eigenvalues with imaginary parts close to target","EPSSetWhichEigenpairs",&flg);CHKERRQ(ierr);
     if (flg) { ierr = EPSSetWhichEigenpairs(eps,EPS_TARGET_IMAGINARY);CHKERRQ(ierr); }
-    ierr = PetscOptionsBoolGroupEnd("-eps_all","compute all eigenvalues in an interval","EPSSetWhichEigenpairs",&flg);CHKERRQ(ierr);
+    ierr = PetscOptionsBoolGroupEnd("-eps_all","compute all eigenvalues in an interval or a region","EPSSetWhichEigenpairs",&flg);CHKERRQ(ierr);
     if (flg) { ierr = EPSSetWhichEigenpairs(eps,EPS_ALL);CHKERRQ(ierr); }
 
     ierr = PetscOptionsScalar("-eps_target","Value of the target","EPSSetTarget",eps->target,&s,&flg);CHKERRQ(ierr);
@@ -217,13 +279,13 @@ PetscErrorCode EPSSetFromOptions(EPS eps)
     ierr = PetscOptionsBool("-eps_true_residual","Compute true residuals explicitly","EPSSetTrueResidual",eps->trueres,&eps->trueres,NULL);CHKERRQ(ierr);
     ierr = PetscOptionsBool("-eps_purify","Postprocess eigenvectors for purification","EPSSetPurify",eps->purify,&eps->purify,NULL);CHKERRQ(ierr);
 
-    ierr = PetscOptionsName("-eps_view","Print detailed information on solver used","EPSView",0);CHKERRQ(ierr);
-    ierr = PetscOptionsName("-eps_view_vectors","View computed eigenvectors","EPSVectorsView",0);CHKERRQ(ierr);
-    ierr = PetscOptionsName("-eps_view_values","View computed eigenvalues","EPSValuesView",0);CHKERRQ(ierr);
-    ierr = PetscOptionsName("-eps_converged_reason","Print reason for convergence, and number of iterations","EPSReasonView",0);CHKERRQ(ierr);
-    ierr = PetscOptionsName("-eps_error_absolute","Print absolute errors of each eigenpair","EPSErrorView",0);CHKERRQ(ierr);
-    ierr = PetscOptionsName("-eps_error_relative","Print relative errors of each eigenpair","EPSErrorView",0);CHKERRQ(ierr);
-    ierr = PetscOptionsName("-eps_error_backward","Print backward errors of each eigenpair","EPSErrorView",0);CHKERRQ(ierr);
+    ierr = PetscOptionsName("-eps_view","Print detailed information on solver used","EPSView",NULL);CHKERRQ(ierr);
+    ierr = PetscOptionsName("-eps_view_vectors","View computed eigenvectors","EPSVectorsView",NULL);CHKERRQ(ierr);
+    ierr = PetscOptionsName("-eps_view_values","View computed eigenvalues","EPSValuesView",NULL);CHKERRQ(ierr);
+    ierr = PetscOptionsName("-eps_converged_reason","Print reason for convergence, and number of iterations","EPSReasonView",NULL);CHKERRQ(ierr);
+    ierr = PetscOptionsName("-eps_error_absolute","Print absolute errors of each eigenpair","EPSErrorView",NULL);CHKERRQ(ierr);
+    ierr = PetscOptionsName("-eps_error_relative","Print relative errors of each eigenpair","EPSErrorView",NULL);CHKERRQ(ierr);
+    ierr = PetscOptionsName("-eps_error_backward","Print backward errors of each eigenpair","EPSErrorView",NULL);CHKERRQ(ierr);
 
     if (eps->ops->setfromoptions) {
       ierr = (*eps->ops->setfromoptions)(PetscOptionsObject,eps);CHKERRQ(ierr);
@@ -440,7 +502,7 @@ PetscErrorCode EPSSetDimensions(EPS eps,PetscInt nev,PetscInt ncv,PetscInt mpd)
 .     EPS_TARGET_MAGNITUDE - eigenvalues closest to the target (in magnitude)
 .     EPS_TARGET_REAL - eigenvalues with real part closest to target
 .     EPS_TARGET_IMAGINARY - eigenvalues with imaginary part closest to target
-.     EPS_ALL - all eigenvalues contained in a given interval
+.     EPS_ALL - all eigenvalues contained in a given interval or region
 -     EPS_WHICH_USER - user defined ordering set with EPSSetEigenvalueComparison()
 
    Options Database Keys:
@@ -453,7 +515,7 @@ PetscErrorCode EPSSetDimensions(EPS eps,PetscInt nev,PetscInt ncv,PetscInt mpd)
 .   -eps_target_magnitude - Sets eigenvalues closest to target
 .   -eps_target_real - Sets real parts closest to target
 .   -eps_target_imaginary - Sets imaginary parts closest to target
--   -eps_all - Sets all eigenvalues in an interval
+-   -eps_all - Sets all eigenvalues in an interval or region
 
    Notes:
    Not all eigensolvers implemented in EPS account for all the possible values
@@ -468,8 +530,9 @@ PetscErrorCode EPSSetDimensions(EPS eps,PetscInt nev,PetscInt ncv,PetscInt mpd)
    SLEPc have been built with complex scalars.
 
    EPS_ALL is intended for use in combination with an interval (see
-   EPSSetInterval()), when all eigenvalues within the interval are requested.
-   In that case, the number of eigenvalues is unknown, so the nev parameter
+   EPSSetInterval()), when all eigenvalues within the interval are requested,
+   or in the context of the CISS solver for computing all eigenvalues in a region.
+   In those cases, the number of eigenvalues is unknown, so the nev parameter
    has a different sense, see EPSSetDimensions().
 
    Level: intermediate

@@ -255,6 +255,6 @@ int main(int argc,char **argv)
   ierr = PetscRandomDestroy(&rctx);CHKERRQ(ierr);
   ierr = DMDestroy(&da);CHKERRQ(ierr);
   ierr = SlepcFinalize();
-  return 0;
+  return ierr;
 }
 

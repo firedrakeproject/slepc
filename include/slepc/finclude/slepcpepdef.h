@@ -20,8 +20,8 @@
 !  along with SLEPc. If not, see <http://www.gnu.org/licenses/>.
 !  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !
-#if !defined(__SLEPCPEP_H)
-#define __SLEPCPEP_H
+#if !defined(__SLEPCPEPDEF_H)
+#define __SLEPCPEPDEF_H
 
 #include "slepc/finclude/slepcbvdef.h"
 #include "slepc/finclude/slepcstdef.h"
@@ -30,7 +30,7 @@
 #include "slepc/finclude/slepcepsdef.h"
 
 #if !defined(PETSC_USE_FORTRAN_DATATYPES)
-#define PEP                PetscFortranAddr
+#define PEP PetscFortranAddr
 #endif
 
 #define PEPType            character*(80)

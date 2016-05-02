@@ -19,7 +19,7 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-import sys
+import os, sys
 
 class ArgDB:
 
@@ -65,7 +65,7 @@ class ArgDB:
       found = 0
       for i, s in enumerate(self.argdb):
         if s.startswith('--'+keyword+'='):
-          string = s.split('=')[1].rstrip('/')
+          string = os.path.expanduser(s.split('=')[1].rstrip('/'))
           found = 1
           numhits = numhits + 1
           del self.argdb[i]

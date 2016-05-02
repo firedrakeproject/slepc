@@ -77,6 +77,7 @@ PETSC_EXTERN PetscErrorCode MFNGetDimensions(MFN,PetscInt*);
 
 PETSC_EXTERN PetscErrorCode MFNMonitor(MFN,PetscInt,PetscReal);
 PETSC_EXTERN PetscErrorCode MFNMonitorSet(MFN,PetscErrorCode (*)(MFN,PetscInt,PetscReal,void*),void*,PetscErrorCode (*)(void**));
+PETSC_EXTERN PetscErrorCode MFNMonitorSetFromOptions(MFN,const char*,const char*,const char*,PetscErrorCode (*)(MFN,PetscInt,PetscReal,PetscViewerAndFormat*));
 PETSC_EXTERN PetscErrorCode MFNMonitorCancel(MFN);
 PETSC_EXTERN PetscErrorCode MFNGetMonitorContext(MFN,void **);
 PETSC_EXTERN PetscErrorCode MFNGetIterationNumber(MFN,PetscInt*);
@@ -84,7 +85,7 @@ PETSC_EXTERN PetscErrorCode MFNGetIterationNumber(MFN,PetscInt*);
 PETSC_EXTERN PetscErrorCode MFNSetErrorIfNotConverged(MFN,PetscBool);
 PETSC_EXTERN PetscErrorCode MFNGetErrorIfNotConverged(MFN,PetscBool*);
 
-PETSC_EXTERN PetscErrorCode MFNMonitorDefault(MFN,PetscInt,PetscReal,void*);
+PETSC_EXTERN PetscErrorCode MFNMonitorDefault(MFN,PetscInt,PetscReal,PetscViewerAndFormat*);
 PETSC_EXTERN PetscErrorCode MFNMonitorLG(MFN,PetscInt,PetscReal,void*);
 
 PETSC_EXTERN PetscErrorCode MFNSetOptionsPrefix(MFN,const char*);

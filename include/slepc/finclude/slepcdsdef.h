@@ -20,8 +20,8 @@
 !  along with SLEPc. If not, see <http://www.gnu.org/licenses/>.
 !  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !
-#if !defined(__SLEPCDS_H)
-#define __SLEPCDS_H
+#if !defined(__SLEPCDSDEF_H)
+#define __SLEPCDSDEF_H
 
 #if !defined(PETSC_USE_FORTRAN_DATATYPES)
 #define DS PetscFortranAddr

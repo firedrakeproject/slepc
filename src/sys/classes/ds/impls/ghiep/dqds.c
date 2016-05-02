@@ -550,8 +550,8 @@ static PetscErrorCode DSGHIEP_Eigen3DQDS(PetscInt n,PetscReal *a,PetscReal *b,Pe
           }
           if (disc<=0) {
 #if !defined(PETSC_USE_COMPLEX)
-            wr[--n] = sum+acShift; wi[n] = PetscSqrtReal(-disc);
-            wr[--n] = sum+acShift; wi[n] = -PetscSqrtReal(-disc);
+            wr[--n] = sum+acShift; if (wi) wi[n] = PetscSqrtReal(-disc);
+            wr[--n] = sum+acShift; if (wi) wi[n] = -PetscSqrtReal(-disc);
 #else
             wr[--n] = sum-PETSC_i*PetscSqrtReal(-disc)+acShift; if (wi) wi[n] = 0.0;
             wr[--n] = sum+PETSC_i*PetscSqrtReal(-disc)+acShift; if (wi) wi[n] = 0.0;
@@ -609,8 +609,6 @@ static PetscErrorCode DSGHIEP_Eigen3DQDS(PetscInt n,PetscReal *a,PetscReal *b,Pe
         disc = (L[n-2]*(L[n-2]+2*(U[n-2]+U[n-1]))+(U[n-2]-U[n-1])*(U[n-2]-U[n-1]))/4;
         if ((PetscAbsReal(L[n-2])>tolZero) && (PetscAbsReal(L[n-3])>tolZero)) { /* L's are big */
           shift = 0;
-          sum = 0; /* Needed in case of failure */
-          prod = 0;
           ierr = RealDQDS(n-begin,L+begin,U+begin,0,tolGrowth,norm,L1+begin,U1+begin,&flag);CHKERRQ(ierr);
           if (flag) {  /* Failure */
             ierr = TridqdsZhuang(n-begin,L+begin,U+begin,0.0,0.0,tolGrowth,norm,tolDef,L1+begin,U1+begin,&flag);CHKERRQ(ierr);
@@ -692,16 +690,16 @@ static PetscErrorCode DSGHIEP_Eigen3DQDS(PetscInt n,PetscReal *a,PetscReal *b,Pe
     if (n==begin+2) {
       sum = (L[n-2]+U[n-2]+U[n-1])/2;
       disc = (L[n-2]*(L[n-2]+2*(U[n-2]+U[n-1]))+(U[n-2]-U[n-1])*(U[n-2]-U[n-1]))/4;
-        if (disc<=0)  {  /* Complex case */
+      if (disc<=0) {  /* Complex case */
         /* Deflation 2 */
 #if !defined(PETSC_USE_COMPLEX)
-        wr[--n] = sum+acShift; wi[n] = PetscSqrtReal(-disc);
-        wr[--n] = sum+acShift; wi[n] = -PetscSqrtReal(-disc);
+        wr[--n] = sum+acShift; if (wi) wi[n] = PetscSqrtReal(-disc);
+        wr[--n] = sum+acShift; if (wi) wi[n] = -PetscSqrtReal(-disc);
 #else
         wr[--n] = sum-PETSC_i*PetscSqrtReal(-disc)+acShift; if (wi) wi[n] = 0.0;
         wr[--n] = sum+PETSC_i*PetscSqrtReal(-disc)+acShift; if (wi) wi[n] = 0.0;
 #endif
-      } else  { /* Real case */
+      } else { /* Real case */
         if (sum==0.0) {
           x1 = PetscSqrtReal(disc);
           x2 = -x1;
@@ -760,7 +758,6 @@ PetscErrorCode DSSolve_GHIEP_DQDS_II(DS ds,PetscScalar *wr,PetscScalar *wi)
   Q = ds->mat[DS_MAT_Q];
   d = ds->rmat[DS_MAT_T];
   e = ds->rmat[DS_MAT_T] + ld;
-  c = ds->rmat[DS_MAT_T] + 2*ld;
   s = ds->rmat[DS_MAT_D];
   /* Quick return if possible */
   if (ds->n-ds->l == 1) {
@@ -778,7 +775,7 @@ PetscErrorCode DSSolve_GHIEP_DQDS_II(DS ds,PetscScalar *wr,PetscScalar *wi)
   /* Reduce to pseudotriadiagonal form */
   ierr = DSIntermediate_GHIEP(ds);CHKERRQ(ierr);
 
-  /* Compute Eigenvalues (DQDS)*/
+  /* Compute Eigenvalues (DQDS) */
   /* Form pseudosymmetric tridiagonal */
   a = ds->rwork;
   b = a+ld;

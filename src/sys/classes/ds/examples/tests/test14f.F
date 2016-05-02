@@ -43,7 +43,7 @@
 
       Mat            A
       DS             ds
-      PetscInt       n, i, j, ld, zero
+      PetscInt       n, i, ld, zero
       PetscMPIInt    rank
       PetscErrorCode ierr
       PetscBool      flg

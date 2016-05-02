@@ -260,7 +260,7 @@ PetscErrorCode EPSArnoldiGetDelayed(EPS eps,PetscBool *delayed)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidPointer(delayed,2);
-  ierr = PetscTryMethod(eps,"EPSArnoldiGetDelayed_C",(EPS,PetscBool*),(eps,delayed));CHKERRQ(ierr);
+  ierr = PetscUseMethod(eps,"EPSArnoldiGetDelayed_C",(EPS,PetscBool*),(eps,delayed));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

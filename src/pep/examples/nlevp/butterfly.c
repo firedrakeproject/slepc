@@ -155,6 +155,6 @@ int main(int argc,char **argv)
   for (i=0;i<NMAT;i++) {
     ierr = MatDestroy(&A[i]);CHKERRQ(ierr);
   }
-  ierr = SlepcFinalize();CHKERRQ(ierr);
-  return 0;
+  ierr = SlepcFinalize();
+  return ierr;
 }

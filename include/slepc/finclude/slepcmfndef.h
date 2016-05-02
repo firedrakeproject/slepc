@@ -20,20 +20,19 @@
 !  along with SLEPc. If not, see <http://www.gnu.org/licenses/>.
 !  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !
-#if !defined(__SLEPCMFN_H)
-#define __SLEPCMFN_H
+#if !defined(__SLEPCMFNDEF_H)
+#define __SLEPCMFNDEF_H
 
 #include "petsc/finclude/petscmatdef.h"
 #include "slepc/finclude/slepcfndef.h"
 #include "slepc/finclude/slepcbvdef.h"
 
 #if !defined(PETSC_USE_FORTRAN_DATATYPES)
-#define MFN                    PetscFortranAddr
+#define MFN PetscFortranAddr
 #endif
 
-#define MFNType                character*(80)
-#define MFNConvergedReason     PetscEnum
-
+#define MFNType            character*(80)
+#define MFNConvergedReason PetscEnum
 
 #define MFNKRYLOV      'krylov'
 #define MFNEXPOKIT     'expokit'

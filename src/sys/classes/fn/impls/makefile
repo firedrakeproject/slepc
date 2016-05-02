@@ -21,8 +21,13 @@
 
 ALL: lib
 
+CFLAGS   =
+FFLAGS   =
+SOURCEC  = fnutil.c
+SOURCEF  =
+SOURCEH  =
 LIBBASE  = libslepcsys
-DIRS     = combine exp log phi rational sqrt
+DIRS     = combine exp log phi rational sqrt invsqrt
 LOCDIR   = src/sys/classes/fn/impls/
 MANSEC   = FN
 

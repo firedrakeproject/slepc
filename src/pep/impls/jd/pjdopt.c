@@ -214,7 +214,7 @@ PetscErrorCode PEPJDGetRestart(PEP pep,PetscReal *keep)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
   PetscValidPointer(keep,2);
-  ierr = PetscTryMethod(pep,"PEPJDGetRestart_C",(PEP,PetscReal*),(pep,keep));CHKERRQ(ierr);
+  ierr = PetscUseMethod(pep,"PEPJDGetRestart_C",(PEP,PetscReal*),(pep,keep));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

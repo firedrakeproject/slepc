@@ -122,8 +122,8 @@ int main(int argc,char **argv)
   ierr = BVDuplicate(Z,&Zcopy);CHKERRQ(ierr);
   ierr = BVCopy(Z,Zcopy);CHKERRQ(ierr);
 
-  /* Test BVAXPY, check result of previous operations */
-  ierr = BVAXPY(Z,-1.0,Y);CHKERRQ(ierr);
+  /* Test BVMult, check result of previous operations */
+  ierr = BVMult(Z,-1.0,1.0,Y,NULL);CHKERRQ(ierr);
   ierr = BVNorm(Z,NORM_FROBENIUS,&norm);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD,"Norm of error: %g\n",(double)norm);CHKERRQ(ierr);
 
@@ -147,8 +147,8 @@ int main(int argc,char **argv)
     ierr = BVView(Z,view);CHKERRQ(ierr);
   }
 
-  /* Check result again with BVAXPY */
-  ierr = BVAXPY(Z,-1.0,Y);CHKERRQ(ierr);
+  /* Check result again with BVMult */
+  ierr = BVMult(Z,-1.0,1.0,Y,NULL);CHKERRQ(ierr);
   ierr = BVNorm(Z,NORM_FROBENIUS,&norm);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD,"Norm of error: %g\n",(double)norm);CHKERRQ(ierr);
 
@@ -159,5 +159,5 @@ int main(int argc,char **argv)
   ierr = MatDestroy(&B);CHKERRQ(ierr);
   ierr = VecDestroy(&t);CHKERRQ(ierr);
   ierr = SlepcFinalize();
-  return 0;
+  return ierr;
 }

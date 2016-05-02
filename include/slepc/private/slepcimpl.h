@@ -56,14 +56,12 @@ PETSC_INTERN PetscBool SlepcBeganPetsc;
 
 /* context for monitors of type XXXMonitorConverged */
 struct _n_SlepcConvMonitor {
-  PetscViewer viewer;
-  PetscInt    oldnconv;
+  PetscViewer       viewer;
+  PetscViewerFormat format;
+  PetscInt          oldnconv;
 };
-typedef struct _n_SlepcConvMonitor* SlepcConvMonitor;
 
 /* Private functions that are shared by several classes */
-PETSC_EXTERN PetscErrorCode SlepcConvMonitorDestroy(SlepcConvMonitor*);
-
 PETSC_EXTERN PetscErrorCode SlepcBasisReference_Private(PetscInt,Vec*,PetscInt*,Vec**);
 PETSC_EXTERN PetscErrorCode SlepcBasisDestroy_Private(PetscInt*,Vec**);
 

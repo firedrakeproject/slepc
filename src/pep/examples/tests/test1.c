@@ -173,6 +173,6 @@ int main(int argc,char **argv)
   ierr = MatDestroy(&C);CHKERRQ(ierr);
   ierr = MatDestroy(&K);CHKERRQ(ierr);
   ierr = SlepcFinalize();
-  return 0;
+  return ierr;
 }
 

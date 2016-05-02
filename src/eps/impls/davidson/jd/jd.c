@@ -137,6 +137,39 @@ PetscErrorCode EPSSetUp_JD(EPS eps)
 }
 
 #undef __FUNCT__
+#define __FUNCT__ "EPSView_JD"
+PetscErrorCode EPSView_JD(EPS eps,PetscViewer viewer)
+{
+  PetscErrorCode ierr;
+  PetscBool      isascii,opb;
+  PetscInt       opi,opi0;
+  PetscBool      borth;
+
+  PetscFunctionBegin;
+  ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
+  if (isascii) {
+    ierr = EPSXDGetBOrth_XD(eps,&borth);CHKERRQ(ierr);
+    if (borth) {
+      ierr = PetscViewerASCIIPrintf(viewer,"  JD: search subspace is B-orthogonalized\n");CHKERRQ(ierr);
+    } else {
+      ierr = PetscViewerASCIIPrintf(viewer,"  JD: search subspace is orthogonalized\n");CHKERRQ(ierr);
+    }
+    ierr = EPSXDGetBlockSize_XD(eps,&opi);CHKERRQ(ierr);
+    ierr = PetscViewerASCIIPrintf(viewer,"  JD: block size=%D\n",opi);CHKERRQ(ierr);
+    ierr = EPSXDGetKrylovStart_XD(eps,&opb);CHKERRQ(ierr);
+    if (!opb) {
+      ierr = PetscViewerASCIIPrintf(viewer,"  JD: type of the initial subspace: non-Krylov\n");CHKERRQ(ierr);
+    } else {
+      ierr = PetscViewerASCIIPrintf(viewer,"  JD: type of the initial subspace: Krylov\n");CHKERRQ(ierr);
+    }
+    ierr = EPSXDGetRestart_XD(eps,&opi,&opi0);CHKERRQ(ierr);
+    ierr = PetscViewerASCIIPrintf(viewer,"  JD: size of the subspace after restarting: %D\n",opi);CHKERRQ(ierr);
+    ierr = PetscViewerASCIIPrintf(viewer,"  JD: number of vectors after restarting from the previous iteration: %D\n",opi0);CHKERRQ(ierr);
+  }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
 #define __FUNCT__ "EPSDestroy_JD"
 PetscErrorCode EPSDestroy_JD(EPS eps)
 {
@@ -220,7 +253,7 @@ PetscErrorCode EPSJDGetKrylovStart(EPS eps,PetscBool *krylovstart)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidPointer(krylovstart,2);
-  ierr = PetscTryMethod(eps,"EPSJDGetKrylovStart_C",(EPS,PetscBool*),(eps,krylovstart));CHKERRQ(ierr);
+  ierr = PetscUseMethod(eps,"EPSJDGetKrylovStart_C",(EPS,PetscBool*),(eps,krylovstart));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -279,7 +312,7 @@ PetscErrorCode EPSJDGetBlockSize(EPS eps,PetscInt *blocksize)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidIntPointer(blocksize,2);
-  ierr = PetscTryMethod(eps,"EPSJDGetBlockSize_C",(EPS,PetscInt*),(eps,blocksize));CHKERRQ(ierr);
+  ierr = PetscUseMethod(eps,"EPSJDGetBlockSize_C",(EPS,PetscInt*),(eps,blocksize));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -308,7 +341,7 @@ PetscErrorCode EPSJDGetRestart(EPS eps,PetscInt *minv,PetscInt *plusk)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  ierr = PetscTryMethod(eps,"EPSJDGetRestart_C",(EPS,PetscInt*,PetscInt*),(eps,minv,plusk));CHKERRQ(ierr);
+  ierr = PetscUseMethod(eps,"EPSJDGetRestart_C",(EPS,PetscInt*,PetscInt*),(eps,minv,plusk));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -377,7 +410,7 @@ PetscErrorCode EPSJDGetInitialSize(EPS eps,PetscInt *initialsize)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidIntPointer(initialsize,2);
-  ierr = PetscTryMethod(eps,"EPSJDGetInitialSize_C",(EPS,PetscInt*),(eps,initialsize));CHKERRQ(ierr);
+  ierr = PetscUseMethod(eps,"EPSJDGetInitialSize_C",(EPS,PetscInt*),(eps,initialsize));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -448,7 +481,7 @@ PetscErrorCode EPSJDGetFix(EPS eps,PetscReal *fix)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidPointer(fix,2);
-  ierr = PetscTryMethod(eps,"EPSJDGetFix_C",(EPS,PetscReal*),(eps,fix));CHKERRQ(ierr);
+  ierr = PetscUseMethod(eps,"EPSJDGetFix_C",(EPS,PetscReal*),(eps,fix));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -544,7 +577,7 @@ PetscErrorCode EPSJDGetConstCorrectionTol(EPS eps,PetscBool *constant)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidPointer(constant,2);
-  ierr = PetscTryMethod(eps,"EPSJDGetConstCorrectionTol",(EPS,PetscBool*),(eps,constant));CHKERRQ(ierr);
+  ierr = PetscUseMethod(eps,"EPSJDGetConstCorrectionTol_C",(EPS,PetscBool*),(eps,constant));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -574,7 +607,7 @@ PetscErrorCode EPSJDGetWindowSizes(EPS eps,PetscInt *pwindow,PetscInt *qwindow)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  ierr = PetscTryMethod(eps,"EPSJDGetWindowSizes_C",(EPS,PetscInt*,PetscInt*),(eps,pwindow,qwindow));CHKERRQ(ierr);
+  ierr = PetscUseMethod(eps,"EPSJDGetWindowSizes_C",(EPS,PetscInt*,PetscInt*),(eps,pwindow,qwindow));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -667,7 +700,7 @@ PetscErrorCode EPSJDGetBOrth(EPS eps,PetscBool *borth)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidPointer(borth,2);
-  ierr = PetscTryMethod(eps,"EPSJDGetBOrth_C",(EPS,PetscBool*),(eps,borth));CHKERRQ(ierr);
+  ierr = PetscUseMethod(eps,"EPSJDGetBOrth_C",(EPS,PetscBool*),(eps,borth));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -676,13 +709,29 @@ PetscErrorCode EPSJDGetBOrth(EPS eps,PetscBool *borth)
 PETSC_EXTERN PetscErrorCode EPSCreate_JD(EPS eps)
 {
   PetscErrorCode ierr;
+  EPS_DAVIDSON   *data;
 
   PetscFunctionBegin;
-  /* Load the Davidson solver */
-  ierr = EPSCreate_XD(eps);CHKERRQ(ierr);
-  ierr = EPSXDSetMethod(eps,DVD_METH_JD);CHKERRQ(ierr);
+  ierr = PetscNewLog(eps,&data);CHKERRQ(ierr);
+  eps->data = (void*)data;
 
-  /* Overload the JD properties */
+  data->blocksize   = 1;
+  data->initialsize = 6;
+  data->minv        = 6;
+  data->plusk       = 0;
+  data->ipB         = PETSC_TRUE;
+  data->fix         = 0.01;
+  data->krylovstart = PETSC_FALSE;
+  data->dynamic     = PETSC_FALSE;
+  data->cX_in_proj  = 0;
+  data->cX_in_impr  = 0;
+
+  eps->ops->solve          = EPSSolve_XD;
+  eps->ops->setup          = EPSSetUp_XD;
+  eps->ops->reset          = EPSReset_XD;
+  eps->ops->backtransform  = EPSBackTransform_Default;
+  eps->ops->computevectors = EPSComputeVectors_XD;
+  eps->ops->view           = EPSView_JD;
   eps->ops->setfromoptions = EPSSetFromOptions_JD;
   eps->ops->setup          = EPSSetUp_JD;
   eps->ops->destroy        = EPSDestroy_JD;

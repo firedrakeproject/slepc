@@ -862,7 +862,7 @@ PetscErrorCode PEPLinearGetCompanionForm(PEP pep,PetscInt *cform)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
   PetscValidIntPointer(cform,2);
-  ierr = PetscTryMethod(pep,"PEPLinearGetCompanionForm_C",(PEP,PetscInt*),(pep,cform));CHKERRQ(ierr);
+  ierr = PetscUseMethod(pep,"PEPLinearGetCompanionForm_C",(PEP,PetscInt*),(pep,cform));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -943,7 +943,7 @@ PetscErrorCode PEPLinearGetExplicitMatrix(PEP pep,PetscBool *explicitmatrix)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
   PetscValidPointer(explicitmatrix,2);
-  ierr = PetscTryMethod(pep,"PEPLinearGetExplicitMatrix_C",(PEP,PetscBool*),(pep,explicitmatrix));CHKERRQ(ierr);
+  ierr = PetscUseMethod(pep,"PEPLinearGetExplicitMatrix_C",(PEP,PetscBool*),(pep,explicitmatrix));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -1039,7 +1039,7 @@ PetscErrorCode PEPLinearGetEPS(PEP pep,EPS *eps)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
   PetscValidPointer(eps,2);
-  ierr = PetscTryMethod(pep,"PEPLinearGetEPS_C",(PEP,EPS*),(pep,eps));CHKERRQ(ierr);
+  ierr = PetscUseMethod(pep,"PEPLinearGetEPS_C",(PEP,EPS*),(pep,eps));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

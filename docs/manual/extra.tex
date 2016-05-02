@@ -132,7 +132,8 @@ Polynomial and rational & \texttt{FNRATIONAL} & $p(x)/q(x)$ \\
 Exponential             & \texttt{FNEXP}      & $e^x$ \\
 Logarithm               & \texttt{FNLOG}      & $\log x$ \\
 $\varphi$-functions     & \texttt{FNPHI}      & $\varphi_0(x)$, $\varphi_1(x)$, \dots \\
-Square root             & \texttt{FNSQRT}     & $\sqrt{x}$ \\\hline
+Square root             & \texttt{FNSQRT}     & $\sqrt{x}$ \\
+Inverse square root     & \texttt{FNINVSQRT}  & $x^{-\frac{1}{2}}$ \\\hline
 Combine two functions   & \texttt{FNCOMBINE}  & See text\\\hline
 \end{tabular} }
 \caption{\label{tab:fn}Mathematical functions available as \ident{FN} objects.}
@@ -200,7 +201,6 @@ Operation             & Block version     & Column version          & Vector ver
 $Y=X$                 & \texttt{BVCopy}   & \texttt{BVCopyColumn}   & \texttt{BVCopyVec} \\
 $Y=\beta Y+\alpha XQ$ & \texttt{BVMult}   & \texttt{BVMultColumn}   & \texttt{BVMultVec} \\
 $M=Y^*\!AX$           & \texttt{BVMatProject} & --                  & -- \\
-$Y=Y+\alpha X$        & \texttt{BVAXPY}   & --                      & -- \\
 $M=Y^*X$              & \texttt{BVDot}    & \texttt{BVDotColumn}    & \texttt{BVDotVec} \\
 $Y=\alpha Y$          & \texttt{BVScale}  & \texttt{BVScaleColumn}  & -- \\
 $r=\|X\|_{type}$      & \texttt{BVNorm}   & \texttt{BVNormColumn}   & \texttt{BVNormVec} \\

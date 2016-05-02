@@ -62,7 +62,7 @@
       PetscMPIInt    rank
       PetscErrorCode ierr
       PetscBool      flg, terse
-      PetscScalar    one, mone, two, four, val
+      PetscScalar    mone, two, four, val
 
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !     Beginning of program

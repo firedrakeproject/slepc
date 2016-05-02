@@ -163,5 +163,5 @@ int main(int argc,char **argv)
   ierr = VecDestroy(&v);CHKERRQ(ierr);
   ierr = VecDestroy(&w);CHKERRQ(ierr);
   ierr = SlepcFinalize();
-  return 0;
+  return ierr;
 }

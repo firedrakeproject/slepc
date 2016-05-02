@@ -176,7 +176,7 @@ PetscErrorCode RGRingGetParameters(RG rg,PetscScalar *center,PetscReal *radius,P
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(rg,RG_CLASSID,1);
-  ierr = PetscTryMethod(rg,"RGRingGetParameters_C",(RG,PetscScalar*,PetscReal*,PetscReal*,PetscReal*,PetscReal*,PetscReal*),(rg,center,radius,vscale,start_ang,end_ang,width));CHKERRQ(ierr);
+  ierr = PetscUseMethod(rg,"RGRingGetParameters_C",(RG,PetscScalar*,PetscReal*,PetscReal*,PetscReal*,PetscReal*,PetscReal*),(rg,center,radius,vscale,start_ang,end_ang,width));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

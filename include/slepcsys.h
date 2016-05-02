@@ -52,6 +52,13 @@
 #include <slepcsc.h>
 
 /*
+    Creation and destruction of context for monitors of type XXXMonitorConverged
+*/
+typedef struct _n_SlepcConvMonitor* SlepcConvMonitor;
+PETSC_EXTERN PetscErrorCode SlepcConvMonitorCreate(PetscViewer,PetscViewerFormat,SlepcConvMonitor*);
+PETSC_EXTERN PetscErrorCode SlepcConvMonitorDestroy(SlepcConvMonitor*);
+
+/*
     Initialization of SLEPc and other system routines
 */
 PETSC_EXTERN PetscErrorCode SlepcInitialize(int*,char***,const char[],const char[]);

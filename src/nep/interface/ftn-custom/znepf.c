@@ -71,9 +71,19 @@
    These are not usually called from Fortran but allow Fortran users
    to transparently set these monitors from .F code, hence no STDCALL
 */
-PETSC_EXTERN void nepmonitorall_(NEP *nep,PetscInt *it,PetscInt *nconv,PetscScalar *eig,PetscReal *errest,PetscInt *nest,void *ctx,PetscErrorCode *ierr)
+PETSC_EXTERN void nepmonitorall_(NEP *nep,PetscInt *it,PetscInt *nconv,PetscScalar *eig,PetscReal *errest,PetscInt *nest,PetscViewerAndFormat **ctx,PetscErrorCode *ierr)
 {
-  *ierr = NEPMonitorAll(*nep,*it,*nconv,eig,errest,*nest,ctx);
+  *ierr = NEPMonitorAll(*nep,*it,*nconv,eig,errest,*nest,*ctx);
+}
+
+PETSC_EXTERN void nepmonitorconverged_(NEP *nep,PetscInt *it,PetscInt *nconv,PetscScalar *eig,PetscReal *errest,PetscInt *nest,SlepcConvMonitor *ctx,PetscErrorCode *ierr)
+{
+  *ierr = NEPMonitorConverged(*nep,*it,*nconv,eig,errest,*nest,*ctx);
+}
+
+PETSC_EXTERN void nepmonitorfirst_(NEP *nep,PetscInt *it,PetscInt *nconv,PetscScalar *eig,PetscReal *errest,PetscInt *nest,PetscViewerAndFormat **ctx,PetscErrorCode *ierr)
+{
+  *ierr = NEPMonitorFirst(*nep,*it,*nconv,eig,errest,*nest,*ctx);
 }
 
 PETSC_EXTERN void nepmonitorlg_(NEP *nep,PetscInt *it,PetscInt *nconv,PetscScalar *eig,PetscReal *errest,PetscInt *nest,void *ctx,PetscErrorCode *ierr)
@@ -84,16 +94,6 @@ PETSC_EXTERN void nepmonitorlg_(NEP *nep,PetscInt *it,PetscInt *nconv,PetscScala
 PETSC_EXTERN void nepmonitorlgall_(NEP *nep,PetscInt *it,PetscInt *nconv,PetscScalar *eig,PetscReal *errest,PetscInt *nest,void *ctx,PetscErrorCode *ierr)
 {
   *ierr = NEPMonitorLGAll(*nep,*it,*nconv,eig,errest,*nest,ctx);
-}
-
-PETSC_EXTERN void nepmonitorconverged_(NEP *nep,PetscInt *it,PetscInt *nconv,PetscScalar *eig,PetscReal *errest,PetscInt *nest,void *ctx,PetscErrorCode *ierr)
-{
-  *ierr = NEPMonitorConverged(*nep,*it,*nconv,eig,errest,*nest,ctx);
-}
-
-PETSC_EXTERN void nepmonitorfirst_(NEP *nep,PetscInt *it,PetscInt *nconv,PetscScalar *eig,PetscReal *errest,PetscInt *nest,void *ctx,PetscErrorCode *ierr)
-{
-  *ierr = NEPMonitorFirst(*nep,*it,*nconv,eig,errest,*nest,ctx);
 }
 
 static struct {
@@ -232,28 +232,18 @@ PETSC_EXTERN void PETSC_STDCALL nepgetoptionsprefix_(NEP *nep,CHAR prefix PETSC_
 
 PETSC_EXTERN void PETSC_STDCALL nepmonitorset_(NEP *nep,void (PETSC_STDCALL *monitor)(NEP*,PetscInt*,PetscInt*,PetscScalar*,PetscReal*,PetscInt*,void*,PetscErrorCode*),void *mctx,void (PETSC_STDCALL *monitordestroy)(void *,PetscErrorCode*),PetscErrorCode *ierr)
 {
-  SlepcConvMonitor ctx;
-
   CHKFORTRANNULLOBJECT(mctx);
   CHKFORTRANNULLFUNCTION(monitordestroy);
   if ((PetscVoidFunction)monitor == (PetscVoidFunction)nepmonitorall_) {
-    *ierr = NEPMonitorSet(*nep,NEPMonitorAll,0,0);
+    *ierr = NEPMonitorSet(*nep,(PetscErrorCode (*)(NEP,PetscInt,PetscInt,PetscScalar*,PetscReal*,PetscInt,void*))NEPMonitorAll,*(PetscViewerAndFormat**)mctx,(PetscErrorCode (*)(void**))PetscViewerAndFormatDestroy);
+  } else if ((PetscVoidFunction)monitor == (PetscVoidFunction)nepmonitorconverged_) {
+    *ierr = NEPMonitorSet(*nep,(PetscErrorCode (*)(NEP,PetscInt,PetscInt,PetscScalar*,PetscReal*,PetscInt,void*))NEPMonitorConverged,*(SlepcConvMonitor*)mctx,(PetscErrorCode (*)(void**))SlepcConvMonitorDestroy);
+  } else if ((PetscVoidFunction)monitor == (PetscVoidFunction)nepmonitorfirst_) {
+    *ierr = NEPMonitorSet(*nep,(PetscErrorCode (*)(NEP,PetscInt,PetscInt,PetscScalar*,PetscReal*,PetscInt,void*))NEPMonitorFirst,*(PetscViewerAndFormat**)mctx,(PetscErrorCode (*)(void**))PetscViewerAndFormatDestroy);
   } else if ((PetscVoidFunction)monitor == (PetscVoidFunction)nepmonitorlg_) {
     *ierr = NEPMonitorSet(*nep,NEPMonitorLG,0,0);
   } else if ((PetscVoidFunction)monitor == (PetscVoidFunction)nepmonitorlgall_) {
     *ierr = NEPMonitorSet(*nep,NEPMonitorLGAll,0,0);
-  } else if ((PetscVoidFunction)monitor == (PetscVoidFunction)nepmonitorconverged_) {
-    if (mctx) {
-      PetscError(PetscObjectComm((PetscObject)*nep),__LINE__,"nepmonitorset_",__FILE__,PETSC_ERR_ARG_WRONG,PETSC_ERROR_INITIAL,"Must provide PETSC_NULL_OBJECT as a context in the Fortran interface to NEPMonitorSet");
-      *ierr = 1;
-      return;
-    }
-    *ierr = PetscNew(&ctx);
-    if (*ierr) return;
-    ctx->viewer = NULL;
-    *ierr = NEPMonitorSet(*nep,NEPMonitorConverged,ctx,(PetscErrorCode (*)(void**))SlepcConvMonitorDestroy);
-  } else if ((PetscVoidFunction)monitor == (PetscVoidFunction)nepmonitorfirst_) {
-    *ierr = NEPMonitorSet(*nep,NEPMonitorFirst,0,0);
   } else {
     *ierr = PetscObjectSetFortranCallback((PetscObject)*nep,PETSC_FORTRAN_CALLBACK_CLASS,&_cb.monitor,(PetscVoidFunction)monitor,mctx); if (*ierr) return;
     if (!monitordestroy) {

@@ -618,6 +618,8 @@ static PetscErrorCode dvd_improvex_jd_proj_cuv(dvdDashboard *d,PetscInt i_s,Pets
   PetscErrorCode ierr;
   PetscInt       n=i_e-i_s,size_KZ,V_new,rm,i,lv,kv,lKZ,kKZ;
   dvdImprovex_jd *data = (dvdImprovex_jd*)d->improveX_data;
+  PetscScalar    *array;
+  Mat            M;
   Vec            u[2],v[2];
   PetscBLASInt   s,ldXKZ,info;
 
@@ -641,7 +643,7 @@ static PetscErrorCode dvd_improvex_jd_proj_cuv(dvdDashboard *d,PetscInt i_s,Pets
 
   /* XKZ <- XKZ(rm:rm+max_cX-1,rm:rm+max_cX-1) */
   if (rm > 0) {
-    for (i=0; i<lKZ; i++) {
+    for (i=0;i<lKZ;i++) {
       ierr = PetscMemcpy(&data->XKZ[i*data->ldXKZ+i],&data->XKZ[(i+rm)*data->ldXKZ+i+rm],sizeof(PetscScalar)*lKZ);CHKERRQ(ierr);
     }
   }
@@ -661,7 +663,17 @@ static PetscErrorCode dvd_improvex_jd_proj_cuv(dvdDashboard *d,PetscInt i_s,Pets
   if (n>1) { ierr = BVRestoreColumn(data->KZ,lKZ+1,&v[1]);CHKERRQ(ierr); }
 
   /* XKZ <- U'*KZ */
-  ierr = BVMultS(data->KZ,data->U,data->XKZ,data->ldXKZ);CHKERRQ(ierr);
+  ierr = MatCreateSeqDense(PETSC_COMM_SELF,lKZ+n,lKZ+n,NULL,&M);CHKERRQ(ierr);
+  ierr = BVMatProject(data->KZ,NULL,data->U,M);CHKERRQ(ierr);
+  ierr = MatDenseGetArray(M,&array);CHKERRQ(ierr);
+  for (i=lKZ;i<lKZ+n;i++) { /* upper part */
+    ierr = PetscMemcpy(&data->XKZ[data->ldXKZ*i],&array[i*(lKZ+n)],lKZ*sizeof(PetscScalar));CHKERRQ(ierr);
+  }
+  for (i=0;i<lKZ+n;i++) { /* lower part */
+    ierr = PetscMemcpy(&data->XKZ[data->ldXKZ*i+lKZ],&array[i*(lKZ+n)+lKZ],n*sizeof(PetscScalar));CHKERRQ(ierr);
+  }
+  ierr = MatDenseRestoreArray(M,&array);CHKERRQ(ierr);
+  ierr = MatDestroy(&M);CHKERRQ(ierr);
 
   /* iXKZ <- inv(XKZ) */
   size_KZ = lKZ+n;
@@ -931,7 +943,7 @@ PETSC_STATIC_INLINE PetscErrorCode dvd_compute_n_rr(PetscInt i_s,PetscInt n,Pets
       PetscScalar eigr0=0.0,eigi0=0.0;
       ierr = dvd_complex_rayleigh_quotient(u[i],u[i+1],Ax[i],Ax[i+1],Bx[i],Bx[i+1],&eigr0,&eigi0);CHKERRQ(ierr);
       if (PetscAbsScalar(eigr[i_s+i]-eigr0)/PetscAbsScalar(eigr[i_s+i]) > 1e-10 || PetscAbsScalar(eigi[i_s+i]-eigi0)/PetscAbsScalar(eigi[i_s+i]) > 1e-10) {
-        ierr = PetscInfo4(u[0],"The eigenvalue %g%+gi is far from its Rayleigh quotient value %g%+gi\n",(double)eigr[i_s+i],(double)eigi[i_s+i],(double)eigr0,(double)eigi0);
+        ierr = PetscInfo4(u[0],"The eigenvalue %g%+gi is far from its Rayleigh quotient value %g%+gi\n",(double)eigr[i_s+i],(double)eigi[i_s+i],(double)eigr0,(double)eigi0);CHKERRQ(ierr);
       }
       i++;
     } else
@@ -943,7 +955,7 @@ PETSC_STATIC_INLINE PetscErrorCode dvd_compute_n_rr(PetscInt i_s,PetscInt n,Pets
       ierr = VecDotEnd(Bx[i],u[i],&b1);CHKERRQ(ierr);
       b0 = b0/b1;
       if (PetscAbsScalar(eigr[i_s+i]-b0)/PetscAbsScalar(eigr[i_s+i]) > 1e-10) {
-        ierr = PetscInfo4(u[0],"The eigenvalue %g+%g is far from its Rayleigh quotient value %g+%g\n",(double)PetscRealPart(eigr[i_s+i]),(double)PetscImaginaryPart(eigr[i_s+i]),(double)PetscRealPart(b0),(double)PetscImaginaryPart(b0));
+        ierr = PetscInfo4(u[0],"The eigenvalue %g+%g is far from its Rayleigh quotient value %g+%g\n",(double)PetscRealPart(eigr[i_s+i]),(double)PetscImaginaryPart(eigr[i_s+i]),(double)PetscRealPart(b0),(double)PetscImaginaryPart(b0));CHKERRQ(ierr);
       }
     }
   }
@@ -1223,6 +1235,49 @@ PetscErrorCode dvd_improvex_jd_proj_uv(dvdDashboard *d,dvdBlackboard *b,ProjType
       d->improvex_jd_proj_uv = dvd_improvex_jd_proj_uv_KZX;
       break;
     }
+  }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "dvd_improvex_compute_X"
+PetscErrorCode dvd_improvex_compute_X(dvdDashboard *d,PetscInt i_s,PetscInt i_e,Vec *u_,PetscScalar *pX,PetscInt ld)
+{
+  PetscErrorCode ierr;
+  PetscInt       n = i_e - i_s,i;
+  Vec            *u;
+
+  PetscFunctionBegin;
+  if (u_) u = u_;
+  else if (d->correctXnorm) {
+    ierr = SlepcVecPoolGetVecs(d->auxV,i_e-i_s,&u);CHKERRQ(ierr);
+  }
+  if (u_ || d->correctXnorm) {
+    for (i=0; i<n; i++) {
+      ierr = BVMultVec(d->eps->V,1.0,0.0,u[i],&pX[ld*(i+i_s)]);CHKERRQ(ierr);
+    }
+  }
+  /* nX(i) <- ||X(i)|| */
+  if (d->correctXnorm) {
+    for (i=0; i<n; i++) {
+      ierr = VecNormBegin(u[i],NORM_2,&d->nX[i_s+i]);CHKERRQ(ierr);
+    }
+    for (i=0; i<n; i++) {
+      ierr = VecNormEnd(u[i],NORM_2,&d->nX[i_s+i]);CHKERRQ(ierr);
+    }
+#if !defined(PETSC_USE_COMPLEX)
+    for (i=0;i<n;i++) {
+      if (d->eigi[i_s+i] != 0.0) {
+        d->nX[i_s+i] = d->nX[i_s+i+1] = PetscSqrtScalar(d->nX[i_s+i]*d->nX[i_s+i]+d->nX[i_s+i+1]*d->nX[i_s+i+1]);
+        i++;
+      }
+    }
+#endif
+  } else {
+    for (i=0;i<n;i++) d->nX[i_s+i] = 1.0;
+  }
+  if (d->correctXnorm && !u_) {
+    ierr = SlepcVecPoolRestoreVecs(d->auxV,i_e-i_s,&u);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }

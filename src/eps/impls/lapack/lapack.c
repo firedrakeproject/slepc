@@ -54,7 +54,7 @@ PetscErrorCode EPSSetUp_LAPACK(EPS eps)
     if (nmat>1) { ierr = STGetOperators(eps->st,1,&B);CHKERRQ(ierr); }
     PetscPushErrorHandler(PetscIgnoreErrorHandler,NULL);
     ierra = SlepcMatConvertSeqDense(A,&Adense);CHKERRQ(ierr);
-    if (eps->isgeneralized) {
+    if (nmat>1) {
       ierrb = SlepcMatConvertSeqDense(B,&Bdense);CHKERRQ(ierr);
     } else {
       ierrb = 0;

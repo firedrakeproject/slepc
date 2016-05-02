@@ -150,7 +150,7 @@ PetscErrorCode PEPSolve(PEP pep)
 
   if (pep->refine==PEP_REFINE_SIMPLE && pep->rits>0 && pep->nconv>0) {
     ierr = PEPComputeVectors(pep);CHKERRQ(ierr);
-    ierr = PEPNewtonRefinementSimple(pep,&pep->rits,&pep->rtol,pep->nconv);CHKERRQ(ierr);
+    ierr = PEPNewtonRefinementSimple(pep,&pep->rits,pep->rtol,pep->nconv);CHKERRQ(ierr);
   }
 
   /* sort eigenvalues according to pep->which parameter */

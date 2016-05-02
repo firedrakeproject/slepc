@@ -164,25 +164,31 @@ PetscErrorCode MFNGetMonitorContext(MFN mfn,void **ctx)
 +  mfn    - matrix function context
 .  its    - iteration number
 .  errest - error estimate
--  monctx - monitor context (contains viewer, can be NULL)
+-  vf     - viewer and format for monitoring
 
    Level: intermediate
 
 .seealso: MFNMonitorSet()
 @*/
-PetscErrorCode MFNMonitorDefault(MFN mfn,PetscInt its,PetscReal errest,void *monctx)
+PetscErrorCode MFNMonitorDefault(MFN mfn,PetscInt its,PetscReal errest,PetscViewerAndFormat *vf)
 {
   PetscErrorCode ierr;
-  PetscViewer    viewer = monctx? (PetscViewer)monctx: PETSC_VIEWER_STDOUT_(PetscObjectComm((PetscObject)mfn));
+  PetscViewer    viewer;
 
   PetscFunctionBegin;
+  PetscValidHeaderSpecific(mfn,MFN_CLASSID,1);
+  PetscValidPointer(vf,4);
+  viewer = vf->viewer;
+  PetscValidHeaderSpecific(viewer,PETSC_VIEWER_CLASSID,4);
   if (!its) PetscFunctionReturn(0);
+  ierr = PetscViewerPushFormat(viewer,vf->format);CHKERRQ(ierr);
   ierr = PetscViewerASCIIAddTab(viewer,((PetscObject)mfn)->tablevel);CHKERRQ(ierr);
   if (its == 1 && ((PetscObject)mfn)->prefix) {
     ierr = PetscViewerASCIIPrintf(viewer,"  Error estimates for %s solve.\n",((PetscObject)mfn)->prefix);CHKERRQ(ierr);
   }
   ierr = PetscViewerASCIIPrintf(viewer,"%3D MFN Error estimate %14.12e\n",its,(double)errest);CHKERRQ(ierr);
   ierr = PetscViewerASCIISubtractTab(viewer,((PetscObject)mfn)->tablevel);CHKERRQ(ierr);
+  ierr = PetscViewerPopFormat(viewer);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

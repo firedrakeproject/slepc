@@ -184,7 +184,8 @@ PetscErrorCode SlepcCitationsInitialize()
     "   volume = \"31\",\n"
     "   number = \"3\",\n"
     "   pages = \"351--362\",\n"
-    "   year = \"2005\"\n"
+    "   year = \"2005,\"\n"
+    "   doi = \"http://dx.doi.org/10.1145/1089014.1089019\"\n"
     "}\n",NULL);CHKERRQ(ierr);
   ierr = PetscCitationsRegister("@TechReport{slepc-manual,\n"
     "   author = \"J. E. Roman and C. Campos and E. Romero and A. Tomas\",\n"
@@ -263,15 +264,15 @@ PetscErrorCode SlepcInitialize(int *argc,char ***args,const char file[],const ch
 @*/
 PetscErrorCode SlepcFinalize(void)
 {
-  PetscErrorCode ierr;
+  PetscErrorCode ierr = 0;
 
   PetscFunctionBegin;
   ierr = PetscInfo(0,"SlepcFinalize() called\n");CHKERRQ(ierr);
   if (SlepcBeganPetsc) {
-    ierr = PetscFinalize();CHKERRQ(ierr);
+    ierr = PetscFinalize();
   }
   SlepcInitializeCalled = PETSC_FALSE;
-  PetscFunctionReturn(0);
+  PetscFunctionReturn(ierr);
 }
 
 #undef __FUNCT__

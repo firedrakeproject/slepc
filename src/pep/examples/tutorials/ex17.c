@@ -118,5 +118,5 @@ int main(int argc,char **argv)
     ierr = PetscFree(filenames[i]);CHKERRQ(ierr);
   }
   ierr = SlepcFinalize();
-  return 0;
+  return ierr;
 }

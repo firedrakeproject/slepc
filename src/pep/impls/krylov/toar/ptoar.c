@@ -14,7 +14,8 @@
            polynomial eigenvalue problems", talk presented at RANMEP 2008.
 
        [2] C. Campos and J.E. Roman, "Parallel Krylov solvers for the
-           polynomial eigenvalue problem in SLEPc", submitted, 2015.
+           polynomial eigenvalue problem in SLEPc", SIAM J. Sci. Comput.
+           to appear, 2016.
 
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
@@ -39,6 +40,19 @@
 #include <slepc/private/pepimpl.h>    /*I "slepcpep.h" I*/
 #include "../src/pep/impls/krylov/pepkrylov.h"
 #include <slepcblaslapack.h>
+
+static PetscBool  cited = PETSC_FALSE;
+static const char citation[] =
+  "@Article{slepc-pep,\n"
+  "   author = \"C. Campos and J. E. Roman\",\n"
+  "   title = \"Parallel {Krylov} solvers for the polynomial eigenvalue problem in {SLEPc}\",\n"
+  "   journal = \"{SIAM} J. Sci. Comput.\",\n"
+  "   volume = \"to appear\",\n"
+  "   number = \"\",\n"
+  "   pages = \"\",\n"
+  "   year = \"2016,\"\n"
+  "   doi = \"http://dx.doi.org/10.xxxx/yyyy\"\n"
+  "}\n";
 
 #undef __FUNCT__
 #define __FUNCT__ "PEPTOARSNorm2"
@@ -144,7 +158,7 @@ static PetscErrorCode PEPTOAROrth2(PEP pep,PetscScalar *S,PetscInt ld,PetscInt d
   PetscErrorCode ierr;
   PetscBLASInt   n_,lds_,k_,one=1;
   PetscScalar    sonem=-1.0,sone=1.0,szero=0.0,*x0,*x,*c;
-  PetscInt       nwu=0,i,lds=deg*ld,n;
+  PetscInt       i,lds=deg*ld,n;
   PetscReal      eta,onorm;
 
   PetscFunctionBegin;
@@ -153,8 +167,7 @@ static PetscErrorCode PEPTOAROrth2(PEP pep,PetscScalar *S,PetscInt ld,PetscInt d
   ierr = PetscBLASIntCast(n,&n_);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(deg*ld,&lds_);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(k,&k_);CHKERRQ(ierr); /* number of vectors to orthogonalize against them */
-  c = work+nwu;
-  nwu += k;
+  c = work;
   x0 = S+k*lds;
   PetscStackCallBLAS("BLASgemv",BLASgemv_("C",&n_,&k_,&sone,S,&lds_,x0,&one,&szero,y,&one));
   for (i=1;i<deg;i++) {
@@ -179,9 +192,7 @@ static PetscErrorCode PEPTOAROrth2(PEP pep,PetscScalar *S,PetscInt ld,PetscInt d
   for (i=0;i<k;i++) y[i] += c[i];
   if (norm) {
     ierr = PEPTOARSNorm2(lds,S+k*lds,norm);CHKERRQ(ierr);
-  }
-  if (lindep) {
-    *lindep = (*norm < eta * onorm)?PETSC_TRUE:PETSC_FALSE;
+    if (lindep) *lindep = (*norm < eta * onorm)?PETSC_TRUE:PETSC_FALSE;
   }
   PetscFunctionReturn(0);
 }
@@ -747,57 +758,21 @@ static PetscErrorCode PEPExtractInvariantPair(PEP pep,PetscScalar sigma,PetscInt
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "PEPLookForDeflation"
-static PetscErrorCode PEPLookForDeflation(PEP pep,PetscInt *nl)
-{
-  PetscErrorCode ierr;
-  PetscInt       i,l,n,ld;
-  PetscReal      norm;
-  PetscBool      cplx;
-  PetscScalar    *H;
-
-  PetscFunctionBegin;
-  *nl = 0;
-  ierr = DSGetDimensions(pep->ds,&n,NULL,&l,NULL,NULL);CHKERRQ(ierr);
-  ierr = DSGetLeadingDimension(pep->ds,&ld);CHKERRQ(ierr);
-  ierr = DSGetArray(pep->ds,DS_MAT_A,&H);CHKERRQ(ierr);
-  for (i=l;i<n;i++) {
-#if defined(PETSC_USE_COMPLEX)
-    cplx = PetscImaginaryPart(pep->eigr[i])?PETSC_TRUE:PETSC_FALSE;
-    norm = PetscAbsScalar(pep->eigr[i]);
-#else
-    cplx = pep->eigi[i]?PETSC_TRUE:PETSC_FALSE;
-    norm = SlepcAbsEigenvalue(pep->eigr[i],pep->eigi[i]);
-#endif
-    if (PetscAbsScalar(H[n+i*ld])/norm < pep->tol) {
-      if (cplx) {
-        if (PetscAbsScalar(H[n+(i+1)*ld])/norm < pep->tol) (*nl)++;
-        else break;
-        i++;
-      }
-      (*nl)++;
-    } else break;
-  }
-  ierr = DSRestoreArray(pep->ds,DS_MAT_A,&H);CHKERRQ(ierr);
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
 #define __FUNCT__ "PEPSolve_TOAR"
 PetscErrorCode PEPSolve_TOAR(PEP pep)
 {
   PetscErrorCode ierr;
   PEP_TOAR       *ctx = (PEP_TOAR*)pep->data;
-  PetscInt       i,j,k,l,nv=0,ld,lds,off,ldds,newn,nq=ctx->nq,nl,nconv=0,locked=0,newc;
+  PetscInt       i,j,k,l,nv=0,ld,lds,off,ldds,newn,nq=ctx->nq,nconv=0,locked=0,newc;
   PetscInt       lwa,lrwa,nwu=0,nrwu=0,nmat=pep->nmat,deg=nmat-1;
   PetscScalar    *S,*Q,*work,*H,sigma;
   PetscReal      beta,*rwork;
-  PetscBool      breakdown=PETSC_FALSE,flg,falselock=PETSC_FALSE,def=PETSC_FALSE,sinv;
+  PetscBool      breakdown=PETSC_FALSE,flg,falselock=PETSC_FALSE,sinv=PETSC_FALSE;
 
   PetscFunctionBegin;
+  ierr = PetscCitationsRegister(citation,&cited);CHKERRQ(ierr);
   if (ctx->lock) {
     ierr = PetscOptionsGetBool(NULL,NULL,"-pep_toar_falselocking",&falselock,NULL);CHKERRQ(ierr);
-    ierr = PetscOptionsGetBool(NULL,NULL,"-pep_toar_lockdeflated",&def,NULL);CHKERRQ(ierr);
   }
   ld = ctx->ld;
   S = ctx->S;
@@ -868,15 +843,6 @@ PetscErrorCode PEPSolve_TOAR(PEP pep)
       }
     }
     nconv = k;
-    /* decide on deflating Krylov vectors */
-    if (def) {
-      ierr = PEPLookForDeflation(pep,&nl);CHKERRQ(ierr);
-      nl = PetscMin(nl,k-pep->nconv);
-      if (ctx->lock && pep->reason == PEP_CONVERGED_ITERATING && !breakdown) {
-        k = pep->nconv+nl; l = newn-k;
-      }
-    } else nl = k-pep->nconv;
-
     if (!ctx->lock && pep->reason == PEP_CONVERGED_ITERATING && !breakdown) { l += k; k = 0; } /* non-locking variant: reset no. of converged pairs */
 
     /* update S */
@@ -898,7 +864,7 @@ PetscErrorCode PEPSolve_TOAR(PEP pep)
     /* truncate S */
     if (k+l+deg<nq) {
       if (!falselock && ctx->lock) {
-        newc = flg?k-pep->nconv:nl;
+        newc = k-pep->nconv;
         ierr = PEPTOARTrunc(pep,S,ld,deg,&nq,k+l+1,locked,newc,flg,work+nwu,rwork+nrwu);CHKERRQ(ierr);
         locked += newc;
       } else {
@@ -1049,7 +1015,7 @@ PetscErrorCode PEPTOARGetRestart(PEP pep,PetscReal *keep)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
   PetscValidPointer(keep,2);
-  ierr = PetscTryMethod(pep,"PEPTOARGetRestart_C",(PEP,PetscReal*),(pep,keep));CHKERRQ(ierr);
+  ierr = PetscUseMethod(pep,"PEPTOARGetRestart_C",(PEP,PetscReal*),(pep,keep));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -1135,7 +1101,7 @@ PetscErrorCode PEPTOARGetLocking(PEP pep,PetscBool *lock)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
   PetscValidPointer(lock,2);
-  ierr = PetscTryMethod(pep,"PEPTOARGetLocking_C",(PEP,PetscBool*),(pep,lock));CHKERRQ(ierr);
+  ierr = PetscUseMethod(pep,"PEPTOARGetLocking_C",(PEP,PetscBool*),(pep,lock));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

@@ -156,7 +156,7 @@ int main(int argc,char **argv)
   /* Extract cached BV and check it is equal to B*X */
   ierr = BVGetCachedBV(Y,&cached);CHKERRQ(ierr);
   ierr = BVMatMult(X,B,Z);CHKERRQ(ierr);
-  ierr = BVAXPY(Z,-1.0,cached);CHKERRQ(ierr);
+  ierr = BVMult(Z,-1.0,1.0,cached,NULL);CHKERRQ(ierr);
   ierr = BVNorm(Z,NORM_FROBENIUS,&norm);CHKERRQ(ierr);
   if (norm<100*PETSC_MACHINE_EPSILON) {
     ierr = PetscPrintf(PETSC_COMM_WORLD,"Residual ||cached-BX|| < 100*eps\n");CHKERRQ(ierr);
@@ -183,5 +183,5 @@ int main(int argc,char **argv)
   ierr = BVDestroy(&Z);CHKERRQ(ierr);
   ierr = VecDestroy(&t);CHKERRQ(ierr);
   ierr = SlepcFinalize();
-  return 0;
+  return ierr;
 }

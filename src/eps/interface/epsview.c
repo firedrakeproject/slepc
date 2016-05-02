@@ -156,7 +156,11 @@ PetscErrorCode EPSView(EPS eps,PetscViewer viewer)
         ierr = PetscViewerASCIIPrintf(viewer,"smallest imaginary parts\n");CHKERRQ(ierr);
         break;
       case EPS_ALL:
-        ierr = PetscViewerASCIIPrintf(viewer,"all eigenvalues in interval [%g,%g]\n",(double)eps->inta,(double)eps->intb);CHKERRQ(ierr);
+        if (eps->inta || eps->intb) {
+          ierr = PetscViewerASCIIPrintf(viewer,"all eigenvalues in interval [%g,%g]\n",(double)eps->inta,(double)eps->intb);CHKERRQ(ierr);
+        } else {
+          ierr = PetscViewerASCIIPrintf(viewer,"all eigenvalues in the region\n");CHKERRQ(ierr);
+        }
         break;
       default: SETERRQ(PetscObjectComm((PetscObject)eps),1,"Wrong value of eps->which");
     }

@@ -24,9 +24,6 @@
 #include "slepc/finclude/slepcsysdef.h"
 #include "slepc/finclude/slepcmfndef.h"
 
-!  Convergence flags.
-!  They sould match the flags in $SLEPC_DIR/include/slepcmfn.h
-
       PetscEnum MFN_CONVERGED_TOL
       PetscEnum MFN_CONVERGED_ITS
       PetscEnum MFN_DIVERGED_ITS

@@ -72,7 +72,8 @@ typedef enum { NEP_LARGEST_MAGNITUDE=1,
                NEP_SMALLEST_IMAGINARY,
                NEP_TARGET_MAGNITUDE,
                NEP_TARGET_REAL,
-               NEP_TARGET_IMAGINARY} NEPWhich;
+               NEP_TARGET_IMAGINARY,
+               NEP_ALL } NEPWhich;
 
 /*E
     NEPErrorType - The error type used to assess accuracy of computed solutions
@@ -228,6 +229,8 @@ PETSC_EXTERN PetscErrorCode NEPProjectOperator(NEP,PetscInt,PetscInt);
 
 PETSC_EXTERN PetscErrorCode NEPMonitor(NEP,PetscInt,PetscInt,PetscScalar*,PetscReal*,PetscInt);
 PETSC_EXTERN PetscErrorCode NEPMonitorSet(NEP,PetscErrorCode (*)(NEP,PetscInt,PetscInt,PetscScalar*,PetscReal*,PetscInt,void*),void*,PetscErrorCode (*)(void**));
+PETSC_EXTERN PetscErrorCode NEPMonitorSetFromOptions(NEP,const char*,const char*,const char*,PetscErrorCode (*)(NEP,PetscInt,PetscInt,PetscScalar*,PetscReal*,PetscInt,PetscViewerAndFormat*),PetscBool);
+PETSC_EXTERN PetscErrorCode NEPConvMonitorSetFromOptions(NEP,const char*,const char*,const char*,PetscErrorCode (*)(NEP,PetscInt,PetscInt,PetscScalar*,PetscReal*,PetscInt,SlepcConvMonitor));
 PETSC_EXTERN PetscErrorCode NEPMonitorCancel(NEP);
 PETSC_EXTERN PetscErrorCode NEPGetMonitorContext(NEP,void **);
 PETSC_EXTERN PetscErrorCode NEPGetIterationNumber(NEP,PetscInt*);
@@ -236,9 +239,9 @@ PETSC_EXTERN PetscErrorCode NEPSetInitialSpace(NEP,PetscInt,Vec*);
 PETSC_EXTERN PetscErrorCode NEPSetWhichEigenpairs(NEP,NEPWhich);
 PETSC_EXTERN PetscErrorCode NEPGetWhichEigenpairs(NEP,NEPWhich*);
 
-PETSC_EXTERN PetscErrorCode NEPMonitorAll(NEP,PetscInt,PetscInt,PetscScalar*,PetscReal*,PetscInt,void*);
-PETSC_EXTERN PetscErrorCode NEPMonitorFirst(NEP,PetscInt,PetscInt,PetscScalar*,PetscReal*,PetscInt,void*);
-PETSC_EXTERN PetscErrorCode NEPMonitorConverged(NEP,PetscInt,PetscInt,PetscScalar*,PetscReal*,PetscInt,void*);
+PETSC_EXTERN PetscErrorCode NEPMonitorAll(NEP,PetscInt,PetscInt,PetscScalar*,PetscReal*,PetscInt,PetscViewerAndFormat*);
+PETSC_EXTERN PetscErrorCode NEPMonitorFirst(NEP,PetscInt,PetscInt,PetscScalar*,PetscReal*,PetscInt,PetscViewerAndFormat*);
+PETSC_EXTERN PetscErrorCode NEPMonitorConverged(NEP,PetscInt,PetscInt,PetscScalar*,PetscReal*,PetscInt,SlepcConvMonitor);
 PETSC_EXTERN PetscErrorCode NEPMonitorLG(NEP,PetscInt,PetscInt,PetscScalar*,PetscReal*,PetscInt,void*);
 PETSC_EXTERN PetscErrorCode NEPMonitorLGAll(NEP,PetscInt,PetscInt,PetscScalar*,PetscReal*,PetscInt,void*);
 
@@ -283,6 +286,12 @@ PETSC_EXTERN PetscErrorCode NEPNLEIGSSetRestart(NEP,PetscReal);
 PETSC_EXTERN PetscErrorCode NEPNLEIGSGetRestart(NEP,PetscReal*);
 PETSC_EXTERN PetscErrorCode NEPNLEIGSSetLocking(NEP,PetscBool);
 PETSC_EXTERN PetscErrorCode NEPNLEIGSGetLocking(NEP,PetscBool*);
+PETSC_EXTERN PetscErrorCode NEPNLEIGSSetInterpolation(NEP,PetscReal,PetscInt);
+PETSC_EXTERN PetscErrorCode NEPNLEIGSGetInterpolation(NEP,PetscReal*,PetscInt*);
+PETSC_EXTERN PetscErrorCode NEPNLEIGSSetTrueResidual(NEP,PetscBool);
+PETSC_EXTERN PetscErrorCode NEPNLEIGSGetTrueResidual(NEP,PetscBool*);
+PETSC_EXTERN PetscErrorCode NEPNLEIGSSetRKShifts(NEP,PetscInt,PetscScalar*);
+PETSC_EXTERN PetscErrorCode NEPNLEIGSGetRKShifts(NEP,PetscInt*,PetscScalar**);
 
 #endif
 

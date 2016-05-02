@@ -31,7 +31,7 @@ typedef struct {
   PetscInt          plusk;             /* at restart, save plusk vectors from last iteration */
   PetscInt          mpd;               /* max size of the searching subspace */
   void              *old_updateV_data; /* old updateV data */
-  isRestarting_type old_isRestarting;  /* old isRestarting */
+  PetscErrorCode    (*old_isRestarting)(dvdDashboard*,PetscBool*);  /* old isRestarting */
   Mat               oldU;              /* previous projected right igenvectors */
   Mat               oldV;              /* previous projected left eigenvectors */
   PetscInt          size_oldU;         /* size of oldU */

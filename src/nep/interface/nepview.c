@@ -128,6 +128,9 @@ PetscErrorCode NEPView(NEP nep,PetscViewer viewer)
       case NEP_SMALLEST_IMAGINARY:
         ierr = PetscViewerASCIIPrintf(viewer,"smallest imaginary parts\n");CHKERRQ(ierr);
         break;
+      case NEP_ALL:
+        ierr = PetscViewerASCIIPrintf(viewer,"all eigenvalues in the region\n");CHKERRQ(ierr);
+        break;
       default: SETERRQ(PetscObjectComm((PetscObject)nep),1,"Wrong value of nep->which");
     }
     ierr = PetscViewerASCIIPrintf(viewer,"  number of eigenvalues (nev): %D\n",nep->nev);CHKERRQ(ierr);
@@ -267,27 +270,32 @@ static PetscErrorCode NEPErrorView_ASCII(NEP nep,NEPErrorType etype,PetscViewer 
   PetscBool      errok;
   PetscReal      error,re,im;
   PetscScalar    kr,ki;
-  PetscInt       i,j;
+  PetscInt       i,j,nvals;
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  if (nep->nconv<nep->nev) {
+  if (nep->which!=NEP_ALL && nep->nconv<nep->nev) {
     ierr = PetscViewerASCIIPrintf(viewer," Problem: less than %D eigenvalues converged\n\n",nep->nev);CHKERRQ(ierr);
     PetscFunctionReturn(0);
   }
   errok = PETSC_TRUE;
-  for (i=0;i<nep->nev;i++) {
+  nvals = (nep->which==NEP_ALL)? nep->nconv: nep->nev;
+  for (i=0;i<nvals;i++) {
     ierr = NEPComputeError(nep,i,etype,&error);CHKERRQ(ierr);
     errok = (errok && error<5.0*nep->tol)? PETSC_TRUE: PETSC_FALSE;
   }
   if (!errok) {
-    ierr = PetscViewerASCIIPrintf(viewer," Problem: some of the first %D relative errors are higher than the tolerance\n\n",nep->nev);CHKERRQ(ierr);
+    ierr = PetscViewerASCIIPrintf(viewer," Problem: some of the first %D relative errors are higher than the tolerance\n\n",nvals);CHKERRQ(ierr);
     PetscFunctionReturn(0);
   }
-  ierr = PetscViewerASCIIPrintf(viewer," All requested eigenvalues computed up to the required tolerance:");CHKERRQ(ierr);
-  for (i=0;i<=(nep->nev-1)/8;i++) {
+  if (nep->which==NEP_ALL) {
+    ierr = PetscViewerASCIIPrintf(viewer," Found %D eigenvalues, all of them computed up to the required tolerance:",nvals);CHKERRQ(ierr);
+  } else {
+    ierr = PetscViewerASCIIPrintf(viewer," All requested eigenvalues computed up to the required tolerance:");CHKERRQ(ierr);
+  }
+  for (i=0;i<=(nvals-1)/8;i++) {
     ierr = PetscViewerASCIIPrintf(viewer,"\n     ");CHKERRQ(ierr);
-    for (j=0;j<PetscMin(8,nep->nev-8*i);j++) {
+    for (j=0;j<PetscMin(8,nvals-8*i);j++) {
       ierr = NEPGetEigenpair(nep,8*i+j,&kr,&ki,NULL,NULL);CHKERRQ(ierr);
 #if defined(PETSC_USE_COMPLEX)
       re = PetscRealPart(kr);
@@ -303,7 +311,7 @@ static PetscErrorCode NEPErrorView_ASCII(NEP nep,NEPErrorType etype,PetscViewer 
       } else {
         ierr = PetscViewerASCIIPrintf(viewer,"%.5f",(double)re);CHKERRQ(ierr);
       }
-      if (8*i+j+1<nep->nev) { ierr = PetscViewerASCIIPrintf(viewer,", ");CHKERRQ(ierr); }
+      if (8*i+j+1<nvals) { ierr = PetscViewerASCIIPrintf(viewer,", ");CHKERRQ(ierr); }
     }
   }
   ierr = PetscViewerASCIIPrintf(viewer,"\n\n");CHKERRQ(ierr);

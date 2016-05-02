@@ -208,7 +208,7 @@ int main(int argc,char **argv)
   ierr = MatDestroy(&J);CHKERRQ(ierr);
   ierr = VecDestroy(&x);CHKERRQ(ierr);
   ierr = SlepcFinalize();
-  return 0;
+  return ierr;
 }
 
 /* ------------------------------------------------------------------- */

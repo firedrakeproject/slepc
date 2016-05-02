@@ -23,9 +23,6 @@
 !
 #include "slepc/finclude/slepcepsdef.h"
 
-!  Convergence flags.
-!  They sould match the flags in $SLEPC_DIR/include/slepceps.h
-
       PetscEnum EPS_CONVERGED_TOL
       PetscEnum EPS_CONVERGED_USER
       PetscEnum EPS_DIVERGED_ITS

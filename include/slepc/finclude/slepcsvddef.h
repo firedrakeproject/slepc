@@ -20,15 +20,15 @@
 !  along with SLEPc. If not, see <http://www.gnu.org/licenses/>.
 !  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !
-#if !defined(__SLEPCSVD_H)
-#define __SLEPCSVD_H
+#if !defined(__SLEPCSVDDEF_H)
+#define __SLEPCSVDDEF_H
 
 #include "slepc/finclude/slepcbvdef.h"
 #include "slepc/finclude/slepcdsdef.h"
 #include "slepc/finclude/slepcepsdef.h"
 
 #if !defined(PETSC_USE_FORTRAN_DATATYPES)
-#define SVD                PetscFortranAddr
+#define SVD PetscFortranAddr
 #endif
 
 #define SVDType            character*(80)

@@ -122,7 +122,7 @@ PetscErrorCode FNEvaluateFunctionMat_Combine(FN fn,Mat A,Mat B)
   Mat            W,Z;
 
   PetscFunctionBegin;
-  ierr = MatDuplicate(A,MAT_DO_NOT_COPY_VALUES,&W);CHKERRQ(ierr);
+  ierr = FN_AllocateWorkMat(fn,A,&W);CHKERRQ(ierr);
   ierr = MatDenseGetArray(A,&Aa);CHKERRQ(ierr);
   ierr = MatDenseGetArray(B,&Ba);CHKERRQ(ierr);
   ierr = MatDenseGetArray(W,&Wa);CHKERRQ(ierr);
@@ -138,17 +138,17 @@ PetscErrorCode FNEvaluateFunctionMat_Combine(FN fn,Mat A,Mat B)
       PetscStackCallBLAS("BLASaxpy",BLASaxpy_(&ld2,&one,Wa,&inc,Ba,&inc));
       break;
     case FN_COMBINE_MULTIPLY:
-      ierr = MatDuplicate(A,MAT_DO_NOT_COPY_VALUES,&Z);CHKERRQ(ierr);
+      ierr = FN_AllocateWorkMat(fn,A,&Z);CHKERRQ(ierr);
       ierr = MatDenseGetArray(Z,&Za);CHKERRQ(ierr);
       ierr = FNEvaluateFunctionMat(ctx->f1,A,W);CHKERRQ(ierr);
       ierr = FNEvaluateFunctionMat(ctx->f2,A,Z);CHKERRQ(ierr);
       PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&n,&n,&n,&one,Wa,&ld,Za,&ld,&zero,Ba,&ld));
       ierr = MatDenseRestoreArray(Z,&Za);CHKERRQ(ierr);
-      ierr = MatDestroy(&Z);CHKERRQ(ierr);
+      ierr = FN_FreeWorkMat(fn,&Z);CHKERRQ(ierr);
       break;
     case FN_COMBINE_DIVIDE:
-      ierr = FNEvaluateFunctionMat(ctx->f1,A,B);CHKERRQ(ierr);
       ierr = FNEvaluateFunctionMat(ctx->f2,A,W);CHKERRQ(ierr);
+      ierr = FNEvaluateFunctionMat(ctx->f1,A,B);CHKERRQ(ierr);
       ierr = PetscMalloc1(ld,&ipiv);CHKERRQ(ierr);
       PetscStackCallBLAS("LAPACKgesv",LAPACKgesv_(&n,&n,Wa,&ld,ipiv,Ba,&ld,&info));
       if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xGESV %d",info);
@@ -163,7 +163,72 @@ PetscErrorCode FNEvaluateFunctionMat_Combine(FN fn,Mat A,Mat B)
   ierr = MatDenseRestoreArray(A,&Aa);CHKERRQ(ierr);
   ierr = MatDenseRestoreArray(B,&Ba);CHKERRQ(ierr);
   ierr = MatDenseRestoreArray(W,&Wa);CHKERRQ(ierr);
-  ierr = MatDestroy(&W);CHKERRQ(ierr);
+  ierr = FN_FreeWorkMat(fn,&W);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+#endif
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "FNEvaluateFunctionMatVec_Combine"
+PetscErrorCode FNEvaluateFunctionMatVec_Combine(FN fn,Mat A,Vec v)
+{
+#if defined(PETSC_MISSING_LAPACK_GESV)
+  PetscFunctionBegin;
+  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"GESV - Lapack routines are unavailable");
+#else
+  PetscErrorCode ierr;
+  FN_COMBINE     *ctx = (FN_COMBINE*)fn->data;
+  PetscScalar    *va,*Za;
+  PetscBLASInt   n,ld,*ipiv,info,one=1;
+  PetscInt       m;
+  Mat            Z;
+  Vec            w;
+
+  PetscFunctionBegin;
+  ierr = MatGetSize(A,&m,NULL);CHKERRQ(ierr);
+  ierr = PetscBLASIntCast(m,&n);CHKERRQ(ierr);
+  ld = n;
+
+  switch (ctx->comb) {
+    case FN_COMBINE_ADD:
+      ierr = VecDuplicate(v,&w);CHKERRQ(ierr);
+      ierr = FNEvaluateFunctionMatVec(ctx->f1,A,w);CHKERRQ(ierr);
+      ierr = FNEvaluateFunctionMatVec(ctx->f2,A,v);CHKERRQ(ierr);
+      ierr = VecAXPY(v,1.0,w);CHKERRQ(ierr);
+      ierr = VecDestroy(&w);CHKERRQ(ierr);
+      break;
+    case FN_COMBINE_MULTIPLY:
+      ierr = VecDuplicate(v,&w);CHKERRQ(ierr);
+      ierr = FN_AllocateWorkMat(fn,A,&Z);CHKERRQ(ierr);
+      ierr = FNEvaluateFunctionMat(ctx->f1,A,Z);CHKERRQ(ierr);
+      ierr = FNEvaluateFunctionMatVec(ctx->f2,A,w);CHKERRQ(ierr);
+      ierr = MatMult(Z,w,v);CHKERRQ(ierr);
+      ierr = FN_FreeWorkMat(fn,&Z);CHKERRQ(ierr);
+      ierr = VecDestroy(&w);CHKERRQ(ierr);
+      break;
+    case FN_COMBINE_DIVIDE:
+      ierr = VecDuplicate(v,&w);CHKERRQ(ierr);
+      ierr = FN_AllocateWorkMat(fn,A,&Z);CHKERRQ(ierr);
+      ierr = FNEvaluateFunctionMat(ctx->f2,A,Z);CHKERRQ(ierr);
+      ierr = FNEvaluateFunctionMatVec(ctx->f1,A,v);CHKERRQ(ierr);
+      ierr = PetscMalloc1(ld,&ipiv);CHKERRQ(ierr);
+      ierr = MatDenseGetArray(Z,&Za);CHKERRQ(ierr);
+      ierr = VecGetArray(v,&va);CHKERRQ(ierr);
+      PetscStackCallBLAS("LAPACKgesv",LAPACKgesv_(&n,&one,Za,&ld,ipiv,va,&ld,&info));
+      if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xGESV %d",info);
+      ierr = VecRestoreArray(v,&va);CHKERRQ(ierr);
+      ierr = MatDenseRestoreArray(Z,&Za);CHKERRQ(ierr);
+      ierr = PetscFree(ipiv);CHKERRQ(ierr);
+      ierr = FN_FreeWorkMat(fn,&Z);CHKERRQ(ierr);
+      ierr = VecDestroy(&w);CHKERRQ(ierr);
+      break;
+    case FN_COMBINE_COMPOSE:
+      ierr = FN_AllocateWorkMat(fn,A,&Z);CHKERRQ(ierr);
+      ierr = FNEvaluateFunctionMat(ctx->f1,A,Z);CHKERRQ(ierr);
+      ierr = FNEvaluateFunctionMatVec(ctx->f2,Z,v);CHKERRQ(ierr);
+      ierr = FN_FreeWorkMat(fn,&Z);CHKERRQ(ierr);
+      break;
+  }
   PetscFunctionReturn(0);
 #endif
 }
@@ -304,7 +369,7 @@ PetscErrorCode FNCombineGetChildren(FN fn,FNCombineType *comb,FN *f1,FN *f2)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(fn,FN_CLASSID,1);
-  ierr = PetscTryMethod(fn,"FNCombineGetChildren_C",(FN,FNCombineType*,FN*,FN*),(fn,comb,f1,f2));CHKERRQ(ierr);
+  ierr = PetscUseMethod(fn,"FNCombineGetChildren_C",(FN,FNCombineType*,FN*,FN*),(fn,comb,f1,f2));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -351,12 +416,13 @@ PETSC_EXTERN PetscErrorCode FNCreate_Combine(FN fn)
   ierr = PetscNewLog(fn,&ctx);CHKERRQ(ierr);
   fn->data = (void*)ctx;
 
-  fn->ops->evaluatefunction    = FNEvaluateFunction_Combine;
-  fn->ops->evaluatederivative  = FNEvaluateDerivative_Combine;
-  fn->ops->evaluatefunctionmat = FNEvaluateFunctionMat_Combine;
-  fn->ops->view                = FNView_Combine;
-  fn->ops->duplicate           = FNDuplicate_Combine;
-  fn->ops->destroy             = FNDestroy_Combine;
+  fn->ops->evaluatefunction       = FNEvaluateFunction_Combine;
+  fn->ops->evaluatederivative     = FNEvaluateDerivative_Combine;
+  fn->ops->evaluatefunctionmat    = FNEvaluateFunctionMat_Combine;
+  fn->ops->evaluatefunctionmatvec = FNEvaluateFunctionMatVec_Combine;
+  fn->ops->view                   = FNView_Combine;
+  fn->ops->duplicate              = FNDuplicate_Combine;
+  fn->ops->destroy                = FNDestroy_Combine;
   ierr = PetscObjectComposeFunction((PetscObject)fn,"FNCombineSetChildren_C",FNCombineSetChildren_Combine);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)fn,"FNCombineGetChildren_C",FNCombineGetChildren_Combine);CHKERRQ(ierr);
   PetscFunctionReturn(0);
