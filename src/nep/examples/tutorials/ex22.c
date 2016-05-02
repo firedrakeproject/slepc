@@ -195,6 +195,6 @@ int main(int argc,char **argv)
   ierr = FNDestroy(&f2);CHKERRQ(ierr);
   ierr = FNDestroy(&f3);CHKERRQ(ierr);
   ierr = SlepcFinalize();
-  return 0;
+  return ierr;
 }
 

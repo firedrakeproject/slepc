@@ -702,5 +702,5 @@ int main(int argc,char **argv)
   ierr = ISDestroy(&user.is_diff);CHKERRQ(ierr);
   ierr = ISDestroy(&user.is_alg);CHKERRQ(ierr);
   ierr = SlepcFinalize();
-  return 0;
+  return ierr;
 }

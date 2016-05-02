@@ -74,5 +74,5 @@ int main(int argc,char **argv)
 
   ierr = FNDestroy(&fn);CHKERRQ(ierr);
   ierr = SlepcFinalize();
-  return 0;
+  return ierr;
 }

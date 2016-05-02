@@ -152,8 +152,8 @@ int main(int argc,char **argv)
   for (i=0;i<2;i++) {
     ierr = FNDestroy(&ff[i]);CHKERRQ(ierr);
   }
-  ierr = SlepcFinalize();CHKERRQ(ierr);
-  return 0;
+  ierr = SlepcFinalize();
+  return ierr;
 }
 
 #undef __FUNCT__

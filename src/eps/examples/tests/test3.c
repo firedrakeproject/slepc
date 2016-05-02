@@ -109,5 +109,5 @@ int main(int argc,char **argv)
   ierr = MatDestroy(&A1);CHKERRQ(ierr);
   ierr = MatDestroy(&A2);CHKERRQ(ierr);
   ierr = SlepcFinalize();
-  return 0;
+  return ierr;
 }

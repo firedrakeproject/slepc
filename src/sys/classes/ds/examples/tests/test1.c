@@ -134,5 +134,5 @@ int main(int argc,char **argv)
   ierr = PetscFree2(wr,wi);CHKERRQ(ierr);
   ierr = DSDestroy(&ds);CHKERRQ(ierr);
   ierr = SlepcFinalize();
-  return 0;
+  return ierr;
 }

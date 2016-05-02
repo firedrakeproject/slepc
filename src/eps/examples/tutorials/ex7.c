@@ -212,6 +212,6 @@ int main(int argc,char **argv)
     ierr = VecDestroyVecs(ncon,&Cv);CHKERRQ(ierr);
   }
   ierr = SlepcFinalize();
-  return 0;
+  return ierr;
 }
 

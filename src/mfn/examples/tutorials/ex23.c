@@ -128,8 +128,8 @@ int main(int argc,char **argv)
   ierr = MatDestroy(&A);CHKERRQ(ierr);
   ierr = VecDestroy(&v);CHKERRQ(ierr);
   ierr = VecDestroy(&y);CHKERRQ(ierr);
-  ierr = SlepcFinalize();CHKERRQ(ierr);
-  return 0;
+  ierr = SlepcFinalize();
+  return ierr;
 }
 
 #undef __FUNCT__

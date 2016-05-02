@@ -111,5 +111,5 @@ int main(int argc,char **argv)
 
   ierr = RGDestroy(&rg);CHKERRQ(ierr);
   ierr = SlepcFinalize();
-  return 0;
+  return ierr;
 }
