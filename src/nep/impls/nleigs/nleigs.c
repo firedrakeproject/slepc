@@ -449,8 +449,8 @@ static PetscErrorCode NEPNLEIGSKrylovConvergence(NEP nep,PetscScalar *S,PetscInt
 {
   PetscErrorCode ierr;
   PetscInt       k,newk,marker,inside;
-  PetscScalar    re,im,tt;
-  PetscReal      resnorm;
+  PetscScalar    re,im;
+  PetscReal      resnorm,tt;
   PetscBool      istrivial;
   Vec            t;
   NEP_NLEIGS     *ctx = (NEP_NLEIGS*)nep->data;
@@ -472,8 +472,8 @@ static PetscErrorCode NEPNLEIGSKrylovConvergence(NEP nep,PetscScalar *S,PetscInt
     }
     newk = k;
     ierr = DSVectors(nep->ds,DS_MAT_X,&newk,&resnorm);CHKERRQ(ierr);
-    tt = (ctx->nshifts)?betak-nep->eigr[k]*betah:betah;
-    resnorm *=  PetscAbsScalar(tt);
+    tt = (ctx->nshifts)?SlepcAbsEigenvalue(betak-nep->eigr[k]*betah,nep->eigi[k]*betah):betah;
+    resnorm *=  PetscAbsReal(tt);
     /* error estimate */
     ierr = (*nep->converged)(nep,nep->eigr[k],nep->eigi[k],resnorm,&nep->errest[k],nep->convergedctx);CHKERRQ(ierr);
     if (ctx->trueres && (nep->errest[k] < nep->tol) ) {
