@@ -57,7 +57,6 @@ PetscErrorCode FNEvaluateFunctionMat_Invsqrt(FN fn,Mat A,Mat B)
   PetscFunctionBegin;
   ierr = FN_AllocateWorkMat(fn,A,&W);CHKERRQ(ierr);
   if (A!=B) { ierr = MatCopy(A,B,SAME_NONZERO_PATTERN);CHKERRQ(ierr); }
-  ierr = MatCopy(A,W,SAME_NONZERO_PATTERN);CHKERRQ(ierr);
   ierr = MatDenseGetArray(B,&Ba);CHKERRQ(ierr);
   ierr = MatDenseGetArray(W,&Wa);CHKERRQ(ierr);
   /* compute B = sqrtm(A) */
@@ -89,7 +88,6 @@ PetscErrorCode FNEvaluateFunctionMatVec_Invsqrt(FN fn,Mat A,Vec v)
   PetscFunctionBegin;
   ierr = FN_AllocateWorkMat(fn,A,&B);CHKERRQ(ierr);
   ierr = FN_AllocateWorkMat(fn,A,&W);CHKERRQ(ierr);
-  ierr = MatCopy(A,W,SAME_NONZERO_PATTERN);CHKERRQ(ierr);
   ierr = MatDenseGetArray(B,&Ba);CHKERRQ(ierr);
   ierr = MatDenseGetArray(W,&Wa);CHKERRQ(ierr);
   /* compute B_1 = sqrtm(A)*e_1 */
