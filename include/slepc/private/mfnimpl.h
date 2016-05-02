@@ -107,6 +107,32 @@ PETSC_STATIC_INLINE PetscErrorCode MFN_CreateDenseMat(PetscInt k,Mat *A)
   PetscFunctionReturn(0);
 }
 
+#undef __FUNCT__
+#define __FUNCT__ "MFN_CreateVec"
+/*
+   MFN_CreateVec - Creates a Vec of size k unless it already has that size
+*/
+PETSC_STATIC_INLINE PetscErrorCode MFN_CreateVec(PetscInt k,Vec *v)
+{
+  PetscErrorCode ierr;
+  PetscBool      create=PETSC_FALSE;
+  PetscInt       n;
+
+  PetscFunctionBegin;
+  if (!*v) create=PETSC_TRUE;
+  else {
+    ierr = VecGetSize(*v,&n);CHKERRQ(ierr);
+    if (n!=k) {
+      ierr = VecDestroy(v);CHKERRQ(ierr);
+      create=PETSC_TRUE;
+    }
+  }
+  if (create) {
+    ierr = VecCreateSeq(PETSC_COMM_SELF,k,v);CHKERRQ(ierr);
+  }
+  PetscFunctionReturn(0);
+}
+
 PETSC_INTERN PetscErrorCode MFNBasicArnoldi(MFN,PetscScalar*,PetscInt,PetscInt,PetscInt*,PetscReal*,PetscBool*);
 
 #endif

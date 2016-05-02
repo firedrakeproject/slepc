@@ -88,7 +88,8 @@ PetscErrorCode MFNSolve_Krylov(MFN mfn,Vec b,Vec x)
   PetscErrorCode ierr;
   PetscInt       n=0,m,ld,ldh,j;
   PetscBLASInt   m_,inc=1;
-  Mat            F=NULL,G=NULL,H=NULL;
+  Mat            G=NULL,H=NULL;
+  Vec            F=NULL;
   PetscScalar    *array,*farray,*garray,*harray;
   PetscReal      beta,nrm;
   PetscBool      breakdown,set,flg,symm=PETSC_FALSE;
@@ -113,7 +114,7 @@ PetscErrorCode MFNSolve_Krylov(MFN mfn,Vec b,Vec x)
     /* save previous Hessenberg matrix in G; allocate new storage for H and f(H) */
     if (mfn->its>1) { G = H; H = NULL; }
     ldh = n+m;
-    ierr = MFN_CreateDenseMat(ldh,&F);CHKERRQ(ierr);
+    ierr = MFN_CreateVec(ldh,&F);CHKERRQ(ierr);
     ierr = MFN_CreateDenseMat(ldh,&H);CHKERRQ(ierr);
 
     /* glue together the previous H and the new H obtained with Arnoldi */
@@ -142,10 +143,10 @@ PetscErrorCode MFNSolve_Krylov(MFN mfn,Vec b,Vec x)
     }
 
     /* evaluate f(H) */
-    ierr = FNEvaluateFunctionMat(mfn->fn,H,F);CHKERRQ(ierr);
+    ierr = FNEvaluateFunctionMatVec(mfn->fn,H,F);CHKERRQ(ierr);
 
     /* x += ||b||*V*f(H)*e_1 */
-    ierr = MatDenseGetArray(F,&farray);CHKERRQ(ierr);
+    ierr = VecGetArray(F,&farray);CHKERRQ(ierr);
     if (mfn->its>1) {
       ierr = PetscBLASIntCast(m,&m_);CHKERRQ(ierr);
       nrm = BLASnrm2_(&m_,farray+n,&inc);   /* relative norm of the update ||u||/||b|| */
@@ -156,7 +157,7 @@ PetscErrorCode MFNSolve_Krylov(MFN mfn,Vec b,Vec x)
     for (j=0;j<m;j++) farray[j+n] *= mfn->bnorm;
     ierr = BVSetActiveColumns(mfn->V,0,m);CHKERRQ(ierr);
     ierr = BVMultVec(mfn->V,1.0,1.0,x,farray+n);CHKERRQ(ierr);
-    ierr = MatDenseRestoreArray(F,&farray);CHKERRQ(ierr);
+    ierr = VecRestoreArray(F,&farray);CHKERRQ(ierr);
 
     /* check convergence */
     if (mfn->its>1) {
@@ -173,7 +174,7 @@ PetscErrorCode MFNSolve_Krylov(MFN mfn,Vec b,Vec x)
 
   ierr = MatDestroy(&H);CHKERRQ(ierr);
   ierr = MatDestroy(&G);CHKERRQ(ierr);
-  ierr = MatDestroy(&F);CHKERRQ(ierr);
+  ierr = VecDestroy(&F);CHKERRQ(ierr);
   ierr = PetscFree(array);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
