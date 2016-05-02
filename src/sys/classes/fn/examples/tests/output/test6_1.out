@@ -17,6 +17,4 @@ FN Object: 1 MPI processes
   f(2.2)=-2.63468
   f'(2.2)=-3.31554
 The 1-norm of f(A) is 29.7466
-The norm of f(A)*e_1-v is 0.
 The 1-norm of f(A) is 29.7466
-The norm of f(A)*e_1-v is 0.

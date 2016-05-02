@@ -79,7 +79,9 @@ PetscErrorCode TestMatSqrt(FN fn,Mat A,PetscViewer viewer,PetscBool verbose,Pets
   ierr = FNEvaluateFunctionMatVec(fn,A,v);CHKERRQ(ierr);
   ierr = VecAXPY(v,-1.0,f0);CHKERRQ(ierr);
   ierr = VecNorm(v,NORM_2,&nrm);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"The norm of f(A)*e_1-v is %g\n",(double)nrm);CHKERRQ(ierr);
+  if (nrm>100*PETSC_MACHINE_EPSILON) {
+    ierr = PetscPrintf(PETSC_COMM_WORLD,"Warning: the norm of f(A)*e_1-v is %g\n",(double)nrm);CHKERRQ(ierr);
+  }
   ierr = MatDestroy(&S);CHKERRQ(ierr);
   ierr = MatDestroy(&R);CHKERRQ(ierr);
   ierr = VecDestroy(&v);CHKERRQ(ierr);
@@ -163,5 +165,5 @@ int main(int argc,char **argv)
   ierr = MatDestroy(&A);CHKERRQ(ierr);
   ierr = FNDestroy(&fn);CHKERRQ(ierr);
   ierr = SlepcFinalize();
-  return 0;
+  return ierr;
 }
