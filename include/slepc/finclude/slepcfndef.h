@@ -36,5 +36,6 @@
 #define FNLOG      'log'
 #define FNPHI      'phi'
 #define FNSQRT     'sqrt'
+#define FNINVSQRT  'invsqrt'
 
 #endif

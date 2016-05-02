@@ -3,5 +3,8 @@ FN Object: 1 MPI processes
   type: sqrt
     Square root: +2  *sqrt(+0.13*x)
 ||S*S-A||_F < 100*eps
+The norm of f(A)*e_1-v is 0.
 ||S*S-A||_F < 100*eps
+The norm of f(A)*e_1-v is 0.
 ||S*S-A||_F < 100*eps
+The norm of f(A)*e_1-v is 0.

@@ -47,6 +47,7 @@ typedef const char* FNType;
 #define FNLOG      "log"
 #define FNPHI      "phi"
 #define FNSQRT     "sqrt"
+#define FNINVSQRT  "invsqrt"
 
 /* Logging support */
 PETSC_EXTERN PetscClassId FN_CLASSID;
@@ -80,6 +81,7 @@ PETSC_EXTERN PetscErrorCode FNGetScale(FN,PetscScalar*,PetscScalar*);
 PETSC_EXTERN PetscErrorCode FNEvaluateFunction(FN,PetscScalar,PetscScalar*);
 PETSC_EXTERN PetscErrorCode FNEvaluateDerivative(FN,PetscScalar,PetscScalar*);
 PETSC_EXTERN PetscErrorCode FNEvaluateFunctionMat(FN,Mat,Mat);
+PETSC_EXTERN PetscErrorCode FNEvaluateFunctionMatVec(FN,Mat,Vec);
 
 PETSC_EXTERN PetscFunctionList FNList;
 PETSC_EXTERN PetscErrorCode FNRegister(const char[],PetscErrorCode(*)(FN));

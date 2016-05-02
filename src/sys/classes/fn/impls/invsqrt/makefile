@@ -23,13 +23,13 @@ ALL: lib
 
 CFLAGS   =
 FFLAGS   =
-SOURCEC  = fnutil.c
+SOURCEC  = fninvsqrt.c
 SOURCEF  =
 SOURCEH  =
 LIBBASE  = libslepcsys
-DIRS     = combine exp log phi rational sqrt invsqrt
-LOCDIR   = src/sys/classes/fn/impls/
+DIRS     =
 MANSEC   = FN
+LOCDIR   = src/sys/classes/fn/impls/invsqrt/
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common
 
