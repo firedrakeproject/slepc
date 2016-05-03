@@ -102,6 +102,7 @@ PetscErrorCode EPSSetUp_KrylovSchur(EPS eps)
     ierr = EPSSetExtraction(eps,EPS_RITZ);CHKERRQ(ierr);
   } else if (eps->extraction!=EPS_RITZ && eps->extraction!=EPS_HARMONIC)
     SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Unsupported extraction type");
+  if (eps->extraction==EPS_HARMONIC && ctx->lock) { ierr = PetscInfo(eps,"Locking was requested but will be deactivated since is not supported with harmonic extraction\n");CHKERRQ(ierr); }
 
   if (!ctx->keep) ctx->keep = 0.5;
 
@@ -240,7 +241,7 @@ PetscErrorCode EPSSolve_KrylovSchur_Default(EPS eps)
       ierr = DSRestoreArray(eps->ds,DS_MAT_A,&S);CHKERRQ(ierr);
 #endif
     }
-    if (!ctx->lock && l>0) { l += k; k = 0; } /* non-locking variant: reset no. of converged pairs */
+    if ((!ctx->lock || harmonic) && l>0) { l += k; k = 0; } /* non-locking variant: reset no. of converged pairs */
 
     if (eps->reason == EPS_CONVERGED_ITERATING) {
       if (breakdown) {
