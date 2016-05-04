@@ -159,6 +159,12 @@ ul.changes li {
     <td> * </td>
     <td> Jun 2015 </td>
   </tr>
+  <tr>
+    <td> 3.7 </td>
+    <td> 3.7 </td>
+    <td> * </td>
+    <td> May 2016 </td>
+  </tr>
 </table>
 
 <tr><td>
@@ -169,7 +175,21 @@ Changes in Version 3.7</font></b>
 </p>
 
 <ul class=changes>
-  <li> MFN: the solver available in previous versions has been renamed to 'expokit'.
+  <li> NEP: new solver 'nleigs' that implements a (rational) Krylov method operating
+       on a companion-type linearization of a rational interpolant of the nonlinear function.
+  <li> PEP: the 'jd' solver can now compute more than one eigenpair.
+  <li> MFN: added a new solver 'krylov' that works for different functions,
+       not only the exponential. The solver available in previous versions
+       has been renamed to 'expokit'.
+  <li> EPS: in spectrum slicing in multi-communicator mode now it is possible to
+       update the problem matrices directly on the sub-communicators.
+  <li> EPS: the contour integral solver now provides Chebyshev quadrature rule and
+       Hankel extraction; all options are documented in STR-11.
+  <li> Now most solvers allow a user-defined criterion to stop iterating based on a
+       callback function.
+  <li> Optimizes solution of linear systems in Newton refinement for PEP and NEP.
+  <li> Added download option for most external packages.
+  <li> GPU support updated to use VECCUDA instead of VECCUSP, now including complex scalars.
   <li> Interface changes: EPS_CONV_EIG has been renamed to EPS_CONV_REL.
        BVAXPY has been removed, use BVMult instead.
 </ul>

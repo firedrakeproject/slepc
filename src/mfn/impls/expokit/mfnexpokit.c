@@ -83,7 +83,6 @@ PetscErrorCode MFNSolve_Expokit(MFN mfn,Vec b,Vec x)
   ierr = FNDuplicate(mfn->fn,PetscObjectComm((PetscObject)mfn->fn),&fn);CHKERRQ(ierr);
   ierr = FNSetScale(fn,1.0,1.0);CHKERRQ(ierr);
   t_out = PetscAbsScalar(t);
-  t_new = 0.0;
   t_now = 0.0;
   ierr = MatNorm(mfn->A,NORM_INFINITY,&anorm);CHKERRQ(ierr);
   rndoff = anorm*PETSC_MACHINE_EPSILON;

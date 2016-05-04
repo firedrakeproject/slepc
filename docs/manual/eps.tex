@@ -53,7 +53,7 @@ where $h_{i,j}$ are the scalar coefficients obtained in the Gram-Schmidt orthogo
 
 	A generalization to the above methods are the block Krylov strategies, in which the starting vector $v_1$ is replaced by a full rank $n\times p$ matrix $V_1$, which allows for better convergence properties when there are multiple eigenvalues and can provide better data management on some computer architectures. Block tridiagonal and block Hessenberg matrices are then obtained as projections.
 
-	It is generally assumed (and observed) that the Lanczos and Arnoldi algorithms find solutions at the extremities of the spectrum. Their convergence pattern, however, is strongly related to the eigenvalue distribution. Slow convergence may be experienced in the presence of tightly clustered eigenvalues. The maximum allowable $j$ may be reached without having achieved convergence for all desired solutions. Then, restarting is usually a useful technique and different strategies exist for that purpose. However, convergence can still be very slow and acceleration strategies must be applied. Usually, these techniques consist in computing eigenpairs of a transformed operator and then recovering the solution of the original problem. The aim of these transformations is twofold. On one hand, they make it possible to obtain eigenvalues other than those lying in the boundary of the spectrum. On the other hand, the separation of the eigenvalues of interest is improved in the transformed spectrum thus leading to faster convergence. The most commonly used spectral transformation is called shift-and-invert, which works with operator $(A-\sigma I)^{-1}$. It allows the computation of eigenvalues closest to $\sigma$ with very good separation properties. When using this approach, a linear system of equations, $(A-\sigma I)y=x$, must be solved in each iteration of the eigenvalue process.
+	It is generally assumed (and observed) that the Lanczos and Arnoldi algorithms find solutions at the extremities of the spectrum. Their convergence pattern, however, is strongly related to the eigenvalue distribution. Slow convergence may be experienced in the presence of tightly clustered eigenvalues. The maximum allowable $j$ may be reached without having achieved convergence for all desired solutions. Then, restarting is usually a useful technique and different strategies exist for that purpose. However, convergence can still be very slow and acceleration strategies must be applied. Usually, these techniques consist in computing eigenpairs of a transformed operator and then recovering the solution of the original problem. The aim of these transformations is twofold. On one hand, they make it possible to obtain eigenvalues other than those lying in the periphery of the spectrum. On the other hand, the separation of the eigenvalues of interest is improved in the transformed spectrum thus leading to faster convergence. The most commonly used spectral transformation is called shift-and-invert, which works with operator $(A-\sigma I)^{-1}$. It allows the computation of eigenvalues closest to $\sigma$ with very good separation properties. When using this approach, a linear system of equations, $(A-\sigma I)y=x$, must be solved in each iteration of the eigenvalue process.
 
 \paragraph{Preconditioned Eigensolvers.}
 	In many applications, Krylov eigensolvers perform very well because Krylov subspaces are optimal in a certain theoretical sense. However, these methods may not be appropriate in some situations such as the computation of interior eigenvalues. The spectral transformation mentioned above may not be a viable solution or it may be too costly. For these reasons, other types of eigensolvers such as Davidson and Jacobi-Davidson rely on a different way of expanding the subspace. Instead of satisfying the Krylov relation, these methods compute the new basis vector by the so-called correction equation. The resulting subspace may be richer in the direction of the desired eigenvectors. These solvers may be competitive especially for computing interior eigenvalues. From a practical point of view, the correction equation may be seen as a cheap replacement for the shift-and-invert system of equations, $(A-\sigma I)y=x$. By cheap we mean that it may be solved inaccurately without compromising robustness, via a preconditioned iterative linear solver. For this reason, these are known as \emph{preconditioned} eigensolvers.
@@ -233,7 +233,7 @@ The special case of computing all eigenvalues in an interval is discussed in \S\
 	\end{Verbatim}
 which is equivalent to \Verb!-eps_interval <a,b>!.
 
-There is also support for specifying a region of the complex plane so that the eigensolver finds eigenvalues within that region only. This possibility is described in \S\ref{sec:region}.
+There is also support for specifying a region of the complex plane so that the eigensolver finds eigenvalues within that region only. This possibility is described in \S\ref{sec:region}. If \emph{all} eigenvalues inside the region are required, then a contour-integral method must be used, as described in \hyperlink{str}{[STR-11]}.
 
 Finally, we mention the possibility of defining an arbitrary sorting criterion by means of \texttt{EPS\_WHICH\_USER} in combination with \ident{EPSSetEigenvalueComparison}.
 
@@ -251,7 +251,7 @@ Finally, we mention the possibility of defining an arbitrary sorting criterion b
 \texttt{EPS\_TARGET\_MAGNITUDE}    & \texttt{-eps\_target\_magnitude}   & Smallest $|\lambda-\tau|$ \\
 \texttt{EPS\_TARGET\_REAL}         & \texttt{-eps\_target\_real}        & Smallest $|\mathrm{Re}(\lambda-\tau)|$ \\
 \texttt{EPS\_TARGET\_IMAGINARY}    & \texttt{-eps\_target\_imaginary}   & Smallest $|\mathrm{Im}(\lambda-\tau)|$ \\
-\texttt{EPS\_ALL}                  & \texttt{-eps\_all}                 & All $\lambda\in[a,b]$ \\
+\texttt{EPS\_ALL}                  & \texttt{-eps\_all}                 & All $\lambda\in[a,b]$ or $\lambda\in\Omega$\\
 \hline
 \texttt{EPS\_WHICH\_USER}          &                                    & \emph{user-defined} \\\hline
 \end{tabular} }
@@ -386,7 +386,7 @@ Once the call to \ident{EPSSolve} is complete, all the data associated with the 
 	\begin{Verbatim}[fontsize=\small]
 	EPSGetConverged(EPS eps,PetscInt *nconv);
 	\end{Verbatim}
-Usually, the number of converged solutions, \texttt{nconv}, will be equal to \texttt{nev}, but in general it will be a number ranging from 0 to \texttt{ncv} (here, \texttt{nev} and \texttt{ncv} are the arguments of function \ident{EPSSetDimensions}).
+Usually, the number of converged solutions, \texttt{nconv}, will be equal to \texttt{nev}, but in general it can be a number ranging from 0 to \texttt{ncv} (here, \texttt{nev} and \texttt{ncv} are the arguments of function \ident{EPSSetDimensions}).
 
 \subsection{The Computed Solution}
 
@@ -397,7 +397,7 @@ Usually, the number of converged solutions, \texttt{nconv}, will be equal to \te
                         Vec xr,Vec xi);
 	\end{Verbatim}
 returns the $j$-th computed eigenvalue/eigenvector pair. Typically, this function is called inside a loop for each value of \texttt{j} from 0 to \texttt{nconv}--1. Note that eigenvalues are ordered according to the same criterion specified with function \ident{EPSSetWhichEigenpairs} for selecting the portion of the spectrum of interest.
-	The meaning of the last 4 parameters depends on whether \slepc has been compiled for real or complex scalars, as detailed below. The eigenvectors are normalized so that they have a unit 2-norm, except for problem type \ident{EPS\_GHEP} in which case returned eigenvectors have a unit $B$-norm.
+	The meaning of the last 4 arguments depends on whether \slepc has been compiled for real or complex scalars, as detailed below. The eigenvectors are normalized so that they have a unit 2-norm, except for problem type \ident{EPS\_GHEP} in which case returned eigenvectors have a unit $B$-norm.
 
 \paragraph{Real \slepc.} In this case, all \texttt{Mat} and \texttt{Vec} objects are real. The computed approximate solution returned by the function \ident{EPSGetEigenpair} is stored in the following way: \texttt{kr} and \texttt{ki} contain the real and imaginary parts of the eigenvalue, respectively, and \texttt{xr} and \texttt{xi} contain the associated eigenvector. Two cases can be distinguished:
 
@@ -492,9 +492,9 @@ or with \Verb!-eps_true_residual!.
 {\small \begin{tabular}{llll}
 Convergence criterion    & \texttt{EPSConv}         & Command line key          & Error bound \\\hline
 Absolute                 & \texttt{EPS\_CONV\_ABS}  & \texttt{-eps\_conv\_abs}  & $\|r\|$ \\
-Relative to eigenvalue   & \texttt{EPS\_CONV\_EIG}  & \texttt{-eps\_conv\_eig}  & $\|r\|/|\lambda|$ \\
+Relative to eigenvalue   & \texttt{EPS\_CONV\_REL}  & \texttt{-eps\_conv\_rel}  & $\|r\|/|\lambda|$ \\
 Relative to matrix norms & \texttt{EPS\_CONV\_NORM} & \texttt{-eps\_conv\_norm} & $\|r\|/(\|A\|+|\lambda|\|B\|)$ \\
-User-defined             & \texttt{EPS\_USER}       & \texttt{-eps\_conv\_user} & user function \\
+User-defined             & \texttt{EPS\_CONV\_USER} & \texttt{-eps\_conv\_user} & user function \\
 \hline
 \end{tabular} }
 \caption{\label{tab:convergence}Available possibilities for the convergence criterion.}
@@ -577,7 +577,7 @@ Note that several monitors can be used at the same time.
 
 The computed solution (eigenvalues and eigenvectors) can be viewed in different ways, exploiting the flexibility of \ident{PetscViewer}s. The API functions for this are \ident{EPSValuesView} and \ident{EPSVectorsView}. We next illustrate their usage via the command line.
 
-The command-line option \Verb!-eps_view_values! shows the computed eigenvalues on the standard output after \ident{EPSSolve}. It admits an argument to specify \ident{PetscViewer} options, for instance the following will create a Matlab command file \texttt{myeigenvalues.m} to load the eigenvalues in Matlab:
+The command-line option \Verb!-eps_view_values! shows the computed eigenvalues on the standard output at the end of \ident{EPSSolve}. It admits an argument to specify \ident{PetscViewer} options, for instance the following will create a Matlab command file \texttt{myeigenvalues.m} to load the eigenvalues in Matlab:
 \begin{Verbatim}[fontsize=\footnotesize,numbers=none]
    $ ./ex1 -n 120 -eps_nev 8 -eps_view_values :myeigenvalues.m:ascii_matlab
 \end{Verbatim}
@@ -672,7 +672,7 @@ The value \texttt{n} indicates how many vectors are passed in argument \texttt{d
 \subsection{Specifying a Region for Filtering}
 \label{sec:region}
 
-Some solvers in \ident{EPS} (and other solver classes as well) can take into consideration a user-defined region of the complex plane, e.g., an ellipse centered at the origin. A region can be used for two purposes:
+Some solvers in \ident{EPS} (and other solver classes as well) can take into consideration a user-defined region of the complex plane, e.g., an ellipse. A region can be used for two purposes:
 \begin{itemize}
 \setlength{\itemsep}{0pt}
 \item To instruct the eigensolver to compute all eigenvalues lying in that region. This is available only in eigensolvers based on the contour integral technique (\texttt{EPSCISS}).

@@ -33,7 +33,7 @@
   pdfkeywords={SLEPc, PETSc, eigenvalue problems}
 }
 
-\newcommand{\slepcversion}{3.6}
+\newcommand{\slepcversion}{3.7}
 \newcommand{\slepchome}{http://slepc.upv.es}
 \newcommand{\pack}[1]{{\sc #1}\index{\textsc{#1}}\xspace}
 \newcommand{\packnoi}[1]{{\sc #1}\xspace}
@@ -112,7 +112,7 @@
 
 \date{
 	To be used with \slepc \slepcversion\\
-	June, 2015
+	May, 2016
 }
 
 {
@@ -139,7 +139,7 @@
 
 	The emphasis of the software is on methods and techniques appropriate for problems in which the associated matrices are large and sparse, for example, those arising after the discretization of partial differential equations. Thus, most of the methods offered by the library are projection methods, including different variants of Krylov and Davidson iterations. In addition to its own solvers, \slepc provides transparent access to some external software packages such as \packnoi{arpack}. These packages are optional and their installation is not required to use \slepc, see \S\ref{sec:wrap} for details. Apart from the solvers, \slepc also provides built-in support for some operations commonly used in the context of eigenvalue computations, such as preconditioning or the shift-and-invert spectral transformation.
 
-	\slepc is built on top of \packnoi{pets\rm c}, the Portable, Extensible Toolkit for Scientific Computation \citep{Balay:2015:PUM}. It can be considered an extension of \packnoi{pets\rm c} providing all the functionality necessary for the solution of eigenvalue problems. This means that \packnoi{pets\rm c} must be previously installed in order to use \slepc. \packnoi{pets\rm c} users will find \slepc very easy to use, since it enforces the same programming paradigm. Those readers that are not acquainted with \packnoi{pets\rm c} are highly recommended to familiarize with it before proceeding with \slepc.
+	\slepc is built on top of \packnoi{pets\rm c}, the Portable, Extensible Toolkit for Scientific Computation \citep{Balay:2016:PUM}. It can be considered an extension of \packnoi{pets\rm c} providing all the functionality necessary for the solution of eigenvalue problems. This means that \packnoi{pets\rm c} must be previously installed in order to use \slepc. \packnoi{pets\rm c} users will find \slepc very easy to use, since it enforces the same programming paradigm. Those readers that are not acquainted with \packnoi{pets\rm c} are highly recommended to familiarize with it before proceeding with \slepc.
 
 
 \subsubsection*{How to Get \slepc}
@@ -167,9 +167,7 @@
 The major changes in the Users Manual with respect to the previous version are:
 \begin{itemize}
 \setlength{\itemsep}{-2pt}
-\item Command-line options to view the computed solution have been added, \S\ref{sec:epsviewers}.
-\item The description of spectrum slicing \S\ref{sec:slice} now includes usage with multi-communicators.
-\item The description of \texttt{FN} and \texttt{RG} has been extended, see \S\ref{sec:sys}.
+\item Several updates throughout the document.
 \end{itemize}
 
 \subsubsection*{\slepc Technical Reports}
@@ -199,7 +197,7 @@ Starting from version 3.0.0, \slepc is released under the GNU LGPL license. Deta
 
 \begin{quote}
 \begin{sffamily}
-Copyright 2002--2015 Universitat Polit\`ecnica de Valencia, Spain
+Copyright 2002--2016 Universitat Polit\`ecnica de Valencia, Spain
 \end{sffamily}
 \end{quote}
 
@@ -284,6 +282,7 @@ Matrix function (action of)   & $y=f(A)v$   & \texttt{MFN} & \ref{cap:mfn} \\\hl
 \item[\textrm{\sffamily[STR-8]}] V. Hern\'andez, J. E. Rom\'an, A. Tom\'as. ``Restarted Lanczos Bidiagonalization for the SVD in \slepc.'' 
 \item[\textrm{\sffamily[STR-9]}] J. E. Rom\'an. ``Practical Implementation of Harmonic Krylov-Schur.'' 
 \item[\textrm{\sffamily[STR-10]}] M. E. Hochstenbach, E. Romero, J. E. Roman. ``Davidson Type Subspace Expansions for the Linear Eigenvalue Problem.'' 
+\item[\textrm{\sffamily[STR-11]}] Y. Maeda, T. Sakurai, J. E. Roman. ``Contour Integral Spectrum Slicing Method in SLEPc.'' 
 \end{list}
 }
 
