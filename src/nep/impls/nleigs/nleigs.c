@@ -177,7 +177,7 @@ static PetscErrorCode NEPNLEIGSEvalNRTFunct(NEP nep,PetscInt k,PetscScalar sigma
 
 #undef __FUNCT__
 #define __FUNCT__ "MatMult_Fun"
-PetscErrorCode MatMult_Fun(Mat A,Vec x,Vec y)
+static PetscErrorCode MatMult_Fun(Mat A,Vec x,Vec y)
 {
   PetscErrorCode ierr;
   ShellMatCtx    *ctx;
@@ -196,7 +196,7 @@ PetscErrorCode MatMult_Fun(Mat A,Vec x,Vec y)
 
 #undef __FUNCT__
 #define __FUNCT__ "MatMultTranspose_Fun"
-PetscErrorCode MatMultTranspose_Fun(Mat A,Vec x,Vec y)
+static PetscErrorCode MatMultTranspose_Fun(Mat A,Vec x,Vec y)
 {
   PetscErrorCode ierr;
   ShellMatCtx    *ctx;
@@ -215,7 +215,7 @@ PetscErrorCode MatMultTranspose_Fun(Mat A,Vec x,Vec y)
 
 #undef __FUNCT__
 #define __FUNCT__ "MatGetDiagonal_Fun"
-PetscErrorCode MatGetDiagonal_Fun(Mat A,Vec diag)
+static PetscErrorCode MatGetDiagonal_Fun(Mat A,Vec diag)
 {
   PetscErrorCode ierr;
   ShellMatCtx    *ctx;
@@ -234,7 +234,7 @@ PetscErrorCode MatGetDiagonal_Fun(Mat A,Vec diag)
 
 #undef __FUNCT__
 #define __FUNCT__ "MatDuplicate_Fun"
-PetscErrorCode MatDuplicate_Fun(Mat A,MatDuplicateOption op,Mat *B)
+static PetscErrorCode MatDuplicate_Fun(Mat A,MatDuplicateOption op,Mat *B)
 {
   PetscInt       n,i;
   ShellMatCtx    *ctxnew,*ctx;
@@ -270,7 +270,7 @@ PetscErrorCode MatDuplicate_Fun(Mat A,MatDuplicateOption op,Mat *B)
 
 #undef __FUNCT__
 #define __FUNCT__ "MatDestroy_Fun"
-PetscErrorCode MatDestroy_Fun(Mat A)
+static PetscErrorCode MatDestroy_Fun(Mat A)
 {
   ShellMatCtx    *ctx;
   PetscErrorCode ierr;
@@ -290,7 +290,7 @@ PetscErrorCode MatDestroy_Fun(Mat A)
 
 #undef __FUNCT__
 #define __FUNCT__ "MatAXPY_Fun"
-PetscErrorCode MatAXPY_Fun(Mat Y,PetscScalar a,Mat X,MatStructure str)
+static PetscErrorCode MatAXPY_Fun(Mat Y,PetscScalar a,Mat X,MatStructure str)
 {
   ShellMatCtx    *ctxY,*ctxX;
   PetscErrorCode ierr;
@@ -319,7 +319,7 @@ PetscErrorCode MatAXPY_Fun(Mat Y,PetscScalar a,Mat X,MatStructure str)
 
 #undef __FUNCT__
 #define __FUNCT__ "MatScale_Fun"
-PetscErrorCode MatScale_Fun(Mat M,PetscScalar a)
+static PetscErrorCode MatScale_Fun(Mat M,PetscScalar a)
 {
   ShellMatCtx    *ctx;
   PetscErrorCode ierr;
@@ -1006,7 +1006,7 @@ static PetscErrorCode NEPNLEIGSTOARrun(NEP nep,PetscInt *nq,PetscScalar *S,Petsc
 #undef __FUNCT__
 #define __FUNCT__ "NEPTOARTrunc"
 /* dim(work)=5*ld*lds dim(rwork)=6*n */
-PetscErrorCode NEPTOARTrunc(NEP nep,PetscScalar *S,PetscInt ld,PetscInt deg,PetscInt *nq,PetscInt cs1,PetscScalar *work,PetscReal *rwork)
+static PetscErrorCode NEPTOARTrunc(NEP nep,PetscScalar *S,PetscInt ld,PetscInt deg,PetscInt *nq,PetscInt cs1,PetscScalar *work,PetscReal *rwork)
 {
   PetscErrorCode ierr;
   PetscInt       lwa,nwu=0,nrwu=0;
@@ -1079,7 +1079,7 @@ PetscErrorCode NEPTOARTrunc(NEP nep,PetscScalar *S,PetscInt ld,PetscInt deg,Pets
   size(Q) qr x ncu
   dim(work)=sr*ncu
 */
-PetscErrorCode NEPTOARSupdate(PetscScalar *S,PetscInt ld,PetscInt deg,PetscInt sr,PetscInt s,PetscInt ncu,PetscInt qr,PetscScalar *Q,PetscInt ldq,PetscScalar *work)
+static PetscErrorCode NEPTOARSupdate(PetscScalar *S,PetscInt ld,PetscInt deg,PetscInt sr,PetscInt s,PetscInt ncu,PetscInt qr,PetscScalar *Q,PetscInt ldq,PetscScalar *work)
 {
   PetscErrorCode ierr;
   PetscScalar    a=1.0,b=0.0;
