@@ -104,14 +104,6 @@ PetscErrorCode PEPView(PEP pep,PetscViewer viewer)
         ierr = PetscViewerASCIIPrintf(viewer,"  scalar & diagonal balancing enabled, with scaling factor=%g, its=%D and lambda=%g\n",(double)pep->sfactor,pep->sits,(double)pep->slambda);CHKERRQ(ierr);
         break;
     }
-    ierr = PetscViewerASCIIPrintf(viewer,"  extraction type: %s\n",PEPExtractTypes[pep->extract]);CHKERRQ(ierr);
-    if (pep->refine) {
-      ierr = PetscViewerASCIIPrintf(viewer,"  iterative refinement: %s, with %s scheme\n",PEPRefineTypes[pep->refine],PEPRefineSchemes[pep->scheme]);CHKERRQ(ierr);
-      ierr = PetscViewerASCIIPrintf(viewer,"  refinement stopping criterion: tol=%g, its=%D\n",(double)pep->rtol,pep->rits);CHKERRQ(ierr);
-      if (pep->npart>1) {
-        ierr = PetscViewerASCIIPrintf(viewer,"  splitting communicator in %D partitions for refinement\n",pep->npart);CHKERRQ(ierr);
-      }
-    }
     ierr = PetscViewerASCIIPrintf(viewer,"  selected portion of the spectrum: ");CHKERRQ(ierr);
     ierr = SlepcSNPrintfScalar(str,50,pep->target,PETSC_FALSE);CHKERRQ(ierr);
     if (!pep->which) {
@@ -172,6 +164,14 @@ PetscErrorCode PEPView(PEP pep,PetscViewer viewer)
       break;
     case PEP_CONV_USER:
       ierr = PetscViewerASCIIPrintf(viewer,"user-defined\n");CHKERRQ(ierr);break;
+    }
+    ierr = PetscViewerASCIIPrintf(viewer,"  extraction type: %s\n",PEPExtractTypes[pep->extract]);CHKERRQ(ierr);
+    if (pep->refine) {
+      ierr = PetscViewerASCIIPrintf(viewer,"  iterative refinement: %s, with %s scheme\n",PEPRefineTypes[pep->refine],PEPRefineSchemes[pep->scheme]);CHKERRQ(ierr);
+      ierr = PetscViewerASCIIPrintf(viewer,"  refinement stopping criterion: tol=%g, its=%D\n",(double)pep->rtol,pep->rits);CHKERRQ(ierr);
+      if (pep->npart>1) {
+        ierr = PetscViewerASCIIPrintf(viewer,"  splitting communicator in %D partitions for refinement\n",pep->npart);CHKERRQ(ierr);
+      }
     }
     if (pep->nini) {
       ierr = PetscViewerASCIIPrintf(viewer,"  dimension of user-provided initial space: %D\n",PetscAbs(pep->nini));CHKERRQ(ierr);
