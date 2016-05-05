@@ -58,142 +58,17 @@ typedef struct {
   PetscBool      trueres;   /* whether the true residual norm must be computed */
   PetscInt       idxrk;     /* index of next shift to use */
   KSP            *ksps;     /* ksp array for storing shift factorizations */
+  Vec            vrn;       /* random vector with normally distributed value */
   void           *singularitiesctx;
   PetscErrorCode (*computesingularities)(NEP,PetscInt*,PetscScalar*,void*);
 } NEP_NLEIGS;
 
-#if 0
-#undef __FUNCT__
-#define __FUNCT__ "NEPNLEIGSCheckRKRelation"
-static PetscErrorCode NEPNLEIGSCheckRKRelation(NEP nep,PetscInt k,PetscScalar *S,PetscInt ld,PetscInt nq,PetscReal *err,PetscReal *orth)
-/*  
-   W = kron(I_d,V)*S, orth = max(norm(V'*V-eye)_F,norm(S'*S-eye)_F)
-   res = norm(A*W*H-B*W*K)_F
-*/
-{
-  PetscErrorCode ierr;
-  NEP_NLEIGS     *ctx = (NEP_NLEIGS*)nep->data;
-  BV             V=nep->V,U,W;
-  Vec            v,w,q,qq;
-  PetscInt       i,j,ii,deg,ldds,lds;
-  PetscScalar    *dots,*s,sone=1.0,zero=0.0,*H,*K,*pM,*mM;
-  PetscReal      norm,acc=0.0;
-  PetscBLASInt   one=1,lds_,k2_;
-  Mat            M,T;
-
-  PetscFunctionBegin;
-  deg = ctx->nmat-1;
-  lds = ld*deg;
-  if (orth) {
-    ierr = BVSetActiveColumns(V,0,nq);CHKERRQ(ierr);
-    ierr = PetscMalloc1(nq,&dots);
-    for (i=0;i<nq;i++) {
-      ierr = BVDotColumn(nep->V,i,dots);CHKERRQ(ierr);
-      for (j=0;j<i;j++) acc += PetscAbsScalar(dots[j]);
-      ierr =  BVNormColumn(nep->V,i,NORM_2,&norm);CHKERRQ(ierr);
-      acc += (norm-1)*(norm-1);
-    }
-    *orth = acc;
-    acc = 0.0;
-    ierr = PetscBLASIntCast(ld*deg,&lds_);CHKERRQ(ierr);
-    for (i=0;i<k+1;i++) {
-      for (j=0;j<i;j++) {
-        dots[0] = BLASdot_(&lds_,S+i*lds,&one,S+j*lds,&one);
-        acc += PetscAbsScalar(dots[0]);
-      }
-      norm = BLASnrm2_(&lds_,S+i*lds,&one);
-      acc += (norm-1.0)*(norm-1.0);
-    }
-    *orth = PetscMax(acc,*orth);
-    ierr = PetscFree(dots);
-  }
-  if (err) {
-    acc = 0.0;
-    ierr = PetscMalloc2(ld*deg,&s,nq*deg,&mM);CHKERRQ(ierr);
-    ierr = BVDuplicateResize(V,deg,&U);CHKERRQ(ierr);
-    ierr = BVDuplicate(U,&W);CHKERRQ(ierr);
-    ierr = DSGetLeadingDimension(nep->ds,&ldds);CHKERRQ(ierr);
-    ierr = DSGetArray(nep->ds,DS_MAT_A,&K);CHKERRQ(ierr);
-    ierr = DSGetArray(nep->ds,DS_MAT_B,&H);CHKERRQ(ierr);
-    ierr = PetscBLASIntCast(ld*deg,&lds_);CHKERRQ(ierr);
-    ierr = PetscBLASIntCast(k+2,&k2_);CHKERRQ(ierr);
-    ierr = MatCreateSeqDense(PETSC_COMM_SELF,nq,deg,mM,&M);CHKERRQ(ierr);
-    if (nep->fui==NEP_USER_INTERFACE_SPLIT) {
-      ierr = MatCreateVecs(nep->A[0],NULL,&v);CHKERRQ(ierr);
-    } else {
-      ierr = MatCreateVecs(ctx->D[0],NULL,&v);CHKERRQ(ierr);
-    }
-    ierr = VecDuplicate(v,&w);CHKERRQ(ierr);
-    for (j=0;j<=k;j++) {
-      PetscStackCallBLAS("BLASgemv",BLASgemv_("N",&lds,&k2_,&sone,S,&lds_,H+j*ldds,&one,&zero,s,&one));
-      ierr = MatDenseGetArray(M,&pM);CHKERRQ(ierr);
-      for (i=0;i<deg;i++) {
-        ierr = PetscMemcpy(pM+i*nq,s+i*ld,nq*sizeof(PetscScalar));CHKERRQ(ierr);
-      }
-      ierr = MatDenseRestoreArray(M,&pM);CHKERRQ(ierr);
-      ierr = BVSetActiveColumns(V,0,nq);CHKERRQ(ierr);
-      ierr = BVSetActiveColumns(U,0,deg);CHKERRQ(ierr);
-      ierr = BVMult(U,1.0,0.0,V,M);CHKERRQ(ierr);
-      ierr = VecSet(v,0.0);CHKERRQ(ierr);
-      for (i=0;i<deg;i++) {
-        ierr = BVGetColumn(U,i,&q);CHKERRQ(ierr);
-        if (nep->fui==NEP_USER_INTERFACE_SPLIT) {
-          ierr = MatDuplicate(nep->A[0],MAT_COPY_VALUES,&T);CHKERRQ(ierr);
-          ierr = MatScale(T,ctx->coeffD[i*nep->nt]);CHKERRQ(ierr);
-          for (ii=1;ii<nep->nt;ii++) {
-            ierr = MatAXPY(T,ctx->coeffD[i*nep->nt+ii],nep->A[ii],nep->mstr);CHKERRQ(ierr);
-          }
-          ierr = MatMult(T,q,w);CHKERRQ(ierr);
-          ierr = MatDestroy(&T);CHKERRQ(ierr);
-        } else {
-          ierr = MatMult(ctx->D[i],q,w);CHKERRQ(ierr);
-        }
-        ierr = BVRestoreColumn(U,i,&q);CHKERRQ(ierr);
-        ierr = VecAXPY(v,1.0,w);CHKERRQ(ierr);
-      }
-      for (i=1;i<deg;i++) {
-        ierr = BVGetColumn(U,i,&q);CHKERRQ(ierr);
-        ierr = BVGetColumn(U,i-1,&qq);CHKERRQ(ierr);
-        ierr = VecScale(qq,ctx->s[i-1]);CHKERRQ(ierr);
-        ierr = VecAXPY(qq,ctx->beta[i],q);CHKERRQ(ierr);
-        ierr = BVRestoreColumn(U,i-1,&qq);CHKERRQ(ierr);
-        ierr = BVRestoreColumn(U,i,&q);CHKERRQ(ierr);
-      }
-      ierr = BVInsertVec(U,deg-1,v);CHKERRQ(ierr);
-      PetscStackCallBLAS("BLASgemv",BLASgemv_("N",&lds,&k2_,&sone,S,&lds_,K+j*ldds,&one,&zero,s,&one));
-      ierr = MatDenseGetArray(M,&pM);CHKERRQ(ierr);
-      for (i=0;i<deg;i++) {
-        ierr = PetscMemcpy(pM+i*nq,s+i*ld,nq*sizeof(PetscScalar));CHKERRQ(ierr);
-      }
-      ierr = MatDenseRestoreArray(M,&pM);CHKERRQ(ierr);
-      ierr = BVMult(W,1.0,0.0,V,M);CHKERRQ(ierr);
-      for (i=1;i<deg;i++) {
-        ierr = BVGetColumn(W,i,&q);CHKERRQ(ierr);
-        ierr = BVGetColumn(W,i-1,&qq);CHKERRQ(ierr);
-        ierr = VecAXPY(qq,ctx->beta[i]/ctx->xi[i-1],q);CHKERRQ(ierr);
-        ierr = BVRestoreColumn(W,i-1,&qq);CHKERRQ(ierr);
-        ierr = BVRestoreColumn(W,i,&q);CHKERRQ(ierr);
-      }
-      ierr = BVGetColumn(W,deg-1,&q);CHKERRQ(ierr);
-      ierr = VecSet(q,0.0);CHKERRQ(ierr);
-      ierr = BVRestoreColumn(W,deg-1,&q);CHKERRQ(ierr);
-      ierr = BVAXPY(U,-1.0,W);CHKERRQ(ierr);CHKERRQ(ierr);
-      ierr = BVNorm(U,NORM_FROBENIUS,&norm);CHKERRQ(ierr);
-      acc += norm*norm;
-    }
-    *err = PetscSqrtReal(acc);
-    ierr = DSRestoreArray(nep->ds,DS_MAT_A,&K);CHKERRQ(ierr);
-    ierr = DSRestoreArray(nep->ds,DS_MAT_B,&H);CHKERRQ(ierr);
-    ierr = BVDestroy(&U);CHKERRQ(ierr);
-    ierr = BVDestroy(&W);CHKERRQ(ierr);
-    ierr = VecDestroy(&w);CHKERRQ(ierr);
-    ierr = VecDestroy(&v);CHKERRQ(ierr);
-    ierr = MatDestroy(&M);CHKERRQ(ierr);
-    ierr = PetscFree2(s,mM);CHKERRQ(ierr);
-  }
-  PetscFunctionReturn(0);
-}
-#endif
+typedef struct {
+  PetscInt    nmat;
+  PetscScalar coeff[MAX_NSHIFTS];
+  Mat         A[MAX_NSHIFTS];
+  Vec         t;
+} ShellMatCtx;
 
 #undef __FUNCT__
 #define __FUNCT__ "NEPNLEIGSBackTransform"
@@ -229,7 +104,7 @@ static PetscErrorCode NEPNLEIGSBackTransform(PetscObject ob,PetscInt n,PetscScal
 static PetscErrorCode NEPNLEIGSLejaBagbyPoints(NEP nep)
 {
   PetscErrorCode ierr;
-  NEP_NLEIGS     *ctx = (NEP_NLEIGS*)nep->data;
+  NEP_NLEIGS     *ctx=(NEP_NLEIGS*)nep->data;
   PetscInt       i,k,ndpt=NDPOINTS,ndptx=NDPOINTS;
   PetscScalar    *ds,*dsi,*dxi,*nrs,*nrxi,*s=ctx->s,*xi=ctx->xi,*beta=ctx->beta;
   PetscReal      maxnrs,minnrxi;
@@ -288,7 +163,7 @@ static PetscErrorCode NEPNLEIGSLejaBagbyPoints(NEP nep)
 #define __FUNCT__ "NEPNLEIGSEvalNRTFunct"
 static PetscErrorCode NEPNLEIGSEvalNRTFunct(NEP nep,PetscInt k,PetscScalar sigma,PetscScalar *b)
 {
-  NEP_NLEIGS  *ctx = (NEP_NLEIGS*)nep->data;
+  NEP_NLEIGS  *ctx=(NEP_NLEIGS*)nep->data;
   PetscInt    i;
   PetscScalar *beta=ctx->beta,*s=ctx->s,*xi=ctx->xi;
 
@@ -301,15 +176,244 @@ static PetscErrorCode NEPNLEIGSEvalNRTFunct(NEP nep,PetscInt k,PetscScalar sigma
 }
 
 #undef __FUNCT__
+#define __FUNCT__ "MatMult_Fun"
+static PetscErrorCode MatMult_Fun(Mat A,Vec x,Vec y)
+{
+  PetscErrorCode ierr;
+  ShellMatCtx    *ctx;
+  PetscInt       i;
+
+  PetscFunctionBeginUser;
+  ierr = MatShellGetContext(A,(void**)&ctx);CHKERRQ(ierr);
+  ierr = MatMult(ctx->A[0],x,y);CHKERRQ(ierr);
+  if (ctx->coeff[0]!=1.0) { ierr = VecScale(y,ctx->coeff[0]);CHKERRQ(ierr); }
+  for (i=1;i<ctx->nmat;i++) {
+    ierr = MatMult(ctx->A[i],x,ctx->t);CHKERRQ(ierr);
+    ierr = VecAXPY(y,ctx->coeff[i],ctx->t);CHKERRQ(ierr);
+  }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "MatMultTranspose_Fun"
+static PetscErrorCode MatMultTranspose_Fun(Mat A,Vec x,Vec y)
+{
+  PetscErrorCode ierr;
+  ShellMatCtx    *ctx;
+  PetscInt       i;
+
+  PetscFunctionBeginUser;
+  ierr = MatShellGetContext(A,(void**)&ctx);CHKERRQ(ierr);
+  ierr = MatMultTranspose(ctx->A[0],x,y);CHKERRQ(ierr);
+  if (ctx->coeff[0]!=1.0) { ierr = VecScale(y,ctx->coeff[0]);CHKERRQ(ierr); }
+  for (i=1;i<ctx->nmat;i++) {
+    ierr = MatMultTranspose(ctx->A[i],x,ctx->t);CHKERRQ(ierr);
+    ierr = VecAXPY(y,ctx->coeff[i],ctx->t);CHKERRQ(ierr);
+  }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "MatGetDiagonal_Fun"
+static PetscErrorCode MatGetDiagonal_Fun(Mat A,Vec diag)
+{
+  PetscErrorCode ierr;
+  ShellMatCtx    *ctx;
+  PetscInt       i;
+
+  PetscFunctionBeginUser;
+  ierr = MatShellGetContext(A,(void**)&ctx);CHKERRQ(ierr);
+  ierr = MatGetDiagonal(ctx->A[0],diag);CHKERRQ(ierr);
+  if (ctx->coeff[0]!=1.0) { ierr = VecScale(diag,ctx->coeff[0]);CHKERRQ(ierr); }
+  for (i=1;i<ctx->nmat;i++) {
+    ierr = MatGetDiagonal(ctx->A[i],ctx->t);CHKERRQ(ierr);
+    ierr = VecAXPY(diag,ctx->coeff[i],ctx->t);CHKERRQ(ierr);
+  }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "MatDuplicate_Fun"
+static PetscErrorCode MatDuplicate_Fun(Mat A,MatDuplicateOption op,Mat *B)
+{
+  PetscInt       n,i;
+  ShellMatCtx    *ctxnew,*ctx;
+  void           (*fun)();
+  PetscErrorCode ierr;
+
+  PetscFunctionBeginUser;
+  ierr = MatShellGetContext(A,(void**)&ctx);CHKERRQ(ierr);
+  ierr = PetscNew(&ctxnew);CHKERRQ(ierr);
+  ctxnew->nmat = ctx->nmat;
+  for (i=0;i<ctx->nmat;i++) {
+    ierr = PetscObjectReference((PetscObject)ctx->A[i]);CHKERRQ(ierr);
+    ctxnew->A[i] = ctx->A[i];
+    ctxnew->coeff[i] = ctx->coeff[i];
+  }
+  ierr = MatGetSize(ctx->A[0],&n,NULL);CHKERRQ(ierr);
+  ierr = VecDuplicate(ctx->t,&ctxnew->t);CHKERRQ(ierr);
+  ierr = MatCreateShell(PETSC_COMM_WORLD,n,n,n,n,(void*)ctxnew,B);CHKERRQ(ierr);
+  ierr = MatShellGetOperation(A,MATOP_MULT,&fun);CHKERRQ(ierr);
+  ierr = MatShellSetOperation(*B,MATOP_MULT,fun);CHKERRQ(ierr);
+  ierr = MatShellGetOperation(A,MATOP_MULT_TRANSPOSE,&fun);CHKERRQ(ierr);
+  ierr = MatShellSetOperation(*B,MATOP_MULT_TRANSPOSE,fun);CHKERRQ(ierr);
+  ierr = MatShellGetOperation(A,MATOP_GET_DIAGONAL,&fun);CHKERRQ(ierr);
+  ierr = MatShellSetOperation(*B,MATOP_GET_DIAGONAL,fun);CHKERRQ(ierr);
+  ierr = MatShellGetOperation(A,MATOP_DUPLICATE,&fun);CHKERRQ(ierr);
+  ierr = MatShellSetOperation(*B,MATOP_DUPLICATE,fun);CHKERRQ(ierr);
+  ierr = MatShellGetOperation(A,MATOP_DESTROY,&fun);CHKERRQ(ierr);
+  ierr = MatShellSetOperation(*B,MATOP_DESTROY,fun);CHKERRQ(ierr);
+  ierr = MatShellGetOperation(A,MATOP_AXPY,&fun);CHKERRQ(ierr);
+  ierr = MatShellSetOperation(*B,MATOP_AXPY,fun);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "MatDestroy_Fun"
+static PetscErrorCode MatDestroy_Fun(Mat A)
+{
+  ShellMatCtx    *ctx;
+  PetscErrorCode ierr;
+  PetscInt       i;
+
+  PetscFunctionBeginUser;
+  if (A) {
+    ierr = MatShellGetContext(A,(void**)&ctx);CHKERRQ(ierr);
+    for (i=0;i<ctx->nmat;i++) {
+      ierr = MatDestroy(&ctx->A[i]);CHKERRQ(ierr);
+    }
+    ierr = VecDestroy(&ctx->t);CHKERRQ(ierr);
+    ierr = PetscFree(ctx);CHKERRQ(ierr);
+  }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "MatAXPY_Fun"
+static PetscErrorCode MatAXPY_Fun(Mat Y,PetscScalar a,Mat X,MatStructure str)
+{
+  ShellMatCtx    *ctxY,*ctxX;
+  PetscErrorCode ierr;
+  PetscInt       i,j;
+  PetscBool      found;
+
+  PetscFunctionBeginUser;
+  ierr = MatShellGetContext(Y,(void**)&ctxY);CHKERRQ(ierr);
+  ierr = MatShellGetContext(X,(void**)&ctxX);CHKERRQ(ierr);
+  for (i=0;i<ctxX->nmat;i++) {
+    found = PETSC_FALSE;
+    for (j=0;!found&&j<ctxY->nmat;j++) {
+      if (ctxX->A[i]==ctxY->A[j]) {
+        found = PETSC_TRUE;
+        ctxY->coeff[j] += a*ctxX->coeff[i];
+      }
+    }
+    if (!found) {
+      ctxY->coeff[ctxY->nmat] = a*ctxX->coeff[i];
+      ctxY->A[ctxY->nmat++] = ctxX->A[i];
+      ierr = PetscObjectReference((PetscObject)ctxX->A[i]);CHKERRQ(ierr);
+    }
+  }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "MatScale_Fun"
+static PetscErrorCode MatScale_Fun(Mat M,PetscScalar a)
+{
+  ShellMatCtx    *ctx;
+  PetscErrorCode ierr;
+  PetscInt       i;
+
+  PetscFunctionBeginUser;
+  ierr = MatShellGetContext(M,(void**)&ctx);CHKERRQ(ierr);
+  for (i=0;i<ctx->nmat;i++) ctx->coeff[i] *= a;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "NLEIGSMatToMatShellArray"
+static PetscErrorCode NLEIGSMatToMatShellArray(Mat M,Mat *Ms)
+{
+  PetscErrorCode ierr;
+  ShellMatCtx    *ctx;
+  PetscInt       n;
+  PetscBool      has;
+  
+  PetscFunctionBegin;
+  ierr = MatHasOperation(M,MATOP_DUPLICATE,&has);CHKERRQ(ierr);
+  if (!has) SETERRQ(PetscObjectComm((PetscObject)M),1,"MatDuplicate operation required");
+  ierr = PetscNew(&ctx);CHKERRQ(ierr);
+  ierr = MatDuplicate(M,MAT_COPY_VALUES,&ctx->A[0]);CHKERRQ(ierr);
+  ctx->nmat = 1;
+  ctx->coeff[0] = 1.0;
+  ierr = MatCreateVecs(M,&ctx->t,NULL);CHKERRQ(ierr);
+  ierr = MatGetSize(M,&n,NULL);CHKERRQ(ierr);
+  ierr = MatCreateShell(PetscObjectComm((PetscObject)M),n,n,n,n,(void*)ctx,Ms);CHKERRQ(ierr);
+  ierr = MatShellSetOperation(*Ms,MATOP_MULT,(void(*)())MatMult_Fun);CHKERRQ(ierr);
+  ierr = MatShellSetOperation(*Ms,MATOP_MULT_TRANSPOSE,(void(*)())MatMultTranspose_Fun);CHKERRQ(ierr);
+  ierr = MatShellSetOperation(*Ms,MATOP_GET_DIAGONAL,(void(*)())MatGetDiagonal_Fun);CHKERRQ(ierr);
+  ierr = MatShellSetOperation(*Ms,MATOP_DUPLICATE,(void(*)())MatDuplicate_Fun);CHKERRQ(ierr);
+  ierr = MatShellSetOperation(*Ms,MATOP_DESTROY,(void(*)())MatDestroy_Fun);CHKERRQ(ierr);
+  ierr = MatShellSetOperation(*Ms,MATOP_AXPY,(void(*)())MatAXPY_Fun);CHKERRQ(ierr);
+  ierr = MatShellSetOperation(*Ms,MATOP_SCALE,(void(*)())MatScale_Fun);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "NEPNLEIGSNormEstimation"
+static PetscErrorCode NEPNLEIGSNormEstimation(NEP nep,Mat M,PetscReal *norm,Vec *w)
+{
+  PetscScalar    *z,*x,*y;
+  PetscReal      tr;
+  Vec            X=w[0],Y=w[1];
+  PetscInt       n,i;
+  NEP_NLEIGS     *ctx=(NEP_NLEIGS*)nep->data;
+  PetscErrorCode ierr;
+  
+  PetscFunctionBegin;
+  if (!ctx->vrn) {
+    /* generate a random vector with normally distributed entries with the Box-Muller transform */
+    ierr = MatCreateVecs(M,&ctx->vrn,NULL);CHKERRQ(ierr);
+    ierr = VecSetRandom(X,nep->rand);CHKERRQ(ierr);
+    ierr = VecSetRandom(Y,nep->rand);CHKERRQ(ierr);
+    ierr = VecGetLocalSize(ctx->vrn,&n);CHKERRQ(ierr);
+    ierr = VecGetArray(ctx->vrn,&z);CHKERRQ(ierr);
+    ierr = VecGetArray(X,&x);CHKERRQ(ierr);
+    ierr = VecGetArray(Y,&y);CHKERRQ(ierr);
+    for (i=0;i<n;i++) {
+#if defined(PETSC_USE_COMPLEX)
+      z[i] = PetscSqrtReal(-2.0*PetscLogReal(PetscRealPart(x[i])))*PetscCosReal(2.0*PETSC_PI*PetscRealPart(y[i]));
+      z[i] += PETSC_i*(PetscSqrtReal(-2.0*PetscLogReal(PetscImaginaryPart(x[i])))*PetscCosReal(2.0*PETSC_PI*PetscImaginaryPart(y[i])));
+#else
+      z[i] = PetscSqrtReal(-2.0*PetscLogReal(x[i]))*PetscCosReal(2.0*PETSC_PI*y[i]);
+#endif
+    }
+    ierr = VecRestoreArray(ctx->vrn,&z);CHKERRQ(ierr);
+    ierr = VecRestoreArray(X,&x);CHKERRQ(ierr);
+    ierr = VecRestoreArray(Y,&y);CHKERRQ(ierr);
+    ierr = VecNorm(ctx->vrn,NORM_2,&tr);CHKERRQ(ierr);
+    ierr = VecScale(ctx->vrn,1/tr);CHKERRQ(ierr);
+  }
+  /* matrix-free norm estimator of Ipsen http://www4.ncsu.edu/~ipsen/ps/slides_ima.pdf */
+  ierr = MatGetSize(M,&n,NULL);CHKERRQ(ierr);
+  ierr = MatMult(M,ctx->vrn,X);CHKERRQ(ierr);
+  ierr = VecNorm(X,NORM_2,norm);CHKERRQ(ierr);
+  *norm *= PetscSqrtReal(n);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
 #define __FUNCT__ "NEPNLEIGSDividedDifferences_split"
 static PetscErrorCode NEPNLEIGSDividedDifferences_split(NEP nep)
 {
   PetscErrorCode ierr;
-  NEP_NLEIGS     *ctx = (NEP_NLEIGS*)nep->data;
+  NEP_NLEIGS     *ctx=(NEP_NLEIGS*)nep->data;
   PetscInt       k,j,i;
   PetscReal      norm0,norm,max;
   PetscScalar    *s=ctx->s,*beta=ctx->beta,*b,alpha,*coeffs;
-  Mat            T;
+  Mat            T,Ts;
+  PetscBool      shell;
 
   PetscFunctionBegin;
   ierr = PetscMalloc1(nep->nt*ctx->ddmaxit,&ctx->coeffD);CHKERRQ(ierr);
@@ -339,16 +443,27 @@ static PetscErrorCode NEPNLEIGSDividedDifferences_split(NEP nep)
       break;
     } 
   }
+  ierr = PetscObjectTypeCompare((PetscObject)nep->A[0],MATSHELL,&shell);CHKERRQ(ierr);
   for (i=0;i<ctx->nshiftsw;i++) {
     ierr = NEPNLEIGSEvalNRTFunct(nep,ctx->nmat,ctx->shifts[i],coeffs);CHKERRQ(ierr);
-    ierr = MatDuplicate(nep->A[0],MAT_COPY_VALUES,&T);CHKERRQ(ierr);
+    if (!shell) {
+      ierr = MatDuplicate(nep->A[0],MAT_COPY_VALUES,&T);CHKERRQ(ierr);
+    } else {
+      ierr = NLEIGSMatToMatShellArray(nep->A[0],&T);CHKERRQ(ierr);
+    }
     alpha = 0.0;
     for (j=0;j<ctx->nmat-1;j++) alpha += coeffs[j]*ctx->coeffD[j*nep->nt];
     ierr = MatScale(T,alpha);CHKERRQ(ierr);
     for (k=1;k<nep->nt;k++) {
       alpha = 0.0;
       for (j=0;j<ctx->nmat-1;j++) alpha += coeffs[j]*ctx->coeffD[j*nep->nt+k];
-      ierr = MatAXPY(T,alpha,nep->A[k],nep->mstr);CHKERRQ(ierr);
+      if (shell) {
+        ierr = NLEIGSMatToMatShellArray(nep->A[k],&Ts);CHKERRQ(ierr);
+      }
+      ierr = MatAXPY(T,alpha,shell?Ts:nep->A[k],nep->mstr);CHKERRQ(ierr);
+      if (shell) {
+        ierr = MatDestroy(&Ts);CHKERRQ(ierr);
+      }
     }
     ierr = KSPSetOperators(ctx->ksps[i],T,T);CHKERRQ(ierr);
     ierr = KSPSetUp(ctx->ksps[i]);CHKERRQ(ierr);
@@ -363,31 +478,60 @@ static PetscErrorCode NEPNLEIGSDividedDifferences_split(NEP nep)
 static PetscErrorCode NEPNLEIGSDividedDifferences_callback(NEP nep)
 {
   PetscErrorCode ierr;
-  NEP_NLEIGS     *ctx = (NEP_NLEIGS*)nep->data;
+  NEP_NLEIGS     *ctx=(NEP_NLEIGS*)nep->data;
   PetscInt       k,j,i;
   PetscReal      norm0,norm;
   PetscScalar    *s=ctx->s,*beta=ctx->beta,*b,*coeffs;
   Mat            *D=ctx->D,T;
+  PetscBool      shell,has,vec=PETSC_FALSE;
+  Vec            w[2];
 
   PetscFunctionBegin;
   ierr = PetscMalloc2(ctx->ddmaxit+1,&b,ctx->ddmaxit+1,&coeffs);CHKERRQ(ierr);
   T = nep->function;
   ierr = NEPComputeFunction(nep,s[0],T,T);CHKERRQ(ierr);
-  ierr = MatDuplicate(T,MAT_COPY_VALUES,&D[0]);CHKERRQ(ierr);
+  ierr = PetscObjectTypeCompare((PetscObject)T,MATSHELL,&shell);CHKERRQ(ierr);
+  if (!shell) {
+    ierr = MatDuplicate(T,MAT_COPY_VALUES,&D[0]);CHKERRQ(ierr);
+  } else {
+    ierr = NLEIGSMatToMatShellArray(T,&D[0]);CHKERRQ(ierr);
+  }
   if (beta[0]!=1.0) {
     ierr = MatScale(D[0],1.0/beta[0]);CHKERRQ(ierr);
   }
-  ierr = MatNorm(D[0],NORM_FROBENIUS,&norm0);CHKERRQ(ierr);
+  ierr = MatHasOperation(D[0],MATOP_NORM,&has);CHKERRQ(ierr);
+  if (has) {
+    ierr = MatNorm(D[0],NORM_FROBENIUS,&norm0);CHKERRQ(ierr);
+  } else {
+    ierr = MatCreateVecs(D[0],NULL,&w[0]);CHKERRQ(ierr);
+    ierr = VecDuplicate(w[0],&w[1]);CHKERRQ(ierr);
+    vec = PETSC_TRUE;
+    ierr = NEPNLEIGSNormEstimation(nep,D[0],&norm0,w);CHKERRQ(ierr);
+  }
   ctx->nmat = ctx->ddmaxit;
   for (k=1;k<ctx->ddmaxit;k++) {
     ierr = NEPNLEIGSEvalNRTFunct(nep,k,s[k],b);CHKERRQ(ierr);
     ierr = NEPComputeFunction(nep,s[k],T,T);CHKERRQ(ierr);
-    ierr = MatDuplicate(T,MAT_COPY_VALUES,&D[k]);CHKERRQ(ierr);
+    if (!shell) {
+      ierr = MatDuplicate(T,MAT_COPY_VALUES,&D[k]);CHKERRQ(ierr);
+    } else {
+      ierr = NLEIGSMatToMatShellArray(T,&D[k]);CHKERRQ(ierr);
+    }
     for (j=0;j<k;j++) {
       ierr = MatAXPY(D[k],-b[j],D[j],nep->mstr);CHKERRQ(ierr);
     }
     ierr = MatScale(D[k],1.0/b[k]);CHKERRQ(ierr);
-    ierr = MatNorm(D[k],NORM_FROBENIUS,&norm);CHKERRQ(ierr);
+    ierr = MatHasOperation(D[k],MATOP_NORM,&has);CHKERRQ(ierr);
+    if (has) {
+      ierr = MatNorm(D[k],NORM_FROBENIUS,&norm);CHKERRQ(ierr);
+    } else {
+      if(!vec) {
+        ierr = MatCreateVecs(D[k],NULL,&w[0]);CHKERRQ(ierr);
+        ierr = VecDuplicate(w[0],&w[1]);CHKERRQ(ierr);
+        vec = PETSC_TRUE;
+      }
+      ierr = NEPNLEIGSNormEstimation(nep,D[k],&norm,w);CHKERRQ(ierr);
+    }
     if (norm/norm0 < ctx->ddtol) {
       ctx->nmat = k+1; /* increment (the last matrix is not used) */
       ierr = MatDestroy(&D[k]);CHKERRQ(ierr);
@@ -406,6 +550,10 @@ static PetscErrorCode NEPNLEIGSDividedDifferences_callback(NEP nep)
     ierr = MatDestroy(&T);CHKERRQ(ierr);
   }
   ierr = PetscFree2(b,coeffs);CHKERRQ(ierr);
+  if (vec) {
+    ierr = VecDestroy(&w[0]);CHKERRQ(ierr);  
+    ierr = VecDestroy(&w[1]);CHKERRQ(ierr);  
+  }
   PetscFunctionReturn(0);
 }
 
@@ -414,7 +562,7 @@ static PetscErrorCode NEPNLEIGSDividedDifferences_callback(NEP nep)
 static PetscErrorCode NEPNLEIGSRitzVector(NEP nep,PetscScalar *S,PetscInt ld,PetscInt nq,PetscScalar *H,PetscInt k,Vec t)
 {
   PetscErrorCode ierr;
-  NEP_NLEIGS     *ctx = (NEP_NLEIGS*)nep->data;
+  NEP_NLEIGS     *ctx=(NEP_NLEIGS*)nep->data;
   PetscInt       deg=ctx->nmat-1,ldds,n;
   PetscBLASInt   nq_,lds_,n_,one=1,ldds_;
   PetscScalar    sone=1.0,zero=0.0,*x,*y,*X;
@@ -449,8 +597,8 @@ static PetscErrorCode NEPNLEIGSKrylovConvergence(NEP nep,PetscScalar *S,PetscInt
 {
   PetscErrorCode ierr;
   PetscInt       k,newk,marker,inside;
-  PetscScalar    re,im,tt;
-  PetscReal      resnorm;
+  PetscScalar    re,im;
+  PetscReal      resnorm,tt;
   PetscBool      istrivial;
   Vec            t;
   NEP_NLEIGS     *ctx = (NEP_NLEIGS*)nep->data;
@@ -472,8 +620,8 @@ static PetscErrorCode NEPNLEIGSKrylovConvergence(NEP nep,PetscScalar *S,PetscInt
     }
     newk = k;
     ierr = DSVectors(nep->ds,DS_MAT_X,&newk,&resnorm);CHKERRQ(ierr);
-    tt = (ctx->nshifts)?betak-nep->eigr[k]*betah:betah;
-    resnorm *=  PetscAbsScalar(tt);
+    tt = (ctx->nshifts)?SlepcAbsEigenvalue(betak-nep->eigr[k]*betah,nep->eigi[k]*betah):betah;
+    resnorm *=  PetscAbsReal(tt);
     /* error estimate */
     ierr = (*nep->converged)(nep,nep->eigr[k],nep->eigi[k],resnorm,&nep->errest[k],nep->convergedctx);CHKERRQ(ierr);
     if (ctx->trueres && (nep->errest[k] < nep->tol) ) {
@@ -501,7 +649,7 @@ PetscErrorCode NEPSetUp_NLEIGS(NEP nep)
   PetscErrorCode ierr;
   PetscInt       k,in,i;
   PetscScalar    zero=0.0;
-  NEP_NLEIGS     *ctx = (NEP_NLEIGS*)nep->data;
+  NEP_NLEIGS     *ctx=(NEP_NLEIGS*)nep->data;
   SlepcSC        sc;
   PetscBool      istrivial;
 
@@ -662,7 +810,7 @@ static PetscErrorCode NEPTOAROrth2(NEP nep,PetscScalar *S,PetscInt ld,PetscInt d
 static PetscErrorCode NEPTOARExtendBasis(NEP nep,PetscInt idxrktg,PetscScalar *S,PetscInt ls,PetscInt nv,BV V,Vec t,PetscScalar *r,PetscInt lr,Vec *t_)
 {
   PetscErrorCode ierr;
-  NEP_NLEIGS     *ctx = (NEP_NLEIGS*)nep->data;
+  NEP_NLEIGS     *ctx=(NEP_NLEIGS*)nep->data;
   PetscInt       deg=ctx->nmat-1,k,j;
   Vec            v=t_[0],q=t_[1],w;
   PetscScalar    *beta=ctx->beta,*s=ctx->s,*xi=ctx->xi,*coeffs,sigma;
@@ -723,7 +871,7 @@ static PetscErrorCode NEPTOARExtendBasis(NEP nep,PetscInt idxrktg,PetscScalar *S
 static PetscErrorCode NEPTOARCoefficients(NEP nep,PetscScalar sigma,PetscInt nv,PetscScalar *S,PetscInt ls,PetscScalar *r,PetscInt lr,PetscScalar *x,PetscScalar *work)
 {
   PetscErrorCode ierr;
-  NEP_NLEIGS     *ctx = (NEP_NLEIGS*)nep->data;
+  NEP_NLEIGS     *ctx=(NEP_NLEIGS*)nep->data;
   PetscInt       k,j,d=ctx->nmat-1;
   PetscScalar    *t=work;
 
@@ -855,7 +1003,7 @@ static PetscErrorCode NEPNLEIGSTOARrun(NEP nep,PetscInt *nq,PetscScalar *S,Petsc
 #undef __FUNCT__
 #define __FUNCT__ "NEPTOARTrunc"
 /* dim(work)=5*ld*lds dim(rwork)=6*n */
-PetscErrorCode NEPTOARTrunc(NEP nep,PetscScalar *S,PetscInt ld,PetscInt deg,PetscInt *nq,PetscInt cs1,PetscScalar *work,PetscReal *rwork)
+static PetscErrorCode NEPTOARTrunc(NEP nep,PetscScalar *S,PetscInt ld,PetscInt deg,PetscInt *nq,PetscInt cs1,PetscScalar *work,PetscReal *rwork)
 {
   PetscErrorCode ierr;
   PetscInt       lwa,nwu=0,nrwu=0;
@@ -928,7 +1076,7 @@ PetscErrorCode NEPTOARTrunc(NEP nep,PetscScalar *S,PetscInt ld,PetscInt deg,Pets
   size(Q) qr x ncu
   dim(work)=sr*ncu
 */
-PetscErrorCode NEPTOARSupdate(PetscScalar *S,PetscInt ld,PetscInt deg,PetscInt sr,PetscInt s,PetscInt ncu,PetscInt qr,PetscScalar *Q,PetscInt ldq,PetscScalar *work)
+static PetscErrorCode NEPTOARSupdate(PetscScalar *S,PetscInt ld,PetscInt deg,PetscInt sr,PetscInt s,PetscInt ncu,PetscInt qr,PetscScalar *Q,PetscInt ldq,PetscScalar *work)
 {
   PetscErrorCode ierr;
   PetscScalar    a=1.0,b=0.0;
@@ -1118,7 +1266,7 @@ PetscErrorCode NEPSolve_NLEIGS(NEP nep)
 #define __FUNCT__ "NEPNLEIGSSetSingularitiesFunction_NLEIGS"
 static PetscErrorCode NEPNLEIGSSetSingularitiesFunction_NLEIGS(NEP nep,PetscErrorCode (*fun)(NEP,PetscInt*,PetscScalar*,void*),void *ctx)
 {
-  NEP_NLEIGS *nepctx = (NEP_NLEIGS*)nep->data;
+  NEP_NLEIGS *nepctx=(NEP_NLEIGS*)nep->data;
 
   PetscFunctionBegin;
   if (fun) nepctx->computesingularities = fun;
@@ -1169,7 +1317,7 @@ PetscErrorCode NEPNLEIGSSetSingularitiesFunction(NEP nep,PetscErrorCode (*fun)(N
 #define __FUNCT__ "NEPNLEIGSGetSingularitiesFunction_NLEIGS"
 static PetscErrorCode NEPNLEIGSGetSingularitiesFunction_NLEIGS(NEP nep,PetscErrorCode (**fun)(NEP,PetscInt*,PetscScalar*,void*),void **ctx)
 {
-  NEP_NLEIGS *nepctx = (NEP_NLEIGS*)nep->data;
+  NEP_NLEIGS *nepctx=(NEP_NLEIGS*)nep->data;
 
   PetscFunctionBegin;
   if (fun) *fun = nepctx->computesingularities;
@@ -1210,7 +1358,7 @@ PetscErrorCode NEPNLEIGSGetSingularitiesFunction(NEP nep,PetscErrorCode (**fun)(
 #define __FUNCT__ "NEPNLEIGSSetRestart_NLEIGS"
 static PetscErrorCode NEPNLEIGSSetRestart_NLEIGS(NEP nep,PetscReal keep)
 {
-  NEP_NLEIGS *ctx = (NEP_NLEIGS*)nep->data;
+  NEP_NLEIGS *ctx=(NEP_NLEIGS*)nep->data;
 
   PetscFunctionBegin;
   if (keep==PETSC_DEFAULT) ctx->keep = 0.5;
@@ -1259,7 +1407,7 @@ PetscErrorCode NEPNLEIGSSetRestart(NEP nep,PetscReal keep)
 #define __FUNCT__ "NEPNLEIGSGetRestart_NLEIGS"
 static PetscErrorCode NEPNLEIGSGetRestart_NLEIGS(NEP nep,PetscReal *keep)
 {
-  NEP_NLEIGS *ctx = (NEP_NLEIGS*)nep->data;
+  NEP_NLEIGS *ctx=(NEP_NLEIGS*)nep->data;
 
   PetscFunctionBegin;
   *keep = ctx->keep;
@@ -1298,7 +1446,7 @@ PetscErrorCode NEPNLEIGSGetRestart(NEP nep,PetscReal *keep)
 #define __FUNCT__ "NEPNLEIGSSetLocking_NLEIGS"
 static PetscErrorCode NEPNLEIGSSetLocking_NLEIGS(NEP nep,PetscBool lock)
 {
-  NEP_NLEIGS *ctx = (NEP_NLEIGS*)nep->data;
+  NEP_NLEIGS *ctx=(NEP_NLEIGS*)nep->data;
 
   PetscFunctionBegin;
   ctx->lock = lock;
@@ -1345,7 +1493,7 @@ PetscErrorCode NEPNLEIGSSetLocking(NEP nep,PetscBool lock)
 #define __FUNCT__ "NEPNLEIGSGetLocking_NLEIGS"
 static PetscErrorCode NEPNLEIGSGetLocking_NLEIGS(NEP nep,PetscBool *lock)
 {
-  NEP_NLEIGS *ctx = (NEP_NLEIGS*)nep->data;
+  NEP_NLEIGS *ctx=(NEP_NLEIGS*)nep->data;
 
   PetscFunctionBegin;
   *lock = ctx->lock;
@@ -1384,7 +1532,7 @@ PetscErrorCode NEPNLEIGSGetLocking(NEP nep,PetscBool *lock)
 #define __FUNCT__ "NEPNLEIGSSetInterpolation_NLEIGS"
 static PetscErrorCode NEPNLEIGSSetInterpolation_NLEIGS(NEP nep,PetscReal tol,PetscInt maxits)
 {
-  NEP_NLEIGS *ctx = (NEP_NLEIGS*)nep->data;
+  NEP_NLEIGS *ctx=(NEP_NLEIGS*)nep->data;
 
   PetscFunctionBegin;
   if (tol == PETSC_DEFAULT) {
@@ -1444,7 +1592,7 @@ PetscErrorCode NEPNLEIGSSetInterpolation(NEP nep,PetscReal tol,PetscInt maxits)
 #define __FUNCT__ "NEPNLEIGSGetInterpolation_NLEIGS"
 static PetscErrorCode NEPNLEIGSGetInterpolation_NLEIGS(NEP nep,PetscReal *tol,PetscInt *maxits)
 {
-  NEP_NLEIGS *ctx = (NEP_NLEIGS*)nep->data;
+  NEP_NLEIGS *ctx=(NEP_NLEIGS*)nep->data;
 
   PetscFunctionBegin;
   if (tol)    *tol    = ctx->ddtol;
@@ -1485,7 +1633,7 @@ PetscErrorCode NEPNLEIGSGetInterpolation(NEP nep,PetscReal *tol,PetscInt *maxits
 #define __FUNCT__ "NEPNLEIGSSetTrueResidual_NLEIGS"
 static PetscErrorCode NEPNLEIGSSetTrueResidual_NLEIGS(NEP nep,PetscBool trueres)
 {
-  NEP_NLEIGS *ctx = (NEP_NLEIGS*)nep->data;
+  NEP_NLEIGS *ctx=(NEP_NLEIGS*)nep->data;
 
   PetscFunctionBegin;
   ctx->trueres = trueres;
@@ -1532,7 +1680,7 @@ PetscErrorCode NEPNLEIGSSetTrueResidual(NEP nep,PetscBool trueres)
 #define __FUNCT__ "NEPNLEIGSGetTrueResidual_NLEIGS"
 static PetscErrorCode NEPNLEIGSGetTrueResidual_NLEIGS(NEP nep,PetscBool *trueres)
 {
-  NEP_NLEIGS *ctx = (NEP_NLEIGS*)nep->data;
+  NEP_NLEIGS *ctx=(NEP_NLEIGS*)nep->data;
 
   PetscFunctionBegin;
   *trueres = ctx->trueres;
@@ -1573,7 +1721,7 @@ PetscErrorCode NEPNLEIGSGetTrueResidual(NEP nep,PetscBool *trueres)
 static PetscErrorCode NEPNLEIGSSetRKShifts_NLEIGS(NEP nep,PetscInt ns,PetscScalar *shifts)
 {
   PetscErrorCode ierr;
-  NEP_NLEIGS     *ctx = (NEP_NLEIGS*)nep->data;
+  NEP_NLEIGS     *ctx=(NEP_NLEIGS*)nep->data;
   PetscInt       i;
 
   PetscFunctionBegin;
@@ -1632,7 +1780,7 @@ PetscErrorCode NEPNLEIGSSetRKShifts(NEP nep,PetscInt ns,PetscScalar *shifts)
 static PetscErrorCode NEPNLEIGSGetRKShifts_NLEIGS(NEP nep,PetscInt *ns,PetscScalar **shifts)
 {
   PetscErrorCode ierr;
-  NEP_NLEIGS     *ctx = (NEP_NLEIGS*)nep->data;
+  NEP_NLEIGS     *ctx=(NEP_NLEIGS*)nep->data;
   PetscInt       i;
 
   PetscFunctionBegin;
@@ -1732,10 +1880,10 @@ PetscErrorCode NEPSetFromOptions_NLEIGS(PetscOptionItems *PetscOptionsObject,NEP
 
 #undef __FUNCT__
 #define __FUNCT__ "NEPView_NLEIGS"
-PetscErrorCode NEPView_NLEIGS(NEP pep,PetscViewer viewer)
+PetscErrorCode NEPView_NLEIGS(NEP nep,PetscViewer viewer)
 {
   PetscErrorCode ierr;
-  NEP_NLEIGS     *ctx = (NEP_NLEIGS*)pep->data;
+  NEP_NLEIGS     *ctx=(NEP_NLEIGS*)nep->data;
   PetscBool      isascii;
   PetscInt       i;
   char           str[50];
@@ -1766,13 +1914,16 @@ PetscErrorCode NEPReset_NLEIGS(NEP nep)
 {
   PetscErrorCode ierr;
   PetscInt       k;
-  NEP_NLEIGS     *ctx = (NEP_NLEIGS*)nep->data;
+  NEP_NLEIGS     *ctx=(NEP_NLEIGS*)nep->data;
 
   PetscFunctionBegin;
   if (nep->fui==NEP_USER_INTERFACE_SPLIT) {
     ierr = PetscFree(ctx->coeffD);CHKERRQ(ierr);
   } else {
     for (k=0;k<ctx->nmat;k++) { ierr = MatDestroy(&ctx->D[k]);CHKERRQ(ierr); }
+  }
+  if (ctx->vrn) {
+    ierr = VecDestroy(&ctx->vrn);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }
