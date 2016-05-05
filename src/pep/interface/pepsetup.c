@@ -96,12 +96,21 @@ PetscErrorCode PEPSetUp(PEP pep)
 
   /* check consistency of refinement options */
   if (pep->refine) {
+    if (!pep->scheme) {  /* set default scheme */
+      ierr = PEPRefineGetKSP(pep,&ksp);CHKERRQ(ierr);
+      ierr = KSPGetPC(ksp,&pc);CHKERRQ(ierr);
+      ierr = PetscObjectTypeCompare((PetscObject)ksp,KSPPREONLY,&flg);CHKERRQ(ierr);
+      if (flg) {
+        ierr = PetscObjectTypeCompareAny((PetscObject)pc,&flg,PCLU,PCCHOLESKY,"");CHKERRQ(ierr);
+      }
+      pep->scheme = flg? PEP_REFINE_SCHEME_MBE: PEP_REFINE_SCHEME_EXPLICIT;
+    }
     if (pep->scheme==PEP_REFINE_SCHEME_MBE) {
       ierr = PEPRefineGetKSP(pep,&ksp);CHKERRQ(ierr);
       ierr = KSPGetPC(ksp,&pc);CHKERRQ(ierr);
       ierr = PetscObjectTypeCompare((PetscObject)ksp,KSPPREONLY,&flg);CHKERRQ(ierr);
       if (flg) {
-        ierr = PetscObjectTypeCompareAny((PetscObject)pc,&flg,PCLU,PCCHOLESKY);CHKERRQ(ierr);
+        ierr = PetscObjectTypeCompareAny((PetscObject)pc,&flg,PCLU,PCCHOLESKY,"");CHKERRQ(ierr);
       }
       if (!flg) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"The MBE scheme for refinement requires a direct solver in KSP");
       ierr = MPI_Comm_size(PetscObjectComm((PetscObject)pc),&size);CHKERRQ(ierr);

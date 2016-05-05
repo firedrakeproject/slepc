@@ -277,7 +277,7 @@ static PetscErrorCode NEPSimpleNRefSetUpSystem(NEP nep,NEPSimpNRefctx *ctx,Mat *
   }
 
   switch (nep->scheme) {
-  case PEP_REFINE_SCHEME_EXPLICIT:
+  case NEP_REFINE_SCHEME_EXPLICIT:
     comm = PetscObjectComm((PetscObject)A[0]);
     ierr = MPI_Comm_rank(comm,&rank);CHKERRQ(ierr);
     ierr = MPI_Comm_size(comm,&size);CHKERRQ(ierr);
@@ -478,7 +478,7 @@ PetscErrorCode NEPNewtonRefinementSimple(NEP nep,PetscInt *maxits,PetscReal tol,
         ini = PETSC_FALSE;
       }
       switch (nep->scheme) {
-      case PEP_REFINE_SCHEME_EXPLICIT:
+      case NEP_REFINE_SCHEME_EXPLICIT:
         ierr = MatMult(Mt,v,r);CHKERRQ(ierr);
         ierr = VecGetArrayRead(r,&array);CHKERRQ(ierr);
         if (rank==size-1) {

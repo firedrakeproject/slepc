@@ -106,9 +106,9 @@
       PetscEnum PEP_REFINE_SCHEME_MBE
       PetscEnum PEP_REFINE_SCHEME_SCHUR
 
-      parameter (PEP_REFINE_SCHEME_EXPLICIT =  0)
-      parameter (PEP_REFINE_SCHEME_MBE      =  1)
-      parameter (PEP_REFINE_SCHEME_SCHUR    =  2)
+      parameter (PEP_REFINE_SCHEME_EXPLICIT =  1)
+      parameter (PEP_REFINE_SCHEME_MBE      =  2)
+      parameter (PEP_REFINE_SCHEME_SCHUR    =  3)
 
       PetscEnum PEP_EXTRACT_NONE
       PetscEnum PEP_EXTRACT_NORM
