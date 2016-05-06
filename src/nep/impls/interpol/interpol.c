@@ -35,7 +35,7 @@
 */
 
 #include <slepc/private/nepimpl.h>         /*I "slepcnep.h" I*/
-#include <slepc/private/pepimpl.h>
+#include <slepc/private/pepimpl.h>         /*I "slepcpep.h" I*/
 
 typedef struct {
   PEP       pep;
@@ -194,6 +194,24 @@ PetscErrorCode NEPSolve_Interpol(NEP nep)
 }
 
 #undef __FUNCT__
+#define __FUNCT__ "NEPMonitor_Interpol"
+static PetscErrorCode NEPMonitor_Interpol(PEP pep,PetscInt its,PetscInt nconv,PetscScalar *eigr,PetscScalar *eigi,PetscReal *errest,PetscInt nest,void *ctx)
+{
+  PetscInt       i;
+  NEP            nep = (NEP)ctx;
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  for (i=0;i<PetscMin(nest,nep->ncv);i++) {
+    nep->eigr[i]   = eigr[i];
+    nep->eigi[i]   = eigi[i];
+    nep->errest[i] = errest[i];
+  }
+  ierr = NEPMonitor(nep,its,nconv,nep->eigr,nep->eigi,nep->errest,nest);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
 #define __FUNCT__ "NEPSetFromOptions_Interpol"
 PetscErrorCode NEPSetFromOptions_Interpol(PetscOptionItems *PetscOptionsObject,NEP nep)
 {
@@ -346,6 +364,7 @@ static PetscErrorCode NEPInterpolGetPEP_Interpol(NEP nep,PEP *pep)
     ierr = STSetOptionsPrefix(st,((PetscObject)ctx->pep)->prefix);CHKERRQ(ierr);
     ierr = PetscObjectIncrementTabLevel((PetscObject)ctx->pep,(PetscObject)nep,1);CHKERRQ(ierr);
     ierr = PetscLogObjectParent((PetscObject)nep,(PetscObject)ctx->pep);CHKERRQ(ierr);
+    ierr = PEPMonitorSet(ctx->pep,NEPMonitor_Interpol,nep,NULL);CHKERRQ(ierr);
     if (!nep->ksp) { ierr = NEPGetKSP(nep,&nep->ksp);CHKERRQ(ierr); }
     ierr = STSetKSP(st,nep->ksp);CHKERRQ(ierr);
   }
