@@ -1,0 +1,32 @@
+simple refinement schur
+ Solution method: toar
+
+ Number of requested eigenvalues: 4
+ Stopping condition: maxit=100
+ All requested eigenvalues computed up to the required tolerance:
+     -0.50511, -0.50515, -0.50520, -0.50528
+
+simple refinement mbe
+ Solution method: toar
+
+ Number of requested eigenvalues: 4
+ Stopping condition: maxit=100
+ All requested eigenvalues computed up to the required tolerance:
+     -0.50511, -0.50515, -0.50520, -0.50528
+
+simple refinement explicit
+ Solution method: toar
+
+ Number of requested eigenvalues: 4
+ Stopping condition: maxit=100
+ All requested eigenvalues computed up to the required tolerance:
+     -0.50511, -0.50515, -0.50520, -0.50528
+
+multiple refinement
+ Solution method: toar
+
+ Number of requested eigenvalues: 4
+ Stopping condition: maxit=100
+ All requested eigenvalues computed up to the required tolerance:
+     -0.50511, -0.50515, -0.50520, -0.50528
+
