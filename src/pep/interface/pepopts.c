@@ -165,7 +165,7 @@ PetscErrorCode PEPSetFromOptions(PEP pep)
     i = pep->npart;
     ierr = PetscOptionsInt("-pep_refine_partitions","Number of partitions of the communicator for iterative refinement","PEPSetRefine",pep->npart,&i,&flg1);CHKERRQ(ierr);
     r = pep->rtol;
-    ierr = PetscOptionsReal("-pep_refine_tol","Tolerance for iterative refinement","PEPSetRefine",pep->rtol,&r,&flg2);CHKERRQ(ierr);
+    ierr = PetscOptionsReal("-pep_refine_tol","Tolerance for iterative refinement","PEPSetRefine",pep->rtol==PETSC_DEFAULT?SLEPC_DEFAULT_TOL/1000:pep->rtol,&r,&flg2);CHKERRQ(ierr);
     j = pep->rits;
     ierr = PetscOptionsInt("-pep_refine_its","Maximum number of iterations for iterative refinement","PEPSetRefine",pep->rits,&j,&flg3);CHKERRQ(ierr);
     if (flg1 || flg2 || flg3) {
