@@ -228,10 +228,10 @@ PETSC_EXTERN PetscErrorCode NEPApplyFunction(NEP,PetscScalar,Vec,Vec,Vec,Mat,Mat
 PETSC_EXTERN PetscErrorCode NEPApplyJacobian(NEP,PetscScalar,Vec,Vec,Vec,Mat);
 PETSC_EXTERN PetscErrorCode NEPProjectOperator(NEP,PetscInt,PetscInt);
 
-PETSC_EXTERN PetscErrorCode NEPMonitor(NEP,PetscInt,PetscInt,PetscScalar*,PetscReal*,PetscInt);
-PETSC_EXTERN PetscErrorCode NEPMonitorSet(NEP,PetscErrorCode (*)(NEP,PetscInt,PetscInt,PetscScalar*,PetscReal*,PetscInt,void*),void*,PetscErrorCode (*)(void**));
-PETSC_EXTERN PetscErrorCode NEPMonitorSetFromOptions(NEP,const char*,const char*,const char*,PetscErrorCode (*)(NEP,PetscInt,PetscInt,PetscScalar*,PetscReal*,PetscInt,PetscViewerAndFormat*),PetscBool);
-PETSC_EXTERN PetscErrorCode NEPConvMonitorSetFromOptions(NEP,const char*,const char*,const char*,PetscErrorCode (*)(NEP,PetscInt,PetscInt,PetscScalar*,PetscReal*,PetscInt,SlepcConvMonitor));
+PETSC_EXTERN PetscErrorCode NEPMonitor(NEP,PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscReal*,PetscInt);
+PETSC_EXTERN PetscErrorCode NEPMonitorSet(NEP,PetscErrorCode (*)(NEP,PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscReal*,PetscInt,void*),void*,PetscErrorCode (*)(void**));
+PETSC_EXTERN PetscErrorCode NEPMonitorSetFromOptions(NEP,const char*,const char*,const char*,PetscErrorCode (*)(NEP,PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscReal*,PetscInt,PetscViewerAndFormat*),PetscBool);
+PETSC_EXTERN PetscErrorCode NEPConvMonitorSetFromOptions(NEP,const char*,const char*,const char*,PetscErrorCode (*)(NEP,PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscReal*,PetscInt,SlepcConvMonitor));
 PETSC_EXTERN PetscErrorCode NEPMonitorCancel(NEP);
 PETSC_EXTERN PetscErrorCode NEPGetMonitorContext(NEP,void **);
 PETSC_EXTERN PetscErrorCode NEPGetIterationNumber(NEP,PetscInt*);
@@ -241,11 +241,11 @@ PETSC_EXTERN PetscErrorCode NEPSetWhichEigenpairs(NEP,NEPWhich);
 PETSC_EXTERN PetscErrorCode NEPGetWhichEigenpairs(NEP,NEPWhich*);
 PETSC_EXTERN PetscErrorCode NEPSetEigenvalueComparison(NEP,PetscErrorCode (*func)(PetscScalar,PetscScalar,PetscScalar,PetscScalar,PetscInt*,void*),void*);
 
-PETSC_EXTERN PetscErrorCode NEPMonitorAll(NEP,PetscInt,PetscInt,PetscScalar*,PetscReal*,PetscInt,PetscViewerAndFormat*);
-PETSC_EXTERN PetscErrorCode NEPMonitorFirst(NEP,PetscInt,PetscInt,PetscScalar*,PetscReal*,PetscInt,PetscViewerAndFormat*);
-PETSC_EXTERN PetscErrorCode NEPMonitorConverged(NEP,PetscInt,PetscInt,PetscScalar*,PetscReal*,PetscInt,SlepcConvMonitor);
-PETSC_EXTERN PetscErrorCode NEPMonitorLG(NEP,PetscInt,PetscInt,PetscScalar*,PetscReal*,PetscInt,void*);
-PETSC_EXTERN PetscErrorCode NEPMonitorLGAll(NEP,PetscInt,PetscInt,PetscScalar*,PetscReal*,PetscInt,void*);
+PETSC_EXTERN PetscErrorCode NEPMonitorAll(NEP,PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscReal*,PetscInt,PetscViewerAndFormat*);
+PETSC_EXTERN PetscErrorCode NEPMonitorFirst(NEP,PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscReal*,PetscInt,PetscViewerAndFormat*);
+PETSC_EXTERN PetscErrorCode NEPMonitorConverged(NEP,PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscReal*,PetscInt,SlepcConvMonitor);
+PETSC_EXTERN PetscErrorCode NEPMonitorLG(NEP,PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscReal*,PetscInt,void*);
+PETSC_EXTERN PetscErrorCode NEPMonitorLGAll(NEP,PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscReal*,PetscInt,void*);
 
 PETSC_EXTERN PetscErrorCode NEPSetTrackAll(NEP,PetscBool);
 PETSC_EXTERN PetscErrorCode NEPGetTrackAll(NEP,PetscBool*);

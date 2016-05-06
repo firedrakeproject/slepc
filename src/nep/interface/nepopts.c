@@ -44,7 +44,7 @@
 
 .seealso: NEPMonitorSet(), NEPSetTrackAll(), NEPConvMonitorSetFromOptions()
 @*/
-PetscErrorCode NEPMonitorSetFromOptions(NEP nep,const char name[],const char help[],const char manual[],PetscErrorCode (*monitor)(NEP,PetscInt,PetscInt,PetscScalar*,PetscReal*,PetscInt,PetscViewerAndFormat*),PetscBool trackall)
+PetscErrorCode NEPMonitorSetFromOptions(NEP nep,const char name[],const char help[],const char manual[],PetscErrorCode (*monitor)(NEP,PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscReal*,PetscInt,PetscViewerAndFormat*),PetscBool trackall)
 {
   PetscErrorCode       ierr;
   PetscBool            flg;
@@ -57,7 +57,7 @@ PetscErrorCode NEPMonitorSetFromOptions(NEP nep,const char name[],const char hel
   if (flg) {
     ierr = PetscViewerAndFormatCreate(viewer,format,&vf);CHKERRQ(ierr);
     ierr = PetscObjectDereference((PetscObject)viewer);CHKERRQ(ierr);
-    ierr = NEPMonitorSet(nep,(PetscErrorCode (*)(NEP,PetscInt,PetscInt,PetscScalar*,PetscReal*,PetscInt,void*))monitor,vf,(PetscErrorCode (*)(void**))PetscViewerAndFormatDestroy);CHKERRQ(ierr);
+    ierr = NEPMonitorSet(nep,(PetscErrorCode (*)(NEP,PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscReal*,PetscInt,void*))monitor,vf,(PetscErrorCode (*)(void**))PetscViewerAndFormatDestroy);CHKERRQ(ierr);
     if (trackall) {
       ierr = NEPSetTrackAll(nep,PETSC_TRUE);CHKERRQ(ierr);
     }
@@ -84,7 +84,7 @@ PetscErrorCode NEPMonitorSetFromOptions(NEP nep,const char name[],const char hel
 
 .seealso: NEPMonitorSet(), NEPMonitorSetFromOptions()
 @*/
-PetscErrorCode NEPConvMonitorSetFromOptions(NEP nep,const char name[],const char help[],const char manual[],PetscErrorCode (*monitor)(NEP,PetscInt,PetscInt,PetscScalar*,PetscReal*,PetscInt,SlepcConvMonitor))
+PetscErrorCode NEPConvMonitorSetFromOptions(NEP nep,const char name[],const char help[],const char manual[],PetscErrorCode (*monitor)(NEP,PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscReal*,PetscInt,SlepcConvMonitor))
 {
   PetscErrorCode    ierr;
   PetscBool         flg;
@@ -97,7 +97,7 @@ PetscErrorCode NEPConvMonitorSetFromOptions(NEP nep,const char name[],const char
   if (flg) {
     ierr = SlepcConvMonitorCreate(viewer,format,&ctx);CHKERRQ(ierr);
     ierr = PetscObjectDereference((PetscObject)viewer);CHKERRQ(ierr);
-    ierr = NEPMonitorSet(nep,(PetscErrorCode (*)(NEP,PetscInt,PetscInt,PetscScalar*,PetscReal*,PetscInt,void*))monitor,ctx,(PetscErrorCode (*)(void**))SlepcConvMonitorDestroy);CHKERRQ(ierr);
+    ierr = NEPMonitorSet(nep,(PetscErrorCode (*)(NEP,PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscReal*,PetscInt,void*))monitor,ctx,(PetscErrorCode (*)(void**))SlepcConvMonitorDestroy);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }

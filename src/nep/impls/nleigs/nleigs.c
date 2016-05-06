@@ -1224,7 +1224,7 @@ PetscErrorCode NEPSolve_NLEIGS(NEP nep)
       }
     }
     nep->nconv = k;
-    ierr = NEPMonitor(nep,nep->its,nconv,nep->eigr,nep->errest,nv);CHKERRQ(ierr);
+    ierr = NEPMonitor(nep,nep->its,nconv,nep->eigr,nep->eigi,nep->errest,nv);CHKERRQ(ierr);
   }
   nep->nconv = nconv;
   if (nep->nconv>0) {
