@@ -130,7 +130,7 @@ PetscErrorCode PEPSetUp(PEP pep)
   /* set tolerance if not yet set */
   if (pep->tol==PETSC_DEFAULT) pep->tol = SLEPC_DEFAULT_TOL;
   if (pep->refine) {
-    if (pep->rtol==PETSC_DEFAULT) pep->rtol = PetscMax(pep->tol/1000,PETSC_MACHINE_EPSILON);;
+    if (pep->rtol==PETSC_DEFAULT) pep->rtol = PetscMax(pep->tol/1000,PETSC_MACHINE_EPSILON);
     if (pep->rits==PETSC_DEFAULT) pep->rits = (pep->refine==PEP_REFINE_SIMPLE)? 10: 1;
   }
 

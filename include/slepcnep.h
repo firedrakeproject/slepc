@@ -106,9 +106,9 @@ PETSC_EXTERN const char *NEPRefineTypes[];
 
 .seealso: NEPSetRefine()
 E*/
-typedef enum { NEP_REFINE_SCHEME_EXPLICIT,
+typedef enum { NEP_REFINE_SCHEME_SCHUR=1,
                NEP_REFINE_SCHEME_MBE,
-               NEP_REFINE_SCHEME_SCHUR } NEPRefineScheme;
+               NEP_REFINE_SCHEME_EXPLICIT } NEPRefineScheme;
 PETSC_EXTERN const char *NEPRefineSchemes[];
 
 /*E

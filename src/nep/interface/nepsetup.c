@@ -106,6 +106,15 @@ PetscErrorCode NEPSetUp(NEP nep)
   /* check consistency of refinement options */
   if (nep->refine) {
     if (nep->fui!=NEP_USER_INTERFACE_SPLIT) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"Iterative refinement only implemented in split form");
+    if (!nep->scheme) {  /* set default scheme */
+      ierr = NEPRefineGetKSP(nep,&ksp);CHKERRQ(ierr);
+      ierr = KSPGetPC(ksp,&pc);CHKERRQ(ierr);
+      ierr = PetscObjectTypeCompare((PetscObject)ksp,KSPPREONLY,&flg);CHKERRQ(ierr);
+      if (flg) {
+        ierr = PetscObjectTypeCompareAny((PetscObject)pc,&flg,PCLU,PCCHOLESKY,"");CHKERRQ(ierr);
+      }
+      nep->scheme = flg? NEP_REFINE_SCHEME_MBE: NEP_REFINE_SCHEME_SCHUR;
+    }
     if (nep->scheme==NEP_REFINE_SCHEME_MBE) {
       ierr = NEPRefineGetKSP(nep,&ksp);CHKERRQ(ierr);
       ierr = KSPGetPC(ksp,&pc);CHKERRQ(ierr);
@@ -137,7 +146,7 @@ PetscErrorCode NEPSetUp(NEP nep)
   if (nep->tol==PETSC_DEFAULT) nep->tol = SLEPC_DEFAULT_TOL;
   nep->ktol = 0.1;
   if (nep->refine) {
-    if (nep->reftol==PETSC_DEFAULT) nep->reftol = nep->tol;
+    if (nep->rtol==PETSC_DEFAULT) nep->rtol = PetscMax(nep->tol/1000,PETSC_MACHINE_EPSILON);
     if (nep->rits==PETSC_DEFAULT) nep->rits = (nep->refine==NEP_REFINE_SIMPLE)? 10: 1;
   }
 

@@ -556,6 +556,7 @@ PetscErrorCode NEPNewtonRefinementSimple(NEP nep,PetscInt *maxits,PetscReal tol,
           nep->eigr[idx_sc[color]] -= deig;
           fail_sc[color] = 0;
         } else fail_sc[color] = 1;
+        break;
       }
       if (nep->npart==1) { ierr = BVRestoreColumn(nep->V,idx_sc[color],&v);CHKERRQ(ierr); }
     }
@@ -598,3 +599,4 @@ PetscErrorCode NEPNewtonRefinementSimple(NEP nep,PetscInt *maxits,PetscReal tol,
   ierr = PetscLogEventEnd(NEP_Refine,nep,0,0,0);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
+

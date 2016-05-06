@@ -71,9 +71,9 @@ PetscErrorCode NEPCreate(MPI_Comm comm,NEP *outnep)
   nep->which           = (NEPWhich)0;
   nep->refine          = NEP_REFINE_NONE;
   nep->npart           = 1;
-  nep->reftol          = PETSC_DEFAULT;
+  nep->rtol            = PETSC_DEFAULT;
   nep->rits            = PETSC_DEFAULT;
-  nep->scheme          = NEP_REFINE_SCHEME_MBE;
+  nep->scheme          = (NEPRefineScheme)0;
   nep->trackall        = PETSC_FALSE;
 
   nep->computefunction = NULL;

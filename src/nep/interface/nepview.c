@@ -89,13 +89,6 @@ PetscErrorCode NEPView(NEP nep,PetscViewer viewer)
     } else {
       ierr = PetscViewerASCIIPrintf(viewer,"  nonlinear operator not specified yet\n");CHKERRQ(ierr);
     }
-    if (nep->refine) {
-      ierr = PetscViewerASCIIPrintf(viewer,"  iterative refinement: %s, with %s scheme\n",NEPRefineTypes[nep->refine],NEPRefineSchemes[nep->scheme]);CHKERRQ(ierr);
-      ierr = PetscViewerASCIIPrintf(viewer,"  refinement stopping criterion: tol=%g, its=%D\n",(double)nep->reftol,nep->rits);CHKERRQ(ierr);
-    }
-      if (nep->npart>1) {
-        ierr = PetscViewerASCIIPrintf(viewer,"  splitting communicator in %D partitions for refinement\n",nep->npart);CHKERRQ(ierr);
-      }
     ierr = PetscViewerASCIIPrintf(viewer,"  selected portion of the spectrum: ");CHKERRQ(ierr);
     ierr = SlepcSNPrintfScalar(str,50,nep->target,PETSC_FALSE);CHKERRQ(ierr);
     if (!nep->which) {
@@ -162,6 +155,13 @@ PetscErrorCode NEPView(NEP nep,PetscViewer viewer)
       break;
     case NEP_CONV_USER:
       ierr = PetscViewerASCIIPrintf(viewer,"user-defined\n");CHKERRQ(ierr);break;
+    }
+    if (nep->refine) {
+      ierr = PetscViewerASCIIPrintf(viewer,"  iterative refinement: %s, with %s scheme\n",NEPRefineTypes[nep->refine],NEPRefineSchemes[nep->scheme]);CHKERRQ(ierr);
+      ierr = PetscViewerASCIIPrintf(viewer,"  refinement stopping criterion: tol=%g, its=%D\n",(double)nep->rtol,nep->rits);CHKERRQ(ierr);
+      if (nep->npart>1) {
+        ierr = PetscViewerASCIIPrintf(viewer,"  splitting communicator in %D partitions for refinement\n",nep->npart);CHKERRQ(ierr);
+      }
     }
     if (nep->nini) {
       ierr = PetscViewerASCIIPrintf(viewer,"  dimension of user-provided initial space: %D\n",PetscAbs(nep->nini));CHKERRQ(ierr);

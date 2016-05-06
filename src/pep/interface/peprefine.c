@@ -254,8 +254,12 @@ static PetscErrorCode PEPSimpleNRefSetUpSystem(PEP pep,Mat *A,PEPSimpNRefctx *ct
     }    
     M=fctx->M1;
     break;
-  case PEP_REFINE_SCHEME_MBE: M=*T; break;
-  case PEP_REFINE_SCHEME_EXPLICIT: M=*Mt;
+  case PEP_REFINE_SCHEME_MBE:
+    M=*T;
+    break;
+  case PEP_REFINE_SCHEME_EXPLICIT:
+    M=*Mt;
+    break;
   }
   if (ini) {
     ierr = MatDuplicate(A[0],MAT_COPY_VALUES,&M);CHKERRQ(ierr);
@@ -383,6 +387,7 @@ static PetscErrorCode PEPSimpleNRefSetUpSystem(PEP pep,Mat *A,PEPSimpNRefctx *ct
   case PEP_REFINE_SCHEME_MBE:
     *T = M;
     *P = M;
+    break;
   }
   ierr = PetscFree2(coeffs,coeffs2);CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -557,6 +562,7 @@ PetscErrorCode PEPNewtonRefinementSimple(PEP pep,PetscInt *maxits,PetscReal tol,
           pep->eigr[idx_sc[color]] -= deig;
           fail_sc[color] = 0;
         } else fail_sc[color] = 1;
+        break;
       }
       if (pep->npart==1) { ierr = BVRestoreColumn(pep->V,idx_sc[color],&v);CHKERRQ(ierr); } 
     }

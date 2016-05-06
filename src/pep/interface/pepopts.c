@@ -1310,7 +1310,7 @@ PetscErrorCode PEPSetRefine(PEP pep,PEPRefine refine,PetscInt npart,PetscReal to
       pep->npart = npart;
     }
     if (tol == PETSC_DEFAULT || tol == PETSC_DECIDE) {
-      pep->rtol = pep->tol;
+      pep->rtol = PetscMax(pep->tol/1000,PETSC_MACHINE_EPSILON);
     } else {
       if (tol<=0.0) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of tol. Must be > 0");
       pep->rtol = tol;

@@ -30,7 +30,7 @@ row 19: (19, 20.)
  ... changed to  4
  Scaling:  1, alpha=0.1000, its= 5
  Polynomial basis:  1
- Refinement:  1, tol=0.0000, its= 2, schem= 2
+ Refinement:  1, tol=0.0000, its= 2, schem= 1
  Which =  7, target = 4.8
  Dimensions: nev= 4, ncv= 0, mpd= 0
  Tolerance =0.00022, max_its = 200

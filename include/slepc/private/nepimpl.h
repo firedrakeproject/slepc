@@ -83,7 +83,7 @@ struct _p_NEP {
   NEPWhich       which;            /* which part of the spectrum to be sought */
   NEPRefine      refine;           /* type of refinement to be applied after solve */
   PetscInt       npart;            /* number of partitions of the communicator */
-  PetscReal      reftol;           /* tolerance for refinement */
+  PetscReal      rtol;             /* tolerance for refinement */
   PetscInt       rits;             /* number of iterations of the refinement method */
   NEPRefineScheme scheme;          /* scheme for solving linear systems within refinement */
   PetscBool      trackall;         /* whether all the residuals must be computed */

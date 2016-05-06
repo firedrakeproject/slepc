@@ -143,8 +143,8 @@ PetscErrorCode NEPSetFromOptions(NEP nep)
 
     i = nep->npart;
     ierr = PetscOptionsInt("-nep_refine_partitions","Number of partitions of the communicator for iterative refinement","NEPSetRefine",nep->npart,&i,&flg1);CHKERRQ(ierr);
-    r = nep->reftol;
-    ierr = PetscOptionsReal("-nep_refine_tol","Tolerance for iterative refinement","NEPSetRefine",nep->reftol,&r,&flg2);CHKERRQ(ierr);
+    r = nep->rtol;
+    ierr = PetscOptionsReal("-nep_refine_tol","Tolerance for iterative refinement","NEPSetRefine",nep->rtol==PETSC_DEFAULT?SLEPC_DEFAULT_TOL/1000:nep->rtol,&r,&flg2);CHKERRQ(ierr);
     j = nep->rits;
     ierr = PetscOptionsInt("-nep_refine_its","Maximum number of iterations for iterative refinement","NEPSetRefine",nep->rits,&j,&flg3);CHKERRQ(ierr);
     if (flg1 || flg2 || flg3) {
@@ -1053,10 +1053,10 @@ PetscErrorCode NEPSetRefine(NEP nep,NEPRefine refine,PetscInt npart,PetscReal to
       nep->npart = npart;
     }
     if (tol == PETSC_DEFAULT || tol == PETSC_DECIDE) {
-      nep->reftol = nep->tol;
+      nep->rtol = PetscMax(nep->tol/1000,PETSC_MACHINE_EPSILON);
     } else {
       if (tol<=0.0) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of tol. Must be > 0");
-      nep->reftol = tol;
+      nep->rtol = tol;
     }
     if (its==PETSC_DECIDE || its==PETSC_DEFAULT) {
       nep->rits = PETSC_DEFAULT;
@@ -1101,7 +1101,7 @@ PetscErrorCode NEPGetRefine(NEP nep,NEPRefine *refine,PetscInt *npart,PetscReal 
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
   if (refine) *refine = nep->refine;
   if (npart)  *npart  = nep->npart;
-  if (tol)    *tol    = nep->reftol;
+  if (tol)    *tol    = nep->rtol;
   if (its)    *its    = nep->rits;
   if (scheme) *scheme = nep->scheme;
   PetscFunctionReturn(0);
