@@ -52,7 +52,7 @@ PetscErrorCode NEPSetUp_Interpol(NEP nep)
   RG             rg;
   PetscReal      a,b,c,d,s,tol;
   PetscScalar    zero=0.0;
-  PetscBool      flg,istrivial;
+  PetscBool      flg,istrivial,trackall;
   PetscInt       its,in;
 
   PetscFunctionBegin;
@@ -86,6 +86,8 @@ PetscErrorCode NEPSetUp_Interpol(NEP nep)
   its=ctx->pep->max_it;
   if (!its) its = nep->max_it?nep->max_it:PETSC_DEFAULT;
   ierr = PEPSetTolerances(ctx->pep,tol,its);CHKERRQ(ierr);
+  ierr = NEPGetTrackAll(nep,&trackall);CHKERRQ(ierr);
+  ierr = PEPSetTrackAll(ctx->pep,trackall);CHKERRQ(ierr);
 
   /* transfer region options */
   ierr = RGIsTrivial(nep->rg,&istrivial);CHKERRQ(ierr);

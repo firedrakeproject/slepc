@@ -607,6 +607,7 @@ static PetscErrorCode NEPNLEIGSKrylovConvergence(NEP nep,PetscScalar *S,PetscInt
   t = w[0];
   ierr = RGIsTrivial(nep->rg,&istrivial);CHKERRQ(ierr);
   marker = -1;
+  if (nep->trackall) getall = PETSC_TRUE;
   for (k=kini;k<kini+nits;k++) {
     /* eigenvalue */
     re = nep->eigr[k];

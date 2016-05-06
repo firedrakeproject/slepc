@@ -195,7 +195,7 @@ PetscErrorCode NEPMonitorAll(NEP nep,PetscInt its,PetscInt nconv,PetscScalar *ei
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
   PetscValidPointer(vf,8);
   viewer = vf->viewer;
-  PetscValidHeaderSpecific(viewer,PETSC_VIEWER_CLASSID,7);
+  PetscValidHeaderSpecific(viewer,PETSC_VIEWER_CLASSID,8);
   if (its) {
     ierr = PetscViewerPushFormat(viewer,vf->format);CHKERRQ(ierr);
     ierr = PetscViewerASCIIAddTab(viewer,((PetscObject)nep)->tablevel);CHKERRQ(ierr);
@@ -205,9 +205,9 @@ PetscErrorCode NEPMonitorAll(NEP nep,PetscInt its,PetscInt nconv,PetscScalar *ei
       ierr = PetscViewerASCIIPrintf(viewer," %g%+gi",(double)PetscRealPart(eigr[i]),(double)PetscImaginaryPart(eigr[i]));CHKERRQ(ierr);
 #else
       ierr = PetscViewerASCIIPrintf(viewer," %g",(double)eigr[i]);CHKERRQ(ierr);
+      if (eigi[i]!=0.0) { ierr = PetscViewerASCIIPrintf(viewer,"%+gi",(double)eigi[i]);CHKERRQ(ierr); }
 #endif
       ierr = PetscViewerASCIIPrintf(viewer," (%10.8e)",(double)errest[i]);CHKERRQ(ierr);
-      if (eigi[i]!=0.0) { ierr = PetscViewerASCIIPrintf(viewer,"%+gi",(double)eigi[i]);CHKERRQ(ierr); }
     }
     ierr = PetscViewerASCIIPrintf(viewer,"\n");CHKERRQ(ierr);
     ierr = PetscViewerASCIISubtractTab(viewer,((PetscObject)nep)->tablevel);CHKERRQ(ierr);
@@ -247,7 +247,7 @@ PetscErrorCode NEPMonitorFirst(NEP nep,PetscInt its,PetscInt nconv,PetscScalar *
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
   PetscValidPointer(vf,8);
   viewer = vf->viewer;
-  PetscValidHeaderSpecific(viewer,PETSC_VIEWER_CLASSID,7);
+  PetscValidHeaderSpecific(viewer,PETSC_VIEWER_CLASSID,8);
   if (its && nconv<nest) {
     ierr = PetscViewerPushFormat(viewer,vf->format);CHKERRQ(ierr);
     ierr = PetscViewerASCIIAddTab(viewer,((PetscObject)nep)->tablevel);CHKERRQ(ierr);
@@ -297,7 +297,7 @@ PetscErrorCode NEPMonitorConverged(NEP nep,PetscInt its,PetscInt nconv,PetscScal
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
   PetscValidPointer(ctx,8);
   viewer = ctx->viewer;
-  PetscValidHeaderSpecific(viewer,PETSC_VIEWER_CLASSID,7);
+  PetscValidHeaderSpecific(viewer,PETSC_VIEWER_CLASSID,8);
   if (!its) {
     ctx->oldnconv = 0;
   } else if (ctx->oldnconv!=nconv) {
