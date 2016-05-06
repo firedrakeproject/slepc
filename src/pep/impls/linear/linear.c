@@ -294,7 +294,7 @@ PetscErrorCode PEPSetUp_Linear(PEP pep)
   ierr = PEPComputeScaleFactor(pep);CHKERRQ(ierr);
 
   if (ctx->explicitmatrix) {
-    if (transf) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Explicit matrix option is not implemented with st-tranform flag active");
+    if (transf) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Explicit matrix option is not implemented with st-transform flag active");
     if (pep->nmat!=3) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Explicit matrix option only available for quadratic problems");
     if (pep->basis!=PEP_BASIS_MONOMIAL) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Explicit matrix option not implemented for non-monomial bases");
     if (pep->scale==PEP_SCALE_DIAGONAL || pep->scale==PEP_SCALE_BOTH) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Diagonal scaling not allowed in PEPLINEAR with explicit matrices");
@@ -327,7 +327,7 @@ PetscErrorCode PEPSetUp_Linear(PEP pep)
     ierr = PetscLogObjectParent((PetscObject)pep,(PetscObject)ctx->B);CHKERRQ(ierr);
 
   } else {   /* implicit matrix */
-    if (pep->problem_type!=PEP_GENERAL) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Must use the explicit matrix option");
+    if (pep->problem_type!=PEP_GENERAL) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Must use the explicit matrix option if problem type is not general");
     if (!((PetscObject)(ctx->eps))->type_name) {
       ierr = EPSSetType(ctx->eps,EPSKRYLOVSCHUR);CHKERRQ(ierr);
     } else {

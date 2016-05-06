@@ -105,7 +105,7 @@ int main (int argc,char **argv)
        closest to 0 */
     ierr = EPSSetWhichEigenpairs(eps,EPS_SMALLEST_REAL);CHKERRQ(ierr);
 
-    /* (Optional) Create a context for the user-defined spectral tranform;
+    /* (Optional) Create a context for the user-defined spectral transform;
        this context can be defined to contain any application-specific data. */
     ierr = STCreate_User(&shell);CHKERRQ(ierr);
 
