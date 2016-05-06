@@ -73,7 +73,8 @@ typedef enum { NEP_LARGEST_MAGNITUDE=1,
                NEP_TARGET_MAGNITUDE,
                NEP_TARGET_REAL,
                NEP_TARGET_IMAGINARY,
-               NEP_ALL } NEPWhich;
+               NEP_ALL,
+               NEP_WHICH_USER } NEPWhich;
 
 /*E
     NEPErrorType - The error type used to assess accuracy of computed solutions
@@ -238,6 +239,7 @@ PETSC_EXTERN PetscErrorCode NEPGetIterationNumber(NEP,PetscInt*);
 PETSC_EXTERN PetscErrorCode NEPSetInitialSpace(NEP,PetscInt,Vec*);
 PETSC_EXTERN PetscErrorCode NEPSetWhichEigenpairs(NEP,NEPWhich);
 PETSC_EXTERN PetscErrorCode NEPGetWhichEigenpairs(NEP,NEPWhich*);
+PETSC_EXTERN PetscErrorCode NEPSetEigenvalueComparison(NEP,PetscErrorCode (*func)(PetscScalar,PetscScalar,PetscScalar,PetscScalar,PetscInt*,void*),void*);
 
 PETSC_EXTERN PetscErrorCode NEPMonitorAll(NEP,PetscInt,PetscInt,PetscScalar*,PetscReal*,PetscInt,PetscViewerAndFormat*);
 PETSC_EXTERN PetscErrorCode NEPMonitorFirst(NEP,PetscInt,PetscInt,PetscScalar*,PetscReal*,PetscInt,PetscViewerAndFormat*);

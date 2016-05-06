@@ -471,6 +471,7 @@ PetscErrorCode NEPSetDimensions(NEP nep,PetscInt nev,PetscInt ncv,PetscInt mpd)
 .     NEP_TARGET_REAL - eigenvalues with real part closest to target
 .     NEP_TARGET_IMAGINARY - eigenvalues with imaginary part closest to target
 .     NEP_ALL - all eigenvalues contained in a given region
+-     NEP_WHICH_USER - user defined ordering set with NEPSetEigenvalueComparison()
 
     Options Database Keys:
 +   -nep_largest_magnitude - Sets largest eigenvalues in magnitude
@@ -497,7 +498,7 @@ PetscErrorCode NEPSetDimensions(NEP nep,PetscInt nev,PetscInt ncv,PetscInt mpd)
 
     Level: intermediate
 
-.seealso: NEPGetWhichEigenpairs(), NEPSetTarget(), NEPWhich
+.seealso: NEPGetWhichEigenpairs(), NEPSetTarget(), NEPSetEigenvalueComparison(), NEPWhich
 @*/
 PetscErrorCode NEPSetWhichEigenpairs(NEP nep,NEPWhich which)
 {
@@ -517,6 +518,7 @@ PetscErrorCode NEPSetWhichEigenpairs(NEP nep,NEPWhich which)
     case NEP_TARGET_IMAGINARY:
 #endif
     case EPS_ALL:
+    case NEP_WHICH_USER:
       if (nep->which != which) {
         nep->state = NEP_STATE_INITIAL;
         nep->which = which;
@@ -555,6 +557,49 @@ PetscErrorCode NEPGetWhichEigenpairs(NEP nep,NEPWhich *which)
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
   PetscValidPointer(which,2);
   *which = nep->which;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "NEPSetEigenvalueComparison"
+/*@C
+   NEPSetEigenvalueComparison - Specifies the eigenvalue comparison function
+   when NEPSetWhichEigenpairs() is set to NEP_WHICH_USER.
+
+   Logically Collective on NEP
+
+   Input Parameters:
++  pep  - eigensolver context obtained from NEPCreate()
+.  func - a pointer to the comparison function
+-  ctx  - a context pointer (the last parameter to the comparison function)
+
+   Calling Sequence of func:
+$   func(PetscScalar ar,PetscScalar ai,PetscScalar br,PetscScalar bi,PetscInt *res,void *ctx)
+
++   ar     - real part of the 1st eigenvalue
+.   ai     - imaginary part of the 1st eigenvalue
+.   br     - real part of the 2nd eigenvalue
+.   bi     - imaginary part of the 2nd eigenvalue
+.   res    - result of comparison
+-   ctx    - optional context, as set by NEPSetEigenvalueComparison()
+
+   Note:
+   The returning parameter 'res' can be:
++  negative - if the 1st eigenvalue is preferred to the 2st one
+.  zero     - if both eigenvalues are equally preferred
+-  positive - if the 2st eigenvalue is preferred to the 1st one
+
+   Level: advanced
+
+.seealso: NEPSetWhichEigenpairs(), NEPWhich
+@*/
+PetscErrorCode NEPSetEigenvalueComparison(NEP pep,PetscErrorCode (*func)(PetscScalar,PetscScalar,PetscScalar,PetscScalar,PetscInt*,void*),void* ctx)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(pep,NEP_CLASSID,1);
+  pep->sc->comparison    = func;
+  pep->sc->comparisonctx = ctx;
+  pep->which             = NEP_WHICH_USER;
   PetscFunctionReturn(0);
 }
 

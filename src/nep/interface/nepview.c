@@ -94,6 +94,9 @@ PetscErrorCode NEPView(NEP nep,PetscViewer viewer)
     if (!nep->which) {
       ierr = PetscViewerASCIIPrintf(viewer,"not yet set\n");CHKERRQ(ierr);
     } else switch (nep->which) {
+      case NEP_WHICH_USER:
+        ierr = PetscViewerASCIIPrintf(viewer,"user defined\n");CHKERRQ(ierr);
+        break;
       case NEP_TARGET_MAGNITUDE:
         ierr = PetscViewerASCIIPrintf(viewer,"closest to target: %s (in magnitude)\n",str);CHKERRQ(ierr);
         break;

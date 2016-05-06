@@ -192,6 +192,8 @@ PetscErrorCode NEPSetUp(NEP nep)
       nep->sc->comparison    = SlepcCompareSmallestReal;
       nep->sc->comparisonctx = NULL;
       break;
+    case NEP_WHICH_USER:
+      break;
   }
 
   nep->sc->map    = NULL;

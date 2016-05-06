@@ -44,6 +44,7 @@
 #define nepconvergedrelative_       NEPCONVERGEDRELATIVE
 #define nepsetconvergencetestfunction_ NEPSETCONVERGENCETESTFUNCTION
 #define nepsetstoppingtestfunction_ NEPSETSTOPPINGTESTFUNCTION
+#define nepseteigenvaluecomparison_ NEPSETEIGENVALUECOMPARISON
 #elif !defined(PETSC_HAVE_FORTRAN_UNDERSCORE)
 #define nepview_                    nepview
 #define neperrorview_               neperrorview
@@ -65,6 +66,7 @@
 #define nepconvergedrelative_       nepconvergedrelative
 #define nepsetconvergencetestfunction_ nepsetconvergencetestfunction
 #define nepsetstoppingtestfunction_ nepsetstoppingtestfunction
+#define nepseteigenvaluecomparison_ nepseteigenvaluecomparison
 #endif
 
 /*
@@ -103,6 +105,7 @@ static struct {
   PetscFortranCallbackId convdestroy;
   PetscFortranCallbackId stopping;
   PetscFortranCallbackId stopdestroy;
+  PetscFortranCallbackId comparison;
 } _cb;
 
 /* These are not extern C because they are passed into non-extern C user level functions */
@@ -149,6 +152,14 @@ static PetscErrorCode ourstopdestroy(void *ctx)
 {
   NEP nep = (NEP)ctx;
   PetscObjectUseFortranCallback(nep,_cb.stopdestroy,(void*,PetscErrorCode*),(_ctx,&ierr));
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "oureigenvaluecomparison"
+static PetscErrorCode oureigenvaluecomparison(PetscScalar ar,PetscScalar ai,PetscScalar br,PetscScalar bi,PetscInt *r,void *ctx)
+{
+  NEP eps = (NEP)ctx;
+  PetscObjectUseFortranCallback(eps,_cb.comparison,(PetscScalar*,PetscScalar*,PetscScalar*,PetscScalar*,PetscInt*,void*,PetscErrorCode*),(&ar,&ai,&br,&bi,r,_ctx,&ierr));
 }
 
 PETSC_EXTERN void PETSC_STDCALL nepview_(NEP *nep,PetscViewer *viewer,PetscErrorCode *ierr)
@@ -304,5 +315,12 @@ PETSC_EXTERN void PETSC_STDCALL nepsetstoppingtestfunction_(NEP *nep,void (PETSC
       *ierr = NEPSetStoppingTestFunction(*nep,ourstopping,*nep,ourstopdestroy);
     }
   }
+}
+
+PETSC_EXTERN void PETSC_STDCALL nepseteigenvaluecomparison_(NEP *nep,void (PETSC_STDCALL *func)(PetscScalar*,PetscScalar*,PetscScalar*,PetscScalar*,PetscInt*,void*),void* ctx,PetscErrorCode *ierr)
+{
+  CHKFORTRANNULLOBJECT(ctx);
+  *ierr = PetscObjectSetFortranCallback((PetscObject)*nep,PETSC_FORTRAN_CALLBACK_CLASS,&_cb.comparison,(PetscVoidFunction)func,ctx); if (*ierr) return;
+  *ierr = NEPSetEigenvalueComparison(*nep,oureigenvaluecomparison,*nep);
 }
 
