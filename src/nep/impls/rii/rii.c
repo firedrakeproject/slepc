@@ -60,7 +60,7 @@ PetscErrorCode NEPSetUp_RII(NEP nep)
   }
   if (!nep->mpd) nep->mpd = nep->ncv;
   if (nep->ncv>nep->nev+nep->mpd) SETERRQ(PetscObjectComm((PetscObject)nep),1,"The value of ncv must not be larger than nev+mpd");
-  if (nep->nev>1) { ierr = PetscInfo(nep,"Warning: requested more than one eigenpair but RII can only compute one\n");CHKERRQ(ierr); }
+  if (nep->nev>1) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"Requested several eigenpairs but this solver can compute only one");
   if (!nep->max_it) nep->max_it = PetscMax(5000,2*nep->n/nep->ncv);
   if (nep->which && nep->which!=NEP_TARGET_MAGNITUDE) SETERRQ(PetscObjectComm((PetscObject)nep),1,"Wrong value of which");
 
