@@ -132,9 +132,9 @@ PETSC_EXTERN const char *PEPRefineTypes[];
 
 .seealso: PEPSetRefine()
 E*/
-typedef enum { PEP_REFINE_SCHEME_EXPLICIT=1,
+typedef enum { PEP_REFINE_SCHEME_SCHUR=1,
                PEP_REFINE_SCHEME_MBE,
-               PEP_REFINE_SCHEME_SCHUR } PEPRefineScheme;
+               PEP_REFINE_SCHEME_EXPLICIT } PEPRefineScheme;
 PETSC_EXTERN const char *PEPRefineSchemes[];
 
 /*E

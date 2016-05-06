@@ -103,7 +103,7 @@ PetscErrorCode PEPSetUp(PEP pep)
       if (flg) {
         ierr = PetscObjectTypeCompareAny((PetscObject)pc,&flg,PCLU,PCCHOLESKY,"");CHKERRQ(ierr);
       }
-      pep->scheme = flg? PEP_REFINE_SCHEME_MBE: PEP_REFINE_SCHEME_EXPLICIT;
+      pep->scheme = flg? PEP_REFINE_SCHEME_MBE: PEP_REFINE_SCHEME_SCHUR;
     }
     if (pep->scheme==PEP_REFINE_SCHEME_MBE) {
       ierr = PEPRefineGetKSP(pep,&ksp);CHKERRQ(ierr);
