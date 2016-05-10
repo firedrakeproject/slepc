@@ -143,7 +143,7 @@ PetscErrorCode EPSSolve_RQCG(EPS eps)
     ierr = DSSetDimensions(eps->ds,nv,0,eps->nconv,0);CHKERRQ(ierr);
     /* Generate more initial vectors if necessary */
     while (kini<nv) {
-      ierr = BVSetRandomColumn(eps->V,kini,eps->rand);CHKERRQ(ierr);
+      ierr = BVSetRandomColumn(eps->V,kini);CHKERRQ(ierr);
       ierr = BVOrthogonalizeColumn(eps->V,kini,NULL,&norm,&breakdown);CHKERRQ(ierr);
       if (norm>0.0 && !breakdown) {
         ierr = BVScaleColumn(eps->V,kini,1.0/norm);CHKERRQ(ierr);

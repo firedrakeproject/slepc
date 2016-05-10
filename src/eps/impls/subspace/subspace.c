@@ -190,7 +190,7 @@ PetscErrorCode EPSSolve_Subspace(EPS eps)
   /* Complete the initial basis with random vectors and orthonormalize them */
   k = eps->nini;
   while (k<ncv) {
-    ierr = BVSetRandomColumn(eps->V,k,eps->rand);CHKERRQ(ierr);
+    ierr = BVSetRandomColumn(eps->V,k);CHKERRQ(ierr);
     ierr = BVOrthogonalizeColumn(eps->V,k,NULL,&norm,&breakdown);CHKERRQ(ierr);
     if (norm>0.0 && !breakdown) {
       ierr = BVScaleColumn(eps->V,k,1.0/norm);CHKERRQ(ierr);
@@ -301,7 +301,7 @@ PetscErrorCode EPSSolve_Subspace(EPS eps)
       for (i=eps->nconv;i<nv;i++) {
         ierr = BVOrthogonalizeColumn(eps->V,i,NULL,&norm,&breakdown);CHKERRQ(ierr);
         if (breakdown) {
-          ierr = BVSetRandomColumn(eps->V,i,eps->rand);CHKERRQ(ierr);
+          ierr = BVSetRandomColumn(eps->V,i);CHKERRQ(ierr);
           ierr = BVOrthogonalizeColumn(eps->V,i,NULL,&norm,&breakdown);CHKERRQ(ierr);
         }
         ierr = BVScaleColumn(eps->V,i,1/norm);CHKERRQ(ierr);

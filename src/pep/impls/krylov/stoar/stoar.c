@@ -158,8 +158,8 @@ PetscErrorCode PEPSetUp_STOAR(PEP pep)
 
   /* process starting vector */
   if (pep->nini>-2) {
-    ierr = BVSetRandomColumn(pep->V,0,pep->rand);CHKERRQ(ierr);
-    ierr = BVSetRandomColumn(pep->V,1,pep->rand);CHKERRQ(ierr);
+    ierr = BVSetRandomColumn(pep->V,0);CHKERRQ(ierr);
+    ierr = BVSetRandomColumn(pep->V,1);CHKERRQ(ierr);
   } else {
     ierr = BVInsertVec(pep->V,0,pep->IS[0]);CHKERRQ(ierr);
     ierr = BVInsertVec(pep->V,1,pep->IS[1]);CHKERRQ(ierr);

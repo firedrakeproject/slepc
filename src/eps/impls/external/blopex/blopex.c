@@ -240,7 +240,7 @@ PetscErrorCode EPSSolve_BLOPEX(EPS eps)
 
   /* Complete the initial basis with random vectors */
   for (i=eps->nini;i<eps->ncv;i++) {
-    ierr = BVSetRandomColumn(eps->V,i,eps->rand);CHKERRQ(ierr);
+    ierr = BVSetRandomColumn(eps->V,i);CHKERRQ(ierr);
   }
 
   while (eps->reason == EPS_CONVERGED_ITERATING) {

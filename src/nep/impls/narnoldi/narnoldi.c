@@ -91,7 +91,7 @@ PetscErrorCode NEPSolve_NArnoldi(NEP nep)
   /* get initial space and shift */
   ierr = NEPGetDefaultShift(nep,&lambda);CHKERRQ(ierr);
   if (!nep->nini) {
-    ierr = BVSetRandomColumn(nep->V,0,nep->rand);CHKERRQ(ierr);
+    ierr = BVSetRandomColumn(nep->V,0);CHKERRQ(ierr);
     ierr = BVNormColumn(nep->V,0,NORM_2,&nrm);CHKERRQ(ierr);
     ierr = BVScaleColumn(nep->V,0,1.0/nrm);CHKERRQ(ierr);
     n = 1;

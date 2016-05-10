@@ -289,7 +289,6 @@ PetscErrorCode STCheckFactorPackage(ST st)
 -  ksp  - the linear system context
 
    Level: advanced
-
 @*/
 PetscErrorCode STSetKSP(ST st,KSP ksp)
 {
@@ -320,13 +319,7 @@ PetscErrorCode STSetKSP(ST st,KSP ksp)
    Output Parameter:
 .  ksp  - the linear system context
 
-   Notes:
-   On output, the value of ksp can be NULL if the combination of
-   eigenproblem type and selected transformation does not require to
-   solve a linear system of equations.
-
    Level: intermediate
-
 @*/
 PetscErrorCode STGetKSP(ST st,KSP* ksp)
 {

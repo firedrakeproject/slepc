@@ -122,7 +122,7 @@ PetscErrorCode PEPSetUp_TOAR(PEP pep)
   ctx->nq = 0;
   for (i=0;i<deg;i++) {
     if (pep->nini>-deg) {
-      ierr = BVSetRandomColumn(pep->V,ctx->nq,pep->rand);CHKERRQ(ierr);
+      ierr = BVSetRandomColumn(pep->V,ctx->nq);CHKERRQ(ierr);
     } else {
       ierr = BVInsertVec(pep->V,ctx->nq,pep->IS[i]);CHKERRQ(ierr);
     }

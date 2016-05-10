@@ -301,7 +301,7 @@ PetscErrorCode SVDSolve_TRLanczos(SVD svd)
 
   /* normalize start vector */
   if (!svd->nini) {
-    ierr = BVSetRandomColumn(svd->V,0,svd->rand);CHKERRQ(ierr);
+    ierr = BVSetRandomColumn(svd->V,0);CHKERRQ(ierr);
     ierr = BVNormColumn(svd->V,0,NORM_2,&norm);CHKERRQ(ierr);
     ierr = BVScaleColumn(svd->V,0,1.0/norm);CHKERRQ(ierr);
   }

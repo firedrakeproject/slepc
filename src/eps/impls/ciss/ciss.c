@@ -257,7 +257,7 @@ static PetscErrorCode SetPathParameter(EPS eps)
 
 #undef __FUNCT__
 #define __FUNCT__ "CISSVecSetRandom"
-static PetscErrorCode CISSVecSetRandom(BV V,PetscInt i0,PetscInt i1,PetscRandom rctx)
+static PetscErrorCode CISSVecSetRandom(BV V,PetscInt i0,PetscInt i1)
 {
   PetscErrorCode ierr;
   PetscInt       i,j,nlocal;
@@ -267,7 +267,7 @@ static PetscErrorCode CISSVecSetRandom(BV V,PetscInt i0,PetscInt i1,PetscRandom 
   PetscFunctionBegin;
   ierr = BVGetSizes(V,&nlocal,NULL,NULL);CHKERRQ(ierr);
   for (i=i0;i<i1;i++) {
-    ierr = BVSetRandomColumn(V,i,rctx);CHKERRQ(ierr);
+    ierr = BVSetRandomColumn(V,i);CHKERRQ(ierr);
     ierr = BVGetColumn(V,i,&x);CHKERRQ(ierr);
     ierr = VecGetArray(x,&vdata);CHKERRQ(ierr);
     for (j=0;j<nlocal;j++) {
@@ -987,7 +987,7 @@ PetscErrorCode EPSSolve_CISS(EPS eps)
   if (nmat>1) { ierr = STGetOperators(eps->st,1,&B);CHKERRQ(ierr); }
   else B = NULL;
   ierr = SetPathParameter(eps);CHKERRQ(ierr);
-  ierr = CISSVecSetRandom(ctx->V,0,ctx->L,eps->rand);CHKERRQ(ierr);
+  ierr = CISSVecSetRandom(ctx->V,0,ctx->L);CHKERRQ(ierr);
 
   if (ctx->pA) {
     ierr = VecScatterVecs(eps,ctx->V,ctx->L);CHKERRQ(ierr);
@@ -1007,7 +1007,7 @@ PetscErrorCode EPSSolve_CISS(EPS eps)
 #endif
   if (L_add>0) {
     ierr = PetscInfo2(eps,"Changing L %D -> %D by Estimate #Eig\n",ctx->L,ctx->L+L_add);CHKERRQ(ierr);
-    ierr = CISSVecSetRandom(ctx->V,ctx->L,ctx->L+L_add,eps->rand);CHKERRQ(ierr);
+    ierr = CISSVecSetRandom(ctx->V,ctx->L,ctx->L+L_add);CHKERRQ(ierr);
     if (ctx->pA) {
       ierr = VecScatterVecs(eps,ctx->V,ctx->L+L_add);CHKERRQ(ierr);
       ierr = SolveLinearSystem(eps,ctx->pA,ctx->pB,ctx->pV,ctx->L,ctx->L+L_add,PETSC_FALSE);CHKERRQ(ierr);
@@ -1025,7 +1025,7 @@ PetscErrorCode EPSSolve_CISS(EPS eps)
     L_add = L_base;
     if (ctx->L+L_add>ctx->L_max) L_add = ctx->L_max-ctx->L;
     ierr = PetscInfo2(eps,"Changing L %D -> %D by SVD(H0)\n",ctx->L,ctx->L+L_add);CHKERRQ(ierr);
-    ierr = CISSVecSetRandom(ctx->V,ctx->L,ctx->L+L_add,eps->rand);CHKERRQ(ierr);
+    ierr = CISSVecSetRandom(ctx->V,ctx->L,ctx->L+L_add);CHKERRQ(ierr);
     if (ctx->pA) {
       ierr = VecScatterVecs(eps,ctx->V,ctx->L+L_add);CHKERRQ(ierr);
       ierr = SolveLinearSystem(eps,ctx->pA,ctx->pB,ctx->pV,ctx->L,ctx->L+L_add,PETSC_FALSE);CHKERRQ(ierr);

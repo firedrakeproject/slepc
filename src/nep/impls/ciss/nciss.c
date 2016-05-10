@@ -124,7 +124,7 @@ static PetscErrorCode SetPathParameter(NEP nep)
 
 #undef __FUNCT__
 #define __FUNCT__ "CISSVecSetRandom"
-static PetscErrorCode CISSVecSetRandom(BV V,PetscInt i0,PetscInt i1,PetscRandom rctx)
+static PetscErrorCode CISSVecSetRandom(BV V,PetscInt i0,PetscInt i1)
 {
   PetscErrorCode ierr;
   PetscInt       i,j,nlocal;
@@ -134,7 +134,7 @@ static PetscErrorCode CISSVecSetRandom(BV V,PetscInt i0,PetscInt i1,PetscRandom 
   PetscFunctionBegin;
   ierr = BVGetSizes(V,&nlocal,NULL,NULL);CHKERRQ(ierr);
   for (i=i0;i<i1;i++) {
-    ierr = BVSetRandomColumn(V,i,rctx);CHKERRQ(ierr);
+    ierr = BVSetRandomColumn(V,i);CHKERRQ(ierr);
     ierr = BVGetColumn(V,i,&x);CHKERRQ(ierr);
     ierr = VecGetArray(x,&vdata);CHKERRQ(ierr);
     for (j=0;j<nlocal;j++) {
@@ -535,13 +535,13 @@ PetscErrorCode NEPSolve_CISS(NEP nep)
   sc->mapobj        = NULL;
   ierr = DSGetLeadingDimension(nep->ds,&ld);CHKERRQ(ierr);
   ierr = SetPathParameter(nep);CHKERRQ(ierr);
-  ierr = CISSVecSetRandom(ctx->V,0,ctx->L,nep->rand);CHKERRQ(ierr);
+  ierr = CISSVecSetRandom(ctx->V,0,ctx->L);CHKERRQ(ierr);
 
   ierr = SolveLinearSystem(nep,nep->function,nep->jacobian,ctx->V,0,ctx->L,PETSC_TRUE);CHKERRQ(ierr);
   ierr = EstimateNumberEigs(nep,&L_add);CHKERRQ(ierr);
   if (L_add>0) {
     ierr = PetscInfo2(nep,"Changing L %D -> %D by Estimate #Eig\n",ctx->L,ctx->L+L_add);CHKERRQ(ierr);
-    ierr = CISSVecSetRandom(ctx->V,ctx->L,ctx->L+L_add,nep->rand);CHKERRQ(ierr);
+    ierr = CISSVecSetRandom(ctx->V,ctx->L,ctx->L+L_add);CHKERRQ(ierr);
     ierr = SolveLinearSystem(nep,nep->function,nep->jacobian,ctx->V,ctx->L,ctx->L+L_add,PETSC_FALSE);CHKERRQ(ierr);
     ctx->L += L_add;
   }
@@ -554,7 +554,7 @@ PetscErrorCode NEPSolve_CISS(NEP nep)
     L_add = L_base;
     if (ctx->L+L_add>ctx->L_max) L_add = ctx->L_max-ctx->L;
     ierr = PetscInfo2(nep,"Changing L %D -> %D by SVD(H0)\n",ctx->L,ctx->L+L_add);CHKERRQ(ierr);
-    ierr = CISSVecSetRandom(ctx->V,ctx->L,ctx->L+L_add,nep->rand);CHKERRQ(ierr);
+    ierr = CISSVecSetRandom(ctx->V,ctx->L,ctx->L+L_add);CHKERRQ(ierr);
     ierr = SolveLinearSystem(nep,nep->function,nep->jacobian,ctx->V,ctx->L,ctx->L+L_add,PETSC_FALSE);CHKERRQ(ierr);
     ctx->L += L_add;
   }

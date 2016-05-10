@@ -147,6 +147,7 @@ PetscErrorCode BVDestroy(BV *bv)
   ierr = PetscFree((*bv)->omega);CHKERRQ(ierr);
   ierr = MatDestroy(&(*bv)->B);CHKERRQ(ierr);
   ierr = MatDestroy(&(*bv)->C);CHKERRQ(ierr);
+  ierr = PetscRandomDestroy(&(*bv)->rand);CHKERRQ(ierr);
   ierr = PetscHeaderDestroy(bv);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -214,6 +215,8 @@ PetscErrorCode BVCreate(MPI_Comm comm,BV *newbv)
   bv->defersfo     = PETSC_FALSE;
   bv->cached       = NULL;
   bv->bvstate      = 0;
+  bv->rand         = NULL;
+  bv->rrandom      = PETSC_FALSE;
   bv->work         = NULL;
   bv->lwork        = 0;
   bv->data         = NULL;
@@ -616,6 +619,9 @@ PetscErrorCode BVView(BV bv,PetscViewer viewer)
         case BV_MATMULT_MAT_SAVE:
           ierr = PetscViewerASCIIPrintf(viewer,"doing matmult as a single matrix-matrix product, saving aux matrices\n");CHKERRQ(ierr);
           break;
+      }
+      if (bv->rrandom) { 
+        ierr = PetscViewerASCIIPrintf(viewer,"generating random vectors independent of the number of processes\n");CHKERRQ(ierr);
       }
     } else {
       if (bv->ops->view) { ierr = (*bv->ops->view)(bv,viewer);CHKERRQ(ierr); }

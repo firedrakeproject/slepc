@@ -1124,7 +1124,7 @@ PetscErrorCode NEPSolve_NLEIGS(NEP nep)
 
   /* Get the starting vector */
   for (i=0;i<deg;i++) {
-    ierr = BVSetRandomColumn(nep->V,i,nep->rand);CHKERRQ(ierr);
+    ierr = BVSetRandomColumn(nep->V,i);CHKERRQ(ierr);
     ierr = BVOrthogonalizeColumn(nep->V,i,S+i*ld,&norm,&lindep);CHKERRQ(ierr);
     if (!lindep) {
       ierr = BVScaleColumn(nep->V,i,1/norm);CHKERRQ(ierr);

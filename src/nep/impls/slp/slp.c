@@ -98,7 +98,7 @@ PetscErrorCode NEPSolve_SLP(NEP nep)
   /* get initial approximation of eigenvalue and eigenvector */
   ierr = NEPGetDefaultShift(nep,&lambda);CHKERRQ(ierr);
   if (!nep->nini) {
-    ierr = BVSetRandomColumn(nep->V,0,nep->rand);CHKERRQ(ierr);
+    ierr = BVSetRandomColumn(nep->V,0);CHKERRQ(ierr);
   }
   ierr = BVGetColumn(nep->V,0,&u);CHKERRQ(ierr);
 

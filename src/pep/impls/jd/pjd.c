@@ -175,7 +175,7 @@ PetscErrorCode PEPSolve_JD(PEP pep)
   ierr = DSGetLeadingDimension(pep->ds,&ld);CHKERRQ(ierr);
   if (pep->nini==0) {  
     nv = 1;
-    ierr = BVSetRandomColumn(pep->V,0,pep->rand);CHKERRQ(ierr);
+    ierr = BVSetRandomColumn(pep->V,0);CHKERRQ(ierr);
     ierr = BVNormColumn(pep->V,0,NORM_2,&norm);CHKERRQ(ierr);
     ierr = BVScaleColumn(pep->V,0,1.0/norm);CHKERRQ(ierr);
   } else nv = pep->nini;

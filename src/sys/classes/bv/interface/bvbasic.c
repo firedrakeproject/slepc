@@ -750,6 +750,73 @@ PetscErrorCode BVGetSignature(BV bv,Vec omega)
 }
 
 #undef __FUNCT__
+#define __FUNCT__ "BVSetRandomContext"
+/*@
+   BVSetRandomContext - Sets the PetscRandom object associated with the BV,
+   to be used in operations that need random numbers.
+
+   Collective on BV
+
+   Input Parameters:
++  bv   - the basis vectors context
+-  rand - the random number generator context
+
+   Level: advanced
+
+.seealso: BVGetRandomContext(), BVSetRandom(), BVSetRandomColumn()
+@*/
+PetscErrorCode BVSetRandomContext(BV bv,PetscRandom rand)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(bv,BV_CLASSID,1);
+  PetscValidHeaderSpecific(rand,PETSC_RANDOM_CLASSID,2);
+  PetscCheckSameComm(bv,1,rand,2);
+  ierr = PetscObjectReference((PetscObject)rand);CHKERRQ(ierr);
+  ierr = PetscRandomDestroy(&bv->rand);CHKERRQ(ierr);
+  bv->rand = rand;
+  ierr = PetscLogObjectParent((PetscObject)bv,(PetscObject)bv->rand);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "BVGetRandomContext"
+/*@
+   BVGetRandomContext - Gets the PetscRandom object associated with the BV.
+
+   Not Collective
+
+   Input Parameter:
+.  bv - the basis vectors context
+
+   Output Parameter:
+.  rand - the random number generator context
+
+   Level: advanced
+
+.seealso: BVSetRandomContext(), BVSetRandom(), BVSetRandomColumn()
+@*/
+PetscErrorCode BVGetRandomContext(BV bv,PetscRandom* rand)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(bv,BV_CLASSID,1);
+  PetscValidPointer(rand,2);
+  if (!bv->rand) {
+    ierr = PetscRandomCreate(PetscObjectComm((PetscObject)bv),&bv->rand);CHKERRQ(ierr);
+    ierr = PetscLogObjectParent((PetscObject)bv,(PetscObject)bv->rand);CHKERRQ(ierr);
+    if (bv->rrandom) {
+      ierr = PetscRandomSetSeed(bv->rand,0x12345678);CHKERRQ(ierr);
+      ierr = PetscRandomSeed(bv->rand);CHKERRQ(ierr);
+    }
+  }
+  *rand = bv->rand;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
 #define __FUNCT__ "BVSetFromOptions"
 /*@
    BVSetFromOptions - Sets BV options from the options database.
@@ -791,6 +858,12 @@ PetscErrorCode BVSetFromOptions(BV bv)
     ierr = BVSetOrthogonalization(bv,bv->orthog_type,bv->orthog_ref,r,bv->orthog_block);CHKERRQ(ierr);
 
     ierr = PetscOptionsEnum("-bv_matmult","Method for BVMatMult","BVSetMatMultMethod",BVMatMultTypes,(PetscEnum)bv->vmm,(PetscEnum*)&bv->vmm,NULL);CHKERRQ(ierr);
+
+    if (!bv->rand) { ierr = BVGetRandomContext(bv,&bv->rand);CHKERRQ(ierr); }
+    ierr = PetscRandomSetFromOptions(bv->rand);CHKERRQ(ierr);
+
+    /* undocumented option to generate random vectors that are independent of the number of processes */
+    ierr = PetscOptionsGetBool(NULL,NULL,"-bv_reproducible_random",&bv->rrandom,NULL);CHKERRQ(ierr);
 
     if (bv->ops->create) bv->defersfo = PETSC_TRUE;   /* defer call to setfromoptions */
     else if (bv->ops->setfromoptions) {
