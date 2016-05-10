@@ -521,7 +521,7 @@ static PetscErrorCode BVView_Default(BV bv,PetscViewer viewer)
     ierr = PetscObjectGetName((PetscObject)bv,&bvname);CHKERRQ(ierr);
     ierr = PetscViewerASCIIPrintf(viewer,"%s=[];\n",bvname);CHKERRQ(ierr);
   }
-  for (j=bv->nc;j<bv->nc+bv->m;j++) {
+  for (j=-bv->nc;j<bv->m;j++) {
     ierr = BVGetColumn(bv,j,&v);CHKERRQ(ierr);
     ierr = VecView(v,viewer);CHKERRQ(ierr);
     if (ismatlab) {
