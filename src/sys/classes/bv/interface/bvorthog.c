@@ -469,6 +469,7 @@ static PetscErrorCode BVOrthogonalize_GS(BV V,Mat R)
     } else {
       ierr = BVOrthogonalizeColumn(V,j,NULL,&norm,NULL);CHKERRQ(ierr);
     }
+    if (!norm) SETERRQ(PETSC_COMM_SELF,1,"Breakdown in BVOrthogonalize due to a linearly dependent column");
     if (V->matrix) { /* fill cached BV */
       ierr = BVGetColumn(V->cached,j,&v);CHKERRQ(ierr);
       ierr = VecCopy(V->Bx,v);CHKERRQ(ierr);
@@ -487,13 +488,13 @@ static PetscErrorCode BVOrthogonalize_GS(BV V,Mat R)
  */
 static PetscErrorCode MatCholeskyFactorInvert(Mat R,PetscInt l,Mat *S)
 {
-#if defined(PETSC_MISSING_LAPACK_POTRF)
+#if defined(PETSC_MISSING_LAPACK_POTRF) || defined(SLEPC_MISSING_LAPACK_TRTRI)
   PetscFunctionBegin;
-  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"POTRF - Lapack routine is unavailable");
+  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"POTRF/TRTRI - Lapack routine is unavailable");
 #else
   PetscErrorCode ierr;
   PetscInt       i,n,m,ld;
-  PetscScalar    *pR,*pS,done=1.0;
+  PetscScalar    *pR,*pS;
   PetscBLASInt   info,n_,l_,m_,ld_;
 
   PetscFunctionBegin;
@@ -508,15 +509,33 @@ static PetscErrorCode MatCholeskyFactorInvert(Mat R,PetscInt l,Mat *S)
   ierr = MatDenseGetArray(R,&pR);CHKERRQ(ierr);
   ierr = MatDenseGetArray(*S,&pS);CHKERRQ(ierr);
 
+  /* save a copy of matrix in S */
+  for (i=l;i<m;i++) {
+    ierr = PetscMemcpy(pS+i*ld+l,pR+i*ld+l,n*sizeof(PetscScalar));CHKERRQ(ierr);
+  }
+
   /* compute upper Cholesky factor in R */
   PetscStackCallBLAS("LAPACKpotrf",LAPACKpotrf_("U",&n_,pR+l*ld+l,&ld_,&info));
-  if (info) SETERRQ1(PETSC_COMM_SELF,1,"Error in Cholesky factorization, info=%D",(PetscInt)info);
   ierr = PetscLogFlops((1.0*n*n*n)/3.0);CHKERRQ(ierr);
 
-  /* build identity and compute S = R\I */
+  if (info) {  /* LAPACKpotrf failed, retry on diagonally perturbed matrix */
+    for (i=l;i<m;i++) {
+      ierr = PetscMemcpy(pR+i*ld+l,pS+i*ld+l,n*sizeof(PetscScalar));CHKERRQ(ierr);
+      pR[i+i*ld] += 50.0*PETSC_MACHINE_EPSILON;
+    }
+    PetscStackCallBLAS("LAPACKpotrf",LAPACKpotrf_("U",&n_,pR+l*ld+l,&ld_,&info));
+    if (info) SETERRQ1(PETSC_COMM_SELF,1,"Error in Cholesky factorization, info=%D",(PetscInt)info);
+    ierr = PetscLogFlops((1.0*n*n*n)/3.0);CHKERRQ(ierr);
+  }
+
+  /* compute S = inv(R) */
   ierr = PetscMemzero(pS,m*m*sizeof(PetscScalar));CHKERRQ(ierr);
-  for (i=0;i<m;i++) pS[i+i*ld] = 1.0;
-  PetscStackCallBLAS("BLAStrsm",BLAStrsm_("L","U","N","N",&n_,&n_,&done,pR+l*ld+l,&ld_,pS+l*ld+l,&ld_));
+  for (i=l;i<m;i++) {
+    ierr = PetscMemcpy(pS+i*ld+l,pR+i*ld+l,n*sizeof(PetscScalar));CHKERRQ(ierr);
+  }
+  PetscStackCallBLAS("LAPACKtrtri",LAPACKtrtri_("U","N",&n_,pS+l*ld+l,&ld_,&info));
+  if (info) SETERRQ1(PETSC_COMM_SELF,1,"Error in xTRTRI, info=%D",(PetscInt)info);
+  ierr = PetscLogFlops(1.0*n*n*n);CHKERRQ(ierr);
 
   /* Zero out entries below the diagonal */
   for (i=l;i<m-1;i++) {
@@ -581,6 +600,12 @@ static PetscErrorCode BVOrthogonalize_Chol(BV V,Mat Rin)
    The method to be used for block orthogonalization can be set with
    BVSetOrthogonalization(). If set to GS, the computation is done column by
    column with successive calls to BVOrthogonalizeColumn().
+
+   If V is rank-deficient or very ill-conditioned, that is, one or more columns are
+   (almost) linearly dependent with respect to the rest, then the algorithm may
+   break down or result in larger numerical error. Linearly dependent columns are
+   essentially replaced by random directions, and the corresponding diagonal entry
+   in R is set to (nearly) zero.
 
    Level: intermediate
 

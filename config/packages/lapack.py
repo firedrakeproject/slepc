@@ -46,7 +46,7 @@ class Lapack(package.Package):
   def Check(self,conf,vars,cmake,petsc):
 
     # LAPACK standard functions
-    l = ['laev2','gehrd','lanhs','lange','trexc','trevc','geevx','gees','ggev','ggevx','gelqf','geqp3','gesdd','tgexc','tgevc','pbtrf','stedc','hsein','larfg','larf','lacpy','lascl','lansy','laset','trsyl']
+    l = ['laev2','gehrd','lanhs','lange','trexc','trevc','geevx','gees','ggev','ggevx','gelqf','geqp3','gesdd','tgexc','tgevc','pbtrf','stedc','hsein','larfg','larf','lacpy','lascl','lansy','laset','trsyl','trtri']
 
     # LAPACK functions with different real and complex versions
     if petsc.scalar == 'real':
