@@ -110,7 +110,6 @@ struct _p_NEP {
   DS             ds;               /* direct solver object */
   BV             V;                /* set of basis vectors and computed eigenvectors */
   RG             rg;               /* optional region for filtering */
-  PetscRandom    rand;             /* random number generator */
   SlepcSC        sc;               /* sorting criterion data */
   KSP            ksp;              /* linear solver object */
   Mat            function;         /* function matrix */

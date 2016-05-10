@@ -85,7 +85,6 @@ struct _p_SVD {
   /*----------------- Child objects and working data -------------------*/
   DS             ds;               /* direct solver object */
   BV             U,V;              /* left and right singular vectors */
-  PetscRandom    rand;             /* random number generator */
   SlepcSC        sc;               /* sorting criterion data */
   Mat            A;                /* problem matrix (m>n) */
   Mat            AT;               /* transposed matrix */

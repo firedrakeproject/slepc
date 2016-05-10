@@ -65,9 +65,6 @@ PetscErrorCode MFNSetUp(MFN mfn)
   if (!((PetscObject)mfn->fn)->type_name) {
     ierr = FNSetFromOptions(mfn->fn);CHKERRQ(ierr);
   }
-  if (!((PetscObject)mfn->rand)->type_name) {
-    ierr = PetscRandomSetFromOptions(mfn->rand);CHKERRQ(ierr);
-  }
 
   /* Check problem dimensions */
   if (!mfn->A) SETERRQ(PetscObjectComm((PetscObject)mfn),PETSC_ERR_ARG_WRONGSTATE,"MFNSetOperator must be called first");

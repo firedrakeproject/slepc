@@ -780,7 +780,6 @@ PetscErrorCode SVDSetFromOptions(SVD svd)
   ierr = BVSetFromOptions(svd->U);CHKERRQ(ierr);
   if (!svd->ds) { ierr = SVDGetDS(svd,&svd->ds);CHKERRQ(ierr); }
   ierr = DSSetFromOptions(svd->ds);CHKERRQ(ierr);
-  ierr = PetscRandomSetFromOptions(svd->rand);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

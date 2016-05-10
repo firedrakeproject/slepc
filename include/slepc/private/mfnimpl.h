@@ -68,7 +68,6 @@ struct _p_MFN {
 
   /*----------------- Child objects and working data -------------------*/
   BV             V;              /* set of basis vectors */
-  PetscRandom    rand;           /* random number generator */
   PetscInt       nwork;          /* number of work vectors */
   Vec            *work;          /* work vectors */
   void           *data;          /* placeholder for solver-specific stuff */

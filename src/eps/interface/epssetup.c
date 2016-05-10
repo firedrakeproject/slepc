@@ -79,9 +79,6 @@ PetscErrorCode EPSSetUp(EPS eps)
   if (!((PetscObject)eps->rg)->type_name) {
     ierr = RGSetType(eps->rg,RGINTERVAL);CHKERRQ(ierr);
   }
-  if (!((PetscObject)eps->rand)->type_name) {
-    ierr = PetscRandomSetFromOptions(eps->rand);CHKERRQ(ierr);
-  }
 
   /* Set problem dimensions */
   ierr = STGetNumMatrices(eps->st,&nmat);CHKERRQ(ierr);

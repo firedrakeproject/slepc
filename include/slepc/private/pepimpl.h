@@ -101,7 +101,6 @@ struct _p_PEP {
   DS             ds;               /* direct solver object */
   BV             V;                /* set of basis vectors and computed eigenvectors */
   RG             rg;               /* optional region for filtering */
-  PetscRandom    rand;             /* random number generator */
   SlepcSC        sc;               /* sorting criterion data */
   Mat            *A;               /* coefficient matrices of the polynomial */
   PetscInt       nmat;             /* number of matrices */

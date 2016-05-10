@@ -526,6 +526,7 @@ PetscErrorCode NEPSolve_CISS(NEP nep)
   PetscBool      *fl1;
   Vec            si;
   SlepcSC        sc;
+  PetscRandom    rand;
 
   PetscFunctionBegin;
   ierr = DSGetSlepcSC(nep->ds,&sc);CHKERRQ(ierr);
@@ -536,6 +537,7 @@ PetscErrorCode NEPSolve_CISS(NEP nep)
   ierr = DSGetLeadingDimension(nep->ds,&ld);CHKERRQ(ierr);
   ierr = SetPathParameter(nep);CHKERRQ(ierr);
   ierr = CISSVecSetRandom(ctx->V,0,ctx->L);CHKERRQ(ierr);
+  ierr = BVGetRandomContext(ctx->V,&rand);CHKERRQ(ierr);
 
   ierr = SolveLinearSystem(nep,nep->function,nep->jacobian,ctx->V,0,ctx->L,PETSC_TRUE);CHKERRQ(ierr);
   ierr = EstimateNumberEigs(nep,&L_add);CHKERRQ(ierr);
@@ -644,7 +646,7 @@ PetscErrorCode NEPSolve_CISS(NEP nep)
       ierr = MatCreateSeqDense(PETSC_COMM_SELF,nv,ctx->L,NULL,&M);CHKERRQ(ierr);
       ierr = MatDenseGetArray(M,&temp);CHKERRQ(ierr);
       for (i=0;i<ctx->L*nv;i++) {
-        ierr = PetscRandomGetValue(nep->rand,&temp[i]);CHKERRQ(ierr);
+        ierr = PetscRandomGetValue(rand,&temp[i]);CHKERRQ(ierr);
         temp[i] = PetscRealPart(temp[i]);
       }
       ierr = MatDenseRestoreArray(M,&temp);CHKERRQ(ierr);

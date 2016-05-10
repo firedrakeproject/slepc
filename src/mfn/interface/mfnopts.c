@@ -151,7 +151,6 @@ PetscErrorCode MFNSetFromOptions(MFN mfn)
   ierr = BVSetFromOptions(mfn->V);CHKERRQ(ierr);
   if (!mfn->fn) { ierr = MFNGetFN(mfn,&mfn->fn);CHKERRQ(ierr); }
   ierr = FNSetFromOptions(mfn->fn);CHKERRQ(ierr);
-  ierr = PetscRandomSetFromOptions(mfn->rand);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

@@ -93,7 +93,6 @@ PetscErrorCode NEPCreate(MPI_Comm comm,NEP *outnep)
   nep->ds              = NULL;
   nep->V               = NULL;
   nep->rg              = NULL;
-  nep->rand            = NULL;
   nep->ksp             = NULL;
   nep->function        = NULL;
   nep->function_pre    = NULL;
@@ -122,9 +121,6 @@ PetscErrorCode NEPCreate(MPI_Comm comm,NEP *outnep)
   nep->reason          = NEP_CONVERGED_ITERATING;
 
   ierr = PetscNewLog(nep,&nep->sc);CHKERRQ(ierr);
-  ierr = PetscRandomCreate(comm,&nep->rand);CHKERRQ(ierr);
-  ierr = PetscRandomSetSeed(nep->rand,0x12345678);CHKERRQ(ierr);
-  ierr = PetscLogObjectParent((PetscObject)nep,(PetscObject)nep->rand);CHKERRQ(ierr);
   *outnep = nep;
   PetscFunctionReturn(0);
 }
@@ -337,7 +333,6 @@ PetscErrorCode NEPDestroy(NEP *nep)
   ierr = KSPDestroy(&(*nep)->ksp);CHKERRQ(ierr);
   ierr = RGDestroy(&(*nep)->rg);CHKERRQ(ierr);
   ierr = DSDestroy(&(*nep)->ds);CHKERRQ(ierr);
-  ierr = PetscRandomDestroy(&(*nep)->rand);CHKERRQ(ierr);
   ierr = PetscFree((*nep)->sc);CHKERRQ(ierr);
   /* just in case the initial vectors have not been used */
   ierr = SlepcBasisDestroy_Private(&(*nep)->nini,&(*nep)->IS);CHKERRQ(ierr);

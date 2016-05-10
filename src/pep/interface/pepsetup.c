@@ -77,9 +77,6 @@ PetscErrorCode PEPSetUp(PEP pep)
   if (!((PetscObject)pep->rg)->type_name) {
     ierr = RGSetType(pep->rg,RGINTERVAL);CHKERRQ(ierr);
   }
-  if (!((PetscObject)pep->rand)->type_name) {
-    ierr = PetscRandomSetFromOptions(pep->rand);CHKERRQ(ierr);
-  }
 
   /* check matrices, transfer them to ST */
   if (!pep->A) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_WRONGSTATE,"PEPSetOperators must be called first");

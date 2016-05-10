@@ -369,14 +369,16 @@ static PetscErrorCode NEPNLEIGSNormEstimation(NEP nep,Mat M,PetscReal *norm,Vec 
   Vec            X=w[0],Y=w[1];
   PetscInt       n,i;
   NEP_NLEIGS     *ctx=(NEP_NLEIGS*)nep->data;
+  PetscRandom    rand;
   PetscErrorCode ierr;
   
   PetscFunctionBegin;
   if (!ctx->vrn) {
     /* generate a random vector with normally distributed entries with the Box-Muller transform */
+    ierr = BVGetRandomContext(nep->V,&rand);CHKERRQ(ierr);
     ierr = MatCreateVecs(M,&ctx->vrn,NULL);CHKERRQ(ierr);
-    ierr = VecSetRandom(X,nep->rand);CHKERRQ(ierr);
-    ierr = VecSetRandom(Y,nep->rand);CHKERRQ(ierr);
+    ierr = VecSetRandom(X,rand);CHKERRQ(ierr);
+    ierr = VecSetRandom(Y,rand);CHKERRQ(ierr);
     ierr = VecGetLocalSize(ctx->vrn,&n);CHKERRQ(ierr);
     ierr = VecGetArray(ctx->vrn,&z);CHKERRQ(ierr);
     ierr = VecGetArray(X,&x);CHKERRQ(ierr);

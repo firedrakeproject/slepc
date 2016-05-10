@@ -74,9 +74,6 @@ PetscErrorCode NEPSetUp(NEP nep)
   if (!((PetscObject)nep->rg)->type_name) {
     ierr = RGSetType(nep->rg,RGINTERVAL);CHKERRQ(ierr);
   }
-  if (!((PetscObject)nep->rand)->type_name) {
-    ierr = PetscRandomSetFromOptions(nep->rand);CHKERRQ(ierr);
-  }
   if (!nep->ksp) {
     ierr = NEPGetKSP(nep,&nep->ksp);CHKERRQ(ierr);
   }

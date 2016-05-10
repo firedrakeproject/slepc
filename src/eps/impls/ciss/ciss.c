@@ -966,6 +966,7 @@ PetscErrorCode EPSSolve_CISS(EPS eps)
   PetscBool      *fl1;
   Vec            si,w[3];
   SlepcSC        sc;
+  PetscRandom    rand;
 #if defined(PETSC_USE_COMPLEX)
   PetscBool      isellipse;
 #endif
@@ -988,6 +989,7 @@ PetscErrorCode EPSSolve_CISS(EPS eps)
   else B = NULL;
   ierr = SetPathParameter(eps);CHKERRQ(ierr);
   ierr = CISSVecSetRandom(ctx->V,0,ctx->L);CHKERRQ(ierr);
+  ierr = BVGetRandomContext(ctx->V,&rand);CHKERRQ(ierr);
 
   if (ctx->pA) {
     ierr = VecScatterVecs(eps,ctx->V,ctx->L);CHKERRQ(ierr);
@@ -1145,7 +1147,7 @@ PetscErrorCode EPSSolve_CISS(EPS eps)
           ierr = MatCreateSeqDense(PETSC_COMM_SELF,eps->nconv,ctx->L,NULL,&M);CHKERRQ(ierr);
           ierr = MatDenseGetArray(M,&temp);CHKERRQ(ierr);
           for (i=0;i<ctx->L*eps->nconv;i++) {
-            ierr = PetscRandomGetValue(eps->rand,&temp[i]);CHKERRQ(ierr);
+            ierr = PetscRandomGetValue(rand,&temp[i]);CHKERRQ(ierr);
             temp[i] = PetscRealPart(temp[i]);
           }
           ierr = MatDenseRestoreArray(M,&temp);CHKERRQ(ierr);

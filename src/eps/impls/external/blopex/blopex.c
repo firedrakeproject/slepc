@@ -486,7 +486,7 @@ PETSC_EXTERN PetscErrorCode EPSCreate_BLOPEX(EPS eps)
   eps->ops->reset          = EPSReset_BLOPEX;
   eps->ops->view           = EPSView_BLOPEX;
   eps->ops->backtransform  = EPSBackTransform_Default;
-  LOBPCG_InitRandomContext(PetscObjectComm((PetscObject)eps),eps->rand);
+  LOBPCG_InitRandomContext(PetscObjectComm((PetscObject)eps),NULL);
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSBLOPEXSetBlockSize_C",EPSBLOPEXSetBlockSize_BLOPEX);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSBLOPEXGetBlockSize_C",EPSBLOPEXGetBlockSize_BLOPEX);CHKERRQ(ierr);
   if (slepc_blopex_useconstr < 0) { ierr = PetscObjectComposedDataRegister(&slepc_blopex_useconstr);CHKERRQ(ierr); }

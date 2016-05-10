@@ -121,9 +121,6 @@ PetscErrorCode SVDSetUp(SVD svd)
   }
   if (!svd->ds) { ierr = SVDGetDS(svd,&svd->ds);CHKERRQ(ierr); }
   ierr = DSReset(svd->ds);CHKERRQ(ierr);
-  if (!((PetscObject)svd->rand)->type_name) {
-    ierr = PetscRandomSetFromOptions(svd->rand);CHKERRQ(ierr);
-  }
 
   /* check matrix */
   if (!svd->OP) SETERRQ(PetscObjectComm((PetscObject)svd),PETSC_ERR_ARG_WRONGSTATE,"SVDSetOperator must be called first");

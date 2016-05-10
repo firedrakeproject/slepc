@@ -270,7 +270,6 @@ PetscErrorCode NEPSetFromOptions(NEP nep)
   ierr = KSPSetFromOptions(nep->ksp);CHKERRQ(ierr);
   if (!nep->refineksp) { ierr = NEPRefineGetKSP(nep,&nep->refineksp);CHKERRQ(ierr); }
   ierr = KSPSetFromOptions(nep->refineksp);CHKERRQ(ierr);
-  ierr = PetscRandomSetFromOptions(nep->rand);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

@@ -84,7 +84,6 @@ PetscErrorCode SVDCreate(MPI_Comm comm,SVD *outsvd)
   svd->ds               = NULL;
   svd->U                = NULL;
   svd->V                = NULL;
-  svd->rand             = NULL;
   svd->A                = NULL;
   svd->AT               = NULL;
   svd->IS               = NULL;
@@ -101,9 +100,6 @@ PetscErrorCode SVDCreate(MPI_Comm comm,SVD *outsvd)
   svd->reason           = SVD_CONVERGED_ITERATING;
 
   ierr = PetscNewLog(svd,&svd->sc);CHKERRQ(ierr);
-  ierr = PetscRandomCreate(comm,&svd->rand);CHKERRQ(ierr);
-  ierr = PetscRandomSetSeed(svd->rand,0x12345678);CHKERRQ(ierr);
-  ierr = PetscLogObjectParent((PetscObject)svd,(PetscObject)svd->rand);CHKERRQ(ierr);
   *outsvd = svd;
   PetscFunctionReturn(0);
 }
@@ -170,7 +166,6 @@ PetscErrorCode SVDDestroy(SVD *svd)
   ierr = SVDReset(*svd);CHKERRQ(ierr);
   if ((*svd)->ops->destroy) { ierr = (*(*svd)->ops->destroy)(*svd);CHKERRQ(ierr); }
   ierr = DSDestroy(&(*svd)->ds);CHKERRQ(ierr);
-  ierr = PetscRandomDestroy(&(*svd)->rand);CHKERRQ(ierr);
   ierr = PetscFree((*svd)->sc);CHKERRQ(ierr);
   /* just in case the initial vectors have not been used */
   ierr = SlepcBasisDestroy_Private(&(*svd)->nini,&(*svd)->IS);CHKERRQ(ierr);

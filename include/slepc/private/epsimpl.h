@@ -99,7 +99,6 @@ struct _p_EPS {
   DS             ds;               /* direct solver object */
   BV             V;                /* set of basis vectors and computed eigenvectors */
   RG             rg;               /* optional region for filtering */
-  PetscRandom    rand;             /* random number generator */
   SlepcSC        sc;               /* sorting criterion data */
   Vec            D;                /* diagonal matrix for balancing */
   Vec            *IS;              /* references to user-provided initial space */

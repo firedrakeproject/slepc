@@ -437,10 +437,12 @@ PetscErrorCode EPSBuildBalance_Krylov(EPS eps)
   PetscReal         norma;
   PetscScalar       *pz,*pD;
   const PetscScalar *pr,*pp;
+  PetscRandom       rand;
   PetscErrorCode    ierr;
 
   PetscFunctionBegin;
   ierr = EPSSetWorkVecs(eps,3);CHKERRQ(ierr);
+  ierr = BVGetRandomContext(eps->V,&rand);CHKERRQ(ierr);
   r = eps->work[0];
   p = eps->work[1];
   z = eps->work[2];
@@ -449,7 +451,7 @@ PetscErrorCode EPSBuildBalance_Krylov(EPS eps)
   for (j=0;j<eps->balance_its;j++) {
 
     /* Build a random vector of +-1's */
-    ierr = VecSetRandom(z,eps->rand);CHKERRQ(ierr);
+    ierr = VecSetRandom(z,rand);CHKERRQ(ierr);
     ierr = VecGetArray(z,&pz);CHKERRQ(ierr);
     for (i=0;i<eps->nloc;i++) {
       if (PetscRealPart(pz[i])<0.5) pz[i]=-1.0;
