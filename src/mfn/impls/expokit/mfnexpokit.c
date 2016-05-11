@@ -11,7 +11,7 @@
 
    References:
 
-       [1] R. Sidje, "Expokit: a software package for computing matrix
+       [1] R. Sidje, "Expokit: a software package for computing matrix
            exponentials", ACM Trans. Math. Softw. 24(1):130-156, 1998.
 
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

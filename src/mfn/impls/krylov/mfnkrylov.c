@@ -13,7 +13,7 @@
 
        [1] M. Eiermann and O. Ernst, "A restarted Krylov subspace method
            for the evaluation of matrix functions", SIAM J. Numer. Anal.
-           44(6):2481–2504, 2006.
+           44(6):2481-2504, 2006.
 
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
