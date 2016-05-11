@@ -355,7 +355,7 @@ static PetscErrorCode FNCombineGetChildren_Combine(FN fn,FNCombineType *comb,FN 
 .  fn   - the math function context
 
    Output Parameters:
--  comb - how to combine the functions (addition, multiplication, division or composition)
++  comb - how to combine the functions (addition, multiplication, division or composition)
 .  f1   - first function
 -  f2   - second function
 

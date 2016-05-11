@@ -100,6 +100,7 @@ PetscErrorCode PEPSolve(PEP pep)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
+  if (pep->state>=PEP_STATE_SOLVED) PetscFunctionReturn(0);
   ierr = PetscLogEventBegin(PEP_Solve,pep,0,0,0);CHKERRQ(ierr);
 
   /* call setup */

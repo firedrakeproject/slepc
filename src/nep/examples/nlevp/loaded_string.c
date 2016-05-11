@@ -30,7 +30,7 @@
    finite element model of a loaded vibrating string.
 */
 
-static char help[] = "NLEVP problem: loaded_string.\n\n"
+static char help[] = "Finite element model of a loaded vibrating string.\n\n"
   "The command line options are:\n"
   "  -n <n>, dimension of the matrices.\n"
   "  -kappa <kappa>, stiffness of elastic spring.\n"

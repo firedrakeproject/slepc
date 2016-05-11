@@ -31,7 +31,7 @@
    complex scalars.
 */
 
-static char help[] = "NLEVP problem: pdde_stability.\n\n"
+static char help[] = "Stability analysis of a discretized partial delay-differential equation.\n\n"
   "The command line options are:\n"
   "  -m <m>, grid size, the matrices have dimension n=m*m.\n"
   "  -c <a0,b0,a1,b1,a2,b2,phi1>, comma-separated list of 7 real parameters.\n\n";

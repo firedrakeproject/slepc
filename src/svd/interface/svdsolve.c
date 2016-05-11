@@ -91,6 +91,7 @@ PetscErrorCode SVDSolve(SVD svd)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
+  if (svd->state>=SVD_STATE_SOLVED) PetscFunctionReturn(0);
   ierr = PetscLogEventBegin(SVD_Solve,svd,0,0,0);CHKERRQ(ierr);
 
   /* call setup */
@@ -190,9 +191,10 @@ PetscErrorCode SVDGetIterationNumber(SVD svd,PetscInt *its)
 .  SVD_DIVERGED_ITS - required more than its to reach convergence
 -  SVD_DIVERGED_BREAKDOWN - generic breakdown in method
 
-   Level: intermediate
+   Note:
+   Can only be called after the call to SVDSolve() is complete.
 
-   Notes: Can only be called after the call to SVDSolve() is complete.
+   Level: intermediate
 
 .seealso: SVDSetTolerances(), SVDSolve(), SVDConvergedReason
 @*/

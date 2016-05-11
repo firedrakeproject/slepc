@@ -444,7 +444,8 @@ PetscErrorCode MFNAppendOptionsPrefix(MFN mfn,const char *prefix)
    Output Parameters:
 .  prefix - pointer to the prefix string used is returned
 
-   Notes: On the fortran side, the user should pass in a string 'prefix' of
+   Note:
+   On the Fortran side, the user should pass in a string 'prefix' of
    sufficient length to hold the prefix.
 
    Level: advanced

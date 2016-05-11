@@ -30,7 +30,7 @@
    simply supported at both ends and damped in the middle.
 */
 
-static char help[] = "NLEVP problem: damped_beam.\n\n"
+static char help[] = "Quadratic eigenproblem from the vibrarion analysis of a beam.\n\n"
   "The command line options are:\n"
   "  -n <n> ... dimension of the matrices.\n\n";
 

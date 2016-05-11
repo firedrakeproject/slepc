@@ -30,7 +30,7 @@
    oscillations of a rail track resting on sleepers.
 */
 
-static char help[] = "NLEVP problem: sleeper.\n\n"
+static char help[] = "Oscillations of a rail track resting on sleepers.\n\n"
   "The command line options are:\n"
   "  -n <n>, where <n> = dimension of the matrices.\n\n";
 

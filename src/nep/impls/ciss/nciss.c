@@ -736,7 +736,7 @@ static PetscErrorCode NEPCISSSetSizes_CISS(NEP nep,PetscInt ip,PetscInt bs,Petsc
    among all processes of the NEP communicator. Otherwise, the communicator is split
    into npart communicators, so that npart KSP solves proceed simultaneously.
 
-   The realmats flag can be set to true when T(·) is guaranteed to be real
+   The realmats flag can be set to true when T(.) is guaranteed to be real
    when the argument is a real value, for example, when all matrices in
    the split form are real. When set to true, the solver avoids some computations.
 

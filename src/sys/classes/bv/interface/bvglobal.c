@@ -423,10 +423,10 @@ PetscErrorCode BVDotColumnBegin(BV X,PetscInt j,PetscScalar *m)
 
    Input Parameters:
 +  X - basis vectors
--  j - the column index
+.  j - the column index
 -  m - an array where the result will go
 
-   Note:
+   Notes:
    Each call to BVDotColumnBegin() should be paired with a call to BVDotColumnEnd().
 
    Level: advanced

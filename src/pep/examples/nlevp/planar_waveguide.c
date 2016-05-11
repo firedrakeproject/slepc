@@ -31,7 +31,7 @@
    six-layer planar waveguide.
 */
 
-static char help[] = "NLEVP problem: planar_waveguide.\n\n"
+static char help[] = "FEM solution of the propagation constants in a six-layer planar waveguide.\n\n"
   "The command line options are:\n"
   "  -n <n>, the dimension of the matrices.\n\n";
 

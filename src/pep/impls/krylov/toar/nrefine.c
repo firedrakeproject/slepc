@@ -5,7 +5,7 @@
 
        [1] T. Betcke and D. Kressner, "Perturbation, extraction and refinement
            of invariant pairs for matrix polynomials", Linear Algebra Appl.
-           435(3):514–536, 2011.
+           435(3):514-536, 2011.
 
        [2] C. Campos and J.E. Roman, "Parallel iterative refinement in
            polynomial eigenvalue problems", submitted, 2015.

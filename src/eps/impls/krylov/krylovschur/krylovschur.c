@@ -1223,7 +1223,7 @@ static PetscErrorCode EPSKrylovSchurUpdateSubcommMats_KrylovSchur(EPS eps,PetscS
    by EPSComputeError() will be wrong even if the computed solution is correct
    (the synchronization may be done only once at the end).
 
-   Level: developer
+   Level: advanced
 
 .seealso: EPSSetInterval(), EPSKrylovSchurSetPartitions(), EPSKrylovSchurGetSubcommMats()
 @*/

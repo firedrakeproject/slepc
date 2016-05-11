@@ -511,7 +511,7 @@ PetscErrorCode MFNSetFN(MFN mfn,FN fn)
    Output Parameter:
 .  fn - math function context
 
-   Level: intermediate
+   Level: beginner
 
 .seealso: MFNSetFN()
 @*/
