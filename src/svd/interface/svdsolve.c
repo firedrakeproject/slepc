@@ -91,6 +91,7 @@ PetscErrorCode SVDSolve(SVD svd)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
+  if (svd->state>=SVD_STATE_SOLVED) PetscFunctionReturn(0);
   ierr = PetscLogEventBegin(SVD_Solve,svd,0,0,0);CHKERRQ(ierr);
 
   /* call setup */

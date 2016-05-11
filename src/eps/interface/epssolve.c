@@ -82,6 +82,7 @@ PetscErrorCode EPSSolve(EPS eps)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
+  if (eps->state>=EPS_STATE_SOLVED) PetscFunctionReturn(0);
   ierr = PetscLogEventBegin(EPS_Solve,eps,0,0,0);CHKERRQ(ierr);
 
   /* call setup */

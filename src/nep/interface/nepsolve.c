@@ -74,6 +74,7 @@ PetscErrorCode NEPSolve(NEP nep)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
+  if (nep->state>=NEP_STATE_SOLVED) PetscFunctionReturn(0);
   ierr = PetscLogEventBegin(NEP_Solve,nep,0,0,0);CHKERRQ(ierr);
 
   /* call setup */
