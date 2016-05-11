@@ -132,7 +132,7 @@ PetscErrorCode PEPSetUp_JD(PEP pep)
 #undef __FUNCT__
 #define __FUNCT__ "PEPJDUpdateTV"
 /*
-  Updates columns (low to (high-1)) of TV[i]
+   Updates columns (low to (high-1)) of TV[i]
 */
 static PetscErrorCode PEPJDUpdateTV(PEP pep,PetscInt low,PetscInt high,Vec *w)
 {
@@ -172,9 +172,7 @@ static PetscErrorCode PEPJDUpdateTV(PEP pep,PetscInt low,PetscInt high,Vec *w)
         for (j=0;j<nconv;j++) tt[j] = x2[j];
         for (i=pp+1;i<pep->nmat;i++) {
           ierr = BVMultVec(pjd->AX[i],1.0,1.0,t2,tt);CHKERRQ(ierr);
-          if (i!=pep->nmat-1) {
-            PetscStackCallBLAS("BLAStrmv",BLAStrmv_("U","N","N",&n,pjd->T,&ld,tt,&one));
-          }
+          if (i!=pep->nmat-1) PetscStackCallBLAS("BLAStrmv",BLAStrmv_("U","N","N",&n,pjd->T,&ld,tt,&one));
         }
         if (rk==np-1 && pp<deg) {
           for (j=0;j<nconv;j++) xx[j] = x2[j];
@@ -185,7 +183,7 @@ static PetscErrorCode PEPJDUpdateTV(PEP pep,PetscInt low,PetscInt high,Vec *w)
             PetscStackCallBLAS("BLASgemv",BLASgemv_("N",&n,&n,&sone,pjd->XpX,&ld,xx,&one,&zero,tt,&one));
             PetscStackCallBLAS("BLAStrmv",BLAStrmv_("U","C","N",&n,pjd->Tj+ld*ld*i,&ld,tt,&one));
             for (j=0;j<nconv;j++) y2[j] += tt[j];
-            if (i<pep->nmat-2) {PetscStackCallBLAS("BLAStrmv",BLAStrmv_("U","N","N",&n,pjd->T,&ld,xx,&one));}
+            if (i<pep->nmat-2) PetscStackCallBLAS("BLAStrmv",BLAStrmv_("U","N","N",&n,pjd->T,&ld,xx,&one));
           }
         }
       }
@@ -204,11 +202,11 @@ static PetscErrorCode PEPJDUpdateTV(PEP pep,PetscInt low,PetscInt high,Vec *w)
 #undef __FUNCT__
 #define __FUNCT__ "PEPJDOrthogonalize"
 /*
-   RRQR of X. Xin*P=Xou*R. Rank of R is rk.
+   RRQR of X. Xin*P=Xou*R. Rank of R is rk
 */
 static PetscErrorCode PEPJDOrthogonalize(PetscInt row,PetscInt col,PetscScalar *X,PetscInt ldx,PetscInt *rk,PetscInt *P,PetscScalar *R,PetscInt ldr)
 {
-#if defined(PETSC_MISSING_LAPACK_GEQP3)
+#if defined(SLEPC_MISSING_LAPACK_GEQP3)
   PetscFunctionBegin;
   SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"GEQP3 - Lapack routine is unavailable");
 #else
@@ -264,7 +262,7 @@ static PetscErrorCode PEPJDOrthogonalize(PetscInt row,PetscInt col,PetscScalar *
 #undef __FUNCT__
 #define __FUNCT__ "PEPJDExtendedPCApply"
 /*
-   Application extended preconditioner:
+   Application of extended preconditioner
 */
 static PetscErrorCode PEPJDExtendedPCApply(PC pc,Vec x,Vec y)
 {
@@ -328,9 +326,9 @@ static PetscErrorCode PEPJDExtendedPCApply(PC pc,Vec x,Vec y)
 */
 static PetscErrorCode PCShellApply_PEPJD(PC pc,Vec x,Vec y)
 {
-  PetscErrorCode    ierr;
-  PetscScalar       eta;
-  PEP_JD_PCSHELL    *ctx;
+  PetscErrorCode ierr;
+  PetscScalar    eta;
+  PEP_JD_PCSHELL *ctx;
 
   PetscFunctionBegin;
   ierr = PCShellGetContext(pc,(void**)&ctx);CHKERRQ(ierr);
@@ -499,14 +497,14 @@ static PetscErrorCode PEPJDProcessInitialSpace(PEP pep,Vec *w)
 #define __FUNCT__ "PEPJDShellMatMult"
 static PetscErrorCode PEPJDShellMatMult(Mat P,Vec x,Vec y)
 {
-  PetscErrorCode  ierr;
-  PEP_JD_MATSHELL *matctx;
-  PEP_JD          *pjd;
-  PetscMPIInt     rk,np,count;
-  PetscInt        i,j,nconv,nloc,nmat,ldt,deg;
-  Vec             tx,ty;
-  PetscScalar     *array2,*x2,*y2,fact=1.0,*q,*tt,*xx,theta,*yy,sone=1.0,zero=0.0;
-  PetscBLASInt    n,ld,one=1;
+  PetscErrorCode    ierr;
+  PEP_JD_MATSHELL   *matctx;
+  PEP_JD            *pjd;
+  PetscMPIInt       rk,np,count;
+  PetscInt          i,j,nconv,nloc,nmat,ldt,deg;
+  Vec               tx,ty;
+  PetscScalar       *array2,*x2,*y2,fact=1.0,*q,*tt,*xx,theta,*yy,sone=1.0,zero=0.0;
+  PetscBLASInt      n,ld,one=1;
   const PetscScalar *array1;
 
   PetscFunctionBegin;
@@ -515,7 +513,7 @@ static PetscErrorCode PEPJDShellMatMult(Mat P,Vec x,Vec y)
   nconv = pjd->nconv;
   theta = matctx->theta;
   nmat  = matctx->pep->nmat;
-  deg = nmat-1;
+  deg   = nmat-1;
   ldt   = matctx->pep->nev;
   if (nconv>0) {
     ierr = PetscMalloc5(nconv,&tt,nconv,&x2,nconv,&q,nconv,&xx,nconv,&yy);CHKERRQ(ierr);
@@ -601,7 +599,7 @@ static PetscErrorCode PEPJDCreateShellPC(PEP pep)
   if (pep->nev>1) {
     ierr = MPI_Comm_rank(PetscObjectComm((PetscObject)pep),&rk);CHKERRQ(ierr);
     ierr = MPI_Comm_size(PetscObjectComm((PetscObject)pep),&np);CHKERRQ(ierr);
-    if (rk==np-1) {nloc += pep->nev-1; mloc += pep->nev-1;}
+    if (rk==np-1) { nloc += pep->nev-1; mloc += pep->nev-1; }
   }
   ierr = PetscNew(&matctx);CHKERRQ(ierr);
   ierr = MatCreateShell(PetscObjectComm((PetscObject)pep),nloc,mloc,PETSC_DETERMINE,PETSC_DETERMINE,matctx,&pjd->Pshell);CHKERRQ(ierr);
@@ -613,7 +611,7 @@ static PetscErrorCode PEPJDCreateShellPC(PEP pep)
   ierr = KSPSetOperators(ksp,pjd->Pshell,pjd->Pshell);CHKERRQ(ierr);
   if (pep->nev>1) {
     ierr = PetscMalloc2((pep->nev-1)*(pep->nev-1),&pcctx->M,pep->nev-1,&pcctx->ps);CHKERRQ(ierr);
-    pcctx->X = pjd->X;
+    pcctx->X  = pjd->X;
     pcctx->ld = pep->nev-1;
   }
   PetscFunctionReturn(0);
@@ -623,13 +621,13 @@ static PetscErrorCode PEPJDCreateShellPC(PEP pep)
 #define __FUNCT__ "PEPJDUpdateExtendedPC"
 static PetscErrorCode PEPJDUpdateExtendedPC(PEP pep,PetscScalar theta)
 {
-  PetscErrorCode  ierr;
-  PEP_JD          *pjd = (PEP_JD*)pep->data;
-  PEP_JD_PCSHELL  *pcctx;  
-  PetscInt        i,j,k,n=pjd->nconv,ld=pep->nev-1,deg=pep->nmat-1;
-  PetscScalar     *q,fact,*M,*ps,*h,*work,*A,*B;
-  PetscReal       tol,maxeig=0.0;
-  PetscBLASInt    n_,info,ld_,*p;
+  PetscErrorCode ierr;
+  PEP_JD         *pjd = (PEP_JD*)pep->data;
+  PEP_JD_PCSHELL *pcctx;  
+  PetscInt       i,j,k,n=pjd->nconv,ld=pep->nev-1,deg=pep->nmat-1;
+  PetscScalar    *q,fact,*M,*ps,*h,*work,*A,*B;
+  PetscReal      tol,maxeig=0.0;
+  PetscBLASInt   n_,info,ld_,*p;
 
   PetscFunctionBegin;
 #if defined(PETSC_MISSING_LAPACK_GETRI) || defined(PETSC_MISSING_LAPACK_GETRF)
@@ -706,7 +704,7 @@ static PetscErrorCode PEPJDPCMatSetUp(PEP pep,PetscScalar theta)
   ierr = MatCopy(pep->A[0],matctx->P,str);CHKERRQ(ierr);
   t = theta;
   for (i=1;i<pep->nmat;i++) {
-    if (t) {ierr = MatAXPY(matctx->P,t,pep->A[i],str);CHKERRQ(ierr);}
+    if (t) { ierr = MatAXPY(matctx->P,t,pep->A[i],str);CHKERRQ(ierr); }
     t *= theta;
   }
   ierr = PCSetOperators(pcctx->pc,matctx->P,matctx->P);CHKERRQ(ierr);
@@ -719,16 +717,16 @@ static PetscErrorCode PEPJDPCMatSetUp(PEP pep,PetscScalar theta)
 #define __FUNCT__ "PEPJDEigenvectors"
 static PetscErrorCode PEPJDEigenvectors(PEP pep)
 {
-  PetscErrorCode  ierr;
-  PEP_JD          *pjd = (PEP_JD*)pep->data;
-  PetscBLASInt    ld,nconv,info,nc;
-  PetscScalar     *Z,*w;
-  PetscReal       *wr,norm;
-  PetscInt         i;
-  Mat             U;
+  PetscErrorCode ierr;
+  PEP_JD         *pjd = (PEP_JD*)pep->data;
+  PetscBLASInt   ld,nconv,info,nc;
+  PetscScalar    *Z,*w;
+  PetscReal      *wr,norm;
+  PetscInt       i;
+  Mat            U;
  
   PetscFunctionBegin;
-#if defined(PETSC_MISSING_LAPACK_TREVC)
+#if defined(SLEPC_MISSING_LAPACK_TREVC)
   PetscFunctionBegin;
   SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"TREVC - Lapack routine is unavailable");
 #else
@@ -824,17 +822,17 @@ PetscErrorCode PEPJDLockConverged(PEP pep,PetscInt *nv,Vec u,Vec *ww)
 #define __FUNCT__ "PEPSolve_JD"
 PetscErrorCode PEPSolve_JD(PEP pep)
 {
-  PetscErrorCode    ierr;
-  PEP_JD            *pjd = (PEP_JD*)pep->data;
-  PetscInt          k,nv,ld,minv,low,high,*P,dim;
-  PetscScalar       theta,*pX,*stt,*exu,*exr,*exp,*R,*eig;
-  PetscReal         norm,*res;
-  PetscBool         lindep,initial=PETSC_FALSE;
-  Vec               t,u,p,r,*ww=pep->work,v;
-  Mat               G,X,Y;
-  KSP               ksp;
-  PEP_JD_PCSHELL    *pcctx;
-  PEP_JD_MATSHELL   *matctx;
+  PetscErrorCode  ierr;
+  PEP_JD          *pjd = (PEP_JD*)pep->data;
+  PetscInt        k,nv,ld,minv,low,high,*P,dim;
+  PetscScalar     theta,*pX,*stt,*exu,*exr,*exp,*R,*eig;
+  PetscReal       norm,*res;
+  PetscBool       lindep,initial=PETSC_FALSE;
+  Vec             t,u,p,r,*ww=pep->work,v;
+  Mat             G,X,Y;
+  KSP             ksp;
+  PEP_JD_PCSHELL  *pcctx;
+  PEP_JD_MATSHELL *matctx;
 
   PetscFunctionBegin;
   ierr = DSGetLeadingDimension(pep->ds,&ld);CHKERRQ(ierr);

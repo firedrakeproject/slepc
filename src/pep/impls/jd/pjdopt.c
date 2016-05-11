@@ -117,9 +117,8 @@ PetscErrorCode PEPJDGetRestart(PEP pep,PetscReal *keep)
 PetscErrorCode PEPSetFromOptions_JD(PetscOptionItems *PetscOptionsObject,PEP pep)
 {
   PetscErrorCode ierr;
-  /* PEP_JD         *pjd = (PEP_JD*)pep->data; */
-  PetscBool      flg; /* ,flg1,flg2,flg3; */
-  PetscReal      r1; /* ,r2,r3; */
+  PetscBool      flg;
+  PetscReal      r1;
 
   PetscFunctionBegin;
   ierr = PetscOptionsHead(PetscOptionsObject,"PEP JD Options");CHKERRQ(ierr);
@@ -127,17 +126,6 @@ PetscErrorCode PEPSetFromOptions_JD(PetscOptionItems *PetscOptionsObject,PEP pep
   if (flg) {
     ierr = PEPJDSetRestart(pep,r1);CHKERRQ(ierr);
   }
-/*
-  r1 = pjd->mtol;
-  ierr = PetscOptionsReal("-pep_jd_mtol","Multiplicity tolerance","PEPJDSetTolerances",1,&r1,&flg1);CHKERRQ(ierr);
-  r2 = pjd->htol;
-  ierr = PetscOptionsReal("-pep_jd_htol","Harmonic tolerance","PEPJDSetTolerances",1,&r2,&flg2);CHKERRQ(ierr);
-  r3 = pjd->stol;
-  ierr = PetscOptionsReal("-pep_jd_stol","Shift tolerance","PEPJDSetTolerances",1,&r3,&flg3);CHKERRQ(ierr);
-  if (flg1 || flg2 || flg3) {
-    ierr = PEPJDSetTolerances(pep,r1,r2,r3);CHKERRQ(ierr);
-  }
-*/
   ierr = PetscOptionsTail();CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
