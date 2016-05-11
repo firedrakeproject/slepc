@@ -32,7 +32,7 @@
    back.
 */
 
-static char help[] = "NLEVP problem: acoustic_wave_1d.\n\n"
+static char help[] = "Quadratic eigenproblem from an acoustics application (1-D).\n\n"
   "The command line options are:\n"
   "  -n <n>, where <n> = dimension of the matrices.\n"
   "  -z <z>, where <z> = impedance (default 1.0).\n\n";

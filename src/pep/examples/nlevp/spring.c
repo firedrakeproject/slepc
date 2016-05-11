@@ -33,7 +33,7 @@
    for dampers and springs connecting adjacent masses or masses to the ground.
 */
 
-static char help[] = "NLEVP problem: spring.\n\n"
+static char help[] = "FEM model of a damped mass-spring system.\n\n"
   "The command line options are:\n"
   "  -n <n> ... dimension of the matrices.\n"
   "  -mu <value> ... mass (default 1).\n"

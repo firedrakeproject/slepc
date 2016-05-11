@@ -33,7 +33,7 @@
    Data files can be downloaded from http://slepc.upv.es/datafiles
 */
 
-static char help[] = "NLEVP problem: gun.\n\n"
+static char help[] = "Radio-frequency gun cavity.\n\n"
   "The command line options are:\n"
   "-K <filename1> -M <filename2> -W1 <filename3> -W2 <filename4>, where filename1,..,filename4 are files containing the matrices in PETSc binary form defining the GUN problem.\n\n";
 

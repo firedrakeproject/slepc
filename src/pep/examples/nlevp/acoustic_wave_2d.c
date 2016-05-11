@@ -30,7 +30,7 @@
    scaled for real arithmetic.
 */
 
-static char help[] = "NLEVP problem: acoustic_wave_2d.\n\n"
+static char help[] = "Quadratic eigenproblem from an acoustics application (2-D).\n\n"
   "The command line options are:\n"
   "  -m <m>, where <m> = grid size, the matrices have dimension m*(m-1).\n"
   "  -z <z>, where <z> = impedance (default 1.0).\n\n";
