@@ -190,8 +190,9 @@ Changes in Version 3.7</font></b>
   <li> Optimizes solution of linear systems in Newton refinement for PEP and NEP.
   <li> Added download option for most external packages.
   <li> GPU support updated to use VECCUDA instead of VECCUSP, now including complex scalars.
-  <li> Interface changes: EPS_CONV_EIG has been renamed to EPS_CONV_REL.
-       BVAXPY has been removed, use BVMult instead.
+  <li> Interface changes: EPS_CONV_EIG has been renamed to EPS_CONV_REL;
+       BVAXPY has been removed, use BVMult instead;
+       BVSetRandom no longer takes a PetscRandom argument, use BVSetRandomContext instead.
 </ul>
 
 <p>
@@ -260,8 +261,8 @@ Changes in Version 3.5</font></b>
     this functionality.
   <li>
     Interface changes: SVDSetTransposeMode has been renamed to SVDSetImplicitTranspose;
-    in STSHIFT the sign of sigma is the opposite to previous versions.
-    EPSJDSetBOrth now takes a boolean argument instead of an enum.</font>
+    in STSHIFT the sign of sigma is the opposite to previous versions;
+    EPSJDSetBOrth now takes a boolean argument instead of an enum.
 </ul>
 
 <p>
@@ -575,6 +576,5 @@ Changes in Version 2.1.5</font></b>
     Added call to MatGetInertia in BLZPACK interface.
 </ul>
 <p>&nbsp;</p>
-<p><b><font size="3" face="Arial, Helvetica, sans-serif"></font></b></p>
       </body>
 </html>
