@@ -399,7 +399,7 @@ PetscErrorCode RGView(RG rg,PetscViewer viewer)
              an interval region with all four endpoints unbounded or an
              ellipse with infinite radius.
 
-   Level: basic
+   Level: beginner
 @*/
 PetscErrorCode RGIsTrivial(RG rg,PetscBool *trivial)
 {

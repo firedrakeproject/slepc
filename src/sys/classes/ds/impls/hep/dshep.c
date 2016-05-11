@@ -40,17 +40,17 @@ PetscErrorCode DSAllocate_HEP(DS ds,PetscInt ld)
 
 /*   0       l           k                 n-1
     -----------------------------------------
-    |*       ·           ·                  |
-    |  *     ·           ·                  |
-    |    *   ·           ·                  |
-    |      * ·           ·                  |
-    |· · · · o           o                  |
+    |*       .           .                  |
+    |  *     .           .                  |
+    |    *   .           .                  |
+    |      * .           .                  |
+    |. . . . o           o                  |
     |          o         o                  |
     |            o       o                  |
     |              o     o                  |
     |                o   o                  |
     |                  o o                  |
-    |· · · · o o o o o o o x                |
+    |. . . . o o o o o o o x                |
     |                    x x x              |
     |                      x x x            |
     |                        x x x          |

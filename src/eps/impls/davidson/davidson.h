@@ -3,7 +3,7 @@
 
   References:
     - Ernest R. Davidson. Super-matrix methods. Computer Physics Communications,
-      53:49–60, May 1989.
+      53:49-60, May 1989.
 
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
