@@ -36,6 +36,7 @@ typedef struct {
   BV          *AX;           /* work basis vectors to store A_i*X for locked eigenvectors */
   BV          X;             /* locked eigenvectors */
   PetscScalar *T;            /* matrix of the invariant pair */
+  PetscScalar *Tj;           /* matrix containing the powers of the invariant pair matrix*/
   PetscScalar *XpX;          /* X^H*X */
   PC          pcshell;       /* preconditioner including basic precond+projector */
   Mat         Pshell;        /* auxiliaty shell matrix */
