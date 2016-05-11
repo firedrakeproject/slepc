@@ -190,9 +190,10 @@ PetscErrorCode SVDGetIterationNumber(SVD svd,PetscInt *its)
 .  SVD_DIVERGED_ITS - required more than its to reach convergence
 -  SVD_DIVERGED_BREAKDOWN - generic breakdown in method
 
-   Level: intermediate
+   Note:
+   Can only be called after the call to SVDSolve() is complete.
 
-   Notes: Can only be called after the call to SVDSolve() is complete.
+   Level: intermediate
 
 .seealso: SVDSetTolerances(), SVDSolve(), SVDConvergedReason
 @*/

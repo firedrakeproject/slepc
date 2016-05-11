@@ -597,7 +597,7 @@ PetscErrorCode BVApplyMatrix(BV bv,Vec x,Vec y)
    Neighbor-wise Collective on BV
 
    Input Parameter:
-+  X - the basis vectors context
+.  X - the basis vectors context
 
    Output Parameter:
 .  Y - the basis vectors to store the result (optional)

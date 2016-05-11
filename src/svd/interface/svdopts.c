@@ -75,7 +75,7 @@ PetscErrorCode SVDSetImplicitTranspose(SVD svd,PetscBool impl)
    Input Parameter:
 .  svd  - the singular value solver context
 
-   Output paramter:
+   Output Parameter:
 .  impl - how to handle the transpose (implicitly or not)
 
    Level: advanced
@@ -964,7 +964,8 @@ PetscErrorCode SVDAppendOptionsPrefix(SVD svd,const char *prefix)
    Output Parameters:
 .  prefix - pointer to the prefix string used is returned
 
-   Notes: On the fortran side, the user should pass in a string 'prefix' of
+   Note:
+   On the Fortran side, the user should pass in a string 'prefix' of
    sufficient length to hold the prefix.
 
    Level: advanced

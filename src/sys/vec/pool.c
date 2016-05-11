@@ -106,7 +106,7 @@ PetscErrorCode SlepcVecPoolDestroy(VecPool *p)
 +  pool - pool of Vec.
 -  n - number of vectors.
 
-   Output Paramter:
+   Output Parameter:
 .  vecs - vectors
 
    Level: developer

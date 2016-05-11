@@ -470,7 +470,7 @@ PetscErrorCode NEPSetDimensions(NEP nep,PetscInt nev,PetscInt ncv,PetscInt mpd)
 .     NEP_TARGET_MAGNITUDE - eigenvalues closest to the target (in magnitude)
 .     NEP_TARGET_REAL - eigenvalues with real part closest to target
 .     NEP_TARGET_IMAGINARY - eigenvalues with imaginary part closest to target
-.     NEP_ALL - all eigenvalues contained in a given region
+-     NEP_ALL - all eigenvalues contained in a given region
 
     Options Database Keys:
 +   -nep_largest_magnitude - Sets largest eigenvalues in magnitude
@@ -632,7 +632,7 @@ PetscErrorCode NEPGetLagPreconditioner(NEP nep,PetscInt *lag)
 -   cct - a boolean value
 
     Options Database Keys:
-.   -nep_const_correction_tol <cct>
+.   -nep_const_correction_tol <bool> - set the boolean flag
 
     Notes:
     By default, an exponentially decreasing tolerance is set in the KSP used
@@ -1207,7 +1207,8 @@ PetscErrorCode NEPAppendOptionsPrefix(NEP nep,const char *prefix)
    Output Parameters:
 .  prefix - pointer to the prefix string used is returned
 
-   Notes: On the fortran side, the user should pass in a string 'prefix' of
+   Note:
+   On the Fortran side, the user should pass in a string 'prefix' of
    sufficient length to hold the prefix.
 
    Level: advanced

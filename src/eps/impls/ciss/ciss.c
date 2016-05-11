@@ -1532,7 +1532,7 @@ static PetscErrorCode EPSCISSSetUseST_CISS(EPS eps,PetscBool usest)
 -  usest  - boolean flag to use the ST object or not
 
    Options Database Keys:
-+  -eps_ciss_usest <bool> - whether the ST object will be used or not
+.  -eps_ciss_usest <bool> - whether the ST object will be used or not
 
    Level: advanced
 
@@ -1572,7 +1572,7 @@ static PetscErrorCode EPSCISSGetUseST_CISS(EPS eps,PetscBool *usest)
 .  eps - the eigenproblem solver context
 
    Output Parameters:
-+  usest - boolean flag indicating if the ST object is being used
+.  usest - boolean flag indicating if the ST object is being used
 
    Level: advanced
 
@@ -1658,7 +1658,7 @@ static PetscErrorCode EPSCISSGetQuadRule_CISS(EPS eps,EPSCISSQuadRule *quad)
 .  eps - the eigenproblem solver context
 
    Output Parameters:
-+  quad - quadrature rule
+.  quad - quadrature rule
 
    Level: advanced
 

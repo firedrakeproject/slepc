@@ -34,7 +34,7 @@ static char help[] = "Test the solution of a PEP from a finite element model of 
   "The command line options are:\n"
   "  -n <n>, where <n> = number of grid subdivisions.\n"
   "  -tau <tau>, where <tau> = tau parameter.\n"
-  "  -kappa <kappa>, where <kappa> = kappa paramter.\n\n";
+  "  -kappa <kappa>, where <kappa> = kappa parameter.\n\n";
 
 #include <slepcpep.h>
 
