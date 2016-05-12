@@ -252,8 +252,8 @@ PetscErrorCode SVDSolve_Cyclic(SVD svd)
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "SVDMonitor_Cyclic"
-static PetscErrorCode SVDMonitor_Cyclic(EPS eps,PetscInt its,PetscInt nconv,PetscScalar *eigr,PetscScalar *eigi,PetscReal *errest,PetscInt nest,void *ctx)
+#define __FUNCT__ "EPSMonitor_Cyclic"
+static PetscErrorCode EPSMonitor_Cyclic(EPS eps,PetscInt its,PetscInt nconv,PetscScalar *eigr,PetscScalar *eigi,PetscReal *errest,PetscInt nest,void *ctx)
 {
   PetscInt       i,j;
   SVD            svd = (SVD)ctx;
@@ -442,7 +442,7 @@ static PetscErrorCode SVDCyclicGetEPS_Cyclic(SVD svd,EPS *eps)
     ierr = PetscObjectIncrementTabLevel((PetscObject)cyclic->eps,(PetscObject)svd,1);CHKERRQ(ierr);
     ierr = PetscLogObjectParent((PetscObject)svd,(PetscObject)cyclic->eps);CHKERRQ(ierr);
     ierr = EPSSetWhichEigenpairs(cyclic->eps,EPS_LARGEST_REAL);CHKERRQ(ierr);
-    ierr = EPSMonitorSet(cyclic->eps,SVDMonitor_Cyclic,svd,NULL);CHKERRQ(ierr);
+    ierr = EPSMonitorSet(cyclic->eps,EPSMonitor_Cyclic,svd,NULL);CHKERRQ(ierr);
   }
   *eps = cyclic->eps;
   PetscFunctionReturn(0);
