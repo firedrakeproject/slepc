@@ -272,7 +272,7 @@ static PetscErrorCode PEPJDExtendedPCApply(PC pc,Vec x,Vec y)
   PEP_JD_PCSHELL    *ctx;
   PetscErrorCode    ierr;
   const PetscScalar *array1;
-  PetscScalar       *x2,*t,*ps,*array2;
+  PetscScalar       *x2=NULL,*t=NULL,*ps,*array2;
 
   PetscFunctionBegin;
   ierr = PCShellGetContext(pc,(void**)&ctx);CHKERRQ(ierr);
@@ -389,7 +389,7 @@ static PetscErrorCode PEPJDComputePResidual(PEP pep,Vec u,PetscScalar theta,Vec 
   PetscErrorCode ierr;
   PetscMPIInt    rk,np,count;
   Vec            tu,tp,w;
-  PetscScalar    *array1,*array2,*x2,*y2,fact=1.0,*q,*tt,*xx,sone=1.0,zero=0.0;
+  PetscScalar    *array1,*array2,*x2=NULL,*y2,fact=1.0,*q=NULL,*tt=NULL,*xx=NULL,sone=1.0,zero=0.0;
   PetscInt       i,j,nconv=pjd->nconv,nloc,deg=pep->nmat-1;
   PetscBLASInt   n,ld,one=1;
 
@@ -421,7 +421,7 @@ static PetscErrorCode PEPJDComputePResidual(PEP pep,Vec u,PetscScalar theta,Vec 
     fact *= theta;
   }
   if (nconv) {
-    ierr = PetscBLASIntCast(pjd->nconv,&n);CHKERRQ(ierr);
+    ierr = PetscBLASIntCast(nconv,&n);CHKERRQ(ierr);
     ierr = PetscBLASIntCast(pep->nev,&ld);CHKERRQ(ierr);
     for (j=0;j<nconv;j++) q[j] = x2[j];
     fact = theta;
@@ -503,7 +503,7 @@ static PetscErrorCode PEPJDShellMatMult(Mat P,Vec x,Vec y)
   PetscMPIInt       rk,np,count;
   PetscInt          i,j,nconv,nloc,nmat,ldt,deg;
   Vec               tx,ty;
-  PetscScalar       *array2,*x2,*y2,fact=1.0,*q,*tt,*xx,theta,*yy,sone=1.0,zero=0.0;
+  PetscScalar       *array2,*x2=NULL,*y2,fact=1.0,*q=NULL,*tt=NULL,*xx=NULL,theta,*yy=NULL,sone=1.0,zero=0.0;
   PetscBLASInt      n,ld,one=1;
   const PetscScalar *array1;
 
@@ -825,7 +825,7 @@ PetscErrorCode PEPSolve_JD(PEP pep)
   PetscErrorCode  ierr;
   PEP_JD          *pjd = (PEP_JD*)pep->data;
   PetscInt        k,nv,ld,minv,low,high,*P,dim;
-  PetscScalar     theta,*pX,*stt,*exu,*exr,*exp,*R,*eig;
+  PetscScalar     theta=0.0,*pX,*stt,*exu,*exr,*exp,*R,*eig;
   PetscReal       norm,*res;
   PetscBool       lindep,initial=PETSC_FALSE;
   Vec             t,u,p,r,*ww=pep->work,v;
