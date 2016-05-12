@@ -47,7 +47,7 @@ PetscErrorCode MFNSetUp_Krylov(MFN mfn)
 
   PetscFunctionBegin;
   ierr = MatGetSize(mfn->A,&N,NULL);CHKERRQ(ierr);
-  if (!mfn->ncv) mfn->ncv = PetscMin(10,N);
+  if (!mfn->ncv) mfn->ncv = PetscMin(30,N);
   if (!mfn->max_it) mfn->max_it = 100;
   ierr = MFNAllocateSolution(mfn,1);CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -91,7 +91,7 @@ PetscErrorCode MFNSolve_Krylov(MFN mfn,Vec b,Vec x)
   Mat            G=NULL,H=NULL;
   Vec            F=NULL;
   PetscScalar    *array,*farray,*garray,*harray;
-  PetscReal      beta,nrm;
+  PetscReal      beta,nrm=1.0;
   PetscBool      breakdown,set,flg,symm=PETSC_FALSE;
 
   PetscFunctionBegin;
