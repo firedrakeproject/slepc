@@ -23,6 +23,7 @@
 */
 
 #include <slepc/private/epsimpl.h>   /*I "slepceps.h" I*/
+#include <petscdraw.h>
 
 #undef __FUNCT__
 #define __FUNCT__ "EPSMonitorSetFromOptions"
@@ -127,6 +128,7 @@ PetscErrorCode EPSSetFromOptions(EPS eps)
   PetscReal      r,array[2]={0,0};
   PetscScalar    s;
   PetscInt       i,j,k;
+  PetscDrawLG    lg;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
@@ -232,11 +234,13 @@ PetscErrorCode EPSSetFromOptions(EPS eps)
     */
     ierr = PetscOptionsBool("-eps_monitor_lg","Monitor first unconverged approximate eigenvalue and error estimate graphically","EPSMonitorSet",PETSC_FALSE,&flg,&set);CHKERRQ(ierr);
     if (set && flg) {
-      ierr = EPSMonitorSet(eps,EPSMonitorLG,NULL,NULL);CHKERRQ(ierr);
+      ierr = EPSMonitorLGCreate(PetscObjectComm((PetscObject)eps),NULL,"Error estimates",PETSC_DECIDE,PETSC_DECIDE,300,300,&lg);CHKERRQ(ierr);
+      ierr = EPSMonitorSet(eps,EPSMonitorLG,lg,(PetscErrorCode (*)(void**))PetscDrawLGDestroy);CHKERRQ(ierr);
     }
     ierr = PetscOptionsBool("-eps_monitor_lg_all","Monitor error estimates graphically","EPSMonitorSet",PETSC_FALSE,&flg,&set);CHKERRQ(ierr);
     if (set && flg) {
-      ierr = EPSMonitorSet(eps,EPSMonitorLGAll,NULL,NULL);CHKERRQ(ierr);
+      ierr = EPSMonitorLGCreate(PetscObjectComm((PetscObject)eps),NULL,"Error estimates",PETSC_DECIDE,PETSC_DECIDE,300,300,&lg);CHKERRQ(ierr);
+      ierr = EPSMonitorSet(eps,EPSMonitorLGAll,lg,(PetscErrorCode (*)(void**))PetscDrawLGDestroy);CHKERRQ(ierr);
       ierr = EPSSetTrackAll(eps,PETSC_TRUE);CHKERRQ(ierr);
     }
   /* -----------------------------------------------------------------------*/
