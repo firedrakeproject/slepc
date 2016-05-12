@@ -2,17 +2,18 @@
 
    SLEPc matrix function solver: "krylov"
 
-   Method: Arnoldi
+   Method: Arnoldi with Eiermann-Ernst restart
 
    Algorithm:
 
-       Single-vector Arnoldi method to build a Krylov subspace, then
-       compute f(B) on the projected matrix B.
+       Build Arnoldi approximations using f(H) for the Hessenberg matrix H,
+       restart by discarding the Krylov basis but keeping H.
 
    References:
 
-       [1] R. Sidje, "Expokit: a software package for computing matrix
-           exponentials", ACM Trans. Math. Softw. 24(1):130-156, 1998.
+       [1] M. Eiermann and O. Ernst, "A restarted Krylov subspace method
+           for the evaluation of matrix functions", SIAM J. Numer. Anal.
+           44(6):2481-2504, 2006.
 
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
@@ -35,283 +36,146 @@
 */
 
 #include <slepc/private/mfnimpl.h>
-
-PETSC_INTERN PetscErrorCode MFNSolve_Krylov_Exp(MFN mfn,Vec b,Vec x);
-PETSC_INTERN PetscErrorCode MFNSolve_Krylov(MFN mfn,Vec b,Vec x);
+#include <slepcblaslapack.h>
 
 #undef __FUNCT__
 #define __FUNCT__ "MFNSetUp_Krylov"
 PetscErrorCode MFNSetUp_Krylov(MFN mfn)
 {
-  PetscErrorCode  ierr;
-  PetscInt        N;
-  PetscBool       isexp;
+  PetscErrorCode ierr;
+  PetscInt       N;
 
   PetscFunctionBegin;
   ierr = MatGetSize(mfn->A,&N,NULL);CHKERRQ(ierr);
   if (!mfn->ncv) mfn->ncv = PetscMin(30,N);
-  if (!mfn->max_it) mfn->max_it = PetscMax(100,2*N/mfn->ncv);
-  ierr = MFNAllocateSolution(mfn,2);CHKERRQ(ierr);
-
-  /* dispatch solver */
-  ierr = PetscObjectTypeCompare((PetscObject)mfn->fn,FNEXP,&isexp);CHKERRQ(ierr);
-  if (isexp) mfn->ops->solve = MFNSolve_Krylov_Exp;
-  else       mfn->ops->solve = MFNSolve_Krylov;
+  if (!mfn->max_it) mfn->max_it = 100;
+  ierr = MFNAllocateSolution(mfn,1);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
 #undef __FUNCT__
 #define __FUNCT__ "MFNBasicArnoldi"
-static PetscErrorCode MFNBasicArnoldi(BV V, Mat A,PetscScalar *H,PetscInt ldh,PetscInt k,PetscInt *M,PetscReal *beta,PetscBool *breakdown)
+PetscErrorCode MFNBasicArnoldi(MFN mfn,PetscScalar *H,PetscInt ldh,PetscInt k,PetscInt *M,PetscReal *beta,PetscBool *breakdown)
 {
   PetscErrorCode ierr;
   PetscInt       j,m = *M;
   Vec            vj,vj1;
 
   PetscFunctionBegin;
-  ierr = BVSetActiveColumns(V,0,m);CHKERRQ(ierr);
+  ierr = BVSetActiveColumns(mfn->V,0,m);CHKERRQ(ierr);
   for (j=k;j<m;j++) {
-    ierr = BVGetColumn(V,j,&vj);CHKERRQ(ierr);
-    ierr = BVGetColumn(V,j+1,&vj1);CHKERRQ(ierr);
-    ierr = MatMult(A,vj,vj1);CHKERRQ(ierr);
-    ierr = BVRestoreColumn(V,j,&vj);CHKERRQ(ierr);
-    ierr = BVRestoreColumn(V,j+1,&vj1);CHKERRQ(ierr);
-    ierr = BVOrthogonalizeColumn(V,j+1,H+ldh*j,beta,breakdown);CHKERRQ(ierr);
+    ierr = BVGetColumn(mfn->V,j,&vj);CHKERRQ(ierr);
+    ierr = BVGetColumn(mfn->V,j+1,&vj1);CHKERRQ(ierr);
+    ierr = MatMult(mfn->A,vj,vj1);CHKERRQ(ierr);
+    ierr = BVRestoreColumn(mfn->V,j,&vj);CHKERRQ(ierr);
+    ierr = BVRestoreColumn(mfn->V,j+1,&vj1);CHKERRQ(ierr);
+    ierr = BVOrthogonalizeColumn(mfn->V,j+1,H+ldh*j,beta,breakdown);CHKERRQ(ierr);
     H[j+1+ldh*j] = *beta;
     if (*breakdown) {
       *M = j+1;
       break;
     } else {
-      ierr = BVScaleColumn(V,j+1,1.0/(*beta));CHKERRQ(ierr);
+      ierr = BVScaleColumn(mfn->V,j+1,1.0/(*beta));CHKERRQ(ierr);
     }
-  }
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
-#define __FUNCT__ "CreateDenseMat"
-/*
-   CreateDenseMat - Creates a dense Mat of size k unless it already has that size
-*/
-static PetscErrorCode CreateDenseMat(PetscInt k,Mat *A)
-{
-  PetscErrorCode ierr;
-  PetscBool      create=PETSC_FALSE;
-  PetscInt       m,n;
-
-  PetscFunctionBegin;
-  if (!*A) create=PETSC_TRUE;
-  else {
-    ierr = MatGetSize(*A,&m,&n);CHKERRQ(ierr);
-    if (m!=k || n!=k) {
-      ierr = MatDestroy(A);CHKERRQ(ierr);
-      create=PETSC_TRUE;
-    }
-  }
-  if (create) {
-    ierr = MatCreateSeqDense(PETSC_COMM_SELF,k,k,NULL,A);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }
 
 #undef __FUNCT__
 #define __FUNCT__ "MFNSolve_Krylov"
-/*
-   Generic Krylov method for any function
- */
 PetscErrorCode MFNSolve_Krylov(MFN mfn,Vec b,Vec x)
 {
   PetscErrorCode ierr;
-  PetscInt       m,ld,j;
-  Mat            H=NULL,F=NULL;
-  PetscScalar    *array,*harray,*farray;
-  PetscReal      normb,beta;
+  PetscInt       n=0,m,ld,ldh,j;
+  PetscBLASInt   m_,inc=1;
+  Mat            G=NULL,H=NULL;
+  Vec            F=NULL;
+  PetscScalar    *array,*farray,*garray,*harray;
+  PetscReal      beta,nrm=1.0;
   PetscBool      breakdown,set,flg,symm=PETSC_FALSE;
 
   PetscFunctionBegin;
   m  = mfn->ncv;
   ld = m+1;
   ierr = PetscCalloc1(ld*ld,&array);CHKERRQ(ierr);
-  ierr = CreateDenseMat(m,&F);CHKERRQ(ierr);
-  ierr = CreateDenseMat(m,&H);CHKERRQ(ierr);
+  ierr = VecSet(x,0.0);CHKERRQ(ierr);
 
-  /* build Arnoldi decomposition with start vector b/||b|| */
-  ierr = VecNorm(b,NORM_2,&normb);CHKERRQ(ierr);
-  if (!normb) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Cannot pass a zero b vector to MFNSolve()");
+  /* set initial vector to b/||b|| */
   ierr = BVInsertVec(mfn->V,0,b);CHKERRQ(ierr);
-  ierr = BVScaleColumn(mfn->V,0,1.0/normb);CHKERRQ(ierr);
-  ierr = MFNBasicArnoldi(mfn->V,mfn->A,array,ld,0,&m,&beta,&breakdown);CHKERRQ(ierr);
+  ierr = BVScaleColumn(mfn->V,0,1.0/mfn->bnorm);CHKERRQ(ierr);
 
-  ierr = MatDenseGetArray(H,&harray);CHKERRQ(ierr);
-  for (j=0;j<m;j++) {
-    ierr = PetscMemcpy(harray+j*m,array+j*ld,m*sizeof(PetscScalar));CHKERRQ(ierr);
-  }
-  ierr = MatDenseRestoreArray(H,&harray);CHKERRQ(ierr);
-
-  /* set symmetry flag of H from A */
-  ierr = MatIsHermitianKnown(mfn->A,&set,&flg);CHKERRQ(ierr);
-  symm = set? flg: PETSC_FALSE;
-  if (symm) {
-    ierr = MatSetOption(H,MAT_HERMITIAN,PETSC_TRUE);CHKERRQ(ierr);
-  }
-
-  /* evaluate f(H) */
-  ierr = FNEvaluateFunctionMat(mfn->fn,H,F);CHKERRQ(ierr);
-
-  /* x = ||b||*V*f(H)*e_1 */
-  ierr = MatDenseGetArray(F,&farray);CHKERRQ(ierr);
-  for (j=0;j<m;j++) farray[j] *= normb;
-  ierr = BVSetActiveColumns(mfn->V,0,m);CHKERRQ(ierr);
-  ierr = BVMultVec(mfn->V,1.0,0.0,x,farray);CHKERRQ(ierr);
-  ierr = MatDenseRestoreArray(F,&farray);CHKERRQ(ierr);
-
-  /* there is no known way to assess accuracy for general f, so just pretend it works */
-  mfn->reason = MFN_CONVERGED_TOL;
-
-  ierr = MatDestroy(&H);CHKERRQ(ierr);
-  ierr = MatDestroy(&F);CHKERRQ(ierr);
-  ierr = PetscFree(array);CHKERRQ(ierr);
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
-#define __FUNCT__ "MFNSolve_Krylov_Exp"
-/*
-   Krylov method taylored for the exponential, based on the implementation in Expokit
- */
-PetscErrorCode MFNSolve_Krylov_Exp(MFN mfn,Vec b,Vec x)
-{
-  PetscErrorCode ierr;
-  PetscInt       mxstep,mxrej,m,mb,ld,i,j,ireject,mx,k1;
-  Vec            v,r;
-  Mat            M=NULL,K=NULL;
-  PetscScalar    *H,*B,*F,*betaF,t,sgn;
-  PetscReal      anorm,normb,avnorm,tol,err_loc,rndoff;
-  PetscReal      t_out,t_new,t_now,t_step;
-  PetscReal      xm,fact,s,p1,p2;
-  PetscReal      beta,beta2,gamma,delta;
-  PetscBool      breakdown;
-
-  PetscFunctionBegin;
-  m   = mfn->ncv;
-  tol = mfn->tol;
-  mxstep = mfn->max_it;
-  mxrej = 10;
-  gamma = 0.9;
-  delta = 1.2;
-  mb    = m;
-  t     = mfn->sfactor;
-  t_out = PetscAbsScalar(t);
-  t_new = 0.0;
-  t_now = 0.0;
-  ierr = MatNorm(mfn->A,NORM_INFINITY,&anorm);CHKERRQ(ierr);
-  rndoff = anorm*PETSC_MACHINE_EPSILON;
-
-  k1 = 2;
-  xm = 1.0/(PetscReal)m;
-  ierr = VecNorm(b,NORM_2,&normb);CHKERRQ(ierr);
-  if (!normb) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Cannot pass a zero b vector to MFNSolve()");
-  beta = normb;
-  fact = PetscPowRealInt((m+1)/2.72,m+1)*PetscSqrtReal(2*PETSC_PI*(m+1));
-  t_new = (1.0/anorm)*PetscPowReal((fact*tol)/(4.0*beta*anorm),xm);
-  s = PetscPowReal(10.0,PetscFloorReal(PetscLog10Real(t_new))-1);
-  t_new = PetscCeilReal(t_new/s)*s;
-  sgn = t/PetscAbsScalar(t);
-
-  ierr = VecCopy(b,x);CHKERRQ(ierr);
-  ld = m+2;
-  ierr = PetscCalloc3(m+1,&betaF,ld*ld,&H,ld*ld,&B);CHKERRQ(ierr);
-
+  /* Restart loop */
   while (mfn->reason == MFN_CONVERGED_ITERATING) {
     mfn->its++;
-    if (PetscIsInfOrNanReal(t_new)) t_new = PETSC_MAX_REAL;
-    t_step = PetscMin(t_out-t_now,t_new);
-    ierr = BVInsertVec(mfn->V,0,x);CHKERRQ(ierr);
-    ierr = BVScaleColumn(mfn->V,0,1.0/beta);CHKERRQ(ierr);
-    ierr = MFNBasicArnoldi(mfn->V,mfn->A,H,ld,0,&mb,&beta2,&breakdown);CHKERRQ(ierr);
-    if (breakdown) {
-      k1 = 0;
-      t_step = t_out-t_now;
-    }
-    if (k1!=0) {
-      H[m+1+ld*m] = 1.0;
-      ierr = BVGetColumn(mfn->V,m,&v);CHKERRQ(ierr);
-      ierr = BVGetColumn(mfn->V,m+1,&r);CHKERRQ(ierr);
-      ierr = MatMult(mfn->A,v,r);CHKERRQ(ierr);
-      ierr = BVRestoreColumn(mfn->V,m,&v);CHKERRQ(ierr);
-      ierr = BVRestoreColumn(mfn->V,m+1,&r);CHKERRQ(ierr);
-      ierr = BVNormColumn(mfn->V,m+1,NORM_2,&avnorm);CHKERRQ(ierr);
-    }
-    ierr = PetscMemcpy(B,H,ld*ld*sizeof(PetscScalar));CHKERRQ(ierr);
 
-    ireject = 0;
-    while (ireject <= mxrej) {
-      mx = mb + k1;
-      for (i=0;i<mx;i++) {
-        for (j=0;j<mx;j++) {
-          H[i+j*ld] = sgn*B[i+j*ld]*t_step;
-        }
-      }
-      ierr = CreateDenseMat(mx,&M);CHKERRQ(ierr);
-      ierr = CreateDenseMat(mx,&K);CHKERRQ(ierr);
-      ierr = MatDenseGetArray(M,&F);CHKERRQ(ierr);
-      for (j=0;j<mx;j++) {
-        ierr = PetscMemcpy(F+j*mx,H+j*ld,mx*sizeof(PetscScalar));CHKERRQ(ierr);
-      }
-      ierr = MatDenseRestoreArray(M,&F);CHKERRQ(ierr);
-      ierr = FNEvaluateFunctionMat(mfn->fn,M,K);CHKERRQ(ierr);
+    /* compute Arnoldi factorization */
+    ierr = MFNBasicArnoldi(mfn,array,ld,0,&m,&beta,&breakdown);CHKERRQ(ierr);
 
-      if (k1==0) {
-        err_loc = tol;
-        break;
-      } else {
-        ierr = MatDenseGetArray(K,&F);CHKERRQ(ierr);
-        p1 = PetscAbsScalar(beta*F[m]);
-        p2 = PetscAbsScalar(beta*F[m+1]*avnorm);
-        ierr = MatDenseRestoreArray(K,&F);CHKERRQ(ierr);
-        if (p1 > 10*p2) {
-          err_loc = p2;
-          xm = 1.0/(PetscReal)m;
-        } else if (p1 > p2) {
-          err_loc = (p1*p2)/(p1-p2);
-          xm = 1.0/(PetscReal)m;
-        } else {
-          err_loc = p1;
-          xm = 1.0/(PetscReal)(m-1);
-        }
+    /* save previous Hessenberg matrix in G; allocate new storage for H and f(H) */
+    if (mfn->its>1) { G = H; H = NULL; }
+    ldh = n+m;
+    ierr = MFN_CreateVec(ldh,&F);CHKERRQ(ierr);
+    ierr = MFN_CreateDenseMat(ldh,&H);CHKERRQ(ierr);
+
+    /* glue together the previous H and the new H obtained with Arnoldi */
+    ierr = MatDenseGetArray(H,&harray);CHKERRQ(ierr);
+    for (j=0;j<m;j++) {
+      ierr = PetscMemcpy(harray+n+(j+n)*ldh,array+j*ld,m*sizeof(PetscScalar));CHKERRQ(ierr);
+    }
+    if (mfn->its>1) {
+      ierr = MatDenseGetArray(G,&garray);CHKERRQ(ierr);
+      for (j=0;j<n;j++) {
+        ierr = PetscMemcpy(harray+j*ldh,garray+j*n,n*sizeof(PetscScalar));CHKERRQ(ierr);
       }
-      if (err_loc <= delta*t_step*tol) break;
-      else {
-        t_step = gamma*t_step*PetscPowReal(t_step*tol/err_loc,xm);
-        s = PetscPowReal(10.0,PetscFloorReal(PetscLog10Real(t_step))-1);
-        t_step = PetscCeilReal(t_step/s)*s;
-        ireject = ireject+1;
+      ierr = MatDenseRestoreArray(G,&garray);CHKERRQ(ierr);
+      ierr = MatDestroy(&G);CHKERRQ(ierr);
+      harray[n+(n-1)*ldh] = beta;
+    }
+    ierr = MatDenseRestoreArray(H,&harray);CHKERRQ(ierr);
+
+    if (mfn->its==1) {
+      /* set symmetry flag of H from A */
+      ierr = MatIsHermitianKnown(mfn->A,&set,&flg);CHKERRQ(ierr);
+      symm = set? flg: PETSC_FALSE;
+      if (symm) {
+        ierr = MatSetOption(H,MAT_HERMITIAN,PETSC_TRUE);CHKERRQ(ierr);
       }
     }
 
-    mx = mb + PetscMax(0,k1-1);
-    ierr = MatDenseGetArray(K,&F);CHKERRQ(ierr);
-    for (j=0;j<mx;j++) betaF[j] = beta*F[j];
-    ierr = MatDenseRestoreArray(K,&F);CHKERRQ(ierr);
-    ierr = BVSetActiveColumns(mfn->V,0,mx);CHKERRQ(ierr);
-    ierr = BVMultVec(mfn->V,1.0,0.0,x,betaF);CHKERRQ(ierr);
-    ierr = VecNorm(x,NORM_2,&beta);CHKERRQ(ierr);
+    /* evaluate f(H) */
+    ierr = FNEvaluateFunctionMatVec(mfn->fn,H,F);CHKERRQ(ierr);
 
-    t_now = t_now+t_step;
-    if (t_now>=t_out) mfn->reason = MFN_CONVERGED_TOL;
-    else {
-      t_new = gamma*t_step*PetscPowReal((t_step*tol)/err_loc,xm);
-      s = PetscPowReal(10.0,PetscFloorReal(PetscLog10Real(t_new))-1);
-      t_new = PetscCeilReal(t_new/s)*s;
+    /* x += ||b||*V*f(H)*e_1 */
+    ierr = VecGetArray(F,&farray);CHKERRQ(ierr);
+    if (mfn->its>1) {
+      ierr = PetscBLASIntCast(m,&m_);CHKERRQ(ierr);
+      nrm = BLASnrm2_(&m_,farray+n,&inc);   /* relative norm of the update ||u||/||b|| */
+      ierr = MFNMonitor(mfn,mfn->its,nrm);CHKERRQ(ierr);
+    } else {
+      ierr = MFNMonitor(mfn,1,1.0);CHKERRQ(ierr);   /* no error estimate available */
     }
-    err_loc = PetscMax(err_loc,rndoff);
-    if (mfn->its==mxstep) mfn->reason = MFN_DIVERGED_ITS;
-    ierr = MFNMonitor(mfn,mfn->its,t_now);CHKERRQ(ierr);
+    for (j=0;j<m;j++) farray[j+n] *= mfn->bnorm;
+    ierr = BVSetActiveColumns(mfn->V,0,m);CHKERRQ(ierr);
+    ierr = BVMultVec(mfn->V,1.0,1.0,x,farray+n);CHKERRQ(ierr);
+    ierr = VecRestoreArray(F,&farray);CHKERRQ(ierr);
+
+    /* check convergence */
+    if (mfn->its>1) {
+      if (mfn->its >= mfn->max_it) mfn->reason = MFN_DIVERGED_ITS;
+      if (m<mfn->ncv || breakdown || beta==0.0 || nrm<mfn->tol) mfn->reason = MFN_CONVERGED_TOL;
+    }
+
+    /* restart with vector v_{m+1} */
+    if (mfn->reason == MFN_CONVERGED_ITERATING) {
+      ierr = BVCopyColumn(mfn->V,m,0);CHKERRQ(ierr);
+      n += m;
+    }
   }
 
-  ierr = MatDestroy(&M);CHKERRQ(ierr);
-  ierr = MatDestroy(&K);CHKERRQ(ierr);
-  ierr = PetscFree3(betaF,H,B);CHKERRQ(ierr);
+  ierr = MatDestroy(&H);CHKERRQ(ierr);
+  ierr = MatDestroy(&G);CHKERRQ(ierr);
+  ierr = VecDestroy(&F);CHKERRQ(ierr);
+  ierr = PetscFree(array);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

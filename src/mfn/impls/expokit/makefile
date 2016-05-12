@@ -21,10 +21,15 @@
 
 ALL: lib
 
+CFLAGS   =
+FFLAGS   =
+SOURCEC  = mfnexpokit.c
+SOURCEF  =
+SOURCEH  =
 LIBBASE  = libslepcmfn
-DIRS     = krylov expokit
-LOCDIR   = src/mfn/impls/
+DIRS     =
 MANSEC   = MFN
+LOCDIR   = src/mfn/impls/expokit/
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common
 

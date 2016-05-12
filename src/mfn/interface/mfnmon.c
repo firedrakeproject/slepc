@@ -180,12 +180,13 @@ PetscErrorCode MFNMonitorDefault(MFN mfn,PetscInt its,PetscReal errest,PetscView
   PetscValidPointer(vf,4);
   viewer = vf->viewer;
   PetscValidHeaderSpecific(viewer,PETSC_VIEWER_CLASSID,4);
+  if (!its) PetscFunctionReturn(0);
   ierr = PetscViewerPushFormat(viewer,vf->format);CHKERRQ(ierr);
   ierr = PetscViewerASCIIAddTab(viewer,((PetscObject)mfn)->tablevel);CHKERRQ(ierr);
-  if (its == 0 && ((PetscObject)mfn)->prefix) {
-    ierr = PetscViewerASCIIPrintf(viewer,"  Monitor for %s solve.\n",((PetscObject)mfn)->prefix);CHKERRQ(ierr);
+  if (its == 1 && ((PetscObject)mfn)->prefix) {
+    ierr = PetscViewerASCIIPrintf(viewer,"  Error estimates for %s solve.\n",((PetscObject)mfn)->prefix);CHKERRQ(ierr);
   }
-  ierr = PetscViewerASCIIPrintf(viewer,"%3D MFN value %14.12e\n",its,(double)errest);CHKERRQ(ierr);
+  ierr = PetscViewerASCIIPrintf(viewer,"%3D MFN Error estimate %14.12e\n",its,(double)errest);CHKERRQ(ierr);
   ierr = PetscViewerASCIISubtractTab(viewer,((PetscObject)mfn)->tablevel);CHKERRQ(ierr);
   ierr = PetscViewerPopFormat(viewer);CHKERRQ(ierr);
   PetscFunctionReturn(0);

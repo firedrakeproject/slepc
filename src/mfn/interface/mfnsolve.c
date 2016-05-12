@@ -74,6 +74,10 @@ PetscErrorCode MFNSolve(MFN mfn,Vec b,Vec x)
   ierr = MFNMonitor(mfn,mfn->its,0);CHKERRQ(ierr);
   ierr = MFNViewFromOptions(mfn,NULL,"-mfn_view_pre");CHKERRQ(ierr);
 
+  /* check nonzero right-hand side */
+  ierr = VecNorm(b,NORM_2,&mfn->bnorm);CHKERRQ(ierr);
+  if (!mfn->bnorm) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Cannot pass a zero b vector to MFNSolve()");
+
   /* call solver */
   ierr = PetscLogEventBegin(MFN_Solve,mfn,b,x,0);CHKERRQ(ierr);
   ierr = VecLockPush(b);CHKERRQ(ierr);
@@ -145,11 +149,18 @@ PetscErrorCode MFNGetIterationNumber(MFN mfn,PetscInt *its)
 
    Possible values for reason:
 +  MFN_CONVERGED_TOL - converged up to tolerance
-.  MFN_DIVERGED_ITS - required more than its to reach convergence
+.  MFN_CONVERGED_ITS - solver completed the requested number of steps
+.  MFN_DIVERGED_ITS - required more than max_it iterations to reach convergence
 -  MFN_DIVERGED_BREAKDOWN - generic breakdown in method
 
-   Note:
+   Notes:
    Can only be called after the call to MFNSolve() is complete.
+
+   Basic solvers (e.g. unrestarted Krylov iterations) cannot determine if the
+   computation is accurate up to the requested tolerance. In that case, the
+   converged reason is set to MFN_CONVERGED_ITS if the requested number of steps
+   (for instance, the ncv value in unrestarted Krylov methods) have been
+   completed successfully.
 
    Level: intermediate
 

@@ -57,7 +57,6 @@ struct _p_MFN {
   PetscInt       max_it;         /* maximum number of iterations */
   PetscInt       ncv;            /* number of basis vectors */
   PetscReal      tol;            /* tolerance */
-  PetscScalar    sfactor;        /* scaling factor */
   PetscBool      errorifnotconverged;    /* error out if MFNSolve() does not converge */
 
   /*-------------- User-provided functions and contexts -----------------*/
@@ -76,8 +75,63 @@ struct _p_MFN {
   PetscInt       its;            /* number of iterations so far computed */
   PetscInt       nv;             /* size of current Schur decomposition */
   PetscReal      errest;         /* error estimate */
+  PetscReal      bnorm;          /* computed norm of right-hand side in current solve */
   PetscInt       setupcalled;
   MFNConvergedReason reason;
 };
+
+#undef __FUNCT__
+#define __FUNCT__ "MFN_CreateDenseMat"
+/*
+   MFN_CreateDenseMat - Creates a dense Mat of size k unless it already has that size
+*/
+PETSC_STATIC_INLINE PetscErrorCode MFN_CreateDenseMat(PetscInt k,Mat *A)
+{
+  PetscErrorCode ierr;
+  PetscBool      create=PETSC_FALSE;
+  PetscInt       m,n;
+
+  PetscFunctionBegin;
+  if (!*A) create=PETSC_TRUE;
+  else {
+    ierr = MatGetSize(*A,&m,&n);CHKERRQ(ierr);
+    if (m!=k || n!=k) {
+      ierr = MatDestroy(A);CHKERRQ(ierr);
+      create=PETSC_TRUE;
+    }
+  }
+  if (create) {
+    ierr = MatCreateSeqDense(PETSC_COMM_SELF,k,k,NULL,A);CHKERRQ(ierr);
+  }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "MFN_CreateVec"
+/*
+   MFN_CreateVec - Creates a Vec of size k unless it already has that size
+*/
+PETSC_STATIC_INLINE PetscErrorCode MFN_CreateVec(PetscInt k,Vec *v)
+{
+  PetscErrorCode ierr;
+  PetscBool      create=PETSC_FALSE;
+  PetscInt       n;
+
+  PetscFunctionBegin;
+  if (!*v) create=PETSC_TRUE;
+  else {
+    ierr = VecGetSize(*v,&n);CHKERRQ(ierr);
+    if (n!=k) {
+      ierr = VecDestroy(v);CHKERRQ(ierr);
+      create=PETSC_TRUE;
+    }
+  }
+  if (create) {
+    ierr = VecCreateSeq(PETSC_COMM_SELF,k,v);CHKERRQ(ierr);
+  }
+  PetscFunctionReturn(0);
+}
+
+PETSC_INTERN PetscErrorCode MFNBasicArnoldi(MFN,PetscScalar*,PetscInt,PetscInt,PetscInt*,PetscReal*,PetscBool*);
 
 #endif

@@ -19,8 +19,9 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-static char help[] = "Computes exp(A)*v for a matrix associated with a Markov model.\n\n"
+static char help[] = "Computes exp(t*A)*v for a matrix associated with a Markov model.\n\n"
   "The command line options are:\n"
+  "  -t <t>, where <t> = time parameter (multiplies the matrix).\n\n"
   "  -m <m>, where <m> = number of grid subdivisions in each dimension.\n\n";
 
 #include <slepcmfn.h>
@@ -94,12 +95,12 @@ int main(int argc,char **argv)
   ierr = MFNSetFromOptions(mfn);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
-                      Solve the problem, y=exp(A)*v
+                      Solve the problem, y=exp(t*A)*v
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
   ierr = MFNSolve(mfn,v,y);CHKERRQ(ierr);
   ierr = MFNGetConvergedReason(mfn,&reason);CHKERRQ(ierr);
-  if (reason!=MFN_CONVERGED_TOL) SETERRQ(PETSC_COMM_WORLD,1,"Solver did not converge");
+  if (reason<0) SETERRQ(PETSC_COMM_WORLD,1,"Solver did not converge");
   ierr = VecNorm(y,NORM_2,&norm);CHKERRQ(ierr);
   
   /*

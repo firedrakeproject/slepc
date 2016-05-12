@@ -35,5 +35,6 @@
 #define MFNConvergedReason PetscEnum
 
 #define MFNKRYLOV      'krylov'
+#define MFNEXPOKIT     'expokit'
 
 #endif

@@ -29,7 +29,6 @@
 
 #define RGType      character*(80)
 
-#define RGNONE      'none'
 #define RGINTERVAL  'interval'
 #define RGPOLYGON   'polygon'
 #define RGELLIPSE   'ellipse'

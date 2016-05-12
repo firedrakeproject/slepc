@@ -4,14 +4,14 @@
 \chapter{\label{cap:pep}PEP: Polynomial Eigenvalue Problems}
 %-------------------------------------------------------
 
-\begin{center}
-  {\setlength{\fboxsep}{4mm}
-  \framebox{%
-   \begin{minipage}{.8\textwidth}
-   \textbf{Note:} Previous \slepc versions provided specific functionality for quadratic eigenvalue problems (the \texttt{QEP} module). This has been made more general by covering polynomials of arbitrary degree (the \texttt{PEP} module described in this chapter), which of course includes quadratic problems as a particular case. See \S\ref{sec:qeppep} for how to upgrade application code that used \texttt{QEP}.
-   \end{minipage}
-  }}
-\end{center}
+%\begin{center}
+%  {\setlength{\fboxsep}{4mm}
+%  \framebox{%
+%   \begin{minipage}{.8\textwidth}
+%   \textbf{Note:} Previous \slepc versions provided specific functionality for quadratic eigenvalue problems (the \texttt{QEP} module). This has been made more general by covering polynomials of arbitrary degree (the \texttt{PEP} module described in this chapter), which of course includes quadratic problems as a particular case. See \S\ref{sec:qeppep} for how to upgrade application code that used \texttt{QEP}.
+%   \end{minipage}
+%  }}
+%\end{center}
 
 \noindent The Polynomial Eigenvalue Problem (\ident{PEP}) solver object is intended for addressing polynomial eigenproblems of arbitrary degree, $P(\lambda)x=0$. A particular instance is the quadratic eigenvalue problem (degree 2), which is the case more often encountered in practice. For this reason, part of the description of this chapter focuses specifically on quadratic eigenproblems.
 
@@ -21,7 +21,7 @@ Currently, most \ident{PEP} solvers are based on linearization, either implicit 
 
 In this section, we review some basic properties of the polynomial eigenvalue problem. The main goal is to set up the notation as well as to describe the linearization approaches that will be employed for solving via an \ident{EPS} object.
 To simplify the description, we initially restrict to the case of quadratic eigenproblems, and then extend to the general case of arbitrary degree.
-For additional background material, the reader is referred to \citep{Tisseur:2001:QEP}. More information can be found in a paper by \cite{Campos:2015:PKS}, that focuses specifically on \slepc implementation of methods based on Krylov iterations on the linearized problem.
+For additional background material, the reader is referred to \citep{Tisseur:2001:QEP}. More information can be found in a paper by \cite{Campos:2016:PKS}, that focuses specifically on \slepc implementation of methods based on Krylov iterations on the linearized problem.
 
 \subsection{\label{sec:qep}Quadratic Eigenvalue Problems}
 
@@ -33,7 +33,7 @@ where $K,C,M\in\mathbb{C}^{n\times n}$ are the coefficients of a matrix polynomi
 
 It is important to point out some outstanding differences with respect to the linear eigenproblem. In the quadratic eigenproblem, the number of eigenvalues is $2n$, and the corresponding eigenvectors do not form a linearly independent set. If $M$ is singular, some eigenvalues are infinite. Even when the three matrices are symmetric and positive definite, there is no guarantee that the eigenvalues are real, but still methods can exploit symmetry to some extent. Furthermore, numerical difficulties are more likely than in the linear case, so the computed solution can sometimes be untrustworthy.
 
-If Eq.\ \ref{eq:eigquad} is written as $P(\lambda)x=0$, where $P$ is the matrix polynomial, then multiplication by $\lambda^{-2}$ results in $R(\lambda^{-1})x=0$, where $R$ is a matrix polynomial with the coefficients in the reverse order. In other words, if a method is available for computing the largest eigenvalues, then reversing the roles of $M$ and $K$ results in the computation of the smallest eigenvalues. In general, it is also possible to formulate a spectral transformation for computing eigenvalues closest to a given target.
+If Eq.\ \ref{eq:eigquad} is written as $P(\lambda)x=0$, where $P$ is the matrix polynomial, then multiplication by $\lambda^{-2}$ results in $R(\lambda^{-1})x=0$, where $R$ is a matrix polynomial with the coefficients in the reverse order. In other words, if a method is available for computing the largest eigenvalues, then reversing the roles of $M$ and $K$ results in the computation of the smallest eigenvalues. In general, it is also possible to formulate a spectral transformation for computing eigenvalues closest to a given target, as discussed in \S\ref{sec:qst}.
 
 \paragraph{Problem Types.}
 
@@ -473,9 +473,9 @@ Similar expressions can be used in the convergence criterion used to accept conv
 {\small \begin{tabular}{llll}
 Convergence criterion    & \texttt{PEPConv}         & Command line key          & Error bound \\\hline
 Absolute                 & \texttt{PEP\_CONV\_ABS}  & \texttt{-pep\_conv\_abs}  & $\|r\|$ \\
-Relative to eigenvalue   & \texttt{PEP\_CONV\_EIG}  & \texttt{-pep\_conv\_eig}  & $\|r\|/|\lambda|$ \\
+Relative to eigenvalue   & \texttt{PEP\_CONV\_REL}  & \texttt{-pep\_conv\_rel}  & $\|r\|/|\lambda|$ \\
 Relative to matrix norms & \texttt{PEP\_CONV\_NORM} & \texttt{-pep\_conv\_norm} & $\|r\|/(\sum_j\|A_j\||\lambda_i|^j)$ \\
-Relative to norms of linearization & \texttt{PEP\_CONV\_LINEAR} & \texttt{-pep\_conv\_linear} & $\|r\|/(\|L_0\|+|\lambda_i|\|L_1\|)$ \\
+User-defined             & \texttt{PEP\_CONV\_USER} & \texttt{-pep\_conv\_user} & user function \\
 \hline
 \end{tabular} }
 \caption{\label{tab:pepconv}Available possibilities for the convergence criterion.}
@@ -497,7 +497,7 @@ In the general case of polynomials of arbitrary degree, a similar scheme is also
 	PEPSetScale(PEP pep,PEPScale scale,PetscReal alpha,Vec Dl,Vec Dr,
                     PetscInt its,PetscReal w);
 	\end{Verbatim}
-See the manual page for details and the description in \citep{Campos:2015:PKS}.
+See the manual page for details and the description in \citep{Campos:2016:PKS}.
 
 \paragraph{Extraction.}
 
@@ -506,7 +506,7 @@ Some of the eigensolvers provided in the \texttt{PEP} package are based on solvi
 	\begin{Verbatim}[fontsize=\small]
 	PEPSetExtract(PEP pep,PEPExtract extract);
 	\end{Verbatim}
-For additional information, see \citep{Campos:2015:PKS}.
+For additional information, see \citep{Campos:2016:PKS}.
 
 \paragraph{Controlling and Monitoring Convergence.}
 
@@ -530,9 +530,11 @@ Iterative refinement can be very costly (sometimes a single refinement step is m
                      PetscReal tol,PetscInt its,PEPRefineScheme scheme);
 	\end{Verbatim}
 
-There are two types of refinement, identified as \emph{simple} and \emph{multiple}. The first one performs refinement on each eigenpair individually, while the second one considers the computed invariant pair as a whole \citep{Betcke:2011:PER}. This latter approach is more costly but it is expected to be more robust in the presence of multiple eigenvalues.
+There are two types of refinement, identified as \emph{simple} and \emph{multiple}. The first one performs refinement on each eigenpair individually, while the second one considers the computed invariant pair as a whole. This latter approach is more costly but it is expected to be more robust in the presence of multiple eigenvalues.
 
-In \ident{PEPSetRefine}, the argument \texttt{npart} indicates the number of partitions in which the communicator must be split. This can sometimes improve the scalability when refining many eigenpairs. See the manual page for additional details.
+In \ident{PEPSetRefine}, the argument \texttt{npart} indicates the number of partitions in which the communicator must be split. This can sometimes improve the scalability when refining many eigenpairs.
+
+Additional details can be found in \citep{Campos:2016:PIR}.
 
 \section{\label{sec:qeppep}Upgrading from \texttt{QEP} to \texttt{PEP}}
 

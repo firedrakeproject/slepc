@@ -256,7 +256,7 @@ PetscErrorCode EPSGetConverged(EPS eps,PetscInt *nconv)
    Possible values for reason:
 +  EPS_CONVERGED_TOL - converged up to tolerance
 .  EPS_CONVERGED_USER - converged due to a user-defined condition
-.  EPS_DIVERGED_ITS - required more than its to reach convergence
+.  EPS_DIVERGED_ITS - required more than max_it iterations to reach convergence
 .  EPS_DIVERGED_BREAKDOWN - generic breakdown in method
 -  EPS_DIVERGED_SYMMETRY_LOST - pseudo-Lanczos was not able to keep symmetry
 

@@ -46,6 +46,7 @@ typedef struct _p_MFN* MFN;
 J*/
 typedef const char* MFNType;
 #define MFNKRYLOV   "krylov"
+#define MFNEXPOKIT  "expokit"
 
 /* Logging support */
 PETSC_EXTERN PetscClassId MFN_CLASSID;
@@ -101,6 +102,7 @@ PETSC_EXTERN PetscErrorCode MFNGetOptionsPrefix(MFN,const char*[]);
 E*/
 typedef enum {/* converged */
               MFN_CONVERGED_TOL                =  2,
+              MFN_CONVERGED_ITS                =  3,
               /* diverged */
               MFN_DIVERGED_ITS                 = -3,
               MFN_DIVERGED_BREAKDOWN           = -4,
