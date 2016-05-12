@@ -38,7 +38,7 @@ PetscErrorCode DSAllocateMat_Private(DS ds,DSMatType m)
   if (ispep) {
     ierr = DSPEPGetDegree(ds,&d);CHKERRQ(ierr);
   }
-  if (ispep && (m==DS_MAT_A || m==DS_MAT_B || m==DS_MAT_W || m==DS_MAT_X)) n = d*ds->ld;
+  if (ispep && (m==DS_MAT_A || m==DS_MAT_B || m==DS_MAT_W || m==DS_MAT_U || m==DS_MAT_X || m==DS_MAT_Y)) n = d*ds->ld;
   else n = ds->ld;
   switch (m) {
     case DS_MAT_T:
@@ -48,6 +48,9 @@ PetscErrorCode DSAllocateMat_Private(DS ds,DSMatType m)
       sz = ds->ld*sizeof(PetscScalar);
       break;
     case DS_MAT_X:
+      sz = ds->ld*n*sizeof(PetscScalar);
+      break;
+    case DS_MAT_Y:
       sz = ds->ld*n*sizeof(PetscScalar);
       break;
     default:
@@ -133,9 +136,10 @@ PetscErrorCode DSAllocateWork_Private(DS ds,PetscInt s,PetscInt r,PetscInt i)
 PetscErrorCode DSViewMat(DS ds,PetscViewer viewer,DSMatType m)
 {
   PetscErrorCode    ierr;
-  PetscInt          i,j,rows,cols;
+  PetscInt          i,j,rows,cols,d;
   PetscScalar       *v;
   PetscViewerFormat format;
+  PetscBool         ispep;
 #if defined(PETSC_USE_COMPLEX)
   PetscBool         allreal = PETSC_TRUE;
 #endif
@@ -149,6 +153,11 @@ PetscErrorCode DSViewMat(DS ds,PetscViewer viewer,DSMatType m)
   if (ds->state==DS_STATE_TRUNCATED && m>=DS_MAT_Q) rows = ds->t;
   else rows = (m==DS_MAT_A && ds->extrarow)? ds->n+1: ds->n;
   cols = (ds->m!=0)? ds->m: ds->n;
+  ierr = PetscObjectTypeCompare((PetscObject)ds,DSPEP,&ispep);CHKERRQ(ierr);
+  if (ispep) {
+    ierr = DSPEPGetDegree(ds,&d);CHKERRQ(ierr);
+  }
+  if (ispep && (m==DS_MAT_X || m==DS_MAT_Y)) cols = d*ds->n;
 #if defined(PETSC_USE_COMPLEX)
   /* determine if matrix has all real values */
   v = ds->mat[m];

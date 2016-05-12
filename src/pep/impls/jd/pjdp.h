@@ -26,16 +26,21 @@
 
 typedef struct {
   PetscReal   keep;          /* restart parameter */
-  PetscReal   mtol;          /* tolerance for eigenvalue multiplicity */
-  PetscReal   htol;          /* tolerance for harmonic JD */
-  PetscReal   stol;          /* tolerance for harmonic shift */
   PetscInt    fnini;         /* first initial search space */
-  PetscBool   randini;       /* use random initial search space */
   PetscBool   custpc;        /* use custom correction equation preconditioner */
   PetscBool   flglk;         /* whether in locking step */
   PetscBool   flgre;         /* whether in restarting step */
-  BV          *W;            /* work basis vectors to store A_i*V */
+  BV          V;             /* work basis vectors to store the search space */
+  BV          W;             /* work basis vectors to store the test space */
+  BV          *TV;           /* work basis vectors to store T*V (each TV[i] is the coefficient for \lambda^i of T*V for the extended T) */
+  BV          *AX;           /* work basis vectors to store A_i*X for locked eigenvectors */
+  BV          X;             /* locked eigenvectors */
+  PetscScalar *T;            /* matrix of the invariant pair */
+  PetscScalar *Tj;           /* matrix containing the powers of the invariant pair matrix */
+  PetscScalar *XpX;          /* X^H*X */
   PC          pcshell;       /* preconditioner including basic precond+projector */
+  Mat         Pshell;        /* auxiliary shell matrix */
+  PetscInt    nconv;         /* number of locked vectors in the invariant pair */
 } PEP_JD;
 
 typedef struct {
@@ -43,13 +48,24 @@ typedef struct {
   Vec         Bp;            /* preconditioned residual of derivative polynomial, B\p */
   Vec         u;             /* Ritz vector */
   PetscScalar gamma;         /* precomputed scalar u'*B\p */
+  PetscScalar *M;
+  PetscScalar *ps;
+  PetscInt    ld;
+  Vec         *work;
+  BV          X;
+  PetscInt    n;
 } PEP_JD_PCSHELL;
+
+typedef struct {
+  Mat         P;             /*  */
+  PEP         pep;
+  Vec         *work;
+  PetscScalar theta;
+} PEP_JD_MATSHELL;
 
 PETSC_INTERN PetscErrorCode PEPView_JD(PEP,PetscViewer);
 PETSC_INTERN PetscErrorCode PEPSetFromOptions_JD(PetscOptionItems*,PEP);
 PETSC_INTERN PetscErrorCode PEPJDSetRestart_JD(PEP,PetscReal);
 PETSC_INTERN PetscErrorCode PEPJDGetRestart_JD(PEP,PetscReal*);
-PETSC_INTERN PetscErrorCode PEPJDSetTolerances_JD(PEP,PetscReal,PetscReal,PetscReal);
-PETSC_INTERN PetscErrorCode PEPJDGetTolerances_JD(PEP,PetscReal*,PetscReal*,PetscReal*);
 
 #endif
