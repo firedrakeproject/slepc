@@ -114,7 +114,6 @@ PetscErrorCode PEPSolve(PEP pep)
     pep->errest[i] = 0.0;
     pep->perm[i]   = i;
   }
-  ierr = PEPMonitor(pep,pep->its,pep->nconv,pep->eigr,pep->eigi,pep->errest,k);CHKERRQ(ierr);
   ierr = PEPViewFromOptions(pep,NULL,"-pep_view_pre");CHKERRQ(ierr);
 
   ierr = (*pep->ops->solve)(pep);CHKERRQ(ierr);

@@ -268,7 +268,7 @@ static PetscErrorCode EPSMonitor_Cyclic(EPS eps,PetscInt its,PetscInt nconv,Pets
     if (PetscRealPart(er) > 0.0) {
       svd->sigma[j] = PetscRealPart(er);
       svd->errest[j] = errest[i];
-      if (errest[i] < svd->tol) nconv++;
+      if (errest[i] && errest[i] < svd->tol) nconv++;
       j++;
     }
   }

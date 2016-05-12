@@ -103,7 +103,6 @@ PetscErrorCode SVDSolve(SVD svd)
     svd->errest[i] = 0.0;
     svd->perm[i]   = i;
   }
-  ierr = SVDMonitor(svd,svd->its,svd->nconv,svd->sigma,svd->errest,svd->ncv);CHKERRQ(ierr);
   ierr = SVDViewFromOptions(svd,NULL,"-svd_view_pre");CHKERRQ(ierr);
 
   ierr = (*svd->ops->solve)(svd);CHKERRQ(ierr);
