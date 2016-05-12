@@ -192,30 +192,73 @@ PetscErrorCode MFNMonitorDefault(MFN mfn,PetscInt its,PetscReal errest,PetscView
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "MFNMonitorLG"
-PetscErrorCode MFNMonitorLG(MFN mfn,PetscInt its,PetscReal errest,void *monctx)
+#define __FUNCT__ "MFNMonitorLGCreate"
+/*@C
+   MFNMonitorLGCreate - Creates a line graph context for use with
+   MFN to monitor convergence.
+
+   Collective on MPI_Comm
+
+   Input Parameters:
++  comm - communicator context
+.  host - the X display to open, or null for the local machine
+.  label - the title to put in the title bar
+.  x, y - the screen coordinates of the upper left coordinate of
+          the window
+-  m, n - the screen width and height in pixels
+
+   Output Parameter:
+.  lgctx - the drawing context
+
+   Options Database Keys:
+.  -mfn_monitor_lg - Sets line graph monitor
+
+   Notes:
+   Use PetscDrawLGDestroy() to destroy this line graph.
+
+   Level: intermediate
+
+.seealso: MFNMonitorSet()
+@*/
+PetscErrorCode MFNMonitorLGCreate(MPI_Comm comm,const char host[],const char label[],int x,int y,int m,int n,PetscDrawLG *lgctx)
 {
-  PetscViewer    viewer = (PetscViewer)monctx;
   PetscDraw      draw;
   PetscDrawLG    lg;
   PetscErrorCode ierr;
-  PetscReal      x,y;
 
   PetscFunctionBegin;
-  if (!viewer) viewer = PETSC_VIEWER_DRAW_(PetscObjectComm((PetscObject)mfn));
-  ierr = PetscViewerDrawGetDraw(viewer,0,&draw);CHKERRQ(ierr);
-  ierr = PetscViewerDrawGetDrawLG(viewer,0,&lg);CHKERRQ(ierr);
-  if (!its) {
-    ierr = PetscDrawSetTitle(draw,"Error estimate");CHKERRQ(ierr);
-    ierr = PetscDrawSetDoubleBuffer(draw);CHKERRQ(ierr);
-    ierr = PetscDrawLGSetDimension(lg,1);CHKERRQ(ierr);
+  ierr = PetscDrawCreate(comm,host,label,x,y,m,n,&draw);CHKERRQ(ierr);
+  ierr = PetscDrawSetFromOptions(draw);CHKERRQ(ierr);
+  ierr = PetscDrawLGCreate(draw,1,&lg);CHKERRQ(ierr);
+  ierr = PetscDrawLGSetFromOptions(lg);CHKERRQ(ierr);
+  ierr = PetscDrawDestroy(&draw);CHKERRQ(ierr);
+  *lgctx = lg;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "MFNMonitorLG"
+PetscErrorCode MFNMonitorLG(MFN mfn,PetscInt its,PetscReal errest,void *ctx)
+{
+  PetscDrawLG    lg = (PetscDrawLG)ctx;
+  PetscReal      x,y;
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(lg,PETSC_DRAWLG_CLASSID,8);
+  if (its==1) {
     ierr = PetscDrawLGReset(lg);CHKERRQ(ierr);
-    ierr = PetscDrawLGSetLimits(lg,0,1.0,PetscLog10Real(mfn->tol)-2,0.0);CHKERRQ(ierr);
+    ierr = PetscDrawLGSetDimension(lg,1);CHKERRQ(ierr);
+    ierr = PetscDrawLGSetLimits(lg,1,1.0,PetscLog10Real(mfn->tol)-2,0.0);CHKERRQ(ierr);
   }
   x = (PetscReal)its;
-  if (errest>0.0) y = PetscLog10Real(errest); else y = 0.0;
+  if (errest > 0.0) y = PetscLog10Real(errest);
+  else y = 0.0;
   ierr = PetscDrawLGAddPoint(lg,&x,&y);CHKERRQ(ierr);
-  ierr = PetscDrawLGDraw(lg);CHKERRQ(ierr);
+  if (its <= 20 || !(its % 5) || mfn->reason) {
+    ierr = PetscDrawLGDraw(lg);CHKERRQ(ierr);
+    ierr = PetscDrawLGSave(lg);CHKERRQ(ierr);
+  }
   PetscFunctionReturn(0);
 }
 

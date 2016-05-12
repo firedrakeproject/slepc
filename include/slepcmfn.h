@@ -86,6 +86,7 @@ PETSC_EXTERN PetscErrorCode MFNSetErrorIfNotConverged(MFN,PetscBool);
 PETSC_EXTERN PetscErrorCode MFNGetErrorIfNotConverged(MFN,PetscBool*);
 
 PETSC_EXTERN PetscErrorCode MFNMonitorDefault(MFN,PetscInt,PetscReal,PetscViewerAndFormat*);
+PETSC_EXTERN PetscErrorCode MFNMonitorLGCreate(MPI_Comm,const char[],const char[],int,int,int,int,PetscDrawLG*);
 PETSC_EXTERN PetscErrorCode MFNMonitorLG(MFN,PetscInt,PetscReal,void*);
 
 PETSC_EXTERN PetscErrorCode MFNSetOptionsPrefix(MFN,const char*);

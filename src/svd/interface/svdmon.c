@@ -308,82 +308,93 @@ PetscErrorCode SVDMonitorConverged(SVD svd,PetscInt its,PetscInt nconv,PetscReal
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "SVDMonitorLG"
-PetscErrorCode SVDMonitorLG(SVD svd,PetscInt its,PetscInt nconv,PetscReal *sigma,PetscReal *errest,PetscInt nest,void *monctx)
+#define __FUNCT__ "SVDMonitorLGCreate"
+/*@C
+   SVDMonitorLGCreate - Creates a line graph context for use with
+   SVD to monitor convergence.
+
+   Collective on MPI_Comm
+
+   Input Parameters:
++  comm - communicator context
+.  host - the X display to open, or null for the local machine
+.  label - the title to put in the title bar
+.  x, y - the screen coordinates of the upper left coordinate of
+          the window
+-  m, n - the screen width and height in pixels
+
+   Output Parameter:
+.  lgctx - the drawing context
+
+   Options Database Keys:
++  -svd_monitor_lg - Sets line graph monitor for the first residual
+-  -svd_monitor_lg_all - Sets line graph monitor for all residuals
+
+   Notes:
+   Use PetscDrawLGDestroy() to destroy this line graph.
+
+   Level: intermediate
+
+.seealso: SVDMonitorSet()
+@*/
+PetscErrorCode SVDMonitorLGCreate(MPI_Comm comm,const char host[],const char label[],int x,int y,int m,int n,PetscDrawLG *lgctx)
 {
-  PetscViewer    viewer = (PetscViewer)monctx;
-  PetscDraw      draw,draw1;
-  PetscDrawLG    lg,lg1;
+  PetscDraw      draw;
+  PetscDrawLG    lg;
   PetscErrorCode ierr;
-  PetscReal      x,y,p;
 
   PetscFunctionBegin;
-  if (!viewer) viewer = PETSC_VIEWER_DRAW_(PetscObjectComm((PetscObject)svd));
-  ierr = PetscViewerDrawGetDraw(viewer,0,&draw);CHKERRQ(ierr);
-  ierr = PetscViewerDrawGetDrawLG(viewer,0,&lg);CHKERRQ(ierr);
-  ierr = PetscViewerDrawGetDraw(viewer,1,&draw1);CHKERRQ(ierr);
-  ierr = PetscViewerDrawGetDrawLG(viewer,1,&lg1);CHKERRQ(ierr);
+  ierr = PetscDrawCreate(comm,host,label,x,y,m,n,&draw);CHKERRQ(ierr);
+  ierr = PetscDrawSetFromOptions(draw);CHKERRQ(ierr);
+  ierr = PetscDrawLGCreate(draw,1,&lg);CHKERRQ(ierr);
+  ierr = PetscDrawLGSetFromOptions(lg);CHKERRQ(ierr);
+  ierr = PetscDrawDestroy(&draw);CHKERRQ(ierr);
+  *lgctx = lg;
+  PetscFunctionReturn(0);
+}
 
-  if (!its) {
-    ierr = PetscDrawSetTitle(draw,"Error estimates");CHKERRQ(ierr);
-    ierr = PetscDrawSetDoubleBuffer(draw);CHKERRQ(ierr);
-    ierr = PetscDrawLGSetDimension(lg,1);CHKERRQ(ierr);
+#undef __FUNCT__
+#define __FUNCT__ "SVDMonitorLG"
+PetscErrorCode SVDMonitorLG(SVD svd,PetscInt its,PetscInt nconv,PetscScalar *sigma,PetscReal *errest,PetscInt nest,void *ctx)
+{
+  PetscDrawLG    lg = (PetscDrawLG)ctx;
+  PetscReal      x,y;
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(lg,PETSC_DRAWLG_CLASSID,8);
+  if (its==1) {
     ierr = PetscDrawLGReset(lg);CHKERRQ(ierr);
-    ierr = PetscDrawLGSetLimits(lg,0,1.0,PetscLog10Real(svd->tol)-2,0.0);CHKERRQ(ierr);
-
-    ierr = PetscDrawSetTitle(draw1,"Approximate singular values");CHKERRQ(ierr);
-    ierr = PetscDrawSetDoubleBuffer(draw1);CHKERRQ(ierr);
-    ierr = PetscDrawLGSetDimension(lg1,1);CHKERRQ(ierr);
-    ierr = PetscDrawLGReset(lg1);CHKERRQ(ierr);
-    ierr = PetscDrawLGSetLimits(lg1,0,1.0,1.e20,-1.e20);CHKERRQ(ierr);
+    ierr = PetscDrawLGSetDimension(lg,1);CHKERRQ(ierr);
+    ierr = PetscDrawLGSetLimits(lg,1,1.0,PetscLog10Real(svd->tol)-2,0.0);CHKERRQ(ierr);
   }
-
   x = (PetscReal)its;
-  if (errest[nconv] > 0.0) y = PetscLog10Real(errest[nconv]); else y = 0.0;
+  if (errest[nconv] > 0.0) y = PetscLog10Real(errest[nconv]);
+  else y = 0.0;
   ierr = PetscDrawLGAddPoint(lg,&x,&y);CHKERRQ(ierr);
-
-  ierr = PetscDrawLGAddPoint(lg1,&x,svd->sigma);CHKERRQ(ierr);
-  ierr = PetscDrawGetPause(draw1,&p);CHKERRQ(ierr);
-  ierr = PetscDrawSetPause(draw1,0);CHKERRQ(ierr);
-  ierr = PetscDrawLGDraw(lg1);CHKERRQ(ierr);
-  ierr = PetscDrawSetPause(draw1,p);CHKERRQ(ierr);
-
-  ierr = PetscDrawLGDraw(lg);CHKERRQ(ierr);
+  if (its <= 20 || !(its % 5) || svd->reason) {
+    ierr = PetscDrawLGDraw(lg);CHKERRQ(ierr);
+    ierr = PetscDrawLGSave(lg);CHKERRQ(ierr);
+  }
   PetscFunctionReturn(0);
 }
 
 #undef __FUNCT__
 #define __FUNCT__ "SVDMonitorLGAll"
-PetscErrorCode SVDMonitorLGAll(SVD svd,PetscInt its,PetscInt nconv,PetscReal *sigma,PetscReal *errest,PetscInt nest,void *monctx)
+PetscErrorCode SVDMonitorLGAll(SVD svd,PetscInt its,PetscInt nconv,PetscScalar *sigma,PetscReal *errest,PetscInt nest,void *ctx)
 {
-  PetscViewer    viewer = (PetscViewer)monctx;
-  PetscDraw      draw,draw1;
-  PetscDrawLG    lg,lg1;
-  PetscErrorCode ierr;
-  PetscReal      *x,*y,p;
+  PetscDrawLG    lg = (PetscDrawLG)ctx;
   PetscInt       i,n = PetscMin(svd->nsv,255);
+  PetscReal      *x,*y;
+  PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  if (!viewer) viewer = PETSC_VIEWER_DRAW_(PetscObjectComm((PetscObject)svd));
-  ierr = PetscViewerDrawGetDraw(viewer,0,&draw);CHKERRQ(ierr);
-  ierr = PetscViewerDrawGetDrawLG(viewer,0,&lg);CHKERRQ(ierr);
-  ierr = PetscViewerDrawGetDraw(viewer,1,&draw1);CHKERRQ(ierr);
-  ierr = PetscViewerDrawGetDrawLG(viewer,1,&lg1);CHKERRQ(ierr);
-
-  if (!its) {
-    ierr = PetscDrawSetTitle(draw,"Error estimates");CHKERRQ(ierr);
-    ierr = PetscDrawSetDoubleBuffer(draw);CHKERRQ(ierr);
-    ierr = PetscDrawLGSetDimension(lg,n);CHKERRQ(ierr);
+  PetscValidHeaderSpecific(lg,PETSC_DRAWLG_CLASSID,8);
+  if (its==1) {
     ierr = PetscDrawLGReset(lg);CHKERRQ(ierr);
-    ierr = PetscDrawLGSetLimits(lg,0,1.0,PetscLog10Real(svd->tol)-2,0.0);CHKERRQ(ierr);
-
-    ierr = PetscDrawSetTitle(draw1,"Approximate singular values");CHKERRQ(ierr);
-    ierr = PetscDrawSetDoubleBuffer(draw1);CHKERRQ(ierr);
-    ierr = PetscDrawLGSetDimension(lg1,n);CHKERRQ(ierr);
-    ierr = PetscDrawLGReset(lg1);CHKERRQ(ierr);
-    ierr = PetscDrawLGSetLimits(lg1,0,1.0,1.e20,-1.e20);CHKERRQ(ierr);
+    ierr = PetscDrawLGSetDimension(lg,n);CHKERRQ(ierr);
+    ierr = PetscDrawLGSetLimits(lg,1,1.0,PetscLog10Real(svd->tol)-2,0.0);CHKERRQ(ierr);
   }
-
   ierr = PetscMalloc2(n,&x,n,&y);CHKERRQ(ierr);
   for (i=0;i<n;i++) {
     x[i] = (PetscReal)its;
@@ -391,14 +402,11 @@ PetscErrorCode SVDMonitorLGAll(SVD svd,PetscInt its,PetscInt nconv,PetscReal *si
     else y[i] = 0.0;
   }
   ierr = PetscDrawLGAddPoint(lg,x,y);CHKERRQ(ierr);
-
-  ierr = PetscDrawLGAddPoint(lg1,x,svd->sigma);CHKERRQ(ierr);
-  ierr = PetscDrawGetPause(draw1,&p);CHKERRQ(ierr);
-  ierr = PetscDrawSetPause(draw1,0);CHKERRQ(ierr);
-  ierr = PetscDrawLGDraw(lg1);CHKERRQ(ierr);
-  ierr = PetscDrawSetPause(draw1,p);CHKERRQ(ierr);
-
-  ierr = PetscDrawLGDraw(lg);CHKERRQ(ierr);
+  if (its <= 20 || !(its % 5) || svd->reason) {
+    ierr = PetscDrawLGDraw(lg);CHKERRQ(ierr);
+    ierr = PetscDrawLGSave(lg);CHKERRQ(ierr);
+  }
   ierr = PetscFree2(x,y);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
+

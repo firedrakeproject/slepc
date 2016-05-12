@@ -23,6 +23,7 @@
 */
 
 #include <slepc/private/mfnimpl.h>   /*I "slepcmfn.h" I*/
+#include <petscdraw.h>
 
 #undef __FUNCT__
 #define __FUNCT__ "MFNMonitorSetFromOptions"
@@ -86,6 +87,7 @@ PetscErrorCode MFNSetFromOptions(MFN mfn)
   PetscBool      set,flg,flg1,flg2;
   PetscReal      r;
   PetscInt       i;
+  PetscDrawLG    lg;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(mfn,MFN_CLASSID,1);
@@ -135,7 +137,8 @@ PetscErrorCode MFNSetFromOptions(MFN mfn)
     */
     ierr = PetscOptionsBool("-mfn_monitor_lg","Monitor error estimate graphically","MFNMonitorSet",PETSC_FALSE,&flg,&set);CHKERRQ(ierr);
     if (set && flg) {
-      ierr = MFNMonitorSet(mfn,MFNMonitorLG,NULL,NULL);CHKERRQ(ierr);
+      ierr = MFNMonitorLGCreate(PetscObjectComm((PetscObject)mfn),NULL,"Error estimate",PETSC_DECIDE,PETSC_DECIDE,300,300,&lg);CHKERRQ(ierr);
+      ierr = MFNMonitorSet(mfn,MFNMonitorLG,lg,(PetscErrorCode (*)(void**))PetscDrawLGDestroy);CHKERRQ(ierr);
     }
   /* -----------------------------------------------------------------------*/
 

@@ -22,6 +22,7 @@
 */
 
 #include <slepc/private/svdimpl.h>      /*I "slepcsvd.h" I*/
+#include <petscdraw.h>
 
 #undef __FUNCT__
 #define __FUNCT__ "SVDSetImplicitTranspose"
@@ -683,6 +684,7 @@ PetscErrorCode SVDSetFromOptions(SVD svd)
   PetscBool      set,flg,val,flg1,flg2,flg3;
   PetscInt       i,j,k;
   PetscReal      r;
+  PetscDrawLG    lg;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
@@ -761,11 +763,13 @@ PetscErrorCode SVDSetFromOptions(SVD svd)
     */
     ierr = PetscOptionsBool("-svd_monitor_lg","Monitor first unconverged approximate singular value and error estimate graphically","SVDMonitorSet",PETSC_FALSE,&flg,&set);CHKERRQ(ierr);
     if (set && flg) {
-      ierr = SVDMonitorSet(svd,SVDMonitorLG,NULL,NULL);CHKERRQ(ierr);
+      ierr = SVDMonitorLGCreate(PetscObjectComm((PetscObject)svd),NULL,"Error estimates",PETSC_DECIDE,PETSC_DECIDE,300,300,&lg);CHKERRQ(ierr);
+      ierr = SVDMonitorSet(svd,SVDMonitorLG,lg,(PetscErrorCode (*)(void**))PetscDrawLGDestroy);CHKERRQ(ierr);
     }
     ierr = PetscOptionsBool("-svd_monitor_lg_all","Monitor error estimates graphically","SVDMonitorSet",PETSC_FALSE,&flg,&set);CHKERRQ(ierr);
     if (set && flg) {
-      ierr = SVDMonitorSet(svd,SVDMonitorLGAll,NULL,NULL);CHKERRQ(ierr);
+      ierr = SVDMonitorLGCreate(PetscObjectComm((PetscObject)svd),NULL,"Error estimates",PETSC_DECIDE,PETSC_DECIDE,300,300,&lg);CHKERRQ(ierr);
+      ierr = SVDMonitorSet(svd,SVDMonitorLGAll,lg,(PetscErrorCode (*)(void**))PetscDrawLGDestroy);CHKERRQ(ierr);
       ierr = SVDSetTrackAll(svd,PETSC_TRUE);CHKERRQ(ierr);
     }
 

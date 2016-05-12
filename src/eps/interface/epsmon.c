@@ -346,7 +346,7 @@ PetscErrorCode EPSMonitorConverged(EPS eps,PetscInt its,PetscInt nconv,PetscScal
    EPSMonitorLGCreate - Creates a line graph context for use with
    EPS to monitor convergence.
 
-   Collective on EPS
+   Collective on MPI_Comm
 
    Input Parameters:
 +  comm - communicator context
