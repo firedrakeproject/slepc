@@ -417,7 +417,7 @@ static PetscErrorCode PEPJDComputePResidual(PEP pep,Vec u,PetscScalar theta,Vec 
   ierr = VecSet(tp,0.0);CHKERRQ(ierr);
   for (i=1;i<pep->nmat;i++) {
     ierr = MatMult(pep->A[i],tu,w);CHKERRQ(ierr);
-    ierr = VecAXPY(tp,fact*i,w);CHKERRQ(ierr);
+    ierr = VecAXPY(tp,fact*(PetscReal)i,w);CHKERRQ(ierr);
     fact *= theta;
   }
   if (nconv) {
@@ -428,7 +428,7 @@ static PetscErrorCode PEPJDComputePResidual(PEP pep,Vec u,PetscScalar theta,Vec 
     for (i=2;i<pep->nmat;i++) {
       ierr = BVMultVec(pjd->AX[i],1.0,1.0,tp,q);CHKERRQ(ierr);
       PetscStackCallBLAS("BLAStrmv",BLAStrmv_("U","N","N",&n,pjd->T,&ld,q,&one));
-      for (j=0;j<nconv;j++) q[j] += i*fact*x2[j];
+      for (j=0;j<nconv;j++) q[j] += (PetscReal)i*fact*x2[j];
       fact *= theta;
     }
     ierr = BVSetActiveColumns(pjd->X,0,nconv);CHKERRQ(ierr);
@@ -440,11 +440,11 @@ static PetscErrorCode PEPJDComputePResidual(PEP pep,Vec u,PetscScalar theta,Vec 
       fact = theta;
       for (j=2;j<deg;j++) {
         PetscStackCallBLAS("BLASgemv",BLASgemv_("N",&n,&n,&sone,pjd->XpX,&ld,q,&one,&zero,tt,&one));
-        for (i=0;i<nconv;i++) tt[i] += j*fact*xx[i];
+        for (i=0;i<nconv;i++) tt[i] += (PetscReal)j*fact*xx[i];
         PetscStackCallBLAS("BLAStrmv",BLAStrmv_("U","C","N",&n,pjd->Tj+ld*ld*j,&ld,tt,&one));
         for (i=0;i<nconv;i++) y2[i] += tt[i];
         PetscStackCallBLAS("BLAStrmv",BLAStrmv_("U","N","N",&n,pjd->T,&ld,q,&one));
-        for (i=0;i<nconv;i++) q[i] += j*fact*x2[i];
+        for (i=0;i<nconv;i++) q[i] += (PetscReal)j*fact*x2[i];
         fact *= theta;
       }
     }
@@ -704,7 +704,7 @@ static PetscErrorCode PEPJDPCMatSetUp(PEP pep,PetscScalar theta)
   ierr = MatCopy(pep->A[0],matctx->P,str);CHKERRQ(ierr);
   t = theta;
   for (i=1;i<pep->nmat;i++) {
-    if (t) { ierr = MatAXPY(matctx->P,t,pep->A[i],str);CHKERRQ(ierr); }
+    if (t==0.0) { ierr = MatAXPY(matctx->P,t,pep->A[i],str);CHKERRQ(ierr); }
     t *= theta;
   }
   ierr = PCSetOperators(pcctx->pc,matctx->P,matctx->P);CHKERRQ(ierr);
