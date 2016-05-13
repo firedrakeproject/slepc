@@ -43,6 +43,7 @@ struct _p_RG {
   PETSCHEADER(struct _RGOps);
   PetscBool   complement;    /* region is the complement of the specified one */
   PetscReal   sfactor;       /* scaling factor */
+  PetscReal   osfactor;      /* old scaling factor, before RGPushScale */
   void        *data;
 };
 

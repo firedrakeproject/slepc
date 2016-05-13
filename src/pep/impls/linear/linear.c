@@ -299,7 +299,7 @@ PetscErrorCode PEPSetUp_Linear(PEP pep)
     if (pep->basis!=PEP_BASIS_MONOMIAL) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Explicit matrix option not implemented for non-monomial bases");
     if (pep->scale==PEP_SCALE_DIAGONAL || pep->scale==PEP_SCALE_BOTH) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Diagonal scaling not allowed in PEPLINEAR with explicit matrices");
     if (sinv && !transf) { ierr = STSetType(st,STSINVERT);CHKERRQ(ierr); }
-    ierr = RGSetScale(pep->rg,pep->sfactor);CHKERRQ(ierr);
+    ierr = RGPushScale(pep->rg,1.0/pep->sfactor);CHKERRQ(ierr);
     ierr = STGetTOperators(pep->st,0,&ctx->K);CHKERRQ(ierr);
     ierr = STGetTOperators(pep->st,1,&ctx->C);CHKERRQ(ierr);
     ierr = STGetTOperators(pep->st,2,&ctx->M);CHKERRQ(ierr);
@@ -366,7 +366,7 @@ PetscErrorCode PEPSetUp_Linear(PEP pep)
         pep->solvematcoeffs[deg] = 1.0;
       }
       ierr = STScaleShift(pep->st,1.0/pep->sfactor);CHKERRQ(ierr);
-      ierr = RGSetScale(pep->rg,pep->sfactor);CHKERRQ(ierr);
+      ierr = RGPushScale(pep->rg,1.0/pep->sfactor);CHKERRQ(ierr);
     }
     if (pep->sfactor!=1.0) {
       for (i=0;i<pep->nmat;i++) {
@@ -729,8 +729,8 @@ PetscErrorCode PEPSolve_Linear(PEP pep)
     if (!flg && !ctx->explicitmatrix) {
       ierr = STScaleShift(pep->st,pep->sfactor);CHKERRQ(ierr);
     } 
-    ierr = RGSetScale(pep->rg,1.0);CHKERRQ(ierr);
   }
+  ierr = RGPopScale(pep->rg);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

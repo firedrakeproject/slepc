@@ -95,13 +95,13 @@ PetscErrorCode PEPView(PEP pep,PetscViewer viewer)
       case PEP_SCALE_NONE:
         break;
       case PEP_SCALE_SCALAR:
-        ierr = PetscViewerASCIIPrintf(viewer,"  scalar balancing enabled, with scaling factor=%g\n",(double)pep->sfactor);CHKERRQ(ierr);
+        ierr = PetscViewerASCIIPrintf(viewer,"  parameter scaling enabled, with scaling factor=%g\n",(double)pep->sfactor);CHKERRQ(ierr);
         break;
       case PEP_SCALE_DIAGONAL:
         ierr = PetscViewerASCIIPrintf(viewer,"  diagonal balancing enabled, with its=%D and lambda=%g\n",pep->sits,(double)pep->slambda);CHKERRQ(ierr);
         break;
       case PEP_SCALE_BOTH:
-        ierr = PetscViewerASCIIPrintf(viewer,"  scalar & diagonal balancing enabled, with scaling factor=%g, its=%D and lambda=%g\n",(double)pep->sfactor,pep->sits,(double)pep->slambda);CHKERRQ(ierr);
+        ierr = PetscViewerASCIIPrintf(viewer,"  parameter scaling & diagonal balancing enabled, with scaling factor=%g, its=%D and lambda=%g\n",(double)pep->sfactor,pep->sits,(double)pep->slambda);CHKERRQ(ierr);
         break;
     }
     ierr = PetscViewerASCIIPrintf(viewer,"  selected portion of the spectrum: ");CHKERRQ(ierr);
