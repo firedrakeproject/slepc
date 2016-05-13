@@ -72,12 +72,9 @@ struct _p_NEP {
   PetscInt       nev;              /* number of eigenvalues to compute */
   PetscInt       ncv;              /* number of basis vectors */
   PetscInt       mpd;              /* maximum dimension of projected problem */
-  PetscInt       lag;              /* interval to rebuild preconditioner */
   PetscInt       nini;             /* number of initial vectors (negative means not copied yet) */
   PetscScalar    target;           /* target value */
   PetscReal      tol;              /* tolerance */
-  PetscReal      ktol;             /* tolerance for linear solver */
-  PetscBool      cctol;            /* constant correction tolerance */
   NEPConv        conv;             /* convergence test */
   NEPStop        stop;             /* stopping test */
   NEPWhich       which;            /* which part of the spectrum to be sought */

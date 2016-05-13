@@ -138,7 +138,6 @@ PetscErrorCode NEPSetUp(NEP nep)
 
   /* set tolerance if not yet set */
   if (nep->tol==PETSC_DEFAULT) nep->tol = SLEPC_DEFAULT_TOL;
-  nep->ktol = 0.1;
   if (nep->refine) {
     if (nep->rtol==PETSC_DEFAULT) nep->rtol = PetscMax(nep->tol/1000,PETSC_MACHINE_EPSILON);
     if (nep->rits==PETSC_DEFAULT) nep->rits = (nep->refine==NEP_REFINE_SIMPLE)? 10: 1;

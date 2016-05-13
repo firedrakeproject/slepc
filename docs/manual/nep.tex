@@ -242,15 +242,15 @@ Some solvers such as \texttt{NEPRII} and \texttt{NEPNARNOLDI} need a \ident{KSP}
 This \ident{KSP} object is typically used to compute the action of $T(\sigma)^{-1}$ on a given vector. In principle, $\sigma$ is an approximation of an eigenvalue, but it is usually more efficient to keep this value constant, otherwise the factorization or preconditioner must be recomputed every time since eigensolvers update eigenvalue approximations in each iteration. This behaviour can be changed with
 	\findex{NEPSetLagPreconditioner}
 	\begin{Verbatim}[fontsize=\small]
-	NEPSetLagPreconditioner(NEP nep,PetscInt lag);
+	NEPRIISetLagPreconditioner(NEP nep,PetscInt lag);
 	\end{Verbatim}
-Recomputing the preconditioner every 2 iterations, say, will introduce a considerable overhead, but may reduce the number of iterations significantly. Another related comment is that, when using an iterative linear solver, the requested accuracy is adapted as the outer iteration progresses, being the tolerance higher in the first solves. Again, the user can modify this behaviour with \ident{NEPSetConstCorrectionTol}. Both options can also be changed at run time. As an example, consider the following command line:
+Recomputing the preconditioner every 2 iterations, say, will introduce a considerable overhead, but may reduce the number of iterations significantly. Another related comment is that, when using an iterative linear solver, the requested accuracy is adapted as the outer iteration progresses, being the tolerance higher in the first solves. Again, the user can modify this behaviour with \ident{NEPRIISetConstCorrectionTol}. Both options can also be changed at run time. As an example, consider the following command line:
 \begin{Verbatim}[fontsize=\small]
-	$ ./ex22 -nep_type narnoldi -nep_lag_preconditioner 2
-                 -nep_narnoldi_ksp_type bcgs -nep_narnoldi_pc_type ilu
-                 -nep_const_correction_tol 1 -nep_narnoldi_ksp_rtol 1e-3
+	$ ./ex22 -nep_type rii -nep_rii_lag_preconditioner 2
+                 -nep_rii_ksp_type bcgs -nep_rii_pc_type ilu
+                 -nep_rii_const_correction_tol 1 -nep_rii_ksp_rtol 1e-3
 \end{Verbatim}
-The example uses nonlinear Arnoldi with BiCGStab plus ILU, where the preconditioner is updated every two outer iterations and linear systems are solved up to a tolerance of $10^{-3}$.
+The example uses RII with BiCGStab plus ILU, where the preconditioner is updated every two outer iterations and linear systems are solved up to a tolerance of $10^{-3}$.
 
 The NLEIGS solver is most appropriate for problems where $T(\cdot)$ is singular at some known parts of the complex plane, for instance the case that $T(\cdot)$ contains $\sqrt{\lambda}$. To treat this case effectively, the NLEIGS solver requires a discretization of the singularity set, which must be provided in the form of a callback function:
 	\findex{NEPNLEIGSSetSingularitiesFunction}

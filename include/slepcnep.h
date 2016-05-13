@@ -207,10 +207,6 @@ PETSC_EXTERN PetscErrorCode NEPSetDimensions(NEP,PetscInt,PetscInt,PetscInt);
 PETSC_EXTERN PetscErrorCode NEPGetDimensions(NEP,PetscInt*,PetscInt*,PetscInt*);
 PETSC_EXTERN PetscErrorCode NEPSetRefine(NEP,NEPRefine,PetscInt,PetscReal,PetscInt,NEPRefineScheme);
 PETSC_EXTERN PetscErrorCode NEPGetRefine(NEP,NEPRefine*,PetscInt*,PetscReal*,PetscInt*,NEPRefineScheme*);
-PETSC_EXTERN PetscErrorCode NEPSetLagPreconditioner(NEP,PetscInt);
-PETSC_EXTERN PetscErrorCode NEPGetLagPreconditioner(NEP,PetscInt*);
-PETSC_EXTERN PetscErrorCode NEPSetConstCorrectionTol(NEP,PetscBool);
-PETSC_EXTERN PetscErrorCode NEPGetConstCorrectionTol(NEP,PetscBool*);
 
 PETSC_EXTERN PetscErrorCode NEPGetConverged(NEP,PetscInt*);
 PETSC_EXTERN PetscErrorCode NEPGetEigenpair(NEP,PetscInt,PetscScalar*,PetscScalar*,Vec,Vec);
@@ -265,6 +261,10 @@ PETSC_EXTERN PetscErrorCode NEPAllocateSolution(NEP,PetscInt);
 
 PETSC_EXTERN PetscErrorCode NEPRIISetMaximumIterations(NEP,PetscInt);
 PETSC_EXTERN PetscErrorCode NEPRIIGetMaximumIterations(NEP,PetscInt*);
+PETSC_EXTERN PetscErrorCode NEPRIISetLagPreconditioner(NEP,PetscInt);
+PETSC_EXTERN PetscErrorCode NEPRIIGetLagPreconditioner(NEP,PetscInt*);
+PETSC_EXTERN PetscErrorCode NEPRIISetConstCorrectionTol(NEP,PetscBool);
+PETSC_EXTERN PetscErrorCode NEPRIIGetConstCorrectionTol(NEP,PetscBool*);
 PETSC_EXTERN PetscErrorCode NEPRIISetKSP(NEP,KSP);
 PETSC_EXTERN PetscErrorCode NEPRIIGetKSP(NEP,KSP*);
 

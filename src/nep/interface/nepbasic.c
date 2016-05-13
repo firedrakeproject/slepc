@@ -60,12 +60,9 @@ PetscErrorCode NEPCreate(MPI_Comm comm,NEP *outnep)
   nep->nev             = 1;
   nep->ncv             = 0;
   nep->mpd             = 0;
-  nep->lag             = 1;
   nep->nini            = 0;
   nep->target          = 0.0;
   nep->tol             = PETSC_DEFAULT;
-  nep->ktol            = 0.1;
-  nep->cctol           = PETSC_FALSE;
   nep->conv            = NEP_CONV_REL;
   nep->stop            = NEP_STOP_BASIC;
   nep->which           = (NEPWhich)0;

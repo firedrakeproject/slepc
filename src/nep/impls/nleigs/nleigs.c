@@ -1873,6 +1873,7 @@ PetscErrorCode NEPSetFromOptions_NLEIGS(PetscOptionItems *PetscOptionsObject,NEP
       ierr = KSPSetType(ctx->ksp[i],KSPPREONLY);CHKERRQ(ierr);
       ierr = PCSetType(pc,PCLU);CHKERRQ(ierr);
     }
+    ierr = KSPSetOperators(ctx->ksp[i],nep->function,nep->function_pre);CHKERRQ(ierr);
     ierr = KSPSetFromOptions(ctx->ksp[i]);CHKERRQ(ierr);
   }
   ierr = PetscOptionsTail();CHKERRQ(ierr);
