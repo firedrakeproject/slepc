@@ -57,7 +57,7 @@ typedef struct {
   PetscBool      lock;      /* locking/non-locking variant */
   PetscBool      trueres;   /* whether the true residual norm must be computed */
   PetscInt       idxrk;     /* index of next shift to use */
-  KSP            *ksps;     /* ksp array for storing shift factorizations */
+  KSP            *ksp;      /* ksp array for storing shift factorizations */
   Vec            vrn;       /* random vector with normally distributed value */
   void           *singularitiesctx;
   PetscErrorCode (*computesingularities)(NEP,PetscInt*,PetscScalar*,void*);
@@ -69,6 +69,20 @@ typedef struct {
   Mat         A[MAX_NSHIFTS];
   Vec         t;
 } ShellMatCtx;
+
+#undef __FUNCT__
+#define __FUNCT__ "NEPNLEIGSSetShifts"
+PETSC_STATIC_INLINE PetscErrorCode NEPNLEIGSSetShifts(NEP nep)
+{
+  NEP_NLEIGS *ctx = (NEP_NLEIGS*)nep->data;
+
+  PetscFunctionBegin;
+  if (!ctx->nshifts) { 
+    ctx->shifts = &nep->target;
+    ctx->nshiftsw = 1;
+  } else ctx->nshiftsw = ctx->nshifts;
+  PetscFunctionReturn(0);
+}
 
 #undef __FUNCT__
 #define __FUNCT__ "NEPNLEIGSBackTransform"
@@ -445,6 +459,7 @@ static PetscErrorCode NEPNLEIGSDividedDifferences_split(NEP nep)
       break;
     } 
   }
+  if (!ctx->ksp) { ierr = NEPNLEIGSGetKSPs(nep,&ctx->ksp);CHKERRQ(ierr); }
   ierr = PetscObjectTypeCompare((PetscObject)nep->A[0],MATSHELL,&shell);CHKERRQ(ierr);
   for (i=0;i<ctx->nshiftsw;i++) {
     ierr = NEPNLEIGSEvalNRTFunct(nep,ctx->nmat,ctx->shifts[i],coeffs);CHKERRQ(ierr);
@@ -467,8 +482,8 @@ static PetscErrorCode NEPNLEIGSDividedDifferences_split(NEP nep)
         ierr = MatDestroy(&Ts);CHKERRQ(ierr);
       }
     }
-    ierr = KSPSetOperators(ctx->ksps[i],T,T);CHKERRQ(ierr);
-    ierr = KSPSetUp(ctx->ksps[i]);CHKERRQ(ierr);
+    ierr = KSPSetOperators(ctx->ksp[i],T,T);CHKERRQ(ierr);
+    ierr = KSPSetUp(ctx->ksp[i]);CHKERRQ(ierr);
     ierr = MatDestroy(&T);CHKERRQ(ierr);
   }
   ierr = PetscFree2(b,coeffs);CHKERRQ(ierr);
@@ -540,6 +555,7 @@ static PetscErrorCode NEPNLEIGSDividedDifferences_callback(NEP nep)
       break;
     } 
   }
+  if (!ctx->ksp) { ierr = NEPNLEIGSGetKSPs(nep,&ctx->ksp);CHKERRQ(ierr); }
   for (i=0;i<ctx->nshiftsw;i++) {
     ierr = NEPNLEIGSEvalNRTFunct(nep,ctx->nmat,ctx->shifts[i],coeffs);CHKERRQ(ierr);
     ierr = MatDuplicate(ctx->D[0],MAT_COPY_VALUES,&T);CHKERRQ(ierr);
@@ -547,8 +563,8 @@ static PetscErrorCode NEPNLEIGSDividedDifferences_callback(NEP nep)
     for (j=1;j<ctx->nmat-1;j++) {
       ierr = MatAXPY(T,coeffs[j],ctx->D[j],nep->mstr);CHKERRQ(ierr);
     }
-    ierr = KSPSetOperators(ctx->ksps[i],T,T);CHKERRQ(ierr);
-    ierr = KSPSetUp(ctx->ksps[i]);CHKERRQ(ierr);
+    ierr = KSPSetOperators(ctx->ksp[i],T,T);CHKERRQ(ierr);
+    ierr = KSPSetUp(ctx->ksp[i]);CHKERRQ(ierr);
     ierr = MatDestroy(&T);CHKERRQ(ierr);
   }
   ierr = PetscFree2(b,coeffs);CHKERRQ(ierr);
@@ -650,7 +666,7 @@ static PetscErrorCode NEPNLEIGSKrylovConvergence(NEP nep,PetscScalar *S,PetscInt
 PetscErrorCode NEPSetUp_NLEIGS(NEP nep)
 {
   PetscErrorCode ierr;
-  PetscInt       k,in,i;
+  PetscInt       k,in;
   PetscScalar    zero=0.0;
   NEP_NLEIGS     *ctx=(NEP_NLEIGS*)nep->data;
   SlepcSC        sc;
@@ -678,21 +694,6 @@ PetscErrorCode NEPSetUp_NLEIGS(NEP nep)
   /* Compute Leja-Bagby points and scaling values */
   ierr = NEPNLEIGSLejaBagbyPoints(nep);CHKERRQ(ierr);
 
-  /* SetUp KSP for different shits */
-  for (i=0;i<ctx->nshifts;i++) {
-    if (!ctx->ksps[i]) { 
-      ierr = KSPCreate(PetscObjectComm((PetscObject)nep),&ctx->ksps[i]);CHKERRQ(ierr);
-      ierr = KSPSetErrorIfNotConverged(ctx->ksps[i],PETSC_TRUE);CHKERRQ(ierr);
-      ierr = KSPSetFromOptions(ctx->ksps[i]);CHKERRQ(ierr);
-    }
-  }
-  if (!ctx->nshifts) { 
-    ctx->shifts = &nep->target;
-    if (!nep->ksp) { ierr = NEPGetKSP(nep,&nep->ksp);CHKERRQ(ierr); }
-    ctx->ksps = &nep->ksp;
-    ctx->nshiftsw = 1;
-  } else ctx->nshiftsw = ctx->nshifts;
-  
   /* Compute the divided difference matrices */
   if (nep->fui==NEP_USER_INTERFACE_SPLIT) {
     ierr = NEPNLEIGSDividedDifferences_split(nep);CHKERRQ(ierr);
@@ -808,6 +809,7 @@ static PetscErrorCode NEPTOARExtendBasis(NEP nep,PetscInt idxrktg,PetscScalar *S
   PetscScalar    *beta=ctx->beta,*s=ctx->s,*xi=ctx->xi,*coeffs,sigma;
 
   PetscFunctionBegin;
+  if (!ctx->ksp) { ierr = NEPNLEIGSGetKSPs(nep,&ctx->ksp);CHKERRQ(ierr); }
   sigma = ctx->shifts[idxrktg];
   ierr = BVSetActiveColumns(nep->V,0,nv);CHKERRQ(ierr);
   ierr = PetscMalloc1(ctx->nmat-1,&coeffs);CHKERRQ(ierr);
@@ -837,7 +839,7 @@ static PetscErrorCode NEPTOARExtendBasis(NEP nep,PetscInt idxrktg,PetscScalar *S
       ierr = MatMult(nep->A[k],v,t);CHKERRQ(ierr);
       ierr = VecAXPY(q,1.0,t);CHKERRQ(ierr);
     }
-    ierr = KSPSolve(ctx->ksps[idxrktg],q,t);CHKERRQ(ierr);
+    ierr = KSPSolve(ctx->ksp[idxrktg],q,t);CHKERRQ(ierr);
     ierr = VecScale(t,-1.0);CHKERRQ(ierr);
   } else {
     for (k=0;k<deg-1;k++) {
@@ -848,7 +850,7 @@ static PetscErrorCode NEPTOARExtendBasis(NEP nep,PetscInt idxrktg,PetscScalar *S
     }
     for (j=0;j<ctx->nmat-1;j++) coeffs[j] = 1.0;
     ierr = BVMultVec(ctx->W,1.0,0.0,q,coeffs);CHKERRQ(ierr);
-    ierr = KSPSolve(ctx->ksps[idxrktg],q,t);CHKERRQ(ierr);
+    ierr = KSPSolve(ctx->ksp[idxrktg],q,t);CHKERRQ(ierr);
     ierr = VecScale(t,-1.0);CHKERRQ(ierr);
   }
   ierr = PetscFree(coeffs);CHKERRQ(ierr);
@@ -1718,9 +1720,12 @@ static PetscErrorCode NEPNLEIGSSetRKShifts_NLEIGS(NEP nep,PetscInt ns,PetscScala
 
   PetscFunctionBegin;
   if (ns<=0) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_WRONG,"Number of shifts must be positive");
-  if (ctx->nshifts) { ierr = PetscFree2(ctx->shifts,ctx->ksps);CHKERRQ(ierr); }
-  ierr = PetscMalloc2(ns,&ctx->shifts,ns,&ctx->ksps);CHKERRQ(ierr);
-  for (i=0;i<ns;i++) { ctx->shifts[i] = shifts[i]; ctx->ksps[i] = NULL; }
+  if (ctx->nshifts) { ierr = PetscFree(ctx->shifts);CHKERRQ(ierr); }
+  for (i=0;i<ctx->nshiftsw;i++) { ierr = KSPDestroy(&ctx->ksp[i]);CHKERRQ(ierr); }
+  ierr = PetscFree(ctx->ksp);CHKERRQ(ierr);
+  ctx->ksp = NULL;
+  ierr = PetscMalloc(ns,&ctx->shifts);CHKERRQ(ierr);
+  for (i=0;i<ns;i++) ctx->shifts[i] = shifts[i];
   ctx->nshifts = ns;
   nep->state   = NEP_STATE_INITIAL;
   PetscFunctionReturn(0);
@@ -1822,6 +1827,7 @@ PetscErrorCode NEPNLEIGSGetRKShifts(NEP nep,PetscInt *ns,PetscScalar **shifts)
 PetscErrorCode NEPSetFromOptions_NLEIGS(PetscOptionItems *PetscOptionsObject,NEP nep)
 {
   PetscErrorCode ierr;
+  NEP_NLEIGS     *ctx = (NEP_NLEIGS*)nep->data;
   PetscInt       i,k;
   PetscBool      flg1,flg2,b;
   PetscReal      r;
@@ -1858,15 +1864,70 @@ PetscErrorCode NEPSetFromOptions_NLEIGS(PetscOptionItems *PetscOptionsObject,NEP
     ierr = NEPNLEIGSSetRKShifts(nep,k,array);CHKERRQ(ierr);
   }
 
-  if (!nep->ksp) { ierr = NEPGetKSP(nep,&nep->ksp);CHKERRQ(ierr); }
-  ierr = KSPGetPC(nep->ksp,&pc);CHKERRQ(ierr);
-  ierr = KSPGetType(nep->ksp,&ksptype);CHKERRQ(ierr);
-  ierr = PCGetType(pc,&pctype);CHKERRQ(ierr);
-  if (!pctype && !ksptype) {
-    ierr = KSPSetType(nep->ksp,KSPPREONLY);CHKERRQ(ierr);
-    ierr = PCSetType(pc,PCLU);CHKERRQ(ierr);
+  if (!ctx->ksp) { ierr = NEPNLEIGSGetKSPs(nep,&ctx->ksp);CHKERRQ(ierr); }
+  for (i=0;i<ctx->nshiftsw;i++) {
+    ierr = KSPGetPC(ctx->ksp[i],&pc);CHKERRQ(ierr);
+    ierr = KSPGetType(ctx->ksp[i],&ksptype);CHKERRQ(ierr);
+    ierr = PCGetType(pc,&pctype);CHKERRQ(ierr);
+    if (!pctype && !ksptype) {
+      ierr = KSPSetType(ctx->ksp[i],KSPPREONLY);CHKERRQ(ierr);
+      ierr = PCSetType(pc,PCLU);CHKERRQ(ierr);
+    }
+    ierr = KSPSetFromOptions(ctx->ksp[i]);CHKERRQ(ierr);
   }
   ierr = PetscOptionsTail();CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "NEPNLEIGSGetKSPs_NLEIGS"
+static PetscErrorCode NEPNLEIGSGetKSPs_NLEIGS(NEP nep,KSP **ksp)
+{
+  PetscErrorCode ierr;
+  NEP_NLEIGS     *ctx = (NEP_NLEIGS*)nep->data;
+  PetscInt       i;
+
+  PetscFunctionBegin;
+  if (!ctx->ksp) {
+    ierr = NEPNLEIGSSetShifts(nep);CHKERRQ(ierr);
+    ierr = PetscMalloc1(ctx->nshiftsw,&ctx->ksp);CHKERRQ(ierr);
+    for (i=0;i<ctx->nshiftsw;i++) {
+      ierr = KSPCreate(PetscObjectComm((PetscObject)nep),&ctx->ksp[i]);CHKERRQ(ierr);
+      ierr = KSPSetOptionsPrefix(ctx->ksp[i],((PetscObject)nep)->prefix);CHKERRQ(ierr);
+      ierr = KSPAppendOptionsPrefix(ctx->ksp[i],"nep_nleigs_");CHKERRQ(ierr);
+      ierr = PetscObjectIncrementTabLevel((PetscObject)ctx->ksp[i],(PetscObject)nep,1);CHKERRQ(ierr);
+      ierr = PetscLogObjectParent((PetscObject)nep,(PetscObject)ctx->ksp[i]);CHKERRQ(ierr);
+      ierr = KSPSetErrorIfNotConverged(ctx->ksp[i],PETSC_TRUE);CHKERRQ(ierr);
+    }
+  }
+  *ksp = ctx->ksp;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "NEPNLEIGSGetKSPs"
+/*@C
+   NEPNLEIGSGetKSPs - Retrieve the array of linear solver objects associated with
+   the nonlinear eigenvalue solver.
+
+   Not Collective
+
+   Input Parameter:
+.  nep - nonlinear eigenvalue solver
+
+   Output Parameter:
+.  ksp - array of linear solver object
+
+   Level: advanced
+@*/
+PetscErrorCode NEPNLEIGSGetKSPs(NEP nep,KSP **ksp)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
+  PetscValidPointer(ksp,2);
+  ierr = PetscUseMethod(nep,"NEPNLEIGSGetKSPs_C",(NEP,KSP**),(nep,ksp));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -1896,6 +1957,8 @@ PetscErrorCode NEPView_NLEIGS(NEP nep,PetscViewer viewer)
       ierr = PetscViewerASCIIPrintf(viewer,"\n");CHKERRQ(ierr);
     }
     if (ctx->trueres) { ierr = PetscViewerASCIIPrintf(viewer,"  NLEIGS: computing true residuals for convergence check\n");CHKERRQ(ierr); }
+    if (!ctx->ksp) { ierr = NEPNLEIGSGetKSPs(nep,&ctx->ksp);CHKERRQ(ierr); }
+    ierr = KSPView(ctx->ksp[0],viewer);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }
@@ -1929,8 +1992,9 @@ PetscErrorCode NEPDestroy_NLEIGS(NEP nep)
   NEP_NLEIGS     *ctx = (NEP_NLEIGS*)nep->data;
 
   PetscFunctionBegin;
-  for (k=0;k<ctx->nshifts;k++) { ierr = KSPDestroy(&ctx->ksps[k]);CHKERRQ(ierr); }
-  if (ctx->nshifts) { ierr = PetscFree2(ctx->shifts,ctx->ksps);CHKERRQ(ierr); }
+  for (k=0;k<ctx->nshiftsw;k++) { ierr = KSPDestroy(&ctx->ksp[k]);CHKERRQ(ierr); }
+  ierr = PetscFree(ctx->ksp);CHKERRQ(ierr);
+  if (ctx->nshifts) { ierr = PetscFree(ctx->shifts);CHKERRQ(ierr); }
   ierr = PetscFree4(ctx->s,ctx->xi,ctx->beta,ctx->D);CHKERRQ(ierr);
   ierr = PetscFree(nep->data);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPNLEIGSSetSingularitiesFunction_C",NULL);CHKERRQ(ierr);
@@ -1945,6 +2009,7 @@ PetscErrorCode NEPDestroy_NLEIGS(NEP nep)
   ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPNLEIGSGetTrueResidual_C",NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPNLEIGSSetRKShifts_C",NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPNLEIGSGetRKShifts_C",NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPNLEIGSGetKSPs_C",NULL);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -1983,6 +2048,7 @@ PETSC_EXTERN PetscErrorCode NEPCreate_NLEIGS(NEP nep)
   ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPNLEIGSGetTrueResidual_C",NEPNLEIGSGetTrueResidual_NLEIGS);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPNLEIGSSetRKShifts_C",NEPNLEIGSSetRKShifts_NLEIGS);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPNLEIGSGetRKShifts_C",NEPNLEIGSGetRKShifts_NLEIGS);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPNLEIGSGetKSPs_C",NEPNLEIGSGetKSPs_NLEIGS);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

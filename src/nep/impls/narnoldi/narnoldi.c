@@ -33,7 +33,26 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include <slepc/private/nepimpl.h>
+#include <slepc/private/nepimpl.h>         /*I "slepcnep.h" I*/
+
+typedef struct {
+  KSP      ksp;              /* linear solver object */
+} NEP_NARNOLDI;
+
+#undef __FUNCT__
+#define __FUNCT__ "NEPNArnoldi_KSPSolve"
+PETSC_STATIC_INLINE PetscErrorCode NEPNArnoldi_KSPSolve(NEP nep,Vec b,Vec x)
+{
+  PetscErrorCode ierr;
+  PetscInt       lits;
+  NEP_NARNOLDI   *ctx = (NEP_NARNOLDI*)nep->data;
+
+  PetscFunctionBegin;
+  ierr = KSPSolve(ctx->ksp,b,x);CHKERRQ(ierr);
+  ierr = KSPGetIterationNumber(ctx->ksp,&lits);CHKERRQ(ierr);
+  ierr = PetscInfo2(nep,"iter=%D, linear solve iterations=%D\n",nep->its,lits);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
 
 #undef __FUNCT__
 #define __FUNCT__ "NEPSetUp_NArnoldi"
@@ -69,6 +88,7 @@ PetscErrorCode NEPSetUp_NArnoldi(NEP nep)
 PetscErrorCode NEPSolve_NArnoldi(NEP nep)
 {
   PetscErrorCode     ierr;
+  NEP_NARNOLDI       *ctx = (NEP_NARNOLDI*)nep->data;
   Mat                T=nep->function,Tsigma;
   Vec                f,r=nep->work[0],x=nep->work[1],w=nep->work[2];
   PetscScalar        *X,lambda;
@@ -92,9 +112,10 @@ PetscErrorCode NEPSolve_NArnoldi(NEP nep)
   ierr = NEPProjectOperator(nep,0,n);CHKERRQ(ierr);
 
   /* prepare linear solver */
+  if (!ctx->ksp) { ierr = NEPNArnoldiGetKSP(nep,&ctx->ksp);CHKERRQ(ierr); }
   ierr = NEPComputeFunction(nep,lambda,T,T);CHKERRQ(ierr);
   ierr = MatDuplicate(T,MAT_COPY_VALUES,&Tsigma);CHKERRQ(ierr);
-  ierr = KSPSetOperators(nep->ksp,Tsigma,Tsigma);CHKERRQ(ierr);
+  ierr = KSPSetOperators(ctx->ksp,Tsigma,Tsigma);CHKERRQ(ierr);
 
   /* Restart loop */
   while (nep->reason == NEP_CONVERGED_ITERATING) {
@@ -129,9 +150,9 @@ PetscErrorCode NEPSolve_NArnoldi(NEP nep)
 
       /* continuation vector: f = T(sigma)\r */
       ierr = BVGetColumn(nep->V,n,&f);CHKERRQ(ierr);
-      ierr = NEP_KSPSolve(nep,r,f);CHKERRQ(ierr);
+      ierr = NEPNArnoldi_KSPSolve(nep,r,f);CHKERRQ(ierr);
       ierr = BVRestoreColumn(nep->V,n,&f);CHKERRQ(ierr);
-      ierr = KSPGetConvergedReason(nep->ksp,&kspreason);CHKERRQ(ierr);
+      ierr = KSPGetConvergedReason(ctx->ksp,&kspreason);CHKERRQ(ierr);
       if (kspreason<0) {
         ierr = PetscInfo1(nep,"iter=%D, linear solve failed, stopping solve\n",nep->its);CHKERRQ(ierr);
         nep->reason = NEP_DIVERGED_LINEAR_SOLVE;
@@ -158,12 +179,157 @@ PetscErrorCode NEPSolve_NArnoldi(NEP nep)
 }
 
 #undef __FUNCT__
+#define __FUNCT__ "NEPSetFromOptions_NArnoldi"
+PetscErrorCode NEPSetFromOptions_NArnoldi(PetscOptionItems *PetscOptionsObject,NEP nep)
+{
+  PetscErrorCode ierr;
+  NEP_NARNOLDI   *ctx = (NEP_NARNOLDI*)nep->data;
+
+  PetscFunctionBegin;
+  if (!ctx->ksp) { ierr = NEPNArnoldiGetKSP(nep,&ctx->ksp);CHKERRQ(ierr); }
+  ierr = KSPSetFromOptions(ctx->ksp);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "NEPNArnoldiSetKSP_NArnoldi"
+static PetscErrorCode NEPNArnoldiSetKSP_NArnoldi(NEP nep,KSP ksp)
+{
+  PetscErrorCode ierr;
+  NEP_NARNOLDI   *ctx = (NEP_NARNOLDI*)nep->data;
+
+  PetscFunctionBegin;
+  ierr = PetscObjectReference((PetscObject)ksp);CHKERRQ(ierr);
+  ierr = KSPDestroy(&ctx->ksp);CHKERRQ(ierr);
+  ctx->ksp = ksp;
+  ierr = PetscLogObjectParent((PetscObject)nep,(PetscObject)ctx->ksp);CHKERRQ(ierr);
+  nep->state = NEP_STATE_INITIAL;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "NEPNArnoldiSetKSP"
+/*@
+   NEPNArnoldiSetKSP - Associate a linear solver object (KSP) to the nonlinear
+   eigenvalue solver.
+
+   Collective on NEP
+
+   Input Parameters:
++  nep - eigenvalue solver
+-  ksp - the linear solver object
+
+   Level: advanced
+
+.seealso: NEPNArnoldiGetKSP()
+@*/
+PetscErrorCode NEPNArnoldiSetKSP(NEP nep,KSP ksp)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
+  PetscValidHeaderSpecific(ksp,KSP_CLASSID,2);
+  PetscCheckSameComm(nep,1,ksp,2);
+  ierr = PetscTryMethod(nep,"NEPNArnoldiSetKSP_C",(NEP,KSP),(nep,ksp));CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "NEPNArnoldiGetKSP_NArnoldi"
+static PetscErrorCode NEPNArnoldiGetKSP_NArnoldi(NEP nep,KSP *ksp)
+{
+  PetscErrorCode ierr;
+  NEP_NARNOLDI   *ctx = (NEP_NARNOLDI*)nep->data;
+
+  PetscFunctionBegin;
+  if (!ctx->ksp) {
+    ierr = KSPCreate(PetscObjectComm((PetscObject)nep),&ctx->ksp);CHKERRQ(ierr);
+    ierr = KSPSetOptionsPrefix(ctx->ksp,((PetscObject)nep)->prefix);CHKERRQ(ierr);
+    ierr = KSPAppendOptionsPrefix(ctx->ksp,"nep_narnoldi_");CHKERRQ(ierr);
+    ierr = PetscObjectIncrementTabLevel((PetscObject)ctx->ksp,(PetscObject)nep,1);CHKERRQ(ierr);
+    ierr = PetscLogObjectParent((PetscObject)nep,(PetscObject)ctx->ksp);CHKERRQ(ierr);
+    ierr = KSPSetErrorIfNotConverged(ctx->ksp,PETSC_TRUE);CHKERRQ(ierr);
+  }
+  *ksp = ctx->ksp;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "NEPNArnoldiGetKSP"
+/*@
+   NEPNArnoldiGetKSP - Retrieve the linear solver object (KSP) associated with
+   the nonlinear eigenvalue solver.
+
+   Not Collective
+
+   Input Parameter:
+.  nep - nonlinear eigenvalue solver
+
+   Output Parameter:
+.  ksp - the linear solver object
+
+   Level: advanced
+
+.seealso: NEPNArnoldiSetKSP()
+@*/
+PetscErrorCode NEPNArnoldiGetKSP(NEP nep,KSP *ksp)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
+  PetscValidPointer(ksp,2);
+  ierr = PetscUseMethod(nep,"NEPNArnoldiGetKSP_C",(NEP,KSP*),(nep,ksp));CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "NEPView_NArnoldi"
+PetscErrorCode NEPView_NArnoldi(NEP nep,PetscViewer viewer)
+{
+  PetscErrorCode ierr;
+  NEP_NARNOLDI   *ctx = (NEP_NARNOLDI*)nep->data;
+
+  PetscFunctionBegin;
+  if (!ctx->ksp) { ierr = NEPNArnoldiGetKSP(nep,&ctx->ksp);CHKERRQ(ierr); }
+  ierr = KSPView(ctx->ksp,viewer);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "NEPDestroy_NArnoldi"
+PetscErrorCode NEPDestroy_NArnoldi(NEP nep)
+{
+  PetscErrorCode ierr;
+  NEP_NARNOLDI   *ctx = (NEP_NARNOLDI*)nep->data;
+
+  PetscFunctionBegin;
+  ierr = KSPDestroy(&ctx->ksp);CHKERRQ(ierr);
+  ierr = PetscFree(nep->data);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPNArnoldiSetKSP_C",NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPNArnoldiGetKSP_C",NULL);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
 #define __FUNCT__ "NEPCreate_NArnoldi"
 PETSC_EXTERN PetscErrorCode NEPCreate_NArnoldi(NEP nep)
 {
+  PetscErrorCode ierr;
+  NEP_NARNOLDI   *ctx;
+
   PetscFunctionBegin;
+  ierr = PetscNewLog(nep,&ctx);CHKERRQ(ierr);
+  nep->data = (void*)ctx;
+
   nep->ops->solve          = NEPSolve_NArnoldi;
   nep->ops->setup          = NEPSetUp_NArnoldi;
+  nep->ops->setfromoptions = NEPSetFromOptions_NArnoldi;
+  nep->ops->destroy        = NEPDestroy_NArnoldi;
+  nep->ops->view           = NEPView_NArnoldi;
+  ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPNArnoldiSetKSP_C",NEPNArnoldiSetKSP_NArnoldi);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPNArnoldiGetKSP_C",NEPNArnoldiGetKSP_NArnoldi);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

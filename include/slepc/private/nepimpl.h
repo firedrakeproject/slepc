@@ -111,7 +111,6 @@ struct _p_NEP {
   BV             V;                /* set of basis vectors and computed eigenvectors */
   RG             rg;               /* optional region for filtering */
   SlepcSC        sc;               /* sorting criterion data */
-  KSP            ksp;              /* linear solver object */
   Mat            function;         /* function matrix */
   Mat            function_pre;     /* function matrix (preconditioner) */
   Mat            jacobian;         /* Jacobian matrix */
@@ -179,20 +178,6 @@ struct _p_NEP {
   } while (0)
 
 #endif
-
-#undef __FUNCT__
-#define __FUNCT__ "NEP_KSPSolve"
-PETSC_STATIC_INLINE PetscErrorCode NEP_KSPSolve(NEP nep,Vec b,Vec x)
-{
-  PetscErrorCode ierr;
-  PetscInt       lits;
-
-  PetscFunctionBegin;
-  ierr = KSPSolve(nep->ksp,b,x);CHKERRQ(ierr);
-  ierr = KSPGetIterationNumber(nep->ksp,&lits);CHKERRQ(ierr);
-  ierr = PetscInfo2(nep,"iter=%D, linear solve iterations=%D\n",nep->its,lits);CHKERRQ(ierr);
-  PetscFunctionReturn(0);
-}
 
 PETSC_INTERN PetscErrorCode NEPSetDimensions_Default(NEP,PetscInt,PetscInt*,PetscInt*);
 PETSC_INTERN PetscErrorCode NEPComputeVectors(NEP);

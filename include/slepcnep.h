@@ -160,8 +160,6 @@ PETSC_EXTERN PetscErrorCode NEPSetType(NEP,NEPType);
 PETSC_EXTERN PetscErrorCode NEPGetType(NEP,NEPType*);
 PETSC_EXTERN PetscErrorCode NEPSetTarget(NEP,PetscScalar);
 PETSC_EXTERN PetscErrorCode NEPGetTarget(NEP,PetscScalar*);
-PETSC_EXTERN PetscErrorCode NEPSetKSP(NEP,KSP);
-PETSC_EXTERN PetscErrorCode NEPGetKSP(NEP,KSP*);
 PETSC_EXTERN PetscErrorCode NEPSetFromOptions(NEP);
 PETSC_EXTERN PetscErrorCode NEPSetUp(NEP);
 PETSC_EXTERN PetscErrorCode NEPSolve(NEP);
@@ -267,9 +265,14 @@ PETSC_EXTERN PetscErrorCode NEPAllocateSolution(NEP,PetscInt);
 
 PETSC_EXTERN PetscErrorCode NEPRIISetMaximumIterations(NEP,PetscInt);
 PETSC_EXTERN PetscErrorCode NEPRIIGetMaximumIterations(NEP,PetscInt*);
+PETSC_EXTERN PetscErrorCode NEPRIISetKSP(NEP,KSP);
+PETSC_EXTERN PetscErrorCode NEPRIIGetKSP(NEP,KSP*);
 
 PETSC_EXTERN PetscErrorCode NEPSLPSetEPS(NEP,EPS);
 PETSC_EXTERN PetscErrorCode NEPSLPGetEPS(NEP,EPS*);
+
+PETSC_EXTERN PetscErrorCode NEPNArnoldiSetKSP(NEP,KSP);
+PETSC_EXTERN PetscErrorCode NEPNArnoldiGetKSP(NEP,KSP*);
 
 PETSC_EXTERN PetscErrorCode NEPCISSSetSizes(NEP,PetscInt,PetscInt,PetscInt,PetscInt,PetscInt,PetscBool);
 PETSC_EXTERN PetscErrorCode NEPCISSGetSizes(NEP,PetscInt*,PetscInt*,PetscInt*,PetscInt*,PetscInt*,PetscBool*);
@@ -295,6 +298,7 @@ PETSC_EXTERN PetscErrorCode NEPNLEIGSSetTrueResidual(NEP,PetscBool);
 PETSC_EXTERN PetscErrorCode NEPNLEIGSGetTrueResidual(NEP,PetscBool*);
 PETSC_EXTERN PetscErrorCode NEPNLEIGSSetRKShifts(NEP,PetscInt,PetscScalar*);
 PETSC_EXTERN PetscErrorCode NEPNLEIGSGetRKShifts(NEP,PetscInt*,PetscScalar**);
+PETSC_EXTERN PetscErrorCode NEPNLEIGSGetKSPs(NEP,KSP**);
 
 #endif
 

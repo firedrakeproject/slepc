@@ -36,8 +36,24 @@
 #include <slepc/private/nepimpl.h>         /*I "slepcnep.h" I*/
 
 typedef struct {
-  PetscInt max_inner_it;         /* maximum number of Newton iterations */
+  PetscInt max_inner_it;     /* maximum number of Newton iterations */
+  KSP      ksp;              /* linear solver object */
 } NEP_RII;
+
+#undef __FUNCT__
+#define __FUNCT__ "NEPRII_KSPSolve"
+PETSC_STATIC_INLINE PetscErrorCode NEPRII_KSPSolve(NEP nep,Vec b,Vec x)
+{
+  PetscErrorCode ierr;
+  PetscInt       lits;
+  NEP_RII        *ctx = (NEP_RII*)nep->data;
+
+  PetscFunctionBegin;
+  ierr = KSPSolve(ctx->ksp,b,x);CHKERRQ(ierr);
+  ierr = KSPGetIterationNumber(ctx->ksp,&lits);CHKERRQ(ierr);
+  ierr = PetscInfo2(nep,"iter=%D, linear solve iterations=%D\n",nep->its,lits);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
 
 #undef __FUNCT__
 #define __FUNCT__ "NEPSetUp_RII"
@@ -87,8 +103,9 @@ PetscErrorCode NEPSolve_RII(NEP nep)
   ierr = NEPComputeFunction(nep,lambda,T,T);CHKERRQ(ierr);
 
   /* prepare linear solver */
+  if (!ctx->ksp) { ierr = NEPRIIGetKSP(nep,&ctx->ksp);CHKERRQ(ierr); }
   ierr = MatDuplicate(T,MAT_COPY_VALUES,&Tsigma);CHKERRQ(ierr);
-  ierr = KSPSetOperators(nep->ksp,Tsigma,Tsigma);CHKERRQ(ierr);
+  ierr = KSPSetOperators(ctx->ksp,Tsigma,Tsigma);CHKERRQ(ierr);
 
   /* Restart loop */
   while (nep->reason == NEP_CONVERGED_ITERATING) {
@@ -116,11 +133,11 @@ PetscErrorCode NEPSolve_RII(NEP nep)
         ierr = MatDestroy(&Tsigma);CHKERRQ(ierr);
         ierr = MatDuplicate(T,MAT_COPY_VALUES,&Tsigma);CHKERRQ(ierr);
       }
-      ierr = KSPSetOperators(nep->ksp,Tsigma,Tsigma);CHKERRQ(ierr);
+      ierr = KSPSetOperators(ctx->ksp,Tsigma,Tsigma);CHKERRQ(ierr);
     }
     if (!nep->cctol) {
       nep->ktol = PetscMax(nep->ktol/2.0,PETSC_MACHINE_EPSILON*10.0);
-      ierr = KSPSetTolerances(nep->ksp,nep->ktol,PETSC_DEFAULT,PETSC_DEFAULT,PETSC_DEFAULT);CHKERRQ(ierr);
+      ierr = KSPSetTolerances(ctx->ksp,nep->ktol,PETSC_DEFAULT,PETSC_DEFAULT,PETSC_DEFAULT);CHKERRQ(ierr);
     }
 
     /* form residual,  r = T(lambda)*u */
@@ -138,8 +155,8 @@ PetscErrorCode NEPSolve_RII(NEP nep)
 
     if (nep->reason == NEP_CONVERGED_ITERATING) {
       /* eigenvector correction: delta = T(sigma)\r */
-      ierr = NEP_KSPSolve(nep,r,delta);CHKERRQ(ierr);
-      ierr = KSPGetConvergedReason(nep->ksp,&kspreason);CHKERRQ(ierr);
+      ierr = NEPRII_KSPSolve(nep,r,delta);CHKERRQ(ierr);
+      ierr = KSPGetConvergedReason(ctx->ksp,&kspreason);CHKERRQ(ierr);
       if (kspreason<0) {
         ierr = PetscInfo1(nep,"iter=%D, linear solve failed, stopping solve\n",nep->its);CHKERRQ(ierr);
         nep->reason = NEP_DIVERGED_LINEAR_SOLVE;
@@ -166,6 +183,8 @@ PetscErrorCode NEPSetFromOptions_RII(PetscOptionItems *PetscOptionsObject,NEP ne
   NEP_RII        *ctx = (NEP_RII*)nep->data;
 
   PetscFunctionBegin;
+  if (!ctx->ksp) { ierr = NEPRIIGetKSP(nep,&ctx->ksp);CHKERRQ(ierr); }
+  ierr = KSPSetFromOptions(ctx->ksp);CHKERRQ(ierr);
   ierr = PetscOptionsHead(PetscOptionsObject,"NEP RII Options");CHKERRQ(ierr);
     ierr = PetscOptionsInt("-nep_rii_max_it","Maximum number of Newton iterations for updating Rayleigh functional","NEPRIISetMaximumIterations",ctx->max_inner_it,&ctx->max_inner_it,NULL);CHKERRQ(ierr);
   ierr = PetscOptionsTail();CHKERRQ(ierr);
@@ -251,6 +270,99 @@ PetscErrorCode NEPRIIGetMaximumIterations(NEP nep,PetscInt *its)
 }
 
 #undef __FUNCT__
+#define __FUNCT__ "NEPRIISetKSP_RII"
+static PetscErrorCode NEPRIISetKSP_RII(NEP nep,KSP ksp)
+{
+  PetscErrorCode ierr;
+  NEP_RII        *ctx = (NEP_RII*)nep->data;
+
+  PetscFunctionBegin;
+  ierr = PetscObjectReference((PetscObject)ksp);CHKERRQ(ierr);
+  ierr = KSPDestroy(&ctx->ksp);CHKERRQ(ierr);
+  ctx->ksp = ksp;
+  ierr = PetscLogObjectParent((PetscObject)nep,(PetscObject)ctx->ksp);CHKERRQ(ierr);
+  nep->state = NEP_STATE_INITIAL;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "NEPRIISetKSP"
+/*@
+   NEPRIISetKSP - Associate a linear solver object (KSP) to the nonlinear
+   eigenvalue solver.
+
+   Collective on NEP
+
+   Input Parameters:
++  nep - eigenvalue solver
+-  ksp - the linear solver object
+
+   Level: advanced
+
+.seealso: NEPRIIGetKSP()
+@*/
+PetscErrorCode NEPRIISetKSP(NEP nep,KSP ksp)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
+  PetscValidHeaderSpecific(ksp,KSP_CLASSID,2);
+  PetscCheckSameComm(nep,1,ksp,2);
+  ierr = PetscTryMethod(nep,"NEPRIISetKSP_C",(NEP,KSP),(nep,ksp));CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "NEPRIIGetKSP_RII"
+static PetscErrorCode NEPRIIGetKSP_RII(NEP nep,KSP *ksp)
+{
+  PetscErrorCode ierr;
+  NEP_RII        *ctx = (NEP_RII*)nep->data;
+
+  PetscFunctionBegin;
+  if (!ctx->ksp) {
+    ierr = KSPCreate(PetscObjectComm((PetscObject)nep),&ctx->ksp);CHKERRQ(ierr);
+    ierr = KSPSetOptionsPrefix(ctx->ksp,((PetscObject)nep)->prefix);CHKERRQ(ierr);
+    ierr = KSPAppendOptionsPrefix(ctx->ksp,"nep_rii_");CHKERRQ(ierr);
+    ierr = PetscObjectIncrementTabLevel((PetscObject)ctx->ksp,(PetscObject)nep,1);CHKERRQ(ierr);
+    ierr = PetscLogObjectParent((PetscObject)nep,(PetscObject)ctx->ksp);CHKERRQ(ierr);
+    ierr = KSPSetErrorIfNotConverged(ctx->ksp,PETSC_TRUE);CHKERRQ(ierr);
+  }
+  *ksp = ctx->ksp;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "NEPRIIGetKSP"
+/*@
+   NEPRIIGetKSP - Retrieve the linear solver object (KSP) associated with
+   the nonlinear eigenvalue solver.
+
+   Not Collective
+
+   Input Parameter:
+.  nep - nonlinear eigenvalue solver
+
+   Output Parameter:
+.  ksp - the linear solver object
+
+   Level: advanced
+
+.seealso: NEPRIISetKSP()
+@*/
+PetscErrorCode NEPRIIGetKSP(NEP nep,KSP *ksp)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
+  PetscValidPointer(ksp,2);
+  ierr = PetscUseMethod(nep,"NEPRIIGetKSP_C",(NEP,KSP*),(nep,ksp));CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
 #define __FUNCT__ "NEPView_RII"
 PetscErrorCode NEPView_RII(NEP nep,PetscViewer viewer)
 {
@@ -258,7 +370,9 @@ PetscErrorCode NEPView_RII(NEP nep,PetscViewer viewer)
   NEP_RII        *ctx = (NEP_RII*)nep->data;
 
   PetscFunctionBegin;
+  if (!ctx->ksp) { ierr = NEPRIIGetKSP(nep,&ctx->ksp);CHKERRQ(ierr); }
   ierr = PetscViewerASCIIPrintf(viewer,"  RII: maximum number of inner iterations: %D\n",ctx->max_inner_it);CHKERRQ(ierr);
+  ierr = KSPView(ctx->ksp,viewer);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -267,11 +381,15 @@ PetscErrorCode NEPView_RII(NEP nep,PetscViewer viewer)
 PetscErrorCode NEPDestroy_RII(NEP nep)
 {
   PetscErrorCode ierr;
+  NEP_RII        *ctx = (NEP_RII*)nep->data;
 
   PetscFunctionBegin;
+  ierr = KSPDestroy(&ctx->ksp);CHKERRQ(ierr);
   ierr = PetscFree(nep->data);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPRIISetMaximumIterations_C",NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPRIIGetMaximumIterations_C",NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPRIISetKSP_C",NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPRIIGetKSP_C",NULL);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -294,6 +412,8 @@ PETSC_EXTERN PetscErrorCode NEPCreate_RII(NEP nep)
   nep->ops->view           = NEPView_RII;
   ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPRIISetMaximumIterations_C",NEPRIISetMaximumIterations_RII);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPRIIGetMaximumIterations_C",NEPRIIGetMaximumIterations_RII);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPRIISetKSP_C",NEPRIISetKSP_RII);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPRIIGetKSP_C",NEPRIIGetKSP_RII);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
