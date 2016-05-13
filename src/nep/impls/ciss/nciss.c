@@ -450,7 +450,7 @@ PetscErrorCode NEPSetUp_CISS(NEP nep)
   NEP_CISS       *ctx = (NEP_CISS*)nep->data;
   const char     *prefix;
   PetscInt       i,nwork;
-  PetscBool      istrivial,isellipse;
+  PetscBool      istrivial,isellipse,flg;
   PetscScalar    center;
 
   PetscFunctionBegin;
@@ -470,7 +470,9 @@ PetscErrorCode NEPSetUp_CISS(NEP nep)
 
   /* check region */
   ierr = RGIsTrivial(nep->rg,&istrivial);CHKERRQ(ierr);
-  if (istrivial) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"NEPCISS requires a nontrivial region, e.g. -rg_type ellipse ...");
+  if (istrivial) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"CISS requires a nontrivial region, e.g. -rg_type ellipse ...");
+  ierr = RGGetComplement(nep->rg,&flg);CHKERRQ(ierr);
+  if (flg) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"A region with complement flag set is not allowed");
   ierr = PetscObjectTypeCompare((PetscObject)nep->rg,RGELLIPSE,&isellipse);CHKERRQ(ierr);
   if (!isellipse) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"Currently only implemented for elliptic or arc regions");
   ierr = RGEllipseGetParameters(nep->rg,&center,NULL,NULL);CHKERRQ(ierr);
