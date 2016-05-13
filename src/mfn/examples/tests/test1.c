@@ -35,7 +35,6 @@ int main(int argc,char **argv)
   PetscReal          norm;
   PetscScalar        t=2.0;
   Vec                v,y;
-  PetscInt           its;
   PetscErrorCode     ierr;
   PetscViewer        viewer;
   PetscBool          flg;
@@ -91,12 +90,6 @@ int main(int argc,char **argv)
   ierr = VecNorm(y,NORM_2,&norm);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD," Computed vector at time t=%.4g has norm %g\n\n",(double)PetscRealPart(t),(double)norm);CHKERRQ(ierr);
   
-  /*
-     Optional: Get some information from the solver and display it
-  */
-  ierr = MFNGetIterationNumber(mfn,&its);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," Number of iterations of the method: %D\n",its);CHKERRQ(ierr);
-
   /* 
      Free work space
   */

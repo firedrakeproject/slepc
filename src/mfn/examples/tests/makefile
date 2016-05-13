@@ -52,7 +52,8 @@ runtest1_1:
 
 runtest1_2:
 	-@if [ "${PETSC_PRECISION}" != "double" ] || (${GREP} USE_64BIT_INDICES ${PETSC_DIR}/${PETSC_ARCH}/include/petscconf.h > /dev/null 2>&1) then \
-	   echo "Skipping test1_1 test"; \
+	   echo "Skipping test1_2 test"; \
+	 else \
 	   ${MPIEXEC} -n 1 ./test1 -file ${DATAPATH}/bfw62b.petsc -mfn_type expokit > test1_2.tmp 2>&1; \
 	   if (${DIFF} output/test1.out test1_2.tmp) then true; \
 	   else echo "Possible problem with test1_2, diffs above"; fi; \
