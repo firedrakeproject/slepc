@@ -263,6 +263,30 @@ PetscErrorCode NEPSetInitialSpace(NEP nep,PetscInt n,Vec *is)
 }
 
 #undef __FUNCT__
+#define __FUNCT__ "NEPSetDimensions_Default"
+/*
+  NEPSetDimensions_Default - Set reasonable values for ncv, mpd if not set
+  by the user. This is called at setup.
+ */
+PetscErrorCode NEPSetDimensions_Default(NEP nep,PetscInt nev,PetscInt *ncv,PetscInt *mpd)
+{
+  PetscFunctionBegin;
+  if (*ncv) { /* ncv set */
+    if (*ncv<nev) SETERRQ(PetscObjectComm((PetscObject)nep),1,"The value of ncv must be at least nev");
+  } else if (*mpd) { /* mpd set */
+    *ncv = PetscMin(nep->n,nev+(*mpd));
+  } else { /* neither set: defaults depend on nev being small or large */
+    if (nev<500) *ncv = PetscMin(nep->n,PetscMax(2*nev,nev+15));
+    else {
+      *mpd = 500;
+      *ncv = PetscMin(nep->n,nev+(*mpd));
+    }
+  }
+  if (!*mpd) *mpd = *ncv;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
 #define __FUNCT__ "NEPAllocateSolution"
 /*@
    NEPAllocateSolution - Allocate memory storage for common variables such

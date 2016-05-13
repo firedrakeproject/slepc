@@ -194,6 +194,7 @@ PETSC_STATIC_INLINE PetscErrorCode NEP_KSPSolve(NEP nep,Vec b,Vec x)
   PetscFunctionReturn(0);
 }
 
+PETSC_INTERN PetscErrorCode NEPSetDimensions_Default(NEP,PetscInt,PetscInt*,PetscInt*);
 PETSC_INTERN PetscErrorCode NEPComputeVectors(NEP);
 PETSC_INTERN PetscErrorCode NEPReset_Problem(NEP);
 PETSC_INTERN PetscErrorCode NEPGetDefaultShift(NEP,PetscScalar*);
