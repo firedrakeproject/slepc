@@ -355,7 +355,7 @@ PetscErrorCode SVDMonitorLGCreate(MPI_Comm comm,const char host[],const char lab
 
 #undef __FUNCT__
 #define __FUNCT__ "SVDMonitorLG"
-PetscErrorCode SVDMonitorLG(SVD svd,PetscInt its,PetscInt nconv,PetscScalar *sigma,PetscReal *errest,PetscInt nest,void *ctx)
+PetscErrorCode SVDMonitorLG(SVD svd,PetscInt its,PetscInt nconv,PetscReal *sigma,PetscReal *errest,PetscInt nest,void *ctx)
 {
   PetscDrawLG    lg = (PetscDrawLG)ctx;
   PetscReal      x,y;
@@ -381,7 +381,7 @@ PetscErrorCode SVDMonitorLG(SVD svd,PetscInt its,PetscInt nconv,PetscScalar *sig
 
 #undef __FUNCT__
 #define __FUNCT__ "SVDMonitorLGAll"
-PetscErrorCode SVDMonitorLGAll(SVD svd,PetscInt its,PetscInt nconv,PetscScalar *sigma,PetscReal *errest,PetscInt nest,void *ctx)
+PetscErrorCode SVDMonitorLGAll(SVD svd,PetscInt its,PetscInt nconv,PetscReal *sigma,PetscReal *errest,PetscInt nest,void *ctx)
 {
   PetscDrawLG    lg = (PetscDrawLG)ctx;
   PetscInt       i,n = PetscMin(svd->nsv,255);
