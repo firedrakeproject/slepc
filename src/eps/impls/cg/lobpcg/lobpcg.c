@@ -40,7 +40,6 @@
 */
 
 #include <slepc/private/epsimpl.h>                /*I "slepceps.h" I*/
-#include <slepc/private/dsimpl.h>                 /*I "slepcds.h" I*/
 
 typedef struct {
   PetscInt  bs;        /* block size */

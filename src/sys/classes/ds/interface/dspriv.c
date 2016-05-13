@@ -420,37 +420,48 @@ PetscErrorCode DSSetIdentity(DS ds,DSMatType mat)
 
 #undef __FUNCT__
 #define __FUNCT__ "DSOrthogonalize"
-/*
+/*@C
    DSOrthogonalize - Orthogonalize the columns of a matrix.
+
+   Logically Collective on DS
 
    Input Parameters:
 +  ds   - the direct solver context
 .  mat  - a matrix
--  cols - number of columns to orthogonalize (starting from the column zero)
+-  cols - number of columns to orthogonalize (starting from column zero)
 
    Output Parameter:
-.  lindcols - number of linearly independent columns of the matrix (can be NULL)
-*/
+.  lindcols - (optional) number of linearly independent columns of the matrix
+
+   Level: developer
+
+.seealso: DSPseudoOrthogonalize()
+@*/
 PetscErrorCode DSOrthogonalize(DS ds,DSMatType mat,PetscInt cols,PetscInt *lindcols)
 {
 #if defined(PETSC_MISSING_LAPACK_GEQRF) || defined(PETSC_MISSING_LAPACK_ORGQR)
   PetscFunctionBegin;
   SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"GEQRF/ORGQR - Lapack routine is unavailable");
 #else
-  PetscErrorCode  ierr;
-  PetscInt        n,l,ld;
-  PetscBLASInt    ld_,rA,cA,info,ltau,lw;
-  PetscScalar     *A,*tau,*w,saux;
+  PetscErrorCode ierr;
+  PetscInt       n,l,ld;
+  PetscBLASInt   ld_,rA,cA,info,ltau,lw;
+  PetscScalar    *A,*tau,*w,saux;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
+  DSCheckAlloc(ds,1);
   PetscValidLogicalCollectiveEnum(ds,mat,2);
   PetscValidLogicalCollectiveInt(ds,cols,3);
+
   ierr = DSGetDimensions(ds,&n,NULL,&l,NULL,NULL);CHKERRQ(ierr);
   ierr = DSGetLeadingDimension(ds,&ld);CHKERRQ(ierr);
   n = n - l;
   if (cols > n) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_WRONG,"Invalid number of columns");
   if (n == 0 || cols == 0) PetscFunctionReturn(0);
+
+  ierr = PetscLogEventBegin(DS_Other,ds,0,0,0);CHKERRQ(ierr);
+  ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
   ierr = DSGetArray(ds,mat,&A);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(PetscMin(cols,n),&ltau);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(ld,&ld_);CHKERRQ(ierr);
@@ -463,17 +474,16 @@ PetscErrorCode DSOrthogonalize(DS ds,DSMatType mat,PetscInt cols,PetscInt *lindc
   ierr = DSAllocateWork_Private(ds,lw+ltau,0,0);CHKERRQ(ierr);
   tau = ds->work;
   w = &tau[ltau];
-  ierr = PetscLogEventBegin(DS_Other,ds,0,0,0);CHKERRQ(ierr);
-  ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
   PetscStackCallBLAS("LAPACKgeqrf",LAPACKgeqrf_(&rA,&cA,&A[ld*l+l],&ld_,tau,w,&lw,&info));
   if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xGEQRF %d",info);
   PetscStackCallBLAS("LAPACKungqr",LAPACKungqr_(&rA,&ltau,&ltau,&A[ld*l+l],&ld_,tau,w,&lw,&info));
   if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xORGQR %d",info);
+  if (lindcols) *lindcols = ltau;
+
   ierr = PetscFPTrapPop();CHKERRQ(ierr);
   ierr = PetscLogEventEnd(DS_Other,ds,0,0,0);CHKERRQ(ierr);
   ierr = DSRestoreArray(ds,mat,&A);CHKERRQ(ierr);
   ierr = PetscObjectStateIncrease((PetscObject)ds);CHKERRQ(ierr);
-  if (lindcols) *lindcols = ltau;
   PetscFunctionReturn(0);
 #endif
 }
@@ -528,34 +538,40 @@ static PetscErrorCode SlepcMatDenseMult(PetscScalar *C,PetscInt _ldC,PetscScalar
 
 #undef __FUNCT__
 #define __FUNCT__ "DSPseudoOrthogonalize"
-/*
+/*@C
    DSPseudoOrthogonalize - Orthogonalize the columns of a matrix with Modified
    Gram-Schmidt in an indefinite inner product space defined by a signature.
+
+   Logically Collective on DS
 
    Input Parameters:
 +  ds   - the direct solver context
 .  mat  - the matrix
-.  cols - number of columns to orthogonalize (starting from the column zero)
+.  cols - number of columns to orthogonalize (starting from column zero)
 -  s    - the signature that defines the inner product
 
-   Output Parameter:
-+  lindcols - linear independent columns of the matrix (can be NULL)
--  ns - the new norm of the vectors (can be NULL)
-*/
+   Output Parameters:
++  lindcols - (optional) linearly independent columns of the matrix
+-  ns   - (optional) the new norm of the vectors
+
+   Level: developer
+
+.seealso: DSOrthogonalize()
+@*/
 PetscErrorCode DSPseudoOrthogonalize(DS ds,DSMatType mat,PetscInt cols,PetscReal *s,PetscInt *lindcols,PetscReal *ns)
 {
-  PetscErrorCode  ierr;
-  PetscInt        i,j,k,l,n,ld;
-  PetscBLASInt    one=1,rA_;
-  PetscScalar     alpha,*A,*A_,*m,*h,nr0;
-  PetscReal       nr_o,nr,*ns_;
+  PetscErrorCode ierr;
+  PetscInt       i,j,k,l,n,ld;
+  PetscBLASInt   one=1,rA_;
+  PetscScalar    alpha,*A,*A_,*m,*h,nr0;
+  PetscReal      nr_o,nr,*ns_;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
+  DSCheckAlloc(ds,1);
   PetscValidLogicalCollectiveEnum(ds,mat,2);
   PetscValidLogicalCollectiveInt(ds,cols,3);
-  PetscValidScalarPointer(s,4);
-  if (ns) PetscValidPointer(ns,6);
+  PetscValidRealPointer(s,4);
   ierr = DSGetDimensions(ds,&n,NULL,&l,NULL,NULL);CHKERRQ(ierr);
   ierr = DSGetLeadingDimension(ds,&ld);CHKERRQ(ierr);
   n = n - l;
