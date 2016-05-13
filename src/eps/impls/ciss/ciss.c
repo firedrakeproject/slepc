@@ -1897,7 +1897,8 @@ PetscErrorCode EPSView_CISS(EPS eps,PetscViewer viewer)
     ierr = PetscViewerASCIIPrintf(viewer,"  CISS: extraction: %s\n",EPSCISSExtractions[ctx->extraction]);CHKERRQ(ierr);
     ierr = PetscViewerASCIIPrintf(viewer,"  CISS: quadrature rule: %s\n",EPSCISSQuadRules[ctx->quad]);CHKERRQ(ierr);
     ierr = PetscViewerASCIIPushTab(viewer);CHKERRQ(ierr);
-    /*ierr = KSPView(ctx->ksp[0],viewer);CHKERRQ(ierr);*/
+    
+    if (!ctx->usest && ctx->ksp[0]) { ierr = KSPView(ctx->ksp[0],viewer);CHKERRQ(ierr); }
     ierr = PetscViewerASCIIPopTab(viewer);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
