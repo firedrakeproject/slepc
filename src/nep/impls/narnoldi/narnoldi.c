@@ -43,21 +43,11 @@ PetscErrorCode NEPSetUp_NArnoldi(NEP nep)
   PetscBool      istrivial;
 
   PetscFunctionBegin;
-  if (nep->ncv) { /* ncv set */
-    if (nep->ncv<nep->nev) SETERRQ(PetscObjectComm((PetscObject)nep),1,"The value of ncv must be at least nev");
-  } else if (nep->mpd) { /* mpd set */
-    nep->ncv = PetscMin(nep->n,nep->nev+nep->mpd);
-  } else { /* neither set: defaults depend on nev being small or large */
-    if (nep->nev<500) nep->ncv = PetscMin(nep->n,PetscMax(2*nep->nev,nep->nev+15));
-    else {
-      nep->mpd = 500;
-      nep->ncv = PetscMin(nep->n,nep->nev+nep->mpd);
-    }
-  }
-  if (!nep->mpd) nep->mpd = nep->ncv;
+  ierr = NEPSetDimensions_Default(nep,nep->nev,&nep->ncv,&nep->mpd);CHKERRQ(ierr);
   if (nep->ncv>nep->nev+nep->mpd) SETERRQ(PetscObjectComm((PetscObject)nep),1,"The value of ncv must not be larger than nev+mpd");
   if (nep->nev>1) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"Requested several eigenpairs but this solver can compute only one");
-  if (!nep->max_it) nep->max_it = PetscMax(5000,2*nep->n/nep->ncv);
+  if (!nep->max_it) nep->max_it = nep->ncv;
+  if (nep->max_it < nep->ncv) SETERRQ(PetscObjectComm((PetscObject)nep),1,"Current implementation is unrestarted, must set max_it >= ncv");
   if (nep->which && nep->which!=NEP_TARGET_MAGNITUDE) SETERRQ(PetscObjectComm((PetscObject)nep),1,"Wrong value of which");
   if (nep->fui!=NEP_USER_INTERFACE_SPLIT) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"NARNOLDI only available for split operator");
 
