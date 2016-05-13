@@ -185,9 +185,7 @@ PetscErrorCode EPSSolve_Power(EPS eps)
         }
       }
     }
-
     eps->errest[eps->nconv] = relerr;
-    ierr = EPSMonitor(eps,eps->its,eps->nconv,eps->eigr,eps->eigi,eps->errest,eps->nconv+1);CHKERRQ(ierr);
 
     /* purge previously converged eigenvectors */
     ierr = BVInsertVec(eps->V,k,y);CHKERRQ(ierr);
@@ -206,6 +204,7 @@ PetscErrorCode EPSSolve_Power(EPS eps)
         }
       }
     }
+    ierr = EPSMonitor(eps,eps->its,eps->nconv,eps->eigr,eps->eigi,eps->errest,eps->nconv+1);CHKERRQ(ierr);
     ierr = (*eps->stopping)(eps,eps->its,eps->max_it,eps->nconv,eps->nev,&eps->reason,eps->stoppingctx);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);

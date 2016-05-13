@@ -95,7 +95,6 @@ PetscErrorCode EPSSolve(EPS eps)
     eps->errest[i] = 0.0;
     eps->perm[i]   = i;
   }
-  ierr = EPSMonitor(eps,eps->its,eps->nconv,eps->eigr,eps->eigi,eps->errest,eps->ncv);CHKERRQ(ierr);
   ierr = EPSViewFromOptions(eps,NULL,"-eps_view_pre");CHKERRQ(ierr);
 
   /* call solver */

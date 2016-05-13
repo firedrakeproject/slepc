@@ -532,6 +532,7 @@ static PetscErrorCode PEPValuesView_DRAW(PEP pep,PetscViewer viewer)
     ierr = PetscDrawSPAddPoint(drawsp,&re,&im);CHKERRQ(ierr);
   }
   ierr = PetscDrawSPDraw(drawsp,PETSC_TRUE);CHKERRQ(ierr);
+  ierr = PetscDrawSPSave(drawsp);CHKERRQ(ierr);
   ierr = PetscDrawSPDestroy(&drawsp);CHKERRQ(ierr);
   ierr = PetscViewerDestroy(&viewer);CHKERRQ(ierr);
   PetscFunctionReturn(0);

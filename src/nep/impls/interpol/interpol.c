@@ -196,8 +196,8 @@ PetscErrorCode NEPSolve_Interpol(NEP nep)
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "NEPMonitor_Interpol"
-static PetscErrorCode NEPMonitor_Interpol(PEP pep,PetscInt its,PetscInt nconv,PetscScalar *eigr,PetscScalar *eigi,PetscReal *errest,PetscInt nest,void *ctx)
+#define __FUNCT__ "PEPMonitor_Interpol"
+static PetscErrorCode PEPMonitor_Interpol(PEP pep,PetscInt its,PetscInt nconv,PetscScalar *eigr,PetscScalar *eigi,PetscReal *errest,PetscInt nest,void *ctx)
 {
   PetscInt       i;
   NEP            nep = (NEP)ctx;
@@ -366,7 +366,7 @@ static PetscErrorCode NEPInterpolGetPEP_Interpol(NEP nep,PEP *pep)
     ierr = STSetOptionsPrefix(st,((PetscObject)ctx->pep)->prefix);CHKERRQ(ierr);
     ierr = PetscObjectIncrementTabLevel((PetscObject)ctx->pep,(PetscObject)nep,1);CHKERRQ(ierr);
     ierr = PetscLogObjectParent((PetscObject)nep,(PetscObject)ctx->pep);CHKERRQ(ierr);
-    ierr = PEPMonitorSet(ctx->pep,NEPMonitor_Interpol,nep,NULL);CHKERRQ(ierr);
+    ierr = PEPMonitorSet(ctx->pep,PEPMonitor_Interpol,nep,NULL);CHKERRQ(ierr);
     if (!nep->ksp) { ierr = NEPGetKSP(nep,&nep->ksp);CHKERRQ(ierr); }
     ierr = STSetKSP(st,nep->ksp);CHKERRQ(ierr);
   }

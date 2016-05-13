@@ -198,8 +198,8 @@ PetscErrorCode SVDSolve_Cross(SVD svd)
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "SVDMonitor_Cross"
-static PetscErrorCode SVDMonitor_Cross(EPS eps,PetscInt its,PetscInt nconv,PetscScalar *eigr,PetscScalar *eigi,PetscReal *errest,PetscInt nest,void *ctx)
+#define __FUNCT__ "EPSMonitor_Cross"
+static PetscErrorCode EPSMonitor_Cross(EPS eps,PetscInt its,PetscInt nconv,PetscScalar *eigr,PetscScalar *eigi,PetscReal *errest,PetscInt nest,void *ctx)
 {
   PetscInt       i;
   SVD            svd = (SVD)ctx;
@@ -292,7 +292,7 @@ static PetscErrorCode SVDCrossGetEPS_Cross(SVD svd,EPS *eps)
     ierr = PetscObjectIncrementTabLevel((PetscObject)cross->eps,(PetscObject)svd,1);CHKERRQ(ierr);
     ierr = PetscLogObjectParent((PetscObject)svd,(PetscObject)cross->eps);CHKERRQ(ierr);
     ierr = EPSSetWhichEigenpairs(cross->eps,EPS_LARGEST_REAL);CHKERRQ(ierr);
-    ierr = EPSMonitorSet(cross->eps,SVDMonitor_Cross,svd,NULL);CHKERRQ(ierr);
+    ierr = EPSMonitorSet(cross->eps,EPSMonitor_Cross,svd,NULL);CHKERRQ(ierr);
     ierr = EPSGetST(cross->eps,&st);CHKERRQ(ierr);
     ierr = STSetMatMode(st,ST_MATMODE_SHELL);CHKERRQ(ierr);
   }

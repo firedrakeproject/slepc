@@ -23,6 +23,7 @@
 */
 
 #include <slepc/private/nepimpl.h>       /*I "slepcnep.h" I*/
+#include <petscdraw.h>
 
 #undef __FUNCT__
 #define __FUNCT__ "NEPMonitorSetFromOptions"
@@ -127,6 +128,7 @@ PetscErrorCode NEPSetFromOptions(NEP nep)
   PetscReal      r;
   PetscScalar    s;
   PetscInt       i,j,k;
+  PetscDrawLG    lg;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
@@ -216,11 +218,13 @@ PetscErrorCode NEPSetFromOptions(NEP nep)
     */
     ierr = PetscOptionsBool("-nep_monitor_lg","Monitor first unconverged approximate error estimate graphically","NEPMonitorSet",PETSC_FALSE,&flg,&set);CHKERRQ(ierr);
     if (set && flg) {
-      ierr = NEPMonitorSet(nep,NEPMonitorLG,NULL,NULL);CHKERRQ(ierr);
+      ierr = NEPMonitorLGCreate(PetscObjectComm((PetscObject)nep),NULL,"Error estimates",PETSC_DECIDE,PETSC_DECIDE,300,300,&lg);CHKERRQ(ierr);
+      ierr = NEPMonitorSet(nep,NEPMonitorLG,lg,(PetscErrorCode (*)(void**))PetscDrawLGDestroy);CHKERRQ(ierr);
     }
     ierr = PetscOptionsBool("-nep_monitor_lg_all","Monitor error estimates graphically","NEPMonitorSet",PETSC_FALSE,&flg,&set);CHKERRQ(ierr);
     if (set && flg) {
-      ierr = NEPMonitorSet(nep,NEPMonitorLGAll,NULL,NULL);CHKERRQ(ierr);
+      ierr = NEPMonitorLGCreate(PetscObjectComm((PetscObject)nep),NULL,"Error estimates",PETSC_DECIDE,PETSC_DECIDE,300,300,&lg);CHKERRQ(ierr);
+      ierr = NEPMonitorSet(nep,NEPMonitorLGAll,lg,(PetscErrorCode (*)(void**))PetscDrawLGDestroy);CHKERRQ(ierr);
       ierr = NEPSetTrackAll(nep,PETSC_TRUE);CHKERRQ(ierr);
     }
   /* -----------------------------------------------------------------------*/

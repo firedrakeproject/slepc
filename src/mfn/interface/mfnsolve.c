@@ -71,7 +71,6 @@ PetscErrorCode MFNSolve(MFN mfn,Vec b,Vec x)
   ierr = MFNSetUp(mfn);CHKERRQ(ierr);
   mfn->its = 0;
 
-  ierr = MFNMonitor(mfn,mfn->its,0);CHKERRQ(ierr);
   ierr = MFNViewFromOptions(mfn,NULL,"-mfn_view_pre");CHKERRQ(ierr);
 
   /* check nonzero right-hand side */
