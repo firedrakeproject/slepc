@@ -272,7 +272,7 @@ static PetscErrorCode PEPJDExtendedPCApply(PC pc,Vec x,Vec y)
   PetscErrorCode    ierr;
   const PetscScalar *array1;
   PetscScalar       *x2=NULL,*t=NULL,*ps,*array2;
-  PetscBLASInt      one=1.0,ld_;
+  PetscBLASInt      one=1.0,ld_,n_;
 
   PetscFunctionBegin;
   ierr = PCShellGetContext(pc,(void**)&ctx);CHKERRQ(ierr);
@@ -308,7 +308,8 @@ static PetscErrorCode PEPJDExtendedPCApply(PC pc,Vec x,Vec y)
     }
     if (rk==np-1) for (i=0;i<n;i++) array2[nloc+i] = t[i];
     ierr = PetscBLASIntCast(ld,&ld_);CHKERRQ(ierr);
-    PetscStackCallBLAS("BLAStrmv",BLAStrmv_("U","N","N",&n,ps,&ld_,t,&one));
+    ierr = PetscBLASIntCast(n,&n_);CHKERRQ(ierr);
+    PetscStackCallBLAS("BLAStrmv",BLAStrmv_("U","N","N",&n_,ps,&ld_,t,&one));
     ierr = BVMultVec(ctx->X,-1.0,1.0,ty,t);CHKERRQ(ierr);
     ierr = PetscFree2(x2,t);CHKERRQ(ierr);
   }
@@ -680,7 +681,7 @@ static PetscErrorCode PEPJDUpdateExtendedPC(PEP pep,PetscScalar theta)
       for (j=0;j<n;j++) for (i=0;i<n;i++) V[j*n+i] = S[j*n+i] + M[j*ld+i]*fact;
       PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&n_,&n_,&n_,&sone,pjd->XpX,&ld_,V,&n_,&zero,U,&n_));
       PetscStackCallBLAS("BLASgemm",BLASgemm_("C","N",&n_,&n_,&n_,&sone,pjd->Tj+k*ld*ld,&ld_,U,&n_,&sone,M,&ld_));
-      PetscStackCallBLAS("BLAStrmm",BLAStrmm_("L","U","N","N",&n,&n,&sone,pjd->T,&ld,S,&n));
+      PetscStackCallBLAS("BLAStrmm",BLAStrmm_("L","U","N","N",&n_,&n_,&sone,pjd->T,&ld_,S,&n_));
       for (j=0;j<n;j++) S[j*(n+1)] += fact;
       fact *=theta;
     }
