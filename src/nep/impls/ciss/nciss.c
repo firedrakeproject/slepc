@@ -110,7 +110,7 @@ static PetscErrorCode SetPathParameter(NEP nep)
 
   PetscFunctionBegin;
   ierr = PetscObjectTypeCompare((PetscObject)nep->rg,RGELLIPSE,&isellipse);CHKERRQ(ierr);
-  ierr = RGGetScale(eps->rg,&rgscale);CHKERRQ(ierr);
+  ierr = RGGetScale(nep->rg,&rgscale);CHKERRQ(ierr);
   if (isellipse) {
     ierr = RGEllipseGetParameters(nep->rg,&center,&radius,&vscale);CHKERRQ(ierr);
   } else SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"Region must be Ellipse");
@@ -565,7 +565,7 @@ PetscErrorCode NEPSolve_CISS(NEP nep)
   }
   ierr = PetscFree2(Mu,H0);CHKERRQ(ierr);
 
-  ierr = RGGetScale(eps->rg,&rgscale);CHKERRQ(ierr);
+  ierr = RGGetScale(nep->rg,&rgscale);CHKERRQ(ierr);
   ierr = RGEllipseGetParameters(nep->rg,&center,&radius,NULL);CHKERRQ(ierr);
 
   ierr = PetscMalloc3(ctx->L*ctx->L*ctx->M*2,&Mu,ctx->L*ctx->M*ctx->L*ctx->M,&H0,ctx->L*ctx->M*ctx->L*ctx->M,&H1);CHKERRQ(ierr);
