@@ -58,7 +58,7 @@ PetscErrorCode NEPView(NEP nep,PetscViewer viewer)
   PetscErrorCode ierr;
   char           str[50];
   PetscInt       i;
-  PetscBool      isascii,isslp,istrivial,nods;
+  PetscBool      isascii,istrivial,nods;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
@@ -134,12 +134,6 @@ PetscErrorCode NEPView(NEP nep,PetscViewer viewer)
     ierr = PetscViewerASCIIPrintf(viewer,"  maximum dimension of projected problem (mpd): %D\n",nep->mpd);CHKERRQ(ierr);
     ierr = PetscViewerASCIIPrintf(viewer,"  maximum number of iterations: %D\n",nep->max_it);CHKERRQ(ierr);
     ierr = PetscViewerASCIIPrintf(viewer,"  tolerance: %g\n",(double)nep->tol);CHKERRQ(ierr);
-    if (nep->lag) {
-      ierr = PetscViewerASCIIPrintf(viewer,"  updating the preconditioner every %D iterations\n",nep->lag);CHKERRQ(ierr);
-    }
-    if (nep->cctol) {
-      ierr = PetscViewerASCIIPrintf(viewer,"  using a constant tolerance for the linear solver\n");CHKERRQ(ierr);
-    }
     ierr = PetscViewerASCIIPrintf(viewer,"  convergence test: ");CHKERRQ(ierr);
     switch (nep->conv) {
     case NEP_CONV_ABS:
@@ -186,11 +180,6 @@ PetscErrorCode NEPView(NEP nep,PetscViewer viewer)
     ierr = DSView(nep->ds,viewer);CHKERRQ(ierr);
   }
   ierr = PetscViewerPopFormat(viewer);CHKERRQ(ierr);
-  ierr = PetscObjectTypeCompare((PetscObject)nep,NEPSLP,&isslp);CHKERRQ(ierr);
-  if (!isslp) {
-    if (!nep->ksp) { ierr = NEPGetKSP(nep,&nep->ksp);CHKERRQ(ierr); }
-    ierr = KSPView(nep->ksp,viewer);CHKERRQ(ierr);
-  }
   PetscFunctionReturn(0);
 }
 

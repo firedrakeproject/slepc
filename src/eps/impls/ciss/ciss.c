@@ -176,7 +176,7 @@ static PetscErrorCode SetPathParameter(EPS eps)
   EPS_CISS       *ctx = (EPS_CISS*)eps->data;
   PetscInt       i,j;
   PetscScalar    center=0.0,tmp,tmp2,*omegai;
-  PetscReal      theta,radius=1.0,vscale,a,b,c,d,max_w=0.0;
+  PetscReal      theta,radius=1.0,vscale,a,b,c,d,max_w=0.0,rgscale;
 #if defined(PETSC_USE_COMPLEX) 
   PetscReal      start_ang,end_ang;
 #endif
@@ -186,6 +186,7 @@ static PetscErrorCode SetPathParameter(EPS eps)
   ierr = PetscObjectTypeCompare((PetscObject)eps->rg,RGELLIPSE,&isellipse);CHKERRQ(ierr);
   ierr = PetscObjectTypeCompare((PetscObject)eps->rg,RGRING,&isring);CHKERRQ(ierr);
   ierr = PetscObjectTypeCompare((PetscObject)eps->rg,RGINTERVAL,&isinterval);CHKERRQ(ierr);
+  ierr = RGGetScale(eps->rg,&rgscale);CHKERRQ(ierr);
   ierr = PetscMalloc1(ctx->N+1l,&omegai);CHKERRQ(ierr);
   ierr = RGComputeContour(eps->rg,ctx->N,ctx->omega,omegai);CHKERRQ(ierr);
   if (isellipse) {
@@ -194,12 +195,12 @@ static PetscErrorCode SetPathParameter(EPS eps)
 #if defined(PETSC_USE_COMPLEX) 
       theta = 2.0*PETSC_PI*(i+0.5)/ctx->N;
       ctx->pp[i] = PetscCosReal(theta)+vscale*PetscSinReal(theta)*PETSC_i;
-      ctx->weight[i] = radius*(vscale*PetscCosReal(theta)+PetscSinReal(theta)*PETSC_i)/(PetscReal)ctx->N;
+      ctx->weight[i] = rgscale*radius*(vscale*PetscCosReal(theta)+PetscSinReal(theta)*PETSC_i)/(PetscReal)ctx->N;
 #else
       theta = (PETSC_PI/ctx->N)*(i+0.5);
       ctx->pp[i] = PetscCosReal(theta);
       ctx->weight[i] = PetscCosReal((ctx->N-1)*theta)/ctx->N;
-      ctx->omega[i] = center + radius*ctx->pp[i];
+      ctx->omega[i] = rgscale*(center + radius*ctx->pp[i]);
 #endif
     }
   } else if (ctx->quad == EPS_CISS_QUADRULE_CHEBYSHEV) {
@@ -212,10 +213,10 @@ static PetscErrorCode SetPathParameter(EPS eps)
       ierr = RGIntervalGetEndpoints(eps->rg,&a,&b,&c,&d);CHKERRQ(ierr);
       if ((c!=d || c!=0.0) && (a!=b || a!=0.0)) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Endpoints of the imaginary axis or the real axis must be both zero");
       for (i=0;i<ctx->N;i++) {
-        if (c==d) ctx->omega[i] = (b-a)*(ctx->pp[i]+1.0)/2.0+a;
+        if (c==d) ctx->omega[i] = ((b-a)*(ctx->pp[i]+1.0)/2.0+a)*rgscale;
         if (a==b) {
 #if defined(PETSC_USE_COMPLEX) 
-          ctx->omega[i] = ((d-c)*(ctx->pp[i]+1.0)/2.0+c)*PETSC_i;
+          ctx->omega[i] = ((d-c)*(ctx->pp[i]+1.0)/2.0+c)*rgscale*PETSC_i;
 #else
           SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"Integration points on a vertical line require complex arithmetic");
 #endif
@@ -227,17 +228,19 @@ static PetscErrorCode SetPathParameter(EPS eps)
       ierr = RGRingGetParameters(eps->rg,&center,&radius,&vscale,&start_ang,&end_ang,NULL);CHKERRQ(ierr);
       for (i=0;i<ctx->N;i++) {
         theta = (start_ang*2.0+(end_ang-start_ang)*(PetscRealPart(ctx->pp[i])+1.0))*PETSC_PI;
-        ctx->omega[i] = center + radius*(PetscCosReal(theta)+PETSC_i*vscale*PetscSinReal(theta));
+        ctx->omega[i] = rgscale*(center + radius*(PetscCosReal(theta)+PETSC_i*vscale*PetscSinReal(theta)));
       }
 #endif
     }
   } else {
     if (isinterval) {
       ierr = RGIntervalGetEndpoints(eps->rg,&a,&b,&c,&d);CHKERRQ(ierr);
-      center = (b+a)/2.0+(d+c)/2.0*PETSC_PI;
-      radius = PetscSqrtReal(PetscPowRealInt((b-a)/2.0,2)+PetscPowRealInt((d-c)/2.0,2));
+      center = rgscale*((b+a)/2.0+(d+c)/2.0*PETSC_PI);
+      radius = PetscSqrtReal(PetscPowRealInt(rgscale*(b-a)/2.0,2)+PetscPowRealInt(rgscale*(d-c)/2.0,2));
     } else if (isring) {
       ierr = RGRingGetParameters(eps->rg,&center,&radius,NULL,NULL,NULL,NULL);CHKERRQ(ierr);
+      center *= rgscale;
+      radius *= rgscale;
     }
     for (i=0;i<ctx->N;i++) { 
       ctx->pp[i] = (ctx->omega[i]-center)/radius;
@@ -744,7 +747,7 @@ static PetscErrorCode rescale_eig(EPS eps,PetscInt nv)
   EPS_CISS       *ctx = (EPS_CISS*)eps->data;
   PetscInt       i;
   PetscScalar    center;
-  PetscReal      radius,a,b,c,d;
+  PetscReal      radius,a,b,c,d,rgscale;
 #if defined(PETSC_USE_COMPLEX) 
   PetscReal      start_ang,end_ang,vscale,theta;
 #endif
@@ -754,6 +757,7 @@ static PetscErrorCode rescale_eig(EPS eps,PetscInt nv)
   ierr = PetscObjectTypeCompare((PetscObject)eps->rg,RGELLIPSE,&isellipse);CHKERRQ(ierr);
   ierr = PetscObjectTypeCompare((PetscObject)eps->rg,RGRING,&isring);CHKERRQ(ierr);
   ierr = PetscObjectTypeCompare((PetscObject)eps->rg,RGINTERVAL,&isinterval);CHKERRQ(ierr);
+  ierr = RGGetScale(eps->rg,&rgscale);CHKERRQ(ierr);
   if (isinterval) {
     ierr = RGIntervalGetEndpoints(eps->rg,NULL,NULL,&c,&d);CHKERRQ(ierr);
     if (c==d) {
@@ -769,15 +773,15 @@ static PetscErrorCode rescale_eig(EPS eps,PetscInt nv)
   if (ctx->extraction == EPS_CISS_EXTRACTION_HANKEL) {
     if (isellipse) {
       ierr = RGEllipseGetParameters(eps->rg,&center,&radius,NULL);CHKERRQ(ierr);
-      for (i=0;i<nv;i++) eps->eigr[i] = center + radius*eps->eigr[i];
+      for (i=0;i<nv;i++) eps->eigr[i] = rgscale*(center + radius*eps->eigr[i]);
     } else if (isinterval) {
       ierr = RGIntervalGetEndpoints(eps->rg,&a,&b,&c,&d);CHKERRQ(ierr);
       if (ctx->quad == EPS_CISS_QUADRULE_CHEBYSHEV) {
         for (i=0;i<nv;i++) {
-          if (c==d) eps->eigr[i] = (b-a)*(eps->eigr[i]+1.0)/2.0+a;
+          if (c==d) eps->eigr[i] = ((b-a)*(eps->eigr[i]+1.0)/2.0+a)*rgscale;
           if (a==b) {
 #if defined(PETSC_USE_COMPLEX) 
-            eps->eigr[i] = ((d-c)*(eps->eigr[i]+1.0)/2.0+c)*PETSC_i;
+            eps->eigr[i] = ((d-c)*(eps->eigr[i]+1.0)/2.0+c)*rgscale*PETSC_i;
 #else
             SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"Integration points on a vertical line require complex arithmetic");
 #endif
@@ -794,10 +798,10 @@ static PetscErrorCode rescale_eig(EPS eps,PetscInt nv)
       if (ctx->quad == EPS_CISS_QUADRULE_CHEBYSHEV) {
         for (i=0;i<nv;i++) {
           theta = (start_ang*2.0+(end_ang-start_ang)*(PetscRealPart(eps->eigr[i])+1.0))*PETSC_PI;
-          eps->eigr[i] = center + (radius+PetscImaginaryPart(eps->eigr[i]))*(PetscCosReal(theta)+PETSC_i*vscale*PetscSinReal(theta));
+          eps->eigr[i] = rgscale*center + (rgscale*radius+PetscImaginaryPart(eps->eigr[i]))*(PetscCosReal(theta)+PETSC_i*vscale*PetscSinReal(theta));
         }
       } else {
-        for (i=0;i<nv;i++) eps->eigr[i] = center + radius*eps->eigr[i];
+        for (i=0;i<nv;i++) eps->eigr[i] = rgscale*(center + radius*eps->eigr[i]);
       }
 #endif
     }
@@ -839,7 +843,9 @@ PetscErrorCode EPSSetUp_CISS(EPS eps)
 
   /* check region */
   ierr = RGIsTrivial(eps->rg,&istrivial);CHKERRQ(ierr);
-  if (istrivial) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"EPSCISS requires a nontrivial region, e.g. -rg_type ellipse ...");
+  if (istrivial) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"CISS requires a nontrivial region, e.g. -rg_type ellipse ...");
+  ierr = RGGetComplement(eps->rg,&flg);CHKERRQ(ierr);
+  if (flg) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"A region with complement flag set is not allowed");
   ierr = PetscObjectTypeCompare((PetscObject)eps->rg,RGELLIPSE,&isellipse);CHKERRQ(ierr);
   ierr = PetscObjectTypeCompare((PetscObject)eps->rg,RGRING,&isring);CHKERRQ(ierr);
   ierr = PetscObjectTypeCompare((PetscObject)eps->rg,RGINTERVAL,&isinterval);CHKERRQ(ierr);
@@ -1891,7 +1897,8 @@ PetscErrorCode EPSView_CISS(EPS eps,PetscViewer viewer)
     ierr = PetscViewerASCIIPrintf(viewer,"  CISS: extraction: %s\n",EPSCISSExtractions[ctx->extraction]);CHKERRQ(ierr);
     ierr = PetscViewerASCIIPrintf(viewer,"  CISS: quadrature rule: %s\n",EPSCISSQuadRules[ctx->quad]);CHKERRQ(ierr);
     ierr = PetscViewerASCIIPushTab(viewer);CHKERRQ(ierr);
-    /*ierr = KSPView(ctx->ksp[0],viewer);CHKERRQ(ierr);*/
+    
+    if (!ctx->usest && ctx->ksp[0]) { ierr = KSPView(ctx->ksp[0],viewer);CHKERRQ(ierr); }
     ierr = PetscViewerASCIIPopTab(viewer);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);

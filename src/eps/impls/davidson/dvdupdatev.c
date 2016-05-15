@@ -24,7 +24,6 @@
 */
 
 #include "davidson.h"
-#include <slepc/private/dsimpl.h>
 
 typedef struct {
   PetscInt          min_size_V;        /* restart with this number of eigenvectors */

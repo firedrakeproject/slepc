@@ -60,12 +60,9 @@ PetscErrorCode NEPCreate(MPI_Comm comm,NEP *outnep)
   nep->nev             = 1;
   nep->ncv             = 0;
   nep->mpd             = 0;
-  nep->lag             = 1;
   nep->nini            = 0;
   nep->target          = 0.0;
   nep->tol             = PETSC_DEFAULT;
-  nep->ktol            = 0.1;
-  nep->cctol           = PETSC_FALSE;
   nep->conv            = NEP_CONV_REL;
   nep->stop            = NEP_STOP_BASIC;
   nep->which           = (NEPWhich)0;
@@ -93,7 +90,6 @@ PetscErrorCode NEPCreate(MPI_Comm comm,NEP *outnep)
   nep->ds              = NULL;
   nep->V               = NULL;
   nep->rg              = NULL;
-  nep->ksp             = NULL;
   nep->function        = NULL;
   nep->function_pre    = NULL;
   nep->jacobian        = NULL;
@@ -330,7 +326,6 @@ PetscErrorCode NEPDestroy(NEP *nep)
   if (--((PetscObject)(*nep))->refct > 0) { *nep = 0; PetscFunctionReturn(0); }
   ierr = NEPReset(*nep);CHKERRQ(ierr);
   if ((*nep)->ops->destroy) { ierr = (*(*nep)->ops->destroy)(*nep);CHKERRQ(ierr); }
-  ierr = KSPDestroy(&(*nep)->ksp);CHKERRQ(ierr);
   ierr = RGDestroy(&(*nep)->rg);CHKERRQ(ierr);
   ierr = DSDestroy(&(*nep)->ds);CHKERRQ(ierr);
   ierr = PetscFree((*nep)->sc);CHKERRQ(ierr);
@@ -542,77 +537,6 @@ PetscErrorCode NEPGetDS(NEP nep,DS *ds)
     ierr = PetscLogObjectParent((PetscObject)nep,(PetscObject)nep->ds);CHKERRQ(ierr);
   }
   *ds = nep->ds;
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
-#define __FUNCT__ "NEPSetKSP"
-/*@
-   NEPSetKSP - Associates a linear solver object to the nonlinear eigensolver.
-
-   Collective on NEP
-
-   Input Parameters:
-+  nep - eigensolver context obtained from NEPCreate()
--  ksp - the linear solver object
-
-   Note:
-   Use NEPGetKSP() to retrieve the linear solver context (for example,
-   to free it at the end of the computations).
-
-   Level: advanced
-
-.seealso: NEPGetKSP()
-@*/
-PetscErrorCode NEPSetKSP(NEP nep,KSP ksp)
-{
-  PetscErrorCode ierr;
-
-  PetscFunctionBegin;
-  PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
-  PetscValidHeaderSpecific(ksp,KSP_CLASSID,2);
-  PetscCheckSameComm(nep,1,ksp,2);
-  ierr = PetscObjectReference((PetscObject)ksp);CHKERRQ(ierr);
-  ierr = KSPDestroy(&nep->ksp);CHKERRQ(ierr);
-  nep->ksp = ksp;
-  ierr = PetscLogObjectParent((PetscObject)nep,(PetscObject)nep->ksp);CHKERRQ(ierr);
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
-#define __FUNCT__ "NEPGetKSP"
-/*@
-   NEPGetKSP - Obtain the linear solver (KSP) object associated
-   to the eigensolver object.
-
-   Not Collective
-
-   Input Parameters:
-.  nep - eigensolver context obtained from NEPCreate()
-
-   Output Parameter:
-.  ksp - linear solver context
-
-   Level: advanced
-
-.seealso: NEPSetKSP()
-@*/
-PetscErrorCode NEPGetKSP(NEP nep,KSP *ksp)
-{
-  PetscErrorCode ierr;
-
-  PetscFunctionBegin;
-  PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
-  PetscValidPointer(ksp,2);
-  if (!nep->ksp) {
-    ierr = KSPCreate(PetscObjectComm((PetscObject)nep),&nep->ksp);CHKERRQ(ierr);
-    ierr = KSPSetOptionsPrefix(nep->ksp,((PetscObject)nep)->prefix);CHKERRQ(ierr);
-    ierr = KSPAppendOptionsPrefix(nep->ksp,"nep_");CHKERRQ(ierr);
-    ierr = PetscObjectIncrementTabLevel((PetscObject)nep->ksp,(PetscObject)nep,1);CHKERRQ(ierr);
-    ierr = PetscLogObjectParent((PetscObject)nep,(PetscObject)nep->ksp);CHKERRQ(ierr);
-    ierr = KSPSetErrorIfNotConverged(nep->ksp,PETSC_TRUE);CHKERRQ(ierr);
-  }
-  *ksp = nep->ksp;
   PetscFunctionReturn(0);
 }
 

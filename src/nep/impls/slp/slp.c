@@ -49,20 +49,12 @@ PetscErrorCode NEPSetUp_SLP(NEP nep)
   PetscBool      istrivial;
 
   PetscFunctionBegin;
-  if (nep->ncv) { /* ncv set */
-    if (nep->ncv<nep->nev) SETERRQ(PetscObjectComm((PetscObject)nep),1,"The value of ncv must be at least nev");
-  } else if (nep->mpd) { /* mpd set */
-    nep->ncv = PetscMin(nep->n,nep->nev+nep->mpd);
-  } else { /* neither set: defaults depend on nev being small or large */
-    if (nep->nev<500) nep->ncv = PetscMin(nep->n,PetscMax(2*nep->nev,nep->nev+15));
-    else {
-      nep->mpd = 500;
-      nep->ncv = PetscMin(nep->n,nep->nev+nep->mpd);
-    }
-  }
-  if (!nep->mpd) nep->mpd = nep->ncv;
-  if (nep->ncv>nep->nev+nep->mpd) SETERRQ(PetscObjectComm((PetscObject)nep),1,"The value of ncv must not be larger than nev+mpd");
   if (nep->nev>1) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"Requested several eigenpairs but this solver can compute only one");
+  if (nep->ncv) { ierr = PetscInfo(nep,"Setting ncv = 1, ignoring user-provided value\n");CHKERRQ(ierr); }
+  nep->ncv = 1;
+  if (nep->mpd) { ierr = PetscInfo(nep,"Setting mpd = 1, ignoring user-provided value\n");CHKERRQ(ierr); }
+  nep->mpd = 1;
+  if (nep->ncv>nep->nev+nep->mpd) SETERRQ(PetscObjectComm((PetscObject)nep),1,"The value of ncv must not be larger than nev+mpd");
   if (!nep->max_it) nep->max_it = PetscMax(5000,2*nep->n/nep->ncv);
   if (nep->which && nep->which!=NEP_TARGET_MAGNITUDE) SETERRQ(PetscObjectComm((PetscObject)nep),1,"Wrong value of which");
 
@@ -74,7 +66,6 @@ PetscErrorCode NEPSetUp_SLP(NEP nep)
   ierr = EPSSetTarget(ctx->eps,0.0);CHKERRQ(ierr);
   ierr = EPSGetST(ctx->eps,&st);CHKERRQ(ierr);
   ierr = STSetType(st,STSINVERT);CHKERRQ(ierr);
-  ierr = EPSSetDimensions(ctx->eps,1,nep->ncv?nep->ncv:PETSC_DEFAULT,nep->mpd?nep->mpd:PETSC_DEFAULT);CHKERRQ(ierr);
   ierr = EPSSetTolerances(ctx->eps,nep->tol==PETSC_DEFAULT?SLEPC_DEFAULT_TOL/10.0:nep->tol/10.0,nep->max_it?nep->max_it:PETSC_DEFAULT);CHKERRQ(ierr);
 
   ierr = NEPAllocateSolution(nep,0);CHKERRQ(ierr);

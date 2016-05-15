@@ -87,7 +87,6 @@ PetscErrorCode NEPSolve(NEP nep)
     nep->errest[i] = 0.0;
     nep->perm[i]   = i;
   }
-  nep->ktol = 0.1;
   ierr = NEPViewFromOptions(nep,NULL,"-nep_view_pre");CHKERRQ(ierr);
 
   ierr = (*nep->ops->solve)(nep);CHKERRQ(ierr);

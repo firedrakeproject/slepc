@@ -105,11 +105,12 @@ static PetscErrorCode SetPathParameter(NEP nep)
   NEP_CISS       *ctx = (NEP_CISS*)nep->data;
   PetscInt       i;
   PetscScalar    center;
-  PetscReal      theta,radius,vscale;
+  PetscReal      theta,radius,vscale,rgscale;
   PetscBool      isellipse=PETSC_FALSE;
 
   PetscFunctionBegin;
   ierr = PetscObjectTypeCompare((PetscObject)nep->rg,RGELLIPSE,&isellipse);CHKERRQ(ierr);
+  ierr = RGGetScale(nep->rg,&rgscale);CHKERRQ(ierr);
   if (isellipse) {
     ierr = RGEllipseGetParameters(nep->rg,&center,&radius,&vscale);CHKERRQ(ierr);
   } else SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"Region must be Ellipse");
@@ -117,7 +118,7 @@ static PetscErrorCode SetPathParameter(NEP nep)
     theta = ((2*PETSC_PI)/ctx->N)*(i+0.5);
     ctx->pp[i] = PetscCosReal(theta) + PETSC_i*vscale*PetscSinReal(theta);
     ctx->weight[i] = radius*(vscale*PetscCosReal(theta) + PETSC_i*PetscSinReal(theta))/(PetscReal)ctx->N;
-    ctx->omega[i] = center + radius*ctx->pp[i];
+    ctx->omega[i] = rgscale*(center + radius*ctx->pp[i]);
   }
   PetscFunctionReturn(0);
 }
@@ -449,7 +450,7 @@ PetscErrorCode NEPSetUp_CISS(NEP nep)
   NEP_CISS       *ctx = (NEP_CISS*)nep->data;
   const char     *prefix;
   PetscInt       i,nwork;
-  PetscBool      istrivial,isellipse;
+  PetscBool      istrivial,isellipse,flg;
   PetscScalar    center;
 
   PetscFunctionBegin;
@@ -469,7 +470,9 @@ PetscErrorCode NEPSetUp_CISS(NEP nep)
 
   /* check region */
   ierr = RGIsTrivial(nep->rg,&istrivial);CHKERRQ(ierr);
-  if (istrivial) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"NEPCISS requires a nontrivial region, e.g. -rg_type ellipse ...");
+  if (istrivial) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"CISS requires a nontrivial region, e.g. -rg_type ellipse ...");
+  ierr = RGGetComplement(nep->rg,&flg);CHKERRQ(ierr);
+  if (flg) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"A region with complement flag set is not allowed");
   ierr = PetscObjectTypeCompare((PetscObject)nep->rg,RGELLIPSE,&isellipse);CHKERRQ(ierr);
   if (!isellipse) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"Currently only implemented for elliptic or arc regions");
   ierr = RGEllipseGetParameters(nep->rg,&center,NULL,NULL);CHKERRQ(ierr);
@@ -522,7 +525,7 @@ PetscErrorCode NEPSolve_CISS(NEP nep)
   Mat            X,M;
   PetscInt       i,j,ld,L_add=0,nv=0,L_base=ctx->L,inner,*inside;
   PetscScalar    *Mu,*H0,*H1,*rr,*temp,center;
-  PetscReal      error,max_error,radius;
+  PetscReal      error,max_error,radius,rgscale;
   PetscBool      *fl1;
   Vec            si;
   SlepcSC        sc;
@@ -562,6 +565,9 @@ PetscErrorCode NEPSolve_CISS(NEP nep)
   }
   ierr = PetscFree2(Mu,H0);CHKERRQ(ierr);
 
+  ierr = RGGetScale(nep->rg,&rgscale);CHKERRQ(ierr);
+  ierr = RGEllipseGetParameters(nep->rg,&center,&radius,NULL);CHKERRQ(ierr);
+
   ierr = PetscMalloc3(ctx->L*ctx->L*ctx->M*2,&Mu,ctx->L*ctx->M*ctx->L*ctx->M,&H0,ctx->L*ctx->M*ctx->L*ctx->M,&H1);CHKERRQ(ierr);
   while (nep->reason == NEP_CONVERGED_ITERATING) {
     nep->its++;
@@ -595,11 +601,10 @@ PetscErrorCode NEPSolve_CISS(NEP nep)
     ierr = DSRestoreArray(nep->ds,DS_MAT_B,&temp);CHKERRQ(ierr);
     ierr = DSSolve(nep->ds,nep->eigr,nep->eigi);CHKERRQ(ierr);
     ierr = DSVectors(nep->ds,DS_MAT_X,NULL,NULL);CHKERRQ(ierr);
-    ierr = RGEllipseGetParameters(nep->rg,&center,&radius,NULL);CHKERRQ(ierr);
     for (i=0;i<nv;i++){
-      nep->eigr[i] = nep->eigr[i]*radius+center;
+      nep->eigr[i] = (nep->eigr[i]*radius+center)*rgscale;
 #if !defined(PETSC_USE_COMPLEX)
-      nep->eigi[i] = nep->eigi[i]*radius;
+      nep->eigi[i] = nep->eigi[i]*radius*rgscale;
 #endif
     }
     ierr = PetscMalloc3(nv,&fl1,nv,&inside,nv,&rr);CHKERRQ(ierr);
@@ -613,9 +618,9 @@ PetscErrorCode NEPSolve_CISS(NEP nep)
     }
     ierr = DSSort(nep->ds,nep->eigr,nep->eigi,rr,NULL,&nep->nconv);CHKERRQ(ierr);
     for (i=0;i<nv;i++){
-      nep->eigr[i] = nep->eigr[i]*radius+center;
+      nep->eigr[i] = (nep->eigr[i]*radius+center)*rgscale;
 #if !defined(PETSC_USE_COMPLEX)
-      nep->eigi[i] = nep->eigi[i]*radius;
+      nep->eigi[i] = nep->eigi[i]*radius*rgscale;
 #endif
     }
     ierr = PetscFree3(fl1,inside,rr);CHKERRQ(ierr);
@@ -1096,7 +1101,7 @@ PetscErrorCode NEPView_CISS(NEP nep,PetscViewer viewer)
     ierr = PetscViewerASCIIPrintf(viewer,"  CISS: threshold { delta: %g, spurious threshold: %g }\n",(double)ctx->delta,(double)ctx->spurious_threshold);CHKERRQ(ierr);
     ierr = PetscViewerASCIIPrintf(viewer,"  CISS: iterative refinement  { inner: %D, blocksize: %D }\n",ctx->refine_inner, ctx->refine_blocksize);CHKERRQ(ierr);
     ierr = PetscViewerASCIIPushTab(viewer);CHKERRQ(ierr);
-    /*ierr = KSPView(ctx->ksp[0],viewer);CHKERRQ(ierr);*/
+    if (!ctx->usest && ctx->ksp[0]) { ierr = KSPView(ctx->ksp[0],viewer);CHKERRQ(ierr); }
     ierr = PetscViewerASCIIPopTab(viewer);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);

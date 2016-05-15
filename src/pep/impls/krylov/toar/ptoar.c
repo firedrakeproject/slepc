@@ -792,12 +792,12 @@ PetscErrorCode PEPSolve_TOAR(PEP pep)
     }
     if (!flg) {
       pep->target /= pep->sfactor;
-      ierr = RGSetScale(pep->rg,pep->sfactor);CHKERRQ(ierr);
+      ierr = RGPushScale(pep->rg,1.0/pep->sfactor);CHKERRQ(ierr);
       ierr = STScaleShift(pep->st,1.0/pep->sfactor);CHKERRQ(ierr);
       sigma /= pep->sfactor;
     } else {
       ierr = PetscObjectTypeCompare((PetscObject)pep->st,STSINVERT,&sinv);CHKERRQ(ierr);
-      ierr = RGSetScale(pep->rg,sinv?1.0/pep->sfactor:pep->sfactor);CHKERRQ(ierr);
+      ierr = RGPushScale(pep->rg,sinv?pep->sfactor:1.0/pep->sfactor);CHKERRQ(ierr);
       ierr = STScaleShift(pep->st,sinv?pep->sfactor:1.0/pep->sfactor);CHKERRQ(ierr);
     }
   }
@@ -909,7 +909,6 @@ PetscErrorCode PEPSolve_TOAR(PEP pep)
     } else {
       ierr = STScaleShift(pep->st,sinv?1.0/pep->sfactor:pep->sfactor);CHKERRQ(ierr);
     }
-    ierr = RGSetScale(pep->rg,1.0);CHKERRQ(ierr);
     if (pep->sfactor!=1.0) {
       for (j=0;j<pep->nconv;j++) {
         pep->eigr[j] *= pep->sfactor;
@@ -922,6 +921,7 @@ PetscErrorCode PEPSolve_TOAR(PEP pep)
       }
     }
   }
+  if (pep->sfactor!=1.0) { ierr = RGPopScale(pep->rg);CHKERRQ(ierr); }
 
   /* change the state to raw so that DSVectors() computes eigenvectors from scratch */
   ierr = DSSetDimensions(pep->ds,pep->nconv,0,0,0);CHKERRQ(ierr);

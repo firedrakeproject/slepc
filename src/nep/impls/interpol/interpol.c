@@ -56,18 +56,7 @@ PetscErrorCode NEPSetUp_Interpol(NEP nep)
   PetscInt       its,in;
 
   PetscFunctionBegin;
-  if (nep->ncv) { /* ncv set */
-    if (nep->ncv<nep->nev) SETERRQ(PetscObjectComm((PetscObject)nep),1,"The value of ncv must be at least nev");
-  } else if (nep->mpd) { /* mpd set */
-    nep->ncv = PetscMin(nep->n,nep->nev+nep->mpd);
-  } else { /* neither set: defaults depend on nev being small or large */
-    if (nep->nev<500) nep->ncv = PetscMin(nep->n,PetscMax(2*nep->nev,nep->nev+15));
-    else {
-      nep->mpd = 500;
-      nep->ncv = PetscMin(nep->n,nep->nev+nep->mpd);
-    }
-  }
-  if (!nep->mpd) nep->mpd = nep->ncv;
+  ierr = NEPSetDimensions_Default(nep,nep->nev,&nep->ncv,&nep->mpd);CHKERRQ(ierr);
   if (nep->ncv>nep->nev+nep->mpd) SETERRQ(PetscObjectComm((PetscObject)nep),1,"The value of ncv must not be larger than nev+mpd");
   if (!nep->max_it) nep->max_it = PetscMax(5000,2*nep->n/nep->ncv);
   if (nep->fui!=NEP_USER_INTERFACE_SPLIT) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"NEPINTERPOL only available for split operator");
@@ -367,8 +356,6 @@ static PetscErrorCode NEPInterpolGetPEP_Interpol(NEP nep,PEP *pep)
     ierr = PetscObjectIncrementTabLevel((PetscObject)ctx->pep,(PetscObject)nep,1);CHKERRQ(ierr);
     ierr = PetscLogObjectParent((PetscObject)nep,(PetscObject)ctx->pep);CHKERRQ(ierr);
     ierr = PEPMonitorSet(ctx->pep,PEPMonitor_Interpol,nep,NULL);CHKERRQ(ierr);
-    if (!nep->ksp) { ierr = NEPGetKSP(nep,&nep->ksp);CHKERRQ(ierr); }
-    ierr = STSetKSP(st,nep->ksp);CHKERRQ(ierr);
   }
   *pep = ctx->pep;
   PetscFunctionReturn(0);

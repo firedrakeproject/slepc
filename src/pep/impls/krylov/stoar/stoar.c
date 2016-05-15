@@ -469,7 +469,7 @@ PetscErrorCode PEPSolve_STOAR(PEP pep)
   lrwa = 8*ld;
   ierr = PetscMalloc2(lwa,&work,lrwa,&rwork);CHKERRQ(ierr); /* REVIEW */
   ierr = PetscObjectTypeCompare((PetscObject)pep->st,STSINVERT,&sinv);CHKERRQ(ierr);
-  ierr = RGSetScale(pep->rg,sinv?1.0/pep->sfactor:pep->sfactor);CHKERRQ(ierr);
+  ierr = RGPushScale(pep->rg,sinv?pep->sfactor:1.0/pep->sfactor);CHKERRQ(ierr);
   ierr = STScaleShift(pep->st,sinv?pep->sfactor:1.0/pep->sfactor);CHKERRQ(ierr);
 
   /* Restart loop */
@@ -581,7 +581,7 @@ PetscErrorCode PEPSolve_STOAR(PEP pep)
     }
   }
   ierr = STScaleShift(pep->st,sinv?1.0/pep->sfactor:pep->sfactor);CHKERRQ(ierr);
-  ierr = RGSetScale(pep->rg,1.0);CHKERRQ(ierr);
+  ierr = RGPopScale(pep->rg);CHKERRQ(ierr);
 
   /* truncate Schur decomposition and change the state to raw so that
      DSVectors() computes eigenvectors from scratch */
