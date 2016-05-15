@@ -350,7 +350,7 @@ static PetscErrorCode NEPInterpolGetPEP_Interpol(NEP nep,PEP *pep)
   if (!ctx->pep) {
     ierr = PEPCreate(PetscObjectComm((PetscObject)nep),&ctx->pep);CHKERRQ(ierr);
     ierr = PEPSetOptionsPrefix(ctx->pep,((PetscObject)nep)->prefix);CHKERRQ(ierr);
-    ierr = PEPAppendOptionsPrefix(ctx->pep,"nep_");CHKERRQ(ierr);
+    ierr = PEPAppendOptionsPrefix(ctx->pep,"nep_interpol_");CHKERRQ(ierr);
     ierr = PEPGetST(ctx->pep,&st);CHKERRQ(ierr);
     ierr = STSetOptionsPrefix(st,((PetscObject)ctx->pep)->prefix);CHKERRQ(ierr);
     ierr = PetscObjectIncrementTabLevel((PetscObject)ctx->pep,(PetscObject)nep,1);CHKERRQ(ierr);

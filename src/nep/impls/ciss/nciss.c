@@ -448,7 +448,6 @@ PetscErrorCode NEPSetUp_CISS(NEP nep)
 {
   PetscErrorCode ierr;
   NEP_CISS       *ctx = (NEP_CISS*)nep->data;
-  const char     *prefix;
   PetscInt       i,nwork;
   PetscBool      istrivial,isellipse,flg;
   PetscScalar    center;
@@ -500,9 +499,8 @@ PetscErrorCode NEPSetUp_CISS(NEP nep)
       ierr = KSPCreate(PetscSubcommChild(ctx->subcomm),&ctx->ksp[i]);CHKERRQ(ierr);
       ierr = PetscObjectIncrementTabLevel((PetscObject)ctx->ksp[i],(PetscObject)nep,1);CHKERRQ(ierr);
       ierr = PetscLogObjectParent((PetscObject)nep,(PetscObject)ctx->ksp[i]);CHKERRQ(ierr);
+      ierr = KSPSetOptionsPrefix(ctx->ksp[i],((PetscObject)nep)->prefix);CHKERRQ(ierr);
       ierr = KSPAppendOptionsPrefix(ctx->ksp[i],"nep_ciss_");CHKERRQ(ierr);
-      ierr = NEPGetOptionsPrefix(nep,&prefix);CHKERRQ(ierr);
-      ierr = KSPAppendOptionsPrefix(ctx->ksp[i],prefix);CHKERRQ(ierr);
       ierr = KSPSetErrorIfNotConverged(ctx->ksp[i],PETSC_TRUE);CHKERRQ(ierr);
     }
   }
