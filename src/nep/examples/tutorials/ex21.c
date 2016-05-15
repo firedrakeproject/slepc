@@ -75,7 +75,7 @@ int main(int argc,char **argv)
   KSP            ksp;
   PC             pc;
   PetscMPIInt    size;
-  PetscBool      terse,isrii;
+  PetscBool      terse;
   PetscErrorCode ierr;
 
   SlepcInitialize(&argc,&argv,(char*)0,help);
@@ -134,13 +134,12 @@ int main(int argc,char **argv)
      Customize nonlinear solver; set runtime options
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  ierr = PetscObjectTypeCompare((PetscObject)nep,NEPRII,&isrii);CHKERRQ(ierr);
-  if (isrii) {
-    ierr = NEPRIIGetKSP(nep,&ksp);CHKERRQ(ierr);
-    ierr = KSPSetType(ksp,KSPBCGS);CHKERRQ(ierr);
-    ierr = KSPGetPC(ksp,&pc);CHKERRQ(ierr);
-    ierr = PCSetType(pc,PCJACOBI);CHKERRQ(ierr);
-  }
+  ierr = NEPSetType(nep,NEPRII);CHKERRQ(ierr);
+  ierr = NEPRIISetLagPreconditioner(nep,0);CHKERRQ(ierr);
+  ierr = NEPRIIGetKSP(nep,&ksp);CHKERRQ(ierr);
+  ierr = KSPSetType(ksp,KSPBCGS);CHKERRQ(ierr);
+  ierr = KSPGetPC(ksp,&pc);CHKERRQ(ierr);
+  ierr = PCSetType(pc,PCJACOBI);CHKERRQ(ierr);
 
   /*
      Set solver parameters at runtime
