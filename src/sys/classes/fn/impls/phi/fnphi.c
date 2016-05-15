@@ -182,6 +182,7 @@ PetscErrorCode FNView_Phi(FN fn,PetscViewer viewer)
   ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
   if (isascii) {
     ierr = PetscViewerASCIIPrintf(viewer,"  Phi_%D: ",ctx->k);CHKERRQ(ierr);
+    ierr = PetscViewerASCIIUseTabs(viewer,PETSC_FALSE);CHKERRQ(ierr);
     if (fn->beta!=(PetscScalar)1.0) {
       ierr = SlepcSNPrintfScalar(str,50,fn->beta,PETSC_TRUE);CHKERRQ(ierr);
       ierr = PetscViewerASCIIPrintf(viewer,"%s*",str);CHKERRQ(ierr);
@@ -199,6 +200,7 @@ PetscErrorCode FNView_Phi(FN fn,PetscViewer viewer)
     } else {
       ierr = PetscViewerASCIIPrintf(viewer,"(phi_%D(%s)-1/%D!)/%s\n",ctx->k-1,strx,ctx->k-1,strx);CHKERRQ(ierr);
     }
+    ierr = PetscViewerASCIIUseTabs(viewer,PETSC_TRUE);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }
