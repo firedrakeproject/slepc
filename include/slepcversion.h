@@ -1,12 +1,12 @@
 #if !defined(__SLEPCVERSION_H)
 #define __SLEPCVERSION_H
 
-#define SLEPC_VERSION_RELEASE    0
+#define SLEPC_VERSION_RELEASE    1
 #define SLEPC_VERSION_MAJOR      3
-#define SLEPC_VERSION_MINOR      6
-#define SLEPC_VERSION_SUBMINOR   3
+#define SLEPC_VERSION_MINOR      7
+#define SLEPC_VERSION_SUBMINOR   0
 #define SLEPC_VERSION_PATCH      0
-#define SLEPC_RELEASE_DATE       "June 12, 2015"
+#define SLEPC_RELEASE_DATE       "May 16, 2016"
 #define SLEPC_VERSION_DATE       "unknown"
 
 #if !defined (SLEPC_VERSION_GIT)
