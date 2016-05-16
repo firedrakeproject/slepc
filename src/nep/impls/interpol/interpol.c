@@ -396,13 +396,17 @@ PetscErrorCode NEPView_Interpol(NEP nep,PetscViewer viewer)
 {
   PetscErrorCode ierr;
   NEP_INTERPOL   *ctx = (NEP_INTERPOL*)nep->data;
+  PetscBool      isascii;
 
   PetscFunctionBegin;
-  if (!ctx->pep) { ierr = NEPInterpolGetPEP(nep,&ctx->pep);CHKERRQ(ierr); }
-  ierr = PetscViewerASCIIPrintf(viewer,"  Interpol: polynomial degree %D\n",ctx->deg);CHKERRQ(ierr);
-  ierr = PetscViewerASCIIPushTab(viewer);CHKERRQ(ierr);
-  ierr = PEPView(ctx->pep,viewer);CHKERRQ(ierr);
-  ierr = PetscViewerASCIIPopTab(viewer);CHKERRQ(ierr);
+  ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
+  if (isascii) {
+    if (!ctx->pep) { ierr = NEPInterpolGetPEP(nep,&ctx->pep);CHKERRQ(ierr); }
+    ierr = PetscViewerASCIIPrintf(viewer,"  Interpol: polynomial degree %D\n",ctx->deg);CHKERRQ(ierr);
+    ierr = PetscViewerASCIIPushTab(viewer);CHKERRQ(ierr);
+    ierr = PEPView(ctx->pep,viewer);CHKERRQ(ierr);
+    ierr = PetscViewerASCIIPopTab(viewer);CHKERRQ(ierr);
+  }
   PetscFunctionReturn(0);
 }
 

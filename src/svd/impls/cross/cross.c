@@ -335,12 +335,16 @@ PetscErrorCode SVDView_Cross(SVD svd,PetscViewer viewer)
 {
   PetscErrorCode ierr;
   SVD_CROSS      *cross = (SVD_CROSS*)svd->data;
+  PetscBool      isascii;
 
   PetscFunctionBegin;
-  if (!cross->eps) { ierr = SVDCrossGetEPS(svd,&cross->eps);CHKERRQ(ierr); }
-  ierr = PetscViewerASCIIPushTab(viewer);CHKERRQ(ierr);
-  ierr = EPSView(cross->eps,viewer);CHKERRQ(ierr);
-  ierr = PetscViewerASCIIPopTab(viewer);CHKERRQ(ierr);
+  ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
+  if (isascii) {
+    if (!cross->eps) { ierr = SVDCrossGetEPS(svd,&cross->eps);CHKERRQ(ierr); }
+    ierr = PetscViewerASCIIPushTab(viewer);CHKERRQ(ierr);
+    ierr = EPSView(cross->eps,viewer);CHKERRQ(ierr);
+    ierr = PetscViewerASCIIPopTab(viewer);CHKERRQ(ierr);
+  }
   PetscFunctionReturn(0);
 }
 

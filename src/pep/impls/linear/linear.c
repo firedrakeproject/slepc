@@ -1049,14 +1049,18 @@ PetscErrorCode PEPView_Linear(PEP pep,PetscViewer viewer)
 {
   PetscErrorCode ierr;
   PEP_LINEAR     *ctx = (PEP_LINEAR*)pep->data;
+  PetscBool      isascii;
 
   PetscFunctionBegin;
-  if (!ctx->eps) { ierr = PEPLinearGetEPS(pep,&ctx->eps);CHKERRQ(ierr); }
-  ierr = PetscViewerASCIIPrintf(viewer,"  Linear: %s matrices\n",ctx->explicitmatrix? "explicit": "implicit");CHKERRQ(ierr);
-  ierr = PetscViewerASCIIPrintf(viewer,"  Linear: %s companion form\n",ctx->cform==1? "1st": "2nd");CHKERRQ(ierr);
-  ierr = PetscViewerASCIIPushTab(viewer);CHKERRQ(ierr);
-  ierr = EPSView(ctx->eps,viewer);CHKERRQ(ierr);
-  ierr = PetscViewerASCIIPopTab(viewer);CHKERRQ(ierr);
+  ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
+  if (isascii) {
+    if (!ctx->eps) { ierr = PEPLinearGetEPS(pep,&ctx->eps);CHKERRQ(ierr); }
+    ierr = PetscViewerASCIIPrintf(viewer,"  Linear: %s matrices\n",ctx->explicitmatrix? "explicit": "implicit");CHKERRQ(ierr);
+    ierr = PetscViewerASCIIPrintf(viewer,"  Linear: %s companion form\n",ctx->cform==1? "1st": "2nd");CHKERRQ(ierr);
+    ierr = PetscViewerASCIIPushTab(viewer);CHKERRQ(ierr);
+    ierr = EPSView(ctx->eps,viewer);CHKERRQ(ierr);
+    ierr = PetscViewerASCIIPopTab(viewer);CHKERRQ(ierr);
+  }
   PetscFunctionReturn(0);
 }
 

@@ -483,13 +483,17 @@ PetscErrorCode SVDView_Cyclic(SVD svd,PetscViewer viewer)
 {
   PetscErrorCode ierr;
   SVD_CYCLIC     *cyclic = (SVD_CYCLIC*)svd->data;
+  PetscBool      isascii;
 
   PetscFunctionBegin;
-  if (!cyclic->eps) { ierr = SVDCyclicGetEPS(svd,&cyclic->eps);CHKERRQ(ierr); }
-  ierr = PetscViewerASCIIPrintf(viewer,"  Cyclic: %s matrix\n",cyclic->explicitmatrix?"explicit":"implicit");CHKERRQ(ierr);
-  ierr = PetscViewerASCIIPushTab(viewer);CHKERRQ(ierr);
-  ierr = EPSView(cyclic->eps,viewer);CHKERRQ(ierr);
-  ierr = PetscViewerASCIIPopTab(viewer);CHKERRQ(ierr);
+  ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
+  if (isascii) {
+    if (!cyclic->eps) { ierr = SVDCyclicGetEPS(svd,&cyclic->eps);CHKERRQ(ierr); }
+    ierr = PetscViewerASCIIPrintf(viewer,"  Cyclic: %s matrix\n",cyclic->explicitmatrix?"explicit":"implicit");CHKERRQ(ierr);
+    ierr = PetscViewerASCIIPushTab(viewer);CHKERRQ(ierr);
+    ierr = EPSView(cyclic->eps,viewer);CHKERRQ(ierr);
+    ierr = PetscViewerASCIIPopTab(viewer);CHKERRQ(ierr);
+  }
   PetscFunctionReturn(0);
 }
 

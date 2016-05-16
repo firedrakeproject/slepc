@@ -517,9 +517,13 @@ PetscErrorCode SVDView_TRLanczos(SVD svd,PetscViewer viewer)
 {
   PetscErrorCode ierr;
   SVD_TRLANCZOS  *lanczos = (SVD_TRLANCZOS*)svd->data;
+  PetscBool      isascii;
 
   PetscFunctionBegin;
-  ierr = PetscViewerASCIIPrintf(viewer,"  TRLanczos: %s-sided reorthogonalization\n",lanczos->oneside? "one": "two");CHKERRQ(ierr);
+  ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
+  if (isascii) {
+    ierr = PetscViewerASCIIPrintf(viewer,"  TRLanczos: %s-sided reorthogonalization\n",lanczos->oneside? "one": "two");CHKERRQ(ierr);
+  }
   PetscFunctionReturn(0);
 }
 

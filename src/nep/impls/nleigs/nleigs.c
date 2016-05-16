@@ -1961,7 +1961,9 @@ PetscErrorCode NEPView_NLEIGS(NEP nep,PetscViewer viewer)
     }
     if (ctx->trueres) { ierr = PetscViewerASCIIPrintf(viewer,"  NLEIGS: computing true residuals for convergence check\n");CHKERRQ(ierr); }
     if (!ctx->ksp) { ierr = NEPNLEIGSGetKSPs(nep,&ctx->ksp);CHKERRQ(ierr); }
+    ierr = PetscViewerASCIIPushTab(viewer);CHKERRQ(ierr);
     ierr = KSPView(ctx->ksp[0],viewer);CHKERRQ(ierr);
+    ierr = PetscViewerASCIIPopTab(viewer);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }

@@ -252,12 +252,16 @@ PetscErrorCode NEPView_SLP(NEP nep,PetscViewer viewer)
 {
   PetscErrorCode ierr;
   NEP_SLP        *ctx = (NEP_SLP*)nep->data;
+  PetscBool      isascii;
 
   PetscFunctionBegin;
-  if (!ctx->eps) { ierr = NEPSLPGetEPS(nep,&ctx->eps);CHKERRQ(ierr); }
-  ierr = PetscViewerASCIIPushTab(viewer);CHKERRQ(ierr);
-  ierr = EPSView(ctx->eps,viewer);CHKERRQ(ierr);
-  ierr = PetscViewerASCIIPopTab(viewer);CHKERRQ(ierr);
+  ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
+  if (isascii) {
+    if (!ctx->eps) { ierr = NEPSLPGetEPS(nep,&ctx->eps);CHKERRQ(ierr); }
+    ierr = PetscViewerASCIIPushTab(viewer);CHKERRQ(ierr);
+    ierr = EPSView(ctx->eps,viewer);CHKERRQ(ierr);
+    ierr = PetscViewerASCIIPopTab(viewer);CHKERRQ(ierr);
+  }
   PetscFunctionReturn(0);
 }
 
