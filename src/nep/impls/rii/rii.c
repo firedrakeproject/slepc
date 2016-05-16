@@ -38,7 +38,6 @@
 typedef struct {
   PetscInt  max_inner_it;     /* maximum number of Newton iterations */
   PetscInt  lag;              /* interval to rebuild preconditioner */
-  PetscReal ktol;             /* tolerance for linear solver */
   PetscBool cctol;            /* constant correction tolerance */
   KSP       ksp;              /* linear solver object */
 } NEP_RII;
@@ -91,7 +90,7 @@ PetscErrorCode NEPSolve_RII(NEP nep)
   Mat                T=nep->function,Tp=nep->jacobian,Tsigma;
   Vec                u,r=nep->work[0],delta=nep->work[1];
   PetscScalar        lambda,a1,a2,corr;
-  PetscReal          resnorm=1.0;
+  PetscReal          resnorm=1.0,ktol=0.1;
   PetscBool          hascopy;
   PetscInt           inner_its;
   KSPConvergedReason kspreason;
@@ -139,8 +138,8 @@ PetscErrorCode NEPSolve_RII(NEP nep)
       ierr = KSPSetOperators(ctx->ksp,Tsigma,Tsigma);CHKERRQ(ierr);
     }
     if (!ctx->cctol) {
-      ctx->ktol = PetscMax(ctx->ktol/2.0,PETSC_MACHINE_EPSILON*10.0);
-      ierr = KSPSetTolerances(ctx->ksp,ctx->ktol,PETSC_DEFAULT,PETSC_DEFAULT,PETSC_DEFAULT);CHKERRQ(ierr);
+      ktol = PetscMax(ktol/2.0,PETSC_MACHINE_EPSILON*10.0);
+      ierr = KSPSetTolerances(ctx->ksp,ktol,PETSC_DEFAULT,PETSC_DEFAULT,PETSC_DEFAULT);CHKERRQ(ierr);
     }
 
     /* form residual,  r = T(lambda)*u */
@@ -551,17 +550,23 @@ PetscErrorCode NEPView_RII(NEP nep,PetscViewer viewer)
 {
   PetscErrorCode ierr;
   NEP_RII        *ctx = (NEP_RII*)nep->data;
+  PetscBool      isascii;
 
   PetscFunctionBegin;
-  if (!ctx->ksp) { ierr = NEPRIIGetKSP(nep,&ctx->ksp);CHKERRQ(ierr); }
-  ierr = PetscViewerASCIIPrintf(viewer,"  RII: maximum number of inner iterations: %D\n",ctx->max_inner_it);CHKERRQ(ierr);
-  if (ctx->cctol) {
-    ierr = PetscViewerASCIIPrintf(viewer,"  RII: using a constant tolerance for the linear solver\n");CHKERRQ(ierr);
+  ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
+  if (isascii) {
+    if (!ctx->ksp) { ierr = NEPRIIGetKSP(nep,&ctx->ksp);CHKERRQ(ierr); }
+    ierr = PetscViewerASCIIPrintf(viewer,"  RII: maximum number of inner iterations: %D\n",ctx->max_inner_it);CHKERRQ(ierr);
+    if (ctx->cctol) {
+      ierr = PetscViewerASCIIPrintf(viewer,"  RII: using a constant tolerance for the linear solver\n");CHKERRQ(ierr);
+    }
+    if (ctx->lag) {
+      ierr = PetscViewerASCIIPrintf(viewer,"  RII: updating the preconditioner every %D iterations\n",ctx->lag);CHKERRQ(ierr);
+    }
+    ierr = PetscViewerASCIIPushTab(viewer);CHKERRQ(ierr);
+    ierr = KSPView(ctx->ksp,viewer);CHKERRQ(ierr);
+    ierr = PetscViewerASCIIPopTab(viewer);CHKERRQ(ierr);
   }
-  if (ctx->lag) {
-    ierr = PetscViewerASCIIPrintf(viewer,"  RII: updating the preconditioner every %D iterations\n",ctx->lag);CHKERRQ(ierr);
-  }
-  ierr = KSPView(ctx->ksp,viewer);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -597,7 +602,6 @@ PETSC_EXTERN PetscErrorCode NEPCreate_RII(NEP nep)
   ierr = PetscNewLog(nep,&ctx);CHKERRQ(ierr);
   ctx->max_inner_it = 10;
   ctx->lag          = 1;
-  ctx->ktol         = 0.1;
   ctx->cctol        = PETSC_FALSE;
   nep->data = (void*)ctx;
 

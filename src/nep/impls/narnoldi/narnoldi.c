@@ -291,10 +291,16 @@ PetscErrorCode NEPView_NArnoldi(NEP nep,PetscViewer viewer)
 {
   PetscErrorCode ierr;
   NEP_NARNOLDI   *ctx = (NEP_NARNOLDI*)nep->data;
+  PetscBool      isascii;
 
   PetscFunctionBegin;
-  if (!ctx->ksp) { ierr = NEPNArnoldiGetKSP(nep,&ctx->ksp);CHKERRQ(ierr); }
-  ierr = KSPView(ctx->ksp,viewer);CHKERRQ(ierr);
+  ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
+  if (isascii) {
+    if (!ctx->ksp) { ierr = NEPNArnoldiGetKSP(nep,&ctx->ksp);CHKERRQ(ierr); }
+    ierr = PetscViewerASCIIPushTab(viewer);CHKERRQ(ierr);
+    ierr = KSPView(ctx->ksp,viewer);CHKERRQ(ierr);
+    ierr = PetscViewerASCIIPopTab(viewer);CHKERRQ(ierr);
+  }
   PetscFunctionReturn(0);
 }
 

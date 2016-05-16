@@ -228,15 +228,16 @@ The \ident{EPS} object associated with the \texttt{cross} and \texttt{cyclic} SV
 	SVDCrossGetEPS(SVD svd,EPS *eps);
 	SVDCyclicGetEPS(SVD svd,EPS *eps);
 	\end{Verbatim}
-A more convenient way of changing \ident{EPS} options is through the command-line. This is achieved simply by prefixing the \ident{EPS} options with \texttt{-svd\_} as in the following example:
+A more convenient way of changing \ident{EPS} options is through the command-line. This is achieved simply by prefixing the \ident{EPS} options with \texttt{-svd\_cross\_} or \texttt{-svd\_cyclic\_} as in the following example:
 \begin{Verbatim}[fontsize=\small]
-	$ ./program -svd_type cross -svd_eps_type gd
+	$ ./program -svd_type cross -svd_cross_eps_type gd
 \end{Verbatim}
 
 At this point, one may consider changing also the options of the \ident{ST} object associated with the \ident{EPS} object in \texttt{cross} and \texttt{cyclic} SVD solvers, for example to compute singular values located at the interior of the spectrum via a shift-and-invert transformation. This is indeed possible, but some considerations have to be taken into account. When $A^*A$ or $H(A)$ are managed as shell matrices, then the potential of the spectral transformation is limited seriously, because some of the required operations will not be defined (this is discussed briefly in \S\ref{sec:supported} and \S\ref{sec:explicit}). Therefore, computing interior singular values is more likely to be successful if using the \texttt{cyclic} solver with explicit $H(A)$ matrix. To illustrate this, here is a complicated command-line example for computing singular values close to 12.0:
 \begin{Verbatim}[fontsize=\small]
-	$ ./program -svd_type cyclic -svd_cyclic_explicitmatrix -svd_st_type sinvert
-                    -svd_eps_target 12.0 -svd_st_ksp_type preonly -svd_st_pc_type lu
+	$ ./program -svd_type cyclic -svd_cyclic_explicitmatrix
+                    -svd_cyclic_st_type sinvert -svd_cyclic_eps_target 12.0
+                    -svd_cyclic_st_ksp_type preonly -svd_cyclic_st_pc_type lu
 \end{Verbatim}
 
 %---------------------------------------------------

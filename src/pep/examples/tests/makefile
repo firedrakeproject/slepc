@@ -83,7 +83,7 @@ runtest2_1:
 	done > $${test}.tmp; \
 	for eps in ${EPS}; do \
 	   echo "pep type linear, eps type $$eps"; \
-	   ${MPIEXEC} -n 1 ./test2 -pep_type linear -pep_eps_type $$eps -pep_nev 4 -pep_linear_explicitmatrix 2>&1; \
+	   ${MPIEXEC} -n 1 ./test2 -pep_type linear -pep_linear_eps_type $$eps -pep_nev 4 -pep_linear_explicitmatrix 2>&1; \
 	done >> $${test}.tmp; \
 	${TESTCODE}
 
