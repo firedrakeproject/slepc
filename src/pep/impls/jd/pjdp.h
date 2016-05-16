@@ -26,10 +26,6 @@
 
 typedef struct {
   PetscReal   keep;          /* restart parameter */
-  PetscInt    fnini;         /* first initial search space */
-  PetscBool   custpc;        /* use custom correction equation preconditioner */
-  PetscBool   flglk;         /* whether in locking step */
-  PetscBool   flgre;         /* whether in restarting step */
   BV          V;             /* work basis vectors to store the search space */
   BV          W;             /* work basis vectors to store the test space */
   BV          *TV;           /* work basis vectors to store T*V (each TV[i] is the coefficient for \lambda^i of T*V for the extended T) */

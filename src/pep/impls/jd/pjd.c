@@ -853,7 +853,7 @@ PetscErrorCode PEPSolve_JD(PEP pep)
   PetscInt        k,nv,ld,minv,low,high,*P,dim;
   PetscScalar     theta=0.0,*pX,*stt,*exu,*exr,*exp,*R,*eig;
   PetscReal       norm,*res;
-  PetscBool       lindep,initial=PETSC_FALSE;
+  PetscBool       lindep,initial=PETSC_FALSE,flglk=PETSC_FALSE,flgre=PETSC_FALSE;
   Vec             t,u,p,r,*ww=pep->work,v;
   Mat             G,X,Y;
   KSP             ksp;
@@ -882,7 +882,7 @@ PetscErrorCode PEPSolve_JD(PEP pep)
   while (pep->reason == PEP_CONVERGED_ITERATING) {
     pep->its++;
 
-    low = (pjd->flglk || pjd->flgre)? 0: nv-1;
+    low = (flglk || flgre)? 0: nv-1;
     high = nv;
     ierr = DSSetDimensions(pep->ds,nv,0,0,0);CHKERRQ(ierr);
     ierr = BVSetActiveColumns(pjd->V,low,high);CHKERRQ(ierr);
@@ -960,7 +960,7 @@ PetscErrorCode PEPSolve_JD(PEP pep)
         ierr = BVCopyVec(pjd->V,nv,u);CHKERRQ(ierr);
         if (nv==1) theta = pep->target;
       }
-      pjd->flglk = PETSC_TRUE;
+      flglk = PETSC_TRUE;
     } else if (nv==pep->ncv-1) {
 
       /* Basis full, force restart */
@@ -979,7 +979,7 @@ PetscErrorCode PEPSolve_JD(PEP pep)
       ierr = BVMultInPlace(pjd->W,Y,pep->nconv,minv);CHKERRQ(ierr);
       ierr = DSRestoreMat(pep->ds,DS_MAT_Y,&Y);CHKERRQ(ierr);
       nv = minv;
-      pjd->flgre = PETSC_TRUE;
+      flgre = PETSC_TRUE;
     } else {
       /* Solve correction equation to expand basis */
       ierr = PEPJDExtendedPCApply(pjd->pcshell,p,pcctx->Bp);CHKERRQ(ierr);
@@ -995,8 +995,8 @@ PetscErrorCode PEPSolve_JD(PEP pep)
       if (lindep) SETERRQ(PETSC_COMM_SELF,1,"Linearly dependent continuation vector");
       ierr = BVScaleColumn(pjd->W,nv,1.0/norm);CHKERRQ(ierr);
       nv++;
-      pjd->flglk = PETSC_FALSE;
-      pjd->flgre = PETSC_FALSE;
+      flglk = PETSC_FALSE;
+      flgre = PETSC_FALSE;
     }
     for (k=pjd->nconv;k<nv;k++) {
       eig[k] = pep->eigr[k-pjd->nconv];
