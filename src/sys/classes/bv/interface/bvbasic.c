@@ -859,11 +859,11 @@ PetscErrorCode BVSetFromOptions(BV bv)
 
     ierr = PetscOptionsEnum("-bv_matmult","Method for BVMatMult","BVSetMatMultMethod",BVMatMultTypes,(PetscEnum)bv->vmm,(PetscEnum*)&bv->vmm,NULL);CHKERRQ(ierr);
 
-    if (!bv->rand) { ierr = BVGetRandomContext(bv,&bv->rand);CHKERRQ(ierr); }
-    ierr = PetscRandomSetFromOptions(bv->rand);CHKERRQ(ierr);
-
     /* undocumented option to generate random vectors that are independent of the number of processes */
     ierr = PetscOptionsGetBool(NULL,NULL,"-bv_reproducible_random",&bv->rrandom,NULL);CHKERRQ(ierr);
+
+    if (!bv->rand) { ierr = BVGetRandomContext(bv,&bv->rand);CHKERRQ(ierr); }
+    ierr = PetscRandomSetFromOptions(bv->rand);CHKERRQ(ierr);
 
     if (bv->ops->create) bv->defersfo = PETSC_TRUE;   /* defer call to setfromoptions */
     else if (bv->ops->setfromoptions) {
@@ -1346,6 +1346,8 @@ PETSC_STATIC_INLINE PetscErrorCode BVDuplicate_Private(BV V,PetscInt m,BV *W)
   ierr = BVSetType(*W,((PetscObject)V)->type_name);CHKERRQ(ierr);
   ierr = BVSetMatrix(*W,V->matrix,V->indef);CHKERRQ(ierr);
   ierr = BVSetOrthogonalization(*W,V->orthog_type,V->orthog_ref,V->orthog_eta,V->orthog_block);CHKERRQ(ierr);
+  (*W)->vmm     = V->vmm;
+  (*W)->rrandom = V->rrandom;
   if (V->ops->duplicate) { ierr = (*V->ops->duplicate)(V,W);CHKERRQ(ierr); }
   ierr = PetscObjectStateIncrease((PetscObject)*W);CHKERRQ(ierr);
   PetscFunctionReturn(0);
