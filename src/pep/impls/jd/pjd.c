@@ -116,6 +116,7 @@ PetscErrorCode PEPSetUp_JD(PEP pep)
   ierr = PEPJDDuplicateBasis(pep,&pjd->W);CHKERRQ(ierr);
   if (pep->nev>1) {
     ierr = PEPJDDuplicateBasis(pep,&pjd->V);CHKERRQ(ierr);
+    ierr = BVSetFromOptions(pjd->V);CHKERRQ(ierr);
     for (i=0;i<pep->nmat;i++) {
       ierr = BVDuplicateResize(pep->V,pep->nev-1,pjd->AX+i);CHKERRQ(ierr);
     }
@@ -652,7 +653,7 @@ static PetscErrorCode PEPJDUpdateExtendedPC(PEP pep,PetscScalar theta)
     /* pseudo-inverse */
     for (j=0;j<n;j++) {
       for (i=0;i<j;i++) S[n*j+i] = -pjd->T[pep->nev*j+i];
-      S[n*i+i] = theta-pjd->T[pep->nev*i+i];
+      S[n*j+j] = theta-pjd->T[pep->nev*j+j];
     }
     ierr = PetscBLASIntCast(n,&n_);CHKERRQ(ierr);
     ierr = PetscBLASIntCast(ld,&ld_);CHKERRQ(ierr);
@@ -762,16 +763,15 @@ static PetscErrorCode PEPJDEigenvectors(PEP pep)
 
 #undef __FUNCT__
 #define __FUNCT__ "PEPJDLockConverged"
-PetscErrorCode PEPJDLockConverged(PEP pep,PetscInt *nv,Vec u,Vec *ww)
+static PetscErrorCode PEPJDLockConverged(PEP pep,PetscInt *nv)
 {
   PetscErrorCode    ierr;
   PEP_JD            *pjd = (PEP_JD*)pep->data;
   PetscInt          j,i,ldds,rk,*P,nvv=*nv;
-  Vec               v;
+  Vec               v,x;
   PetscBLASInt      n,ld,rk_,nv_,info,one=1;
   PetscScalar       sone=1.0,*Tj,*R,*r,*tt,*pX;
   Mat               X;
-  const PetscScalar *array;
 
   PetscFunctionBegin;
 #if defined(SLEPC_MISSING_LAPACK_TRTRI)
@@ -779,18 +779,17 @@ PetscErrorCode PEPJDLockConverged(PEP pep,PetscInt *nv,Vec u,Vec *ww)
   SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"TRTRI - Lapack routine is unavailable");
 #else
   /* update AX and XpX */
-  ierr = VecGetArrayRead(u,&array);CHKERRQ(ierr);
-  ierr = VecPlaceArray(ww[0],array);CHKERRQ(ierr);
+  ierr = BVGetColumn(pjd->X,pjd->nconv-1,&x);CHKERRQ(ierr);
   for (j=0;j<pep->nmat;j++) {
     ierr = BVGetColumn(pjd->AX[j],pjd->nconv-1,&v);CHKERRQ(ierr);
-    ierr = MatMult(pep->A[j],ww[0],v);CHKERRQ(ierr);
+    ierr = MatMult(pep->A[j],x,v);CHKERRQ(ierr);
     ierr = BVRestoreColumn(pjd->AX[j],pjd->nconv-1,&v);CHKERRQ(ierr);
     ierr = BVSetActiveColumns(pjd->AX[j],0,pjd->nconv);CHKERRQ(ierr);
   }
-  ierr = BVDotVec(pjd->X,ww[0],pjd->XpX+(pjd->nconv-1)*(pep->nev));CHKERRQ(ierr);
+  ierr = BVRestoreColumn(pjd->X,pjd->nconv-1,&x);CHKERRQ(ierr);
+  ierr = BVDotColumn(pjd->X,(pjd->nconv-1),pjd->XpX+(pjd->nconv-1)*(pep->nev));CHKERRQ(ierr);
+  pjd->XpX[(pjd->nconv-1)*(1+pep->nev)] = 1.0;
   for (j=0;j<pjd->nconv-1;j++) pjd->XpX[j*(pep->nev)+pjd->nconv-1] = PetscConj(pjd->XpX[(pjd->nconv-1)*(pep->nev)+j]);
-  ierr = VecResetArray(ww[0]);CHKERRQ(ierr);
-  ierr = VecRestoreArrayRead(u,&array);CHKERRQ(ierr);
   
   /* Compute powers of T */
   ierr = PetscBLASIntCast(pjd->nconv,&n);CHKERRQ(ierr);
@@ -956,8 +955,8 @@ PetscErrorCode PEPSolve_JD(PEP pep)
       if (pjd->nconv >= pep->nev) pep->reason = PEP_CONVERGED_TOL;
 
       if (pep->reason==PEP_CONVERGED_ITERATING) {
-        ierr = PEPJDLockConverged(pep,&nv,u,ww);CHKERRQ(ierr);
-        ierr = BVCopyVec(pjd->V,nv,u);CHKERRQ(ierr);
+        ierr = PEPJDLockConverged(pep,&nv);CHKERRQ(ierr);
+        ierr = BVCopyVec(pjd->V,nv-1,u);CHKERRQ(ierr);
         if (nv==1) theta = pep->target;
       }
       flglk = PETSC_TRUE;
@@ -1002,7 +1001,7 @@ PetscErrorCode PEPSolve_JD(PEP pep)
       eig[k] = pep->eigr[k-pjd->nconv];
       res[k] = pep->errest[k-pjd->nconv];
     }
-    ierr = PEPMonitor(pep,pep->its,pjd->nconv,eig,pep->eigi,res,nv);CHKERRQ(ierr);
+    ierr = PEPMonitor(pep,pep->its,pjd->nconv,eig,pep->eigi,res,pjd->nconv+nv);CHKERRQ(ierr);
   }
   if (pep->nev>1) {
     ierr = PEPJDEigenvectors(pep);CHKERRQ(ierr);
