@@ -284,7 +284,7 @@ static PetscErrorCode PEPJDExtendedPCApply(PC pc,Vec x,Vec y)
     ierr = MPI_Comm_rank(PetscObjectComm((PetscObject)pc),&rk);CHKERRQ(ierr);
     ierr = MPI_Comm_size(PetscObjectComm((PetscObject)pc),&np);CHKERRQ(ierr);
     if (rk==np-1) {
-      ierr = VecGetSize(ctx->work[0],&nloc);CHKERRQ(ierr); 
+      ierr = VecGetLocalSize(ctx->work[0],&nloc);CHKERRQ(ierr); 
       ierr = VecGetArrayRead(x,&array1);CHKERRQ(ierr);
       for (i=0;i<n;i++) x2[i] = array1[nloc+i];
       ierr = VecRestoreArrayRead(x,&array1);CHKERRQ(ierr);
