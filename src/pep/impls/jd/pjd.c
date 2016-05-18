@@ -796,7 +796,7 @@ static PetscErrorCode PEPJDLockConverged(PEP pep,PetscInt *nv)
   ierr = PetscBLASIntCast(pep->nev,&ld);CHKERRQ(ierr);
   ierr = PetscMemzero(pjd->Tj,pep->nev*pep->nev*pep->nmat*sizeof(PetscScalar));CHKERRQ(ierr);
   Tj = pjd->Tj;
-  for (j=0;j<pep->nmat;j++) Tj[(pep->nev+1)*j] = 1.0;
+  for (j=0;j<pjd->nconv;j++) Tj[(pep->nev+1)*j] = 1.0;
   Tj = pjd->Tj+pep->nev*pep->nev;
   ierr = PetscMemcpy(Tj,pjd->T,pep->nev*pjd->nconv*sizeof(PetscScalar));CHKERRQ(ierr);
   for (j=2;j<pep->nmat;j++) {
@@ -1001,7 +1001,7 @@ PetscErrorCode PEPSolve_JD(PEP pep)
       eig[k] = pep->eigr[k-pjd->nconv];
       res[k] = pep->errest[k-pjd->nconv];
     }
-    ierr = PEPMonitor(pep,pep->its,pjd->nconv,eig,pep->eigi,res,pjd->nconv+nv);CHKERRQ(ierr);
+    ierr = PEPMonitor(pep,pep->its,pjd->nconv,eig,pep->eigi,res,pjd->nconv+1);CHKERRQ(ierr);
   }
   if (pep->nev>1) {
     ierr = PEPJDEigenvectors(pep);CHKERRQ(ierr);
