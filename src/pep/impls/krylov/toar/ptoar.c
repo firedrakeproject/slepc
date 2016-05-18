@@ -76,7 +76,7 @@ PetscErrorCode PEPSetUp_TOAR(PEP pep)
 {
   PetscErrorCode ierr;
   PEP_TOAR       *ctx = (PEP_TOAR*)pep->data;
-  PetscBool      sinv,flg,lindep;
+  PetscBool      shift,sinv,flg,lindep;
   PetscInt       i,lds,deg=pep->nmat-1,j;
   PetscReal      norm;
 
@@ -85,8 +85,14 @@ PetscErrorCode PEPSetUp_TOAR(PEP pep)
   ierr = PEPSetDimensions_Default(pep,pep->nev,&pep->ncv,&pep->mpd);CHKERRQ(ierr);
   if (!ctx->lock && pep->mpd<pep->ncv) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Should not use mpd parameter in non-locking variant");
   if (!pep->max_it) pep->max_it = PetscMax(100,2*(pep->nmat-1)*pep->n/pep->ncv);
+  /* Set STSHIFT as the default ST */
+  if (!((PetscObject)pep->st)->type_name) {
+    ierr = STSetType(pep->st,STSHIFT);CHKERRQ(ierr);
+  }
+  ierr = PetscObjectTypeCompare((PetscObject)pep->st,STSHIFT,&shift);CHKERRQ(ierr);
+  ierr = PetscObjectTypeCompare((PetscObject)pep->st,STSINVERT,&sinv);CHKERRQ(ierr);
+  if (!shift && !sinv) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Only STSHIFT and STSINVERT spectral transformations can be used");
   if (!pep->which) {
-    ierr = PetscObjectTypeCompare((PetscObject)pep->st,STSINVERT,&sinv);CHKERRQ(ierr);
     if (sinv) pep->which = PEP_TARGET_MAGNITUDE;
     else pep->which = PEP_LARGEST_MAGNITUDE;
   }
@@ -106,7 +112,6 @@ PetscErrorCode PEPSetUp_TOAR(PEP pep)
   ierr = STGetTransform(pep->st,&flg);CHKERRQ(ierr);
   if (!flg) {
     ierr = PetscMalloc1(pep->nmat,&pep->solvematcoeffs);CHKERRQ(ierr);
-    ierr = PetscObjectTypeCompare((PetscObject)pep->st,STSINVERT,&sinv);CHKERRQ(ierr);
     if (sinv) {
       ierr = PEPEvaluateBasis(pep,pep->target,0,pep->solvematcoeffs,NULL);CHKERRQ(ierr);
     } else {

@@ -262,7 +262,7 @@ PetscErrorCode PEPSetUp_Linear(PEP pep)
   PetscInt       i=0,deg=pep->nmat-1;
   EPSWhich       which;
   EPSProblemType ptype;
-  PetscBool      trackall,istrivial,transf,sinv,ks;
+  PetscBool      trackall,istrivial,transf,shift,sinv,ks;
   PetscScalar    sigma,*epsarray,*peparray;
   Vec            veps;
   /* function tables */
@@ -280,7 +280,13 @@ PetscErrorCode PEPSetUp_Linear(PEP pep)
   pep->lineariz = PETSC_TRUE;
   if (!ctx->cform) ctx->cform = 1;
   ierr = STGetTransform(pep->st,&transf);CHKERRQ(ierr);
+  /* Set STSHIFT as the default ST */
+  if (!((PetscObject)pep->st)->type_name) {
+    ierr = STSetType(pep->st,STSHIFT);CHKERRQ(ierr);
+  }
+  ierr = PetscObjectTypeCompare((PetscObject)pep->st,STSHIFT,&shift);CHKERRQ(ierr);
   ierr = PetscObjectTypeCompare((PetscObject)pep->st,STSINVERT,&sinv);CHKERRQ(ierr);
+  if (!shift && !sinv) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Only STSHIFT and STSINVERT spectral transformations can be used");
   if (!pep->which) {
     if (sinv) pep->which = PEP_TARGET_MAGNITUDE;
     else pep->which = PEP_LARGEST_MAGNITUDE;
@@ -346,7 +352,6 @@ PetscErrorCode PEPSetUp_Linear(PEP pep)
     ierr = MatCreateVecs(pep->A[0],&ctx->w[5],NULL);CHKERRQ(ierr);
     ierr = PetscLogObjectParents(pep,6,ctx->w);CHKERRQ(ierr);
     ierr = MatCreateShell(PetscObjectComm((PetscObject)pep),deg*pep->nloc,deg*pep->nloc,deg*pep->n,deg*pep->n,ctx,&ctx->A);CHKERRQ(ierr);
-    ierr = PetscObjectTypeCompare((PetscObject)pep->st,STSINVERT,&sinv);CHKERRQ(ierr);
     if (sinv && !transf) {
       ierr = MatShellSetOperation(ctx->A,MATOP_MULT,(void(*)(void))MatMult_Linear_Sinvert);CHKERRQ(ierr);
     } else {

@@ -85,7 +85,7 @@ PetscErrorCode PEPSetUp_JD(PEP pep)
 {
   PetscErrorCode ierr;
   PEP_JD         *pjd = (PEP_JD*)pep->data;
-  PetscBool      isshift,flg;
+  PetscBool      isprecond,flg;
   PetscInt       i;
 
   PetscFunctionBegin;
@@ -94,12 +94,12 @@ PetscErrorCode PEPSetUp_JD(PEP pep)
   if (!pep->max_it) pep->max_it = PetscMax(100,2*pep->n/pep->ncv);
   if (!pep->which) pep->which = PEP_LARGEST_MAGNITUDE;
 
-  /* Set STSHIFT as the default ST */
+  /* Set STPRECOND as the default ST */
   if (!((PetscObject)pep->st)->type_name) {
-    ierr = STSetType(pep->st,STSHIFT);CHKERRQ(ierr);
+    ierr = STSetType(pep->st,STPRECOND);CHKERRQ(ierr);
   }
-  ierr = PetscObjectTypeCompare((PetscObject)pep->st,STSHIFT,&isshift);CHKERRQ(ierr);
-  if (!isshift) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"JD only works with shift spectral transformation");
+  ierr = PetscObjectTypeCompare((PetscObject)pep->st,STPRECOND,&isprecond);CHKERRQ(ierr);
+  if (!isprecond) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"JD only works with PRECOND spectral transformation");
 
   if (pep->basis!=PEP_BASIS_MONOMIAL) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Solver not implemented for non-monomial bases");
   ierr = STGetTransform(pep->st,&flg);CHKERRQ(ierr);
