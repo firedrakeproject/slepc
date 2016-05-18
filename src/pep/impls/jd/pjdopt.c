@@ -126,6 +126,11 @@ PetscErrorCode PEPSetFromOptions_JD(PetscOptionItems *PetscOptionsObject,PEP pep
   if (flg) {
     ierr = PEPJDSetRestart(pep,r1);CHKERRQ(ierr);
   }
+  /* Set STPRECOND as the default ST */
+  if (!pep->st) { ierr = PEPGetST(pep,&pep->st);CHKERRQ(ierr); }
+  if (!((PetscObject)pep->st)->type_name) {
+    ierr = STSetType(pep->st,STPRECOND);CHKERRQ(ierr);
+  }
   ierr = PetscOptionsTail();CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

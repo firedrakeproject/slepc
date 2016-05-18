@@ -85,7 +85,7 @@ PetscErrorCode PEPSetUp_JD(PEP pep)
 {
   PetscErrorCode ierr;
   PEP_JD         *pjd = (PEP_JD*)pep->data;
-  PetscBool      isshift,flg;
+  PetscBool      isprecond,flg;
   PetscInt       i;
 
   PetscFunctionBegin;
@@ -94,12 +94,12 @@ PetscErrorCode PEPSetUp_JD(PEP pep)
   if (!pep->max_it) pep->max_it = PetscMax(100,2*pep->n/pep->ncv);
   if (!pep->which) pep->which = PEP_LARGEST_MAGNITUDE;
 
-  /* Set STSHIFT as the default ST */
+  /* Set STPRECOND as the default ST */
   if (!((PetscObject)pep->st)->type_name) {
-    ierr = STSetType(pep->st,STSHIFT);CHKERRQ(ierr);
+    ierr = STSetType(pep->st,STPRECOND);CHKERRQ(ierr);
   }
-  ierr = PetscObjectTypeCompare((PetscObject)pep->st,STSHIFT,&isshift);CHKERRQ(ierr);
-  if (!isshift) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"JD only works with shift spectral transformation");
+  ierr = PetscObjectTypeCompare((PetscObject)pep->st,STPRECOND,&isprecond);CHKERRQ(ierr);
+  if (!isprecond) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"JD only works with PRECOND spectral transformation");
 
   if (pep->basis!=PEP_BASIS_MONOMIAL) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Solver not implemented for non-monomial bases");
   ierr = STGetTransform(pep->st,&flg);CHKERRQ(ierr);
@@ -796,7 +796,7 @@ static PetscErrorCode PEPJDLockConverged(PEP pep,PetscInt *nv)
   ierr = PetscBLASIntCast(pep->nev,&ld);CHKERRQ(ierr);
   ierr = PetscMemzero(pjd->Tj,pep->nev*pep->nev*pep->nmat*sizeof(PetscScalar));CHKERRQ(ierr);
   Tj = pjd->Tj;
-  for (j=0;j<pep->nmat;j++) Tj[(pep->nev+1)*j] = 1.0;
+  for (j=0;j<pjd->nconv;j++) Tj[(pep->nev+1)*j] = 1.0;
   Tj = pjd->Tj+pep->nev*pep->nev;
   ierr = PetscMemcpy(Tj,pjd->T,pep->nev*pjd->nconv*sizeof(PetscScalar));CHKERRQ(ierr);
   for (j=2;j<pep->nmat;j++) {
@@ -1001,7 +1001,7 @@ PetscErrorCode PEPSolve_JD(PEP pep)
       eig[k] = pep->eigr[k-pjd->nconv];
       res[k] = pep->errest[k-pjd->nconv];
     }
-    ierr = PEPMonitor(pep,pep->its,pjd->nconv,eig,pep->eigi,res,pjd->nconv+nv);CHKERRQ(ierr);
+    ierr = PEPMonitor(pep,pep->its,pjd->nconv,eig,pep->eigi,res,pjd->nconv+1);CHKERRQ(ierr);
   }
   if (pep->nev>1) {
     ierr = PEPJDEigenvectors(pep);CHKERRQ(ierr);
