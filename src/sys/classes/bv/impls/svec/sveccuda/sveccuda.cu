@@ -95,6 +95,7 @@ PetscErrorCode BVMult_Svec_CUDA(BV Y,PetscScalar alpha,PetscScalar beta,BV X,Mat
     cberr = cublasXgemm(cublasv2handle,CUBLAS_OP_N,CUBLAS_OP_N,m,n,k,&alpha,d_A,m,d_B,ldq,&beta,d_C,m);CHKERRCUBLAS(cberr);
     ierr = MatDenseRestoreArray(Q,&q);CHKERRQ(ierr);
     err = cudaFree(d_q);CHKERRCUDA(err);
+    ierr = PetscLogFlops(2.0*m*n*k);CHKERRQ(ierr);
   } else {
     ierr = BVAXPY_BLAS_CUDA(Y,m,n,alpha,d_A,beta,d_C);CHKERRQ(ierr);
   }
@@ -126,8 +127,8 @@ PetscErrorCode BVMultVec_Svec_CUDA(BV X,PetscScalar alpha,PetscScalar beta,Vec y
   } else {
     ierr = VecCUDAGetArrayReadWrite(y,&d_py);CHKERRQ(ierr);
   }
-  ierr = cudaMalloc((void**)&d_q,n*sizeof(PetscScalar*));CHKERRQ(ierr);
-  ierr = cudaMemcpy(d_q,q,n*sizeof(PetscScalar),cudaMemcpyHostToDevice);CHKERRQ(ierr);
+  ierr = cudaMalloc((void**)&d_q,k*sizeof(PetscScalar*));CHKERRQ(ierr);
+  ierr = cudaMemcpy(d_q,q,k*sizeof(PetscScalar),cudaMemcpyHostToDevice);CHKERRQ(ierr);
   d_A = d_px+(X->nc+X->l)*X->n;
   d_x = d_q;
   d_y = d_py;
