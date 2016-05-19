@@ -47,7 +47,7 @@ PetscErrorCode PEPSetUp(PEP pep)
 {
   PetscErrorCode ierr;
   SlepcSC        sc;
-  PetscBool      islinear,istrivial,flg;
+  PetscBool      istrivial,flg;
   PetscInt       k;
   KSP            ksp;
   PC             pc;
@@ -67,10 +67,6 @@ PetscErrorCode PEPSetUp(PEP pep)
     ierr = PEPSetType(pep,PEPTOAR);CHKERRQ(ierr);
   }
   if (!pep->st) { ierr = PEPGetST(pep,&pep->st);CHKERRQ(ierr); }
-  ierr = PetscObjectTypeCompare((PetscObject)pep,PEPLINEAR,&islinear);CHKERRQ(ierr);
-  if (!((PetscObject)pep->st)->type_name) {
-    ierr = STSetType(pep->st,STSHIFT);CHKERRQ(ierr);
-  }
   if (!pep->ds) { ierr = PEPGetDS(pep,&pep->ds);CHKERRQ(ierr); }
   ierr = DSReset(pep->ds);CHKERRQ(ierr);
   if (!pep->rg) { ierr = PEPGetRG(pep,&pep->rg);CHKERRQ(ierr); }
@@ -190,8 +186,6 @@ PetscErrorCode PEPSetUp(PEP pep)
   sc->mapobj        = (PetscObject)pep->st;
 
   /* setup ST */
-  ierr = PetscObjectTypeCompareAny((PetscObject)pep->st,&flg,STSHIFT,STSINVERT,"");CHKERRQ(ierr);
-  if (!flg) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Only STSHIFT and STSINVERT spectral transformations can be used in PEP");
   ierr = STSetUp(pep->st);CHKERRQ(ierr);
   /* compute matrix coefficients */
   ierr = STGetTransform(pep->st,&flg);CHKERRQ(ierr);

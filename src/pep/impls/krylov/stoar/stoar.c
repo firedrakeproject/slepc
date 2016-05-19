@@ -123,7 +123,7 @@ static PetscErrorCode PEPSTOARqKqMupdates(PEP pep,PetscInt j,Vec *wv)
 PetscErrorCode PEPSetUp_STOAR(PEP pep)
 {
   PetscErrorCode ierr;
-  PetscBool      sinv,flg,lindep;
+  PetscBool      shift,sinv,flg,lindep;
   PEP_TOAR       *ctx = (PEP_TOAR*)pep->data;
   PetscInt       ld,i;
   PetscReal      norm,*omega;
@@ -132,8 +132,14 @@ PetscErrorCode PEPSetUp_STOAR(PEP pep)
   ierr = PEPSetDimensions_Default(pep,pep->nev,&pep->ncv,&pep->mpd);CHKERRQ(ierr);
   if (!ctx->lock && pep->mpd<pep->ncv) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Should not use mpd parameter in non-locking variant");
   if (!pep->max_it) pep->max_it = PetscMax(100,2*pep->n/pep->ncv);
+  /* Set STSHIFT as the default ST */
+  if (!((PetscObject)pep->st)->type_name) {
+    ierr = STSetType(pep->st,STSHIFT);CHKERRQ(ierr);
+  }
+  ierr = PetscObjectTypeCompare((PetscObject)pep->st,STSHIFT,&shift);CHKERRQ(ierr);
+  ierr = PetscObjectTypeCompare((PetscObject)pep->st,STSINVERT,&sinv);CHKERRQ(ierr);
+  if (!shift && !sinv) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Only STSHIFT and STSINVERT spectral transformations can be used");
   if (!pep->which) {
-    ierr = PetscObjectTypeCompare((PetscObject)pep->st,STSINVERT,&sinv);CHKERRQ(ierr);
     if (sinv) pep->which = PEP_TARGET_MAGNITUDE;
     else pep->which = PEP_LARGEST_MAGNITUDE;
   }
