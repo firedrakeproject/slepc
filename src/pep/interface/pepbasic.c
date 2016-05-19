@@ -3,7 +3,7 @@
 
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
-   Copyright (c) 2002-2015, Universitat Politecnica de Valencia, Spain
+   Copyright (c) 2002-2016, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
 
@@ -80,7 +80,7 @@ PetscErrorCode PEPCreate(MPI_Comm comm,PEP *outpep)
   pep->npart           = 1;
   pep->rtol            = PETSC_DEFAULT;
   pep->rits            = PETSC_DEFAULT;
-  pep->scheme          = PEP_REFINE_SCHEME_MBE;
+  pep->scheme          = (PEPRefineScheme)0;
   pep->extract         = (PEPExtract)0;
   pep->trackall        = PETSC_FALSE;
 
@@ -96,7 +96,6 @@ PetscErrorCode PEPCreate(MPI_Comm comm,PEP *outpep)
   pep->ds              = NULL;
   pep->V               = NULL;
   pep->rg              = NULL;
-  pep->rand            = NULL;
   pep->A               = NULL;
   pep->nmat            = 0;
   pep->Dl              = NULL;
@@ -125,9 +124,6 @@ PetscErrorCode PEPCreate(MPI_Comm comm,PEP *outpep)
   pep->reason          = PEP_CONVERGED_ITERATING;
 
   ierr = PetscNewLog(pep,&pep->sc);CHKERRQ(ierr);
-  ierr = PetscRandomCreate(comm,&pep->rand);CHKERRQ(ierr);
-  ierr = PetscRandomSetSeed(pep->rand,0x12345678);CHKERRQ(ierr);
-  ierr = PetscLogObjectParent((PetscObject)pep,(PetscObject)pep->rand);CHKERRQ(ierr);
   *outpep = pep;
   PetscFunctionReturn(0);
 }
@@ -323,7 +319,6 @@ PetscErrorCode PEPDestroy(PEP *pep)
   ierr = STDestroy(&(*pep)->st);CHKERRQ(ierr);
   ierr = RGDestroy(&(*pep)->rg);CHKERRQ(ierr);
   ierr = DSDestroy(&(*pep)->ds);CHKERRQ(ierr);
-  ierr = PetscRandomDestroy(&(*pep)->rand);CHKERRQ(ierr);
   ierr = PetscFree((*pep)->sc);CHKERRQ(ierr);
   /* just in case the initial vectors have not been used */
   ierr = SlepcBasisDestroy_Private(&(*pep)->nini,&(*pep)->IS);CHKERRQ(ierr);

@@ -1,7 +1,7 @@
 /*
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
-   Copyright (c) 2002-2015, Universitat Politecnica de Valencia, Spain
+   Copyright (c) 2002-2016, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
 
@@ -168,8 +168,10 @@ PETSC_EXTERN PetscErrorCode BVNormVecEnd(BV,Vec,NormType,PetscReal*);
 PETSC_EXTERN PetscErrorCode BVNormColumn(BV,PetscInt,NormType,PetscReal*);
 PETSC_EXTERN PetscErrorCode BVNormColumnBegin(BV,PetscInt,NormType,PetscReal*);
 PETSC_EXTERN PetscErrorCode BVNormColumnEnd(BV,PetscInt,NormType,PetscReal*);
-PETSC_EXTERN PetscErrorCode BVSetRandom(BV,PetscRandom);
-PETSC_EXTERN PetscErrorCode BVSetRandomColumn(BV,PetscInt,PetscRandom);
+PETSC_EXTERN PetscErrorCode BVSetRandom(BV);
+PETSC_EXTERN PetscErrorCode BVSetRandomColumn(BV,PetscInt);
+PETSC_EXTERN PetscErrorCode BVSetRandomContext(BV,PetscRandom);
+PETSC_EXTERN PetscErrorCode BVGetRandomContext(BV,PetscRandom*);
 
 PETSC_EXTERN PetscErrorCode BVSetOrthogonalization(BV,BVOrthogType,BVOrthogRefineType,PetscReal,BVOrthogBlockType);
 PETSC_EXTERN PetscErrorCode BVGetOrthogonalization(BV,BVOrthogType*,BVOrthogRefineType*,PetscReal*,BVOrthogBlockType*);

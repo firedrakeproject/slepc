@@ -2,7 +2,7 @@
 #
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #  SLEPc - Scalable Library for Eigenvalue Problem Computations
-#  Copyright (c) 2002-2015, Universitat Politecnica de Valencia, Spain
+#  Copyright (c) 2002-2016, Universitat Politecnica de Valencia, Spain
 #
 #  This file is part of SLEPc.
 #
@@ -168,7 +168,7 @@ petsc.InitDir(slepc.prefixdir)
 slepc.InitDir()
 petsc.LoadVersion()
 slepc.LoadVersion()
-if petsc.version != slepc.version:
+if petsc.version < slepc.version:
   sys.exit('ERROR: This SLEPc version is not compatible with PETSc version '+petsc.version)
 
 # Check some information about PETSc configuration

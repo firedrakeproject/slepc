@@ -1,7 +1,7 @@
 /*
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
-   Copyright (c) 2002-2015, Universitat Politecnica de Valencia, Spain
+   Copyright (c) 2002-2016, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
 
@@ -156,7 +156,7 @@ int main(int argc,char **argv)
 
   ierr = NEPSetTolerances(nep,1e-9,PETSC_DEFAULT);CHKERRQ(ierr);
   ierr = NEPSetDimensions(nep,1,PETSC_DEFAULT,PETSC_DEFAULT);CHKERRQ(ierr);
-  ierr = NEPSetLagPreconditioner(nep,0);CHKERRQ(ierr);
+  ierr = NEPRIISetLagPreconditioner(nep,0);CHKERRQ(ierr);
 
   /*
      Set solver parameters at runtime
@@ -195,6 +195,6 @@ int main(int argc,char **argv)
   ierr = FNDestroy(&f2);CHKERRQ(ierr);
   ierr = FNDestroy(&f3);CHKERRQ(ierr);
   ierr = SlepcFinalize();
-  return 0;
+  return ierr;
 }
 

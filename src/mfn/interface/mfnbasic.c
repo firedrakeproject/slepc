@@ -3,7 +3,7 @@
 
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
-   Copyright (c) 2002-2015, Universitat Politecnica de Valencia, Spain
+   Copyright (c) 2002-2016, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
 
@@ -201,13 +201,11 @@ PetscErrorCode MFNCreate(MPI_Comm comm,MFN *outmfn)
   mfn->max_it          = 0;
   mfn->ncv             = 0;
   mfn->tol             = PETSC_DEFAULT;
-  mfn->sfactor         = 1.0;
   mfn->errorifnotconverged = PETSC_FALSE;
 
   mfn->numbermonitors  = 0;
 
   mfn->V               = NULL;
-  mfn->rand            = NULL;
   mfn->nwork           = 0;
   mfn->work            = NULL;
   mfn->data            = NULL;
@@ -218,9 +216,6 @@ PetscErrorCode MFNCreate(MPI_Comm comm,MFN *outmfn)
   mfn->setupcalled     = 0;
   mfn->reason          = MFN_CONVERGED_ITERATING;
 
-  ierr = PetscRandomCreate(comm,&mfn->rand);CHKERRQ(ierr);
-  ierr = PetscRandomSetSeed(mfn->rand,0x12345678);CHKERRQ(ierr);
-  ierr = PetscLogObjectParent((PetscObject)mfn,(PetscObject)mfn->rand);CHKERRQ(ierr);
   *outmfn = mfn;
   PetscFunctionReturn(0);
 }
@@ -396,7 +391,6 @@ PetscErrorCode MFNDestroy(MFN *mfn)
   ierr = MatDestroy(&(*mfn)->A);CHKERRQ(ierr);
   ierr = BVDestroy(&(*mfn)->V);CHKERRQ(ierr);
   ierr = FNDestroy(&(*mfn)->fn);CHKERRQ(ierr);
-  ierr = PetscRandomDestroy(&(*mfn)->rand);CHKERRQ(ierr);
   ierr = MFNMonitorCancel(*mfn);CHKERRQ(ierr);
   ierr = PetscHeaderDestroy(mfn);CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -516,7 +510,7 @@ PetscErrorCode MFNSetFN(MFN mfn,FN fn)
    Output Parameter:
 .  fn - math function context
 
-   Level: intermediate
+   Level: beginner
 
 .seealso: MFNSetFN()
 @*/

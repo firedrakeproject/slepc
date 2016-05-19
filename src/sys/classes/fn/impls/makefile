@@ -1,7 +1,7 @@
 #
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #  SLEPc - Scalable Library for Eigenvalue Problem Computations
-#  Copyright (c) 2002-2015, Universitat Politecnica de Valencia, Spain
+#  Copyright (c) 2002-2016, Universitat Politecnica de Valencia, Spain
 #
 #  This file is part of SLEPc.
 #
@@ -21,8 +21,13 @@
 
 ALL: lib
 
+CFLAGS   =
+FFLAGS   =
+SOURCEC  = fnutil.c
+SOURCEF  =
+SOURCEH  =
 LIBBASE  = libslepcsys
-DIRS     = combine exp log phi rational sqrt
+DIRS     = combine exp log phi rational sqrt invsqrt
 LOCDIR   = src/sys/classes/fn/impls/
 MANSEC   = FN
 

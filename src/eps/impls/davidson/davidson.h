@@ -3,11 +3,11 @@
 
   References:
     - Ernest R. Davidson. Super-matrix methods. Computer Physics Communications,
-      53:49–60, May 1989.
+      53:49-60, May 1989.
 
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
-   Copyright (c) 2002-2015, Universitat Politecnica de Valencia, Spain
+   Copyright (c) 2002-2016, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
 
@@ -271,7 +271,7 @@ PETSC_INTERN PetscErrorCode dvd_improvex_jd_proj_uv(dvdDashboard*,dvdBlackboard*
 PETSC_INTERN PetscErrorCode dvd_improvex_jd_lit_const(dvdDashboard*,dvdBlackboard*,PetscInt,PetscReal,PetscReal);
 PETSC_INTERN PetscErrorCode dvd_improvex_compute_X(dvdDashboard*,PetscInt,PetscInt,Vec*,PetscScalar*,PetscInt);
 PETSC_INTERN PetscErrorCode dvd_initV(dvdDashboard*,dvdBlackboard*,PetscInt,PetscInt,PetscBool);
-PETSC_INTERN PetscErrorCode dvd_orthV(BV,PetscInt,PetscInt,PetscRandom);
+PETSC_INTERN PetscErrorCode dvd_orthV(BV,PetscInt,PetscInt);
 PETSC_INTERN PetscErrorCode dvd_schm_basic_preconf(dvdDashboard*,dvdBlackboard*,PetscInt,PetscInt,PetscInt,PetscInt,PetscInt,PetscInt,HarmType_t,KSP,InitType_t,PetscBool,PetscBool,PetscInt,PetscInt,PetscBool);
 PETSC_INTERN PetscErrorCode dvd_schm_basic_conf(dvdDashboard*,dvdBlackboard*,PetscInt,PetscInt,PetscInt,PetscInt,PetscInt,PetscInt,HarmType_t,PetscBool,PetscScalar,KSP,PetscReal,InitType_t,PetscBool,PetscBool,PetscInt,PetscInt,PetscBool,PetscBool);
 PETSC_INTERN PetscErrorCode dvd_testconv_basic(dvdDashboard*,dvdBlackboard*);

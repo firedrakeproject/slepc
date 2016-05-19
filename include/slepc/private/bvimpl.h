@@ -96,6 +96,8 @@ struct _p_BV {
   PetscBool          defersfo;     /* deferred call to setfromoptions */
   BV                 cached;       /* cached BV to store result of matrix times BV */
   PetscObjectState   bvstate;      /* state of BV when BVApplyMatrixBV() was called */
+  PetscRandom        rand;         /* random number generator */
+  PetscBool          rrandom;      /* reproducible random vectors */
   PetscScalar        *work;
   PetscInt           lwork;
   void               *data;

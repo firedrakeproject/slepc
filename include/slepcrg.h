@@ -1,7 +1,7 @@
 /*
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
-   Copyright (c) 2002-2015, Universitat Politecnica de Valencia, Spain
+   Copyright (c) 2002-2016, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
 
@@ -57,6 +57,8 @@ PETSC_EXTERN PetscErrorCode RGSetComplement(RG,PetscBool);
 PETSC_EXTERN PetscErrorCode RGGetComplement(RG,PetscBool*);
 PETSC_EXTERN PetscErrorCode RGSetScale(RG,PetscReal);
 PETSC_EXTERN PetscErrorCode RGGetScale(RG,PetscReal*);
+PETSC_EXTERN PetscErrorCode RGPushScale(RG,PetscReal);
+PETSC_EXTERN PetscErrorCode RGPopScale(RG);
 PETSC_EXTERN PetscErrorCode RGCheckInside(RG,PetscInt,PetscScalar*,PetscScalar*,PetscInt*);
 PETSC_EXTERN PetscErrorCode RGComputeContour(RG,PetscInt,PetscScalar*,PetscScalar*);
 

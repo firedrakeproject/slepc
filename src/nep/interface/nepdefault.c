@@ -3,7 +3,7 @@
 
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
-   Copyright (c) 2002-2015, Universitat Politecnica de Valencia, Spain
+   Copyright (c) 2002-2016, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
 
@@ -70,6 +70,7 @@ PetscErrorCode NEPGetDefaultShift(NEP nep,PetscScalar *sigma)
     case NEP_LARGEST_MAGNITUDE:
     case NEP_LARGEST_IMAGINARY:
     case NEP_ALL:
+    case NEP_WHICH_USER:
       *sigma = 1.0;   /* arbitrary value */
       break;
     case NEP_SMALLEST_MAGNITUDE:

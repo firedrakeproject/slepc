@@ -1,7 +1,7 @@
 /*
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
-   Copyright (c) 2002-2015, Universitat Politecnica de Valencia, Spain
+   Copyright (c) 2002-2016, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
 
@@ -30,7 +30,7 @@
    oscillations of a rail track resting on sleepers.
 */
 
-static char help[] = "NLEVP problem: sleeper.\n\n"
+static char help[] = "Oscillations of a rail track resting on sleepers.\n\n"
   "The command line options are:\n"
   "  -n <n>, where <n> = dimension of the matrices.\n\n";
 
@@ -151,6 +151,6 @@ int main(int argc,char **argv)
   ierr = MatDestroy(&M);CHKERRQ(ierr);
   ierr = MatDestroy(&C);CHKERRQ(ierr);
   ierr = MatDestroy(&K);CHKERRQ(ierr);
-  ierr = SlepcFinalize();CHKERRQ(ierr);
-  return 0;
+  ierr = SlepcFinalize();
+  return ierr;
 }

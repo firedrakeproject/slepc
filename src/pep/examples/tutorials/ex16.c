@@ -1,7 +1,7 @@
 /*
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
-   Copyright (c) 2002-2015, Universitat Politecnica de Valencia, Spain
+   Copyright (c) 2002-2016, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
 
@@ -33,8 +33,11 @@ int main(int argc,char **argv)
   Mat            M,C,K,A[3];      /* problem matrices */
   PEP            pep;             /* polynomial eigenproblem solver context */
   PEPType        type;
-  PetscInt       N,n=10,m,Istart,Iend,II,nev,i,j;
+  PetscInt       N,n=10,m,Istart,Iend,II,nev,i,j,nconv;
   PetscBool      flag,terse;
+  PetscReal      error,re,im;
+  PetscScalar    kr,ki;
+  Vec            xr,xi;
   PetscErrorCode ierr;
 
   SlepcInitialize(&argc,&argv,(char*)0,help);
@@ -137,16 +140,41 @@ int main(int argc,char **argv)
   if (terse) {
     ierr = PEPErrorView(pep,PEP_ERROR_BACKWARD,NULL);CHKERRQ(ierr);
   } else {
-    ierr = PetscViewerPushFormat(PETSC_VIEWER_STDOUT_WORLD,PETSC_VIEWER_ASCII_INFO_DETAIL);CHKERRQ(ierr);
-    ierr = PEPReasonView(pep,PETSC_VIEWER_STDOUT_WORLD);CHKERRQ(ierr);
-    ierr = PEPErrorView(pep,PEP_ERROR_BACKWARD,PETSC_VIEWER_STDOUT_WORLD);CHKERRQ(ierr);
-    ierr = PetscViewerPopFormat(PETSC_VIEWER_STDOUT_WORLD);CHKERRQ(ierr);
+    ierr = PEPGetConverged(pep,&nconv);CHKERRQ(ierr);
+    if (nconv>0) {
+      ierr = MatCreateVecs(M,&xr,&xi);CHKERRQ(ierr);
+      /* display eigenvalues and relative errors */
+      ierr = PetscPrintf(PETSC_COMM_WORLD,
+           "\n           k          ||P(k)x||/||kx||\n"
+           "   ----------------- ------------------\n");CHKERRQ(ierr);
+      for (i=0;i<nconv;i++) {
+        /* get converged eigenpairs */
+        ierr = PEPGetEigenpair(pep,i,&kr,&ki,xr,xi);CHKERRQ(ierr);
+        /* compute the relative error associated to each eigenpair */
+        ierr = PEPComputeError(pep,i,PEP_ERROR_RELATIVE,&error);CHKERRQ(ierr);
+#if defined(PETSC_USE_COMPLEX)
+        re = PetscRealPart(kr);
+        im = PetscImaginaryPart(kr);
+#else
+        re = kr;
+        im = ki;
+#endif
+        if (im!=0.0) {
+          ierr = PetscPrintf(PETSC_COMM_WORLD," %9f%+9fi   %12g\n",(double)re,(double)im,(double)error);CHKERRQ(ierr);
+        } else {
+          ierr = PetscPrintf(PETSC_COMM_WORLD,"   %12f       %12g\n",(double)re,(double)error);CHKERRQ(ierr);
+        }
+      }
+      ierr = PetscPrintf(PETSC_COMM_WORLD,"\n");CHKERRQ(ierr);
+      ierr = VecDestroy(&xr);CHKERRQ(ierr);
+      ierr = VecDestroy(&xi);CHKERRQ(ierr);
+    }
   }
   ierr = PEPDestroy(&pep);CHKERRQ(ierr);
   ierr = MatDestroy(&M);CHKERRQ(ierr);
   ierr = MatDestroy(&C);CHKERRQ(ierr);
   ierr = MatDestroy(&K);CHKERRQ(ierr);
   ierr = SlepcFinalize();
-  return 0;
+  return ierr;
 }
 

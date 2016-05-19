@@ -3,7 +3,7 @@
 
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
-   Copyright (c) 2002-2015, Universitat Politecnica de Valencia, Spain
+   Copyright (c) 2002-2016, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
 
@@ -166,6 +166,7 @@ PetscErrorCode RGView_Polygon(RG rg,PetscViewer viewer)
   ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
   if (isascii) {
     ierr = PetscViewerASCIIPrintf(viewer,"vertices: ");CHKERRQ(ierr);
+    ierr = PetscViewerASCIIUseTabs(viewer,PETSC_FALSE);CHKERRQ(ierr);
     for (i=0;i<ctx->n;i++) {
 #if defined(PETSC_USE_COMPLEX)
       ierr = SlepcSNPrintfScalar(str,50,ctx->vr[i],PETSC_FALSE);CHKERRQ(ierr);
@@ -179,6 +180,7 @@ PetscErrorCode RGView_Polygon(RG rg,PetscViewer viewer)
       ierr = PetscViewerASCIIPrintf(viewer,"%s%s",str,(i<ctx->n-1)?",":"");CHKERRQ(ierr);
     }
     ierr = PetscViewerASCIIPrintf(viewer,"\n");CHKERRQ(ierr);
+    ierr = PetscViewerASCIIUseTabs(viewer,PETSC_TRUE);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }

@@ -3,7 +3,7 @@
 
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
-   Copyright (c) 2002-2015, Universitat Politecnica de Valencia, Spain
+   Copyright (c) 2002-2016, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
 
@@ -27,7 +27,7 @@
 #define __FUNCT__ "STApply"
 /*@
    STApply - Applies the spectral transformation operator to a vector, for
-   instance (A - sB)^-1 B in the case of the shift-and-invert tranformation
+   instance (A - sB)^-1 B in the case of the shift-and-invert transformation
    and generalized eigenproblem.
 
    Collective on ST and Vec
@@ -77,7 +77,7 @@ PetscErrorCode STApply(ST st,Vec x,Vec y)
 #define __FUNCT__ "STApplyTranspose"
 /*@
    STApplyTranspose - Applies the transpose of the operator to a vector, for
-   instance B^T(A - sB)^-T in the case of the shift-and-invert tranformation
+   instance B^T(A - sB)^-T in the case of the shift-and-invert transformation
    and generalized eigenproblem.
 
    Collective on ST and Vec

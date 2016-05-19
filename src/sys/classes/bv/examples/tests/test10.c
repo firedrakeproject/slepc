@@ -1,7 +1,7 @@
 /*
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
-   Copyright (c) 2002-2015, Universitat Politecnica de Valencia, Spain
+   Copyright (c) 2002-2016, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
 
@@ -56,7 +56,7 @@ int main(int argc,char **argv)
   /* Fill X entries */
   for (j=0;j<k;j++) {
     ierr = BVGetColumn(X,j,&w);CHKERRQ(ierr);
-    ierr = VecZeroEntries(w);CHKERRQ(ierr);
+    ierr = VecSet(w,0.0);CHKERRQ(ierr);
     for (i=0;i<4;i++) {
       if (i+j<n) {
         ierr = VecSetValue(w,i+j,(PetscScalar)(3*i+j-2),INSERT_VALUES);CHKERRQ(ierr);
@@ -123,5 +123,5 @@ int main(int argc,char **argv)
   ierr = VecDestroy(&z);CHKERRQ(ierr);
   ierr = VecDestroy(&zsplit);CHKERRQ(ierr);
   ierr = SlepcFinalize();
-  return 0;
+  return ierr;
 }

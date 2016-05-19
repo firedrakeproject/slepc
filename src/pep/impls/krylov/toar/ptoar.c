@@ -19,7 +19,7 @@
 
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
-   Copyright (c) 2002-2015, Universitat Politecnica de Valencia, Spain
+   Copyright (c) 2002-2016, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
 
@@ -76,7 +76,7 @@ PetscErrorCode PEPSetUp_TOAR(PEP pep)
 {
   PetscErrorCode ierr;
   PEP_TOAR       *ctx = (PEP_TOAR*)pep->data;
-  PetscBool      sinv,flg,lindep;
+  PetscBool      shift,sinv,flg,lindep;
   PetscInt       i,lds,deg=pep->nmat-1,j;
   PetscReal      norm;
 
@@ -85,8 +85,14 @@ PetscErrorCode PEPSetUp_TOAR(PEP pep)
   ierr = PEPSetDimensions_Default(pep,pep->nev,&pep->ncv,&pep->mpd);CHKERRQ(ierr);
   if (!ctx->lock && pep->mpd<pep->ncv) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Should not use mpd parameter in non-locking variant");
   if (!pep->max_it) pep->max_it = PetscMax(100,2*(pep->nmat-1)*pep->n/pep->ncv);
+  /* Set STSHIFT as the default ST */
+  if (!((PetscObject)pep->st)->type_name) {
+    ierr = STSetType(pep->st,STSHIFT);CHKERRQ(ierr);
+  }
+  ierr = PetscObjectTypeCompare((PetscObject)pep->st,STSHIFT,&shift);CHKERRQ(ierr);
+  ierr = PetscObjectTypeCompare((PetscObject)pep->st,STSINVERT,&sinv);CHKERRQ(ierr);
+  if (!shift && !sinv) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Only STSHIFT and STSINVERT spectral transformations can be used");
   if (!pep->which) {
-    ierr = PetscObjectTypeCompare((PetscObject)pep->st,STSINVERT,&sinv);CHKERRQ(ierr);
     if (sinv) pep->which = PEP_TARGET_MAGNITUDE;
     else pep->which = PEP_LARGEST_MAGNITUDE;
   }
@@ -106,7 +112,6 @@ PetscErrorCode PEPSetUp_TOAR(PEP pep)
   ierr = STGetTransform(pep->st,&flg);CHKERRQ(ierr);
   if (!flg) {
     ierr = PetscMalloc1(pep->nmat,&pep->solvematcoeffs);CHKERRQ(ierr);
-    ierr = PetscObjectTypeCompare((PetscObject)pep->st,STSINVERT,&sinv);CHKERRQ(ierr);
     if (sinv) {
       ierr = PEPEvaluateBasis(pep,pep->target,0,pep->solvematcoeffs,NULL);CHKERRQ(ierr);
     } else {
@@ -122,7 +127,7 @@ PetscErrorCode PEPSetUp_TOAR(PEP pep)
   ctx->nq = 0;
   for (i=0;i<deg;i++) {
     if (pep->nini>-deg) {
-      ierr = BVSetRandomColumn(pep->V,ctx->nq,pep->rand);CHKERRQ(ierr);
+      ierr = BVSetRandomColumn(pep->V,ctx->nq);CHKERRQ(ierr);
     } else {
       ierr = BVInsertVec(pep->V,ctx->nq,pep->IS[i]);CHKERRQ(ierr);
     }
@@ -758,58 +763,21 @@ static PetscErrorCode PEPExtractInvariantPair(PEP pep,PetscScalar sigma,PetscInt
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "PEPLookForDeflation"
-static PetscErrorCode PEPLookForDeflation(PEP pep,PetscInt *nl)
-{
-  PetscErrorCode ierr;
-  PetscInt       i,l,n,ld;
-  PetscReal      norm;
-  PetscBool      cplx;
-  PetscScalar    *H;
-
-  PetscFunctionBegin;
-  *nl = 0;
-  ierr = DSGetDimensions(pep->ds,&n,NULL,&l,NULL,NULL);CHKERRQ(ierr);
-  ierr = DSGetLeadingDimension(pep->ds,&ld);CHKERRQ(ierr);
-  ierr = DSGetArray(pep->ds,DS_MAT_A,&H);CHKERRQ(ierr);
-  for (i=l;i<n;i++) {
-#if defined(PETSC_USE_COMPLEX)
-    cplx = PetscImaginaryPart(pep->eigr[i])?PETSC_TRUE:PETSC_FALSE;
-    norm = PetscAbsScalar(pep->eigr[i]);
-#else
-    cplx = pep->eigi[i]?PETSC_TRUE:PETSC_FALSE;
-    norm = SlepcAbsEigenvalue(pep->eigr[i],pep->eigi[i]);
-#endif
-    if (PetscAbsScalar(H[n+i*ld])/norm < pep->tol) {
-      if (cplx) {
-        if (PetscAbsScalar(H[n+(i+1)*ld])/norm < pep->tol) (*nl)++;
-        else break;
-        i++;
-      }
-      (*nl)++;
-    } else break;
-  }
-  ierr = DSRestoreArray(pep->ds,DS_MAT_A,&H);CHKERRQ(ierr);
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
 #define __FUNCT__ "PEPSolve_TOAR"
 PetscErrorCode PEPSolve_TOAR(PEP pep)
 {
   PetscErrorCode ierr;
   PEP_TOAR       *ctx = (PEP_TOAR*)pep->data;
-  PetscInt       i,j,k,l,nv=0,ld,lds,off,ldds,newn,nq=ctx->nq,nl,nconv=0,locked=0,newc;
+  PetscInt       i,j,k,l,nv=0,ld,lds,off,ldds,newn,nq=ctx->nq,nconv=0,locked=0,newc;
   PetscInt       lwa,lrwa,nwu=0,nrwu=0,nmat=pep->nmat,deg=nmat-1;
   PetscScalar    *S,*Q,*work,*H,sigma;
   PetscReal      beta,*rwork;
-  PetscBool      breakdown=PETSC_FALSE,flg,falselock=PETSC_FALSE,def=PETSC_FALSE,sinv=PETSC_FALSE;
+  PetscBool      breakdown=PETSC_FALSE,flg,falselock=PETSC_FALSE,sinv=PETSC_FALSE;
 
   PetscFunctionBegin;
   ierr = PetscCitationsRegister(citation,&cited);CHKERRQ(ierr);
   if (ctx->lock) {
     ierr = PetscOptionsGetBool(NULL,NULL,"-pep_toar_falselocking",&falselock,NULL);CHKERRQ(ierr);
-    ierr = PetscOptionsGetBool(NULL,NULL,"-pep_toar_lockdeflated",&def,NULL);CHKERRQ(ierr);
   }
   ld = ctx->ld;
   S = ctx->S;
@@ -829,12 +797,12 @@ PetscErrorCode PEPSolve_TOAR(PEP pep)
     }
     if (!flg) {
       pep->target /= pep->sfactor;
-      ierr = RGSetScale(pep->rg,pep->sfactor);CHKERRQ(ierr);
+      ierr = RGPushScale(pep->rg,1.0/pep->sfactor);CHKERRQ(ierr);
       ierr = STScaleShift(pep->st,1.0/pep->sfactor);CHKERRQ(ierr);
       sigma /= pep->sfactor;
     } else {
       ierr = PetscObjectTypeCompare((PetscObject)pep->st,STSINVERT,&sinv);CHKERRQ(ierr);
-      ierr = RGSetScale(pep->rg,sinv?1.0/pep->sfactor:pep->sfactor);CHKERRQ(ierr);
+      ierr = RGPushScale(pep->rg,sinv?pep->sfactor:1.0/pep->sfactor);CHKERRQ(ierr);
       ierr = STScaleShift(pep->st,sinv?pep->sfactor:1.0/pep->sfactor);CHKERRQ(ierr);
     }
   }
@@ -880,15 +848,6 @@ PetscErrorCode PEPSolve_TOAR(PEP pep)
       }
     }
     nconv = k;
-    /* decide on deflating Krylov vectors */
-    if (def) {
-      ierr = PEPLookForDeflation(pep,&nl);CHKERRQ(ierr);
-      nl = PetscMin(nl,k-pep->nconv);
-      if (ctx->lock && pep->reason == PEP_CONVERGED_ITERATING && !breakdown) {
-        k = pep->nconv+nl; l = newn-k;
-      }
-    } else nl = k-pep->nconv;
-
     if (!ctx->lock && pep->reason == PEP_CONVERGED_ITERATING && !breakdown) { l += k; k = 0; } /* non-locking variant: reset no. of converged pairs */
 
     /* update S */
@@ -910,7 +869,7 @@ PetscErrorCode PEPSolve_TOAR(PEP pep)
     /* truncate S */
     if (k+l+deg<nq) {
       if (!falselock && ctx->lock) {
-        newc = flg?k-pep->nconv:nl;
+        newc = k-pep->nconv;
         ierr = PEPTOARTrunc(pep,S,ld,deg,&nq,k+l+1,locked,newc,flg,work+nwu,rwork+nrwu);CHKERRQ(ierr);
         locked += newc;
       } else {
@@ -955,7 +914,6 @@ PetscErrorCode PEPSolve_TOAR(PEP pep)
     } else {
       ierr = STScaleShift(pep->st,sinv?1.0/pep->sfactor:pep->sfactor);CHKERRQ(ierr);
     }
-    ierr = RGSetScale(pep->rg,1.0);CHKERRQ(ierr);
     if (pep->sfactor!=1.0) {
       for (j=0;j<pep->nconv;j++) {
         pep->eigr[j] *= pep->sfactor;
@@ -968,6 +926,7 @@ PetscErrorCode PEPSolve_TOAR(PEP pep)
       }
     }
   }
+  if (pep->sfactor!=1.0) { ierr = RGPopScale(pep->rg);CHKERRQ(ierr); }
 
   /* change the state to raw so that DSVectors() computes eigenvectors from scratch */
   ierr = DSSetDimensions(pep->ds,pep->nconv,0,0,0);CHKERRQ(ierr);

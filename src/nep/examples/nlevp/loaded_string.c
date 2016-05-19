@@ -1,7 +1,7 @@
 /*
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
-   Copyright (c) 2002-2015, Universitat Politecnica de Valencia, Spain
+   Copyright (c) 2002-2016, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
 
@@ -30,7 +30,7 @@
    finite element model of a loaded vibrating string.
 */
 
-static char help[] = "NLEVP problem: loaded_string.\n\n"
+static char help[] = "Finite element model of a loaded vibrating string.\n\n"
   "The command line options are:\n"
   "  -n <n>, dimension of the matrices.\n"
   "  -kappa <kappa>, stiffness of elastic spring.\n"
@@ -154,6 +154,6 @@ int main(int argc,char **argv)
     ierr = MatDestroy(&A[i]);CHKERRQ(ierr);
     ierr = FNDestroy(&f[i]);CHKERRQ(ierr);
   }
-  ierr = SlepcFinalize();CHKERRQ(ierr);
-  return 0;
+  ierr = SlepcFinalize();
+  return ierr;
 }

@@ -21,7 +21,7 @@
 
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
-   Copyright (c) 2002-2015, Universitat Politecnica de Valencia, Spain
+   Copyright (c) 2002-2016, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
 
@@ -40,7 +40,6 @@
 */
 
 #include <slepc/private/epsimpl.h>                /*I "slepceps.h" I*/
-#include <slepc/private/dsimpl.h>                 /*I "slepcds.h" I*/
 
 typedef struct {
   PetscInt  bs;        /* block size */
@@ -149,7 +148,7 @@ PetscErrorCode EPSSolve_LOBPCG(EPS eps)
   /* 2. Apply the constraints to the initial vectors */
   kini = eps->nini;
   while (kini<eps->ncv-ctx->bs) { /* Generate more initial vectors if necessary */
-    ierr = BVSetRandomColumn(eps->V,kini,eps->rand);CHKERRQ(ierr);
+    ierr = BVSetRandomColumn(eps->V,kini);CHKERRQ(ierr);
     ierr = BVOrthogonalizeColumn(eps->V,kini,NULL,&norm,&breakdown);CHKERRQ(ierr);
     if (norm>0.0 && !breakdown) {
       ierr = BVScaleColumn(eps->V,kini,1.0/norm);CHKERRQ(ierr);

@@ -3,7 +3,7 @@
 
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
-   Copyright (c) 2002-2015, Universitat Politecnica de Valencia, Spain
+   Copyright (c) 2002-2016, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
 
@@ -74,12 +74,6 @@ PetscErrorCode NEPSetUp(NEP nep)
   if (!((PetscObject)nep->rg)->type_name) {
     ierr = RGSetType(nep->rg,RGINTERVAL);CHKERRQ(ierr);
   }
-  if (!((PetscObject)nep->rand)->type_name) {
-    ierr = PetscRandomSetFromOptions(nep->rand);CHKERRQ(ierr);
-  }
-  if (!nep->ksp) {
-    ierr = NEPGetKSP(nep,&nep->ksp);CHKERRQ(ierr);
-  }
 
   /* set problem dimensions */
   switch (nep->fui) {
@@ -106,12 +100,21 @@ PetscErrorCode NEPSetUp(NEP nep)
   /* check consistency of refinement options */
   if (nep->refine) {
     if (nep->fui!=NEP_USER_INTERFACE_SPLIT) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"Iterative refinement only implemented in split form");
+    if (!nep->scheme) {  /* set default scheme */
+      ierr = NEPRefineGetKSP(nep,&ksp);CHKERRQ(ierr);
+      ierr = KSPGetPC(ksp,&pc);CHKERRQ(ierr);
+      ierr = PetscObjectTypeCompare((PetscObject)ksp,KSPPREONLY,&flg);CHKERRQ(ierr);
+      if (flg) {
+        ierr = PetscObjectTypeCompareAny((PetscObject)pc,&flg,PCLU,PCCHOLESKY,"");CHKERRQ(ierr);
+      }
+      nep->scheme = flg? NEP_REFINE_SCHEME_MBE: NEP_REFINE_SCHEME_SCHUR;
+    }
     if (nep->scheme==NEP_REFINE_SCHEME_MBE) {
       ierr = NEPRefineGetKSP(nep,&ksp);CHKERRQ(ierr);
       ierr = KSPGetPC(ksp,&pc);CHKERRQ(ierr);
       ierr = PetscObjectTypeCompare((PetscObject)ksp,KSPPREONLY,&flg);CHKERRQ(ierr);
       if (flg) {
-        ierr = PetscObjectTypeCompareAny((PetscObject)pc,&flg,PCLU,PCCHOLESKY);CHKERRQ(ierr);
+        ierr = PetscObjectTypeCompareAny((PetscObject)pc,&flg,PCLU,PCCHOLESKY,"");CHKERRQ(ierr);
       }
       if (!flg) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"The MBE scheme for refinement requires a direct solver in KSP");
       ierr = MPI_Comm_size(PetscObjectComm((PetscObject)pc),&size);CHKERRQ(ierr);
@@ -135,9 +138,8 @@ PetscErrorCode NEPSetUp(NEP nep)
 
   /* set tolerance if not yet set */
   if (nep->tol==PETSC_DEFAULT) nep->tol = SLEPC_DEFAULT_TOL;
-  nep->ktol = 0.1;
   if (nep->refine) {
-    if (nep->reftol==PETSC_DEFAULT) nep->reftol = nep->tol;
+    if (nep->rtol==PETSC_DEFAULT) nep->rtol = PetscMax(nep->tol/1000,PETSC_MACHINE_EPSILON);
     if (nep->rits==PETSC_DEFAULT) nep->rits = (nep->refine==NEP_REFINE_SIMPLE)? 10: 1;
   }
 
@@ -182,6 +184,8 @@ PetscErrorCode NEPSetUp(NEP nep)
     case NEP_ALL:
       nep->sc->comparison    = SlepcCompareSmallestReal;
       nep->sc->comparisonctx = NULL;
+      break;
+    case NEP_WHICH_USER:
       break;
   }
 
@@ -251,6 +255,30 @@ PetscErrorCode NEPSetInitialSpace(NEP nep,PetscInt n,Vec *is)
   if (n<0) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_OUTOFRANGE,"Argument n cannot be negative");
   ierr = SlepcBasisReference_Private(n,is,&nep->nini,&nep->IS);CHKERRQ(ierr);
   if (n>0) nep->state = NEP_STATE_INITIAL;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "NEPSetDimensions_Default"
+/*
+  NEPSetDimensions_Default - Set reasonable values for ncv, mpd if not set
+  by the user. This is called at setup.
+ */
+PetscErrorCode NEPSetDimensions_Default(NEP nep,PetscInt nev,PetscInt *ncv,PetscInt *mpd)
+{
+  PetscFunctionBegin;
+  if (*ncv) { /* ncv set */
+    if (*ncv<nev) SETERRQ(PetscObjectComm((PetscObject)nep),1,"The value of ncv must be at least nev");
+  } else if (*mpd) { /* mpd set */
+    *ncv = PetscMin(nep->n,nev+(*mpd));
+  } else { /* neither set: defaults depend on nev being small or large */
+    if (nev<500) *ncv = PetscMin(nep->n,PetscMax(2*nev,nev+15));
+    else {
+      *mpd = 500;
+      *ncv = PetscMin(nep->n,nev+(*mpd));
+    }
+  }
+  if (!*mpd) *mpd = *ncv;
   PetscFunctionReturn(0);
 }
 

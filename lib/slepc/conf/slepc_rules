@@ -1,7 +1,7 @@
 #
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #  SLEPc - Scalable Library for Eigenvalue Problem Computations
-#  Copyright (c) 2002-2015, Universitat Politecnica de Valencia, Spain
+#  Copyright (c) 2002-2016, Universitat Politecnica de Valencia, Spain
 #
 #  This file is part of SLEPc.
 #
@@ -42,7 +42,7 @@ slepc_manualpages:
 
 slepc_manexamples:
 	-@base=`basename ${LOCDIR}`; \
-        if [ "$${base}" = "tutorials" ] ; then \
+        if [ "$${base}" = "tutorials" -o "$${base}" = "nlevp" ] ; then \
           echo "Generating manual example links" ; \
           for i in ${EXAMPLESC} ${EXAMPLESF} foo ; do \
             if [ "$$i" != "foo" ] ; then \
@@ -50,7 +50,7 @@ slepc_manexamples:
                    -printmatch -o /dev/null | sort | uniq` ;  \
               for j in $$a ; do \
                 b=`ls ${LOC}/docs/manualpages/*/$${j}.html | cut -f9` ; \
-                l=`grep tutorials $${b} | wc -l`; \
+                l=`grep -e tutorials -e nlevp $${b} | wc -l`; \
                 if [ $$l -le 10 ] ; then \
                   if [ $$l -eq 0 ] ; then \
                     echo "<P><H3><FONT COLOR=\"#883300\">Examples</FONT></H3>" >> $$b; \

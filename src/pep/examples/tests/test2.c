@@ -1,7 +1,7 @@
 /*
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
-   Copyright (c) 2002-2015, Universitat Politecnica de Valencia, Spain
+   Copyright (c) 2002-2016, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
 
@@ -34,7 +34,7 @@ static char help[] = "Test the solution of a PEP from a finite element model of 
   "The command line options are:\n"
   "  -n <n>, where <n> = number of grid subdivisions.\n"
   "  -tau <tau>, where <tau> = tau parameter.\n"
-  "  -kappa <kappa>, where <kappa> = kappa paramter.\n\n";
+  "  -kappa <kappa>, where <kappa> = kappa parameter.\n\n";
 
 #include <slepcpep.h>
 
@@ -149,5 +149,5 @@ int main(int argc,char **argv)
   ierr = MatDestroy(&C);CHKERRQ(ierr);
   ierr = MatDestroy(&K);CHKERRQ(ierr);
   ierr = SlepcFinalize();
-  return 0;
+  return ierr;
 }

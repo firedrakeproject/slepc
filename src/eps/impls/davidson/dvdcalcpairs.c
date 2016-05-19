@@ -12,7 +12,7 @@
 
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
-   Copyright (c) 2002-2015, Universitat Politecnica de Valencia, Spain
+   Copyright (c) 2002-2016, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
 
@@ -270,7 +270,7 @@ static PetscErrorCode dvd_calcpairs_proj(dvdDashboard *d)
     l+= d->V_tra_s;
   } else {
     /* 2. V <- orth(V, V_new) */
-    ierr = dvd_orthV(d->eps->V,l+d->V_new_s,l+d->V_new_e,d->eps->rand);CHKERRQ(ierr);
+    ierr = dvd_orthV(d->eps->V,l+d->V_new_s,l+d->V_new_e);CHKERRQ(ierr);
     /* 3. AV <- [AV A * V(V_new_s:V_new_e-1)] */
     /* Check consistency */
     if (k-l != d->V_new_s) SETERRQ(PETSC_COMM_SELF,1, "Consistency broken");
@@ -296,7 +296,7 @@ static PetscErrorCode dvd_calcpairs_proj(dvdDashboard *d)
     /* 5. W <- [W f(AV,BV)] */
     if (d->W) {
       ierr = d->calcpairs_W(d);CHKERRQ(ierr);
-      ierr = dvd_orthV(d->W,l+d->V_new_s,l+d->V_new_e,d->eps->rand);CHKERRQ(ierr);
+      ierr = dvd_orthV(d->W,l+d->V_new_s,l+d->V_new_e);CHKERRQ(ierr);
     }
     /* 6. H <- W' * AX; G <- W' * BX */
     ierr = BVSetActiveColumns(d->eps->V,l+d->V_new_s,l+d->V_new_e);CHKERRQ(ierr);

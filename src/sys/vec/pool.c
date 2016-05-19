@@ -3,7 +3,7 @@
 
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
-   Copyright (c) 2002-2015, Universitat Politecnica de Valencia, Spain
+   Copyright (c) 2002-2016, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
 
@@ -106,7 +106,7 @@ PetscErrorCode SlepcVecPoolDestroy(VecPool *p)
 +  pool - pool of Vec.
 -  n - number of vectors.
 
-   Output Paramter:
+   Output Parameter:
 .  vecs - vectors
 
    Level: developer

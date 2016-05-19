@@ -4,7 +4,7 @@
 
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
-   Copyright (c) 2002-2015, Universitat Politecnica de Valencia, Spain
+   Copyright (c) 2002-2016, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
 
@@ -23,6 +23,7 @@
 */
 
 #include <slepc/private/nepimpl.h>       /*I "slepcnep.h" I*/
+#include <petscdraw.h>
 
 #undef __FUNCT__
 #define __FUNCT__ "NEPMonitorSetFromOptions"
@@ -44,7 +45,7 @@
 
 .seealso: NEPMonitorSet(), NEPSetTrackAll(), NEPConvMonitorSetFromOptions()
 @*/
-PetscErrorCode NEPMonitorSetFromOptions(NEP nep,const char name[],const char help[],const char manual[],PetscErrorCode (*monitor)(NEP,PetscInt,PetscInt,PetscScalar*,PetscReal*,PetscInt,PetscViewerAndFormat*),PetscBool trackall)
+PetscErrorCode NEPMonitorSetFromOptions(NEP nep,const char name[],const char help[],const char manual[],PetscErrorCode (*monitor)(NEP,PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscReal*,PetscInt,PetscViewerAndFormat*),PetscBool trackall)
 {
   PetscErrorCode       ierr;
   PetscBool            flg;
@@ -57,7 +58,7 @@ PetscErrorCode NEPMonitorSetFromOptions(NEP nep,const char name[],const char hel
   if (flg) {
     ierr = PetscViewerAndFormatCreate(viewer,format,&vf);CHKERRQ(ierr);
     ierr = PetscObjectDereference((PetscObject)viewer);CHKERRQ(ierr);
-    ierr = NEPMonitorSet(nep,(PetscErrorCode (*)(NEP,PetscInt,PetscInt,PetscScalar*,PetscReal*,PetscInt,void*))monitor,vf,(PetscErrorCode (*)(void**))PetscViewerAndFormatDestroy);CHKERRQ(ierr);
+    ierr = NEPMonitorSet(nep,(PetscErrorCode (*)(NEP,PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscReal*,PetscInt,void*))monitor,vf,(PetscErrorCode (*)(void**))PetscViewerAndFormatDestroy);CHKERRQ(ierr);
     if (trackall) {
       ierr = NEPSetTrackAll(nep,PETSC_TRUE);CHKERRQ(ierr);
     }
@@ -84,7 +85,7 @@ PetscErrorCode NEPMonitorSetFromOptions(NEP nep,const char name[],const char hel
 
 .seealso: NEPMonitorSet(), NEPMonitorSetFromOptions()
 @*/
-PetscErrorCode NEPConvMonitorSetFromOptions(NEP nep,const char name[],const char help[],const char manual[],PetscErrorCode (*monitor)(NEP,PetscInt,PetscInt,PetscScalar*,PetscReal*,PetscInt,SlepcConvMonitor))
+PetscErrorCode NEPConvMonitorSetFromOptions(NEP nep,const char name[],const char help[],const char manual[],PetscErrorCode (*monitor)(NEP,PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscReal*,PetscInt,SlepcConvMonitor))
 {
   PetscErrorCode    ierr;
   PetscBool         flg;
@@ -97,7 +98,7 @@ PetscErrorCode NEPConvMonitorSetFromOptions(NEP nep,const char name[],const char
   if (flg) {
     ierr = SlepcConvMonitorCreate(viewer,format,&ctx);CHKERRQ(ierr);
     ierr = PetscObjectDereference((PetscObject)viewer);CHKERRQ(ierr);
-    ierr = NEPMonitorSet(nep,(PetscErrorCode (*)(NEP,PetscInt,PetscInt,PetscScalar*,PetscReal*,PetscInt,void*))monitor,ctx,(PetscErrorCode (*)(void**))SlepcConvMonitorDestroy);CHKERRQ(ierr);
+    ierr = NEPMonitorSet(nep,(PetscErrorCode (*)(NEP,PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscReal*,PetscInt,void*))monitor,ctx,(PetscErrorCode (*)(void**))SlepcConvMonitorDestroy);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }
@@ -127,6 +128,7 @@ PetscErrorCode NEPSetFromOptions(NEP nep)
   PetscReal      r;
   PetscScalar    s;
   PetscInt       i,j,k;
+  PetscDrawLG    lg;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
@@ -143,8 +145,8 @@ PetscErrorCode NEPSetFromOptions(NEP nep)
 
     i = nep->npart;
     ierr = PetscOptionsInt("-nep_refine_partitions","Number of partitions of the communicator for iterative refinement","NEPSetRefine",nep->npart,&i,&flg1);CHKERRQ(ierr);
-    r = nep->reftol;
-    ierr = PetscOptionsReal("-nep_refine_tol","Tolerance for iterative refinement","NEPSetRefine",nep->reftol,&r,&flg2);CHKERRQ(ierr);
+    r = nep->rtol;
+    ierr = PetscOptionsReal("-nep_refine_tol","Tolerance for iterative refinement","NEPSetRefine",nep->rtol==PETSC_DEFAULT?SLEPC_DEFAULT_TOL/1000:nep->rtol,&r,&flg2);CHKERRQ(ierr);
     j = nep->rits;
     ierr = PetscOptionsInt("-nep_refine_its","Maximum number of iterations for iterative refinement","NEPSetRefine",nep->rits,&j,&flg3);CHKERRQ(ierr);
     if (flg1 || flg2 || flg3) {
@@ -185,12 +187,6 @@ PetscErrorCode NEPSetFromOptions(NEP nep)
       ierr = NEPSetDimensions(nep,i,j,k);CHKERRQ(ierr);
     }
 
-    i = 0;
-    ierr = PetscOptionsInt("-nep_lag_preconditioner","Interval to rebuild preconditioner","NEPSetLagPreconditioner",nep->lag,&i,&flg);CHKERRQ(ierr);
-    if (flg) { ierr = NEPSetLagPreconditioner(nep,i);CHKERRQ(ierr); }
-
-    ierr = PetscOptionsBool("-nep_const_correction_tol","Constant correction tolerance for the linear solver","NEPSetConstCorrectionTol",nep->cctol,&nep->cctol,NULL);CHKERRQ(ierr);
-
     ierr = PetscOptionsScalar("-nep_target","Value of the target","NEPSetTarget",nep->target,&s,&flg);CHKERRQ(ierr);
     if (flg) {
       ierr = NEPSetWhichEigenpairs(nep,NEP_TARGET_MAGNITUDE);CHKERRQ(ierr);
@@ -216,11 +212,13 @@ PetscErrorCode NEPSetFromOptions(NEP nep)
     */
     ierr = PetscOptionsBool("-nep_monitor_lg","Monitor first unconverged approximate error estimate graphically","NEPMonitorSet",PETSC_FALSE,&flg,&set);CHKERRQ(ierr);
     if (set && flg) {
-      ierr = NEPMonitorSet(nep,NEPMonitorLG,NULL,NULL);CHKERRQ(ierr);
+      ierr = NEPMonitorLGCreate(PetscObjectComm((PetscObject)nep),NULL,"Error estimates",PETSC_DECIDE,PETSC_DECIDE,300,300,&lg);CHKERRQ(ierr);
+      ierr = NEPMonitorSet(nep,NEPMonitorLG,lg,(PetscErrorCode (*)(void**))PetscDrawLGDestroy);CHKERRQ(ierr);
     }
     ierr = PetscOptionsBool("-nep_monitor_lg_all","Monitor error estimates graphically","NEPMonitorSet",PETSC_FALSE,&flg,&set);CHKERRQ(ierr);
     if (set && flg) {
-      ierr = NEPMonitorSet(nep,NEPMonitorLGAll,NULL,NULL);CHKERRQ(ierr);
+      ierr = NEPMonitorLGCreate(PetscObjectComm((PetscObject)nep),NULL,"Error estimates",PETSC_DECIDE,PETSC_DECIDE,300,300,&lg);CHKERRQ(ierr);
+      ierr = NEPMonitorSet(nep,NEPMonitorLGAll,lg,(PetscErrorCode (*)(void**))PetscDrawLGDestroy);CHKERRQ(ierr);
       ierr = NEPSetTrackAll(nep,PETSC_TRUE);CHKERRQ(ierr);
     }
   /* -----------------------------------------------------------------------*/
@@ -265,12 +263,8 @@ PetscErrorCode NEPSetFromOptions(NEP nep)
   ierr = RGSetFromOptions(nep->rg);CHKERRQ(ierr);
   if (!nep->ds) { ierr = NEPGetDS(nep,&nep->ds);CHKERRQ(ierr); }
   ierr = DSSetFromOptions(nep->ds);CHKERRQ(ierr);
-  if (!nep->ksp) { ierr = NEPGetKSP(nep,&nep->ksp);CHKERRQ(ierr); }
-  ierr = KSPSetOperators(nep->ksp,nep->function,nep->function_pre);CHKERRQ(ierr);
-  ierr = KSPSetFromOptions(nep->ksp);CHKERRQ(ierr);
   if (!nep->refineksp) { ierr = NEPRefineGetKSP(nep,&nep->refineksp);CHKERRQ(ierr); }
   ierr = KSPSetFromOptions(nep->refineksp);CHKERRQ(ierr);
-  ierr = PetscRandomSetFromOptions(nep->rand);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -296,11 +290,11 @@ PetscErrorCode NEPSetFromOptions(NEP nep)
 
 .seealso: NEPSetTolerances()
 @*/
-PetscErrorCode NEPGetTolerances(NEP nep,PetscReal *rtol,PetscInt *maxits)
+PetscErrorCode NEPGetTolerances(NEP nep,PetscReal *tol,PetscInt *maxits)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
-  if (rtol)   *rtol   = nep->tol;
+  if (tol)    *tol    = nep->tol;
   if (maxits) *maxits = nep->max_it;
   PetscFunctionReturn(0);
 }
@@ -471,6 +465,7 @@ PetscErrorCode NEPSetDimensions(NEP nep,PetscInt nev,PetscInt ncv,PetscInt mpd)
 .     NEP_TARGET_REAL - eigenvalues with real part closest to target
 .     NEP_TARGET_IMAGINARY - eigenvalues with imaginary part closest to target
 .     NEP_ALL - all eigenvalues contained in a given region
+-     NEP_WHICH_USER - user defined ordering set with NEPSetEigenvalueComparison()
 
     Options Database Keys:
 +   -nep_largest_magnitude - Sets largest eigenvalues in magnitude
@@ -497,7 +492,7 @@ PetscErrorCode NEPSetDimensions(NEP nep,PetscInt nev,PetscInt ncv,PetscInt mpd)
 
     Level: intermediate
 
-.seealso: NEPGetWhichEigenpairs(), NEPSetTarget(), NEPWhich
+.seealso: NEPGetWhichEigenpairs(), NEPSetTarget(), NEPSetEigenvalueComparison(), NEPWhich
 @*/
 PetscErrorCode NEPSetWhichEigenpairs(NEP nep,NEPWhich which)
 {
@@ -517,6 +512,7 @@ PetscErrorCode NEPSetWhichEigenpairs(NEP nep,NEPWhich which)
     case NEP_TARGET_IMAGINARY:
 #endif
     case EPS_ALL:
+    case NEP_WHICH_USER:
       if (nep->which != which) {
         nep->state = NEP_STATE_INITIAL;
         nep->which = which;
@@ -559,123 +555,45 @@ PetscErrorCode NEPGetWhichEigenpairs(NEP nep,NEPWhich *which)
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "NEPSetLagPreconditioner"
-/*@
-    NEPSetLagPreconditioner - Determines when the preconditioner is rebuilt in the
-    nonlinear solve.
+#define __FUNCT__ "NEPSetEigenvalueComparison"
+/*@C
+   NEPSetEigenvalueComparison - Specifies the eigenvalue comparison function
+   when NEPSetWhichEigenpairs() is set to NEP_WHICH_USER.
 
-    Logically Collective on NEP
+   Logically Collective on NEP
 
-    Input Parameters:
-+   nep - the NEP context
--   lag - 0 indicates NEVER rebuild, 1 means rebuild every time the Jacobian is
-          computed within the nonlinear iteration, 2 means every second time
-          the Jacobian is built, etc.
+   Input Parameters:
++  pep  - eigensolver context obtained from NEPCreate()
+.  func - a pointer to the comparison function
+-  ctx  - a context pointer (the last parameter to the comparison function)
 
-    Options Database Keys:
-.   -nep_lag_preconditioner <lag>
+   Calling Sequence of func:
+$   func(PetscScalar ar,PetscScalar ai,PetscScalar br,PetscScalar bi,PetscInt *res,void *ctx)
 
-    Notes:
-    The default is 1.
-    The preconditioner is ALWAYS built in the first iteration of a nonlinear solve.
++   ar     - real part of the 1st eigenvalue
+.   ai     - imaginary part of the 1st eigenvalue
+.   br     - real part of the 2nd eigenvalue
+.   bi     - imaginary part of the 2nd eigenvalue
+.   res    - result of comparison
+-   ctx    - optional context, as set by NEPSetEigenvalueComparison()
 
-    Level: intermediate
+   Note:
+   The returning parameter 'res' can be:
++  negative - if the 1st eigenvalue is preferred to the 2st one
+.  zero     - if both eigenvalues are equally preferred
+-  positive - if the 2st eigenvalue is preferred to the 1st one
 
-.seealso: NEPGetLagPreconditioner()
+   Level: advanced
+
+.seealso: NEPSetWhichEigenpairs(), NEPWhich
 @*/
-PetscErrorCode NEPSetLagPreconditioner(NEP nep,PetscInt lag)
+PetscErrorCode NEPSetEigenvalueComparison(NEP pep,PetscErrorCode (*func)(PetscScalar,PetscScalar,PetscScalar,PetscScalar,PetscInt*,void*),void* ctx)
 {
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
-  PetscValidLogicalCollectiveInt(nep,lag,2);
-  if (lag<0) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ARG_OUTOFRANGE,"Lag must be non-negative");
-  nep->lag = lag;
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
-#define __FUNCT__ "NEPGetLagPreconditioner"
-/*@
-    NEPGetLagPreconditioner - Indicates how often the preconditioner is rebuilt.
-
-    Not Collective
-
-    Input Parameter:
-.   nep - the NEP context
-
-    Output Parameter:
-.   lag - the lag parameter
-
-    Level: intermediate
-
-.seealso: NEPSetLagPreconditioner()
-@*/
-PetscErrorCode NEPGetLagPreconditioner(NEP nep,PetscInt *lag)
-{
-  PetscFunctionBegin;
-  PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
-  PetscValidPointer(lag,2);
-  *lag = nep->lag;
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
-#define __FUNCT__ "NEPSetConstCorrectionTol"
-/*@
-    NEPSetConstCorrectionTol - Sets a flag to keep the tolerance used
-    in the linear solver constant.
-
-    Logically Collective on NEP
-
-    Input Parameters:
-+   nep - the NEP context
--   cct - a boolean value
-
-    Options Database Keys:
-.   -nep_const_correction_tol <cct>
-
-    Notes:
-    By default, an exponentially decreasing tolerance is set in the KSP used
-    within the nonlinear iteration, so that each Newton iteration requests
-    better accuracy than the previous one. The constant correction tolerance
-    flag stops this behaviour.
-
-    Level: intermediate
-
-.seealso: NEPGetConstCorrectionTol()
-@*/
-PetscErrorCode NEPSetConstCorrectionTol(NEP nep,PetscBool cct)
-{
-  PetscFunctionBegin;
-  PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
-  PetscValidLogicalCollectiveBool(nep,cct,2);
-  nep->cctol = cct;
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
-#define __FUNCT__ "NEPGetConstCorrectionTol"
-/*@
-    NEPGetConstCorrectionTol - Returns the constant tolerance flag.
-
-    Not Collective
-
-    Input Parameter:
-.   nep - the NEP context
-
-    Output Parameter:
-.   cct - the value of the constant tolerance flag
-
-    Level: intermediate
-
-.seealso: NEPSetConstCorrectionTol()
-@*/
-PetscErrorCode NEPGetConstCorrectionTol(NEP nep,PetscBool *cct)
-{
-  PetscFunctionBegin;
-  PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
-  PetscValidPointer(cct,2);
-  *cct = nep->cctol;
+  PetscValidHeaderSpecific(pep,NEP_CLASSID,1);
+  pep->sc->comparison    = func;
+  pep->sc->comparisonctx = ctx;
+  pep->which             = NEP_WHICH_USER;
   PetscFunctionReturn(0);
 }
 
@@ -1053,10 +971,10 @@ PetscErrorCode NEPSetRefine(NEP nep,NEPRefine refine,PetscInt npart,PetscReal to
       nep->npart = npart;
     }
     if (tol == PETSC_DEFAULT || tol == PETSC_DECIDE) {
-      nep->reftol = nep->tol;
+      nep->rtol = PetscMax(nep->tol/1000,PETSC_MACHINE_EPSILON);
     } else {
       if (tol<=0.0) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of tol. Must be > 0");
-      nep->reftol = tol;
+      nep->rtol = tol;
     }
     if (its==PETSC_DECIDE || its==PETSC_DEFAULT) {
       nep->rits = PETSC_DEFAULT;
@@ -1101,7 +1019,7 @@ PetscErrorCode NEPGetRefine(NEP nep,NEPRefine *refine,PetscInt *npart,PetscReal 
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
   if (refine) *refine = nep->refine;
   if (npart)  *npart  = nep->npart;
-  if (tol)    *tol    = nep->reftol;
+  if (tol)    *tol    = nep->rtol;
   if (its)    *its    = nep->rits;
   if (scheme) *scheme = nep->scheme;
   PetscFunctionReturn(0);
@@ -1147,9 +1065,6 @@ PetscErrorCode NEPSetOptionsPrefix(NEP nep,const char *prefix)
   ierr = DSSetOptionsPrefix(nep->ds,prefix);CHKERRQ(ierr);
   if (!nep->rg) { ierr = NEPGetRG(nep,&nep->rg);CHKERRQ(ierr); }
   ierr = RGSetOptionsPrefix(nep->rg,prefix);CHKERRQ(ierr);
-  if (!nep->ksp) { ierr = NEPGetKSP(nep,&nep->ksp);CHKERRQ(ierr); }
-  ierr = KSPSetOptionsPrefix(nep->ksp,prefix);CHKERRQ(ierr);
-  ierr = KSPAppendOptionsPrefix(nep->ksp,"nep_");CHKERRQ(ierr);
   ierr = PetscObjectSetOptionsPrefix((PetscObject)nep,prefix);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -1186,9 +1101,6 @@ PetscErrorCode NEPAppendOptionsPrefix(NEP nep,const char *prefix)
   ierr = DSSetOptionsPrefix(nep->ds,prefix);CHKERRQ(ierr);
   if (!nep->rg) { ierr = NEPGetRG(nep,&nep->rg);CHKERRQ(ierr); }
   ierr = RGSetOptionsPrefix(nep->rg,prefix);CHKERRQ(ierr);
-  if (!nep->ksp) { ierr = NEPGetKSP(nep,&nep->ksp);CHKERRQ(ierr); }
-  ierr = KSPSetOptionsPrefix(nep->ksp,prefix);CHKERRQ(ierr);
-  ierr = KSPAppendOptionsPrefix(nep->ksp,"nep_");CHKERRQ(ierr);
   ierr = PetscObjectAppendOptionsPrefix((PetscObject)nep,prefix);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -1207,7 +1119,8 @@ PetscErrorCode NEPAppendOptionsPrefix(NEP nep,const char *prefix)
    Output Parameters:
 .  prefix - pointer to the prefix string used is returned
 
-   Notes: On the fortran side, the user should pass in a string 'prefix' of
+   Note:
+   On the Fortran side, the user should pass in a string 'prefix' of
    sufficient length to hold the prefix.
 
    Level: advanced

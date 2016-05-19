@@ -3,7 +3,7 @@
 
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
-   Copyright (c) 2002-2015, Universitat Politecnica de Valencia, Spain
+   Copyright (c) 2002-2016, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
 
@@ -74,6 +74,7 @@ PetscErrorCode NEPSolve(NEP nep)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
+  if (nep->state>=NEP_STATE_SOLVED) PetscFunctionReturn(0);
   ierr = PetscLogEventBegin(NEP_Solve,nep,0,0,0);CHKERRQ(ierr);
 
   /* call setup */
@@ -86,8 +87,6 @@ PetscErrorCode NEPSolve(NEP nep)
     nep->errest[i] = 0.0;
     nep->perm[i]   = i;
   }
-  nep->ktol = 0.1;
-  ierr = NEPMonitor(nep,nep->its,nep->nconv,nep->eigr,nep->errest,nep->ncv);CHKERRQ(ierr);
   ierr = NEPViewFromOptions(nep,NULL,"-nep_view_pre");CHKERRQ(ierr);
 
   ierr = (*nep->ops->solve)(nep);CHKERRQ(ierr);
@@ -97,7 +96,7 @@ PetscErrorCode NEPSolve(NEP nep)
 
   if (nep->refine==NEP_REFINE_SIMPLE && nep->rits>0 && nep->nconv>0) {
     ierr = NEPComputeVectors(nep);CHKERRQ(ierr);
-    ierr = NEPNewtonRefinementSimple(nep,&nep->rits,nep->reftol,nep->nconv);CHKERRQ(ierr);
+    ierr = NEPNewtonRefinementSimple(nep,&nep->rits,nep->rtol,nep->nconv);CHKERRQ(ierr);
     nep->state = NEP_STATE_EIGENVECTORS;
   }
 
@@ -360,7 +359,7 @@ PetscErrorCode NEPGetConverged(NEP nep,PetscInt *nconv)
    Possible values for reason:
 +  NEP_CONVERGED_TOL - converged up to tolerance
 .  NEP_CONVERGED_USER - converged due to a user-defined condition
-.  NEP_DIVERGED_ITS - required more than its to reach convergence
+.  NEP_DIVERGED_ITS - required more than max_it iterations to reach convergence
 .  NEP_DIVERGED_BREAKDOWN - generic breakdown in method
 -  NEP_DIVERGED_LINEAR_SOLVE - inner linear solve failed
 

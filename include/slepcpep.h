@@ -3,7 +3,7 @@
 
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
-   Copyright (c) 2002-2015, Universitat Politecnica de Valencia, Spain
+   Copyright (c) 2002-2016, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
 
@@ -132,9 +132,9 @@ PETSC_EXTERN const char *PEPRefineTypes[];
 
 .seealso: PEPSetRefine()
 E*/
-typedef enum { PEP_REFINE_SCHEME_EXPLICIT,
+typedef enum { PEP_REFINE_SCHEME_SCHUR=1,
                PEP_REFINE_SCHEME_MBE,
-               PEP_REFINE_SCHEME_SCHUR } PEPRefineScheme;
+               PEP_REFINE_SCHEME_EXPLICIT } PEPRefineScheme;
 PETSC_EXTERN const char *PEPRefineSchemes[];
 
 /*E
@@ -286,6 +286,7 @@ PETSC_EXTERN PetscErrorCode PEPSetEigenvalueComparison(PEP,PetscErrorCode (*func
 PETSC_EXTERN PetscErrorCode PEPMonitorAll(PEP,PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscReal*,PetscInt,PetscViewerAndFormat*);
 PETSC_EXTERN PetscErrorCode PEPMonitorFirst(PEP,PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscReal*,PetscInt,PetscViewerAndFormat*);
 PETSC_EXTERN PetscErrorCode PEPMonitorConverged(PEP,PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscReal*,PetscInt,SlepcConvMonitor);
+PETSC_EXTERN PetscErrorCode PEPMonitorLGCreate(MPI_Comm,const char[],const char[],int,int,int,int,PetscDrawLG*);
 PETSC_EXTERN PetscErrorCode PEPMonitorLG(PEP,PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscReal*,PetscInt,void*);
 PETSC_EXTERN PetscErrorCode PEPMonitorLGAll(PEP,PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscReal*,PetscInt,void*);
 
@@ -326,8 +327,6 @@ PETSC_EXTERN PetscErrorCode PEPSTOARGetLocking(PEP,PetscBool*);
 
 PETSC_EXTERN PetscErrorCode PEPJDSetRestart(PEP,PetscReal);
 PETSC_EXTERN PetscErrorCode PEPJDGetRestart(PEP,PetscReal*);
-PETSC_EXTERN PetscErrorCode PEPJDSetTolerances(PEP,PetscReal,PetscReal,PetscReal);
-PETSC_EXTERN PetscErrorCode PEPJDGetTolerances(PEP,PetscReal*,PetscReal*,PetscReal*);
 
 #endif
 

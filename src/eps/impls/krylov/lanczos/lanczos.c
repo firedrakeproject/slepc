@@ -17,7 +17,7 @@
 
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
-   Copyright (c) 2002-2015, Universitat Politecnica de Valencia, Spain
+   Copyright (c) 2002-2016, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
 
@@ -715,8 +715,8 @@ PetscErrorCode EPSSolve_Lanczos(EPS eps)
       eps->eigr[i] = ritz[i];
       eps->errest[i] = bnd[i];
     }
-    ierr = EPSMonitor(eps,eps->its,nconv,eps->eigr,eps->eigi,eps->errest,n);CHKERRQ(ierr);
     nconv = k;
+    ierr = EPSMonitor(eps,eps->its,nconv,eps->eigr,eps->eigi,eps->errest,n);CHKERRQ(ierr);
     ierr = (*eps->stopping)(eps,eps->its,eps->max_it,nconv,eps->nev,&eps->reason,eps->stoppingctx);CHKERRQ(ierr);
 
     if (eps->reason == EPS_CONVERGED_ITERATING) { /* copy restart vector */

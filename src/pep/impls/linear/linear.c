@@ -3,7 +3,7 @@
 
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
-   Copyright (c) 2002-2015, Universitat Politecnica de Valencia, Spain
+   Copyright (c) 2002-2016, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
 
@@ -262,7 +262,7 @@ PetscErrorCode PEPSetUp_Linear(PEP pep)
   PetscInt       i=0,deg=pep->nmat-1;
   EPSWhich       which;
   EPSProblemType ptype;
-  PetscBool      trackall,istrivial,transf,sinv,ks;
+  PetscBool      trackall,istrivial,transf,shift,sinv,ks;
   PetscScalar    sigma,*epsarray,*peparray;
   Vec            veps;
   /* function tables */
@@ -280,7 +280,13 @@ PetscErrorCode PEPSetUp_Linear(PEP pep)
   pep->lineariz = PETSC_TRUE;
   if (!ctx->cform) ctx->cform = 1;
   ierr = STGetTransform(pep->st,&transf);CHKERRQ(ierr);
+  /* Set STSHIFT as the default ST */
+  if (!((PetscObject)pep->st)->type_name) {
+    ierr = STSetType(pep->st,STSHIFT);CHKERRQ(ierr);
+  }
+  ierr = PetscObjectTypeCompare((PetscObject)pep->st,STSHIFT,&shift);CHKERRQ(ierr);
   ierr = PetscObjectTypeCompare((PetscObject)pep->st,STSINVERT,&sinv);CHKERRQ(ierr);
+  if (!shift && !sinv) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Only STSHIFT and STSINVERT spectral transformations can be used");
   if (!pep->which) {
     if (sinv) pep->which = PEP_TARGET_MAGNITUDE;
     else pep->which = PEP_LARGEST_MAGNITUDE;
@@ -294,12 +300,12 @@ PetscErrorCode PEPSetUp_Linear(PEP pep)
   ierr = PEPComputeScaleFactor(pep);CHKERRQ(ierr);
 
   if (ctx->explicitmatrix) {
-    if (transf) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Explicit matrix option is not implemented with st-tranform flag active");
+    if (transf) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Explicit matrix option is not implemented with st-transform flag active");
     if (pep->nmat!=3) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Explicit matrix option only available for quadratic problems");
     if (pep->basis!=PEP_BASIS_MONOMIAL) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Explicit matrix option not implemented for non-monomial bases");
     if (pep->scale==PEP_SCALE_DIAGONAL || pep->scale==PEP_SCALE_BOTH) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Diagonal scaling not allowed in PEPLINEAR with explicit matrices");
     if (sinv && !transf) { ierr = STSetType(st,STSINVERT);CHKERRQ(ierr); }
-    ierr = RGSetScale(pep->rg,pep->sfactor);CHKERRQ(ierr);
+    ierr = RGPushScale(pep->rg,1.0/pep->sfactor);CHKERRQ(ierr);
     ierr = STGetTOperators(pep->st,0,&ctx->K);CHKERRQ(ierr);
     ierr = STGetTOperators(pep->st,1,&ctx->C);CHKERRQ(ierr);
     ierr = STGetTOperators(pep->st,2,&ctx->M);CHKERRQ(ierr);
@@ -327,7 +333,7 @@ PetscErrorCode PEPSetUp_Linear(PEP pep)
     ierr = PetscLogObjectParent((PetscObject)pep,(PetscObject)ctx->B);CHKERRQ(ierr);
 
   } else {   /* implicit matrix */
-    if (pep->problem_type!=PEP_GENERAL) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Must use the explicit matrix option");
+    if (pep->problem_type!=PEP_GENERAL) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Must use the explicit matrix option if problem type is not general");
     if (!((PetscObject)(ctx->eps))->type_name) {
       ierr = EPSSetType(ctx->eps,EPSKRYLOVSCHUR);CHKERRQ(ierr);
     } else {
@@ -346,7 +352,6 @@ PetscErrorCode PEPSetUp_Linear(PEP pep)
     ierr = MatCreateVecs(pep->A[0],&ctx->w[5],NULL);CHKERRQ(ierr);
     ierr = PetscLogObjectParents(pep,6,ctx->w);CHKERRQ(ierr);
     ierr = MatCreateShell(PetscObjectComm((PetscObject)pep),deg*pep->nloc,deg*pep->nloc,deg*pep->n,deg*pep->n,ctx,&ctx->A);CHKERRQ(ierr);
-    ierr = PetscObjectTypeCompare((PetscObject)pep->st,STSINVERT,&sinv);CHKERRQ(ierr);
     if (sinv && !transf) {
       ierr = MatShellSetOperation(ctx->A,MATOP_MULT,(void(*)(void))MatMult_Linear_Sinvert);CHKERRQ(ierr);
     } else {
@@ -366,7 +371,7 @@ PetscErrorCode PEPSetUp_Linear(PEP pep)
         pep->solvematcoeffs[deg] = 1.0;
       }
       ierr = STScaleShift(pep->st,1.0/pep->sfactor);CHKERRQ(ierr);
-      ierr = RGSetScale(pep->rg,pep->sfactor);CHKERRQ(ierr);
+      ierr = RGPushScale(pep->rg,1.0/pep->sfactor);CHKERRQ(ierr);
     }
     if (pep->sfactor!=1.0) {
       for (i=0;i<pep->nmat;i++) {
@@ -729,8 +734,8 @@ PetscErrorCode PEPSolve_Linear(PEP pep)
     if (!flg && !ctx->explicitmatrix) {
       ierr = STScaleShift(pep->st,pep->sfactor);CHKERRQ(ierr);
     } 
-    ierr = RGSetScale(pep->rg,1.0);CHKERRQ(ierr);
   }
+  ierr = RGPopScale(pep->rg);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -1003,7 +1008,7 @@ static PetscErrorCode PEPLinearGetEPS_Linear(PEP pep,EPS *eps)
   if (!ctx->eps) {
     ierr = EPSCreate(PetscObjectComm((PetscObject)pep),&ctx->eps);CHKERRQ(ierr);
     ierr = EPSSetOptionsPrefix(ctx->eps,((PetscObject)pep)->prefix);CHKERRQ(ierr);
-    ierr = EPSAppendOptionsPrefix(ctx->eps,"pep_");CHKERRQ(ierr);
+    ierr = EPSAppendOptionsPrefix(ctx->eps,"pep_linear_");CHKERRQ(ierr);
     ierr = EPSGetST(ctx->eps,&st);CHKERRQ(ierr);
     ierr = STSetOptionsPrefix(st,((PetscObject)ctx->eps)->prefix);CHKERRQ(ierr);
     ierr = PetscObjectIncrementTabLevel((PetscObject)ctx->eps,(PetscObject)pep,1);CHKERRQ(ierr);
@@ -1049,14 +1054,18 @@ PetscErrorCode PEPView_Linear(PEP pep,PetscViewer viewer)
 {
   PetscErrorCode ierr;
   PEP_LINEAR     *ctx = (PEP_LINEAR*)pep->data;
+  PetscBool      isascii;
 
   PetscFunctionBegin;
-  if (!ctx->eps) { ierr = PEPLinearGetEPS(pep,&ctx->eps);CHKERRQ(ierr); }
-  ierr = PetscViewerASCIIPrintf(viewer,"  Linear: %s matrices\n",ctx->explicitmatrix? "explicit": "implicit");CHKERRQ(ierr);
-  ierr = PetscViewerASCIIPrintf(viewer,"  Linear: %s companion form\n",ctx->cform==1? "1st": "2nd");CHKERRQ(ierr);
-  ierr = PetscViewerASCIIPushTab(viewer);CHKERRQ(ierr);
-  ierr = EPSView(ctx->eps,viewer);CHKERRQ(ierr);
-  ierr = PetscViewerASCIIPopTab(viewer);CHKERRQ(ierr);
+  ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
+  if (isascii) {
+    if (!ctx->eps) { ierr = PEPLinearGetEPS(pep,&ctx->eps);CHKERRQ(ierr); }
+    ierr = PetscViewerASCIIPrintf(viewer,"  Linear: %s matrices\n",ctx->explicitmatrix? "explicit": "implicit");CHKERRQ(ierr);
+    ierr = PetscViewerASCIIPrintf(viewer,"  Linear: %s companion form\n",ctx->cform==1? "1st": "2nd");CHKERRQ(ierr);
+    ierr = PetscViewerASCIIPushTab(viewer);CHKERRQ(ierr);
+    ierr = EPSView(ctx->eps,viewer);CHKERRQ(ierr);
+    ierr = PetscViewerASCIIPopTab(viewer);CHKERRQ(ierr);
+  }
   PetscFunctionReturn(0);
 }
 

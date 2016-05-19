@@ -50,7 +50,9 @@ else
 endif
 libslepcall := $(if $(filter-out no,$(BUILDSHAREDLIB)),$(libslepcall_shared) $(libslepcall_soname),$(libslepcall_static))
 
-generated := $(PETSC_ARCH)/lib/slepc/conf/files
+generated      := $(PETSC_ARCH)/lib/slepc/conf/files
+slepcconf      := $(PETSC_ARCH)/include/slepcconf.h
+slepcvariables := $(PETSC_ARCH)/lib/slepc/conf/slepcvariables
 
 all : $(generated) $(libslepcall)
 
@@ -71,7 +73,7 @@ else				# Show the full command line
   quiet = $($1)
 endif
 
-$(PETSC_ARCH)/lib/slepc/conf/files : $(PETSC_ARCH)/include/slepcconf.h
+$(generated) : $(slepcconf) $(slepcvariables)
 	$(PYTHON) ./config/gmakegen.py --petsc-arch=$(PETSC_ARCH) --installed-petsc=$(INSTALLED_PETSC)
 
 -include $(generated)
@@ -85,7 +87,7 @@ endif
 SLEPC_COMPILE.c = $(call quiet,$(cc_name)) -c $(PCC_FLAGS) $(CFLAGS) $(CCPPFLAGS) $(SLEPC_CC_INCLUDES) $(C_DEPFLAGS)
 SLEPC_COMPILE.cxx = $(call quiet,CXX) -c $(CXX_FLAGS) $(CFLAGS) $(CCPPFLAGS) $(SLEPC_CC_INCLUDES) $(CXX_DEPFLAGS)
 SLEPC_COMPILE.cu = $(call quiet,CUDAC) -c $(CUDAC_FLAGS) --compiler-options="$(PCC_FLAGS) $(CXXFLAGS) $(CCPPFLAGS)"
-SLEPC_GENDEPS.cu = $(call quiet,CUDAC,.dep) --generate-dependencies $(CUDAC_FLAGS) --compiler-options="$(PCC_FLAGS) $(CXXFLAGS) $(CCPPFLAGS)"
+SLEPC_GENDEPS.cu = $(call quiet,CUDAC,.dep) --generate-dependencies --output-directory=$(@D) $(CUDAC_FLAGS) --compiler-options="$(PCC_FLAGS) $(CXXFLAGS) $(CCPPFLAGS)"
 SLEPC_COMPILE.F = $(call quiet,FC) -c $(FC_FLAGS) $(FFLAGS) $(FCPPFLAGS) $(FC_DEPFLAGS)
 
 langs := c cu cxx F
@@ -176,6 +178,9 @@ $(OBJDIR)/src/eps/f90-mod/slepcepsmod.o   : $(OBJDIR)/src/sys/f90-mod/slepcsysmo
 $(OBJDIR)/src/pep/f90-mod/slepcpepmod.o   : $(OBJDIR)/src/eps/f90-mod/slepcepsmod.o
 $(OBJDIR)/src/nep/f90-mod/slepcnepmod.o   : $(OBJDIR)/src/pep/f90-mod/slepcpepmod.o
 $(OBJDIR)/src/svd/f90-mod/slepcsvdmod.o   : $(OBJDIR)/src/eps/f90-mod/slepcepsmod.o
+
+# all sources should get recompiled when slepcvariables changes (i.e when configure is rerun or when slepcvariables is manually edited.)
+$(srcs.o) : $(slepcvariables)
 
 %/.DIR :
 	@mkdir -p $(@D)

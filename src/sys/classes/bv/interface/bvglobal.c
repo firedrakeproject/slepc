@@ -3,7 +3,7 @@
 
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
-   Copyright (c) 2002-2015, Universitat Politecnica de Valencia, Spain
+   Copyright (c) 2002-2016, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
 
@@ -423,10 +423,10 @@ PetscErrorCode BVDotColumnBegin(BV X,PetscInt j,PetscScalar *m)
 
    Input Parameters:
 +  X - basis vectors
--  j - the column index
+.  j - the column index
 -  m - an array where the result will go
 
-   Note:
+   Notes:
    Each call to BVDotColumnBegin() should be paired with a call to BVDotColumnEnd().
 
    Level: advanced

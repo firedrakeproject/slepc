@@ -5,7 +5,7 @@
 
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
-   Copyright (c) 2002-2015, Universitat Politecnica de Valencia, Spain
+   Copyright (c) 2002-2016, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
 
@@ -79,8 +79,10 @@ PetscErrorCode STShellGetContext(ST st,void **ctx)
 
    Level: advanced
 
-   Fortran Notes: The context can only be an integer or a PetscObject;
-      unfortunately it cannot be a Fortran array or derived type.
+   Fortran Notes:
+   To use this from Fortran you must write a Fortran interface definition
+   for this function that tells Fortran the Fortran derived data type that
+   you are passing in as the ctx argument.
 
 .seealso: STShellGetContext()
 @*/
@@ -93,9 +95,7 @@ PetscErrorCode STShellSetContext(ST st,void *ctx)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
   ierr = PetscObjectTypeCompare((PetscObject)st,STSHELL,&flg);CHKERRQ(ierr);
-  if (flg) {
-    shell->ctx = ctx;
-  }
+  if (flg) shell->ctx = ctx;
   PetscFunctionReturn(0);
 }
 

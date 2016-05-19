@@ -1,7 +1,7 @@
 /*
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
-   Copyright (c) 2002-2015, Universitat Politecnica de Valencia, Spain
+   Copyright (c) 2002-2016, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
 
@@ -30,7 +30,7 @@
    scaled for real arithmetic.
 */
 
-static char help[] = "NLEVP problem: acoustic_wave_2d.\n\n"
+static char help[] = "Quadratic eigenproblem from an acoustics application (2-D).\n\n"
   "The command line options are:\n"
   "  -m <m>, where <m> = grid size, the matrices have dimension m*(m-1).\n"
   "  -z <z>, where <z> = impedance (default 1.0).\n\n";
@@ -143,6 +143,6 @@ int main(int argc,char **argv)
   ierr = MatDestroy(&M);CHKERRQ(ierr);
   ierr = MatDestroy(&C);CHKERRQ(ierr);
   ierr = MatDestroy(&K);CHKERRQ(ierr);
-  ierr = SlepcFinalize();CHKERRQ(ierr);
-  return 0;
+  ierr = SlepcFinalize();
+  return ierr;
 }

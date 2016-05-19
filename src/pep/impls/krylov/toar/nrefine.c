@@ -5,14 +5,14 @@
 
        [1] T. Betcke and D. Kressner, "Perturbation, extraction and refinement
            of invariant pairs for matrix polynomials", Linear Algebra Appl.
-           435(3):514–536, 2011.
+           435(3):514-536, 2011.
 
        [2] C. Campos and J.E. Roman, "Parallel iterative refinement in
            polynomial eigenvalue problems", submitted, 2015.
 
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
-   Copyright (c) 2002-2015, Universitat Politecnica de Valencia, Spain
+   Copyright (c) 2002-2016, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
 

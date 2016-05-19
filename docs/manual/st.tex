@@ -61,7 +61,7 @@ where \texttt{type} can be one of
 \texttt{STSHIFT}, 
 \texttt{STSINVERT}, \texttt{STCAYLEY},
 \texttt{STPRECOND}, or \texttt{STSHELL}.
-The \ident{ST} type can also be set with the command-line option \Verb!-st_type! followed by the name of the method (see Table \ref{tab:transforms}). The first five spectral transformations are described in detail in the rest of this section. The last possibility, \texttt{STSHELL}, uses a specific, application-provided spectral transformation. Section \ref{sec:shell} describes how to implement one of these transformations.
+The \ident{ST} type can also be set with the command-line option \Verb!-st_type! followed by the name of the method (see Table \ref{tab:transforms}). The first four spectral transformations are described in detail in the rest of this section. The last possibility, \texttt{STSHELL}, uses a specific, application-provided spectral transformation. Section \ref{sec:shell} describes how to implement one of these transformations.
 
 \begin{table}
 \centering
@@ -294,6 +294,7 @@ If this happens, it is necessary to use a direct method for solving the linear s
 \begin{Verbatim}[fontsize=\small]
 	$ ./ex5 -eps_type jd -st_ksp_type gmres -st_pc_type jacobi -st_ksp_max_it 10
 \end{Verbatim}
+A discussion on the different options available for the Davidson solvers can be found in \citep{Romero:2014:PID}.
 
 \subsection{Explicit Computation of Coefficient Matrix}
 \label{sec:explicit}
@@ -330,7 +331,7 @@ If the user knows that the pattern is the same (or a subset), then this can be s
 	STSetMatStructure(ST st,MatStructure str);
 	\end{Verbatim}
 	
-	Note that when the value of the shift $\sigma$ is very close to an eigenvalue, then the linear system will be ill-conditioned and using iterative methods may be problematic. On the other hand, in symmetric definite problems, the coefficient matrix will be indefinite whenever $\sigma$ is a point in the interior of the spectrum and in that case it is not possible to use a symmetric definite factorization (Cholesky or ICC).
+	Note that when the value of the shift $\sigma$ is very close to an eigenvalue, then the linear system will be ill-conditioned and using iterative methods may be problematic. On the other hand, in symmetric definite problems, the coefficient matrix will be indefinite whenever $\sigma$ is a point in the interior of the spectrum.
 
 	The third approach (``\Verb!copy!'') uses more memory but avoids a potential problem that could appear in the ``\Verb!inplace!'' approach: the recovered matrix might be slightly different from the original one (due to roundoff).
 
@@ -340,7 +341,7 @@ If the user knows that the pattern is the same (or a subset), then this can be s
 	As mentioned in \S\ref{sec:defprob}, some eigensolvers can exploit symmetry and compute a solution for Hermitian problems with less storage and/or computational cost than other methods. Also, symmetric solvers can be more accurate in some cases. However, in the case of generalized eigenvalue problems in which both $A$ and $B$ are symmetric, it happens that, due to the spectral transformation, symmetry is lost since none of the transformed operators $B^{-1}\!A-\sigma I$, $(A-\sigma B)^{-1}B$, etc.\ is symmetric (the same applies in the Hermitian case for complex matrices).
 
 	The solution proposed in \slepc is based on selecting different kinds of inner products. Currently, we have the following choice of inner products:
-  \begin{itemize}
+  \begin{itemize}\setlength{\itemsep}{0pt}
     \item Standard Hermitian inner product: $\langle x,y\rangle=x^*y$.
     \item $B$-inner product: $\langle x,y\rangle_B=x^*\!B\,y$.
   \end{itemize}
@@ -435,15 +436,15 @@ The \slepc interface hides all the complications of the algorithm. However, the 
 
 An example command-line that sets up all the required options is:
 \begin{Verbatim}[fontsize=\small]
-	$ ./ex12 -eps_interval 0.4,0.8 -st_type sinvert
-                 -st_ksp_type preonly -st_pc_type cholesky
+	$ ./ex2 -n 50 -eps_interval 0.4,0.8 -st_type sinvert
+                -st_ksp_type preonly -st_pc_type cholesky
 \end{Verbatim}
 
 Note that \petsc's Cholesky factorization is not parallel, so for doing spectrum slicing in parallel it is required to use an external solver that supports inertia, e.g., MUMPS (see \S\ref{sec:lin} on how to use external linear solvers):
 \begin{Verbatim}[fontsize=\small]
-	$ ./ex12 -eps_interval 0.4,0.8 -st_type sinvert
-                 -st_ksp_type preonly -st_pc_type cholesky
-                 -st_pc_factor_mat_solver_package mumps -mat_mumps_icntl_13 1
+	$ ./ex2 -n 50 -eps_interval 0.4,0.8 -st_type sinvert
+                -st_ksp_type preonly -st_pc_type cholesky
+                -st_pc_factor_mat_solver_package mumps -mat_mumps_icntl_13 1
 \end{Verbatim}
 The last option is required by MUMPS to compute the inertia.
 
@@ -451,10 +452,13 @@ Apart from the above recommendations, the following must be taken into account:
 \begin{itemize}
 \setlength{\itemsep}{0pt}
 \item The parameters \texttt{nev} and \texttt{ncv} from \ident{EPSSetDimensions} are determined internally (user-provided values are ignored, and set to the number of eigenvalues in the interval). It is possible for the user to specify the ``local'' \texttt{nev} and \texttt{ncv} parameters that will be used when computing eigenvalues around each shift, with \ident{EPSKrylovSchurSetDimensions}.
-\item The user can also tune the computation by setting different values of \texttt{max\_it}.
+\item The user can also tune the computation by setting the value of \texttt{max\_it}.
 \end{itemize}
 
-\paragraph{Use of multiple communicators}
+\paragraph{Usage with Complex Scalars.}
+Currently, external packages that provide inertia information (MUMPS, Pardiso) do so only in real scalars, but not in the case of complex scalars. Hence, with complex scalars spectrum slicing is available only sequentially (with PETSc's Cholesky factorization). An alternative to spectrum slicing is to use the CISS solver with a region enclosing an interval on the real axis, see \hyperlink{str}{[STR-11]} for details.
+
+\paragraph{Use of Multiple Communicators.}
 Since spectrum slicing requires direct linear solves, parallel runs may suffer from bad scalability in the sense that increasing the number of MPI processes does not imply a performance gain. For this reason, \slepc provides the option of using multiple communicators, that is, splitting the initial MPI communicator in several groups, each of them in charge of processing part of the interval.
 
 The multi-communicator setting is activated with a value of \texttt{npart}>1 in

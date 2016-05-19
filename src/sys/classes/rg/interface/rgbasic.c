@@ -3,7 +3,7 @@
 
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
-   Copyright (c) 2002-2015, Universitat Politecnica de Valencia, Spain
+   Copyright (c) 2002-2016, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
 
@@ -83,7 +83,7 @@ PetscErrorCode RGInitializePackage(void)
     }
   }
   /* Process summary exclusions */
-  ierr = PetscOptionsGetString(NULL,NULL,"-log_summary_exclude",logList,256,&opt);CHKERRQ(ierr);
+  ierr = PetscOptionsGetString(NULL,NULL,"-log_exclude",logList,256,&opt);CHKERRQ(ierr);
   if (opt) {
     ierr = PetscStrstr(logList,"rg",&className);CHKERRQ(ierr);
     if (className) {
@@ -123,6 +123,7 @@ PetscErrorCode RGCreate(MPI_Comm comm,RG *newrg)
   ierr = SlepcHeaderCreate(rg,RG_CLASSID,"RG","Region","RG",comm,RGDestroy,RGView);CHKERRQ(ierr);
   rg->complement = PETSC_FALSE;
   rg->sfactor    = 1.0;
+  rg->osfactor   = 0.0;
   rg->data       = NULL;
 
   *newrg = rg;
@@ -204,7 +205,8 @@ PetscErrorCode RGAppendOptionsPrefix(RG rg,const char *prefix)
    Output Parameters:
 .  prefix - pointer to the prefix string used is returned
 
-   Notes: On the fortran side, the user should pass in a string 'prefix' of
+   Note:
+   On the Fortran side, the user should pass in a string 'prefix' of
    sufficient length to hold the prefix.
 
    Level: advanced
@@ -306,6 +308,7 @@ PetscErrorCode RGSetFromOptions(RG rg)
   PetscErrorCode ierr;
   char           type[256];
   PetscBool      flg;
+  PetscReal      sfactor;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(rg,RG_CLASSID,1);
@@ -322,7 +325,11 @@ PetscErrorCode RGSetFromOptions(RG rg)
       ierr = RGSetType(rg,RGINTERVAL);CHKERRQ(ierr);
     }
 
-    ierr = PetscOptionsBool("-rg_complement","Whether region is complemented or not","RGSetComplement",rg->complement,&rg->complement,&flg);CHKERRQ(ierr);
+    ierr = PetscOptionsBool("-rg_complement","Whether region is complemented or not","RGSetComplement",rg->complement,&rg->complement,NULL);CHKERRQ(ierr);
+    ierr = PetscOptionsReal("-rg_scale","Scaling factor","RGSetScale",1.0,&sfactor,&flg);CHKERRQ(ierr);
+    if (flg) {
+      ierr = RGSetScale(rg,sfactor);CHKERRQ(ierr);
+    }
 
     if (rg->ops->setfromoptions) {
       ierr = (*rg->ops->setfromoptions)(PetscOptionsObject,rg);CHKERRQ(ierr);
@@ -399,7 +406,7 @@ PetscErrorCode RGView(RG rg,PetscViewer viewer)
              an interval region with all four endpoints unbounded or an
              ellipse with infinite radius.
 
-   Level: basic
+   Level: beginner
 @*/
 PetscErrorCode RGIsTrivial(RG rg,PetscBool *trivial)
 {
@@ -466,8 +473,8 @@ PetscErrorCode RGCheckInside(RG rg,PetscInt n,PetscScalar *ar,PetscScalar *ai,Pe
     py = ai[i];
 #endif
     if (rg->sfactor != 1.0) {
-      px *= rg->sfactor;
-      py *= rg->sfactor;
+      px /= rg->sfactor;
+      py /= rg->sfactor;
     }
     ierr = (*rg->ops->checkinside)(rg,px,py,inside+i);CHKERRQ(ierr);
     if (rg->complement) inside[i] = -inside[i];
@@ -495,6 +502,7 @@ PetscErrorCode RGCheckInside(RG rg,PetscInt n,PetscScalar *ar,PetscScalar *ai,Pe
 @*/
 PetscErrorCode RGComputeContour(RG rg,PetscInt n,PetscScalar *cr,PetscScalar *ci)
 {
+  PetscInt       i;
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
@@ -505,6 +513,10 @@ PetscErrorCode RGComputeContour(RG rg,PetscInt n,PetscScalar *cr,PetscScalar *ci
   PetscValidPointer(ci,4);
 #endif
   ierr = (*rg->ops->computecontour)(rg,n,cr,ci);CHKERRQ(ierr);
+  for (i=0;i<n;i++) {
+    cr[i] *= rg->sfactor;
+    ci[i] *= rg->sfactor;
+  }
   PetscFunctionReturn(0);
 }
 
@@ -521,7 +533,7 @@ PetscErrorCode RGComputeContour(RG rg,PetscInt n,PetscScalar *cr,PetscScalar *ci
 -  flg - the boolean flag
 
    Options Database Key:
-.  -rg_complement <bool> - Activate/deactivate the complementation of the region.
+.  -rg_complement <bool> - Activate/deactivate the complementation of the region
 
    Level: intermediate
 
@@ -567,7 +579,7 @@ PetscErrorCode RGGetComplement(RG rg,PetscBool *flg)
 #define __FUNCT__ "RGSetScale"
 /*@
    RGSetScale - Sets the scaling factor to be used when checking that a
-   point is inside the region.
+   point is inside the region and when computing the contour.
 
    Logically Collective on RG
 
@@ -575,7 +587,10 @@ PetscErrorCode RGGetComplement(RG rg,PetscBool *flg)
 +  rg      - the region context
 -  sfactor - the scaling factor
 
-   Level: developer
+   Options Database Key:
+.  -rg_scale <real> - Sets the scaling factor
+
+   Level: advanced
 
 .seealso: RGGetScale(), RGCheckInside()
 @*/
@@ -605,7 +620,7 @@ PetscErrorCode RGSetScale(RG rg,PetscReal sfactor)
    Output Parameter:
 .  flg - the flag
 
-   Level: developer
+   Level: advanced
 
 .seealso: RGSetScale()
 @*/
@@ -615,6 +630,64 @@ PetscErrorCode RGGetScale(RG rg,PetscReal *sfactor)
   PetscValidHeaderSpecific(rg,RG_CLASSID,1);
   PetscValidPointer(sfactor,2);
   *sfactor = rg->sfactor;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "RGPushScale"
+/*@
+   RGPushScale - Sets an additional scaling factor, that will multiply the
+   user-defined scaling factor.
+
+   Logically Collective on RG
+
+   Input Parameters:
++  rg      - the region context
+-  sfactor - the scaling factor
+
+   Notes:
+   The current implementation does not allow pushing several scaling factors.
+
+   This is intended for internal use, for instance in polynomial eigensolvers
+   that use parameter scaling.
+
+   Level: developer
+
+.seealso: RGPopScale(), RGSetScale()
+@*/
+PetscErrorCode RGPushScale(RG rg,PetscReal sfactor)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(rg,RG_CLASSID,1);
+  PetscValidLogicalCollectiveReal(rg,sfactor,2);
+  if (sfactor<=0.0) SETERRQ(PetscObjectComm((PetscObject)rg),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of scaling factor. Must be > 0");
+  if (rg->osfactor) SETERRQ(PetscObjectComm((PetscObject)rg),PETSC_ERR_SUP,"Current implementation does not allow pushing several scaling factors");
+  rg->osfactor = rg->sfactor;
+  rg->sfactor *= sfactor;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "RGPopScale"
+/*@
+   RGPopScale - Pops the scaling factor set with RGPushScale().
+
+   Not Collective
+
+   Input Parameter:
+.  rg - the region context
+
+   Level: developer
+
+.seealso: RGPushScale()
+@*/
+PetscErrorCode RGPopScale(RG rg)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(rg,RG_CLASSID,1);
+  if (!rg->osfactor) SETERRQ(PetscObjectComm((PetscObject)rg),PETSC_ERR_ORDER,"Must call RGPushScale first");
+  rg->sfactor  = rg->osfactor;
+  rg->osfactor = 0.0;
   PetscFunctionReturn(0);
 }
 

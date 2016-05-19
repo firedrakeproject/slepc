@@ -1,7 +1,7 @@
 /*
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
-   Copyright (c) 2002-2015, Universitat Politecnica de Valencia, Spain
+   Copyright (c) 2002-2016, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
 
@@ -27,6 +27,7 @@ PETSC_EXTERN PetscErrorCode FNCreate_Exp(FN);
 PETSC_EXTERN PetscErrorCode FNCreate_Log(FN);
 PETSC_EXTERN PetscErrorCode FNCreate_Phi(FN);
 PETSC_EXTERN PetscErrorCode FNCreate_Sqrt(FN);
+PETSC_EXTERN PetscErrorCode FNCreate_Invsqrt(FN);
 
 #undef __FUNCT__
 #define __FUNCT__ "FNRegisterAll"
@@ -50,6 +51,7 @@ PetscErrorCode FNRegisterAll(void)
   ierr = FNRegister(FNLOG,FNCreate_Log);CHKERRQ(ierr);
   ierr = FNRegister(FNPHI,FNCreate_Phi);CHKERRQ(ierr);
   ierr = FNRegister(FNSQRT,FNCreate_Sqrt);CHKERRQ(ierr);
+  ierr = FNRegister(FNINVSQRT,FNCreate_Invsqrt);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

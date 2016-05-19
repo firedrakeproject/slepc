@@ -4,7 +4,7 @@
 !
 !  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !  SLEPc - Scalable Library for Eigenvalue Problem Computations
-!  Copyright (c) 2002-2015, Universitat Politecnica de Valencia, Spain
+!  Copyright (c) 2002-2016, Universitat Politecnica de Valencia, Spain
 !
 !  This file is part of SLEPc.
 !
@@ -34,13 +34,13 @@
       parameter (NEP_REFINE_SIMPLE          =  1)
       parameter (NEP_REFINE_MULTIPLE        =  2)
 
-      PetscEnum NEP_REFINE_SCHEME_EXPLICIT
-      PetscEnum NEP_REFINE_SCHEME_MBE
       PetscEnum NEP_REFINE_SCHEME_SCHUR
+      PetscEnum NEP_REFINE_SCHEME_MBE
+      PetscEnum NEP_REFINE_SCHEME_EXPLICIT
 
-      parameter (NEP_REFINE_SCHEME_EXPLICIT =  0)
-      parameter (NEP_REFINE_SCHEME_MBE      =  1)
-      parameter (NEP_REFINE_SCHEME_SCHUR    =  2)
+      parameter (NEP_REFINE_SCHEME_SCHUR    =  1)
+      parameter (NEP_REFINE_SCHEME_MBE      =  2)
+      parameter (NEP_REFINE_SCHEME_EXPLICIT =  3)
 
       PetscEnum NEP_CONV_ABS
       PetscEnum NEP_CONV_REL
@@ -82,6 +82,7 @@
       PetscEnum NEP_TARGET_REAL
       PetscEnum NEP_TARGET_IMAGINARY
       PetscEnum NEP_ALL
+      PetscEnum NEP_WHICH_USER
 
       parameter (NEP_LARGEST_MAGNITUDE      =  1)
       parameter (NEP_SMALLEST_MAGNITUDE     =  2)
@@ -93,6 +94,7 @@
       parameter (NEP_TARGET_REAL            =  8)
       parameter (NEP_TARGET_IMAGINARY       =  9)
       parameter (NEP_ALL                    = 10)
+      parameter (NEP_WHICH_USER             = 11)
 
       PetscEnum NEP_ERROR_ABSOLUTE
       PetscEnum NEP_ERROR_RELATIVE

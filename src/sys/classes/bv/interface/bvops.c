@@ -3,7 +3,7 @@
 
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
-   Copyright (c) 2002-2015, Universitat Politecnica de Valencia, Spain
+   Copyright (c) 2002-2016, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
 
@@ -404,51 +404,45 @@ PetscErrorCode BVScaleColumn(BV bv,PetscInt j,PetscScalar alpha)
    Logically Collective on BV
 
    Input Parameters:
-+  bv   - basis vectors
--  rctx - the random number context, formed by PetscRandomCreate(), or NULL and
-          it will create one internally.
+.  bv - basis vectors
 
    Note:
    All active columns (except the leading ones) are modified.
 
    Level: advanced
 
-.seealso: BVSetRandomColumn(), BVSetActiveColumns()
+.seealso: BVSetRandomContext(), BVSetRandomColumn(), BVSetActiveColumns()
 @*/
-PetscErrorCode BVSetRandom(BV bv,PetscRandom rctx)
+PetscErrorCode BVSetRandom(BV bv)
 {
   PetscErrorCode ierr;
-  PetscRandom    rand=NULL;
   PetscInt       i,low,high,k;
   PetscScalar    *px,t;
   Vec            x;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(bv,BV_CLASSID,1);
-  if (rctx) PetscValidHeaderSpecific(rctx,PETSC_RANDOM_CLASSID,2);
-  else {
-    ierr = PetscRandomCreate(PetscObjectComm((PetscObject)bv),&rand);CHKERRQ(ierr);
-    ierr = PetscRandomSetSeed(rand,0x12345678);CHKERRQ(ierr);
-    ierr = PetscRandomSetFromOptions(rand);CHKERRQ(ierr);
-    rctx = rand;
-  }
   PetscValidType(bv,1);
   BVCheckSizes(bv,1);
 
-  ierr = PetscLogEventBegin(BV_SetRandom,bv,rctx,0,0);CHKERRQ(ierr);
+  ierr = BVGetRandomContext(bv,&bv->rand);CHKERRQ(ierr);
+  ierr = PetscLogEventBegin(BV_SetRandom,bv,0,0,0);CHKERRQ(ierr);
   for (k=bv->l;k<bv->k;k++) {
     ierr = BVGetColumn(bv,k,&x);CHKERRQ(ierr);
-    ierr = VecGetOwnershipRange(x,&low,&high);CHKERRQ(ierr);
-    ierr = VecGetArray(x,&px);CHKERRQ(ierr);
-    for (i=0;i<bv->N;i++) {
-      ierr = PetscRandomGetValue(rctx,&t);CHKERRQ(ierr);
-      if (i>=low && i<high) px[i-low] = t;
+    if (bv->rrandom) {  /* generate the same vector irrespective of number of processes */
+      ierr = VecGetOwnershipRange(x,&low,&high);CHKERRQ(ierr);
+      ierr = VecGetArray(x,&px);CHKERRQ(ierr);
+      for (i=0;i<bv->N;i++) {
+        ierr = PetscRandomGetValue(bv->rand,&t);CHKERRQ(ierr);
+        if (i>=low && i<high) px[i-low] = t;
+      }
+      ierr = VecRestoreArray(x,&px);CHKERRQ(ierr);
+    } else {
+      ierr = VecSetRandom(x,bv->rand);CHKERRQ(ierr);
     }
-    ierr = VecRestoreArray(x,&px);CHKERRQ(ierr);
     ierr = BVRestoreColumn(bv,k,&x);CHKERRQ(ierr);
   }
-  ierr = PetscLogEventEnd(BV_SetRandom,bv,rctx,0,0);CHKERRQ(ierr);
-  ierr = PetscRandomDestroy(&rand);CHKERRQ(ierr);
+  ierr = PetscLogEventEnd(BV_SetRandom,bv,0,0,0);CHKERRQ(ierr);
   ierr = PetscObjectStateIncrease((PetscObject)bv);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -461,25 +455,16 @@ PetscErrorCode BVSetRandom(BV bv,PetscRandom rctx)
    Logically Collective on BV
 
    Input Parameters:
-+  bv   - basis vectors
-.  j    - column number to be set
--  rctx - the random number context, formed by PetscRandomCreate(), or NULL and
-          it will create one internally.
-
-   Note:
-   This operation is analogue to VecSetRandom - the difference is that the
-   generated random vector is the same irrespective of the size of the
-   communicator (if all processes pass a PetscRandom context initialized
-   with the same seed).
++  bv - basis vectors
+-  j  - column number to be set
 
    Level: advanced
 
-.seealso: BVSetRandom(), BVSetActiveColumns()
+.seealso: BVSetRandomContext(), BVSetRandom(), BVSetActiveColumns()
 @*/
-PetscErrorCode BVSetRandomColumn(BV bv,PetscInt j,PetscRandom rctx)
+PetscErrorCode BVSetRandomColumn(BV bv,PetscInt j)
 {
   PetscErrorCode ierr;
-  PetscRandom    rand=NULL;
   PetscInt       i,low,high;
   PetscScalar    *px,t;
   Vec            x;
@@ -487,29 +472,26 @@ PetscErrorCode BVSetRandomColumn(BV bv,PetscInt j,PetscRandom rctx)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(bv,BV_CLASSID,1);
   PetscValidLogicalCollectiveInt(bv,j,2);
-  if (rctx) PetscValidHeaderSpecific(rctx,PETSC_RANDOM_CLASSID,3);
-  else {
-    ierr = PetscRandomCreate(PetscObjectComm((PetscObject)bv),&rand);CHKERRQ(ierr);
-    ierr = PetscRandomSetSeed(rand,0x12345678);CHKERRQ(ierr);
-    ierr = PetscRandomSetFromOptions(rand);CHKERRQ(ierr);
-    rctx = rand;
-  }
   PetscValidType(bv,1);
   BVCheckSizes(bv,1);
   if (j<0 || j>=bv->m) SETERRQ2(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_OUTOFRANGE,"Argument j has wrong value %D, the number of columns is %D",j,bv->m);
 
-  ierr = PetscLogEventBegin(BV_SetRandom,bv,rctx,0,0);CHKERRQ(ierr);
+  ierr = BVGetRandomContext(bv,&bv->rand);CHKERRQ(ierr);
+  ierr = PetscLogEventBegin(BV_SetRandom,bv,0,0,0);CHKERRQ(ierr);
   ierr = BVGetColumn(bv,j,&x);CHKERRQ(ierr);
-  ierr = VecGetOwnershipRange(x,&low,&high);CHKERRQ(ierr);
-  ierr = VecGetArray(x,&px);CHKERRQ(ierr);
-  for (i=0;i<bv->N;i++) {
-    ierr = PetscRandomGetValue(rctx,&t);CHKERRQ(ierr);
-    if (i>=low && i<high) px[i-low] = t;
+  if (bv->rrandom) {  /* generate the same vector irrespective of number of processes */
+    ierr = VecGetOwnershipRange(x,&low,&high);CHKERRQ(ierr);
+    ierr = VecGetArray(x,&px);CHKERRQ(ierr);
+    for (i=0;i<bv->N;i++) {
+      ierr = PetscRandomGetValue(bv->rand,&t);CHKERRQ(ierr);
+      if (i>=low && i<high) px[i-low] = t;
+    }
+    ierr = VecRestoreArray(x,&px);CHKERRQ(ierr);
+  } else {
+    ierr = VecSetRandom(x,bv->rand);CHKERRQ(ierr);
   }
-  ierr = VecRestoreArray(x,&px);CHKERRQ(ierr);
   ierr = BVRestoreColumn(bv,j,&x);CHKERRQ(ierr);
-  ierr = PetscLogEventEnd(BV_SetRandom,bv,rctx,0,0);CHKERRQ(ierr);
-  ierr = PetscRandomDestroy(&rand);CHKERRQ(ierr);
+  ierr = PetscLogEventEnd(BV_SetRandom,bv,0,0,0);CHKERRQ(ierr);
   ierr = PetscObjectStateIncrease((PetscObject)bv);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

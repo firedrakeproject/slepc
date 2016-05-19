@@ -21,7 +21,7 @@
 
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
-   Copyright (c) 2002-2015, Universitat Politecnica de Valencia, Spain
+   Copyright (c) 2002-2016, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
 
@@ -200,7 +200,7 @@ PetscErrorCode SVDSolve_Lanczos(SVD svd)
 
   /* normalize start vector */
   if (!svd->nini) {
-    ierr = BVSetRandomColumn(svd->V,0,svd->rand);CHKERRQ(ierr);
+    ierr = BVSetRandomColumn(svd->V,0);CHKERRQ(ierr);
     ierr = BVNormColumn(svd->V,0,NORM_2,&norm);CHKERRQ(ierr);
     ierr = BVScaleColumn(svd->V,0,1.0/norm);CHKERRQ(ierr);
   }
@@ -407,9 +407,13 @@ PetscErrorCode SVDView_Lanczos(SVD svd,PetscViewer viewer)
 {
   PetscErrorCode ierr;
   SVD_LANCZOS    *lanczos = (SVD_LANCZOS*)svd->data;
+  PetscBool      isascii;
 
   PetscFunctionBegin;
-  ierr = PetscViewerASCIIPrintf(viewer,"  Lanczos: %s-sided reorthogonalization\n",lanczos->oneside? "one": "two");CHKERRQ(ierr);
+  ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
+  if (isascii) {
+    ierr = PetscViewerASCIIPrintf(viewer,"  Lanczos: %s-sided reorthogonalization\n",lanczos->oneside? "one": "two");CHKERRQ(ierr);
+  }
   PetscFunctionReturn(0);
 }
 

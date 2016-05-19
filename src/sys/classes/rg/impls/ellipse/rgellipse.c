@@ -3,7 +3,7 @@
 
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
-   Copyright (c) 2002-2015, Universitat Politecnica de Valencia, Spain
+   Copyright (c) 2002-2016, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
 
@@ -166,9 +166,9 @@ PetscErrorCode RGIsTrivial_Ellipse(RG rg,PetscBool *trivial)
 #define __FUNCT__ "RGComputeContour_Ellipse"
 PetscErrorCode RGComputeContour_Ellipse(RG rg,PetscInt n,PetscScalar *cr,PetscScalar *ci)
 {
-  RG_ELLIPSE  *ctx = (RG_ELLIPSE*)rg->data;
-  PetscReal   theta;
-  PetscInt    i;
+  RG_ELLIPSE *ctx = (RG_ELLIPSE*)rg->data;
+  PetscReal  theta;
+  PetscInt   i;
 
   PetscFunctionBegin;
   for (i=0;i<n;i++) {
@@ -187,8 +187,8 @@ PetscErrorCode RGComputeContour_Ellipse(RG rg,PetscInt n,PetscScalar *cr,PetscSc
 #define __FUNCT__ "RGCheckInside_Ellipse"
 PetscErrorCode RGCheckInside_Ellipse(RG rg,PetscReal px,PetscReal py,PetscInt *inside)
 {
-  RG_ELLIPSE  *ctx = (RG_ELLIPSE*)rg->data;
-  PetscReal   dx,dy,r;
+  RG_ELLIPSE *ctx = (RG_ELLIPSE*)rg->data;
+  PetscReal  dx,dy,r;
 
   PetscFunctionBegin;
 #if defined(PETSC_USE_COMPLEX)

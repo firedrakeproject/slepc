@@ -15,7 +15,7 @@
 
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
-   Copyright (c) 2002-2015, Universitat Politecnica de Valencia, Spain
+   Copyright (c) 2002-2016, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
 
@@ -49,21 +49,14 @@ PetscErrorCode NEPSetUp_SLP(NEP nep)
   PetscBool      istrivial;
 
   PetscFunctionBegin;
-  if (nep->ncv) { /* ncv set */
-    if (nep->ncv<nep->nev) SETERRQ(PetscObjectComm((PetscObject)nep),1,"The value of ncv must be at least nev");
-  } else if (nep->mpd) { /* mpd set */
-    nep->ncv = PetscMin(nep->n,nep->nev+nep->mpd);
-  } else { /* neither set: defaults depend on nev being small or large */
-    if (nep->nev<500) nep->ncv = PetscMin(nep->n,PetscMax(2*nep->nev,nep->nev+15));
-    else {
-      nep->mpd = 500;
-      nep->ncv = PetscMin(nep->n,nep->nev+nep->mpd);
-    }
-  }
-  if (!nep->mpd) nep->mpd = nep->ncv;
+  if (nep->nev>1) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"Requested several eigenpairs but this solver can compute only one");
+  if (nep->ncv) { ierr = PetscInfo(nep,"Setting ncv = 1, ignoring user-provided value\n");CHKERRQ(ierr); }
+  nep->ncv = 1;
+  if (nep->mpd) { ierr = PetscInfo(nep,"Setting mpd = 1, ignoring user-provided value\n");CHKERRQ(ierr); }
+  nep->mpd = 1;
   if (nep->ncv>nep->nev+nep->mpd) SETERRQ(PetscObjectComm((PetscObject)nep),1,"The value of ncv must not be larger than nev+mpd");
-  if (nep->nev>1) { ierr = PetscInfo(nep,"Warning: requested more than one eigenpair but SLP can only compute one\n");CHKERRQ(ierr); }
   if (!nep->max_it) nep->max_it = PetscMax(5000,2*nep->n/nep->ncv);
+  if (nep->which && nep->which!=NEP_TARGET_MAGNITUDE) SETERRQ(PetscObjectComm((PetscObject)nep),1,"Wrong value of which");
 
   ierr = RGIsTrivial(nep->rg,&istrivial);CHKERRQ(ierr);
   if (!istrivial) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"This solver does not support region filtering");
@@ -73,7 +66,6 @@ PetscErrorCode NEPSetUp_SLP(NEP nep)
   ierr = EPSSetTarget(ctx->eps,0.0);CHKERRQ(ierr);
   ierr = EPSGetST(ctx->eps,&st);CHKERRQ(ierr);
   ierr = STSetType(st,STSINVERT);CHKERRQ(ierr);
-  ierr = EPSSetDimensions(ctx->eps,1,nep->ncv?nep->ncv:PETSC_DEFAULT,nep->mpd?nep->mpd:PETSC_DEFAULT);CHKERRQ(ierr);
   ierr = EPSSetTolerances(ctx->eps,nep->tol==PETSC_DEFAULT?SLEPC_DEFAULT_TOL/10.0:nep->tol/10.0,nep->max_it?nep->max_it:PETSC_DEFAULT);CHKERRQ(ierr);
 
   ierr = NEPAllocateSolution(nep,0);CHKERRQ(ierr);
@@ -97,7 +89,7 @@ PetscErrorCode NEPSolve_SLP(NEP nep)
   /* get initial approximation of eigenvalue and eigenvector */
   ierr = NEPGetDefaultShift(nep,&lambda);CHKERRQ(ierr);
   if (!nep->nini) {
-    ierr = BVSetRandomColumn(nep->V,0,nep->rand);CHKERRQ(ierr);
+    ierr = BVSetRandomColumn(nep->V,0);CHKERRQ(ierr);
   }
   ierr = BVGetColumn(nep->V,0,&u);CHKERRQ(ierr);
 
@@ -120,7 +112,7 @@ PetscErrorCode NEPSolve_SLP(NEP nep)
       nep->nconv = nep->nconv + 1;
     }
     ierr = (*nep->stopping)(nep,nep->its,nep->max_it,nep->nconv,nep->nev,&nep->reason,nep->stoppingctx);CHKERRQ(ierr);
-    ierr = NEPMonitor(nep,nep->its,nep->nconv,nep->eigr,nep->errest,1);CHKERRQ(ierr);
+    ierr = NEPMonitor(nep,nep->its,nep->nconv,nep->eigr,nep->eigi,nep->errest,1);CHKERRQ(ierr);
 
     if (nep->reason == NEP_CONVERGED_ITERATING) {
       /* compute eigenvalue correction mu and eigenvector approximation u */
@@ -215,7 +207,7 @@ static PetscErrorCode NEPSLPGetEPS_SLP(NEP nep,EPS *eps)
   if (!ctx->eps) {
     ierr = EPSCreate(PetscObjectComm((PetscObject)nep),&ctx->eps);CHKERRQ(ierr);
     ierr = EPSSetOptionsPrefix(ctx->eps,((PetscObject)nep)->prefix);CHKERRQ(ierr);
-    ierr = EPSAppendOptionsPrefix(ctx->eps,"nep_");CHKERRQ(ierr);
+    ierr = EPSAppendOptionsPrefix(ctx->eps,"nep_slp_");CHKERRQ(ierr);
     ierr = EPSGetST(ctx->eps,&st);CHKERRQ(ierr);
     ierr = STSetOptionsPrefix(st,((PetscObject)ctx->eps)->prefix);CHKERRQ(ierr);
     ierr = PetscObjectIncrementTabLevel((PetscObject)ctx->eps,(PetscObject)nep,1);CHKERRQ(ierr);
@@ -260,12 +252,16 @@ PetscErrorCode NEPView_SLP(NEP nep,PetscViewer viewer)
 {
   PetscErrorCode ierr;
   NEP_SLP        *ctx = (NEP_SLP*)nep->data;
+  PetscBool      isascii;
 
   PetscFunctionBegin;
-  if (!ctx->eps) { ierr = NEPSLPGetEPS(nep,&ctx->eps);CHKERRQ(ierr); }
-  ierr = PetscViewerASCIIPushTab(viewer);CHKERRQ(ierr);
-  ierr = EPSView(ctx->eps,viewer);CHKERRQ(ierr);
-  ierr = PetscViewerASCIIPopTab(viewer);CHKERRQ(ierr);
+  ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
+  if (isascii) {
+    if (!ctx->eps) { ierr = NEPSLPGetEPS(nep,&ctx->eps);CHKERRQ(ierr); }
+    ierr = PetscViewerASCIIPushTab(viewer);CHKERRQ(ierr);
+    ierr = EPSView(ctx->eps,viewer);CHKERRQ(ierr);
+    ierr = PetscViewerASCIIPopTab(viewer);CHKERRQ(ierr);
+  }
   PetscFunctionReturn(0);
 }
 

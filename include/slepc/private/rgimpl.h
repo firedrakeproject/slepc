@@ -1,7 +1,7 @@
 /*
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
-   Copyright (c) 2002-2015, Universitat Politecnica de Valencia, Spain
+   Copyright (c) 2002-2016, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
 
@@ -43,6 +43,7 @@ struct _p_RG {
   PETSCHEADER(struct _RGOps);
   PetscBool   complement;    /* region is the complement of the specified one */
   PetscReal   sfactor;       /* scaling factor */
+  PetscReal   osfactor;      /* old scaling factor, before RGPushScale */
   void        *data;
 };
 

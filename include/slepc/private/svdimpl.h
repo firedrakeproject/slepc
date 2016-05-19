@@ -1,7 +1,7 @@
 /*
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
-   Copyright (c) 2002-2015, Universitat Politecnica de Valencia, Spain
+   Copyright (c) 2002-2016, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
 
@@ -85,7 +85,6 @@ struct _p_SVD {
   /*----------------- Child objects and working data -------------------*/
   DS             ds;               /* direct solver object */
   BV             U,V;              /* left and right singular vectors */
-  PetscRandom    rand;             /* random number generator */
   SlepcSC        sc;               /* sorting criterion data */
   Mat            A;                /* problem matrix (m>n) */
   Mat            AT;               /* transposed matrix */

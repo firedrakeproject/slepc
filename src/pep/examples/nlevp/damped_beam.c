@@ -1,7 +1,7 @@
 /*
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
-   Copyright (c) 2002-2015, Universitat Politecnica de Valencia, Spain
+   Copyright (c) 2002-2016, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
 
@@ -30,7 +30,7 @@
    simply supported at both ends and damped in the middle.
 */
 
-static char help[] = "NLEVP problem: damped_beam.\n\n"
+static char help[] = "Quadratic eigenproblem from the vibrarion analysis of a beam.\n\n"
   "The command line options are:\n"
   "  -n <n> ... dimension of the matrices.\n\n";
 
@@ -177,6 +177,6 @@ int main(int argc,char **argv)
   ierr = MatDestroy(&K);CHKERRQ(ierr);
   ierr = MatDestroy(&Ko);CHKERRQ(ierr);
   ierr = MatDestroy(&Mo);CHKERRQ(ierr);
-  ierr = SlepcFinalize();CHKERRQ(ierr);
-  return 0;
+  ierr = SlepcFinalize();
+  return ierr;
 }

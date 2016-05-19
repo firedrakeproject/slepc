@@ -3,7 +3,7 @@
 
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
-   Copyright (c) 2002-2015, Universitat Politecnica de Valencia, Spain
+   Copyright (c) 2002-2016, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
 
@@ -91,6 +91,7 @@ PetscErrorCode SVDSolve(SVD svd)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
+  if (svd->state>=SVD_STATE_SOLVED) PetscFunctionReturn(0);
   ierr = PetscLogEventBegin(SVD_Solve,svd,0,0,0);CHKERRQ(ierr);
 
   /* call setup */
@@ -102,7 +103,6 @@ PetscErrorCode SVDSolve(SVD svd)
     svd->errest[i] = 0.0;
     svd->perm[i]   = i;
   }
-  ierr = SVDMonitor(svd,svd->its,svd->nconv,svd->sigma,svd->errest,svd->ncv);CHKERRQ(ierr);
   ierr = SVDViewFromOptions(svd,NULL,"-svd_view_pre");CHKERRQ(ierr);
 
   ierr = (*svd->ops->solve)(svd);CHKERRQ(ierr);
@@ -187,12 +187,13 @@ PetscErrorCode SVDGetIterationNumber(SVD svd,PetscInt *its)
    Possible values for reason:
 +  SVD_CONVERGED_TOL - converged up to tolerance
 .  SVD_CONVERGED_USER - converged due to a user-defined condition
-.  SVD_DIVERGED_ITS - required more than its to reach convergence
+.  SVD_DIVERGED_ITS - required more than max_it iterations to reach convergence
 -  SVD_DIVERGED_BREAKDOWN - generic breakdown in method
 
-   Level: intermediate
+   Note:
+   Can only be called after the call to SVDSolve() is complete.
 
-   Notes: Can only be called after the call to SVDSolve() is complete.
+   Level: intermediate
 
 .seealso: SVDSetTolerances(), SVDSolve(), SVDConvergedReason
 @*/

@@ -1,7 +1,7 @@
 /*
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
-   Copyright (c) 2002-2015, Universitat Politecnica de Valencia, Spain
+   Copyright (c) 2002-2016, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
 
@@ -33,7 +33,7 @@
    for dampers and springs connecting adjacent masses or masses to the ground.
 */
 
-static char help[] = "NLEVP problem: spring.\n\n"
+static char help[] = "FEM model of a damped mass-spring system.\n\n"
   "The command line options are:\n"
   "  -n <n> ... dimension of the matrices.\n"
   "  -mu <value> ... mass (default 1).\n"
@@ -145,6 +145,6 @@ int main(int argc,char **argv)
   ierr = MatDestroy(&M);CHKERRQ(ierr);
   ierr = MatDestroy(&C);CHKERRQ(ierr);
   ierr = MatDestroy(&K);CHKERRQ(ierr);
-  ierr = SlepcFinalize();CHKERRQ(ierr);
-  return 0;
+  ierr = SlepcFinalize();
+  return ierr;
 }

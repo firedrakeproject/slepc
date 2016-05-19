@@ -3,7 +3,7 @@
 
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
-   Copyright (c) 2002-2015, Universitat Politecnica de Valencia, Spain
+   Copyright (c) 2002-2016, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
 
@@ -100,6 +100,7 @@ PetscErrorCode PEPSolve(PEP pep)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
+  if (pep->state>=PEP_STATE_SOLVED) PetscFunctionReturn(0);
   ierr = PetscLogEventBegin(PEP_Solve,pep,0,0,0);CHKERRQ(ierr);
 
   /* call setup */
@@ -113,7 +114,6 @@ PetscErrorCode PEPSolve(PEP pep)
     pep->errest[i] = 0.0;
     pep->perm[i]   = i;
   }
-  ierr = PEPMonitor(pep,pep->its,pep->nconv,pep->eigr,pep->eigi,pep->errest,k);CHKERRQ(ierr);
   ierr = PEPViewFromOptions(pep,NULL,"-pep_view_pre");CHKERRQ(ierr);
 
   ierr = (*pep->ops->solve)(pep);CHKERRQ(ierr);
@@ -255,7 +255,7 @@ PetscErrorCode PEPGetConverged(PEP pep,PetscInt *nconv)
    Possible values for reason:
 +  PEP_CONVERGED_TOL - converged up to tolerance
 .  PEP_CONVERGED_USER - converged due to a user-defined condition
-.  PEP_DIVERGED_ITS - required more than its to reach convergence
+.  PEP_DIVERGED_ITS - required more than max_it iterations to reach convergence
 .  PEP_DIVERGED_BREAKDOWN - generic breakdown in method
 -  PEP_DIVERGED_SYMMETRY_LOST - pseudo-Lanczos was not able to keep symmetry
 

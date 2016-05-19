@@ -4,7 +4,7 @@
 !
 !  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !  SLEPc - Scalable Library for Eigenvalue Problem Computations
-!  Copyright (c) 2002-2015, Universitat Politecnica de Valencia, Spain
+!  Copyright (c) 2002-2016, Universitat Politecnica de Valencia, Spain
 !
 !  This file is part of SLEPc.
 !
@@ -25,11 +25,13 @@
 #include "slepc/finclude/slepcmfndef.h"
 
       PetscEnum MFN_CONVERGED_TOL
+      PetscEnum MFN_CONVERGED_ITS
       PetscEnum MFN_DIVERGED_ITS
       PetscEnum MFN_DIVERGED_BREAKDOWN
       PetscEnum MFN_CONVERGED_ITERATING
 
       parameter (MFN_CONVERGED_TOL          =  2)
+      parameter (MFN_CONVERGED_ITS          =  3)
       parameter (MFN_DIVERGED_ITS           = -3)
       parameter (MFN_DIVERGED_BREAKDOWN     = -4)
       parameter (MFN_CONVERGED_ITERATING    =  0)

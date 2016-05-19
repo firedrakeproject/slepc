@@ -1,7 +1,7 @@
 /*
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
-   Copyright (c) 2002-2015, Universitat Politecnica de Valencia, Spain
+   Copyright (c) 2002-2016, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
 
@@ -72,18 +72,15 @@ struct _p_NEP {
   PetscInt       nev;              /* number of eigenvalues to compute */
   PetscInt       ncv;              /* number of basis vectors */
   PetscInt       mpd;              /* maximum dimension of projected problem */
-  PetscInt       lag;              /* interval to rebuild preconditioner */
   PetscInt       nini;             /* number of initial vectors (negative means not copied yet) */
   PetscScalar    target;           /* target value */
   PetscReal      tol;              /* tolerance */
-  PetscReal      ktol;             /* tolerance for linear solver */
-  PetscBool      cctol;            /* constant correction tolerance */
   NEPConv        conv;             /* convergence test */
   NEPStop        stop;             /* stopping test */
   NEPWhich       which;            /* which part of the spectrum to be sought */
   NEPRefine      refine;           /* type of refinement to be applied after solve */
   PetscInt       npart;            /* number of partitions of the communicator */
-  PetscReal      reftol;           /* tolerance for refinement */
+  PetscReal      rtol;             /* tolerance for refinement */
   PetscInt       rits;             /* number of iterations of the refinement method */
   NEPRefineScheme scheme;          /* scheme for solving linear systems within refinement */
   PetscBool      trackall;         /* whether all the residuals must be computed */
@@ -101,7 +98,7 @@ struct _p_NEP {
   PetscErrorCode (*stoppingdestroy)(void*);
   void           *convergedctx;
   void           *stoppingctx;
-  PetscErrorCode (*monitor[MAXNEPMONITORS])(NEP,PetscInt,PetscInt,PetscScalar*,PetscReal*,PetscInt,void*);
+  PetscErrorCode (*monitor[MAXNEPMONITORS])(NEP,PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscReal*,PetscInt,void*);
   PetscErrorCode (*monitordestroy[MAXNEPMONITORS])(void**);
   void           *monitorcontext[MAXNEPMONITORS];
   PetscInt       numbermonitors;
@@ -110,9 +107,7 @@ struct _p_NEP {
   DS             ds;               /* direct solver object */
   BV             V;                /* set of basis vectors and computed eigenvectors */
   RG             rg;               /* optional region for filtering */
-  PetscRandom    rand;             /* random number generator */
   SlepcSC        sc;               /* sorting criterion data */
-  KSP            ksp;              /* linear solver object */
   Mat            function;         /* function matrix */
   Mat            function_pre;     /* function matrix (preconditioner) */
   Mat            jacobian;         /* Jacobian matrix */
@@ -181,20 +176,7 @@ struct _p_NEP {
 
 #endif
 
-#undef __FUNCT__
-#define __FUNCT__ "NEP_KSPSolve"
-PETSC_STATIC_INLINE PetscErrorCode NEP_KSPSolve(NEP nep,Vec b,Vec x)
-{
-  PetscErrorCode ierr;
-  PetscInt       lits;
-
-  PetscFunctionBegin;
-  ierr = KSPSolve(nep->ksp,b,x);CHKERRQ(ierr);
-  ierr = KSPGetIterationNumber(nep->ksp,&lits);CHKERRQ(ierr);
-  ierr = PetscInfo2(nep,"iter=%D, linear solve iterations=%D\n",nep->its,lits);CHKERRQ(ierr);
-  PetscFunctionReturn(0);
-}
-
+PETSC_INTERN PetscErrorCode NEPSetDimensions_Default(NEP,PetscInt,PetscInt*,PetscInt*);
 PETSC_INTERN PetscErrorCode NEPComputeVectors(NEP);
 PETSC_INTERN PetscErrorCode NEPReset_Problem(NEP);
 PETSC_INTERN PetscErrorCode NEPGetDefaultShift(NEP,PetscScalar*);

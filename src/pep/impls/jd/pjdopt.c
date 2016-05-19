@@ -3,7 +3,7 @@
 
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
-   Copyright (c) 2002-2015, Universitat Politecnica de Valencia, Spain
+   Copyright (c) 2002-2016, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
 
@@ -23,112 +23,6 @@
 
 #include <slepc/private/pepimpl.h>    /*I "slepcpep.h" I*/
 #include "pjdp.h"
-
-#undef __FUNCT__
-#define __FUNCT__ "PEPJDSetTolerances_JD"
-PetscErrorCode PEPJDSetTolerances_JD(PEP pep,PetscReal mtol,PetscReal htol,PetscReal stol)
-{
-  PEP_JD *pjd = (PEP_JD*)pep->data;
-
-  PetscFunctionBegin;
-  if (mtol==PETSC_DEFAULT) pjd->mtol = 1e-5;
-  else {
-    if (mtol<0.0) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of mtol. Must be > 0");
-    pjd->mtol = mtol;
-  }
-  if (htol==PETSC_DEFAULT) pjd->htol = 1e-2;
-  else {
-    if (htol<0.0) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of htol. Must be > 0");
-    pjd->htol = htol;
-  }
-  if (stol==PETSC_DEFAULT) pjd->stol = 1e-2;
-  else {
-    if (stol<0.0) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of stol. Must be > 0");
-    pjd->stol = stol;
-  }
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
-#define __FUNCT__ "PEPJDSetTolerances"
-/*@
-   PEPJDSetTolerances - Sets various tolerance parameters for the Jacobi-Davidson
-   method.
-
-   Logically Collective on PEP
-
-   Input Parameters:
-+  pep  - the eigenproblem solver context
-.  mtol - the multiplicity tolerance
-.  htol - the tolerance for harmonic extraction
--  stol - the tolerance for harmonic shift
-
-   Options Database Key:
-+  -pep_jd_mtol - Sets the multiplicity tolerance
-.  -pep_jd_htol - Sets the harmonic tolerance
--  -pep_jd_stol - Sets the shift tolerance
-
-   Level: advanced
-
-.seealso: PEPJDGetTolerances()
-@*/
-PetscErrorCode PEPJDSetTolerances(PEP pep,PetscReal mtol,PetscReal htol,PetscReal stol)
-{
-  PetscErrorCode ierr;
-
-  PetscFunctionBegin;
-  PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
-  PetscValidLogicalCollectiveReal(pep,mtol,2);
-  PetscValidLogicalCollectiveReal(pep,htol,3);
-  PetscValidLogicalCollectiveReal(pep,stol,4);
-  ierr = PetscTryMethod(pep,"PEPJDSetTolerances_C",(PEP,PetscReal,PetscReal,PetscReal),(pep,mtol,htol,stol));CHKERRQ(ierr);
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
-#define __FUNCT__ "PEPJDGetTolerances_JD"
-PetscErrorCode PEPJDGetTolerances_JD(PEP pep,PetscReal *mtol,PetscReal *htol,PetscReal *stol)
-{
-  PEP_JD *pjd = (PEP_JD*)pep->data;
-
-  PetscFunctionBegin;
-  *mtol = pjd->mtol;
-  *htol = pjd->htol;
-  *stol = pjd->stol;
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
-#define __FUNCT__ "PEPJDGetTolerances"
-/*@
-   PEPJDGetTolerances - Gets various tolerances in the Jacobi-Davidson method.
-
-   Not Collective
-
-   Input Parameter:
-.  pep - the eigenproblem solver context
-
-   Output Parameter:
-+  mtol - the multiplicity tolerance
-.  htol - the harmonic tolerance
--  stol - the shift tolerance
-
-   Level: advanced
-
-.seealso: PEPJDSetTolerances()
-@*/
-PetscErrorCode PEPJDGetTolerances(PEP pep,PetscReal *mtol,PetscReal *htol,PetscReal *stol)
-{
-  PetscErrorCode ierr;
-
-  PetscFunctionBegin;
-  PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
-  PetscValidPointer(mtol,2);
-  PetscValidPointer(htol,3);
-  PetscValidPointer(stol,4);
-  ierr = PetscTryMethod(pep,"PEPJDGetTolerances_C",(PEP,PetscReal*,PetscReal*,PetscReal*),(pep,mtol,htol,stol));CHKERRQ(ierr);
-  PetscFunctionReturn(0);
-}
 
 #undef __FUNCT__
 #define __FUNCT__ "PEPJDSetRestart_JD"
@@ -223,9 +117,8 @@ PetscErrorCode PEPJDGetRestart(PEP pep,PetscReal *keep)
 PetscErrorCode PEPSetFromOptions_JD(PetscOptionItems *PetscOptionsObject,PEP pep)
 {
   PetscErrorCode ierr;
-  PEP_JD         *pjd = (PEP_JD*)pep->data;
-  PetscBool      flg,flg1,flg2,flg3;
-  PetscReal      r1,r2,r3;
+  PetscBool      flg;
+  PetscReal      r1;
 
   PetscFunctionBegin;
   ierr = PetscOptionsHead(PetscOptionsObject,"PEP JD Options");CHKERRQ(ierr);
@@ -233,15 +126,10 @@ PetscErrorCode PEPSetFromOptions_JD(PetscOptionItems *PetscOptionsObject,PEP pep
   if (flg) {
     ierr = PEPJDSetRestart(pep,r1);CHKERRQ(ierr);
   }
-
-  r1 = pjd->mtol;
-  ierr = PetscOptionsReal("-pep_jd_mtol","Multiplicity tolerance","PEPJDSetTolerances",pjd->mtol,&r1,&flg1);CHKERRQ(ierr);
-  r2 = pjd->htol;
-  ierr = PetscOptionsReal("-pep_jd_htol","Harmonic tolerance","PEPJDSetTolerances",pjd->htol,&r2,&flg2);CHKERRQ(ierr);
-  r3 = pjd->stol;
-  ierr = PetscOptionsReal("-pep_jd_stol","Shift tolerance","PEPJDSetTolerances",pjd->stol,&r3,&flg3);CHKERRQ(ierr);
-  if (flg1 || flg2 || flg3) {
-    ierr = PEPJDSetTolerances(pep,r1,r2,r3);CHKERRQ(ierr);
+  /* Set STPRECOND as the default ST */
+  if (!pep->st) { ierr = PEPGetST(pep,&pep->st);CHKERRQ(ierr); }
+  if (!((PetscObject)pep->st)->type_name) {
+    ierr = STSetType(pep->st,STPRECOND);CHKERRQ(ierr);
   }
   ierr = PetscOptionsTail();CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -259,9 +147,6 @@ PetscErrorCode PEPView_JD(PEP pep,PetscViewer viewer)
   ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
   if (isascii) {
     ierr = PetscViewerASCIIPrintf(viewer,"  JD: %d%% of basis vectors kept after restart\n",(int)(100*pjd->keep));CHKERRQ(ierr);
-    ierr = PetscViewerASCIIPrintf(viewer,"  JD: multiplicity tolerance = %g\n",(double)pjd->mtol);CHKERRQ(ierr);
-    ierr = PetscViewerASCIIPrintf(viewer,"  JD: harmonic tolerance = %g\n",(double)pjd->htol);CHKERRQ(ierr);
-    ierr = PetscViewerASCIIPrintf(viewer,"  JD: shift tolerance = %g\n",(double)pjd->stol);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }

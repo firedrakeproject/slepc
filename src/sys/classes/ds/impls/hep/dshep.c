@@ -1,7 +1,7 @@
 /*
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
-   Copyright (c) 2002-2015, Universitat Politecnica de Valencia, Spain
+   Copyright (c) 2002-2016, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
 
@@ -40,17 +40,17 @@ PetscErrorCode DSAllocate_HEP(DS ds,PetscInt ld)
 
 /*   0       l           k                 n-1
     -----------------------------------------
-    |*       ·           ·                  |
-    |  *     ·           ·                  |
-    |    *   ·           ·                  |
-    |      * ·           ·                  |
-    |· · · · o           o                  |
+    |*       .           .                  |
+    |  *     .           .                  |
+    |    *   .           .                  |
+    |      * .           .                  |
+    |. . . . o           o                  |
     |          o         o                  |
     |            o       o                  |
     |              o     o                  |
     |                o   o                  |
     |                  o o                  |
-    |· · · · o o o o o o o x                |
+    |. . . . o o o o o o o x                |
     |                    x x x              |
     |                      x x x            |
     |                        x x x          |

@@ -3,7 +3,7 @@
 
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
-   Copyright (c) 2002-2015, Universitat Politecnica de Valencia, Spain
+   Copyright (c) 2002-2016, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
 
@@ -339,12 +339,7 @@ static PetscErrorCode EPSPRIMMESetBlockSize_PRIMME(EPS eps,PetscInt bs)
 #undef __FUNCT__
 #define __FUNCT__ "EPSPRIMMESetBlockSize"
 /*@
-   EPSPRIMMESetBlockSize - The maximum block size the code will try to use.
-   The user should set
-   this based on the architecture specifics of the target computer,
-   as well as any a priori knowledge of multiplicities. The code does
-   NOT require BlockSize > 1 to find multiple eigenvalues.  For some
-   methods, keeping BlockSize = 1 yields the best overall performance.
+   EPSPRIMMESetBlockSize - The maximum block size that PRIMME will try to use.
 
    Logically Collective on EPS
 
@@ -358,6 +353,11 @@ static PetscErrorCode EPSPRIMMESetBlockSize_PRIMME(EPS eps,PetscInt bs)
    Notes:
    If the block size is not set, the value established by primme_initialize
    is used.
+
+   The user should set the block size based on the architecture specifics
+   of the target computer, as well as any a priori knowledge of multiplicities.
+   The code does NOT require bs > 1 to find multiple eigenvalues. For some
+   methods, keeping bs = 1 yields the best overall performance.
 
    Level: advanced
 
@@ -433,19 +433,10 @@ static PetscErrorCode EPSPRIMMESetMethod_PRIMME(EPS eps,EPSPRIMMEMethod method)
 
    Input Parameters:
 +  eps - the eigenproblem solver context
--  method - method that will be used by PRIMME. It must be one of:
-    EPS_PRIMME_DYNAMIC, EPS_PRIMME_DEFAULT_MIN_TIME(EPS_PRIMME_JDQMR_ETOL),
-    EPS_PRIMME_DEFAULT_MIN_MATVECS(EPS_PRIMME_GD_OLSEN_PLUSK), EPS_PRIMME_ARNOLDI,
-    EPS_PRIMME_GD, EPS_PRIMME_GD_PLUSK, EPS_PRIMME_GD_OLSEN_PLUSK,
-    EPS_PRIMME_JD_OLSEN_PLUSK, EPS_PRIMME_RQI, EPS_PRIMME_JDQR, EPS_PRIMME_JDQMR,
-    EPS_PRIMME_JDQMR_ETOL, EPS_PRIMME_SUBSPACE_ITERATION,
-    EPS_PRIMME_LOBPCG_ORTHOBASIS, EPS_PRIMME_LOBPCG_ORTHOBASISW
+-  method - method that will be used by PRIMME
 
    Options Database Key:
-.  -eps_primme_method - Sets the method for the PRIMME library (one of 
-    'dynamic', 'default_min_time', 'default_min_matvecs', 'arnoldi',
-    'gd', 'gd_plusk', 'gd_olsen_plusk', 'jd_olsen_plusk', 'rqi', 'jdqr', 'jdqmr',
-    'jdqmr_etol', 'subspace_iteration', 'lobpcg_orthobasis', 'lobpcg_orthobasisw').
+.  -eps_primme_method - Sets the method for the PRIMME library
 
    Note:
    If not set, the method defaults to EPS_PRIMME_DEFAULT_MIN_TIME.
@@ -487,13 +478,7 @@ static PetscErrorCode EPSPRIMMEGetMethod_PRIMME(EPS eps,EPSPRIMMEMethod *method)
 .  eps - the eigenproblem solver context
 
    Output Parameter:
-.  method - method that will be used by PRIMME, one of
-    EPS_PRIMME_DYNAMIC, EPS_PRIMME_DEFAULT_MIN_TIME(EPS_PRIMME_JDQMR_ETOL),
-    EPS_PRIMME_DEFAULT_MIN_MATVECS(EPS_PRIMME_GD_OLSEN_PLUSK), EPS_PRIMME_ARNOLDI,
-    EPS_PRIMME_GD, EPS_PRIMME_GD_PLUSK, EPS_PRIMME_GD_OLSEN_PLUSK,
-    EPS_PRIMME_JD_OLSEN_PLUSK, EPS_PRIMME_RQI, EPS_PRIMME_JDQR, EPS_PRIMME_JDQMR,
-    EPS_PRIMME_JDQMR_ETOL, EPS_PRIMME_SUBSPACE_ITERATION,
-    EPS_PRIMME_LOBPCG_ORTHOBASIS, EPS_PRIMME_LOBPCG_ORTHOBASISW
+.  method - method that will be used by PRIMME
 
    Level: advanced
 

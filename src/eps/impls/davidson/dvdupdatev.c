@@ -5,7 +5,7 @@
 
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
-   Copyright (c) 2002-2015, Universitat Politecnica de Valencia, Spain
+   Copyright (c) 2002-2016, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
 
@@ -24,7 +24,6 @@
 */
 
 #include "davidson.h"
-#include <slepc/private/dsimpl.h>
 
 typedef struct {
   PetscInt          min_size_V;        /* restart with this number of eigenvectors */

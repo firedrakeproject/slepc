@@ -16,7 +16,7 @@
 
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
-   Copyright (c) 2002-2015, Universitat Politecnica de Valencia, Spain
+   Copyright (c) 2002-2016, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
 
@@ -35,7 +35,7 @@
 */
 
 #include <slepc/private/nepimpl.h>         /*I "slepcnep.h" I*/
-#include <slepc/private/pepimpl.h>
+#include <slepc/private/pepimpl.h>         /*I "slepcpep.h" I*/
 
 typedef struct {
   PEP       pep;
@@ -52,22 +52,11 @@ PetscErrorCode NEPSetUp_Interpol(NEP nep)
   RG             rg;
   PetscReal      a,b,c,d,s,tol;
   PetscScalar    zero=0.0;
-  PetscBool      flg,istrivial;
+  PetscBool      flg,istrivial,trackall;
   PetscInt       its,in;
 
   PetscFunctionBegin;
-  if (nep->ncv) { /* ncv set */
-    if (nep->ncv<nep->nev) SETERRQ(PetscObjectComm((PetscObject)nep),1,"The value of ncv must be at least nev");
-  } else if (nep->mpd) { /* mpd set */
-    nep->ncv = PetscMin(nep->n,nep->nev+nep->mpd);
-  } else { /* neither set: defaults depend on nev being small or large */
-    if (nep->nev<500) nep->ncv = PetscMin(nep->n,PetscMax(2*nep->nev,nep->nev+15));
-    else {
-      nep->mpd = 500;
-      nep->ncv = PetscMin(nep->n,nep->nev+nep->mpd);
-    }
-  }
-  if (!nep->mpd) nep->mpd = nep->ncv;
+  ierr = NEPSetDimensions_Default(nep,nep->nev,&nep->ncv,&nep->mpd);CHKERRQ(ierr);
   if (nep->ncv>nep->nev+nep->mpd) SETERRQ(PetscObjectComm((PetscObject)nep),1,"The value of ncv must not be larger than nev+mpd");
   if (!nep->max_it) nep->max_it = PetscMax(5000,2*nep->n/nep->ncv);
   if (nep->fui!=NEP_USER_INTERFACE_SPLIT) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"NEPINTERPOL only available for split operator");
@@ -86,6 +75,8 @@ PetscErrorCode NEPSetUp_Interpol(NEP nep)
   its=ctx->pep->max_it;
   if (!its) its = nep->max_it?nep->max_it:PETSC_DEFAULT;
   ierr = PEPSetTolerances(ctx->pep,tol,its);CHKERRQ(ierr);
+  ierr = NEPGetTrackAll(nep,&trackall);CHKERRQ(ierr);
+  ierr = PEPSetTrackAll(ctx->pep,trackall);CHKERRQ(ierr);
 
   /* transfer region options */
   ierr = RGIsTrivial(nep->rg,&istrivial);CHKERRQ(ierr);
@@ -190,6 +181,24 @@ PetscErrorCode NEPSolve_Interpol(NEP nep)
     nep->eigi[i] /= s;
   }
   nep->state = NEP_STATE_EIGENVECTORS;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "PEPMonitor_Interpol"
+static PetscErrorCode PEPMonitor_Interpol(PEP pep,PetscInt its,PetscInt nconv,PetscScalar *eigr,PetscScalar *eigi,PetscReal *errest,PetscInt nest,void *ctx)
+{
+  PetscInt       i;
+  NEP            nep = (NEP)ctx;
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  for (i=0;i<PetscMin(nest,nep->ncv);i++) {
+    nep->eigr[i]   = eigr[i];
+    nep->eigi[i]   = eigi[i];
+    nep->errest[i] = errest[i];
+  }
+  ierr = NEPMonitor(nep,its,nconv,nep->eigr,nep->eigi,nep->errest,nest);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -341,13 +350,12 @@ static PetscErrorCode NEPInterpolGetPEP_Interpol(NEP nep,PEP *pep)
   if (!ctx->pep) {
     ierr = PEPCreate(PetscObjectComm((PetscObject)nep),&ctx->pep);CHKERRQ(ierr);
     ierr = PEPSetOptionsPrefix(ctx->pep,((PetscObject)nep)->prefix);CHKERRQ(ierr);
-    ierr = PEPAppendOptionsPrefix(ctx->pep,"nep_");CHKERRQ(ierr);
+    ierr = PEPAppendOptionsPrefix(ctx->pep,"nep_interpol_");CHKERRQ(ierr);
     ierr = PEPGetST(ctx->pep,&st);CHKERRQ(ierr);
     ierr = STSetOptionsPrefix(st,((PetscObject)ctx->pep)->prefix);CHKERRQ(ierr);
     ierr = PetscObjectIncrementTabLevel((PetscObject)ctx->pep,(PetscObject)nep,1);CHKERRQ(ierr);
     ierr = PetscLogObjectParent((PetscObject)nep,(PetscObject)ctx->pep);CHKERRQ(ierr);
-    if (!nep->ksp) { ierr = NEPGetKSP(nep,&nep->ksp);CHKERRQ(ierr); }
-    ierr = STSetKSP(st,nep->ksp);CHKERRQ(ierr);
+    ierr = PEPMonitorSet(ctx->pep,PEPMonitor_Interpol,nep,NULL);CHKERRQ(ierr);
   }
   *pep = ctx->pep;
   PetscFunctionReturn(0);
@@ -388,13 +396,17 @@ PetscErrorCode NEPView_Interpol(NEP nep,PetscViewer viewer)
 {
   PetscErrorCode ierr;
   NEP_INTERPOL   *ctx = (NEP_INTERPOL*)nep->data;
+  PetscBool      isascii;
 
   PetscFunctionBegin;
-  if (!ctx->pep) { ierr = NEPInterpolGetPEP(nep,&ctx->pep);CHKERRQ(ierr); }
-  ierr = PetscViewerASCIIPrintf(viewer,"  Interpol: polynomial degree %D\n",ctx->deg);CHKERRQ(ierr);
-  ierr = PetscViewerASCIIPushTab(viewer);CHKERRQ(ierr);
-  ierr = PEPView(ctx->pep,viewer);CHKERRQ(ierr);
-  ierr = PetscViewerASCIIPopTab(viewer);CHKERRQ(ierr);
+  ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
+  if (isascii) {
+    if (!ctx->pep) { ierr = NEPInterpolGetPEP(nep,&ctx->pep);CHKERRQ(ierr); }
+    ierr = PetscViewerASCIIPrintf(viewer,"  Interpol: polynomial degree %D\n",ctx->deg);CHKERRQ(ierr);
+    ierr = PetscViewerASCIIPushTab(viewer);CHKERRQ(ierr);
+    ierr = PEPView(ctx->pep,viewer);CHKERRQ(ierr);
+    ierr = PetscViewerASCIIPopTab(viewer);CHKERRQ(ierr);
+  }
   PetscFunctionReturn(0);
 }
 

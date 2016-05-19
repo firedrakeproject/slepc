@@ -1,7 +1,7 @@
 #
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #  SLEPc - Scalable Library for Eigenvalue Problem Computations
-#  Copyright (c) 2002-2015, Universitat Politecnica de Valencia, Spain
+#  Copyright (c) 2002-2016, Universitat Politecnica de Valencia, Spain
 #
 #  This file is part of SLEPc.
 #
@@ -89,6 +89,10 @@ runtest3_1:
 	   echo "svd type $$svd" >> test3_1.tmp; \
 	   ${MPIEXEC} -n 1 ./test3 -svd_type $$svd -svd_nsv 4 >> test3_1.tmp 2>&1; \
 	done; \
+	echo "svd type lanczos one-sided" >> test3_1.tmp; \
+	${MPIEXEC} -n 1 ./test3 -svd_type $$svd -svd_nsv 4 -svd_type lanczos -svd_lanczos_oneside >> test3_1.tmp 2>&1; \
+	echo "svd type trlanczos one-sided" >> test3_1.tmp; \
+	${MPIEXEC} -n 1 ./test3 -svd_type $$svd -svd_nsv 4 -svd_type trlanczos -svd_trlanczos_oneside >> test3_1.tmp 2>&1; \
 	[ x${SAVE_OUTPUT} = xyes ] && cp test3_1.tmp output/test3_1.out; \
 	if (${DIFF} output/test3_1.out test3_1.tmp) then true; \
 	else echo "Possible problem with test3_1, diffs above"; fi; \

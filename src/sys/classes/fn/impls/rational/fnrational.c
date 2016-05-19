@@ -3,7 +3,7 @@
 
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
-   Copyright (c) 2002-2015, Universitat Politecnica de Valencia, Spain
+   Copyright (c) 2002-2016, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
 
@@ -58,8 +58,8 @@ PetscErrorCode FNEvaluateFunction_Rational(FN fn,PetscScalar x,PetscScalar *y)
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "FNEvaluateFunctionMat_Rational"
-PetscErrorCode FNEvaluateFunctionMat_Rational(FN fn,Mat A,Mat B)
+#define __FUNCT__ "FNEvaluateFunctionMat_Private"
+static PetscErrorCode FNEvaluateFunctionMat_Private(FN fn,PetscScalar *Aa,PetscScalar *Ba,PetscInt m,PetscBool firstonly)
 {
 #if defined(PETSC_MISSING_LAPACK_GESV)
   PetscFunctionBegin;
@@ -67,18 +67,20 @@ PetscErrorCode FNEvaluateFunctionMat_Rational(FN fn,Mat A,Mat B)
 #else
   PetscErrorCode ierr;
   FN_RATIONAL    *ctx = (FN_RATIONAL*)fn->data;
-  PetscBLASInt   n,ld,*ipiv,info;
-  PetscInt       i,j,m;
-  PetscScalar    *Aa,*Ba,*W,*P,*Q,one=1.0,zero=0.0;
+  PetscBLASInt   n,k,ld,*ipiv,info;
+  PetscInt       i,j;
+  PetscScalar    *W,*P,*Q,one=1.0,zero=0.0;
 
   PetscFunctionBegin;
-  ierr = MatDenseGetArray(A,&Aa);CHKERRQ(ierr);
-  ierr = MatDenseGetArray(B,&Ba);CHKERRQ(ierr);
-  ierr = MatGetSize(A,&m,NULL);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(m,&n);CHKERRQ(ierr);
-  ld  = n;
-  P   = Ba;
-  ierr = PetscMalloc3(m*m,&Q,m*m,&W,ld,&ipiv);CHKERRQ(ierr);
+  ld = n;
+  k  = firstonly? 1: n;
+  if (Aa==Ba) {
+    ierr = PetscMalloc4(m*m,&P,m*m,&Q,m*m,&W,ld,&ipiv);CHKERRQ(ierr);
+  } else {
+    P = Ba;
+    ierr = PetscMalloc3(m*m,&Q,m*m,&W,ld,&ipiv);CHKERRQ(ierr);
+  }
   ierr = PetscMemzero(P,m*m*sizeof(PetscScalar));CHKERRQ(ierr);
   if (!ctx->np) {
     for (i=0;i<m;i++) P[i+i*ld] = 1.0;
@@ -98,14 +100,57 @@ PetscErrorCode FNEvaluateFunctionMat_Rational(FN fn,Mat A,Mat B)
       ierr = PetscMemcpy(Q,W,m*m*sizeof(PetscScalar));CHKERRQ(ierr);
       for (i=0;i<m;i++) Q[i+i*ld] += ctx->qcoeff[j];
     }
-    PetscStackCallBLAS("LAPACKgesv",LAPACKgesv_(&n,&n,Q,&ld,ipiv,P,&ld,&info));
+    PetscStackCallBLAS("LAPACKgesv",LAPACKgesv_(&n,&k,Q,&ld,ipiv,P,&ld,&info));
     if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xGESV %d",info);
   }
-  ierr = PetscFree3(Q,W,ipiv);CHKERRQ(ierr);
+  if (Aa==Ba) {
+    ierr = PetscMemcpy(Aa,P,m*k*sizeof(PetscScalar));CHKERRQ(ierr);
+    ierr = PetscFree4(P,Q,W,ipiv);CHKERRQ(ierr);
+  } else {
+    ierr = PetscFree3(Q,W,ipiv);CHKERRQ(ierr);
+  }
+  PetscFunctionReturn(0);
+#endif
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "FNEvaluateFunctionMat_Rational"
+PetscErrorCode FNEvaluateFunctionMat_Rational(FN fn,Mat A,Mat B)
+{
+  PetscErrorCode ierr;
+  PetscInt       m;
+  PetscScalar    *Aa,*Ba;
+
+  PetscFunctionBegin;
+  ierr = MatDenseGetArray(A,&Aa);CHKERRQ(ierr);
+  ierr = MatDenseGetArray(B,&Ba);CHKERRQ(ierr);
+  ierr = MatGetSize(A,&m,NULL);CHKERRQ(ierr);
+  ierr = FNEvaluateFunctionMat_Private(fn,Aa,Ba,m,PETSC_FALSE);CHKERRQ(ierr);
   ierr = MatDenseRestoreArray(A,&Aa);CHKERRQ(ierr);
   ierr = MatDenseRestoreArray(B,&Ba);CHKERRQ(ierr);
   PetscFunctionReturn(0);
-#endif
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "FNEvaluateFunctionMatVec_Rational"
+PetscErrorCode FNEvaluateFunctionMatVec_Rational(FN fn,Mat A,Vec v)
+{
+  PetscErrorCode ierr;
+  PetscInt       m;
+  PetscScalar    *Aa,*Ba;
+  Mat            B;
+
+  PetscFunctionBegin;
+  ierr = FN_AllocateWorkMat(fn,A,&B);CHKERRQ(ierr);
+  ierr = MatDenseGetArray(A,&Aa);CHKERRQ(ierr);
+  ierr = MatDenseGetArray(B,&Ba);CHKERRQ(ierr);
+  ierr = MatGetSize(A,&m,NULL);CHKERRQ(ierr);
+  ierr = FNEvaluateFunctionMat_Private(fn,Aa,Ba,m,PETSC_TRUE);CHKERRQ(ierr);
+  ierr = MatDenseRestoreArray(A,&Aa);CHKERRQ(ierr);
+  ierr = MatDenseRestoreArray(B,&Ba);CHKERRQ(ierr);
+  ierr = MatGetColumnVector(B,v,0);CHKERRQ(ierr);
+  ierr = FN_FreeWorkMat(fn,&B);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
 }
 
 #undef __FUNCT__
@@ -158,8 +203,10 @@ PetscErrorCode FNView_Rational(FN fn,PetscViewer viewer)
     if (fn->alpha!=(PetscScalar)1.0 || fn->beta!=(PetscScalar)1.0) {
       ierr = SlepcSNPrintfScalar(str,50,fn->alpha,PETSC_FALSE);CHKERRQ(ierr);
       ierr = PetscViewerASCIIPrintf(viewer,"  Scale factors: alpha=%s,",str);CHKERRQ(ierr);
+      ierr = PetscViewerASCIIUseTabs(viewer,PETSC_FALSE);CHKERRQ(ierr);
       ierr = SlepcSNPrintfScalar(str,50,fn->beta,PETSC_FALSE);CHKERRQ(ierr);
       ierr = PetscViewerASCIIPrintf(viewer," beta=%s\n",str);CHKERRQ(ierr);
+      ierr = PetscViewerASCIIUseTabs(viewer,PETSC_TRUE);CHKERRQ(ierr);
     }
     if (!ctx->nq) {
       if (!ctx->np) {
@@ -169,28 +216,33 @@ PetscErrorCode FNView_Rational(FN fn,PetscViewer viewer)
         ierr = PetscViewerASCIIPrintf(viewer,"  Constant: %s\n",str);CHKERRQ(ierr);
       } else {
         ierr = PetscViewerASCIIPrintf(viewer,"  Polynomial: ");CHKERRQ(ierr);
+        ierr = PetscViewerASCIIUseTabs(viewer,PETSC_FALSE);CHKERRQ(ierr);
         for (i=0;i<ctx->np-1;i++) {
           ierr = SlepcSNPrintfScalar(str,50,ctx->pcoeff[i],PETSC_TRUE);CHKERRQ(ierr);
           ierr = PetscViewerASCIIPrintf(viewer,"%s*x^%1D",str,ctx->np-i-1);CHKERRQ(ierr);
         }
         ierr = SlepcSNPrintfScalar(str,50,ctx->pcoeff[ctx->np-1],PETSC_TRUE);CHKERRQ(ierr);
         ierr = PetscViewerASCIIPrintf(viewer,"%s\n",str);CHKERRQ(ierr);
+        ierr = PetscViewerASCIIUseTabs(viewer,PETSC_TRUE);CHKERRQ(ierr);
       }
     } else if (!ctx->np) {
       ierr = PetscViewerASCIIPrintf(viewer,"  Inverse polinomial: 1 / (");CHKERRQ(ierr);
+      ierr = PetscViewerASCIIUseTabs(viewer,PETSC_FALSE);CHKERRQ(ierr);
       for (i=0;i<ctx->nq-1;i++) {
         ierr = SlepcSNPrintfScalar(str,50,ctx->qcoeff[i],PETSC_TRUE);CHKERRQ(ierr);
         ierr = PetscViewerASCIIPrintf(viewer,"%s*x^%1D",str,ctx->nq-i-1);CHKERRQ(ierr);
       }
       ierr = SlepcSNPrintfScalar(str,50,ctx->qcoeff[ctx->nq-1],PETSC_TRUE);CHKERRQ(ierr);
       ierr = PetscViewerASCIIPrintf(viewer,"%s)\n",str);CHKERRQ(ierr);
+      ierr = PetscViewerASCIIUseTabs(viewer,PETSC_TRUE);CHKERRQ(ierr);
     } else {
       ierr = PetscViewerASCIIPrintf(viewer,"  Rational function: (");CHKERRQ(ierr);
+      ierr = PetscViewerASCIIUseTabs(viewer,PETSC_FALSE);CHKERRQ(ierr);
       for (i=0;i<ctx->np-1;i++) {
         ierr = SlepcSNPrintfScalar(str,50,ctx->pcoeff[i],PETSC_TRUE);CHKERRQ(ierr);
         ierr = PetscViewerASCIIPrintf(viewer,"%s*x^%1D",str,ctx->np-i-1);CHKERRQ(ierr);
       }
-        ierr = SlepcSNPrintfScalar(str,50,ctx->pcoeff[ctx->np-1],PETSC_TRUE);CHKERRQ(ierr);
+      ierr = SlepcSNPrintfScalar(str,50,ctx->pcoeff[ctx->np-1],PETSC_TRUE);CHKERRQ(ierr);
       ierr = PetscViewerASCIIPrintf(viewer,"%s) / (",str);CHKERRQ(ierr);
       for (i=0;i<ctx->nq-1;i++) {
         ierr = SlepcSNPrintfScalar(str,50,ctx->qcoeff[i],PETSC_TRUE);CHKERRQ(ierr);
@@ -198,6 +250,7 @@ PetscErrorCode FNView_Rational(FN fn,PetscViewer viewer)
       }
       ierr = SlepcSNPrintfScalar(str,50,ctx->qcoeff[ctx->nq-1],PETSC_TRUE);CHKERRQ(ierr);
       ierr = PetscViewerASCIIPrintf(viewer,"%s)\n",str);CHKERRQ(ierr);
+      ierr = PetscViewerASCIIUseTabs(viewer,PETSC_TRUE);CHKERRQ(ierr);
     }
   }
   PetscFunctionReturn(0);
@@ -513,13 +566,14 @@ PETSC_EXTERN PetscErrorCode FNCreate_Rational(FN fn)
   ierr = PetscNewLog(fn,&ctx);CHKERRQ(ierr);
   fn->data = (void*)ctx;
 
-  fn->ops->evaluatefunction    = FNEvaluateFunction_Rational;
-  fn->ops->evaluatederivative  = FNEvaluateDerivative_Rational;
-  fn->ops->evaluatefunctionmat = FNEvaluateFunctionMat_Rational;
-  fn->ops->setfromoptions      = FNSetFromOptions_Rational;
-  fn->ops->view                = FNView_Rational;
-  fn->ops->duplicate           = FNDuplicate_Rational;
-  fn->ops->destroy             = FNDestroy_Rational;
+  fn->ops->evaluatefunction       = FNEvaluateFunction_Rational;
+  fn->ops->evaluatederivative     = FNEvaluateDerivative_Rational;
+  fn->ops->evaluatefunctionmat    = FNEvaluateFunctionMat_Rational;
+  fn->ops->evaluatefunctionmatvec = FNEvaluateFunctionMatVec_Rational;
+  fn->ops->setfromoptions         = FNSetFromOptions_Rational;
+  fn->ops->view                   = FNView_Rational;
+  fn->ops->duplicate              = FNDuplicate_Rational;
+  fn->ops->destroy                = FNDestroy_Rational;
   ierr = PetscObjectComposeFunction((PetscObject)fn,"FNRationalSetNumerator_C",FNRationalSetNumerator_Rational);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)fn,"FNRationalGetNumerator_C",FNRationalGetNumerator_Rational);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)fn,"FNRationalSetDenominator_C",FNRationalSetDenominator_Rational);CHKERRQ(ierr);

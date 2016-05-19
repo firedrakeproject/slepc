@@ -3,7 +3,7 @@
 
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
-   Copyright (c) 2002-2015, Universitat Politecnica de Valencia, Spain
+   Copyright (c) 2002-2016, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
 
@@ -104,7 +104,7 @@ PetscErrorCode BVInitializePackage(void)
     }
   }
   /* Process summary exclusions */
-  ierr = PetscOptionsGetString(NULL,NULL,"-log_summary_exclude",logList,256,&opt);CHKERRQ(ierr);
+  ierr = PetscOptionsGetString(NULL,NULL,"-log_exclude",logList,256,&opt);CHKERRQ(ierr);
   if (opt) {
     ierr = PetscStrstr(logList,"bv",&className);CHKERRQ(ierr);
     if (className) {
@@ -147,6 +147,7 @@ PetscErrorCode BVDestroy(BV *bv)
   ierr = PetscFree((*bv)->omega);CHKERRQ(ierr);
   ierr = MatDestroy(&(*bv)->B);CHKERRQ(ierr);
   ierr = MatDestroy(&(*bv)->C);CHKERRQ(ierr);
+  ierr = PetscRandomDestroy(&(*bv)->rand);CHKERRQ(ierr);
   ierr = PetscHeaderDestroy(bv);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -214,6 +215,8 @@ PetscErrorCode BVCreate(MPI_Comm comm,BV *newbv)
   bv->defersfo     = PETSC_FALSE;
   bv->cached       = NULL;
   bv->bvstate      = 0;
+  bv->rand         = NULL;
+  bv->rrandom      = PETSC_FALSE;
   bv->work         = NULL;
   bv->lwork        = 0;
   bv->data         = NULL;
@@ -482,7 +485,8 @@ PetscErrorCode BVAppendOptionsPrefix(BV bv,const char *prefix)
    Output Parameters:
 .  prefix - pointer to the prefix string used, is returned
 
-   Notes: On the Fortran side, the user should pass in a string 'prefix' of
+   Note:
+   On the Fortran side, the user should pass in a string 'prefix' of
    sufficient length to hold the prefix.
 
    Level: advanced
@@ -521,7 +525,7 @@ static PetscErrorCode BVView_Default(BV bv,PetscViewer viewer)
     ierr = PetscObjectGetName((PetscObject)bv,&bvname);CHKERRQ(ierr);
     ierr = PetscViewerASCIIPrintf(viewer,"%s=[];\n",bvname);CHKERRQ(ierr);
   }
-  for (j=bv->nc;j<bv->nc+bv->m;j++) {
+  for (j=-bv->nc;j<bv->m;j++) {
     ierr = BVGetColumn(bv,j,&v);CHKERRQ(ierr);
     ierr = VecView(v,viewer);CHKERRQ(ierr);
     if (ismatlab) {
@@ -616,6 +620,9 @@ PetscErrorCode BVView(BV bv,PetscViewer viewer)
         case BV_MATMULT_MAT_SAVE:
           ierr = PetscViewerASCIIPrintf(viewer,"doing matmult as a single matrix-matrix product, saving aux matrices\n");CHKERRQ(ierr);
           break;
+      }
+      if (bv->rrandom) { 
+        ierr = PetscViewerASCIIPrintf(viewer,"generating random vectors independent of the number of processes\n");CHKERRQ(ierr);
       }
     } else {
       if (bv->ops->view) { ierr = (*bv->ops->view)(bv,viewer);CHKERRQ(ierr); }

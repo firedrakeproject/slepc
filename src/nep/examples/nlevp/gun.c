@@ -1,7 +1,7 @@
 /*
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
-   Copyright (c) 2002-2015, Universitat Politecnica de Valencia, Spain
+   Copyright (c) 2002-2016, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
 
@@ -33,7 +33,7 @@
    Data files can be downloaded from http://slepc.upv.es/datafiles
 */
 
-static char help[] = "NLEVP problem: gun.\n\n"
+static char help[] = "Radio-frequency gun cavity.\n\n"
   "The command line options are:\n"
   "-K <filename1> -M <filename2> -W1 <filename3> -W2 <filename4>, where filename1,..,filename4 are files containing the matrices in PETSc binary form defining the GUN problem.\n\n";
 
@@ -141,7 +141,7 @@ int main(int argc,char **argv)
   } else {
     ierr = PetscViewerPushFormat(PETSC_VIEWER_STDOUT_WORLD,PETSC_VIEWER_ASCII_INFO_DETAIL);CHKERRQ(ierr);
     ierr = NEPReasonView(nep,PETSC_VIEWER_STDOUT_WORLD);CHKERRQ(ierr);
-    ierr = NEPErrorView(nep,NEP_ERROR_ABSOLUTE,PETSC_VIEWER_STDOUT_WORLD);CHKERRQ(ierr);
+    ierr = NEPErrorView(nep,NEP_ERROR_RELATIVE,PETSC_VIEWER_STDOUT_WORLD);CHKERRQ(ierr);
     ierr = PetscViewerPopFormat(PETSC_VIEWER_STDOUT_WORLD);CHKERRQ(ierr);
   }
   ierr = NEPDestroy(&nep);CHKERRQ(ierr);
@@ -152,8 +152,8 @@ int main(int argc,char **argv)
   for (i=0;i<2;i++) {
     ierr = FNDestroy(&ff[i]);CHKERRQ(ierr);
   }
-  ierr = SlepcFinalize();CHKERRQ(ierr);
-  return 0;
+  ierr = SlepcFinalize();
+  return ierr;
 }
 
 #undef __FUNCT__

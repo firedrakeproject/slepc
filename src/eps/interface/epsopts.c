@@ -4,7 +4,7 @@
 
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
-   Copyright (c) 2002-2015, Universitat Politecnica de Valencia, Spain
+   Copyright (c) 2002-2016, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
 
@@ -23,6 +23,7 @@
 */
 
 #include <slepc/private/epsimpl.h>   /*I "slepceps.h" I*/
+#include <petscdraw.h>
 
 #undef __FUNCT__
 #define __FUNCT__ "EPSMonitorSetFromOptions"
@@ -127,6 +128,7 @@ PetscErrorCode EPSSetFromOptions(EPS eps)
   PetscReal      r,array[2]={0,0};
   PetscScalar    s;
   PetscInt       i,j,k;
+  PetscDrawLG    lg;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
@@ -232,11 +234,13 @@ PetscErrorCode EPSSetFromOptions(EPS eps)
     */
     ierr = PetscOptionsBool("-eps_monitor_lg","Monitor first unconverged approximate eigenvalue and error estimate graphically","EPSMonitorSet",PETSC_FALSE,&flg,&set);CHKERRQ(ierr);
     if (set && flg) {
-      ierr = EPSMonitorSet(eps,EPSMonitorLG,NULL,NULL);CHKERRQ(ierr);
+      ierr = EPSMonitorLGCreate(PetscObjectComm((PetscObject)eps),NULL,"Error estimates",PETSC_DECIDE,PETSC_DECIDE,300,300,&lg);CHKERRQ(ierr);
+      ierr = EPSMonitorSet(eps,EPSMonitorLG,lg,(PetscErrorCode (*)(void**))PetscDrawLGDestroy);CHKERRQ(ierr);
     }
     ierr = PetscOptionsBool("-eps_monitor_lg_all","Monitor error estimates graphically","EPSMonitorSet",PETSC_FALSE,&flg,&set);CHKERRQ(ierr);
     if (set && flg) {
-      ierr = EPSMonitorSet(eps,EPSMonitorLGAll,NULL,NULL);CHKERRQ(ierr);
+      ierr = EPSMonitorLGCreate(PetscObjectComm((PetscObject)eps),NULL,"Error estimates",PETSC_DECIDE,PETSC_DECIDE,300,300,&lg);CHKERRQ(ierr);
+      ierr = EPSMonitorSet(eps,EPSMonitorLGAll,lg,(PetscErrorCode (*)(void**))PetscDrawLGDestroy);CHKERRQ(ierr);
       ierr = EPSSetTrackAll(eps,PETSC_TRUE);CHKERRQ(ierr);
     }
   /* -----------------------------------------------------------------------*/
@@ -301,7 +305,6 @@ PetscErrorCode EPSSetFromOptions(EPS eps)
   ierr = DSSetFromOptions(eps->ds);CHKERRQ(ierr);
   if (!eps->st) { ierr = EPSGetST(eps,&eps->st);CHKERRQ(ierr); }
   ierr = STSetFromOptions(eps->st);CHKERRQ(ierr);
-  ierr = PetscRandomSetFromOptions(eps->rand);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -1513,7 +1516,8 @@ PetscErrorCode EPSAppendOptionsPrefix(EPS eps,const char *prefix)
    Output Parameters:
 .  prefix - pointer to the prefix string used is returned
 
-   Notes: On the fortran side, the user should pass in a string 'prefix' of
+   Note:
+   On the Fortran side, the user should pass in a string 'prefix' of
    sufficient length to hold the prefix.
 
    Level: advanced

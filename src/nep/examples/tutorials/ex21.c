@@ -1,7 +1,7 @@
 /*
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
-   Copyright (c) 2002-2015, Universitat Politecnica de Valencia, Spain
+   Copyright (c) 2002-2016, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
 
@@ -134,7 +134,9 @@ int main(int argc,char **argv)
      Customize nonlinear solver; set runtime options
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  ierr = NEPGetKSP(nep,&ksp);CHKERRQ(ierr);
+  ierr = NEPSetType(nep,NEPRII);CHKERRQ(ierr);
+  ierr = NEPRIISetLagPreconditioner(nep,0);CHKERRQ(ierr);
+  ierr = NEPRIIGetKSP(nep,&ksp);CHKERRQ(ierr);
   ierr = KSPSetType(ksp,KSPBCGS);CHKERRQ(ierr);
   ierr = KSPGetPC(ksp,&pc);CHKERRQ(ierr);
   ierr = PCSetType(pc,PCJACOBI);CHKERRQ(ierr);
@@ -172,7 +174,7 @@ int main(int argc,char **argv)
   ierr = MatDestroy(&F);CHKERRQ(ierr);
   ierr = MatDestroy(&J);CHKERRQ(ierr);
   ierr = SlepcFinalize();
-  return 0;
+  return ierr;
 }
 
 /* ------------------------------------------------------------------- */

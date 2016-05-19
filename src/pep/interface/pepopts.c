@@ -4,7 +4,7 @@
 
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
-   Copyright (c) 2002-2015, Universitat Politecnica de Valencia, Spain
+   Copyright (c) 2002-2016, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
 
@@ -23,6 +23,7 @@
 */
 
 #include <slepc/private/pepimpl.h>       /*I "slepcpep.h" I*/
+#include <petscdraw.h>
 
 #undef __FUNCT__
 #define __FUNCT__ "PEPMonitorSetFromOptions"
@@ -127,6 +128,7 @@ PetscErrorCode PEPSetFromOptions(PEP pep)
   PetscReal      r,t;
   PetscScalar    s;
   PetscInt       i,j,k;
+  PetscDrawLG    lg;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
@@ -165,7 +167,7 @@ PetscErrorCode PEPSetFromOptions(PEP pep)
     i = pep->npart;
     ierr = PetscOptionsInt("-pep_refine_partitions","Number of partitions of the communicator for iterative refinement","PEPSetRefine",pep->npart,&i,&flg1);CHKERRQ(ierr);
     r = pep->rtol;
-    ierr = PetscOptionsReal("-pep_refine_tol","Tolerance for iterative refinement","PEPSetRefine",pep->rtol,&r,&flg2);CHKERRQ(ierr);
+    ierr = PetscOptionsReal("-pep_refine_tol","Tolerance for iterative refinement","PEPSetRefine",pep->rtol==PETSC_DEFAULT?SLEPC_DEFAULT_TOL/1000:pep->rtol,&r,&flg2);CHKERRQ(ierr);
     j = pep->rits;
     ierr = PetscOptionsInt("-pep_refine_its","Maximum number of iterations for iterative refinement","PEPSetRefine",pep->rits,&j,&flg3);CHKERRQ(ierr);
     if (flg1 || flg2 || flg3) {
@@ -233,11 +235,13 @@ PetscErrorCode PEPSetFromOptions(PEP pep)
     */
     ierr = PetscOptionsBool("-pep_monitor_lg","Monitor first unconverged approximate error estimate graphically","PEPMonitorSet",PETSC_FALSE,&flg,&set);CHKERRQ(ierr);
     if (set && flg) {
-      ierr = PEPMonitorSet(pep,PEPMonitorLG,NULL,NULL);CHKERRQ(ierr);
+      ierr = PEPMonitorLGCreate(PetscObjectComm((PetscObject)pep),NULL,"Error estimates",PETSC_DECIDE,PETSC_DECIDE,300,300,&lg);CHKERRQ(ierr);
+      ierr = PEPMonitorSet(pep,PEPMonitorLG,lg,(PetscErrorCode (*)(void**))PetscDrawLGDestroy);CHKERRQ(ierr);
     }
     ierr = PetscOptionsBool("-pep_monitor_lg_all","Monitor error estimates graphically","PEPMonitorSet",PETSC_FALSE,&flg,&set);CHKERRQ(ierr);
     if (set && flg) {
-      ierr = PEPMonitorSet(pep,PEPMonitorLGAll,NULL,NULL);CHKERRQ(ierr);
+      ierr = PEPMonitorLGCreate(PetscObjectComm((PetscObject)pep),NULL,"Error estimates",PETSC_DECIDE,PETSC_DECIDE,300,300,&lg);CHKERRQ(ierr);
+      ierr = PEPMonitorSet(pep,PEPMonitorLGAll,lg,(PetscErrorCode (*)(void**))PetscDrawLGDestroy);CHKERRQ(ierr);
       ierr = PEPSetTrackAll(pep,PETSC_TRUE);CHKERRQ(ierr);
     }
   /* -----------------------------------------------------------------------*/
@@ -285,7 +289,6 @@ PetscErrorCode PEPSetFromOptions(PEP pep)
   ierr = STSetFromOptions(pep->st);CHKERRQ(ierr);
   if (!pep->refineksp) { ierr = PEPRefineGetKSP(pep,&pep->refineksp);CHKERRQ(ierr); }
   ierr = KSPSetFromOptions(pep->refineksp);CHKERRQ(ierr);
-  ierr = PetscRandomSetFromOptions(pep->rand);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -1310,7 +1313,7 @@ PetscErrorCode PEPSetRefine(PEP pep,PEPRefine refine,PetscInt npart,PetscReal to
       pep->npart = npart;
     }
     if (tol == PETSC_DEFAULT || tol == PETSC_DECIDE) {
-      pep->rtol = pep->tol;
+      pep->rtol = PetscMax(pep->tol/1000,PETSC_MACHINE_EPSILON);
     } else {
       if (tol<=0.0) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of tol. Must be > 0");
       pep->rtol = tol;
@@ -1470,7 +1473,8 @@ PetscErrorCode PEPAppendOptionsPrefix(PEP pep,const char *prefix)
    Output Parameters:
 .  prefix - pointer to the prefix string used is returned
 
-   Notes: On the fortran side, the user should pass in a string 'prefix' of
+   Note:
+   On the Fortran side, the user should pass in a string 'prefix' of
    sufficient length to hold the prefix.
 
    Level: advanced

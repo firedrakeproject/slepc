@@ -16,7 +16,7 @@
 
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
-   Copyright (c) 2002-2015, Universitat Politecnica de Valencia, Spain
+   Copyright (c) 2002-2016, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
 
@@ -48,15 +48,21 @@ PetscErrorCode PEPSetUp_QArnoldi(PEP pep)
 {
   PetscErrorCode ierr;
   PEP_QARNOLDI   *ctx = (PEP_QARNOLDI*)pep->data;
-  PetscBool      sinv,flg;
+  PetscBool      shift,sinv,flg;
 
   PetscFunctionBegin;
   pep->lineariz = PETSC_TRUE;
   ierr = PEPSetDimensions_Default(pep,pep->nev,&pep->ncv,&pep->mpd);CHKERRQ(ierr);
   if (!ctx->lock && pep->mpd<pep->ncv) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Should not use mpd parameter in non-locking variant");
   if (!pep->max_it) pep->max_it = PetscMax(100,4*pep->n/pep->ncv);
+  /* Set STSHIFT as the default ST */
+  if (!((PetscObject)pep->st)->type_name) {
+    ierr = STSetType(pep->st,STSHIFT);CHKERRQ(ierr);
+  }
+  ierr = PetscObjectTypeCompare((PetscObject)pep->st,STSHIFT,&shift);CHKERRQ(ierr);
+  ierr = PetscObjectTypeCompare((PetscObject)pep->st,STSINVERT,&sinv);CHKERRQ(ierr);
+  if (!shift && !sinv) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Only STSHIFT and STSINVERT spectral transformations can be used");
   if (!pep->which) {
-    ierr = PetscObjectTypeCompare((PetscObject)pep->st,STSINVERT,&sinv);CHKERRQ(ierr);
     if (sinv) pep->which = PEP_TARGET_MAGNITUDE;
     else pep->which = PEP_LARGEST_MAGNITUDE;
   }
@@ -83,8 +89,8 @@ PetscErrorCode PEPSetUp_QArnoldi(PEP pep)
 
   /* process starting vector */
   if (pep->nini>-2) {
-    ierr = BVSetRandomColumn(pep->V,0,pep->rand);CHKERRQ(ierr);
-    ierr = BVSetRandomColumn(pep->V,1,pep->rand);CHKERRQ(ierr);
+    ierr = BVSetRandomColumn(pep->V,0);CHKERRQ(ierr);
+    ierr = BVSetRandomColumn(pep->V,1);CHKERRQ(ierr);
   } else {
     ierr = BVInsertVec(pep->V,0,pep->IS[0]);CHKERRQ(ierr);
     ierr = BVInsertVec(pep->V,1,pep->IS[1]);CHKERRQ(ierr);
@@ -266,7 +272,7 @@ PetscErrorCode PEPSolve_QArnoldi(PEP pep)
   lwork = 7*pep->ncv;
   ierr = PetscMalloc1(lwork,&work);CHKERRQ(ierr);
   ierr = PetscObjectTypeCompare((PetscObject)pep->st,STSINVERT,&sinv);CHKERRQ(ierr);
-  ierr = RGSetScale(pep->rg,sinv?1.0/pep->sfactor:pep->sfactor);CHKERRQ(ierr);
+  ierr = RGPushScale(pep->rg,sinv?pep->sfactor:1.0/pep->sfactor);CHKERRQ(ierr);
   ierr = STScaleShift(pep->st,sinv?pep->sfactor:1.0/pep->sfactor);CHKERRQ(ierr);
 
   /* Get the starting Arnoldi vector */
@@ -338,7 +344,7 @@ PetscErrorCode PEPSolve_QArnoldi(PEP pep)
   }
 
   ierr = STScaleShift(pep->st,sinv?1.0/pep->sfactor:pep->sfactor);CHKERRQ(ierr);
-  ierr = RGSetScale(pep->rg,1.0);CHKERRQ(ierr);
+  ierr = RGPopScale(pep->rg);CHKERRQ(ierr);
 
   /* truncate Schur decomposition and change the state to raw so that
      DSVectors() computes eigenvectors from scratch */

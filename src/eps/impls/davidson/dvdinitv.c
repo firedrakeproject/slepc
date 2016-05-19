@@ -5,7 +5,7 @@
 
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
-   Copyright (c) 2002-2015, Universitat Politecnica de Valencia, Spain
+   Copyright (c) 2002-2016, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
 
@@ -42,7 +42,7 @@ static PetscErrorCode dvd_initV_classic_0(dvdDashboard *d)
   PetscFunctionBegin;
   /* Generate a set of random initial vectors and orthonormalize them */
   for (i=user;i<k;i++) {
-    ierr = BVSetRandomColumn(d->eps->V,i,d->eps->rand);CHKERRQ(ierr);
+    ierr = BVSetRandomColumn(d->eps->V,i);CHKERRQ(ierr);
   }
   d->V_tra_s = 0; d->V_tra_e = 0;
   d->V_new_s = 0; d->V_new_e = i;
@@ -64,12 +64,12 @@ static PetscErrorCode dvd_initV_krylov_0(dvdDashboard *d)
   PetscFunctionBegin;
   /* If needed, generate a random vector for starting the arnoldi method */
   if (user == 0) {
-    ierr = BVSetRandomColumn(d->eps->V,0,d->eps->rand);CHKERRQ(ierr);
+    ierr = BVSetRandomColumn(d->eps->V,0);CHKERRQ(ierr);
     user = 1;
   }
 
   /* Perform k steps of Arnoldi with the operator K^{-1}*(t[1]*A-t[2]*B) */
-  ierr = dvd_orthV(d->eps->V,0,user,d->eps->rand);CHKERRQ(ierr);
+  ierr = dvd_orthV(d->eps->V,0,user);CHKERRQ(ierr);
   for (i=user;i<k;i++) {
     /* aux <- theta[1]A*in - theta[0]*B*in */
     ierr = BVGetColumn(d->eps->V,i,&v1);CHKERRQ(ierr);
@@ -87,7 +87,7 @@ static PetscErrorCode dvd_initV_krylov_0(dvdDashboard *d)
     ierr = BVRestoreColumn(d->eps->V,i,&v1);CHKERRQ(ierr);
     ierr = BVRestoreColumn(d->eps->V,i-user,&v2);CHKERRQ(ierr);
     ierr = BVRestoreColumn(d->auxBV,0,&av);CHKERRQ(ierr);
-    ierr = dvd_orthV(d->eps->V,i,i+1,d->eps->rand);CHKERRQ(ierr);
+    ierr = dvd_orthV(d->eps->V,i,i+1);CHKERRQ(ierr);
   }
 
   d->V_tra_s = 0; d->V_tra_e = 0;
@@ -141,7 +141,7 @@ PetscErrorCode dvd_initV(dvdDashboard *d, dvdBlackboard *b, PetscInt k,PetscInt 
 
 #undef __FUNCT__
 #define __FUNCT__ "dvd_orthV"
-PetscErrorCode dvd_orthV(BV V,PetscInt V_new_s,PetscInt V_new_e,PetscRandom rand)
+PetscErrorCode dvd_orthV(BV V,PetscInt V_new_s,PetscInt V_new_e)
 {
   PetscErrorCode ierr;
   PetscInt       i,j,l,k;
@@ -154,7 +154,7 @@ PetscErrorCode dvd_orthV(BV V,PetscInt V_new_s,PetscInt V_new_e,PetscRandom rand
     ierr = BVSetActiveColumns(V,0,i);CHKERRQ(ierr);
     for (j=0;j<3;j++) {
       if (j>0) {
-        ierr = BVSetRandomColumn(V,i,rand);CHKERRQ(ierr);
+        ierr = BVSetRandomColumn(V,i);CHKERRQ(ierr);
         ierr = PetscInfo1(V,"Orthonormalization problems adding the vector %D to the searching subspace\n",i);CHKERRQ(ierr);
       }
       ierr = BVOrthogonalizeColumn(V,i,NULL,&norm,&lindep);CHKERRQ(ierr);

@@ -3,7 +3,7 @@
 
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
-   Copyright (c) 2002-2015, Universitat Politecnica de Valencia, Spain
+   Copyright (c) 2002-2016, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
 
@@ -47,7 +47,7 @@ PetscErrorCode PEPSetUp(PEP pep)
 {
   PetscErrorCode ierr;
   SlepcSC        sc;
-  PetscBool      islinear,istrivial,flg;
+  PetscBool      istrivial,flg;
   PetscInt       k;
   KSP            ksp;
   PC             pc;
@@ -67,18 +67,11 @@ PetscErrorCode PEPSetUp(PEP pep)
     ierr = PEPSetType(pep,PEPTOAR);CHKERRQ(ierr);
   }
   if (!pep->st) { ierr = PEPGetST(pep,&pep->st);CHKERRQ(ierr); }
-  ierr = PetscObjectTypeCompare((PetscObject)pep,PEPLINEAR,&islinear);CHKERRQ(ierr);
-  if (!((PetscObject)pep->st)->type_name) {
-    ierr = STSetType(pep->st,STSHIFT);CHKERRQ(ierr);
-  }
   if (!pep->ds) { ierr = PEPGetDS(pep,&pep->ds);CHKERRQ(ierr); }
   ierr = DSReset(pep->ds);CHKERRQ(ierr);
   if (!pep->rg) { ierr = PEPGetRG(pep,&pep->rg);CHKERRQ(ierr); }
   if (!((PetscObject)pep->rg)->type_name) {
     ierr = RGSetType(pep->rg,RGINTERVAL);CHKERRQ(ierr);
-  }
-  if (!((PetscObject)pep->rand)->type_name) {
-    ierr = PetscRandomSetFromOptions(pep->rand);CHKERRQ(ierr);
   }
 
   /* check matrices, transfer them to ST */
@@ -96,12 +89,21 @@ PetscErrorCode PEPSetUp(PEP pep)
 
   /* check consistency of refinement options */
   if (pep->refine) {
+    if (!pep->scheme) {  /* set default scheme */
+      ierr = PEPRefineGetKSP(pep,&ksp);CHKERRQ(ierr);
+      ierr = KSPGetPC(ksp,&pc);CHKERRQ(ierr);
+      ierr = PetscObjectTypeCompare((PetscObject)ksp,KSPPREONLY,&flg);CHKERRQ(ierr);
+      if (flg) {
+        ierr = PetscObjectTypeCompareAny((PetscObject)pc,&flg,PCLU,PCCHOLESKY,"");CHKERRQ(ierr);
+      }
+      pep->scheme = flg? PEP_REFINE_SCHEME_MBE: PEP_REFINE_SCHEME_SCHUR;
+    }
     if (pep->scheme==PEP_REFINE_SCHEME_MBE) {
       ierr = PEPRefineGetKSP(pep,&ksp);CHKERRQ(ierr);
       ierr = KSPGetPC(ksp,&pc);CHKERRQ(ierr);
       ierr = PetscObjectTypeCompare((PetscObject)ksp,KSPPREONLY,&flg);CHKERRQ(ierr);
       if (flg) {
-        ierr = PetscObjectTypeCompareAny((PetscObject)pc,&flg,PCLU,PCCHOLESKY);CHKERRQ(ierr);
+        ierr = PetscObjectTypeCompareAny((PetscObject)pc,&flg,PCLU,PCCHOLESKY,"");CHKERRQ(ierr);
       }
       if (!flg) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"The MBE scheme for refinement requires a direct solver in KSP");
       ierr = MPI_Comm_size(PetscObjectComm((PetscObject)pc),&size);CHKERRQ(ierr);
@@ -121,7 +123,7 @@ PetscErrorCode PEPSetUp(PEP pep)
   /* set tolerance if not yet set */
   if (pep->tol==PETSC_DEFAULT) pep->tol = SLEPC_DEFAULT_TOL;
   if (pep->refine) {
-    if (pep->rtol==PETSC_DEFAULT) pep->rtol = pep->tol;
+    if (pep->rtol==PETSC_DEFAULT) pep->rtol = PetscMax(pep->tol/1000,PETSC_MACHINE_EPSILON);
     if (pep->rits==PETSC_DEFAULT) pep->rits = (pep->refine==PEP_REFINE_SIMPLE)? 10: 1;
   }
 
@@ -184,8 +186,6 @@ PetscErrorCode PEPSetUp(PEP pep)
   sc->mapobj        = (PetscObject)pep->st;
 
   /* setup ST */
-  ierr = PetscObjectTypeCompareAny((PetscObject)pep->st,&flg,STSHIFT,STSINVERT,"");CHKERRQ(ierr);
-  if (!flg) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Only STSHIFT and STSINVERT spectral transformations can be used in PEP");
   ierr = STSetUp(pep->st);CHKERRQ(ierr);
   /* compute matrix coefficients */
   ierr = STGetTransform(pep->st,&flg);CHKERRQ(ierr);

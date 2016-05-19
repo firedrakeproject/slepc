@@ -3,7 +3,7 @@
 
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
-   Copyright (c) 2002-2015, Universitat Politecnica de Valencia, Spain
+   Copyright (c) 2002-2016, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
 
@@ -277,7 +277,7 @@ static PetscErrorCode NEPSimpleNRefSetUpSystem(NEP nep,NEPSimpNRefctx *ctx,Mat *
   }
 
   switch (nep->scheme) {
-  case PEP_REFINE_SCHEME_EXPLICIT:
+  case NEP_REFINE_SCHEME_EXPLICIT:
     comm = PetscObjectComm((PetscObject)A[0]);
     ierr = MPI_Comm_rank(comm,&rank);CHKERRQ(ierr);
     ierr = MPI_Comm_size(comm,&size);CHKERRQ(ierr);
@@ -478,7 +478,7 @@ PetscErrorCode NEPNewtonRefinementSimple(NEP nep,PetscInt *maxits,PetscReal tol,
         ini = PETSC_FALSE;
       }
       switch (nep->scheme) {
-      case PEP_REFINE_SCHEME_EXPLICIT:
+      case NEP_REFINE_SCHEME_EXPLICIT:
         ierr = MatMult(Mt,v,r);CHKERRQ(ierr);
         ierr = VecGetArrayRead(r,&array);CHKERRQ(ierr);
         if (rank==size-1) {
@@ -556,6 +556,7 @@ PetscErrorCode NEPNewtonRefinementSimple(NEP nep,PetscInt *maxits,PetscReal tol,
           nep->eigr[idx_sc[color]] -= deig;
           fail_sc[color] = 0;
         } else fail_sc[color] = 1;
+        break;
       }
       if (nep->npart==1) { ierr = BVRestoreColumn(nep->V,idx_sc[color],&v);CHKERRQ(ierr); }
     }
@@ -598,3 +599,4 @@ PetscErrorCode NEPNewtonRefinementSimple(NEP nep,PetscInt *maxits,PetscReal tol,
   ierr = PetscLogEventEnd(NEP_Refine,nep,0,0,0);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
+

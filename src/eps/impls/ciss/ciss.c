@@ -23,7 +23,7 @@
 
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
-   Copyright (c) 2002-2015, Universitat Politecnica de Valencia, Spain
+   Copyright (c) 2002-2016, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
 
@@ -176,7 +176,7 @@ static PetscErrorCode SetPathParameter(EPS eps)
   EPS_CISS       *ctx = (EPS_CISS*)eps->data;
   PetscInt       i,j;
   PetscScalar    center=0.0,tmp,tmp2,*omegai;
-  PetscReal      theta,radius=1.0,vscale,a,b,c,d,max_w=0.0;
+  PetscReal      theta,radius=1.0,vscale,a,b,c,d,max_w=0.0,rgscale;
 #if defined(PETSC_USE_COMPLEX) 
   PetscReal      start_ang,end_ang;
 #endif
@@ -186,6 +186,7 @@ static PetscErrorCode SetPathParameter(EPS eps)
   ierr = PetscObjectTypeCompare((PetscObject)eps->rg,RGELLIPSE,&isellipse);CHKERRQ(ierr);
   ierr = PetscObjectTypeCompare((PetscObject)eps->rg,RGRING,&isring);CHKERRQ(ierr);
   ierr = PetscObjectTypeCompare((PetscObject)eps->rg,RGINTERVAL,&isinterval);CHKERRQ(ierr);
+  ierr = RGGetScale(eps->rg,&rgscale);CHKERRQ(ierr);
   ierr = PetscMalloc1(ctx->N+1l,&omegai);CHKERRQ(ierr);
   ierr = RGComputeContour(eps->rg,ctx->N,ctx->omega,omegai);CHKERRQ(ierr);
   if (isellipse) {
@@ -194,12 +195,12 @@ static PetscErrorCode SetPathParameter(EPS eps)
 #if defined(PETSC_USE_COMPLEX) 
       theta = 2.0*PETSC_PI*(i+0.5)/ctx->N;
       ctx->pp[i] = PetscCosReal(theta)+vscale*PetscSinReal(theta)*PETSC_i;
-      ctx->weight[i] = radius*(vscale*PetscCosReal(theta)+PetscSinReal(theta)*PETSC_i)/(PetscReal)ctx->N;
+      ctx->weight[i] = rgscale*radius*(vscale*PetscCosReal(theta)+PetscSinReal(theta)*PETSC_i)/(PetscReal)ctx->N;
 #else
       theta = (PETSC_PI/ctx->N)*(i+0.5);
       ctx->pp[i] = PetscCosReal(theta);
       ctx->weight[i] = PetscCosReal((ctx->N-1)*theta)/ctx->N;
-      ctx->omega[i] = center + radius*ctx->pp[i];
+      ctx->omega[i] = rgscale*(center + radius*ctx->pp[i]);
 #endif
     }
   } else if (ctx->quad == EPS_CISS_QUADRULE_CHEBYSHEV) {
@@ -212,10 +213,10 @@ static PetscErrorCode SetPathParameter(EPS eps)
       ierr = RGIntervalGetEndpoints(eps->rg,&a,&b,&c,&d);CHKERRQ(ierr);
       if ((c!=d || c!=0.0) && (a!=b || a!=0.0)) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Endpoints of the imaginary axis or the real axis must be both zero");
       for (i=0;i<ctx->N;i++) {
-        if (c==d) ctx->omega[i] = (b-a)*(ctx->pp[i]+1.0)/2.0+a;
+        if (c==d) ctx->omega[i] = ((b-a)*(ctx->pp[i]+1.0)/2.0+a)*rgscale;
         if (a==b) {
 #if defined(PETSC_USE_COMPLEX) 
-          ctx->omega[i] = ((d-c)*(ctx->pp[i]+1.0)/2.0+c)*PETSC_i;
+          ctx->omega[i] = ((d-c)*(ctx->pp[i]+1.0)/2.0+c)*rgscale*PETSC_i;
 #else
           SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"Integration points on a vertical line require complex arithmetic");
 #endif
@@ -227,17 +228,19 @@ static PetscErrorCode SetPathParameter(EPS eps)
       ierr = RGRingGetParameters(eps->rg,&center,&radius,&vscale,&start_ang,&end_ang,NULL);CHKERRQ(ierr);
       for (i=0;i<ctx->N;i++) {
         theta = (start_ang*2.0+(end_ang-start_ang)*(PetscRealPart(ctx->pp[i])+1.0))*PETSC_PI;
-        ctx->omega[i] = center + radius*(PetscCosReal(theta)+PETSC_i*vscale*PetscSinReal(theta));
+        ctx->omega[i] = rgscale*(center + radius*(PetscCosReal(theta)+PETSC_i*vscale*PetscSinReal(theta)));
       }
 #endif
     }
   } else {
     if (isinterval) {
       ierr = RGIntervalGetEndpoints(eps->rg,&a,&b,&c,&d);CHKERRQ(ierr);
-      center = (b+a)/2.0+(d+c)/2.0*PETSC_PI;
-      radius = PetscSqrtReal(PetscPowRealInt((b-a)/2.0,2)+PetscPowRealInt((d-c)/2.0,2));
+      center = rgscale*((b+a)/2.0+(d+c)/2.0*PETSC_PI);
+      radius = PetscSqrtReal(PetscPowRealInt(rgscale*(b-a)/2.0,2)+PetscPowRealInt(rgscale*(d-c)/2.0,2));
     } else if (isring) {
       ierr = RGRingGetParameters(eps->rg,&center,&radius,NULL,NULL,NULL,NULL);CHKERRQ(ierr);
+      center *= rgscale;
+      radius *= rgscale;
     }
     for (i=0;i<ctx->N;i++) { 
       ctx->pp[i] = (ctx->omega[i]-center)/radius;
@@ -257,7 +260,7 @@ static PetscErrorCode SetPathParameter(EPS eps)
 
 #undef __FUNCT__
 #define __FUNCT__ "CISSVecSetRandom"
-static PetscErrorCode CISSVecSetRandom(BV V,PetscInt i0,PetscInt i1,PetscRandom rctx)
+static PetscErrorCode CISSVecSetRandom(BV V,PetscInt i0,PetscInt i1)
 {
   PetscErrorCode ierr;
   PetscInt       i,j,nlocal;
@@ -267,7 +270,7 @@ static PetscErrorCode CISSVecSetRandom(BV V,PetscInt i0,PetscInt i1,PetscRandom 
   PetscFunctionBegin;
   ierr = BVGetSizes(V,&nlocal,NULL,NULL);CHKERRQ(ierr);
   for (i=i0;i<i1;i++) {
-    ierr = BVSetRandomColumn(V,i,rctx);CHKERRQ(ierr);
+    ierr = BVSetRandomColumn(V,i);CHKERRQ(ierr);
     ierr = BVGetColumn(V,i,&x);CHKERRQ(ierr);
     ierr = VecGetArray(x,&vdata);CHKERRQ(ierr);
     for (j=0;j<nlocal;j++) {
@@ -744,7 +747,7 @@ static PetscErrorCode rescale_eig(EPS eps,PetscInt nv)
   EPS_CISS       *ctx = (EPS_CISS*)eps->data;
   PetscInt       i;
   PetscScalar    center;
-  PetscReal      radius,a,b,c,d;
+  PetscReal      radius,a,b,c,d,rgscale;
 #if defined(PETSC_USE_COMPLEX) 
   PetscReal      start_ang,end_ang,vscale,theta;
 #endif
@@ -754,6 +757,7 @@ static PetscErrorCode rescale_eig(EPS eps,PetscInt nv)
   ierr = PetscObjectTypeCompare((PetscObject)eps->rg,RGELLIPSE,&isellipse);CHKERRQ(ierr);
   ierr = PetscObjectTypeCompare((PetscObject)eps->rg,RGRING,&isring);CHKERRQ(ierr);
   ierr = PetscObjectTypeCompare((PetscObject)eps->rg,RGINTERVAL,&isinterval);CHKERRQ(ierr);
+  ierr = RGGetScale(eps->rg,&rgscale);CHKERRQ(ierr);
   if (isinterval) {
     ierr = RGIntervalGetEndpoints(eps->rg,NULL,NULL,&c,&d);CHKERRQ(ierr);
     if (c==d) {
@@ -769,15 +773,15 @@ static PetscErrorCode rescale_eig(EPS eps,PetscInt nv)
   if (ctx->extraction == EPS_CISS_EXTRACTION_HANKEL) {
     if (isellipse) {
       ierr = RGEllipseGetParameters(eps->rg,&center,&radius,NULL);CHKERRQ(ierr);
-      for (i=0;i<nv;i++) eps->eigr[i] = center + radius*eps->eigr[i];
+      for (i=0;i<nv;i++) eps->eigr[i] = rgscale*(center + radius*eps->eigr[i]);
     } else if (isinterval) {
       ierr = RGIntervalGetEndpoints(eps->rg,&a,&b,&c,&d);CHKERRQ(ierr);
       if (ctx->quad == EPS_CISS_QUADRULE_CHEBYSHEV) {
         for (i=0;i<nv;i++) {
-          if (c==d) eps->eigr[i] = (b-a)*(eps->eigr[i]+1.0)/2.0+a;
+          if (c==d) eps->eigr[i] = ((b-a)*(eps->eigr[i]+1.0)/2.0+a)*rgscale;
           if (a==b) {
 #if defined(PETSC_USE_COMPLEX) 
-            eps->eigr[i] = ((d-c)*(eps->eigr[i]+1.0)/2.0+c)*PETSC_i;
+            eps->eigr[i] = ((d-c)*(eps->eigr[i]+1.0)/2.0+c)*rgscale*PETSC_i;
 #else
             SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"Integration points on a vertical line require complex arithmetic");
 #endif
@@ -794,10 +798,10 @@ static PetscErrorCode rescale_eig(EPS eps,PetscInt nv)
       if (ctx->quad == EPS_CISS_QUADRULE_CHEBYSHEV) {
         for (i=0;i<nv;i++) {
           theta = (start_ang*2.0+(end_ang-start_ang)*(PetscRealPart(eps->eigr[i])+1.0))*PETSC_PI;
-          eps->eigr[i] = center + (radius+PetscImaginaryPart(eps->eigr[i]))*(PetscCosReal(theta)+PETSC_i*vscale*PetscSinReal(theta));
+          eps->eigr[i] = rgscale*center + (rgscale*radius+PetscImaginaryPart(eps->eigr[i]))*(PetscCosReal(theta)+PETSC_i*vscale*PetscSinReal(theta));
         }
       } else {
-        for (i=0;i<nv;i++) eps->eigr[i] = center + radius*eps->eigr[i];
+        for (i=0;i<nv;i++) eps->eigr[i] = rgscale*(center + radius*eps->eigr[i]);
       }
 #endif
     }
@@ -811,7 +815,6 @@ PetscErrorCode EPSSetUp_CISS(EPS eps)
 {
   PetscErrorCode ierr;
   EPS_CISS       *ctx = (EPS_CISS*)eps->data;
-  const char     *prefix;
   PetscInt       i;
   PetscBool      issinvert,istrivial,isring,isellipse,isinterval,flg;
   PetscScalar    center;
@@ -839,7 +842,9 @@ PetscErrorCode EPSSetUp_CISS(EPS eps)
 
   /* check region */
   ierr = RGIsTrivial(eps->rg,&istrivial);CHKERRQ(ierr);
-  if (istrivial) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"EPSCISS requires a nontrivial region, e.g. -rg_type ellipse ...");
+  if (istrivial) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"CISS requires a nontrivial region, e.g. -rg_type ellipse ...");
+  ierr = RGGetComplement(eps->rg,&flg);CHKERRQ(ierr);
+  if (flg) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"A region with complement flag set is not allowed");
   ierr = PetscObjectTypeCompare((PetscObject)eps->rg,RGELLIPSE,&isellipse);CHKERRQ(ierr);
   ierr = PetscObjectTypeCompare((PetscObject)eps->rg,RGRING,&isring);CHKERRQ(ierr);
   ierr = PetscObjectTypeCompare((PetscObject)eps->rg,RGINTERVAL,&isinterval);CHKERRQ(ierr);
@@ -912,9 +917,8 @@ PetscErrorCode EPSSetUp_CISS(EPS eps)
       ierr = KSPCreate(PetscSubcommChild(ctx->subcomm),&ctx->ksp[i]);CHKERRQ(ierr);
       ierr = PetscObjectIncrementTabLevel((PetscObject)ctx->ksp[i],(PetscObject)eps,1);CHKERRQ(ierr);
       ierr = PetscLogObjectParent((PetscObject)eps,(PetscObject)ctx->ksp[i]);CHKERRQ(ierr);
+      ierr = KSPSetOptionsPrefix(ctx->ksp[i],((PetscObject)eps)->prefix);CHKERRQ(ierr);
       ierr = KSPAppendOptionsPrefix(ctx->ksp[i],"eps_ciss_");CHKERRQ(ierr);
-      ierr = EPSGetOptionsPrefix(eps,&prefix);CHKERRQ(ierr);
-      ierr = KSPAppendOptionsPrefix(ctx->ksp[i],prefix);CHKERRQ(ierr);
       ierr = KSPSetErrorIfNotConverged(ctx->ksp[i],PETSC_TRUE);CHKERRQ(ierr);
     }
   }
@@ -966,6 +970,7 @@ PetscErrorCode EPSSolve_CISS(EPS eps)
   PetscBool      *fl1;
   Vec            si,w[3];
   SlepcSC        sc;
+  PetscRandom    rand;
 #if defined(PETSC_USE_COMPLEX)
   PetscBool      isellipse;
 #endif
@@ -987,7 +992,8 @@ PetscErrorCode EPSSolve_CISS(EPS eps)
   if (nmat>1) { ierr = STGetOperators(eps->st,1,&B);CHKERRQ(ierr); }
   else B = NULL;
   ierr = SetPathParameter(eps);CHKERRQ(ierr);
-  ierr = CISSVecSetRandom(ctx->V,0,ctx->L,eps->rand);CHKERRQ(ierr);
+  ierr = CISSVecSetRandom(ctx->V,0,ctx->L);CHKERRQ(ierr);
+  ierr = BVGetRandomContext(ctx->V,&rand);CHKERRQ(ierr);
 
   if (ctx->pA) {
     ierr = VecScatterVecs(eps,ctx->V,ctx->L);CHKERRQ(ierr);
@@ -1007,7 +1013,7 @@ PetscErrorCode EPSSolve_CISS(EPS eps)
 #endif
   if (L_add>0) {
     ierr = PetscInfo2(eps,"Changing L %D -> %D by Estimate #Eig\n",ctx->L,ctx->L+L_add);CHKERRQ(ierr);
-    ierr = CISSVecSetRandom(ctx->V,ctx->L,ctx->L+L_add,eps->rand);CHKERRQ(ierr);
+    ierr = CISSVecSetRandom(ctx->V,ctx->L,ctx->L+L_add);CHKERRQ(ierr);
     if (ctx->pA) {
       ierr = VecScatterVecs(eps,ctx->V,ctx->L+L_add);CHKERRQ(ierr);
       ierr = SolveLinearSystem(eps,ctx->pA,ctx->pB,ctx->pV,ctx->L,ctx->L+L_add,PETSC_FALSE);CHKERRQ(ierr);
@@ -1025,7 +1031,7 @@ PetscErrorCode EPSSolve_CISS(EPS eps)
     L_add = L_base;
     if (ctx->L+L_add>ctx->L_max) L_add = ctx->L_max-ctx->L;
     ierr = PetscInfo2(eps,"Changing L %D -> %D by SVD(H0)\n",ctx->L,ctx->L+L_add);CHKERRQ(ierr);
-    ierr = CISSVecSetRandom(ctx->V,ctx->L,ctx->L+L_add,eps->rand);CHKERRQ(ierr);
+    ierr = CISSVecSetRandom(ctx->V,ctx->L,ctx->L+L_add);CHKERRQ(ierr);
     if (ctx->pA) {
       ierr = VecScatterVecs(eps,ctx->V,ctx->L+L_add);CHKERRQ(ierr);
       ierr = SolveLinearSystem(eps,ctx->pA,ctx->pB,ctx->pV,ctx->L,ctx->L+L_add,PETSC_FALSE);CHKERRQ(ierr);
@@ -1145,7 +1151,7 @@ PetscErrorCode EPSSolve_CISS(EPS eps)
           ierr = MatCreateSeqDense(PETSC_COMM_SELF,eps->nconv,ctx->L,NULL,&M);CHKERRQ(ierr);
           ierr = MatDenseGetArray(M,&temp);CHKERRQ(ierr);
           for (i=0;i<ctx->L*eps->nconv;i++) {
-            ierr = PetscRandomGetValue(eps->rand,&temp[i]);CHKERRQ(ierr);
+            ierr = PetscRandomGetValue(rand,&temp[i]);CHKERRQ(ierr);
             temp[i] = PetscRealPart(temp[i]);
           }
           ierr = MatDenseRestoreArray(M,&temp);CHKERRQ(ierr);
@@ -1532,7 +1538,7 @@ static PetscErrorCode EPSCISSSetUseST_CISS(EPS eps,PetscBool usest)
 -  usest  - boolean flag to use the ST object or not
 
    Options Database Keys:
-+  -eps_ciss_usest <bool> - whether the ST object will be used or not
+.  -eps_ciss_usest <bool> - whether the ST object will be used or not
 
    Level: advanced
 
@@ -1572,7 +1578,7 @@ static PetscErrorCode EPSCISSGetUseST_CISS(EPS eps,PetscBool *usest)
 .  eps - the eigenproblem solver context
 
    Output Parameters:
-+  usest - boolean flag indicating if the ST object is being used
+.  usest - boolean flag indicating if the ST object is being used
 
    Level: advanced
 
@@ -1658,7 +1664,7 @@ static PetscErrorCode EPSCISSGetQuadRule_CISS(EPS eps,EPSCISSQuadRule *quad)
 .  eps - the eigenproblem solver context
 
    Output Parameters:
-+  quad - quadrature rule
+.  quad - quadrature rule
 
    Level: advanced
 
@@ -1889,7 +1895,8 @@ PetscErrorCode EPSView_CISS(EPS eps,PetscViewer viewer)
     ierr = PetscViewerASCIIPrintf(viewer,"  CISS: extraction: %s\n",EPSCISSExtractions[ctx->extraction]);CHKERRQ(ierr);
     ierr = PetscViewerASCIIPrintf(viewer,"  CISS: quadrature rule: %s\n",EPSCISSQuadRules[ctx->quad]);CHKERRQ(ierr);
     ierr = PetscViewerASCIIPushTab(viewer);CHKERRQ(ierr);
-    /*ierr = KSPView(ctx->ksp[0],viewer);CHKERRQ(ierr);*/
+    
+    if (!ctx->usest && ctx->ksp[0]) { ierr = KSPView(ctx->ksp[0],viewer);CHKERRQ(ierr); }
     ierr = PetscViewerASCIIPopTab(viewer);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);

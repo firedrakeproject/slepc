@@ -1,7 +1,7 @@
 /*
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
-   Copyright (c) 2002-2015, Universitat Politecnica de Valencia, Spain
+   Copyright (c) 2002-2016, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
 
@@ -31,7 +31,7 @@
    complex scalars.
 */
 
-static char help[] = "NLEVP problem: pdde_stability.\n\n"
+static char help[] = "Stability analysis of a discretized partial delay-differential equation.\n\n"
   "The command line options are:\n"
   "  -m <m>, grid size, the matrices have dimension n=m*m.\n"
   "  -c <a0,b0,a1,b1,a2,b2,phi1>, comma-separated list of 7 real parameters.\n\n";
@@ -160,6 +160,6 @@ int main(int argc,char **argv)
   for (i=0;i<NMAT;i++) {
     ierr = MatDestroy(&A[i]);CHKERRQ(ierr);
   }
-  ierr = SlepcFinalize();CHKERRQ(ierr);
-  return 0;
+  ierr = SlepcFinalize();
+  return ierr;
 }

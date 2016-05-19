@@ -4,7 +4,7 @@
 !
 !  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !  SLEPc - Scalable Library for Eigenvalue Problem Computations
-!  Copyright (c) 2002-2015, Universitat Politecnica de Valencia, Spain
+!  Copyright (c) 2002-2016, Universitat Politecnica de Valencia, Spain
 !
 !  This file is part of SLEPc.
 !
@@ -102,13 +102,13 @@
       parameter (PEP_REFINE_SIMPLE          =  1)
       parameter (PEP_REFINE_MULTIPLE        =  2)
 
-      PetscEnum PEP_REFINE_SCHEME_EXPLICIT
-      PetscEnum PEP_REFINE_SCHEME_MBE
       PetscEnum PEP_REFINE_SCHEME_SCHUR
+      PetscEnum PEP_REFINE_SCHEME_MBE
+      PetscEnum PEP_REFINE_SCHEME_EXPLICIT
 
-      parameter (PEP_REFINE_SCHEME_EXPLICIT =  0)
-      parameter (PEP_REFINE_SCHEME_MBE      =  1)
-      parameter (PEP_REFINE_SCHEME_SCHUR    =  2)
+      parameter (PEP_REFINE_SCHEME_SCHUR    =  1)
+      parameter (PEP_REFINE_SCHEME_MBE      =  2)
+      parameter (PEP_REFINE_SCHEME_EXPLICIT =  3)
 
       PetscEnum PEP_EXTRACT_NONE
       PetscEnum PEP_EXTRACT_NORM

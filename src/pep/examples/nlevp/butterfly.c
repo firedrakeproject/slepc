@@ -1,7 +1,7 @@
 /*
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
-   Copyright (c) 2002-2015, Universitat Politecnica de Valencia, Spain
+   Copyright (c) 2002-2016, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
 
@@ -29,7 +29,7 @@
    The butterfly problem is a quartic PEP with T-even structure.
 */
 
-static char help[] = "NLEVP problem: butterfly.\n\n"
+static char help[] = "Quartic polynomial eigenproblem with T-even structure.\n\n"
   "The command line options are:\n"
   "  -m <m>, grid size, the dimension of the matrices is n=m*m.\n"
   "  -c <array>, problem parameters, must be 10 comma-separated real values.\n\n";
@@ -155,6 +155,6 @@ int main(int argc,char **argv)
   for (i=0;i<NMAT;i++) {
     ierr = MatDestroy(&A[i]);CHKERRQ(ierr);
   }
-  ierr = SlepcFinalize();CHKERRQ(ierr);
-  return 0;
+  ierr = SlepcFinalize();
+  return ierr;
 }

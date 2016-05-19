@@ -3,7 +3,7 @@
 
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
-   Copyright (c) 2002-2015, Universitat Politecnica de Valencia, Spain
+   Copyright (c) 2002-2016, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
 
@@ -78,9 +78,6 @@ PetscErrorCode EPSSetUp(EPS eps)
   if (!eps->rg) { ierr = EPSGetRG(eps,&eps->rg);CHKERRQ(ierr); }
   if (!((PetscObject)eps->rg)->type_name) {
     ierr = RGSetType(eps->rg,RGINTERVAL);CHKERRQ(ierr);
-  }
-  if (!((PetscObject)eps->rand)->type_name) {
-    ierr = PetscRandomSetFromOptions(eps->rand);CHKERRQ(ierr);
   }
 
   /* Set problem dimensions */

@@ -3,7 +3,7 @@
 
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
-   Copyright (c) 2002-2015, Universitat Politecnica de Valencia, Spain
+   Copyright (c) 2002-2016, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
 
@@ -240,7 +240,7 @@ PetscErrorCode EPSSolve_BLOPEX(EPS eps)
 
   /* Complete the initial basis with random vectors */
   for (i=eps->nini;i<eps->ncv;i++) {
-    ierr = BVSetRandomColumn(eps->V,i,eps->rand);CHKERRQ(ierr);
+    ierr = BVSetRandomColumn(eps->V,i);CHKERRQ(ierr);
   }
 
   while (eps->reason == EPS_CONVERGED_ITERATING) {
@@ -486,7 +486,7 @@ PETSC_EXTERN PetscErrorCode EPSCreate_BLOPEX(EPS eps)
   eps->ops->reset          = EPSReset_BLOPEX;
   eps->ops->view           = EPSView_BLOPEX;
   eps->ops->backtransform  = EPSBackTransform_Default;
-  LOBPCG_InitRandomContext(PetscObjectComm((PetscObject)eps),eps->rand);
+  LOBPCG_InitRandomContext(PetscObjectComm((PetscObject)eps),NULL);
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSBLOPEXSetBlockSize_C",EPSBLOPEXSetBlockSize_BLOPEX);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSBLOPEXGetBlockSize_C",EPSBLOPEXGetBlockSize_BLOPEX);CHKERRQ(ierr);
   if (slepc_blopex_useconstr < 0) { ierr = PetscObjectComposedDataRegister(&slepc_blopex_useconstr);CHKERRQ(ierr); }

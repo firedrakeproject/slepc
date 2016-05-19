@@ -3,7 +3,7 @@
 
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
-   Copyright (c) 2002-2015, Universitat Politecnica de Valencia, Spain
+   Copyright (c) 2002-2016, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
 
@@ -46,6 +46,7 @@ typedef struct _p_MFN* MFN;
 J*/
 typedef const char* MFNType;
 #define MFNKRYLOV   "krylov"
+#define MFNEXPOKIT  "expokit"
 
 /* Logging support */
 PETSC_EXTERN PetscClassId MFN_CLASSID;
@@ -85,6 +86,7 @@ PETSC_EXTERN PetscErrorCode MFNSetErrorIfNotConverged(MFN,PetscBool);
 PETSC_EXTERN PetscErrorCode MFNGetErrorIfNotConverged(MFN,PetscBool*);
 
 PETSC_EXTERN PetscErrorCode MFNMonitorDefault(MFN,PetscInt,PetscReal,PetscViewerAndFormat*);
+PETSC_EXTERN PetscErrorCode MFNMonitorLGCreate(MPI_Comm,const char[],const char[],int,int,int,int,PetscDrawLG*);
 PETSC_EXTERN PetscErrorCode MFNMonitorLG(MFN,PetscInt,PetscReal,void*);
 
 PETSC_EXTERN PetscErrorCode MFNSetOptionsPrefix(MFN,const char*);
@@ -101,6 +103,7 @@ PETSC_EXTERN PetscErrorCode MFNGetOptionsPrefix(MFN,const char*[]);
 E*/
 typedef enum {/* converged */
               MFN_CONVERGED_TOL                =  2,
+              MFN_CONVERGED_ITS                =  3,
               /* diverged */
               MFN_DIVERGED_ITS                 = -3,
               MFN_DIVERGED_BREAKDOWN           = -4,

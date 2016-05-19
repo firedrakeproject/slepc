@@ -16,7 +16,7 @@
 \item Support for profiling of programs:
   \begin{itemize}
   \setlength{\itemsep}{0mm}
-  \item Display performance statistics with \Verb!-log_summary!, including also \slepc's objects. The collected data are \emph{flops}, memory usage and execution times as well as information about parallel performance, for individual subroutines and the possibility of user-defined stages.
+  \item Display performance statistics with \Verb!-log_view!, including also \slepc's objects. The collected data are \emph{flops}, memory usage and execution times as well as information about parallel performance, for individual subroutines and the possibility of user-defined stages.
   \item Event logging, including user-defined events.
   \item Direct wall-clock timing with \ident{PetscTime}.
   \item Display detailed profile information and trace of events.
@@ -69,15 +69,14 @@ where $x$ and $p$ denote the velocity and pressure fields. Similar formulations 
 
 Experimental support for graphics processor unit (GPU) computing is included since \slepc 3.2. This is related to \S\ref{sec:supported} because GPU support in \petsc is based on using special types of \texttt{Mat} and \texttt{Vec}. Currently, GPU support in \slepc has been tested only in the Krylov-Schur \ident{EPS} solver, although it may work in other solvers as well. Regarding \petsc, all iterative linear solvers are prepared to run on the GPU, but this is not the case for direct solvers and preconditioners (see \petsc documentation for details). The user must not expect a spectacular performance boost, but in general moderate gains can be achieved by running the eigensolver on the GPU instead of the CPU (in some cases a 10-fold improvement).
 
-PETSc's GPU support currently relies on NVIDIA CUDA Toolkit 4.0\footnote{\url{http://developer.nvidia.com/cuda}} (and later), that provides a C/C++ compiler with CUDA extensions and the Thrust library, together with the Cusp library\footnote{\url{http://cusplibrary.github.io}}, that implements sparse linear algebra and graph computations on CUDA based on Thrust data structures. For instance, to configure \petsc with GPU support in single precision arithmetic use the following options:
+PETSc's GPU support currently relies on NVIDIA CUDA Toolkit 4.0\footnote{\url{http://developer.nvidia.com/cuda}} (and later), that provides a C/C++ compiler with CUDA extensions as well as the cuBLAS and cuSPARSE libraries that implement dense and sparse linear algebra operations\footnote{Support via the Cusp library is being deprecated.}. For instance, to configure \petsc with GPU support in single precision arithmetic use the following options:
 	\begin{Verbatim}[fontsize=\small]
-	$ ./configure --with-precision=single --with-cuda --with-thrust
-                      --with-cusp --with-cusp-dir=/path/to/cusp-library
+	$ ./configure --with-precision=single --with-cuda
 	\end{Verbatim}
 
-\ident{VECCUSP} and \ident{MATAIJCUSP} are currently the mechanism in \petsc to run a computation on the GPU. \ident{VECCUSP} is a special type of \texttt{Vec} whose array is mirrored in the GPU (and similarly for \ident{MATAIJCUSP}). \petsc takes care of keeping memory coherence between the two copies of the array, and performs the computation on the GPU when possible, trying to avoid unnecessary copies between the host and the device. For maximum efficiency, the user has to make sure that all vectors and matrices are of these types. If they are created in the standard way (\texttt{VecCreate} plus \texttt{VecSetFromOptions}) then it is sufficient to run the \slepc program with
+\ident{VECCUDA} and \ident{MATAIJCUSPARSE} are currently the mechanism in \petsc to run a computation on the GPU. \ident{VECCUDA} is a special type of \texttt{Vec} whose array is mirrored in the GPU (and similarly for \ident{MATAIJCUSPARSE}). \petsc takes care of keeping memory coherence between the two copies of the array, and performs the computation on the GPU when possible, trying to avoid unnecessary copies between the host and the device. For maximum efficiency, the user has to make sure that all vectors and matrices are of these types. If they are created in the standard way (\texttt{VecCreate} plus \texttt{VecSetFromOptions}) then it is sufficient to run the \slepc program with
 	\begin{Verbatim}[fontsize=\small]
-	$ ./program -vec_type cusp -mat_type aijcusp -bv_type vecs
+	$ ./program -vec_type cuda -mat_type aijcusparse -bv_type vecs
 	\end{Verbatim}
 The last option is required in this version (this restriction will be removed in the future) and is related to the \ident{BV} auxiliary class, see \S\ref{sec:sys}.
 
@@ -122,7 +121,7 @@ Apart from the main solver classes listed on page \pageref{tab:modules}, \slepc 
 \item \ident{RG}: Region, a way to define a region of the complex plane.
 \end{itemize}
 
-\paragraph{FN: Mathematical Functions}
+\paragraph{FN: Mathematical Functions.}
 
 \begin{table}
 \centering
@@ -132,7 +131,8 @@ Polynomial and rational & \texttt{FNRATIONAL} & $p(x)/q(x)$ \\
 Exponential             & \texttt{FNEXP}      & $e^x$ \\
 Logarithm               & \texttt{FNLOG}      & $\log x$ \\
 $\varphi$-functions     & \texttt{FNPHI}      & $\varphi_0(x)$, $\varphi_1(x)$, \dots \\
-Square root             & \texttt{FNSQRT}     & $\sqrt{x}$ \\\hline
+Square root             & \texttt{FNSQRT}     & $\sqrt{x}$ \\
+Inverse square root     & \texttt{FNINVSQRT}  & $x^{-\frac{1}{2}}$ \\\hline
 Combine two functions   & \texttt{FNCOMBINE}  & See text\\\hline
 \end{tabular} }
 \caption{\label{tab:fn}Mathematical functions available as \ident{FN} objects.}
@@ -189,7 +189,7 @@ can be represented with an expression tree with three leaves (one exponential fu
 	\end{Verbatim}
 The combination of $f_1$ and $f_2$ with division will result in $f_1(x)/f_2(x)$ and $f_2(A)^{-1}f_1(A)$ in the case of matrices.
 
-\paragraph{BV: Basis Vectors}
+\paragraph{BV: Basis Vectors.}
 
 The \ident{BV} class may be useful for advanced users, so we briefly describe it here for completeness. \ident{BV} is a convenient way of handling a collection of vectors that often operate together, rather than working with an array of \texttt{Vec}. It can be seen as a generalization of \texttt{Vec} to a tall-skinny matrix with several columns.
 
@@ -214,7 +214,7 @@ Table \ref{tab:bv} shows a summary of the operations offered by the \ident{BV} c
 
 Most \slepc solvers use a \ident{BV} object to represent the working subspace basis. In particular, orthogonalization operations are mostly confined within \ident{BV}. Hence, \ident{BV} provides options for specifying the method of orthogonalization of vectors (Gram-Schmidt) as well as the method of block orthogonalization, see \ident{BVSetOrthogonalization}.
 
-\paragraph{RG: Region}
+\paragraph{RG: Region.}
 
 The \ident{RG} object defines a region of the complex plane, that can be used to specify where eigenvalues must be sought. Currently, the following types of regions are available:
 \begin{itemize}
@@ -333,7 +333,7 @@ Each \slepc source code component directory has the following subdirectories:
 	\item Use the runtime option \Verb!-eps_type <type>! to select the solver.
 	\end{enumerate}
 
-	Exceptions to the above rule are \lapack, which should be enabled during \petsc's configuration, and \blopex, that must be installed with \Verb!--download-blopex! in \slepc's configure.
+	Exceptions to the above rule are \lapack, which should be enabled during \petsc's configuration, and \blopex, that must be installed with \Verb!--download-blopex! in \slepc's configure. Other packages also support the download option.
 
 \subsection*{\underline{\lapack}}
 	\begin{description}
@@ -405,7 +405,7 @@ For changing the particular algorithm within \primme, use the function \ident{EP
 	\item[Summary.] This package provides a Fortran 90 implementation of the dynamic thick-restart Lanczos algorithm. This is a specialized version of Lanczos that targets only the case in which one wants both eigenvalues and eigenvectors of a large real symmetric eigenvalue problem that cannot use the shift-and-invert scheme. In this case the standard non-restarted Lanczos algorithm requires to store a large number of Lanczos vectors, what can cause storage problems and make each iteration of the method very expensive.
 
 	\trlan{} requires the user to provide a matrix-vector multiplication routine. The parallel version uses MPI as the message passing layer. 
-	\item[Installation.] To install this package, it is necessary to have access to a Fortran 90 compiler. The compiler name and the options used are specified in the file called \texttt{Make.inc}. To generate the library, type \texttt{make plib} in the \texttt{TRLan} directory.
+	\item[Installation.] To install this package, it is necessary to have access to a Fortran 90 compiler. The compiler name and the options used are specified in the file called \texttt{Make.inc}. To generate the library, type \texttt{make plib} in the \texttt{TRLan} directory. Alternatively, the \texttt{-{}-download-trlan} option is also available in SLEPc's \texttt{configure}.
 
 	It is possible to configure \slepc with the serial version of \trlan (built with \texttt{make lib}). For this, you have to configure \petsc with the option \texttt{-{}-with-mpi=0}.
 	\end{description}

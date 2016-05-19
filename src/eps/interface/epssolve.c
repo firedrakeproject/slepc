@@ -3,7 +3,7 @@
 
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
-   Copyright (c) 2002-2015, Universitat Politecnica de Valencia, Spain
+   Copyright (c) 2002-2016, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
 
@@ -82,6 +82,7 @@ PetscErrorCode EPSSolve(EPS eps)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
+  if (eps->state>=EPS_STATE_SOLVED) PetscFunctionReturn(0);
   ierr = PetscLogEventBegin(EPS_Solve,eps,0,0,0);CHKERRQ(ierr);
 
   /* call setup */
@@ -94,7 +95,6 @@ PetscErrorCode EPSSolve(EPS eps)
     eps->errest[i] = 0.0;
     eps->perm[i]   = i;
   }
-  ierr = EPSMonitor(eps,eps->its,eps->nconv,eps->eigr,eps->eigi,eps->errest,eps->ncv);CHKERRQ(ierr);
   ierr = EPSViewFromOptions(eps,NULL,"-eps_view_pre");CHKERRQ(ierr);
 
   /* call solver */
@@ -255,7 +255,7 @@ PetscErrorCode EPSGetConverged(EPS eps,PetscInt *nconv)
    Possible values for reason:
 +  EPS_CONVERGED_TOL - converged up to tolerance
 .  EPS_CONVERGED_USER - converged due to a user-defined condition
-.  EPS_DIVERGED_ITS - required more than its to reach convergence
+.  EPS_DIVERGED_ITS - required more than max_it iterations to reach convergence
 .  EPS_DIVERGED_BREAKDOWN - generic breakdown in method
 -  EPS_DIVERGED_SYMMETRY_LOST - pseudo-Lanczos was not able to keep symmetry
 
@@ -730,7 +730,7 @@ PetscErrorCode EPSGetStartVector(EPS eps,PetscInt i,PetscBool *breakdown)
 
   /* For the first step, use the first initial vector, otherwise a random one */
   if (i>0 || eps->nini==0) {
-    ierr = BVSetRandomColumn(eps->V,i,eps->rand);CHKERRQ(ierr);
+    ierr = BVSetRandomColumn(eps->V,i);CHKERRQ(ierr);
   }
   ierr = BVCreateVec(eps->V,&w);CHKERRQ(ierr);
   ierr = BVCopyVec(eps->V,i,w);CHKERRQ(ierr);

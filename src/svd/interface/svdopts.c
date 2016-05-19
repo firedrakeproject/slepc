@@ -3,7 +3,7 @@
 
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
-   Copyright (c) 2002-2015, Universitat Politecnica de Valencia, Spain
+   Copyright (c) 2002-2016, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
 
@@ -22,6 +22,7 @@
 */
 
 #include <slepc/private/svdimpl.h>      /*I "slepcsvd.h" I*/
+#include <petscdraw.h>
 
 #undef __FUNCT__
 #define __FUNCT__ "SVDSetImplicitTranspose"
@@ -75,7 +76,7 @@ PetscErrorCode SVDSetImplicitTranspose(SVD svd,PetscBool impl)
    Input Parameter:
 .  svd  - the singular value solver context
 
-   Output paramter:
+   Output Parameter:
 .  impl - how to handle the transpose (implicitly or not)
 
    Level: advanced
@@ -683,6 +684,7 @@ PetscErrorCode SVDSetFromOptions(SVD svd)
   PetscBool      set,flg,val,flg1,flg2,flg3;
   PetscInt       i,j,k;
   PetscReal      r;
+  PetscDrawLG    lg;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
@@ -761,11 +763,13 @@ PetscErrorCode SVDSetFromOptions(SVD svd)
     */
     ierr = PetscOptionsBool("-svd_monitor_lg","Monitor first unconverged approximate singular value and error estimate graphically","SVDMonitorSet",PETSC_FALSE,&flg,&set);CHKERRQ(ierr);
     if (set && flg) {
-      ierr = SVDMonitorSet(svd,SVDMonitorLG,NULL,NULL);CHKERRQ(ierr);
+      ierr = SVDMonitorLGCreate(PetscObjectComm((PetscObject)svd),NULL,"Error estimates",PETSC_DECIDE,PETSC_DECIDE,300,300,&lg);CHKERRQ(ierr);
+      ierr = SVDMonitorSet(svd,SVDMonitorLG,lg,(PetscErrorCode (*)(void**))PetscDrawLGDestroy);CHKERRQ(ierr);
     }
     ierr = PetscOptionsBool("-svd_monitor_lg_all","Monitor error estimates graphically","SVDMonitorSet",PETSC_FALSE,&flg,&set);CHKERRQ(ierr);
     if (set && flg) {
-      ierr = SVDMonitorSet(svd,SVDMonitorLGAll,NULL,NULL);CHKERRQ(ierr);
+      ierr = SVDMonitorLGCreate(PetscObjectComm((PetscObject)svd),NULL,"Error estimates",PETSC_DECIDE,PETSC_DECIDE,300,300,&lg);CHKERRQ(ierr);
+      ierr = SVDMonitorSet(svd,SVDMonitorLGAll,lg,(PetscErrorCode (*)(void**))PetscDrawLGDestroy);CHKERRQ(ierr);
       ierr = SVDSetTrackAll(svd,PETSC_TRUE);CHKERRQ(ierr);
     }
 
@@ -780,7 +784,6 @@ PetscErrorCode SVDSetFromOptions(SVD svd)
   ierr = BVSetFromOptions(svd->U);CHKERRQ(ierr);
   if (!svd->ds) { ierr = SVDGetDS(svd,&svd->ds);CHKERRQ(ierr); }
   ierr = DSSetFromOptions(svd->ds);CHKERRQ(ierr);
-  ierr = PetscRandomSetFromOptions(svd->rand);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -964,7 +967,8 @@ PetscErrorCode SVDAppendOptionsPrefix(SVD svd,const char *prefix)
    Output Parameters:
 .  prefix - pointer to the prefix string used is returned
 
-   Notes: On the fortran side, the user should pass in a string 'prefix' of
+   Note:
+   On the Fortran side, the user should pass in a string 'prefix' of
    sufficient length to hold the prefix.
 
    Level: advanced

@@ -3,7 +3,7 @@
 
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
-   Copyright (c) 2002-2015, Universitat Politecnica de Valencia, Spain
+   Copyright (c) 2002-2016, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
 
@@ -87,7 +87,7 @@ PetscErrorCode FNInitializePackage(void)
     }
   }
   /* Process summary exclusions */
-  ierr = PetscOptionsGetString(NULL,NULL,"-log_summary_exclude",logList,256,&opt);CHKERRQ(ierr);
+  ierr = PetscOptionsGetString(NULL,NULL,"-log_exclude",logList,256,&opt);CHKERRQ(ierr);
   if (opt) {
     ierr = PetscStrstr(logList,"fn",&className);CHKERRQ(ierr);
     if (className) {
@@ -129,7 +129,8 @@ PetscErrorCode FNCreate(MPI_Comm comm,FN *newfn)
   fn->alpha    = 1.0;
   fn->beta     = 1.0;
 
-  fn->W        = NULL;
+  fn->nw       = 0;
+  fn->cw       = 0;
   fn->data     = NULL;
 
   *newfn = fn;
@@ -211,7 +212,8 @@ PetscErrorCode FNAppendOptionsPrefix(FN fn,const char *prefix)
    Output Parameters:
 .  prefix - pointer to the prefix string used is returned
 
-   Notes: On the fortran side, the user should pass in a string 'prefix' of
+   Note:
+   On the Fortran side, the user should pass in a string 'prefix' of
    sufficient length to hold the prefix.
 
    Level: advanced
@@ -442,44 +444,37 @@ PetscErrorCode FNEvaluateDerivative(FN fn,PetscScalar x,PetscScalar *y)
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "FNEvaluateFunctionMat_Sym_Default"
-/*
-   FNEvaluateFunctionMat_Sym_Default - given a symmetric matrix A,
-   compute the matrix function as f(A)=Q*f(D)*Q' where the spectral
-   decomposition of A is A=Q*D*Q' 
-*/
-static PetscErrorCode FNEvaluateFunctionMat_Sym_Default(FN fn,Mat A,Mat B)
+#define __FUNCT__ "FNEvaluateFunctionMat_Sym_Private"
+static PetscErrorCode FNEvaluateFunctionMat_Sym_Private(FN fn,PetscScalar *As,PetscScalar *Bs,PetscInt m,PetscBool firstonly)
 {
 #if defined(PETSC_MISSING_LAPACK_SYEV) || defined(SLEPC_MISSING_LAPACK_LACPY)
   PetscFunctionBegin;
   SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"SYEV/LACPY - Lapack routines are unavailable");
 #else
   PetscErrorCode ierr;
-  PetscInt       i,j,m;
-  PetscBLASInt   n,ld,lwork,info;
-  PetscScalar    *As,*Bs,*Q,*W,*work,a,x,y,one=1.0,zero=0.0;
+  PetscInt       i,j;
+  PetscBLASInt   n,k,ld,lwork,info;
+  PetscScalar    *Q,*W,*work,a,x,y,one=1.0,zero=0.0;
   PetscReal      *eig;
 #if defined(PETSC_USE_COMPLEX)
   PetscReal      *rwork;
 #endif
 
   PetscFunctionBegin;
-  ierr = MatDenseGetArray(A,&As);CHKERRQ(ierr);
-  ierr = MatDenseGetArray(B,&Bs);CHKERRQ(ierr);
-  ierr = MatGetSize(A,&m,NULL);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(m,&n);CHKERRQ(ierr);
   ld = n;
+  k = firstonly? 1: n;
 
   /* workspace query and memory allocation */
   lwork = -1;
 #if defined(PETSC_USE_COMPLEX)
   PetscStackCallBLAS("LAPACKsyev",LAPACKsyev_("V","L",&n,As,&ld,NULL,&a,&lwork,NULL,&info));
   ierr = PetscBLASIntCast((PetscInt)PetscRealPart(a),&lwork);CHKERRQ(ierr);
-  ierr = PetscMalloc5(m,&eig,m*m,&Q,m*m,&W,lwork,&work,PetscMax(1,3*m-2),&rwork);CHKERRQ(ierr);
+  ierr = PetscMalloc5(m,&eig,m*m,&Q,m*k,&W,lwork,&work,PetscMax(1,3*m-2),&rwork);CHKERRQ(ierr);
 #else
   PetscStackCallBLAS("LAPACKsyev",LAPACKsyev_("V","L",&n,As,&ld,NULL,&a,&lwork,&info));
   ierr = PetscBLASIntCast((PetscInt)PetscRealPart(a),&lwork);CHKERRQ(ierr);
-  ierr = PetscMalloc4(m,&eig,m*m,&Q,m*m,&W,lwork,&work);CHKERRQ(ierr);
+  ierr = PetscMalloc4(m,&eig,m*m,&Q,m*k,&W,lwork,&work);CHKERRQ(ierr);
 #endif
 
   /* compute eigendecomposition */
@@ -495,19 +490,40 @@ static PetscErrorCode FNEvaluateFunctionMat_Sym_Default(FN fn,Mat A,Mat B)
   for (i=0;i<n;i++) {
     x = eig[i];
     ierr = (*fn->ops->evaluatefunction)(fn,x,&y);CHKERRQ(ierr);  /* y = f(x) */
-    for (j=0;j<n;j++) W[i+j*ld] = Q[j+i*ld]*y;
+    for (j=0;j<k;j++) W[i+j*ld] = Q[j+i*ld]*y;
   }
   /* Bs = Q*W */
-  PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&n,&n,&n,&one,Q,&ld,W,&ld,&zero,Bs,&ld));
+  PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&n,&k,&n,&one,Q,&ld,W,&ld,&zero,Bs,&ld));
 #if defined(PETSC_USE_COMPLEX)
   ierr = PetscFree5(eig,Q,W,work,rwork);CHKERRQ(ierr);
 #else
   ierr = PetscFree4(eig,Q,W,work);CHKERRQ(ierr);
 #endif
+  PetscFunctionReturn(0);
+#endif
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "FNEvaluateFunctionMat_Sym_Default"
+/*
+   FNEvaluateFunctionMat_Sym_Default - given a symmetric matrix A,
+   compute the matrix function as f(A)=Q*f(D)*Q' where the spectral
+   decomposition of A is A=Q*D*Q'
+*/
+static PetscErrorCode FNEvaluateFunctionMat_Sym_Default(FN fn,Mat A,Mat B)
+{
+  PetscErrorCode ierr;
+  PetscInt       m;
+  PetscScalar    *As,*Bs;
+
+  PetscFunctionBegin;
+  ierr = MatDenseGetArray(A,&As);CHKERRQ(ierr);
+  ierr = MatDenseGetArray(B,&Bs);CHKERRQ(ierr);
+  ierr = MatGetSize(A,&m,NULL);CHKERRQ(ierr);
+  ierr = FNEvaluateFunctionMat_Sym_Private(fn,As,Bs,m,PETSC_FALSE);CHKERRQ(ierr);
   ierr = MatDenseRestoreArray(A,&As);CHKERRQ(ierr);
   ierr = MatDenseRestoreArray(B,&Bs);CHKERRQ(ierr);
   PetscFunctionReturn(0);
-#endif
 }
 
 #undef __FUNCT__
@@ -523,13 +539,14 @@ static PetscErrorCode FNEvaluateFunctionMat_Sym_Default(FN fn,Mat A,Mat B)
 -  A  - matrix on which the function must be evaluated
 
    Output Parameter:
-.  B  - matrix resulting from evaluating f(A)
+.  B  - (optional) matrix resulting from evaluating f(A)
 
    Notes:
-   The matrix A must be a sequential dense Mat, with all entries equal on
+   Matrix A must be a square sequential dense Mat, with all entries equal on
    all processes (otherwise each process will compute different results).
-   Matrix B must also be a sequential dense Mat. Both matrices must be
-   square with the same dimensions.
+   If matrix B is provided, it must also be a square sequential dense Mat, and
+   both matrices must have the same dimensions. If B is NULL (or B=A) then the
+   function will perform an in-place computation, overwriting A with f(A).
 
    If A is known to be real symmetric or complex Hermitian then it is
    recommended to set the appropriate flag with MatSetOption(), so that
@@ -540,33 +557,36 @@ static PetscErrorCode FNEvaluateFunctionMat_Sym_Default(FN fn,Mat A,Mat B)
 
    Level: advanced
 
-.seealso: FNEvaluateFunction()
+.seealso: FNEvaluateFunction(), FNEvaluateFunctionMatVec()
 @*/
 PetscErrorCode FNEvaluateFunctionMat(FN fn,Mat A,Mat B)
 {
   PetscErrorCode ierr;
-  PetscBool      match,set,flg,symm=PETSC_FALSE;
+  PetscBool      match,set,flg,symm=PETSC_FALSE,inplace=PETSC_FALSE;
   PetscInt       m,n,n1;
-  Mat            M;
+  Mat            M,F;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(fn,FN_CLASSID,1);
   PetscValidHeaderSpecific(A,MAT_CLASSID,2);
-  PetscValidHeaderSpecific(B,MAT_CLASSID,3);
   PetscValidType(fn,1);
   PetscValidType(A,2);
-  PetscValidType(B,3);
-  if (A==B) SETERRQ(PetscObjectComm((PetscObject)fn),PETSC_ERR_ARG_WRONG,"A and B arguments must be different");
+  if (B) {
+    PetscValidHeaderSpecific(B,MAT_CLASSID,3);
+    PetscValidType(B,3);
+  } else inplace = PETSC_TRUE;
   ierr = PetscObjectTypeCompare((PetscObject)A,MATSEQDENSE,&match);CHKERRQ(ierr);
   if (!match) SETERRQ(PetscObjectComm((PetscObject)fn),PETSC_ERR_SUP,"Mat A must be of type seqdense");
-  ierr = PetscObjectTypeCompare((PetscObject)B,MATSEQDENSE,&match);CHKERRQ(ierr);
-  if (!match) SETERRQ(PetscObjectComm((PetscObject)fn),PETSC_ERR_SUP,"Mat B must be of type seqdense");
   ierr = MatGetSize(A,&m,&n);CHKERRQ(ierr);
   if (m!=n) SETERRQ2(PetscObjectComm((PetscObject)fn),PETSC_ERR_ARG_SIZ,"Mat A is not square (has %D rows, %D cols)",m,n);
-  n1 = n;
-  ierr = MatGetSize(B,&m,&n);CHKERRQ(ierr);
-  if (m!=n) SETERRQ2(PetscObjectComm((PetscObject)fn),PETSC_ERR_ARG_SIZ,"Mat B is not square (has %D rows, %D cols)",m,n);
-  if (n1!=n) SETERRQ(PetscObjectComm((PetscObject)fn),PETSC_ERR_ARG_SIZ,"Matrices A and B must have the same dimension");
+  if (!inplace) {
+    ierr = PetscObjectTypeCompare((PetscObject)B,MATSEQDENSE,&match);CHKERRQ(ierr);
+    if (!match) SETERRQ(PetscObjectComm((PetscObject)fn),PETSC_ERR_SUP,"Mat B must be of type seqdense");
+    n1 = n;
+    ierr = MatGetSize(B,&m,&n);CHKERRQ(ierr);
+    if (m!=n) SETERRQ2(PetscObjectComm((PetscObject)fn),PETSC_ERR_ARG_SIZ,"Mat B is not square (has %D rows, %D cols)",m,n);
+    if (n1!=n) SETERRQ(PetscObjectComm((PetscObject)fn),PETSC_ERR_ARG_SIZ,"Matrices A and B must have the same dimension");
+  }
 
   /* check symmetry of A */
   ierr = MatIsHermitianKnown(A,&set,&flg);CHKERRQ(ierr);
@@ -574,8 +594,134 @@ PetscErrorCode FNEvaluateFunctionMat(FN fn,Mat A,Mat B)
 
   /* scale argument */
   if (fn->alpha!=(PetscScalar)1.0) {
-    ierr = FN_AllocateWorkMat(fn,A);CHKERRQ(ierr);
-    M = fn->W;
+    ierr = FN_AllocateWorkMat(fn,A,&M);CHKERRQ(ierr);
+    ierr = MatScale(M,fn->alpha);CHKERRQ(ierr);
+  } else M = A;
+
+  /* destination matrix */
+  F = inplace? A: B;
+
+  /* evaluate matrix function */
+  ierr = PetscLogEventBegin(FN_Evaluate,fn,0,0,0);CHKERRQ(ierr);
+  ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
+  if (symm) {
+    if (fn->ops->evaluatefunctionmatsym) {
+      ierr = (*fn->ops->evaluatefunctionmatsym)(fn,M,F);CHKERRQ(ierr);
+    } else {
+      ierr = FNEvaluateFunctionMat_Sym_Default(fn,M,F);CHKERRQ(ierr);
+    }
+  } else {
+    if (fn->ops->evaluatefunctionmat) {
+      ierr = (*fn->ops->evaluatefunctionmat)(fn,M,F);CHKERRQ(ierr);
+    } else SETERRQ1(PetscObjectComm((PetscObject)fn),PETSC_ERR_SUP,"Matrix function not implemented in FN type %s",((PetscObject)fn)->type_name);
+  }
+  ierr = PetscFPTrapPop();CHKERRQ(ierr);
+  ierr = PetscLogEventEnd(FN_Evaluate,fn,0,0,0);CHKERRQ(ierr);
+
+  if (fn->alpha!=(PetscScalar)1.0) {
+    ierr = FN_FreeWorkMat(fn,&M);CHKERRQ(ierr);
+  }
+
+  /* scale result */
+  ierr = MatScale(F,fn->beta);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "FNEvaluateFunctionMatVec_Default"
+/*
+   FNEvaluateFunctionMatVec_Default - computes the full matrix f(A)
+   and then copies the first column.
+*/
+static PetscErrorCode FNEvaluateFunctionMatVec_Default(FN fn,Mat A,Vec v)
+{
+  PetscErrorCode ierr;
+  Mat            F;
+
+  PetscFunctionBegin;
+  ierr = FN_AllocateWorkMat(fn,A,&F);CHKERRQ(ierr);
+  if (fn->ops->evaluatefunctionmat) {
+    ierr = (*fn->ops->evaluatefunctionmat)(fn,A,F);CHKERRQ(ierr);
+  } else SETERRQ1(PetscObjectComm((PetscObject)fn),PETSC_ERR_SUP,"Matrix function not implemented in FN type %s",((PetscObject)fn)->type_name);
+  ierr = MatGetColumnVector(F,v,0);CHKERRQ(ierr);
+  ierr = FN_FreeWorkMat(fn,&F);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "FNEvaluateFunctionMatVec_Sym_Default"
+/*
+   FNEvaluateFunctionMatVec_Sym_Default - given a symmetric matrix A,
+   compute the matrix function as f(A)=Q*f(D)*Q' where the spectral
+   decomposition of A is A=Q*D*Q'. Only the first column is computed.
+*/
+static PetscErrorCode FNEvaluateFunctionMatVec_Sym_Default(FN fn,Mat A,Vec v)
+{
+  PetscErrorCode ierr;
+  PetscInt       m;
+  PetscScalar    *As,*vs;
+
+  PetscFunctionBegin;
+  ierr = MatDenseGetArray(A,&As);CHKERRQ(ierr);
+  ierr = VecGetArray(v,&vs);CHKERRQ(ierr);
+  ierr = MatGetSize(A,&m,NULL);CHKERRQ(ierr);
+  ierr = FNEvaluateFunctionMat_Sym_Private(fn,As,vs,m,PETSC_TRUE);CHKERRQ(ierr);
+  ierr = MatDenseRestoreArray(A,&As);CHKERRQ(ierr);
+  ierr = VecRestoreArray(v,&vs);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "FNEvaluateFunctionMatVec"
+/*@
+   FNEvaluateFunctionMatVec - Computes the first column of the matrix f(A)
+   for a given matrix A.
+
+   Logically Collective on FN
+
+   Input Parameters:
++  fn - the math function context
+-  A  - matrix on which the function must be evaluated
+
+   Output Parameter:
+.  v  - vector to hold the first column of f(A)
+
+   Notes:
+   This operation is similar to FNEvaluateFunctionMat() but returns only
+   the first column of f(A), hence saving computations in most cases.
+
+   Level: advanced
+
+.seealso: FNEvaluateFunction(), FNEvaluateFunctionMat()
+@*/
+PetscErrorCode FNEvaluateFunctionMatVec(FN fn,Mat A,Vec v)
+{
+  PetscErrorCode ierr;
+  PetscBool      match,set,flg,symm=PETSC_FALSE;
+  PetscInt       m,n;
+  Mat            M;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(fn,FN_CLASSID,1);
+  PetscValidHeaderSpecific(A,MAT_CLASSID,2);
+  PetscValidHeaderSpecific(v,VEC_CLASSID,3);
+  PetscValidType(fn,1);
+  PetscValidType(A,2);
+  PetscValidType(v,3);
+  ierr = PetscObjectTypeCompare((PetscObject)A,MATSEQDENSE,&match);CHKERRQ(ierr);
+  if (!match) SETERRQ(PetscObjectComm((PetscObject)fn),PETSC_ERR_SUP,"Mat A must be of type seqdense");
+  ierr = MatGetSize(A,&m,&n);CHKERRQ(ierr);
+  if (m!=n) SETERRQ2(PetscObjectComm((PetscObject)fn),PETSC_ERR_ARG_SIZ,"Mat A is not square (has %D rows, %D cols)",m,n);
+  ierr = VecGetSize(v,&m);CHKERRQ(ierr);
+  if (m!=n) SETERRQ(PetscObjectComm((PetscObject)fn),PETSC_ERR_ARG_SIZ,"Matrix A and vector v must have the same size");
+
+  /* check symmetry of A */
+  ierr = MatIsHermitianKnown(A,&set,&flg);CHKERRQ(ierr);
+  symm = set? flg: PETSC_FALSE;
+
+  /* scale argument */
+  if (fn->alpha!=(PetscScalar)1.0) {
+    ierr = FN_AllocateWorkMat(fn,A,&M);CHKERRQ(ierr);
     ierr = MatScale(M,fn->alpha);CHKERRQ(ierr);
   } else M = A;
 
@@ -583,21 +729,27 @@ PetscErrorCode FNEvaluateFunctionMat(FN fn,Mat A,Mat B)
   ierr = PetscLogEventBegin(FN_Evaluate,fn,0,0,0);CHKERRQ(ierr);
   ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
   if (symm) {
-    if (fn->ops->evaluatefunctionmatsym) {
-      ierr = (*fn->ops->evaluatefunctionmatsym)(fn,M,B);CHKERRQ(ierr);
+    if (fn->ops->evaluatefunctionmatvecsym) {
+      ierr = (*fn->ops->evaluatefunctionmatvecsym)(fn,M,v);CHKERRQ(ierr);
     } else {
-      ierr = FNEvaluateFunctionMat_Sym_Default(fn,M,B);CHKERRQ(ierr);
+      ierr = FNEvaluateFunctionMatVec_Sym_Default(fn,M,v);CHKERRQ(ierr);
     }
   } else {
-    if (fn->ops->evaluatefunctionmat) {
-      ierr = (*fn->ops->evaluatefunctionmat)(fn,M,B);CHKERRQ(ierr);
-    } else SETERRQ1(PetscObjectComm((PetscObject)fn),PETSC_ERR_SUP,"Matrix functions not implemented in FN type %s",((PetscObject)fn)->type_name);
+    if (fn->ops->evaluatefunctionmatvec) {
+      ierr = (*fn->ops->evaluatefunctionmatvec)(fn,M,v);CHKERRQ(ierr);
+    } else {
+      ierr = FNEvaluateFunctionMatVec_Default(fn,M,v);CHKERRQ(ierr);
+    }
   }
   ierr = PetscFPTrapPop();CHKERRQ(ierr);
   ierr = PetscLogEventEnd(FN_Evaluate,fn,0,0,0);CHKERRQ(ierr);
 
+  if (fn->alpha!=(PetscScalar)1.0) {
+    ierr = FN_FreeWorkMat(fn,&M);CHKERRQ(ierr);
+  }
+
   /* scale result */
-  ierr = MatScale(B,fn->beta);CHKERRQ(ierr);
+  ierr = VecScale(v,fn->beta);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -759,13 +911,16 @@ PetscErrorCode FNDuplicate(FN fn,MPI_Comm comm,FN *newfn)
 PetscErrorCode FNDestroy(FN *fn)
 {
   PetscErrorCode ierr;
+  PetscInt       i;
 
   PetscFunctionBegin;
   if (!*fn) PetscFunctionReturn(0);
   PetscValidHeaderSpecific(*fn,FN_CLASSID,1);
   if (--((PetscObject)(*fn))->refct > 0) { *fn = 0; PetscFunctionReturn(0); }
   if ((*fn)->ops->destroy) { ierr = (*(*fn)->ops->destroy)(*fn);CHKERRQ(ierr); }
-  ierr = MatDestroy(&(*fn)->W);CHKERRQ(ierr);
+  for (i=0;i<(*fn)->nw;i++) {
+    ierr = MatDestroy(&(*fn)->W[i]);CHKERRQ(ierr);
+  }
   ierr = PetscHeaderDestroy(fn);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

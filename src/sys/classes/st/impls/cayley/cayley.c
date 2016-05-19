@@ -3,7 +3,7 @@
 
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
-   Copyright (c) 2002-2015, Universitat Politecnica de Valencia, Spain
+   Copyright (c) 2002-2016, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
 
@@ -354,10 +354,14 @@ PetscErrorCode STView_Cayley(ST st,PetscViewer viewer)
   PetscErrorCode ierr;
   char           str[50];
   ST_CAYLEY      *ctx = (ST_CAYLEY*)st->data;
+  PetscBool      isascii;
 
   PetscFunctionBegin;
-  ierr = SlepcSNPrintfScalar(str,50,ctx->nu,PETSC_FALSE);CHKERRQ(ierr);
-  ierr = PetscViewerASCIIPrintf(viewer,"  Cayley: antishift: %s\n",str);CHKERRQ(ierr);
+  ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
+  if (isascii) {
+    ierr = SlepcSNPrintfScalar(str,50,ctx->nu,PETSC_FALSE);CHKERRQ(ierr);
+    ierr = PetscViewerASCIIPrintf(viewer,"  Cayley: antishift: %s\n",str);CHKERRQ(ierr);
+  }
   PetscFunctionReturn(0);
 }
 

@@ -4,7 +4,7 @@
 
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
-   Copyright (c) 2002-2015, Universitat Politecnica de Valencia, Spain
+   Copyright (c) 2002-2016, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
 
@@ -23,6 +23,7 @@
 */
 
 #include <slepc/private/mfnimpl.h>   /*I "slepcmfn.h" I*/
+#include <petscdraw.h>
 
 #undef __FUNCT__
 #define __FUNCT__ "MFNMonitorSetFromOptions"
@@ -86,6 +87,7 @@ PetscErrorCode MFNSetFromOptions(MFN mfn)
   PetscBool      set,flg,flg1,flg2;
   PetscReal      r;
   PetscInt       i;
+  PetscDrawLG    lg;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(mfn,MFN_CLASSID,1);
@@ -135,7 +137,8 @@ PetscErrorCode MFNSetFromOptions(MFN mfn)
     */
     ierr = PetscOptionsBool("-mfn_monitor_lg","Monitor error estimate graphically","MFNMonitorSet",PETSC_FALSE,&flg,&set);CHKERRQ(ierr);
     if (set && flg) {
-      ierr = MFNMonitorSet(mfn,MFNMonitorLG,NULL,NULL);CHKERRQ(ierr);
+      ierr = MFNMonitorLGCreate(PetscObjectComm((PetscObject)mfn),NULL,"Error estimate",PETSC_DECIDE,PETSC_DECIDE,300,300,&lg);CHKERRQ(ierr);
+      ierr = MFNMonitorSet(mfn,MFNMonitorLG,lg,(PetscErrorCode (*)(void**))PetscDrawLGDestroy);CHKERRQ(ierr);
     }
   /* -----------------------------------------------------------------------*/
 
@@ -151,7 +154,6 @@ PetscErrorCode MFNSetFromOptions(MFN mfn)
   ierr = BVSetFromOptions(mfn->V);CHKERRQ(ierr);
   if (!mfn->fn) { ierr = MFNGetFN(mfn,&mfn->fn);CHKERRQ(ierr); }
   ierr = FNSetFromOptions(mfn->fn);CHKERRQ(ierr);
-  ierr = PetscRandomSetFromOptions(mfn->rand);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -445,7 +447,8 @@ PetscErrorCode MFNAppendOptionsPrefix(MFN mfn,const char *prefix)
    Output Parameters:
 .  prefix - pointer to the prefix string used is returned
 
-   Notes: On the fortran side, the user should pass in a string 'prefix' of
+   Note:
+   On the Fortran side, the user should pass in a string 'prefix' of
    sufficient length to hold the prefix.
 
    Level: advanced
