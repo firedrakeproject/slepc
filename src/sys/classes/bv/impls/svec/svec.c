@@ -501,36 +501,60 @@ PETSC_EXTERN PetscErrorCode BVCreate_Svec(BV bv)
     ierr = PetscObjectSetName((PetscObject)ctx->v,str);CHKERRQ(ierr);
   }
 
-  if (ctx->mpi) {
-    ierr = VecCreateMPIWithArray(PetscObjectComm((PetscObject)bv->t),bs,nloc,PETSC_DECIDE,NULL,&bv->cv[0]);CHKERRQ(ierr);
-    ierr = VecCreateMPIWithArray(PetscObjectComm((PetscObject)bv->t),bs,nloc,PETSC_DECIDE,NULL,&bv->cv[1]);CHKERRQ(ierr);
+  if (ctx->cuda) {
+    if (ctx->mpi) {
+      ierr = VecCreateMPICUDAWithArray(PetscObjectComm((PetscObject)bv->t),bs,nloc,PETSC_DECIDE,NULL,&bv->cv[0]);CHKERRQ(ierr);
+      ierr = VecCreateMPICUDAWithArray(PetscObjectComm((PetscObject)bv->t),bs,nloc,PETSC_DECIDE,NULL,&bv->cv[1]);CHKERRQ(ierr);
+    } else {
+      ierr = VecCreateSeqCUDAWithArray(PetscObjectComm((PetscObject)bv->t),bs,nloc,NULL,&bv->cv[0]);CHKERRQ(ierr);
+      ierr = VecCreateSeqCUDAWithArray(PetscObjectComm((PetscObject)bv->t),bs,nloc,NULL,&bv->cv[1]);CHKERRQ(ierr);
+    }
   } else {
-    ierr = VecCreateSeqWithArray(PetscObjectComm((PetscObject)bv->t),bs,nloc,NULL,&bv->cv[0]);CHKERRQ(ierr);
-    ierr = VecCreateSeqWithArray(PetscObjectComm((PetscObject)bv->t),bs,nloc,NULL,&bv->cv[1]);CHKERRQ(ierr);
+    if (ctx->mpi) {
+      ierr = VecCreateMPIWithArray(PetscObjectComm((PetscObject)bv->t),bs,nloc,PETSC_DECIDE,NULL,&bv->cv[0]);CHKERRQ(ierr);
+      ierr = VecCreateMPIWithArray(PetscObjectComm((PetscObject)bv->t),bs,nloc,PETSC_DECIDE,NULL,&bv->cv[1]);CHKERRQ(ierr);
+    } else {
+      ierr = VecCreateSeqWithArray(PetscObjectComm((PetscObject)bv->t),bs,nloc,NULL,&bv->cv[0]);CHKERRQ(ierr);
+      ierr = VecCreateSeqWithArray(PetscObjectComm((PetscObject)bv->t),bs,nloc,NULL,&bv->cv[1]);CHKERRQ(ierr);
+    }
   }
 
+  ierr = VecSetType(bv->cv[0],((PetscObject)bv->t)->type_name);CHKERRQ(ierr);
+  ierr = VecSetType(bv->cv[1],((PetscObject)bv->t)->type_name);CHKERRQ(ierr);
   if (ctx->cuda) {
 #if defined(PETSC_HAVE_CUDA)
-    bv->ops->mult           = BVMult_Svec_CUDA;
+    bv->ops->mult             = BVMult_Svec_CUDA;
+    bv->ops->multvec          = BVMultVec_Svec_CUDA;
+    bv->ops->multinplace      = BVMultInPlace_Svec_CUDA;
+    bv->ops->multinplacetrans = BVMultInPlaceTranspose_Svec_CUDA;
+    bv->ops->dot              = BVDot_Svec_CUDA;
+    bv->ops->dotvec           = BVDotVec_Svec_CUDA;
+    bv->ops->dotvec_local     = BVDotVec_Local_Svec_CUDA;
+    bv->ops->scale            = BVScale_Svec_CUDA;
+    bv->ops->matmult          = BVMatMult_Svec_CUDA;
+    bv->ops->copy             = BVCopy_Svec_CUDA;
+    bv->ops->resize           = BVResize_Svec_CUDA;
+    bv->ops->getcolumn        = BVGetColumn_Svec_CUDA;
+    bv->ops->restorecolumn    = BVRestoreColumn_Svec_CUDA;
 #endif
   } else {
-    bv->ops->mult           = BVMult_Svec;
+    bv->ops->mult             = BVMult_Svec;
+    bv->ops->multvec          = BVMultVec_Svec;
+    bv->ops->multinplace      = BVMultInPlace_Svec;
+    bv->ops->multinplacetrans = BVMultInPlaceTranspose_Svec;
+    bv->ops->dot              = BVDot_Svec;
+    bv->ops->dotvec           = BVDotVec_Svec;
+    bv->ops->dotvec_local     = BVDotVec_Local_Svec;
+    bv->ops->scale            = BVScale_Svec;
+    bv->ops->matmult          = BVMatMult_Svec;
+    bv->ops->copy             = BVCopy_Svec;
+    bv->ops->resize           = BVResize_Svec;
+    bv->ops->getcolumn        = BVGetColumn_Svec;
+    bv->ops->restorecolumn    = BVRestoreColumn_Svec;
   }
-  bv->ops->multvec          = BVMultVec_Svec;
-  bv->ops->multinplace      = BVMultInPlace_Svec;
-  bv->ops->multinplacetrans = BVMultInPlaceTranspose_Svec;
-  bv->ops->dot              = BVDot_Svec;
-  bv->ops->dotvec           = BVDotVec_Svec;
-  bv->ops->dotvec_local     = BVDotVec_Local_Svec;
-  bv->ops->scale            = BVScale_Svec;
   bv->ops->norm             = BVNorm_Svec;
   bv->ops->norm_local       = BVNorm_Local_Svec;
   /*bv->ops->orthogonalize    = BVOrthogonalize_Svec;*/
-  bv->ops->matmult          = BVMatMult_Svec;
-  bv->ops->copy             = BVCopy_Svec;
-  bv->ops->resize           = BVResize_Svec;
-  bv->ops->getcolumn        = BVGetColumn_Svec;
-  bv->ops->restorecolumn    = BVRestoreColumn_Svec;
   bv->ops->getarray         = BVGetArray_Svec;
   bv->ops->restorearray     = BVRestoreArray_Svec;
   bv->ops->getarrayread     = BVGetArrayRead_Svec;
