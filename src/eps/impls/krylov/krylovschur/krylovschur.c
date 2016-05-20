@@ -866,6 +866,13 @@ static PetscErrorCode EPSKrylovSchurGetSubintervals_KrylovSchur(EPS eps,PetscRea
    The returned array has length npart+1 (see EPSKrylovSchurGetPartitions())
    and should be freed by the user.
 
+   Fortran Notes:
+   The calling sequence from Fortran is
+.vb
+   EPSKrylovSchurGetSubintervals(eps,subint,ierr)
+   double precision subint(npart+1) output
+.ve
+
    Level: advanced
 
 .seealso: EPSKrylovSchurSetSubintervals(), EPSKrylovSchurGetPartitions(), EPSSetInterval()
