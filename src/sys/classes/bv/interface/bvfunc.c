@@ -638,7 +638,7 @@ PetscErrorCode BVView(BV bv,PetscViewer viewer)
 #undef __FUNCT__
 #define __FUNCT__ "BVRegister"
 /*@C
-   BVRegister - Adds a new storage format to de BV package.
+   BVRegister - Adds a new storage format to the BV package.
 
    Not collective
 

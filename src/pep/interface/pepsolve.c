@@ -24,6 +24,19 @@
 #include <slepc/private/pepimpl.h>       /*I "slepcpep.h" I*/
 #include <petscdraw.h>
 
+static PetscBool  cited = PETSC_FALSE;
+static const char citation[] =
+  "@Article{slepc-pep-refine,\n"
+  "   author = \"C. Campos and J. E. Roman\",\n"
+  "   title = \"Parallel iterative refinement in polynomial eigenvalue problems\",\n"
+  "   journal = \"Numer. Linear Algebra Appl.\",\n"
+  "   volume = \"to appear\",\n"
+  "   number = \"\",\n"
+  "   pages = \"\",\n"
+  "   year = \"2016,\"\n"
+  "   doi = \"http://dx.doi.org/10.1002/nla.2052\"\n"
+  "}\n";
+
 #undef __FUNCT__
 #define __FUNCT__ "PEPComputeVectors"
 PetscErrorCode PEPComputeVectors(PEP pep)
@@ -148,6 +161,10 @@ PetscErrorCode PEPSolve(PEP pep)
   }
 #endif
 
+  if (pep->refine!=PEP_REFINE_NONE) {
+    ierr = PetscCitationsRegister(citation,&cited);CHKERRQ(ierr);
+  }
+
   if (pep->refine==PEP_REFINE_SIMPLE && pep->rits>0 && pep->nconv>0) {
     ierr = PEPComputeVectors(pep);CHKERRQ(ierr);
     ierr = PEPNewtonRefinementSimple(pep,&pep->rits,pep->rtol,pep->nconv);CHKERRQ(ierr);
@@ -252,14 +269,15 @@ PetscErrorCode PEPGetConverged(PEP pep,PetscInt *nconv)
    Output Parameter:
 .  reason - negative value indicates diverged, positive value converged
 
-   Possible values for reason:
+   Notes:
+
+   Possible values for reason are
 +  PEP_CONVERGED_TOL - converged up to tolerance
 .  PEP_CONVERGED_USER - converged due to a user-defined condition
 .  PEP_DIVERGED_ITS - required more than max_it iterations to reach convergence
 .  PEP_DIVERGED_BREAKDOWN - generic breakdown in method
 -  PEP_DIVERGED_SYMMETRY_LOST - pseudo-Lanczos was not able to keep symmetry
 
-   Note:
    Can only be called after the call to PEPSolve() is complete.
 
    Level: intermediate

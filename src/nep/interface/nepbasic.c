@@ -217,7 +217,7 @@ PetscErrorCode NEPGetType(NEP nep,NEPType *type)
 
    Sample usage:
 .vb
-   NEPRegister("my_solver",MySolverCreate);
+    NEPRegister("my_solver",MySolverCreate);
 .ve
 
    Then, your solver can be chosen with the procedural interface via
@@ -665,6 +665,15 @@ PetscErrorCode NEPGetTarget(NEP nep,PetscScalar* target)
          evaluation routine (may be NULL) (if NULL then NEP retains any
          previously set value)
 
+   Calling Sequence of fun:
+$   fun(NEP nep,PetscScalar lambda,Mat F,Mat P,void *ctx)
+
++  nep    - the NEP context
+.  lambda - the scalar argument where T(.) must be evaluated
+.  T      - matrix that will contain T(lambda)
+.  P      - (optional) different matrix to build the preconditioner
+-  ctx    - (optional) user-defined context, as set by NEPSetFunction()
+
    Level: beginner
 
 .seealso: NEPGetFunction(), NEPSetJacobian()
@@ -749,6 +758,14 @@ PetscErrorCode NEPGetFunction(NEP nep,Mat *A,Mat *B,PetscErrorCode (**fun)(NEP,P
 -  ctx - [optional] user-defined context for private data for the Jacobian
          evaluation routine (may be NULL) (if NULL then NEP retains any
          previously set value)
+
+   Calling Sequence of jac:
+$   jac(NEP nep,PetscScalar lambda,Mat J,void *ctx)
+
++  nep    - the NEP context
+.  lambda - the scalar argument where T'(.) must be evaluated
+.  J      - matrix that will contain T'(lambda)
+-  ctx    - (optional) user-defined context, as set by NEPSetJacobian()
 
    Level: beginner
 

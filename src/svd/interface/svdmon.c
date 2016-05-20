@@ -56,7 +56,7 @@ PetscErrorCode SVDMonitor(SVD svd,PetscInt it,PetscInt nconv,PetscReal *sigma,Pe
              monitor routine (use NULL if no context is desired)
 
    Calling Sequence of monitor:
-$     monitor (SVD svd, PetscInt its, PetscInt nconv, PetscReal *sigma, PetscReal* errest, PetscInt nest, void *mctx)
+$   monitor(SVD svd,PetscInt its,PetscInt nconv,PetscReal *sigma,PetscReal *errest,PetscInt nest,void *mctx)
 
 +  svd    - singular value solver context obtained from SVDCreate()
 .  its    - iteration number

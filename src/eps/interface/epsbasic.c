@@ -221,7 +221,7 @@ PetscErrorCode EPSGetType(EPS eps,EPSType *type)
 
    Sample usage:
 .vb
-   EPSRegister("my_solver",MySolverCreate);
+    EPSRegister("my_solver",MySolverCreate);
 .ve
 
    Then, your solver can be chosen with the procedural interface via

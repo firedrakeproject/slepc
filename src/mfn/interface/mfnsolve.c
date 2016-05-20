@@ -146,13 +146,14 @@ PetscErrorCode MFNGetIterationNumber(MFN mfn,PetscInt *its)
    Output Parameter:
 .  reason - negative value indicates diverged, positive value converged
 
-   Possible values for reason:
+   Notes:
+
+   Possible values for reason are
 +  MFN_CONVERGED_TOL - converged up to tolerance
 .  MFN_CONVERGED_ITS - solver completed the requested number of steps
 .  MFN_DIVERGED_ITS - required more than max_it iterations to reach convergence
 -  MFN_DIVERGED_BREAKDOWN - generic breakdown in method
 
-   Notes:
    Can only be called after the call to MFNSolve() is complete.
 
    Basic solvers (e.g. unrestarted Krylov iterations) cannot determine if the
