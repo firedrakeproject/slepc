@@ -204,7 +204,7 @@ PetscErrorCode FormInitialGuess(Vec x)
    Input Parameters:
 .  nep    - the NEP context
 .  lambda - real part of the scalar argument
-.  ctx    - optional user-defined context, as set by NEPSetJacobian()
+.  ctx    - optional user-defined context, as set by NEPSetFunction()
 
    Output Parameters:
 .  fun - Function matrix

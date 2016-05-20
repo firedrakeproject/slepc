@@ -225,7 +225,7 @@ PetscErrorCode PEPGetType(PEP pep,PEPType *type)
 
    Sample usage:
 .vb
-   PEPRegister("my_solver",MySolverCreate);
+    PEPRegister("my_solver",MySolverCreate);
 .ve
 
    Then, your solver can be chosen with the procedural interface via

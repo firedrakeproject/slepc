@@ -219,7 +219,7 @@ PetscErrorCode BVMultColumn(BV X,PetscScalar alpha,PetscScalar beta,PetscInt j,P
 -  e - first column of V not to be overwritten
 
    Input/Output Parameter:
-+  V - basis vectors
+.  V - basis vectors
 
    Notes:
    The matrix Q must be a sequential dense Mat, with all entries equal on
@@ -278,7 +278,7 @@ PetscErrorCode BVMultInPlace(BV V,Mat Q,PetscInt s,PetscInt e)
 -  e - first column of V not to be overwritten
 
    Input/Output Parameter:
-+  V - basis vectors
+.  V - basis vectors
 
    Notes:
    This is a variant of BVMultInPlace() where the conjugate transpose

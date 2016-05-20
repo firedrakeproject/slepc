@@ -272,7 +272,7 @@ PetscErrorCode SVDGetType(SVD svd,SVDType *type)
 
    Sample usage:
 .vb
-   SVDRegister("my_solver",MySolverCreate);
+    SVDRegister("my_solver",MySolverCreate);
 .ve
 
    Then, your solver can be chosen with the procedural interface via
