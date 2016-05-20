@@ -363,8 +363,8 @@ PETSC_EXTERN void PETSC_STDCALL epskrylovschursetsubintervals_(EPS *eps,PetscRea
 
 PETSC_EXTERN void PETSC_STDCALL epskrylovschurgetsubintervals_(EPS *eps,PetscReal *subint,PetscErrorCode *ierr)
 {
-  PetscScalar *osubint;
-  PetscInt    npart;
+  PetscReal *osubint;
+  PetscInt  npart;
 
   CHKFORTRANNULLREAL(subint);
   *ierr = EPSKrylovSchurGetSubintervals(*eps,&osubint);
