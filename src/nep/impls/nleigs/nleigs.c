@@ -1100,7 +1100,7 @@ PetscErrorCode NEPSolve_NLEIGS(NEP nep)
   NEP_NLEIGS     *ctx = (NEP_NLEIGS*)nep->data;
   PetscInt       i,j,k=0,l,nv=0,ld,lds,off,ldds,rs1,nq=0,newn;
   PetscInt       lwa,lrwa,nwu=0,nrwu=0,deg=ctx->nmat-1,nconv=0;
-  PetscScalar    *S,*Q,*work,*H,*pU,*K,betak=0,*Hc;
+  PetscScalar    *S,*Q,*work,*H,*pU,*K,betak=0,*Hc,*eigr,*eigi;
   PetscReal      betah,norm,*rwork;
   PetscBool      breakdown=PETSC_FALSE,lindep;
   Mat            U;
@@ -1113,6 +1113,9 @@ PetscErrorCode NEPSolve_NLEIGS(NEP nep)
   ierr = DSGetLeadingDimension(nep->ds,&ldds);CHKERRQ(ierr);
   ierr = PetscMalloc4(lwa,&work,lrwa,&rwork,lds*ld,&S,ldds*ldds,&Hc);CHKERRQ(ierr);
   ierr = PetscMemzero(S,lds*ld*sizeof(PetscScalar));CHKERRQ(ierr);
+  if (!ctx->nshifts) {
+    ierr = PetscMalloc2(nep->ncv,&eigr,nep->ncv,&eigi);CHKERRQ(ierr);
+  } else { eigr = nep->eigr; eigi = nep->eigi; }
   ierr = BVDuplicateResize(nep->V,PetscMax(nep->nt-1,ctx->nmat-1),&ctx->W);CHKERRQ(ierr);
 
   /* Get the starting vector */
@@ -1218,7 +1221,11 @@ PetscErrorCode NEPSolve_NLEIGS(NEP nep)
       }
     }
     nep->nconv = k;
-    ierr = NEPMonitor(nep,nep->its,nconv,nep->eigr,nep->eigi,nep->errest,nv);CHKERRQ(ierr);
+    if (!ctx->nshifts) {
+      for (i=0;i<nv;i++) { eigr[i] = nep->eigr[i]; eigi[i] = nep->eigi[i]; }
+      ierr = NEPNLEIGSBackTransform((PetscObject)nep,nv,eigr,eigi);CHKERRQ(ierr);
+    }
+    ierr = NEPMonitor(nep,nep->its,nconv,eigr,eigi,nep->errest,nv);CHKERRQ(ierr);
   }
   nep->nconv = nconv;
   if (nep->nconv>0) {
@@ -1251,6 +1258,7 @@ PetscErrorCode NEPSolve_NLEIGS(NEP nep)
   /* Map eigenvalues back to the original problem */
   if (!ctx->nshifts) {
     ierr = NEPNLEIGSBackTransform((PetscObject)nep,nep->nconv,nep->eigr,nep->eigi);CHKERRQ(ierr);
+    ierr = PetscFree2(eigr,eigi);CHKERRQ(ierr);
   }
   ierr = BVDestroy(&ctx->W);CHKERRQ(ierr);
   PetscFunctionReturn(0);
