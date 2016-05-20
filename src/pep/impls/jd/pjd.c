@@ -993,7 +993,7 @@ PetscErrorCode PEPSolve_JD(PEP pep)
       ierr = KSPSolve(ksp,r,t);CHKERRQ(ierr);
       ierr = BVRestoreColumn(pjd->V,nv,&t);CHKERRQ(ierr);
       ierr = BVOrthogonalizeColumn(pjd->V,nv,NULL,&norm,&lindep);CHKERRQ(ierr);
-      if (lindep) SETERRQ(PETSC_COMM_SELF,1,"Linearly dependent continuation vector");
+      if (lindep || norm==0.0) SETERRQ(PETSC_COMM_SELF,1,"Linearly dependent continuation vector");
       ierr = BVScaleColumn(pjd->V,nv,1.0/norm);CHKERRQ(ierr);
       ierr = BVInsertVec(pjd->W,nv,r);CHKERRQ(ierr);
       ierr = BVOrthogonalizeColumn(pjd->W,nv,NULL,&norm,&lindep);CHKERRQ(ierr);
@@ -1016,6 +1016,7 @@ PetscErrorCode PEPSolve_JD(PEP pep)
       ierr = BVInsertVec(pep->V,k,v);CHKERRQ(ierr);
       ierr = BVRestoreColumn(pjd->X,k,&v);CHKERRQ(ierr);
       pep->eigr[k] = pjd->T[(pep->nev+1)*k]; 
+      pep->eigi[k] = 0.0; 
     }
     ierr = PetscFree2(pcctx->M,pcctx->ps);CHKERRQ(ierr); 
   }
