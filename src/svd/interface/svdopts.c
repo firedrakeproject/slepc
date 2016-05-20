@@ -280,7 +280,7 @@ PetscErrorCode SVDGetDimensions(SVD svd,PetscInt *nsv,PetscInt *ncv,PetscInt *mp
 .   which - which singular triplets are to be sought
 
     Possible values:
-    The parameter 'which' can have one of these values:
+    The parameter 'which' can have one of these values
 
 +     SVD_LARGEST  - largest singular values
 -     SVD_SMALLEST - smallest singular values

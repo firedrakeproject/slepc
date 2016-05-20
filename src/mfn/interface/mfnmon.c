@@ -57,7 +57,7 @@ PetscErrorCode MFNMonitor(MFN mfn,PetscInt it,PetscReal errest)
 -  monitordestroy - [optional] routine that frees monitor context (may be NULL)
 
    Calling Sequence of monitor:
-$     monitor (MFN mfn, int its, PetscReal errest, void *mctx)
+$   monitor(MFN mfn,int its,PetscReal errest,void *mctx)
 
 +  mfn    - matrix function context obtained from MFNCreate()
 .  its    - iteration number

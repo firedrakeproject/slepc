@@ -599,7 +599,7 @@ $   func(PetscScalar ar,PetscScalar ai,PetscScalar br,PetscScalar bi,PetscInt *r
 -   ctx    - optional context, as set by PEPSetEigenvalueComparison()
 
    Note:
-   The returning parameter 'res' can be:
+   The returning parameter 'res' can be
 +  negative - if the 1st eigenvalue is preferred to the 2st one
 .  zero     - if both eigenvalues are equally preferred
 -  positive - if the 2st eigenvalue is preferred to the 1st one

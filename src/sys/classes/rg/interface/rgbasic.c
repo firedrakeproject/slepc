@@ -721,7 +721,7 @@ PetscErrorCode RGDestroy(RG *rg)
 #undef __FUNCT__
 #define __FUNCT__ "RGRegister"
 /*@C
-   RGRegister - See Adds a mathematical function to the RG package.
+   RGRegister - Adds a region to the RG package.
 
    Not collective
 
@@ -730,7 +730,7 @@ PetscErrorCode RGDestroy(RG *rg)
 -  function - routine to create context
 
    Notes:
-   RGRegister() may be called multiple times to add several user-defined inner products.
+   RGRegister() may be called multiple times to add several user-defined regions.
 
    Level: advanced
 

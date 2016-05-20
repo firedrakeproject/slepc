@@ -835,13 +835,13 @@ PetscErrorCode STView(ST st,PetscViewer viewer)
 
    Sample usage:
 .vb
-   STRegister("my_solver",MySolverCreate);
+    STRegister("my_transform",MyTransformCreate);
 .ve
 
-   Then, your solver can be chosen with the procedural interface via
-$     STSetType(st,"my_solver")
+   Then, your spectral transform can be chosen with the procedural interface via
+$     STSetType(st,"my_transform")
    or at runtime via the option
-$     -st_type my_solver
+$     -st_type my_transform
 
    Level: advanced
 

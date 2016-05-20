@@ -119,6 +119,7 @@ PetscErrorCode PEPSetFromOptions_JD(PetscOptionItems *PetscOptionsObject,PEP pep
   PetscErrorCode ierr;
   PetscBool      flg;
   PetscReal      r1;
+  KSP            ksp;
 
   PetscFunctionBegin;
   ierr = PetscOptionsHead(PetscOptionsObject,"PEP JD Options");CHKERRQ(ierr);
@@ -130,6 +131,13 @@ PetscErrorCode PEPSetFromOptions_JD(PetscOptionItems *PetscOptionsObject,PEP pep
   if (!pep->st) { ierr = PEPGetST(pep,&pep->st);CHKERRQ(ierr); }
   if (!((PetscObject)pep->st)->type_name) {
     ierr = STSetType(pep->st,STPRECOND);CHKERRQ(ierr);
+  }
+
+  /* Set the default options of the KSP */
+  ierr = STGetKSP(pep->st,&ksp);CHKERRQ(ierr);
+  if (!((PetscObject)ksp)->type_name) {
+    ierr = KSPSetType(ksp,KSPBCGSL);CHKERRQ(ierr);
+    ierr = KSPSetTolerances(ksp,1e-5,PETSC_DEFAULT,PETSC_DEFAULT,100);CHKERRQ(ierr);
   }
   ierr = PetscOptionsTail();CHKERRQ(ierr);
   PetscFunctionReturn(0);

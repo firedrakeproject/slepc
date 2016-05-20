@@ -188,16 +188,26 @@ PetscErrorCode NEPSolve_Interpol(NEP nep)
 #define __FUNCT__ "PEPMonitor_Interpol"
 static PetscErrorCode PEPMonitor_Interpol(PEP pep,PetscInt its,PetscInt nconv,PetscScalar *eigr,PetscScalar *eigi,PetscReal *errest,PetscInt nest,void *ctx)
 {
-  PetscInt       i;
+  PetscInt       i,n;
   NEP            nep = (NEP)ctx;
+  PetscReal      a,b,s;
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  for (i=0;i<PetscMin(nest,nep->ncv);i++) {
+  n = PetscMin(nest,nep->ncv);
+  for (i=0;i<n;i++) {
     nep->eigr[i]   = eigr[i];
     nep->eigi[i]   = eigi[i];
     nep->errest[i] = errest[i];
   }
+  ierr = STBackTransform(pep->st,n,nep->eigr,nep->eigi);CHKERRQ(ierr);
+  ierr = RGIntervalGetEndpoints(nep->rg,&a,&b,NULL,NULL);CHKERRQ(ierr);
+  s = 2.0/(b-a);
+  for (i=0;i<n;i++) {
+    nep->eigr[i] /= s;
+    nep->eigr[i] += (a+b)/2.0;
+    nep->eigi[i] /= s;
+  }  
   ierr = NEPMonitor(nep,its,nconv,nep->eigr,nep->eigi,nep->errest,nest);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

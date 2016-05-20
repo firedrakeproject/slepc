@@ -317,7 +317,7 @@ PetscErrorCode MFNGetType(MFN mfn,MFNType *type)
 
    Sample usage:
 .vb
-   MFNRegister("my_solver",MySolverCreate);
+    MFNRegister("my_solver",MySolverCreate);
 .ve
 
    Then, your solver can be chosen with the procedural interface via

@@ -24,53 +24,57 @@
 #include <slepc/private/epsimpl.h>
 
 #if defined(PETSC_HAVE_FORTRAN_CAPS)
-#define epsview_                    EPSVIEW
-#define epserrorview_               EPSERRORVIEW
-#define epsreasonview_              EPSREASONVIEW
-#define epsvaluesview_              EPSVALUESVIEW
-#define epsvectorsview_             EPSVECTORSVIEW
-#define epssetoptionsprefix_        EPSSETOPTIONSPREFIX
-#define epsappendoptionsprefix_     EPSAPPENDOPTIONSPREFIX
-#define epsgetoptionsprefix_        EPSGETOPTIONSPREFIX
-#define epssettype_                 EPSSETTYPE
-#define epsgettype_                 EPSGETTYPE
-#define epsmonitorall_              EPSMONITORALL
-#define epsmonitorlg_               EPSMONITORLG
-#define epsmonitorlgall_            EPSMONITORLGALL
-#define epsmonitorset_              EPSMONITORSET
-#define epsmonitorconverged_        EPSMONITORCONVERGED
-#define epsmonitorfirst_            EPSMONITORFIRST
-#define epsconvergedabsolute_       EPSCONVERGEDABSOLUTE
-#define epsconvergedrelative_       EPSCONVERGEDRELATIVE
-#define epsconvergednorm_           EPSCONVERGEDNORM
+#define epsview_                       EPSVIEW
+#define epserrorview_                  EPSERRORVIEW
+#define epsreasonview_                 EPSREASONVIEW
+#define epsvaluesview_                 EPSVALUESVIEW
+#define epsvectorsview_                EPSVECTORSVIEW
+#define epssetoptionsprefix_           EPSSETOPTIONSPREFIX
+#define epsappendoptionsprefix_        EPSAPPENDOPTIONSPREFIX
+#define epsgetoptionsprefix_           EPSGETOPTIONSPREFIX
+#define epssettype_                    EPSSETTYPE
+#define epsgettype_                    EPSGETTYPE
+#define epsmonitorall_                 EPSMONITORALL
+#define epsmonitorlg_                  EPSMONITORLG
+#define epsmonitorlgall_               EPSMONITORLGALL
+#define epsmonitorset_                 EPSMONITORSET
+#define epsmonitorconverged_           EPSMONITORCONVERGED
+#define epsmonitorfirst_               EPSMONITORFIRST
+#define epsconvergedabsolute_          EPSCONVERGEDABSOLUTE
+#define epsconvergedrelative_          EPSCONVERGEDRELATIVE
+#define epsconvergednorm_              EPSCONVERGEDNORM
 #define epssetconvergencetestfunction_ EPSSETCONVERGENCETESTFUNCTION
-#define epssetstoppingtestfunction_ EPSSETSTOPPINGTESTFUNCTION
-#define epsseteigenvaluecomparison_ EPSSETEIGENVALUECOMPARISON
-#define epssetarbitraryselection_   EPSSETARBITRARYSELECTION
+#define epssetstoppingtestfunction_    EPSSETSTOPPINGTESTFUNCTION
+#define epsseteigenvaluecomparison_    EPSSETEIGENVALUECOMPARISON
+#define epssetarbitraryselection_      EPSSETARBITRARYSELECTION
+#define epskrylovschursetsubintervals_ EPSKRYLOVSCHURSETSUBINTERVALs
+#define epskrylovschurgetsubintervals_ EPSKRYLOVSCHURGETSUBINTERVALs
 #elif !defined(PETSC_HAVE_FORTRAN_UNDERSCORE)
-#define epsview_                    epsview
-#define epserrorview_               epserrorview
-#define epsreasonview_              epsreasonview
-#define epsvaluesview_              epsvaluesview
-#define epsvectorsview_             epsvectorsview
-#define epssetoptionsprefix_        epssetoptionsprefix
-#define epsappendoptionsprefix_     epsappendoptionsprefix
-#define epsgetoptionsprefix_        epsgetoptionsprefix
-#define epssettype_                 epssettype
-#define epsgettype_                 epsgettype
-#define epsmonitorall_              epsmonitorall
-#define epsmonitorlg_               epsmonitorlg
-#define epsmonitorlgall_            epsmonitorlgall
-#define epsmonitorset_              epsmonitorset
-#define epsmonitorconverged_        epsmonitorconverged
-#define epsmonitorfirst_            epsmonitorfirst
-#define epsconvergedabsolute_       epsconvergedabsolute
-#define epsconvergedrelative_       epsconvergedrelative
-#define epsconvergednorm_           epsconvergednorm
+#define epsview_                       epsview
+#define epserrorview_                  epserrorview
+#define epsreasonview_                 epsreasonview
+#define epsvaluesview_                 epsvaluesview
+#define epsvectorsview_                epsvectorsview
+#define epssetoptionsprefix_           epssetoptionsprefix
+#define epsappendoptionsprefix_        epsappendoptionsprefix
+#define epsgetoptionsprefix_           epsgetoptionsprefix
+#define epssettype_                    epssettype
+#define epsgettype_                    epsgettype
+#define epsmonitorall_                 epsmonitorall
+#define epsmonitorlg_                  epsmonitorlg
+#define epsmonitorlgall_               epsmonitorlgall
+#define epsmonitorset_                 epsmonitorset
+#define epsmonitorconverged_           epsmonitorconverged
+#define epsmonitorfirst_               epsmonitorfirst
+#define epsconvergedabsolute_          epsconvergedabsolute
+#define epsconvergedrelative_          epsconvergedrelative
+#define epsconvergednorm_              epsconvergednorm
 #define epssetconvergencetestfunction_ epssetconvergencetestfunction
-#define epssetstoppingtestfunction_ epssetstoppingtestfunction
-#define epsseteigenvaluecomparison_ epsseteigenvaluecomparison
-#define epssetarbitraryselection_   epssetarbitraryselection
+#define epssetstoppingtestfunction_    epssetstoppingtestfunction
+#define epsseteigenvaluecomparison_    epsseteigenvaluecomparison
+#define epssetarbitraryselection_      epssetarbitraryselection
+#define epskrylovschursetsubintervals_ epskrylovschursetsubintervals
+#define epskrylovschurgetsubintervals_ epskrylovschurgetsubintervals
 #endif
 
 /*
@@ -349,5 +353,26 @@ PETSC_EXTERN void PETSC_STDCALL epssetarbitraryselection_(EPS *eps,void (PETSC_S
   CHKFORTRANNULLOBJECT(ctx);
   *ierr = PetscObjectSetFortranCallback((PetscObject)*eps,PETSC_FORTRAN_CALLBACK_CLASS,&_cb.arbitrary,(PetscVoidFunction)func,ctx); if (*ierr) return;
   *ierr = EPSSetArbitrarySelection(*eps,ourarbitraryfunc,*eps);
+}
+
+PETSC_EXTERN void PETSC_STDCALL epskrylovschursetsubintervals_(EPS *eps,PetscReal *subint,PetscErrorCode *ierr)
+{
+  CHKFORTRANNULLREAL(subint);
+  *ierr = EPSKrylovSchurSetSubintervals(*eps,subint);
+}
+
+PETSC_EXTERN void PETSC_STDCALL epskrylovschurgetsubintervals_(EPS *eps,PetscReal *subint,PetscErrorCode *ierr)
+{
+  PetscReal *osubint;
+  PetscInt  npart;
+
+  CHKFORTRANNULLREAL(subint);
+  *ierr = EPSKrylovSchurGetSubintervals(*eps,&osubint);
+  if (*ierr) return;
+  *ierr = EPSKrylovSchurGetPartitions(*eps,&npart);
+  if (*ierr) return;
+  *ierr = PetscMemcpy(subint,osubint,(npart+1)*sizeof(PetscReal));
+  if (*ierr) return;
+  *ierr = PetscFree(osubint);
 }
 

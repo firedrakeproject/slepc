@@ -184,13 +184,14 @@ PetscErrorCode SVDGetIterationNumber(SVD svd,PetscInt *its)
 .  reason - negative value indicates diverged, positive value converged
    (see SVDConvergedReason)
 
-   Possible values for reason:
+   Notes:
+
+   Possible values for reason are
 +  SVD_CONVERGED_TOL - converged up to tolerance
 .  SVD_CONVERGED_USER - converged due to a user-defined condition
 .  SVD_DIVERGED_ITS - required more than max_it iterations to reach convergence
 -  SVD_DIVERGED_BREAKDOWN - generic breakdown in method
 
-   Note:
    Can only be called after the call to SVDSolve() is complete.
 
    Level: intermediate

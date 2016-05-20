@@ -87,12 +87,14 @@ PetscErrorCode PEPSetUp_JD(PEP pep)
   PEP_JD         *pjd = (PEP_JD*)pep->data;
   PetscBool      isprecond,flg;
   PetscInt       i;
+  KSP            ksp;
 
   PetscFunctionBegin;
   pep->lineariz = PETSC_FALSE;
   ierr = PEPSetDimensions_Default(pep,pep->nev,&pep->ncv,&pep->mpd);CHKERRQ(ierr);
   if (!pep->max_it) pep->max_it = PetscMax(100,2*pep->n/pep->ncv);
-  if (!pep->which) pep->which = PEP_LARGEST_MAGNITUDE;
+  if (!pep->which) pep->which = PEP_TARGET_MAGNITUDE;
+  if (pep->which != PEP_TARGET_MAGNITUDE) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"PEPJD only supports which=target_magnitude");;
 
   /* Set STPRECOND as the default ST */
   if (!((PetscObject)pep->st)->type_name) {
@@ -104,6 +106,13 @@ PetscErrorCode PEPSetUp_JD(PEP pep)
   if (pep->basis!=PEP_BASIS_MONOMIAL) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Solver not implemented for non-monomial bases");
   ierr = STGetTransform(pep->st,&flg);CHKERRQ(ierr);
   if (flg) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Solver requires the ST transformation flag unset, see STSetTransform()");
+
+  /* Set the default options of the KSP */
+  ierr = STGetKSP(pep->st,&ksp);CHKERRQ(ierr);
+  if (!((PetscObject)ksp)->type_name) {
+    ierr = KSPSetType(ksp,KSPBCGSL);CHKERRQ(ierr);
+    ierr = KSPSetTolerances(ksp,1e-5,PETSC_DEFAULT,PETSC_DEFAULT,100);CHKERRQ(ierr);
+  }
 
   if (!pjd->keep) pjd->keep = 0.5;
 
@@ -849,8 +858,8 @@ PetscErrorCode PEPSolve_JD(PEP pep)
 {
   PetscErrorCode  ierr;
   PEP_JD          *pjd = (PEP_JD*)pep->data;
-  PetscInt        k,nv,ld,minv,low,high,*P,dim;
-  PetscScalar     theta=0.0,*pX,*stt,*exu,*exr,*exp,*R,*eig;
+  PetscInt        k,nv,ld,minv,low,high,dim;
+  PetscScalar     theta=0.0,*pX,*eig;
   PetscReal       norm,*res;
   PetscBool       lindep,initial=PETSC_FALSE,flglk=PETSC_FALSE,flgre=PETSC_FALSE;
   Vec             t,u,p,r,*ww=pep->work,v;
@@ -861,8 +870,7 @@ PetscErrorCode PEPSolve_JD(PEP pep)
 
   PetscFunctionBegin;
   ierr = DSGetLeadingDimension(pep->ds,&ld);CHKERRQ(ierr);
-  ierr = PetscMalloc5(ld,&P,ld,&stt,pep->nev-1,&exu,pep->nev-1,&exr,pep->nev-1,&exp);CHKERRQ(ierr);
-  ierr = PetscMalloc3(ld*ld,&R,pep->ncv,&eig,pep->ncv,&res);CHKERRQ(ierr);
+  ierr = PetscMalloc2(pep->ncv,&eig,pep->ncv,&res);CHKERRQ(ierr);
   ierr = BVCreateVec(pjd->V,&u);CHKERRQ(ierr);
   ierr = VecDuplicate(u,&p);CHKERRQ(ierr);
   ierr = VecDuplicate(u,&r);CHKERRQ(ierr);
@@ -900,7 +908,6 @@ PetscErrorCode PEPSolve_JD(PEP pep)
     if (nv>1 || initial ) {
       ierr = DSSetState(pep->ds,DS_STATE_RAW);CHKERRQ(ierr);
       ierr = DSSolve(pep->ds,pep->eigr+pep->nconv,pep->eigi+pep->nconv);CHKERRQ(ierr);
-      ierr = DSSort(pep->ds,pep->eigr+pep->nconv,pep->eigi+pep->nconv,NULL,NULL,NULL);CHKERRQ(ierr);
       ierr = DSSort(pep->ds,pep->eigr+pep->nconv,pep->eigi+pep->nconv,NULL,NULL,NULL);CHKERRQ(ierr);
       theta = pep->eigr[0];
 #if !defined(PETSC_USE_COMPLEX)
@@ -1022,8 +1029,7 @@ PetscErrorCode PEPSolve_JD(PEP pep)
   ierr = PetscFree(pcctx);CHKERRQ(ierr);
   ierr = PetscFree(matctx);CHKERRQ(ierr);
   ierr = PCDestroy(&pjd->pcshell);CHKERRQ(ierr);
-  ierr = PetscFree5(P,stt,exu,exr,exp);CHKERRQ(ierr);
-  ierr = PetscFree3(R,eig,res);CHKERRQ(ierr);
+  ierr = PetscFree2(eig,res);CHKERRQ(ierr);
   ierr = VecDestroy(&u);CHKERRQ(ierr);
   ierr = VecDestroy(&r);CHKERRQ(ierr);
   ierr = VecDestroy(&p);CHKERRQ(ierr);

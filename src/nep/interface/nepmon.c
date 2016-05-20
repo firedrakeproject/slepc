@@ -58,7 +58,7 @@ PetscErrorCode NEPMonitor(NEP nep,PetscInt it,PetscInt nconv,PetscScalar *eigr,P
              (may be NULL)
 
    Calling Sequence of monitor:
-$     monitor (NEP nep, int its, int nconv, PetscScalar *eigr, PetscScalar *eigi, PetscReal* errest, int nest, void *mctx)
+$   monitor(NEP nep,int its,int nconv,PetscScalar *eigr,PetscScalar *eigi,PetscReal* errest,int nest,void *mctx)
 
 +  nep    - nonlinear eigensolver context obtained from NEPCreate()
 .  its    - iteration number

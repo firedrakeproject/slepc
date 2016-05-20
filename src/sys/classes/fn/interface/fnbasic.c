@@ -928,7 +928,7 @@ PetscErrorCode FNDestroy(FN *fn)
 #undef __FUNCT__
 #define __FUNCT__ "FNRegister"
 /*@C
-   FNRegister - See Adds a mathematical function to the FN package.
+   FNRegister - Adds a mathematical function to the FN package.
 
    Not collective
 
@@ -937,7 +937,7 @@ PetscErrorCode FNDestroy(FN *fn)
 -  function - routine to create context
 
    Notes:
-   FNRegister() may be called multiple times to add several user-defined inner products.
+   FNRegister() may be called multiple times to add several user-defined functions.
 
    Level: advanced
 
