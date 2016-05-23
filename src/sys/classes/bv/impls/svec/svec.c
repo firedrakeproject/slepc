@@ -502,6 +502,7 @@ PETSC_EXTERN PetscErrorCode BVCreate_Svec(BV bv)
   }
 
   if (ctx->cuda) {
+#if defined(PETSC_HAVE_VECCUDA)
     if (ctx->mpi) {
       ierr = VecCreateMPICUDAWithArray(PetscObjectComm((PetscObject)bv->t),bs,nloc,PETSC_DECIDE,NULL,&bv->cv[0]);CHKERRQ(ierr);
       ierr = VecCreateMPICUDAWithArray(PetscObjectComm((PetscObject)bv->t),bs,nloc,PETSC_DECIDE,NULL,&bv->cv[1]);CHKERRQ(ierr);
@@ -509,6 +510,7 @@ PETSC_EXTERN PetscErrorCode BVCreate_Svec(BV bv)
       ierr = VecCreateSeqCUDAWithArray(PetscObjectComm((PetscObject)bv->t),bs,nloc,NULL,&bv->cv[0]);CHKERRQ(ierr);
       ierr = VecCreateSeqCUDAWithArray(PetscObjectComm((PetscObject)bv->t),bs,nloc,NULL,&bv->cv[1]);CHKERRQ(ierr);
     }
+#endif
   } else {
     if (ctx->mpi) {
       ierr = VecCreateMPIWithArray(PetscObjectComm((PetscObject)bv->t),bs,nloc,PETSC_DECIDE,NULL,&bv->cv[0]);CHKERRQ(ierr);
