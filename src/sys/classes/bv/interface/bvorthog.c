@@ -161,7 +161,7 @@ static PetscErrorCode BVOrthogonalizeMGS(BV bv,PetscInt j,Vec v,PetscBool *which
     while (l<3 && nrm && nrm < bv->orthog_eta*onrm) {
       l++;
       onrm = nrm;
-      ierr = BVOrthogonalizeMGS1(bv,k,w,which,bv->c);CHKERRQ(ierr);
+      ierr = BVOrthogonalizeMGS1(bv,k,w,which,bv->h);CHKERRQ(ierr);
       ierr = BVNormVec(bv,w,NORM_2,&nrm);CHKERRQ(ierr);
     }
     if (dolindep) *lindep = PetscNot(nrm >= bv->orthog_eta*onrm);
