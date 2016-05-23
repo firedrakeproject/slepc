@@ -352,11 +352,11 @@ PetscErrorCode BVDotColumn(BV X,PetscInt j,PetscScalar *q)
   ierr = PetscLogEventBegin(BV_DotVec,X,0,0,0);CHKERRQ(ierr);
   ksave = X->k;
   X->k = j;
-  if (!q) ierr = BV_BufferGetArray(X,j,&a);CHKERRQ(ierr);
+  if (!q) { ierr = BV_BufferGetArray(X,j,&a);CHKERRQ(ierr); }
   ierr = BVGetColumn(X,j,&y);CHKERRQ(ierr);
   ierr = (*X->ops->dotvec)(X,y,a);CHKERRQ(ierr);
   ierr = BVRestoreColumn(X,j,&y);CHKERRQ(ierr);
-  if (!q) ierr = BV_BufferRestoreArray(X,j,&a);CHKERRQ(ierr);
+  if (!q) { ierr = BV_BufferRestoreArray(X,j,&a);CHKERRQ(ierr); }
   X->k = ksave;
   ierr = PetscLogEventEnd(BV_DotVec,X,0,0,0);CHKERRQ(ierr);
   PetscFunctionReturn(0);

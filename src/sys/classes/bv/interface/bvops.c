@@ -202,11 +202,11 @@ PetscErrorCode BVMultColumn(BV X,PetscScalar alpha,PetscScalar beta,PetscInt j,P
   ierr = PetscLogEventBegin(BV_MultVec,X,0,0,0);CHKERRQ(ierr);
   ksave = X->k;
   X->k = j;
-  if (!q) ierr = BV_BufferGetArray(X,j,&a);CHKERRQ(ierr);
+  if (!q) { ierr = BV_BufferGetArray(X,j,&a);CHKERRQ(ierr); }
   ierr = BVGetColumn(X,j,&y);CHKERRQ(ierr);
   ierr = (*X->ops->multvec)(X,alpha,beta,y,a);CHKERRQ(ierr);
   ierr = BVRestoreColumn(X,j,&y);CHKERRQ(ierr);
-  if (!q) ierr = BV_BufferRestoreArray(X,j,&a);CHKERRQ(ierr);
+  if (!q) { ierr = BV_BufferRestoreArray(X,j,&a);CHKERRQ(ierr); }
   X->k = ksave;
   ierr = PetscLogEventEnd(BV_MultVec,X,0,0,0);CHKERRQ(ierr);
   PetscFunctionReturn(0);
