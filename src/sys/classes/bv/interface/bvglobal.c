@@ -326,7 +326,7 @@ PetscErrorCode BVDotVecEnd(BV X,Vec y,PetscScalar *m)
    minus the number of leading columns.
 
    Developer Notes:
-   If q is NULL, then the result is written in position j*m of the internal
+   If q is NULL, then the result is written in position j*m+l of the internal
    buffer vector, see BVGetBufferVec(). 
 
    Level: advanced

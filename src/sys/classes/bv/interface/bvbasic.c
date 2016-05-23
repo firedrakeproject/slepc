@@ -766,7 +766,7 @@ PetscErrorCode BVGetSignature(BV bv,Vec omega)
    at the end of the computations).
 
    The vector must be sequential of length m*m, where m is the number of
-   columns of bv.
+   columns of bv (including the constraints if any).
 
    Level: developer
 
@@ -775,15 +775,16 @@ PetscErrorCode BVGetSignature(BV bv,Vec omega)
 PetscErrorCode BVSetBufferVec(BV bv,Vec buffer)
 {
   PetscErrorCode ierr;
-  PetscInt       m2;
+  PetscInt       m,n;
   PetscMPIInt    size;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(bv,BV_CLASSID,1);
   PetscValidHeaderSpecific(buffer,VEC_CLASSID,2);
   BVCheckSizes(bv,1);
-  ierr = VecGetSize(buffer,&m2);CHKERRQ(ierr);
-  if (m2 != bv->m*bv->m) SETERRQ1(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_SIZ,"Buffer size must be %d",bv->m*bv->m);
+  ierr = VecGetSize(buffer,&n);CHKERRQ(ierr);
+  m = bv->m+bv->nc;
+  if (n != m*m) SETERRQ1(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_SIZ,"Buffer size must be %d",m*m);
   ierr = MPI_Comm_size(PetscObjectComm((PetscObject)buffer),&size);CHKERRQ(ierr);
   if (size>1) SETERRQ(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_WRONG,"Buffer must be a sequential vector");
   
@@ -809,7 +810,8 @@ PetscErrorCode BVSetBufferVec(BV bv,Vec buffer)
 
    Notes:
    The vector is created if not available previously. It is a sequential vector
-   of length m*m, where m is the number of columns of bv.
+   of length m*m, where m is the number of columns of bv (including the constraints
+   if any).
 
    Level: developer
 
@@ -818,14 +820,16 @@ PetscErrorCode BVSetBufferVec(BV bv,Vec buffer)
 PetscErrorCode BVGetBufferVec(BV bv,Vec *buffer)
 {
   PetscErrorCode ierr;
+  PetscInt       m;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(bv,BV_CLASSID,1);
   PetscValidPointer(buffer,2);
   BVCheckSizes(bv,1);
   if (!bv->buffer) {
+    m = bv->m+bv->nc;
     ierr = VecCreate(PETSC_COMM_SELF,&bv->buffer);CHKERRQ(ierr);
-    ierr = VecSetSizes(bv->buffer,PETSC_DECIDE,bv->m*bv->m);CHKERRQ(ierr);
+    ierr = VecSetSizes(bv->buffer,PETSC_DECIDE,m*m);CHKERRQ(ierr);
     ierr = VecSetType(bv->buffer,((PetscObject)bv->t)->type_name);CHKERRQ(ierr);
     ierr = PetscLogObjectParent((PetscObject)bv,(PetscObject)bv->buffer);CHKERRQ(ierr);
   }
