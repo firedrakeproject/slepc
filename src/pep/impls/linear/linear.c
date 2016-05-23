@@ -735,7 +735,9 @@ PetscErrorCode PEPSolve_Linear(PEP pep)
       ierr = STScaleShift(pep->st,pep->sfactor);CHKERRQ(ierr);
     } 
   }
-  ierr = RGPopScale(pep->rg);CHKERRQ(ierr);
+  if (ctx->explicitmatrix) {
+    ierr = RGPopScale(pep->rg);CHKERRQ(ierr);
+  }
   PetscFunctionReturn(0);
 }
 
