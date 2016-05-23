@@ -1955,7 +1955,7 @@ PetscErrorCode NEPView_NLEIGS(NEP nep,PetscViewer viewer)
   if (isascii) {
     ierr = PetscViewerASCIIPrintf(viewer,"  NLEIGS: %d%% of basis vectors kept after restart\n",(int)(100*ctx->keep));CHKERRQ(ierr);
     ierr = PetscViewerASCIIPrintf(viewer,"  NLEIGS: using the %slocking variant\n",ctx->lock?"":"non-");CHKERRQ(ierr);
-    ierr = PetscViewerASCIIPrintf(viewer,"  NLEIGS: maximum number of divided difference terms: %D\n",ctx->ddmaxit);CHKERRQ(ierr);
+    ierr = PetscViewerASCIIPrintf(viewer,"  NLEIGS: divided difference terms: used=%D, max=%D\n",ctx->nmat-1,ctx->ddmaxit);CHKERRQ(ierr);
     ierr = PetscViewerASCIIPrintf(viewer,"  NLEIGS: tolerance for divided difference convergence: %g\n",(double)ctx->ddtol);CHKERRQ(ierr);
     if (ctx->nshifts) {
       ierr = PetscViewerASCIIPrintf(viewer,"  NLEIGS: RK shifts: ");CHKERRQ(ierr);

@@ -466,7 +466,7 @@ static PetscErrorCode PEPJDComputePResidual(PEP pep,Vec u,PetscScalar theta,Vec 
         fact *= theta;
       }
     }
-    ierr = PetscFree4(xx,x2,q,tt);CHKERRQ(ierr);
+    ierr = PetscFree4(xx,tt,x2,q);CHKERRQ(ierr);
   }
   ierr = VecResetArray(tu);CHKERRQ(ierr);
   ierr = VecRestoreArray(u,&array1);CHKERRQ(ierr);
