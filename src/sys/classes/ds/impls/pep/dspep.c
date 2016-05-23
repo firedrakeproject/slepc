@@ -235,7 +235,7 @@ PetscErrorCode DSSolve_PEP_QZ(DS ds,PetscScalar *wr,PetscScalar *wi)
     if (beta[i]==0.0) wr[i] = (PetscRealPart(wr[i])>0.0)? PETSC_MAX_REAL: PETSC_MIN_REAL;
     else wr[i] /= beta[i];
 #if !defined(PETSC_USE_COMPLEX)
-    if (beta[i]==0.0) wi[i] = (wi[i]>0.0)? PETSC_MAX_REAL: PETSC_MIN_REAL;
+    if (beta[i]==0.0) wi[i] = 0.0;
     else wi[i] /= beta[i];
 #else
     if (wi) wi[i] = 0.0;
