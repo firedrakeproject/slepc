@@ -1006,6 +1006,9 @@ PetscErrorCode PEPSolve_JD(PEP pep)
     for (k=pjd->nconv;k<nv;k++) {
       eig[k] = pep->eigr[k-pjd->nconv];
       res[k] = pep->errest[k-pjd->nconv];
+#if !defined(PETSC_USE_COMPLEX)
+      pep->eigi[k-pjd->nconv] = 0.0;
+#endif
     }
     ierr = PEPMonitor(pep,pep->its,pjd->nconv,eig,pep->eigi,res,pjd->nconv+1);CHKERRQ(ierr);
   }
