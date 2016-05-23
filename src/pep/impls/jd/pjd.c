@@ -940,7 +940,7 @@ PetscErrorCode PEPSolve_JD(PEP pep)
     /* Check convergence */
     ierr = VecNorm(r,NORM_2,&norm);CHKERRQ(ierr);
     ierr = (*pep->converged)(pep,theta,0,norm,&pep->errest[pep->nconv],pep->convergedctx);CHKERRQ(ierr);
-    if (pep->its >= pep->max_it) pep->reason = PEP_DIVERGED_ITS;
+    ierr = (*pep->stopping)(pep,pep->its,pep->max_it,(pep->errest[pep->nconv]<pep->tol)?pjd->nconv+1:pjd->nconv,pep->nev,&pep->reason,pep->stoppingctx);CHKERRQ(ierr);
 
     if (pep->errest[pep->nconv]<pep->tol) {
 
@@ -959,7 +959,6 @@ PetscErrorCode PEPSolve_JD(PEP pep)
         ierr = BVInsertVec(pep->V,pep->nconv,u);CHKERRQ(ierr);
       }
       pjd->nconv++;
-      if (pjd->nconv >= pep->nev) pep->reason = PEP_CONVERGED_TOL;
 
       if (pep->reason==PEP_CONVERGED_ITERATING) {
         ierr = PEPJDLockConverged(pep,&nv);CHKERRQ(ierr);
