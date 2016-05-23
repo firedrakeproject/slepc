@@ -24,10 +24,10 @@ FFLAGS     =
 CPPFLAGS   =
 FPPFLAGS   =
 LOCDIR     = src/sys/classes/bv/examples/tests/
-EXAMPLESC  = test1.c test2.c test3.c test4.c test5.c test6.c test7.c test8.c test9.c test10.c test11.c test12.c
+EXAMPLESC  = test1.c test2.c test3.c test4.c test5.c test6.c test7.c test8.c test9.c test10.c test11.c test12.c test13.c
 EXAMPLESF  = test1f.F
 MANSEC     = BV
-TESTS      = test1 test1f test2 test3 test4 test5 test6 test7 test8 test9 test10 test11 test12
+TESTS      = test1 test1f test2 test3 test4 test5 test6 test7 test8 test9 test10 test11 test12 test13
 
 TESTEXAMPLES_C       = test1.PETSc runtest1_1 test1.rm \
                        test2.PETSc runtest2_1 runtest2_2 test2.rm \
@@ -40,7 +40,8 @@ TESTEXAMPLES_C       = test1.PETSc runtest1_1 test1.rm \
                        test9.PETSc runtest9_1 runtest9_2 test9.rm \
                        test10.PETSc runtest10_1 test10.rm \
                        test11.PETSc runtest11_1 runtest11_2 runtest11_3 test11.rm \
-                       test12.PETSc runtest12_1 test12.rm
+                       test12.PETSc runtest12_1 test12.rm \
+                       test13.PETSc runtest13_1 test13.rm
 TESTEXAMPLES_FORTRAN = test1f.PETSc runtest1f_1 runtest1f_2 test1f.rm
 TESTEXAMPLES_VECCUDA = test1.PETSc runtest1_1_cuda test1.rm \
                        test2.PETSc runtest2_1_cuda runtest2_2_cuda test2.rm \
@@ -102,6 +103,10 @@ test11: test11.o chkopts
 test12: test12.o chkopts
 	-${CLINKER} -o test12 test12.o ${SLEPC_SYS_LIB}
 	${RM} test12.o
+
+test13: test13.o chkopts
+	-${CLINKER} -o test13 test13.o ${SLEPC_SYS_LIB}
+	${RM} test13.o
 
 #------------------------------------------------------------------------------------
 
@@ -296,6 +301,11 @@ runtest12_1_%:
 
 #runtest12_2:
 #	-@test=test12_1; \
-#	${MPIEXEC} -n 1 ./test12 -bv_orthog_block chol mat 2>&1 > $${test}.tmp; \
+#	${MPIEXEC} -n 1 ./test12 -bv_orthog_block chol 2>&1 > $${test}.tmp; \
 #	${TESTCODE}
+
+runtest13_1:
+	-@test=test13_1; \
+	${MPIEXEC} -n 1 ./test13 2>&1 > $${test}.tmp; \
+	${TESTCODE}
 

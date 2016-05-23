@@ -750,6 +750,90 @@ PetscErrorCode BVGetSignature(BV bv,Vec omega)
 }
 
 #undef __FUNCT__
+#define __FUNCT__ "BVSetBufferVec"
+/*@
+   BVSetBufferVec - Attach a vector object to be used as buffer space for
+   several operations.
+
+   Collective on BV
+
+   Input Parameters:
++  bv     - the basis vectors context)
+-  buffer - the vector
+
+   Notes:
+   Use BVGetBufferVec() to retrieve the vector (for example, to free it
+   at the end of the computations).
+
+   The vector must be sequential of length m*m, where m is the number of
+   columns of bv.
+
+   Level: developer
+
+.seealso: BVGetBufferVec(), BVSetSizes()
+@*/
+PetscErrorCode BVSetBufferVec(BV bv,Vec buffer)
+{
+  PetscErrorCode ierr;
+  PetscInt       m2;
+  PetscMPIInt    size;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(bv,BV_CLASSID,1);
+  PetscValidHeaderSpecific(buffer,VEC_CLASSID,2);
+  BVCheckSizes(bv,1);
+  ierr = VecGetSize(buffer,&m2);CHKERRQ(ierr);
+  if (m2 != bv->m*bv->m) SETERRQ1(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_SIZ,"Buffer size must be %d",bv->m*bv->m);
+  ierr = MPI_Comm_size(PetscObjectComm((PetscObject)buffer),&size);CHKERRQ(ierr);
+  if (size>1) SETERRQ(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_WRONG,"Buffer must be a sequential vector");
+  
+  ierr = PetscObjectReference((PetscObject)buffer);CHKERRQ(ierr);
+  ierr = VecDestroy(&bv->buffer);CHKERRQ(ierr);
+  bv->buffer = buffer;
+  ierr = PetscLogObjectParent((PetscObject)bv,(PetscObject)bv->buffer);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "BVGetBufferVec"
+/*@
+   BVGetBufferVec - Obtain the buffer vector associated with the BV object.
+
+   Not Collective
+
+   Input Parameters:
+.  bv - the basis vectors context
+
+   Output Parameter:
+.  buffer - vector
+
+   Notes:
+   The vector is created if not available previously. It is a sequential vector
+   of length m*m, where m is the number of columns of bv.
+
+   Level: developer
+
+.seealso: BVSetBufferVec()
+@*/
+PetscErrorCode BVGetBufferVec(BV bv,Vec *buffer)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(bv,BV_CLASSID,1);
+  PetscValidPointer(buffer,2);
+  BVCheckSizes(bv,1);
+  if (!bv->buffer) {
+    ierr = VecCreate(PETSC_COMM_SELF,&bv->buffer);CHKERRQ(ierr);
+    ierr = VecSetSizes(bv->buffer,PETSC_DECIDE,bv->m*bv->m);CHKERRQ(ierr);
+    ierr = VecSetType(bv->buffer,((PetscObject)bv->t)->type_name);CHKERRQ(ierr);
+    ierr = PetscLogObjectParent((PetscObject)bv,(PetscObject)bv->buffer);CHKERRQ(ierr);
+  }
+  *buffer = bv->buffer;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
 #define __FUNCT__ "BVSetRandomContext"
 /*@
    BVSetRandomContext - Sets the PetscRandom object associated with the BV,

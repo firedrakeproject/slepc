@@ -173,6 +173,10 @@ PetscErrorCode BVMultVec(BV X,PetscScalar alpha,PetscScalar beta,Vec y,PetscScal
    in the computation. Therefore, the length of array q must be equal to j
    minus the number of leading columns.
 
+   Developer Notes:
+   If q is NULL, then the coefficients are taken from position j*m of the
+   internal buffer vector, see BVGetBufferVec().
+
    Level: advanced
 
 .seealso: BVMult(), BVMultVec(), BVMultInPlace(), BVSetActiveColumns()
@@ -182,13 +186,13 @@ PetscErrorCode BVMultColumn(BV X,PetscScalar alpha,PetscScalar beta,PetscInt j,P
   PetscErrorCode ierr;
   PetscInt       ksave;
   Vec            y;
+  PetscScalar    *a=q;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(X,BV_CLASSID,1);
   PetscValidLogicalCollectiveScalar(X,alpha,2);
   PetscValidLogicalCollectiveScalar(X,beta,3);
   PetscValidLogicalCollectiveInt(X,j,4);
-  PetscValidPointer(q,5);
   PetscValidType(X,1);
   BVCheckSizes(X,1);
 
@@ -198,9 +202,11 @@ PetscErrorCode BVMultColumn(BV X,PetscScalar alpha,PetscScalar beta,PetscInt j,P
   ierr = PetscLogEventBegin(BV_MultVec,X,0,0,0);CHKERRQ(ierr);
   ksave = X->k;
   X->k = j;
+  if (!q) ierr = BV_BufferGetArray(X,j,&a);CHKERRQ(ierr);
   ierr = BVGetColumn(X,j,&y);CHKERRQ(ierr);
-  ierr = (*X->ops->multvec)(X,alpha,beta,y,q);CHKERRQ(ierr);
+  ierr = (*X->ops->multvec)(X,alpha,beta,y,a);CHKERRQ(ierr);
   ierr = BVRestoreColumn(X,j,&y);CHKERRQ(ierr);
+  if (!q) ierr = BV_BufferRestoreArray(X,j,&a);CHKERRQ(ierr);
   X->k = ksave;
   ierr = PetscLogEventEnd(BV_MultVec,X,0,0,0);CHKERRQ(ierr);
   PetscFunctionReturn(0);

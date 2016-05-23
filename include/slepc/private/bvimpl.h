@@ -82,6 +82,7 @@ struct _p_BV {
 
   /*---------------------- Cached data and workspace -------------------*/
   Vec                Bx;           /* result of matrix times a vector x */
+  Vec                buffer;       /* buffer vector used in orthogonalization */
   PetscObjectId      xid;          /* object id of vector x */
   PetscObjectState   xstate;       /* state of vector x */
   Vec                cv[2];        /* column vectors obtained with BVGetColumn() */
@@ -228,6 +229,37 @@ PETSC_STATIC_INLINE PetscErrorCode BV_AllocateSignature(BV bv)
     ierr = PetscLogObjectMemory((PetscObject)bv,bv->m*sizeof(PetscReal));CHKERRQ(ierr);
     for (i=-bv->nc;i<bv->m;i++) bv->omega[i] = 1.0;
   }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "BV_BufferGetArray"
+/*
+  BV_BufferGetArray - Get a pointer to position j*m of buffer vector.
+*/
+PETSC_STATIC_INLINE PetscErrorCode BV_BufferGetArray(BV bv,PetscInt j,PetscScalar **a)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  if (!bv->buffer) { ierr = BVGetBufferVec(bv,&bv->buffer);CHKERRQ(ierr); }
+  ierr = VecGetArray(bv->buffer,a);CHKERRQ(ierr);
+  (*a) += bv->m*j+bv->l;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "BV_BufferRestoreArray"
+/*
+  BV_BufferRestoreArray - Restore the pointer to the buffer vector.
+*/
+PETSC_STATIC_INLINE PetscErrorCode BV_BufferRestoreArray(BV bv,PetscInt j,PetscScalar **a)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  (*a) -= bv->m*j+bv->l;
+  ierr = VecRestoreArray(bv->buffer,a);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

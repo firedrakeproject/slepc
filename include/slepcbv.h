@@ -143,6 +143,8 @@ PETSC_EXTERN PetscErrorCode BVApplyMatrixBV(BV,BV);
 PETSC_EXTERN PetscErrorCode BVGetCachedBV(BV,BV*);
 PETSC_EXTERN PetscErrorCode BVSetSignature(BV,Vec);
 PETSC_EXTERN PetscErrorCode BVGetSignature(BV,Vec);
+PETSC_EXTERN PetscErrorCode BVSetBufferVec(BV,Vec);
+PETSC_EXTERN PetscErrorCode BVGetBufferVec(BV,Vec*);
 
 PETSC_EXTERN PetscErrorCode BVMult(BV,PetscScalar,PetscScalar,BV,Mat);
 PETSC_EXTERN PetscErrorCode BVMultVec(BV,PetscScalar,PetscScalar,Vec,PetscScalar*);
