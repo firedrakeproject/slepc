@@ -52,7 +52,6 @@ int main(int argc,char **argv)
   ierr = PetscObjectSetName((PetscObject)X,"X");CHKERRQ(ierr);
   ierr = BVSetSizesFromVec(X,t,k);CHKERRQ(ierr);
   ierr = BVSetFromOptions(X);CHKERRQ(ierr);
-  ierr = BVSetActiveColumns(X,1,k);CHKERRQ(ierr);
 
   /* Set up viewer */
   ierr = PetscViewerASCIIGetStdout(PETSC_COMM_WORLD,&view);CHKERRQ(ierr);

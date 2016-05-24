@@ -173,6 +173,7 @@ PETSC_EXTERN PetscErrorCode BVNormColumnBegin(BV,PetscInt,NormType,PetscReal*);
 PETSC_EXTERN PetscErrorCode BVNormColumnEnd(BV,PetscInt,NormType,PetscReal*);
 PETSC_EXTERN PetscErrorCode BVSetRandom(BV);
 PETSC_EXTERN PetscErrorCode BVSetRandomColumn(BV,PetscInt);
+PETSC_EXTERN PetscErrorCode BVSetRandomCond(BV,PetscReal);
 PETSC_EXTERN PetscErrorCode BVSetRandomContext(BV,PetscRandom);
 PETSC_EXTERN PetscErrorCode BVGetRandomContext(BV,PetscRandom*);
 
