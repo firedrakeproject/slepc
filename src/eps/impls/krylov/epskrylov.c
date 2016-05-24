@@ -287,7 +287,7 @@ PetscErrorCode EPSKrylovConvergence(EPS eps,PetscBool getall,PetscInt kini,Petsc
     }
     if (!istrivial) {
       ierr = RGCheckInside(eps->rg,1,&re,&im,&inside);CHKERRQ(ierr);
-      if (marker==-1 && inside<=0) marker = k;
+      if (marker==-1 && inside<0) marker = k;
       if (!(eps->trueres || isshift || eps->conv==EPS_CONV_NORM)) {  /* make sure eps->converged below uses the right value */
         re = eps->eigr[k];
         im = eps->eigi[k];
