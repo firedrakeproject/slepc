@@ -1013,7 +1013,7 @@ PetscErrorCode PEPSolve_JD(PEP pep)
     ierr = PEPMonitor(pep,pep->its,pjd->nconv,eig,pep->eigi,res,pjd->nconv+1);CHKERRQ(ierr);
   }
   if (pep->nev>1) {
-    ierr = PEPJDEigenvectors(pep);CHKERRQ(ierr);
+    if (pjd->nconv>0) { ierr = PEPJDEigenvectors(pep);CHKERRQ(ierr); }
     for (k=0;k<pjd->nconv;k++) {
       ierr = BVGetColumn(pjd->X,k,&v);CHKERRQ(ierr);
       ierr = BVInsertVec(pep->V,k,v);CHKERRQ(ierr);

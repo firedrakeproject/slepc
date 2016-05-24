@@ -745,20 +745,11 @@ PetscErrorCode PEPSolve_Linear(PEP pep)
 #define __FUNCT__ "EPSMonitor_Linear"
 static PetscErrorCode EPSMonitor_Linear(EPS eps,PetscInt its,PetscInt nconv,PetscScalar *eigr,PetscScalar *eigi,PetscReal *errest,PetscInt nest,void *ctx)
 {
-  PetscInt       i;
   PEP            pep = (PEP)ctx;
-  ST             st;
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  for (i=0;i<PetscMin(nest,pep->ncv);i++) {
-    pep->eigr[i] = eigr[i];
-    pep->eigi[i] = eigi[i];
-    pep->errest[i] = errest[i];
-  }
-  ierr = EPSGetST(eps,&st);CHKERRQ(ierr);
-  ierr = STBackTransform(st,nest,pep->eigr,pep->eigi);CHKERRQ(ierr);
-  ierr = PEPMonitor(pep,its,nconv,pep->eigr,pep->eigi,pep->errest,nest);CHKERRQ(ierr);
+  ierr = PEPMonitor(pep,its,nconv,eigr,eigi,errest,nest);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
