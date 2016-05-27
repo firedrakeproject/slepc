@@ -415,7 +415,7 @@ static PetscErrorCode NEPNLEIGSNormEstimation(NEP nep,Mat M,PetscReal *norm,Vec 
   ierr = MatGetSize(M,&n,NULL);CHKERRQ(ierr);
   ierr = MatMult(M,ctx->vrn,X);CHKERRQ(ierr);
   ierr = VecNorm(X,NORM_2,norm);CHKERRQ(ierr);
-  *norm *= PetscSqrtReal(n);
+  *norm *= PetscSqrtReal((PetscReal)n);
   PetscFunctionReturn(0);
 }
 
