@@ -91,7 +91,7 @@ PetscErrorCode MFNSolve_Krylov(MFN mfn,Vec b,Vec x)
   Mat            G=NULL,H=NULL;
   Vec            F=NULL;
   PetscScalar    *array,*farray,*garray,*harray;
-  PetscReal      beta,nrm=1.0;
+  PetscReal      beta,betaold=0.0,nrm=1.0;
   PetscBool      breakdown,set,flg,symm=PETSC_FALSE;
 
   PetscFunctionBegin;
@@ -129,7 +129,7 @@ PetscErrorCode MFNSolve_Krylov(MFN mfn,Vec b,Vec x)
       }
       ierr = MatDenseRestoreArray(G,&garray);CHKERRQ(ierr);
       ierr = MatDestroy(&G);CHKERRQ(ierr);
-      harray[n+(n-1)*ldh] = beta;
+      harray[n+(n-1)*ldh] = betaold;
     }
     ierr = MatDenseRestoreArray(H,&harray);CHKERRQ(ierr);
 
@@ -147,13 +147,9 @@ PetscErrorCode MFNSolve_Krylov(MFN mfn,Vec b,Vec x)
 
     /* x += ||b||*V*f(H)*e_1 */
     ierr = VecGetArray(F,&farray);CHKERRQ(ierr);
-    if (mfn->its>1) {
-      ierr = PetscBLASIntCast(m,&m_);CHKERRQ(ierr);
-      nrm = BLASnrm2_(&m_,farray+n,&inc);   /* relative norm of the update ||u||/||b|| */
-      ierr = MFNMonitor(mfn,mfn->its,nrm);CHKERRQ(ierr);
-    } else {
-      ierr = MFNMonitor(mfn,1,1.0);CHKERRQ(ierr);   /* no error estimate available */
-    }
+    ierr = PetscBLASIntCast(m,&m_);CHKERRQ(ierr);
+    nrm = BLASnrm2_(&m_,farray+n,&inc);   /* relative norm of the update ||u||/||b|| */
+    ierr = MFNMonitor(mfn,mfn->its,nrm);CHKERRQ(ierr);
     for (j=0;j<m;j++) farray[j+n] *= mfn->bnorm;
     ierr = BVSetActiveColumns(mfn->V,0,m);CHKERRQ(ierr);
     ierr = BVMultVec(mfn->V,1.0,1.0,x,farray+n);CHKERRQ(ierr);
@@ -169,6 +165,7 @@ PetscErrorCode MFNSolve_Krylov(MFN mfn,Vec b,Vec x)
     if (mfn->reason == MFN_CONVERGED_ITERATING) {
       ierr = BVCopyColumn(mfn->V,m,0);CHKERRQ(ierr);
       n += m;
+      betaold = beta;
     }
   }
 
