@@ -28,8 +28,8 @@ typedef struct {
 } ST_PRECOND;
 
 #undef __FUNCT__
-#define __FUNCT__ "STSetFromOptions_Precond"
-PetscErrorCode STSetFromOptions_Precond(PetscOptionItems *PetscOptionsObject,ST st)
+#define __FUNCT__ "STSetDefaultPrecond"
+static PetscErrorCode STSetDefaultPrecond(ST st)
 {
   PetscErrorCode ierr;
   PC             pc;
@@ -58,6 +58,17 @@ PetscErrorCode STSetFromOptions_Precond(PetscOptionItems *PetscOptionsObject,ST 
 }
 
 #undef __FUNCT__
+#define __FUNCT__ "STSetFromOptions_Precond"
+PetscErrorCode STSetFromOptions_Precond(PetscOptionItems *PetscOptionsObject,ST st)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  ierr = STSetDefaultPrecond(st);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
 #define __FUNCT__ "STSetUp_Precond"
 PetscErrorCode STSetUp_Precond(ST st)
 {
@@ -71,6 +82,7 @@ PetscErrorCode STSetUp_Precond(ST st)
   if (!st->sigma_set) st->sigma = st->defsigma;
 
   /* If either pc is none and no matrix has to be set, or pc is shell , exit */
+  ierr = STSetDefaultPrecond(st);CHKERRQ(ierr);
   if (!st->ksp) { ierr = STGetKSP(st,&st->ksp);CHKERRQ(ierr); }
   ierr = KSPGetPC(st->ksp,&pc);CHKERRQ(ierr);
   ierr = PetscObjectTypeCompare((PetscObject)pc,PCSHELL,&t0);CHKERRQ(ierr);

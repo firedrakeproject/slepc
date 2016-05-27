@@ -86,9 +86,10 @@ PetscErrorCode SVDSetUp_Cyclic(SVD svd)
   PetscInt          M,N,m,n,i,isl,Istart,Iend;
   const PetscScalar *isa;
   PetscScalar       *va;
-  PetscBool         trackall,gpu;
+  PetscBool         trackall,gpu,issinv;
   Vec               v;
   Mat               Zm,Zn;
+  ST                st;
 
   PetscFunctionBegin;
   ierr = PetscObjectTypeCompareAny((PetscObject)svd->A,&gpu,MATSEQAIJCUSP,MATMPIAIJCUSP,MATSEQAIJCUSPARSE,MATMPIAIJCUSPARSE,"");CHKERRQ(ierr);
@@ -142,7 +143,13 @@ PetscErrorCode SVDSetUp_Cyclic(SVD svd)
   ierr = EPSSetOperators(cyclic->eps,cyclic->mat,NULL);CHKERRQ(ierr);
   ierr = EPSSetProblemType(cyclic->eps,EPS_HEP);CHKERRQ(ierr);
   if (svd->which == SVD_LARGEST) {
-    ierr = EPSSetWhichEigenpairs(cyclic->eps,EPS_LARGEST_REAL);CHKERRQ(ierr);
+    ierr = EPSGetST(cyclic->eps,&st);CHKERRQ(ierr);
+    ierr = PetscObjectTypeCompare((PetscObject)st,STSINVERT,&issinv);CHKERRQ(ierr);
+    if (issinv) {
+      ierr = EPSSetWhichEigenpairs(cyclic->eps,EPS_TARGET_MAGNITUDE);CHKERRQ(ierr);
+    } else {
+      ierr = EPSSetWhichEigenpairs(cyclic->eps,EPS_LARGEST_REAL);CHKERRQ(ierr);
+    }
   } else {
     ierr = EPSSetEigenvalueComparison(cyclic->eps,SlepcCompareSmallestPosReal,NULL);CHKERRQ(ierr);
     ierr = EPSSetTarget(cyclic->eps,0.0);CHKERRQ(ierr);
