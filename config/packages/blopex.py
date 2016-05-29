@@ -65,7 +65,7 @@ class Blopex(package.Package):
       for name in files:
         shutil.copyfile(os.path.join(builddir,'include',name),os.path.join(incDir,name))
 
-    if 'rpath' in petsc.slflag:
+    if petsc.buildsharedlib:
       l = petsc.slflag + libDir + ' -L' + libDir + ' -lBLOPEX'
     else:
       l = '-L' + libDir + ' -lBLOPEX'

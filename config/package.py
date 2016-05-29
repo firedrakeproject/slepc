@@ -62,7 +62,8 @@ class Package:
 
   def Process(self,conf,vars,cmake,petsc,archdir=''):
     self.make = petsc.make
-    self.slflag = petsc.slflag
+    if petsc.buildsharedlib:
+      self.slflag = petsc.slflag
     if self.requested:
       name = self.packagename.upper()
       if self.downloadpackage:
@@ -281,7 +282,7 @@ Unable to download package %s from: %s
     for d in dirs:
       for l in libs:
         if d:
-          if 'rpath' in self.slflag:
+          if hasattr(self,'slflag'):
             flags = [self.slflag + d] + ['-L' + d] + l
           else:
             flags = ['-L' + d] + l
