@@ -85,16 +85,23 @@ def WriteModulesFile(modules,version,sdir):
   modules.write('set slepc_dir %s\n' % sdir)
   modules.write('setenv SLEPC_DIR $slepc_dir\n')
 
-def WritePkgconfigFile(pkgconfig,version,pversion,sdir,isinstall,prefixdir):
+def WritePkgconfigFile(pkgconfig,version,pversion,sdir,isinstall,prefixdir,slflag):
   ''' Write the contents of the pkg-config file '''
-  pkgconfig.write('Name: SLEPc, the Scalable Library for Eigenvalue Problem Computations\n')
-  pkgconfig.write('Description: A parallel library to compute eigenvalues and eigenvectors of large, sparse matrices with iterative methods. It is based on PETSc.\n')
+  pkgconfig.write('prefix=%s\n' % prefixdir)
+  pkgconfig.write('exec_prefix=${prefix}\n')
+  pkgconfig.write('includedir=${prefix}/include\n')
+  pkgconfig.write('libdir=${prefix}/lib\n\n')
+  pkgconfig.write('Name: SLEPc\n')
+  pkgconfig.write('Description: the Scalable Library for Eigenvalue Problem Computations\n')
   pkgconfig.write('Version: %s\n' % version)
-  pkgconfig.write('Requires: PETSc = %s\n' % pversion)
-  pkgconfig.write('Cflags: -I'+os.path.join(prefixdir,'include'))
+  pkgconfig.write('Requires: PETSc >= %s\n' % pversion)
+  pkgconfig.write('Cflags: -I${includedir}')
   if not isinstall:
     pkgconfig.write(' -I'+os.path.join(sdir,'include'))
-  pkgconfig.write('\nLibs: -L%s -lslepc\n' % os.path.join(prefixdir,'lib'))
+  pkgconfig.write('\nLibs:')
+  if slflag:
+    pkgconfig.write(' %s${libdir}' % slflag)
+  pkgconfig.write(' -L${libdir} -lslepc\n')
 
 def WriteCMakeConfigFile(cmakeconf):
   ''' Write the contents of the CMake configuration file '''
@@ -317,7 +324,9 @@ if slepc.isinstall:
 else:
   WriteModulesFile(modules,slepc.lversion,slepc.dir)
 log.write('pkg-config file in '+pkgconfdir)
-WritePkgconfigFile(pkgconfig,slepc.lversion,petsc.lversion,slepc.dir,slepc.isinstall,slepc.prefixdir)
+slflag = ''
+if petsc.buildsharedlib: slflag = petsc.slflag
+WritePkgconfigFile(pkgconfig,slepc.lversion,petsc.version,slepc.dir,slepc.isinstall,slepc.prefixdir,slflag)
 log.write('CMake configure file in '+confdir)
 WriteCMakeConfigFile(cmakeconf)
 

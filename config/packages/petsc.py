@@ -85,6 +85,7 @@ class PETSc(package.Package):
       petscvariables = os.path.join(self.dir,'lib','petsc','conf','petscvariables')
       petscconf_h = os.path.join(self.dir,'include','petscconf.h')
 
+    self.buildsharedlib = False
     self.build_using_cmake = 0
     self.make_is_gnumake = 0
     self.language = 'c'
@@ -122,6 +123,8 @@ class PETSc(package.Package):
           self.ar_flags = v
         elif k == 'AR_LIB_SUFFIX':
           self.ar_lib_suffix = v
+        elif k == 'BUILDSHAREDLIB' and v=='yes':
+          self.buildsharedlib = True
         elif k == 'CC_LINKER_SLFLAG':
           self.slflag = v
         elif k == 'RANLIB':

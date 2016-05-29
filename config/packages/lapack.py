@@ -39,7 +39,8 @@ class Lapack(package.Package):
 
   def Process(self,conf,vars,cmake,petsc,archdir=''):
     self.make = petsc.make
-    self.slflag = petsc.slflag
+    if petsc.buildsharedlib:
+      self.slflag = petsc.slflag
     self.log.NewSection('Checking LAPACK library...')
     self.Check(conf,vars,cmake,petsc)
 
