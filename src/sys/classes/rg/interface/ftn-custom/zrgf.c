@@ -23,16 +23,38 @@
 #include <slepcrg.h>
 
 #if defined(PETSC_HAVE_FORTRAN_CAPS)
+#define rgsettype_                RGSETTYPE
+#define rggettype_                RGGETTYPE
 #define rgsetoptionsprefix_       RGSETOPTIONSPREFIX
 #define rgappendoptionsprefix_    RGAPPENDOPTIONSPREFIX
 #define rggetoptionsprefix_       RGGETOPTIONSPREFIX
 #define rgview_                   RGVIEW
 #elif !defined(PETSC_HAVE_FORTRAN_UNDERSCORE)
+#define rgsettype_                rgsettype
+#define rggettype_                rggettype
 #define rgsetoptionsprefix_       rgsetoptionsprefix
 #define rgappendoptionsprefix_    rgappendoptionsprefix
 #define rggetoptionsprefix_       rggetoptionsprefix
 #define rgview_                   rgview
 #endif
+
+PETSC_EXTERN void PETSC_STDCALL rgsettype_(RG *rg,CHAR type PETSC_MIXED_LEN(len),PetscErrorCode *ierr PETSC_END_LEN(len))
+{
+  char *t;
+
+  FIXCHAR(type,len,t);
+  *ierr = RGSetType(*rg,t);
+  FREECHAR(type,t);
+}
+
+PETSC_EXTERN void PETSC_STDCALL rggettype_(RG *rg,CHAR name PETSC_MIXED_LEN(len),PetscErrorCode *ierr PETSC_END_LEN(len))
+{
+  RGType tname;
+
+  *ierr = RGGetType(*rg,&tname); if (*ierr) return;
+  *ierr = PetscStrncpy(name,tname,len);
+  FIXRETURNCHAR(PETSC_TRUE,name,len);
+}
 
 PETSC_EXTERN void PETSC_STDCALL rgsetoptionsprefix_(RG *rg,CHAR prefix PETSC_MIXED_LEN(len),PetscErrorCode *ierr PETSC_END_LEN(len))
 {

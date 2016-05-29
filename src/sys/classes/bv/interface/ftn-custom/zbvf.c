@@ -23,16 +23,38 @@
 #include <slepcbv.h>
 
 #if defined(PETSC_HAVE_FORTRAN_CAPS)
+#define bvsettype_                BVSETTYPE
+#define bvgettype_                BVGETTYPE
 #define bvsetoptionsprefix_       BVSETOPTIONSPREFIX
 #define bvappendoptionsprefix_    BVAPPENDOPTIONSPREFIX
 #define bvgetoptionsprefix_       BVGETOPTIONSPREFIX
 #define bvview_                   BVVIEW
 #elif !defined(PETSC_HAVE_FORTRAN_UNDERSCORE)
+#define bvsettype_                bvsettype
+#define bvgettype_                bvgettype
 #define bvsetoptionsprefix_       bvsetoptionsprefix
 #define bvappendoptionsprefix_    bvappendoptionsprefix
 #define bvgetoptionsprefix_       bvgetoptionsprefix
 #define bvview_                   bvview
 #endif
+
+PETSC_EXTERN void PETSC_STDCALL bvsettype_(BV *bv,CHAR type PETSC_MIXED_LEN(len),PetscErrorCode *ierr PETSC_END_LEN(len))
+{
+  char *t;
+
+  FIXCHAR(type,len,t);
+  *ierr = BVSetType(*bv,t);
+  FREECHAR(type,t);
+}
+
+PETSC_EXTERN void PETSC_STDCALL bvgettype_(BV *bv,CHAR name PETSC_MIXED_LEN(len),PetscErrorCode *ierr PETSC_END_LEN(len))
+{
+  BVType tname;
+
+  *ierr = BVGetType(*bv,&tname); if (*ierr) return;
+  *ierr = PetscStrncpy(name,tname,len);
+  FIXRETURNCHAR(PETSC_TRUE,name,len);
+}
 
 PETSC_EXTERN void PETSC_STDCALL bvsetoptionsprefix_(BV *bv,CHAR prefix PETSC_MIXED_LEN(len),PetscErrorCode *ierr PETSC_END_LEN(len))
 {
