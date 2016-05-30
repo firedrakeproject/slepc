@@ -1,7 +1,7 @@
 #
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #  SLEPc - Scalable Library for Eigenvalue Problem Computations
-#  Copyright (c) 2002-2016, Universitat Politecnica de Valencia, Spain
+#  Copyright (c) 2002-2015, Universitat Politecnica de Valencia, Spain
 #
 #  This file is part of SLEPc.
 #
@@ -19,17 +19,18 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
+#requirespackage 'PETSC_HAVE_VECCUDA'
 ALL: lib
 
 CFLAGS   =
 FFLAGS   =
-SOURCEC  = svec.c
+SOURCECU = sveccuda.cu
 SOURCEF  =
 SOURCEH  = svecimpl.h
 LIBBASE  = libslepcsys
-DIRS     = sveccuda
+DIRS     =
 MANSEC   = BV
-LOCDIR   = src/sys/classes/bv/impls/svec/
+LOCDIR   = src/sys/classes/bv/impls/svec/sveccuda/
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common
 
