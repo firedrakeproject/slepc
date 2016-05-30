@@ -58,6 +58,30 @@
 #endif
 
 #undef __FUNCT__
+#define __FUNCT__ "BVAXPY_BLAS_CUDA"
+/*
+    B := alpha*A + beta*B
+
+    A,B are nxk (ld=n)
+ */
+static PetscErrorCode BVAXPY_BLAS_CUDA(BV bv,PetscInt n_,PetscInt k_,PetscScalar alpha,const PetscScalar *d_A,PetscScalar beta,PetscScalar *d_B)
+{
+  PetscErrorCode ierr;
+  PetscBLASInt   m,one=1;
+  cublasStatus_t cberr;
+
+  PetscFunctionBegin;
+  ierr = PetscBLASIntCast(n_*k_,&m);CHKERRQ(ierr);
+  if (beta!=(PetscScalar)1.0) {
+    cberr = cublasXscal(cublasv2handle,m,&beta,d_B,one);CHKERRCUBLAS(cberr);
+    ierr = PetscLogFlops(m);CHKERRQ(ierr);
+  }
+  cberr = cublasXaxpy(cublasv2handle,m,&alpha,d_A,one,d_B,one);CHKERRCUBLAS(cberr);
+  ierr = PetscLogFlops(2.0*m);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
 #define __FUNCT__ "BVMult_Svec_CUDA"
 /*
     C := alpha*A*B + beta*C
@@ -73,7 +97,6 @@ PetscErrorCode BVMult_Svec_CUDA(BV Y,PetscScalar alpha,PetscScalar beta,BV X,Mat
   cudaError_t       err;
 
   PetscFunctionBegin;
-
   m = Y->n;
   n = Y->k-Y->l;
   k = X->k-X->l;
@@ -217,30 +240,6 @@ PetscErrorCode BVMultInPlaceTranspose_Svec_CUDA(BV V,Mat Q,PetscInt s,PetscInt e
   ierr = cudaFree(d_work);CHKERRQ(ierr);
   ierr = VecCUDARestoreArrayReadWrite(ctx->v,&d_pv);CHKERRQ(ierr);
   ierr = PetscLogFlops(2.0*m*n*k);CHKERRQ(ierr);
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
-#define __FUNCT__ "BVAXPY_BLAS_CUDA"
-/*
-    B := alpha*A + beta*B
-
-    A,B are nxk (ld=n)
- */
-PetscErrorCode BVAXPY_BLAS_CUDA(BV bv,PetscInt n_,PetscInt k_,PetscScalar alpha,const PetscScalar *d_A,PetscScalar beta,PetscScalar *d_B)
-{
-  PetscErrorCode ierr;
-  PetscBLASInt   m,one=1;
-  cublasStatus_t cberr;
-
-  PetscFunctionBegin;
-  ierr = PetscBLASIntCast(n_*k_,&m);CHKERRQ(ierr);
-  if (beta!=(PetscScalar)1.0) {
-    cberr = cublasXscal(cublasv2handle,m,&beta,d_B,one);CHKERRCUBLAS(cberr);
-    ierr = PetscLogFlops(m);CHKERRQ(ierr);
-  }
-  cberr = cublasXaxpy(cublasv2handle,m,&alpha,d_A,one,d_B,one);CHKERRCUBLAS(cberr);
-  ierr = PetscLogFlops(2.0*m);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

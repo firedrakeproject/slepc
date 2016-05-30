@@ -32,7 +32,6 @@ PETSC_INTERN PetscErrorCode BVMult_Svec_CUDA(BV,PetscScalar,PetscScalar,BV,Mat);
 PETSC_INTERN PetscErrorCode BVMultVec_Svec_CUDA(BV,PetscScalar,PetscScalar,Vec,PetscScalar*);
 PETSC_INTERN PetscErrorCode BVMultInPlace_Svec_CUDA(BV,Mat,PetscInt,PetscInt);
 PETSC_INTERN PetscErrorCode BVMultInPlaceTranspose_Svec_CUDA(BV,Mat,PetscInt,PetscInt);
-PETSC_INTERN PetscErrorCode BVAXPY_BLAS_CUDA(BV,PetscInt,PetscInt,PetscScalar,const PetscScalar*,PetscScalar,PetscScalar*);
 PETSC_INTERN PetscErrorCode BVDot_Svec_CUDA(BV,BV,Mat);
 PETSC_INTERN PetscErrorCode BVDotVec_Svec_CUDA(BV,Vec,PetscScalar*);
 PETSC_INTERN PetscErrorCode BVDotVec_Local_Svec_CUDA(BV,Vec,PetscScalar*);
