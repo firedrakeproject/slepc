@@ -52,7 +52,7 @@ class Primme(package.Package):
 
     for d in dirs:
       if d:
-        if 'rpath' in petsc.slflag:
+        if petsc.buildsharedlib:
           l = [petsc.slflag + d] + ['-L' + d] + libs
         else:
           l = ['-L' + d] + libs
@@ -112,7 +112,7 @@ class Primme(package.Package):
     for name in ['primme.h','primme_f77.h','Complexz.h']:
       shutil.copyfile(os.path.join(builddir,'PRIMMESRC','COMMONSRC',name),os.path.join(incDir,name))
 
-    if 'rpath' in petsc.slflag:
+    if petsc.buildsharedlib:
       l = petsc.slflag + libDir + ' -L' + libDir + ' -lprimme'
     else:
       l = '-L' + libDir + ' -lprimme'

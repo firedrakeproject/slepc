@@ -94,6 +94,8 @@ class Arpack(package.Package):
     confopt = '--prefix='+archdir+' F77="'+petsc.fc+'" FFLAGS="'+petsc.fc_flags.replace('-Wall','').replace('-Wshadow','')+'"'
     if not petsc.mpiuni:
       confopt = confopt+' --enable-mpi'
+    if not petsc.buildsharedlib:
+      confopt = confopt+' --disable-shared'
     result,output = commands.getstatusoutput('cd '+builddir+'&& sh bootstrap && ./configure '+confopt+' && '+petsc.make+' && '+petsc.make+' install')
     self.log.write(output)
     if result:
