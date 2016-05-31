@@ -102,7 +102,7 @@ PetscErrorCode BVMult_Svec_CUDA(BV Y,PetscScalar alpha,PetscScalar beta,BV X,Mat
   k = X->k-X->l;
   if (!Y->n) PetscFunctionReturn(0);
   ierr = VecCUDAGetArrayRead(x->v,&d_px);CHKERRQ(ierr);
-  if (beta==0.0) {
+  if (beta==(PetscScalar)0.0) {
     ierr = VecCUDAGetArrayWrite(y->v,&d_py);CHKERRQ(ierr);
   } else {
     ierr = VecCUDAGetArrayReadWrite(y->v,&d_py);CHKERRQ(ierr);
@@ -145,7 +145,7 @@ PetscErrorCode BVMultVec_Svec_CUDA(BV X,PetscScalar alpha,PetscScalar beta,Vec y
   n = X->n;
   k = X->k-X->l;
   ierr = VecCUDAGetArrayRead(x->v,&d_px);CHKERRQ(ierr);
-  if (beta==0.0) {
+  if (beta==(PetscScalar)0.0) {
     ierr = VecCUDAGetArrayWrite(y,&d_py);CHKERRQ(ierr);
   } else {
     ierr = VecCUDAGetArrayReadWrite(y,&d_py);CHKERRQ(ierr);
@@ -157,7 +157,7 @@ PetscErrorCode BVMultVec_Svec_CUDA(BV X,PetscScalar alpha,PetscScalar beta,Vec y
   d_y = d_py;
   cberr = cublasXgemv(cublasv2handle,CUBLAS_OP_N,n,k,&alpha,d_A,n,d_x,one,&beta,d_y,one);CHKERRCUBLAS(cberr);
   ierr = VecCUDARestoreArrayRead(x->v,&d_px);CHKERRQ(ierr);
-  if (beta==0.0) {
+  if (beta==(PetscScalar)0.0) {
     ierr = VecCUDARestoreArrayWrite(y,&d_py);CHKERRQ(ierr);
   } else {
     ierr = VecCUDARestoreArrayReadWrite(y,&d_py);CHKERRQ(ierr);
