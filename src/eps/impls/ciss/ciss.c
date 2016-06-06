@@ -943,9 +943,9 @@ PetscErrorCode EPSSetUp_CISS(EPS eps)
     }
   } else {
     if (eps->ishermitian) {
-      ierr = DSSetType(eps->ds,DSGHEP);CHKERRQ(ierr);
+      ierr = DSSetType(eps->ds,DSHEP);CHKERRQ(ierr);
     } else {
-      ierr = DSSetType(eps->ds,DSGNHEP);CHKERRQ(ierr);
+      ierr = DSSetType(eps->ds,DSNHEP);CHKERRQ(ierr);
     }
   }
   ierr = DSAllocate(eps->ds,eps->ncv);CHKERRQ(ierr);
@@ -1096,11 +1096,12 @@ PetscErrorCode EPSSolve_CISS(EPS eps)
         ierr = MatZeroEntries(pA);CHKERRQ(ierr);
         ierr = BVMatProject(ctx->S,A,ctx->S,pA);CHKERRQ(ierr);
         ierr = DSRestoreMat(eps->ds,DS_MAT_A,&pA);CHKERRQ(ierr);
-        ierr = DSGetMat(eps->ds,DS_MAT_B,&pB);CHKERRQ(ierr);
-        ierr = MatZeroEntries(pB);CHKERRQ(ierr);
-        if (B) { ierr = BVMatProject(ctx->S,B,ctx->S,pB);CHKERRQ(ierr); }
-        else { ierr = MatShift(pB,1);CHKERRQ(ierr); }
-        ierr = DSRestoreMat(eps->ds,DS_MAT_B,&pB);CHKERRQ(ierr);
+        if (B) {
+          ierr = DSGetMat(eps->ds,DS_MAT_B,&pB);CHKERRQ(ierr);
+          ierr = MatZeroEntries(pB);CHKERRQ(ierr);
+          ierr = BVMatProject(ctx->S,B,ctx->S,pB);CHKERRQ(ierr);
+          ierr = DSRestoreMat(eps->ds,DS_MAT_B,&pB);CHKERRQ(ierr);
+        }
       }
 
       ierr = DSSolve(eps->ds,eps->eigr,eps->eigi);CHKERRQ(ierr);
