@@ -96,7 +96,7 @@ class Installer:
           os.symlink(linkto, dstname)
         elif os.path.isdir(srcname):
           copies.extend(self.copytree(srcname, dstname, symlinks,exclude = exclude))
-        elif not os.path.basename(srcname) in exclude:
+        elif not (os.path.basename(srcname) in exclude or os.path.splitext(os.path.basename(srcname))[1]=='.html'):
           copyFunc(srcname, dstname)
           copies.append((srcname, dstname))
         # XXX What about devices, sockets etc.?
@@ -228,7 +228,7 @@ for dir in dirs:
     return
 
   def installLib(self):
-    self.copies.extend(self.copytree(self.archLibDir, self.destLibDir, copyFunc = self.copyLib))
+    self.copies.extend(self.copytree(self.archLibDir, self.destLibDir, copyFunc = self.copyLib, exclude = ['.DIR']))
     return
 
 

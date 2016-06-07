@@ -21,7 +21,7 @@
 
 #requiresdefine   'PETSC_HAVE_FORTRAN'
 ALL: lib
-CFLAGS   = -DSLEPC_LIB_DIR='"${SLEPC_DESTDIR}/lib"'
+CFLAGS   =
 FFLAGS   =
 SOURCEC  = zslepcutil.c zslepc_start.c zslepc_startf.c
 SOURCEF  =
