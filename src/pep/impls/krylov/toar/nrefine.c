@@ -255,13 +255,12 @@ static PetscErrorCode NRefSysSolve_shell(KSP ksp,PetscInt nmat,Vec Rv,PetscScala
   PetscFunctionBegin;
   SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"GETRS - Lapack routine is unavailable");
 #else
-  PetscErrorCode     ierr;
-  PetscScalar        *t0;
-  PetscBLASInt       k_,one=1,info,lda_;
-  PetscInt           i,lda=nmat*k;
-  Mat                M;
-  FSubctx            *ctx;
-  KSPConvergedReason reason;
+  PetscErrorCode ierr;
+  PetscScalar    *t0;
+  PetscBLASInt   k_,one=1,info,lda_;
+  PetscInt       i,lda=nmat*k;
+  Mat            M;
+  FSubctx        *ctx;
 
   PetscFunctionBegin;
   ierr = KSPGetOperators(ksp,&M,NULL);CHKERRQ(ierr);
@@ -273,8 +272,6 @@ static PetscErrorCode NRefSysSolve_shell(KSP ksp,PetscInt nmat,Vec Rv,PetscScala
   PetscStackCallBLAS("LAPACKgetrs",LAPACKgetrs_("N",&k_,&one,ctx->M4,&k_,ctx->pM4,t0,&k_,&info));
   ierr = BVMultVec(ctx->M2,-1.0,1.0,Rv,t0);CHKERRQ(ierr);
   ierr = KSPSolve(ksp,Rv,dVi);CHKERRQ(ierr);
-  ierr = KSPGetConvergedReason(ksp,&reason);CHKERRQ(ierr);
-  if (reason<0) SETERRQ1(PetscObjectComm((PetscObject)ksp),PETSC_ERR_NOT_CONVERGED,"KSP did not converge (reason=%s)",KSPConvergedReasons[reason]);
   ierr = VecConjugate(dVi);CHKERRQ(ierr);
   ierr = BVDotVec(ctx->M3,dVi,dHi);CHKERRQ(ierr);
   ierr = VecConjugate(dVi);CHKERRQ(ierr);
@@ -380,12 +377,11 @@ static PetscErrorCode NRefRightSide(PetscInt nmat,PetscReal *pcf,Mat *A,PetscInt
 #define __FUNCT__ "NRefSysSolve_mbe"
 static PetscErrorCode NRefSysSolve_mbe(PetscInt k,PetscInt sz,BV W,PetscScalar *w,BV Wt,PetscScalar *wt,PetscScalar *d,PetscScalar *dt,KSP ksp,BV T2,BV T3 ,PetscScalar *T4,PetscBool trans,Vec x1,PetscScalar *x2,Vec sol1,PetscScalar *sol2,Vec vw)
 {
-  PetscErrorCode     ierr;
-  PetscInt           i,j,incf,incc;
-  PetscScalar        *y,*g,*xx2,*ww,y2,*dd;
-  Vec                v,t,xx1;
-  BV                 WW,T;
-  KSPConvergedReason reason;
+  PetscErrorCode ierr;
+  PetscInt       i,j,incf,incc;
+  PetscScalar    *y,*g,*xx2,*ww,y2,*dd;
+  Vec            v,t,xx1;
+  BV             WW,T;
 
   PetscFunctionBegin;
   ierr = PetscMalloc3(sz,&y,sz,&g,k,&xx2);CHKERRQ(ierr);
@@ -414,12 +410,8 @@ static PetscErrorCode NRefSysSolve_mbe(PetscInt k,PetscInt sz,BV W,PetscScalar *
   }
   if (trans) {
     ierr = KSPSolveTranspose(ksp,xx1,sol1);CHKERRQ(ierr);
-    ierr = KSPGetConvergedReason(ksp,&reason);CHKERRQ(ierr);
-    if (reason<0) SETERRQ1(PetscObjectComm((PetscObject)ksp),PETSC_ERR_NOT_CONVERGED,"KSP did not converge (reason=%s)",KSPConvergedReasons[reason]);
   } else {
     ierr = KSPSolve(ksp,xx1,sol1);CHKERRQ(ierr);
-    ierr = KSPGetConvergedReason(ksp,&reason);CHKERRQ(ierr);
-    if (reason<0) SETERRQ1(PetscObjectComm((PetscObject)ksp),PETSC_ERR_NOT_CONVERGED,"KSP did not converge (reason=%s)",KSPConvergedReasons[reason]);
   }
   if (trans) {
     WW = Wt; ww = wt; dd = dt; T = T2; incf = 1; incc = 0;
@@ -728,11 +720,10 @@ static PetscErrorCode NRefSysSetup_explicit(PEP pep,PetscInt k,KSP ksp,PetscScal
 #define __FUNCT__ "NRefSysSolve_explicit"
 static PetscErrorCode NRefSysSolve_explicit(PetscInt k,KSP ksp,Vec Rv,PetscScalar *Rh,Vec dVi,PetscScalar *dHi,MatExplicitCtx *matctx)
 {
-  PetscErrorCode     ierr;
-  PetscInt           n0,m0,n1,m1,i;
-  PetscScalar        *arrayV;
-  const PetscScalar  *array;
-  KSPConvergedReason reason;
+  PetscErrorCode    ierr;
+  PetscInt          n0,m0,n1,m1,i;
+  PetscScalar       *arrayV;
+  const PetscScalar *array;
 
   PetscFunctionBegin;
   ierr = MatGetOwnershipRange(matctx->E[1],&n1,&m1);CHKERRQ(ierr);
@@ -748,8 +739,6 @@ static PetscErrorCode NRefSysSolve_explicit(PetscInt k,KSP ksp,Vec Rv,PetscScala
 
   /* Solve */
   ierr = KSPSolve(ksp,matctx->tN,matctx->ttN);CHKERRQ(ierr);
-  ierr = KSPGetConvergedReason(ksp,&reason);CHKERRQ(ierr);
-  if (reason<0) SETERRQ1(PetscObjectComm((PetscObject)ksp),PETSC_ERR_NOT_CONVERGED,"KSP did not converge (reason=%s)",KSPConvergedReasons[reason]);
 
   /* Retrieve solution */
   ierr = VecGetArray(dVi,&arrayV);CHKERRQ(ierr);
@@ -1292,6 +1281,7 @@ static PetscErrorCode PEPNRefSetUp(PEP pep,PetscInt k,PetscScalar *H,PetscInt ld
   }
   if (ini) {
     ierr = PEPRefineGetKSP(pep,&pep->refineksp);CHKERRQ(ierr);
+    ierr = KSPSetErrorIfNotConverged(pep->refineksp,PETSC_TRUE);CHKERRQ(ierr);
     ierr = KSPSetOperators(pep->refineksp,M,P);CHKERRQ(ierr);
     ierr = KSPSetFromOptions(pep->refineksp);CHKERRQ(ierr);
   }
