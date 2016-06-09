@@ -503,8 +503,10 @@ PetscErrorCode EPSSetUp_KrylovSchur_Slice(EPS eps)
     if (ctx->npart==1 || ((sr->dir>0 && ctx->subc->color==ctx->npart-1) || (sr->dir<0 && ctx->subc->color==0))) {
       ierr = EPSSliceGetInertia(eps,sr->int1,&sr->inertia1,ctx->detect?&zeros:NULL);CHKERRQ(ierr);
       if (zeros) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_USER,"Found singular matrix for the transformed problem in an interval endpoint defined by user");
-      sr->dir = -sr->dir; r = sr->int0; sr->int0 = sr->int1; sr->int1 = r;
-      i = sr->inertia0; sr->inertia0 = sr->inertia1; sr->inertia1 = i;
+      if (sr->hasEnd) {
+        sr->dir = -sr->dir; r = sr->int0; sr->int0 = sr->int1; sr->int1 = r;
+        i = sr->inertia0; sr->inertia0 = sr->inertia1; sr->inertia1 = i;
+      }
     }
 
     /* number of eigenvalues in interval */
