@@ -191,6 +191,7 @@ static PetscErrorCode EPSSliceGetEPS(EPS eps)
   PetscObjectState   Astate,Bstate=0;
   PetscObjectId      Aid,Bid=0;
   const MatSolverPackage stype;
+  RG                 rg;
 
   PetscFunctionBegin;
   ierr = EPSGetOperators(eps,&A,&B);CHKERRQ(ierr);
@@ -286,6 +287,11 @@ static PetscErrorCode EPSSliceGetEPS(EPS eps)
 
   ierr = EPSSetConvergenceTest(ctx->eps,eps->conv);CHKERRQ(ierr);
   ierr = EPSSetInterval(ctx->eps,a,b);CHKERRQ(ierr);
+  if (a!=b) {
+    ierr = EPSGetRG(ctx->eps,&rg);CHKERRQ(ierr);
+    ierr = RGSetType(rg,RGINTERVAL);CHKERRQ(ierr);
+    ierr = RGIntervalSetEndpoints(rg,a,b,0.0,0.0);CHKERRQ(ierr);
+  }
   ctx_local = (EPS_KRYLOVSCHUR*)ctx->eps->data;
   ctx_local->npart = ctx->npart;
   ctx_local->detect = ctx->detect;
@@ -369,10 +375,10 @@ PetscErrorCode EPSSetUp_KrylovSchur_Slice(EPS eps)
   PetscReal       r;
   MPI_Request     req;
   Mat             A,B=NULL;
+  SlepcSC         sc;
 
   PetscFunctionBegin;
   if (ctx->global) {
-    if (eps->inta==0.0 && eps->intb==0.0) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_WRONG,"Must define a computational interval when using EPS_ALL");
     if (eps->intb >= PETSC_MAX_REAL && eps->inta <= PETSC_MIN_REAL) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_WRONG,"The defined computational interval should have at least one of their sides bounded");
     if (!eps->ishermitian) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Spectrum slicing only available for symmetric/Hermitian eigenproblems");
     if (eps->arbitrary) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Arbitrary selection of eigenpairs cannot be used with spectrum slicing");
@@ -401,7 +407,7 @@ PetscErrorCode EPSSetUp_KrylovSchur_Slice(EPS eps)
 
   if (ctx->npart==1 || ctx->global) {
     /* check presence of ends and finding direction */
-    if ((eps->inta > PETSC_MIN_REAL && eps->inta != 0.0) || eps->intb >= PETSC_MAX_REAL) {
+    if ((eps->inta > PETSC_MIN_REAL && !(ctx->subintervals && ctx->subintervals[0]==ctx->subintervals[1])) || eps->intb >= PETSC_MAX_REAL) {
       sr->int0 = eps->inta;
       sr->int1 = eps->intb;
       sr->dir = 1;
@@ -501,12 +507,14 @@ PetscErrorCode EPSSetUp_KrylovSchur_Slice(EPS eps)
 
     /* last process in eps comm computes inertia1 */
     if (ctx->npart==1 || ((sr->dir>0 && ctx->subc->color==ctx->npart-1) || (sr->dir<0 && ctx->subc->color==0))) {
-      ierr = EPSSliceGetInertia(eps,sr->int1,&sr->inertia1,ctx->detect?&zeros:NULL);CHKERRQ(ierr);
-      if (zeros) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_USER,"Found singular matrix for the transformed problem in an interval endpoint defined by user");
-      if (sr->hasEnd) {
-        sr->dir = -sr->dir; r = sr->int0; sr->int0 = sr->int1; sr->int1 = r;
-        i = sr->inertia0; sr->inertia0 = sr->inertia1; sr->inertia1 = i;
-      }
+      if (sr->int1 != sr->int0) {
+        ierr = EPSSliceGetInertia(eps,sr->int1,&sr->inertia1,ctx->detect?&zeros:NULL);CHKERRQ(ierr);
+        if (zeros) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_USER,"Found singular matrix for the transformed problem in an interval endpoint defined by user");
+        if (sr->hasEnd) {
+          sr->dir = -sr->dir; r = sr->int0; sr->int0 = sr->int1; sr->int1 = r;
+          i = sr->inertia0; sr->inertia0 = sr->inertia1; sr->inertia1 = i;
+        }
+      } else sr->inertia1 = sr->inertia0;
     }
 
     /* number of eigenvalues in interval */
@@ -516,6 +524,14 @@ PetscErrorCode EPSSetUp_KrylovSchur_Slice(EPS eps)
       ierr = EPSSliceAllocateSolution(eps,1);CHKERRQ(ierr);
     }
     dssz = eps->ncv+1;
+    if (sr->numEigs>0) {
+      ierr = DSGetSlepcSC(eps->ds,&sc);CHKERRQ(ierr);
+      sc->rg            = eps->rg;
+      sc->comparison    = SlepcCompareTargetMagnitude;
+      sc->comparisonctx = &eps->target;
+      sc->map           = SlepcMap_ST;
+      sc->mapobj        = (PetscObject)eps->st;
+    }
   }
   ierr = DSSetType(eps->ds,DSHEP);CHKERRQ(ierr);
   ierr = DSSetCompact(eps->ds,PETSC_TRUE);CHKERRQ(ierr);
@@ -900,9 +916,9 @@ static PetscErrorCode EPSKrylovSchur_Slice(EPS eps)
 {
   PetscErrorCode  ierr;
   EPS_KRYLOVSCHUR *ctx=(EPS_KRYLOVSCHUR*)eps->data;
-  PetscInt        i,conv,k,l,ld,nv,*iwork,j,p;
+  PetscInt        i,k,l,ld,nv,*iwork,j;
   Mat             U;
-  PetscScalar     *Q,*A,rtmp;
+  PetscScalar     *Q,*A;
   PetscReal       *a,*b,beta;
   PetscBool       breakdown;
   PetscInt        count0,count1;
@@ -978,48 +994,6 @@ static PetscErrorCode EPSKrylovSchur_Slice(EPS eps)
     }
     /* Residual */
     ierr = EPSKrylovConvergence(eps,PETSC_TRUE,eps->nconv,nv-eps->nconv,beta,1.0,&k);CHKERRQ(ierr);
-
-    if (ctx->lock) {
-      /* Check convergence */
-      ierr = DSGetArrayReal(eps->ds,DS_MAT_T,&a);CHKERRQ(ierr);
-      b = a + ld;
-      conv = 0;
-      j = k = eps->nconv;
-      for (i=eps->nconv;i<nv;i++) if (eps->errest[i] < eps->tol) conv++;
-      for (i=eps->nconv;i<nv;i++) {
-        if (eps->errest[i] < eps->tol) {
-          iwork[j++]=i;
-        } else iwork[conv+k++]=i;
-      }
-      for (i=eps->nconv;i<nv;i++) {
-        a[i]=PetscRealPart(eps->eigr[i]);
-        b[i]=eps->errest[i];
-      }
-      for (i=eps->nconv;i<nv;i++) {
-        eps->eigr[i] = a[iwork[i]];
-        eps->errest[i] = b[iwork[i]];
-      }
-      for (i=eps->nconv;i<nv;i++) {
-        a[i]=PetscRealPart(eps->eigr[i]);
-        b[i]=eps->errest[i];
-      }
-      ierr = DSRestoreArrayReal(eps->ds,DS_MAT_T,&a);CHKERRQ(ierr);
-      ierr = DSGetArray(eps->ds,DS_MAT_Q,&Q);CHKERRQ(ierr);
-      for (i=eps->nconv;i<nv;i++) {
-        p=iwork[i];
-        if (p!=i) {
-          j=i+1;
-          while (iwork[j]!=i) j++;
-          iwork[j]=p;iwork[i]=i;
-          for (k=0;k<nv;k++) {
-            rtmp=Q[k+p*ld];Q[k+p*ld]=Q[k+i*ld];Q[k+i*ld]=rtmp;
-          }
-        }
-      }
-      ierr = DSRestoreArray(eps->ds,DS_MAT_Q,&Q);CHKERRQ(ierr);
-      k=eps->nconv+conv;
-    }
-
     /* Checking values obtained for completing */
     for (i=0;i<k;i++) {
       sr->back[i]=eps->eigr[i];
