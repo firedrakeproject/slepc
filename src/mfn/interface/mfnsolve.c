@@ -79,9 +79,9 @@ PetscErrorCode MFNSolve(MFN mfn,Vec b,Vec x)
 
   /* call solver */
   ierr = PetscLogEventBegin(MFN_Solve,mfn,b,x,0);CHKERRQ(ierr);
-  ierr = VecLockPush(b);CHKERRQ(ierr);
+  if (b!=x) { ierr = VecLockPush(b);CHKERRQ(ierr); }
   ierr = (*mfn->ops->solve)(mfn,b,x);CHKERRQ(ierr);
-  ierr = VecLockPop(b);CHKERRQ(ierr);
+  if (b!=x) { ierr = VecLockPop(b);CHKERRQ(ierr); }
   ierr = PetscLogEventEnd(MFN_Solve,mfn,b,x,0);CHKERRQ(ierr);
 
   if (!mfn->reason) SETERRQ(PetscObjectComm((PetscObject)mfn),PETSC_ERR_PLIB,"Internal error, solver returned without setting converged reason");

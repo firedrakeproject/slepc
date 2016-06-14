@@ -98,11 +98,11 @@ PetscErrorCode MFNSolve_Krylov(MFN mfn,Vec b,Vec x)
   m  = mfn->ncv;
   ld = m+1;
   ierr = PetscCalloc1(ld*ld,&array);CHKERRQ(ierr);
-  ierr = VecSet(x,0.0);CHKERRQ(ierr);
 
   /* set initial vector to b/||b|| */
   ierr = BVInsertVec(mfn->V,0,b);CHKERRQ(ierr);
   ierr = BVScaleColumn(mfn->V,0,1.0/mfn->bnorm);CHKERRQ(ierr);
+  ierr = VecSet(x,0.0);CHKERRQ(ierr);
 
   /* Restart loop */
   while (mfn->reason == MFN_CONVERGED_ITERATING) {
