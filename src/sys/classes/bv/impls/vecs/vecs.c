@@ -569,7 +569,7 @@ PETSC_EXTERN PetscErrorCode BVCreate_Vecs(BV bv)
   PetscErrorCode ierr;
   BV_VECS        *ctx;
   PetscInt       j;
-  PetscBool      iscusp;
+  PetscBool      isgpu;
   char           str[50];
 
   PetscFunctionBegin;
@@ -586,8 +586,8 @@ PETSC_EXTERN PetscErrorCode BVCreate_Vecs(BV bv)
   }
 
   /* Default version of BVMultInPlace */
-  ierr = PetscObjectTypeCompareAny((PetscObject)bv->t,&iscusp,VECSEQCUSP,VECMPICUSP,"");CHKERRQ(ierr);
-  ctx->vmip = iscusp? 1: 0;
+  ierr = PetscObjectTypeCompareAny((PetscObject)bv->t,&isgpu,VECSEQCUDA,VECMPICUDA,VECSEQCUSP,VECMPICUSP,"");CHKERRQ(ierr);
+  ctx->vmip = isgpu? 1: 0;
 
   /* Deferred call to setfromoptions */
   if (bv->defersfo) {
