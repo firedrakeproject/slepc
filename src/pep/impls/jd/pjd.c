@@ -776,7 +776,7 @@ static PetscErrorCode PEPJDLockConverged(PEP pep,PetscInt *nv)
 {
   PetscErrorCode    ierr;
   PEP_JD            *pjd = (PEP_JD*)pep->data;
-  PetscInt          j,i,ldds,rk,*P,nvv=*nv;
+  PetscInt          j,i,ldds,rk=0,*P,nvv=*nv;
   Vec               v,x;
   PetscBLASInt      n,ld,rk_,nv_,info,one=1;
   PetscScalar       sone=1.0,*Tj,*R,*r,*tt,*pX;
