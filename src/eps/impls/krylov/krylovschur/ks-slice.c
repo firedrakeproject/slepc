@@ -436,13 +436,13 @@ PetscErrorCode EPSSetUp_KrylovSchur_Slice(EPS eps)
       if (nproc%ctx->npart==0) { /* subcommunicators with the same size */
         ierr = PetscMPIIntCast(sr_loc->numEigs,&aux);CHKERRQ(ierr);
         ierr = MPI_Allgather(&aux,1,MPI_INT,ctx->nconv_loc,1,MPI_INT,ctx->commrank);CHKERRQ(ierr);
-        ierr = MPI_Allgather(&sr_loc->int0,1,MPIU_REAL,ctx->subintervals+off,1,MPIU_REAL,ctx->commrank);CHKERRQ(ierr);
+        ierr = MPI_Allgather(sr_loc->dir==sr->dir?&sr_loc->int0:&sr_loc->int1,1,MPIU_REAL,ctx->subintervals+off,1,MPIU_REAL,ctx->commrank);CHKERRQ(ierr);
       } else {
         ierr = MPI_Comm_rank(PetscSubcommChild(ctx->subc),&rank);CHKERRQ(ierr);
         if (!rank) {
           ierr = PetscMPIIntCast(sr_loc->numEigs,&aux);CHKERRQ(ierr);
           ierr = MPI_Allgather(&aux,1,MPI_INT,ctx->nconv_loc,1,MPI_INT,ctx->commrank);CHKERRQ(ierr);
-          ierr = MPI_Allgather(&sr_loc->int0,1,MPIU_REAL,ctx->subintervals+off,1,MPIU_REAL,ctx->commrank);CHKERRQ(ierr);
+          ierr = MPI_Allgather(sr_loc->dir==sr->dir?&sr_loc->int0:&sr_loc->int1,1,MPIU_REAL,ctx->subintervals+off,1,MPIU_REAL,ctx->commrank);CHKERRQ(ierr);
         }
         ierr = PetscMPIIntCast(ctx->npart,&aux);CHKERRQ(ierr);
         ierr = MPI_Bcast(ctx->nconv_loc,aux,MPI_INT,0,PetscSubcommChild(ctx->subc));CHKERRQ(ierr);
