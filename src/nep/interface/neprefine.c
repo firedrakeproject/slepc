@@ -69,12 +69,10 @@ static PetscErrorCode NEPSimpleNRefSetUp(NEP nep,NEPSimpNRefctx **ctx_)
   PetscMPIInt    rank,size;
 
   PetscFunctionBegin;
-  ierr = PetscMalloc1(1,ctx_);CHKERRQ(ierr);
+  ierr = PetscCalloc1(1,ctx_);CHKERRQ(ierr);
   ctx = *ctx_;
   if (nep->npart==1) {
-    ctx->subc = NULL;
-    ctx->scatter_id = NULL;
-    ctx->A = nep->A;
+    ctx->A  = nep->A;
     ctx->fn = nep->f;
   } else {
     ierr = PetscMalloc2(nep->nt,&ctx->A,nep->npart,&ctx->scatter_id);CHKERRQ(ierr);
@@ -120,7 +118,7 @@ static PetscErrorCode NEPSimpleNRefSetUp(NEP nep,NEPSimpNRefctx **ctx_)
     if (size>1) {
       if (nep->npart==1) {
         ierr = BVGetColumn(nep->V,0,&v);CHKERRQ(ierr);
-      } else {v = ctx->v;}
+      } else v = ctx->v;
       ierr = VecGetOwnershipRange(v,&n0,&m0);CHKERRQ(ierr);
       ne = (rank == size-1)?nep->n:0;
       ierr = VecCreateMPI(PetscObjectComm((PetscObject)ctx->A[0]),ne,PETSC_DECIDE,&ctx->nv);CHKERRQ(ierr);
