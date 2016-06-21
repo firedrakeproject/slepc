@@ -24,11 +24,12 @@ FFLAGS     =
 CPPFLAGS   =
 FPPFLAGS   =
 LOCDIR     = src/mfn/examples/tests/
-EXAMPLESC  = test1.c
+EXAMPLESC  = test1.c test2.c
 EXAMPLESF  =
 MANSEC     = MFN
-TESTS      =
+TESTS      = test1 test2
 
+TESTEXAMPLES_C           = test2.PETSc runtest2_krylov runtest2_expokit test2.rm
 TESTEXAMPLES_C_NOCOMPLEX = test1.PETSc runtest1_1 runtest1_2 test1.rm
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common
@@ -36,6 +37,10 @@ include ${SLEPC_DIR}/lib/slepc/conf/slepc_common
 test1: test1.o chkopts
 	-${CLINKER} -o test1 test1.o ${SLEPC_MFN_LIB}
 	${RM} test1.o
+
+test2: test2.o chkopts
+	-${CLINKER} -o test2 test2.o ${SLEPC_MFN_LIB}
+	${RM} test2.o
 
 #------------------------------------------------------------------------------------
 DATAPATH = ${SLEPC_DIR}/share/slepc/datafiles/matrices
@@ -59,4 +64,16 @@ runtest1_2:
 	   else echo "Possible problem with test1_2, diffs above"; fi; \
 	   ${RM} -f test1_2.tmp; \
 	 fi
+
+runtest2_krylov:
+	-@${MPIEXEC} -n 1 ./test2 -mfn_type krylov > test2.tmp 2>&1; \
+	if (${DIFF} output/test2.out test2.tmp) then true; \
+	else echo "Possible problem with test2, diffs above"; fi; \
+	${RM} -f test2.tmp;
+
+runtest2_expokit:
+	-@${MPIEXEC} -n 1 ./test2 -mfn_type expokit > test2.tmp 2>&1; \
+	if (${DIFF} output/test2.out test2.tmp) then true; \
+	else echo "Possible problem with test2, diffs above"; fi; \
+	${RM} -f test2.tmp;
 
