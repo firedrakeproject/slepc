@@ -40,6 +40,9 @@ PetscErrorCode SVDComputeVectors(SVD svd)
     if (!svd->U) { ierr = SVDGetBV(svd,NULL,&svd->U);CHKERRQ(ierr); }
     ierr = BVGetSizes(svd->U,NULL,NULL,&oldsize);CHKERRQ(ierr);
     if (!oldsize) {
+      if (!((PetscObject)(svd->U))->type_name) {
+        ierr = BVSetType(svd->U,BVSVEC);CHKERRQ(ierr);
+      }
       ierr = SVDMatCreateVecs(svd,NULL,&tl);CHKERRQ(ierr);
       ierr = BVSetSizesFromVec(svd->U,tl,svd->ncv);CHKERRQ(ierr);
       ierr = VecDestroy(&tl);CHKERRQ(ierr);
