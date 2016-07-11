@@ -454,10 +454,10 @@ static PetscErrorCode FNEvaluateFunctionMat_Sym_Private(FN fn,PetscScalar *As,Pe
   PetscErrorCode ierr;
   PetscInt       i,j;
   PetscBLASInt   n,k,ld,lwork,info;
-  PetscScalar    *Q,*W,*work,a,x,y,one=1.0,zero=0.0;
+  PetscScalar    *Q,*W,*work,a,x,y,one=1.0,zero=0.0,dummy;
   PetscReal      *eig;
 #if defined(PETSC_USE_COMPLEX)
-  PetscReal      *rwork;
+  PetscReal      *rwork,rdummy;
 #endif
 
   PetscFunctionBegin;
@@ -468,11 +468,11 @@ static PetscErrorCode FNEvaluateFunctionMat_Sym_Private(FN fn,PetscScalar *As,Pe
   /* workspace query and memory allocation */
   lwork = -1;
 #if defined(PETSC_USE_COMPLEX)
-  PetscStackCallBLAS("LAPACKsyev",LAPACKsyev_("V","L",&n,As,&ld,NULL,&a,&lwork,NULL,&info));
+  PetscStackCallBLAS("LAPACKsyev",LAPACKsyev_("V","L",&n,As,&ld,&dummy,&a,&lwork,&rdummy,&info));
   ierr = PetscBLASIntCast((PetscInt)PetscRealPart(a),&lwork);CHKERRQ(ierr);
   ierr = PetscMalloc5(m,&eig,m*m,&Q,m*k,&W,lwork,&work,PetscMax(1,3*m-2),&rwork);CHKERRQ(ierr);
 #else
-  PetscStackCallBLAS("LAPACKsyev",LAPACKsyev_("V","L",&n,As,&ld,NULL,&a,&lwork,&info));
+  PetscStackCallBLAS("LAPACKsyev",LAPACKsyev_("V","L",&n,As,&ld,&dummy,&a,&lwork,&info));
   ierr = PetscBLASIntCast((PetscInt)PetscRealPart(a),&lwork);CHKERRQ(ierr);
   ierr = PetscMalloc4(m,&eig,m*m,&Q,m*k,&W,lwork,&work);CHKERRQ(ierr);
 #endif
