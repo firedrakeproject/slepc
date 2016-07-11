@@ -446,7 +446,7 @@ PetscErrorCode DSOrthogonalize(DS ds,DSMatType mat,PetscInt cols,PetscInt *lindc
   PetscErrorCode ierr;
   PetscInt       n,l,ld;
   PetscBLASInt   ld_,rA,cA,info,ltau,lw;
-  PetscScalar    *A,*tau,*w,saux;
+  PetscScalar    *A,*tau,*w,saux,dummy;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
@@ -468,7 +468,7 @@ PetscErrorCode DSOrthogonalize(DS ds,DSMatType mat,PetscInt cols,PetscInt *lindc
   ierr = PetscBLASIntCast(n,&rA);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(cols,&cA);CHKERRQ(ierr);
   lw = -1;
-  PetscStackCallBLAS("LAPACKgeqrf",LAPACKgeqrf_(&rA,&cA,A,&ld_,NULL,&saux,&lw,&info));
+  PetscStackCallBLAS("LAPACKgeqrf",LAPACKgeqrf_(&rA,&cA,A,&ld_,&dummy,&saux,&lw,&info));
   if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xGEQRF %d",info);
   lw = (PetscBLASInt)PetscRealPart(saux);
   ierr = DSAllocateWork_Private(ds,lw+ltau,0,0);CHKERRQ(ierr);
