@@ -454,8 +454,8 @@ static PetscErrorCode FNEvaluateFunctionMat_Sym_Private(FN fn,PetscScalar *As,Pe
   PetscErrorCode ierr;
   PetscInt       i,j;
   PetscBLASInt   n,k,ld,lwork,info;
-  PetscScalar    *Q,*W,*work,a,x,y,one=1.0,zero=0.0,dummy;
-  PetscReal      *eig;
+  PetscScalar    *Q,*W,*work,a,x,y,one=1.0,zero=0.0;
+  PetscReal      *eig,dummy;
 #if defined(PETSC_USE_COMPLEX)
   PetscReal      *rwork,rdummy;
 #endif
