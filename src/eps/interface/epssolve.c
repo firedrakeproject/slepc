@@ -733,18 +733,16 @@ PetscErrorCode EPSGetStartVector(EPS eps,PetscInt i,PetscBool *breakdown)
   if (i>0 || eps->nini==0) {
     ierr = BVSetRandomColumn(eps->V,i);CHKERRQ(ierr);
   }
-  ierr = BVCreateVec(eps->V,&w);CHKERRQ(ierr);
-  ierr = BVCopyVec(eps->V,i,w);CHKERRQ(ierr);
 
   /* Force the vector to be in the range of OP for definite generalized problems */
-  ierr = BVGetColumn(eps->V,i,&z);CHKERRQ(ierr);
   if (eps->ispositive || (eps->isgeneralized && eps->ishermitian)) {
+    ierr = BVCreateVec(eps->V,&w);CHKERRQ(ierr);
+    ierr = BVCopyVec(eps->V,i,w);CHKERRQ(ierr);
+    ierr = BVGetColumn(eps->V,i,&z);CHKERRQ(ierr);
     ierr = STApply(eps->st,w,z);CHKERRQ(ierr);
-  } else {
-    ierr = VecCopy(w,z);CHKERRQ(ierr);
+    ierr = BVRestoreColumn(eps->V,i,&z);CHKERRQ(ierr);
+    ierr = VecDestroy(&w);CHKERRQ(ierr);
   }
-  ierr = BVRestoreColumn(eps->V,i,&z);CHKERRQ(ierr);
-  ierr = VecDestroy(&w);CHKERRQ(ierr);
 
   /* Orthonormalize the vector with respect to previous vectors */
   ierr = BVOrthogonalizeColumn(eps->V,i,NULL,&norm,&lindep);CHKERRQ(ierr);

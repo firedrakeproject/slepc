@@ -159,6 +159,8 @@ PetscErrorCode STSetUp_Cayley(ST st)
   ST_CAYLEY      *ctx = (ST_CAYLEY*)st->data;
 
   PetscFunctionBegin;
+  ierr = ST_AllocateWorkVec(st);CHKERRQ(ierr);
+
   /* if the user did not set the shift, use the target value */
   if (!st->sigma_set) st->sigma = st->defsigma;
 

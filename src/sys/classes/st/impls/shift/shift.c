@@ -101,6 +101,9 @@ PetscErrorCode STSetUp_Shift(ST st)
   PetscScalar    *coeffs=NULL;
 
   PetscFunctionBegin;
+  if (st->nmat>1) {
+    ierr = ST_AllocateWorkVec(st);CHKERRQ(ierr);
+  }
   if (nmat<3 || st->transform) {
     if (nmat>2) {
       nc = (nmat*(nmat+1))/2;

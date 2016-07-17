@@ -71,12 +71,29 @@ struct _p_ST {
 
   /*------------------------- Misc data --------------------------*/
   KSP              ksp;
-  Vec              w;
+  Vec              w;                /* work vector used in apply operation */
   Vec              D;                /* diagonal matrix for balancing */
   Vec              wb;               /* balancing requires an extra work vector */
   void             *data;
   STStateType      state;            /* initial -> setup -> with updated matrices */
 };
+
+#undef __FUNCT__
+#define __FUNCT__ "ST_AllocateWorkVec"
+/*
+  ST_AllocateWorkVec - Allocate work vector for the STApply operation.
+*/
+PETSC_STATIC_INLINE PetscErrorCode ST_AllocateWorkVec(ST st)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  if (!st->w) {
+    ierr = MatCreateVecs(st->A[0],&st->w,NULL);CHKERRQ(ierr);
+    ierr = PetscLogObjectParent((PetscObject)st,(PetscObject)st->w);CHKERRQ(ierr);
+  }
+  PetscFunctionReturn(0);
+}
 
 /*
     Macros to test valid ST arguments

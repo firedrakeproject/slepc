@@ -114,6 +114,9 @@ PetscErrorCode STSetUp_Sinvert(ST st)
   PetscScalar    *coeffs=NULL;
 
   PetscFunctionBegin;
+  if (st->nmat>1) {
+    ierr = ST_AllocateWorkVec(st);CHKERRQ(ierr);
+  }
   /* if the user did not set the shift, use the target value */
   if (!st->sigma_set) st->sigma = st->defsigma;
   if (st->transform) {
