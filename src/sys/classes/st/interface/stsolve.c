@@ -289,10 +289,6 @@ PetscErrorCode STSetUp(ST st)
     }
   }
   if (st->state!=ST_STATE_UPDATED) { ierr = MatDestroy(&st->P);CHKERRQ(ierr); }
-  if (!st->w) {
-    ierr = MatCreateVecs(st->A[0],&st->w,NULL);CHKERRQ(ierr);
-    ierr = PetscLogObjectParent((PetscObject)st,(PetscObject)st->w);CHKERRQ(ierr);
-  }
   if (st->D) {
     ierr = MatGetLocalSize(st->A[0],NULL,&n);CHKERRQ(ierr);
     ierr = VecGetLocalSize(st->D,&k);CHKERRQ(ierr);
