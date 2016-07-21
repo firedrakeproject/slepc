@@ -376,6 +376,8 @@ PetscErrorCode EPSSetUp_KrylovSchur_Slice(EPS eps)
   MPI_Request     req;
   Mat             A,B=NULL;
   SlepcSC         sc;
+  PetscInt        flg=0;
+  PetscReal       a,b;
 
   PetscFunctionBegin;
   if (ctx->global) {
@@ -478,25 +480,36 @@ PetscErrorCode EPSSetUp_KrylovSchur_Slice(EPS eps)
 
     /* compute inertia0 */
     ierr = EPSSliceGetInertia(eps,sr->int0,&sr->inertia0,ctx->detect?&zeros:NULL);CHKERRQ(ierr);
+    ierr = PetscOptionsGetInt(NULL,NULL,"-flg",&flg,NULL);CHKERRQ(ierr);
     if (zeros) { /* error in factorization */
-      if (ctx->npart==1 || ctx_glob->subintset || ((sr->dir>0 && ctx->subc->color==0) || (sr->dir<0 && ctx->subc->color==ctx->npart-1))) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_USER,"Found singular matrix for the transformed problem in an interval endpoint defined by user");
-      else { /* perturb shift */
-        sr->int0 *= (1.0+SLICE_PTOL);
-        ierr = EPSSliceGetInertia(eps,sr->int0,&sr->inertia0,&zeros);CHKERRQ(ierr);
-        if (zeros) SETERRQ1(((PetscObject)eps)->comm,PETSC_ERR_CONV_FAILED,"Inertia computation fails in %g",sr->int1);
+      if (sr->int0==ctx->eps->inta || sr->int0==ctx->eps->intb) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_USER,"Found singular matrix for the transformed problem in the interval endpoint");
+      else if(ctx_glob->subintset && !flg) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_USER,"Found singular matrix for the transformed problem in an interval endpoint defined by user");
+      else {
+        if (flg==1) { /* idle subgroup */
+          sr->inertia0 = -1;
+        } else { /* perturb shift */
+          sr->int0 *= (1.0+SLICE_PTOL);
+          ierr = EPSSliceGetInertia(eps,sr->int0,&sr->inertia0,&zeros);CHKERRQ(ierr);
+          if (zeros) SETERRQ1(((PetscObject)eps)->comm,PETSC_ERR_CONV_FAILED,"Inertia computation fails in %g",sr->int1);
+        }
       }
     }
     if (ctx->npart>1) {
       /* inertia1 is received from neighbour */
       ierr = MPI_Comm_rank(PetscSubcommChild(ctx->subc),&rank);CHKERRQ(ierr);
       if (!rank) {
-        if ((sr->dir>0 && ctx->subc->color>0) || (sr->dir<0 && ctx->subc->color<ctx->npart-1)) { /* send inertia0 to neighbour0 */
+        if ( sr->inertia0!=-1 && ((sr->dir>0 && ctx->subc->color>0) || (sr->dir<0 && ctx->subc->color<ctx->npart-1)) ) { /* send inertia0 to neighbour0 */
           ierr = MPI_Isend(&(sr->inertia0),1,MPIU_INT,ctx->subc->color-sr->dir,0,ctx->commrank,&req);CHKERRQ(ierr);
           ierr = MPI_Isend(&(sr->int0),1,MPIU_REAL,ctx->subc->color-sr->dir,0,ctx->commrank,&req);CHKERRQ(ierr);
         }
         if ((sr->dir>0 && ctx->subc->color<ctx->npart-1)|| (sr->dir<0 && ctx->subc->color>0)) { /* receive inertia1 from neighbour1 */
           ierr = MPI_Recv(&(sr->inertia1),1,MPIU_INT,ctx->subc->color+sr->dir,0,ctx->commrank,MPI_STATUS_IGNORE);CHKERRQ(ierr);
           ierr = MPI_Recv(&(sr->int1),1,MPIU_REAL,ctx->subc->color+sr->dir,0,ctx->commrank,MPI_STATUS_IGNORE);CHKERRQ(ierr);
+        }
+        if ( sr->inertia0==-1 && !(sr->dir>0 && ctx->subc->color==ctx->npart-1) && !(sr->dir<0 && ctx->subc->color==0)) {
+          sr->inertia0 = sr->inertia1; sr->int0 = sr->int1;
+          ierr = MPI_Isend(&(sr->inertia0),1,MPIU_INT,ctx->subc->color-sr->dir,0,ctx->commrank,&req);CHKERRQ(ierr);
+          ierr = MPI_Isend(&(sr->int0),1,MPIU_REAL,ctx->subc->color-sr->dir,0,ctx->commrank,&req);CHKERRQ(ierr);
         }
       }
       if ((sr->dir>0 && ctx->subc->color<ctx->npart-1)||(sr->dir<0 && ctx->subc->color>0)) {
@@ -507,18 +520,27 @@ PetscErrorCode EPSSetUp_KrylovSchur_Slice(EPS eps)
 
     /* last process in eps comm computes inertia1 */
     if (ctx->npart==1 || ((sr->dir>0 && ctx->subc->color==ctx->npart-1) || (sr->dir<0 && ctx->subc->color==0))) {
-      if (sr->int1 != sr->int0) {
-        ierr = EPSSliceGetInertia(eps,sr->int1,&sr->inertia1,ctx->detect?&zeros:NULL);CHKERRQ(ierr);
-        if (zeros) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_USER,"Found singular matrix for the transformed problem in an interval endpoint defined by user");
-        if (sr->hasEnd) {
-          sr->dir = -sr->dir; r = sr->int0; sr->int0 = sr->int1; sr->int1 = r;
-          i = sr->inertia0; sr->inertia0 = sr->inertia1; sr->inertia1 = i;
-        }
-      } else sr->inertia1 = sr->inertia0;
+      ierr = EPSSliceGetInertia(eps,sr->int1,&sr->inertia1,ctx->detect?&zeros:NULL);CHKERRQ(ierr);
+      if (zeros) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_USER,"Found singular matrix for the transformed problem in an interval endpoint defined by user");
+      if (!rank && sr->inertia0==-1) {
+        sr->inertia0 = sr->inertia1; sr->int0 = sr->int1;
+        ierr = MPI_Isend(&(sr->inertia0),1,MPIU_INT,ctx->subc->color-sr->dir,0,ctx->commrank,&req);CHKERRQ(ierr);
+        ierr = MPI_Isend(&(sr->int0),1,MPIU_REAL,ctx->subc->color-sr->dir,0,ctx->commrank,&req);CHKERRQ(ierr);
+      }
+      if (sr->hasEnd) {
+        sr->dir = -sr->dir; r = sr->int0; sr->int0 = sr->int1; sr->int1 = r;
+        i = sr->inertia0; sr->inertia0 = sr->inertia1; sr->inertia1 = i;
+      }
+    }
+    if (sr->dir>0) {
+      a = sr->int0; b = sr->int1;
+    }  else {
+      a = sr->int1; b = sr->int0;
     }
 
     /* number of eigenvalues in interval */
     sr->numEigs = (sr->dir)*(sr->inertia1 - sr->inertia0);
+    if (sr->numEigs) {ierr = RGIntervalSetEndpoints(eps->rg,a,b,0.0,0.0);CHKERRQ(ierr);}
     if (ctx->npart>1) {
       /* memory allocate for subinterval eigenpairs */
       ierr = EPSSliceAllocateSolution(eps,1);CHKERRQ(ierr);
