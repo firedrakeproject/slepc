@@ -19,10 +19,11 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-static char help[] = "Computes exp(t*A)*v for a matrix loaded from file.\n\n"
+static char help[] = "Tests the case when both arguments of MFNSolve() are the same Vec.\n\n"
   "The command line options are:\n"
   "  -t <sval>, where <sval> = scalar value that multiplies the argument.\n"
-  "  -file <filename>, where <filename> = matrix file in PETSc binary form.\n\n";
+  "  -n <n>, where <n> = number of grid subdivisions in x dimension.\n"
+  "  -m <m>, where <m> = number of grid subdivisions in y dimension.\n\n";
 
 #include <slepcmfn.h>
 
@@ -30,40 +31,46 @@ static char help[] = "Computes exp(t*A)*v for a matrix loaded from file.\n\n"
 #define __FUNCT__ "main"
 int main(int argc,char **argv)
 {
-  Mat                A;           /* problem matrix */
-  MFN                mfn;
-  FN                 f;
-  PetscReal          norm;
-  PetscScalar        t=2.0;
-  Vec                v,y;
-  PetscErrorCode     ierr;
-  PetscViewer        viewer;
-  PetscBool          flg;
-  char               filename[PETSC_MAX_PATH_LEN];
-  MFNConvergedReason reason;
+  Mat            A;           /* problem matrix */
+  MFN            mfn;
+  FN             f;
+  PetscReal      norm;
+  PetscScalar    t=0.3;
+  PetscInt       N,n=25,m,Istart,Iend,II,i,j;
+  PetscBool      flag;
+  Vec            v,y;
+  PetscErrorCode ierr;
 
   SlepcInitialize(&argc,&argv,(char*)0,help);
 
+  ierr = PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL);CHKERRQ(ierr);
+  ierr = PetscOptionsGetInt(NULL,NULL,"-m",&m,&flag);CHKERRQ(ierr);
+  if (!flag) m=n;
+  N = n*m;
   ierr = PetscOptionsGetScalar(NULL,NULL,"-t",&t,NULL);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"\nMatrix exponential y=exp(t*A)*e, loaded from file\n\n");CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"\nMatrix exponential y=exp(t*A)*e, of the 2-D Laplacian, N=%D (%Dx%D grid)\n\n",N,n,m);CHKERRQ(ierr);
 
-  /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
-                Load matrix A from binary file
+  /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+                         Build the 2-D Laplacian
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  ierr = PetscOptionsGetString(NULL,NULL,"-file",filename,PETSC_MAX_PATH_LEN,&flg);CHKERRQ(ierr);
-  if (!flg) SETERRQ(PETSC_COMM_WORLD,1,"Must indicate a file name with the -file option");
-
-#if defined(PETSC_USE_COMPLEX)
-  ierr = PetscPrintf(PETSC_COMM_WORLD," Reading COMPLEX matrix from a binary file...\n");CHKERRQ(ierr);
-#else
-  ierr = PetscPrintf(PETSC_COMM_WORLD," Reading REAL matrix from a binary file...\n");CHKERRQ(ierr);
-#endif
-  ierr = PetscViewerBinaryOpen(PETSC_COMM_WORLD,filename,FILE_MODE_READ,&viewer);CHKERRQ(ierr);
   ierr = MatCreate(PETSC_COMM_WORLD,&A);CHKERRQ(ierr);
+  ierr = MatSetSizes(A,PETSC_DECIDE,PETSC_DECIDE,N,N);CHKERRQ(ierr);
   ierr = MatSetFromOptions(A);CHKERRQ(ierr);
-  ierr = MatLoad(A,viewer);CHKERRQ(ierr);
-  ierr = PetscViewerDestroy(&viewer);CHKERRQ(ierr);
+  ierr = MatSetUp(A);CHKERRQ(ierr);
+
+  ierr = MatGetOwnershipRange(A,&Istart,&Iend);CHKERRQ(ierr);
+  for (II=Istart;II<Iend;II++) {
+    i = II/n; j = II-i*n;
+    if (i>0) { ierr = MatSetValue(A,II,II-n,-1.0,INSERT_VALUES);CHKERRQ(ierr); }
+    if (i<m-1) { ierr = MatSetValue(A,II,II+n,-1.0,INSERT_VALUES);CHKERRQ(ierr); }
+    if (j>0) { ierr = MatSetValue(A,II,II-1,-1.0,INSERT_VALUES);CHKERRQ(ierr); }
+    if (j<n-1) { ierr = MatSetValue(A,II,II+1,-1.0,INSERT_VALUES);CHKERRQ(ierr); }
+    ierr = MatSetValue(A,II,II,4.0,INSERT_VALUES);CHKERRQ(ierr);
+  }
+
+  ierr = MatAssemblyBegin(A,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
+  ierr = MatAssemblyEnd(A,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
 
   /* set v = ones(n,1) */
   ierr = MatCreateVecs(A,NULL,&y);CHKERRQ(ierr);
@@ -78,18 +85,34 @@ int main(int argc,char **argv)
   ierr = MFNSetOperator(mfn,A);CHKERRQ(ierr);
   ierr = MFNGetFN(mfn,&f);CHKERRQ(ierr);
   ierr = FNSetType(f,FNEXP);CHKERRQ(ierr);
-  ierr = FNSetScale(f,t,1.0);CHKERRQ(ierr);  
+  ierr = MFNSetErrorIfNotConverged(mfn,PETSC_TRUE);CHKERRQ(ierr);
   ierr = MFNSetFromOptions(mfn);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
                       Solve the problem, y=exp(t*A)*v
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
+  ierr = FNSetScale(f,t,1.0);CHKERRQ(ierr);  
   ierr = MFNSolve(mfn,v,y);CHKERRQ(ierr);
-  ierr = MFNGetConvergedReason(mfn,&reason);CHKERRQ(ierr);
-  if (reason<0) SETERRQ(PETSC_COMM_WORLD,1,"Solver did not converge");
   ierr = VecNorm(y,NORM_2,&norm);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD," Computed vector at time t=%.4g has norm %g\n\n",(double)PetscRealPart(t),(double)norm);CHKERRQ(ierr);
+  
+  /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+           Repeat the computation in two steps, overwriting v:
+              v=exp(0.5*t*A)*v,  v=exp(0.5*t*A)*v
+     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+  ierr = FNSetScale(f,0.5*t,1.0);CHKERRQ(ierr);  
+  ierr = MFNSolve(mfn,v,v);CHKERRQ(ierr);
+  ierr = MFNSolve(mfn,v,v);CHKERRQ(ierr);
+  /* compute norm of difference */
+  ierr = VecAXPY(y,-1.0,v);CHKERRQ(ierr);
+  ierr = VecNorm(y,NORM_2,&norm);CHKERRQ(ierr);
+  if (norm<1e-12) {
+    ierr = PetscPrintf(PETSC_COMM_WORLD," The norm of the difference is <1e-12\n\n");CHKERRQ(ierr);
+  } else {
+    ierr = PetscPrintf(PETSC_COMM_WORLD," The norm of the difference is %g\n\n",(double)norm);CHKERRQ(ierr);
+  }
   
   /* 
      Free work space
