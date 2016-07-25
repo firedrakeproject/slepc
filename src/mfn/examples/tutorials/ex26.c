@@ -30,15 +30,14 @@ static char help[] = "Computes the action of the square root of the 2-D Laplacia
 #define __FUNCT__ "main"
 int main(int argc,char **argv)
 {
-  Mat                A;           /* problem matrix */
-  MFN                mfn;
-  FN                 f;
-  PetscReal          norm;
-  Vec                v,y,z;
-  PetscInt           N,n=10,m,Istart,Iend,i,j,II;
-  PetscErrorCode     ierr;
-  PetscBool          flag,draw_sol;
-  MFNConvergedReason reason;
+  Mat            A;           /* problem matrix */
+  MFN            mfn;
+  FN             f;
+  PetscReal      norm,tol;
+  Vec            v,y,z;
+  PetscInt       N,n=10,m,Istart,Iend,i,j,II;
+  PetscErrorCode ierr;
+  PetscBool      flag,draw_sol;
 
   SlepcInitialize(&argc,&argv,(char*)0,help);
 
@@ -90,6 +89,7 @@ int main(int argc,char **argv)
   ierr = MFNSetOperator(mfn,A);CHKERRQ(ierr);
   ierr = MFNGetFN(mfn,&f);CHKERRQ(ierr);
   ierr = FNSetType(f,FNSQRT);CHKERRQ(ierr);
+  ierr = MFNSetErrorIfNotConverged(mfn,PETSC_TRUE);CHKERRQ(ierr);
   ierr = MFNSetFromOptions(mfn);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
@@ -97,10 +97,7 @@ int main(int argc,char **argv)
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
   ierr = MFNSolve(mfn,v,y);CHKERRQ(ierr);
-  ierr = MFNGetConvergedReason(mfn,&reason);CHKERRQ(ierr);
-  if (reason<0) SETERRQ(PETSC_COMM_WORLD,1,"Solver did not converge");
   ierr = VecNorm(y,NORM_2,&norm);CHKERRQ(ierr);
-  
   ierr = PetscPrintf(PETSC_COMM_WORLD," Intermediate vector has norm %g\n",(double)norm);CHKERRQ(ierr);
   if (draw_sol) {
     ierr = PetscViewerDrawSetPause(PETSC_VIEWER_DRAW_WORLD,-1);CHKERRQ(ierr);
@@ -112,17 +109,16 @@ int main(int argc,char **argv)
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
   ierr = MFNSolve(mfn,y,z);CHKERRQ(ierr);
-  ierr = MFNGetConvergedReason(mfn,&reason);CHKERRQ(ierr);
-  if (reason<0) SETERRQ(PETSC_COMM_WORLD,1,"Solver did not converge");
+  ierr = MFNGetTolerances(mfn,&tol,NULL);CHKERRQ(ierr);
 
   ierr = MatMult(A,v,y);CHKERRQ(ierr);   /* overwrite y */
   ierr = VecAXPY(y,-1.0,z);CHKERRQ(ierr);
   ierr = VecNorm(y,NORM_2,&norm);CHKERRQ(ierr);
   
-  if (norm<100*PETSC_MACHINE_EPSILON) {
-    ierr = PetscPrintf(PETSC_COMM_WORLD," Error norm is less than 100*epsilon\n\n");CHKERRQ(ierr);
+  if (norm<tol) {
+    ierr = PetscPrintf(PETSC_COMM_WORLD," Error norm is less than the requested tolerance\n\n");CHKERRQ(ierr);
   } else {
-    ierr = PetscPrintf(PETSC_COMM_WORLD," Error norm %3.1e\n\n",(double)norm);CHKERRQ(ierr);
+    ierr = PetscPrintf(PETSC_COMM_WORLD," Error norm larger than tolerance: %3.1e\n\n",(double)norm);CHKERRQ(ierr);
   }
   if (draw_sol) {
     ierr = PetscViewerDrawSetPause(PETSC_VIEWER_DRAW_WORLD,-1);CHKERRQ(ierr);
