@@ -250,7 +250,7 @@ runtest8_1:
 	for eps in ${EPSALL}; do \
 	   echo "eps type $$eps"; \
 	   if [ "$$eps" = gd2 ]; then eps="gd -eps_gd_double_expansion"; fi; \
-	   ${MPIEXEC} -n 1 ./test8 -eps_type $$eps -eps_nev 4 -eps_ncv 24 2>&1; \
+	   ${MPIEXEC} -n 1 ./test8 -eps_type $$eps -eps_nev 4 -eps_ncv 25 2>&1; \
 	done > $${test}.tmp; \
 	${TESTCODE}
 
