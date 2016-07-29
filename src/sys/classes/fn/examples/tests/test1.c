@@ -69,7 +69,7 @@ int main(int argc,char **argv)
 
   /* rational p(x)/q(x) */
   na = 2; nb = 3;
-  p[0] = -3.1; p[1] = 1.1;
+  p[0] = 1.1; p[1] = 1.1;
   q[0] = 1.0; q[1] = -2.0; q[2] = 3.5;
   ierr = FNSetType(fn,FNRATIONAL);CHKERRQ(ierr);
   ierr = FNRationalSetNumerator(fn,na,p);CHKERRQ(ierr);
