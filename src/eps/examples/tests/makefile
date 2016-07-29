@@ -32,7 +32,9 @@ MANSEC     = EPS
 TESTS      = test1 test2 test3 test4 test5 test6 test7f test8 test9 test10 \
              test11 test12 test13 test14 test14f test15f test16
 
-TESTEXAMPLES_C           = test1.PETSc runtest1_1 test1.rm \
+TESTEXAMPLES_C           = test13.PETSc runtest13_1 runtest13_2 test13.rm \
+                           test14.PETSc runtest14_1 test14.rm
+TESTEXAMPLES_C_NOTSINGLE = test1.PETSc runtest1_1 test1.rm \
                            test2.PETSc runtest2_1 test2.rm \
                            test3.PETSc runtest3_1 test3.rm \
                            test4.PETSc runtest4_1 test4.rm \
@@ -42,8 +44,6 @@ TESTEXAMPLES_C           = test1.PETSc runtest1_1 test1.rm \
                            test10.PETSc runtest10_1 test10.rm \
                            test11.PETSc runtest11_1 test11.rm \
                            test12.PETSc runtest12_1 test12.rm \
-                           test13.PETSc runtest13_1 runtest13_2 test13.rm \
-                           test14.PETSc runtest14_1 test14.rm \
                            test16.PETSc runtest16_1 test16.rm
 TESTEXAMPLES_C_NOCOMPLEX = test1.PETSc runtest1_2 test1.rm
 TESTEXAMPLES_C_NOF128    = test5.PETSc runtest5_1 test5.rm
@@ -177,7 +177,7 @@ runtest5_1:
 	-@test=test5_1; \
 	for eps in ${EPSNS}; do \
 	   echo "eps type $$eps" >> test5_1.tmp; \
-	   if [ "$$eps" = gd ]; then EXTRA="-eps_gd_minv 2"; \
+	   if [ "$$eps" = gd ]; then EXTRA="-eps_gd_minv 3"; \
 	   elif [ "$$eps" = jd ]; then EXTRA="-eps_jd_minv 2"; \
 	   elif [ "$$eps" = "gd2" ]; then eps=gd; EXTRA="-eps_gd_double_expansion"; else EXTRA=""; fi; \
 	   ${MPIEXEC} -n 1 ./test5 -eps_type $$eps -eps_nev 4 $$EXTRA >> test5_1.tmp 2>&1; \

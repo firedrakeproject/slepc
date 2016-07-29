@@ -41,6 +41,7 @@ int main(int argc,char **argv)
   EPS            eps;             /* eigenproblem solver context */
   EPSType        type;
   PetscInt       N,m=15,nev;
+  PetscMPIInt    rank;
   PetscBool      terse;
   PetscErrorCode ierr;
 
@@ -85,7 +86,13 @@ int main(int argc,char **argv)
      vector is set to random values
   */
   ierr = MatCreateVecs(A,&v0,NULL);CHKERRQ(ierr);
-  ierr = VecSet(v0,1.0);CHKERRQ(ierr);
+  ierr = MPI_Comm_rank(PETSC_COMM_WORLD,&rank);CHKERRQ(ierr);
+  if (!rank) {
+    ierr = VecSetValue(v0,0,1.0,INSERT_VALUES);CHKERRQ(ierr);
+    ierr = VecSetValue(v0,1,1.0,INSERT_VALUES);CHKERRQ(ierr);
+  }
+  ierr = VecAssemblyBegin(v0);CHKERRQ(ierr);
+  ierr = VecAssemblyEnd(v0);CHKERRQ(ierr);
   ierr = EPSSetInitialSpace(eps,1,&v0);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
