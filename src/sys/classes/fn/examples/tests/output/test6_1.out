@@ -16,5 +16,5 @@ FN Object: 1 MPI processes
             Exponential: exp(x)
   f(2.2)=-2.63468
   f'(2.2)=-3.31554
-The 1-norm of f(A) is 29.7466
-The 1-norm of f(A) is 29.7466
+The 1-norm of f(A) is 29.747
+The 1-norm of f(A) is 29.747

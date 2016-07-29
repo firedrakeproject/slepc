@@ -118,7 +118,7 @@ int main(int argc,char **argv)
 
   ierr = EPSGetST(eps,&st);CHKERRQ(ierr);
   ierr = STGetKSP(st,&ksp);CHKERRQ(ierr);
-  ierr = KSPSetTolerances(ksp,1e-8,1e-50,PETSC_DEFAULT,PETSC_DEFAULT);CHKERRQ(ierr);
+  ierr = KSPSetTolerances(ksp,1e-8,1e-35,PETSC_DEFAULT,PETSC_DEFAULT);CHKERRQ(ierr);
   ierr = STView(st,NULL);CHKERRQ(ierr);
   ierr = EPSGetDS(eps,&ds);CHKERRQ(ierr);
   ierr = DSView(ds,NULL);CHKERRQ(ierr);
