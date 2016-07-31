@@ -29,9 +29,9 @@ EXAMPLESF  =
 MANSEC     = SVD
 TESTS      = test1 test2 test3
 
-TESTEXAMPLES_C       = test1.PETSc runtest1_1 test1.rm \
-                       test3.PETSc runtest3_1 test3.rm
-TESTEXAMPLES_C_NOF128= test2.PETSc runtest2_1 test2.rm
+TESTEXAMPLES_C           = test1.PETSc runtest1_1 test1.rm \
+                           test2.PETSc runtest2_1 test2.rm
+TESTEXAMPLES_C_NOTSINGLE = test3.PETSc runtest3_1 test3.rm
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common
 
@@ -67,21 +67,25 @@ runtest1_1:
 	${RM} -f test1_1.tmp
 
 runtest2_1:
-	-@touch test2_1.tmp; \
-	for svd in ${SVDEPS} ${SVD}; do \
-	   echo "svd type $$svd" >> test2_1.tmp; \
-	   ${MPIEXEC} -n 1 ./test2 -svd_type $$svd -svd_nsv 7 >> test2_1.tmp 2>&1;    \
-	done; \
-	if (${GREP} USE_COMPLEX ${PETSC_DIR}/${PETSC_ARCH}/include/petscconf.h > /dev/null 2>&1) then \
-	  [ x${SAVE_OUTPUT} = xyes ] && cp test2_1.tmp output/test2_1_complex.out; \
-	  if (${DIFF} output/test2_1_complex.out test2_1.tmp) then true; \
-	  else echo "Possible problem with test2_1, diffs above"; fi; \
-	else \
-	  [ x${SAVE_OUTPUT} = xyes ] && cp test2_1.tmp output/test2_1.out; \
-	  if (${DIFF} output/test2_1.out test2_1.tmp) then true; \
-	  else echo "Possible problem with test2_1, diffs above"; fi; \
-	fi; \
-	${RM} -f test2_1.tmp;
+	-@if [ "${PETSC_PRECISION}" != "double" ]; then \
+	   echo "Skipping test2_1 test"; \
+	 else \
+	  touch test2_1.tmp; \
+	  for svd in ${SVDEPS} ${SVD}; do \
+	     echo "svd type $$svd" >> test2_1.tmp; \
+	     ${MPIEXEC} -n 1 ./test2 -svd_type $$svd -svd_nsv 7 >> test2_1.tmp 2>&1;    \
+	  done; \
+	  if (${GREP} USE_COMPLEX ${PETSC_DIR}/${PETSC_ARCH}/include/petscconf.h > /dev/null 2>&1) then \
+	    [ x${SAVE_OUTPUT} = xyes ] && cp test2_1.tmp output/test2_1_complex.out; \
+	    if (${DIFF} output/test2_1_complex.out test2_1.tmp) then true; \
+	    else echo "Possible problem with test2_1, diffs above"; fi; \
+	  else \
+	    [ x${SAVE_OUTPUT} = xyes ] && cp test2_1.tmp output/test2_1.out; \
+	    if (${DIFF} output/test2_1.out test2_1.tmp) then true; \
+	    else echo "Possible problem with test2_1, diffs above"; fi; \
+	  fi; \
+	  ${RM} -f test2_1.tmp; \
+	fi
 
 runtest3_1:
 	-@touch test3_1.tmp; \

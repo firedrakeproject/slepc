@@ -31,11 +31,11 @@ MANSEC     = PEP
 TESTS      = acoustic_wave_1d acoustic_wave_2d butterfly damped_beam \
              pdde_stability planar_waveguide sleeper spring
 
-TESTEXAMPLES_C = acoustic_wave_1d.PETSc runacoustic_wave_1d_1 acoustic_wave_1d.rm \
-                 acoustic_wave_2d.PETSc runacoustic_wave_2d_1 acoustic_wave_2d.rm \
-                 butterfly.PETSc runbutterfly butterfly.rm \
+TESTEXAMPLES_C_NOTSINGLE = acoustic_wave_1d.PETSc runacoustic_wave_1d_1 acoustic_wave_1d.rm \
                  damped_beam.PETSc rundamped_beam damped_beam.rm \
-                 planar_waveguide.PETSc runplanar_waveguide planar_waveguide.rm \
+                 planar_waveguide.PETSc runplanar_waveguide planar_waveguide.rm
+TESTEXAMPLES_C = acoustic_wave_2d.PETSc runacoustic_wave_2d_1 acoustic_wave_2d.rm \
+                 butterfly.PETSc runbutterfly butterfly.rm \
                  sleeper.PETSc runsleeper sleeper.rm \
                  spring.PETSc runspring spring.rm
 TESTEXAMPLES_C_COMPLEX = pdde_stability.PETSc runpdde_stability pdde_stability.rm

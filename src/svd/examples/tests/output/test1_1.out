@@ -2,114 +2,114 @@
 Estimate the condition number of a Grcar matrix, n=30
 SVD type: cross
 
- Computed singular values: sigma_1=3.221487, sigma_n=0.955065
- Estimated condition number: sigma_1/sigma_n=3.373056
+ Computed singular values: sigma_1=3.2215, sigma_n=0.9551
+ Estimated condition number: sigma_1/sigma_n=3.3731
 
 
 Estimate the condition number of a Grcar matrix, n=30
 SVD type: cyclic
 
- Computed singular values: sigma_1=3.221487, sigma_n=0.955065
- Estimated condition number: sigma_1/sigma_n=3.373056
+ Computed singular values: sigma_1=3.2215, sigma_n=0.9551
+ Estimated condition number: sigma_1/sigma_n=3.3731
 
 
 Estimate the condition number of a Grcar matrix, n=30
 SVD type: lanczos
 
- Computed singular values: sigma_1=3.221487, sigma_n=0.955065
- Estimated condition number: sigma_1/sigma_n=3.373056
+ Computed singular values: sigma_1=3.2215, sigma_n=0.9551
+ Estimated condition number: sigma_1/sigma_n=3.3731
 
 
 Estimate the condition number of a Grcar matrix, n=30
 SVD type: lapack
 
- Computed singular values: sigma_1=3.221487, sigma_n=0.955065
- Estimated condition number: sigma_1/sigma_n=3.373056
+ Computed singular values: sigma_1=3.2215, sigma_n=0.9551
+ Estimated condition number: sigma_1/sigma_n=3.3731
 
 
 Estimate the condition number of a Grcar matrix, n=30
 SVD type: trlanczos
 
- Computed singular values: sigma_1=3.221487, sigma_n=0.955065
- Estimated condition number: sigma_1/sigma_n=3.373056
+ Computed singular values: sigma_1=3.2215, sigma_n=0.9551
+ Estimated condition number: sigma_1/sigma_n=3.3731
 
 
 Estimate the condition number of a Grcar matrix, n=30
 SVD type: cross
 EPS type: krylovschur
 
- Computed singular values: sigma_1=3.221487, sigma_n=0.955065
- Estimated condition number: sigma_1/sigma_n=3.373056
+ Computed singular values: sigma_1=3.2215, sigma_n=0.9551
+ Estimated condition number: sigma_1/sigma_n=3.3731
 
 
 Estimate the condition number of a Grcar matrix, n=30
 SVD type: cross
 EPS type: arnoldi
 
- Computed singular values: sigma_1=3.221487, sigma_n=0.955065
- Estimated condition number: sigma_1/sigma_n=3.373056
+ Computed singular values: sigma_1=3.2215, sigma_n=0.9551
+ Estimated condition number: sigma_1/sigma_n=3.3731
 
 
 Estimate the condition number of a Grcar matrix, n=30
 SVD type: cross
 EPS type: lanczos
 
- Computed singular values: sigma_1=3.221487, sigma_n=0.955065
- Estimated condition number: sigma_1/sigma_n=3.373056
+ Computed singular values: sigma_1=3.2215, sigma_n=0.9551
+ Estimated condition number: sigma_1/sigma_n=3.3731
 
 
 Estimate the condition number of a Grcar matrix, n=30
 SVD type: cross
 EPS type: gd
 
- Computed singular values: sigma_1=3.221487, sigma_n=0.955065
- Estimated condition number: sigma_1/sigma_n=3.373056
+ Computed singular values: sigma_1=3.2215, sigma_n=0.9551
+ Estimated condition number: sigma_1/sigma_n=3.3731
 
 
 Estimate the condition number of a Grcar matrix, n=30
 SVD type: cross
 EPS type: jd
 
- Computed singular values: sigma_1=3.221487, sigma_n=0.955065
- Estimated condition number: sigma_1/sigma_n=3.373056
+ Computed singular values: sigma_1=3.2215, sigma_n=0.9551
+ Estimated condition number: sigma_1/sigma_n=3.3731
 
 
 Estimate the condition number of a Grcar matrix, n=30
 SVD type: cyclic
 EPS type: krylovschur
 
- Computed singular values: sigma_1=3.221487, sigma_n=0.955065
- Estimated condition number: sigma_1/sigma_n=3.373056
+ Computed singular values: sigma_1=3.2215, sigma_n=0.9551
+ Estimated condition number: sigma_1/sigma_n=3.3731
 
 
 Estimate the condition number of a Grcar matrix, n=30
 SVD type: cyclic
 EPS type: arnoldi
 
- Computed singular values: sigma_1=3.221487, sigma_n=0.955065
- Estimated condition number: sigma_1/sigma_n=3.373056
+ Computed singular values: sigma_1=3.2215, sigma_n=0.9551
+ Estimated condition number: sigma_1/sigma_n=3.3731
 
 
 Estimate the condition number of a Grcar matrix, n=30
 SVD type: cyclic
 EPS type: lanczos
 
- Computed singular values: sigma_1=3.221487, sigma_n=0.955065
- Estimated condition number: sigma_1/sigma_n=3.373056
+ Computed singular values: sigma_1=3.2215, sigma_n=0.9551
+ Estimated condition number: sigma_1/sigma_n=3.3731
 
 
 Estimate the condition number of a Grcar matrix, n=30
 SVD type: cyclic
 EPS type: gd
 
- Computed singular values: sigma_1=3.221487, sigma_n=0.955065
- Estimated condition number: sigma_1/sigma_n=3.373056
+ Computed singular values: sigma_1=3.2215, sigma_n=0.9551
+ Estimated condition number: sigma_1/sigma_n=3.3731
 
 
 Estimate the condition number of a Grcar matrix, n=30
 SVD type: cyclic
 EPS type: jd
 
- Computed singular values: sigma_1=3.221487, sigma_n=0.955065
- Estimated condition number: sigma_1/sigma_n=3.373056
+ Computed singular values: sigma_1=3.2215, sigma_n=0.9551
+ Estimated condition number: sigma_1/sigma_n=3.3731
 
