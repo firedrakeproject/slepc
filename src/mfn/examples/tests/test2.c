@@ -19,8 +19,9 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-static char help[] = "Computes the action of the square root of the 2-D Laplacian.\n\n"
+static char help[] = "Tests the case when both arguments of MFNSolve() are the same Vec.\n\n"
   "The command line options are:\n"
+  "  -t <sval>, where <sval> = scalar value that multiplies the argument.\n"
   "  -n <n>, where <n> = number of grid subdivisions in x dimension.\n"
   "  -m <m>, where <m> = number of grid subdivisions in y dimension.\n\n";
 
@@ -33,11 +34,12 @@ int main(int argc,char **argv)
   Mat            A;           /* problem matrix */
   MFN            mfn;
   FN             f;
-  PetscReal      norm,tol;
-  Vec            v,y,z;
-  PetscInt       N,n=10,m,Istart,Iend,i,j,II;
+  PetscReal      norm;
+  PetscScalar    t=0.3;
+  PetscInt       N,n=25,m,Istart,Iend,II,i,j;
+  PetscBool      flag;
+  Vec            v,y;
   PetscErrorCode ierr;
-  PetscBool      flag,draw_sol;
 
   SlepcInitialize(&argc,&argv,(char*)0,help);
 
@@ -45,12 +47,11 @@ int main(int argc,char **argv)
   ierr = PetscOptionsGetInt(NULL,NULL,"-m",&m,&flag);CHKERRQ(ierr);
   if (!flag) m=n;
   N = n*m;
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"\nSquare root of Laplacian y=sqrt(A)*e_1, N=%D (%Dx%D grid)\n\n",N,n,m);CHKERRQ(ierr);
+  ierr = PetscOptionsGetScalar(NULL,NULL,"-t",&t,NULL);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"\nMatrix exponential y=exp(t*A)*e, of the 2-D Laplacian, N=%D (%Dx%D grid)\n\n",N,n,m);CHKERRQ(ierr);
 
-  ierr = PetscOptionsHasName(NULL,NULL,"-draw_sol",&draw_sol);CHKERRQ(ierr);
-
-  /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
-                 Compute the discrete 2-D Laplacian, A
+  /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+                         Build the 2-D Laplacian
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
   ierr = MatCreate(PETSC_COMM_WORLD,&A);CHKERRQ(ierr);
@@ -71,60 +72,48 @@ int main(int argc,char **argv)
   ierr = MatAssemblyBegin(A,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
   ierr = MatAssemblyEnd(A,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
 
-  /* set symmetry flag so that solver can exploit it */
-  ierr = MatSetOption(A,MAT_HERMITIAN,PETSC_TRUE);CHKERRQ(ierr);
-
-  /* set v = e_1 */
+  /* set v = ones(n,1) */
+  ierr = MatCreateVecs(A,NULL,&y);CHKERRQ(ierr);
   ierr = MatCreateVecs(A,NULL,&v);CHKERRQ(ierr);
-  ierr = VecSetValue(v,0,1.0,INSERT_VALUES);CHKERRQ(ierr);
-  ierr = VecAssemblyBegin(v);CHKERRQ(ierr);
-  ierr = VecAssemblyEnd(v);CHKERRQ(ierr);
-  ierr = VecDuplicate(v,&y);CHKERRQ(ierr);
-  ierr = VecDuplicate(v,&z);CHKERRQ(ierr);
+  ierr = VecSet(v,1.0);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
-             Create the solver, set the matrix and the function
+                Create the solver and set various options
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
   ierr = MFNCreate(PETSC_COMM_WORLD,&mfn);CHKERRQ(ierr);
   ierr = MFNSetOperator(mfn,A);CHKERRQ(ierr);
   ierr = MFNGetFN(mfn,&f);CHKERRQ(ierr);
-  ierr = FNSetType(f,FNSQRT);CHKERRQ(ierr);
+  ierr = FNSetType(f,FNEXP);CHKERRQ(ierr);
   ierr = MFNSetErrorIfNotConverged(mfn,PETSC_TRUE);CHKERRQ(ierr);
   ierr = MFNSetFromOptions(mfn);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
-                      First solve: y=sqrt(A)*v
+                      Solve the problem, y=exp(t*A)*v
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
+  ierr = FNSetScale(f,t,1.0);CHKERRQ(ierr);  
   ierr = MFNSolve(mfn,v,y);CHKERRQ(ierr);
   ierr = VecNorm(y,NORM_2,&norm);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," Intermediate vector has norm %g\n",(double)norm);CHKERRQ(ierr);
-  if (draw_sol) {
-    ierr = PetscViewerDrawSetPause(PETSC_VIEWER_DRAW_WORLD,-1);CHKERRQ(ierr);
-    ierr = VecView(y,PETSC_VIEWER_DRAW_WORLD);CHKERRQ(ierr);
-  }
-
+  ierr = PetscPrintf(PETSC_COMM_WORLD," Computed vector at time t=%.4g has norm %g\n\n",(double)PetscRealPart(t),(double)norm);CHKERRQ(ierr);
+  
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
-             Second solve: z=sqrt(A)*y and compare against A*v
+           Repeat the computation in two steps, overwriting v:
+              v=exp(0.5*t*A)*v,  v=exp(0.5*t*A)*v
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  ierr = MFNSolve(mfn,y,z);CHKERRQ(ierr);
-  ierr = MFNGetTolerances(mfn,&tol,NULL);CHKERRQ(ierr);
-
-  ierr = MatMult(A,v,y);CHKERRQ(ierr);   /* overwrite y */
-  ierr = VecAXPY(y,-1.0,z);CHKERRQ(ierr);
+  ierr = FNSetScale(f,0.5*t,1.0);CHKERRQ(ierr);  
+  ierr = MFNSolve(mfn,v,v);CHKERRQ(ierr);
+  ierr = MFNSolve(mfn,v,v);CHKERRQ(ierr);
+  /* compute norm of difference */
+  ierr = VecAXPY(y,-1.0,v);CHKERRQ(ierr);
   ierr = VecNorm(y,NORM_2,&norm);CHKERRQ(ierr);
-  
-  if (norm<tol) {
-    ierr = PetscPrintf(PETSC_COMM_WORLD," Error norm is less than the requested tolerance\n\n");CHKERRQ(ierr);
+  if (norm<1e-12) {
+    ierr = PetscPrintf(PETSC_COMM_WORLD," The norm of the difference is <1e-12\n\n");CHKERRQ(ierr);
   } else {
-    ierr = PetscPrintf(PETSC_COMM_WORLD," Error norm larger than tolerance: %3.1e\n\n",(double)norm);CHKERRQ(ierr);
+    ierr = PetscPrintf(PETSC_COMM_WORLD," The norm of the difference is %g\n\n",(double)norm);CHKERRQ(ierr);
   }
-  if (draw_sol) {
-    ierr = PetscViewerDrawSetPause(PETSC_VIEWER_DRAW_WORLD,-1);CHKERRQ(ierr);
-    ierr = VecView(z,PETSC_VIEWER_DRAW_WORLD);CHKERRQ(ierr);
-  }
-
+  
   /* 
      Free work space
   */
@@ -132,7 +121,6 @@ int main(int argc,char **argv)
   ierr = MatDestroy(&A);CHKERRQ(ierr);
   ierr = VecDestroy(&v);CHKERRQ(ierr);
   ierr = VecDestroy(&y);CHKERRQ(ierr);
-  ierr = VecDestroy(&z);CHKERRQ(ierr);
   ierr = SlepcFinalize();
   return ierr;
 }

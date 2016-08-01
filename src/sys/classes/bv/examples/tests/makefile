@@ -44,6 +44,13 @@ TESTEXAMPLES_C       = test1.PETSc runtest1_1 runtest1_2 runtest1_3 runtest1_4 t
                                     runtest11_5 runtest11_6 runtest11_7 runtest11_8 test11.rm \
                        test12.PETSc runtest12_1 test12.rm
 
+TESTEXAMPLES_VECCUDA = test1.PETSc runtest1_3_cuda test1.rm \
+                       test2.PETSc runtest2_3_cuda runtest2_7_cuda test2.rm \
+                       test3.PETSc runtest3_3_cuda test3.rm \
+                       test4.PETSc runtest4_3_cuda test4.rm \
+                       test6.PETSc runtest6_3_cuda test6.rm \
+                       test7.PETSc runtest7_3_cuda test7.rm
+
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common
 
 test1: test1.o chkopts
@@ -102,6 +109,12 @@ TESTCODE = \
 	echo "Possible problem with $${test}, diffs above"; \
 	${RM} -f $${test}.tmp
 
+TESTCODE_CUDA = \
+	[ x${SAVE_OUTPUT} = xyes ] && cp $${test}.tmp output/$${test}.out; \
+	${SED} 's/type: seqcuda/type: seq/' $${test}.tmp | ${DIFF} output/$${test}.out - || \
+	echo "Possible problem with $${test}, diffs above"; \
+	${RM} -f $${test}.tmp
+
 runtest1_1:
 	-@test=test1_1; \
 	${MPIEXEC} -n 1 ./test1 -bv_type vecs -verbose 2>&1 > $${test}.tmp; \
@@ -116,6 +129,11 @@ runtest1_3:
 	-@test=test1_3; \
 	${MPIEXEC} -n 1 ./test1 -bv_type svec -verbose 2>&1 > $${test}.tmp; \
 	${TESTCODE}
+
+runtest1_3_cuda:
+	-@test=test1_3; \
+	${MPIEXEC} -n 1 ./test1 -bv_type svec -vec_type cuda -verbose 2>&1 > $${test}.tmp; \
+	${TESTCODE_CUDA}
 
 runtest1_4:
 	-@test=test1_4; \
@@ -137,6 +155,11 @@ runtest2_3:
 	${MPIEXEC} -n 1 ./test2 -bv_type svec -bv_orthog_type cgs 2>&1 > $${test}.tmp; \
 	${TESTCODE}
 
+runtest2_3_cuda:
+	-@test=test2_1; \
+	${MPIEXEC} -n 1 ./test2 -bv_type svec -bv_orthog_type cgs -vec_type cuda 2>&1 > $${test}.tmp; \
+	${TESTCODE_CUDA}
+
 runtest2_4:
 	-@test=test2_1; \
 	${MPIEXEC} -n 1 ./test2 -bv_type mat -bv_orthog_type cgs 2>&1 > $${test}.tmp; \
@@ -156,6 +179,11 @@ runtest2_7:
 	-@test=test2_1; \
 	${MPIEXEC} -n 1 ./test2 -bv_type svec -bv_orthog_type mgs 2>&1 > $${test}.tmp; \
 	${TESTCODE}
+
+runtest2_7_cuda:
+	-@test=test2_1; \
+	${MPIEXEC} -n 1 ./test2 -bv_type svec -bv_orthog_type mgs -vec_type cuda 2>&1 > $${test}.tmp; \
+	${TESTCODE_CUDA}
 
 runtest2_8:
 	-@test=test2_1; \
@@ -177,6 +205,11 @@ runtest3_3:
 	${MPIEXEC} -n 1 ./test3 -bv_type svec 2>&1 > $${test}.tmp; \
 	${TESTCODE}
 
+runtest3_3_cuda:
+	-@test=test3_1; \
+	${MPIEXEC} -n 1 ./test3 -bv_type svec -mat_type aijcusparse 2>&1 > $${test}.tmp; \
+	${TESTCODE_CUDA}
+
 runtest3_4:
 	-@test=test3_1; \
 	${MPIEXEC} -n 1 ./test3 -bv_type mat 2>&1 > $${test}.tmp; \
@@ -196,6 +229,11 @@ runtest4_3:
 	-@test=test4_1; \
 	${MPIEXEC} -n 1 ./test4 -n 18 -kx 12 -ky 8 -bv_type svec -trans 2>&1 > $${test}.tmp; \
 	${TESTCODE}
+
+runtest4_3_cuda:
+	-@test=test4_1; \
+	${MPIEXEC} -n 1 ./test4 -n 18 -kx 12 -ky 8 -bv_type svec -trans -vec_type cuda 2>&1 > $${test}.tmp; \
+	${TESTCODE_CUDA}
 
 runtest4_4:
 	-@test=test4_1; \
@@ -237,6 +275,11 @@ runtest6_3:
 	${MPIEXEC} -n 1 ./test6 -bv_type svec 2>&1 > $${test}.tmp; \
 	${TESTCODE}
 
+runtest6_3_cuda:
+	-@test=test6_1; \
+	${MPIEXEC} -n 1 ./test6 -bv_type svec -vec_type cuda 2>&1 > $${test}.tmp; \
+	${TESTCODE_CUDA}
+
 runtest6_4:
 	-@test=test6_1; \
 	${MPIEXEC} -n 1 ./test6 -bv_type mat 2>&1 > $${test}.tmp; \
@@ -256,6 +299,11 @@ runtest7_3:
 	-@test=test7_1; \
 	${MPIEXEC} -n 1 ./test7 -bv_type svec 2>&1 > $${test}.tmp; \
 	${TESTCODE}
+
+runtest7_3_cuda:
+	-@test=test7_1; \
+	${MPIEXEC} -n 1 ./test7 -bv_type svec -mat_type aijcusparse 2>&1 > $${test}.tmp; \
+	${TESTCODE_CUDA}
 
 runtest7_4:
 	-@test=test7_1; \

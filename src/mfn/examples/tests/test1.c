@@ -19,8 +19,9 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-static char help[] = "Computes exp(A)*v for a matrix loaded from file.\n\n"
+static char help[] = "Computes exp(t*A)*v for a matrix loaded from file.\n\n"
   "The command line options are:\n"
+  "  -t <sval>, where <sval> = scalar value that multiplies the argument.\n"
   "  -file <filename>, where <filename> = matrix file in PETSc binary form.\n\n";
 
 #include <slepcmfn.h>

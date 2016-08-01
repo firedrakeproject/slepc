@@ -71,7 +71,7 @@ PetscErrorCode TestMatCombine(FN fn,Mat A,PetscViewer viewer,PetscBool verbose,P
   }
   /* print matrix norm for checking */
   ierr = MatNorm(F,NORM_1,&nrm);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"The 1-norm of f(A) is %g\n",(double)nrm);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"The 1-norm of f(A) is %6.3f\n",(double)nrm);CHKERRQ(ierr);
   /* check FNEvaluateFunctionMatVec() */
   ierr = MatCreateVecs(A,&v,&f0);CHKERRQ(ierr);
   ierr = MatGetColumnVector(F,f0,0);CHKERRQ(ierr);
