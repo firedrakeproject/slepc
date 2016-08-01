@@ -28,9 +28,9 @@ EXAMPLESC  = ex20.c ex21.c ex22.c ex27.c
 EXAMPLESF  =
 MANSEC     = NEP
 
-TESTEXAMPLES_C           = ex21.PETSc runex21_1 ex21.rm \
-                           ex22.PETSc runex22_1 ex22.rm \
+TESTEXAMPLES_C           = ex22.PETSc runex22_1 ex22.rm \
                            ex27.PETSc runex27_1 runex27_2 ex27.rm
+TESTEXAMPLES_C_NOTSINGLE = ex21.PETSc runex21_1 ex21.rm
 TESTEXAMPLES_C_COMPLEX   = ex22.PETSc runex22_ciss_1 ex22.rm
 TESTEXAMPLES_F90         =
 
@@ -67,7 +67,8 @@ runex21_1:
 	   ${RM} -f ex21_1.tmp
 
 runex22_1:
-	-@${MPIEXEC} -n 1 ./ex22 -terse > ex22_1.tmp 2>&1; \
+	-@if [ "${PETSC_PRECISION}" == "single" ]; then EXTRA="-nep_tol 1e-3"; fi; \
+	  ${MPIEXEC} -n 1 ./ex22 -terse $$EXTRA > ex22_1.tmp 2>&1; \
 	   if (${DIFF} output/ex22_1.out ex22_1.tmp) then true; \
 	   else echo "Possible problem with ex22_1, diffs above"; fi; \
 	   ${RM} -f ex22_1.tmp

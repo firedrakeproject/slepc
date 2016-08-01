@@ -108,8 +108,8 @@ int main(int argc,char **argv)
   /* compute norm of difference */
   ierr = VecAXPY(y,-1.0,v);CHKERRQ(ierr);
   ierr = VecNorm(y,NORM_2,&norm);CHKERRQ(ierr);
-  if (norm<1e-12) {
-    ierr = PetscPrintf(PETSC_COMM_WORLD," The norm of the difference is <1e-12\n\n");CHKERRQ(ierr);
+  if (norm<100*PETSC_MACHINE_EPSILON) {
+    ierr = PetscPrintf(PETSC_COMM_WORLD," The norm of the difference is <100*eps\n\n");CHKERRQ(ierr);
   } else {
     ierr = PetscPrintf(PETSC_COMM_WORLD," The norm of the difference is %g\n\n",(double)norm);CHKERRQ(ierr);
   }
