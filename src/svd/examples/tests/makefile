@@ -50,7 +50,7 @@ test3: test3.o chkopts
 #------------------------------------------------------------------------------------
 SVD = lanczos lapack trlanczos
 SVDEPS = cross cyclic
-EPS = krylovschur arnoldi lanczos gd jd
+EPS = krylovschur gd jd
 
 runtest1_1:
 	-@touch test1_1.tmp; \

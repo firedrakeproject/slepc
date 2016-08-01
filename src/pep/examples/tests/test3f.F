@@ -247,11 +247,10 @@
       call PEPSetFromOptions(pep,ierr)
       call PEPSolve(pep,ierr) 
       call PEPGetConvergedReason(pep,reason,ierr)
-      call PEPGetIterationNumber(pep,its,ierr)
       if (rank .eq. 0) then
-        write(*,240) reason,its
+        write(*,240) reason
       endif
- 240  format (' Finished - converged reason =',I2,', its=',I4)
+ 240  format (' Finished - converged reason =',I2)
 
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 !     Display solution and clean up

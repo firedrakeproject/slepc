@@ -35,12 +35,12 @@ TESTEXAMPLES_C           = test1.PETSc runtest1_1 test1.rm \
                            test2.PETSc runtest2_1 test2.rm \
                            test3.PETSc runtest3_1 test3.rm \
                            test4.PETSc runtest4_1 test4.rm \
-                           test5.PETSc runtest5_1 test5.rm \
-                           test6.PETSc runtest6_1 test6.rm \
                            test7.PETSc runtest7_1 test7.rm \
                            test8.PETSc runtest8_1 test8.rm \
                            test9.PETSc runtest9_1 test9.rm \
-                           test12.PETSc runtest12_1 test12.rm \
+                           test12.PETSc runtest12_1 test12.rm
+TESTEXAMPLES_C_NOTSINGLE = test5.PETSc runtest5_1 test5.rm \
+                           test6.PETSc runtest6_1 test6.rm \
                            test15.PETSc runtest15_1 test15.rm
 TESTEXAMPLES_C_NOCOMPLEX = test13.PETSc runtest13_1 test13.rm
 TESTEXAMPLES_FORTRAN     = test14f.PETSc runtest14f_1 test14f.rm

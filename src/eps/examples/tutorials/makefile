@@ -29,17 +29,18 @@ EXAMPLESC  = ex1.c ex2.c ex3.c ex4.c ex5.c ex7.c ex9.c ex10.c ex11.c ex12.c ex13
 EXAMPLESF  = ex1f.F ex1f90.F90 ex6f.F
 MANSEC     = EPS
 
-TESTEXAMPLES_C                 = ex2.PETSc runex2_1 runex2_ciss_1 runex2_ciss_2 ex2.rm \
+TESTEXAMPLES_C                 = ex2.PETSc runex2_ciss_1 runex2_ciss_2 ex2.rm \
                                  ex3.PETSc runex3_1 ex3.rm \
                                  ex5.PETSc runex5_1 ex5.rm \
-                                 ex10.PETSc runex10_1 ex10.rm \
-                                 ex11.PETSc runex11_1 ex11.rm \
-                                 ex12.PETSc runex12_1 ex12.rm \
                                  ex13.PETSc runex13_1 ex13.rm \
                                  ex18.PETSc runex18_1 ex18.rm \
                                  ex24.PETSc runex24_1 ex24.rm \
                                  ex29.PETSc runex29_1 ex29.rm
-TESTEXAMPLES_C_NOTSINGLE       = ex9.PETSc runex9_1 runex9_2 ex9.rm \
+TESTEXAMPLES_C_NOTSINGLE       = ex2.PETSc runex2_1 ex2.rm \
+                                 ex9.PETSc runex9_1 runex9_2 ex9.rm \
+                                 ex10.PETSc runex10_1 ex10.rm \
+                                 ex11.PETSc runex11_1 ex11.rm \
+                                 ex12.PETSc runex12_1 ex12.rm \
                                  ex30.PETSc runex30_1 ex30.rm
 TESTEXAMPLES_C_NOCOMPLEX       = ex4.PETSc runex4_1 ex4.rm \
                                  ex7.PETSc runex7_1 ex7.rm \
@@ -158,7 +159,7 @@ runex1f90_1:
 	   ${RM} -f ex1f90_1.tmp
 
 runex2_1:
-	-@${MPIEXEC} -n 1 ./ex2 -n 72 -eps_nev 4 -terse > ex2_1.tmp 2>&1; \
+	-@${MPIEXEC} -n 1 ./ex2 -n 72 -eps_nev 4 -eps_ncv 20 -terse > ex2_1.tmp 2>&1; \
 	   if (${DIFF} output/ex2_1.out ex2_1.tmp) then true; \
 	   else echo "Possible problem with ex2_1, diffs above"; fi; \
 	   ${RM} -f ex2_1.tmp
@@ -184,7 +185,7 @@ runex2_ciss_2:
 	 fi
 
 runex3_1:
-	-@${MPIEXEC} -n 1 ./ex3 -n 72 -eps_nev 4 -terse > ex3_1.tmp 2>&1; \
+	-@${MPIEXEC} -n 1 ./ex3 -n 72 -eps_nev 4 -eps_ncv 20 -terse > ex3_1.tmp 2>&1; \
 	   if (${DIFF} output/ex3_1.out ex3_1.tmp) then true; \
 	   else echo "Possible problem with ex3_1, diffs above"; fi; \
 	   ${RM} -f ex3_1.tmp
@@ -263,7 +264,7 @@ runex12_1:
 	   ${RM} -f ex12_1.tmp
 
 runex13_1:
-	-@${MPIEXEC} -n 1 ./ex13 -eps_nev 4 -terse > ex13_1.tmp 2>&1; \
+	-@${MPIEXEC} -n 1 ./ex13 -eps_nev 4 -eps_ncv 20 -terse > ex13_1.tmp 2>&1; \
 	   if (${DIFF} output/ex13_1.out ex13_1.tmp) then true; \
 	   else echo "Possible problem with ex13_1, diffs above"; fi; \
 	   ${RM} -f ex13_1.tmp
@@ -281,13 +282,14 @@ runex19_1:
 	   ${RM} -f ex19_1.tmp
 
 runex24_1:
-	-@${MPIEXEC} -n 1 ./ex24 -n 15 -eps_ncv 18 -eps_max_it 1000 -eps_tol 1e-5 -terse > ex24_1.tmp 2>&1; \
+	-@${MPIEXEC} -n 1 ./ex24 -n 15 -eps_nev 1 -eps_ncv 12 -eps_max_it 1000 -eps_tol 1e-5 -terse > ex24_1.tmp 2>&1; \
 	   if (${DIFF} output/ex24_1.out ex24_1.tmp) then true; \
 	   else echo "Possible problem with ex24_1, diffs above"; fi; \
 	   ${RM} -f ex24_1.tmp
 
 runex25_1:
-	-@${MPIEXEC} -n 1 ./ex25 -terse > ex25_1.tmp 2>&1; \
+	-@if [ "${PETSC_PRECISION}" == "single" ]; then EXTRA="-eps_tol 1e-5"; fi; \
+	  ${MPIEXEC} -n 1 ./ex25 -terse $$EXTRA > ex25_1.tmp 2>&1; \
 	   if (${DIFF} output/ex25_1.out ex25_1.tmp) then true; \
 	   else echo "Possible problem with ex25_1, diffs above"; fi; \
 	   ${RM} -f ex25_1.tmp

@@ -47,7 +47,7 @@ int main(int argc,char **argv)
   Mat            A[NMAT];         /* problem matrices */
   FN             f[NMAT];         /* functions to define the nonlinear operator */
   NEP            nep;             /* nonlinear eigensolver context */
-  PetscInt       n=20,Istart,Iend,i;
+  PetscInt       n=100,Istart,Iend,i;
   PetscReal      kappa=1.0,m=1.0;
   PetscScalar    sigma,numer[2],denom[2];
   PetscBool      terse;

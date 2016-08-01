@@ -55,13 +55,13 @@ ex28: ex28.o chkopts
 DATAPATH = ${SLEPC_DIR}/share/slepc/datafiles/matrices
 
 runex16_1:
-	-@${MPIEXEC} -n 1 ./ex16 -pep_nev 4 -terse > ex16_1.tmp 2>&1; \
+	-@${MPIEXEC} -n 1 ./ex16 -pep_nev 4 -pep_ncv 20 -terse > ex16_1.tmp 2>&1; \
 	   if (${DIFF} output/ex16_1.out ex16_1.tmp) then true; \
 	   else echo "Possible problem with ex16_1, diffs above"; fi; \
 	   ${RM} -f ex16_1.tmp
 
 runex16f90_1:
-	-@${MPIEXEC} -n 1 ./ex16f90 -pep_nev 4 -terse > ex16f90_1.tmp 2>&1; \
+	-@${MPIEXEC} -n 1 ./ex16f90 -pep_nev 4 -pep_ncv 20 -terse > ex16f90_1.tmp 2>&1; \
 	   if (${DIFF} output/ex16f90_1.out ex16f90_1.tmp) then true; \
 	   else echo "Possible problem with ex16f90_1, diffs above"; fi; \
 	   ${RM} -f ex16f90_1.tmp

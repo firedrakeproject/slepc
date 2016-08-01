@@ -143,9 +143,13 @@ runtest1_1:
 	${TESTCODE}
 
 runtest1_2:
-	-@test=test1_2; \
-	${MPIEXEC} -n 1 ./test1  -eps_interval .1,1.1 -eps_tol 1e-10 -st_type sinvert -st_ksp_type preonly -st_pc_type cholesky 2>&1 >  $${test}.tmp; \
-	${TESTCODE}
+	-@if [ "${PETSC_PRECISION}" == "single" ]; then \
+	   echo "Skipping test1_2 test"; \
+	 else \
+	  test=test1_2; \
+	  ${MPIEXEC} -n 1 ./test1 -eps_interval .1,1.1 -eps_tol 1e-10 -st_type sinvert -st_ksp_type preonly -st_pc_type cholesky 2>&1 >  $${test}.tmp; \
+	  ${TESTCODE}; \
+         fi
 
 runtest2_1:
 	-@test=test2_1; \
@@ -177,10 +181,10 @@ runtest5_1:
 	-@test=test5_1; \
 	for eps in ${EPSNS}; do \
 	   echo "eps type $$eps" >> test5_1.tmp; \
-	   if [ "$$eps" = gd ]; then EXTRA="-eps_gd_minv 3"; \
-	   elif [ "$$eps" = jd ]; then EXTRA="-eps_jd_minv 2"; \
+	   if [ "$$eps" = gd ]; then EXTRA=""; \
+	   elif [ "$$eps" = jd ]; then EXTRA="-eps_jd_minv 3"; \
 	   elif [ "$$eps" = "gd2" ]; then eps=gd; EXTRA="-eps_gd_double_expansion"; else EXTRA=""; fi; \
-	   ${MPIEXEC} -n 1 ./test5 -eps_type $$eps -eps_nev 4 $$EXTRA >> test5_1.tmp 2>&1; \
+	   ${MPIEXEC} -n 1 ./test5 -eps_type $$eps -eps_nev 3 $$EXTRA >> test5_1.tmp 2>&1; \
 	done; \
 	if (${GREP} USE_COMPLEX ${PETSC_DIR}/${PETSC_ARCH}/include/petscconf.h > /dev/null 2>&1) then \
 	  [ x${SAVE_OUTPUT} = xyes ] && cp test5_1.tmp output/test5_1_complex.out; \

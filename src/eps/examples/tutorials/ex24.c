@@ -56,7 +56,7 @@ int main(int argc,char **argv)
   EPSType        type;
   CTX_FOLD       *ctx;
   PetscInt       nconv,N,n=10,m,Istart,Iend,II,i,j;
-  PetscReal      *error,*evals,target=2.16,tol;
+  PetscReal      *error,*evals,target=0.0,tol;
   PetscScalar    lambda;
   PetscBool      flag,terse,errok;
   PetscErrorCode ierr;
