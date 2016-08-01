@@ -157,8 +157,7 @@ int main(int argc,char **argv)
   ierr = PEPSetFromOptions(pep);CHKERRQ(ierr);
   ierr = PEPSolve(pep);CHKERRQ(ierr);
   ierr = PEPGetConvergedReason(pep,&reason);CHKERRQ(ierr);
-  ierr = PEPGetIterationNumber(pep,&its);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," Finished - converged reason = %d, its=%D\n",(int)reason,its);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD," Finished - converged reason = %d\n",(int)reason);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                     Display solution and clean up
