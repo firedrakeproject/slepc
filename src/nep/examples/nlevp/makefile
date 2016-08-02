@@ -44,7 +44,7 @@ gun: gun.o chkopts
 
 #------------------------------------------------------------------------------------
 runloaded_string:
-	-@if [ "${PETSC_PRECISION}" == "single" ]; then EXTRA="-nep_tol 1e-5"; fi; \
+	-@if [ "${PETSC_PRECISION}" = "single" ]; then EXTRA="-nep_tol 1e-5"; fi; \
 	  ${MPIEXEC} -n 1 ./loaded_string -nep_type rii -terse $$EXTRA > loaded_string_1.tmp 2>&1; \
 	   if (${DIFF} output/loaded_string_1.out loaded_string_1.tmp) then true; \
 	   else echo "Possible problem with loaded_string_1, diffs above"; fi; \

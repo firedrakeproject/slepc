@@ -143,7 +143,7 @@ runtest1_1:
 	${TESTCODE}
 
 runtest1_2:
-	-@if [ "${PETSC_PRECISION}" == "single" ]; then \
+	-@if [ "${PETSC_PRECISION}" = "single" ]; then \
 	   echo "Skipping test1_2 test"; \
 	 else \
 	  test=test1_2; \
@@ -178,24 +178,28 @@ runtest4_1:
 	${TESTCODE}
 
 runtest5_1:
-	-@test=test5_1; \
-	for eps in ${EPSNS}; do \
-	   echo "eps type $$eps" >> test5_1.tmp; \
-	   if [ "$$eps" = gd ]; then EXTRA=""; \
-	   elif [ "$$eps" = jd ]; then EXTRA="-eps_jd_minv 3"; \
-	   elif [ "$$eps" = "gd2" ]; then eps=gd; EXTRA="-eps_gd_double_expansion"; else EXTRA=""; fi; \
-	   ${MPIEXEC} -n 1 ./test5 -eps_type $$eps -eps_nev 3 $$EXTRA >> test5_1.tmp 2>&1; \
-	done; \
-	if (${GREP} USE_COMPLEX ${PETSC_DIR}/${PETSC_ARCH}/include/petscconf.h > /dev/null 2>&1) then \
-	  [ x${SAVE_OUTPUT} = xyes ] && cp test5_1.tmp output/test5_1_complex.out; \
-	  if (${DIFF} output/test5_1_complex.out test5_1.tmp) then true; \
-	  else echo "Possible problem with test5_1, diffs above"; fi; \
-	else \
-	  [ x${SAVE_OUTPUT} = xyes ] && cp test5_1.tmp output/test5_1.out; \
-	  if (${DIFF} output/test5_1.out test5_1.tmp) then true; \
-	  else echo "Possible problem with test5_1, diffs above"; fi; \
-	fi; \
-	${RM} -f test5_1.tmp;
+	-@if [ "${PETSC_PRECISION}" = "single" ]; then \
+	   echo "Skipping test5_1 test"; \
+	 else \
+	  test=test5_1; \
+	  for eps in ${EPSNS}; do \
+	     echo "eps type $$eps" >> test5_1.tmp; \
+	     if [ "$$eps" = gd ]; then EXTRA=""; \
+	     elif [ "$$eps" = jd ]; then EXTRA="-eps_jd_minv 3"; \
+	     elif [ "$$eps" = "gd2" ]; then eps=gd; EXTRA="-eps_gd_double_expansion"; else EXTRA=""; fi; \
+	     ${MPIEXEC} -n 1 ./test5 -eps_type $$eps -eps_nev 3 $$EXTRA >> test5_1.tmp 2>&1; \
+	  done; \
+	  if (${GREP} USE_COMPLEX ${PETSC_DIR}/${PETSC_ARCH}/include/petscconf.h > /dev/null 2>&1) then \
+	    [ x${SAVE_OUTPUT} = xyes ] && cp test5_1.tmp output/test5_1_complex.out; \
+	    if (${DIFF} output/test5_1_complex.out test5_1.tmp) then true; \
+	    else echo "Possible problem with test5_1, diffs above"; fi; \
+	  else \
+	    [ x${SAVE_OUTPUT} = xyes ] && cp test5_1.tmp output/test5_1.out; \
+	    if (${DIFF} output/test5_1.out test5_1.tmp) then true; \
+	    else echo "Possible problem with test5_1, diffs above"; fi; \
+	  fi; \
+	  ${RM} -f test5_1.tmp; \
+	 fi
 
 runtest5_blopex:
 	-@${MPIEXEC} -n 1 ./test5 -symm -eps_type blopex -eps_nev 4 > test5_blopex.tmp 2>&1; \
