@@ -143,7 +143,7 @@ runtest1_1:
 	${TESTCODE}
 
 runtest1_2:
-	-@if [ "${PETSC_PRECISION}" == "single" ]; then \
+	-@if [ "${PETSC_PRECISION}" = "single" ]; then \
 	   echo "Skipping test1_2 test"; \
 	 else \
 	  test=test1_2; \

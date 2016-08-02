@@ -288,7 +288,7 @@ runex24_1:
 	   ${RM} -f ex24_1.tmp
 
 runex25_1:
-	-@if [ "${PETSC_PRECISION}" == "single" ]; then EXTRA="-eps_tol 1e-5"; fi; \
+	-@if [ "${PETSC_PRECISION}" = "single" ]; then EXTRA="-eps_tol 1e-5"; fi; \
 	  ${MPIEXEC} -n 1 ./ex25 -terse $$EXTRA > ex25_1.tmp 2>&1; \
 	   if (${DIFF} output/ex25_1.out ex25_1.tmp) then true; \
 	   else echo "Possible problem with ex25_1, diffs above"; fi; \

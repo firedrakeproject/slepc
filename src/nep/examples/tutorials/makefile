@@ -67,7 +67,7 @@ runex21_1:
 	   ${RM} -f ex21_1.tmp
 
 runex22_1:
-	-@if [ "${PETSC_PRECISION}" == "single" ]; then EXTRA="-nep_tol 1e-3"; fi; \
+	-@if [ "${PETSC_PRECISION}" = "single" ]; then EXTRA="-nep_tol 1e-3"; fi; \
 	  ${MPIEXEC} -n 1 ./ex22 -terse $$EXTRA > ex22_1.tmp 2>&1; \
 	   if (${DIFF} output/ex22_1.out ex22_1.tmp) then true; \
 	   else echo "Possible problem with ex22_1, diffs above"; fi; \
