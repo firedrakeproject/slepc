@@ -308,7 +308,7 @@ testtest10: test10.PETSc
 
 runtest11_1:
 	-@test=test11_1; \
-	for eps in krylovschur arnoldi gd jd; do \
+	for eps in krylovschur arnoldi gd; do \
 	   echo "eps type $$eps"; \
 	   if [ "$$eps" = krylovschur -o "$$eps" = arnoldi ]; then EXTRA="-st_type sinvert"; \
 	   elif [ "$$eps" = gd ]; then EXTRA="-eps_max_it 5000"; \
