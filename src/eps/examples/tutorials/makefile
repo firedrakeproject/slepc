@@ -30,13 +30,13 @@ EXAMPLESF  = ex1f.F ex1f90.F90 ex6f.F
 MANSEC     = EPS
 
 TESTEXAMPLES_C                 = ex2.PETSc runex2_ciss_1 runex2_ciss_2 ex2.rm \
-                                 ex3.PETSc runex3_1 ex3.rm \
                                  ex5.PETSc runex5_1 ex5.rm \
                                  ex13.PETSc runex13_1 ex13.rm \
                                  ex18.PETSc runex18_1 ex18.rm \
                                  ex24.PETSc runex24_1 ex24.rm \
                                  ex29.PETSc runex29_1 ex29.rm
 TESTEXAMPLES_C_NOTSINGLE       = ex2.PETSc runex2_1 ex2.rm \
+                                 ex3.PETSc runex3_1 ex3.rm \
                                  ex9.PETSc runex9_1 runex9_2 ex9.rm \
                                  ex10.PETSc runex10_1 ex10.rm \
                                  ex11.PETSc runex11_1 ex11.rm \
@@ -264,7 +264,7 @@ runex12_1:
 	   ${RM} -f ex12_1.tmp
 
 runex13_1:
-	-@${MPIEXEC} -n 1 ./ex13 -eps_nev 4 -eps_ncv 20 -terse > ex13_1.tmp 2>&1; \
+	-@${MPIEXEC} -n 1 ./ex13 -eps_nev 4 -eps_ncv 22 -terse > ex13_1.tmp 2>&1; \
 	   if (${DIFF} output/ex13_1.out ex13_1.tmp) then true; \
 	   else echo "Possible problem with ex13_1, diffs above"; fi; \
 	   ${RM} -f ex13_1.tmp
