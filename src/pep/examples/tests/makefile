@@ -29,11 +29,11 @@ EXAMPLESF  = test3f.F
 MANSEC     = PEP
 TESTS      = test1 test2 test3 test3f
 
-TESTEXAMPLES_C           = test2.PETSc runtest2_2 runtest2_4 test2.rm \
-                           test3.PETSc runtest3_1 test3.rm
-TESTEXAMPLES_C_NOTSINGLE = test1.PETSc runtest1_1 test1.rm \
-                           test2.PETSc runtest2_1 runtest2_3 test2.rm
-TESTEXAMPLES_FORTRAN     = test3f.PETSc runtest3f_1 test3f.rm \
+TESTEXAMPLES_C                     = test2.PETSc runtest2_2 runtest2_4 test2.rm \
+                                     test3.PETSc runtest3_1 test3.rm
+TESTEXAMPLES_C_NOCOMPLEX_NOTSINGLE = test1.PETSc runtest1_1 test1.rm
+TESTEXAMPLES_C_NOTSINGLE           = test2.PETSc runtest2_1 runtest2_3 test2.rm
+TESTEXAMPLES_FORTRAN               = test3f.PETSc runtest3f_1 test3f.rm \
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common
 

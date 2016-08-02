@@ -261,7 +261,7 @@ slepcvars.write('SLEPC_DESTDIR = '+slepc.prefixdir+'\n')
 if emptyarch:
   slepcvars.write('INSTALLED_PETSC = 1\n')
 testruns = set(petsc.test_runs.split())
-testruns = testruns.intersection(set(['C','F90','Fortran','C_Complex','Fortran_Complex','C_NoComplex','F90_NoComplex','Fortran_NoComplex','C_NotSingle','VECCUDA','VECCUDA_Complex','VECCUDA_NoComplex']))
+testruns = testruns.intersection(set(['C','F90','Fortran','C_Complex','Fortran_Complex','C_NoComplex','F90_NoComplex','Fortran_NoComplex','C_NotSingle','C_NoComplex_NotSingle','VECCUDA','VECCUDA_Complex','VECCUDA_NoComplex']))
 if petsc.precision != '__float128':
   testruns = testruns.union(set(['C_NoF128']))
 if slepc.datadir:
