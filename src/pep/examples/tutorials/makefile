@@ -28,10 +28,10 @@ EXAMPLESC  = ex16.c ex17.c ex28.c
 EXAMPLESF  = ex16f90.F90
 MANSEC     = PEP
 
-TESTEXAMPLES_C_NOTSINGLE   = ex28.PETSc runex28_1 ex28.rm
-TESTEXAMPLES_C_NOCOMPLEX   = ex16.PETSc runex16_1 ex16.rm \
-                             ex17.PETSc runex17_1 ex17.rm
-TESTEXAMPLES_F90_NOCOMPLEX = ex16f90.PETSc runex16f90_1 ex16f90.rm
+TESTEXAMPLES_C_NOCOMPLEX_NOTSINGLE = ex28.PETSc runex28_1 ex28.rm
+TESTEXAMPLES_C_NOCOMPLEX           = ex16.PETSc runex16_1 ex16.rm \
+                                     ex17.PETSc runex17_1 ex17.rm
+TESTEXAMPLES_F90_NOCOMPLEX         = ex16f90.PETSc runex16f90_1 ex16f90.rm
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common
 

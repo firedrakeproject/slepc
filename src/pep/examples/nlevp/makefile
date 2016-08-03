@@ -34,9 +34,9 @@ TESTS      = acoustic_wave_1d acoustic_wave_2d butterfly damped_beam \
 TESTEXAMPLES_C                     = sleeper.PETSc runsleeper sleeper.rm \
                                      spring.PETSc runspring spring.rm
 TESTEXAMPLES_C_NOCOMPLEX           = butterfly.PETSc runbutterfly butterfly.rm
-TESTEXAMPLES_C_NOTSINGLE           = damped_beam.PETSc rundamped_beam damped_beam.rm
 TESTEXAMPLES_C_NOCOMPLEX_NOTSINGLE = acoustic_wave_1d.PETSc runacoustic_wave_1d_1 acoustic_wave_1d.rm \
                                      acoustic_wave_2d.PETSc runacoustic_wave_2d_1 acoustic_wave_2d.rm \
+                                     damped_beam.PETSc rundamped_beam damped_beam.rm \
                                      planar_waveguide.PETSc runplanar_waveguide planar_waveguide.rm
 TESTEXAMPLES_C_COMPLEX             = pdde_stability.PETSc runpdde_stability pdde_stability.rm
 
@@ -100,7 +100,7 @@ rundamped_beam:
 	   ${RM} -f damped_beam_1.tmp
 
 runpdde_stability:
-	-@${MPIEXEC} -n 1 ./pdde_stability -terse > pdde_stability_1.tmp 2>&1; \
+	-@${MPIEXEC} -n 1 ./pdde_stability -pep_ncv 25 -terse > pdde_stability_1.tmp 2>&1; \
 	   if (${DIFF} output/pdde_stability_1.out pdde_stability_1.tmp) then true; \
 	   else echo "Possible problem with pdde_stability_1, diffs above"; fi; \
 	   ${RM} -f pdde_stability_1.tmp
