@@ -29,27 +29,27 @@ EXAMPLESC  = ex1.c ex2.c ex3.c ex4.c ex5.c ex7.c ex9.c ex10.c ex11.c ex12.c ex13
 EXAMPLESF  = ex1f.F ex1f90.F90 ex6f.F
 MANSEC     = EPS
 
-TESTEXAMPLES_C                 = ex2.PETSc runex2_ciss_1 runex2_ciss_2 ex2.rm \
-                                 ex5.PETSc runex5_1 ex5.rm \
-                                 ex13.PETSc runex13_1 ex13.rm \
-                                 ex18.PETSc runex18_1 ex18.rm \
-                                 ex24.PETSc runex24_1 ex24.rm \
-                                 ex29.PETSc runex29_1 ex29.rm
-TESTEXAMPLES_C_NOTSINGLE       = ex2.PETSc runex2_1 ex2.rm \
-                                 ex3.PETSc runex3_1 ex3.rm \
-                                 ex9.PETSc runex9_1 runex9_2 ex9.rm \
-                                 ex10.PETSc runex10_1 ex10.rm \
-                                 ex11.PETSc runex11_1 ex11.rm \
-                                 ex12.PETSc runex12_1 ex12.rm \
-                                 ex30.PETSc runex30_1 ex30.rm
-TESTEXAMPLES_C_NOCOMPLEX       = ex4.PETSc runex4_1 ex4.rm \
-                                 ex7.PETSc runex7_1 ex7.rm \
-                                 ex25.PETSc runex25_1 ex25.rm \
-                                 ex31.PETSc runex31_1 ex31.rm
-TESTEXAMPLES_FORTRAN_NOCOMPLEX = ex6f.PETSc runex6f_1 ex6f.rm
-TESTEXAMPLES_F90               = ex1f90.PETSc runex1f90_1 ex1f90.rm
+TESTEXAMPLES_C                     = ex2.PETSc runex2_ciss_1 runex2_ciss_2 ex2.rm \
+                                     ex5.PETSc runex5_1 ex5.rm \
+                                     ex13.PETSc runex13_1 ex13.rm \
+                                     ex18.PETSc runex18_1 ex18.rm \
+                                     ex24.PETSc runex24_1 ex24.rm \
+                                     ex29.PETSc runex29_1 ex29.rm
+TESTEXAMPLES_C_NOTSINGLE           = ex2.PETSc runex2_1 ex2.rm \
+                                     ex3.PETSc runex3_1 ex3.rm \
+                                     ex10.PETSc runex10_1 ex10.rm \
+                                     ex11.PETSc runex11_1 ex11.rm \
+                                     ex12.PETSc runex12_1 ex12.rm \
+                                     ex30.PETSc runex30_1 ex30.rm
+TESTEXAMPLES_C_NOCOMPLEX           = ex4.PETSc runex4_1 ex4.rm \
+                                     ex7.PETSc runex7_1 ex7.rm \
+                                     ex25.PETSc runex25_1 ex25.rm \
+                                     ex31.PETSc runex31_1 ex31.rm
+TESTEXAMPLES_C_NOCOMPLEX_NOTSINGLE = ex9.PETSc runex9_1 runex9_2 ex9.rm
+TESTEXAMPLES_FORTRAN_NOCOMPLEX     = ex6f.PETSc runex6f_1 ex6f.rm
+TESTEXAMPLES_F90                   = ex1f90.PETSc runex1f90_1 ex1f90.rm
 TESTEXAMPLES_DATAFILESPATH_COMPLEX = ex4.PETSc runex4_ciss_1 ex4.rm \
-                                 ex7.PETSc runex7_ciss_1 ex7.rm
+                                     ex7.PETSc runex7_ciss_1 ex7.rm
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common
 
