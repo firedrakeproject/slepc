@@ -29,7 +29,7 @@ EXAMPLESF  = ex15f.F
 MANSEC     = SVD
 
 TESTEXAMPLES_C           = ex8.PETSc runex8_1 ex8.rm
-TESTEXAMPLES_C_NOCOMPLEX = ex14.PETSc runex14_1 ex14.rm
+TESTEXAMPLES_C_DATAFILE  = ex14.PETSc runex14_1 ex14.rm
 TESTEXAMPLES_FORTRAN     =
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common
@@ -60,12 +60,8 @@ runex8_1:
 
 runex14_1:
 	-@test=$(subst run,,$@); check=$$test; \
-	if [ "${PETSC_PRECISION}" != "double" ] || (${GREP} USE_64BIT_INDICES ${PETSC_DIR}/${PETSC_ARCH}/include/petscconf.h > /dev/null 2>&1) then \
-	  echo "Skipping $${test} test"; \
-	else \
-	  ${MPIEXEC} -n 1 ./ex14 -file ${DATAPATH}/rdb200.petsc -svd_nsv 4 -terse > $${test}.tmp 2>&1;	  \
-	  ${TESTCODE}; \
-	fi
+	${MPIEXEC} -n 1 ./ex14 -file ${DATAPATH}/rdb200.petsc -svd_nsv 4 -terse > $${test}.tmp 2>&1;	  \
+	${TESTCODE}
 
 runex15_1:
 	-@test=$(subst run,,$@); check=$$test; \

@@ -30,7 +30,7 @@ MANSEC     = MFN
 TESTS      = test1 test2
 
 TESTEXAMPLES_C           = test2.PETSc runtest2_1 test2.rm
-TESTEXAMPLES_C_NOCOMPLEX = test1.PETSc runtest1_1 test1.rm
+TESTEXAMPLES_C_DATAFILE  = test1.PETSc runtest1_1 test1.rm
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common
 
@@ -48,12 +48,8 @@ DATAPATH = ${SLEPC_DIR}/share/slepc/datafiles/matrices
 runtest1_1: runtest1_1_krylov runtest1_1_expokit
 runtest1_1_%:
 	-@test=$(subst run,,$@); check=test1; mfn=$*; \
-	if [ "${PETSC_PRECISION}" != "double" ] || (${GREP} USE_64BIT_INDICES ${PETSC_DIR}/${PETSC_ARCH}/include/petscconf.h > /dev/null 2>&1) then \
-	  echo "Skipping $$test test"; \
-	else \
-	  ${MPIEXEC} -n 1 ./test1 -file ${DATAPATH}/bfw62b.petsc -mfn_type $$mfn > $${test}.tmp 2>&1; \
-	  ${TESTCODE}; \
-	fi
+	${MPIEXEC} -n 1 ./test1 -file ${DATAPATH}/bfw62b.petsc -mfn_type $$mfn > $${test}.tmp 2>&1; \
+	${TESTCODE}
 
 runtest2_1: runtest2_1_krylov runtest2_1_expokit
 runtest2_1_%:

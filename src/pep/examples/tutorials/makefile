@@ -29,8 +29,8 @@ EXAMPLESF  = ex16f90.F90
 MANSEC     = PEP
 
 TESTEXAMPLES_C_NOCOMPLEX_NOTSINGLE = ex28.PETSc runex28_1 ex28.rm
-TESTEXAMPLES_C_NOCOMPLEX           = ex16.PETSc runex16_1 ex16.rm \
-                                     ex17.PETSc runex17_1 ex17.rm
+TESTEXAMPLES_C_NOCOMPLEX           = ex16.PETSc runex16_1 ex16.rm
+TESTEXAMPLES_C_DATAFILE            = ex17.PETSc runex17_1 ex17.rm
 TESTEXAMPLES_F90_NOCOMPLEX         = ex16f90.PETSc runex16f90_1 ex16f90.rm
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common
@@ -66,12 +66,8 @@ runex16f90_1:
 
 runex17_1:
 	-@test=$(subst run,,$@); check=$$test; \
-	if [ "${PETSC_PRECISION}" != "double" ] || (${GREP} USE_64BIT_INDICES ${PETSC_DIR}/${PETSC_ARCH}/include/petscconf.h > /dev/null 2>&1) then \
-	  echo "Skipping $$test test"; \
-	else \
-	  ${MPIEXEC} -n 1 ./ex17 -A ${DATAPATH}/speaker107k.petsc,${DATAPATH}/speaker107c.petsc,${DATAPATH}/speaker107m.petsc -pep_nev 4 -pep_ncv 20 -pep_tol 1e-14 -pep_scale both -terse > $${test}.tmp 2>&1; \
-	  ${TESTCODE}; \
-	fi
+	${MPIEXEC} -n 1 ./ex17 -A ${DATAPATH}/speaker107k.petsc,${DATAPATH}/speaker107c.petsc,${DATAPATH}/speaker107m.petsc -pep_nev 4 -pep_ncv 20 -pep_tol 1e-14 -pep_scale both -terse > $${test}.tmp 2>&1; \
+	${TESTCODE}
 
 runex28_1:
 	-@test=$(subst run,,$@); check=$$test; \

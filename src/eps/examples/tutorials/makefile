@@ -41,10 +41,10 @@ TESTEXAMPLES_C_NOTSINGLE           = ex2.PETSc runex2_1 ex2.rm \
                                      ex11.PETSc runex11_1 ex11.rm \
                                      ex12.PETSc runex12_1 ex12.rm \
                                      ex30.PETSc runex30_1 ex30.rm
-TESTEXAMPLES_C_NOCOMPLEX           = ex4.PETSc runex4_1 ex4.rm \
+TESTEXAMPLES_C_DATAFILE            = ex4.PETSc runex4_1 ex4.rm \
                                      ex7.PETSc runex7_1 ex7.rm \
-                                     ex25.PETSc runex25_1 ex25.rm \
                                      ex31.PETSc runex31_1 ex31.rm
+TESTEXAMPLES_C_NOCOMPLEX           = ex25.PETSc runex25_1 ex25.rm
 TESTEXAMPLES_C_NOCOMPLEX_NOTSINGLE = ex9.PETSc runex9_1 runex9_2 ex9.rm
 TESTEXAMPLES_FORTRAN_NOCOMPLEX     = ex6f.PETSc runex6f_1 ex6f.rm
 TESTEXAMPLES_F90                   = ex1f90.PETSc runex1f90_1 ex1f90.rm
@@ -177,12 +177,8 @@ runex3_1:
 
 runex4_1:
 	-@test=$(subst run,,$@); check=$$test; \
-	if [ "${PETSC_PRECISION}" != "double" ] || (${GREP} USE_64BIT_INDICES ${PETSC_DIR}/${PETSC_ARCH}/include/petscconf.h > /dev/null 2>&1) then \
-	  echo "Skipping $${test} test"; \
-	else \
-	  ${MPIEXEC} -n 1 ./ex4 -file ${DATAPATH}/rdb200.petsc -eps_nev 4 -terse > $${test}.tmp 2>&1; \
-	  ${TESTCODE}; \
-	fi
+	${MPIEXEC} -n 1 ./ex4 -file ${DATAPATH}/rdb200.petsc -eps_nev 4 -terse > $${test}.tmp 2>&1; \
+	${TESTCODE}
 
 runex4_ciss_1:
 	-@test=$(subst run,,$@); check=$$test; \
@@ -201,12 +197,8 @@ runex6f_1:
 
 runex7_1:
 	-@test=$(subst run,,$@); check=$$test; \
-	if [ "${PETSC_PRECISION}" != "double" ] || (${GREP} USE_64BIT_INDICES ${PETSC_DIR}/${PETSC_ARCH}/include/petscconf.h > /dev/null 2>&1) then \
-	  echo "Skipping $${test} test"; \
-	else \
-	  ${MPIEXEC} -n 1 ./ex7 -f1 ${DATAPATH}/bfw62a.petsc -f2 ${DATAPATH}/bfw62b.petsc -eps_nev 4 -terse > $${test}.tmp 2>&1; \
-	  ${TESTCODE}; \
-	fi
+	${MPIEXEC} -n 1 ./ex7 -f1 ${DATAPATH}/bfw62a.petsc -f2 ${DATAPATH}/bfw62b.petsc -eps_nev 4 -terse > $${test}.tmp 2>&1; \
+	${TESTCODE}
 
 runex7_ciss_1:
 	-@test=$(subst run,,$@); check=$$test; \
@@ -276,10 +268,6 @@ runex30_1:
 
 runex31_1:
 	-@test=$(subst run,,$@); check=$$test; \
-	if [ "${PETSC_PRECISION}" != "double" ] || (${GREP} USE_64BIT_INDICES ${PETSC_DIR}/${PETSC_ARCH}/include/petscconf.h > /dev/null 2>&1) then \
-	  echo "Skipping $${test} test"; \
-	else \
-	  ${MPIEXEC} -n 1 ./ex31 -terse > $${test}.tmp 2>&1; \
-	  ${TESTCODE}; \
-	fi
+	${MPIEXEC} -n 1 ./ex31 -terse > $${test}.tmp 2>&1; \
+	${TESTCODE}
 
