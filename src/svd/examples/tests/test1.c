@@ -62,10 +62,6 @@ int main(int argc,char **argv)
   ierr = PetscOptionsGetString(NULL,NULL,"-type",svdtype,30,NULL);CHKERRQ(ierr);
   ierr = PetscOptionsGetString(NULL,NULL,"-epstype",epstype,30,&flg);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD,"\nEstimate the condition number of a Grcar matrix, n=%D",N);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"\nSVD type: %s",svdtype);CHKERRQ(ierr);
-  if (flg) {
-    ierr = PetscPrintf(PETSC_COMM_WORLD,"\nEPS type: %s",epstype);CHKERRQ(ierr);
-  }
   ierr = PetscPrintf(PETSC_COMM_WORLD,"\n\n");CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

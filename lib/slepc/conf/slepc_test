@@ -21,6 +21,18 @@
 
 include ${PETSC_DIR}/lib/petsc/conf/test
 
+TESTCODE = \
+	[ x${SAVE_OUTPUT} = xyes ] && cp $${test}.tmp output/$${check}.out; \
+	${DIFF} output/$${check}.out $${test}.tmp || \
+	echo "Possible problem with $${test}, diffs above"; \
+	${RM} $${test}.tmp
+
+TESTCODE_CUDA = \
+	[ x${SAVE_OUTPUT} = xyes ] && cp $${test}.tmp output/$${check}.out; \
+	${SED} 's/type: seqcuda/type: seq/' $${test}.tmp | ${DIFF} output/$${check}.out - || \
+	echo "Possible problem with $${test}, diffs above"; \
+	${RM} $${test}.tmp
+
 testexamples_BLOPEX: ${TESTEXAMPLES_BLOPEX}
 testexamples_C_NoF128: ${TESTEXAMPLES_C_NOF128}
 testexamples_DATAFILESPATH_Complex: ${TESTEXAMPLES_DATAFILESPATH_COMPLEX}

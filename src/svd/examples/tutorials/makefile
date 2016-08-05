@@ -54,30 +54,26 @@ ex15f: ex15f.o chkopts
 DATAPATH = ${SLEPC_DIR}/share/slepc/datafiles/matrices
 
 runex8_1:
-	-@${MPIEXEC} -n 1 ./ex8 > ex8_1.tmp 2>&1; \
-	   if (${DIFF} output/ex8_1.out ex8_1.tmp) then true; \
-	   else echo "Possible problem with ex8_1, diffs above"; fi; \
-	   ${RM} -f ex8_1.tmp
+	-@test=$(subst run,,$@); check=$$test; \
+	${MPIEXEC} -n 1 ./ex8 > $${test}.tmp 2>&1; \
+	${TESTCODE}
 
 runex14_1:
-	-@if [ "${PETSC_PRECISION}" != "double" ] || (${GREP} USE_64BIT_INDICES ${PETSC_DIR}/${PETSC_ARCH}/include/petscconf.h > /dev/null 2>&1) then \
-           echo "Skipping ex14 test"; \
-         else \
-	   ${MPIEXEC} -n 1 ./ex14 -file ${DATAPATH}/rdb200.petsc -svd_nsv 4 -terse > ex14_1.tmp 2>&1;	  \
-	   if (${DIFF} output/ex14_1.out ex14_1.tmp) then true; \
-	   else echo "Possible problem with ex14_1, diffs above"; fi; \
-	   ${RM} -f ex14_1.tmp; \
-         fi
+	-@test=$(subst run,,$@); check=$$test; \
+	if [ "${PETSC_PRECISION}" != "double" ] || (${GREP} USE_64BIT_INDICES ${PETSC_DIR}/${PETSC_ARCH}/include/petscconf.h > /dev/null 2>&1) then \
+	  echo "Skipping $${test} test"; \
+	else \
+	  ${MPIEXEC} -n 1 ./ex14 -file ${DATAPATH}/rdb200.petsc -svd_nsv 4 -terse > $${test}.tmp 2>&1;	  \
+	  ${TESTCODE}; \
+	fi
 
 runex15_1:
-	-@${MPIEXEC} -n 1 ./ex15 > ex15_1.tmp 2>&1; \
-	   if (${DIFF} output/ex15_1.out ex15_1.tmp) then true; \
-	   else echo "Possible problem with ex15_1, diffs above"; fi; \
-	   ${RM} -f ex15_1.tmp
+	-@test=$(subst run,,$@); check=$$test; \
+	${MPIEXEC} -n 1 ./ex15 > $${test}.tmp 2>&1; \
+	${TESTCODE}
 
 runex15f_1:
-	-@${MPIEXEC} -n 1 ./ex15f > ex15f_1.tmp 2>&1; \
-	   if (${DIFF} output/ex15f_1.out ex15f_1.tmp) then true; \
-	   else echo "Possible problem with ex15f_1, diffs above"; fi; \
-	   ${RM} -f ex15f_1.tmp
+	-@test=$(subst run,,$@); check=$$test; \
+	${MPIEXEC} -n 1 ./ex15f > $${test}.tmp 2>&1; \
+	${TESTCODE}
 

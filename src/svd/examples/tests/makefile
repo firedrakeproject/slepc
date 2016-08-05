@@ -48,57 +48,34 @@ test3: test3.o chkopts
 	${RM} test3.o
 
 #------------------------------------------------------------------------------------
-SVD = lanczos lapack trlanczos
-SVDEPS = cross cyclic
-EPS = krylovschur gd jd
 
-runtest1_1:
-	-@touch test1_1.tmp; \
-	for svd in ${SVDEPS} ${SVD}; do \
-	   ${MPIEXEC} -n 1 ./test1 -type $$svd >> test1_1.tmp 2>&1; \
-	done; \
-	for svd in ${SVDEPS}; do \
-	   for eps in ${EPS}; do \
-	      ${MPIEXEC} -n 1 ./test1 -type $$svd -epstype $$eps >> test1_1.tmp 2>&1; \
-           done; \
-	done; \
-	if (${DIFF} output/test1_1.out test1_1.tmp) then true; \
-	else echo "Possible problem with test1_1, diffs above"; fi; \
-	${RM} -f test1_1.tmp
+runtest1_1: runtest1_1_lanczos runtest1_1_trlanczos runtest1_1_cross runtest1_1_cross_gd runtest1_1_cyclic runtest1_1_cyclic_gd runtest1_1_lapack 
+runtest1_1_%:
+	-@test=$(subst run,,$@); check=test1_1; svd=$*; \
+	if [ "$$svd" = cross_gd ]; then svd="cross -epstype gd"; fi; \
+	if [ "$$svd" = cyclic_gd ]; then svd="cyclic -epstype gd"; fi; \
+	${MPIEXEC} -n 1 ./test1 -type $$svd >> $${test}.tmp 2>&1; \
+	${TESTCODE}
 
-runtest2_1:
-	-@if [ "${PETSC_PRECISION}" != "double" ]; then \
-	   echo "Skipping test2_1 test"; \
-	 else \
-	  touch test2_1.tmp; \
-	  for svd in ${SVDEPS} ${SVD}; do \
-	     echo "svd type $$svd" >> test2_1.tmp; \
-	     ${MPIEXEC} -n 1 ./test2 -svd_type $$svd -svd_nsv 7 >> test2_1.tmp 2>&1;    \
-	  done; \
-	  if (${GREP} USE_COMPLEX ${PETSC_DIR}/${PETSC_ARCH}/include/petscconf.h > /dev/null 2>&1) then \
-	    [ x${SAVE_OUTPUT} = xyes ] && cp test2_1.tmp output/test2_1_complex.out; \
-	    if (${DIFF} output/test2_1_complex.out test2_1.tmp) then true; \
-	    else echo "Possible problem with test2_1, diffs above"; fi; \
-	  else \
-	    [ x${SAVE_OUTPUT} = xyes ] && cp test2_1.tmp output/test2_1.out; \
-	    if (${DIFF} output/test2_1.out test2_1.tmp) then true; \
-	    else echo "Possible problem with test2_1, diffs above"; fi; \
+runtest2_1: runtest2_1_lanczos runtest2_1_trlanczos runtest2_1_cross runtest2_1_cyclic runtest2_1_lapack 
+runtest2_1_%:
+	-@test=$(subst run,,$@); \
+	if [ "${PETSC_PRECISION}" != "double" ]; then \
+	  echo "Skipping $$test test"; \
+	else \
+	  check=test2_1; svd=$*; \
+	  if [ "${PETSC_SCALAR}" = "complex" ]; then \
+	    check=$${check}_complex; \
 	  fi; \
-	  ${RM} -f test2_1.tmp; \
+	  ${MPIEXEC} -n 1 ./test2 -svd_type $$svd -svd_nsv 7 > $${test}.tmp 2>&1;    \
+	  ${TESTCODE}; \
 	fi
 
-runtest3_1:
-	-@touch test3_1.tmp; \
-	for svd in ${SVDEPS} ${SVD}; do \
-	   echo "svd type $$svd" >> test3_1.tmp; \
-	   ${MPIEXEC} -n 1 ./test3 -svd_type $$svd -svd_nsv 4 >> test3_1.tmp 2>&1; \
-	done; \
-	echo "svd type lanczos one-sided" >> test3_1.tmp; \
-	${MPIEXEC} -n 1 ./test3 -svd_type $$svd -svd_nsv 4 -svd_type lanczos -svd_lanczos_oneside >> test3_1.tmp 2>&1; \
-	echo "svd type trlanczos one-sided" >> test3_1.tmp; \
-	${MPIEXEC} -n 1 ./test3 -svd_type $$svd -svd_nsv 4 -svd_type trlanczos -svd_trlanczos_oneside >> test3_1.tmp 2>&1; \
-	[ x${SAVE_OUTPUT} = xyes ] && cp test3_1.tmp output/test3_1.out; \
-	if (${DIFF} output/test3_1.out test3_1.tmp) then true; \
-	else echo "Possible problem with test3_1, diffs above"; fi; \
-	${RM} -f test3_1.tmp
+runtest3_1: runtest3_1_lanczos runtest3_1_lanczos_one runtest3_1_trlanczos runtest3_1_trlanczos_one runtest3_1_cross runtest3_1_cyclic runtest3_1_lapack 
+runtest3_1_%:
+	-@test=$(subst run,,$@); check=test3_1; svd=$*; \
+	if [ "$$svd" = lanczos_one ]; then svd="lanczos -svd_lanczos_oneside"; fi; \
+	if [ "$$svd" = trlanczos_one ]; then svd="trlanczos -svd_trlanczos_oneside"; fi; \
+	${MPIEXEC} -n 1 ./test3 -svd_type $$svd -svd_nsv 4 > $${test}.tmp 2>&1; \
+	${TESTCODE}
 

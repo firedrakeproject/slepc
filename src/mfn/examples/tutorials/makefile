@@ -43,14 +43,12 @@ ex26: ex26.o chkopts
 #------------------------------------------------------------------------------------
 
 runex23_1:
-	-@${MPIEXEC} -n 1 ./ex23 > ex23_1.tmp 2>&1; \
-	   if (${DIFF} output/ex23_1.out ex23_1.tmp) then true; \
-	   else echo "Possible problem with ex23_1, diffs above"; fi; \
-	   ${RM} -f ex23_1.tmp
+	-@test=$(subst run,,$@); check=$$test; \
+	${MPIEXEC} -n 1 ./ex23 > $${test}.tmp 2>&1; \
+	${TESTCODE}
 
 runex26_1:
-	-@${MPIEXEC} -n 1 ./ex26 -mfn_tol 1e-5 > ex26_1.tmp 2>&1; \
-	   if (${DIFF} output/ex26_1.out ex26_1.tmp) then true; \
-	   else echo "Possible problem with ex26_1, diffs above"; fi; \
-	   ${RM} -f ex26_1.tmp
+	-@test=$(subst run,,$@); check=$$test; \
+	${MPIEXEC} -n 1 ./ex26 -mfn_tol 1e-5 > $${test}.tmp 2>&1; \
+	${TESTCODE}
 

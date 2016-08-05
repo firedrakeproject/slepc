@@ -34,8 +34,7 @@ int main(int argc,char **argv)
 {
   Mat            M,C,K,A[3];      /* problem matrices */
   PEP            pep;             /* polynomial eigenproblem solver context */
-  PEPType        type;
-  PetscInt       N,n=10,m,Istart,Iend,II,nev,maxit,i,j;
+  PetscInt       N,n=10,m,Istart,Iend,II,nev,i,j;
   PetscBool      flag,isgd2,epsgiven;
   char           peptype[30] = "linear",epstype[30] = "";
   EPS            eps;
@@ -52,12 +51,7 @@ int main(int argc,char **argv)
   N = n*m;
   ierr = PetscOptionsGetString(NULL,NULL,"-type",peptype,30,NULL);CHKERRQ(ierr);
   ierr = PetscOptionsGetString(NULL,NULL,"-epstype",epstype,30,&epsgiven);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"\nQuadratic Eigenproblem, N=%D (%Dx%D grid)",N,n,m);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"\nPEP type: %s",peptype);CHKERRQ(ierr);
-  if (epsgiven) {
-    ierr = PetscPrintf(PETSC_COMM_WORLD,"\nEPS type: %s",epstype);CHKERRQ(ierr);
-  }
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"\n\n");CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"\nQuadratic Eigenproblem, N=%D (%Dx%D grid)\n\n",N,n,m);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
      Compute the matrices that define the eigensystem, (k^2*M+k*C+K)x=0
@@ -152,16 +146,8 @@ int main(int argc,char **argv)
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
   ierr = PEPSolve(pep);CHKERRQ(ierr);
-
-  /*
-     Optional: Get some information from the solver and display it
-  */
-  ierr = PEPGetType(pep,&type);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," Solution method: %s\n\n",type);CHKERRQ(ierr);
   ierr = PEPGetDimensions(pep,&nev,NULL,NULL);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD," Number of requested eigenvalues: %D\n",nev);CHKERRQ(ierr);
-  ierr = PEPGetTolerances(pep,NULL,&maxit);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," Stopping condition: maxit=%D\n",maxit);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                     Display solution and clean up

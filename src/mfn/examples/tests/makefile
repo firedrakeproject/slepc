@@ -29,8 +29,8 @@ EXAMPLESF  =
 MANSEC     = MFN
 TESTS      = test1 test2
 
-TESTEXAMPLES_C           = test2.PETSc runtest2_krylov runtest2_expokit test2.rm
-TESTEXAMPLES_C_NOCOMPLEX = test1.PETSc runtest1_1 runtest1_2 test1.rm
+TESTEXAMPLES_C           = test2.PETSc runtest2_1 test2.rm
+TESTEXAMPLES_C_NOCOMPLEX = test1.PETSc runtest1_1 test1.rm
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common
 
@@ -45,35 +45,19 @@ test2: test2.o chkopts
 #------------------------------------------------------------------------------------
 DATAPATH = ${SLEPC_DIR}/share/slepc/datafiles/matrices
 
-runtest1_1:
-	-@if [ "${PETSC_PRECISION}" != "double" ] || (${GREP} USE_64BIT_INDICES ${PETSC_DIR}/${PETSC_ARCH}/include/petscconf.h > /dev/null 2>&1) then \
-	   echo "Skipping test1_1 test"; \
-	 else \
-	   ${MPIEXEC} -n 1 ./test1 -file ${DATAPATH}/bfw62b.petsc > test1_1.tmp 2>&1; \
-	   if (${DIFF} output/test1.out test1_1.tmp) then true; \
-	   else echo "Possible problem with test1_1, diffs above"; fi; \
-	   ${RM} -f test1_1.tmp; \
-	 fi
+runtest1_1: runtest1_1_krylov runtest1_1_expokit
+runtest1_1_%:
+	-@test=$(subst run,,$@); check=test1; mfn=$*; \
+	if [ "${PETSC_PRECISION}" != "double" ] || (${GREP} USE_64BIT_INDICES ${PETSC_DIR}/${PETSC_ARCH}/include/petscconf.h > /dev/null 2>&1) then \
+	  echo "Skipping $$test test"; \
+	else \
+	  ${MPIEXEC} -n 1 ./test1 -file ${DATAPATH}/bfw62b.petsc -mfn_type $$mfn > $${test}.tmp 2>&1; \
+	  ${TESTCODE}; \
+	fi
 
-runtest1_2:
-	-@if [ "${PETSC_PRECISION}" != "double" ] || (${GREP} USE_64BIT_INDICES ${PETSC_DIR}/${PETSC_ARCH}/include/petscconf.h > /dev/null 2>&1) then \
-	   echo "Skipping test1_2 test"; \
-	 else \
-	   ${MPIEXEC} -n 1 ./test1 -file ${DATAPATH}/bfw62b.petsc -mfn_type expokit > test1_2.tmp 2>&1; \
-	   if (${DIFF} output/test1.out test1_2.tmp) then true; \
-	   else echo "Possible problem with test1_2, diffs above"; fi; \
-	   ${RM} -f test1_2.tmp; \
-	 fi
-
-runtest2_krylov:
-	-@${MPIEXEC} -n 1 ./test2 -mfn_type krylov > test2.tmp 2>&1; \
-	if (${DIFF} output/test2.out test2.tmp) then true; \
-	else echo "Possible problem with test2, diffs above"; fi; \
-	${RM} -f test2.tmp;
-
-runtest2_expokit:
-	-@${MPIEXEC} -n 1 ./test2 -mfn_type expokit > test2.tmp 2>&1; \
-	if (${DIFF} output/test2.out test2.tmp) then true; \
-	else echo "Possible problem with test2, diffs above"; fi; \
-	${RM} -f test2.tmp;
+runtest2_1: runtest2_1_krylov runtest2_1_expokit
+runtest2_1_%:
+	-@test=$(subst run,,$@); check=test2; mfn=$*; \
+	${MPIEXEC} -n 1 ./test2 -mfn_type $$mfn > $${test}.tmp 2>&1; \
+	${TESTCODE}
 
