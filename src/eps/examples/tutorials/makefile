@@ -29,12 +29,12 @@ EXAMPLESC  = ex1.c ex2.c ex3.c ex4.c ex5.c ex7.c ex9.c ex10.c ex11.c ex12.c ex13
 EXAMPLESF  = ex1f.F ex1f90.F90 ex6f.F
 MANSEC     = EPS
 
-TESTEXAMPLES_C                     = ex2.PETSc runex2_ciss_1 runex2_ciss_2 ex2.rm \
-                                     ex5.PETSc runex5_1 ex5.rm \
+TESTEXAMPLES_C                     = ex5.PETSc runex5_1 ex5.rm \
                                      ex13.PETSc runex13_1 ex13.rm \
                                      ex18.PETSc runex18_1 ex18.rm \
                                      ex24.PETSc runex24_1 ex24.rm \
                                      ex29.PETSc runex29_1 ex29.rm
+TESTEXAMPLES_C_DOUBLE              = ex2.PETSc runex2_ciss_1 runex2_ciss_2 ex2.rm
 TESTEXAMPLES_C_NOTSINGLE           = ex2.PETSc runex2_1 ex2.rm \
                                      ex3.PETSc runex3_1 ex3.rm \
                                      ex10.PETSc runex10_1 ex10.rm \
@@ -162,21 +162,13 @@ runex2_1:
 
 runex2_ciss_1:
 	-@test=$(subst run,,$@); check=ex2_ciss; \
-	if [ "${PETSC_PRECISION}" != "double" ]; then \
-	  echo "Skipping $${test} test"; \
-	else \
-	  ${MPIEXEC} -n 1 ./ex2 -n 30 -eps_type ciss -rg_type interval -rg_interval_endpoints 1.1,1.25 -terse > $${test}.tmp 2>&1; \
-	  ${TESTCODE}; \
-	fi
+	${MPIEXEC} -n 1 ./ex2 -n 30 -eps_type ciss -rg_type interval -rg_interval_endpoints 1.1,1.25 -terse > $${test}.tmp 2>&1; \
+	${TESTCODE}
 
 runex2_ciss_2:
 	-@test=$(subst run,,$@); check=ex2_ciss; \
-	if [ "${PETSC_PRECISION}" != "double" ]; then \
-	  echo "Skipping $${test} test"; \
-	else \
-	  ${MPIEXEC} -n 2 ./ex2 -n 30 -eps_type ciss -rg_type ellipse -rg_ellipse_center 1.175 -rg_ellipse_radius 0.075 -eps_ciss_partitions 2 -terse > $${test}.tmp 2>&1; \
-	  ${TESTCODE}; \
-	fi
+	${MPIEXEC} -n 2 ./ex2 -n 30 -eps_type ciss -rg_type ellipse -rg_ellipse_center 1.175 -rg_ellipse_radius 0.075 -eps_ciss_partitions 2 -terse > $${test}.tmp 2>&1; \
+	${TESTCODE}
 
 runex3_1:
 	-@test=$(subst run,,$@); check=$$test; \

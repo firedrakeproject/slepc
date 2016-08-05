@@ -30,7 +30,7 @@ MANSEC     = SVD
 TESTS      = test1 test2 test3
 
 TESTEXAMPLES_C           = test1.PETSc runtest1_1 test1.rm
-TESTEXAMPLES_C_NOF128    = test2.PETSc runtest2_1 test2.rm
+TESTEXAMPLES_C_DOUBLE    = test2.PETSc runtest2_1 test2.rm
 TESTEXAMPLES_C_NOTSINGLE = test3.PETSc runtest3_1 test3.rm
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common
@@ -59,17 +59,10 @@ runtest1_1_%:
 
 runtest2_1: runtest2_1_lanczos runtest2_1_trlanczos runtest2_1_cross runtest2_1_cyclic runtest2_1_lapack 
 runtest2_1_%:
-	-@test=$(subst run,,$@); \
-	if [ "${PETSC_PRECISION}" != "double" ]; then \
-	  echo "Skipping $$test test"; \
-	else \
-	  check=test2_1; svd=$*; \
-	  if [ "${PETSC_SCALAR}" = "complex" ]; then \
-	    check=$${check}_complex; \
-	  fi; \
-	  ${MPIEXEC} -n 1 ./test2 -svd_type $$svd -svd_nsv 7 > $${test}.tmp 2>&1;    \
-	  ${TESTCODE}; \
-	fi
+	-@test=$(subst run,,$@); check=test2_1; svd=$*; \
+	if [ "${PETSC_SCALAR}" = "complex" ]; then check=$${check}_complex; fi; \
+	${MPIEXEC} -n 1 ./test2 -svd_type $$svd -svd_nsv 7 > $${test}.tmp 2>&1;    \
+	${TESTCODE}
 
 runtest3_1: runtest3_1_lanczos runtest3_1_lanczos_one runtest3_1_trlanczos runtest3_1_trlanczos_one runtest3_1_cross runtest3_1_cyclic runtest3_1_lapack 
 runtest3_1_%:

@@ -34,13 +34,13 @@ TESTCODE_CUDA = \
 	${RM} $${test}.tmp
 
 testexamples_BLOPEX: ${TESTEXAMPLES_BLOPEX}
-testexamples_C_NoF128: ${TESTEXAMPLES_C_NOF128}
+testexamples_C_Double: ${TESTEXAMPLES_C_DOUBLE}
 testexamples_DATAFILESPATH_Complex: ${TESTEXAMPLES_DATAFILESPATH_COMPLEX}
 
 buildexamples_BLOPEX:
 	-@${OMAKE} testexamples_BLOPEX TESTEXAMPLES_BLOPEX=`echo ${TESTEXAMPLES_BLOPEX} | sed s/runex[0-9]*[a-z0-9_]*//g`
-buildexamples_C_NoF128:
-	-@${OMAKE} testexamples_C_NoF128 TESTEXAMPLES_C_NOF128=`echo ${TESTEXAMPLES_C_NOF128} | sed s/runex[0-9]*[a-z0-9_]*//g`
+buildexamples_C_Double:
+	-@${OMAKE} testexamples_C_Double TESTEXAMPLES_C_DOUBLE=`echo ${TESTEXAMPLES_C_DOUBLE} | sed s/runex[0-9]*[a-z0-9_]*//g`
 
 slepc_alltests:
 	-@${RM} ${PETSC_ARCH}/lib/slepc/conf/alltests.log alltests.log

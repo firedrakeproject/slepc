@@ -46,7 +46,7 @@ TESTEXAMPLES_C_NOTSINGLE           = test1.PETSc runtest1_1 test1.rm \
                                      test12.PETSc runtest12_1 test12.rm \
                                      test16.PETSc runtest16_1 test16.rm
 TESTEXAMPLES_C_NOCOMPLEX_NOTSINGLE = test1.PETSc runtest1_2 test1.rm
-TESTEXAMPLES_C_NOF128              = test5.PETSc runtest5_1 test5.rm
+TESTEXAMPLES_C_DOUBLE              = test5.PETSc runtest5_1 test5.rm
 TESTEXAMPLES_FORTRAN               = test7f.PETSc runtest7f_1 test7f.rm \
                                      test14f.PETSc runtest14f_1 test14f.rm
 TESTEXAMPLES_BLOPEX                = test5.PETSc runtest5_blopex test5.rm
@@ -158,20 +158,12 @@ runtest4_1_%:
 
 runtest5_1: runtest5_1_krylovschur runtest5_1_arnoldi runtest5_1_gd runtest5_1_jd runtest5_1_gd2
 runtest5_1_%:
-	-@test=$(subst run,,$@); \
-	if [ "${PETSC_PRECISION}" = "single" ]; then \
-	  echo "Skipping $$test test"; \
-	else \
-	  check=test5_1; eps=$*; \
-	  if [ "${PETSC_SCALAR}" = "complex" ]; then \
-	    check=$${check}_complex; \
-	  fi; \
-	  if [ "$$eps" = jd ]; then EXTRA="-eps_jd_minv 3"; \
-	  elif [ "$$eps" = gd2 ]; then eps="gd -eps_gd_double_expansion"; \
-	  else EXTRA=""; fi; \
-	  ${MPIEXEC} -n 1 ./test5 -eps_type $$eps -eps_nev 3 $$EXTRA > $${test}.tmp 2>&1; \
-	  ${TESTCODE}; \
-	fi
+	-@test=$(subst run,,$@); check=test5_1; eps=$*; \
+	if [ "${PETSC_SCALAR}" = "complex" ]; then check=$${check}_complex; fi; \
+	if [ "$$eps" = jd ]; then EXTRA="-eps_jd_minv 3"; \
+	elif [ "$$eps" = gd2 ]; then eps="gd -eps_gd_double_expansion"; fi; \
+	${MPIEXEC} -n 1 ./test5 -eps_type $$eps -eps_nev 3 $$EXTRA > $${test}.tmp 2>&1; \
+	${TESTCODE}
 
 runtest5_blopex:
 	-@test=$(subst run,,$@); check=test5_blopex; \
