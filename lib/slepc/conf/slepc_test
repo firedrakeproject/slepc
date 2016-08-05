@@ -33,17 +33,15 @@ TESTCODE_CUDA = \
 	echo "Possible problem with $${test}, diffs above"; \
 	${RM} $${test}.tmp
 
-testexamples_BLOPEX: ${TESTEXAMPLES_BLOPEX}
 testexamples_C_Double: ${TESTEXAMPLES_C_DOUBLE}
 testexamples_C_DataFile: ${TESTEXAMPLES_C_DATAFILE}
 testexamples_DATAFILESPATH_Complex: ${TESTEXAMPLES_DATAFILESPATH_COMPLEX}
-
-buildexamples_BLOPEX:
-	-@${OMAKE} testexamples_BLOPEX TESTEXAMPLES_BLOPEX=`echo ${TESTEXAMPLES_BLOPEX} | sed s/runex[0-9]*[a-z0-9_]*//g`
-buildexamples_C_Double:
-	-@${OMAKE} testexamples_C_Double TESTEXAMPLES_C_DOUBLE=`echo ${TESTEXAMPLES_C_DOUBLE} | sed s/runex[0-9]*[a-z0-9_]*//g`
-buildexamples_C_DataFile:
-	-@${OMAKE} testexamples_C_DataFile TESTEXAMPLES_C_DATAFILE=`echo ${TESTEXAMPLES_C_DATAFILE} | sed s/runex[0-9]*[a-z0-9_]*//g`
+testexamples_ARPACK: ${TESTEXAMPLES_ARPACK}
+testexamples_BLOPEX: ${TESTEXAMPLES_BLOPEX}
+testexamples_BLZPACK: ${TESTEXAMPLES_BLZPACK}
+testexamples_FEAST: ${TESTEXAMPLES_FEAST}
+testexamples_PRIMME: ${TESTEXAMPLES_PRIMME}
+testexamples_TRLAN: ${TESTEXAMPLES_TRLAN}
 
 slepc_alltests:
 	-@${RM} ${PETSC_ARCH}/lib/slepc/conf/alltests.log alltests.log

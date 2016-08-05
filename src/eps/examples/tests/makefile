@@ -167,6 +167,7 @@ runtest5_1_%:
 
 runtest5_blopex:
 	-@test=$(subst run,,$@); check=test5_blopex; \
+	if [ "${PETSC_SCALAR}" = "complex" ]; then check=$${check}_complex; fi; \
 	${MPIEXEC} -n 1 ./test5 -symm -eps_type blopex -eps_nev 4 > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
