@@ -232,9 +232,8 @@ runtest9_1: runtest9_1_krylovschur runtest9_1_arnoldi runtest9_1_gd runtest9_1_j
 runtest9_1_%:
 	-@${SETTEST}; check=test9_1; eps=$*; \
 	if [ "$$eps" = "krylovschur" -o "$$eps" = "arnoldi" ]; then EXTRA="-eps_ncv 7 -eps_max_it 300"; \
-	elif [ "$$eps" = jd ]; then EXTRA="-st_ksp_type cg"; \
-	else EXTRA=""; fi; \
-	if [ "$$eps" = gd2 ]; then eps="gd -eps_gd_double_expansion"; fi; \
+	elif [ "$$eps" = jd ]; then EXTRA="-st_ksp_type tfqmr -eps_jd_krylov_start -eps_jd_blocksize 2 -eps_jd_plusk 1"; \
+	elif [ "$$eps" = gd2 ]; then eps="gd -eps_gd_double_expansion"; fi; \
 	${MPIEXEC} -n 1 ./test9 -eps_type $$eps -eps_nev 4 $$EXTRA > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
@@ -290,19 +289,19 @@ runtest12_1_%:
 	${MPIEXEC} -n 1 ./test12 -eps_type $$eps -eps_nev 4 > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
-EPSAR  = gd jd gd2
-
-runtest13_1: runtest13_1_gd runtest13_1_jd runtest13_1_gd2
+runtest13_1: runtest13_1_krylovschur runtest13_1_gd runtest13_1_jd runtest13_1_gd2
 runtest13_1_%:
 	-@${SETTEST}; check=test13_1; eps=$*; \
-	if [ "$$eps" = gd2 ]; then eps="gd -eps_gd_double_expansion"; fi; \
+	if [ "$$eps" = jd ]; then eps="jd -eps_target -2"; \
+	elif [ "$$eps" = gd2 ]; then eps="gd -eps_gd_double_expansion"; fi; \
 	${MPIEXEC} -n 1 ./test13 -eps_type $$eps -eps_max_it 5000 > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
-runtest13_2: runtest13_2_gd runtest13_2_jd runtest13_2_gd2
+runtest13_2: runtest13_2_krylovschur runtest13_2_gd runtest13_2_jd runtest13_2_gd2
 runtest13_2_%:
 	-@${SETTEST}; check=test13_1; eps=$*; \
-	if [ "$$eps" = gd2 ]; then eps="gd -eps_gd_double_expansion"; fi; \
+	if [ "$$eps" = jd ]; then eps="jd -eps_target -2"; \
+	elif [ "$$eps" = gd2 ]; then eps="gd -eps_gd_double_expansion"; fi; \
 	${MPIEXEC} -n 1 ./test13 -eps_type $$eps -eps_non_hermitian -eps_max_it 5000 > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
