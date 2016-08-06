@@ -43,12 +43,12 @@ ex26: ex26.o chkopts
 #------------------------------------------------------------------------------------
 
 runex23_1:
-	-@test=$(subst run,,$@); check=$$test; \
+	-@${SETTEST}; \
 	${MPIEXEC} -n 1 ./ex23 > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
 runex26_1:
-	-@test=$(subst run,,$@); check=$$test; \
+	-@${SETTEST}; \
 	${MPIEXEC} -n 1 ./ex26 -mfn_tol 1e-5 > $${test}.tmp 2>&1; \
 	${TESTCODE}
 

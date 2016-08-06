@@ -51,7 +51,7 @@ test3: test3.o chkopts
 
 runtest1_1: runtest1_1_lanczos runtest1_1_trlanczos runtest1_1_cross runtest1_1_cross_gd runtest1_1_cyclic runtest1_1_cyclic_gd runtest1_1_lapack 
 runtest1_1_%:
-	-@test=$(subst run,,$@); check=test1_1; svd=$*; \
+	-@${SETTEST}; check=test1_1; svd=$*; \
 	if [ "$$svd" = cross_gd ]; then svd="cross -epstype gd"; fi; \
 	if [ "$$svd" = cyclic_gd ]; then svd="cyclic -epstype gd"; fi; \
 	${MPIEXEC} -n 1 ./test1 -type $$svd >> $${test}.tmp 2>&1; \
@@ -59,14 +59,14 @@ runtest1_1_%:
 
 runtest2_1: runtest2_1_lanczos runtest2_1_trlanczos runtest2_1_cross runtest2_1_cyclic runtest2_1_lapack 
 runtest2_1_%:
-	-@test=$(subst run,,$@); check=test2_1; svd=$*; \
+	-@${SETTEST}; check=test2_1; svd=$*; \
 	if [ "${PETSC_SCALAR}" = "complex" ]; then check=$${check}_complex; fi; \
 	${MPIEXEC} -n 1 ./test2 -svd_type $$svd -svd_nsv 7 > $${test}.tmp 2>&1;    \
 	${TESTCODE}
 
 runtest3_1: runtest3_1_lanczos runtest3_1_lanczos_one runtest3_1_trlanczos runtest3_1_trlanczos_one runtest3_1_cross runtest3_1_cyclic runtest3_1_lapack 
 runtest3_1_%:
-	-@test=$(subst run,,$@); check=test3_1; svd=$*; \
+	-@${SETTEST}; check=test3_1; svd=$*; \
 	if [ "$$svd" = lanczos_one ]; then svd="lanczos -svd_lanczos_oneside"; fi; \
 	if [ "$$svd" = trlanczos_one ]; then svd="trlanczos -svd_trlanczos_oneside"; fi; \
 	${MPIEXEC} -n 1 ./test3 -svd_type $$svd -svd_nsv 4 > $${test}.tmp 2>&1; \

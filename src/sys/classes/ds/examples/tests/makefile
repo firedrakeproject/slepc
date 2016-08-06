@@ -102,67 +102,67 @@ test15: test15.o chkopts
 #------------------------------------------------------------------------------------
 
 runtest1_1:
-	-@test=$(subst run,,$@); check=$$test; \
+	-@${SETTEST}; \
 	${MPIEXEC} -n 1 ./test1 > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
 runtest2_1:
-	-@test=$(subst run,,$@); check=$$test; \
+	-@${SETTEST}; \
 	${MPIEXEC} -n 1 ./test2 -n 12 > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
 runtest3_1:
-	-@test=$(subst run,,$@); check=$$test; \
+	-@${SETTEST}; \
 	${MPIEXEC} -n 1 ./test3 > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
 runtest4_1:
-	-@test=$(subst run,,$@); check=$$test; \
+	-@${SETTEST}; \
 	${MPIEXEC} -n 1 ./test4 > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
 runtest5_1:
-	-@test=$(subst run,,$@); check=$$test; \
+	-@${SETTEST}; \
 	${MPIEXEC} -n 1 ./test5 > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
 runtest6_1:
-	-@test=$(subst run,,$@); check=$$test; \
+	-@${SETTEST}; \
 	${MPIEXEC} -n 1 ./test6 > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
 runtest7_1:
-	-@test=$(subst run,,$@); check=$$test; \
+	-@${SETTEST}; \
 	${MPIEXEC} -n 1 ./test7 > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
 runtest8_1:
-	-@test=$(subst run,,$@); check=$$test; \
+	-@${SETTEST}; \
 	${MPIEXEC} -n 1 ./test8 > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
 runtest9_1:
-	-@test=$(subst run,,$@); check=$$test; \
+	-@${SETTEST}; \
 	${MPIEXEC} -n 1 ./test9 > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
 runtest12_1:
-	-@test=$(subst run,,$@); check=$$test; \
+	-@${SETTEST}; \
 	${MPIEXEC} -n 1 ./test12 > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
 runtest13_1:
-	-@test=$(subst run,,$@); check=$$test; \
+	-@${SETTEST}; \
 	${MPIEXEC} -n 1 ./test13 > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
 runtest14f_1:
-	-@test=$(subst run,,$@); check=$$test; \
+	-@${SETTEST}; \
 	${MPIEXEC} -n 1 ./test14f > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
 runtest15_1:
-	-@test=$(subst run,,$@); check=$$test; \
+	-@${SETTEST}; \
 	${MPIEXEC} -n 1 ./test15 > $${test}.tmp 2>&1; \
 	${TESTCODE}
 

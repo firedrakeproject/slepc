@@ -75,67 +75,67 @@ test8: test8.o chkopts
 #------------------------------------------------------------------------------------
 
 runtest1_1:
-	-@test=$(subst run,,$@); check=$$test; \
+	-@${SETTEST}; \
 	${MPIEXEC} -n 1 ./test1 > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
 runtest2_1:
-	-@test=$(subst run,,$@); check=$$test; \
+	-@${SETTEST}; \
 	${MPIEXEC} -n 1 ./test2 > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
 runtest3_1:
-	-@test=$(subst run,,$@); check=$$test; \
+	-@${SETTEST}; \
 	${MPIEXEC} -n 1 ./test3 > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
 runtest3_2:
-	-@test=$(subst run,,$@); check=test3_1; \
+	-@${SETTEST}; check=test3_1; \
 	${MPIEXEC} -n 1 ./test3 -inplace > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
 runtest4_1:
-	-@test=$(subst run,,$@); check=$$test; \
+	-@${SETTEST}; \
 	${MPIEXEC} -n 1 ./test4 -f1_fn_type exp -f1_fn_scale -2.5 -f2_fn_type rational -f2_fn_rational_numerator -1,1 -f2_fn_rational_denominator 1,-6,4 > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
 runtest5_1:
-	-@test=$(subst run,,$@); check=$$test; \
+	-@${SETTEST}; \
 	${MPIEXEC} -n 1 ./test5 > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
 runtest5_2:
-	-@test=$(subst run,,$@); check=test5_1; \
+	-@${SETTEST}; check=test5_1; \
 	${MPIEXEC} -n 1 ./test5 -inplace > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
 runtest6_1:
-	-@test=$(subst run,,$@); check=$$test; \
+	-@${SETTEST}; \
 	${MPIEXEC} -n 1 ./test6 > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
 runtest6_2:
-	-@test=$(subst run,,$@); check=test6_1; \
+	-@${SETTEST}; check=test6_1; \
 	${MPIEXEC} -n 1 ./test6 -inplace > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
 runtest7_1:
-	-@test=$(subst run,,$@); check=$$test; \
+	-@${SETTEST}; \
 	${MPIEXEC} -n 1 ./test7 -tau .13 -eta 2 -n 19 > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
 runtest7_2:
-	-@test=$(subst run,,$@); check=test7_1; \
+	-@${SETTEST}; check=test7_1; \
 	${MPIEXEC} -n 1 ./test7 -tau .13 -eta 2 -n 19 -inplace > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
 runtest8_1:
-	-@test=$(subst run,,$@); check=$$test; \
+	-@${SETTEST}; \
 	${MPIEXEC} -n 1 ./test8 -tau 0.9 -eta 0.5 -n 10 > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
 runtest8_2:
-	-@test=$(subst run,,$@); check=test8_1; \
+	-@${SETTEST}; check=test8_1; \
 	${MPIEXEC} -n 1 ./test8 -tau 0.9 -eta 0.5 -n 10 -inplace > $${test}.tmp 2>&1; \
 	${TESTCODE}
 

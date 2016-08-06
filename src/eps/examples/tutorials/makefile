@@ -141,133 +141,133 @@ ex31: ex31.o chkopts
 DATAPATH = ${SLEPC_DIR}/share/slepc/datafiles/matrices
 
 runex1_1:
-	-@test=$(subst run,,$@); check=$$test; \
+	-@${SETTEST}; \
 	${MPIEXEC} -n 1 ./ex1 > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
 runex1f_1:
-	-@test=$(subst run,,$@); check=$$test; \
+	-@${SETTEST}; \
 	${MPIEXEC} -n 1 ./ex1f > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
 runex1f90_1:
-	-@test=$(subst run,,$@); check=$$test; \
+	-@${SETTEST}; \
 	${MPIEXEC} -n 1 ./ex1f90 -eps_nev 4 -terse > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
 runex2_1:
-	-@test=$(subst run,,$@); check=$$test; \
+	-@${SETTEST}; \
 	${MPIEXEC} -n 1 ./ex2 -n 72 -eps_nev 4 -eps_ncv 20 -terse > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
 runex2_ciss_1:
-	-@test=$(subst run,,$@); check=ex2_ciss; \
+	-@${SETTEST}; check=ex2_ciss; \
 	${MPIEXEC} -n 1 ./ex2 -n 30 -eps_type ciss -rg_type interval -rg_interval_endpoints 1.1,1.25 -terse > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
 runex2_ciss_2:
-	-@test=$(subst run,,$@); check=ex2_ciss; \
+	-@${SETTEST}; check=ex2_ciss; \
 	${MPIEXEC} -n 2 ./ex2 -n 30 -eps_type ciss -rg_type ellipse -rg_ellipse_center 1.175 -rg_ellipse_radius 0.075 -eps_ciss_partitions 2 -terse > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
 runex3_1:
-	-@test=$(subst run,,$@); check=$$test; \
+	-@${SETTEST}; \
 	${MPIEXEC} -n 1 ./ex3 -n 72 -eps_nev 4 -eps_ncv 20 -terse > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
 runex4_1:
-	-@test=$(subst run,,$@); check=$$test; \
+	-@${SETTEST}; \
 	${MPIEXEC} -n 1 ./ex4 -file ${DATAPATH}/rdb200.petsc -eps_nev 4 -terse > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
 runex4_ciss_1:
-	-@test=$(subst run,,$@); check=$$test; \
+	-@${SETTEST}; \
 	${MPIEXEC} -n 1 ./ex4 -file $(DATAFILESPATH)/matrices/complex/qc324.petsc -eps_type ciss -rg_type ellipse -rg_ellipse_center -.012-.08i -rg_ellipse_radius .05 -terse > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
 runex5_1:
-	-@test=$(subst run,,$@); check=$$test; \
+	-@${SETTEST}; \
 	${MPIEXEC} -n 1 ./ex5 -eps_largest_real -eps_nev 4 -terse > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
 runex6f_1:
-	-@test=$(subst run,,$@); check=$$test; \
+	-@${SETTEST}; \
 	${MPIEXEC} -n 1 ./ex6f -eps_max_it 1000 -eps_ncv 12 -eps_tol 1e-5 -eps_nev 4 -eps_largest_imaginary -terse > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
 runex7_1:
-	-@test=$(subst run,,$@); check=$$test; \
+	-@${SETTEST}; \
 	${MPIEXEC} -n 1 ./ex7 -f1 ${DATAPATH}/bfw62a.petsc -f2 ${DATAPATH}/bfw62b.petsc -eps_nev 4 -terse > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
 runex7_ciss_1:
-	-@test=$(subst run,,$@); check=$$test; \
+	-@${SETTEST}; \
 	${MPIEXEC} -n 1 ./ex7 -f1 $(DATAFILESPATH)/matrices/complex/mhd1280a.petsc -f2 $(DATAFILESPATH)/matrices/complex/mhd1280b.petsc -eps_type ciss -eps_ciss_usest 0 -eps_ciss_quadrule chebyshev -rg_type ring -rg_ring_center 0 -rg_ring_radius .5 -rg_ring_width 0.2 -rg_ring_startangle .25 -rg_ring_endangle .5 -terse > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
 runex9_1:
-	-@test=$(subst run,,$@); check=$$test; \
+	-@${SETTEST}; \
 	${MPIEXEC} -n 1 ./ex9 -eps_nev 4 -terse > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
 runex9_2:
-	-@test=$(subst run,,$@); check=$$test; \
+	-@${SETTEST}; \
 	${MPIEXEC} -n 1 ./ex9 -eps_nev 8 -eps_max_it 300 -eps_target -28 -rg_type interval -rg_interval_endpoints -40,-20,-.1,.1 -terse > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
 runex10_1:
-	-@test=$(subst run,,$@); check=$$test; \
+	-@${SETTEST}; \
 	${MPIEXEC} -n 1 ./ex10 -eps_nev 5 -st_type shell -terse > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
 runex11_1:
-	-@test=$(subst run,,$@); check=$$test; \
+	-@${SETTEST}; \
 	${MPIEXEC} -n 1 ./ex11 -eps_nev 4 -terse > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
 runex12_1:
-	-@test=$(subst run,,$@); check=$$test; \
+	-@${SETTEST}; \
 	${MPIEXEC} -n 1 ./ex12 -showinertia 0 -eps_error_relative > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
 runex13_1:
-	-@test=$(subst run,,$@); check=$$test; \
+	-@${SETTEST}; \
 	${MPIEXEC} -n 1 ./ex13 -eps_nev 4 -eps_ncv 22 -terse > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
 runex18_1:
-	-@test=$(subst run,,$@); check=$$test; \
+	-@${SETTEST}; \
 	${MPIEXEC} -n 1 ./ex18 -eps_nev 4 -terse > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
 runex19_1:
-	-@test=$(subst run,,$@); check=$$test; \
+	-@${SETTEST}; \
 	${MPIEXEC} -n 1 ./ex19 -eps_nev 8 -eps_ncv 64 > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
 runex24_1:
-	-@test=$(subst run,,$@); check=$$test; \
+	-@${SETTEST}; \
 	${MPIEXEC} -n 1 ./ex24 -n 15 -eps_nev 1 -eps_ncv 12 -eps_max_it 1000 -eps_tol 1e-5 -terse > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
 runex25_1:
-	-@test=$(subst run,,$@); check=$$test; \
+	-@${SETTEST}; \
 	if [ "${PETSC_PRECISION}" = "single" ]; then EXTRA="-eps_tol 1e-5"; fi; \
 	${MPIEXEC} -n 1 ./ex25 -terse $$EXTRA > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
 runex29_1:
-	-@test=$(subst run,,$@); check=$$test; \
+	-@${SETTEST}; \
 	${MPIEXEC} -n 1 ./ex29 -m 350 > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
 runex30_1:
-	-@test=$(subst run,,$@); check=$$test; \
+	-@${SETTEST}; \
 	${MPIEXEC} -n 1 ./ex30 -n 100 -terse > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
 runex31_1:
-	-@test=$(subst run,,$@); check=$$test; \
+	-@${SETTEST}; \
 	${MPIEXEC} -n 1 ./ex31 -terse > $${test}.tmp 2>&1; \
 	${TESTCODE}
 

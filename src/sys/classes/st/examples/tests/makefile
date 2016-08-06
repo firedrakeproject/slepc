@@ -56,31 +56,31 @@ test4: test4.o chkopts
 
 runtest1_1: runtest1_1_inplace runtest1_1_shell
 runtest1_1_%:
-	-@test=$(subst run,,$@); check=test1_1; matmode=$*; \
+	-@${SETTEST}; check=test1_1; matmode=$*; \
 	${MPIEXEC} -n 1 ./test1 -st_matmode $$matmode > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
 runtest2_1: runtest2_1_copy runtest2_1_inplace runtest2_1_shell
 runtest2_1_%:
-	-@test=$(subst run,,$@); check=test2_1; matmode=$*; \
+	-@${SETTEST}; check=test2_1; matmode=$*; \
 	${MPIEXEC} -n 1 ./test2 -st_matmode $$matmode > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
 runtest3_1: runtest3_1_copy runtest3_1_inplace runtest3_1_shell
 runtest3_1_%:
-	-@test=$(subst run,,$@); check=test3_1; matmode=$*; \
+	-@${SETTEST}; check=test3_1; matmode=$*; \
 	${MPIEXEC} -n 1 ./test3 -st_matmode $$matmode > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
 runtest4_1: runtest4_1_copy runtest4_1_shell
 runtest4_1_%:
-	-@test=$(subst run,,$@); check=test4_1; matmode=$*; \
+	-@${SETTEST}; check=test4_1; matmode=$*; \
 	${MPIEXEC} -n 1 ./test4 -st_transform -st_matmode $$matmode > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
 runtest4_2: runtest4_2_copy runtest4_2_shell
 runtest4_2_%:
-	-@test=$(subst run,,$@); check=test4_2; matmode=$*; \
+	-@${SETTEST}; check=test4_2; matmode=$*; \
 	${MPIEXEC} -n 1 ./test4 -st_matmode $$matmode > $${test}.tmp 2>&1; \
 	${TESTCODE}
 

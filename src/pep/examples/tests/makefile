@@ -57,14 +57,14 @@ test3f: test3f.o chkopts
 
 runtest1_1: runtest1_1_toar runtest1_1_qarnoldi runtest1_1_linear runtest1_1_linear_gd
 runtest1_1_%:
-	-@test=$(subst run,,$@); check=test1_1; pep=$*; \
+	-@${SETTEST}; check=test1_1; pep=$*; \
 	if [ "$$pep" = linear_gd ]; then pep="linear -epstype gd"; fi; \
 	${MPIEXEC} -n 1 ./test1 -type $${pep} -m 11 >> $${test}.tmp 2>&1; \
 	${TESTCODE}
 
 runtest2_1: runtest2_1_toar runtest2_1_qarnoldi runtest2_1_linear runtest2_1_linear_gd
 runtest2_1_%:
-	-@test=$(subst run,,$@); check=test2_1; pep=$*; \
+	-@${SETTEST}; check=test2_1; pep=$*; \
 	if [ "$$pep" = linear_gd ]; then pep="linear -pep_linear_eps_type gd -pep_linear_explicitmatrix"; \
 	elif [ "$$pep" = qarnoldi ]; then pep="qarnoldi -st_transform"; fi; \
 	${MPIEXEC} -n 1 ./test2 -pep_type $${pep} -pep_nev 4 >> $${test}.tmp 2>&1; \
@@ -72,7 +72,7 @@ runtest2_1_%:
 
 runtest2_2: runtest2_2_toar runtest2_2_toar_scaleboth runtest2_2_toar_transform runtest2_2_qarnoldi runtest2_2_linear
 runtest2_2_%:
-	-@test=$(subst run,,$@); check=test2_2; pep=$*; \
+	-@${SETTEST}; check=test2_2; pep=$*; \
 	if [ "$$pep" = toar_scaleboth ]; then pep="toar -pep_scale both"; \
 	elif [ "$$pep" = toar_transform ]; then pep="toar -st_transform"; \
 	elif [ "$$pep" = qarnoldi ]; then pep="qarnoldi -st_transform"; fi; \
@@ -81,13 +81,13 @@ runtest2_2_%:
 
 runtest2_3: runtest2_3_none runtest2_3_norm runtest2_3_residual runtest2_3_structured
 runtest2_3_%:
-	-@test=$(subst run,,$@); check=test2_3; extract=$*; \
+	-@${SETTEST}; check=test2_3; extract=$*; \
 	${MPIEXEC} -n 1 ./test2 -pep_nev 12 -pep_extract $${extract} >> $${test}.tmp 2>&1; \
 	${TESTCODE}
 
 runtest2_4: runtest2_4_schur runtest2_4_mbe runtest2_4_explicit runtest2_4_multiple
 runtest2_4_%:
-	-@test=$(subst run,,$@); check=test2_4; refine=$*; \
+	-@${SETTEST}; check=test2_4; refine=$*; \
 	if [ "$$refine" = schur ]; then refine="simple -pep_refine_scheme schur"; \
 	elif [ "$$refine" = mbe ]; then refine="simple -pep_refine_scheme mbe -pep_refine_ksp_type preonly -pep_refine_pc_type lu"; \
 	elif [ "$$refine" = explicit ]; then refine="simple -pep_refine_scheme explicit"; fi; \
@@ -95,12 +95,12 @@ runtest2_4_%:
 	${TESTCODE}
 
 runtest3_1:
-	-@test=$(subst run,,$@); check=$$test; \
+	-@${SETTEST}; \
 	${MPIEXEC} -n 1 ./test3 -pep_tol 1e-6 -pep_ncv 22 > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
 runtest3f_1:
-	-@test=$(subst run,,$@); check=$$test; \
+	-@${SETTEST}; \
 	${MPIEXEC} -n 1 ./test3f -pep_tol 1e-6 -pep_ncv 22 > $${test}.tmp 2>&1; \
 	${TESTCODE}
 

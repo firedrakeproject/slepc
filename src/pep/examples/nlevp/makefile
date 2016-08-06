@@ -76,42 +76,42 @@ spring: spring.o chkopts
 
 #------------------------------------------------------------------------------------
 runacoustic_wave_1d_1:
-	-@test=$(subst run,,$@); check=$$test; \
+	-@${SETTEST}; \
 	${MPIEXEC} -n 1 ./acoustic_wave_1d -pep_nev 4 -pep_tol 1e-7 -n 24 -st_type sinvert -terse > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
 runacoustic_wave_2d_1:
-	-@test=$(subst run,,$@); check=$$test; \
+	-@${SETTEST}; \
 	${MPIEXEC} -n 1 ./acoustic_wave_2d -pep_nev 2 -terse > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
 runbutterfly_1:
-	-@test=$(subst run,,$@); check=$$test; \
+	-@${SETTEST}; \
 	${MPIEXEC} -n 1 ./butterfly -pep_nev 4 -st_type sinvert -pep_target 0.01 -terse > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
 rundamped_beam_1:
-	-@test=$(subst run,,$@); check=$$test; \
+	-@${SETTEST}; \
 	${MPIEXEC} -n 1 ./damped_beam -pep_nev 2 -pep_ncv 12 -st_type sinvert -pep_target -7 -terse > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
 runpdde_stability_1:
-	-@test=$(subst run,,$@); check=$$test; \
+	-@${SETTEST}; \
 	${MPIEXEC} -n 1 ./pdde_stability -pep_ncv 25 -terse > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
 runplanar_waveguide_1:
-	-@test=$(subst run,,$@); check=$$test; \
+	-@${SETTEST}; \
 	${MPIEXEC} -n 1 ./planar_waveguide -pep_nev 4 -st_type sinvert -terse > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
 runsleeper_1:
-	-@test=$(subst run,,$@); check=$$test; \
+	-@${SETTEST}; \
 	${MPIEXEC} -n 1 ./sleeper -pep_nev 4 -pep_ncv 24 -st_type sinvert -n 100 -terse > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
 runspring_1:
-	-@test=$(subst run,,$@); check=$$test; \
+	-@${SETTEST}; \
 	${MPIEXEC} -n 1 ./spring -pep_nev 4 -n 24 -st_type sinvert -pep_ncv 18 -terse > $${test}.tmp 2>&1; \
 	${TESTCODE}
 

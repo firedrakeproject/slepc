@@ -47,13 +47,13 @@ DATAPATH = ${SLEPC_DIR}/share/slepc/datafiles/matrices
 
 runtest1_1: runtest1_1_krylov runtest1_1_expokit
 runtest1_1_%:
-	-@test=$(subst run,,$@); check=test1; mfn=$*; \
+	-@${SETTEST}; check=test1; mfn=$*; \
 	${MPIEXEC} -n 1 ./test1 -file ${DATAPATH}/bfw62b.petsc -mfn_type $$mfn > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
 runtest2_1: runtest2_1_krylov runtest2_1_expokit
 runtest2_1_%:
-	-@test=$(subst run,,$@); check=test2; mfn=$*; \
+	-@${SETTEST}; check=test2; mfn=$*; \
 	${MPIEXEC} -n 1 ./test2 -mfn_type $$mfn > $${test}.tmp 2>&1; \
 	${TESTCODE}
 

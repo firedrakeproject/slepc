@@ -54,22 +54,22 @@ ex15f: ex15f.o chkopts
 DATAPATH = ${SLEPC_DIR}/share/slepc/datafiles/matrices
 
 runex8_1:
-	-@test=$(subst run,,$@); check=$$test; \
+	-@${SETTEST}; \
 	${MPIEXEC} -n 1 ./ex8 > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
 runex14_1:
-	-@test=$(subst run,,$@); check=$$test; \
+	-@${SETTEST}; \
 	${MPIEXEC} -n 1 ./ex14 -file ${DATAPATH}/rdb200.petsc -svd_nsv 4 -terse > $${test}.tmp 2>&1;	  \
 	${TESTCODE}
 
 runex15_1:
-	-@test=$(subst run,,$@); check=$$test; \
+	-@${SETTEST}; \
 	${MPIEXEC} -n 1 ./ex15 > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
 runex15f_1:
-	-@test=$(subst run,,$@); check=$$test; \
+	-@${SETTEST}; \
 	${MPIEXEC} -n 1 ./ex15f > $${test}.tmp 2>&1; \
 	${TESTCODE}
 

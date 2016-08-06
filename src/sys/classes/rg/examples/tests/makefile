@@ -40,7 +40,7 @@ test1: test1.o chkopts
 #------------------------------------------------------------------------------------
 
 runtest1_1:
-	-@test=$(subst run,,$@); check=$$test; \
+	-@${SETTEST}; \
 	${MPIEXEC} -n 1 ./test1 > $${test}.tmp 2>&1; \
 	${TESTCODE}
 

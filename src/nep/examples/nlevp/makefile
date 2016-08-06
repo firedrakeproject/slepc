@@ -44,13 +44,13 @@ gun: gun.o chkopts
 
 #------------------------------------------------------------------------------------
 runloaded_string_1:
-	-@test=$(subst run,,$@); check=$$test; \
+	-@${SETTEST}; \
 	if [ "${PETSC_PRECISION}" = "single" ]; then EXTRA="-nep_tol 1e-5"; fi; \
 	${MPIEXEC} -n 1 ./loaded_string -nep_type rii -terse $$EXTRA > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
 rungun_1:
-	-@test=$(subst run,,$@); check=$$test; \
+	-@${SETTEST}; \
 	${MPIEXEC} -n 1 ./gun -K $(DATAFILESPATH)/matrices/complex/gun_K.petsc -M $(DATAFILESPATH)/matrices/complex/gun_M.petsc -W1 $(DATAFILESPATH)/matrices/complex/gun_W1.petsc -W2 $(DATAFILESPATH)/matrices/complex/gun_W2.petsc -nep_type nleigs -rg_type interval -rg_interval_endpoints 12500,120500,-1,25000 -nep_target 65000 -nep_nev 4 -nep_tol 1e-12 -terse > $${test}.tmp 2>&1; \
 	${TESTCODE}
 

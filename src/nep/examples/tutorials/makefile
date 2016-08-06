@@ -55,32 +55,32 @@ ex27: ex27.o chkopts
 #------------------------------------------------------------------------------------
 
 runex20_1:
-	-@test=$(subst run,,$@); check=$$test; \
+	-@${SETTEST}; \
 	${MPIEXEC} -n 1 ./ex20 > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
 runex21_1:
-	-@test=$(subst run,,$@); check=$$test; \
+	-@${SETTEST}; \
 	${MPIEXEC} -n 1 ./ex21 -terse > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
 runex22_1:
-	-@test=$(subst run,,$@); check=$$test; \
+	-@${SETTEST}; \
 	${MPIEXEC} -n 1 ./ex22 -terse > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
 runex22_ciss_1:
-	-@test=$(subst run,,$@); check=$$test; \
+	-@${SETTEST}; \
 	${MPIEXEC} -n 1 ./ex22 -nep_type ciss -rg_type ellipse -rg_ellipse_center 10 -rg_ellipse_radius 9.5 -nep_ncv 24 -terse > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
 runex27_1:
-	-@test=$(subst run,,$@); check=$$test; \
+	-@${SETTEST}; \
 	${MPIEXEC} -n 1 ./ex27 -nep_nev 3 -terse > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
 runex27_2:
-	-@test=$(subst run,,$@); check=$$test; \
+	-@${SETTEST}; \
 	${MPIEXEC} -n 1 ./ex27 -split 0 -nep_nev 3 -terse > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
