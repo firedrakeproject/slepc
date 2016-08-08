@@ -228,11 +228,10 @@ runtest8_1_%:
 	${MPIEXEC} -n 1 ./test8 -eps_type $$eps -eps_nev 4 -eps_ncv 25 > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
-runtest9_1: runtest9_1_krylovschur runtest9_1_arnoldi runtest9_1_gd runtest9_1_jd runtest9_1_gd2
+runtest9_1: runtest9_1_krylovschur runtest9_1_arnoldi runtest9_1_gd runtest9_1_gd2
 runtest9_1_%:
 	-@${SETTEST}; check=test9_1; eps=$*; \
 	if [ "$$eps" = "krylovschur" -o "$$eps" = "arnoldi" ]; then EXTRA="-eps_ncv 7 -eps_max_it 300"; \
-	elif [ "$$eps" = jd ]; then EXTRA="-st_ksp_type tfqmr -eps_jd_krylov_start -eps_jd_blocksize 2 -eps_jd_plusk 1"; \
 	elif [ "$$eps" = gd2 ]; then eps="gd -eps_gd_double_expansion"; fi; \
 	${MPIEXEC} -n 1 ./test9 -eps_type $$eps -eps_nev 4 $$EXTRA > $${test}.tmp 2>&1; \
 	${TESTCODE}
