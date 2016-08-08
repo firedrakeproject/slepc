@@ -171,6 +171,12 @@ Unable to download package %s from: %s
       self.log.Println(self.packagename.upper()+' library flags:')
       self.log.Println(' '+' '.join(self.packageflags))
 
+  def TestRuns(self,petsc):
+    if self.havepackage:
+      return [self.packagename.upper()]
+    else:
+      return []
+
   def LinkWithOutput(self,functions,callbacks,flags):
 
     # Create temporary directory and makefile

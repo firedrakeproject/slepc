@@ -44,9 +44,8 @@ int main(int argc,char **argv)
 {
   Mat            M,C,K,A[3];      /* problem matrices */
   PEP            pep;             /* polynomial eigenproblem solver context */
-  PEPType        type;
   PetscErrorCode ierr;
-  PetscInt       n=30,Istart,Iend,i,maxit,nev;
+  PetscInt       n=30,Istart,Iend,i,nev;
   PetscScalar    mu=1.0,tau=10.0,kappa=5.0;
 
   SlepcInitialize(&argc,&argv,(char*)0,help);
@@ -128,16 +127,8 @@ int main(int argc,char **argv)
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
   ierr = PEPSolve(pep);CHKERRQ(ierr);
-
-  /*
-     Optional: Get some information from the solver and display it
-  */
-  ierr = PEPGetType(pep,&type);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," Solution method: %s\n\n",type);CHKERRQ(ierr);
   ierr = PEPGetDimensions(pep,&nev,NULL,NULL);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD," Number of requested eigenvalues: %D\n",nev);CHKERRQ(ierr);
-  ierr = PEPGetTolerances(pep,NULL,&maxit);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," Stopping condition: maxit=%D\n",maxit);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                     Display solution and clean up

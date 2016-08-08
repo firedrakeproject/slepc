@@ -40,8 +40,7 @@ test1: test1.o chkopts
 #------------------------------------------------------------------------------------
 
 runtest1_1:
-	-@${MPIEXEC} -n 1 ./test1 > test1_1.tmp 2>&1; \
-	  if (${DIFF} output/test1_1.out test1_1.tmp) then true; \
-	  else echo "Possible problem with test1_1, diffs above"; fi; \
-	  ${RM} -f test1_1.tmp
+	-@${SETTEST}; \
+	${MPIEXEC} -n 1 ./test1 > $${test}.tmp 2>&1; \
+	${TESTCODE}
 

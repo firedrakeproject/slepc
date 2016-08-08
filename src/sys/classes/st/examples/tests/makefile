@@ -29,10 +29,10 @@ EXAMPLESF  =
 MANSEC     = ST
 TESTS      = test1 test2 test3 test4
 
-TESTEXAMPLES_C_NOTSINGLE = test1.PETSc runtest1_1 runtest1_2 test1.rm \
-                       test2.PETSc runtest2_1 runtest2_2 runtest2_3 test2.rm \
-                       test3.PETSc runtest3_1 runtest3_2 runtest3_3 test3.rm \
-                       test4.PETSc runtest4_1 runtest4_2 runtest4_3 runtest4_4 test4.rm
+TESTEXAMPLES_C_NOTSINGLE = test1.PETSc runtest1_1 test1.rm \
+                           test2.PETSc runtest2_1 test2.rm \
+                           test3.PETSc runtest3_1 test3.rm \
+                           test4.PETSc runtest4_1 runtest4_2 test4.rm
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common
 
@@ -54,69 +54,33 @@ test4: test4.o chkopts
 
 #------------------------------------------------------------------------------------
 
-TESTCODE = \
-	[ x${SAVE_OUTPUT} = xyes ] && cp $${test}.tmp output/$${check}.out; \
-	${DIFF} output/$${check}.out $${test}.tmp || \
-	echo "Possible problem with $${test}, diffs above"; \
-	${RM} -f $${test}.tmp
-
-runtest1_1:
-	-@test=test1_1; check=test1_1; \
-	${MPIEXEC} -n 1 ./test1 -st_matmode inplace 2>&1 > $${test}.tmp; \
+runtest1_1: runtest1_1_inplace runtest1_1_shell
+runtest1_1_%:
+	-@${SETTEST}; check=test1_1; matmode=$*; \
+	${MPIEXEC} -n 1 ./test1 -st_matmode $$matmode > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
-runtest1_2:
-	-@test=test1_2; check=test1_1; \
-	${MPIEXEC} -n 1 ./test1 -st_matmode shell 2>&1 > $${test}.tmp; \
+runtest2_1: runtest2_1_copy runtest2_1_inplace runtest2_1_shell
+runtest2_1_%:
+	-@${SETTEST}; check=test2_1; matmode=$*; \
+	${MPIEXEC} -n 1 ./test2 -st_matmode $$matmode > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
-runtest2_1:
-	-@test=test2_1; check=test2_1; \
-	${MPIEXEC} -n 1 ./test2 2>&1 > $${test}.tmp; \
+runtest3_1: runtest3_1_copy runtest3_1_inplace runtest3_1_shell
+runtest3_1_%:
+	-@${SETTEST}; check=test3_1; matmode=$*; \
+	${MPIEXEC} -n 1 ./test3 -st_matmode $$matmode > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
-runtest2_2:
-	-@test=test2_2; check=test2_1; \
-	${MPIEXEC} -n 1 ./test2 -st_matmode inplace 2>&1 > $${test}.tmp; \
+runtest4_1: runtest4_1_copy runtest4_1_shell
+runtest4_1_%:
+	-@${SETTEST}; check=test4_1; matmode=$*; \
+	${MPIEXEC} -n 1 ./test4 -st_transform -st_matmode $$matmode > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
-runtest2_3:
-	-@test=test2_3; check=test2_1; \
-	${MPIEXEC} -n 1 ./test2 -st_matmode shell 2>&1 > $${test}.tmp; \
-	${TESTCODE}
-
-runtest3_1:
-	-@test=test3_1; check=test3_1; \
-	${MPIEXEC} -n 1 ./test3 2>&1 > $${test}.tmp; \
-	${TESTCODE}
-
-runtest3_2:
-	-@test=test3_2; check=test3_1; \
-	${MPIEXEC} -n 1 ./test3 -st_matmode inplace 2>&1 > $${test}.tmp; \
-	${TESTCODE}
-
-runtest3_3:
-	-@test=test3_3; check=test3_1; \
-	${MPIEXEC} -n 1 ./test3 -st_matmode shell 2>&1 > $${test}.tmp; \
-	${TESTCODE}
-
-runtest4_1:
-	-@test=test4_1; check=test4_1; \
-	${MPIEXEC} -n 1 ./test4 -st_transform 2>&1 > $${test}.tmp; \
-	${TESTCODE}
-
-runtest4_2:
-	-@test=test4_2; check=test4_1; \
-	${MPIEXEC} -n 1 ./test4 -st_transform -st_matmode shell 2>&1 > $${test}.tmp; \
-	${TESTCODE}
-
-runtest4_3:
-	-@test=test4_3; check=test4_2; \
-	${MPIEXEC} -n 1 ./test4 2>&1 > $${test}.tmp; \
-	${TESTCODE}
-
-runtest4_4:
-	-@test=test4_4; check=test4_2; \
-	${MPIEXEC} -n 1 ./test4 -st_matmode shell 2>&1 > $${test}.tmp; \
+runtest4_2: runtest4_2_copy runtest4_2_shell
+runtest4_2_%:
+	-@${SETTEST}; check=test4_2; matmode=$*; \
+	${MPIEXEC} -n 1 ./test4 -st_matmode $$matmode > $${test}.tmp 2>&1; \
 	${TESTCODE}
 

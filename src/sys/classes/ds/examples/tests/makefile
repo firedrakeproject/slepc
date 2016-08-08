@@ -31,19 +31,19 @@ MANSEC     = DS
 TESTS      = test1 test2 test3 test4 test5 test6 test7 test8 test9 test12 test13 \
              test14f test15
 
-TESTEXAMPLES_C                 = test2.PETSc runtest2_1 test2.rm \
-                                 test3.PETSc runtest3_1 test3.rm \
-                                 test12.PETSc runtest12_1 test12.rm
-TESTEXAMPLES_C_NOTSINGLE       = test5.PETSc runtest5_1 test5.rm \
-                                 test6.PETSc runtest6_1 test6.rm \
-                                 test7.PETSc runtest7_1 test7.rm \
-                                 test8.PETSc runtest8_1 test8.rm \
-                                 test9.PETSc runtest9_1 test9.rm \
-                                 test15.PETSc runtest15_1 test15.rm
-TESTEXAMPLES_C_NOCOMPLEX       = test1.PETSc runtest1_1 test1.rm \
-                                 test4.PETSc runtest4_1 test4.rm \
-                                 test13.PETSc runtest13_1 test13.rm
-TESTEXAMPLES_FORTRAN_NOCOMPLEX = test14f.PETSc runtest14f_1 test14f.rm
+TESTEXAMPLES_C                     = test2.PETSc runtest2_1 test2.rm \
+                                     test3.PETSc runtest3_1 test3.rm \
+                                     test12.PETSc runtest12_1 test12.rm
+TESTEXAMPLES_C_NOTSINGLE           = test5.PETSc runtest5_1 test5.rm \
+                                     test6.PETSc runtest6_1 test6.rm \
+                                     test7.PETSc runtest7_1 test7.rm \
+                                     test8.PETSc runtest8_1 test8.rm \
+                                     test9.PETSc runtest9_1 test9.rm \
+                                     test15.PETSc runtest15_1 test15.rm
+TESTEXAMPLES_C_NOCOMPLEX           = test1.PETSc runtest1_1 test1.rm \
+                                     test4.PETSc runtest4_1 test4.rm
+TESTEXAMPLES_C_NOCOMPLEX_NOTSINGLE = test13.PETSc runtest13_1 test13.rm
+TESTEXAMPLES_FORTRAN_NOCOMPLEX     = test14f.PETSc runtest14f_1 test14f.rm
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common
 
@@ -102,84 +102,67 @@ test15: test15.o chkopts
 #------------------------------------------------------------------------------------
 
 runtest1_1:
-	-@${MPIEXEC} -n 1 ./test1 > test1_1.tmp 2>&1; \
-	  if (${DIFF} output/test1_1.out test1_1.tmp) then true; \
-	  else echo "Possible problem with test1_1, diffs above"; fi; \
-	  ${RM} -f test1_1.tmp
+	-@${SETTEST}; \
+	${MPIEXEC} -n 1 ./test1 > $${test}.tmp 2>&1; \
+	${TESTCODE}
 
 runtest2_1:
-	-@${MPIEXEC} -n 1 ./test2 -n 12 > test2_1.tmp 2>&1; \
-	  if (${DIFF} output/test2_1.out test2_1.tmp) then true; \
-	  else echo "Possible problem with test2_1, diffs above"; fi; \
-	  ${RM} -f test2_1.tmp
+	-@${SETTEST}; \
+	${MPIEXEC} -n 1 ./test2 -n 12 > $${test}.tmp 2>&1; \
+	${TESTCODE}
 
 runtest3_1:
-	-@${MPIEXEC} -n 1 ./test3 > test3_1.tmp 2>&1; \
-	  if (${DIFF} output/test3_1.out test3_1.tmp) then true; \
-	  else echo "Possible problem with test3_1, diffs above"; fi; \
-	  ${RM} -f test3_1.tmp
+	-@${SETTEST}; \
+	${MPIEXEC} -n 1 ./test3 > $${test}.tmp 2>&1; \
+	${TESTCODE}
 
 runtest4_1:
-	-@${MPIEXEC} -n 1 ./test4 > test4_1.tmp 2>&1; \
-	  if (${DIFF} output/test4_1.out test4_1.tmp) then true; \
-	  else echo "Possible problem with test4_1, diffs above"; fi; \
-	  ${RM} -f test4_1.tmp
+	-@${SETTEST}; \
+	${MPIEXEC} -n 1 ./test4 > $${test}.tmp 2>&1; \
+	${TESTCODE}
 
 runtest5_1:
-	-@${MPIEXEC} -n 1 ./test5 > test5_1.tmp 2>&1; \
-	  if (${DIFF} output/test5_1.out test5_1.tmp) then true; \
-	  else echo "Possible problem with test5_1, diffs above"; fi; \
-	  ${RM} -f test5_1.tmp
+	-@${SETTEST}; \
+	${MPIEXEC} -n 1 ./test5 > $${test}.tmp 2>&1; \
+	${TESTCODE}
 
 runtest6_1:
-	-@${MPIEXEC} -n 1 ./test6 > test6_1.tmp 2>&1; \
-	  if (${DIFF} output/test6_1.out test6_1.tmp) then true; \
-	  else echo "Possible problem with test6_1, diffs above"; fi; \
-	  ${RM} -f test6_1.tmp
+	-@${SETTEST}; \
+	${MPIEXEC} -n 1 ./test6 > $${test}.tmp 2>&1; \
+	${TESTCODE}
 
 runtest7_1:
-	-@${MPIEXEC} -n 1 ./test7 > test7_1.tmp 2>&1; \
-	  if (${DIFF} output/test7_1.out test7_1.tmp) then true; \
-	  else echo "Possible problem with test7_1, diffs above"; fi; \
-	  ${RM} -f test7_1.tmp
+	-@${SETTEST}; \
+	${MPIEXEC} -n 1 ./test7 > $${test}.tmp 2>&1; \
+	${TESTCODE}
 
 runtest8_1:
-	-@${MPIEXEC} -n 1 ./test8 > test8_1.tmp 2>&1; \
-	  if (${DIFF} output/test8_1.out test8_1.tmp) then true; \
-	  else echo "Possible problem with test8_1, diffs above"; fi; \
-	  ${RM} -f test8_1.tmp
+	-@${SETTEST}; \
+	${MPIEXEC} -n 1 ./test8 > $${test}.tmp 2>&1; \
+	${TESTCODE}
 
 runtest9_1:
-	-@${MPIEXEC} -n 1 ./test9 > test9_1.tmp 2>&1; \
-	  if (${DIFF} output/test9_1.out test9_1.tmp) then true; \
-	  else echo "Possible problem with test9_1, diffs above"; fi; \
-	  ${RM} -f test9_1.tmp
+	-@${SETTEST}; \
+	${MPIEXEC} -n 1 ./test9 > $${test}.tmp 2>&1; \
+	${TESTCODE}
 
 runtest12_1:
-	-@${MPIEXEC} -n 1 ./test12 > test12_1.tmp 2>&1; \
-	  if (${DIFF} output/test12_1.out test12_1.tmp) then true; \
-	  else echo "Possible problem with test12_1, diffs above"; fi; \
-	  ${RM} -f test12_1.tmp
+	-@${SETTEST}; \
+	${MPIEXEC} -n 1 ./test12 > $${test}.tmp 2>&1; \
+	${TESTCODE}
 
 runtest13_1:
-	-@if [ "${PETSC_PRECISION}" = "single" ]; then \
-	   echo "Skipping test13_1 test"; \
-	 else \
-	  ${MPIEXEC} -n 1 ./test13 > test13_1.tmp 2>&1; \
-	  if (${DIFF} output/test13_1.out test13_1.tmp) then true; \
-	  else echo "Possible problem with test13_1, diffs above"; fi; \
-	  ${RM} -f test13_1.tmp; \
-	 fi
+	-@${SETTEST}; \
+	${MPIEXEC} -n 1 ./test13 > $${test}.tmp 2>&1; \
+	${TESTCODE}
 
 runtest14f_1:
-	-@${MPIEXEC} -n 1 ./test14f > test14f_1.tmp 2>&1; \
-	  if (${DIFF} output/test14f_1.out test14f_1.tmp) then true; \
-	  else echo "Possible problem with test14f_1, diffs above"; fi; \
-	  ${RM} -f test14f_1.tmp
+	-@${SETTEST}; \
+	${MPIEXEC} -n 1 ./test14f > $${test}.tmp 2>&1; \
+	${TESTCODE}
 
 runtest15_1:
-	-@${MPIEXEC} -n 1 ./test15 > test15_1.tmp 2>&1; \
-	  if (${DIFF} output/test15_1.out test15_1.tmp) then true; \
-	  else echo "Possible problem with test15_1, diffs above"; fi; \
-	  ${RM} -f test15_1.tmp
+	-@${SETTEST}; \
+	${MPIEXEC} -n 1 ./test15 > $${test}.tmp 2>&1; \
+	${TESTCODE}
 

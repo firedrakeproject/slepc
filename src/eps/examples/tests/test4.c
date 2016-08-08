@@ -32,10 +32,9 @@ int main(int argc,char **argv)
 {
   Mat            A;           /* problem matrix */
   EPS            eps;         /* eigenproblem solver context */
-  EPSType        type;
   PetscReal      tol=1000*PETSC_MACHINE_EPSILON;
   PetscInt       n=30,i,Istart,Iend,nev;
-  PetscBool      isgd2;
+  PetscBool      flg;
   char           epstype[30] = "krylovschur";
   PetscErrorCode ierr;
 
@@ -43,8 +42,7 @@ int main(int argc,char **argv)
 
   ierr = PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL);CHKERRQ(ierr);
   ierr = PetscOptionsGetString(NULL,NULL,"-type",epstype,30,NULL);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"\n1-D Laplacian Eigenproblem, n=%D",n);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"\nEPS type: %s\n\n",epstype);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"\n1-D Laplacian Eigenproblem, n=%D\n\n",n);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
      Compute the operator matrix that defines the eigensystem, Ax=kx
@@ -83,12 +81,17 @@ int main(int argc,char **argv)
   /*
      Set solver parameters at runtime
   */
-  ierr = PetscStrcmp(epstype,"gd2",&isgd2);CHKERRQ(ierr);
-  if (isgd2) {
+  ierr = PetscStrcmp(epstype,"gd2",&flg);CHKERRQ(ierr);
+  if (flg) {
     ierr = EPSSetType(eps,EPSGD);CHKERRQ(ierr);
     ierr = EPSGDSetDoubleExpansion(eps,PETSC_TRUE);CHKERRQ(ierr);
   } else {
     ierr = EPSSetType(eps,epstype);CHKERRQ(ierr);
+  }
+  ierr = PetscStrcmp(epstype,"jd",&flg);CHKERRQ(ierr);
+  if (flg) {
+    ierr = EPSSetWhichEigenpairs(eps,EPS_TARGET_MAGNITUDE);CHKERRQ(ierr);
+    ierr = EPSSetTarget(eps,4.0);CHKERRQ(ierr);
   }
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -96,11 +99,6 @@ int main(int argc,char **argv)
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
   ierr = EPSSolve(eps);CHKERRQ(ierr);
-  /*
-     Optional: Get some information from the solver and display it
-  */
-  ierr = EPSGetType(eps,&type);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," Solution method: %s\n\n",type);CHKERRQ(ierr);
   ierr = EPSGetDimensions(eps,&nev,NULL,NULL);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD," Number of requested eigenvalues: %D\n",nev);CHKERRQ(ierr);
 

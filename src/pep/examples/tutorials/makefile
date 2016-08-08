@@ -29,8 +29,8 @@ EXAMPLESF  = ex16f90.F90
 MANSEC     = PEP
 
 TESTEXAMPLES_C_NOCOMPLEX_NOTSINGLE = ex28.PETSc runex28_1 ex28.rm
-TESTEXAMPLES_C_NOCOMPLEX           = ex16.PETSc runex16_1 ex16.rm \
-                                     ex17.PETSc runex17_1 ex17.rm
+TESTEXAMPLES_C_NOCOMPLEX           = ex16.PETSc runex16_1 ex16.rm
+TESTEXAMPLES_C_DATAFILE            = ex17.PETSc runex17_1 ex17.rm
 TESTEXAMPLES_F90_NOCOMPLEX         = ex16f90.PETSc runex16f90_1 ex16f90.rm
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common
@@ -55,30 +55,22 @@ ex28: ex28.o chkopts
 DATAPATH = ${SLEPC_DIR}/share/slepc/datafiles/matrices
 
 runex16_1:
-	-@${MPIEXEC} -n 1 ./ex16 -pep_nev 4 -pep_ncv 20 -terse > ex16_1.tmp 2>&1; \
-	   if (${DIFF} output/ex16_1.out ex16_1.tmp) then true; \
-	   else echo "Possible problem with ex16_1, diffs above"; fi; \
-	   ${RM} -f ex16_1.tmp
+	-@${SETTEST}; \
+	${MPIEXEC} -n 1 ./ex16 -pep_nev 4 -pep_ncv 20 -terse > $${test}.tmp 2>&1; \
+	${TESTCODE}
 
 runex16f90_1:
-	-@${MPIEXEC} -n 1 ./ex16f90 -pep_nev 4 -pep_ncv 20 -terse > ex16f90_1.tmp 2>&1; \
-	   if (${DIFF} output/ex16f90_1.out ex16f90_1.tmp) then true; \
-	   else echo "Possible problem with ex16f90_1, diffs above"; fi; \
-	   ${RM} -f ex16f90_1.tmp
+	-@${SETTEST}; \
+	${MPIEXEC} -n 1 ./ex16f90 -pep_nev 4 -pep_ncv 20 -terse > $${test}.tmp 2>&1; \
+	${TESTCODE}
 
 runex17_1:
-	-@if [ "${PETSC_PRECISION}" != "double" ] || (${GREP} USE_64BIT_INDICES ${PETSC_DIR}/${PETSC_ARCH}/include/petscconf.h > /dev/null 2>&1) then \
-           echo "Skipping ex17 test"; \
-         else \
-	   ${MPIEXEC} -n 1 ./ex17 -A ${DATAPATH}/speaker107k.petsc,${DATAPATH}/speaker107c.petsc,${DATAPATH}/speaker107m.petsc -pep_nev 4 -pep_ncv 20 -pep_tol 1e-14 -pep_scale both -terse > ex17_1.tmp 2>&1; \
-	   if (${DIFF} output/ex17_1.out ex17_1.tmp) then true; \
-	   else echo "Possible problem with ex17_1, diffs above"; fi; \
-	   ${RM} -f ex17_1.tmp; \
-         fi
+	-@${SETTEST}; \
+	${MPIEXEC} -n 1 ./ex17 -A ${DATAPATH}/speaker107k.petsc,${DATAPATH}/speaker107c.petsc,${DATAPATH}/speaker107m.petsc -pep_nev 4 -pep_ncv 20 -pep_tol 1e-14 -pep_scale both -terse > $${test}.tmp 2>&1; \
+	${TESTCODE}
 
 runex28_1:
-	-@${MPIEXEC} -n 1 ./ex28 -pep_nev 4 -terse > ex28_1.tmp 2>&1; \
-	   if (${DIFF} output/ex28_1.out ex28_1.tmp) then true; \
-	   else echo "Possible problem with ex28_1, diffs above"; fi; \
-	   ${RM} -f ex28_1.tmp
+	-@${SETTEST}; \
+	${MPIEXEC} -n 1 ./ex28 -pep_nev 4 -terse > $${test}.tmp 2>&1; \
+	${TESTCODE}
 

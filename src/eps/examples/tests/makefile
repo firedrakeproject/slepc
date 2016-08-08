@@ -32,24 +32,24 @@ MANSEC     = EPS
 TESTS      = test1 test2 test3 test4 test5 test6 test7f test8 test9 test10 \
              test11 test12 test13 test14 test14f test15f test16
 
-TESTEXAMPLES_C           = test13.PETSc runtest13_1 runtest13_2 test13.rm \
-                           test14.PETSc runtest14_1 test14.rm
-TESTEXAMPLES_C_NOTSINGLE = test1.PETSc runtest1_1 test1.rm \
-                           test2.PETSc runtest2_1 test2.rm \
-                           test3.PETSc runtest3_1 test3.rm \
-                           test4.PETSc runtest4_1 test4.rm \
-                           test6.PETSc runtest6_1 test6.rm \
-                           test8.PETSc runtest8_1 test8.rm \
-                           test9.PETSc runtest9_1 test9.rm \
-                           test10.PETSc runtest10_1 test10.rm \
-                           test11.PETSc runtest11_1 test11.rm \
-                           test12.PETSc runtest12_1 test12.rm \
-                           test16.PETSc runtest16_1 test16.rm
-TESTEXAMPLES_C_NOCOMPLEX = test1.PETSc runtest1_2 test1.rm
-TESTEXAMPLES_C_NOF128    = test5.PETSc runtest5_1 test5.rm
-TESTEXAMPLES_FORTRAN     = test7f.PETSc runtest7f_1 test7f.rm \
-                           test14f.PETSc runtest14f_1 test14f.rm
-TESTEXAMPLES_BLOPEX      = test5.PETSc runtest5_blopex test5.rm
+TESTEXAMPLES_C                     = test13.PETSc runtest13_1 runtest13_2 test13.rm \
+                                     test14.PETSc runtest14_1 test14.rm
+TESTEXAMPLES_C_NOTSINGLE           = test1.PETSc runtest1_1 test1.rm \
+                                     test2.PETSc runtest2_1 test2.rm \
+                                     test3.PETSc runtest3_1 test3.rm \
+                                     test4.PETSc runtest4_1 test4.rm \
+                                     test6.PETSc runtest6_1 test6.rm \
+                                     test8.PETSc runtest8_1 test8.rm \
+                                     test9.PETSc runtest9_1 test9.rm \
+                                     test10.PETSc runtest10_1 test10.rm \
+                                     test11.PETSc runtest11_1 test11.rm \
+                                     test12.PETSc runtest12_1 test12.rm \
+                                     test16.PETSc runtest16_1 test16.rm
+TESTEXAMPLES_C_NOCOMPLEX_NOTSINGLE = test1.PETSc runtest1_2 test1.rm
+TESTEXAMPLES_C_DOUBLE              = test5.PETSc runtest5_1 test5.rm
+TESTEXAMPLES_FORTRAN               = test7f.PETSc runtest7f_1 test7f.rm \
+                                     test14f.PETSc runtest14f_1 test14f.rm
+TESTEXAMPLES_BLOPEX                = test5.PETSc runtest5_blopex test5.rm
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common
 
@@ -122,245 +122,206 @@ test16: test16.o chkopts
 	${RM} test16.o
 
 #------------------------------------------------------------------------------------
-EPSALL = krylovschur arnoldi lanczos gd jd gd2
-EPSNS  = krylovschur arnoldi gd jd gd2
-EPSAR  = gd jd gd2
 
-TESTCODE = \
-	[ x${SAVE_OUTPUT} = xyes ] && cp $${test}.tmp output/$${test}.out; \
-	${DIFF} output/$${test}.out $${test}.tmp || \
-	echo "Possible problem with $${test}, diffs above"; \
-	${RM} -f $${test}.tmp
-
-runtest1_1:
-	-@test=test1_1; \
-	for eps in ${EPSALL}; do \
-	   echo "eps type $$eps"; \
-	   if [ "$$eps" = lanczos ]; then EXTRA="-eps_lanczos_reorthog full"; else EXTRA=""; fi; \
-	   if [ "$$eps" = gd2 ]; then eps="gd -eps_gd_double_expansion"; fi; \
-	   ${MPIEXEC} -n 1 ./test1 -eps_type $$eps -eps_nev 4 $$EXTRA 2>&1; \
-	done > $${test}.tmp; \
+runtest1_1: runtest1_1_krylovschur runtest1_1_arnoldi runtest1_1_lanczos runtest1_1_gd runtest1_1_jd runtest1_1_gd2
+runtest1_1_%:
+	-@${SETTEST}; check=test1_1; eps=$*; \
+	if [ "$$eps" = lanczos ]; then EXTRA="-eps_lanczos_reorthog full"; else EXTRA=""; fi; \
+	if [ "$$eps" = gd2 ]; then eps="gd -eps_gd_double_expansion"; fi; \
+	${MPIEXEC} -n 1 ./test1 -eps_type $$eps -eps_nev 4 $$EXTRA > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
 runtest1_2:
-	-@if [ "${PETSC_PRECISION}" = "single" ]; then \
-	   echo "Skipping test1_2 test"; \
-	 else \
-	  test=test1_2; \
-	  ${MPIEXEC} -n 1 ./test1 -eps_interval .1,1.1 -eps_tol 1e-10 -st_type sinvert -st_ksp_type preonly -st_pc_type cholesky 2>&1 >  $${test}.tmp; \
-	  ${TESTCODE}; \
-         fi
-
-runtest2_1:
-	-@test=test2_1; \
-	for eps in ${EPSALL}; do \
-	   echo "eps type $$eps"; \
-	   if [ "$$eps" = gd2 ]; then eps="gd -eps_gd_double_expansion"; fi; \
-	   ${MPIEXEC} -n 1 ./test2 -eps_type $$eps -eps_nev 4 $$EXTRA 2>&1;    \
-	done > $${test}.tmp; \
+	-@${SETTEST}; \
+	${MPIEXEC} -n 1 ./test1 -eps_interval .1,1.1 -eps_tol 1e-10 -st_type sinvert -st_ksp_type preonly -st_pc_type cholesky > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
-runtest3_1:
-	-@test=test3_1; \
-	for eps in ${EPSALL}; do \
-	   echo "eps type $$eps"; \
-	   if [ "$$eps" = gd2 ]; then eps="gd -eps_gd_double_expansion"; fi; \
-	   ${MPIEXEC} -n 1 ./test3 -eps_type $$eps -eps_nev 4 2>&1;    \
-	done > $${test}.tmp; \
+runtest2_1: runtest2_1_krylovschur runtest2_1_arnoldi runtest2_1_lanczos runtest2_1_gd runtest2_1_jd runtest2_1_gd2
+runtest2_1_%:
+	-@${SETTEST}; check=test2_1; eps=$*; \
+	if [ "$$eps" = gd2 ]; then eps="gd -eps_gd_double_expansion"; fi; \
+	${MPIEXEC} -n 1 ./test2 -eps_type $$eps -eps_nev 4 > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
-runtest4_1:
-	-@test=test4_1; \
-	for eps in ${EPSALL}; do \
-	   echo "eps type $$eps"; \
-	   ${MPIEXEC} -n 1 ./test4 -type $$eps 2>&1;    \
-	done > $${test}.tmp; \
+runtest3_1: runtest3_1_krylovschur runtest3_1_arnoldi runtest3_1_lanczos runtest3_1_gd runtest3_1_jd runtest3_1_gd2
+runtest3_1_%:
+	-@${SETTEST}; check=test3_1; eps=$*; \
+	if [ "$$eps" = gd2 ]; then eps="gd -eps_gd_double_expansion"; fi; \
+	${MPIEXEC} -n 1 ./test3 -eps_type $$eps -eps_nev 4 > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
-runtest5_1:
-	-@if [ "${PETSC_PRECISION}" = "single" ]; then \
-	   echo "Skipping test5_1 test"; \
-	 else \
-	  test=test5_1; \
-	  for eps in ${EPSNS}; do \
-	     echo "eps type $$eps" >> test5_1.tmp; \
-	     if [ "$$eps" = gd ]; then EXTRA=""; \
-	     elif [ "$$eps" = jd ]; then EXTRA="-eps_jd_minv 3"; \
-	     elif [ "$$eps" = "gd2" ]; then eps=gd; EXTRA="-eps_gd_double_expansion"; else EXTRA=""; fi; \
-	     ${MPIEXEC} -n 1 ./test5 -eps_type $$eps -eps_nev 3 $$EXTRA >> test5_1.tmp 2>&1; \
-	  done; \
-	  if (${GREP} USE_COMPLEX ${PETSC_DIR}/${PETSC_ARCH}/include/petscconf.h > /dev/null 2>&1) then \
-	    [ x${SAVE_OUTPUT} = xyes ] && cp test5_1.tmp output/test5_1_complex.out; \
-	    if (${DIFF} output/test5_1_complex.out test5_1.tmp) then true; \
-	    else echo "Possible problem with test5_1, diffs above"; fi; \
-	  else \
-	    [ x${SAVE_OUTPUT} = xyes ] && cp test5_1.tmp output/test5_1.out; \
-	    if (${DIFF} output/test5_1.out test5_1.tmp) then true; \
-	    else echo "Possible problem with test5_1, diffs above"; fi; \
-	  fi; \
-	  ${RM} -f test5_1.tmp; \
-	 fi
+runtest4_1: runtest4_1_krylovschur runtest4_1_arnoldi runtest4_1_lanczos runtest4_1_gd runtest4_1_jd runtest4_1_gd2
+runtest4_1_%:
+	-@${SETTEST}; check=test4_1; eps=$*; \
+	${MPIEXEC} -n 1 ./test4 -type $$eps > $${test}.tmp 2>&1; \
+	${TESTCODE}
+
+runtest5_1: runtest5_1_krylovschur runtest5_1_arnoldi runtest5_1_gd runtest5_1_jd runtest5_1_gd2
+runtest5_1_%:
+	-@${SETTEST}; check=test5_1; eps=$*; \
+	if [ "${PETSC_SCALAR}" = "complex" ]; then check=$${check}_complex; fi; \
+	if [ "$$eps" = jd ]; then EXTRA="-eps_jd_minv 3"; \
+	elif [ "$$eps" = gd2 ]; then eps="gd -eps_gd_double_expansion"; fi; \
+	${MPIEXEC} -n 1 ./test5 -eps_type $$eps -eps_nev 3 $$EXTRA > $${test}.tmp 2>&1; \
+	${TESTCODE}
 
 runtest5_blopex:
-	-@${MPIEXEC} -n 1 ./test5 -symm -eps_type blopex -eps_nev 4 > test5_blopex.tmp 2>&1; \
-	if (${DIFF} output/test5_blopex.out test5_blopex.tmp) then true; \
-	else echo "Possible problem with test5_blopex, diffs above"; fi; \
-	${RM} -f test5_blopex.tmp;
+	-@${SETTEST}; \
+	if [ "${PETSC_SCALAR}" = "complex" ]; then check=$${check}_complex; fi; \
+	${MPIEXEC} -n 1 ./test5 -symm -eps_type blopex -eps_nev 4 > $${test}.tmp 2>&1; \
+	${TESTCODE}
 
 testtest5_blopex: test5.PETSc
-	@ok=0; if [ "${PETSC_WITH_BATCH}" != "" -o "${MPIEXEC}" = "/bin/false" ]; then \
-           echo "Skipping BLOPEX test"; \
+	@fail=0; if [ "${PETSC_WITH_BATCH}" != "" -o "${MPIEXEC}" = "/bin/false" ]; then \
+          echo "Skipping BLOPEX test"; \
 	elif [ -f test5 ]; then \
-           ${MPIEXEC} -n 1 ./test5 -symm -eps_type blopex -eps_nev 4 > test5_blopex.tmp 2>&1; \
-	   if [ "${PETSC_SCALAR}" = "complex" ]; then REFFILE=_complex; fi; \
-	   if (${DIFF} output/test5_blopex$$REFFILE.out test5_blopex.tmp > /dev/null 2>&1) then \
-           echo "BLOPEX example src/eps/examples/tests/test5 run successfully with 1 MPI process"; \
-	   else echo "Possible error running BLOPEX src/eps/examples/tests/test5 with 1 MPI process"; \
-           cat test5_blopex.tmp; ok=1; fi; \
-           ${RM} -f test5_blopex.tmp; \
-           ${MAKE} SLEPC_ARCH=${SLEPC_ARCH} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} test5.rm ; \
-	else ok=1; fi; \
-	exit $$ok
+	  test=test5_blopex; check=test5_blopex; \
+	  if [ "${PETSC_SCALAR}" = "complex" ]; then check=$${check}_complex; fi; \
+	  ${MPIEXEC} -n 1 ./test5 -symm -eps_type blopex -eps_nev 4 > $${test}.tmp 2>&1; \
+	  if (${DIFF} output/$${check}.out $${test}.tmp > /dev/null 2>&1) then \
+	    echo "BLOPEX example src/eps/examples/tests/test5 run successfully with 1 MPI process"; \
+	  else \
+	    echo "Possible error running BLOPEX src/eps/examples/tests/test5 with 1 MPI process"; \
+	    cat $${test}.tmp; fail=1; \
+	  fi; \
+	  ${RM} $${test}.tmp; \
+	  ${MAKE} SLEPC_ARCH=${SLEPC_ARCH} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} test5.rm ; \
+	else fail=1; fi; \
+	exit $$fail
 
-runtest6_1:
-	-@test=test6_1; \
-	for eps in ${EPSNS}; do \
-	   echo "eps type $$eps"; \
-	   if [ "$$eps" = gd2 ]; then eps="gd -eps_gd_double_expansion"; fi; \
-	   ${MPIEXEC} -n 1 ./test6 -eps_type $$eps -eps_nev 4 2>&1;    \
-	done > $${test}.tmp; \
+runtest6_1: runtest6_1_krylovschur runtest6_1_arnoldi runtest6_1_gd runtest6_1_jd runtest6_1_gd2
+runtest6_1_%:
+	-@${SETTEST}; check=test6_1; eps=$*; \
+	if [ "$$eps" = gd2 ]; then eps="gd -eps_gd_double_expansion"; fi; \
+	${MPIEXEC} -n 1 ./test6 -eps_type $$eps -eps_nev 4 > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
 runtest7f_1:
-	-@test=test7f_1; \
+	-@${SETTEST}; \
 	${MPIEXEC} -n 1 ./test7f -eps_nev 4 > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
 testtest7f: test7f.PETSc
-	@ok=0; if [ "${PETSC_WITH_BATCH}" != "" ]; then \
-	   echo "Running with batch filesystem; to test run src/eps/examples/tests/test7f " ; \
-	   echo "with your systems batch system"; \
-        elif [ "${MPIEXEC}" = "/bin/false" ]; then \
-           echo "*mpiexec not found*. Please run src/eps/examples/tests/test7f manually"; \
+	@fail=0; if [ "${PETSC_WITH_BATCH}" != "" ]; then \
+	  echo "Running with batch filesystem; to test run src/eps/examples/tests/test7f " ; \
+	  echo "with your systems batch system"; \
+	elif [ "${MPIEXEC}" = "/bin/false" ]; then \
+	  echo "*mpiexec not found*. Please run src/eps/examples/tests/test7f manually"; \
 	elif [ -f test7f ]; then \
-           GFORTRAN_UNBUFFERED_ALL=1 ${MPIEXEC} -n 1 ./test7f -eps_nev 4 > test7f_1.tmp 2>&1; \
-	   if (${DIFF} output/test7f_1.out test7f_1.tmp > /dev/null 2>&1) then \
-           echo "Fortran example src/eps/examples/tests/test7f run successfully with 1 MPI process"; \
-	   else echo "Possible error running Fortran src/eps/examples/tests/test7f with 1 MPI process"; \
-           cat test7f_1.tmp; ok=1; fi; \
-           ${RM} -f test7f_1.tmp; \
-           ${MAKE} SLEPC_ARCH=${SLEPC_ARCH} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} test7f.rm ; \
-	else ok=1; fi; \
-	exit $$ok
+	  test=test7f_1; check=test7f_1; \
+	  GFORTRAN_UNBUFFERED_ALL=1 ${MPIEXEC} -n 1 ./test7f -eps_nev 4 > $${test}.tmp 2>&1; \
+	  if (${DIFF} output/$${check}.out $${test}.tmp > /dev/null 2>&1) then \
+	    echo "Fortran example src/eps/examples/tests/test7f run successfully with 1 MPI process"; \
+	  else \
+	    echo "Possible error running Fortran src/eps/examples/tests/test7f with 1 MPI process"; \
+	    cat $${test}.tmp; fail=1; \
+	  fi; \
+	  ${RM} $${test}.tmp; \
+	  ${MAKE} SLEPC_ARCH=${SLEPC_ARCH} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} test7f.rm ; \
+	else fail=1; fi; \
+	exit $$fail
 
-runtest8_1:
-	-@test=test8_1; \
-	for eps in ${EPSALL}; do \
-	   echo "eps type $$eps"; \
-	   if [ "$$eps" = gd2 ]; then eps="gd -eps_gd_double_expansion"; fi; \
-	   ${MPIEXEC} -n 1 ./test8 -eps_type $$eps -eps_nev 4 -eps_ncv 25 2>&1; \
-	done > $${test}.tmp; \
+runtest8_1: runtest8_1_krylovschur runtest8_1_arnoldi runtest8_1_lanczos runtest8_1_gd runtest8_1_jd runtest8_1_gd2
+runtest8_1_%:
+	-@${SETTEST}; check=test8_1; eps=$*; \
+	if [ "$$eps" = gd2 ]; then eps="gd -eps_gd_double_expansion"; fi; \
+	${MPIEXEC} -n 1 ./test8 -eps_type $$eps -eps_nev 4 -eps_ncv 25 > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
-runtest9_1:
-	-@test=test9_1; \
-	for eps in ${EPSNS}; do \
-	   echo "eps type $$eps"; \
-	   if [ "$$eps" = "krylovschur" -o "$$eps" = "arnoldi" ]; then EXTRA="-eps_ncv 7 -eps_max_it 300"; \
-	   elif [ "$$eps" = jd ]; then EXTRA="-st_ksp_type cg"; \
-           else EXTRA=""; fi; \
-	   if [ "$$eps" = gd2 ]; then eps="gd -eps_gd_double_expansion"; fi; \
-	   ${MPIEXEC} -n 1 ./test9 -eps_type $$eps -eps_nev 4 $$EXTRA 2>&1; \
-	done > $${test}.tmp;\
+runtest9_1: runtest9_1_krylovschur runtest9_1_arnoldi runtest9_1_gd runtest9_1_jd runtest9_1_gd2
+runtest9_1_%:
+	-@${SETTEST}; check=test9_1; eps=$*; \
+	if [ "$$eps" = "krylovschur" -o "$$eps" = "arnoldi" ]; then EXTRA="-eps_ncv 7 -eps_max_it 300"; \
+	elif [ "$$eps" = jd ]; then EXTRA="-st_ksp_type tfqmr -eps_jd_krylov_start -eps_jd_blocksize 2 -eps_jd_plusk 1"; \
+	elif [ "$$eps" = gd2 ]; then eps="gd -eps_gd_double_expansion"; fi; \
+	${MPIEXEC} -n 1 ./test9 -eps_type $$eps -eps_nev 4 $$EXTRA > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
-runtest10_1:
-	-@test=test10_1; \
-	for eps in ${EPSALL}; do \
-	   echo "eps type $$eps"; \
-	   if [ "$$eps" = gd2 ]; then eps="gd -eps_gd_double_expansion"; fi; \
-	   ${MPIEXEC} -n 1 ./test10 -eps_type $$eps -eps_nev 4 -m 11 2>&1; \
-	done > $${test}.tmp;\
+runtest10_1: runtest10_1_krylovschur runtest10_1_arnoldi runtest10_1_lanczos runtest10_1_gd runtest10_1_jd runtest10_1_gd2
+runtest10_1_%:
+	-@${SETTEST}; check=test10_1; eps=$*; \
+	if [ "$$eps" = gd2 ]; then eps="gd -eps_gd_double_expansion"; fi; \
+	${MPIEXEC} -n 1 ./test10 -eps_type $$eps -eps_nev 4 -m 11 > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
 testtest10: test10.PETSc
-	@ok=0; if [ "${PETSC_WITH_BATCH}" != "" ]; then \
-           echo "Running with batch filesystem; to test run src/eps/examples/tests/test10" ; \
-           echo "with your systems batch system"; \
-        elif [ "${MPIEXEC}" = "/bin/false" ]; then \
-           echo "*mpiexec not found*. Please run src/eps/examples/tests/test10 manually"; \
+	@fail=0; if [ "${PETSC_WITH_BATCH}" != "" ]; then \
+	  echo "Running with batch filesystem; to test run src/eps/examples/tests/test10" ; \
+	  echo "with your systems batch system"; \
+	elif [ "${MPIEXEC}" = "/bin/false" ]; then \
+	  echo "*mpiexec not found*. Please run src/eps/examples/tests/test10 manually"; \
 	elif [ -f test10 ]; then \
-           ${MPIEXEC} -n 1 ./test10 -eps_nev 4 -eps_ncv 14 -m 11 -eps_largest_magnitude > test10_1.tmp 2>&1; \
-	   if (${DIFF} output/test10_1_ks.out test10_1.tmp > /dev/null 2>&1) then \
-           echo "C/C++ example src/eps/examples/tests/test10 run successfully with 1 MPI process"; \
-	   else echo "Possible error running C/C++ src/eps/examples/tests/test10 with 1 MPI process"; \
-           cat test10_1.tmp; ok=1; fi; \
-	   if [ "${MPIEXEC}" != "${PETSC_DIR}/bin/petsc-mpiexec.uni" ]; then \
-           ${MPIEXEC} -n 2 ./test10 -eps_nev 4 -eps_ncv 14 -m 11 -eps_largest_magnitude > test10_1.tmp 2>&1; \
-	   if (${DIFF} output/test10_1_ks.out test10_1.tmp > /dev/null 2>&1) then \
-           echo "C/C++ example src/eps/examples/tests/test10 run successfully with 2 MPI process"; \
-	   else echo "Possible error running C/C++ src/eps/examples/tests/test10 with 2 MPI process"; \
-           cat test10_1.tmp; ok=1; fi; fi; \
-           ${RM} -f test10_1.tmp; \
-           ${MAKE} SLEPC_ARCH=${SLEPC_ARCH} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} test10.rm; \
-	else ok=1; fi; \
-	exit $$ok
+	  test=test10_1; check=test10_1_ks; \
+	  options="-eps_nev 4 -eps_ncv 14 -m 11 -eps_largest_magnitude"; \
+	  ${MPIEXEC} -n 1 ./test10 $$options > $${test}.tmp 2>&1; \
+	  if (${DIFF} output/$${check}.out $${test}.tmp > /dev/null 2>&1) then \
+	    echo "C/C++ example src/eps/examples/tests/test10 run successfully with 1 MPI process"; \
+	  else \
+	    echo "Possible error running C/C++ src/eps/examples/tests/test10 with 1 MPI process"; \
+	    cat $${test}.tmp; fail=1; \
+	  fi; \
+	  if [ "${MPIEXEC}" != "${PETSC_DIR}/bin/petsc-mpiexec.uni" ]; then \
+	    ${MPIEXEC} -n 2 ./test10 $$options > $${test}.tmp 2>&1; \
+	    if (${DIFF} output/$${check}.out $${test}.tmp > /dev/null 2>&1) then \
+	      echo "C/C++ example src/eps/examples/tests/test10 run successfully with 2 MPI process"; \
+	    else \
+	      echo "Possible error running C/C++ src/eps/examples/tests/test10 with 2 MPI process"; \
+	      cat $${test}.tmp; fail=1; \
+	    fi; \
+	  fi; \
+	  ${RM} $${test}.tmp; \
+	  ${MAKE} SLEPC_ARCH=${SLEPC_ARCH} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} test10.rm; \
+	else fail=1; fi; \
+	exit $$fail
 
-runtest11_1:
-	-@test=test11_1; \
-	for eps in krylovschur arnoldi gd; do \
-	   echo "eps type $$eps"; \
-	   if [ "$$eps" = krylovschur -o "$$eps" = arnoldi ]; then EXTRA="-st_type sinvert"; \
-	   elif [ "$$eps" = gd ]; then EXTRA="-eps_max_it 5000"; \
-	   fi; \
-	   ${MPIEXEC} -n 1 ./test11 -eps_type $$eps -eps_nev 4 $$EXTRA 2>&1; \
-	done > $${test}.tmp;\
+runtest11_1: runtest11_1_krylovschur runtest11_1_arnoldi runtest11_1_gd
+runtest11_1_%:
+	-@${SETTEST}; check=test11_1; eps=$*; \
+	if [ "$$eps" = krylovschur -o "$$eps" = arnoldi ]; then EXTRA="-st_type sinvert"; \
+	elif [ "$$eps" = gd ]; then EXTRA="-eps_max_it 5000"; fi; \
+	${MPIEXEC} -n 1 ./test11 -eps_type $$eps -eps_nev 4 $$EXTRA > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
-runtest12_1:
-	-@test=test12_1; \
-	for eps in ${EPSNS}; do \
-	   echo "eps type $$eps"; \
-	   if [ "$$eps" = gd2 ]; then eps="gd -eps_gd_double_expansion"; fi; \
-	   ${MPIEXEC} -n 1 ./test12 -eps_type $$eps -eps_nev 4 2>&1;    \
-	done > $${test}.tmp; \
+runtest12_1: runtest12_1_krylovschur runtest12_1_arnoldi runtest12_1_gd runtest12_1_jd runtest12_1_gd2
+runtest12_1_%:
+	-@${SETTEST}; check=test12_1; eps=$*; \
+	if [ "$$eps" = gd2 ]; then eps="gd -eps_gd_double_expansion"; fi; \
+	${MPIEXEC} -n 1 ./test12 -eps_type $$eps -eps_nev 4 > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
-runtest13_1:
-	-@test=test13_1; \
-	for eps in ${EPSAR}; do \
-	   echo "eps type $$eps"; \
-	   if [ "$$eps" = gd2 ]; then eps="gd -eps_gd_double_expansion"; fi; \
-	   ${MPIEXEC} -n 1 ./test13 -eps_type $$eps -eps_max_it 5000 2>&1;    \
-	done > $${test}.tmp; \
+runtest13_1: runtest13_1_krylovschur runtest13_1_gd runtest13_1_jd runtest13_1_gd2
+runtest13_1_%:
+	-@${SETTEST}; check=test13_1; eps=$*; \
+	if [ "$$eps" = jd ]; then eps="jd -eps_target -2"; \
+	elif [ "$$eps" = gd2 ]; then eps="gd -eps_gd_double_expansion"; fi; \
+	${MPIEXEC} -n 1 ./test13 -eps_type $$eps -eps_max_it 5000 > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
-runtest13_2:
-	-@test=test13_1; \
-	for eps in ${EPSAR}; do \
-	   echo "eps type $$eps"; \
-	   if [ "$$eps" = gd2 ]; then eps="gd -eps_gd_double_expansion"; fi; \
-	   ${MPIEXEC} -n 1 ./test13 -eps_type $$eps -eps_non_hermitian -eps_max_it 5000 2>&1;    \
-	done > $${test}.tmp; \
+runtest13_2: runtest13_2_krylovschur runtest13_2_gd runtest13_2_jd runtest13_2_gd2
+runtest13_2_%:
+	-@${SETTEST}; check=test13_1; eps=$*; \
+	if [ "$$eps" = jd ]; then eps="jd -eps_target -2"; \
+	elif [ "$$eps" = gd2 ]; then eps="gd -eps_gd_double_expansion"; fi; \
+	${MPIEXEC} -n 1 ./test13 -eps_type $$eps -eps_non_hermitian -eps_max_it 5000 > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
 runtest14_1:
-	-@test=test14_1; \
-	${MPIEXEC} -n 1 ./test14 2>&1 > $${test}.tmp; \
+	-@${SETTEST}; \
+	${MPIEXEC} -n 1 ./test14 > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
 runtest14f_1:
-	-@test=test14f_1; \
-	${MPIEXEC} -n 1 ./test14f 2>&1 > $${test}.tmp; \
+	-@${SETTEST}; \
+	${MPIEXEC} -n 1 ./test14f > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
 runtest15f_1:
-	-@test=test15f_1; \
+	-@${SETTEST}; \
 	${MPIEXEC} -n 1 ./test15f -my_eps_monitor > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
 runtest16_1:
-	-@test=test16_1; \
-	${MPIEXEC} -n 1 ./test16 -n 200 -eps_nev 6 -eps_ncv 24 -eps_smallest_magnitude 2>&1 > $${test}.tmp; \
+	-@${SETTEST}; \
+	${MPIEXEC} -n 1 ./test16 -n 200 -eps_nev 6 -eps_ncv 24 -eps_smallest_magnitude > $${test}.tmp 2>&1; \
 	${TESTCODE}
 

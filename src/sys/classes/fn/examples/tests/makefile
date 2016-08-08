@@ -75,80 +75,67 @@ test8: test8.o chkopts
 #------------------------------------------------------------------------------------
 
 runtest1_1:
-	-@${MPIEXEC} -n 1 ./test1 > test1_1.tmp 2>&1; \
-	  if (${DIFF} output/test1_1.out test1_1.tmp) then true; \
-	  else echo "Possible problem with test1_1, diffs above"; fi; \
-	  ${RM} -f test1_1.tmp
+	-@${SETTEST}; \
+	${MPIEXEC} -n 1 ./test1 > $${test}.tmp 2>&1; \
+	${TESTCODE}
 
 runtest2_1:
-	-@${MPIEXEC} -n 1 ./test2 > test2_1.tmp 2>&1; \
-	  if (${DIFF} output/test2_1.out test2_1.tmp) then true; \
-	  else echo "Possible problem with test2_1, diffs above"; fi; \
-	  ${RM} -f test2_1.tmp
+	-@${SETTEST}; \
+	${MPIEXEC} -n 1 ./test2 > $${test}.tmp 2>&1; \
+	${TESTCODE}
 
 runtest3_1:
-	-@${MPIEXEC} -n 1 ./test3 > test3_1.tmp 2>&1; \
-	  if (${DIFF} output/test3_1.out test3_1.tmp) then true; \
-	  else echo "Possible problem with test3_1, diffs above"; fi; \
-	  ${RM} -f test3_1.tmp
+	-@${SETTEST}; \
+	${MPIEXEC} -n 1 ./test3 > $${test}.tmp 2>&1; \
+	${TESTCODE}
 
 runtest3_2:
-	-@${MPIEXEC} -n 1 ./test3 -inplace > test3_1.tmp 2>&1; \
-	  if (${DIFF} output/test3_1.out test3_1.tmp) then true; \
-	  else echo "Possible problem with test3_1, diffs above"; fi; \
-	  ${RM} -f test3_1.tmp
+	-@${SETTEST}; check=test3_1; \
+	${MPIEXEC} -n 1 ./test3 -inplace > $${test}.tmp 2>&1; \
+	${TESTCODE}
 
 runtest4_1:
-	-@${MPIEXEC} -n 1 ./test4 -f1_fn_type exp -f1_fn_scale -2.5 -f2_fn_type rational -f2_fn_rational_numerator -1,1 -f2_fn_rational_denominator 1,-6,4 > test4_1.tmp 2>&1; \
-	  if (${DIFF} output/test4_1.out test4_1.tmp) then true; \
-	  else echo "Possible problem with test4_1, diffs above"; fi; \
-	  ${RM} -f test4_1.tmp
+	-@${SETTEST}; \
+	${MPIEXEC} -n 1 ./test4 -f1_fn_type exp -f1_fn_scale -2.5 -f2_fn_type rational -f2_fn_rational_numerator -1,1 -f2_fn_rational_denominator 1,-6,4 > $${test}.tmp 2>&1; \
+	${TESTCODE}
 
 runtest5_1:
-	-@${MPIEXEC} -n 1 ./test5 > test5_1.tmp 2>&1; \
-	  if (${DIFF} output/test5_1.out test5_1.tmp) then true; \
-	  else echo "Possible problem with test5_1, diffs above"; fi; \
-	  ${RM} -f test5_1.tmp
+	-@${SETTEST}; \
+	${MPIEXEC} -n 1 ./test5 > $${test}.tmp 2>&1; \
+	${TESTCODE}
 
 runtest5_2:
-	-@${MPIEXEC} -n 1 ./test5 -inplace > test5_1.tmp 2>&1; \
-	  if (${DIFF} output/test5_1.out test5_1.tmp) then true; \
-	  else echo "Possible problem with test5_1, diffs above"; fi; \
-	  ${RM} -f test5_1.tmp
+	-@${SETTEST}; check=test5_1; \
+	${MPIEXEC} -n 1 ./test5 -inplace > $${test}.tmp 2>&1; \
+	${TESTCODE}
 
 runtest6_1:
-	-@${MPIEXEC} -n 1 ./test6 > test6_1.tmp 2>&1; \
-	  if (${DIFF} output/test6_1.out test6_1.tmp) then true; \
-	  else echo "Possible problem with test6_1, diffs above"; fi; \
-	  ${RM} -f test6_1.tmp
+	-@${SETTEST}; \
+	${MPIEXEC} -n 1 ./test6 > $${test}.tmp 2>&1; \
+	${TESTCODE}
 
 runtest6_2:
-	-@${MPIEXEC} -n 1 ./test6 -inplace > test6_1.tmp 2>&1; \
-	  if (${DIFF} output/test6_1.out test6_1.tmp) then true; \
-	  else echo "Possible problem with test6_1, diffs above"; fi; \
-	  ${RM} -f test6_1.tmp
+	-@${SETTEST}; check=test6_1; \
+	${MPIEXEC} -n 1 ./test6 -inplace > $${test}.tmp 2>&1; \
+	${TESTCODE}
 
 runtest7_1:
-	-@${MPIEXEC} -n 1 ./test7 -tau .13 -eta 2 -n 19 > test7_1.tmp 2>&1; \
-	  if (${DIFF} output/test7_1.out test7_1.tmp) then true; \
-	  else echo "Possible problem with test7_1, diffs above"; fi; \
-	  ${RM} -f test7_1.tmp
+	-@${SETTEST}; \
+	${MPIEXEC} -n 1 ./test7 -tau .13 -eta 2 -n 19 > $${test}.tmp 2>&1; \
+	${TESTCODE}
 
 runtest7_2:
-	-@${MPIEXEC} -n 1 ./test7 -tau .13 -eta 2 -n 19 -inplace > test7_1.tmp 2>&1; \
-	  if (${DIFF} output/test7_1.out test7_1.tmp) then true; \
-	  else echo "Possible problem with test7_1, diffs above"; fi; \
-	  ${RM} -f test7_1.tmp
+	-@${SETTEST}; check=test7_1; \
+	${MPIEXEC} -n 1 ./test7 -tau .13 -eta 2 -n 19 -inplace > $${test}.tmp 2>&1; \
+	${TESTCODE}
 
 runtest8_1:
-	-@${MPIEXEC} -n 1 ./test8 -tau 0.9 -eta 0.5 -n 10 > test8_1.tmp 2>&1; \
-	  if (${DIFF} output/test8_1.out test8_1.tmp) then true; \
-	  else echo "Possible problem with test8_1, diffs above"; fi; \
-	  ${RM} -f test8_1.tmp
+	-@${SETTEST}; \
+	${MPIEXEC} -n 1 ./test8 -tau 0.9 -eta 0.5 -n 10 > $${test}.tmp 2>&1; \
+	${TESTCODE}
 
 runtest8_2:
-	-@${MPIEXEC} -n 1 ./test8 -tau 0.9 -eta 0.5 -n 10 -inplace > test8_1.tmp 2>&1; \
-	  if (${DIFF} output/test8_1.out test8_1.tmp) then true; \
-	  else echo "Possible problem with test8_1, diffs above"; fi; \
-	  ${RM} -f test8_1.tmp
+	-@${SETTEST}; check=test8_1; \
+	${MPIEXEC} -n 1 ./test8 -tau 0.9 -eta 0.5 -n 10 -inplace > $${test}.tmp 2>&1; \
+	${TESTCODE}
 
