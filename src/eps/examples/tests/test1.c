@@ -96,7 +96,7 @@ int main(int argc,char **argv)
   ierr = EPSGetTolerances(eps,&tol,NULL);CHKERRQ(ierr);
   ierr = EPSErrorView(eps,EPS_ERROR_RELATIVE,NULL);CHKERRQ(ierr);
   ierr = EPSGetConverged(eps,&nconv);CHKERRQ(ierr);
-  if (nconv>0) {
+  if (nconv>1) {
     ierr = VecDuplicateVecs(v,nconv,&X);CHKERRQ(ierr);
     for (i=0;i<nconv;i++) {
       ierr = EPSGetEigenvector(eps,i,X[i],NULL);CHKERRQ(ierr);

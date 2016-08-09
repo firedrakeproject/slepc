@@ -1,7 +1,7 @@
 
-Generalized Symmetric Eigenproblem, N=2025 (45x45 grid)
+Generalized Symmetric Eigenproblem, N=324 (18x18 grid)
 
  All requested eigenvalues computed up to the required tolerance:
-     29.73524, 29.67536, 29.58873, 29.46785
+     21.89996, 21.65898, 21.28794, 20.82229
 
 Level of orthogonality below the tolerance
