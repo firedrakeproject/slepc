@@ -59,7 +59,7 @@ PetscErrorCode EPSSetUp_Power(EPS eps)
     if (eps->ncv<eps->nev) SETERRQ(PetscObjectComm((PetscObject)eps),1,"The value of ncv must be at least nev");
   } else eps->ncv = eps->nev;
   if (eps->mpd) { ierr = PetscInfo(eps,"Warning: parameter mpd ignored\n");CHKERRQ(ierr); }
-  if (!eps->max_it) eps->max_it = PetscMax(2000,100*eps->n);
+  if (!eps->max_it) eps->max_it = PetscMax(1000*eps->nev,100*eps->n);
   if (!eps->which) { ierr = EPSSetWhichEigenpairs_Default(eps);CHKERRQ(ierr); }
   if (eps->which!=EPS_LARGEST_MAGNITUDE && eps->which !=EPS_TARGET_MAGNITUDE) SETERRQ(PetscObjectComm((PetscObject)eps),1,"Wrong value of eps->which");
   if (power->shift_type != EPS_POWER_SHIFT_CONSTANT) {
@@ -76,6 +76,36 @@ PetscErrorCode EPSSetUp_Power(EPS eps)
   ierr = EPSAllocateSolution(eps,0);CHKERRQ(ierr);
   ierr = EPS_SetInnerProduct(eps);CHKERRQ(ierr);
   ierr = EPSSetWorkVecs(eps,2);CHKERRQ(ierr);
+  ierr = DSSetType(eps->ds,DSNHEP);CHKERRQ(ierr);
+  ierr = DSAllocate(eps->ds,eps->nev);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "Normalize"
+/*
+   Normalize a vector x with respect to a given norm as well as the
+   sign of the first entry.
+*/
+static PetscErrorCode Normalize(Vec x,PetscReal norm)
+{
+  PetscErrorCode    ierr;
+  PetscScalar       alpha = 1.0;
+  PetscMPIInt       rank;
+  PetscReal         absv;
+  const PetscScalar *xx;
+
+  PetscFunctionBegin;
+  ierr = MPI_Comm_rank(PetscObjectComm((PetscObject)x),&rank);CHKERRQ(ierr);
+  if (!rank) {
+    ierr = VecGetArrayRead(x,&xx);CHKERRQ(ierr);
+    absv = PetscAbsScalar(*xx);
+    if (absv>10*PETSC_MACHINE_EPSILON) alpha = *xx/absv;
+    ierr = VecRestoreArrayRead(x,&xx);CHKERRQ(ierr);
+  }
+  ierr = MPI_Bcast(&alpha,1,MPIU_SCALAR,0,PetscObjectComm((PetscObject)x));CHKERRQ(ierr);
+  alpha *= norm;
+  ierr = VecScale(x,1.0/alpha);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -89,17 +119,18 @@ PetscErrorCode EPSSolve_Power(EPS eps)
 #else
   PetscErrorCode ierr;
   EPS_POWER      *power = (EPS_POWER*)eps->data;
-  PetscInt       k;
+  PetscInt       k,ld;
   Vec            v,y,e;
   Mat            A;
-  PetscReal      relerr,norm,rt1,rt2,cs1;
-  PetscScalar    theta,rho,delta,sigma,alpha2,beta1,sn1;
+  PetscReal      relerr,norm,norm1,rt1,rt2,cs1;
+  PetscScalar    theta,rho,delta,sigma,alpha2,beta1,sn1,*T;
   PetscBool      breakdown;
 
   PetscFunctionBegin;
   y = eps->work[1];
   e = eps->work[0];
 
+  ierr = DSGetLeadingDimension(eps->ds,&ld);CHKERRQ(ierr);
   ierr = EPSGetStartVector(eps,0,NULL);CHKERRQ(ierr);
   ierr = STGetShift(eps->st,&sigma);CHKERRQ(ierr);    /* original shift */
   rho = sigma;
@@ -113,9 +144,16 @@ PetscErrorCode EPSSolve_Power(EPS eps)
     ierr = STApply(eps->st,v,y);CHKERRQ(ierr);
     ierr = BVRestoreColumn(eps->V,k,&v);CHKERRQ(ierr);
 
+    /* purge previously converged eigenvectors */
+    ierr = DSGetArray(eps->ds,DS_MAT_A,&T);CHKERRQ(ierr);
+    ierr = BVSetActiveColumns(eps->V,0,k);CHKERRQ(ierr);
+    ierr = BVOrthogonalizeVec(eps->V,y,T+k*ld,&norm,NULL);CHKERRQ(ierr);
+
     /* theta = (v,y)_B */
     ierr = BVSetActiveColumns(eps->V,k,k+1);CHKERRQ(ierr);
     ierr = BVDotVec(eps->V,y,&theta);CHKERRQ(ierr);
+    T[k+k*ld] = theta;
+    ierr = DSRestoreArray(eps->ds,DS_MAT_A,&T);CHKERRQ(ierr);
 
     if (power->shift_type == EPS_POWER_SHIFT_CONSTANT) { /* direct & inverse iteration */
 
@@ -127,13 +165,12 @@ PetscErrorCode EPSSolve_Power(EPS eps)
       ierr = BVGetColumn(eps->V,k,&v);CHKERRQ(ierr);
       ierr = VecAXPY(e,-theta,v);CHKERRQ(ierr);
       ierr = BVRestoreColumn(eps->V,k,&v);CHKERRQ(ierr);
-      ierr = VecNorm(e,NORM_2,&norm);CHKERRQ(ierr);
-      relerr = norm / PetscAbsScalar(theta);
+      ierr = VecNorm(e,NORM_2,&relerr);CHKERRQ(ierr);
+      relerr /= PetscAbsScalar(theta);
 
     } else {  /* RQI */
 
       /* delta = ||y||_B */
-      ierr = BVNormVec(eps->V,y,NORM_2,&norm);CHKERRQ(ierr);
       delta = norm;
 
       /* compute relative error */
@@ -150,13 +187,13 @@ PetscErrorCode EPSSolve_Power(EPS eps)
       } else {
         rho = rho + theta/(delta*delta);  /* Rayleigh quotient R(v) */
         if (power->shift_type == EPS_POWER_SHIFT_WILKINSON) {
-          /* beta1 is the norm of the residual associated to R(v) */
+          /* beta1 is the norm of the residual associated with R(v) */
           ierr = BVGetColumn(eps->V,k,&v);CHKERRQ(ierr);
           ierr = VecAXPY(v,-theta/(delta*delta),y);CHKERRQ(ierr);
           ierr = BVRestoreColumn(eps->V,k,&v);CHKERRQ(ierr);
           ierr = BVScaleColumn(eps->V,k,1.0/delta);CHKERRQ(ierr);
-          ierr = BVNormColumn(eps->V,k,NORM_2,&norm);CHKERRQ(ierr);
-          beta1 = norm;
+          ierr = BVNormColumn(eps->V,k,NORM_2,&norm1);CHKERRQ(ierr);
+          beta1 = norm1;
 
           /* alpha2 = (e'*A*e)/(beta1*beta1), where e is the residual */
           ierr = STGetOperators(eps->st,0,&A);CHKERRQ(ierr);
@@ -187,10 +224,9 @@ PetscErrorCode EPSSolve_Power(EPS eps)
     }
     eps->errest[eps->nconv] = relerr;
 
-    /* purge previously converged eigenvectors */
+    /* normalize */
+    ierr = Normalize(y,norm);CHKERRQ(ierr);
     ierr = BVInsertVec(eps->V,k,y);CHKERRQ(ierr);
-    ierr = BVOrthogonalizeColumn(eps->V,k,NULL,&norm,NULL);CHKERRQ(ierr);
-    ierr = BVScaleColumn(eps->V,k,1.0/norm);CHKERRQ(ierr);
 
     /* if relerr<tol, accept eigenpair */
     if (relerr<eps->tol) {
@@ -207,6 +243,9 @@ PetscErrorCode EPSSolve_Power(EPS eps)
     ierr = EPSMonitor(eps,eps->its,eps->nconv,eps->eigr,eps->eigi,eps->errest,eps->nconv+1);CHKERRQ(ierr);
     ierr = (*eps->stopping)(eps,eps->its,eps->max_it,eps->nconv,eps->nev,&eps->reason,eps->stoppingctx);CHKERRQ(ierr);
   }
+
+  ierr = DSSetDimensions(eps->ds,eps->nconv,0,0,0);CHKERRQ(ierr);
+  ierr = DSSetState(eps->ds,DS_STATE_RAW);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 #endif
 }
@@ -393,6 +432,7 @@ PETSC_EXTERN PetscErrorCode EPSCreate_Power(EPS eps)
   eps->ops->destroy              = EPSDestroy_Power;
   eps->ops->view                 = EPSView_Power;
   eps->ops->backtransform        = EPSBackTransform_Power;
+  eps->ops->computevectors       = EPSComputeVectors_Schur;
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSPowerSetShiftType_C",EPSPowerSetShiftType_Power);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSPowerGetShiftType_C",EPSPowerGetShiftType_Power);CHKERRQ(ierr);
   PetscFunctionReturn(0);
