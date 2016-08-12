@@ -166,7 +166,7 @@ PetscErrorCode EPSSolve_RQCG(EPS eps)
     reset = (eps->its>1 && (eps->its-1)%ctx->nrest==0)? PETSC_TRUE: PETSC_FALSE;
 
     if (reset) {
-      /* Prevent BVDotVec below to use B-product, restored a the end */
+      /* Prevent BVDotVec below to use B-product, restored at the end */
       ierr = BVSetMatrix(eps->V,NULL,PETSC_FALSE);CHKERRQ(ierr);
 
       /* Compute Rayleigh quotient */
@@ -179,7 +179,7 @@ PetscErrorCode EPSSolve_RQCG(EPS eps)
         ierr = BVGetColumn(ctx->AV,i-eps->nconv,&av);CHKERRQ(ierr);
         ierr = BVDotVec(eps->V,av,C+eps->nconv+i*ld);CHKERRQ(ierr);
         ierr = BVRestoreColumn(ctx->AV,i-eps->nconv,&av);CHKERRQ(ierr);
-        for (j=eps->nconv;j<i-1;j++) C[i+j*ld] = C[j+i*ld];
+        for (j=eps->nconv;j<i-1;j++) C[i+j*ld] = PetscConj(C[j+i*ld]);
       }
       ierr = DSRestoreArray(eps->ds,DS_MAT_A,&C);CHKERRQ(ierr);
       ierr = DSSetState(eps->ds,DS_STATE_RAW);CHKERRQ(ierr);
@@ -243,7 +243,7 @@ PetscErrorCode EPSSolve_RQCG(EPS eps)
       for (i=0;i<nv-eps->nconv;i++) {
         ierr = BVGetColumn(ctx->G,i,&v);CHKERRQ(ierr);
         ierr = STMatSolve(eps->st,v,w);CHKERRQ(ierr);
-        ierr = VecDot(v,w,&g);CHKERRQ(ierr);
+        ierr = VecDot(w,v,&g);CHKERRQ(ierr);
         ierr = BVRestoreColumn(ctx->G,i,&v);CHKERRQ(ierr);
         beta = (!reset && eps->its>1)? g/gamma[i]: 0.0;
         gamma[i] = g;
@@ -261,20 +261,20 @@ PetscErrorCode EPSSolve_RQCG(EPS eps)
         ierr = BVGetColumn(eps->V,i,&v);CHKERRQ(ierr);
         ierr = BVGetColumn(ctx->AV,i-eps->nconv,&av);CHKERRQ(ierr);
         ierr = BVGetColumn(ctx->P,i-eps->nconv,&p);CHKERRQ(ierr);
-        ierr = VecDot(v,av,&nu);CHKERRQ(ierr);
-        ierr = VecDot(p,av,&pax);CHKERRQ(ierr);
+        ierr = VecDot(av,v,&nu);CHKERRQ(ierr);
+        ierr = VecDot(av,p,&pax);CHKERRQ(ierr);
         ierr = MatMult(A,p,w);CHKERRQ(ierr);
-        ierr = VecDot(p,w,&pap);CHKERRQ(ierr);
+        ierr = VecDot(w,p,&pap);CHKERRQ(ierr);
         if (B) {
           ierr = BVGetColumn(ctx->W,i-eps->nconv,&bv);CHKERRQ(ierr);
-          ierr = VecDot(v,bv,&mu);CHKERRQ(ierr);
-          ierr = VecDot(p,bv,&pbx);CHKERRQ(ierr);
+          ierr = VecDot(bv,v,&mu);CHKERRQ(ierr);
+          ierr = VecDot(bv,p,&pbx);CHKERRQ(ierr);
           ierr = BVRestoreColumn(ctx->W,i-eps->nconv,&bv);CHKERRQ(ierr);
           ierr = MatMult(B,p,w);CHKERRQ(ierr);
-          ierr = VecDot(p,w,&pbp);CHKERRQ(ierr);
+          ierr = VecDot(w,p,&pbp);CHKERRQ(ierr);
         } else {
           ierr = VecDot(v,v,&mu);CHKERRQ(ierr);
-          ierr = VecDot(p,v,&pbx);CHKERRQ(ierr);
+          ierr = VecDot(v,p,&pbx);CHKERRQ(ierr);
           ierr = VecDot(p,p,&pbp);CHKERRQ(ierr);
         }
         ierr = BVRestoreColumn(ctx->AV,i-eps->nconv,&av);CHKERRQ(ierr);
