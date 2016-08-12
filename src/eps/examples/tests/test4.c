@@ -93,6 +93,10 @@ int main(int argc,char **argv)
     ierr = EPSSetWhichEigenpairs(eps,EPS_TARGET_MAGNITUDE);CHKERRQ(ierr);
     ierr = EPSSetTarget(eps,4.0);CHKERRQ(ierr);
   }
+  ierr = PetscObjectTypeCompareAny((PetscObject)eps,&flg,EPSRQCG,EPSLOBPCG,"");CHKERRQ(ierr);
+  if (flg) {
+    ierr = EPSSetWhichEigenpairs(eps,EPS_SMALLEST_REAL);CHKERRQ(ierr);
+  }
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                       Solve the eigensystem

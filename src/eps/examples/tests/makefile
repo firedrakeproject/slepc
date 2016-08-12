@@ -32,11 +32,14 @@ MANSEC     = EPS
 TESTS      = test1 test2 test3 test4 test5 test6 test7f test8 test9 test10 \
              test11 test12 test13 test14 test14f test15f test16
 
-TESTEXAMPLES_C                     = test13.PETSc runtest13_1 runtest13_2 test13.rm \
+TESTEXAMPLES_C                     = test1.PETSc runtest1_5 test1.rm \
+                                     test4.PETSc runtest4_2 test4.rm \
+                                     test8.PETSc runtest8_2 test8.rm \
+                                     test13.PETSc runtest13_1 runtest13_2 test13.rm \
                                      test14.PETSc runtest14_1 test14.rm
-TESTEXAMPLES_C_NOTSINGLE           = test1.PETSc runtest1_1 test1.rm \
+TESTEXAMPLES_C_NOTSINGLE           = test1.PETSc runtest1_1 runtest1_3 runtest1_4 test1.rm \
                                      test2.PETSc runtest2_1 test2.rm \
-                                     test3.PETSc runtest3_1 test3.rm \
+                                     test3.PETSc runtest3_1 runtest3_2 test3.rm \
                                      test4.PETSc runtest4_1 test4.rm \
                                      test6.PETSc runtest6_1 test6.rm \
                                      test8.PETSc runtest8_1 test8.rm \
@@ -123,12 +126,13 @@ test16: test16.o chkopts
 
 #------------------------------------------------------------------------------------
 
-runtest1_1: runtest1_1_krylovschur runtest1_1_arnoldi runtest1_1_lanczos runtest1_1_gd runtest1_1_jd runtest1_1_gd2
+runtest1_1: runtest1_1_krylovschur runtest1_1_subspace runtest1_1_arnoldi runtest1_1_lanczos runtest1_1_gd runtest1_1_jd runtest1_1_gd2 runtest1_1_lapack
 runtest1_1_%:
 	-@${SETTEST}; check=test1_1; eps=$*; \
-	if [ "$$eps" = lanczos ]; then EXTRA="-eps_lanczos_reorthog full"; else EXTRA=""; fi; \
-	if [ "$$eps" = gd2 ]; then eps="gd -eps_gd_double_expansion"; fi; \
-	${MPIEXEC} -n 1 ./test1 -eps_type $$eps -eps_nev 4 $$EXTRA > $${test}.tmp 2>&1; \
+	if [ "$$eps" = lanczos ]; then eps="lanczos -eps_lanczos_reorthog full"; \
+	elif [ "$$eps" = gd2 ]; then eps="gd -eps_gd_double_expansion"; \
+	elif [ "$$eps" = subspace ]; then eps="subspace -eps_max_it 200"; fi; \
+	${MPIEXEC} -n 1 ./test1 -n 18 -eps_type $$eps -eps_nev 4 > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
 runtest1_2:
@@ -136,33 +140,67 @@ runtest1_2:
 	${MPIEXEC} -n 1 ./test1 -eps_interval .1,1.1 -eps_tol 1e-10 -st_type sinvert -st_ksp_type preonly -st_pc_type cholesky > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
-runtest2_1: runtest2_1_krylovschur runtest2_1_arnoldi runtest2_1_lanczos runtest2_1_gd runtest2_1_jd runtest2_1_gd2
+runtest1_3:
+	-@${SETTEST}; \
+	${MPIEXEC} -n 1 ./test1 -n 18 -eps_type power -eps_nev 3 > $${test}.tmp 2>&1; \
+	${TESTCODE}
+
+runtest1_4: runtest1_4_constant runtest1_4_rayleigh runtest1_4_wilkinson
+runtest1_4_%:
+	-@${SETTEST}; check=test1_4; stype=$*; \
+	${MPIEXEC} -n 1 ./test1 -n 18 -eps_type power -eps_nev 3 -st_type sinvert -eps_target 1 -eps_power_shift_type $$stype > $${test}.tmp 2>&1; \
+	${TESTCODE}
+
+runtest1_5: runtest1_5_rqcg runtest1_5_lobpcg 
+runtest1_5_%:
+	-@${SETTEST}; check=test1_5; eps=$*; \
+	if [ "$$eps" = lobpcg ]; then eps="lobpcg -eps_lobpcg_blocksize 12"; fi; \
+	${MPIEXEC} -n 1 ./test1 -n 18 -eps_type $$eps -eps_nev 3 -eps_smallest_real > $${test}.tmp 2>&1; \
+	${TESTCODE}
+
+runtest2_1: runtest2_1_krylovschur runtest2_1_arnoldi runtest2_1_lanczos runtest2_1_gd runtest2_1_jd runtest2_1_gd2 runtest2_1_lapack
 runtest2_1_%:
 	-@${SETTEST}; check=test2_1; eps=$*; \
 	if [ "$$eps" = gd2 ]; then eps="gd -eps_gd_double_expansion"; fi; \
 	${MPIEXEC} -n 1 ./test2 -eps_type $$eps -eps_nev 4 > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
-runtest3_1: runtest3_1_krylovschur runtest3_1_arnoldi runtest3_1_lanczos runtest3_1_gd runtest3_1_jd runtest3_1_gd2
+runtest3_1: runtest3_1_krylovschur runtest3_1_power runtest3_1_subspace runtest3_1_arnoldi runtest3_1_lanczos runtest3_1_gd runtest3_1_jd runtest3_1_gd2 runtest3_1_lapack
 runtest3_1_%:
 	-@${SETTEST}; check=test3_1; eps=$*; \
-	if [ "$$eps" = gd2 ]; then eps="gd -eps_gd_double_expansion"; fi; \
+	if [ "$$eps" = gd2 ]; then eps="gd -eps_gd_double_expansion"; \
+	elif [ "$$eps" = power ]; then eps="power -eps_max_it 8000"; fi; \
 	${MPIEXEC} -n 1 ./test3 -eps_type $$eps -eps_nev 4 > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
-runtest4_1: runtest4_1_krylovschur runtest4_1_arnoldi runtest4_1_lanczos runtest4_1_gd runtest4_1_jd runtest4_1_gd2
+runtest3_2: runtest3_2_rqcg runtest3_2_lobpcg runtest3_2_lanczos
+runtest3_2_%:
+	-@${SETTEST}; check=test3_2; eps=$*; \
+	if [ "$$eps" = lobpcg ]; then eps="lobpcg -eps_lobpcg_blocksize 6"; \
+	elif [ "$$eps" = rqcg ]; then eps="rqcg -eps_rqcg_reset 5 -eps_ncv 32 -st_pc_type bjacobi"; fi; \
+	${MPIEXEC} -n 1 ./test3 -eps_type $$eps -eps_nev 4 -eps_smallest_real -eps_max_it 200 > $${test}.tmp 2>&1; \
+	${TESTCODE}
+
+runtest4_1: runtest4_1_krylovschur runtest4_1_subspace runtest4_1_arnoldi runtest4_1_lanczos runtest4_1_gd runtest4_1_jd runtest4_1_gd2 runtest4_1_lapack
 runtest4_1_%:
 	-@${SETTEST}; check=test4_1; eps=$*; \
 	${MPIEXEC} -n 1 ./test4 -type $$eps > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
-runtest5_1: runtest5_1_krylovschur runtest5_1_arnoldi runtest5_1_gd runtest5_1_jd runtest5_1_gd2
+runtest4_2: runtest4_2_rqcg runtest4_2_lobpcg
+runtest4_2_%:
+	-@${SETTEST}; check=test4_2; eps=$*; \
+	${MPIEXEC} -n 1 ./test4 -type $$eps > $${test}.tmp 2>&1; \
+	${TESTCODE}
+
+runtest5_1: runtest5_1_krylovschur runtest5_1_power runtest5_1_subspace runtest5_1_arnoldi runtest5_1_gd runtest5_1_jd runtest5_1_gd2 runtest5_1_lapack
 runtest5_1_%:
 	-@${SETTEST}; check=test5_1; eps=$*; \
 	if [ "${PETSC_SCALAR}" = "complex" ]; then check=$${check}_complex; fi; \
-	if [ "$$eps" = jd ]; then EXTRA="-eps_jd_minv 3"; \
-	elif [ "$$eps" = gd2 ]; then eps="gd -eps_gd_double_expansion"; fi; \
-	${MPIEXEC} -n 1 ./test5 -eps_type $$eps -eps_nev 3 $$EXTRA > $${test}.tmp 2>&1; \
+	if [ "$$eps" = jd ]; then eps="jd -eps_jd_minv 3"; \
+	elif [ "$$eps" = gd2 ]; then eps="gd -eps_gd_double_expansion"; \
+	elif [ "$$eps" = power ]; then eps="power -st_type sinvert -eps_target 7"; fi; \
+	${MPIEXEC} -n 1 ./test5 -eps_type $$eps -eps_nev 3 > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
 runtest5_blopex:
@@ -189,7 +227,7 @@ testtest5_blopex: test5.PETSc
 	else fail=1; fi; \
 	exit $$fail
 
-runtest6_1: runtest6_1_krylovschur runtest6_1_arnoldi runtest6_1_gd runtest6_1_jd runtest6_1_gd2
+runtest6_1: runtest6_1_krylovschur runtest6_1_power runtest6_1_subspace runtest6_1_arnoldi runtest6_1_gd runtest6_1_jd runtest6_1_gd2
 runtest6_1_%:
 	-@${SETTEST}; check=test6_1; eps=$*; \
 	if [ "$$eps" = gd2 ]; then eps="gd -eps_gd_double_expansion"; fi; \
@@ -221,14 +259,20 @@ testtest7f: test7f.PETSc
 	else fail=1; fi; \
 	exit $$fail
 
-runtest8_1: runtest8_1_krylovschur runtest8_1_arnoldi runtest8_1_lanczos runtest8_1_gd runtest8_1_jd runtest8_1_gd2
+runtest8_1: runtest8_1_krylovschur runtest8_1_power runtest8_1_subspace runtest8_1_arnoldi runtest8_1_lanczos runtest8_1_gd runtest8_1_jd runtest8_1_gd2 runtest8_1_lapack
 runtest8_1_%:
 	-@${SETTEST}; check=test8_1; eps=$*; \
 	if [ "$$eps" = gd2 ]; then eps="gd -eps_gd_double_expansion"; fi; \
 	${MPIEXEC} -n 1 ./test8 -eps_type $$eps -eps_nev 4 -eps_ncv 25 > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
-runtest9_1: runtest9_1_krylovschur runtest9_1_arnoldi runtest9_1_gd runtest9_1_gd2
+runtest8_2: runtest8_2_rqcg runtest8_2_lobpcg runtest8_2_lanczos
+runtest8_2_%:
+	-@${SETTEST}; check=test8_2; eps=$*; \
+	${MPIEXEC} -n 1 ./test8 -eps_type $$eps -eps_nev 4 -eps_smallest_real -eps_max_it 200 > $${test}.tmp 2>&1; \
+	${TESTCODE}
+
+runtest9_1: runtest9_1_krylovschur runtest9_1_arnoldi runtest9_1_gd runtest9_1_gd2 runtest9_1_lapack
 runtest9_1_%:
 	-@${SETTEST}; check=test9_1; eps=$*; \
 	if [ "$$eps" = "krylovschur" -o "$$eps" = "arnoldi" ]; then EXTRA="-eps_ncv 7 -eps_max_it 300"; \
@@ -236,11 +280,11 @@ runtest9_1_%:
 	${MPIEXEC} -n 1 ./test9 -eps_type $$eps -eps_nev 4 $$EXTRA > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
-runtest10_1: runtest10_1_krylovschur runtest10_1_arnoldi runtest10_1_lanczos runtest10_1_gd runtest10_1_jd runtest10_1_gd2
+runtest10_1: runtest10_1_krylovschur runtest10_1_arnoldi runtest10_1_lanczos runtest10_1_gd runtest10_1_jd runtest10_1_gd2 runtest10_1_rqcg runtest10_1_lobpcg
 runtest10_1_%:
 	-@${SETTEST}; check=test10_1; eps=$*; \
 	if [ "$$eps" = gd2 ]; then eps="gd -eps_gd_double_expansion"; fi; \
-	${MPIEXEC} -n 1 ./test10 -eps_type $$eps -eps_nev 4 -m 11 > $${test}.tmp 2>&1; \
+	${MPIEXEC} -n 1 ./test10 -eps_type $$eps -eps_nev 4 -m 11 -eps_max_it 200 > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
 testtest10: test10.PETSc
@@ -281,7 +325,7 @@ runtest11_1_%:
 	${MPIEXEC} -n 1 ./test11 -eps_type $$eps -eps_nev 4 $$EXTRA > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
-runtest12_1: runtest12_1_krylovschur runtest12_1_arnoldi runtest12_1_gd runtest12_1_jd runtest12_1_gd2
+runtest12_1: runtest12_1_krylovschur runtest12_1_power runtest12_1_subspace runtest12_1_arnoldi runtest12_1_gd runtest12_1_jd runtest12_1_gd2
 runtest12_1_%:
 	-@${SETTEST}; check=test12_1; eps=$*; \
 	if [ "$$eps" = gd2 ]; then eps="gd -eps_gd_double_expansion"; fi; \
