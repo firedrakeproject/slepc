@@ -40,7 +40,8 @@
 PetscErrorCode EPSSolve_RQCG(EPS);
 
 typedef struct {
-  PetscInt nrest;
+  PetscInt nrest;         /* user-provided reset parameter */
+  PetscInt allocsize;     /* number of columns of work BV's allocated at setup */
   BV       AV,W,P,G;
 } EPS_RQCG;
 
@@ -74,17 +75,29 @@ PetscErrorCode EPSSetUp_RQCG(EPS eps)
 
   ierr = EPSAllocateSolution(eps,0);CHKERRQ(ierr);
   ierr = EPS_SetInnerProduct(eps);CHKERRQ(ierr);
-  ierr = BVDuplicateResize(eps->V,eps->mpd,&ctx->AV);CHKERRQ(ierr);
-  ierr = PetscLogObjectParent((PetscObject)eps,(PetscObject)ctx->AV);CHKERRQ(ierr);
+
   ierr = STGetNumMatrices(eps->st,&nmat);CHKERRQ(ierr);
-  if (nmat>1) {
-    ierr = BVDuplicate(ctx->AV,&ctx->W);CHKERRQ(ierr);
-    ierr = PetscLogObjectParent((PetscObject)eps,(PetscObject)ctx->W);CHKERRQ(ierr);
+  if (!ctx->allocsize) {
+    ctx->allocsize = eps->mpd;
+    ierr = BVDuplicateResize(eps->V,eps->mpd,&ctx->AV);CHKERRQ(ierr);
+    ierr = PetscLogObjectParent((PetscObject)eps,(PetscObject)ctx->AV);CHKERRQ(ierr);
+    if (nmat>1) {
+      ierr = BVDuplicate(ctx->AV,&ctx->W);CHKERRQ(ierr);
+      ierr = PetscLogObjectParent((PetscObject)eps,(PetscObject)ctx->W);CHKERRQ(ierr);
+    }
+    ierr = BVDuplicate(ctx->AV,&ctx->P);CHKERRQ(ierr);
+    ierr = PetscLogObjectParent((PetscObject)eps,(PetscObject)ctx->P);CHKERRQ(ierr);
+    ierr = BVDuplicate(ctx->AV,&ctx->G);CHKERRQ(ierr);
+    ierr = PetscLogObjectParent((PetscObject)eps,(PetscObject)ctx->G);CHKERRQ(ierr);
+  } else if (ctx->allocsize!=eps->mpd) {
+    ctx->allocsize = eps->mpd;
+    ierr = BVResize(ctx->AV,eps->mpd,PETSC_FALSE);CHKERRQ(ierr);
+    if (nmat>1) {
+      ierr = BVResize(ctx->W,eps->mpd,PETSC_FALSE);CHKERRQ(ierr);
+    }
+    ierr = BVResize(ctx->P,eps->mpd,PETSC_FALSE);CHKERRQ(ierr);
+    ierr = BVResize(ctx->G,eps->mpd,PETSC_FALSE);CHKERRQ(ierr);
   }
-  ierr = BVDuplicate(ctx->AV,&ctx->P);CHKERRQ(ierr);
-  ierr = PetscLogObjectParent((PetscObject)eps,(PetscObject)ctx->P);CHKERRQ(ierr);
-  ierr = BVDuplicate(ctx->AV,&ctx->G);CHKERRQ(ierr);
-  ierr = PetscLogObjectParent((PetscObject)eps,(PetscObject)ctx->G);CHKERRQ(ierr);
   ierr = DSSetType(eps->ds,DSHEP);CHKERRQ(ierr);
   ierr = DSAllocate(eps->ds,eps->ncv);CHKERRQ(ierr);
   ierr = EPSSetWorkVecs(eps,1);CHKERRQ(ierr);
@@ -387,7 +400,7 @@ PetscErrorCode EPSReset_RQCG(EPS eps)
   ierr = BVDestroy(&ctx->W);CHKERRQ(ierr);
   ierr = BVDestroy(&ctx->P);CHKERRQ(ierr);
   ierr = BVDestroy(&ctx->G);CHKERRQ(ierr);
-  ctx->nrest = 0;
+  ctx->allocsize = 0;
   PetscFunctionReturn(0);
 }
 
