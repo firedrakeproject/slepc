@@ -41,8 +41,9 @@
 PetscErrorCode EPSSolve_Lanczos(EPS);
 
 typedef struct {
-  EPSLanczosReorthogType reorthog;
-  BV                     AV;
+  EPSLanczosReorthogType reorthog;      /* user-provided reorthogonalization parameter */
+  PetscInt               allocsize;     /* number of columns of work BV's allocated at setup */
+  BV                     AV;            /* work BV used in selective reorthogonalization */
 } EPS_LANCZOS;
 
 #undef __FUNCT__
@@ -80,7 +81,13 @@ PetscErrorCode EPSSetUp_Lanczos(EPS eps)
     ierr = PetscInfo(eps,"Switching to MGS orthogonalization\n");CHKERRQ(ierr);
   }
   if (lanczos->reorthog == EPS_LANCZOS_REORTHOG_SELECTIVE) {
-    ierr = BVDuplicate(eps->V,&lanczos->AV);CHKERRQ(ierr);
+    if (!lanczos->allocsize) {
+      ierr = BVDuplicate(eps->V,&lanczos->AV);CHKERRQ(ierr);
+      ierr = BVGetSizes(lanczos->AV,NULL,NULL,&lanczos->allocsize);CHKERRQ(ierr);
+    } else { /* make sure V and AV have the same size */
+      ierr = BVGetSizes(eps->V,NULL,NULL,&lanczos->allocsize);CHKERRQ(ierr);
+      ierr = BVResize(lanczos->AV,lanczos->allocsize,PETSC_FALSE);CHKERRQ(ierr);
+    }
   }
 
   ierr = DSSetType(eps->ds,DSHEP);CHKERRQ(ierr);
@@ -864,6 +871,7 @@ PetscErrorCode EPSReset_Lanczos(EPS eps)
 
   PetscFunctionBegin;
   ierr = BVDestroy(&lanczos->AV);CHKERRQ(ierr);
+  lanczos->allocsize = 0;
   PetscFunctionReturn(0);
 }
 
