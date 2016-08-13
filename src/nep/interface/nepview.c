@@ -59,6 +59,7 @@ PetscErrorCode NEPView(NEP nep,PetscViewer viewer)
   char           str[50];
   PetscInt       i;
   PetscBool      isascii,istrivial,nods;
+  PetscViewer    sviewer;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
@@ -184,6 +185,16 @@ PetscErrorCode NEPView(NEP nep,PetscViewer viewer)
     ierr = DSView(nep->ds,viewer);CHKERRQ(ierr);
   }
   ierr = PetscViewerPopFormat(viewer);CHKERRQ(ierr);
+  if (nep->refine!=NEP_REFINE_NONE) {
+    if (nep->npart>1) {
+      if (nep->refinesubc->color==0) {
+        ierr = PetscViewerASCIIGetStdout(PetscSubcommChild(nep->refinesubc),&sviewer);CHKERRQ(ierr);
+        ierr = KSPView(nep->refineksp,sviewer);CHKERRQ(ierr);
+      }
+    } else {
+      ierr = KSPView(nep->refineksp,viewer);CHKERRQ(ierr);
+    }
+  }
   PetscFunctionReturn(0);
 }
 
