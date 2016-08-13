@@ -52,7 +52,6 @@ int main(int argc,char **argv)
   FN             f1,f2,f3;        /* functions to define the nonlinear operator */
   Mat            mats[3];
   FN             funs[3];
-  NEPType        type;
   PetscScalar    coeffs[2],b;
   PetscInt       n=128,nev,Istart,Iend,i;
   PetscReal      tau=0.001,h,a=20,xi;
@@ -168,8 +167,6 @@ int main(int argc,char **argv)
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
   ierr = NEPSolve(nep);CHKERRQ(ierr);
-  ierr = NEPGetType(nep,&type);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," Solution method: %s\n",type);CHKERRQ(ierr);
   ierr = NEPGetDimensions(nep,&nev,NULL,NULL);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD," Number of requested eigenvalues: %D\n",nev);CHKERRQ(ierr);
 
