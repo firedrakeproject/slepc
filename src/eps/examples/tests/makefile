@@ -130,9 +130,8 @@ runtest1_1: runtest1_1_krylovschur runtest1_1_subspace runtest1_1_arnoldi runtes
 runtest1_1_%:
 	-@${SETTEST}; check=test1_1; eps=$*; \
 	if [ "$$eps" = lanczos ]; then eps="lanczos -eps_lanczos_reorthog full"; \
-	elif [ "$$eps" = gd2 ]; then eps="gd -eps_gd_double_expansion"; \
-	elif [ "$$eps" = subspace ]; then eps="subspace -eps_max_it 200"; fi; \
-	${MPIEXEC} -n 1 ./test1 -n 18 -eps_type $$eps -eps_nev 4 > $${test}.tmp 2>&1; \
+	elif [ "$$eps" = gd2 ]; then eps="gd -eps_gd_double_expansion"; fi; \
+	${MPIEXEC} -n 1 ./test1 -n 18 -eps_type $$eps -eps_nev 4 -eps_max_it 500 > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
 runtest1_2:
@@ -148,14 +147,14 @@ runtest1_3:
 runtest1_4: runtest1_4_constant runtest1_4_rayleigh runtest1_4_wilkinson
 runtest1_4_%:
 	-@${SETTEST}; check=test1_4; stype=$*; \
-	${MPIEXEC} -n 1 ./test1 -n 18 -eps_type power -eps_nev 3 -st_type sinvert -eps_target 1 -eps_power_shift_type $$stype > $${test}.tmp 2>&1; \
+	${MPIEXEC} -n 1 ./test1 -n 18 -eps_type power -eps_nev 3 -st_type sinvert -eps_target 1.15 -eps_power_shift_type $$stype > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
 runtest1_5: runtest1_5_rqcg runtest1_5_lobpcg 
 runtest1_5_%:
 	-@${SETTEST}; check=test1_5; eps=$*; \
-	if [ "$$eps" = lobpcg ]; then eps="lobpcg -eps_lobpcg_blocksize 12"; fi; \
-	${MPIEXEC} -n 1 ./test1 -n 18 -eps_type $$eps -eps_nev 3 -eps_smallest_real > $${test}.tmp 2>&1; \
+	if [ "$$eps" = lobpcg ]; then eps="lobpcg -eps_lobpcg_blocksize 10"; fi; \
+	${MPIEXEC} -n 1 ./test1 -n 18 -eps_type $$eps -eps_nev 3 -eps_smallest_real -eps_max_it 500 > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
 runtest2_1: runtest2_1_krylovschur runtest2_1_arnoldi runtest2_1_gd runtest2_1_jd runtest2_1_gd2 runtest2_1_lapack
@@ -275,7 +274,7 @@ runtest8_1_%:
 runtest8_2: runtest8_2_rqcg runtest8_2_lobpcg runtest8_2_lanczos
 runtest8_2_%:
 	-@${SETTEST}; check=test8_2; eps=$*; \
-	${MPIEXEC} -n 1 ./test8 -eps_type $$eps -eps_nev 4 -eps_smallest_real -eps_max_it 200 > $${test}.tmp 2>&1; \
+	${MPIEXEC} -n 1 ./test8 -eps_type $$eps -eps_nev 4 -eps_smallest_real -eps_max_it 500 > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
 runtest9_1: runtest9_1_krylovschur runtest9_1_arnoldi runtest9_1_gd runtest9_1_gd2 runtest9_1_lapack
