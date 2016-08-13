@@ -38,7 +38,7 @@ TESTEXAMPLES_C                     = test1.PETSc runtest1_5 test1.rm \
                                      test13.PETSc runtest13_1 runtest13_2 test13.rm \
                                      test14.PETSc runtest14_1 test14.rm
 TESTEXAMPLES_C_NOTSINGLE           = test1.PETSc runtest1_1 runtest1_3 runtest1_4 test1.rm \
-                                     test2.PETSc runtest2_1 test2.rm \
+                                     test2.PETSc runtest2_1 runtest2_2 test2.rm \
                                      test3.PETSc runtest3_1 runtest3_2 test3.rm \
                                      test4.PETSc runtest4_1 test4.rm \
                                      test6.PETSc runtest6_1 test6.rm \
@@ -130,9 +130,8 @@ runtest1_1: runtest1_1_krylovschur runtest1_1_subspace runtest1_1_arnoldi runtes
 runtest1_1_%:
 	-@${SETTEST}; check=test1_1; eps=$*; \
 	if [ "$$eps" = lanczos ]; then eps="lanczos -eps_lanczos_reorthog full"; \
-	elif [ "$$eps" = gd2 ]; then eps="gd -eps_gd_double_expansion"; \
-	elif [ "$$eps" = subspace ]; then eps="subspace -eps_max_it 200"; fi; \
-	${MPIEXEC} -n 1 ./test1 -n 18 -eps_type $$eps -eps_nev 4 > $${test}.tmp 2>&1; \
+	elif [ "$$eps" = gd2 ]; then eps="gd -eps_gd_double_expansion"; fi; \
+	${MPIEXEC} -n 1 ./test1 -n 18 -eps_type $$eps -eps_nev 4 -eps_max_it 500 > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
 runtest1_2:
@@ -148,21 +147,27 @@ runtest1_3:
 runtest1_4: runtest1_4_constant runtest1_4_rayleigh runtest1_4_wilkinson
 runtest1_4_%:
 	-@${SETTEST}; check=test1_4; stype=$*; \
-	${MPIEXEC} -n 1 ./test1 -n 18 -eps_type power -eps_nev 3 -st_type sinvert -eps_target 1 -eps_power_shift_type $$stype > $${test}.tmp 2>&1; \
+	${MPIEXEC} -n 1 ./test1 -n 18 -eps_type power -eps_nev 3 -st_type sinvert -eps_target 1.15 -eps_power_shift_type $$stype > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
 runtest1_5: runtest1_5_rqcg runtest1_5_lobpcg 
 runtest1_5_%:
 	-@${SETTEST}; check=test1_5; eps=$*; \
-	if [ "$$eps" = lobpcg ]; then eps="lobpcg -eps_lobpcg_blocksize 12"; fi; \
-	${MPIEXEC} -n 1 ./test1 -n 18 -eps_type $$eps -eps_nev 3 -eps_smallest_real > $${test}.tmp 2>&1; \
+	if [ "$$eps" = lobpcg ]; then eps="lobpcg -eps_lobpcg_blocksize 10"; fi; \
+	${MPIEXEC} -n 1 ./test1 -n 18 -eps_type $$eps -eps_nev 3 -eps_smallest_real -eps_max_it 500 > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
-runtest2_1: runtest2_1_krylovschur runtest2_1_arnoldi runtest2_1_lanczos runtest2_1_gd runtest2_1_jd runtest2_1_gd2 runtest2_1_lapack
+runtest2_1: runtest2_1_krylovschur runtest2_1_arnoldi runtest2_1_gd runtest2_1_jd runtest2_1_gd2 runtest2_1_lapack
 runtest2_1_%:
 	-@${SETTEST}; check=test2_1; eps=$*; \
 	if [ "$$eps" = gd2 ]; then eps="gd -eps_gd_double_expansion"; fi; \
 	${MPIEXEC} -n 1 ./test2 -eps_type $$eps -eps_nev 4 > $${test}.tmp 2>&1; \
+	${TESTCODE}
+
+runtest2_2: runtest2_2_local runtest2_2_full runtest2_2_selective runtest2_2_periodic runtest2_2_partial
+runtest2_2_%:
+	-@${SETTEST}; check=test2_1; reorthog=$*; \
+	${MPIEXEC} -n 1 ./test2 -eps_type lanczos -eps_nev 4 -eps_lanczos_reorthog $$reorthog > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
 runtest3_1: runtest3_1_krylovschur runtest3_1_power runtest3_1_subspace runtest3_1_arnoldi runtest3_1_lanczos runtest3_1_gd runtest3_1_jd runtest3_1_gd2 runtest3_1_lapack
@@ -269,7 +274,7 @@ runtest8_1_%:
 runtest8_2: runtest8_2_rqcg runtest8_2_lobpcg runtest8_2_lanczos
 runtest8_2_%:
 	-@${SETTEST}; check=test8_2; eps=$*; \
-	${MPIEXEC} -n 1 ./test8 -eps_type $$eps -eps_nev 4 -eps_smallest_real -eps_max_it 200 > $${test}.tmp 2>&1; \
+	${MPIEXEC} -n 1 ./test8 -eps_type $$eps -eps_nev 4 -eps_smallest_real -eps_max_it 500 > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
 runtest9_1: runtest9_1_krylovschur runtest9_1_arnoldi runtest9_1_gd runtest9_1_gd2 runtest9_1_lapack
