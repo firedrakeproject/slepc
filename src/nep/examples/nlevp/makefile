@@ -30,6 +30,7 @@ MANSEC     = NEP
 TESTS      = loaded_string gun
 
 TESTEXAMPLES_C                     = loaded_string.PETSc runloaded_string_1 loaded_string.rm
+TESTEXAMPLES_C_NOTSINGLE           = loaded_string.PETSc runloaded_string_2 loaded_string.rm
 TESTEXAMPLES_DATAFILESPATH_COMPLEX = gun.PETSc rungun_1 gun.rm
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common
@@ -47,6 +48,13 @@ runloaded_string_1:
 	-@${SETTEST}; \
 	if [ "${PETSC_PRECISION}" = "single" ]; then EXTRA="-nep_tol 1e-5"; fi; \
 	${MPIEXEC} -n 1 ./loaded_string -nep_type rii -terse $$EXTRA > $${test}.tmp 2>&1; \
+	${TESTCODE}
+
+runloaded_string_2: runloaded_string_2_schur runloaded_string_2_explicit runloaded_string_2_mbe
+runloaded_string_2_%:
+	-@${SETTEST}; check=loaded_string_2; scheme=$*; \
+	if [ "$$scheme" = mbe ]; then scheme="mbe -nep_refine_ksp_type preonly -nep_refine_pc_type lu"; fi; \
+	${MPIEXEC} -n 1 ./loaded_string -nep_type interpol -rg_type interval -rg_interval_endpoints 5,700,-.1,.1 -nep_nev 7 -nep_target 5 -nep_interpol_degree 12 -nep_refine simple -nep_refine_scheme $$scheme -terse > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
 rungun_1:
