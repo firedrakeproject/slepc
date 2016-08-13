@@ -24,13 +24,24 @@ FFLAGS     =
 CPPFLAGS   =
 FPPFLAGS   =
 LOCDIR     = src/nep/examples/tests/
-EXAMPLESC  =
+EXAMPLESC  = test1.c
 EXAMPLESF  =
 MANSEC     = NEP
-TESTS      =
+TESTS      = test1
 
-TESTEXAMPLES_C       =
+TESTEXAMPLES_C_NOTSINGLE = test1.PETSc runtest1_1 test1.rm
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common
 
+test1: test1.o chkopts
+	-${CLINKER} -o test1 test1.o ${SLEPC_NEP_LIB}
+	${RM} test1.o
+
 #------------------------------------------------------------------------------------
+
+runtest1_1: runtest1_1_rii runtest1_1_slp
+runtest1_1_%:
+	-@${SETTEST}; check=test1_1; nep=$*; \
+	${MPIEXEC} -n 1 ./test1 -nep_type $${nep} -nep_target 20 -terse >> $${test}.tmp 2>&1; \
+	${TESTCODE}
+

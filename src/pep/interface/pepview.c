@@ -208,7 +208,7 @@ PetscErrorCode PEPView(PEP pep,PetscViewer viewer)
     } else {
       ierr = KSPView(pep->refineksp,viewer);CHKERRQ(ierr);
     }
-  } 
+  }
   PetscFunctionReturn(0);
 }
 

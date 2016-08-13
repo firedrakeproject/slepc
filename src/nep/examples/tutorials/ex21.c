@@ -47,6 +47,7 @@ PetscErrorCode MatGetDiagonal_Fun(Mat,Vec);
 PetscErrorCode MatDestroy_Fun(Mat);
 PetscErrorCode MatDuplicate_Fun(Mat,MatDuplicateOption,Mat*);
 PetscErrorCode MatMult_Jac(Mat,Vec,Vec);
+PetscErrorCode MatGetDiagonal_Jac(Mat,Vec);
 PetscErrorCode MatDestroy_Jac(Mat);
 
 typedef struct {
@@ -70,7 +71,6 @@ int main(int argc,char **argv)
   Mat            F,J;             /* Function and Jacobian matrices */
   ApplicationCtx ctx;             /* user-defined context */
   MatCtx         *ctxF,*ctxJ;     /* contexts for shell matrices */
-  NEPType        type;
   PetscInt       n=128,nev;
   KSP            ksp;
   PC             pc;
@@ -122,6 +122,7 @@ int main(int argc,char **argv)
 
   ierr = MatCreateShell(PETSC_COMM_WORLD,n,n,n,n,(void*)ctxJ,&J);CHKERRQ(ierr);
   ierr = MatShellSetOperation(J,MATOP_MULT,(void(*)())MatMult_Jac);CHKERRQ(ierr);
+  ierr = MatShellSetOperation(J,MATOP_GET_DIAGONAL,(void(*)())MatGetDiagonal_Jac);CHKERRQ(ierr);
   ierr = MatShellSetOperation(J,MATOP_DESTROY,(void(*)())MatDestroy_Jac);CHKERRQ(ierr);
 
   /*
@@ -151,8 +152,6 @@ int main(int argc,char **argv)
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
   ierr = NEPSolve(nep);CHKERRQ(ierr);
-  ierr = NEPGetType(nep,&type);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," Solution method: %s\n",type);CHKERRQ(ierr);
   ierr = NEPGetDimensions(nep,&nev,NULL,NULL);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD," Number of requested eigenvalues: %D\n",nev);CHKERRQ(ierr);
 
@@ -285,11 +284,11 @@ PetscErrorCode MatMult_Fun(Mat A,Vec x,Vec y)
 #define __FUNCT__ "MatGetDiagonal_Fun"
 PetscErrorCode MatGetDiagonal_Fun(Mat A,Vec diag)
 {
-  PetscErrorCode    ierr;
-  MatCtx            *ctx;
-  PetscInt          n;
-  PetscScalar       *pd,c,d;
-  PetscReal         h;
+  PetscErrorCode ierr;
+  MatCtx         *ctx;
+  PetscInt       n;
+  PetscScalar    *pd,c,d;
+  PetscReal      h;
 
   PetscFunctionBeginUser;
   ierr = MatShellGetContext(A,(void**)&ctx);CHKERRQ(ierr);
@@ -375,6 +374,29 @@ PetscErrorCode MatMult_Jac(Mat A,Vec x,Vec y)
 
   ierr = VecRestoreArrayRead(x,&px);CHKERRQ(ierr);
   ierr = VecRestoreArray(y,&py);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+/* ------------------------------------------------------------------- */
+#undef __FUNCT__
+#define __FUNCT__ "MatGetDiagonal_Jac"
+PetscErrorCode MatGetDiagonal_Jac(Mat A,Vec diag)
+{
+  PetscErrorCode ierr;
+  MatCtx         *ctx;
+  PetscInt       n;
+  PetscScalar    *pd,c;
+  PetscReal      h;
+
+  PetscFunctionBeginUser;
+  ierr = MatShellGetContext(A,(void**)&ctx);CHKERRQ(ierr);
+  ierr = VecGetSize(diag,&n);CHKERRQ(ierr);
+  h = ctx->h;
+  c = ctx->kappa/(ctx->lambda-ctx->kappa);
+  ierr = VecSet(diag,-2.0*h/3.0);CHKERRQ(ierr);
+  ierr = VecGetArray(diag,&pd);CHKERRQ(ierr);
+  pd[n-1] = -h/3.0-c*c;
+  ierr = VecRestoreArray(diag,&pd);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
