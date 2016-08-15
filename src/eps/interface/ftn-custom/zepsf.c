@@ -47,8 +47,12 @@
 #define epssetstoppingtestfunction_    EPSSETSTOPPINGTESTFUNCTION
 #define epsseteigenvaluecomparison_    EPSSETEIGENVALUECOMPARISON
 #define epssetarbitraryselection_      EPSSETARBITRARYSELECTION
-#define epskrylovschursetsubintervals_ EPSKRYLOVSCHURSETSUBINTERVALs
-#define epskrylovschurgetsubintervals_ EPSKRYLOVSCHURGETSUBINTERVALs
+#define epskrylovschursetsubintervals_ EPSKRYLOVSCHURSETSUBINTERVALS
+#define epskrylovschurgetsubintervals_ EPSKRYLOVSCHURGETSUBINTERVALS
+#define epskrylovschurgetsubcomminfo_  EPSKRYLOVSCHURGETSUBCOMMINFO
+#define epskrylovschurgetsubcommpairs_ EPSKRYLOVSCHURGETSUBCOMMPAIRS
+#define epskrylovschurgetsubcommmats_  EPSKRYLOVSCHURGETSUBCOMMMATS
+#define epskrylovschurupdatesubcommmats_  EPSKRYLOVSCHURUPDATESUBCOMMMATS
 #elif !defined(PETSC_HAVE_FORTRAN_UNDERSCORE)
 #define epsview_                       epsview
 #define epserrorview_                  epserrorview
@@ -75,6 +79,10 @@
 #define epssetarbitraryselection_      epssetarbitraryselection
 #define epskrylovschursetsubintervals_ epskrylovschursetsubintervals
 #define epskrylovschurgetsubintervals_ epskrylovschurgetsubintervals
+#define epskrylovschurgetsubcomminfo_  epskrylovschurgetsubcomminfo
+#define epskrylovschurgetsubcommpairs_ epskrylovschurgetsubcommpairs
+#define epskrylovschurgetsubcommmats_  epskrylovschurgetsubcommmats
+#define epskrylovschurupdatesubcommmats_  epskrylovschurupdatesubcommmats
 #endif
 
 /*
@@ -374,5 +382,31 @@ PETSC_EXTERN void PETSC_STDCALL epskrylovschurgetsubintervals_(EPS *eps,PetscRea
   *ierr = PetscMemcpy(subint,osubint,(npart+1)*sizeof(PetscReal));
   if (*ierr) return;
   *ierr = PetscFree(osubint);
+}
+
+PETSC_EXTERN void PETSC_STDCALL epskrylovschurgetsubcomminfo_(EPS *eps,PetscInt *k,PetscInt *n,Vec *v,PetscErrorCode *ierr)
+{
+  CHKFORTRANNULLOBJECT(v);
+  *ierr = EPSKrylovSchurGetSubcommInfo(*eps,k,n,v);
+}
+
+PETSC_EXTERN void PETSC_STDCALL epskrylovschurgetsubcommpairs_(EPS *eps,PetscInt *i,PetscScalar *eig,Vec *v,PetscErrorCode *ierr)
+{
+  CHKFORTRANNULLOBJECT(*v);
+  *ierr = EPSKrylovSchurGetSubcommPairs(*eps,*i,eig,*v);
+}
+
+PETSC_EXTERN void PETSC_STDCALL epskrylovschurgetsubcommmats_(EPS *eps,Mat *A,Mat *B,PetscErrorCode *ierr)
+{
+  CHKFORTRANNULLOBJECT(A);
+  CHKFORTRANNULLOBJECT(B);
+  *ierr = EPSKrylovSchurGetSubcommMats(*eps,A,B);
+}
+
+PETSC_EXTERN void PETSC_STDCALL epskrylovschurupdatesubcommmats_(EPS *eps,PetscScalar *s,PetscScalar *a,Mat *Au,PetscScalar *t,PetscScalar *b,Mat *Bu,MatStructure *str,PetscBool *globalup,PetscErrorCode *ierr)
+{
+  CHKFORTRANNULLOBJECT(*Au);
+  CHKFORTRANNULLOBJECT(*Bu);
+  *ierr = EPSKrylovSchurUpdateSubcommMats(*eps,*s,*a,*Au,*t,*b,*Bu,*str,*globalup);
 }
 
