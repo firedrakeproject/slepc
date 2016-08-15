@@ -1044,7 +1044,7 @@ static PetscErrorCode EPSKrylovSchurGetSubcommPairs_KrylovSchur(EPS eps,PetscInt
   if (!ctx->sr) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_WRONGSTATE,"Only available in interval computations, see EPSSetInterval()");
   if (i<0 || i>=sr->numEigs) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"Argument 2 out of range");
   if (eig) *eig = sr->eigr[sr->perm[i]];
-  ierr = BVCopyVec(sr->V,sr->perm[i],v);CHKERRQ(ierr);
+  if (v) { ierr = BVCopyVec(sr->V,sr->perm[i],v);CHKERRQ(ierr); }
   PetscFunctionReturn(0);
 }
 
