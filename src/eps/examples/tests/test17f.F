@@ -244,7 +244,7 @@
           write(*,200) rank,k,nval
           do i=0,nval-1
             call EPSKrylovSchurGetSubcommPairs(eps,i,eval,v,ierr)
-            write(*,210) eval
+            write(*,210) PetscRealPart(eval)
           enddo
         endif
  200    format (' Process ',I2,' has worked in sub-interval ',I2,       &
