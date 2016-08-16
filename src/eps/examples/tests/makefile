@@ -52,7 +52,23 @@ TESTEXAMPLES_C_NOCOMPLEX_NOTSINGLE = test1.PETSc runtest1_2 test1.rm
 TESTEXAMPLES_C_DOUBLE              = test5.PETSc runtest5_1 test5.rm
 TESTEXAMPLES_FORTRAN               = test7f.PETSc runtest7f_1 test7f.rm \
                                      test14f.PETSc runtest14f_1 test14f.rm
-TESTEXAMPLES_BLOPEX                = test5.PETSc runtest5_blopex test5.rm
+TESTEXAMPLES_ARPACK                = test1.PETSc runtest1_1_arpack test1.rm \
+                                     test3.PETSc runtest3_1_arpack test3.rm \
+                                     test4.PETSc runtest4_1_arpack test4.rm \
+                                     test6.PETSc runtest6_1_arpack test6.rm \
+                                     test8.PETSc runtest8_1_arpack runtest8_2_arpack test8.rm
+TESTEXAMPLES_BLZPACK               = test4.PETSc runtest4_2_blzpack test4.rm \
+                                     test5.PETSc runtest5_2_blzpack test5.rm \
+                                     test8.PETSc runtest8_2_blzpack test8.rm
+TESTEXAMPLES_BLOPEX                = test5.PETSc runtest5_2_blopex test5.rm \
+                                     test8.PETSc runtest8_2_blopex test8.rm
+TESTEXAMPLES_PRIMME                = test3.PETSc runtest3_1_primme test3.rm \
+                                     test5.PETSc runtest5_2_primme test5.rm \
+                                     test8.PETSc runtest8_1_primme test8.rm
+TESTEXAMPLES_TRLAN                 = test3.PETSc runtest3_1_trlan runtest3_2_trlan test3.rm \
+                                     test4.PETSc runtest4_1_trlan test4.rm \
+                                     test5.PETSc runtest5_2_trlan test5.rm \
+                                     test6.PETSc runtest6_1_trlan test6.rm
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common
 
@@ -174,7 +190,8 @@ runtest3_1: runtest3_1_krylovschur runtest3_1_power runtest3_1_subspace runtest3
 runtest3_1_%:
 	-@${SETTEST}; check=test3_1; eps=$*; \
 	if [ "$$eps" = gd2 ]; then eps="gd -eps_gd_double_expansion"; \
-	elif [ "$$eps" = power ]; then eps="power -eps_max_it 20000"; fi; \
+	elif [ "$$eps" = power ]; then eps="power -eps_max_it 20000"; \
+	elif [ "$$eps" = primme ]; then eps="primme -eps_conv_abs"; fi; \
 	${MPIEXEC} -n 1 ./test3 -eps_type $$eps -eps_nev 4 > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
@@ -208,10 +225,11 @@ runtest5_1_%:
 	${MPIEXEC} -n 1 ./test5 -eps_type $$eps -eps_nev 3 > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
-runtest5_blopex:
-	-@${SETTEST}; \
+runtest5_2_%:
+	-@${SETTEST}; check=test5_2; eps=$*; \
 	if [ "${PETSC_SCALAR}" = "complex" ]; then check=$${check}_complex; fi; \
-	${MPIEXEC} -n 1 ./test5 -symm -eps_type blopex -eps_nev 4 > $${test}.tmp 2>&1; \
+	if [ "$$eps" = primme ]; then eps="primme -eps_conv_abs"; fi; \
+	${MPIEXEC} -n 1 ./test5 -symm -eps_type $$eps -eps_nev 4 -eps_smallest_real > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
 testtest5_blopex: test5.PETSc
@@ -268,7 +286,8 @@ testtest7f: test7f.PETSc
 runtest8_1: runtest8_1_krylovschur runtest8_1_power runtest8_1_subspace runtest8_1_arnoldi runtest8_1_lanczos runtest8_1_gd runtest8_1_jd runtest8_1_gd2 runtest8_1_lapack
 runtest8_1_%:
 	-@${SETTEST}; check=test8_1; eps=$*; \
-	if [ "$$eps" = gd2 ]; then eps="gd -eps_gd_double_expansion"; fi; \
+	if [ "$$eps" = gd2 ]; then eps="gd -eps_gd_double_expansion"; \
+	elif [ "$$eps" = primme ]; then eps="primme -eps_conv_abs"; fi; \
 	${MPIEXEC} -n 1 ./test8 -eps_type $$eps -eps_nev 4 -eps_ncv 25 -eps_max_it 20000 > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
