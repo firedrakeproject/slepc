@@ -54,8 +54,7 @@ TESTEXAMPLES_C_DOUBLE              = test5.PETSc runtest5_1 test5.rm
 TESTEXAMPLES_FORTRAN               = test7f.PETSc runtest7f_1 test7f.rm \
                                      test14f.PETSc runtest14f_1 test14f.rm \
                                      test17f.PETSc runtest17f_1 test17f.rm
-TESTEXAMPLES_ARPACK                = test1.PETSc runtest1_1_arpack test1.rm \
-                                     test3.PETSc runtest3_1_arpack test3.rm \
+TESTEXAMPLES_ARPACK                = test3.PETSc runtest3_1_arpack test3.rm \
                                      test4.PETSc runtest4_1_arpack test4.rm \
                                      test6.PETSc runtest6_1_arpack test6.rm \
                                      test8.PETSc runtest8_1_arpack runtest8_2_arpack test8.rm
@@ -65,7 +64,6 @@ TESTEXAMPLES_BLZPACK               = test4.PETSc runtest4_2_blzpack test4.rm \
 TESTEXAMPLES_BLOPEX                = test5.PETSc runtest5_2_blopex test5.rm \
                                      test8.PETSc runtest8_2_blopex test8.rm
 TESTEXAMPLES_PRIMME                = test3.PETSc runtest3_1_primme test3.rm \
-                                     test5.PETSc runtest5_2_primme test5.rm \
                                      test8.PETSc runtest8_1_primme test8.rm
 TESTEXAMPLES_TRLAN                 = test3.PETSc runtest3_1_trlan runtest3_2_trlan test3.rm \
                                      test4.PETSc runtest4_1_trlan test4.rm \
@@ -238,7 +236,6 @@ runtest5_1_%:
 runtest5_2_%:
 	-@${SETTEST}; check=test5_2; eps=$*; \
 	if [ "${PETSC_SCALAR}" = "complex" ]; then check=$${check}_complex; fi; \
-	if [ "$$eps" = primme ]; then eps="primme -eps_conv_abs"; fi; \
 	${MPIEXEC} -n 1 ./test5 -symm -eps_type $$eps -eps_nev 4 -eps_smallest_real > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
@@ -246,7 +243,7 @@ testtest5_blopex: test5.PETSc
 	@fail=0; if [ "${PETSC_WITH_BATCH}" != "" -o "${MPIEXEC}" = "/bin/false" ]; then \
           echo "Skipping BLOPEX test"; \
 	elif [ -f test5 ]; then \
-	  test=test5_blopex; check=test5_blopex; \
+	  test=test5_2_blopex; check=test5_2; \
 	  if [ "${PETSC_SCALAR}" = "complex" ]; then check=$${check}_complex; fi; \
 	  ${MPIEXEC} -n 1 ./test5 -symm -eps_type blopex -eps_nev 4 > $${test}.tmp 2>&1; \
 	  if (${DIFF} output/$${check}.out $${test}.tmp > /dev/null 2>&1) then \
@@ -298,12 +295,13 @@ runtest8_1_%:
 	-@${SETTEST}; check=test8_1; eps=$*; \
 	if [ "$$eps" = gd2 ]; then eps="gd -eps_gd_double_expansion"; \
 	elif [ "$$eps" = primme ]; then eps="primme -eps_conv_abs"; fi; \
-	${MPIEXEC} -n 1 ./test8 -eps_type $$eps -eps_nev 4 -eps_ncv 25 -eps_max_it 20000 > $${test}.tmp 2>&1; \
+	${MPIEXEC} -n 1 ./test8 -eps_type $$eps -eps_nev 4 -eps_ncv 28 -eps_max_it 20000 > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
 runtest8_2: runtest8_2_rqcg runtest8_2_lobpcg runtest8_2_lanczos
 runtest8_2_%:
 	-@${SETTEST}; check=test8_2; eps=$*; \
+	if [ "$$eps" = arpack ]; then eps="arpack -eps_ncv 6"; \
 	${MPIEXEC} -n 1 ./test8 -eps_type $$eps -eps_nev 4 -eps_smallest_real -eps_max_it 500 > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
