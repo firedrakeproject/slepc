@@ -236,7 +236,7 @@ testtest5_blopex: test5.PETSc
 	@fail=0; if [ "${PETSC_WITH_BATCH}" != "" -o "${MPIEXEC}" = "/bin/false" ]; then \
           echo "Skipping BLOPEX test"; \
 	elif [ -f test5 ]; then \
-	  test=test5_blopex; check=test5_blopex; \
+	  test=test5_2_blopex; check=test5_2; \
 	  if [ "${PETSC_SCALAR}" = "complex" ]; then check=$${check}_complex; fi; \
 	  ${MPIEXEC} -n 1 ./test5 -symm -eps_type blopex -eps_nev 4 > $${test}.tmp 2>&1; \
 	  if (${DIFF} output/$${check}.out $${test}.tmp > /dev/null 2>&1) then \
