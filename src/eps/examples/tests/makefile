@@ -285,14 +285,15 @@ runtest8_1_%:
 	-@${SETTEST}; check=test8_1; eps=$*; \
 	if [ "$$eps" = gd2 ]; then eps="gd -eps_gd_double_expansion"; \
 	elif [ "$$eps" = primme ]; then eps="primme -eps_conv_abs"; fi; \
-	${MPIEXEC} -n 1 ./test8 -eps_type $$eps -eps_nev 4 -eps_ncv 28 -eps_max_it 20000 > $${test}.tmp 2>&1; \
+	${MPIEXEC} -n 1 ./test8 -n 20 -eps_type $$eps -eps_nev 4 -eps_ncv 12 -eps_max_it 20000 > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
 runtest8_2: runtest8_2_rqcg runtest8_2_lobpcg runtest8_2_lanczos
 runtest8_2_%:
 	-@${SETTEST}; check=test8_2; eps=$*; \
 	if [ "$$eps" = arpack ]; then eps="arpack -eps_ncv 6"; fi; \
-	${MPIEXEC} -n 1 ./test8 -eps_type $$eps -eps_nev 4 -eps_smallest_real -eps_max_it 500 > $${test}.tmp 2>&1; \
+        if [ "${PETSC_PRECISION}" = "single" ]; then EXTRA="-eps_tol 1e-5"; fi; \
+	${MPIEXEC} -n 1 ./test8 -eps_type $$eps -eps_nev 4 -eps_smallest_real -eps_max_it 500 $$EXTRA > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
 runtest9_1: runtest9_1_krylovschur runtest9_1_arnoldi runtest9_1_gd runtest9_1_gd2 runtest9_1_lapack
