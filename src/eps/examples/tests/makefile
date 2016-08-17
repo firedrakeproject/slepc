@@ -301,7 +301,7 @@ runtest8_1_%:
 runtest8_2: runtest8_2_rqcg runtest8_2_lobpcg runtest8_2_lanczos
 runtest8_2_%:
 	-@${SETTEST}; check=test8_2; eps=$*; \
-	if [ "$$eps" = arpack ]; then eps="arpack -eps_ncv 6"; \
+	if [ "$$eps" = arpack ]; then eps="arpack -eps_ncv 6"; fi; \
 	${MPIEXEC} -n 1 ./test8 -eps_type $$eps -eps_nev 4 -eps_smallest_real -eps_max_it 500 > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
