@@ -70,6 +70,7 @@ PETSC_EXTERN void PETSC_STDCALL fngetoptionsprefix_(FN *fn,CHAR prefix PETSC_MIX
 
   *ierr = FNGetOptionsPrefix(*fn,&tname); if (*ierr) return;
   *ierr = PetscStrncpy(prefix,tname,len);
+  FIXRETURNCHAR(PETSC_TRUE,prefix,len);
 }
 
 PETSC_EXTERN void PETSC_STDCALL fnsettype_(FN *fn,CHAR type PETSC_MIXED_LEN(len),PetscErrorCode *ierr PETSC_END_LEN(len))

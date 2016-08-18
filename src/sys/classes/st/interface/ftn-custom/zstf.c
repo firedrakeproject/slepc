@@ -80,6 +80,7 @@ PETSC_EXTERN void PETSC_STDCALL stgetoptionsprefix_(ST *st,CHAR prefix PETSC_MIX
 
   *ierr = STGetOptionsPrefix(*st,&tname); if (*ierr) return;
   *ierr = PetscStrncpy(prefix,tname,len);
+  FIXRETURNCHAR(PETSC_TRUE,prefix,len);
 }
 
 PETSC_EXTERN void PETSC_STDCALL stview_(ST *st,PetscViewer *viewer,PetscErrorCode *ierr)

@@ -239,6 +239,7 @@ PETSC_EXTERN void PETSC_STDCALL nepgetoptionsprefix_(NEP *nep,CHAR prefix PETSC_
 
   *ierr = NEPGetOptionsPrefix(*nep,&tname); if (*ierr) return;
   *ierr = PetscStrncpy(prefix,tname,len);
+  FIXRETURNCHAR(PETSC_TRUE,prefix,len);
 }
 
 PETSC_EXTERN void PETSC_STDCALL nepmonitorset_(NEP *nep,void (PETSC_STDCALL *monitor)(NEP*,PetscInt*,PetscInt*,PetscScalar*,PetscScalar*,PetscReal*,PetscInt*,void*,PetscErrorCode*),void *mctx,void (PETSC_STDCALL *monitordestroy)(void *,PetscErrorCode*),PetscErrorCode *ierr)

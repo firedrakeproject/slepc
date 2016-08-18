@@ -253,6 +253,7 @@ PETSC_EXTERN void PETSC_STDCALL svdgetoptionsprefix_(SVD *svd,CHAR prefix PETSC_
 
   *ierr = SVDGetOptionsPrefix(*svd,&tname); if (*ierr) return;
   *ierr = PetscStrncpy(prefix,tname,len);
+  FIXRETURNCHAR(PETSC_TRUE,prefix,len);
 }
 
 PETSC_EXTERN void PETSC_STDCALL svdconvergedabsolute_(SVD *svd,PetscReal *sigma,PetscReal *res,PetscReal *errest,void *ctx,PetscErrorCode *ierr)
