@@ -42,6 +42,6 @@ test1: test1.o chkopts
 runtest1_1: runtest1_1_rii runtest1_1_slp
 runtest1_1_%:
 	-@${SETTEST}; check=test1_1; nep=$*; \
-	${MPIEXEC} -n 1 ./test1 -nep_type $${nep} -nep_target 20 -terse >> $${test}.tmp 2>&1; \
+	${MPIEXEC} -n 1 ./test1 -nep_type $${nep} -nep_target 21 -terse >> $${test}.tmp 2>&1; \
 	${TESTCODE}
 
