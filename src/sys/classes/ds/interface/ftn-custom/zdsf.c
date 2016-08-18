@@ -86,6 +86,7 @@ PETSC_EXTERN void PETSC_STDCALL dsgetoptionsprefix_(DS *ds,CHAR prefix PETSC_MIX
 
   *ierr = DSGetOptionsPrefix(*ds,&tname); if (*ierr) return;
   *ierr = PetscStrncpy(prefix,tname,len);
+  FIXRETURNCHAR(PETSC_TRUE,prefix,len);
 }
 
 PETSC_EXTERN void PETSC_STDCALL dsview_(DS *ds,PetscViewer *viewer,PetscErrorCode *ierr)

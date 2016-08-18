@@ -256,6 +256,7 @@ PETSC_EXTERN void PETSC_STDCALL epsgetoptionsprefix_(EPS *eps,CHAR prefix PETSC_
 
   *ierr = EPSGetOptionsPrefix(*eps,&tname); if (*ierr) return;
   *ierr = PetscStrncpy(prefix,tname,len);
+  FIXRETURNCHAR(PETSC_TRUE,prefix,len);
 }
 
 PETSC_EXTERN void PETSC_STDCALL epsmonitorset_(EPS *eps,void (PETSC_STDCALL *monitor)(EPS*,PetscInt*,PetscInt*,PetscScalar*,PetscScalar*,PetscReal*,PetscInt*,void*,PetscErrorCode*),void *mctx,void (PETSC_STDCALL *monitordestroy)(void *,PetscErrorCode*),PetscErrorCode *ierr)
@@ -367,12 +368,9 @@ PETSC_EXTERN void PETSC_STDCALL epskrylovschurgetsubintervals_(EPS *eps,PetscRea
   PetscInt  npart;
 
   CHKFORTRANNULLREAL(subint);
-  *ierr = EPSKrylovSchurGetSubintervals(*eps,&osubint);
-  if (*ierr) return;
-  *ierr = EPSKrylovSchurGetPartitions(*eps,&npart);
-  if (*ierr) return;
-  *ierr = PetscMemcpy(subint,osubint,(npart+1)*sizeof(PetscReal));
-  if (*ierr) return;
+  *ierr = EPSKrylovSchurGetSubintervals(*eps,&osubint); if (*ierr) return;
+  *ierr = EPSKrylovSchurGetPartitions(*eps,&npart); if (*ierr) return;
+  *ierr = PetscMemcpy(subint,osubint,(npart+1)*sizeof(PetscReal)); if (*ierr) return;
   *ierr = PetscFree(osubint);
 }
 
