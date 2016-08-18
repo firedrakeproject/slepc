@@ -80,6 +80,7 @@ PETSC_EXTERN void PETSC_STDCALL rggetoptionsprefix_(RG *rg,CHAR prefix PETSC_MIX
 
   *ierr = RGGetOptionsPrefix(*rg,&tname); if (*ierr) return;
   *ierr = PetscStrncpy(prefix,tname,len);
+  FIXRETURNCHAR(PETSC_TRUE,prefix,len);
 }
 
 PETSC_EXTERN void PETSC_STDCALL rgview_(RG *rg,PetscViewer *viewer,PetscErrorCode *ierr)

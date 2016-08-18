@@ -137,6 +137,7 @@ PETSC_EXTERN void PETSC_STDCALL mfngetoptionsprefix_(MFN *mfn,CHAR prefix PETSC_
 
   *ierr = MFNGetOptionsPrefix(*mfn,&tname); if (*ierr) return;
   *ierr = PetscStrncpy(prefix,tname,len);
+  FIXRETURNCHAR(PETSC_TRUE,prefix,len);
 }
 
 PETSC_EXTERN void PETSC_STDCALL mfnmonitorset_(MFN *mfn,void (PETSC_STDCALL *monitor)(MFN*,PetscInt*,PetscReal*,void*,PetscErrorCode*),void *mctx,void (PETSC_STDCALL *monitordestroy)(void *,PetscErrorCode*),PetscErrorCode *ierr)
