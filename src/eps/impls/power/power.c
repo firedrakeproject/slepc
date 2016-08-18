@@ -117,19 +117,22 @@ PetscErrorCode EPSSolve_Power(EPS eps)
   PetscFunctionBegin;
   SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"LAEV2 - Lapack routine is unavailable");
 #else
-  PetscErrorCode ierr;
-  EPS_POWER      *power = (EPS_POWER*)eps->data;
-  PetscInt       k,ld;
-  Vec            v,y,e;
-  Mat            A;
-  PetscReal      relerr,norm,norm1,rt1,rt2,cs1;
-  PetscScalar    theta,rho,delta,sigma,alpha2,beta1,sn1,*T;
-  PetscBool      breakdown;
+  PetscErrorCode     ierr;
+  EPS_POWER          *power = (EPS_POWER*)eps->data;
+  PetscInt           k,ld;
+  Vec                v,y,e;
+  Mat                A;
+  KSP                ksp;
+  PetscReal          relerr,norm,norm1,rt1,rt2,cs1;
+  PetscScalar        theta,rho,delta,sigma,alpha2,beta1,sn1,*T;
+  PetscBool          breakdown;
+  KSPConvergedReason reason;
 
   PetscFunctionBegin;
   y = eps->work[1];
   e = eps->work[0];
 
+  ierr = STGetKSP(eps->st,&ksp);CHKERRQ(ierr);
   ierr = DSGetLeadingDimension(eps->ds,&ld);CHKERRQ(ierr);
   ierr = EPSGetStartVector(eps,0,NULL);CHKERRQ(ierr);
   ierr = STGetShift(eps->st,&sigma);CHKERRQ(ierr);    /* original shift */
@@ -211,15 +214,16 @@ PetscErrorCode EPSSolve_Power(EPS eps)
           else rho = rt2;
         }
         /* update operator according to new shift */
-        PetscPushErrorHandler(PetscIgnoreErrorHandler,NULL);
-        ierr = STSetShift(eps->st,rho);
-        PetscPopErrorHandler();
-        if (ierr) {
+        ierr = KSPSetErrorIfNotConverged(ksp,PETSC_FALSE);CHKERRQ(ierr);
+        ierr = STSetShift(eps->st,rho);CHKERRQ(ierr);
+        ierr = KSPGetConvergedReason(ksp,&reason);CHKERRQ(ierr);
+        if (reason) {
           eps->eigr[eps->nconv] = rho;
           relerr = PETSC_MACHINE_EPSILON;
           rho = sigma;
           ierr = STSetShift(eps->st,rho);CHKERRQ(ierr);
         }
+        ierr = KSPSetErrorIfNotConverged(ksp,PETSC_TRUE);CHKERRQ(ierr);
       }
     }
     eps->errest[eps->nconv] = relerr;
