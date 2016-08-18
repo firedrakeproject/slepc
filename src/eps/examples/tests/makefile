@@ -54,7 +54,6 @@ TESTEXAMPLES_C_DOUBLE              = test5.PETSc runtest5_1 test5.rm
 TESTEXAMPLES_FORTRAN               = test7f.PETSc runtest7f_1 test7f.rm \
                                      test14f.PETSc runtest14f_1 test14f.rm \
                                      test17f.PETSc runtest17f_1 test17f.rm
-TESTEXAMPLES_BLOPEX                = test5.PETSc runtest5_blopex test5.rm
 TESTEXAMPLES_ARPACK                = test3.PETSc runtest3_1_arpack test3.rm \
                                      test4.PETSc runtest4_1_arpack test4.rm \
                                      test6.PETSc runtest6_1_arpack test6.rm \
