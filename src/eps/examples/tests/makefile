@@ -55,7 +55,7 @@ TESTEXAMPLES_FORTRAN               = test7f.PETSc runtest7f_1 test7f.rm \
 TESTEXAMPLES_ARPACK                = test3.PETSc runtest3_1_arpack test3.rm \
                                      test4.PETSc runtest4_1_arpack test4.rm \
                                      test6.PETSc runtest6_1_arpack test6.rm \
-                                     test8.PETSc runtest8_1_arpack runtest8_2_arpack test8.rm
+                                     test8.PETSc runtest8_2_arpack test8.rm
 TESTEXAMPLES_BLZPACK               = test4.PETSc runtest4_2_blzpack test4.rm \
                                      test5.PETSc runtest5_2_blzpack test5.rm \
                                      test8.PETSc runtest8_2_blzpack test8.rm
@@ -285,7 +285,7 @@ runtest8_1_%:
 	-@${SETTEST}; check=test8_1; eps=$*; \
 	if [ "$$eps" = gd2 ]; then eps="gd -eps_gd_double_expansion"; \
 	elif [ "$$eps" = primme ]; then eps="primme -eps_conv_abs"; fi; \
-	${MPIEXEC} -n 1 ./test8 -n 20 -eps_type $$eps -eps_nev 4 -eps_ncv 12 -eps_max_it 20000 > $${test}.tmp 2>&1; \
+	${MPIEXEC} -n 1 ./test8 -n 20 -eps_type $$eps -eps_nev 4 -eps_ncv 12 -eps_max_it 25000 > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
 runtest8_2: runtest8_2_rqcg runtest8_2_lobpcg runtest8_2_lanczos
