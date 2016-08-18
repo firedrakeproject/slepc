@@ -218,9 +218,8 @@ PetscErrorCode EPSSolve_Power(EPS eps)
         ierr = STSetShift(eps->st,rho);CHKERRQ(ierr);
         ierr = KSPGetConvergedReason(ksp,&reason);CHKERRQ(ierr);
         if (reason) {
-          eps->eigr[eps->nconv] = rho;
-          relerr = PETSC_MACHINE_EPSILON;
-          rho = sigma;
+          ierr = PetscInfo(eps,"Factorization failed, repeat with a perturbed shift\n");CHKERRQ(ierr);
+          rho *= 1+10*PETSC_MACHINE_EPSILON;
           ierr = STSetShift(eps->st,rho);CHKERRQ(ierr);
         }
         ierr = KSPSetErrorIfNotConverged(ksp,PETSC_TRUE);CHKERRQ(ierr);
