@@ -124,7 +124,7 @@ PetscErrorCode EPSSolve_Power(EPS eps)
   Mat                A;
   KSP                ksp;
   PetscReal          relerr,norm,norm1,rt1,rt2,cs1;
-  PetscScalar        theta,rho,delta,sigma,alpha2,beta1,sn1,*T;
+  PetscScalar        theta,rho,delta,sigma,alpha2,beta1,sn1,eig2,*T;
   PetscBool          breakdown;
   KSPConvergedReason reason;
 
@@ -137,6 +137,7 @@ PetscErrorCode EPSSolve_Power(EPS eps)
   ierr = EPSGetStartVector(eps,0,NULL);CHKERRQ(ierr);
   ierr = STGetShift(eps->st,&sigma);CHKERRQ(ierr);    /* original shift */
   rho = sigma;
+  eig2 = 0.0;  /* second eigenvalue approximation in case of Wilkinson shifts */
 
   while (eps->reason == EPS_CONVERGED_ITERATING) {
     eps->its++;
@@ -185,7 +186,7 @@ PetscErrorCode EPSSolve_Power(EPS eps)
 
       /* compute new shift */
       if (relerr<eps->tol) {
-        rho = sigma; /* if converged, restore original shift */
+        rho = (power->shift_type == EPS_POWER_SHIFT_WILKINSON)? eig2: sigma;
         ierr = STSetShift(eps->st,rho);CHKERRQ(ierr);
       } else {
         rho = rho + theta/(delta*delta);  /* Rayleigh quotient R(v) */
@@ -210,8 +211,8 @@ PetscErrorCode EPSSolve_Power(EPS eps)
           ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
           PetscStackCallBLAS("LAPACKlaev2",LAPACKlaev2_(&rho,&beta1,&alpha2,&rt1,&rt2,&cs1,&sn1));
           ierr = PetscFPTrapPop();CHKERRQ(ierr);
-          if (PetscAbsScalar(rt1-rho) < PetscAbsScalar(rt2-rho)) rho = rt1;
-          else rho = rt2;
+          if (PetscAbsScalar(rt1-rho) < PetscAbsScalar(rt2-rho)) { rho = rt1; eig2 = rt2; }
+          else { rho = rt2; eig2 = rt1; }
         }
         /* update operator according to new shift */
         ierr = KSPSetErrorIfNotConverged(ksp,PETSC_FALSE);CHKERRQ(ierr);
@@ -219,8 +220,10 @@ PetscErrorCode EPSSolve_Power(EPS eps)
         ierr = KSPGetConvergedReason(ksp,&reason);CHKERRQ(ierr);
         if (reason) {
           ierr = PetscInfo(eps,"Factorization failed, repeat with a perturbed shift\n");CHKERRQ(ierr);
-          rho *= 1+10*PETSC_MACHINE_EPSILON;
+          rho *= 1+PETSC_MACHINE_EPSILON;
           ierr = STSetShift(eps->st,rho);CHKERRQ(ierr);
+          ierr = KSPGetConvergedReason(ksp,&reason);CHKERRQ(ierr);
+          if (reason) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_CONV_FAILED,"Second factorization failed");
         }
         ierr = KSPSetErrorIfNotConverged(ksp,PETSC_TRUE);CHKERRQ(ierr);
       }
