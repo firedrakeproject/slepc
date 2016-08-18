@@ -195,7 +195,8 @@
  160  format (' ... changed to: nev=',I2,', ncv=',I2,', mpd=',I2)
 
       if (size>0) then
-        call EPSKrylovSchurSetPartitions(eps,size,ierr)
+        npart = size
+        call EPSKrylovSchurSetPartitions(eps,npart,ierr)
         call EPSKrylovSchurGetPartitions(eps,npart,ierr)
         if (rank .eq. 0) then
           write(*,170) npart
