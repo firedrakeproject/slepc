@@ -283,9 +283,6 @@ PetscErrorCode EPSSetFromOptions_Power(PetscOptionItems *PetscOptionsObject,EPS 
   if (flg) {
     ierr = EPSPowerSetShiftType(eps,shift);CHKERRQ(ierr);
   }
-  if (power->shift_type != EPS_POWER_SHIFT_CONSTANT) {
-    ierr = STSetType(eps->st,STSINVERT);CHKERRQ(ierr);
-  }
   ierr = PetscOptionsTail();CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -333,7 +330,7 @@ static PetscErrorCode EPSPowerSetShiftType_Power(EPS eps,EPSPowerShiftType shift
 
    A variable shift can be specified (EPS_POWER_SHIFT_RAYLEIGH or
    EPS_POWER_SHIFT_WILKINSON). In this case, the iteration behaves rather like
-   a cubic converging method as RQI. See the users manual for details.
+   a cubic converging method such as RQI.
 
    Level: advanced
 
