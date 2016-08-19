@@ -38,7 +38,9 @@ TESTEXAMPLES_C_NOCOMPLEX_NOTSINGLE = acoustic_wave_1d.PETSc runacoustic_wave_1d_
                                      acoustic_wave_2d.PETSc runacoustic_wave_2d_1 acoustic_wave_2d.rm \
                                      damped_beam.PETSc rundamped_beam_1 damped_beam.rm \
                                      planar_waveguide.PETSc runplanar_waveguide_1 planar_waveguide.rm
-TESTEXAMPLES_C_COMPLEX             = pdde_stability.PETSc runpdde_stability_1 pdde_stability.rm
+TESTEXAMPLES_C_COMPLEX             = damped_beam.PETSc rundamped_beam_1_jd damped_beam.rm \
+                                     pdde_stability.PETSc runpdde_stability_1 pdde_stability.rm \
+                                     planar_waveguide.PETSc runplanar_waveguide_1_jd planar_waveguide.rm
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common
 
@@ -100,8 +102,9 @@ runbutterfly_1_%:
 rundamped_beam_1: rundamped_beam_1_toar rundamped_beam_1_qarnoldi rundamped_beam_1_linear
 rundamped_beam_1_%:
 	-@${SETTEST}; check=damped_beam_1; pep=$*; \
+	if [ "$$pep" != jd ]; then sinv="-st_type sinvert"; fi; \
 	if [ "$$pep" = qarnoldi ]; then pep="qarnoldi -st_transform"; fi; \
-	${MPIEXEC} -n 1 ./damped_beam -pep_type $${pep} -pep_nev 2 -pep_ncv 12 -st_type sinvert -pep_target -7 -terse > $${test}.tmp 2>&1; \
+	${MPIEXEC} -n 1 ./damped_beam -pep_type $${pep} -pep_nev 2 -pep_ncv 12 $$sinv -pep_target -7 -terse > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
 runpdde_stability_1: runpdde_stability_1_toar runpdde_stability_1_qarnoldi runpdde_stability_1_linear
@@ -114,7 +117,8 @@ runpdde_stability_1_%:
 runplanar_waveguide_1: runplanar_waveguide_1_toar runplanar_waveguide_1_linear
 runplanar_waveguide_1_%:
 	-@${SETTEST}; check=planar_waveguide_1; pep=$*; \
-	${MPIEXEC} -n 1 ./planar_waveguide -pep_type $${pep} -pep_nev 4 -st_type sinvert -terse > $${test}.tmp 2>&1; \
+	if [ "$$pep" != jd ]; then sinv="-st_type sinvert"; fi; \
+	${MPIEXEC} -n 1 ./planar_waveguide -pep_type $${pep} -pep_nev 4 $$sinv -terse > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
 runsleeper_1: runsleeper_1_toar runsleeper_1_qarnoldi runsleeper_1_linear
