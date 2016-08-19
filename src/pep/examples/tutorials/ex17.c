@@ -33,7 +33,6 @@ int main(int argc,char **argv)
 {
   Mat            A[MAX_MATRICES]; /* problem matrices */
   PEP            pep;             /* polynomial eigenproblem solver context */
-  PEPType        type;
   PetscReal      tol;
   PetscInt       nev,maxit,its,nmat=MAX_MATRICES,i;
   char*          filenames[MAX_MATRICES];
@@ -91,8 +90,6 @@ int main(int argc,char **argv)
   /*
      Optional: Get some information from the solver and display it
   */
-  ierr = PEPGetType(pep,&type);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," Solution method: %s\n\n",type);CHKERRQ(ierr);
   ierr = PEPGetDimensions(pep,&nev,NULL,NULL);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD," Number of requested eigenvalues: %D\n",nev);CHKERRQ(ierr);
   ierr = PEPGetTolerances(pep,&tol,&maxit);CHKERRQ(ierr);

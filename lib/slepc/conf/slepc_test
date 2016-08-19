@@ -23,7 +23,7 @@ include ${PETSC_DIR}/lib/petsc/conf/test
 
 SETTEST = \
 	test=$(subst run,,$@); check=$${test}; \
-	([ x${ALLTESTS_PRINT_PROGRESS} = xtest ] && printf "%26s in $(subst ${SLEPC_DIR},SLEPC_DIR,${PWD})\n" $${test})
+	([ x${ALLTESTS_PRINT_PROGRESS} = xtest ] && printf "%27s in $(subst ${SLEPC_DIR},SLEPC_DIR,${PWD})\n" $${test})
 
 TESTCODE = \
 	[ x${SAVE_OUTPUT} = xyes ] && cp $${test}.tmp output/$${check}.out; \

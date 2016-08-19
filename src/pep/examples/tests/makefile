@@ -70,13 +70,16 @@ runtest2_1_%:
 	${MPIEXEC} -n 1 ./test2 -pep_type $${pep} -pep_nev 4 >> $${test}.tmp 2>&1; \
 	${TESTCODE}
 
-runtest2_2: runtest2_2_toar runtest2_2_toar_scaleboth runtest2_2_toar_transform runtest2_2_qarnoldi runtest2_2_linear
+runtest2_2: runtest2_2_toar runtest2_2_toar_scaleboth runtest2_2_toar_transform runtest2_2_stoar runtest2_2_qarnoldi runtest2_2_linear runtest2_2_linear_explicit runtest2_2_jd
 runtest2_2_%:
 	-@${SETTEST}; check=test2_2; pep=$*; \
+	if [ "$$pep" != jd ]; then sinv="-st_type sinvert"; fi; \
 	if [ "$$pep" = toar_scaleboth ]; then pep="toar -pep_scale both"; \
 	elif [ "$$pep" = toar_transform ]; then pep="toar -st_transform"; \
-	elif [ "$$pep" = qarnoldi ]; then pep="qarnoldi -st_transform"; fi; \
-	${MPIEXEC} -n 1 ./test2 -pep_type $${pep} -st_type sinvert -pep_target -0.4 -pep_nev 4 >> $${test}.tmp 2>&1; \
+	elif [ "$$pep" = stoar ]; then pep="stoar -st_transform -pep_hermitian"; \
+	elif [ "$$pep" = qarnoldi ]; then pep="qarnoldi -st_transform"; \
+	elif [ "$$pep" = linear_explicit ]; then pep="linear -pep_linear_explicitmatrix -pep_hermitian -pep_linear_cform 2"; fi; \
+	${MPIEXEC} -n 1 ./test2 -pep_type $${pep} -pep_target -0.4 -pep_nev 4 -pep_ncv 20 $$sinv >> $${test}.tmp 2>&1; \
 	${TESTCODE}
 
 runtest2_3: runtest2_3_none runtest2_3_norm runtest2_3_residual runtest2_3_structured

@@ -75,43 +75,62 @@ spring: spring.o chkopts
 	${RM} spring.o
 
 #------------------------------------------------------------------------------------
-runacoustic_wave_1d_1:
-	-@${SETTEST}; \
-	${MPIEXEC} -n 1 ./acoustic_wave_1d -pep_nev 4 -pep_tol 1e-7 -n 24 -st_type sinvert -terse > $${test}.tmp 2>&1; \
+runacoustic_wave_1d_1: runacoustic_wave_1d_1_toar runacoustic_wave_1d_1_stoar runacoustic_wave_1d_1_qarnoldi runacoustic_wave_1d_1_linear
+runacoustic_wave_1d_1_%:
+	-@${SETTEST}; check=acoustic_wave_1d_1; pep=$*; \
+	if [ "$$pep" = stoar ]; then pep="stoar -st_transform -pep_hermitian"; \
+	elif [ "$$pep" = qarnoldi ]; then pep="qarnoldi -st_transform"; fi; \
+	${MPIEXEC} -n 1 ./acoustic_wave_1d -pep_type $${pep} -pep_nev 4 -pep_tol 1e-7 -n 24 -st_type sinvert -terse > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
-runacoustic_wave_2d_1:
-	-@${SETTEST}; \
-	${MPIEXEC} -n 1 ./acoustic_wave_2d -pep_nev 2 -terse > $${test}.tmp 2>&1; \
+runacoustic_wave_2d_1: runacoustic_wave_2d_1_toar runacoustic_wave_2d_1_stoar runacoustic_wave_2d_1_qarnoldi runacoustic_wave_2d_1_linear
+runacoustic_wave_2d_1_%:
+	-@${SETTEST}; check=acoustic_wave_2d_1; pep=$*; \
+	if [ "$$pep" = stoar ]; then pep="stoar -st_transform -pep_hermitian"; \
+	elif [ "$$pep" = qarnoldi ]; then pep="qarnoldi -st_transform"; fi; \
+	${MPIEXEC} -n 1 ./acoustic_wave_2d -pep_type $${pep} -pep_nev 2 -terse > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
-runbutterfly_1:
-	-@${SETTEST}; \
-	${MPIEXEC} -n 1 ./butterfly -pep_nev 4 -st_type sinvert -pep_target 0.01 -terse > $${test}.tmp 2>&1; \
+runbutterfly_1: runbutterfly_1_toar runbutterfly_1_linear
+runbutterfly_1_%:
+	-@${SETTEST}; check=butterfly_1; pep=$*; \
+	${MPIEXEC} -n 1 ./butterfly -pep_type $${pep} -pep_nev 4 -st_type sinvert -pep_target 0.01 -terse > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
-rundamped_beam_1:
-	-@${SETTEST}; \
-	${MPIEXEC} -n 1 ./damped_beam -pep_nev 2 -pep_ncv 12 -st_type sinvert -pep_target -7 -terse > $${test}.tmp 2>&1; \
+rundamped_beam_1: rundamped_beam_1_toar rundamped_beam_1_qarnoldi rundamped_beam_1_linear
+rundamped_beam_1_%:
+	-@${SETTEST}; check=damped_beam_1; pep=$*; \
+	if [ "$$pep" = qarnoldi ]; then pep="qarnoldi -st_transform"; fi; \
+	${MPIEXEC} -n 1 ./damped_beam -pep_type $${pep} -pep_nev 2 -pep_ncv 12 -st_type sinvert -pep_target -7 -terse > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
-runpdde_stability_1:
-	-@${SETTEST}; \
-	${MPIEXEC} -n 1 ./pdde_stability -pep_ncv 25 -terse > $${test}.tmp 2>&1; \
+runpdde_stability_1: runpdde_stability_1_toar runpdde_stability_1_qarnoldi runpdde_stability_1_linear
+runpdde_stability_1_%:
+	-@${SETTEST}; check=pdde_stability_1; pep=$*; \
+	if [ "$$pep" = qarnoldi ]; then pep="qarnoldi -st_transform"; fi; \
+	${MPIEXEC} -n 1 ./pdde_stability -pep_type $${pep} -pep_ncv 25 -terse > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
-runplanar_waveguide_1:
-	-@${SETTEST}; \
-	${MPIEXEC} -n 1 ./planar_waveguide -pep_nev 4 -st_type sinvert -terse > $${test}.tmp 2>&1; \
+runplanar_waveguide_1: runplanar_waveguide_1_toar runplanar_waveguide_1_linear
+runplanar_waveguide_1_%:
+	-@${SETTEST}; check=planar_waveguide_1; pep=$*; \
+	${MPIEXEC} -n 1 ./planar_waveguide -pep_type $${pep} -pep_nev 4 -st_type sinvert -terse > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
-runsleeper_1:
-	-@${SETTEST}; \
-	${MPIEXEC} -n 1 ./sleeper -pep_nev 4 -pep_ncv 24 -st_type sinvert -n 100 -terse > $${test}.tmp 2>&1; \
+runsleeper_1: runsleeper_1_toar runsleeper_1_qarnoldi runsleeper_1_linear
+runsleeper_1_%:
+	-@${SETTEST}; check=sleeper_1; pep=$*; \
+	if [ "$$pep" = qarnoldi ]; then pep="qarnoldi -st_transform"; fi; \
+	${MPIEXEC} -n 1 ./sleeper -n 100 -pep_type $${pep} -pep_nev 4 -pep_ncv 24 -st_type sinvert -terse > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
-runspring_1:
-	-@${SETTEST}; \
-	${MPIEXEC} -n 1 ./spring -pep_nev 4 -n 24 -st_type sinvert -pep_ncv 18 -terse > $${test}.tmp 2>&1; \
+runspring_1: runspring_1_toar runspring_1_stoar runspring_1_qarnoldi runspring_1_linear runspring_1_jd
+runspring_1_%:
+	-@${SETTEST}; check=spring_1; pep=$*; \
+	if [ "$$pep" != jd ]; then sinv="-st_type sinvert"; fi; \
+	if [ "$$pep" = stoar ]; then pep="stoar -st_transform -pep_hermitian"; \
+	elif [ "$$pep" = qarnoldi ]; then pep="qarnoldi -st_transform"; \
+	elif [ "$$pep" = jd ]; then pep="jd -pep_target -0.1"; fi; \
+	${MPIEXEC} -n 1 ./spring -pep_type $${pep} -pep_nev 4 -n 24 -pep_ncv 18 $$sinv -terse > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
