@@ -77,6 +77,7 @@ PetscErrorCode PEPSetUp_QArnoldi(PEP pep)
     pep->extract = PEP_EXTRACT_NONE;
   }
   if (pep->extract!=PEP_EXTRACT_NONE) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Solver does not support requested extraction");
+  if (pep->scale==PEP_SCALE_DIAGONAL || pep->scale==PEP_SCALE_BOTH) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Solver does not support diagonal scaling");
  
   if (!ctx->keep) ctx->keep = 0.5;
 
