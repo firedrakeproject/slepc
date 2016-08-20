@@ -112,17 +112,18 @@ int main(int argc,char **argv)
     case DIFFERENT_NONZERO_PATTERN: str = "different"; break;
     case SUBSET_NONZERO_PATTERN:    str = "subset"; break;
     case SAME_NONZERO_PATTERN:      str = "same"; break;
+    default:                        str = "";
   }
   ierr = PetscPrintf(PETSC_COMM_WORLD," Nonlinear function with %d terms, with %s nonzero pattern\n",(int)nterm,str);CHKERRQ(ierr);
   ierr = NEPGetSplitOperatorTerm(nep,0,&B,&g);CHKERRQ(ierr);
   ierr = MatView(B,NULL);CHKERRQ(ierr);
   ierr = FNView(g,NULL);CHKERRQ(ierr);
 
-  ierr = NEPSetType(nep,NEPSLP);CHKERRQ(ierr);
+  ierr = NEPSetType(nep,NEPRII);CHKERRQ(ierr);
   ierr = NEPGetType(nep,&type);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD," Type set to %s\n",type);CHKERRQ(ierr);
 
-  ierr = NEPSetRefine(nep,NEP_REFINE_SIMPLE,1,1e-9,2,NEP_REFINE_SCHEME_SCHUR);CHKERRQ(ierr);
+  ierr = NEPSetRefine(nep,NEP_REFINE_SIMPLE,1,1e-9,2,NEP_REFINE_SCHEME_EXPLICIT);CHKERRQ(ierr);
   ierr = NEPGetRefine(nep,&refine,NULL,&tol,&its,&rscheme);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD," Refinement: %s, tol=%g, its=%D, scheme=%s\n",NEPRefineTypes[refine],(double)tol,its,NEPRefineSchemes[rscheme]);CHKERRQ(ierr);
 

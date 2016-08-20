@@ -104,7 +104,7 @@ rundamped_beam_1_%:
 	-@${SETTEST}; check=damped_beam_1; pep=$*; \
 	if [ "$$pep" != jd ]; then sinv="-st_type sinvert"; fi; \
 	if [ "$$pep" = qarnoldi ]; then pep="qarnoldi -st_transform"; fi; \
-	${MPIEXEC} -n 1 ./damped_beam -pep_type $${pep} -pep_nev 2 -pep_ncv 12 $$sinv -pep_target -7 -terse > $${test}.tmp 2>&1; \
+	${MPIEXEC} -n 1 ./damped_beam -pep_type $${pep} -pep_nev 2 -pep_ncv 12 $$sinv -pep_target -7.1 -terse > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
 runpdde_stability_1: runpdde_stability_1_toar runpdde_stability_1_qarnoldi runpdde_stability_1_linear
@@ -117,7 +117,7 @@ runpdde_stability_1_%:
 runplanar_waveguide_1: runplanar_waveguide_1_toar runplanar_waveguide_1_linear
 runplanar_waveguide_1_%:
 	-@${SETTEST}; check=planar_waveguide_1; pep=$*; \
-	if [ "$$pep" != jd ]; then sinv="-st_type sinvert"; fi; \
+	if [ "$$pep" = jd ]; then sinv="-pep_target -.1"; else sinv="-st_type sinvert"; fi; \
 	${MPIEXEC} -n 1 ./planar_waveguide -pep_type $${pep} -pep_nev 4 $$sinv -terse > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
@@ -134,7 +134,7 @@ runspring_1_%:
 	if [ "$$pep" != jd ]; then sinv="-st_type sinvert"; fi; \
 	if [ "$$pep" = stoar ]; then pep="stoar -st_transform -pep_hermitian"; \
 	elif [ "$$pep" = qarnoldi ]; then pep="qarnoldi -st_transform"; \
-	elif [ "$$pep" = jd ]; then pep="jd -pep_target -0.1"; fi; \
+	elif [ "$$pep" = jd ]; then pep="jd -pep_target -0.15"; fi; \
 	${MPIEXEC} -n 1 ./spring -pep_type $${pep} -pep_nev 4 -n 24 -pep_ncv 18 $$sinv -terse > $${test}.tmp 2>&1; \
 	${TESTCODE}
 

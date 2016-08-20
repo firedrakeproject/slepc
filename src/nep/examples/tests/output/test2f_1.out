@@ -26,8 +26,8 @@ row 19: (19, 20.)
 FN Object: 1 MPI processes
   type: rational
     Polynomial: -1*x^1+0
- Type set to slp                                                                             
- Refinement:  1, tol= 0.000000001, its= 2, scheme= 1
+ Type set to rii                                                                             
+ Refinement:  1, tol= 0.000000001, its= 2, scheme= 3
  Which =  7, target = 1.1
  Dimensions: nev= 1, ncv=12, mpd= 0
  Tolerance = 0.000001, max_its = 200

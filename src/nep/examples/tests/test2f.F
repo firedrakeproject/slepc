@@ -141,7 +141,7 @@
       call MatView(B,PETSC_NULL_OBJECT,ierr)
       call FNView(g,PETSC_NULL_OBJECT,ierr)
 
-      call NEPSetType(nep,NEPSLP,ierr)
+      call NEPSetType(nep,NEPRII,ierr)
       call NEPGetType(nep,tname,ierr)
       if (rank .eq. 0) then
         write(*,120) tname
@@ -152,7 +152,7 @@
       tol = 1e-9
       its = 2
       refine = NEP_REFINE_SIMPLE
-      rscheme = NEP_REFINE_SCHEME_SCHUR
+      rscheme = NEP_REFINE_SCHEME_EXPLICIT
       call NEPSetRefine(nep,refine,np,tol,its,rscheme,ierr)
       call NEPGetRefine(nep,refine,np,tol,its,rscheme,ierr)
       if (rank .eq. 0) then
