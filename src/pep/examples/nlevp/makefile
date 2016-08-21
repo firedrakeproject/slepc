@@ -32,7 +32,7 @@ TESTS      = acoustic_wave_1d acoustic_wave_2d butterfly damped_beam \
              pdde_stability planar_waveguide sleeper spring
 
 TESTEXAMPLES_C                     = sleeper.PETSc runsleeper_1 sleeper.rm \
-                                     spring.PETSc runspring_1 spring.rm
+                                     spring.PETSc runspring_1 runspring_2_jd spring.rm
 TESTEXAMPLES_C_NOCOMPLEX           = butterfly.PETSc runbutterfly_1 butterfly.rm
 TESTEXAMPLES_C_NOCOMPLEX_NOTSINGLE = acoustic_wave_1d.PETSc runacoustic_wave_1d_1 acoustic_wave_1d.rm \
                                      acoustic_wave_2d.PETSc runacoustic_wave_2d_1 acoustic_wave_2d.rm \
@@ -128,7 +128,7 @@ runsleeper_1_%:
 	${MPIEXEC} -n 1 ./sleeper -n 100 -pep_type $${pep} -pep_nev 4 -pep_ncv 24 -st_type sinvert -terse > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
-runspring_1: runspring_1_toar runspring_1_stoar runspring_1_qarnoldi runspring_1_linear runspring_1_jd
+runspring_1: runspring_1_toar runspring_1_stoar runspring_1_qarnoldi runspring_1_linear
 runspring_1_%:
 	-@${SETTEST}; check=spring_1; pep=$*; \
 	if [ "$$pep" != jd ]; then sinv="-st_type sinvert"; fi; \
@@ -136,5 +136,10 @@ runspring_1_%:
 	elif [ "$$pep" = qarnoldi ]; then pep="qarnoldi -st_transform"; \
 	elif [ "$$pep" = jd ]; then pep="jd -pep_target -0.15"; fi; \
 	${MPIEXEC} -n 1 ./spring -pep_type $${pep} -pep_nev 4 -n 24 -pep_ncv 18 $$sinv -terse > $${test}.tmp 2>&1; \
+	${TESTCODE}
+
+runspring_2_jd:
+	-@${SETTEST}; check=spring_2; \
+	${MPIEXEC} -n 1 ./spring -pep_type jd -pep_nev 4 -n 24 -pep_ncv 18 -pep_target -50 -terse > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
