@@ -29,9 +29,9 @@ EXAMPLESF  = test2f.F
 MANSEC     = NEP
 TESTS      = test1 test2 test2f
 
-TESTEXAMPLES_C           = test2.PETSc runtest2_1 test2.rm
-TESTEXAMPLES_C_NOTSINGLE = test1.PETSc runtest1_1 test1.rm
-TESTEXAMPLES_FORTRAN     = test2f.PETSc runtest2f_1 test2f.rm
+TESTEXAMPLES_C_NOTSINGLE       = test1.PETSc runtest1_1 test1.rm \
+                                 test2.PETSc runtest2_1 test2.rm
+TESTEXAMPLES_FORTRAN_NOTSINGLE = test2f.PETSc runtest2f_1 test2f.rm
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common
 

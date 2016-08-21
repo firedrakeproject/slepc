@@ -31,16 +31,15 @@ MANSEC     = PEP
 TESTS      = acoustic_wave_1d acoustic_wave_2d butterfly damped_beam \
              pdde_stability planar_waveguide sleeper spring
 
-TESTEXAMPLES_C                     = sleeper.PETSc runsleeper_1 sleeper.rm \
-                                     spring.PETSc runspring_1 runspring_2_jd spring.rm
+TESTEXAMPLES_C                     = sleeper.PETSc runsleeper_1 sleeper.rm
+TESTEXAMPLES_C_NOTSINGLE           = spring.PETSc runspring_1 runspring_2_jd spring.rm
 TESTEXAMPLES_C_NOCOMPLEX           = butterfly.PETSc runbutterfly_1 butterfly.rm
 TESTEXAMPLES_C_NOCOMPLEX_NOTSINGLE = acoustic_wave_1d.PETSc runacoustic_wave_1d_1 acoustic_wave_1d.rm \
                                      acoustic_wave_2d.PETSc runacoustic_wave_2d_1 acoustic_wave_2d.rm \
                                      damped_beam.PETSc rundamped_beam_1 damped_beam.rm \
                                      planar_waveguide.PETSc runplanar_waveguide_1 planar_waveguide.rm
 TESTEXAMPLES_C_COMPLEX             = damped_beam.PETSc rundamped_beam_1_jd damped_beam.rm \
-                                     pdde_stability.PETSc runpdde_stability_1 pdde_stability.rm \
-                                     planar_waveguide.PETSc runplanar_waveguide_1_jd planar_waveguide.rm
+                                     pdde_stability.PETSc runpdde_stability_1 pdde_stability.rm
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common
 
@@ -102,9 +101,9 @@ runbutterfly_1_%:
 rundamped_beam_1: rundamped_beam_1_toar rundamped_beam_1_qarnoldi rundamped_beam_1_linear
 rundamped_beam_1_%:
 	-@${SETTEST}; check=damped_beam_1; pep=$*; \
-	if [ "$$pep" != jd ]; then sinv="-st_type sinvert"; fi; \
+	if [ "$$pep" = jd ]; then sinv="-pep_target -7.15"; else sinv="-st_type sinvert -pep_target -7.1"; fi; \
 	if [ "$$pep" = qarnoldi ]; then pep="qarnoldi -st_transform"; fi; \
-	${MPIEXEC} -n 1 ./damped_beam -pep_type $${pep} -pep_nev 2 -pep_ncv 12 $$sinv -pep_target -7.1 -terse > $${test}.tmp 2>&1; \
+	${MPIEXEC} -n 1 ./damped_beam -pep_type $${pep} -pep_nev 2 -pep_ncv 12 $$sinv -terse > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
 runpdde_stability_1: runpdde_stability_1_toar runpdde_stability_1_qarnoldi runpdde_stability_1_linear
@@ -133,9 +132,8 @@ runspring_1_%:
 	-@${SETTEST}; check=spring_1; pep=$*; \
 	if [ "$$pep" != jd ]; then sinv="-st_type sinvert"; fi; \
 	if [ "$$pep" = stoar ]; then pep="stoar -st_transform -pep_hermitian"; \
-	elif [ "$$pep" = qarnoldi ]; then pep="qarnoldi -st_transform"; \
-	elif [ "$$pep" = jd ]; then pep="jd -pep_target -0.15"; fi; \
-	${MPIEXEC} -n 1 ./spring -pep_type $${pep} -pep_nev 4 -n 24 -pep_ncv 18 $$sinv -terse > $${test}.tmp 2>&1; \
+	elif [ "$$pep" = qarnoldi ]; then pep="qarnoldi -st_transform"; fi; \
+	${MPIEXEC} -n 1 ./spring -pep_type $${pep} -pep_nev 4 -n 24 -pep_ncv 18 -pep_target -.5 $$sinv -terse > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
 runspring_2_jd:

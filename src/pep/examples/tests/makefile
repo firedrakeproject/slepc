@@ -80,7 +80,7 @@ runtest2_2_%:
 	elif [ "$$pep" = stoar ]; then pep="stoar -st_transform -pep_hermitian"; \
 	elif [ "$$pep" = qarnoldi ]; then pep="qarnoldi -st_transform"; \
 	elif [ "$$pep" = linear_explicit ]; then pep="linear -pep_linear_explicitmatrix -pep_hermitian -pep_linear_cform 2"; fi; \
-	${MPIEXEC} -n 1 ./test2 -pep_type $${pep} -pep_target -0.4 -pep_nev 4 -pep_ncv 20 $$sinv >> $${test}.tmp 2>&1; \
+	${MPIEXEC} -n 1 ./test2 -pep_type $${pep} -pep_target -0.43 -pep_nev 4 -pep_ncv 20 $$sinv >> $${test}.tmp 2>&1; \
 	${TESTCODE}
 
 runtest2_3: runtest2_3_none runtest2_3_norm runtest2_3_residual runtest2_3_structured
