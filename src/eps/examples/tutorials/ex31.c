@@ -555,7 +555,7 @@ int main(int argc,char **argv)
   PetscScalar    kr,ki;
   PetscBool      terse;
 
-  ierr = SlepcInitialize(&argc,&argv,NULL,help);CHKERRQ(ierr);
+  ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
   ierr = MPI_Comm_size(PETSC_COMM_WORLD,&size);CHKERRQ(ierr);
   if (size > 1) SETERRQ(PETSC_COMM_WORLD,PETSC_ERR_SUP,"Only for sequential runs");
   /* show detailed info unless -terse option is given by user */

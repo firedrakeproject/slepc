@@ -36,7 +36,7 @@ int main(int argc,char **argv)
   PetscViewer    viewer;
   PetscBool      verbose;
 
-  SlepcInitialize(&argc,&argv,(char*)0,help);
+  ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
   ierr = PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL);CHKERRQ(ierr);
   m = n;
   ierr = PetscPrintf(PETSC_COMM_WORLD,"Solve a Dense System of type SVD with compact storage - dimension %Dx%D.\n",n,m);CHKERRQ(ierr);

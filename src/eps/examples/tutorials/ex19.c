@@ -110,7 +110,7 @@ int main(int argc,char **argv)
   PetscRandom    rctx;
   PetscErrorCode ierr;
 
-  SlepcInitialize(&argc,&argv,(char*)0,help);
+  ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
 
   ierr = PetscPrintf(PETSC_COMM_WORLD,"\n3-D Laplacian Eigenproblem\n\n");CHKERRQ(ierr);
 

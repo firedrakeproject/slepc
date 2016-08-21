@@ -46,7 +46,7 @@ int main(int argc,char **argv)
   PetscErrorCode     ierr;
   PetscViewerAndFormat *vf;
 
-  SlepcInitialize(&argc,&argv,(char*)0,help);
+  ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
   ierr = PetscPrintf(PETSC_COMM_WORLD,"\nDiagonal Eigenproblem, n=%D\n\n",n);CHKERRQ(ierr);
 
   ierr = MatCreate(PETSC_COMM_WORLD,&A);CHKERRQ(ierr);

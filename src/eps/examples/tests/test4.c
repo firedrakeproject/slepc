@@ -38,7 +38,7 @@ int main(int argc,char **argv)
   char           epstype[30] = "krylovschur";
   PetscErrorCode ierr;
 
-  SlepcInitialize(&argc,&argv,(char*)0,help);
+  ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
 
   ierr = PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL);CHKERRQ(ierr);
   ierr = PetscOptionsGetString(NULL,NULL,"-type",epstype,30,NULL);CHKERRQ(ierr);

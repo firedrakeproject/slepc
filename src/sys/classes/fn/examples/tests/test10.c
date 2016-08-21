@@ -33,7 +33,7 @@ int main(int argc,char **argv)
   PetscScalar    x,y,yp,tau,eta;
   char           strx[50],str[50];
 
-  SlepcInitialize(&argc,&argv,(char*)0,help);
+  ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
 
   /* phi_0(x) = exp(x) */
   ierr = FNCreate(PETSC_COMM_WORLD,&phi0);CHKERRQ(ierr);
