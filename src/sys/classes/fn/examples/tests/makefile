@@ -156,6 +156,6 @@ runtest9_1:
 
 runtest10_1:
 	-@${SETTEST}; \
-	${MPIEXEC} -n 1 ./test10 -fn_phi_index 4 > $${test}.tmp 2>&1; \
+	${MPIEXEC} -n 1 ./test10 -fn_phi_index 3 > $${test}.tmp 2>&1; \
 	${TESTCODE}
 

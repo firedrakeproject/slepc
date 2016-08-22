@@ -33,7 +33,8 @@ TESTEXAMPLES_C                     = test2.PETSc runtest2_2 runtest2_4 test2.rm 
                                      test3.PETSc runtest3_1 test3.rm
 TESTEXAMPLES_C_NOCOMPLEX_NOTSINGLE = test1.PETSc runtest1_1 test1.rm
 TESTEXAMPLES_C_COMPLEX             = test2.PETSc runtest2_2_jd test2.rm
-TESTEXAMPLES_C_NOTSINGLE           = test2.PETSc runtest2_1 runtest2_3 test2.rm
+TESTEXAMPLES_C_NOTSINGLE           = test2.PETSc runtest2_1 runtest2_3 test2.rm \
+                                     test2.PETSc runtest2_2_stoar test2.rm
 TESTEXAMPLES_FORTRAN               = test3f.PETSc runtest3f_1 test3f.rm
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common
@@ -71,7 +72,7 @@ runtest2_1_%:
 	${MPIEXEC} -n 1 ./test2 -pep_type $${pep} -pep_nev 4 >> $${test}.tmp 2>&1; \
 	${TESTCODE}
 
-runtest2_2: runtest2_2_toar runtest2_2_toar_scaleboth runtest2_2_toar_transform runtest2_2_stoar runtest2_2_qarnoldi runtest2_2_linear runtest2_2_linear_explicit
+runtest2_2: runtest2_2_toar runtest2_2_toar_scaleboth runtest2_2_toar_transform runtest2_2_qarnoldi runtest2_2_linear runtest2_2_linear_explicit
 runtest2_2_%:
 	-@${SETTEST}; check=test2_2; pep=$*; \
 	if [ "$$pep" != jd ]; then sinv="-st_type sinvert"; fi; \
