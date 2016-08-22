@@ -47,7 +47,7 @@ int main(int argc,char **argv)
   PetscViewerAndFormat *vf;
   const char         *str;
 
-  SlepcInitialize(&argc,&argv,(char*)0,help);
+  ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
   ierr = PetscPrintf(PETSC_COMM_WORLD,"\nDiagonal Nonlinear Eigenproblem, n=%D\n\n",n);CHKERRQ(ierr);
 
   /*

@@ -24,10 +24,10 @@ FFLAGS     =
 CPPFLAGS   =
 FPPFLAGS   =
 LOCDIR     = src/sys/classes/fn/examples/tests/
-EXAMPLESC  = test1.c test2.c test3.c test4.c test5.c test6.c test7.c test8.c test9.c test10.c
+EXAMPLESC  = test1.c test2.c test3.c test4.c test5.c test6.c test7.c test8.c test9.c test10.c test11.c
 EXAMPLESF  =
 MANSEC     = FN
-TESTS      = test1 test2 test3 test4 test5 test6 test7 test8 test9 test10
+TESTS      = test1 test2 test3 test4 test5 test6 test7 test8 test9 test10 test11
 
 TESTEXAMPLES_C       = test1.PETSc runtest1_1 test1.rm \
                        test2.PETSc runtest2_1 test2.rm \
@@ -38,7 +38,8 @@ TESTEXAMPLES_C       = test1.PETSc runtest1_1 test1.rm \
                        test7.PETSc runtest7_1 runtest7_2 test7.rm \
                        test8.PETSc runtest8_1 runtest8_2 test8.rm \
                        test9.PETSc runtest9_1 test9.rm \
-                       test10.PETSc runtest10_1 test10.rm
+                       test10.PETSc runtest10_1 test10.rm \
+                       test11.PETSc runtest11_1 test11.rm
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common
 
@@ -81,6 +82,10 @@ test9: test9.o chkopts
 test10: test10.o chkopts
 	-${CLINKER} -o test10 test10.o ${SLEPC_SYS_LIB}
 	${RM} test10.o
+
+test11: test11.o chkopts
+	-${CLINKER} -o test11 test11.o ${SLEPC_SYS_LIB}
+	${RM} test11.o
 
 #------------------------------------------------------------------------------------
 
@@ -156,6 +161,16 @@ runtest9_1:
 
 runtest10_1:
 	-@${SETTEST}; \
-	${MPIEXEC} -n 1 ./test10 -fn_phi_index 4 > $${test}.tmp 2>&1; \
+	${MPIEXEC} -n 1 ./test10 -fn_phi_index 3 > $${test}.tmp 2>&1; \
+	${TESTCODE}
+
+runtest11_1:
+	-@${SETTEST}; \
+	${MPIEXEC} -n 1 ./test11 > $${test}.tmp 2>&1; \
+	${TESTCODE}
+
+runtest11_2:
+	-@${SETTEST}; check=test11_1; \
+	${MPIEXEC} -n 1 ./test11 -inplace > $${test}.tmp 2>&1; \
 	${TESTCODE}
 

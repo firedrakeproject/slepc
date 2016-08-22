@@ -30,7 +30,7 @@ int main(int argc,char **argv)
   PetscErrorCode ierr;
   FN             fn1,fn2;
 
-  SlepcInitialize(&argc,&argv,(char*)0,help);
+  ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
   ierr = FNCreate(PETSC_COMM_WORLD,&fn1);CHKERRQ(ierr);
   ierr = FNSetOptionsPrefix(fn1,"f1_");CHKERRQ(ierr);
   ierr = FNSetFromOptions(fn1);CHKERRQ(ierr);

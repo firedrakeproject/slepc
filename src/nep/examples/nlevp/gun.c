@@ -60,7 +60,7 @@ int main(int argc,char **argv)
   PetscInt       i;
   PetscViewer    viewer;
 
-  SlepcInitialize(&argc,&argv,(char*)0,help);
+  ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
 
   ierr = PetscPrintf(PETSC_COMM_WORLD,"GUN problem\n\n");CHKERRQ(ierr);
 #if !defined(PETSC_USE_COMPLEX)

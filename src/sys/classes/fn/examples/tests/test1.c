@@ -33,7 +33,7 @@ int main(int argc,char **argv)
   PetscScalar    x,y,yp,p[10],q[10],five=5.0;
   char           strx[50],str[50];
 
-  SlepcInitialize(&argc,&argv,(char*)0,help);
+  ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
   ierr = FNCreate(PETSC_COMM_WORLD,&fn);CHKERRQ(ierr);
 
   /* polynomial p(x) */

@@ -28,7 +28,8 @@ EXAMPLESC  = ex16.c ex17.c ex28.c
 EXAMPLESF  = ex16f90.F90
 MANSEC     = PEP
 
-TESTEXAMPLES_C_NOCOMPLEX_NOTSINGLE = ex28.PETSc runex28_1 ex28.rm
+TESTEXAMPLES_C_NOCOMPLEX_NOTSINGLE = ex28.PETSc runex28_1 ex28.rm \
+                                     ex16.PETSc runex16_1_stoar ex16.rm
 TESTEXAMPLES_C_NOCOMPLEX           = ex16.PETSc runex16_1 ex16.rm
 TESTEXAMPLES_C_DATAFILE            = ex17.PETSc runex17_1 ex17.rm
 TESTEXAMPLES_F90_NOCOMPLEX         = ex16f90.PETSc runex16f90_1 ex16f90.rm
@@ -54,7 +55,7 @@ ex28: ex28.o chkopts
 #------------------------------------------------------------------------------------
 DATAPATH = ${SLEPC_DIR}/share/slepc/datafiles/matrices
 
-runex16_1: runex16_1_toar runex16_1_stoar runex16_1_qarnoldi runex16_1_linear
+runex16_1: runex16_1_toar runex16_1_qarnoldi runex16_1_linear
 runex16_1_%:
 	-@${SETTEST}; check=ex16_1; pep=$*; \
 	if [ "$$pep" = stoar ]; then pep="stoar -st_transform"; \

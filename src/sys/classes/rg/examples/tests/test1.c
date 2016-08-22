@@ -33,7 +33,7 @@ int main(int argc,char **argv)
   PetscReal      re,im;
   PetscScalar    ar,ai,cr[10],ci[10],vr[7],vi[7];
 
-  SlepcInitialize(&argc,&argv,(char*)0,help);
+  ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
   ierr = RGCreate(PETSC_COMM_WORLD,&rg);CHKERRQ(ierr);
 
   /* ellipse */

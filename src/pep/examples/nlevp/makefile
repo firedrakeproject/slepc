@@ -101,7 +101,7 @@ runbutterfly_1_%:
 rundamped_beam_1: rundamped_beam_1_toar rundamped_beam_1_qarnoldi rundamped_beam_1_linear
 rundamped_beam_1_%:
 	-@${SETTEST}; check=damped_beam_1; pep=$*; \
-	if [ "$$pep" = jd ]; then sinv="-pep_target -7.15"; else sinv="-st_type sinvert -pep_target -7.1"; fi; \
+	if [ "$$pep" = jd ]; then sinv="-pep_target -5"; else sinv="-st_type sinvert -pep_target -7.1"; fi; \
 	if [ "$$pep" = qarnoldi ]; then pep="qarnoldi -st_transform"; fi; \
 	${MPIEXEC} -n 1 ./damped_beam -pep_type $${pep} -pep_nev 2 -pep_ncv 12 $$sinv -terse > $${test}.tmp 2>&1; \
 	${TESTCODE}
