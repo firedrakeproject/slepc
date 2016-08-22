@@ -21,25 +21,25 @@
 /*
    Define the function
 
-        f(x) = (1-x^2) exp( -x/(1+x^2) )
+        f(x) = (exp(x)-1)/x    (the phi_1 function)
 
    with the following tree:
 
-            f(x)                  f(x)              (combined by product)
-           /    \                 g(x) = 1-x^2      (polynomial)
-        g(x)    h(x)              h(x)              (combined by composition)
-               /    \             r(x) = -x/(1+x^2) (rational)
-             r(x)   e(x)          e(x) = exp(x)     (exponential)
+            f(x)                  f(x)              (combined by division)
+           /    \                 p(x) = x          (polynomial)
+        a(x)    p(x)              a(x)              (combined by addition)
+       /    \                     e(x) = exp(x)     (exponential)
+     e(x)   c(x)                  c(x) = -1         (constant)
 */
 
-static char help[] = "Test combined function.\n\n";
+static char help[] = "Another test of a combined function.\n\n";
 
 #include <slepcfn.h>
 
 #undef __FUNCT__
 #define __FUNCT__ "TestMatCombine"
 /*
-   Compute matrix function B = (I-A^2) exp( -(I+A^2)\A )
+   Compute matrix function B = A\(exp(A)-I)
  */
 PetscErrorCode TestMatCombine(FN fn,Mat A,PetscViewer viewer,PetscBool verbose,PetscBool inplace)
 {
@@ -92,10 +92,11 @@ PetscErrorCode TestMatCombine(FN fn,Mat A,PetscViewer viewer,PetscBool verbose,P
 int main(int argc,char **argv)
 {
   PetscErrorCode ierr;
-  FN             f,g,h,e,r;
+  FN             f,p,a,e,c,f1,f2;
+  FNCombineType  ctype;
   Mat            A;
-  PetscInt       i,j,n=10,np,nq;
-  PetscScalar    x,y,yp,*As,p[10],q[10];
+  PetscInt       i,j,n=10,np;
+  PetscScalar    x,y,yp,*As,coeffs[10];
   char           strx[50],str[50];
   PetscViewer    viewer;
   PetscBool      verbose,inplace;
@@ -104,39 +105,45 @@ int main(int argc,char **argv)
   ierr = PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL);CHKERRQ(ierr);
   ierr = PetscOptionsHasName(NULL,NULL,"-verbose",&verbose);CHKERRQ(ierr);
   ierr = PetscOptionsHasName(NULL,NULL,"-inplace",&inplace);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"Combined function, n=%D.\n",n);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"Phi1 via a combined function, n=%D.\n",n);CHKERRQ(ierr);
 
   /* Create function */
 
   /* e(x) = exp(x) */
   ierr = FNCreate(PETSC_COMM_WORLD,&e);CHKERRQ(ierr);
+  ierr = PetscObjectSetName((PetscObject)e,"e");CHKERRQ(ierr);
   ierr = FNSetType(e,FNEXP);CHKERRQ(ierr);
-  /* r(x) = x/(1+x^2) */
-  ierr = FNCreate(PETSC_COMM_WORLD,&r);CHKERRQ(ierr);
-  ierr = FNSetType(r,FNRATIONAL);CHKERRQ(ierr);
-  np = 2; nq = 3;
-  p[0] = -1.0; p[1] = 0.0;
-  q[0] = 1.0; q[1] = 0.0; q[2] = 1.0;
-  ierr = FNRationalSetNumerator(r,np,p);CHKERRQ(ierr);
-  ierr = FNRationalSetDenominator(r,nq,q);CHKERRQ(ierr);
-  /* h(x) */
-  ierr = FNCreate(PETSC_COMM_WORLD,&h);CHKERRQ(ierr);
-  ierr = FNSetType(h,FNCOMBINE);CHKERRQ(ierr);
-  ierr = FNCombineSetChildren(h,FN_COMBINE_COMPOSE,r,e);CHKERRQ(ierr);
-  /* g(x) = 1-x^2 */
-  ierr = FNCreate(PETSC_COMM_WORLD,&g);CHKERRQ(ierr);
-  ierr = FNSetType(g,FNRATIONAL);CHKERRQ(ierr);
-  np = 3;
-  p[0] = -1.0; p[1] = 0.0; p[2] = 1.0;
-  ierr = FNRationalSetNumerator(g,np,p);CHKERRQ(ierr);
+  /* c(x) = -1 */
+  ierr = FNCreate(PETSC_COMM_WORLD,&c);CHKERRQ(ierr);
+  ierr = PetscObjectSetName((PetscObject)c,"c");CHKERRQ(ierr);
+  ierr = FNSetType(c,FNRATIONAL);CHKERRQ(ierr);
+  np = 1;
+  coeffs[0] = -1.0;
+  ierr = FNRationalSetNumerator(c,np,coeffs);CHKERRQ(ierr);
+  /* a(x) */
+  ierr = FNCreate(PETSC_COMM_WORLD,&a);CHKERRQ(ierr);
+  ierr = PetscObjectSetName((PetscObject)a,"a");CHKERRQ(ierr);
+  ierr = FNSetType(a,FNCOMBINE);CHKERRQ(ierr);
+  ierr = FNCombineSetChildren(a,FN_COMBINE_ADD,e,c);CHKERRQ(ierr);
+  /* p(x) = x */
+  ierr = FNCreate(PETSC_COMM_WORLD,&p);CHKERRQ(ierr);
+  ierr = PetscObjectSetName((PetscObject)p,"p");CHKERRQ(ierr);
+  ierr = FNSetType(p,FNRATIONAL);CHKERRQ(ierr);
+  np = 2;
+  coeffs[0] = 1.0; coeffs[1] = 0.0;
+  ierr = FNRationalSetNumerator(p,np,coeffs);CHKERRQ(ierr);
   /* f(x) */
   ierr = FNCreate(PETSC_COMM_WORLD,&f);CHKERRQ(ierr);
+  ierr = PetscObjectSetName((PetscObject)f,"f");CHKERRQ(ierr);
   ierr = FNSetType(f,FNCOMBINE);CHKERRQ(ierr);
-  ierr = FNCombineSetChildren(f,FN_COMBINE_MULTIPLY,g,h);CHKERRQ(ierr);
+  ierr = FNCombineSetChildren(f,FN_COMBINE_DIVIDE,a,p);CHKERRQ(ierr);
 
   /* Set up viewer */
   ierr = PetscViewerASCIIGetStdout(PETSC_COMM_WORLD,&viewer);CHKERRQ(ierr);
-  ierr = FNView(f,viewer);CHKERRQ(ierr);
+  ierr = FNCombineGetChildren(f,&ctype,&f1,&f2);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"Two functions combined with division:\n");CHKERRQ(ierr);
+  ierr = FNView(f1,viewer);CHKERRQ(ierr);
+  ierr = FNView(f2,viewer);CHKERRQ(ierr);
   if (verbose) {
     ierr = PetscViewerPushFormat(viewer,PETSC_VIEWER_ASCII_MATLAB);CHKERRQ(ierr);
   }
@@ -155,12 +162,11 @@ int main(int argc,char **argv)
   ierr = MatCreateSeqDense(PETSC_COMM_SELF,n,n,NULL,&A);CHKERRQ(ierr);
   ierr = PetscObjectSetName((PetscObject)A,"A");CHKERRQ(ierr);
 
-  /* Fill A with a symmetric Toeplitz matrix */
+  /* Fill A with 1-D Laplacian matrix */
   ierr = MatDenseGetArray(A,&As);CHKERRQ(ierr);
   for (i=0;i<n;i++) As[i+i*n]=2.0;
-  for (j=1;j<3;j++) {
-    for (i=0;i<n-j;i++) { As[i+(i+j)*n]=1.0; As[(i+j)+i*n]=1.0; }
-  }
+  j=1;
+  for (i=0;i<n-j;i++) { As[i+(i+j)*n]=-1.0; As[(i+j)+i*n]=-1.0; }
   ierr = MatDenseRestoreArray(A,&As);CHKERRQ(ierr);
   ierr = MatSetOption(A,MAT_HERMITIAN,PETSC_TRUE);CHKERRQ(ierr);
   ierr = TestMatCombine(f,A,viewer,verbose,inplace);CHKERRQ(ierr);
@@ -171,10 +177,10 @@ int main(int argc,char **argv)
 
   ierr = MatDestroy(&A);CHKERRQ(ierr);
   ierr = FNDestroy(&f);CHKERRQ(ierr);
-  ierr = FNDestroy(&g);CHKERRQ(ierr);
-  ierr = FNDestroy(&h);CHKERRQ(ierr);
+  ierr = FNDestroy(&p);CHKERRQ(ierr);
+  ierr = FNDestroy(&a);CHKERRQ(ierr);
   ierr = FNDestroy(&e);CHKERRQ(ierr);
-  ierr = FNDestroy(&r);CHKERRQ(ierr);
+  ierr = FNDestroy(&c);CHKERRQ(ierr);
   ierr = SlepcFinalize();
   return ierr;
 }

@@ -49,7 +49,7 @@ int main(int argc,char **argv)
   ierr = SlepcSNPrintfScalar(str,50,yp,PETSC_FALSE);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD,"  f'(%s)=%s\n",strx,str);CHKERRQ(ierr);
 
-  /* phi_1(x) = (exp(x)-1)/x with scaling factors eta*log(tau*x) */
+  /* phi_1(x) = (exp(x)-1)/x with scaling factors eta*phi_1(tau*x) */
   ierr = FNCreate(PETSC_COMM_WORLD,&phi1);CHKERRQ(ierr);
   ierr = FNSetType(phi1,FNPHI);CHKERRQ(ierr);  /* default index should be 1 */
   tau = 0.2;
