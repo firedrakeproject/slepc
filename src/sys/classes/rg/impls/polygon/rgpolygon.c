@@ -177,7 +177,7 @@ PetscErrorCode RGView_Polygon(RG rg,PetscViewer viewer)
         ierr = PetscSNPrintf(str,50,"%g",(double)ctx->vr[i]);CHKERRQ(ierr);
       }
 #endif
-      ierr = PetscViewerASCIIPrintf(viewer,"%s%s",str,(i<ctx->n-1)?",":"");CHKERRQ(ierr);
+      ierr = PetscViewerASCIIPrintf(viewer,"%s%s",str,(i<ctx->n-1)?", ":"");CHKERRQ(ierr);
     }
     ierr = PetscViewerASCIIPrintf(viewer,"\n");CHKERRQ(ierr);
     ierr = PetscViewerASCIIUseTabs(viewer,PETSC_TRUE);CHKERRQ(ierr);
