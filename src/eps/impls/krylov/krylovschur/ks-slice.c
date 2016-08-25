@@ -1352,7 +1352,7 @@ static PetscErrorCode EPSLookForDeflation(EPS eps)
 PetscErrorCode EPSSolve_KrylovSchur_Slice(EPS eps)
 {
   PetscErrorCode   ierr;
-  PetscInt         i,lds;
+  PetscInt         i,lds,ti;
   PetscReal        newS;
   EPS_KRYLOVSCHUR  *ctx=(EPS_KRYLOVSCHUR*)eps->data;
   EPS_SR           sr=ctx->sr;
@@ -1461,6 +1461,11 @@ PetscErrorCode EPSSolve_KrylovSchur_Slice(EPS eps)
     eps->reason = EPS_CONVERGED_TOL;
     eps->its    = sr->itsKs;
     eps->nds    = 0;
+    if (sr->dir<0) {
+      for (i=0;i<eps->nconv/2;i++) {
+        ti = sr->perm[i]; sr->perm[i] = sr->perm[eps->nconv-1-i]; sr->perm[eps->nconv-1-i] = ti;
+      }
+    }
   }
   PetscFunctionReturn(0);
 }
