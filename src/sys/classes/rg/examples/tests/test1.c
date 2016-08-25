@@ -78,6 +78,20 @@ int main(int argc,char **argv)
   ierr = RGCheckInside(rg,1,&ar,&ai,&inside);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD,"Point (%g,%g) is %s the region\n",(double)re,(double)im,(inside>=0)?"inside":"outside");
 
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"Contour points: ");
+  ierr = RGComputeContour(rg,10,cr,ci);CHKERRQ(ierr);
+  for (i=0;i<10;i++) {
+#if defined(PETSC_USE_COMPLEX)
+    re = PetscRealPart(cr[i]);
+    im = PetscImaginaryPart(cr[i]);
+#else
+    re = cr[i];
+    im = ci[i];
+#endif
+    ierr = PetscPrintf(PETSC_COMM_WORLD,"(%.3g,%.3g) ",(double)re,(double)im);
+  }
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"\n");
+
   /* polygon */
 #if defined(PETSC_USE_COMPLEX)
   vr[0] = 0.0+2.0*PETSC_i;
@@ -108,6 +122,20 @@ int main(int argc,char **argv)
 #endif
   ierr = RGCheckInside(rg,1,&ar,&ai,&inside);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD,"Point (%g,%g) is %s the region\n",(double)re,(double)im,(inside>=0)?"inside":"outside");
+
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"Contour points: ");
+  ierr = RGComputeContour(rg,10,cr,ci);CHKERRQ(ierr);
+  for (i=0;i<10;i++) {
+#if defined(PETSC_USE_COMPLEX)
+    re = PetscRealPart(cr[i]);
+    im = PetscImaginaryPart(cr[i]);
+#else
+    re = cr[i];
+    im = ci[i];
+#endif
+    ierr = PetscPrintf(PETSC_COMM_WORLD,"(%.3g,%.3g) ",(double)re,(double)im);
+  }
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"\n");
 
   ierr = RGDestroy(&rg);CHKERRQ(ierr);
   ierr = SlepcFinalize();
