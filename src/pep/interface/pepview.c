@@ -521,8 +521,8 @@ static PetscErrorCode PEPValuesView_DRAW(PEP pep,PetscViewer viewer)
 
   PetscFunctionBegin;
   if (!pep->nconv) PetscFunctionReturn(0);
-  ierr = PetscViewerDrawOpen(PETSC_COMM_SELF,0,"Computed Eigenvalues",PETSC_DECIDE,PETSC_DECIDE,300,300,&viewer);CHKERRQ(ierr);
   ierr = PetscViewerDrawGetDraw(viewer,0,&draw);CHKERRQ(ierr);
+  ierr = PetscDrawSetTitle(draw,"Computed Eigenvalues");CHKERRQ(ierr);
   ierr = PetscDrawSPCreate(draw,1,&drawsp);CHKERRQ(ierr);
   for (i=0;i<pep->nconv;i++) {
     k = pep->perm[i];
@@ -538,7 +538,6 @@ static PetscErrorCode PEPValuesView_DRAW(PEP pep,PetscViewer viewer)
   ierr = PetscDrawSPDraw(drawsp,PETSC_TRUE);CHKERRQ(ierr);
   ierr = PetscDrawSPSave(drawsp);CHKERRQ(ierr);
   ierr = PetscDrawSPDestroy(&drawsp);CHKERRQ(ierr);
-  ierr = PetscViewerDestroy(&viewer);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
