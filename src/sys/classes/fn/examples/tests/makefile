@@ -25,9 +25,9 @@ CPPFLAGS   =
 FPPFLAGS   =
 LOCDIR     = src/sys/classes/fn/examples/tests/
 EXAMPLESC  = test1.c test2.c test3.c test4.c test5.c test6.c test7.c test8.c test9.c test10.c test11.c
-EXAMPLESF  =
+EXAMPLESF  = test7f.F
 MANSEC     = FN
-TESTS      = test1 test2 test3 test4 test5 test6 test7 test8 test9 test10 test11
+TESTS      = test1 test2 test3 test4 test5 test6 test7 test7f test8 test9 test10 test11
 
 TESTEXAMPLES_C       = test1.PETSc runtest1_1 test1.rm \
                        test2.PETSc runtest2_1 test2.rm \
@@ -40,6 +40,7 @@ TESTEXAMPLES_C       = test1.PETSc runtest1_1 test1.rm \
                        test9.PETSc runtest9_1 test9.rm \
                        test10.PETSc runtest10_1 test10.rm \
                        test11.PETSc runtest11_1 test11.rm
+TESTEXAMPLES_FORTRAN = test7f.PETSc runtest7f_1 test7f.rm
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common
 
@@ -70,6 +71,10 @@ test6: test6.o chkopts
 test7: test7.o chkopts
 	-${CLINKER} -o test7 test7.o ${SLEPC_SYS_LIB}
 	${RM} test7.o
+
+test7f: test7f.o chkopts
+	-${FLINKER} -o test7f test7f.o ${SLEPC_SYS_LIB}
+	${RM} test7f.o
 
 test8: test8.o chkopts
 	-${CLINKER} -o test8 test8.o ${SLEPC_SYS_LIB}
@@ -142,6 +147,11 @@ runtest7_1:
 runtest7_2:
 	-@${SETTEST}; check=test7_1; \
 	${MPIEXEC} -n 1 ./test7 -tau .13 -eta 2 -n 19 -inplace > $${test}.tmp 2>&1; \
+	${TESTCODE}
+
+runtest7f_1:
+	-@${SETTEST}; \
+	${MPIEXEC} -n 1 ./test7f -tau .13 -eta 2 -n 19 > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
 runtest8_1:
