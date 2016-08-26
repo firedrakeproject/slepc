@@ -25,11 +25,12 @@ CPPFLAGS   =
 FPPFLAGS   =
 LOCDIR     = src/sys/classes/rg/examples/tests/
 EXAMPLESC  = test1.c
-EXAMPLESF  =
+EXAMPLESF  = test1f.F
 MANSEC     = RG
-TESTS      = test1
+TESTS      = test1 test1f
 
 TESTEXAMPLES_C       = test1.PETSc runtest1_1 test1.rm
+TESTEXAMPLES_FORTRAN = test1f.PETSc runtest1f_1 test1f.rm
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common
 
@@ -37,10 +38,19 @@ test1: test1.o chkopts
 	-${CLINKER} -o test1 test1.o ${SLEPC_SYS_LIB}
 	${RM} test1.o
 
+test1f: test1f.o chkopts
+	-${FLINKER} -o test1f test1f.o ${SLEPC_SYS_LIB}
+	${RM} test1f.o
+
 #------------------------------------------------------------------------------------
 
 runtest1_1:
 	-@${SETTEST}; \
 	${MPIEXEC} -n 1 ./test1 > $${test}.tmp 2>&1; \
+	${TESTCODE}
+
+runtest1f_1:
+	-@${SETTEST}; \
+	${MPIEXEC} -n 1 ./test1f > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
