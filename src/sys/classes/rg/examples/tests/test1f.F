@@ -34,7 +34,7 @@
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
       RG             rg
-      PetscInt       i,n,inside
+      PetscInt       i,n,inside,one
       PetscMPIInt    rank
       PetscErrorCode ierr
       PetscReal      re,im
@@ -46,6 +46,7 @@
 !     Beginning of program
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
+      one = 1
       call SlepcInitialize(PETSC_NULL_CHARACTER,ierr)
       call MPI_Comm_rank(PETSC_COMM_WORLD,rank,ierr)
       call RGCreate(PETSC_COMM_WORLD,rg,ierr)
@@ -70,7 +71,7 @@
       ar = re
       ai = im
 #endif
-      call RGCheckInside(rg,1,ar,ai,inside,ierr)
+      call RGCheckInside(rg,one,ar,ai,inside,ierr)
       if (rank .eq. 0) then
         if (inside >= 0) then
           write(*,110) re, im, 'inside'
@@ -120,7 +121,7 @@
       ar = re
       ai = im
 #endif
-      call RGCheckInside(rg,1,ar,ai,inside,ierr)
+      call RGCheckInside(rg,one,ar,ai,inside,ierr)
       if (rank .eq. 0) then
         if (inside >= 0) then
           write(*,110) re, im, 'inside'
@@ -171,7 +172,7 @@
       ar = re
       ai = im
 #endif
-      call RGCheckInside(rg,1,ar,ai,inside,ierr)
+      call RGCheckInside(rg,one,ar,ai,inside,ierr)
       if (rank .eq. 0) then
         if (inside >= 0) then
           write(*,110) re, im, 'inside'
