@@ -34,10 +34,10 @@ TESTS      = test1 test2 test3 test4 test5 test6 test7f test8 test9 test10 \
 
 TESTEXAMPLES_C                     = test1.PETSc runtest1_5 test1.rm \
                                      test4.PETSc runtest4_2 test4.rm \
-                                     test8.PETSc runtest8_2 test8.rm \
+                                     test8.PETSc runtest8_2 runtest8_3 test8.rm \
                                      test13.PETSc runtest13_1 runtest13_2 test13.rm \
                                      test14.PETSc runtest14_1 test14.rm
-TESTEXAMPLES_C_NOTSINGLE           = test1.PETSc runtest1_1 runtest1_3 runtest1_4 test1.rm \
+TESTEXAMPLES_C_NOTSINGLE           = test1.PETSc runtest1_1 runtest1_3 runtest1_4 runtest1_6 test1.rm \
                                      test2.PETSc runtest2_1 runtest2_2 test2.rm \
                                      test3.PETSc runtest3_1 runtest3_2 test3.rm \
                                      test4.PETSc runtest4_1 test4.rm \
@@ -181,6 +181,13 @@ runtest1_5_%:
 	${MPIEXEC} -n 1 ./test1 -n 18 -eps_type $$eps -eps_nev 3 -eps_smallest_real -eps_max_it 500 > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
+runtest1_6: runtest1_6_krylovschur runtest1_6_subspace runtest1_6_arnoldi runtest1_6_lanczos runtest1_6_gd
+runtest1_6_%:
+	-@${SETTEST}; check=test1_6; eps=$*; \
+	if [ "$$eps" = lanczos ]; then eps="lanczos -eps_lanczos_reorthog full"; fi; \
+	${MPIEXEC} -n 1 ./test1 -n 18 -eps_type $$eps -eps_nev 12 -eps_mpd 8 -eps_max_it 1500 > $${test}.tmp 2>&1; \
+	${TESTCODE}
+
 runtest2_1: runtest2_1_krylovschur runtest2_1_arnoldi runtest2_1_gd runtest2_1_jd runtest2_1_gd2 runtest2_1_lapack
 runtest2_1_%:
 	-@${SETTEST}; check=test2_1; eps=$*; \
@@ -304,6 +311,14 @@ runtest8_2_%:
 	if [ "$$eps" = arpack ]; then eps="arpack -eps_ncv 6"; fi; \
         if [ "${PETSC_PRECISION}" = "single" ]; then EXTRA="-eps_tol 1e-5"; fi; \
 	${MPIEXEC} -n 1 ./test8 -eps_type $$eps -eps_nev 4 -eps_smallest_real -eps_max_it 500 $$EXTRA > $${test}.tmp 2>&1; \
+	${TESTCODE}
+
+runtest8_3: runtest8_3_rqcg runtest8_3_lobpcg runtest8_3_lanczos
+runtest8_3_%:
+	-@${SETTEST}; check=test8_3; eps=$*; \
+        if [ "${PETSC_PRECISION}" = "single" ]; then EXTRA="-eps_tol 1e-5"; fi; \
+	if [ "$$eps" = lobpcg ]; then eps="lobpcg -eps_lobpcg_blocksize 3 -eps_lobpcg_locking 0"; fi; \
+	${MPIEXEC} -n 1 ./test8 -eps_type $$eps -eps_nev 12 -eps_mpd 9 -eps_smallest_real -eps_max_it 500 $$EXTRA > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
 runtest9_1: runtest9_1_krylovschur runtest9_1_arnoldi runtest9_1_gd runtest9_1_gd2 runtest9_1_lapack
