@@ -185,7 +185,7 @@ runtest1_6: runtest1_6_krylovschur runtest1_6_subspace runtest1_6_arnoldi runtes
 runtest1_6_%:
 	-@${SETTEST}; check=test1_6; eps=$*; \
 	if [ "$$eps" = lanczos ]; then eps="lanczos -eps_lanczos_reorthog full"; fi; \
-	${MPIEXEC} -n 1 ./test1 -n 18 -eps_type $$eps -eps_nev 12 -eps_mpd 8 -eps_max_it 1500 > $${test}.tmp 2>&1; \
+	${MPIEXEC} -n 1 ./test1 -n 18 -eps_type $$eps -eps_nev 12 -eps_mpd 8 -eps_max_it 3000 > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
 runtest2_1: runtest2_1_krylovschur runtest2_1_arnoldi runtest2_1_gd runtest2_1_jd runtest2_1_gd2 runtest2_1_lapack
@@ -318,7 +318,7 @@ runtest8_3_%:
 	-@${SETTEST}; check=test8_3; eps=$*; \
         if [ "${PETSC_PRECISION}" = "single" ]; then EXTRA="-eps_tol 1e-5"; fi; \
 	if [ "$$eps" = lobpcg ]; then eps="lobpcg -eps_lobpcg_blocksize 3 -eps_lobpcg_locking 0"; fi; \
-	${MPIEXEC} -n 1 ./test8 -eps_type $$eps -eps_nev 12 -eps_mpd 9 -eps_smallest_real -eps_max_it 500 $$EXTRA > $${test}.tmp 2>&1; \
+	${MPIEXEC} -n 1 ./test8 -eps_type $$eps -eps_nev 12 -eps_mpd 9 -eps_smallest_real -eps_max_it 1000 $$EXTRA > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
 runtest9_1: runtest9_1_krylovschur runtest9_1_arnoldi runtest9_1_gd runtest9_1_gd2 runtest9_1_lapack
