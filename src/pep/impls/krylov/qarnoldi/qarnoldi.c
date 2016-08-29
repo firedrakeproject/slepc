@@ -603,7 +603,7 @@ PETSC_EXTERN PetscErrorCode PEPCreate_QArnoldi(PEP pep)
   pep->ops->view           = PEPView_QArnoldi;
   pep->ops->backtransform  = PEPBackTransform_Default;
   pep->ops->computevectors = PEPComputeVectors_Default;
-  pep->ops->computevectors = PEPExtractVectors_QArnoldi;
+  pep->ops->extractvectors = PEPExtractVectors_QArnoldi;
   ierr = PetscObjectComposeFunction((PetscObject)pep,"PEPQArnoldiSetRestart_C",PEPQArnoldiSetRestart_QArnoldi);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)pep,"PEPQArnoldiGetRestart_C",PEPQArnoldiGetRestart_QArnoldi);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)pep,"PEPQArnoldiSetLocking_C",PEPQArnoldiSetLocking_QArnoldi);CHKERRQ(ierr);
