@@ -516,12 +516,10 @@ PetscErrorCode FNSetFromOptions_Rational(PetscOptionItems *PetscOptionsObject,FN
 PetscErrorCode FNDuplicate_Rational(FN fn,MPI_Comm comm,FN *newfn)
 {
   PetscErrorCode ierr;
-  FN_RATIONAL    *ctx = (FN_RATIONAL*)fn->data,*ctx2;
+  FN_RATIONAL    *ctx = (FN_RATIONAL*)fn->data,*ctx2 = (FN_RATIONAL*)(*newfn)->data;
   PetscInt       i;
 
   PetscFunctionBegin;
-  ierr = PetscNewLog(*newfn,&ctx2);CHKERRQ(ierr);
-  (*newfn)->data = (void*)ctx2;
   ctx2->np = ctx->np;
   if (ctx->np) {
     ierr = PetscMalloc1(ctx->np,&ctx2->pcoeff);CHKERRQ(ierr);
