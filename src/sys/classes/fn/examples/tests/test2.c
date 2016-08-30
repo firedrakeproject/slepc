@@ -28,7 +28,7 @@ static char help[] = "Test exponential function.\n\n";
 int main(int argc,char **argv)
 {
   PetscErrorCode ierr;
-  FN             fn;
+  FN             fn,fncopy;
   PetscScalar    x,y,yp,tau,eta,alpha,beta;
   char           strx[50],str[50];
 
@@ -62,8 +62,11 @@ int main(int argc,char **argv)
   ierr = SlepcSNPrintfScalar(str,50,yp,PETSC_FALSE);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD,"  f'(%s)=%s\n",strx,str);CHKERRQ(ierr);
 
+  /* test FNDuplicate */
+  ierr = FNDuplicate(fn,PetscObjectComm((PetscObject)fn),&fncopy);CHKERRQ(ierr);
+
   /* test FNGetScale */
-  ierr = FNGetScale(fn,&alpha,&beta);CHKERRQ(ierr);
+  ierr = FNGetScale(fncopy,&alpha,&beta);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD,"Parameters:\n - alpha: ");CHKERRQ(ierr);
   ierr = SlepcSNPrintfScalar(str,50,alpha,PETSC_FALSE);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD,"%s ",str);CHKERRQ(ierr);
@@ -73,6 +76,7 @@ int main(int argc,char **argv)
   ierr = PetscPrintf(PETSC_COMM_WORLD,"\n");CHKERRQ(ierr);
 
   ierr = FNDestroy(&fn);CHKERRQ(ierr);
+  ierr = FNDestroy(&fncopy);CHKERRQ(ierr);
   ierr = SlepcFinalize();
   return ierr;
 }
