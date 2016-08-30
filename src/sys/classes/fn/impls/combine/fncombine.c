@@ -378,11 +378,9 @@ PetscErrorCode FNCombineGetChildren(FN fn,FNCombineType *comb,FN *f1,FN *f2)
 PetscErrorCode FNDuplicate_Combine(FN fn,MPI_Comm comm,FN *newfn)
 {
   PetscErrorCode ierr;
-  FN_COMBINE     *ctx = (FN_COMBINE*)fn->data,*ctx2;
+  FN_COMBINE     *ctx = (FN_COMBINE*)fn->data,*ctx2 = (FN_COMBINE*)(*newfn)->data;
 
   PetscFunctionBegin;
-  ierr = PetscNewLog(*newfn,&ctx2);CHKERRQ(ierr);
-  (*newfn)->data = (void*)ctx2;
   ctx2->comb = ctx->comb;
   ierr = FNDuplicate(ctx->f1,comm,&ctx2->f1);CHKERRQ(ierr);
   ierr = FNDuplicate(ctx->f2,comm,&ctx2->f2);CHKERRQ(ierr);
