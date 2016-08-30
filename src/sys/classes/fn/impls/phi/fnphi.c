@@ -228,12 +228,9 @@ PetscErrorCode FNSetFromOptions_Phi(PetscOptionItems *PetscOptionsObject,FN fn)
 #define __FUNCT__ "FNDuplicate_Phi"
 PetscErrorCode FNDuplicate_Phi(FN fn,MPI_Comm comm,FN *newfn)
 {
-  PetscErrorCode ierr;
-  FN_PHI         *ctx = (FN_PHI*)fn->data,*ctx2;
+  FN_PHI *ctx = (FN_PHI*)fn->data,*ctx2 = (FN_PHI*)(*newfn)->data;
 
   PetscFunctionBegin;
-  ierr = PetscNewLog(*newfn,&ctx2);CHKERRQ(ierr);
-  (*newfn)->data = (void*)ctx2;
   ctx2->k = ctx->k;
   PetscFunctionReturn(0);
 }
