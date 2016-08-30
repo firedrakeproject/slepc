@@ -863,10 +863,14 @@ PetscErrorCode FNView(FN fn,PetscViewer viewer)
 
    Input Parameters:
 +  fn   - the math function context
--  comm - MPI communicator (may be NULL)
+-  comm - MPI communicator
 
    Output Parameter:
 .  newfn - location to put the new FN context
+
+   Note:
+   In order to use the same MPI communicator as in the original object,
+   use PetscObjectComm((PetscObject)fn).
 
    Level: developer
 
@@ -882,7 +886,6 @@ PetscErrorCode FNDuplicate(FN fn,MPI_Comm comm,FN *newfn)
   PetscValidHeaderSpecific(fn,FN_CLASSID,1);
   PetscValidType(fn,1);
   PetscValidPointer(newfn,3);
-  if (!comm) comm = PetscObjectComm((PetscObject)fn);
   ierr = FNCreate(comm,newfn);CHKERRQ(ierr);
   ierr = FNGetType(fn,&type);CHKERRQ(ierr);
   ierr = FNSetType(*newfn,type);CHKERRQ(ierr);
