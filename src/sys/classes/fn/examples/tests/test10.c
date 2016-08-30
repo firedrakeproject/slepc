@@ -28,7 +28,7 @@ static char help[] = "Test Phi functions.\n\n";
 int main(int argc,char **argv)
 {
   PetscErrorCode ierr;
-  FN             phi0,phi1,phik;
+  FN             phi0,phi1,phik,phicopy;
   PetscInt       k;
   PetscScalar    x,y,yp,tau,eta;
   char           strx[50],str[50];
@@ -69,13 +69,15 @@ int main(int argc,char **argv)
   ierr = FNCreate(PETSC_COMM_WORLD,&phik);CHKERRQ(ierr);
   ierr = FNSetType(phik,FNPHI);CHKERRQ(ierr);
   ierr = FNSetFromOptions(phik);CHKERRQ(ierr);
-  ierr = FNPhiGetIndex(phik,&k);CHKERRQ(ierr);
+
+  ierr = FNDuplicate(phik,PETSC_COMM_WORLD,&phicopy);CHKERRQ(ierr);
+  ierr = FNPhiGetIndex(phicopy,&k);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD,"Index of phi function is %D\n",k);CHKERRQ(ierr);
-  ierr = FNView(phik,NULL);CHKERRQ(ierr);
+  ierr = FNView(phicopy,NULL);CHKERRQ(ierr);
   x = 2.2;
   ierr = SlepcSNPrintfScalar(strx,50,x,PETSC_FALSE);CHKERRQ(ierr);
-  ierr = FNEvaluateFunction(phik,x,&y);CHKERRQ(ierr);
-  ierr = FNEvaluateDerivative(phik,x,&yp);CHKERRQ(ierr);
+  ierr = FNEvaluateFunction(phicopy,x,&y);CHKERRQ(ierr);
+  ierr = FNEvaluateDerivative(phicopy,x,&yp);CHKERRQ(ierr);
   ierr = SlepcSNPrintfScalar(str,50,y,PETSC_FALSE);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD,"  f(%s)=%s\n",strx,str);CHKERRQ(ierr);
   ierr = SlepcSNPrintfScalar(str,50,yp,PETSC_FALSE);CHKERRQ(ierr);
@@ -84,6 +86,7 @@ int main(int argc,char **argv)
   ierr = FNDestroy(&phi0);CHKERRQ(ierr);
   ierr = FNDestroy(&phi1);CHKERRQ(ierr);
   ierr = FNDestroy(&phik);CHKERRQ(ierr);
+  ierr = FNDestroy(&phicopy);CHKERRQ(ierr);
   ierr = SlepcFinalize();
   return ierr;
 }
