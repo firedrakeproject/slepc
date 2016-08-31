@@ -30,6 +30,7 @@ int main(int argc,char **argv)
   PetscErrorCode ierr;
   RG             rg;
   PetscInt       i,inside;
+  PetscBool      triv;
   PetscReal      re,im;
   PetscScalar    ar,ai,cr[10],ci[10],vr[7],vi[7];
 
@@ -38,8 +39,12 @@ int main(int argc,char **argv)
 
   /* ellipse */
   ierr = RGSetType(rg,RGELLIPSE);CHKERRQ(ierr);
+  ierr = RGIsTrivial(rg,&triv);CHKERRQ(ierr);
+  if (!triv) SETERRQ(PETSC_COMM_SELF,1,"Region should be trivial before setting parameters");
   ierr = RGEllipseSetParameters(rg,1.1,2,0.1);CHKERRQ(ierr);
   ierr = RGSetFromOptions(rg);CHKERRQ(ierr);
+  ierr = RGIsTrivial(rg,&triv);CHKERRQ(ierr);
+  if (triv) SETERRQ(PETSC_COMM_SELF,1,"Region should be non-trivial after setting parameters");
   ierr = RGView(rg,NULL);CHKERRQ(ierr);
   re = 0.1; im = 0.3;
 #if defined(PETSC_USE_COMPLEX)
@@ -66,8 +71,12 @@ int main(int argc,char **argv)
 
   /* interval */
   ierr = RGSetType(rg,RGINTERVAL);CHKERRQ(ierr);
+  ierr = RGIsTrivial(rg,&triv);CHKERRQ(ierr);
+  if (!triv) SETERRQ(PETSC_COMM_SELF,1,"Region should be trivial before setting parameters");
   ierr = RGIntervalSetEndpoints(rg,-1,1,-0.1,0.1);CHKERRQ(ierr);
   ierr = RGSetFromOptions(rg);CHKERRQ(ierr);
+  ierr = RGIsTrivial(rg,&triv);CHKERRQ(ierr);
+  if (triv) SETERRQ(PETSC_COMM_SELF,1,"Region should be non-trivial after setting parameters");
   ierr = RGView(rg,NULL);CHKERRQ(ierr);
   re = 0.2; im = 0;
 #if defined(PETSC_USE_COMPLEX)
@@ -111,8 +120,12 @@ int main(int argc,char **argv)
   vr[6] = 2.0; vi[6] = 0.0;
 #endif
   ierr = RGSetType(rg,RGPOLYGON);CHKERRQ(ierr);
+  ierr = RGIsTrivial(rg,&triv);CHKERRQ(ierr);
+  if (!triv) SETERRQ(PETSC_COMM_SELF,1,"Region should be trivial before setting parameters");
   ierr = RGPolygonSetVertices(rg,7,vr,vi);CHKERRQ(ierr);
   ierr = RGSetFromOptions(rg);CHKERRQ(ierr);
+  ierr = RGIsTrivial(rg,&triv);CHKERRQ(ierr);
+  if (triv) SETERRQ(PETSC_COMM_SELF,1,"Region should be non-trivial after setting parameters");
   ierr = RGView(rg,NULL);CHKERRQ(ierr);
   re = 5; im = 0.9;
 #if defined(PETSC_USE_COMPLEX)
