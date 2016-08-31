@@ -1,0 +1,8 @@
+Ring region: 
+  center=2., radius=1., vscale=0.5
+  start angle=0., end angle=0.25, width=0.015
+
+Point (3.,0.3) is outside the region
+Point (2.8253,0.28253) is outside the region
+
+Contour points: (6.02,0) (5.95,0.261) (5.75,0.504) (5.42,0.712) (5.01,0.873) (4.52,0.973) (4,0.993) (4.51,0.959) (4.99,0.86) (5.4,0.702) 
