@@ -48,6 +48,7 @@ int main(int argc,char **argv)
 {
   PetscErrorCode ierr;
   RG             rg;
+  RGType         rtype;
   PetscInt       i;
   PetscBool      triv;
   PetscReal      re,im,radius,vscale,start_ang,end_ang,width;
@@ -63,8 +64,11 @@ int main(int argc,char **argv)
   ierr = RGSetFromOptions(rg);CHKERRQ(ierr);
   ierr = RGIsTrivial(rg,&triv);CHKERRQ(ierr);
   if (triv) SETERRQ(PETSC_COMM_SELF,1,"Region should be non-trivial after setting parameters");
+  ierr = RGView(rg,NULL);CHKERRQ(ierr);
+
+  ierr = RGGetType(rg,&rtype);CHKERRQ(ierr);
   ierr = RGRingGetParameters(rg,&center,&radius,&vscale,&start_ang,&end_ang,&width);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"Ring region: \n  center=%g, radius=%g, vscale=%g\n  start angle=%g, end angle=%g, width=%g\n\n",(double)PetscRealPart(center),(double)radius,(double)vscale,(double)start_ang,(double)end_ang,(double)width);
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"%s region: \n  center=%g, radius=%g, vscale=%g\n  start angle=%g, end angle=%g, width=%g\n\n",rtype,(double)PetscRealPart(center),(double)radius,(double)vscale,(double)start_ang,(double)end_ang,(double)width);
 
   ierr = CheckPoint(rg,3.0,0.3);CHKERRQ(ierr);
   ierr = CheckPoint(rg,2.8253,0.28253);CHKERRQ(ierr);

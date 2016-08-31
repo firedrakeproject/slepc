@@ -29,10 +29,10 @@ int main(int argc,char **argv)
 {
   PetscErrorCode ierr;
   RG             rg;
-  PetscInt       i,inside;
+  PetscInt       i,inside,nv;
   PetscBool      triv;
   PetscReal      re,im;
-  PetscScalar    ar,ai,cr[10],ci[10],vr[7],vi[7];
+  PetscScalar    ar,ai,cr[10],ci[10],vr[7],vi[7],*pr,*pi;
 
   ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
   ierr = RGCreate(PETSC_COMM_WORLD,&rg);CHKERRQ(ierr);
@@ -149,6 +149,17 @@ int main(int argc,char **argv)
     ierr = PetscPrintf(PETSC_COMM_WORLD,"(%.3g,%.3g) ",(double)re,(double)im);
   }
   ierr = PetscPrintf(PETSC_COMM_WORLD,"\n");
+
+  /* check vertices */
+  ierr = RGPolygonGetVertices(rg,&nv,&pr,&pi);CHKERRQ(ierr);
+  if (nv!=7) SETERRQ1(PETSC_COMM_SELF,1,"Wrong number of vertices: %D",nv);
+  for (i=0;i<nv;i++) {
+    if (pr[i]!=vr[i]
+#if !defined(PETSC_USE_COMPLEX)
+        || pi[i]!=vi[i]
+#endif
+       ) SETERRQ1(PETSC_COMM_SELF,1,"Vertex number %D does not match",i);
+  }
 
   ierr = RGDestroy(&rg);CHKERRQ(ierr);
   ierr = SlepcFinalize();
