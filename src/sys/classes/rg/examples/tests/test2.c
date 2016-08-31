@@ -49,6 +49,7 @@ int main(int argc,char **argv)
   PetscErrorCode ierr;
   RG             rg;
   PetscInt       i;
+  PetscBool      triv;
   PetscReal      re,im,radius,vscale,start_ang,end_ang,width;
   PetscScalar    center,cr[12],ci[12];
 
@@ -56,8 +57,12 @@ int main(int argc,char **argv)
   ierr = RGCreate(PETSC_COMM_WORLD,&rg);CHKERRQ(ierr);
 
   ierr = RGSetType(rg,RGRING);CHKERRQ(ierr);
+  ierr = RGIsTrivial(rg,&triv);CHKERRQ(ierr);
+  if (!triv) SETERRQ(PETSC_COMM_SELF,1,"Region should be trivial before setting parameters");
   ierr = RGRingSetParameters(rg,2,PETSC_DEFAULT,0.5,PETSC_DEFAULT,0.25,0.1);CHKERRQ(ierr);
   ierr = RGSetFromOptions(rg);CHKERRQ(ierr);
+  ierr = RGIsTrivial(rg,&triv);CHKERRQ(ierr);
+  if (triv) SETERRQ(PETSC_COMM_SELF,1,"Region should be non-trivial after setting parameters");
   ierr = RGRingGetParameters(rg,&center,&radius,&vscale,&start_ang,&end_ang,&width);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD,"Ring region: \n  center=%g, radius=%g, vscale=%g\n  start angle=%g, end angle=%g, width=%g\n\n",(double)PetscRealPart(center),(double)radius,(double)vscale,(double)start_ang,(double)end_ang,(double)width);
 

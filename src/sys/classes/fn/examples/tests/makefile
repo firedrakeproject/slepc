@@ -141,12 +141,12 @@ runtest6_2:
 
 runtest7_1:
 	-@${SETTEST}; \
-	${MPIEXEC} -n 1 ./test7 -tau .13 -eta 2 -n 19 > $${test}.tmp 2>&1; \
+	${MPIEXEC} -n 1 ./test7 -tau .05 -eta 2 -n 100 > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
 runtest7_2:
 	-@${SETTEST}; check=test7_1; \
-	${MPIEXEC} -n 1 ./test7 -tau .13 -eta 2 -n 19 -inplace > $${test}.tmp 2>&1; \
+	${MPIEXEC} -n 1 ./test7 -tau .05 -eta 2 -n 100 -inplace > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
 runtest7f_1:

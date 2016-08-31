@@ -341,7 +341,7 @@ PETSC_EXTERN PetscErrorCode RGCreate_Ring(RG rg)
   PetscFunctionBegin;
   ierr = PetscNewLog(rg,&ring);CHKERRQ(ierr);
   ring->center    = 0.0;
-  ring->radius    = 1.0;
+  ring->radius    = PETSC_MAX_REAL;
   ring->vscale    = 1.0;
   ring->start_ang = 0.0;
   ring->end_ang   = 1.0;

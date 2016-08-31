@@ -250,7 +250,7 @@ PETSC_EXTERN PetscErrorCode RGCreate_Ellipse(RG rg)
   PetscFunctionBegin;
   ierr = PetscNewLog(rg,&ellipse);CHKERRQ(ierr);
   ellipse->center = 0.0;
-  ellipse->radius = 1.0;
+  ellipse->radius = PETSC_MAX_REAL;
   ellipse->vscale = 1.0;
   rg->data = (void*)ellipse;
 
