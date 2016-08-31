@@ -3,4 +3,4 @@ FN Object:(f1_) 1 MPI processes
     Exponential: exp(-2.5*x)
 FN Object:(f2_) 1 MPI processes
   type: rational
-    Rational function: (  -1*x^1  +1) / (  +1*x^2  -6*x^1  +4)
+    Rational function: (-1*x^1+1) / (+1*x^2-6*x^1+4)
