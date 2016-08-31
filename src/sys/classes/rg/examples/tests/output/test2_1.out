@@ -1,4 +1,7 @@
-Ring region: 
+RG Object: 1 MPI processes
+  type: ring
+  center: 2., radius: 1., vscale: 0.5, start angle: 0., end angle: 0.25, ring width: 0.015
+ring region: 
   center=2., radius=1., vscale=0.5
   start angle=0., end angle=0.25, width=0.015
 
