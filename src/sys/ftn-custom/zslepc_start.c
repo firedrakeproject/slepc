@@ -26,13 +26,18 @@
 
 #if defined(PETSC_HAVE_FORTRAN_CAPS)
 #define petscinitialize_              PETSCINITIALIZE
+#define petscinitializenoarguments_   PETSCINITIALIZENOARGUMENTS
 #define slepcinitialize_              SLEPCINITIALIZE
+#define slepcinitializenoarguments_   SLEPCINITIALIZENOARGUMENTS
 #elif !defined(PETSC_HAVE_FORTRAN_UNDERSCORE)
 #define petscinitialize_              petscinitialize
+#define petscinitializenoarguments_   petscinitializenoarguments
 #define slepcinitialize_              slepcinitialize
+#define slepcinitializenoarguments_   slepcinitializenoarguments
 #endif
 
 PETSC_EXTERN void PETSC_STDCALL petscinitialize_(CHAR filename PETSC_MIXED_LEN(len),PetscErrorCode *ierr PETSC_END_LEN(len));
+PETSC_EXTERN void PETSC_STDCALL petscinitializenoarguments_(PetscErrorCode *ierr);
 
 /*
     SlepcInitialize - Version called from Fortran.
@@ -40,7 +45,7 @@ PETSC_EXTERN void PETSC_STDCALL petscinitialize_(CHAR filename PETSC_MIXED_LEN(l
     Notes:
     Since this routine is called from Fortran it does not return error codes.
 */
-PETSC_EXTERN void PETSC_STDCALL slepcinitialize_(CHAR filename PETSC_MIXED_LEN(len),PetscErrorCode *ierr PETSC_END_LEN(len))
+static void slepcinitialize_internal(CHAR filename,PetscInt len,PetscBool arguments,PetscErrorCode *ierr)
 {
   PetscBool flg;
   *ierr = 1;
@@ -49,11 +54,15 @@ PETSC_EXTERN void PETSC_STDCALL slepcinitialize_(CHAR filename PETSC_MIXED_LEN(l
   *ierr = PetscInitialized(&flg);
   if (*ierr) { (*PetscErrorPrintf)("SlepcInitialize:PetscInitialized failed");return; }
   if (!flg) {
+    if (arguments) {
 #if defined(PETSC_HAVE_FORTRAN_MIXED_STR_ARG)
-    petscinitialize_(filename,len,ierr);
+      petscinitialize_(filename,len,ierr);
 #else
-    petscinitialize_(filename,ierr,len);
+      petscinitialize_(filename,ierr,len);
 #endif
+    } else {
+      petscinitializenoarguments_(ierr);
+    }
     if (*ierr) { (*PetscErrorPrintf)("SlepcInitialize:PetscInitialize failed");return; }
     SlepcBeganPetsc = PETSC_TRUE;
   }
@@ -73,5 +82,15 @@ PETSC_EXTERN void PETSC_STDCALL slepcinitialize_(CHAR filename PETSC_MIXED_LEN(l
   SlepcInitializeCalled = PETSC_TRUE;
   *ierr = PetscInfo(0,"SLEPc successfully started from Fortran\n");
   if (*ierr) { (*PetscErrorPrintf)("SlepcInitialize:Calling PetscInfo()");return; }
+}
+
+PETSC_EXTERN void PETSC_STDCALL slepcinitialize_(CHAR filename PETSC_MIXED_LEN(len),PetscErrorCode *ierr PETSC_END_LEN(len))
+{
+  slepcinitialize_internal(filename,len,PETSC_TRUE,ierr);
+}
+
+PETSC_EXTERN void PETSC_STDCALL slepcinitializenoarguments_(PetscErrorCode *ierr)
+{
+  slepcinitialize_internal(NULL,(PetscInt)0,PETSC_FALSE,ierr);
 }
 
