@@ -189,14 +189,14 @@ PetscErrorCode RGComputeContour_Interval(RG rg,PetscInt n,PetscScalar *cr,PetscS
     hi[0] = 0.0; hi[1] = h;   hi[2] = 0.0; hi[3] = -h;
     off = 0.0; idx = 0;
     for (i=0;i<4;i++) {
-      pt = (d[i]-off)/h+1;
 #if defined(PETSC_USE_COMPLEX)
       cr[idx] = vr[i]+off*(hr[i]/h)+ (vi[i]+off*(hi[i]/h))*PETSC_i; 
 #else
       cr[idx] = vr[i]+off*(hr[i]/h); ci[idx]=vi[i]+off*(hi[i]/h);
 #endif 
       idx++;
-      for (j=1;j<pt;j++) {
+      pt = (d[i]-off)/h+1;
+      for (j=1;j<pt && idx<n;j++) {
 #if defined(PETSC_USE_COMPLEX)
         cr[idx] = cr[idx-1]+(hr[i]+hi[i]*PETSC_i);
 #else
