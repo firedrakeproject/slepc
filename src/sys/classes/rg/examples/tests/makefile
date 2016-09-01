@@ -66,6 +66,6 @@ runtest2_1:
 
 runtest2_2:
 	-@${SETTEST}; \
-	${MPIEXEC} -n 1 ./test2 -rg_ring_width 0.015 -rg_scale 2 > $${test}.tmp 2>&1; \
+	${MPIEXEC} -n 1 ./test2 -rg_ring_width 0.015 -rg_scale 1.5 > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
