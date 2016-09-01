@@ -371,11 +371,13 @@ static PetscErrorCode NEPSimpleNRefSetUpSystem(NEP nep,NEPSimpNRefctx *ctx,Mat *
     } else {
       ierr = MatCopy(M,*P,SAME_NONZERO_PATTERN);CHKERRQ(ierr);
     }
-    ierr = VecConjugate(v);CHKERRQ(ierr);
-    ierr = VecPointwiseMult(t,v,w);CHKERRQ(ierr);
-    ierr = VecConjugate(v);CHKERRQ(ierr);
-    ierr = VecScale(t,-fctx->m3/fctx->M4);CHKERRQ(ierr);
-    ierr = MatDiagonalSet(*P,t,ADD_VALUES);CHKERRQ(ierr);
+    if (fctx->M4!=0.0) {
+      ierr = VecConjugate(v);CHKERRQ(ierr);
+      ierr = VecPointwiseMult(t,v,w);CHKERRQ(ierr);
+      ierr = VecConjugate(v);CHKERRQ(ierr);
+      ierr = VecScale(t,-fctx->m3/fctx->M4);CHKERRQ(ierr);
+      ierr = MatDiagonalSet(*P,t,ADD_VALUES);CHKERRQ(ierr);
+    }
     break;
   case NEP_REFINE_SCHEME_MBE:
     *T = M;
@@ -541,19 +543,22 @@ PetscErrorCode NEPNewtonRefinementSimple(NEP nep,PetscInt *maxits,PetscReal tol,
         }
         break;
       case NEP_REFINE_SCHEME_SCHUR:
+        fail_sc[color] = 1;
         ierr = MatShellGetContext(T,&fctx);CHKERRQ(ierr);
-        ierr = MatMult(fctx->M1,v,r);CHKERRQ(ierr);
-        ierr = KSPSolve(nep->refineksp,r,dv);CHKERRQ(ierr);
-        ierr = KSPGetConvergedReason(nep->refineksp,&reason);CHKERRQ(ierr);
-        if (reason>0) {
-          ierr = VecDot(dv,v,&deig);CHKERRQ(ierr);
-          deig *= -fctx->m3/fctx->M4;
-          ierr = VecAXPY(v,-1.0,dv);CHKERRQ(ierr);
-          ierr = VecNorm(v,NORM_2,&norm);CHKERRQ(ierr);
-          ierr = VecScale(v,1.0/norm);CHKERRQ(ierr);
-          nep->eigr[idx_sc[color]] -= deig;
-          fail_sc[color] = 0;
-        } else fail_sc[color] = 1;
+        if (fctx->M4!=0.0) { 
+          ierr = MatMult(fctx->M1,v,r);CHKERRQ(ierr);
+          ierr = KSPSolve(nep->refineksp,r,dv);CHKERRQ(ierr);
+          ierr = KSPGetConvergedReason(nep->refineksp,&reason);CHKERRQ(ierr);
+          if (reason>0) {
+            ierr = VecDot(dv,v,&deig);CHKERRQ(ierr);
+            deig *= -fctx->m3/fctx->M4;
+            ierr = VecAXPY(v,-1.0,dv);CHKERRQ(ierr);
+            ierr = VecNorm(v,NORM_2,&norm);CHKERRQ(ierr);
+            ierr = VecScale(v,1.0/norm);CHKERRQ(ierr);
+            nep->eigr[idx_sc[color]] -= deig;
+            fail_sc[color] = 0;
+          }
+        }  
         break;
       }
       if (nep->npart==1) { ierr = BVRestoreColumn(nep->V,idx_sc[color],&v);CHKERRQ(ierr); }
