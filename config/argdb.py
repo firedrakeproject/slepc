@@ -41,6 +41,10 @@ class ArgDB:
       elif name.startswith('--with'):
         if name.find('=') == -1: argv[l] += '=1'
     self.argdb = argv[1:]
+    self.useda = []
+
+  def UsedArgs(self):
+    return ' '.join(self.useda)
 
   def PopString(self,keyword):
     string = ''
@@ -52,6 +56,7 @@ class ArgDB:
           string = s.split('=')[1]
           found = 1
           numhits = numhits + 1
+          self.useda.append(self.argdb[i])
           del self.argdb[i]
           break
       if not found:
@@ -68,6 +73,7 @@ class ArgDB:
           string = os.path.expanduser(s.split('=')[1].rstrip('/'))
           found = 1
           numhits = numhits + 1
+          self.useda.append(self.argdb[i])
           del self.argdb[i]
           break
       if not found:
@@ -87,6 +93,7 @@ class ArgDB:
           except IndexError: pass
           found = 1
           numhits = numhits + 1
+          self.useda.append(self.argdb[i])
           del self.argdb[i]
           break
       if not found:
@@ -103,6 +110,7 @@ class ArgDB:
           value = not s.endswith('=0')
           found = 1
           numhits = numhits + 1
+          self.useda.append(self.argdb[i])
           del self.argdb[i]
           break
       if not found:
