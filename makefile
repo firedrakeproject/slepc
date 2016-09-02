@@ -99,12 +99,13 @@ info: chk_makej
 	-@echo "-----------------------------------------"
 	-@grep "define SLEPC_VERSION" ${SLEPC_DIR}/include/slepcversion.h | ${SED} "s/........//"
 	-@echo "-----------------------------------------"
+	-@echo "Using SLEPc configure options: ${SLEPC_CONFIGURE_OPTIONS}"
+	-@echo "Using SLEPc configuration flags:"
+	-@grep "\#define " ${SLEPC_DIR}/${PETSC_ARCH}/include/slepcconf.h
+	-@echo "-----------------------------------------"
 	-@grep "define PETSC_VERSION" ${PETSC_DIR}/include/petscversion.h | ${SED} "s/........//"
 	-@echo "-----------------------------------------"
 	-@echo "Using PETSc configure options: ${CONFIGURE_OPTIONS}"
-	-@echo "Using SLEPc configuration flags:"
-	-@cat ${SLEPC_DIR}/${PETSC_ARCH}/lib/slepc/conf/slepcvariables
-	-@grep "\#define " ${SLEPC_DIR}/${PETSC_ARCH}/include/slepcconf.h
 	-@echo "Using PETSc configuration flags:"
 	-@if [ "${INSTALLED_PETSC}" != "" ]; then \
 	   grep "\#define " ${PETSC_DIR}/include/petscconf.h; \
