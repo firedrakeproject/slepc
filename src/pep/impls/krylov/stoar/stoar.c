@@ -132,7 +132,7 @@ PetscErrorCode PEPSetUp_STOAR(PEP pep)
   pep->lineariz = PETSC_TRUE;
   ierr = PEPSetDimensions_Default(pep,pep->nev,&pep->ncv,&pep->mpd);CHKERRQ(ierr);
   if (!ctx->lock && pep->mpd<pep->ncv) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Should not use mpd parameter in non-locking variant");
-  if (!pep->max_it) pep->max_it = PetscMax(100,2*pep->n/pep->ncv);
+  if (!pep->max_it) pep->max_it = PetscMax(100,2*(pep->nmat-1)*pep->n/pep->ncv);
   /* Set STSHIFT as the default ST */
   if (!((PetscObject)pep->st)->type_name) {
     ierr = STSetType(pep->st,STSHIFT);CHKERRQ(ierr);

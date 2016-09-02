@@ -35,7 +35,7 @@ int main(int argc,char **argv)
   PetscInt       n=10,i,Istart,Iend;
   PetscErrorCode ierr;
 
-  SlepcInitialize(&argc,&argv,(char*)0,help);
+  ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
   ierr = PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD,"\n1-D Laplacian plus diagonal, n=%D\n\n",n);CHKERRQ(ierr);
 

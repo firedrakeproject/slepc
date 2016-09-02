@@ -54,7 +54,7 @@ PetscErrorCode TestMatCombine(FN fn,Mat A,PetscViewer viewer,PetscBool verbose,P
   ierr = MatGetSize(A,&n,NULL);CHKERRQ(ierr);
   ierr = MatCreateSeqDense(PETSC_COMM_SELF,n,n,NULL,&F);CHKERRQ(ierr);
   ierr = PetscObjectSetName((PetscObject)F,"F");CHKERRQ(ierr);
-  /* compute square root */
+  /* compute matrix function */
   if (inplace) {
     ierr = MatCopy(A,F,SAME_NONZERO_PATTERN);CHKERRQ(ierr);
     ierr = MatIsHermitianKnown(A,&set,&flg);CHKERRQ(ierr);
@@ -66,7 +66,7 @@ PetscErrorCode TestMatCombine(FN fn,Mat A,PetscViewer viewer,PetscBool verbose,P
   if (verbose) {
     ierr = PetscPrintf(PETSC_COMM_WORLD,"Matrix A - - - - - - - -\n");CHKERRQ(ierr);
     ierr = MatView(A,viewer);CHKERRQ(ierr);
-    ierr = PetscPrintf(PETSC_COMM_WORLD,"Computed expm(A) - - - - - - -\n");CHKERRQ(ierr);
+    ierr = PetscPrintf(PETSC_COMM_WORLD,"Computed f(A) - - - - - - -\n");CHKERRQ(ierr);
     ierr = MatView(F,viewer);CHKERRQ(ierr);
   }
   /* print matrix norm for checking */
@@ -92,7 +92,7 @@ PetscErrorCode TestMatCombine(FN fn,Mat A,PetscViewer viewer,PetscBool verbose,P
 int main(int argc,char **argv)
 {
   PetscErrorCode ierr;
-  FN             f,g,h,e,r;
+  FN             f,g,h,e,r,fcopy;
   Mat            A;
   PetscInt       i,j,n=10,np,nq;
   PetscScalar    x,y,yp,*As,p[10],q[10];
@@ -100,7 +100,7 @@ int main(int argc,char **argv)
   PetscViewer    viewer;
   PetscBool      verbose,inplace;
 
-  SlepcInitialize(&argc,&argv,(char*)0,help);
+  ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
   ierr = PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL);CHKERRQ(ierr);
   ierr = PetscOptionsHasName(NULL,NULL,"-verbose",&verbose);CHKERRQ(ierr);
   ierr = PetscOptionsHasName(NULL,NULL,"-inplace",&inplace);CHKERRQ(ierr);
@@ -151,6 +151,9 @@ int main(int argc,char **argv)
   ierr = SlepcSNPrintfScalar(str,50,yp,PETSC_FALSE);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD,"  f'(%s)=%s\n",strx,str);CHKERRQ(ierr);
 
+  /* Test duplication */
+  ierr = FNDuplicate(f,PetscObjectComm((PetscObject)f),&fcopy);CHKERRQ(ierr);
+
   /* Create matrices */
   ierr = MatCreateSeqDense(PETSC_COMM_SELF,n,n,NULL,&A);CHKERRQ(ierr);
   ierr = PetscObjectSetName((PetscObject)A,"A");CHKERRQ(ierr);
@@ -163,14 +166,15 @@ int main(int argc,char **argv)
   }
   ierr = MatDenseRestoreArray(A,&As);CHKERRQ(ierr);
   ierr = MatSetOption(A,MAT_HERMITIAN,PETSC_TRUE);CHKERRQ(ierr);
-  ierr = TestMatCombine(f,A,viewer,verbose,inplace);CHKERRQ(ierr);
+  ierr = TestMatCombine(fcopy,A,viewer,verbose,inplace);CHKERRQ(ierr);
 
   /* Repeat with same matrix as non-symmetric */
   ierr = MatSetOption(A,MAT_HERMITIAN,PETSC_FALSE);CHKERRQ(ierr);
-  ierr = TestMatCombine(f,A,viewer,verbose,inplace);CHKERRQ(ierr);
+  ierr = TestMatCombine(fcopy,A,viewer,verbose,inplace);CHKERRQ(ierr);
 
   ierr = MatDestroy(&A);CHKERRQ(ierr);
   ierr = FNDestroy(&f);CHKERRQ(ierr);
+  ierr = FNDestroy(&fcopy);CHKERRQ(ierr);
   ierr = FNDestroy(&g);CHKERRQ(ierr);
   ierr = FNDestroy(&h);CHKERRQ(ierr);
   ierr = FNDestroy(&e);CHKERRQ(ierr);

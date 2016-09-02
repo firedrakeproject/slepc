@@ -390,7 +390,7 @@ PETSC_EXTERN void PETSC_STDCALL epskrylovschurgetsubcomminfo_(EPS *eps,PetscInt 
 
 PETSC_EXTERN void PETSC_STDCALL epskrylovschurgetsubcommpairs_(EPS *eps,PetscInt *i,PetscScalar *eig,Vec *v,PetscErrorCode *ierr)
 {
-  CHKFORTRANNULLOBJECT(*v);
+  CHKFORTRANNULLOBJECTDEREFERENCE(v);
   *ierr = EPSKrylovSchurGetSubcommPairs(*eps,*i,eig,*v);
 }
 
@@ -403,8 +403,8 @@ PETSC_EXTERN void PETSC_STDCALL epskrylovschurgetsubcommmats_(EPS *eps,Mat *A,Ma
 
 PETSC_EXTERN void PETSC_STDCALL epskrylovschurupdatesubcommmats_(EPS *eps,PetscScalar *s,PetscScalar *a,Mat *Au,PetscScalar *t,PetscScalar *b,Mat *Bu,MatStructure *str,PetscBool *globalup,PetscErrorCode *ierr)
 {
-  CHKFORTRANNULLOBJECT(*Au);
-  CHKFORTRANNULLOBJECT(*Bu);
+  CHKFORTRANNULLOBJECTDEREFERENCE(Au);
+  CHKFORTRANNULLOBJECTDEREFERENCE(Bu);
   *ierr = EPSKrylovSchurUpdateSubcommMats(*eps,*s,*a,*Au,*t,*b,*Bu,*str,*globalup);
 }
 

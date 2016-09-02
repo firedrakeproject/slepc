@@ -102,13 +102,14 @@ int main(int argc,char **argv)
   FN             fn;
   Mat            A;
   PetscInt       i,j,n=10;
-  PetscScalar    *As,tau=1.0,eta=1.0;
+  PetscScalar    x,y,yp,*As,tau=1.0,eta=1.0;
   PetscViewer    viewer;
   PetscBool      verbose,inplace;
   PetscRandom    myrand;
   PetscReal      v;
+  char           strx[50],str[50];
 
-  SlepcInitialize(&argc,&argv,(char*)0,help);
+  ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
   ierr = PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL);CHKERRQ(ierr);
   ierr = PetscOptionsGetScalar(NULL,NULL,"-tau",&tau,NULL);CHKERRQ(ierr);
   ierr = PetscOptionsGetScalar(NULL,NULL,"-eta",&eta,NULL);CHKERRQ(ierr);
@@ -127,6 +128,16 @@ int main(int argc,char **argv)
   if (verbose) {
     ierr = PetscViewerPushFormat(viewer,PETSC_VIEWER_ASCII_MATLAB);CHKERRQ(ierr);
   }
+
+  /* Scalar evaluation */
+  x = 2.2;
+  ierr = SlepcSNPrintfScalar(strx,50,x,PETSC_FALSE);CHKERRQ(ierr);
+  ierr = FNEvaluateFunction(fn,x,&y);CHKERRQ(ierr);
+  ierr = FNEvaluateDerivative(fn,x,&yp);CHKERRQ(ierr);
+  ierr = SlepcSNPrintfScalar(str,50,y,PETSC_FALSE);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"  f(%s)=%s\n",strx,str);CHKERRQ(ierr);
+  ierr = SlepcSNPrintfScalar(str,50,yp,PETSC_FALSE);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"  f'(%s)=%s\n",strx,str);CHKERRQ(ierr);
 
   /* Create matrix */
   ierr = MatCreateSeqDense(PETSC_COMM_SELF,n,n,NULL,&A);CHKERRQ(ierr);

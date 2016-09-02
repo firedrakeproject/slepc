@@ -29,17 +29,22 @@ int main(int argc,char **argv)
 {
   PetscErrorCode ierr;
   RG             rg;
-  PetscInt       i,inside;
+  PetscInt       i,inside,nv;
+  PetscBool      triv;
   PetscReal      re,im;
-  PetscScalar    ar,ai,cr[10],ci[10],vr[7],vi[7];
+  PetscScalar    ar,ai,cr[10],ci[10],vr[7],vi[7],*pr,*pi;
 
-  SlepcInitialize(&argc,&argv,(char*)0,help);
+  ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
   ierr = RGCreate(PETSC_COMM_WORLD,&rg);CHKERRQ(ierr);
 
   /* ellipse */
   ierr = RGSetType(rg,RGELLIPSE);CHKERRQ(ierr);
+  ierr = RGIsTrivial(rg,&triv);CHKERRQ(ierr);
+  if (!triv) SETERRQ(PETSC_COMM_SELF,1,"Region should be trivial before setting parameters");
   ierr = RGEllipseSetParameters(rg,1.1,2,0.1);CHKERRQ(ierr);
   ierr = RGSetFromOptions(rg);CHKERRQ(ierr);
+  ierr = RGIsTrivial(rg,&triv);CHKERRQ(ierr);
+  if (triv) SETERRQ(PETSC_COMM_SELF,1,"Region should be non-trivial after setting parameters");
   ierr = RGView(rg,NULL);CHKERRQ(ierr);
   re = 0.1; im = 0.3;
 #if defined(PETSC_USE_COMPLEX)
@@ -66,8 +71,12 @@ int main(int argc,char **argv)
 
   /* interval */
   ierr = RGSetType(rg,RGINTERVAL);CHKERRQ(ierr);
+  ierr = RGIsTrivial(rg,&triv);CHKERRQ(ierr);
+  if (!triv) SETERRQ(PETSC_COMM_SELF,1,"Region should be trivial before setting parameters");
   ierr = RGIntervalSetEndpoints(rg,-1,1,-0.1,0.1);CHKERRQ(ierr);
   ierr = RGSetFromOptions(rg);CHKERRQ(ierr);
+  ierr = RGIsTrivial(rg,&triv);CHKERRQ(ierr);
+  if (triv) SETERRQ(PETSC_COMM_SELF,1,"Region should be non-trivial after setting parameters");
   ierr = RGView(rg,NULL);CHKERRQ(ierr);
   re = 0.2; im = 0;
 #if defined(PETSC_USE_COMPLEX)
@@ -77,6 +86,20 @@ int main(int argc,char **argv)
 #endif
   ierr = RGCheckInside(rg,1,&ar,&ai,&inside);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD,"Point (%g,%g) is %s the region\n",(double)re,(double)im,(inside>=0)?"inside":"outside");
+
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"Contour points: ");
+  ierr = RGComputeContour(rg,10,cr,ci);CHKERRQ(ierr);
+  for (i=0;i<10;i++) {
+#if defined(PETSC_USE_COMPLEX)
+    re = PetscRealPart(cr[i]);
+    im = PetscImaginaryPart(cr[i]);
+#else
+    re = cr[i];
+    im = ci[i];
+#endif
+    ierr = PetscPrintf(PETSC_COMM_WORLD,"(%.3g,%.3g) ",(double)re,(double)im);
+  }
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"\n");
 
   /* polygon */
 #if defined(PETSC_USE_COMPLEX)
@@ -97,8 +120,12 @@ int main(int argc,char **argv)
   vr[6] = 2.0; vi[6] = 0.0;
 #endif
   ierr = RGSetType(rg,RGPOLYGON);CHKERRQ(ierr);
+  ierr = RGIsTrivial(rg,&triv);CHKERRQ(ierr);
+  if (!triv) SETERRQ(PETSC_COMM_SELF,1,"Region should be trivial before setting parameters");
   ierr = RGPolygonSetVertices(rg,7,vr,vi);CHKERRQ(ierr);
   ierr = RGSetFromOptions(rg);CHKERRQ(ierr);
+  ierr = RGIsTrivial(rg,&triv);CHKERRQ(ierr);
+  if (triv) SETERRQ(PETSC_COMM_SELF,1,"Region should be non-trivial after setting parameters");
   ierr = RGView(rg,NULL);CHKERRQ(ierr);
   re = 5; im = 0.9;
 #if defined(PETSC_USE_COMPLEX)
@@ -108,6 +135,31 @@ int main(int argc,char **argv)
 #endif
   ierr = RGCheckInside(rg,1,&ar,&ai,&inside);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD,"Point (%g,%g) is %s the region\n",(double)re,(double)im,(inside>=0)?"inside":"outside");
+
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"Contour points: ");
+  ierr = RGComputeContour(rg,10,cr,ci);CHKERRQ(ierr);
+  for (i=0;i<10;i++) {
+#if defined(PETSC_USE_COMPLEX)
+    re = PetscRealPart(cr[i]);
+    im = PetscImaginaryPart(cr[i]);
+#else
+    re = cr[i];
+    im = ci[i];
+#endif
+    ierr = PetscPrintf(PETSC_COMM_WORLD,"(%.3g,%.3g) ",(double)re,(double)im);
+  }
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"\n");
+
+  /* check vertices */
+  ierr = RGPolygonGetVertices(rg,&nv,&pr,&pi);CHKERRQ(ierr);
+  if (nv!=7) SETERRQ1(PETSC_COMM_SELF,1,"Wrong number of vertices: %D",nv);
+  for (i=0;i<nv;i++) {
+    if (pr[i]!=vr[i]
+#if !defined(PETSC_USE_COMPLEX)
+        || pi[i]!=vi[i]
+#endif
+       ) SETERRQ1(PETSC_COMM_SELF,1,"Vertex number %D does not match",i);
+  }
 
   ierr = RGDestroy(&rg);CHKERRQ(ierr);
   ierr = SlepcFinalize();

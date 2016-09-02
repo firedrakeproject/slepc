@@ -48,7 +48,7 @@ int main(int argc,char **argv)
   PetscInt       n=30,Istart,Iend,i,nev;
   PetscScalar    mu=1.0,tau=10.0,kappa=5.0;
 
-  SlepcInitialize(&argc,&argv,(char*)0,help);
+  ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
 
   ierr = PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL);CHKERRQ(ierr);
   ierr = PetscOptionsGetScalar(NULL,NULL,"-mu",&mu,NULL);CHKERRQ(ierr);

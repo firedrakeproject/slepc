@@ -265,6 +265,7 @@ static PetscErrorCode FNRationalSetNumerator_Rational(FN fn,PetscInt np,PetscSca
   PetscInt       i;
 
   PetscFunctionBegin;
+  if (np<0) SETERRQ(PetscObjectComm((PetscObject)fn),PETSC_ERR_ARG_OUTOFRANGE,"Argument np cannot be negative");
   ctx->np = np;
   ierr = PetscFree(ctx->pcoeff);CHKERRQ(ierr);
   if (np) {
@@ -308,7 +309,6 @@ PetscErrorCode FNRationalSetNumerator(FN fn,PetscInt np,PetscScalar *pcoeff)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(fn,FN_CLASSID,1);
   PetscValidLogicalCollectiveInt(fn,np,2);
-  if (np<0) SETERRQ(PetscObjectComm((PetscObject)fn),PETSC_ERR_ARG_OUTOFRANGE,"Argument np cannot be negative");
   if (np) PetscValidPointer(pcoeff,3);
   ierr = PetscTryMethod(fn,"FNRationalSetNumerator_C",(FN,PetscInt,PetscScalar*),(fn,np,pcoeff));CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -377,6 +377,7 @@ static PetscErrorCode FNRationalSetDenominator_Rational(FN fn,PetscInt nq,PetscS
   PetscInt       i;
 
   PetscFunctionBegin;
+  if (nq<0) SETERRQ(PetscObjectComm((PetscObject)fn),PETSC_ERR_ARG_OUTOFRANGE,"Argument nq cannot be negative");
   ctx->nq = nq;
   ierr = PetscFree(ctx->qcoeff);CHKERRQ(ierr);
   if (nq) {
@@ -420,7 +421,6 @@ PetscErrorCode FNRationalSetDenominator(FN fn,PetscInt nq,PetscScalar *qcoeff)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(fn,FN_CLASSID,1);
   PetscValidLogicalCollectiveInt(fn,nq,2);
-  if (nq<0) SETERRQ(PetscObjectComm((PetscObject)fn),PETSC_ERR_ARG_OUTOFRANGE,"Argument nq cannot be negative");
   if (nq) PetscValidPointer(qcoeff,3);
   ierr = PetscTryMethod(fn,"FNRationalSetDenominator_C",(FN,PetscInt,PetscScalar*),(fn,nq,qcoeff));CHKERRQ(ierr);
   PetscFunctionReturn(0);

@@ -28,7 +28,8 @@ EXAMPLESC  = ex16.c ex17.c ex28.c
 EXAMPLESF  = ex16f90.F90
 MANSEC     = PEP
 
-TESTEXAMPLES_C_NOCOMPLEX_NOTSINGLE = ex28.PETSc runex28_1 ex28.rm
+TESTEXAMPLES_C_NOCOMPLEX_NOTSINGLE = ex28.PETSc runex28_1 ex28.rm \
+                                     ex16.PETSc runex16_1_stoar ex16.rm
 TESTEXAMPLES_C_NOCOMPLEX           = ex16.PETSc runex16_1 ex16.rm
 TESTEXAMPLES_C_DATAFILE            = ex17.PETSc runex17_1 ex17.rm
 TESTEXAMPLES_F90_NOCOMPLEX         = ex16f90.PETSc runex16f90_1 ex16f90.rm
@@ -54,9 +55,13 @@ ex28: ex28.o chkopts
 #------------------------------------------------------------------------------------
 DATAPATH = ${SLEPC_DIR}/share/slepc/datafiles/matrices
 
-runex16_1:
-	-@${SETTEST}; \
-	${MPIEXEC} -n 1 ./ex16 -pep_nev 4 -pep_ncv 20 -terse > $${test}.tmp 2>&1; \
+runex16_1: runex16_1_toar runex16_1_qarnoldi runex16_1_linear
+runex16_1_%:
+	-@${SETTEST}; check=ex16_1; pep=$*; \
+	if [ "$$pep" = stoar ]; then pep="stoar -st_transform"; \
+	elif [ "$$pep" = qarnoldi ]; then pep="qarnoldi -st_transform"; \
+	elif [ "$$pep" = linear ]; then pep="linear -pep_linear_explicitmatrix"; fi; \
+	${MPIEXEC} -n 1 ./ex16 -pep_type $$pep -pep_nev 4 -pep_ncv 20 -terse > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
 runex16f90_1:
@@ -64,13 +69,17 @@ runex16f90_1:
 	${MPIEXEC} -n 1 ./ex16f90 -pep_nev 4 -pep_ncv 20 -terse > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
-runex17_1:
-	-@${SETTEST}; \
-	${MPIEXEC} -n 1 ./ex17 -A ${DATAPATH}/speaker107k.petsc,${DATAPATH}/speaker107c.petsc,${DATAPATH}/speaker107m.petsc -pep_nev 4 -pep_ncv 20 -pep_tol 1e-14 -pep_scale both -terse > $${test}.tmp 2>&1; \
+runex17_1: runex17_1_toar runex17_1_qarnoldi runex17_1_linear
+runex17_1_%:
+	-@${SETTEST}; check=ex17_1; pep=$*; \
+	if [ "$$pep" = qarnoldi ]; then pep="qarnoldi -st_transform"; fi; \
+	${MPIEXEC} -n 1 ./ex17 -A ${DATAPATH}/speaker107k.petsc,${DATAPATH}/speaker107c.petsc,${DATAPATH}/speaker107m.petsc -pep_type $$pep -pep_nev 4 -pep_ncv 20 -pep_tol 1e-14 -pep_scale scalar -terse > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
-runex28_1:
-	-@${SETTEST}; \
+runex28_1: runex28_1_toar runex28_1_qarnoldi runex28_1_linear
+runex28_1_%:
+	-@${SETTEST}; check=ex28_1; pep=$*; \
+	if [ "$$pep" = qarnoldi ]; then pep="qarnoldi -st_transform"; fi; \
 	${MPIEXEC} -n 1 ./ex28 -pep_nev 4 -terse > $${test}.tmp 2>&1; \
 	${TESTCODE}
 

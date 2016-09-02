@@ -32,8 +32,9 @@ TESTS      = test1 test2 test3 test3f
 TESTEXAMPLES_C                     = test2.PETSc runtest2_2 runtest2_4 test2.rm \
                                      test3.PETSc runtest3_1 test3.rm
 TESTEXAMPLES_C_NOCOMPLEX_NOTSINGLE = test1.PETSc runtest1_1 test1.rm
-TESTEXAMPLES_C_NOTSINGLE           = test2.PETSc runtest2_1 runtest2_3 test2.rm
-TESTEXAMPLES_FORTRAN               = test3f.PETSc runtest3f_1 test3f.rm \
+TESTEXAMPLES_C_COMPLEX             = test2.PETSc runtest2_2_jd test2.rm
+TESTEXAMPLES_C_NOTSINGLE           = test2.PETSc runtest2_1 runtest2_3 runtest2_2_stoar test2.rm
+TESTEXAMPLES_FORTRAN               = test3f.PETSc runtest3f_1 test3f.rm
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common
 
@@ -70,13 +71,16 @@ runtest2_1_%:
 	${MPIEXEC} -n 1 ./test2 -pep_type $${pep} -pep_nev 4 >> $${test}.tmp 2>&1; \
 	${TESTCODE}
 
-runtest2_2: runtest2_2_toar runtest2_2_toar_scaleboth runtest2_2_toar_transform runtest2_2_qarnoldi runtest2_2_linear
+runtest2_2: runtest2_2_toar runtest2_2_toar_scaleboth runtest2_2_toar_transform runtest2_2_qarnoldi runtest2_2_linear runtest2_2_linear_explicit
 runtest2_2_%:
 	-@${SETTEST}; check=test2_2; pep=$*; \
+	if [ "$$pep" != jd ]; then sinv="-st_type sinvert"; fi; \
 	if [ "$$pep" = toar_scaleboth ]; then pep="toar -pep_scale both"; \
 	elif [ "$$pep" = toar_transform ]; then pep="toar -st_transform"; \
-	elif [ "$$pep" = qarnoldi ]; then pep="qarnoldi -st_transform"; fi; \
-	${MPIEXEC} -n 1 ./test2 -pep_type $${pep} -st_type sinvert -pep_target -0.4 -pep_nev 4 >> $${test}.tmp 2>&1; \
+	elif [ "$$pep" = stoar ]; then pep="stoar -st_transform -pep_hermitian"; \
+	elif [ "$$pep" = qarnoldi ]; then pep="qarnoldi -st_transform"; \
+	elif [ "$$pep" = linear_explicit ]; then pep="linear -pep_linear_explicitmatrix -pep_hermitian -pep_linear_cform 2"; fi; \
+	${MPIEXEC} -n 1 ./test2 -pep_type $${pep} -pep_target -0.43 -pep_nev 4 -pep_ncv 20 $$sinv >> $${test}.tmp 2>&1; \
 	${TESTCODE}
 
 runtest2_3: runtest2_3_none runtest2_3_norm runtest2_3_residual runtest2_3_structured
@@ -85,12 +89,15 @@ runtest2_3_%:
 	${MPIEXEC} -n 1 ./test2 -pep_nev 12 -pep_extract $${extract} >> $${test}.tmp 2>&1; \
 	${TESTCODE}
 
-runtest2_4: runtest2_4_schur runtest2_4_mbe runtest2_4_explicit runtest2_4_multiple
+runtest2_4: runtest2_4_schur runtest2_4_mbe runtest2_4_explicit runtest2_4_multiple_schur runtest2_4_multiple_mbe runtest2_4_multiple_explicit
 runtest2_4_%:
 	-@${SETTEST}; check=test2_4; refine=$*; \
 	if [ "$$refine" = schur ]; then refine="simple -pep_refine_scheme schur"; \
 	elif [ "$$refine" = mbe ]; then refine="simple -pep_refine_scheme mbe -pep_refine_ksp_type preonly -pep_refine_pc_type lu"; \
-	elif [ "$$refine" = explicit ]; then refine="simple -pep_refine_scheme explicit"; fi; \
+	elif [ "$$refine" = explicit ]; then refine="simple -pep_refine_scheme explicit"; \
+	elif [ "$$refine" = multiple_schur ]; then refine="multiple -pep_refine_scheme schur"; \
+	elif [ "$$refine" = multiple_mbe ]; then refine="multiple -pep_refine_scheme mbe -pep_refine_ksp_type preonly -pep_refine_pc_type lu"; \
+	elif [ "$$refine" = multiple_explicit ]; then refine="multiple -pep_refine_scheme explicit"; fi; \
 	${MPIEXEC} -n 1 ./test2 -st_type sinvert -pep_target -0.4 -pep_nev 4 -pep_refine $${refine} >> $${test}.tmp 2>&1; \
 	${TESTCODE}
 

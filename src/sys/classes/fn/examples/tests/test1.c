@@ -29,11 +29,11 @@ int main(int argc,char **argv)
 {
   PetscErrorCode ierr;
   FN             fn;
-  PetscInt       na,nb;
-  PetscScalar    x,y,yp,p[10],q[10],five=5.0;
+  PetscInt       i,na,nb;
+  PetscScalar    x,y,yp,p[10],q[10],five=5.0,*pp,*qq;
   char           strx[50],str[50];
 
-  SlepcInitialize(&argc,&argv,(char*)0,help);
+  ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
   ierr = FNCreate(PETSC_COMM_WORLD,&fn);CHKERRQ(ierr);
 
   /* polynomial p(x) */
@@ -74,6 +74,7 @@ int main(int argc,char **argv)
   ierr = FNSetType(fn,FNRATIONAL);CHKERRQ(ierr);
   ierr = FNRationalSetNumerator(fn,na,p);CHKERRQ(ierr);
   ierr = FNRationalSetDenominator(fn,nb,q);CHKERRQ(ierr);
+  ierr = FNSetScale(fn,1.2,0.5);CHKERRQ(ierr);
   ierr = FNView(fn,NULL);CHKERRQ(ierr);
   x = 2.2;
   ierr = SlepcSNPrintfScalar(strx,50,x,PETSC_FALSE);CHKERRQ(ierr);
@@ -83,6 +84,22 @@ int main(int argc,char **argv)
   ierr = PetscPrintf(PETSC_COMM_WORLD,"  f(%s)=%s\n",strx,str);CHKERRQ(ierr);
   ierr = SlepcSNPrintfScalar(str,50,yp,PETSC_FALSE);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD,"  f'(%s)=%s\n",strx,str);CHKERRQ(ierr);
+
+  ierr = FNRationalGetNumerator(fn,&na,&pp);CHKERRQ(ierr);
+  ierr = FNRationalGetDenominator(fn,&nb,&qq);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"Coefficients:\n  Numerator: ");CHKERRQ(ierr);
+  for (i=0;i<na;i++) {
+    ierr = SlepcSNPrintfScalar(str,50,pp[i],PETSC_FALSE);CHKERRQ(ierr);
+    ierr = PetscPrintf(PETSC_COMM_WORLD,"%s ",str);CHKERRQ(ierr);
+  }
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"\n  Denominator: ");CHKERRQ(ierr);
+  for (i=0;i<nb;i++) {
+    ierr = SlepcSNPrintfScalar(str,50,qq[i],PETSC_FALSE);CHKERRQ(ierr);
+    ierr = PetscPrintf(PETSC_COMM_WORLD,"%s ",str);CHKERRQ(ierr);
+  }
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"\n");CHKERRQ(ierr);
+  ierr = PetscFree(pp);CHKERRQ(ierr);
+  ierr = PetscFree(qq);CHKERRQ(ierr);
 
   /* constant */
   ierr = FNSetType(fn,FNRATIONAL);CHKERRQ(ierr);

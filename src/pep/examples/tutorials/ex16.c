@@ -32,7 +32,6 @@ int main(int argc,char **argv)
 {
   Mat            M,C,K,A[3];      /* problem matrices */
   PEP            pep;             /* polynomial eigenproblem solver context */
-  PEPType        type;
   PetscInt       N,n=10,m,Istart,Iend,II,nev,i,j,nconv;
   PetscBool      flag,terse;
   PetscReal      error,re,im;
@@ -40,7 +39,7 @@ int main(int argc,char **argv)
   Vec            xr,xi;
   PetscErrorCode ierr;
 
-  SlepcInitialize(&argc,&argv,(char*)0,help);
+  ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
 
   ierr = PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL);CHKERRQ(ierr);
   ierr = PetscOptionsGetInt(NULL,NULL,"-m",&m,&flag);CHKERRQ(ierr);
@@ -126,8 +125,6 @@ int main(int argc,char **argv)
   /*
      Optional: Get some information from the solver and display it
   */
-  ierr = PEPGetType(pep,&type);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," Solution method: %s\n\n",type);CHKERRQ(ierr);
   ierr = PEPGetDimensions(pep,&nev,NULL,NULL);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD," Number of requested eigenvalues: %D\n",nev);CHKERRQ(ierr);
 

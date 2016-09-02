@@ -10,11 +10,16 @@ FN Object: 1 MPI processes
   f'(2.2)=0.0934502
 FN Object: 1 MPI processes
   type: rational
+    Scale factors: alpha=1.2, beta=0.5
     Rational function: (+1.1*x^1+1.1) / (+1*x^2-2*x^1+3.5)
-  f(2.2)=0.893401
-  f'(2.2)=-0.265016
+  f(2.2)=0.385772
+  f'(2.2)=-0.165407
+Coefficients:
+  Numerator: 1.1 1.1 
+  Denominator: 1. -2. 3.5 
 FN Object: 1 MPI processes
   type: rational
+    Scale factors: alpha=1.2, beta=0.5
     Constant: 5.
-  f(2.2)=5.
+  f(2.2)=2.5
   f'(2.2)=0.

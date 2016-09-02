@@ -90,6 +90,8 @@ static PetscErrorCode FNPhiSetIndex_Phi(FN fn,PetscInt k)
   FN_PHI *ctx = (FN_PHI*)fn->data;
 
   PetscFunctionBegin;
+  if (k<0) SETERRQ(PetscObjectComm((PetscObject)fn),PETSC_ERR_ARG_OUTOFRANGE,"Index cannot be negative");
+  if (k>10) SETERRQ(PetscObjectComm((PetscObject)fn),PETSC_ERR_ARG_OUTOFRANGE,"Only implemented for k<=10");
   ctx->k = k;
   PetscFunctionReturn(0);
 }
@@ -124,8 +126,6 @@ PetscErrorCode FNPhiSetIndex(FN fn,PetscInt k)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(fn,FN_CLASSID,1);
   PetscValidLogicalCollectiveInt(fn,k,2);
-  if (k<0) SETERRQ(PetscObjectComm((PetscObject)fn),PETSC_ERR_ARG_OUTOFRANGE,"Index cannot be negative");
-  if (k>10) SETERRQ(PetscObjectComm((PetscObject)fn),PETSC_ERR_ARG_OUTOFRANGE,"Only implemented for k<=10");
   ierr = PetscTryMethod(fn,"FNPhiSetIndex_C",(FN,PetscInt),(fn,k));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
