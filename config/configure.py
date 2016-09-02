@@ -119,6 +119,14 @@ if (NOT PETSC_LIB) # Interpret missing libpetsc to mean that PETSc was built --w
 endif ()
 ''')
 
+def WriteReconfigScript(reconfig,slepcdir,usedargs):
+  ''' Write the contents of the reconfigure script '''
+  reconfig.write('#!/usr/bin/env python\n\n')
+  reconfig.write('import os, sys\n')
+  if usedargs:
+    reconfig.write('sys.argv.extend(\''+usedargs+'\'.split())\n')
+  reconfig.write('execfile(os.path.join(\''+slepcdir+'\',\'config\',\'configure.py\'))\n')
+
 # Use en_US as language so that compiler messages are in English
 if 'LC_LOCAL' in os.environ and os.environ['LC_LOCAL'] != '' and os.environ['LC_LOCAL'] != 'en_US' and os.environ['LC_LOCAL']!= 'en_US.UTF-8': os.environ['LC_LOCAL'] = 'en_US.UTF-8'
 if 'LANG' in os.environ and os.environ['LANG'] != '' and os.environ['LANG'] != 'en_US' and os.environ['LANG'] != 'en_US.UTF-8': os.environ['LANG'] = 'en_US.UTF-8'
@@ -255,6 +263,8 @@ if slepc.isinstall:
   modules  = CreateFile(modulesdir,slepc.lversion,log)
 else:
   modules  = CreateFile(modulesdir,slepc.lversion+'-'+archname,log)
+  reconfig = CreateFile(confdir,'reconfigure-'+archname+'.py',log)
+  reconfigpath = os.path.join(confdir,'reconfigure-'+archname+'.py')
 
 # Write initial part of file slepcvariables
 slepcvars.write('SLEPC_CONFIGURE_OPTIONS = '+argdb.UsedArgs()+'\n')
@@ -339,13 +349,22 @@ WritePkgconfigFile(pkgconfig,slepc.lversion,petsc.version,slepc.dir,slepc.isinst
 log.write('CMake configure file in '+confdir)
 WriteCMakeConfigFile(cmakeconf)
 
+# Write reconfigure file
+if not slepc.isinstall:
+  WriteReconfigScript(reconfig,slepc.dir,argdb.UsedArgs())
+  try:
+    os.chmod(reconfigpath,0775)
+  except OSError, e:
+    log.Exit('ERROR: Unable to make reconfigure script executable:\n'+str(e))
+
 # Finish with configuration files (except slepcvars)
 slepcrules.close()
 slepcconf.write('#endif\n')
 slepcconf.close()
-modules.close()
-pkgconfig.close()
 cmakeconf.close()
+pkgconfig.close()
+modules.close()
+if not slepc.isinstall: reconfig.close()
 
 # Download sowing if requested and make Fortran stubs if necessary
 bfort = petsc.bfort
