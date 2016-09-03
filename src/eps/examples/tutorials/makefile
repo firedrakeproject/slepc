@@ -45,7 +45,7 @@ TESTEXAMPLES_C_DATAFILE            = ex4.PETSc runex4_1 ex4.rm \
                                      ex7.PETSc runex7_1 ex7.rm \
                                      ex31.PETSc runex31_1 ex31.rm
 TESTEXAMPLES_C_NOCOMPLEX           = ex25.PETSc runex25_1 ex25.rm
-TESTEXAMPLES_C_NOCOMPLEX_NOTSINGLE = ex9.PETSc runex9_1 runex9_2 ex9.rm
+TESTEXAMPLES_C_NOCOMPLEX_NOTSINGLE = ex9.PETSc runex9_1 runex9_2 runex9_3 ex9.rm
 TESTEXAMPLES_FORTRAN_NOCOMPLEX     = ex6f.PETSc runex6f_1 ex6f.rm
 TESTEXAMPLES_F90                   = ex1f90.PETSc runex1f90_1 ex1f90.rm
 TESTEXAMPLES_DATAFILESPATH_COMPLEX = ex4.PETSc runex4_ciss_1 ex4.rm \
@@ -213,6 +213,11 @@ runex9_1:
 runex9_2:
 	-@${SETTEST}; \
 	${MPIEXEC} -n 1 ./ex9 -eps_nev 8 -eps_max_it 300 -eps_target -28 -rg_type interval -rg_interval_endpoints -40,-20,-.1,.1 -terse > $${test}.tmp 2>&1; \
+	${TESTCODE}
+
+runex9_3:
+	-@${SETTEST}; check=ex9_1; \
+	${MPIEXEC} -n 1 ./ex9 -eps_nev 4 -eps_balance oneside -terse > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
 runex10_1:
