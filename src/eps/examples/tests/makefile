@@ -366,10 +366,11 @@ testtest10: test10.PETSc
 	else fail=1; fi; \
 	exit $$fail
 
-runtest11_1: runtest11_1_krylovschur runtest11_1_arnoldi runtest11_1_gd
+runtest11_1: runtest11_1_krylovschur runtest11_1_ks_cayley runtest11_1_arnoldi runtest11_1_gd
 runtest11_1_%:
 	-@${SETTEST}; check=test11_1; eps=$*; \
 	if [ "$$eps" = krylovschur -o "$$eps" = arnoldi ]; then EXTRA="-st_type sinvert"; \
+	elif [ "$$eps" = ks_cayley ]; then eps="krylovschur" EXTRA="-st_type cayley -st_cayley_antishift 1"; \
 	elif [ "$$eps" = gd ]; then EXTRA="-eps_max_it 5000"; fi; \
 	${MPIEXEC} -n 1 ./test11 -eps_type $$eps -eps_nev 4 $$EXTRA > $${test}.tmp 2>&1; \
 	${TESTCODE}
