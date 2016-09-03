@@ -233,6 +233,9 @@ allclean:
 
 clean:: allclean
 
+reconfigure:
+	@${PYTHON} ${PETSC_ARCH}/lib/slepc/conf/reconfigure-${PETSC_ARCH}.py
+
 #
 # Check if PETSC_DIR variable specified is valid
 #
