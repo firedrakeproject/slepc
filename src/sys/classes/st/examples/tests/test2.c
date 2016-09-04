@@ -135,12 +135,23 @@ int main(int argc,char **argv)
   ierr = PetscPrintf(PETSC_COMM_WORLD,"With shift=%g, antishift=%g\n",(double)PetscRealPart(sigma),(double)PetscRealPart(tau));CHKERRQ(ierr);
   ierr = STApply(st,v,w);CHKERRQ(ierr);
   ierr = VecView(w,NULL);CHKERRQ(ierr);
+  ierr = STPostSolve(st);CHKERRQ(ierr);
 
-  /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-                  Check inner product matrix in Cayley
-     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+  /* check inner product matrix in Cayley */
   ierr = STGetBilinearForm(st,&B);CHKERRQ(ierr);
   ierr = MatMult(B,v,w);CHKERRQ(ierr);
+  ierr = VecView(w,NULL);CHKERRQ(ierr);
+
+  /* check again sinvert, sigma=0.1 */
+  ierr = STPostSolve(st);CHKERRQ(ierr);   /* undo changes if inplace */
+  ierr = STSetType(st,STSINVERT);CHKERRQ(ierr);
+  ierr = STGetType(st,&type);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"ST type %s\n",type);CHKERRQ(ierr);
+  sigma = 0.1;
+  ierr = STSetShift(st,sigma);CHKERRQ(ierr);
+  ierr = STGetShift(st,&sigma);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"With shift=%g\n",(double)PetscRealPart(sigma));CHKERRQ(ierr);
+  ierr = STApply(st,v,w);CHKERRQ(ierr);
   ierr = VecView(w,NULL);CHKERRQ(ierr);
 
   ierr = STDestroy(&st);CHKERRQ(ierr);

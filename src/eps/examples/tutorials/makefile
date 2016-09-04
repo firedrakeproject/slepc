@@ -38,14 +38,15 @@ TESTEXAMPLES_C_DOUBLE              = ex2.PETSc runex2_ciss_1 runex2_ciss_2 ex2.r
 TESTEXAMPLES_C_NOTSINGLE           = ex2.PETSc runex2_1 ex2.rm \
                                      ex3.PETSc runex3_1 ex3.rm \
                                      ex10.PETSc runex10_1 ex10.rm \
-                                     ex11.PETSc runex11_1 ex11.rm \
+                                     ex11.PETSc runex11_1 runex11_2 ex11.rm \
                                      ex12.PETSc runex12_1 ex12.rm \
                                      ex30.PETSc runex30_1 ex30.rm
 TESTEXAMPLES_C_DATAFILE            = ex4.PETSc runex4_1 ex4.rm \
                                      ex7.PETSc runex7_1 ex7.rm \
+                                     ex9.PETSc runex9_3 ex9.rm \
                                      ex31.PETSc runex31_1 ex31.rm
 TESTEXAMPLES_C_NOCOMPLEX           = ex25.PETSc runex25_1 ex25.rm
-TESTEXAMPLES_C_NOCOMPLEX_NOTSINGLE = ex9.PETSc runex9_1 runex9_2 runex9_3 ex9.rm
+TESTEXAMPLES_C_NOCOMPLEX_NOTSINGLE = ex9.PETSc runex9_1 runex9_2 ex9.rm
 TESTEXAMPLES_FORTRAN_NOCOMPLEX     = ex6f.PETSc runex6f_1 ex6f.rm
 TESTEXAMPLES_F90                   = ex1f90.PETSc runex1f90_1 ex1f90.rm
 TESTEXAMPLES_DATAFILESPATH_COMPLEX = ex4.PETSc runex4_ciss_1 ex4.rm \
@@ -227,7 +228,12 @@ runex10_1:
 
 runex11_1:
 	-@${SETTEST}; \
-	${MPIEXEC} -n 1 ./ex11 -eps_nev 4 -terse > $${test}.tmp 2>&1; \
+	${MPIEXEC} -n 1 ./ex11 -eps_nev 4 -eps_krylovschur_restart .2 -terse > $${test}.tmp 2>&1; \
+	${TESTCODE}
+
+runex11_2:
+	-@${SETTEST}; check=ex11_1; \
+	${MPIEXEC} -n 1 ./ex11 -eps_nev 4 -st_type sinvert -st_ksp_type cg -st_pc_type jacobi -terse > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
 runex12_1:
