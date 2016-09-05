@@ -135,7 +135,6 @@ int main(int argc,char **argv)
   ierr = PetscPrintf(PETSC_COMM_WORLD,"With shift=%g, antishift=%g\n",(double)PetscRealPart(sigma),(double)PetscRealPart(tau));CHKERRQ(ierr);
   ierr = STApply(st,v,w);CHKERRQ(ierr);
   ierr = VecView(w,NULL);CHKERRQ(ierr);
-  ierr = STPostSolve(st);CHKERRQ(ierr);
 
   /* check inner product matrix in Cayley */
   ierr = STGetBilinearForm(st,&B);CHKERRQ(ierr);
