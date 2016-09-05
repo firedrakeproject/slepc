@@ -89,9 +89,10 @@ runtest4_2_%:
 	${MPIEXEC} -n 1 ./test4 -st_matmode $$matmode > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
-runtest5_1: runtest5_1_copy runtest5_1_inplace
+runtest5_1: runtest5_1_copy runtest5_1_inplace runtest5_1_shell
 runtest5_1_%:
 	-@${SETTEST}; check=test5_1; matmode=$*; \
+	if [ "$$matmode" = shell ]; then matmode="shell -ksp_type bcgs -pc_type jacobi"; fi; \
 	${MPIEXEC} -n 1 ./test5 -st_matmode $$matmode > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
