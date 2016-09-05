@@ -49,6 +49,7 @@ TESTEXAMPLES_C_NOCOMPLEX           = ex25.PETSc runex25_1 ex25.rm
 TESTEXAMPLES_C_NOCOMPLEX_NOTSINGLE = ex9.PETSc runex9_1 runex9_2 ex9.rm
 TESTEXAMPLES_FORTRAN_NOCOMPLEX     = ex6f.PETSc runex6f_1 ex6f.rm
 TESTEXAMPLES_F90                   = ex1f90.PETSc runex1f90_1 ex1f90.rm
+TESTEXAMPLES_DATAFILESPATH         = ex7.PETSc runex7_2 ex7.rm
 TESTEXAMPLES_DATAFILESPATH_COMPLEX = ex4.PETSc runex4_ciss_1 ex4.rm \
                                      ex7.PETSc runex7_ciss_1 ex7.rm
 
@@ -206,6 +207,12 @@ runex7_ciss_1:
 	${MPIEXEC} -n 1 ./ex7 -f1 $(DATAFILESPATH)/matrices/complex/mhd1280a.petsc -f2 $(DATAFILESPATH)/matrices/complex/mhd1280b.petsc -eps_type ciss -eps_ciss_usest 0 -eps_ciss_quadrule chebyshev -rg_type ring -rg_ring_center 0 -rg_ring_radius .5 -rg_ring_width 0.2 -rg_ring_startangle .25 -rg_ring_endangle .5 -terse > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
+runex7_2: runex7_2_none runex7_2_oneside runex7_2_twoside
+runex7_2_%:
+	-@${SETTEST}; check=ex7_2; balance=$*; \
+	${MPIEXEC} -n 1 ./ex7 -f1 $(DATAFILESPATH)/matrices/real/bfw782a.petsc -f2 $(DATAFILESPATH)/matrices/real/bfw782b.petsc -eps_largest_real -eps_nev 4 -eps_balance $$balance -terse > $${test}.tmp 2>&1; \
+	${TESTCODE}
+
 runex9_1:
 	-@${SETTEST}; \
 	${MPIEXEC} -n 1 ./ex9 -eps_nev 4 -terse > $${test}.tmp 2>&1; \
@@ -233,7 +240,7 @@ runex11_1:
 
 runex11_2:
 	-@${SETTEST}; check=ex11_1; \
-	${MPIEXEC} -n 1 ./ex11 -eps_nev 4 -st_type sinvert -st_ksp_type cg -st_pc_type jacobi -terse > $${test}.tmp 2>&1; \
+	${MPIEXEC} -n 1 ./ex11 -eps_nev 4 -eps_ncv 20 -st_type sinvert -st_ksp_type cg -st_pc_type jacobi -terse > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
 runex12_1:
