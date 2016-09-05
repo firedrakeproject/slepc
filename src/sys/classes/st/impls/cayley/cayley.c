@@ -87,6 +87,36 @@ static PetscErrorCode MatMult_Cayley(Mat B,Vec x,Vec y)
 }
 
 #undef __FUNCT__
+#define __FUNCT__ "MatMultTranspose_Cayley"
+static PetscErrorCode MatMultTranspose_Cayley(Mat B,Vec x,Vec y)
+{
+  PetscErrorCode ierr;
+  ST             st;
+  ST_CAYLEY      *ctx;
+  PetscScalar    nu;
+
+  PetscFunctionBegin;
+  ierr = MatShellGetContext(B,(void**)&st);CHKERRQ(ierr);
+  ctx = (ST_CAYLEY*)st->data;
+  nu = ctx->nu;
+
+  if (st->shift_matrix == ST_MATMODE_INPLACE) { nu = nu + st->sigma; };
+  nu = PetscConj(nu);
+
+  if (st->nmat>1) {
+    /* generalized eigenproblem: y = (A + tB)x */
+    ierr = MatMultTranspose(st->A[0],x,y);CHKERRQ(ierr);
+    ierr = MatMultTranspose(st->A[1],x,ctx->w2);CHKERRQ(ierr);
+    ierr = VecAXPY(y,nu,ctx->w2);CHKERRQ(ierr);
+  } else {
+    /* standard eigenproblem: y = (A + tI)x */
+    ierr = MatMultTranspose(st->A[0],x,y);CHKERRQ(ierr);
+    ierr = VecAXPY(y,nu,x);CHKERRQ(ierr);
+  }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
 #define __FUNCT__ "STGetBilinearForm_Cayley"
 PetscErrorCode STGetBilinearForm_Cayley(ST st,Mat *B)
 {
@@ -172,6 +202,7 @@ PetscErrorCode STSetUp_Cayley(ST st)
     ierr = MatGetLocalSize(st->A[0],&n,&m);CHKERRQ(ierr);
     ierr = MatCreateShell(PetscObjectComm((PetscObject)st),n,m,PETSC_DETERMINE,PETSC_DETERMINE,st,&st->T[0]);CHKERRQ(ierr);
     ierr = MatShellSetOperation(st->T[0],MATOP_MULT,(void(*)(void))MatMult_Cayley);CHKERRQ(ierr);
+    ierr = MatShellSetOperation(st->T[0],MATOP_MULT_TRANSPOSE,(void(*)(void))MatMultTranspose_Cayley);CHKERRQ(ierr);
     ierr = PetscLogObjectParent((PetscObject)st,(PetscObject)st->T[0]);CHKERRQ(ierr);
   } else {
     ierr = STMatMAXPY_Private(st,ctx->nu,0.0,0,NULL,PetscNot(st->state==ST_STATE_UPDATED),&st->T[0]);CHKERRQ(ierr);
