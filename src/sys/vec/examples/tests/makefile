@@ -19,19 +19,28 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-ALL: lib
+CFLAGS     =
+FFLAGS     =
+CPPFLAGS   =
+FPPFLAGS   =
+LOCDIR     = src/sys/vec/examples/tests/
+EXAMPLESC  = test1.c
+EXAMPLESF  =
+MANSEC     = Sys
+TESTS      = test1
 
-CFLAGS   =
-FFLAGS   =
-SOURCEC  = veccomp.c pool.c
-SOURCEF  =
-SOURCEH  = veccomp0.h
-DIRS     = examples
-LIBBASE  = libslepcsys
-DIRS     =
-MANSEC   = sys
-LOCDIR   = src/sys/vec/
+TESTEXAMPLES_C           = test1.PETSc runtest1_1 test1.rm
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common
 
+test1: test1.o chkopts
+	-${CLINKER} -o test1 test1.o ${SLEPC_SYS_LIB}
+	${RM} test1.o
+
+#------------------------------------------------------------------------------------
+
+runtest1_1:
+	-@${SETTEST}; \
+	${MPIEXEC} -n 2 ./test1 > $${test}.tmp 2>&1; \
+	${TESTCODE}
 

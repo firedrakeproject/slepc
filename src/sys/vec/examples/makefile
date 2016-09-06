@@ -19,19 +19,10 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-ALL: lib
+ALL:
 
-CFLAGS   =
-FFLAGS   =
-SOURCEC  = veccomp.c pool.c
-SOURCEF  =
-SOURCEH  = veccomp0.h
-DIRS     = examples
-LIBBASE  = libslepcsys
-DIRS     =
-MANSEC   = sys
-LOCDIR   = src/sys/vec/
+LOCDIR   = src/sys/vec/examples/
+DIRS     = tests
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common
-
 
