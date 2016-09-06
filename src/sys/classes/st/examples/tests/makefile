@@ -29,11 +29,11 @@ EXAMPLESF  =
 MANSEC     = ST
 TESTS      = test1 test2 test3 test4 test5
 
-TESTEXAMPLES_C           = test5.PETSc runtest5_1 test5.rm
 TESTEXAMPLES_C_NOTSINGLE = test1.PETSc runtest1_1 test1.rm \
                            test2.PETSc runtest2_1 test2.rm \
                            test3.PETSc runtest3_1 test3.rm \
-                           test4.PETSc runtest4_1 runtest4_2 test4.rm
+                           test4.PETSc runtest4_1 runtest4_2 test4.rm \
+                           test5.PETSc runtest5_1 test5.rm
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common
 

@@ -174,11 +174,12 @@ runtest1_4_%:
 	${MPIEXEC} -n 1 ./test1 -n 18 -eps_type power -eps_nev 3 -st_type sinvert -eps_target 1.15 -eps_power_shift_type $$stype > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
-runtest1_5: runtest1_5_rqcg runtest1_5_lobpcg 
+runtest1_5: runtest1_5_rqcg runtest1_5_lobpcg runtest1_5_lobpcg_shift
 runtest1_5_%:
 	-@${SETTEST}; check=test1_5; eps=$*; \
-	if [ "$$eps" = lobpcg ]; then eps="lobpcg -eps_lobpcg_blocksize 10"; fi; \
-	${MPIEXEC} -n 1 ./test1 -n 18 -eps_type $$eps -eps_nev 3 -eps_smallest_real -eps_max_it 500 > $${test}.tmp 2>&1; \
+	if [ "$$eps" = lobpcg ]; then eps="lobpcg -eps_lobpcg_blocksize 10"; \
+	elif [ "$$eps" = lobpcg_shift ]; then eps="lobpcg -eps_lobpcg_blocksize 10 -st_shift .3"; fi; \
+	${MPIEXEC} -n 1 ./test1 -n 18 -eps_type $$eps -eps_nev 3 -eps_smallest_real -eps_max_it 500 -st_pc_type icc > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
 runtest1_6: runtest1_6_krylovschur runtest1_6_subspace runtest1_6_arnoldi runtest1_6_lanczos runtest1_6_gd
@@ -332,7 +333,7 @@ runtest9_1_%:
 runtest9_2: runtest9_2_none runtest9_2_oneside runtest9_2_twoside
 runtest9_2_%:
 	-@${SETTEST}; check=test9_1; balance=$*; \
-	${MPIEXEC} -n 1 ./test9 -eps_balance $$balance -eps_nev 4 -eps_ncv 7 -eps_max_it 300 > $${test}.tmp 2>&1; \
+	${MPIEXEC} -n 1 ./test9 -eps_balance $$balance -eps_nev 4 -eps_ncv 7 -eps_max_it 500 > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
 runtest10_1: runtest10_1_krylovschur runtest10_1_arnoldi runtest10_1_lanczos runtest10_1_gd runtest10_1_jd runtest10_1_gd2 runtest10_1_rqcg runtest10_1_lobpcg

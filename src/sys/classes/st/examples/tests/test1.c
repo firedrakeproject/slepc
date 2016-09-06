@@ -112,6 +112,8 @@ int main(int argc,char **argv)
   ierr = PetscPrintf(PETSC_COMM_WORLD,"ST type %s\n",type);CHKERRQ(ierr);
   ierr = STApply(st,v,w);CHKERRQ(ierr);
   ierr = VecView(w,NULL);CHKERRQ(ierr);
+  ierr = STApplyTranspose(st,v,w);CHKERRQ(ierr);
+  ierr = VecView(w,NULL);CHKERRQ(ierr);
 
   /* shift, sigma=0.1 */
   sigma = 0.1;

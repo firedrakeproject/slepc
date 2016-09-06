@@ -87,6 +87,8 @@ int main(int argc,char **argv)
   ierr = PetscPrintf(PETSC_COMM_WORLD,"With shift=%g\n",(double)PetscRealPart(sigma));CHKERRQ(ierr);
   ierr = STApply(st,v,w);CHKERRQ(ierr);
   ierr = VecView(w,NULL);CHKERRQ(ierr);
+  ierr = STApplyTranspose(st,v,w);CHKERRQ(ierr);
+  ierr = VecView(w,NULL);CHKERRQ(ierr);
 
   /* sinvert, sigma=0.1 */
   ierr = STPostSolve(st);CHKERRQ(ierr);   /* undo changes if inplace */
