@@ -436,7 +436,7 @@ PetscErrorCode VecCompGetSubVecs(Vec win,PetscInt *n,const Vec **x)
   PetscFunctionBegin;
   SlepcValidVecComp(win);
   if (x) *x = s->x;
-  if (n) *n = s->nx;
+  if (n) *n = s->n->n;
   PetscFunctionReturn(0);
 }
 
@@ -444,7 +444,7 @@ PetscErrorCode VecCompGetSubVecs(Vec win,PetscInt *n,const Vec **x)
 #define __FUNCT__ "VecCompSetSubVecs"
 /*@C
    VecCompSetSubVecs - Resets the number of subvectors defining a compound vector,
-   of replaces the subvectors.
+   or replaces the subvectors.
 
    Collective on Vec
 
@@ -453,9 +453,13 @@ PetscErrorCode VecCompGetSubVecs(Vec win,PetscInt *n,const Vec **x)
 .  n - number of child vectors
 -  x - array of child vectors
 
+   Note:
+   It is not possible to increase the number of subvectors with respect to the
+   number set at its creation.
+
    Level: developer
 
-.seealso: VecCreateComp()
+.seealso: VecCreateComp(), VecCompGetSubVecs()
 @*/
 PetscErrorCode VecCompSetSubVecs(Vec win,PetscInt n,Vec *x)
 {
@@ -463,13 +467,9 @@ PetscErrorCode VecCompSetSubVecs(Vec win,PetscInt n,Vec *x)
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
+  if (n > s->nx) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_SUP,"Number of child vectors cannot be larger than %D",s->nx);
   if (x) {
-    if (n > s->nx) {
-      ierr = PetscFree(s->x);CHKERRQ(ierr);
-      ierr = PetscMalloc(sizeof(Vec)*n,&s->x);CHKERRQ(ierr);
-    }
     ierr = PetscMemcpy(s->x,x,sizeof(Vec)*n);CHKERRQ(ierr);
-    s->nx = n;
   }
   s->n->n = n;
   PetscFunctionReturn(0);
