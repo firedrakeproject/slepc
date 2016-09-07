@@ -26,10 +26,12 @@ static MPI_Datatype MPIU_NORM2=0, MPIU_NORM1_AND_2=0;
 static MPI_Op MPIU_NORM2_SUM=0;
 static PetscBool VecCompInitialized = PETSC_FALSE;
 
-/* Private inline functions */
-PETSC_STATIC_INLINE void SumNorm2(PetscReal *,PetscReal *,PetscReal *,PetscReal *);
+/* Private functions */
+PETSC_STATIC_INLINE void SumNorm2(PetscReal*,PetscReal*,PetscReal*,PetscReal*);
 PETSC_STATIC_INLINE PetscReal GetNorm2(PetscReal,PetscReal);
-PETSC_STATIC_INLINE void AddNorm2(PetscReal *,PetscReal *,PetscReal);
+PETSC_STATIC_INLINE void AddNorm2(PetscReal*,PetscReal*,PetscReal);
+static PetscErrorCode VecCompSetSubVecs_Comp(Vec,PetscInt,Vec*);
+static PetscErrorCode VecCompGetSubVecs_Comp(Vec,PetscInt*,const Vec**);
 
 #include "veccomp0.h"
 
@@ -145,6 +147,8 @@ PetscErrorCode VecDestroy_Comp(Vec v)
   }
   ierr = PetscFree(vs->x);CHKERRQ(ierr);
   ierr = PetscFree(vs);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)v,"VecCompSetSubVecs_C",NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)v,"VecCompGetSubVecs_C",NULL);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -264,36 +268,40 @@ static PetscErrorCode VecCreate_Comp_Private(Vec v,Vec *x,PetscInt nx,PetscBool 
   v->petscnative = PETSC_FALSE;
 
   /* Allocate the array of Vec, if it is needed to be done */
-  if (x_to_me != PETSC_TRUE) {
-    ierr = PetscMalloc(sizeof(Vec)*nx,&s->x);CHKERRQ(ierr);
-    ierr = PetscMemcpy(s->x,x,sizeof(Vec)*nx);CHKERRQ(ierr);
+  if (!x_to_me) {
+    if (nx) { ierr = PetscMalloc1(nx,&s->x);CHKERRQ(ierr); }
+    if (x) { ierr = PetscMemcpy(s->x,x,sizeof(Vec)*nx);CHKERRQ(ierr); }
   } else s->x = x;
 
   s->nx = nx;
 
-  /* Allocate the shared structure, if it is not given */
-  if (!n) {
-    for (i=0;i<nx;i++) {
-      ierr = VecGetSize(x[i],&k);CHKERRQ(ierr);
-      N+= k;
-      ierr = VecGetLocalSize(x[i],&k);CHKERRQ(ierr);
-      lN+= k;
+  if (nx) {
+    /* Allocate the shared structure, if it is not given */
+    if (!n) {
+      for (i=0;i<nx;i++) {
+        ierr = VecGetSize(x[i],&k);CHKERRQ(ierr);
+        N+= k;
+        ierr = VecGetLocalSize(x[i],&k);CHKERRQ(ierr);
+        lN+= k;
+      }
+      ierr = PetscNewLog(v,&n);CHKERRQ(ierr);
+      s->n = n;
+      n->n = nx;
+      n->N = N;
+      n->lN = lN;
+      n->friends = 1;
+    } else { /* If not, check in the vector in the shared structure */
+      s->n = n;
+      s->n->friends++;
     }
-    ierr = PetscNewLog(v,&n);CHKERRQ(ierr);
-    s->n = n;
-    n->n = nx;
-    n->N = N;
-    n->lN = lN;
-    n->friends = 1;
-  } else { /* If not, check in the vector in the shared structure */
-    s->n = n;
-    s->n->friends++;
+  
+    /* Set the virtual sizes as the real sizes of the vector */
+    ierr = VecSetSizes(v,s->n->lN,s->n->N);CHKERRQ(ierr);
   }
 
-  /* Set the virtual sizes as the real sizes of the vector */
-  ierr = VecSetSizes(v,s->n->lN,s->n->N);CHKERRQ(ierr);
-
   ierr = PetscObjectChangeTypeName((PetscObject)v,VECCOMP);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)v,"VecCompSetSubVecs_C",VecCompSetSubVecs_Comp);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)v,"VecCompGetSubVecs_C",VecCompGetSubVecs_Comp);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -411,6 +419,18 @@ PetscErrorCode VecDuplicate_Comp(Vec win,Vec *V)
 }
 
 #undef __FUNCT__
+#define __FUNCT__ "VecCompGetSubVecs_Comp"
+static PetscErrorCode VecCompGetSubVecs_Comp(Vec win,PetscInt *n,const Vec **x)
+{
+  Vec_Comp *s = (Vec_Comp*)win->data;
+
+  PetscFunctionBegin;
+  if (x) *x = s->x;
+  if (n) *n = s->n->n;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
 #define __FUNCT__ "VecCompGetSubVecs"
 /*@C
    VecCompGetSubVecs - Returns the entire array of vectors defining a
@@ -431,12 +451,51 @@ PetscErrorCode VecDuplicate_Comp(Vec win,Vec *V)
 @*/
 PetscErrorCode VecCompGetSubVecs(Vec win,PetscInt *n,const Vec **x)
 {
-  Vec_Comp *s = (Vec_Comp*)win->data;
+  PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  SlepcValidVecComp(win);
-  if (x) *x = s->x;
-  if (n) *n = s->n->n;
+  PetscValidHeaderSpecific(win,VEC_CLASSID,1);
+  ierr = PetscUseMethod(win,"VecCompGetSubVecs_C",(Vec,PetscInt*,const Vec**),(win,n,x));CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "VecCompSetSubVecs_Comp"
+static PetscErrorCode VecCompSetSubVecs_Comp(Vec win,PetscInt n,Vec *x)
+{
+  Vec_Comp       *s = (Vec_Comp*)win->data;
+  PetscInt       i,N,nlocal;
+  Vec_Comp_N     *nn;
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  if (!s) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ORDER,"Must call VecSetSizes first");
+  if (!s->nx) {
+    /* vector has been created via VecCreate+VecSetType+VecSetSizes, so allocate data structures */
+    ierr = PetscMalloc1(n,&s->x);CHKERRQ(ierr);
+    ierr = PetscLogObjectMemory((PetscObject)win,n*sizeof(Vec));CHKERRQ(ierr);
+    ierr = VecGetSize(win,&N);CHKERRQ(ierr);
+    if (N%n) SETERRQ2(PETSC_COMM_SELF,1,"Global dimension %D is not divisible by %D",N,n);
+    ierr = VecGetLocalSize(win,&nlocal);CHKERRQ(ierr);
+    if (nlocal%n) SETERRQ2(PETSC_COMM_SELF,1,"Local dimension %D is not divisible by %D",nlocal,n);
+    s->nx = n;
+    for (i=0;i<n;i++) {
+      ierr = VecCreate(PetscObjectComm((PetscObject)win),&s->x[i]);CHKERRQ(ierr);
+      ierr = VecSetSizes(s->x[i],nlocal/n,N/n);CHKERRQ(ierr);
+      ierr = VecSetFromOptions(s->x[i]);CHKERRQ(ierr);
+    }
+    if (!s->n) {
+      ierr = PetscNewLog(win,&nn);CHKERRQ(ierr);
+      s->n = nn;
+      nn->N = N;
+      nn->lN = nlocal;
+      nn->friends = 1;
+    }
+  } else if (n > s->nx) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_SUP,"Number of child vectors cannot be larger than %D",s->nx);
+  if (x) {
+    ierr = PetscMemcpy(s->x,x,sizeof(Vec)*n);CHKERRQ(ierr);
+  }
+  s->n->n = n;
   PetscFunctionReturn(0);
 }
 
@@ -463,15 +522,12 @@ PetscErrorCode VecCompGetSubVecs(Vec win,PetscInt *n,const Vec **x)
 @*/
 PetscErrorCode VecCompSetSubVecs(Vec win,PetscInt n,Vec *x)
 {
-  Vec_Comp       *s = (Vec_Comp*)win->data;
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  if (n > s->nx) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_SUP,"Number of child vectors cannot be larger than %D",s->nx);
-  if (x) {
-    ierr = PetscMemcpy(s->x,x,sizeof(Vec)*n);CHKERRQ(ierr);
-  }
-  s->n->n = n;
+  PetscValidHeaderSpecific(win,VEC_CLASSID,1);
+  PetscValidLogicalCollectiveInt(win,n,2);
+  ierr = PetscTryMethod(win,"VecCompSetSubVecs_C",(Vec,PetscInt,Vec*),(win,n,x));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -539,7 +595,7 @@ PetscErrorCode VecMAXPY_Comp(Vec v,PetscInt n,const PetscScalar *alpha,Vec *w)
   SlepcValidVecComp(v);
   for (i=0;i<n;i++) SlepcValidVecComp(w[i]);
 
-  ierr = PetscMalloc(sizeof(Vec)*n,&wx);CHKERRQ(ierr);
+  ierr = PetscMalloc1(n,&wx);CHKERRQ(ierr);
 
   for (j=0;j<vs->n->n;j++) {
     for (i=0;i<n;i++) wx[i] = ((Vec_Comp*)w[i]->data)->x[j];
@@ -593,9 +649,11 @@ PetscErrorCode VecGetSize_Comp(Vec v,PetscInt *size)
   Vec_Comp *vs = (Vec_Comp*)v->data;
 
   PetscFunctionBegin;
-  SlepcValidVecComp(v);
   PetscValidIntPointer(size,2);
-  *size = vs->n->N;
+  if (vs->n) {
+    SlepcValidVecComp(v);
+    *size = vs->n->N;
+  } else *size = v->map->N;
   PetscFunctionReturn(0);
 }
 
@@ -606,9 +664,11 @@ PetscErrorCode VecGetLocalSize_Comp(Vec v,PetscInt *size)
   Vec_Comp *vs = (Vec_Comp*)v->data;
 
   PetscFunctionBegin;
-  SlepcValidVecComp(v);
   PetscValidIntPointer(size,2);
-  *size = vs->n->lN;
+  if (vs->n) {
+    SlepcValidVecComp(v);
+    *size = vs->n->lN;
+  } else *size = v->map->n;
   PetscFunctionReturn(0);
 }
 
