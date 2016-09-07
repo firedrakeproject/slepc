@@ -21,11 +21,11 @@ native EPSCISSExtraction
 native FNCombineType
 native MFNConvergedReason
 native NEPWhich
-native NEPConv
-native NEPStop
 native NEPErrorType
 native NEPRefine
 native NEPRefineScheme
+native NEPConv
+native NEPStop
 native NEPConvergedReason
 native PEPProblemType
 native PEPWhich
@@ -40,9 +40,9 @@ native PEPStop
 native PEPConvergedReason
 native STMatMode
 native SVDWhich
+native SVDErrorType
 native SVDConv
 native SVDStop
-native SVDErrorType
 native SVDConvergedReason
 #
 nativeptr EPS
