@@ -31,8 +31,7 @@ int main(int argc,char **argv)
   const Vec      *varray;
   PetscMPIInt    size,rank;
   PetscInt       i,n,k,Nx[2];
-  PetscReal      norm,normc;
-  PetscScalar    vmax,vmin;
+  PetscReal      norm,normc,vmax,vmin;
   PetscErrorCode ierr;
 
   ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;

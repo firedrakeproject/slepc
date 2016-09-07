@@ -24,7 +24,6 @@
 #if !defined(__SLEPCVEC_H)
 #define __SLEPCVEC_H
 #include <slepcsys.h>
-#include <petscmat.h>
 
 /* VecComp: Vec composed of several smaller Vecs */
 #define VECCOMP  "comp"
