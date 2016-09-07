@@ -188,14 +188,14 @@ PetscErrorCode EPSSolve(EPS eps)
    Output Parameter:
 .  its - number of iterations
 
-   Level: intermediate
-
    Note:
    During the i-th iteration this call returns i-1. If EPSSolve() is
    complete, then parameter "its" contains either the iteration number at
    which convergence was successfully reached, or failure was detected.
    Call EPSGetConvergedReason() to determine if the solver converged or
    failed and why.
+
+   Level: intermediate
 
 .seealso: EPSGetConvergedReason(), EPSSetTolerances()
 @*/
@@ -253,7 +253,6 @@ PetscErrorCode EPSGetConverged(EPS eps,PetscInt *nconv)
 .  reason - negative value indicates diverged, positive value converged
 
    Notes:
-
    Possible values for reason are
 +  EPS_CONVERGED_TOL - converged up to tolerance
 .  EPS_CONVERGED_USER - converged due to a user-defined condition

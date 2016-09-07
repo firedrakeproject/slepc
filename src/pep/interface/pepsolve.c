@@ -205,14 +205,14 @@ PetscErrorCode PEPSolve(PEP pep)
    Output Parameter:
 .  its - number of iterations
 
-   Level: intermediate
-
    Note:
    During the i-th iteration this call returns i-1. If PEPSolve() is
    complete, then parameter "its" contains either the iteration number at
    which convergence was successfully reached, or failure was detected.
    Call PEPGetConvergedReason() to determine if the solver converged or
    failed and why.
+
+   Level: intermediate
 
 .seealso: PEPGetConvergedReason(), PEPSetTolerances()
 @*/
