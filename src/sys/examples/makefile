@@ -19,17 +19,10 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-ALL: lib
+ALL:
 
-CFLAGS   =
-FFLAGS   =
-SOURCEC  = slepcinit.c slepcutil.c slepcsc.c dlregisslepc.c
-SOURCEF  =
-SOURCEH  =
-LIBBASE  = libslepcsys
-MANSEC   = sys
-LOCDIR   = src/sys/
-DIRS     = classes vec f90-mod examples
+LOCDIR   = src/sys/examples/
+DIRS     = tutorials
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common
 

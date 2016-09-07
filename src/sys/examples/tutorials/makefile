@@ -19,17 +19,27 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-ALL: lib
+CFLAGS     =
+FFLAGS     =
+CPPFLAGS   =
+FPPFLAGS   =
+LOCDIR     = src/sys/examples/tutorials/
+EXAMPLESC  = ex1.c
+EXAMPLESF  = 
+MANSEC     = Sys
 
-CFLAGS   =
-FFLAGS   =
-SOURCEC  = slepcinit.c slepcutil.c slepcsc.c dlregisslepc.c
-SOURCEF  =
-SOURCEH  =
-LIBBASE  = libslepcsys
-MANSEC   = sys
-LOCDIR   = src/sys/
-DIRS     = classes vec f90-mod examples
+TESTEXAMPLES_C = ex1.PETSc runex1_1 ex1.rm
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common
+
+ex1: ex1.o chkopts
+	-${CLINKER} -o ex1 ex1.o ${SLEPC_SYS_LIB}
+	${RM} ex1.o
+
+#------------------------------------------------------------------------------------
+
+runex1_1:
+	-@${SETTEST}; \
+	${MPIEXEC} -n 1 ./ex1 > $${test}.tmp 2>&1; \
+	${TESTCODE}
 
