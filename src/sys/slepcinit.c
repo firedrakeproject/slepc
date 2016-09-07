@@ -71,18 +71,19 @@ PetscErrorCode SlepcGetVersion(char version[],size_t len)
     SLEPC_VERSION_RELEASE provide the information at compile time. This can be used to confirm
     that the shared library being loaded at runtime has the appropriate version updates.
 
+    This function can be called before SlepcInitialize().
+
     Level: developer
 
-.seealso: SlepcGetVersion()
+.seealso: SlepcGetVersion(), SlepcInitialize()
 @*/
 PetscErrorCode SlepcGetVersionNumber(PetscInt *major,PetscInt *minor,PetscInt *subminor,PetscInt *release)
 {
-  PetscFunctionBegin;
   if (major)    *major    = SLEPC_VERSION_MAJOR;
   if (minor)    *minor    = SLEPC_VERSION_MINOR;
   if (subminor) *subminor = SLEPC_VERSION_SUBMINOR;
   if (release)  *release  = SLEPC_VERSION_RELEASE;
-  PetscFunctionReturn(0);
+  return 0;
 }
 
 #undef __FUNCT__
