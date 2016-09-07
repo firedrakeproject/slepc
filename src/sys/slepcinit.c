@@ -27,16 +27,17 @@
 /*@C
     SlepcGetVersion - Gets the SLEPc version information in a string.
 
+    Not collective
+
     Input Parameter:
 .   len - length of the string
 
     Output Parameter:
 .   version - version string
 
-    Fortran Note:
-    This routine is not supported in Fortran.
+    Level: developer
 
-    Level: intermediate
+.seealso: SlepcGetVersionNumber()
 @*/
 PetscErrorCode SlepcGetVersion(char version[],size_t len)
 {
@@ -48,6 +49,40 @@ PetscErrorCode SlepcGetVersion(char version[],size_t len)
 #else
   ierr = PetscSNPrintf(version,len,"SLEPc Development GIT revision: %d  GIT Date: %s",SLEPC_VERSION_GIT,SLEPC_VERSION_DATE_GIT);CHKERRQ(ierr);
 #endif
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "SlepcGetVersionNumber"
+/*@C
+    SlepcGetVersionNumber - Gets the SLEPc version information from the library.
+
+    Not collective
+
+    Output Parameters:
++   major    - the major version
+.   minor    - the minor version
+.   subminor - the subminor version (patch number)
+-   release  - indicates the library is from a release
+
+    Notes:
+    Pass NULL in any argument that is not requested.
+
+    The C macros SLEPC_VERSION_MAJOR, SLEPC_VERSION_MINOR, SLEPC_VERSION_SUBMINOR,
+    SLEPC_VERSION_RELEASE provide the information at compile time. This can be used to confirm
+    that the shared library being loaded at runtime has the appropriate version updates.
+
+    Level: developer
+
+.seealso: SlepcGetVersion()
+@*/
+PetscErrorCode SlepcGetVersionNumber(PetscInt *major,PetscInt *minor,PetscInt *subminor,PetscInt *release)
+{
+  PetscFunctionBegin;
+  if (major)    *major    = SLEPC_VERSION_MAJOR;
+  if (minor)    *minor    = SLEPC_VERSION_MINOR;
+  if (subminor) *subminor = SLEPC_VERSION_SUBMINOR;
+  if (release)  *release  = SLEPC_VERSION_RELEASE;
   PetscFunctionReturn(0);
 }
 

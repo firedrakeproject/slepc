@@ -68,6 +68,7 @@ PETSC_EXTERN PetscErrorCode SlepcFinalize(void);
 PETSC_EXTERN PetscErrorCode SlepcInitializeFortran(void);
 PETSC_EXTERN PetscErrorCode SlepcInitialized(PetscBool*);
 PETSC_EXTERN PetscErrorCode SlepcGetVersion(char[],size_t);
+PETSC_EXTERN PetscErrorCode SlepcGetVersionNumber(PetscInt*,PetscInt*,PetscInt*,PetscInt*);
 
 PETSC_EXTERN PetscErrorCode SlepcMatConvertSeqDense(Mat,Mat*);
 PETSC_EXTERN PetscErrorCode SlepcMatTile(PetscScalar,Mat,PetscScalar,Mat,PetscScalar,Mat,PetscScalar,Mat,Mat*);
