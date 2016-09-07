@@ -20,7 +20,6 @@
 */
 
 #include <slepc/private/slepcimpl.h>           /*I "slepcsys.h" I*/
-#include <slepc/private/vecimplslepc.h>
 
 #undef __FUNCT__
 #define __FUNCT__ "SlepcGetVersion"

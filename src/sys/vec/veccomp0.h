@@ -93,12 +93,7 @@ PetscErrorCode __SUF__(VecMDot_Comp)(Vec a,PetscInt n,const Vec b[],PetscScalar 
   }
 
   /* z[i] <- a.x' * b[i].x */
-  for (i=0;i<n;i++) bx[i] = ((Vec_Comp*)b[i]->data)->x[0];
-  if (as->x[0]->ops->mdot_local) {
-    ierr = as->x[0]->ops->mdot_local(as->x[0],n,bx,r);CHKERRQ(ierr);
-  } else {
-    ierr = VecMDot(as->x[0],n,bx,r);CHKERRQ(ierr);
-  }
+  for (i=0;i<n;i++) r[i] = 0.0;
   for (j=0;j<as->n->n;j++) {
     for (i=0;i<n;i++) bx[i] = ((Vec_Comp*)b[i]->data)->x[j];
     if (as->x[0]->ops->mdot_local) {
@@ -183,12 +178,7 @@ PetscErrorCode __SUF__(VecMTDot_Comp)(Vec a,PetscInt n,const Vec b[],PetscScalar
   }
 
   /* z[i] <- a.x' * b[i].x */
-  for (i=0;i<n;i++) bx[i] = ((Vec_Comp*)b[i]->data)->x[0];
-  if (as->x[0]->ops->mtdot_local) {
-    ierr = as->x[0]->ops->mtdot_local(as->x[0],n,bx,r);CHKERRQ(ierr);
-  } else {
-    ierr = VecMTDot(as->x[0],n,bx,r);CHKERRQ(ierr);
-  }
+  for (i=0;i<n;i++) r[i] = 0.0;
   for (j=0;j<as->n->n;j++) {
     for (i=0;i<n;i++) bx[i] = ((Vec_Comp*)b[i]->data)->x[j];
     if (as->x[0]->ops->mtdot_local) {
