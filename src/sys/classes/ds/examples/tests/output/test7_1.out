@@ -3,7 +3,7 @@ DS Object: 1 MPI processes
   type: svd
   current state: raw
   dimensions: ld=17, n=15, m=10, l=0, k=0
-  flags:   
+  flags:
 Computed singular values =
   7.68043
   6.99017
@@ -15,3 +15,4 @@ Computed singular values =
   1.93789
   1.06266
   0.41517
+Norm of 1st U vector = 1.000

@@ -163,6 +163,7 @@ PetscErrorCode DSVectors_SVD(DS ds,DSMatType mat,PetscInt *j,PetscReal *rnorm)
   switch (mat) {
     case DS_MAT_U:
     case DS_MAT_VT:
+      if (rnorm) *rnorm = 0.0;
       break;
     default:
       SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_OUTOFRANGE,"Invalid mat parameter");

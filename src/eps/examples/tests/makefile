@@ -193,11 +193,10 @@ runtest1_6_%:
 	${MPIEXEC} -n 1 ./test1 -n 18 -eps_type $$eps -eps_nev 12 -eps_mpd 8 -eps_max_it 3000 > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
-runtest2_1: runtest2_1_krylovschur runtest2_1_arnoldi runtest2_1_gd runtest2_1_gd_shift runtest2_1_jd runtest2_1_gd2 runtest2_1_lapack
+runtest2_1: runtest2_1_krylovschur runtest2_1_arnoldi runtest2_1_gd runtest2_1_jd runtest2_1_gd2 runtest2_1_lapack
 runtest2_1_%:
 	-@${SETTEST}; check=test2_1; eps=$*; \
-	if [ "$$eps" = gd_shift ]; then eps="gd -st_shift 0.3"; \
-	elif [ "$$eps" = gd2 ]; then eps="gd -eps_gd_double_expansion"; fi; \
+	if [ "$$eps" = gd2 ]; then eps="gd -eps_gd_double_expansion"; fi; \
 	${MPIEXEC} -n 1 ./test2 -eps_type $$eps -eps_nev 4 > $${test}.tmp 2>&1; \
 	${TESTCODE}
 

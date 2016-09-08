@@ -110,7 +110,7 @@ int main(int argc,char **argv)
   /* create an empty veccomp vector with two subvectors */
   Nx[0] = 4;
   Nx[1] = 4;
-  ierr = VecCreateComp(PETSC_COMM_WORLD,Nx,2,VECMPI,vparent,&wc);CHKERRQ(ierr);
+  ierr = VecCreateComp(PETSC_COMM_WORLD,Nx,2,VECSTANDARD,vparent,&wc);CHKERRQ(ierr);
   ierr = VecCompGetSubVecs(wc,&n,&varray);CHKERRQ(ierr);
   if (n!=2) SETERRQ(PETSC_COMM_WORLD,1,"n should be 2");
   for (i=0;i<2;i++) {
