@@ -473,7 +473,7 @@ PetscErrorCode EPSSetUp_KrylovSchur_Slice(EPS eps)
 
     /* compute inertia0 */
     ierr = EPSSliceGetInertia(eps,sr->int0,&sr->inertia0,ctx->detect?&zeros:NULL);CHKERRQ(ierr);
-    ierr = PetscOptionsGetInt(NULL,NULL,"-flg",&flg,NULL);CHKERRQ(ierr);
+    ierr = PetscOptionsGetInt(NULL,NULL,"-eps_krylovschur_hiteigenvalue",&flg,NULL);CHKERRQ(ierr);
     if (zeros) { /* error in factorization */
       if (sr->int0==ctx->eps->inta || sr->int0==ctx->eps->intb) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_USER,"Found singular matrix for the transformed problem in the interval endpoint");
       else if(ctx_glob->subintset && !flg) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_USER,"Found singular matrix for the transformed problem in an interval endpoint defined by user");
@@ -1038,9 +1038,9 @@ static PetscErrorCode EPSKrylovSchur_Slice(EPS eps)
     }
     /* Update l */
     if (eps->reason == EPS_CONVERGED_ITERATING) l = PetscMax(1,(PetscInt)((nv-k)*ctx->keep));
-    else l = 0;
-    if (!ctx->lock && l>0) { l += k; k = 0; } /* non-locking variant: reset no. of converged pairs */
+    else l = nv-k;
     if (breakdown) l=0;
+    if (!ctx->lock && l>0 && eps->reason == EPS_CONVERGED_ITERATING) { l += k; k = 0; } /* non-locking variant: reset no. of converged pairs */
 
     if (eps->reason == EPS_CONVERGED_ITERATING) {
       if (breakdown) {
