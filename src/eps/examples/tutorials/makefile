@@ -221,9 +221,10 @@ runex9_3:
 	${MPIEXEC} -n 1 ./ex9 -eps_nev 4 -eps_balance oneside -terse > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
-runex10_1:
-	-@${SETTEST}; \
-	${MPIEXEC} -n 1 ./ex10 -eps_nev 5 -st_type shell -terse > $${test}.tmp 2>&1; \
+runex10_1: runex10_1_none runex10_1_oneside runex10_1_twoside
+runex10_1_%:
+	-@${SETTEST}; check=ex10_1; balance=$*; \
+	${MPIEXEC} -n 1 ./ex10 -eps_nev 5 -st_type shell -eps_balance $$balance -terse > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
 runex11_1:
