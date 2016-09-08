@@ -221,10 +221,12 @@ runex9_3:
 	${MPIEXEC} -n 1 ./ex9 -eps_nev 4 -eps_balance oneside -terse > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
-runex10_1: runex10_1_none runex10_1_oneside runex10_1_twoside
+runex10_1: runex10_1_sinvert runex10_1_sinvert_twoside runex10_1_shell runex10_1_shell_twoside
 runex10_1_%:
-	-@${SETTEST}; check=ex10_1; balance=$*; \
-	${MPIEXEC} -n 1 ./ex10 -eps_nev 5 -st_type shell -eps_non_hermitian -eps_balance $$balance -terse > $${test}.tmp 2>&1; \
+	-@${SETTEST}; check=ex10_1; st=$*; \
+	if [ "$$st" = sinvert_twoside ]; then st="sinvert -eps_balance twoside"; \
+	elif [ "$$st" = shell_twoside ]; then st="shell -eps_balance twoside"; fi; \
+	${MPIEXEC} -n 1 ./ex10 -eps_nev 5 -eps_non_hermitian -st_type $$st -terse > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
 runex11_1:
