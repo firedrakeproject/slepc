@@ -1,0 +1,7 @@
+
+Symmetric-indefinite eigenproblem, N=5184
+
+ Number of requested eigenvalues: 4
+ All requested eigenvalues computed up to the required tolerance:
+     0.00370, -0.00926, 0.01481, 0.01850
+
