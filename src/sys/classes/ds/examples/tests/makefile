@@ -115,9 +115,13 @@ runtest2_1_%:
 	${MPIEXEC} -n 1 ./test2 -n 12 $$method | ${GREP} -v "solving the problem" > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
-runtest3_1:
-	-@${SETTEST}; \
-	${MPIEXEC} -n 1 ./test3 > $${test}.tmp 2>&1; \
+runtest3_1: runtest3_1_qr runtest3_1_mrrr runtest3_1_dc
+runtest3_1_%:
+	-@${SETTEST}; check=test3_1; method=$*; \
+	if [ "$$method" = qr ]; then method="-ds_method 0"; \
+	elif [ "$$method" = mrrr ]; then method="-ds_method 1"; \
+	elif [ "$$method" = dc ]; then method="-ds_method 2"; fi; \
+	${MPIEXEC} -n 1 ./test3 $$method | ${GREP} -v "solving the problem" > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
 runtest4_1:
@@ -125,14 +129,24 @@ runtest4_1:
 	${MPIEXEC} -n 1 ./test4 > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
-runtest5_1:
-	-@${SETTEST}; \
-	${MPIEXEC} -n 1 ./test5 > $${test}.tmp 2>&1; \
+runtest5_1: runtest5_1_hr runtest5_1_qr_ii runtest5_1_qr runtest5_1_dqds_ii
+runtest5_1_%:
+	-@${SETTEST}; check=test5_1; method=$*; \
+	if [ "$$method" = hr ]; then method="-ds_method 0"; \
+	elif [ "$$method" = qr_ii ]; then method="-ds_method 1"; \
+	elif [ "$$method" = qr ]; then method="-ds_method 2"; \
+	elif [ "$$method" = dqds_ii ]; then method="-ds_method 3"; fi; \
+	${MPIEXEC} -n 1 ./test5 $$method | ${GREP} -v "solving the problem" > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
-runtest6_1:
-	-@${SETTEST}; \
-	${MPIEXEC} -n 1 ./test6 > $${test}.tmp 2>&1; \
+runtest6_1: runtest6_1_hr runtest6_1_qr_ii runtest6_1_qr runtest6_1_dqds_ii
+runtest6_1_%:
+	-@${SETTEST}; check=test6_1; method=$*; \
+	if [ "$$method" = hr ]; then method="-ds_method 0"; \
+	elif [ "$$method" = qr_ii ]; then method="-ds_method 1"; \
+	elif [ "$$method" = qr ]; then method="-ds_method 2"; \
+	elif [ "$$method" = dqds_ii ]; then method="-ds_method 3"; fi; \
+	${MPIEXEC} -n 1 ./test6 $$method | ${GREP} -v "solving the problem" > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
 runtest7_1:
