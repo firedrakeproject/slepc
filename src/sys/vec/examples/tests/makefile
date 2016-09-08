@@ -39,8 +39,9 @@ test1: test1.o chkopts
 
 #------------------------------------------------------------------------------------
 
-runtest1_1:
-	-@${SETTEST}; \
-	${MPIEXEC} -n 2 ./test1 > $${test}.tmp 2>&1; \
+runtest1_1: runtest1_1_1 runtest1_1_2
+runtest1_1_%:
+	-@${SETTEST}; check=test1_1; np=$*; \
+	${MPIEXEC} -n $$np ./test1 > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
