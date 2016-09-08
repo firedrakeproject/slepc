@@ -108,11 +108,11 @@ runtest1_1:
 
 runtest2_1: runtest2_1_qr runtest2_1_mrrr runtest2_1_dc
 runtest2_1_%:
-	-@${SETTEST}; method=$*; \
+	-@${SETTEST}; check=test2_1; method=$*; \
 	if [ "$$method" = qr ]; then method="-ds_method 0"; \
 	elif [ "$$method" = mrrr ]; then method="-ds_method 1"; \
 	elif [ "$$method" = dc ]; then method="-ds_method 2"; fi; \
-	${MPIEXEC} -n 1 ./test2 -n 12 $$method > $${test}.tmp 2>&1; \
+	${MPIEXEC} -n 1 ./test2 -n 12 $$method | ${GREP} -v "solving the problem" > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
 runtest3_1:
