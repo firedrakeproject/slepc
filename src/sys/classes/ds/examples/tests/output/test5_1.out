@@ -4,7 +4,6 @@ DS Object: 1 MPI processes
   current state: raw
   dimensions: ld=12, n=10, l=0, k=0
   flags:   
-  solving the problem with: HR method
 Computed eigenvalues =
   5.24298
   0.23780+4.18166i

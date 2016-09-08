@@ -4,7 +4,6 @@ DS Object: 1 MPI processes
   current state: raw
   dimensions: ld=14, n=12, l=0, k=0
   flags:
-  solving the problem with: Divide and Conquer method (_stedc)
 Computed eigenvalues =
   5.73571
   4.99390
