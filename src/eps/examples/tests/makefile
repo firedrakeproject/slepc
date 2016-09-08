@@ -26,17 +26,18 @@ FPPFLAGS   =
 LOCDIR     = src/eps/examples/tests/
 EXAMPLESC  = test1.c test2.c test3.c test4.c test5.c test6.c \
              test8.c test9.c test10.c test11.c test12.c test13.c \
-             test14.c test16.c test17.c
+             test14.c test16.c test17.c test18.c
 EXAMPLESF  = test7f.F test14f.F test15f.F test17f.F
 MANSEC     = EPS
 TESTS      = test1 test2 test3 test4 test5 test6 test7f test8 test9 test10 \
-             test11 test12 test13 test14 test14f test15f test16 test17 test17f
+             test11 test12 test13 test14 test14f test15f test16 test17 test17f test18
 
 TESTEXAMPLES_C                     = test1.PETSc runtest1_5 test1.rm \
                                      test4.PETSc runtest4_2 test4.rm \
                                      test8.PETSc runtest8_2 runtest8_3 test8.rm \
                                      test13.PETSc runtest13_1 runtest13_2 test13.rm \
-                                     test14.PETSc runtest14_1 test14.rm
+                                     test14.PETSc runtest14_1 test14.rm \
+                                     test18.PETSc runtest18_1 test18.rm
 TESTEXAMPLES_C_NOTSINGLE           = test1.PETSc runtest1_1 runtest1_3 runtest1_4 runtest1_6 test1.rm \
                                      test2.PETSc runtest2_1 runtest2_2 test2.rm \
                                      test3.PETSc runtest3_1 runtest3_2 test3.rm \
@@ -148,6 +149,10 @@ test17f: test17f.o chkopts
 	-${FLINKER} -o test17f test17f.o ${SLEPC_EPS_LIB}
 	${RM} test17f.o
 
+test18: test18.o chkopts
+	-${CLINKER} -o test18 test18.o ${SLEPC_EPS_LIB}
+	${RM} test18.o
+
 #------------------------------------------------------------------------------------
 
 runtest1_1: runtest1_1_krylovschur runtest1_1_subspace runtest1_1_arnoldi runtest1_1_lanczos runtest1_1_gd runtest1_1_jd runtest1_1_gd2 runtest1_1_lapack
@@ -174,11 +179,10 @@ runtest1_4_%:
 	${MPIEXEC} -n 1 ./test1 -n 18 -eps_type power -eps_nev 3 -st_type sinvert -eps_target 1.15 -eps_power_shift_type $$stype > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
-runtest1_5: runtest1_5_rqcg runtest1_5_lobpcg runtest1_5_lobpcg_shift
+runtest1_5: runtest1_5_rqcg runtest1_5_lobpcg
 runtest1_5_%:
 	-@${SETTEST}; check=test1_5; eps=$*; \
-	if [ "$$eps" = lobpcg ]; then eps="lobpcg -eps_lobpcg_blocksize 10"; \
-	elif [ "$$eps" = lobpcg_shift ]; then eps="lobpcg -eps_lobpcg_blocksize 10 -st_shift .3"; fi; \
+	if [ "$$eps" = lobpcg ]; then eps="lobpcg -eps_lobpcg_blocksize 10"; fi; \
 	${MPIEXEC} -n 1 ./test1 -n 18 -eps_type $$eps -eps_nev 3 -eps_smallest_real -eps_max_it 500 -st_pc_type icc > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
@@ -189,10 +193,11 @@ runtest1_6_%:
 	${MPIEXEC} -n 1 ./test1 -n 18 -eps_type $$eps -eps_nev 12 -eps_mpd 8 -eps_max_it 3000 > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
-runtest2_1: runtest2_1_krylovschur runtest2_1_arnoldi runtest2_1_gd runtest2_1_jd runtest2_1_gd2 runtest2_1_lapack
+runtest2_1: runtest2_1_krylovschur runtest2_1_arnoldi runtest2_1_gd runtest2_1_gd_shift runtest2_1_jd runtest2_1_gd2 runtest2_1_lapack
 runtest2_1_%:
 	-@${SETTEST}; check=test2_1; eps=$*; \
-	if [ "$$eps" = gd2 ]; then eps="gd -eps_gd_double_expansion"; fi; \
+	if [ "$$eps" = gd_shift ]; then eps="gd -st_shift 0.3"; \
+	elif [ "$$eps" = gd2 ]; then eps="gd -eps_gd_double_expansion"; fi; \
 	${MPIEXEC} -n 1 ./test2 -eps_type $$eps -eps_nev 4 > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
@@ -434,5 +439,13 @@ runtest17_1:
 runtest17f_1:
 	-@${SETTEST}; \
 	${MPIEXEC} -n 2 ./test17f > $${test}.tmp 2>&1; \
+	${TESTCODE}
+
+runtest18_1: runtest18_1_krylovschur runtest18_1_krylovschur_gnhep
+runtest18_1_%:
+	-@${SETTEST}; check=test18_1; eps=$*; \
+	if [ "$$eps" = krylovschur ]; then eps="krylovschur -st_type sinvert"; \
+	elif [ "$$eps" = krylovschur_gnhep ]; then eps="krylovschur -eps_gen_non_hermitian -st_type sinvert"; fi; \
+	${MPIEXEC} -n 1 ./test18 -n 72 -eps_type $$eps -eps_nev 4 -eps_ncv 20 -terse > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
