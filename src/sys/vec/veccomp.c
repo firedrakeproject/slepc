@@ -188,10 +188,10 @@ static struct _VecOps DvOps = {VecDuplicate_Comp, /* 1 */
             0/*VecPlaceArray_Seq*/,
             0/*VecReplaceArray_Seq*/,
             VecDot_Comp_Seq,
-            0,
+            VecTDot_Comp_Seq,
             VecNorm_Comp_Seq,
             VecMDot_Comp_Seq,
-            0, /* 40 */
+            VecMTDot_Comp_Seq, /* 40 */
             0,
             VecReciprocal_Comp,
             VecConjugate_Comp,
