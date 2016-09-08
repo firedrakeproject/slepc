@@ -191,7 +191,6 @@ static PetscErrorCode EPSSliceGetEPS(EPS eps)
   PetscObjectState   Astate,Bstate=0;
   PetscObjectId      Aid,Bid=0;
   const MatSolverPackage stype;
-  RG                 rg;
 
   PetscFunctionBegin;
   ierr = EPSGetOperators(eps,&A,&B);CHKERRQ(ierr);
@@ -287,11 +286,6 @@ static PetscErrorCode EPSSliceGetEPS(EPS eps)
 
   ierr = EPSSetConvergenceTest(ctx->eps,eps->conv);CHKERRQ(ierr);
   ierr = EPSSetInterval(ctx->eps,a,b);CHKERRQ(ierr);
-  if (a!=b) {
-    ierr = EPSGetRG(ctx->eps,&rg);CHKERRQ(ierr);
-    ierr = RGSetType(rg,RGINTERVAL);CHKERRQ(ierr);
-    ierr = RGIntervalSetEndpoints(rg,a,b,0.0,0.0);CHKERRQ(ierr);
-  }
   ctx_local = (EPS_KRYLOVSCHUR*)ctx->eps->data;
   ctx_local->npart = ctx->npart;
   ctx_local->detect = ctx->detect;
@@ -377,7 +371,6 @@ PetscErrorCode EPSSetUp_KrylovSchur_Slice(EPS eps)
   Mat             A,B=NULL;
   SlepcSC         sc;
   PetscInt        flg=0;
-  PetscReal       a,b;
 
   PetscFunctionBegin;
   if (ctx->global) {
@@ -532,15 +525,9 @@ PetscErrorCode EPSSetUp_KrylovSchur_Slice(EPS eps)
         i = sr->inertia0; sr->inertia0 = sr->inertia1; sr->inertia1 = i;
       }
     }
-    if (sr->dir>0) {
-      a = sr->int0; b = sr->int1;
-    }  else {
-      a = sr->int1; b = sr->int0;
-    }
 
     /* number of eigenvalues in interval */
     sr->numEigs = (sr->dir)*(sr->inertia1 - sr->inertia0);
-    if (sr->numEigs) {ierr = RGIntervalSetEndpoints(eps->rg,a,b,0.0,0.0);CHKERRQ(ierr);}
     if (ctx->npart>1) {
       /* memory allocate for subinterval eigenpairs */
       ierr = EPSSliceAllocateSolution(eps,1);CHKERRQ(ierr);
@@ -548,11 +535,11 @@ PetscErrorCode EPSSetUp_KrylovSchur_Slice(EPS eps)
     dssz = eps->ncv+1;
     if (sr->numEigs>0) {
       ierr = DSGetSlepcSC(eps->ds,&sc);CHKERRQ(ierr);
-      sc->rg            = eps->rg;
-      sc->comparison    = SlepcCompareTargetMagnitude;
-      sc->comparisonctx = &eps->target;
-      sc->map           = SlepcMap_ST;
-      sc->mapobj        = (PetscObject)eps->st;
+      sc->rg            = NULL;
+      sc->comparison    = SlepcCompareLargestMagnitude;
+      sc->comparisonctx = NULL;
+      sc->map           = NULL;
+      sc->mapobj        = NULL;
     }
   }
   ierr = DSSetType(eps->ds,DSHEP);CHKERRQ(ierr);
