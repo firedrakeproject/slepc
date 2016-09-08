@@ -1,4 +1,5 @@
 # these include enums
+native PetscSubcommType
 native DMDAStencilType
 native DMDAInterpolationType
 native DMDAElementType
@@ -6,12 +7,13 @@ native DMBoundaryType
 native PetscDrawMarkerType
 native ISGlobalToLocalMappingType
 native ISColoringType
-native KSPFCGTruncationType
+native KSPFCDTruncationType
 native KSPGMRESCGSRefinementType
 native KSPNormType
 native KSPCGType
 native MatSchurComplementAinvType
 native MatFactorType
+native MatFactorError
 native MatCompositeType
 native MatAssemblyType
 native MatInfoType
@@ -30,6 +32,7 @@ native PCPARMSGlobalType
 native PCPARMSLocalType
 native PCMGType
 native PCMGCycleType
+native PCMGGalerkinType
 native PCExoticType
 native PetscSFWindowSyncType
 native SNESCompositeType
@@ -45,6 +48,7 @@ native PetscReal
 native PetscBool
 native PetscSizeT
 native MatStructure
+native PCFailedReason
 native KSPConvergedReason
 native SNESConvergedReason
 native SNESLineSearchReason
@@ -68,6 +72,7 @@ native MatFactorInfo
 # Old PETSc types
 native PetscTruth
 #
+nativeptr PetscOptions
 nativeptr AO
 nativeptr DM
 nativeptr DMLabel
@@ -111,7 +116,7 @@ nativeptr Vecs
 nativeptr VecScatter
 nativeptr PetscSection
 nativeptr MatMFFD
-nativeptr TSGLAdapt
+nativeptr TSGLLEAdapt
 nativeptr TSAdapt
 nativeptr PetscCUSPIndices
 nativeptr PetscSF
@@ -150,12 +155,12 @@ nativeptr VecScatterCUSPIndices_StoS
 # of PETSc
 nativeptr AOData
 nativeptr AOData2dGrid
-nativeptr ClassPerfLog
-nativeptr ClassRegLog
+nativeptr PetscClassPerfLog
+nativeptr PetscClassRegLog
 nativeptr DA
 nativeptr DMMG
-nativeptr EventPerfLog
-nativeptr EventRegLog
+nativeptr PetscEventPerfLog
+nativeptr PetscEventRegLog
 nativeptr IntStack
 nativeptr ISMapping
 nativeptr MatSNESMFCtx
