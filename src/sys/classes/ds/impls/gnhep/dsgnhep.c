@@ -173,7 +173,7 @@ static PetscErrorCode DSVectors_GNHEP_Eigen_All(DS ds,PetscBool left)
   PetscErrorCode ierr;
   PetscInt       i;
   PetscBLASInt   n,ld,mout,info,inc = 1;
-  PetscBool      iscomplex = PETSC_FALSE;
+  PetscBool      iscomplex;
   PetscScalar    *X,*Y,*Z,*A = ds->mat[DS_MAT_A],*B = ds->mat[DS_MAT_B],tmp;
   PetscReal      norm;
   const char     *side,*back;
@@ -215,7 +215,7 @@ static PetscErrorCode DSVectors_GNHEP_Eigen_All(DS ds,PetscBool left)
 
   /* normalize eigenvectors */
   for (i=0;i<n;i++) {
-    if (i<n-1 && (A[i+1+i*ld]!=0.0 || B[i+1+i*ld]!=0.0)) iscomplex = PETSC_TRUE;
+    iscomplex = (i<n-1 && (A[i+1+i*ld]!=0.0 || B[i+1+i*ld]!=0.0))? PETSC_TRUE: PETSC_FALSE;
     norm = BLASnrm2_(&n,Z+i*ld,&inc);
 #if !defined(PETSC_USE_COMPLEX)
     if (iscomplex) {

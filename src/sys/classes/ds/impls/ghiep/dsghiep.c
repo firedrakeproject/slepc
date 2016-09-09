@@ -94,8 +94,8 @@ PetscErrorCode DSView_GHIEP(DS ds,PetscViewer viewer)
   PetscInt          i,j;
   PetscReal         value;
   const char        *methodname[] = {
-                     "HR method",
                      "QR + Inverse Iteration",
+                     "HZ method",
                      "QR"
   };
   const int         nmeth=sizeof(methodname)/sizeof(methodname[0]);
@@ -778,12 +778,12 @@ PetscErrorCode DSSolve_GHIEP_QR(DS ds,PetscScalar *wr,PetscScalar *wi)
   SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"GEEVX - Lapack routine is unavailable");
 #else
   PetscErrorCode ierr;
-  PetscInt       i,off,nwu=0,n,lw,lwr,nwru=0;
+  PetscInt       i,j,off,nwu=0,n,lw,lwr,nwru=0;
   PetscBLASInt   n_,ld,info,lwork,ilo,ihi;
   PetscScalar    *H,*A,*B,*Q,*X;
   PetscReal      *d,*s,*scale,nrm,*rcde,*rcdv;
 #if defined(PETSC_USE_COMPLEX)
-  PetscInt       j,k;
+  PetscInt       k;
 #endif
 
   PetscFunctionBegin;
@@ -836,15 +836,8 @@ PetscErrorCode DSSolve_GHIEP_QR(DS ds,PetscScalar *wr,PetscScalar *wi)
       H[i+(ds->k-ds->l)*n] = s[i+ds->l]*d[2*ld+ds->l+i];
     }
   } else {
-    for (i=0;i<n-1;i++) {
-      H[i+i*n]     = B[off+i+i*ld]*A[off+i+i*ld];
-      H[i+1+i*n]   = B[off+i+1+(i+1)*ld]*A[off+i+1+i*ld];
-      H[i+(i+1)*n] = B[off+i+i*ld]*A[off+i+(i+1)*ld];
-    }
-    H[n-1+(n-1)*n] = B[off+n-1+(n-1)*ld]*A[off+n-1+(n-1)*n];
-    for (i=0;i<ds->k-ds->l;i++) {
-      H[ds->k-ds->l+i*n] = B[ds->k*(1+ld)]*A[off+ds->k-ds->l+i*ld];
-      H[i+(ds->k-ds->l)*n] = B[(i+ds->l)*(1+ld)]*A[off+i+(ds->k-ds->l)*ld];
+    for (j=0;j<n;j++) {
+      for (i=0;i<n;i++) H[i+j*n] = B[off+i+i*ld]*A[off+i+j*ld];
     }
   }
  
@@ -972,8 +965,8 @@ PETSC_EXTERN PetscErrorCode DSCreate_GHIEP(DS ds)
   ds->ops->allocate      = DSAllocate_GHIEP;
   ds->ops->view          = DSView_GHIEP;
   ds->ops->vectors       = DSVectors_GHIEP;
-  ds->ops->solve[0]      = DSSolve_GHIEP_HZ;
-  ds->ops->solve[1]      = DSSolve_GHIEP_QR_II;
+  ds->ops->solve[0]      = DSSolve_GHIEP_QR_II;
+  ds->ops->solve[1]      = DSSolve_GHIEP_HZ;
   ds->ops->solve[2]      = DSSolve_GHIEP_QR;
   ds->ops->sort          = DSSort_GHIEP;
   ds->ops->normalize     = DSNormalize_GHIEP;

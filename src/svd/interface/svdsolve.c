@@ -152,14 +152,14 @@ PetscErrorCode SVDSolve(SVD svd)
    Output Parameter:
 .  its - number of iterations
 
-   Level: intermediate
-
    Note:
    During the i-th iteration this call returns i-1. If SVDSolve() is
    complete, then parameter "its" contains either the iteration number at
    which convergence was successfully reached, or failure was detected.
    Call SVDGetConvergedReason() to determine if the solver converged or
    failed and why.
+
+   Level: intermediate
 
 .seealso: SVDGetConvergedReason(), SVDSetTolerances()
 @*/
