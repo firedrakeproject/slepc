@@ -96,8 +96,7 @@ PetscErrorCode DSView_GHIEP(DS ds,PetscViewer viewer)
   const char        *methodname[] = {
                      "HR method",
                      "QR + Inverse Iteration",
-                     "QR",
-                     "DQDS + Inverse Iteration "
+                     "QR"
   };
   const int         nmeth=sizeof(methodname)/sizeof(methodname[0]);
 
@@ -976,7 +975,6 @@ PETSC_EXTERN PetscErrorCode DSCreate_GHIEP(DS ds)
   ds->ops->solve[0]      = DSSolve_GHIEP_HZ;
   ds->ops->solve[1]      = DSSolve_GHIEP_QR_II;
   ds->ops->solve[2]      = DSSolve_GHIEP_QR;
-  ds->ops->solve[3]      = DSSolve_GHIEP_DQDS_II;
   ds->ops->sort          = DSSort_GHIEP;
   ds->ops->normalize     = DSNormalize_GHIEP;
   PetscFunctionReturn(0);

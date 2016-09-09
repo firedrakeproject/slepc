@@ -23,7 +23,7 @@ ALL: lib
 
 CFLAGS   =
 FFLAGS   =
-SOURCEC  = dsghiep.c invit.c hz.c dqds.c
+SOURCEC  = dsghiep.c invit.c hz.c
 SOURCEF  =
 SOURCEH  =
 LIBBASE  = libslepcsys
