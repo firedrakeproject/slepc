@@ -311,63 +311,6 @@ PetscErrorCode DSVectors_NHEP(DS ds,DSMatType mat,PetscInt *j,PetscReal *rnorm)
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "DSNormalize_NHEP"
-PetscErrorCode DSNormalize_NHEP(DS ds,DSMatType mat,PetscInt col)
-{
-  PetscErrorCode ierr;
-  PetscInt       i,i0,i1;
-  PetscBLASInt   ld,n,one = 1;
-  PetscScalar    *A = ds->mat[DS_MAT_A],norm,*x;
-#if !defined(PETSC_USE_COMPLEX)
-  PetscScalar    norm0;
-#endif
-
-  PetscFunctionBegin;
-  switch (mat) {
-    case DS_MAT_X:
-    case DS_MAT_Y:
-    case DS_MAT_Q:
-      /* Supported matrices */
-      break;
-    case DS_MAT_U:
-    case DS_MAT_VT:
-      SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"Not implemented yet");
-      break;
-    default:
-      SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_OUTOFRANGE,"Invalid mat parameter");
-  }
-
-  ierr = PetscBLASIntCast(ds->n,&n);CHKERRQ(ierr);
-  ierr = PetscBLASIntCast(ds->ld,&ld);CHKERRQ(ierr);
-  ierr = DSGetArray(ds,mat,&x);CHKERRQ(ierr);
-  if (col < 0) {
-    i0 = 0; i1 = ds->n;
-  } else if (col>0 && A[ds->ld*(col-1)+col] != 0.0) {
-    i0 = col-1; i1 = col+1;
-  } else {
-    i0 = col; i1 = col+1;
-  }
-  for (i=i0;i<i1;i++) {
-#if !defined(PETSC_USE_COMPLEX)
-    if (i<n-1 && A[ds->ld*i+i+1] != 0.0) {
-      norm = BLASnrm2_(&n,&x[ld*i],&one);
-      norm0 = BLASnrm2_(&n,&x[ld*(i+1)],&one);
-      norm = 1.0/SlepcAbsEigenvalue(norm,norm0);
-      PetscStackCallBLAS("BLASscal",BLASscal_(&n,&norm,&x[ld*i],&one));
-      PetscStackCallBLAS("BLASscal",BLASscal_(&n,&norm,&x[ld*(i+1)],&one));
-      i++;
-    } else
-#endif
-    {
-      norm = BLASnrm2_(&n,&x[ld*i],&one);
-      norm = 1.0/norm;
-      PetscStackCallBLAS("BLASscal",BLASscal_(&n,&norm,&x[ld*i],&one));
-    }
-  }
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
 #define __FUNCT__ "DSSort_NHEP_Arbitrary"
 static PetscErrorCode DSSort_NHEP_Arbitrary(DS ds,PetscScalar *wr,PetscScalar *wi,PetscScalar *rr,PetscScalar *ri,PetscInt *k)
 {
@@ -792,7 +735,6 @@ PETSC_EXTERN PetscErrorCode DSCreate_NHEP(DS ds)
   ds->ops->update        = DSUpdateExtraRow_NHEP;
   ds->ops->cond          = DSCond_NHEP;
   ds->ops->transharm     = DSTranslateHarmonic_NHEP;
-  ds->ops->normalize     = DSNormalize_NHEP;
   PetscFunctionReturn(0);
 }
 

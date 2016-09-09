@@ -215,27 +215,6 @@ PetscErrorCode DSVectors_HEP(DS ds,DSMatType mat,PetscInt *j,PetscReal *rnorm)
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "DSNormalize_HEP"
-PetscErrorCode DSNormalize_HEP(DS ds,DSMatType mat,PetscInt col)
-{
-  PetscFunctionBegin;
-  switch (mat) {
-    case DS_MAT_X:
-    case DS_MAT_Y:
-    case DS_MAT_Q:
-      /* All the matrices resulting from DSVectors and DSSolve are already normalized */
-      break;
-    case DS_MAT_U:
-    case DS_MAT_VT:
-      SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"Not implemented yet");
-      break;
-    default:
-      SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_OUTOFRANGE,"Invalid mat parameter");
-  }
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
 #define __FUNCT__ "ArrowTridiag"
 /*
   ARROWTRIDIAG reduces a symmetric arrowhead matrix of the form
@@ -871,7 +850,6 @@ PETSC_EXTERN PetscErrorCode DSCreate_HEP(DS ds)
   ds->ops->update        = DSUpdateExtraRow_HEP;
   ds->ops->cond          = DSCond_HEP;
   ds->ops->transrks      = DSTranslateRKS_HEP;
-  ds->ops->normalize     = DSNormalize_HEP;
   PetscFunctionReturn(0);
 }
 

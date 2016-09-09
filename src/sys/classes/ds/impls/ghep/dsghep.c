@@ -96,47 +96,6 @@ PetscErrorCode DSVectors_GHEP(DS ds,DSMatType mat,PetscInt *j,PetscReal *rnorm)
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "DSNormalize_GHEP"
-PetscErrorCode DSNormalize_GHEP(DS ds,DSMatType mat,PetscInt col)
-{
-  PetscErrorCode ierr;
-  PetscInt       i,i0,i1;
-  PetscBLASInt   ld,n,one = 1;
-  PetscReal      norm;
-  PetscScalar    alpha,*x;
-
-  PetscFunctionBegin;
-  switch (mat) {
-    case DS_MAT_X:
-    case DS_MAT_Y:
-    case DS_MAT_Q:
-      break;
-    case DS_MAT_U:
-    case DS_MAT_VT:
-      SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"Not implemented yet");
-      break;
-    default:
-      SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_OUTOFRANGE,"Invalid mat parameter");
-  }
-  /* All the matrices resulting from DSVectors and DSSolve are B-normalized,
-     but function returns 2-normalized vectors. */
-  ierr = PetscBLASIntCast(ds->n,&n);CHKERRQ(ierr);
-  ierr = PetscBLASIntCast(ds->ld,&ld);CHKERRQ(ierr);
-  ierr = DSGetArray(ds,mat,&x);CHKERRQ(ierr);
-  if (col < 0) {
-    i0 = 0; i1 = ds->n;
-  } else {
-    i0 = col; i1 = col+1;
-  }
-  for (i=i0;i<i1;i++) {
-    norm = BLASnrm2_(&n,&x[ld*i],&one);
-    alpha = 1.0/norm;
-    PetscStackCallBLAS("BLASscal",BLASscal_(&n,&alpha,&x[ld*i],&one));
-  }
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
 #define __FUNCT__ "DSSort_GHEP"
 PetscErrorCode DSSort_GHEP(DS ds,PetscScalar *wr,PetscScalar *wi,PetscScalar *rr,PetscScalar *ri,PetscInt *k)
 {
@@ -231,7 +190,6 @@ PETSC_EXTERN PetscErrorCode DSCreate_GHEP(DS ds)
   ds->ops->vectors       = DSVectors_GHEP;
   ds->ops->solve[0]      = DSSolve_GHEP;
   ds->ops->sort          = DSSort_GHEP;
-  ds->ops->normalize     = DSNormalize_GHEP;
   PetscFunctionReturn(0);
 }
 

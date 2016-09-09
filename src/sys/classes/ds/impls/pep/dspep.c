@@ -89,22 +89,6 @@ PetscErrorCode DSVectors_PEP(DS ds,DSMatType mat,PetscInt *j,PetscReal *rnorm)
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "DSNormalize_PEP"
-PetscErrorCode DSNormalize_PEP(DS ds,DSMatType mat,PetscInt col)
-{
-  PetscFunctionBegin;
-  switch (mat) {
-    case DS_MAT_X:
-      break;
-    case DS_MAT_Y:
-      break;
-    default:
-      SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_OUTOFRANGE,"Invalid mat parameter");
-  }
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
 #define __FUNCT__ "DSSort_PEP"
 PetscErrorCode DSSort_PEP(DS ds,PetscScalar *wr,PetscScalar *wi,PetscScalar *rr,PetscScalar *ri,PetscInt *kout)
 {
@@ -381,7 +365,6 @@ PETSC_EXTERN PetscErrorCode DSCreate_PEP(DS ds)
   ds->ops->vectors       = DSVectors_PEP;
   ds->ops->solve[0]      = DSSolve_PEP_QZ;
   ds->ops->sort          = DSSort_PEP;
-  ds->ops->normalize     = DSNormalize_PEP;
   ds->ops->destroy       = DSDestroy_PEP;
   ierr = PetscObjectComposeFunction((PetscObject)ds,"DSPEPSetDegree_C",DSPEPSetDegree_PEP);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)ds,"DSPEPGetDegree_C",DSPEPGetDegree_PEP);CHKERRQ(ierr);

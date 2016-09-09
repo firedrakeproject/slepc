@@ -664,49 +664,6 @@ PetscErrorCode DSVectors(DS ds,DSMatType mat,PetscInt *j,PetscReal *rnorm)
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "DSNormalize"
-/*@
-   DSNormalize - Normalize a column or all the columns of a matrix. Considers
-   the case when the columns represent the real and the imaginary part of a vector.
-
-   Logically Collective on DS
-
-   Input Parameter:
-+  ds  - the direct solver context
-.  mat - the matrix to be modified
--  col - the column to normalize or -1 to normalize all of them
-
-   Notes:
-   The columns are normalized with respect to the 2-norm.
-
-   If col and col+1 (or col-1 and col) represent the real and the imaginary
-   part of a vector, both columns are scaled.
-
-   Level: advanced
-
-.seealso: DSMatType
-@*/
-PetscErrorCode DSNormalize(DS ds,DSMatType mat,PetscInt col)
-{
-  PetscErrorCode ierr;
-
-  PetscFunctionBegin;
-  PetscValidHeaderSpecific(ds,DS_CLASSID,1);
-  DSCheckSolved(ds,1);
-  PetscValidLogicalCollectiveEnum(ds,mat,2);
-  DSCheckValidMat(ds,mat,2);
-  PetscValidLogicalCollectiveInt(ds,col,3);
-  if (!ds->ops->normalize) SETERRQ1(PetscObjectComm((PetscObject)ds),PETSC_ERR_SUP,"DS type %s",((PetscObject)ds)->type_name);
-  if (col<-1) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_OUTOFRANGE,"col should be at least minus one");
-  ierr = PetscLogEventBegin(DS_Other,ds,0,0,0);CHKERRQ(ierr);
-  ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
-  ierr = (*ds->ops->normalize)(ds,mat,col);CHKERRQ(ierr);
-  ierr = PetscFPTrapPop();CHKERRQ(ierr);
-  ierr = PetscLogEventEnd(DS_Other,ds,0,0,0);CHKERRQ(ierr);
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
 #define __FUNCT__ "DSUpdateExtraRow"
 /*@
    DSUpdateExtraRow - Performs all necessary operations so that the extra

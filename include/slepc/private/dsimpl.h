@@ -43,7 +43,6 @@ struct _DSOps {
   PetscErrorCode (*cond)(DS,PetscReal*);
   PetscErrorCode (*transharm)(DS,PetscScalar,PetscReal,PetscBool,PetscScalar*,PetscReal*);
   PetscErrorCode (*transrks)(DS,PetscScalar);
-  PetscErrorCode (*normalize)(DS,DSMatType,PetscInt);
   PetscErrorCode (*destroy)(DS);
 };
 
