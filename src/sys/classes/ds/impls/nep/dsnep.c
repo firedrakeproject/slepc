@@ -125,41 +125,6 @@ PetscErrorCode DSVectors_NEP(DS ds,DSMatType mat,PetscInt *j,PetscReal *rnorm)
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "DSNormalize_NEP"
-PetscErrorCode DSNormalize_NEP(DS ds,DSMatType mat,PetscInt col)
-{
-  PetscErrorCode ierr;
-  PetscInt       i,i0,i1;
-  PetscBLASInt   ld,n,one = 1;
-  PetscScalar    norm,*x;
-
-  PetscFunctionBegin;
-  switch (mat) {
-    case DS_MAT_X:
-      break;
-    case DS_MAT_Y:
-      SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"Not implemented yet");
-      break;
-    default:
-      SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_OUTOFRANGE,"Invalid mat parameter");
-  }
-  ierr = PetscBLASIntCast(ds->n,&n);CHKERRQ(ierr);
-  ierr = PetscBLASIntCast(ds->ld,&ld);CHKERRQ(ierr);
-  ierr = DSGetArray(ds,mat,&x);CHKERRQ(ierr);
-  if (col < 0) {
-    i0 = 0; i1 = ds->n;
-  } else {
-    i0 = col; i1 = col+1;
-  }
-  for (i=i0;i<i1;i++) {
-    norm = BLASnrm2_(&n,&x[ld*i],&one);
-    norm = 1.0/norm;
-    PetscStackCallBLAS("BLASscal",BLASscal_(&n,&norm,&x[ld*i],&one));
-  }
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
 #define __FUNCT__ "DSSort_NEP"
 PetscErrorCode DSSort_NEP(DS ds,PetscScalar *wr,PetscScalar *wi,PetscScalar *rr,PetscScalar *ri,PetscInt *k)
 {
@@ -490,7 +455,6 @@ PETSC_EXTERN PetscErrorCode DSCreate_NEP(DS ds)
   ds->ops->vectors       = DSVectors_NEP;
   ds->ops->solve[0]      = DSSolve_NEP_SLP;
   ds->ops->sort          = DSSort_NEP;
-  ds->ops->normalize     = DSNormalize_NEP;
   ds->ops->destroy       = DSDestroy_NEP;
   ierr = PetscObjectComposeFunction((PetscObject)ds,"DSNEPSetFN_C",DSNEPSetFN_NEP);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)ds,"DSNEPGetFN_C",DSNEPGetFN_NEP);CHKERRQ(ierr);
