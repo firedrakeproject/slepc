@@ -83,6 +83,8 @@ struct _p_DS {
 
 #define DSCheckAlloc(h,arg) do {} while (0)
 #define DSCheckSolved(h,arg) do {} while (0)
+#define DSCheckValidMat(ds,m,arg) do {} while (0)
+#define DSCheckValidMatReal(ds,m,arg) do {} while (0)
 
 #else
 
@@ -94,6 +96,18 @@ struct _p_DS {
 #define DSCheckSolved(h,arg) \
   do { \
     if (h->state<DS_STATE_CONDENSED) SETERRQ1(PetscObjectComm((PetscObject)h),PETSC_ERR_ARG_WRONGSTATE,"Must call DSSolve() first: Parameter #%d",arg); \
+  } while (0)
+
+#define DSCheckValidMat(ds,m,arg) \
+  do { \
+    if (m>=DS_NUM_MAT) SETERRQ1(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_WRONG,"Invalid matrix: Parameter #%d",arg); \
+    if (!ds->mat[m]) SETERRQ1(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_WRONGSTATE,"Requested matrix was not created in this DS: Parameter #%d",arg); \
+  } while (0)
+
+#define DSCheckValidMatReal(ds,m,arg) \
+  do { \
+    if (m>=DS_NUM_MAT) SETERRQ1(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_WRONG,"Invalid matrix: Parameter #%d",arg); \
+    if (!ds->rmat[m]) SETERRQ1(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_WRONGSTATE,"Requested matrix was not created in this DS: Parameter #%d",arg); \
   } while (0)
 
 #endif

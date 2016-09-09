@@ -145,8 +145,12 @@ PetscErrorCode DSViewMat(DS ds,PetscViewer viewer,DSMatType m)
 #endif
 
   PetscFunctionBegin;
-  if (m>=DS_NUM_MAT) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_WRONG,"Invalid matrix");
-  if (!ds->mat[m]) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_WRONGSTATE,"Requested matrix was not created in this DS");
+  PetscValidHeaderSpecific(ds,DS_CLASSID,1);
+  PetscValidLogicalCollectiveEnum(ds,m,3);
+  DSCheckValidMat(ds,m,3);
+  if (!viewer) viewer = PETSC_VIEWER_STDOUT_(PetscObjectComm((PetscObject)ds));
+  PetscValidHeaderSpecific(viewer,PETSC_VIEWER_CLASSID,2);
+  PetscCheckSameComm(ds,1,viewer,2);
   ierr = PetscViewerGetFormat(viewer,&format);CHKERRQ(ierr);
   if (format == PETSC_VIEWER_ASCII_INFO || format == PETSC_VIEWER_ASCII_INFO_DETAIL) PetscFunctionReturn(0);
   ierr = PetscViewerASCIIUseTabs(viewer,PETSC_FALSE);CHKERRQ(ierr);
@@ -405,6 +409,10 @@ PetscErrorCode DSSetIdentity(DS ds,DSMatType mat)
   PetscInt       i,ld,n,l;
 
   PetscFunctionBegin;
+  PetscValidHeaderSpecific(ds,DS_CLASSID,1);
+  PetscValidLogicalCollectiveEnum(ds,mat,2);
+  DSCheckValidMat(ds,mat,2);
+
   ierr = DSGetDimensions(ds,&n,NULL,&l,NULL,NULL);CHKERRQ(ierr);
   ierr = DSGetLeadingDimension(ds,&ld);CHKERRQ(ierr);
   ierr = PetscLogEventBegin(DS_Other,ds,0,0,0);CHKERRQ(ierr);
@@ -452,6 +460,7 @@ PetscErrorCode DSOrthogonalize(DS ds,DSMatType mat,PetscInt cols,PetscInt *lindc
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
   DSCheckAlloc(ds,1);
   PetscValidLogicalCollectiveEnum(ds,mat,2);
+  DSCheckValidMat(ds,mat,2);
   PetscValidLogicalCollectiveInt(ds,cols,3);
 
   ierr = DSGetDimensions(ds,&n,NULL,&l,NULL,NULL);CHKERRQ(ierr);
@@ -570,6 +579,7 @@ PetscErrorCode DSPseudoOrthogonalize(DS ds,DSMatType mat,PetscInt cols,PetscReal
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
   DSCheckAlloc(ds,1);
   PetscValidLogicalCollectiveEnum(ds,mat,2);
+  DSCheckValidMat(ds,mat,2);
   PetscValidLogicalCollectiveInt(ds,cols,3);
   PetscValidRealPointer(s,4);
   ierr = DSGetDimensions(ds,&n,NULL,&l,NULL,NULL);CHKERRQ(ierr);
