@@ -301,10 +301,8 @@ PetscErrorCode DSGetMat(DS ds,DSMatType m,Mat *A)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
   DSCheckAlloc(ds,1);
-  PetscValidLogicalCollectiveEnum(ds,m,2);
+  DSCheckValidMat(ds,m,2);
   PetscValidPointer(A,3);
-  if (m>=DS_NUM_MAT) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_WRONG,"Invalid matrix");
-  if (!ds->mat[m]) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_WRONGSTATE,"Requested matrix was not created in this DS");
 
   rows = PetscMax(ds->n,ds->t);
   cols = ds->m? ds->m: ds->n;
@@ -363,9 +361,8 @@ PetscErrorCode DSRestoreMat(DS ds,DSMatType m,Mat *A)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
   DSCheckAlloc(ds,1);
-  PetscValidLogicalCollectiveEnum(ds,m,2);
+  DSCheckValidMat(ds,m,2);
   PetscValidPointer(A,3);
-  if (m>=DS_NUM_MAT) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_WRONG,"Invalid matrix");
   if (!ds->omat[m]) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_WRONGSTATE,"DSRestoreMat must match a previous call to DSGetMat");
   if (ds->omat[m]!=*A) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_WRONGSTATE,"Mat argument is not the same as the one obtained with DSGetMat");
 
@@ -405,9 +402,8 @@ PetscErrorCode DSGetArray(DS ds,DSMatType m,PetscScalar *a[])
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
   DSCheckAlloc(ds,1);
+  DSCheckValidMat(ds,m,2);
   PetscValidPointer(a,2);
-  if (m>=DS_NUM_MAT) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_WRONG,"Invalid matrix");
-  if (!ds->mat[m]) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_WRONGSTATE,"Requested matrix was not created in this DS");
   *a = ds->mat[m];
   CHKMEMQ;
   PetscFunctionReturn(0);
@@ -436,8 +432,8 @@ PetscErrorCode DSRestoreArray(DS ds,DSMatType m,PetscScalar *a[])
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
   DSCheckAlloc(ds,1);
+  DSCheckValidMat(ds,m,2);
   PetscValidPointer(a,2);
-  if (m>=DS_NUM_MAT) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_WRONG,"Invalid matrix");
   CHKMEMQ;
   *a = 0;
   ierr = PetscObjectStateIncrease((PetscObject)ds);CHKERRQ(ierr);
@@ -469,9 +465,8 @@ PetscErrorCode DSGetArrayReal(DS ds,DSMatType m,PetscReal *a[])
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
   DSCheckAlloc(ds,1);
+  DSCheckValidMatReal(ds,m,2);
   PetscValidPointer(a,2);
-  if (m>=DS_NUM_MAT) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_WRONG,"Invalid matrix");
-  if (!ds->rmat[m]) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_WRONGSTATE,"Requested matrix was not created in this DS");
   *a = ds->rmat[m];
   CHKMEMQ;
   PetscFunctionReturn(0);
@@ -500,8 +495,8 @@ PetscErrorCode DSRestoreArrayReal(DS ds,DSMatType m,PetscReal *a[])
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
   DSCheckAlloc(ds,1);
+  DSCheckValidMatReal(ds,m,2);
   PetscValidPointer(a,2);
-  if (m>=DS_NUM_MAT) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_WRONG,"Invalid matrix");
   CHKMEMQ;
   *a = 0;
   ierr = PetscObjectStateIncrease((PetscObject)ds);CHKERRQ(ierr);
@@ -655,6 +650,7 @@ PetscErrorCode DSVectors(DS ds,DSMatType mat,PetscInt *j,PetscReal *rnorm)
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
   DSCheckAlloc(ds,1);
   PetscValidLogicalCollectiveEnum(ds,mat,2);
+  if (mat>=DS_NUM_MAT) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_WRONG,"Invalid matrix");
   if (!ds->ops->vectors) SETERRQ1(PetscObjectComm((PetscObject)ds),PETSC_ERR_SUP,"DS type %s",((PetscObject)ds)->type_name);
   if (rnorm && !j) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ORDER,"Must give a value of j");
   if (!ds->mat[mat]) { ierr = DSAllocateMat_Private(ds,mat);CHKERRQ(ierr); }
@@ -698,6 +694,7 @@ PetscErrorCode DSNormalize(DS ds,DSMatType mat,PetscInt col)
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
   DSCheckSolved(ds,1);
   PetscValidLogicalCollectiveEnum(ds,mat,2);
+  DSCheckValidMat(ds,mat,2);
   PetscValidLogicalCollectiveInt(ds,col,3);
   if (!ds->ops->normalize) SETERRQ1(PetscObjectComm((PetscObject)ds),PETSC_ERR_SUP,"DS type %s",((PetscObject)ds)->type_name);
   if (col<-1) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_OUTOFRANGE,"col should be at least minus one");
@@ -907,6 +904,7 @@ PetscErrorCode DSCopyMat(DS ds,DSMatType m,PetscInt mr,PetscInt mc,Mat A,PetscIn
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
   DSCheckAlloc(ds,1);
   PetscValidLogicalCollectiveEnum(ds,m,2);
+  DSCheckValidMat(ds,m,2);
   PetscValidHeaderSpecific(A,MAT_CLASSID,3);
   PetscValidLogicalCollectiveBool(ds,out,4);
   PetscValidLogicalCollectiveInt(ds,mr,5);
@@ -915,8 +913,6 @@ PetscErrorCode DSCopyMat(DS ds,DSMatType m,PetscInt mr,PetscInt mc,Mat A,PetscIn
   PetscValidLogicalCollectiveInt(ds,Ac,8);
   PetscValidLogicalCollectiveInt(ds,rows,9);
   PetscValidLogicalCollectiveInt(ds,rows,10);
-  if (m>=DS_NUM_MAT) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_WRONG,"Invalid matrix");
-  if (!ds->mat[m]) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_WRONGSTATE,"Requested matrix was not created in this DS");
   if (!rows || !cols) PetscFunctionReturn(0);
 
   mrows = PetscMax(ds->n,ds->t);

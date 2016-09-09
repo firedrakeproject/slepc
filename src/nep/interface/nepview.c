@@ -384,7 +384,7 @@ static PetscErrorCode NEPErrorView_MATLAB(NEP nep,NEPErrorType etype,PetscViewer
   ierr = PetscViewerASCIIPrintf(viewer,"Error_%s = [\n",name);CHKERRQ(ierr);
   for (i=0;i<nep->nconv;i++) {
     ierr = NEPComputeError(nep,i,etype,&error);CHKERRQ(ierr);
-    ierr = PetscViewerASCIIPrintf(viewer,"%18.16e\n",error);CHKERRQ(ierr);
+    ierr = PetscViewerASCIIPrintf(viewer,"%18.16e\n",(double)error);CHKERRQ(ierr);
   }
   ierr = PetscViewerASCIIPrintf(viewer,"];\n");CHKERRQ(ierr);
   PetscFunctionReturn(0);

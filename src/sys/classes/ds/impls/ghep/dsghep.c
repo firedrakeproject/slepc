@@ -50,6 +50,9 @@ PetscErrorCode DSView_GHEP(DS ds,PetscViewer viewer)
   if (ds->state>DS_STATE_INTERMEDIATE) {
     ierr = DSViewMat(ds,viewer,DS_MAT_Q);CHKERRQ(ierr);
   }
+  if (ds->mat[DS_MAT_X]) {
+    ierr = DSViewMat(ds,viewer,DS_MAT_X);CHKERRQ(ierr);
+  }
   PetscFunctionReturn(0);
 }
 
@@ -99,7 +102,8 @@ PetscErrorCode DSNormalize_GHEP(DS ds,DSMatType mat,PetscInt col)
   PetscErrorCode ierr;
   PetscInt       i,i0,i1;
   PetscBLASInt   ld,n,one = 1;
-  PetscScalar    norm,*x;
+  PetscReal      norm;
+  PetscScalar    alpha,*x;
 
   PetscFunctionBegin;
   switch (mat) {
@@ -126,8 +130,8 @@ PetscErrorCode DSNormalize_GHEP(DS ds,DSMatType mat,PetscInt col)
   }
   for (i=i0;i<i1;i++) {
     norm = BLASnrm2_(&n,&x[ld*i],&one);
-    norm = 1.0/norm;
-    PetscStackCallBLAS("BLASscal",BLASscal_(&n,&norm,&x[ld*i],&one));
+    alpha = 1.0/norm;
+    PetscStackCallBLAS("BLASscal",BLASscal_(&n,&alpha,&x[ld*i],&one));
   }
   PetscFunctionReturn(0);
 }
