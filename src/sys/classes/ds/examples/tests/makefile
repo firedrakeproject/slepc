@@ -121,7 +121,7 @@ runtest3_1_%:
 	if [ "$$method" = qr ]; then method="-ds_method 0"; \
 	elif [ "$$method" = mrrr ]; then method="-ds_method 1"; \
 	elif [ "$$method" = dc ]; then method="-ds_method 2"; fi; \
-	${MPIEXEC} -n 1 ./test3 $$method | ${GREP} -v "solving the problem" > $${test}.tmp 2>&1; \
+	${MPIEXEC} -n 1 ./test3 -n 9 $$method | ${GREP} -v "solving the problem" > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
 runtest4_1:
