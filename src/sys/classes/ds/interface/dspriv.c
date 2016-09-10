@@ -25,11 +25,11 @@
 #include <slepcblaslapack.h>
 
 #undef __FUNCT__
-#define __FUNCT__ "DSAllocateMat_Private"
-PetscErrorCode DSAllocateMat_Private(DS ds,DSMatType m)
+#define __FUNCT__ "DSAllocateMatrix_Private"
+PetscErrorCode DSAllocateMatrix_Private(DS ds,DSMatType m,PetscBool isreal)
 {
   size_t         sz;
-  PetscInt       n,d;
+  PetscInt       n,d,nelem;
   PetscBool      ispep;
   PetscErrorCode ierr;
 
@@ -42,46 +42,37 @@ PetscErrorCode DSAllocateMat_Private(DS ds,DSMatType m)
   else n = ds->ld;
   switch (m) {
     case DS_MAT_T:
-      sz = 3*ds->ld*sizeof(PetscScalar);
+      nelem = 3*ds->ld;
       break;
     case DS_MAT_D:
-      sz = ds->ld*sizeof(PetscScalar);
+      nelem = ds->ld;
       break;
     case DS_MAT_X:
-      sz = ds->ld*n*sizeof(PetscScalar);
+      nelem = ds->ld*n;
       break;
     case DS_MAT_Y:
-      sz = ds->ld*n*sizeof(PetscScalar);
+      nelem = ds->ld*n;
       break;
     default:
-      sz = n*n*sizeof(PetscScalar);
+      nelem = n*n;
   }
-  if (ds->mat[m]) {
-    ierr = PetscFree(ds->mat[m]);CHKERRQ(ierr);
+  if (isreal) {
+    sz = nelem*sizeof(PetscReal);
+    if (ds->rmat[m]) {
+      ierr = PetscFree(ds->rmat[m]);CHKERRQ(ierr);
+    } else {
+      ierr = PetscLogObjectMemory((PetscObject)ds,sz);CHKERRQ(ierr);
+    }
+    ierr = PetscCalloc1(nelem,&ds->rmat[m]);CHKERRQ(ierr);
   } else {
-    ierr = PetscLogObjectMemory((PetscObject)ds,sz);CHKERRQ(ierr);
+    sz = nelem*sizeof(PetscScalar);
+    if (ds->mat[m]) {
+      ierr = PetscFree(ds->mat[m]);CHKERRQ(ierr);
+    } else {
+      ierr = PetscLogObjectMemory((PetscObject)ds,sz);CHKERRQ(ierr);
+    }
+    ierr = PetscCalloc1(nelem,&ds->mat[m]);CHKERRQ(ierr);
   }
-  ierr = PetscMalloc(sz,&ds->mat[m]);CHKERRQ(ierr);
-  ierr = PetscMemzero(ds->mat[m],sz);CHKERRQ(ierr);
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
-#define __FUNCT__ "DSAllocateMatReal_Private"
-PetscErrorCode DSAllocateMatReal_Private(DS ds,DSMatType m)
-{
-  size_t         sz;
-  PetscErrorCode ierr;
-
-  PetscFunctionBegin;
-  if (m==DS_MAT_T) sz = 3*ds->ld*sizeof(PetscReal);
-  else if (m==DS_MAT_D) sz = ds->ld*sizeof(PetscReal);
-  else sz = ds->ld*ds->ld*sizeof(PetscReal);
-  if (!ds->rmat[m]) {
-    ierr = PetscLogObjectMemory((PetscObject)ds,sz);CHKERRQ(ierr);
-    ierr = PetscMalloc(sz,&ds->rmat[m]);CHKERRQ(ierr);
-  }
-  ierr = PetscMemzero(ds->rmat[m],sz);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
