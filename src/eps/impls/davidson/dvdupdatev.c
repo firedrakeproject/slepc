@@ -275,10 +275,7 @@ static PetscErrorCode dvd_updateV_update_gen(dvdDashboard *d)
   ierr = BVGetActiveColumns(d->eps->V,&lV,&kV);CHKERRQ(ierr);
   nV = kV - lV;
   size_D = PetscMin(PetscMin(PetscMin(d->bs,nV),d->eps->ncv-nV),nV);
-  if (size_D == 0) {
-    ierr = d->initV(d);CHKERRQ(ierr);
-    ierr = d->calcPairs(d);CHKERRQ(ierr);
-  }
+  if (size_D == 0) PetscFunctionReturn(0);
 
   /* Fill V with D */
   ierr = d->improveX(d,0,size_D,&size_D);CHKERRQ(ierr);
