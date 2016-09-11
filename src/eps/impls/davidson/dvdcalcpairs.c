@@ -248,7 +248,7 @@ static PetscErrorCode dvd_calcpairs_proj(dvdDashboard *d)
   ierr = BVGetActiveColumns(d->eps->V,&l,&k);CHKERRQ(ierr);
   /* Update AV, BV, W and the projected matrices */
   /* 1. S <- S*MT */
-  if (d->V_tra_s != d->V_tra_e) {
+  if (d->V_tra_s != d->V_tra_e || d->V_tra_e > 0) {
     ierr = dvd_calcpairs_updateBV0_gen(d,d->eps->V,DS_MAT_Q);CHKERRQ(ierr);
     if (d->W) { ierr = dvd_calcpairs_updateBV0_gen(d,d->W,DS_MAT_Z);CHKERRQ(ierr); }
     ierr = dvd_calcpairs_updateBV0_gen(d,d->AX,DS_MAT_Q);CHKERRQ(ierr);

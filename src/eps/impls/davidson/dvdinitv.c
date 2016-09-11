@@ -37,15 +37,18 @@ static PetscErrorCode dvd_initV_classic_0(dvdDashboard *d)
 {
   PetscErrorCode ierr;
   dvdInitV       *data = (dvdInitV*)d->initV_data;
-  PetscInt       i,user = PetscMin(data->user,d->eps->ncv),k = PetscMin(data->k,d->eps->ncv);
+  PetscInt       i,user = PetscMin(data->user,d->eps->mpd), l,k;
 
   PetscFunctionBegin;
+  ierr = BVGetActiveColumns(d->eps->V,&l,&k);CHKERRQ(ierr);
+  /* User vectors are added at the beginning, so no active column should be in V */
+  if (data->user>0&&l>0) SETERRQ(PETSC_COMM_SELF,1, "Consistency broken");
   /* Generate a set of random initial vectors and orthonormalize them */
-  for (i=user;i<k;i++) {
+  for (i=l+user;i<l+data->k && i<d->eps->ncv && i-l<d->eps->mpd;i++) {
     ierr = BVSetRandomColumn(d->eps->V,i);CHKERRQ(ierr);
   }
   d->V_tra_s = 0; d->V_tra_e = 0;
-  d->V_new_s = 0; d->V_new_e = i;
+  d->V_new_s = 0; d->V_new_e = i-l;
 
   /* After that the user vectors will be destroyed */
   data->user = 0;
@@ -58,19 +61,23 @@ static PetscErrorCode dvd_initV_krylov_0(dvdDashboard *d)
 {
   PetscErrorCode ierr;
   dvdInitV       *data = (dvdInitV*)d->initV_data;
-  PetscInt       i,user = PetscMin(data->user,d->eps->ncv),k = PetscMin(data->k,d->eps->ncv);
+  PetscInt       i,user = PetscMin(data->user,d->eps->mpd),l,k;
   Vec            av,v1,v2;
 
   PetscFunctionBegin;
+  ierr = BVGetActiveColumns(d->eps->V,&l,&k);CHKERRQ(ierr);
+  /* User vectors are added at the beginning, so no active column should be in V */
+  if (data->user>0&&l>0) SETERRQ(PETSC_COMM_SELF,1, "Consistency broken");
+
   /* If needed, generate a random vector for starting the arnoldi method */
   if (user == 0) {
-    ierr = BVSetRandomColumn(d->eps->V,0);CHKERRQ(ierr);
+    ierr = BVSetRandomColumn(d->eps->V,l);CHKERRQ(ierr);
     user = 1;
   }
 
   /* Perform k steps of Arnoldi with the operator K^{-1}*(t[1]*A-t[2]*B) */
-  ierr = dvd_orthV(d->eps->V,0,user);CHKERRQ(ierr);
-  for (i=user;i<k;i++) {
+  ierr = dvd_orthV(d->eps->V,l,l+user);CHKERRQ(ierr);
+  for (i=l+user;i<l+data->k && i<d->eps->ncv && i-l<d->eps->mpd;i++) {
     /* aux <- theta[1]A*in - theta[0]*B*in */
     ierr = BVGetColumn(d->eps->V,i,&v1);CHKERRQ(ierr);
     ierr = BVGetColumn(d->eps->V,i-user,&v2);CHKERRQ(ierr);
@@ -91,7 +98,7 @@ static PetscErrorCode dvd_initV_krylov_0(dvdDashboard *d)
   }
 
   d->V_tra_s = 0; d->V_tra_e = 0;
-  d->V_new_s = 0; d->V_new_e = i;
+  d->V_new_s = 0; d->V_new_e = i-l;
 
   /* After that the user vectors will be destroyed */
   data->user = 0;
@@ -129,7 +136,7 @@ PetscErrorCode dvd_initV(dvdDashboard *d, dvdBlackboard *b, PetscInt k,PetscInt 
   if (b->state >= DVD_STATE_CONF) {
     ierr = PetscNewLog(d->eps,&data);CHKERRQ(ierr);
     data->k = k;
-    data->user = PetscMin(k, user);
+    data->user = user;
     data->old_initV_data = d->initV_data;
     d->initV_data = data;
     if (krylov) d->initV = dvd_initV_krylov_0;
