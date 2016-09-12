@@ -138,7 +138,7 @@ runsleeper_2_%:
 
 runsleeper_3:
 	-@${SETTEST}; \
-	${MPIEXEC} -n 1 ./sleeper -n 300 -pep_type stoar -pep_hermitian -st_type sinvert -st_transform -pep_nev 4 -pep_target -.895 -terse > $${test}.tmp 2>&1; \
+	${MPIEXEC} -n 1 ./sleeper -n 270 -pep_type stoar -pep_hermitian -st_type sinvert -st_transform -pep_nev 2 -pep_target -.89 -terse > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
 runspring_1: runspring_1_toar runspring_1_stoar runspring_1_qarnoldi runspring_1_linear

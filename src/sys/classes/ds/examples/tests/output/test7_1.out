@@ -1,7 +1,7 @@
 Solve a Dense System of type SVD - dimension 15x10.
 DS Object: 1 MPI processes
   type: svd
-  current state: raw
+  current state: RAW
   dimensions: ld=17, n=15, m=10, l=0, k=0
   flags:
 DS Object: 1 MPI processes

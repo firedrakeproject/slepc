@@ -1,7 +1,7 @@
 Solve a Dense System of type HEP with compact storage - dimension 9.
 DS Object: 1 MPI processes
   type: hep
-  current state: raw
+  current state: RAW
   dimensions: ld=11, n=9, l=2, k=5
   flags: compact
 Initial - - - - - - - - -

@@ -73,7 +73,7 @@ runex17_1: runex17_1_toar runex17_1_qarnoldi runex17_1_linear
 runex17_1_%:
 	-@${SETTEST}; check=ex17_1; pep=$*; \
 	if [ "$$pep" = qarnoldi ]; then pep="qarnoldi -st_transform"; fi; \
-	${MPIEXEC} -n 1 ./ex17 -A ${DATAPATH}/speaker107k.petsc,${DATAPATH}/speaker107c.petsc,${DATAPATH}/speaker107m.petsc -pep_type $$pep -pep_nev 4 -pep_ncv 20 -pep_tol 1e-14 -pep_scale scalar -terse > $${test}.tmp 2>&1; \
+	${MPIEXEC} -n 1 ./ex17 -A ${DATAPATH}/speaker107k.petsc,${DATAPATH}/speaker107c.petsc,${DATAPATH}/speaker107m.petsc -pep_type $$pep -pep_nev 4 -pep_ncv 20 -pep_scale scalar -terse > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
 runex28_1: runex28_1_toar runex28_1_qarnoldi runex28_1_linear

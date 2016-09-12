@@ -30,9 +30,11 @@ int main(int argc,char **argv)
   PetscErrorCode ierr;
   DS             ds;
   SlepcSC        sc;
+  DSType         type;
+  DSStateType    state;
   PetscScalar    *A,*X,*wr,*wi;
   PetscReal      re,im,rnorm,aux;
-  PetscInt       i,j,n=10,ld;
+  PetscInt       i,j,n=10,ld,method;
   PetscViewer    viewer;
   PetscBool      verbose,extrarow;
 
@@ -84,6 +86,13 @@ int main(int argc,char **argv)
   ierr = DSSolve(ds,wr,wi);CHKERRQ(ierr);
   ierr = DSSort(ds,wr,wi,NULL,NULL,NULL);CHKERRQ(ierr);
   if (extrarow) { ierr = DSUpdateExtraRow(ds);CHKERRQ(ierr); }
+
+  ierr = DSGetType(ds,&type);CHKERRQ(ierr);
+  ierr = DSGetMethod(ds,&method);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"DS of type %s, method used=%d\n",type,method);CHKERRQ(ierr);
+  ierr = DSGetState(ds,&state);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"State after solve: %s\n",DSStateTypes[state]);CHKERRQ(ierr);
+
   if (verbose) {
     ierr = PetscPrintf(PETSC_COMM_WORLD,"After solve - - - - - - - - -\n");CHKERRQ(ierr);
     ierr = DSView(ds,viewer);CHKERRQ(ierr);
