@@ -552,7 +552,10 @@ static PetscErrorCode SlepcMatDenseMult(PetscScalar *C,PetscInt _ldC,PetscScalar
 
    Output Parameters:
 +  lindcols - (optional) linearly independent columns of the matrix
--  ns   - (optional) the new norm of the vectors
+-  ns   - (optional) the new signature of the vectors
+
+   Note:
+   After the call the matrix satisfies A'*s*A = ns.
 
    Level: developer
 
