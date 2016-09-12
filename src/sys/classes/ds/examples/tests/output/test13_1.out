@@ -1,7 +1,7 @@
 Solve a block HEP Dense System - dimension 24 (bandwidth=3, blocks=8).
 DS Object: 1 MPI processes
   type: hep
-  current state: raw
+  current state: RAW
   dimensions: ld=24, n=24, l=0, k=0
   flags:
   block size: 3

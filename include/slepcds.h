@@ -70,6 +70,7 @@ typedef enum { DS_STATE_RAW,
                DS_STATE_INTERMEDIATE,
                DS_STATE_CONDENSED,
                DS_STATE_TRUNCATED } DSStateType;
+PETSC_EXTERN const char *DSStateTypes[];
 
 /*E
     DSMatType - Used to refer to one of the matrices stored internally in DS
