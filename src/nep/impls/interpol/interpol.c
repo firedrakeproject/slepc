@@ -354,15 +354,12 @@ static PetscErrorCode NEPInterpolGetPEP_Interpol(NEP nep,PEP *pep)
 {
   PetscErrorCode ierr;
   NEP_INTERPOL   *ctx = (NEP_INTERPOL*)nep->data;
-  ST             st;
 
   PetscFunctionBegin;
   if (!ctx->pep) {
     ierr = PEPCreate(PetscObjectComm((PetscObject)nep),&ctx->pep);CHKERRQ(ierr);
     ierr = PEPSetOptionsPrefix(ctx->pep,((PetscObject)nep)->prefix);CHKERRQ(ierr);
     ierr = PEPAppendOptionsPrefix(ctx->pep,"nep_interpol_");CHKERRQ(ierr);
-    ierr = PEPGetST(ctx->pep,&st);CHKERRQ(ierr);
-    ierr = STSetOptionsPrefix(st,((PetscObject)ctx->pep)->prefix);CHKERRQ(ierr);
     ierr = PetscObjectIncrementTabLevel((PetscObject)ctx->pep,(PetscObject)nep,1);CHKERRQ(ierr);
     ierr = PetscLogObjectParent((PetscObject)nep,(PetscObject)ctx->pep);CHKERRQ(ierr);
     ierr = PEPMonitorSet(ctx->pep,PEPMonitor_Interpol,nep,NULL);CHKERRQ(ierr);

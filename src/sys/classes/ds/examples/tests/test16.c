@@ -81,7 +81,7 @@ int main(int argc,char **argv)
   }
   ierr = PetscPrintf(PETSC_COMM_WORLD,"Resulting signature:\n");CHKERRQ(ierr);
   for (i=0;i<n;i++) {
-    ierr = PetscPrintf(PETSC_COMM_WORLD,"%g\n",ns[i]);CHKERRQ(ierr);
+    ierr = PetscPrintf(PETSC_COMM_WORLD,"%g\n",(double)ns[i]);CHKERRQ(ierr);
   }
   ierr = PetscFree2(s,ns);CHKERRQ(ierr);
 
