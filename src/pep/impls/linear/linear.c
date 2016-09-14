@@ -995,15 +995,12 @@ static PetscErrorCode PEPLinearGetEPS_Linear(PEP pep,EPS *eps)
 {
   PetscErrorCode ierr;
   PEP_LINEAR     *ctx = (PEP_LINEAR*)pep->data;
-  ST             st;
 
   PetscFunctionBegin;
   if (!ctx->eps) {
     ierr = EPSCreate(PetscObjectComm((PetscObject)pep),&ctx->eps);CHKERRQ(ierr);
     ierr = EPSSetOptionsPrefix(ctx->eps,((PetscObject)pep)->prefix);CHKERRQ(ierr);
     ierr = EPSAppendOptionsPrefix(ctx->eps,"pep_linear_");CHKERRQ(ierr);
-    ierr = EPSGetST(ctx->eps,&st);CHKERRQ(ierr);
-    ierr = STSetOptionsPrefix(st,((PetscObject)ctx->eps)->prefix);CHKERRQ(ierr);
     ierr = PetscObjectIncrementTabLevel((PetscObject)ctx->eps,(PetscObject)pep,1);CHKERRQ(ierr);
     ierr = PetscLogObjectParent((PetscObject)pep,(PetscObject)ctx->eps);CHKERRQ(ierr);
     ierr = EPSMonitorSet(ctx->eps,EPSMonitor_Linear,pep,NULL);CHKERRQ(ierr);

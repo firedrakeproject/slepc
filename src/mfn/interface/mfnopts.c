@@ -426,9 +426,9 @@ PetscErrorCode MFNAppendOptionsPrefix(MFN mfn,const char *prefix)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(mfn,MFN_CLASSID,1);
   if (!mfn->V) { ierr = MFNGetBV(mfn,&mfn->V);CHKERRQ(ierr); }
-  ierr = BVSetOptionsPrefix(mfn->V,prefix);CHKERRQ(ierr);
+  ierr = BVAppendOptionsPrefix(mfn->V,prefix);CHKERRQ(ierr);
   if (!mfn->fn) { ierr = MFNGetFN(mfn,&mfn->fn);CHKERRQ(ierr); }
-  ierr = FNSetOptionsPrefix(mfn->fn,prefix);CHKERRQ(ierr);
+  ierr = FNAppendOptionsPrefix(mfn->fn,prefix);CHKERRQ(ierr);
   ierr = PetscObjectAppendOptionsPrefix((PetscObject)mfn,prefix);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

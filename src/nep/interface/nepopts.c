@@ -1096,11 +1096,11 @@ PetscErrorCode NEPAppendOptionsPrefix(NEP nep,const char *prefix)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
   if (!nep->V) { ierr = NEPGetBV(nep,&nep->V);CHKERRQ(ierr); }
-  ierr = BVSetOptionsPrefix(nep->V,prefix);CHKERRQ(ierr);
+  ierr = BVAppendOptionsPrefix(nep->V,prefix);CHKERRQ(ierr);
   if (!nep->ds) { ierr = NEPGetDS(nep,&nep->ds);CHKERRQ(ierr); }
-  ierr = DSSetOptionsPrefix(nep->ds,prefix);CHKERRQ(ierr);
+  ierr = DSAppendOptionsPrefix(nep->ds,prefix);CHKERRQ(ierr);
   if (!nep->rg) { ierr = NEPGetRG(nep,&nep->rg);CHKERRQ(ierr); }
-  ierr = RGSetOptionsPrefix(nep->rg,prefix);CHKERRQ(ierr);
+  ierr = RGAppendOptionsPrefix(nep->rg,prefix);CHKERRQ(ierr);
   ierr = PetscObjectAppendOptionsPrefix((PetscObject)nep,prefix);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
