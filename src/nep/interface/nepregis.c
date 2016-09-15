@@ -24,8 +24,10 @@
 PETSC_EXTERN PetscErrorCode NEPCreate_RII(NEP);
 PETSC_EXTERN PetscErrorCode NEPCreate_SLP(NEP);
 PETSC_EXTERN PetscErrorCode NEPCreate_NArnoldi(NEP);
-PETSC_EXTERN PetscErrorCode NEPCreate_CISS(NEP);
 PETSC_EXTERN PetscErrorCode NEPCreate_Interpol(NEP);
+#if defined(PETSC_USE_COMPLEX)
+PETSC_EXTERN PetscErrorCode NEPCreate_CISS(NEP);
+#endif
 PETSC_EXTERN PetscErrorCode NEPCreate_NLEIGS(NEP);
 
 #undef __FUNCT__
