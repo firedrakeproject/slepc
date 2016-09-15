@@ -21,6 +21,8 @@
 
 ALL: lib
 
+#requiresscalar    complex
+
 CFLAGS   =
 FFLAGS   =
 SOURCEC  = pjd.c pjdopt.c
