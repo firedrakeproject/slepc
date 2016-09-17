@@ -58,7 +58,7 @@ PetscErrorCode DSView_PEP(DS ds,PetscViewer viewer)
 
   PetscFunctionBegin;
   ierr = PetscViewerGetFormat(viewer,&format);CHKERRQ(ierr);
-  ierr = PetscViewerASCIIPrintf(viewer,"  polynomial degree: %D\n",ctx->d);CHKERRQ(ierr);
+  ierr = PetscViewerASCIIPrintf(viewer,"polynomial degree: %D\n",ctx->d);CHKERRQ(ierr);
   if (format == PETSC_VIEWER_ASCII_INFO || format == PETSC_VIEWER_ASCII_INFO_DETAIL) PetscFunctionReturn(0);
   for (i=0;i<=ctx->d;i++) {
     ierr = DSViewMat(ds,viewer,DSMatExtra[i]);CHKERRQ(ierr);
