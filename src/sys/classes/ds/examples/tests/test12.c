@@ -29,10 +29,11 @@ int main(int argc,char **argv)
 {
   PetscErrorCode ierr;
   DS             ds;
-  FN             f1,f2,f3,funs[3];
-  PetscScalar    *Id,*A,*B,*wr,*wi,coeffs[2];
-  PetscReal      tau=0.001,h,a=20,xi,re,im;
-  PetscInt       i,n=10,ld,nev;
+  FN             f1,f2,f3,funs[3],qfun;
+  SlepcSC        sc;
+  PetscScalar    *Id,*A,*B,*wr,*wi,*X,coeffs[2];
+  PetscReal      tau=0.001,h,a=20,xi,re,im,nrm,aux;
+  PetscInt       i,j,n=10,ld,nev,nfun;
   PetscViewer    viewer;
   PetscBool      verbose;
 
@@ -81,6 +82,14 @@ int main(int argc,char **argv)
     ierr = PetscViewerPushFormat(viewer,PETSC_VIEWER_ASCII_MATLAB);CHKERRQ(ierr);
   }
 
+  /* Show info about functions */
+  ierr = DSNEPGetNumFN(ds,&nfun);CHKERRQ(ierr);
+  for (i=0;i<nfun;i++) {
+    ierr = PetscPrintf(PETSC_COMM_WORLD,"Function %D:\n",i);CHKERRQ(ierr);
+    ierr = DSNEPGetFN(ds,i,&qfun);CHKERRQ(ierr);
+    ierr = FNView(qfun,NULL);CHKERRQ(ierr);
+  }
+
   /* Fill matrices */
   ierr = DSGetArray(ds,DS_MAT_E0,&Id);CHKERRQ(ierr);
   for (i=0;i<n;i++) Id[i+i*ld]=1.0;
@@ -107,7 +116,14 @@ int main(int argc,char **argv)
 
   /* Solve */
   ierr = PetscMalloc2(n,&wr,n,&wi);CHKERRQ(ierr);
+  ierr = DSGetSlepcSC(ds,&sc);CHKERRQ(ierr);
+  sc->comparison    = SlepcCompareLargestMagnitude;
+  sc->comparisonctx = NULL;
+  sc->map           = NULL;
+  sc->mapobj        = NULL;
   ierr = DSSolve(ds,wr,wi);CHKERRQ(ierr);
+  ierr = DSSort(ds,wr,wi,NULL,NULL,NULL);CHKERRQ(ierr);
+
   if (verbose) {
     ierr = PetscPrintf(PETSC_COMM_WORLD,"After solve - - - - - - - - -\n");CHKERRQ(ierr);
     ierr = DSView(ds,viewer);CHKERRQ(ierr);
@@ -129,6 +145,28 @@ int main(int argc,char **argv)
     } else {
       ierr = PetscViewerASCIIPrintf(viewer,"  %.5f%+.5fi\n",(double)re,(double)im);CHKERRQ(ierr);
     }
+  }
+
+  /* Eigenvectors */
+  ierr = DSVectors(ds,DS_MAT_X,NULL,NULL);CHKERRQ(ierr);
+  j = 0;
+  nrm = 0.0;
+  ierr = DSGetArray(ds,DS_MAT_X,&X);CHKERRQ(ierr);
+  for (i=0;i<n;i++) {
+#if defined(PETSC_USE_COMPLEX)
+    aux = PetscAbsScalar(X[i+j*ld]);
+#else
+    if (PetscAbs(wi[j])==0.0) aux = PetscAbsScalar(X[i+j*ld]);
+    else aux = SlepcAbsEigenvalue(X[i+j*ld],X[i+(j+1)*ld]);
+#endif
+    nrm += aux*aux;
+  }
+  ierr = DSRestoreArray(ds,DS_MAT_X,&X);CHKERRQ(ierr);
+  nrm = PetscSqrtReal(nrm);
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"Norm of eigenvector = %.3f\n",(double)nrm);CHKERRQ(ierr);
+  if (verbose) {
+    ierr = PetscPrintf(PETSC_COMM_WORLD,"After vectors - - - - - - - - -\n");CHKERRQ(ierr);
+    ierr = DSView(ds,viewer);CHKERRQ(ierr);
   }
 
   ierr = PetscFree2(wr,wi);CHKERRQ(ierr);

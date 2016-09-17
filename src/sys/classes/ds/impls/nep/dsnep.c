@@ -25,6 +25,7 @@
 typedef struct {
   PetscInt nf;                 /* number of functions in f[] */
   FN       f[DS_NUM_EXTRA];    /* functions defining the nonlinear operator */
+  PetscInt neig;               /* number of available eigenpairs */
 } DS_NEP;
 
 #undef __FUNCT__
@@ -94,7 +95,7 @@ PetscErrorCode DSView_NEP(DS ds,PetscViewer viewer)
 
   PetscFunctionBegin;
   ierr = PetscViewerGetFormat(viewer,&format);CHKERRQ(ierr);
-  ierr = PetscViewerASCIIPrintf(viewer,"  number of functions: %D\n",ctx->nf);CHKERRQ(ierr);
+  ierr = PetscViewerASCIIPrintf(viewer,"number of functions: %D\n",ctx->nf);CHKERRQ(ierr);
   if (format == PETSC_VIEWER_ASCII_INFO || format == PETSC_VIEWER_ASCII_INFO_DETAIL) PetscFunctionReturn(0);
   for (i=0;i<ctx->nf;i++) {
     ierr = FNView(ctx->f[i],viewer);CHKERRQ(ierr);
@@ -126,11 +127,12 @@ PetscErrorCode DSVectors_NEP(DS ds,DSMatType mat,PetscInt *j,PetscReal *rnorm)
 
 #undef __FUNCT__
 #define __FUNCT__ "DSSort_NEP"
-PetscErrorCode DSSort_NEP(DS ds,PetscScalar *wr,PetscScalar *wi,PetscScalar *rr,PetscScalar *ri,PetscInt *k)
+PetscErrorCode DSSort_NEP(DS ds,PetscScalar *wr,PetscScalar *wi,PetscScalar *rr,PetscScalar *ri,PetscInt *dummy)
 {
   PetscErrorCode ierr;
-  PetscInt       n,l,i,*perm,ld=ds->ld;
-  PetscScalar    *A;
+  DS_NEP         *ctx = (DS_NEP*)ds->data;
+  PetscInt       n,l,i,j,k,p,*perm,told,ld=ds->ld;
+  PetscScalar    *A,*X,rtmp;
 
   PetscFunctionBegin;
   if (!ds->sc) PetscFunctionReturn(0);
@@ -138,15 +140,31 @@ PetscErrorCode DSSort_NEP(DS ds,PetscScalar *wr,PetscScalar *wi,PetscScalar *rr,
   l = ds->l;
   A  = ds->mat[DS_MAT_A];
   perm = ds->perm;
-  for (i=l;i<n;i++) wr[i] = A[i+i*ld];
+  for (i=0;i<ctx->neig;i++) perm[i] = i;
+  told = ds->t;
+  ds->t = ctx->neig;  /* force the sorting routines to consider ctx->neig eigenvalues */
   if (rr) {
     ierr = DSSortEigenvalues_Private(ds,rr,ri,perm,PETSC_FALSE);CHKERRQ(ierr);
   } else {
     ierr = DSSortEigenvalues_Private(ds,wr,NULL,perm,PETSC_FALSE);CHKERRQ(ierr);
   }
+  ds->t = told;  /* restore value of t */
   for (i=l;i<n;i++) A[i+i*ld] = wr[perm[i]];
   for (i=l;i<n;i++) wr[i] = A[i+i*ld];
-  ierr = DSPermuteColumns_Private(ds,l,n,DS_MAT_Q,perm);CHKERRQ(ierr);
+  /* cannot use DSPermuteColumns_Private() since not all columns are filled */
+  X  = ds->mat[DS_MAT_X];
+  for (i=0;i<ctx->neig;i++) {
+    p = perm[i];
+    if (p != i) {
+      j = i + 1;
+      while (perm[j] != i) j++;
+      perm[j] = p; perm[i] = i;
+      /* swap columns i and j */
+      for (k=0;k<n;k++) {
+        rtmp  = X[k+p*ld]; X[k+p*ld] = X[k+i*ld]; X[k+i*ld] = rtmp;
+      }
+    }
+  }
   PetscFunctionReturn(0);
 }
 
@@ -159,6 +177,7 @@ PetscErrorCode DSSolve_NEP_SLP(DS ds,PetscScalar *wr,PetscScalar *wi)
   SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"GGEV - Lapack routine is unavailable");
 #else
   PetscErrorCode ierr;
+  DS_NEP         *ctx = (DS_NEP*)ds->data;
   PetscScalar    *A,*B,*W,*X,*work,*alpha,*beta;
   PetscScalar    norm,sigma,lambda,mu,re,re2;
   PetscBLASInt   info,n,ld,lrwork=0,lwork,one=1;
@@ -266,10 +285,10 @@ PetscErrorCode DSSolve_NEP_SLP(DS ds,PetscScalar *wr,PetscScalar *wi)
     if (PetscAbsScalar(mu)<=tol) break;
   }
 
+  if (it==maxit) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_CONV_FAILED,"DSNEP did not converge");
+  ctx->neig = 1;
   wr[0] = lambda;
   if (wi) wi[0] = 0.0;
-
-  if (it==maxit) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_CONV_FAILED,"DSNEP did not converge");
   PetscFunctionReturn(0);
 #endif
 }
