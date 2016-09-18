@@ -178,12 +178,12 @@
       if (rank .eq. 0) then
         write(*,120) nrm
       endif
- 120  format ('2-Norm or X[0] = ',f8.4)
+ 120  format ('2-Norm of X[0] = ',f8.4)
       call BVNorm(X,NORM_FROBENIUS,nrm,ierr)
       if (rank .eq. 0) then
         write(*,130) nrm
       endif
- 130  format ('Frobenius Norm or X = ',f8.4)
+ 130  format ('Frobenius Norm of X = ',f8.4)
 
 !     *** Clean up
       call BVDestroy(X,ierr)

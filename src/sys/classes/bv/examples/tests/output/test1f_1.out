@@ -1,4 +1,4 @@
 
 Test BV with  5 columns of length 10 (Fortran)
-2-Norm or X[0] =  16.7332
-Frobenius Norm or X =  87.1436
+2-Norm of X[0] =  16.7332
+Frobenius Norm of X =  87.1436

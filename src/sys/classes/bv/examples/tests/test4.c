@@ -111,6 +111,9 @@ int main(int argc,char **argv)
     ierr = MatView(Q,NULL);CHKERRQ(ierr);
   }
 
+  /* Test BVResize */
+  ierr = BVResize(X,kx+4,PETSC_TRUE);CHKERRQ(ierr);
+
   /* Test BVMult */
   ierr = BVMult(Y,2.0,1.0,X,Q);CHKERRQ(ierr);
   if (verbose) {
@@ -172,9 +175,9 @@ int main(int argc,char **argv)
 
   /* Test BVNorm */
   ierr = BVNormColumn(X,lx,NORM_2,&nrm);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"2-Norm or X[%D] = %g\n",lx,(double)nrm);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"2-Norm of X[%D] = %g\n",lx,(double)nrm);CHKERRQ(ierr);
   ierr = BVNorm(X,NORM_FROBENIUS,&nrm);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"Frobenius Norm or X = %g\n",(double)nrm);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"Frobenius Norm of X = %g\n",(double)nrm);CHKERRQ(ierr);
 
   ierr = BVDestroy(&X);CHKERRQ(ierr);
   ierr = BVDestroy(&Y);CHKERRQ(ierr);
