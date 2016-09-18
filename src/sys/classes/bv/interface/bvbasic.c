@@ -1278,7 +1278,7 @@ PetscErrorCode BVGetArrayRead(BV bv,const PetscScalar **a)
    BVRestoreArrayRead - Restore the BV object after BVGetArrayRead() has
    been called.
 
-   Logically Collective on BV
+   Not Collective
 
    Input Parameters:
 +  bv - the basis vectors context
