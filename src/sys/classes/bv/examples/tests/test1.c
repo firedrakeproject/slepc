@@ -174,7 +174,7 @@ int main(int argc,char **argv)
     ierr = PetscPrintf(PETSC_COMM_WORLD,"First row of X =\n");CHKERRQ(ierr);
     ierr = BVGetArrayRead(X,&pX);CHKERRQ(ierr);
     for (i=0;i<k;i++) {
-      ierr = PetscPrintf(PETSC_COMM_WORLD,"%g ",(double)pX[i*nloc]);CHKERRQ(ierr);
+      ierr = PetscPrintf(PETSC_COMM_WORLD,"%g ",(double)PetscRealPart(pX[i*nloc]));CHKERRQ(ierr);
     }
     ierr = PetscPrintf(PETSC_COMM_WORLD,"\n");CHKERRQ(ierr);
     ierr = BVRestoreArrayRead(X,&pX);CHKERRQ(ierr);
