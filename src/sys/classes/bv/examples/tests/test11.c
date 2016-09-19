@@ -177,13 +177,13 @@ int main(int argc,char **argv)
     } else {
       ierr = PetscPrintf(PETSC_COMM_WORLD,"Level of orthogonality: %g\n",(double)norm);CHKERRQ(ierr);
     }
+    ierr = BVDestroy(&Z);CHKERRQ(ierr);
   }
 
   ierr = MatDestroy(&M);CHKERRQ(ierr);
   ierr = MatDestroy(&B);CHKERRQ(ierr);
   ierr = BVDestroy(&X);CHKERRQ(ierr);
   ierr = BVDestroy(&Y);CHKERRQ(ierr);
-  ierr = BVDestroy(&Z);CHKERRQ(ierr);
   ierr = VecDestroy(&t);CHKERRQ(ierr);
   ierr = SlepcFinalize();
   return ierr;
