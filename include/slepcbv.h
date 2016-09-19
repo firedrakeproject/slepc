@@ -86,7 +86,8 @@ PETSC_EXTERN const char *BVOrthogRefineTypes[];
 .seealso: BVSetOrthogonalization(), BVGetOrthogonalization(), BVOrthogonalize()
 E*/
 typedef enum { BV_ORTHOG_BLOCK_GS,
-               BV_ORTHOG_BLOCK_CHOL } BVOrthogBlockType;
+               BV_ORTHOG_BLOCK_CHOL,
+               BV_ORTHOG_BLOCK_TSQR } BVOrthogBlockType;
 PETSC_EXTERN const char *BVOrthogBlockTypes[];
 
 /*E

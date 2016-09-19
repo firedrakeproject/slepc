@@ -47,7 +47,6 @@ struct _BVOps {
   PetscErrorCode (*norm_local)(BV,PetscInt,NormType,PetscReal*);
   PetscErrorCode (*norm_begin)(BV,PetscInt,NormType,PetscReal*);
   PetscErrorCode (*norm_end)(BV,PetscInt,NormType,PetscReal*);
-  PetscErrorCode (*orthogonalize)(BV,Mat);
   PetscErrorCode (*matmult)(BV,Mat,BV);
   PetscErrorCode (*copy)(BV,BV);
   PetscErrorCode (*resize)(BV,PetscInt,PetscBool);
@@ -299,6 +298,6 @@ PETSC_INTERN PetscErrorCode BVDot_BLAS_Private(BV,PetscInt,PetscInt,PetscInt,Pet
 PETSC_INTERN PetscErrorCode BVDotVec_BLAS_Private(BV,PetscInt,PetscInt,const PetscScalar*,const PetscScalar*,PetscScalar*,PetscBool);
 PETSC_INTERN PetscErrorCode BVScale_BLAS_Private(BV,PetscInt,PetscScalar*,PetscScalar);
 PETSC_INTERN PetscErrorCode BVNorm_LAPACK_Private(BV,PetscInt,PetscInt,const PetscScalar*,NormType,PetscReal*,PetscBool);
-PETSC_INTERN PetscErrorCode BVOrthogonalize_LAPACK_Private(BV,PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscBool);
+PETSC_INTERN PetscErrorCode BVOrthogonalize_LAPACK_Private(BV,PetscInt,PetscInt,PetscScalar*,PetscScalar*);
 
 #endif

@@ -188,7 +188,7 @@ PetscErrorCode STMatShellCreate(ST st,PetscScalar alpha,PetscInt nmat,PetscInt *
     if (ctx->nmat>1) ctx->matIdx[1] = 1;
   }
   if (coeffs) {
-    ierr = PetscMalloc(ctx->nmat*sizeof(PetscScalar),&ctx->coeffs);CHKERRQ(ierr);
+    ierr = PetscMalloc1(ctx->nmat,&ctx->coeffs);CHKERRQ(ierr);
     for (i=0;i<ctx->nmat;i++) ctx->coeffs[i] = coeffs[i];
   }
   ierr = MatCreateVecs(st->A[0],&ctx->z,NULL);CHKERRQ(ierr);

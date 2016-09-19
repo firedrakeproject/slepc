@@ -416,7 +416,7 @@ PetscErrorCode BVGetArray_Vecs(BV bv,PetscScalar **a)
   const PetscScalar *p;
 
   PetscFunctionBegin;
-  ierr = PetscMalloc((bv->nc+bv->m)*bv->n*sizeof(PetscScalar),a);CHKERRQ(ierr);
+  ierr = PetscMalloc1((bv->nc+bv->m)*bv->n,a);CHKERRQ(ierr);
   for (j=0;j<bv->nc+bv->m;j++) {
     ierr = VecGetArrayRead(ctx->V[j],&p);CHKERRQ(ierr);
     ierr = PetscMemcpy(*a+j*bv->n,p,bv->n*sizeof(PetscScalar));CHKERRQ(ierr);
@@ -454,7 +454,7 @@ PetscErrorCode BVGetArrayRead_Vecs(BV bv,const PetscScalar **a)
   const PetscScalar *p;
 
   PetscFunctionBegin;
-  ierr = PetscMalloc((bv->nc+bv->m)*bv->n*sizeof(PetscScalar),a);CHKERRQ(ierr);
+  ierr = PetscMalloc1((bv->nc+bv->m)*bv->n,a);CHKERRQ(ierr);
   for (j=0;j<bv->nc+bv->m;j++) {
     ierr = VecGetArrayRead(ctx->V[j],&p);CHKERRQ(ierr);
     ierr = PetscMemcpy((PetscScalar*)*a+j*bv->n,p,bv->n*sizeof(PetscScalar));CHKERRQ(ierr);
@@ -475,6 +475,23 @@ PetscErrorCode BVRestoreArrayRead_Vecs(BV bv,const PetscScalar **a)
 }
 
 #undef __FUNCT__
+#define __FUNCT__ "BVVecsSetVmip"
+/*
+   Sets the value of vmip flag and resets ops->multinplace accordingly
+ */
+PETSC_STATIC_INLINE PetscErrorCode BVVecsSetVmip(BV bv,PetscInt vmip)
+{
+  typedef PetscErrorCode (*fmultinplace)(BV,Mat,PetscInt,PetscInt);
+  fmultinplace multinplace[2] = {BVMultInPlace_Vecs_ME, BVMultInPlace_Vecs_Alloc};
+  BV_VECS      *ctx = (BV_VECS*)bv->data;
+
+  PetscFunctionBegin;
+  ctx->vmip            = vmip;
+  bv->ops->multinplace = multinplace[vmip];
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
 #define __FUNCT__ "BVSetFromOptions_Vecs"
 PetscErrorCode BVSetFromOptions_Vecs(PetscOptionItems *PetscOptionsObject,BV bv)
 {
@@ -485,6 +502,7 @@ PetscErrorCode BVSetFromOptions_Vecs(PetscOptionItems *PetscOptionsObject,BV bv)
   ierr = PetscOptionsHead(PetscOptionsObject,"BV Vecs Options");CHKERRQ(ierr);
     ierr = PetscOptionsInt("-bv_vecs_vmip","Version of BVMultInPlace operation","",ctx->vmip,&ctx->vmip,NULL);CHKERRQ(ierr);
     if (ctx->vmip<0 || ctx->vmip>1) SETERRQ(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_OUTOFRANGE,"Wrong version of BVMultInPlace");
+    ierr = BVVecsSetVmip(bv,ctx->vmip);CHKERRQ(ierr);
   ierr = PetscOptionsTail();CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -530,23 +548,6 @@ PetscErrorCode BVDestroy_Vecs(BV bv)
   PetscFunctionBegin;
   ierr = VecDestroyVecs(bv->nc+bv->m,&ctx->V);CHKERRQ(ierr);
   ierr = PetscFree(bv->data);CHKERRQ(ierr);
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
-#define __FUNCT__ "BVVecsSetVmip"
-/*
-   Sets the value of vmip flag and resets ops->multinplace accordingly
- */
-PETSC_STATIC_INLINE PetscErrorCode BVVecsSetVmip(BV bv,PetscInt vmip)
-{
-  typedef PetscErrorCode (*fmultinplace)(BV,Mat,PetscInt,PetscInt);
-  fmultinplace multinplace[2] = {BVMultInPlace_Vecs_ME, BVMultInPlace_Vecs_Alloc};
-  BV_VECS      *ctx = (BV_VECS*)bv->data;
-
-  PetscFunctionBegin;
-  ctx->vmip            = vmip;
-  bv->ops->multinplace = multinplace[vmip];
   PetscFunctionReturn(0);
 }
 
