@@ -107,7 +107,7 @@ PetscErrorCode STSetUp_Shift(ST st)
   if (nmat<3 || st->transform) {
     if (nmat>2) {
       nc = (nmat*(nmat+1))/2;
-      ierr = PetscMalloc(nc*sizeof(PetscScalar),&coeffs);CHKERRQ(ierr);
+      ierr = PetscMalloc1(nc,&coeffs);CHKERRQ(ierr);
       /* Compute coeffs */
       ierr = STCoeffs_Monomial(st,coeffs);CHKERRQ(ierr);
     }
@@ -154,7 +154,7 @@ PetscErrorCode STSetShift_Shift(ST st,PetscScalar newshift)
   if (st->transform) {
     if (st->shift_matrix == ST_MATMODE_COPY && nmat>2) {
       nc = (nmat*(nmat+1))/2;
-      ierr = PetscMalloc(nc*sizeof(PetscScalar),&coeffs);CHKERRQ(ierr);
+      ierr = PetscMalloc1(nc,&coeffs);CHKERRQ(ierr);
       /* Compute coeffs */
       ierr = STCoeffs_Monomial(st,coeffs);CHKERRQ(ierr);
     }

@@ -259,7 +259,7 @@ PetscErrorCode STSetOperators(ST st,PetscInt n,Mat A[])
     ierr = PetscCalloc1(PetscMax(2,n),&st->A);CHKERRQ(ierr);
     ierr = PetscLogObjectMemory((PetscObject)st,PetscMax(2,n)*sizeof(Mat));CHKERRQ(ierr);
     ierr = PetscFree(st->Astate);CHKERRQ(ierr);
-    ierr = PetscMalloc(PetscMax(2,n)*sizeof(PetscObjectState),&st->Astate);CHKERRQ(ierr);
+    ierr = PetscMalloc1(PetscMax(2,n),&st->Astate);CHKERRQ(ierr);
     ierr = PetscLogObjectMemory((PetscObject)st,PetscMax(2,n)*sizeof(PetscInt));CHKERRQ(ierr);
   }
   for (i=0;i<n;i++) {

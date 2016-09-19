@@ -416,7 +416,7 @@ PetscErrorCode BVGetArray_Vecs(BV bv,PetscScalar **a)
   const PetscScalar *p;
 
   PetscFunctionBegin;
-  ierr = PetscMalloc((bv->nc+bv->m)*bv->n*sizeof(PetscScalar),a);CHKERRQ(ierr);
+  ierr = PetscMalloc1((bv->nc+bv->m)*bv->n,a);CHKERRQ(ierr);
   for (j=0;j<bv->nc+bv->m;j++) {
     ierr = VecGetArrayRead(ctx->V[j],&p);CHKERRQ(ierr);
     ierr = PetscMemcpy(*a+j*bv->n,p,bv->n*sizeof(PetscScalar));CHKERRQ(ierr);
@@ -454,7 +454,7 @@ PetscErrorCode BVGetArrayRead_Vecs(BV bv,const PetscScalar **a)
   const PetscScalar *p;
 
   PetscFunctionBegin;
-  ierr = PetscMalloc((bv->nc+bv->m)*bv->n*sizeof(PetscScalar),a);CHKERRQ(ierr);
+  ierr = PetscMalloc1((bv->nc+bv->m)*bv->n,a);CHKERRQ(ierr);
   for (j=0;j<bv->nc+bv->m;j++) {
     ierr = VecGetArrayRead(ctx->V[j],&p);CHKERRQ(ierr);
     ierr = PetscMemcpy((PetscScalar*)*a+j*bv->n,p,bv->n*sizeof(PetscScalar));CHKERRQ(ierr);

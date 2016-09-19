@@ -1732,7 +1732,7 @@ static PetscErrorCode NEPNLEIGSSetRKShifts_NLEIGS(NEP nep,PetscInt ns,PetscScala
   for (i=0;i<ctx->nshiftsw;i++) { ierr = KSPDestroy(&ctx->ksp[i]);CHKERRQ(ierr); }
   ierr = PetscFree(ctx->ksp);CHKERRQ(ierr);
   ctx->ksp = NULL;
-  ierr = PetscMalloc(ns,&ctx->shifts);CHKERRQ(ierr);
+  ierr = PetscMalloc1(ns,&ctx->shifts);CHKERRQ(ierr);
   for (i=0;i<ns;i++) ctx->shifts[i] = shifts[i];
   ctx->nshifts = ns;
   nep->state   = NEP_STATE_INITIAL;

@@ -51,14 +51,10 @@ PetscErrorCode SlepcVecPoolCreate(Vec v,PetscInt init_size,VecPool *p)
   PetscValidLogicalCollectiveInt(v,init_size,2);
   PetscValidPointer(p,3);
   if (init_size<0) SETERRQ(PetscObjectComm((PetscObject)v),PETSC_ERR_ARG_WRONG,"init_size should be positive");
-  ierr = PetscMalloc(sizeof(VecPool_),&pool);CHKERRQ(ierr);
+  ierr = PetscCalloc1(1,&pool);CHKERRQ(ierr);
   ierr = PetscObjectReference((PetscObject)v);CHKERRQ(ierr);
   pool->v     = v;
-  pool->vecs  = NULL;
-  pool->n     = 0;
-  pool->used  = 0;
   pool->guess = init_size;
-  pool->next  = NULL;
   *p = pool;
   PetscFunctionReturn(0);
 }
