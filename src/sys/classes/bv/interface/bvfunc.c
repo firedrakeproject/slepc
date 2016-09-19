@@ -29,7 +29,7 @@ static PetscBool BVPackageInitialized = PETSC_FALSE;
 
 const char *BVOrthogTypes[] = {"CGS","MGS","BVOrthogType","BV_ORTHOG_",0};
 const char *BVOrthogRefineTypes[] = {"IFNEEDED","NEVER","ALWAYS","BVOrthogRefineType","BV_ORTHOG_REFINE_",0};
-const char *BVOrthogBlockTypes[] = {"GS","CHOL","BVOrthogBlockType","BV_ORTHOG_BLOCK_",0};
+const char *BVOrthogBlockTypes[] = {"GS","CHOL","TSQR","BVOrthogBlockType","BV_ORTHOG_BLOCK_",0};
 const char *BVMatMultTypes[] = {"VECS","MAT","MAT_SAVE","BVMatMultType","BV_MATMULT_",0};
 
 #undef __FUNCT__

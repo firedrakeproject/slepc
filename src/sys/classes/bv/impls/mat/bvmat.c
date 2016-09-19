@@ -232,23 +232,6 @@ PetscErrorCode BVNorm_Local_Mat(BV bv,PetscInt j,NormType type,PetscReal *val)
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "BVOrthogonalize_Mat"
-PetscErrorCode BVOrthogonalize_Mat(BV V,Mat R)
-{
-  PetscErrorCode ierr;
-  BV_MAT         *ctx = (BV_MAT*)V->data;
-  PetscScalar    *pv,*r=NULL;
-
-  PetscFunctionBegin;
-  if (R) { ierr = MatDenseGetArray(R,&r);CHKERRQ(ierr); }
-  ierr = MatDenseGetArray(ctx->A,&pv);CHKERRQ(ierr);
-  ierr = BVOrthogonalize_LAPACK_Private(V,V->n,V->k,pv+V->nc*V->n,r,ctx->mpi);CHKERRQ(ierr);
-  ierr = MatDenseRestoreArray(ctx->A,&pv);CHKERRQ(ierr);
-  if (R) { ierr = MatDenseRestoreArray(R,&r);CHKERRQ(ierr); }
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
 #define __FUNCT__ "BVMatMult_Mat"
 PetscErrorCode BVMatMult_Mat(BV V,Mat A,BV W)
 {
@@ -519,7 +502,6 @@ PETSC_EXTERN PetscErrorCode BVCreate_Mat(BV bv)
   bv->ops->scale            = BVScale_Mat;
   bv->ops->norm             = BVNorm_Mat;
   bv->ops->norm_local       = BVNorm_Local_Mat;
-  /*bv->ops->orthogonalize    = BVOrthogonalize_Mat;*/
   bv->ops->matmult          = BVMatMult_Mat;
   bv->ops->copy             = BVCopy_Mat;
   bv->ops->resize           = BVResize_Mat;

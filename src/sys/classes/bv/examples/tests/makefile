@@ -39,7 +39,7 @@ TESTEXAMPLES_C       = test1.PETSc runtest1_1 test1.rm \
                        test8.PETSc runtest8_1 test8.rm \
                        test9.PETSc runtest9_1 runtest9_2 test9.rm \
                        test10.PETSc runtest10_1 test10.rm \
-                       test11.PETSc runtest11_1 runtest11_2 test11.rm \
+                       test11.PETSc runtest11_1 runtest11_2 runtest11_3 test11.rm \
                        test12.PETSc runtest12_1 test12.rm
 TESTEXAMPLES_FORTRAN = test1f.PETSc runtest1f_1 runtest1f_2 test1f.rm
 TESTEXAMPLES_VECCUDA = test1.PETSc runtest1_1_cuda test1.rm \
@@ -265,6 +265,12 @@ runtest11_2: runtest11_2_vecs runtest11_2_contiguous runtest11_2_svec runtest11_
 runtest11_2_%:
 	-@${SETTEST}; check=test11_1; bv=$*; \
 	${MPIEXEC} -n 2 ./test11 -bv_orthog_block chol -bv_type $$bv > $${test}.tmp 2>&1; \
+	${TESTCODE}
+
+runtest11_3: runtest11_3_vecs runtest11_3_contiguous runtest11_3_svec runtest11_3_mat
+runtest11_3_%:
+	-@${SETTEST}; check=test11_3_tsqr; bv=$*; \
+	${MPIEXEC} -n 2 ./test11 -bv_orthog_block tsqr -bv_type $$bv > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
 runtest12_1: runtest12_1_vecs runtest12_1_contiguous runtest12_1_svec runtest12_1_mat

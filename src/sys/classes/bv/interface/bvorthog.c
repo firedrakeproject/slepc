@@ -573,6 +573,25 @@ static PetscErrorCode BVOrthogonalize_Chol(BV V,Mat Rin)
 }
 
 #undef __FUNCT__
+#define __FUNCT__ "BVOrthogonalize_TSQR"
+/*
+   Orthogonalize a set of vectors with the Tall-Skinny QR method
+ */
+static PetscErrorCode BVOrthogonalize_TSQR(BV V,Mat R)
+{
+  PetscErrorCode ierr;
+  PetscScalar    *pv,*r=NULL;
+
+  PetscFunctionBegin;
+  if (R) { ierr = MatDenseGetArray(R,&r);CHKERRQ(ierr); }
+  ierr = BVGetArray(V,&pv);CHKERRQ(ierr);
+  ierr = BVOrthogonalize_LAPACK_Private(V,V->n,V->k,pv+V->nc*V->n,r);CHKERRQ(ierr);
+  ierr = BVRestoreArray(V,&pv);CHKERRQ(ierr);
+  if (R) { ierr = MatDenseRestoreArray(R,&r);CHKERRQ(ierr); }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
 #define __FUNCT__ "BVOrthogonalize"
 /*@
    BVOrthogonalize - Orthogonalize all columns (except leading ones), that is,
@@ -640,9 +659,10 @@ PetscErrorCode BVOrthogonalize(BV V,Mat R)
     break;
   case BV_ORTHOG_BLOCK_CHOL:
     ierr = BVOrthogonalize_Chol(V,R);CHKERRQ(ierr);
-    /*if (V->ops->orthogonalize) {
-      ierr = (*V->ops->orthogonalize)(V,R);CHKERRQ(ierr);
-    }*/
+    break;
+  case BV_ORTHOG_BLOCK_TSQR:
+    if (V->matrix) SETERRQ(PetscObjectComm((PetscObject)V),PETSC_ERR_SUP,"Orthogonalization method not available for non-standard inner product");
+    ierr = BVOrthogonalize_TSQR(V,R);CHKERRQ(ierr);
     break;
   }
   ierr = PetscLogEventEnd(BV_Orthogonalize,V,R,0,0);CHKERRQ(ierr);

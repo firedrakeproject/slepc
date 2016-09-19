@@ -130,50 +130,53 @@ int main(int argc,char **argv)
   ierr = MatAssemblyEnd(B,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
 
   /* Prepare to repeat test, now with a non-standard inner product */
-  ierr = BVCopy(X,Y);CHKERRQ(ierr);
-  ierr = BVDuplicate(X,&Z);CHKERRQ(ierr);
-  ierr = PetscObjectSetName((PetscObject)Z,"Z");CHKERRQ(ierr);
-  ierr = BVSetActiveColumns(Z,l,k);CHKERRQ(ierr);
-  ierr = BVSetMatrix(X,B,PETSC_FALSE);CHKERRQ(ierr);
-  ierr = BVSetMatrix(Y,B,PETSC_FALSE);CHKERRQ(ierr);
-  if (btype==BV_ORTHOG_BLOCK_GS) {  /* GS requires the leading columns to be orthogonal */
-    for (j=0;j<l;j++) {
-      ierr = BVOrthogonalizeColumn(Y,j,NULL,&norm,NULL);CHKERRQ(ierr);
-      alpha = 1.0/norm;
-      ierr = BVScaleColumn(Y,j,alpha);CHKERRQ(ierr);
+  if (btype!=BV_ORTHOG_BLOCK_TSQR) {  /* TSQR does not work with B-matrix */
+
+    ierr = BVCopy(X,Y);CHKERRQ(ierr);
+    ierr = BVDuplicate(X,&Z);CHKERRQ(ierr);
+    ierr = PetscObjectSetName((PetscObject)Z,"Z");CHKERRQ(ierr);
+    ierr = BVSetActiveColumns(Z,l,k);CHKERRQ(ierr);
+    ierr = BVSetMatrix(X,B,PETSC_FALSE);CHKERRQ(ierr);
+    ierr = BVSetMatrix(Y,B,PETSC_FALSE);CHKERRQ(ierr);
+    if (btype==BV_ORTHOG_BLOCK_GS) {  /* GS requires the leading columns to be orthogonal */
+      for (j=0;j<l;j++) {
+        ierr = BVOrthogonalizeColumn(Y,j,NULL,&norm,NULL);CHKERRQ(ierr);
+        alpha = 1.0/norm;
+        ierr = BVScaleColumn(Y,j,alpha);CHKERRQ(ierr);
+      }
     }
-  }
-  if (verbose) {
-    ierr = BVView(X,view);CHKERRQ(ierr);
-  }
+    if (verbose) {
+      ierr = BVView(X,view);CHKERRQ(ierr);
+    }
 
-  /* Test BVOrthogonalize */
-  ierr = BVOrthogonalize(Y,NULL);CHKERRQ(ierr);
-  if (verbose) {
-    ierr = BVView(Y,view);CHKERRQ(ierr);
-  }
+    /* Test BVOrthogonalize */
+    ierr = BVOrthogonalize(Y,NULL);CHKERRQ(ierr);
+    if (verbose) {
+      ierr = BVView(Y,view);CHKERRQ(ierr);
+    }
 
-  /* Extract cached BV and check it is equal to B*X */
-  ierr = BVGetCachedBV(Y,&cached);CHKERRQ(ierr);
-  ierr = BVMatMult(X,B,Z);CHKERRQ(ierr);
-  ierr = BVMult(Z,-1.0,1.0,cached,NULL);CHKERRQ(ierr);
-  ierr = BVNorm(Z,NORM_FROBENIUS,&norm);CHKERRQ(ierr);
-  if (norm<100*PETSC_MACHINE_EPSILON) {
-    ierr = PetscPrintf(PETSC_COMM_WORLD,"Residual ||cached-BX|| < 100*eps\n");CHKERRQ(ierr);
-  } else {
-    ierr = PetscPrintf(PETSC_COMM_WORLD,"Residual ||cached-BX||: %g\n",(double)norm);CHKERRQ(ierr);
-  }
+    /* Extract cached BV and check it is equal to B*X */
+    ierr = BVGetCachedBV(Y,&cached);CHKERRQ(ierr);
+    ierr = BVMatMult(X,B,Z);CHKERRQ(ierr);
+    ierr = BVMult(Z,-1.0,1.0,cached,NULL);CHKERRQ(ierr);
+    ierr = BVNorm(Z,NORM_FROBENIUS,&norm);CHKERRQ(ierr);
+    if (norm<100*PETSC_MACHINE_EPSILON) {
+      ierr = PetscPrintf(PETSC_COMM_WORLD,"Residual ||cached-BX|| < 100*eps\n");CHKERRQ(ierr);
+    } else {
+      ierr = PetscPrintf(PETSC_COMM_WORLD,"Residual ||cached-BX||: %g\n",(double)norm);CHKERRQ(ierr);
+    }
 
-  /* Check orthogonality */
-  ierr = MatZeroEntries(M);CHKERRQ(ierr);
-  ierr = MatShift(M,1.0);CHKERRQ(ierr);   /* set leading part to identity */
-  ierr = BVDot(Y,Y,M);CHKERRQ(ierr);
-  ierr = MatShift(M,-1.0);CHKERRQ(ierr);
-  ierr = MatNorm(M,NORM_1,&norm);CHKERRQ(ierr);
-  if (norm<100*PETSC_MACHINE_EPSILON) {
-    ierr = PetscPrintf(PETSC_COMM_WORLD,"Level of orthogonality < 100*eps\n");CHKERRQ(ierr);
-  } else {
-    ierr = PetscPrintf(PETSC_COMM_WORLD,"Level of orthogonality: %g\n",(double)norm);CHKERRQ(ierr);
+    /* Check orthogonality */
+    ierr = MatZeroEntries(M);CHKERRQ(ierr);
+    ierr = MatShift(M,1.0);CHKERRQ(ierr);   /* set leading part to identity */
+    ierr = BVDot(Y,Y,M);CHKERRQ(ierr);
+    ierr = MatShift(M,-1.0);CHKERRQ(ierr);
+    ierr = MatNorm(M,NORM_1,&norm);CHKERRQ(ierr);
+    if (norm<100*PETSC_MACHINE_EPSILON) {
+      ierr = PetscPrintf(PETSC_COMM_WORLD,"Level of orthogonality < 100*eps\n");CHKERRQ(ierr);
+    } else {
+      ierr = PetscPrintf(PETSC_COMM_WORLD,"Level of orthogonality: %g\n",(double)norm);CHKERRQ(ierr);
+    }
   }
 
   ierr = MatDestroy(&M);CHKERRQ(ierr);
