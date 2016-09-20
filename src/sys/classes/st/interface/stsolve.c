@@ -280,7 +280,7 @@ PetscErrorCode STSetUp(ST st)
     ierr = STSetType(st,STSHIFT);CHKERRQ(ierr);
   }
   if (!st->T) {
-    ierr = PetscMalloc(PetscMax(2,st->nmat)*sizeof(Mat),&st->T);CHKERRQ(ierr);
+    ierr = PetscMalloc1(PetscMax(2,st->nmat),&st->T);CHKERRQ(ierr);
     ierr = PetscLogObjectMemory((PetscObject)st,PetscMax(2,st->nmat)*sizeof(Mat));CHKERRQ(ierr);
     for (i=0;i<PetscMax(2,st->nmat);i++) st->T[i] = NULL;
   } else if (st->state!=ST_STATE_UPDATED) {
@@ -344,7 +344,7 @@ PetscErrorCode STMatMAXPY_Private(ST st,PetscScalar alpha,PetscScalar beta,Petsc
   case ST_MATMODE_SHELL:
     if (initial) {
       if (st->nmat>2) {
-        ierr = PetscMalloc(nmat*sizeof(PetscInt),&matIdx);CHKERRQ(ierr);
+        ierr = PetscMalloc1(nmat,&matIdx);CHKERRQ(ierr);
         for (i=0;i<nmat;i++) matIdx[i] = k+i;
       }
       ierr = STMatShellCreate(st,alpha,nmat,matIdx,coeffs,S);CHKERRQ(ierr);

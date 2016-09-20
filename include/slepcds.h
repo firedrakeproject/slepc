@@ -70,6 +70,7 @@ typedef enum { DS_STATE_RAW,
                DS_STATE_INTERMEDIATE,
                DS_STATE_CONDENSED,
                DS_STATE_TRUNCATED } DSStateType;
+PETSC_EXTERN const char *DSStateTypes[];
 
 /*E
     DSMatType - Used to refer to one of the matrices stored internally in DS
@@ -175,7 +176,6 @@ PETSC_EXTERN PetscErrorCode DSUpdateExtraRow(DS);
 PETSC_EXTERN PetscErrorCode DSCond(DS,PetscReal*);
 PETSC_EXTERN PetscErrorCode DSTranslateHarmonic(DS,PetscScalar,PetscReal,PetscBool,PetscScalar*,PetscReal*);
 PETSC_EXTERN PetscErrorCode DSTranslateRKS(DS,PetscScalar);
-PETSC_EXTERN PetscErrorCode DSNormalize(DS,DSMatType,PetscInt);
 PETSC_EXTERN PetscErrorCode DSOrthogonalize(DS,DSMatType,PetscInt,PetscInt*);
 PETSC_EXTERN PetscErrorCode DSPseudoOrthogonalize(DS,DSMatType,PetscInt,PetscReal*,PetscInt*,PetscReal*);
 

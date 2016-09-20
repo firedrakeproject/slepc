@@ -1436,26 +1436,18 @@ PetscErrorCode PEPSetOptionsPrefix(PEP pep,const char *prefix)
 PetscErrorCode PEPAppendOptionsPrefix(PEP pep,const char *prefix)
 {
   PetscErrorCode ierr;
-  PetscBool      flg;
-  EPS            eps;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
   if (!pep->st) { ierr = PEPGetST(pep,&pep->st);CHKERRQ(ierr); }
   ierr = STAppendOptionsPrefix(pep->st,prefix);CHKERRQ(ierr);
   if (!pep->V) { ierr = PEPGetBV(pep,&pep->V);CHKERRQ(ierr); }
-  ierr = BVSetOptionsPrefix(pep->V,prefix);CHKERRQ(ierr);
+  ierr = BVAppendOptionsPrefix(pep->V,prefix);CHKERRQ(ierr);
   if (!pep->ds) { ierr = PEPGetDS(pep,&pep->ds);CHKERRQ(ierr); }
-  ierr = DSSetOptionsPrefix(pep->ds,prefix);CHKERRQ(ierr);
+  ierr = DSAppendOptionsPrefix(pep->ds,prefix);CHKERRQ(ierr);
   if (!pep->rg) { ierr = PEPGetRG(pep,&pep->rg);CHKERRQ(ierr); }
-  ierr = RGSetOptionsPrefix(pep->rg,prefix);CHKERRQ(ierr);
+  ierr = RGAppendOptionsPrefix(pep->rg,prefix);CHKERRQ(ierr);
   ierr = PetscObjectAppendOptionsPrefix((PetscObject)pep,prefix);CHKERRQ(ierr);
-  ierr = PetscObjectTypeCompare((PetscObject)pep,PEPLINEAR,&flg);CHKERRQ(ierr);
-  if (flg) {
-    ierr = PEPLinearGetEPS(pep,&eps);CHKERRQ(ierr);
-    ierr = EPSSetOptionsPrefix(eps,((PetscObject)pep)->prefix);CHKERRQ(ierr);
-    ierr = EPSAppendOptionsPrefix(eps,"pep_");CHKERRQ(ierr);
-  }
   PetscFunctionReturn(0);
 }
 

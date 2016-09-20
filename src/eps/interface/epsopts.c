@@ -1493,11 +1493,11 @@ PetscErrorCode EPSAppendOptionsPrefix(EPS eps,const char *prefix)
   if (!eps->st) { ierr = EPSGetST(eps,&eps->st);CHKERRQ(ierr); }
   ierr = STAppendOptionsPrefix(eps->st,prefix);CHKERRQ(ierr);
   if (!eps->V) { ierr = EPSGetBV(eps,&eps->V);CHKERRQ(ierr); }
-  ierr = BVSetOptionsPrefix(eps->V,prefix);CHKERRQ(ierr);
+  ierr = BVAppendOptionsPrefix(eps->V,prefix);CHKERRQ(ierr);
   if (!eps->ds) { ierr = EPSGetDS(eps,&eps->ds);CHKERRQ(ierr); }
-  ierr = DSSetOptionsPrefix(eps->ds,prefix);CHKERRQ(ierr);
+  ierr = DSAppendOptionsPrefix(eps->ds,prefix);CHKERRQ(ierr);
   if (!eps->rg) { ierr = EPSGetRG(eps,&eps->rg);CHKERRQ(ierr); }
-  ierr = RGSetOptionsPrefix(eps->rg,prefix);CHKERRQ(ierr);
+  ierr = RGAppendOptionsPrefix(eps->rg,prefix);CHKERRQ(ierr);
   ierr = PetscObjectAppendOptionsPrefix((PetscObject)eps,prefix);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

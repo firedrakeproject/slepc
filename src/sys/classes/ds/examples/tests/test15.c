@@ -30,8 +30,10 @@ int main(int argc,char **argv)
   PetscErrorCode ierr;
   DS             ds;
   SlepcSC        sc;
+  Mat            X;
+  Vec            x0;
   PetscScalar    *K,*C,*M,*wr,*wi,z=1.0;
-  PetscReal      re,im;
+  PetscReal      re,im,nrm;
   PetscInt       i,n=10,d=2,ld;
   PetscViewer    viewer;
   PetscBool      verbose;
@@ -97,7 +99,7 @@ int main(int argc,char **argv)
     ierr = DSView(ds,viewer);CHKERRQ(ierr);
   }
 
-  /* Print first eigenvalue */
+  /* Print eigenvalues */
   ierr = PetscPrintf(PETSC_COMM_WORLD,"Computed eigenvalues =\n");CHKERRQ(ierr);
   for (i=0;i<d*n;i++) {
 #if defined(PETSC_USE_COMPLEX)
@@ -112,6 +114,20 @@ int main(int argc,char **argv)
     } else {
       ierr = PetscViewerASCIIPrintf(viewer,"  %.5f%+.5fi\n",(double)re,(double)im);CHKERRQ(ierr);
     }
+  }
+
+  /* Eigenvectors */
+  ierr = DSVectors(ds,DS_MAT_X,NULL,NULL);CHKERRQ(ierr);  /* all eigenvectors */
+  ierr = DSGetMat(ds,DS_MAT_X,&X);CHKERRQ(ierr);
+  ierr = MatCreateVecs(X,NULL,&x0);CHKERRQ(ierr);
+  ierr = MatGetColumnVector(X,x0,0);CHKERRQ(ierr);
+  ierr = VecNorm(x0,NORM_2,&nrm);CHKERRQ(ierr);
+  ierr = DSRestoreMat(ds,DS_MAT_X,&X);CHKERRQ(ierr);
+  ierr = VecDestroy(&x0);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"Norm of 1st vector = %.3f\n",(double)nrm);CHKERRQ(ierr);
+  if (verbose) {
+    ierr = PetscPrintf(PETSC_COMM_WORLD,"After vectors - - - - - - - - -\n");CHKERRQ(ierr);
+    ierr = DSView(ds,viewer);CHKERRQ(ierr);
   }
 
   ierr = PetscFree2(wr,wi);CHKERRQ(ierr);

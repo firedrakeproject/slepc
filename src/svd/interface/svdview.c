@@ -269,7 +269,7 @@ static PetscErrorCode SVDErrorView_MATLAB(SVD svd,SVDErrorType etype,PetscViewer
   ierr = PetscViewerASCIIPrintf(viewer,"Error_%s = [\n",name);CHKERRQ(ierr);
   for (i=0;i<svd->nconv;i++) {
     ierr = SVDComputeError(svd,i,etype,&error);CHKERRQ(ierr);
-    ierr = PetscViewerASCIIPrintf(viewer,"%18.16e\n",error);CHKERRQ(ierr);
+    ierr = PetscViewerASCIIPrintf(viewer,"%18.16e\n",(double)error);CHKERRQ(ierr);
   }
   ierr = PetscViewerASCIIPrintf(viewer,"];\n");CHKERRQ(ierr);
   PetscFunctionReturn(0);

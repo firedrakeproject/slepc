@@ -59,9 +59,7 @@ int main(int argc,char **argv)
   ierr = PetscViewerPushFormat(viewer,PETSC_VIEWER_ASCII_INFO_DETAIL);CHKERRQ(ierr);
   ierr = DSView(ds,viewer);CHKERRQ(ierr);
   ierr = PetscViewerPopFormat(viewer);CHKERRQ(ierr);
-  if (verbose) {
-    ierr = PetscViewerPushFormat(viewer,PETSC_VIEWER_ASCII_MATLAB);CHKERRQ(ierr);
-  }
+  ierr = PetscViewerPushFormat(viewer,PETSC_VIEWER_ASCII_MATLAB);CHKERRQ(ierr);
 
   /* Fill upper arrow-tridiagonal matrix */
   ierr = DSGetArrayReal(ds,DS_MAT_T,&T);CHKERRQ(ierr);
@@ -73,10 +71,8 @@ int main(int argc,char **argv)
   } else {
     ierr = DSSetState(ds,DS_STATE_RAW);CHKERRQ(ierr);
   }
-  if (verbose) {
-    ierr = PetscPrintf(PETSC_COMM_WORLD,"Initial - - - - - - - - -\n");CHKERRQ(ierr);
-    ierr = DSView(ds,viewer);CHKERRQ(ierr);
-  }
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"Initial - - - - - - - - -\n");CHKERRQ(ierr);
+  ierr = DSView(ds,viewer);CHKERRQ(ierr);
 
   /* Solve */
   ierr = PetscMalloc1(n,&w);CHKERRQ(ierr);

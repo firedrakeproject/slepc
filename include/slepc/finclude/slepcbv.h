@@ -38,9 +38,11 @@
 
       PetscEnum BV_ORTHOG_BLOCK_GS
       PetscEnum BV_ORTHOG_BLOCK_CHOL
+      PetscEnum BV_ORTHOG_BLOCK_TSQR
 
       parameter (BV_ORTHOG_BLOCK_GS        =  0)
       parameter (BV_ORTHOG_BLOCK_CHOL      =  1)
+      parameter (BV_ORTHOG_BLOCK_TSQR      =  2)
 
       PetscEnum BV_MATMULT_VECS
       PetscEnum BV_MATMULT_MAT

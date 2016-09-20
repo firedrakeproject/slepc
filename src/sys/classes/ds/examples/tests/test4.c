@@ -66,10 +66,12 @@ int main(int argc,char **argv)
     for (i=0;i<n-j;i++) A[i+(i+j)*ld]=1.0;
   }
   ierr = DSRestoreArray(ds,DS_MAT_A,&A);CHKERRQ(ierr);
-  /* Fill B with an identity matrix */
+  /* Fill B with an upper triangular matrix */
   ierr = DSGetArray(ds,DS_MAT_B,&B);CHKERRQ(ierr);
   ierr = PetscMemzero(B,sizeof(PetscScalar)*ld*n);CHKERRQ(ierr);
-  for (i=0;i<n;i++) B[i+i*ld]=1.0;
+  B[0+0*ld]=-1.0;
+  B[0+1*ld]=2.0;
+  for (i=1;i<n;i++) B[i+i*ld]=1.0;
   ierr = DSRestoreArray(ds,DS_MAT_B,&B);CHKERRQ(ierr);
 
   if (verbose) {
@@ -109,9 +111,9 @@ int main(int argc,char **argv)
   }
 
   /* Eigenvectors */
-  j = 2;
-  ierr = DSVectors(ds,DS_MAT_X,&j,&rnorm);CHKERRQ(ierr);  /* third eigenvector */
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"Value of rnorm for 3rd vector = %.3f\n",(double)rnorm);CHKERRQ(ierr);
+  j = 1;
+  ierr = DSVectors(ds,DS_MAT_X,&j,&rnorm);CHKERRQ(ierr);  /* second eigenvector */
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"Value of rnorm for 2nd vector = %.3f\n",(double)rnorm);CHKERRQ(ierr);
   ierr = DSVectors(ds,DS_MAT_X,NULL,NULL);CHKERRQ(ierr);  /* all eigenvectors */
   j = 0;
   rnorm = 0.0;

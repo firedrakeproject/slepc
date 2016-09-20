@@ -25,11 +25,11 @@
 #include <slepcblaslapack.h>
 
 #undef __FUNCT__
-#define __FUNCT__ "DSAllocateMat_Private"
-PetscErrorCode DSAllocateMat_Private(DS ds,DSMatType m)
+#define __FUNCT__ "DSAllocateMatrix_Private"
+PetscErrorCode DSAllocateMatrix_Private(DS ds,DSMatType m,PetscBool isreal)
 {
   size_t         sz;
-  PetscInt       n,d;
+  PetscInt       n,d,nelem;
   PetscBool      ispep;
   PetscErrorCode ierr;
 
@@ -42,46 +42,37 @@ PetscErrorCode DSAllocateMat_Private(DS ds,DSMatType m)
   else n = ds->ld;
   switch (m) {
     case DS_MAT_T:
-      sz = 3*ds->ld*sizeof(PetscScalar);
+      nelem = 3*ds->ld;
       break;
     case DS_MAT_D:
-      sz = ds->ld*sizeof(PetscScalar);
+      nelem = ds->ld;
       break;
     case DS_MAT_X:
-      sz = ds->ld*n*sizeof(PetscScalar);
+      nelem = ds->ld*n;
       break;
     case DS_MAT_Y:
-      sz = ds->ld*n*sizeof(PetscScalar);
+      nelem = ds->ld*n;
       break;
     default:
-      sz = n*n*sizeof(PetscScalar);
+      nelem = n*n;
   }
-  if (ds->mat[m]) {
-    ierr = PetscFree(ds->mat[m]);CHKERRQ(ierr);
+  if (isreal) {
+    sz = nelem*sizeof(PetscReal);
+    if (ds->rmat[m]) {
+      ierr = PetscFree(ds->rmat[m]);CHKERRQ(ierr);
+    } else {
+      ierr = PetscLogObjectMemory((PetscObject)ds,sz);CHKERRQ(ierr);
+    }
+    ierr = PetscCalloc1(nelem,&ds->rmat[m]);CHKERRQ(ierr);
   } else {
-    ierr = PetscLogObjectMemory((PetscObject)ds,sz);CHKERRQ(ierr);
+    sz = nelem*sizeof(PetscScalar);
+    if (ds->mat[m]) {
+      ierr = PetscFree(ds->mat[m]);CHKERRQ(ierr);
+    } else {
+      ierr = PetscLogObjectMemory((PetscObject)ds,sz);CHKERRQ(ierr);
+    }
+    ierr = PetscCalloc1(nelem,&ds->mat[m]);CHKERRQ(ierr);
   }
-  ierr = PetscMalloc(sz,&ds->mat[m]);CHKERRQ(ierr);
-  ierr = PetscMemzero(ds->mat[m],sz);CHKERRQ(ierr);
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
-#define __FUNCT__ "DSAllocateMatReal_Private"
-PetscErrorCode DSAllocateMatReal_Private(DS ds,DSMatType m)
-{
-  size_t         sz;
-  PetscErrorCode ierr;
-
-  PetscFunctionBegin;
-  if (m==DS_MAT_T) sz = 3*ds->ld*sizeof(PetscReal);
-  else if (m==DS_MAT_D) sz = ds->ld*sizeof(PetscReal);
-  else sz = ds->ld*ds->ld*sizeof(PetscReal);
-  if (!ds->rmat[m]) {
-    ierr = PetscLogObjectMemory((PetscObject)ds,sz);CHKERRQ(ierr);
-    ierr = PetscMalloc(sz,&ds->rmat[m]);CHKERRQ(ierr);
-  }
-  ierr = PetscMemzero(ds->rmat[m],sz);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -145,8 +136,12 @@ PetscErrorCode DSViewMat(DS ds,PetscViewer viewer,DSMatType m)
 #endif
 
   PetscFunctionBegin;
-  if (m>=DS_NUM_MAT) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_WRONG,"Invalid matrix");
-  if (!ds->mat[m]) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_WRONGSTATE,"Requested matrix was not created in this DS");
+  PetscValidHeaderSpecific(ds,DS_CLASSID,1);
+  PetscValidLogicalCollectiveEnum(ds,m,3);
+  DSCheckValidMat(ds,m,3);
+  if (!viewer) viewer = PETSC_VIEWER_STDOUT_(PetscObjectComm((PetscObject)ds));
+  PetscValidHeaderSpecific(viewer,PETSC_VIEWER_CLASSID,2);
+  PetscCheckSameComm(ds,1,viewer,2);
   ierr = PetscViewerGetFormat(viewer,&format);CHKERRQ(ierr);
   if (format == PETSC_VIEWER_ASCII_INFO || format == PETSC_VIEWER_ASCII_INFO_DETAIL) PetscFunctionReturn(0);
   ierr = PetscViewerASCIIUseTabs(viewer,PETSC_FALSE);CHKERRQ(ierr);
@@ -177,12 +172,12 @@ PetscErrorCode DSViewMat(DS ds,PetscViewer viewer,DSMatType m)
     for (j=0;j<cols;j++) {
 #if defined(PETSC_USE_COMPLEX)
       if (allreal) {
-        ierr = PetscViewerASCIIPrintf(viewer,"%18.16e ",PetscRealPart(*v));CHKERRQ(ierr);
+        ierr = PetscViewerASCIIPrintf(viewer,"%18.16e ",(double)PetscRealPart(*v));CHKERRQ(ierr);
       } else {
-        ierr = PetscViewerASCIIPrintf(viewer,"%18.16e%+18.16ei ",PetscRealPart(*v),PetscImaginaryPart(*v));CHKERRQ(ierr);
+        ierr = PetscViewerASCIIPrintf(viewer,"%18.16e%+18.16ei ",(double)PetscRealPart(*v),(double)PetscImaginaryPart(*v));CHKERRQ(ierr);
       }
 #else
-      ierr = PetscViewerASCIIPrintf(viewer,"%18.16e ",*v);CHKERRQ(ierr);
+      ierr = PetscViewerASCIIPrintf(viewer,"%18.16e ",(double)*v);CHKERRQ(ierr);
 #endif
       v += ds->ld;
     }
@@ -405,6 +400,10 @@ PetscErrorCode DSSetIdentity(DS ds,DSMatType mat)
   PetscInt       i,ld,n,l;
 
   PetscFunctionBegin;
+  PetscValidHeaderSpecific(ds,DS_CLASSID,1);
+  PetscValidLogicalCollectiveEnum(ds,mat,2);
+  DSCheckValidMat(ds,mat,2);
+
   ierr = DSGetDimensions(ds,&n,NULL,&l,NULL,NULL);CHKERRQ(ierr);
   ierr = DSGetLeadingDimension(ds,&ld);CHKERRQ(ierr);
   ierr = PetscLogEventBegin(DS_Other,ds,0,0,0);CHKERRQ(ierr);
@@ -452,6 +451,7 @@ PetscErrorCode DSOrthogonalize(DS ds,DSMatType mat,PetscInt cols,PetscInt *lindc
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
   DSCheckAlloc(ds,1);
   PetscValidLogicalCollectiveEnum(ds,mat,2);
+  DSCheckValidMat(ds,mat,2);
   PetscValidLogicalCollectiveInt(ds,cols,3);
 
   ierr = DSGetDimensions(ds,&n,NULL,&l,NULL,NULL);CHKERRQ(ierr);
@@ -552,7 +552,10 @@ static PetscErrorCode SlepcMatDenseMult(PetscScalar *C,PetscInt _ldC,PetscScalar
 
    Output Parameters:
 +  lindcols - (optional) linearly independent columns of the matrix
--  ns   - (optional) the new norm of the vectors
+-  ns   - (optional) the new signature of the vectors
+
+   Note:
+   After the call the matrix satisfies A'*s*A = ns.
 
    Level: developer
 
@@ -570,6 +573,7 @@ PetscErrorCode DSPseudoOrthogonalize(DS ds,DSMatType mat,PetscInt cols,PetscReal
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
   DSCheckAlloc(ds,1);
   PetscValidLogicalCollectiveEnum(ds,mat,2);
+  DSCheckValidMat(ds,mat,2);
   PetscValidLogicalCollectiveInt(ds,cols,3);
   PetscValidRealPointer(s,4);
   ierr = DSGetDimensions(ds,&n,NULL,&l,NULL,NULL);CHKERRQ(ierr);

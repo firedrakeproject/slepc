@@ -43,7 +43,6 @@ struct _DSOps {
   PetscErrorCode (*cond)(DS,PetscReal*);
   PetscErrorCode (*transharm)(DS,PetscScalar,PetscReal,PetscBool,PetscScalar*,PetscReal*);
   PetscErrorCode (*transrks)(DS,PetscScalar);
-  PetscErrorCode (*normalize)(DS,DSMatType,PetscInt);
   PetscErrorCode (*destroy)(DS);
 };
 
@@ -83,6 +82,8 @@ struct _p_DS {
 
 #define DSCheckAlloc(h,arg) do {} while (0)
 #define DSCheckSolved(h,arg) do {} while (0)
+#define DSCheckValidMat(ds,m,arg) do {} while (0)
+#define DSCheckValidMatReal(ds,m,arg) do {} while (0)
 
 #else
 
@@ -96,10 +97,23 @@ struct _p_DS {
     if (h->state<DS_STATE_CONDENSED) SETERRQ1(PetscObjectComm((PetscObject)h),PETSC_ERR_ARG_WRONGSTATE,"Must call DSSolve() first: Parameter #%d",arg); \
   } while (0)
 
+#define DSCheckValidMat(ds,m,arg) \
+  do { \
+    if (m>=DS_NUM_MAT) SETERRQ1(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_WRONG,"Invalid matrix: Parameter #%d",arg); \
+    if (!ds->mat[m]) SETERRQ1(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_WRONGSTATE,"Requested matrix was not created in this DS: Parameter #%d",arg); \
+  } while (0)
+
+#define DSCheckValidMatReal(ds,m,arg) \
+  do { \
+    if (m>=DS_NUM_MAT) SETERRQ1(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_WRONG,"Invalid matrix: Parameter #%d",arg); \
+    if (!ds->rmat[m]) SETERRQ1(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_WRONGSTATE,"Requested matrix was not created in this DS: Parameter #%d",arg); \
+  } while (0)
+
 #endif
 
-PETSC_INTERN PetscErrorCode DSAllocateMat_Private(DS,DSMatType);
-PETSC_INTERN PetscErrorCode DSAllocateMatReal_Private(DS,DSMatType);
+PETSC_INTERN PetscErrorCode DSAllocateMatrix_Private(DS,DSMatType,PetscBool);
+PETSC_STATIC_INLINE PetscErrorCode DSAllocateMat_Private(DS ds,DSMatType m) {return DSAllocateMatrix_Private(ds,m,PETSC_FALSE);}
+PETSC_STATIC_INLINE PetscErrorCode DSAllocateMatReal_Private(DS ds,DSMatType m) {return DSAllocateMatrix_Private(ds,m,PETSC_TRUE);}
 PETSC_INTERN PetscErrorCode DSAllocateWork_Private(DS,PetscInt,PetscInt,PetscInt);
 PETSC_INTERN PetscErrorCode DSSortEigenvalues_Private(DS,PetscScalar*,PetscScalar*,PetscInt*,PetscBool);
 PETSC_INTERN PetscErrorCode DSSortEigenvaluesReal_Private(DS,PetscReal*,PetscInt*);
@@ -116,7 +130,6 @@ PETSC_INTERN PetscErrorCode DSSwitchFormat_GHIEP(DS,PetscBool);
 PETSC_INTERN PetscErrorCode DSGHIEPRealBlocks(DS);
 
 PETSC_INTERN PetscErrorCode DSSolve_GHIEP_HZ(DS,PetscScalar*,PetscScalar*);
-PETSC_INTERN PetscErrorCode DSSolve_GHIEP_DQDS_II(DS,PetscScalar*,PetscScalar*);
 
 PETSC_INTERN PetscErrorCode BDC_dibtdc_(const char*,PetscBLASInt,PetscBLASInt,PetscBLASInt*,PetscReal*,PetscBLASInt,PetscBLASInt,PetscReal*,PetscBLASInt*,PetscBLASInt,PetscBLASInt,PetscReal,PetscReal*,PetscReal*,PetscBLASInt,PetscReal*,PetscBLASInt,PetscBLASInt*,PetscBLASInt,PetscBLASInt*,PetscBLASInt);
 PETSC_INTERN PetscErrorCode BDC_dlaed3m_(const char*,const char*,PetscBLASInt,PetscBLASInt,PetscBLASInt,PetscReal*,PetscReal*,PetscBLASInt,PetscReal,PetscReal*,PetscReal*,PetscBLASInt*,PetscBLASInt*,PetscReal*,PetscReal*,PetscBLASInt*,PetscBLASInt,PetscBLASInt);

@@ -30,8 +30,8 @@ int main(int argc,char **argv)
   PetscErrorCode ierr;
   DS             ds;
   SlepcSC        sc;
-  PetscReal      sigma;
-  PetscScalar    *A,*w;
+  PetscReal      sigma,rnorm,aux;
+  PetscScalar    *A,*U,*w;
   PetscInt       i,j,k,n=15,m=10,ld;
   PetscViewer    viewer;
   PetscBool      verbose;
@@ -56,9 +56,6 @@ int main(int argc,char **argv)
   ierr = PetscViewerPushFormat(viewer,PETSC_VIEWER_ASCII_INFO_DETAIL);CHKERRQ(ierr);
   ierr = DSView(ds,viewer);CHKERRQ(ierr);
   ierr = PetscViewerPopFormat(viewer);CHKERRQ(ierr);
-  if (verbose) {
-    ierr = PetscViewerPushFormat(viewer,PETSC_VIEWER_ASCII_MATLAB);CHKERRQ(ierr);
-  }
 
   /* Fill with a rectangular Toeplitz matrix */
   ierr = DSGetArray(ds,DS_MAT_A,&A);CHKERRQ(ierr);
@@ -72,9 +69,10 @@ int main(int argc,char **argv)
   ierr = DSRestoreArray(ds,DS_MAT_A,&A);CHKERRQ(ierr);
   ierr = DSSetState(ds,DS_STATE_RAW);CHKERRQ(ierr);
   if (verbose) {
+    ierr = PetscViewerPushFormat(viewer,PETSC_VIEWER_ASCII_MATLAB);CHKERRQ(ierr);
     ierr = PetscPrintf(PETSC_COMM_WORLD,"Initial - - - - - - - - -\n");CHKERRQ(ierr);
-    ierr = DSView(ds,viewer);CHKERRQ(ierr);
   }
+  ierr = DSView(ds,viewer);CHKERRQ(ierr);
 
   /* Solve */
   ierr = PetscMalloc1(k,&w);CHKERRQ(ierr);
@@ -96,6 +94,20 @@ int main(int argc,char **argv)
     sigma = PetscRealPart(w[i]);
     ierr = PetscViewerASCIIPrintf(viewer,"  %.5f\n",(double)sigma);CHKERRQ(ierr);
   }
+
+  /* Singular vectors */
+  ierr = DSVectors(ds,DS_MAT_U,NULL,NULL);CHKERRQ(ierr);  /* all singular vectors */
+  j = 0;
+  rnorm = 0.0;
+  ierr = DSGetArray(ds,DS_MAT_U,&U);CHKERRQ(ierr);
+  for (i=0;i<n;i++) {
+    aux = PetscAbsScalar(U[i+j*ld]);
+    rnorm += aux*aux;
+  }
+  ierr = DSRestoreArray(ds,DS_MAT_U,&U);CHKERRQ(ierr);
+  rnorm = PetscSqrtReal(rnorm);
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"Norm of 1st U vector = %.3f\n",(double)rnorm);CHKERRQ(ierr);
+
   ierr = PetscFree(w);CHKERRQ(ierr);
   ierr = DSDestroy(&ds);CHKERRQ(ierr);
   ierr = SlepcFinalize();

@@ -88,6 +88,7 @@ static PetscErrorCode HZStep(PetscBLASInt ntop,PetscBLASInt nn,PetscReal tr,Pets
   PetscBool      swap;
 
   PetscFunctionBegin;
+  *flag = PETSC_FALSE;
   worstcond = 1.0;
   ierr = PetscBLASIntCast(n,&n_);CHKERRQ(ierr);
 
@@ -167,7 +168,6 @@ static PetscErrorCode HZStep(PetscBLASInt ntop,PetscBLASInt nn,PetscReal tr,Pets
         sygn = dd[jj]*dd[jj+1];
         ierr = UnifiedRotation(bulge10,bulge20,sygn,rot,&rcond,&swap);CHKERRQ(ierr);
         if (rcond<PETSC_MACHINE_EPSILON) {
-          SETERRQ1(PETSC_COMM_SELF,0,"Transforming matrix is numerically singular rcond=%g",rcond);
           *flag = PETSC_TRUE;
           PetscFunctionReturn(0);
         }

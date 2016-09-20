@@ -1,10 +1,10 @@
 Solve a Dense System of type PEP - n=10.
 DS Object: 1 MPI processes
   type: pep
-  current state: raw
+  current state: RAW
   dimensions: ld=12, n=10, l=0, k=0
   flags:
-    polynomial degree: 2
+  polynomial degree: 2
 Computed eigenvalues =
   4.50158
   3.13975
@@ -26,3 +26,4 @@ Computed eigenvalues =
   -2.86524
   -3.04112
   -3.14751
+Norm of 1st vector = 1.000

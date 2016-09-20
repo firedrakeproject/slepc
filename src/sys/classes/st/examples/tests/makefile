@@ -24,15 +24,16 @@ FFLAGS     =
 CPPFLAGS   =
 FPPFLAGS   =
 LOCDIR     = src/sys/classes/st/examples/tests/
-EXAMPLESC  = test1.c test2.c test3.c test4.c
+EXAMPLESC  = test1.c test2.c test3.c test4.c test5.c
 EXAMPLESF  =
 MANSEC     = ST
-TESTS      = test1 test2 test3 test4
+TESTS      = test1 test2 test3 test4 test5
 
 TESTEXAMPLES_C_NOTSINGLE = test1.PETSc runtest1_1 test1.rm \
                            test2.PETSc runtest2_1 test2.rm \
                            test3.PETSc runtest3_1 test3.rm \
-                           test4.PETSc runtest4_1 runtest4_2 test4.rm
+                           test4.PETSc runtest4_1 runtest4_2 test4.rm \
+                           test5.PETSc runtest5_1 test5.rm
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common
 
@@ -51,6 +52,10 @@ test3: test3.o chkopts
 test4: test4.o chkopts
 	-${CLINKER} -o test4 test4.o ${SLEPC_SYS_LIB}
 	${RM} test4.o
+
+test5: test5.o chkopts
+	-${CLINKER} -o test5 test5.o ${SLEPC_SYS_LIB}
+	${RM} test5.o
 
 #------------------------------------------------------------------------------------
 
@@ -82,5 +87,12 @@ runtest4_2: runtest4_2_copy runtest4_2_shell
 runtest4_2_%:
 	-@${SETTEST}; check=test4_2; matmode=$*; \
 	${MPIEXEC} -n 1 ./test4 -st_matmode $$matmode > $${test}.tmp 2>&1; \
+	${TESTCODE}
+
+runtest5_1: runtest5_1_copy runtest5_1_inplace runtest5_1_shell
+runtest5_1_%:
+	-@${SETTEST}; check=test5_1; matmode=$*; \
+	if [ "$$matmode" = shell ]; then matmode="shell -ksp_type bcgs -pc_type jacobi"; fi; \
+	${MPIEXEC} -n 1 ./test5 -st_matmode $$matmode > $${test}.tmp 2>&1; \
 	${TESTCODE}
 

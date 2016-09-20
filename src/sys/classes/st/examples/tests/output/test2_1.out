@@ -27,6 +27,18 @@ Vec Object: 1 MPI processes
 -0.1
 -0.1
 0.9
+Vec Object: 1 MPI processes
+  type: seq
+0.9
+-0.1
+-0.1
+-0.1
+-0.1
+-0.1
+-0.1
+-0.1
+-0.1
+0.9
 ST type sinvert
 With shift=0.1
 Vec Object: 1 MPI processes
@@ -106,3 +118,17 @@ Vec Object: 1 MPI processes
 -1.
 -1.
 0.
+ST type sinvert
+With shift=0.1
+Vec Object: 1 MPI processes
+  type: seq
+-18.0797
+-35.3515
+-50.0881
+-60.8159
+-66.4621
+-66.4621
+-60.8159
+-50.0881
+-35.3515
+-18.0797

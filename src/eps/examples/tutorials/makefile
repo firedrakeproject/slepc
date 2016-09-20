@@ -38,11 +38,12 @@ TESTEXAMPLES_C_DOUBLE              = ex2.PETSc runex2_ciss_1 runex2_ciss_2 ex2.r
 TESTEXAMPLES_C_NOTSINGLE           = ex2.PETSc runex2_1 ex2.rm \
                                      ex3.PETSc runex3_1 ex3.rm \
                                      ex10.PETSc runex10_1 ex10.rm \
-                                     ex11.PETSc runex11_1 ex11.rm \
+                                     ex11.PETSc runex11_1 runex11_2 ex11.rm \
                                      ex12.PETSc runex12_1 ex12.rm \
                                      ex30.PETSc runex30_1 ex30.rm
 TESTEXAMPLES_C_DATAFILE            = ex4.PETSc runex4_1 ex4.rm \
                                      ex7.PETSc runex7_1 ex7.rm \
+                                     ex9.PETSc runex9_3 ex9.rm \
                                      ex31.PETSc runex31_1 ex31.rm
 TESTEXAMPLES_C_NOCOMPLEX           = ex25.PETSc runex25_1 ex25.rm
 TESTEXAMPLES_C_NOCOMPLEX_NOTSINGLE = ex9.PETSc runex9_1 runex9_2 ex9.rm
@@ -215,14 +216,27 @@ runex9_2:
 	${MPIEXEC} -n 1 ./ex9 -eps_nev 8 -eps_max_it 300 -eps_target -28 -rg_type interval -rg_interval_endpoints -40,-20,-.1,.1 -terse > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
-runex10_1:
-	-@${SETTEST}; \
-	${MPIEXEC} -n 1 ./ex10 -eps_nev 5 -st_type shell -terse > $${test}.tmp 2>&1; \
+runex9_3:
+	-@${SETTEST}; check=ex9_1; \
+	${MPIEXEC} -n 1 ./ex9 -eps_nev 4 -eps_balance oneside -terse > $${test}.tmp 2>&1; \
+	${TESTCODE}
+
+runex10_1: runex10_1_sinvert runex10_1_sinvert_twoside runex10_1_shell runex10_1_shell_twoside
+runex10_1_%:
+	-@${SETTEST}; check=ex10_1; st=$*; \
+	if [ "$$st" = sinvert_twoside ]; then st="sinvert -eps_balance twoside"; \
+	elif [ "$$st" = shell_twoside ]; then st="shell -eps_balance twoside"; fi; \
+	${MPIEXEC} -n 1 ./ex10 -eps_nev 5 -eps_non_hermitian -st_type $$st -terse > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
 runex11_1:
 	-@${SETTEST}; \
-	${MPIEXEC} -n 1 ./ex11 -eps_nev 4 -terse > $${test}.tmp 2>&1; \
+	${MPIEXEC} -n 1 ./ex11 -eps_nev 4 -eps_krylovschur_restart .2 -terse > $${test}.tmp 2>&1; \
+	${TESTCODE}
+
+runex11_2:
+	-@${SETTEST}; check=ex11_1; \
+	${MPIEXEC} -n 1 ./ex11 -eps_nev 4 -eps_ncv 20 -st_type sinvert -st_ksp_type cg -st_pc_type jacobi -terse > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
 runex12_1:

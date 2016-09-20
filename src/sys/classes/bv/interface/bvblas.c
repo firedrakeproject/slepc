@@ -360,7 +360,7 @@ PetscErrorCode BVNorm_LAPACK_Private(BV bv,PetscInt m_,PetscInt n_,const PetscSc
 /*
     QR factorization of an mxn matrix
 */
-PetscErrorCode BVOrthogonalize_LAPACK_Private(BV bv,PetscInt m_,PetscInt n_,PetscScalar *Q,PetscScalar *R,PetscBool mpi)
+PetscErrorCode BVOrthogonalize_LAPACK_Private(BV bv,PetscInt m_,PetscInt n_,PetscScalar *Q,PetscScalar *R)
 {
 #if defined(PETSC_MISSING_LAPACK_GEQRF) || defined(PETSC_MISSING_LAPACK_ORGQR)
   PetscFunctionBegin;
@@ -370,6 +370,7 @@ PetscErrorCode BVOrthogonalize_LAPACK_Private(BV bv,PetscInt m_,PetscInt n_,Pets
   PetscBLASInt   m,n,i,j,k,l,nb,lwork,info;
   PetscScalar    *tau,*work,*Rl=NULL,*A=NULL,*C=NULL,one=1.0,zero=0.0;
   PetscMPIInt    rank,size,len;
+  PetscBool      mpi;
 
   PetscFunctionBegin;
   ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
@@ -377,9 +378,11 @@ PetscErrorCode BVOrthogonalize_LAPACK_Private(BV bv,PetscInt m_,PetscInt n_,Pets
   ierr = PetscBLASIntCast(n_,&n);CHKERRQ(ierr);
   k = PetscMin(m,n);
   nb = 16;
+  ierr = MPI_Comm_size(PetscObjectComm((PetscObject)bv),&size);CHKERRQ(ierr);
+  if (size>2) SETERRQ(PetscObjectComm((PetscObject)bv),1,"Not implemented yet for more than two MPI processes");
+  mpi = size>1? PETSC_TRUE: PETSC_FALSE;
   if (mpi) {
     ierr = MPI_Comm_rank(PetscObjectComm((PetscObject)bv),&rank);CHKERRQ(ierr);
-    ierr = MPI_Comm_size(PetscObjectComm((PetscObject)bv),&size);CHKERRQ(ierr);
     ierr = BVAllocateWork_Private(bv,k+n*nb+n*n+n*n*size+m*n);CHKERRQ(ierr);
   } else {
     ierr = BVAllocateWork_Private(bv,k+n*nb);CHKERRQ(ierr);

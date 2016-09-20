@@ -1,9 +1,11 @@
 Solve a Dense System of type NHEP - dimension 10.
 DS Object: 1 MPI processes
   type: nhep
-  current state: raw
+  current state: RAW
   dimensions: ld=12, n=10, l=0, k=0
   flags:
+DS of type nhep, method used=0
+State after solve: CONDENSED
 Computed eigenvalues =
   0.19797+2.12926i
   0.19797-2.12926i

@@ -58,7 +58,7 @@ PetscErrorCode DSView_PEP(DS ds,PetscViewer viewer)
 
   PetscFunctionBegin;
   ierr = PetscViewerGetFormat(viewer,&format);CHKERRQ(ierr);
-  ierr = PetscViewerASCIIPrintf(viewer,"  polynomial degree: %D\n",ctx->d);CHKERRQ(ierr);
+  ierr = PetscViewerASCIIPrintf(viewer,"polynomial degree: %D\n",ctx->d);CHKERRQ(ierr);
   if (format == PETSC_VIEWER_ASCII_INFO || format == PETSC_VIEWER_ASCII_INFO_DETAIL) PetscFunctionReturn(0);
   for (i=0;i<=ctx->d;i++) {
     ierr = DSViewMat(ds,viewer,DSMatExtra[i]);CHKERRQ(ierr);
@@ -77,22 +77,6 @@ PetscErrorCode DSVectors_PEP(DS ds,DSMatType mat,PetscInt *j,PetscReal *rnorm)
 {
   PetscFunctionBegin;
   if (rnorm) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"Not implemented yet");
-  switch (mat) {
-    case DS_MAT_X:
-      break;
-    case DS_MAT_Y:
-      break;
-    default:
-      SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_OUTOFRANGE,"Invalid mat parameter");
-  }
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
-#define __FUNCT__ "DSNormalize_PEP"
-PetscErrorCode DSNormalize_PEP(DS ds,DSMatType mat,PetscInt col)
-{
-  PetscFunctionBegin;
   switch (mat) {
     case DS_MAT_X:
       break;
@@ -381,7 +365,6 @@ PETSC_EXTERN PetscErrorCode DSCreate_PEP(DS ds)
   ds->ops->vectors       = DSVectors_PEP;
   ds->ops->solve[0]      = DSSolve_PEP_QZ;
   ds->ops->sort          = DSSort_PEP;
-  ds->ops->normalize     = DSNormalize_PEP;
   ds->ops->destroy       = DSDestroy_PEP;
   ierr = PetscObjectComposeFunction((PetscObject)ds,"DSPEPSetDegree_C",DSPEPSetDegree_PEP);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)ds,"DSPEPGetDegree_C",DSPEPGetDegree_PEP);CHKERRQ(ierr);

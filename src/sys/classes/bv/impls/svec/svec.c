@@ -229,23 +229,6 @@ PetscErrorCode BVNorm_Local_Svec(BV bv,PetscInt j,NormType type,PetscReal *val)
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "BVOrthogonalize_Svec"
-PetscErrorCode BVOrthogonalize_Svec(BV V,Mat R)
-{
-  PetscErrorCode ierr;
-  BV_SVEC        *ctx = (BV_SVEC*)V->data;
-  PetscScalar    *pv,*r=NULL;
-
-  PetscFunctionBegin;
-  if (R) { ierr = MatDenseGetArray(R,&r);CHKERRQ(ierr); }
-  ierr = VecGetArray(ctx->v,&pv);CHKERRQ(ierr);
-  ierr = BVOrthogonalize_LAPACK_Private(V,V->n,V->k,pv+V->nc*V->n,r,ctx->mpi);CHKERRQ(ierr);
-  ierr = VecRestoreArray(ctx->v,&pv);CHKERRQ(ierr);
-  if (R) { ierr = MatDenseRestoreArray(R,&r);CHKERRQ(ierr); }
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
 #define __FUNCT__ "BVMatMult_Svec"
 PetscErrorCode BVMatMult_Svec(BV V,Mat A,BV W)
 {
@@ -556,7 +539,6 @@ PETSC_EXTERN PetscErrorCode BVCreate_Svec(BV bv)
   }
   bv->ops->norm             = BVNorm_Svec;
   bv->ops->norm_local       = BVNorm_Local_Svec;
-  /*bv->ops->orthogonalize    = BVOrthogonalize_Svec;*/
   bv->ops->getarray         = BVGetArray_Svec;
   bv->ops->restorearray     = BVRestoreArray_Svec;
   bv->ops->getarrayread     = BVGetArrayRead_Svec;

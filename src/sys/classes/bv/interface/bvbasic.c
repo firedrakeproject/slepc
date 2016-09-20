@@ -947,6 +947,7 @@ PetscErrorCode BVSetOrthogonalization(BV bv,BVOrthogType type,BVOrthogRefineType
   switch (block) {
     case BV_ORTHOG_BLOCK_GS:
     case BV_ORTHOG_BLOCK_CHOL:
+    case BV_ORTHOG_BLOCK_TSQR:
       bv->orthog_block = block;
       break;
     default:
@@ -1278,7 +1279,7 @@ PetscErrorCode BVGetArrayRead(BV bv,const PetscScalar **a)
    BVRestoreArrayRead - Restore the BV object after BVGetArrayRead() has
    been called.
 
-   Logically Collective on BV
+   Not Collective
 
    Input Parameters:
 +  bv - the basis vectors context

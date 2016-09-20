@@ -27,15 +27,17 @@ static char help[] = "Test BV operations.\n\n";
 #define __FUNCT__ "main"
 int main(int argc,char **argv)
 {
-  PetscErrorCode ierr;
-  Vec            t,v;
-  Mat            Q,M;
-  BV             X,Y;
-  PetscInt       i,j,n=10,k=5,l=3;
-  PetscScalar    *q,*z;
-  PetscReal      nrm;
-  PetscViewer    view;
-  PetscBool      verbose;
+  PetscErrorCode    ierr;
+  Vec               t,v;
+  Mat               Q,M;
+  BV                X,Y;
+  PetscInt          i,j,n=10,k=5,l=3,nloc;
+  PetscMPIInt       rank;
+  PetscScalar       *q,*z;
+  const PetscScalar *pX;
+  PetscReal         nrm;
+  PetscViewer       view;
+  PetscBool         verbose;
 
   ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
   ierr = PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL);CHKERRQ(ierr);
@@ -48,6 +50,7 @@ int main(int argc,char **argv)
   ierr = VecCreate(PETSC_COMM_WORLD,&t);CHKERRQ(ierr);
   ierr = VecSetSizes(t,PETSC_DECIDE,n);CHKERRQ(ierr);
   ierr = VecSetFromOptions(t);CHKERRQ(ierr);
+  ierr = VecGetLocalSize(t,&nloc);CHKERRQ(ierr);
 
   /* Create BV object X */
   ierr = BVCreate(PETSC_COMM_WORLD,&X);CHKERRQ(ierr);
@@ -161,9 +164,21 @@ int main(int argc,char **argv)
 
   /* Test BVNorm */
   ierr = BVNormColumn(X,0,NORM_2,&nrm);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"2-Norm or X[0] = %g\n",(double)nrm);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"2-Norm of X[0] = %g\n",(double)nrm);CHKERRQ(ierr);
   ierr = BVNorm(X,NORM_FROBENIUS,&nrm);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"Frobenius Norm or X = %g\n",(double)nrm);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"Frobenius Norm of X = %g\n",(double)nrm);CHKERRQ(ierr);
+
+  /* Test BVGetArrayRead */
+  ierr = MPI_Comm_rank(PETSC_COMM_WORLD,&rank);CHKERRQ(ierr);
+  if (!rank) {
+    ierr = PetscPrintf(PETSC_COMM_WORLD,"First row of X =\n");CHKERRQ(ierr);
+    ierr = BVGetArrayRead(X,&pX);CHKERRQ(ierr);
+    for (i=0;i<k;i++) {
+      ierr = PetscPrintf(PETSC_COMM_WORLD,"%g ",(double)PetscRealPart(pX[i*nloc]));CHKERRQ(ierr);
+    }
+    ierr = PetscPrintf(PETSC_COMM_WORLD,"\n");CHKERRQ(ierr);
+    ierr = BVRestoreArrayRead(X,&pX);CHKERRQ(ierr);
+  }
 
   ierr = BVDestroy(&X);CHKERRQ(ierr);
   ierr = BVDestroy(&Y);CHKERRQ(ierr);

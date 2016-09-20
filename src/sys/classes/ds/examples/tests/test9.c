@@ -24,6 +24,31 @@ static char help[] = "Test DSGHEP.\n\n";
 #include <slepcds.h>
 
 #undef __FUNCT__
+#define __FUNCT__ "ComputeNorm"
+/*
+   Compute the norm of the j-th column of matrix mat in ds
+ */
+PetscErrorCode ComputeNorm(DS ds,DSMatType mat,PetscInt j,PetscReal *onrm)
+{
+  PetscErrorCode ierr;
+  PetscScalar    *X;
+  PetscReal      aux,nrm=0.0;
+  PetscInt       i,n,ld;
+
+  PetscFunctionBeginUser;
+  ierr = DSGetLeadingDimension(ds,&ld);CHKERRQ(ierr);
+  ierr = DSGetDimensions(ds,&n,NULL,NULL,NULL,NULL);CHKERRQ(ierr);
+  ierr = DSGetArray(ds,mat,&X);CHKERRQ(ierr);
+  for (i=0;i<n;i++) {
+    aux = PetscAbsScalar(X[i+j*ld]);
+    nrm += aux*aux;
+  }
+  ierr = DSRestoreArray(ds,mat,&X);CHKERRQ(ierr);
+  *onrm = PetscSqrtReal(nrm);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
 #define __FUNCT__ "main"
 int main(int argc,char **argv)
 {
@@ -32,6 +57,7 @@ int main(int argc,char **argv)
   SlepcSC        sc;
   PetscReal      re;
   PetscScalar    *A,*B,*eig;
+  PetscReal      nrm;
   PetscInt       i,j,n=10,ld;
   PetscViewer    viewer;
   PetscBool      verbose;
@@ -78,11 +104,12 @@ int main(int argc,char **argv)
 
   /* Solve */
   ierr = PetscMalloc1(n,&eig);CHKERRQ(ierr);
-  ierr = DSGetSlepcSC(ds,&sc);CHKERRQ(ierr);
+  ierr = PetscNew(&sc);CHKERRQ(ierr);
   sc->comparison    = SlepcCompareLargestMagnitude;
   sc->comparisonctx = NULL;
   sc->map           = NULL;
   sc->mapobj        = NULL;
+  ierr = DSSetSlepcSC(ds,sc);CHKERRQ(ierr);
   ierr = DSSolve(ds,eig,NULL);CHKERRQ(ierr);
   ierr = DSSort(ds,eig,NULL,NULL,NULL,NULL);CHKERRQ(ierr);
   if (verbose) {
@@ -96,6 +123,16 @@ int main(int argc,char **argv)
     re = PetscRealPart(eig[i]);
     ierr = PetscViewerASCIIPrintf(viewer,"  %.5f\n",(double)re);CHKERRQ(ierr);
   }
+
+  /* Eigenvectors */
+  ierr = DSVectors(ds,DS_MAT_X,NULL,NULL);CHKERRQ(ierr);  /* all eigenvectors */
+  ierr = ComputeNorm(ds,DS_MAT_X,0,&nrm);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"Norm of 1st vector = %.3f\n",(double)nrm);CHKERRQ(ierr);
+  if (verbose) {
+    ierr = PetscPrintf(PETSC_COMM_WORLD,"After vectors - - - - - - - - -\n");CHKERRQ(ierr);
+    ierr = DSView(ds,viewer);CHKERRQ(ierr);
+  }
+
   ierr = PetscFree(eig);CHKERRQ(ierr);
   ierr = DSDestroy(&ds);CHKERRQ(ierr);
   ierr = SlepcFinalize();

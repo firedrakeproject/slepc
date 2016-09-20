@@ -96,17 +96,14 @@ PetscErrorCode DSView_GHIEP(DS ds,PetscViewer viewer)
   const char        *methodname[] = {
                      "QR + Inverse Iteration",
                      "HZ method",
-                     "QR",
-                     "DQDS + Inverse Iteration "
+                     "QR"
   };
   const int         nmeth=sizeof(methodname)/sizeof(methodname[0]);
 
   PetscFunctionBegin;
   ierr = PetscViewerGetFormat(viewer,&format);CHKERRQ(ierr);
   if (format == PETSC_VIEWER_ASCII_INFO || format == PETSC_VIEWER_ASCII_INFO_DETAIL) {
-    if (ds->method>=nmeth) {
-      ierr = PetscViewerASCIIPrintf(viewer,"solving the problem with: INVALID METHOD\n");CHKERRQ(ierr);
-    } else {
+    if (ds->method<nmeth) {
       ierr = PetscViewerASCIIPrintf(viewer,"solving the problem with: %s\n",methodname[ds->method]);CHKERRQ(ierr);
     }
     PetscFunctionReturn(0);
@@ -118,18 +115,18 @@ PetscErrorCode DSView_GHIEP(DS ds,PetscViewer viewer)
       ierr = PetscViewerASCIIPrintf(viewer,"zzz = zeros(%D,3);\n",3*ds->n);CHKERRQ(ierr);
       ierr = PetscViewerASCIIPrintf(viewer,"zzz = [\n");CHKERRQ(ierr);
       for (i=0;i<ds->n;i++) {
-        ierr = PetscViewerASCIIPrintf(viewer,"%D %D  %18.16e\n",i+1,i+1,*(ds->rmat[DS_MAT_T]+i));CHKERRQ(ierr);
+        ierr = PetscViewerASCIIPrintf(viewer,"%D %D  %18.16e\n",i+1,i+1,(double)*(ds->rmat[DS_MAT_T]+i));CHKERRQ(ierr);
       }
       for (i=0;i<ds->n-1;i++) {
         if (*(ds->rmat[DS_MAT_T]+ds->ld+i) !=0 && i!=ds->k-1) {
-          ierr = PetscViewerASCIIPrintf(viewer,"%D %D  %18.16e\n",i+2,i+1,*(ds->rmat[DS_MAT_T]+ds->ld+i));CHKERRQ(ierr);
-          ierr = PetscViewerASCIIPrintf(viewer,"%D %D  %18.16e\n",i+1,i+2,*(ds->rmat[DS_MAT_T]+ds->ld+i));CHKERRQ(ierr);
+          ierr = PetscViewerASCIIPrintf(viewer,"%D %D  %18.16e\n",i+2,i+1,(double)*(ds->rmat[DS_MAT_T]+ds->ld+i));CHKERRQ(ierr);
+          ierr = PetscViewerASCIIPrintf(viewer,"%D %D  %18.16e\n",i+1,i+2,(double)*(ds->rmat[DS_MAT_T]+ds->ld+i));CHKERRQ(ierr);
         }
       }
       for (i = ds->l;i<ds->k;i++) {
         if (*(ds->rmat[DS_MAT_T]+2*ds->ld+i)) {
-          ierr = PetscViewerASCIIPrintf(viewer,"%D %D  %18.16e\n",ds->k+1,i+1,*(ds->rmat[DS_MAT_T]+2*ds->ld+i));CHKERRQ(ierr);
-          ierr = PetscViewerASCIIPrintf(viewer,"%D %D  %18.16e\n",i+1,ds->k+1,*(ds->rmat[DS_MAT_T]+2*ds->ld+i));CHKERRQ(ierr);
+          ierr = PetscViewerASCIIPrintf(viewer,"%D %D  %18.16e\n",ds->k+1,i+1,(double)*(ds->rmat[DS_MAT_T]+2*ds->ld+i));CHKERRQ(ierr);
+          ierr = PetscViewerASCIIPrintf(viewer,"%D %D  %18.16e\n",i+1,ds->k+1,(double)*(ds->rmat[DS_MAT_T]+2*ds->ld+i));CHKERRQ(ierr);
         }
       }
       ierr = PetscViewerASCIIPrintf(viewer,"];\n%s = spconvert(zzz);\n",DSMatName[DS_MAT_A]);CHKERRQ(ierr);
@@ -138,7 +135,7 @@ PetscErrorCode DSView_GHIEP(DS ds,PetscViewer viewer)
       ierr = PetscViewerASCIIPrintf(viewer,"omega = zeros(%D,3);\n",3*ds->n);CHKERRQ(ierr);
       ierr = PetscViewerASCIIPrintf(viewer,"omega = [\n");CHKERRQ(ierr);
       for (i=0;i<ds->n;i++) {
-        ierr = PetscViewerASCIIPrintf(viewer,"%D %D  %18.16e\n",i+1,i+1,*(ds->rmat[DS_MAT_D]+i));CHKERRQ(ierr);
+        ierr = PetscViewerASCIIPrintf(viewer,"%D %D  %18.16e\n",i+1,i+1,(double)*(ds->rmat[DS_MAT_D]+i));CHKERRQ(ierr);
       }
       ierr = PetscViewerASCIIPrintf(viewer,"];\n%s = spconvert(omega);\n",DSMatName[DS_MAT_B]);CHKERRQ(ierr);
 
@@ -150,7 +147,7 @@ PetscErrorCode DSView_GHIEP(DS ds,PetscViewer viewer)
           else if (i==j+1 || j==i+1) value = *(ds->rmat[DS_MAT_T]+ds->ld+PetscMin(i,j));
           else if ((i<ds->k && j==ds->k) || (i==ds->k && j<ds->k)) value = *(ds->rmat[DS_MAT_T]+2*ds->ld+PetscMin(i,j));
           else value = 0.0;
-          ierr = PetscViewerASCIIPrintf(viewer," %18.16e ",value);CHKERRQ(ierr);
+          ierr = PetscViewerASCIIPrintf(viewer," %18.16e ",(double)value);CHKERRQ(ierr);
         }
         ierr = PetscViewerASCIIPrintf(viewer,"\n");CHKERRQ(ierr);
       }
@@ -159,7 +156,7 @@ PetscErrorCode DSView_GHIEP(DS ds,PetscViewer viewer)
         for (j=0;j<ds->n;j++) {
           if (i==j) value = *(ds->rmat[DS_MAT_D]+i);
           else value = 0.0;
-          ierr = PetscViewerASCIIPrintf(viewer," %18.16e ",value);CHKERRQ(ierr);
+          ierr = PetscViewerASCIIPrintf(viewer," %18.16e ",(double)value);CHKERRQ(ierr);
         }
         ierr = PetscViewerASCIIPrintf(viewer,"\n");CHKERRQ(ierr);
       }
@@ -902,63 +899,6 @@ PetscErrorCode DSSolve_GHIEP_QR(DS ds,PetscScalar *wr,PetscScalar *wi)
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "DSNormalize_GHIEP"
-PetscErrorCode DSNormalize_GHIEP(DS ds,DSMatType mat,PetscInt col)
-{
-  PetscErrorCode ierr;
-  PetscInt       i,i0,i1;
-  PetscBLASInt   ld,n,one = 1;
-  PetscScalar    *A = ds->mat[DS_MAT_A],norm,*x;
-#if !defined(PETSC_USE_COMPLEX)
-  PetscScalar    norm0;
-#endif
-
-  PetscFunctionBegin;
-  switch (mat) {
-    case DS_MAT_X:
-    case DS_MAT_Y:
-    case DS_MAT_Q:
-      /* Supported matrices */
-      break;
-    case DS_MAT_U:
-    case DS_MAT_VT:
-      SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"Not implemented yet");
-      break;
-    default:
-      SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_OUTOFRANGE,"Invalid mat parameter");
-  }
-
-  ierr = PetscBLASIntCast(ds->n,&n);CHKERRQ(ierr);
-  ierr = PetscBLASIntCast(ds->ld,&ld);CHKERRQ(ierr);
-  ierr = DSGetArray(ds,mat,&x);CHKERRQ(ierr);
-  if (col < 0) {
-    i0 = 0; i1 = ds->n;
-  } else if (col>0 && A[ds->ld*(col-1)+col] != 0.0) {
-    i0 = col-1; i1 = col+1;
-  } else {
-    i0 = col; i1 = col+1;
-  }
-  for (i=i0; i<i1; i++) {
-#if !defined(PETSC_USE_COMPLEX)
-    if (i<n-1 && A[ds->ld*i+i+1] != 0.0) {
-      norm = BLASnrm2_(&n,&x[ld*i],&one);
-      norm0 = BLASnrm2_(&n,&x[ld*(i+1)],&one);
-      norm = 1.0/SlepcAbsEigenvalue(norm,norm0);
-      PetscStackCallBLAS("BLASscal",BLASscal_(&n,&norm,&x[ld*i],&one));
-      PetscStackCallBLAS("BLASscal",BLASscal_(&n,&norm,&x[ld*(i+1)],&one));
-      i++;
-    } else
-#endif
-    {
-      norm = BLASnrm2_(&n,&x[ld*i],&one);
-      norm = 1.0/norm;
-      PetscStackCallBLAS("BLASscal",BLASscal_(&n,&norm,&x[ld*i],&one));
-    }
-  }
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
 #define __FUNCT__ "DSCreate_GHIEP"
 PETSC_EXTERN PetscErrorCode DSCreate_GHIEP(DS ds)
 {
@@ -969,9 +909,7 @@ PETSC_EXTERN PetscErrorCode DSCreate_GHIEP(DS ds)
   ds->ops->solve[0]      = DSSolve_GHIEP_QR_II;
   ds->ops->solve[1]      = DSSolve_GHIEP_HZ;
   ds->ops->solve[2]      = DSSolve_GHIEP_QR;
-  ds->ops->solve[3]      = DSSolve_GHIEP_DQDS_II;
   ds->ops->sort          = DSSort_GHIEP;
-  ds->ops->normalize     = DSNormalize_GHIEP;
   PetscFunctionReturn(0);
 }
 

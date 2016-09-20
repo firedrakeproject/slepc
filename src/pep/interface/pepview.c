@@ -393,7 +393,7 @@ static PetscErrorCode PEPErrorView_MATLAB(PEP pep,PEPErrorType etype,PetscViewer
   ierr = PetscViewerASCIIPrintf(viewer,"Error_%s = [\n",name);CHKERRQ(ierr);
   for (i=0;i<pep->nconv;i++) {
     ierr = PEPComputeError(pep,i,etype,&error);CHKERRQ(ierr);
-    ierr = PetscViewerASCIIPrintf(viewer,"%18.16e\n",error);CHKERRQ(ierr);
+    ierr = PetscViewerASCIIPrintf(viewer,"%18.16e\n",(double)error);CHKERRQ(ierr);
   }
   ierr = PetscViewerASCIIPrintf(viewer,"];\n");CHKERRQ(ierr);
   PetscFunctionReturn(0);

@@ -21,7 +21,7 @@
 
 static char help[] = "Diagonal eigenproblem.\n\n"
   "The command line options are:\n"
-  "  -n <n>, where <n> = number of grid subdivisions = matrix dimension.\n"
+  "  -n <n>, where <n> = matrix dimension.\n"
   "  -seed <s>, where <s> = seed for random number generation.\n\n";
 
 #include <slepceps.h>

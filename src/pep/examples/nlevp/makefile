@@ -32,15 +32,17 @@ TESTS      = acoustic_wave_1d acoustic_wave_2d butterfly damped_beam \
              pdde_stability planar_waveguide sleeper spring
 
 TESTEXAMPLES_C                     = sleeper.PETSc runsleeper_1 sleeper.rm
-TESTEXAMPLES_C_NOTSINGLE           = sleeper.PETSc runsleeper_2 sleeper.rm \
-                                     spring.PETSc runspring_1 runspring_2_jd spring.rm
+TESTEXAMPLES_C_NOTSINGLE           = sleeper.PETSc runsleeper_2_toar runsleeper_3 sleeper.rm \
+                                     spring.PETSc runspring_1 spring.rm
 TESTEXAMPLES_C_NOCOMPLEX           = butterfly.PETSc runbutterfly_1 butterfly.rm
 TESTEXAMPLES_C_NOCOMPLEX_NOTSINGLE = acoustic_wave_1d.PETSc runacoustic_wave_1d_1 acoustic_wave_1d.rm \
                                      acoustic_wave_2d.PETSc runacoustic_wave_2d_1 acoustic_wave_2d.rm \
                                      damped_beam.PETSc rundamped_beam_1 damped_beam.rm \
                                      planar_waveguide.PETSc runplanar_waveguide_1 planar_waveguide.rm
 TESTEXAMPLES_C_COMPLEX             = damped_beam.PETSc rundamped_beam_1_jd damped_beam.rm \
-                                     pdde_stability.PETSc runpdde_stability_1 pdde_stability.rm
+                                     pdde_stability.PETSc runpdde_stability_1 pdde_stability.rm \
+                                     sleeper.PETSc runsleeper_2_jd sleeper.rm \
+                                     spring.PETSc runspring_2_jd spring.rm
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common
 
@@ -90,7 +92,7 @@ runacoustic_wave_2d_1_%:
 	-@${SETTEST}; check=acoustic_wave_2d_1; pep=$*; \
 	if [ "$$pep" = stoar ]; then pep="stoar -st_transform -pep_hermitian"; \
 	elif [ "$$pep" = qarnoldi ]; then pep="qarnoldi -st_transform"; fi; \
-	${MPIEXEC} -n 1 ./acoustic_wave_2d -pep_type $${pep} -pep_nev 2 -terse > $${test}.tmp 2>&1; \
+	${MPIEXEC} -n 1 ./acoustic_wave_2d -pep_type $${pep} -pep_nev 2 -pep_ncv 18 -terse > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
 runbutterfly_1: runbutterfly_1_toar runbutterfly_1_linear
@@ -132,8 +134,13 @@ runsleeper_2: runsleeper_2_toar runsleeper_2_jd
 runsleeper_2_%:
 	-@${SETTEST}; check=sleeper_2; pep=$*; \
 	if [ "$$pep" = toar ]; then pep="toar -pep_toar_restart .15 -pep_ncv 10 -pep_max_it 2000 -st_type sinvert"; \
-	elif [ "$$pep" = jd ]; then pep="jd -pep_ncv 24 -pep_target -.6"; fi; \
+	elif [ "$$pep" = jd ]; then pep="jd -pep_target -.61"; fi; \
 	${MPIEXEC} -n 1 ./sleeper -n 100 -pep_type $${pep} -pep_nev 4 -terse > $${test}.tmp 2>&1; \
+	${TESTCODE}
+
+runsleeper_3:
+	-@${SETTEST}; \
+	${MPIEXEC} -n 1 ./sleeper -n 270 -pep_type stoar -pep_hermitian -st_type sinvert -st_transform -pep_nev 2 -pep_target -.89 -terse > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
 runspring_1: runspring_1_toar runspring_1_stoar runspring_1_qarnoldi runspring_1_linear

@@ -25,23 +25,25 @@ CPPFLAGS   =
 FPPFLAGS   =
 LOCDIR     = src/sys/classes/ds/examples/tests/
 EXAMPLESC  = test1.c test2.c test3.c test4.c test5.c test6.c test7.c test8.c test9.c \
-             test12.c test13.c test15.c
+             test12.c test13.c test15.c test16.c test17.c
 EXAMPLESF  = test14f.F
 MANSEC     = DS
 TESTS      = test1 test2 test3 test4 test5 test6 test7 test8 test9 test12 test13 \
-             test14f test15
+             test14f test15 test16 test17
 
 TESTEXAMPLES_C                     = test2.PETSc runtest2_1 test2.rm \
-                                     test3.PETSc runtest3_1 test3.rm \
-                                     test12.PETSc runtest12_1 test12.rm
-TESTEXAMPLES_C_NOTSINGLE           = test5.PETSc runtest5_1 test5.rm \
+                                     test12.PETSc runtest12_1 test12.rm \
+                                     test16.PETSc runtest16_1 test16.rm
+TESTEXAMPLES_C_NOTSINGLE           = test3.PETSc runtest3_1 test3.rm \
+                                     test5.PETSc runtest5_1 test5.rm \
                                      test6.PETSc runtest6_1 test6.rm \
                                      test7.PETSc runtest7_1 test7.rm \
                                      test8.PETSc runtest8_1 test8.rm \
                                      test9.PETSc runtest9_1 test9.rm \
                                      test15.PETSc runtest15_1 test15.rm
 TESTEXAMPLES_C_NOCOMPLEX           = test1.PETSc runtest1_1 test1.rm \
-                                     test4.PETSc runtest4_1 test4.rm
+                                     test4.PETSc runtest4_1 test4.rm \
+                                     test17.PETSc runtest17_1 test17.rm
 TESTEXAMPLES_C_NOCOMPLEX_NOTSINGLE = test13.PETSc runtest13_1 test13.rm
 TESTEXAMPLES_FORTRAN_NOCOMPLEX     = test14f.PETSc runtest14f_1 test14f.rm
 
@@ -99,6 +101,14 @@ test15: test15.o chkopts
 	-${CLINKER} -o test15 test15.o ${SLEPC_SYS_LIB}
 	${RM} test15.o
 
+test16: test16.o chkopts
+	-${CLINKER} -o test16 test16.o ${SLEPC_SYS_LIB}
+	${RM} test16.o
+
+test17: test17.o chkopts
+	-${CLINKER} -o test17 test17.o ${SLEPC_SYS_LIB}
+	${RM} test17.o
+
 #------------------------------------------------------------------------------------
 
 runtest1_1:
@@ -108,16 +118,20 @@ runtest1_1:
 
 runtest2_1: runtest2_1_qr runtest2_1_mrrr runtest2_1_dc
 runtest2_1_%:
-	-@${SETTEST}; method=$*; \
+	-@${SETTEST}; check=test2_1; method=$*; \
 	if [ "$$method" = qr ]; then method="-ds_method 0"; \
 	elif [ "$$method" = mrrr ]; then method="-ds_method 1"; \
 	elif [ "$$method" = dc ]; then method="-ds_method 2"; fi; \
-	${MPIEXEC} -n 1 ./test2 -n 12 $$method > $${test}.tmp 2>&1; \
+	${MPIEXEC} -n 1 ./test2 -n 12 $$method | ${GREP} -v "solving the problem" > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
-runtest3_1:
-	-@${SETTEST}; \
-	${MPIEXEC} -n 1 ./test3 > $${test}.tmp 2>&1; \
+runtest3_1: runtest3_1_qr runtest3_1_mrrr runtest3_1_dc
+runtest3_1_%:
+	-@${SETTEST}; check=test3_1; method=$*; \
+	if [ "$$method" = qr ]; then method="-ds_method 0"; \
+	elif [ "$$method" = mrrr ]; then method="-ds_method 1"; \
+	elif [ "$$method" = dc ]; then method="-ds_method 2"; fi; \
+	${MPIEXEC} -n 1 ./test3 -n 9 $$method | ${GREP} -v "solving the problem" > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
 runtest4_1:
@@ -125,14 +139,22 @@ runtest4_1:
 	${MPIEXEC} -n 1 ./test4 > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
-runtest5_1:
-	-@${SETTEST}; \
-	${MPIEXEC} -n 1 ./test5 > $${test}.tmp 2>&1; \
+runtest5_1: runtest5_1_hr runtest5_1_qr_ii runtest5_1_qr
+runtest5_1_%:
+	-@${SETTEST}; check=test5_1; method=$*; \
+	if [ "$$method" = hr ]; then method="-ds_method 0"; \
+	elif [ "$$method" = qr_ii ]; then method="-ds_method 1"; \
+	elif [ "$$method" = qr ]; then method="-ds_method 2"; fi; \
+	${MPIEXEC} -n 1 ./test5 $$method | ${GREP} -v "solving the problem" > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
-runtest6_1:
-	-@${SETTEST}; \
-	${MPIEXEC} -n 1 ./test6 > $${test}.tmp 2>&1; \
+runtest6_1: runtest6_1_hr runtest6_1_qr_ii runtest6_1_qr
+runtest6_1_%:
+	-@${SETTEST}; check=test6_1; method=$*; \
+	if [ "$$method" = hr ]; then method="-ds_method 0"; \
+	elif [ "$$method" = qr_ii ]; then method="-ds_method 1"; \
+	elif [ "$$method" = qr ]; then method="-ds_method 2"; fi; \
+	${MPIEXEC} -n 1 ./test6 $$method | ${GREP} -v "solving the problem" > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
 runtest7_1:
@@ -168,5 +190,15 @@ runtest14f_1:
 runtest15_1:
 	-@${SETTEST}; \
 	${MPIEXEC} -n 1 ./test15 > $${test}.tmp 2>&1; \
+	${TESTCODE}
+
+runtest16_1:
+	-@${SETTEST}; \
+	${MPIEXEC} -n 1 ./test16 > $${test}.tmp 2>&1; \
+	${TESTCODE}
+
+runtest17_1:
+	-@${SETTEST}; \
+	${MPIEXEC} -n 1 ./test17 -n 7 > $${test}.tmp 2>&1; \
 	${TESTCODE}
 

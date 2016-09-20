@@ -36,6 +36,7 @@ typedef struct {
 PetscErrorCode STCreate_User(SampleShellST**);
 PetscErrorCode STSetUp_User(SampleShellST*,ST);
 PetscErrorCode STApply_User(ST,Vec,Vec);
+PetscErrorCode STApplyTranspose_User(ST,Vec,Vec);
 PetscErrorCode STBackTransform_User(ST,PetscInt,PetscScalar*,PetscScalar*);
 PetscErrorCode STDestroy_User(SampleShellST*);
 
@@ -112,6 +113,9 @@ int main (int argc,char **argv)
     /* (Required) Set the user-defined routine for applying the operator */
     ierr = STShellSetApply(st,STApply_User);CHKERRQ(ierr);
     ierr = STShellSetContext(st,shell);CHKERRQ(ierr);
+
+    /* (Optional) Set the user-defined routine for applying the transposed operator */
+    ierr = STShellSetApplyTranspose(st,STApplyTranspose_User);CHKERRQ(ierr);
 
     /* (Optional) Set the user-defined routine for back-transformation */
     ierr = STShellSetBackTransform(st,STBackTransform_User);CHKERRQ(ierr);
@@ -243,6 +247,30 @@ PetscErrorCode STApply_User(ST st,Vec x,Vec y)
   PetscFunctionBeginUser;
   ierr = STShellGetContext(st,(void**)&shell);CHKERRQ(ierr);
   ierr = KSPSolve(shell->ksp,x,y);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+/* ------------------------------------------------------------------- */
+#undef __FUNCT__
+#define __FUNCT__ "STApplyTranspose_User"
+/*
+   STApplyTranspose_User - This is not required unless using a two-sided
+   eigensolver.
+
+   Input Parameters:
+.  ctx - optional user-defined context, as set by STShellSetContext()
+.  x - input vector
+
+   Output Parameter:
+.  y - output vector
+*/
+PetscErrorCode STApplyTranspose_User(ST st,Vec x,Vec y)
+{
+  SampleShellST  *shell;
+  PetscErrorCode ierr;
+
+  PetscFunctionBeginUser;
+  ierr = STShellGetContext(st,(void**)&shell);CHKERRQ(ierr);
+  ierr = KSPSolveTranspose(shell->ksp,x,y);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 /* ------------------------------------------------------------------- */
