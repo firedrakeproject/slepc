@@ -327,7 +327,7 @@ PetscErrorCode BVDotVecEnd(BV X,Vec y,PetscScalar *m)
 
    Developer Notes:
    If q is NULL, then the result is written in position j*m+l of the internal
-   buffer vector, see BVGetBufferVec(). 
+   buffer vector, see BVGetBufferVec().
 
    Level: advanced
 

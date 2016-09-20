@@ -304,8 +304,9 @@ runtest12_1_%:
 #	${MPIEXEC} -n 1 ./test12 -bv_orthog_block chol 2>&1 > $${test}.tmp; \
 #	${TESTCODE}
 
-runtest13_1:
-	-@test=test13_1; \
-	${MPIEXEC} -n 1 ./test13 2>&1 > $${test}.tmp; \
+runtest13_1: runtest13_1_vecs runtest13_1_contiguous runtest13_1_svec runtest13_1_mat
+runtest13_1_%:
+	-@${SETTEST}; check=test13_1; bv=$*; \
+	${MPIEXEC} -n 1 ./test13 -bv_type $$bv > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
