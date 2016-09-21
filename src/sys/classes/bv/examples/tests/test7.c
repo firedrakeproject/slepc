@@ -36,6 +36,7 @@ int main(int argc,char **argv)
   PetscReal      norm;
   PetscViewer    view;
   PetscBool      verbose;
+  BVMatMultType  vmm;
 
   ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
   ierr = PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL);CHKERRQ(ierr);
@@ -64,7 +65,10 @@ int main(int argc,char **argv)
   ierr = BVCreate(PETSC_COMM_WORLD,&X);CHKERRQ(ierr);
   ierr = PetscObjectSetName((PetscObject)X,"X");CHKERRQ(ierr);
   ierr = BVSetSizesFromVec(X,t,k);CHKERRQ(ierr);
+  ierr = BVSetMatMultMethod(X,BV_MATMULT_VECS);CHKERRQ(ierr);
   ierr = BVSetFromOptions(X);CHKERRQ(ierr);
+  ierr = BVGetMatMultMethod(X,&vmm);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"Using method: %s\n",BVMatMultTypes[vmm]);CHKERRQ(ierr);
 
   /* Set up viewer */
   ierr = PetscViewerASCIIGetStdout(PETSC_COMM_WORLD,&view);CHKERRQ(ierr);
