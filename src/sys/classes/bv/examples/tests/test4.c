@@ -115,7 +115,7 @@ int main(int argc,char **argv)
   ierr = BVResize(X,kx+4,PETSC_TRUE);CHKERRQ(ierr);
 
   /* Test BVMult */
-  ierr = BVMult(Y,2.0,1.0,X,Q);CHKERRQ(ierr);
+  ierr = BVMult(Y,2.0,0.5,X,Q);CHKERRQ(ierr);
   if (verbose) {
     ierr = PetscPrintf(PETSC_COMM_WORLD,"After BVMult - - - - - - - - -\n");CHKERRQ(ierr);
     ierr = BVView(Y,view);CHKERRQ(ierr);

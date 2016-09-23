@@ -1,4 +1,11 @@
 Test BV with 5 columns of dimension 10.
+BV Object: X 1 MPI processes
+  type: svec
+  5 columns of global length 10
+  vector orthogonalization method: classical Gram-Schmidt
+  orthogonalization refinement: if needed (eta: 0.7071)
+  block orthogonalization method: Gram-Schmidt
+  doing matmult as a single matrix-matrix product
 BV Object:X 1 MPI processes
   type: svec
   Vec Object:  X_0   1 MPI processes

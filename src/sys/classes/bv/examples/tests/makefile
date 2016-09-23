@@ -150,9 +150,10 @@ runtest2_2_cuda:
 	${MPIEXEC} -n 1 ./test2 -bv_type svec -bv_orthog_type mgs -vec_type cuda > $${test}.tmp 2>&1; \
 	${TESTCODE_CUDA}
 
-runtest3_1: runtest3_1_vecs runtest3_1_contiguous runtest3_1_svec runtest3_1_mat
+runtest3_1: runtest3_1_vecs runtest3_1_contiguous runtest3_1_svec runtest3_1_svec_vecs runtest3_1_mat
 runtest3_1_%:
 	-@${SETTEST}; check=test3_1; bv=$*; \
+	if [ "$$bv" = svec_vecs ]; then bv="svec -bv_matmult vecs"; fi; \
 	${MPIEXEC} -n 1 ./test3 -bv_type $$bv > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
@@ -237,15 +238,29 @@ runtest8_1_%:
 	${MPIEXEC} -n 1 ./test8 -bv_type $$bv > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
-runtest9_1: runtest9_1_vecs runtest9_1_contiguous runtest9_1_svec runtest9_1_mat
+runtest8_2: runtest8_2_vecs runtest8_2_contiguous runtest8_2_svec runtest8_2_mat
+runtest8_2_%:
+	-@${SETTEST}; check=test8_1; bv=$*; \
+	${MPIEXEC} -n 1 ./test8 -bv_type $$bv -bv_orthog_refine never > $${test}.tmp 2>&1; \
+	${TESTCODE}
+
+runtest8_3: runtest8_3_vecs runtest8_3_contiguous runtest8_3_svec runtest8_3_mat
+runtest8_3_%:
+	-@${SETTEST}; check=test8_1; bv=$*; \
+	${MPIEXEC} -n 1 ./test8 -bv_type $$bv -bv_orthog_refine always > $${test}.tmp 2>&1; \
+	${TESTCODE}
+
+runtest9_1: runtest9_1_vecs runtest9_1_contiguous runtest9_1_svec runtest9_1_svec_vecs runtest9_1_mat
 runtest9_1_%:
 	-@${SETTEST}; check=test9_1; bv=$*; \
+	if [ "$$bv" = svec_vecs ]; then bv="svec -bv_matmult vecs"; fi; \
 	${MPIEXEC} -n 1 ./test9 -bv_type $$bv > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
-runtest9_2: runtest9_2_vecs runtest9_2_contiguous runtest9_2_svec runtest9_2_mat
+runtest9_2: runtest9_2_vecs runtest9_2_contiguous runtest9_2_svec runtest9_2_svec_vecs runtest9_2_mat
 runtest9_2_%:
 	-@${SETTEST}; check=test9_1; bv=$*; \
+	if [ "$$bv" = svec_vecs ]; then bv="svec -bv_matmult vecs"; fi; \
 	${MPIEXEC} -n 2 ./test9 -bv_type $$bv > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
