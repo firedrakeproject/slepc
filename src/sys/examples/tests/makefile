@@ -19,10 +19,28 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-ALL:
+CFLAGS     =
+FFLAGS     =
+CPPFLAGS   =
+FPPFLAGS   =
+LOCDIR     = src/sys/examples/tests/
+EXAMPLESC  = test1.c
+EXAMPLESF  = 
+MANSEC     = Sys
+TESTS      = test1
 
-LOCDIR   = src/sys/examples/
-DIRS     = tests tutorials
+TESTEXAMPLES_C = test1.PETSc runtest1_1 test1.rm
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common
+
+test1: test1.o chkopts
+	-${CLINKER} -o test1 test1.o ${SLEPC_SYS_LIB}
+	${RM} test1.o
+
+#------------------------------------------------------------------------------------
+
+runtest1_1:
+	-@${SETTEST}; \
+	${MPIEXEC} -n 1 ./test1 > $${test}.tmp 2>&1; \
+	${TESTCODE}
 
