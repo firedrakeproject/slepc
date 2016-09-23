@@ -35,7 +35,7 @@ TESTEXAMPLES_C                     = ex5.PETSc runex5_1 ex5.rm \
                                      ex24.PETSc runex24_1 ex24.rm \
                                      ex29.PETSc runex29_1 ex29.rm
 TESTEXAMPLES_C_DOUBLE              = ex2.PETSc runex2_ciss_1 runex2_ciss_2 ex2.rm
-TESTEXAMPLES_C_NOTSINGLE           = ex2.PETSc runex2_1 ex2.rm \
+TESTEXAMPLES_C_NOTSINGLE           = ex2.PETSc runex2_1 runex2_2 ex2.rm \
                                      ex3.PETSc runex3_1 ex3.rm \
                                      ex10.PETSc runex10_1 ex10.rm \
                                      ex11.PETSc runex11_1 runex11_2 ex11.rm \
@@ -159,6 +159,11 @@ runex1f90_1:
 runex2_1:
 	-@${SETTEST}; \
 	${MPIEXEC} -n 1 ./ex2 -n 72 -eps_nev 4 -eps_ncv 20 -terse > $${test}.tmp 2>&1; \
+	${TESTCODE}
+
+runex2_2:
+	-@${SETTEST}; check=ex2_1; \
+	${MPIEXEC} -n 1 ./ex2 -n 72 -eps_nev 4 -eps_ncv 20 -terse -dynamic_library_preload > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
 runex2_ciss_1:
