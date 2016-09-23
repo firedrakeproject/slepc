@@ -51,5 +51,9 @@ slepc_alltests:
 	-@${RM} ${PETSC_ARCH}/lib/slepc/conf/alltests.log alltests.log
 	-@ln -s ${PETSC_ARCH}/lib/slepc/conf/alltests.log alltests.log
 	-@${OMAKE} alltest PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} SLEPC_DIR=${SLEPC_DIR} MPIEXEC="${MPIEXEC}" DATAFILESPATH=${DATAFILESPATH} 2>&1 | tee ${PETSC_ARCH}/lib/slepc/conf/alltests.log
-	@[ `grep Possible ${PETSC_ARCH}/lib/slepc/conf/alltests.log | wc -l` -le 0 ]
+	@if [ x${ALLTESTS_CHECK_FAILURES} = xyes ]; then \
+            cat ${PETSC_ARCH}/lib/slepc/conf/alltests.log | ${SED} -e '1d' -e '$$d' | \
+            ${GREP} -v '^[\*]\{7,7\} Testing: ${TESTMODE}_[a-zA-Z0-9_]* [\*]\{7,7\}$$' | \
+            ${GREP} -v '^[\.]*$$' | wc -l | ${GREP} '^[ ]*0$$' > /dev/null; \
+        fi;
 

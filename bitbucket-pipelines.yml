@@ -1,0 +1,22 @@
+pipelines:
+  branches:
+    maint: &default-step
+      - step:
+          script:
+            - sudo apt-get -yq --no-install-suggests --no-install-recommends --force-yes install gfortran libblas-dev liblapack-dev
+            - export PETSC_DIR=/usr/local/petsc
+            - export PETSC_ARCH=arch-bitbucket-cxx-complex
+            - export SLEPC_DIR=$PWD
+            - git clone --depth=1 https://bitbucket.org/petsc/petsc $PETSC_DIR
+            - cd $PETSC_DIR
+            - ./configure --with-clanguage=C++ --with-64-bit-indices=1 --with-scalar-type=complex --with-mpi=0
+            - make
+            - cd $SLEPC_DIR
+            - ./configure
+            - make
+            - make test
+            - make slepc_alltests ALLTESTS_CHECK_FAILURES=yes ALLTESTS_PRINT_PROGRESS=dot
+    master:  *default-step
+    next:    *default-step
+    pr*/*/*: *default-step
+    ci/*/*:  *default-step
