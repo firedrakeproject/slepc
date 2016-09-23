@@ -308,10 +308,11 @@ testtest7f: test7f.PETSc
 	else fail=1; fi; \
 	exit $$fail
 
-runtest8_1: runtest8_1_krylovschur runtest8_1_power runtest8_1_subspace runtest8_1_arnoldi runtest8_1_lanczos runtest8_1_gd runtest8_1_jd runtest8_1_gd2 runtest8_1_lapack
+runtest8_1: runtest8_1_krylovschur runtest8_1_krylovschur_vecs runtest8_1_power runtest8_1_subspace runtest8_1_arnoldi runtest8_1_lanczos runtest8_1_gd runtest8_1_jd runtest8_1_gd2 runtest8_1_lapack
 runtest8_1_%:
 	-@${SETTEST}; check=test8_1; eps=$*; \
-	if [ "$$eps" = gd2 ]; then eps="gd -eps_gd_double_expansion"; \
+	if [ "$$eps" = krylovschur_vecs ]; then eps="krylovschur -bv_type vecs -bv_orthog_refine always"; \
+	elif [ "$$eps" = gd2 ]; then eps="gd -eps_gd_double_expansion"; \
 	elif [ "$$eps" = primme ]; then eps="primme -eps_conv_abs"; fi; \
 	${MPIEXEC} -n 1 ./test8 -n 20 -eps_type $$eps -eps_nev 4 -eps_ncv 12 -eps_max_it 40000 > $${test}.tmp 2>&1; \
 	${TESTCODE}

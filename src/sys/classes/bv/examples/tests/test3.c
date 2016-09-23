@@ -116,6 +116,13 @@ int main(int argc,char **argv)
     ierr = PetscPrintf(PETSC_COMM_WORLD,"Level of orthogonality: %g\n",(double)nrm);CHKERRQ(ierr);
   }
 
+  /* Test BVNormVecBegin/End */
+  ierr = BVGetColumn(X,0,&v);CHKERRQ(ierr);
+  ierr = BVNormVecBegin(X,v,NORM_1,&nrm);CHKERRQ(ierr);
+  ierr = BVNormVecEnd(X,v,NORM_1,&nrm);CHKERRQ(ierr);
+  ierr = BVRestoreColumn(X,0,&v);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"B-Norm of X[0] = %g\n",(double)nrm);CHKERRQ(ierr);
+
   ierr = BVDestroy(&X);CHKERRQ(ierr);
   ierr = MatDestroy(&M);CHKERRQ(ierr);
   ierr = MatDestroy(&B);CHKERRQ(ierr);
