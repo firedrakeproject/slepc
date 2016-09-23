@@ -15,7 +15,7 @@ pipelines:
             - ./configure
             - make
             - make test
-            - make alltests ALLTESTS_CHECK_FAILURES=yes ALLTESTS_PRINT_PROGRESS=dot
+            - make slepc_alltests ALLTESTS_CHECK_FAILURES=yes ALLTESTS_PRINT_PROGRESS=dot
     master:  *default-step
     next:    *default-step
     pr*/*/*: *default-step
