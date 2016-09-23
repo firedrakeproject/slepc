@@ -5,6 +5,7 @@ pipelines:
           script:
             - sudo apt-get -yq --no-install-suggests --no-install-recommends --force-yes install gfortran libblas-dev liblapack-dev
             - export PETSC_DIR=/usr/local/petsc
+            - export PETSC_ARCH=arch-bitbucket-cxx-complex
             - export SLEPC_DIR=$PWD
             - git clone --depth=1 https://bitbucket.org/petsc/petsc $PETSC_DIR
             - cd $PETSC_DIR
