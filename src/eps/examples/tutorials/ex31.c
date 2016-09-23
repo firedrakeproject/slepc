@@ -249,7 +249,7 @@ PetscErrorCode SetInitialGuess(Vec X,Userctx *user)
   ierr = VecRestoreArray(Xnet,&xnet);CHKERRQ(ierr);
 
   /* ierr = VecView(Xgen,0);CHKERRQ(ierr); */
-  ierr = DMCompositeGather(user->dmpgrid,X,INSERT_VALUES,Xgen,Xnet);CHKERRQ(ierr);
+  ierr = DMCompositeGather(user->dmpgrid,INSERT_VALUES,X,Xgen,Xnet);CHKERRQ(ierr);
   ierr = DMCompositeRestoreLocalVectors(user->dmpgrid,&Xgen,&Xnet);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
