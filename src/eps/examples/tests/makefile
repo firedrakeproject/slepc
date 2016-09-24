@@ -314,7 +314,7 @@ runtest8_1_%:
 	if [ "$$eps" = krylovschur_vecs ]; then eps="krylovschur -bv_type vecs -bv_orthog_refine always"; \
 	elif [ "$$eps" = gd2 ]; then eps="gd -eps_gd_double_expansion"; \
 	elif [ "$$eps" = primme ]; then eps="primme -eps_conv_abs"; fi; \
-	${MPIEXEC} -n 1 ./test8 -n 20 -eps_type $$eps -eps_nev 4 -eps_ncv 12 -eps_max_it 40000 > $${test}.tmp 2>&1; \
+	${MPIEXEC} -n 1 ./test8 -n 20 -eps_type $$eps -eps_nev 4 -eps_ncv 11 -eps_max_it 40000 > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
 runtest8_2: runtest8_2_rqcg runtest8_2_lobpcg runtest8_2_lanczos

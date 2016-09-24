@@ -309,29 +309,23 @@ PetscErrorCode SlepcCompareTargetReal(PetscScalar ar,PetscScalar ai,PetscScalar 
   PetscFunctionReturn(0);
 }
 
+#if defined(PETSC_USE_COMPLEX)
 #undef __FUNCT__
 #define __FUNCT__ "SlepcCompareTargetImaginary"
 PetscErrorCode SlepcCompareTargetImaginary(PetscScalar ar,PetscScalar ai,PetscScalar br,PetscScalar bi,PetscInt *result,void *ctx)
 {
   PetscReal   a,b;
-#if defined(PETSC_USE_COMPLEX)
   PetscScalar *target = (PetscScalar*)ctx;
-#endif
 
   PetscFunctionBegin;
-#if !defined(PETSC_USE_COMPLEX)
-  /* complex target only allowed if scalartype=complex */
-  a = PetscAbsReal(ai);
-  b = PetscAbsReal(bi);
-#else
   a = PetscAbsReal(PetscImaginaryPart(ar-(*target)));
   b = PetscAbsReal(PetscImaginaryPart(br-(*target)));
-#endif
   if (a>b) *result = 1;
   else if (a<b) *result = -1;
   else *result = 0;
   PetscFunctionReturn(0);
 }
+#endif
 
 #undef __FUNCT__
 #define __FUNCT__ "SlepcCompareSmallestPosReal"
