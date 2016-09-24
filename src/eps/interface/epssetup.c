@@ -175,13 +175,7 @@ PetscErrorCode EPSSetUp(EPS eps)
   /* fill sorting criterion for DS */
   ierr = DSGetSlepcSC(eps->ds,&sc);CHKERRQ(ierr);
   ierr = RGIsTrivial(eps->rg,&istrivial);CHKERRQ(ierr);
-  if (eps->which==EPS_ALL) {
-    sc->rg            = NULL;
-    sc->comparison    = SlepcCompareLargestMagnitude;
-    sc->comparisonctx = NULL;
-    sc->map           = NULL;
-    sc->mapobj        = NULL;
-  } else {
+  if (eps->which!=EPS_ALL) {
     sc->rg            = istrivial? NULL: eps->rg;
     sc->comparison    = eps->sc->comparison;
     sc->comparisonctx = eps->sc->comparisonctx;
