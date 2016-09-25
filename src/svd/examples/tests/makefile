@@ -24,13 +24,14 @@ FFLAGS     =
 CPPFLAGS   =
 FPPFLAGS   =
 LOCDIR     = src/svd/examples/tests/
-EXAMPLESC  = test1.c test2.c test3.c test4.c
+EXAMPLESC  = test1.c test2.c test3.c test4.c test5.c
 EXAMPLESF  = test4f.F
 MANSEC     = SVD
-TESTS      = test1 test2 test3 test4 test4f
+TESTS      = test1 test2 test3 test4 test4f test5
 
 TESTEXAMPLES_C           = test1.PETSc runtest1_1 test1.rm \
-                           test4.PETSc runtest4_1 test4.rm
+                           test4.PETSc runtest4_1 test4.rm \
+                           test5.PETSc runtest5_1 test5.rm
 TESTEXAMPLES_C_DOUBLE    = test2.PETSc runtest2_1 test2.rm
 TESTEXAMPLES_C_NOTSINGLE = test3.PETSc runtest3_1 runtest3_2 test3.rm
 TESTEXAMPLES_FORTRAN     = test4f.PETSc runtest4f_1 test4f.rm
@@ -56,6 +57,10 @@ test4: test4.o chkopts
 test4f: test4f.o chkopts
 	-${FLINKER} -o test4f test4f.o ${SLEPC_SVD_LIB}
 	${RM} test4f.o
+
+test5: test5.o chkopts
+	-${CLINKER} -o test5 test5.o ${SLEPC_SVD_LIB}
+	${RM} test5.o
 
 #------------------------------------------------------------------------------------
 
@@ -99,5 +104,10 @@ runtest4_1_%:
 runtest4f_1:
 	-@${SETTEST}; \
 	${MPIEXEC} -n 1 ./test4f >> $${test}.tmp 2>&1; \
+	${TESTCODE}
+
+runtest5_1:
+	-@${SETTEST}; \
+	${MPIEXEC} -n 1 ./test5 -svd_error_relative ::ascii_info_detail -svd_view_values -svd_monitor_conv -svd_error_absolute ::ascii_matlab -svd_monitor_all -svd_converged_reason -svd_view | ${GREP} -v "tolerance" | ${SED} -e "s/[0-9]\.[0-9]*e-[0-9]*/removed/g" >> $${test}.tmp 2>&1; \
 	${TESTCODE}
 
