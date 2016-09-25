@@ -212,7 +212,7 @@ runtest2_2_%:
 	${MPIEXEC} -n 1 ./test2 -eps_type lanczos -eps_nev 4 -eps_lanczos_reorthog $$reorthog > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
-runtest2_3: runtest2_3_krylovschur runtest2_3_arnoldi runtest2_3_gd runtest2_3_jd runtest2_3_lapack
+runtest2_3: runtest2_3_krylovschur runtest2_3_gd runtest2_3_jd runtest2_3_lapack
 runtest2_3_%:
 	-@${SETTEST}; check=test2_1; eps=$*; \
 	${MPIEXEC} -n 2 ./test2 -eps_type $$eps -eps_nev 4 > $${test}.tmp 2>&1; \

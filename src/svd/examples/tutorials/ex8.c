@@ -129,7 +129,7 @@ int main(int argc,char **argv)
   ierr = SVDSetWhichSingularTriplets(svd,SVD_SMALLEST);CHKERRQ(ierr);
   ierr = SVDSolve(svd);CHKERRQ(ierr);
   /*
-     Get number of converged eigenpairs
+     Get number of converged singular triplets
   */
   ierr = SVDGetConverged(svd,&nconv2);CHKERRQ(ierr);
   /*

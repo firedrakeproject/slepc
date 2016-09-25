@@ -65,7 +65,7 @@
       call PetscOptionsGetInt(PETSC_NULL_OBJECT,PETSC_NULL_CHARACTER,   &
      &                        '-n',n,flg,ierr)
       mu = PETSC_SQRT_MACHINE_EPSILON
-      call PetscOptionsGetReal(PETSC_NULL_OBJECT,PETSC_NULL_CHARACTER,   &
+      call PetscOptionsGetReal(PETSC_NULL_OBJECT,PETSC_NULL_CHARACTER,  &
      &                        '-mu',mu,flg,ierr)
 
       if (rank .eq. 0) then
@@ -160,11 +160,11 @@
           write(*,*) ' ----------------- ------------------'
         endif
         do i=0,nconv-1
-!         ** Get converged singular triplet: i-th singular value is stored in sigma
+!         ** Get i-th singular value
           call SVDGetSingularTriplet(svd,i,sigma,PETSC_NULL_OBJECT,     &
      &         PETSC_NULL_OBJECT,ierr)
 
-!         ** Compute the relative error associated to each eigenpair
+!         ** Compute the relative error for each singular triplet
           call SVDComputeError(svd,i,SVD_ERROR_RELATIVE,error,ierr)
           if (rank .eq. 0) then
             write(*,160) sigma, error

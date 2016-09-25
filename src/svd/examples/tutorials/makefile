@@ -30,7 +30,6 @@ MANSEC     = SVD
 
 TESTEXAMPLES_C           = ex8.PETSc runex8_1 ex8.rm
 TESTEXAMPLES_C_DATAFILE  = ex14.PETSc runex14_1 ex14.rm
-TESTEXAMPLES_FORTRAN     =
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common
 
