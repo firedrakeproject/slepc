@@ -79,19 +79,23 @@ runtest2_1_%:
 	${MPIEXEC} -n 1 ./test2 -svd_type $$svd -svd_nsv 7 > $${test}.tmp 2>&1;    \
 	${TESTCODE}
 
-runtest3_1: runtest3_1_lanczos runtest3_1_lanczos_one runtest3_1_trlanczos runtest3_1_trlanczos_one runtest3_1_cross runtest3_1_cyclic runtest3_1_lapack 
+runtest3_1: runtest3_1_lanczos runtest3_1_lanczos_one runtest3_1_trlanczos runtest3_1_trlanczos_one runtest3_1_trlanczos_one_mgs runtest3_1_trlanczos_one_alway runtest3_1_cross runtest3_1_cyclic runtest3_1_lapack 
 runtest3_1_%:
 	-@${SETTEST}; check=test3_1; svd=$*; \
 	if [ "$$svd" = lanczos_one ]; then svd="lanczos -svd_lanczos_oneside"; \
-	elif [ "$$svd" = trlanczos_one ]; then svd="trlanczos -svd_trlanczos_oneside"; fi; \
+	elif [ "$$svd" = trlanczos_one ]; then svd="trlanczos -svd_trlanczos_oneside"; \
+	elif [ "$$svd" = trlanczos_one_mgs ]; then svd="trlanczos -svd_trlanczos_oneside -bv_orthog_type mgs"; \
+	elif [ "$$svd" = trlanczos_one_alway ]; then svd="trlanczos -svd_trlanczos_oneside -bv_orthog_refine always"; fi; \
 	${MPIEXEC} -n 1 ./test3 -svd_type $$svd -svd_nsv 4 > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
-runtest3_2: runtest3_2_lanczos runtest3_2_lanczos_one runtest3_2_trlanczos runtest3_2_trlanczos_one runtest3_2_cross runtest3_2_cyclic runtest3_2_lapack 
+runtest3_2: runtest3_2_lanczos runtest3_2_lanczos_one runtest3_2_trlanczos runtest3_2_trlanczos_one runtest3_2_trlanczos_one_mgs runtest3_2_trlanczos_one_alway runtest3_2_trlanczos_one_mgs runtest3_2_cross runtest3_2_cyclic runtest3_2_lapack 
 runtest3_2_%:
 	-@${SETTEST}; check=test3_1; svd=$*; \
 	if [ "$$svd" = lanczos_one ]; then svd="lanczos -svd_lanczos_oneside"; \
-	elif [ "$$svd" = trlanczos_one ]; then svd="trlanczos -svd_trlanczos_oneside"; fi; \
+	elif [ "$$svd" = trlanczos_one ]; then svd="trlanczos -svd_trlanczos_oneside"; \
+	elif [ "$$svd" = trlanczos_one_mgs ]; then svd="trlanczos -svd_trlanczos_oneside -bv_orthog_type mgs"; \
+	elif [ "$$svd" = trlanczos_one_alway ]; then svd="trlanczos -svd_trlanczos_oneside -bv_orthog_refine always"; fi; \
 	${MPIEXEC} -n 1 ./test3 -svd_implicittranspose -svd_type $$svd -svd_nsv 4 -svd_tol 1e-5 > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
