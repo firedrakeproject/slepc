@@ -24,13 +24,14 @@ FFLAGS     =
 CPPFLAGS   =
 FPPFLAGS   =
 LOCDIR     = src/svd/examples/tests/
-EXAMPLESC  = test1.c test2.c test3.c test4.c
+EXAMPLESC  = test1.c test2.c test3.c test4.c test5.c
 EXAMPLESF  = test4f.F
 MANSEC     = SVD
-TESTS      = test1 test2 test3 test4 test4f
+TESTS      = test1 test2 test3 test4 test4f test5
 
 TESTEXAMPLES_C           = test1.PETSc runtest1_1 test1.rm \
-                           test4.PETSc runtest4_1 test4.rm
+                           test4.PETSc runtest4_1 test4.rm \
+                           test5.PETSc runtest5_1 test5.rm
 TESTEXAMPLES_C_DOUBLE    = test2.PETSc runtest2_1 test2.rm
 TESTEXAMPLES_C_NOTSINGLE = test3.PETSc runtest3_1 runtest3_2 test3.rm
 TESTEXAMPLES_FORTRAN     = test4f.PETSc runtest4f_1 test4f.rm
@@ -57,6 +58,10 @@ test4f: test4f.o chkopts
 	-${FLINKER} -o test4f test4f.o ${SLEPC_SVD_LIB}
 	${RM} test4f.o
 
+test5: test5.o chkopts
+	-${CLINKER} -o test5 test5.o ${SLEPC_SVD_LIB}
+	${RM} test5.o
+
 #------------------------------------------------------------------------------------
 
 runtest1_1: runtest1_1_lanczos runtest1_1_trlanczos runtest1_1_cross runtest1_1_cross_gd runtest1_1_cyclic runtest1_1_cyclic_gd runtest1_1_lapack 
@@ -74,19 +79,23 @@ runtest2_1_%:
 	${MPIEXEC} -n 1 ./test2 -svd_type $$svd -svd_nsv 7 > $${test}.tmp 2>&1;    \
 	${TESTCODE}
 
-runtest3_1: runtest3_1_lanczos runtest3_1_lanczos_one runtest3_1_trlanczos runtest3_1_trlanczos_one runtest3_1_cross runtest3_1_cyclic runtest3_1_lapack 
+runtest3_1: runtest3_1_lanczos runtest3_1_lanczos_one runtest3_1_trlanczos runtest3_1_trlanczos_one runtest3_1_trlanczos_one_mgs runtest3_1_trlanczos_one_alway runtest3_1_cross runtest3_1_cyclic runtest3_1_lapack 
 runtest3_1_%:
 	-@${SETTEST}; check=test3_1; svd=$*; \
 	if [ "$$svd" = lanczos_one ]; then svd="lanczos -svd_lanczos_oneside"; \
-	elif [ "$$svd" = trlanczos_one ]; then svd="trlanczos -svd_trlanczos_oneside"; fi; \
+	elif [ "$$svd" = trlanczos_one ]; then svd="trlanczos -svd_trlanczos_oneside"; \
+	elif [ "$$svd" = trlanczos_one_mgs ]; then svd="trlanczos -svd_trlanczos_oneside -bv_orthog_type mgs"; \
+	elif [ "$$svd" = trlanczos_one_alway ]; then svd="trlanczos -svd_trlanczos_oneside -bv_orthog_refine always"; fi; \
 	${MPIEXEC} -n 1 ./test3 -svd_type $$svd -svd_nsv 4 > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
-runtest3_2: runtest3_2_lanczos runtest3_2_lanczos_one runtest3_2_trlanczos runtest3_2_trlanczos_one runtest3_2_cross runtest3_2_cyclic runtest3_2_lapack 
+runtest3_2: runtest3_2_lanczos runtest3_2_lanczos_one runtest3_2_trlanczos runtest3_2_trlanczos_one runtest3_2_trlanczos_one_mgs runtest3_2_trlanczos_one_alway runtest3_2_trlanczos_one_mgs runtest3_2_cross runtest3_2_cyclic runtest3_2_lapack 
 runtest3_2_%:
 	-@${SETTEST}; check=test3_1; svd=$*; \
 	if [ "$$svd" = lanczos_one ]; then svd="lanczos -svd_lanczos_oneside"; \
-	elif [ "$$svd" = trlanczos_one ]; then svd="trlanczos -svd_trlanczos_oneside"; fi; \
+	elif [ "$$svd" = trlanczos_one ]; then svd="trlanczos -svd_trlanczos_oneside"; \
+	elif [ "$$svd" = trlanczos_one_mgs ]; then svd="trlanczos -svd_trlanczos_oneside -bv_orthog_type mgs"; \
+	elif [ "$$svd" = trlanczos_one_alway ]; then svd="trlanczos -svd_trlanczos_oneside -bv_orthog_refine always"; fi; \
 	${MPIEXEC} -n 1 ./test3 -svd_implicittranspose -svd_type $$svd -svd_nsv 4 -svd_tol 1e-5 > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
@@ -99,5 +108,10 @@ runtest4_1_%:
 runtest4f_1:
 	-@${SETTEST}; \
 	${MPIEXEC} -n 1 ./test4f >> $${test}.tmp 2>&1; \
+	${TESTCODE}
+
+runtest5_1:
+	-@${SETTEST}; \
+	${MPIEXEC} -n 1 ./test5 -svd_error_relative ::ascii_info_detail -svd_view_values -svd_monitor_conv -svd_error_absolute ::ascii_matlab -svd_monitor_all -svd_converged_reason -svd_view | ${GREP} -v "tolerance" | ${SED} -e "s/[0-9]\.[0-9]*e-[0-9]*/removed/g" >> $${test}.tmp 2>&1; \
 	${TESTCODE}
 
