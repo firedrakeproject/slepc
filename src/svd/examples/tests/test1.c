@@ -87,7 +87,7 @@ int main(int argc,char **argv)
   ierr = MatAssemblyEnd(A,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-             Create the singular value solver and set the solution method
+         Create the singular value solver and set the solution method
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
   /*
@@ -120,11 +120,11 @@ int main(int argc,char **argv)
   ierr = SVDSetTolerances(svd,1e-6,1000);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-                      Solve the eigensystem
+                      Compute the singular values
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
   /*
-     First request an eigenvalue from one end of the spectrum
+     First request the largest singular value
   */
   ierr = SVDSetWhichSingularTriplets(svd,SVD_LARGEST);CHKERRQ(ierr);
   ierr = SVDSolve(svd);CHKERRQ(ierr);
@@ -143,12 +143,12 @@ int main(int argc,char **argv)
   }
 
   /*
-     Request an eigenvalue from the other end of the spectrum
+     Request the smallest singular value
   */
   ierr = SVDSetWhichSingularTriplets(svd,SVD_SMALLEST);CHKERRQ(ierr);
   ierr = SVDSolve(svd);CHKERRQ(ierr);
   /*
-     Get number of converged eigenpairs
+     Get number of converged triplets
   */
   ierr = SVDGetConverged(svd,&nconv2);CHKERRQ(ierr);
   /*

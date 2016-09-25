@@ -76,7 +76,7 @@ int main(int argc,char **argv)
   ierr = SVDSetFromOptions(svd);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-                Solve the eigensystem and display solution
+                Compute the singular triplets and display solution
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
   ierr = SVDSolve(svd);CHKERRQ(ierr);
   ierr = SVDErrorView(svd,SVD_ERROR_RELATIVE,NULL);CHKERRQ(ierr);
