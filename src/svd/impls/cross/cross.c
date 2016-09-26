@@ -29,6 +29,7 @@
 
 typedef struct {
   EPS       eps;
+  PetscBool usereps;
   Mat       mat;
   Vec       w,diag;
 } SVD_CROSS;
@@ -88,8 +89,7 @@ static PetscErrorCode MatGetDiagonal_Cross(Mat B,Vec d)
     ierr = VecDuplicate(d,&cross->diag);CHKERRQ(ierr);
     ierr = SVDMatGetSize(svd,NULL,&N);CHKERRQ(ierr);
     ierr = SVDMatGetLocalSize(svd,NULL,&n);CHKERRQ(ierr);
-    ierr = PetscMalloc2(N,&work1,N,&work2);CHKERRQ(ierr);
-    for (i=0;i<n;i++) work1[i] = work2[i] = 0.0;
+    ierr = PetscCalloc2(N,&work1,N,&work2);CHKERRQ(ierr);
     if (svd->AT) {
       ierr = MatGetOwnershipRange(svd->AT,&start,&end);CHKERRQ(ierr);
       for (i=start;i<end;i++) {
@@ -143,16 +143,18 @@ PetscErrorCode SVDSetUp_Cross(SVD svd)
   if (!cross->eps) { ierr = SVDCrossGetEPS(svd,&cross->eps);CHKERRQ(ierr); }
   ierr = EPSSetOperators(cross->eps,cross->mat,NULL);CHKERRQ(ierr);
   ierr = EPSSetProblemType(cross->eps,EPS_HEP);CHKERRQ(ierr);
-  ierr = EPSSetWhichEigenpairs(cross->eps,svd->which == SVD_LARGEST ? EPS_LARGEST_REAL : EPS_SMALLEST_REAL);CHKERRQ(ierr);
-  ierr = EPSSetDimensions(cross->eps,svd->nsv,svd->ncv?svd->ncv:PETSC_DEFAULT,svd->mpd?svd->mpd:PETSC_DEFAULT);CHKERRQ(ierr);
-  ierr = EPSSetTolerances(cross->eps,svd->tol==PETSC_DEFAULT?SLEPC_DEFAULT_TOL/10.0:svd->tol,svd->max_it?svd->max_it:PETSC_DEFAULT);CHKERRQ(ierr);
-  switch (svd->conv) {
-  case SVD_CONV_ABS:
-    ierr = EPSSetConvergenceTest(cross->eps,EPS_CONV_ABS);CHKERRQ(ierr);break;
-  case SVD_CONV_REL:
-    ierr = EPSSetConvergenceTest(cross->eps,EPS_CONV_REL);CHKERRQ(ierr);break;
-  case SVD_CONV_USER:
-    SETERRQ(PetscObjectComm((PetscObject)svd),PETSC_ERR_SUP,"User-defined convergence test not supported in this solver");
+  if (!cross->usereps) {
+    ierr = EPSSetWhichEigenpairs(cross->eps,svd->which==SVD_LARGEST?EPS_LARGEST_REAL:EPS_SMALLEST_REAL);CHKERRQ(ierr);
+    ierr = EPSSetDimensions(cross->eps,svd->nsv,svd->ncv?svd->ncv:PETSC_DEFAULT,svd->mpd?svd->mpd:PETSC_DEFAULT);CHKERRQ(ierr);
+    ierr = EPSSetTolerances(cross->eps,svd->tol==PETSC_DEFAULT?SLEPC_DEFAULT_TOL/10.0:svd->tol,svd->max_it?svd->max_it:PETSC_DEFAULT);CHKERRQ(ierr);
+    switch (svd->conv) {
+    case SVD_CONV_ABS:
+      ierr = EPSSetConvergenceTest(cross->eps,EPS_CONV_ABS);CHKERRQ(ierr);break;
+    case SVD_CONV_REL:
+      ierr = EPSSetConvergenceTest(cross->eps,EPS_CONV_REL);CHKERRQ(ierr);break;
+    case SVD_CONV_USER:
+      SETERRQ(PetscObjectComm((PetscObject)svd),PETSC_ERR_SUP,"User-defined convergence test not supported in this solver");
+    }
   }
   if (svd->stop!=SVD_STOP_BASIC) SETERRQ(PetscObjectComm((PetscObject)svd),PETSC_ERR_SUP,"User-defined stopping test not supported in this solver");
   /* Transfer the trackall option from svd to eps */
@@ -243,6 +245,7 @@ static PetscErrorCode SVDCrossSetEPS_Cross(SVD svd,EPS eps)
   ierr = PetscObjectReference((PetscObject)eps);CHKERRQ(ierr);
   ierr = EPSDestroy(&cross->eps);CHKERRQ(ierr);
   cross->eps = eps;
+  cross->usereps = PETSC_TRUE;
   ierr = PetscLogObjectParent((PetscObject)svd,(PetscObject)cross->eps);CHKERRQ(ierr);
   svd->state = SVD_STATE_INITIAL;
   PetscFunctionReturn(0);

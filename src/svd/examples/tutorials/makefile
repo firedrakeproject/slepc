@@ -29,7 +29,7 @@ EXAMPLESF  = ex15f.F
 MANSEC     = SVD
 
 TESTEXAMPLES_C           = ex8.PETSc runex8_1 ex8.rm
-TESTEXAMPLES_C_DATAFILE  = ex14.PETSc runex14_1 ex14.rm
+TESTEXAMPLES_C_DATAFILE  = ex14.PETSc runex14_1 runex14_2 ex14.rm
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common
 
@@ -60,6 +60,11 @@ runex8_1:
 runex14_1:
 	-@${SETTEST}; \
 	${MPIEXEC} -n 1 ./ex14 -file ${DATAPATH}/rdb200.petsc -svd_nsv 4 -terse > $${test}.tmp 2>&1;	  \
+	${TESTCODE}
+
+runex14_2:
+	-@${SETTEST}; \
+	${MPIEXEC} -n 1 ./ex14 -file ${DATAPATH}/rdb200.petsc -svd_nsv 2 -svd_type cyclic -svd_cyclic_explicitmatrix -svd_cyclic_st_type sinvert -svd_cyclic_eps_target 12.0 -svd_cyclic_st_ksp_type preonly -svd_cyclic_st_pc_type lu -terse > $${test}.tmp 2>&1;	  \
 	${TESTCODE}
 
 runex15_1:

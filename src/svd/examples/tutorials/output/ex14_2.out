@@ -1,0 +1,12 @@
+
+Singular value problem stored in file.
+
+ Reading REAL matrix from a binary file...
+ Number of iterations of the method: 2
+ Solution method: cyclic
+
+ Number of requested singular values: 2
+ Stopping condition: tol=1e-08, maxit=100
+ All requested singular values computed up to the required tolerance:
+     12.40671, 12.17279
+
