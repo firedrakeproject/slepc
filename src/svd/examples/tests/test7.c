@@ -19,7 +19,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-static char help[] = "SVD via the cross-product matrix with a user-provided EPS.\n\n"
+static char help[] = "SVD via the cyclic matrix with a user-provided EPS.\n\n"
   "The command line options are:\n"
   "  -m <m>, where <m> = matrix rows.\n"
   "  -n <n>, where <n> = matrix columns (defaults to m+2).\n\n";
@@ -42,18 +42,19 @@ static char help[] = "SVD via the cross-product matrix with a user-provided EPS.
 #define __FUNCT__ "main"
 int main(int argc,char **argv)
 {
-  Mat            A;
-  SVD            svd;
-  EPS            eps;
-  ST             st;
-  KSP            ksp;
-  PC             pc;
-  PetscInt       m=20,n,Istart,Iend,i,col[2];
-  PetscScalar    value[] = { 1, 2 };
-  PetscBool      flg;
-  PetscErrorCode ierr;
+  Mat                  A;
+  SVD                  svd;
+  EPS                  eps;
+  ST                   st;
+  KSP                  ksp;
+  PC                   pc;
+  PetscInt             m=20,n,Istart,Iend,i,col[2];
+  PetscScalar          value[] = { 1, 2 };
+  PetscBool            flg,expmat;
+  PetscErrorCode       ierr;
 
   ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
+
   ierr = PetscOptionsGetInt(NULL,NULL,"-m",&m,NULL);CHKERRQ(ierr);
   ierr = PetscOptionsGetInt(NULL,NULL,"-n",&n,&flg);CHKERRQ(ierr);
   if (!flg) n=m+2;
@@ -84,12 +85,15 @@ int main(int argc,char **argv)
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
   ierr = EPSCreate(PETSC_COMM_WORLD,&eps);CHKERRQ(ierr);
+  ierr = EPSSetWhichEigenpairs(eps,EPS_TARGET_MAGNITUDE);CHKERRQ(ierr);
+  ierr = EPSSetTarget(eps,1.0);CHKERRQ(ierr);
   ierr = EPSGetST(eps,&st);CHKERRQ(ierr);
   ierr = STSetType(st,STSINVERT);CHKERRQ(ierr);
+  ierr = STSetShift(st,1.01);CHKERRQ(ierr);
   ierr = STGetKSP(st,&ksp);CHKERRQ(ierr);
-  ierr = KSPSetType(ksp,KSPBCGS);CHKERRQ(ierr);
+  ierr = KSPSetType(ksp,KSPPREONLY);CHKERRQ(ierr);
   ierr = KSPGetPC(ksp,&pc);CHKERRQ(ierr);
-  ierr = PCSetType(pc,PCJACOBI);CHKERRQ(ierr);
+  ierr = PCSetType(pc,PCLU);CHKERRQ(ierr);
   ierr = EPSSetFromOptions(eps);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -98,10 +102,18 @@ int main(int argc,char **argv)
 
   ierr = SVDCreate(PETSC_COMM_WORLD,&svd);CHKERRQ(ierr);
   ierr = SVDSetOperator(svd,A);CHKERRQ(ierr);
-  ierr = SVDSetType(svd,SVDCROSS);CHKERRQ(ierr);
-  ierr = SVDCrossSetEPS(svd,eps);CHKERRQ(ierr);
+  ierr = SVDSetType(svd,SVDCYCLIC);CHKERRQ(ierr);
+  ierr = SVDCyclicSetEPS(svd,eps);CHKERRQ(ierr);
+  ierr = SVDCyclicSetExplicitMatrix(svd,PETSC_TRUE);CHKERRQ(ierr);
   ierr = SVDSetWhichSingularTriplets(svd,SVD_SMALLEST);CHKERRQ(ierr);
   ierr = SVDSetFromOptions(svd);CHKERRQ(ierr);
+  ierr = PetscObjectTypeCompare((PetscObject)svd,SVDCYCLIC,&flg);CHKERRQ(ierr);
+  if (flg) {
+    ierr = SVDCyclicGetExplicitMatrix(svd,&expmat);CHKERRQ(ierr);
+    if (expmat) {
+      ierr = PetscPrintf(PETSC_COMM_WORLD," Using explicit matrix with cyclic solver\n",m,n);CHKERRQ(ierr);
+    }
+  }
   ierr = SVDSolve(svd);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
