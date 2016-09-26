@@ -390,28 +390,30 @@ PetscErrorCode PEPSetUp_Linear(PEP pep)
       ierr = EPSSetProblemType(ctx->eps,EPS_NHEP);CHKERRQ(ierr);
     }
   }
-  if (transf) which = EPS_LARGEST_MAGNITUDE;
-  else {
-    switch (pep->which) {
-        case PEP_LARGEST_MAGNITUDE:  which = EPS_LARGEST_MAGNITUDE; break;
-        case PEP_SMALLEST_MAGNITUDE: which = EPS_SMALLEST_MAGNITUDE; break;
-        case PEP_LARGEST_REAL:       which = EPS_LARGEST_REAL; break;
-        case PEP_SMALLEST_REAL:      which = EPS_SMALLEST_REAL; break;
-        case PEP_LARGEST_IMAGINARY:  which = EPS_LARGEST_IMAGINARY; break;
-        case PEP_SMALLEST_IMAGINARY: which = EPS_SMALLEST_IMAGINARY; break;
-        case PEP_TARGET_MAGNITUDE:   which = EPS_TARGET_MAGNITUDE; break;
-        case PEP_TARGET_REAL:        which = EPS_TARGET_REAL; break;
-        case PEP_TARGET_IMAGINARY:   which = EPS_TARGET_IMAGINARY; break;
-        case PEP_WHICH_USER:         which = EPS_WHICH_USER;
-          ierr = EPSSetEigenvalueComparison(ctx->eps,pep->sc->comparison,pep->sc->comparisonctx);CHKERRQ(ierr);
-          break;
-        default: SETERRQ(PetscObjectComm((PetscObject)pep),1,"Wrong value of which");
+  if (!ctx->usereps) {
+    if (transf) which = EPS_LARGEST_MAGNITUDE;
+    else {
+      switch (pep->which) {
+          case PEP_LARGEST_MAGNITUDE:  which = EPS_LARGEST_MAGNITUDE; break;
+          case PEP_SMALLEST_MAGNITUDE: which = EPS_SMALLEST_MAGNITUDE; break;
+          case PEP_LARGEST_REAL:       which = EPS_LARGEST_REAL; break;
+          case PEP_SMALLEST_REAL:      which = EPS_SMALLEST_REAL; break;
+          case PEP_LARGEST_IMAGINARY:  which = EPS_LARGEST_IMAGINARY; break;
+          case PEP_SMALLEST_IMAGINARY: which = EPS_SMALLEST_IMAGINARY; break;
+          case PEP_TARGET_MAGNITUDE:   which = EPS_TARGET_MAGNITUDE; break;
+          case PEP_TARGET_REAL:        which = EPS_TARGET_REAL; break;
+          case PEP_TARGET_IMAGINARY:   which = EPS_TARGET_IMAGINARY; break;
+          case PEP_WHICH_USER:         which = EPS_WHICH_USER;
+            ierr = EPSSetEigenvalueComparison(ctx->eps,pep->sc->comparison,pep->sc->comparisonctx);CHKERRQ(ierr);
+            break;
+          default: SETERRQ(PetscObjectComm((PetscObject)pep),1,"Wrong value of which");
+      }
     }
+    ierr = EPSSetWhichEigenpairs(ctx->eps,which);CHKERRQ(ierr);
+  
+    ierr = EPSSetDimensions(ctx->eps,pep->nev,pep->ncv?pep->ncv:PETSC_DEFAULT,pep->mpd?pep->mpd:PETSC_DEFAULT);CHKERRQ(ierr);
+    ierr = EPSSetTolerances(ctx->eps,pep->tol==PETSC_DEFAULT?SLEPC_DEFAULT_TOL:pep->tol,pep->max_it?pep->max_it:PETSC_DEFAULT);CHKERRQ(ierr);
   }
-  ierr = EPSSetWhichEigenpairs(ctx->eps,which);CHKERRQ(ierr);
-
-  ierr = EPSSetDimensions(ctx->eps,pep->nev,pep->ncv?pep->ncv:PETSC_DEFAULT,pep->mpd?pep->mpd:PETSC_DEFAULT);CHKERRQ(ierr);
-  ierr = EPSSetTolerances(ctx->eps,pep->tol==PETSC_DEFAULT?SLEPC_DEFAULT_TOL:pep->tol,pep->max_it?pep->max_it:PETSC_DEFAULT);CHKERRQ(ierr);
   ierr = RGIsTrivial(pep->rg,&istrivial);CHKERRQ(ierr);
   if (!istrivial) {
     if (transf) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"PEPLINEAR does not support a nontrivial region with st-transform");
@@ -956,6 +958,7 @@ static PetscErrorCode PEPLinearSetEPS_Linear(PEP pep,EPS eps)
   ierr = PetscObjectReference((PetscObject)eps);CHKERRQ(ierr);
   ierr = EPSDestroy(&ctx->eps);CHKERRQ(ierr);
   ctx->eps = eps;
+  ctx->usereps = PETSC_TRUE;
   ierr = PetscLogObjectParent((PetscObject)pep,(PetscObject)ctx->eps);CHKERRQ(ierr);
   pep->state = PEP_STATE_INITIAL;
   PetscFunctionReturn(0);

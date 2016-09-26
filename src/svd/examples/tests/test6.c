@@ -42,19 +42,18 @@ static char help[] = "SVD via the cross-product matrix with a user-provided EPS.
 #define __FUNCT__ "main"
 int main(int argc,char **argv)
 {
-  Mat                  A;
-  SVD                  svd;
-  EPS                  eps;
-  ST                   st;
-  KSP                  ksp;
-  PC                   pc;
-  PetscInt             m=20,n,Istart,Iend,i,col[2];
-  PetscScalar          value[] = { 1, 2 };
-  PetscBool            flg;
-  PetscErrorCode       ierr;
+  Mat            A;
+  SVD            svd;
+  EPS            eps;
+  ST             st;
+  KSP            ksp;
+  PC             pc;
+  PetscInt       m=20,n,Istart,Iend,i,col[2];
+  PetscScalar    value[] = { 1, 2 };
+  PetscBool      flg;
+  PetscErrorCode ierr;
 
   ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
-
   ierr = PetscOptionsGetInt(NULL,NULL,"-m",&m,NULL);CHKERRQ(ierr);
   ierr = PetscOptionsGetInt(NULL,NULL,"-n",&n,&flg);CHKERRQ(ierr);
   if (!flg) n=m+2;
