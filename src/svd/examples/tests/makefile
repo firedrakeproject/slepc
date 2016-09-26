@@ -33,7 +33,8 @@ TESTEXAMPLES_C           = test1.PETSc runtest1_1 test1.rm \
                            test4.PETSc runtest4_1 test4.rm \
                            test5.PETSc runtest5_1 test5.rm
 TESTEXAMPLES_C_DOUBLE    = test2.PETSc runtest2_1 test2.rm
-TESTEXAMPLES_C_NOTSINGLE = test3.PETSc runtest3_1 runtest3_2 test3.rm
+TESTEXAMPLES_C_NOTSINGLE = test3.PETSc runtest3_1 runtest3_2 test3.rm \
+                           test4.PETSc runtest4_1_lapack test4.rm
 TESTEXAMPLES_FORTRAN     = test4f.PETSc runtest4f_1 test4f.rm
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common
@@ -99,7 +100,7 @@ runtest3_2_%:
 	${MPIEXEC} -n 1 ./test3 -svd_implicittranspose -svd_type $$svd -svd_nsv 4 -svd_tol 1e-5 > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
-runtest4_1: runtest4_1_lanczos runtest4_1_trlanczos runtest4_1_cross runtest4_1_cyclic runtest4_1_lapack 
+runtest4_1: runtest4_1_lanczos runtest4_1_trlanczos runtest4_1_cross runtest4_1_cyclic
 runtest4_1_%:
 	-@${SETTEST}; check=test4_1; svd=$*; \
 	${MPIEXEC} -n 1 ./test4 -svd_type $$svd -svd_monitor_cancel >> $${test}.tmp 2>&1; \
@@ -112,6 +113,6 @@ runtest4f_1:
 
 runtest5_1:
 	-@${SETTEST}; \
-	${MPIEXEC} -n 1 ./test5 -svd_error_relative ::ascii_info_detail -svd_view_values -svd_monitor_conv -svd_error_absolute ::ascii_matlab -svd_monitor_all -svd_converged_reason -svd_view | ${GREP} -v "tolerance" | ${SED} -e "s/[0-9]\.[0-9]*e-[0-9]*/removed/g" >> $${test}.tmp 2>&1; \
+	${MPIEXEC} -n 1 ./test5 -svd_error_relative ::ascii_info_detail -svd_view_values -svd_monitor_conv -svd_error_absolute ::ascii_matlab -svd_monitor_all -svd_converged_reason -svd_view | ${GREP} -v "tolerance" | ${GREP} -v "problem type" | ${SED} -e "s/[0-9]\.[0-9]*e-[0-9]*/removed/g" >> $${test}.tmp 2>&1; \
 	${TESTCODE}
 

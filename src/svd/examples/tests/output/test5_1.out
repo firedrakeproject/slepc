@@ -8,13 +8,12 @@ SVD of diagonal matrix, n=6
   1 SVD converged value (error) #4 2. (removed)
   1 SVD converged value (error) #5 1. (removed)
   1 SVD nconv=6 Values (Errors) 6. (removed) 5. (removed) 4. (removed) 3. (removed) 2. (removed) 1. (removed)
-SVD Object: 1 MPI processes
+SVD Object: svd 1 MPI processes
   type: cross
     EPS Object: (svd_cross_) 1 MPI processes
       type: krylovschur
         Krylov-Schur: 50% of basis vectors kept after restart
         Krylov-Schur: using the locking variant
-      problem type: symmetric eigenvalue problem
       selected portion of the spectrum: largest real parts
       computing all residuals (for tracking convergence)
       number of eigenvalues (nev): 1
@@ -45,7 +44,7 @@ SVD Object: 1 MPI processes
   maximum number of iterations: 100
   convergence test: relative to the singular value
  SVD solve converged (6 singular triplets) due to CONVERGED_TOL; iterations 1
-Error_SVD_0x84000000_0 = [
+Error_svd = [
 removed
 removed
 removed
