@@ -54,8 +54,8 @@
       SVDStop            stp;
       SVDWhich           which;
       SVDConvergedReason reason;
-      PetscInt           m, n, i, Istart, Iend
-      PetscInt           col(2), its
+      PetscInt           m, n, i, Istart
+      PetscInt           col(2), its, Iend
       PetscScalar        val(2)
       PetscMPIInt        rank
       PetscErrorCode     ierr
@@ -157,10 +157,10 @@
       endif
  150  format (' Converged reason:',I2)
       call SVDGetIterationNumber(svd,its,ierr)
-      if (rank .eq. 0) then
-        write(*,160) its
-      endif
- 160  format (' Number of iterations of the method:',I4)
+!     if (rank .eq. 0) then
+!       write(*,160) its
+!     endif
+!160  format (' Number of iterations of the method:',I4)
 
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !     Display solution and clean up

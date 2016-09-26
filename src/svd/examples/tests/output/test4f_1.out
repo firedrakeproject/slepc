@@ -28,7 +28,6 @@ row 19: (19, 1.)  (20, 2.)
  Stopping test is 0
  Which =  largest
  Converged reason: 1
- Number of iterations of the method:   3
  All requested singular values computed up to the required tolerance:
      2.99254
 

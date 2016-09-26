@@ -54,6 +54,7 @@ int main(int argc,char **argv)
                      Create the SVD solver
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
   ierr = SVDCreate(PETSC_COMM_WORLD,&svd);CHKERRQ(ierr);
+  ierr = PetscObjectSetName((PetscObject)svd,"svd");CHKERRQ(ierr);
   ierr = SVDSetOperator(svd,A);CHKERRQ(ierr);
   ierr = SVDSetFromOptions(svd);CHKERRQ(ierr);
 
