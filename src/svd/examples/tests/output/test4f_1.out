@@ -1,5 +1,5 @@
 
-nBidiagonal matrix, m = 20, n= 22 (Fortran)
+Bidiagonal matrix, m = 20, n= 22 (Fortran)
 Mat Object: 1 MPI processes
   type: seqaij
 row 0: (0, 1.)  (1, 2.) 

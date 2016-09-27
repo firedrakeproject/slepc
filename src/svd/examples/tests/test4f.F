@@ -77,7 +77,7 @@
       if (rank .eq. 0) then
         write(*,100) m, n
       endif
- 100  format (/'nBidiagonal matrix, m =',I3,', n=',I3,' (Fortran)')
+ 100  format (/'Bidiagonal matrix, m =',I3,', n=',I3,' (Fortran)')
 
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !     Build the Lauchli matrix
@@ -94,11 +94,11 @@
       do i=Istart,Iend-1
         col(1) = i
         col(2) = i+1
-        if (i .lt. n-1) then
-          call MatSetValues(A,1,i,2,col,val,INSERT_VALUES,ierr)
-        end if
-        if (i .eq. n-1) then
+        if (i .le. n-1) then
           call MatSetValue(A,i,col(1),val(1),INSERT_VALUES,ierr)
+        end if
+        if (i .lt. n-1) then
+          call MatSetValue(A,i,col(2),val(2),INSERT_VALUES,ierr)
         end if
       enddo
 

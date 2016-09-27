@@ -32,11 +32,11 @@ TESTS      = test1 test2 test3 test4 test4f test5 test6 test7
 TESTEXAMPLES_C           = test1.PETSc runtest1_1 test1.rm \
                            test4.PETSc runtest4_1 test4.rm \
                            test5.PETSc runtest5_1 test5.rm \
-                           test6.PETSc runtest6_1 test6.rm \
-                           test7.PETSc runtest7_1 test7.rm
+                           test6.PETSc runtest6_1 test6.rm
 TESTEXAMPLES_C_DOUBLE    = test2.PETSc runtest2_1 test2.rm
 TESTEXAMPLES_C_NOTSINGLE = test3.PETSc runtest3_1 runtest3_2 test3.rm \
-                           test4.PETSc runtest4_1_lapack test4.rm
+                           test4.PETSc runtest4_1_lapack test4.rm \
+                           test7.PETSc runtest7_1 test7.rm
 TESTEXAMPLES_FORTRAN     = test4f.PETSc runtest4f_1 test4f.rm
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common
@@ -128,7 +128,7 @@ runtest5_1:
 
 runtest6_1:
 	-@${SETTEST}; \
-	${MPIEXEC} -n 1 ./test6 -eps_type lanczos >> $${test}.tmp 2>&1; \
+	${MPIEXEC} -n 1 ./test6 -eps_type subspace >> $${test}.tmp 2>&1; \
 	${TESTCODE}
 
 runtest7_1:
