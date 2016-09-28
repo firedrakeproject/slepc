@@ -101,6 +101,9 @@ int main(int argc,char **argv)
 
   ierr = EPSCreate(PETSC_COMM_WORLD,&eps);CHKERRQ(ierr);
   ierr = EPSSetWhichEigenpairs(eps,EPS_TARGET_MAGNITUDE);CHKERRQ(ierr);
+#if defined(PETSC_USE_COMPLEX)
+  ierr = EPSSetTarget(eps,0.01*PETSC_i);CHKERRQ(ierr);
+#endif
   ierr = EPSGetST(eps,&st);CHKERRQ(ierr);
   ierr = STSetType(st,STSINVERT);CHKERRQ(ierr);
   ierr = STGetKSP(st,&ksp);CHKERRQ(ierr);
