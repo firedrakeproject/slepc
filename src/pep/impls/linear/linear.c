@@ -294,8 +294,8 @@ PetscErrorCode PEPSetUp_Linear(PEP pep)
   ierr = STSetUp(pep->st);CHKERRQ(ierr);
   if (!ctx->eps) { ierr = PEPLinearGetEPS(pep,&ctx->eps);CHKERRQ(ierr); }
   ierr = EPSGetST(ctx->eps,&st);CHKERRQ(ierr);
-  if (!transf) { ierr = EPSSetTarget(ctx->eps,pep->target);CHKERRQ(ierr); }
-  if (sinv && !transf) { ierr = STSetDefaultShift(st,pep->target);CHKERRQ(ierr); }
+  if (!transf && !ctx->usereps) { ierr = EPSSetTarget(ctx->eps,pep->target);CHKERRQ(ierr); }
+  if (sinv && !transf && !ctx->usereps) { ierr = STSetDefaultShift(st,pep->target);CHKERRQ(ierr); }
   /* compute scale factor if not set by user */
   ierr = PEPComputeScaleFactor(pep);CHKERRQ(ierr);
 
