@@ -603,7 +603,7 @@ PetscErrorCode BVNormVec(BV bv,Vec v,NormType type,PetscReal *val)
   PetscValidType(v,2);
   PetscCheckSameComm(bv,1,v,2);
 
-  if (type==NORM_1_AND_2) SETERRQ(PetscObjectComm((PetscObject)bv),PETSC_ERR_SUP,"Requested norm not available");
+  if (type==NORM_1_AND_2 && !bv->matrix) SETERRQ(PetscObjectComm((PetscObject)bv),PETSC_ERR_SUP,"Requested norm not available");
 
   ierr = PetscLogEventBegin(BV_NormVec,bv,0,0,0);CHKERRQ(ierr);
   if (bv->matrix) { /* non-standard inner product */
@@ -650,7 +650,7 @@ PetscErrorCode BVNormVecBegin(BV bv,Vec v,NormType type,PetscReal *val)
   PetscValidType(v,2);
   PetscCheckSameTypeAndComm(bv,1,v,2);
 
-  if (type==NORM_1_AND_2) SETERRQ(PetscObjectComm((PetscObject)bv),PETSC_ERR_SUP,"Requested norm not available");
+  if (type==NORM_1_AND_2 && !bv->matrix) SETERRQ(PetscObjectComm((PetscObject)bv),PETSC_ERR_SUP,"Requested norm not available");
 
   ierr = PetscLogEventBegin(BV_NormVec,bv,0,0,0);CHKERRQ(ierr);
   if (bv->matrix) { /* non-standard inner product */
@@ -742,7 +742,7 @@ PetscErrorCode BVNormColumn(BV bv,PetscInt j,NormType type,PetscReal *val)
   BVCheckSizes(bv,1);
 
   if (j<0 || j>=bv->m) SETERRQ2(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_OUTOFRANGE,"Argument j has wrong value %D, the number of columns is %D",j,bv->m);
-  if (type==NORM_1_AND_2) SETERRQ(PetscObjectComm((PetscObject)bv),PETSC_ERR_SUP,"Requested norm not available");
+  if (type==NORM_1_AND_2 && !bv->matrix) SETERRQ(PetscObjectComm((PetscObject)bv),PETSC_ERR_SUP,"Requested norm not available");
 
   ierr = PetscLogEventBegin(BV_NormVec,bv,0,0,0);CHKERRQ(ierr);
   if (bv->matrix) { /* non-standard inner product */
@@ -791,7 +791,7 @@ PetscErrorCode BVNormColumnBegin(BV bv,PetscInt j,NormType type,PetscReal *val)
   BVCheckSizes(bv,1);
 
   if (j<0 || j>=bv->m) SETERRQ2(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_OUTOFRANGE,"Argument j has wrong value %D, the number of columns is %D",j,bv->m);
-  if (type==NORM_1_AND_2) SETERRQ(PetscObjectComm((PetscObject)bv),PETSC_ERR_SUP,"Requested norm not available");
+  if (type==NORM_1_AND_2 && !bv->matrix) SETERRQ(PetscObjectComm((PetscObject)bv),PETSC_ERR_SUP,"Requested norm not available");
 
   ierr = PetscLogEventBegin(BV_NormVec,bv,0,0,0);CHKERRQ(ierr);
   ierr = BVGetColumn(bv,j,&z);CHKERRQ(ierr);

@@ -178,8 +178,10 @@ PetscErrorCode NEPSetUp(NEP nep)
       nep->sc->comparisonctx = &nep->target;
       break;
     case NEP_TARGET_IMAGINARY:
+#if defined(PETSC_USE_COMPLEX)
       nep->sc->comparison    = SlepcCompareTargetImaginary;
       nep->sc->comparisonctx = &nep->target;
+#endif
       break;
     case NEP_ALL:
       nep->sc->comparison    = SlepcCompareSmallestReal;

@@ -60,11 +60,9 @@ int main(int argc,char **argv)
 
   /* Set up viewer */
   ierr = PetscViewerASCIIGetStdout(PETSC_COMM_WORLD,&view);CHKERRQ(ierr);
-  if (!verbose) {
-    ierr = PetscViewerPushFormat(view,PETSC_VIEWER_ASCII_INFO_DETAIL);CHKERRQ(ierr);
-    ierr = BVView(X,view);CHKERRQ(ierr);
-    ierr = PetscViewerPopFormat(view);CHKERRQ(ierr);
-  }
+  ierr = PetscViewerPushFormat(view,PETSC_VIEWER_ASCII_INFO_DETAIL);CHKERRQ(ierr);
+  ierr = BVView(X,view);CHKERRQ(ierr);
+  ierr = PetscViewerPopFormat(view);CHKERRQ(ierr);
 
   /* Fill X entries */
   for (j=0;j<k;j++) {

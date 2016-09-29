@@ -35,7 +35,7 @@ TESTEXAMPLES_C                     = ex5.PETSc runex5_1 ex5.rm \
                                      ex24.PETSc runex24_1 ex24.rm \
                                      ex29.PETSc runex29_1 ex29.rm
 TESTEXAMPLES_C_DOUBLE              = ex2.PETSc runex2_ciss_1 runex2_ciss_2 ex2.rm
-TESTEXAMPLES_C_NOTSINGLE           = ex2.PETSc runex2_1 ex2.rm \
+TESTEXAMPLES_C_NOTSINGLE           = ex2.PETSc runex2_1 runex2_2 ex2.rm \
                                      ex3.PETSc runex3_1 ex3.rm \
                                      ex10.PETSc runex10_1 ex10.rm \
                                      ex11.PETSc runex11_1 runex11_2 ex11.rm \
@@ -45,8 +45,9 @@ TESTEXAMPLES_C_DATAFILE            = ex4.PETSc runex4_1 ex4.rm \
                                      ex7.PETSc runex7_1 ex7.rm \
                                      ex9.PETSc runex9_3 ex9.rm \
                                      ex31.PETSc runex31_1 ex31.rm
+TESTEXAMPLES_C_COMPLEX             = ex9.PETSc runex9_6 ex9.rm
 TESTEXAMPLES_C_NOCOMPLEX           = ex25.PETSc runex25_1 ex25.rm
-TESTEXAMPLES_C_NOCOMPLEX_NOTSINGLE = ex9.PETSc runex9_1 runex9_2 ex9.rm
+TESTEXAMPLES_C_NOCOMPLEX_NOTSINGLE = ex9.PETSc runex9_1 runex9_2 runex9_4 runex9_5 ex9.rm
 TESTEXAMPLES_FORTRAN_NOCOMPLEX     = ex6f.PETSc runex6f_1 ex6f.rm
 TESTEXAMPLES_F90                   = ex1f90.PETSc runex1f90_1 ex1f90.rm
 TESTEXAMPLES_DATAFILESPATH_COMPLEX = ex4.PETSc runex4_ciss_1 ex4.rm \
@@ -161,6 +162,11 @@ runex2_1:
 	${MPIEXEC} -n 1 ./ex2 -n 72 -eps_nev 4 -eps_ncv 20 -terse > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
+runex2_2:
+	-@${SETTEST}; check=ex2_1; \
+	${MPIEXEC} -n 1 ./ex2 -n 72 -eps_nev 4 -eps_ncv 20 -terse -dynamic_library_preload > $${test}.tmp 2>&1; \
+	${TESTCODE}
+
 runex2_ciss_1:
 	-@${SETTEST}; check=ex2_ciss; \
 	${MPIEXEC} -n 1 ./ex2 -n 30 -eps_type ciss -rg_type interval -rg_interval_endpoints 1.1,1.25 -terse > $${test}.tmp 2>&1; \
@@ -219,6 +225,21 @@ runex9_2:
 runex9_3:
 	-@${SETTEST}; check=ex9_1; \
 	${MPIEXEC} -n 1 ./ex9 -eps_nev 4 -eps_balance oneside -terse > $${test}.tmp 2>&1; \
+	${TESTCODE}
+
+runex9_4:
+	-@${SETTEST}; \
+	${MPIEXEC} -n 1 ./ex9 -eps_smallest_imaginary -eps_ncv 24 -terse > $${test}.tmp 2>&1; \
+	${TESTCODE}
+
+runex9_5:
+	-@${SETTEST}; \
+	${MPIEXEC} -n 1 ./ex9 -eps_nev 4 -eps_target_real -eps_target -3 -terse > $${test}.tmp 2>&1; \
+	${TESTCODE}
+
+runex9_6:
+	-@${SETTEST}; \
+	${MPIEXEC} -n 1 ./ex9 -eps_nev 2 -eps_target_imaginary -eps_target 3i -terse > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
 runex10_1: runex10_1_sinvert runex10_1_sinvert_twoside runex10_1_shell runex10_1_shell_twoside

@@ -19,8 +19,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-static char help[] = "Test SVD with different builds with a matrix loaded from a file"
-  " (matrices available in PETSc's distribution).\n\n";
+static char help[] = "Test SVD view and monitor functionality.\n\n";
 
 #include <slepcsvd.h>
 
@@ -28,51 +27,35 @@ static char help[] = "Test SVD with different builds with a matrix loaded from a
 #define __FUNCT__ "main"
 int main(int argc,char **argv)
 {
-  Mat            A;               /* operator matrix */
-  SVD            svd;             /* singular value problem solver context */
-  char           filename[PETSC_MAX_PATH_LEN];
-  const char     *prefix,*scalar,*ints,*floats;
-  PetscReal      tol=1000*PETSC_MACHINE_EPSILON;
-  PetscViewer    viewer;
+  Mat            A;
+  SVD            svd;
+  PetscInt       n=6,Istart,Iend,i;
   PetscErrorCode ierr;
 
   ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
+  ierr = PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"\nSVD of diagonal matrix, n=%D\n\n",n);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-        Load the matrix for which the SVD must be computed
+        Generate the matrix
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-#if defined(PETSC_USE_COMPLEX)
-  prefix = "nh";
-  scalar = "complex";
-#else
-  prefix = "ns";
-  scalar = "real";
-#endif
-#if defined(PETSC_USE_64BIT_INDICES)
-  ints   = "int64";
-#else
-  ints   = "int32";
-#endif
-#if defined(PETSC_USE_REAL_DOUBLE)
-  floats = "float64";
-#elif defined(PETSC_USE_REAL_SINGLE)
-  floats = "float32";
-#endif
-
-  ierr = PetscSNPrintf(filename,PETSC_MAX_PATH_LEN,"%s/share/petsc/datafiles/matrices/%s-%s-%s-%s",PETSC_DIR,prefix,scalar,ints,floats);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"\nReading matrix from binary file...\n\n");CHKERRQ(ierr);
-  ierr = PetscViewerBinaryOpen(PETSC_COMM_WORLD,filename,FILE_MODE_READ,&viewer);CHKERRQ(ierr);
   ierr = MatCreate(PETSC_COMM_WORLD,&A);CHKERRQ(ierr);
+  ierr = MatSetSizes(A,PETSC_DECIDE,PETSC_DECIDE,n,n);CHKERRQ(ierr);
   ierr = MatSetFromOptions(A);CHKERRQ(ierr);
-  ierr = MatLoad(A,viewer);CHKERRQ(ierr);
-  ierr = PetscViewerDestroy(&viewer);CHKERRQ(ierr);
+  ierr = MatSetUp(A);CHKERRQ(ierr);
+  ierr = MatGetOwnershipRange(A,&Istart,&Iend);CHKERRQ(ierr);
+  for (i=Istart;i<Iend;i++) {
+    ierr = MatSetValue(A,i,i,i+1,INSERT_VALUES);CHKERRQ(ierr);
+  }
+  ierr = MatAssemblyBegin(A,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
+  ierr = MatAssemblyEnd(A,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                      Create the SVD solver
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
   ierr = SVDCreate(PETSC_COMM_WORLD,&svd);CHKERRQ(ierr);
+  ierr = PetscObjectSetName((PetscObject)svd,"svd");CHKERRQ(ierr);
   ierr = SVDSetOperator(svd,A);CHKERRQ(ierr);
-  ierr = SVDSetTolerances(svd,tol,PETSC_DEFAULT);CHKERRQ(ierr);
   ierr = SVDSetFromOptions(svd);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

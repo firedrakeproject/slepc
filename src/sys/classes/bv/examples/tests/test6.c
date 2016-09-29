@@ -31,7 +31,7 @@ int main(int argc,char **argv)
   BV             X;
   Mat            M;
   Vec            v,t,*C;
-  PetscInt       i,j,n=20,k=8,nc=2;
+  PetscInt       i,j,n=20,k=8,nc=2,nloc;
   PetscViewer    view;
   PetscBool      verbose;
   PetscReal      norm;
@@ -48,11 +48,12 @@ int main(int argc,char **argv)
   ierr = VecCreate(PETSC_COMM_WORLD,&t);CHKERRQ(ierr);
   ierr = VecSetSizes(t,PETSC_DECIDE,n);CHKERRQ(ierr);
   ierr = VecSetFromOptions(t);CHKERRQ(ierr);
+  ierr = VecGetLocalSize(t,&nloc);CHKERRQ(ierr);
 
   /* Create BV object X */
   ierr = BVCreate(PETSC_COMM_WORLD,&X);CHKERRQ(ierr);
   ierr = PetscObjectSetName((PetscObject)X,"X");CHKERRQ(ierr);
-  ierr = BVSetSizesFromVec(X,t,k);CHKERRQ(ierr);
+  ierr = BVSetSizes(X,nloc,n,k);CHKERRQ(ierr);
   ierr = BVSetFromOptions(X);CHKERRQ(ierr);
 
   /* Generate constraints and attach them to X */

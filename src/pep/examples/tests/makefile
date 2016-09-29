@@ -24,13 +24,14 @@ FFLAGS     =
 CPPFLAGS   =
 FPPFLAGS   =
 LOCDIR     = src/pep/examples/tests/
-EXAMPLESC  = test1.c test2.c test3.c
+EXAMPLESC  = test1.c test2.c test3.c test4.c
 EXAMPLESF  = test3f.F
 MANSEC     = PEP
-TESTS      = test1 test2 test3 test3f
+TESTS      = test1 test2 test3 test3f test4
 
-TESTEXAMPLES_C                     = test2.PETSc runtest2_2 runtest2_4 test2.rm \
-                                     test3.PETSc runtest3_1 test3.rm
+TESTEXAMPLES_C                     = test2.PETSc runtest2_2 runtest2_4 runtest2_5 test2.rm \
+                                     test3.PETSc runtest3_1 test3.rm \
+                                     test4.PETSc runtest4_1 test4.rm
 TESTEXAMPLES_C_NOCOMPLEX_NOTSINGLE = test1.PETSc runtest1_1 test1.rm
 TESTEXAMPLES_C_COMPLEX             = test2.PETSc runtest2_2_jd test2.rm
 TESTEXAMPLES_C_NOTSINGLE           = test2.PETSc runtest2_1 runtest2_3 runtest2_2_stoar test2.rm
@@ -53,6 +54,10 @@ test3: test3.o chkopts
 test3f: test3f.o chkopts
 	-${FLINKER} -o test3f test3f.o ${SLEPC_PEP_LIB}
 	${RM} test3f.o
+
+test4: test4.o chkopts
+	-${CLINKER} -o test4 test4.o ${SLEPC_PEP_LIB}
+	${RM} test4.o
 
 #------------------------------------------------------------------------------------
 
@@ -91,7 +96,7 @@ runtest2_3_%:
 
 runtest2_4: runtest2_4_schur runtest2_4_mbe runtest2_4_explicit runtest2_4_multiple_schur runtest2_4_multiple_mbe runtest2_4_multiple_explicit
 runtest2_4_%:
-	-@${SETTEST}; check=test2_4; refine=$*; \
+	-@${SETTEST}; check=test2_2; refine=$*; \
 	if [ "$$refine" = schur ]; then refine="simple -pep_refine_scheme schur"; \
 	elif [ "$$refine" = mbe ]; then refine="simple -pep_refine_scheme mbe -pep_refine_ksp_type preonly -pep_refine_pc_type lu"; \
 	elif [ "$$refine" = explicit ]; then refine="simple -pep_refine_scheme explicit"; \
@@ -99,6 +104,11 @@ runtest2_4_%:
 	elif [ "$$refine" = multiple_mbe ]; then refine="multiple -pep_refine_scheme mbe -pep_refine_ksp_type preonly -pep_refine_pc_type lu"; \
 	elif [ "$$refine" = multiple_explicit ]; then refine="multiple -pep_refine_scheme explicit"; fi; \
 	${MPIEXEC} -n 1 ./test2 -st_type sinvert -pep_target -0.43 -pep_nev 4 -pep_refine $${refine} >> $${test}.tmp 2>&1; \
+	${TESTCODE}
+
+runtest2_5:
+	-@${SETTEST}; check=test2_2; \
+	${MPIEXEC} -n 2 ./test2 -pep_type linear -pep_linear_explicitmatrix -pep_general -pep_target -0.43 -pep_nev 4 -pep_ncv 20 -st_type sinvert -pep_linear_st_ksp_type bcgs -pep_linear_st_pc_type bjacobi >> $${test}.tmp 2>&1; \
 	${TESTCODE}
 
 runtest3_1:
@@ -109,5 +119,10 @@ runtest3_1:
 runtest3f_1:
 	-@${SETTEST}; \
 	${MPIEXEC} -n 1 ./test3f -pep_tol 1e-6 -pep_ncv 22 > $${test}.tmp 2>&1; \
+	${TESTCODE}
+
+runtest4_1:
+	-@${SETTEST}; \
+	${MPIEXEC} -n 1 ./test4 -pep_linear_explicitmatrix > $${test}.tmp 2>&1; \
 	${TESTCODE}
 

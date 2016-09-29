@@ -134,7 +134,7 @@ static PetscErrorCode SlepcPrintHelpIntro(MPI_Comm comm)
 PetscBool SlepcBeganPetsc = PETSC_FALSE;
 PetscBool SlepcInitializeCalled = PETSC_FALSE;
 
-#if defined(PETSC_HAVE_DYNAMIC_LIBRARIES)
+#if defined(PETSC_HAVE_DYNAMIC_LIBRARIES) && defined(PETSC_USE_SHARED_LIBRARIES)
 
 #undef __FUNCT__
 #define __FUNCT__ "SlepcLoadDynamicLibrary"
@@ -154,6 +154,8 @@ static PetscErrorCode SlepcLoadDynamicLibrary(const char *name,PetscBool *found)
   PetscFunctionReturn(0);
 }
 
+#endif
+
 #undef __FUNCT__
 #define __FUNCT__ "SlepcInitialize_DynamicLibraries"
 /*
@@ -163,10 +165,12 @@ static PetscErrorCode SlepcLoadDynamicLibrary(const char *name,PetscBool *found)
 PetscErrorCode SlepcInitialize_DynamicLibraries(void)
 {
   PetscErrorCode ierr;
-  PetscBool      found;
-  PetscBool      preload;
+#if defined(PETSC_HAVE_DYNAMIC_LIBRARIES) && defined(PETSC_USE_SHARED_LIBRARIES)
+  PetscBool      found,preload;
+#endif
 
   PetscFunctionBegin;
+#if defined(PETSC_HAVE_DYNAMIC_LIBRARIES) && defined(PETSC_USE_SHARED_LIBRARIES)
   preload = PETSC_FALSE;
   ierr = PetscOptionsGetBool(NULL,NULL,"-dynamic_library_preload",&preload,NULL);CHKERRQ(ierr);
   if (preload) {
@@ -175,19 +179,20 @@ PetscErrorCode SlepcInitialize_DynamicLibraries(void)
     if (!found) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_FILE_OPEN,"Unable to locate SLEPc dynamic library\nYou cannot move the dynamic libraries!");
 #else
     ierr = SlepcLoadDynamicLibrary("sys",&found);CHKERRQ(ierr);
-    if (!found) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_FILE_OPEN,"Unable to locate SLEPc dynamic library\nYou cannot move the dynamic libraries!");
+    if (!found) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_FILE_OPEN,"Unable to locate SLEPc sys dynamic library\nYou cannot move the dynamic libraries!");
     ierr = SlepcLoadDynamicLibrary("eps",&found);CHKERRQ(ierr);
-    if (!found) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_FILE_OPEN,"Unable to locate SLEPc dynamic library\nYou cannot move the dynamic libraries!");
+    if (!found) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_FILE_OPEN,"Unable to locate SLEPc EPS dynamic library\nYou cannot move the dynamic libraries!");
     ierr = SlepcLoadDynamicLibrary("pep",&found);CHKERRQ(ierr);
-    if (!found) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_FILE_OPEN,"Unable to locate SLEPc dynamic library\nYou cannot move the dynamic libraries!");
+    if (!found) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_FILE_OPEN,"Unable to locate SLEPc PEP dynamic library\nYou cannot move the dynamic libraries!");
     ierr = SlepcLoadDynamicLibrary("nep",&found);CHKERRQ(ierr);
-    if (!found) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_FILE_OPEN,"Unable to locate SLEPc dynamic library\nYou cannot move the dynamic libraries!");
+    if (!found) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_FILE_OPEN,"Unable to locate SLEPc NEP dynamic library\nYou cannot move the dynamic libraries!");
     ierr = SlepcLoadDynamicLibrary("svd",&found);CHKERRQ(ierr);
-    if (!found) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_FILE_OPEN,"Unable to locate SLEPc dynamic library\nYou cannot move the dynamic libraries!");
+    if (!found) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_FILE_OPEN,"Unable to locate SLEPc SVD dynamic library\nYou cannot move the dynamic libraries!");
     ierr = SlepcLoadDynamicLibrary("mfn",&found);CHKERRQ(ierr);
-    if (!found) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_FILE_OPEN,"Unable to locate SLEPc dynamic library\nYou cannot move the dynamic libraries!");
+    if (!found) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_FILE_OPEN,"Unable to locate SLEPc MFN dynamic library\nYou cannot move the dynamic libraries!");
 #endif
   }
+#endif
 
 #if defined(PETSC_HAVE_THREADSAFETY)
   ierr = STInitializePackage();CHKERRQ(ierr);
@@ -200,10 +205,11 @@ PetscErrorCode SlepcInitialize_DynamicLibraries(void)
   ierr = PEPInitializePackage();CHKERRQ(ierr);
   ierr = NEPInitializePackage();CHKERRQ(ierr);
   ierr = MFNInitializePackage();CHKERRQ(ierr);
+#else
+  ierr = 0;  /* avoid compiler warning */
 #endif
   PetscFunctionReturn(0);
 }
-#endif
 
 #undef __FUNCT__
 #define __FUNCT__ "SlepcCitationsInitialize"
@@ -271,9 +277,8 @@ PetscErrorCode SlepcInitialize(int *argc,char ***args,const char file[],const ch
 
   ierr = SlepcCitationsInitialize();CHKERRQ(ierr);
 
-#if defined(PETSC_HAVE_DYNAMIC_LIBRARIES)
+  /* Load the dynamic libraries (on machines that support them), this registers all the solvers etc. */
   ierr = SlepcInitialize_DynamicLibraries();CHKERRQ(ierr);
-#endif
 
 #if defined(PETSC_HAVE_DRAND48)
   /* work-around for Cygwin drand48() initialization bug */

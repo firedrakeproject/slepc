@@ -28,9 +28,8 @@ static char help[] = "Test BV operations with indefinite inner product.\n\n";
 int main(int argc,char **argv)
 {
   PetscErrorCode ierr;
-  Vec            t,v;
+  Vec            t,v,w,omega;
   Mat            B,M;
-  Vec            omega;
   BV             X,Y;
   PetscInt       i,j,n=10,k=5,Istart,Iend;
   PetscScalar    alpha;
@@ -116,7 +115,6 @@ int main(int argc,char **argv)
   ierr = BVGetSignature(Y,omega);CHKERRQ(ierr);
   ierr = VecScale(omega,-1.0);CHKERRQ(ierr);
   ierr = MatDiagonalSet(M,omega,ADD_VALUES);CHKERRQ(ierr);
-  ierr = VecDestroy(&omega);CHKERRQ(ierr);
   ierr = MatNorm(M,NORM_1,&nrm);CHKERRQ(ierr);
   if (nrm<100*PETSC_MACHINE_EPSILON) {
     ierr = PetscPrintf(PETSC_COMM_WORLD,"Level of orthogonality < 100*eps\n");CHKERRQ(ierr);
@@ -124,10 +122,33 @@ int main(int argc,char **argv)
     ierr = PetscPrintf(PETSC_COMM_WORLD,"Level of orthogonality: %g\n",(double)nrm);CHKERRQ(ierr);
   }
 
+  /* Test BVSetSignature */
+  ierr = VecScale(omega,-1.0);CHKERRQ(ierr);
+  ierr = BVSetSignature(Y,omega);CHKERRQ(ierr);
+  ierr = VecDestroy(&omega);CHKERRQ(ierr);
+
+  /* Test BVApplyMatrix */
+  ierr = VecDuplicate(t,&w);CHKERRQ(ierr);
+  ierr = BVGetColumn(X,0,&v);CHKERRQ(ierr);
+  ierr = BVApplyMatrix(X,v,w);CHKERRQ(ierr);
+  ierr = BVApplyMatrix(X,w,t);CHKERRQ(ierr);
+  ierr = VecAXPY(t,-1.0,v);CHKERRQ(ierr);
+  ierr = BVRestoreColumn(X,0,&v);CHKERRQ(ierr);
+  ierr = VecNorm(t,NORM_2,&nrm);CHKERRQ(ierr);
+  if (PetscAbsReal(nrm)>10*PETSC_MACHINE_EPSILON) SETERRQ1(PETSC_COMM_SELF,1,"Wrong value, nrm = %g\n",(double)nrm);
+
+  ierr = BVApplyMatrixBV(X,Y);CHKERRQ(ierr);
+  ierr = BVGetColumn(Y,0,&v);CHKERRQ(ierr);
+  ierr = VecAXPY(w,-1.0,v);CHKERRQ(ierr);
+  ierr = BVRestoreColumn(Y,0,&v);CHKERRQ(ierr);
+  ierr = VecNorm(w,NORM_2,&nrm);CHKERRQ(ierr);
+  if (PetscAbsReal(nrm)>10*PETSC_MACHINE_EPSILON) SETERRQ1(PETSC_COMM_SELF,1,"Wrong value, nrm = %g\n",(double)nrm);
+
   ierr = BVDestroy(&X);CHKERRQ(ierr);
   ierr = BVDestroy(&Y);CHKERRQ(ierr);
   ierr = MatDestroy(&M);CHKERRQ(ierr);
   ierr = MatDestroy(&B);CHKERRQ(ierr);
+  ierr = VecDestroy(&w);CHKERRQ(ierr);
   ierr = VecDestroy(&t);CHKERRQ(ierr);
   ierr = SlepcFinalize();
   return ierr;

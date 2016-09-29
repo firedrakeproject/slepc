@@ -30,6 +30,7 @@
 typedef struct {
   PetscBool explicitmatrix;
   EPS       eps;
+  PetscBool usereps;
   Mat       mat;
   Vec       x1,x2,y1,y2;
 } SVD_CYCLIC;
@@ -142,27 +143,29 @@ PetscErrorCode SVDSetUp_Cyclic(SVD svd)
   if (!cyclic->eps) { ierr = SVDCyclicGetEPS(svd,&cyclic->eps);CHKERRQ(ierr); }
   ierr = EPSSetOperators(cyclic->eps,cyclic->mat,NULL);CHKERRQ(ierr);
   ierr = EPSSetProblemType(cyclic->eps,EPS_HEP);CHKERRQ(ierr);
-  if (svd->which == SVD_LARGEST) {
-    ierr = EPSGetST(cyclic->eps,&st);CHKERRQ(ierr);
-    ierr = PetscObjectTypeCompare((PetscObject)st,STSINVERT,&issinv);CHKERRQ(ierr);
-    if (issinv) {
-      ierr = EPSSetWhichEigenpairs(cyclic->eps,EPS_TARGET_MAGNITUDE);CHKERRQ(ierr);
+  if (!cyclic->usereps) {
+    if (svd->which == SVD_LARGEST) {
+      ierr = EPSGetST(cyclic->eps,&st);CHKERRQ(ierr);
+      ierr = PetscObjectTypeCompare((PetscObject)st,STSINVERT,&issinv);CHKERRQ(ierr);
+      if (issinv) {
+        ierr = EPSSetWhichEigenpairs(cyclic->eps,EPS_TARGET_MAGNITUDE);CHKERRQ(ierr);
+      } else {
+        ierr = EPSSetWhichEigenpairs(cyclic->eps,EPS_LARGEST_REAL);CHKERRQ(ierr);
+      }
     } else {
-      ierr = EPSSetWhichEigenpairs(cyclic->eps,EPS_LARGEST_REAL);CHKERRQ(ierr);
+      ierr = EPSSetEigenvalueComparison(cyclic->eps,SlepcCompareSmallestPosReal,NULL);CHKERRQ(ierr);
+      ierr = EPSSetTarget(cyclic->eps,0.0);CHKERRQ(ierr);
     }
-  } else {
-    ierr = EPSSetEigenvalueComparison(cyclic->eps,SlepcCompareSmallestPosReal,NULL);CHKERRQ(ierr);
-    ierr = EPSSetTarget(cyclic->eps,0.0);CHKERRQ(ierr);
-  }
-  ierr = EPSSetDimensions(cyclic->eps,svd->nsv,svd->ncv?svd->ncv:PETSC_DEFAULT,svd->mpd?svd->mpd:PETSC_DEFAULT);CHKERRQ(ierr);
-  ierr = EPSSetTolerances(cyclic->eps,svd->tol==PETSC_DEFAULT?SLEPC_DEFAULT_TOL/10.0:svd->tol,svd->max_it?svd->max_it:PETSC_DEFAULT);CHKERRQ(ierr);
-  switch (svd->conv) {
-  case SVD_CONV_ABS:
-    ierr = EPSSetConvergenceTest(cyclic->eps,EPS_CONV_ABS);CHKERRQ(ierr);break;
-  case SVD_CONV_REL:
-    ierr = EPSSetConvergenceTest(cyclic->eps,EPS_CONV_REL);CHKERRQ(ierr);break;
-  case SVD_CONV_USER:
-    SETERRQ(PetscObjectComm((PetscObject)svd),PETSC_ERR_SUP,"User-defined convergence test not supported in this solver");
+    ierr = EPSSetDimensions(cyclic->eps,svd->nsv,svd->ncv?svd->ncv:PETSC_DEFAULT,svd->mpd?svd->mpd:PETSC_DEFAULT);CHKERRQ(ierr);
+    ierr = EPSSetTolerances(cyclic->eps,svd->tol==PETSC_DEFAULT?SLEPC_DEFAULT_TOL/10.0:svd->tol,svd->max_it?svd->max_it:PETSC_DEFAULT);CHKERRQ(ierr);
+    switch (svd->conv) {
+    case SVD_CONV_ABS:
+      ierr = EPSSetConvergenceTest(cyclic->eps,EPS_CONV_ABS);CHKERRQ(ierr);break;
+    case SVD_CONV_REL:
+      ierr = EPSSetConvergenceTest(cyclic->eps,EPS_CONV_REL);CHKERRQ(ierr);break;
+    case SVD_CONV_USER:
+      SETERRQ(PetscObjectComm((PetscObject)svd),PETSC_ERR_SUP,"User-defined convergence test not supported in this solver");
+    }
   }
   if (svd->stop!=SVD_STOP_BASIC) SETERRQ(PetscObjectComm((PetscObject)svd),PETSC_ERR_SUP,"User-defined stopping test not supported in this solver");
   /* Transfer the trackall option from svd to eps */
@@ -301,7 +304,7 @@ PetscErrorCode SVDSetFromOptions_Cyclic(PetscOptionItems *PetscOptionsObject,SVD
   }
   if (!cyclic->eps) { ierr = SVDCyclicGetEPS(svd,&cyclic->eps);CHKERRQ(ierr); }
   ierr = EPSSetFromOptions(cyclic->eps);CHKERRQ(ierr);
-  if (!cyclic->explicitmatrix) {
+  if (!cyclic->explicitmatrix && !cyclic->usereps) {
     /* use as default an ST with shell matrix and Jacobi */
     ierr = EPSGetST(cyclic->eps,&st);CHKERRQ(ierr);
     ierr = STSetMatMode(st,ST_MATMODE_SHELL);CHKERRQ(ierr);
@@ -401,6 +404,7 @@ static PetscErrorCode SVDCyclicSetEPS_Cyclic(SVD svd,EPS eps)
   ierr = PetscObjectReference((PetscObject)eps);CHKERRQ(ierr);
   ierr = EPSDestroy(&cyclic->eps);CHKERRQ(ierr);
   cyclic->eps = eps;
+  cyclic->usereps = PETSC_TRUE;
   ierr = PetscLogObjectParent((PetscObject)svd,(PetscObject)cyclic->eps);CHKERRQ(ierr);
   svd->state = SVD_STATE_INITIAL;
   PetscFunctionReturn(0);
