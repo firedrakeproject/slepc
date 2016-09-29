@@ -29,6 +29,20 @@ EXTERN_C_BEGIN
 #include <primme.h>
 EXTERN_C_END
 
+#if defined(PETSC_USE_COMPLEX)
+#if defined(PETSC_USE_REAL_SINGLE)
+#define PRIMME_DRIVER cprimme
+#else
+#define PRIMME_DRIVER zprimme
+#endif
+#else
+#if defined(PETSC_USE_REAL_SINGLE)
+#define PRIMME_DRIVER sprimme
+#else
+#define PRIMME_DRIVER dprimme
+#endif
+#endif
+
 typedef struct {
   primme_params primme;           /* param struc */
   primme_preset_method method;    /* primme method */
@@ -36,16 +50,15 @@ typedef struct {
   EPS       eps;                  /* EPS current context */
   KSP       ksp;                  /* linear solver and preconditioner */
   Vec       x,y;                  /* auxiliary vectors */
-  PetscReal target;               /* a copy of eps's target */
+  double    target;               /* a copy of eps's target */
 } EPS_PRIMME;
 
-static void multMatvec_PRIMME(void *in,void *out,int *blockSize,primme_params *primme);
-static void applyPreconditioner_PRIMME(void *in,void *out,int *blockSize,struct primme_params *primme);
+static void multMatvec_PRIMME(void*,PRIMME_INT*,void*,PRIMME_INT*,int*,struct primme_params*,int*);
+static void applyPreconditioner_PRIMME(void*,PRIMME_INT*,void*,PRIMME_INT*,int*,struct primme_params*,int*);
 
-static void par_GlobalSumDouble(void *sendBuf,void *recvBuf,int *count,primme_params *primme)
+static void par_GlobalSumReal(void *sendBuf,void *recvBuf,int *count,primme_params *primme,int *ierr)
 {
-  PetscErrorCode ierr;
-  ierr = MPI_Allreduce((double*)sendBuf,(double*)recvBuf,*count,MPI_DOUBLE,MPI_SUM,PetscObjectComm((PetscObject)primme->commInfo));CHKERRABORT(PetscObjectComm((PetscObject)primme->commInfo),ierr);
+  *ierr = MPI_Allreduce((double*)sendBuf,(double*)recvBuf,*count,MPI_DOUBLE,MPI_SUM,PetscObjectComm((PetscObject)primme->commInfo));CHKERRABORT(PetscObjectComm((PetscObject)primme->commInfo),*ierr);
 }
 
 #undef __FUNCT__
@@ -171,12 +184,12 @@ PetscErrorCode EPSSolve_PRIMME(EPS eps)
   ierr = BVGetColumn(eps->V,0,&v0);CHKERRQ(ierr);
   ierr = VecGetArray(v0,&a);CHKERRQ(ierr);
 #if !defined(PETSC_USE_COMPLEX)
-  ierr = dprimme(eps->eigr,a,eps->errest,&ops->primme);
+  ierr = PRIMME_DRIVER(eps->eigr,a,eps->errest,&ops->primme);
   if (ierr) SETERRQ1(PetscObjectComm((PetscObject)eps),PETSC_ERR_LIB,"PRIMME library failed with error code=%d",ierr);
 #else
   /* PRIMME returns real eigenvalues, but SLEPc works with complex ones */
   ierr = PetscMalloc1(eps->ncv,&evals);CHKERRQ(ierr);
-  ierr = zprimme(evals,(Complex_Z*)a,eps->errest,&ops->primme);
+  ierr = PRIMME_DRIVER(evals,a,eps->errest,&ops->primme);
   if (ierr) SETERRQ1(PetscObjectComm((PetscObject)eps),PETSC_ERR_LIB,"PRIMME library failed with error code=%d",ierr);
   for (i=0;i<eps->ncv;i++) eps->eigr[i] = evals[i];
   ierr = PetscFree(evals);CHKERRQ(ierr);
@@ -192,45 +205,39 @@ PetscErrorCode EPSSolve_PRIMME(EPS eps)
 
 #undef __FUNCT__
 #define __FUNCT__ "multMatvec_PRIMME"
-static void multMatvec_PRIMME(void *in,void *out,int *blockSize,primme_params *primme)
+static void multMatvec_PRIMME(void *xa,PRIMME_INT *ldx,void *ya,PRIMME_INT *ldy,int *blockSize,struct primme_params *primme,int *ierr)
 {
-  PetscErrorCode ierr;
-  PetscInt       i,N = primme->n;
-  EPS_PRIMME     *ops = (EPS_PRIMME*)primme->matrix;
-  Vec            x = ops->x,y = ops->y;
-  Mat            A = ops->A;
+  PetscInt   i;
+  EPS_PRIMME *ops = (EPS_PRIMME*)primme->matrix;
+  Vec        x = ops->x,y = ops->y;
+  Mat        A = ops->A;
 
   PetscFunctionBegin;
   for (i=0;i<*blockSize;i++) {
-    /* build vectors using 'in' an 'out' workspace */
-    ierr = VecPlaceArray(x,(PetscScalar*)in+N*i);CHKERRABORT(PetscObjectComm((PetscObject)A),ierr);
-    ierr = VecPlaceArray(y,(PetscScalar*)out+N*i);CHKERRABORT(PetscObjectComm((PetscObject)A),ierr);
-
-    ierr = MatMult(A,x,y);CHKERRABORT(PetscObjectComm((PetscObject)A),ierr);
-
-    ierr = VecResetArray(x);CHKERRABORT(PetscObjectComm((PetscObject)A),ierr);
-    ierr = VecResetArray(y);CHKERRABORT(PetscObjectComm((PetscObject)A),ierr);
+    *ierr = VecPlaceArray(x,(PetscScalar*)xa+(*ldx)*i);CHKERRABORT(PetscObjectComm((PetscObject)A),*ierr);
+    *ierr = VecPlaceArray(y,(PetscScalar*)ya+(*ldy)*i);CHKERRABORT(PetscObjectComm((PetscObject)A),*ierr);
+    *ierr = MatMult(A,x,y);CHKERRABORT(PetscObjectComm((PetscObject)A),*ierr);
+    *ierr = VecResetArray(x);CHKERRABORT(PetscObjectComm((PetscObject)A),*ierr);
+    *ierr = VecResetArray(y);CHKERRABORT(PetscObjectComm((PetscObject)A),*ierr);
   }
   PetscFunctionReturnVoid();
 }
 
 #undef __FUNCT__
 #define __FUNCT__ "applyPreconditioner_PRIMME"
-static void applyPreconditioner_PRIMME(void *in,void *out,int *blockSize,struct primme_params *primme)
+static void applyPreconditioner_PRIMME(void *xa,PRIMME_INT *ldx,void *ya,PRIMME_INT *ldy,int *blockSize,struct primme_params *primme,int *ierr)
 {
-  PetscErrorCode ierr;
-  PetscInt       i,N = primme->n;
-  EPS_PRIMME     *ops = (EPS_PRIMME*)primme->matrix;
-  Vec            x = ops->x,y = ops->y;
+  PetscInt   i;
+  EPS_PRIMME *ops = (EPS_PRIMME*)primme->matrix;
+  Vec        x = ops->x,y = ops->y;
 
   PetscFunctionBegin;
   for (i=0;i<*blockSize;i++) {
-    /* build vectors using 'in' an 'out' workspace */
-    ierr = VecPlaceArray(x,(PetscScalar*)in+N*i);CHKERRABORT(PetscObjectComm((PetscObject)ops->ksp),ierr);
-    ierr = VecPlaceArray(y,(PetscScalar*)out+N*i);CHKERRABORT(PetscObjectComm((PetscObject)ops->ksp),ierr);
-    ierr = KSPSolve(ops->ksp,x,y);CHKERRABORT(PetscObjectComm((PetscObject)ops->ksp),ierr);
-    ierr = VecResetArray(x);CHKERRABORT(PetscObjectComm((PetscObject)ops->ksp),ierr);
-    ierr = VecResetArray(y);CHKERRABORT(PetscObjectComm((PetscObject)ops->ksp),ierr);
+    *ierr = VecPlaceArray(x,(PetscScalar*)xa+(*ldx)*i);CHKERRABORT(PetscObjectComm((PetscObject)ops->ksp),*ierr);
+    *ierr = VecPlaceArray(y,(PetscScalar*)ya+(*ldy)*i);CHKERRABORT(PetscObjectComm((PetscObject)ops->ksp),*ierr);
+    *ierr = KSPSolve(ops->ksp,x,y);CHKERRABORT(PetscObjectComm((PetscObject)ops->ksp),*ierr);
+    *ierr = VecResetArray(x);CHKERRABORT(PetscObjectComm((PetscObject)ops->ksp),*ierr);
+    *ierr = VecResetArray(y);CHKERRABORT(PetscObjectComm((PetscObject)ops->ksp),*ierr);
   }
   PetscFunctionReturnVoid();
 }
@@ -243,7 +250,7 @@ PetscErrorCode EPSReset_PRIMME(EPS eps)
   EPS_PRIMME     *ops = (EPS_PRIMME*)eps->data;
 
   PetscFunctionBegin;
-  primme_Free(&ops->primme);
+  primme_free(&ops->primme);
   ierr = VecDestroy(&ops->x);CHKERRQ(ierr);
   ierr = VecDestroy(&ops->y);CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -517,7 +524,7 @@ PETSC_EXTERN PetscErrorCode EPSCreate_PRIMME(EPS eps)
 
   primme_initialize(&primme->primme);
   primme->primme.matrixMatvec = multMatvec_PRIMME;
-  primme->primme.globalSumDouble = par_GlobalSumDouble;
+  primme->primme.globalSumReal = par_GlobalSumReal;
   primme->method = (primme_preset_method)EPS_PRIMME_DEFAULT_MIN_TIME;
 
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSPRIMMESetBlockSize_C",EPSPRIMMESetBlockSize_PRIMME);CHKERRQ(ierr);

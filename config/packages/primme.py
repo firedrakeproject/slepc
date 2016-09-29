@@ -26,17 +26,19 @@ class Primme(package.Package):
 
   def __init__(self,argdb,log):
     package.Package.__init__(self,argdb,log)
-    self.packagename  = 'primme'
-    self.installable  = True
-    self.downloadable = True
-    self.version      = '1.2.2'
-    self.url          = 'https://github.com/primme/primme/tarball/release-'+self.version
-    self.archive      = 'primme-'+self.version+'.tar.gz'
-    self.dirname      = 'PRIMME'
+    self.packagename    = 'primme'
+    self.installable    = True
+    self.downloadable   = True
+    self.version        = '2.0.1'
+    self.url            = 'https://github.com/primme/primme/tarball/release-2.0'
+    self.archive        = 'primme-'+self.version+'.tar.gz'
+    self.dirname        = 'PRIMME'
+    self.supportssingle = True
+    self.supports64bint = True
     self.ProcessArgs(argdb)
 
   def Check(self,conf,vars,cmake,petsc):
-    functions_base = ['primme_set_method','primme_Free','primme_initialize']
+    functions_base = ['primme_set_method','primme_free','primme_initialize']
     if self.packagedir:
       dirs = [self.packagedir]
     else:
@@ -46,9 +48,15 @@ class Primme(package.Package):
     if not libs:
       libs = ['-lprimme']
     if petsc.scalar == 'real':
-      functions = functions_base + ['dprimme']
+      if petsc.precision == 'single':
+        functions = functions_base + ['sprimme']
+      else:
+        functions = functions_base + ['dprimme']
     else:
-      functions = functions_base + ['zprimme']
+      if petsc.precision == 'single':
+        functions = functions_base + ['cprimme']
+      else:
+        functions = functions_base + ['zprimme']
 
     for d in dirs:
       if d:
@@ -84,10 +92,10 @@ class Primme(package.Package):
 
     # Configure
     g = open(os.path.join(builddir,'Make_flags'),'w')
-    g.write('LIBRARY     = libprimme.a\n')
-    g.write('DLIBRARY    = libdprimme.a\n')
-    g.write('ZLIBRARY    = libzprimme.a\n')
+    g.write('LIBRARY     = libprimme.'+petsc.ar_lib_suffix+'\n')
+    g.write('SOLIBRARY   = libprimme.'+petsc.sl_suffix+'\n')
     g.write('CC          = '+petsc.cc+'\n')
+    g.write('F77         = '+petsc.fc+'\n')
     g.write('DEFINES     = ')
     if petsc.blaslapackunderscore:
       g.write('-DF77UNDERSCORE ')
@@ -108,9 +116,10 @@ class Primme(package.Package):
     # Move files
     incDir = os.path.join(archdir,'include')
     libDir = os.path.join(archdir,'lib')
-    os.rename(os.path.join(builddir,'libprimme.'+petsc.ar_lib_suffix),os.path.join(libDir,'libprimme.'+petsc.ar_lib_suffix))
-    for name in ['primme.h','primme_f77.h','Complexz.h']:
-      shutil.copyfile(os.path.join(builddir,'PRIMMESRC','COMMONSRC',name),os.path.join(incDir,name))
+    os.rename(os.path.join(builddir,'lib','libprimme.'+petsc.ar_lib_suffix),os.path.join(libDir,'libprimme.'+petsc.ar_lib_suffix))
+    for root, dirs, files in os.walk(os.path.join(builddir,'include')):
+      for name in files:
+        shutil.copyfile(os.path.join(builddir,'include',name),os.path.join(incDir,name))
 
     if petsc.buildsharedlib:
       l = petsc.slflag + libDir + ' -L' + libDir + ' -lprimme'
@@ -119,11 +128,17 @@ class Primme(package.Package):
     f = '-I' + incDir
 
     # Check build
-    functions_base = ['primme_set_method','primme_Free','primme_initialize']
+    functions_base = ['primme_set_method','primme_free','primme_initialize']
     if petsc.scalar == 'real':
-      functions = functions_base + ['dprimme']
+      if petsc.precision == 'single':
+        functions = functions_base + ['sprimme']
+      else:
+        functions = functions_base + ['dprimme']
     else:
-      functions = functions_base + ['zprimme']
+      if petsc.precision == 'single':
+        functions = functions_base + ['cprimme']
+      else:
+        functions = functions_base + ['zprimme']
     if not self.Link(functions,[],[l]+[f]):
       self.log.Exit('\nERROR: Unable to link with downloaded PRIMME')
 
