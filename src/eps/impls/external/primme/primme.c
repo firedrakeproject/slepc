@@ -25,9 +25,7 @@
 
 PetscErrorCode EPSSolve_PRIMME(EPS);
 
-EXTERN_C_BEGIN
 #include <primme.h>
-EXTERN_C_END
 
 #if defined(PETSC_USE_COMPLEX)
 #if defined(PETSC_USE_REAL_SINGLE)
@@ -58,7 +56,7 @@ static void applyPreconditioner_PRIMME(void*,PRIMME_INT*,void*,PRIMME_INT*,int*,
 
 static void par_GlobalSumReal(void *sendBuf,void *recvBuf,int *count,primme_params *primme,int *ierr)
 {
-  *ierr = MPI_Allreduce((double*)sendBuf,(double*)recvBuf,*count,MPI_DOUBLE,MPI_SUM,PetscObjectComm((PetscObject)primme->commInfo));CHKERRABORT(PetscObjectComm((PetscObject)primme->commInfo),*ierr);
+  *ierr = MPI_Allreduce(sendBuf,recvBuf,*count,MPIU_REAL,MPI_SUM,PetscObjectComm((PetscObject)primme->commInfo));CHKERRABORT(PetscObjectComm((PetscObject)primme->commInfo),*ierr);
 }
 
 #undef __FUNCT__

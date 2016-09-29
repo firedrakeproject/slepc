@@ -64,7 +64,7 @@ class Primme(package.Package):
           l = [petsc.slflag + d] + ['-L' + d] + libs
         else:
           l = ['-L' + d] + libs
-        f = ['-I' + os.path.join(d,'PRIMMESRC','COMMONSRC')]
+        f = ['-I' + os.path.join(d,'include')]
       else:
         l =  libs
         f = []
@@ -74,7 +74,7 @@ class Primme(package.Package):
         vars.write('PRIMME_FLAGS = ' + ' '.join(f) + '\n')
         cmake.write('set (SLEPC_HAVE_PRIMME YES)\n')
         cmake.write('find_library (PRIMME_LIB primme HINTS '+ d +')\n')
-        cmake.write('find_path (PRIMME_INCLUDE primme.h ' + d + '/PRIMMESRC/COMMONSRC)\n')
+        cmake.write('find_path (PRIMME_INCLUDE primme.h ' + d + '/include)\n')
         self.havepackage = True
         self.packageflags = l+f
         return
