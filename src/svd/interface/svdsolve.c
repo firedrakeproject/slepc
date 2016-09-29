@@ -115,7 +115,7 @@ PetscErrorCode SVDSolve(SVD svd)
   if (svd->which == SVD_SMALLEST) {
     ierr = PetscSortRealWithPermutation(svd->nconv,svd->sigma,svd->perm);CHKERRQ(ierr);
   } else {
-    ierr = PetscMalloc(sizeof(PetscInt)*svd->nconv,&workperm);CHKERRQ(ierr);
+    ierr = PetscMalloc1(svd->nconv,&workperm);CHKERRQ(ierr);
     for (i=0;i<svd->nconv;i++) workperm[i] = i;
     ierr = PetscSortRealWithPermutation(svd->nconv,svd->sigma,workperm);CHKERRQ(ierr);
     for (i=0;i<svd->nconv;i++) svd->perm[i] = workperm[svd->nconv-i-1];

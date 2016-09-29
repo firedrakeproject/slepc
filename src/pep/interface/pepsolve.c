@@ -445,9 +445,9 @@ PetscErrorCode PEPComputeResidualNorm_Private(PEP pep,PetscScalar kr,PetscScalar
   ivals = it; 
 #endif
   if (nmat>20) {
-    ierr = PetscMalloc(nmat*sizeof(PetscScalar),&vals);CHKERRQ(ierr);
+    ierr = PetscMalloc1(nmat,&vals);CHKERRQ(ierr);
 #if !defined(PETSC_USE_COMPLEX)
-    ierr = PetscMalloc(nmat*sizeof(PetscScalar),&ivals);CHKERRQ(ierr);
+    ierr = PetscMalloc1(nmat,&ivals);CHKERRQ(ierr);
 #endif
   }
   ierr = PEPEvaluateBasis(pep,kr,ki,vals,ivals);CHKERRQ(ierr);
