@@ -40,7 +40,7 @@ class Primme(package.Package):
   def Check(self,conf,vars,cmake,petsc):
     functions_base = ['primme_set_method','primme_free','primme_initialize']
     if self.packagedir:
-      dirs = [self.packagedir]
+      dirs = [os.path.join(self.packagedir,'lib')]
     else:
       dirs = self.GenerateGuesses('Primme')
 
@@ -64,7 +64,7 @@ class Primme(package.Package):
           l = [petsc.slflag + d] + ['-L' + d] + libs
         else:
           l = ['-L' + d] + libs
-        f = ['-I' + os.path.join(d,'include')]
+        f = ['-I' + os.path.join(os.path.dirname(d),'include')]
       else:
         l =  libs
         f = []
@@ -82,6 +82,7 @@ class Primme(package.Package):
     self.log.Println('\nERROR: Unable to link with PRIMME library')
     self.log.Println('ERROR: In directories '+' '.join(dirs))
     self.log.Println('ERROR: With flags '+' '.join(libs))
+    self.log.Println('NOTE: make sure PRIMME version is 2.0 at least')
     self.log.Exit('')
 
 
