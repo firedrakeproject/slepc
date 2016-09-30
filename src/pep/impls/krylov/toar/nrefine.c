@@ -964,47 +964,23 @@ static PetscErrorCode PEPNRefForwardSubstitution(PEP pep,PetscInt k,PetscScalar 
 
 #undef __FUNCT__
 #define __FUNCT__ "NRefOrthogStep"
-static PetscErrorCode NRefOrthogStep(PEP pep,PetscInt k,PetscScalar *H,PetscInt ldh,PetscScalar *fH,PetscScalar *S,PetscInt lds,PetscInt *prs)
+static PetscErrorCode NRefOrthogStep(PEP pep,PetscInt k,PetscScalar *H,PetscInt ldh,PetscScalar *fH,PetscScalar *S,PetscInt lds)
 {
 #if defined(PETSC_MISSING_LAPACK_GEQRF) || defined(PETSC_MISSING_LAPACK_ORGQR)
   PetscFunctionBegin;
   SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"GEQRF/ORGQR - Lapack routine is unavailable");
 #else
   PetscErrorCode ierr;
-  PetscInt       i,j,nmat=pep->nmat,deg=nmat-1,lda=nmat*k,rs=*prs,ldg;
-  PetscScalar    *T,*G,*tau,*array,sone=1.0,zero=0.0,*work;
-  PetscBLASInt   rs_,lds_,k_,ldh_,info,ldg_,lda_;
-  Mat            M0;
+  PetscInt       j,nmat=pep->nmat,deg=nmat-1,lda=nmat*k,ldg;
+  PetscScalar    *G,*tau,sone=1.0,zero=0.0,*work;
+  PetscBLASInt   lds_,k_,ldh_,info,ldg_,lda_;
 
   PetscFunctionBegin;
-  ierr = PetscMalloc4(rs*k,&T,k,&tau,k,&work,deg*k*k,&G);CHKERRQ(ierr);
+  ierr = PetscMalloc3(k,&tau,k,&work,deg*k*k,&G);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(lds,&lds_);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(lda,&lda_);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(k,&k_);CHKERRQ(ierr);
-  if (rs>k) { /* Truncate S to have k columns*/
-    for (j=0;j<k;j++) {
-      ierr = PetscMemcpy(T+j*rs,S+j*lds,rs*sizeof(PetscScalar));CHKERRQ(ierr);
-    }
-    ierr = PetscBLASIntCast(rs,&rs_);CHKERRQ(ierr);
-    PetscStackCallBLAS("LAPACKgeqrf",LAPACKgeqrf_(&rs_,&k_,T,&rs_,tau,work,&k_,&info));
-    if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xGEQRF %d",info);
-    /* Copy triangular matrix in S */
-    ierr = PetscMemzero(S,lds*k*sizeof(PetscScalar));CHKERRQ(ierr);
-    for (j=0;j<k;j++) for (i=0;i<=j;i++) S[j*lds+i] = T[j*rs+i];
-    PetscStackCallBLAS("LAPACKungqr",LAPACKungqr_(&rs_,&k_,&k_,T,&rs_,tau,work,&k_,&info));
-    if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xORGQR %d",info);
-    ierr = MatCreateSeqDense(PETSC_COMM_SELF,rs,k,NULL,&M0);CHKERRQ(ierr);
-    ierr = MatDenseGetArray(M0,&array);CHKERRQ(ierr);
-    for (j=0;j<k;j++) {
-      ierr = PetscMemcpy(array+j*rs,T+j*rs,rs*sizeof(PetscScalar));CHKERRQ(ierr);
-    }
-    ierr = MatDenseRestoreArray(M0,&array);CHKERRQ(ierr);
-    ierr = BVSetActiveColumns(pep->V,0,rs);CHKERRQ(ierr);
-    ierr = BVMultInPlace(pep->V,M0,0,k);CHKERRQ(ierr);
-    ierr = BVSetActiveColumns(pep->V,0,k);CHKERRQ(ierr);
-    ierr = MatDestroy(&M0);CHKERRQ(ierr);
-    *prs = rs = k;
-  }
+
   /* Form auxiliary matrix for the orthogonalization step */
   ldg = deg*k;
   ierr = PEPEvaluateBasisforMatrix(pep,nmat,k,H,ldh,fH);CHKERRQ(ierr);
@@ -1021,7 +997,7 @@ static PetscErrorCode NRefOrthogStep(PEP pep,PetscInt k,PetscScalar *H,PetscInt 
   /* Update H */
   PetscStackCallBLAS("BLAStrmm",BLAStrmm_("L","U","N","N",&k_,&k_,&sone,G,&ldg_,H,&ldh_));
   PetscStackCallBLAS("BLAStrsm",BLAStrsm_("R","U","N","N",&k_,&k_,&sone,G,&ldg_,H,&ldh_));
-  ierr = PetscFree4(T,tau,work,G);CHKERRQ(ierr);
+  ierr = PetscFree3(tau,work,G);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 #endif
 }
@@ -1083,7 +1059,7 @@ static PetscErrorCode PEPNRefUpdateInvPair(PEP pep,PetscInt k,PetscScalar *H,Pet
     ierr = BVMult(pep->V,1.0,1.0,dV,NULL);CHKERRQ(ierr);
   }
   ierr = MatDestroy(&M0);CHKERRQ(ierr);
-  ierr = NRefOrthogStep(pep,k,H,ldh,fH,S,lds,&k);CHKERRQ(ierr);
+  ierr = NRefOrthogStep(pep,k,H,ldh,fH,S,lds);CHKERRQ(ierr);
   ierr = PetscFree2(tau,work);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 #endif
@@ -1432,7 +1408,7 @@ static PetscErrorCode NRefSubcommDestroy(PEP pep,MatExplicitCtx *matctx)
 
 #undef __FUNCT__
 #define __FUNCT__ "PEPNewtonRefinement_TOAR"
-PetscErrorCode PEPNewtonRefinement_TOAR(PEP pep,PetscScalar sigma,PetscInt *maxits,PetscReal *tol,PetscInt k,PetscScalar *S,PetscInt lds,PetscInt *prs)
+PetscErrorCode PEPNewtonRefinement_TOAR(PEP pep,PetscScalar sigma,PetscInt *maxits,PetscReal *tol,PetscInt k,PetscScalar *S,PetscInt lds)
 {
 #if defined(PETSC_MISSING_LAPACK_GETRF) || defined(PETSC_MISSING_LAPACK_GETRI)
   PetscFunctionBegin;
@@ -1502,7 +1478,7 @@ PetscErrorCode PEPNewtonRefinement_TOAR(PEP pep,PetscScalar sigma,PetscInt *maxi
   }
   ierr = DSGetArray(pep->ds,DS_MAT_A,&H);CHKERRQ(ierr);
 
-  ierr = NRefOrthogStep(pep,k,H,ldh,fH,S,lds,prs);CHKERRQ(ierr);
+  ierr = NRefOrthogStep(pep,k,H,ldh,fH,S,lds);CHKERRQ(ierr);
   /* check if H is in Schur form */
   for (i=0;i<k-1;i++) {
     if (H[i+1+i*ldh]!=0.0) {
