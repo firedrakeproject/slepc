@@ -1252,10 +1252,10 @@ static PetscErrorCode PEPNRefSetUp(PEP pep,PetscInt k,PetscScalar *H,PetscInt ld
       ierr = PetscMalloc1(1,&ctx);CHKERRQ(ierr);
       ierr = STGetMatStructure(pep->st,&str);CHKERRQ(ierr);
       /* Create a shell matrix to solve the linear system */
-      ctx->A = At;
       ctx->V = pep->V;
       ctx->k = k; ctx->nmat = nmat;
-      ierr = PetscMalloc4(k*k,&ctx->M4,k,&ctx->pM4,2*k*k,&ctx->work,nmat,&ctx->fih);CHKERRQ(ierr);
+      ierr = PetscMalloc5(nmat,&ctx->A,k*k,&ctx->M4,k,&ctx->pM4,2*k*k,&ctx->work,nmat,&ctx->fih);CHKERRQ(ierr);
+      for (i=0;i<nmat;i++) ctx->A[i] = At[i];
       ierr = PetscMemzero(ctx->M4,k*k*sizeof(PetscScalar));CHKERRQ(ierr);
       ierr = MatCreateShell(comm,PETSC_DECIDE,PETSC_DECIDE,m0,n0,ctx,&M);CHKERRQ(ierr);
       ierr = MatShellSetOperation(M,MATOP_MULT,(void(*)(void))MatFSMult);CHKERRQ(ierr);
@@ -1577,7 +1577,7 @@ PetscErrorCode PEPNewtonRefinement_TOAR(PEP pep,PetscScalar sigma,PetscInt *maxi
   case PEP_REFINE_SCHEME_SCHUR:
     ierr = KSPGetOperators(pep->refineksp,&M,&P);CHKERRQ(ierr);
     ierr = MatShellGetContext(M,&ctx);CHKERRQ(ierr);
-    ierr = PetscFree4(ctx->M4,ctx->pM4,ctx->work,ctx->fih);CHKERRQ(ierr);
+    ierr = PetscFree5(ctx->A,ctx->M4,ctx->pM4,ctx->work,ctx->fih);CHKERRQ(ierr);
     ierr = MatDestroy(&ctx->M1);CHKERRQ(ierr);
     ierr = BVDestroy(&ctx->M2);CHKERRQ(ierr);
     ierr = BVDestroy(&ctx->M3);CHKERRQ(ierr);
