@@ -32,9 +32,11 @@
 static char help[] = "Test the solution of a PEP from a finite element model of "
   "damped mass-spring system (problem from NLEVP collection).\n\n"
   "The command line options are:\n"
-  "  -n <n>, where <n> = number of grid subdivisions.\n"
-  "  -tau <tau>, where <tau> = tau parameter.\n"
-  "  -kappa <kappa>, where <kappa> = kappa parameter.\n\n";
+  "  -n <n> ... number of grid subdivisions.\n"
+  "  -mu <value> ... mass (default 1).\n"
+  "  -tau <value> ... damping constant of the dampers (default 10).\n"
+  "  -kappa <value> ... damping constant of the springs (default 5).\n"
+  "  -initv ... set an initial vector.\n\n";
 
 #include <slepcpep.h>
 
@@ -47,6 +49,8 @@ int main(int argc,char **argv)
   PetscErrorCode ierr;
   PetscInt       n=30,Istart,Iend,i,nev;
   PetscScalar    mu=1.0,tau=10.0,kappa=5.0;
+  PetscBool      initv;
+  Vec            v0;
 
   ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
 
@@ -54,6 +58,7 @@ int main(int argc,char **argv)
   ierr = PetscOptionsGetScalar(NULL,NULL,"-mu",&mu,NULL);CHKERRQ(ierr);
   ierr = PetscOptionsGetScalar(NULL,NULL,"-tau",&tau,NULL);CHKERRQ(ierr);
   ierr = PetscOptionsGetScalar(NULL,NULL,"-kappa",&kappa,NULL);CHKERRQ(ierr);
+  ierr = PetscOptionsGetBool(NULL,NULL,"-initv",&initv,NULL);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
      Compute the matrices that define the eigensystem, (k^2*M+k*C+K)x=0
@@ -120,6 +125,12 @@ int main(int argc,char **argv)
   ierr = PEPSetOperators(pep,3,A);CHKERRQ(ierr);
   ierr = PEPSetProblemType(pep,PEP_GENERAL);CHKERRQ(ierr);
   ierr = PEPSetTolerances(pep,PETSC_SMALL,PETSC_DEFAULT);CHKERRQ(ierr);
+  if (initv) { /* initial vector */
+    ierr = MatCreateVecs(K,&v0,NULL);CHKERRQ(ierr);
+    ierr = VecSet(v0,1.0);CHKERRQ(ierr);
+    ierr = PEPSetInitialSpace(pep,1,&v0);CHKERRQ(ierr);
+    ierr = VecDestroy(&v0);CHKERRQ(ierr);
+  }
   ierr = PEPSetFromOptions(pep);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

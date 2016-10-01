@@ -30,7 +30,7 @@ MANSEC     = PEP
 TESTS      = test1 test2 test3 test3f test4
 
 TESTEXAMPLES_C                     = test2.PETSc runtest2_2 runtest2_4 runtest2_5 \
-                                                 runtest2_6 runtest2_7 runtest2_8 test2.rm \
+                                                 runtest2_6 runtest2_7 runtest2_8 runtest2_9 test2.rm \
                                      test3.PETSc runtest3_1 test3.rm \
                                      test4.PETSc runtest4_1 test4.rm
 TESTEXAMPLES_C_NOCOMPLEX_NOTSINGLE = test1.PETSc runtest1_1 test1.rm
@@ -74,7 +74,7 @@ runtest2_1_%:
 	-@${SETTEST}; check=test2_1; pep=$*; \
 	if [ "$$pep" = linear_gd ]; then pep="linear -pep_linear_eps_type gd -pep_linear_explicitmatrix"; \
 	elif [ "$$pep" = qarnoldi ]; then pep="qarnoldi -st_transform"; fi; \
-	${MPIEXEC} -n 1 ./test2 -pep_type $${pep} -pep_nev 4 >> $${test}.tmp 2>&1; \
+	${MPIEXEC} -n 1 ./test2 -pep_type $${pep} -pep_nev 4 -initv >> $${test}.tmp 2>&1; \
 	${TESTCODE}
 
 runtest2_2: runtest2_2_toar runtest2_2_toar_scaleboth runtest2_2_toar_transform runtest2_2_qarnoldi runtest2_2_linear runtest2_2_linear_explicit runtest2_2_linear_explicit_her
@@ -135,6 +135,16 @@ runtest2_8_%:
 	elif [ "$$refine" = multiple_mbe ]; then refine="multiple -pep_refine_scheme mbe -pep_refine_ksp_type preonly -pep_refine_pc_type lu"; \
 	elif [ "$$refine" = multiple_explicit ]; then refine="multiple -pep_refine_scheme explicit"; fi; \
 	${MPIEXEC} -n 1 ./test2 -st_type sinvert -pep_target -0.43 -pep_nev 4 -pep_refine $${refine} -st_transform >> $${test}.tmp 2>&1; \
+	${TESTCODE}
+
+runtest2_9: runtest2_9_schur runtest2_9_explicit runtest2_9_multiple_schur runtest2_9_multiple_explicit
+runtest2_9_%:
+	-@${SETTEST}; check=test2_2; refine=$*; \
+	if [ "$$refine" = schur ]; then refine="simple -pep_refine_scheme schur"; \
+	elif [ "$$refine" = explicit ]; then refine="simple -pep_refine_scheme explicit"; \
+	elif [ "$$refine" = multiple_schur ]; then refine="multiple -pep_refine_scheme schur"; \
+	elif [ "$$refine" = multiple_explicit ]; then refine="multiple -pep_refine_scheme explicit"; fi; \
+	${MPIEXEC} -n 2 ./test2 -st_type sinvert -pep_target -0.43 -pep_nev 4 -pep_refine $${refine} -st_ksp_type bcgs -st_pc_type bjacobi -pep_scale diagonal >> $${test}.tmp 2>&1; \
 	${TESTCODE}
 
 runtest3_1:
