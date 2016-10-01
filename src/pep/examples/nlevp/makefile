@@ -25,13 +25,14 @@ CPPFLAGS   =
 FPPFLAGS   =
 LOCDIR     = src/pep/examples/nlevp/
 EXAMPLESC  = acoustic_wave_1d.c acoustic_wave_2d.c butterfly.c damped_beam.c \
-             pdde_stability.c planar_waveguide.c sleeper.c spring.c
+             pdde_stability.c planar_waveguide.c sleeper.c spring.c wiresaw.c
 EXAMPLESF  = 
 MANSEC     = PEP
 TESTS      = acoustic_wave_1d acoustic_wave_2d butterfly damped_beam \
-             pdde_stability planar_waveguide sleeper spring
+             pdde_stability planar_waveguide sleeper spring wiresaw
 
-TESTEXAMPLES_C                     = sleeper.PETSc runsleeper_1 sleeper.rm
+TESTEXAMPLES_C                     = sleeper.PETSc runsleeper_1 sleeper.rm \
+                                     wiresaw.PETSc runwiresaw_1 wiresaw.rm
 TESTEXAMPLES_C_NOTSINGLE           = sleeper.PETSc runsleeper_2_toar runsleeper_3 sleeper.rm \
                                      spring.PETSc runspring_1 spring.rm
 TESTEXAMPLES_C_NOCOMPLEX           = butterfly.PETSc runbutterfly_1 runbutterfly_2 butterfly.rm
@@ -77,6 +78,10 @@ sleeper: sleeper.o chkopts
 spring: spring.o chkopts
 	-${CLINKER} -o spring spring.o ${SLEPC_PEP_LIB}
 	${RM} spring.o
+
+wiresaw: wiresaw.o chkopts
+	-${CLINKER} -o wiresaw wiresaw.o ${SLEPC_PEP_LIB}
+	${RM} wiresaw.o
 
 #------------------------------------------------------------------------------------
 runacoustic_wave_1d_1: runacoustic_wave_1d_1_toar runacoustic_wave_1d_1_stoar runacoustic_wave_1d_1_qarnoldi runacoustic_wave_1d_1_linear
@@ -160,5 +165,14 @@ runspring_1_%:
 runspring_2_jd:
 	-@${SETTEST}; check=spring_2; \
 	${MPIEXEC} -n 1 ./spring -pep_type jd -pep_nev 4 -n 24 -pep_ncv 18 -pep_target -50 -terse > $${test}.tmp 2>&1; \
+	${TESTCODE}
+
+runwiresaw_1: runwiresaw_1_toar runwiresaw_1_qarnoldi runwiresaw_1_linear_h1 runwiresaw_1_linear_h2
+runwiresaw_1_%:
+	-@${SETTEST}; check=wiresaw_1; pep=$*; \
+	if [ "$$pep" = linear_h1 ]; then pep="linear -pep_linear_explicitmatrix -pep_linear_cform 1 -pep_linear_st_ksp_type bcgs -pep_linear_st_pc_type kaczmarz"; \
+	elif [ "$$pep" = linear_h2 ]; then pep="linear -pep_linear_explicitmatrix -pep_linear_cform 2"; \
+	elif [ "$$pep" = qarnoldi ]; then pep="qarnoldi -st_transform"; fi; \
+	${MPIEXEC} -n 1 ./wiresaw -pep_type $${pep} -pep_nev 4 -terse > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
