@@ -34,7 +34,7 @@ TESTS      = acoustic_wave_1d acoustic_wave_2d butterfly damped_beam \
 TESTEXAMPLES_C                     = sleeper.PETSc runsleeper_1 sleeper.rm
 TESTEXAMPLES_C_NOTSINGLE           = sleeper.PETSc runsleeper_2_toar runsleeper_3 sleeper.rm \
                                      spring.PETSc runspring_1 spring.rm
-TESTEXAMPLES_C_NOCOMPLEX           = butterfly.PETSc runbutterfly_1 butterfly.rm
+TESTEXAMPLES_C_NOCOMPLEX           = butterfly.PETSc runbutterfly_1 runbutterfly_2 butterfly.rm
 TESTEXAMPLES_C_NOCOMPLEX_NOTSINGLE = acoustic_wave_1d.PETSc runacoustic_wave_1d_1 acoustic_wave_1d.rm \
                                      acoustic_wave_2d.PETSc runacoustic_wave_2d_1 acoustic_wave_2d.rm \
                                      damped_beam.PETSc rundamped_beam_1 damped_beam.rm \
@@ -82,9 +82,8 @@ spring: spring.o chkopts
 runacoustic_wave_1d_1: runacoustic_wave_1d_1_toar runacoustic_wave_1d_1_stoar runacoustic_wave_1d_1_qarnoldi runacoustic_wave_1d_1_linear
 runacoustic_wave_1d_1_%:
 	-@${SETTEST}; check=acoustic_wave_1d_1; pep=$*; \
-	if [ "$$pep" = stoar ]; then pep="stoar -st_transform -pep_hermitian"; \
-	elif [ "$$pep" = qarnoldi ]; then pep="qarnoldi -st_transform"; fi; \
-	${MPIEXEC} -n 1 ./acoustic_wave_1d -pep_type $${pep} -pep_nev 4 -pep_tol 1e-7 -n 24 -st_type sinvert -terse > $${test}.tmp 2>&1; \
+	if [ "$$pep" = stoar ]; then pep="stoar -pep_hermitian"; fi; \
+	${MPIEXEC} -n 1 ./acoustic_wave_1d -pep_type $${pep} -st_transform -pep_nev 4 -pep_tol 1e-7 -n 24 -st_type sinvert -terse > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
 runacoustic_wave_2d_1: runacoustic_wave_2d_1_toar runacoustic_wave_2d_1_stoar runacoustic_wave_2d_1_qarnoldi runacoustic_wave_2d_1_linear
@@ -99,6 +98,12 @@ runbutterfly_1: runbutterfly_1_toar runbutterfly_1_linear
 runbutterfly_1_%:
 	-@${SETTEST}; check=butterfly_1; pep=$*; \
 	${MPIEXEC} -n 1 ./butterfly -pep_type $${pep} -pep_nev 4 -st_type sinvert -pep_target 0.01 -terse > $${test}.tmp 2>&1; \
+	${TESTCODE}
+
+runbutterfly_2: runbutterfly_2_toar runbutterfly_2_linear
+runbutterfly_2_%:
+	-@${SETTEST}; check=butterfly_2; pep=$*; \
+	${MPIEXEC} -n 1 ./butterfly -pep_type $${pep} -pep_nev 4 -terse > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
 rundamped_beam_1: rundamped_beam_1_toar rundamped_beam_1_qarnoldi rundamped_beam_1_linear
