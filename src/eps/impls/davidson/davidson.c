@@ -44,7 +44,7 @@ PetscErrorCode EPSSetUp_XD(EPS eps)
   EPS_DAVIDSON   *data = (EPS_DAVIDSON*)eps->data;
   dvdDashboard   *dvd = &data->ddb;
   dvdBlackboard  b;
-  PetscInt       min_size_V,plusk,bs,initv,i,cX_in_proj,cX_in_impr,nmat;
+  PetscInt       min_size_V,bs,initv,i,nmat;
   Mat            A,B;
   KSP            ksp;
   PetscBool      t,ipB,ispositive,dynamic;
@@ -55,7 +55,7 @@ PetscErrorCode EPSSetUp_XD(EPS eps)
 
   PetscFunctionBegin;
   /* Setup EPS options and get the problem specification */
-  ierr = EPSXDGetBlockSize_XD(eps,&bs);CHKERRQ(ierr);
+  bs = data->blocksize;
   if (bs <= 0) bs = 1;
   if (eps->ncv) {
     if (eps->ncv<eps->nev) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"The value of ncv must be at least nev");
@@ -71,10 +71,10 @@ PetscErrorCode EPSSetUp_XD(EPS eps)
   if (!(eps->nev + bs <= eps->ncv)) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"The ncv has to be greater than nev plus blocksize");
   if (eps->trueres) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"-eps_true_residual is temporally disable in this solver.");
 
-  ierr = EPSXDGetRestart_XD(eps,&min_size_V,&plusk);CHKERRQ(ierr);
+  min_size_V = data->minv;
   if (!min_size_V) min_size_V = PetscMin(PetscMax(bs,5),eps->mpd/2);
   if (!(min_size_V+bs <= eps->mpd)) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"The value of minv must be less than mpd minus blocksize");
-  ierr = EPSXDGetInitialSize_XD(eps,&initv);CHKERRQ(ierr);
+  initv = data->initialsize;
   if (eps->mpd < initv) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"The initv has to be less or equal than mpd");
 
   /* Set STPrecond as the default ST */
@@ -182,15 +182,13 @@ PetscErrorCode EPSSetUp_XD(EPS eps)
   }
 
   /* Setup the type of starting subspace */
-  ierr = EPSXDGetKrylovStart_XD(eps,&t);CHKERRQ(ierr);
-  init = (!t)? DVD_INITV_CLASSIC : DVD_INITV_KRYLOV;
+  init = data->krylovstart? DVD_INITV_KRYLOV: DVD_INITV_CLASSIC;
 
   /* Setup the presence of converged vectors in the projected problem and the projector */
-  ierr = EPSXDGetWindowSizes_XD(eps,&cX_in_impr,&cX_in_proj);CHKERRQ(ierr);
-  if (cX_in_impr>0) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"The option pwindow is temporally disable in this solver.");
-  if (cX_in_proj>0) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"The option qwindow is temporally disable in this solver.");
-  if (min_size_V <= cX_in_proj) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"minv has to be greater than qwindow");
-  if (bs > 1 && cX_in_impr > 0) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Unsupported option: pwindow > 0 and bs > 1");
+  if (data->cX_in_impr>0) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"The option pwindow is temporally disable in this solver.");
+  if (data->cX_in_proj>0) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"The option qwindow is temporally disable in this solver.");
+  if (min_size_V <= data->cX_in_proj) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"minv has to be greater than qwindow");
+  if (bs > 1 && data->cX_in_impr > 0) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Unsupported option: pwindow > 0 and bs > 1");
 
   /* Get the fix parameter */
   ierr = EPSXDGetFix_XD(eps,&fix);CHKERRQ(ierr);
@@ -200,7 +198,7 @@ PetscErrorCode EPSSetUp_XD(EPS eps)
 
   /* Preconfigure dvd */
   ierr = STGetKSP(eps->st,&ksp);CHKERRQ(ierr);
-  ierr = dvd_schm_basic_preconf(dvd,&b,eps->mpd,min_size_V,bs,initv,PetscAbs(eps->nini),plusk,harm,ksp,init,eps->trackall,data->ipB,cX_in_proj,cX_in_impr,data->doubleexp);CHKERRQ(ierr);
+  ierr = dvd_schm_basic_preconf(dvd,&b,eps->mpd,min_size_V,bs,initv,PetscAbs(eps->nini),data->plusk,harm,ksp,init,eps->trackall,data->ipB,data->cX_in_proj,data->cX_in_impr,data->doubleexp);CHKERRQ(ierr);
 
   /* Allocate memory */
   ierr = EPSAllocateSolution(eps,0);CHKERRQ(ierr);
@@ -214,7 +212,7 @@ PetscErrorCode EPSSetUp_XD(EPS eps)
   for (i=0;i<eps->ncv;i++) eps->perm[i] = i;
 
   /* Configure dvd for a basic GD */
-  ierr = dvd_schm_basic_conf(dvd,&b,eps->mpd,min_size_V,bs,initv,PetscAbs(eps->nini),plusk,harm,dvd->withTarget,target,ksp,fix,init,eps->trackall,data->ipB,cX_in_proj,cX_in_impr,dynamic,data->doubleexp);CHKERRQ(ierr);
+  ierr = dvd_schm_basic_conf(dvd,&b,eps->mpd,min_size_V,bs,initv,PetscAbs(eps->nini),data->plusk,harm,dvd->withTarget,target,ksp,fix,init,eps->trackall,data->ipB,data->cX_in_proj,data->cX_in_impr,dynamic,data->doubleexp);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
