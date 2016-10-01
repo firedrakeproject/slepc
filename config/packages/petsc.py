@@ -127,6 +127,8 @@ class PETSc(package.Package):
           self.buildsharedlib = True
         elif k == 'CC_LINKER_SLFLAG':
           self.slflag = v
+        elif k == 'SL_LINKER_SUFFIX':
+          self.sl_suffix = v
         elif k == 'RANLIB':
           self.ranlib = v
         elif k == 'PETSC_BUILD_USING_CMAKE':

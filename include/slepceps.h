@@ -361,7 +361,7 @@ PETSC_EXTERN PetscErrorCode EPSBlzpackSetNSteps(EPS,PetscInt);
 
 .seealso: EPSPRIMMESetMethod(), EPSPRIMMEGetMethod()
 E*/
-typedef enum { EPS_PRIMME_DYNAMIC,
+typedef enum { EPS_PRIMME_DYNAMIC=1,
                EPS_PRIMME_DEFAULT_MIN_TIME,
                EPS_PRIMME_DEFAULT_MIN_MATVECS,
                EPS_PRIMME_ARNOLDI,
