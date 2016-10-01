@@ -77,9 +77,10 @@ runex22_1_ciss:
 	${MPIEXEC} -n 1 ./ex22 -nep_type ciss -rg_type ellipse -rg_ellipse_center 10 -rg_ellipse_radius 9.5 -nep_ncv 24 -terse > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
-runex22_1_interpol:
-	-@${SETTEST}; \
-	${MPIEXEC} -n 1 ./ex22 -nep_type interpol -rg_type interval -rg_interval_endpoints 5,20,-.1,.1 -nep_nev 3 -nep_target 5 -terse > $${test}.tmp 2>&1; \
+runex22_2: runex22_2_none runex22_2_norm runex22_2_residual
+runex22_2_%:
+	-@${SETTEST}; check=ex22_2; extract=$*; \
+	${MPIEXEC} -n 1 ./ex22 -nep_type interpol -nep_interpol_pep_extract $$extract -rg_type interval -rg_interval_endpoints 5,20,-.1,.1 -nep_nev 3 -nep_target 5 -terse > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
 runex27_1:
