@@ -24,15 +24,16 @@ FFLAGS     =
 CPPFLAGS   =
 FPPFLAGS   =
 LOCDIR     = src/pep/examples/tests/
-EXAMPLESC  = test1.c test2.c test3.c test4.c
+EXAMPLESC  = test1.c test2.c test3.c test4.c test5.c
 EXAMPLESF  = test3f.F
 MANSEC     = PEP
-TESTS      = test1 test2 test3 test3f test4
+TESTS      = test1 test2 test3 test3f test4 test5
 
 TESTEXAMPLES_C                     = test2.PETSc runtest2_2 runtest2_4 runtest2_5 \
                                                  runtest2_8 runtest2_9 test2.rm \
                                      test3.PETSc runtest3_1 test3.rm \
-                                     test4.PETSc runtest4_1 test4.rm
+                                     test4.PETSc runtest4_1 test4.rm \
+                                     test5.PETSc runtest5_1 test5.rm
 TESTEXAMPLES_C_NOCOMPLEX_NOTSINGLE = test1.PETSc runtest1_1 test1.rm
 TESTEXAMPLES_C_COMPLEX             = test2.PETSc runtest2_2_jd test2.rm
 TESTEXAMPLES_C_NOTSINGLE           = test2.PETSc runtest2_1 runtest2_3 runtest2_2_stoar \
@@ -60,6 +61,10 @@ test3f: test3f.o chkopts
 test4: test4.o chkopts
 	-${CLINKER} -o test4 test4.o ${SLEPC_PEP_LIB}
 	${RM} test4.o
+
+test5: test5.o chkopts
+	-${CLINKER} -o test5 test5.o ${SLEPC_PEP_LIB}
+	${RM} test5.o
 
 #------------------------------------------------------------------------------------
 
@@ -161,5 +166,10 @@ runtest3f_1:
 runtest4_1:
 	-@${SETTEST}; \
 	${MPIEXEC} -n 1 ./test4 -pep_linear_explicitmatrix > $${test}.tmp 2>&1; \
+	${TESTCODE}
+
+runtest5_1:
+	-@${SETTEST}; \
+	${MPIEXEC} -n 1 ./test5 -pep_error_backward ::ascii_info_detail -pep_view_values -pep_monitor_conv -pep_error_absolute ::ascii_matlab -pep_monitor_all -pep_converged_reason -pep_view | ${GREP} -v "tolerance" | ${GREP} -v "problem type" | ${SED} -e "s/[0-9]\.[0-9]*e-[0-9]*/removed/g" > $${test}.tmp 2>&1; \
 	${TESTCODE}
 

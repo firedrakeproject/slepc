@@ -19,11 +19,9 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-static char help[] = "Tests the case when both arguments of MFNSolve() are the same Vec.\n\n"
+static char help[] = "Test MFN interface functions.\n\n"
   "The command line options are:\n"
-  "  -t <sval>, where <sval> = scalar value that multiplies the argument.\n"
-  "  -n <n>, where <n> = number of grid subdivisions in x dimension.\n"
-  "  -m <m>, where <m> = number of grid subdivisions in y dimension.\n\n";
+  "  -n <n>, where <n> = number of grid subdivisions in x dimension.\n\n";
 
 #include <slepcmfn.h>
 
@@ -31,27 +29,24 @@ static char help[] = "Tests the case when both arguments of MFNSolve() are the s
 #define __FUNCT__ "main"
 int main(int argc,char **argv)
 {
-  Mat            A;           /* problem matrix */
-  MFN            mfn;
-  FN             f;
-  PetscReal      norm;
-  PetscScalar    t=0.3;
-  PetscInt       N,n=25,m,Istart,Iend,II,i,j;
-  PetscBool      flag;
-  Vec            v,y;
-  PetscErrorCode ierr;
+  Mat                  A,B;
+  MFN                  mfn;
+  FN                   f;
+  MFNConvergedReason   reason;
+  PetscReal            norm,tol;
+  Vec                  v,y;
+  PetscInt             N,n=4,Istart,Iend,i,j,II,ncv,its,maxit;
+  PetscBool            flg;
+  PetscErrorCode       ierr;
+  PetscViewerAndFormat *vf;
 
   ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
-
   ierr = PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL);CHKERRQ(ierr);
-  ierr = PetscOptionsGetInt(NULL,NULL,"-m",&m,&flag);CHKERRQ(ierr);
-  if (!flag) m=n;
-  N = n*m;
-  ierr = PetscOptionsGetScalar(NULL,NULL,"-t",&t,NULL);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"\nMatrix exponential y=exp(t*A)*e, of the 2-D Laplacian, N=%D (%Dx%D grid)\n\n",N,n,m);CHKERRQ(ierr);
+  N = n*n;
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"\nSquare root of Laplacian y=sqrt(A)*e_1, N=%D (%Dx%D grid)\n\n",N,n,n);CHKERRQ(ierr);
 
-  /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-                         Build the 2-D Laplacian
+  /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+                 Compute the discrete 2-D Laplacian, A
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
   ierr = MatCreate(PETSC_COMM_WORLD,&A);CHKERRQ(ierr);
@@ -63,7 +58,7 @@ int main(int argc,char **argv)
   for (II=Istart;II<Iend;II++) {
     i = II/n; j = II-i*n;
     if (i>0) { ierr = MatSetValue(A,II,II-n,-1.0,INSERT_VALUES);CHKERRQ(ierr); }
-    if (i<m-1) { ierr = MatSetValue(A,II,II+n,-1.0,INSERT_VALUES);CHKERRQ(ierr); }
+    if (i<n-1) { ierr = MatSetValue(A,II,II+n,-1.0,INSERT_VALUES);CHKERRQ(ierr); }
     if (j>0) { ierr = MatSetValue(A,II,II-1,-1.0,INSERT_VALUES);CHKERRQ(ierr); }
     if (j<n-1) { ierr = MatSetValue(A,II,II+1,-1.0,INSERT_VALUES);CHKERRQ(ierr); }
     ierr = MatSetValue(A,II,II,4.0,INSERT_VALUES);CHKERRQ(ierr);
@@ -71,56 +66,59 @@ int main(int argc,char **argv)
 
   ierr = MatAssemblyBegin(A,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
   ierr = MatAssemblyEnd(A,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
+  ierr = MatSetOption(A,MAT_HERMITIAN,PETSC_TRUE);CHKERRQ(ierr);
 
-  /* set v = ones(n,1) */
-  ierr = MatCreateVecs(A,NULL,&y);CHKERRQ(ierr);
   ierr = MatCreateVecs(A,NULL,&v);CHKERRQ(ierr);
-  ierr = VecSet(v,1.0);CHKERRQ(ierr);
+  ierr = VecSetValue(v,0,1.0,INSERT_VALUES);CHKERRQ(ierr);
+  ierr = VecAssemblyBegin(v);CHKERRQ(ierr);
+  ierr = VecAssemblyEnd(v);CHKERRQ(ierr);
+  ierr = VecDuplicate(v,&y);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
-                Create the solver and set various options
+             Create the solver, set the matrix and the function
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-
-  ierr = FNCreate(PETSC_COMM_WORLD,&f);CHKERRQ(ierr);
-  ierr = FNSetType(f,FNEXP);CHKERRQ(ierr);
-
   ierr = MFNCreate(PETSC_COMM_WORLD,&mfn);CHKERRQ(ierr);
   ierr = MFNSetOperator(mfn,A);CHKERRQ(ierr);
-  ierr = MFNSetFN(mfn,f);CHKERRQ(ierr);
+  ierr = MFNGetFN(mfn,&f);CHKERRQ(ierr);
+  ierr = FNSetType(f,FNSQRT);CHKERRQ(ierr);
+
+  /* test some interface functions */
+  ierr = MFNGetOperator(mfn,&B);CHKERRQ(ierr);
+  ierr = MatView(B,PETSC_VIEWER_STDOUT_WORLD);CHKERRQ(ierr);
+  ierr = MFNSetOptionsPrefix(mfn,"myprefix_");CHKERRQ(ierr);
+  ierr = MFNSetTolerances(mfn,1e-4,500);CHKERRQ(ierr);
+  ierr = MFNSetDimensions(mfn,6);CHKERRQ(ierr);
   ierr = MFNSetErrorIfNotConverged(mfn,PETSC_TRUE);CHKERRQ(ierr);
+  /* test monitors */
+  ierr = PetscViewerAndFormatCreate(PETSC_VIEWER_STDOUT_WORLD,PETSC_VIEWER_DEFAULT,&vf);CHKERRQ(ierr);
+  ierr = MFNMonitorSet(mfn,(PetscErrorCode (*)(MFN,PetscInt,PetscReal,void*))MFNMonitorDefault,vf,(PetscErrorCode (*)(void**))PetscViewerAndFormatDestroy);CHKERRQ(ierr);
+  /* ierr = SVDMonitorCancel(svd);CHKERRQ(ierr); */
   ierr = MFNSetFromOptions(mfn);CHKERRQ(ierr);
 
+  /* query properties and print them */
+  ierr = MFNGetTolerances(mfn,&tol,&maxit);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD," Tolerance: %g, max iterations: %D\n",(double)tol,maxit);CHKERRQ(ierr);
+  ierr = MFNGetDimensions(mfn,&ncv);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD," Subspace dimension: %D\n",ncv);CHKERRQ(ierr);
+  ierr = MFNGetErrorIfNotConverged(mfn,&flg);CHKERRQ(ierr);
+  if (flg) { ierr = PetscPrintf(PETSC_COMM_WORLD," Erroring out if convergence fails\n");CHKERRQ(ierr); }
+
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
-                      Solve the problem, y=exp(t*A)*v
+                           Solve  y=sqrt(A)*v
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  ierr = FNSetScale(f,t,1.0);CHKERRQ(ierr);  
   ierr = MFNSolve(mfn,v,y);CHKERRQ(ierr);
+  ierr = MFNGetConvergedReason(mfn,&reason);CHKERRQ(ierr);
+  ierr = MFNGetIterationNumber(mfn,&its);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD," Finished - converged reason = %d\n",(int)reason);CHKERRQ(ierr);
+  /* ierr = PetscPrintf(PETSC_COMM_WORLD," its = %D\n",its);CHKERRQ(ierr); */
   ierr = VecNorm(y,NORM_2,&norm);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," Computed vector at time t=%.4g has norm %g\n\n",(double)PetscRealPart(t),(double)norm);CHKERRQ(ierr);
-  
-  /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
-           Repeat the computation in two steps, overwriting v:
-              v=exp(0.5*t*A)*v,  v=exp(0.5*t*A)*v
-     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+  ierr = PetscPrintf(PETSC_COMM_WORLD," sqrt(A)*v has norm %g\n",(double)norm);CHKERRQ(ierr);
 
-  ierr = FNSetScale(f,0.5*t,1.0);CHKERRQ(ierr);  
-  ierr = MFNSolve(mfn,v,v);CHKERRQ(ierr);
-  ierr = MFNSolve(mfn,v,v);CHKERRQ(ierr);
-  /* compute norm of difference */
-  ierr = VecAXPY(y,-1.0,v);CHKERRQ(ierr);
-  ierr = VecNorm(y,NORM_2,&norm);CHKERRQ(ierr);
-  if (norm<100*PETSC_MACHINE_EPSILON) {
-    ierr = PetscPrintf(PETSC_COMM_WORLD," The norm of the difference is <100*eps\n\n");CHKERRQ(ierr);
-  } else {
-    ierr = PetscPrintf(PETSC_COMM_WORLD," The norm of the difference is %g\n\n",(double)norm);CHKERRQ(ierr);
-  }
-  
   /* 
      Free work space
   */
   ierr = MFNDestroy(&mfn);CHKERRQ(ierr);
-  ierr = FNDestroy(&f);CHKERRQ(ierr);
   ierr = MatDestroy(&A);CHKERRQ(ierr);
   ierr = VecDestroy(&v);CHKERRQ(ierr);
   ierr = VecDestroy(&y);CHKERRQ(ierr);
