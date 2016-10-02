@@ -31,15 +31,16 @@ MANSEC     = PEP
 TESTS      = acoustic_wave_1d acoustic_wave_2d butterfly damped_beam \
              pdde_stability planar_waveguide sleeper spring wiresaw
 
-TESTEXAMPLES_C                     = sleeper.PETSc runsleeper_1 sleeper.rm \
-                                     wiresaw.PETSc runwiresaw_1 wiresaw.rm
+TESTEXAMPLES_C                     = sleeper.PETSc runsleeper_1 sleeper.rm
 TESTEXAMPLES_C_NOTSINGLE           = sleeper.PETSc runsleeper_2_toar runsleeper_3 sleeper.rm \
                                      spring.PETSc runspring_1 spring.rm
-TESTEXAMPLES_C_NOCOMPLEX           = butterfly.PETSc runbutterfly_1 runbutterfly_2 butterfly.rm
+TESTEXAMPLES_C_NOCOMPLEX           = butterfly.PETSc runbutterfly_1 butterfly.rm
+TESTEXAMPLES_C_DATAFILE            = butterfly.PETSc runbutterfly_2 butterfly.rm
 TESTEXAMPLES_C_NOCOMPLEX_NOTSINGLE = acoustic_wave_1d.PETSc runacoustic_wave_1d_1 acoustic_wave_1d.rm \
                                      acoustic_wave_2d.PETSc runacoustic_wave_2d_1 acoustic_wave_2d.rm \
                                      damped_beam.PETSc rundamped_beam_1 damped_beam.rm \
-                                     planar_waveguide.PETSc runplanar_waveguide_1 planar_waveguide.rm
+                                     planar_waveguide.PETSc runplanar_waveguide_1 planar_waveguide.rm \
+                                     wiresaw.PETSc runwiresaw_1 wiresaw.rm
 TESTEXAMPLES_C_COMPLEX             = damped_beam.PETSc rundamped_beam_1_jd damped_beam.rm \
                                      pdde_stability.PETSc runpdde_stability_1 pdde_stability.rm \
                                      sleeper.PETSc runsleeper_2_jd sleeper.rm \

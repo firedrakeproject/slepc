@@ -30,7 +30,7 @@ MANSEC     = NEP
 
 TESTEXAMPLES_C           = ex27.PETSc runex27_1 runex27_2 ex27.rm
 TESTEXAMPLES_C_NOTSINGLE = ex21.PETSc runex21_1 ex21.rm \
-                           ex22.PETSc runex22_1 runex22_1_interpol ex22.rm
+                           ex22.PETSc runex22_1 runex22_2 ex22.rm
 TESTEXAMPLES_C_COMPLEX   = ex22.PETSc runex22_1_ciss ex22.rm
 TESTEXAMPLES_F90         =
 
