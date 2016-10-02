@@ -29,7 +29,7 @@ EXAMPLESF  = test3f.F
 MANSEC     = PEP
 TESTS      = test1 test2 test3 test3f test4
 
-TESTEXAMPLES_C                     = test2.PETSc runtest2_2 runtest2_4 runtest2_5
+TESTEXAMPLES_C                     = test2.PETSc runtest2_2 runtest2_4 runtest2_5 \
                                                  runtest2_8 runtest2_9 test2.rm \
                                      test3.PETSc runtest3_1 test3.rm \
                                      test4.PETSc runtest4_1 test4.rm
