@@ -44,7 +44,7 @@ ex26: ex26.o chkopts
 
 runex23_1:
 	-@${SETTEST}; \
-	${MPIEXEC} -n 1 ./ex23 > $${test}.tmp 2>&1; \
+	${MPIEXEC} -n 1 ./ex23 -mfn_ncv 6 > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
 runex26_1:
