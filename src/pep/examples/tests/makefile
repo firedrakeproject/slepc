@@ -85,7 +85,7 @@ runtest2_2_%:
 	if [ "$$pep" = toar_scaleboth ]; then pep="toar -pep_scale both"; \
 	elif [ "$$pep" = toar_transform ]; then pep="toar -st_transform"; \
 	elif [ "$$pep" = stoar ]; then pep="stoar -st_transform -pep_hermitian"; \
-	elif [ "$$pep" = qarnoldi ]; then pep="qarnoldi -st_transform"; \
+	elif [ "$$pep" = qarnoldi ]; then pep="qarnoldi -st_transform -bv_orthog_refine always"; \
 	elif [ "$$pep" = linear_explicit ]; then pep="linear -pep_linear_explicitmatrix -pep_linear_cform 2"; \
 	elif [ "$$pep" = linear_explicit_her ]; then pep="linear -pep_linear_explicitmatrix -pep_hermitian -pep_linear_cform 2"; fi; \
 	${MPIEXEC} -n 1 ./test2 -pep_type $${pep} -pep_target -0.43 -pep_nev 4 -pep_ncv 20 $$sinv >> $${test}.tmp 2>&1; \
@@ -138,14 +138,14 @@ runtest2_8_%:
 	${MPIEXEC} -n 1 ./test2 -st_type sinvert -pep_target -0.43 -pep_nev 4 -pep_refine $${refine} -st_transform >> $${test}.tmp 2>&1; \
 	${TESTCODE}
 
-runtest2_9: runtest2_9_schur runtest2_9_explicit runtest2_9_multiple_schur runtest2_9_multiple_explicit
+runtest2_9: runtest2_9_mbe runtest2_9_explicit runtest2_9_multiple_mbe runtest2_9_multiple_explicit
 runtest2_9_%:
 	-@${SETTEST}; check=test2_2; refine=$*; \
-	if [ "$$refine" = schur ]; then refine="simple -pep_refine_scheme schur"; \
+	if [ "$$refine" = mbe ]; then refine="simple -pep_refine_scheme mbe -pep_refine_ksp_type preonly -pep_refine_pc_type lu"; \
 	elif [ "$$refine" = explicit ]; then refine="simple -pep_refine_scheme explicit"; \
-	elif [ "$$refine" = multiple_schur ]; then refine="multiple -pep_refine_scheme schur"; \
+	elif [ "$$refine" = multiple_mbe ]; then refine="multiple -pep_refine_scheme mbe -pep_refine_ksp_type preonly -pep_refine_pc_type lu"; \
 	elif [ "$$refine" = multiple_explicit ]; then refine="multiple -pep_refine_scheme explicit"; fi; \
-	${MPIEXEC} -n 2 ./test2 -st_type sinvert -pep_target -0.43 -pep_nev 4 -pep_refine $${refine} -st_ksp_type bcgs -st_pc_type bjacobi -pep_scale diagonal >> $${test}.tmp 2>&1; \
+	${MPIEXEC} -n 2 ./test2 -st_type sinvert -pep_target -0.43 -pep_nev 4 -pep_refine $${refine} -pep_refine_partitions 2 -st_ksp_type bcgs -st_pc_type bjacobi -pep_scale diagonal -pep_scale_its 4 >> $${test}.tmp 2>&1; \
 	${TESTCODE}
 
 runtest3_1:

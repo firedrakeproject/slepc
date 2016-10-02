@@ -88,7 +88,7 @@ wiresaw: wiresaw.o chkopts
 runacoustic_wave_1d_1: runacoustic_wave_1d_1_toar runacoustic_wave_1d_1_stoar runacoustic_wave_1d_1_qarnoldi runacoustic_wave_1d_1_linear
 runacoustic_wave_1d_1_%:
 	-@${SETTEST}; check=acoustic_wave_1d_1; pep=$*; \
-	if [ "$$pep" = stoar ]; then pep="stoar -pep_hermitian"; fi; \
+	if [ "$$pep" = stoar ]; then pep="stoar -pep_hermitian -pep_stoar_locking 0"; fi; \
 	${MPIEXEC} -n 1 ./acoustic_wave_1d -pep_type $${pep} -st_transform -pep_nev 4 -pep_tol 1e-7 -n 24 -st_type sinvert -terse > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
@@ -96,6 +96,7 @@ runacoustic_wave_2d_1: runacoustic_wave_2d_1_toar runacoustic_wave_2d_1_stoar ru
 runacoustic_wave_2d_1_%:
 	-@${SETTEST}; check=acoustic_wave_2d_1; pep=$*; \
 	if [ "$$pep" = stoar ]; then pep="stoar -st_transform -pep_hermitian"; \
+	elif [ "$$pep" = toar ]; then pep="toar -pep_toar_locking 0"; \
 	elif [ "$$pep" = qarnoldi ]; then pep="qarnoldi -st_transform"; fi; \
 	${MPIEXEC} -n 1 ./acoustic_wave_2d -pep_type $${pep} -pep_nev 2 -pep_ncv 18 -terse > $${test}.tmp 2>&1; \
 	${TESTCODE}
@@ -103,6 +104,7 @@ runacoustic_wave_2d_1_%:
 runbutterfly_1: runbutterfly_1_toar runbutterfly_1_linear
 runbutterfly_1_%:
 	-@${SETTEST}; check=butterfly_1; pep=$*; \
+	if [ "$$pep" = toar ]; then pep="toar -pep_toar_restart 0.3"; fi; \
 	${MPIEXEC} -n 1 ./butterfly -pep_type $${pep} -pep_nev 4 -st_type sinvert -pep_target 0.01 -terse > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
@@ -116,14 +118,14 @@ rundamped_beam_1: rundamped_beam_1_toar rundamped_beam_1_qarnoldi rundamped_beam
 rundamped_beam_1_%:
 	-@${SETTEST}; check=damped_beam_1; pep=$*; \
 	if [ "$$pep" = jd ]; then sinv="-pep_target -5"; else sinv="-st_type sinvert -pep_target -7.1"; fi; \
-	if [ "$$pep" = qarnoldi ]; then pep="qarnoldi -st_transform"; fi; \
+	if [ "$$pep" = qarnoldi ]; then pep="qarnoldi -st_transform -pep_qarnoldi_locking 0"; fi; \
 	${MPIEXEC} -n 1 ./damped_beam -pep_type $${pep} -pep_nev 2 -pep_ncv 12 $$sinv -terse > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
 runpdde_stability_1: runpdde_stability_1_toar runpdde_stability_1_qarnoldi runpdde_stability_1_linear
 runpdde_stability_1_%:
 	-@${SETTEST}; check=pdde_stability_1; pep=$*; \
-	if [ "$$pep" = qarnoldi ]; then pep="qarnoldi -st_transform"; fi; \
+	if [ "$$pep" = qarnoldi ]; then pep="qarnoldi -st_transform -pep_qarnoldi_restart 0.3"; fi; \
 	${MPIEXEC} -n 1 ./pdde_stability -pep_type $${pep} -pep_ncv 25 -terse > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
