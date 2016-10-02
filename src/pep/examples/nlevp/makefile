@@ -139,7 +139,7 @@ runplanar_waveguide_1_%:
 runsleeper_1: runsleeper_1_toar runsleeper_1_qarnoldi runsleeper_1_linear
 runsleeper_1_%:
 	-@${SETTEST}; check=sleeper_1; pep=$*; \
-	if [ "$$pep" = qarnoldi ]; then pep="qarnoldi -st_transform"; fi; \
+	if [ "$$pep" = qarnoldi ]; then pep="qarnoldi -st_transform -pep_qarnoldi_restart 0.3"; fi; \
 	${MPIEXEC} -n 1 ./sleeper -n 100 -pep_type $${pep} -pep_nev 4 -pep_ncv 24 -st_type sinvert -terse > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
@@ -162,7 +162,7 @@ runspring_1_%:
 	if [ "$$pep" != jd ]; then sinv="-st_type sinvert"; fi; \
 	if [ "$$pep" = stoar ]; then pep="stoar -st_transform -pep_hermitian"; \
 	elif [ "$$pep" = qarnoldi ]; then pep="qarnoldi -st_transform"; fi; \
-	${MPIEXEC} -n 1 ./spring -pep_type $${pep} -pep_nev 4 -n 24 -pep_ncv 18 -pep_target -.5 $$sinv -terse > $${test}.tmp 2>&1; \
+	${MPIEXEC} -n 1 ./spring -pep_type $${pep} -pep_nev 4 -n 24 -pep_ncv 18 -pep_target -.5 -pep_conv_norm $$sinv -terse > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
 runspring_2_jd:
