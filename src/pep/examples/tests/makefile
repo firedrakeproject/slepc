@@ -99,7 +99,7 @@ runtest2_2_%:
 runtest2_3: runtest2_3_none runtest2_3_norm runtest2_3_residual runtest2_3_structured
 runtest2_3_%:
 	-@${SETTEST}; check=test2_3; extract=$*; \
-	${MPIEXEC} -n 1 ./test2 -pep_nev 12 -pep_extract $${extract} >> $${test}.tmp 2>&1; \
+	${MPIEXEC} -n 1 ./test2 -pep_nev 12 -pep_extract $${extract} -pep_monitor_cancel >> $${test}.tmp 2>&1; \
 	${TESTCODE}
 
 runtest2_4: runtest2_4_schur runtest2_4_mbe runtest2_4_explicit runtest2_4_multiple_schur runtest2_4_multiple_mbe runtest2_4_multiple_explicit
