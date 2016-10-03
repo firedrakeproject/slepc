@@ -123,13 +123,13 @@ PetscErrorCode PEPSetUp_TOAR(PEP pep)
   lds = (pep->nmat-1)*ctx->ld;
   ierr = PetscCalloc1(lds*ctx->ld,&ctx->S);CHKERRQ(ierr);
 
-  /* process starting vector */
+  /* process initial vectors */
   ctx->nq = 0;
   for (i=0;i<deg;i++) {
-    if (pep->nini>-deg) {
-      ierr = BVSetRandomColumn(pep->V,ctx->nq);CHKERRQ(ierr);
-    } else {
+    if (i<-pep->nini) {
       ierr = BVInsertVec(pep->V,ctx->nq,pep->IS[i]);CHKERRQ(ierr);
+    } else {
+      ierr = BVSetRandomColumn(pep->V,ctx->nq);CHKERRQ(ierr);
     }
     ierr = BVOrthogonalizeColumn(pep->V,ctx->nq,ctx->S+i*ctx->ld,&norm,&lindep);CHKERRQ(ierr);
     if (!lindep) {
@@ -138,7 +138,7 @@ PetscErrorCode PEPSetUp_TOAR(PEP pep)
       ctx->nq++;
     }
   }
-  if (ctx->nq==0) SETERRQ(PetscObjectComm((PetscObject)pep),1,"PEP: Problem with initial vector");
+  if (ctx->nq<deg) SETERRQ(PetscObjectComm((PetscObject)pep),1,"PEP: Problem with initial vector");
   ierr = PEPTOARSNorm2(lds,ctx->S,&norm);CHKERRQ(ierr);
   for (j=0;j<deg;j++) {
     for (i=0;i<=j;i++) ctx->S[i+j*ctx->ld] /= norm;
@@ -859,7 +859,7 @@ PetscErrorCode PEPSolve_TOAR(PEP pep)
     /* copy last column of S */
     ierr = PetscMemcpy(S+lds*(k+l),S+lds*nv,lds*sizeof(PetscScalar));CHKERRQ(ierr);
 
-    if (breakdown) {
+    if (breakdown && pep->reason == PEP_CONVERGED_ITERATING) {
       /* stop if breakdown */
       ierr = PetscInfo2(pep,"Breakdown TOAR method (it=%D norm=%g)\n",pep->its,(double)beta);CHKERRQ(ierr);
       pep->reason = PEP_DIVERGED_BREAKDOWN;

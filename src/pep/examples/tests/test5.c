@@ -54,8 +54,8 @@ int main(int argc,char **argv)
   ierr = MatSetSizes(A[1],PETSC_DECIDE,PETSC_DECIDE,n,n);CHKERRQ(ierr);
   ierr = MatSetFromOptions(A[1]);CHKERRQ(ierr);
   ierr = MatSetUp(A[1]);CHKERRQ(ierr);
-  if (!Istart) {
-    ierr = MatSetValue(A[1],0,0,-1.0,INSERT_VALUES);CHKERRQ(ierr);
+  for (i=Istart;i<Iend;i++) {
+    ierr = MatSetValue(A[1],i,i,-1.5,INSERT_VALUES);CHKERRQ(ierr);
   }
   ierr = MatAssemblyBegin(A[1],MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
   ierr = MatAssemblyEnd(A[1],MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
