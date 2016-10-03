@@ -92,7 +92,7 @@ runtest3_1:
 
 runtest4_1:
 	-@${SETTEST}; check=test1_1; \
-	${MPIEXEC} -n 1 ./test4 -nep_target 21 -nep_rii_lag_preconditioner 2 -nep_rii_const_correction_tol -nep_rii_max_it 6 -terse > $${test}.tmp 2>&1; \
+	${MPIEXEC} -n 1 ./test4 -nep_target 21 -nep_rii_lag_preconditioner 2 -terse > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
 runtest5_1:
@@ -102,6 +102,6 @@ runtest5_1:
 
 runtest6_1:
 	-@${SETTEST}; \
-	${MPIEXEC} -n 1 ./test6 -terse > $${test}.tmp 2>&1; \
+	${MPIEXEC} -n 1 ./test6 -nep_view -terse | ${GREP} -v "tolerance" > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
