@@ -61,7 +61,7 @@ runex16_1_%:
 	if [ "$$pep" = stoar ]; then pep="stoar -st_transform"; \
 	elif [ "$$pep" = qarnoldi ]; then pep="qarnoldi -st_transform"; \
 	elif [ "$$pep" = linear ]; then pep="linear -pep_linear_explicitmatrix"; fi; \
-	${MPIEXEC} -n 1 ./ex16 -pep_type $$pep -pep_nev 4 -pep_ncv 20 -terse > $${test}.tmp 2>&1; \
+	${MPIEXEC} -n 1 ./ex16 -pep_type $$pep -pep_nev 4 -pep_ncv 21 -terse > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
 runex16f90_1:
