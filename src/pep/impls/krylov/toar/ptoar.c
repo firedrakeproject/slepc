@@ -859,7 +859,7 @@ PetscErrorCode PEPSolve_TOAR(PEP pep)
     /* copy last column of S */
     ierr = PetscMemcpy(S+lds*(k+l),S+lds*nv,lds*sizeof(PetscScalar));CHKERRQ(ierr);
 
-    if (breakdown) {
+    if (breakdown && pep->reason == PEP_CONVERGED_ITERATING) {
       /* stop if breakdown */
       ierr = PetscInfo2(pep,"Breakdown TOAR method (it=%D norm=%g)\n",pep->its,(double)beta);CHKERRQ(ierr);
       pep->reason = PEP_DIVERGED_BREAKDOWN;
