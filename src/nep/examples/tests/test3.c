@@ -79,7 +79,7 @@ int main(int argc,char **argv)
   ierr = STGetKSP(st,&ksp);CHKERRQ(ierr);
   ierr = KSPSetType(ksp,KSPBCGS);CHKERRQ(ierr);
   ierr = KSPGetPC(ksp,&pc);CHKERRQ(ierr);
-  ierr = PCSetType(pc,PCJACOBI);CHKERRQ(ierr);
+  ierr = PCSetType(pc,PCBJACOBI);CHKERRQ(ierr);
   ierr = EPSSetFromOptions(eps);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

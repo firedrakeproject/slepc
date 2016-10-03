@@ -24,16 +24,17 @@ FFLAGS     =
 CPPFLAGS   =
 FPPFLAGS   =
 LOCDIR     = src/nep/examples/tests/
-EXAMPLESC  = test1.c test2.c test3.c test4.c test5.c
+EXAMPLESC  = test1.c test2.c test3.c test4.c test5.c test6.c
 EXAMPLESF  = test2f.F
 MANSEC     = NEP
-TESTS      = test1 test2 test2f test3 test4 test5
+TESTS      = test1 test2 test2f test3 test4 test5 test6
 
 TESTEXAMPLES_C_NOTSINGLE       = test1.PETSc runtest1_1 test1.rm \
                                  test2.PETSc runtest2_1 test2.rm \
                                  test3.PETSc runtest3_1 test3.rm \
                                  test4.PETSc runtest4_1 test4.rm \
-                                 test5.PETSc runtest5_1 test5.rm
+                                 test5.PETSc runtest5_1 test5.rm \
+                                 test6.PETSc runtest6_1 test6.rm
 TESTEXAMPLES_FORTRAN_NOTSINGLE = test2f.PETSc runtest2f_1 test2f.rm
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common
@@ -61,6 +62,10 @@ test4: test4.o chkopts
 test5: test5.o chkopts
 	-${CLINKER} -o test5 test5.o ${SLEPC_NEP_LIB}
 	${RM} test5.o
+
+test6: test6.o chkopts
+	-${CLINKER} -o test6 test6.o ${SLEPC_NEP_LIB}
+	${RM} test6.o
 
 #------------------------------------------------------------------------------------
 
@@ -93,5 +98,10 @@ runtest4_1:
 runtest5_1:
 	-@${SETTEST}; \
 	${MPIEXEC} -n 1 ./test5 -nep_nev 3 -nep_target 5 -terse > $${test}.tmp 2>&1; \
+	${TESTCODE}
+
+runtest6_1:
+	-@${SETTEST}; \
+	${MPIEXEC} -n 1 ./test6 -terse > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
