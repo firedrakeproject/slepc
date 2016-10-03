@@ -264,7 +264,7 @@ PetscErrorCode PEPSetUp_Linear(PEP pep)
   EPSProblemType ptype;
   PetscBool      trackall,istrivial,transf,shift,sinv,ks;
   PetscScalar    sigma,*epsarray,*peparray;
-  Vec            veps;
+  Vec            veps,w=NULL;
   /* function tables */
   PetscErrorCode (*fcreate[][2])(MPI_Comm,PEP_LINEAR*,Mat*) = {
     { MatCreateExplicit_Linear_N1A, MatCreateExplicit_Linear_N1B },   /* N1 */
@@ -430,26 +430,32 @@ PetscErrorCode PEPSetUp_Linear(PEP pep)
   }
 
   /* process initial vector */
-  if (pep->nini<=-deg) {
+  if (pep->nini<0) {
     ierr = VecCreateMPI(PetscObjectComm((PetscObject)ctx->eps),deg*pep->nloc,deg*pep->n,&veps);CHKERRQ(ierr);
     ierr = VecGetArray(veps,&epsarray);CHKERRQ(ierr);
     for (i=0;i<deg;i++) {
-      ierr = VecGetArray(pep->IS[i],&peparray);CHKERRQ(ierr);
-      ierr = PetscMemcpy(epsarray+i*pep->nloc,peparray,pep->nloc*sizeof(PetscScalar));CHKERRQ(ierr);
-      ierr = VecRestoreArray(pep->IS[i],&peparray);CHKERRQ(ierr);
+      if (i<-pep->nini) {
+        ierr = VecGetArray(pep->IS[i],&peparray);CHKERRQ(ierr);
+        ierr = PetscMemcpy(epsarray+i*pep->nloc,peparray,pep->nloc*sizeof(PetscScalar));CHKERRQ(ierr);
+        ierr = VecRestoreArray(pep->IS[i],&peparray);CHKERRQ(ierr);
+      } else {
+        if (!w) { ierr = VecDuplicate(pep->IS[0],&w);CHKERRQ(ierr); }
+        ierr = VecSetRandom(w,NULL);CHKERRQ(ierr);
+        ierr = VecGetArray(w,&peparray);CHKERRQ(ierr);
+        ierr = PetscMemcpy(epsarray+i*pep->nloc,peparray,pep->nloc*sizeof(PetscScalar));CHKERRQ(ierr);
+        ierr = VecRestoreArray(w,&peparray);CHKERRQ(ierr);
+      }
     }
     ierr = VecRestoreArray(veps,&epsarray);CHKERRQ(ierr);
     ierr = EPSSetInitialSpace(ctx->eps,1,&veps);CHKERRQ(ierr);
     ierr = VecDestroy(&veps);CHKERRQ(ierr);
-  }
-  if (pep->nini<0) {
+    if (w) { ierr = VecDestroy(&w);CHKERRQ(ierr); }
     ierr = SlepcBasisDestroy_Private(&pep->nini,&pep->IS);CHKERRQ(ierr);
   }
 
   ierr = EPSSetUp(ctx->eps);CHKERRQ(ierr);
   ierr = EPSGetDimensions(ctx->eps,NULL,&pep->ncv,&pep->mpd);CHKERRQ(ierr);
   ierr = EPSGetTolerances(ctx->eps,NULL,&pep->max_it);CHKERRQ(ierr);
-  if (pep->nini>0) { ierr = PetscInfo(pep,"Ignoring initial vectors\n");CHKERRQ(ierr); }
   ierr = PEPAllocateSolution(pep,0);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

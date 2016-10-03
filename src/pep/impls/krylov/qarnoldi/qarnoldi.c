@@ -49,6 +49,7 @@ PetscErrorCode PEPSetUp_QArnoldi(PEP pep)
   PetscErrorCode ierr;
   PEP_QARNOLDI   *ctx = (PEP_QARNOLDI*)pep->data;
   PetscBool      shift,sinv,flg;
+  PetscInt       i;
 
   PetscFunctionBegin;
   pep->lineariz = PETSC_TRUE;
@@ -88,13 +89,13 @@ PetscErrorCode PEPSetUp_QArnoldi(PEP pep)
   ierr = DSSetExtraRow(pep->ds,PETSC_TRUE);CHKERRQ(ierr);
   ierr = DSAllocate(pep->ds,pep->ncv+1);CHKERRQ(ierr);
 
-  /* process starting vector */
-  if (pep->nini>-2) {
-    ierr = BVSetRandomColumn(pep->V,0);CHKERRQ(ierr);
-    ierr = BVSetRandomColumn(pep->V,1);CHKERRQ(ierr);
-  } else {
-    ierr = BVInsertVec(pep->V,0,pep->IS[0]);CHKERRQ(ierr);
-    ierr = BVInsertVec(pep->V,1,pep->IS[1]);CHKERRQ(ierr);
+  /* process initial vectors */
+  for (i=0;i<2;i++) {
+    if (i<-pep->nini) {
+      ierr = BVInsertVec(pep->V,i,pep->IS[i]);CHKERRQ(ierr);
+    } else {
+      ierr = BVSetRandomColumn(pep->V,i);CHKERRQ(ierr);
+    }
   }
   if (pep->nini<0) {
     ierr = SlepcBasisDestroy_Private(&pep->nini,&pep->IS);CHKERRQ(ierr);

@@ -127,7 +127,10 @@ int main(int argc,char **argv)
   ierr = PEPSetTolerances(pep,PETSC_SMALL,PETSC_DEFAULT);CHKERRQ(ierr);
   if (initv) { /* initial vector */
     ierr = MatCreateVecs(K,&v0,NULL);CHKERRQ(ierr);
-    ierr = VecSet(v0,1.0);CHKERRQ(ierr);
+    ierr = VecSetValue(v0,0,-1.0,INSERT_VALUES);CHKERRQ(ierr);
+    ierr = VecSetValue(v0,1,0.5,INSERT_VALUES);CHKERRQ(ierr);
+    ierr = VecAssemblyBegin(v0);CHKERRQ(ierr);
+    ierr = VecAssemblyEnd(v0);CHKERRQ(ierr);
     ierr = PEPSetInitialSpace(pep,1,&v0);CHKERRQ(ierr);
     ierr = VecDestroy(&v0);CHKERRQ(ierr);
   }
