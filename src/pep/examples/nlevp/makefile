@@ -125,7 +125,7 @@ rundamped_beam_1_%:
 runpdde_stability_1: runpdde_stability_1_toar runpdde_stability_1_qarnoldi runpdde_stability_1_linear
 runpdde_stability_1_%:
 	-@${SETTEST}; check=pdde_stability_1; pep=$*; \
-	if [ "$$pep" = qarnoldi ]; then pep="qarnoldi -st_transform -pep_qarnoldi_restart 0.3"; fi; \
+	if [ "$$pep" = qarnoldi ]; then pep="qarnoldi -st_transform"; fi; \
 	${MPIEXEC} -n 1 ./pdde_stability -pep_type $${pep} -pep_ncv 25 -terse > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
@@ -139,7 +139,7 @@ runplanar_waveguide_1_%:
 runsleeper_1: runsleeper_1_toar runsleeper_1_qarnoldi runsleeper_1_linear
 runsleeper_1_%:
 	-@${SETTEST}; check=sleeper_1; pep=$*; \
-	if [ "$$pep" = qarnoldi ]; then pep="qarnoldi -st_transform -pep_qarnoldi_restart 0.3"; fi; \
+	if [ "$$pep" = qarnoldi ]; then pep="qarnoldi -st_transform -pep_qarnoldi_restart 0.4"; fi; \
 	${MPIEXEC} -n 1 ./sleeper -n 100 -pep_type $${pep} -pep_nev 4 -pep_ncv 24 -st_type sinvert -terse > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
@@ -160,9 +160,9 @@ runspring_1: runspring_1_toar runspring_1_stoar runspring_1_qarnoldi runspring_1
 runspring_1_%:
 	-@${SETTEST}; check=spring_1; pep=$*; \
 	if [ "$$pep" != jd ]; then sinv="-st_type sinvert"; fi; \
-	if [ "$$pep" = stoar ]; then pep="stoar -st_transform -pep_hermitian"; \
-	elif [ "$$pep" = qarnoldi ]; then pep="qarnoldi -st_transform"; fi; \
-	${MPIEXEC} -n 1 ./spring -pep_type $${pep} -pep_nev 4 -n 24 -pep_ncv 18 -pep_target -.5 -pep_conv_norm $$sinv -terse > $${test}.tmp 2>&1; \
+	if [ "$$pep" = stoar ]; then pep="stoar -st_transform -pep_hermitian -pep_conv_rel"; \
+	elif [ "$$pep" = qarnoldi ]; then pep="qarnoldi -st_transform -pep_conv_rel"; fi; \
+	${MPIEXEC} -n 1 ./spring -pep_type $${pep} -pep_nev 4 -n 24 -pep_ncv 18 -pep_target -.5 -pep_conv_norm $$sinv -pep_scale diagonal -terse > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
 runspring_2_jd:

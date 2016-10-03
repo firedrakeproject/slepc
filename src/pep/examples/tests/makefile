@@ -30,14 +30,14 @@ MANSEC     = PEP
 TESTS      = test1 test2 test3 test3f test4 test5
 
 TESTEXAMPLES_C                     = test2.PETSc runtest2_2 runtest2_4 runtest2_5 \
-                                                 runtest2_8 runtest2_9 test2.rm \
+                                                 runtest2_8 test2.rm \
                                      test3.PETSc runtest3_1 test3.rm \
-                                     test4.PETSc runtest4_1 test4.rm \
-                                     test5.PETSc runtest5_1 test5.rm
+                                     test4.PETSc runtest4_1 test4.rm
+TESTEXAMPLES_C_NOCOMPLEX           = test5.PETSc runtest5_1 test5.rm
 TESTEXAMPLES_C_NOCOMPLEX_NOTSINGLE = test1.PETSc runtest1_1 test1.rm
 TESTEXAMPLES_C_COMPLEX             = test2.PETSc runtest2_2_jd test2.rm
 TESTEXAMPLES_C_NOTSINGLE           = test2.PETSc runtest2_1 runtest2_3 runtest2_2_stoar \
-                                                 runtest2_6 runtest2_7 test2.rm
+                                                 runtest2_6 runtest2_7 runtest2_9 test2.rm
 TESTEXAMPLES_FORTRAN               = test3f.PETSc runtest3f_1 test3f.rm
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common
@@ -79,7 +79,7 @@ runtest2_1: runtest2_1_toar runtest2_1_qarnoldi runtest2_1_linear runtest2_1_lin
 runtest2_1_%:
 	-@${SETTEST}; check=test2_1; pep=$*; \
 	if [ "$$pep" = linear_gd ]; then pep="linear -pep_linear_eps_type gd -pep_linear_explicitmatrix"; \
-	elif [ "$$pep" = qarnoldi ]; then pep="qarnoldi -st_transform"; fi; \
+	elif [ "$$pep" = qarnoldi ]; then pep="qarnoldi -st_transform -bv_orthog_refine never"; fi; \
 	${MPIEXEC} -n 1 ./test2 -pep_type $${pep} -pep_nev 4 -initv >> $${test}.tmp 2>&1; \
 	${TESTCODE}
 
