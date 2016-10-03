@@ -1,25 +1,25 @@
 
 PEP of diagonal problem, n=6
 
-  1 PEP converged value (error) #0 6. (removed)
-  1 PEP converged value (error) #1 -6. (removed)
-  1 PEP converged value (error) #2 5. (removed)
-  1 PEP converged value (error) #3 -5. (removed)
-  1 PEP converged value (error) #4 -4. (removed)
-  1 PEP converged value (error) #5 4. (removed)
-  1 PEP converged value (error) #6 3. (removed)
-  1 PEP converged value (error) #7 -3. (removed)
-  1 PEP converged value (error) #8 2. (removed)
-  1 PEP converged value (error) #9 -2. (removed)
-  1 PEP converged value (error) #10 -1.61803 (removed)
-  1 PEP converged value (error) #11 0.618034 (removed)
-  1 PEP nconv=12 Values (Errors) 6. (removed) -6. (removed) 5. (removed) -5. (removed) -4. (removed) 4. (removed) 3. (removed) -3. (removed) 2. (removed) -2. (removed) -1.61803 (removed) 0.618034 (removed)
+  1 PEP converged value (error) #0 3. (removed)
+  1 PEP converged value (error) #1 2.5 (removed)
+  1 PEP converged value (error) #2 2. (removed)
+  1 PEP converged value (error) #3 1.5 (removed)
+  1 PEP converged value (error) #4 1. (removed)
+  1 PEP converged value (error) #5 0.5 (removed)
+  1 PEP converged value (error) #6 -2. (removed)
+  1 PEP converged value (error) #7 -4. (removed)
+  1 PEP converged value (error) #8 -6. (removed)
+  1 PEP converged value (error) #9 -8. (removed)
+  1 PEP converged value (error) #10 -10. (removed)
+  1 PEP converged value (error) #11 -12. (removed)
+  1 PEP nconv=12 Values (Errors) 3. (removed) 2.5 (removed) 2. (removed) 1.5 (removed) 1. (removed) 0.5 (removed) -2. (removed) -4. (removed) -6. (removed) -8. (removed) -10. (removed) -12. (removed)
 PEP Object: pep 1 MPI processes
   type: toar
     TOAR: 50% of basis vectors kept after restart
     TOAR: using the locking variant
   polynomial represented in MONOMIAL basis
-  selected portion of the spectrum: largest eigenvalues in magnitude
+  selected portion of the spectrum: largest real parts
   number of eigenvalues (nev): 1
   number of column vectors (ncv): 12
   maximum dimension of projected problem (mpd): 12
@@ -65,7 +65,7 @@ ST Object: 1 MPI processes
       total: nonzeros=6, allocated nonzeros=30
       total number of mallocs used during MatSetValues calls =0
         not using I-node routines
- Polynomial eigensolve did not converge due to DIVERGED_BREAKDOWN; iterations 1
+ Polynomial eigensolve converged (12 eigenpairs) due to CONVERGED_TOL; iterations 1
 Error_pep = [
 removed
 removed
@@ -83,32 +83,32 @@ removed
  ---------------------- --------------------
             k                 eta(x,k)
  ---------------------- --------------------
-        6.000000            removed
-       -6.000000            removed
-        5.000000            removed
-       -5.000000            removed
-       -4.000000            removed
-        4.000000              removed
         3.000000            removed
-       -3.000000            removed
-        2.000000             removed
+        2.500000            removed
+        2.000000            removed
+        1.500000            removed
+        1.000000            removed
+        0.500000            removed
        -2.000000            removed
-       -1.618034            removed
-        0.618034            removed
+       -4.000000            removed
+       -6.000000            removed
+       -8.000000            removed
+      -10.000000            removed
+      -12.000000            removed
  ---------------------- --------------------
 Eigenvalues = 
-   6.00000
-   -6.00000
-   5.00000
-   -5.00000
-   -4.00000
-   4.00000
    3.00000
-   -3.00000
+   2.50000
    2.00000
+   1.50000
+   1.00000
+   0.50000
    -2.00000
-   -1.61803
-   0.61803
+   -4.00000
+   -6.00000
+   -8.00000
+   -10.00000
+   -12.00000
 
-     6.00000
+     3.00000
 
