@@ -101,6 +101,8 @@ int main(int argc,char **argv)
 
   ierr = NEPSetType(nep,NEPRII);CHKERRQ(ierr);
   ierr = NEPRIISetKSP(nep,ksp);CHKERRQ(ierr);
+  ierr = NEPRIISetMaximumIterations(nep,6);CHKERRQ(ierr);
+  ierr = NEPRIISetConstCorrectionTol(nep,PETSC_TRUE);CHKERRQ(ierr);
   ierr = NEPSetFromOptions(nep);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
