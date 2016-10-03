@@ -19,7 +19,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-static char help[] = "Test the INTERPOL solver with a user-provided PEP.\n\n"
+static char help[] = "Test the NArnoldi solver with a user-provided KSP.\n\n"
   "This is based on ex22.\n"
   "The command line options are:\n"
   "  -n <n>, where <n> = number of grid subdivisions.\n"
@@ -49,14 +49,14 @@ static char help[] = "Test the INTERPOL solver with a user-provided PEP.\n\n"
 int main(int argc,char **argv)
 {
   NEP            nep;
-  PEP            pep;
+  KSP            ksp;
+  PC             pc;
   Mat            Id,A,B;
   FN             f1,f2,f3;
-  RG             rg;
   Mat            mats[3];
   FN             funs[3];
   PetscScalar    coeffs[2],b;
-  PetscInt       n=128,nev,Istart,Iend,i,deg;
+  PetscInt       n=128,nev,Istart,Iend,i;
   PetscReal      tau=0.001,h,a=20,xi;
   PetscBool      terse;
   PetscErrorCode ierr;
@@ -68,17 +68,14 @@ int main(int argc,char **argv)
   h = PETSC_PI/(PetscReal)(n+1);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-      Create a standalone PEP and RG objects with appropriate settings
+      Create a standalone KSP with appropriate settings
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  ierr = PEPCreate(PETSC_COMM_WORLD,&pep);CHKERRQ(ierr);
-  ierr = PEPSetType(pep,PEPTOAR);CHKERRQ(ierr);
-  ierr = PEPSetFromOptions(pep);CHKERRQ(ierr);
-
-  ierr = RGCreate(PETSC_COMM_WORLD,&rg);CHKERRQ(ierr);
-  ierr = RGSetType(rg,RGINTERVAL);CHKERRQ(ierr);
-  ierr = RGIntervalSetEndpoints(rg,5,20,-0.1,0.1);CHKERRQ(ierr);
-  ierr = RGSetFromOptions(rg);CHKERRQ(ierr);
+  ierr = KSPCreate(PETSC_COMM_WORLD,&ksp);CHKERRQ(ierr);
+  ierr = KSPSetType(ksp,KSPBCGS);CHKERRQ(ierr);
+  ierr = KSPGetPC(ksp,&pc);CHKERRQ(ierr);
+  ierr = PCSetType(pc,PCBJACOBI);CHKERRQ(ierr);
+  ierr = KSPSetFromOptions(ksp);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
      Create nonlinear eigensolver context
@@ -151,11 +148,8 @@ int main(int argc,char **argv)
   ierr = NEPSetSplitOperator(nep,3,mats,funs,SUBSET_NONZERO_PATTERN);CHKERRQ(ierr);
 
   /* Customize nonlinear solver; set runtime options */
-  ierr = NEPSetType(nep,NEPINTERPOL);CHKERRQ(ierr);
-  ierr = NEPSetRG(nep,rg);CHKERRQ(ierr);
-  ierr = NEPInterpolSetPEP(nep,pep);CHKERRQ(ierr);
-  ierr = NEPInterpolGetDegree(nep,&deg);CHKERRQ(ierr);
-  ierr = NEPInterpolSetDegree(nep,deg+2);CHKERRQ(ierr);  /* increase degree of interpolation */
+  ierr = NEPSetType(nep,NEPNARNOLDI);CHKERRQ(ierr);
+  ierr = NEPNArnoldiSetKSP(nep,ksp);CHKERRQ(ierr);
   ierr = NEPSetFromOptions(nep);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -181,8 +175,7 @@ int main(int argc,char **argv)
     ierr = PetscViewerPopFormat(PETSC_VIEWER_STDOUT_WORLD);CHKERRQ(ierr);
   }
   ierr = NEPDestroy(&nep);CHKERRQ(ierr);
-  ierr = PEPDestroy(&pep);CHKERRQ(ierr);
-  ierr = RGDestroy(&rg);CHKERRQ(ierr);
+  ierr = KSPDestroy(&ksp);CHKERRQ(ierr);
   ierr = MatDestroy(&Id);CHKERRQ(ierr);
   ierr = MatDestroy(&A);CHKERRQ(ierr);
   ierr = MatDestroy(&B);CHKERRQ(ierr);
