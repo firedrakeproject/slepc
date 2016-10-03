@@ -49,7 +49,7 @@ int main(int argc,char **argv)
   PetscErrorCode ierr;
   PetscInt       n=30,Istart,Iend,i,nev;
   PetscScalar    mu=1.0,tau=10.0,kappa=5.0;
-  PetscBool      initv;
+  PetscBool      initv=PETSC_FALSE;
   Vec            v0;
 
   ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;

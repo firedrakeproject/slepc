@@ -35,7 +35,8 @@ int main(int argc,char **argv)
   Mat            M,C,K,A[3];      /* problem matrices */
   PEP            pep;             /* polynomial eigenproblem solver context */
   PetscInt       N,n=10,m,Istart,Iend,II,nev,i,j;
-  PetscBool      flag,isgd2,epsgiven;
+  PetscReal      keep;
+  PetscBool      flag,isgd2,epsgiven,lock;
   char           peptype[30] = "linear",epstype[30] = "";
   EPS            eps;
   ST             st;
@@ -137,8 +138,23 @@ int main(int argc,char **argv)
   }
   ierr = PetscObjectTypeCompare((PetscObject)pep,PEPQARNOLDI,&flag);CHKERRQ(ierr);
   if (flag) {
-    ierr = PEPGetST(pep,&st);CHKERRQ(ierr);
+    ierr = STCreate(PETSC_COMM_WORLD,&st);CHKERRQ(ierr);
     ierr = STSetTransform(st,PETSC_TRUE);CHKERRQ(ierr);
+    ierr = PEPSetST(pep,st);CHKERRQ(ierr);
+    ierr = STDestroy(&st);CHKERRQ(ierr);
+    ierr = PEPQArnoldiGetRestart(pep,&keep);CHKERRQ(ierr);
+    ierr = PEPQArnoldiGetLocking(pep,&lock);CHKERRQ(ierr);
+    if (!lock && keep<0.6) {
+      ierr = PEPQArnoldiSetRestart(pep,0.6);CHKERRQ(ierr);
+    }
+  }
+  ierr = PetscObjectTypeCompare((PetscObject)pep,PEPTOAR,&flag);CHKERRQ(ierr);
+  if (flag) {
+    ierr = PEPTOARGetRestart(pep,&keep);CHKERRQ(ierr);
+    ierr = PEPTOARGetLocking(pep,&lock);CHKERRQ(ierr);
+    if (!lock && keep<0.6) {
+      ierr = PEPTOARSetRestart(pep,0.6);CHKERRQ(ierr);
+    }
   }
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
