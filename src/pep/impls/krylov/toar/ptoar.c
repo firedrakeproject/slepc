@@ -802,6 +802,7 @@ PetscErrorCode PEPSolve_TOAR(PEP pep)
       sigma /= pep->sfactor;
     } else {
       ierr = PetscObjectTypeCompare((PetscObject)pep->st,STSINVERT,&sinv);CHKERRQ(ierr);
+      pep->target = sinv?pep->target*pep->sfactor:pep->target/pep->sfactor;
       ierr = RGPushScale(pep->rg,sinv?pep->sfactor:1.0/pep->sfactor);CHKERRQ(ierr);
       ierr = STScaleShift(pep->st,sinv?pep->sfactor:1.0/pep->sfactor);CHKERRQ(ierr);
     }
@@ -913,6 +914,7 @@ PetscErrorCode PEPSolve_TOAR(PEP pep)
       ierr = STScaleShift(pep->st,pep->sfactor);CHKERRQ(ierr);
     } else {
       ierr = STScaleShift(pep->st,sinv?1.0/pep->sfactor:pep->sfactor);CHKERRQ(ierr);
+      pep->target = (sinv)?pep->target/pep->sfactor:pep->target*pep->sfactor;
     }
     if (pep->sfactor!=1.0) {
       for (j=0;j<pep->nconv;j++) {
