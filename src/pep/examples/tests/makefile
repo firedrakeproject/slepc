@@ -33,11 +33,11 @@ TESTEXAMPLES_C                     = test2.PETSc runtest2_2 runtest2_4 runtest2_
                                                  runtest2_8 test2.rm \
                                      test3.PETSc runtest3_1 test3.rm \
                                      test4.PETSc runtest4_1 test4.rm
-TESTEXAMPLES_C_NOCOMPLEX           = test5.PETSc runtest5_1 test5.rm
-TESTEXAMPLES_C_NOCOMPLEX_NOTSINGLE = test1.PETSc runtest1_1 test1.rm
+TESTEXAMPLES_C_NOCOMPLEX_NOTSINGLE = test1.PETSc runtest1_1 test1.rm \
+                                     test5.PETSc runtest5_1 test5.rm
 TESTEXAMPLES_C_COMPLEX             = test2.PETSc runtest2_2_jd test2.rm
 TESTEXAMPLES_C_NOTSINGLE           = test2.PETSc runtest2_1 runtest2_3 runtest2_2_stoar \
-                                                 runtest2_6 runtest2_7 runtest2_9 test2.rm
+                                                 runtest2_6 runtest2_7 runtest2_9 runtest2_10 test2.rm
 TESTEXAMPLES_FORTRAN               = test3f.PETSc runtest3f_1 test3f.rm
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common
@@ -151,6 +151,11 @@ runtest2_9_%:
 	elif [ "$$refine" = multiple_mbe ]; then refine="multiple -pep_refine_scheme mbe -pep_refine_ksp_type preonly -pep_refine_pc_type lu"; \
 	elif [ "$$refine" = multiple_explicit ]; then refine="multiple -pep_refine_scheme explicit"; fi; \
 	${MPIEXEC} -n 2 ./test2 -st_type sinvert -pep_target -0.43 -pep_nev 4 -pep_refine $${refine} -pep_refine_partitions 2 -st_ksp_type bcgs -st_pc_type bjacobi -pep_scale diagonal -pep_scale_its 4 >> $${test}.tmp 2>&1; \
+	${TESTCODE}
+
+runtest2_10:
+	-@${SETTEST}; check=test2_2; \
+	${MPIEXEC} -n 4 ./test2 -st_type sinvert -pep_target -0.43 -pep_nev 4 -pep_refine simple -pep_refine_scheme explicit -pep_refine_partitions 2 -st_ksp_type bcgs -st_pc_type bjacobi -pep_scale diagonal -pep_scale_its 4 >> $${test}.tmp 2>&1; \
 	${TESTCODE}
 
 runtest3_1:
