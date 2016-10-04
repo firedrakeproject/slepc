@@ -599,8 +599,10 @@ PetscErrorCode NEPNewtonRefinementSimple(NEP nep,PetscInt *maxits,PetscReal tol,
     }
   }
   if (nep->scheme==NEP_REFINE_SCHEME_MBE) {
+    if (nep->npart>1) {
       for (i=0;i<nep->nt;i++) { ierr = FNDestroy(&ctx->fn[i]);CHKERRQ(ierr); }
       ierr = PetscFree(ctx->fn);CHKERRQ(ierr);
+    }
   }
   ierr = MatDestroy(&T);CHKERRQ(ierr);
   ierr = PetscFree(ctx);CHKERRQ(ierr);
