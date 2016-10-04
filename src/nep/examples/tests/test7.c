@@ -51,13 +51,13 @@ int main(int argc,char **argv)
   PC             pc;
   Mat            A[2];             
   NEPType        type;
-  PetscInt       n=100,nev;
-  PetscReal      tol=PETSC_SQRT_MACHINE_EPSILON;
+  PetscInt       n=100,nev,its;
+  PetscReal      keep,tol=PETSC_SQRT_MACHINE_EPSILON;
   PetscErrorCode ierr;
   RG             rg;
   FN             f[2];
   PetscMPIInt    size;
-  PetscBool      terse;
+  PetscBool      terse,flg,lock,trueres;
   PetscScalar    coeffs;
 
   ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
@@ -125,6 +125,18 @@ int main(int argc,char **argv)
   ierr = PetscPrintf(PETSC_COMM_WORLD," Solution method: %s\n",type);CHKERRQ(ierr);
   ierr = NEPGetDimensions(nep,&nev,NULL,NULL);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD," Number of requested eigenvalues: %D\n",nev);CHKERRQ(ierr);
+  ierr = PetscObjectTypeCompare((PetscObject)nep,NEPNLEIGS,&flg);CHKERRQ(ierr);
+  if (flg) {
+    ierr = NEPNLEIGSGetRestart(nep,&keep);CHKERRQ(ierr);
+    ierr = NEPNLEIGSGetLocking(nep,&lock);CHKERRQ(ierr);
+    ierr = NEPNLEIGSGetInterpolation(nep,&tol,&its);CHKERRQ(ierr);
+    ierr = NEPNLEIGSGetTrueResidual(nep,&trueres);CHKERRQ(ierr);
+    ierr = PetscPrintf(PETSC_COMM_WORLD," Restart factor is %3.2f",(double)keep);CHKERRQ(ierr);
+    if (lock) { ierr = PetscPrintf(PETSC_COMM_WORLD," (locking activated)");CHKERRQ(ierr); }
+    ierr = PetscPrintf(PETSC_COMM_WORLD,"\n Divided diferences with tol=%6.2g maxit=%D\n",(double)tol,its);CHKERRQ(ierr);
+    if (trueres) { ierr = PetscPrintf(PETSC_COMM_WORLD," Computing the true residual\n");CHKERRQ(ierr); }
+    ierr = PetscPrintf(PETSC_COMM_WORLD,"\n");CHKERRQ(ierr);
+  }
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                     Display solution and clean up

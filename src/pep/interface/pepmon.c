@@ -170,16 +170,18 @@ PetscErrorCode PEPGetMonitorContext(PEP pep,void **ctx)
 static PetscErrorCode PEPMonitorGetTrueEig(PEP pep,PetscScalar *er,PetscScalar *ei)
 {
   PetscErrorCode ierr;
-  PetscBool      flg;
+  PetscBool      flg,sinv;
 
   PetscFunctionBegin;
-  ierr = STGetTransform(pep->st,&flg);CHKERRQ(ierr);
-  if (flg) {
-    *er *= pep->sfactor; *ei *= pep->sfactor;
-  }
   ierr = STBackTransform(pep->st,1,er,ei);CHKERRQ(ierr);
-  if (!flg) {
-    *er *= pep->sfactor; *ei *= pep->sfactor;
+  if (pep->sfactor!=1.0) {
+    ierr = STGetTransform(pep->st,&flg);CHKERRQ(ierr);
+    ierr = PetscObjectTypeCompare((PetscObject)pep->st,STSINVERT,&sinv);CHKERRQ(ierr);
+    if (flg && sinv) { 
+      *er /= pep->sfactor; *ei /= pep->sfactor;
+    } else {
+      *er *= pep->sfactor; *ei *= pep->sfactor;
+    }
   }
   PetscFunctionReturn(0);
 }
