@@ -27,7 +27,6 @@
 #define NREF_MAXIT 10
 
 typedef struct {
-  PetscSubcomm  subc;
   VecScatter    *scatter_id,nst;
   Mat           *A;
   Vec           nv,vg,v,w;
@@ -74,19 +73,21 @@ static PetscErrorCode NEPSimpleNRefSetUp(NEP nep,NEPSimpNRefctx **ctx_)
   if (nep->npart==1) {
     ctx->A  = nep->A;
     ctx->fn = nep->f;
+    nep->refinesubc = NULL;
+    ctx->scatter_id = NULL;
   } else {
     ierr = PetscMalloc2(nep->nt,&ctx->A,nep->npart,&ctx->scatter_id);CHKERRQ(ierr);
 
     /* Duplicate matrices */
     for (i=0;i<nep->nt;i++) {
-      ierr = MatCreateRedundantMatrix(nep->A[i],0,PetscSubcommChild(ctx->subc),MAT_INITIAL_MATRIX,&ctx->A[i]);CHKERRQ(ierr);
+      ierr = MatCreateRedundantMatrix(nep->A[i],0,PetscSubcommChild(nep->refinesubc),MAT_INITIAL_MATRIX,&ctx->A[i]);CHKERRQ(ierr);
     }
     ierr = MatCreateVecs(ctx->A[0],&ctx->v,NULL);CHKERRQ(ierr);
 
     /* Duplicate FNs */
     ierr = PetscMalloc1(nep->nt,&ctx->fn);CHKERRQ(ierr);
     for (i=0;i<nep->nt;i++) {
-      ierr = FNDuplicate(nep->f[i],PetscSubcommChild(ctx->subc),&ctx->fn[i]);CHKERRQ(ierr);
+      ierr = FNDuplicate(nep->f[i],PetscSubcommChild(nep->refinesubc),&ctx->fn[i]);CHKERRQ(ierr);
     }
 
     /* Create scatters for sending vectors to each subcommucator */
@@ -161,13 +162,13 @@ static PetscErrorCode NEPSimpleNRefGatherEigenpair(NEP nep,NEPSimpNRefctx *ctx,P
       ierr = MPI_Bcast(&nep->eigr[idx],1,MPIU_SCALAR,p,comm);CHKERRQ(ierr);
       /* Gather nep->V[idx] from the subcommuniator sc */
       ierr = BVGetColumn(nep->V,idx,&v);CHKERRQ(ierr);
-      if (ctx->subc->color==sc) {
+      if (nep->refinesubc->color==sc) {
         ierr = VecGetArray(ctx->v,&array);CHKERRQ(ierr);
         ierr = VecPlaceArray(ctx->vg,array);CHKERRQ(ierr);
       }
       ierr = VecScatterBegin(ctx->scatter_id[sc],ctx->vg,v,INSERT_VALUES,SCATTER_REVERSE);CHKERRQ(ierr);
       ierr = VecScatterEnd(ctx->scatter_id[sc],ctx->vg,v,INSERT_VALUES,SCATTER_REVERSE);CHKERRQ(ierr);
-      if (ctx->subc->color==sc) {
+      if (nep->refinesubc->color==sc) {
         ierr = VecResetArray(ctx->vg);CHKERRQ(ierr);
         ierr = VecRestoreArray(ctx->v,&array);CHKERRQ(ierr);
       }
@@ -194,13 +195,13 @@ static PetscErrorCode NEPSimpleNRefScatterEigenvector(NEP nep,NEPSimpNRefctx *ct
   PetscFunctionBegin;
   if (nep->npart>1) {
     ierr = BVGetColumn(nep->V,idx,&v);CHKERRQ(ierr);
-    if (ctx->subc->color==sc) {
+    if (nep->refinesubc->color==sc) {
       ierr = VecGetArray(ctx->v,&array);CHKERRQ(ierr);
       ierr = VecPlaceArray(ctx->vg,array);CHKERRQ(ierr);
     }
     ierr = VecScatterBegin(ctx->scatter_id[sc],v,ctx->vg,INSERT_VALUES,SCATTER_FORWARD);CHKERRQ(ierr);
     ierr = VecScatterEnd(ctx->scatter_id[sc],v,ctx->vg,INSERT_VALUES,SCATTER_FORWARD);CHKERRQ(ierr);
-    if (ctx->subc->color==sc) {
+    if (nep->refinesubc->color==sc) {
       ierr = VecResetArray(ctx->vg);CHKERRQ(ierr);
       ierr = VecRestoreArray(ctx->v,&array);CHKERRQ(ierr);
     }
@@ -215,7 +216,7 @@ static PetscErrorCode NEPSimpleNRefSetUpSystem(NEP nep,NEPSimpNRefctx *ctx,Mat *
 {
   PetscErrorCode    ierr;
   PetscInt          i,st,ml,m0,n0,m1,mg;
-  PetscInt          *dnz,*onz,ncols,*cols2,*nnz,nt=nep->nt;
+  PetscInt          *dnz,*onz,ncols,*cols2=NULL,*nnz,nt=nep->nt;
   PetscScalar       zero=0.0,*coeffs,*coeffs2;
   PetscMPIInt       rank,size;
   MPI_Comm          comm;
@@ -410,7 +411,7 @@ PetscErrorCode NEPNewtonRefinementSimple(NEP nep,PetscInt *maxits,PetscReal tol,
   ierr = PetscLogEventBegin(NEP_Refine,nep,0,0,0);CHKERRQ(ierr);
   ierr = NEPSimpleNRefSetUp(nep,&ctx);CHKERRQ(ierr);
   its = (maxits)?*maxits:NREF_MAXIT;
-  comm = (nep->npart==1)?PetscObjectComm((PetscObject)nep):PetscSubcommChild(ctx->subc);
+  comm = (nep->npart==1)?PetscObjectComm((PetscObject)nep):PetscSubcommChild(nep->refinesubc);
   if (!nep->refineksp) { ierr = NEPRefineGetKSP(nep,&nep->refineksp);CHKERRQ(ierr); }
   if (nep->npart==1) {
     ierr = BVGetColumn(nep->V,0,&v);CHKERRQ(ierr);
@@ -427,7 +428,7 @@ PetscErrorCode NEPNewtonRefinementSimple(NEP nep,PetscInt *maxits,PetscReal tol,
   ierr = PetscMalloc3(nep->npart,&idx_sc,nep->npart,&its_sc,nep->npart,&fail_sc);CHKERRQ(ierr);
   for (i=0;i<nep->npart;i++) fail_sc[i] = 0;
   for (i=0;i<nep->npart;i++) its_sc[i] = 0;
-  color = (nep->npart==1)?0:ctx->subc->color;
+  color = (nep->npart==1)?0:nep->refinesubc->color;
    
   /* Loop performing iterative refinements */
   while (!solved) {
@@ -596,6 +597,10 @@ PetscErrorCode NEPNewtonRefinementSimple(NEP nep,PetscInt *maxits,PetscReal tol,
       for (i=0;i<nep->nt;i++) { ierr = FNDestroy(&ctx->fn[i]);CHKERRQ(ierr); }
       ierr = PetscFree(ctx->fn);CHKERRQ(ierr);
     }
+  }
+  if (nep->scheme==NEP_REFINE_SCHEME_MBE) {
+      for (i=0;i<nep->nt;i++) { ierr = FNDestroy(&ctx->fn[i]);CHKERRQ(ierr); }
+      ierr = PetscFree(ctx->fn);CHKERRQ(ierr);
   }
   ierr = MatDestroy(&T);CHKERRQ(ierr);
   ierr = PetscFree(ctx);CHKERRQ(ierr);
