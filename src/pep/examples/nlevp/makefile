@@ -36,7 +36,8 @@ TESTEXAMPLES_C_NOTSINGLE           = sleeper.PETSc runsleeper_2_toar runsleeper_
                                      spring.PETSc runspring_1 spring.rm
 TESTEXAMPLES_C_NOCOMPLEX           = butterfly.PETSc runbutterfly_1 butterfly.rm
 TESTEXAMPLES_C_DATAFILE            = butterfly.PETSc runbutterfly_2 butterfly.rm
-TESTEXAMPLES_C_NOCOMPLEX_NOTSINGLE = acoustic_wave_1d.PETSc runacoustic_wave_1d_1 acoustic_wave_1d.rm \
+TESTEXAMPLES_C_NOCOMPLEX_NOTSINGLE = acoustic_wave_1d.PETSc runacoustic_wave_1d_1 runacoustic_wave_1d_2 \
+                                                            runacoustic_wave_1d_3 acoustic_wave_1d.rm \
                                      acoustic_wave_2d.PETSc runacoustic_wave_2d_1 acoustic_wave_2d.rm \
                                      damped_beam.PETSc rundamped_beam_1 damped_beam.rm \
                                      planar_waveguide.PETSc runplanar_waveguide_1 planar_waveguide.rm \
@@ -90,6 +91,20 @@ runacoustic_wave_1d_1_%:
 	-@${SETTEST}; check=acoustic_wave_1d_1; pep=$*; \
 	if [ "$$pep" = stoar ]; then pep="stoar -pep_hermitian -pep_stoar_locking 0"; fi; \
 	${MPIEXEC} -n 1 ./acoustic_wave_1d -pep_type $${pep} -st_transform -pep_nev 4 -pep_tol 1e-7 -n 24 -st_type sinvert -terse > $${test}.tmp 2>&1; \
+	${TESTCODE}
+
+runacoustic_wave_1d_2: runacoustic_wave_1d_2_none runacoustic_wave_1d_2_norm runacoustic_wave_1d_2_residual
+runacoustic_wave_1d_2_%:
+	-@${SETTEST}; check=acoustic_wave_1d_1; extract=$*; \
+	if [ "$$pep" = stoar ]; then pep="stoar -pep_hermitian"; fi; \
+	${MPIEXEC} -n 1 ./acoustic_wave_1d -pep_extract $${extract} -st_transform -pep_nev 4 -pep_tol 1e-7 -n 24 -st_type sinvert -terse > $${test}.tmp 2>&1; \
+	${TESTCODE}
+
+runacoustic_wave_1d_3: runacoustic_wave_1d_3_none runacoustic_wave_1d_3_norm runacoustic_wave_1d_3_residual
+runacoustic_wave_1d_3_%:
+	-@${SETTEST}; check=acoustic_wave_1d_1; extract=$*; \
+	if [ "$$pep" = stoar ]; then pep="stoar -pep_hermitian"; fi; \
+	${MPIEXEC} -n 1 ./acoustic_wave_1d -pep_type linear -pep_extract $${extract} -st_transform -pep_nev 4 -pep_tol 1e-7 -n 24 -st_type sinvert -terse > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
 runacoustic_wave_2d_1: runacoustic_wave_2d_1_toar runacoustic_wave_2d_1_stoar runacoustic_wave_2d_1_qarnoldi runacoustic_wave_2d_1_linear
@@ -162,7 +177,7 @@ runspring_1_%:
 	if [ "$$pep" != jd ]; then sinv="-st_type sinvert"; fi; \
 	if [ "$$pep" = stoar ]; then pep="stoar -st_transform -pep_hermitian -pep_conv_rel"; \
 	elif [ "$$pep" = qarnoldi ]; then pep="qarnoldi -st_transform -pep_conv_rel"; fi; \
-	${MPIEXEC} -n 1 ./spring -pep_type $${pep} -pep_nev 4 -n 24 -pep_ncv 18 -pep_target -.5 -pep_conv_norm $$sinv -pep_scale diagonal -terse > $${test}.tmp 2>&1; \
+	${MPIEXEC} -n 1 ./spring -pep_conv_norm -pep_type $${pep} -pep_nev 4 -n 24 -pep_ncv 18 -pep_target -.5 $$sinv -pep_scale diagonal -terse > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
 runspring_2_jd:
