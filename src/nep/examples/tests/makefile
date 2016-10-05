@@ -35,7 +35,7 @@ TESTEXAMPLES_C_NOTSINGLE       = test1.PETSc runtest1_1 test1.rm \
                                  test4.PETSc runtest4_1 test4.rm \
                                  test5.PETSc runtest5_1 test5.rm \
                                  test6.PETSc runtest6_1 test6.rm \
-                                 test7.PETSc runtest7_1 test7.rm
+                                 test7.PETSc runtest7_1 runtest7_2 test7.rm
 TESTEXAMPLES_FORTRAN_NOTSINGLE = test2f.PETSc runtest2f_1 test2f.rm
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common
@@ -112,6 +112,11 @@ runtest6_1:
 
 runtest7_1:
 	-@${SETTEST}; \
-	${MPIEXEC} -n 1 ./test7 -nep_nev 3 -nep_nleigs_locking 0 -nep_nleigs_interpolation_max_it 90 -nep_nleigs_interpolation_tol 1e-8 -nep_nleigs_restart 0.4 -terse > $${test}.tmp 2>&1; \
+	${MPIEXEC} -n 1 ./test7 -nep_nev 3 -nep_tol 1e-8 -nep_nleigs_locking 0 -nep_nleigs_interpolation_max_it 90 -nep_nleigs_interpolation_tol 1e-8 -nep_nleigs_restart 0.4 -terse > $${test}.tmp 2>&1; \
+	${TESTCODE}
+
+runtest7_2:
+	-@${SETTEST}; \
+	${MPIEXEC} -n 1 ./test7 -split 0 -nep_nev 3 -nep_tol 1e-8 -terse > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
