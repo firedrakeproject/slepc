@@ -920,6 +920,7 @@ PetscErrorCode EPSSetUp_CISS(EPS eps)
       ierr = KSPSetOptionsPrefix(ctx->ksp[i],((PetscObject)eps)->prefix);CHKERRQ(ierr);
       ierr = KSPAppendOptionsPrefix(ctx->ksp[i],"eps_ciss_");CHKERRQ(ierr);
       ierr = KSPSetErrorIfNotConverged(ctx->ksp[i],PETSC_TRUE);CHKERRQ(ierr);
+      ierr = KSPSetTolerances(ctx->ksp[i],SLEPC_DEFAULT_TOL,PETSC_DEFAULT,PETSC_DEFAULT,PETSC_DEFAULT);CHKERRQ(ierr);
     }
   }
 

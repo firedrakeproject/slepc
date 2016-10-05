@@ -185,6 +185,7 @@ static PetscErrorCode SolveLinearSystem(NEP nep,Mat T,Mat dT,BV V,PetscInt L_sta
       ierr = KSPSetType(ksp,KSPPREONLY);CHKERRQ(ierr);
       ierr = KSPGetPC(ksp,&pc);CHKERRQ(ierr);
       ierr = PCSetType(pc,PCLU);CHKERRQ(ierr);
+      ierr = KSPSetTolerances(ksp,SLEPC_DEFAULT_TOL,PETSC_DEFAULT,PETSC_DEFAULT,PETSC_DEFAULT);CHKERRQ(ierr);
       ierr = KSPSetFromOptions(ksp);CHKERRQ(ierr);
     }
     for (j=L_start;j<L_end;j++) {
@@ -502,6 +503,7 @@ PetscErrorCode NEPSetUp_CISS(NEP nep)
       ierr = KSPSetOptionsPrefix(ctx->ksp[i],((PetscObject)nep)->prefix);CHKERRQ(ierr);
       ierr = KSPAppendOptionsPrefix(ctx->ksp[i],"nep_ciss_");CHKERRQ(ierr);
       ierr = KSPSetErrorIfNotConverged(ctx->ksp[i],PETSC_TRUE);CHKERRQ(ierr);
+      ierr = KSPSetTolerances(ctx->ksp[i],SLEPC_DEFAULT_TOL,PETSC_DEFAULT,PETSC_DEFAULT,PETSC_DEFAULT);CHKERRQ(ierr);
     }
   }
 

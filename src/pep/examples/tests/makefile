@@ -37,7 +37,8 @@ TESTEXAMPLES_C_NOCOMPLEX_NOTSINGLE = test1.PETSc runtest1_1 test1.rm \
                                      test5.PETSc runtest5_1 test5.rm
 TESTEXAMPLES_C_COMPLEX             = test2.PETSc runtest2_2_jd test2.rm
 TESTEXAMPLES_C_NOTSINGLE           = test2.PETSc runtest2_1 runtest2_3 runtest2_2_stoar \
-                                                 runtest2_6 runtest2_7 runtest2_9 runtest2_10 test2.rm
+                                                 runtest2_6 runtest2_7 runtest2_9 test2.rm
+TESTEXAMPLES_C_DOUBLE              = test2.PETSc runtest2_10 test2.rm
 TESTEXAMPLES_FORTRAN               = test3f.PETSc runtest3f_1 test3f.rm
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common
