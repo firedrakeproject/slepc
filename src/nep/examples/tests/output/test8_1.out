@@ -1,0 +1,88 @@
+
+Diagonal Nonlinear Eigenproblem, n=6
+
+  1 NEP nconv=0 Values (Errors) -0.5 (removed)
+  2 NEP nconv=0 Values (Errors) 2.125 (removed)
+  3 NEP nconv=0 Values (Errors) 2.00152 (removed)
+  4 NEP nconv=0 Values (Errors) 2. (removed)
+  5 NEP nconv=1 Values (Errors) 2. (removed)
+NEP Object: nep 1 MPI processes
+  type: slp
+    EPS Object: (nep_slp_) 1 MPI processes
+      type: krylovschur
+        Krylov-Schur: 50% of basis vectors kept after restart
+        Krylov-Schur: using the locking variant
+      selected portion of the spectrum: closest to target: 0. (in magnitude)
+      number of eigenvalues (nev): 1
+      number of column vectors (ncv): 6
+      maximum dimension of projected problem (mpd): 6
+      maximum number of iterations: 5000
+      convergence test: relative to the eigenvalue
+    BV Object: (nep_slp_) 1 MPI processes
+      type: svec
+      7 columns of global length 6
+      vector orthogonalization method: classical Gram-Schmidt
+      orthogonalization refinement: if needed (eta: 0.7071)
+      block orthogonalization method: Gram-Schmidt
+      doing matmult as a single matrix-matrix product
+    DS Object: (nep_slp_) 1 MPI processes
+      type: nhep
+    ST Object: (nep_slp_) 1 MPI processes
+      type: sinvert
+      shift: 0.
+      number of matrices: 2
+      all matrices have different nonzero pattern
+      KSP Object: (nep_slp_st_) 1 MPI processes
+        type: preonly
+        maximum iterations=10000, initial guess is zero
+        left preconditioning
+        using NONE norm type for convergence test
+      PC Object: (nep_slp_st_) 1 MPI processes
+        type: lu
+          out-of-place factorization
+          matrix ordering: nd
+          factor fill ratio given 5., needed 1.
+            Factored matrix follows:
+              Mat Object: 1 MPI processes
+                type: seqaij
+                rows=6, cols=6
+                package used to perform factorization: petsc
+                total: nonzeros=6, allocated nonzeros=6
+                total number of mallocs used during MatSetValues calls =0
+                  not using I-node routines
+        linear system matrix = precond matrix:
+        Mat Object: 1 MPI processes
+          type: seqaij
+          rows=6, cols=6
+          total: nonzeros=6, allocated nonzeros=6
+          total number of mallocs used during MatSetValues calls =0
+            not using I-node routines
+  nonlinear operator in split form
+  selected portion of the spectrum: closest to target: -0.5 (in magnitude)
+  number of eigenvalues (nev): 1
+  number of column vectors (ncv): 1
+  maximum dimension of projected problem (mpd): 1
+  maximum number of iterations: 5000
+  convergence test: relative to the eigenvalue
+BV Object: 1 MPI processes
+  type: svec
+  1 columns of global length 6
+  vector orthogonalization method: classical Gram-Schmidt
+  orthogonalization refinement: if needed (eta: 0.7071)
+  block orthogonalization method: Gram-Schmidt
+  doing matmult as a single matrix-matrix product
+ Nonlinear eigensolve converged (1 eigenpair) due to CONVERGED_TOL; iterations 5
+Error_nep = [
+removed
+];
+ ---------------------- --------------------
+            k                 eta(x,k)
+ ---------------------- --------------------
+        2.000000            removed
+ ---------------------- --------------------
+Eigenvalues = 
+   2.00000
+
+ 1 converged eigenpairs after 5 iterations
+     2.00000
+
