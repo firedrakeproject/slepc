@@ -26,19 +26,20 @@ FPPFLAGS   =
 LOCDIR     = src/eps/examples/tests/
 EXAMPLESC  = test1.c test2.c test3.c test4.c test5.c test6.c \
              test8.c test9.c test10.c test11.c test12.c test13.c \
-             test14.c test16.c test17.c test18.c test19.c
+             test14.c test16.c test17.c test18.c test19.c test20.c
 EXAMPLESF  = test7f.F test14f.F test15f.F test17f.F
 MANSEC     = EPS
 TESTS      = test1 test2 test3 test4 test5 test6 test7f test8 test9 test10 \
              test11 test12 test13 test14 test14f test15f test16 test17 test17f \
-             test18 test19
+             test18 test19 test20
 
 TESTEXAMPLES_C                     = test1.PETSc runtest1_5 test1.rm \
                                      test4.PETSc runtest4_2 test4.rm \
                                      test8.PETSc runtest8_2 runtest8_3 test8.rm \
                                      test13.PETSc runtest13_1 runtest13_2 test13.rm \
                                      test14.PETSc runtest14_1 test14.rm \
-                                     test19.PETSc runtest19_1 test19.rm
+                                     test19.PETSc runtest19_1 test19.rm \
+                                     test20.PETSc runtest20_1 test20.rm
 TESTEXAMPLES_C_NOTSINGLE           = test1.PETSc runtest1_1 runtest1_3 runtest1_4 runtest1_6 test1.rm \
                                      test2.PETSc runtest2_1 runtest2_2 runtest2_3 test2.rm \
                                      test3.PETSc runtest3_1 runtest3_2 test3.rm \
@@ -158,6 +159,10 @@ test18: test18.o chkopts
 test19: test19.o chkopts
 	-${CLINKER} -o test19 test19.o ${SLEPC_EPS_LIB}
 	${RM} test19.o
+
+test20: test20.o chkopts
+	-${CLINKER} -o test20 test20.o ${SLEPC_EPS_LIB}
+	${RM} test20.o
 
 #------------------------------------------------------------------------------------
 
@@ -464,5 +469,12 @@ runtest18_1_%:
 runtest19_1:
 	-@${SETTEST}; \
 	${MPIEXEC} -n 1 ./test19 -check_myprefix_eps_nev 2 -check_myprefix_st_type sinvert > $${test}.tmp 2>&1; \
+	${TESTCODE}
+
+runtest20_1: runtest20_1_krylovschur runtest20_1_arnoldi runtest20_1_lanczos runtest20_1_gd runtest20_1_jd runtest20_1_rqcg runtest20_1_lobpcg runtest20_1_lapack
+runtest20_1_%:
+	-@${SETTEST}; check=test20_1; eps=$*; \
+	if [ "$$eps" = lanczos ]; then eps="lanczos -eps_lanczos_reorthog full"; fi; \
+	${MPIEXEC} -n 1 ./test20 -n 18 -eps_type $$eps -eps_max_it 1500 > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
