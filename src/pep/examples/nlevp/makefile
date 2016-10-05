@@ -176,8 +176,9 @@ runspring_1_%:
 	-@${SETTEST}; check=spring_1; pep=$*; \
 	if [ "$$pep" != jd ]; then sinv="-st_type sinvert"; fi; \
 	if [ "$$pep" = stoar ]; then pep="stoar -st_transform -pep_hermitian -pep_conv_rel"; \
-	elif [ "$$pep" = qarnoldi ]; then pep="qarnoldi -st_transform -pep_conv_rel"; fi; \
-	${MPIEXEC} -n 1 ./spring -pep_conv_norm -pep_type $${pep} -pep_nev 4 -n 24 -pep_ncv 18 -pep_target -.5 $$sinv -pep_scale diagonal -terse > $${test}.tmp 2>&1; \
+	elif [ "$$pep" = qarnoldi ]; then pep="qarnoldi -st_transform -pep_conv_rel"; \
+        else pep="$$pep -pep_conv_norm "; fi; \
+	${MPIEXEC} -n 1 ./spring -pep_type $${pep} -pep_nev 4 -n 24 -pep_ncv 18 -pep_target -.5 $$sinv -pep_scale diagonal -terse > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
 runspring_2_jd:
