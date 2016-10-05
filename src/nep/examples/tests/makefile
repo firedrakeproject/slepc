@@ -96,7 +96,7 @@ runtest3_1:
 	${TESTCODE}
 
 runtest4_1:
-	-@${SETTEST}; check=test1_1; \
+	-@${SETTEST}; \
 	${MPIEXEC} -n 1 ./test4 -nep_target 21 -nep_rii_lag_preconditioner 2 -terse > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
@@ -112,7 +112,7 @@ runtest6_1:
 
 runtest7_1:
 	-@${SETTEST}; \
-	${MPIEXEC} -n 1 ./test7 -nep_nev 3 -nep_tol 1e-8 -nep_nleigs_locking 0 -nep_nleigs_interpolation_max_it 90 -nep_nleigs_interpolation_tol 1e-8 -nep_nleigs_restart 0.4 -nep_conv_norm -terse > $${test}.tmp 2>&1; \
+	${MPIEXEC} -n 1 ./test7 -nep_nev 3 -nep_tol 1e-8 -nep_nleigs_locking 0 -nep_nleigs_interpolation_max_it 90 -nep_nleigs_interpolation_tol 1e-8 -nep_nleigs_restart 0.4 -terse > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
 runtest7_2:
