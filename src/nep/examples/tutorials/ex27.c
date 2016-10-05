@@ -24,12 +24,11 @@ static char help[] = "Simple nonlinear eigenproblem using the NLEIGS solver.\n\n
   "  -n <n>, where <n> = matrix dimension.\n"
   "  -split <0/1>, to select the split form in the problem definition (enabled by default)\n";
 
-
 /*
    Solve T(lambda)x=0 using NLEIGS solver
       with T(lambda) = -D+sqrt(lambda)*I
       where D is the Laplacian operator in 1 dimension
-      and with the interpolation interval [.01,16]   
+      and with the interpolation interval [.01,16]
 */
 
 #include <slepcnep.h>
@@ -45,14 +44,13 @@ PetscErrorCode ComputeSingularities(NEP,PetscInt*,PetscScalar*,void*);
 int main(int argc,char **argv)
 {
   NEP            nep;             /* nonlinear eigensolver context */
-  Mat            F,A[2];             
+  Mat            F,A[2];
   NEPType        type;
   PetscInt       n=100,nev,Istart,Iend,i;
   PetscErrorCode ierr;
-  PetscBool      split=PETSC_TRUE;
+  PetscBool      terse,split=PETSC_TRUE;
   RG             rg;
   FN             f[2];
-  PetscBool      terse;
   PetscScalar    coeffs;
 
   ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
@@ -84,10 +82,10 @@ int main(int argc,char **argv)
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
      Define the nonlinear problem
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-  
+
   if (split) {
     /*
-       Create matrices for the split form 
+       Create matrices for the split form
     */
     ierr = MatCreate(PETSC_COMM_WORLD,&A[0]);CHKERRQ(ierr);
     ierr = MatSetSizes(A[0],PETSC_DECIDE,PETSC_DECIDE,n,n);CHKERRQ(ierr);
@@ -111,7 +109,7 @@ int main(int argc,char **argv)
     ierr = MatShift(A[1],1.0);CHKERRQ(ierr);
 
     /*
-       Define funcions for the split form 
+       Define funcions for the split form
      */
     ierr = FNCreate(PETSC_COMM_WORLD,&f[0]);CHKERRQ(ierr);
     ierr = FNSetType(f[0],FNRATIONAL);CHKERRQ(ierr);
@@ -229,7 +227,7 @@ PetscErrorCode FormFunction(NEP nep,PetscScalar lambda,Mat fun,Mat B,void *ctx)
    ComputeSingularities - Computes maxnp points (at most) in the complex plane where
    the function T(.) is not analytic.
 
-   In this case, we discretize the singularity region (-inf,0)~(-10e+6,-10e-6) 
+   In this case, we discretize the singularity region (-inf,0)~(-10e+6,-10e-6)
 */
 PetscErrorCode ComputeSingularities(NEP nep,PetscInt *maxnp,PetscScalar *xi,void *pt)
 {

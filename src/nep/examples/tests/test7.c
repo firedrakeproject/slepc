@@ -20,20 +20,22 @@
 */
 
 static char help[] = "Test the NLEIGS solver with shell matrices.\n\n"
-  "This is based on ex27 (split form only).\n"
+  "This is based on ex27.\n"
   "The command line options are:\n"
-  "  -n <n>, where <n> = matrix dimension.\n";
+  "  -n <n>, where <n> = matrix dimension.\n"
+  "  -split <0/1>, to select the split form in the problem definition (enabled by default)\n";
 
 /*
    Solve T(lambda)x=0 using NLEIGS solver
       with T(lambda) = -D+sqrt(lambda)*I
       where D is the Laplacian operator in 1 dimension
-      and with the interpolation interval [.01,16]   
+      and with the interpolation interval [.01,16]
 */
 
 #include <slepcnep.h>
 
 /* User-defined routines */
+PetscErrorCode FormFunction(NEP,PetscScalar,Mat,Mat,void*);
 PetscErrorCode ComputeSingularities(NEP,PetscInt*,PetscScalar*,void*);
 PetscErrorCode MatMult_A0(Mat,Vec,Vec);
 PetscErrorCode MatGetDiagonal_A0(Mat,Vec);
@@ -41,6 +43,14 @@ PetscErrorCode MatDuplicate_A0(Mat,MatDuplicateOption,Mat*);
 PetscErrorCode MatMult_A1(Mat,Vec,Vec);
 PetscErrorCode MatGetDiagonal_A1(Mat,Vec);
 PetscErrorCode MatDuplicate_A1(Mat,MatDuplicateOption,Mat*);
+PetscErrorCode MatMult_F(Mat,Vec,Vec);
+PetscErrorCode MatGetDiagonal_F(Mat,Vec);
+PetscErrorCode MatDuplicate_F(Mat,MatDuplicateOption,Mat*);
+PetscErrorCode MatDestroy_F(Mat);
+
+typedef struct {
+  PetscScalar t;  /* square root of lambda */
+} MatCtx;
 
 #undef __FUNCT__
 #define __FUNCT__ "main"
@@ -49,7 +59,7 @@ int main(int argc,char **argv)
   NEP            nep;
   KSP            *ksp;
   PC             pc;
-  Mat            A[2];             
+  Mat            F,A[2];
   NEPType        type;
   PetscInt       n=100,nev,its;
   PetscReal      keep,tol=PETSC_SQRT_MACHINE_EPSILON/10;
@@ -57,14 +67,16 @@ int main(int argc,char **argv)
   RG             rg;
   FN             f[2];
   PetscMPIInt    size;
-  PetscBool      terse,flg,lock,trueres;
+  PetscBool      terse,flg,lock,trueres,split=PETSC_TRUE;
   PetscScalar    coeffs;
+  MatCtx         *ctx;
 
   ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
   ierr = MPI_Comm_size(PETSC_COMM_WORLD,&size);CHKERRQ(ierr);
   if (size != 1) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"This is a uniprocessor example only!");
   ierr = PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"\nSquare root eigenproblem, n=%D\n\n",n);CHKERRQ(ierr);
+  ierr = PetscOptionsGetBool(NULL,NULL,"-split",&split,NULL);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"\nSquare root eigenproblem, n=%D%s\n\n",n,split?" (in split form)":"");CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
      Create NEP context, configure NLEIGS with appropriate options
@@ -90,29 +102,42 @@ int main(int argc,char **argv)
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
      Define the nonlinear problem
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-  
-  /* Create matrix A0 (tridiagonal) */
-  ierr = MatCreateShell(PETSC_COMM_WORLD,n,n,n,n,NULL,&A[0]);CHKERRQ(ierr);
-  ierr = MatShellSetOperation(A[0],MATOP_MULT,(void(*)())MatMult_A0);CHKERRQ(ierr);
-  ierr = MatShellSetOperation(A[0],MATOP_MULT_TRANSPOSE,(void(*)())MatMult_A0);CHKERRQ(ierr);
-  ierr = MatShellSetOperation(A[0],MATOP_GET_DIAGONAL,(void(*)())MatGetDiagonal_A0);CHKERRQ(ierr);
-  ierr = MatShellSetOperation(A[0],MATOP_DUPLICATE,(void(*)())MatDuplicate_A0);CHKERRQ(ierr);
 
-  /* Create matrix A0 (identity) */
-  ierr = MatCreateShell(PETSC_COMM_WORLD,n,n,n,n,NULL,&A[1]);CHKERRQ(ierr);
-  ierr = MatShellSetOperation(A[1],MATOP_MULT,(void(*)())MatMult_A1);CHKERRQ(ierr);
-  ierr = MatShellSetOperation(A[1],MATOP_MULT_TRANSPOSE,(void(*)())MatMult_A1);CHKERRQ(ierr);
-  ierr = MatShellSetOperation(A[1],MATOP_GET_DIAGONAL,(void(*)())MatGetDiagonal_A1);CHKERRQ(ierr);
-  ierr = MatShellSetOperation(A[1],MATOP_DUPLICATE,(void(*)())MatDuplicate_A1);CHKERRQ(ierr);
+  if (split) {
+    /* Create matrix A0 (tridiagonal) */
+    ierr = MatCreateShell(PETSC_COMM_WORLD,n,n,n,n,NULL,&A[0]);CHKERRQ(ierr);
+    ierr = MatShellSetOperation(A[0],MATOP_MULT,(void(*)())MatMult_A0);CHKERRQ(ierr);
+    ierr = MatShellSetOperation(A[0],MATOP_MULT_TRANSPOSE,(void(*)())MatMult_A0);CHKERRQ(ierr);
+    ierr = MatShellSetOperation(A[0],MATOP_GET_DIAGONAL,(void(*)())MatGetDiagonal_A0);CHKERRQ(ierr);
+    ierr = MatShellSetOperation(A[0],MATOP_DUPLICATE,(void(*)())MatDuplicate_A0);CHKERRQ(ierr);
 
-  /* Define funcions for the split form */
-  ierr = FNCreate(PETSC_COMM_WORLD,&f[0]);CHKERRQ(ierr);
-  ierr = FNSetType(f[0],FNRATIONAL);CHKERRQ(ierr);
-  coeffs = 1.0;
-  ierr = FNRationalSetNumerator(f[0],1,&coeffs);CHKERRQ(ierr);
-  ierr = FNCreate(PETSC_COMM_WORLD,&f[1]);CHKERRQ(ierr);
-  ierr = FNSetType(f[1],FNSQRT);CHKERRQ(ierr);
-  ierr = NEPSetSplitOperator(nep,2,A,f,SUBSET_NONZERO_PATTERN);CHKERRQ(ierr);
+    /* Create matrix A0 (identity) */
+    ierr = MatCreateShell(PETSC_COMM_WORLD,n,n,n,n,NULL,&A[1]);CHKERRQ(ierr);
+    ierr = MatShellSetOperation(A[1],MATOP_MULT,(void(*)())MatMult_A1);CHKERRQ(ierr);
+    ierr = MatShellSetOperation(A[1],MATOP_MULT_TRANSPOSE,(void(*)())MatMult_A1);CHKERRQ(ierr);
+    ierr = MatShellSetOperation(A[1],MATOP_GET_DIAGONAL,(void(*)())MatGetDiagonal_A1);CHKERRQ(ierr);
+    ierr = MatShellSetOperation(A[1],MATOP_DUPLICATE,(void(*)())MatDuplicate_A1);CHKERRQ(ierr);
+
+    /* Define funcions for the split form */
+    ierr = FNCreate(PETSC_COMM_WORLD,&f[0]);CHKERRQ(ierr);
+    ierr = FNSetType(f[0],FNRATIONAL);CHKERRQ(ierr);
+    coeffs = 1.0;
+    ierr = FNRationalSetNumerator(f[0],1,&coeffs);CHKERRQ(ierr);
+    ierr = FNCreate(PETSC_COMM_WORLD,&f[1]);CHKERRQ(ierr);
+    ierr = FNSetType(f[1],FNSQRT);CHKERRQ(ierr);
+    ierr = NEPSetSplitOperator(nep,2,A,f,SUBSET_NONZERO_PATTERN);CHKERRQ(ierr);
+  } else {
+    /* Callback form: create shell matrix for F=A0+sqrt(lambda)*A1  */
+    ierr = PetscNew(&ctx);CHKERRQ(ierr);
+    ierr = MatCreateShell(PETSC_COMM_WORLD,n,n,n,n,(void*)ctx,&F);CHKERRQ(ierr);
+    ierr = MatShellSetOperation(F,MATOP_MULT,(void(*)())MatMult_F);CHKERRQ(ierr);
+    ierr = MatShellSetOperation(F,MATOP_MULT_TRANSPOSE,(void(*)())MatMult_F);CHKERRQ(ierr);
+    ierr = MatShellSetOperation(F,MATOP_GET_DIAGONAL,(void(*)())MatGetDiagonal_F);CHKERRQ(ierr);
+    ierr = MatShellSetOperation(F,MATOP_DUPLICATE,(void(*)())MatDuplicate_F);CHKERRQ(ierr);
+    ierr = MatShellSetOperation(F,MATOP_DESTROY,(void(*)())MatDestroy_F);CHKERRQ(ierr);
+    /* Set Function evaluation routine */
+    ierr = NEPSetFunction(nep,F,F,FormFunction,NULL);CHKERRQ(ierr);
+  }
 
   /* Set solver parameters at runtime */
   ierr = NEPSetFromOptions(nep);CHKERRQ(ierr);
@@ -153,12 +178,32 @@ int main(int argc,char **argv)
     ierr = PetscViewerPopFormat(PETSC_VIEWER_STDOUT_WORLD);CHKERRQ(ierr);
   }
   ierr = NEPDestroy(&nep);CHKERRQ(ierr);
-  ierr = MatDestroy(&A[0]);CHKERRQ(ierr);
-  ierr = MatDestroy(&A[1]);CHKERRQ(ierr);
-  ierr = FNDestroy(&f[0]);CHKERRQ(ierr);
-  ierr = FNDestroy(&f[1]);CHKERRQ(ierr);
+  if (split) {
+    ierr = MatDestroy(&A[0]);CHKERRQ(ierr);
+    ierr = MatDestroy(&A[1]);CHKERRQ(ierr);
+    ierr = FNDestroy(&f[0]);CHKERRQ(ierr);
+    ierr = FNDestroy(&f[1]);CHKERRQ(ierr);
+  } else {
+    ierr = MatDestroy(&F);CHKERRQ(ierr);
+  }
   ierr = SlepcFinalize();
   return ierr;
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "FormFunction"
+/*
+   FormFunction - Computes Function matrix  T(lambda)
+*/
+PetscErrorCode FormFunction(NEP nep,PetscScalar lambda,Mat fun,Mat B,void *ctx)
+{
+  PetscErrorCode ierr;
+  MatCtx         *ctxF;
+
+  PetscFunctionBeginUser;
+  ierr = MatShellGetContext(fun,(void**)&ctxF);CHKERRQ(ierr);
+  ctxF->t = PetscSqrtScalar(lambda);
+  PetscFunctionReturn(0);
 }
 
 #undef __FUNCT__
@@ -167,7 +212,7 @@ int main(int argc,char **argv)
    ComputeSingularities - Computes maxnp points (at most) in the complex plane where
    the function T(.) is not analytic.
 
-   In this case, we discretize the singularity region (-inf,0)~(-10e+6,-10e-6) 
+   In this case, we discretize the singularity region (-inf,0)~(-10e+6,-10e-6)
 */
 PetscErrorCode ComputeSingularities(NEP nep,PetscInt *maxnp,PetscScalar *xi,void *pt)
 {
@@ -274,6 +319,82 @@ PetscErrorCode MatDuplicate_A1(Mat A,MatDuplicateOption op,Mat *B)
   ierr = MatShellSetOperation(*B,MATOP_MULT_TRANSPOSE,(void(*)())MatMult_A1);CHKERRQ(ierr);
   ierr = MatShellSetOperation(*B,MATOP_GET_DIAGONAL,(void(*)())MatGetDiagonal_A1);CHKERRQ(ierr);
   ierr = MatShellSetOperation(*B,MATOP_DUPLICATE,(void(*)())MatDuplicate_A1);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+/* -------------------------------- F ----------------------------------- */
+
+#undef __FUNCT__
+#define __FUNCT__ "MatMult_F"
+PetscErrorCode MatMult_F(Mat A,Vec x,Vec y)
+{
+  PetscErrorCode    ierr;
+  PetscInt          i,n;
+  const PetscScalar *px;
+  PetscScalar       *py,d;
+  MatCtx            *ctx;
+
+  PetscFunctionBeginUser;
+  ierr = MatShellGetContext(A,(void**)&ctx);CHKERRQ(ierr);
+  ierr = VecGetArrayRead(x,&px);CHKERRQ(ierr);
+  ierr = VecGetArray(y,&py);CHKERRQ(ierr);
+  ierr = VecGetSize(x,&n);CHKERRQ(ierr);
+  d = -2.0+ctx->t;
+  py[0] = d*px[0]+px[1];
+  for (i=1;i<n-1;i++) py[i] = px[i-1]+d*px[i]+px[i+1];
+  py[n-1] = px[n-2]+d*px[n-1];
+  ierr = VecRestoreArrayRead(x,&px);CHKERRQ(ierr);
+  ierr = VecRestoreArray(y,&py);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "MatGetDiagonal_F"
+PetscErrorCode MatGetDiagonal_F(Mat A,Vec diag)
+{
+  PetscErrorCode ierr;
+  MatCtx         *ctx;
+
+  PetscFunctionBeginUser;
+  ierr = MatShellGetContext(A,(void**)&ctx);CHKERRQ(ierr);
+  ierr = VecSet(diag,-2.0+ctx->t);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "MatDuplicate_F"
+PetscErrorCode MatDuplicate_F(Mat A,MatDuplicateOption op,Mat *B)
+{
+  MatCtx         *actx,*bctx;
+  PetscInt       n;
+  MPI_Comm       comm;
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  ierr = MatShellGetContext(A,(void**)&actx);CHKERRQ(ierr);
+  ierr = MatGetSize(A,&n,NULL);CHKERRQ(ierr);
+  ierr = PetscNew(&bctx);CHKERRQ(ierr);
+  bctx->t = actx->t;
+  ierr = PetscObjectGetComm((PetscObject)A,&comm);CHKERRQ(ierr);
+  ierr = MatCreateShell(comm,n,n,n,n,(void*)bctx,B);CHKERRQ(ierr);
+  ierr = MatShellSetOperation(*B,MATOP_MULT,(void(*)())MatMult_F);CHKERRQ(ierr);
+  ierr = MatShellSetOperation(*B,MATOP_MULT_TRANSPOSE,(void(*)())MatMult_F);CHKERRQ(ierr);
+  ierr = MatShellSetOperation(*B,MATOP_GET_DIAGONAL,(void(*)())MatGetDiagonal_F);CHKERRQ(ierr);
+  ierr = MatShellSetOperation(*B,MATOP_DUPLICATE,(void(*)())MatDuplicate_F);CHKERRQ(ierr);
+  ierr = MatShellSetOperation(*B,MATOP_DESTROY,(void(*)())MatDestroy_F);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "MatDestroy_F"
+PetscErrorCode MatDestroy_F(Mat A)
+{
+  MatCtx         *ctx;
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  ierr = MatShellGetContext(A,(void**)&ctx);CHKERRQ(ierr);
+  ierr = PetscFree(ctx);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
