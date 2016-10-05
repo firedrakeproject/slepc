@@ -56,8 +56,8 @@ int main(int argc,char **argv)
   PC             pc;
   Mat            F,J;
   ApplicationCtx ctx;
-  PetscInt       n=128;
-  PetscBool      terse;
+  PetscInt       n=128,lag,its;
+  PetscBool      terse,flg,cct;
   PetscErrorCode ierr;
 
   ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
@@ -110,6 +110,16 @@ int main(int argc,char **argv)
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
   ierr = NEPSolve(nep);CHKERRQ(ierr);
+  ierr = PetscObjectTypeCompare((PetscObject)nep,NEPRII,&flg);CHKERRQ(ierr);
+  if (flg) {
+    ierr = NEPRIIGetMaximumIterations(nep,&its);CHKERRQ(ierr);
+    ierr = NEPRIIGetLagPreconditioner(nep,&lag);CHKERRQ(ierr);
+    ierr = NEPRIIGetConstCorrectionTol(nep,&cct);CHKERRQ(ierr);
+    ierr = PetscPrintf(PETSC_COMM_WORLD," Maximum inner iterations of RII is %D\n",its);CHKERRQ(ierr);
+    ierr = PetscPrintf(PETSC_COMM_WORLD," Preconditioner rebuilt every %D iterations\n",lag);CHKERRQ(ierr);
+    if (cct) { ierr = PetscPrintf(PETSC_COMM_WORLD," Using a constant correction tolerance\n");CHKERRQ(ierr); }
+    ierr = PetscPrintf(PETSC_COMM_WORLD,"\n");CHKERRQ(ierr);
+  }
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                     Display solution and clean up
