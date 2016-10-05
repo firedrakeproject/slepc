@@ -112,7 +112,7 @@ runtest5_1:
 
 runtest6_1:
 	-@${SETTEST}; \
-	${MPIEXEC} -n 1 ./test6 -nep_view -terse | ${GREP} -v "tolerance" > $${test}.tmp 2>&1; \
+	${MPIEXEC} -n 1 ./test6 -myprefix_nep_view -myprefix_nep_monitor_conv -initv -terse | ${GREP} -v "tolerance" | ${SED} -e "s/[0-9]\.[0-9]*e[+-][0-9]*/removed/g" > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
 runtest7_1:

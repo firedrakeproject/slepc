@@ -27,13 +27,15 @@ static char help[] = "Tests B-orthonormality of eigenvectors in a GHEP problem.\
 #define __FUNCT__ "main"
 int main(int argc,char **argv)
 {
-  Mat            A,B;        /* matrices */
-  EPS            eps;        /* eigenproblem solver context */
-  Vec            *X,v;
-  PetscReal      lev,tol=1000*PETSC_MACHINE_EPSILON;
-  PetscInt       N,n=45,m,Istart,Iend,II,i,j,nconv;
-  PetscBool      flag;
-  PetscErrorCode ierr;
+  Mat               A,B;        /* matrices */
+  EPS               eps;        /* eigenproblem solver context */
+  ST                st;
+  Vec               *X,v;
+  PetscReal         lev,tol=1000*PETSC_MACHINE_EPSILON;
+  PetscInt          N,n=45,m,Istart,Iend,II,i,j,nconv;
+  PetscBool         flag;
+  EPSPowerShiftType variant;
+  PetscErrorCode    ierr;
 
   ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
   ierr = PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL);CHKERRQ(ierr);
@@ -82,6 +84,17 @@ int main(int argc,char **argv)
   ierr = EPSSetProblemType(eps,EPS_GHEP);CHKERRQ(ierr);
   ierr = EPSSetTolerances(eps,tol,PETSC_DEFAULT);CHKERRQ(ierr);
   ierr = EPSSetFromOptions(eps);CHKERRQ(ierr);
+
+  /* illustrate how to extract parameters from specific solver types */
+  ierr = PetscObjectTypeCompare((PetscObject)eps,EPSPOWER,&flag);CHKERRQ(ierr);
+  if (flag) {
+    ierr = EPSGetST(eps,&st);CHKERRQ(ierr);
+    ierr = PetscObjectTypeCompare((PetscObject)st,STSHIFT,&flag);CHKERRQ(ierr);
+    if (flag) {
+      ierr = EPSPowerGetShiftType(eps,&variant);CHKERRQ(ierr);
+      ierr = PetscPrintf(PETSC_COMM_WORLD,"Type of shifts used during power iteration: %s\n",EPSPowerShiftTypes[variant]);CHKERRQ(ierr);
+    }
+  }
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                       Solve the eigensystem
