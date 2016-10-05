@@ -23,7 +23,8 @@ static char help[] = "Test the NArnoldi solver with a user-provided KSP.\n\n"
   "This is based on ex22.\n"
   "The command line options are:\n"
   "  -n <n>, where <n> = number of grid subdivisions.\n"
-  "  -tau <tau>, where <tau> is the delay parameter.\n\n";
+  "  -tau <tau>, where <tau> is the delay parameter.\n"
+  "  -initv ... set an initial vector.\n\n";
 
 /*
    Solve parabolic partial differential equation with time delay tau
@@ -51,19 +52,19 @@ int main(int argc,char **argv)
   NEP            nep;
   KSP            ksp;
   PC             pc;
-  Mat            Id,A,B;
-  FN             f1,f2,f3;
-  Mat            mats[3];
-  FN             funs[3];
-  PetscScalar    coeffs[2],b;
+  Mat            Id,A,B,mats[3];
+  FN             f1,f2,f3,funs[3];
+  Vec            v0;
+  PetscScalar    coeffs[2],b,*pv;
   PetscInt       n=128,nev,Istart,Iend,i;
   PetscReal      tau=0.001,h,a=20,xi;
-  PetscBool      terse;
+  PetscBool      terse,initv=PETSC_FALSE;
   PetscErrorCode ierr;
 
   ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
   ierr = PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL);CHKERRQ(ierr);
   ierr = PetscOptionsGetReal(NULL,NULL,"-tau",&tau,NULL);CHKERRQ(ierr);
+  ierr = PetscOptionsGetBool(NULL,NULL,"-initv",&initv,NULL);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD,"\n1-D Delay Eigenproblem, n=%D, tau=%g\n\n",n,(double)tau);CHKERRQ(ierr);
   h = PETSC_PI/(PetscReal)(n+1);
 
@@ -148,8 +149,17 @@ int main(int argc,char **argv)
   ierr = NEPSetSplitOperator(nep,3,mats,funs,SUBSET_NONZERO_PATTERN);CHKERRQ(ierr);
 
   /* Customize nonlinear solver; set runtime options */
+  ierr = NEPSetOptionsPrefix(nep,"myprefix_");CHKERRQ(ierr);
   ierr = NEPSetType(nep,NEPNARNOLDI);CHKERRQ(ierr);
   ierr = NEPNArnoldiSetKSP(nep,ksp);CHKERRQ(ierr);
+  if (initv) { /* initial vector */
+    ierr = MatCreateVecs(A,&v0,NULL);CHKERRQ(ierr);
+    ierr = VecGetArray(v0,&pv);CHKERRQ(ierr);
+    for (i=Istart;i<Iend;i++) pv[i-Istart] = PetscSinReal((4.0*PETSC_PI*i)/n);
+    ierr = VecRestoreArray(v0,&pv);CHKERRQ(ierr);
+    ierr = NEPSetInitialSpace(nep,1,&v0);CHKERRQ(ierr);
+    ierr = VecDestroy(&v0);CHKERRQ(ierr);
+  }
   ierr = NEPSetFromOptions(nep);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
