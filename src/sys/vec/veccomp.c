@@ -294,7 +294,7 @@ static PetscErrorCode VecCreate_Comp_Private(Vec v,Vec *x,PetscInt nx,PetscBool 
       s->n = n;
       s->n->friends++;
     }
-  
+
     /* Set the virtual sizes as the real sizes of the vector */
     ierr = VecSetSizes(v,s->n->lN,s->n->N);CHKERRQ(ierr);
   }

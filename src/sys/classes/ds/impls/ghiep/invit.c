@@ -335,7 +335,7 @@ static PetscErrorCode MadeHRtr(PetscInt sz,PetscInt n,PetscInt idx0,PetscInt n0,
     PetscStackCallBLAS("LAPACKlarfg",LAPACKlarfg_(&n1_,x+tr1->idx[1],x+tr1->idx[1]+1,&inc,tr1->tau+1));
   }
   if (tr1->idx[0]<tr1->idx[1]) {
-    ierr = HRGen(PetscRealPart(x[tr1->idx[0]]),PetscRealPart(x[tr1->idx[1]]),&(tr1->type),&(tr1->cs),&(tr1->sn),&(tr1->alpha),ncond);CHKERRQ(ierr);  
+    ierr = HRGen(PetscRealPart(x[tr1->idx[0]]),PetscRealPart(x[tr1->idx[1]]),&(tr1->type),&(tr1->cs),&(tr1->sn),&(tr1->alpha),ncond);CHKERRQ(ierr);
   } else {
     tr1->alpha = PetscRealPart(x[tr1->idx[0]]);
     *ncond = 1.0;
@@ -377,7 +377,7 @@ static PetscErrorCode MadeHRtr(PetscInt sz,PetscInt n,PetscInt idx0,PetscInt n0,
       PetscStackCallBLAS("LAPACKlarfg",LAPACKlarfg_(&n1_,y+tr2->idx[1],y+tr2->idx[1]+1,&inc,tr2->tau+1));
     }
     if (tr2->idx[0]<tr2->idx[1]) {
-      ierr = HRGen(PetscRealPart(y[tr2->idx[0]]),PetscRealPart(y[tr2->idx[1]]),&(tr2->type),&(tr2->cs),&(tr2->sn),&(tr2->alpha),&ncond2);CHKERRQ(ierr);  
+      ierr = HRGen(PetscRealPart(y[tr2->idx[0]]),PetscRealPart(y[tr2->idx[1]]),&(tr2->type),&(tr2->cs),&(tr2->sn),&(tr2->alpha),&ncond2);CHKERRQ(ierr);
     } else {
     tr2->alpha = PetscRealPart(y[tr2->idx[0]]);
     ncond2 = 1.0;
@@ -429,7 +429,7 @@ static PetscErrorCode TryHRIt(PetscInt n,PetscInt j,PetscInt sz,PetscScalar *H,P
       *ok = PETSC_FALSE;
     }
     tr1 = &tr1_t;
-    tr2 = &tr2_t;    
+    tr2 = &tr2_t;
   } else {
     y = work+nwu;
     nwu += n;
@@ -461,7 +461,7 @@ static PetscErrorCode TryHRIt(PetscInt n,PetscInt j,PetscInt sz,PetscScalar *H,P
     if (cond && *cond<ncond) *cond = ncond;
     x = tr1->data;
     ierr = PetscBLASIntCast(tr1->n[0],&n0_);CHKERRQ(ierr);
-    ierr = PetscBLASIntCast(tr1->n[1],&n1_);CHKERRQ(ierr); 
+    ierr = PetscBLASIntCast(tr1->n[1],&n1_);CHKERRQ(ierr);
     ierr = PetscBLASIntCast(n-j-sz,&mr);CHKERRQ(ierr);
     if (tr1->n[0] > 1 && PetscAbsScalar(tr1->tau[0])!=0.0) {
       x[tr1->idx[0]] = 1.0;
@@ -483,14 +483,14 @@ static PetscErrorCode TryHRIt(PetscInt n,PetscInt j,PetscInt sz,PetscScalar *H,P
         s[tr1->idx[1]] = -s[tr1->idx[1]];
       }
     }
-    for (i=0;i<tr1->idx[0];i++) *(R+j*ldr+i) = x[i];  
+    for (i=0;i<tr1->idx[0];i++) *(R+j*ldr+i) = x[i];
     for (i=tr1->idx[0]+1;i<n;i++) *(R+j*ldr+i) = 0.0;
     *(R+j*ldr+tr1->idx[0]) = tr1->alpha;
     if (sz==2) {
       y = tr2->data;
       /* Second column */
       ierr = PetscBLASIntCast(tr2->n[0],&n0_);CHKERRQ(ierr);
-      ierr = PetscBLASIntCast(tr2->n[1],&n1_);CHKERRQ(ierr); 
+      ierr = PetscBLASIntCast(tr2->n[1],&n1_);CHKERRQ(ierr);
       ierr = PetscBLASIntCast(n-j-sz,&mr);CHKERRQ(ierr);
       ierr = PetscBLASIntCast(n-tr2->idx[0],&mh);CHKERRQ(ierr);
       if (tr2->n[0] > 1 && PetscAbsScalar(tr2->tau[0])!=0.0) {
@@ -531,7 +531,7 @@ static PetscErrorCode TryHRIt(PetscInt n,PetscInt j,PetscInt sz,PetscScalar *H,P
       *idx1 = tr1->idx[1];
       if (tr1->idx[0]<tr1->idx[1] && tr1->type==2) {
         (*idx1)++; (*n1)--; (*n0)++;
-      }      
+      }
     }
     if (*n0>0) {
       (*n0)--; (*idx0)++;
@@ -607,7 +607,7 @@ static PetscErrorCode PseudoOrthog_HR(PetscInt *nv,PetscScalar *V,PetscInt ldv,P
           for (i=j;i<n-1;i++) cmplxEig[i] = cmplxEig[i+1];
           cmplxEig[n-1] = t1;
           ierr = PetscMemcpy(col1,R+j*ldr,n*sizeof(PetscScalar));CHKERRQ(ierr);
-          for (i=j;i<n-1;i++) { 
+          for (i=j;i<n-1;i++) {
             ierr = PetscMemcpy(R+i*ldr,R+(i+1)*ldr,n*sizeof(PetscScalar));CHKERRQ(ierr);
           }
           ierr = PetscMemcpy(R+(n-1)*ldr,col1,n*sizeof(PetscScalar));CHKERRQ(ierr);
@@ -688,11 +688,11 @@ PetscErrorCode DSGHIEPOrthogEigenv(DS ds,DSMatType mat,PetscScalar *wr,PetscScal
     } else cmplxEig[i] = 0;
   }
   nv = n;
-  
+
   /* Perform HR decomposition */
   /* Hyperbolic rotators */
   ierr = PseudoOrthog_HR(&nv,X+off,ld,s+l,R,ldr,perm,cmplxEig,NULL,ds->work+nwus);CHKERRQ(ierr);
-  /* Sort wr,wi perm */ 
+  /* Sort wr,wi perm */
   ts = ds->work+nwus;
   ierr = PetscMemcpy(ts,wr+l,n*sizeof(PetscScalar));CHKERRQ(ierr);
   for (i=0;i<n;i++) wr[i+l] = ts[perm[i]];
@@ -737,7 +737,7 @@ PetscErrorCode DSGHIEPOrthogEigenv(DS ds,DSMatType mat,PetscScalar *wr,PetscScal
     for (i=0;i<n;i++) { ierr = PetscMemcpy(ds->mat[DS_MAT_Q]+off+i*ld,X+off+i*ld,n*sizeof(PetscScalar));CHKERRQ(ierr); }
   }
   ds->t = nv+l;
-  if (!ds->compact) { ierr = DSSwitchFormat_GHIEP(ds,PETSC_FALSE);CHKERRQ(ierr); }  
+  if (!ds->compact) { ierr = DSSwitchFormat_GHIEP(ds,PETSC_FALSE);CHKERRQ(ierr); }
   PetscFunctionReturn(0);
 }
 

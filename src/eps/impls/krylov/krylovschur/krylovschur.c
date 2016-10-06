@@ -481,7 +481,7 @@ static PetscErrorCode EPSKrylovSchurSetPartitions_KrylovSchur(EPS eps,PetscInt n
   if (ctx->npart!=npart) {
     if (ctx->commset) { ierr = PetscSubcommDestroy(&ctx->subc);CHKERRQ(ierr); }
     if (ctx->eps) { ierr = EPSDestroy(&ctx->eps);CHKERRQ(ierr); }
-  } 
+  }
   if (npart == PETSC_DEFAULT || npart == PETSC_DECIDE) {
     ctx->npart = 1;
   } else {
@@ -1144,13 +1144,13 @@ static PetscErrorCode EPSKrylovSchurUpdateSubcommMats_KrylovSchur(EPS eps,PetscS
   EPS_KRYLOVSCHUR *ctx = (EPS_KRYLOVSCHUR*)eps->data,*subctx;
   Mat             A,B=NULL,Ag,Bg=NULL;
   PetscBool       reuse=PETSC_TRUE;
-   
+
   PetscFunctionBegin;
   if (!ctx->sr) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_WRONGSTATE,"Only available in interval computations, see EPSSetInterval()");
   if (!eps->state) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_WRONGSTATE,"Must call EPSSetUp() first");
   ierr = EPSGetOperators(eps,&Ag,&Bg);CHKERRQ(ierr);
   ierr = EPSGetOperators(ctx->eps,&A,&B);CHKERRQ(ierr);
-  
+
   ierr = MatScale(A,a);CHKERRQ(ierr);
   if (Au) {
     ierr = MatAXPY(A,ap,Au,str);CHKERRQ(ierr);

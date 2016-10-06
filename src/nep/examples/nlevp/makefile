@@ -25,7 +25,7 @@ CPPFLAGS   =
 FPPFLAGS   =
 LOCDIR     = src/nep/examples/nlevp/
 EXAMPLESC  = loaded_string.c gun.c
-EXAMPLESF  = 
+EXAMPLESF  =
 MANSEC     = NEP
 TESTS      = loaded_string gun
 

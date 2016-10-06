@@ -103,7 +103,7 @@ PetscErrorCode NEPSetUp_Interpol(NEP nep)
 #undef __FUNCT__
 #define __FUNCT__ "ChebyshevNodes"
 /*
-  Input: 
+  Input:
     d, number of nodes to compute
     a,b, interval extrems
   Output:
@@ -150,13 +150,13 @@ PetscErrorCode NEPSolve_Interpol(NEP nep)
     ierr = MatDuplicate(nep->A[0],MAT_COPY_VALUES,&A[k]);CHKERRQ(ierr);
     t = 0.0;
     for (i=0;i<deg+1;i++) t += fx[i]*cs[i*(deg+1)+k];
-    t *= 2.0/(deg+1); 
+    t *= 2.0/(deg+1);
     if (k==0) t /= 2.0;
     ierr = MatScale(A[k],t);CHKERRQ(ierr);
     for (j=1;j<nep->nt;j++) {
       t = 0.0;
       for (i=0;i<deg+1;i++) t += fx[i+j*(deg+1)]*cs[i*(deg+1)+k];
-      t *= 2.0/(deg+1); 
+      t *= 2.0/(deg+1);
       if (k==0) t /= 2.0;
       ierr = MatAXPY(A[k],t,nep->A[j],nep->mstr);CHKERRQ(ierr);
     }
@@ -207,7 +207,7 @@ static PetscErrorCode PEPMonitor_Interpol(PEP pep,PetscInt its,PetscInt nconv,Pe
     nep->eigr[i] /= s;
     nep->eigr[i] += (a+b)/2.0;
     nep->eigi[i] /= s;
-  }  
+  }
   ierr = NEPMonitor(nep,its,nconv,nep->eigr,nep->eigi,nep->errest,nest);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

@@ -78,7 +78,7 @@ PetscErrorCode PEPSetUp_QArnoldi(PEP pep)
     pep->extract = PEP_EXTRACT_NONE;
   }
   if (pep->extract!=PEP_EXTRACT_NONE) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Solver does not support requested extraction");
- 
+
   if (!ctx->keep) ctx->keep = 0.5;
 
   ierr = PEPAllocateSolution(pep,0);CHKERRQ(ierr);
@@ -117,7 +117,7 @@ PetscErrorCode PEPExtractVectors_QArnoldi(PEP pep)
   ierr = DSVectors(pep->ds,DS_MAT_X,NULL,NULL);CHKERRQ(ierr);
   ierr = DSGetArray(pep->ds,DS_MAT_X,&X);CHKERRQ(ierr);
 
-  /* update vectors V = V*X */ 
+  /* update vectors V = V*X */
   ierr = MatCreateSeqDense(PETSC_COMM_SELF,k,k,NULL,&X0);CHKERRQ(ierr);
   ierr = MatDenseGetArray(X0,&pX0);CHKERRQ(ierr);
   for (i=0;i<k;i++) {

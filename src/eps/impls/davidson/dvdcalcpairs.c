@@ -404,7 +404,7 @@ static PetscErrorCode dvd_calcpairs_selectPairs(dvdDashboard *d,PetscInt n)
 
   PetscFunctionBegin;
   ierr = BVGetActiveColumns(d->eps->V,&lV,&kV);CHKERRQ(ierr);
-  nV = kV - lV; 
+  nV = kV - lV;
   n = PetscMin(n,nV);
   if (n <= 0) PetscFunctionReturn(0);
   /* Put the best n pairs at the beginning. Useful for restarting */

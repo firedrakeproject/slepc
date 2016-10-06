@@ -52,7 +52,7 @@ static PetscErrorCode MatMult_Linear_Shift(Mat M,Vec x,Vec y)
   cb = pep->pbc+nmat;
   cg = pep->pbc+2*nmat;
   x1=ctx->w[0];x2=ctx->w[1];x3=ctx->w[2];y1=ctx->w[3];aux=ctx->w[4];
-  
+
   ierr = VecSet(y,0.0);CHKERRQ(ierr);
   ierr = VecGetArrayRead(x,&px);CHKERRQ(ierr);
   ierr = VecGetArray(y,&py);CHKERRQ(ierr);
@@ -311,14 +311,14 @@ PetscErrorCode PEPSetUp_Linear(PEP pep)
     ierr = STGetTOperators(pep->st,2,&ctx->M);CHKERRQ(ierr);
     ctx->sfactor = pep->sfactor;
     ctx->dsfactor = pep->dsfactor;
-  
+
     ierr = MatDestroy(&ctx->A);CHKERRQ(ierr);
     ierr = MatDestroy(&ctx->B);CHKERRQ(ierr);
     ierr = VecDestroy(&ctx->w[0]);CHKERRQ(ierr);
     ierr = VecDestroy(&ctx->w[1]);CHKERRQ(ierr);
     ierr = VecDestroy(&ctx->w[2]);CHKERRQ(ierr);
     ierr = VecDestroy(&ctx->w[3]);CHKERRQ(ierr);
-  
+
     switch (pep->problem_type) {
       case PEP_GENERAL:    i = 0; break;
       case PEP_HERMITIAN:  i = 2; break;
@@ -376,7 +376,7 @@ PetscErrorCode PEPSetUp_Linear(PEP pep)
     if (pep->sfactor!=1.0) {
       for (i=0;i<pep->nmat;i++) {
         pep->pbc[pep->nmat+i] /= pep->sfactor;
-        pep->pbc[2*pep->nmat+i] /= pep->sfactor*pep->sfactor; 
+        pep->pbc[2*pep->nmat+i] /= pep->sfactor*pep->sfactor;
       }
     }
   }
@@ -410,7 +410,7 @@ PetscErrorCode PEPSetUp_Linear(PEP pep)
       }
     }
     ierr = EPSSetWhichEigenpairs(ctx->eps,which);CHKERRQ(ierr);
-  
+
     ierr = EPSSetDimensions(ctx->eps,pep->nev,pep->ncv?pep->ncv:PETSC_DEFAULT,pep->mpd?pep->mpd:PETSC_DEFAULT);CHKERRQ(ierr);
     ierr = EPSSetTolerances(ctx->eps,pep->tol==PETSC_DEFAULT?SLEPC_DEFAULT_TOL:pep->tol,pep->max_it?pep->max_it:PETSC_DEFAULT);CHKERRQ(ierr);
   }
@@ -684,7 +684,7 @@ PetscErrorCode PEPExtractVectors_Linear(PEP pep)
 {
   PetscErrorCode ierr;
   PEP_LINEAR     *ctx = (PEP_LINEAR*)pep->data;
-  
+
   PetscFunctionBegin;
   switch (pep->extract) {
   case PEP_EXTRACT_NONE:
@@ -741,7 +741,7 @@ PetscErrorCode PEPSolve_Linear(PEP pep)
     }
     if (!flg && !ctx->explicitmatrix) {
       ierr = STScaleShift(pep->st,pep->sfactor);CHKERRQ(ierr);
-    } 
+    }
   }
   if (ctx->explicitmatrix) {
     ierr = RGPopScale(pep->rg);CHKERRQ(ierr);

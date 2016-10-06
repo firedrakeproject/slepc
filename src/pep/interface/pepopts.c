@@ -705,7 +705,7 @@ PetscErrorCode PEPGetProblemType(PEP pep,PEPProblemType *type)
 
    Notes:
    By default, the coefficient matrices passed via PEPSetOperators() are
-   expressed in the monomial basis, i.e. 
+   expressed in the monomial basis, i.e.
    P(lambda) = A_0 + lambda*A_1 + lambda^2*A_2 + ... + lambda^d*A_d.
    Other polynomial bases may have better numerical behaviour, but the user
    must then pass the coefficient matrices accordingly.
@@ -1280,7 +1280,7 @@ PetscErrorCode PEPGetExtract(PEP pep,PEPExtract *extract)
    refinement iterations (just one by default).
 
    The scheme argument is used to change the way in which linear systems are
-   solved. Possible choices are: explicit, mixed block elimination (MBE), 
+   solved. Possible choices are: explicit, mixed block elimination (MBE),
    and Schur complement.
 
    Level: intermediate

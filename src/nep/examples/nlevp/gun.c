@@ -67,8 +67,8 @@ int main(int argc,char **argv)
   SETERRQ(PETSC_COMM_SELF,1,"This example requires complex scalars!");
 #endif
 
-  /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
-                       Load the problem matrices 
+  /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+                       Load the problem matrices
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
   for (i=0;i<NMAT;i++) {
@@ -81,7 +81,7 @@ int main(int argc,char **argv)
     ierr = PetscViewerDestroy(&viewer);CHKERRQ(ierr);
   }
 
-  /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+  /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                        Create the problem functions
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -115,7 +115,7 @@ int main(int argc,char **argv)
   ierr = FNCombineSetChildren(f[3],FN_COMBINE_COMPOSE,ff[1],ff[0]);CHKERRQ(ierr);
   ierr = FNSetScale(f[3],1.0,PETSC_i);CHKERRQ(ierr);
 
-  /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+  /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                 Create the eigensolver and solve the problem
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -133,7 +133,7 @@ int main(int argc,char **argv)
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                     Display solution and clean up
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-  
+
   /* show detailed info unless -terse option is given by user */
   ierr = PetscOptionsHasName(NULL,NULL,"-terse",&terse);CHKERRQ(ierr);
   if (terse) {
@@ -162,7 +162,7 @@ int main(int argc,char **argv)
    ComputeSingularities - Computes maxnp points (at most) in the complex plane where
    the function T(.) is not analytic.
 
-   In this case, we discretize the singularity region (-inf,108.8774^2)~(-10e+12,-10e-12+108.8774^2) 
+   In this case, we discretize the singularity region (-inf,108.8774^2)~(-10e+12,-10e-12+108.8774^2)
 */
 PetscErrorCode ComputeSingularities(NEP nep,PetscInt *maxnp,PetscScalar *xi,void *pt)
 {
@@ -172,7 +172,7 @@ PetscErrorCode ComputeSingularities(NEP nep,PetscInt *maxnp,PetscScalar *xi,void
 
   PetscFunctionBeginUser;
   sigma = SIGMA*SIGMA;
-  end = PetscLogReal(sigma);  
+  end = PetscLogReal(sigma);
   h = (12.0+end)/(*maxnp-1);
   xi[0] = sigma;
   for (i=1;i<*maxnp;i++) xi[i] = -PetscPowReal(10,h*i)+sigma;

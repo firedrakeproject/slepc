@@ -405,7 +405,7 @@ PetscErrorCode STMatMAXPY_Private(ST st,PetscScalar alpha,PetscScalar beta,Petsc
 */
 PetscErrorCode STCoeffs_Monomial(ST st, PetscScalar *coeffs)
 {
-  PetscInt  k,i,ini,inip;  
+  PetscInt  k,i,ini,inip;
 
   PetscFunctionBegin;
   /* Compute binomial coefficients */

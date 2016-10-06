@@ -3,14 +3,14 @@
 !  Copyright (c) 2002-2016, Universitat Politecnica de Valencia, Spain
 !
 !  This file is part of SLEPc.
-!     
+!
 !  SLEPc is free software: you can redistribute it and/or modify it under  the
 !  terms of version 3 of the GNU Lesser General Public License as published by
 !  the Free Software Foundation.
 !
-!  SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY 
-!  WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS 
-!  FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for 
+!  SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY
+!  WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS
+!  FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for
 !  more details.
 !
 !  You  should have received a copy of the GNU Lesser General  Public  License
@@ -19,7 +19,7 @@
 !
 !  Description: Simple example to test the PEP Fortran interface.
 !
-! ---------------------------------------------------------------------- 
+! ----------------------------------------------------------------------
 !
       program main
       implicit none
@@ -31,9 +31,9 @@
 #include <slepc/finclude/slepcsys.h>
 #include <slepc/finclude/slepcpep.h>
 
-! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !     Declarations
-! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
       Mat                A(3),B
       PEP                pep
       ST                 st
@@ -61,7 +61,7 @@
 
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !     Beginning of program
-! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
       call SlepcInitialize(PETSC_NULL_CHARACTER,ierr)
       call MPI_Comm_rank(PETSC_COMM_WORLD,rank,ierr)
@@ -107,9 +107,9 @@
       call MatAssemblyBegin(A(3),MAT_FINAL_ASSEMBLY,ierr)
       call MatAssemblyEnd(A(3),MAT_FINAL_ASSEMBLY,ierr)
 
-! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !     Create eigensolver and test interface functions
-! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
       call PEPCreate(PETSC_COMM_WORLD,pep,ierr)
       nmat = 3
@@ -174,7 +174,7 @@
         write(*,180) basis
       endif
  180  format (' Polynomial basis: ',I2)
- 
+
       np = 1
       tol = 1e-9
       its = 2
@@ -234,27 +234,27 @@
      &                   SlepcConvMonitorDestroy,ierr)
       call PEPMonitorCancel(pep,ierr)
 
-      call PEPGetST(pep,st,ierr) 
-      call STGetKSP(st,ksp,ierr) 
+      call PEPGetST(pep,st,ierr)
+      call STGetKSP(st,ksp,ierr)
       tol = 1.e-8
       tolabs = 1.e-35
       call KSPSetTolerances(ksp,tol,tolabs,PETSC_DEFAULT_REAL,          &
      &                      PETSC_DEFAULT_INTEGER,ierr)
-      call STView(st,PETSC_NULL_OBJECT,ierr) 
-      call PEPGetDS(pep,ds,ierr) 
-      call DSView(ds,PETSC_NULL_OBJECT,ierr) 
+      call STView(st,PETSC_NULL_OBJECT,ierr)
+      call PEPGetDS(pep,ds,ierr)
+      call DSView(ds,PETSC_NULL_OBJECT,ierr)
 
       call PEPSetFromOptions(pep,ierr)
-      call PEPSolve(pep,ierr) 
+      call PEPSolve(pep,ierr)
       call PEPGetConvergedReason(pep,reason,ierr)
       if (rank .eq. 0) then
         write(*,240) reason
       endif
  240  format (' Finished - converged reason =',I2)
 
-! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !     Display solution and clean up
-! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
       call PEPErrorView(pep,PEP_ERROR_RELATIVE,PETSC_NULL_OBJECT,ierr)
       call PEPDestroy(pep,ierr)
       call MatDestroy(A(1),ierr)

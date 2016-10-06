@@ -942,7 +942,7 @@ PetscErrorCode NEPGetTrackAll(NEP nep,PetscBool *trackall)
    refinement iterations (just one by default).
 
    The scheme argument is used to change the way in which linear systems are
-   solved. Possible choices are: explicit, mixed block elimination (MBE), 
+   solved. Possible choices are: explicit, mixed block elimination (MBE),
    and Schur complement.
 
    Level: intermediate

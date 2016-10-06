@@ -152,7 +152,7 @@ int main(int argc,char **argv)
   ierr = PetscRandomSetInterval(myrand,0.0,1.0);CHKERRQ(ierr);
   ierr = MatDenseGetArray(A,&As);CHKERRQ(ierr);
   for (j=1;j<3;j++) {
-    for (i=0;i<n-j;i++) { 
+    for (i=0;i<n-j;i++) {
       ierr = PetscRandomGetValueReal(myrand,&v);CHKERRQ(ierr);
       As[(i+j)+i*n]=v;
     }

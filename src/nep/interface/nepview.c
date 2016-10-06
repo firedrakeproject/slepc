@@ -239,7 +239,7 @@ PetscErrorCode NEPReasonView(NEP nep,PetscViewer viewer)
 #define __FUNCT__ "NEPReasonViewFromOptions"
 /*@
    NEPReasonViewFromOptions - Processes command line options to determine if/how
-   the NEP converged reason is to be viewed. 
+   the NEP converged reason is to be viewed.
 
    Collective on NEP
 
@@ -455,7 +455,7 @@ PetscErrorCode NEPErrorView(NEP nep,NEPErrorType etype,PetscViewer viewer)
 #define __FUNCT__ "NEPErrorViewFromOptions"
 /*@
    NEPErrorViewFromOptions - Processes command line options to determine if/how
-   the errors of the computed solution are to be viewed. 
+   the errors of the computed solution are to be viewed.
 
    Collective on NEP
 
@@ -650,7 +650,7 @@ PetscErrorCode NEPValuesView(NEP nep,PetscViewer viewer)
 #define __FUNCT__ "NEPValuesViewFromOptions"
 /*@
    NEPValuesViewFromOptions - Processes command line options to determine if/how
-   the computed eigenvalues are to be viewed. 
+   the computed eigenvalues are to be viewed.
 
    Collective on NEP
 
@@ -738,7 +738,7 @@ PetscErrorCode NEPVectorsView(NEP nep,PetscViewer viewer)
 #define __FUNCT__ "NEPVectorsViewFromOptions"
 /*@
    NEPVectorsViewFromOptions - Processes command line options to determine if/how
-   the computed eigenvectors are to be viewed. 
+   the computed eigenvectors are to be viewed.
 
    Collective on NEP
 

@@ -177,7 +177,7 @@ static PetscErrorCode SetPathParameter(EPS eps)
   PetscInt       i,j;
   PetscScalar    center=0.0,tmp,tmp2,*omegai;
   PetscReal      theta,radius=1.0,vscale,a,b,c,d,max_w=0.0,rgscale;
-#if defined(PETSC_USE_COMPLEX) 
+#if defined(PETSC_USE_COMPLEX)
   PetscReal      start_ang,end_ang;
 #endif
   PetscBool      isring=PETSC_FALSE,isellipse=PETSC_FALSE,isinterval=PETSC_FALSE;
@@ -192,7 +192,7 @@ static PetscErrorCode SetPathParameter(EPS eps)
   if (isellipse) {
     ierr = RGEllipseGetParameters(eps->rg,&center,&radius,&vscale);CHKERRQ(ierr);
     for (i=0;i<ctx->N;i++) {
-#if defined(PETSC_USE_COMPLEX) 
+#if defined(PETSC_USE_COMPLEX)
       theta = 2.0*PETSC_PI*(i+0.5)/ctx->N;
       ctx->pp[i] = PetscCosReal(theta)+vscale*PetscSinReal(theta)*PETSC_i;
       ctx->weight[i] = rgscale*radius*(vscale*PetscCosReal(theta)+PetscSinReal(theta)*PETSC_i)/(PetscReal)ctx->N;
@@ -215,7 +215,7 @@ static PetscErrorCode SetPathParameter(EPS eps)
       for (i=0;i<ctx->N;i++) {
         if (c==d) ctx->omega[i] = ((b-a)*(ctx->pp[i]+1.0)/2.0+a)*rgscale;
         if (a==b) {
-#if defined(PETSC_USE_COMPLEX) 
+#if defined(PETSC_USE_COMPLEX)
           ctx->omega[i] = ((d-c)*(ctx->pp[i]+1.0)/2.0+c)*rgscale*PETSC_i;
 #else
           SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"Integration points on a vertical line require complex arithmetic");
@@ -224,7 +224,7 @@ static PetscErrorCode SetPathParameter(EPS eps)
       }
     }
     if (isring) {  /* only supported in complex scalars */
-#if defined(PETSC_USE_COMPLEX) 
+#if defined(PETSC_USE_COMPLEX)
       ierr = RGRingGetParameters(eps->rg,&center,&radius,&vscale,&start_ang,&end_ang,NULL);CHKERRQ(ierr);
       for (i=0;i<ctx->N;i++) {
         theta = (start_ang*2.0+(end_ang-start_ang)*(PetscRealPart(ctx->pp[i])+1.0))*PETSC_PI;
@@ -242,7 +242,7 @@ static PetscErrorCode SetPathParameter(EPS eps)
       center *= rgscale;
       radius *= rgscale;
     }
-    for (i=0;i<ctx->N;i++) { 
+    for (i=0;i<ctx->N;i++) {
       ctx->pp[i] = (ctx->omega[i]-center)/radius;
       tmp = 1; tmp2 = 1;
       for (j=0;j<ctx->N;j++) {
@@ -748,7 +748,7 @@ static PetscErrorCode rescale_eig(EPS eps,PetscInt nv)
   PetscInt       i;
   PetscScalar    center;
   PetscReal      radius,a,b,c,d,rgscale;
-#if defined(PETSC_USE_COMPLEX) 
+#if defined(PETSC_USE_COMPLEX)
   PetscReal      start_ang,end_ang,vscale,theta;
 #endif
   PetscBool      isring,isellipse,isinterval;
@@ -780,7 +780,7 @@ static PetscErrorCode rescale_eig(EPS eps,PetscInt nv)
         for (i=0;i<nv;i++) {
           if (c==d) eps->eigr[i] = ((b-a)*(eps->eigr[i]+1.0)/2.0+a)*rgscale;
           if (a==b) {
-#if defined(PETSC_USE_COMPLEX) 
+#if defined(PETSC_USE_COMPLEX)
             eps->eigr[i] = ((d-c)*(eps->eigr[i]+1.0)/2.0+c)*rgscale*PETSC_i;
 #else
             SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"Integration points on a vertical line require complex arithmetic");
@@ -793,7 +793,7 @@ static PetscErrorCode rescale_eig(EPS eps,PetscInt nv)
         for (i=0;i<nv;i++) eps->eigr[i] = center + radius*eps->eigr[i];
       }
     } else if (isring) {  /* only supported in complex scalars */
-#if defined(PETSC_USE_COMPLEX) 
+#if defined(PETSC_USE_COMPLEX)
       ierr = RGRingGetParameters(eps->rg,&center,&radius,&vscale,&start_ang,&end_ang,NULL);CHKERRQ(ierr);
       if (ctx->quad == EPS_CISS_QUADRULE_CHEBYSHEV) {
         for (i=0;i<nv;i++) {
@@ -1611,7 +1611,7 @@ static PetscErrorCode EPSCISSSetQuadRule_CISS(EPS eps,EPSCISSQuadRule quad)
 #undef __FUNCT__
 #define __FUNCT__ "EPSCISSSetQuadRule"
 /*@
-   EPSCISSSetQuadRule - Sets the quadrature rule used in the CISS solver. 
+   EPSCISSSetQuadRule - Sets the quadrature rule used in the CISS solver.
 
    Logically Collective on EPS
 
@@ -1659,7 +1659,7 @@ static PetscErrorCode EPSCISSGetQuadRule_CISS(EPS eps,EPSCISSQuadRule *quad)
 #define __FUNCT__ "EPSCISSGetQuadRule"
 /*@
    EPSCISSGetQuadRule - Gets the quadrature rule used in the CISS solver.
-   
+
    Not Collective
 
    Input Parameter:
@@ -1697,7 +1697,7 @@ static PetscErrorCode EPSCISSSetExtraction_CISS(EPS eps,EPSCISSExtraction extrac
 #undef __FUNCT__
 #define __FUNCT__ "EPSCISSSetExtraction"
 /*@
-   EPSCISSSetExtraction - Sets the extraction technique used in the CISS solver. 
+   EPSCISSSetExtraction - Sets the extraction technique used in the CISS solver.
 
    Logically Collective on EPS
 
@@ -1897,7 +1897,7 @@ PetscErrorCode EPSView_CISS(EPS eps,PetscViewer viewer)
     ierr = PetscViewerASCIIPrintf(viewer,"  CISS: extraction: %s\n",EPSCISSExtractions[ctx->extraction]);CHKERRQ(ierr);
     ierr = PetscViewerASCIIPrintf(viewer,"  CISS: quadrature rule: %s\n",EPSCISSQuadRules[ctx->quad]);CHKERRQ(ierr);
     ierr = PetscViewerASCIIPushTab(viewer);CHKERRQ(ierr);
-    
+
     if (!ctx->usest && ctx->ksp[0]) { ierr = KSPView(ctx->ksp[0],viewer);CHKERRQ(ierr); }
     ierr = PetscViewerASCIIPopTab(viewer);CHKERRQ(ierr);
   }

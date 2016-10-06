@@ -554,7 +554,7 @@ PetscErrorCode SlepcCheckOrthogonality(Vec *V,PetscInt nv,Vec *W,PetscInt nw,Mat
 
    Input Parameters:
 +  viewer - the viewer where the monitor must send data
--  format - the format 
+-  format - the format
 
    Output Parameter:
 .  ctx - the created context
