@@ -26,7 +26,7 @@ FPPFLAGS   =
 LOCDIR     = src/pep/examples/nlevp/
 EXAMPLESC  = acoustic_wave_1d.c acoustic_wave_2d.c butterfly.c damped_beam.c \
              pdde_stability.c planar_waveguide.c sleeper.c spring.c wiresaw.c
-EXAMPLESF  = 
+EXAMPLESF  =
 MANSEC     = PEP
 TESTS      = acoustic_wave_1d acoustic_wave_2d butterfly damped_beam \
              pdde_stability planar_waveguide sleeper spring wiresaw

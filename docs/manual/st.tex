@@ -17,11 +17,11 @@
 \begin{itemize}
 \setlength{\itemsep}{-2pt}
 \item Compute internal eigenvalues. In some applications, the eigenpairs of interest are not the extreme ones (largest magnitude, smallest magnitude, rightmost, leftmost), but those contained in a certain interval or those closest to a certain value of the complex plane.
-\item Accelerate convergence. Convergence properties typically depend on how close the eigenvalues are from each other. With some spectral transformations, difficult eigenvalue distributions can be remapped in a more favorable way in terms of convergence. 
+\item Accelerate convergence. Convergence properties typically depend on how close the eigenvalues are from each other. With some spectral transformations, difficult eigenvalue distributions can be remapped in a more favorable way in terms of convergence.
 \item Handle some special situations. For instance, in generalized problems when matrix $B$ is singular, it may be necessary to use a spectral transformation.
 \end{itemize}
 	
-	\slepc separates spectral transformations from solution methods so that any combination of them can be specified by the user. To achieve this, most eigensolvers contained in \ident{EPS} are implemented in such a way that they are independent of which transformation has been selected by the user (the exception are preconditioned solvers, see below). That is, the solver algorithm has to work with a generic operator, whose actual form depends on the transformation used. After convergence, eigenvalues are transformed back appropriately. 
+	\slepc separates spectral transformations from solution methods so that any combination of them can be specified by the user. To achieve this, most eigensolvers contained in \ident{EPS} are implemented in such a way that they are independent of which transformation has been selected by the user (the exception are preconditioned solvers, see below). That is, the solver algorithm has to work with a generic operator, whose actual form depends on the transformation used. After convergence, eigenvalues are transformed back appropriately.
 
 	For technical details of the transformations described in this chapter, the interested user is referred to \citep{Ericsson:1980:STL}, \citep{Scott:1982:AIO}, \citep{Nour-Omid:1987:HIS}, and \citep{Meerbergen:1994:SCT}.
 
@@ -48,7 +48,7 @@ As explained in the previous chapter, \ident{EPS} contains preconditioned eigens
 	This can also be done with the command line option \Verb!-st_shift <shift>!. Note that the argument \texttt{shift} is defined as a \texttt{PetscScalar}, and this means that complex shifts are not allowed unless the complex version of \slepc is used.
 
 	Other object operations are available, which are not usually called by the user. The most important of such functions are \ident{STApply}, which applies the operator to a vector, and \ident{STSetUp}, which prepares all the necessary data structures before the solution process starts. The term ``operator'' refers to one of $A$, $B^{-1}\!A$, $A-\sigma I$, ...\ depending on which kind of spectral transformation is being used.
- 
+
 %---------------------------------------------------
 \section{Available Transformations}
 
@@ -57,8 +57,8 @@ As explained in the previous chapter, \ident{EPS} contains preconditioned eigens
 	\begin{Verbatim}[fontsize=\small]
 	STSetType(ST st,STType type);
 	\end{Verbatim}
-where \texttt{type} can be one of 
-\texttt{STSHIFT}, 
+where \texttt{type} can be one of
+\texttt{STSHIFT},
 \texttt{STSINVERT}, \texttt{STCAYLEY},
 \texttt{STPRECOND}, or \texttt{STSHELL}.
 The \ident{ST} type can also be set with the command-line option \Verb!-st_type! followed by the name of the method (see Table \ref{tab:transforms}). The first four spectral transformations are described in detail in the rest of this section. The last possibility, \texttt{STSHELL}, uses a specific, application-provided spectral transformation. Section \ref{sec:shell} describes how to implement one of these transformations.
@@ -115,9 +115,9 @@ When the eigensolver in \ident{EPS} requests the application of the operator to 
 
 When the shift, $\sigma$, is given a value different from the default, 0, the effect is to move the whole spectrum by that exact quantity, $\sigma$, which is called \emph{shift of origin}. To achieve this, the solver works with the shifted matrix, that is, the expressions it has to cope with are
 \begin{equation}(A-\sigma I)x=\theta x,\end{equation}
-for standard problems, and 
+for standard problems, and
 \begin{equation}(B^{-1}A-\sigma I) x=\theta x,\end{equation}
-for generalized ones. The important property that is used is that shifting does not alter the eigenvectors and that it does change the eigenvalues in a simple known way, it shifts them by $\sigma$. In both the standard and the generalized problems, the following relation holds 
+for generalized ones. The important property that is used is that shifting does not alter the eigenvectors and that it does change the eigenvalues in a simple known way, it shifts them by $\sigma$. In both the standard and the generalized problems, the following relation holds
 \begin{equation}\theta=\lambda-\sigma.\end{equation}
 This means that after the solution process, the value $\sigma$ has to be added\footnote{Note that the sign changed in \slepc 3.5 with respect to previous versions.} to the computed eigenvalues, $\theta$, in order to retrieve the solution of the original problem, $\lambda$. This is done by means of the function \ident{STBackTransform}, which does not need to be called directly by the user.
 
@@ -130,7 +130,7 @@ This means that after the solution process, the value $\sigma$ has to be added\f
       \draw[->] (0,-4) -- (0,4) node[above] {$\theta$};
       \draw[dashed,color=gray] (2,-4) -- (2,4);
       %\draw[color=blue] plot[id=sinv1,domain=-1.3:1.75] function{1/(x-2)};
-      \draw[color=blue] 
+      \draw[color=blue]
         (-1.30000,-0.30303) -- (-1.17292,-0.31517) -- (-1.04583,-0.32832) --
         (-0.91875,-0.34261) -- (-0.79167,-0.35821) -- (-0.66458,-0.37529) --
         (-0.53750,-0.39409) -- (-0.41042,-0.41487) -- (-0.28333,-0.43796) --
@@ -141,7 +141,7 @@ This means that after the solution process, the value $\sigma$ has to be added\f
         ( 1.36875,-1.58416) -- ( 1.49583,-1.98347) -- ( 1.62292,-2.65193) --
         ( 1.75000,-4.00000);
       %\draw[color=blue] plot[id=sinv2,domain=2.25:5.3] function{1/(x-2)};
-      \draw[color=blue] 
+      \draw[color=blue]
         (2.25000,4.00000) -- (2.37708,2.65193) -- (2.50417,1.98347) --
         (2.63125,1.58416) -- (2.75833,1.31868) -- (2.88542,1.12941) --
         (3.01250,0.98765) -- (3.13958,0.87751) -- (3.26667,0.78947) --
@@ -164,12 +164,12 @@ This means that after the solution process, the value $\sigma$ has to be added\f
     \caption{\label{fig:sinvert}The shift-and-invert spectral transformation.}
   \end{figure}
 
-	The shift-and-invert spectral transformation (\texttt{STSINVERT}) is used to enhance convergence of eigenvalues in the neighborhood of a given value. In this case, the solver deals with the expressions 
+	The shift-and-invert spectral transformation (\texttt{STSINVERT}) is used to enhance convergence of eigenvalues in the neighborhood of a given value. In this case, the solver deals with the expressions
 \begin{eqnarray}
 (A-\sigma I)^{-1}x=\theta x,\\
 (A-\sigma B)^{-1}B x=\theta x,
 \end{eqnarray}
-for standard and generalized problems, respectively. 
+for standard and generalized problems, respectively.
 This transformation is effective for finding eigenvalues near $\sigma$ since the eigenvalues $\theta$ of the operator that are largest in magnitude correspond to the eigenvalues $\lambda$ of the original problem that are closest to the shift $\sigma$ in absolute value, as illustrated in Figure \ref{fig:sinvert} for an example with real eigenvalues. Once the wanted eigenvalues have been found, they may be transformed back to eigenvalues of the original problem. Again, the eigenvectors remain unchanged.
 In this case, the relation between the eigenvalues of both problems is
 \begin{equation}\theta=1/(\lambda-\sigma).\end{equation}
@@ -258,7 +258,7 @@ In this case, an external linear solver package is used (MUMPS, see \petsc's doc
 \begin{Verbatim}[fontsize=\small]
 	$ ./program -st_ksp_type gmres -st_pc_type bjacobi -st_ksp_rtol 1e-9
 \end{Verbatim}
-selects the GMRES solver with block Jacobi preconditioning. In the case of iterative solvers, it is important to use an appropriate tolerance, usually slightly more stringent for the linear solves relative to the desired accuracy of the eigenvalue calculation ($10^{-9}$ in the example, compared to $10^{-8}$ for the eigensolver). 
+selects the GMRES solver with block Jacobi preconditioning. In the case of iterative solvers, it is important to use an appropriate tolerance, usually slightly more stringent for the linear solves relative to the desired accuracy of the eigenvalue calculation ($10^{-9}$ in the example, compared to $10^{-8}$ for the eigensolver).
 
 	Although the direct solver approach may seem too costly, note that the factorization is only carried out at the beginning of the eigenvalue calculation and this cost is amortized in each subsequent application of the operator. This is also the case for iterative methods with preconditioners with high-cost set-up such as ILU.
 
@@ -309,7 +309,7 @@ A discussion on the different options available for the Davidson solvers can be 
 	\begin{description}
 	\item[``\Verb!shell!''] To work with the corresponding expression without forming the matrix explicitly. This is achieved by internally setting a matrix-free matrix with \ident{MatCreateShell}.
 	\item[``\Verb!inplace!''] To build the coefficient matrix explicitly. This is done by means of a \ident{MatShift} or a \ident{MatAXPY} operation, which overwrites matrix $A$ with the corresponding expression. This alteration of matrix $A$ is reversed after the eigensolution process has finished.
-	\item[``\Verb!copy!''] To build the matrix explicitly, as in the previous option, but using a working copy of the matrix, that is, without modifying the original matrix $A$. 
+	\item[``\Verb!copy!''] To build the matrix explicitly, as in the previous option, but using a working copy of the matrix, that is, without modifying the original matrix $A$.
 	\end{description}
 	The default behavior is to build the coefficient matrix explicitly in a copy of $A$ (option ``\Verb!copy!''). The user can change this as in the following example
 \begin{Verbatim}[fontsize=\small]
@@ -324,7 +324,7 @@ A discussion on the different options available for the Davidson solvers can be 
 
 	The user must consider which approach is the most appropriate for the particular application. The different options have advantages and drawbacks. The first approach is the simplest one but severely restricts the number of possibilities available for solving the system, in particular most of the \petsc{} preconditioners would not be available, including direct methods. The only preconditioners that can be used in this case are Jacobi (only if matrices $A$ and $B$ have the operation \ident{MATOP\_GET\_DIAGONAL}) or a user-defined one.
 	
-	The second approach (``\Verb!inplace!'') can be much faster, specially in the generalized case. A more important advantage of this approach is that, in this case, the linear system solver can be combined with any of the preconditioners available in \petsc, including those which need to access internal matrix data-structures such as ILU. The main drawback is that, in the generalized problem, this approach probably makes sense only in the case that $A$ and $B$ have the same sparse pattern, because otherwise the function \ident{MatAXPY} might be inefficient. 
+	The second approach (``\Verb!inplace!'') can be much faster, specially in the generalized case. A more important advantage of this approach is that, in this case, the linear system solver can be combined with any of the preconditioners available in \petsc, including those which need to access internal matrix data-structures such as ILU. The main drawback is that, in the generalized problem, this approach probably makes sense only in the case that $A$ and $B$ have the same sparse pattern, because otherwise the function \ident{MatAXPY} might be inefficient.
 If the user knows that the pattern is the same (or a subset), then this can be specified with the function
 	\findex{STSetMatStructure}
 	\begin{Verbatim}[fontsize=\small]
@@ -346,7 +346,7 @@ If the user knows that the pattern is the same (or a subset), then this can be s
     \item $B$-inner product: $\langle x,y\rangle_B=x^*\!B\,y$.
   \end{itemize}
 
-	The second one can be used for preserving the symmetry in symmetric definite generalized problems, as described below. Note that $\langle x,y\rangle_B$ is a genuine inner product only if $B$ is symmetric positive definite (for the case of symmetric positive semi-definite $B$ see \S\ref{sec:purif}). 
+	The second one can be used for preserving the symmetry in symmetric definite generalized problems, as described below. Note that $\langle x,y\rangle_B$ is a genuine inner product only if $B$ is symmetric positive definite (for the case of symmetric positive semi-definite $B$ see \S\ref{sec:purif}).
 
 	It can be shown that $\mathbb{R}^n$ with the $\langle x,y\rangle_B$ inner product is isomorphic to the Euclidean $n$-space $\mathbb{R}^n$ with the standard Hermitian inner product. This means that if we use $\langle x,y\rangle_B$ instead of the standard inner product, we are just changing the way lengths and angles are measured, but otherwise all the algebraic properties are maintained and therefore algorithms remain correct. What is interesting to observe is that the transformed operators such as $B^{-1}\!A$ or $(A-\sigma B)^{-1}B$ are self-adjoint with respect to $\langle x,y\rangle_B$.
 
@@ -493,7 +493,7 @@ In \slepc versions prior to 3.5, \texttt{ST} had another type intended to perfor
 
 Spectrum folding involves squaring in addition to shifting. This makes sense for standard Hermitian eigenvalue problems, where the transformed problem to be addressed is
 \begin{equation}(A-\sigma I)^2x=\theta x.\end{equation}
-The following relation holds 
+The following relation holds
 \begin{equation}\theta=(\lambda-\sigma)^2.\end{equation}
 Note that the mapping between $\lambda$ and $\theta$ is not injective, and hence this cannot be considered a true spectral transformation.
 
@@ -504,8 +504,8 @@ The effect is that the spectrum is folded around the value of $\sigma$. Thus, ei
     \begin{tikzpicture}[domain=-2:2]
       \draw[->] (-2.5,0) -- (2.5,0) node[right] {$\lambda$};
       \draw[->] (0,0) node[below] {$\sigma$} -- (0,4.2) node[above] {$\theta$};
-      \draw[color=blue] 
-          %plot[id=fold] function{x*x} 
+      \draw[color=blue]
+          %plot[id=fold] function{x*x}
           (-2.00000,4.00000) -- (-1.83333,3.36111) -- (-1.66667,2.77778) --
           (-1.50000,2.25000) -- (-1.33333,1.77778) -- (-1.16667,1.36111) --
           (-1.00000,1.00000) -- (-0.83333,0.69444) -- (-0.66667,0.44444) --

@@ -412,7 +412,7 @@ PetscErrorCode EPSPseudoLanczos(EPS eps,PetscReal *alpha,PetscReal *beta,PetscRe
     alpha[j] = PetscRealPart(hwork[j]);
     beta[j] = PetscAbsReal(norm);
     ierr = DSGetArrayReal(eps->ds,DS_MAT_T,&f);CHKERRQ(ierr);
-    if (j==k) { 
+    if (j==k) {
       for (i=l;i<j-1;i++) hwork[i]-= f[2*ld+i];
       for (i=0;i<l;i++) hwork[i] = 0.0;
     }

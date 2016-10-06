@@ -24,11 +24,11 @@
 #include <slepc/private/dsimpl.h>
 #include <slepcblaslapack.h>
 
-PetscErrorCode BDC_dsrtdf_(PetscBLASInt *k,PetscBLASInt n,PetscBLASInt n1, 
-        PetscReal *d,PetscReal *q,PetscBLASInt ldq,PetscBLASInt *indxq, 
-        PetscReal *rho,PetscReal *z,PetscReal *dlamda,PetscReal *w, 
-        PetscReal *q2,PetscBLASInt *indx,PetscBLASInt *indxc,PetscBLASInt *indxp, 
-        PetscBLASInt *coltyp,PetscReal reltol,PetscBLASInt *dz,PetscBLASInt *de, 
+PetscErrorCode BDC_dsrtdf_(PetscBLASInt *k,PetscBLASInt n,PetscBLASInt n1,
+        PetscReal *d,PetscReal *q,PetscBLASInt ldq,PetscBLASInt *indxq,
+        PetscReal *rho,PetscReal *z,PetscReal *dlamda,PetscReal *w,
+        PetscReal *q2,PetscBLASInt *indx,PetscBLASInt *indxc,PetscBLASInt *indxp,
+        PetscBLASInt *coltyp,PetscReal reltol,PetscBLASInt *dz,PetscBLASInt *de,
         PetscBLASInt *info)
 {
 /*  -- Routine written in LAPACK Version 3.0 style -- */
@@ -306,7 +306,7 @@ PetscErrorCode BDC_dsrtdf_(PetscBLASInt *k,PetscBLASInt n,PetscBLASInt n1,
   /* eigenvalue is found, an elementary reflector is computed to rotate */
   /* the corresponding eigensubspace so that the corresponding */
   /* components of Z are zero in this new basis. */
-  
+
   /* initialize the column types */
 
   /* first N1 columns are initially (before deflation) of type 1 */

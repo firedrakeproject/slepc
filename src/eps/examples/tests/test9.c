@@ -43,6 +43,7 @@ int main(int argc,char **argv)
   PetscReal      tol=1000*PETSC_MACHINE_EPSILON;
   PetscInt       N,m=15,nev;
   PetscScalar    origin=0.0;
+  PetscBool      flg,delay;
   PetscErrorCode ierr;
 
   ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
@@ -88,6 +89,13 @@ int main(int argc,char **argv)
      Set solver parameters at runtime
   */
   ierr = EPSSetFromOptions(eps);CHKERRQ(ierr);
+  ierr = PetscObjectTypeCompare((PetscObject)eps,EPSARNOLDI,&flg);CHKERRQ(ierr);
+  if (flg) {
+    ierr = EPSArnoldiGetDelayed(eps,&delay);CHKERRQ(ierr);
+    if (delay) {
+      ierr = PetscPrintf(PETSC_COMM_WORLD," Warning: delayed reorthogonalization may be unstable:\n");CHKERRQ(ierr);
+    }
+  }
 
   /*
      Set the initial vector. This is optional, if not done the initial

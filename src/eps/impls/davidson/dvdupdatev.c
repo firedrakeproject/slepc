@@ -125,7 +125,7 @@ static PetscErrorCode dvd_updateV_conv_gen(dvdDashboard *d)
   if (npreconv == 0) PetscFunctionReturn(0);
 
   ierr = BVGetActiveColumns(d->eps->V,&lV,&kV);CHKERRQ(ierr);
-  nV  = kV - lV; 
+  nV  = kV - lV;
   cMT = nV - npreconv;
   /* Harmonics restarts wiht right eigenvectors, and other with the left ones.
      If the problem is standard or hermitian, left and right vectors are the same */

@@ -130,7 +130,7 @@ PetscErrorCode PEPSolve(PEP pep)
   ierr = PEPViewFromOptions(pep,NULL,"-pep_view_pre");CHKERRQ(ierr);
 
   ierr = (*pep->ops->solve)(pep);CHKERRQ(ierr);
-  
+
   if (!pep->reason) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_PLIB,"Internal error, solver returned without setting converged reason");
 
   ierr = PetscObjectTypeCompare((PetscObject)pep,PEPLINEAR,&islinear);CHKERRQ(ierr);
@@ -442,7 +442,7 @@ PetscErrorCode PEPComputeResidualNorm_Private(PEP pep,PetscScalar kr,PetscScalar
   ierr = VecSet(u,0.0);CHKERRQ(ierr);
 #if !defined(PETSC_USE_COMPLEX)
   ui = z[2]; wi = z[3];
-  ivals = it; 
+  ivals = it;
 #endif
   if (nmat>20) {
     ierr = PetscMalloc1(nmat,&vals);CHKERRQ(ierr);

@@ -721,7 +721,7 @@ PetscErrorCode BVNormVecEnd(BV bv,Vec v,NormType type,PetscReal *val)
    Notes:
    The norm of V[j] is computed (NORM_1, NORM_2, or NORM_INFINITY).
    If a non-standard inner product has been specified with BVSetMatrix(),
-   then the returned value is sqrt(V[j]'*B*V[j]), 
+   then the returned value is sqrt(V[j]'*B*V[j]),
    where B is the inner product matrix (argument 'type' is ignored).
 
    Level: intermediate
@@ -1191,7 +1191,7 @@ PetscErrorCode BVMatProject(BV X,Mat A,BV Y,Mat M)
     symm = set? flg: PETSC_FALSE;
   }
 
-  if (A) { 
+  if (A) {
     if (X->vmm==BV_MATMULT_VECS) {
       /* perform computation column by column */
       ierr = BVMatProject_Vec(X,A,Y,marray,m,symm);CHKERRQ(ierr);

@@ -54,7 +54,7 @@ int main(int argc,char **argv)
 #endif
   ierr = PetscOptionsGetStringArray(NULL,NULL,"-A",filenames,&nmat,&flg);CHKERRQ(ierr);
   if (!flg) SETERRQ(PETSC_COMM_WORLD,1,"Must indicate a comma-separated list of file names with the -A option");
-  for (i=0;i<nmat;i++) { 
+  for (i=0;i<nmat;i++) {
     ierr = PetscViewerBinaryOpen(PETSC_COMM_WORLD,filenames[i],FILE_MODE_READ,&viewer);CHKERRQ(ierr);
     ierr = MatCreate(PETSC_COMM_WORLD,&A[i]);CHKERRQ(ierr);
     ierr = MatSetFromOptions(A[i]);CHKERRQ(ierr);
@@ -82,7 +82,7 @@ int main(int argc,char **argv)
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                       Solve the eigensystem
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-  
+
   ierr = PEPSolve(pep);CHKERRQ(ierr);
   ierr = PEPGetIterationNumber(pep,&its);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD," Number of iterations of the method: %D\n",its);CHKERRQ(ierr);

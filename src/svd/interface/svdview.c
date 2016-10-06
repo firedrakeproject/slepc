@@ -158,7 +158,7 @@ PetscErrorCode SVDReasonView(SVD svd,PetscViewer viewer)
 #define __FUNCT__ "SVDReasonViewFromOptions"
 /*@
    SVDReasonViewFromOptions - Processes command line options to determine if/how
-   the SVD converged reason is to be viewed. 
+   the SVD converged reason is to be viewed.
 
    Collective on SVD
 
@@ -339,7 +339,7 @@ PetscErrorCode SVDErrorView(SVD svd,SVDErrorType etype,PetscViewer viewer)
 #define __FUNCT__ "SVDErrorViewFromOptions"
 /*@
    SVDErrorViewFromOptions - Processes command line options to determine if/how
-   the errors of the computed solution are to be viewed. 
+   the errors of the computed solution are to be viewed.
 
    Collective on SVD
 
@@ -492,7 +492,7 @@ PetscErrorCode SVDValuesView(SVD svd,PetscViewer viewer)
 #define __FUNCT__ "SVDValuesViewFromOptions"
 /*@
    SVDValuesViewFromOptions - Processes command line options to determine if/how
-   the computed singular values are to be viewed. 
+   the computed singular values are to be viewed.
 
    Collective on SVD
 
@@ -580,7 +580,7 @@ PetscErrorCode SVDVectorsView(SVD svd,PetscViewer viewer)
 #define __FUNCT__ "SVDVectorsViewFromOptions"
 /*@
    SVDVectorsViewFromOptions - Processes command line options to determine if/how
-   the computed singular vectors are to be viewed. 
+   the computed singular vectors are to be viewed.
 
    Collective on SVD
 

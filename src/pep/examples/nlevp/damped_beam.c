@@ -70,7 +70,7 @@ int main(int argc,char **argv)
   M2t[0] =  54;  M2t[1] =  13*dlen;  M2t[2] = -13*dlen;  M2t[3] = -3*dlen*dlen;
   M3[0]  = 156;  M3[1]  = -22*dlen;  M3[2]  = -22*dlen;  M3[3]  =  4*dlen*dlen;
 
-  /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+  /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
      Compute the matrices that define the eigensystem, (k^2*M+k*C+K)x=0
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -80,7 +80,7 @@ int main(int argc,char **argv)
   ierr = MatSetBlockSize(Ko,2);CHKERRQ(ierr);
   ierr = MatSetFromOptions(Ko);CHKERRQ(ierr);
   ierr = MatSetUp(Ko);CHKERRQ(ierr);
-  
+
   ierr = MatGetOwnershipRange(Ko,&Istart,&Iend);CHKERRQ(ierr);
   for (i=Istart/2;i<Iend/2;i++) {
     if (i>0) {
@@ -136,15 +136,15 @@ int main(int argc,char **argv)
   ierr = MatSetSizes(C,mloc,nloc,PETSC_DECIDE,PETSC_DECIDE);CHKERRQ(ierr);
   ierr = MatSetFromOptions(C);CHKERRQ(ierr);
   ierr = MatSetUp(C);CHKERRQ(ierr);
-  
+
   ierr = MatGetOwnershipRange(C,&Istart,&Iend);CHKERRQ(ierr);
-  if (nele-1>=Istart && nele-1<Iend) { 
+  if (nele-1>=Istart && nele-1<Iend) {
     ierr = MatSetValue(C,nele-1,nele-1,damp,INSERT_VALUES);CHKERRQ(ierr);
   }
   ierr = MatAssemblyBegin(C,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
   ierr = MatAssemblyEnd(C,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
-  
-  /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+
+  /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                 Create the eigensolver and solve the problem
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -157,7 +157,7 @@ int main(int argc,char **argv)
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                     Display solution and clean up
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-  
+
   /* show detailed info unless -terse option is given by user */
   ierr = PetscOptionsHasName(NULL,NULL,"-terse",&terse);CHKERRQ(ierr);
   if (terse) {

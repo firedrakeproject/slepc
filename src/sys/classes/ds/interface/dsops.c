@@ -266,7 +266,7 @@ PetscErrorCode DSTruncate(DS ds,PetscInt n)
 #define __FUNCT__ "DSGetMat"
 /*@
    DSGetMat - Returns a sequential dense Mat object containing the requested
-   matrix. 
+   matrix.
 
    Not Collective
 
@@ -827,7 +827,7 @@ PetscErrorCode DSTranslateRKS(DS ds,PetscScalar alpha)
 #define __FUNCT__ "DSCopyMat"
 /*@
    DSCopyMat - Copies the contents of a sequential dense Mat object to
-   the indicated DS matrix, or vice versa. 
+   the indicated DS matrix, or vice versa.
 
    Not Collective
 

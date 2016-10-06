@@ -192,7 +192,7 @@ PETSC_STATIC_INLINE PetscErrorCode SVDMatGetLocalSize(SVD svd,PetscInt *m,PetscI
     ierr = MatGetLocalSize(svd->AT,n,m);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
-} 
+}
 
 PETSC_INTERN PetscErrorCode SVDTwoSideLanczos(SVD,PetscReal*,PetscReal*,BV,BV,PetscInt,PetscInt);
 PETSC_INTERN PetscErrorCode SVDSetDimensions_Default(SVD);

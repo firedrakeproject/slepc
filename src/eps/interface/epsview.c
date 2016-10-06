@@ -274,7 +274,7 @@ PetscErrorCode EPSReasonView(EPS eps,PetscViewer viewer)
 #define __FUNCT__ "EPSReasonViewFromOptions"
 /*@
    EPSReasonViewFromOptions - Processes command line options to determine if/how
-   the EPS converged reason is to be viewed. 
+   the EPS converged reason is to be viewed.
 
    Collective on EPS
 
@@ -490,7 +490,7 @@ PetscErrorCode EPSErrorView(EPS eps,EPSErrorType etype,PetscViewer viewer)
 #define __FUNCT__ "EPSErrorViewFromOptions"
 /*@
    EPSErrorViewFromOptions - Processes command line options to determine if/how
-   the errors of the computed solution are to be viewed. 
+   the errors of the computed solution are to be viewed.
 
    Collective on EPS
 
@@ -685,7 +685,7 @@ PetscErrorCode EPSValuesView(EPS eps,PetscViewer viewer)
 #define __FUNCT__ "EPSValuesViewFromOptions"
 /*@
    EPSValuesViewFromOptions - Processes command line options to determine if/how
-   the computed eigenvalues are to be viewed. 
+   the computed eigenvalues are to be viewed.
 
    Collective on EPS
 
@@ -773,7 +773,7 @@ PetscErrorCode EPSVectorsView(EPS eps,PetscViewer viewer)
 #define __FUNCT__ "EPSVectorsViewFromOptions"
 /*@
    EPSVectorsViewFromOptions - Processes command line options to determine if/how
-   the computed eigenvectors are to be viewed. 
+   the computed eigenvectors are to be viewed.
 
    Collective on EPS
 

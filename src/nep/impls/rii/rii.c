@@ -113,7 +113,7 @@ PetscErrorCode NEPSolve_RII(NEP nep)
   while (nep->reason == NEP_CONVERGED_ITERATING) {
     nep->its++;
 
-    /* Use Newton's method to compute nonlinear Rayleigh functional. Current eigenvalue 
+    /* Use Newton's method to compute nonlinear Rayleigh functional. Current eigenvalue
        estimate as starting value. */
     inner_its=0;
     do {

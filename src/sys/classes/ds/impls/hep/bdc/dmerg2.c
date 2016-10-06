@@ -24,10 +24,10 @@
 #include <slepc/private/dsimpl.h>
 #include <slepcblaslapack.h>
 
-PetscErrorCode BDC_dmerg2_(const char *jobz,PetscBLASInt rkct,PetscBLASInt n, 
-        PetscReal *ev,PetscReal *q,PetscBLASInt ldq,PetscBLASInt *indxq, 
-        PetscReal *rho,PetscReal *u,PetscBLASInt sbrkp1,PetscReal *v, 
-        PetscBLASInt sbrk,PetscBLASInt cutpnt,PetscReal *work,PetscBLASInt lwork, 
+PetscErrorCode BDC_dmerg2_(const char *jobz,PetscBLASInt rkct,PetscBLASInt n,
+        PetscReal *ev,PetscReal *q,PetscBLASInt ldq,PetscBLASInt *indxq,
+        PetscReal *rho,PetscReal *u,PetscBLASInt sbrkp1,PetscReal *v,
+        PetscBLASInt sbrk,PetscBLASInt cutpnt,PetscReal *work,PetscBLASInt lwork,
         PetscBLASInt *iwork,PetscReal tol,PetscBLASInt *info,PetscBLASInt jobz_len)
 {
 /*  -- Routine written in LAPACK Version 3.0 style -- */
@@ -337,9 +337,9 @@ PetscErrorCode BDC_dmerg2_(const char *jobz,PetscBLASInt rkct,PetscBLASInt n,
   if (k != 0 || k == 0) {
 
     /* ....not everything was deflated. */
-     
+
     /* ....check whether enough workspace is available: */
-     
+
     /* Note that the following (upper) bound SPNEED for the workspace */
     /* requirements should also hold in the extreme case TMPCUT=N, */
     /* which happens for every rank modification after the first one. */
@@ -352,7 +352,7 @@ PetscErrorCode BDC_dmerg2_(const char *jobz,PetscBLASInt rkct,PetscBLASInt n,
 
     /* calling DLAED3M for solving the secular equation. */
 
-    ierr = BDC_dlaed3m_(jobz, defl, k, n, tmpcut, ev, q, ldq, 
+    ierr = BDC_dlaed3m_(jobz, defl, k, n, tmpcut, ev, q, ldq,
                 *rho, &work[idlmda], &work[iq2], &iwork[indxc], &iwork[coltyp],
                 &work[iw], &work[is], info, 1, 1);CHKERRQ(ierr);
     if (*info) SETERRQ1(PETSC_COMM_SELF,1,"dmerg2: error in dlaed3m, info = %d",*info);

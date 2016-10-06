@@ -49,7 +49,7 @@ int main(int argc,char **argv)
 
   ierr = PetscOptionsHasName(NULL,NULL,"-draw_sol",&draw_sol);CHKERRQ(ierr);
 
-  /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+  /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                  Compute the discrete 2-D Laplacian, A
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -82,7 +82,7 @@ int main(int argc,char **argv)
   ierr = VecDuplicate(v,&y);CHKERRQ(ierr);
   ierr = VecDuplicate(v,&z);CHKERRQ(ierr);
 
-  /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+  /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
              Create the solver, set the matrix and the function
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
   ierr = MFNCreate(PETSC_COMM_WORLD,&mfn);CHKERRQ(ierr);
@@ -92,7 +92,7 @@ int main(int argc,char **argv)
   ierr = MFNSetErrorIfNotConverged(mfn,PETSC_TRUE);CHKERRQ(ierr);
   ierr = MFNSetFromOptions(mfn);CHKERRQ(ierr);
 
-  /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+  /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                       First solve: y=sqrt(A)*v
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -104,7 +104,7 @@ int main(int argc,char **argv)
     ierr = VecView(y,PETSC_VIEWER_DRAW_WORLD);CHKERRQ(ierr);
   }
 
-  /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+  /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
              Second solve: z=sqrt(A)*y and compare against A*v
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -114,7 +114,7 @@ int main(int argc,char **argv)
   ierr = MatMult(A,v,y);CHKERRQ(ierr);   /* overwrite y */
   ierr = VecAXPY(y,-1.0,z);CHKERRQ(ierr);
   ierr = VecNorm(y,NORM_2,&norm);CHKERRQ(ierr);
-  
+
   if (norm<tol) {
     ierr = PetscPrintf(PETSC_COMM_WORLD," Error norm is less than the requested tolerance\n\n");CHKERRQ(ierr);
   } else {
@@ -125,7 +125,7 @@ int main(int argc,char **argv)
     ierr = VecView(z,PETSC_VIEWER_DRAW_WORLD);CHKERRQ(ierr);
   }
 
-  /* 
+  /*
      Free work space
   */
   ierr = MFNDestroy(&mfn);CHKERRQ(ierr);

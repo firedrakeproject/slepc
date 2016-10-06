@@ -51,7 +51,7 @@ PetscErrorCode STMatShellShift(Mat A,PetscScalar alpha)
 #define __FUNCT__ "MatMult_Shell"
 /*
   For i=0:nmat-1 computes y = (sum_i (coeffs[i]*alpha^i*st->A[idx[i]]))x
-  If null coeffs computes with coeffs[i]=1.0  
+  If null coeffs computes with coeffs[i]=1.0
 */
 static PetscErrorCode MatMult_Shell(Mat A,Vec x,Vec y)
 {

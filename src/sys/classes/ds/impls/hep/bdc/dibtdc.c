@@ -24,7 +24,7 @@
 #include <slepc/private/dsimpl.h>
 #include <slepcblaslapack.h>
 
-static PetscErrorCode cutlr_(PetscBLASInt start,PetscBLASInt n,PetscBLASInt blkct, 
+static PetscErrorCode cutlr_(PetscBLASInt start,PetscBLASInt n,PetscBLASInt blkct,
         PetscBLASInt *bsizes,PetscBLASInt *ranks,PetscBLASInt *cut,
         PetscBLASInt *lsum,PetscBLASInt *lblks,PetscBLASInt *info)
 {
@@ -180,10 +180,10 @@ static PetscErrorCode cutlr_(PetscBLASInt start,PetscBLASInt n,PetscBLASInt blkc
 }
 
 
-PetscErrorCode BDC_dibtdc_(const char *jobz,PetscBLASInt n,PetscBLASInt nblks, 
-        PetscBLASInt *ksizes,PetscReal *d,PetscBLASInt l1d,PetscBLASInt l2d, 
+PetscErrorCode BDC_dibtdc_(const char *jobz,PetscBLASInt n,PetscBLASInt nblks,
+        PetscBLASInt *ksizes,PetscReal *d,PetscBLASInt l1d,PetscBLASInt l2d,
         PetscReal *e,PetscBLASInt *rank,PetscBLASInt l1e,PetscBLASInt l2e,
-        PetscReal tol,PetscReal *ev,PetscReal *z,PetscBLASInt ldz,PetscReal *work, 
+        PetscReal tol,PetscReal *ev,PetscReal *z,PetscBLASInt ldz,PetscReal *work,
         PetscBLASInt lwork,PetscBLASInt *iwork,PetscBLASInt liwork,
         PetscBLASInt *info,PetscBLASInt jobz_len)
 {
@@ -399,7 +399,7 @@ PetscErrorCode BDC_dibtdc_(const char *jobz,PetscBLASInt n,PetscBLASInt nblks,
   /*    merge). Cutpoints for the merging operations are determined and stored */
   /*    in reverse chronological order (starting with the final merging */
   /*    operation). */
-  
+
   /*    integer workspace requirements for the preprocessing: */
   /*         4*(NBLKS-1) for merging history */
   /*         at most 3*(NBLKS-1) for stack */
@@ -435,7 +435,7 @@ L200:
     /* chosen such that it yields the best balanced merging operation */
     /* among all the rank modifications with minimum rank. */
 
-    ierr = cutlr_(start, size, blks, &ksizes[start-1], &rank[start-1], &cut, 
+    ierr = cutlr_(start, size, blks, &ksizes[start-1], &rank[start-1], &cut,
                   &lsum, &lblks, info);CHKERRQ(ierr);
     if (*info) SETERRQ1(PETSC_COMM_SELF,1,"dibtdc: Error in cutlr, info = %d",*info);
 
@@ -543,19 +543,19 @@ L200:
 
   /*  SIZE = IWORK( ISIZE+NBLKS-2 ) */
   /*  MAT1 = IWORK( ILSUM+NBLKS-2 ) */
-  
+
   /* Note: after the dimensions SIZE and MAT1 of the last merging */
   /* operation have been determined, an upper bound for the workspace */
   /* requirements which is independent of how much deflation occurs in */
   /* the last merging operation could be determined as follows */
   /* (based on (3.15) and (3.19) from UT-CS-00-447): */
-  
+
   /*  IF( MAT1.LE.N/2 ) THEN */
   /*     WSPREQ = 3*N + 3/2*( SIZE-MAT1 )**2 + N*N/2 + MAT1*MAT1 */
   /*  ELSE */
   /*     WSPREQ = 3*N + 3/2*MAT1*MAT1 + N*N/2 + ( SIZE-MAT1 )**2 */
   /*  END IF */
-  
+
   /*  IF( LWORK-WSPREQ.LT.0 )THEN */
   /*          not enough work space provided */
   /*     INFO = -200 - ( WSPREQ-LWORK ) */
@@ -567,13 +567,13 @@ L200:
 /* ************************************************************************* */
 
   /* ...Solve subproblems................................... */
-  
+
   /* Divide the matrix into NBLKS submatrices using rank-r */
   /* modifications (cuts) and solve for their eigenvalues and */
   /* eigenvectors. Initialize index array to sort eigenvalues. */
-  
+
   /* first block: ...................................... */
-  
+
   /*    correction for block 1: D1 - V1 \Sigma1 V1^T */
 
   ksk = ksizes[0];
@@ -696,7 +696,7 @@ L200:
   }
 
   /* last block: ....................................... */
-  
+
   /*    correction for block NBLKS: */
   /*    D(nblks) - U(nblks-1) \Sigma(nblks-1) U(nblks-1)^T */
 
@@ -777,7 +777,7 @@ L200:
 
       /* eigenvectors are accumulated ( JOBZ.EQ.'D' ) */
 
-      ierr = BDC_dmerg2_(jobz, j+1, matsiz, &ev[np-1], &z[np-1+(np-1)*ldz], 
+      ierr = BDC_dmerg2_(jobz, j+1, matsiz, &ev[np-1], &z[np-1+(np-1)*ldz],
                     ldz, &iwork[np-1], &rho, &e[(j + (kbrk-1)*l2e)*l1e],
                     ksizes[kbrk], &e[(rank[kbrk-1]+j+1 + (kbrk-1)*l2e)*l1e],
                     ksizes[kbrk-1], mat1, work, lwork, &iwork[n], tol, info, 1);
@@ -794,7 +794,7 @@ L200:
   /* Re-merge the eigenvalues/vectors which were deflated at the final */
   /* merging step by sorting all eigenvalues and eigenvectors according */
   /* to the permutation stored in IWORK. */
-  
+
   /* copy eigenvalues and eigenvectors in ordered form into WORK */
   /* (eigenvalues into WORK( 1:N ), eigenvectors into WORK( N+1:N+1+N^2 ) ) */
 

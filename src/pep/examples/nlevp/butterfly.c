@@ -56,11 +56,11 @@ int main(int argc,char **argv)
   n = m*m;
   k = 10;
   ierr = PetscOptionsGetRealArray(NULL,NULL,"-c",c,&k,&flg);CHKERRQ(ierr);
-  if (flg && k!=10) SETERRQ1(PETSC_COMM_WORLD,1,"The number of parameters -c should be 10, you provided %D",k); 
+  if (flg && k!=10) SETERRQ1(PETSC_COMM_WORLD,1,"The number of parameters -c should be 10, you provided %D",k);
   ierr = PetscPrintf(PETSC_COMM_WORLD,"\nButterfly problem, n=%D (m=%D)\n\n",n,m);CHKERRQ(ierr);
 
-  /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
-                     Compute the polynomial matrices 
+  /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+                     Compute the polynomial matrices
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
   /* initialize matrices */
@@ -128,7 +128,7 @@ int main(int argc,char **argv)
     ierr = MatAssemblyEnd(A[i],MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
   }
 
-  /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+  /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                 Create the eigensolver and solve the problem
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -140,7 +140,7 @@ int main(int argc,char **argv)
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                     Display solution and clean up
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-  
+
   /* show detailed info unless -terse option is given by user */
   ierr = PetscOptionsHasName(NULL,NULL,"-terse",&terse);CHKERRQ(ierr);
   if (terse) {

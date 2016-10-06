@@ -621,7 +621,7 @@ PetscErrorCode BVView(BV bv,PetscViewer viewer)
           ierr = PetscViewerASCIIPrintf(viewer,"doing matmult as a single matrix-matrix product, saving aux matrices\n");CHKERRQ(ierr);
           break;
       }
-      if (bv->rrandom) { 
+      if (bv->rrandom) {
         ierr = PetscViewerASCIIPrintf(viewer,"generating random vectors independent of the number of processes\n");CHKERRQ(ierr);
       }
     } else {

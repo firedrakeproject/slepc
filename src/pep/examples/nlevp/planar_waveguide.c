@@ -61,8 +61,8 @@ int main(int argc,char **argv)
   h = (b-a)/n;
   nlocal = (n/4)-1;
 
-  /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
-          Set waveguide parameters used in construction of matrices 
+  /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+          Set waveguide parameters used in construction of matrices
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
   /* refractive indices in each layer */
@@ -77,8 +77,8 @@ int main(int argc,char **argv)
   deltasq = K2[0] - K2[NL-1];
   for (i=0;i<NL;i++) q[i] = K2[i] - (K2[0] + K2[NL-1])/2;
 
-  /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
-                     Compute the polynomial matrices 
+  /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+                     Compute the polynomial matrices
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
   /* initialize matrices */
@@ -172,7 +172,7 @@ int main(int argc,char **argv)
     ierr = MatAssemblyEnd(A[i],MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
   }
 
-  /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+  /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                 Create the eigensolver and solve the problem
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -184,7 +184,7 @@ int main(int argc,char **argv)
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                     Display solution and clean up
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-  
+
   /* show detailed info unless -terse option is given by user */
   ierr = PetscOptionsHasName(NULL,NULL,"-terse",&terse);CHKERRQ(ierr);
   if (terse) {

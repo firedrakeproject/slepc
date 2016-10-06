@@ -626,7 +626,7 @@ PetscErrorCode STMatGetLocalSize(ST st,PetscInt *m,PetscInt *n)
   STCheckMatrices(st,1);
   ierr = MatGetLocalSize(st->A[0],m,n);CHKERRQ(ierr);
   PetscFunctionReturn(0);
-} 
+}
 
 #undef __FUNCT__
 #define __FUNCT__ "STSetOptionsPrefix"

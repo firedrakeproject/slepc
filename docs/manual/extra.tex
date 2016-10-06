@@ -8,7 +8,7 @@
 
 \section{Supported PETSc Features}
 
-\slepc relies on \petsc for most features that are not directly related to eigenvalue problems. All functionality associated with vectors and matrices as well as linear systems of equations is provided by \petsc. Also, low level details are inherited directly from \petsc. In particular, the parallelism within \slepc methods is handled almost completely by \petsc's vector and matrix modules. 
+\slepc relies on \petsc for most features that are not directly related to eigenvalue problems. All functionality associated with vectors and matrices as well as linear systems of equations is provided by \petsc. Also, low level details are inherited directly from \petsc. In particular, the parallelism within \slepc methods is handled almost completely by \petsc's vector and matrix modules.
 
 	\slepc mainly contains high level objects, as depicted in Figure \ref{fig:slepc}. These object classes have been designed and implemented following the philosophy of other high level objects in \petsc. In this way, \slepc benefits from a number of \petsc's good properties such as the following (see \petsc{} users guide for details):
 \begin{itemize}
@@ -55,7 +55,7 @@ where $x$ and $p$ denote the velocity and pressure fields. Similar formulations 
 
 	Many of these problems can be solved by reformulating them as a reduced-order standard or generalized eigensystem, in which the matrices are equal to certain operations of the blocks. These matrices are not computed explicitly to avoid losing sparsity.
 
-	All these cases can be easily handled in \slepc by means of shell matrices. These are matrices that do not require explicit storage of the matrix entries. Instead, the user must provide subroutines for all the necessary matrix operations, typically only the application of the linear operator to a vector. 
+	All these cases can be easily handled in \slepc by means of shell matrices. These are matrices that do not require explicit storage of the matrix entries. Instead, the user must provide subroutines for all the necessary matrix operations, typically only the application of the linear operator to a vector.
 
 	Shell matrices, also called matrix-free matrices, are created in \petsc with the command \ident{MatCreateShell}. Then, the function \ident{MatShellSetOperation} is used to provide any user-defined shell matrix operations (see the \petsc{} documentation for additional details). Several examples are available in \slepc that illustrate how to solve a matrix-free eigenvalue problem.
 
@@ -264,7 +264,7 @@ Ring                   & \texttt{RGRING}     & \texttt{ring} \\\hline
 	The directory structure of the \slepc software is very similar to that in \petsc. The root directory of \slepc contains the following directories:
 \begin{description}
 \item[\texttt{lib/slepc/conf}] - Directory containing the base \slepc makefile, to be included in application makefiles.
-\item[\texttt{config}] - \slepc configuration scripts. 
+\item[\texttt{config}] - \slepc configuration scripts.
 \item[\texttt{docs}] - All documentation for \slepc, including this manual. The subdirectory \texttt{manualpages} contains the on-line manual pages of each \slepc routine.
 \item[\texttt{include}] - All include files for \slepc. The following subdirectories exist:
 \begin{description}
@@ -355,13 +355,13 @@ Each \slepc source code component directory has the following subdirectories:
 	\item[References.]\citep{Lehoucq:1998:AUG}, \citep{Maschhoff:1996:PEP}.
 	\item[Website.] \url{http://www.caam.rice.edu/software/ARPACK}.
 	\item[Version.] Release 2 (plus patches).
-	\item[Summary.] \arpack\ (ARnoldi PACKage) is a software package for the computation of a few eigenvalues and corresponding eigenvectors of a general $n\times n$ matrix $A$. It is most appropriate for large sparse or structured matrices, where structured means that a matrix-vector product $w \leftarrow Av$ requires order $n$ rather than the usual order $n^2$ floating point operations. 
+	\item[Summary.] \arpack\ (ARnoldi PACKage) is a software package for the computation of a few eigenvalues and corresponding eigenvectors of a general $n\times n$ matrix $A$. It is most appropriate for large sparse or structured matrices, where structured means that a matrix-vector product $w \leftarrow Av$ requires order $n$ rather than the usual order $n^2$ floating point operations.
 	
-	\arpack\ is based upon an algorithmic variant of the Arnoldi process called the Implicitly Restarted Arnoldi Method (IRAM). When the matrix $A$ is symmetric it reduces to a variant of the Lanczos process called the Implicitly Restarted Lanczos Method (IRLM). These variants may be viewed as a synthesis of the Arnoldi/Lanczos process with the Implicitly Shifted QR technique that is suitable for large scale problems. 
+	\arpack\ is based upon an algorithmic variant of the Arnoldi process called the Implicitly Restarted Arnoldi Method (IRAM). When the matrix $A$ is symmetric it reduces to a variant of the Lanczos process called the Implicitly Restarted Lanczos Method (IRLM). These variants may be viewed as a synthesis of the Arnoldi/Lanczos process with the Implicitly Shifted QR technique that is suitable for large scale problems.
 
 	It can be used for standard and generalized eigenvalue problems, both in real and complex arithmetic. It is implemented in Fortran 77 and it is based on the reverse communication interface. A parallel version, \parpack, is available with support for both MPI and BLACS.
 	\item[Installation.]
-	To install from the original website: first of all, unpack \texttt{arpack96.tar.gz} and also the patch file \texttt{patch.tar.gz}. If you plan to use the parallel version, extract also the contents of the file \texttt{parpack96.tar.gz} together with the patches \texttt{ppatch.tar.gz} (make sure you delete any \texttt{mpif.h} files that could exist in the directory tree). After setting all the directories, modify the \texttt{ARmake.inc} file and then compile the software with \texttt{make all}. It is recommended that \arpack is installed with its own \lapack version since it may give unexpected results with more recent versions of \lapack. 
+	To install from the original website: first of all, unpack \texttt{arpack96.tar.gz} and also the patch file \texttt{patch.tar.gz}. If you plan to use the parallel version, extract also the contents of the file \texttt{parpack96.tar.gz} together with the patches \texttt{ppatch.tar.gz} (make sure you delete any \texttt{mpif.h} files that could exist in the directory tree). After setting all the directories, modify the \texttt{ARmake.inc} file and then compile the software with \texttt{make all}. It is recommended that \arpack is installed with its own \lapack version since it may give unexpected results with more recent versions of \lapack.
 
 	Alternatively, one can use the \textsc{arpack-ng} distribution, available in \texttt{github.com}, that supports \texttt{configure}+\texttt{make} for installation. Also, SLEPc's \texttt{configure} allows to download this version automatically via the \texttt{-{}-download-arpack} option.
 
@@ -403,7 +403,7 @@ For changing the particular algorithm within \primme, use the function \ident{EP
 	\item[Version.] 201009.
 	\item[Summary.] This package provides a Fortran 90 implementation of the dynamic thick-restart Lanczos algorithm. This is a specialized version of Lanczos that targets only the case in which one wants both eigenvalues and eigenvectors of a large real symmetric eigenvalue problem that cannot use the shift-and-invert scheme. In this case the standard non-restarted Lanczos algorithm requires to store a large number of Lanczos vectors, what can cause storage problems and make each iteration of the method very expensive.
 
-	\trlan{} requires the user to provide a matrix-vector multiplication routine. The parallel version uses MPI as the message passing layer. 
+	\trlan{} requires the user to provide a matrix-vector multiplication routine. The parallel version uses MPI as the message passing layer.
 	\item[Installation.] To install this package, it is necessary to have access to a Fortran 90 compiler. The compiler name and the options used are specified in the file called \texttt{Make.inc}. To generate the library, type \texttt{make plib} in the \texttt{TRLan} directory. Alternatively, the \texttt{-{}-download-trlan} option is also available in SLEPc's \texttt{configure}.
 
 	It is possible to configure \slepc with the serial version of \trlan (built with \texttt{make lib}). For this, you have to configure \petsc with the option \texttt{-{}-with-mpi=0}.

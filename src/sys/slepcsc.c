@@ -85,7 +85,7 @@ PetscErrorCode SlepcSCCompare(SlepcSC sc,PetscScalar ar,PetscScalar ai,PetscScal
 #undef __FUNCT__
 #define __FUNCT__ "SlepcSortEigenvalues"
 /*@
-   SlepcSortEigenvalues - Sorts a list of eigenvalues according to the 
+   SlepcSortEigenvalues - Sorts a list of eigenvalues according to the
    sorting criterion specified in a SlepcSC context.
 
    Not Collective

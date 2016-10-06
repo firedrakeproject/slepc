@@ -50,9 +50,9 @@ Currently, the problem type is not exploited by \ident{PEP} solvers, except for 
 
 \paragraph{Linearization.}
 
-It is possible to transform the quadratic eigenvalue problem to a linear generalized eigenproblem $L_0y=\lambda L_1y$ by doubling the order of the system, i.e., $L_0,L_1\in\mathbb{C}^{2n\times 2n}$. There are many ways of doing this. 
+It is possible to transform the quadratic eigenvalue problem to a linear generalized eigenproblem $L_0y=\lambda L_1y$ by doubling the order of the system, i.e., $L_0,L_1\in\mathbb{C}^{2n\times 2n}$. There are many ways of doing this.
 Below, we show some of the most common linearizations,
-which are based on defining the eigenvector of the linear problem as 
+which are based on defining the eigenvector of the linear problem as
 \begin{equation}
 \label{eq:linevec}
 y=\left[\begin{array}{c}x\\x\lambda\end{array}\right].
@@ -122,7 +122,7 @@ We start by considering the case where $P$ is expressed in terms of the monomial
 \label{eq:pepmon}
 P(\lambda)=A_0+A_1 \lambda+A_2\lambda^2 +  \dotsb + A_d \lambda^d,
 \end{equation}
-where $A_0,\ldots,A_d$ are the $n\times n$ coefficient matrices. As before, the problem can be solved via some kind of linearization. One of the most commonly used one is the first companion form 
+where $A_0,\ldots,A_d$ are the $n\times n$ coefficient matrices. As before, the problem can be solved via some kind of linearization. One of the most commonly used one is the first companion form
 \begin{equation}
 \label{eq:firstcomp}
 L(\lambda)=L_0 -\lambda L_1,
@@ -371,7 +371,7 @@ T_k=\sum_{j=0}^{d-k}\binom{j+k}{k}\sigma^{j}A_{j+k},\qquad k=0,\ldots,d.
 \end{equation}
 The way this is implemented in \slepc is that the \ident{ST} object is in charge of computing the $T_k$ matrices, so that the \ident{PEP} solver operates with these matrices as it would with the original $A_i$ matrices, without changing its behaviour. We say that \ident{ST} performs the transformation.
 
-An alternative would be to apply the shift-and-invert spectral transformation to the linearization (Eq.\ \ref{eq:firstcomp}) in a smart way, making the polynomial eigensolver aware of this fact so that it can exploit the block structure of the linearization. 
+An alternative would be to apply the shift-and-invert spectral transformation to the linearization (Eq.\ \ref{eq:firstcomp}) in a smart way, making the polynomial eigensolver aware of this fact so that it can exploit the block structure of the linearization.
 Let $S_\sigma:=(L_0-\sigma L_1)^{-1}L_1$, then when the solver needs to extend the Arnoldi basis with an operation such as $z=S_\sigma w$, a linear solve is required with the form
 \begin{equation}
 \label{eq:sinvpeplin}
@@ -416,7 +416,7 @@ where in this case \Verb!-st_transform! is required.
 As a complete example of how to solve a quadratic eigenproblem via explicit linearization with explicit construction of the $L_0$ and $L_1$ matrices, consider the following command line:
 \begin{Verbatim}[fontsize=\small]
 	$ ./sleeper -pep_type linear -pep_target -10 -pep_linear_st_type sinvert
-                    -pep_linear_st_ksp_type preonly -pep_linear_st_pc_type lu 
+                    -pep_linear_st_ksp_type preonly -pep_linear_st_pc_type lu
                     -pep_linear_st_pc_factor_mat_solver_package mumps
                     -mat_mumps_icntl_14 100 -pep_linear_explicitmatrix
 \end{Verbatim}
@@ -485,7 +485,7 @@ User-defined             & \texttt{PEP\_CONV\_USER} & \texttt{-pep\_conv\_user} 
 
 When solving a quadratic eigenproblem via linearization, an accurate solution of the generalized eigenproblem does not necessarily imply a similar level of accuracy for the quadratic problem. \cite{Tisseur:2000:BEC} shows that in the case of the N1 linearization (Eq.\ \ref{eq:n1}), a small backward error in the generalized eigenproblem guarantees a small backward error in the quadratic eigenproblem. However, this holds only if $M$, $C$ and $K$ have a similar norm.
 
-When the norm of $M$, $C$ and $K$ vary widely, \cite{Tisseur:2000:BEC} recommends to solve the scaled problem, defined as 
+When the norm of $M$, $C$ and $K$ vary widely, \cite{Tisseur:2000:BEC} recommends to solve the scaled problem, defined as
 \begin{equation}
 (\mu^2M_\alpha+\mu C_\alpha+K)x=0,\label{eq:scaled}
 \end{equation}

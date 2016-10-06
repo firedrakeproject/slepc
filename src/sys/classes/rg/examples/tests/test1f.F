@@ -3,14 +3,14 @@
 !  Copyright (c) 2002-2016, Universitat Politecnica de Valencia, Spain
 !
 !  This file is part of SLEPc.
-!     
+!
 !  SLEPc is free software: you can redistribute it and/or modify it under  the
 !  terms of version 3 of the GNU Lesser General Public License as published by
 !  the Free Software Foundation.
 !
-!  SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY 
-!  WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS 
-!  FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for 
+!  SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY
+!  WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS
+!  FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for
 !  more details.
 !
 !  You  should have received a copy of the GNU Lesser General  Public  License
@@ -21,7 +21,7 @@
 !
 !  Description: Simple example that tests RG interface functions.
 !
-! ---------------------------------------------------------------------- 
+! ----------------------------------------------------------------------
 !
       program main
       implicit none
@@ -29,9 +29,9 @@
 #include <petsc/finclude/petscsys.h>
 #include <slepc/finclude/slepcrg.h>
 
-! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !     Declarations
-! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
       RG             rg
       PetscInt       i,n,inside,one
@@ -44,19 +44,19 @@
 
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !     Beginning of program
-! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
       one = 1
       call SlepcInitialize(PETSC_NULL_CHARACTER,ierr)
       call MPI_Comm_rank(PETSC_COMM_WORLD,rank,ierr)
       call RGCreate(PETSC_COMM_WORLD,rg,ierr)
 
-! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !     Ellipse
-! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
       call RGSetType(rg,RGELLIPSE,ierr)
-      center = 1.1 
+      center = 1.1
       radius = 2
       vscale = 0.1
       call RGEllipseSetParameters(rg,center,radius,vscale,ierr)
@@ -100,9 +100,9 @@
       enddo
  120  format ('(',F7.4,',',F7.4,')')
 
-! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !     Interval
-! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
       call RGSetType(rg,RGINTERVAL,ierr)
       a = -1
@@ -130,9 +130,9 @@
         endif
       endif
 
-! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !     Polygon
-! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 #if defined(PETSC_USE_COMPLEX)
       vr(1) = 0.0+2.0*PETSC_i
