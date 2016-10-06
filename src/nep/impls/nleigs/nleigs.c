@@ -37,8 +37,8 @@
 #include <slepc/private/nepimpl.h>         /*I "slepcnep.h" I*/
 #include <slepcblaslapack.h>
 
-#define  MAX_LBPOINTS  100
-#define  NDPOINTS      1e4
+#define  LBPOINTS  100   /* default value of the maximum number of Leja-Bagby points */
+#define  NDPOINTS  1e4   /* number of discretization points */
 
 typedef struct {
   PetscInt       nmat;      /* number of interpolation points */
@@ -642,7 +642,7 @@ PetscErrorCode NEPSetUp_NLEIGS(NEP nep)
   ierr = NEPSetDimensions_Default(nep,nep->nev,&nep->ncv,&nep->mpd);CHKERRQ(ierr);
   if (nep->ncv>nep->nev+nep->mpd) SETERRQ(PetscObjectComm((PetscObject)nep),1,"The value of ncv must not be larger than nev+mpd");
   if (!nep->max_it) nep->max_it = PetscMax(5000,2*nep->n/nep->ncv);
-  if (!ctx->ddmaxit) ctx->ddmaxit = MAX_LBPOINTS;
+  if (!ctx->ddmaxit) ctx->ddmaxit = LBPOINTS;
   ierr = RGIsTrivial(nep->rg,&istrivial);CHKERRQ(ierr);
   if (istrivial) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"NEPNLEIGS requires a nontrivial region defining the target set");
   ierr = RGCheckInside(nep->rg,1,&nep->target,&zero,&in);CHKERRQ(ierr);
@@ -1266,6 +1266,7 @@ $   fun(NEP nep,PetscInt *maxnp,PetscScalar *xi,void *ctx)
 
    Note:
    The user-defined function can set a smaller value of maxnp if necessary.
+   It is wrong to return a larger value.
 
    Level: intermediate
 
@@ -1635,8 +1636,9 @@ static PetscErrorCode NEPNLEIGSSetRKShifts_NLEIGS(NEP nep,PetscInt ns,PetscScala
 .  -nep_nleigs_rk_shifts - Sets the list of shifts
 
    Notes:
-   If only one shift is provided, the subspace is built with the simpler
-   shift-and-invert Krylov-Schur.
+   If only one shift is provided, the built subspace built is equivalent to
+   shift-and-invert Krylov-Schur (provided that the absolute convergence
+   criterion is used).
 
    In the case of real scalars, complex shifts are not allowed. In the
    command line, a comma-separated list of complex values can be provided with
