@@ -138,7 +138,7 @@ PetscErrorCode PEPSetUp_TOAR(PEP pep)
       ctx->nq++;
     }
   }
-  if (ctx->nq<0) SETERRQ(PetscObjectComm((PetscObject)pep),1,"PEP: Problem with initial vector");
+  if (ctx->nq==0) SETERRQ(PetscObjectComm((PetscObject)pep),1,"PEP: Problem with initial vector");
   ierr = PEPTOARSNorm2(lds,ctx->S,&norm);CHKERRQ(ierr);
   for (j=0;j<deg;j++) {
     for (i=0;i<=j;i++) ctx->S[i+j*ctx->ld] /= norm;
@@ -868,7 +868,7 @@ PetscErrorCode PEPSolve_TOAR(PEP pep)
     if (pep->reason != PEP_CONVERGED_ITERATING) {l--; flg = PETSC_TRUE;}
     else flg = PETSC_FALSE;
     /* truncate S */
-    if (k+l+deg<nq) {
+    if (k+l+deg<=nq) {
       if (!falselock && ctx->lock) {
         newc = k-pep->nconv;
         ierr = PEPTOARTrunc(pep,S,ld,deg,&nq,k+l+1,locked,newc,flg,work+nwu,rwork+nrwu);CHKERRQ(ierr);

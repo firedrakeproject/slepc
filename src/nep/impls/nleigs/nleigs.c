@@ -39,7 +39,6 @@
 
 #define  MAX_LBPOINTS  100
 #define  NDPOINTS      1e4
-#define  MAX_NSHIFTS   100
 
 typedef struct {
   PetscInt       nmat;      /* number of interpolation points */
@@ -55,7 +54,6 @@ typedef struct {
   BV             W;         /* auxiliary BV object */
   PetscReal      keep;      /* restart parameter */
   PetscBool      lock;      /* locking/non-locking variant */
-  PetscBool      trueres;   /* whether the true residual norm must be computed */
   PetscInt       idxrk;     /* index of next shift to use */
   KSP            *ksp;      /* ksp array for storing shift factorizations */
   Vec            vrn;       /* random vector with normally distributed value */
@@ -64,9 +62,9 @@ typedef struct {
 } NEP_NLEIGS;
 
 typedef struct {
-  PetscInt    nmat;
-  PetscScalar coeff[MAX_NSHIFTS];
-  Mat         A[MAX_NSHIFTS];
+  PetscInt    nmat,maxnmat;
+  PetscScalar *coeff;
+  Mat         *A;
   Vec         t;
 } ShellMatCtx;
 
@@ -259,6 +257,8 @@ static PetscErrorCode MatDuplicate_Fun(Mat A,MatDuplicateOption op,Mat *B)
   ierr = MatShellGetContext(A,(void**)&ctx);CHKERRQ(ierr);
   ierr = PetscNew(&ctxnew);CHKERRQ(ierr);
   ctxnew->nmat = ctx->nmat;
+  ctxnew->maxnmat = ctx->maxnmat;
+  ierr = PetscMalloc2(ctxnew->maxnmat,&ctxnew->A,ctxnew->maxnmat,&ctxnew->coeff);CHKERRQ(ierr); 
   for (i=0;i<ctx->nmat;i++) {
     ierr = PetscObjectReference((PetscObject)ctx->A[i]);CHKERRQ(ierr);
     ctxnew->A[i] = ctx->A[i];
@@ -297,6 +297,7 @@ static PetscErrorCode MatDestroy_Fun(Mat A)
       ierr = MatDestroy(&ctx->A[i]);CHKERRQ(ierr);
     }
     ierr = VecDestroy(&ctx->t);CHKERRQ(ierr);
+    ierr = PetscFree2(ctx->A,ctx->coeff);CHKERRQ(ierr);
     ierr = PetscFree(ctx);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
@@ -347,7 +348,7 @@ static PetscErrorCode MatScale_Fun(Mat M,PetscScalar a)
 
 #undef __FUNCT__
 #define __FUNCT__ "NLEIGSMatToMatShellArray"
-static PetscErrorCode NLEIGSMatToMatShellArray(Mat M,Mat *Ms)
+static PetscErrorCode NLEIGSMatToMatShellArray(Mat M,Mat *Ms,PetscInt maxnmat)
 {
   PetscErrorCode ierr;
   ShellMatCtx    *ctx;
@@ -358,6 +359,8 @@ static PetscErrorCode NLEIGSMatToMatShellArray(Mat M,Mat *Ms)
   ierr = MatHasOperation(M,MATOP_DUPLICATE,&has);CHKERRQ(ierr);
   if (!has) SETERRQ(PetscObjectComm((PetscObject)M),1,"MatDuplicate operation required");
   ierr = PetscNew(&ctx);CHKERRQ(ierr);
+  ctx->maxnmat = maxnmat;
+  ierr = PetscMalloc2(ctx->maxnmat,&ctx->A,ctx->maxnmat,&ctx->coeff);CHKERRQ(ierr);
   ierr = MatDuplicate(M,MAT_COPY_VALUES,&ctx->A[0]);CHKERRQ(ierr);
   ctx->nmat = 1;
   ctx->coeff[0] = 1.0;
@@ -425,7 +428,7 @@ static PetscErrorCode NEPNLEIGSDividedDifferences_split(NEP nep)
 {
   PetscErrorCode ierr;
   NEP_NLEIGS     *ctx=(NEP_NLEIGS*)nep->data;
-  PetscInt       k,j,i;
+  PetscInt       k,j,i,maxnmat;
   PetscReal      norm0,norm,max;
   PetscScalar    *s=ctx->s,*beta=ctx->beta,*b,alpha,*coeffs;
   Mat            T,Ts;
@@ -461,12 +464,13 @@ static PetscErrorCode NEPNLEIGSDividedDifferences_split(NEP nep)
   }
   if (!ctx->ksp) { ierr = NEPNLEIGSGetKSPs(nep,&ctx->ksp);CHKERRQ(ierr); }
   ierr = PetscObjectTypeCompare((PetscObject)nep->A[0],MATSHELL,&shell);CHKERRQ(ierr);
+  maxnmat = PetscMax(ctx->ddmaxit,nep->nt);
   for (i=0;i<ctx->nshiftsw;i++) {
     ierr = NEPNLEIGSEvalNRTFunct(nep,ctx->nmat,ctx->shifts[i],coeffs);CHKERRQ(ierr);
     if (!shell) {
       ierr = MatDuplicate(nep->A[0],MAT_COPY_VALUES,&T);CHKERRQ(ierr);
     } else {
-      ierr = NLEIGSMatToMatShellArray(nep->A[0],&T);CHKERRQ(ierr);
+      ierr = NLEIGSMatToMatShellArray(nep->A[0],&T,maxnmat);CHKERRQ(ierr);
     }
     alpha = 0.0;
     for (j=0;j<ctx->nmat-1;j++) alpha += coeffs[j]*ctx->coeffD[j*nep->nt];
@@ -475,7 +479,7 @@ static PetscErrorCode NEPNLEIGSDividedDifferences_split(NEP nep)
       alpha = 0.0;
       for (j=0;j<ctx->nmat-1;j++) alpha += coeffs[j]*ctx->coeffD[j*nep->nt+k];
       if (shell) {
-        ierr = NLEIGSMatToMatShellArray(nep->A[k],&Ts);CHKERRQ(ierr);
+        ierr = NLEIGSMatToMatShellArray(nep->A[k],&Ts,maxnmat);CHKERRQ(ierr);
       }
       ierr = MatAXPY(T,alpha,shell?Ts:nep->A[k],nep->mstr);CHKERRQ(ierr);
       if (shell) {
@@ -496,7 +500,7 @@ static PetscErrorCode NEPNLEIGSDividedDifferences_callback(NEP nep)
 {
   PetscErrorCode ierr;
   NEP_NLEIGS     *ctx=(NEP_NLEIGS*)nep->data;
-  PetscInt       k,j,i;
+  PetscInt       k,j,i,maxnmat;
   PetscReal      norm0,norm;
   PetscScalar    *s=ctx->s,*beta=ctx->beta,*b,*coeffs;
   Mat            *D=ctx->D,T;
@@ -508,10 +512,11 @@ static PetscErrorCode NEPNLEIGSDividedDifferences_callback(NEP nep)
   T = nep->function;
   ierr = NEPComputeFunction(nep,s[0],T,T);CHKERRQ(ierr);
   ierr = PetscObjectTypeCompare((PetscObject)T,MATSHELL,&shell);CHKERRQ(ierr);
+  maxnmat = PetscMax(ctx->ddmaxit,nep->nt);
   if (!shell) {
     ierr = MatDuplicate(T,MAT_COPY_VALUES,&D[0]);CHKERRQ(ierr);
   } else {
-    ierr = NLEIGSMatToMatShellArray(T,&D[0]);CHKERRQ(ierr);
+    ierr = NLEIGSMatToMatShellArray(T,&D[0],maxnmat);CHKERRQ(ierr);
   }
   if (beta[0]!=1.0) {
     ierr = MatScale(D[0],1.0/beta[0]);CHKERRQ(ierr);
@@ -532,7 +537,7 @@ static PetscErrorCode NEPNLEIGSDividedDifferences_callback(NEP nep)
     if (!shell) {
       ierr = MatDuplicate(T,MAT_COPY_VALUES,&D[k]);CHKERRQ(ierr);
     } else {
-      ierr = NLEIGSMatToMatShellArray(T,&D[k]);CHKERRQ(ierr);
+      ierr = NLEIGSMatToMatShellArray(T,&D[k],maxnmat);CHKERRQ(ierr);
     }
     for (j=0;j<k;j++) {
       ierr = MatAXPY(D[k],-b[j],D[j],nep->mstr);CHKERRQ(ierr);
@@ -576,37 +581,6 @@ static PetscErrorCode NEPNLEIGSDividedDifferences_callback(NEP nep)
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "NEPNLEIGSRitzVector"
-static PetscErrorCode NEPNLEIGSRitzVector(NEP nep,PetscScalar *S,PetscInt ld,PetscInt nq,PetscScalar *H,PetscInt k,Vec t)
-{
-  PetscErrorCode ierr;
-  NEP_NLEIGS     *ctx=(NEP_NLEIGS*)nep->data;
-  PetscInt       deg=ctx->nmat-1,ldds,n;
-  PetscBLASInt   nq_,lds_,n_,one=1,ldds_;
-  PetscScalar    sone=1.0,zero=0.0,*x,*y,*X;
-
-  PetscFunctionBegin;
-  ierr = DSGetDimensions(nep->ds,&n,NULL,NULL,NULL,NULL);CHKERRQ(ierr);
-  ierr = PetscMalloc1(n+nq,&y);CHKERRQ(ierr);
-  x = y+nq;
-  ierr = DSGetLeadingDimension(nep->ds,&ldds);CHKERRQ(ierr);
-  ierr = PetscBLASIntCast(n,&n_);CHKERRQ(ierr);
-  ierr = PetscBLASIntCast(nq,&nq_);CHKERRQ(ierr);
-  ierr = PetscBLASIntCast(ldds,&ldds_);CHKERRQ(ierr);
-  ierr = PetscBLASIntCast(deg*ld,&lds_);CHKERRQ(ierr);
-  ierr = DSGetArray(nep->ds,DS_MAT_X,&X);CHKERRQ(ierr);
-  if (ctx->nshifts) PetscStackCall("BLASgemv",BLASgemv_("N",&n_,&n_,&sone,H,&ldds_,X+k*ldds,&one,&zero,x,&one));
-  else x = X+k*ldds;
-  PetscStackCall("BLASgemv",BLASgemv_("N",&nq_,&n_,&sone,S,&lds_,x,&one,&zero,y,&one));
-  ierr = DSRestoreArray(nep->ds,DS_MAT_X,&X);CHKERRQ(ierr);
-  ierr = BVSetActiveColumns(nep->V,0,nq);CHKERRQ(ierr);
-  ierr = BVMultVec(nep->V,1.0,0.0,t,y);CHKERRQ(ierr);
-  ierr = VecNormalize(t,NULL);CHKERRQ(ierr);
-  ierr = PetscFree(y);CHKERRQ(ierr);
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
 #define __FUNCT__ "NEPNLEIGSKrylovConvergence"
 /*
    NEPKrylovConvergence - This is the analogue to EPSKrylovConvergence.
@@ -618,11 +592,9 @@ static PetscErrorCode NEPNLEIGSKrylovConvergence(NEP nep,PetscScalar *S,PetscInt
   PetscScalar    re,im;
   PetscReal      resnorm,tt;
   PetscBool      istrivial;
-  Vec            t;
   NEP_NLEIGS     *ctx = (NEP_NLEIGS*)nep->data;
 
   PetscFunctionBegin;
-  t = w[0];
   ierr = RGIsTrivial(nep->rg,&istrivial);CHKERRQ(ierr);
   marker = -1;
   if (nep->trackall) getall = PETSC_TRUE;
@@ -643,12 +615,6 @@ static PetscErrorCode NEPNLEIGSKrylovConvergence(NEP nep,PetscScalar *S,PetscInt
     resnorm *=  PetscAbsReal(tt);
     /* error estimate */
     ierr = (*nep->converged)(nep,nep->eigr[k],nep->eigi[k],resnorm,&nep->errest[k],nep->convergedctx);CHKERRQ(ierr);
-    if (ctx->trueres && (nep->errest[k] < nep->tol) ) {
-      /* check explicit residual */
-      ierr = NEPNLEIGSRitzVector(nep,S,ld,nq,H,k,t);CHKERRQ(ierr);
-      ierr = NEPComputeResidualNorm_Private(nep,re,t,w+1,&resnorm);CHKERRQ(ierr);
-      ierr = (*nep->converged)(nep,re,im,resnorm,&nep->errest[k],nep->convergedctx);CHKERRQ(ierr);
-    }
     if (marker==-1 && nep->errest[k] >= nep->tol) marker = k;
     if (newk==k+1) {
       nep->errest[k+1] = nep->errest[k];
@@ -1632,93 +1598,6 @@ PetscErrorCode NEPNLEIGSGetInterpolation(NEP nep,PetscReal *tol,PetscInt *maxits
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "NEPNLEIGSSetTrueResidual_NLEIGS"
-static PetscErrorCode NEPNLEIGSSetTrueResidual_NLEIGS(NEP nep,PetscBool trueres)
-{
-  NEP_NLEIGS *ctx=(NEP_NLEIGS*)nep->data;
-
-  PetscFunctionBegin;
-  ctx->trueres = trueres;
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
-#define __FUNCT__ "NEPNLEIGSSetTrueResidual"
-/*@
-   NEPNLEIGSSetTrueResidual - Specifies if the solver must compute the true residual
-   explicitly or not.
-
-   Logically Collective on NEP
-
-   Input Parameters:
-+  nep - the nonlinear eigensolver context
--  trueres - whether true residuals are required or not
-
-   Options Database Key:
-.  -nep_nleigs_true_residual <boolean> - Sets/resets the boolean flag 'trueres'
-
-   Notes:
-   If the user sets trueres=PETSC_TRUE then the solver explicitly computes
-   the true residual norm for each eigenpair approximation, and uses it for
-   convergence testing. The default is to use the cheaper approximation 
-   available from the (rational) Krylov iteration.
-
-   Level: advanced
-
-.seealso: NEPNLEIGSGetTrueResidual()
-@*/
-PetscErrorCode NEPNLEIGSSetTrueResidual(NEP nep,PetscBool trueres)
-{
-  PetscErrorCode ierr;
-
-  PetscFunctionBegin;
-  PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
-  PetscValidLogicalCollectiveBool(nep,trueres,2);
-  ierr = PetscTryMethod(nep,"NEPNLEIGSSetTrueResidual_C",(NEP,PetscBool),(nep,trueres));CHKERRQ(ierr);
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
-#define __FUNCT__ "NEPNLEIGSGetTrueResidual_NLEIGS"
-static PetscErrorCode NEPNLEIGSGetTrueResidual_NLEIGS(NEP nep,PetscBool *trueres)
-{
-  NEP_NLEIGS *ctx=(NEP_NLEIGS*)nep->data;
-
-  PetscFunctionBegin;
-  *trueres = ctx->trueres;
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
-#define __FUNCT__ "NEPNLEIGSGetTrueResidual"
-/*@
-   NEPNLEIGSGetTrueResidual - Returns the flag indicating whether true
-   residuals must be computed explicitly or not.
-
-   Not Collective
-
-   Input Parameter:
-.  nep - the nonlinear eigensolver context
-
-   Output Parameter:
-.  trueres - the returned flag
-
-   Level: advanced
-
-.seealso: NEPNLEIGSSetTrueResidual()
-@*/
-PetscErrorCode NEPNLEIGSGetTrueResidual(NEP nep,PetscBool *trueres)
-{
-  PetscErrorCode ierr;
-
-  PetscFunctionBegin;
-  PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
-  PetscValidPointer(trueres,2);
-  ierr = PetscTryMethod(nep,"NEPNLEIGSGetTrueResidual_C",(NEP,PetscBool*),(nep,trueres));CHKERRQ(ierr);
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
 #define __FUNCT__ "NEPNLEIGSSetRKShifts_NLEIGS"
 static PetscErrorCode NEPNLEIGSSetRKShifts_NLEIGS(NEP nep,PetscInt ns,PetscScalar *shifts)
 {
@@ -1854,10 +1733,6 @@ PetscErrorCode NEPSetFromOptions_NLEIGS(PetscOptionItems *PetscOptionsObject,NEP
   if (flg1) {
     ierr = NEPNLEIGSSetLocking(nep,b);CHKERRQ(ierr);
   }
-  ierr = PetscOptionsBool("-nep_nleigs_true_residual","Compute true residuals explicitly","NEPNLEIGSSetTrueResidual",PETSC_FALSE,&b,&flg1);CHKERRQ(ierr);
-  if (flg1) {
-    ierr = NEPNLEIGSSetTrueResidual(nep,b);CHKERRQ(ierr);
-  }
   ierr = NEPNLEIGSGetInterpolation(nep,&r,&i);CHKERRQ(ierr);
   if (!i) i = PETSC_DEFAULT;
   ierr = PetscOptionsInt("-nep_nleigs_interpolation_max_it","Maximum number of terms for interpolation via divided differences","NEPNLEIGSSetInterpolation",i,&i,&flg1);CHKERRQ(ierr);
@@ -1968,7 +1843,6 @@ PetscErrorCode NEPView_NLEIGS(NEP nep,PetscViewer viewer)
       ierr = PetscViewerASCIIPrintf(viewer,"\n");CHKERRQ(ierr);
       ierr = PetscViewerASCIIUseTabs(viewer,PETSC_TRUE);CHKERRQ(ierr);
     }
-    if (ctx->trueres) { ierr = PetscViewerASCIIPrintf(viewer,"  NLEIGS: computing true residuals for convergence check\n");CHKERRQ(ierr); }
     if (!ctx->ksp) { ierr = NEPNLEIGSGetKSPs(nep,&ctx->ksp);CHKERRQ(ierr); }
     ierr = PetscViewerASCIIPushTab(viewer);CHKERRQ(ierr);
     ierr = KSPView(ctx->ksp[0],viewer);CHKERRQ(ierr);
@@ -2019,8 +1893,6 @@ PetscErrorCode NEPDestroy_NLEIGS(NEP nep)
   ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPNLEIGSGetLocking_C",NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPNLEIGSSetInterpolation_C",NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPNLEIGSGetInterpolation_C",NULL);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPNLEIGSSetTrueResidual_C",NULL);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPNLEIGSGetTrueResidual_C",NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPNLEIGSSetRKShifts_C",NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPNLEIGSGetRKShifts_C",NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPNLEIGSGetKSPs_C",NULL);CHKERRQ(ierr);
@@ -2040,7 +1912,6 @@ PETSC_EXTERN PetscErrorCode NEPCreate_NLEIGS(NEP nep)
   ctx->lock    = PETSC_TRUE;
   ctx->ddtol   = PETSC_DEFAULT;
   ctx->ddmaxit = 0;
-  ctx->trueres = PETSC_FALSE;
   ctx->nshifts = 0;
 
   nep->ops->solve          = NEPSolve_NLEIGS;
@@ -2058,8 +1929,6 @@ PETSC_EXTERN PetscErrorCode NEPCreate_NLEIGS(NEP nep)
   ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPNLEIGSGetLocking_C",NEPNLEIGSGetLocking_NLEIGS);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPNLEIGSSetInterpolation_C",NEPNLEIGSSetInterpolation_NLEIGS);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPNLEIGSGetInterpolation_C",NEPNLEIGSGetInterpolation_NLEIGS);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPNLEIGSSetTrueResidual_C",NEPNLEIGSSetTrueResidual_NLEIGS);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPNLEIGSGetTrueResidual_C",NEPNLEIGSGetTrueResidual_NLEIGS);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPNLEIGSSetRKShifts_C",NEPNLEIGSSetRKShifts_NLEIGS);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPNLEIGSGetRKShifts_C",NEPNLEIGSGetRKShifts_NLEIGS);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPNLEIGSGetKSPs_C",NEPNLEIGSGetKSPs_NLEIGS);CHKERRQ(ierr);

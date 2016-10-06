@@ -34,8 +34,8 @@ TESTEXAMPLES_C_NOTSINGLE       = test1.PETSc runtest1_1 test1.rm \
                                  test3.PETSc runtest3_1 test3.rm \
                                  test4.PETSc runtest4_1 test4.rm \
                                  test5.PETSc runtest5_1 test5.rm \
-                                 test6.PETSc runtest6_1 test6.rm \
-                                 test7.PETSc runtest7_1 runtest7_2 test7.rm \
+                                 test7.PETSc runtest7_1 runtest7_2 test7.rm
+TESTEXAMPLES_C_DATAFILE        = test6.PETSc runtest6_1 test6.rm \
                                  test8.PETSc runtest8_1 test8.rm
 TESTEXAMPLES_FORTRAN_NOTSINGLE = test2f.PETSc runtest2f_1 test2f.rm
 
