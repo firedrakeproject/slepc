@@ -868,7 +868,7 @@ PetscErrorCode PEPSolve_TOAR(PEP pep)
     if (pep->reason != PEP_CONVERGED_ITERATING) {l--; flg = PETSC_TRUE;}
     else flg = PETSC_FALSE;
     /* truncate S */
-    if (k+l+deg<nq) {
+    if (k+l+deg<=nq) {
       if (!falselock && ctx->lock) {
         newc = k-pep->nconv;
         ierr = PEPTOARTrunc(pep,S,ld,deg,&nq,k+l+1,locked,newc,flg,work+nwu,rwork+nrwu);CHKERRQ(ierr);
