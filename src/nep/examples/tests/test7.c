@@ -67,7 +67,7 @@ int main(int argc,char **argv)
   RG             rg;
   FN             f[2];
   PetscMPIInt    size;
-  PetscBool      terse,flg,lock,trueres,split=PETSC_TRUE;
+  PetscBool      terse,flg,lock,split=PETSC_TRUE;
   PetscScalar    coeffs;
   MatCtx         *ctx;
 
@@ -155,11 +155,9 @@ int main(int argc,char **argv)
     ierr = NEPNLEIGSGetRestart(nep,&keep);CHKERRQ(ierr);
     ierr = NEPNLEIGSGetLocking(nep,&lock);CHKERRQ(ierr);
     ierr = NEPNLEIGSGetInterpolation(nep,&tol,&its);CHKERRQ(ierr);
-    ierr = NEPNLEIGSGetTrueResidual(nep,&trueres);CHKERRQ(ierr);
     ierr = PetscPrintf(PETSC_COMM_WORLD," Restart factor is %3.2f",(double)keep);CHKERRQ(ierr);
     if (lock) { ierr = PetscPrintf(PETSC_COMM_WORLD," (locking activated)");CHKERRQ(ierr); }
     ierr = PetscPrintf(PETSC_COMM_WORLD,"\n Divided diferences with tol=%6.2g maxit=%D\n",(double)tol,its);CHKERRQ(ierr);
-    if (trueres) { ierr = PetscPrintf(PETSC_COMM_WORLD," Computing the true residual\n");CHKERRQ(ierr); }
     ierr = PetscPrintf(PETSC_COMM_WORLD,"\n");CHKERRQ(ierr);
   }
 
