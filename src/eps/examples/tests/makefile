@@ -46,7 +46,7 @@ TESTEXAMPLES_C_NOTSINGLE           = test1.PETSc runtest1_1 runtest1_3 runtest1_
                                      test4.PETSc runtest4_1 test4.rm \
                                      test6.PETSc runtest6_1 test6.rm \
                                      test8.PETSc runtest8_1 test8.rm \
-                                     test9.PETSc runtest9_1 runtest9_2 runtest9_3 test9.rm \
+                                     test9.PETSc runtest9_1 runtest9_2 runtest9_3 runtest9_4 test9.rm \
                                      test10.PETSc runtest10_1 test10.rm \
                                      test11.PETSc runtest11_1 test11.rm \
                                      test12.PETSc runtest12_1 test12.rm \
@@ -363,6 +363,11 @@ runtest9_3: runtest9_3_never runtest9_3_ifneeded
 runtest9_3_%:
 	-@${SETTEST}; check=test9_3; refine=$*; \
 	${MPIEXEC} -n 2 ./test9 -eps_type arnoldi -eps_arnoldi_delayed -eps_largest_real -eps_nev 3 -eps_tol 1e-7 -bv_orthog_refine $$refine > $${test}.tmp 2>&1; \
+	${TESTCODE}
+
+runtest9_4:
+	-@${SETTEST}; check=test9_1; \
+	${MPIEXEC} -n 1 ./test9 -eps_nev 4 -eps_true_residual > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
 runtest10_1: runtest10_1_krylovschur runtest10_1_arnoldi runtest10_1_lanczos runtest10_1_gd runtest10_1_jd runtest10_1_gd2 runtest10_1_rqcg runtest10_1_lobpcg
