@@ -39,7 +39,6 @@
 
 #define  MAX_LBPOINTS  100
 #define  NDPOINTS      1e4
-#define  MAX_NSHIFTS   100
 
 typedef struct {
   PetscInt       nmat;      /* number of interpolation points */
@@ -64,9 +63,9 @@ typedef struct {
 } NEP_NLEIGS;
 
 typedef struct {
-  PetscInt    nmat;
-  PetscScalar coeff[MAX_NSHIFTS];
-  Mat         A[MAX_NSHIFTS];
+  PetscInt    nmat,maxnmat;
+  PetscScalar *coeff;
+  Mat         *A;
   Vec         t;
 } ShellMatCtx;
 
@@ -259,6 +258,8 @@ static PetscErrorCode MatDuplicate_Fun(Mat A,MatDuplicateOption op,Mat *B)
   ierr = MatShellGetContext(A,(void**)&ctx);CHKERRQ(ierr);
   ierr = PetscNew(&ctxnew);CHKERRQ(ierr);
   ctxnew->nmat = ctx->nmat;
+  ctxnew->maxnmat = ctx->maxnmat;
+  ierr = PetscMalloc2(ctxnew->maxnmat,&ctxnew->A,ctxnew->maxnmat,&ctxnew->coeff);CHKERRQ(ierr); 
   for (i=0;i<ctx->nmat;i++) {
     ierr = PetscObjectReference((PetscObject)ctx->A[i]);CHKERRQ(ierr);
     ctxnew->A[i] = ctx->A[i];
@@ -297,6 +298,7 @@ static PetscErrorCode MatDestroy_Fun(Mat A)
       ierr = MatDestroy(&ctx->A[i]);CHKERRQ(ierr);
     }
     ierr = VecDestroy(&ctx->t);CHKERRQ(ierr);
+    ierr = PetscFree2(ctx->A,ctx->coeff);CHKERRQ(ierr);
     ierr = PetscFree(ctx);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
@@ -347,7 +349,7 @@ static PetscErrorCode MatScale_Fun(Mat M,PetscScalar a)
 
 #undef __FUNCT__
 #define __FUNCT__ "NLEIGSMatToMatShellArray"
-static PetscErrorCode NLEIGSMatToMatShellArray(Mat M,Mat *Ms)
+static PetscErrorCode NLEIGSMatToMatShellArray(Mat M,Mat *Ms,PetscInt maxnmat)
 {
   PetscErrorCode ierr;
   ShellMatCtx    *ctx;
@@ -358,6 +360,8 @@ static PetscErrorCode NLEIGSMatToMatShellArray(Mat M,Mat *Ms)
   ierr = MatHasOperation(M,MATOP_DUPLICATE,&has);CHKERRQ(ierr);
   if (!has) SETERRQ(PetscObjectComm((PetscObject)M),1,"MatDuplicate operation required");
   ierr = PetscNew(&ctx);CHKERRQ(ierr);
+  ctx->maxnmat = maxnmat;
+  ierr = PetscMalloc2(ctx->maxnmat,&ctx->A,ctx->maxnmat,&ctx->coeff);CHKERRQ(ierr);
   ierr = MatDuplicate(M,MAT_COPY_VALUES,&ctx->A[0]);CHKERRQ(ierr);
   ctx->nmat = 1;
   ctx->coeff[0] = 1.0;
@@ -425,7 +429,7 @@ static PetscErrorCode NEPNLEIGSDividedDifferences_split(NEP nep)
 {
   PetscErrorCode ierr;
   NEP_NLEIGS     *ctx=(NEP_NLEIGS*)nep->data;
-  PetscInt       k,j,i;
+  PetscInt       k,j,i,maxnmat;
   PetscReal      norm0,norm,max;
   PetscScalar    *s=ctx->s,*beta=ctx->beta,*b,alpha,*coeffs;
   Mat            T,Ts;
@@ -461,12 +465,13 @@ static PetscErrorCode NEPNLEIGSDividedDifferences_split(NEP nep)
   }
   if (!ctx->ksp) { ierr = NEPNLEIGSGetKSPs(nep,&ctx->ksp);CHKERRQ(ierr); }
   ierr = PetscObjectTypeCompare((PetscObject)nep->A[0],MATSHELL,&shell);CHKERRQ(ierr);
+  maxnmat = PetscMax(ctx->ddmaxit,nep->nt);
   for (i=0;i<ctx->nshiftsw;i++) {
     ierr = NEPNLEIGSEvalNRTFunct(nep,ctx->nmat,ctx->shifts[i],coeffs);CHKERRQ(ierr);
     if (!shell) {
       ierr = MatDuplicate(nep->A[0],MAT_COPY_VALUES,&T);CHKERRQ(ierr);
     } else {
-      ierr = NLEIGSMatToMatShellArray(nep->A[0],&T);CHKERRQ(ierr);
+      ierr = NLEIGSMatToMatShellArray(nep->A[0],&T,maxnmat);CHKERRQ(ierr);
     }
     alpha = 0.0;
     for (j=0;j<ctx->nmat-1;j++) alpha += coeffs[j]*ctx->coeffD[j*nep->nt];
@@ -475,7 +480,7 @@ static PetscErrorCode NEPNLEIGSDividedDifferences_split(NEP nep)
       alpha = 0.0;
       for (j=0;j<ctx->nmat-1;j++) alpha += coeffs[j]*ctx->coeffD[j*nep->nt+k];
       if (shell) {
-        ierr = NLEIGSMatToMatShellArray(nep->A[k],&Ts);CHKERRQ(ierr);
+        ierr = NLEIGSMatToMatShellArray(nep->A[k],&Ts,maxnmat);CHKERRQ(ierr);
       }
       ierr = MatAXPY(T,alpha,shell?Ts:nep->A[k],nep->mstr);CHKERRQ(ierr);
       if (shell) {
@@ -496,7 +501,7 @@ static PetscErrorCode NEPNLEIGSDividedDifferences_callback(NEP nep)
 {
   PetscErrorCode ierr;
   NEP_NLEIGS     *ctx=(NEP_NLEIGS*)nep->data;
-  PetscInt       k,j,i;
+  PetscInt       k,j,i,maxnmat;
   PetscReal      norm0,norm;
   PetscScalar    *s=ctx->s,*beta=ctx->beta,*b,*coeffs;
   Mat            *D=ctx->D,T;
@@ -508,10 +513,11 @@ static PetscErrorCode NEPNLEIGSDividedDifferences_callback(NEP nep)
   T = nep->function;
   ierr = NEPComputeFunction(nep,s[0],T,T);CHKERRQ(ierr);
   ierr = PetscObjectTypeCompare((PetscObject)T,MATSHELL,&shell);CHKERRQ(ierr);
+  maxnmat = PetscMax(ctx->ddmaxit,nep->nt);
   if (!shell) {
     ierr = MatDuplicate(T,MAT_COPY_VALUES,&D[0]);CHKERRQ(ierr);
   } else {
-    ierr = NLEIGSMatToMatShellArray(T,&D[0]);CHKERRQ(ierr);
+    ierr = NLEIGSMatToMatShellArray(T,&D[0],maxnmat);CHKERRQ(ierr);
   }
   if (beta[0]!=1.0) {
     ierr = MatScale(D[0],1.0/beta[0]);CHKERRQ(ierr);
@@ -532,7 +538,7 @@ static PetscErrorCode NEPNLEIGSDividedDifferences_callback(NEP nep)
     if (!shell) {
       ierr = MatDuplicate(T,MAT_COPY_VALUES,&D[k]);CHKERRQ(ierr);
     } else {
-      ierr = NLEIGSMatToMatShellArray(T,&D[k]);CHKERRQ(ierr);
+      ierr = NLEIGSMatToMatShellArray(T,&D[k],maxnmat);CHKERRQ(ierr);
     }
     for (j=0;j<k;j++) {
       ierr = MatAXPY(D[k],-b[j],D[j],nep->mstr);CHKERRQ(ierr);
