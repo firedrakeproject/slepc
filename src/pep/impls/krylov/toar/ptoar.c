@@ -138,7 +138,7 @@ PetscErrorCode PEPSetUp_TOAR(PEP pep)
       ctx->nq++;
     }
   }
-  if (ctx->nq<0) SETERRQ(PetscObjectComm((PetscObject)pep),1,"PEP: Problem with initial vector");
+  if (ctx->nq==0) SETERRQ(PetscObjectComm((PetscObject)pep),1,"PEP: Problem with initial vector");
   ierr = PEPTOARSNorm2(lds,ctx->S,&norm);CHKERRQ(ierr);
   for (j=0;j<deg;j++) {
     for (i=0;i<=j;i++) ctx->S[i+j*ctx->ld] /= norm;
