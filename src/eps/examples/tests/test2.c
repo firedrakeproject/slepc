@@ -34,6 +34,7 @@ int main(int argc,char **argv)
   PetscInt       n=30,i,Istart,Iend;
   PetscBool      flg;
   PetscErrorCode ierr;
+  EPSLanczosReorthogType reorth;
 
   ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
 
@@ -66,6 +67,13 @@ int main(int argc,char **argv)
   ierr = EPSSetProblemType(eps,EPS_HEP);CHKERRQ(ierr);
   ierr = EPSSetTolerances(eps,tol,PETSC_DEFAULT);CHKERRQ(ierr);
   ierr = EPSSetFromOptions(eps);CHKERRQ(ierr);
+
+  /* illustrate how to extract parameters from specific solver types */
+  ierr = PetscObjectTypeCompare((PetscObject)eps,EPSLANCZOS,&flg);CHKERRQ(ierr);
+  if (flg) {
+    ierr = EPSLanczosGetReorthog(eps,&reorth);CHKERRQ(ierr);
+    ierr = PetscPrintf(PETSC_COMM_WORLD,"Reorthogonalization type used in Lanczos: %s\n",EPSLanczosReorthogTypes[reorth]);CHKERRQ(ierr);
+  }
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                     Solve for largest eigenvalues
