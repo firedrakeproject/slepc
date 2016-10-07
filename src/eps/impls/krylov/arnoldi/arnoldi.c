@@ -135,7 +135,7 @@ PetscErrorCode EPSSolve_Arnoldi(EPS eps)
       ierr = BVScaleColumn(eps->V,k,1.0/nrm);CHKERRQ(ierr);
     } else {
       ierr = DSGetMat(eps->ds,DS_MAT_Q,&U);CHKERRQ(ierr);
-      ierr = BVMultInPlace(eps->V,U,eps->nconv,k+1);CHKERRQ(ierr);
+      ierr = BVMultInPlace(eps->V,U,eps->nconv,PetscMin(k+1,nv));CHKERRQ(ierr);
       ierr = MatDestroy(&U);CHKERRQ(ierr);
     }
     ierr = (*eps->stopping)(eps,eps->its,eps->max_it,k,eps->nev,&eps->reason,eps->stoppingctx);CHKERRQ(ierr);
