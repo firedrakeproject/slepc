@@ -117,7 +117,7 @@ static PetscErrorCode PEPSimpleNRefSetUp(PEP pep,PEPSimpNRefctx **ctx_)
       ierr = VecCreateMPI(PetscObjectComm((PetscObject)ctx->A[0]),ne,PETSC_DECIDE,&ctx->nv);CHKERRQ(ierr);
       ierr = PetscMalloc1(m0-n0,&idx1);CHKERRQ(ierr);
       for (i=n0;i<m0;i++) idx1[i-n0] = i;
-      ierr = ISCreateGeneral(PetscObjectComm((PetscObject)pep),(m0-n0),idx1,PETSC_COPY_VALUES,&is1);CHKERRQ(ierr);
+      ierr = ISCreateGeneral(PetscObjectComm((PetscObject)ctx->A[0]),(m0-n0),idx1,PETSC_COPY_VALUES,&is1);CHKERRQ(ierr);
       ierr = VecScatterCreate(v,is1,ctx->nv,is1,&ctx->nst);CHKERRQ(ierr);
       if (pep->npart==1) {
         ierr = BVRestoreColumn(pep->V,0,&v);CHKERRQ(ierr);
@@ -143,9 +143,9 @@ static PetscErrorCode PEPSimpleNRefGatherEigenpair(PEP pep,PEPSimpNRefctx *ctx,P
   const PetscScalar *array;
 
   PetscFunctionBegin;
+  ierr = MPI_Comm_size(comm,&nproc);CHKERRQ(ierr);
+  p = (nproc/pep->npart)*(sc+1)+PetscMin(nproc%pep->npart,sc+1)-1;
   if (pep->npart>1) {
-    ierr = MPI_Comm_size(comm,&nproc);CHKERRQ(ierr);
-    p = (nproc/pep->npart)*sc+PetscMin(sc,nproc%pep->npart);
     /* Communicate convergence successful */
     ierr = MPI_Bcast(fail,1,MPIU_INT,p,comm);CHKERRQ(ierr);
     if (!(*fail)) {
@@ -167,8 +167,6 @@ static PetscErrorCode PEPSimpleNRefGatherEigenpair(PEP pep,PEPSimpNRefctx *ctx,P
     }
   } else {
     if (pep->scheme==PEP_REFINE_SCHEME_EXPLICIT && !(*fail)) {
-      ierr = MPI_Comm_size(comm,&nproc);CHKERRQ(ierr);
-      p = (nproc/pep->npart)*sc+PetscMin(sc,nproc%pep->npart);
       ierr = MPI_Bcast(&pep->eigr[idx],1,MPIU_SCALAR,p,comm);CHKERRQ(ierr);
     }
   }

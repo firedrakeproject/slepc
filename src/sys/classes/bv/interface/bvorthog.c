@@ -133,6 +133,7 @@ static PetscErrorCode BVOrthogonalizeMGS(BV bv,PetscInt j,Vec v,PetscBool *which
   PetscReal      onrm,nrm;
   PetscInt       k,l;
   Vec            w;
+  PetscBool      dolindep;
 
   PetscFunctionBegin;
   if (v) {
@@ -143,6 +144,11 @@ static PetscErrorCode BVOrthogonalizeMGS(BV bv,PetscInt j,Vec v,PetscBool *which
     k = j;
   }
   ierr = PetscMemzero(bv->h,(bv->nc+k)*sizeof(PetscScalar));CHKERRQ(ierr);
+
+  /* if indefinite inner product, skip the computation of lindep */
+  if (bv->indef && lindep) *lindep = PETSC_FALSE;
+  dolindep = (!bv->indef && lindep)? PETSC_TRUE: PETSC_FALSE;
+
   switch (bv->orthog_ref) {
 
   case BV_ORTHOG_REFINE_IFNEEDED:
@@ -158,31 +164,31 @@ static PetscErrorCode BVOrthogonalizeMGS(BV bv,PetscInt j,Vec v,PetscBool *which
       ierr = BVOrthogonalizeMGS1(bv,k,w,which,bv->c);CHKERRQ(ierr);
       ierr = BVNormVec(bv,w,NORM_2,&nrm);CHKERRQ(ierr);
     }
-    if (lindep) *lindep = PetscNot(nrm >= bv->orthog_eta*onrm);
+    if (dolindep) *lindep = PetscNot(nrm >= bv->orthog_eta*onrm);
     break;
 
   case BV_ORTHOG_REFINE_NEVER:
     ierr = BVOrthogonalizeMGS1(bv,k,w,which,bv->h);CHKERRQ(ierr);
     /* compute |v| */
-    if (norm || lindep) {
+    if (norm || dolindep) {
       ierr = BVNormVec(bv,w,NORM_2,&nrm);CHKERRQ(ierr);
     }
     /* linear dependence check: just test for exactly zero norm */
-    if (lindep) *lindep = PetscNot(nrm);
+    if (dolindep) *lindep = PetscNot(nrm);
     break;
 
   case BV_ORTHOG_REFINE_ALWAYS:
     /* first step */
     ierr = BVOrthogonalizeMGS1(bv,k,w,which,bv->h);CHKERRQ(ierr);
-    if (lindep) {
+    if (dolindep) {
       ierr = BVNormVec(bv,w,NORM_2,&onrm);CHKERRQ(ierr);
     }
     /* second step */
     ierr = BVOrthogonalizeMGS1(bv,k,w,which,bv->h);CHKERRQ(ierr);
-    if (norm || lindep) {
+    if (norm || dolindep) {
       ierr = BVNormVec(bv,w,NORM_2,&nrm);CHKERRQ(ierr);
     }
-    if (lindep) *lindep = PetscNot(nrm && nrm >= bv->orthog_eta*onrm);
+    if (dolindep) *lindep = PetscNot(nrm && nrm >= bv->orthog_eta*onrm);
     break;
   }
   if (bv->indef) {
@@ -204,10 +210,16 @@ static PetscErrorCode BVOrthogonalizeCGS(BV bv,PetscInt j,Vec v,PetscScalar *H,P
   PetscErrorCode ierr;
   PetscReal      onrm,nrm;
   PetscInt       i,k,l;
+  PetscBool      dolindep;
 
   PetscFunctionBegin;
   if (v) k = bv->k;
   else k = j;
+
+  /* if indefinite inner product, skip the computation of lindep */
+  if (bv->indef && lindep) *lindep = PETSC_FALSE;
+  dolindep = (!bv->indef && lindep)? PETSC_TRUE: PETSC_FALSE;
+
   switch (bv->orthog_ref) {
 
   case BV_ORTHOG_REFINE_IFNEEDED:
@@ -220,24 +232,24 @@ static PetscErrorCode BVOrthogonalizeCGS(BV bv,PetscInt j,Vec v,PetscScalar *H,P
       for (i=0;i<bv->nc+k;i++) bv->h[i] += bv->c[i];
     }
     if (norm) *norm = nrm;
-    if (lindep) *lindep = PetscNot(nrm >= bv->orthog_eta*onrm);
+    if (dolindep) *lindep = PetscNot(nrm >= bv->orthog_eta*onrm);
     break;
 
   case BV_ORTHOG_REFINE_NEVER:
     ierr = BVOrthogonalizeCGS1(bv,k,v,bv->h,NULL,NULL);CHKERRQ(ierr);
     /* compute |v| */
-    if (norm || lindep) {
+    if (norm || dolindep) {
       if (v) { ierr = BVNormVec(bv,v,NORM_2,&nrm);CHKERRQ(ierr); }
       else { ierr = BVNormColumn(bv,k,NORM_2,&nrm);CHKERRQ(ierr); }
     }
     if (norm) *norm = nrm;
     /* linear dependence check: just test for exactly zero norm */
-    if (lindep) *lindep = PetscNot(nrm);
+    if (dolindep) *lindep = PetscNot(nrm);
     break;
 
   case BV_ORTHOG_REFINE_ALWAYS:
     ierr = BVOrthogonalizeCGS1(bv,k,v,bv->h,NULL,NULL);CHKERRQ(ierr);
-    if (lindep) {
+    if (dolindep) {
       ierr = BVOrthogonalizeCGS1(bv,k,v,bv->c,&onrm,&nrm);CHKERRQ(ierr);
       if (norm) *norm = nrm;
       *lindep = PetscNot(nrm && nrm >= bv->orthog_eta*onrm);
@@ -272,6 +284,9 @@ static PetscErrorCode BVOrthogonalizeCGS(BV bv,PetscInt j,Vec v,PetscScalar *H,P
    This function is equivalent to BVOrthogonalizeColumn() but orthogonalizes
    a vector as an argument rather than taking one of the BV columns. The
    vector is orthogonalized against all active columns.
+
+   In the case of an indefinite inner product, the lindep parameter is not
+   computed (set to false).
 
    Level: advanced
 
@@ -343,6 +358,9 @@ PetscErrorCode BVOrthogonalizeVec(BV bv,Vec v,PetscScalar *H,PetscReal *norm,Pet
 
    This routine does not normalize the resulting vector.
 
+   In the case of an indefinite inner product, the lindep parameter is not
+   computed (set to false).
+
    Level: advanced
 
 .seealso: BVSetOrthogonalization(), BVSetMatrix(), BVSetActiveColumns(), BVOrthogonalize(), BVOrthogonalizeVec()
@@ -406,6 +424,9 @@ PetscErrorCode BVOrthogonalizeColumn(BV bv,PetscInt j,PetscScalar *H,PetscReal *
    The length of array which must be j at least.
 
    The use of this operation is restricted to MGS orthogonalization type.
+
+   In the case of an indefinite inner product, the lindep parameter is not
+   computed (set to false).
 
    Level: advanced
 
