@@ -40,7 +40,7 @@ int main(int argc,char **argv)
   Vec            v;
   PetscMPIInt    size,rank;
   PetscInt       N,n=35,m,Istart,Iend,II,nev,ncv,mpd,i,j,k,*inertias,npart,nval,start,nloc,nlocs,mlocs;
-  PetscBool      flag,showinertia=PETSC_TRUE,lock;
+  PetscBool      flag,showinertia=PETSC_TRUE,lock,detect;
   PetscReal      int0,int1,*shifts,keep,*subint;
   PetscScalar    eval;
   size_t         count;
@@ -125,6 +125,12 @@ int main(int argc,char **argv)
   ierr = EPSKrylovSchurGetRestart(eps,&keep);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD," ... changed to %g\n",(double)keep);CHKERRQ(ierr);
 
+  ierr = EPSKrylovSchurGetDetectZeros(eps,&detect);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD," Detect zeros before changing = %d",(int)detect);CHKERRQ(ierr);
+  ierr = EPSKrylovSchurSetDetectZeros(eps,PETSC_TRUE);CHKERRQ(ierr);
+  ierr = EPSKrylovSchurGetDetectZeros(eps,&detect);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD," ... changed to %d\n",(int)detect);CHKERRQ(ierr);
+
   ierr = EPSKrylovSchurGetLocking(eps,&lock);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD," Locking flag before changing = %d",(int)lock);CHKERRQ(ierr);
   ierr = EPSKrylovSchurSetLocking(eps,PETSC_FALSE);CHKERRQ(ierr);
@@ -175,6 +181,8 @@ int main(int argc,char **argv)
     ierr = PetscFree(shifts);CHKERRQ(ierr);
     ierr = PetscFree(inertias);CHKERRQ(ierr);
   }
+
+  ierr = EPSErrorView(eps,EPS_ERROR_RELATIVE,NULL);CHKERRQ(ierr);
 
   if (size>1) {
     ierr = EPSKrylovSchurGetSubcommInfo(eps,&k,&nval,&v);CHKERRQ(ierr);

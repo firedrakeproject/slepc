@@ -1233,21 +1233,17 @@ static PetscErrorCode EPSStoreEigenpairs(EPS eps)
       sr->eigr[count] = lambda;
       sr->errest[count] = err;
       /* Explicit purification */
+      ierr = BVGetColumn(eps->V,eps->perm[i],&w);CHKERRQ(ierr);
       if (eps->purify) {
         ierr = BVGetColumn(sr->V,count,&v);CHKERRQ(ierr);
-        ierr = BVGetColumn(eps->V,eps->perm[i],&w);CHKERRQ(ierr);
         ierr = STApply(eps->st,w,v);CHKERRQ(ierr);
         ierr = BVRestoreColumn(sr->V,count,&v);CHKERRQ(ierr);
-        ierr = BVRestoreColumn(eps->V,eps->perm[i],&w);CHKERRQ(ierr);
-        ierr = BVNormColumn(sr->V,count,NORM_2,&norm);CHKERRQ(ierr);
-        ierr = BVScaleColumn(sr->V,count,1.0/norm);CHKERRQ(ierr);
       } else {
-        ierr = BVGetColumn(eps->V,eps->perm[i],&w);CHKERRQ(ierr);
         ierr = BVInsertVec(sr->V,count,w);CHKERRQ(ierr);
-        ierr = BVRestoreColumn(eps->V,eps->perm[i],&w);CHKERRQ(ierr);
-        ierr = BVNormColumn(sr->V,count,NORM_2,&norm);CHKERRQ(ierr);
-        ierr = BVScaleColumn(sr->V,count,1.0/norm);CHKERRQ(ierr);
       }
+      ierr = BVRestoreColumn(eps->V,eps->perm[i],&w);CHKERRQ(ierr);
+      ierr = BVNormColumn(sr->V,count,NORM_2,&norm);CHKERRQ(ierr);
+      ierr = BVScaleColumn(sr->V,count,1.0/norm);CHKERRQ(ierr);
       count++;
     }
   }
