@@ -30,6 +30,7 @@ EXAMPLESF  = ex1f.F ex1f90.F90 ex6f.F
 MANSEC     = EPS
 
 TESTEXAMPLES_C                     = ex5.PETSc runex5_1 ex5.rm \
+                                     ex9.PETSc runex9_7 ex9.rm \
                                      ex13.PETSc runex13_1 ex13.rm \
                                      ex18.PETSc runex18_1 ex18.rm \
                                      ex24.PETSc runex24_1 ex24.rm \
@@ -240,6 +241,11 @@ runex9_5:
 runex9_6:
 	-@${SETTEST}; \
 	${MPIEXEC} -n 1 ./ex9 -eps_nev 2 -eps_target_imaginary -eps_target 3i -terse > $${test}.tmp 2>&1; \
+	${TESTCODE}
+
+runex9_7:
+	-@${SETTEST}; \
+	${MPIEXEC} -n 1 ./ex9 -eps_nev 1 -eps_type arnoldi -eps_smallest_real -eps_refined -terse > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
 runex10_1: runex10_1_sinvert runex10_1_sinvert_twoside runex10_1_shell runex10_1_shell_twoside
