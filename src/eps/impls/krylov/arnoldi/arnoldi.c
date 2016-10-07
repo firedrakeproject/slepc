@@ -81,8 +81,8 @@ PetscErrorCode EPSSolve_Arnoldi(EPS eps)
   PetscErrorCode     ierr;
   PetscInt           k,nv,ld;
   Mat                U;
-  PetscScalar        *H,*X;
-  PetscReal          beta,gamma=1.0;
+  PetscScalar        *H;
+  PetscReal          beta,gamma=1.0,nrm;
   PetscBool          breakdown,harmonic,refined;
   BVOrthogRefineType orthog_ref;
   EPS_ARNOLDI        *arnoldi = (EPS_ARNOLDI*)eps->data;
@@ -128,16 +128,14 @@ PetscErrorCode EPSSolve_Arnoldi(EPS eps)
     /* Check convergence */
     ierr = EPSKrylovConvergence(eps,PETSC_FALSE,eps->nconv,nv-eps->nconv,beta,gamma,&k);CHKERRQ(ierr);
     if (refined) {
-      ierr = DSGetArray(eps->ds,DS_MAT_X,&X);CHKERRQ(ierr);
-      ierr = BVMultColumn(eps->V,1.0,0.0,k,X+k*ld);CHKERRQ(ierr);
-      ierr = DSRestoreArray(eps->ds,DS_MAT_X,&X);CHKERRQ(ierr);
-      ierr = DSGetMat(eps->ds,DS_MAT_Q,&U);CHKERRQ(ierr);
-      ierr = BVMultInPlace(eps->V,U,eps->nconv,nv);CHKERRQ(ierr);
+      ierr = DSGetMat(eps->ds,DS_MAT_X,&U);CHKERRQ(ierr);
+      ierr = BVMultInPlace(eps->V,U,eps->nconv,k+1);CHKERRQ(ierr);
       ierr = MatDestroy(&U);CHKERRQ(ierr);
-      ierr = BVOrthogonalizeColumn(eps->V,k,NULL,NULL,NULL);CHKERRQ(ierr);
+      ierr = BVOrthogonalizeColumn(eps->V,k,NULL,&nrm,NULL);CHKERRQ(ierr);
+      ierr = BVScaleColumn(eps->V,k,1.0/nrm);CHKERRQ(ierr);
     } else {
       ierr = DSGetMat(eps->ds,DS_MAT_Q,&U);CHKERRQ(ierr);
-      ierr = BVMultInPlace(eps->V,U,eps->nconv,nv);CHKERRQ(ierr);
+      ierr = BVMultInPlace(eps->V,U,eps->nconv,k+1);CHKERRQ(ierr);
       ierr = MatDestroy(&U);CHKERRQ(ierr);
     }
     ierr = (*eps->stopping)(eps,eps->its,eps->max_it,k,eps->nev,&eps->reason,eps->stoppingctx);CHKERRQ(ierr);
