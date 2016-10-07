@@ -3,28 +3,28 @@
 !  Copyright (c) 2002-2016, Universitat Politecnica de Valencia, Spain
 !
 !  This file is part of SLEPc.
-!     
+!
 !  SLEPc is free software: you can redistribute it and/or modify it under  the
 !  terms of version 3 of the GNU Lesser General Public License as published by
 !  the Free Software Foundation.
 !
-!  SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY 
-!  WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS 
-!  FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for 
+!  SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY
+!  WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS
+!  FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for
 !  more details.
 !
 !  You  should have received a copy of the GNU Lesser General  Public  License
 !  along with SLEPc. If not, see <http://www.gnu.org/licenses/>.
 !  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !
-!  Program usage: mpiexec -n <np> ./test14f [-help] [-n <n>] [all SLEPc options] 
+!  Program usage: mpiexec -n <np> ./test14f [-help] [-n <n>] [all SLEPc options]
 !
 !  Description: Simple example that tests solving a DSNHEP problem.
 !
 !  The command line options are:
 !    -n <n>, where <n> = matrix size
 !
-! ---------------------------------------------------------------------- 
+! ----------------------------------------------------------------------
 !
       program main
       implicit none
@@ -33,9 +33,9 @@
 #include <petsc/finclude/petscmat.h>
 #include <slepc/finclude/slepcds.h>
 
-! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !     Declarations
-! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !
 !  Variables:
 !     A     problem matrix
@@ -53,7 +53,7 @@
 
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !     Beginning of program
-! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
       zero = 0
       call SlepcInitialize(PETSC_NULL_CHARACTER,ierr)
@@ -74,9 +74,9 @@
       endif
  110  format (/'Solve a Dense System of type NHEP, n =',I3,' (Fortran)')
 
-! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !     Create DS object
-! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
       call DSCreate(PETSC_COMM_WORLD,ds,ierr)
       call DSSetType(ds,DSNHEP,ierr)
@@ -85,9 +85,9 @@
       call DSAllocate(ds,ld,ierr)
       call DSSetDimensions(ds,n,zero,zero,zero,ierr)
 
-! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !     Fill with Grcar matrix
-! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
       call DSGetMat(ds,DS_MAT_A,A,ierr)
       call MatDenseGetArray(A,aa,ia,ierr)
@@ -96,13 +96,13 @@
       call DSRestoreMat(ds,DS_MAT_A,A,ierr)
       call DSSetState(ds,DS_STATE_INTERMEDIATE,ierr)
 
-! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !     Solve the problem and show eigenvalues
-! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-      call DSSolve(ds,wr,wi,ierr) 
+      call DSSolve(ds,wr,wi,ierr)
 !     call DSSort(ds,wr,wi,PETSC_NULL_SCALAR,PETSC_NULL_SCALAR,         &
-!    &            PETSC_NULL_INTEGER,ierr) 
+!    &            PETSC_NULL_INTEGER,ierr)
 
       if (rank .eq. 0) then
         write(*,*) 'Computed eigenvalues ='

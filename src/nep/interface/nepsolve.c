@@ -182,7 +182,7 @@ PetscErrorCode NEPProjectOperator(NEP nep,PetscInt j0,PetscInt j1)
 -  B   - optional preconditioning matrix
 
    Note:
-   If the nonlinear operator is represented in split form, the result 
+   If the nonlinear operator is represented in split form, the result
    y = T(lambda)*x is computed without building T(lambda) explicitly. In
    that case, parameters A and B are not used. Otherwise, the matrix
    T(lambda) is built and the effect is the same as a call to
@@ -239,7 +239,7 @@ PetscErrorCode NEPApplyFunction(NEP nep,PetscScalar lambda,Vec x,Vec v,Vec y,Mat
 -  A   - Jacobian matrix
 
    Note:
-   If the nonlinear operator is represented in split form, the result 
+   If the nonlinear operator is represented in split form, the result
    y = T'(lambda)*x is computed without building T'(lambda) explicitly. In
    that case, parameter A is not used. Otherwise, the matrix
    T'(lambda) is built and the effect is the same as a call to

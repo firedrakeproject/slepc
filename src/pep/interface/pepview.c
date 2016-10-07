@@ -253,7 +253,7 @@ PetscErrorCode PEPReasonView(PEP pep,PetscViewer viewer)
 #define __FUNCT__ "PEPReasonViewFromOptions"
 /*@
    PEPReasonViewFromOptions - Processes command line options to determine if/how
-   the PEP converged reason is to be viewed. 
+   the PEP converged reason is to be viewed.
 
    Collective on PEP
 
@@ -464,7 +464,7 @@ PetscErrorCode PEPErrorView(PEP pep,PEPErrorType etype,PetscViewer viewer)
 #define __FUNCT__ "PEPErrorViewFromOptions"
 /*@
    PEPErrorViewFromOptions - Processes command line options to determine if/how
-   the errors of the computed solution are to be viewed. 
+   the errors of the computed solution are to be viewed.
 
    Collective on PEP
 
@@ -659,7 +659,7 @@ PetscErrorCode PEPValuesView(PEP pep,PetscViewer viewer)
 #define __FUNCT__ "PEPValuesViewFromOptions"
 /*@
    PEPValuesViewFromOptions - Processes command line options to determine if/how
-   the computed eigenvalues are to be viewed. 
+   the computed eigenvalues are to be viewed.
 
    Collective on PEP
 
@@ -747,7 +747,7 @@ PetscErrorCode PEPVectorsView(PEP pep,PetscViewer viewer)
 #define __FUNCT__ "PEPVectorsViewFromOptions"
 /*@
    PEPVectorsViewFromOptions - Processes command line options to determine if/how
-   the computed eigenvectors are to be viewed. 
+   the computed eigenvectors are to be viewed.
 
    Collective on PEP
 

@@ -45,7 +45,7 @@ int main(int argc,char **argv)
   N = n*n;
   ierr = PetscPrintf(PETSC_COMM_WORLD,"\nSquare root of Laplacian y=sqrt(A)*e_1, N=%D (%Dx%D grid)\n\n",N,n,n);CHKERRQ(ierr);
 
-  /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+  /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                  Compute the discrete 2-D Laplacian, A
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -74,7 +74,7 @@ int main(int argc,char **argv)
   ierr = VecAssemblyEnd(v);CHKERRQ(ierr);
   ierr = VecDuplicate(v,&y);CHKERRQ(ierr);
 
-  /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+  /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
              Create the solver, set the matrix and the function
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
   ierr = MFNCreate(PETSC_COMM_WORLD,&mfn);CHKERRQ(ierr);
@@ -103,7 +103,7 @@ int main(int argc,char **argv)
   ierr = MFNGetErrorIfNotConverged(mfn,&flg);CHKERRQ(ierr);
   if (flg) { ierr = PetscPrintf(PETSC_COMM_WORLD," Erroring out if convergence fails\n");CHKERRQ(ierr); }
 
-  /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+  /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                            Solve  y=sqrt(A)*v
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -115,7 +115,7 @@ int main(int argc,char **argv)
   ierr = VecNorm(y,NORM_2,&norm);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD," sqrt(A)*v has norm %g\n",(double)norm);CHKERRQ(ierr);
 
-  /* 
+  /*
      Free work space
   */
   ierr = MFNDestroy(&mfn);CHKERRQ(ierr);

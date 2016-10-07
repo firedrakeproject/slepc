@@ -20,7 +20,7 @@ y^*\!A=\lambda\, y^*,\label{eq:eigstdleft}
 \end{equation}
 where $y$ is called the left eigenvector.
 
-	In many applications, the problem is formulated as 
+	In many applications, the problem is formulated as
 \begin{equation}
 Ax=\lambda Bx,\label{eq:eiggen}
 \end{equation}
@@ -60,7 +60,7 @@ where $h_{i,j}$ are the scalar coefficients obtained in the Gram-Schmidt orthogo
 
 \paragraph{Related Problems.}
 
-	In many applications such as the analysis of damped vibrating systems the problem to be solved is a \emph{polynomial eigenvalue problem} (PEP), or more generally a \emph{nonlinear eigenvalue problem} (NEP). For these, the reader is referred to chapters \ref{cap:pep} and \ref{cap:nep}. Another linear algebra problem that is very closely related to the eigenvalue problem is the {\em singular value decomposition\/} (SVD), see chapter \ref{cap:svd}. 
+	In many applications such as the analysis of damped vibrating systems the problem to be solved is a \emph{polynomial eigenvalue problem} (PEP), or more generally a \emph{nonlinear eigenvalue problem} (NEP). For these, the reader is referred to chapters \ref{cap:pep} and \ref{cap:nep}. Another linear algebra problem that is very closely related to the eigenvalue problem is the {\em singular value decomposition\/} (SVD), see chapter \ref{cap:svd}.
 
 %---------------------------------------------------
 \section{Basic Usage}
@@ -95,12 +95,12 @@ EPSDestroy( &eps );
 \caption{\label{fig:ex-eps}Example code for basic solution with \ident{EPS}.}
 \end{figure}
 
-	All the operations of the program are done over a single \ident{EPS} object. This solver context is created in line 8 with the command 
+	All the operations of the program are done over a single \ident{EPS} object. This solver context is created in line 8 with the command
 	\findex{EPSCreate}
 	\begin{Verbatim}[fontsize=\small]
 	EPSCreate(MPI_Comm comm,EPS *eps);
 	\end{Verbatim}
-	Here \texttt{comm} is the MPI communicator, and \texttt{eps} is the newly formed solver context. The communicator indicates which processes are involved in the \ident{EPS} object. Most of the \ident{EPS} operations are collective, meaning that all the processes collaborate to perform the operation in parallel. 
+	Here \texttt{comm} is the MPI communicator, and \texttt{eps} is the newly formed solver context. The communicator indicates which processes are involved in the \ident{EPS} object. Most of the \ident{EPS} operations are collective, meaning that all the processes collaborate to perform the operation in parallel.
 
 	Before actually solving an eigenvalue problem with \ident{EPS}, the user must specify the matrices associated with the problem, as in line 9, with the following routine
 	\findex{EPSSetOperators}
@@ -110,7 +110,7 @@ EPSDestroy( &eps );
 	The example specifies a standard eigenproblem. In the case of a generalized problem, it would be necessary also to provide matrix $B$ as the third argument to the call. The matrices specified in this call can be in any \petsc format. In particular, \ident{EPS} allows the user to solve matrix-free problems by specifying matrices created via \ident{MatCreateShell}. A more detailed discussion of this issue is given in \S\ref{sec:supported}.
 
 	After setting the problem matrices, the problem type is set with \ident{EPSSetProblemType}. This is not strictly necessary since if this step is skipped then the problem type is assumed to be non-symmetric. More details are given in \S\ref{sec:defprob}.
-	At this point, the value of the different options could optionally be set by means of a function call such as \ident{EPSSetTolerances} (explained later in this chapter). After this, a call to \ident{EPSSetFromOptions} should be made as in line 11, 
+	At this point, the value of the different options could optionally be set by means of a function call such as \ident{EPSSetTolerances} (explained later in this chapter). After this, a call to \ident{EPSSetFromOptions} should be made as in line 11,
 	\findex{EPSSetFromOptions}
 	\begin{Verbatim}[fontsize=\small]
 	EPSSetFromOptions(EPS eps);
@@ -122,8 +122,8 @@ EPSDestroy( &eps );
 	\begin{Verbatim}[fontsize=\small]
 	EPSSolve(EPS eps);
 	\end{Verbatim}
-	The subroutine that is actually invoked depends on which solver has been selected by the user. 
-        
+	The subroutine that is actually invoked depends on which solver has been selected by the user.
+
         After the call to \ident{EPSSolve} has finished, all the data associated with the solution of the eigenproblem is kept internally. This information can be retrieved with different function calls, as in lines 13 to 17. This part is described in detail in \S\ref{sec:retrsol}.
 
 	Once the \ident{EPS} context is no longer needed, it should be destroyed with the command
@@ -132,7 +132,7 @@ EPSDestroy( &eps );
 	EPSDestroy(EPS *eps);
 	\end{Verbatim}
 
-	The above procedure is sufficient for general use of the \ident{EPS} package. As in the case of the \ident{KSP} solver, the user can optionally explicitly call 
+	The above procedure is sufficient for general use of the \ident{EPS} package. As in the case of the \ident{KSP} solver, the user can optionally explicitly call
 	\findex{EPSSetUp}
 	\begin{Verbatim}[fontsize=\small]
 	EPSSetUp(EPS eps);
@@ -180,9 +180,9 @@ The problem type can be specified at run time with the corresponding command lin
 	EPSSetProblemType(EPS eps,EPSProblemType type);
 	\end{Verbatim}
 
-By default, \slepc assumes that the problem is non-Hermitian. Some eigensolvers are able to exploit symmetry, that is, they compute a solution for Hermitian problems with less storage and/or computational cost than other methods that ignore this property. Also, symmetric solvers may be more accurate. On the other hand, some eigensolvers in \slepc only have a symmetric version and will abort if the problem is non-Hermitian. 
+By default, \slepc assumes that the problem is non-Hermitian. Some eigensolvers are able to exploit symmetry, that is, they compute a solution for Hermitian problems with less storage and/or computational cost than other methods that ignore this property. Also, symmetric solvers may be more accurate. On the other hand, some eigensolvers in \slepc only have a symmetric version and will abort if the problem is non-Hermitian.
 In the case of generalized eigenproblems some considerations apply regarding symmetry, especially in the case of singular $B$. This topic is tackled in \S\ref{sec:symm} and \S\ref{sec:purif}.
-For all these reasons, the user is strongly recommended to always specify the problem type in the source code. 
+For all these reasons, the user is strongly recommended to always specify the problem type in the source code.
 
 	The type of the problem can be determined with the functions
 	\findex{EPSIsGeneralized} \findex{EPSIsHermitian}
@@ -219,7 +219,7 @@ which can also be specified at the command line. This criterion is used both for
 	\end{Verbatim}
 or, alternatively, with the command-line key \Verb!-eps_target!. Note that, since the target is defined as a \texttt{PetscScalar}, complex values of $\tau$ are allowed only in the case of complex scalar builds of the SLEPc library.
 
-The use of a target value makes sense if the eigenvalues of interest are located in the interior of the spectrum. Since these eigenvalues are usually more difficult to compute, the eigensolver by itself may not be able to obtain them, and additional tools are normally required. 
+The use of a target value makes sense if the eigenvalues of interest are located in the interior of the spectrum. Since these eigenvalues are usually more difficult to compute, the eigensolver by itself may not be able to obtain them, and additional tools are normally required.
 There are two possibilities for this:
 \begin{itemize}
 \item To use harmonic extraction (see \S\ref{sec:harmonic}), a variant of some solvers that allows a better approximation of interior eigenvalues without changing the way the subspace is built.
@@ -328,21 +328,21 @@ while the user writes the options database command \Verb!-eps_type! followed by 
 \centering
 \begin{tabular}{ccccc} \hline
 Method   &  Portion of spectrum & Problem type & Real/Complex \\ \hline
-\texttt{power}       & Largest $|\lambda|$ & any & both \\ 
-\texttt{subspace}    & Largest $|\lambda|$ & any & both \\ 
-\texttt{arnoldi}     & any    & any & both \\ 
-\texttt{lanczos}     & any    & \Verb!EPS_HEP!, \Verb!EPS_GHEP! & both \\ 
-\texttt{krylovschur} & any                 & any & both \\ 
-\texttt{gd}          & any    & any & both \\ 
-\texttt{jd}          & any    & any & both \\ 
-\texttt{rqcg}        & Smallest $\mathrm{Re}(\lambda)$ & \Verb!EPS_HEP!, \Verb!EPS_GHEP! & both \\ 
-\texttt{lobpcg}      & Smallest $\mathrm{Re}(\lambda)$ & \Verb!EPS_HEP!, \Verb!EPS_GHEP! & both \\ 
-\texttt{ciss}        & All $\lambda$ in region & any & both \\ 
+\texttt{power}       & Largest $|\lambda|$ & any & both \\
+\texttt{subspace}    & Largest $|\lambda|$ & any & both \\
+\texttt{arnoldi}     & any    & any & both \\
+\texttt{lanczos}     & any    & \Verb!EPS_HEP!, \Verb!EPS_GHEP! & both \\
+\texttt{krylovschur} & any                 & any & both \\
+\texttt{gd}          & any    & any & both \\
+\texttt{jd}          & any    & any & both \\
+\texttt{rqcg}        & Smallest $\mathrm{Re}(\lambda)$ & \Verb!EPS_HEP!, \Verb!EPS_GHEP! & both \\
+\texttt{lobpcg}      & Smallest $\mathrm{Re}(\lambda)$ & \Verb!EPS_HEP!, \Verb!EPS_GHEP! & both \\
+\texttt{ciss}        & All $\lambda$ in region & any & both \\
 \hline
-\texttt{lapack}      & any                 & any & both \\ 
-\texttt{arpack}      & any    & any & both \\ 
-\texttt{primme}      & Largest and smallest $\mathrm{Re}(\lambda)$ & \Verb!EPS_HEP! & both \\ 
-\texttt{blzpack}     & Smallest $\mathrm{Re}(\lambda)$ & \Verb!EPS_HEP!, \Verb!EPS_GHEP!  & real \\ 
+\texttt{lapack}      & any                 & any & both \\
+\texttt{arpack}      & any    & any & both \\
+\texttt{primme}      & Largest and smallest $\mathrm{Re}(\lambda)$ & \Verb!EPS_HEP! & both \\
+\texttt{blzpack}     & Smallest $\mathrm{Re}(\lambda)$ & \Verb!EPS_HEP!, \Verb!EPS_GHEP!  & real \\
 \texttt{trlan}       & Largest and smallest $\mathrm{Re}(\lambda)$ & \Verb!EPS_HEP! & real \\
 \texttt{blopex}      & Smallest $\mathrm{Re}(\lambda)$ & \Verb!EPS_HEP!, \Verb!EPS_GHEP! & both \\
 \texttt{feast}       & All $\lambda$ in an interval & \Verb!EPS_HEP!, \Verb!EPS_GHEP! & complex \\ \hline
@@ -356,19 +356,19 @@ Method   &  Portion of spectrum & Problem type & Real/Complex \\ \hline
 %\centering
 %\begin{tabular}{cccc} \hline
 %Method   & \texttt{ncv} & \texttt{max\_it} & Storage \\ \hline
-%\texttt{power}    &  $nev$ & $\max(2000,100N)$ & $2$ \\ 
-%\texttt{subspace} &  $\max(2\cdot nev,nev+15)$ & $\max(100,\lceil 2N/ncv \rceil)$ & $ncv$ \\ 
-%\texttt{arnoldi}  &  $\max(2\cdot nev,nev+15)$ & $\max(100,\lceil 2N/ncv \rceil)$ & $1$ \\ 
-%\texttt{lanczos}  &  $\max(2\cdot nev,nev+15)$ & $\max(100,\lceil 2N/ncv \rceil)$ & $1$ \\ 
-%\texttt{krylovschur} & $\max(2\cdot nev,nev+15)$ & $\max(100,\lceil 2N/ncv \rceil)$ & $1$ \\ 
-%\texttt{gd}       & $\max(2\cdot nev,nev+15)+1$ & $\max(100,\lceil 2N/ncv \rceil)$ & $4ncv+1$ \\ 
-%\texttt{jd}       & $\max(2\cdot nev,nev+15)+1$ & $\max(100,\lceil 2N/ncv \rceil)$ & $4ncv+1$ \\ 
-%\texttt{rqcg} & $\max(2\cdot nev,nev+15)$ & $\max(100,\lceil 2N/ncv \rceil)$ & $4ncv$ \\ 
+%\texttt{power}    &  $nev$ & $\max(2000,100N)$ & $2$ \\
+%\texttt{subspace} &  $\max(2\cdot nev,nev+15)$ & $\max(100,\lceil 2N/ncv \rceil)$ & $ncv$ \\
+%\texttt{arnoldi}  &  $\max(2\cdot nev,nev+15)$ & $\max(100,\lceil 2N/ncv \rceil)$ & $1$ \\
+%\texttt{lanczos}  &  $\max(2\cdot nev,nev+15)$ & $\max(100,\lceil 2N/ncv \rceil)$ & $1$ \\
+%\texttt{krylovschur} & $\max(2\cdot nev,nev+15)$ & $\max(100,\lceil 2N/ncv \rceil)$ & $1$ \\
+%\texttt{gd}       & $\max(2\cdot nev,nev+15)+1$ & $\max(100,\lceil 2N/ncv \rceil)$ & $4ncv+1$ \\
+%\texttt{jd}       & $\max(2\cdot nev,nev+15)+1$ & $\max(100,\lceil 2N/ncv \rceil)$ & $4ncv+1$ \\
+%\texttt{rqcg} & $\max(2\cdot nev,nev+15)$ & $\max(100,\lceil 2N/ncv \rceil)$ & $4ncv$ \\
 %\hline
-%\texttt{lapack}   &  $N$ &         -         & $N$  \\ 
-%\texttt{arpack}   &  $\max(20,2\!\cdot\!nev\!+\!\!1)$ & $\max(300,\lceil 2N/ncv\rceil)$ & $4$ \\ 
-%\texttt{primme}   &  $\max(20,2\!\cdot\!nev\!+\!\!1)$ & $\max(1000,N)$ & $3$ \\ 
-%\texttt{blzpack}  &  $\min(nev\!+\!\!10,2\!\cdot\!nev)$ & $\max(1000,N)$ & $>187$ \\ 
+%\texttt{lapack}   &  $N$ &         -         & $N$  \\
+%\texttt{arpack}   &  $\max(20,2\!\cdot\!nev\!+\!\!1)$ & $\max(300,\lceil 2N/ncv\rceil)$ & $4$ \\
+%\texttt{primme}   &  $\max(20,2\!\cdot\!nev\!+\!\!1)$ & $\max(1000,N)$ & $3$ \\
+%\texttt{blzpack}  &  $\min(nev\!+\!\!10,2\!\cdot\!nev)$ & $\max(1000,N)$ & $>187$ \\
 %\texttt{trlan}    &  $nev$ & $\max(1000,N)$ & $nev+1$ \\
 %\texttt{blopex}   &  $nev$ & $\max(100,\lceil 2N/ncv \rceil)$ & $nev$ \\ \hline
 %\end{tabular}
@@ -417,7 +417,7 @@ With respect to the eigenvector, \texttt{xr} stores the real part of the eigenve
 \begin{equation}
 r=A\tilde{x}-\tilde{\lambda}\tilde{x},
 \end{equation}
-or $r=A\tilde{x}-\tilde{\lambda}B\tilde{x}$ in the case of a generalized problem, where $\tilde{\lambda}$ and $\tilde{x}$ represent any of the \texttt{nconv} computed eigenpairs delivered by \texttt{EPSGetEigenpair} (note that this function returns a normalized $\tilde{x}$). 
+or $r=A\tilde{x}-\tilde{\lambda}B\tilde{x}$ in the case of a generalized problem, where $\tilde{\lambda}$ and $\tilde{x}$ represent any of the \texttt{nconv} computed eigenpairs delivered by \texttt{EPSGetEigenpair} (note that this function returns a normalized $\tilde{x}$).
 
 	In the case of Hermitian problems, it is possible to demonstrate the following property (see for example \citep[ch. 3]{Saad:1992:NML}):
 \begin{equation}\label{eq:reserr}
@@ -469,7 +469,7 @@ Backward error & \texttt{EPS\_ERROR\_BACKWARD} & \texttt{-eps\_error\_backward} 
 	\begin{Verbatim}[fontsize=\small]
         EPSGetIterationNumber(EPS eps,PetscInt *its);
 	\end{Verbatim}
-which returns in argument \texttt{its} either the iteration number at which convergence was successfully reached, or the iteration at which a problem was detected. 
+which returns in argument \texttt{its} either the iteration number at which convergence was successfully reached, or the iteration at which a problem was detected.
 
 The user specifies when a solution should be considered sufficiently accurate by means of a tolerance. An approximate eigenvalue is considered to be converged if the error estimate associated with it is below the specified tolerance. The default value of the tolerance is $10^{-8}$ and can be changed at run time with \Verb!-eps_tol <tol>! or inside the program with the function%
 	\findex{EPSSetTolerances}
@@ -480,7 +480,7 @@ The user specifies when a solution should be considered sufficiently accurate by
 
 \paragraph{Convergence Check.}
 
-The error estimates used for the convergence test are based on the residual norm, as discussed in \S\ref{sec:errbnd}. Most eigensolvers explicitly compute the residual of the relevant eigenpairs during the iteration, but Krylov solvers use a cheap formula instead, allowing to track many eigenpairs simultaneously. When using a spectral transformation, this formula may give too optimistic bounds (corresponding to the residual of the transformed problem, not the original problem). In such cases, the users can force the computation of the residual with 
+The error estimates used for the convergence test are based on the residual norm, as discussed in \S\ref{sec:errbnd}. Most eigensolvers explicitly compute the residual of the relevant eigenpairs during the iteration, but Krylov solvers use a cheap formula instead, allowing to track many eigenpairs simultaneously. When using a spectral transformation, this formula may give too optimistic bounds (corresponding to the residual of the transformed problem, not the original problem). In such cases, the users can force the computation of the residual with
 	\findex{EPSSetTrueResidual}
 	\begin{Verbatim}[fontsize=\small]
 	EPSSetTrueResidual(EPS eps,PetscBool trueres);
@@ -551,7 +551,7 @@ Again, only the error estimate of one eigenvalue is drawn. The spikes in the las
   \caption{\label{fig:plot}Graphical output in \slepc: default convergence monitor (left), simultaneous convergence monitor for all eigenvalues (middle) and eigenvalue plot (right).}
 \end{figure}
 
-	The two previously mentioned monitors have an alternative version (\Verb!*_all!) that processes all eigenvalues instead of just the first one. Figure \ref{fig:plot} (middle) corresponds to the same example but with \Verb!-eps_monitor_lg_all!. Note that these variants have a side effect: they force the computation of all error estimates even if the method would not normally do so. 
+	The two previously mentioned monitors have an alternative version (\Verb!*_all!) that processes all eigenvalues instead of just the first one. Figure \ref{fig:plot} (middle) corresponds to the same example but with \Verb!-eps_monitor_lg_all!. Note that these variants have a side effect: they force the computation of all error estimates even if the method would not normally do so.
 
 	A less verbose textual monitor is \Verb!-eps_monitor_conv!, which simply displays the iteration number at which convergence takes place.
 Note that several monitors can be used at the same time.
@@ -655,7 +655,7 @@ $$l_{ij}=\left\{\begin{array}{cl}
 \end{array}\right.$$
 where $d(v_i)$ is the degree of vertex $v_i$. This matrix is singular since all row sums are equal to zero. The constant vector is an eigenvector with zero eigenvalue, and if the graph is connected then all other eigenvalues are positive. The so-called Fiedler vector is the eigenvector associated with the smallest nonzero eigenvalue and can be used in heuristics for a number of graph manipulations such as partitioning. One possible way of computing this vector with \slepc is to instruct the eigensolver to search for the smallest eigenvalue (with \ident{EPSSetWhichEigenpairs} or by using a spectral transformation as described in next chapter) but preventing it from computing the already known eigenvalue. For this, the user must provide a basis for the invariant subspace (in this case just vector $[1,1,\ldots,1]^T$) so that the eigensolver can \emph{deflate} this subspace. This process is very similar to what eigensolvers normally do with invariant subspaces associated with eigenvalues as they converge. In other words, when a deflation space has been specified, the eigensolver works with the restriction of the problem to the orthogonal complement of this subspace.
 
-	The following function can be used to provide the \ident{EPS} object with some basis vectors corresponding to a subspace that should be deflated during the solution process. 
+	The following function can be used to provide the \ident{EPS} object with some basis vectors corresponding to a subspace that should be deflated during the solution process.
 	\findex{EPSSetDeflationSpace}
 	\begin{Verbatim}[fontsize=\small]
 	EPSSetDeflationSpace(EPS eps,PetscInt n,Vec *defl)
@@ -712,7 +712,7 @@ The second thing to take into account has to do with costs, both in terms of sto
 \item Solving the projected eigenproblem has a computational cost of order $\mathtt{ncv}^3$. Typically, such problems need to be solved many times within the eigensolver iteration.
 \end{enumerate}
 
-It is clear that a large value of \texttt{ncv} implies a high storage requirement (points 1 and 3, especially point 1), and a high computational cost (points 2 and 4, especially point 2). However, in a scenario of such big eigenproblems, it is customary to solve the problem in parallel with many processors. In that case, it turns out that the basis vectors are stored in a distributed way and the associated operations are parallelized, so that points 1 and 2 become benign as long as sufficient processors are used. Then points 3 and 4 become really critical since in the current \slepc version the projected eigenproblem (and its associated operations) are not treated in parallel. In conclusion, the user must be aware that using a large \texttt{ncv} value introduces a serial step in the computation with high cost, that cannot be amortized by increasing the number of processors. 
+It is clear that a large value of \texttt{ncv} implies a high storage requirement (points 1 and 3, especially point 1), and a high computational cost (points 2 and 4, especially point 2). However, in a scenario of such big eigenproblems, it is customary to solve the problem in parallel with many processors. In that case, it turns out that the basis vectors are stored in a distributed way and the associated operations are parallelized, so that points 1 and 2 become benign as long as sufficient processors are used. Then points 3 and 4 become really critical since in the current \slepc version the projected eigenproblem (and its associated operations) are not treated in parallel. In conclusion, the user must be aware that using a large \texttt{ncv} value introduces a serial step in the computation with high cost, that cannot be amortized by increasing the number of processors.
 
 From \slepc 3.0.0, another parameter \texttt{mpd} has been introduced to alleviate this problem. The name \texttt{mpd} stands for maximum projected dimension. The idea is to bound the size of the projected eigenproblem so that steps 3 and 4 work with a dimension of \texttt{mpd} at most, while steps 1 and 2 still work with a bigger dimension, up to \texttt{ncv}. Suppose we want to compute \texttt{nev}=5000. Setting \texttt{ncv}=10000 or even \texttt{ncv}=6000 would be prohibitively expensive, for the reasons explained above. But if we set e.g. \texttt{mpd}=600 then the overhead of steps 3 and 4 will be considerably diminished. Of course, this reduces the potential of approximation at each outer iteration of the algorithm, but with more iterations the same result should be obtained. The benefits will be specially noticeable in the setting of parallel computation with many processors.
 

@@ -3,14 +3,14 @@
 !  Copyright (c) 2002-2016, Universitat Politecnica de Valencia, Spain
 !
 !  This file is part of SLEPc.
-!     
+!
 !  SLEPc is free software: you can redistribute it and/or modify it under  the
 !  terms of version 3 of the GNU Lesser General Public License as published by
 !  the Free Software Foundation.
 !
-!  SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY 
-!  WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS 
-!  FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for 
+!  SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY
+!  WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS
+!  FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for
 !  more details.
 !
 !  You  should have received a copy of the GNU Lesser General  Public  License
@@ -19,7 +19,7 @@
 !
 !  Description: Simple example to test the EPS Fortran interface.
 !
-! ---------------------------------------------------------------------- 
+! ----------------------------------------------------------------------
 !
       program main
       implicit none
@@ -31,9 +31,9 @@
 #include <slepc/finclude/slepcsys.h>
 #include <slepc/finclude/slepceps.h>
 
-! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !     Declarations
-! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
       Mat                A,B
       EPS                eps
       ST                 st
@@ -58,7 +58,7 @@
 
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !     Beginning of program
-! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
       call SlepcInitialize(PETSC_NULL_CHARACTER,ierr)
       call MPI_Comm_rank(PETSC_COMM_WORLD,rank,ierr)
@@ -80,9 +80,9 @@
       call MatAssemblyBegin(A,MAT_FINAL_ASSEMBLY,ierr)
       call MatAssemblyEnd(A,MAT_FINAL_ASSEMBLY,ierr)
 
-! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !     Create eigensolver and test interface functions
-! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
       call EPSCreate(PETSC_COMM_WORLD,eps,ierr)
       call EPSSetOperators(eps,A,PETSC_NULL_OBJECT,ierr)
@@ -187,18 +187,18 @@
      &                   SlepcConvMonitorDestroy,ierr)
       call EPSMonitorCancel(eps,ierr)
 
-      call EPSGetST(eps,st,ierr) 
-      call STGetKSP(st,ksp,ierr) 
+      call EPSGetST(eps,st,ierr)
+      call STGetKSP(st,ksp,ierr)
       tol = 1.e-8
       tolabs = 1.e-35
       call KSPSetTolerances(ksp,tol,tolabs,PETSC_DEFAULT_REAL,          &
      &                      PETSC_DEFAULT_INTEGER,ierr)
-      call STView(st,PETSC_NULL_OBJECT,ierr) 
-      call EPSGetDS(eps,ds,ierr) 
-      call DSView(ds,PETSC_NULL_OBJECT,ierr) 
+      call STView(st,PETSC_NULL_OBJECT,ierr)
+      call EPSGetDS(eps,ds,ierr)
+      call DSView(ds,PETSC_NULL_OBJECT,ierr)
 
       call EPSSetFromOptions(eps,ierr)
-      call EPSSolve(eps,ierr) 
+      call EPSSolve(eps,ierr)
       call EPSGetConvergedReason(eps,reason,ierr)
       call EPSGetIterationNumber(eps,its,ierr)
       if (rank .eq. 0) then
@@ -206,9 +206,9 @@
       endif
  210  format (' Finished - converged reason =',I2,', its=',I4)
 
-! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !     Display solution and clean up
-! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
       call EPSErrorView(eps,EPS_ERROR_RELATIVE,PETSC_NULL_OBJECT,ierr)
       call EPSDestroy(eps,ierr)
       call MatDestroy(A,ierr)

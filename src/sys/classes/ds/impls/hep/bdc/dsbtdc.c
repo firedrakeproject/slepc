@@ -24,12 +24,12 @@
 #include <slepc/private/dsimpl.h>
 #include <slepcblaslapack.h>
 
-PetscErrorCode BDC_dsbtdc_(const char *jobz,const char *jobacc,PetscBLASInt n, 
-        PetscBLASInt nblks,PetscBLASInt *ksizes,PetscReal *d,PetscBLASInt l1d, 
+PetscErrorCode BDC_dsbtdc_(const char *jobz,const char *jobacc,PetscBLASInt n,
+        PetscBLASInt nblks,PetscBLASInt *ksizes,PetscReal *d,PetscBLASInt l1d,
         PetscBLASInt l2d,PetscReal *e,PetscBLASInt l1e,PetscBLASInt l2e,PetscReal tol,
         PetscReal tau1,PetscReal tau2,PetscReal *ev,PetscReal *z,PetscBLASInt ldz,
-        PetscReal *work,PetscBLASInt lwork,PetscBLASInt *iwork,PetscBLASInt liwork, 
-        PetscReal *mingap,PetscBLASInt *mingapi,PetscBLASInt *info, 
+        PetscReal *work,PetscBLASInt lwork,PetscBLASInt *iwork,PetscBLASInt liwork,
+        PetscReal *mingap,PetscBLASInt *mingapi,PetscBLASInt *info,
         PetscBLASInt jobz_len,PetscBLASInt jobacc_len)
 {
 /*  -- Routine written in LAPACK Version 3.0 style -- */
@@ -378,7 +378,7 @@ PetscErrorCode BDC_dsbtdc_(const char *jobz,const char *jobacc,PetscBLASInt n,
   /* RANK( K ) largest singular values and the associated singular */
   /* vectors of each subdiagonal block. Also find the maximum norm of */
   /* the subdiagonal blocks (in EMAX). */
-  
+
   /* Compute SVDs of the subdiagonal blocks.... */
 
   /* EMAX .... maximum norm of the off-diagonal blocks */
@@ -447,7 +447,7 @@ L8:
     /* NOTE that here it is required that L1E, L2E >= 2*KMAX+1 in order */
     /* to have enough space for storing singular vectors and values up */
     /* to the full SVD of an off-diagonal block !!!! */
-   
+
     /* u1-u_RANK(K) is already contained in E(:,1:RANK(K),K) (as a */
     /* result of the call of DGESVD !), the sigma1-sigmaK are to be */
     /* stored in E(1:RANK(K),RANK(K)+1,K),  and v1-v_RANK(K) are to be */
@@ -480,7 +480,7 @@ L8:
   /* Compute the maximum norm of diagonal blocks and store the norm */
   /* of each diagonal block in E(RP1,RP1,K) (after the singular values); */
   /* store the norm of the last diagonal block in EXDNRM. */
-  
+
   /* DMAX .... maximum one-norm of the diagonal blocks */
 
   dmax = 0.;
@@ -528,7 +528,7 @@ L20:
       /* NOTE: if RANK( IEND ).EQ.0 then decoupling happens due to */
       /*       reduced accuracy requirements ! (because in this case */
       /*       we would not merge the corresponding two diagonal blocks) */
-      
+
       /* NOTE: seems like any combination may potentially happen: */
       /*       (i) RANK = 0 but no decoupling due to small norm of */
       /*           off-diagonal block (corresponding diagonal blocks */
@@ -605,10 +605,10 @@ L20:
 
     /* ....Isolated problem consists of more than one diagonal block. */
     /*     Start the divide and conquer algorithm.... */
-    
+
     /* Scale: Divide by the maximum of all norms of diagonal blocks */
     /*        and singular values of the subdiagonal blocks */
-    
+
     /* ....determine maximum of the norms of all diagonal and subdiagonal */
     /*     blocks.... */
 
@@ -675,9 +675,9 @@ L20:
   /* will not be properly ordered. Here we permute the eigenvalues */
   /* (and the associated eigenvectors) across the irreducible parts */
   /* into ascending order.... */
-  
+
   /*  IF( NRBLKS.LT.NBLKS )THEN */
-  
+
   /*    Use Selection Sort to minimize swaps of eigenvectors */
 
   for (ii = 1; ii < n; ++ii) {

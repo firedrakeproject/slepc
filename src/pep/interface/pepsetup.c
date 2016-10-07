@@ -114,7 +114,7 @@ PetscErrorCode PEPSetUp(PEP pep)
       }
     }
     if (pep->scheme==PEP_REFINE_SCHEME_SCHUR) {
-      if (pep->npart>1) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"The Schur scheme for refinement does not support subcommunicators"); 
+      if (pep->npart>1) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"The Schur scheme for refinement does not support subcommunicators");
     }
   }
   /* call specific solver setup */

@@ -549,7 +549,7 @@ PetscErrorCode EPSSetUp_KrylovSchur_Slice(EPS eps)
   ierr = EPSGetOperators(eps,&A,&B);CHKERRQ(ierr);
   ierr = PetscObjectStateGet((PetscObject)A,&ctx->Astate);CHKERRQ(ierr);
   ierr = PetscObjectGetId((PetscObject)A,&ctx->Aid);CHKERRQ(ierr);
-  if (B) { 
+  if (B) {
     ierr = PetscObjectStateGet((PetscObject)B,&ctx->Bstate);CHKERRQ(ierr);
     ierr = PetscObjectGetId((PetscObject)B,&ctx->Bid);CHKERRQ(ierr);
   } else {
@@ -1371,7 +1371,7 @@ PetscErrorCode EPSSolve_KrylovSchur_Slice(EPS eps)
     ierr = EPSGetOperators(eps,&A,&B);CHKERRQ(ierr);
     ierr = PetscObjectStateGet((PetscObject)A,&Astate);CHKERRQ(ierr);
     ierr = PetscObjectGetId((PetscObject)A,&Aid);CHKERRQ(ierr);
-    if (B) { 
+    if (B) {
       ierr = PetscObjectStateGet((PetscObject)B,&Bstate);CHKERRQ(ierr);
       ierr = PetscObjectGetId((PetscObject)B,&Bid);CHKERRQ(ierr);
     }

@@ -37,8 +37,8 @@
 #include <slepc/private/nepimpl.h>         /*I "slepcnep.h" I*/
 #include <slepcblaslapack.h>
 
-#define  MAX_LBPOINTS  100
-#define  NDPOINTS      1e4
+#define  LBPOINTS  100   /* default value of the maximum number of Leja-Bagby points */
+#define  NDPOINTS  1e4   /* number of discretization points */
 
 typedef struct {
   PetscInt       nmat;      /* number of interpolation points */
@@ -75,7 +75,7 @@ PETSC_STATIC_INLINE PetscErrorCode NEPNLEIGSSetShifts(NEP nep)
   NEP_NLEIGS *ctx = (NEP_NLEIGS*)nep->data;
 
   PetscFunctionBegin;
-  if (!ctx->nshifts) { 
+  if (!ctx->nshifts) {
     ctx->shifts = &nep->target;
     ctx->nshiftsw = 1;
   } else ctx->nshiftsw = ctx->nshifts;
@@ -140,7 +140,7 @@ static PetscErrorCode NEPNLEIGSLejaBagbyPoints(NEP nep)
   xi[0]   = (ndptx>0)?dxi[0]:PETSC_INFINITY;
   beta[0] = 1.0; /* scaling factors are also computed here */
   maxnrs  = 0.0;
-  minnrxi = PETSC_MAX_REAL; 
+  minnrxi = PETSC_MAX_REAL;
   for (i=0;i<ndpt;i++) {
     nrs[i] = (ds[i]-s[0])/(1.0-ds[i]/xi[0]);
     if (PetscAbsScalar(nrs[i])>=maxnrs) {maxnrs = PetscAbsScalar(nrs[i]); s[1] = ds[i];}
@@ -258,7 +258,7 @@ static PetscErrorCode MatDuplicate_Fun(Mat A,MatDuplicateOption op,Mat *B)
   ierr = PetscNew(&ctxnew);CHKERRQ(ierr);
   ctxnew->nmat = ctx->nmat;
   ctxnew->maxnmat = ctx->maxnmat;
-  ierr = PetscMalloc2(ctxnew->maxnmat,&ctxnew->A,ctxnew->maxnmat,&ctxnew->coeff);CHKERRQ(ierr); 
+  ierr = PetscMalloc2(ctxnew->maxnmat,&ctxnew->A,ctxnew->maxnmat,&ctxnew->coeff);CHKERRQ(ierr);
   for (i=0;i<ctx->nmat;i++) {
     ierr = PetscObjectReference((PetscObject)ctx->A[i]);CHKERRQ(ierr);
     ctxnew->A[i] = ctx->A[i];
@@ -354,7 +354,7 @@ static PetscErrorCode NLEIGSMatToMatShellArray(Mat M,Mat *Ms,PetscInt maxnmat)
   ShellMatCtx    *ctx;
   PetscInt       n;
   PetscBool      has;
-  
+
   PetscFunctionBegin;
   ierr = MatHasOperation(M,MATOP_DUPLICATE,&has);CHKERRQ(ierr);
   if (!has) SETERRQ(PetscObjectComm((PetscObject)M),1,"MatDuplicate operation required");
@@ -388,7 +388,7 @@ static PetscErrorCode NEPNLEIGSNormEstimation(NEP nep,Mat M,PetscReal *norm,Vec 
   NEP_NLEIGS     *ctx=(NEP_NLEIGS*)nep->data;
   PetscRandom    rand;
   PetscErrorCode ierr;
-  
+
   PetscFunctionBegin;
   if (!ctx->vrn) {
     /* generate a random vector with normally distributed entries with the Box-Muller transform */
@@ -460,7 +460,7 @@ static PetscErrorCode NEPNLEIGSDividedDifferences_split(NEP nep)
     if (norm/norm0 < ctx->ddtol) {
       ctx->nmat = k+1;
       break;
-    } 
+    }
   }
   if (!ctx->ksp) { ierr = NEPNLEIGSGetKSPs(nep,&ctx->ksp);CHKERRQ(ierr); }
   ierr = PetscObjectTypeCompare((PetscObject)nep->A[0],MATSHELL,&shell);CHKERRQ(ierr);
@@ -558,7 +558,7 @@ static PetscErrorCode NEPNLEIGSDividedDifferences_callback(NEP nep)
       ctx->nmat = k+1; /* increment (the last matrix is not used) */
       ierr = MatDestroy(&D[k]);CHKERRQ(ierr);
       break;
-    } 
+    }
   }
   if (!ctx->ksp) { ierr = NEPNLEIGSGetKSPs(nep,&ctx->ksp);CHKERRQ(ierr); }
   for (i=0;i<ctx->nshiftsw;i++) {
@@ -574,8 +574,8 @@ static PetscErrorCode NEPNLEIGSDividedDifferences_callback(NEP nep)
   }
   ierr = PetscFree2(b,coeffs);CHKERRQ(ierr);
   if (vec) {
-    ierr = VecDestroy(&w[0]);CHKERRQ(ierr);  
-    ierr = VecDestroy(&w[1]);CHKERRQ(ierr);  
+    ierr = VecDestroy(&w[0]);CHKERRQ(ierr);
+    ierr = VecDestroy(&w[1]);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }
@@ -642,7 +642,7 @@ PetscErrorCode NEPSetUp_NLEIGS(NEP nep)
   ierr = NEPSetDimensions_Default(nep,nep->nev,&nep->ncv,&nep->mpd);CHKERRQ(ierr);
   if (nep->ncv>nep->nev+nep->mpd) SETERRQ(PetscObjectComm((PetscObject)nep),1,"The value of ncv must not be larger than nev+mpd");
   if (!nep->max_it) nep->max_it = PetscMax(5000,2*nep->n/nep->ncv);
-  if (!ctx->ddmaxit) ctx->ddmaxit = MAX_LBPOINTS;
+  if (!ctx->ddmaxit) ctx->ddmaxit = LBPOINTS;
   ierr = RGIsTrivial(nep->rg,&istrivial);CHKERRQ(ierr);
   if (istrivial) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"NEPNLEIGS requires a nontrivial region defining the target set");
   ierr = RGCheckInside(nep->rg,1,&nep->target,&zero,&in);CHKERRQ(ierr);
@@ -687,7 +687,7 @@ PetscErrorCode NEPSetUp_NLEIGS(NEP nep)
 #undef __FUNCT__
 #define __FUNCT__ "NEPTOARSNorm2"
 /*
-  Norm of [sp;sq] 
+  Norm of [sp;sq]
 */
 static PetscErrorCode NEPTOARSNorm2(PetscInt n,PetscScalar *S,PetscReal *norm)
 {
@@ -716,7 +716,7 @@ static PetscErrorCode NEPTOAROrth2(NEP nep,PetscScalar *S,PetscInt ld,PetscInt d
   PetscScalar    sonem=-1.0,sone=1.0,szero=0.0,*x0,*x,*c;
   PetscInt       i,lds=deg*ld,n;
   PetscReal      eta,onorm;
-  
+
   PetscFunctionBegin;
   ierr = BVGetOrthogonalization(nep->V,NULL,NULL,&eta,NULL);CHKERRQ(ierr);
   n = k+deg-1;
@@ -848,7 +848,7 @@ static PetscErrorCode NEPTOARCoefficients(NEP nep,PetscScalar sigma,PetscInt nv,
 #define __FUNCT__ "NEPNLEIGS_RKcontinuation"
 /*
   Compute continuation vector coefficients for the Rational-Krylov run.
-  dim(work) >= (end-ini)*(end-ini+1) + end+1 + 2*(end-ini+1), dim(t) = end. 
+  dim(work) >= (end-ini)*(end-ini+1) + end+1 + 2*(end-ini+1), dim(t) = end.
 */
 static PetscErrorCode NEPNLEIGS_RKcontinuation(NEP nep,PetscInt ini,PetscInt end,PetscScalar *K,PetscScalar *H,PetscInt ld,PetscScalar sigma,PetscScalar *S,PetscInt lds,PetscScalar *cont,PetscScalar *t,PetscScalar *work)
 {
@@ -884,11 +884,11 @@ static PetscErrorCode NEPNLEIGS_RKcontinuation(NEP nep,PetscInt ini,PetscInt end
     PetscStackCallBLAS("LAPACKgeqrf",LAPACKgeqrf_(&n1_,&n_,W,&n1_,tau,work+nwu,&n1_,&info));
     if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xGEQRF %d",info);
     for (i=0;i<end;i++) t[i] = 0.0;
-    t[end] = 1.0; 
+    t[end] = 1.0;
     for (j=n-1;j>=0;j--) {
       for (i=0;i<ini+j;i++) x[i] = 0.0;
       x[ini+j] = 1.0;
-      for (i=j+1;i<n1;i++) x[i+ini] = W[i+n1*j]; 
+      for (i=j+1;i<n1;i++) x[i+ini] = W[i+n1*j];
       tau[j] = PetscConj(tau[j]);
       PetscStackCallBLAS("LAPACKlarf",LAPACKlarf_("L",&dim,&one,x,&one,tau+j,t,&dim,work+nwu));
     }
@@ -922,7 +922,7 @@ static PetscErrorCode NEPNLEIGSTOARrun(NEP nep,PetscInt *nq,PetscScalar *S,Petsc
 
     /* Continuation vector */
     ierr = NEPNLEIGS_RKcontinuation(nep,0,j,K,H,ldh,sigma,S,lds,cont,tt,work);CHKERRQ(ierr);
-    
+
     /* apply operator */
     ierr = BVGetColumn(nep->V,nqt,&t);CHKERRQ(ierr);
     ierr = NEPTOARExtendBasis(nep,(ctx->idxrk)%ctx->nshiftsw,cont,ld,nqt,V,t,S+(j+1)*lds,ld,t_+1);CHKERRQ(ierr);
@@ -955,7 +955,7 @@ static PetscErrorCode NEPNLEIGSTOARrun(NEP nep,PetscInt *nq,PetscScalar *S,Petsc
         S[i+p*ld+(j+1)*lds] /= norm;
       }
     }
-  } 
+  }
   ierr = PetscFree4(x,work,tt,cont);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -988,7 +988,7 @@ static PetscErrorCode NEPTOARTrunc(NEP nep,PetscScalar *S,PetscInt ld,PetscInt d
   for (i=0;i<cs1;i++) {
     for (j=0;j<deg;j++) {
       ierr = PetscMemcpy(M+(i+j*cs1)*rs1,S+i*lds+j*ld,rs1*sizeof(PetscScalar));CHKERRQ(ierr);
-    } 
+    }
   }
   ierr = PetscBLASIntCast(n,&n_);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(cs1,&cs1_);CHKERRQ(ierr);
@@ -998,20 +998,20 @@ static PetscErrorCode NEPTOARTrunc(NEP nep,PetscScalar *S,PetscInt ld,PetscInt d
 #if !defined (PETSC_USE_COMPLEX)
   PetscStackCall("LAPACKgesvd",LAPACKgesvd_("S","S",&rs1_,&cs1tdeg,M,&rs1_,sg,pU,&rs1_,V,&n_,work+nwu,&lw_,&info));
 #else
-  PetscStackCall("LAPACKgesvd",LAPACKgesvd_("S","S",&rs1_,&cs1tdeg,M,&rs1_,sg,pU,&rs1_,V,&n_,work+nwu,&lw_,rwork+nrwu,&info));  
+  PetscStackCall("LAPACKgesvd",LAPACKgesvd_("S","S",&rs1_,&cs1tdeg,M,&rs1_,sg,pU,&rs1_,V,&n_,work+nwu,&lw_,rwork+nrwu,&info));
 #endif
   if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xGESVD %d",info);
-  
+
   /* Update the corresponding vectors V(:,idx) = V*Q(:,idx) */
   ierr = MatCreateSeqDense(PETSC_COMM_SELF,rs1,cs1+deg-1,pU,&U);CHKERRQ(ierr);
   ierr = BVSetActiveColumns(nep->V,0,rs1);CHKERRQ(ierr);
   ierr = BVMultInPlace(nep->V,U,0,cs1+deg-1);CHKERRQ(ierr);
   ierr = BVSetActiveColumns(nep->V,0,cs1+deg-1);CHKERRQ(ierr);
-  ierr = MatDestroy(&U);CHKERRQ(ierr);  
+  ierr = MatDestroy(&U);CHKERRQ(ierr);
   tol = PetscMax(rs1,deg*cs1)*PETSC_MACHINE_EPSILON*sg[0];
   for (i=0;i<PetscMin(n_,cs1tdeg);i++) if (sg[i]>tol) rk++;
   rk = PetscMin(cs1+deg-1,rk);
-  
+
   /* Update S */
   ierr = PetscMemzero(S,lds*ld*sizeof(PetscScalar));CHKERRQ(ierr);
   for (i=0;i<rk;i++) {
@@ -1030,7 +1030,7 @@ static PetscErrorCode NEPTOARTrunc(NEP nep,PetscScalar *S,PetscInt ld,PetscInt d
 #undef __FUNCT__
 #define __FUNCT__ "NEPTOARSupdate"
 /*
-  S <- S*Q 
+  S <- S*Q
   columns s-s+ncu of S
   rows 0-sr of S
   size(Q) qr x ncu
@@ -1104,7 +1104,7 @@ PetscErrorCode NEPSolve_NLEIGS(NEP nep)
   l = 0;
   while (nep->reason == NEP_CONVERGED_ITERATING) {
     nep->its++;
-    
+
     /* Compute an nv-step Krylov relation */
     nv = PetscMin(nep->nconv+nep->mpd,nep->ncv);
     if (ctx->nshifts) { ierr = DSGetArray(nep->ds,DS_MAT_A,&K);CHKERRQ(ierr); }
@@ -1197,7 +1197,7 @@ PetscErrorCode NEPSolve_NLEIGS(NEP nep)
   if (nep->nconv>0) {
     /* Extract invariant pair */
     ierr = NEPTOARTrunc(nep,S,ld,deg,&nq,nep->nconv,work+nwu,rwork+nrwu);CHKERRQ(ierr);
-    /* Update vectors V = V*S or V=V*S*H */    
+    /* Update vectors V = V*S or V=V*S*H */
     rs1 = nep->nconv;
     if (ctx->nshifts) {
       ierr = DSGetArray(nep->ds,DS_MAT_B,&H);CHKERRQ(ierr);
@@ -1266,6 +1266,7 @@ $   fun(NEP nep,PetscInt *maxnp,PetscScalar *xi,void *ctx)
 
    Note:
    The user-defined function can set a smaller value of maxnp if necessary.
+   It is wrong to return a larger value.
 
    Level: intermediate
 
@@ -1635,8 +1636,9 @@ static PetscErrorCode NEPNLEIGSSetRKShifts_NLEIGS(NEP nep,PetscInt ns,PetscScala
 .  -nep_nleigs_rk_shifts - Sets the list of shifts
 
    Notes:
-   If only one shift is provided, the subspace is built with the simpler
-   shift-and-invert Krylov-Schur.
+   If only one shift is provided, the built subspace built is equivalent to
+   shift-and-invert Krylov-Schur (provided that the absolute convergence
+   criterion is used).
 
    In the case of real scalars, complex shifts are not allowed. In the
    command line, a comma-separated list of complex values can be provided with

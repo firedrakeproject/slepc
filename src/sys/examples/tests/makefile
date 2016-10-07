@@ -25,7 +25,7 @@ CPPFLAGS   =
 FPPFLAGS   =
 LOCDIR     = src/sys/examples/tests/
 EXAMPLESC  = test1.c
-EXAMPLESF  = 
+EXAMPLESF  =
 MANSEC     = Sys
 TESTS      = test1
 

@@ -52,7 +52,7 @@ package to calculate the eigenvalues for small signal stability analysis\n\n";
       V    is the voltage vector
 
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
- 
+
    The linearized equations for the eigenvalue analysis are
 
      \dot{\delta{x}} = f_x*\delta{x} + f_y*\delta{y}
@@ -641,7 +641,7 @@ int main(int argc,char **argv)
   ierr = EPSSetOperators(eps,Jred,NULL);CHKERRQ(ierr);
   ierr = EPSSetProblemType(eps,EPS_NHEP);CHKERRQ(ierr);
   ierr = EPSSetFromOptions(eps);CHKERRQ(ierr);
-  
+
   /* Solve the eigenvalue problem */
   ierr = EPSSolve(eps);CHKERRQ(ierr);
 
@@ -661,13 +661,13 @@ int main(int argc,char **argv)
     /* Get number of converged approximate eigenpairs */
     ierr = EPSGetConverged(eps,&nconv);CHKERRQ(ierr);
     ierr = PetscPrintf(PETSC_COMM_WORLD," Number of converged eigenpairs: %D\n\n",nconv);CHKERRQ(ierr);
-  
+
     if (nconv>0) {
       /* Display eigenvalues and relative errors */
       ierr = PetscPrintf(PETSC_COMM_WORLD,
            "           k          ||Ax-kx||/||kx||\n"
            "   ----------------- ------------------\n");CHKERRQ(ierr);
-  
+
       for (i=0;i<nconv;i++) {
         /* Get converged eigenpairs: i-th eigenvalue is stored in kr (real part) and
           ki (imaginary part) */

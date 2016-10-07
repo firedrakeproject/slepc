@@ -377,6 +377,7 @@ PetscErrorCode EPSStoppingBasic(EPS eps,PetscInt its,PetscInt max_it,PetscInt nc
 PetscErrorCode EPSComputeRitzVector(EPS eps,PetscScalar *Zr,PetscScalar *Zi,BV V,Vec x,Vec y)
 {
   PetscErrorCode ierr;
+  PetscInt       l,k;
   PetscReal      norm;
 #if !defined(PETSC_USE_COMPLEX)
   Vec            z;
@@ -384,6 +385,8 @@ PetscErrorCode EPSComputeRitzVector(EPS eps,PetscScalar *Zr,PetscScalar *Zi,BV V
 
   PetscFunctionBegin;
   /* compute eigenvector */
+  ierr = BVGetActiveColumns(V,&l,&k);CHKERRQ(ierr);
+  ierr = BVSetActiveColumns(V,0,k);CHKERRQ(ierr);
   ierr = BVMultVec(V,1.0,0.0,x,Zr);CHKERRQ(ierr);
 
   /* purify eigenvector in positive generalized problems */
@@ -421,6 +424,7 @@ PetscErrorCode EPSComputeRitzVector(EPS eps,PetscScalar *Zr,PetscScalar *Zi,BV V
   } else
 #endif
   { ierr = VecSet(y,0.0);CHKERRQ(ierr); }
+  ierr = BVSetActiveColumns(V,l,k);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

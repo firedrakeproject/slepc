@@ -62,7 +62,7 @@ int main(int argc,char **argv)
   ierr = PetscOptionsGetReal(NULL,NULL,"-eta",&eta,NULL);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD,"\nVibration analysis of a wiresaw, n=%D v=%g eta=%g\n\n",n,(double)v,(double)eta);CHKERRQ(ierr);
 
-  /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+  /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
      Compute the matrices that define the eigensystem, (k^2*M+k*D+K)x=0
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -71,7 +71,7 @@ int main(int argc,char **argv)
   ierr = MatSetSizes(K,PETSC_DECIDE,PETSC_DECIDE,n,n);CHKERRQ(ierr);
   ierr = MatSetFromOptions(K);CHKERRQ(ierr);
   ierr = MatSetUp(K);CHKERRQ(ierr);
-  
+
   ierr = MatGetOwnershipRange(K,&Istart,&Iend);CHKERRQ(ierr);
   for (j=Istart;j<Iend;j++) {
     ierr = MatSetValue(K,j,j,(j+1)*(j+1)*PETSC_PI*PETSC_PI*(1.0-v*v),INSERT_VALUES);CHKERRQ(ierr);
@@ -86,7 +86,7 @@ int main(int argc,char **argv)
   ierr = MatSetSizes(D,PETSC_DECIDE,PETSC_DECIDE,n,n);CHKERRQ(ierr);
   ierr = MatSetFromOptions(D);CHKERRQ(ierr);
   ierr = MatSetUp(D);CHKERRQ(ierr);
-  
+
   ierr = MatGetOwnershipRange(D,&Istart,&Iend);CHKERRQ(ierr);
   for (j=Istart;j<Iend;j++) {
     for (k=0;k<n;k++) {
@@ -99,7 +99,7 @@ int main(int argc,char **argv)
   ierr = MatAssemblyBegin(D,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
   ierr = MatAssemblyEnd(D,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
   ierr = MatScale(D,0.5);CHKERRQ(ierr);
-  
+
   /* M is a diagonal matrix */
   ierr = MatCreate(PETSC_COMM_WORLD,&M);CHKERRQ(ierr);
   ierr = MatSetSizes(M,PETSC_DECIDE,PETSC_DECIDE,n,n);CHKERRQ(ierr);
@@ -119,7 +119,7 @@ int main(int argc,char **argv)
     ierr = MatShift(D,eta);CHKERRQ(ierr); /* D = D + eta*eye(n) */
   }
 
-  /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+  /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                 Create the eigensolver and solve the problem
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -137,7 +137,7 @@ int main(int argc,char **argv)
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                     Display solution and clean up
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-  
+
   /* show detailed info unless -terse option is given by user */
   ierr = PetscOptionsHasName(NULL,NULL,"-terse",&terse);CHKERRQ(ierr);
   if (terse) {

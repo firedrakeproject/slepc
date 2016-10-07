@@ -838,9 +838,9 @@ PetscErrorCode DSSolve_GHIEP_QR(DS ds,PetscScalar *wr,PetscScalar *wi)
       for (i=0;i<n;i++) H[i+j*n] = B[off+i+i*ld]*A[off+i+j*ld];
     }
   }
- 
+
   /* Compute eigenpairs */
-  ierr = PetscBLASIntCast(lw-nwu,&lwork);CHKERRQ(ierr);  
+  ierr = PetscBLASIntCast(lw-nwu,&lwork);CHKERRQ(ierr);
   ierr = DSAllocateMat_Private(ds,DS_MAT_X);CHKERRQ(ierr);
   X = ds->mat[DS_MAT_X];
 #if !defined(PETSC_USE_COMPLEX)
@@ -848,7 +848,7 @@ PetscErrorCode DSSolve_GHIEP_QR(DS ds,PetscScalar *wr,PetscScalar *wi)
 #else
   PetscStackCallBLAS("LAPACKgeevx",LAPACKgeevx_("B","N","V","N",&n_,H,&n_,wr+ds->l,NULL,&ld,X+off,&ld,&ilo,&ihi,scale,&nrm,rcde,rcdv,ds->work+nwu,&lwork,ds->rwork+nwru,&info));
 
-  /* Sort to have consecutive conjugate pairs 
+  /* Sort to have consecutive conjugate pairs
      Separate real and imaginary part of complex eigenvectors*/
   for (i=ds->l;i<ds->n;i++) {
     j=i+1;

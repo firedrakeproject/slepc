@@ -3,14 +3,14 @@
 !  Copyright (c) 2002-2016, Universitat Politecnica de Valencia, Spain
 !
 !  This file is part of SLEPc.
-!     
+!
 !  SLEPc is free software: you can redistribute it and/or modify it under  the
 !  terms of version 3 of the GNU Lesser General Public License as published by
 !  the Free Software Foundation.
 !
-!  SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY 
-!  WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS 
-!  FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for 
+!  SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY
+!  WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS
+!  FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for
 !  more details.
 !
 !  You  should have received a copy of the GNU Lesser General  Public  License
@@ -19,7 +19,7 @@
 !
 !  Description: Test Fortran interface of spectrum-slicing Krylov-Schur.
 !
-! ---------------------------------------------------------------------- 
+! ----------------------------------------------------------------------
 !
       program main
       implicit none
@@ -33,9 +33,9 @@
 
 #define MAXSUB 16
 
-! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !     Declarations
-! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
       Mat            A,B,As,Bs,Au
       EPS            eps
       ST             st
@@ -56,7 +56,7 @@
 
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !     Beginning of program
-! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
       call SlepcInitialize(PETSC_NULL_CHARACTER,ierr)
       call MPI_Comm_size(PETSC_COMM_WORLD,size,ierr)
@@ -129,9 +129,9 @@
       call MatAssemblyBegin(B,MAT_FINAL_ASSEMBLY,ierr)
       call MatAssemblyEnd(B,MAT_FINAL_ASSEMBLY,ierr)
 
-! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !     Create eigensolver and set various options
-! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
       call EPSCreate(PETSC_COMM_WORLD,eps,ierr)
       call EPSSetOperators(eps,A,B,ierr)
@@ -218,7 +218,7 @@
         endif
         do i=2,npart
           if (rank .eq. 0) then
-            write(*,180) subint(i) 
+            write(*,180) subint(i)
           endif
         enddo
  180    format (f6.4)
@@ -226,13 +226,13 @@
 
       call EPSSetFromOptions(eps,ierr)
 
-! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !     Compute all eigenvalues in interval and display info
-! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-      call EPSSolve(eps,ierr) 
+      call EPSSolve(eps,ierr)
       call EPSGetDimensions(eps,nev,ncv,mpd,ierr)
-      call EPSGetInterval(eps,int0,int1,ierr) 
+      call EPSGetInterval(eps,int0,int1,ierr)
       if (rank .eq. 0) then
         write(*,190) nev,int0,int1
       endif

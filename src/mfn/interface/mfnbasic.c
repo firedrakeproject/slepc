@@ -134,7 +134,7 @@ PetscErrorCode MFNReasonView(MFN mfn,PetscViewer viewer)
 #define __FUNCT__ "MFNReasonViewFromOptions"
 /*@
    MFNReasonViewFromOptions - Processes command line options to determine if/how
-   the MFN converged reason is to be viewed. 
+   the MFN converged reason is to be viewed.
 
    Collective on MFN
 

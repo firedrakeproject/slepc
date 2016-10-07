@@ -55,12 +55,13 @@ ex28: ex28.o chkopts
 #------------------------------------------------------------------------------------
 DATAPATH = ${SLEPC_DIR}/share/slepc/datafiles/matrices
 
-runex16_1: runex16_1_toar runex16_1_qarnoldi runex16_1_linear
+runex16_1: runex16_1_toar runex16_1_qarnoldi runex16_1_linear runex16_1_linear_symm
 runex16_1_%:
 	-@${SETTEST}; check=ex16_1; pep=$*; \
 	if [ "$$pep" = stoar ]; then pep="stoar -st_transform"; \
 	elif [ "$$pep" = qarnoldi ]; then pep="qarnoldi -st_transform"; \
-	elif [ "$$pep" = linear ]; then pep="linear -pep_linear_explicitmatrix"; fi; \
+	elif [ "$$pep" = linear ]; then pep="linear -pep_linear_explicitmatrix"; \
+	elif [ "$$pep" = linear_symm ]; then pep="linear -pep_linear_explicitmatrix -pep_linear_eps_gen_indefinite"; fi; \
 	${MPIEXEC} -n 1 ./ex16 -pep_type $$pep -pep_nev 4 -pep_ncv 21 -terse > $${test}.tmp 2>&1; \
 	${TESTCODE}
 

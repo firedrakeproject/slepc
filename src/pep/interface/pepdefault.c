@@ -273,7 +273,7 @@ PetscErrorCode PEPKrylovConvergence(PEP pep,PetscBool getall,PetscInt kini,Petsc
 #undef __FUNCT__
 #define __FUNCT__ "PEPBuildDiagonalScaling"
 /*
-  PEPBuildDiagonalScaling - compute two diagonal matrices to be applied for balancing 
+  PEPBuildDiagonalScaling - compute two diagonal matrices to be applied for balancing
   in polynomial eigenproblems.
 */
 PetscErrorCode PEPBuildDiagonalScaling(PEP pep)
@@ -304,7 +304,7 @@ PetscErrorCode PEPBuildDiagonalScaling(PEP pep)
   ierr = PetscObjectTypeCompare((PetscObject)T[0],MATMPIAIJ,&cont);CHKERRQ(ierr);
   if (cont) {
     ierr = MatMPIAIJGetLocalMat(T[0],MAT_INITIAL_MATRIX,&M);CHKERRQ(ierr);
-    flg = PETSC_TRUE; 
+    flg = PETSC_TRUE;
   } else {
     ierr = MatDuplicate(T[0],MAT_COPY_VALUES,&M);CHKERRQ(ierr);
   }
@@ -338,7 +338,7 @@ PetscErrorCode PEPBuildDiagonalScaling(PEP pep)
     ierr = MatAXPY(M,w,A,str);CHKERRQ(ierr);
     if (flg || str!=SAME_NONZERO_PATTERN || k==nmat-2) {
       ierr = MatDestroy(&A);CHKERRQ(ierr);
-    } 
+    }
   }
   ierr = MatGetRowIJ(M,0,PETSC_FALSE,PETSC_FALSE,&nr,&ridx,&cidx,&cont);CHKERRQ(ierr);
   if (!cont) SETERRQ(PetscObjectComm((PetscObject)T[0]), PETSC_ERR_SUP,"It is not possible to compute scaling diagonals for these PEP matrices");
@@ -360,12 +360,12 @@ PetscErrorCode PEPBuildDiagonalScaling(PEP pep)
   }
   for (it=0;it<pep->sits && cont;it++) {
     emaxl = 0; eminl = 0;
-    /* Column sum  */    
+    /* Column sum  */
     if (it>0) { /* it=0 has been already done*/
       ierr = MatSeqAIJGetArray(M,&array);CHKERRQ(ierr);
       ierr = PetscMemzero(aux,pep->n*sizeof(PetscReal));CHKERRQ(ierr);
       for (j=0;j<nz;j++) aux[cidx[j]] += PetscAbsScalar(array[j]);
-      ierr = MatSeqAIJRestoreArray(M,&array);CHKERRQ(ierr); 
+      ierr = MatSeqAIJRestoreArray(M,&array);CHKERRQ(ierr);
     }
     ierr = MPI_Allreduce(aux,csum,n,MPIU_REAL,MPIU_SUM,PetscObjectComm((PetscObject)pep->Dr));CHKERRQ(ierr);
     /* Update Dr */
@@ -392,7 +392,7 @@ PetscErrorCode PEPBuildDiagonalScaling(PEP pep)
       array[j] *= aux[cidx[j]];
     }
     ierr = MatSeqAIJRestoreArray(M,&array);CHKERRQ(ierr);
-    /* Row sum */    
+    /* Row sum */
     ierr = PetscMemzero(rsum,nr*sizeof(PetscReal));CHKERRQ(ierr);
     ierr = MatSeqAIJGetArray(M,&array);CHKERRQ(ierr);
     for (i=0;i<nr;i++) {
@@ -405,9 +405,9 @@ PetscErrorCode PEPBuildDiagonalScaling(PEP pep)
       /* Scale M */
       for (j=ridx[i];j<ridx[i+1];j++) array[j] *= d*d;
       emaxl = PetscMax(emaxl,e);
-      eminl = PetscMin(eminl,e);      
+      eminl = PetscMin(eminl,e);
     }
-    ierr = MatSeqAIJRestoreArray(M,&array);CHKERRQ(ierr);  
+    ierr = MatSeqAIJRestoreArray(M,&array);CHKERRQ(ierr);
     /* Compute global max and min */
     ierr = MPI_Allreduce(&emaxl,&emax,1,MPIU_INT,MPI_MAX,PetscObjectComm((PetscObject)pep->Dl));CHKERRQ(ierr);
     ierr = MPI_Allreduce(&eminl,&emin,1,MPIU_INT,MPI_MIN,PetscObjectComm((PetscObject)pep->Dl));CHKERRQ(ierr);
@@ -475,9 +475,9 @@ PetscErrorCode PEPComputeScaleFactor(PEP pep)
           pep->dsfactor = pep->dsfactor*pep->sfactor+norm0;
           pep->dsfactor = pep->nmat/pep->dsfactor;
         } else pep->dsfactor = 1.0;
-      } 
+      }
     }
-  } 
+  }
   PetscFunctionReturn(0);
 }
 
@@ -490,7 +490,7 @@ PetscErrorCode PEPBasisCoefficients(PEP pep,PetscReal *pbc)
 {
   PetscReal *ca,*cb,*cg;
   PetscInt  k,nmat=pep->nmat;
-  
+
   PetscFunctionBegin;
   ca = pbc;
   cb = pbc+nmat;
@@ -511,7 +511,7 @@ PetscErrorCode PEPBasisCoefficients(PEP pep,PetscReal *pbc)
     ca[0] = .5; cb[0] = 0.0; cg[0] = 0.0;
     for (k=1;k<nmat;k++) {
       ca[k] = .5; cb[k] = 0.0; cg[k] = .5;
-    }    
+    }
     break;
   case PEP_BASIS_LEGENDRE:
     ca[0] = 1.0; cb[0] = 0.0; cg[0] = 0.0;
@@ -546,7 +546,7 @@ PetscErrorCode PEPEvaluateBasis(PEP pep,PetscScalar sigma,PetscScalar isigma,Pet
 {
   PetscInt   nmat=pep->nmat,k;
   PetscReal  *a=pep->pbc,*b=pep->pbc+nmat,*g=pep->pbc+2*nmat;
-  
+
   PetscFunctionBegin;
   if (ivals) for (k=0;k<nmat;k++) ivals[k] = 0.0;
   vals[0] = 1.0;

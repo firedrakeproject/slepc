@@ -46,7 +46,7 @@ TESTEXAMPLES_C_NOTSINGLE           = test1.PETSc runtest1_1 runtest1_3 runtest1_
                                      test4.PETSc runtest4_1 test4.rm \
                                      test6.PETSc runtest6_1 test6.rm \
                                      test8.PETSc runtest8_1 test8.rm \
-                                     test9.PETSc runtest9_1 runtest9_2 test9.rm \
+                                     test9.PETSc runtest9_1 runtest9_2 runtest9_3 runtest9_4 test9.rm \
                                      test10.PETSc runtest10_1 test10.rm \
                                      test11.PETSc runtest11_1 test11.rm \
                                      test12.PETSc runtest12_1 test12.rm \
@@ -214,7 +214,7 @@ runtest2_1_%:
 runtest2_2: runtest2_2_local runtest2_2_full runtest2_2_selective runtest2_2_periodic runtest2_2_partial
 runtest2_2_%:
 	-@${SETTEST}; check=test2_1; reorthog=$*; \
-	${MPIEXEC} -n 1 ./test2 -eps_type lanczos -eps_nev 4 -eps_lanczos_reorthog $$reorthog > $${test}.tmp 2>&1; \
+	${MPIEXEC} -n 1 ./test2 -eps_type lanczos -eps_nev 4 -eps_lanczos_reorthog $$reorthog | ${GREP} -v "Lanczos" > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
 runtest2_3: runtest2_3_krylovschur runtest2_3_gd runtest2_3_jd runtest2_3_lapack
@@ -232,11 +232,12 @@ runtest3_1_%:
 	${MPIEXEC} -n 1 ./test3 -eps_type $$eps -eps_nev 4 > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
-runtest3_2: runtest3_2_rqcg runtest3_2_lobpcg runtest3_2_lanczos
+runtest3_2: runtest3_2_rqcg runtest3_2_lobpcg runtest3_2_lanczos runtest3_2_lanczos_delayed
 runtest3_2_%:
 	-@${SETTEST}; check=test3_2; eps=$*; \
 	if [ "$$eps" = lobpcg ]; then eps="lobpcg -eps_lobpcg_blocksize 6"; \
-	elif [ "$$eps" = rqcg ]; then eps="rqcg -eps_rqcg_reset 5 -eps_ncv 32 -st_pc_type bjacobi"; fi; \
+	elif [ "$$eps" = rqcg ]; then eps="rqcg -eps_rqcg_reset 5 -eps_ncv 32 -st_pc_type bjacobi"; \
+	elif [ "$$eps" = lanczos_delayed ]; then eps="lanczos -eps_lanczos_reorthog delayed -eps_tol 1e-8"; fi; \
 	${MPIEXEC} -n 1 ./test3 -eps_type $$eps -eps_nev 4 -eps_smallest_real -eps_max_it 500 > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
@@ -356,6 +357,17 @@ runtest9_2: runtest9_2_none runtest9_2_oneside runtest9_2_twoside
 runtest9_2_%:
 	-@${SETTEST}; check=test9_1; balance=$*; \
 	${MPIEXEC} -n 1 ./test9 -eps_balance $$balance -eps_nev 4 -eps_ncv 7 -eps_max_it 500 > $${test}.tmp 2>&1; \
+	${TESTCODE}
+
+runtest9_3: runtest9_3_never runtest9_3_ifneeded
+runtest9_3_%:
+	-@${SETTEST}; check=test9_3; refine=$*; \
+	${MPIEXEC} -n 2 ./test9 -eps_type arnoldi -eps_arnoldi_delayed -eps_largest_real -eps_nev 3 -eps_tol 1e-7 -bv_orthog_refine $$refine > $${test}.tmp 2>&1; \
+	${TESTCODE}
+
+runtest9_4:
+	-@${SETTEST}; check=test9_1; \
+	${MPIEXEC} -n 1 ./test9 -eps_nev 4 -eps_true_residual > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
 runtest10_1: runtest10_1_krylovschur runtest10_1_arnoldi runtest10_1_lanczos runtest10_1_gd runtest10_1_jd runtest10_1_gd2 runtest10_1_rqcg runtest10_1_lobpcg

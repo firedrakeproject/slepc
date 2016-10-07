@@ -23,7 +23,7 @@ where $U=[u_1,\ldots,u_m]$ is an $m\times m$ unitary matrix ($U^*U=I$), $V=[v_1,
 
 \begin{figure}
 \centering
-\begin{tikzpicture}[scale=0.5] 
+\begin{tikzpicture}[scale=0.5]
   \draw[fill=black!5] (0,0) rectangle node {$A$} +(3,7);
   \node at (3.5,3.5) {=};
   \draw[fill=black!5] (4,0) rectangle node {$U_n$} +(3,7);
@@ -57,7 +57,7 @@ The singular values are real and nonnegative, $\sigma_1\geq\sigma_2\geq\ldots\ge
 
 If the zero singular values are dropped from the sum in Eq.\ \ref{eq:svdouter}, the resulting factorization, $A=\sum_{i=1}^{r}\sigma_iu_iv_i^*$, is called the \emph{compact} SVD, $A=U_r\Sigma_r V_r^*$.
 
-In the case of a very large and sparse $A$, it is usual to compute only a subset of $k\leq r$ singular triplets. We will refer to this decomposition as the \emph{truncated} SVD of $A$. It can be shown that the matrix $A_k=U_k\Sigma_k V_k^*$ is the best rank-$k$ approximation to matrix $A$, in the least squares sense. 
+In the case of a very large and sparse $A$, it is usual to compute only a subset of $k\leq r$ singular triplets. We will refer to this decomposition as the \emph{truncated} SVD of $A$. It can be shown that the matrix $A_k=U_k\Sigma_k V_k^*$ is the best rank-$k$ approximation to matrix $A$, in the least squares sense.
 
 In general, one can take an arbitrary subset of the summands in Eq.\ \ref{eq:svdouter}, and the resulting factorization is called the \emph{partial} SVD of $A$. As described later in this chapter, \slepc allows the computation of a partial SVD corresponding to either the $k$ largest or smallest singular triplets.
 
@@ -144,7 +144,7 @@ The problem matrix is provided with the following function
 	\end{Verbatim}
 where \texttt{A} can be any matrix, not necessarily square, stored in any allowed \petsc format including the matrix-free mechanism (see \S\ref{sec:supported} for a detailed discussion).
 
-It is important to note that all SVD solvers in \slepc make use of both $A$ and $A^*$, as suggested by the description in \S\ref{sec:svd}. $A^*$ is not explicitly passed as an argument to \ident{SVDSetOperator}, therefore it will have to stem from $A$. There are two possibilities for this: either $A$ is transposed explicitly and $A^*$ is created as a distinct matrix, or $A^*$ is handled implicitly via \ident{MatMultTranspose} (or \ident{MatMultHermitianTranspose} in the complex case) operations whenever a matrix-vector product is required in the algorithm. The default is to build $A^*$ explicitly, but this behavior can be changed with 
+It is important to note that all SVD solvers in \slepc make use of both $A$ and $A^*$, as suggested by the description in \S\ref{sec:svd}. $A^*$ is not explicitly passed as an argument to \ident{SVDSetOperator}, therefore it will have to stem from $A$. There are two possibilities for this: either $A$ is transposed explicitly and $A^*$ is created as a distinct matrix, or $A^*$ is handled implicitly via \ident{MatMultTranspose} (or \ident{MatMultHermitianTranspose} in the complex case) operations whenever a matrix-vector product is required in the algorithm. The default is to build $A^*$ explicitly, but this behavior can be changed with
 	\findex{SVDSetImplicitTranspose}
 	\begin{Verbatim}[fontsize=\small]
 	SVDSetImplicitTranspose(SVD svd,PetscBool impl);

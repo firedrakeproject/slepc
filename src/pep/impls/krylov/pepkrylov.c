@@ -178,7 +178,7 @@ PetscErrorCode PEPExtractVectors_TOAR(PEP pep)
     }
   }
 
-  /* update vectors V = V*S */ 
+  /* update vectors V = V*S */
   ierr = MatCreateSeqDense(PETSC_COMM_SELF,k,k,NULL,&S0);CHKERRQ(ierr);
   ierr = MatDenseGetArray(S0,&pS0);CHKERRQ(ierr);
   for (i=0;i<k;i++) {

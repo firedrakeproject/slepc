@@ -144,7 +144,7 @@ PetscErrorCode STSetUp_Sinvert(ST st)
       ierr = MatDestroy(&st->T[k]);CHKERRQ(ierr);
       st->T[k] = st->A[k];
     }
-  } 
+  }
   if (st->P) {
     if (!st->ksp) { ierr = STGetKSP(st,&st->ksp);CHKERRQ(ierr); }
     ierr = STCheckFactorPackage(st);CHKERRQ(ierr);

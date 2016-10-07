@@ -177,7 +177,7 @@ static PetscErrorCode PEPMonitorGetTrueEig(PEP pep,PetscScalar *er,PetscScalar *
   if (pep->sfactor!=1.0) {
     ierr = STGetTransform(pep->st,&flg);CHKERRQ(ierr);
     ierr = PetscObjectTypeCompare((PetscObject)pep->st,STSINVERT,&sinv);CHKERRQ(ierr);
-    if (flg && sinv) { 
+    if (flg && sinv) {
       *er /= pep->sfactor; *ei /= pep->sfactor;
     } else {
       *er *= pep->sfactor; *ei *= pep->sfactor;

@@ -55,7 +55,7 @@ int main(int argc,char **argv)
 
   ierr = PetscOptionsHasName(NULL,NULL,"-draw_sol",&draw_sol);CHKERRQ(ierr);
 
-  /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+  /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
             Compute the transition probability matrix, A
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -72,21 +72,21 @@ int main(int argc,char **argv)
   ierr = VecAssemblyBegin(v);CHKERRQ(ierr);
   ierr = VecAssemblyEnd(v);CHKERRQ(ierr);
 
-  /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+  /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                 Create the solver and set various options
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-  /* 
+  /*
      Create matrix function solver context
   */
   ierr = MFNCreate(PETSC_COMM_WORLD,&mfn);CHKERRQ(ierr);
 
-  /* 
+  /*
      Set operator matrix, the function to compute, and other options
   */
   ierr = MFNSetOperator(mfn,A);CHKERRQ(ierr);
   ierr = MFNGetFN(mfn,&f);CHKERRQ(ierr);
   ierr = FNSetType(f,FNEXP);CHKERRQ(ierr);
-  ierr = FNSetScale(f,t,1.0);CHKERRQ(ierr);  
+  ierr = FNSetScale(f,t,1.0);CHKERRQ(ierr);
   ierr = MFNSetTolerances(mfn,1e-07,PETSC_DEFAULT);CHKERRQ(ierr);
 
   /*
@@ -94,7 +94,7 @@ int main(int argc,char **argv)
   */
   ierr = MFNSetFromOptions(mfn);CHKERRQ(ierr);
 
-  /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+  /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                       Solve the problem, y=exp(t*A)*v
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -102,7 +102,7 @@ int main(int argc,char **argv)
   ierr = MFNGetConvergedReason(mfn,&reason);CHKERRQ(ierr);
   if (reason<0) SETERRQ(PETSC_COMM_WORLD,1,"Solver did not converge");
   ierr = VecNorm(y,NORM_2,&norm);CHKERRQ(ierr);
-  
+
   /*
      Optional: Get some information from the solver and display it
   */
@@ -113,7 +113,7 @@ int main(int argc,char **argv)
   ierr = MFNGetTolerances(mfn,&tol,&maxit);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD," Stopping condition: tol=%.4g, maxit=%D\n",(double)tol,maxit);CHKERRQ(ierr);
 
-  /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+  /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                     Display solution and clean up
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
   ierr = PetscPrintf(PETSC_COMM_WORLD," Computed vector at time t=%.4g has norm %g\n\n",(double)PetscRealPart(t),(double)norm);CHKERRQ(ierr);
@@ -122,7 +122,7 @@ int main(int argc,char **argv)
     ierr = VecView(y,PETSC_VIEWER_DRAW_WORLD);CHKERRQ(ierr);
   }
 
-  /* 
+  /*
      Free work space
   */
   ierr = MFNDestroy(&mfn);CHKERRQ(ierr);

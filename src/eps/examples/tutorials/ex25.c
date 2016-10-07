@@ -115,12 +115,12 @@ int main(int argc,char **argv)
 
   ierr = EPSGetST(eps,&st);CHKERRQ(ierr);
   ierr = STSetType(st,STSINVERT);CHKERRQ(ierr);
-  
+
   ierr = STGetKSP(st,&ksp);CHKERRQ(ierr);
   ierr = KSPSetType(ksp,KSPPREONLY);CHKERRQ(ierr);
   ierr = KSPGetPC(ksp,&pc);CHKERRQ(ierr);
   ierr = PCSetType(pc,PCCHOLESKY);CHKERRQ(ierr);
-    
+
 #if defined(PETSC_HAVE_MUMPS)
 #if defined(PETSC_USE_COMPLEX)
   SETERRQ(PETSC_COMM_WORLD,PETSC_ERR_SUP,"Spectrum slicing with MUMPS is not available for complex scalars");
@@ -129,14 +129,14 @@ int main(int argc,char **argv)
   ierr = PCFactorSetMatSolverPackage(pc,MATSOLVERMUMPS);CHKERRQ(ierr);
   /*
      Add several MUMPS options (currently there is no better way of setting this in program):
-     '-mat_mumps_icntl_13 1': turn off ScaLAPACK for matrix inertia 
+     '-mat_mumps_icntl_13 1': turn off ScaLAPACK for matrix inertia
      '-mat_mumps_icntl_24 1': detect null pivots in factorization (for the case that a shift is equal to an eigenvalue)
      '-mat_mumps_cntl_3 <tol>': a tolerance used for null pivot detection (must be larger than machine epsilon)
 
      Note: depending on the interval, it may be necessary also to increase the workspace:
      '-mat_mumps_icntl_14 <percentage>': increase workspace with a percentage (50, 100 or more)
   */
-  ierr = PetscOptionsInsertString(NULL,"-mat_mumps_icntl_13 1 -mat_mumps_icntl_24 1 -mat_mumps_cntl_3 1e-12");CHKERRQ(ierr); 
+  ierr = PetscOptionsInsertString(NULL,"-mat_mumps_icntl_13 1 -mat_mumps_icntl_24 1 -mat_mumps_cntl_3 1e-12");CHKERRQ(ierr);
 #endif
 
   /*
@@ -149,7 +149,7 @@ int main(int argc,char **argv)
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
   ierr = EPSSetUp(eps);CHKERRQ(ierr);
   if (show) {
-    ierr = EPSKrylovSchurGetInertias(eps,&ns,&shifts,&inertias);  
+    ierr = EPSKrylovSchurGetInertias(eps,&ns,&shifts,&inertias);
     ierr = PetscPrintf(PETSC_COMM_WORLD,"Subintervals (after setup):\n");CHKERRQ(ierr);
     for (i=0;i<ns;i++) { ierr = PetscPrintf(PETSC_COMM_WORLD,"Shift %g  Inertia %D \n",shifts[i],inertias[i]);CHKERRQ(ierr); }
     ierr = PetscPrintf(PETSC_COMM_WORLD,"\n");CHKERRQ(ierr);
@@ -158,7 +158,7 @@ int main(int argc,char **argv)
   }
   ierr = EPSSolve(eps);CHKERRQ(ierr);
   if (show) {
-    ierr = EPSKrylovSchurGetInertias(eps,&ns,&shifts,&inertias);  
+    ierr = EPSKrylovSchurGetInertias(eps,&ns,&shifts,&inertias);
     ierr = PetscPrintf(PETSC_COMM_WORLD,"All shifts (after solve):\n");CHKERRQ(ierr);
     for (i=0;i<ns;i++) { ierr = PetscPrintf(PETSC_COMM_WORLD,"Shift %g  Inertia %D \n",shifts[i],inertias[i]);CHKERRQ(ierr); }
     ierr = PetscPrintf(PETSC_COMM_WORLD,"\n");CHKERRQ(ierr);

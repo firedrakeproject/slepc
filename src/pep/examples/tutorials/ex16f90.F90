@@ -3,21 +3,21 @@
 !  Copyright (c) 2002-2016, Universitat Politecnica de Valencia, Spain
 !
 !  This file is part of SLEPc.
-!     
+!
 !  SLEPc is free software: you can redistribute it and/or modify it under  the
 !  terms of version 3 of the GNU Lesser General Public License as published by
 !  the Free Software Foundation.
 !
-!  SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY 
-!  WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS 
-!  FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for 
+!  SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY
+!  WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS
+!  FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for
 !  more details.
 !
 !  You  should have received a copy of the GNU Lesser General  Public  License
 !  along with SLEPc. If not, see <http://www.gnu.org/licenses/>.
 !  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !
-!  Program usage: mpiexec -n <np> ./ex16f90 [-help] [-n <n>] [-m <m>] [SLEPc opts] 
+!  Program usage: mpiexec -n <np> ./ex16f90 [-help] [-n <n>] [-m <m>] [SLEPc opts]
 !
 !  Description: Simple example that solves a quadratic eigensystem with the
 !  PEP object. This is the Fortran90 equivalent to ex16.c
@@ -26,7 +26,7 @@
 !    -n <n>, where <n> = number of grid subdivisions in x dimension
 !    -m <m>, where <m> = number of grid subdivisions in y dimension
 !
-! ---------------------------------------------------------------------- 
+! ----------------------------------------------------------------------
 !
       program main
 
@@ -35,15 +35,15 @@
 
       implicit none
 
-! For usage without modules, uncomment the following lines and remove 
+! For usage without modules, uncomment the following lines and remove
 ! the previous lines between 'program main' and 'implicit none'
 !
 !#include <petsc/finclude/petsc.h>
 !#include <slepc/finclude/slepc.h>
 
-! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !     Declarations
-! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !
 !  Variables:
 !     M,C,K  problem matrices
@@ -66,7 +66,7 @@
 
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !     Beginning of program
-! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
       call SlepcInitialize(PETSC_NULL_CHARACTER,ierr)
       call MPI_Comm_rank(PETSC_COMM_WORLD,rank,ierr)
@@ -84,9 +84,9 @@
       endif
  100  format (/'Quadratic Eigenproblem, N=',I6,' (',I4,'x',I4,' grid)')
 
-! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !     Compute the matrices that define the eigensystem, (k^2*M+k*C+K)x=0
-! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 !     ** K is the 2-D Laplacian
       call MatCreate(PETSC_COMM_WORLD,K,ierr)
@@ -99,16 +99,16 @@
       do II=Istart,Iend-1
         i = II/nx
         j = II-i*nx
-        if (i .gt. 0) then 
+        if (i .gt. 0) then
           call MatSetValue(K,II,II-nx,mone,INSERT_VALUES,ierr)
         endif
-        if (i .lt. ny-1) then 
+        if (i .lt. ny-1) then
           call MatSetValue(K,II,II+nx,mone,INSERT_VALUES,ierr)
         endif
-        if (j .gt. 0) then 
+        if (j .gt. 0) then
           call MatSetValue(K,II,II-1,mone,INSERT_VALUES,ierr)
         endif
-        if (j .lt. nx-1) then 
+        if (j .lt. nx-1) then
           call MatSetValue(K,II,II+1,mone,INSERT_VALUES,ierr)
         endif
         call MatSetValue(K,II,II,four,INSERT_VALUES,ierr)
@@ -126,10 +126,10 @@
       do II=Istart,Iend-1
         i = II/nx
         j = II-i*nx
-        if (j .gt. 0) then 
+        if (j .gt. 0) then
           call MatSetValue(C,II,II-1,mone,INSERT_VALUES,ierr)
         endif
-        if (j .lt. nx-1) then 
+        if (j .lt. nx-1) then
           call MatSetValue(C,II,II+1,mone,INSERT_VALUES,ierr)
         endif
         call MatSetValue(C,II,II,two,INSERT_VALUES,ierr)
@@ -150,9 +150,9 @@
       call MatAssemblyBegin(M,MAT_FINAL_ASSEMBLY,ierr)
       call MatAssemblyEnd(M,MAT_FINAL_ASSEMBLY,ierr)
 
-! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !     Create the eigensolver and set various options
-! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 !     ** Create eigensolver context
       call PEPCreate(PETSC_COMM_WORLD,pep,ierr)
@@ -168,11 +168,11 @@
 !     ** Set solver parameters at runtime
       call PEPSetFromOptions(pep,ierr)
 
-! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !     Solve the eigensystem
-! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-      call PEPSolve(pep,ierr) 
+      call PEPSolve(pep,ierr)
 
 !     ** Optional: Get some information from the solver and display it
       call PEPGetType(pep,tname,ierr)
@@ -187,9 +187,9 @@
       endif
  130  format (' Number of requested eigenvalues:',I4)
 
-! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !     Display solution and clean up
-! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 !     ** show detailed info unless -terse option is given by user
       call PetscOptionsHasName(PETSC_NULL_OBJECT,PETSC_NULL_CHARACTER,  &

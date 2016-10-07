@@ -130,7 +130,7 @@ class PETScMaker(script.Script):
      options.append('PETSC_WIN32FE %s' % win32fe)
 
    archdir = os.path.join(self.slepcdir, self.arch.arch)
-   initial_cache_filename = os.path.join(archdir, 'initial_cache_file.cmake')  
+   initial_cache_filename = os.path.join(archdir, 'initial_cache_file.cmake')
    cmd = [self.cmake.cmake, '--trace', '--debug-output', '-C' + str(initial_cache_filename), '-DPETSC_CMAKE_ARCH:STRING='+str(self.arch.arch), self.slepcdir] + args
    if win32fe:
      # Default on Windows is to generate Visual Studio project files, but
@@ -144,7 +144,7 @@ class PETScMaker(script.Script):
    for option in options:
      initial_cache_file.write('SET (' + option + ' "Dummy comment" FORCE)\n')
      self.logPrint('SET (' + option + ' "Dummy comment" FORCE)\n')
-   initial_cache_file.close()   
+   initial_cache_file.close()
    try:
      # Try to remove the old cache because some versions of CMake lose CMAKE_C_FLAGS when reconfiguring this way
      self.logPrint('Removing: %s' % os.path.join(archdir, 'CMakeCache.txt'))

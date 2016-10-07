@@ -47,7 +47,7 @@ int main(int argc,char **argv)
   ierr = PetscOptionsGetScalar(NULL,NULL,"-t",&t,NULL);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD,"\nMatrix exponential y=exp(t*A)*e, loaded from file\n\n");CHKERRQ(ierr);
 
-  /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+  /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                 Load matrix A from binary file
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -70,7 +70,7 @@ int main(int argc,char **argv)
   ierr = MatCreateVecs(A,NULL,&v);CHKERRQ(ierr);
   ierr = VecSet(v,1.0);CHKERRQ(ierr);
 
-  /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+  /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                 Create the solver and set various options
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -78,10 +78,10 @@ int main(int argc,char **argv)
   ierr = MFNSetOperator(mfn,A);CHKERRQ(ierr);
   ierr = MFNGetFN(mfn,&f);CHKERRQ(ierr);
   ierr = FNSetType(f,FNEXP);CHKERRQ(ierr);
-  ierr = FNSetScale(f,t,1.0);CHKERRQ(ierr);  
+  ierr = FNSetScale(f,t,1.0);CHKERRQ(ierr);
   ierr = MFNSetFromOptions(mfn);CHKERRQ(ierr);
 
-  /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+  /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                       Solve the problem, y=exp(t*A)*v
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -90,8 +90,8 @@ int main(int argc,char **argv)
   if (reason<0) SETERRQ(PETSC_COMM_WORLD,1,"Solver did not converge");
   ierr = VecNorm(y,NORM_2,&norm);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD," Computed vector at time t=%.4g has norm %g\n\n",(double)PetscRealPart(t),(double)norm);CHKERRQ(ierr);
-  
-  /* 
+
+  /*
      Free work space
   */
   ierr = MFNDestroy(&mfn);CHKERRQ(ierr);

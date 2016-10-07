@@ -3,29 +3,29 @@
 !  Copyright (c) 2002-2016, Universitat Politecnica de Valencia, Spain
 !
 !  This file is part of SLEPc.
-!     
+!
 !  SLEPc is free software: you can redistribute it and/or modify it under  the
 !  terms of version 3 of the GNU Lesser General Public License as published by
 !  the Free Software Foundation.
 !
-!  SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY 
-!  WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS 
-!  FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for 
+!  SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY
+!  WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS
+!  FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for
 !  more details.
 !
 !  You  should have received a copy of the GNU Lesser General  Public  License
 !  along with SLEPc. If not, see <http://www.gnu.org/licenses/>.
 !  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !
-!  Program usage: mpiexec -n <np> ./ex15f [-help] [-n <n>] [-mu <mu>] [all SLEPc options] 
+!  Program usage: mpiexec -n <np> ./ex15f [-help] [-n <n>] [-mu <mu>] [all SLEPc options]
 !
-!  Description: Singular value decomposition of the Lauchli matrix. 
+!  Description: Singular value decomposition of the Lauchli matrix.
 !
 !  The command line options are:
 !    -n <n>, where <n> = matrix dimension.
 !    -mu <mu>, where <mu> = subdiagonal value.
 !
-! ---------------------------------------------------------------------- 
+! ----------------------------------------------------------------------
 !
       program main
       implicit none
@@ -36,9 +36,9 @@
 #include <slepc/finclude/slepcsys.h>
 #include <slepc/finclude/slepcsvd.h>
 
-! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !     Declarations
-! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !
 !  Variables:
 !     A     operator matrix
@@ -57,7 +57,7 @@
 
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !     Beginning of program
-! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
       call SlepcInitialize(PETSC_NULL_CHARACTER,ierr)
       call MPI_Comm_rank(PETSC_COMM_WORLD,rank,ierr)
@@ -73,9 +73,9 @@
       endif
  100  format (/'Lauchli SVD, n =',I3,', mu=',E12.4,' (Fortran)')
 
-! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !     Build the Lauchli matrix
-! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
       call MatCreate(PETSC_COMM_WORLD,A,ierr)
       call MatSetSizes(A,PETSC_DECIDE,PETSC_DECIDE,n+1,n,ierr)
@@ -97,9 +97,9 @@
       call MatAssemblyBegin(A,MAT_FINAL_ASSEMBLY,ierr)
       call MatAssemblyEnd(A,MAT_FINAL_ASSEMBLY,ierr)
 
-! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !     Create the singular value solver and display info
-! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 !     ** Create singular value solver context
       call SVDCreate(PETSC_COMM_WORLD,svd,ierr)
@@ -113,11 +113,11 @@
 !     ** Set solver parameters at runtime
       call SVDSetFromOptions(svd,ierr)
 
-! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !     Solve the singular value system
-! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-      call SVDSolve(svd,ierr) 
+      call SVDSolve(svd,ierr)
       call SVDGetIterationNumber(svd,its,ierr)
       if (rank .eq. 0) then
         write(*,110) its
@@ -142,9 +142,9 @@
       endif
  140  format (' Stopping condition: tol=',1P,E10.4,', maxit=',I4)
 
-! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !     Display solution and clean up
-! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 !     ** Get number of converged singular triplets
       call SVDGetConverged(svd,nconv,ierr)

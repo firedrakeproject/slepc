@@ -3,14 +3,14 @@
 !  Copyright (c) 2002-2016, Universitat Politecnica de Valencia, Spain
 !
 !  This file is part of SLEPc.
-!     
+!
 !  SLEPc is free software: you can redistribute it and/or modify it under  the
 !  terms of version 3 of the GNU Lesser General Public License as published by
 !  the Free Software Foundation.
 !
-!  SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY 
-!  WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS 
-!  FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for 
+!  SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY
+!  WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS
+!  FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for
 !  more details.
 !
 !  You  should have received a copy of the GNU Lesser General  Public  License
@@ -19,7 +19,7 @@
 !
 !  Description: Simple example to test the NEP Fortran interface.
 !
-! ---------------------------------------------------------------------- 
+! ----------------------------------------------------------------------
 !
       program main
       implicit none
@@ -31,9 +31,9 @@
 #include <slepc/finclude/slepcsys.h>
 #include <slepc/finclude/slepcnep.h>
 
-! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !     Declarations
-! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
       Mat                A(3),B
       FN                 f(3),g
       NEP                nep
@@ -59,7 +59,7 @@
 
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !     Beginning of program
-! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
       call SlepcInitialize(PETSC_NULL_CHARACTER,ierr)
       call MPI_Comm_rank(PETSC_COMM_WORLD,rank,ierr)
@@ -123,9 +123,9 @@
       call FNCreate(PETSC_COMM_WORLD,f(3),ierr)
       call FNSetType(f(3),FNSQRT,ierr)
 
-! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !     Create eigensolver and test interface functions
-! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
       call NEPCreate(PETSC_COMM_WORLD,nep,ierr)
       nterm = 3
@@ -208,23 +208,23 @@
      &                   SlepcConvMonitorDestroy,ierr)
       call NEPMonitorCancel(nep,ierr)
 
-      call NEPGetDS(nep,ds,ierr) 
-      call DSView(ds,PETSC_NULL_OBJECT,ierr) 
+      call NEPGetDS(nep,ds,ierr)
+      call DSView(ds,PETSC_NULL_OBJECT,ierr)
       call NEPSetFromOptions(nep,ierr)
 
-      call NEPGetRG(nep,rg,ierr) 
-      call RGView(rg,PETSC_NULL_OBJECT,ierr) 
+      call NEPGetRG(nep,rg,ierr)
+      call RGView(rg,PETSC_NULL_OBJECT,ierr)
 
-      call NEPSolve(nep,ierr) 
+      call NEPSolve(nep,ierr)
       call NEPGetConvergedReason(nep,reason,ierr)
       if (rank .eq. 0) then
         write(*,240) reason
       endif
  240  format (' Finished - converged reason =',I2)
 
-! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !     Display solution and clean up
-! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
       call NEPErrorView(nep,NEP_ERROR_RELATIVE,PETSC_NULL_OBJECT,ierr)
       call NEPDestroy(nep,ierr)
       call MatDestroy(A(1),ierr)

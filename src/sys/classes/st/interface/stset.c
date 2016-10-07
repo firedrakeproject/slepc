@@ -282,7 +282,7 @@ PetscErrorCode STGetMatStructure(ST st,MatStructure *str)
    linear solves performed in each iteration of the eigensolver (typically,
    only interative solvers with Jacobi preconditioning can be used).
 
-   In the two first modes the efficiency of the computation 
+   In the two first modes the efficiency of the computation
    can be controlled with STSetMatStructure().
 
    Level: intermediate

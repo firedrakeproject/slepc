@@ -46,7 +46,7 @@ static PetscErrorCode MatFSMult(Mat M ,Vec x,Vec y)
   PetscErrorCode ierr;
   FSubctx        *ctx;
   PetscScalar    t;
-  
+
   PetscFunctionBegin;
   ierr = MatShellGetContext(M,&ctx);CHKERRQ(ierr);
   ierr = VecDot(x,ctx->M3,&t);CHKERRQ(ierr);
@@ -135,7 +135,7 @@ static PetscErrorCode NEPSimpleNRefSetUp(NEP nep,NEPSimpNRefctx **ctx_)
       ierr = PetscFree(idx1);CHKERRQ(ierr);
       ierr = ISDestroy(&is1);CHKERRQ(ierr);
     }
-  }  PetscFunctionReturn(0);  
+  }  PetscFunctionReturn(0);
 }
 
 /*
@@ -158,7 +158,7 @@ static PetscErrorCode NEPSimpleNRefGatherEigenpair(NEP nep,NEPSimpNRefctx *ctx,P
     /* Communicate convergence successful */
     ierr = MPI_Bcast(fail,1,MPIU_INT,p,comm);CHKERRQ(ierr);
     if (!(*fail)) {
-      /* Process 0 of subcommunicator sc broadcasts the eigenvalue */ 
+      /* Process 0 of subcommunicator sc broadcasts the eigenvalue */
       ierr = MPI_Bcast(&nep->eigr[idx],1,MPIU_SCALAR,p,comm);CHKERRQ(ierr);
       /* Gather nep->V[idx] from the subcommuniator sc */
       ierr = BVGetColumn(nep->V,idx,&v);CHKERRQ(ierr);
@@ -189,7 +189,7 @@ static PetscErrorCode NEPSimpleNRefScatterEigenvector(NEP nep,NEPSimpNRefctx *ct
   PetscErrorCode ierr;
   Vec            v;
   PetscScalar    *array;
-  
+
   PetscFunctionBegin;
   if (nep->npart>1) {
     ierr = BVGetColumn(nep->V,idx,&v);CHKERRQ(ierr);
@@ -235,7 +235,7 @@ static PetscErrorCode NEPSimpleNRefSetUpSystem(NEP nep,NEPSimpNRefctx *ctx,Mat *
       ierr = MatShellSetOperation(*T,MATOP_MULT,(void(*)(void))MatFSMult);CHKERRQ(ierr);
     } else {
       ierr = MatShellGetContext(*T,&fctx);CHKERRQ(ierr);
-    }    
+    }
     M=fctx->M1;
     break;
   case NEP_REFINE_SCHEME_MBE:
@@ -318,7 +318,7 @@ static PetscErrorCode NEPSimpleNRefSetUpSystem(NEP nep,NEPSimpNRefctx *ctx,Mat *
       *Mt = M;
       *P  = *T;
     }
-  
+
     /* Set values */
     ierr = VecGetArrayRead(w,&array);CHKERRQ(ierr);
     for (i=m0;i<m1;i++) {
@@ -344,7 +344,7 @@ static PetscErrorCode NEPSimpleNRefSetUpSystem(NEP nep,NEPSimpNRefctx *ctx,Mat *
         ierr = MatSetValues(*T,1,&mg,1,&mg,&zero,INSERT_VALUES);CHKERRQ(ierr);
       }
       ierr = VecRestoreArrayRead(ctx->nv,&array);CHKERRQ(ierr);
-    } else {  
+    } else {
       ierr = PetscMalloc1(m1-m0,&cols2);CHKERRQ(ierr);
       for (i=0;i<m1-m0;i++) cols2[i]=m0+i;
       ierr = VecGetArrayRead(v,&array);CHKERRQ(ierr);
@@ -354,9 +354,9 @@ static PetscErrorCode NEPSimpleNRefSetUpSystem(NEP nep,NEPSimpNRefctx *ctx,Mat *
     }
     ierr = VecConjugate(v);CHKERRQ(ierr);
     ierr = MatAssemblyBegin(*T,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
-    ierr = MatAssemblyEnd(*T,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);  
+    ierr = MatAssemblyEnd(*T,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
     ierr = PetscFree(cols2);CHKERRQ(ierr);
-    break; 
+    break;
   case NEP_REFINE_SCHEME_SCHUR:
     fctx->M2 = ctx->w;
     fctx->M3 = v;
@@ -427,7 +427,7 @@ PetscErrorCode NEPNewtonRefinementSimple(NEP nep,PetscInt *maxits,PetscReal tol,
   for (i=0;i<nep->npart;i++) fail_sc[i] = 0;
   for (i=0;i<nep->npart;i++) its_sc[i] = 0;
   color = (nep->npart==1)?0:nep->refinesubc->color;
-   
+
   /* Loop performing iterative refinements */
   while (!solved) {
     for (i=0;i<nep->npart;i++) {
@@ -465,7 +465,7 @@ PetscErrorCode NEPNewtonRefinementSimple(NEP nep,PetscInt *maxits,PetscReal tol,
 #endif
       if (nep->npart==1) {
         ierr = BVGetColumn(nep->V,idx_sc[color],&v);CHKERRQ(ierr);
-      } else v = ctx->v; 
+      } else v = ctx->v;
       ierr = NEPSimpleNRefSetUpSystem(nep,ctx,ctx->A,idx_sc[color],&Mt,&T,&P,ini,t[0],v);CHKERRQ(ierr);
       ierr = KSPSetOperators(nep->refineksp,T,P);CHKERRQ(ierr);
       if (ini) {
@@ -544,7 +544,7 @@ PetscErrorCode NEPNewtonRefinementSimple(NEP nep,PetscInt *maxits,PetscReal tol,
       case NEP_REFINE_SCHEME_SCHUR:
         fail_sc[color] = 1;
         ierr = MatShellGetContext(T,&fctx);CHKERRQ(ierr);
-        if (fctx->M4!=0.0) { 
+        if (fctx->M4!=0.0) {
           ierr = MatMult(fctx->M1,v,r);CHKERRQ(ierr);
           ierr = KSPSolve(nep->refineksp,r,dv);CHKERRQ(ierr);
           ierr = KSPGetConvergedReason(nep->refineksp,&reason);CHKERRQ(ierr);
@@ -557,7 +557,7 @@ PetscErrorCode NEPNewtonRefinementSimple(NEP nep,PetscInt *maxits,PetscReal tol,
             nep->eigr[idx_sc[color]] -= deig;
             fail_sc[color] = 0;
           }
-        }  
+        }
         break;
       }
       if (nep->npart==1) { ierr = BVRestoreColumn(nep->V,idx_sc[color],&v);CHKERRQ(ierr); }

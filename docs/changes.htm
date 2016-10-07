@@ -34,30 +34,30 @@ ul.changes li {
 
 <body bgcolor="#FFFFFF" text="#000000">
 <div align ="center">
-[ <a href="manual.htm">Manual</a> 
-| <a href="instal.htm">Installation</a> 
+[ <a href="manual.htm">Manual</a>
+| <a href="instal.htm">Installation</a>
 | Changes
 | <a href="faq.htm">FAQ</a>
 | <a href="mail_list.htm">Contact</a>
 ] </div>
 <table width="700" border="0" cellpadding="0" cellspacing="0">
-  <tr> 
+  <tr>
     <td width="700" height="18"><p>&nbsp;</p>
       <p>&nbsp;</p></td>
   </tr>
-  <tr> 
+  <tr>
     <td valign="top" height="18">
-      <p><font face="Arial, Helvetica, sans-serif" size="2">The following table 
-        lists the versions of SLEPc and shows the correspondence between SLEPc 
-        and PETSc releases. Versions marked as major releases are those which 
-        incorporate some new functionality. The rest are just adaptations required 
+      <p><font face="Arial, Helvetica, sans-serif" size="2">The following table
+        lists the versions of SLEPc and shows the correspondence between SLEPc
+        and PETSc releases. Versions marked as major releases are those which
+        incorporate some new functionality. The rest are just adaptations required
         for a new PETSc release and may also include bug fixes.</font></p>
     </td>
   </tr>
 </table>
 
 <table class=version cellpadding=0 cellspacing=0 align=center>
-  <tr> 
+  <tr>
     <th width="138"> SLEPc version </th>
     <th width="175"> PETSc versions </th>
     <th width="75"> Major </th>
@@ -215,7 +215,7 @@ Changes in Version 3.6</font></b>
   <li> New PEP solvers: Jacobi-Davidson (JD), and symmetric TOAR (STOAR).
   <li> New NEP solver: contour integral spectrum slice (CISS).
   <li> Improved BLOPEX interface by adding hard locking. Now the user can specify
-       the block size. 
+       the block size.
   <li> Spectrum slicing in EPS can now be run in multi-communicator mode, where
        each process group computes a sub-interval.
   <li> Added functions and command-line options to view the computed solution
@@ -228,7 +228,7 @@ Changes in Version 3.6</font></b>
   <li> Added two new RG regions: &quot;ring&quot; a stripe along an
        ellipse with optional start and end angles; &quot;polygon&quot; an
        arbitrary polygon made up of a list of vertices.
-  <li> User makefiles must now include 
+  <li> User makefiles must now include
        <code>${SLEPC_DIR}/lib/slepc/conf/slepc_common</code>.
   <li> Interface changes: EPSComputeRelativeError and EPSComputeResidualNorm have
        been deprecated (use EPSComputeError instead); the same for PEP, NEP and SVD;
@@ -299,10 +299,10 @@ Changes in Version 3.4</font></b>
   <li>
     Added interface to external solver FEAST.
   <li>
-    Changed options -xxx_monitor_draw to -xxx_monitor_lg, and similarly for 
+    Changed options -xxx_monitor_draw to -xxx_monitor_lg, and similarly for
     -xxx_monitor_draw_all.
 </ul>
- 
+
 <p>
 <font size="3" face="Arial, Helvetica, sans-serif"><b>
 Changes in Version 3.3</font></b>
@@ -320,7 +320,7 @@ Changes in Version 3.3</font></b>
     Tunning this parameter may speed up convergence significantly in some cases.
   <li>
     Added support for generalized symmetric-indefinite eigenproblems in
-    Krylov-Schur and the Davidson solvers. 
+    Krylov-Schur and the Davidson solvers.
     To use this, set the problem type to EPS_GHIEP.
   <li>
     New variant of Generalized Davidson for generalized eigenproblems that
@@ -393,7 +393,7 @@ Changes in Version 3.1</font></b>
   <li>
     Changes in user interface: EPSAttachDeflationSpace has been renamed to EPSSetDeflationSpace,
     EPSSetLeftVectorsWanted replaces EPSSetClass for requesting left eigenvectors;
-    Change in arguments: EPSSetDeflationSpace; Deprecated function: EPSSetInitialVector, 
+    Change in arguments: EPSSetDeflationSpace; Deprecated function: EPSSetInitialVector,
     replaced by EPSSetInitialSpace; STSINV has been renamed to STSINVERT.
 </ul>
 
@@ -413,7 +413,7 @@ Changes in Version 3.0.0</font></b>
       (see EPSSetDimensions).
   <li>
       Support for harmonic projection in the default eigensolver (Krylov-Schur),
-      see EPSSetExtraction. This can be useful for computing interior or 
+      see EPSSetExtraction. This can be useful for computing interior or
       rightmost eigenvalues without the need of a spectral transformation.
   <li>
       Memory usage has been optimized in most solvers. In some cases,
@@ -461,7 +461,7 @@ Changes in Version 2.3.2</font></b>
     A new 'krylovschur' eigensolver has been added, that implements the
     Krylov-Schur method. This method is related to the Arnoldi and Lanczos
     algorithms, but incorporates a new restarting scheme that makes it
-    competitive with respect to implicit restart. This eigensolver is now 
+    competitive with respect to implicit restart. This eigensolver is now
     the default for both symmetric and non-symmetric problems.
   <li>
     A new wrapper has been developed to interface with the PRIMME library.
@@ -492,7 +492,7 @@ Changes in Version 2.3.1</font></b>
 
 <ul class=changes>
   <li>
-    New variant of the Arnoldi method added to the 'arnoldi' eigensolver 
+    New variant of the Arnoldi method added to the 'arnoldi' eigensolver
     (with delayed reorthogonalization, see EPSArnoldiSetDelayed).
   <li>
     Several optimizations for improving performance and scalability, in particular

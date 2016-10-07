@@ -61,8 +61,8 @@ int main(int argc,char **argv)
   sigma = kappa/m;
   ierr = PetscPrintf(PETSC_COMM_WORLD,"Loaded vibrating string, n=%D kappa=%g m=%g\n\n",n,(double)kappa,(double)m);CHKERRQ(ierr);
 
-  /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
-                       Build the problem matrices 
+  /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+                       Build the problem matrices
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
   /* initialize matrices */
@@ -102,7 +102,7 @@ int main(int argc,char **argv)
     ierr = MatAssemblyEnd(A[i],MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
   }
 
-  /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+  /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                        Create the problem functions
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -126,7 +126,7 @@ int main(int argc,char **argv)
   ierr = FNRationalSetNumerator(f[2],2,numer);CHKERRQ(ierr);
   ierr = FNRationalSetDenominator(f[2],2,denom);CHKERRQ(ierr);
 
-  /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+  /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                 Create the eigensolver and solve the problem
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -138,7 +138,7 @@ int main(int argc,char **argv)
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                     Display solution and clean up
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-  
+
   /* show detailed info unless -terse option is given by user */
   ierr = PetscOptionsHasName(NULL,NULL,"-terse",&terse);CHKERRQ(ierr);
   if (terse) {

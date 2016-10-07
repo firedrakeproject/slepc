@@ -292,7 +292,7 @@ static PetscErrorCode CalcMu(NEP nep, PetscScalar *Mu)
         }
       }
     }
-    for (i=0;i<ctx->num_solve_point;i++) 
+    for (i=0;i<ctx->num_solve_point;i++)
       ppk[i] *= ctx->pp[i*ctx->subcomm->n + ctx->subcomm_id];
   }
   for (i=0;i<2*ctx->M*ctx->L*ctx->L;i++) temp2[i] /= sub_size;
@@ -312,8 +312,8 @@ static PetscErrorCode BlockHankel(NEP nep,PetscScalar *Mu,PetscInt s,PetscScalar
 
   PetscFunctionBegin;
   for (k=0;k<L*M;k++)
-    for (j=0;j<M;j++) 
-      for (i=0;i<L;i++) 
+    for (j=0;j<M;j++)
+      for (i=0;i<L;i++)
         H[j*L+i+k*L*M] = Mu[i+k*L+(j+s)*L*L];
   PetscFunctionReturn(0);
 }
@@ -595,7 +595,7 @@ PetscErrorCode NEPSolve_CISS(NEP nep)
         temp[i+j*ld] = H1[i+j*ctx->L*ctx->M];
     ierr = DSRestoreArray(nep->ds,DS_MAT_A,&temp);CHKERRQ(ierr);
     ierr = DSGetArray(nep->ds,DS_MAT_B,&temp);CHKERRQ(ierr);
-    for (j=0;j<nv;j++) 
+    for (j=0;j<nv;j++)
       for (i=0;i<nv;i++)
         temp[i+j*ld] = H0[i+j*ctx->L*ctx->M];
     ierr = DSRestoreArray(nep->ds,DS_MAT_B,&temp);CHKERRQ(ierr);
@@ -663,7 +663,7 @@ PetscErrorCode NEPSolve_CISS(NEP nep)
       ierr = SolveLinearSystem(nep,nep->function,nep->jacobian,ctx->V,0,ctx->L,PETSC_FALSE);CHKERRQ(ierr);
     }
   }
-  ierr = PetscFree3(Mu,H0,H1);CHKERRQ(ierr);  
+  ierr = PetscFree3(Mu,H0,H1);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
