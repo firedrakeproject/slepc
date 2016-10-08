@@ -30,7 +30,6 @@ EXAMPLESF  = ex1f.F ex1f90.F90 ex6f.F
 MANSEC     = EPS
 
 TESTEXAMPLES_C                     = ex5.PETSc runex5_1 ex5.rm \
-                                     ex9.PETSc runex9_7 ex9.rm \
                                      ex13.PETSc runex13_1 ex13.rm \
                                      ex18.PETSc runex18_1 ex18.rm \
                                      ex24.PETSc runex24_1 ex24.rm \
@@ -44,7 +43,7 @@ TESTEXAMPLES_C_NOTSINGLE           = ex2.PETSc runex2_1 runex2_2 ex2.rm \
                                      ex30.PETSc runex30_1 ex30.rm
 TESTEXAMPLES_C_DATAFILE            = ex4.PETSc runex4_1 ex4.rm \
                                      ex7.PETSc runex7_1 ex7.rm \
-                                     ex9.PETSc runex9_3 ex9.rm \
+                                     ex9.PETSc runex9_3 runex9_7 ex9.rm \
                                      ex31.PETSc runex31_1 ex31.rm
 TESTEXAMPLES_C_COMPLEX             = ex9.PETSc runex9_6 ex9.rm
 TESTEXAMPLES_C_NOCOMPLEX           = ex25.PETSc runex25_1 ex25.rm
