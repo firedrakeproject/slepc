@@ -126,7 +126,6 @@ PetscErrorCode STSetFromOptions(ST st)
   PetscScalar    s;
   char           type[256];
   PetscBool      flg;
-  const char     *mode_list[3] = {"copy","inplace","shell"};
   const char     *structure_list[3] = {"same","different","subset"};
   STMatMode      mode;
   MatStructure   mstr;
@@ -145,7 +144,7 @@ PetscErrorCode STSetFromOptions(ST st)
     ierr = PetscOptionsScalar("-st_shift","Value of the shift","STSetShift",st->sigma,&s,&flg);CHKERRQ(ierr);
     if (flg) { ierr = STSetShift(st,s);CHKERRQ(ierr); }
 
-    ierr = PetscOptionsEList("-st_matmode","Matrix mode for transformed matrices","STSetMatMode",mode_list,3,mode_list[st->shift_matrix],(PetscInt*)&mode,&flg);CHKERRQ(ierr);
+    ierr = PetscOptionsEnum("-st_matmode","Matrix mode for transformed matrices","STSetMatMode",STMatModes,(PetscEnum)st->shift_matrix,(PetscEnum*)&mode,&flg);CHKERRQ(ierr);
     if (flg) { ierr = STSetMatMode(st,mode);CHKERRQ(ierr); }
 
     ierr = PetscOptionsEList("-st_matstructure","Relation of the sparsity pattern of the matrices","STSetMatStructure",structure_list,3,structure_list[st->str],(PetscInt*)&mstr,&flg);CHKERRQ(ierr);

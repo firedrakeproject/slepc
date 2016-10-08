@@ -27,6 +27,8 @@ PetscClassId     ST_CLASSID = 0;
 PetscLogEvent    ST_SetUp = 0,ST_Apply = 0,ST_ApplyTranspose = 0,ST_MatSetUp = 0,ST_MatMult = 0,ST_MatMultTranspose = 0,ST_MatSolve = 0,ST_MatSolveTranspose = 0;
 static PetscBool STPackageInitialized = PETSC_FALSE;
 
+const char *STMatModes[] = {"COPY","INPLACE","SHELL","STMatMode","ST_MATMODE_",0};
+
 #undef __FUNCT__
 #define __FUNCT__ "STFinalizePackage"
 /*@C

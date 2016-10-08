@@ -114,6 +114,8 @@ E*/
 typedef enum { ST_MATMODE_COPY,
                ST_MATMODE_INPLACE,
                ST_MATMODE_SHELL } STMatMode;
+PETSC_EXTERN const char *STMatModes[];
+
 PETSC_EXTERN PetscErrorCode STSetMatMode(ST,STMatMode);
 PETSC_EXTERN PetscErrorCode STGetMatMode(ST,STMatMode*);
 PETSC_EXTERN PetscErrorCode STSetMatStructure(ST,MatStructure);
