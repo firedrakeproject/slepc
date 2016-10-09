@@ -830,40 +830,36 @@ PetscErrorCode BVGetRandomContext(BV bv,PetscRandom* rand)
 @*/
 PetscErrorCode BVSetFromOptions(BV bv)
 {
-  PetscErrorCode ierr;
-  char           type[256];
-  PetscBool      flg;
-  PetscReal      r;
+  PetscErrorCode     ierr;
+  char               type[256];
+  PetscBool          flg1,flg2,flg3,flg4;
+  PetscReal          r;
+  BVOrthogType       otype;
+  BVOrthogRefineType orefine;
+  BVOrthogBlockType  oblock;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(bv,BV_CLASSID,1);
   ierr = BVRegisterAll();CHKERRQ(ierr);
   ierr = PetscObjectOptionsBegin((PetscObject)bv);CHKERRQ(ierr);
-    ierr = PetscOptionsFList("-bv_type","Basis Vectors type","BVSetType",BVList,(char*)(((PetscObject)bv)->type_name?((PetscObject)bv)->type_name:BVSVEC),type,256,&flg);CHKERRQ(ierr);
-    if (flg) {
+    ierr = PetscOptionsFList("-bv_type","Basis Vectors type","BVSetType",BVList,(char*)(((PetscObject)bv)->type_name?((PetscObject)bv)->type_name:BVSVEC),type,256,&flg1);CHKERRQ(ierr);
+    if (flg1) {
       ierr = BVSetType(bv,type);CHKERRQ(ierr);
-    }
-    /*
-      Set the type if it was never set.
-    */
-    if (!((PetscObject)bv)->type_name) {
+    } else if (!((PetscObject)bv)->type_name) {
       ierr = BVSetType(bv,BVSVEC);CHKERRQ(ierr);
     }
 
-    ierr = PetscOptionsEnum("-bv_orthog_type","Orthogonalization method","BVSetOrthogonalization",BVOrthogTypes,(PetscEnum)bv->orthog_type,(PetscEnum*)&bv->orthog_type,NULL);CHKERRQ(ierr);
-    ierr = PetscOptionsEnum("-bv_orthog_refine","Iterative refinement mode during orthogonalization","BVSetOrthogonalization",BVOrthogRefineTypes,(PetscEnum)bv->orthog_ref,(PetscEnum*)&bv->orthog_ref,NULL);CHKERRQ(ierr);
-    ierr = PetscOptionsEnum("-bv_orthog_block","Block orthogonalization method","BVSetOrthogonalization",BVOrthogBlockTypes,(PetscEnum)bv->orthog_block,(PetscEnum*)&bv->orthog_block,NULL);CHKERRQ(ierr);
+    ierr = PetscOptionsEnum("-bv_orthog_type","Orthogonalization method","BVSetOrthogonalization",BVOrthogTypes,(PetscEnum)bv->orthog_type,(PetscEnum*)&otype,&flg1);CHKERRQ(ierr);
+    ierr = PetscOptionsEnum("-bv_orthog_refine","Iterative refinement mode during orthogonalization","BVSetOrthogonalization",BVOrthogRefineTypes,(PetscEnum)bv->orthog_ref,(PetscEnum*)&orefine,&flg2);CHKERRQ(ierr);
     r = bv->orthog_eta;
-    ierr = PetscOptionsReal("-bv_orthog_eta","Parameter of iterative refinement during orthogonalization","BVSetOrthogonalization",r,&r,NULL);CHKERRQ(ierr);
-    ierr = BVSetOrthogonalization(bv,bv->orthog_type,bv->orthog_ref,r,bv->orthog_block);CHKERRQ(ierr);
+    ierr = PetscOptionsReal("-bv_orthog_eta","Parameter of iterative refinement during orthogonalization","BVSetOrthogonalization",r,&r,&flg3);CHKERRQ(ierr);
+    ierr = PetscOptionsEnum("-bv_orthog_block","Block orthogonalization method","BVSetOrthogonalization",BVOrthogBlockTypes,(PetscEnum)bv->orthog_block,(PetscEnum*)&oblock,&flg4);CHKERRQ(ierr);
+    if (flg1 || flg2 || flg3 || flg4) { ierr = BVSetOrthogonalization(bv,otype,orefine,r,oblock);CHKERRQ(ierr); }
 
     ierr = PetscOptionsEnum("-bv_matmult","Method for BVMatMult","BVSetMatMultMethod",BVMatMultTypes,(PetscEnum)bv->vmm,(PetscEnum*)&bv->vmm,NULL);CHKERRQ(ierr);
 
     /* undocumented option to generate random vectors that are independent of the number of processes */
     ierr = PetscOptionsGetBool(NULL,NULL,"-bv_reproducible_random",&bv->rrandom,NULL);CHKERRQ(ierr);
-
-    if (!bv->rand) { ierr = BVGetRandomContext(bv,&bv->rand);CHKERRQ(ierr); }
-    ierr = PetscRandomSetFromOptions(bv->rand);CHKERRQ(ierr);
 
     if (bv->ops->create) bv->defersfo = PETSC_TRUE;   /* defer call to setfromoptions */
     else if (bv->ops->setfromoptions) {
@@ -871,6 +867,9 @@ PetscErrorCode BVSetFromOptions(BV bv)
     }
     ierr = PetscObjectProcessOptionsHandlers(PetscOptionsObject,(PetscObject)bv);CHKERRQ(ierr);
   ierr = PetscOptionsEnd();CHKERRQ(ierr);
+
+  if (!bv->rand) { ierr = BVGetRandomContext(bv,&bv->rand);CHKERRQ(ierr); }
+  ierr = PetscRandomSetFromOptions(bv->rand);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

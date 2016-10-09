@@ -303,16 +303,14 @@ PetscErrorCode RGSetFromOptions_Ring(PetscOptionItems *PetscOptionsObject,RG rg)
   PetscFunctionBegin;
   ierr = PetscOptionsHead(PetscOptionsObject,"RG Ring Options");CHKERRQ(ierr);
 
-  ierr = RGRingGetParameters(rg,&s,&r1,&r2,&r3,&r4,&r5);CHKERRQ(ierr);
-  ierr = PetscOptionsScalar("-rg_ring_center","Center of ellipse","RGRingSetParameters",s,&s,&flg1);CHKERRQ(ierr);
-  ierr = PetscOptionsReal("-rg_ring_radius","Radius of ellipse","RGRingSetParameters",r1,&r1,&flg2);CHKERRQ(ierr);
-  ierr = PetscOptionsReal("-rg_ring_vscale","Vertical scale of ellipse","RGRingSetParameters",r2,&r2,&flg3);CHKERRQ(ierr);
-  ierr = PetscOptionsReal("-rg_ring_startangle","Right-hand side angle","RGRingSetParameters",r3,&r3,&flg4);CHKERRQ(ierr);
-  ierr = PetscOptionsReal("-rg_ring_endangle","Left-hand side angle","RGRingSetParameters",r4,&r4,&flg5);CHKERRQ(ierr);
-  ierr = PetscOptionsReal("-rg_ring_width","Width of ring","RGRingSetParameters",r5,&r5,&flg6);CHKERRQ(ierr);
-  if (flg1 || flg2 || flg3 || flg4 || flg5 || flg6) {
-    ierr = RGRingSetParameters(rg,s,r1,r2,r3,r4,r5);CHKERRQ(ierr);
-  }
+    ierr = RGRingGetParameters(rg,&s,&r1,&r2,&r3,&r4,&r5);CHKERRQ(ierr);
+    ierr = PetscOptionsScalar("-rg_ring_center","Center of ellipse","RGRingSetParameters",s,&s,&flg1);CHKERRQ(ierr);
+    ierr = PetscOptionsReal("-rg_ring_radius","Radius of ellipse","RGRingSetParameters",r1,&r1,&flg2);CHKERRQ(ierr);
+    ierr = PetscOptionsReal("-rg_ring_vscale","Vertical scale of ellipse","RGRingSetParameters",r2,&r2,&flg3);CHKERRQ(ierr);
+    ierr = PetscOptionsReal("-rg_ring_startangle","Right-hand side angle","RGRingSetParameters",r3,&r3,&flg4);CHKERRQ(ierr);
+    ierr = PetscOptionsReal("-rg_ring_endangle","Left-hand side angle","RGRingSetParameters",r4,&r4,&flg5);CHKERRQ(ierr);
+    ierr = PetscOptionsReal("-rg_ring_width","Width of ring","RGRingSetParameters",r5,&r5,&flg6);CHKERRQ(ierr);
+    if (flg1 || flg2 || flg3 || flg4 || flg5 || flg6) { ierr = RGRingSetParameters(rg,s,r1,r2,r3,r4,r5);CHKERRQ(ierr); }
 
   ierr = PetscOptionsTail();CHKERRQ(ierr);
   PetscFunctionReturn(0);

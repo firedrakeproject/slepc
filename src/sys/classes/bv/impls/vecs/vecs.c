@@ -500,9 +500,11 @@ PetscErrorCode BVSetFromOptions_Vecs(PetscOptionItems *PetscOptionsObject,BV bv)
 
   PetscFunctionBegin;
   ierr = PetscOptionsHead(PetscOptionsObject,"BV Vecs Options");CHKERRQ(ierr);
+
     ierr = PetscOptionsInt("-bv_vecs_vmip","Version of BVMultInPlace operation","",ctx->vmip,&ctx->vmip,NULL);CHKERRQ(ierr);
     if (ctx->vmip<0 || ctx->vmip>1) SETERRQ(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_OUTOFRANGE,"Wrong version of BVMultInPlace");
     ierr = BVVecsSetVmip(bv,ctx->vmip);CHKERRQ(ierr);
+
   ierr = PetscOptionsTail();CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

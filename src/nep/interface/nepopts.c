@@ -122,46 +122,42 @@ PetscErrorCode NEPConvMonitorSetFromOptions(NEP nep,const char name[],const char
 @*/
 PetscErrorCode NEPSetFromOptions(NEP nep)
 {
-  PetscErrorCode ierr;
-  char           type[256];
-  PetscBool      set,flg,flg1,flg2,flg3;
-  PetscReal      r;
-  PetscScalar    s;
-  PetscInt       i,j,k;
-  PetscDrawLG    lg;
+  PetscErrorCode  ierr;
+  char            type[256];
+  PetscBool       set,flg,flg1,flg2,flg3,flg4,flg5;
+  PetscReal       r;
+  PetscScalar     s;
+  PetscInt        i,j,k;
+  PetscDrawLG     lg;
+  NEPRefine       refine;
+  NEPRefineScheme scheme;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
   ierr = NEPRegisterAll();CHKERRQ(ierr);
   ierr = PetscObjectOptionsBegin((PetscObject)nep);CHKERRQ(ierr);
-    ierr = PetscOptionsFList("-nep_type","Nonlinear Eigenvalue Problem method","NEPSetType",NEPList,(char*)(((PetscObject)nep)->type_name?((PetscObject)nep)->type_name:NEPRII),type,256,&flg);CHKERRQ(ierr);
+    ierr = PetscOptionsFList("-nep_type","Nonlinear eigensolver method","NEPSetType",NEPList,(char*)(((PetscObject)nep)->type_name?((PetscObject)nep)->type_name:NEPRII),type,256,&flg);CHKERRQ(ierr);
     if (flg) {
       ierr = NEPSetType(nep,type);CHKERRQ(ierr);
     } else if (!((PetscObject)nep)->type_name) {
       ierr = NEPSetType(nep,NEPRII);CHKERRQ(ierr);
     }
 
-    ierr = PetscOptionsEnum("-nep_refine","Iterative refinement method","NEPSetRefine",NEPRefineTypes,(PetscEnum)nep->refine,(PetscEnum*)&nep->refine,NULL);CHKERRQ(ierr);
-
+    ierr = PetscOptionsEnum("-nep_refine","Iterative refinement method","NEPSetRefine",NEPRefineTypes,(PetscEnum)nep->refine,(PetscEnum*)&refine,&flg1);CHKERRQ(ierr);
     i = nep->npart;
-    ierr = PetscOptionsInt("-nep_refine_partitions","Number of partitions of the communicator for iterative refinement","NEPSetRefine",nep->npart,&i,&flg1);CHKERRQ(ierr);
+    ierr = PetscOptionsInt("-nep_refine_partitions","Number of partitions of the communicator for iterative refinement","NEPSetRefine",nep->npart,&i,&flg2);CHKERRQ(ierr);
     r = nep->rtol;
-    ierr = PetscOptionsReal("-nep_refine_tol","Tolerance for iterative refinement","NEPSetRefine",nep->rtol==PETSC_DEFAULT?SLEPC_DEFAULT_TOL/1000:nep->rtol,&r,&flg2);CHKERRQ(ierr);
+    ierr = PetscOptionsReal("-nep_refine_tol","Tolerance for iterative refinement","NEPSetRefine",nep->rtol==PETSC_DEFAULT?SLEPC_DEFAULT_TOL/1000:nep->rtol,&r,&flg3);CHKERRQ(ierr);
     j = nep->rits;
-    ierr = PetscOptionsInt("-nep_refine_its","Maximum number of iterations for iterative refinement","NEPSetRefine",nep->rits,&j,&flg3);CHKERRQ(ierr);
-    if (flg1 || flg2 || flg3) {
-      ierr = NEPSetRefine(nep,nep->refine,i,r,j,nep->scheme);CHKERRQ(ierr);
-    }
-
-    ierr = PetscOptionsEnum("-nep_refine_scheme","Scheme used for linear systems within iterative refinement","NEPSetRefine",NEPRefineSchemes,(PetscEnum)nep->scheme,(PetscEnum*)&nep->scheme,NULL);CHKERRQ(ierr);
+    ierr = PetscOptionsInt("-nep_refine_its","Maximum number of iterations for iterative refinement","NEPSetRefine",nep->rits,&j,&flg4);CHKERRQ(ierr);
+    ierr = PetscOptionsEnum("-nep_refine_scheme","Scheme used for linear systems within iterative refinement","NEPSetRefine",NEPRefineSchemes,(PetscEnum)nep->scheme,(PetscEnum*)&scheme,&flg5);CHKERRQ(ierr);
+    if (flg1 || flg2 || flg3 || flg4 || flg5) { ierr = NEPSetRefine(nep,refine,i,r,j,scheme);CHKERRQ(ierr); }
 
     i = nep->max_it? nep->max_it: PETSC_DEFAULT;
     ierr = PetscOptionsInt("-nep_max_it","Maximum number of iterations","NEPSetTolerances",nep->max_it,&i,&flg1);CHKERRQ(ierr);
     r = nep->tol;
     ierr = PetscOptionsReal("-nep_tol","Tolerance","NEPSetTolerances",nep->tol==PETSC_DEFAULT?SLEPC_DEFAULT_TOL:nep->tol,&r,&flg2);CHKERRQ(ierr);
-    if (flg1 || flg2) {
-      ierr = NEPSetTolerances(nep,r,i);CHKERRQ(ierr);
-    }
+    if (flg1 || flg2) { ierr = NEPSetTolerances(nep,r,i);CHKERRQ(ierr); }
 
     ierr = PetscOptionsBoolGroupBegin("-nep_conv_rel","Relative error convergence test","NEPSetConvergenceTest",&flg);CHKERRQ(ierr);
     if (flg) { ierr = NEPSetConvergenceTest(nep,NEP_CONV_REL);CHKERRQ(ierr); }
@@ -193,6 +189,27 @@ PetscErrorCode NEPSetFromOptions(NEP nep)
       ierr = NEPSetTarget(nep,s);CHKERRQ(ierr);
     }
 
+    ierr = PetscOptionsBoolGroupBegin("-nep_largest_magnitude","Compute largest eigenvalues in magnitude","NEPSetWhichEigenpairs",&flg);CHKERRQ(ierr);
+    if (flg) { ierr = NEPSetWhichEigenpairs(nep,NEP_LARGEST_MAGNITUDE);CHKERRQ(ierr); }
+    ierr = PetscOptionsBoolGroup("-nep_smallest_magnitude","Compute smallest eigenvalues in magnitude","NEPSetWhichEigenpairs",&flg);CHKERRQ(ierr);
+    if (flg) { ierr = NEPSetWhichEigenpairs(nep,NEP_SMALLEST_MAGNITUDE);CHKERRQ(ierr); }
+    ierr = PetscOptionsBoolGroup("-nep_largest_real","Compute eigenvalues with largest real parts","NEPSetWhichEigenpairs",&flg);CHKERRQ(ierr);
+    if (flg) { ierr = NEPSetWhichEigenpairs(nep,NEP_LARGEST_REAL);CHKERRQ(ierr); }
+    ierr = PetscOptionsBoolGroup("-nep_smallest_real","Compute eigenvalues with smallest real parts","NEPSetWhichEigenpairs",&flg);CHKERRQ(ierr);
+    if (flg) { ierr = NEPSetWhichEigenpairs(nep,NEP_SMALLEST_REAL);CHKERRQ(ierr); }
+    ierr = PetscOptionsBoolGroup("-nep_largest_imaginary","Compute eigenvalues with largest imaginary parts","NEPSetWhichEigenpairs",&flg);CHKERRQ(ierr);
+    if (flg) { ierr = NEPSetWhichEigenpairs(nep,NEP_LARGEST_IMAGINARY);CHKERRQ(ierr); }
+    ierr = PetscOptionsBoolGroup("-nep_smallest_imaginary","Compute eigenvalues with smallest imaginary parts","NEPSetWhichEigenpairs",&flg);CHKERRQ(ierr);
+    if (flg) { ierr = NEPSetWhichEigenpairs(nep,NEP_SMALLEST_IMAGINARY);CHKERRQ(ierr); }
+    ierr = PetscOptionsBoolGroup("-nep_target_magnitude","Compute eigenvalues closest to target","NEPSetWhichEigenpairs",&flg);CHKERRQ(ierr);
+    if (flg) { ierr = NEPSetWhichEigenpairs(nep,NEP_TARGET_MAGNITUDE);CHKERRQ(ierr); }
+    ierr = PetscOptionsBoolGroup("-nep_target_real","Compute eigenvalues with real parts closest to target","NEPSetWhichEigenpairs",&flg);CHKERRQ(ierr);
+    if (flg) { ierr = NEPSetWhichEigenpairs(nep,NEP_TARGET_REAL);CHKERRQ(ierr); }
+    ierr = PetscOptionsBoolGroup("-nep_target_imaginary","Compute eigenvalues with imaginary parts closest to target","NEPSetWhichEigenpairs",&flg);CHKERRQ(ierr);
+    if (flg) { ierr = NEPSetWhichEigenpairs(nep,NEP_TARGET_IMAGINARY);CHKERRQ(ierr); }
+    ierr = PetscOptionsBoolGroupEnd("-nep_all","Compute all eigenvalues in a region","NEPSetWhichEigenpairs",&flg);CHKERRQ(ierr);
+    if (flg) { ierr = NEPSetWhichEigenpairs(nep,NEP_ALL);CHKERRQ(ierr); }
+
     /* -----------------------------------------------------------------------*/
     /*
       Cancels all monitors hardwired into code before call to NEPSetFromOptions()
@@ -221,29 +238,8 @@ PetscErrorCode NEPSetFromOptions(NEP nep)
       ierr = NEPMonitorSet(nep,NEPMonitorLGAll,lg,(PetscErrorCode (*)(void**))PetscDrawLGDestroy);CHKERRQ(ierr);
       ierr = NEPSetTrackAll(nep,PETSC_TRUE);CHKERRQ(ierr);
     }
-  /* -----------------------------------------------------------------------*/
 
-    ierr = PetscOptionsBoolGroupBegin("-nep_largest_magnitude","compute largest eigenvalues in magnitude","NEPSetWhichEigenpairs",&flg);CHKERRQ(ierr);
-    if (flg) { ierr = NEPSetWhichEigenpairs(nep,NEP_LARGEST_MAGNITUDE);CHKERRQ(ierr); }
-    ierr = PetscOptionsBoolGroup("-nep_smallest_magnitude","compute smallest eigenvalues in magnitude","NEPSetWhichEigenpairs",&flg);CHKERRQ(ierr);
-    if (flg) { ierr = NEPSetWhichEigenpairs(nep,NEP_SMALLEST_MAGNITUDE);CHKERRQ(ierr); }
-    ierr = PetscOptionsBoolGroup("-nep_largest_real","compute largest real parts","NEPSetWhichEigenpairs",&flg);CHKERRQ(ierr);
-    if (flg) { ierr = NEPSetWhichEigenpairs(nep,NEP_LARGEST_REAL);CHKERRQ(ierr); }
-    ierr = PetscOptionsBoolGroup("-nep_smallest_real","compute smallest real parts","NEPSetWhichEigenpairs",&flg);CHKERRQ(ierr);
-    if (flg) { ierr = NEPSetWhichEigenpairs(nep,NEP_SMALLEST_REAL);CHKERRQ(ierr); }
-    ierr = PetscOptionsBoolGroup("-nep_largest_imaginary","compute largest imaginary parts","NEPSetWhichEigenpairs",&flg);CHKERRQ(ierr);
-    if (flg) { ierr = NEPSetWhichEigenpairs(nep,NEP_LARGEST_IMAGINARY);CHKERRQ(ierr); }
-    ierr = PetscOptionsBoolGroup("-nep_smallest_imaginary","compute smallest imaginary parts","NEPSetWhichEigenpairs",&flg);CHKERRQ(ierr);
-    if (flg) { ierr = NEPSetWhichEigenpairs(nep,NEP_SMALLEST_IMAGINARY);CHKERRQ(ierr); }
-    ierr = PetscOptionsBoolGroup("-nep_target_magnitude","compute nearest eigenvalues to target","NEPSetWhichEigenpairs",&flg);CHKERRQ(ierr);
-    if (flg) { ierr = NEPSetWhichEigenpairs(nep,NEP_TARGET_MAGNITUDE);CHKERRQ(ierr); }
-    ierr = PetscOptionsBoolGroup("-nep_target_real","compute eigenvalues with real parts close to target","NEPSetWhichEigenpairs",&flg);CHKERRQ(ierr);
-    if (flg) { ierr = NEPSetWhichEigenpairs(nep,NEP_TARGET_REAL);CHKERRQ(ierr); }
-    ierr = PetscOptionsBoolGroup("-nep_target_imaginary","compute eigenvalues with imaginary parts close to target","NEPSetWhichEigenpairs",&flg);CHKERRQ(ierr);
-    if (flg) { ierr = NEPSetWhichEigenpairs(nep,NEP_TARGET_IMAGINARY);CHKERRQ(ierr); }
-    ierr = PetscOptionsBoolGroupEnd("-nep_all","compute all eigenvalues in a region","NEPSetWhichEigenpairs",&flg);CHKERRQ(ierr);
-    if (flg) { ierr = NEPSetWhichEigenpairs(nep,NEP_ALL);CHKERRQ(ierr); }
-
+    /* -----------------------------------------------------------------------*/
     ierr = PetscOptionsName("-nep_view","Print detailed information on solver used","NEPView",NULL);CHKERRQ(ierr);
     ierr = PetscOptionsName("-nep_view_vectors","View computed eigenvectors","NEPVectorsView",NULL);CHKERRQ(ierr);
     ierr = PetscOptionsName("-nep_view_values","View computed eigenvalues","NEPValuesView",NULL);CHKERRQ(ierr);
@@ -963,6 +959,10 @@ PetscErrorCode NEPSetRefine(NEP nep,NEPRefine refine,PetscInt npart,PetscReal to
   PetscValidLogicalCollectiveEnum(nep,scheme,6);
   nep->refine = refine;
   if (refine) {  /* process parameters only if not REFINE_NONE */
+    if (npart!=nep->npart) {
+      ierr = PetscSubcommDestroy(&nep->refinesubc);CHKERRQ(ierr);
+      ierr = KSPDestroy(&nep->refineksp);CHKERRQ(ierr);
+    }
     if (npart == PETSC_DEFAULT || npart == PETSC_DECIDE) {
       nep->npart = 1;
     } else {
@@ -971,7 +971,7 @@ PetscErrorCode NEPSetRefine(NEP nep,NEPRefine refine,PetscInt npart,PetscReal to
       nep->npart = npart;
     }
     if (tol == PETSC_DEFAULT || tol == PETSC_DECIDE) {
-      nep->rtol = PetscMax(nep->tol/1000,PETSC_MACHINE_EPSILON);
+      nep->rtol = PETSC_DEFAULT;
     } else {
       if (tol<=0.0) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of tol. Must be > 0");
       nep->rtol = tol;

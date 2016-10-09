@@ -356,17 +356,13 @@ PetscErrorCode EPSSetFromOptions_BLZPACK(PetscOptionItems *PetscOptionsObject,EP
   PetscFunctionBegin;
   ierr = PetscOptionsHead(PetscOptionsObject,"EPS BLZPACK Options");CHKERRQ(ierr);
 
-  bs = blz->block_size;
-  ierr = PetscOptionsInt("-eps_blzpack_block_size","Block size","EPSBlzpackSetBlockSize",bs,&bs,&flg);CHKERRQ(ierr);
-  if (flg) {
-    ierr = EPSBlzpackSetBlockSize(eps,bs);CHKERRQ(ierr);
-  }
+    bs = blz->block_size;
+    ierr = PetscOptionsInt("-eps_blzpack_blocksize","Block size","EPSBlzpackSetBlockSize",bs,&bs,&flg);CHKERRQ(ierr);
+    if (flg) { ierr = EPSBlzpackSetBlockSize(eps,bs);CHKERRQ(ierr); }
 
-  n = blz->nsteps;
-  ierr = PetscOptionsInt("-eps_blzpack_nsteps","Number of steps","EPSBlzpackSetNSteps",n,&n,&flg);CHKERRQ(ierr);
-  if (flg) {
-    ierr = EPSBlzpackSetNSteps(eps,n);CHKERRQ(ierr);
-  }
+    n = blz->nsteps;
+    ierr = PetscOptionsInt("-eps_blzpack_nsteps","Number of steps","EPSBlzpackSetNSteps",n,&n,&flg);CHKERRQ(ierr);
+    if (flg) { ierr = EPSBlzpackSetNSteps(eps,n);CHKERRQ(ierr); }
 
   ierr = PetscOptionsTail();CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -400,7 +396,7 @@ static PetscErrorCode EPSBlzpackSetBlockSize_BLZPACK(EPS eps,PetscInt bs)
 -  bs - block size
 
    Options Database Key:
-.  -eps_blzpack_block_size - Sets the value of the block size
+.  -eps_blzpack_blocksize - Sets the value of the block size
 
    Level: advanced
 @*/

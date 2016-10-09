@@ -414,10 +414,8 @@ PetscErrorCode EPSSetFromOptions_RQCG(PetscOptionItems *PetscOptionsObject,EPS e
 
   PetscFunctionBegin;
   ierr = PetscOptionsHead(PetscOptionsObject,"EPS RQCG Options");CHKERRQ(ierr);
-  ierr = PetscOptionsInt("-eps_rqcg_reset","RQCG reset parameter","EPSRQCGSetReset",20,&nrest,&flg);CHKERRQ(ierr);
-  if (flg) {
-    ierr = EPSRQCGSetReset(eps,nrest);CHKERRQ(ierr);
-  }
+    ierr = PetscOptionsInt("-eps_rqcg_reset","Reset parameter","EPSRQCGSetReset",20,&nrest,&flg);CHKERRQ(ierr);
+    if (flg) { ierr = EPSRQCGSetReset(eps,nrest);CHKERRQ(ierr); }
   ierr = PetscOptionsTail();CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

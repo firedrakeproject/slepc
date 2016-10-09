@@ -186,6 +186,9 @@ PetscErrorCode NEPSetFromOptions_NArnoldi(PetscOptionItems *PetscOptionsObject,N
   NEP_NARNOLDI   *ctx = (NEP_NARNOLDI*)nep->data;
 
   PetscFunctionBegin;
+  ierr = PetscOptionsHead(PetscOptionsObject,"NEP N-Arnoldi Options");CHKERRQ(ierr);
+  ierr = PetscOptionsTail();CHKERRQ(ierr);
+
   if (!ctx->ksp) { ierr = NEPNArnoldiGetKSP(nep,&ctx->ksp);CHKERRQ(ierr); }
   ierr = KSPSetOperators(ctx->ksp,nep->function,nep->function_pre);CHKERRQ(ierr);
   ierr = KSPSetFromOptions(ctx->ksp);CHKERRQ(ierr);

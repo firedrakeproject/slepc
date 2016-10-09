@@ -168,10 +168,10 @@ PetscErrorCode EPSSetFromOptions_Arnoldi(PetscOptionItems *PetscOptionsObject,EP
 
   PetscFunctionBegin;
   ierr = PetscOptionsHead(PetscOptionsObject,"EPS Arnoldi Options");CHKERRQ(ierr);
-  ierr = PetscOptionsBool("-eps_arnoldi_delayed","Arnoldi with delayed reorthogonalization","EPSArnoldiSetDelayed",arnoldi->delayed,&val,&set);CHKERRQ(ierr);
-  if (set) {
-    ierr = EPSArnoldiSetDelayed(eps,val);CHKERRQ(ierr);
-  }
+
+    ierr = PetscOptionsBool("-eps_arnoldi_delayed","Use delayed reorthogonalization","EPSArnoldiSetDelayed",arnoldi->delayed,&val,&set);CHKERRQ(ierr);
+    if (set) { ierr = EPSArnoldiSetDelayed(eps,val);CHKERRQ(ierr); }
+
   ierr = PetscOptionsTail();CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -285,10 +285,8 @@ PetscErrorCode EPSView_Arnoldi(EPS eps,PetscViewer viewer)
 
   PetscFunctionBegin;
   ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
-  if (isascii) {
-    if (arnoldi->delayed) {
-      ierr = PetscViewerASCIIPrintf(viewer,"  Arnoldi: using delayed reorthogonalization\n");CHKERRQ(ierr);
-    }
+  if (isascii && arnoldi->delayed) {
+    ierr = PetscViewerASCIIPrintf(viewer,"  Arnoldi: using delayed reorthogonalization\n");CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }

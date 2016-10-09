@@ -696,10 +696,13 @@ PetscErrorCode DSSetFromOptions(DS ds)
     ierr = DSSetType(ds,DSNHEP);CHKERRQ(ierr);
   }
   ierr = PetscObjectOptionsBegin((PetscObject)ds);CHKERRQ(ierr);
+
     ierr = PetscOptionsInt("-ds_block_size","Block size for the dense system solver","DSSetBlockSize",ds->bs,&bs,&flag);CHKERRQ(ierr);
     if (flag) { ierr = DSSetBlockSize(ds,bs);CHKERRQ(ierr); }
+
     ierr = PetscOptionsInt("-ds_method","Method to be used for the dense system","DSSetMethod",ds->method,&meth,&flag);CHKERRQ(ierr);
     if (flag) { ierr = DSSetMethod(ds,meth);CHKERRQ(ierr); }
+
     ierr = PetscObjectProcessOptionsHandlers(PetscOptionsObject,(PetscObject)ds);CHKERRQ(ierr);
   ierr = PetscOptionsEnd();CHKERRQ(ierr);
   PetscFunctionReturn(0);

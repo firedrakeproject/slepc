@@ -123,44 +123,33 @@ PetscErrorCode STGetType(ST st,STType *type)
 PetscErrorCode STSetFromOptions(ST st)
 {
   PetscErrorCode ierr;
-  PetscInt       i;
   PetscScalar    s;
   char           type[256];
   PetscBool      flg;
   const char     *mode_list[3] = {"copy","inplace","shell"};
   const char     *structure_list[3] = {"same","different","subset"};
+  STMatMode      mode;
+  MatStructure   mstr;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
   ierr = STRegisterAll();CHKERRQ(ierr);
   ierr = PetscObjectOptionsBegin((PetscObject)st);CHKERRQ(ierr);
-    ierr = PetscOptionsFList("-st_type","Spectral Transformation type","STSetType",STList,(char*)(((PetscObject)st)->type_name?((PetscObject)st)->type_name:STSHIFT),type,256,&flg);CHKERRQ(ierr);
+    ierr = PetscOptionsFList("-st_type","Spectral transformation","STSetType",STList,(char*)(((PetscObject)st)->type_name?((PetscObject)st)->type_name:STSHIFT),type,256,&flg);CHKERRQ(ierr);
     if (flg) {
       ierr = STSetType(st,type);CHKERRQ(ierr);
-    }
-    /*
-      Set the type if it was never set.
-    */
-    if (!((PetscObject)st)->type_name) {
+    } else if (!((PetscObject)st)->type_name) {
       ierr = STSetType(st,STSHIFT);CHKERRQ(ierr);
     }
 
     ierr = PetscOptionsScalar("-st_shift","Value of the shift","STSetShift",st->sigma,&s,&flg);CHKERRQ(ierr);
-    if (flg) {
-      ierr = STSetShift(st,s);CHKERRQ(ierr);
-    }
+    if (flg) { ierr = STSetShift(st,s);CHKERRQ(ierr); }
 
-    ierr = PetscOptionsEList("-st_matmode","Matrix mode for transformed matrices","STSetMatMode",mode_list,3,mode_list[st->shift_matrix],&i,&flg);CHKERRQ(ierr);
-    if (flg) st->shift_matrix = (STMatMode)i;
+    ierr = PetscOptionsEList("-st_matmode","Matrix mode for transformed matrices","STSetMatMode",mode_list,3,mode_list[st->shift_matrix],(PetscInt*)&mode,&flg);CHKERRQ(ierr);
+    if (flg) { ierr = STSetMatMode(st,mode);CHKERRQ(ierr); }
 
-    ierr = PetscOptionsEList("-st_matstructure","Shift nonzero pattern","STSetMatStructure",structure_list,3,structure_list[st->str],&i,&flg);CHKERRQ(ierr);
-    if (flg) {
-      switch (i) {
-        case 0: ierr = STSetMatStructure(st,SAME_NONZERO_PATTERN);CHKERRQ(ierr); break;
-        case 1: ierr = STSetMatStructure(st,DIFFERENT_NONZERO_PATTERN);CHKERRQ(ierr); break;
-        case 2: ierr = STSetMatStructure(st,SUBSET_NONZERO_PATTERN);CHKERRQ(ierr); break;
-      }
-    }
+    ierr = PetscOptionsEList("-st_matstructure","Relation of the sparsity pattern of the matrices","STSetMatStructure",structure_list,3,structure_list[st->str],(PetscInt*)&mstr,&flg);CHKERRQ(ierr);
+    if (flg) { ierr = STSetMatStructure(st,mstr);CHKERRQ(ierr); }
 
     ierr = PetscOptionsBool("-st_transform","Whether transformed matrices are computed or not","STSetTransform",st->transform,&st->transform,&flg);CHKERRQ(ierr);
 
@@ -169,6 +158,7 @@ PetscErrorCode STSetFromOptions(ST st)
     }
     ierr = PetscObjectProcessOptionsHandlers(PetscOptionsObject,(PetscObject)st);CHKERRQ(ierr);
   ierr = PetscOptionsEnd();CHKERRQ(ierr);
+
   if (!st->ksp) { ierr = STGetKSP(st,&st->ksp);CHKERRQ(ierr); }
   ierr = KSPSetFromOptions(st->ksp);CHKERRQ(ierr);
   PetscFunctionReturn(0);

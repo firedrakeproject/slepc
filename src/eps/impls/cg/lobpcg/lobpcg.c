@@ -692,18 +692,17 @@ PetscErrorCode EPSSetFromOptions_LOBPCG(PetscOptionItems *PetscOptionsObject,EPS
 
   PetscFunctionBegin;
   ierr = PetscOptionsHead(PetscOptionsObject,"EPS LOBPCG Options");CHKERRQ(ierr);
-  ierr = PetscOptionsInt("-eps_lobpcg_blocksize","LOBPCG block size","EPSLOBPCGSetBlockSize",20,&bs,&flg);CHKERRQ(ierr);
-  if (flg) {
-    ierr = EPSLOBPCGSetBlockSize(eps,bs);CHKERRQ(ierr);
-  }
-  ierr = PetscOptionsReal("-eps_lobpcg_restart","Percentage of the block of vectors to force a restart","EPSLOBPCGSetRestart",0.5,&restart,&flg);CHKERRQ(ierr);
-  if (flg) {
-    ierr = EPSLOBPCGSetRestart(eps,restart);CHKERRQ(ierr);
-  }
-  ierr = PetscOptionsBool("-eps_lobpcg_locking","Choose between locking and non-locking variants","EPSLOBPCGSetLocking",PETSC_TRUE,&lock,&flg);CHKERRQ(ierr);
-  if (flg) {
-    ierr = EPSLOBPCGSetLocking(eps,lock);CHKERRQ(ierr);
-  }
+
+    ierr = PetscOptionsInt("-eps_lobpcg_blocksize","Block size","EPSLOBPCGSetBlockSize",20,&bs,&flg);CHKERRQ(ierr);
+    if (flg) { ierr = EPSLOBPCGSetBlockSize(eps,bs);CHKERRQ(ierr); }
+
+    ierr = PetscOptionsReal("-eps_lobpcg_restart","Percentage of the block of vectors to force a restart","EPSLOBPCGSetRestart",0.5,&restart,&flg);CHKERRQ(ierr);
+    if (flg) { ierr = EPSLOBPCGSetRestart(eps,restart);CHKERRQ(ierr); }
+
+    ierr = PetscOptionsBool("-eps_lobpcg_locking","Choose between locking and non-locking variants","EPSLOBPCGSetLocking",PETSC_TRUE,&lock,&flg);CHKERRQ(ierr);
+    if (flg) { ierr = EPSLOBPCGSetLocking(eps,lock);CHKERRQ(ierr); }
+
+  ierr = PetscOptionsTail();CHKERRQ(ierr);
 
   /* Set STPrecond as the default ST */
   if (!((PetscObject)eps->st)->type_name) {
@@ -715,7 +714,6 @@ PetscErrorCode EPSSetFromOptions_LOBPCG(PetscOptionItems *PetscOptionsObject,EPS
   if (!((PetscObject)ksp)->type_name) {
     ierr = KSPSetType(ksp,KSPPREONLY);CHKERRQ(ierr);
   }
-  ierr = PetscOptionsTail();CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

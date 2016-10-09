@@ -215,13 +215,11 @@ PetscErrorCode RGSetFromOptions_Ellipse(PetscOptionItems *PetscOptionsObject,RG 
   PetscFunctionBegin;
   ierr = PetscOptionsHead(PetscOptionsObject,"RG Ellipse Options");CHKERRQ(ierr);
 
-  ierr = RGEllipseGetParameters(rg,&s,&r1,&r2);CHKERRQ(ierr);
-  ierr = PetscOptionsScalar("-rg_ellipse_center","Center of ellipse","RGEllipseSetParameters",s,&s,&flg1);CHKERRQ(ierr);
-  ierr = PetscOptionsReal("-rg_ellipse_radius","Radius of ellipse","RGEllipseSetParameters",r1,&r1,&flg2);CHKERRQ(ierr);
-  ierr = PetscOptionsReal("-rg_ellipse_vscale","Vertical scale of ellipse","RGEllipseSetParameters",r2,&r2,&flg3);CHKERRQ(ierr);
-  if (flg1 || flg2 || flg3) {
-    ierr = RGEllipseSetParameters(rg,s,r1,r2);CHKERRQ(ierr);
-  }
+    ierr = RGEllipseGetParameters(rg,&s,&r1,&r2);CHKERRQ(ierr);
+    ierr = PetscOptionsScalar("-rg_ellipse_center","Center of ellipse","RGEllipseSetParameters",s,&s,&flg1);CHKERRQ(ierr);
+    ierr = PetscOptionsReal("-rg_ellipse_radius","Radius of ellipse","RGEllipseSetParameters",r1,&r1,&flg2);CHKERRQ(ierr);
+    ierr = PetscOptionsReal("-rg_ellipse_vscale","Vertical scale of ellipse","RGEllipseSetParameters",r2,&r2,&flg3);CHKERRQ(ierr);
+    if (flg1 || flg2 || flg3) { ierr = RGEllipseSetParameters(rg,s,r1,r2);CHKERRQ(ierr); }
 
   ierr = PetscOptionsTail();CHKERRQ(ierr);
   PetscFunctionReturn(0);

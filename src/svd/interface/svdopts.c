@@ -690,32 +690,21 @@ PetscErrorCode SVDSetFromOptions(SVD svd)
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
   ierr = SVDRegisterAll();CHKERRQ(ierr);
   ierr = PetscObjectOptionsBegin((PetscObject)svd);CHKERRQ(ierr);
-    ierr = PetscOptionsFList("-svd_type","Singular Value Solver method","SVDSetType",SVDList,(char*)(((PetscObject)svd)->type_name?((PetscObject)svd)->type_name:SVDCROSS),type,256,&flg);CHKERRQ(ierr);
+    ierr = PetscOptionsFList("-svd_type","SVD solver method","SVDSetType",SVDList,(char*)(((PetscObject)svd)->type_name?((PetscObject)svd)->type_name:SVDCROSS),type,256,&flg);CHKERRQ(ierr);
     if (flg) {
       ierr = SVDSetType(svd,type);CHKERRQ(ierr);
     } else if (!((PetscObject)svd)->type_name) {
       ierr = SVDSetType(svd,SVDCROSS);CHKERRQ(ierr);
     }
 
-    ierr = PetscOptionsName("-svd_view","Print detailed information on solver used","SVDView",NULL);CHKERRQ(ierr);
-    ierr = PetscOptionsName("-svd_view_vectors","View computed singular vectors","SVDVectorsView",NULL);CHKERRQ(ierr);
-    ierr = PetscOptionsName("-svd_view_values","View computed singular values","SVDValuesView",NULL);CHKERRQ(ierr);
-    ierr = PetscOptionsName("-svd_converged_reason","Print reason for convergence, and number of iterations","SVDReasonView",NULL);CHKERRQ(ierr);
-    ierr = PetscOptionsName("-svd_error_absolute","Print absolute errors of each singular triplet","SVDErrorView",NULL);CHKERRQ(ierr);
-    ierr = PetscOptionsName("-svd_error_relative","Print relative errors of each singular triplet","SVDErrorView",NULL);CHKERRQ(ierr);
-
     ierr = PetscOptionsBool("-svd_implicittranspose","Handle matrix transpose implicitly","SVDSetImplicitTranspose",svd->impltrans,&val,&flg);CHKERRQ(ierr);
-    if (flg) {
-      ierr = SVDSetImplicitTranspose(svd,val);CHKERRQ(ierr);
-    }
+    if (flg) { ierr = SVDSetImplicitTranspose(svd,val);CHKERRQ(ierr); }
 
     i = svd->max_it? svd->max_it: PETSC_DEFAULT;
     ierr = PetscOptionsInt("-svd_max_it","Maximum number of iterations","SVDSetTolerances",svd->max_it,&i,&flg1);CHKERRQ(ierr);
     r = svd->tol;
     ierr = PetscOptionsReal("-svd_tol","Tolerance","SVDSetTolerances",svd->tol==PETSC_DEFAULT?SLEPC_DEFAULT_TOL:svd->tol,&r,&flg2);CHKERRQ(ierr);
-    if (flg1 || flg2) {
-      ierr = SVDSetTolerances(svd,r,i);CHKERRQ(ierr);
-    }
+    if (flg1 || flg2) { ierr = SVDSetTolerances(svd,r,i);CHKERRQ(ierr); }
 
     ierr = PetscOptionsBoolGroupBegin("-svd_conv_rel","Relative error convergence test","SVDSetConvergenceTest",&flg);CHKERRQ(ierr);
     if (flg) { ierr = SVDSetConvergenceTest(svd,SVD_CONV_REL);CHKERRQ(ierr); }
@@ -735,13 +724,11 @@ PetscErrorCode SVDSetFromOptions(SVD svd)
     ierr = PetscOptionsInt("-svd_ncv","Number of basis vectors","SVDSetDimensions",svd->ncv,&j,&flg2);CHKERRQ(ierr);
     k = svd->mpd? svd->mpd: PETSC_DEFAULT;
     ierr = PetscOptionsInt("-svd_mpd","Maximum dimension of projected problem","SVDSetDimensions",svd->mpd,&k,&flg3);CHKERRQ(ierr);
-    if (flg1 || flg2 || flg3) {
-      ierr = SVDSetDimensions(svd,i,j,k);CHKERRQ(ierr);
-    }
+    if (flg1 || flg2 || flg3) { ierr = SVDSetDimensions(svd,i,j,k);CHKERRQ(ierr); }
 
-    ierr = PetscOptionsBoolGroupBegin("-svd_largest","compute largest singular values","SVDSetWhichSingularTriplets",&flg);CHKERRQ(ierr);
+    ierr = PetscOptionsBoolGroupBegin("-svd_largest","Compute largest singular values","SVDSetWhichSingularTriplets",&flg);CHKERRQ(ierr);
     if (flg) { ierr = SVDSetWhichSingularTriplets(svd,SVD_LARGEST);CHKERRQ(ierr); }
-    ierr = PetscOptionsBoolGroupEnd("-svd_smallest","compute smallest singular values","SVDSetWhichSingularTriplets",&flg);CHKERRQ(ierr);
+    ierr = PetscOptionsBoolGroupEnd("-svd_smallest","Compute smallest singular values","SVDSetWhichSingularTriplets",&flg);CHKERRQ(ierr);
     if (flg) { ierr = SVDSetWhichSingularTriplets(svd,SVD_SMALLEST);CHKERRQ(ierr); }
 
     /* -----------------------------------------------------------------------*/
@@ -772,6 +759,14 @@ PetscErrorCode SVDSetFromOptions(SVD svd)
       ierr = SVDMonitorSet(svd,SVDMonitorLGAll,lg,(PetscErrorCode (*)(void**))PetscDrawLGDestroy);CHKERRQ(ierr);
       ierr = SVDSetTrackAll(svd,PETSC_TRUE);CHKERRQ(ierr);
     }
+
+    /* -----------------------------------------------------------------------*/
+    ierr = PetscOptionsName("-svd_view","Print detailed information on solver used","SVDView",NULL);CHKERRQ(ierr);
+    ierr = PetscOptionsName("-svd_view_vectors","View computed singular vectors","SVDVectorsView",NULL);CHKERRQ(ierr);
+    ierr = PetscOptionsName("-svd_view_values","View computed singular values","SVDValuesView",NULL);CHKERRQ(ierr);
+    ierr = PetscOptionsName("-svd_converged_reason","Print reason for convergence, and number of iterations","SVDReasonView",NULL);CHKERRQ(ierr);
+    ierr = PetscOptionsName("-svd_error_absolute","Print absolute errors of each singular triplet","SVDErrorView",NULL);CHKERRQ(ierr);
+    ierr = PetscOptionsName("-svd_error_relative","Print relative errors of each singular triplet","SVDErrorView",NULL);CHKERRQ(ierr);
 
     if (svd->ops->setfromoptions) {
       ierr = (*svd->ops->setfromoptions)(PetscOptionsObject,svd);CHKERRQ(ierr);

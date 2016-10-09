@@ -96,11 +96,7 @@ PetscErrorCode MFNSetFromOptions(MFN mfn)
     ierr = PetscOptionsFList("-mfn_type","Matrix Function method","MFNSetType",MFNList,(char*)(((PetscObject)mfn)->type_name?((PetscObject)mfn)->type_name:MFNKRYLOV),type,256,&flg);CHKERRQ(ierr);
     if (flg) {
       ierr = MFNSetType(mfn,type);CHKERRQ(ierr);
-    }
-    /*
-      Set the type if it was never set.
-    */
-    if (!((PetscObject)mfn)->type_name) {
+    } else if (!((PetscObject)mfn)->type_name) {
       ierr = MFNSetType(mfn,MFNKRYLOV);CHKERRQ(ierr);
     }
 
@@ -109,14 +105,10 @@ PetscErrorCode MFNSetFromOptions(MFN mfn)
     if (!flg1) i = PETSC_DEFAULT;
     r = mfn->tol;
     ierr = PetscOptionsReal("-mfn_tol","Tolerance","MFNSetTolerances",mfn->tol==PETSC_DEFAULT?SLEPC_DEFAULT_TOL:mfn->tol,&r,&flg2);CHKERRQ(ierr);
-    if (flg1 || flg2) {
-      ierr = MFNSetTolerances(mfn,r,i);CHKERRQ(ierr);
-    }
+    if (flg1 || flg2) { ierr = MFNSetTolerances(mfn,r,i);CHKERRQ(ierr); }
 
     ierr = PetscOptionsInt("-mfn_ncv","Number of basis vectors","MFNSetDimensions",mfn->ncv,&i,&flg);CHKERRQ(ierr);
-    if (flg) {
-      ierr = MFNSetDimensions(mfn,i);CHKERRQ(ierr);
-    }
+    if (flg) { ierr = MFNSetDimensions(mfn,i);CHKERRQ(ierr); }
 
     ierr = PetscOptionsBool("-mfn_error_if_not_converged","Generate error if solver does not converge","MFNSetErrorIfNotConverged",mfn->errorifnotconverged,&mfn->errorifnotconverged,NULL);CHKERRQ(ierr);
 
@@ -140,8 +132,8 @@ PetscErrorCode MFNSetFromOptions(MFN mfn)
       ierr = MFNMonitorLGCreate(PetscObjectComm((PetscObject)mfn),NULL,"Error estimate",PETSC_DECIDE,PETSC_DECIDE,300,300,&lg);CHKERRQ(ierr);
       ierr = MFNMonitorSet(mfn,MFNMonitorLG,lg,(PetscErrorCode (*)(void**))PetscDrawLGDestroy);CHKERRQ(ierr);
     }
-  /* -----------------------------------------------------------------------*/
 
+    /* -----------------------------------------------------------------------*/
     ierr = PetscOptionsName("-mfn_view","Print detailed information on solver used","MFNView",NULL);CHKERRQ(ierr);
 
     if (mfn->ops->setfromoptions) {

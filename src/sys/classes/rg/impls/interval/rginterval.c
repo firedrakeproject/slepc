@@ -241,12 +241,12 @@ PetscErrorCode RGSetFromOptions_Interval(PetscOptionItems *PetscOptionsObject,RG
   PetscFunctionBegin;
   ierr = PetscOptionsHead(PetscOptionsObject,"RG Interval Options");CHKERRQ(ierr);
 
-  k = 4;
-  ierr = PetscOptionsRealArray("-rg_interval_endpoints","Interval endpoints (four real values separated with a comma without spaces)","RGIntervalSetEndpoints",array,&k,&flg);CHKERRQ(ierr);
-  if (flg) {
-    if (k<2) SETERRQ(PetscObjectComm((PetscObject)rg),PETSC_ERR_ARG_SIZ,"Must pass at leat two values in -rg_interval_endpoints (comma-separated without spaces)");
-    ierr = RGIntervalSetEndpoints(rg,array[0],array[1],array[2],array[3]);CHKERRQ(ierr);
-  }
+    k = 4;
+    ierr = PetscOptionsRealArray("-rg_interval_endpoints","Interval endpoints (two or four real values separated with a comma without spaces)","RGIntervalSetEndpoints",array,&k,&flg);CHKERRQ(ierr);
+    if (flg) {
+      if (k<2) SETERRQ(PetscObjectComm((PetscObject)rg),PETSC_ERR_ARG_SIZ,"Must pass at least two values in -rg_interval_endpoints (comma-separated without spaces)");
+      ierr = RGIntervalSetEndpoints(rg,array[0],array[1],array[2],array[3]);CHKERRQ(ierr);
+    }
 
   ierr = PetscOptionsTail();CHKERRQ(ierr);
   PetscFunctionReturn(0);

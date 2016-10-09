@@ -541,14 +541,13 @@ PetscErrorCode PEPSetFromOptions_QArnoldi(PetscOptionItems *PetscOptionsObject,P
 
   PetscFunctionBegin;
   ierr = PetscOptionsHead(PetscOptionsObject,"PEP Q-Arnoldi Options");CHKERRQ(ierr);
-  ierr = PetscOptionsReal("-pep_qarnoldi_restart","Proportion of vectors kept after restart","PEPQArnoldiSetRestart",0.5,&keep,&flg);CHKERRQ(ierr);
-  if (flg) {
-    ierr = PEPQArnoldiSetRestart(pep,keep);CHKERRQ(ierr);
-  }
-  ierr = PetscOptionsBool("-pep_qarnoldi_locking","Choose between locking and non-locking variants","PEPQArnoldiSetLocking",PETSC_FALSE,&lock,&flg);CHKERRQ(ierr);
-  if (flg) {
-    ierr = PEPQArnoldiSetLocking(pep,lock);CHKERRQ(ierr);
-  }
+
+    ierr = PetscOptionsReal("-pep_qarnoldi_restart","Proportion of vectors kept after restart","PEPQArnoldiSetRestart",0.5,&keep,&flg);CHKERRQ(ierr);
+    if (flg) { ierr = PEPQArnoldiSetRestart(pep,keep);CHKERRQ(ierr); }
+
+    ierr = PetscOptionsBool("-pep_qarnoldi_locking","Choose between locking and non-locking variants","PEPQArnoldiSetLocking",PETSC_FALSE,&lock,&flg);CHKERRQ(ierr);
+    if (flg) { ierr = PEPQArnoldiSetLocking(pep,lock);CHKERRQ(ierr); }
+
   ierr = PetscOptionsTail();CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

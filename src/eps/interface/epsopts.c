@@ -129,67 +129,59 @@ PetscErrorCode EPSSetFromOptions(EPS eps)
   PetscScalar    s;
   PetscInt       i,j,k;
   PetscDrawLG    lg;
+  EPSBalance     bal;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   ierr = EPSRegisterAll();CHKERRQ(ierr);
   ierr = PetscObjectOptionsBegin((PetscObject)eps);CHKERRQ(ierr);
-    ierr = PetscOptionsFList("-eps_type","Eigenvalue Problem Solver method","EPSSetType",EPSList,(char*)(((PetscObject)eps)->type_name?((PetscObject)eps)->type_name:EPSKRYLOVSCHUR),type,256,&flg);CHKERRQ(ierr);
+    ierr = PetscOptionsFList("-eps_type","Eigensolver method","EPSSetType",EPSList,(char*)(((PetscObject)eps)->type_name?((PetscObject)eps)->type_name:EPSKRYLOVSCHUR),type,256,&flg);CHKERRQ(ierr);
     if (flg) {
       ierr = EPSSetType(eps,type);CHKERRQ(ierr);
-    }
-    /*
-      Set the type if it was never set.
-    */
-    if (!((PetscObject)eps)->type_name) {
+    } else if (!((PetscObject)eps)->type_name) {
       ierr = EPSSetType(eps,EPSKRYLOVSCHUR);CHKERRQ(ierr);
     }
 
-    ierr = PetscOptionsBoolGroupBegin("-eps_hermitian","hermitian eigenvalue problem","EPSSetProblemType",&flg);CHKERRQ(ierr);
+    ierr = PetscOptionsBoolGroupBegin("-eps_hermitian","Hermitian eigenvalue problem","EPSSetProblemType",&flg);CHKERRQ(ierr);
     if (flg) { ierr = EPSSetProblemType(eps,EPS_HEP);CHKERRQ(ierr); }
-    ierr = PetscOptionsBoolGroup("-eps_gen_hermitian","generalized hermitian eigenvalue problem","EPSSetProblemType",&flg);CHKERRQ(ierr);
+    ierr = PetscOptionsBoolGroup("-eps_gen_hermitian","Generalized Hermitian eigenvalue problem","EPSSetProblemType",&flg);CHKERRQ(ierr);
     if (flg) { ierr = EPSSetProblemType(eps,EPS_GHEP);CHKERRQ(ierr); }
-    ierr = PetscOptionsBoolGroup("-eps_non_hermitian","non-hermitian eigenvalue problem","EPSSetProblemType",&flg);CHKERRQ(ierr);
+    ierr = PetscOptionsBoolGroup("-eps_non_hermitian","Non-Hermitian eigenvalue problem","EPSSetProblemType",&flg);CHKERRQ(ierr);
     if (flg) { ierr = EPSSetProblemType(eps,EPS_NHEP);CHKERRQ(ierr); }
-    ierr = PetscOptionsBoolGroup("-eps_gen_non_hermitian","generalized non-hermitian eigenvalue problem","EPSSetProblemType",&flg);CHKERRQ(ierr);
+    ierr = PetscOptionsBoolGroup("-eps_gen_non_hermitian","Generalized non-Hermitian eigenvalue problem","EPSSetProblemType",&flg);CHKERRQ(ierr);
     if (flg) { ierr = EPSSetProblemType(eps,EPS_GNHEP);CHKERRQ(ierr); }
-    ierr = PetscOptionsBoolGroup("-eps_pos_gen_non_hermitian","generalized non-hermitian eigenvalue problem with positive semi-definite B","EPSSetProblemType",&flg);CHKERRQ(ierr);
+    ierr = PetscOptionsBoolGroup("-eps_pos_gen_non_hermitian","Generalized non-Hermitian eigenvalue problem with positive semi-definite B","EPSSetProblemType",&flg);CHKERRQ(ierr);
     if (flg) { ierr = EPSSetProblemType(eps,EPS_PGNHEP);CHKERRQ(ierr); }
-    ierr = PetscOptionsBoolGroupEnd("-eps_gen_indefinite","generalized hermitian-indefinite eigenvalue problem","EPSSetProblemType",&flg);CHKERRQ(ierr);
+    ierr = PetscOptionsBoolGroupEnd("-eps_gen_indefinite","Generalized Hermitian-indefinite eigenvalue problem","EPSSetProblemType",&flg);CHKERRQ(ierr);
     if (flg) { ierr = EPSSetProblemType(eps,EPS_GHIEP);CHKERRQ(ierr); }
 
     ierr = PetscOptionsBoolGroupBegin("-eps_ritz","Rayleigh-Ritz extraction","EPSSetExtraction",&flg);CHKERRQ(ierr);
     if (flg) { ierr = EPSSetExtraction(eps,EPS_RITZ);CHKERRQ(ierr); }
-    ierr = PetscOptionsBoolGroup("-eps_harmonic","harmonic Ritz extraction","EPSSetExtraction",&flg);CHKERRQ(ierr);
+    ierr = PetscOptionsBoolGroup("-eps_harmonic","Harmonic Ritz extraction","EPSSetExtraction",&flg);CHKERRQ(ierr);
     if (flg) { ierr = EPSSetExtraction(eps,EPS_HARMONIC);CHKERRQ(ierr); }
-    ierr = PetscOptionsBoolGroup("-eps_harmonic_relative","relative harmonic Ritz extraction","EPSSetExtraction",&flg);CHKERRQ(ierr);
+    ierr = PetscOptionsBoolGroup("-eps_harmonic_relative","Relative harmonic Ritz extraction","EPSSetExtraction",&flg);CHKERRQ(ierr);
     if (flg) { ierr = EPSSetExtraction(eps,EPS_HARMONIC_RELATIVE);CHKERRQ(ierr); }
-    ierr = PetscOptionsBoolGroup("-eps_harmonic_right","right harmonic Ritz extraction","EPSSetExtraction",&flg);CHKERRQ(ierr);
+    ierr = PetscOptionsBoolGroup("-eps_harmonic_right","Right harmonic Ritz extraction","EPSSetExtraction",&flg);CHKERRQ(ierr);
     if (flg) { ierr = EPSSetExtraction(eps,EPS_HARMONIC_RIGHT);CHKERRQ(ierr); }
-    ierr = PetscOptionsBoolGroup("-eps_harmonic_largest","largest harmonic Ritz extraction","EPSSetExtraction",&flg);CHKERRQ(ierr);
+    ierr = PetscOptionsBoolGroup("-eps_harmonic_largest","Largest harmonic Ritz extraction","EPSSetExtraction",&flg);CHKERRQ(ierr);
     if (flg) { ierr = EPSSetExtraction(eps,EPS_HARMONIC_LARGEST);CHKERRQ(ierr); }
-    ierr = PetscOptionsBoolGroup("-eps_refined","refined Ritz extraction","EPSSetExtraction",&flg);CHKERRQ(ierr);
+    ierr = PetscOptionsBoolGroup("-eps_refined","Refined Ritz extraction","EPSSetExtraction",&flg);CHKERRQ(ierr);
     if (flg) { ierr = EPSSetExtraction(eps,EPS_REFINED);CHKERRQ(ierr); }
-    ierr = PetscOptionsBoolGroupEnd("-eps_refined_harmonic","refined harmonic Ritz extraction","EPSSetExtraction",&flg);CHKERRQ(ierr);
+    ierr = PetscOptionsBoolGroupEnd("-eps_refined_harmonic","Refined harmonic Ritz extraction","EPSSetExtraction",&flg);CHKERRQ(ierr);
     if (flg) { ierr = EPSSetExtraction(eps,EPS_REFINED_HARMONIC);CHKERRQ(ierr); }
 
-    ierr = PetscOptionsEnum("-eps_balance","Balancing method","EPSSetBalance",EPSBalanceTypes,(PetscEnum)eps->balance,(PetscEnum*)&eps->balance,NULL);CHKERRQ(ierr);
-
+    ierr = PetscOptionsEnum("-eps_balance","Balancing method","EPSSetBalance",EPSBalanceTypes,(PetscEnum)eps->balance,(PetscEnum*)&bal,&flg1);CHKERRQ(ierr);
     j = eps->balance_its;
-    ierr = PetscOptionsInt("-eps_balance_its","Number of iterations in balancing","EPSSetBalance",eps->balance_its,&j,&flg1);CHKERRQ(ierr);
+    ierr = PetscOptionsInt("-eps_balance_its","Number of iterations in balancing","EPSSetBalance",eps->balance_its,&j,&flg2);CHKERRQ(ierr);
     r = eps->balance_cutoff;
-    ierr = PetscOptionsReal("-eps_balance_cutoff","Cutoff value in balancing","EPSSetBalance",eps->balance_cutoff,&r,&flg2);CHKERRQ(ierr);
-    if (flg1 || flg2) {
-      ierr = EPSSetBalance(eps,eps->balance,j,r);CHKERRQ(ierr);
-    }
+    ierr = PetscOptionsReal("-eps_balance_cutoff","Cutoff value in balancing","EPSSetBalance",eps->balance_cutoff,&r,&flg3);CHKERRQ(ierr);
+    if (flg1 || flg2 || flg3) { ierr = EPSSetBalance(eps,bal,j,r);CHKERRQ(ierr); }
 
     i = eps->max_it? eps->max_it: PETSC_DEFAULT;
     ierr = PetscOptionsInt("-eps_max_it","Maximum number of iterations","EPSSetTolerances",eps->max_it,&i,&flg1);CHKERRQ(ierr);
     r = eps->tol;
     ierr = PetscOptionsReal("-eps_tol","Tolerance","EPSSetTolerances",eps->tol==PETSC_DEFAULT?SLEPC_DEFAULT_TOL:eps->tol,&r,&flg2);CHKERRQ(ierr);
-    if (flg1 || flg2) {
-      ierr = EPSSetTolerances(eps,r,i);CHKERRQ(ierr);
-    }
+    if (flg1 || flg2) { ierr = EPSSetTolerances(eps,r,i);CHKERRQ(ierr); }
 
     ierr = PetscOptionsBoolGroupBegin("-eps_conv_rel","Relative error convergence test","EPSSetConvergenceTest",&flg);CHKERRQ(ierr);
     if (flg) { ierr = EPSSetConvergenceTest(eps,EPS_CONV_REL);CHKERRQ(ierr); }
@@ -211,9 +203,47 @@ PetscErrorCode EPSSetFromOptions(EPS eps)
     ierr = PetscOptionsInt("-eps_ncv","Number of basis vectors","EPSSetDimensions",eps->ncv,&j,&flg2);CHKERRQ(ierr);
     k = eps->mpd? eps->mpd: PETSC_DEFAULT;
     ierr = PetscOptionsInt("-eps_mpd","Maximum dimension of projected problem","EPSSetDimensions",eps->mpd,&k,&flg3);CHKERRQ(ierr);
-    if (flg1 || flg2 || flg3) {
-      ierr = EPSSetDimensions(eps,i,j,k);CHKERRQ(ierr);
+    if (flg1 || flg2 || flg3) { ierr = EPSSetDimensions(eps,i,j,k);CHKERRQ(ierr); }
+
+    ierr = PetscOptionsBoolGroupBegin("-eps_largest_magnitude","Compute largest eigenvalues in magnitude","EPSSetWhichEigenpairs",&flg);CHKERRQ(ierr);
+    if (flg) { ierr = EPSSetWhichEigenpairs(eps,EPS_LARGEST_MAGNITUDE);CHKERRQ(ierr); }
+    ierr = PetscOptionsBoolGroup("-eps_smallest_magnitude","Compute smallest eigenvalues in magnitude","EPSSetWhichEigenpairs",&flg);CHKERRQ(ierr);
+    if (flg) { ierr = EPSSetWhichEigenpairs(eps,EPS_SMALLEST_MAGNITUDE);CHKERRQ(ierr); }
+    ierr = PetscOptionsBoolGroup("-eps_largest_real","Compute eigenvalues with largest real parts","EPSSetWhichEigenpairs",&flg);CHKERRQ(ierr);
+    if (flg) { ierr = EPSSetWhichEigenpairs(eps,EPS_LARGEST_REAL);CHKERRQ(ierr); }
+    ierr = PetscOptionsBoolGroup("-eps_smallest_real","Compute eigenvalues with smallest real parts","EPSSetWhichEigenpairs",&flg);CHKERRQ(ierr);
+    if (flg) { ierr = EPSSetWhichEigenpairs(eps,EPS_SMALLEST_REAL);CHKERRQ(ierr); }
+    ierr = PetscOptionsBoolGroup("-eps_largest_imaginary","Compute eigenvalues with largest imaginary parts","EPSSetWhichEigenpairs",&flg);CHKERRQ(ierr);
+    if (flg) { ierr = EPSSetWhichEigenpairs(eps,EPS_LARGEST_IMAGINARY);CHKERRQ(ierr); }
+    ierr = PetscOptionsBoolGroup("-eps_smallest_imaginary","Compute eigenvalues with smallest imaginary parts","EPSSetWhichEigenpairs",&flg);CHKERRQ(ierr);
+    if (flg) { ierr = EPSSetWhichEigenpairs(eps,EPS_SMALLEST_IMAGINARY);CHKERRQ(ierr); }
+    ierr = PetscOptionsBoolGroup("-eps_target_magnitude","Compute eigenvalues closest to target","EPSSetWhichEigenpairs",&flg);CHKERRQ(ierr);
+    if (flg) { ierr = EPSSetWhichEigenpairs(eps,EPS_TARGET_MAGNITUDE);CHKERRQ(ierr); }
+    ierr = PetscOptionsBoolGroup("-eps_target_real","Compute eigenvalues with real parts closest to target","EPSSetWhichEigenpairs",&flg);CHKERRQ(ierr);
+    if (flg) { ierr = EPSSetWhichEigenpairs(eps,EPS_TARGET_REAL);CHKERRQ(ierr); }
+    ierr = PetscOptionsBoolGroup("-eps_target_imaginary","Compute eigenvalues with imaginary parts closest to target","EPSSetWhichEigenpairs",&flg);CHKERRQ(ierr);
+    if (flg) { ierr = EPSSetWhichEigenpairs(eps,EPS_TARGET_IMAGINARY);CHKERRQ(ierr); }
+    ierr = PetscOptionsBoolGroupEnd("-eps_all","Compute all eigenvalues in an interval or a region","EPSSetWhichEigenpairs",&flg);CHKERRQ(ierr);
+    if (flg) { ierr = EPSSetWhichEigenpairs(eps,EPS_ALL);CHKERRQ(ierr); }
+
+    ierr = PetscOptionsScalar("-eps_target","Value of the target","EPSSetTarget",eps->target,&s,&flg);CHKERRQ(ierr);
+    if (flg) {
+      if (eps->which!=EPS_TARGET_REAL && eps->which!=EPS_TARGET_IMAGINARY) {
+        ierr = EPSSetWhichEigenpairs(eps,EPS_TARGET_MAGNITUDE);CHKERRQ(ierr);
+      }
+      ierr = EPSSetTarget(eps,s);CHKERRQ(ierr);
     }
+
+    k = 2;
+    ierr = PetscOptionsRealArray("-eps_interval","Computational interval (two real values separated with a comma without spaces)","EPSSetInterval",array,&k,&flg);CHKERRQ(ierr);
+    if (flg) {
+      if (k<2) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_SIZ,"Must pass two values in -eps_interval (comma-separated without spaces)");
+      ierr = EPSSetWhichEigenpairs(eps,EPS_ALL);CHKERRQ(ierr);
+      ierr = EPSSetInterval(eps,array[0],array[1]);CHKERRQ(ierr);
+    }
+
+    ierr = PetscOptionsBool("-eps_true_residual","Compute true residuals explicitly","EPSSetTrueResidual",eps->trueres,&eps->trueres,NULL);CHKERRQ(ierr);
+    ierr = PetscOptionsBool("-eps_purify","Postprocess eigenvectors for purification","EPSSetPurify",eps->purify,&eps->purify,NULL);CHKERRQ(ierr);
 
     /* -----------------------------------------------------------------------*/
     /*
@@ -243,46 +273,8 @@ PetscErrorCode EPSSetFromOptions(EPS eps)
       ierr = EPSMonitorSet(eps,EPSMonitorLGAll,lg,(PetscErrorCode (*)(void**))PetscDrawLGDestroy);CHKERRQ(ierr);
       ierr = EPSSetTrackAll(eps,PETSC_TRUE);CHKERRQ(ierr);
     }
-  /* -----------------------------------------------------------------------*/
-    ierr = PetscOptionsBoolGroupBegin("-eps_largest_magnitude","compute largest eigenvalues in magnitude","EPSSetWhichEigenpairs",&flg);CHKERRQ(ierr);
-    if (flg) { ierr = EPSSetWhichEigenpairs(eps,EPS_LARGEST_MAGNITUDE);CHKERRQ(ierr); }
-    ierr = PetscOptionsBoolGroup("-eps_smallest_magnitude","compute smallest eigenvalues in magnitude","EPSSetWhichEigenpairs",&flg);CHKERRQ(ierr);
-    if (flg) { ierr = EPSSetWhichEigenpairs(eps,EPS_SMALLEST_MAGNITUDE);CHKERRQ(ierr); }
-    ierr = PetscOptionsBoolGroup("-eps_largest_real","compute largest real parts","EPSSetWhichEigenpairs",&flg);CHKERRQ(ierr);
-    if (flg) { ierr = EPSSetWhichEigenpairs(eps,EPS_LARGEST_REAL);CHKERRQ(ierr); }
-    ierr = PetscOptionsBoolGroup("-eps_smallest_real","compute smallest real parts","EPSSetWhichEigenpairs",&flg);CHKERRQ(ierr);
-    if (flg) { ierr = EPSSetWhichEigenpairs(eps,EPS_SMALLEST_REAL);CHKERRQ(ierr); }
-    ierr = PetscOptionsBoolGroup("-eps_largest_imaginary","compute largest imaginary parts","EPSSetWhichEigenpairs",&flg);CHKERRQ(ierr);
-    if (flg) { ierr = EPSSetWhichEigenpairs(eps,EPS_LARGEST_IMAGINARY);CHKERRQ(ierr); }
-    ierr = PetscOptionsBoolGroup("-eps_smallest_imaginary","compute smallest imaginary parts","EPSSetWhichEigenpairs",&flg);CHKERRQ(ierr);
-    if (flg) { ierr = EPSSetWhichEigenpairs(eps,EPS_SMALLEST_IMAGINARY);CHKERRQ(ierr); }
-    ierr = PetscOptionsBoolGroup("-eps_target_magnitude","compute nearest eigenvalues to target","EPSSetWhichEigenpairs",&flg);CHKERRQ(ierr);
-    if (flg) { ierr = EPSSetWhichEigenpairs(eps,EPS_TARGET_MAGNITUDE);CHKERRQ(ierr); }
-    ierr = PetscOptionsBoolGroup("-eps_target_real","compute eigenvalues with real parts close to target","EPSSetWhichEigenpairs",&flg);CHKERRQ(ierr);
-    if (flg) { ierr = EPSSetWhichEigenpairs(eps,EPS_TARGET_REAL);CHKERRQ(ierr); }
-    ierr = PetscOptionsBoolGroup("-eps_target_imaginary","compute eigenvalues with imaginary parts close to target","EPSSetWhichEigenpairs",&flg);CHKERRQ(ierr);
-    if (flg) { ierr = EPSSetWhichEigenpairs(eps,EPS_TARGET_IMAGINARY);CHKERRQ(ierr); }
-    ierr = PetscOptionsBoolGroupEnd("-eps_all","compute all eigenvalues in an interval or a region","EPSSetWhichEigenpairs",&flg);CHKERRQ(ierr);
-    if (flg) { ierr = EPSSetWhichEigenpairs(eps,EPS_ALL);CHKERRQ(ierr); }
 
-    ierr = PetscOptionsScalar("-eps_target","Value of the target","EPSSetTarget",eps->target,&s,&flg);CHKERRQ(ierr);
-    if (flg) {
-      if (eps->which!=EPS_TARGET_REAL && eps->which!=EPS_TARGET_IMAGINARY) {
-        ierr = EPSSetWhichEigenpairs(eps,EPS_TARGET_MAGNITUDE);CHKERRQ(ierr);
-      }
-      ierr = EPSSetTarget(eps,s);CHKERRQ(ierr);
-    }
-    k = 2;
-    ierr = PetscOptionsRealArray("-eps_interval","Computational interval (two real values separated with a comma without spaces)","EPSSetInterval",array,&k,&flg);CHKERRQ(ierr);
-    if (flg) {
-      if (k<2) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_SIZ,"Must pass two values in -eps_interval (comma-separated without spaces)");
-      ierr = EPSSetWhichEigenpairs(eps,EPS_ALL);CHKERRQ(ierr);
-      ierr = EPSSetInterval(eps,array[0],array[1]);CHKERRQ(ierr);
-    }
-
-    ierr = PetscOptionsBool("-eps_true_residual","Compute true residuals explicitly","EPSSetTrueResidual",eps->trueres,&eps->trueres,NULL);CHKERRQ(ierr);
-    ierr = PetscOptionsBool("-eps_purify","Postprocess eigenvectors for purification","EPSSetPurify",eps->purify,&eps->purify,NULL);CHKERRQ(ierr);
-
+    /* -----------------------------------------------------------------------*/
     ierr = PetscOptionsName("-eps_view","Print detailed information on solver used","EPSView",NULL);CHKERRQ(ierr);
     ierr = PetscOptionsName("-eps_view_vectors","View computed eigenvectors","EPSVectorsView",NULL);CHKERRQ(ierr);
     ierr = PetscOptionsName("-eps_view_values","View computed eigenvalues","EPSValuesView",NULL);CHKERRQ(ierr);

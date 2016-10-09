@@ -322,18 +322,16 @@ PetscErrorCode RGSetFromOptions_Polygon(PetscOptionItems *PetscOptionsObject,RG 
   PetscFunctionBegin;
   ierr = PetscOptionsHead(PetscOptionsObject,"RG Polygon Options");CHKERRQ(ierr);
 
-  k = VERTMAX;
-  for (i=0;i<k;i++) array[i] = 0;
-  ierr = PetscOptionsScalarArray("-rg_polygon_vertices","Vertices of polygon","RGPolygonSetVertices",array,&k,&flg);CHKERRQ(ierr);
+    k = VERTMAX;
+    for (i=0;i<k;i++) array[i] = 0;
+    ierr = PetscOptionsScalarArray("-rg_polygon_vertices","Vertices of polygon","RGPolygonSetVertices",array,&k,&flg);CHKERRQ(ierr);
 #if !defined(PETSC_USE_COMPLEX)
-  ki = VERTMAX;
-  for (i=0;i<ki;i++) arrayi[i] = 0;
-  ierr = PetscOptionsScalarArray("-rg_polygon_verticesi","Vertices of polygon (imaginary part)","RGPolygonSetVertices",arrayi,&ki,&flgi);CHKERRQ(ierr);
-  if (ki!=k) SETERRQ2(PetscObjectComm((PetscObject)rg),PETSC_ERR_ARG_SIZ,"The number of real %D and imaginary %D parts do not match",k,ki);
+    ki = VERTMAX;
+    for (i=0;i<ki;i++) arrayi[i] = 0;
+    ierr = PetscOptionsScalarArray("-rg_polygon_verticesi","Vertices of polygon (imaginary part)","RGPolygonSetVertices",arrayi,&ki,&flgi);CHKERRQ(ierr);
+    if (ki!=k) SETERRQ2(PetscObjectComm((PetscObject)rg),PETSC_ERR_ARG_SIZ,"The number of real %D and imaginary %D parts do not match",k,ki);
 #endif
-  if (flg || flgi) {
-    ierr = RGPolygonSetVertices(rg,k,array,arrayi);CHKERRQ(ierr);
-  }
+    if (flg || flgi) { ierr = RGPolygonSetVertices(rg,k,array,arrayi);CHKERRQ(ierr); }
 
   ierr = PetscOptionsTail();CHKERRQ(ierr);
   PetscFunctionReturn(0);

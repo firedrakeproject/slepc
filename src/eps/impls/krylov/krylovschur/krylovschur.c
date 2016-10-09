@@ -1264,32 +1264,28 @@ PetscErrorCode EPSSetFromOptions_KrylovSchur(PetscOptionItems *PetscOptionsObjec
 
   PetscFunctionBegin;
   ierr = PetscOptionsHead(PetscOptionsObject,"EPS Krylov-Schur Options");CHKERRQ(ierr);
-  ierr = PetscOptionsReal("-eps_krylovschur_restart","Proportion of vectors kept after restart","EPSKrylovSchurSetRestart",0.5,&keep,&flg);CHKERRQ(ierr);
-  if (flg) {
-    ierr = EPSKrylovSchurSetRestart(eps,keep);CHKERRQ(ierr);
-  }
-  ierr = PetscOptionsBool("-eps_krylovschur_locking","Choose between locking and non-locking variants","EPSKrylovSchurSetLocking",PETSC_TRUE,&lock,&flg);CHKERRQ(ierr);
-  if (flg) {
-    ierr = EPSKrylovSchurSetLocking(eps,lock);CHKERRQ(ierr);
-  }
-  i = ctx->npart;
-  ierr = PetscOptionsInt("-eps_krylovschur_partitions","Number of partitions of the communicator for spectrum slicing","EPSKrylovSchurSetPartitions",ctx->npart,&i,&flg);CHKERRQ(ierr);
-  if (flg) {
-    ierr = EPSKrylovSchurSetPartitions(eps,i);CHKERRQ(ierr);
-  }
-  b = ctx->detect;
-  ierr = PetscOptionsBool("-eps_krylovschur_detect_zeros","Check zeros during factorizations at subinterval boundaries","EPSKrylovSchurSetDetectZeros",ctx->detect,&b,&flg);CHKERRQ(ierr);
-  if (flg) {
-    ierr = EPSKrylovSchurSetDetectZeros(eps,b);CHKERRQ(ierr);
-  }
-  i = 1;
-  j = k = PETSC_DECIDE;
-  ierr = PetscOptionsInt("-eps_krylovschur_nev","Number of eigenvalues to compute in each subsolve (only for spectrum slicing)","EPSKrylovSchurSetDimensions",40,&i,&f1);CHKERRQ(ierr);
-  ierr = PetscOptionsInt("-eps_krylovschur_ncv","Number of basis vectors in each subsolve (only for spectrum slicing)","EPSKrylovSchurSetDimensions",80,&j,&f2);CHKERRQ(ierr);
-  ierr = PetscOptionsInt("-eps_krylovschur_mpd","Maximum dimension of projected problem in each subsolve (only for spectrum slicing)","EPSKrylovSchurSetDimensions",80,&k,&f3);CHKERRQ(ierr);
-  if (f1 || f2 || f3) {
-    ierr = EPSKrylovSchurSetDimensions(eps,i,j,k);CHKERRQ(ierr);
-  }
+
+    ierr = PetscOptionsReal("-eps_krylovschur_restart","Proportion of vectors kept after restart","EPSKrylovSchurSetRestart",0.5,&keep,&flg);CHKERRQ(ierr);
+    if (flg) { ierr = EPSKrylovSchurSetRestart(eps,keep);CHKERRQ(ierr); }
+
+    ierr = PetscOptionsBool("-eps_krylovschur_locking","Choose between locking and non-locking variants","EPSKrylovSchurSetLocking",PETSC_TRUE,&lock,&flg);CHKERRQ(ierr);
+    if (flg) { ierr = EPSKrylovSchurSetLocking(eps,lock);CHKERRQ(ierr); }
+
+    i = ctx->npart;
+    ierr = PetscOptionsInt("-eps_krylovschur_partitions","Number of partitions of the communicator for spectrum slicing","EPSKrylovSchurSetPartitions",ctx->npart,&i,&flg);CHKERRQ(ierr);
+    if (flg) { ierr = EPSKrylovSchurSetPartitions(eps,i);CHKERRQ(ierr); }
+
+    b = ctx->detect;
+    ierr = PetscOptionsBool("-eps_krylovschur_detect_zeros","Check zeros during factorizations at subinterval boundaries","EPSKrylovSchurSetDetectZeros",ctx->detect,&b,&flg);CHKERRQ(ierr);
+    if (flg) { ierr = EPSKrylovSchurSetDetectZeros(eps,b);CHKERRQ(ierr); }
+
+    i = 1;
+    j = k = PETSC_DECIDE;
+    ierr = PetscOptionsInt("-eps_krylovschur_nev","Number of eigenvalues to compute in each subsolve (only for spectrum slicing)","EPSKrylovSchurSetDimensions",40,&i,&f1);CHKERRQ(ierr);
+    ierr = PetscOptionsInt("-eps_krylovschur_ncv","Number of basis vectors in each subsolve (only for spectrum slicing)","EPSKrylovSchurSetDimensions",80,&j,&f2);CHKERRQ(ierr);
+    ierr = PetscOptionsInt("-eps_krylovschur_mpd","Maximum dimension of projected problem in each subsolve (only for spectrum slicing)","EPSKrylovSchurSetDimensions",80,&k,&f3);CHKERRQ(ierr);
+    if (f1 || f2 || f3) { ierr = EPSKrylovSchurSetDimensions(eps,i,j,k);CHKERRQ(ierr); }
+
   ierr = PetscOptionsTail();CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

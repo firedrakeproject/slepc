@@ -123,10 +123,12 @@ PetscErrorCode PEPSetFromOptions_JD(PetscOptionItems *PetscOptionsObject,PEP pep
 
   PetscFunctionBegin;
   ierr = PetscOptionsHead(PetscOptionsObject,"PEP JD Options");CHKERRQ(ierr);
-  ierr = PetscOptionsReal("-pep_jd_restart","Proportion of vectors kept after restart","PEPJDSetRestart",0.5,&r1,&flg);CHKERRQ(ierr);
-  if (flg) {
-    ierr = PEPJDSetRestart(pep,r1);CHKERRQ(ierr);
-  }
+
+    ierr = PetscOptionsReal("-pep_jd_restart","Proportion of vectors kept after restart","PEPJDSetRestart",0.5,&r1,&flg);CHKERRQ(ierr);
+    if (flg) { ierr = PEPJDSetRestart(pep,r1);CHKERRQ(ierr); }
+
+  ierr = PetscOptionsTail();CHKERRQ(ierr);
+
   /* Set STPRECOND as the default ST */
   if (!pep->st) { ierr = PEPGetST(pep,&pep->st);CHKERRQ(ierr); }
   if (!((PetscObject)pep->st)->type_name) {
@@ -139,7 +141,6 @@ PetscErrorCode PEPSetFromOptions_JD(PetscOptionItems *PetscOptionsObject,PEP pep
     ierr = KSPSetType(ksp,KSPBCGSL);CHKERRQ(ierr);
     ierr = KSPSetTolerances(ksp,1e-5,PETSC_DEFAULT,PETSC_DEFAULT,100);CHKERRQ(ierr);
   }
-  ierr = PetscOptionsTail();CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

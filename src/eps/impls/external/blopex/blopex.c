@@ -448,10 +448,12 @@ PetscErrorCode EPSSetFromOptions_BLOPEX(PetscOptionItems *PetscOptionsObject,EPS
 
   PetscFunctionBegin;
   ierr = PetscOptionsHead(PetscOptionsObject,"EPS BLOPEX Options");CHKERRQ(ierr);
-  ierr = PetscOptionsInt("-eps_blopex_blocksize","BLOPEX block size","EPSBLOPEXSetBlockSize",20,&bs,&flg);CHKERRQ(ierr);
-  if (flg) {
-    ierr = EPSBLOPEXSetBlockSize(eps,bs);CHKERRQ(ierr);
-  }
+
+    ierr = PetscOptionsInt("-eps_blopex_blocksize","Block size","EPSBLOPEXSetBlockSize",20,&bs,&flg);CHKERRQ(ierr);
+    if (flg) { ierr = EPSBLOPEXSetBlockSize(eps,bs);CHKERRQ(ierr); }
+
+  ierr = PetscOptionsTail();CHKERRQ(ierr);
+
   LOBPCG_SetFromOptionsRandomContext();
 
   /* Set STPrecond as the default ST */
@@ -465,7 +467,6 @@ PetscErrorCode EPSSetFromOptions_BLOPEX(PetscOptionItems *PetscOptionsObject,EPS
   if (!((PetscObject)ksp)->type_name) {
     ierr = KSPSetType(ksp,KSPPREONLY);CHKERRQ(ierr);
   }
-  ierr = PetscOptionsTail();CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
