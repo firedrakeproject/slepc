@@ -27,6 +27,8 @@ PetscClassId     ST_CLASSID = 0;
 PetscLogEvent    ST_SetUp = 0,ST_Apply = 0,ST_ApplyTranspose = 0,ST_MatSetUp = 0,ST_MatMult = 0,ST_MatMultTranspose = 0,ST_MatSolve = 0,ST_MatSolveTranspose = 0;
 static PetscBool STPackageInitialized = PETSC_FALSE;
 
+const char *STMatModes[] = {"COPY","INPLACE","SHELL","STMatMode","ST_MATMODE_",0};
+
 #undef __FUNCT__
 #define __FUNCT__ "STFinalizePackage"
 /*@C
@@ -105,7 +107,8 @@ PetscErrorCode STInitializePackage(void)
 #undef __FUNCT__
 #define __FUNCT__ "STReset"
 /*@
-   STReset - Resets the ST context and removes any allocated objects.
+   STReset - Resets the ST context to the initial state (prior to setup)
+   and destroys any allocated Vecs and Mats.
 
    Collective on ST
 
@@ -125,8 +128,10 @@ PetscErrorCode STReset(ST st)
   if (st->ops->reset) { ierr = (*st->ops->reset)(st);CHKERRQ(ierr); }
   if (st->ksp) { ierr = KSPReset(st->ksp);CHKERRQ(ierr); }
   ierr = MatDestroyMatrices(PetscMax(2,st->nmat),&st->T);CHKERRQ(ierr);
+  ierr = MatDestroy(&st->P);CHKERRQ(ierr);
   ierr = VecDestroy(&st->w);CHKERRQ(ierr);
   ierr = VecDestroy(&st->wb);CHKERRQ(ierr);
+  ierr = VecDestroy(&st->D);CHKERRQ(ierr);
   st->state = ST_STATE_INITIAL;
   PetscFunctionReturn(0);
 }
@@ -157,8 +162,6 @@ PetscErrorCode STDestroy(ST *st)
   ierr = MatDestroyMatrices(PetscMax(2,(*st)->nmat),&(*st)->A);CHKERRQ(ierr);
   ierr = PetscFree((*st)->Astate);CHKERRQ(ierr);
   if ((*st)->ops->destroy) { ierr = (*(*st)->ops->destroy)(*st);CHKERRQ(ierr); }
-  ierr = MatDestroy(&(*st)->P);CHKERRQ(ierr);
-  ierr = VecDestroy(&(*st)->D);CHKERRQ(ierr);
   ierr = KSPDestroy(&(*st)->ksp);CHKERRQ(ierr);
   ierr = PetscHeaderDestroy(st);CHKERRQ(ierr);
   PetscFunctionReturn(0);

@@ -317,19 +317,14 @@ PetscErrorCode RGSetFromOptions(RG rg)
     ierr = PetscOptionsFList("-rg_type","Region type","RGSetType",RGList,(char*)(((PetscObject)rg)->type_name?((PetscObject)rg)->type_name:RGINTERVAL),type,256,&flg);CHKERRQ(ierr);
     if (flg) {
       ierr = RGSetType(rg,type);CHKERRQ(ierr);
-    }
-    /*
-      Set the type if it was never set.
-    */
-    if (!((PetscObject)rg)->type_name) {
+    } else if (!((PetscObject)rg)->type_name) {
       ierr = RGSetType(rg,RGINTERVAL);CHKERRQ(ierr);
     }
 
     ierr = PetscOptionsBool("-rg_complement","Whether region is complemented or not","RGSetComplement",rg->complement,&rg->complement,NULL);CHKERRQ(ierr);
+
     ierr = PetscOptionsReal("-rg_scale","Scaling factor","RGSetScale",1.0,&sfactor,&flg);CHKERRQ(ierr);
-    if (flg) {
-      ierr = RGSetScale(rg,sfactor);CHKERRQ(ierr);
-    }
+    if (flg) { ierr = RGSetScale(rg,sfactor);CHKERRQ(ierr); }
 
     if (rg->ops->setfromoptions) {
       ierr = (*rg->ops->setfromoptions)(PetscOptionsObject,rg);CHKERRQ(ierr);

@@ -298,18 +298,19 @@ PetscErrorCode SVDSetFromOptions_Cyclic(PetscOptionItems *PetscOptionsObject,SVD
 
   PetscFunctionBegin;
   ierr = PetscOptionsHead(PetscOptionsObject,"SVD Cyclic Options");CHKERRQ(ierr);
-  ierr = PetscOptionsBool("-svd_cyclic_explicitmatrix","Use cyclic explicit matrix","SVDCyclicSetExplicitMatrix",cyclic->explicitmatrix,&val,&set);CHKERRQ(ierr);
-  if (set) {
-    ierr = SVDCyclicSetExplicitMatrix(svd,val);CHKERRQ(ierr);
-  }
+
+    ierr = PetscOptionsBool("-svd_cyclic_explicitmatrix","Use cyclic explicit matrix","SVDCyclicSetExplicitMatrix",cyclic->explicitmatrix,&val,&set);CHKERRQ(ierr);
+    if (set) { ierr = SVDCyclicSetExplicitMatrix(svd,val);CHKERRQ(ierr); }
+
+  ierr = PetscOptionsTail();CHKERRQ(ierr);
+
   if (!cyclic->eps) { ierr = SVDCyclicGetEPS(svd,&cyclic->eps);CHKERRQ(ierr); }
-  ierr = EPSSetFromOptions(cyclic->eps);CHKERRQ(ierr);
   if (!cyclic->explicitmatrix && !cyclic->usereps) {
     /* use as default an ST with shell matrix and Jacobi */
     ierr = EPSGetST(cyclic->eps,&st);CHKERRQ(ierr);
     ierr = STSetMatMode(st,ST_MATMODE_SHELL);CHKERRQ(ierr);
   }
-  ierr = PetscOptionsTail();CHKERRQ(ierr);
+  ierr = EPSSetFromOptions(cyclic->eps);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

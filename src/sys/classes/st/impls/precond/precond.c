@@ -64,6 +64,9 @@ PetscErrorCode STSetFromOptions_Precond(PetscOptionItems *PetscOptionsObject,ST 
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
+  ierr = PetscOptionsHead(PetscOptionsObject,"ST Precond Options");CHKERRQ(ierr);
+  ierr = PetscOptionsTail();CHKERRQ(ierr);
+
   ierr = STSetDefaultPrecond(st);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

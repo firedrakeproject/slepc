@@ -378,7 +378,7 @@ Each \slepc source code component directory has the following subdirectories:
 	\item[Installation.] Type \texttt{make lib} after customizing the file \texttt{Make\_flags} appropriately. Alternatively, the \texttt{-{}-download-primme} option is also available in SLEPc's \texttt{configure}.
 	\item[Specific options.] Since PRIMME contains preconditioned solvers, the \slepc interface uses \ident{STPRECOND}, as described in \ref{sec:precond}.
 
-The \slepc interface to this package allows the user to specify the maximum allowed block size with the function \ident{EPSPRIMMESetBlockSize} or at run time with the option \Verb!-eps_primme_block_size <size>!.
+The \slepc interface to this package allows the user to specify the maximum allowed block size with the function \ident{EPSPRIMMESetBlockSize} or at run time with the option \Verb!-eps_primme_blocksize <size>!.
 For changing the particular algorithm within \primme, use the function \ident{EPSPRIMMESetMethod}.
 	\end{description}
 
@@ -392,7 +392,7 @@ For changing the particular algorithm within \primme, use the function \ident{EP
 
 	\blzpack\ uses a combination of partial and selective re-orthogonalization strategies. It can be run in either sequential or parallel mode, by means of MPI or PVM interfaces, and it uses the reverse communication strategy.
 	\item[Installation.] For the compilation of the \texttt{libblzpack.a} library, first check the appropriate architecture file in the directory \texttt{sys/MACROS} and then type \texttt{creator -mpi}.
-	\item[Specific options.] The \slepc interface to this package allows the user to specify the block size with the function \ident{EPSBlzpackSetBlockSize} or at run time with the option \Verb!-eps_blzpack_! \Verb!block_size <size>!. Also, the function \ident{EPSBlzpackSetNSteps} can be used to set the maximum number of steps per run (also with \Verb!-eps_blzpack_nsteps!).
+	\item[Specific options.] The \slepc interface to this package allows the user to specify the block size with the function \ident{EPSBlzpackSetBlockSize} or at run time with the option \Verb!-eps_blzpack_! \Verb!blocksize <size>!. Also, the function \ident{EPSBlzpackSetNSteps} can be used to set the maximum number of steps per run (also with \Verb!-eps_blzpack_nsteps!).
 	\end{description}
 
 \subsection*{\underline{\trlan}}

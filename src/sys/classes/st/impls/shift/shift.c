@@ -178,6 +178,9 @@ PetscErrorCode STSetFromOptions_Shift(PetscOptionItems *PetscOptionsObject,ST st
   KSPType        ksptype;
 
   PetscFunctionBegin;
+  ierr = PetscOptionsHead(PetscOptionsObject,"ST Shift Options");CHKERRQ(ierr);
+  ierr = PetscOptionsTail();CHKERRQ(ierr);
+
   if (!st->ksp) { ierr = STGetKSP(st,&st->ksp);CHKERRQ(ierr); }
   ierr = KSPGetPC(st->ksp,&pc);CHKERRQ(ierr);
   ierr = KSPGetType(st->ksp,&ksptype);CHKERRQ(ierr);

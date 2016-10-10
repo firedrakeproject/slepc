@@ -220,11 +220,14 @@ PetscErrorCode NEPSetFromOptions_Interpol(PetscOptionItems *PetscOptionsObject,N
   NEP_INTERPOL   *ctx = (NEP_INTERPOL*)nep->data;
 
   PetscFunctionBegin;
+  ierr = PetscOptionsHead(PetscOptionsObject,"NEP Interpol Options");CHKERRQ(ierr);
+
+    ierr = PetscOptionsInt("-nep_interpol_degree","Degree of interpolation polynomial","NEPInterpolSetDegree",ctx->deg,&ctx->deg,NULL);CHKERRQ(ierr);
+
+  ierr = PetscOptionsTail();CHKERRQ(ierr);
+
   if (!ctx->pep) { ierr = NEPInterpolGetPEP(nep,&ctx->pep);CHKERRQ(ierr); }
   ierr = PEPSetFromOptions(ctx->pep);CHKERRQ(ierr);
-  ierr = PetscOptionsHead(PetscOptionsObject,"NEP Interpol Options");CHKERRQ(ierr);
-  ierr = PetscOptionsInt("-nep_interpol_degree","Degree of interpolation polynomial","NEPInterpolSetDegree",ctx->deg,&ctx->deg,NULL);CHKERRQ(ierr);
-  ierr = PetscOptionsTail();CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

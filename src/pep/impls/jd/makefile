@@ -25,9 +25,9 @@ ALL: lib
 
 CFLAGS   =
 FFLAGS   =
-SOURCEC  = pjd.c pjdopt.c
+SOURCEC  = pjd.c
 SOURCEF  =
-SOURCEH  = pjdp.h
+SOURCEH  =
 LIBBASE  = libslepcpep
 DIRS     =
 MANSEC   = PEP

@@ -1043,24 +1043,24 @@ PetscErrorCode NEPSetFromOptions_CISS(PetscOptionItems *PetscOptionsObject,NEP n
   PetscFunctionBegin;
   ierr = PetscOptionsHead(PetscOptionsObject,"NEP CISS Options");CHKERRQ(ierr);
 
-  ierr = NEPCISSGetSizes(nep,&i1,&i2,&i3,&i4,&i5,&b1);CHKERRQ(ierr);
-  ierr = PetscOptionsInt("-nep_ciss_integration_points","CISS number of integration points","NEPCISSSetSizes",i1,&i1,NULL);CHKERRQ(ierr);
-  ierr = PetscOptionsInt("-nep_ciss_blocksize","CISS block size","NEPCISSSetSizes",i2,&i2,NULL);CHKERRQ(ierr);
-  ierr = PetscOptionsInt("-nep_ciss_moments","CISS moment size","NEPCISSSetSizes",i3,&i3,NULL);CHKERRQ(ierr);
-  ierr = PetscOptionsInt("-nep_ciss_partitions","CISS number of partitions","NEPCISSSetSizes",i4,&i4,NULL);CHKERRQ(ierr);
-  ierr = PetscOptionsInt("-nep_ciss_maxblocksize","CISS maximum block size","NEPCISSSetSizes",i5,&i5,NULL);CHKERRQ(ierr);
-  ierr = PetscOptionsBool("-nep_ciss_realmats","CISS flag indicating that T(z) is real for real z","NEPCISSSetSizes",b1,&b1,NULL);CHKERRQ(ierr);
-  ierr = NEPCISSSetSizes(nep,i1,i2,i3,i4,i5,b1);CHKERRQ(ierr);
+    ierr = NEPCISSGetSizes(nep,&i1,&i2,&i3,&i4,&i5,&b1);CHKERRQ(ierr);
+    ierr = PetscOptionsInt("-nep_ciss_integration_points","Number of integration points","NEPCISSSetSizes",i1,&i1,NULL);CHKERRQ(ierr);
+    ierr = PetscOptionsInt("-nep_ciss_blocksize","Block size","NEPCISSSetSizes",i2,&i2,NULL);CHKERRQ(ierr);
+    ierr = PetscOptionsInt("-nep_ciss_moments","Moment size","NEPCISSSetSizes",i3,&i3,NULL);CHKERRQ(ierr);
+    ierr = PetscOptionsInt("-nep_ciss_partitions","Number of partitions","NEPCISSSetSizes",i4,&i4,NULL);CHKERRQ(ierr);
+    ierr = PetscOptionsInt("-nep_ciss_maxblocksize","Maximum block size","NEPCISSSetSizes",i5,&i5,NULL);CHKERRQ(ierr);
+    ierr = PetscOptionsBool("-nep_ciss_realmats","True if T(z) is real for real z","NEPCISSSetSizes",b1,&b1,NULL);CHKERRQ(ierr);
+    ierr = NEPCISSSetSizes(nep,i1,i2,i3,i4,i5,b1);CHKERRQ(ierr);
 
-  ierr = NEPCISSGetThreshold(nep,&r1,&r2);CHKERRQ(ierr);
-  ierr = PetscOptionsReal("-nep_ciss_delta","CISS threshold for numerical rank","NEPCISSSetThreshold",r1,&r1,NULL);CHKERRQ(ierr);
-  ierr = PetscOptionsReal("-nep_ciss_spurious_threshold","CISS threshold for the spurious eigenpairs","NEPCISSSetThreshold",r2,&r2,NULL);CHKERRQ(ierr);
-  ierr = NEPCISSSetThreshold(nep,r1,r2);CHKERRQ(ierr);
+    ierr = NEPCISSGetThreshold(nep,&r1,&r2);CHKERRQ(ierr);
+    ierr = PetscOptionsReal("-nep_ciss_delta","Threshold for numerical rank","NEPCISSSetThreshold",r1,&r1,NULL);CHKERRQ(ierr);
+    ierr = PetscOptionsReal("-nep_ciss_spurious_threshold","Threshold for the spurious eigenpairs","NEPCISSSetThreshold",r2,&r2,NULL);CHKERRQ(ierr);
+    ierr = NEPCISSSetThreshold(nep,r1,r2);CHKERRQ(ierr);
 
-  ierr = NEPCISSGetRefinement(nep,&i6,&i7);CHKERRQ(ierr);
-  ierr = PetscOptionsInt("-nep_ciss_refine_inner","CISS number of inner iterative refinement iterations","NEPCISSSetRefinement",i6,&i6,NULL);CHKERRQ(ierr);
-  ierr = PetscOptionsInt("-nep_ciss_refine_blocksize","CISS number of blocksize iterative refinement iterations","NEPCISSSetRefinement",i7,&i7,NULL);CHKERRQ(ierr);
-  ierr = NEPCISSSetRefinement(nep,i6,i7);CHKERRQ(ierr);
+    ierr = NEPCISSGetRefinement(nep,&i6,&i7);CHKERRQ(ierr);
+    ierr = PetscOptionsInt("-nep_ciss_refine_inner","Number of inner iterative refinement iterations","NEPCISSSetRefinement",i6,&i6,NULL);CHKERRQ(ierr);
+    ierr = PetscOptionsInt("-nep_ciss_refine_blocksize","Number of blocksize iterative refinement iterations","NEPCISSSetRefinement",i7,&i7,NULL);CHKERRQ(ierr);
+    ierr = NEPCISSSetRefinement(nep,i6,i7);CHKERRQ(ierr);
 
   ierr = PetscOptionsTail();CHKERRQ(ierr);
   PetscFunctionReturn(0);

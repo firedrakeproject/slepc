@@ -41,8 +41,42 @@
 */
 
 #include <slepc/private/pepimpl.h>    /*I "slepcpep.h" I*/
-#include "pjdp.h"
 #include <slepcblaslapack.h>
+
+typedef struct {
+  PetscReal   keep;          /* restart parameter */
+  BV          V;             /* work basis vectors to store the search space */
+  BV          W;             /* work basis vectors to store the test space */
+  BV          *TV;           /* work basis vectors to store T*V (each TV[i] is the coefficient for \lambda^i of T*V for the extended T) */
+  BV          *AX;           /* work basis vectors to store A_i*X for locked eigenvectors */
+  BV          X;             /* locked eigenvectors */
+  PetscScalar *T;            /* matrix of the invariant pair */
+  PetscScalar *Tj;           /* matrix containing the powers of the invariant pair matrix */
+  PetscScalar *XpX;          /* X^H*X */
+  PC          pcshell;       /* preconditioner including basic precond+projector */
+  Mat         Pshell;        /* auxiliary shell matrix */
+  PetscInt    nconv;         /* number of locked vectors in the invariant pair */
+} PEP_JD;
+
+typedef struct {
+  PC          pc;            /* basic preconditioner */
+  Vec         Bp;            /* preconditioned residual of derivative polynomial, B\p */
+  Vec         u;             /* Ritz vector */
+  PetscScalar gamma;         /* precomputed scalar u'*B\p */
+  PetscScalar *M;
+  PetscScalar *ps;
+  PetscInt    ld;
+  Vec         *work;
+  BV          X;
+  PetscInt    n;
+} PEP_JD_PCSHELL;
+
+typedef struct {
+  Mat         P;             /*  */
+  PEP         pep;
+  Vec         *work;
+  PetscScalar theta;
+} PEP_JD_MATSHELL;
 
 #undef __FUNCT__
 #define __FUNCT__ "PEPJDDuplicateBasis"
@@ -1040,6 +1074,142 @@ PetscErrorCode PEPSolve_JD(PEP pep)
 }
 
 #undef __FUNCT__
+#define __FUNCT__ "PEPJDSetRestart_JD"
+PetscErrorCode PEPJDSetRestart_JD(PEP pep,PetscReal keep)
+{
+  PEP_JD *pjd = (PEP_JD*)pep->data;
+
+  PetscFunctionBegin;
+  if (keep==PETSC_DEFAULT) pjd->keep = 0.5;
+  else {
+    if (keep<0.1 || keep>0.9) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"The keep argument must be in the range [0.1,0.9]");
+    pjd->keep = keep;
+  }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "PEPJDSetRestart"
+/*@
+   PEPJDSetRestart - Sets the restart parameter for the Jacobi-Davidson
+   method, in particular the proportion of basis vectors that must be kept
+   after restart.
+
+   Logically Collective on PEP
+
+   Input Parameters:
++  pep  - the eigenproblem solver context
+-  keep - the number of vectors to be kept at restart
+
+   Options Database Key:
+.  -pep_jd_restart - Sets the restart parameter
+
+   Notes:
+   Allowed values are in the range [0.1,0.9]. The default is 0.5.
+
+   Level: advanced
+
+.seealso: PEPJDGetRestart()
+@*/
+PetscErrorCode PEPJDSetRestart(PEP pep,PetscReal keep)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
+  PetscValidLogicalCollectiveReal(pep,keep,2);
+  ierr = PetscTryMethod(pep,"PEPJDSetRestart_C",(PEP,PetscReal),(pep,keep));CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "PEPJDGetRestart_JD"
+PetscErrorCode PEPJDGetRestart_JD(PEP pep,PetscReal *keep)
+{
+  PEP_JD *pjd = (PEP_JD*)pep->data;
+
+  PetscFunctionBegin;
+  *keep = pjd->keep;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "PEPJDGetRestart"
+/*@
+   PEPJDGetRestart - Gets the restart parameter used in the Jacobi-Davidson method.
+
+   Not Collective
+
+   Input Parameter:
+.  pep - the eigenproblem solver context
+
+   Output Parameter:
+.  keep - the restart parameter
+
+   Level: advanced
+
+.seealso: PEPJDSetRestart()
+@*/
+PetscErrorCode PEPJDGetRestart(PEP pep,PetscReal *keep)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
+  PetscValidPointer(keep,2);
+  ierr = PetscUseMethod(pep,"PEPJDGetRestart_C",(PEP,PetscReal*),(pep,keep));CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "PEPSetFromOptions_JD"
+PetscErrorCode PEPSetFromOptions_JD(PetscOptionItems *PetscOptionsObject,PEP pep)
+{
+  PetscErrorCode ierr;
+  PetscBool      flg;
+  PetscReal      r1;
+  KSP            ksp;
+
+  PetscFunctionBegin;
+  ierr = PetscOptionsHead(PetscOptionsObject,"PEP JD Options");CHKERRQ(ierr);
+
+    ierr = PetscOptionsReal("-pep_jd_restart","Proportion of vectors kept after restart","PEPJDSetRestart",0.5,&r1,&flg);CHKERRQ(ierr);
+    if (flg) { ierr = PEPJDSetRestart(pep,r1);CHKERRQ(ierr); }
+
+  ierr = PetscOptionsTail();CHKERRQ(ierr);
+
+  /* Set STPRECOND as the default ST */
+  if (!pep->st) { ierr = PEPGetST(pep,&pep->st);CHKERRQ(ierr); }
+  if (!((PetscObject)pep->st)->type_name) {
+    ierr = STSetType(pep->st,STPRECOND);CHKERRQ(ierr);
+  }
+
+  /* Set the default options of the KSP */
+  ierr = STGetKSP(pep->st,&ksp);CHKERRQ(ierr);
+  if (!((PetscObject)ksp)->type_name) {
+    ierr = KSPSetType(ksp,KSPBCGSL);CHKERRQ(ierr);
+    ierr = KSPSetTolerances(ksp,1e-5,PETSC_DEFAULT,PETSC_DEFAULT,100);CHKERRQ(ierr);
+  }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "PEPView_JD"
+PetscErrorCode PEPView_JD(PEP pep,PetscViewer viewer)
+{
+  PetscErrorCode ierr;
+  PEP_JD         *pjd = (PEP_JD*)pep->data;
+  PetscBool      isascii;
+
+  PetscFunctionBegin;
+  ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
+  if (isascii) {
+    ierr = PetscViewerASCIIPrintf(viewer,"  JD: %d%% of basis vectors kept after restart\n",(int)(100*pjd->keep));CHKERRQ(ierr);
+  }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
 #define __FUNCT__ "PEPReset_JD"
 PetscErrorCode PEPReset_JD(PEP pep)
 {
@@ -1099,3 +1269,4 @@ PETSC_EXTERN PetscErrorCode PEPCreate_JD(PEP pep)
   ierr = PetscObjectComposeFunction((PetscObject)pep,"PEPJDGetRestart_C",PEPJDGetRestart_JD);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
+

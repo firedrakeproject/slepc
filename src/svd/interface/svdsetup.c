@@ -48,7 +48,6 @@ PetscErrorCode SVDSetOperator(SVD svd,Mat mat)
   PetscCheckSameComm(svd,1,mat,2);
   if (svd->state) { ierr = SVDReset(svd);CHKERRQ(ierr); }
   ierr = PetscObjectReference((PetscObject)mat);CHKERRQ(ierr);
-  ierr = MatDestroy(&svd->OP);CHKERRQ(ierr);
   svd->OP = mat;
   PetscFunctionReturn(0);
 }
@@ -120,7 +119,6 @@ PetscErrorCode SVDSetUp(SVD svd)
     ierr = SVDSetType(svd,SVDCROSS);CHKERRQ(ierr);
   }
   if (!svd->ds) { ierr = SVDGetDS(svd,&svd->ds);CHKERRQ(ierr); }
-  ierr = DSReset(svd->ds);CHKERRQ(ierr);
 
   /* check matrix */
   if (!svd->OP) SETERRQ(PetscObjectComm((PetscObject)svd),PETSC_ERR_ARG_WRONGSTATE,"SVDSetOperator must be called first");

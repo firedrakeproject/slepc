@@ -280,10 +280,10 @@ PetscErrorCode EPSSetFromOptions_Power(PetscOptionItems *PetscOptionsObject,EPS 
 
   PetscFunctionBegin;
   ierr = PetscOptionsHead(PetscOptionsObject,"EPS Power Options");CHKERRQ(ierr);
-  ierr = PetscOptionsEnum("-eps_power_shift_type","Shift type","EPSPowerSetShiftType",EPSPowerShiftTypes,(PetscEnum)power->shift_type,(PetscEnum*)&shift,&flg);CHKERRQ(ierr);
-  if (flg) {
-    ierr = EPSPowerSetShiftType(eps,shift);CHKERRQ(ierr);
-  }
+
+    ierr = PetscOptionsEnum("-eps_power_shift_type","Shift type","EPSPowerSetShiftType",EPSPowerShiftTypes,(PetscEnum)power->shift_type,(PetscEnum*)&shift,&flg);CHKERRQ(ierr);
+    if (flg) { ierr = EPSPowerSetShiftType(eps,shift);CHKERRQ(ierr); }
+
   ierr = PetscOptionsTail();CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

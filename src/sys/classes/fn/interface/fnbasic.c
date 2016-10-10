@@ -783,11 +783,7 @@ PetscErrorCode FNSetFromOptions(FN fn)
     ierr = PetscOptionsFList("-fn_type","Math function type","FNSetType",FNList,(char*)(((PetscObject)fn)->type_name?((PetscObject)fn)->type_name:FNRATIONAL),type,256,&flg);CHKERRQ(ierr);
     if (flg) {
       ierr = FNSetType(fn,type);CHKERRQ(ierr);
-    }
-    /*
-      Set the type if it was never set.
-    */
-    if (!((PetscObject)fn)->type_name) {
+    } else if (!((PetscObject)fn)->type_name) {
       ierr = FNSetType(fn,FNRATIONAL);CHKERRQ(ierr);
     }
 

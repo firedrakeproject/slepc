@@ -1727,27 +1727,25 @@ PetscErrorCode NEPSetFromOptions_NLEIGS(PetscOptionItems *PetscOptionsObject,NEP
 
   PetscFunctionBegin;
   ierr = PetscOptionsHead(PetscOptionsObject,"NEP NLEIGS Options");CHKERRQ(ierr);
-  ierr = PetscOptionsReal("-nep_nleigs_restart","Proportion of vectors kept after restart","NEPNLEIGSSetRestart",0.5,&r,&flg1);CHKERRQ(ierr);
-  if (flg1) {
-    ierr = NEPNLEIGSSetRestart(nep,r);CHKERRQ(ierr);
-  }
-  ierr = PetscOptionsBool("-nep_nleigs_locking","Choose between locking and non-locking variants","NEPNLEIGSSetLocking",PETSC_FALSE,&b,&flg1);CHKERRQ(ierr);
-  if (flg1) {
-    ierr = NEPNLEIGSSetLocking(nep,b);CHKERRQ(ierr);
-  }
-  ierr = NEPNLEIGSGetInterpolation(nep,&r,&i);CHKERRQ(ierr);
-  if (!i) i = PETSC_DEFAULT;
-  ierr = PetscOptionsInt("-nep_nleigs_interpolation_max_it","Maximum number of terms for interpolation via divided differences","NEPNLEIGSSetInterpolation",i,&i,&flg1);CHKERRQ(ierr);
-  ierr = PetscOptionsReal("-nep_nleigs_interpolation_tol","Tolerance for interpolation via divided differences","NEPNLEIGSSetInterpolation",r,&r,&flg2);CHKERRQ(ierr);
-  if (flg1 || flg2) {
-    ierr = NEPNLEIGSSetInterpolation(nep,r,i);CHKERRQ(ierr);
-  }
-  k = SHIFTMAX;
-  for (i=0;i<k;i++) array[i] = 0;
-  ierr = PetscOptionsScalarArray("-nep_nleigs_rk_shifts","Shifts for Rational Krylov","NEPNLEIGSSetRKShifts",array,&k,&flg1);CHKERRQ(ierr);
-  if (flg1) {
-    ierr = NEPNLEIGSSetRKShifts(nep,k,array);CHKERRQ(ierr);
-  }
+
+    ierr = PetscOptionsReal("-nep_nleigs_restart","Proportion of vectors kept after restart","NEPNLEIGSSetRestart",0.5,&r,&flg1);CHKERRQ(ierr);
+    if (flg1) { ierr = NEPNLEIGSSetRestart(nep,r);CHKERRQ(ierr); }
+
+    ierr = PetscOptionsBool("-nep_nleigs_locking","Choose between locking and non-locking variants","NEPNLEIGSSetLocking",PETSC_FALSE,&b,&flg1);CHKERRQ(ierr);
+    if (flg1) { ierr = NEPNLEIGSSetLocking(nep,b);CHKERRQ(ierr); }
+
+    ierr = NEPNLEIGSGetInterpolation(nep,&r,&i);CHKERRQ(ierr);
+    if (!i) i = PETSC_DEFAULT;
+    ierr = PetscOptionsInt("-nep_nleigs_interpolation_max_it","Maximum number of terms for interpolation via divided differences","NEPNLEIGSSetInterpolation",i,&i,&flg1);CHKERRQ(ierr);
+    ierr = PetscOptionsReal("-nep_nleigs_interpolation_tol","Tolerance for interpolation via divided differences","NEPNLEIGSSetInterpolation",r,&r,&flg2);CHKERRQ(ierr);
+    if (flg1 || flg2) { ierr = NEPNLEIGSSetInterpolation(nep,r,i);CHKERRQ(ierr); }
+
+    k = SHIFTMAX;
+    for (i=0;i<k;i++) array[i] = 0;
+    ierr = PetscOptionsScalarArray("-nep_nleigs_rk_shifts","Shifts for Rational Krylov","NEPNLEIGSSetRKShifts",array,&k,&flg1);CHKERRQ(ierr);
+    if (flg1) { ierr = NEPNLEIGSSetRKShifts(nep,k,array);CHKERRQ(ierr); }
+
+  ierr = PetscOptionsTail();CHKERRQ(ierr);
 
   if (!ctx->ksp) { ierr = NEPNLEIGSGetKSPs(nep,&ctx->ksp);CHKERRQ(ierr); }
   for (i=0;i<ctx->nshiftsw;i++) {
@@ -1761,7 +1759,6 @@ PetscErrorCode NEPSetFromOptions_NLEIGS(PetscOptionItems *PetscOptionsObject,NEP
     ierr = KSPSetOperators(ctx->ksp[i],nep->function,nep->function_pre);CHKERRQ(ierr);
     ierr = KSPSetFromOptions(ctx->ksp[i]);CHKERRQ(ierr);
   }
-  ierr = PetscOptionsTail();CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

@@ -69,7 +69,6 @@ PetscErrorCode NEPSetUp(NEP nep)
     ierr = NEPSetType(nep,NEPRII);CHKERRQ(ierr);
   }
   if (!nep->ds) { ierr = NEPGetDS(nep,&nep->ds);CHKERRQ(ierr); }
-  ierr = DSReset(nep->ds);CHKERRQ(ierr);
   if (!nep->rg) { ierr = NEPGetRG(nep,&nep->rg);CHKERRQ(ierr); }
   if (!((PetscObject)nep->rg)->type_name) {
     ierr = RGSetType(nep->rg,RGINTERVAL);CHKERRQ(ierr);

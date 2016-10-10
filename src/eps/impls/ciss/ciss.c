@@ -1818,34 +1818,35 @@ PetscErrorCode EPSSetFromOptions_CISS(PetscOptionItems *PetscOptionsObject,EPS e
 
   PetscFunctionBegin;
   ierr = PetscOptionsHead(PetscOptionsObject,"EPS CISS Options");CHKERRQ(ierr);
-  ierr = EPSCISSGetSizes(eps,&i1,&i2,&i3,&i4,&i5,&b1);CHKERRQ(ierr);
-  ierr = PetscOptionsInt("-eps_ciss_integration_points","CISS number of integration points","EPSCISSSetSizes",i1,&i1,NULL);CHKERRQ(ierr);
-  ierr = PetscOptionsInt("-eps_ciss_blocksize","CISS block size","EPSCISSSetSizes",i2,&i2,NULL);CHKERRQ(ierr);
-  ierr = PetscOptionsInt("-eps_ciss_moments","CISS moment size","EPSCISSSetSizes",i3,&i3,NULL);CHKERRQ(ierr);
-  ierr = PetscOptionsInt("-eps_ciss_partitions","CISS number of partitions","EPSCISSSetSizes",i4,&i4,NULL);CHKERRQ(ierr);
-  ierr = PetscOptionsInt("-eps_ciss_maxblocksize","CISS maximum block size","EPSCISSSetSizes",i5,&i5,NULL);CHKERRQ(ierr);
-  ierr = PetscOptionsBool("-eps_ciss_realmats","CISS A and B are real","EPSCISSSetSizes",b1,&b1,NULL);CHKERRQ(ierr);
-  ierr = EPSCISSSetSizes(eps,i1,i2,i3,i4,i5,b1);CHKERRQ(ierr);
 
-  ierr = EPSCISSGetThreshold(eps,&r3,&r4);CHKERRQ(ierr);
-  ierr = PetscOptionsReal("-eps_ciss_delta","CISS threshold for numerical rank","EPSCISSSetThreshold",r3,&r3,NULL);CHKERRQ(ierr);
-  ierr = PetscOptionsReal("-eps_ciss_spurious_threshold","CISS threshold for the spurious eigenpairs","EPSCISSSetThreshold",r4,&r4,NULL);CHKERRQ(ierr);
-  ierr = EPSCISSSetThreshold(eps,r3,r4);CHKERRQ(ierr);
+    ierr = EPSCISSGetSizes(eps,&i1,&i2,&i3,&i4,&i5,&b1);CHKERRQ(ierr);
+    ierr = PetscOptionsInt("-eps_ciss_integration_points","Number of integration points","EPSCISSSetSizes",i1,&i1,NULL);CHKERRQ(ierr);
+    ierr = PetscOptionsInt("-eps_ciss_blocksize","Block size","EPSCISSSetSizes",i2,&i2,NULL);CHKERRQ(ierr);
+    ierr = PetscOptionsInt("-eps_ciss_moments","Moment size","EPSCISSSetSizes",i3,&i3,NULL);CHKERRQ(ierr);
+    ierr = PetscOptionsInt("-eps_ciss_partitions","Number of partitions","EPSCISSSetSizes",i4,&i4,NULL);CHKERRQ(ierr);
+    ierr = PetscOptionsInt("-eps_ciss_maxblocksize","Maximum block size","EPSCISSSetSizes",i5,&i5,NULL);CHKERRQ(ierr);
+    ierr = PetscOptionsBool("-eps_ciss_realmats","True if A and B are real","EPSCISSSetSizes",b1,&b1,NULL);CHKERRQ(ierr);
+    ierr = EPSCISSSetSizes(eps,i1,i2,i3,i4,i5,b1);CHKERRQ(ierr);
 
-  ierr = EPSCISSGetRefinement(eps,&i6,&i7);CHKERRQ(ierr);
-  ierr = PetscOptionsInt("-eps_ciss_refine_inner","CISS number of inner iterative refinement iterations","EPSCISSSetRefinement",i6,&i6,NULL);CHKERRQ(ierr);
-  ierr = PetscOptionsInt("-eps_ciss_refine_blocksize","CISS number of blocksize iterative refinement iterations","EPSCISSSetRefinement",i7,&i7,NULL);CHKERRQ(ierr);
-  ierr = EPSCISSSetRefinement(eps,i6,i7);CHKERRQ(ierr);
+    ierr = EPSCISSGetThreshold(eps,&r3,&r4);CHKERRQ(ierr);
+    ierr = PetscOptionsReal("-eps_ciss_delta","Threshold for numerical rank","EPSCISSSetThreshold",r3,&r3,NULL);CHKERRQ(ierr);
+    ierr = PetscOptionsReal("-eps_ciss_spurious_threshold","Threshold for the spurious eigenpairs","EPSCISSSetThreshold",r4,&r4,NULL);CHKERRQ(ierr);
+    ierr = EPSCISSSetThreshold(eps,r3,r4);CHKERRQ(ierr);
 
-  ierr = EPSCISSGetUseST(eps,&b2);CHKERRQ(ierr);
-  ierr = PetscOptionsBool("-eps_ciss_usest","CISS use ST for linear solves","EPSCISSSetUseST",b2,&b2,&flg);CHKERRQ(ierr);
-  if (flg) { ierr = EPSCISSSetUseST(eps,b2);CHKERRQ(ierr); }
+    ierr = EPSCISSGetRefinement(eps,&i6,&i7);CHKERRQ(ierr);
+    ierr = PetscOptionsInt("-eps_ciss_refine_inner","Number of inner iterative refinement iterations","EPSCISSSetRefinement",i6,&i6,NULL);CHKERRQ(ierr);
+    ierr = PetscOptionsInt("-eps_ciss_refine_blocksize","Number of blocksize iterative refinement iterations","EPSCISSSetRefinement",i7,&i7,NULL);CHKERRQ(ierr);
+    ierr = EPSCISSSetRefinement(eps,i6,i7);CHKERRQ(ierr);
 
-  ierr = PetscOptionsEnum("-eps_ciss_quadrule","Quadrature rule","EPSCISSSetQuadRule",EPSCISSQuadRules,(PetscEnum)ctx->quad,(PetscEnum*)&quad,&flg);CHKERRQ(ierr);
-  if (flg) { ierr = EPSCISSSetQuadRule(eps,quad);CHKERRQ(ierr); }
+    ierr = EPSCISSGetUseST(eps,&b2);CHKERRQ(ierr);
+    ierr = PetscOptionsBool("-eps_ciss_usest","Use ST for linear solves","EPSCISSSetUseST",b2,&b2,&flg);CHKERRQ(ierr);
+    if (flg) { ierr = EPSCISSSetUseST(eps,b2);CHKERRQ(ierr); }
 
-  ierr = PetscOptionsEnum("-eps_ciss_extraction","Extraction technique","EPSCISSSetExtraction",EPSCISSExtractions,(PetscEnum)ctx->extraction,(PetscEnum*)&extraction,&flg);CHKERRQ(ierr);
-  if (flg) { ierr = EPSCISSSetExtraction(eps,extraction);CHKERRQ(ierr); }
+    ierr = PetscOptionsEnum("-eps_ciss_quadrule","Quadrature rule","EPSCISSSetQuadRule",EPSCISSQuadRules,(PetscEnum)ctx->quad,(PetscEnum*)&quad,&flg);CHKERRQ(ierr);
+    if (flg) { ierr = EPSCISSSetQuadRule(eps,quad);CHKERRQ(ierr); }
+
+    ierr = PetscOptionsEnum("-eps_ciss_extraction","Extraction technique","EPSCISSSetExtraction",EPSCISSExtractions,(PetscEnum)ctx->extraction,(PetscEnum*)&extraction,&flg);CHKERRQ(ierr);
+    if (flg) { ierr = EPSCISSSetExtraction(eps,extraction);CHKERRQ(ierr); }
 
   ierr = PetscOptionsTail();CHKERRQ(ierr);
   PetscFunctionReturn(0);

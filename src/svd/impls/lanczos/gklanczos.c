@@ -291,10 +291,10 @@ PetscErrorCode SVDSetFromOptions_Lanczos(PetscOptionItems *PetscOptionsObject,SV
 
   PetscFunctionBegin;
   ierr = PetscOptionsHead(PetscOptionsObject,"SVD Lanczos Options");CHKERRQ(ierr);
-  ierr = PetscOptionsBool("-svd_lanczos_oneside","Lanczos one-side reorthogonalization","SVDLanczosSetOneSide",lanczos->oneside,&val,&set);CHKERRQ(ierr);
-  if (set) {
-    ierr = SVDLanczosSetOneSide(svd,val);CHKERRQ(ierr);
-  }
+
+    ierr = PetscOptionsBool("-svd_lanczos_oneside","Use one-side reorthogonalization","SVDLanczosSetOneSide",lanczos->oneside,&val,&set);CHKERRQ(ierr);
+    if (set) { ierr = SVDLanczosSetOneSide(svd,val);CHKERRQ(ierr); }
+
   ierr = PetscOptionsTail();CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

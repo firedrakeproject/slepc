@@ -122,67 +122,62 @@ PetscErrorCode PEPConvMonitorSetFromOptions(PEP pep,const char name[],const char
 @*/
 PetscErrorCode PEPSetFromOptions(PEP pep)
 {
-  PetscErrorCode ierr;
-  char           type[256];
-  PetscBool      set,flg,flg1,flg2,flg3;
-  PetscReal      r,t;
-  PetscScalar    s;
-  PetscInt       i,j,k;
-  PetscDrawLG    lg;
+  PetscErrorCode  ierr;
+  char            type[256];
+  PetscBool       set,flg,flg1,flg2,flg3,flg4,flg5;
+  PetscReal       r,t;
+  PetscScalar     s;
+  PetscInt        i,j,k;
+  PetscDrawLG     lg;
+  PEPScale        scale;
+  PEPRefine       refine;
+  PEPRefineScheme scheme;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
   ierr = PEPRegisterAll();CHKERRQ(ierr);
   ierr = PetscObjectOptionsBegin((PetscObject)pep);CHKERRQ(ierr);
-    ierr = PetscOptionsFList("-pep_type","Polynomial Eigenvalue Problem method","PEPSetType",PEPList,(char*)(((PetscObject)pep)->type_name?((PetscObject)pep)->type_name:PEPTOAR),type,256,&flg);CHKERRQ(ierr);
+    ierr = PetscOptionsFList("-pep_type","Polynomial eigensolver method","PEPSetType",PEPList,(char*)(((PetscObject)pep)->type_name?((PetscObject)pep)->type_name:PEPTOAR),type,256,&flg);CHKERRQ(ierr);
     if (flg) {
       ierr = PEPSetType(pep,type);CHKERRQ(ierr);
     } else if (!((PetscObject)pep)->type_name) {
       ierr = PEPSetType(pep,PEPTOAR);CHKERRQ(ierr);
     }
 
-    ierr = PetscOptionsBoolGroupBegin("-pep_general","general polynomial eigenvalue problem","PEPSetProblemType",&flg);CHKERRQ(ierr);
+    ierr = PetscOptionsBoolGroupBegin("-pep_general","General polynomial eigenvalue problem","PEPSetProblemType",&flg);CHKERRQ(ierr);
     if (flg) { ierr = PEPSetProblemType(pep,PEP_GENERAL);CHKERRQ(ierr); }
-    ierr = PetscOptionsBoolGroup("-pep_hermitian","hermitian polynomial eigenvalue problem","PEPSetProblemType",&flg);CHKERRQ(ierr);
+    ierr = PetscOptionsBoolGroup("-pep_hermitian","Hermitian polynomial eigenvalue problem","PEPSetProblemType",&flg);CHKERRQ(ierr);
     if (flg) { ierr = PEPSetProblemType(pep,PEP_HERMITIAN);CHKERRQ(ierr); }
-    ierr = PetscOptionsBoolGroupEnd("-pep_gyroscopic","gyroscopic polynomial eigenvalue problem","PEPSetProblemType",&flg);CHKERRQ(ierr);
+    ierr = PetscOptionsBoolGroupEnd("-pep_gyroscopic","Gyroscopic polynomial eigenvalue problem","PEPSetProblemType",&flg);CHKERRQ(ierr);
     if (flg) { ierr = PEPSetProblemType(pep,PEP_GYROSCOPIC);CHKERRQ(ierr); }
 
-    ierr = PetscOptionsEnum("-pep_scale","Scaling strategy","PEPSetScale",PEPScaleTypes,(PetscEnum)pep->scale,(PetscEnum*)&pep->scale,NULL);CHKERRQ(ierr);
-
+    ierr = PetscOptionsEnum("-pep_scale","Scaling strategy","PEPSetScale",PEPScaleTypes,(PetscEnum)pep->scale,(PetscEnum*)&scale,&flg1);CHKERRQ(ierr);
     r = pep->sfactor;
-    ierr = PetscOptionsReal("-pep_scale_factor","Scale factor","PEPSetScale",pep->sfactor,&r,&flg1);CHKERRQ(ierr);
+    ierr = PetscOptionsReal("-pep_scale_factor","Scale factor","PEPSetScale",pep->sfactor,&r,&flg2);CHKERRQ(ierr);
+    if (!flg2 && r==1.0) r = PETSC_DEFAULT;
     j = pep->sits;
-    ierr = PetscOptionsInt("-pep_scale_its","Number of iterations in diagonal scaling","PEPSetScale",pep->sits,&j,&flg2);CHKERRQ(ierr);
+    ierr = PetscOptionsInt("-pep_scale_its","Number of iterations in diagonal scaling","PEPSetScale",pep->sits,&j,&flg3);CHKERRQ(ierr);
     t = pep->slambda;
-    ierr = PetscOptionsReal("-pep_scale_lambda","Estimate of eigenvalue (modulus) for diagonal scaling","PEPSetScale",pep->slambda,&t,&flg3);CHKERRQ(ierr);
-    if (flg1 || flg2 || flg3) {
-      ierr = PEPSetScale(pep,pep->scale,r,NULL,NULL,j,t);CHKERRQ(ierr);
-    }
+    ierr = PetscOptionsReal("-pep_scale_lambda","Estimate of eigenvalue (modulus) for diagonal scaling","PEPSetScale",pep->slambda,&t,&flg4);CHKERRQ(ierr);
+    if (flg1 || flg2 || flg3 || flg4) { ierr = PEPSetScale(pep,scale,r,NULL,NULL,j,t);CHKERRQ(ierr); }
 
     ierr = PetscOptionsEnum("-pep_extract","Extraction method","PEPSetExtract",PEPExtractTypes,(PetscEnum)pep->extract,(PetscEnum*)&pep->extract,NULL);CHKERRQ(ierr);
 
-    ierr = PetscOptionsEnum("-pep_refine","Iterative refinement method","PEPSetRefine",PEPRefineTypes,(PetscEnum)pep->refine,(PetscEnum*)&pep->refine,NULL);CHKERRQ(ierr);
-
+    ierr = PetscOptionsEnum("-pep_refine","Iterative refinement method","PEPSetRefine",PEPRefineTypes,(PetscEnum)pep->refine,(PetscEnum*)&refine,&flg1);CHKERRQ(ierr);
     i = pep->npart;
-    ierr = PetscOptionsInt("-pep_refine_partitions","Number of partitions of the communicator for iterative refinement","PEPSetRefine",pep->npart,&i,&flg1);CHKERRQ(ierr);
+    ierr = PetscOptionsInt("-pep_refine_partitions","Number of partitions of the communicator for iterative refinement","PEPSetRefine",pep->npart,&i,&flg2);CHKERRQ(ierr);
     r = pep->rtol;
-    ierr = PetscOptionsReal("-pep_refine_tol","Tolerance for iterative refinement","PEPSetRefine",pep->rtol==PETSC_DEFAULT?SLEPC_DEFAULT_TOL/1000:pep->rtol,&r,&flg2);CHKERRQ(ierr);
+    ierr = PetscOptionsReal("-pep_refine_tol","Tolerance for iterative refinement","PEPSetRefine",pep->rtol==PETSC_DEFAULT?SLEPC_DEFAULT_TOL/1000:pep->rtol,&r,&flg3);CHKERRQ(ierr);
     j = pep->rits;
-    ierr = PetscOptionsInt("-pep_refine_its","Maximum number of iterations for iterative refinement","PEPSetRefine",pep->rits,&j,&flg3);CHKERRQ(ierr);
-    if (flg1 || flg2 || flg3) {
-      ierr = PEPSetRefine(pep,pep->refine,i,r,j,pep->scheme);CHKERRQ(ierr);
-    }
-
-    ierr = PetscOptionsEnum("-pep_refine_scheme","Scheme used for linear systems within iterative refinement","PEPSetRefine",PEPRefineSchemes,(PetscEnum)pep->scheme,(PetscEnum*)&pep->scheme,NULL);CHKERRQ(ierr);
+    ierr = PetscOptionsInt("-pep_refine_its","Maximum number of iterations for iterative refinement","PEPSetRefine",pep->rits,&j,&flg4);CHKERRQ(ierr);
+    ierr = PetscOptionsEnum("-pep_refine_scheme","Scheme used for linear systems within iterative refinement","PEPSetRefine",PEPRefineSchemes,(PetscEnum)pep->scheme,(PetscEnum*)&scheme,&flg5);CHKERRQ(ierr);
+    if (flg1 || flg2 || flg3 || flg4 || flg5) { ierr = PEPSetRefine(pep,refine,i,r,j,scheme);CHKERRQ(ierr); }
 
     i = pep->max_it? pep->max_it: PETSC_DEFAULT;
     ierr = PetscOptionsInt("-pep_max_it","Maximum number of iterations","PEPSetTolerances",pep->max_it,&i,&flg1);CHKERRQ(ierr);
     r = pep->tol;
     ierr = PetscOptionsReal("-pep_tol","Tolerance","PEPSetTolerances",pep->tol==PETSC_DEFAULT?SLEPC_DEFAULT_TOL:pep->tol,&r,&flg2);CHKERRQ(ierr);
-    if (flg1 || flg2) {
-      ierr = PEPSetTolerances(pep,r,i);CHKERRQ(ierr);
-    }
+    if (flg1 || flg2) { ierr = PEPSetTolerances(pep,r,i);CHKERRQ(ierr); }
 
     ierr = PetscOptionsBoolGroupBegin("-pep_conv_rel","Relative error convergence test","PEPSetConvergenceTest",&flg);CHKERRQ(ierr);
     if (flg) { ierr = PEPSetConvergenceTest(pep,PEP_CONV_REL);CHKERRQ(ierr); }
@@ -204,9 +199,7 @@ PetscErrorCode PEPSetFromOptions(PEP pep)
     ierr = PetscOptionsInt("-pep_ncv","Number of basis vectors","PEPSetDimensions",pep->ncv,&j,&flg2);CHKERRQ(ierr);
     k = pep->mpd? pep->mpd: PETSC_DEFAULT;
     ierr = PetscOptionsInt("-pep_mpd","Maximum dimension of projected problem","PEPSetDimensions",pep->mpd,&k,&flg3);CHKERRQ(ierr);
-    if (flg1 || flg2 || flg3) {
-      ierr = PEPSetDimensions(pep,i,j,k);CHKERRQ(ierr);
-    }
+    if (flg1 || flg2 || flg3) { ierr = PEPSetDimensions(pep,i,j,k);CHKERRQ(ierr); }
 
     ierr = PetscOptionsScalar("-pep_target","Value of the target","PEPSetTarget",pep->target,&s,&flg);CHKERRQ(ierr);
     if (flg) {
@@ -215,6 +208,25 @@ PetscErrorCode PEPSetFromOptions(PEP pep)
     }
 
     ierr = PetscOptionsEnum("-pep_basis","Polynomial basis","PEPSetBasis",PEPBasisTypes,(PetscEnum)pep->basis,(PetscEnum*)&pep->basis,NULL);CHKERRQ(ierr);
+
+    ierr = PetscOptionsBoolGroupBegin("-pep_largest_magnitude","Compute largest eigenvalues in magnitude","PEPSetWhichEigenpairs",&flg);CHKERRQ(ierr);
+    if (flg) { ierr = PEPSetWhichEigenpairs(pep,PEP_LARGEST_MAGNITUDE);CHKERRQ(ierr); }
+    ierr = PetscOptionsBoolGroup("-pep_smallest_magnitude","Compute smallest eigenvalues in magnitude","PEPSetWhichEigenpairs",&flg);CHKERRQ(ierr);
+    if (flg) { ierr = PEPSetWhichEigenpairs(pep,PEP_SMALLEST_MAGNITUDE);CHKERRQ(ierr); }
+    ierr = PetscOptionsBoolGroup("-pep_largest_real","Compute eigenvalues with largest real parts","PEPSetWhichEigenpairs",&flg);CHKERRQ(ierr);
+    if (flg) { ierr = PEPSetWhichEigenpairs(pep,PEP_LARGEST_REAL);CHKERRQ(ierr); }
+    ierr = PetscOptionsBoolGroup("-pep_smallest_real","Compute eigenvalues with smallest real parts","PEPSetWhichEigenpairs",&flg);CHKERRQ(ierr);
+    if (flg) { ierr = PEPSetWhichEigenpairs(pep,PEP_SMALLEST_REAL);CHKERRQ(ierr); }
+    ierr = PetscOptionsBoolGroup("-pep_largest_imaginary","Compute eigenvalues with largest imaginary parts","PEPSetWhichEigenpairs",&flg);CHKERRQ(ierr);
+    if (flg) { ierr = PEPSetWhichEigenpairs(pep,PEP_LARGEST_IMAGINARY);CHKERRQ(ierr); }
+    ierr = PetscOptionsBoolGroup("-pep_smallest_imaginary","Compute eigenvalues with smallest imaginary parts","PEPSetWhichEigenpairs",&flg);CHKERRQ(ierr);
+    if (flg) { ierr = PEPSetWhichEigenpairs(pep,PEP_SMALLEST_IMAGINARY);CHKERRQ(ierr); }
+    ierr = PetscOptionsBoolGroup("-pep_target_magnitude","Compute eigenvalues closest to target","PEPSetWhichEigenpairs",&flg);CHKERRQ(ierr);
+    if (flg) { ierr = PEPSetWhichEigenpairs(pep,PEP_TARGET_MAGNITUDE);CHKERRQ(ierr); }
+    ierr = PetscOptionsBoolGroup("-pep_target_real","Compute eigenvalues with real parts closest to target","PEPSetWhichEigenpairs",&flg);CHKERRQ(ierr);
+    if (flg) { ierr = PEPSetWhichEigenpairs(pep,PEP_TARGET_REAL);CHKERRQ(ierr); }
+    ierr = PetscOptionsBoolGroupEnd("-pep_target_imaginary","Compute eigenvalues with imaginary parts closest to target","PEPSetWhichEigenpairs",&flg);CHKERRQ(ierr);
+    if (flg) { ierr = PEPSetWhichEigenpairs(pep,PEP_TARGET_IMAGINARY);CHKERRQ(ierr); }
 
     /* -----------------------------------------------------------------------*/
     /*
@@ -244,27 +256,8 @@ PetscErrorCode PEPSetFromOptions(PEP pep)
       ierr = PEPMonitorSet(pep,PEPMonitorLGAll,lg,(PetscErrorCode (*)(void**))PetscDrawLGDestroy);CHKERRQ(ierr);
       ierr = PEPSetTrackAll(pep,PETSC_TRUE);CHKERRQ(ierr);
     }
-  /* -----------------------------------------------------------------------*/
 
-    ierr = PetscOptionsBoolGroupBegin("-pep_largest_magnitude","compute largest eigenvalues in magnitude","PEPSetWhichEigenpairs",&flg);CHKERRQ(ierr);
-    if (flg) { ierr = PEPSetWhichEigenpairs(pep,PEP_LARGEST_MAGNITUDE);CHKERRQ(ierr); }
-    ierr = PetscOptionsBoolGroup("-pep_smallest_magnitude","compute smallest eigenvalues in magnitude","PEPSetWhichEigenpairs",&flg);CHKERRQ(ierr);
-    if (flg) { ierr = PEPSetWhichEigenpairs(pep,PEP_SMALLEST_MAGNITUDE);CHKERRQ(ierr); }
-    ierr = PetscOptionsBoolGroup("-pep_largest_real","compute largest real parts","PEPSetWhichEigenpairs",&flg);CHKERRQ(ierr);
-    if (flg) { ierr = PEPSetWhichEigenpairs(pep,PEP_LARGEST_REAL);CHKERRQ(ierr); }
-    ierr = PetscOptionsBoolGroup("-pep_smallest_real","compute smallest real parts","PEPSetWhichEigenpairs",&flg);CHKERRQ(ierr);
-    if (flg) { ierr = PEPSetWhichEigenpairs(pep,PEP_SMALLEST_REAL);CHKERRQ(ierr); }
-    ierr = PetscOptionsBoolGroup("-pep_largest_imaginary","compute largest imaginary parts","PEPSetWhichEigenpairs",&flg);CHKERRQ(ierr);
-    if (flg) { ierr = PEPSetWhichEigenpairs(pep,PEP_LARGEST_IMAGINARY);CHKERRQ(ierr); }
-    ierr = PetscOptionsBoolGroup("-pep_smallest_imaginary","compute smallest imaginary parts","PEPSetWhichEigenpairs",&flg);CHKERRQ(ierr);
-    if (flg) { ierr = PEPSetWhichEigenpairs(pep,PEP_SMALLEST_IMAGINARY);CHKERRQ(ierr); }
-    ierr = PetscOptionsBoolGroup("-pep_target_magnitude","compute nearest eigenvalues to target","PEPSetWhichEigenpairs",&flg);CHKERRQ(ierr);
-    if (flg) { ierr = PEPSetWhichEigenpairs(pep,PEP_TARGET_MAGNITUDE);CHKERRQ(ierr); }
-    ierr = PetscOptionsBoolGroup("-pep_target_real","compute eigenvalues with real parts close to target","PEPSetWhichEigenpairs",&flg);CHKERRQ(ierr);
-    if (flg) { ierr = PEPSetWhichEigenpairs(pep,PEP_TARGET_REAL);CHKERRQ(ierr); }
-    ierr = PetscOptionsBoolGroupEnd("-pep_target_imaginary","compute eigenvalues with imaginary parts close to target","PEPSetWhichEigenpairs",&flg);CHKERRQ(ierr);
-    if (flg) { ierr = PEPSetWhichEigenpairs(pep,PEP_TARGET_IMAGINARY);CHKERRQ(ierr); }
-
+    /* -----------------------------------------------------------------------*/
     ierr = PetscOptionsName("-pep_view","Print detailed information on solver used","PEPView",NULL);CHKERRQ(ierr);
     ierr = PetscOptionsName("-pep_view_vectors","View computed eigenvectors","PEPVectorsView",NULL);CHKERRQ(ierr);
     ierr = PetscOptionsName("-pep_view_values","View computed eigenvalues","PEPValuesView",NULL);CHKERRQ(ierr);
@@ -1313,7 +1306,7 @@ PetscErrorCode PEPSetRefine(PEP pep,PEPRefine refine,PetscInt npart,PetscReal to
       pep->npart = npart;
     }
     if (tol == PETSC_DEFAULT || tol == PETSC_DECIDE) {
-      pep->rtol = PetscMax(pep->tol/1000,PETSC_MACHINE_EPSILON);
+      pep->rtol = PETSC_DEFAULT;
     } else {
       if (tol<=0.0) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of tol. Must be > 0");
       pep->rtol = tol;

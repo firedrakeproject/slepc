@@ -187,16 +187,21 @@ PetscErrorCode NEPSetFromOptions_RII(PetscOptionItems *PetscOptionsObject,NEP ne
   PetscInt       i;
 
   PetscFunctionBegin;
-  if (!ctx->ksp) { ierr = NEPRIIGetKSP(nep,&ctx->ksp);CHKERRQ(ierr); }
-  ierr = KSPSetOperators(ctx->ksp,nep->function,nep->function_pre);CHKERRQ(ierr);
-  ierr = KSPSetFromOptions(ctx->ksp);CHKERRQ(ierr);
   ierr = PetscOptionsHead(PetscOptionsObject,"NEP RII Options");CHKERRQ(ierr);
+
     ierr = PetscOptionsInt("-nep_rii_max_it","Maximum number of Newton iterations for updating Rayleigh functional","NEPRIISetMaximumIterations",ctx->max_inner_it,&ctx->max_inner_it,NULL);CHKERRQ(ierr);
+
     ierr = PetscOptionsBool("-nep_rii_const_correction_tol","Constant correction tolerance for the linear solver","NEPRIISetConstCorrectionTol",ctx->cctol,&ctx->cctol,NULL);CHKERRQ(ierr);
+
     i = 0;
     ierr = PetscOptionsInt("-nep_rii_lag_preconditioner","Interval to rebuild preconditioner","NEPRIISetLagPreconditioner",ctx->lag,&i,&flg);CHKERRQ(ierr);
     if (flg) { ierr = NEPRIISetLagPreconditioner(nep,i);CHKERRQ(ierr); }
+
   ierr = PetscOptionsTail();CHKERRQ(ierr);
+
+  if (!ctx->ksp) { ierr = NEPRIIGetKSP(nep,&ctx->ksp);CHKERRQ(ierr); }
+  ierr = KSPSetOperators(ctx->ksp,nep->function,nep->function_pre);CHKERRQ(ierr);
+  ierr = KSPSetFromOptions(ctx->ksp);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

@@ -216,10 +216,10 @@ PetscErrorCode FNSetFromOptions_Phi(PetscOptionItems *PetscOptionsObject,FN fn)
 
   PetscFunctionBegin;
   ierr = PetscOptionsHead(PetscOptionsObject,"FN Phi Options");CHKERRQ(ierr);
+
     ierr = PetscOptionsInt("-fn_phi_index","Index of the phi-function","FNPhiSetIndex",ctx->k,&k,&flag);CHKERRQ(ierr);
-    if (flag) {
-      ierr = FNPhiSetIndex(fn,k);CHKERRQ(ierr);
-    }
+    if (flag) { ierr = FNPhiSetIndex(fn,k);CHKERRQ(ierr); }
+
   ierr = PetscOptionsTail();CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

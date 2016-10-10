@@ -213,11 +213,9 @@ PetscErrorCode EPSSetFromOptions_FEAST(PetscOptionItems *PetscOptionsObject,EPS 
   PetscFunctionBegin;
   ierr = PetscOptionsHead(PetscOptionsObject,"EPS FEAST Options");CHKERRQ(ierr);
 
-  n = ctx->npoints;
-  ierr = PetscOptionsInt("-eps_feast_num_points","Number of contour integration points","EPSFEASTSetNumPoints",n,&n,&flg);CHKERRQ(ierr);
-  if (flg) {
-    ierr = EPSFEASTSetNumPoints(eps,n);CHKERRQ(ierr);
-  }
+    n = ctx->npoints;
+    ierr = PetscOptionsInt("-eps_feast_num_points","Number of contour integration points","EPSFEASTSetNumPoints",n,&n,&flg);CHKERRQ(ierr);
+    if (flg) { ierr = EPSFEASTSetNumPoints(eps,n);CHKERRQ(ierr); }
 
   ierr = PetscOptionsTail();CHKERRQ(ierr);
   PetscFunctionReturn(0);

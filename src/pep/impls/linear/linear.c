@@ -772,17 +772,17 @@ PetscErrorCode PEPSetFromOptions_Linear(PetscOptionItems *PetscOptionsObject,PEP
 
   PetscFunctionBegin;
   ierr = PetscOptionsHead(PetscOptionsObject,"PEP Linear Options");CHKERRQ(ierr);
-  ierr = PetscOptionsInt("-pep_linear_cform","Number of the companion form","PEPLinearSetCompanionForm",ctx->cform,&i,&set);CHKERRQ(ierr);
-  if (set) {
-    ierr = PEPLinearSetCompanionForm(pep,i);CHKERRQ(ierr);
-  }
-  ierr = PetscOptionsBool("-pep_linear_explicitmatrix","Use explicit matrix in linearization","PEPLinearSetExplicitMatrix",ctx->explicitmatrix,&val,&set);CHKERRQ(ierr);
-  if (set) {
-    ierr = PEPLinearSetExplicitMatrix(pep,val);CHKERRQ(ierr);
-  }
+
+    ierr = PetscOptionsInt("-pep_linear_cform","Number of the companion form (1 or 2)","PEPLinearSetCompanionForm",ctx->cform,&i,&set);CHKERRQ(ierr);
+    if (set) { ierr = PEPLinearSetCompanionForm(pep,i);CHKERRQ(ierr); }
+
+    ierr = PetscOptionsBool("-pep_linear_explicitmatrix","Use explicit matrix in linearization","PEPLinearSetExplicitMatrix",ctx->explicitmatrix,&val,&set);CHKERRQ(ierr);
+    if (set) { ierr = PEPLinearSetExplicitMatrix(pep,val);CHKERRQ(ierr); }
+
+  ierr = PetscOptionsTail();CHKERRQ(ierr);
+
   if (!ctx->eps) { ierr = PEPLinearGetEPS(pep,&ctx->eps);CHKERRQ(ierr); }
   ierr = EPSSetFromOptions(ctx->eps);CHKERRQ(ierr);
-  ierr = PetscOptionsTail();CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
