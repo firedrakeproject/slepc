@@ -270,7 +270,6 @@ PetscErrorCode PEPReset(PEP pep)
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
   if (pep->ops->reset) { ierr = (pep->ops->reset)(pep);CHKERRQ(ierr); }
   if (pep->st) { ierr = STReset(pep->st);CHKERRQ(ierr); }
-  if (pep->ds) { ierr = DSReset(pep->ds);CHKERRQ(ierr); }
   if (pep->nmat) {
     ierr = MatDestroyMatrices(pep->nmat,&pep->A);CHKERRQ(ierr);
     ierr = PetscFree2(pep->pbc,pep->nrma);CHKERRQ(ierr);

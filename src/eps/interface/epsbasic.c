@@ -245,13 +245,19 @@ PetscErrorCode EPSRegister(const char *name,PetscErrorCode (*function)(EPS))
 #undef __FUNCT__
 #define __FUNCT__ "EPSReset"
 /*@
-   EPSReset - Resets the EPS context to the initial state and removes any
-   allocated objects.
+   EPSReset - Resets the EPS context to the initial state (prior to setup)
+   and destroys any allocated Vecs and Mats.
 
    Collective on EPS
 
    Input Parameter:
 .  eps - eigensolver context obtained from EPSCreate()
+
+   Note:
+   This can be used when a problem of different matrix size wants to be solved.
+   All options that have previously been set are preserved, so in a next use
+   the solver configuration is the same, but new sizes for matrices and vectors
+   are allowed.
 
    Level: advanced
 
@@ -266,7 +272,6 @@ PetscErrorCode EPSReset(EPS eps)
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   if (eps->ops->reset) { ierr = (eps->ops->reset)(eps);CHKERRQ(ierr); }
   if (eps->st) { ierr = STReset(eps->st);CHKERRQ(ierr); }
-  if (eps->ds) { ierr = DSReset(eps->ds);CHKERRQ(ierr); }
   ierr = VecDestroy(&eps->D);CHKERRQ(ierr);
   ierr = BVGetSizes(eps->V,NULL,NULL,&ncols);CHKERRQ(ierr);
   if (ncols) {

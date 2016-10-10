@@ -785,9 +785,13 @@ PetscErrorCode DSView(DS ds,PetscViewer viewer)
 -  ld - leading dimension (maximum allowed dimension for the matrices, including
         the extra row if present)
 
+   Note:
+   If the leading dimension is different from a previously set value, then
+   all matrices are destroyed with DSReset().
+
    Level: intermediate
 
-.seealso: DSGetLeadingDimension(), DSSetDimensions(), DSSetExtraRow()
+.seealso: DSGetLeadingDimension(), DSSetDimensions(), DSSetExtraRow(), DSReset()
 @*/
 PetscErrorCode DSAllocate(DS ds,PetscInt ld)
 {
@@ -797,8 +801,11 @@ PetscErrorCode DSAllocate(DS ds,PetscInt ld)
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
   PetscValidLogicalCollectiveInt(ds,ld,2);
   if (ld<1) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_OUTOFRANGE,"Leading dimension should be at least one");
-  ds->ld = ld;
-  ierr = (*ds->ops->allocate)(ds,ld);CHKERRQ(ierr);
+  if (ld!=ds->ld) {
+    ierr = DSReset(ds);CHKERRQ(ierr);
+    ds->ld = ld;
+    ierr = (*ds->ops->allocate)(ds,ld);CHKERRQ(ierr);
+  }
   PetscFunctionReturn(0);
 }
 
@@ -812,9 +819,13 @@ PetscErrorCode DSAllocate(DS ds,PetscInt ld)
    Input Parameter:
 .  ds - the direct solver context
 
+   Note:
+   All data structures with size depending on the leading dimension
+   of DSAllocate() are released.
+
    Level: advanced
 
-.seealso: DSDestroy()
+.seealso: DSDestroy(), DSAllocate()
 @*/
 PetscErrorCode DSReset(DS ds)
 {
@@ -824,9 +835,6 @@ PetscErrorCode DSReset(DS ds)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
   ds->state    = DS_STATE_RAW;
-  ds->compact  = PETSC_FALSE;
-  ds->refined  = PETSC_FALSE;
-  ds->extrarow = PETSC_FALSE;
   ds->ld       = 0;
   ds->l        = 0;
   ds->n        = 0;
@@ -838,12 +846,6 @@ PetscErrorCode DSReset(DS ds)
     ierr = MatDestroy(&ds->omat[i]);CHKERRQ(ierr);
   }
   ierr = PetscFree(ds->perm);CHKERRQ(ierr);
-  ierr = PetscFree(ds->work);CHKERRQ(ierr);
-  ierr = PetscFree(ds->rwork);CHKERRQ(ierr);
-  ierr = PetscFree(ds->iwork);CHKERRQ(ierr);
-  ds->lwork         = 0;
-  ds->lrwork        = 0;
-  ds->liwork        = 0;
   PetscFunctionReturn(0);
 }
 
@@ -871,6 +873,9 @@ PetscErrorCode DSDestroy(DS *ds)
   if (--((PetscObject)(*ds))->refct > 0) { *ds = 0; PetscFunctionReturn(0); }
   ierr = DSReset(*ds);CHKERRQ(ierr);
   if ((*ds)->ops->destroy) { ierr = (*(*ds)->ops->destroy)(*ds);CHKERRQ(ierr); }
+  ierr = PetscFree((*ds)->work);CHKERRQ(ierr);
+  ierr = PetscFree((*ds)->rwork);CHKERRQ(ierr);
+  ierr = PetscFree((*ds)->iwork);CHKERRQ(ierr);
   ierr = PetscFree((*ds)->sc);CHKERRQ(ierr);
   ierr = PetscHeaderDestroy(ds);CHKERRQ(ierr);
   PetscFunctionReturn(0);

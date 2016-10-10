@@ -287,7 +287,6 @@ PetscErrorCode NEPReset(NEP nep)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
   if (nep->ops->reset) { ierr = (nep->ops->reset)(nep);CHKERRQ(ierr); }
-  if (nep->ds) { ierr = DSReset(nep->ds);CHKERRQ(ierr); }
   ierr = NEPReset_Problem(nep);CHKERRQ(ierr);
   ierr = BVGetSizes(nep->V,NULL,NULL,&ncols);CHKERRQ(ierr);
   if (ncols) {

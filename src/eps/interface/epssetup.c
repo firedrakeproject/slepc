@@ -74,7 +74,6 @@ PetscErrorCode EPSSetUp(EPS eps)
   }
   ierr = STSetTransform(eps->st,PETSC_TRUE);CHKERRQ(ierr);
   if (!eps->ds) { ierr = EPSGetDS(eps,&eps->ds);CHKERRQ(ierr); }
-  ierr = DSReset(eps->ds);CHKERRQ(ierr);
   if (!eps->rg) { ierr = EPSGetRG(eps,&eps->rg);CHKERRQ(ierr); }
   if (!((PetscObject)eps->rg)->type_name) {
     ierr = RGSetType(eps->rg,RGINTERVAL);CHKERRQ(ierr);

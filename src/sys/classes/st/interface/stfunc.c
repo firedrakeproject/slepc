@@ -107,7 +107,8 @@ PetscErrorCode STInitializePackage(void)
 #undef __FUNCT__
 #define __FUNCT__ "STReset"
 /*@
-   STReset - Resets the ST context and removes any allocated objects.
+   STReset - Resets the ST context to the initial state (prior to setup)
+   and destroys any allocated Vecs and Mats.
 
    Collective on ST
 

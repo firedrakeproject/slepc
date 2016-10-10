@@ -125,6 +125,7 @@ PetscErrorCode EPSSetUp_LAPACK(EPS eps)
     ierr = DSRestoreArray(eps->ds,DS_MAT_B,&Bp);CHKERRQ(ierr);
   }
   ierr = VecDestroy(&v);CHKERRQ(ierr);
+  ierr = DSSetState(eps->ds,DS_STATE_RAW);CHKERRQ(ierr);
   ierr = MatDestroy(&Adense);CHKERRQ(ierr);
   if (!denseok) { ierr = MatDestroy(&OP);CHKERRQ(ierr); }
   if (denseok && eps->isgeneralized) { ierr = MatDestroy(&Bdense);CHKERRQ(ierr); }

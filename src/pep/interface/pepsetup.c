@@ -68,7 +68,6 @@ PetscErrorCode PEPSetUp(PEP pep)
   }
   if (!pep->st) { ierr = PEPGetST(pep,&pep->st);CHKERRQ(ierr); }
   if (!pep->ds) { ierr = PEPGetDS(pep,&pep->ds);CHKERRQ(ierr); }
-  ierr = DSReset(pep->ds);CHKERRQ(ierr);
   if (!pep->rg) { ierr = PEPGetRG(pep,&pep->rg);CHKERRQ(ierr); }
   if (!((PetscObject)pep->rg)->type_name) {
     ierr = RGSetType(pep->rg,RGINTERVAL);CHKERRQ(ierr);

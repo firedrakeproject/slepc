@@ -127,7 +127,6 @@ PetscErrorCode SVDReset(SVD svd)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
   if (svd->ops->reset) { ierr = (svd->ops->reset)(svd);CHKERRQ(ierr); }
-  if (svd->ds) { ierr = DSReset(svd->ds);CHKERRQ(ierr); }
   ierr = MatDestroy(&svd->OP);CHKERRQ(ierr);
   ierr = MatDestroy(&svd->A);CHKERRQ(ierr);
   ierr = MatDestroy(&svd->AT);CHKERRQ(ierr);
