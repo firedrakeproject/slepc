@@ -266,18 +266,12 @@ PetscErrorCode EPSRegister(const char *name,PetscErrorCode (*function)(EPS))
 PetscErrorCode EPSReset(EPS eps)
 {
   PetscErrorCode ierr;
-  PetscInt       ncols;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   if (eps->ops->reset) { ierr = (eps->ops->reset)(eps);CHKERRQ(ierr); }
   if (eps->st) { ierr = STReset(eps->st);CHKERRQ(ierr); }
   ierr = VecDestroy(&eps->D);CHKERRQ(ierr);
-  ierr = BVGetSizes(eps->V,NULL,NULL,&ncols);CHKERRQ(ierr);
-  if (ncols) {
-    ierr = PetscFree4(eps->eigr,eps->eigi,eps->errest,eps->perm);CHKERRQ(ierr);
-    ierr = PetscFree2(eps->rr,eps->ri);CHKERRQ(ierr);
-  }
   ierr = BVDestroy(&eps->V);CHKERRQ(ierr);
   ierr = VecDestroyVecs(eps->nwork,&eps->work);CHKERRQ(ierr);
   eps->nwork = 0;
@@ -309,6 +303,12 @@ PetscErrorCode EPSDestroy(EPS *eps)
   if (--((PetscObject)(*eps))->refct > 0) { *eps = 0; PetscFunctionReturn(0); }
   ierr = EPSReset(*eps);CHKERRQ(ierr);
   if ((*eps)->ops->destroy) { ierr = (*(*eps)->ops->destroy)(*eps);CHKERRQ(ierr); }
+  if ((*eps)->eigr) {
+    ierr = PetscFree4((*eps)->eigr,(*eps)->eigi,(*eps)->errest,(*eps)->perm);CHKERRQ(ierr);
+  }
+  if ((*eps)->rr) {
+    ierr = PetscFree2((*eps)->rr,(*eps)->ri);CHKERRQ(ierr);
+  }
   ierr = STDestroy(&(*eps)->st);CHKERRQ(ierr);
   ierr = RGDestroy(&(*eps)->rg);CHKERRQ(ierr);
   ierr = DSDestroy(&(*eps)->ds);CHKERRQ(ierr);

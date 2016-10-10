@@ -360,6 +360,9 @@ PetscErrorCode MFNReset(MFN mfn)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(mfn,MFN_CLASSID,1);
   if (mfn->ops->reset) { ierr = (mfn->ops->reset)(mfn);CHKERRQ(ierr); }
+  ierr = BVDestroy(&mfn->V);CHKERRQ(ierr);
+  ierr = VecDestroyVecs(mfn->nwork,&mfn->work);CHKERRQ(ierr);
+  mfn->nwork = 0;
   mfn->setupcalled = 0;
   PetscFunctionReturn(0);
 }
@@ -389,7 +392,6 @@ PetscErrorCode MFNDestroy(MFN *mfn)
   ierr = MFNReset(*mfn);CHKERRQ(ierr);
   if ((*mfn)->ops->destroy) { ierr = (*(*mfn)->ops->destroy)(*mfn);CHKERRQ(ierr); }
   ierr = MatDestroy(&(*mfn)->A);CHKERRQ(ierr);
-  ierr = BVDestroy(&(*mfn)->V);CHKERRQ(ierr);
   ierr = FNDestroy(&(*mfn)->fn);CHKERRQ(ierr);
   ierr = MFNMonitorCancel(*mfn);CHKERRQ(ierr);
   ierr = PetscHeaderDestroy(mfn);CHKERRQ(ierr);

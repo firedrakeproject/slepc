@@ -122,7 +122,6 @@ PetscErrorCode SVDCreate(MPI_Comm comm,SVD *outsvd)
 PetscErrorCode SVDReset(SVD svd)
 {
   PetscErrorCode ierr;
-  PetscInt       ncols;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
@@ -130,10 +129,6 @@ PetscErrorCode SVDReset(SVD svd)
   ierr = MatDestroy(&svd->OP);CHKERRQ(ierr);
   ierr = MatDestroy(&svd->A);CHKERRQ(ierr);
   ierr = MatDestroy(&svd->AT);CHKERRQ(ierr);
-  ierr = BVGetSizes(svd->V,NULL,NULL,&ncols);CHKERRQ(ierr);
-  if (ncols) {
-    ierr = PetscFree3(svd->sigma,svd->perm,svd->errest);CHKERRQ(ierr);
-  }
   ierr = BVDestroy(&svd->U);CHKERRQ(ierr);
   ierr = BVDestroy(&svd->V);CHKERRQ(ierr);
   svd->state = SVD_STATE_INITIAL;
@@ -164,6 +159,9 @@ PetscErrorCode SVDDestroy(SVD *svd)
   if (--((PetscObject)(*svd))->refct > 0) { *svd = 0; PetscFunctionReturn(0); }
   ierr = SVDReset(*svd);CHKERRQ(ierr);
   if ((*svd)->ops->destroy) { ierr = (*(*svd)->ops->destroy)(*svd);CHKERRQ(ierr); }
+  if ((*svd)->sigma) {
+    ierr = PetscFree3((*svd)->sigma,(*svd)->perm,(*svd)->errest);CHKERRQ(ierr);
+  }
   ierr = DSDestroy(&(*svd)->ds);CHKERRQ(ierr);
   ierr = PetscFree((*svd)->sc);CHKERRQ(ierr);
   /* just in case the initial vectors have not been used */

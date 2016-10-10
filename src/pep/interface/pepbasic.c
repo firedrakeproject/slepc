@@ -264,12 +264,12 @@ PetscErrorCode PEPRegister(const char *name,PetscErrorCode (*function)(PEP))
 PetscErrorCode PEPReset(PEP pep)
 {
   PetscErrorCode ierr;
-  PetscInt       ncols;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
   if (pep->ops->reset) { ierr = (pep->ops->reset)(pep);CHKERRQ(ierr); }
   if (pep->st) { ierr = STReset(pep->st);CHKERRQ(ierr); }
+  if (pep->refineksp) { ierr = KSPReset(pep->refineksp);CHKERRQ(ierr); }
   if (pep->nmat) {
     ierr = MatDestroyMatrices(pep->nmat,&pep->A);CHKERRQ(ierr);
     ierr = PetscFree2(pep->pbc,pep->nrma);CHKERRQ(ierr);
@@ -278,14 +278,8 @@ PetscErrorCode PEPReset(PEP pep)
   }
   ierr = VecDestroy(&pep->Dl);CHKERRQ(ierr);
   ierr = VecDestroy(&pep->Dr);CHKERRQ(ierr);
-  ierr = BVGetSizes(pep->V,NULL,NULL,&ncols);CHKERRQ(ierr);
-  if (ncols) {
-    ierr = PetscFree4(pep->eigr,pep->eigi,pep->errest,pep->perm);CHKERRQ(ierr);
-  }
   ierr = BVDestroy(&pep->V);CHKERRQ(ierr);
   ierr = VecDestroyVecs(pep->nwork,&pep->work);CHKERRQ(ierr);
-  ierr = KSPDestroy(&pep->refineksp);CHKERRQ(ierr);
-  ierr = PetscSubcommDestroy(&pep->refinesubc);CHKERRQ(ierr);
   pep->nwork = 0;
   pep->state = PEP_STATE_INITIAL;
   PetscFunctionReturn(0);
@@ -315,9 +309,14 @@ PetscErrorCode PEPDestroy(PEP *pep)
   if (--((PetscObject)(*pep))->refct > 0) { *pep = 0; PetscFunctionReturn(0); }
   ierr = PEPReset(*pep);CHKERRQ(ierr);
   if ((*pep)->ops->destroy) { ierr = (*(*pep)->ops->destroy)(*pep);CHKERRQ(ierr); }
+  if ((*pep)->eigr) {
+    ierr = PetscFree4((*pep)->eigr,(*pep)->eigi,(*pep)->errest,(*pep)->perm);CHKERRQ(ierr);
+  }
   ierr = STDestroy(&(*pep)->st);CHKERRQ(ierr);
   ierr = RGDestroy(&(*pep)->rg);CHKERRQ(ierr);
   ierr = DSDestroy(&(*pep)->ds);CHKERRQ(ierr);
+  ierr = KSPDestroy(&(*pep)->refineksp);CHKERRQ(ierr);
+  ierr = PetscSubcommDestroy(&(*pep)->refinesubc);CHKERRQ(ierr);
   ierr = PetscFree((*pep)->sc);CHKERRQ(ierr);
   /* just in case the initial vectors have not been used */
   ierr = SlepcBasisDestroy_Private(&(*pep)->nini,&(*pep)->IS);CHKERRQ(ierr);

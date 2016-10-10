@@ -48,7 +48,6 @@ PetscErrorCode SVDSetOperator(SVD svd,Mat mat)
   PetscCheckSameComm(svd,1,mat,2);
   if (svd->state) { ierr = SVDReset(svd);CHKERRQ(ierr); }
   ierr = PetscObjectReference((PetscObject)mat);CHKERRQ(ierr);
-  ierr = MatDestroy(&svd->OP);CHKERRQ(ierr);
   svd->OP = mat;
   PetscFunctionReturn(0);
 }

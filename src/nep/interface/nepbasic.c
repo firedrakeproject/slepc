@@ -282,20 +282,14 @@ PetscErrorCode NEPReset_Problem(NEP nep)
 PetscErrorCode NEPReset(NEP nep)
 {
   PetscErrorCode ierr;
-  PetscInt       ncols;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
   if (nep->ops->reset) { ierr = (nep->ops->reset)(nep);CHKERRQ(ierr); }
+  if (nep->refineksp) { ierr = KSPReset(nep->refineksp);CHKERRQ(ierr); }
   ierr = NEPReset_Problem(nep);CHKERRQ(ierr);
-  ierr = BVGetSizes(nep->V,NULL,NULL,&ncols);CHKERRQ(ierr);
-  if (ncols) {
-    ierr = PetscFree4(nep->eigr,nep->eigi,nep->errest,nep->perm);CHKERRQ(ierr);
-  }
   ierr = BVDestroy(&nep->V);CHKERRQ(ierr);
   ierr = VecDestroyVecs(nep->nwork,&nep->work);CHKERRQ(ierr);
-  ierr = KSPDestroy(&nep->refineksp);CHKERRQ(ierr);
-  ierr = PetscSubcommDestroy(&nep->refinesubc);CHKERRQ(ierr);
   nep->nwork = 0;
   nep->state = NEP_STATE_INITIAL;
   PetscFunctionReturn(0);
@@ -325,8 +319,13 @@ PetscErrorCode NEPDestroy(NEP *nep)
   if (--((PetscObject)(*nep))->refct > 0) { *nep = 0; PetscFunctionReturn(0); }
   ierr = NEPReset(*nep);CHKERRQ(ierr);
   if ((*nep)->ops->destroy) { ierr = (*(*nep)->ops->destroy)(*nep);CHKERRQ(ierr); }
+  if ((*nep)->eigr) {
+    ierr = PetscFree4((*nep)->eigr,(*nep)->eigi,(*nep)->errest,(*nep)->perm);CHKERRQ(ierr);
+  }
   ierr = RGDestroy(&(*nep)->rg);CHKERRQ(ierr);
   ierr = DSDestroy(&(*nep)->ds);CHKERRQ(ierr);
+  ierr = KSPDestroy(&(*nep)->refineksp);CHKERRQ(ierr);
+  ierr = PetscSubcommDestroy(&(*nep)->refinesubc);CHKERRQ(ierr);
   ierr = PetscFree((*nep)->sc);CHKERRQ(ierr);
   /* just in case the initial vectors have not been used */
   ierr = SlepcBasisDestroy_Private(&(*nep)->nini,&(*nep)->IS);CHKERRQ(ierr);
