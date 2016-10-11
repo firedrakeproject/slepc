@@ -45,7 +45,6 @@ typedef struct {
   primme_params primme;           /* param struc */
   primme_preset_method method;    /* primme method */
   Mat       A;                    /* problem matrix */
-  EPS       eps;                  /* EPS current context */
   KSP       ksp;                  /* linear solver and preconditioner */
   Vec       x,y;                  /* auxiliary vectors */
   double    target;               /* a copy of eps's target */
@@ -137,7 +136,6 @@ PetscErrorCode EPSSetUp_PRIMME(EPS eps)
   if (flg) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"This solver requires a BV with contiguous storage");
 
   /* Setup the preconditioner */
-  ops->eps = eps;
   if (primme->correctionParams.precondition) {
     ierr = STGetKSP(eps->st,&ops->ksp);CHKERRQ(ierr);
     ierr = PetscObjectTypeCompare((PetscObject)ops->ksp,KSPPREONLY,&flg);CHKERRQ(ierr);
