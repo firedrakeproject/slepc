@@ -341,8 +341,8 @@ PetscErrorCode MFNRegister(const char *name,PetscErrorCode (*function)(MFN))
 #undef __FUNCT__
 #define __FUNCT__ "MFNReset"
 /*@
-   MFNReset - Resets the MFN context to the setupcalled=0 state and removes any
-   allocated objects.
+   MFNReset - Resets the MFN context to the initial state (prior to setup)
+   and destroys any allocated Vecs and Mats.
 
    Collective on MFN
 
@@ -360,6 +360,7 @@ PetscErrorCode MFNReset(MFN mfn)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(mfn,MFN_CLASSID,1);
   if (mfn->ops->reset) { ierr = (mfn->ops->reset)(mfn);CHKERRQ(ierr); }
+  ierr = MatDestroy(&mfn->A);CHKERRQ(ierr);
   ierr = BVDestroy(&mfn->V);CHKERRQ(ierr);
   ierr = VecDestroyVecs(mfn->nwork,&mfn->work);CHKERRQ(ierr);
   mfn->nwork = 0;
@@ -391,7 +392,6 @@ PetscErrorCode MFNDestroy(MFN *mfn)
   if (--((PetscObject)(*mfn))->refct > 0) { *mfn = 0; PetscFunctionReturn(0); }
   ierr = MFNReset(*mfn);CHKERRQ(ierr);
   if ((*mfn)->ops->destroy) { ierr = (*(*mfn)->ops->destroy)(*mfn);CHKERRQ(ierr); }
-  ierr = MatDestroy(&(*mfn)->A);CHKERRQ(ierr);
   ierr = FNDestroy(&(*mfn)->fn);CHKERRQ(ierr);
   ierr = MFNMonitorCancel(*mfn);CHKERRQ(ierr);
   ierr = PetscHeaderDestroy(mfn);CHKERRQ(ierr);

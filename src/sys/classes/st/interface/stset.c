@@ -283,8 +283,10 @@ PetscErrorCode STSetMatMode(ST st,STMatMode mode)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
   PetscValidLogicalCollectiveEnum(st,mode,2);
-  st->shift_matrix = mode;
-  st->state = ST_STATE_INITIAL;
+  if (st->shift_matrix != mode) {
+    st->shift_matrix = mode;
+    st->state = ST_STATE_INITIAL;
+  }
   PetscFunctionReturn(0);
 }
 

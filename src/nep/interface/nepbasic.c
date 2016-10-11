@@ -267,8 +267,8 @@ PetscErrorCode NEPReset_Problem(NEP nep)
 #undef __FUNCT__
 #define __FUNCT__ "NEPReset"
 /*@
-   NEPReset - Resets the NEP context to the initial state and removes any
-   allocated objects.
+   NEPReset - Resets the NEP context to the initial state (prior to setup)
+   and destroys any allocated Vecs and Mats.
 
    Collective on NEP
 
