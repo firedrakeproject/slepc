@@ -114,8 +114,10 @@ PetscErrorCode MFNSetOperator(MFN mfn,Mat A)
   ierr = MatGetSize(A,&m,&n);CHKERRQ(ierr);
   if (m!=n) SETERRQ(PetscObjectComm((PetscObject)mfn),PETSC_ERR_ARG_WRONG,"A is a non-square matrix");
   if (mfn->setupcalled) { ierr = MFNReset(mfn);CHKERRQ(ierr); }
+  else if (mfn->A) { ierr = MatDestroy(&mfn->A);CHKERRQ(ierr); }
   ierr = PetscObjectReference((PetscObject)A);CHKERRQ(ierr);
   mfn->A = A;
+  mfn->setupcalled = 0;
   PetscFunctionReturn(0);
 }
 

@@ -688,9 +688,8 @@ PetscErrorCode NEPSetFunction(NEP nep,Mat A,Mat B,PetscErrorCode (*fun)(NEP,Pets
   if (A) PetscCheckSameComm(nep,1,A,2);
   if (B) PetscCheckSameComm(nep,1,B,3);
 
-  if (nep->fui && nep->fui!=NEP_USER_INTERFACE_CALLBACK) {  /* clean previous user info */
-    ierr = NEPReset_Problem(nep);CHKERRQ(ierr);
-  }
+  if (nep->state) { ierr = NEPReset(nep);CHKERRQ(ierr); }
+  else if (nep->fui && nep->fui!=NEP_USER_INTERFACE_CALLBACK) { ierr = NEPReset_Problem(nep);CHKERRQ(ierr); }
 
   if (fun) nep->computefunction = fun;
   if (ctx) nep->functionctx     = ctx;
@@ -704,7 +703,8 @@ PetscErrorCode NEPSetFunction(NEP nep,Mat A,Mat B,PetscErrorCode (*fun)(NEP,Pets
     ierr = MatDestroy(&nep->function_pre);CHKERRQ(ierr);
     nep->function_pre = B;
   }
-  nep->fui = NEP_USER_INTERFACE_CALLBACK;
+  nep->fui   = NEP_USER_INTERFACE_CALLBACK;
+  nep->state = NEP_STATE_INITIAL;
   PetscFunctionReturn(0);
 }
 
@@ -779,9 +779,8 @@ PetscErrorCode NEPSetJacobian(NEP nep,Mat A,PetscErrorCode (*jac)(NEP,PetscScala
   if (A) PetscValidHeaderSpecific(A,MAT_CLASSID,2);
   if (A) PetscCheckSameComm(nep,1,A,2);
 
-  if (nep->fui && nep->fui!=NEP_USER_INTERFACE_CALLBACK) {  /* clean previous user info */
-    ierr = NEPReset_Problem(nep);CHKERRQ(ierr);
-  }
+  if (nep->state) { ierr = NEPReset(nep);CHKERRQ(ierr); }
+  else if (nep->fui && nep->fui!=NEP_USER_INTERFACE_CALLBACK) { ierr = NEPReset_Problem(nep);CHKERRQ(ierr); }
 
   if (jac) nep->computejacobian = jac;
   if (ctx) nep->jacobianctx     = ctx;
@@ -790,7 +789,8 @@ PetscErrorCode NEPSetJacobian(NEP nep,Mat A,PetscErrorCode (*jac)(NEP,PetscScala
     ierr = MatDestroy(&nep->jacobian);CHKERRQ(ierr);
     nep->jacobian = A;
   }
-  nep->fui = NEP_USER_INTERFACE_CALLBACK;
+  nep->fui   = NEP_USER_INTERFACE_CALLBACK;
+  nep->state = NEP_STATE_INITIAL;
   PetscFunctionReturn(0);
 }
 
@@ -872,8 +872,8 @@ PetscErrorCode NEPSetSplitOperator(NEP nep,PetscInt n,Mat A[],FN f[],MatStructur
   PetscValidPointer(f,4);
   PetscCheckSameComm(nep,1,*f,4);
   if (nep->state) { ierr = NEPReset(nep);CHKERRQ(ierr); }
-  /* clean previously stored information */
-  ierr = NEPReset_Problem(nep);CHKERRQ(ierr);
+  else { ierr = NEPReset_Problem(nep);CHKERRQ(ierr); }
+
   /* allocate space and copy matrices and functions */
   ierr = PetscMalloc1(n,&nep->A);CHKERRQ(ierr);
   ierr = PetscLogObjectMemory((PetscObject)nep,n*sizeof(Mat));CHKERRQ(ierr);
@@ -891,9 +891,10 @@ PetscErrorCode NEPSetSplitOperator(NEP nep,PetscInt n,Mat A[],FN f[],MatStructur
   }
   ierr = PetscCalloc1(n,&nep->nrma);CHKERRQ(ierr);
   ierr = PetscLogObjectMemory((PetscObject)nep,n*sizeof(PetscReal));CHKERRQ(ierr);
-  nep->nt   = n;
-  nep->mstr = str;
-  nep->fui  = NEP_USER_INTERFACE_SPLIT;
+  nep->nt    = n;
+  nep->mstr  = str;
+  nep->fui   = NEP_USER_INTERFACE_SPLIT;
+  nep->state = NEP_STATE_INITIAL;
   PetscFunctionReturn(0);
 }
 
@@ -987,9 +988,8 @@ PetscErrorCode NEPSetDerivatives(NEP nep,Mat A,PetscErrorCode (*der)(NEP,PetscSc
   if (A) PetscValidHeaderSpecific(A,MAT_CLASSID,2);
   if (A) PetscCheckSameComm(nep,1,A,2);
 
-  if (nep->fui && nep->fui!=NEP_USER_INTERFACE_DERIVATIVES) {  /* clean previous user info */
-    ierr = NEPReset_Problem(nep);CHKERRQ(ierr);
-  }
+  if (nep->state) { ierr = NEPReset(nep);CHKERRQ(ierr); }
+  else { ierr = NEPReset_Problem(nep);CHKERRQ(ierr); }
 
   if (der) nep->computederivatives = der;
   if (ctx) nep->derivativesctx     = ctx;
@@ -998,7 +998,8 @@ PetscErrorCode NEPSetDerivatives(NEP nep,Mat A,PetscErrorCode (*der)(NEP,PetscSc
     ierr = MatDestroy(&nep->derivatives);CHKERRQ(ierr);
     nep->derivatives = A;
   }
-  nep->fui = NEP_USER_INTERFACE_DERIVATIVES;
+  nep->fui   = NEP_USER_INTERFACE_DERIVATIVES;
+  nep->state = NEP_STATE_INITIAL;
   PetscFunctionReturn(0);
 }
 

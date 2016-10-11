@@ -364,6 +364,7 @@ PetscErrorCode PEPSetUp_Linear(PEP pep)
     ierr = PEPBasisCoefficients(pep,pep->pbc);CHKERRQ(ierr);
     if (!transf) {
       ierr = PetscMalloc1(pep->nmat,&pep->solvematcoeffs);CHKERRQ(ierr);
+      ierr = PetscLogObjectMemory((PetscObject)pep,pep->nmat*sizeof(PetscScalar));CHKERRQ(ierr);
       if (sinv) {
         ierr = PEPEvaluateBasis(pep,pep->target,0,pep->solvematcoeffs,NULL);CHKERRQ(ierr);
       } else {
