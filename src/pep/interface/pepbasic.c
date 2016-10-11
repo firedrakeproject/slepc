@@ -249,8 +249,8 @@ PetscErrorCode PEPRegister(const char *name,PetscErrorCode (*function)(PEP))
 #undef __FUNCT__
 #define __FUNCT__ "PEPReset"
 /*@
-   PEPReset - Resets the PEP context to the initial state and removes any
-   allocated objects.
+   PEPReset - Resets the PEP context to the initial state (prior to setup)
+   and destroys any allocated Vecs and Mats.
 
    Collective on PEP
 

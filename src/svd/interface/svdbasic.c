@@ -107,8 +107,8 @@ PetscErrorCode SVDCreate(MPI_Comm comm,SVD *outsvd)
 #undef __FUNCT__
 #define __FUNCT__ "SVDReset"
 /*@
-   SVDReset - Resets the SVD context to the initial state and removes any
-   allocated objects.
+   SVDReset - Resets the SVD context to the initial state (prior to setup)
+   and destroys any allocated Vecs and Mats.
 
    Collective on SVD
 

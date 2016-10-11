@@ -128,6 +128,8 @@ PetscErrorCode STReset(ST st)
   if (st->ops->reset) { ierr = (*st->ops->reset)(st);CHKERRQ(ierr); }
   if (st->ksp) { ierr = KSPReset(st->ksp);CHKERRQ(ierr); }
   ierr = MatDestroyMatrices(PetscMax(2,st->nmat),&st->T);CHKERRQ(ierr);
+  ierr = MatDestroyMatrices(PetscMax(2,st->nmat),&st->A);CHKERRQ(ierr);
+  ierr = PetscFree(st->Astate);CHKERRQ(ierr);
   ierr = MatDestroy(&st->P);CHKERRQ(ierr);
   ierr = VecDestroy(&st->w);CHKERRQ(ierr);
   ierr = VecDestroy(&st->wb);CHKERRQ(ierr);
@@ -159,8 +161,6 @@ PetscErrorCode STDestroy(ST *st)
   PetscValidHeaderSpecific(*st,ST_CLASSID,1);
   if (--((PetscObject)(*st))->refct > 0) { *st = 0; PetscFunctionReturn(0); }
   ierr = STReset(*st);CHKERRQ(ierr);
-  ierr = MatDestroyMatrices(PetscMax(2,(*st)->nmat),&(*st)->A);CHKERRQ(ierr);
-  ierr = PetscFree((*st)->Astate);CHKERRQ(ierr);
   if ((*st)->ops->destroy) { ierr = (*(*st)->ops->destroy)(*st);CHKERRQ(ierr); }
   ierr = KSPDestroy(&(*st)->ksp);CHKERRQ(ierr);
   ierr = PetscHeaderDestroy(st);CHKERRQ(ierr);

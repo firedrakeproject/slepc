@@ -1174,7 +1174,10 @@ PetscErrorCode EPSSetBalance(EPS eps,EPSBalance bal,PetscInt its,PetscReal cutof
     case EPS_BALANCE_ONESIDE:
     case EPS_BALANCE_TWOSIDE:
     case EPS_BALANCE_USER:
-      eps->balance = bal;
+      if (eps->balance != bal) {
+        eps->state = EPS_STATE_INITIAL;
+        eps->balance = bal;
+      }
       break;
     default:
       SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"Invalid value of argument 'bal'");

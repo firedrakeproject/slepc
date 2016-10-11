@@ -261,10 +261,15 @@ PetscErrorCode PEPSetOperators(PEP pep,PetscInt nmat,Mat A[])
   PetscValidPointer(A,3);
 
   if (pep->state) { ierr = PEPReset(pep);CHKERRQ(ierr); }
+  else if (pep->nmat) {
+    ierr = MatDestroyMatrices(pep->nmat,&pep->A);CHKERRQ(ierr);
+    ierr = PetscFree2(pep->pbc,pep->nrma);CHKERRQ(ierr);
+  }
+
   ierr = PetscMalloc1(nmat,&pep->A);CHKERRQ(ierr);
   ierr = PetscCalloc2(3*nmat,&pep->pbc,nmat,&pep->nrma);CHKERRQ(ierr);
   for (i=0;i<nmat;i++) pep->pbc[i] = 1.0;  /* default to monomial basis */
-  ierr = PetscLogObjectMemory((PetscObject)pep,nmat*sizeof(Mat)+4*nmat*sizeof(PetscReal)+nmat*sizeof(PetscScalar));CHKERRQ(ierr);
+  ierr = PetscLogObjectMemory((PetscObject)pep,nmat*sizeof(Mat)+4*nmat*sizeof(PetscReal));CHKERRQ(ierr);
   for (i=0;i<nmat;i++) {
     PetscValidHeaderSpecific(A[i],MAT_CLASSID,3);
     PetscCheckSameComm(pep,1,A[i],3);
@@ -276,6 +281,7 @@ PetscErrorCode PEPSetOperators(PEP pep,PetscInt nmat,Mat A[])
     pep->A[i] = A[i];
   }
   pep->nmat = nmat;
+  pep->state = PEP_STATE_INITIAL;
   PetscFunctionReturn(0);
 }
 
