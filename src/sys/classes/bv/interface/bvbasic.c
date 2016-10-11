@@ -849,11 +849,14 @@ PetscErrorCode BVSetFromOptions(BV bv)
       ierr = BVSetType(bv,BVSVEC);CHKERRQ(ierr);
     }
 
-    ierr = PetscOptionsEnum("-bv_orthog_type","Orthogonalization method","BVSetOrthogonalization",BVOrthogTypes,(PetscEnum)bv->orthog_type,(PetscEnum*)&otype,&flg1);CHKERRQ(ierr);
-    ierr = PetscOptionsEnum("-bv_orthog_refine","Iterative refinement mode during orthogonalization","BVSetOrthogonalization",BVOrthogRefineTypes,(PetscEnum)bv->orthog_ref,(PetscEnum*)&orefine,&flg2);CHKERRQ(ierr);
+    otype = bv->orthog_type;
+    ierr = PetscOptionsEnum("-bv_orthog_type","Orthogonalization method","BVSetOrthogonalization",BVOrthogTypes,(PetscEnum)otype,(PetscEnum*)&otype,&flg1);CHKERRQ(ierr);
+    orefine = bv->orthog_ref;
+    ierr = PetscOptionsEnum("-bv_orthog_refine","Iterative refinement mode during orthogonalization","BVSetOrthogonalization",BVOrthogRefineTypes,(PetscEnum)orefine,(PetscEnum*)&orefine,&flg2);CHKERRQ(ierr);
     r = bv->orthog_eta;
     ierr = PetscOptionsReal("-bv_orthog_eta","Parameter of iterative refinement during orthogonalization","BVSetOrthogonalization",r,&r,&flg3);CHKERRQ(ierr);
-    ierr = PetscOptionsEnum("-bv_orthog_block","Block orthogonalization method","BVSetOrthogonalization",BVOrthogBlockTypes,(PetscEnum)bv->orthog_block,(PetscEnum*)&oblock,&flg4);CHKERRQ(ierr);
+    oblock = bv->orthog_block;
+    ierr = PetscOptionsEnum("-bv_orthog_block","Block orthogonalization method","BVSetOrthogonalization",BVOrthogBlockTypes,(PetscEnum)oblock,(PetscEnum*)&oblock,&flg4);CHKERRQ(ierr);
     if (flg1 || flg2 || flg3 || flg4) { ierr = BVSetOrthogonalization(bv,otype,orefine,r,oblock);CHKERRQ(ierr); }
 
     ierr = PetscOptionsEnum("-bv_matmult","Method for BVMatMult","BVSetMatMultMethod",BVMatMultTypes,(PetscEnum)bv->vmm,(PetscEnum*)&bv->vmm,NULL);CHKERRQ(ierr);

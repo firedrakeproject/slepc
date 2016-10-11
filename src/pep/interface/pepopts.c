@@ -151,7 +151,8 @@ PetscErrorCode PEPSetFromOptions(PEP pep)
     ierr = PetscOptionsBoolGroupEnd("-pep_gyroscopic","Gyroscopic polynomial eigenvalue problem","PEPSetProblemType",&flg);CHKERRQ(ierr);
     if (flg) { ierr = PEPSetProblemType(pep,PEP_GYROSCOPIC);CHKERRQ(ierr); }
 
-    ierr = PetscOptionsEnum("-pep_scale","Scaling strategy","PEPSetScale",PEPScaleTypes,(PetscEnum)pep->scale,(PetscEnum*)&scale,&flg1);CHKERRQ(ierr);
+    scale = pep->scale;
+    ierr = PetscOptionsEnum("-pep_scale","Scaling strategy","PEPSetScale",PEPScaleTypes,(PetscEnum)scale,(PetscEnum*)&scale,&flg1);CHKERRQ(ierr);
     r = pep->sfactor;
     ierr = PetscOptionsReal("-pep_scale_factor","Scale factor","PEPSetScale",pep->sfactor,&r,&flg2);CHKERRQ(ierr);
     if (!flg2 && r==1.0) r = PETSC_DEFAULT;
@@ -163,14 +164,16 @@ PetscErrorCode PEPSetFromOptions(PEP pep)
 
     ierr = PetscOptionsEnum("-pep_extract","Extraction method","PEPSetExtract",PEPExtractTypes,(PetscEnum)pep->extract,(PetscEnum*)&pep->extract,NULL);CHKERRQ(ierr);
 
-    ierr = PetscOptionsEnum("-pep_refine","Iterative refinement method","PEPSetRefine",PEPRefineTypes,(PetscEnum)pep->refine,(PetscEnum*)&refine,&flg1);CHKERRQ(ierr);
+    refine = pep->refine;
+    ierr = PetscOptionsEnum("-pep_refine","Iterative refinement method","PEPSetRefine",PEPRefineTypes,(PetscEnum)refine,(PetscEnum*)&refine,&flg1);CHKERRQ(ierr);
     i = pep->npart;
     ierr = PetscOptionsInt("-pep_refine_partitions","Number of partitions of the communicator for iterative refinement","PEPSetRefine",pep->npart,&i,&flg2);CHKERRQ(ierr);
     r = pep->rtol;
     ierr = PetscOptionsReal("-pep_refine_tol","Tolerance for iterative refinement","PEPSetRefine",pep->rtol==PETSC_DEFAULT?SLEPC_DEFAULT_TOL/1000:pep->rtol,&r,&flg3);CHKERRQ(ierr);
     j = pep->rits;
     ierr = PetscOptionsInt("-pep_refine_its","Maximum number of iterations for iterative refinement","PEPSetRefine",pep->rits,&j,&flg4);CHKERRQ(ierr);
-    ierr = PetscOptionsEnum("-pep_refine_scheme","Scheme used for linear systems within iterative refinement","PEPSetRefine",PEPRefineSchemes,(PetscEnum)pep->scheme,(PetscEnum*)&scheme,&flg5);CHKERRQ(ierr);
+    scheme = pep->scheme;
+    ierr = PetscOptionsEnum("-pep_refine_scheme","Scheme used for linear systems within iterative refinement","PEPSetRefine",PEPRefineSchemes,(PetscEnum)scheme,(PetscEnum*)&scheme,&flg5);CHKERRQ(ierr);
     if (flg1 || flg2 || flg3 || flg4 || flg5) { ierr = PEPSetRefine(pep,refine,i,r,j,scheme);CHKERRQ(ierr); }
 
     i = pep->max_it? pep->max_it: PETSC_DEFAULT;
