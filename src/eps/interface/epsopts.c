@@ -170,7 +170,8 @@ PetscErrorCode EPSSetFromOptions(EPS eps)
     ierr = PetscOptionsBoolGroupEnd("-eps_refined_harmonic","Refined harmonic Ritz extraction","EPSSetExtraction",&flg);CHKERRQ(ierr);
     if (flg) { ierr = EPSSetExtraction(eps,EPS_REFINED_HARMONIC);CHKERRQ(ierr); }
 
-    ierr = PetscOptionsEnum("-eps_balance","Balancing method","EPSSetBalance",EPSBalanceTypes,(PetscEnum)eps->balance,(PetscEnum*)&bal,&flg1);CHKERRQ(ierr);
+    bal = eps->balance;
+    ierr = PetscOptionsEnum("-eps_balance","Balancing method","EPSSetBalance",EPSBalanceTypes,(PetscEnum)bal,(PetscEnum*)&bal,&flg1);CHKERRQ(ierr);
     j = eps->balance_its;
     ierr = PetscOptionsInt("-eps_balance_its","Number of iterations in balancing","EPSSetBalance",eps->balance_its,&j,&flg2);CHKERRQ(ierr);
     r = eps->balance_cutoff;

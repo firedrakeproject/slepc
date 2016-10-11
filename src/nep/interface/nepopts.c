@@ -143,14 +143,16 @@ PetscErrorCode NEPSetFromOptions(NEP nep)
       ierr = NEPSetType(nep,NEPRII);CHKERRQ(ierr);
     }
 
-    ierr = PetscOptionsEnum("-nep_refine","Iterative refinement method","NEPSetRefine",NEPRefineTypes,(PetscEnum)nep->refine,(PetscEnum*)&refine,&flg1);CHKERRQ(ierr);
+    refine = nep->refine;
+    ierr = PetscOptionsEnum("-nep_refine","Iterative refinement method","NEPSetRefine",NEPRefineTypes,(PetscEnum)refine,(PetscEnum*)&refine,&flg1);CHKERRQ(ierr);
     i = nep->npart;
     ierr = PetscOptionsInt("-nep_refine_partitions","Number of partitions of the communicator for iterative refinement","NEPSetRefine",nep->npart,&i,&flg2);CHKERRQ(ierr);
     r = nep->rtol;
     ierr = PetscOptionsReal("-nep_refine_tol","Tolerance for iterative refinement","NEPSetRefine",nep->rtol==PETSC_DEFAULT?SLEPC_DEFAULT_TOL/1000:nep->rtol,&r,&flg3);CHKERRQ(ierr);
     j = nep->rits;
     ierr = PetscOptionsInt("-nep_refine_its","Maximum number of iterations for iterative refinement","NEPSetRefine",nep->rits,&j,&flg4);CHKERRQ(ierr);
-    ierr = PetscOptionsEnum("-nep_refine_scheme","Scheme used for linear systems within iterative refinement","NEPSetRefine",NEPRefineSchemes,(PetscEnum)nep->scheme,(PetscEnum*)&scheme,&flg5);CHKERRQ(ierr);
+    scheme = nep->scheme;
+    ierr = PetscOptionsEnum("-nep_refine_scheme","Scheme used for linear systems within iterative refinement","NEPSetRefine",NEPRefineSchemes,(PetscEnum)scheme,(PetscEnum*)&scheme,&flg5);CHKERRQ(ierr);
     if (flg1 || flg2 || flg3 || flg4 || flg5) { ierr = NEPSetRefine(nep,refine,i,r,j,scheme);CHKERRQ(ierr); }
 
     i = nep->max_it? nep->max_it: PETSC_DEFAULT;
