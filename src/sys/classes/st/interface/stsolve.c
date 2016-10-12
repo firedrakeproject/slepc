@@ -273,12 +273,20 @@ PetscErrorCode STSetUp(ST st)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
   STCheckMatrices(st,1);
-  if (st->state==ST_STATE_SETUP) PetscFunctionReturn(0);
-  ierr = PetscInfo(st,"Setting up new ST\n");CHKERRQ(ierr);
-  ierr = PetscLogEventBegin(ST_SetUp,st,0,0,0);CHKERRQ(ierr);
-  if (!((PetscObject)st)->type_name) {
-    ierr = STSetType(st,STSHIFT);CHKERRQ(ierr);
+  switch (st->state) {
+    case ST_STATE_INITIAL:
+      ierr = PetscInfo(st,"Setting up new ST\n");CHKERRQ(ierr);
+      if (!((PetscObject)st)->type_name) {
+        ierr = STSetType(st,STSHIFT);CHKERRQ(ierr);
+      }
+      break;
+    case ST_STATE_SETUP:
+      PetscFunctionReturn(0);
+    case ST_STATE_UPDATED:
+      ierr = PetscInfo(st,"Setting up updated ST\n");CHKERRQ(ierr);
+      break;
   }
+  ierr = PetscLogEventBegin(ST_SetUp,st,0,0,0);CHKERRQ(ierr);
   if (!st->T) {
     ierr = PetscMalloc1(PetscMax(2,st->nmat),&st->T);CHKERRQ(ierr);
     ierr = PetscLogObjectMemory((PetscObject)st,PetscMax(2,st->nmat)*sizeof(Mat));CHKERRQ(ierr);
@@ -298,6 +306,7 @@ PetscErrorCode STSetUp(ST st)
       ierr = PetscLogObjectParent((PetscObject)st,(PetscObject)st->wb);CHKERRQ(ierr);
     }
   }
+  ierr = STSetDefaultKSP(st);CHKERRQ(ierr);
   if (st->ops->setup) { ierr = (*st->ops->setup)(st);CHKERRQ(ierr); }
   st->state = ST_STATE_SETUP;
   ierr = PetscLogEventEnd(ST_SetUp,st,0,0,0);CHKERRQ(ierr);
@@ -504,7 +513,6 @@ PetscErrorCode STBackTransform(ST st,PetscInt n,PetscScalar* eigr,PetscScalar* e
 PetscErrorCode STMatSetUp(ST st,PetscScalar sigma,PetscScalar *coeffs)
 {
   PetscErrorCode ierr;
-  PetscBool      flg;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
@@ -516,10 +524,6 @@ PetscErrorCode STMatSetUp(ST st,PetscScalar sigma,PetscScalar *coeffs)
   if (!st->ksp) { ierr = STGetKSP(st,&st->ksp);CHKERRQ(ierr); }
   ierr = STCheckFactorPackage(st);CHKERRQ(ierr);
   ierr = KSPSetOperators(st->ksp,st->P,st->P);CHKERRQ(ierr);
-  ierr = PetscObjectTypeCompare((PetscObject)st,STPRECOND,&flg);CHKERRQ(ierr);
-  if (!flg) {
-    ierr = KSPSetErrorIfNotConverged(st->ksp,PETSC_TRUE);CHKERRQ(ierr);
-  }
   ierr = KSPSetUp(st->ksp);CHKERRQ(ierr);
   ierr = PetscLogEventEnd(ST_MatSetUp,st,0,0,0);CHKERRQ(ierr);
   PetscFunctionReturn(0);

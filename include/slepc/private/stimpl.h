@@ -44,6 +44,7 @@ struct _STOps {
   PetscErrorCode (*reset)(ST);
   PetscErrorCode (*view)(ST,PetscViewer);
   PetscErrorCode (*checknullspace)(ST,BV);
+  PetscErrorCode (*setdefaultksp)(ST);
 };
 
 /*
@@ -119,5 +120,7 @@ PETSC_INTERN PetscErrorCode STMatSetHermitian(ST,Mat);
 PETSC_INTERN PetscErrorCode STCheckFactorPackage(ST);
 PETSC_INTERN PetscErrorCode STMatMAXPY_Private(ST,PetscScalar,PetscScalar,PetscInt,PetscScalar*,PetscBool,Mat*);
 PETSC_INTERN PetscErrorCode STCoeffs_Monomial(ST,PetscScalar*);
+PETSC_INTERN PetscErrorCode STSetDefaultKSP(ST);
+PETSC_INTERN PetscErrorCode STSetDefaultKSP_Default(ST);
 
 #endif

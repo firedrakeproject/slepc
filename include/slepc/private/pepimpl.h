@@ -42,6 +42,7 @@ struct _PEPOps {
   PetscErrorCode (*backtransform)(PEP);
   PetscErrorCode (*computevectors)(PEP);
   PetscErrorCode (*extractvectors)(PEP);
+  PetscErrorCode (*setdefaultst)(PEP);
 };
 
 /*
@@ -159,5 +160,6 @@ PETSC_INTERN PetscErrorCode PEPBasisCoefficients(PEP,PetscReal*);
 PETSC_INTERN PetscErrorCode PEPEvaluateBasis(PEP,PetscScalar,PetscScalar,PetscScalar*,PetscScalar*);
 PETSC_INTERN PetscErrorCode PEPNewtonRefinement_TOAR(PEP,PetscScalar,PetscInt*,PetscReal*,PetscInt,PetscScalar*,PetscInt);
 PETSC_INTERN PetscErrorCode PEPNewtonRefinementSimple(PEP,PetscInt*,PetscReal,PetscInt);
+PETSC_INTERN PetscErrorCode PEPSetDefaultST(PEP);
 
 #endif

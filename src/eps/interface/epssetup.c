@@ -24,6 +24,49 @@
 #include <slepc/private/epsimpl.h>       /*I "slepceps.h" I*/
 
 #undef __FUNCT__
+#define __FUNCT__ "EPSSetDefaultST"
+/*
+   Let the solver choose the ST type that should be used by default,
+   otherwise set it to SHIFT.
+   This is called at EPSSetFromOptions (before STSetFromOptions)
+   and also at EPSSetUp (in case EPSSetFromOptions was not called).
+*/
+PetscErrorCode EPSSetDefaultST(EPS eps)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  if (eps->ops->setdefaultst) { ierr = (*eps->ops->setdefaultst)(eps);CHKERRQ(ierr); }
+  if (!((PetscObject)eps->st)->type_name) {
+    ierr = STSetType(eps->st,STSHIFT);CHKERRQ(ierr);
+  }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "EPSSetDefaultST_Precond"
+/*
+   This is done by all preconditioned eigensolvers, except JD.
+   It sets STPRECOND with KSPPREONLY.
+*/
+PetscErrorCode EPSSetDefaultST_Precond(EPS eps)
+{
+  PetscErrorCode ierr;
+  KSP            ksp;
+
+  PetscFunctionBegin;
+  if (!((PetscObject)eps->st)->type_name) {
+    ierr = STSetType(eps->st,STPRECOND);CHKERRQ(ierr);
+    ierr = STPrecondSetKSPHasMat(eps->st,PETSC_TRUE);CHKERRQ(ierr);
+  }
+  ierr = STGetKSP(eps->st,&ksp);CHKERRQ(ierr);
+  if (!((PetscObject)ksp)->type_name) {
+    ierr = KSPSetType(ksp,KSPPREONLY);CHKERRQ(ierr);
+  }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
 #define __FUNCT__ "EPSSetUp"
 /*@
    EPSSetUp - Sets up all the internal data structures necessary for the
@@ -68,10 +111,7 @@ PetscErrorCode EPSSetUp(EPS eps)
     ierr = EPSSetType(eps,EPSKRYLOVSCHUR);CHKERRQ(ierr);
   }
   if (!eps->st) { ierr = EPSGetST(eps,&eps->st);CHKERRQ(ierr); }
-  if (!((PetscObject)eps->st)->type_name) {
-    ierr = PetscObjectTypeCompareAny((PetscObject)eps,&flg,EPSGD,EPSJD,EPSRQCG,EPSBLOPEX,EPSPRIMME,"");CHKERRQ(ierr);
-    ierr = STSetType(eps->st,flg?STPRECOND:STSHIFT);CHKERRQ(ierr);
-  }
+  ierr = EPSSetDefaultST(eps);CHKERRQ(ierr);
   ierr = STSetTransform(eps->st,PETSC_TRUE);CHKERRQ(ierr);
   if (!eps->ds) { ierr = EPSGetDS(eps,&eps->ds);CHKERRQ(ierr); }
   if (!eps->rg) { ierr = EPSGetRG(eps,&eps->rg);CHKERRQ(ierr); }

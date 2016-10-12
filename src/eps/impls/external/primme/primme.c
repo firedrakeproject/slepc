@@ -23,8 +23,6 @@
 
 #include <slepc/private/epsimpl.h>    /*I "slepceps.h" I*/
 
-PetscErrorCode EPSSolve_PRIMME(EPS);
-
 #include <primme.h>
 
 #if defined(PETSC_USE_COMPLEX)
@@ -80,11 +78,10 @@ PetscErrorCode EPSSetUp_PRIMME(EPS eps)
   if (eps->arbitrary) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Arbitrary selection of eigenpairs not supported in this solver");
   if (eps->stopping!=EPSStoppingBasic) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"External packages do not support user-defined stopping test");
   if (!eps->which) eps->which = EPS_LARGEST_REAL;
-  if (eps->converged != EPSConvergedAbsolute) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"PRIMME only supports absolute convergence test");
+  if (eps->converged != EPSConvergedAbsolute) { ierr = PetscInfo(eps,"Warning: using absolute convergence test\n");CHKERRQ(ierr); }
   ierr = RGIsTrivial(eps->rg,&istrivial);CHKERRQ(ierr);
   if (!istrivial) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"This solver does not support region filtering");
 
-  ierr = STSetUp(eps->st);CHKERRQ(ierr);
   ierr = PetscObjectTypeCompare((PetscObject)eps->st,STPRECOND,&flg);CHKERRQ(ierr);
   if (!flg) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"PRIMME only works with STPRECOND");
 
@@ -151,9 +148,6 @@ PetscErrorCode EPSSetUp_PRIMME(EPS eps)
     ierr = PetscLogObjectParent((PetscObject)eps,(PetscObject)ops->x);CHKERRQ(ierr);
     ierr = PetscLogObjectParent((PetscObject)eps,(PetscObject)ops->y);CHKERRQ(ierr);
   }
-
-  /* dispatch solve method */
-  eps->ops->solve = EPSSolve_PRIMME;
   PetscFunctionReturn(0);
 }
 
@@ -300,7 +294,6 @@ PetscErrorCode EPSSetFromOptions_PRIMME(PetscOptionItems *PetscOptionsObject,EPS
   PetscInt        bs;
   EPSPRIMMEMethod meth;
   PetscBool       flg;
-  KSP             ksp;
 
   PetscFunctionBegin;
   ierr = PetscOptionsHead(PetscOptionsObject,"EPS PRIMME Options");CHKERRQ(ierr);
@@ -312,18 +305,6 @@ PetscErrorCode EPSSetFromOptions_PRIMME(PetscOptionItems *PetscOptionsObject,EPS
     if (flg) { ierr = EPSPRIMMESetMethod(eps,meth);CHKERRQ(ierr); }
 
   ierr = PetscOptionsTail();CHKERRQ(ierr);
-
-  /* Set STPrecond as the default ST */
-  if (!((PetscObject)eps->st)->type_name) {
-    ierr = STSetType(eps->st,STPRECOND);CHKERRQ(ierr);
-  }
-  ierr = STPrecondSetKSPHasMat(eps->st,PETSC_TRUE);CHKERRQ(ierr);
-
-  /* Set the default options of the KSP */
-  ierr = STGetKSP(eps->st,&ksp);CHKERRQ(ierr);
-  if (!((PetscObject)ksp)->type_name) {
-    ierr = KSPSetType(ksp,KSPPREONLY);CHKERRQ(ierr);
-  }
   PetscFunctionReturn(0);
 }
 
@@ -510,17 +491,19 @@ PETSC_EXTERN PetscErrorCode EPSCreate_PRIMME(EPS eps)
   ierr = PetscNewLog(eps,&primme);CHKERRQ(ierr);
   eps->data = (void*)primme;
 
+  primme_initialize(&primme->primme);
+  primme->primme.matrixMatvec = multMatvec_PRIMME;
+  primme->primme.globalSumReal = par_GlobalSumReal;
+  primme->method = (primme_preset_method)EPS_PRIMME_DEFAULT_MIN_TIME;
+
+  eps->ops->solve          = EPSSolve_PRIMME;
   eps->ops->setup          = EPSSetUp_PRIMME;
   eps->ops->setfromoptions = EPSSetFromOptions_PRIMME;
   eps->ops->destroy        = EPSDestroy_PRIMME;
   eps->ops->reset          = EPSReset_PRIMME;
   eps->ops->view           = EPSView_PRIMME;
   eps->ops->backtransform  = EPSBackTransform_Default;
-
-  primme_initialize(&primme->primme);
-  primme->primme.matrixMatvec = multMatvec_PRIMME;
-  primme->primme.globalSumReal = par_GlobalSumReal;
-  primme->method = (primme_preset_method)EPS_PRIMME_DEFAULT_MIN_TIME;
+  eps->ops->setdefaultst   = EPSSetDefaultST_Precond;
 
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSPRIMMESetBlockSize_C",EPSPRIMMESetBlockSize_PRIMME);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSPRIMMESetMethod_C",EPSPRIMMESetMethod_PRIMME);CHKERRQ(ierr);

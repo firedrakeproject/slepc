@@ -48,7 +48,6 @@ PetscErrorCode EPSSetFromOptions_GD(PetscOptionItems *PetscOptionsObject,EPS eps
   PetscErrorCode ierr;
   PetscBool      flg,flg2,op,orth;
   PetscInt       opi,opi0;
-  KSP            ksp;
 
   PetscFunctionBegin;
   ierr = PetscOptionsHead(PetscOptionsObject,"EPS Generalized Davidson (GD) Options");CHKERRQ(ierr);
@@ -83,18 +82,6 @@ PetscErrorCode EPSSetFromOptions_GD(PetscOptionItems *PetscOptionsObject,EPS eps
     if (flg) { ierr = EPSGDSetDoubleExpansion(eps,op);CHKERRQ(ierr); }
 
   ierr = PetscOptionsTail();CHKERRQ(ierr);
-
-  /* Set STPrecond as the default ST */
-  if (!((PetscObject)eps->st)->type_name) {
-    ierr = STSetType(eps->st,STPRECOND);CHKERRQ(ierr);
-  }
-  ierr = STPrecondSetKSPHasMat(eps->st,PETSC_FALSE);CHKERRQ(ierr);
-
-  /* Set the default options of the KSP */
-  ierr = STGetKSP(eps->st,&ksp);CHKERRQ(ierr);
-  if (!((PetscObject)ksp)->type_name) {
-    ierr = KSPSetType(ksp,KSPPREONLY);CHKERRQ(ierr);
-  }
   PetscFunctionReturn(0);
 }
 
@@ -107,16 +94,11 @@ PetscErrorCode EPSSetUp_GD(EPS eps)
   KSP            ksp;
 
   PetscFunctionBegin;
-  /* Set KSPPREONLY as default */
-  ierr = STGetKSP(eps->st,&ksp);CHKERRQ(ierr);
-  if (!((PetscObject)ksp)->type_name) {
-    ierr = KSPSetType(ksp,KSPPREONLY);CHKERRQ(ierr);
-  }
-
   /* Setup common for all davidson solvers */
   ierr = EPSSetUp_XD(eps);CHKERRQ(ierr);
 
   /* Check some constraints */
+  ierr = STGetKSP(eps->st,&ksp);CHKERRQ(ierr);
   ierr = PetscObjectTypeCompare((PetscObject)ksp,KSPPREONLY,&t);CHKERRQ(ierr);
   if (!t) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"EPSGD only works with KSPPREONLY");
   PetscFunctionReturn(0);
@@ -666,14 +648,14 @@ PETSC_EXTERN PetscErrorCode EPSCreate_GD(EPS eps)
   data->cX_in_impr  = 0;
 
   eps->ops->solve          = EPSSolve_XD;
-  eps->ops->setup          = EPSSetUp_XD;
+  eps->ops->setup          = EPSSetUp_GD;
+  eps->ops->setfromoptions = EPSSetFromOptions_GD;
+  eps->ops->destroy        = EPSDestroy_GD;
   eps->ops->reset          = EPSReset_XD;
+  eps->ops->view           = EPSView_GD;
   eps->ops->backtransform  = EPSBackTransform_Default;
   eps->ops->computevectors = EPSComputeVectors_XD;
-  eps->ops->view           = EPSView_GD;
-  eps->ops->setfromoptions = EPSSetFromOptions_GD;
-  eps->ops->setup          = EPSSetUp_GD;
-  eps->ops->destroy        = EPSDestroy_GD;
+  eps->ops->setdefaultst   = EPSSetDefaultST_Precond;
 
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSGDSetKrylovStart_C",EPSXDSetKrylovStart_XD);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSGDGetKrylovStart_C",EPSXDGetKrylovStart_XD);CHKERRQ(ierr);

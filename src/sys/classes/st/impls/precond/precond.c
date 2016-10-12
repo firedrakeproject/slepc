@@ -28,19 +28,17 @@ typedef struct {
 } ST_PRECOND;
 
 #undef __FUNCT__
-#define __FUNCT__ "STSetDefaultPrecond"
-static PetscErrorCode STSetDefaultPrecond(ST st)
+#define __FUNCT__ "STSetDefaultKSP_Precond"
+static PetscErrorCode STSetDefaultKSP_Precond(ST st)
 {
   PetscErrorCode ierr;
   PC             pc;
   PCType         pctype;
   Mat            P;
   PetscBool      t0,t1;
-  KSP            ksp;
 
   PetscFunctionBegin;
-  ierr = STGetKSP(st,&ksp);CHKERRQ(ierr);
-  ierr = KSPGetPC(ksp,&pc);CHKERRQ(ierr);
+  ierr = KSPGetPC(st->ksp,&pc);CHKERRQ(ierr);
   ierr = PetscObjectGetType((PetscObject)pc,&pctype);CHKERRQ(ierr);
   ierr = STPrecondGetMatForPC(st,&P);CHKERRQ(ierr);
   if (!pctype && st->A && st->A[0]) {
@@ -58,20 +56,6 @@ static PetscErrorCode STSetDefaultPrecond(ST st)
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "STSetFromOptions_Precond"
-PetscErrorCode STSetFromOptions_Precond(PetscOptionItems *PetscOptionsObject,ST st)
-{
-  PetscErrorCode ierr;
-
-  PetscFunctionBegin;
-  ierr = PetscOptionsHead(PetscOptionsObject,"ST Precond Options");CHKERRQ(ierr);
-  ierr = PetscOptionsTail();CHKERRQ(ierr);
-
-  ierr = STSetDefaultPrecond(st);CHKERRQ(ierr);
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
 #define __FUNCT__ "STSetUp_Precond"
 PetscErrorCode STSetUp_Precond(ST st)
 {
@@ -85,7 +69,6 @@ PetscErrorCode STSetUp_Precond(ST st)
   if (!st->sigma_set) st->sigma = st->defsigma;
 
   /* If either pc is none and no matrix has to be set, or pc is shell , exit */
-  ierr = STSetDefaultPrecond(st);CHKERRQ(ierr);
   if (!st->ksp) { ierr = STGetKSP(st,&st->ksp);CHKERRQ(ierr); }
   ierr = KSPGetPC(st->ksp,&pc);CHKERRQ(ierr);
   ierr = PetscObjectTypeCompare((PetscObject)pc,PCSHELL,&t0);CHKERRQ(ierr);
@@ -395,7 +378,7 @@ PETSC_EXTERN PetscErrorCode STCreate_Precond(ST st)
   st->ops->setup           = STSetUp_Precond;
   st->ops->setshift        = STSetShift_Precond;
   st->ops->destroy         = STDestroy_Precond;
-  st->ops->setfromoptions  = STSetFromOptions_Precond;
+  st->ops->setdefaultksp   = STSetDefaultKSP_Precond;
 
   ierr = PetscObjectComposeFunction((PetscObject)st,"STPrecondGetMatForPC_C",STPrecondGetMatForPC_Precond);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)st,"STPrecondSetMatForPC_C",STPrecondSetMatForPC_Precond);CHKERRQ(ierr);

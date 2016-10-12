@@ -35,8 +35,6 @@
 
 #include <slepc/private/epsimpl.h>                /*I "slepceps.h" I*/
 
-PetscErrorCode EPSSolve_Arnoldi(EPS);
-
 typedef struct {
   PetscBool delayed;
 } EPS_ARNOLDI;
@@ -68,9 +66,7 @@ PetscErrorCode EPSSetUp_Arnoldi(EPS eps)
   ierr = DSSetExtraRow(eps->ds,PETSC_TRUE);CHKERRQ(ierr);
   ierr = DSAllocate(eps->ds,eps->ncv+1);CHKERRQ(ierr);
 
-  /* dispatch solve method */
   if (eps->isgeneralized && eps->ishermitian && !eps->ispositive) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Requested method does not work for indefinite problems");
-  eps->ops->solve = EPSSolve_Arnoldi;
   PetscFunctionReturn(0);
 }
 
@@ -302,12 +298,14 @@ PETSC_EXTERN PetscErrorCode EPSCreate_Arnoldi(EPS eps)
   ierr = PetscNewLog(eps,&ctx);CHKERRQ(ierr);
   eps->data = (void*)ctx;
 
-  eps->ops->setup                = EPSSetUp_Arnoldi;
-  eps->ops->setfromoptions       = EPSSetFromOptions_Arnoldi;
-  eps->ops->destroy              = EPSDestroy_Arnoldi;
-  eps->ops->view                 = EPSView_Arnoldi;
-  eps->ops->backtransform        = EPSBackTransform_Default;
-  eps->ops->computevectors       = EPSComputeVectors_Schur;
+  eps->ops->solve          = EPSSolve_Arnoldi;
+  eps->ops->setup          = EPSSetUp_Arnoldi;
+  eps->ops->setfromoptions = EPSSetFromOptions_Arnoldi;
+  eps->ops->destroy        = EPSDestroy_Arnoldi;
+  eps->ops->view           = EPSView_Arnoldi;
+  eps->ops->backtransform  = EPSBackTransform_Default;
+  eps->ops->computevectors = EPSComputeVectors_Schur;
+
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSArnoldiSetDelayed_C",EPSArnoldiSetDelayed_Arnoldi);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSArnoldiGetDelayed_C",EPSArnoldiGetDelayed_Arnoldi);CHKERRQ(ierr);
   PetscFunctionReturn(0);

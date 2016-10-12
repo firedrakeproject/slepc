@@ -64,10 +64,6 @@ PetscErrorCode EPSSetUp_RQCG(EPS eps)
     ierr = EPSSetExtraction(eps,EPS_RITZ);CHKERRQ(ierr);
   } else if (eps->extraction!=EPS_RITZ) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Unsupported extraction type");
   if (eps->arbitrary) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Arbitrary selection of eigenpairs not supported in this solver");
-  /* Set STPrecond as the default ST */
-  if (!((PetscObject)eps->st)->type_name) {
-    ierr = STSetType(eps->st,STPRECOND);CHKERRQ(ierr);
-  }
   ierr = PetscObjectTypeCompare((PetscObject)eps->st,STPRECOND,&precond);CHKERRQ(ierr);
   if (!precond) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"RQCG only works with precond ST");
 
@@ -414,8 +410,10 @@ PetscErrorCode EPSSetFromOptions_RQCG(PetscOptionItems *PetscOptionsObject,EPS e
 
   PetscFunctionBegin;
   ierr = PetscOptionsHead(PetscOptionsObject,"EPS RQCG Options");CHKERRQ(ierr);
+
     ierr = PetscOptionsInt("-eps_rqcg_reset","Reset parameter","EPSRQCGSetReset",20,&nrest,&flg);CHKERRQ(ierr);
     if (flg) { ierr = EPSRQCGSetReset(eps,nrest);CHKERRQ(ierr); }
+
   ierr = PetscOptionsTail();CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -460,15 +458,15 @@ PETSC_EXTERN PetscErrorCode EPSCreate_RQCG(EPS eps)
   ierr = PetscNewLog(eps,&rqcg);CHKERRQ(ierr);
   eps->data = (void*)rqcg;
 
-  eps->ops->setup          = EPSSetUp_RQCG;
   eps->ops->solve          = EPSSolve_RQCG;
+  eps->ops->setup          = EPSSetUp_RQCG;
   eps->ops->setfromoptions = EPSSetFromOptions_RQCG;
   eps->ops->destroy        = EPSDestroy_RQCG;
   eps->ops->reset          = EPSReset_RQCG;
   eps->ops->view           = EPSView_RQCG;
   eps->ops->backtransform  = EPSBackTransform_Default;
-  ierr = STSetType(eps->st,STPRECOND);CHKERRQ(ierr);
-  ierr = STPrecondSetKSPHasMat(eps->st,PETSC_TRUE);CHKERRQ(ierr);
+  eps->ops->setdefaultst   = EPSSetDefaultST_Precond;
+
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSRQCGSetReset_C",EPSRQCGSetReset_RQCG);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSRQCGGetReset_C",EPSRQCGGetReset_RQCG);CHKERRQ(ierr);
   PetscFunctionReturn(0);

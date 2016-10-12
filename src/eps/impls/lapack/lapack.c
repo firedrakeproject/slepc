@@ -169,9 +169,9 @@ PetscErrorCode EPSSolve_LAPACK(EPS eps)
 PETSC_EXTERN PetscErrorCode EPSCreate_LAPACK(EPS eps)
 {
   PetscFunctionBegin;
-  eps->ops->solve                = EPSSolve_LAPACK;
-  eps->ops->setup                = EPSSetUp_LAPACK;
-  eps->ops->backtransform        = EPSBackTransform_Default;
+  eps->ops->solve          = EPSSolve_LAPACK;
+  eps->ops->setup          = EPSSetUp_LAPACK;
+  eps->ops->backtransform  = EPSBackTransform_Default;
   PetscFunctionReturn(0);
 }
 

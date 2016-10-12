@@ -297,6 +297,7 @@ PetscErrorCode EPSSetFromOptions(EPS eps)
   if (!eps->ds) { ierr = EPSGetDS(eps,&eps->ds);CHKERRQ(ierr); }
   ierr = DSSetFromOptions(eps->ds);CHKERRQ(ierr);
   if (!eps->st) { ierr = EPSGetST(eps,&eps->st);CHKERRQ(ierr); }
+  ierr = EPSSetDefaultST(eps);CHKERRQ(ierr);
   ierr = STSetFromOptions(eps->st);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

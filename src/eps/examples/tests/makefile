@@ -68,6 +68,7 @@ TESTEXAMPLES_BLZPACK               = test4.PETSc runtest4_2_blzpack test4.rm \
 TESTEXAMPLES_BLOPEX                = test5.PETSc runtest5_2_blopex test5.rm \
                                      test8.PETSc runtest8_2_blopex test8.rm
 TESTEXAMPLES_PRIMME                = test3.PETSc runtest3_1_primme test3.rm \
+                                     test4.PETSc runtest4_1_primme test4.rm \
                                      test8.PETSc runtest8_1_primme test8.rm
 TESTEXAMPLES_TRLAN                 = test3.PETSc runtest3_1_trlan runtest3_2_trlan test3.rm \
                                      test4.PETSc runtest4_1_trlan test4.rm \

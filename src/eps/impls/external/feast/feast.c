@@ -24,8 +24,6 @@
 #include <slepc/private/epsimpl.h>        /*I "slepceps.h" I*/
 #include <../src/eps/impls/external/feast/feastp.h>
 
-PetscErrorCode EPSSolve_FEAST(EPS);
-
 #undef __FUNCT__
 #define __FUNCT__ "EPSSetUp_FEAST"
 PetscErrorCode EPSSetUp_FEAST(EPS eps)
@@ -51,9 +49,6 @@ PetscErrorCode EPSSetUp_FEAST(EPS eps)
   ierr = PetscMalloc4(eps->nloc*ncv,&ctx->work1,eps->nloc*ncv,&ctx->work2,ncv*ncv,&ctx->Aq,ncv*ncv,&ctx->Bq);CHKERRQ(ierr);
   ierr = PetscLogObjectMemory((PetscObject)eps,(2*eps->nloc*ncv+2*ncv*ncv)*sizeof(PetscScalar));CHKERRQ(ierr);
 
-  if (!((PetscObject)(eps->st))->type_name) { /* default to shift-and-invert */
-    ierr = STSetType(eps->st,STSINVERT);CHKERRQ(ierr);
-  }
   ierr = PetscObjectTypeCompareAny((PetscObject)eps->st,&issinv,STSINVERT,STCAYLEY,"");CHKERRQ(ierr);
   if (!issinv) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Shift-and-invert or Cayley ST is needed for FEAST");
 
@@ -71,9 +66,6 @@ PetscErrorCode EPSSetUp_FEAST(EPS eps)
   ierr = PetscObjectTypeCompare((PetscObject)eps->V,BVVECS,&flg);CHKERRQ(ierr);
   if (flg) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"This solver requires a BV with contiguous storage");
   ierr = EPSSetWorkVecs(eps,1);CHKERRQ(ierr);
-
-  /* dispatch solve method */
-  eps->ops->solve = EPSSolve_FEAST;
   PetscFunctionReturn(0);
 }
 
@@ -238,6 +230,19 @@ PetscErrorCode EPSView_FEAST(EPS eps,PetscViewer viewer)
 }
 
 #undef __FUNCT__
+#define __FUNCT__ "EPSSetDefaultST_FEAST"
+PetscErrorCode EPSSetDefaultST_FEAST(EPS eps)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  if (!((PetscObject)eps->st)->type_name) {
+    ierr = STSetType(eps->st,STSINVERT);CHKERRQ(ierr);
+  }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
 #define __FUNCT__ "EPSFEASTSetNumPoints_FEAST"
 static PetscErrorCode EPSFEASTSetNumPoints_FEAST(EPS eps,PetscInt npoints)
 {
@@ -333,11 +338,14 @@ PETSC_EXTERN PetscErrorCode EPSCreate_FEAST(EPS eps)
   ierr = PetscNewLog(eps,&ctx);CHKERRQ(ierr);
   eps->data = (void*)ctx;
 
-  eps->ops->setup                = EPSSetUp_FEAST;
-  eps->ops->setfromoptions       = EPSSetFromOptions_FEAST;
-  eps->ops->destroy              = EPSDestroy_FEAST;
-  eps->ops->reset                = EPSReset_FEAST;
-  eps->ops->view                 = EPSView_FEAST;
+  eps->ops->solve          = EPSSolve_FEAST;
+  eps->ops->setup          = EPSSetUp_FEAST;
+  eps->ops->setfromoptions = EPSSetFromOptions_FEAST;
+  eps->ops->destroy        = EPSDestroy_FEAST;
+  eps->ops->reset          = EPSReset_FEAST;
+  eps->ops->view           = EPSView_FEAST;
+  eps->ops->setdefaultst   = EPSSetDefaultST_FEAST;
+
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSFEASTSetNumPoints_C",EPSFEASTSetNumPoints_FEAST);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSFEASTGetNumPoints_C",EPSFEASTGetNumPoints_FEAST);CHKERRQ(ierr);
   PetscFunctionReturn(0);

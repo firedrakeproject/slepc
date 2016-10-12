@@ -24,8 +24,6 @@
 #include <slepc/private/epsimpl.h>    /*I "slepceps.h" I*/
 #include <../src/eps/impls/external/blzpack/blzpackp.h>
 
-PetscErrorCode EPSSolve_BLZPACK(EPS);
-
 const char* blzpack_error[33] = {
   "",
   "illegal data, LFLAG ",
@@ -143,9 +141,6 @@ lrstor*=10;
   ierr = RGIsTrivial(eps->rg,&istrivial);CHKERRQ(ierr);
   if (!istrivial) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"This solver does not support region filtering");
   if (eps->stopping!=EPSStoppingBasic) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"External packages do not support user-defined stopping test");
-
-  /* dispatch solve method */
-  eps->ops->solve = EPSSolve_BLZPACK;
   PetscFunctionReturn(0);
 }
 
@@ -466,12 +461,14 @@ PETSC_EXTERN PetscErrorCode EPSCreate_BLZPACK(EPS eps)
   ierr = PetscNewLog(eps,&blzpack);CHKERRQ(ierr);
   eps->data = (void*)blzpack;
 
-  eps->ops->setup                = EPSSetUp_BLZPACK;
-  eps->ops->setfromoptions       = EPSSetFromOptions_BLZPACK;
-  eps->ops->destroy              = EPSDestroy_BLZPACK;
-  eps->ops->reset                = EPSReset_BLZPACK;
-  eps->ops->view                 = EPSView_BLZPACK;
-  eps->ops->backtransform        = EPSBackTransform_BLZPACK;
+  eps->ops->solve          = EPSSolve_BLZPACK;
+  eps->ops->setup          = EPSSetUp_BLZPACK;
+  eps->ops->setfromoptions = EPSSetFromOptions_BLZPACK;
+  eps->ops->destroy        = EPSDestroy_BLZPACK;
+  eps->ops->reset          = EPSReset_BLZPACK;
+  eps->ops->view           = EPSView_BLZPACK;
+  eps->ops->backtransform  = EPSBackTransform_BLZPACK;
+
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSBlzpackSetBlockSize_C",EPSBlzpackSetBlockSize_BLZPACK);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSBlzpackSetNSteps_C",EPSBlzpackSetNSteps_BLZPACK);CHKERRQ(ierr);
   PetscFunctionReturn(0);

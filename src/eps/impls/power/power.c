@@ -428,13 +428,14 @@ PETSC_EXTERN PetscErrorCode EPSCreate_Power(EPS eps)
   ierr = PetscNewLog(eps,&ctx);CHKERRQ(ierr);
   eps->data = (void*)ctx;
 
-  eps->ops->setup                = EPSSetUp_Power;
-  eps->ops->solve                = EPSSolve_Power;
-  eps->ops->setfromoptions       = EPSSetFromOptions_Power;
-  eps->ops->destroy              = EPSDestroy_Power;
-  eps->ops->view                 = EPSView_Power;
-  eps->ops->backtransform        = EPSBackTransform_Power;
-  eps->ops->computevectors       = EPSComputeVectors_Schur;
+  eps->ops->solve          = EPSSolve_Power;
+  eps->ops->setup          = EPSSetUp_Power;
+  eps->ops->setfromoptions = EPSSetFromOptions_Power;
+  eps->ops->destroy        = EPSDestroy_Power;
+  eps->ops->view           = EPSView_Power;
+  eps->ops->backtransform  = EPSBackTransform_Power;
+  eps->ops->computevectors = EPSComputeVectors_Schur;
+
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSPowerSetShiftType_C",EPSPowerSetShiftType_Power);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSPowerGetShiftType_C",EPSPowerGetShiftType_Power);CHKERRQ(ierr);
   PetscFunctionReturn(0);

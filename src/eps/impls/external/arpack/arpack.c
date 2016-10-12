@@ -24,8 +24,6 @@
 #include <slepc/private/epsimpl.h>
 #include <../src/eps/impls/external/arpack/arpackp.h>
 
-PetscErrorCode EPSSolve_ARPACK(EPS);
-
 #undef __FUNCT__
 #define __FUNCT__ "EPSSetUp_ARPACK"
 PetscErrorCode EPSSetUp_ARPACK(EPS eps)
@@ -86,9 +84,6 @@ PetscErrorCode EPSSetUp_ARPACK(EPS eps)
   if (flg) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"This solver requires a BV with contiguous storage");
   ierr = RGIsTrivial(eps->rg,&istrivial);CHKERRQ(ierr);
   if (!istrivial) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"This solver does not support region filtering");
-
-  /* dispatch solve method */
-  eps->ops->solve = EPSSolve_ARPACK;
   PetscFunctionReturn(0);
 }
 
@@ -346,10 +341,11 @@ PETSC_EXTERN PetscErrorCode EPSCreate_ARPACK(EPS eps)
   ierr = PetscNewLog(eps,&ctx);CHKERRQ(ierr);
   eps->data = (void*)ctx;
 
-  eps->ops->setup                = EPSSetUp_ARPACK;
-  eps->ops->destroy              = EPSDestroy_ARPACK;
-  eps->ops->reset                = EPSReset_ARPACK;
-  eps->ops->backtransform        = EPSBackTransform_ARPACK;
+  eps->ops->solve          = EPSSolve_ARPACK;
+  eps->ops->setup          = EPSSetUp_ARPACK;
+  eps->ops->destroy        = EPSDestroy_ARPACK;
+  eps->ops->reset          = EPSReset_ARPACK;
+  eps->ops->backtransform  = EPSBackTransform_ARPACK;
   PetscFunctionReturn(0);
 }
 

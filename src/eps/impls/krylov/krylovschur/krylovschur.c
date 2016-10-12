@@ -1355,6 +1355,21 @@ PetscErrorCode EPSReset_KrylovSchur(EPS eps)
 }
 
 #undef __FUNCT__
+#define __FUNCT__ "EPSSetDefaultST_KrylovSchur"
+PetscErrorCode EPSSetDefaultST_KrylovSchur(EPS eps)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  if (eps->which==EPS_ALL) {
+    if (!((PetscObject)eps->st)->type_name) {
+      ierr = STSetType(eps->st,STSINVERT);CHKERRQ(ierr);
+    }
+  }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
 #define __FUNCT__ "EPSCreate_KrylovSchur"
 PETSC_EXTERN PetscErrorCode EPSCreate_KrylovSchur(EPS eps)
 {
@@ -1370,12 +1385,15 @@ PETSC_EXTERN PetscErrorCode EPSCreate_KrylovSchur(EPS eps)
   ctx->detect = PETSC_FALSE;
   ctx->global = PETSC_TRUE;
 
+  /* solve and computevectors determined at setup */
   eps->ops->setup          = EPSSetUp_KrylovSchur;
   eps->ops->setfromoptions = EPSSetFromOptions_KrylovSchur;
   eps->ops->destroy        = EPSDestroy_KrylovSchur;
   eps->ops->reset          = EPSReset_KrylovSchur;
   eps->ops->view           = EPSView_KrylovSchur;
   eps->ops->backtransform  = EPSBackTransform_Default;
+  eps->ops->setdefaultst   = EPSSetDefaultST_KrylovSchur;
+
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSKrylovSchurSetRestart_C",EPSKrylovSchurSetRestart_KrylovSchur);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSKrylovSchurGetRestart_C",EPSKrylovSchurGetRestart_KrylovSchur);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSKrylovSchurSetLocking_C",EPSKrylovSchurSetLocking_KrylovSchur);CHKERRQ(ierr);

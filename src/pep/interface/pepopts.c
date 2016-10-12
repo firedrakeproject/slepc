@@ -282,6 +282,7 @@ PetscErrorCode PEPSetFromOptions(PEP pep)
   if (!pep->ds) { ierr = PEPGetDS(pep,&pep->ds);CHKERRQ(ierr); }
   ierr = DSSetFromOptions(pep->ds);CHKERRQ(ierr);
   if (!pep->st) { ierr = PEPGetST(pep,&pep->st);CHKERRQ(ierr); }
+  ierr = PEPSetDefaultST(pep);CHKERRQ(ierr);
   ierr = STSetFromOptions(pep->st);CHKERRQ(ierr);
   if (!pep->refineksp) { ierr = PEPRefineGetKSP(pep,&pep->refineksp);CHKERRQ(ierr); }
   ierr = KSPSetFromOptions(pep->refineksp);CHKERRQ(ierr);

@@ -25,6 +25,52 @@
 #include <slepc/private/stimpl.h>            /*I "slepcst.h" I*/
 
 #undef __FUNCT__
+#define __FUNCT__ "STSetDefaultKSP"
+/*
+   This is used to set a default type for the KSP and PC objects.
+   It is called at STSetFromOptions (before KSPSetFromOptions)
+   and also at STSetUp (in case STSetFromOptions was not called).
+*/
+PetscErrorCode STSetDefaultKSP(ST st)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  if (!st->ksp) { ierr = STGetKSP(st,&st->ksp);CHKERRQ(ierr); }
+  if (st->ops->setdefaultksp) { ierr = (*st->ops->setdefaultksp)(st);CHKERRQ(ierr); }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "STSetDefaultKSP_Default"
+/*
+   This is done by all ST types except PRECOND.
+   The default is an LU direct solver, or GMRES+Jacobi if matmode=shell.
+*/
+PetscErrorCode STSetDefaultKSP_Default(ST st)
+{
+  PetscErrorCode ierr;
+  PC             pc;
+  PCType         pctype;
+  KSPType        ksptype;
+
+  PetscFunctionBegin;
+  ierr = KSPGetPC(st->ksp,&pc);CHKERRQ(ierr);
+  ierr = KSPGetType(st->ksp,&ksptype);CHKERRQ(ierr);
+  ierr = PCGetType(pc,&pctype);CHKERRQ(ierr);
+  if (!pctype && !ksptype) {
+    if (st->shift_matrix == ST_MATMODE_SHELL) {
+      ierr = KSPSetType(st->ksp,KSPGMRES);CHKERRQ(ierr);
+      ierr = PCSetType(pc,PCJACOBI);CHKERRQ(ierr);
+    } else {
+      ierr = KSPSetType(st->ksp,KSPPREONLY);CHKERRQ(ierr);
+      ierr = PCSetType(pc,PCLU);CHKERRQ(ierr);
+    }
+  }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
 #define __FUNCT__ "STMatMult"
 /*@
    STMatMult - Computes the matrix-vector product y = T[k] x, where T[k] is
@@ -324,6 +370,7 @@ PetscErrorCode STSetKSP(ST st,KSP ksp)
 PetscErrorCode STGetKSP(ST st,KSP* ksp)
 {
   PetscErrorCode ierr;
+  PetscBool      flg;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
@@ -335,6 +382,10 @@ PetscErrorCode STGetKSP(ST st,KSP* ksp)
     ierr = PetscObjectIncrementTabLevel((PetscObject)st->ksp,(PetscObject)st,1);CHKERRQ(ierr);
     ierr = PetscLogObjectParent((PetscObject)st,(PetscObject)st->ksp);CHKERRQ(ierr);
     ierr = KSPSetTolerances(st->ksp,SLEPC_DEFAULT_TOL,PETSC_DEFAULT,PETSC_DEFAULT,PETSC_DEFAULT);CHKERRQ(ierr);
+    ierr = PetscObjectTypeCompare((PetscObject)st,STPRECOND,&flg);CHKERRQ(ierr);
+    if (!flg) {
+      ierr = KSPSetErrorIfNotConverged(st->ksp,PETSC_TRUE);CHKERRQ(ierr);
+    }
   }
   *ksp = st->ksp;
   PetscFunctionReturn(0);
@@ -416,6 +467,7 @@ PetscErrorCode STCheckNullSpace(ST st,BV V)
   PetscValidHeaderSpecific(V,BV_CLASSID,2);
   PetscValidType(st,1);
   PetscCheckSameComm(st,1,V,2);
+  if (!st->state) SETERRQ(PetscObjectComm((PetscObject)st),PETSC_ERR_ARG_WRONGSTATE,"Must call STSolve() first");
 
   ierr = BVGetNumConstraints(V,&nc);CHKERRQ(ierr);
   if (nc && st->ops->checknullspace) {
