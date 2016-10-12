@@ -221,7 +221,6 @@ PetscErrorCode STSetUp_Cayley(ST st)
   if (!st->ksp) { ierr = STGetKSP(st,&st->ksp);CHKERRQ(ierr); }
   ierr = STCheckFactorPackage(st);CHKERRQ(ierr);
   ierr = KSPSetOperators(st->ksp,st->P,st->P);CHKERRQ(ierr);
-  ierr = KSPSetErrorIfNotConverged(st->ksp,PETSC_TRUE);CHKERRQ(ierr);
   ierr = KSPSetUp(st->ksp);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

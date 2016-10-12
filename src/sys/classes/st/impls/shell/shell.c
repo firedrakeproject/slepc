@@ -177,28 +177,6 @@ static PetscErrorCode STShellSetApply_Shell(ST st,PetscErrorCode (*apply)(ST,Vec
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "STShellSetApplyTranspose_Shell"
-static PetscErrorCode STShellSetApplyTranspose_Shell(ST st,PetscErrorCode (*applytrans)(ST,Vec,Vec))
-{
-  ST_SHELL *shell = (ST_SHELL*)st->data;
-
-  PetscFunctionBegin;
-  shell->applytrans = applytrans;
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
-#define __FUNCT__ "STShellSetBackTransform_Shell"
-static PetscErrorCode STShellSetBackTransform_Shell(ST st,PetscErrorCode (*backtr)(ST,PetscInt,PetscScalar*,PetscScalar*))
-{
-  ST_SHELL *shell = (ST_SHELL*)st->data;
-
-  PetscFunctionBegin;
-  shell->backtransform = backtr;
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
 #define __FUNCT__ "STShellSetApply"
 /*@C
    STShellSetApply - Sets routine to use as the application of the
@@ -232,6 +210,17 @@ PetscErrorCode STShellSetApply(ST st,PetscErrorCode (*apply)(ST,Vec,Vec))
 }
 
 #undef __FUNCT__
+#define __FUNCT__ "STShellSetApplyTranspose_Shell"
+static PetscErrorCode STShellSetApplyTranspose_Shell(ST st,PetscErrorCode (*applytrans)(ST,Vec,Vec))
+{
+  ST_SHELL *shell = (ST_SHELL*)st->data;
+
+  PetscFunctionBegin;
+  shell->applytrans = applytrans;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
 #define __FUNCT__ "STShellSetApplyTranspose"
 /*@C
    STShellSetApplyTranspose - Sets routine to use as the application of the
@@ -261,6 +250,17 @@ PetscErrorCode STShellSetApplyTranspose(ST st,PetscErrorCode (*applytrans)(ST,Ve
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
   ierr = PetscTryMethod(st,"STShellSetApplyTranspose_C",(ST,PetscErrorCode (*)(ST,Vec,Vec)),(st,applytrans));CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "STShellSetBackTransform_Shell"
+static PetscErrorCode STShellSetBackTransform_Shell(ST st,PetscErrorCode (*backtr)(ST,PetscInt,PetscScalar*,PetscScalar*))
+{
+  ST_SHELL *shell = (ST_SHELL*)st->data;
+
+  PetscFunctionBegin;
+  shell->backtransform = backtr;
   PetscFunctionReturn(0);
 }
 
