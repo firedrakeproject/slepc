@@ -24,6 +24,26 @@
 #include <slepc/private/pepimpl.h>       /*I "slepcpep.h" I*/
 
 #undef __FUNCT__
+#define __FUNCT__ "PEPSetDefaultST"
+/*
+   Let the solver choose the ST type that should be used by default,
+   otherwise set it to SHIFT.
+   This is called at PEPSetFromOptions (before STSetFromOptions)
+   and also at PEPSetUp (in case PEPSetFromOptions was not called).
+*/
+PetscErrorCode PEPSetDefaultST(PEP pep)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  if (pep->ops->setdefaultst) { ierr = (*pep->ops->setdefaultst)(pep);CHKERRQ(ierr); }
+  if (!((PetscObject)pep->st)->type_name) {
+    ierr = STSetType(pep->st,STSHIFT);CHKERRQ(ierr);
+  }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
 #define __FUNCT__ "PEPSetUp"
 /*@
    PEPSetUp - Sets up all the internal data structures necessary for the
@@ -67,6 +87,7 @@ PetscErrorCode PEPSetUp(PEP pep)
     ierr = PEPSetType(pep,PEPTOAR);CHKERRQ(ierr);
   }
   if (!pep->st) { ierr = PEPGetST(pep,&pep->st);CHKERRQ(ierr); }
+  ierr = PEPSetDefaultST(pep);CHKERRQ(ierr);
   if (!pep->ds) { ierr = PEPGetDS(pep,&pep->ds);CHKERRQ(ierr); }
   if (!pep->rg) { ierr = PEPGetRG(pep,&pep->rg);CHKERRQ(ierr); }
   if (!((PetscObject)pep->rg)->type_name) {
@@ -188,6 +209,7 @@ PetscErrorCode PEPSetUp(PEP pep)
 
   /* setup ST */
   ierr = STSetUp(pep->st);CHKERRQ(ierr);
+
   /* compute matrix coefficients */
   ierr = STGetTransform(pep->st,&flg);CHKERRQ(ierr);
   if (!flg) {

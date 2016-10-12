@@ -1177,19 +1177,6 @@ PetscErrorCode PEPSetFromOptions_JD(PetscOptionItems *PetscOptionsObject,PEP pep
     if (flg) { ierr = PEPJDSetRestart(pep,r1);CHKERRQ(ierr); }
 
   ierr = PetscOptionsTail();CHKERRQ(ierr);
-
-  /* Set STPRECOND as the default ST */
-  if (!pep->st) { ierr = PEPGetST(pep,&pep->st);CHKERRQ(ierr); }
-  if (!((PetscObject)pep->st)->type_name) {
-    ierr = STSetType(pep->st,STPRECOND);CHKERRQ(ierr);
-  }
-
-  /* Set the default options of the KSP */
-  ierr = STGetKSP(pep->st,&ksp);CHKERRQ(ierr);
-  if (!((PetscObject)ksp)->type_name) {
-    ierr = KSPSetType(ksp,KSPBCGSL);CHKERRQ(ierr);
-    ierr = KSPSetTolerances(ksp,1e-5,PETSC_DEFAULT,PETSC_DEFAULT,100);CHKERRQ(ierr);
-  }
   PetscFunctionReturn(0);
 }
 
@@ -1205,6 +1192,26 @@ PetscErrorCode PEPView_JD(PEP pep,PetscViewer viewer)
   ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
   if (isascii) {
     ierr = PetscViewerASCIIPrintf(viewer,"  JD: %d%% of basis vectors kept after restart\n",(int)(100*pjd->keep));CHKERRQ(ierr);
+  }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "PEPSetDefaultST_JD"
+PetscErrorCode PEPSetDefaultST_JD(PEP pep)
+{
+  PetscErrorCode ierr;
+  KSP            ksp;
+
+  PetscFunctionBegin;
+  if (!((PetscObject)pep->st)->type_name) {
+    ierr = STSetType(pep->st,STPRECOND);CHKERRQ(ierr);
+    ierr = STPrecondSetKSPHasMat(pep->st,PETSC_TRUE);CHKERRQ(ierr);
+  }
+  ierr = STGetKSP(pep->st,&ksp);CHKERRQ(ierr);
+  if (!((PetscObject)ksp)->type_name) {
+    ierr = KSPSetType(ksp,KSPBCGSL);CHKERRQ(ierr);
+    ierr = KSPSetTolerances(ksp,1e-5,PETSC_DEFAULT,PETSC_DEFAULT,100);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }
@@ -1258,13 +1265,14 @@ PETSC_EXTERN PetscErrorCode PEPCreate_JD(PEP pep)
   ierr = PetscNewLog(pep,&pjd);CHKERRQ(ierr);
   pep->data = (void*)pjd;
 
-  pjd->keep = 0;
   pep->ops->solve          = PEPSolve_JD;
   pep->ops->setup          = PEPSetUp_JD;
   pep->ops->setfromoptions = PEPSetFromOptions_JD;
-  pep->ops->reset          = PEPReset_JD;
   pep->ops->destroy        = PEPDestroy_JD;
+  pep->ops->reset          = PEPReset_JD;
   pep->ops->view           = PEPView_JD;
+  pep->ops->setdefaultst   = PEPSetDefaultST_JD;
+
   ierr = PetscObjectComposeFunction((PetscObject)pep,"PEPJDSetRestart_C",PEPJDSetRestart_JD);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)pep,"PEPJDGetRestart_C",PEPJDGetRestart_JD);CHKERRQ(ierr);
   PetscFunctionReturn(0);
