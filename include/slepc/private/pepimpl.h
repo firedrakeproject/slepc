@@ -161,5 +161,6 @@ PETSC_INTERN PetscErrorCode PEPEvaluateBasis(PEP,PetscScalar,PetscScalar,PetscSc
 PETSC_INTERN PetscErrorCode PEPNewtonRefinement_TOAR(PEP,PetscScalar,PetscInt*,PetscReal*,PetscInt,PetscScalar*,PetscInt);
 PETSC_INTERN PetscErrorCode PEPNewtonRefinementSimple(PEP,PetscInt*,PetscReal,PetscInt);
 PETSC_INTERN PetscErrorCode PEPSetDefaultST(PEP);
+PETSC_INTERN PetscErrorCode PEPSetDefaultST_Transform(PEP);
 
 #endif

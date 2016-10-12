@@ -121,7 +121,6 @@ PetscErrorCode PEPSetUp_JD(PEP pep)
   PEP_JD         *pjd = (PEP_JD*)pep->data;
   PetscBool      isprecond,flg;
   PetscInt       i;
-  KSP            ksp;
 
   PetscFunctionBegin;
   pep->lineariz = PETSC_FALSE;
@@ -130,23 +129,12 @@ PetscErrorCode PEPSetUp_JD(PEP pep)
   if (!pep->which) pep->which = PEP_TARGET_MAGNITUDE;
   if (pep->which != PEP_TARGET_MAGNITUDE) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"PEPJD only supports which=target_magnitude");;
 
-  /* Set STPRECOND as the default ST */
-  if (!((PetscObject)pep->st)->type_name) {
-    ierr = STSetType(pep->st,STPRECOND);CHKERRQ(ierr);
-  }
   ierr = PetscObjectTypeCompare((PetscObject)pep->st,STPRECOND,&isprecond);CHKERRQ(ierr);
   if (!isprecond) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"JD only works with PRECOND spectral transformation");
 
   if (pep->basis!=PEP_BASIS_MONOMIAL) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Solver not implemented for non-monomial bases");
   ierr = STGetTransform(pep->st,&flg);CHKERRQ(ierr);
   if (flg) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Solver requires the ST transformation flag unset, see STSetTransform()");
-
-  /* Set the default options of the KSP */
-  ierr = STGetKSP(pep->st,&ksp);CHKERRQ(ierr);
-  if (!((PetscObject)ksp)->type_name) {
-    ierr = KSPSetType(ksp,KSPBCGSL);CHKERRQ(ierr);
-    ierr = KSPSetTolerances(ksp,1e-5,PETSC_DEFAULT,PETSC_DEFAULT,100);CHKERRQ(ierr);
-  }
 
   if (!pjd->keep) pjd->keep = 0.5;
 
@@ -1168,7 +1156,6 @@ PetscErrorCode PEPSetFromOptions_JD(PetscOptionItems *PetscOptionsObject,PEP pep
   PetscErrorCode ierr;
   PetscBool      flg;
   PetscReal      r1;
-  KSP            ksp;
 
   PetscFunctionBegin;
   ierr = PetscOptionsHead(PetscOptionsObject,"PEP JD Options");CHKERRQ(ierr);
@@ -1208,6 +1195,7 @@ PetscErrorCode PEPSetDefaultST_JD(PEP pep)
     ierr = STSetType(pep->st,STPRECOND);CHKERRQ(ierr);
     ierr = STPrecondSetKSPHasMat(pep->st,PETSC_TRUE);CHKERRQ(ierr);
   }
+  ierr = STSetTransform(pep->st,PETSC_FALSE);CHKERRQ(ierr);
   ierr = STGetKSP(pep->st,&ksp);CHKERRQ(ierr);
   if (!((PetscObject)ksp)->type_name) {
     ierr = KSPSetType(ksp,KSPBCGSL);CHKERRQ(ierr);

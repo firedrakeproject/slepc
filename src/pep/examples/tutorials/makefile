@@ -58,9 +58,7 @@ DATAPATH = ${SLEPC_DIR}/share/slepc/datafiles/matrices
 runex16_1: runex16_1_toar runex16_1_qarnoldi runex16_1_linear
 runex16_1_%:
 	-@${SETTEST}; check=ex16_1; pep=$*; \
-	if [ "$$pep" = stoar ]; then pep="stoar -st_transform"; \
-	elif [ "$$pep" = qarnoldi ]; then pep="qarnoldi -st_transform"; \
-	elif [ "$$pep" = linear ]; then pep="linear -pep_linear_explicitmatrix"; \
+	if [ "$$pep" = linear ]; then pep="linear -pep_linear_explicitmatrix"; \
 	elif [ "$$pep" = linear_symm ]; then pep="linear -pep_linear_explicitmatrix -pep_linear_eps_gen_indefinite"; fi; \
 	${MPIEXEC} -n 1 ./ex16 -pep_type $$pep -pep_nev 4 -pep_ncv 21 -terse > $${test}.tmp 2>&1; \
 	${TESTCODE}
@@ -73,14 +71,12 @@ runex16f90_1:
 runex17_1: runex17_1_toar runex17_1_qarnoldi runex17_1_linear
 runex17_1_%:
 	-@${SETTEST}; check=ex17_1; pep=$*; \
-	if [ "$$pep" = qarnoldi ]; then pep="qarnoldi -st_transform"; fi; \
 	${MPIEXEC} -n 1 ./ex17 -A ${DATAPATH}/speaker107k.petsc,${DATAPATH}/speaker107c.petsc,${DATAPATH}/speaker107m.petsc -pep_type $$pep -pep_nev 4 -pep_ncv 20 -pep_scale scalar -terse > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
 runex28_1: runex28_1_toar runex28_1_qarnoldi runex28_1_linear
 runex28_1_%:
 	-@${SETTEST}; check=ex28_1; pep=$*; \
-	if [ "$$pep" = qarnoldi ]; then pep="qarnoldi -st_transform"; fi; \
 	${MPIEXEC} -n 1 ./ex28 -pep_nev 4 -terse > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
