@@ -260,9 +260,6 @@ PetscErrorCode STSetFromOptions_Cayley(PetscOptionItems *PetscOptionsObject,ST s
   PetscScalar    nu;
   PetscBool      flg;
   ST_CAYLEY      *ctx = (ST_CAYLEY*)st->data;
-  PC             pc;
-  PCType         pctype;
-  KSPType        ksptype;
 
   PetscFunctionBegin;
   ierr = PetscOptionsHead(PetscOptionsObject,"ST Cayley Options");CHKERRQ(ierr);
@@ -271,22 +268,6 @@ PetscErrorCode STSetFromOptions_Cayley(PetscOptionItems *PetscOptionsObject,ST s
     if (flg) { ierr = STCayleySetAntishift(st,nu);CHKERRQ(ierr); }
 
   ierr = PetscOptionsTail();CHKERRQ(ierr);
-
-  if (!st->ksp) { ierr = STGetKSP(st,&st->ksp);CHKERRQ(ierr); }
-  ierr = KSPGetPC(st->ksp,&pc);CHKERRQ(ierr);
-  ierr = KSPGetType(st->ksp,&ksptype);CHKERRQ(ierr);
-  ierr = PCGetType(pc,&pctype);CHKERRQ(ierr);
-  if (!pctype && !ksptype) {
-    if (st->shift_matrix == ST_MATMODE_SHELL) {
-      /* in shell mode use GMRES with Jacobi as the default */
-      ierr = KSPSetType(st->ksp,KSPGMRES);CHKERRQ(ierr);
-      ierr = PCSetType(pc,PCJACOBI);CHKERRQ(ierr);
-    } else {
-      /* use direct solver as default */
-      ierr = KSPSetType(st->ksp,KSPPREONLY);CHKERRQ(ierr);
-      ierr = PCSetType(pc,PCLU);CHKERRQ(ierr);
-    }
-  }
   PetscFunctionReturn(0);
 }
 
@@ -446,6 +427,7 @@ PETSC_EXTERN PetscErrorCode STCreate_Cayley(ST st)
   st->ops->reset           = STReset_Cayley;
   st->ops->view            = STView_Cayley;
   st->ops->checknullspace  = STCheckNullSpace_Default;
+  st->ops->setdefaultksp   = STSetDefaultKSP_Default;
   ierr = PetscObjectComposeFunction((PetscObject)st,"STCayleySetAntishift_C",STCayleySetAntishift_Cayley);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)st,"STCayleyGetAntishift_C",STCayleyGetAntishift_Cayley);CHKERRQ(ierr);
   PetscFunctionReturn(0);

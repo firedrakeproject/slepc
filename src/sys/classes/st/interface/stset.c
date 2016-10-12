@@ -158,7 +158,7 @@ PetscErrorCode STSetFromOptions(ST st)
     ierr = PetscObjectProcessOptionsHandlers(PetscOptionsObject,(PetscObject)st);CHKERRQ(ierr);
   ierr = PetscOptionsEnd();CHKERRQ(ierr);
 
-  if (!st->ksp) { ierr = STGetKSP(st,&st->ksp);CHKERRQ(ierr); }
+  ierr = STSetDefaultKSP(st);CHKERRQ(ierr);
   ierr = KSPSetFromOptions(st->ksp);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

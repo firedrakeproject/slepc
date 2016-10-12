@@ -298,37 +298,6 @@ PetscErrorCode STShellSetBackTransform(ST st,PetscErrorCode (*backtr)(ST,PetscIn
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "STSetFromOptions_Shell"
-PetscErrorCode STSetFromOptions_Shell(PetscOptionItems *PetscOptionsObject,ST st)
-{
-  PetscErrorCode ierr;
-  PC             pc;
-  PCType         pctype;
-  KSPType        ksptype;
-
-  PetscFunctionBegin;
-  ierr = PetscOptionsHead(PetscOptionsObject,"ST Shell Options");CHKERRQ(ierr);
-  ierr = PetscOptionsTail();CHKERRQ(ierr);
-
-  if (!st->ksp) { ierr = STGetKSP(st,&st->ksp);CHKERRQ(ierr); }
-  ierr = KSPGetPC(st->ksp,&pc);CHKERRQ(ierr);
-  ierr = KSPGetType(st->ksp,&ksptype);CHKERRQ(ierr);
-  ierr = PCGetType(pc,&pctype);CHKERRQ(ierr);
-  if (!pctype && !ksptype) {
-    if (st->shift_matrix == ST_MATMODE_SHELL) {
-      /* in shell mode use GMRES with Jacobi as the default */
-      ierr = KSPSetType(st->ksp,KSPGMRES);CHKERRQ(ierr);
-      ierr = PCSetType(pc,PCJACOBI);CHKERRQ(ierr);
-    } else {
-      /* use direct solver as default */
-      ierr = KSPSetType(st->ksp,KSPPREONLY);CHKERRQ(ierr);
-      ierr = PCSetType(pc,PCLU);CHKERRQ(ierr);
-    }
-  }
-  PetscFunctionReturn(0);
-}
-
 /*MC
    STSHELL - Creates a new spectral transformation class.
           This is intended to provide a simple class to use with EPS.
@@ -359,11 +328,11 @@ PETSC_EXTERN PetscErrorCode STCreate_Shell(ST st)
   ierr = PetscNewLog(st,&ctx);CHKERRQ(ierr);
   st->data = (void*)ctx;
 
-  st->ops->apply          = STApply_Shell;
-  st->ops->applytrans     = STApplyTranspose_Shell;
-  st->ops->backtransform  = STBackTransform_Shell;
-  st->ops->setfromoptions = STSetFromOptions_Shell;
-  st->ops->destroy        = STDestroy_Shell;
+  st->ops->apply           = STApply_Shell;
+  st->ops->applytrans      = STApplyTranspose_Shell;
+  st->ops->backtransform   = STBackTransform_Shell;
+  st->ops->destroy         = STDestroy_Shell;
+  st->ops->setdefaultksp   = STSetDefaultKSP_Default;
   ierr = PetscObjectComposeFunction((PetscObject)st,"STShellSetApply_C",STShellSetApply_Shell);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)st,"STShellSetApplyTranspose_C",STShellSetApplyTranspose_Shell);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)st,"STShellSetBackTransform_C",STShellSetBackTransform_Shell);CHKERRQ(ierr);
