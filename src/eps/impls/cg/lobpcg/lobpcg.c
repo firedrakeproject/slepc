@@ -688,7 +688,6 @@ PetscErrorCode EPSSetFromOptions_LOBPCG(PetscOptionItems *PetscOptionsObject,EPS
   PetscBool      lock,flg;
   PetscInt       bs;
   PetscReal      restart;
-  KSP            ksp;
 
   PetscFunctionBegin;
   ierr = PetscOptionsHead(PetscOptionsObject,"EPS LOBPCG Options");CHKERRQ(ierr);
@@ -703,17 +702,6 @@ PetscErrorCode EPSSetFromOptions_LOBPCG(PetscOptionItems *PetscOptionsObject,EPS
     if (flg) { ierr = EPSLOBPCGSetLocking(eps,lock);CHKERRQ(ierr); }
 
   ierr = PetscOptionsTail();CHKERRQ(ierr);
-
-  /* Set STPrecond as the default ST */
-  if (!((PetscObject)eps->st)->type_name) {
-    ierr = STSetType(eps->st,STPRECOND);CHKERRQ(ierr);
-  }
-
-  /* Set the default options of the KSP */
-  ierr = STGetKSP(eps->st,&ksp);CHKERRQ(ierr);
-  if (!((PetscObject)ksp)->type_name) {
-    ierr = KSPSetType(ksp,KSPPREONLY);CHKERRQ(ierr);
-  }
   PetscFunctionReturn(0);
 }
 
@@ -746,14 +734,14 @@ PETSC_EXTERN PetscErrorCode EPSCreate_LOBPCG(EPS eps)
   eps->data = (void*)lobpcg;
   lobpcg->lock = PETSC_TRUE;
 
-  eps->ops->setup          = EPSSetUp_LOBPCG;
   eps->ops->solve          = EPSSolve_LOBPCG;
+  eps->ops->setup          = EPSSetUp_LOBPCG;
   eps->ops->setfromoptions = EPSSetFromOptions_LOBPCG;
   eps->ops->destroy        = EPSDestroy_LOBPCG;
   eps->ops->view           = EPSView_LOBPCG;
   eps->ops->backtransform  = EPSBackTransform_Default;
-  ierr = STSetType(eps->st,STPRECOND);CHKERRQ(ierr);
-  ierr = STPrecondSetKSPHasMat(eps->st,PETSC_TRUE);CHKERRQ(ierr);
+  eps->ops->setdefaultst   = EPSSetDefaultST_Precond;
+
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSLOBPCGSetBlockSize_C",EPSLOBPCGSetBlockSize_LOBPCG);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSLOBPCGGetBlockSize_C",EPSLOBPCGGetBlockSize_LOBPCG);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSLOBPCGSetRestart_C",EPSLOBPCGSetRestart_LOBPCG);CHKERRQ(ierr);

@@ -24,8 +24,6 @@
 #include <slepc/private/epsimpl.h>
 #include <../src/eps/impls/external/trlan/trlanp.h>
 
-PetscErrorCode EPSSolve_TRLAN(EPS);
-
 /* Nasty global variable to access EPS data from TRLan_ */
 static EPS globaleps;
 
@@ -69,9 +67,6 @@ PetscErrorCode EPSSetUp_TRLAN(EPS eps)
   if (!istrivial) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"This solver does not support region filtering");
 
   ierr = EPSAllocateSolution(eps,0);CHKERRQ(ierr);
-
-  /* dispatch solve method */
-  eps->ops->solve = EPSSolve_TRLAN;
   PetscFunctionReturn(0);
 }
 
@@ -192,10 +187,11 @@ PETSC_EXTERN PetscErrorCode EPSCreate_TRLAN(EPS eps)
   ierr = PetscNewLog(eps,&ctx);CHKERRQ(ierr);
   eps->data = (void*)ctx;
 
-  eps->ops->setup                = EPSSetUp_TRLAN;
-  eps->ops->destroy              = EPSDestroy_TRLAN;
-  eps->ops->reset                = EPSReset_TRLAN;
-  eps->ops->backtransform        = EPSBackTransform_Default;
+  eps->ops->solve          = EPSSolve_TRLAN;
+  eps->ops->setup          = EPSSetUp_TRLAN;
+  eps->ops->destroy        = EPSDestroy_TRLAN;
+  eps->ops->reset          = EPSReset_TRLAN;
+  eps->ops->backtransform  = EPSBackTransform_Default;
   PetscFunctionReturn(0);
 }
 

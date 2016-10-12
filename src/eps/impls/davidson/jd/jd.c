@@ -50,7 +50,6 @@ PetscErrorCode EPSSetFromOptions_JD(PetscOptionItems *PetscOptionsObject,EPS eps
   PetscBool      flg,flg2,op,orth;
   PetscInt       opi,opi0;
   PetscReal      opf;
-  KSP            ksp;
 
   PetscFunctionBegin;
   ierr = PetscOptionsHead(PetscOptionsObject,"EPS Jacobi-Davidson (JD) Options");CHKERRQ(ierr);
@@ -90,14 +89,21 @@ PetscErrorCode EPSSetFromOptions_JD(PetscOptionItems *PetscOptionsObject,EPS eps
     if (flg) { ierr = EPSJDSetConstCorrectionTol(eps,op);CHKERRQ(ierr); }
 
   ierr = PetscOptionsTail();CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
 
-  /* Set STPrecond as the default ST */
+#undef __FUNCT__
+#define __FUNCT__ "EPSSetDefaultST_JD"
+PetscErrorCode EPSSetDefaultST_JD(EPS eps)
+{
+  PetscErrorCode ierr;
+  KSP            ksp;
+
+  PetscFunctionBegin;
   if (!((PetscObject)eps->st)->type_name) {
     ierr = STSetType(eps->st,STPRECOND);CHKERRQ(ierr);
+    ierr = STPrecondSetKSPHasMat(eps->st,PETSC_TRUE);CHKERRQ(ierr);
   }
-  ierr = STPrecondSetKSPHasMat(eps->st,PETSC_FALSE);CHKERRQ(ierr);
-
-  /* Set the default options of the KSP */
   ierr = STGetKSP(eps->st,&ksp);CHKERRQ(ierr);
   if (!((PetscObject)ksp)->type_name) {
     ierr = KSPSetType(ksp,KSPBCGSL);CHKERRQ(ierr);
@@ -118,14 +124,8 @@ PetscErrorCode EPSSetUp_JD(EPS eps)
   /* Setup common for all davidson solvers */
   ierr = EPSSetUp_XD(eps);CHKERRQ(ierr);
 
-  /* Set the default options of the KSP */
-  ierr = STGetKSP(eps->st,&ksp);CHKERRQ(ierr);
-  if (!((PetscObject)ksp)->type_name) {
-    ierr = KSPSetType(ksp,KSPBCGSL);CHKERRQ(ierr);
-    ierr = KSPSetTolerances(ksp,1e-4,PETSC_DEFAULT,PETSC_DEFAULT,90);CHKERRQ(ierr);
-  }
-
   /* Check some constraints */
+  ierr = STGetKSP(eps->st,&ksp);CHKERRQ(ierr);
   ierr = PetscObjectTypeCompare((PetscObject)ksp,KSPPREONLY,&t);CHKERRQ(ierr);
   if (t) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"EPSJD does not work with KSPPREONLY");
   PetscFunctionReturn(0);
@@ -722,14 +722,14 @@ PETSC_EXTERN PetscErrorCode EPSCreate_JD(EPS eps)
   data->cX_in_impr  = 0;
 
   eps->ops->solve          = EPSSolve_XD;
-  eps->ops->setup          = EPSSetUp_XD;
+  eps->ops->setup          = EPSSetUp_JD;
+  eps->ops->setfromoptions = EPSSetFromOptions_JD;
+  eps->ops->destroy        = EPSDestroy_JD;
   eps->ops->reset          = EPSReset_XD;
+  eps->ops->view           = EPSView_JD;
   eps->ops->backtransform  = EPSBackTransform_Default;
   eps->ops->computevectors = EPSComputeVectors_XD;
-  eps->ops->view           = EPSView_JD;
-  eps->ops->setfromoptions = EPSSetFromOptions_JD;
-  eps->ops->setup          = EPSSetUp_JD;
-  eps->ops->destroy        = EPSDestroy_JD;
+  eps->ops->setdefaultst   = EPSSetDefaultST_JD;
 
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSJDSetKrylovStart_C",EPSXDSetKrylovStart_XD);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSJDGetKrylovStart_C",EPSXDGetKrylovStart_XD);CHKERRQ(ierr);

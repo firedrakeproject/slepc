@@ -38,8 +38,6 @@
 #include <slepc/private/epsimpl.h>                /*I "slepceps.h" I*/
 #include <slepcblaslapack.h>
 
-PetscErrorCode EPSSolve_Lanczos(EPS);
-
 typedef struct {
   EPSLanczosReorthogType reorthog;      /* user-provided reorthogonalization parameter */
   PetscInt               allocsize;     /* number of columns of work BV's allocated at setup */
@@ -97,10 +95,8 @@ PetscErrorCode EPSSetUp_Lanczos(EPS eps)
     ierr = EPSSetWorkVecs(eps,1);CHKERRQ(ierr);
   }
 
-  /* dispatch solve method */
   if (!eps->ishermitian) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Requested method is only available for Hermitian problems");
   if (eps->isgeneralized && eps->ishermitian && !eps->ispositive) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Requested method does not work for indefinite problems");
-  eps->ops->solve = EPSSolve_Lanczos;
   PetscFunctionReturn(0);
 }
 
@@ -915,13 +911,15 @@ PETSC_EXTERN PetscErrorCode EPSCreate_Lanczos(EPS eps)
   ierr = PetscNewLog(eps,&ctx);CHKERRQ(ierr);
   eps->data = (void*)ctx;
 
-  eps->ops->setup                = EPSSetUp_Lanczos;
-  eps->ops->setfromoptions       = EPSSetFromOptions_Lanczos;
-  eps->ops->destroy              = EPSDestroy_Lanczos;
-  eps->ops->reset                = EPSReset_Lanczos;
-  eps->ops->view                 = EPSView_Lanczos;
-  eps->ops->backtransform        = EPSBackTransform_Default;
-  eps->ops->computevectors       = EPSComputeVectors_Hermitian;
+  eps->ops->solve          = EPSSolve_Lanczos;
+  eps->ops->setup          = EPSSetUp_Lanczos;
+  eps->ops->setfromoptions = EPSSetFromOptions_Lanczos;
+  eps->ops->destroy        = EPSDestroy_Lanczos;
+  eps->ops->reset          = EPSReset_Lanczos;
+  eps->ops->view           = EPSView_Lanczos;
+  eps->ops->backtransform  = EPSBackTransform_Default;
+  eps->ops->computevectors = EPSComputeVectors_Hermitian;
+
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSLanczosSetReorthog_C",EPSLanczosSetReorthog_Lanczos);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSLanczosGetReorthog_C",EPSLanczosGetReorthog_Lanczos);CHKERRQ(ierr);
   PetscFunctionReturn(0);

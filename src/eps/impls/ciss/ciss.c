@@ -916,9 +916,8 @@ PetscErrorCode EPSSetUp_CISS(EPS eps)
 
   if (ctx->usest) {
     ierr = PetscObjectTypeCompare((PetscObject)eps->st,STSINVERT,&issinvert);CHKERRQ(ierr);
-    if (!issinvert) { ierr = STSetType(eps->st,STSINVERT);CHKERRQ(ierr); }
+    if (!issinvert) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"If the usest flag is set, you must select the STSINVERT spectral transformation");
   } else {
-    ierr = STSetType(eps->st,STSHIFT);CHKERRQ(ierr);  /* we are not going to use ST, so avoid problems in case the user provided one */
     if (ctx->ksp) {
       for (i=0;i<ctx->num_solve_point;i++) {
         ierr = KSPDestroy(&ctx->ksp[i]);CHKERRQ(ierr);
@@ -1917,6 +1916,27 @@ PetscErrorCode EPSView_CISS(EPS eps,PetscViewer viewer)
 }
 
 #undef __FUNCT__
+#define __FUNCT__ "EPSSetDefaultST_CISS"
+PetscErrorCode EPSSetDefaultST_CISS(EPS eps)
+{
+  PetscErrorCode ierr;
+  EPS_CISS       *ctx = (EPS_CISS*)eps->data;
+  PetscBool      usest = ctx->usest;
+
+  PetscFunctionBegin;
+  if (!((PetscObject)eps->st)->type_name) {
+    if (!ctx->usest_set) usest = (ctx->num_subcomm>1)? PETSC_FALSE: PETSC_TRUE;
+    if (usest) {
+      ierr = STSetType(eps->st,STSINVERT);CHKERRQ(ierr);
+    } else {
+      /* we are not going to use ST, so avoid factorizing the matrix */
+      ierr = STSetType(eps->st,STSHIFT);CHKERRQ(ierr);
+    }
+  }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
 #define __FUNCT__ "EPSCreate_CISS"
 PETSC_EXTERN PetscErrorCode EPSCreate_CISS(EPS eps)
 {
@@ -1926,14 +1946,16 @@ PETSC_EXTERN PetscErrorCode EPSCreate_CISS(EPS eps)
   PetscFunctionBegin;
   ierr = PetscNewLog(eps,&ctx);CHKERRQ(ierr);
   eps->data = ctx;
+
   eps->ops->solve          = EPSSolve_CISS;
   eps->ops->setup          = EPSSetUp_CISS;
   eps->ops->setfromoptions = EPSSetFromOptions_CISS;
   eps->ops->destroy        = EPSDestroy_CISS;
   eps->ops->reset          = EPSReset_CISS;
   eps->ops->view           = EPSView_CISS;
-  eps->ops->backtransform  = NULL;
   eps->ops->computevectors = EPSComputeVectors_Schur;
+  eps->ops->setdefaultst   = EPSSetDefaultST_CISS;
+
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSCISSSetSizes_C",EPSCISSSetSizes_CISS);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSCISSGetSizes_C",EPSCISSGetSizes_CISS);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSCISSSetThreshold_C",EPSCISSSetThreshold_CISS);CHKERRQ(ierr);

@@ -41,6 +41,7 @@ struct _EPSOps {
   PetscErrorCode (*view)(EPS,PetscViewer);
   PetscErrorCode (*backtransform)(EPS);
   PetscErrorCode (*computevectors)(EPS);
+  PetscErrorCode (*setdefaultst)(EPS);
 };
 
 /*
@@ -182,5 +183,7 @@ PETSC_INTERN PetscErrorCode EPSKrylovConvergence(EPS,PetscBool,PetscInt,PetscInt
 PETSC_INTERN PetscErrorCode EPSFullLanczos(EPS,PetscReal*,PetscReal*,PetscInt,PetscInt*,PetscBool*);
 PETSC_INTERN PetscErrorCode EPSPseudoLanczos(EPS,PetscReal*,PetscReal*,PetscReal*,PetscInt,PetscInt*,PetscBool*,PetscBool*,PetscReal*,Vec);
 PETSC_INTERN PetscErrorCode EPSBuildBalance_Krylov(EPS);
+PETSC_INTERN PetscErrorCode EPSSetDefaultST(EPS);
+PETSC_INTERN PetscErrorCode EPSSetDefaultST_Precond(EPS);
 
 #endif

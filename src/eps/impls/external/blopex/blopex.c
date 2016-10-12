@@ -30,8 +30,6 @@
 
 PetscInt slepc_blopex_useconstr = -1;
 
-PetscErrorCode EPSSolve_BLOPEX(EPS);
-
 typedef struct {
   lobpcg_Tolerance           tol;
   lobpcg_BLASLAPACKFunctions blap_fn;
@@ -207,9 +205,6 @@ PetscErrorCode EPSSetUp_BLOPEX(EPS eps)
   blopex->blap_fn.dpotrf = PETSC_dpotrf_interface;
   blopex->blap_fn.dsygv = PETSC_dsygv_interface;
 #endif
-
-  /* dispatch solve method */
-  eps->ops->solve = EPSSolve_BLOPEX;
   PetscFunctionReturn(0);
 #endif
 }
@@ -455,18 +450,6 @@ PetscErrorCode EPSSetFromOptions_BLOPEX(PetscOptionItems *PetscOptionsObject,EPS
   ierr = PetscOptionsTail();CHKERRQ(ierr);
 
   LOBPCG_SetFromOptionsRandomContext();
-
-  /* Set STPrecond as the default ST */
-  if (!((PetscObject)eps->st)->type_name) {
-    ierr = STSetType(eps->st,STPRECOND);CHKERRQ(ierr);
-  }
-  ierr = STPrecondSetKSPHasMat(eps->st,PETSC_TRUE);CHKERRQ(ierr);
-
-  /* Set the default options of the KSP */
-  ierr = STGetKSP(eps->st,&ksp);CHKERRQ(ierr);
-  if (!((PetscObject)ksp)->type_name) {
-    ierr = KSPSetType(ksp,KSPPREONLY);CHKERRQ(ierr);
-  }
   PetscFunctionReturn(0);
 }
 
@@ -481,12 +464,15 @@ PETSC_EXTERN PetscErrorCode EPSCreate_BLOPEX(EPS eps)
   ierr = PetscNewLog(eps,&ctx);CHKERRQ(ierr);
   eps->data = (void*)ctx;
 
+  eps->ops->solve          = EPSSolve_BLOPEX;
   eps->ops->setup          = EPSSetUp_BLOPEX;
   eps->ops->setfromoptions = EPSSetFromOptions_BLOPEX;
   eps->ops->destroy        = EPSDestroy_BLOPEX;
   eps->ops->reset          = EPSReset_BLOPEX;
   eps->ops->view           = EPSView_BLOPEX;
   eps->ops->backtransform  = EPSBackTransform_Default;
+  eps->ops->setdefaultst   = EPSSetDefaultST_Precond;
+
   LOBPCG_InitRandomContext(PetscObjectComm((PetscObject)eps),NULL);
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSBLOPEXSetBlockSize_C",EPSBLOPEXSetBlockSize_BLOPEX);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSBLOPEXGetBlockSize_C",EPSBLOPEXGetBlockSize_BLOPEX);CHKERRQ(ierr);
