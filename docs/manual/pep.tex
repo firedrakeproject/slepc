@@ -411,7 +411,7 @@ The example computes 12 eigenpairs closest to the origin with TOAR and shift-and
 	$ ./ex16 -pep_nev 12 -pep_type qarnoldi -pep_target 0 -st_type sinvert
                  -st_transform
 	\end{Verbatim}
-where in this case \Verb!-st_transform! is required.
+where in this case \Verb!-st_transform! would be set as default if not specified.
 
 As a complete example of how to solve a quadratic eigenproblem via explicit linearization with explicit construction of the $L_0$ and $L_1$ matrices, consider the following command line:
 \begin{Verbatim}[fontsize=\small]

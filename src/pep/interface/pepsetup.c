@@ -44,6 +44,21 @@ PetscErrorCode PEPSetDefaultST(PEP pep)
 }
 
 #undef __FUNCT__
+#define __FUNCT__ "PEPSetDefaultST_Transform"
+/*
+   This is used in Q-Arnoldi and STOAR to set the transform flag by
+   default, otherwise the user has to explicitly run with -st_transform
+*/
+PetscErrorCode PEPSetDefaultST_Transform(PEP pep)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  ierr = STSetTransform(pep->st,PETSC_TRUE);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
 #define __FUNCT__ "PEPSetUp"
 /*@
    PEPSetUp - Sets up all the internal data structures necessary for the

@@ -280,10 +280,6 @@ PetscErrorCode PEPSetUp_Linear(PEP pep)
   pep->lineariz = PETSC_TRUE;
   if (!ctx->cform) ctx->cform = 1;
   ierr = STGetTransform(pep->st,&transf);CHKERRQ(ierr);
-  /* Set STSHIFT as the default ST */
-  if (!((PetscObject)pep->st)->type_name) {
-    ierr = STSetType(pep->st,STSHIFT);CHKERRQ(ierr);
-  }
   ierr = PetscObjectTypeCompare((PetscObject)pep->st,STSHIFT,&shift);CHKERRQ(ierr);
   ierr = PetscObjectTypeCompare((PetscObject)pep->st,STSINVERT,&sinv);CHKERRQ(ierr);
   if (!shift && !sinv) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Only STSHIFT and STSINVERT spectral transformations can be used");
