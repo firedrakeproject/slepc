@@ -87,7 +87,6 @@ PetscErrorCode EPSSetUp_LOBPCG(EPS eps)
 
   if (!ctx->restart) ctx->restart = 0.9;
 
-  ierr = STSetUp(eps->st);CHKERRQ(ierr);
   ierr = PetscObjectTypeCompare((PetscObject)eps->st,STPRECOND,&precond);CHKERRQ(ierr);
   if (!precond) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"LOBPCG only works with precond ST");
 
