@@ -157,8 +157,8 @@ PetscErrorCode PEPSetUp_STOAR(PEP pep)
   ierr = STGetNumMatrices(pep->st,&ctx->d);CHKERRQ(ierr);
   ctx->d--;
   ctx->ld = ld;
-  ierr = PetscCalloc1(ctx->d*ld*ld,&ctx->S);CHKERRQ(ierr);
-  ierr = PetscCalloc1(2*ld*ld,&ctx->qB);CHKERRQ(ierr);
+  if (ctx->S) { ierr = PetscFree2(ctx->S,ctx->qB);CHKERRQ(ierr); }
+  ierr = PetscCalloc2(ctx->d*ld*ld,&ctx->S,2*ld*ld,&ctx->qB);CHKERRQ(ierr);
 
   /* process initial vectors */
   ctx->nq = 0;
@@ -715,8 +715,10 @@ PetscErrorCode PEPView_STOAR(PEP pep,PetscViewer viewer)
 PetscErrorCode PEPDestroy_STOAR(PEP pep)
 {
   PetscErrorCode ierr;
+  PEP_TOAR       *ctx = (PEP_TOAR*)pep->data;
 
   PetscFunctionBegin;
+  ierr = PetscFree2(ctx->S,ctx->qB);CHKERRQ(ierr);
   ierr = PetscFree(pep->data);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)pep,"PEPSTOARSetLocking_C",NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)pep,"PEPSTOARGetLocking_C",NULL);CHKERRQ(ierr);
@@ -739,7 +741,6 @@ PETSC_EXTERN PetscErrorCode PEPCreate_STOAR(PEP pep)
   pep->ops->setup          = PEPSetUp_STOAR;
   pep->ops->setfromoptions = PEPSetFromOptions_STOAR;
   pep->ops->destroy        = PEPDestroy_STOAR;
-  pep->ops->reset          = PEPReset_TOAR;
   pep->ops->view           = PEPView_STOAR;
   pep->ops->backtransform  = PEPBackTransform_Default;
   pep->ops->computevectors = PEPComputeVectors_Default;

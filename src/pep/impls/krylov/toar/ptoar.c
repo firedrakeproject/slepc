@@ -119,6 +119,7 @@ PetscErrorCode PEPSetUp_TOAR(PEP pep)
   }
   ctx->ld = pep->ncv+(pep->nmat-1);   /* number of rows of each fragment of S */
   lds = (pep->nmat-1)*ctx->ld;
+  if (ctx->S) { ierr = PetscFree(ctx->S);CHKERRQ(ierr); }
   ierr = PetscCalloc1(lds*ctx->ld,&ctx->S);CHKERRQ(ierr);
 
   /* process initial vectors */
@@ -1153,8 +1154,10 @@ PetscErrorCode PEPView_TOAR(PEP pep,PetscViewer viewer)
 PetscErrorCode PEPDestroy_TOAR(PEP pep)
 {
   PetscErrorCode ierr;
+  PEP_TOAR       *ctx = (PEP_TOAR*)pep->data;
 
   PetscFunctionBegin;
+  ierr = PetscFree(ctx->S);CHKERRQ(ierr);
   ierr = PetscFree(pep->data);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)pep,"PEPTOARSetRestart_C",NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)pep,"PEPTOARGetRestart_C",NULL);CHKERRQ(ierr);
@@ -1179,7 +1182,6 @@ PETSC_EXTERN PetscErrorCode PEPCreate_TOAR(PEP pep)
   pep->ops->setup          = PEPSetUp_TOAR;
   pep->ops->setfromoptions = PEPSetFromOptions_TOAR;
   pep->ops->destroy        = PEPDestroy_TOAR;
-  pep->ops->reset          = PEPReset_TOAR;
   pep->ops->view           = PEPView_TOAR;
   pep->ops->backtransform  = PEPBackTransform_Default;
   pep->ops->computevectors = PEPComputeVectors_Default;

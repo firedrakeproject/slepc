@@ -193,15 +193,3 @@ PetscErrorCode PEPExtractVectors_TOAR(PEP pep)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "PEPReset_TOAR"
-PetscErrorCode PEPReset_TOAR(PEP pep)
-{
-  PEP_TOAR       *ctx = (PEP_TOAR*)pep->data;
-  PetscErrorCode ierr;
-
-  PetscFunctionBegin;
-  ierr = PetscFree(ctx->S);CHKERRQ(ierr);
-  ierr = PetscFree(ctx->qB);CHKERRQ(ierr);
-  PetscFunctionReturn(0);
-}
