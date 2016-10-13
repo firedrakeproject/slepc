@@ -157,7 +157,7 @@ PetscErrorCode PEPSetUp_STOAR(PEP pep)
   ierr = STGetNumMatrices(pep->st,&ctx->d);CHKERRQ(ierr);
   ctx->d--;
   ctx->ld = ld;
-  if (ctx->S) { ierr = PetscFree2(ctx->S,ctx->qB);CHKERRQ(ierr); }
+  if (ctx->S) { ierr = PetscFree2(ctx->S,ctx->qB);CHKERRQ(ierr); }
   ierr = PetscCalloc2(ctx->d*ld*ld,&ctx->S,2*ld*ld,&ctx->qB);CHKERRQ(ierr);
 
   /* process initial vectors */
