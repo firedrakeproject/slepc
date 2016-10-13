@@ -200,7 +200,6 @@ PetscErrorCode NEPSetFromOptions_RII(PetscOptionItems *PetscOptionsObject,NEP ne
   ierr = PetscOptionsTail();CHKERRQ(ierr);
 
   if (!ctx->ksp) { ierr = NEPRIIGetKSP(nep,&ctx->ksp);CHKERRQ(ierr); }
-  ierr = KSPSetOperators(ctx->ksp,nep->function,nep->function_pre);CHKERRQ(ierr);
   ierr = KSPSetFromOptions(ctx->ksp);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -577,6 +576,18 @@ PetscErrorCode NEPView_RII(NEP nep,PetscViewer viewer)
 }
 
 #undef __FUNCT__
+#define __FUNCT__ "NEPReset_RII"
+PetscErrorCode NEPReset_RII(NEP nep)
+{
+  PetscErrorCode ierr;
+  NEP_RII        *ctx = (NEP_RII*)nep->data;
+
+  PetscFunctionBegin;
+  if (!ctx->ksp) { ierr = KSPReset(ctx->ksp);CHKERRQ(ierr); }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
 #define __FUNCT__ "NEPDestroy_RII"
 PetscErrorCode NEPDestroy_RII(NEP nep)
 {
@@ -606,16 +617,18 @@ PETSC_EXTERN PetscErrorCode NEPCreate_RII(NEP nep)
 
   PetscFunctionBegin;
   ierr = PetscNewLog(nep,&ctx);CHKERRQ(ierr);
+  nep->data = (void*)ctx;
   ctx->max_inner_it = 10;
   ctx->lag          = 1;
   ctx->cctol        = PETSC_FALSE;
-  nep->data = (void*)ctx;
 
   nep->ops->solve          = NEPSolve_RII;
   nep->ops->setup          = NEPSetUp_RII;
   nep->ops->setfromoptions = NEPSetFromOptions_RII;
+  nep->ops->reset          = NEPReset_RII;
   nep->ops->destroy        = NEPDestroy_RII;
   nep->ops->view           = NEPView_RII;
+
   ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPRIISetMaximumIterations_C",NEPRIISetMaximumIterations_RII);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPRIIGetMaximumIterations_C",NEPRIIGetMaximumIterations_RII);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPRIISetLagPreconditioner_C",NEPRIISetLagPreconditioner_RII);CHKERRQ(ierr);
