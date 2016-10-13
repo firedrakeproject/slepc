@@ -119,7 +119,7 @@ PetscErrorCode PEPSetUp_TOAR(PEP pep)
   }
   ctx->ld = pep->ncv+(pep->nmat-1);   /* number of rows of each fragment of S */
   lds = (pep->nmat-1)*ctx->ld;
-  if (ctx->S) { ierr = PetscFree(ctx->S);CHKERRQ(ierr); }
+  if (ctx->S) { ierr = PetscFree(ctx->S);CHKERRQ(ierr); }
   ierr = PetscCalloc1(lds*ctx->ld,&ctx->S);CHKERRQ(ierr);
 
   /* process initial vectors */
