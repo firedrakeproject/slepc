@@ -465,7 +465,7 @@ PETSC_EXTERN PetscErrorCode EPSCreate_RQCG(EPS eps)
   eps->ops->reset          = EPSReset_RQCG;
   eps->ops->view           = EPSView_RQCG;
   eps->ops->backtransform  = EPSBackTransform_Default;
-  eps->ops->setdefaultst   = EPSSetDefaultST_Precond;
+  eps->ops->setdefaultst   = EPSSetDefaultST_GMRES;
 
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSRQCGSetReset_C",EPSRQCGSetReset_RQCG);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSRQCGGetReset_C",EPSRQCGGetReset_RQCG);CHKERRQ(ierr);

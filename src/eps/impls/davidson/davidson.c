@@ -83,6 +83,7 @@ PetscErrorCode EPSSetUp_XD(EPS eps)
   }
 
   /* Davidson solvers only support STPRECOND */
+  ierr = STSetUp(eps->st);CHKERRQ(ierr);
   ierr = PetscObjectTypeCompare((PetscObject)eps->st,STPRECOND,&t);CHKERRQ(ierr);
   if (!t) SETERRQ1(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"%s only works with precond spectral transformation",((PetscObject)eps)->type_name);
 

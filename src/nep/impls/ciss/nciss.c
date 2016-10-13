@@ -1125,30 +1125,30 @@ PETSC_EXTERN PetscErrorCode NEPCreate_CISS(NEP nep)
   PetscFunctionBegin;
   ierr = PetscNewLog(nep,&ctx);CHKERRQ(ierr);
   nep->data = ctx;
+  /* set default values of parameters */
+  ctx->N                  = 32;
+  ctx->L                  = 16;
+  ctx->M                  = ctx->N/4;
+  ctx->delta              = 1e-12;
+  ctx->L_max              = 64;
+  ctx->spurious_threshold = 1e-4;
+  ctx->usest              = PETSC_FALSE;
+  ctx->isreal             = PETSC_FALSE;
+  ctx->num_subcomm        = 1;
+
   nep->ops->solve          = NEPSolve_CISS;
   nep->ops->setup          = NEPSetUp_CISS;
   nep->ops->setfromoptions = NEPSetFromOptions_CISS;
   nep->ops->reset          = NEPReset_CISS;
   nep->ops->destroy        = NEPDestroy_CISS;
   nep->ops->view           = NEPView_CISS;
+
   ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPCISSSetSizes_C",NEPCISSSetSizes_CISS);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPCISSGetSizes_C",NEPCISSGetSizes_CISS);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPCISSSetThreshold_C",NEPCISSSetThreshold_CISS);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPCISSGetThreshold_C",NEPCISSGetThreshold_CISS);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPCISSSetRefinement_C",NEPCISSSetRefinement_CISS);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPCISSGetRefinement_C",NEPCISSGetRefinement_CISS);CHKERRQ(ierr);
-  /* set default values of parameters */
-  ctx->N       = 32;
-  ctx->L       = 16;
-  ctx->M       = ctx->N/4;
-  ctx->delta   = 1e-12;
-  ctx->L_max   = 64;
-  ctx->spurious_threshold = 1e-4;
-  ctx->usest   = PETSC_FALSE;
-  ctx->isreal  = PETSC_FALSE;
-  ctx->refine_inner = 0;
-  ctx->refine_blocksize = 0;
-  ctx->num_subcomm = 1;
   PetscFunctionReturn(0);
 }
 

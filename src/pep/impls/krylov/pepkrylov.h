@@ -36,7 +36,5 @@ typedef struct {
 
 #endif
 
-
 PETSC_INTERN PetscErrorCode PEPExtractVectors_TOAR(PEP);
-PETSC_INTERN PetscErrorCode PEPReset_TOAR(PEP);
 

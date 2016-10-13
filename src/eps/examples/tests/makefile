@@ -236,7 +236,7 @@ runtest3_1_%:
 runtest3_2: runtest3_2_rqcg runtest3_2_lobpcg runtest3_2_lanczos runtest3_2_lanczos_delayed
 runtest3_2_%:
 	-@${SETTEST}; check=test3_2; eps=$*; \
-	if [ "$$eps" = lobpcg ]; then eps="lobpcg -eps_lobpcg_blocksize 6"; \
+	if [ "$$eps" = lobpcg ]; then eps="lobpcg -eps_lobpcg_blocksize 6 -st_ksp_type preonly"; \
 	elif [ "$$eps" = rqcg ]; then eps="rqcg -eps_rqcg_reset 5 -eps_ncv 32 -st_pc_type bjacobi"; \
 	elif [ "$$eps" = lanczos_delayed ]; then eps="lanczos -eps_lanczos_reorthog delayed -eps_tol 1e-8"; fi; \
 	${MPIEXEC} -n 1 ./test3 -eps_type $$eps -eps_nev 4 -eps_smallest_real -eps_max_it 500 > $${test}.tmp 2>&1; \

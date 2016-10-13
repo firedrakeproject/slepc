@@ -190,7 +190,6 @@ PetscErrorCode NEPSetFromOptions_NArnoldi(PetscOptionItems *PetscOptionsObject,N
   ierr = PetscOptionsTail();CHKERRQ(ierr);
 
   if (!ctx->ksp) { ierr = NEPNArnoldiGetKSP(nep,&ctx->ksp);CHKERRQ(ierr); }
-  ierr = KSPSetOperators(ctx->ksp,nep->function,nep->function_pre);CHKERRQ(ierr);
   ierr = KSPSetFromOptions(ctx->ksp);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -309,6 +308,18 @@ PetscErrorCode NEPView_NArnoldi(NEP nep,PetscViewer viewer)
 }
 
 #undef __FUNCT__
+#define __FUNCT__ "NEPReset_NArnoldi"
+PetscErrorCode NEPReset_NArnoldi(NEP nep)
+{
+  PetscErrorCode ierr;
+  NEP_NARNOLDI   *ctx = (NEP_NARNOLDI*)nep->data;
+
+  PetscFunctionBegin;
+  if (!ctx->ksp) { ierr = KSPReset(ctx->ksp);CHKERRQ(ierr); }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
 #define __FUNCT__ "NEPDestroy_NArnoldi"
 PetscErrorCode NEPDestroy_NArnoldi(NEP nep)
 {
@@ -337,8 +348,10 @@ PETSC_EXTERN PetscErrorCode NEPCreate_NArnoldi(NEP nep)
   nep->ops->solve          = NEPSolve_NArnoldi;
   nep->ops->setup          = NEPSetUp_NArnoldi;
   nep->ops->setfromoptions = NEPSetFromOptions_NArnoldi;
+  nep->ops->reset          = NEPReset_NArnoldi;
   nep->ops->destroy        = NEPDestroy_NArnoldi;
   nep->ops->view           = NEPView_NArnoldi;
+
   ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPNArnoldiSetKSP_C",NEPNArnoldiSetKSP_NArnoldi);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPNArnoldiGetKSP_C",NEPNArnoldiGetKSP_NArnoldi);CHKERRQ(ierr);
   PetscFunctionReturn(0);

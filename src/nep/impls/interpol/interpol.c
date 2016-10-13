@@ -458,8 +458,8 @@ PETSC_EXTERN PetscErrorCode NEPCreate_Interpol(NEP nep)
 
   PetscFunctionBegin;
   ierr = PetscNewLog(nep,&ctx);CHKERRQ(ierr);
-  ctx->deg  = 5;
   nep->data = (void*)ctx;
+  ctx->deg  = 5;
 
   nep->ops->solve          = NEPSolve_Interpol;
   nep->ops->setup          = NEPSetUp_Interpol;
@@ -467,6 +467,7 @@ PETSC_EXTERN PetscErrorCode NEPCreate_Interpol(NEP nep)
   nep->ops->reset          = NEPReset_Interpol;
   nep->ops->destroy        = NEPDestroy_Interpol;
   nep->ops->view           = NEPView_Interpol;
+
   ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPInterpolSetDegree_C",NEPInterpolSetDegree_Interpol);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPInterpolGetDegree_C",NEPInterpolGetDegree_Interpol);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPInterpolSetPEP_C",NEPInterpolSetPEP_Interpol);CHKERRQ(ierr);

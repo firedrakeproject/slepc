@@ -307,6 +307,7 @@ PETSC_EXTERN PetscErrorCode NEPCreate_SLP(NEP nep)
   nep->ops->reset          = NEPReset_SLP;
   nep->ops->destroy        = NEPDestroy_SLP;
   nep->ops->view           = NEPView_SLP;
+
   ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPSLPSetEPS_C",NEPSLPSetEPS_SLP);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPSLPGetEPS_C",NEPSLPGetEPS_SLP);CHKERRQ(ierr);
   PetscFunctionReturn(0);

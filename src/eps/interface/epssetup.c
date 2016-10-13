@@ -46,7 +46,7 @@ PetscErrorCode EPSSetDefaultST(EPS eps)
 #undef __FUNCT__
 #define __FUNCT__ "EPSSetDefaultST_Precond"
 /*
-   This is done by all preconditioned eigensolvers, except JD.
+   This is done by preconditioned eigensolvers that use the PC only.
    It sets STPRECOND with KSPPREONLY.
 */
 PetscErrorCode EPSSetDefaultST_Precond(EPS eps)
@@ -62,6 +62,24 @@ PetscErrorCode EPSSetDefaultST_Precond(EPS eps)
   ierr = STGetKSP(eps->st,&ksp);CHKERRQ(ierr);
   if (!((PetscObject)ksp)->type_name) {
     ierr = KSPSetType(ksp,KSPPREONLY);CHKERRQ(ierr);
+  }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "EPSSetDefaultST_GMRES"
+/*
+   This is done by preconditioned eigensolvers that can also use the KSP.
+   It sets STPRECOND with the default KSP (GMRES).
+*/
+PetscErrorCode EPSSetDefaultST_GMRES(EPS eps)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  if (!((PetscObject)eps->st)->type_name) {
+    ierr = STSetType(eps->st,STPRECOND);CHKERRQ(ierr);
+    ierr = STPrecondSetKSPHasMat(eps->st,PETSC_TRUE);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }

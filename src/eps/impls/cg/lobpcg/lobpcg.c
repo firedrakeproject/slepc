@@ -739,7 +739,7 @@ PETSC_EXTERN PetscErrorCode EPSCreate_LOBPCG(EPS eps)
   eps->ops->destroy        = EPSDestroy_LOBPCG;
   eps->ops->view           = EPSView_LOBPCG;
   eps->ops->backtransform  = EPSBackTransform_Default;
-  eps->ops->setdefaultst   = EPSSetDefaultST_Precond;
+  eps->ops->setdefaultst   = EPSSetDefaultST_GMRES;
 
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSLOBPCGSetBlockSize_C",EPSLOBPCGSetBlockSize_LOBPCG);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSLOBPCGGetBlockSize_C",EPSLOBPCGGetBlockSize_LOBPCG);CHKERRQ(ierr);
