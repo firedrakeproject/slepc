@@ -140,7 +140,7 @@
       endif
 
 !     *** check error ||S*S-A||_F
-      call MatMatMult(S,S,MAT_REUSE_MATRIX,PETSC_DEFAULT_INTEGER,R,ierr)
+      call MatMatMult(S,S,MAT_REUSE_MATRIX,PETSC_DEFAULT_REAL,R,ierr)
       if (eta .ne. 1.0) then
         alpha = 1.0/(eta*eta)
         call MatScale(R,alpha,ierr)
