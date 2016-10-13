@@ -185,5 +185,6 @@ PETSC_INTERN PetscErrorCode EPSPseudoLanczos(EPS,PetscReal*,PetscReal*,PetscReal
 PETSC_INTERN PetscErrorCode EPSBuildBalance_Krylov(EPS);
 PETSC_INTERN PetscErrorCode EPSSetDefaultST(EPS);
 PETSC_INTERN PetscErrorCode EPSSetDefaultST_Precond(EPS);
+PETSC_INTERN PetscErrorCode EPSSetDefaultST_GMRES(EPS);
 
 #endif
