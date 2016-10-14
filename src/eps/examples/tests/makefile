@@ -167,11 +167,12 @@ test20: test20.o chkopts
 
 #------------------------------------------------------------------------------------
 
-runtest1_1: runtest1_1_krylovschur runtest1_1_subspace runtest1_1_arnoldi runtest1_1_lanczos runtest1_1_gd runtest1_1_jd runtest1_1_gd2 runtest1_1_lapack
+runtest1_1: runtest1_1_krylovschur runtest1_1_subspace runtest1_1_arnoldi runtest1_1_lanczos runtest1_1_gd runtest1_1_jd runtest1_1_gd2 runtest1_1_ciss runtest1_1_lapack
 runtest1_1_%:
 	-@${SETTEST}; check=test1_1; eps=$*; \
 	if [ "$$eps" = lanczos ]; then eps="lanczos -eps_lanczos_reorthog full"; \
-	elif [ "$$eps" = gd2 ]; then eps="gd -eps_gd_double_expansion"; fi; \
+	elif [ "$$eps" = gd2 ]; then eps="gd -eps_gd_double_expansion"; \
+	elif [ "$$eps" = ciss ]; then eps="ciss -rg_interval_endpoints 20.8,22 -eps_largest_real"; fi; \
 	${MPIEXEC} -n 1 ./test1 -n 18 -eps_type $$eps -eps_nev 4 -eps_max_it 1500 > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
