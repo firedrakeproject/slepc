@@ -112,7 +112,7 @@ PetscErrorCode BVMult_Svec_CUDA(BV Y,PetscScalar alpha,PetscScalar beta,BV X,Mat
   if (Q) {
     ierr = MatGetSize(Q,&ldq,&mq);CHKERRQ(ierr);
     ierr = MatDenseGetArray(Q,&q);CHKERRQ(ierr);
-    err = cudaMalloc((void**)&d_q,ldq*mq*sizeof(PetscScalar*));CHKERRCUDA(err);
+    err = cudaMalloc((void**)&d_q,ldq*mq*sizeof(PetscScalar));CHKERRCUDA(err);
     err = cudaMemcpy(d_q,q,ldq*mq*sizeof(PetscScalar),cudaMemcpyHostToDevice);CHKERRCUDA(err);
     d_B = d_q+Y->l*ldq+X->l;
     cberr = cublasXgemm(cublasv2handle,CUBLAS_OP_N,CUBLAS_OP_N,m,n,k,&alpha,d_A,m,d_B,ldq,&beta,d_C,m);CHKERRCUBLAS(cberr);
@@ -150,7 +150,7 @@ PetscErrorCode BVMultVec_Svec_CUDA(BV X,PetscScalar alpha,PetscScalar beta,Vec y
   } else {
     ierr = VecCUDAGetArrayReadWrite(y,&d_py);CHKERRQ(ierr);
   }
-  ierr = cudaMalloc((void**)&d_q,k*sizeof(PetscScalar*));CHKERRQ(ierr);
+  ierr = cudaMalloc((void**)&d_q,k*sizeof(PetscScalar));CHKERRQ(ierr);
   ierr = cudaMemcpy(d_q,q,k*sizeof(PetscScalar),cudaMemcpyHostToDevice);CHKERRQ(ierr);
   d_A = d_px+(X->nc+X->l)*X->n;
   d_x = d_q;
@@ -188,7 +188,7 @@ PetscErrorCode BVMultInPlace_Svec_CUDA(BV V,Mat Q,PetscInt s,PetscInt e)
   ierr = MatGetSize(Q,&ldq,&nq);CHKERRQ(ierr);
   ierr = VecCUDAGetArrayReadWrite(ctx->v,&d_pv);CHKERRQ(ierr);
   ierr = MatDenseGetArray(Q,&q);CHKERRQ(ierr);
-  ierr = cudaMalloc((void**)&d_q,ldq*nq*sizeof(PetscScalar*));CHKERRQ(ierr);
+  ierr = cudaMalloc((void**)&d_q,ldq*nq*sizeof(PetscScalar));CHKERRQ(ierr);
   ierr = cudaMemcpy(d_q,q,ldq*nq*sizeof(PetscScalar),cudaMemcpyHostToDevice);CHKERRQ(ierr);
   ierr = cudaMalloc((void**)&d_work,m*n*sizeof(PetscScalar));CHKERRQ(ierr);
   d_A = d_pv+(V->nc+V->l)*m;
@@ -226,7 +226,7 @@ PetscErrorCode BVMultInPlaceTranspose_Svec_CUDA(BV V,Mat Q,PetscInt s,PetscInt e
   ierr = MatGetSize(Q,&ldq,&nq);CHKERRQ(ierr);
   ierr = VecCUDAGetArrayReadWrite(ctx->v,&d_pv);CHKERRQ(ierr);
   ierr = MatDenseGetArray(Q,&q);CHKERRQ(ierr);
-  ierr = cudaMalloc((void**)&d_q,ldq*nq*sizeof(PetscScalar*));CHKERRQ(ierr);
+  ierr = cudaMalloc((void**)&d_q,ldq*nq*sizeof(PetscScalar));CHKERRQ(ierr);
   ierr = cudaMemcpy(d_q,q,ldq*nq*sizeof(PetscScalar),cudaMemcpyHostToDevice);CHKERRQ(ierr);
   ierr = cudaMalloc((void**)&d_work,m*n*sizeof(PetscScalar));CHKERRQ(ierr);
   d_A = d_pv+(V->nc+V->l)*m;
