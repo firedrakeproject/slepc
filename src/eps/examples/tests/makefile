@@ -222,6 +222,8 @@ runtest2_2_%:
 runtest2_3: runtest2_3_krylovschur runtest2_3_gd runtest2_3_jd runtest2_3_lapack
 runtest2_3_%:
 	-@${SETTEST}; check=test2_1; eps=$*; \
+	if [ "$$eps" = jd ]; then eps="jd -eps_jd_krylov_start"; \
+	elif [ "$$eps" = gd ]; then eps="gd -eps_gd_krylov_start"; fi; \
 	${MPIEXEC} -n 2 ./test2 -eps_type $$eps -eps_nev 4 > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
@@ -229,6 +231,8 @@ runtest3_1: runtest3_1_krylovschur runtest3_1_power runtest3_1_subspace runtest3
 runtest3_1_%:
 	-@${SETTEST}; check=test3_1; eps=$*; \
 	if [ "$$eps" = gd2 ]; then eps="gd -eps_gd_double_expansion"; \
+	elif [ "$$eps" = jd ]; then eps="jd -eps_jd_initial_size 7"; \
+	elif [ "$$eps" = gd ]; then eps="gd -eps_gd_initial_size 7"; \
 	elif [ "$$eps" = power ]; then eps="power -eps_max_it 20000"; \
 	elif [ "$$eps" = primme ]; then eps="primme -eps_conv_abs"; fi; \
 	${MPIEXEC} -n 1 ./test3 -eps_type $$eps -eps_nev 4 > $${test}.tmp 2>&1; \
@@ -259,7 +263,8 @@ runtest5_1: runtest5_1_krylovschur runtest5_1_power runtest5_1_subspace runtest5
 runtest5_1_%:
 	-@${SETTEST}; check=test5_1; eps=$*; \
 	if [ "${PETSC_SCALAR}" = "complex" ]; then check=$${check}_complex; fi; \
-	if [ "$$eps" = jd ]; then eps="jd -eps_jd_minv 3"; \
+	if [ "$$eps" = jd ]; then eps="jd -eps_jd_minv 3 -eps_jd_plusk 1"; \
+	elif [ "$$eps" = gd ]; then eps="gd -eps_gd_minv 3 -eps_gd_plusk 1"; \
 	elif [ "$$eps" = gd2 ]; then eps="gd -eps_gd_double_expansion"; \
 	elif [ "$$eps" = power ]; then eps="power -st_type sinvert -eps_target 7"; fi; \
 	${MPIEXEC} -n 1 ./test5 -eps_type $$eps -eps_nev 3 > $${test}.tmp 2>&1; \
@@ -327,6 +332,8 @@ runtest8_1_%:
 	-@${SETTEST}; check=test8_1; eps=$*; \
 	if [ "$$eps" = krylovschur_vecs ]; then eps="krylovschur -bv_type vecs -bv_orthog_refine always"; \
 	elif [ "$$eps" = gd2 ]; then eps="gd -eps_gd_double_expansion"; \
+	elif [ "$$eps" = jd ]; then eps="jd -eps_jd_blocksize 3"; \
+	elif [ "$$eps" = gd ]; then eps="gd -eps_gd_blocksize 3"; \
 	elif [ "$$eps" = primme ]; then eps="primme -eps_conv_abs"; fi; \
 	${MPIEXEC} -n 1 ./test8 -n 20 -eps_type $$eps -eps_nev 4 -eps_ncv 11 -eps_max_it 40000 > $${test}.tmp 2>&1; \
 	${TESTCODE}

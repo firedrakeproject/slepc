@@ -287,35 +287,6 @@ PetscErrorCode EPSGDGetBlockSize(EPS eps,PetscInt *blocksize)
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "EPSGDGetRestart"
-/*@
-   EPSGDGetRestart - Gets the number of vectors of the searching space after
-   restarting and the number of vectors saved from the previous iteration.
-
-   Not Collective
-
-   Input Parameter:
-.  eps - the eigenproblem solver context
-
-   Output Parameter:
-+  minv - number of vectors of the searching subspace after restarting
--  plusk - number of vectors saved from the previous iteration
-
-   Level: advanced
-
-.seealso: EPSGDSetRestart()
-@*/
-PetscErrorCode EPSGDGetRestart(EPS eps,PetscInt *minv,PetscInt *plusk)
-{
-  PetscErrorCode ierr;
-
-  PetscFunctionBegin;
-  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  ierr = PetscUseMethod(eps,"EPSGDGetRestart_C",(EPS,PetscInt*,PetscInt*),(eps,minv,plusk));CHKERRQ(ierr);
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
 #define __FUNCT__ "EPSGDSetRestart"
 /*@
    EPSGDSetRestart - Sets the number of vectors of the searching space after
@@ -349,9 +320,10 @@ PetscErrorCode EPSGDSetRestart(EPS eps,PetscInt minv,PetscInt plusk)
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "EPSGDGetInitialSize"
+#define __FUNCT__ "EPSGDGetRestart"
 /*@
-   EPSGDGetInitialSize - Returns the initial size of the searching space.
+   EPSGDGetRestart - Gets the number of vectors of the searching space after
+   restarting and the number of vectors saved from the previous iteration.
 
    Not Collective
 
@@ -359,28 +331,20 @@ PetscErrorCode EPSGDSetRestart(EPS eps,PetscInt minv,PetscInt plusk)
 .  eps - the eigenproblem solver context
 
    Output Parameter:
-.  initialsize - number of vectors of the initial searching subspace
-
-   Notes:
-   If EPSGDGetKrylovStart() is PETSC_FALSE and the user provides vectors with
-   EPSSetInitialSpace(), up to initialsize vectors will be used; and if the
-   provided vectors are not enough, the solver completes the subspace with
-   random vectors. In the case of EPSGDGetKrylovStart() being PETSC_TRUE, the solver
-   gets the first vector provided by the user or, if not available, a random vector,
-   and expands the Krylov basis up to initialsize vectors.
++  minv - number of vectors of the searching subspace after restarting
+-  plusk - number of vectors saved from the previous iteration
 
    Level: advanced
 
-.seealso: EPSGDSetInitialSize(), EPSGDGetKrylovStart()
+.seealso: EPSGDSetRestart()
 @*/
-PetscErrorCode EPSGDGetInitialSize(EPS eps,PetscInt *initialsize)
+PetscErrorCode EPSGDGetRestart(EPS eps,PetscInt *minv,PetscInt *plusk)
 {
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  PetscValidIntPointer(initialsize,2);
-  ierr = PetscUseMethod(eps,"EPSGDGetInitialSize_C",(EPS,PetscInt*),(eps,initialsize));CHKERRQ(ierr);
+  ierr = PetscUseMethod(eps,"EPSGDGetRestart_C",(EPS,PetscInt*,PetscInt*),(eps,minv,plusk));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -418,6 +382,42 @@ PetscErrorCode EPSGDSetInitialSize(EPS eps,PetscInt initialsize)
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidLogicalCollectiveInt(eps,initialsize,2);
   ierr = PetscTryMethod(eps,"EPSGDSetInitialSize_C",(EPS,PetscInt),(eps,initialsize));CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "EPSGDGetInitialSize"
+/*@
+   EPSGDGetInitialSize - Returns the initial size of the searching space.
+
+   Not Collective
+
+   Input Parameter:
+.  eps - the eigenproblem solver context
+
+   Output Parameter:
+.  initialsize - number of vectors of the initial searching subspace
+
+   Notes:
+   If EPSGDGetKrylovStart() is PETSC_FALSE and the user provides vectors with
+   EPSSetInitialSpace(), up to initialsize vectors will be used; and if the
+   provided vectors are not enough, the solver completes the subspace with
+   random vectors. In the case of EPSGDGetKrylovStart() being PETSC_TRUE, the solver
+   gets the first vector provided by the user or, if not available, a random vector,
+   and expands the Krylov basis up to initialsize vectors.
+
+   Level: advanced
+
+.seealso: EPSGDSetInitialSize(), EPSGDGetKrylovStart()
+@*/
+PetscErrorCode EPSGDGetInitialSize(EPS eps,PetscInt *initialsize)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
+  PetscValidIntPointer(initialsize,2);
+  ierr = PetscUseMethod(eps,"EPSGDGetInitialSize_C",(EPS,PetscInt*),(eps,initialsize));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -481,36 +481,6 @@ PetscErrorCode EPSGDGetBOrth(EPS eps,PetscBool *borth)
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "EPSGDGetWindowSizes"
-/*@
-   EPSGDGetWindowSizes - Gets the number of converged vectors in the projected
-   problem (or Rayleigh quotient) and in the projector employed in the correction
-   equation.
-
-   Not Collective
-
-   Input Parameter:
-.  eps - the eigenproblem solver context
-
-   Output Parameter:
-+  pwindow - number of converged vectors in the projector
--  qwindow - number of converged vectors in the projected problem
-
-   Level: advanced
-
-.seealso: EPSGDSetWindowSizes()
-@*/
-PetscErrorCode EPSGDGetWindowSizes(EPS eps,PetscInt *pwindow,PetscInt *qwindow)
-{
-  PetscErrorCode ierr;
-
-  PetscFunctionBegin;
-  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  ierr = PetscUseMethod(eps,"EPSGDGetWindowSizes_C",(EPS,PetscInt*,PetscInt*),(eps,pwindow,qwindow));CHKERRQ(ierr);
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
 #define __FUNCT__ "EPSGDSetWindowSizes"
 /*@
    EPSGDSetWindowSizes - Sets the number of converged vectors in the projected
@@ -545,21 +515,11 @@ PetscErrorCode EPSGDSetWindowSizes(EPS eps,PetscInt pwindow,PetscInt qwindow)
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "EPSGDGetDoubleExpansion_GD"
-static PetscErrorCode EPSGDGetDoubleExpansion_GD(EPS eps,PetscBool *doubleexp)
-{
-  EPS_DAVIDSON *data = (EPS_DAVIDSON*)eps->data;
-
-  PetscFunctionBegin;
-  *doubleexp = data->doubleexp;
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
-#define __FUNCT__ "EPSGDGetDoubleExpansion"
+#define __FUNCT__ "EPSGDGetWindowSizes"
 /*@
-   EPSGDGetDoubleExpansion - Gets a flag indicating whether the double
-   expansion variant has been activated or not.
+   EPSGDGetWindowSizes - Gets the number of converged vectors in the projected
+   problem (or Rayleigh quotient) and in the projector employed in the correction
+   equation.
 
    Not Collective
 
@@ -567,20 +527,20 @@ static PetscErrorCode EPSGDGetDoubleExpansion_GD(EPS eps,PetscBool *doubleexp)
 .  eps - the eigenproblem solver context
 
    Output Parameter:
-.  doubleexp - the flag
++  pwindow - number of converged vectors in the projector
+-  qwindow - number of converged vectors in the projected problem
 
    Level: advanced
 
-.seealso: EPSGDSetDoubleExpansion()
+.seealso: EPSGDSetWindowSizes()
 @*/
-PetscErrorCode EPSGDGetDoubleExpansion(EPS eps,PetscBool *doubleexp)
+PetscErrorCode EPSGDGetWindowSizes(EPS eps,PetscInt *pwindow,PetscInt *qwindow)
 {
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  PetscValidPointer(doubleexp,2);
-  ierr = PetscUseMethod(eps,"EPSGDGetDoubleExpansion_C",(EPS,PetscBool*),(eps,doubleexp));CHKERRQ(ierr);
+  ierr = PetscUseMethod(eps,"EPSGDGetWindowSizes_C",(EPS,PetscInt*,PetscInt*),(eps,pwindow,qwindow));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -622,6 +582,46 @@ PetscErrorCode EPSGDSetDoubleExpansion(EPS eps,PetscBool doubleexp)
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidLogicalCollectiveBool(eps,doubleexp,2);
   ierr = PetscTryMethod(eps,"EPSGDSetDoubleExpansion_C",(EPS,PetscBool),(eps,doubleexp));CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "EPSGDGetDoubleExpansion_GD"
+static PetscErrorCode EPSGDGetDoubleExpansion_GD(EPS eps,PetscBool *doubleexp)
+{
+  EPS_DAVIDSON *data = (EPS_DAVIDSON*)eps->data;
+
+  PetscFunctionBegin;
+  *doubleexp = data->doubleexp;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "EPSGDGetDoubleExpansion"
+/*@
+   EPSGDGetDoubleExpansion - Gets a flag indicating whether the double
+   expansion variant has been activated or not.
+
+   Not Collective
+
+   Input Parameter:
+.  eps - the eigenproblem solver context
+
+   Output Parameter:
+.  doubleexp - the flag
+
+   Level: advanced
+
+.seealso: EPSGDSetDoubleExpansion()
+@*/
+PetscErrorCode EPSGDGetDoubleExpansion(EPS eps,PetscBool *doubleexp)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
+  PetscValidPointer(doubleexp,2);
+  ierr = PetscUseMethod(eps,"EPSGDGetDoubleExpansion_C",(EPS,PetscBool*),(eps,doubleexp));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

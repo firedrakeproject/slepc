@@ -312,35 +312,6 @@ PetscErrorCode EPSJDGetBlockSize(EPS eps,PetscInt *blocksize)
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "EPSJDGetRestart"
-/*@
-   EPSJDGetRestart - Gets the number of vectors of the searching space after
-   restarting and the number of vectors saved from the previous iteration.
-
-   Not Collective
-
-   Input Parameter:
-.  eps - the eigenproblem solver context
-
-   Output Parameter:
-+  minv - number of vectors of the searching subspace after restarting
--  plusk - number of vectors saved from the previous iteration
-
-   Level: advanced
-
-.seealso: EPSJDSetRestart()
-@*/
-PetscErrorCode EPSJDGetRestart(EPS eps,PetscInt *minv,PetscInt *plusk)
-{
-  PetscErrorCode ierr;
-
-  PetscFunctionBegin;
-  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  ierr = PetscUseMethod(eps,"EPSJDGetRestart_C",(EPS,PetscInt*,PetscInt*),(eps,minv,plusk));CHKERRQ(ierr);
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
 #define __FUNCT__ "EPSJDSetRestart"
 /*@
    EPSJDSetRestart - Sets the number of vectors of the searching space after
@@ -374,9 +345,10 @@ PetscErrorCode EPSJDSetRestart(EPS eps,PetscInt minv,PetscInt plusk)
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "EPSJDGetInitialSize"
+#define __FUNCT__ "EPSJDGetRestart"
 /*@
-   EPSJDGetInitialSize - Returns the initial size of the searching space.
+   EPSJDGetRestart - Gets the number of vectors of the searching space after
+   restarting and the number of vectors saved from the previous iteration.
 
    Not Collective
 
@@ -384,28 +356,20 @@ PetscErrorCode EPSJDSetRestart(EPS eps,PetscInt minv,PetscInt plusk)
 .  eps - the eigenproblem solver context
 
    Output Parameter:
-.  initialsize - number of vectors of the initial searching subspace
-
-   Notes:
-   If EPSJDGetKrylovStart() is PETSC_FALSE and the user provides vectors with
-   EPSSetInitialSpace(), up to initialsize vectors will be used; and if the
-   provided vectors are not enough, the solver completes the subspace with
-   random vectors. In the case of EPSJDGetKrylovStart() being PETSC_TRUE, the solver
-   gets the first vector provided by the user or, if not available, a random vector,
-   and expands the Krylov basis up to initialsize vectors.
++  minv - number of vectors of the searching subspace after restarting
+-  plusk - number of vectors saved from the previous iteration
 
    Level: advanced
 
-.seealso: EPSJDSetInitialSize(), EPSJDGetKrylovStart()
+.seealso: EPSJDSetRestart()
 @*/
-PetscErrorCode EPSJDGetInitialSize(EPS eps,PetscInt *initialsize)
+PetscErrorCode EPSJDGetRestart(EPS eps,PetscInt *minv,PetscInt *plusk)
 {
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  PetscValidIntPointer(initialsize,2);
-  ierr = PetscUseMethod(eps,"EPSJDGetInitialSize_C",(EPS,PetscInt*),(eps,initialsize));CHKERRQ(ierr);
+  ierr = PetscUseMethod(eps,"EPSJDGetRestart_C",(EPS,PetscInt*,PetscInt*),(eps,minv,plusk));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -447,10 +411,9 @@ PetscErrorCode EPSJDSetInitialSize(EPS eps,PetscInt initialsize)
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "EPSJDGetFix"
+#define __FUNCT__ "EPSJDGetInitialSize"
 /*@
-   EPSJDGetFix - Returns the threshold for changing the target in the correction
-   equation.
+   EPSJDGetInitialSize - Returns the initial size of the searching space.
 
    Not Collective
 
@@ -458,25 +421,41 @@ PetscErrorCode EPSJDSetInitialSize(EPS eps,PetscInt initialsize)
 .  eps - the eigenproblem solver context
 
    Output Parameter:
-.  fix - threshold for changing the target
+.  initialsize - number of vectors of the initial searching subspace
 
-   Note:
-   The target in the correction equation is fixed at the first iterations.
-   When the norm of the residual vector is lower than the fix value,
-   the target is set to the corresponding eigenvalue.
+   Notes:
+   If EPSJDGetKrylovStart() is PETSC_FALSE and the user provides vectors with
+   EPSSetInitialSpace(), up to initialsize vectors will be used; and if the
+   provided vectors are not enough, the solver completes the subspace with
+   random vectors. In the case of EPSJDGetKrylovStart() being PETSC_TRUE, the solver
+   gets the first vector provided by the user or, if not available, a random vector,
+   and expands the Krylov basis up to initialsize vectors.
 
    Level: advanced
 
-.seealso: EPSJDSetFix()
+.seealso: EPSJDSetInitialSize(), EPSJDGetKrylovStart()
 @*/
-PetscErrorCode EPSJDGetFix(EPS eps,PetscReal *fix)
+PetscErrorCode EPSJDGetInitialSize(EPS eps,PetscInt *initialsize)
 {
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  PetscValidPointer(fix,2);
-  ierr = PetscUseMethod(eps,"EPSJDGetFix_C",(EPS,PetscReal*),(eps,fix));CHKERRQ(ierr);
+  PetscValidIntPointer(initialsize,2);
+  ierr = PetscUseMethod(eps,"EPSJDGetInitialSize_C",(EPS,PetscInt*),(eps,initialsize));CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "EPSJDSetFix_JD"
+PetscErrorCode EPSJDSetFix_JD(EPS eps,PetscReal fix)
+{
+  EPS_DAVIDSON *data = (EPS_DAVIDSON*)eps->data;
+
+  PetscFunctionBegin;
+  if (fix == PETSC_DEFAULT || fix == PETSC_DECIDE) fix = 0.01;
+  if (fix < 0.0) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"Invalid fix value");
+  data->fix = fix;
   PetscFunctionReturn(0);
 }
 
@@ -516,6 +495,62 @@ PetscErrorCode EPSJDSetFix(EPS eps,PetscReal fix)
 }
 
 #undef __FUNCT__
+#define __FUNCT__ "EPSJDGetFix_JD"
+PetscErrorCode EPSJDGetFix_JD(EPS eps,PetscReal *fix)
+{
+  EPS_DAVIDSON *data = (EPS_DAVIDSON*)eps->data;
+
+  PetscFunctionBegin;
+  *fix = data->fix;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "EPSJDGetFix"
+/*@
+   EPSJDGetFix - Returns the threshold for changing the target in the correction
+   equation.
+
+   Not Collective
+
+   Input Parameter:
+.  eps - the eigenproblem solver context
+
+   Output Parameter:
+.  fix - threshold for changing the target
+
+   Note:
+   The target in the correction equation is fixed at the first iterations.
+   When the norm of the residual vector is lower than the fix value,
+   the target is set to the corresponding eigenvalue.
+
+   Level: advanced
+
+.seealso: EPSJDSetFix()
+@*/
+PetscErrorCode EPSJDGetFix(EPS eps,PetscReal *fix)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
+  PetscValidPointer(fix,2);
+  ierr = PetscUseMethod(eps,"EPSJDGetFix_C",(EPS,PetscReal*),(eps,fix));CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "EPSJDSetConstCorrectionTol_JD"
+PetscErrorCode EPSJDSetConstCorrectionTol_JD(EPS eps,PetscBool constant)
+{
+  EPS_DAVIDSON *data = (EPS_DAVIDSON*)eps->data;
+
+  PetscFunctionBegin;
+  data->dynamic = PetscNot(constant);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
 #define __FUNCT__ "EPSJDSetConstCorrectionTol"
 /*@
    EPSJDSetConstCorrectionTol - If true, deactivates the dynamic stopping criterion
@@ -543,6 +578,17 @@ PetscErrorCode EPSJDSetConstCorrectionTol(EPS eps,PetscBool constant)
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidLogicalCollectiveBool(eps,constant,2);
   ierr = PetscTryMethod(eps,"EPSJDSetConstCorrectionTol_C",(EPS,PetscBool),(eps,constant));CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "EPSJDGetConstCorrectionTol_JD"
+PetscErrorCode EPSJDGetConstCorrectionTol_JD(EPS eps,PetscBool *constant)
+{
+  EPS_DAVIDSON *data = (EPS_DAVIDSON*)eps->data;
+
+  PetscFunctionBegin;
+  *constant = PetscNot(data->dynamic);
   PetscFunctionReturn(0);
 }
 
@@ -577,36 +623,6 @@ PetscErrorCode EPSJDGetConstCorrectionTol(EPS eps,PetscBool *constant)
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "EPSJDGetWindowSizes"
-/*@
-   EPSJDGetWindowSizes - Gets the number of converged vectors in the projected
-   problem (or Rayleigh quotient) and in the projector employed in the correction
-   equation.
-
-   Not Collective
-
-   Input Parameter:
-.  eps - the eigenproblem solver context
-
-   Output Parameter:
-+  pwindow - number of converged vectors in the projector
--  qwindow - number of converged vectors in the projected problem
-
-   Level: advanced
-
-.seealso: EPSJDSetWindowSizes()
-@*/
-PetscErrorCode EPSJDGetWindowSizes(EPS eps,PetscInt *pwindow,PetscInt *qwindow)
-{
-  PetscErrorCode ierr;
-
-  PetscFunctionBegin;
-  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  ierr = PetscUseMethod(eps,"EPSJDGetWindowSizes_C",(EPS,PetscInt*,PetscInt*),(eps,pwindow,qwindow));CHKERRQ(ierr);
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
 #define __FUNCT__ "EPSJDSetWindowSizes"
 /*@
    EPSJDSetWindowSizes - Sets the number of converged vectors in the projected
@@ -637,6 +653,36 @@ PetscErrorCode EPSJDSetWindowSizes(EPS eps,PetscInt pwindow,PetscInt qwindow)
   PetscValidLogicalCollectiveInt(eps,pwindow,2);
   PetscValidLogicalCollectiveInt(eps,qwindow,3);
   ierr = PetscTryMethod(eps,"EPSJDSetWindowSizes_C",(EPS,PetscInt,PetscInt),(eps,pwindow,qwindow));CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "EPSJDGetWindowSizes"
+/*@
+   EPSJDGetWindowSizes - Gets the number of converged vectors in the projected
+   problem (or Rayleigh quotient) and in the projector employed in the correction
+   equation.
+
+   Not Collective
+
+   Input Parameter:
+.  eps - the eigenproblem solver context
+
+   Output Parameter:
++  pwindow - number of converged vectors in the projector
+-  qwindow - number of converged vectors in the projected problem
+
+   Level: advanced
+
+.seealso: EPSJDSetWindowSizes()
+@*/
+PetscErrorCode EPSJDGetWindowSizes(EPS eps,PetscInt *pwindow,PetscInt *qwindow)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
+  ierr = PetscUseMethod(eps,"EPSJDGetWindowSizes_C",(EPS,PetscInt*,PetscInt*),(eps,pwindow,qwindow));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -740,7 +786,7 @@ PETSC_EXTERN PetscErrorCode EPSCreate_JD(EPS eps)
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSJDSetInitialSize_C",EPSXDSetInitialSize_XD);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSJDGetInitialSize_C",EPSXDGetInitialSize_XD);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSJDSetFix_C",EPSJDSetFix_JD);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSJDGetFix_C",EPSXDGetFix_XD);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSJDGetFix_C",EPSJDGetFix_JD);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSJDSetConstCorrectionTol_C",EPSJDSetConstCorrectionTol_JD);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSJDGetConstCorrectionTol_C",EPSJDGetConstCorrectionTol_JD);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSJDSetWindowSizes_C",EPSXDSetWindowSizes_XD);CHKERRQ(ierr);
