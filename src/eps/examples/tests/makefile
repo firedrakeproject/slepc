@@ -479,12 +479,14 @@ runtest17f_1:
 	${MPIEXEC} -n 2 ./test17f > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
-runtest18_1: runtest18_1_krylovschur runtest18_1_krylovschur_gnhep
+runtest18_1: runtest18_1_krylovschur runtest18_1_krylovschur_gnhep runtest18_1_gd runtest18_1_jd
 runtest18_1_%:
 	-@${SETTEST}; check=test18_1; eps=$*; \
 	if [ "$$eps" = krylovschur ]; then eps="krylovschur -st_type sinvert"; \
-	elif [ "$$eps" = krylovschur_gnhep ]; then eps="krylovschur -eps_gen_non_hermitian -st_type sinvert"; fi; \
-	${MPIEXEC} -n 1 ./test18 -n 72 -eps_type $$eps -eps_nev 4 -eps_ncv 20 -terse > $${test}.tmp 2>&1; \
+	elif [ "$$eps" = krylovschur_gnhep ]; then eps="krylovschur -eps_gen_non_hermitian -st_type sinvert -eps_krylovschur_restart .3"; \
+	elif [ "$$eps" = gd ]; then eps="gd -eps_target 0 -eps_harmonic"; \
+	elif [ "$$eps" = jd ]; then eps="jd -eps_target 0 -eps_harmonic"; fi; \
+	${MPIEXEC} -n 1 ./test18 -eps_type $$eps -eps_nev 4 -eps_ncv 12 -terse > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
 runtest19_1:
