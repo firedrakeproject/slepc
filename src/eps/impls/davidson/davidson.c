@@ -44,13 +44,12 @@ PetscErrorCode EPSSetUp_XD(EPS eps)
   EPS_DAVIDSON   *data = (EPS_DAVIDSON*)eps->data;
   dvdDashboard   *dvd = &data->ddb;
   dvdBlackboard  b;
-  PetscInt       min_size_V,bs,initv,i,nmat;
+  PetscInt       min_size_V,bs,initv,nmat;
   Mat            A,B;
   KSP            ksp;
-  PetscBool      t,ipB,ispositive,dynamic;
+  PetscBool      t,ipB,ispositive;
   HarmType_t     harm;
   InitType_t     init;
-  PetscReal      fix;
   PetscScalar    target;
 
   PetscFunctionBegin;
@@ -184,12 +183,6 @@ PetscErrorCode EPSSetUp_XD(EPS eps)
   if (min_size_V <= data->cX_in_proj) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"minv has to be greater than qwindow");
   if (bs > 1 && data->cX_in_impr > 0) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Unsupported option: pwindow > 0 and bs > 1");
 
-  /* Get the fix parameter */
-  ierr = EPSXDGetFix_XD(eps,&fix);CHKERRQ(ierr);
-
-  /* Get whether the stopping criterion is used */
-  ierr = EPSJDGetConstCorrectionTol_JD(eps,&dynamic);CHKERRQ(ierr);
-
   /* Preconfigure dvd */
   ierr = STGetKSP(eps->st,&ksp);CHKERRQ(ierr);
   ierr = dvd_schm_basic_preconf(dvd,&b,eps->mpd,min_size_V,bs,initv,PetscAbs(eps->nini),data->plusk,harm,ksp,init,eps->trackall,data->ipB,data->cX_in_proj,data->cX_in_impr,data->doubleexp);CHKERRQ(ierr);
@@ -203,10 +196,8 @@ PetscErrorCode EPSSetUp_XD(EPS eps)
     ierr = BVSetMatrix(eps->V,NULL,PETSC_FALSE);CHKERRQ(ierr);
   }
 
-  for (i=0;i<eps->ncv;i++) eps->perm[i] = i;
-
   /* Configure dvd for a basic GD */
-  ierr = dvd_schm_basic_conf(dvd,&b,eps->mpd,min_size_V,bs,initv,PetscAbs(eps->nini),data->plusk,harm,dvd->withTarget,target,ksp,fix,init,eps->trackall,data->ipB,data->cX_in_proj,data->cX_in_impr,dynamic,data->doubleexp);CHKERRQ(ierr);
+  ierr = dvd_schm_basic_conf(dvd,&b,eps->mpd,min_size_V,bs,initv,PetscAbs(eps->nini),data->plusk,harm,dvd->withTarget,target,ksp,data->fix,init,eps->trackall,data->ipB,data->cX_in_proj,data->cX_in_impr,data->dynamic,data->doubleexp);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -368,30 +359,6 @@ PetscErrorCode EPSXDSetInitialSize_XD(EPS eps,PetscInt initialsize)
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "EPSXDGetFix_XD"
-PetscErrorCode EPSXDGetFix_XD(EPS eps,PetscReal *fix)
-{
-  EPS_DAVIDSON *data = (EPS_DAVIDSON*)eps->data;
-
-  PetscFunctionBegin;
-  *fix = data->fix;
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
-#define __FUNCT__ "EPSJDSetFix_JD"
-PetscErrorCode EPSJDSetFix_JD(EPS eps,PetscReal fix)
-{
-  EPS_DAVIDSON *data = (EPS_DAVIDSON*)eps->data;
-
-  PetscFunctionBegin;
-  if (fix == PETSC_DEFAULT || fix == PETSC_DECIDE) fix = 0.01;
-  if (fix < 0.0) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"Invalid fix value");
-  data->fix = fix;
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
 #define __FUNCT__ "EPSXDSetBOrth_XD"
 PetscErrorCode EPSXDSetBOrth_XD(EPS eps,PetscBool borth)
 {
@@ -410,28 +377,6 @@ PetscErrorCode EPSXDGetBOrth_XD(EPS eps,PetscBool *borth)
 
   PetscFunctionBegin;
   *borth = data->ipB;
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
-#define __FUNCT__ "EPSJDSetConstCorrectionTol_JD"
-PetscErrorCode EPSJDSetConstCorrectionTol_JD(EPS eps,PetscBool constant)
-{
-  EPS_DAVIDSON *data = (EPS_DAVIDSON*)eps->data;
-
-  PetscFunctionBegin;
-  data->dynamic = PetscNot(constant);
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
-#define __FUNCT__ "EPSJDGetConstCorrectionTol_JD"
-PetscErrorCode EPSJDGetConstCorrectionTol_JD(EPS eps,PetscBool *constant)
-{
-  EPS_DAVIDSON *data = (EPS_DAVIDSON*)eps->data;
-
-  PetscFunctionBegin;
-  *constant = PetscNot(data->dynamic);
   PetscFunctionReturn(0);
 }
 
