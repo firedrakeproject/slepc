@@ -26,12 +26,12 @@ FPPFLAGS   =
 LOCDIR     = src/eps/examples/tests/
 EXAMPLESC  = test1.c test2.c test3.c test4.c test5.c test6.c \
              test8.c test9.c test10.c test11.c test12.c test13.c \
-             test14.c test16.c test17.c test18.c test19.c test20.c
+             test14.c test16.c test17.c test18.c test19.c test20.c test21.c
 EXAMPLESF  = test7f.F test14f.F test15f.F test17f.F
 MANSEC     = EPS
 TESTS      = test1 test2 test3 test4 test5 test6 test7f test8 test9 test10 \
              test11 test12 test13 test14 test14f test15f test16 test17 test17f \
-             test18 test19 test20
+             test18 test19 test20 test21
 
 TESTEXAMPLES_C                     = test1.PETSc runtest1_5 test1.rm \
                                      test4.PETSc runtest4_2 test4.rm \
@@ -39,7 +39,8 @@ TESTEXAMPLES_C                     = test1.PETSc runtest1_5 test1.rm \
                                      test13.PETSc runtest13_1 runtest13_2 test13.rm \
                                      test14.PETSc runtest14_1 test14.rm \
                                      test19.PETSc runtest19_1 test19.rm \
-                                     test20.PETSc runtest20_1 test20.rm
+                                     test20.PETSc runtest20_1 test20.rm \
+                                     test21.PETSc runtest21_1 test21.rm
 TESTEXAMPLES_C_NOTSINGLE           = test1.PETSc runtest1_1 runtest1_3 runtest1_4 runtest1_6 test1.rm \
                                      test2.PETSc runtest2_1 runtest2_2 runtest2_3 test2.rm \
                                      test3.PETSc runtest3_1 runtest3_2 test3.rm \
@@ -165,12 +166,17 @@ test20: test20.o chkopts
 	-${CLINKER} -o test20 test20.o ${SLEPC_EPS_LIB}
 	${RM} test20.o
 
+test21: test21.o chkopts
+	-${CLINKER} -o test21 test21.o ${SLEPC_EPS_LIB}
+	${RM} test21.o
+
 #------------------------------------------------------------------------------------
 
-runtest1_1: runtest1_1_krylovschur runtest1_1_subspace runtest1_1_arnoldi runtest1_1_lanczos runtest1_1_gd runtest1_1_jd runtest1_1_gd2 runtest1_1_ciss runtest1_1_lapack
+runtest1_1: runtest1_1_krylovschur runtest1_1_ks_nopurify runtest1_1_subspace runtest1_1_arnoldi runtest1_1_lanczos runtest1_1_gd runtest1_1_jd runtest1_1_gd2 runtest1_1_ciss runtest1_1_lapack
 runtest1_1_%:
 	-@${SETTEST}; check=test1_1; eps=$*; \
-	if [ "$$eps" = lanczos ]; then eps="lanczos -eps_lanczos_reorthog full"; \
+	if [ "$$eps" = ks_nopurify ]; then eps="krylovschur -eps_purify 0"; \
+	elif [ "$$eps" = lanczos ]; then eps="lanczos -eps_lanczos_reorthog full"; \
 	elif [ "$$eps" = gd2 ]; then eps="gd -eps_gd_double_expansion"; \
 	elif [ "$$eps" = ciss ]; then eps="ciss -rg_interval_endpoints 20.8,22 -eps_largest_real"; fi; \
 	${MPIEXEC} -n 1 ./test1 -n 18 -eps_type $$eps -eps_nev 4 -eps_max_it 1500 > $${test}.tmp 2>&1; \
@@ -499,5 +505,10 @@ runtest20_1_%:
 	-@${SETTEST}; check=test20_1; eps=$*; \
 	if [ "$$eps" = lanczos ]; then eps="lanczos -eps_lanczos_reorthog full"; fi; \
 	${MPIEXEC} -n 1 ./test20 -n 18 -eps_type $$eps -eps_max_it 1500 > $${test}.tmp 2>&1; \
+	${TESTCODE}
+
+runtest21_1:
+	-@${SETTEST}; check=test11_1; \
+	${MPIEXEC} -n 1 ./test21 -eps_nev 4 > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
