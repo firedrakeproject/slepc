@@ -115,25 +115,6 @@ int main(int argc,char **argv)
 
 #undef __FUNCT__
 #define __FUNCT__ "MatMarkovModel"
-/*
-    Matrix generator for a Markov model of a random walk on a triangular grid.
-
-    This subroutine generates a test matrix that models a random walk on a
-    triangular grid. This test example was used by G. W. Stewart ["{SRRIT} - a
-    FORTRAN subroutine to calculate the dominant invariant subspaces of a real
-    matrix", Tech. report. TR-514, University of Maryland (1978).] and in a few
-    papers on eigenvalue problems by Y. Saad [see e.g. LAA, vol. 34, pp. 269-295
-    (1980) ]. These matrices provide reasonably easy test problems for eigenvalue
-    algorithms. The transpose of the matrix  is stochastic and so it is known
-    that one is an exact eigenvalue. One seeks the eigenvector of the transpose
-    associated with the eigenvalue unity. The problem is to calculate the steady
-    state probability distribution of the system, which is the eigevector
-    associated with the eigenvalue one and scaled in such a way that the sum all
-    the components is equal to one.
-
-    Note: the code will actually compute the transpose of the stochastic matrix
-    that contains the transition probabilities.
-*/
 PetscErrorCode MatMarkovModel(PetscInt m,Mat A)
 {
   const PetscReal cst = 0.5/(PetscReal)(m-1);

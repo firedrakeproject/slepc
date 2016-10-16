@@ -27,12 +27,12 @@ LOCDIR     = src/eps/examples/tests/
 EXAMPLESC  = test1.c test2.c test3.c test4.c test5.c test6.c \
              test8.c test9.c test10.c test11.c test12.c test13.c \
              test14.c test16.c test17.c test18.c test19.c test20.c \
-             test21.c test22.c
+             test21.c test22.c test23.c
 EXAMPLESF  = test7f.F test14f.F test15f.F test17f.F
 MANSEC     = EPS
 TESTS      = test1 test2 test3 test4 test5 test6 test7f test8 test9 test10 \
              test11 test12 test13 test14 test14f test15f test16 test17 test17f \
-             test18 test19 test20 test21 test22
+             test18 test19 test20 test21 test22 test23
 
 TESTEXAMPLES_C                     = test1.PETSc runtest1_5 test1.rm \
                                      test4.PETSc runtest4_2 test4.rm \
@@ -56,7 +56,8 @@ TESTEXAMPLES_C_NOTSINGLE           = test1.PETSc runtest1_1 runtest1_3 runtest1_
                                      test16.PETSc runtest16_1 test16.rm \
                                      test17.PETSc runtest17_1 test17.rm
 TESTEXAMPLES_C_NOCOMPLEX           = test18.PETSc runtest18_1 test18.rm
-TESTEXAMPLES_C_NOCOMPLEX_NOTSINGLE = test1.PETSc runtest1_2 test1.rm
+TESTEXAMPLES_C_NOCOMPLEX_NOTSINGLE = test1.PETSc runtest1_2 test1.rm \
+                                     test23.PETSc runtest23_1 test23.rm
 TESTEXAMPLES_C_DOUBLE              = test5.PETSc runtest5_1 test5.rm
 TESTEXAMPLES_FORTRAN               = test7f.PETSc runtest7f_1 test7f.rm \
                                      test14f.PETSc runtest14f_1 test14f.rm \
@@ -176,12 +177,17 @@ test22: test22.o chkopts
 	-${CLINKER} -o test22 test22.o ${SLEPC_EPS_LIB}
 	${RM} test22.o
 
+test23: test23.o chkopts
+	-${CLINKER} -o test23 test23.o ${SLEPC_EPS_LIB}
+	${RM} test23.o
+
 #------------------------------------------------------------------------------------
 
-runtest1_1: runtest1_1_krylovschur runtest1_1_ks_nopurify runtest1_1_subspace runtest1_1_arnoldi runtest1_1_lanczos runtest1_1_gd runtest1_1_jd runtest1_1_gd2 runtest1_1_ciss runtest1_1_lapack
+runtest1_1: runtest1_1_krylovschur runtest1_1_ks_nopurify runtest1_1_ks_trueres runtest1_1_subspace runtest1_1_arnoldi runtest1_1_lanczos runtest1_1_gd runtest1_1_jd runtest1_1_gd2 runtest1_1_ciss runtest1_1_lapack
 runtest1_1_%:
 	-@${SETTEST}; check=test1_1; eps=$*; \
 	if [ "$$eps" = ks_nopurify ]; then eps="krylovschur -eps_purify 0"; \
+	elif [ "$$eps" = ks_trueres ]; then eps="krylovschur -eps_true_residual"; \
 	elif [ "$$eps" = lanczos ]; then eps="lanczos -eps_lanczos_reorthog full"; \
 	elif [ "$$eps" = gd2 ]; then eps="gd -eps_gd_double_expansion"; \
 	elif [ "$$eps" = ciss ]; then eps="ciss -rg_interval_endpoints 20.8,22 -eps_largest_real"; fi; \
@@ -522,5 +528,10 @@ runtest22_1: runtest22_1_0 runtest22_1_1
 runtest22_1_%:
 	-@${SETTEST}; check=test22_1; trueres=$*; \
 	${MPIEXEC} -n 1 ./test22 -eps_nev 4 -eps_true_residual $$trueres > $${test}.tmp 2>&1; \
+	${TESTCODE}
+
+runtest23_1:
+	-@${SETTEST}; \
+	${MPIEXEC} -n 1 ./test23 -eps_error_backward ::ascii_info_detail -eps_largest_real -eps_view_values -eps_monitor_conv -eps_error_absolute ::ascii_matlab -eps_monitor_all -eps_converged_reason -eps_view | ${GREP} -v "tolerance" | ${SED} -e "s/[0-9]\.[0-9]*e-[0-9]*/removed/g" > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
