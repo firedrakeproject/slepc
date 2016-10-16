@@ -249,7 +249,7 @@ runex9_7:
 
 runex9_8:
 	-@${SETTEST}; \
-	${MPIEXEC} -n 1 ./ex9 -eps_nev 2 -eps_target -30 -eps_type jd -st_matmode shell -eps_jd_fix 0.001 -eps_jd_const_correction_tol 0 -terse > $${test}.tmp 2>&1; \
+	${MPIEXEC} -n 1 ./ex9 -eps_nev 2 -eps_target -30 -eps_type jd -st_matmode shell -eps_jd_fix 0.0001 -eps_jd_const_correction_tol 0 -terse > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
 runex10_1: runex10_1_sinvert runex10_1_sinvert_twoside runex10_1_shell runex10_1_shell_twoside

@@ -133,6 +133,6 @@ runtest6_1:
 
 runtest7_1:
 	-@${SETTEST}; \
-	${MPIEXEC} -n 1 ./test7 >> $${test}.tmp 2>&1; \
+	${MPIEXEC} -n 1 ./test7 -info_exclude svd -log_exclude svd >> $${test}.tmp 2>&1; \
 	${TESTCODE}
 
