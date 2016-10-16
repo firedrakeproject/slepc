@@ -26,12 +26,13 @@ FPPFLAGS   =
 LOCDIR     = src/eps/examples/tests/
 EXAMPLESC  = test1.c test2.c test3.c test4.c test5.c test6.c \
              test8.c test9.c test10.c test11.c test12.c test13.c \
-             test14.c test16.c test17.c test18.c test19.c test20.c test21.c
+             test14.c test16.c test17.c test18.c test19.c test20.c \
+             test21.c test22.c
 EXAMPLESF  = test7f.F test14f.F test15f.F test17f.F
 MANSEC     = EPS
 TESTS      = test1 test2 test3 test4 test5 test6 test7f test8 test9 test10 \
              test11 test12 test13 test14 test14f test15f test16 test17 test17f \
-             test18 test19 test20 test21
+             test18 test19 test20 test21 test22
 
 TESTEXAMPLES_C                     = test1.PETSc runtest1_5 test1.rm \
                                      test4.PETSc runtest4_2 test4.rm \
@@ -40,7 +41,8 @@ TESTEXAMPLES_C                     = test1.PETSc runtest1_5 test1.rm \
                                      test14.PETSc runtest14_1 test14.rm \
                                      test19.PETSc runtest19_1 test19.rm \
                                      test20.PETSc runtest20_1 test20.rm \
-                                     test21.PETSc runtest21_1 test21.rm
+                                     test21.PETSc runtest21_1 test21.rm \
+                                     test22.PETSc runtest22_1 test22.rm
 TESTEXAMPLES_C_NOTSINGLE           = test1.PETSc runtest1_1 runtest1_3 runtest1_4 runtest1_6 test1.rm \
                                      test2.PETSc runtest2_1 runtest2_2 runtest2_3 test2.rm \
                                      test3.PETSc runtest3_1 runtest3_2 test3.rm \
@@ -169,6 +171,10 @@ test20: test20.o chkopts
 test21: test21.o chkopts
 	-${CLINKER} -o test21 test21.o ${SLEPC_EPS_LIB}
 	${RM} test21.o
+
+test22: test22.o chkopts
+	-${CLINKER} -o test22 test22.o ${SLEPC_EPS_LIB}
+	${RM} test22.o
 
 #------------------------------------------------------------------------------------
 
@@ -510,5 +516,11 @@ runtest20_1_%:
 runtest21_1:
 	-@${SETTEST}; check=test11_1; \
 	${MPIEXEC} -n 1 ./test21 -eps_nev 4 > $${test}.tmp 2>&1; \
+	${TESTCODE}
+
+runtest22_1: runtest22_1_0 runtest22_1_1
+runtest22_1_%:
+	-@${SETTEST}; check=test22_1; trueres=$*; \
+	${MPIEXEC} -n 1 ./test22 -eps_nev 4 -eps_true_residual $$trueres > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
