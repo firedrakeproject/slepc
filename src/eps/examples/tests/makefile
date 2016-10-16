@@ -51,8 +51,8 @@ TESTEXAMPLES_C_NOTSINGLE           = test1.PETSc runtest1_1 runtest1_3 runtest1_
                                      test11.PETSc runtest11_1 test11.rm \
                                      test12.PETSc runtest12_1 test12.rm \
                                      test16.PETSc runtest16_1 test16.rm \
-                                     test17.PETSc runtest17_1 test17.rm \
-                                     test18.PETSc runtest18_1 test18.rm
+                                     test17.PETSc runtest17_1 test17.rm
+TESTEXAMPLES_C_NOCOMPLEX           = test18.PETSc runtest18_1 test18.rm
 TESTEXAMPLES_C_NOCOMPLEX_NOTSINGLE = test1.PETSc runtest1_2 test1.rm
 TESTEXAMPLES_C_DOUBLE              = test5.PETSc runtest5_1 test5.rm
 TESTEXAMPLES_FORTRAN               = test7f.PETSc runtest7f_1 test7f.rm \
@@ -471,7 +471,7 @@ runtest16_1:
 
 runtest17_1:
 	-@${SETTEST}; \
-	${MPIEXEC} -n 2 ./test17 -showinertia 0 > $${test}.tmp 2>&1; \
+	${MPIEXEC} -n 2 ./test17 -showinertia 0 -info_exclude eps,st,rg,bv,ds -log_exclude eps,st,rg,bv,ds > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
 runtest17f_1:
@@ -482,7 +482,7 @@ runtest17f_1:
 runtest18_1: runtest18_1_krylovschur runtest18_1_krylovschur_gnhep runtest18_1_gd runtest18_1_jd
 runtest18_1_%:
 	-@${SETTEST}; check=test18_1; eps=$*; \
-	if [ "$$eps" = krylovschur ]; then eps="krylovschur -st_type sinvert"; \
+	if [ "$$eps" = krylovschur ]; then eps="krylovschur -st_type sinvert -eps_krylovschur_restart .3"; \
 	elif [ "$$eps" = krylovschur_gnhep ]; then eps="krylovschur -eps_gen_non_hermitian -st_type sinvert -eps_krylovschur_restart .3"; \
 	elif [ "$$eps" = gd ]; then eps="gd -eps_target 0 -eps_harmonic"; \
 	elif [ "$$eps" = jd ]; then eps="jd -eps_target 0 -eps_harmonic"; fi; \

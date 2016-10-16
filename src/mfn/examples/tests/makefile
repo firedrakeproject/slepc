@@ -74,6 +74,6 @@ runtest3_1:
 
 runtest3f_1:
 	-@${SETTEST}; \
-	${MPIEXEC} -n 1 ./test3f >> $${test}.tmp 2>&1; \
+	${MPIEXEC} -n 1 ./test3f -info_exclude mfn -log_exclude mfn >> $${test}.tmp 2>&1; \
 	${TESTCODE}
 
