@@ -183,10 +183,11 @@ test23: test23.o chkopts
 
 #------------------------------------------------------------------------------------
 
-runtest1_1: runtest1_1_krylovschur runtest1_1_ks_nopurify runtest1_1_subspace runtest1_1_arnoldi runtest1_1_lanczos runtest1_1_gd runtest1_1_jd runtest1_1_gd2 runtest1_1_ciss runtest1_1_lapack
+runtest1_1: runtest1_1_krylovschur runtest1_1_ks_nopurify runtest1_1_ks_trueres runtest1_1_subspace runtest1_1_arnoldi runtest1_1_lanczos runtest1_1_gd runtest1_1_jd runtest1_1_gd2 runtest1_1_ciss runtest1_1_lapack
 runtest1_1_%:
 	-@${SETTEST}; check=test1_1; eps=$*; \
 	if [ "$$eps" = ks_nopurify ]; then eps="krylovschur -eps_purify 0"; \
+	elif [ "$$eps" = ks_trueres ]; then eps="krylovschur -eps_true_residual"; \
 	elif [ "$$eps" = lanczos ]; then eps="lanczos -eps_lanczos_reorthog full"; \
 	elif [ "$$eps" = gd2 ]; then eps="gd -eps_gd_double_expansion"; \
 	elif [ "$$eps" = ciss ]; then eps="ciss -rg_interval_endpoints 20.8,22 -eps_largest_real"; fi; \
