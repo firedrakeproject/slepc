@@ -26,36 +26,6 @@
 #include "davidson.h"
 
 #undef __FUNCT__
-#define __FUNCT__ "dvd_testconv_basic_0"
-static PetscBool dvd_testconv_basic_0(dvdDashboard *d,PetscScalar eigvr,PetscScalar eigvi,PetscReal r,PetscReal *err)
-{
-  PetscBool conv;
-  PetscReal eig_norm,errest;
-
-  PetscFunctionBegin;
-  eig_norm = SlepcAbsEigenvalue(eigvr, eigvi);
-  errest = r/eig_norm;
-  conv = PetscNot(errest > d->tol);
-  if (err) *err = errest;
-  PetscFunctionReturn(conv);
-}
-
-#undef __FUNCT__
-#define __FUNCT__ "dvd_testconv_basic"
-PetscErrorCode dvd_testconv_basic(dvdDashboard *d, dvdBlackboard *b)
-{
-  PetscErrorCode ierr;
-
-  PetscFunctionBegin;
-  /* Setup the step */
-  if (b->state >= DVD_STATE_CONF) {
-    ierr = PetscFree(d->testConv_data);CHKERRQ(ierr);
-    d->testConv = dvd_testconv_basic_0;
-  }
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
 #define __FUNCT__ "dvd_testconv_slepc_0"
 static PetscBool dvd_testconv_slepc_0(dvdDashboard *d,PetscScalar eigvr,PetscScalar eigvi,PetscReal r,PetscReal *err)
 {

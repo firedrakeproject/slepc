@@ -56,7 +56,7 @@ PetscErrorCode dvd_schm_basic_preconf(dvdDashboard *d,dvdBlackboard *b,PetscInt 
       ierr = dvd_improvex_gd2(d,b,ksp,bs);CHKERRQ(ierr);
     } else {
       ierr = dvd_improvex_jd(d,b,ksp,bs,PETSC_FALSE);CHKERRQ(ierr);
-      ierr = dvd_improvex_jd_proj_uv(d,b,DVD_PROJ_KZX);CHKERRQ(ierr);
+      ierr = dvd_improvex_jd_proj_uv(d,b);CHKERRQ(ierr);
       ierr = dvd_improvex_jd_lit_const(d,b,0,0.0,0.0);CHKERRQ(ierr);
     }
   }
@@ -95,7 +95,7 @@ PetscErrorCode dvd_schm_basic_conf(dvdDashboard *d,dvdBlackboard *b,PetscInt mpd
     ierr = dvd_improvex_gd2(d,b,ksp,bs);CHKERRQ(ierr);
   } else {
     ierr = dvd_improvex_jd(d,b,ksp,bs,dynamic);CHKERRQ(ierr);
-    ierr = dvd_improvex_jd_proj_uv(d,b,DVD_PROJ_KZX);CHKERRQ(ierr);
+    ierr = dvd_improvex_jd_proj_uv(d,b);CHKERRQ(ierr);
     ierr = KSPGetTolerances(ksp,&tol,NULL,NULL,&maxits);CHKERRQ(ierr);
     ierr = dvd_improvex_jd_lit_const(d,b,maxits,tol,fix);CHKERRQ(ierr);
   }

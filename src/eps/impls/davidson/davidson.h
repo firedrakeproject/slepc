@@ -48,11 +48,6 @@ typedef enum {
   DVD_INITV_KRYLOV
 } InitType_t;
 
-typedef enum {
-  DVD_PROJ_KXX,
-  DVD_PROJ_KZX
-} ProjType_t;
-
 /*
    Dashboard struct: contains the methods that will be employed and the tuning
    options.
@@ -262,18 +257,16 @@ typedef struct {
 PETSC_INTERN PetscErrorCode dvd_calcpairs_qz(dvdDashboard*,dvdBlackboard*,PetscBool,PetscBool);
 PETSC_INTERN PetscErrorCode dvd_improvex_gd2(dvdDashboard*,dvdBlackboard*,KSP,PetscInt);
 PETSC_INTERN PetscErrorCode dvd_improvex_jd(dvdDashboard*,dvdBlackboard*,KSP,PetscInt,PetscBool);
-PETSC_INTERN PetscErrorCode dvd_improvex_jd_proj_uv(dvdDashboard*,dvdBlackboard*,ProjType_t);
+PETSC_INTERN PetscErrorCode dvd_improvex_jd_proj_uv(dvdDashboard*,dvdBlackboard*);
 PETSC_INTERN PetscErrorCode dvd_improvex_jd_lit_const(dvdDashboard*,dvdBlackboard*,PetscInt,PetscReal,PetscReal);
 PETSC_INTERN PetscErrorCode dvd_improvex_compute_X(dvdDashboard*,PetscInt,PetscInt,Vec*,PetscScalar*,PetscInt);
 PETSC_INTERN PetscErrorCode dvd_initV(dvdDashboard*,dvdBlackboard*,PetscInt,PetscInt,PetscBool);
 PETSC_INTERN PetscErrorCode dvd_orthV(BV,PetscInt,PetscInt);
 PETSC_INTERN PetscErrorCode dvd_schm_basic_preconf(dvdDashboard*,dvdBlackboard*,PetscInt,PetscInt,PetscInt,PetscInt,PetscInt,PetscInt,HarmType_t,KSP,InitType_t,PetscBool,PetscBool,PetscBool);
 PETSC_INTERN PetscErrorCode dvd_schm_basic_conf(dvdDashboard*,dvdBlackboard*,PetscInt,PetscInt,PetscInt,PetscInt,PetscInt,PetscInt,HarmType_t,PetscBool,PetscScalar,KSP,PetscReal,InitType_t,PetscBool,PetscBool,PetscBool,PetscBool);
-PETSC_INTERN PetscErrorCode dvd_testconv_basic(dvdDashboard*,dvdBlackboard*);
 PETSC_INTERN PetscErrorCode dvd_testconv_slepc(dvdDashboard*,dvdBlackboard*);
 PETSC_INTERN PetscErrorCode dvd_managementV_basic(dvdDashboard*,dvdBlackboard*,PetscInt,PetscInt,PetscInt,PetscInt,PetscBool,PetscBool);
 PETSC_INTERN PetscErrorCode dvd_static_precond_PC(dvdDashboard*,dvdBlackboard*,PC);
-PETSC_INTERN PetscErrorCode dvd_jacobi_precond(dvdDashboard*,dvdBlackboard*);
 PETSC_INTERN PetscErrorCode dvd_harm_updateproj(dvdDashboard*);
 PETSC_INTERN PetscErrorCode dvd_harm_conf(dvdDashboard*,dvdBlackboard*,HarmType_t,PetscBool,PetscScalar);
 
