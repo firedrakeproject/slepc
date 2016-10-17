@@ -48,11 +48,6 @@ typedef enum {
   DVD_INITV_KRYLOV
 } InitType_t;
 
-typedef enum {
-  DVD_PROJ_KXX,
-  DVD_PROJ_KZX
-} ProjType_t;
-
 /*
    Dashboard struct: contains the methods that will be employed and the tuning
    options.
@@ -108,8 +103,6 @@ typedef struct _dvdDashboard {
   BV       BX;                /* B*V */
   PetscInt size_D;            /* active vectors */
   PetscInt max_size_proj;     /* max size projected problem */
-  PetscInt max_cX_in_proj;    /* max vectors from cX in the projected problem */
-  PetscInt max_cX_in_impr;    /* max vectros from cX in the projector */
   PetscInt max_size_P;        /* max unconverged vectors in the projector */
   PetscInt bs;                /* max vectors that expands the subspace every iteration */
   EPS      eps;               /* connection to SLEPc */
@@ -160,7 +153,6 @@ typedef struct _dvdDashboard {
   PetscInt  V_tra_e;       /* cX <- [cX V*MT(0:V_tra_s-1)], V <- V*MT(V_tra_s:V_tra_e) */
   PetscInt  V_new_s;
   PetscInt  V_new_e;           /* added to V the columns V_new_s:V_new_e */
-  PetscBool BV_shift;          /* if true BV is shifted when vectors converge */
   PetscBool W_shift;           /* if true W is shifted when vectors converge */
 } dvdDashboard;
 
@@ -174,8 +166,6 @@ typedef struct {
   PetscReal fix;           /* the fix parameter */
   PetscBool krylovstart;   /* true if the starting subspace is a Krylov basis */
   PetscBool dynamic;       /* true if dynamic stopping criterion is used */
-  PetscInt  cX_in_proj;    /* converged vectors in the projected problem */
-  PetscInt  cX_in_impr;    /* converged vectors in the projector */
   PetscBool doubleexp;     /* double expansion in GD (GD2) */
 
   /*----------------- Child objects and working data -------------------*/
@@ -236,7 +226,7 @@ PETSC_STATIC_INLINE PetscErrorCode EPSDavidsonFLDestroy(dvdFunctionList **fl)
   nev+mpd     nev+mpd     scP+mpd     nev?+mpd     sP+scP
               scP+mpd                 scP+mpd
 
-  The final memory structure considering W_shift and BV_shift:
+  The final memory structure considering W_shift:
 
   cX  V       cY?  W?     cAV AV      BcX? BV?     KZ  tKZ
   |---|-------|----|------|---|-------|----|-------|---|---|
@@ -264,21 +254,19 @@ typedef struct {
 #define DVD_STATE_RUN 2
 
 /* Prototypes of non-static auxiliary functions */
-PETSC_INTERN PetscErrorCode dvd_calcpairs_qz(dvdDashboard*,dvdBlackboard*,PetscBool,PetscInt,PetscBool);
+PETSC_INTERN PetscErrorCode dvd_calcpairs_qz(dvdDashboard*,dvdBlackboard*,PetscBool,PetscBool);
 PETSC_INTERN PetscErrorCode dvd_improvex_gd2(dvdDashboard*,dvdBlackboard*,KSP,PetscInt);
-PETSC_INTERN PetscErrorCode dvd_improvex_jd(dvdDashboard*,dvdBlackboard*,KSP,PetscInt,PetscInt,PetscBool);
-PETSC_INTERN PetscErrorCode dvd_improvex_jd_proj_uv(dvdDashboard*,dvdBlackboard*,ProjType_t);
+PETSC_INTERN PetscErrorCode dvd_improvex_jd(dvdDashboard*,dvdBlackboard*,KSP,PetscInt,PetscBool);
+PETSC_INTERN PetscErrorCode dvd_improvex_jd_proj_uv(dvdDashboard*,dvdBlackboard*);
 PETSC_INTERN PetscErrorCode dvd_improvex_jd_lit_const(dvdDashboard*,dvdBlackboard*,PetscInt,PetscReal,PetscReal);
 PETSC_INTERN PetscErrorCode dvd_improvex_compute_X(dvdDashboard*,PetscInt,PetscInt,Vec*,PetscScalar*,PetscInt);
 PETSC_INTERN PetscErrorCode dvd_initV(dvdDashboard*,dvdBlackboard*,PetscInt,PetscInt,PetscBool);
 PETSC_INTERN PetscErrorCode dvd_orthV(BV,PetscInt,PetscInt);
-PETSC_INTERN PetscErrorCode dvd_schm_basic_preconf(dvdDashboard*,dvdBlackboard*,PetscInt,PetscInt,PetscInt,PetscInt,PetscInt,PetscInt,HarmType_t,KSP,InitType_t,PetscBool,PetscBool,PetscInt,PetscInt,PetscBool);
-PETSC_INTERN PetscErrorCode dvd_schm_basic_conf(dvdDashboard*,dvdBlackboard*,PetscInt,PetscInt,PetscInt,PetscInt,PetscInt,PetscInt,HarmType_t,PetscBool,PetscScalar,KSP,PetscReal,InitType_t,PetscBool,PetscBool,PetscInt,PetscInt,PetscBool,PetscBool);
-PETSC_INTERN PetscErrorCode dvd_testconv_basic(dvdDashboard*,dvdBlackboard*);
+PETSC_INTERN PetscErrorCode dvd_schm_basic_preconf(dvdDashboard*,dvdBlackboard*,PetscInt,PetscInt,PetscInt,PetscInt,PetscInt,PetscInt,HarmType_t,KSP,InitType_t,PetscBool,PetscBool,PetscBool);
+PETSC_INTERN PetscErrorCode dvd_schm_basic_conf(dvdDashboard*,dvdBlackboard*,PetscInt,PetscInt,PetscInt,PetscInt,PetscInt,PetscInt,HarmType_t,PetscBool,PetscScalar,KSP,PetscReal,InitType_t,PetscBool,PetscBool,PetscBool,PetscBool);
 PETSC_INTERN PetscErrorCode dvd_testconv_slepc(dvdDashboard*,dvdBlackboard*);
 PETSC_INTERN PetscErrorCode dvd_managementV_basic(dvdDashboard*,dvdBlackboard*,PetscInt,PetscInt,PetscInt,PetscInt,PetscBool,PetscBool);
 PETSC_INTERN PetscErrorCode dvd_static_precond_PC(dvdDashboard*,dvdBlackboard*,PC);
-PETSC_INTERN PetscErrorCode dvd_jacobi_precond(dvdDashboard*,dvdBlackboard*);
 PETSC_INTERN PetscErrorCode dvd_harm_updateproj(dvdDashboard*);
 PETSC_INTERN PetscErrorCode dvd_harm_conf(dvdDashboard*,dvdBlackboard*,HarmType_t,PetscBool,PetscScalar);
 
@@ -297,6 +285,4 @@ PETSC_INTERN PetscErrorCode EPSXDGetInitialSize_XD(EPS,PetscInt*);
 PETSC_INTERN PetscErrorCode EPSXDSetInitialSize_XD(EPS,PetscInt);
 PETSC_INTERN PetscErrorCode EPSXDSetBOrth_XD(EPS,PetscBool);
 PETSC_INTERN PetscErrorCode EPSXDGetBOrth_XD(EPS,PetscBool*);
-PETSC_INTERN PetscErrorCode EPSXDSetWindowSizes_XD(EPS,PetscInt,PetscInt);
-PETSC_INTERN PetscErrorCode EPSXDGetWindowSizes_XD(EPS,PetscInt*,PetscInt*);
 

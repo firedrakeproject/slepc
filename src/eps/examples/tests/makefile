@@ -41,22 +41,22 @@ TESTEXAMPLES_C                     = test1.PETSc runtest1_5 test1.rm \
                                      test14.PETSc runtest14_1 test14.rm \
                                      test19.PETSc runtest19_1 test19.rm \
                                      test20.PETSc runtest20_1 test20.rm \
-                                     test21.PETSc runtest21_1 test21.rm \
-                                     test22.PETSc runtest22_1 test22.rm
+                                     test21.PETSc runtest21_1 test21.rm
 TESTEXAMPLES_C_NOTSINGLE           = test1.PETSc runtest1_1 runtest1_3 runtest1_4 runtest1_6 test1.rm \
                                      test2.PETSc runtest2_1 runtest2_2 runtest2_3 test2.rm \
                                      test3.PETSc runtest3_1 runtest3_2 test3.rm \
                                      test4.PETSc runtest4_1 test4.rm \
                                      test6.PETSc runtest6_1 test6.rm \
                                      test8.PETSc runtest8_1 test8.rm \
-                                     test9.PETSc runtest9_1 runtest9_2 runtest9_3 runtest9_4 test9.rm \
+                                     test9.PETSc runtest9_1 runtest9_2 runtest9_3 runtest9_4 runtest9_5 test9.rm \
                                      test10.PETSc runtest10_1 test10.rm \
                                      test11.PETSc runtest11_1 test11.rm \
                                      test12.PETSc runtest12_1 test12.rm \
                                      test16.PETSc runtest16_1 test16.rm \
                                      test17.PETSc runtest17_1 test17.rm
-TESTEXAMPLES_C_NOCOMPLEX           = test18.PETSc runtest18_1 test18.rm
 TESTEXAMPLES_C_NOCOMPLEX_NOTSINGLE = test1.PETSc runtest1_2 test1.rm \
+                                     test18.PETSc runtest18_1 test18.rm \
+                                     test22.PETSc runtest22_1 test22.rm \
                                      test23.PETSc runtest23_1 test23.rm
 TESTEXAMPLES_C_DOUBLE              = test5.PETSc runtest5_1 test5.rm
 TESTEXAMPLES_FORTRAN               = test7f.PETSc runtest7f_1 test7f.rm \
@@ -395,6 +395,11 @@ runtest9_3_%:
 runtest9_4:
 	-@${SETTEST}; check=test9_1; \
 	${MPIEXEC} -n 1 ./test9 -eps_nev 4 -eps_true_residual > $${test}.tmp 2>&1; \
+	${TESTCODE}
+
+runtest9_5:
+	-@${SETTEST}; \
+	${MPIEXEC} -n 1 ./test9 -eps_type jd -eps_nev 4 -eps_target .5 -st_ksp_type bicg > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
 runtest10_1: runtest10_1_krylovschur runtest10_1_arnoldi runtest10_1_lanczos runtest10_1_gd runtest10_1_jd runtest10_1_gd2 runtest10_1_rqcg runtest10_1_lobpcg

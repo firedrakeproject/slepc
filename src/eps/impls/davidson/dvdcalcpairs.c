@@ -551,7 +551,7 @@ static PetscErrorCode dvd_calcpairs_proj_res(dvdDashboard *d,PetscInt r_s,PetscI
 
 #undef __FUNCT__
 #define __FUNCT__ "dvd_calcpairs_qz"
-PetscErrorCode dvd_calcpairs_qz(dvdDashboard *d,dvdBlackboard *b,PetscBool borth,PetscInt cX_proj,PetscBool harm)
+PetscErrorCode dvd_calcpairs_qz(dvdDashboard *d,dvdBlackboard *b,PetscBool borth,PetscBool harm)
 {
   PetscErrorCode ierr;
   PetscBool      std_probl,her_probl,ind_probl,her_ind_probl;
@@ -565,14 +565,11 @@ PetscErrorCode dvd_calcpairs_qz(dvdDashboard *d,dvdBlackboard *b,PetscBool borth
   her_ind_probl = (her_probl||ind_probl)? PETSC_TRUE: PETSC_FALSE;
 
   /* Setting configuration constrains */
-  b->max_size_proj = PetscMax(b->max_size_proj,b->max_size_V+cX_proj);
+  b->max_size_proj = PetscMax(b->max_size_proj,b->max_size_V);
   d->W_shift = d->B? PETSC_TRUE: PETSC_FALSE;
-  if (d->B && her_ind_probl && !borth) d->BV_shift = PETSC_TRUE;
-  else d->BV_shift = PETSC_FALSE;
 
   /* Setup the step */
   if (b->state >= DVD_STATE_CONF) {
-    d->max_cX_in_proj = cX_proj;
     d->max_size_P = b->max_size_P;
     d->max_size_proj = b->max_size_proj;
     /* Create a DS if the method works with Schur decompositions */

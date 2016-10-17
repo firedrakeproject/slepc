@@ -177,15 +177,9 @@ PetscErrorCode EPSSetUp_XD(EPS eps)
   /* Setup the type of starting subspace */
   init = data->krylovstart? DVD_INITV_KRYLOV: DVD_INITV_CLASSIC;
 
-  /* Setup the presence of converged vectors in the projected problem and the projector */
-  if (data->cX_in_impr>0) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"The option pwindow is temporally disable in this solver.");
-  if (data->cX_in_proj>0) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"The option qwindow is temporally disable in this solver.");
-  if (min_size_V <= data->cX_in_proj) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"minv has to be greater than qwindow");
-  if (bs > 1 && data->cX_in_impr > 0) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Unsupported option: pwindow > 0 and bs > 1");
-
   /* Preconfigure dvd */
   ierr = STGetKSP(eps->st,&ksp);CHKERRQ(ierr);
-  ierr = dvd_schm_basic_preconf(dvd,&b,eps->mpd,min_size_V,bs,initv,PetscAbs(eps->nini),data->plusk,harm,ksp,init,eps->trackall,data->ipB,data->cX_in_proj,data->cX_in_impr,data->doubleexp);CHKERRQ(ierr);
+  ierr = dvd_schm_basic_preconf(dvd,&b,eps->mpd,min_size_V,bs,initv,PetscAbs(eps->nini),data->plusk,harm,ksp,init,eps->trackall,data->ipB,data->doubleexp);CHKERRQ(ierr);
 
   /* Allocate memory */
   ierr = EPSAllocateSolution(eps,0);CHKERRQ(ierr);
@@ -197,7 +191,7 @@ PetscErrorCode EPSSetUp_XD(EPS eps)
   }
 
   /* Configure dvd for a basic GD */
-  ierr = dvd_schm_basic_conf(dvd,&b,eps->mpd,min_size_V,bs,initv,PetscAbs(eps->nini),data->plusk,harm,dvd->withTarget,target,ksp,data->fix,init,eps->trackall,data->ipB,data->cX_in_proj,data->cX_in_impr,data->dynamic,data->doubleexp);CHKERRQ(ierr);
+  ierr = dvd_schm_basic_conf(dvd,&b,eps->mpd,min_size_V,bs,initv,PetscAbs(eps->nini),data->plusk,harm,dvd->withTarget,target,ksp,data->fix,init,eps->trackall,data->ipB,data->dynamic,data->doubleexp);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -377,34 +371,6 @@ PetscErrorCode EPSXDGetBOrth_XD(EPS eps,PetscBool *borth)
 
   PetscFunctionBegin;
   *borth = data->ipB;
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
-#define __FUNCT__ "EPSXDSetWindowSizes_XD"
-PetscErrorCode EPSXDSetWindowSizes_XD(EPS eps,PetscInt pwindow,PetscInt qwindow)
-{
-  EPS_DAVIDSON *data = (EPS_DAVIDSON*)eps->data;
-
-  PetscFunctionBegin;
-  if (pwindow == PETSC_DEFAULT || pwindow == PETSC_DECIDE) pwindow = 0;
-  if (pwindow < 0) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"Invalid pwindow value");
-  if (qwindow == PETSC_DEFAULT || qwindow == PETSC_DECIDE) qwindow = 0;
-  if (qwindow < 0) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"Invalid qwindow value");
-  data->cX_in_proj = qwindow;
-  data->cX_in_impr = pwindow;
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
-#define __FUNCT__ "EPSXDGetWindowSizes_XD"
-PetscErrorCode EPSXDGetWindowSizes_XD(EPS eps,PetscInt *pwindow,PetscInt *qwindow)
-{
-  EPS_DAVIDSON *data = (EPS_DAVIDSON*)eps->data;
-
-  PetscFunctionBegin;
-  if (pwindow) *pwindow = data->cX_in_impr;
-  if (qwindow) *qwindow = data->cX_in_proj;
   PetscFunctionReturn(0);
 }
 

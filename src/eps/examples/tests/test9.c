@@ -93,7 +93,7 @@ int main(int argc,char **argv)
   if (flg) {
     ierr = EPSArnoldiGetDelayed(eps,&delay);CHKERRQ(ierr);
     if (delay) {
-      ierr = PetscPrintf(PETSC_COMM_WORLD," Warning: delayed reorthogonalization may be unstable:\n");CHKERRQ(ierr);
+      ierr = PetscPrintf(PETSC_COMM_WORLD," Warning: delayed reorthogonalization may be unstable\n");CHKERRQ(ierr);
     }
   }
 

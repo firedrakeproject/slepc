@@ -73,11 +73,6 @@ PetscErrorCode EPSSetFromOptions_GD(PetscOptionItems *PetscOptionsObject,EPS eps
     ierr = PetscOptionsInt("-eps_gd_initial_size","Initial size of the search subspace","EPSGDSetInitialSize",opi,&opi,&flg);CHKERRQ(ierr);
     if (flg) { ierr = EPSGDSetInitialSize(eps,opi);CHKERRQ(ierr); }
 
-    ierr = EPSGDGetWindowSizes(eps,&opi,&opi0);CHKERRQ(ierr);
-    ierr = PetscOptionsInt("-eps_gd_pwindow","(Experimental!) Number of converged vectors in the projector","EPSGDSetWindowSizes",opi,&opi,&flg);CHKERRQ(ierr);
-    ierr = PetscOptionsInt("-eps_gd_qwindow","(Experimental!) Number of converged vectors in the projected problem","EPSGDSetWindowSizes",opi0,&opi0,&flg2);CHKERRQ(ierr);
-    if (flg || flg2) { ierr = EPSGDSetWindowSizes(eps,opi,opi0);CHKERRQ(ierr); }
-
     ierr = PetscOptionsBool("-eps_gd_double_expansion","Use the doble-expansion variant of GD","EPSGDSetDoubleExpansion",PETSC_FALSE,&op,&flg);CHKERRQ(ierr);
     if (flg) { ierr = EPSGDSetDoubleExpansion(eps,op);CHKERRQ(ierr); }
 
@@ -159,8 +154,6 @@ PetscErrorCode EPSDestroy_GD(EPS eps)
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSGDGetRestart_C",NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSGDSetInitialSize_C",NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSGDGetInitialSize_C",NULL);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSGDSetWindowSizes_C",NULL);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSGDGetWindowSizes_C",NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSGDSetDoubleExpansion_C",NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSGDGetDoubleExpansion_C",NULL);CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -481,70 +474,6 @@ PetscErrorCode EPSGDGetBOrth(EPS eps,PetscBool *borth)
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "EPSGDSetWindowSizes"
-/*@
-   EPSGDSetWindowSizes - Sets the number of converged vectors in the projected
-   problem (or Rayleigh quotient) and in the projector employed in the correction
-   equation.
-
-   Logically Collective on EPS
-
-   Input Parameters:
-+  eps - the eigenproblem solver context
-.  pwindow - number of converged vectors in the projector
--  qwindow - number of converged vectors in the projected problem
-
-   Options Database Keys:
-+  -eps_gd_pwindow - set the number of converged vectors in the projector
--  -eps_gd_qwindow - set the number of converged vectors in the projected problem
-
-   Level: advanced
-
-.seealso: EPSGDGetWindowSizes()
-@*/
-PetscErrorCode EPSGDSetWindowSizes(EPS eps,PetscInt pwindow,PetscInt qwindow)
-{
-  PetscErrorCode ierr;
-
-  PetscFunctionBegin;
-  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  PetscValidLogicalCollectiveInt(eps,pwindow,2);
-  PetscValidLogicalCollectiveInt(eps,qwindow,3);
-  ierr = PetscTryMethod(eps,"EPSGDSetWindowSizes_C",(EPS,PetscInt,PetscInt),(eps,pwindow,qwindow));CHKERRQ(ierr);
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
-#define __FUNCT__ "EPSGDGetWindowSizes"
-/*@
-   EPSGDGetWindowSizes - Gets the number of converged vectors in the projected
-   problem (or Rayleigh quotient) and in the projector employed in the correction
-   equation.
-
-   Not Collective
-
-   Input Parameter:
-.  eps - the eigenproblem solver context
-
-   Output Parameter:
-+  pwindow - number of converged vectors in the projector
--  qwindow - number of converged vectors in the projected problem
-
-   Level: advanced
-
-.seealso: EPSGDSetWindowSizes()
-@*/
-PetscErrorCode EPSGDGetWindowSizes(EPS eps,PetscInt *pwindow,PetscInt *qwindow)
-{
-  PetscErrorCode ierr;
-
-  PetscFunctionBegin;
-  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  ierr = PetscUseMethod(eps,"EPSGDGetWindowSizes_C",(EPS,PetscInt*,PetscInt*),(eps,pwindow,qwindow));CHKERRQ(ierr);
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
 #define __FUNCT__ "EPSGDSetDoubleExpansion_GD"
 static PetscErrorCode EPSGDSetDoubleExpansion_GD(EPS eps,PetscBool doubleexp)
 {
@@ -644,8 +573,6 @@ PETSC_EXTERN PetscErrorCode EPSCreate_GD(EPS eps)
   data->fix         = 0.0;
   data->krylovstart = PETSC_FALSE;
   data->dynamic     = PETSC_FALSE;
-  data->cX_in_proj  = 0;
-  data->cX_in_impr  = 0;
 
   eps->ops->solve          = EPSSolve_XD;
   eps->ops->setup          = EPSSetUp_GD;
@@ -667,8 +594,6 @@ PETSC_EXTERN PetscErrorCode EPSCreate_GD(EPS eps)
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSGDGetRestart_C",EPSXDGetRestart_XD);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSGDSetInitialSize_C",EPSXDSetInitialSize_XD);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSGDGetInitialSize_C",EPSXDGetInitialSize_XD);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSGDSetWindowSizes_C",EPSXDSetWindowSizes_XD);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSGDGetWindowSizes_C",EPSXDGetWindowSizes_XD);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSGDSetDoubleExpansion_C",EPSGDSetDoubleExpansion_GD);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSGDGetDoubleExpansion_C",EPSGDGetDoubleExpansion_GD);CHKERRQ(ierr);
   PetscFunctionReturn(0);

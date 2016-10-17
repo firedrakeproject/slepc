@@ -39,7 +39,7 @@ int main(int argc,char **argv)
   EPS            eps;
   ST             st;
   RG             rg;
-  PetscReal      tol=1000*PETSC_MACHINE_EPSILON;
+  PetscReal      radius,tol=1000*PETSC_MACHINE_EPSILON;
   PetscScalar    target=0.5;
   PetscInt       N,m=15,nev;
   PetscErrorCode ierr;
@@ -77,7 +77,8 @@ int main(int argc,char **argv)
 
   ierr = RGCreate(PETSC_COMM_WORLD,&rg);CHKERRQ(ierr);
   ierr = RGSetType(rg,RGELLIPSE);CHKERRQ(ierr);
-  ierr = RGEllipseSetParameters(rg,target+(1.0-target)/2.0,(1.0-target)/2.0,0.1);CHKERRQ(ierr);
+  radius = (1.0-PetscRealPart(target))/2.0;
+  ierr = RGEllipseSetParameters(rg,target+radius,radius,0.1);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                 Create the eigensolver and set various options
