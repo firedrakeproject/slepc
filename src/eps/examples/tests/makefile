@@ -41,8 +41,7 @@ TESTEXAMPLES_C                     = test1.PETSc runtest1_5 test1.rm \
                                      test14.PETSc runtest14_1 test14.rm \
                                      test19.PETSc runtest19_1 test19.rm \
                                      test20.PETSc runtest20_1 test20.rm \
-                                     test21.PETSc runtest21_1 test21.rm \
-                                     test22.PETSc runtest22_1 test22.rm
+                                     test21.PETSc runtest21_1 test21.rm
 TESTEXAMPLES_C_NOTSINGLE           = test1.PETSc runtest1_1 runtest1_3 runtest1_4 runtest1_6 test1.rm \
                                      test2.PETSc runtest2_1 runtest2_2 runtest2_3 test2.rm \
                                      test3.PETSc runtest3_1 runtest3_2 test3.rm \
@@ -55,8 +54,9 @@ TESTEXAMPLES_C_NOTSINGLE           = test1.PETSc runtest1_1 runtest1_3 runtest1_
                                      test12.PETSc runtest12_1 test12.rm \
                                      test16.PETSc runtest16_1 test16.rm \
                                      test17.PETSc runtest17_1 test17.rm
-TESTEXAMPLES_C_NOCOMPLEX           = test18.PETSc runtest18_1 test18.rm
 TESTEXAMPLES_C_NOCOMPLEX_NOTSINGLE = test1.PETSc runtest1_2 test1.rm \
+                                     test18.PETSc runtest18_1 test18.rm \
+                                     test22.PETSc runtest22_1 test22.rm \
                                      test23.PETSc runtest23_1 test23.rm
 TESTEXAMPLES_C_DOUBLE              = test5.PETSc runtest5_1 test5.rm
 TESTEXAMPLES_FORTRAN               = test7f.PETSc runtest7f_1 test7f.rm \
