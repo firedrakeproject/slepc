@@ -402,6 +402,15 @@ runtest9_5:
 	${MPIEXEC} -n 1 ./test9 -eps_type jd -eps_nev 4 -eps_target .5 -st_ksp_type bicg > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
+runtest9_6: runtest9_6_ciss runtest9_6_ciss_hankel runtest9_6_ciss_cheby runtest9_6_ciss_refine
+runtest9_6_%:
+	-@${SETTEST};  check=test9_6; eps=$*; \
+	if [ "$$eps" = ciss_hankel ]; then eps="ciss -eps_ciss_extraction hankel -eps_ciss_spurious_threshold 1e-6"; \
+	elif [ "$$eps" = ciss_cheby ]; then eps="ciss -eps_ciss_quadrule chebyshev"; \
+	elif [ "$$eps" = ciss_refine ]; then eps="ciss -eps_ciss_refine_inner 1 -eps_ciss_refine_blocksize 1"; fi; \
+	${MPIEXEC} -n 1 ./test9 -eps_type $$eps -eps_tol 1e-9 -rg_type ellipse -rg_ellipse_center 0.55 -rg_ellipse_radius 0.05 -rg_ellipse_vscale 0.1 -eps_ciss_usest 0 -eps_all > $${test}.tmp 2>&1; \
+	${TESTCODE}
+
 runtest10_1: runtest10_1_krylovschur runtest10_1_arnoldi runtest10_1_lanczos runtest10_1_gd runtest10_1_jd runtest10_1_gd2 runtest10_1_rqcg runtest10_1_lobpcg
 runtest10_1_%:
 	-@${SETTEST}; check=test10_1; eps=$*; \
