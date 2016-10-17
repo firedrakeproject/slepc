@@ -633,7 +633,7 @@ static PetscErrorCode dvd_improvex_jd_proj_cuv(dvdDashboard *d,PetscInt i_s,Pets
 
   /* KZ <- KZ(rm:rm+max_cX-1) */
   ierr = BVGetActiveColumns(data->KZ,&lKZ,&kKZ);CHKERRQ(ierr);
-  rm = PetscMax(V_new+lKZ-d->max_cX_in_impr,0);
+  rm = PetscMax(V_new+lKZ,0);
   if (rm > 0) {
     for (i=0;i<lKZ;i++) {
       ierr = BVCopyColumn(data->KZ,i+rm,i);CHKERRQ(ierr);
@@ -647,7 +647,7 @@ static PetscErrorCode dvd_improvex_jd_proj_cuv(dvdDashboard *d,PetscInt i_s,Pets
       ierr = PetscMemcpy(&data->XKZ[i*data->ldXKZ+i],&data->XKZ[(i+rm)*data->ldXKZ+i+rm],sizeof(PetscScalar)*lKZ);CHKERRQ(ierr);
     }
   }
-  lKZ = PetscMin(d->max_cX_in_impr,lKZ+V_new);
+  lKZ = PetscMin(0,lKZ+V_new);
   ierr = BVSetActiveColumns(data->KZ,lKZ,lKZ+n);CHKERRQ(ierr);
   ierr = BVSetActiveColumns(data->U,lKZ,lKZ+n);CHKERRQ(ierr);
 
@@ -824,7 +824,7 @@ static PetscErrorCode dvd_improvex_jd_gen(dvdDashboard *d,PetscInt r_s,PetscInt 
 
 #undef __FUNCT__
 #define __FUNCT__ "dvd_improvex_jd"
-PetscErrorCode dvd_improvex_jd(dvdDashboard *d,dvdBlackboard *b,KSP ksp,PetscInt max_bs,PetscInt cX_impr,PetscBool dynamic)
+PetscErrorCode dvd_improvex_jd(dvdDashboard *d,dvdBlackboard *b,KSP ksp,PetscInt max_bs,PetscBool dynamic)
 {
   PetscErrorCode ierr;
   dvdImprovex_jd *data;
@@ -848,7 +848,7 @@ PetscErrorCode dvd_improvex_jd(dvdDashboard *d,dvdBlackboard *b,KSP ksp,PetscInt
     b->max_size_P = PetscMax(b->max_size_P,1);
   }
   b->max_size_X = PetscMax(b->max_size_X,max_bs);
-  size_P = b->max_size_P+cX_impr;
+  size_P = b->max_size_P;
 
   /* Setup the preconditioner */
   if (ksp) {
@@ -862,7 +862,6 @@ PetscErrorCode dvd_improvex_jd(dvdDashboard *d,dvdBlackboard *b,KSP ksp,PetscInt
   if (b->state >= DVD_STATE_CONF) {
     ierr = PetscNewLog(d->eps,&data);CHKERRQ(ierr);
     data->dynamic = dynamic;
-    d->max_cX_in_impr = cX_impr;
     ierr = PetscMalloc1(size_P*size_P,&data->XKZ);CHKERRQ(ierr);
     ierr = PetscMalloc1(size_P*size_P,&data->iXKZ);CHKERRQ(ierr);
     ierr = PetscMalloc1(size_P,&data->iXKZPivots);CHKERRQ(ierr);

@@ -75,11 +75,6 @@ PetscErrorCode EPSSetFromOptions_JD(PetscOptionItems *PetscOptionsObject,EPS eps
     ierr = PetscOptionsInt("-eps_jd_initial_size","Initial size of the search subspace","EPSJDSetInitialSize",opi,&opi,&flg);CHKERRQ(ierr);
     if (flg) { ierr = EPSJDSetInitialSize(eps,opi);CHKERRQ(ierr); }
 
-    ierr = EPSJDGetWindowSizes(eps,&opi,&opi0);CHKERRQ(ierr);
-    ierr = PetscOptionsInt("-eps_jd_pwindow","(Experimental!) Number of converged vectors in the projector","EPSJDSetWindowSizes",opi,&opi,&flg);CHKERRQ(ierr);
-    ierr = PetscOptionsInt("-eps_jd_qwindow","(Experimental!) Number of converged vectors in the projected problem","EPSJDSetWindowSizes",opi0,&opi0,&flg2);CHKERRQ(ierr);
-    if (flg || flg2) { ierr = EPSJDSetWindowSizes(eps,opi,opi0);CHKERRQ(ierr); }
-
     ierr = EPSJDGetFix(eps,&opf);CHKERRQ(ierr);
     ierr = PetscOptionsReal("-eps_jd_fix","Tolerance for changing the target in the correction equation","EPSJDSetFix",opf,&opf,&flg);CHKERRQ(ierr);
     if (flg) { ierr = EPSJDSetFix(eps,opf);CHKERRQ(ierr); }
@@ -184,8 +179,6 @@ PetscErrorCode EPSDestroy_JD(EPS eps)
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSJDGetFix_C",NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSJDSetConstCorrectionTol_C",NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSJDGetConstCorrectionTol_C",NULL);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSJDSetWindowSizes_C",NULL);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSJDGetWindowSizes_C",NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSJDSetBOrth_C",NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSJDGetBOrth_C",NULL);CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -623,70 +616,6 @@ PetscErrorCode EPSJDGetConstCorrectionTol(EPS eps,PetscBool *constant)
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "EPSJDSetWindowSizes"
-/*@
-   EPSJDSetWindowSizes - Sets the number of converged vectors in the projected
-   problem (or Rayleigh quotient) and in the projector employed in the correction
-   equation.
-
-   Logically Collective on EPS
-
-   Input Parameters:
-+  eps - the eigenproblem solver context
-.  pwindow - number of converged vectors in the projector
--  qwindow - number of converged vectors in the projected problem
-
-   Options Database Keys:
-+  -eps_jd_pwindow - set the number of converged vectors in the projector
--  -eps_jd_qwindow - set the number of converged vectors in the projected problem
-
-   Level: advanced
-
-.seealso: EPSJDGetWindowSizes()
-@*/
-PetscErrorCode EPSJDSetWindowSizes(EPS eps,PetscInt pwindow,PetscInt qwindow)
-{
-  PetscErrorCode ierr;
-
-  PetscFunctionBegin;
-  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  PetscValidLogicalCollectiveInt(eps,pwindow,2);
-  PetscValidLogicalCollectiveInt(eps,qwindow,3);
-  ierr = PetscTryMethod(eps,"EPSJDSetWindowSizes_C",(EPS,PetscInt,PetscInt),(eps,pwindow,qwindow));CHKERRQ(ierr);
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
-#define __FUNCT__ "EPSJDGetWindowSizes"
-/*@
-   EPSJDGetWindowSizes - Gets the number of converged vectors in the projected
-   problem (or Rayleigh quotient) and in the projector employed in the correction
-   equation.
-
-   Not Collective
-
-   Input Parameter:
-.  eps - the eigenproblem solver context
-
-   Output Parameter:
-+  pwindow - number of converged vectors in the projector
--  qwindow - number of converged vectors in the projected problem
-
-   Level: advanced
-
-.seealso: EPSJDSetWindowSizes()
-@*/
-PetscErrorCode EPSJDGetWindowSizes(EPS eps,PetscInt *pwindow,PetscInt *qwindow)
-{
-  PetscErrorCode ierr;
-
-  PetscFunctionBegin;
-  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  ierr = PetscUseMethod(eps,"EPSJDGetWindowSizes_C",(EPS,PetscInt*,PetscInt*),(eps,pwindow,qwindow));CHKERRQ(ierr);
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
 #define __FUNCT__ "EPSJDSetBOrth"
 /*@
    EPSJDSetBOrth - Selects the orthogonalization that will be used in the search
@@ -764,8 +693,6 @@ PETSC_EXTERN PetscErrorCode EPSCreate_JD(EPS eps)
   data->fix         = 0.01;
   data->krylovstart = PETSC_FALSE;
   data->dynamic     = PETSC_FALSE;
-  data->cX_in_proj  = 0;
-  data->cX_in_impr  = 0;
 
   eps->ops->solve          = EPSSolve_XD;
   eps->ops->setup          = EPSSetUp_JD;
@@ -789,8 +716,6 @@ PETSC_EXTERN PetscErrorCode EPSCreate_JD(EPS eps)
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSJDGetFix_C",EPSJDGetFix_JD);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSJDSetConstCorrectionTol_C",EPSJDSetConstCorrectionTol_JD);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSJDGetConstCorrectionTol_C",EPSJDGetConstCorrectionTol_JD);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSJDSetWindowSizes_C",EPSXDSetWindowSizes_XD);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSJDGetWindowSizes_C",EPSXDGetWindowSizes_XD);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSJDSetBOrth_C",EPSXDSetBOrth_XD);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSJDGetBOrth_C",EPSXDGetBOrth_XD);CHKERRQ(ierr);
   PetscFunctionReturn(0);

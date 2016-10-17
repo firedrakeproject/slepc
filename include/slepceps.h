@@ -393,8 +393,6 @@ PETSC_EXTERN PetscErrorCode EPSGDSetInitialSize(EPS,PetscInt);
 PETSC_EXTERN PetscErrorCode EPSGDGetInitialSize(EPS,PetscInt*);
 PETSC_EXTERN PetscErrorCode EPSGDSetBOrth(EPS,PetscBool);
 PETSC_EXTERN PetscErrorCode EPSGDGetBOrth(EPS,PetscBool*);
-PETSC_EXTERN PetscErrorCode EPSGDGetWindowSizes(EPS,PetscInt*,PetscInt*);
-PETSC_EXTERN PetscErrorCode EPSGDSetWindowSizes(EPS,PetscInt,PetscInt);
 PETSC_EXTERN PetscErrorCode EPSGDSetDoubleExpansion(EPS,PetscBool);
 PETSC_EXTERN PetscErrorCode EPSGDGetDoubleExpansion(EPS,PetscBool*);
 
@@ -412,8 +410,6 @@ PETSC_EXTERN PetscErrorCode EPSJDSetConstCorrectionTol(EPS,PetscBool);
 PETSC_EXTERN PetscErrorCode EPSJDGetConstCorrectionTol(EPS,PetscBool*);
 PETSC_EXTERN PetscErrorCode EPSJDSetBOrth(EPS,PetscBool);
 PETSC_EXTERN PetscErrorCode EPSJDGetBOrth(EPS,PetscBool*);
-PETSC_EXTERN PetscErrorCode EPSJDGetWindowSizes(EPS,PetscInt*,PetscInt*);
-PETSC_EXTERN PetscErrorCode EPSJDSetWindowSizes(EPS,PetscInt,PetscInt);
 
 PETSC_EXTERN PetscErrorCode EPSRQCGSetReset(EPS,PetscInt);
 PETSC_EXTERN PetscErrorCode EPSRQCGGetReset(EPS,PetscInt*);
