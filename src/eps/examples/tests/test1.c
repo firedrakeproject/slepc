@@ -83,6 +83,7 @@ int main(int argc,char **argv)
   ierr = EPSSetOperators(eps,A,B);CHKERRQ(ierr);
   ierr = EPSSetProblemType(eps,EPS_GHEP);CHKERRQ(ierr);
   ierr = EPSSetTolerances(eps,tol,PETSC_DEFAULT);CHKERRQ(ierr);
+  ierr = EPSSetConvergenceTest(eps,EPS_CONV_NORM);CHKERRQ(ierr);
   ierr = EPSSetFromOptions(eps);CHKERRQ(ierr);
 
   /* illustrate how to extract parameters from specific solver types */
@@ -107,7 +108,7 @@ int main(int argc,char **argv)
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
   ierr = EPSGetTolerances(eps,&tol,NULL);CHKERRQ(ierr);
-  ierr = EPSErrorView(eps,EPS_ERROR_RELATIVE,NULL);CHKERRQ(ierr);
+  ierr = EPSErrorView(eps,EPS_ERROR_BACKWARD,NULL);CHKERRQ(ierr);
   ierr = EPSGetConverged(eps,&nconv);CHKERRQ(ierr);
   if (nconv>1) {
     ierr = VecDuplicateVecs(v,nconv,&X);CHKERRQ(ierr);

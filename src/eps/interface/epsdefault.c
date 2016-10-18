@@ -381,6 +381,8 @@ PetscErrorCode EPSComputeRitzVector(EPS eps,PetscScalar *Zr,PetscScalar *Zi,BV V
   PetscReal      norm;
 #if !defined(PETSC_USE_COMPLEX)
   Vec            z;
+  PetscReal      normi;
+  PetscScalar    tmp;
 #endif
 
   PetscFunctionBegin;
@@ -403,7 +405,6 @@ PetscErrorCode EPSComputeRitzVector(EPS eps,PetscScalar *Zr,PetscScalar *Zi,BV V
   /* fix eigenvector if balancing is used */
   if (!eps->ishermitian && eps->balance!=EPS_BALANCE_NONE && eps->D) {
     ierr = VecPointwiseDivide(x,x,eps->D);CHKERRQ(ierr);
-    ierr = VecNormalize(x,&norm);CHKERRQ(ierr);
   }
 #if !defined(PETSC_USE_COMPLEX)
   /* compute imaginary part of eigenvector */
@@ -419,11 +420,26 @@ PetscErrorCode EPSComputeRitzVector(EPS eps,PetscScalar *Zr,PetscScalar *Zi,BV V
     }
     if (eps->balance!=EPS_BALANCE_NONE && eps->D) {
       ierr = VecPointwiseDivide(y,y,eps->D);CHKERRQ(ierr);
-      ierr = VecNormalize(y,&norm);CHKERRQ(ierr);
     }
   } else
 #endif
   { ierr = VecSet(y,0.0);CHKERRQ(ierr); }
+
+  /* normalize eigenvectors (when using balancing) */
+  if (eps->balance!=EPS_BALANCE_NONE && eps->D) {
+#if !defined(PETSC_USE_COMPLEX)
+    if (Zi) {
+      ierr = VecNorm(x,NORM_2,&norm);CHKERRQ(ierr);
+      ierr = VecNorm(y,NORM_2,&normi);CHKERRQ(ierr);
+      tmp = 1.0 / SlepcAbsEigenvalue(norm,normi);
+      ierr = VecScale(x,tmp);CHKERRQ(ierr);
+      ierr = VecScale(y,tmp);CHKERRQ(ierr);
+    } else
+#endif
+    {
+      ierr = VecNormalize(x,NULL);CHKERRQ(ierr);
+    }
+  }
   ierr = BVSetActiveColumns(V,l,k);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

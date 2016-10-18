@@ -552,6 +552,11 @@ runtest22_1_%:
 	${MPIEXEC} -n 1 ./test22 -eps_nev 4 -eps_true_residual $$trueres > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
+runtest22_2:
+	-@${SETTEST}; \
+	${MPIEXEC} -n 1 ./test22 -eps_nev 4 -eps_true_residual -eps_balance oneside -eps_tol 1e-7 > $${test}.tmp 2>&1; \
+	${TESTCODE}
+
 runtest23_1:
 	-@${SETTEST}; \
 	${MPIEXEC} -n 1 ./test23 -eps_error_backward ::ascii_info_detail -eps_largest_real -eps_view_values -eps_monitor_conv -eps_error_absolute ::ascii_matlab -eps_monitor_all -eps_converged_reason -eps_view | ${GREP} -v "tolerance" | ${SED} -e "s/[0-9]\.[0-9]*e-[0-9]*/removed/g" > $${test}.tmp 2>&1; \
