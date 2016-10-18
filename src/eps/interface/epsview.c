@@ -87,7 +87,6 @@ PetscErrorCode EPSView(EPS eps,PetscViewer viewer)
         case EPS_GNHEP: type = "generalized non-" HERM " eigenvalue problem"; break;
         case EPS_PGNHEP: type = "generalized non-" HERM " eigenvalue problem with " HERM " positive definite B"; break;
         case EPS_GHIEP: type = "generalized " HERM "-indefinite eigenvalue problem"; break;
-        default: SETERRQ(PetscObjectComm((PetscObject)eps),1,"Wrong value of eps->problem_type");
       }
     } else type = "not yet set";
     ierr = PetscViewerASCIIPrintf(viewer,"  problem type: %s\n",type);CHKERRQ(ierr);
@@ -100,16 +99,15 @@ PetscErrorCode EPSView(EPS eps,PetscViewer viewer)
         case EPS_HARMONIC_LARGEST: extr = "largest harmonic Ritz"; break;
         case EPS_REFINED:          extr = "refined Ritz"; break;
         case EPS_REFINED_HARMONIC: extr = "refined harmonic Ritz"; break;
-        default: SETERRQ(PetscObjectComm((PetscObject)eps),1,"Wrong value of eps->extraction");
       }
       ierr = PetscViewerASCIIPrintf(viewer,"  extraction type: %s\n",extr);CHKERRQ(ierr);
     }
     if (!eps->ishermitian && eps->balance!=EPS_BALANCE_NONE) {
       switch (eps->balance) {
+        case EPS_BALANCE_NONE:      break;
         case EPS_BALANCE_ONESIDE:   bal = "one-sided Krylov"; break;
         case EPS_BALANCE_TWOSIDE:   bal = "two-sided Krylov"; break;
         case EPS_BALANCE_USER:      bal = "user-defined matrix"; break;
-        default: SETERRQ(PetscObjectComm((PetscObject)eps),1,"Wrong value of eps->balance");
       }
       ierr = PetscViewerASCIIPrintf(viewer,"  balancing enabled: %s",bal);CHKERRQ(ierr);
       ierr = PetscViewerASCIIUseTabs(viewer,PETSC_FALSE);CHKERRQ(ierr);
@@ -165,7 +163,6 @@ PetscErrorCode EPSView(EPS eps,PetscViewer viewer)
           ierr = PetscViewerASCIIPrintf(viewer,"all eigenvalues in the region\n");CHKERRQ(ierr);
         }
         break;
-      default: SETERRQ(PetscObjectComm((PetscObject)eps),1,"Wrong value of eps->which");
     }
     ierr = PetscViewerASCIIUseTabs(viewer,PETSC_TRUE);CHKERRQ(ierr);
     if (eps->isgeneralized && eps->ishermitian && eps->purify) {

@@ -167,6 +167,15 @@ int main(int argc,char **argv)
            Compute all eigenvalues in interval and display info
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
+  ierr = EPSSetUp(eps);CHKERRQ(ierr);
+  ierr = EPSKrylovSchurGetInertias(eps,&k,&shifts,&inertias);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD," Inertias after EPSSetUp:\n");CHKERRQ(ierr);
+  for (i=0;i<k;i++) {
+    ierr = PetscPrintf(PETSC_COMM_WORLD," .. %g (%D)\n",(double)shifts[i],inertias[i]);CHKERRQ(ierr);
+  }
+  ierr = PetscFree(shifts);CHKERRQ(ierr);
+  ierr = PetscFree(inertias);CHKERRQ(ierr);
+
   ierr = EPSSolve(eps);CHKERRQ(ierr);
   ierr = EPSGetDimensions(eps,&nev,NULL,NULL);CHKERRQ(ierr);
   ierr = EPSGetInterval(eps,&int0,&int1);CHKERRQ(ierr);

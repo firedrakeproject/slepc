@@ -526,14 +526,14 @@ static PetscErrorCode EPSBasicLanczos(EPS eps,PetscReal *alpha,PetscReal *beta,P
     case EPS_LANCZOS_REORTHOG_LOCAL:
       ierr = EPSLocalLanczos(eps,alpha,beta,k,m,breakdown);CHKERRQ(ierr);
       break;
-    case EPS_LANCZOS_REORTHOG_SELECTIVE:
-      ierr = EPSSelectiveLanczos(eps,alpha,beta,k,m,breakdown,anorm);CHKERRQ(ierr);
-      break;
     case EPS_LANCZOS_REORTHOG_FULL:
       ierr = EPSFullLanczos(eps,alpha,beta,k,m,breakdown);CHKERRQ(ierr);
       break;
-    case EPS_LANCZOS_REORTHOG_PARTIAL:
+    case EPS_LANCZOS_REORTHOG_SELECTIVE:
+      ierr = EPSSelectiveLanczos(eps,alpha,beta,k,m,breakdown,anorm);CHKERRQ(ierr);
+      break;
     case EPS_LANCZOS_REORTHOG_PERIODIC:
+    case EPS_LANCZOS_REORTHOG_PARTIAL:
       ierr = EPSPartialLanczos(eps,alpha,beta,k,m,breakdown,anorm);CHKERRQ(ierr);
       break;
     case EPS_LANCZOS_REORTHOG_DELAYED:
@@ -552,8 +552,6 @@ static PetscErrorCode EPSBasicLanczos(EPS eps,PetscReal *alpha,PetscReal *beta,P
       beta[n-1] = betam;
       ierr = PetscFree(T);CHKERRQ(ierr);
       break;
-    default:
-      SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"Invalid reorthogonalization type");
   }
   PetscFunctionReturn(0);
 }

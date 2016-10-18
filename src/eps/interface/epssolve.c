@@ -32,14 +32,8 @@ PetscErrorCode EPSComputeVectors(EPS eps)
 
   PetscFunctionBegin;
   EPSCheckSolved(eps,1);
-  switch (eps->state) {
-  case EPS_STATE_SOLVED:
-    if (eps->ops->computevectors) {
-      ierr = (*eps->ops->computevectors)(eps);CHKERRQ(ierr);
-    }
-    break;
-  default:
-    break;
+  if (eps->state==EPS_STATE_SOLVED && eps->ops->computevectors) {
+    ierr = (*eps->ops->computevectors)(eps);CHKERRQ(ierr);
   }
   eps->state = EPS_STATE_EIGENVECTORS;
   PetscFunctionReturn(0);

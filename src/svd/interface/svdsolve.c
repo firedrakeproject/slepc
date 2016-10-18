@@ -34,8 +34,7 @@ PetscErrorCode SVDComputeVectors(SVD svd)
 
   PetscFunctionBegin;
   SVDCheckSolved(svd,1);
-  switch (svd->state) {
-  case SVD_STATE_SOLVED:
+  if (svd->state==SVD_STATE_SOLVED) {
     /* generate left singular vectors on U */
     if (!svd->U) { ierr = SVDGetBV(svd,NULL,&svd->U);CHKERRQ(ierr); }
     ierr = BVGetSizes(svd->U,NULL,NULL,&oldsize);CHKERRQ(ierr);
@@ -56,9 +55,6 @@ PetscErrorCode SVDComputeVectors(SVD svd)
       ierr = BVOrthogonalizeColumn(svd->U,j,NULL,&norm,NULL);CHKERRQ(ierr);
       ierr = BVScaleColumn(svd->U,j,1.0/norm);CHKERRQ(ierr);
     }
-    break;
-  default:
-    break;
   }
   svd->state = SVD_STATE_VECTORS;
   PetscFunctionReturn(0);

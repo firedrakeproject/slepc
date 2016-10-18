@@ -86,7 +86,6 @@ PetscErrorCode PEPView(PEP pep,PetscViewer viewer)
         case PEP_GENERAL:    type = "general polynomial eigenvalue problem"; break;
         case PEP_HERMITIAN:  type = HERM " polynomial eigenvalue problem"; break;
         case PEP_GYROSCOPIC: type = "gyroscopic polynomial eigenvalue problem"; break;
-        default: SETERRQ(PetscObjectComm((PetscObject)pep),1,"Wrong value of pep->problem_type");
       }
     } else type = "not yet set";
     ierr = PetscViewerASCIIPrintf(viewer,"  problem type: %s\n",type);CHKERRQ(ierr);
@@ -140,7 +139,6 @@ PetscErrorCode PEPView(PEP pep,PetscViewer viewer)
       case PEP_SMALLEST_IMAGINARY:
         ierr = PetscViewerASCIIPrintf(viewer,"smallest imaginary parts\n");CHKERRQ(ierr);
         break;
-      default: SETERRQ(PetscObjectComm((PetscObject)pep),1,"Wrong value of pep->which");
     }
     ierr = PetscViewerASCIIUseTabs(viewer,PETSC_TRUE);CHKERRQ(ierr);
     ierr = PetscViewerASCIIPrintf(viewer,"  number of eigenvalues (nev): %D\n",pep->nev);CHKERRQ(ierr);

@@ -319,7 +319,6 @@ PetscErrorCode PEPSetUp_Linear(PEP pep)
       case PEP_GENERAL:    i = 0; break;
       case PEP_HERMITIAN:  i = 2; break;
       case PEP_GYROSCOPIC: i = 4; break;
-      default: SETERRQ(PetscObjectComm((PetscObject)pep),1,"Wrong value of pep->problem_type");
     }
     i += ctx->cform-1;
 
@@ -403,7 +402,6 @@ PetscErrorCode PEPSetUp_Linear(PEP pep)
           case PEP_WHICH_USER:         which = EPS_WHICH_USER;
             ierr = EPSSetEigenvalueComparison(ctx->eps,pep->sc->comparison,pep->sc->comparisonctx);CHKERRQ(ierr);
             break;
-          default: SETERRQ(PetscObjectComm((PetscObject)pep),1,"Wrong value of which");
       }
     }
     ierr = EPSSetWhichEigenpairs(ctx->eps,which);CHKERRQ(ierr);
@@ -693,7 +691,7 @@ PetscErrorCode PEPExtractVectors_Linear(PEP pep)
   case PEP_EXTRACT_RESIDUAL:
     ierr = PEPLinearExtract_Residual(pep,ctx->eps);CHKERRQ(ierr);
     break;
-  default:
+  case PEP_EXTRACT_STRUCTURED:
     SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Extraction not implemented in this solver");
   }
   PetscFunctionReturn(0);

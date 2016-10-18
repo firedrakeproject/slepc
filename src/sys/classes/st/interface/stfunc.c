@@ -799,7 +799,6 @@ PetscErrorCode STView(ST st,PetscViewer viewer)
         case SAME_NONZERO_PATTERN:      pat = "same nonzero pattern";break;
         case DIFFERENT_NONZERO_PATTERN: pat = "different nonzero pattern";break;
         case SUBSET_NONZERO_PATTERN:    pat = "subset nonzero pattern";break;
-        default: SETERRQ(PetscObjectComm((PetscObject)st),1,"Wrong structure flag");
       }
       ierr = PetscViewerASCIIPrintf(viewer,"  all matrices have %s\n",pat);CHKERRQ(ierr);
     }

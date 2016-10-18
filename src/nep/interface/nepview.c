@@ -129,7 +129,6 @@ PetscErrorCode NEPView(NEP nep,PetscViewer viewer)
       case NEP_ALL:
         ierr = PetscViewerASCIIPrintf(viewer,"all eigenvalues in the region\n");CHKERRQ(ierr);
         break;
-      default: SETERRQ(PetscObjectComm((PetscObject)nep),1,"Wrong value of nep->which");
     }
     ierr = PetscViewerASCIIUseTabs(viewer,PETSC_TRUE);CHKERRQ(ierr);
     ierr = PetscViewerASCIIPrintf(viewer,"  number of eigenvalues (nev): %D\n",nep->nev);CHKERRQ(ierr);
