@@ -106,7 +106,7 @@ int main(int argc,char **argv)
   PetscScalar    kr,ki;
   PetscInt       M,N,P,m,n,p,nev,maxit,i,its,nconv,seed;
   PetscLogDouble t1,t2,t3;
-  PetscBool      flg;
+  PetscBool      flg,terse;
   PetscRandom    rctx;
   PetscErrorCode ierr;
 
@@ -114,14 +114,19 @@ int main(int argc,char **argv)
 
   ierr = PetscPrintf(PETSC_COMM_WORLD,"\n3-D Laplacian Eigenproblem\n\n");CHKERRQ(ierr);
 
+  /* show detailed info unless -terse option is given by user */
+  ierr = PetscOptionsHasName(NULL,NULL,"-terse",&terse);CHKERRQ(ierr);
+
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
      Compute the operator matrix that defines the eigensystem, Ax=kx
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
   ierr = DMDACreate3d(PETSC_COMM_WORLD,DM_BOUNDARY_NONE,DM_BOUNDARY_NONE,
-                      DM_BOUNDARY_NONE,DMDA_STENCIL_STAR,-10,-10,-10,
+                      DM_BOUNDARY_NONE,DMDA_STENCIL_STAR,10,10,10,
                       PETSC_DECIDE,PETSC_DECIDE,PETSC_DECIDE,
                       1,1,NULL,NULL,NULL,&da);CHKERRQ(ierr);
+  ierr = DMSetFromOptions(da);CHKERRQ(ierr);
+  ierr = DMSetUp(da);CHKERRQ(ierr);
 
   /* print DM information */
   ierr = DMDAGetInfo(da,NULL,&M,&N,&P,&m,&n,&p,NULL,NULL,NULL,NULL,NULL,NULL);CHKERRQ(ierr);
@@ -178,64 +183,70 @@ int main(int argc,char **argv)
   ierr = PetscTime(&t2);CHKERRQ(ierr);
   ierr = EPSSolve(eps);CHKERRQ(ierr);
   ierr = PetscTime(&t3);CHKERRQ(ierr);
-  ierr = EPSGetIterationNumber(eps,&its);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," Number of iterations of the method: %D\n",its);CHKERRQ(ierr);
+  if (!terse) {
+    ierr = EPSGetIterationNumber(eps,&its);CHKERRQ(ierr);
+    ierr = PetscPrintf(PETSC_COMM_WORLD," Number of iterations of the method: %D\n",its);CHKERRQ(ierr);
 
-  /*
-     Optional: Get some information from the solver and display it
-  */
-  ierr = EPSGetType(eps,&type);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," Solution method: %s\n\n",type);CHKERRQ(ierr);
-  ierr = EPSGetDimensions(eps,&nev,NULL,NULL);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," Number of requested eigenvalues: %D\n",nev);CHKERRQ(ierr);
-  ierr = EPSGetTolerances(eps,&tol,&maxit);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," Stopping condition: tol=%.4g, maxit=%D\n",(double)tol,maxit);CHKERRQ(ierr);
+    /*
+       Optional: Get some information from the solver and display it
+    */
+    ierr = EPSGetType(eps,&type);CHKERRQ(ierr);
+    ierr = PetscPrintf(PETSC_COMM_WORLD," Solution method: %s\n\n",type);CHKERRQ(ierr);
+    ierr = EPSGetDimensions(eps,&nev,NULL,NULL);CHKERRQ(ierr);
+    ierr = PetscPrintf(PETSC_COMM_WORLD," Number of requested eigenvalues: %D\n",nev);CHKERRQ(ierr);
+    ierr = EPSGetTolerances(eps,&tol,&maxit);CHKERRQ(ierr);
+    ierr = PetscPrintf(PETSC_COMM_WORLD," Stopping condition: tol=%.4g, maxit=%D\n",(double)tol,maxit);CHKERRQ(ierr);
+  }
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                     Display solution and clean up
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  /*
-     Get number of converged approximate eigenpairs
-  */
-  ierr = EPSGetConverged(eps,&nconv);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," Number of converged approximate eigenpairs: %D\n\n",nconv);CHKERRQ(ierr);
-
-  if (nconv>0) {
-    ierr = PetscMalloc1(nconv,&exact);CHKERRQ(ierr);
-    ierr = GetExactEigenvalues(M,N,P,nconv,exact);CHKERRQ(ierr);
+  if (terse) {
+    ierr = EPSErrorView(eps,EPS_ERROR_RELATIVE,NULL);CHKERRQ(ierr);
+  } else {
     /*
-       Display eigenvalues and relative errors
+       Get number of converged approximate eigenpairs
     */
-    ierr = PetscPrintf(PETSC_COMM_WORLD,
-         "           k          ||Ax-kx||/||kx||   Eigenvalue Error \n"
-         "   ----------------- ------------------ ------------------\n");CHKERRQ(ierr);
+    ierr = EPSGetConverged(eps,&nconv);CHKERRQ(ierr);
+    ierr = PetscPrintf(PETSC_COMM_WORLD," Number of converged approximate eigenpairs: %D\n\n",nconv);CHKERRQ(ierr);
 
-    for (i=0;i<nconv;i++) {
+    if (nconv>0) {
+      ierr = PetscMalloc1(nconv,&exact);CHKERRQ(ierr);
+      ierr = GetExactEigenvalues(M,N,P,nconv,exact);CHKERRQ(ierr);
       /*
-        Get converged eigenpairs: i-th eigenvalue is stored in kr (real part) and
-        ki (imaginary part)
+         Display eigenvalues and relative errors
       */
-      ierr = EPSGetEigenpair(eps,i,&kr,&ki,NULL,NULL);CHKERRQ(ierr);
-      /*
-         Compute the relative error associated to each eigenpair
-      */
-      ierr = EPSComputeError(eps,i,EPS_ERROR_RELATIVE,&error);CHKERRQ(ierr);
+      ierr = PetscPrintf(PETSC_COMM_WORLD,
+           "           k          ||Ax-kx||/||kx||   Eigenvalue Error \n"
+           "   ----------------- ------------------ ------------------\n");CHKERRQ(ierr);
+
+      for (i=0;i<nconv;i++) {
+        /*
+          Get converged eigenpairs: i-th eigenvalue is stored in kr (real part) and
+          ki (imaginary part)
+        */
+        ierr = EPSGetEigenpair(eps,i,&kr,&ki,NULL,NULL);CHKERRQ(ierr);
+        /*
+           Compute the relative error associated to each eigenpair
+        */
+        ierr = EPSComputeError(eps,i,EPS_ERROR_RELATIVE,&error);CHKERRQ(ierr);
 
 #if defined(PETSC_USE_COMPLEX)
-      re = PetscRealPart(kr);
-      im = PetscImaginaryPart(kr);
+        re = PetscRealPart(kr);
+        im = PetscImaginaryPart(kr);
 #else
-      re = kr;
-      im = ki;
+        re = kr;
+        im = ki;
 #endif
-      if (im!=0.0) SETERRQ(PETSC_COMM_WORLD,1,"Eigenvalue should be real");
-      else {
-        ierr = PetscPrintf(PETSC_COMM_WORLD,"   %12g       %12g        %12g\n",(double)re,(double)error,(double)PetscAbsReal(re-exact[i]));CHKERRQ(ierr);
+        if (im!=0.0) SETERRQ(PETSC_COMM_WORLD,1,"Eigenvalue should be real");
+        else {
+          ierr = PetscPrintf(PETSC_COMM_WORLD,"   %12g       %12g        %12g\n",(double)re,(double)error,(double)PetscAbsReal(re-exact[i]));CHKERRQ(ierr);
+        }
       }
+      ierr = PetscFree(exact);CHKERRQ(ierr);
+      ierr = PetscPrintf(PETSC_COMM_WORLD,"\n");CHKERRQ(ierr);
     }
-    ierr = PetscFree(exact);CHKERRQ(ierr);
-    ierr = PetscPrintf(PETSC_COMM_WORLD,"\n");CHKERRQ(ierr);
   }
 
   /*
