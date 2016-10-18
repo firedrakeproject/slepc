@@ -32,6 +32,7 @@ MANSEC     = EPS
 TESTEXAMPLES_C                     = ex5.PETSc runex5_1 ex5.rm \
                                      ex13.PETSc runex13_1 ex13.rm \
                                      ex18.PETSc runex18_1 ex18.rm \
+                                     ex19.PETSc runex19_1 ex19.rm \
                                      ex24.PETSc runex24_1 ex24.rm \
                                      ex29.PETSc runex29_1 ex29.rm
 TESTEXAMPLES_C_DOUBLE              = ex2.PETSc runex2_ciss_1 runex2_ciss_2 ex2.rm
@@ -285,9 +286,11 @@ runex18_1:
 	${MPIEXEC} -n 1 ./ex18 -eps_nev 4 -terse > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
-runex19_1:
-	-@${SETTEST}; \
-	${MPIEXEC} -n 1 ./ex19 -eps_nev 8 -eps_ncv 64 > $${test}.tmp 2>&1; \
+runex19_1: runex19_1_krylovschur runex19_1_lobpcg
+runex19_1_%:
+	-@${SETTEST}; check=ex19_1; eps=$*; \
+	if [ "$$eps" = krylovschur ]; then eps="krylovschur -eps_ncv 64"; fi; \
+	${MPIEXEC} -n 1 ./ex19 -eps_nev 8 -eps_type $$eps -terse > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
 runex24_1:
