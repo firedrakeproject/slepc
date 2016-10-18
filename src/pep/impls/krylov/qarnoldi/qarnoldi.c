@@ -238,7 +238,6 @@ static PetscErrorCode PEPQArnoldi(PEP pep,PetscScalar *H,PetscInt ldh,PetscInt k
         if (norm < eta * onorm) *breakdown = PETSC_TRUE;
         else *breakdown = PETSC_FALSE;
         break;
-      default: SETERRQ(PetscObjectComm((PetscObject)pep),1,"Wrong value of ip->orth_ref");
     }
     ierr = VecScale(v,1.0/norm);CHKERRQ(ierr);
     ierr = VecScale(w,1.0/norm);CHKERRQ(ierr);

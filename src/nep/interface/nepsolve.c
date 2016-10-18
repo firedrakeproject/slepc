@@ -32,14 +32,8 @@ PetscErrorCode NEPComputeVectors(NEP nep)
 
   PetscFunctionBegin;
   NEPCheckSolved(nep,1);
-  switch (nep->state) {
-  case NEP_STATE_SOLVED:
-    if (nep->ops->computevectors) {
-      ierr = (*nep->ops->computevectors)(nep);CHKERRQ(ierr);
-    }
-    break;
-  default:
-    break;
+  if (nep->state==NEP_STATE_SOLVED && nep->ops->computevectors) {
+    ierr = (*nep->ops->computevectors)(nep);CHKERRQ(ierr);
   }
   nep->state = NEP_STATE_EIGENVECTORS;
   PetscFunctionReturn(0);

@@ -531,8 +531,6 @@ PetscErrorCode PEPBasisCoefficients(PEP pep,PetscReal *pbc)
       ca[k] = .5; cb[k] = 0.0; cg[k] = -k;
     }
     break;
-  default:
-    SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"Invalid 'basis' value");
   }
   PetscFunctionReturn(0);
 }

@@ -753,8 +753,6 @@ static PetscErrorCode PEPExtractInvariantPair(PEP pep,PetscScalar sigma,PetscInt
       for (i=0;i<k;i++) S[i*lds+j] = PetscConj(At[j*k+i]);
     }
     break;
-  default:
-    SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Extraction not implemented in this solver");
   }
   ierr = PetscFree(p);CHKERRQ(ierr);
   PetscFunctionReturn(0);

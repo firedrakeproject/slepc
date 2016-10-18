@@ -45,14 +45,8 @@ PetscErrorCode PEPComputeVectors(PEP pep)
 
   PetscFunctionBegin;
   PEPCheckSolved(pep,1);
-  switch (pep->state) {
-  case PEP_STATE_SOLVED:
-    if (pep->ops->computevectors) {
-      ierr = (*pep->ops->computevectors)(pep);CHKERRQ(ierr);
-    }
-    break;
-  default:
-    break;
+  if (pep->state==PEP_STATE_SOLVED && pep->ops->computevectors) {
+    ierr = (*pep->ops->computevectors)(pep);CHKERRQ(ierr);
   }
   pep->state = PEP_STATE_EIGENVECTORS;
   PetscFunctionReturn(0);
@@ -66,14 +60,8 @@ PetscErrorCode PEPExtractVectors(PEP pep)
 
   PetscFunctionBegin;
   PEPCheckSolved(pep,1);
-  switch (pep->state) {
-  case PEP_STATE_SOLVED:
-    if (pep->ops->extractvectors) {
-      ierr = (*pep->ops->extractvectors)(pep);CHKERRQ(ierr);
-    }
-    break;
-  default:
-    break;
+  if (pep->state==PEP_STATE_SOLVED && pep->ops->extractvectors) {
+    ierr = (*pep->ops->extractvectors)(pep);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }

@@ -173,8 +173,6 @@ PetscErrorCode PEPExtractVectors_TOAR(PEP pep)
       }
       ierr = PetscFree2(tr,ti);CHKERRQ(ierr);
       break;
-    default:
-        SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Extraction not implemented in this solver");
     }
   }
 

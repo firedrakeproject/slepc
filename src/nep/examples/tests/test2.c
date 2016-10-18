@@ -112,7 +112,6 @@ int main(int argc,char **argv)
     case DIFFERENT_NONZERO_PATTERN: str = "different"; break;
     case SUBSET_NONZERO_PATTERN:    str = "subset"; break;
     case SAME_NONZERO_PATTERN:      str = "same"; break;
-    default:                        str = "";
   }
   ierr = PetscPrintf(PETSC_COMM_WORLD," Nonlinear function with %d terms, with %s nonzero pattern\n",(int)nterm,str);CHKERRQ(ierr);
   ierr = NEPGetSplitOperatorTerm(nep,0,&B,&g);CHKERRQ(ierr);
