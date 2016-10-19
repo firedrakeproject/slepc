@@ -286,7 +286,7 @@ PetscErrorCode PEPReasonViewFromOptions(PEP pep)
 #define __FUNCT__ "PEPErrorView_ASCII"
 static PetscErrorCode PEPErrorView_ASCII(PEP pep,PEPErrorType etype,PetscViewer viewer)
 {
-  PetscBool      errok;
+  PetscBool      errok=PETSC_TRUE;
   PetscReal      error,re,im;
   PetscScalar    kr,ki;
   PetscInt       i,j;
@@ -297,7 +297,6 @@ static PetscErrorCode PEPErrorView_ASCII(PEP pep,PEPErrorType etype,PetscViewer 
     ierr = PetscViewerASCIIPrintf(viewer," Problem: less than %D eigenvalues converged\n\n",pep->nev);CHKERRQ(ierr);
     PetscFunctionReturn(0);
   }
-  errok = PETSC_TRUE;
   for (i=0;i<pep->nev;i++) {
     ierr = PEPComputeError(pep,i,etype,&error);CHKERRQ(ierr);
     errok = (errok && error<5.0*pep->tol)? PETSC_TRUE: PETSC_FALSE;

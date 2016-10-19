@@ -193,7 +193,7 @@ PetscErrorCode SVDReasonViewFromOptions(SVD svd)
 #define __FUNCT__ "SVDErrorView_ASCII"
 static PetscErrorCode SVDErrorView_ASCII(SVD svd,SVDErrorType etype,PetscViewer viewer)
 {
-  PetscBool      errok;
+  PetscBool      errok=PETSC_TRUE;
   PetscReal      error,sigma;
   PetscInt       i,j;
   PetscErrorCode ierr;
@@ -203,7 +203,6 @@ static PetscErrorCode SVDErrorView_ASCII(SVD svd,SVDErrorType etype,PetscViewer 
     ierr = PetscViewerASCIIPrintf(viewer," Problem: less than %D singular values converged\n\n",svd->nsv);CHKERRQ(ierr);
     PetscFunctionReturn(0);
   }
-  errok = PETSC_TRUE;
   for (i=0;i<svd->nsv;i++) {
     ierr = SVDComputeError(svd,i,etype,&error);CHKERRQ(ierr);
     errok = (errok && error<5.0*svd->tol)? PETSC_TRUE: PETSC_FALSE;
