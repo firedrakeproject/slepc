@@ -35,13 +35,14 @@ int main(int argc,char **argv)
   PetscReal          cut,tol;
   PetscScalar        target;
   PetscInt           n=20,i,its,nev,ncv,mpd,Istart,Iend;
-  PetscBool          flg;
+  PetscBool          flg,pur,track;
   EPSConvergedReason reason;
   EPSType            type;
   EPSExtraction      extr;
   EPSBalance         bal;
   EPSWhich           which;
   EPSConv            conv;
+  EPSStop            stop;
   EPSProblemType     ptype;
   PetscErrorCode     ierr;
   PetscViewerAndFormat *vf;
@@ -94,6 +95,11 @@ int main(int argc,char **argv)
   ierr = EPSGetBalance(eps,&bal,&its,&cut);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD," Balance: %s, its=%D, cutoff=%g\n",EPSBalanceTypes[bal],its,(double)cut);CHKERRQ(ierr);
 
+  ierr = EPSSetPurify(eps,PETSC_FALSE);CHKERRQ(ierr);
+  ierr = EPSGetPurify(eps,&pur);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD," Eigenvector purification: %s\n",pur?"on":"off");CHKERRQ(ierr);
+  ierr = EPSGetTrackAll(eps,&track);CHKERRQ(ierr);
+
   ierr = EPSSetTarget(eps,4.8);CHKERRQ(ierr);
   ierr = EPSGetTarget(eps,&target);CHKERRQ(ierr);
   ierr = EPSSetWhichEigenpairs(eps,EPS_TARGET_MAGNITUDE);CHKERRQ(ierr);
@@ -110,7 +116,9 @@ int main(int argc,char **argv)
 
   ierr = EPSSetConvergenceTest(eps,EPS_CONV_ABS);CHKERRQ(ierr);
   ierr = EPSGetConvergenceTest(eps,&conv);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," Convergence test = %d\n",(int)conv);CHKERRQ(ierr);
+  ierr = EPSSetStoppingTest(eps,EPS_STOP_BASIC);CHKERRQ(ierr);
+  ierr = EPSGetStoppingTest(eps,&stop);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD," Convergence test = %d, stopping test = %d\n",(int)conv,(int)stop);CHKERRQ(ierr);
 
   ierr = PetscViewerAndFormatCreate(PETSC_VIEWER_STDOUT_WORLD,PETSC_VIEWER_DEFAULT,&vf);CHKERRQ(ierr);
   ierr = EPSMonitorSet(eps,(PetscErrorCode (*)(EPS,PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscReal*,PetscInt,void*))EPSMonitorFirst,vf,(PetscErrorCode (*)(void**))PetscViewerAndFormatDestroy);CHKERRQ(ierr);

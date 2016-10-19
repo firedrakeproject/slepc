@@ -1,0 +1,8 @@
+
+GNHEP problem with contour integral, N=120 (m=15)
+
+ Solved with CISS using HANKEL extraction with CHEBYSHEV quadrature rule
+
+ Found 3 eigenvalues, all of them computed up to the required tolerance:
+     0.52093, 0.52093, 0.59399
+

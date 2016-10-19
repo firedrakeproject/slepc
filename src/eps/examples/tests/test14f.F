@@ -50,6 +50,7 @@
       EPSBalance         bal
       EPSWhich           which
       EPSConv            conv
+      EPSStop            stp
       EPSProblemType     ptype
       PetscMPIInt        rank
       PetscErrorCode     ierr
@@ -172,10 +173,12 @@
 
       call EPSSetConvergenceTest(eps,EPS_CONV_ABS,ierr)
       call EPSGetConvergenceTest(eps,conv,ierr)
+      call EPSSetStoppingTest(eps,EPS_STOP_BASIC,ierr)
+      call EPSGetStoppingTest(eps,stp,ierr)
       if (rank .eq. 0) then
-        write(*,200) conv
+        write(*,200) conv,stp
       endif
- 200  format (' Convergence test =',I2)
+ 200  format (' Convergence test =',I2,', stopping test =',I2)
 
       call PetscViewerAndFormatCreate(PETSC_VIEWER_STDOUT_WORLD,        &
      &                   PETSC_VIEWER_DEFAULT,vf,ierr)

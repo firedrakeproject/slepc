@@ -34,7 +34,7 @@ int main(int argc,char **argv)
   EPS            eps;         /* eigenproblem solver context */
   PetscReal      tol=1000*PETSC_MACHINE_EPSILON;
   PetscInt       n=30,i,Istart,Iend,nev;
-  PetscBool      flg;
+  PetscBool      flg,gd2;
   char           epstype[30] = "krylovschur";
   PetscErrorCode ierr;
 
@@ -85,6 +85,7 @@ int main(int argc,char **argv)
   if (flg) {
     ierr = EPSSetType(eps,EPSGD);CHKERRQ(ierr);
     ierr = EPSGDSetDoubleExpansion(eps,PETSC_TRUE);CHKERRQ(ierr);
+    ierr = EPSGDGetDoubleExpansion(eps,&gd2);CHKERRQ(ierr);  /* not used */
   } else {
     ierr = EPSSetType(eps,epstype);CHKERRQ(ierr);
   }
