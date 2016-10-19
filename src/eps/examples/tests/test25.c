@@ -20,15 +20,11 @@
 */
 
 static char help[] = "Solves a GNHEP problem with contour integral. "
-  "Based on ex5, but with an added B matrix.\n"
+  "Based on ex7.\n"
   "The command line options are:\n"
-  "  -m <m>, where <m> = number of grid subdivisions in each dimension.\n\n";
+  "  -f1 <filename> -f2 <filename>, PETSc binary files containing A and B.\n\n";
 
 #include <slepceps.h>
-
-/* User-defined routines */
-PetscErrorCode MatMarkovModel(PetscInt m,Mat A);
-PetscErrorCode MatLaplacian(PetscInt m,Mat A);
 
 #undef __FUNCT__
 #define __FUNCT__ "main"
@@ -37,34 +33,45 @@ int main(int argc,char **argv)
   EPS               eps;
   RG                rg;
   Mat               A,B;
-  PetscInt          N,m=15;
   PetscBool         flg;
   EPSCISSExtraction extr;
   EPSCISSQuadRule   quad;
+  char              filename[PETSC_MAX_PATH_LEN];
+  PetscViewer       viewer;
   PetscErrorCode    ierr;
 
   ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
-  ierr = PetscOptionsGetInt(NULL,NULL,"-m",&m,NULL);CHKERRQ(ierr);
-  N = m*(m+1)/2;
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"\nGNHEP problem with contour integral, N=%D (m=%D)\n\n",N,m);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"\nGNHEP problem with contour integral\n\n");CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-                      Compute the matrices
+        Load the matrices that define the eigensystem, Ax=kBx
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  /* A is the Markov matrix */
-  ierr = MatCreate(PETSC_COMM_WORLD,&A);CHKERRQ(ierr);
-  ierr = MatSetSizes(A,PETSC_DECIDE,PETSC_DECIDE,N,N);CHKERRQ(ierr);
-  ierr = MatSetFromOptions(A);CHKERRQ(ierr);
-  ierr = MatSetUp(A);CHKERRQ(ierr);
-  ierr = MatMarkovModel(m,A);CHKERRQ(ierr);
+  ierr = PetscOptionsGetString(NULL,NULL,"-f1",filename,PETSC_MAX_PATH_LEN,&flg);CHKERRQ(ierr);
+  if (!flg) SETERRQ(PETSC_COMM_WORLD,1,"Must indicate a file name for matrix A with the -f1 option");
 
-  /* A is the 1-D Laplacian matrix */
-  ierr = MatCreate(PETSC_COMM_WORLD,&B);CHKERRQ(ierr);
-  ierr = MatSetSizes(B,PETSC_DECIDE,PETSC_DECIDE,N,N);CHKERRQ(ierr);
-  ierr = MatSetFromOptions(B);CHKERRQ(ierr);
-  ierr = MatSetUp(B);CHKERRQ(ierr);
-  ierr = MatLaplacian(m,B);CHKERRQ(ierr);
+#if defined(PETSC_USE_COMPLEX)
+  ierr = PetscPrintf(PETSC_COMM_WORLD," Reading COMPLEX matrices from binary files...\n");CHKERRQ(ierr);
+#else
+  ierr = PetscPrintf(PETSC_COMM_WORLD," Reading REAL matrices from binary files...\n");CHKERRQ(ierr);
+#endif
+  ierr = PetscViewerBinaryOpen(PETSC_COMM_WORLD,filename,FILE_MODE_READ,&viewer);CHKERRQ(ierr);
+  ierr = MatCreate(PETSC_COMM_WORLD,&A);CHKERRQ(ierr);
+  ierr = MatSetFromOptions(A);CHKERRQ(ierr);
+  ierr = MatLoad(A,viewer);CHKERRQ(ierr);
+  ierr = PetscViewerDestroy(&viewer);CHKERRQ(ierr);
+
+  ierr = PetscOptionsGetString(NULL,NULL,"-f2",filename,PETSC_MAX_PATH_LEN,&flg);CHKERRQ(ierr);
+  if (flg) {
+    ierr = PetscViewerBinaryOpen(PETSC_COMM_WORLD,filename,FILE_MODE_READ,&viewer);CHKERRQ(ierr);
+    ierr = MatCreate(PETSC_COMM_WORLD,&B);CHKERRQ(ierr);
+    ierr = MatSetFromOptions(B);CHKERRQ(ierr);
+    ierr = MatLoad(B,viewer);CHKERRQ(ierr);
+    ierr = PetscViewerDestroy(&viewer);CHKERRQ(ierr);
+  } else {
+    ierr = PetscPrintf(PETSC_COMM_WORLD," Matrix B was not provided, setting B=I\n\n");CHKERRQ(ierr);
+    B = NULL;
+  }
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                 Create the eigensolver and solve the problem
@@ -82,7 +89,7 @@ int main(int argc,char **argv)
   ierr = EPSCISSSetUseST(eps,PETSC_TRUE);CHKERRQ(ierr);
   ierr = EPSGetRG(eps,&rg);CHKERRQ(ierr);
   ierr = RGSetType(rg,RGINTERVAL);CHKERRQ(ierr);
-  ierr = RGIntervalSetEndpoints(rg,0.5,0.6,0.0,0.0);CHKERRQ(ierr);
+  ierr = RGIntervalSetEndpoints(rg,-3000.0,0.0,0.0,0.0);CHKERRQ(ierr);
 
   ierr = EPSSetFromOptions(eps);CHKERRQ(ierr);
 
@@ -104,73 +111,5 @@ int main(int argc,char **argv)
   ierr = MatDestroy(&B);CHKERRQ(ierr);
   ierr = SlepcFinalize();
   return ierr;
-}
-
-#undef __FUNCT__
-#define __FUNCT__ "MatMarkovModel"
-PetscErrorCode MatMarkovModel(PetscInt m,Mat A)
-{
-  const PetscReal cst = 0.5/(PetscReal)(m-1);
-  PetscReal       pd,pu;
-  PetscInt        Istart,Iend,i,j,jmax,ix=0;
-  PetscErrorCode  ierr;
-
-  PetscFunctionBeginUser;
-  ierr = MatGetOwnershipRange(A,&Istart,&Iend);CHKERRQ(ierr);
-  for (i=1;i<=m;i++) {
-    jmax = m-i+1;
-    for (j=1;j<=jmax;j++) {
-      ix = ix + 1;
-      if (ix-1<Istart || ix>Iend) continue;  /* compute only owned rows */
-      if (j!=jmax) {
-        pd = cst*(PetscReal)(i+j-1);
-        /* north */
-        if (i==1) {
-          ierr = MatSetValue(A,ix-1,ix,2*pd,INSERT_VALUES);CHKERRQ(ierr);
-        } else {
-          ierr = MatSetValue(A,ix-1,ix,pd,INSERT_VALUES);CHKERRQ(ierr);
-        }
-        /* east */
-        if (j==1) {
-          ierr = MatSetValue(A,ix-1,ix+jmax-1,2*pd,INSERT_VALUES);CHKERRQ(ierr);
-        } else {
-          ierr = MatSetValue(A,ix-1,ix+jmax-1,pd,INSERT_VALUES);CHKERRQ(ierr);
-        }
-      }
-      /* south */
-      pu = 0.5 - cst*(PetscReal)(i+j-3);
-      if (j>1) {
-        ierr = MatSetValue(A,ix-1,ix-2,pu,INSERT_VALUES);CHKERRQ(ierr);
-      }
-      /* west */
-      if (i>1) {
-        ierr = MatSetValue(A,ix-1,ix-jmax-2,pu,INSERT_VALUES);CHKERRQ(ierr);
-      }
-      /* modification with respect to original Markov model: add a small diagonal value */
-      ierr = MatSetValue(A,ix-1,ix-1,1e-12,INSERT_VALUES);CHKERRQ(ierr);
-    }
-  }
-  ierr = MatAssemblyBegin(A,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
-  ierr = MatAssemblyEnd(A,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
-#define __FUNCT__ "MatLaplacian"
-PetscErrorCode MatLaplacian(PetscInt n,Mat A)
-{
-  PetscInt       Istart,Iend,i;
-  PetscErrorCode ierr;
-
-  PetscFunctionBeginUser;
-  ierr = MatGetOwnershipRange(A,&Istart,&Iend);CHKERRQ(ierr);
-  for (i=Istart;i<Iend;i++) {
-    if (i>0) { ierr = MatSetValue(A,i,i-1,-1.0,INSERT_VALUES);CHKERRQ(ierr); }
-    if (i<n-1) { ierr = MatSetValue(A,i,i+1,-1.0,INSERT_VALUES);CHKERRQ(ierr); }
-    ierr = MatSetValue(A,i,i,2.0,INSERT_VALUES);CHKERRQ(ierr);
-  }
-  ierr = MatAssemblyBegin(A,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
-  ierr = MatAssemblyEnd(A,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
-  PetscFunctionReturn(0);
 }
 

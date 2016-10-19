@@ -55,8 +55,8 @@ TESTEXAMPLES_C_NOTSINGLE           = test1.PETSc runtest1_1 runtest1_3 runtest1_
                                      test12.PETSc runtest12_1 test12.rm \
                                      test16.PETSc runtest16_1 test16.rm \
                                      test17.PETSc runtest17_1 test17.rm \
-                                     test24.PETSc runtest24_1 test24.rm \
-                                     test25.PETSc runtest25_1 test25.rm
+                                     test24.PETSc runtest24_1 test24.rm
+TESTEXAMPLES_C_DATAFILE            = test25.PETSc runtest25_1 test25.rm
 TESTEXAMPLES_C_NOCOMPLEX_NOTSINGLE = test1.PETSc runtest1_2 test1.rm \
                                      test9.PETSc runtest9_5 test9.rm \
                                      test18.PETSc runtest18_1 test18.rm \
@@ -194,6 +194,7 @@ test25: test25.o chkopts
 	${RM} test25.o
 
 #------------------------------------------------------------------------------------
+DATAPATH = ${SLEPC_DIR}/share/slepc/datafiles/matrices
 
 runtest1_1: runtest1_1_krylovschur runtest1_1_ks_nopurify runtest1_1_ks_trueres runtest1_1_subspace runtest1_1_arnoldi runtest1_1_lanczos runtest1_1_gd runtest1_1_jd runtest1_1_gd2 runtest1_1_ciss runtest1_1_lapack
 runtest1_1_%:
@@ -574,6 +575,6 @@ runtest24_1:
 
 runtest25_1:
 	-@${SETTEST}; \
-	${MPIEXEC} -n 1 ./test25 > $${test}.tmp 2>&1; \
+	${MPIEXEC} -n 1 ./test25 -f1 ${DATAPATH}/bfw62a.petsc -f2 ${DATAPATH}/bfw62b.petsc > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
