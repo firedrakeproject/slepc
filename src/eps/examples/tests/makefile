@@ -27,12 +27,12 @@ LOCDIR     = src/eps/examples/tests/
 EXAMPLESC  = test1.c test2.c test3.c test4.c test5.c test6.c \
              test8.c test9.c test10.c test11.c test12.c test13.c \
              test14.c test16.c test17.c test18.c test19.c test20.c \
-             test21.c test22.c test23.c test24.c
+             test21.c test22.c test23.c test24.c test25.c
 EXAMPLESF  = test7f.F test14f.F test15f.F test17f.F
 MANSEC     = EPS
 TESTS      = test1 test2 test3 test4 test5 test6 test7f test8 test9 test10 \
              test11 test12 test13 test14 test14f test15f test16 test17 test17f \
-             test18 test19 test20 test21 test22 test23 test24
+             test18 test19 test20 test21 test22 test23 test24 test25
 
 TESTEXAMPLES_C                     = test1.PETSc runtest1_5 test1.rm \
                                      test4.PETSc runtest4_2 test4.rm \
@@ -55,7 +55,8 @@ TESTEXAMPLES_C_NOTSINGLE           = test1.PETSc runtest1_1 runtest1_3 runtest1_
                                      test12.PETSc runtest12_1 test12.rm \
                                      test16.PETSc runtest16_1 test16.rm \
                                      test17.PETSc runtest17_1 test17.rm \
-                                     test24.PETSc runtest24_1 test24.rm
+                                     test24.PETSc runtest24_1 test24.rm \
+                                     test25.PETSc runtest25_1 test25.rm
 TESTEXAMPLES_C_NOCOMPLEX_NOTSINGLE = test1.PETSc runtest1_2 test1.rm \
                                      test9.PETSc runtest9_5 test9.rm \
                                      test18.PETSc runtest18_1 test18.rm \
@@ -187,6 +188,10 @@ test23: test23.o chkopts
 test24: test24.o chkopts
 	-${CLINKER} -o test24 test24.o ${SLEPC_EPS_LIB}
 	${RM} test24.o
+
+test25: test25.o chkopts
+	-${CLINKER} -o test25 test25.o ${SLEPC_EPS_LIB}
+	${RM} test25.o
 
 #------------------------------------------------------------------------------------
 
@@ -565,5 +570,10 @@ runtest23_1:
 runtest24_1:
 	-@${SETTEST}; \
 	${MPIEXEC} -n 1 ./test24 -ncon 2 > $${test}.tmp 2>&1; \
+	${TESTCODE}
+
+runtest25_1:
+	-@${SETTEST}; \
+	${MPIEXEC} -n 1 ./test25 > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
