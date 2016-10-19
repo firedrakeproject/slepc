@@ -27,25 +27,25 @@ static char help[] = "Test NEP interface functions.\n\n";
 #define __FUNCT__ "main"
 int main(int argc,char **argv)
 {
-  Mat                A[3],B;      /* problem matrices */
-  FN                 f[3],g;      /* problem functions */
-  NEP                nep;         /* eigenproblem solver context */
-  DS                 ds;
-  RG                 rg;
-  PetscReal          tol;
-  PetscScalar        coeffs[2],target;
-  PetscInt           n=20,i,its,nev,ncv,mpd,Istart,Iend,nterm;
-  NEPWhich           which;
-  NEPConvergedReason reason;
-  NEPType            type;
-  NEPRefine          refine;
-  NEPRefineScheme    rscheme;
-  NEPConv            conv;
-  NEPStop            stop;
-  MatStructure       mstr;
-  PetscErrorCode     ierr;
+  Mat                  A[3],B;      /* problem matrices */
+  FN                   f[3],g;      /* problem functions */
+  NEP                  nep;         /* eigenproblem solver context */
+  DS                   ds;
+  RG                   rg;
+  PetscReal            tol;
+  PetscScalar          coeffs[2],target;
+  PetscInt             n=20,i,its,nev,ncv,mpd,Istart,Iend,nterm;
+  NEPWhich             which;
+  NEPConvergedReason   reason;
+  NEPType              type;
+  NEPRefine            refine;
+  NEPRefineScheme      rscheme;
+  NEPConv              conv;
+  NEPStop              stop;
+  MatStructure         mstr;
+  PetscErrorCode       ierr;
   PetscViewerAndFormat *vf;
-  const char         *str;
+  const char           *str=NULL;
 
   ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
   ierr = PetscPrintf(PETSC_COMM_WORLD,"\nDiagonal Nonlinear Eigenproblem, n=%D\n\n",n);CHKERRQ(ierr);

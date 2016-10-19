@@ -32,10 +32,10 @@ MANSEC     = EPS
 TESTEXAMPLES_C                     = ex5.PETSc runex5_1 ex5.rm \
                                      ex13.PETSc runex13_1 ex13.rm \
                                      ex18.PETSc runex18_1 ex18.rm \
-                                     ex19.PETSc runex19_1 ex19.rm \
                                      ex24.PETSc runex24_1 ex24.rm \
                                      ex29.PETSc runex29_1 ex29.rm
-TESTEXAMPLES_C_DOUBLE              = ex2.PETSc runex2_ciss_1 runex2_ciss_2 ex2.rm
+TESTEXAMPLES_C_DOUBLE              = ex2.PETSc runex2_ciss_1 runex2_ciss_2 ex2.rm \
+                                     ex19.PETSc runex19_1 ex19.rm
 TESTEXAMPLES_C_NOTSINGLE           = ex2.PETSc runex2_1 runex2_2 ex2.rm \
                                      ex3.PETSc runex3_1 ex3.rm \
                                      ex10.PETSc runex10_1 ex10.rm \
