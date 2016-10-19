@@ -41,8 +41,7 @@ TESTEXAMPLES_C                     = test1.PETSc runtest1_5 test1.rm \
                                      test14.PETSc runtest14_1 test14.rm \
                                      test19.PETSc runtest19_1 test19.rm \
                                      test20.PETSc runtest20_1 test20.rm \
-                                     test21.PETSc runtest21_1 test21.rm \
-                                     test27.PETSc runtest27_1 test27.rm
+                                     test21.PETSc runtest21_1 test21.rm
 TESTEXAMPLES_C_NOTSINGLE           = test1.PETSc runtest1_1 runtest1_3 runtest1_4 runtest1_6 test1.rm \
                                      test2.PETSc runtest2_1 runtest2_2 runtest2_3 test2.rm \
                                      test3.PETSc runtest3_1 runtest3_2 test3.rm \
@@ -56,7 +55,8 @@ TESTEXAMPLES_C_NOTSINGLE           = test1.PETSc runtest1_1 runtest1_3 runtest1_
                                      test12.PETSc runtest12_1 test12.rm \
                                      test16.PETSc runtest16_1 test16.rm \
                                      test17.PETSc runtest17_1 test17.rm \
-                                     test24.PETSc runtest24_1 test24.rm
+                                     test24.PETSc runtest24_1 test24.rm \
+                                     test27.PETSc runtest27_1 test27.rm
 TESTEXAMPLES_C_DATAFILE            = test25.PETSc runtest25_1 test25.rm \
                                      test26.PETSc runtest26_1 test26.rm
 TESTEXAMPLES_C_NOCOMPLEX_NOTSINGLE = test1.PETSc runtest1_2 test1.rm \
@@ -206,11 +206,13 @@ test27: test27.o chkopts
 #------------------------------------------------------------------------------------
 DATAPATH = ${SLEPC_DIR}/share/slepc/datafiles/matrices
 
-runtest1_1: runtest1_1_krylovschur runtest1_1_ks_nopurify runtest1_1_ks_trueres runtest1_1_subspace runtest1_1_arnoldi runtest1_1_lanczos runtest1_1_gd runtest1_1_jd runtest1_1_gd2 runtest1_1_ciss runtest1_1_lapack
+runtest1_1: runtest1_1_krylovschur runtest1_1_ks_nopurify runtest1_1_ks_trueres runtest1_1_ks_sinvert runtest1_1_ks_cayley runtest1_1_subspace runtest1_1_arnoldi runtest1_1_lanczos runtest1_1_gd runtest1_1_jd runtest1_1_gd2 runtest1_1_ciss runtest1_1_lapack
 runtest1_1_%:
 	-@${SETTEST}; check=test1_1; eps=$*; \
 	if [ "$$eps" = ks_nopurify ]; then eps="krylovschur -eps_purify 0"; \
 	elif [ "$$eps" = ks_trueres ]; then eps="krylovschur -eps_true_residual"; \
+	elif [ "$$eps" = ks_sinvert ]; then eps="krylovschur -st_type sinvert -eps_target 22"; \
+	elif [ "$$eps" = ks_cayley ]; then eps="krylovschur -st_type cayley -eps_target 22"; \
 	elif [ "$$eps" = lanczos ]; then eps="lanczos -eps_lanczos_reorthog full"; \
 	elif [ "$$eps" = gd2 ]; then eps="gd -eps_gd_double_expansion"; \
 	elif [ "$$eps" = ciss ]; then eps="ciss -rg_interval_endpoints 20.8,22 -eps_largest_real"; fi; \
