@@ -306,19 +306,22 @@ PetscErrorCode EPSReasonViewFromOptions(EPS eps)
 #define __FUNCT__ "EPSErrorView_ASCII"
 static PetscErrorCode EPSErrorView_ASCII(EPS eps,EPSErrorType etype,PetscViewer viewer)
 {
-  PetscBool      errok;
+  PetscBool      errok=PETSC_TRUE;
   PetscReal      error,re,im;
   PetscScalar    kr,ki;
   PetscInt       i,j,nvals;
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  if (eps->which!=EPS_ALL && eps->nconv<eps->nev) {
+  nvals = (eps->which==EPS_ALL)? eps->nconv: eps->nev;
+  if (eps->which!=EPS_ALL && eps->nconv<nvals) {
     ierr = PetscViewerASCIIPrintf(viewer," Problem: less than %D eigenvalues converged\n\n",eps->nev);CHKERRQ(ierr);
     PetscFunctionReturn(0);
   }
-  errok = PETSC_TRUE;
-  nvals = (eps->which==EPS_ALL)? eps->nconv: eps->nev;
+  if (eps->which==EPS_ALL && !nvals) {
+    ierr = PetscViewerASCIIPrintf(viewer," No eigenvalues have been found\n\n");CHKERRQ(ierr);
+    PetscFunctionReturn(0);
+  }
   for (i=0;i<nvals;i++) {
     ierr = EPSComputeError(eps,i,etype,&error);CHKERRQ(ierr);
     errok = (errok && error<5.0*eps->tol)? PETSC_TRUE: PETSC_FALSE;

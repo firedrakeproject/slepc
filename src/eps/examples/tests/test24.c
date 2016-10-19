@@ -19,7 +19,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-static char help[] = "Eigenproblem for the 1-D Laplacian with constraints.\n\n"
+static char help[] = "Eigenproblem for the 1-D Laplacian with constraints. "
   "Based on ex1.\n"
   "The command line options are:\n"
   "  -n <n>, where <n> = number of grid subdivisions = matrix dimension.\n\n";

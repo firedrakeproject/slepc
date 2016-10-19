@@ -273,19 +273,22 @@ PetscErrorCode NEPReasonViewFromOptions(NEP nep)
 #define __FUNCT__ "NEPErrorView_ASCII"
 static PetscErrorCode NEPErrorView_ASCII(NEP nep,NEPErrorType etype,PetscViewer viewer)
 {
-  PetscBool      errok;
+  PetscBool      errok=PETSC_TRUE;
   PetscReal      error,re,im;
   PetscScalar    kr,ki;
   PetscInt       i,j,nvals;
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  if (nep->which!=NEP_ALL && nep->nconv<nep->nev) {
+  nvals = (nep->which==NEP_ALL)? nep->nconv: nep->nev;
+  if (nep->which!=NEP_ALL && nep->nconv<nvals) {
     ierr = PetscViewerASCIIPrintf(viewer," Problem: less than %D eigenvalues converged\n\n",nep->nev);CHKERRQ(ierr);
     PetscFunctionReturn(0);
   }
-  errok = PETSC_TRUE;
-  nvals = (nep->which==NEP_ALL)? nep->nconv: nep->nev;
+  if (nep->which==NEP_ALL && !nvals) {
+    ierr = PetscViewerASCIIPrintf(viewer," No eigenvalues have been found\n\n");CHKERRQ(ierr);
+    PetscFunctionReturn(0);
+  }
   for (i=0;i<nvals;i++) {
     ierr = NEPComputeError(nep,i,etype,&error);CHKERRQ(ierr);
     errok = (errok && error<5.0*nep->tol)? PETSC_TRUE: PETSC_FALSE;

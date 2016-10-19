@@ -19,7 +19,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-static char help[] = "Solves a GNHEP problem with contour integral. "
+static char help[] = "Illustrates the PGNHEP problem type. "
   "Based on ex7.\n"
   "The command line options are:\n"
   "  -f1 <filename> -f2 <filename>, PETSc binary files containing A and B.\n\n";
@@ -31,17 +31,15 @@ static char help[] = "Solves a GNHEP problem with contour integral. "
 int main(int argc,char **argv)
 {
   EPS               eps;
-  RG                rg;
   Mat               A,B;
   PetscBool         flg;
-  EPSCISSExtraction extr;
-  EPSCISSQuadRule   quad;
+  PetscReal         tol=1000*PETSC_MACHINE_EPSILON;
   char              filename[PETSC_MAX_PATH_LEN];
   PetscViewer       viewer;
   PetscErrorCode    ierr;
 
   ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"\nGNHEP problem with contour integral\n\n");CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"\nPGNHEP problem loaded from file\n\n");CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         Load the matrices that define the eigensystem, Ax=kBx
@@ -73,39 +71,27 @@ int main(int argc,char **argv)
     B = NULL;
   }
 
+  /* This example is intended for a matrix pair (A,B) where B is symmetric positive definite;
+     We will load matrices bfw62a/bfw62b, and scale both of them because bfw62b is negative definite */
+  ierr = MatScale(A,-1.0);CHKERRQ(ierr);
+  ierr = MatScale(B,-1.0);CHKERRQ(ierr);
+
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                 Create the eigensolver and solve the problem
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
   ierr = EPSCreate(PETSC_COMM_WORLD,&eps);CHKERRQ(ierr);
   ierr = EPSSetOperators(eps,A,B);CHKERRQ(ierr);
-  ierr = EPSSetProblemType(eps,EPS_GNHEP);CHKERRQ(ierr);
-  ierr = EPSSetTolerances(eps,1e-9,PETSC_DEFAULT);CHKERRQ(ierr);
-
-  /* set CISS solver with various options */
-  ierr = EPSSetType(eps,EPSCISS);CHKERRQ(ierr);
-  ierr = EPSCISSSetExtraction(eps,EPS_CISS_EXTRACTION_HANKEL);CHKERRQ(ierr);
-  ierr = EPSCISSSetQuadRule(eps,EPS_CISS_QUADRULE_CHEBYSHEV);CHKERRQ(ierr);
-  ierr = EPSCISSSetUseST(eps,PETSC_TRUE);CHKERRQ(ierr);
-  ierr = EPSGetRG(eps,&rg);CHKERRQ(ierr);
-  ierr = RGSetType(rg,RGINTERVAL);CHKERRQ(ierr);
-  ierr = RGIntervalSetEndpoints(rg,-3000.0,0.0,0.0,0.0);CHKERRQ(ierr);
-
+  ierr = EPSSetProblemType(eps,EPS_PGNHEP);CHKERRQ(ierr);
+  ierr = EPSSetTolerances(eps,tol,PETSC_DEFAULT);CHKERRQ(ierr);
   ierr = EPSSetFromOptions(eps);CHKERRQ(ierr);
-
   ierr = EPSSolve(eps);CHKERRQ(ierr);
-  ierr = PetscObjectTypeCompare((PetscObject)eps,EPSCISS,&flg);CHKERRQ(ierr);
-  if (flg) {
-    ierr = EPSCISSGetExtraction(eps,&extr);CHKERRQ(ierr);
-    ierr = EPSCISSGetQuadRule(eps,&quad);CHKERRQ(ierr);
-    ierr = PetscPrintf(PETSC_COMM_WORLD," Solved with CISS using %s extraction with %s quadrature rule\n\n",EPSCISSExtractions[extr],EPSCISSQuadRules[quad]);CHKERRQ(ierr);
-  }
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                     Display solution and clean up
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  ierr = EPSErrorView(eps,EPS_ERROR_BACKWARD,NULL);CHKERRQ(ierr);
+  ierr = EPSErrorView(eps,EPS_ERROR_RELATIVE,NULL);CHKERRQ(ierr);
   ierr = EPSDestroy(&eps);CHKERRQ(ierr);
   ierr = MatDestroy(&A);CHKERRQ(ierr);
   ierr = MatDestroy(&B);CHKERRQ(ierr);
