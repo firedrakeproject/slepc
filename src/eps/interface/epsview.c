@@ -307,9 +307,8 @@ PetscErrorCode EPSReasonViewFromOptions(EPS eps)
 static PetscErrorCode EPSErrorView_ASCII(EPS eps,EPSErrorType etype,PetscViewer viewer)
 {
   PetscBool      errok=PETSC_TRUE;
-  PetscReal      error,re,im;
-  PetscScalar    kr,ki;
-  PetscInt       i,j,nvals;
+  PetscReal      error;
+  PetscInt       i,j,k,nvals;
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
@@ -338,21 +337,8 @@ static PetscErrorCode EPSErrorView_ASCII(EPS eps,EPSErrorType etype,PetscViewer 
   for (i=0;i<=(nvals-1)/8;i++) {
     ierr = PetscViewerASCIIPrintf(viewer,"\n     ");CHKERRQ(ierr);
     for (j=0;j<PetscMin(8,nvals-8*i);j++) {
-      ierr = EPSGetEigenpair(eps,8*i+j,&kr,&ki,NULL,NULL);CHKERRQ(ierr);
-#if defined(PETSC_USE_COMPLEX)
-      re = PetscRealPart(kr);
-      im = PetscImaginaryPart(kr);
-#else
-      re = kr;
-      im = ki;
-#endif
-      if (PetscAbs(re)/PetscAbs(im)<PETSC_SMALL) re = 0.0;
-      if (PetscAbs(im)/PetscAbs(re)<PETSC_SMALL) im = 0.0;
-      if (im!=0.0) {
-        ierr = PetscViewerASCIIPrintf(viewer,"%.5f%+.5fi",(double)re,(double)im);CHKERRQ(ierr);
-      } else {
-        ierr = PetscViewerASCIIPrintf(viewer,"%.5f",(double)re);CHKERRQ(ierr);
-      }
+      k = eps->perm[8*i+j];
+      ierr = SlepcPrintEigenvalueASCII(eps->eigr[k],eps->eigi[k]);CHKERRQ(ierr);
       if (8*i+j+1<nvals) { ierr = PetscViewerASCIIPrintf(viewer,", ");CHKERRQ(ierr); }
     }
   }
@@ -571,7 +557,6 @@ static PetscErrorCode EPSValuesView_DRAW(EPS eps,PetscViewer viewer)
 #define __FUNCT__ "EPSValuesView_ASCII"
 static PetscErrorCode EPSValuesView_ASCII(EPS eps,PetscViewer viewer)
 {
-  PetscReal      re,im;
   PetscInt       i,k;
   PetscErrorCode ierr;
 
@@ -579,20 +564,8 @@ static PetscErrorCode EPSValuesView_ASCII(EPS eps,PetscViewer viewer)
   ierr = PetscViewerASCIIPrintf(viewer,"Eigenvalues = \n");CHKERRQ(ierr);
   for (i=0;i<eps->nconv;i++) {
     k = eps->perm[i];
-#if defined(PETSC_USE_COMPLEX)
-    re = PetscRealPart(eps->eigr[k]);
-    im = PetscImaginaryPart(eps->eigr[k]);
-#else
-    re = eps->eigr[k];
-    im = eps->eigi[k];
-#endif
-    if (PetscAbs(re)/PetscAbs(im)<PETSC_SMALL) re = 0.0;
-    if (PetscAbs(im)/PetscAbs(re)<PETSC_SMALL) im = 0.0;
-    if (im!=0.0) {
-      ierr = PetscViewerASCIIPrintf(viewer,"   %.5f%+.5fi\n",(double)re,(double)im);CHKERRQ(ierr);
-    } else {
-      ierr = PetscViewerASCIIPrintf(viewer,"   %.5f\n",(double)re);CHKERRQ(ierr);
-    }
+    ierr = PetscViewerASCIIPrintf(viewer,"   ");CHKERRQ(ierr);
+    ierr = SlepcPrintEigenvalueASCII(eps->eigr[k],eps->eigi[k]);CHKERRQ(ierr);
   }
   ierr = PetscViewerASCIIPrintf(viewer,"\n");CHKERRQ(ierr);
   PetscFunctionReturn(0);

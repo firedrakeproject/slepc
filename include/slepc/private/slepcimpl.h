@@ -61,6 +61,36 @@ struct _n_SlepcConvMonitor {
   PetscInt          oldnconv;
 };
 
+#undef __FUNCT__
+#define __FUNCT__ "SlepcPrintEigenvalueASCII"
+/*
+  SlepcPrintEigenvalueASCII - Print an eigenvalue on an ASCII viewer.
+*/
+PETSC_STATIC_INLINE PetscErrorCode SlepcPrintEigenvalueASCII(PetscScalar eigr,PetscScalar eigi)
+{
+  PetscErrorCode ierr;
+  PetscReal      re,im;
+
+  PetscFunctionBegin;
+#if defined(PETSC_USE_COMPLEX)
+  re = PetscRealPart(eigr);
+  im = PetscImaginaryPart(eigr);
+#else
+  re = eigr;
+  im = eigi;
+#endif
+  /* print zero instead of tiny value */
+  if (PetscAbs(im) && PetscAbs(re)/PetscAbs(im)<PETSC_SMALL) re = 0.0;
+  if (PetscAbs(re) && PetscAbs(im)/PetscAbs(re)<PETSC_SMALL) im = 0.0;
+  /* print as real if imaginary part is zero */
+  if (im!=0.0) {
+    ierr = PetscPrintf(PETSC_COMM_WORLD,"%.5f%+.5fi",(double)re,(double)im);CHKERRQ(ierr);
+  } else {
+    ierr = PetscPrintf(PETSC_COMM_WORLD,"%.5f",(double)re);CHKERRQ(ierr);
+  }
+  PetscFunctionReturn(0);
+}
+
 /* Private functions that are shared by several classes */
 PETSC_EXTERN PetscErrorCode SlepcBasisReference_Private(PetscInt,Vec*,PetscInt*,Vec**);
 PETSC_EXTERN PetscErrorCode SlepcBasisDestroy_Private(PetscInt*,Vec**);
