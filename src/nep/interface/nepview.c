@@ -533,6 +533,7 @@ static PetscErrorCode NEPValuesView_ASCII(NEP nep,PetscViewer viewer)
     k = nep->perm[i];
     ierr = PetscViewerASCIIPrintf(viewer,"   ");CHKERRQ(ierr);
     ierr = SlepcPrintEigenvalueASCII(nep->eigr[k],nep->eigi[k]);CHKERRQ(ierr);
+    ierr = PetscViewerASCIIPrintf(viewer,"\n");CHKERRQ(ierr);
   }
   ierr = PetscViewerASCIIPrintf(viewer,"\n");CHKERRQ(ierr);
   PetscFunctionReturn(0);

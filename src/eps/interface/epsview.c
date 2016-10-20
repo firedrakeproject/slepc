@@ -566,6 +566,7 @@ static PetscErrorCode EPSValuesView_ASCII(EPS eps,PetscViewer viewer)
     k = eps->perm[i];
     ierr = PetscViewerASCIIPrintf(viewer,"   ");CHKERRQ(ierr);
     ierr = SlepcPrintEigenvalueASCII(eps->eigr[k],eps->eigi[k]);CHKERRQ(ierr);
+    ierr = PetscViewerASCIIPrintf(viewer,"\n");CHKERRQ(ierr);
   }
   ierr = PetscViewerASCIIPrintf(viewer,"\n");CHKERRQ(ierr);
   PetscFunctionReturn(0);
