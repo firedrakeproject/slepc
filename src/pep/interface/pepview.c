@@ -56,7 +56,7 @@
 PetscErrorCode PEPView(PEP pep,PetscViewer viewer)
 {
   PetscErrorCode ierr;
-  const char     *type;
+  const char     *type=NULL;
   char           str[50];
   PetscBool      isascii,islinear,istrivial;
   PetscInt       i;

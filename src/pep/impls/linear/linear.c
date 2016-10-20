@@ -260,7 +260,7 @@ PetscErrorCode PEPSetUp_Linear(PEP pep)
   PEP_LINEAR     *ctx = (PEP_LINEAR*)pep->data;
   ST             st;
   PetscInt       i=0,deg=pep->nmat-1;
-  EPSWhich       which;
+  EPSWhich       which = EPS_LARGEST_MAGNITUDE;
   EPSProblemType ptype;
   PetscBool      trackall,istrivial,transf,shift,sinv,ks;
   PetscScalar    sigma,*epsarray,*peparray;

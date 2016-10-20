@@ -56,7 +56,7 @@
 PetscErrorCode EPSView(EPS eps,PetscViewer viewer)
 {
   PetscErrorCode ierr;
-  const char     *type,*extr,*bal;
+  const char     *type=NULL,*extr=NULL,*bal=NULL;
   char           str[50];
   PetscBool      isascii,ispower,isexternal,istrivial;
 
@@ -81,33 +81,33 @@ PetscErrorCode EPSView(EPS eps,PetscViewer viewer)
     }
     if (eps->problem_type) {
       switch (eps->problem_type) {
-        case EPS_HEP:   type = HERM " eigenvalue problem"; break;
-        case EPS_GHEP:  type = "generalized " HERM " eigenvalue problem"; break;
-        case EPS_NHEP:  type = "non-" HERM " eigenvalue problem"; break;
-        case EPS_GNHEP: type = "generalized non-" HERM " eigenvalue problem"; break;
+        case EPS_HEP:    type = HERM " eigenvalue problem"; break;
+        case EPS_GHEP:   type = "generalized " HERM " eigenvalue problem"; break;
+        case EPS_NHEP:   type = "non-" HERM " eigenvalue problem"; break;
+        case EPS_GNHEP:  type = "generalized non-" HERM " eigenvalue problem"; break;
         case EPS_PGNHEP: type = "generalized non-" HERM " eigenvalue problem with " HERM " positive definite B"; break;
-        case EPS_GHIEP: type = "generalized " HERM "-indefinite eigenvalue problem"; break;
+        case EPS_GHIEP:  type = "generalized " HERM "-indefinite eigenvalue problem"; break;
       }
     } else type = "not yet set";
     ierr = PetscViewerASCIIPrintf(viewer,"  problem type: %s\n",type);CHKERRQ(ierr);
     if (eps->extraction) {
       switch (eps->extraction) {
-        case EPS_RITZ:             extr = "Rayleigh-Ritz"; break;
-        case EPS_HARMONIC:         extr = "harmonic Ritz"; break;
-        case EPS_HARMONIC_RELATIVE:extr = "relative harmonic Ritz"; break;
-        case EPS_HARMONIC_RIGHT:   extr = "right harmonic Ritz"; break;
-        case EPS_HARMONIC_LARGEST: extr = "largest harmonic Ritz"; break;
-        case EPS_REFINED:          extr = "refined Ritz"; break;
-        case EPS_REFINED_HARMONIC: extr = "refined harmonic Ritz"; break;
+        case EPS_RITZ:              extr = "Rayleigh-Ritz"; break;
+        case EPS_HARMONIC:          extr = "harmonic Ritz"; break;
+        case EPS_HARMONIC_RELATIVE: extr = "relative harmonic Ritz"; break;
+        case EPS_HARMONIC_RIGHT:    extr = "right harmonic Ritz"; break;
+        case EPS_HARMONIC_LARGEST:  extr = "largest harmonic Ritz"; break;
+        case EPS_REFINED:           extr = "refined Ritz"; break;
+        case EPS_REFINED_HARMONIC:  extr = "refined harmonic Ritz"; break;
       }
       ierr = PetscViewerASCIIPrintf(viewer,"  extraction type: %s\n",extr);CHKERRQ(ierr);
     }
     if (!eps->ishermitian && eps->balance!=EPS_BALANCE_NONE) {
       switch (eps->balance) {
-        case EPS_BALANCE_NONE:      break;
-        case EPS_BALANCE_ONESIDE:   bal = "one-sided Krylov"; break;
-        case EPS_BALANCE_TWOSIDE:   bal = "two-sided Krylov"; break;
-        case EPS_BALANCE_USER:      bal = "user-defined matrix"; break;
+        case EPS_BALANCE_NONE:    break;
+        case EPS_BALANCE_ONESIDE: bal = "one-sided Krylov"; break;
+        case EPS_BALANCE_TWOSIDE: bal = "two-sided Krylov"; break;
+        case EPS_BALANCE_USER:    bal = "user-defined matrix"; break;
       }
       ierr = PetscViewerASCIIPrintf(viewer,"  balancing enabled: %s",bal);CHKERRQ(ierr);
       ierr = PetscViewerASCIIUseTabs(viewer,PETSC_FALSE);CHKERRQ(ierr);

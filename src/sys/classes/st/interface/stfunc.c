@@ -762,7 +762,7 @@ PetscErrorCode STView(ST st,PetscViewer viewer)
 {
   PetscErrorCode ierr;
   STType         cstr;
-  const char*    pat;
+  const char*    pat=NULL;
   char           str[50];
   PetscBool      isascii,isstring,flg;
 
