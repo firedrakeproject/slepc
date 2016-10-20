@@ -174,6 +174,16 @@ PetscErrorCode EPSSetUp(EPS eps)
   /* call specific solver setup */
   ierr = (*eps->ops->setup)(eps);CHKERRQ(ierr);
 
+  /* if purification is set, check that it really makes sense */
+  if (eps->purify) {
+    if (!eps->isgeneralized) eps->purify = PETSC_FALSE;
+    else if (!eps->ishermitian && !eps->ispositive) eps->purify = PETSC_FALSE;
+    else {
+      ierr = PetscObjectTypeCompare((PetscObject)eps->st,STCAYLEY,&flg);CHKERRQ(ierr);
+      if (flg) eps->purify = PETSC_FALSE;
+    }
+  }
+
   /* check extraction */
   ierr = PetscObjectTypeCompareAny((PetscObject)eps->st,&flg,STPRECOND,STSHIFT,"");CHKERRQ(ierr);
   if (!flg && eps->extraction && eps->extraction!=EPS_RITZ) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Cannot use a spectral transformation combined with harmonic extraction");

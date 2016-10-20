@@ -56,7 +56,7 @@
 PetscErrorCode PEPView(PEP pep,PetscViewer viewer)
 {
   PetscErrorCode ierr;
-  const char     *type;
+  const char     *type=NULL;
   char           str[50];
   PetscBool      isascii,islinear,istrivial;
   PetscInt       i;
@@ -287,9 +287,8 @@ PetscErrorCode PEPReasonViewFromOptions(PEP pep)
 static PetscErrorCode PEPErrorView_ASCII(PEP pep,PEPErrorType etype,PetscViewer viewer)
 {
   PetscBool      errok=PETSC_TRUE;
-  PetscReal      error,re,im;
-  PetscScalar    kr,ki;
-  PetscInt       i,j;
+  PetscReal      error;
+  PetscInt       i,j,k;
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
@@ -309,21 +308,8 @@ static PetscErrorCode PEPErrorView_ASCII(PEP pep,PEPErrorType etype,PetscViewer 
   for (i=0;i<=(pep->nev-1)/8;i++) {
     ierr = PetscViewerASCIIPrintf(viewer,"\n     ");CHKERRQ(ierr);
     for (j=0;j<PetscMin(8,pep->nev-8*i);j++) {
-      ierr = PEPGetEigenpair(pep,8*i+j,&kr,&ki,NULL,NULL);CHKERRQ(ierr);
-#if defined(PETSC_USE_COMPLEX)
-      re = PetscRealPart(kr);
-      im = PetscImaginaryPart(kr);
-#else
-      re = kr;
-      im = ki;
-#endif
-      if (PetscAbs(re)/PetscAbs(im)<PETSC_SMALL) re = 0.0;
-      if (PetscAbs(im)/PetscAbs(re)<PETSC_SMALL) im = 0.0;
-      if (im!=0.0) {
-        ierr = PetscViewerASCIIPrintf(viewer,"%.5f%+.5fi",(double)re,(double)im);CHKERRQ(ierr);
-      } else {
-        ierr = PetscViewerASCIIPrintf(viewer,"%.5f",(double)re);CHKERRQ(ierr);
-      }
+      k = pep->perm[8*i+j];
+      ierr = SlepcPrintEigenvalueASCII(pep->eigr[k],pep->eigi[k]);CHKERRQ(ierr);
       if (8*i+j+1<pep->nev) { ierr = PetscViewerASCIIPrintf(viewer,", ");CHKERRQ(ierr); }
     }
   }
@@ -542,7 +528,6 @@ static PetscErrorCode PEPValuesView_DRAW(PEP pep,PetscViewer viewer)
 #define __FUNCT__ "PEPValuesView_ASCII"
 static PetscErrorCode PEPValuesView_ASCII(PEP pep,PetscViewer viewer)
 {
-  PetscReal      re,im;
   PetscInt       i,k;
   PetscErrorCode ierr;
 
@@ -550,20 +535,9 @@ static PetscErrorCode PEPValuesView_ASCII(PEP pep,PetscViewer viewer)
   ierr = PetscViewerASCIIPrintf(viewer,"Eigenvalues = \n");CHKERRQ(ierr);
   for (i=0;i<pep->nconv;i++) {
     k = pep->perm[i];
-#if defined(PETSC_USE_COMPLEX)
-    re = PetscRealPart(pep->eigr[k]);
-    im = PetscImaginaryPart(pep->eigr[k]);
-#else
-    re = pep->eigr[k];
-    im = pep->eigi[k];
-#endif
-    if (PetscAbs(re)/PetscAbs(im)<PETSC_SMALL) re = 0.0;
-    if (PetscAbs(im)/PetscAbs(re)<PETSC_SMALL) im = 0.0;
-    if (im!=0.0) {
-      ierr = PetscViewerASCIIPrintf(viewer,"   %.5f%+.5fi\n",(double)re,(double)im);CHKERRQ(ierr);
-    } else {
-      ierr = PetscViewerASCIIPrintf(viewer,"   %.5f\n",(double)re);CHKERRQ(ierr);
-    }
+    ierr = PetscViewerASCIIPrintf(viewer,"   ");CHKERRQ(ierr);
+    ierr = SlepcPrintEigenvalueASCII(pep->eigr[k],pep->eigi[k]);CHKERRQ(ierr);
+    ierr = PetscViewerASCIIPrintf(viewer,"\n");CHKERRQ(ierr);
   }
   ierr = PetscViewerASCIIPrintf(viewer,"\n");CHKERRQ(ierr);
   PetscFunctionReturn(0);

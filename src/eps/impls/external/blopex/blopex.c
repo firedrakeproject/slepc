@@ -436,7 +436,6 @@ PetscErrorCode EPSView_BLOPEX(EPS eps,PetscViewer viewer)
 PetscErrorCode EPSSetFromOptions_BLOPEX(PetscOptionItems *PetscOptionsObject,EPS eps)
 {
   PetscErrorCode ierr;
-  KSP            ksp;
   PetscBool      flg;
   PetscInt       bs;
 

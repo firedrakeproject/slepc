@@ -56,7 +56,7 @@
 PetscErrorCode EPSView(EPS eps,PetscViewer viewer)
 {
   PetscErrorCode ierr;
-  const char     *type,*extr,*bal;
+  const char     *type=NULL,*extr=NULL,*bal=NULL;
   char           str[50];
   PetscBool      isascii,ispower,isexternal,istrivial;
 
@@ -81,33 +81,33 @@ PetscErrorCode EPSView(EPS eps,PetscViewer viewer)
     }
     if (eps->problem_type) {
       switch (eps->problem_type) {
-        case EPS_HEP:   type = HERM " eigenvalue problem"; break;
-        case EPS_GHEP:  type = "generalized " HERM " eigenvalue problem"; break;
-        case EPS_NHEP:  type = "non-" HERM " eigenvalue problem"; break;
-        case EPS_GNHEP: type = "generalized non-" HERM " eigenvalue problem"; break;
+        case EPS_HEP:    type = HERM " eigenvalue problem"; break;
+        case EPS_GHEP:   type = "generalized " HERM " eigenvalue problem"; break;
+        case EPS_NHEP:   type = "non-" HERM " eigenvalue problem"; break;
+        case EPS_GNHEP:  type = "generalized non-" HERM " eigenvalue problem"; break;
         case EPS_PGNHEP: type = "generalized non-" HERM " eigenvalue problem with " HERM " positive definite B"; break;
-        case EPS_GHIEP: type = "generalized " HERM "-indefinite eigenvalue problem"; break;
+        case EPS_GHIEP:  type = "generalized " HERM "-indefinite eigenvalue problem"; break;
       }
     } else type = "not yet set";
     ierr = PetscViewerASCIIPrintf(viewer,"  problem type: %s\n",type);CHKERRQ(ierr);
     if (eps->extraction) {
       switch (eps->extraction) {
-        case EPS_RITZ:             extr = "Rayleigh-Ritz"; break;
-        case EPS_HARMONIC:         extr = "harmonic Ritz"; break;
-        case EPS_HARMONIC_RELATIVE:extr = "relative harmonic Ritz"; break;
-        case EPS_HARMONIC_RIGHT:   extr = "right harmonic Ritz"; break;
-        case EPS_HARMONIC_LARGEST: extr = "largest harmonic Ritz"; break;
-        case EPS_REFINED:          extr = "refined Ritz"; break;
-        case EPS_REFINED_HARMONIC: extr = "refined harmonic Ritz"; break;
+        case EPS_RITZ:              extr = "Rayleigh-Ritz"; break;
+        case EPS_HARMONIC:          extr = "harmonic Ritz"; break;
+        case EPS_HARMONIC_RELATIVE: extr = "relative harmonic Ritz"; break;
+        case EPS_HARMONIC_RIGHT:    extr = "right harmonic Ritz"; break;
+        case EPS_HARMONIC_LARGEST:  extr = "largest harmonic Ritz"; break;
+        case EPS_REFINED:           extr = "refined Ritz"; break;
+        case EPS_REFINED_HARMONIC:  extr = "refined harmonic Ritz"; break;
       }
       ierr = PetscViewerASCIIPrintf(viewer,"  extraction type: %s\n",extr);CHKERRQ(ierr);
     }
     if (!eps->ishermitian && eps->balance!=EPS_BALANCE_NONE) {
       switch (eps->balance) {
-        case EPS_BALANCE_NONE:      break;
-        case EPS_BALANCE_ONESIDE:   bal = "one-sided Krylov"; break;
-        case EPS_BALANCE_TWOSIDE:   bal = "two-sided Krylov"; break;
-        case EPS_BALANCE_USER:      bal = "user-defined matrix"; break;
+        case EPS_BALANCE_NONE:    break;
+        case EPS_BALANCE_ONESIDE: bal = "one-sided Krylov"; break;
+        case EPS_BALANCE_TWOSIDE: bal = "two-sided Krylov"; break;
+        case EPS_BALANCE_USER:    bal = "user-defined matrix"; break;
       }
       ierr = PetscViewerASCIIPrintf(viewer,"  balancing enabled: %s",bal);CHKERRQ(ierr);
       ierr = PetscViewerASCIIUseTabs(viewer,PETSC_FALSE);CHKERRQ(ierr);
@@ -165,7 +165,7 @@ PetscErrorCode EPSView(EPS eps,PetscViewer viewer)
         break;
     }
     ierr = PetscViewerASCIIUseTabs(viewer,PETSC_TRUE);CHKERRQ(ierr);
-    if (eps->isgeneralized && eps->ishermitian && eps->purify) {
+    if (eps->purify) {
       ierr = PetscViewerASCIIPrintf(viewer,"  postprocessing eigenvectors with purification\n");CHKERRQ(ierr);
     }
     if (eps->trueres) {
@@ -307,9 +307,8 @@ PetscErrorCode EPSReasonViewFromOptions(EPS eps)
 static PetscErrorCode EPSErrorView_ASCII(EPS eps,EPSErrorType etype,PetscViewer viewer)
 {
   PetscBool      errok=PETSC_TRUE;
-  PetscReal      error,re,im;
-  PetscScalar    kr,ki;
-  PetscInt       i,j,nvals;
+  PetscReal      error;
+  PetscInt       i,j,k,nvals;
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
@@ -338,21 +337,8 @@ static PetscErrorCode EPSErrorView_ASCII(EPS eps,EPSErrorType etype,PetscViewer 
   for (i=0;i<=(nvals-1)/8;i++) {
     ierr = PetscViewerASCIIPrintf(viewer,"\n     ");CHKERRQ(ierr);
     for (j=0;j<PetscMin(8,nvals-8*i);j++) {
-      ierr = EPSGetEigenpair(eps,8*i+j,&kr,&ki,NULL,NULL);CHKERRQ(ierr);
-#if defined(PETSC_USE_COMPLEX)
-      re = PetscRealPart(kr);
-      im = PetscImaginaryPart(kr);
-#else
-      re = kr;
-      im = ki;
-#endif
-      if (PetscAbs(re)/PetscAbs(im)<PETSC_SMALL) re = 0.0;
-      if (PetscAbs(im)/PetscAbs(re)<PETSC_SMALL) im = 0.0;
-      if (im!=0.0) {
-        ierr = PetscViewerASCIIPrintf(viewer,"%.5f%+.5fi",(double)re,(double)im);CHKERRQ(ierr);
-      } else {
-        ierr = PetscViewerASCIIPrintf(viewer,"%.5f",(double)re);CHKERRQ(ierr);
-      }
+      k = eps->perm[8*i+j];
+      ierr = SlepcPrintEigenvalueASCII(eps->eigr[k],eps->eigi[k]);CHKERRQ(ierr);
       if (8*i+j+1<nvals) { ierr = PetscViewerASCIIPrintf(viewer,", ");CHKERRQ(ierr); }
     }
   }
@@ -571,7 +557,6 @@ static PetscErrorCode EPSValuesView_DRAW(EPS eps,PetscViewer viewer)
 #define __FUNCT__ "EPSValuesView_ASCII"
 static PetscErrorCode EPSValuesView_ASCII(EPS eps,PetscViewer viewer)
 {
-  PetscReal      re,im;
   PetscInt       i,k;
   PetscErrorCode ierr;
 
@@ -579,20 +564,9 @@ static PetscErrorCode EPSValuesView_ASCII(EPS eps,PetscViewer viewer)
   ierr = PetscViewerASCIIPrintf(viewer,"Eigenvalues = \n");CHKERRQ(ierr);
   for (i=0;i<eps->nconv;i++) {
     k = eps->perm[i];
-#if defined(PETSC_USE_COMPLEX)
-    re = PetscRealPart(eps->eigr[k]);
-    im = PetscImaginaryPart(eps->eigr[k]);
-#else
-    re = eps->eigr[k];
-    im = eps->eigi[k];
-#endif
-    if (PetscAbs(re)/PetscAbs(im)<PETSC_SMALL) re = 0.0;
-    if (PetscAbs(im)/PetscAbs(re)<PETSC_SMALL) im = 0.0;
-    if (im!=0.0) {
-      ierr = PetscViewerASCIIPrintf(viewer,"   %.5f%+.5fi\n",(double)re,(double)im);CHKERRQ(ierr);
-    } else {
-      ierr = PetscViewerASCIIPrintf(viewer,"   %.5f\n",(double)re);CHKERRQ(ierr);
-    }
+    ierr = PetscViewerASCIIPrintf(viewer,"   ");CHKERRQ(ierr);
+    ierr = SlepcPrintEigenvalueASCII(eps->eigr[k],eps->eigi[k]);CHKERRQ(ierr);
+    ierr = PetscViewerASCIIPrintf(viewer,"\n");CHKERRQ(ierr);
   }
   ierr = PetscViewerASCIIPrintf(viewer,"\n");CHKERRQ(ierr);
   PetscFunctionReturn(0);

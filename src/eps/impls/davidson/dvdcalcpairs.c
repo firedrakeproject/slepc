@@ -554,7 +554,7 @@ static PetscErrorCode dvd_calcpairs_proj_res(dvdDashboard *d,PetscInt r_s,PetscI
 PetscErrorCode dvd_calcpairs_qz(dvdDashboard *d,dvdBlackboard *b,PetscBool borth,PetscBool harm)
 {
   PetscErrorCode ierr;
-  PetscBool      std_probl,her_probl,ind_probl,her_ind_probl;
+  PetscBool      std_probl,her_probl,ind_probl;
   DSType         dstype;
   Vec            v1;
 
@@ -562,7 +562,6 @@ PetscErrorCode dvd_calcpairs_qz(dvdDashboard *d,dvdBlackboard *b,PetscBool borth
   std_probl = DVD_IS(d->sEP,DVD_EP_STD)? PETSC_TRUE: PETSC_FALSE;
   her_probl = DVD_IS(d->sEP,DVD_EP_HERMITIAN)? PETSC_TRUE: PETSC_FALSE;
   ind_probl = DVD_IS(d->sEP,DVD_EP_INDEFINITE)? PETSC_TRUE: PETSC_FALSE;
-  her_ind_probl = (her_probl||ind_probl)? PETSC_TRUE: PETSC_FALSE;
 
   /* Setting configuration constrains */
   b->max_size_proj = PetscMax(b->max_size_proj,b->max_size_V);

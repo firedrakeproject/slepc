@@ -67,12 +67,9 @@ PetscErrorCode EPSComputeVectors(EPS eps)
 PetscErrorCode EPSSolve(EPS eps)
 {
   PetscErrorCode ierr;
-  PetscInt       i,nmat;
-  PetscScalar    dot;
-  PetscBool      iscayley;
+  PetscInt       i;
   STMatMode      matmode;
   Mat            A,B;
-  Vec            w,x;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
@@ -126,25 +123,6 @@ PetscErrorCode EPSSolve(EPS eps)
   }
 #endif
 
-  ierr = STGetNumMatrices(eps->st,&nmat);CHKERRQ(ierr);
-  ierr = STGetOperators(eps->st,0,&A);CHKERRQ(ierr);
-  if (nmat>1) { ierr = STGetOperators(eps->st,1,&B);CHKERRQ(ierr); }
-
-  /* In the case of Cayley transform, eigenvectors need to be B-normalized */
-  ierr = PetscObjectTypeCompare((PetscObject)eps->st,STCAYLEY,&iscayley);CHKERRQ(ierr);
-  if (iscayley && nmat>1 && eps->ishermitian) {
-    ierr = MatCreateVecs(B,NULL,&w);CHKERRQ(ierr);
-    ierr = EPSComputeVectors(eps);CHKERRQ(ierr);
-    for (i=0;i<eps->nconv;i++) {
-      ierr = BVGetColumn(eps->V,i,&x);CHKERRQ(ierr);
-      ierr = MatMult(B,x,w);CHKERRQ(ierr);
-      ierr = VecDot(w,x,&dot);CHKERRQ(ierr);
-      ierr = VecScale(x,1.0/PetscSqrtScalar(dot));CHKERRQ(ierr);
-      ierr = BVRestoreColumn(eps->V,i,&x);CHKERRQ(ierr);
-    }
-    ierr = VecDestroy(&w);CHKERRQ(ierr);
-  }
-
   /* sort eigenvalues according to eps->which parameter */
   ierr = SlepcSortEigenvalues(eps->sc,eps->nconv,eps->eigr,eps->eigi,eps->perm);CHKERRQ(ierr);
   ierr = PetscLogEventEnd(EPS_Solve,eps,0,0,0);CHKERRQ(ierr);
@@ -155,8 +133,12 @@ PetscErrorCode EPSSolve(EPS eps)
   ierr = EPSErrorViewFromOptions(eps);CHKERRQ(ierr);
   ierr = EPSValuesViewFromOptions(eps);CHKERRQ(ierr);
   ierr = EPSVectorsViewFromOptions(eps);CHKERRQ(ierr);
+  ierr = STGetOperators(eps->st,0,&A);CHKERRQ(ierr);
   ierr = MatViewFromOptions(A,(PetscObject)eps,"-eps_view_mat0");CHKERRQ(ierr);
-  if (nmat>1) { ierr = MatViewFromOptions(B,(PetscObject)eps,"-eps_view_mat1");CHKERRQ(ierr); }
+  if (eps->isgeneralized) {
+    ierr = STGetOperators(eps->st,1,&B);CHKERRQ(ierr);
+    ierr = MatViewFromOptions(B,(PetscObject)eps,"-eps_view_mat1");CHKERRQ(ierr);
+  }
 
   /* Remove deflation and initial subspaces */
   if (eps->nds) {
