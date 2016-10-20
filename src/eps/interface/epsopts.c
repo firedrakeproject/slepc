@@ -124,7 +124,7 @@ PetscErrorCode EPSSetFromOptions(EPS eps)
 {
   PetscErrorCode ierr;
   char           type[256];
-  PetscBool      set,flg,flg1,flg2,flg3;
+  PetscBool      set,flg,flg1,flg2,flg3,purif;
   PetscReal      r,array[2]={0,0};
   PetscScalar    s;
   PetscInt       i,j,k;
@@ -244,7 +244,8 @@ PetscErrorCode EPSSetFromOptions(EPS eps)
     }
 
     ierr = PetscOptionsBool("-eps_true_residual","Compute true residuals explicitly","EPSSetTrueResidual",eps->trueres,&eps->trueres,NULL);CHKERRQ(ierr);
-    ierr = PetscOptionsBool("-eps_purify","Postprocess eigenvectors for purification","EPSSetPurify",eps->purify,&eps->purify,NULL);CHKERRQ(ierr);
+    ierr = PetscOptionsBool("-eps_purify","Postprocess eigenvectors for purification","EPSSetPurify",eps->purify,&purif,&flg);CHKERRQ(ierr);
+    if (flg) { ierr = EPSSetPurify(eps,purif);CHKERRQ(ierr); }
 
     /* -----------------------------------------------------------------------*/
     /*
@@ -1385,6 +1386,7 @@ PetscErrorCode EPSSetPurify(EPS eps,PetscBool purify)
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidLogicalCollectiveBool(eps,purify,2);
   eps->purify = purify;
+  if (purify && !eps->purify) eps->state = EPS_STATE_INITIAL;
   PetscFunctionReturn(0);
 }
 

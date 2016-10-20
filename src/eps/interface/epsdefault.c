@@ -46,21 +46,14 @@ PetscErrorCode EPSComputeVectors_Hermitian(EPS eps)
   PetscErrorCode ierr;
   PetscInt       i;
   PetscReal      norm;
-  Vec            w,z;
 
   PetscFunctionBegin;
-  if (eps->isgeneralized && eps->purify) {
-    /* Purify eigenvectors */
-    ierr = BVCreateVec(eps->V,&w);CHKERRQ(ierr);
+  if (eps->purify) {
+    ierr = EPS_Purify(eps,eps->nconv);CHKERRQ(ierr);
     for (i=0;i<eps->nconv;i++) {
-      ierr = BVCopyVec(eps->V,i,w);CHKERRQ(ierr);
-      ierr = BVGetColumn(eps->V,i,&z);CHKERRQ(ierr);
-      ierr = STApply(eps->st,w,z);CHKERRQ(ierr);
-      ierr = BVRestoreColumn(eps->V,i,&z);CHKERRQ(ierr);
       ierr = BVNormColumn(eps->V,i,NORM_2,&norm);CHKERRQ(ierr);
       ierr = BVScaleColumn(eps->V,i,1.0/norm);CHKERRQ(ierr);
     }
-    ierr = VecDestroy(&w);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }
@@ -76,7 +69,7 @@ PetscErrorCode EPSComputeVectors_Indefinite(EPS eps)
   PetscErrorCode ierr;
   PetscInt       n,i;
   Mat            X;
-  Vec            v,z;
+  Vec            v;
 #if !defined(PETSC_USE_COMPLEX)
   Vec            v1;
   PetscScalar    tmp;
@@ -92,16 +85,7 @@ PetscErrorCode EPSComputeVectors_Indefinite(EPS eps)
   ierr = MatDestroy(&X);CHKERRQ(ierr);
 
   /* purification */
-  if (eps->purify) {
-    ierr = BVCreateVec(eps->V,&v);CHKERRQ(ierr);
-    for (i=0;i<eps->nconv;i++) {
-      ierr = BVCopyVec(eps->V,i,v);CHKERRQ(ierr);
-      ierr = BVGetColumn(eps->V,i,&z);CHKERRQ(ierr);
-      ierr = STApply(eps->st,v,z);CHKERRQ(ierr);
-      ierr = BVRestoreColumn(eps->V,i,&z);CHKERRQ(ierr);
-    }
-    ierr = VecDestroy(&v);CHKERRQ(ierr);
-  }
+  if (eps->purify) { ierr = EPS_Purify(eps,eps->nconv);CHKERRQ(ierr); }
 
   /* normalization */
   for (i=0;i<n;i++) {
@@ -143,7 +127,7 @@ PetscErrorCode EPSComputeVectors_Schur(EPS eps)
   PetscErrorCode ierr;
   PetscInt       n,i;
   Mat            Z;
-  Vec            w,z,v;
+  Vec            z,v;
 #if !defined(PETSC_USE_COMPLEX)
   Vec            v1;
   PetscScalar    tmp;
@@ -171,16 +155,7 @@ PetscErrorCode EPSComputeVectors_Schur(EPS eps)
   ierr = MatDestroy(&Z);CHKERRQ(ierr);
 
   /* Purify eigenvectors */
-  if (eps->ispositive && eps->purify) {
-    ierr = BVCreateVec(eps->V,&w);CHKERRQ(ierr);
-    for (i=0;i<n;i++) {
-      ierr = BVCopyVec(eps->V,i,w);CHKERRQ(ierr);
-      ierr = BVGetColumn(eps->V,i,&z);CHKERRQ(ierr);
-      ierr = STApply(eps->st,w,z);CHKERRQ(ierr);
-      ierr = BVRestoreColumn(eps->V,i,&z);CHKERRQ(ierr);
-    }
-    ierr = VecDestroy(&w);CHKERRQ(ierr);
-  }
+  if (eps->purify) { ierr = EPS_Purify(eps,eps->nconv);CHKERRQ(ierr); }
 
   /* Fix eigenvectors if balancing was used */
   if (eps->balance!=EPS_BALANCE_NONE && eps->D) {
@@ -192,7 +167,7 @@ PetscErrorCode EPSComputeVectors_Schur(EPS eps)
   }
 
   /* normalize eigenvectors (when using purification or balancing) */
-  if ((eps->ispositive && eps->purify) || (eps->balance!=EPS_BALANCE_NONE && eps->D)) {
+  if (eps->purify || (eps->balance!=EPS_BALANCE_NONE && eps->D)) {
     for (i=0;i<n;i++) {
 #if !defined(PETSC_USE_COMPLEX)
       if (eps->eigi[i] != 0.0) {
@@ -391,8 +366,8 @@ PetscErrorCode EPSComputeRitzVector(EPS eps,PetscScalar *Zr,PetscScalar *Zi,BV V
   ierr = BVSetActiveColumns(V,0,k);CHKERRQ(ierr);
   ierr = BVMultVec(V,1.0,0.0,x,Zr);CHKERRQ(ierr);
 
-  /* purify eigenvector in positive generalized problems */
-  if (eps->ispositive && eps->purify) {
+  /* purify eigenvector if necessary */
+  if (eps->purify) {
     ierr = STApply(eps->st,x,y);CHKERRQ(ierr);
     if (eps->ishermitian) {
       ierr = BVNormVec(eps->V,y,NORM_2,&norm);CHKERRQ(ierr);

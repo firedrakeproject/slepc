@@ -165,7 +165,7 @@ PetscErrorCode EPSView(EPS eps,PetscViewer viewer)
         break;
     }
     ierr = PetscViewerASCIIUseTabs(viewer,PETSC_TRUE);CHKERRQ(ierr);
-    if (eps->isgeneralized && eps->ishermitian && eps->purify) {
+    if (eps->purify) {
       ierr = PetscViewerASCIIPrintf(viewer,"  postprocessing eigenvectors with purification\n");CHKERRQ(ierr);
     }
     if (eps->trueres) {

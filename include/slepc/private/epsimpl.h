@@ -162,6 +162,29 @@ PETSC_STATIC_INLINE PetscErrorCode EPS_SetInnerProduct(EPS eps)
   PetscFunctionReturn(0);
 }
 
+#undef __FUNCT__
+#define __FUNCT__ "EPS_Purify"
+/*
+  EPS_Purify - purify the first k vectors in the V basis
+*/
+PETSC_STATIC_INLINE PetscErrorCode EPS_Purify(EPS eps,PetscInt k)
+{
+  PetscErrorCode ierr;
+  PetscInt       i;
+  Vec            v,z;
+
+  PetscFunctionBegin;
+  ierr = BVCreateVec(eps->V,&v);CHKERRQ(ierr);
+  for (i=0;i<k;i++) {
+    ierr = BVCopyVec(eps->V,i,v);CHKERRQ(ierr);
+    ierr = BVGetColumn(eps->V,i,&z);CHKERRQ(ierr);
+    ierr = STApply(eps->st,v,z);CHKERRQ(ierr);
+    ierr = BVRestoreColumn(eps->V,i,&z);CHKERRQ(ierr);
+  }
+  ierr = VecDestroy(&v);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
 PETSC_INTERN PetscErrorCode EPSSetWhichEigenpairs_Default(EPS);
 PETSC_INTERN PetscErrorCode EPSSetDimensions_Default(EPS,PetscInt,PetscInt*,PetscInt*);
 PETSC_INTERN PetscErrorCode EPSBackTransform_Default(EPS);
