@@ -22,6 +22,7 @@
 */
 
 #include <slepc/private/bvimpl.h>      /*I "slepcbv.h" I*/
+#include <slepcds.h>
 
 #undef __FUNCT__
 #define __FUNCT__ "BVMult"
@@ -173,6 +174,10 @@ PetscErrorCode BVMultVec(BV X,PetscScalar alpha,PetscScalar beta,Vec y,PetscScal
    in the computation. Therefore, the length of array q must be equal to j
    minus the number of leading columns.
 
+   Developer Notes:
+   If q is NULL, then the coefficients are taken from position nc+l+j*ld of the
+   internal buffer vector, see BVGetBufferVec().
+
    Level: advanced
 
 .seealso: BVMult(), BVMultVec(), BVMultInPlace(), BVSetActiveColumns()
@@ -182,13 +187,13 @@ PetscErrorCode BVMultColumn(BV X,PetscScalar alpha,PetscScalar beta,PetscInt j,P
   PetscErrorCode ierr;
   PetscInt       ksave;
   Vec            y;
+  PetscScalar    *a=q;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(X,BV_CLASSID,1);
   PetscValidLogicalCollectiveScalar(X,alpha,2);
   PetscValidLogicalCollectiveScalar(X,beta,3);
   PetscValidLogicalCollectiveInt(X,j,4);
-  PetscValidPointer(q,5);
   PetscValidType(X,1);
   BVCheckSizes(X,1);
 
@@ -198,9 +203,11 @@ PetscErrorCode BVMultColumn(BV X,PetscScalar alpha,PetscScalar beta,PetscInt j,P
   ierr = PetscLogEventBegin(BV_MultVec,X,0,0,0);CHKERRQ(ierr);
   ksave = X->k;
   X->k = j;
+  if (!q) { ierr = BV_BufferGetArray(X,j,&a);CHKERRQ(ierr); }
   ierr = BVGetColumn(X,j,&y);CHKERRQ(ierr);
-  ierr = (*X->ops->multvec)(X,alpha,beta,y,q);CHKERRQ(ierr);
+  ierr = (*X->ops->multvec)(X,alpha,beta,y,a);CHKERRQ(ierr);
   ierr = BVRestoreColumn(X,j,&y);CHKERRQ(ierr);
+  if (!q) { ierr = BV_BufferRestoreArray(X,j,&a);CHKERRQ(ierr); }
   X->k = ksave;
   ierr = PetscLogEventEnd(BV_MultVec,X,0,0,0);CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -397,6 +404,32 @@ PetscErrorCode BVScaleColumn(BV bv,PetscInt j,PetscScalar alpha)
 }
 
 #undef __FUNCT__
+#define __FUNCT__ "BVSetRandomColumn_Private"
+PETSC_STATIC_INLINE PetscErrorCode BVSetRandomColumn_Private(BV bv,PetscInt k)
+{
+  PetscErrorCode ierr;
+  PetscInt       i,low,high;
+  PetscScalar    *px,t;
+  Vec            x;
+
+  PetscFunctionBegin;
+  ierr = BVGetColumn(bv,k,&x);CHKERRQ(ierr);
+  if (bv->rrandom) {  /* generate the same vector irrespective of number of processes */
+    ierr = VecGetOwnershipRange(x,&low,&high);CHKERRQ(ierr);
+    ierr = VecGetArray(x,&px);CHKERRQ(ierr);
+    for (i=0;i<bv->N;i++) {
+      ierr = PetscRandomGetValue(bv->rand,&t);CHKERRQ(ierr);
+      if (i>=low && i<high) px[i-low] = t;
+    }
+    ierr = VecRestoreArray(x,&px);CHKERRQ(ierr);
+  } else {
+    ierr = VecSetRandom(x,bv->rand);CHKERRQ(ierr);
+  }
+  ierr = BVRestoreColumn(bv,k,&x);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
 #define __FUNCT__ "BVSetRandom"
 /*@
    BVSetRandom - Set the columns of a BV to random numbers.
@@ -411,14 +444,12 @@ PetscErrorCode BVScaleColumn(BV bv,PetscInt j,PetscScalar alpha)
 
    Level: advanced
 
-.seealso: BVSetRandomContext(), BVSetRandomColumn(), BVSetActiveColumns()
+.seealso: BVSetRandomContext(), BVSetRandomColumn(), BVSetRandomCond(), BVSetActiveColumns()
 @*/
 PetscErrorCode BVSetRandom(BV bv)
 {
   PetscErrorCode ierr;
-  PetscInt       i,low,high,k;
-  PetscScalar    *px,t;
-  Vec            x;
+  PetscInt       k;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(bv,BV_CLASSID,1);
@@ -428,19 +459,7 @@ PetscErrorCode BVSetRandom(BV bv)
   ierr = BVGetRandomContext(bv,&bv->rand);CHKERRQ(ierr);
   ierr = PetscLogEventBegin(BV_SetRandom,bv,0,0,0);CHKERRQ(ierr);
   for (k=bv->l;k<bv->k;k++) {
-    ierr = BVGetColumn(bv,k,&x);CHKERRQ(ierr);
-    if (bv->rrandom) {  /* generate the same vector irrespective of number of processes */
-      ierr = VecGetOwnershipRange(x,&low,&high);CHKERRQ(ierr);
-      ierr = VecGetArray(x,&px);CHKERRQ(ierr);
-      for (i=0;i<bv->N;i++) {
-        ierr = PetscRandomGetValue(bv->rand,&t);CHKERRQ(ierr);
-        if (i>=low && i<high) px[i-low] = t;
-      }
-      ierr = VecRestoreArray(x,&px);CHKERRQ(ierr);
-    } else {
-      ierr = VecSetRandom(x,bv->rand);CHKERRQ(ierr);
-    }
-    ierr = BVRestoreColumn(bv,k,&x);CHKERRQ(ierr);
+    ierr = BVSetRandomColumn_Private(bv,k);CHKERRQ(ierr);
   }
   ierr = PetscLogEventEnd(BV_SetRandom,bv,0,0,0);CHKERRQ(ierr);
   ierr = PetscObjectStateIncrease((PetscObject)bv);CHKERRQ(ierr);
@@ -465,9 +484,6 @@ PetscErrorCode BVSetRandom(BV bv)
 PetscErrorCode BVSetRandomColumn(BV bv,PetscInt j)
 {
   PetscErrorCode ierr;
-  PetscInt       i,low,high;
-  PetscScalar    *px,t;
-  Vec            x;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(bv,BV_CLASSID,1);
@@ -478,19 +494,82 @@ PetscErrorCode BVSetRandomColumn(BV bv,PetscInt j)
 
   ierr = BVGetRandomContext(bv,&bv->rand);CHKERRQ(ierr);
   ierr = PetscLogEventBegin(BV_SetRandom,bv,0,0,0);CHKERRQ(ierr);
-  ierr = BVGetColumn(bv,j,&x);CHKERRQ(ierr);
-  if (bv->rrandom) {  /* generate the same vector irrespective of number of processes */
-    ierr = VecGetOwnershipRange(x,&low,&high);CHKERRQ(ierr);
-    ierr = VecGetArray(x,&px);CHKERRQ(ierr);
-    for (i=0;i<bv->N;i++) {
-      ierr = PetscRandomGetValue(bv->rand,&t);CHKERRQ(ierr);
-      if (i>=low && i<high) px[i-low] = t;
-    }
-    ierr = VecRestoreArray(x,&px);CHKERRQ(ierr);
-  } else {
-    ierr = VecSetRandom(x,bv->rand);CHKERRQ(ierr);
+  ierr = BVSetRandomColumn_Private(bv,j);CHKERRQ(ierr);
+  ierr = PetscLogEventEnd(BV_SetRandom,bv,0,0,0);CHKERRQ(ierr);
+  ierr = PetscObjectStateIncrease((PetscObject)bv);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "BVSetRandomCond"
+/*@
+   BVSetRandomCond - Set the columns of a BV to random numbers, in a way that
+   the generated matrix has a given condition number.
+
+   Logically Collective on BV
+
+   Input Parameters:
++  bv    - basis vectors
+-  condn - condition number
+
+   Note:
+   All active columns (except the leading ones) are modified.
+
+   Level: advanced
+
+.seealso: BVSetRandomContext(), BVSetRandomColumn(), BVSetActiveColumns()
+@*/
+PetscErrorCode BVSetRandomCond(BV bv,PetscReal condn)
+{
+  PetscErrorCode ierr;
+  PetscInt       k,i;
+  PetscScalar    *eig,*d;
+  DS             ds;
+  Mat            A,X,Y,Xt,M;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(bv,BV_CLASSID,1);
+  PetscValidType(bv,1);
+  BVCheckSizes(bv,1);
+
+  ierr = BVGetRandomContext(bv,&bv->rand);CHKERRQ(ierr);
+  ierr = PetscLogEventBegin(BV_SetRandom,bv,0,0,0);CHKERRQ(ierr);
+  /* B = rand(n,k) */
+  for (k=bv->l;k<bv->k;k++) {
+    ierr = BVSetRandomColumn_Private(bv,k);CHKERRQ(ierr);
   }
-  ierr = BVRestoreColumn(bv,j,&x);CHKERRQ(ierr);
+  ierr = DSCreate(PetscObjectComm((PetscObject)bv),&ds);CHKERRQ(ierr);
+  ierr = DSSetType(ds,DSHEP);CHKERRQ(ierr);
+  ierr = DSAllocate(ds,bv->m);CHKERRQ(ierr);
+  ierr = DSSetDimensions(ds,bv->k,0,bv->l,bv->k);CHKERRQ(ierr);
+  /* [V,S] = eig(B'*B) */
+  ierr = DSGetMat(ds,DS_MAT_A,&A);CHKERRQ(ierr);
+  ierr = BVDot(bv,bv,A);CHKERRQ(ierr);
+  ierr = DSRestoreMat(ds,DS_MAT_A,&A);CHKERRQ(ierr);
+  ierr = PetscMalloc1(bv->m,&eig);CHKERRQ(ierr);
+  ierr = DSSolve(ds,eig,NULL);CHKERRQ(ierr);
+  ierr = DSVectors(ds,DS_MAT_X,NULL,NULL);CHKERRQ(ierr);
+  /* M = diag(linspace(1/condn,1,n)./sqrt(diag(S)))' */
+  ierr = MatCreateSeqDense(PETSC_COMM_SELF,bv->k,bv->k,NULL,&M);CHKERRQ(ierr);
+  ierr = MatZeroEntries(M);CHKERRQ(ierr);
+  ierr = MatDenseGetArray(M,&d);CHKERRQ(ierr);
+  for (i=0;i<bv->k;i++) d[i+i*bv->m] = (1.0/condn+(1.0-1.0/condn)/(bv->k-1)*i)/PetscSqrtScalar(eig[i]);
+  ierr = MatDenseRestoreArray(M,&d);CHKERRQ(ierr);
+  /* M = X*M*X' */
+  ierr = MatCreateSeqDense(PETSC_COMM_SELF,bv->k,bv->k,NULL,&Y);CHKERRQ(ierr);
+  ierr = MatCreateSeqDense(PETSC_COMM_SELF,bv->k,bv->k,NULL,&Xt);CHKERRQ(ierr);
+  ierr = DSGetMat(ds,DS_MAT_X,&X);CHKERRQ(ierr);
+  ierr = MatMatMult(X,M,MAT_REUSE_MATRIX,PETSC_DEFAULT,&Y);CHKERRQ(ierr);
+  ierr = MatTranspose(X,MAT_REUSE_MATRIX,&Xt);CHKERRQ(ierr);
+  ierr = MatMatMult(Y,Xt,MAT_REUSE_MATRIX,PETSC_DEFAULT,&M);CHKERRQ(ierr);
+  ierr = DSRestoreMat(ds,DS_MAT_X,&X);CHKERRQ(ierr);
+  /* B = B*M */
+  ierr = BVMultInPlace(bv,M,bv->l,bv->k);CHKERRQ(ierr);
+  ierr = MatDestroy(&Y);CHKERRQ(ierr);
+  ierr = MatDestroy(&Xt);CHKERRQ(ierr);
+  ierr = MatDestroy(&M);CHKERRQ(ierr);
+  ierr = PetscFree(eig);CHKERRQ(ierr);
+  ierr = DSDestroy(&ds);CHKERRQ(ierr);
   ierr = PetscLogEventEnd(BV_SetRandom,bv,0,0,0);CHKERRQ(ierr);
   ierr = PetscObjectStateIncrease((PetscObject)bv);CHKERRQ(ierr);
   PetscFunctionReturn(0);

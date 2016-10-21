@@ -82,6 +82,7 @@ struct _p_BV {
 
   /*---------------------- Cached data and workspace -------------------*/
   Vec                Bx;           /* result of matrix times a vector x */
+  Vec                buffer;       /* buffer vector used in orthogonalization */
   PetscObjectId      xid;          /* object id of vector x */
   PetscObjectState   xstate;       /* state of vector x */
   Vec                cv[2];        /* column vectors obtained with BVGetColumn() */
@@ -153,25 +154,6 @@ PETSC_STATIC_INLINE PetscErrorCode BV_IPMatMult(BV bv,Vec x)
 }
 
 #undef __FUNCT__
-#define __FUNCT__ "BV_AllocateCachedBV"
-/*
-  BV_AllocateCachedBV - Allocate auxiliary BV required for BVApplyMatrixBV if not available.
-*/
-PETSC_STATIC_INLINE PetscErrorCode BV_AllocateCachedBV(BV V)
-{
-  PetscErrorCode ierr;
-
-  PetscFunctionBegin;
-  if (!V->cached) {
-    ierr = BVCreate(PetscObjectComm((PetscObject)V),&V->cached);CHKERRQ(ierr);
-    ierr = BVSetSizesFromVec(V->cached,V->t,V->m);CHKERRQ(ierr);
-    ierr = BVSetType(V->cached,((PetscObject)V)->type_name);CHKERRQ(ierr);
-    ierr = BVSetOrthogonalization(V->cached,V->orthog_type,V->orthog_ref,V->orthog_eta,V->orthog_block);CHKERRQ(ierr);
-  }
-  PetscFunctionReturn(0);
-}
-
-#undef __FUNCT__
 #define __FUNCT__ "BV_IPMatMultBV"
 /*
   BV_IPMatMultBV - Multiply BV by the inner-product matrix, cache the
@@ -182,7 +164,7 @@ PETSC_STATIC_INLINE PetscErrorCode BV_IPMatMultBV(BV bv)
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  ierr = BV_AllocateCachedBV(bv);CHKERRQ(ierr);
+  ierr = BVGetCachedBV(bv,&bv->cached);CHKERRQ(ierr);
   ierr = BVSetActiveColumns(bv->cached,bv->l,bv->k);CHKERRQ(ierr);
   if (((PetscObject)bv)->state != bv->bvstate) {
     if (bv->matrix) {
@@ -228,6 +210,38 @@ PETSC_STATIC_INLINE PetscErrorCode BV_AllocateSignature(BV bv)
     ierr = PetscLogObjectMemory((PetscObject)bv,bv->m*sizeof(PetscReal));CHKERRQ(ierr);
     for (i=-bv->nc;i<bv->m;i++) bv->omega[i] = 1.0;
   }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "BV_BufferGetArray"
+/*
+  BV_BufferGetArray - Get a pointer to position nc+l+j*ld of buffer vector (where nc
+  is the number of constraints and l is the number of leading columns).
+*/
+PETSC_STATIC_INLINE PetscErrorCode BV_BufferGetArray(BV bv,PetscInt j,PetscScalar **a)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  if (!bv->buffer) { ierr = BVGetBufferVec(bv,&bv->buffer);CHKERRQ(ierr); }
+  ierr = VecGetArray(bv->buffer,a);CHKERRQ(ierr);
+  (*a) += bv->nc+bv->l+j*(bv->nc+bv->m);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "BV_BufferRestoreArray"
+/*
+  BV_BufferRestoreArray - Restore the pointer to the buffer vector.
+*/
+PETSC_STATIC_INLINE PetscErrorCode BV_BufferRestoreArray(BV bv,PetscInt j,PetscScalar **a)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  (*a) -= bv->nc+bv->l+j*(bv->nc+bv->m);
+  ierr = VecRestoreArray(bv->buffer,a);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
