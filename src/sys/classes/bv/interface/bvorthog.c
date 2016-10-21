@@ -65,10 +65,9 @@ static PetscErrorCode BVOrthogonalizeMGS1(BV bv,PetscInt j,Vec v,PetscBool *whic
     }
     ierr = VecDot(z,vi,&dot);CHKERRQ(ierr);
     /* v <- v - h_i v_i */
+    if (H) H[bv->nc+i] = dot;
     if (bv->indef) dot /= bv->omega[bv->nc+i];
     ierr = VecAXPY(w,-dot,vi);CHKERRQ(ierr);
-    if (bv->indef) dot *= bv->omega[bv->nc+i];
-    if (H) H[bv->nc+i] = dot;
     ierr = BVRestoreColumn(bv,i,&vi);CHKERRQ(ierr);
   }
   if (nrm) { ierr = BVNormVec(bv,w,NORM_2,nrm);CHKERRQ(ierr); }
@@ -405,7 +404,7 @@ static PetscErrorCode BVOrthogonalize_GS(BV V,Mat R)
   PetscScalar    *r=NULL;
   PetscReal      norm;
   PetscInt       j,ldr;
-  Vec            v;
+  Vec            v,w;
 
   PetscFunctionBegin;
   if (R) {
@@ -417,6 +416,13 @@ static PetscErrorCode BVOrthogonalize_GS(BV V,Mat R)
     ierr = BVSetActiveColumns(V->cached,V->l,V->k);CHKERRQ(ierr);
   }
   for (j=V->l;j<V->k;j++) {
+    if (V->matrix && V->orthog_type==BV_ORTHOG_MGS) {  /* fill cached BV */
+      ierr = BVGetColumn(V->cached,j,&v);CHKERRQ(ierr);
+      ierr = BVGetColumn(V,j,&w);CHKERRQ(ierr);
+      ierr = MatMult(V->matrix,w,v);CHKERRQ(ierr);
+      ierr = BVRestoreColumn(V,j,&w);CHKERRQ(ierr);
+      ierr = BVRestoreColumn(V->cached,j,&v);CHKERRQ(ierr);
+    }
     if (R) {
       ierr = BVOrthogonalizeColumn(V,j,r+j*ldr+V->l,&norm,NULL);CHKERRQ(ierr);
       r[j+j*ldr] = norm;
@@ -424,7 +430,7 @@ static PetscErrorCode BVOrthogonalize_GS(BV V,Mat R)
       ierr = BVOrthogonalizeColumn(V,j,NULL,&norm,NULL);CHKERRQ(ierr);
     }
     if (!norm) SETERRQ(PETSC_COMM_SELF,1,"Breakdown in BVOrthogonalize due to a linearly dependent column");
-    if (V->matrix) { /* fill cached BV */
+    if (V->matrix && V->orthog_type==BV_ORTHOG_CGS) {  /* fill cached BV */
       ierr = BVGetColumn(V->cached,j,&v);CHKERRQ(ierr);
       ierr = VecCopy(V->Bx,v);CHKERRQ(ierr);
       ierr = BVRestoreColumn(V->cached,j,&v);CHKERRQ(ierr);

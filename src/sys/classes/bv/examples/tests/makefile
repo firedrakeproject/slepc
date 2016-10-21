@@ -29,26 +29,27 @@ EXAMPLESF  = test1f.F
 MANSEC     = BV
 TESTS      = test1 test1f test2 test3 test4 test5 test6 test7 test8 test9 test10 test11 test12 test13
 
-TESTEXAMPLES_C       = test1.PETSc runtest1_1 test1.rm \
-                       test2.PETSc runtest2_1 runtest2_2 test2.rm \
-                       test3.PETSc runtest3_1 runtest3_2 test3.rm \
-                       test4.PETSc runtest4_1 runtest4_2 test4.rm \
-                       test5.PETSc runtest5_1 test5.rm \
-                       test6.PETSc runtest6_1 runtest6_2 test6.rm \
-                       test7.PETSc runtest7_1 runtest7_2 runtest7_3 test7.rm \
-                       test8.PETSc runtest8_1 test8.rm \
-                       test9.PETSc runtest9_1 runtest9_2 test9.rm \
-                       test10.PETSc runtest10_1 test10.rm \
-                       test11.PETSc runtest11_1 runtest11_2 runtest11_3 test11.rm \
-                       test12.PETSc runtest12_1 test12.rm \
-                       test13.PETSc runtest13_1 test13.rm
-TESTEXAMPLES_FORTRAN = test1f.PETSc runtest1f_1 runtest1f_2 test1f.rm
-TESTEXAMPLES_VECCUDA = test1.PETSc runtest1_1_cuda test1.rm \
-                       test2.PETSc runtest2_1_cuda runtest2_2_cuda test2.rm \
-                       test3.PETSc runtest3_1_cuda test3.rm \
-                       test4.PETSc runtest4_1_cuda test4.rm \
-                       test6.PETSc runtest6_1_cuda test6.rm \
-                       test7.PETSc runtest7_1_cuda test7.rm
+TESTEXAMPLES_C           = test1.PETSc runtest1_1 test1.rm \
+                           test2.PETSc runtest2_1 runtest2_2 test2.rm \
+                           test3.PETSc runtest3_1 runtest3_2 test3.rm \
+                           test4.PETSc runtest4_1 runtest4_2 test4.rm \
+                           test5.PETSc runtest5_1 test5.rm \
+                           test6.PETSc runtest6_1 runtest6_2 test6.rm \
+                           test7.PETSc runtest7_1 runtest7_2 runtest7_3 test7.rm \
+                           test8.PETSc runtest8_1 test8.rm \
+                           test9.PETSc runtest9_1 runtest9_2 test9.rm \
+                           test10.PETSc runtest10_1 test10.rm \
+                           test11.PETSc runtest11_1 runtest11_2 runtest11_3 test11.rm \
+                           test12.PETSc runtest12_1 test12.rm \
+                           test13.PETSc runtest13_1 test13.rm
+TESTEXAMPLES_C_NOTSINGLE = test2.PETSc runtest2_3 test2.rm
+TESTEXAMPLES_FORTRAN     = test1f.PETSc runtest1f_1 runtest1f_2 test1f.rm
+TESTEXAMPLES_VECCUDA     = test1.PETSc runtest1_1_cuda test1.rm \
+                           test2.PETSc runtest2_1_cuda runtest2_2_cuda test2.rm \
+                           test3.PETSc runtest3_1_cuda test3.rm \
+                           test4.PETSc runtest4_1_cuda test4.rm \
+                           test6.PETSc runtest6_1_cuda test6.rm \
+                           test7.PETSc runtest7_1_cuda test7.rm
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common
 
@@ -154,6 +155,12 @@ runtest2_2_cuda:
 	-@${SETTEST}; check=test2_1; \
 	${MPIEXEC} -n 1 ./test2 -bv_type svec -bv_orthog_type mgs -vec_type cuda > $${test}.tmp 2>&1; \
 	${TESTCODE_CUDA}
+
+runtest2_3: runtest2_3_vecs runtest2_3_contiguous runtest2_3_svec runtest2_3_mat
+runtest2_3_%:
+	-@${SETTEST}; check=test2_3; bv=$*; \
+	${MPIEXEC} -n 1 ./test2 -bv_type $$bv -condn 1e8 | ${GREP} -v "against" > $${test}.tmp 2>&1; \
+	${TESTCODE}
 
 runtest3_1: runtest3_1_vecs runtest3_1_contiguous runtest3_1_svec runtest3_1_svec_vecs runtest3_1_mat
 runtest3_1_%:
