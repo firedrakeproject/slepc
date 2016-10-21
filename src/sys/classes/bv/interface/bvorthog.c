@@ -229,14 +229,16 @@ static PetscErrorCode BVOrthogonalizeGS(BV bv,PetscInt j,Vec v,PetscBool *which,
    Notes:
    This function is equivalent to BVOrthogonalizeColumn() but orthogonalizes
    a vector as an argument rather than taking one of the BV columns. The
-   vector is orthogonalized against all active columns.
+   vector is orthogonalized against all active columns (k) and the constraints.
+   If H is given, it must have enough space to store k-l coefficients, where l
+   is the number of leading columns.
 
    In the case of an indefinite inner product, the lindep parameter is not
    computed (set to false).
 
    Level: advanced
 
-.seealso: BVOrthogonalizeColumn(), BVSetOrthogonalization(), BVSetActiveColumns()
+.seealso: BVOrthogonalizeColumn(), BVSetOrthogonalization(), BVSetActiveColumns(), BVGetNumConstraints()
 @*/
 PetscErrorCode BVOrthogonalizeVec(BV bv,Vec v,PetscScalar *H,PetscReal *norm,PetscBool *lindep)
 {
@@ -289,7 +291,9 @@ PetscErrorCode BVOrthogonalizeVec(BV bv,Vec v,PetscScalar *H,PetscReal *norm,Pet
    where V[.] are the vectors of BV. The columns V[0..j-1] are assumed to be
    mutually orthonormal.
 
-   Leading columns V[0..l-1] also participate in the orthogonalization.
+   Leading columns V[0..l-1] also participate in the orthogonalization, as well
+   as the constraints. If H is given, it must have enough space to
+   store j-l coefficients.
 
    If a non-standard inner product has been specified with BVSetMatrix(),
    then the vector is B-orthogonalized, using the non-standard inner product
@@ -302,7 +306,7 @@ PetscErrorCode BVOrthogonalizeVec(BV bv,Vec v,PetscScalar *H,PetscReal *norm,Pet
 
    Level: advanced
 
-.seealso: BVSetOrthogonalization(), BVSetMatrix(), BVSetActiveColumns(), BVOrthogonalize(), BVOrthogonalizeVec()
+.seealso: BVSetOrthogonalization(), BVSetMatrix(), BVSetActiveColumns(), BVOrthogonalize(), BVOrthogonalizeVec(), BVGetNumConstraints()
 @*/
 PetscErrorCode BVOrthogonalizeColumn(BV bv,PetscInt j,PetscScalar *H,PetscReal *norm,PetscBool *lindep)
 {

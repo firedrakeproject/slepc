@@ -775,17 +775,17 @@ PetscErrorCode BVGetSignature(BV bv,Vec omega)
    Use BVGetBufferVec() to retrieve the vector (for example, to free it
    at the end of the computations).
 
-   The vector must be sequential of length m*m, where m is the number of
-   columns of bv (including the constraints if any).
+   The vector must be sequential of length (nc+m)*m, where m is the number
+   of columns of bv and nc is the number of constraints.
 
    Level: developer
 
-.seealso: BVGetBufferVec(), BVSetSizes()
+.seealso: BVGetBufferVec(), BVSetSizes(), BVGetNumConstraints()
 @*/
 PetscErrorCode BVSetBufferVec(BV bv,Vec buffer)
 {
   PetscErrorCode ierr;
-  PetscInt       m,n;
+  PetscInt       ld,n;
   PetscMPIInt    size;
 
   PetscFunctionBegin;
@@ -793,8 +793,8 @@ PetscErrorCode BVSetBufferVec(BV bv,Vec buffer)
   PetscValidHeaderSpecific(buffer,VEC_CLASSID,2);
   BVCheckSizes(bv,1);
   ierr = VecGetSize(buffer,&n);CHKERRQ(ierr);
-  m = bv->m+bv->nc;
-  if (n != m*m) SETERRQ1(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_SIZ,"Buffer size must be %d",m*m);
+  ld = bv->m+bv->nc;
+  if (n != ld*bv->m) SETERRQ1(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_SIZ,"Buffer size must be %d",ld*bv->m);
   ierr = MPI_Comm_size(PetscObjectComm((PetscObject)buffer),&size);CHKERRQ(ierr);
   if (size>1) SETERRQ(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_WRONG,"Buffer must be a sequential vector");
   
@@ -820,26 +820,39 @@ PetscErrorCode BVSetBufferVec(BV bv,Vec buffer)
 
    Notes:
    The vector is created if not available previously. It is a sequential vector
-   of length m*m, where m is the number of columns of bv (including the constraints
-   if any).
+   of length (nc+m)*m, where m is the number of columns of bv and nc is the number
+   of constraints.
+
+   Developer Notes:
+   The buffer vector is viewed as a column-major matrix with leading dimension
+   ld=nc+m, and m columns at most. In the most common usage, it has the structure
+.vb
+      | | K |
+      |c|---|
+      | | H |
+.ve
+   where H is an upper Hessenberg matrix of order m x (m-1), K contains coefficients
+   related to orthogonalization against constraints (first nc rows), and c is the
+   first column that contains tiny values corresponding to corrections in iterated
+   Gram-Schmidt computations.
 
    Level: developer
 
-.seealso: BVSetBufferVec()
+.seealso: BVSetBufferVec(), BVSetSizes(), BVGetNumConstraints()
 @*/
 PetscErrorCode BVGetBufferVec(BV bv,Vec *buffer)
 {
   PetscErrorCode ierr;
-  PetscInt       m;
+  PetscInt       ld;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(bv,BV_CLASSID,1);
   PetscValidPointer(buffer,2);
   BVCheckSizes(bv,1);
   if (!bv->buffer) {
-    m = bv->m+bv->nc;
+    ld = bv->m+bv->nc;
     ierr = VecCreate(PETSC_COMM_SELF,&bv->buffer);CHKERRQ(ierr);
-    ierr = VecSetSizes(bv->buffer,PETSC_DECIDE,m*m);CHKERRQ(ierr);
+    ierr = VecSetSizes(bv->buffer,PETSC_DECIDE,ld*bv->m);CHKERRQ(ierr);
     ierr = VecSetType(bv->buffer,((PetscObject)bv->t)->type_name);CHKERRQ(ierr);
     ierr = PetscLogObjectParent((PetscObject)bv,(PetscObject)bv->buffer);CHKERRQ(ierr);
   }

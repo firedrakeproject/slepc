@@ -216,8 +216,8 @@ PETSC_STATIC_INLINE PetscErrorCode BV_AllocateSignature(BV bv)
 #undef __FUNCT__
 #define __FUNCT__ "BV_BufferGetArray"
 /*
-  BV_BufferGetArray - Get a pointer to position j*m+l of buffer vector (where m
-  includes the constraints and l is the number of leading columns).
+  BV_BufferGetArray - Get a pointer to position nc+l+j*ld of buffer vector (where nc
+  is the number of constraints and l is the number of leading columns).
 */
 PETSC_STATIC_INLINE PetscErrorCode BV_BufferGetArray(BV bv,PetscInt j,PetscScalar **a)
 {
@@ -226,7 +226,7 @@ PETSC_STATIC_INLINE PetscErrorCode BV_BufferGetArray(BV bv,PetscInt j,PetscScala
   PetscFunctionBegin;
   if (!bv->buffer) { ierr = BVGetBufferVec(bv,&bv->buffer);CHKERRQ(ierr); }
   ierr = VecGetArray(bv->buffer,a);CHKERRQ(ierr);
-  (*a) += (bv->nc+bv->m)*j+bv->l;
+  (*a) += bv->nc+bv->l+j*(bv->nc+bv->m);
   PetscFunctionReturn(0);
 }
 
@@ -240,7 +240,7 @@ PETSC_STATIC_INLINE PetscErrorCode BV_BufferRestoreArray(BV bv,PetscInt j,PetscS
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  (*a) -= (bv->nc+bv->m)*j+bv->l;
+  (*a) -= bv->nc+bv->l+j*(bv->nc+bv->m);
   ierr = VecRestoreArray(bv->buffer,a);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

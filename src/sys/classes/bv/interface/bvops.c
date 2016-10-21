@@ -175,7 +175,7 @@ PetscErrorCode BVMultVec(BV X,PetscScalar alpha,PetscScalar beta,Vec y,PetscScal
    minus the number of leading columns.
 
    Developer Notes:
-   If q is NULL, then the coefficients are taken from position j*m+l of the
+   If q is NULL, then the coefficients are taken from position nc+l+j*ld of the
    internal buffer vector, see BVGetBufferVec().
 
    Level: advanced
