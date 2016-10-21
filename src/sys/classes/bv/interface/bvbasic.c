@@ -647,7 +647,7 @@ PetscErrorCode BVApplyMatrixBV(BV X,BV Y)
 .  cached - the cached BV
 
    Note:
-   The function will return a NULL if BVApplyMatrixBV() was not called yet.
+   The cached BV is created if not available previously.
 
    Level: developer
 
@@ -655,9 +655,19 @@ PetscErrorCode BVApplyMatrixBV(BV X,BV Y)
 @*/
 PetscErrorCode BVGetCachedBV(BV bv,BV *cached)
 {
+  PetscErrorCode ierr;
+
   PetscFunctionBegin;
   PetscValidHeaderSpecific(bv,BV_CLASSID,1);
   PetscValidPointer(cached,2);
+  BVCheckSizes(bv,1);
+  if (!bv->cached) {
+    ierr = BVCreate(PetscObjectComm((PetscObject)bv),&bv->cached);CHKERRQ(ierr);
+    ierr = BVSetSizesFromVec(bv->cached,bv->t,bv->m);CHKERRQ(ierr);
+    ierr = BVSetType(bv->cached,((PetscObject)bv)->type_name);CHKERRQ(ierr);
+    ierr = BVSetOrthogonalization(bv->cached,bv->orthog_type,bv->orthog_ref,bv->orthog_eta,bv->orthog_block);CHKERRQ(ierr);
+    ierr = PetscLogObjectParent((PetscObject)bv,(PetscObject)bv->cached);CHKERRQ(ierr);
+  }
   *cached = bv->cached;
   PetscFunctionReturn(0);
 }

@@ -412,7 +412,7 @@ static PetscErrorCode BVOrthogonalize_GS(BV V,Mat R)
     ierr = MatDenseGetArray(R,&r);CHKERRQ(ierr);
   }
   if (V->matrix) {
-    ierr = BV_AllocateCachedBV(V);CHKERRQ(ierr);
+    ierr = BVGetCachedBV(V,&V->cached);CHKERRQ(ierr);
     ierr = BVSetActiveColumns(V->cached,V->l,V->k);CHKERRQ(ierr);
   }
   for (j=V->l;j<V->k;j++) {
