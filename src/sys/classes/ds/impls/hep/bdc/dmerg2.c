@@ -24,6 +24,8 @@
 #include <slepc/private/dsimpl.h>
 #include <slepcblaslapack.h>
 
+#undef __FUNCT__
+#define __FUNCT__ "BDC_dmerg2_"
 PetscErrorCode BDC_dmerg2_(const char *jobz,PetscBLASInt rkct,PetscBLASInt n,
         PetscReal *ev,PetscReal *q,PetscBLASInt ldq,PetscBLASInt *indxq,
         PetscReal *rho,PetscReal *u,PetscBLASInt sbrkp1,PetscReal *v,
