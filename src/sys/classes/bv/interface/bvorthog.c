@@ -156,11 +156,13 @@ static PetscErrorCode BVOrthogonalizeGS(BV bv,PetscInt j,Vec v,PetscBool *which,
   PetscErrorCode ierr;
   PetscReal      onrm,nrm;
   PetscInt       i,k,l;
-  PetscBool      dolindep,signature,mgs=(bv->orthog_type==BV_ORTHOG_MGS);
+  PetscBool      mgs,dolindep,signature;
 
   PetscFunctionBegin;
   if (v) k = bv->k;
   else k = j;
+
+  mgs = (bv->orthog_type==BV_ORTHOG_MGS)? PETSC_TRUE: PETSC_FALSE;
 
   /* if indefinite inner product, skip the computation of lindep */
   if (bv->indef && lindep) *lindep = PETSC_FALSE;
