@@ -45,7 +45,7 @@ int main(int argc,char **argv)
   ierr = PetscOptionsHasName(NULL,NULL,"-verbose",&verbose);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD,"Test BV orthogonalization with %D columns of length %D.\n",k,n);CHKERRQ(ierr);
   if (condn>1.0) {
-    ierr = PetscPrintf(PETSC_COMM_WORLD," - Using a random BV with condition number = %g\n",condn);CHKERRQ(ierr);
+    ierr = PetscPrintf(PETSC_COMM_WORLD," - Using a random BV with condition number = %g\n",(double)condn);CHKERRQ(ierr);
   }
 
   /* Create template vector */
