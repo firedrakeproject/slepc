@@ -326,7 +326,7 @@ PetscErrorCode BVDotVecEnd(BV X,Vec y,PetscScalar *m)
    minus the number of leading columns.
 
    Developer Notes:
-   If q is NULL, then the result is written in position nc+l+j*ld of the internal
+   If q is NULL, then the result is written in position nc+l of the internal
    buffer vector, see BVGetBufferVec().
 
    Level: advanced
@@ -352,11 +352,14 @@ PetscErrorCode BVDotColumn(BV X,PetscInt j,PetscScalar *q)
   ierr = PetscLogEventBegin(BV_DotVec,X,0,0,0);CHKERRQ(ierr);
   ksave = X->k;
   X->k = j;
-  if (!q) { ierr = BV_BufferGetArray(X,j,&a);CHKERRQ(ierr); }
+  if (!q) {
+    if (!X->buffer) { ierr = BVGetBufferVec(X,&X->buffer);CHKERRQ(ierr); }
+    ierr = VecGetArray(X->buffer,&a);CHKERRQ(ierr);
+  }
   ierr = BVGetColumn(X,j,&y);CHKERRQ(ierr);
   ierr = (*X->ops->dotvec)(X,y,a);CHKERRQ(ierr);
   ierr = BVRestoreColumn(X,j,&y);CHKERRQ(ierr);
-  if (!q) { ierr = BV_BufferRestoreArray(X,j,&a);CHKERRQ(ierr); }
+  if (!q) { ierr = VecRestoreArray(X->buffer,&a);CHKERRQ(ierr); }
   X->k = ksave;
   ierr = PetscLogEventEnd(BV_DotVec,X,0,0,0);CHKERRQ(ierr);
   PetscFunctionReturn(0);
