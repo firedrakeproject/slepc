@@ -370,6 +370,8 @@ PetscErrorCode BVResize(BV bv,PetscInt m,PetscBool copy)
 
   ierr = PetscLogEventBegin(BV_Create,bv,0,0,0);CHKERRQ(ierr);
   ierr = (*bv->ops->resize)(bv,m,copy);CHKERRQ(ierr);
+  ierr = VecDestroy(&bv->buffer);CHKERRQ(ierr);
+  ierr = BVDestroy(&bv->cached);CHKERRQ(ierr);
   ierr = PetscFree2(bv->h,bv->c);CHKERRQ(ierr);
   if (bv->omega) {
     ierr = PetscMalloc1(m,&omega);CHKERRQ(ierr);
@@ -827,18 +829,19 @@ PetscErrorCode BVSetBufferVec(BV bv,Vec buffer)
    The buffer vector is viewed as a column-major matrix with leading dimension
    ld=nc+m, and m columns at most. In the most common usage, it has the structure
 .vb
-      | | K |
-      |c|---|
+      | | C |
+      |s|---|
       | | H |
 .ve
-   where H is an upper Hessenberg matrix of order m x (m-1), K contains coefficients
-   related to orthogonalization against constraints (first nc rows), and c is the
-   first column that contains tiny values corresponding to corrections in iterated
-   Gram-Schmidt computations.
+   where H is an upper Hessenberg matrix of order m x (m-1), C contains coefficients
+   related to orthogonalization against constraints (first nc rows), and s is the
+   first column that contains scratch values computed during Gram-Schmidt
+   orthogonalization. In particular, BVDotColumn() and BVMultColumn() use s to
+   store the coefficients.
 
    Level: developer
 
-.seealso: BVSetBufferVec(), BVSetSizes(), BVGetNumConstraints()
+.seealso: BVSetBufferVec(), BVSetSizes(), BVGetNumConstraints(), BVDotColumn(), BVMultColumn()
 @*/
 PetscErrorCode BVGetBufferVec(BV bv,Vec *buffer)
 {
