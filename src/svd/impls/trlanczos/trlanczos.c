@@ -283,7 +283,7 @@ PetscErrorCode SVDSolve_TRLanczos(SVD svd)
 {
   PetscErrorCode ierr;
   SVD_TRLANCZOS  *lanczos = (SVD_TRLANCZOS*)svd->data;
-  PetscReal      *alpha,*beta,lastbeta,norm,resnorm;
+  PetscReal      *alpha,*beta,lastbeta,resnorm;
   PetscScalar    *Q,*swork=NULL,*w;
   PetscInt       i,k,l,nv,ld;
   Mat            U,VT;
@@ -303,8 +303,7 @@ PetscErrorCode SVDSolve_TRLanczos(SVD svd)
   /* normalize start vector */
   if (!svd->nini) {
     ierr = BVSetRandomColumn(svd->V,0);CHKERRQ(ierr);
-    ierr = BVNormColumn(svd->V,0,NORM_2,&norm);CHKERRQ(ierr);
-    ierr = BVScaleColumn(svd->V,0,1.0/norm);CHKERRQ(ierr);
+    ierr = BVOrthonormalizeColumn(svd->V,0,PETSC_TRUE,NULL,NULL);CHKERRQ(ierr);
   }
 
   l = 0;
@@ -384,8 +383,7 @@ PetscErrorCode SVDSolve_TRLanczos(SVD svd)
   /* orthonormalize U columns in one side method */
   if (lanczos->oneside) {
     for (i=0;i<svd->nconv;i++) {
-      ierr = BVOrthogonalizeColumn(svd->U,i,NULL,&norm,NULL);CHKERRQ(ierr);
-      ierr = BVScaleColumn(svd->U,i,1.0/norm);CHKERRQ(ierr);
+      ierr = BVOrthonormalizeColumn(svd->U,i,PETSC_FALSE,NULL,NULL);CHKERRQ(ierr);
     }
   }
 

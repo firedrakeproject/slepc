@@ -132,8 +132,8 @@ PetscErrorCode EPSSolve_RQCG(EPS eps)
   EPS_RQCG       *ctx = (EPS_RQCG*)eps->data;
   PetscInt       i,j,k,ld,nv,ncv = eps->ncv,kini,nmat;
   PetscScalar    *C,*gamma,g,pap,pbp,pbx,pax,nu,mu,alpha,beta;
-  PetscReal      resnorm,norm,a,b,c,disc,t;
-  PetscBool      reset,breakdown;
+  PetscReal      resnorm,a,b,c,disc,t;
+  PetscBool      reset;
   Mat            A,B,Q,Q1;
   Vec            v,av,bv,p,w=eps->work[0];
 
@@ -150,14 +150,9 @@ PetscErrorCode EPSSolve_RQCG(EPS eps)
     eps->its++;
     nv = PetscMin(eps->nconv+eps->mpd,ncv);
     ierr = DSSetDimensions(eps->ds,nv,0,eps->nconv,0);CHKERRQ(ierr);
-    /* Generate more initial vectors if necessary */
-    while (kini<nv) {
+    for (;kini<nv;kini++) { /* Generate more initial vectors if necessary */
       ierr = BVSetRandomColumn(eps->V,kini);CHKERRQ(ierr);
-      ierr = BVOrthogonalizeColumn(eps->V,kini,NULL,&norm,&breakdown);CHKERRQ(ierr);
-      if (norm>0.0 && !breakdown) {
-        ierr = BVScaleColumn(eps->V,kini,1.0/norm);CHKERRQ(ierr);
-        kini++;
-      }
+      ierr = BVOrthonormalizeColumn(eps->V,kini,PETSC_TRUE,NULL,NULL);CHKERRQ(ierr);
     }
     reset = (eps->its>1 && (eps->its-1)%ctx->nrest==0)? PETSC_TRUE: PETSC_FALSE;
 
@@ -289,10 +284,7 @@ PetscErrorCode EPSSolve_RQCG(EPS eps)
         }
         ierr = BVRestoreColumn(eps->V,i,&v);CHKERRQ(ierr);
         ierr = BVRestoreColumn(ctx->P,i-eps->nconv,&p);CHKERRQ(ierr);
-        ierr = BVOrthogonalizeColumn(eps->V,i,NULL,&norm,&breakdown);CHKERRQ(ierr);
-        if (!breakdown && norm!=0.0) {
-          ierr = BVScaleColumn(eps->V,i,1.0/norm);CHKERRQ(ierr);
-        }
+        ierr = BVOrthonormalizeColumn(eps->V,i,PETSC_TRUE,NULL,NULL);CHKERRQ(ierr);
       }
     }
 

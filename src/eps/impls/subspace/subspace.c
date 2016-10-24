@@ -165,7 +165,6 @@ PetscErrorCode EPSSolve_Subspace(EPS eps)
   PetscInt       nxtsrr,idsrr,idort,nxtort,nv,ncv = eps->ncv,its;
   PetscScalar    *T;
   PetscReal      arsd,oarsd,ctr,octr,ae,oae,*rsd,norm,tcond=1.0;
-  PetscBool      breakdown;
   /* Parameters */
   PetscInt       init = 5;        /* Number of initial iterations */
   PetscReal      stpfac = 1.5;    /* Max num of iter before next SRR step */
@@ -188,14 +187,9 @@ PetscErrorCode EPSSolve_Subspace(EPS eps)
   }
 
   /* Complete the initial basis with random vectors and orthonormalize them */
-  k = eps->nini;
-  while (k<ncv) {
+  for (k=eps->nini;k<ncv;k++) {
     ierr = BVSetRandomColumn(eps->V,k);CHKERRQ(ierr);
-    ierr = BVOrthogonalizeColumn(eps->V,k,NULL,&norm,&breakdown);CHKERRQ(ierr);
-    if (norm>0.0 && !breakdown) {
-      ierr = BVScaleColumn(eps->V,k,1.0/norm);CHKERRQ(ierr);
-      k++;
-    }
+    ierr = BVOrthonormalizeColumn(eps->V,k,PETSC_TRUE,NULL,NULL);CHKERRQ(ierr);
   }
 
   while (eps->reason == EPS_CONVERGED_ITERATING) {
@@ -299,12 +293,7 @@ PetscErrorCode EPSSolve_Subspace(EPS eps)
       }
       /* Orthonormalize vectors */
       for (i=eps->nconv;i<nv;i++) {
-        ierr = BVOrthogonalizeColumn(eps->V,i,NULL,&norm,&breakdown);CHKERRQ(ierr);
-        if (breakdown) {
-          ierr = BVSetRandomColumn(eps->V,i);CHKERRQ(ierr);
-          ierr = BVOrthogonalizeColumn(eps->V,i,NULL,&norm,&breakdown);CHKERRQ(ierr);
-        }
-        ierr = BVScaleColumn(eps->V,i,1/norm);CHKERRQ(ierr);
+        ierr = BVOrthonormalizeColumn(eps->V,i,PETSC_TRUE,NULL,NULL);CHKERRQ(ierr);
       }
       nxtort = PetscMin(its+idort,nxtsrr);
     } while (its<nxtsrr);
