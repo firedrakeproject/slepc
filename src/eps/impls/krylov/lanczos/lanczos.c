@@ -724,8 +724,7 @@ PetscErrorCode EPSSolve_Lanczos(EPS eps)
       ierr = BVCopyColumn(eps->V,n,nconv);CHKERRQ(ierr);
       if (lanczos->reorthog == EPS_LANCZOS_REORTHOG_LOCAL && !breakdown) {
         /* Reorthonormalize restart vector */
-        ierr = BVOrthogonalizeColumn(eps->V,nconv,NULL,&norm,&breakdown);CHKERRQ(ierr);
-        ierr = BVScaleColumn(eps->V,nconv,1.0/norm);CHKERRQ(ierr);
+        ierr = BVOrthonormalizeColumn(eps->V,nconv,PETSC_FALSE,NULL,&breakdown);CHKERRQ(ierr);
       }
       if (breakdown) {
         /* Use random vector for restarting */

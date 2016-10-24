@@ -151,26 +151,12 @@ PetscErrorCode dvd_initV(dvdDashboard *d, dvdBlackboard *b, PetscInt k,PetscInt 
 PetscErrorCode dvd_orthV(BV V,PetscInt V_new_s,PetscInt V_new_e)
 {
   PetscErrorCode ierr;
-  PetscInt       i,j,l,k;
-  PetscBool      lindep;
-  PetscReal      norm;
+  PetscInt       i;
 
   PetscFunctionBegin;
-  ierr = BVGetActiveColumns(V,&l,&k);CHKERRQ(ierr);
   for (i=V_new_s;i<V_new_e;i++) {
-    ierr = BVSetActiveColumns(V,0,i);CHKERRQ(ierr);
-    for (j=0;j<3;j++) {
-      if (j>0) {
-        ierr = BVSetRandomColumn(V,i);CHKERRQ(ierr);
-        ierr = PetscInfo1(V,"Orthonormalization problems adding the vector %D to the searching subspace\n",i);CHKERRQ(ierr);
-      }
-      ierr = BVOrthogonalizeColumn(V,i,NULL,&norm,&lindep);CHKERRQ(ierr);
-      if (!lindep && (PetscAbsReal(norm) > PETSC_SQRT_MACHINE_EPSILON)) break;
-    }
-    if (lindep || (PetscAbsReal(norm) < PETSC_SQRT_MACHINE_EPSILON)) SETERRQ(PetscObjectComm((PetscObject)V),1, "Error during the orthonormalization of the vectors");
-    ierr = BVScaleColumn(V,i,1.0/norm);CHKERRQ(ierr);
+    ierr = BVOrthonormalizeColumn(V,i,PETSC_TRUE,NULL,NULL);CHKERRQ(ierr);
   }
-  ierr = BVSetActiveColumns(V,l,k);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

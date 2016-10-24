@@ -30,7 +30,6 @@ PetscErrorCode SVDComputeVectors(SVD svd)
   PetscErrorCode ierr;
   Vec            tl,uj,vj;
   PetscInt       j,oldsize;
-  PetscReal      norm;
 
   PetscFunctionBegin;
   SVDCheckSolved(svd,1);
@@ -52,8 +51,7 @@ PetscErrorCode SVDComputeVectors(SVD svd)
       ierr = SVDMatMult(svd,PETSC_FALSE,vj,uj);CHKERRQ(ierr);
       ierr = BVRestoreColumn(svd->V,j,&vj);CHKERRQ(ierr);
       ierr = BVRestoreColumn(svd->U,j,&uj);CHKERRQ(ierr);
-      ierr = BVOrthogonalizeColumn(svd->U,j,NULL,&norm,NULL);CHKERRQ(ierr);
-      ierr = BVScaleColumn(svd->U,j,1.0/norm);CHKERRQ(ierr);
+      ierr = BVOrthonormalizeColumn(svd->U,j,PETSC_FALSE,NULL,NULL);CHKERRQ(ierr);
     }
   }
   svd->state = SVD_STATE_VECTORS;

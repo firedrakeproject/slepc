@@ -78,7 +78,7 @@ PetscErrorCode EPSSolve_Arnoldi(EPS eps)
   PetscInt           k,nv,ld;
   Mat                U;
   PetscScalar        *H;
-  PetscReal          beta,gamma=1.0,nrm;
+  PetscReal          beta,gamma=1.0;
   PetscBool          breakdown,harmonic,refined;
   BVOrthogRefineType orthog_ref;
   EPS_ARNOLDI        *arnoldi = (EPS_ARNOLDI*)eps->data;
@@ -127,8 +127,7 @@ PetscErrorCode EPSSolve_Arnoldi(EPS eps)
       ierr = DSGetMat(eps->ds,DS_MAT_X,&U);CHKERRQ(ierr);
       ierr = BVMultInPlace(eps->V,U,eps->nconv,k+1);CHKERRQ(ierr);
       ierr = MatDestroy(&U);CHKERRQ(ierr);
-      ierr = BVOrthogonalizeColumn(eps->V,k,NULL,&nrm,NULL);CHKERRQ(ierr);
-      ierr = BVScaleColumn(eps->V,k,1.0/nrm);CHKERRQ(ierr);
+      ierr = BVOrthonormalizeColumn(eps->V,k,PETSC_FALSE,NULL,NULL);CHKERRQ(ierr);
     } else {
       ierr = DSGetMat(eps->ds,DS_MAT_Q,&U);CHKERRQ(ierr);
       ierr = BVMultInPlace(eps->V,U,eps->nconv,PetscMin(k+1,nv));CHKERRQ(ierr);

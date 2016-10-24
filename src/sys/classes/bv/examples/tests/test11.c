@@ -79,9 +79,7 @@ int main(int argc,char **argv)
   }
   if (btype==BV_ORTHOG_BLOCK_GS) {  /* GS requires the leading columns to be orthogonal */
     for (j=0;j<l;j++) {
-      ierr = BVOrthogonalizeColumn(X,j,NULL,&norm,NULL);CHKERRQ(ierr);
-      alpha = 1.0/norm;
-      ierr = BVScaleColumn(X,j,alpha);CHKERRQ(ierr);
+      ierr = BVOrthonormalizeColumn(X,j,PETSC_FALSE,NULL,NULL);CHKERRQ(ierr);
     }
   }
   if (verbose) {
@@ -140,9 +138,7 @@ int main(int argc,char **argv)
     ierr = BVSetMatrix(Y,B,PETSC_FALSE);CHKERRQ(ierr);
     if (btype==BV_ORTHOG_BLOCK_GS) {  /* GS requires the leading columns to be orthogonal */
       for (j=0;j<l;j++) {
-        ierr = BVOrthogonalizeColumn(Y,j,NULL,&norm,NULL);CHKERRQ(ierr);
-        alpha = 1.0/norm;
-        ierr = BVScaleColumn(Y,j,alpha);CHKERRQ(ierr);
+        ierr = BVOrthonormalizeColumn(Y,j,PETSC_FALSE,NULL,NULL);CHKERRQ(ierr);
       }
     }
     if (verbose) {
