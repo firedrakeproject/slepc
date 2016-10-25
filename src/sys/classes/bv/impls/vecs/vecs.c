@@ -70,7 +70,7 @@ PetscErrorCode BVMultVec_Vecs(BV X,PetscScalar alpha,PetscScalar beta,Vec y,Pets
 {
   PetscErrorCode ierr;
   BV_VECS        *x = (BV_VECS*)X->data;
-  PetscScalar    *s=NULL;
+  PetscScalar    *s=NULL,*qq=q;
   PetscInt       i;
 
   PetscFunctionBegin;
@@ -78,11 +78,13 @@ PetscErrorCode BVMultVec_Vecs(BV X,PetscScalar alpha,PetscScalar beta,Vec y,Pets
     ierr = BVAllocateWork_Private(X,X->k-X->l);CHKERRQ(ierr);
     s = X->work;
   }
+  if (!q) { ierr = VecGetArray(X->buffer,&qq);CHKERRQ(ierr); }
   ierr = VecScale(y,beta);CHKERRQ(ierr);
   if (alpha!=1.0) {
-    for (i=0;i<X->k-X->l;i++) s[i] = alpha*q[i];
-  } else s = q;
+    for (i=0;i<X->k-X->l;i++) s[i] = alpha*qq[i];
+  } else s = qq;
   ierr = VecMAXPY(y,X->k-X->l,s,x->V+X->nc+X->l);CHKERRQ(ierr);
+  if (!q) { ierr = VecRestoreArray(X->buffer,&qq);CHKERRQ(ierr); }
   PetscFunctionReturn(0);
 }
 
@@ -203,18 +205,21 @@ PetscErrorCode BVDot_Vecs(BV X,BV Y,Mat M)
 
 #undef __FUNCT__
 #define __FUNCT__ "BVDotVec_Vecs"
-PetscErrorCode BVDotVec_Vecs(BV X,Vec y,PetscScalar *m)
+PetscErrorCode BVDotVec_Vecs(BV X,Vec y,PetscScalar *q)
 {
   PetscErrorCode ierr;
   BV_VECS        *x = (BV_VECS*)X->data;
   Vec            z = y;
+  PetscScalar    *qq=q;
 
   PetscFunctionBegin;
   if (X->matrix) {
     ierr = BV_IPMatMult(X,y);CHKERRQ(ierr);
     z = X->Bx;
   }
-  ierr = VecMDot(z,X->k-X->l,x->V+X->nc+X->l,m);CHKERRQ(ierr);
+  if (!q) { ierr = VecGetArray(X->buffer,&qq);CHKERRQ(ierr); }
+  ierr = VecMDot(z,X->k-X->l,x->V+X->nc+X->l,qq);CHKERRQ(ierr);
+  if (!q) { ierr = VecRestoreArray(X->buffer,&qq);CHKERRQ(ierr); }
   PetscFunctionReturn(0);
 }
 

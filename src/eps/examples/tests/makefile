@@ -238,7 +238,7 @@ runtest1_4_%:
 runtest1_5: runtest1_5_rqcg runtest1_5_lobpcg
 runtest1_5_%:
 	-@${SETTEST}; check=test1_5; eps=$*; \
-	if [ "$$eps" = lobpcg ]; then eps="lobpcg -eps_lobpcg_blocksize 10"; fi; \
+	if [ "$$eps" = lobpcg ]; then eps="lobpcg -eps_lobpcg_blocksize 3"; fi; \
 	${MPIEXEC} -n 1 ./test1 -n 18 -eps_type $$eps -eps_nev 3 -eps_smallest_real -eps_max_it 500 -st_pc_type icc > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
@@ -265,7 +265,7 @@ runtest2_2_%:
 runtest2_3: runtest2_3_krylovschur runtest2_3_gd runtest2_3_jd runtest2_3_lapack
 runtest2_3_%:
 	-@${SETTEST}; check=test2_1; eps=$*; \
-	if [ "$$eps" = jd ]; then eps="jd -eps_jd_krylov_start"; \
+	if [ "$$eps" = jd ]; then eps="jd -eps_jd_krylov_start -eps_ncv 18"; \
 	elif [ "$$eps" = gd ]; then eps="gd -eps_gd_krylov_start"; fi; \
 	${MPIEXEC} -n 2 ./test2 -eps_type $$eps -eps_nev 4 > $${test}.tmp 2>&1; \
 	${TESTCODE}

@@ -187,7 +187,6 @@ PetscErrorCode BVMultColumn(BV X,PetscScalar alpha,PetscScalar beta,PetscInt j,P
   PetscErrorCode ierr;
   PetscInt       ksave;
   Vec            y;
-  PetscScalar    *a=q;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(X,BV_CLASSID,1);
@@ -203,14 +202,10 @@ PetscErrorCode BVMultColumn(BV X,PetscScalar alpha,PetscScalar beta,PetscInt j,P
   ierr = PetscLogEventBegin(BV_MultVec,X,0,0,0);CHKERRQ(ierr);
   ksave = X->k;
   X->k = j;
-  if (!q) {
-    if (!X->buffer) { ierr = BVGetBufferVec(X,&X->buffer);CHKERRQ(ierr); }
-    ierr = VecGetArray(X->buffer,&a);CHKERRQ(ierr);
-  }
+  if (!q && !X->buffer) { ierr = BVGetBufferVec(X,&X->buffer);CHKERRQ(ierr); }
   ierr = BVGetColumn(X,j,&y);CHKERRQ(ierr);
-  ierr = (*X->ops->multvec)(X,alpha,beta,y,a);CHKERRQ(ierr);
+  ierr = (*X->ops->multvec)(X,alpha,beta,y,q);CHKERRQ(ierr);
   ierr = BVRestoreColumn(X,j,&y);CHKERRQ(ierr);
-  if (!q) { ierr = VecRestoreArray(X->buffer,&a);CHKERRQ(ierr); }
   X->k = ksave;
   ierr = PetscLogEventEnd(BV_MultVec,X,0,0,0);CHKERRQ(ierr);
   PetscFunctionReturn(0);

@@ -56,11 +56,13 @@ PetscErrorCode BVMultVec_Contiguous(BV X,PetscScalar alpha,PetscScalar beta,Vec 
 {
   PetscErrorCode ierr;
   BV_CONTIGUOUS  *x = (BV_CONTIGUOUS*)X->data;
-  PetscScalar    *py;
+  PetscScalar    *py,*qq=q;
 
   PetscFunctionBegin;
   ierr = VecGetArray(y,&py);CHKERRQ(ierr);
-  ierr = BVMultVec_BLAS_Private(X,X->n,X->k-X->l,alpha,x->array+(X->nc+X->l)*X->n,q,beta,py);CHKERRQ(ierr);
+  if (!q) { ierr = VecGetArray(X->buffer,&qq);CHKERRQ(ierr); }
+  ierr = BVMultVec_BLAS_Private(X,X->n,X->k-X->l,alpha,x->array+(X->nc+X->l)*X->n,qq,beta,py);CHKERRQ(ierr);
+  if (!q) { ierr = VecRestoreArray(X->buffer,&qq);CHKERRQ(ierr); }
   ierr = VecRestoreArray(y,&py);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -118,11 +120,12 @@ PetscErrorCode BVDot_Contiguous(BV X,BV Y,Mat M)
 
 #undef __FUNCT__
 #define __FUNCT__ "BVDotVec_Contiguous"
-PetscErrorCode BVDotVec_Contiguous(BV X,Vec y,PetscScalar *m)
+PetscErrorCode BVDotVec_Contiguous(BV X,Vec y,PetscScalar *q)
 {
   PetscErrorCode    ierr;
   BV_CONTIGUOUS     *x = (BV_CONTIGUOUS*)X->data;
   const PetscScalar *py;
+  PetscScalar       *qq=q;
   Vec               z = y;
 
   PetscFunctionBegin;
@@ -131,7 +134,9 @@ PetscErrorCode BVDotVec_Contiguous(BV X,Vec y,PetscScalar *m)
     z = X->Bx;
   }
   ierr = VecGetArrayRead(z,&py);CHKERRQ(ierr);
-  ierr = BVDotVec_BLAS_Private(X,X->n,X->k-X->l,x->array+(X->nc+X->l)*X->n,py,m,x->mpi);CHKERRQ(ierr);
+  if (!q) { ierr = VecGetArray(X->buffer,&qq);CHKERRQ(ierr); }
+  ierr = BVDotVec_BLAS_Private(X,X->n,X->k-X->l,x->array+(X->nc+X->l)*X->n,py,qq,x->mpi);CHKERRQ(ierr);
+  if (!q) { ierr = VecRestoreArray(X->buffer,&qq);CHKERRQ(ierr); }
   ierr = VecRestoreArrayRead(z,&py);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
