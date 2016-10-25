@@ -101,8 +101,8 @@ PETSC_STATIC_INLINE PetscErrorCode BV_SquareSum(BV bv,PetscInt j,PetscScalar *h,
   PetscInt       i;
 
   PetscFunctionBegin;
-  if (!h) { ierr = VecGetArray(bv->buffer,&hh);CHKERRQ(ierr); }
   *sum = 0.0;
+  if (!h) { ierr = VecGetArray(bv->buffer,&hh);CHKERRQ(ierr); }
   for (i=0;i<bv->nc+j;i++) *sum += PetscRealPart(hh[i]*PetscConj(hh[i]));
   if (!h) { ierr = VecRestoreArray(bv->buffer,&hh);CHKERRQ(ierr); }
   PetscFunctionReturn(0);
