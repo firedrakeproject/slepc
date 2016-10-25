@@ -49,6 +49,7 @@
 #define epssetarbitraryselection_      EPSSETARBITRARYSELECTION
 #define epskrylovschursetsubintervals_ EPSKRYLOVSCHURSETSUBINTERVALs
 #define epskrylovschurgetsubintervals_ EPSKRYLOVSCHURGETSUBINTERVALs
+#define epskrylovschurgetinertias_     EPSKRYLOVSCHURGETINERTIAS
 #elif !defined(PETSC_HAVE_FORTRAN_UNDERSCORE)
 #define epsview_                       epsview
 #define epserrorview_                  epserrorview
@@ -75,6 +76,7 @@
 #define epssetarbitraryselection_      epssetarbitraryselection
 #define epskrylovschursetsubintervals_ epskrylovschursetsubintervals
 #define epskrylovschurgetsubintervals_ epskrylovschurgetsubintervals
+#define epskrylovschurgetinertias_     epskrylovschurgetinertias
 #endif
 
 /*
@@ -372,5 +374,18 @@ PETSC_EXTERN void PETSC_STDCALL epskrylovschurgetsubintervals_(EPS *eps,PetscRea
   *ierr = EPSKrylovSchurGetPartitions(*eps,&npart); if (*ierr) return;
   *ierr = PetscMemcpy(subint,osubint,(npart+1)*sizeof(PetscReal)); if (*ierr) return;
   *ierr = PetscFree(osubint);
+}
+
+PETSC_EXTERN void PETSC_STDCALL epskrylovschurgetinertias_(EPS *eps,PetscInt *nshift,PetscReal *shifts,PetscInt *inertias,PetscErrorCode *ierr)
+{
+  PetscReal *oshifts;
+  PetscInt *oinertias;
+  PetscInt n;
+  *ierr = EPSKrylovSchurGetInertias(*eps,&n,&oshifts,&oinertias); if (*ierr) return;
+  *ierr = PetscMemcpy(shifts,oshifts,n*sizeof(PetscReal)); if (*ierr) return;
+  *ierr = PetscMemcpy(inertias,oinertias,n*sizeof(PetscInt)); if (*ierr) return;
+  *nshift = n;
+  *ierr = PetscFree(oshifts);
+  *ierr = PetscFree(oinertias);
 }
 
