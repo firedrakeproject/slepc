@@ -196,17 +196,14 @@ PETSC_STATIC_INLINE PetscErrorCode BVDotColumnInc(BV X,PetscInt j,PetscScalar *q
   PetscErrorCode ierr;
   PetscInt       ksave;
   Vec            y;
-  PetscScalar    *a=q;
 
   PetscFunctionBegin;
   ierr = PetscLogEventBegin(BV_DotVec,X,0,0,0);CHKERRQ(ierr);
   ksave = X->k;
   X->k = j+1;
-  if (!q) { ierr = VecGetArray(X->buffer,&a);CHKERRQ(ierr); }
   ierr = BVGetColumn(X,j,&y);CHKERRQ(ierr);
-  ierr = (*X->ops->dotvec)(X,y,a);CHKERRQ(ierr);
+  ierr = (*X->ops->dotvec)(X,y,q);CHKERRQ(ierr);
   ierr = BVRestoreColumn(X,j,&y);CHKERRQ(ierr);
-  if (!q) { ierr = VecRestoreArray(X->buffer,&a);CHKERRQ(ierr); }
   X->k = ksave;
   ierr = PetscLogEventEnd(BV_DotVec,X,0,0,0);CHKERRQ(ierr);
   PetscFunctionReturn(0);

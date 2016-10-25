@@ -338,7 +338,6 @@ PetscErrorCode BVDotColumn(BV X,PetscInt j,PetscScalar *q)
   PetscErrorCode ierr;
   PetscInt       ksave;
   Vec            y;
-  PetscScalar    *a=q;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(X,BV_CLASSID,1);
@@ -352,14 +351,10 @@ PetscErrorCode BVDotColumn(BV X,PetscInt j,PetscScalar *q)
   ierr = PetscLogEventBegin(BV_DotVec,X,0,0,0);CHKERRQ(ierr);
   ksave = X->k;
   X->k = j;
-  if (!q) {
-    if (!X->buffer) { ierr = BVGetBufferVec(X,&X->buffer);CHKERRQ(ierr); }
-    ierr = VecGetArray(X->buffer,&a);CHKERRQ(ierr);
-  }
+  if (!q && !X->buffer) { ierr = BVGetBufferVec(X,&X->buffer);CHKERRQ(ierr); }
   ierr = BVGetColumn(X,j,&y);CHKERRQ(ierr);
-  ierr = (*X->ops->dotvec)(X,y,a);CHKERRQ(ierr);
+  ierr = (*X->ops->dotvec)(X,y,q);CHKERRQ(ierr);
   ierr = BVRestoreColumn(X,j,&y);CHKERRQ(ierr);
-  if (!q) { ierr = VecRestoreArray(X->buffer,&a);CHKERRQ(ierr); }
   X->k = ksave;
   ierr = PetscLogEventEnd(BV_DotVec,X,0,0,0);CHKERRQ(ierr);
   PetscFunctionReturn(0);
