@@ -315,21 +315,25 @@ PetscErrorCode BVDotVecEnd(BV X,Vec y,PetscScalar *m)
 -  j - the column index
 
    Output Parameter:
-.  m - an array where the result must be placed
+.  q - an array where the result must be placed
 
    Notes:
    This operation is equivalent to BVDotVec() but it uses column j of X
    rather than taking a Vec as an argument. The number of active columns of
    X is set to j before the computation, and restored afterwards.
    If X has leading columns specified, then these columns do not participate
-   in the computation. Therefore, the length of array m must be equal to j
+   in the computation. Therefore, the length of array q must be equal to j
    minus the number of leading columns.
+
+   Developer Notes:
+   If q is NULL, then the result is written in position nc+l of the internal
+   buffer vector, see BVGetBufferVec().
 
    Level: advanced
 
 .seealso: BVDot(), BVDotVec(), BVSetActiveColumns(), BVSetMatrix()
 @*/
-PetscErrorCode BVDotColumn(BV X,PetscInt j,PetscScalar *m)
+PetscErrorCode BVDotColumn(BV X,PetscInt j,PetscScalar *q)
 {
   PetscErrorCode ierr;
   PetscInt       ksave;
@@ -347,8 +351,9 @@ PetscErrorCode BVDotColumn(BV X,PetscInt j,PetscScalar *m)
   ierr = PetscLogEventBegin(BV_DotVec,X,0,0,0);CHKERRQ(ierr);
   ksave = X->k;
   X->k = j;
+  if (!q && !X->buffer) { ierr = BVGetBufferVec(X,&X->buffer);CHKERRQ(ierr); }
   ierr = BVGetColumn(X,j,&y);CHKERRQ(ierr);
-  ierr = (*X->ops->dotvec)(X,y,m);CHKERRQ(ierr);
+  ierr = (*X->ops->dotvec)(X,y,q);CHKERRQ(ierr);
   ierr = BVRestoreColumn(X,j,&y);CHKERRQ(ierr);
   X->k = ksave;
   ierr = PetscLogEventEnd(BV_DotVec,X,0,0,0);CHKERRQ(ierr);

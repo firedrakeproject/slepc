@@ -160,13 +160,12 @@ PetscErrorCode NEPSolve_NArnoldi(NEP nep)
       }
 
       /* orthonormalize */
-      ierr = BVOrthogonalizeColumn(nep->V,n,NULL,&beta,&breakdown);CHKERRQ(ierr);
+      ierr = BVOrthonormalizeColumn(nep->V,n,PETSC_FALSE,&beta,&breakdown);CHKERRQ(ierr);
       if (breakdown || beta==0.0) {
         ierr = PetscInfo1(nep,"iter=%D, orthogonalization failed, stopping solve\n",nep->its);CHKERRQ(ierr);
         nep->reason = NEP_DIVERGED_BREAKDOWN;
         break;
       }
-      ierr = BVScaleColumn(nep->V,n,1.0/beta);CHKERRQ(ierr);
 
       /* update projected matrices */
       ierr = DSSetDimensions(nep->ds,n+1,0,0,0);CHKERRQ(ierr);

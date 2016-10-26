@@ -34,14 +34,19 @@ int main(int argc,char **argv)
   PetscInt       i,j,n=20,k=8;
   PetscViewer    view;
   PetscBool      verbose;
-  PetscReal      norm;
+  PetscReal      norm,condn=1.0;
   PetscScalar    alpha;
 
   ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
   ierr = PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL);CHKERRQ(ierr);
   ierr = PetscOptionsGetInt(NULL,NULL,"-k",&k,NULL);CHKERRQ(ierr);
+  ierr = PetscOptionsGetReal(NULL,NULL,"-condn",&condn,NULL);CHKERRQ(ierr);
+  if (condn<1.0) SETERRQ(PETSC_COMM_WORLD,1,"The condition number must be > 1");
   ierr = PetscOptionsHasName(NULL,NULL,"-verbose",&verbose);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD,"Test BV orthogonalization with %D columns of length %D.\n",k,n);CHKERRQ(ierr);
+  if (condn>1.0) {
+    ierr = PetscPrintf(PETSC_COMM_WORLD," - Using a random BV with condition number = %g\n",(double)condn);CHKERRQ(ierr);
+  }
 
   /* Create template vector */
   ierr = VecCreate(PETSC_COMM_WORLD,&t);CHKERRQ(ierr);
@@ -61,18 +66,22 @@ int main(int argc,char **argv)
   }
 
   /* Fill X entries */
-  for (j=0;j<k;j++) {
-    ierr = BVGetColumn(X,j,&v);CHKERRQ(ierr);
-    ierr = VecSet(v,0.0);CHKERRQ(ierr);
-    for (i=0;i<=n/2;i++) {
-      if (i+j<n) {
-        alpha = (3.0*i+j-2)/(2*(i+j+1));
-        ierr = VecSetValue(v,i+j,alpha,INSERT_VALUES);CHKERRQ(ierr);
+  if (condn==1.0) {
+    for (j=0;j<k;j++) {
+      ierr = BVGetColumn(X,j,&v);CHKERRQ(ierr);
+      ierr = VecSet(v,0.0);CHKERRQ(ierr);
+      for (i=0;i<=n/2;i++) {
+        if (i+j<n) {
+          alpha = (3.0*i+j-2)/(2*(i+j+1));
+          ierr = VecSetValue(v,i+j,alpha,INSERT_VALUES);CHKERRQ(ierr);
+        }
       }
+      ierr = VecAssemblyBegin(v);CHKERRQ(ierr);
+      ierr = VecAssemblyEnd(v);CHKERRQ(ierr);
+      ierr = BVRestoreColumn(X,j,&v);CHKERRQ(ierr);
     }
-    ierr = VecAssemblyBegin(v);CHKERRQ(ierr);
-    ierr = VecAssemblyEnd(v);CHKERRQ(ierr);
-    ierr = BVRestoreColumn(X,j,&v);CHKERRQ(ierr);
+  } else {
+    ierr = BVSetRandomCond(X,condn);CHKERRQ(ierr);
   }
   if (verbose) {
     ierr = BVView(X,view);CHKERRQ(ierr);

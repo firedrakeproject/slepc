@@ -143,6 +143,8 @@ PETSC_EXTERN PetscErrorCode BVApplyMatrixBV(BV,BV);
 PETSC_EXTERN PetscErrorCode BVGetCachedBV(BV,BV*);
 PETSC_EXTERN PetscErrorCode BVSetSignature(BV,Vec);
 PETSC_EXTERN PetscErrorCode BVGetSignature(BV,Vec);
+PETSC_EXTERN PetscErrorCode BVSetBufferVec(BV,Vec);
+PETSC_EXTERN PetscErrorCode BVGetBufferVec(BV,Vec*);
 
 PETSC_EXTERN PetscErrorCode BVMult(BV,PetscScalar,PetscScalar,BV,Mat);
 PETSC_EXTERN PetscErrorCode BVMultVec(BV,PetscScalar,PetscScalar,Vec,PetscScalar*);
@@ -171,6 +173,7 @@ PETSC_EXTERN PetscErrorCode BVNormColumnBegin(BV,PetscInt,NormType,PetscReal*);
 PETSC_EXTERN PetscErrorCode BVNormColumnEnd(BV,PetscInt,NormType,PetscReal*);
 PETSC_EXTERN PetscErrorCode BVSetRandom(BV);
 PETSC_EXTERN PetscErrorCode BVSetRandomColumn(BV,PetscInt);
+PETSC_EXTERN PetscErrorCode BVSetRandomCond(BV,PetscReal);
 PETSC_EXTERN PetscErrorCode BVSetRandomContext(BV,PetscRandom);
 PETSC_EXTERN PetscErrorCode BVGetRandomContext(BV,PetscRandom*);
 
@@ -179,6 +182,7 @@ PETSC_EXTERN PetscErrorCode BVGetOrthogonalization(BV,BVOrthogType*,BVOrthogRefi
 PETSC_EXTERN PetscErrorCode BVOrthogonalize(BV,Mat);
 PETSC_EXTERN PetscErrorCode BVOrthogonalizeVec(BV,Vec,PetscScalar*,PetscReal*,PetscBool*);
 PETSC_EXTERN PetscErrorCode BVOrthogonalizeColumn(BV,PetscInt,PetscScalar*,PetscReal*,PetscBool*);
+PETSC_EXTERN PetscErrorCode BVOrthonormalizeColumn(BV,PetscInt,PetscBool,PetscReal*,PetscBool*);
 PETSC_EXTERN PetscErrorCode BVOrthogonalizeSomeColumn(BV,PetscInt,PetscBool*,PetscScalar*,PetscReal*,PetscBool*);
 PETSC_EXTERN PetscErrorCode BVSetMatMultMethod(BV,BVMatMultType);
 PETSC_EXTERN PetscErrorCode BVGetMatMultMethod(BV,BVMatMultType*);

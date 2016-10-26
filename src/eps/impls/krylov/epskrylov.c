@@ -41,8 +41,9 @@
 PetscErrorCode EPSBasicArnoldi(EPS eps,PetscBool trans,PetscScalar *H,PetscInt ldh,PetscInt k,PetscInt *M,PetscReal *beta,PetscBool *breakdown)
 {
   PetscErrorCode ierr;
-  PetscInt       j,m = *M;
-  Vec            vj,vj1;
+  PetscScalar    *a;
+  PetscInt       j,nc,n,m = *M;
+  Vec            vj,vj1,buf;
 
   PetscFunctionBegin;
   ierr = BVSetActiveColumns(eps->V,0,m);CHKERRQ(ierr);
@@ -56,16 +57,21 @@ PetscErrorCode EPSBasicArnoldi(EPS eps,PetscBool trans,PetscScalar *H,PetscInt l
     }
     ierr = BVRestoreColumn(eps->V,j,&vj);CHKERRQ(ierr);
     ierr = BVRestoreColumn(eps->V,j+1,&vj1);CHKERRQ(ierr);
-    ierr = BVOrthogonalizeColumn(eps->V,j+1,H+ldh*j,beta,breakdown);CHKERRQ(ierr);
+    ierr = BVOrthonormalizeColumn(eps->V,j+1,PETSC_FALSE,beta,breakdown);CHKERRQ(ierr);
     if (*breakdown) {
-      H[j+1+ldh*j] = 0.0;
       *M = j+1;
       break;
-    } else {
-      H[j+1+ldh*j] = *beta;
-      ierr = BVScaleColumn(eps->V,j+1,1.0/(*beta));CHKERRQ(ierr);
     }
   }
+  /* extract Hessenberg matrix from the BV object */
+  ierr = BVGetNumConstraints(eps->V,&nc);CHKERRQ(ierr);
+  ierr = BVGetSizes(eps->V,NULL,NULL,&n);CHKERRQ(ierr);
+  ierr = BVGetBufferVec(eps->V,&buf);CHKERRQ(ierr);
+  ierr = VecGetArray(buf,&a);CHKERRQ(ierr);
+  for (j=k;j<*M;j++) {
+    ierr = PetscMemcpy(H+j*ldh,a+nc+(j+1)*(nc+n),(j+2)*sizeof(PetscScalar));CHKERRQ(ierr);
+  }
+  ierr = VecRestoreArray(buf,&a);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -351,15 +357,11 @@ PetscErrorCode EPSKrylovConvergence(EPS eps,PetscBool getall,PetscInt kini,Petsc
 PetscErrorCode EPSFullLanczos(EPS eps,PetscReal *alpha,PetscReal *beta,PetscInt k,PetscInt *M,PetscBool *breakdown)
 {
   PetscErrorCode ierr;
-  PetscInt       j,m = *M;
-  Vec            vj,vj1;
-  PetscScalar    *hwork,lhwork[100];
+  PetscScalar    *a;
+  PetscInt       j,nc,n,m = *M;
+  Vec            vj,vj1,buf;
 
   PetscFunctionBegin;
-  if (m > 100) {
-    ierr = PetscMalloc1(m,&hwork);CHKERRQ(ierr);
-  } else hwork = lhwork;
-
   ierr = BVSetActiveColumns(eps->V,0,m);CHKERRQ(ierr);
   for (j=k;j<m;j++) {
     ierr = BVGetColumn(eps->V,j,&vj);CHKERRQ(ierr);
@@ -367,18 +369,19 @@ PetscErrorCode EPSFullLanczos(EPS eps,PetscReal *alpha,PetscReal *beta,PetscInt 
     ierr = STApply(eps->st,vj,vj1);CHKERRQ(ierr);
     ierr = BVRestoreColumn(eps->V,j,&vj);CHKERRQ(ierr);
     ierr = BVRestoreColumn(eps->V,j+1,&vj1);CHKERRQ(ierr);
-    ierr = BVOrthogonalizeColumn(eps->V,j+1,hwork,beta+j,breakdown);CHKERRQ(ierr);
-    alpha[j] = PetscRealPart(hwork[j]);
+    ierr = BVOrthonormalizeColumn(eps->V,j+1,PETSC_FALSE,beta+j,breakdown);CHKERRQ(ierr);
     if (*breakdown) {
       *M = j+1;
       break;
-    } else {
-      ierr = BVScaleColumn(eps->V,j+1,1.0/beta[j]);CHKERRQ(ierr);
     }
   }
-  if (m > 100) {
-    ierr = PetscFree(hwork);CHKERRQ(ierr);
-  }
+  /* extract tridiagonal matrix from the BV object (only alpha, beta is already in its place) */
+  ierr = BVGetNumConstraints(eps->V,&nc);CHKERRQ(ierr);
+  ierr = BVGetSizes(eps->V,NULL,NULL,&n);CHKERRQ(ierr);
+  ierr = BVGetBufferVec(eps->V,&buf);CHKERRQ(ierr);
+  ierr = VecGetArray(buf,&a);CHKERRQ(ierr);
+  for (j=k;j<*M;j++) alpha[j] = PetscRealPart(a[nc+j+(j+1)*(nc+n)]);
+  ierr = VecRestoreArray(buf,&a);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

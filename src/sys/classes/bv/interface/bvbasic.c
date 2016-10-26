@@ -370,6 +370,8 @@ PetscErrorCode BVResize(BV bv,PetscInt m,PetscBool copy)
 
   ierr = PetscLogEventBegin(BV_Create,bv,0,0,0);CHKERRQ(ierr);
   ierr = (*bv->ops->resize)(bv,m,copy);CHKERRQ(ierr);
+  ierr = VecDestroy(&bv->buffer);CHKERRQ(ierr);
+  ierr = BVDestroy(&bv->cached);CHKERRQ(ierr);
   ierr = PetscFree2(bv->h,bv->c);CHKERRQ(ierr);
   if (bv->omega) {
     ierr = PetscMalloc1(m,&omega);CHKERRQ(ierr);
@@ -647,7 +649,7 @@ PetscErrorCode BVApplyMatrixBV(BV X,BV Y)
 .  cached - the cached BV
 
    Note:
-   The function will return a NULL if BVApplyMatrixBV() was not called yet.
+   The cached BV is created if not available previously.
 
    Level: developer
 
@@ -655,9 +657,19 @@ PetscErrorCode BVApplyMatrixBV(BV X,BV Y)
 @*/
 PetscErrorCode BVGetCachedBV(BV bv,BV *cached)
 {
+  PetscErrorCode ierr;
+
   PetscFunctionBegin;
   PetscValidHeaderSpecific(bv,BV_CLASSID,1);
   PetscValidPointer(cached,2);
+  BVCheckSizes(bv,1);
+  if (!bv->cached) {
+    ierr = BVCreate(PetscObjectComm((PetscObject)bv),&bv->cached);CHKERRQ(ierr);
+    ierr = BVSetSizesFromVec(bv->cached,bv->t,bv->m);CHKERRQ(ierr);
+    ierr = BVSetType(bv->cached,((PetscObject)bv)->type_name);CHKERRQ(ierr);
+    ierr = BVSetOrthogonalization(bv->cached,bv->orthog_type,bv->orthog_ref,bv->orthog_eta,bv->orthog_block);CHKERRQ(ierr);
+    ierr = PetscLogObjectParent((PetscObject)bv,(PetscObject)bv->cached);CHKERRQ(ierr);
+  }
   *cached = bv->cached;
   PetscFunctionReturn(0);
 }
@@ -746,6 +758,108 @@ PetscErrorCode BVGetSignature(BV bv,Vec omega)
   } else {
     ierr = VecSet(omega,1.0);CHKERRQ(ierr);
   }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "BVSetBufferVec"
+/*@
+   BVSetBufferVec - Attach a vector object to be used as buffer space for
+   several operations.
+
+   Collective on BV
+
+   Input Parameters:
++  bv     - the basis vectors context)
+-  buffer - the vector
+
+   Notes:
+   Use BVGetBufferVec() to retrieve the vector (for example, to free it
+   at the end of the computations).
+
+   The vector must be sequential of length (nc+m)*m, where m is the number
+   of columns of bv and nc is the number of constraints.
+
+   Level: developer
+
+.seealso: BVGetBufferVec(), BVSetSizes(), BVGetNumConstraints()
+@*/
+PetscErrorCode BVSetBufferVec(BV bv,Vec buffer)
+{
+  PetscErrorCode ierr;
+  PetscInt       ld,n;
+  PetscMPIInt    size;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(bv,BV_CLASSID,1);
+  PetscValidHeaderSpecific(buffer,VEC_CLASSID,2);
+  BVCheckSizes(bv,1);
+  ierr = VecGetSize(buffer,&n);CHKERRQ(ierr);
+  ld = bv->m+bv->nc;
+  if (n != ld*bv->m) SETERRQ1(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_SIZ,"Buffer size must be %d",ld*bv->m);
+  ierr = MPI_Comm_size(PetscObjectComm((PetscObject)buffer),&size);CHKERRQ(ierr);
+  if (size>1) SETERRQ(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_WRONG,"Buffer must be a sequential vector");
+  
+  ierr = PetscObjectReference((PetscObject)buffer);CHKERRQ(ierr);
+  ierr = VecDestroy(&bv->buffer);CHKERRQ(ierr);
+  bv->buffer = buffer;
+  ierr = PetscLogObjectParent((PetscObject)bv,(PetscObject)bv->buffer);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "BVGetBufferVec"
+/*@
+   BVGetBufferVec - Obtain the buffer vector associated with the BV object.
+
+   Not Collective
+
+   Input Parameters:
+.  bv - the basis vectors context
+
+   Output Parameter:
+.  buffer - vector
+
+   Notes:
+   The vector is created if not available previously. It is a sequential vector
+   of length (nc+m)*m, where m is the number of columns of bv and nc is the number
+   of constraints.
+
+   Developer Notes:
+   The buffer vector is viewed as a column-major matrix with leading dimension
+   ld=nc+m, and m columns at most. In the most common usage, it has the structure
+.vb
+      | | C |
+      |s|---|
+      | | H |
+.ve
+   where H is an upper Hessenberg matrix of order m x (m-1), C contains coefficients
+   related to orthogonalization against constraints (first nc rows), and s is the
+   first column that contains scratch values computed during Gram-Schmidt
+   orthogonalization. In particular, BVDotColumn() and BVMultColumn() use s to
+   store the coefficients.
+
+   Level: developer
+
+.seealso: BVSetBufferVec(), BVSetSizes(), BVGetNumConstraints(), BVDotColumn(), BVMultColumn()
+@*/
+PetscErrorCode BVGetBufferVec(BV bv,Vec *buffer)
+{
+  PetscErrorCode ierr;
+  PetscInt       ld;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(bv,BV_CLASSID,1);
+  PetscValidPointer(buffer,2);
+  BVCheckSizes(bv,1);
+  if (!bv->buffer) {
+    ld = bv->m+bv->nc;
+    ierr = VecCreate(PETSC_COMM_SELF,&bv->buffer);CHKERRQ(ierr);
+    ierr = VecSetSizes(bv->buffer,PETSC_DECIDE,ld*bv->m);CHKERRQ(ierr);
+    ierr = VecSetType(bv->buffer,((PetscObject)bv->t)->type_name);CHKERRQ(ierr);
+    ierr = PetscLogObjectParent((PetscObject)bv,(PetscObject)bv->buffer);CHKERRQ(ierr);
+  }
+  *buffer = bv->buffer;
   PetscFunctionReturn(0);
 }
 

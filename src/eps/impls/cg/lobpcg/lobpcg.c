@@ -104,7 +104,7 @@ PetscErrorCode EPSSolve_LOBPCG(EPS eps)
 {
   PetscErrorCode ierr;
   EPS_LOBPCG     *ctx = (EPS_LOBPCG*)eps->data;
-  PetscInt       i,j,k,ld,nv,ini,kini,nmat,nc,nconv,locked,guard,its;
+  PetscInt       i,j,k,ld,nv,ini,nmat,nc,nconv,locked,guard,its;
   PetscReal      norm;
   PetscScalar    *eigr;
   PetscBool      breakdown,countc;
@@ -145,14 +145,9 @@ PetscErrorCode EPSSolve_LOBPCG(EPS eps)
   }
 
   /* 2. Apply the constraints to the initial vectors */
-  kini = eps->nini;
-  while (kini<eps->ncv-ctx->bs) { /* Generate more initial vectors if necessary */
-    ierr = BVSetRandomColumn(eps->V,kini);CHKERRQ(ierr);
-    ierr = BVOrthogonalizeColumn(eps->V,kini,NULL,&norm,&breakdown);CHKERRQ(ierr);
-    if (norm>0.0 && !breakdown) {
-      ierr = BVScaleColumn(eps->V,kini,1.0/norm);CHKERRQ(ierr);
-      kini++;
-    }
+  for (k=eps->nini;k<eps->ncv-ctx->bs;k++) { /* Generate more initial vectors if necessary */
+    ierr = BVSetRandomColumn(eps->V,k);CHKERRQ(ierr);
+    ierr = BVOrthonormalizeColumn(eps->V,k,PETSC_TRUE,NULL,NULL);CHKERRQ(ierr);
   }
   nv = ctx->bs;
   ierr = BVSetActiveColumns(eps->V,0,nv);CHKERRQ(ierr);
@@ -246,10 +241,13 @@ PetscErrorCode EPSSolve_LOBPCG(EPS eps)
       ierr = BVSetActiveColumns(Y,nc+locked,nc+locked+nconv);CHKERRQ(ierr);
       ierr = BVCopy(X,Y);CHKERRQ(ierr);
       for (j=0;j<nconv;j++) {
-        ierr = BVOrthogonalizeColumn(Y,nc+locked+j,NULL,&norm,&breakdown);CHKERRQ(ierr);
-        if (norm>0.0 && !breakdown) {
-          ierr = BVScaleColumn(Y,nc+locked+j,1.0/norm);CHKERRQ(ierr);
-        } else SETERRQ(PetscObjectComm((PetscObject)eps),1,"Orthogonalization of constraints failed");
+        ierr = BVOrthonormalizeColumn(Y,nc+locked+j,PETSC_FALSE,&norm,&breakdown);CHKERRQ(ierr);
+        if (norm==0.0 || breakdown) break;
+      }
+      if (j<nconv) {
+        ierr = PetscInfo(eps,"Orthogonalization of constraints failed");CHKERRQ(ierr);
+        eps->reason = EPS_DIVERGED_BREAKDOWN;
+        break;
       }
       ierr = BVSetActiveColumns(Y,0,nc+locked+nconv);CHKERRQ(ierr);
 
