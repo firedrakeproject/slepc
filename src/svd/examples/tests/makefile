@@ -113,7 +113,8 @@ runtest3_2_%:
 runtest4_1: runtest4_1_lanczos runtest4_1_trlanczos runtest4_1_cross runtest4_1_cyclic
 runtest4_1_%:
 	-@${SETTEST}; check=test4_1; svd=$*; \
-	${MPIEXEC} -n 1 ./test4 -svd_type $$svd -svd_ncv 12 -svd_monitor_cancel >> $${test}.tmp 2>&1; \
+	if [ "$$svd" = trlanczos ]; then svd="trlanczos -svd_ncv 12"; fi; \
+	${MPIEXEC} -n 1 ./test4 -svd_type $$svd -svd_monitor_cancel >> $${test}.tmp 2>&1; \
 	${TESTCODE}
 
 runtest4f_1:
