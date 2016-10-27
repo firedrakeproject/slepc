@@ -59,12 +59,12 @@ runex8_1:
 
 runex14_1:
 	-@${SETTEST}; \
-	${MPIEXEC} -n 1 ./ex14 -file ${DATAPATH}/rdb200.petsc -svd_nsv 4 -terse > $${test}.tmp 2>&1;	  \
+	${MPIEXEC} -n 1 ./ex14 -file ${DATAPATH}/rdb200.petsc -svd_nsv 4 -terse > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
 runex14_2:
 	-@${SETTEST}; \
-	${MPIEXEC} -n 1 ./ex14 -file ${DATAPATH}/rdb200.petsc -svd_nsv 2 -svd_type cyclic -svd_cyclic_explicitmatrix -svd_cyclic_st_type sinvert -svd_cyclic_eps_target 12.0 -svd_cyclic_st_ksp_type preonly -svd_cyclic_st_pc_type lu -terse > $${test}.tmp 2>&1;	  \
+	${MPIEXEC} -n 1 ./ex14 -file ${DATAPATH}/rdb200.petsc -svd_nsv 2 -svd_type cyclic -svd_cyclic_explicitmatrix -svd_cyclic_st_type sinvert -svd_cyclic_eps_target 12.0 -svd_cyclic_st_ksp_type preonly -svd_cyclic_st_pc_type lu -terse > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
 runex15_1:
