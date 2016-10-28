@@ -55,7 +55,7 @@ int main(int argc,char **argv)
   PC             pc;
   EPSType        type;
   CTX_FOLD       *ctx;
-  PetscInt       nconv,N,n=10,m,Istart,Iend,II,i,j;
+  PetscInt       nconv,N,n=10,m,nloc,mloc,Istart,Iend,II,i,j;
   PetscReal      *error,*evals,target=0.0,tol;
   PetscScalar    lambda;
   PetscBool      flag,terse,errok;
@@ -92,6 +92,7 @@ int main(int argc,char **argv)
   ierr = MatAssemblyBegin(A,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
   ierr = MatAssemblyEnd(A,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
   ierr = MatCreateVecs(A,&x,NULL);CHKERRQ(ierr);
+  ierr = MatGetLocalSize(A,&nloc,&mloc);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                 Create shell matrix to perform spectrum folding
@@ -101,7 +102,7 @@ int main(int argc,char **argv)
   ctx->target = target;
   ierr = VecDuplicate(x,&ctx->w);CHKERRQ(ierr);
 
-  ierr = MatCreateShell(PETSC_COMM_WORLD,N,N,N,N,ctx,&M);CHKERRQ(ierr);
+  ierr = MatCreateShell(PETSC_COMM_WORLD,nloc,mloc,N,N,ctx,&M);CHKERRQ(ierr);
   ierr = MatSetFromOptions(M);CHKERRQ(ierr);
   ierr = MatShellSetOperation(M,MATOP_MULT,(void(*)())MatMult_Fold);CHKERRQ(ierr);
 
