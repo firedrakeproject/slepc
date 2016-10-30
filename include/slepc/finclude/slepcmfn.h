@@ -30,10 +30,10 @@
       PetscEnum MFN_DIVERGED_BREAKDOWN
       PetscEnum MFN_CONVERGED_ITERATING
 
-      parameter (MFN_CONVERGED_TOL          =  2)
-      parameter (MFN_CONVERGED_ITS          =  3)
-      parameter (MFN_DIVERGED_ITS           = -3)
-      parameter (MFN_DIVERGED_BREAKDOWN     = -4)
+      parameter (MFN_CONVERGED_TOL          =  1)
+      parameter (MFN_CONVERGED_ITS          =  2)
+      parameter (MFN_DIVERGED_ITS           = -1)
+      parameter (MFN_DIVERGED_BREAKDOWN     = -2)
       parameter (MFN_CONVERGED_ITERATING    =  0)
 
 !

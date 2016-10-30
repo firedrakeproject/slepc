@@ -102,11 +102,11 @@ PETSC_EXTERN PetscErrorCode MFNGetOptionsPrefix(MFN,const char*[]);
 .seealso: MFNSolve(), MFNGetConvergedReason(), MFNSetTolerances()
 E*/
 typedef enum {/* converged */
-              MFN_CONVERGED_TOL                =  2,
-              MFN_CONVERGED_ITS                =  3,
+              MFN_CONVERGED_TOL                =  1,
+              MFN_CONVERGED_ITS                =  2,
               /* diverged */
-              MFN_DIVERGED_ITS                 = -3,
-              MFN_DIVERGED_BREAKDOWN           = -4,
+              MFN_DIVERGED_ITS                 = -1,
+              MFN_DIVERGED_BREAKDOWN           = -2,
               MFN_CONVERGED_ITERATING          =  0} MFNConvergedReason;
 PETSC_EXTERN const char *const*MFNConvergedReasons;
 

@@ -23,8 +23,8 @@
 
 static PetscBool MFNPackageInitialized = PETSC_FALSE;
 
-const char *const MFNConvergedReasons_Shifted[] = {"DIVERGED_BREAKDOWN","DIVERGED_ITS","","","CONVERGED_ITERATING","","CONVERGED_TOL","CONVERGED_ITS","MFNConvergedReason","MFN_",0};
-const char *const*MFNConvergedReasons = MFNConvergedReasons_Shifted + 4;
+const char *const MFNConvergedReasons_Shifted[] = {"DIVERGED_BREAKDOWN","DIVERGED_ITS","CONVERGED_ITERATING","CONVERGED_TOL","CONVERGED_ITS","MFNConvergedReason","MFN_",0};
+const char *const*MFNConvergedReasons = MFNConvergedReasons_Shifted + 2;
 
 #undef __FUNCT__
 #define __FUNCT__ "MFNFinalizePackage"

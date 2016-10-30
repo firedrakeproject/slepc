@@ -38,8 +38,7 @@
 .  name     - the monitor option name
 .  help     - message indicating what monitoring is done
 .  manual   - manual page for the monitor
-.  monitor  - the monitor function, whose context is a PetscViewerAndFormat
--  trackall - whether this monitor tracks all eigenvalues or not
+-  monitor  - the monitor function, whose context is a PetscViewerAndFormat
 
    Level: developer
 

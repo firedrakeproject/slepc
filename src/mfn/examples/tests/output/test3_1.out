@@ -38,5 +38,5 @@ BV Object: (myprefix_) 1 MPI processes
   block orthogonalization method: Gram-Schmidt
   doing matmult as a single matrix-matrix product
 myprefix_ Matrix function solve converged due to CONVERGED_TOL; iterations 3
- Finished - converged reason = 2
+ Finished - converged reason = 1
  sqrt(A)*v has norm 2.
