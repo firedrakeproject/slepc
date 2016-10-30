@@ -1,5 +1,16 @@
 /*
-   Include all top-level SLEPc functionality.
+
+   SLEPc matrix equation solver: "krylov"
+
+   Method: ....
+
+   Algorithm:
+
+       ....
+
+   References:
+
+       [1] ...
 
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
@@ -21,9 +32,30 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include <slepcsvd.h>
-#include <slepcpep.h>
-#include <slepcnep.h>
-#include <slepcmfn.h>
-#include <slepclme.h>
+#include <slepc/private/lmeimpl.h>
 
+#undef __FUNCT__
+#define __FUNCT__ "LMESetUp_Krylov"
+PetscErrorCode LMESetUp_Krylov(LME lme)
+{
+  PetscFunctionBegin;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "LMESolve_Krylov"
+PetscErrorCode LMESolve_Krylov(LME lme)
+{
+  PetscFunctionBegin;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "LMECreate_Krylov"
+PETSC_EXTERN PetscErrorCode LMECreate_Krylov(LME lme)
+{
+  PetscFunctionBegin;
+  lme->ops->solve          = LMESolve_Krylov;
+  lme->ops->setup          = LMESetUp_Krylov;
+  PetscFunctionReturn(0);
+}

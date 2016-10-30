@@ -16,19 +16,18 @@
 !  You  should have received a copy of the GNU Lesser General  Public  License
 !  along with SLEPc. If not, see <http://www.gnu.org/licenses/>.
 !  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-!
-!  Single Fortran 90 include file
-!
 
-#include "slepc/finclude/slepcsys.h"
-#include "slepc/finclude/slepcbv.h90"
-#include "slepc/finclude/slepcfn.h90"
-#include "slepc/finclude/slepcds.h90"
-#include "slepc/finclude/slepcrg.h90"
-#include "slepc/finclude/slepcst.h90"
-#include "slepc/finclude/slepceps.h90"
-#include "slepc/finclude/slepcsvd.h90"
-#include "slepc/finclude/slepcpep.h90"
-#include "slepc/finclude/slepcnep.h90"
-#include "slepc/finclude/slepcmfn.h90"
-#include "slepc/finclude/slepclme.h90"
+#define PETSC_USE_FORTRAN_MODULES
+
+        module slepclmedef
+        use slepcsys
+        use slepcbv
+#include <slepc/finclude/slepclme.h>
+#include <slepc/finclude/ftn-custom/slepclmedef.h90>
+        end module
+
+        module slepclme
+        use slepclmedef
+#include <slepc/finclude/slepclme.h90>
+        end module
+

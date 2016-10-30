@@ -1,4 +1,4 @@
-#
+
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #  SLEPc - Scalable Library for Eigenvalue Problem Computations
 #  Copyright (c) 2002-2016, Universitat Politecnica de Valencia, Spain
@@ -18,9 +18,26 @@
 #  along with SLEPc. If not, see <http://www.gnu.org/licenses/>.
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
+#requiresdefine   'PETSC_USING_F90'
+#
+#   Makes Fortran module functions from *.h90 files in include/slepc/finclude
+#
+ALL: buildmod_slepc
+speciallib: buildmod_slepc
+specialfastlib: buildmod_slepc
+SPECIALLIB     = yes
+SPECIALFASTLIB = yes
 
-DIRS     = sys eps svd pep nep mfn lme
 
-LOCDIR   = src/
+CFLAGS     =
+FFLAGS     =
+SOURCEC    =
+SOURCEF    = slepclmemod.F
+SOURCEH    =
+LIBBASE    = libslepclme
+MANSEC     = LME
+LOCDIR     = src/lme/f90-mod/
+CLEANFILES = *.mod
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common
+

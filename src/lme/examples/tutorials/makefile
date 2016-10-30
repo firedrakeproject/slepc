@@ -19,8 +19,18 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-DIRS     = sys eps svd pep nep mfn lme
+CFLAGS     =
+FFLAGS     =
+CPPFLAGS   =
+FPPFLAGS   =
+LOCDIR     = src/lme/examples/tutorials/
+EXAMPLESC  = 
+EXAMPLESF  =
+MANSEC     = LME
 
-LOCDIR   = src/
+TESTEXAMPLES_C = 
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common
+
+#------------------------------------------------------------------------------------
+

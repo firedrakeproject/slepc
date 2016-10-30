@@ -1,3 +1,7 @@
+!
+!  Include file for Fortran use of the LME object in SLEPc
+!
+!
 !  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !  SLEPc - Scalable Library for Eigenvalue Problem Computations
 !  Copyright (c) 2002-2016, Universitat Politecnica de Valencia, Spain
@@ -17,18 +21,25 @@
 !  along with SLEPc. If not, see <http://www.gnu.org/licenses/>.
 !  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !
-!  Single Fortran 90 include file
-!
+#include "slepc/finclude/slepcsysdef.h"
+#include "slepc/finclude/slepclmedef.h"
 
-#include "slepc/finclude/slepcsys.h"
-#include "slepc/finclude/slepcbv.h90"
-#include "slepc/finclude/slepcfn.h90"
-#include "slepc/finclude/slepcds.h90"
-#include "slepc/finclude/slepcrg.h90"
-#include "slepc/finclude/slepcst.h90"
-#include "slepc/finclude/slepceps.h90"
-#include "slepc/finclude/slepcsvd.h90"
-#include "slepc/finclude/slepcpep.h90"
-#include "slepc/finclude/slepcnep.h90"
-#include "slepc/finclude/slepcmfn.h90"
-#include "slepc/finclude/slepclme.h90"
+      PetscEnum LME_CONVERGED_TOL
+      PetscEnum LME_DIVERGED_ITS
+      PetscEnum LME_DIVERGED_BREAKDOWN
+      PetscEnum LME_CONVERGED_ITERATING
+
+      parameter (LME_CONVERGED_TOL          =  1)
+      parameter (LME_DIVERGED_ITS           = -1)
+      parameter (LME_DIVERGED_BREAKDOWN     = -2)
+      parameter (LME_CONVERGED_ITERATING    =  0)
+
+!
+!   Possible arguments to LMEMonitorSet()
+!
+      external LMEMONITORDEFAULT
+      external LMEMONITORLG
+
+!
+!  End of Fortran include file for the LME package in SLEPc
+!

@@ -260,7 +260,8 @@ def main(slepcdir,petscdir,petscdestdir,log=StdoutLogger(), verbose=False):
                ('svd'            , 'eps sys'),
                ('pep'            , 'eps sys'),
                ('nep'            , 'pep eps sys'),
-               ('mfn'            , 'sys')]
+               ('mfn'            , 'sys'),
+               ('lme'            , 'sys')]
     for pkg,deps in pkglist:
       writePackage(f,pkg,deps.split(),mistakes)
     f.write ('''

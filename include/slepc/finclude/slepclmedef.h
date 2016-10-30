@@ -1,3 +1,6 @@
+!
+!  Include file for Fortran use of the LME object in SLEPc
+!
 !  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !  SLEPc - Scalable Library for Eigenvalue Problem Computations
 !  Copyright (c) 2002-2016, Universitat Politecnica de Valencia, Spain
@@ -17,18 +20,21 @@
 !  along with SLEPc. If not, see <http://www.gnu.org/licenses/>.
 !  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !
-!  Single Fortran 90 include file
-!
+#if !defined(__SLEPCLMEDEF_H)
+#define __SLEPCLMEDEF_H
 
-#include "slepc/finclude/slepcsys.h"
-#include "slepc/finclude/slepcbv.h90"
-#include "slepc/finclude/slepcfn.h90"
-#include "slepc/finclude/slepcds.h90"
-#include "slepc/finclude/slepcrg.h90"
-#include "slepc/finclude/slepcst.h90"
-#include "slepc/finclude/slepceps.h90"
-#include "slepc/finclude/slepcsvd.h90"
-#include "slepc/finclude/slepcpep.h90"
-#include "slepc/finclude/slepcnep.h90"
-#include "slepc/finclude/slepcmfn.h90"
-#include "slepc/finclude/slepclme.h90"
+#include "petsc/finclude/petscmatdef.h"
+#include "slepc/finclude/slepcbvdef.h"
+
+#if !defined(PETSC_USE_FORTRAN_DATATYPES)
+#define LME PetscFortranAddr
+#endif
+
+#define LMEType            character*(80)
+#define LMEConvergedReason PetscEnum
+#define LMEProblemType     PetscEnum
+
+#define LMEKRYLOV      'krylov'
+#define LMEEKRYLOV     'ekrylov'
+
+#endif

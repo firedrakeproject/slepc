@@ -19,8 +19,10 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-DIRS     = sys eps svd pep nep mfn lme
+ALL:
 
-LOCDIR   = src/
+LOCDIR   = src/lme/examples/
+DIRS     = tests tutorials
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common
+

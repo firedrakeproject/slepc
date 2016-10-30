@@ -190,6 +190,8 @@ PetscErrorCode SlepcInitialize_DynamicLibraries(void)
     if (!found) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_FILE_OPEN,"Unable to locate SLEPc SVD dynamic library\nYou cannot move the dynamic libraries!");
     ierr = SlepcLoadDynamicLibrary("mfn",&found);CHKERRQ(ierr);
     if (!found) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_FILE_OPEN,"Unable to locate SLEPc MFN dynamic library\nYou cannot move the dynamic libraries!");
+    ierr = SlepcLoadDynamicLibrary("lme",&found);CHKERRQ(ierr);
+    if (!found) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_FILE_OPEN,"Unable to locate SLEPc LME dynamic library\nYou cannot move the dynamic libraries!");
 #endif
   }
 #endif
@@ -205,6 +207,7 @@ PetscErrorCode SlepcInitialize_DynamicLibraries(void)
   ierr = PEPInitializePackage();CHKERRQ(ierr);
   ierr = NEPInitializePackage();CHKERRQ(ierr);
   ierr = MFNInitializePackage();CHKERRQ(ierr);
+  ierr = LMEInitializePackage();CHKERRQ(ierr);
 #else
   ierr = 0;  /* avoid compiler warning */
 #endif

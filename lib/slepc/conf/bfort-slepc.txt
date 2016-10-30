@@ -20,6 +20,8 @@ native EPSCISSQuadRule
 native EPSCISSExtraction
 native FNCombineType
 native MFNConvergedReason
+native LMEProblemType
+native LMEConvergedReason
 native NEPWhich
 native NEPErrorType
 native NEPRefine
@@ -50,6 +52,7 @@ nativeptr PEP
 nativeptr NEP
 nativeptr SVD
 nativeptr MFN
+nativeptr LME
 nativeptr ST
 nativeptr BV
 nativeptr FN

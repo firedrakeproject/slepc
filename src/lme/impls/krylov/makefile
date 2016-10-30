@@ -19,8 +19,18 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-DIRS     = sys eps svd pep nep mfn lme
+ALL: lib
 
-LOCDIR   = src/
+CFLAGS   =
+FFLAGS   =
+SOURCEC  = lmekrylov.c
+SOURCEF  =
+SOURCEH  =
+LIBBASE  = libslepclme
+DIRS     =
+MANSEC   = LME
+LOCDIR   = src/lme/impls/krylov/
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common
+
+

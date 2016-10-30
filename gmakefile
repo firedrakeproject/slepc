@@ -6,7 +6,7 @@ OBJDIR := $(PETSC_ARCH)/obj
 MODDIR := $(PETSC_ARCH)/include
 LIBDIR := $(abspath $(PETSC_ARCH)/lib)
 
-pkgs := sys eps svd pep nep mfn
+pkgs := sys eps svd pep nep mfn lme
 
 # $(call SONAME_FUNCTION,libfoo,abiversion)
 SONAME_FUNCTION ?= $(1).$(SL_LINKER_SUFFIX).$(2)
@@ -131,6 +131,7 @@ $(call libname_function,$(LIBDIR)/libslepcsvd) : libdep := $(call libpkg,eps sys
 $(call libname_function,$(LIBDIR)/libslepcpep) : libdep := $(call libpkg,eps sys)
 $(call libname_function,$(LIBDIR)/libslepcnep) : libdep := $(call libpkg,pep eps sys)
 $(call libname_function,$(LIBDIR)/libslepcmfn) : libdep := $(call libpkg,sys)
+$(call libname_function,$(LIBDIR)/libslepclme) : libdep := $(call libpkg,sys)
 
 # The package libraries technically depend on each other (not just in an order-only way), but only
 # ABI changes like new or removed symbols requires relinking the dependent libraries.  ABI should
@@ -173,11 +174,12 @@ else
 endif
 
 # Hack: manual dependencies on object files
-$(OBJDIR)/src/mfn/f90-mod/slepcmfnmod.o   : $(OBJDIR)/src/sys/f90-mod/slepcsysmod.o
 $(OBJDIR)/src/eps/f90-mod/slepcepsmod.o   : $(OBJDIR)/src/sys/f90-mod/slepcsysmod.o
 $(OBJDIR)/src/pep/f90-mod/slepcpepmod.o   : $(OBJDIR)/src/eps/f90-mod/slepcepsmod.o
 $(OBJDIR)/src/nep/f90-mod/slepcnepmod.o   : $(OBJDIR)/src/pep/f90-mod/slepcpepmod.o
 $(OBJDIR)/src/svd/f90-mod/slepcsvdmod.o   : $(OBJDIR)/src/eps/f90-mod/slepcepsmod.o
+$(OBJDIR)/src/mfn/f90-mod/slepcmfnmod.o   : $(OBJDIR)/src/sys/f90-mod/slepcsysmod.o
+$(OBJDIR)/src/lme/f90-mod/slepclmemod.o   : $(OBJDIR)/src/sys/f90-mod/slepcsysmod.o
 
 # all sources should get recompiled when slepcvariables changes (i.e when configure is rerun or when slepcvariables is manually edited.)
 $(srcs.o) : $(slepcvariables)

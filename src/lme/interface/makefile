@@ -19,8 +19,18 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-DIRS     = sys eps svd pep nep mfn lme
+ALL: lib
 
-LOCDIR   = src/
+CFLAGS   =
+FFLAGS   =
+SOURCEC  = lmemon.c lmebasic.c lmeregis.c lmeopts.c lmesetup.c lmesolve.c dlregislme.c
+SOURCEF  =
+SOURCEH  =
+LIBBASE  = libslepclme
+DIRS     =
+MANSEC   = LME
+LOCDIR   = src/lme/interface/
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common
+
+

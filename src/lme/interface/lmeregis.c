@@ -1,6 +1,4 @@
 /*
-   Include all top-level SLEPc functionality.
-
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
    Copyright (c) 2002-2016, Universitat Politecnica de Valencia, Spain
@@ -21,9 +19,29 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include <slepcsvd.h>
-#include <slepcpep.h>
-#include <slepcnep.h>
-#include <slepcmfn.h>
-#include <slepclme.h>
+#include <slepc/private/lmeimpl.h>  /*I "slepclme.h" I*/
+
+PETSC_EXTERN PetscErrorCode LMECreate_Krylov(LME);
+
+#undef __FUNCT__
+#define __FUNCT__ "LMERegisterAll"
+/*@C
+  LMERegisterAll - Registers all the matrix functions in the LME package.
+
+  Not Collective
+
+  Level: advanced
+
+.seealso:  LMERegister()
+@*/
+PetscErrorCode LMERegisterAll(void)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  if (LMERegisterAllCalled) PetscFunctionReturn(0);
+  LMERegisterAllCalled = PETSC_TRUE;
+  ierr = LMERegister(LMEKRYLOV,LMECreate_Krylov);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
 

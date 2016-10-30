@@ -1,3 +1,4 @@
+!
 !  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !  SLEPc - Scalable Library for Eigenvalue Problem Computations
 !  Copyright (c) 2002-2016, Universitat Politecnica de Valencia, Spain
@@ -17,18 +18,14 @@
 !  along with SLEPc. If not, see <http://www.gnu.org/licenses/>.
 !  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !
-!  Single Fortran 90 include file
 !
+!
+!  Additional LME include file for use of SLEPc with Fortran 90/HPF
+!
+#include "slepc/finclude/ftn-custom/slepclme.h90"
+#if defined(PETSC_USE_FORTRAN_INTERFACES)
+      interface
+#include "slepc/finclude/ftn-auto/slepclme.h90"
+      end interface
+#endif
 
-#include "slepc/finclude/slepcsys.h"
-#include "slepc/finclude/slepcbv.h90"
-#include "slepc/finclude/slepcfn.h90"
-#include "slepc/finclude/slepcds.h90"
-#include "slepc/finclude/slepcrg.h90"
-#include "slepc/finclude/slepcst.h90"
-#include "slepc/finclude/slepceps.h90"
-#include "slepc/finclude/slepcsvd.h90"
-#include "slepc/finclude/slepcpep.h90"
-#include "slepc/finclude/slepcnep.h90"
-#include "slepc/finclude/slepcmfn.h90"
-#include "slepc/finclude/slepclme.h90"
