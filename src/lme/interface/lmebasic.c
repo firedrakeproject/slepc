@@ -61,6 +61,14 @@ PetscErrorCode LMEView(LME lme,PetscViewer viewer)
 {
   PetscErrorCode ierr;
   PetscBool      isascii;
+  const char     *eqname[] = {
+                   "continuous-time Lyapunov",
+                   "continuous-time Sylvester",
+                   "generalized Lyapunov",
+                   "generalized Sylvester",
+                   "Stein",
+                   "discrete-time Lyapunov"
+  };
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(lme,LME_CLASSID,1);
@@ -76,6 +84,7 @@ PetscErrorCode LMEView(LME lme,PetscViewer viewer)
       ierr = (*lme->ops->view)(lme,viewer);CHKERRQ(ierr);
       ierr = PetscViewerASCIIPopTab(viewer);CHKERRQ(ierr);
     }
+    ierr = PetscViewerASCIIPrintf(viewer,"  equation type: %s\n",eqname[lme->problem_type]);CHKERRQ(ierr);
     ierr = PetscViewerASCIIPrintf(viewer,"  number of column vectors (ncv): %D\n",lme->ncv);CHKERRQ(ierr);
     ierr = PetscViewerASCIIPrintf(viewer,"  maximum number of iterations: %D\n",lme->max_it);CHKERRQ(ierr);
     ierr = PetscViewerASCIIPrintf(viewer,"  tolerance: %g\n",(double)lme->tol);CHKERRQ(ierr);
@@ -198,6 +207,7 @@ PetscErrorCode LMECreate(MPI_Comm comm,LME *outlme)
   lme->B               = NULL;
   lme->D               = NULL;
   lme->E               = NULL;
+  lme->problem_type    = LME_LYAPUNOV;
   lme->max_it          = 0;
   lme->ncv             = 0;
   lme->tol             = PETSC_DEFAULT;
@@ -360,6 +370,9 @@ PetscErrorCode LMEReset(LME lme)
   PetscValidHeaderSpecific(lme,LME_CLASSID,1);
   if (lme->ops->reset) { ierr = (lme->ops->reset)(lme);CHKERRQ(ierr); }
   ierr = MatDestroy(&lme->A);CHKERRQ(ierr);
+  ierr = MatDestroy(&lme->B);CHKERRQ(ierr);
+  ierr = MatDestroy(&lme->D);CHKERRQ(ierr);
+  ierr = MatDestroy(&lme->E);CHKERRQ(ierr);
   ierr = BVDestroy(&lme->V);CHKERRQ(ierr);
   ierr = VecDestroyVecs(lme->nwork,&lme->work);CHKERRQ(ierr);
   lme->nwork = 0;

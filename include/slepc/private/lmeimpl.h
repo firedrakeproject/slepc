@@ -53,6 +53,7 @@ struct _p_LME {
   PETSCHEADER(struct _LMEOps);
   /*------------------------- User parameters ---------------------------*/
   Mat            A,B,D,E;        /* the coefficient matrices */
+  LMEProblemType problem_type;   /* which kind of equation to be solved */
   PetscInt       max_it;         /* maximum number of iterations */
   PetscInt       ncv;            /* number of basis vectors */
   PetscReal      tol;            /* tolerance */

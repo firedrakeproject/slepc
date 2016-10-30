@@ -57,18 +57,20 @@ PETSC_EXTERN PetscClassId LME_CLASSID;
 
 .seealso: LMESetProblemType(), LMEGetProblemType()
 E*/
-typedef enum { LME_GENERAL,
-               LME_LYAPUNOV,
+typedef enum { LME_LYAPUNOV,
                LME_SYLVESTER,
+               LME_GEN_LYAPUNOV,
+               LME_GEN_SYLVESTER,
                LME_STEIN,
-               LME_DT_LYAPUNOV,
-               LME_GEN_LYAPUNOV } LMEProblemType;
+               LME_DT_LYAPUNOV } LMEProblemType;
 
 PETSC_EXTERN PetscErrorCode LMECreate(MPI_Comm,LME *);
 PETSC_EXTERN PetscErrorCode LMEDestroy(LME*);
 PETSC_EXTERN PetscErrorCode LMEReset(LME);
 PETSC_EXTERN PetscErrorCode LMESetType(LME,LMEType);
 PETSC_EXTERN PetscErrorCode LMEGetType(LME,LMEType*);
+PETSC_EXTERN PetscErrorCode LMESetProblemType(LME,LMEProblemType);
+PETSC_EXTERN PetscErrorCode LMEGetProblemType(LME,LMEProblemType*);
 PETSC_EXTERN PetscErrorCode LMESetCoefficients(LME,Mat,Mat,Mat,Mat);
 PETSC_EXTERN PetscErrorCode LMEGetCoefficients(LME,Mat*,Mat*,Mat*,Mat*);
 PETSC_EXTERN PetscErrorCode LMESetFromOptions(LME);

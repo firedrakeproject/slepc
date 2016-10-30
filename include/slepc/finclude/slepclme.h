@@ -34,6 +34,20 @@
       parameter (LME_DIVERGED_BREAKDOWN     = -2)
       parameter (LME_CONVERGED_ITERATING    =  0)
 
+      PetscEnum LME_LYAPUNOV
+      PetscEnum LME_SYLVESTER
+      PetscEnum LME_GEN_LYAPUNOV
+      PetscEnum LME_GEN_SYLVESTER
+      PetscEnum LME_STEIN
+      PetscEnum LME_DT_LYAPUNOV
+
+      parameter (LME_LYAPUNOV               =  0)
+      parameter (LME_SYLVESTER              =  1)
+      parameter (LME_GEN_LYAPUNOV           =  2)
+      parameter (LME_GEN_SYLVESTER          =  3)
+      parameter (LME_STEIN                  =  4)
+      parameter (LME_DT_LYAPUNOV            =  5)
+
 !
 !   Possible arguments to LMEMonitorSet()
 !
