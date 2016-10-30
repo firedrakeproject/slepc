@@ -276,6 +276,157 @@ PetscErrorCode LMEGetCoefficients(LME lme,Mat *A,Mat *B,Mat *D,Mat *E)
 }
 
 #undef __FUNCT__
+#define __FUNCT__ "LMESetRHS"
+/*@
+   LMESetRHS - Sets the right-hand side of the matrix equation, in factored form.
+
+   Collective on LME and BV
+
+   Input Parameters:
++  lme - the matrix function context
+.  C1  - first factor
+-  C2  - second factor
+
+   Notes:
+   The matrix equation takes the general form A*X*E+D*X*B=C, where matrix C is
+   given with this function, in factored form C = C1*C2'.
+
+   In equation types that require C to be symmetric, such as Lyapunov, C2 can
+   be set to NULL (or to C1).
+
+   Level: beginner
+
+.seealso: LMESetSolution(), LMESetProblemType()
+@*/
+PetscErrorCode LMESetRHS(LME lme,BV C1,BV C2)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(lme,LME_CLASSID,1);
+  PetscValidHeaderSpecific(C1,BV_CLASSID,2);
+  PetscCheckSameComm(lme,1,C1,2);
+  if (C2) {
+    PetscValidHeaderSpecific(C2,BV_CLASSID,3);
+    PetscCheckSameComm(lme,1,C2,3);
+  }
+
+  ierr = BVDestroy(&lme->C1);CHKERRQ(ierr);
+  ierr = BVDestroy(&lme->C2);CHKERRQ(ierr);
+  ierr = PetscObjectReference((PetscObject)C1);CHKERRQ(ierr);
+  lme->C1 = C1;
+  if (C2) {
+    ierr = PetscObjectReference((PetscObject)C2);CHKERRQ(ierr);
+    lme->C2 = C2;
+  }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "LMEGetRHS"
+/*@
+   LMEGetRHS - Gets the right-hand side of the matrix equation, in factored form.
+
+   Collective on LME and BV
+
+   Input Parameter:
+.  lme - the LME context
+
+   Output Parameters:
++  C1  - first factor
+-  C2  - second factor
+
+   Level: intermediate
+
+.seealso: LMESolve(), LMESetRHS()
+@*/
+PetscErrorCode LMEGetRHS(LME lme,BV *C1,BV *C2)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(lme,LME_CLASSID,1);
+  if (C1) *C1 = lme->C1;
+  if (C2) *C2 = lme->C2;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "LMESetSolution"
+/*@
+   LMESetSolution - Sets the placeholder for the solution of the matrix
+   equation, in factored form.
+
+   Collective on LME and BV
+
+   Input Parameters:
++  lme - the matrix function context
+.  X1  - first factor
+-  X2  - second factor
+
+   Notes:
+   The matrix equation takes the general form A*X*E+D*X*B=C, where the solution
+   matrix is of low rank and is written in factored form X = X1*X2'. This
+   function provides the BV objects required to store X1 and X2, which will
+   be computed during LMESolve().
+
+   In equation types whose solution X is symmetric, such as Lyapunov, X2 can
+   be set to NULL (or to X1).
+
+   Level: beginner
+
+.seealso: LMESetRHS(), LMESetProblemType()
+@*/
+PetscErrorCode LMESetSolution(LME lme,BV X1,BV X2)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(lme,LME_CLASSID,1);
+  PetscValidHeaderSpecific(X1,BV_CLASSID,2);
+  PetscCheckSameComm(lme,1,X1,2);
+  if (X2) {
+    PetscValidHeaderSpecific(X2,BV_CLASSID,3);
+    PetscCheckSameComm(lme,1,X2,3);
+  }
+
+  ierr = BVDestroy(&lme->X1);CHKERRQ(ierr);
+  ierr = BVDestroy(&lme->X2);CHKERRQ(ierr);
+  ierr = PetscObjectReference((PetscObject)X1);CHKERRQ(ierr);
+  lme->X1 = X1;
+  if (X2) {
+    ierr = PetscObjectReference((PetscObject)X2);CHKERRQ(ierr);
+    lme->X2 = X2;
+  }
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "LMEGetSolution"
+/*@
+   LMEGetSolution - Gets the solution of the matrix equation, in factored form.
+
+   Collective on LME and BV
+
+   Input Parameter:
+.  lme - the LME context
+
+   Output Parameters:
++  X1  - first factor
+-  X2  - second factor
+
+   Level: intermediate
+
+.seealso: LMESolve(), LMESetSolution()
+@*/
+PetscErrorCode LMEGetSolution(LME lme,BV *X1,BV *X2)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(lme,LME_CLASSID,1);
+  if (X1) *X1 = lme->X1;
+  if (X2) *X2 = lme->X2;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
 #define __FUNCT__ "LMEAllocateSolution"
 /*@
    LMEAllocateSolution - Allocate memory storage for common variables such

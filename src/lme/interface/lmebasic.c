@@ -207,6 +207,10 @@ PetscErrorCode LMECreate(MPI_Comm comm,LME *outlme)
   lme->B               = NULL;
   lme->D               = NULL;
   lme->E               = NULL;
+  lme->C1              = NULL;
+  lme->C2              = NULL;
+  lme->X1              = NULL;
+  lme->X2              = NULL;
   lme->problem_type    = LME_LYAPUNOV;
   lme->max_it          = 0;
   lme->ncv             = 0;
@@ -373,6 +377,10 @@ PetscErrorCode LMEReset(LME lme)
   ierr = MatDestroy(&lme->B);CHKERRQ(ierr);
   ierr = MatDestroy(&lme->D);CHKERRQ(ierr);
   ierr = MatDestroy(&lme->E);CHKERRQ(ierr);
+  ierr = BVDestroy(&lme->C1);CHKERRQ(ierr);
+  ierr = BVDestroy(&lme->C2);CHKERRQ(ierr);
+  ierr = BVDestroy(&lme->X1);CHKERRQ(ierr);
+  ierr = BVDestroy(&lme->X2);CHKERRQ(ierr);
   ierr = BVDestroy(&lme->V);CHKERRQ(ierr);
   ierr = VecDestroyVecs(lme->nwork,&lme->work);CHKERRQ(ierr);
   lme->nwork = 0;
