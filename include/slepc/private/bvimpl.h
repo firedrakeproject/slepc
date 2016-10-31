@@ -123,7 +123,7 @@ PETSC_STATIC_INLINE PetscErrorCode BV_SafeSqrt(BV bv,PetscScalar alpha,PetscReal
     ierr = PetscInfo(bv,"Zero norm, either the vector is zero or a semi-inner product is being used\n");CHKERRQ(ierr);
   }
 #if defined(PETSC_USE_COMPLEX)
-  if (PetscAbsReal(PetscImaginaryPart(alpha))/absal>PETSC_MACHINE_EPSILON) SETERRQ(PetscObjectComm((PetscObject)bv),1,"The inner product is not well defined: nonzero imaginary part");
+  if (PetscAbsReal(PetscImaginaryPart(alpha))>PETSC_MACHINE_EPSILON && PetscAbsReal(PetscImaginaryPart(alpha))/absal>100*PETSC_MACHINE_EPSILON) SETERRQ1(PetscObjectComm((PetscObject)bv),1,"The inner product is not well defined: nonzero imaginary part %g",PetscImaginaryPart(alpha));
 #endif
   if (bv->indef) {
     *res = (realp<0.0)? -PetscSqrtReal(-realp): PetscSqrtReal(realp);
