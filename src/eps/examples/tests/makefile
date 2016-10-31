@@ -55,13 +55,13 @@ TESTEXAMPLES_C_NOTSINGLE           = test1.PETSc runtest1_1 runtest1_3 runtest1_
                                      test12.PETSc runtest12_1 test12.rm \
                                      test16.PETSc runtest16_1 test16.rm \
                                      test17.PETSc runtest17_1 test17.rm \
+                                     test18.PETSc runtest18_1 test18.rm \
                                      test24.PETSc runtest24_1 test24.rm \
                                      test27.PETSc runtest27_1 test27.rm
 TESTEXAMPLES_C_DATAFILE            = test25.PETSc runtest25_1 test25.rm \
                                      test26.PETSc runtest26_1 test26.rm
 TESTEXAMPLES_C_NOCOMPLEX_NOTSINGLE = test1.PETSc runtest1_2 test1.rm \
                                      test9.PETSc runtest9_5 test9.rm \
-                                     test18.PETSc runtest18_1 test18.rm \
                                      test22.PETSc runtest22_1 runtest22_2 test22.rm \
                                      test23.PETSc runtest23_1 test23.rm
 TESTEXAMPLES_C_DOUBLE              = test5.PETSc runtest5_1 test5.rm
