@@ -62,6 +62,7 @@ TESTEXAMPLES_C_DATAFILE            = test25.PETSc runtest25_1 test25.rm \
                                      test26.PETSc runtest26_1 test26.rm
 TESTEXAMPLES_C_NOCOMPLEX_NOTSINGLE = test1.PETSc runtest1_2 test1.rm \
                                      test9.PETSc runtest9_5 test9.rm \
+                                     test18.PETSc runtest18_1_gd runtest18_1_jd test18.rm \
                                      test22.PETSc runtest22_1 runtest22_2 test22.rm \
                                      test23.PETSc runtest23_1 test23.rm
 TESTEXAMPLES_C_DOUBLE              = test5.PETSc runtest5_1 test5.rm
@@ -537,7 +538,7 @@ runtest17f_1:
 	${MPIEXEC} -n 2 ./test17f > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
-runtest18_1: runtest18_1_krylovschur runtest18_1_krylovschur_gnhep runtest18_1_gd runtest18_1_jd
+runtest18_1: runtest18_1_krylovschur runtest18_1_krylovschur_gnhep
 runtest18_1_%:
 	-@${SETTEST}; check=test18_1; eps=$*; \
 	if [ "$$eps" = krylovschur ]; then eps="krylovschur -st_type sinvert -eps_krylovschur_restart .3"; \
