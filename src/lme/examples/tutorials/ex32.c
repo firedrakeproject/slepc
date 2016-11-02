@@ -112,7 +112,7 @@ int main(int argc,char **argv)
 
   /*
      Set the matrix coefficients, the right-hand side, and the solution.
-     In this case, it is a Lyapunov equation A*X+X*A'=C where both
+     In this case, it is a Lyapunov equation A*X+X*A'=-C where both
      C and X are symmetric, so they are given as C=C1*C1', X=X1*X1'
   */
   ierr = LMESetCoefficients(lme,A,NULL,NULL,NULL);CHKERRQ(ierr);
@@ -130,7 +130,7 @@ int main(int argc,char **argv)
   ierr = LMESetFromOptions(lme);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-                   Solve the matrix equation, A*X+X*A'=C
+                   Solve the matrix equation, A*X+X*A'=-C
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
   ierr = LMESolve(lme);CHKERRQ(ierr);

@@ -107,10 +107,10 @@ PetscErrorCode LMESetFromOptions(LME lme)
     if (flg) { ierr = LMESetProblemType(lme,LME_GEN_LYAPUNOV);CHKERRQ(ierr); }
     ierr = PetscOptionsBoolGroup("-lme_gen_sylvester","Generalized Sylvester equation","LMESetProblemType",&flg);CHKERRQ(ierr);
     if (flg) { ierr = LMESetProblemType(lme,LME_GEN_SYLVESTER);CHKERRQ(ierr); }
-    ierr = PetscOptionsBoolGroup("-lme_stein","Stein equation","LMESetProblemType",&flg);CHKERRQ(ierr);
-    if (flg) { ierr = LMESetProblemType(lme,LME_STEIN);CHKERRQ(ierr); }
-    ierr = PetscOptionsBoolGroupEnd("-lme_dt_lyapunov","Discrete-time Lyapunov equation","LMESetProblemType",&flg);CHKERRQ(ierr);
+    ierr = PetscOptionsBoolGroup("-lme_dt_lyapunov","Discrete-time Lyapunov equation","LMESetProblemType",&flg);CHKERRQ(ierr);
     if (flg) { ierr = LMESetProblemType(lme,LME_DT_LYAPUNOV);CHKERRQ(ierr); }
+    ierr = PetscOptionsBoolGroupEnd("-lme_stein","Stein equation","LMESetProblemType",&flg);CHKERRQ(ierr);
+    if (flg) { ierr = LMESetProblemType(lme,LME_STEIN);CHKERRQ(ierr); }
 
     i = lme->max_it;
     ierr = PetscOptionsInt("-lme_max_it","Maximum number of iterations","LMESetTolerances",lme->max_it,&i,&flg1);CHKERRQ(ierr);
@@ -171,12 +171,12 @@ PetscErrorCode LMESetFromOptions(LME lme)
 -  type - a known type of matrix equation
 
    Options Database Keys:
-+  -lme_lyapunov - continuous-time Lyapunov equation A*X+X*A'=C
++  -lme_lyapunov - continuous-time Lyapunov equation A*X+X*A'=-C
 .  -lme_sylvester - continuous-time Sylvester equation A*X+X*B=C
-.  -lme_gen_lyapunov - generalized Lyapunov equation A*X*D'+D*X*A'=C
+.  -lme_gen_lyapunov - generalized Lyapunov equation A*X*D'+D*X*A'=-C
 .  -lme_gen_sylvester - generalized Sylvester equation A*X*E+D*X*B=C
-.  -lme_stein - Stein equation A*X*E+X=C
--  -lme_dt_lyapunov - discrete-time Lyapunov equation A*X*A'-X=C
+.  -lme_dt_lyapunov - discrete-time Lyapunov equation A*X*A'-X=-C
+-  -lme_stein - Stein equation A*X*E+X=C
 
    Notes:
    The coefficient matrices A, B, D, E must be provided via LMESetCoefficients(),
@@ -185,12 +185,12 @@ PetscErrorCode LMESetFromOptions(LME lme)
 .vb
                             equation              A    B    D    E
                           -----------------      ---  ---  ---  ---
-       LME_LYAPUNOV        A*X+X*A'=C            yes (A-t)  -    -
+       LME_LYAPUNOV        A*X+X*A'=-C           yes (A-t)  -    -
        LME_SYLVESTER       A*X+X*B=C             yes  yes   -    -
-       LME_GEN_LYAPUNOV    A*X*D'+D*X*A'=C       yes (A-t) yes (D-t)
+       LME_GEN_LYAPUNOV    A*X*D'+D*X*A'=-C      yes (A-t) yes (D-t)
        LME_GEN_SYLVESTER   A*X*E+D*X*B=C         yes  yes  yes  yes
+       LME_DT_LYAPUNOV     A*X*A'-X=-C           yes   -    -  (A-t)
        LME_STEIN           A*X*E+X=C             yes   -    -   yes
-       LME_DT_LYAPUNOV     A*X*A'-X=C            yes   -    -  (A-t)
 .ve
 
    In the above table, the notation (A-t) means that this matrix need
@@ -216,8 +216,8 @@ PetscErrorCode LMESetProblemType(LME lme,LMEProblemType type)
     case LME_SYLVESTER:
     case LME_GEN_LYAPUNOV:
     case LME_GEN_SYLVESTER:
-    case LME_STEIN:
     case LME_DT_LYAPUNOV:
+    case LME_STEIN:
       break;
     default:
       SETERRQ(PetscObjectComm((PetscObject)lme),PETSC_ERR_ARG_WRONG,"Unknown matrix equation type");

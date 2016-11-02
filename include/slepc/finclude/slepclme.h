@@ -38,15 +38,15 @@
       PetscEnum LME_SYLVESTER
       PetscEnum LME_GEN_LYAPUNOV
       PetscEnum LME_GEN_SYLVESTER
-      PetscEnum LME_STEIN
       PetscEnum LME_DT_LYAPUNOV
+      PetscEnum LME_STEIN
 
       parameter (LME_LYAPUNOV               =  0)
       parameter (LME_SYLVESTER              =  1)
       parameter (LME_GEN_LYAPUNOV           =  2)
       parameter (LME_GEN_SYLVESTER          =  3)
-      parameter (LME_STEIN                  =  4)
-      parameter (LME_DT_LYAPUNOV            =  5)
+      parameter (LME_DT_LYAPUNOV            =  4)
+      parameter (LME_STEIN                  =  5)
 
 !
 !   Possible arguments to LMEMonitorSet()

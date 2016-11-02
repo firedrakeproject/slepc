@@ -140,11 +140,11 @@ PetscErrorCode LMESetUp(LME lme)
     case LME_GEN_SYLVESTER:
       ierr = LMESetUp_Gen_Sylvester(lme);CHKERRQ(ierr);
       break;
-    case LME_STEIN:
-      ierr = LMESetUp_Stein(lme);CHKERRQ(ierr);
-      break;
     case LME_DT_LYAPUNOV:
       ierr = LMESetUp_DT_Lyapunov(lme);CHKERRQ(ierr);
+      break;
+    case LME_STEIN:
+      ierr = LMESetUp_Stein(lme);CHKERRQ(ierr);
       break;
   }
 
