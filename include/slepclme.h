@@ -63,6 +63,7 @@ typedef enum { LME_LYAPUNOV,
                LME_GEN_SYLVESTER,
                LME_DT_LYAPUNOV ,
                LME_STEIN} LMEProblemType;
+PETSC_EXTERN const char *LMEProblemTypes[];
 
 PETSC_EXTERN PetscErrorCode LMECreate(MPI_Comm,LME *);
 PETSC_EXTERN PetscErrorCode LMEDestroy(LME*);

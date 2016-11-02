@@ -55,7 +55,7 @@ PetscErrorCode LMESolve_Krylov(LME lme)
 PETSC_EXTERN PetscErrorCode LMECreate_Krylov(LME lme)
 {
   PetscFunctionBegin;
-  lme->ops->solve          = LMESolve_Krylov;
-  lme->ops->setup          = LMESetUp_Krylov;
+  lme->ops->solve[LME_LYAPUNOV]      = LMESolve_Krylov;
+  lme->ops->setup                    = LMESetUp_Krylov;
   PetscFunctionReturn(0);
 }

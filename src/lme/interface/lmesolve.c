@@ -63,8 +63,9 @@ PetscErrorCode LMESolve(LME lme)
   ierr = LMEViewFromOptions(lme,NULL,"-lme_view_pre");CHKERRQ(ierr);
 
   /* call solver */
+  if (!lme->ops->solve[lme->problem_type]) SETERRQ1(PetscObjectComm((PetscObject)lme),PETSC_ERR_SUP,"The specified solver does not support equation type %s",LMEProblemTypes[lme->problem_type]);
   ierr = PetscLogEventBegin(LME_Solve,lme,0,0,0);CHKERRQ(ierr);
-  ierr = (*lme->ops->solve)(lme);CHKERRQ(ierr);
+  ierr = (*lme->ops->solve[lme->problem_type])(lme);CHKERRQ(ierr);
   ierr = PetscLogEventEnd(LME_Solve,lme,0,0,0);CHKERRQ(ierr);
 
   if (!lme->reason) SETERRQ(PetscObjectComm((PetscObject)lme),PETSC_ERR_PLIB,"Internal error, solver returned without setting converged reason");

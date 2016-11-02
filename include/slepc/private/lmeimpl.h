@@ -32,7 +32,7 @@ PETSC_EXTERN PetscLogEvent LME_SetUp, LME_Solve;
 typedef struct _LMEOps *LMEOps;
 
 struct _LMEOps {
-  PetscErrorCode (*solve)(LME);
+  PetscErrorCode (*solve[sizeof(LMEProblemType)])(LME);
   PetscErrorCode (*setup)(LME);
   PetscErrorCode (*setfromoptions)(PetscOptionItems*,LME);
   PetscErrorCode (*publishoptions)(LME);
