@@ -37,7 +37,7 @@ PetscErrorCode SlepcMatDenseSqrt(PetscBLASInt n,PetscScalar *T,PetscBLASInt ld)
   SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"TRSYL - Lapack routine unavailable");
 #else
   PetscScalar  one=1.0,mone=-1.0;
-  PetscReal    done=1.0;
+  PetscReal    scal;
   PetscBLASInt i,j,si,sj,r,ione=1,info;
 #if !defined(PETSC_USE_COMPLEX)
   PetscReal    alpha,theta,mu,mu2;
@@ -79,8 +79,9 @@ PetscErrorCode SlepcMatDenseSqrt(PetscBLASInt n,PetscScalar *T,PetscBLASInt ld)
       /* solve Sylvester equation of order si x sj */
       r = j-i-si;
       if (r) PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&si,&sj,&r,&mone,T+i+(i+si)*ld,&ld,T+i+si+j*ld,&ld,&one,T+i+j*ld,&ld));
-      PetscStackCallBLAS("LAPACKtrsyl",LAPACKtrsyl_("N","N",&ione,&si,&sj,T+i+i*ld,&ld,T+j+j*ld,&ld,T+i+j*ld,&ld,&done,&info));
+      PetscStackCallBLAS("LAPACKtrsyl",LAPACKtrsyl_("N","N",&ione,&si,&sj,T+i+i*ld,&ld,T+j+j*ld,&ld,T+i+j*ld,&ld,&scal,&info));
       if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xTRSYL %d",info);
+      if (scal!=1.0) SETERRQ1(PETSC_COMM_SELF,1,"Current implementation cannot handle scale factor %g",scal);
     }
     if (sj==2) j++;
   }
@@ -107,7 +108,7 @@ PetscErrorCode SlepcSchurParlettSqrt(PetscBLASInt n,PetscScalar *T,PetscBLASInt 
   PetscBLASInt   i,j,k,r,ione=1,sdim,lwork,*s,*p,info,bs=BLOCKSIZE;
   PetscScalar    *wr,*W,*Q,*work,one=1.0,zero=0.0,mone=-1.0;
   PetscInt       m,nblk;
-  PetscReal      done=1.0;
+  PetscReal      scal;
 #if defined(PETSC_USE_COMPLEX)
   PetscReal      *rwork;
 #else
@@ -152,8 +153,9 @@ PetscErrorCode SlepcSchurParlettSqrt(PetscBLASInt n,PetscScalar *T,PetscBLASInt 
       /* solve Sylvester equation for block (i,j) */
       r = p[j]-p[i]-s[i];
       if (r) PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",s+i,s+j,&r,&mone,T+p[i]+(p[i]+s[i])*ld,&ld,T+p[i]+s[i]+p[j]*ld,&ld,&one,T+p[i]+p[j]*ld,&ld));
-      PetscStackCallBLAS("LAPACKtrsyl",LAPACKtrsyl_("N","N",&ione,s+i,s+j,T+p[i]+p[i]*ld,&ld,T+p[j]+p[j]*ld,&ld,T+p[i]+p[j]*ld,&ld,&done,&info));
+      PetscStackCallBLAS("LAPACKtrsyl",LAPACKtrsyl_("N","N",&ione,s+i,s+j,T+p[i]+p[i]*ld,&ld,T+p[j]+p[j]*ld,&ld,T+p[i]+p[j]*ld,&ld,&scal,&info));
       if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xTRSYL %d",info);
+      if (scal!=1.0) SETERRQ1(PETSC_COMM_SELF,1,"Current implementation cannot handle scale factor %g",scal);
     }
   }
 
