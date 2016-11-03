@@ -61,11 +61,11 @@ int main(int argc,char **argv)
   ierr = MatGetOwnershipRange(A,&Istart,&Iend);CHKERRQ(ierr);
   for (II=Istart;II<Iend;II++) {
     i = II/n; j = II-i*n;
-    if (i>0) { ierr = MatSetValue(A,II,II-n,-1.0,INSERT_VALUES);CHKERRQ(ierr); }
-    if (i<m-1) { ierr = MatSetValue(A,II,II+n,-1.0,INSERT_VALUES);CHKERRQ(ierr); }
-    if (j>0) { ierr = MatSetValue(A,II,II-1,-1.0,INSERT_VALUES);CHKERRQ(ierr); }
-    if (j<n-1) { ierr = MatSetValue(A,II,II+1,-1.0,INSERT_VALUES);CHKERRQ(ierr); }
-    ierr = MatSetValue(A,II,II,4.0,INSERT_VALUES);CHKERRQ(ierr);
+    if (i>0) { ierr = MatSetValue(A,II,II-n,1.0,INSERT_VALUES);CHKERRQ(ierr); }
+    if (i<m-1) { ierr = MatSetValue(A,II,II+n,1.0,INSERT_VALUES);CHKERRQ(ierr); }
+    if (j>0) { ierr = MatSetValue(A,II,II-1,1.0,INSERT_VALUES);CHKERRQ(ierr); }
+    if (j<n-1) { ierr = MatSetValue(A,II,II+1,1.0,INSERT_VALUES);CHKERRQ(ierr); }
+    ierr = MatSetValue(A,II,II,-4.0,INSERT_VALUES);CHKERRQ(ierr);
   }
 
   ierr = MatAssemblyBegin(A,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
@@ -81,21 +81,21 @@ int main(int argc,char **argv)
   ierr = BVSetFromOptions(X1);CHKERRQ(ierr);
 
   ierr = BVCreate(PETSC_COMM_WORLD,&C1);CHKERRQ(ierr);
-  ierr = BVSetSizesFromVec(C1,t,2);CHKERRQ(ierr);
+  ierr = BVSetSizesFromVec(C1,t,1);CHKERRQ(ierr);
   ierr = BVSetFromOptions(C1);CHKERRQ(ierr);
 
   /* fill the rhs factor */
   ierr = BVGetColumn(C1,0,&v);CHKERRQ(ierr);
   ierr = VecSet(v,1.0);CHKERRQ(ierr);
   ierr = BVRestoreColumn(C1,0,&v);CHKERRQ(ierr);
-  ierr = BVGetColumn(C1,1,&v);CHKERRQ(ierr);
+  /*ierr = BVGetColumn(C1,1,&v);CHKERRQ(ierr);
   ierr = VecSet(v,0.0);CHKERRQ(ierr);
   ierr = VecSetValue(v,0,-2.0,INSERT_VALUES);CHKERRQ(ierr);
   ierr = VecSetValue(v,1,-1.0,INSERT_VALUES);CHKERRQ(ierr);
   ierr = VecSetValue(v,2,-1.0,INSERT_VALUES);CHKERRQ(ierr);
   ierr = VecAssemblyBegin(v);CHKERRQ(ierr);
   ierr = VecAssemblyEnd(v);CHKERRQ(ierr);
-  ierr = BVRestoreColumn(C1,1,&v);CHKERRQ(ierr);
+  ierr = BVRestoreColumn(C1,1,&v);CHKERRQ(ierr);*/
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                 Create the solver and set various options

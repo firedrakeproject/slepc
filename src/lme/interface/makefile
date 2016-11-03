@@ -23,7 +23,7 @@ ALL: lib
 
 CFLAGS   =
 FFLAGS   =
-SOURCEC  = lmemon.c lmebasic.c lmeregis.c lmeopts.c lmesetup.c lmesolve.c dlregislme.c
+SOURCEC  = lmemon.c lmebasic.c lmeregis.c lmeopts.c lmedense.c lmesetup.c lmesolve.c dlregislme.c
 SOURCEF  =
 SOURCEH  =
 LIBBASE  = libslepclme

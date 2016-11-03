@@ -435,7 +435,9 @@ PetscErrorCode LMEGetSolution(LME lme,BV *X1,BV *X2)
    Collective on LME
 
    Input Parameters:
-.  lme   - linear matrix equation solver context
++  lme   - linear matrix equation solver context
+-  extra - number of additional positions, used for methods that require a
+           working basis slightly larger than ncv
 
    Developers Note:
    This is PETSC_EXTERN because it may be required by user plugin LME
@@ -443,14 +445,14 @@ PetscErrorCode LMEGetSolution(LME lme,BV *X1,BV *X2)
 
    Level: developer
 @*/
-PetscErrorCode LMEAllocateSolution(LME lme)
+PetscErrorCode LMEAllocateSolution(LME lme,PetscInt extra)
 {
   PetscErrorCode ierr;
   PetscInt       oldsize,requested;
   Vec            t;
 
   PetscFunctionBegin;
-  requested = lme->ncv;
+  requested = lme->ncv + extra;
 
   /* oldsize is zero if this is the first time setup is called */
   ierr = BVGetSizes(lme->V,NULL,NULL,&oldsize);CHKERRQ(ierr);

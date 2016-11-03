@@ -103,6 +103,8 @@ PETSC_EXTERN PetscErrorCode LMEGetIterationNumber(LME,PetscInt*);
 PETSC_EXTERN PetscErrorCode LMESetErrorIfNotConverged(LME,PetscBool);
 PETSC_EXTERN PetscErrorCode LMEGetErrorIfNotConverged(LME,PetscBool*);
 
+PETSC_EXTERN PetscErrorCode LMEDenseLyapunovChol(LME,PetscScalar*,PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscInt,PetscReal*);
+
 PETSC_EXTERN PetscErrorCode LMEMonitorDefault(LME,PetscInt,PetscReal,PetscViewerAndFormat*);
 PETSC_EXTERN PetscErrorCode LMEMonitorLGCreate(MPI_Comm,const char[],const char[],int,int,int,int,PetscDrawLG*);
 PETSC_EXTERN PetscErrorCode LMEMonitorLG(LME,PetscInt,PetscReal,void*);
@@ -132,7 +134,7 @@ PETSC_EXTERN PetscErrorCode LMEGetConvergedReason(LME,LMEConvergedReason *);
 PETSC_EXTERN PetscFunctionList LMEList;
 PETSC_EXTERN PetscErrorCode LMERegister(const char[],PetscErrorCode(*)(LME));
 
-PETSC_EXTERN PetscErrorCode LMEAllocateSolution(LME);
+PETSC_EXTERN PetscErrorCode LMEAllocateSolution(LME,PetscInt);
 
 #endif
 
