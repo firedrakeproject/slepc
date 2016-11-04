@@ -322,6 +322,7 @@ PetscErrorCode LMEComputeError(LME lme,PetscReal *error)
   PetscValidHeaderSpecific(lme,LME_CLASSID,1);
   PetscValidPointer(error,2);
 
+  ierr = PetscLogEventBegin(LME_ComputeError,lme,0,0,0);CHKERRQ(ierr);
   /* compute residual norm */
   switch (lme->problem_type) {
     case LME_LYAPUNOV:
@@ -333,6 +334,7 @@ PetscErrorCode LMEComputeError(LME lme,PetscReal *error)
 
   /* compute error */
   /* currently we only support absolute error, so just return the norm */
+  ierr = PetscLogEventEnd(LME_ComputeError,lme,0,0,0);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

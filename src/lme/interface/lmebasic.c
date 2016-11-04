@@ -26,7 +26,7 @@
 PetscFunctionList LMEList = 0;
 PetscBool         LMERegisterAllCalled = PETSC_FALSE;
 PetscClassId      LME_CLASSID = 0;
-PetscLogEvent     LME_SetUp = 0,LME_Solve = 0;
+PetscLogEvent     LME_SetUp = 0,LME_Solve = 0,LME_ComputeError = 0;
 
 #undef __FUNCT__
 #define __FUNCT__ "LMEView"

@@ -27,7 +27,7 @@
 
 PETSC_EXTERN PetscBool LMERegisterAllCalled;
 PETSC_EXTERN PetscErrorCode LMERegisterAll(void);
-PETSC_EXTERN PetscLogEvent LME_SetUp, LME_Solve;
+PETSC_EXTERN PetscLogEvent LME_SetUp,LME_Solve,LME_ComputeError;
 
 typedef struct _LMEOps *LMEOps;
 
