@@ -88,10 +88,10 @@ static PetscErrorCode LyapunovChol_SLICOT(PetscScalar *H,PetscInt m,PetscInt ldh
 
   /* compute the (real) Schur form of H */
 #if !defined(PETSC_USE_COMPLEX)
-  ierr = PetscMalloc6(m*m,&Q,m*m,&W,m,&z,m,&wr,m,&wi,5*m,&work);CHKERRQ(ierr);
+  ierr = PetscCalloc6(m*m,&Q,m*m,&W,m,&z,m,&wr,m,&wi,5*m,&work);CHKERRQ(ierr);
   PetscStackCallBLAS("LAPACKhseqr",LAPACKhseqr_("S","I",&n,&ilo,&n,H,&ld,wr,wi,Q,&n,work,&lwork,&info));
 #else
-  ierr = PetscMalloc5(m*m,&Q,m*m,&W,m,&z,m,&wr,5*m,&work);CHKERRQ(ierr);
+  ierr = PetscCalloc5(m*m,&Q,m*m,&W,m,&z,m,&wr,5*m,&work);CHKERRQ(ierr);
   PetscStackCallBLAS("LAPACKhseqr",LAPACKhseqr_("S","I",&n,&ilo,&n,H,&ld,wr,Q,&n,work,&lwork,&info));
 #endif
   if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xHSEQR %d",info);
@@ -113,7 +113,7 @@ static PetscErrorCode LyapunovChol_SLICOT(PetscScalar *H,PetscInt m,PetscInt ldh
   }
 
   /* resnorm = norm(H(m+1,:)*L*L'), use z = L*L(m,:)' */
-  PetscStackCallBLAS("BLASgemv",BLASgemv_("N",&n,&n,&done,L,&n,W+(m-1)*m,&n,&zero,z,&ione));
+  PetscStackCallBLAS("BLASgemv",BLASgemv_("N",&n,&n,&done,L,&n,W+(m-1)*m,&ione,&zero,z,&ione));
   *res = 0.0;
   beta = H[m+(m-1)*ldh];
   for (j=0;j<m;j++) {
