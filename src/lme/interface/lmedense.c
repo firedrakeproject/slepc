@@ -24,8 +24,7 @@
 #include <slepc/private/lmeimpl.h>     /*I "slepclme.h" I*/
 #include <slepcblaslapack.h>
 
-#define CHECK
-#if defined(CHECK)
+#if defined(PETSC_USE_INFO)
 #undef __FUNCT__
 #define __FUNCT__ "LyapunovResidual"
 /*
@@ -362,17 +361,19 @@ static PetscErrorCode LyapunovChol_LAPACK(PetscScalar *H,PetscInt m,PetscInt ldh
 PetscErrorCode LMEDenseLyapunovChol(LME lme,PetscScalar *H,PetscInt m,PetscInt ldh,PetscScalar *r,PetscScalar *L,PetscInt ldl,PetscReal *res)
 {
   PetscErrorCode ierr;
-#if defined(CHECK)
+#if defined(PETSC_USE_INFO)
   PetscInt       i;
   PetscScalar    *Hcopy;
   PetscReal      error;
 #endif
 
   PetscFunctionBegin;
-#if defined(CHECK)
-  ierr = PetscMalloc1(m*m,&Hcopy);CHKERRQ(ierr);
-  for (i=0;i<m;i++) {
-    ierr = PetscMemcpy(Hcopy+i*m,H+i*ldh,m*sizeof(PetscScalar));CHKERRQ(ierr);
+#if defined(PETSC_USE_INFO)
+  if (PetscLogPrintInfo) {
+    ierr = PetscMalloc1(m*m,&Hcopy);CHKERRQ(ierr);
+    for (i=0;i<m;i++) {
+      ierr = PetscMemcpy(Hcopy+i*m,H+i*ldh,m*sizeof(PetscScalar));CHKERRQ(ierr);
+    }
   }
 #endif
 
@@ -382,10 +383,12 @@ PetscErrorCode LMEDenseLyapunovChol(LME lme,PetscScalar *H,PetscInt m,PetscInt l
   ierr = LyapunovChol_LAPACK(H,m,ldh,r,L,ldl,res);CHKERRQ(ierr);
 #endif
 
-#if defined(CHECK)
-  ierr = LyapunovResidual(Hcopy,m,m,r,L,ldl,&error);CHKERRQ(ierr);
-  ierr = PetscInfo1(lme,"Residual norm of dense Lyapunov equation = %g\n",error);CHKERRQ(ierr);
-  ierr = PetscFree(Hcopy);CHKERRQ(ierr);
+#if defined(PETSC_USE_INFO)
+  if (PetscLogPrintInfo) {
+    ierr = LyapunovResidual(Hcopy,m,m,r,L,ldl,&error);CHKERRQ(ierr);
+    ierr = PetscInfo1(lme,"Residual norm of dense Lyapunov equation = %g\n",error);CHKERRQ(ierr);
+    ierr = PetscFree(Hcopy);CHKERRQ(ierr);
+  }
 #endif
   PetscFunctionReturn(0);
 }
