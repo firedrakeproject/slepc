@@ -80,4 +80,25 @@ struct _p_LME {
   LMEConvergedReason reason;
 };
 
+/* functions interfaced from Fortran library SLICOT */
+#if defined(SLEPC_HAVE_SLICOT)
+
+#if defined(SLEPC_SLICOT_HAVE_UNDERSCORE)
+#define SLEPC_SLICOT(lcase,ucase) lcase##_
+#elif defined(SLEPC_SLICOT_HAVE_CAPS) || defined(PETSC_SLICOT_HAVE_STDCALL)
+#define SLEPC_SLICOT(lcase,ucase) ucase
+#else
+#define SLEPC_SLICOT(lcase,ucase) lcase
+#endif
+
+#if !defined(PETSC_BLASLAPACK_STDCALL)
+#define SLICOTsb03od_(a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q) SLEPC_SLICOT(sb03od,SB03OD) ((a),(b),(c),(d),(e),(f),(g),(h),(i),(j),(k),(l),(m),(n),(o),(p),(q),1,1,1)
+PETSC_EXTERN void SLEPC_SLICOT(sb03od,SB03OD)(const char*,const char*,const char*,PetscBLASInt*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscReal*,PetscScalar*,PetscScalar*,PetscReal*,PetscBLASInt*,PetscBLASInt*,PetscBLASInt,PetscBLASInt,PetscBLASInt);
+#else
+#define SLICOTsb03od_(a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q) SLEPC_SLICOT(sb03od,SB03OD) ((a),1,(b),1,(c),1,(d),(e),(f),(g),(h),(i),(j),(k),(l),(m),(n),(o),(p),(q))
+PETSC_EXTERN void PETSC_STDCALL SLEPC_SLICOT(sb03od,SB03OD)(const char*,PetscBLASInt,const char*,PetscBLASInt,const char*,PetscBLASInt,PetscBLASInt*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscReal*,PetscScalar*,PetscScalar*,PetscReal*,PetscBLASInt*,PetscBLASInt*);
+#endif
+
+#endif
+
 #endif
