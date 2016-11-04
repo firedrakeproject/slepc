@@ -396,7 +396,7 @@ PetscErrorCode PEPGetErrorEstimate(PEP pep,PetscInt i,PetscReal *errest)
   PetscValidPointer(errest,3);
   PEPCheckSolved(pep,1);
   if (i<0 || i>=pep->nconv) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ARG_OUTOFRANGE,"Argument 2 out of range");
-  if (errest) *errest = pep->errest[pep->perm[i]];
+  *errest = pep->errest[pep->perm[i]];
   PetscFunctionReturn(0);
 }
 
