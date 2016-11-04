@@ -22,6 +22,7 @@
 */
 
 #include <slepc/private/lmeimpl.h>   /*I "slepclme.h" I*/
+#include <slepcblaslapack.h>
 
 #undef __FUNCT__
 #define __FUNCT__ "LMESolve"
@@ -149,6 +150,189 @@ PetscErrorCode LMEGetConvergedReason(LME lme,LMEConvergedReason *reason)
   PetscValidHeaderSpecific(lme,LME_CLASSID,1);
   PetscValidIntPointer(reason,2);
   *reason = lme->reason;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "LMEGetErrorEstimate"
+/*@
+   LMEGetErrorEstimate - Returns the error estimate obtained during solve.
+
+   Not Collective
+
+   Input Parameter:
+.  lme - linear matrix equation solver context
+
+   Output Parameter:
+.  errest - the error estimate
+
+   Notes:
+   This is the error estimated internally by the solver. The actual
+   error bound can be computed with LMEComputeError(). Note that some
+   solvers may not be able to provide an error estimate.
+
+   Level: advanced
+
+.seealso: LMEComputeError()
+@*/
+PetscErrorCode LMEGetErrorEstimate(LME lme,PetscReal *errest)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(lme,LME_CLASSID,1);
+  PetscValidPointer(errest,2);
+  *errest = lme->errest;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "LMEComputeResidualNorm_Lyapunov"
+/*
+   LMEComputeResidualNorm_Lyapunov - Computes the Frobenius norm of the residual matrix
+   associated with the Lyapunov equation.
+*/
+PetscErrorCode LMEComputeResidualNorm_Lyapunov(LME lme,PetscReal *norm)
+{
+  PetscErrorCode    ierr;
+  PetscInt          j,n,N,k,l;
+  PetscBLASInt      n_,N_,k_,l_;
+  PetscScalar       *Rarray,alpha=1.0,beta=0.0;
+  const PetscScalar *A,*B;
+  BV                W,AX;
+  Mat               R;
+  Vec               v,w;
+  VecScatter        vscat;
+
+  PetscFunctionBegin;
+  ierr = BVGetSizes(lme->X1,&n,&N,&k);CHKERRQ(ierr);
+  ierr = BVGetSizes(lme->C1,NULL,NULL,&l);CHKERRQ(ierr);
+  ierr = PetscBLASIntCast(n,&n_);CHKERRQ(ierr);
+  ierr = PetscBLASIntCast(N,&N_);CHKERRQ(ierr);
+  ierr = PetscBLASIntCast(k,&k_);CHKERRQ(ierr);
+  ierr = PetscBLASIntCast(l,&l_);CHKERRQ(ierr);
+
+  /* create W to store a redundant copy of a BV in each process */
+  ierr = BVCreate(PETSC_COMM_SELF,&W);CHKERRQ(ierr);
+  ierr = BVSetSizes(W,N,N,k);CHKERRQ(ierr);
+  ierr = BVSetFromOptions(W);CHKERRQ(ierr);
+  ierr = BVGetColumn(lme->X1,0,&v);CHKERRQ(ierr);
+  ierr = VecScatterCreateToAll(v,&vscat,NULL);CHKERRQ(ierr);
+  ierr = BVRestoreColumn(lme->X1,0,&v);CHKERRQ(ierr);
+
+  /* create AX to hold the product A*X1 */
+  ierr = BVDuplicate(lme->X1,&AX);CHKERRQ(ierr);
+  ierr = BVMatMult(lme->X1,lme->A,AX);CHKERRQ(ierr);
+
+  /* create dense matrix to hold the residual R=C1*C1'+AX*X1'+X1*AX' */
+  ierr = MatCreateDense(PetscObjectComm((PetscObject)lme),n,n,N,N,NULL,&R);CHKERRQ(ierr);
+
+  /* R=C1*C1' */
+  ierr = MatDenseGetArray(R,&Rarray);CHKERRQ(ierr);
+  for (j=0;j<l;j++) {
+    ierr = BVGetColumn(lme->C1,j,&v);CHKERRQ(ierr);
+    ierr = BVGetColumn(W,j,&w);CHKERRQ(ierr);
+    ierr = VecScatterBegin(vscat,v,w,INSERT_VALUES,SCATTER_FORWARD);CHKERRQ(ierr);
+    ierr = VecScatterEnd(vscat,v,w,INSERT_VALUES,SCATTER_FORWARD);CHKERRQ(ierr);
+    ierr = BVRestoreColumn(lme->C1,j,&v);CHKERRQ(ierr);
+    ierr = BVRestoreColumn(W,j,&w);CHKERRQ(ierr);
+  }
+  if (n) {
+    ierr = BVGetArrayRead(lme->C1,&A);CHKERRQ(ierr);
+    ierr = BVGetArrayRead(W,&B);CHKERRQ(ierr);
+    PetscStackCallBLAS("BLASgemm",BLASgemm_("N","C",&n_,&N_,&l_,&alpha,(PetscScalar*)A,&n_,(PetscScalar*)B,&N_,&beta,Rarray,&n_));
+    ierr = BVRestoreArrayRead(lme->C1,&A);CHKERRQ(ierr);
+    ierr = BVRestoreArrayRead(W,&B);CHKERRQ(ierr);
+  }
+  beta = 1.0;
+
+  /* R+=AX*X1' */
+  for (j=0;j<k;j++) {
+    ierr = BVGetColumn(lme->X1,j,&v);CHKERRQ(ierr);
+    ierr = BVGetColumn(W,j,&w);CHKERRQ(ierr);
+    ierr = VecScatterBegin(vscat,v,w,INSERT_VALUES,SCATTER_FORWARD);CHKERRQ(ierr);
+    ierr = VecScatterEnd(vscat,v,w,INSERT_VALUES,SCATTER_FORWARD);CHKERRQ(ierr);
+    ierr = BVRestoreColumn(lme->X1,j,&v);CHKERRQ(ierr);
+    ierr = BVRestoreColumn(W,j,&w);CHKERRQ(ierr);
+  }
+  if (n) {
+    ierr = BVGetArrayRead(AX,&A);CHKERRQ(ierr);
+    ierr = BVGetArrayRead(W,&B);CHKERRQ(ierr);
+    PetscStackCallBLAS("BLASgemm",BLASgemm_("N","C",&n_,&N_,&k_,&alpha,(PetscScalar*)A,&n_,(PetscScalar*)B,&N_,&beta,Rarray,&n_));
+    ierr = BVRestoreArrayRead(AX,&A);CHKERRQ(ierr);
+    ierr = BVRestoreArrayRead(W,&B);CHKERRQ(ierr);
+  }
+
+  /* R+=X1*AX' */
+  for (j=0;j<k;j++) {
+    ierr = BVGetColumn(AX,j,&v);CHKERRQ(ierr);
+    ierr = BVGetColumn(W,j,&w);CHKERRQ(ierr);
+    ierr = VecScatterBegin(vscat,v,w,INSERT_VALUES,SCATTER_FORWARD);CHKERRQ(ierr);
+    ierr = VecScatterEnd(vscat,v,w,INSERT_VALUES,SCATTER_FORWARD);CHKERRQ(ierr);
+    ierr = BVRestoreColumn(AX,j,&v);CHKERRQ(ierr);
+    ierr = BVRestoreColumn(W,j,&w);CHKERRQ(ierr);
+  }
+  if (n) {
+    ierr = BVGetArrayRead(lme->X1,&A);CHKERRQ(ierr);
+    ierr = BVGetArrayRead(W,&B);CHKERRQ(ierr);
+    PetscStackCallBLAS("BLASgemm",BLASgemm_("N","C",&n_,&N_,&k_,&alpha,(PetscScalar*)A,&n_,(PetscScalar*)B,&N_,&beta,Rarray,&n_));
+    ierr = BVRestoreArrayRead(lme->X1,&A);CHKERRQ(ierr);
+    ierr = BVRestoreArrayRead(W,&B);CHKERRQ(ierr);
+  }
+  ierr = MatDenseRestoreArray(R,&Rarray);CHKERRQ(ierr);
+
+  /* compute ||R||_F */
+  ierr = MatAssemblyBegin(R,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
+  ierr = MatAssemblyEnd(R,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
+  ierr = MatNorm(R,NORM_FROBENIUS,norm);CHKERRQ(ierr);
+
+  ierr = BVDestroy(&W);CHKERRQ(ierr);
+  ierr = VecScatterDestroy(&vscat);CHKERRQ(ierr);
+  ierr = BVDestroy(&AX);CHKERRQ(ierr);
+  ierr = MatDestroy(&R);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "LMEComputeError"
+/*@
+   LMEComputeError - Computes the error (based on the residual norm) associated
+   with the last equation solved.
+
+   Collective on LME
+
+   Input Parameter:
+.  lme  - the linear matrix equation solver context
+
+   Output Parameter:
+.  error - the error
+
+   Notes:
+   This function is not scalable (in terms of memory or parallel communication),
+   so it should not be called except in the case of small problem size. For
+   large equations, use LMEGetErrorEstimate().
+
+   Level: advanced
+
+.seealso: LMESolve(), LMEGetErrorEstimate()
+@*/
+PetscErrorCode LMEComputeError(LME lme,PetscReal *error)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(lme,LME_CLASSID,1);
+  PetscValidPointer(error,2);
+
+  /* compute residual norm */
+  switch (lme->problem_type) {
+    case LME_LYAPUNOV:
+      ierr = LMEComputeResidualNorm_Lyapunov(lme,error);CHKERRQ(ierr);
+      break;
+    default:
+      SETERRQ1(PetscObjectComm((PetscObject)lme),PETSC_ERR_SUP,"Not implemented for equation type %s",LMEProblemTypes[lme->problem_type]);
+  }
+
+  /* compute error */
+  /* currently we only support absolute error, so just return the norm */
   PetscFunctionReturn(0);
 }
 

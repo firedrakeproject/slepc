@@ -34,7 +34,7 @@ int main(int argc,char **argv)
   BV                 C1,X1;
   Vec                t,v;
   LME                lme;
-  PetscReal          tol,norm;
+  PetscReal          tol,errest,error;
   PetscInt           N,n=10,m,Istart,Iend,II,maxit,its,ncv,i,j,rank=5;
   PetscErrorCode     ierr;
   PetscBool          flag;
@@ -150,8 +150,11 @@ int main(int argc,char **argv)
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                         Compute residual error
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-  /* TODO */
-  norm = 0.0;
+
+  ierr = LMEGetErrorEstimate(lme,&errest);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD," Error estimate reported by the solver: %g\n",(double)errest);CHKERRQ(ierr);
+  ierr = LMEComputeError(lme,&error);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD," Computed residual norm: %g\n\n",(double)error);CHKERRQ(ierr);
 
   /*
      Free work space

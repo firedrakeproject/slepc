@@ -100,6 +100,8 @@ PETSC_EXTERN PetscErrorCode LMEMonitorCancel(LME);
 PETSC_EXTERN PetscErrorCode LMEGetMonitorContext(LME,void **);
 PETSC_EXTERN PetscErrorCode LMEGetIterationNumber(LME,PetscInt*);
 
+PETSC_EXTERN PetscErrorCode LMEGetErrorEstimate(LME,PetscReal*);
+PETSC_EXTERN PetscErrorCode LMEComputeError(LME,PetscReal*);
 PETSC_EXTERN PetscErrorCode LMESetErrorIfNotConverged(LME,PetscBool);
 PETSC_EXTERN PetscErrorCode LMEGetErrorIfNotConverged(LME,PetscBool*);
 

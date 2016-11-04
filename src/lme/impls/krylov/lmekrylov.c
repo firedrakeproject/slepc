@@ -90,7 +90,7 @@ PetscErrorCode LMESolve_Krylov_Lyapunov_Vec(LME lme,Vec b)
 {
   PetscErrorCode ierr;
   PetscInt       m,ldh,ldl;
-  PetscReal      bnorm,beta,resnorm;
+  PetscReal      bnorm,beta;
   PetscBool      breakdown;
   PetscScalar    *H,*L,*r;
   Mat            Q;
@@ -113,7 +113,10 @@ PetscErrorCode LMESolve_Krylov_Lyapunov_Vec(LME lme,Vec b)
 
   /* solve compressed Lyapunov equation */
   r[0] = bnorm;
-  ierr = LMEDenseLyapunovChol(lme,H,m,ldh,r,L,ldl,&resnorm);CHKERRQ(ierr);
+  ierr = LMEDenseLyapunovChol(lme,H,m,ldh,r,L,ldl,&lme->errest);CHKERRQ(ierr);
+
+  if (lme->errest<lme->tol) lme->reason = LME_CONVERGED_TOL;
+  else lme->reason = LME_DIVERGED_ITS;
 
   /* Z = V(:,1:m)*L */
   ierr = MatCreateDense(PETSC_COMM_SELF,m,m,m,m,L,&Q);CHKERRQ(ierr);
