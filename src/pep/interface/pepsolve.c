@@ -30,9 +30,9 @@ static const char citation[] =
   "   author = \"C. Campos and J. E. Roman\",\n"
   "   title = \"Parallel iterative refinement in polynomial eigenvalue problems\",\n"
   "   journal = \"Numer. Linear Algebra Appl.\",\n"
-  "   volume = \"to appear\",\n"
-  "   number = \"\",\n"
-  "   pages = \"\",\n"
+  "   volume = \"23\",\n"
+  "   number = \"4\",\n"
+  "   pages = \"730--745\",\n"
   "   year = \"2016,\"\n"
   "   doi = \"http://dx.doi.org/10.1002/nla.2052\"\n"
   "}\n";

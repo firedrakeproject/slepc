@@ -47,11 +47,11 @@ static const char citation[] =
   "   author = \"C. Campos and J. E. Roman\",\n"
   "   title = \"Parallel {Krylov} solvers for the polynomial eigenvalue problem in {SLEPc}\",\n"
   "   journal = \"{SIAM} J. Sci. Comput.\",\n"
-  "   volume = \"to appear\",\n"
-  "   number = \"\",\n"
-  "   pages = \"\",\n"
+  "   volume = \"38\",\n"
+  "   number = \"5\",\n"
+  "   pages = \"S385--S411\",\n"
   "   year = \"2016,\"\n"
-  "   doi = \"http://dx.doi.org/10.xxxx/yyyy\"\n"
+  "   doi = \"http://dx.doi.org/10.1137/15M1022458\"\n"
   "}\n";
 
 #undef __FUNCT__
