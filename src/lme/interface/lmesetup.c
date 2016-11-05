@@ -371,9 +371,14 @@ PetscErrorCode LMEGetRHS(LME lme,BV *C1,BV *C2)
    In equation types whose solution X is symmetric, such as Lyapunov, X2 can
    be set to NULL (or to X1).
 
-   Level: beginner
+   If the user provides X1 (and X2) with this function, then the solver will
+   return a solution with rank at most the number of columns of X1. Alternatively,
+   it is possible to let the solver choose the rank of the solution, by
+   setting X1 to NULL and then calling LMEGetSolution() after LMESolve().
 
-.seealso: LMESetRHS(), LMESetProblemType()
+   Level: intermediate
+
+.seealso: LMEGetSolution(), LMESetRHS(), LMESetProblemType(), LMESolve()
 @*/
 PetscErrorCode LMESetSolution(LME lme,BV X1,BV X2)
 {
@@ -381,8 +386,10 @@ PetscErrorCode LMESetSolution(LME lme,BV X1,BV X2)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(lme,LME_CLASSID,1);
-  PetscValidHeaderSpecific(X1,BV_CLASSID,2);
-  PetscCheckSameComm(lme,1,X1,2);
+  if (X1) {
+    PetscValidHeaderSpecific(X1,BV_CLASSID,2);
+    PetscCheckSameComm(lme,1,X1,2);
+  }
   if (X2) {
     PetscValidHeaderSpecific(X2,BV_CLASSID,3);
     PetscCheckSameComm(lme,1,X2,3);
@@ -390,8 +397,10 @@ PetscErrorCode LMESetSolution(LME lme,BV X1,BV X2)
 
   ierr = BVDestroy(&lme->X1);CHKERRQ(ierr);
   ierr = BVDestroy(&lme->X2);CHKERRQ(ierr);
-  ierr = PetscObjectReference((PetscObject)X1);CHKERRQ(ierr);
-  lme->X1 = X1;
+  if (X1) {
+    ierr = PetscObjectReference((PetscObject)X1);CHKERRQ(ierr);
+    lme->X1 = X1;
+  }
   if (X2) {
     ierr = PetscObjectReference((PetscObject)X2);CHKERRQ(ierr);
     lme->X2 = X2;

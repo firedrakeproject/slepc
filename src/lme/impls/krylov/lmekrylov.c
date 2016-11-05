@@ -89,7 +89,7 @@ PetscErrorCode LMEBasicArnoldi(LME lme,PetscScalar *H,PetscInt ldh,PetscInt k,Pe
 PetscErrorCode LMESolve_Krylov_Lyapunov_Vec(LME lme,Vec b)
 {
   PetscErrorCode ierr;
-  PetscInt       m,ldh,ldl;
+  PetscInt       m,ldh,ldl,i,rank;
   PetscReal      bnorm,beta;
   PetscBool      breakdown;
   PetscScalar    *H,*L,*r;
@@ -117,6 +117,13 @@ PetscErrorCode LMESolve_Krylov_Lyapunov_Vec(LME lme,Vec b)
 
   if (lme->errest<lme->tol) lme->reason = LME_CONVERGED_TOL;
   else lme->reason = LME_DIVERGED_ITS;
+
+  /* determine numerical rank of L */
+  for (i=1;i<m && L[i+i*m]>L[0]*PETSC_MACHINE_EPSILON;i++);
+  rank = i;
+  if (!lme->X1) {  /* X1 was not set by user, allocate it with rank columns */
+    ierr = BVDuplicateResize(lme->C1,rank,&lme->X1);CHKERRQ(ierr);
+  }
 
   /* Z = V(:,1:m)*L */
   ierr = MatCreateDense(PETSC_COMM_SELF,m,m,m,m,L,&Q);CHKERRQ(ierr);

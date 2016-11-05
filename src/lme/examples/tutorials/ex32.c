@@ -35,7 +35,7 @@ int main(int argc,char **argv)
   Vec                t,v;
   LME                lme;
   PetscReal          tol,errest,error;
-  PetscInt           N,n=10,m,Istart,Iend,II,maxit,its,ncv,i,j,rank=5;
+  PetscInt           N,n=10,m,Istart,Iend,II,maxit,its,ncv,i,j,rank=0;
   PetscErrorCode     ierr;
   PetscBool          flag;
   LMEConvergedReason reason;
@@ -47,7 +47,7 @@ int main(int argc,char **argv)
   if (!flag) m=n;
   N = n*m;
   ierr = PetscOptionsGetInt(NULL,NULL,"-rank",&rank,NULL);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"\nLyapunov equation, N=%D (%Dx%D grid), rank=%d\n\n",N,n,m,rank);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"\nLyapunov equation, N=%D (%Dx%D grid)\n\n",N,n,m);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                        Create the 2-D Laplacian, A
@@ -73,12 +73,8 @@ int main(int argc,char **argv)
   ierr = MatCreateVecs(A,&t,NULL);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-       Create two BV objects to store the solution and right-hand side
+       Create a BV object to store the factor of the right-hand side
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-
-  ierr = BVCreate(PETSC_COMM_WORLD,&X1);CHKERRQ(ierr);
-  ierr = BVSetSizesFromVec(X1,t,rank);CHKERRQ(ierr);
-  ierr = BVSetFromOptions(X1);CHKERRQ(ierr);
 
   ierr = BVCreate(PETSC_COMM_WORLD,&C1);CHKERRQ(ierr);
   ierr = BVSetSizesFromVec(C1,t,1);CHKERRQ(ierr);
@@ -117,10 +113,18 @@ int main(int argc,char **argv)
   */
   ierr = LMESetCoefficients(lme,A,NULL,NULL,NULL);CHKERRQ(ierr);
   ierr = LMESetRHS(lme,C1,NULL);CHKERRQ(ierr);
-  ierr = LMESetSolution(lme,X1,NULL);CHKERRQ(ierr);
+
+  if (rank) {  /* Create X1 only if the user has specified a nonzero value of rank */
+    ierr = PetscPrintf(PETSC_COMM_WORLD," Computing a solution with prescribed rank=%d\n",rank);CHKERRQ(ierr);
+    ierr = BVCreate(PETSC_COMM_WORLD,&X1);CHKERRQ(ierr);
+    ierr = BVSetSizesFromVec(X1,t,rank);CHKERRQ(ierr);
+    ierr = BVSetFromOptions(X1);CHKERRQ(ierr);
+    ierr = LMESetSolution(lme,X1,NULL);CHKERRQ(ierr);
+    ierr = BVDestroy(&X1);CHKERRQ(ierr);
+  }
 
   /*
-     (Optoinal) Set other solver options
+     (Optional) Set other solver options
   */
   ierr = LMESetTolerances(lme,1e-07,PETSC_DEFAULT);CHKERRQ(ierr);
 
@@ -136,6 +140,12 @@ int main(int argc,char **argv)
   ierr = LMESolve(lme);CHKERRQ(ierr);
   ierr = LMEGetConvergedReason(lme,&reason);CHKERRQ(ierr);
   if (reason<0) SETERRQ(PETSC_COMM_WORLD,1,"Solver did not converge");
+
+  if (!rank) {  /* X1 was created by the solver, so extract it and see how many columns it has */
+    ierr = LMEGetSolution(lme,&X1,NULL);CHKERRQ(ierr);
+    ierr = BVGetSizes(X1,NULL,NULL,&rank);CHKERRQ(ierr);
+    ierr = PetscPrintf(PETSC_COMM_WORLD," The solver has computed a solution with rank=%d\n",rank);CHKERRQ(ierr);
+  }
 
   /*
      Optional: Get some information from the solver and display it
@@ -162,7 +172,6 @@ int main(int argc,char **argv)
   ierr = LMEDestroy(&lme);CHKERRQ(ierr);
   ierr = MatDestroy(&A);CHKERRQ(ierr);
   ierr = BVDestroy(&C1);CHKERRQ(ierr);
-  ierr = BVDestroy(&X1);CHKERRQ(ierr);
   ierr = VecDestroy(&t);CHKERRQ(ierr);
   ierr = SlepcFinalize();
   return ierr;
