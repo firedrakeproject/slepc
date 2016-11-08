@@ -116,6 +116,7 @@ PETSC_EXTERN PetscErrorCode BVGetSizes(BV,PetscInt*,PetscInt*,PetscInt*);
 PETSC_EXTERN PetscErrorCode BVResize(BV,PetscInt,PetscBool);
 PETSC_EXTERN PetscErrorCode BVSetFromOptions(BV);
 PETSC_EXTERN PetscErrorCode BVView(BV,PetscViewer);
+PETSC_STATIC_INLINE PetscErrorCode BVViewFromOptions(BV bv,PetscObject obj,const char name[]) {return PetscObjectViewFromOptions((PetscObject)bv,obj,name);}
 
 PETSC_EXTERN PetscErrorCode BVGetColumn(BV,PetscInt,Vec*);
 PETSC_EXTERN PetscErrorCode BVRestoreColumn(BV,PetscInt,Vec*);

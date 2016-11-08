@@ -59,7 +59,8 @@ PetscErrorCode LMESolve(LME lme)
 
   /* call setup */
   ierr = LMESetUp(lme);CHKERRQ(ierr);
-  lme->its = 0;
+  lme->its    = 0;
+  lme->errest = 0.0;
 
   ierr = LMEViewFromOptions(lme,NULL,"-lme_view_pre");CHKERRQ(ierr);
 
@@ -77,8 +78,8 @@ PetscErrorCode LMESolve(LME lme)
   ierr = LMEViewFromOptions(lme,NULL,"-lme_view");CHKERRQ(ierr);
   ierr = LMEReasonViewFromOptions(lme);CHKERRQ(ierr);
   ierr = MatViewFromOptions(lme->A,(PetscObject)lme,"-lme_view_mat");CHKERRQ(ierr);
-  /*ierr = BVViewFromOptions(lme->C,(PetscObject)lme,"-lme_view_rhs");CHKERRQ(ierr);
-  ierr = BVViewFromOptions(lme->X,(PetscObject)lme,"-lme_view_solution");CHKERRQ(ierr);*/
+  ierr = BVViewFromOptions(lme->C1,(PetscObject)lme,"-lme_view_rhs");CHKERRQ(ierr);
+  ierr = BVViewFromOptions(lme->X1,(PetscObject)lme,"-lme_view_solution");CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

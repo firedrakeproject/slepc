@@ -86,16 +86,17 @@ PetscErrorCode LMEBasicArnoldi(LME lme,PetscScalar *H,PetscInt ldh,PetscInt k,Pe
 
 #undef __FUNCT__
 #define __FUNCT__ "LMESolve_Krylov_Lyapunov_Vec"
-PetscErrorCode LMESolve_Krylov_Lyapunov_Vec(LME lme,Vec b)
+PetscErrorCode LMESolve_Krylov_Lyapunov_Vec(LME lme,Vec b,PetscBool fixed,PetscInt rrank,PetscInt *col,PetscBool *fail)
 {
   PetscErrorCode ierr;
-  PetscInt       m,ldh,ldl,i,rank;
-  PetscReal      bnorm,beta;
+  PetscInt       m,ldh,ldl,i,rank,lrank;
+  PetscReal      bnorm,beta,errest;
   PetscBool      breakdown;
-  PetscScalar    *H,*L,*r;
+  PetscScalar    *H,*L,*r,*Qarray;
   Mat            Q;
 
   PetscFunctionBegin;
+  *fail = PETSC_FALSE;
   m  = lme->ncv;
   ldh = m+1;
   ldl = m;
@@ -113,22 +114,31 @@ PetscErrorCode LMESolve_Krylov_Lyapunov_Vec(LME lme,Vec b)
 
   /* solve compressed Lyapunov equation */
   r[0] = bnorm;
-  ierr = LMEDenseLyapunovChol(lme,H,m,ldh,r,L,ldl,&lme->errest);CHKERRQ(ierr);
-
-  if (lme->errest<lme->tol) lme->reason = LME_CONVERGED_TOL;
-  else lme->reason = LME_DIVERGED_ITS;
+  ierr = LMEDenseLyapunovChol(lme,H,m,ldh,r,L,ldl,&errest);CHKERRQ(ierr);
+  if (errest>lme->tol) *fail = PETSC_TRUE;
+  lme->errest += errest;
 
   /* determine numerical rank of L */
   for (i=1;i<m && L[i+i*m]>L[0]*PETSC_MACHINE_EPSILON;i++);
-  rank = i;
-  if (!lme->X1) {  /* X1 was not set by user, allocate it with rank columns */
-    ierr = BVDuplicateResize(lme->C1,rank,&lme->X1);CHKERRQ(ierr);
-  }
+  lrank = i;
+  if (!fixed) {  /* X1 was not set by user, allocate it with rank columns */
+    rank = lrank;
+    if (*col) {
+      ierr = BVResize(lme->X1,*col+rank,PETSC_TRUE);CHKERRQ(ierr);
+    } else {
+      ierr = BVDuplicateResize(lme->C1,rank,&lme->X1);CHKERRQ(ierr);
+    }
+  } else rank = PetscMin(lrank,rrank);
 
   /* Z = V(:,1:m)*L */
-  ierr = MatCreateDense(PETSC_COMM_SELF,m,m,m,m,L,&Q);CHKERRQ(ierr);
+  ierr = MatCreateDense(PETSC_COMM_SELF,m,*col+m,m,*col+m,NULL,&Q);CHKERRQ(ierr);
+  ierr = MatDenseGetArray(Q,&Qarray);CHKERRQ(ierr);
+  ierr = PetscMemcpy(Qarray+(*col)*m,L,m*m*sizeof(PetscScalar));CHKERRQ(ierr);
+  ierr = MatDenseRestoreArray(Q,&Qarray);CHKERRQ(ierr);
+  ierr = BVSetActiveColumns(lme->X1,*col,*col+rank);CHKERRQ(ierr);
   ierr = BVMult(lme->X1,1.0,0.0,lme->V,Q);CHKERRQ(ierr);
   ierr = MatDestroy(&Q);CHKERRQ(ierr);
+  *col += rank;
 
   ierr = PetscFree3(H,L,r);CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -139,15 +149,28 @@ PetscErrorCode LMESolve_Krylov_Lyapunov_Vec(LME lme,Vec b)
 PetscErrorCode LMESolve_Krylov_Lyapunov(LME lme)
 {
   PetscErrorCode ierr;
-  PetscInt       k;
+  PetscBool      fail,fixed = lme->X1? PETSC_TRUE: PETSC_FALSE;
+  PetscInt       i,k,rank,col=0;
   Vec            b;
 
   PetscFunctionBegin;
   ierr = BVGetActiveColumns(lme->C1,NULL,&k);CHKERRQ(ierr);
-  if (k>1) SETERRQ(PETSC_COMM_SELF,1,"Only implemented for rank-1 right-hand side");
-  ierr = BVGetColumn(lme->C1,0,&b);CHKERRQ(ierr);
-  ierr = LMESolve_Krylov_Lyapunov_Vec(lme,b);CHKERRQ(ierr);
-  ierr = BVRestoreColumn(lme->C1,0,&b);CHKERRQ(ierr);
+  if (fixed) {
+    ierr = BVGetActiveColumns(lme->X1,NULL,&rank);CHKERRQ(ierr);
+    rank = rank/k;
+  }
+  lme->reason = LME_CONVERGED_TOL;
+  for (i=0;i<k;i++) {
+    ierr = BVGetColumn(lme->C1,i,&b);CHKERRQ(ierr);
+    ierr = LMESolve_Krylov_Lyapunov_Vec(lme,b,fixed,rank,&col,&fail);CHKERRQ(ierr);
+    ierr = BVRestoreColumn(lme->C1,i,&b);CHKERRQ(ierr);
+    lme->its++;
+    if (fail) {
+      lme->reason = LME_DIVERGED_ITS;
+      break;
+    }
+  }
+  ierr = BVSetActiveColumns(lme->X1,0,col);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
