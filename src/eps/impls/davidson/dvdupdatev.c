@@ -107,6 +107,7 @@ static PetscErrorCode dvd_updateV_conv_gen(dvdDashboard *d)
   PetscInt        npreconv,cMT,cMTX,lV,kV,nV;
   PetscErrorCode  ierr;
   Mat             Q;
+  PetscBool       her_probl,ind_probl,t;
 #if !defined(PETSC_USE_COMPLEX)
   PetscInt        i;
 #endif
@@ -121,6 +122,11 @@ static PetscErrorCode dvd_updateV_conv_gen(dvdDashboard *d)
 #else
   npreconv = PetscMax(PetscMin(d->nev-d->nconv,npreconv),0);
 #endif
+  /* For GHEP without B-ortho and GHIEP converge all of the requested pairs at once */
+  her_probl = DVD_IS(d->sEP,DVD_EP_HERMITIAN)? PETSC_TRUE: PETSC_FALSE;
+  ind_probl = DVD_IS(d->sEP,DVD_EP_INDEFINITE)? PETSC_TRUE: PETSC_FALSE;
+  ierr = PetscObjectTypeCompareAny((PetscObject)d->eps->ds,&t,DSGHIEP,DSGHEP,"");CHKERRQ(ierr);
+  if ((her_probl || ind_probl) && t && d->nconv+npreconv<d->nev) npreconv = 0;
   /* Quick exit */
   if (npreconv == 0) PetscFunctionReturn(0);
 
@@ -278,7 +284,7 @@ static PetscErrorCode dvd_updateV_update_gen(dvdDashboard *d)
   if (size_D == 0) PetscFunctionReturn(0);
 
   /* Fill V with D */
-  ierr = d->improveX(d,0,size_D,&size_D);CHKERRQ(ierr);
+  ierr = d->improveX(d,d->npreconv,d->npreconv+size_D,&size_D);CHKERRQ(ierr);
 
   /* If D is empty, exit */
   d->size_D = size_D;
@@ -330,8 +336,8 @@ static PetscErrorCode dvd_updateV_extrapol(dvdDashboard *d)
     d->size_D = 0;
     ierr = dvd_updateV_update_gen(d);CHKERRQ(ierr);
 
-    /* If some vector were add, exit */
-    if (d->size_D > 0) PetscFunctionReturn(0);
+    /* If no vector were converged, exit */
+    if (d->V_tra_s == 0) PetscFunctionReturn(0);
   }
 
   /* If some eigenpairs were converged, lock them  */

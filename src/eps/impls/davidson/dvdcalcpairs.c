@@ -66,7 +66,7 @@ static PetscErrorCode dvd_calcpairs_qz_d(dvdDashboard *d)
   PetscFunctionReturn(0);
 }
 
-/* in complex, d->size_H real auxiliar values are needed */
+/* in complex, d->size_H real auxiliary values are needed */
 #undef __FUNCT__
 #define __FUNCT__ "dvd_calcpairs_projeig_solve"
 static PetscErrorCode dvd_calcpairs_projeig_solve(dvdDashboard *d)
@@ -156,11 +156,11 @@ static PetscErrorCode EPSXDUpdateProj(Mat Q,Mat Z,PetscInt l,Mat A,PetscInt lA,P
   PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&nQ,&dA,&nQ,&one,&pA[ldA*lA+lA],&ldA,&pQ[ldQ*l+l],&ldQ,&zero,pW,&nQ));
   /* A = Q'*W */
   PetscStackCallBLAS("BLASgemm",BLASgemm_("C","N",&dA,&dA,&nQ,&one,&pZ[ldZ*l+l],&ldZ,pW,&nQ,&zero,&pA[ldA*lA+lA],&ldA));
-  ierr = MatDenseGetArray(A,&pA);CHKERRQ(ierr);
-  ierr = MatDenseGetArray(Q,&pQ);CHKERRQ(ierr);
+  ierr = MatDenseRestoreArray(A,&pA);CHKERRQ(ierr);
+  ierr = MatDenseRestoreArray(Q,&pQ);CHKERRQ(ierr);
   if (Q!=Z) { ierr = MatDenseGetArray(Z,&pZ);CHKERRQ(ierr); }
   else pZ = pQ;
-  ierr = MatDenseGetArray(aux,&pW);CHKERRQ(ierr);
+  ierr = MatDenseRestoreArray(aux,&pW);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -183,7 +183,7 @@ static PetscErrorCode dvd_calcpairs_updateproj(dvdDashboard *d)
   ierr = DSRestoreMat(d->eps->ds,DS_MAT_Q,&Q);CHKERRQ(ierr);
   if (d->W) { ierr = DSRestoreMat(d->eps->ds,DS_MAT_Z,&Z);CHKERRQ(ierr); }
 
-  ierr = PetscObjectTypeCompareAny((PetscObject)d->eps->ds,&symm,DSHEP,DSGHIEP,"");CHKERRQ(ierr);
+  ierr = PetscObjectTypeCompareAny((PetscObject)d->eps->ds,&symm,DSHEP,DSGHIEP,DSGHEP,"");CHKERRQ(ierr);
   if (d->V_tra_s==0 || symm) PetscFunctionReturn(0);
   /* Compute upper part of H (and G): H(0:l-1,l:k-1) <- W(0:l-1)' * AV(l:k-1), where
      k=l+d->V_tra_s */
