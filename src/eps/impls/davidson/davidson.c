@@ -100,9 +100,9 @@ PetscErrorCode EPSSetUp_XD(EPS eps)
   if (!eps->isgeneralized) dvd->sB = DVD_MAT_IMPLICIT | DVD_MAT_HERMITIAN | DVD_MAT_IDENTITY | DVD_MAT_UNITARY | DVD_MAT_POS_DEF;
   else dvd->sB = DVD_MAT_IMPLICIT | (eps->ishermitian? DVD_MAT_HERMITIAN: 0) | (ispositive? DVD_MAT_POS_DEF: 0);
   ipB = (dvd->B && data->ipB && DVD_IS(dvd->sB,DVD_MAT_HERMITIAN))?PETSC_TRUE:PETSC_FALSE;
-  if (data->ipB && !ipB) data->ipB = PETSC_FALSE;
-  dvd->correctXnorm = ipB;
   dvd->sEP = ((!eps->isgeneralized || (eps->isgeneralized && ipB))? DVD_EP_STD: 0) | (ispositive? DVD_EP_HERMITIAN: 0) | ((eps->problem_type == EPS_GHIEP && ipB) ? DVD_EP_INDEFINITE : 0);
+  if (data->ipB && !ipB) data->ipB = PETSC_FALSE;
+  dvd->correctXnorm = (dvd->B && (DVD_IS(dvd->sB,DVD_MAT_HERMITIAN)||DVD_IS(dvd->sEP,DVD_EP_INDEFINITE)))?PETSC_TRUE:PETSC_FALSE;
   dvd->nev        = eps->nev;
   dvd->which      = eps->which;
   dvd->withTarget = PETSC_TRUE;
@@ -229,7 +229,7 @@ PetscErrorCode EPSSolve_XD(EPS eps)
     eps->nconv = d->nconv;
     eps->its++;
     ierr = BVGetActiveColumns(d->eps->V,&l,&k);CHKERRQ(ierr);
-    ierr = EPSMonitor(eps,eps->its,eps->nconv,eps->eigr,eps->eigi,eps->errest,k);CHKERRQ(ierr);
+    ierr = EPSMonitor(eps,eps->its,eps->nconv+d->npreconv,eps->eigr,eps->eigi,eps->errest,k);CHKERRQ(ierr);
   }
 
   /* Call the ending routines */
