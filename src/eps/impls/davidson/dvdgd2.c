@@ -49,7 +49,7 @@ static PetscErrorCode dvd_improvex_gd2_gen(dvdDashboard *d,PetscInt r_s,PetscInt
   dvdImprovex_gd2 *data = (dvdImprovex_gd2*)d->improveX_data;
   PetscErrorCode  ierr;
   PetscInt        i,j,n,s,ld,k,lv,kv,max_size_D;
-  PetscInt oldnpreconv = d->npreconv;
+  PetscInt        oldnpreconv = d->npreconv;
   PetscScalar     *pX,*b;
   Vec             *Ax,*Bx,v,*x;
   Mat             M;

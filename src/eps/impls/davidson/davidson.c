@@ -70,7 +70,7 @@ PetscErrorCode EPSSetUp_XD(EPS eps)
   if (!(eps->nev + bs <= eps->ncv)) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"The ncv has to be greater than nev plus blocksize");
   if (eps->trueres) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"-eps_true_residual is temporally disable in this solver.");
 
-  ierr = EPSXDSetRestart_XD(eps,data->minv,data->plusk);
+  ierr = EPSXDSetRestart_XD(eps,data->minv,data->plusk);CHKERRQ(ierr);
   min_size_V = data->minv;
   if (!min_size_V) min_size_V = PetscMin(PetscMax(bs,5),eps->mpd/2);
   if (!(min_size_V+bs <= eps->mpd)) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"The value of minv must be less than mpd minus blocksize");
