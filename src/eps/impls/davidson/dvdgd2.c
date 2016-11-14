@@ -48,7 +48,7 @@ static PetscErrorCode dvd_improvex_gd2_gen(dvdDashboard *d,PetscInt r_s,PetscInt
 {
   dvdImprovex_gd2 *data = (dvdImprovex_gd2*)d->improveX_data;
   PetscErrorCode  ierr;
-  PetscInt        i,j,n,s,ld,k,lv,kv,max_size_D;
+  PetscInt        i,j,n,s,ld,lv,kv,max_size_D;
   PetscInt        oldnpreconv = d->npreconv;
   PetscScalar     *pX,*b;
   Vec             *Ax,*Bx,v,*x;
@@ -60,16 +60,6 @@ static PetscErrorCode dvd_improvex_gd2_gen(dvdDashboard *d,PetscInt r_s,PetscInt
   ierr = BVGetActiveColumns(d->eps->V,&lv,&kv);CHKERRQ(ierr);
   max_size_D = d->eps->ncv-kv;
   n = PetscMin(PetscMin(data->size_X*2,max_size_D),(r_e-r_s)*2)/2;
-#if !defined(PETSC_USE_COMPLEX)
-  /* If the last eigenvalue is a complex conjugate pair, n is increased by one */
-  for (i=0; i<n; i++) {
-    if (d->eigi[i+r_s] != 0.0) i++;
-  }
-  if (i > n) {
-    n = PetscMin(PetscMin(data->size_X*2,max_size_D),(n+1)*2)/2;
-    if (i > n) n--;
-  }
-#endif
 
   /* Quick exit */
   if (max_size_D == 0 || r_e-r_s <= 0 || n == 0) {
@@ -81,10 +71,8 @@ static PetscErrorCode dvd_improvex_gd2_gen(dvdDashboard *d,PetscInt r_s,PetscInt
   ierr = MatCreateSeqDense(PETSC_COMM_SELF,4,2,NULL,&M);CHKERRQ(ierr);
 
   /* Compute the eigenvectors of the selected pairs */
-  for (i=0;i<n;) {
-    k = r_s+i;
-    ierr = DSVectors(d->eps->ds,DS_MAT_X,&k,NULL);CHKERRQ(ierr);
-    i = k+1; /* skip complex conjugate pairs */
+  for (i=r_s;i<r_s+n; i++) {
+    ierr = DSVectors(d->eps->ds,DS_MAT_X,&i,NULL);CHKERRQ(ierr);
   }
   ierr = DSGetArray(d->eps->ds,DS_MAT_X,&pX);CHKERRQ(ierr);
   ierr = DSGetLeadingDimension(d->eps->ds,&ld);CHKERRQ(ierr);
@@ -126,7 +114,7 @@ static PetscErrorCode dvd_improvex_gd2_gen(dvdDashboard *d,PetscInt r_s,PetscInt
 
   for (i=0,s=0;i<n;i+=s) {
 #if !defined(PETSC_USE_COMPLEX)
-    if (d->eigi[r_s+i] != 0.0) {
+    if (d->eigi[r_s+i] != 0.0 && i+2<=n) {
        /* [Ax_i Ax_i+1 Bx_i Bx_i+1]*= [   1        0
                                           0        1
                                        -eigr_i -eigi_i
