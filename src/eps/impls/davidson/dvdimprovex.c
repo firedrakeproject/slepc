@@ -725,7 +725,7 @@ static PetscErrorCode dvd_improvex_jd_gen(dvdDashboard *d,PetscInt r_s,PetscInt 
   for (i=0,s=0;i<n;i+=s) {
     /* If the selected eigenvalue is complex, but the arithmetic is real... */
 #if !defined(PETSC_USE_COMPLEX)
-    if (d->eigi[i] != 0.0) {
+    if (d->eigi[r_s+i] != 0.0) {
       if (i+2 <= max_size_D) s=2;
       else break;
     } else

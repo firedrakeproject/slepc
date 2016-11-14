@@ -49,6 +49,7 @@ static PetscErrorCode dvd_improvex_gd2_gen(dvdDashboard *d,PetscInt r_s,PetscInt
   dvdImprovex_gd2 *data = (dvdImprovex_gd2*)d->improveX_data;
   PetscErrorCode  ierr;
   PetscInt        i,j,n,s,ld,k,lv,kv,max_size_D;
+  PetscInt oldnpreconv = d->npreconv;
   PetscScalar     *pX,*b;
   Vec             *Ax,*Bx,v,*x;
   Mat             M;
@@ -62,7 +63,7 @@ static PetscErrorCode dvd_improvex_gd2_gen(dvdDashboard *d,PetscInt r_s,PetscInt
 #if !defined(PETSC_USE_COMPLEX)
   /* If the last eigenvalue is a complex conjugate pair, n is increased by one */
   for (i=0; i<n; i++) {
-    if (d->eigi[i] != 0.0) i++;
+    if (d->eigi[i+r_s] != 0.0) i++;
   }
   if (i > n) {
     n = PetscMin(PetscMin(data->size_X*2,max_size_D),(n+1)*2)/2;
@@ -171,13 +172,13 @@ static PetscErrorCode dvd_improvex_gd2_gen(dvdDashboard *d,PetscInt r_s,PetscInt
 
     /* Check if the first eigenpairs are converged */
     if (i == 0) {
-      ierr = d->preTestConv(d,0,s,s,&d->npreconv);CHKERRQ(ierr);
-      if (d->npreconv > 0) break;
+      ierr = d->preTestConv(d,0,r_s+s,r_s+s,&d->npreconv);CHKERRQ(ierr);
+      if (d->npreconv > oldnpreconv) break;
     }
   }
 
   /* D <- K*[Ax Bx] */
-  if (d->npreconv == 0) {
+  if (d->npreconv <= oldnpreconv) {
     for (i=0;i<n;i++) {
       ierr = BVGetColumn(d->eps->V,kv+i,&v);CHKERRQ(ierr);
       ierr = d->improvex_precond(d,r_s+i,Ax[i],v);CHKERRQ(ierr);

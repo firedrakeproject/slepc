@@ -107,7 +107,7 @@ static PetscErrorCode dvd_updateV_conv_gen(dvdDashboard *d)
   PetscInt        npreconv,cMT,cMTX,lV,kV,nV;
   PetscErrorCode  ierr;
   Mat             Q;
-  PetscBool       her_probl,ind_probl,t;
+  PetscBool       t;
 #if !defined(PETSC_USE_COMPLEX)
   PetscInt        i;
 #endif
@@ -122,11 +122,9 @@ static PetscErrorCode dvd_updateV_conv_gen(dvdDashboard *d)
 #else
   npreconv = PetscMax(PetscMin(d->nev-d->nconv,npreconv),0);
 #endif
-  /* For GHEP without B-ortho and GHIEP converge all of the requested pairs at once */
-  her_probl = DVD_IS(d->sEP,DVD_EP_HERMITIAN)? PETSC_TRUE: PETSC_FALSE;
-  ind_probl = DVD_IS(d->sEP,DVD_EP_INDEFINITE)? PETSC_TRUE: PETSC_FALSE;
-  ierr = PetscObjectTypeCompareAny((PetscObject)d->eps->ds,&t,DSGHIEP,DSGHEP,"");CHKERRQ(ierr);
-  if ((her_probl || ind_probl) && t && d->nconv+npreconv<d->nev) npreconv = 0;
+  /* For GHEP without B-ortho, converge all of the requested pairs at once */
+  ierr = PetscObjectTypeCompareAny((PetscObject)d->eps->ds,&t,DSGHEP,"");CHKERRQ(ierr);
+  if (t && d->nconv+npreconv<d->nev) npreconv = 0;
   /* Quick exit */
   if (npreconv == 0) PetscFunctionReturn(0);
 
@@ -183,7 +181,7 @@ static PetscErrorCode dvd_updateV_restart_gen(dvdDashboard *d)
   /* Select size_X desired pairs from V */
   ierr = BVGetActiveColumns(d->eps->V,&lV,&kV);CHKERRQ(ierr);
   nV = kV - lV;
-  size_X = PetscMin(data->min_size_V,nV);
+  size_X = PetscMin(data->min_size_V+d->npreconv,nV);
 
   /* Add plusk eigenvectors from the previous iteration */
   size_plusk = PetscMax(0,PetscMin(PetscMin(data->plusk,data->size_oldU),d->eps->ncv - size_X));
@@ -323,12 +321,12 @@ static PetscErrorCode dvd_updateV_extrapol(dvdDashboard *d)
 {
   dvdManagV_basic *data = (dvdManagV_basic*)d->updateV_data;
   PetscInt        i;
-  PetscBool       restart;
+  PetscBool       restart,t;
   PetscErrorCode  ierr;
 
   PetscFunctionBegin;
   /* TODO: restrict select pairs to each case */
-  ierr = d->calcpairs_selectPairs(d, data->min_size_V);CHKERRQ(ierr);
+  ierr = d->calcpairs_selectPairs(d, data->min_size_V+d->npreconv);CHKERRQ(ierr);
 
   /* If the subspaces doesn't need restart, add new vector */
   ierr = d->isRestarting(d,&restart);CHKERRQ(ierr);
@@ -337,7 +335,9 @@ static PetscErrorCode dvd_updateV_extrapol(dvdDashboard *d)
     ierr = dvd_updateV_update_gen(d);CHKERRQ(ierr);
 
     /* If no vector were converged, exit */
-    if (d->V_tra_s == 0) PetscFunctionReturn(0);
+    /* For GHEP without B-ortho, converge all of the requested pairs at once */
+    ierr = PetscObjectTypeCompareAny((PetscObject)d->eps->ds,&t,DSGHEP,"");CHKERRQ(ierr);
+    if (d->nconv+d->npreconv < d->nev && (t || d->npreconv == 0)) PetscFunctionReturn(0);
   }
 
   /* If some eigenpairs were converged, lock them  */
