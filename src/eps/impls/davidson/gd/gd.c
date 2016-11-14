@@ -568,7 +568,7 @@ PETSC_EXTERN PetscErrorCode EPSCreate_GD(EPS eps)
   data->blocksize   = 1;
   data->initialsize = 6;
   data->minv        = 6;
-  data->plusk       = 0;
+  data->plusk       = PETSC_DEFAULT;
   data->ipB         = PETSC_TRUE;
   data->fix         = 0.0;
   data->krylovstart = PETSC_FALSE;

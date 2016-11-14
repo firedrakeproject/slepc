@@ -70,6 +70,7 @@ PetscErrorCode EPSSetUp_XD(EPS eps)
   if (!(eps->nev + bs <= eps->ncv)) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"The ncv has to be greater than nev plus blocksize");
   if (eps->trueres) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"-eps_true_residual is temporally disable in this solver.");
 
+  ierr = EPSXDSetRestart_XD(eps,data->minv,data->plusk);CHKERRQ(ierr);
   min_size_V = data->minv;
   if (!min_size_V) min_size_V = PetscMin(PetscMax(bs,5),eps->mpd/2);
   if (!(min_size_V+bs <= eps->mpd)) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"The value of minv must be less than mpd minus blocksize");
@@ -309,7 +310,7 @@ PetscErrorCode EPSXDSetRestart_XD(EPS eps,PetscInt minv,PetscInt plusk)
   PetscFunctionBegin;
   if (minv == PETSC_DEFAULT || minv == PETSC_DECIDE) minv = 5;
   if (minv <= 0) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"Invalid minv value");
-  if (plusk == PETSC_DEFAULT || plusk == PETSC_DECIDE) plusk = 5;
+  if (plusk == PETSC_DEFAULT || plusk == PETSC_DECIDE) plusk = eps->problem_type == EPS_GHIEP?0:1;
   if (plusk < 0) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"Invalid plusk value");
   data->minv = minv;
   data->plusk = plusk;
