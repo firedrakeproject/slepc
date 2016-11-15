@@ -1129,15 +1129,15 @@ static PetscErrorCode EPSGetNewShiftValue(EPS eps,PetscInt side,PetscReal *newS)
           /* Unaccepted values give information for next shift */
           idxP=0;/* Number of values left from shift */
           for (i=0;i<eps->nconv;i++) {
-            lambda = PetscRealPart(sr->eigr[i]);
+            lambda = PetscRealPart(eps->eigr[i]);
             if ((sr->dir)*(lambda - sPres->value) <0) idxP++;
             else break;
           }
           /* Avoiding subtraction of eigenvalues (might be the same).*/
           if (idxP>0) {
-            d_prev = PetscAbsReal(sPres->value - PetscRealPart(sr->eigr[0]))/(idxP+0.3);
+            d_prev = PetscAbsReal(sPres->value - PetscRealPart(eps->eigr[0]))/(idxP+0.3);
           } else {
-            d_prev = PetscAbsReal(sPres->value - PetscRealPart(sr->eigr[eps->nconv-1]))/(eps->nconv+0.3);
+            d_prev = PetscAbsReal(sPres->value - PetscRealPart(eps->eigr[eps->nconv-1]))/(eps->nconv+0.3);
           }
           *newS = sPres->value + ((sr->dir)*d_prev*eps->nev)/2;
         } else { /* No values found, no information for next shift */
