@@ -425,7 +425,7 @@ runtest9_4:
 
 runtest9_5:
 	-@${SETTEST}; \
-	${MPIEXEC} -n 1 ./test9 -eps_type jd -eps_nev 4 -eps_target .5 -eps_harmonic -st_ksp_type bicg > $${test}.tmp 2>&1; \
+	${MPIEXEC} -n 1 ./test9 -eps_type jd -eps_nev 4 -eps_target .5 -eps_harmonic -st_ksp_type bicg -eps_jd_minv 2 > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
 runtest9_6: runtest9_6_ciss runtest9_6_ciss_hankel runtest9_6_ciss_cheby runtest9_6_ciss_hankel_cheby runtest9_6_ciss_refine
