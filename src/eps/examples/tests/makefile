@@ -425,7 +425,7 @@ runtest9_4:
 
 runtest9_5:
 	-@${SETTEST}; \
-	${MPIEXEC} -n 1 ./test9 -eps_type jd -eps_nev 4 -eps_target .5 -eps_harmonic -st_ksp_type bicg > $${test}.tmp 2>&1; \
+	${MPIEXEC} -n 1 ./test9 -eps_type jd -eps_nev 3 -eps_target .5 -eps_harmonic -st_ksp_type bicg -eps_jd_minv 2 > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
 runtest9_6: runtest9_6_ciss runtest9_6_ciss_hankel runtest9_6_ciss_cheby runtest9_6_ciss_hankel_cheby runtest9_6_ciss_refine
@@ -495,7 +495,7 @@ runtest12_1_%:
 runtest13_1: runtest13_1_krylovschur runtest13_1_gd runtest13_1_jd runtest13_1_gd2
 runtest13_1_%:
 	-@${SETTEST}; check=test13_1; eps=$*; \
-	if [ "$$eps" = jd ]; then eps="jd -eps_target -2"; \
+	if [ "$$eps" = jd ]; then eps="jd"; \
 	elif [ "$$eps" = gd2 ]; then eps="gd -eps_gd_double_expansion"; fi; \
 	${MPIEXEC} -n 1 ./test13 -eps_type $$eps -eps_max_it 5000 > $${test}.tmp 2>&1; \
 	${TESTCODE}
@@ -503,7 +503,7 @@ runtest13_1_%:
 runtest13_2: runtest13_2_krylovschur runtest13_2_gd runtest13_2_jd runtest13_2_gd2
 runtest13_2_%:
 	-@${SETTEST}; check=test13_1; eps=$*; \
-	if [ "$$eps" = jd ]; then eps="jd -eps_target -2"; \
+	if [ "$$eps" = jd ]; then eps="jd"; \
 	elif [ "$$eps" = gd2 ]; then eps="gd -eps_gd_double_expansion"; fi; \
 	${MPIEXEC} -n 1 ./test13 -eps_type $$eps -eps_non_hermitian -eps_max_it 5000 > $${test}.tmp 2>&1; \
 	${TESTCODE}
