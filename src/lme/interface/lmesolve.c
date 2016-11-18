@@ -78,8 +78,8 @@ PetscErrorCode LMESolve(LME lme)
   ierr = LMEViewFromOptions(lme,NULL,"-lme_view");CHKERRQ(ierr);
   ierr = LMEReasonViewFromOptions(lme);CHKERRQ(ierr);
   ierr = MatViewFromOptions(lme->A,(PetscObject)lme,"-lme_view_mat");CHKERRQ(ierr);
-  ierr = BVViewFromOptions(lme->C1,(PetscObject)lme,"-lme_view_rhs");CHKERRQ(ierr);
-  ierr = BVViewFromOptions(lme->X1,(PetscObject)lme,"-lme_view_solution");CHKERRQ(ierr);
+  ierr = MatViewFromOptions(lme->C,(PetscObject)lme,"-lme_view_rhs");CHKERRQ(ierr);
+  ierr = MatViewFromOptions(lme->X,(PetscObject)lme,"-lme_view_solution");CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -198,14 +198,20 @@ PetscErrorCode LMEComputeResidualNorm_Lyapunov(LME lme,PetscReal *norm)
   PetscBLASInt      n_,N_,k_,l_;
   PetscScalar       *Rarray,alpha=1.0,beta=0.0;
   const PetscScalar *A,*B;
-  BV                W,AX;
-  Mat               R;
+  BV                W,AX,X1,C1;
+  Mat               R,X1m,C1m;
   Vec               v,w;
   VecScatter        vscat;
 
   PetscFunctionBegin;
-  ierr = BVGetSizes(lme->X1,&n,&N,&k);CHKERRQ(ierr);
-  ierr = BVGetSizes(lme->C1,NULL,NULL,&l);CHKERRQ(ierr);
+  ierr = MatLRCGetMats(lme->C,NULL,&C1m,NULL,NULL);CHKERRQ(ierr);
+  ierr = MatLRCGetMats(lme->X,NULL,&X1m,NULL,NULL);CHKERRQ(ierr);
+  ierr = BVCreateFromMat(C1m,&C1);CHKERRQ(ierr);
+  ierr = BVSetFromOptions(C1);CHKERRQ(ierr);
+  ierr = BVCreateFromMat(X1m,&X1);CHKERRQ(ierr);
+  ierr = BVSetFromOptions(X1);CHKERRQ(ierr);
+  ierr = BVGetSizes(X1,&n,&N,&k);CHKERRQ(ierr);
+  ierr = BVGetSizes(C1,NULL,NULL,&l);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(n,&n_);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(N,&N_);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(k,&k_);CHKERRQ(ierr);
@@ -215,13 +221,13 @@ PetscErrorCode LMEComputeResidualNorm_Lyapunov(LME lme,PetscReal *norm)
   ierr = BVCreate(PETSC_COMM_SELF,&W);CHKERRQ(ierr);
   ierr = BVSetSizes(W,N,N,k);CHKERRQ(ierr);
   ierr = BVSetFromOptions(W);CHKERRQ(ierr);
-  ierr = BVGetColumn(lme->X1,0,&v);CHKERRQ(ierr);
+  ierr = BVGetColumn(X1,0,&v);CHKERRQ(ierr);
   ierr = VecScatterCreateToAll(v,&vscat,NULL);CHKERRQ(ierr);
-  ierr = BVRestoreColumn(lme->X1,0,&v);CHKERRQ(ierr);
+  ierr = BVRestoreColumn(X1,0,&v);CHKERRQ(ierr);
 
   /* create AX to hold the product A*X1 */
-  ierr = BVDuplicate(lme->X1,&AX);CHKERRQ(ierr);
-  ierr = BVMatMult(lme->X1,lme->A,AX);CHKERRQ(ierr);
+  ierr = BVDuplicate(X1,&AX);CHKERRQ(ierr);
+  ierr = BVMatMult(X1,lme->A,AX);CHKERRQ(ierr);
 
   /* create dense matrix to hold the residual R=C1*C1'+AX*X1'+X1*AX' */
   ierr = MatCreateDense(PetscObjectComm((PetscObject)lme),n,n,N,N,NULL,&R);CHKERRQ(ierr);
@@ -229,29 +235,29 @@ PetscErrorCode LMEComputeResidualNorm_Lyapunov(LME lme,PetscReal *norm)
   /* R=C1*C1' */
   ierr = MatDenseGetArray(R,&Rarray);CHKERRQ(ierr);
   for (j=0;j<l;j++) {
-    ierr = BVGetColumn(lme->C1,j,&v);CHKERRQ(ierr);
+    ierr = BVGetColumn(C1,j,&v);CHKERRQ(ierr);
     ierr = BVGetColumn(W,j,&w);CHKERRQ(ierr);
     ierr = VecScatterBegin(vscat,v,w,INSERT_VALUES,SCATTER_FORWARD);CHKERRQ(ierr);
     ierr = VecScatterEnd(vscat,v,w,INSERT_VALUES,SCATTER_FORWARD);CHKERRQ(ierr);
-    ierr = BVRestoreColumn(lme->C1,j,&v);CHKERRQ(ierr);
+    ierr = BVRestoreColumn(C1,j,&v);CHKERRQ(ierr);
     ierr = BVRestoreColumn(W,j,&w);CHKERRQ(ierr);
   }
   if (n) {
-    ierr = BVGetArrayRead(lme->C1,&A);CHKERRQ(ierr);
+    ierr = BVGetArrayRead(C1,&A);CHKERRQ(ierr);
     ierr = BVGetArrayRead(W,&B);CHKERRQ(ierr);
     PetscStackCallBLAS("BLASgemm",BLASgemm_("N","C",&n_,&N_,&l_,&alpha,(PetscScalar*)A,&n_,(PetscScalar*)B,&N_,&beta,Rarray,&n_));
-    ierr = BVRestoreArrayRead(lme->C1,&A);CHKERRQ(ierr);
+    ierr = BVRestoreArrayRead(C1,&A);CHKERRQ(ierr);
     ierr = BVRestoreArrayRead(W,&B);CHKERRQ(ierr);
   }
   beta = 1.0;
 
   /* R+=AX*X1' */
   for (j=0;j<k;j++) {
-    ierr = BVGetColumn(lme->X1,j,&v);CHKERRQ(ierr);
+    ierr = BVGetColumn(X1,j,&v);CHKERRQ(ierr);
     ierr = BVGetColumn(W,j,&w);CHKERRQ(ierr);
     ierr = VecScatterBegin(vscat,v,w,INSERT_VALUES,SCATTER_FORWARD);CHKERRQ(ierr);
     ierr = VecScatterEnd(vscat,v,w,INSERT_VALUES,SCATTER_FORWARD);CHKERRQ(ierr);
-    ierr = BVRestoreColumn(lme->X1,j,&v);CHKERRQ(ierr);
+    ierr = BVRestoreColumn(X1,j,&v);CHKERRQ(ierr);
     ierr = BVRestoreColumn(W,j,&w);CHKERRQ(ierr);
   }
   if (n) {
@@ -272,10 +278,10 @@ PetscErrorCode LMEComputeResidualNorm_Lyapunov(LME lme,PetscReal *norm)
     ierr = BVRestoreColumn(W,j,&w);CHKERRQ(ierr);
   }
   if (n) {
-    ierr = BVGetArrayRead(lme->X1,&A);CHKERRQ(ierr);
+    ierr = BVGetArrayRead(X1,&A);CHKERRQ(ierr);
     ierr = BVGetArrayRead(W,&B);CHKERRQ(ierr);
     PetscStackCallBLAS("BLASgemm",BLASgemm_("N","C",&n_,&N_,&k_,&alpha,(PetscScalar*)A,&n_,(PetscScalar*)B,&N_,&beta,Rarray,&n_));
-    ierr = BVRestoreArrayRead(lme->X1,&A);CHKERRQ(ierr);
+    ierr = BVRestoreArrayRead(X1,&A);CHKERRQ(ierr);
     ierr = BVRestoreArrayRead(W,&B);CHKERRQ(ierr);
   }
   ierr = MatDenseRestoreArray(R,&Rarray);CHKERRQ(ierr);
@@ -289,6 +295,8 @@ PetscErrorCode LMEComputeResidualNorm_Lyapunov(LME lme,PetscReal *norm)
   ierr = VecScatterDestroy(&vscat);CHKERRQ(ierr);
   ierr = BVDestroy(&AX);CHKERRQ(ierr);
   ierr = MatDestroy(&R);CHKERRQ(ierr);
+  ierr = BVDestroy(&C1);CHKERRQ(ierr);
+  ierr = BVDestroy(&X1);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

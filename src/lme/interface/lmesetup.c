@@ -27,7 +27,19 @@
 #define __FUNCT__ "LMESetUp_Lyapunov"
 PETSC_STATIC_INLINE PetscErrorCode LMESetUp_Lyapunov(LME lme)
 {
+  PetscErrorCode ierr;
+  Mat            C1,C2,X1,X2;
+  Vec            dc,dx;
+
   PetscFunctionBegin;
+  ierr = MatLRCGetMats(lme->C,NULL,&C1,&dc,&C2);CHKERRQ(ierr);
+  if (C1!=C2) SETERRQ(PetscObjectComm((PetscObject)lme),PETSC_ERR_ARG_WRONGSTATE,"Lyapunov matrix equation requires symmetric right-hand side C");
+  if (dc) SETERRQ(PetscObjectComm((PetscObject)lme),PETSC_ERR_ARG_WRONGSTATE,"Lyapunov solvers currently requires positive-definite right-hand side C");
+  if (lme->X) {
+    ierr = MatLRCGetMats(lme->X,NULL,&X1,&dx,&X2);CHKERRQ(ierr);
+    if (X1!=X2) SETERRQ(PetscObjectComm((PetscObject)lme),PETSC_ERR_ARG_WRONGSTATE,"Lyapunov matrix equation requires symmetric solution X");
+    if (dx) SETERRQ(PetscObjectComm((PetscObject)lme),PETSC_ERR_ARG_WRONGSTATE,"Lyapunov solvers currently assumes a positive-definite solution X");
+  }
   PetscFunctionReturn(0);
 }
 
@@ -278,74 +290,74 @@ PetscErrorCode LMEGetCoefficients(LME lme,Mat *A,Mat *B,Mat *D,Mat *E)
 #undef __FUNCT__
 #define __FUNCT__ "LMESetRHS"
 /*@
-   LMESetRHS - Sets the right-hand side of the matrix equation, in factored form.
+   LMESetRHS - Sets the right-hand side of the matrix equation, as a low-rank
+   matrix.
 
-   Collective on LME and BV
+   Collective on LME and Mat
 
    Input Parameters:
 +  lme - the matrix function context
-.  C1  - first factor
--  C2  - second factor
++  C   - the right-hand side matrix
 
    Notes:
    The matrix equation takes the general form A*X*E+D*X*B=C, where matrix C is
-   given with this function, in factored form C = C1*C2'.
+   given with this function. C must be a low-rank matrix of type MATLRC, that is,
+   C = U*D*V' where D is diagonal of order k, and U, V are dense tall-skinny
+   matrices with k columns. No sparse matrix must be provided when creating the
+   MATLRC matrix.
 
-   In equation types that require C to be symmetric, such as Lyapunov, C2 can
-   be set to NULL (or to C1).
+   In equation types that require C to be symmetric, such as Lyapunov, C must be
+   created with V=U (or V=NULL).
 
    Level: beginner
 
 .seealso: LMESetSolution(), LMESetProblemType()
 @*/
-PetscErrorCode LMESetRHS(LME lme,BV C1,BV C2)
+PetscErrorCode LMESetRHS(LME lme,Mat C)
 {
   PetscErrorCode ierr;
+  PetscBool      match;
+  Mat            A;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(lme,LME_CLASSID,1);
-  PetscValidHeaderSpecific(C1,BV_CLASSID,2);
-  PetscCheckSameComm(lme,1,C1,2);
-  if (C2) {
-    PetscValidHeaderSpecific(C2,BV_CLASSID,3);
-    PetscCheckSameComm(lme,1,C2,3);
-  }
+  PetscValidHeaderSpecific(C,MAT_CLASSID,2);
+  PetscCheckSameComm(lme,1,C,2);
 
-  ierr = BVDestroy(&lme->C1);CHKERRQ(ierr);
-  ierr = BVDestroy(&lme->C2);CHKERRQ(ierr);
-  ierr = PetscObjectReference((PetscObject)C1);CHKERRQ(ierr);
-  lme->C1 = C1;
-  if (C2) {
-    ierr = PetscObjectReference((PetscObject)C2);CHKERRQ(ierr);
-    lme->C2 = C2;
-  }
+  ierr = PetscObjectTypeCompare((PetscObject)C,MATLRC,&match);CHKERRQ(ierr);
+  if (!match) SETERRQ(PetscObjectComm((PetscObject)C),PETSC_ERR_SUP,"Mat argument must have been created with MatCreateLRC");
+  ierr = MatLRCGetMats(C,&A,NULL,NULL,NULL);CHKERRQ(ierr);
+  if (A) SETERRQ(PetscObjectComm((PetscObject)C),PETSC_ERR_SUP,"The MatLRC must not have a sparse matrix term");
+
+  ierr = MatDestroy(&lme->C);CHKERRQ(ierr);
+  ierr = PetscObjectReference((PetscObject)C);CHKERRQ(ierr);
+  lme->C = C;
   PetscFunctionReturn(0);
 }
 
 #undef __FUNCT__
 #define __FUNCT__ "LMEGetRHS"
 /*@
-   LMEGetRHS - Gets the right-hand side of the matrix equation, in factored form.
+   LMEGetRHS - Gets the right-hand side of the matrix equation.
 
-   Collective on LME and BV
+   Collective on LME and Mat
 
    Input Parameter:
 .  lme - the LME context
 
    Output Parameters:
-+  C1  - first factor
--  C2  - second factor
+.  C   - the low-rank matrix
 
    Level: intermediate
 
 .seealso: LMESolve(), LMESetRHS()
 @*/
-PetscErrorCode LMEGetRHS(LME lme,BV *C1,BV *C2)
+PetscErrorCode LMEGetRHS(LME lme,Mat *C)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(lme,LME_CLASSID,1);
-  if (C1) *C1 = lme->C1;
-  if (C2) *C2 = lme->C2;
+  PetscValidPointer(C,2);
+  *C = lme->C;
   PetscFunctionReturn(0);
 }
 
@@ -353,57 +365,53 @@ PetscErrorCode LMEGetRHS(LME lme,BV *C1,BV *C2)
 #define __FUNCT__ "LMESetSolution"
 /*@
    LMESetSolution - Sets the placeholder for the solution of the matrix
-   equation, in factored form.
+   equation, as a low-rank matrix.
 
-   Collective on LME and BV
+   Collective on LME and Mat
 
    Input Parameters:
 +  lme - the matrix function context
-.  X1  - first factor
--  X2  - second factor
+-  X   - the solution matrix
 
    Notes:
    The matrix equation takes the general form A*X*E+D*X*B=C, where the solution
-   matrix is of low rank and is written in factored form X = X1*X2'. This
-   function provides the BV objects required to store X1 and X2, which will
-   be computed during LMESolve().
+   matrix is of low rank and is written in factored form X = U*D*V'. This function
+   provides a Mat object of type MATLRC that stores U, V and (optionally) D.
+   These factors will be computed during LMESolve().
 
-   In equation types whose solution X is symmetric, such as Lyapunov, X2 can
-   be set to NULL (or to X1).
+   In equation types whose solution X is symmetric, such as Lyapunov, X must be
+   created with V=U (or V=NULL).
 
-   If the user provides X1 (and X2) with this function, then the solver will
-   return a solution with rank at most the number of columns of X1. Alternatively,
+   If the user provides X with this function, then the solver will
+   return a solution with rank at most the number of columns of U. Alternatively,
    it is possible to let the solver choose the rank of the solution, by
-   setting X1 to NULL and then calling LMEGetSolution() after LMESolve().
+   setting X to NULL and then calling LMEGetSolution() after LMESolve().
 
    Level: intermediate
 
 .seealso: LMEGetSolution(), LMESetRHS(), LMESetProblemType(), LMESolve()
 @*/
-PetscErrorCode LMESetSolution(LME lme,BV X1,BV X2)
+PetscErrorCode LMESetSolution(LME lme,Mat X)
 {
   PetscErrorCode ierr;
+  PetscBool      match;
+  Mat            A;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(lme,LME_CLASSID,1);
-  if (X1) {
-    PetscValidHeaderSpecific(X1,BV_CLASSID,2);
-    PetscCheckSameComm(lme,1,X1,2);
-  }
-  if (X2) {
-    PetscValidHeaderSpecific(X2,BV_CLASSID,3);
-    PetscCheckSameComm(lme,1,X2,3);
+  if (X) {
+    PetscValidHeaderSpecific(X,MAT_CLASSID,2);
+    PetscCheckSameComm(lme,1,X,2);
+    ierr = PetscObjectTypeCompare((PetscObject)X,MATLRC,&match);CHKERRQ(ierr);
+    if (!match) SETERRQ(PetscObjectComm((PetscObject)X),PETSC_ERR_SUP,"Mat argument must have been created with MatCreateLRC");
+    ierr = MatLRCGetMats(X,&A,NULL,NULL,NULL);CHKERRQ(ierr);
+    if (A) SETERRQ(PetscObjectComm((PetscObject)X),PETSC_ERR_SUP,"The MatLRC must not have a sparse matrix term");
   }
 
-  ierr = BVDestroy(&lme->X1);CHKERRQ(ierr);
-  ierr = BVDestroy(&lme->X2);CHKERRQ(ierr);
-  if (X1) {
-    ierr = PetscObjectReference((PetscObject)X1);CHKERRQ(ierr);
-    lme->X1 = X1;
-  }
-  if (X2) {
-    ierr = PetscObjectReference((PetscObject)X2);CHKERRQ(ierr);
-    lme->X2 = X2;
+  ierr = MatDestroy(&lme->X);CHKERRQ(ierr);
+  if (X) {
+    ierr = PetscObjectReference((PetscObject)X);CHKERRQ(ierr);
+    lme->X = X;
   }
   PetscFunctionReturn(0);
 }
@@ -411,27 +419,26 @@ PetscErrorCode LMESetSolution(LME lme,BV X1,BV X2)
 #undef __FUNCT__
 #define __FUNCT__ "LMEGetSolution"
 /*@
-   LMEGetSolution - Gets the solution of the matrix equation, in factored form.
+   LMEGetSolution - Gets the solution of the matrix equation.
 
-   Collective on LME and BV
+   Collective on LME and Mat
 
    Input Parameter:
 .  lme - the LME context
 
    Output Parameters:
-+  X1  - first factor
--  X2  - second factor
+.  X   - the low-rank matrix
 
    Level: intermediate
 
 .seealso: LMESolve(), LMESetSolution()
 @*/
-PetscErrorCode LMEGetSolution(LME lme,BV *X1,BV *X2)
+PetscErrorCode LMEGetSolution(LME lme,Mat *X)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(lme,LME_CLASSID,1);
-  if (X1) *X1 = lme->X1;
-  if (X2) *X2 = lme->X2;
+  PetscValidPointer(X,2);
+  *X = lme->X;
   PetscFunctionReturn(0);
 }
 

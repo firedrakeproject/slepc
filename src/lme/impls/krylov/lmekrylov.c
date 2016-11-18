@@ -86,7 +86,7 @@ PetscErrorCode LMEBasicArnoldi(LME lme,PetscScalar *H,PetscInt ldh,PetscInt k,Pe
 
 #undef __FUNCT__
 #define __FUNCT__ "LMESolve_Krylov_Lyapunov_Vec"
-PetscErrorCode LMESolve_Krylov_Lyapunov_Vec(LME lme,Vec b,PetscBool fixed,PetscInt rrank,PetscInt *col,PetscBool *fail)
+PetscErrorCode LMESolve_Krylov_Lyapunov_Vec(LME lme,Vec b,PetscBool fixed,PetscInt rrank,BV C1,BV *X1,PetscInt *col,PetscBool *fail)
 {
   PetscErrorCode ierr;
   PetscInt       m,ldh,ldl,i,rank,lrank;
@@ -119,14 +119,14 @@ PetscErrorCode LMESolve_Krylov_Lyapunov_Vec(LME lme,Vec b,PetscBool fixed,PetscI
   lme->errest += errest;
 
   /* determine numerical rank of L */
-  for (i=1;i<m && L[i+i*m]>L[0]*PETSC_MACHINE_EPSILON;i++);
+  for (i=1;i<m && PetscAbsScalar(L[i+i*m])>PetscAbsScalar(L[0])*PETSC_MACHINE_EPSILON;i++);
   lrank = i;
   if (!fixed) {  /* X1 was not set by user, allocate it with rank columns */
     rank = lrank;
     if (*col) {
-      ierr = BVResize(lme->X1,*col+rank,PETSC_TRUE);CHKERRQ(ierr);
+      ierr = BVResize(*X1,*col+rank,PETSC_TRUE);CHKERRQ(ierr);
     } else {
-      ierr = BVDuplicateResize(lme->C1,rank,&lme->X1);CHKERRQ(ierr);
+      ierr = BVDuplicateResize(C1,rank,X1);CHKERRQ(ierr);
     }
   } else rank = PetscMin(lrank,rrank);
 
@@ -135,8 +135,8 @@ PetscErrorCode LMESolve_Krylov_Lyapunov_Vec(LME lme,Vec b,PetscBool fixed,PetscI
   ierr = MatDenseGetArray(Q,&Qarray);CHKERRQ(ierr);
   ierr = PetscMemcpy(Qarray+(*col)*m,L,m*m*sizeof(PetscScalar));CHKERRQ(ierr);
   ierr = MatDenseRestoreArray(Q,&Qarray);CHKERRQ(ierr);
-  ierr = BVSetActiveColumns(lme->X1,*col,*col+rank);CHKERRQ(ierr);
-  ierr = BVMult(lme->X1,1.0,0.0,lme->V,Q);CHKERRQ(ierr);
+  ierr = BVSetActiveColumns(*X1,*col,*col+rank);CHKERRQ(ierr);
+  ierr = BVMult(*X1,1.0,0.0,lme->V,Q);CHKERRQ(ierr);
   ierr = MatDestroy(&Q);CHKERRQ(ierr);
   *col += rank;
 
@@ -149,28 +149,44 @@ PetscErrorCode LMESolve_Krylov_Lyapunov_Vec(LME lme,Vec b,PetscBool fixed,PetscI
 PetscErrorCode LMESolve_Krylov_Lyapunov(LME lme)
 {
   PetscErrorCode ierr;
-  PetscBool      fail,fixed = lme->X1? PETSC_TRUE: PETSC_FALSE;
+  PetscBool      fail,fixed = lme->X? PETSC_TRUE: PETSC_FALSE;
   PetscInt       i,k,rank,col=0;
   Vec            b;
+  BV             X1=NULL,C1;
+  Mat            X1m,X1t,C1m;
 
   PetscFunctionBegin;
-  ierr = BVGetActiveColumns(lme->C1,NULL,&k);CHKERRQ(ierr);
+  ierr = MatLRCGetMats(lme->C,NULL,&C1m,NULL,NULL);CHKERRQ(ierr);
+  ierr = BVCreateFromMat(C1m,&C1);CHKERRQ(ierr);
+  ierr = BVSetFromOptions(C1);CHKERRQ(ierr);
+  ierr = BVGetActiveColumns(C1,NULL,&k);CHKERRQ(ierr);
   if (fixed) {
-    ierr = BVGetActiveColumns(lme->X1,NULL,&rank);CHKERRQ(ierr);
+    ierr = MatLRCGetMats(lme->X,NULL,&X1m,NULL,NULL);CHKERRQ(ierr);
+    ierr = BVCreateFromMat(X1m,&X1);CHKERRQ(ierr);
+    ierr = BVSetFromOptions(X1);CHKERRQ(ierr);
+    ierr = BVGetActiveColumns(X1,NULL,&rank);CHKERRQ(ierr);
     rank = rank/k;
   }
   lme->reason = LME_CONVERGED_TOL;
   for (i=0;i<k;i++) {
-    ierr = BVGetColumn(lme->C1,i,&b);CHKERRQ(ierr);
-    ierr = LMESolve_Krylov_Lyapunov_Vec(lme,b,fixed,rank,&col,&fail);CHKERRQ(ierr);
-    ierr = BVRestoreColumn(lme->C1,i,&b);CHKERRQ(ierr);
+    ierr = BVGetColumn(C1,i,&b);CHKERRQ(ierr);
+    ierr = LMESolve_Krylov_Lyapunov_Vec(lme,b,fixed,rank,C1,&X1,&col,&fail);CHKERRQ(ierr);
+    ierr = BVRestoreColumn(C1,i,&b);CHKERRQ(ierr);
     lme->its++;
     if (fail) {
       lme->reason = LME_DIVERGED_ITS;
       break;
     }
   }
-  ierr = BVSetActiveColumns(lme->X1,0,col);CHKERRQ(ierr);
+  ierr = BVCreateMat(X1,&X1t);CHKERRQ(ierr);
+  if (fixed) {
+    ierr = MatCopy(X1t,X1m,SAME_NONZERO_PATTERN);CHKERRQ(ierr);
+  } else {
+    ierr = MatCreateLRC(NULL,X1t,NULL,NULL,&lme->X);CHKERRQ(ierr);
+  }
+  ierr = MatDestroy(&X1t);CHKERRQ(ierr);
+  ierr = BVDestroy(&C1);CHKERRQ(ierr);
+  ierr = BVDestroy(&X1);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

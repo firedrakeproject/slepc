@@ -31,10 +31,11 @@ static char help[] = "Solves a Lypunov equation with the 2-D Laplacian.\n\n"
 int main(int argc,char **argv)
 {
   Mat                A;           /* problem matrix */
-  BV                 C1,X1;
-  Vec                t,v;
+  Mat                C,C1;        /* right-hand side */
+  Mat                X,X1;        /* solution */
   LME                lme;
   PetscReal          tol,errest,error;
+  PetscScalar        *u;
   PetscInt           N,n=10,m,Istart,Iend,II,maxit,its,ncv,i,j,rank=0;
   PetscErrorCode     ierr;
   PetscBool          flag;
@@ -57,7 +58,6 @@ int main(int argc,char **argv)
   ierr = MatSetSizes(A,PETSC_DECIDE,PETSC_DECIDE,N,N);CHKERRQ(ierr);
   ierr = MatSetFromOptions(A);CHKERRQ(ierr);
   ierr = MatSetUp(A);CHKERRQ(ierr);
-
   ierr = MatGetOwnershipRange(A,&Istart,&Iend);CHKERRQ(ierr);
   for (II=Istart;II<Iend;II++) {
     i = II/n; j = II-i*n;
@@ -67,31 +67,30 @@ int main(int argc,char **argv)
     if (j<n-1) { ierr = MatSetValue(A,II,II+1,1.0,INSERT_VALUES);CHKERRQ(ierr); }
     ierr = MatSetValue(A,II,II,-4.0,INSERT_VALUES);CHKERRQ(ierr);
   }
-
   ierr = MatAssemblyBegin(A,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
   ierr = MatAssemblyEnd(A,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
-  ierr = MatCreateVecs(A,&t,NULL);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-       Create a BV object to store the factor of the right-hand side
+       Create a low-rank Mat to store the right-hand side C = C1*C1'
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  ierr = BVCreate(PETSC_COMM_WORLD,&C1);CHKERRQ(ierr);
-  ierr = BVSetSizesFromVec(C1,t,2);CHKERRQ(ierr);
-  ierr = BVSetFromOptions(C1);CHKERRQ(ierr);
-
-  /* fill the rhs factor */
-  ierr = BVGetColumn(C1,0,&v);CHKERRQ(ierr);
-  ierr = VecSet(v,1.0);CHKERRQ(ierr);
-  ierr = BVRestoreColumn(C1,0,&v);CHKERRQ(ierr);
-  ierr = BVGetColumn(C1,1,&v);CHKERRQ(ierr);
-  ierr = VecSet(v,0.0);CHKERRQ(ierr);
-  ierr = VecSetValue(v,0,-2.0,INSERT_VALUES);CHKERRQ(ierr);
-  ierr = VecSetValue(v,1,-1.0,INSERT_VALUES);CHKERRQ(ierr);
-  ierr = VecSetValue(v,2,-1.0,INSERT_VALUES);CHKERRQ(ierr);
-  ierr = VecAssemblyBegin(v);CHKERRQ(ierr);
-  ierr = VecAssemblyEnd(v);CHKERRQ(ierr);
-  ierr = BVRestoreColumn(C1,1,&v);CHKERRQ(ierr);
+  ierr = MatCreate(PETSC_COMM_WORLD,&C1);CHKERRQ(ierr);
+  ierr = MatSetSizes(C1,PETSC_DECIDE,PETSC_DECIDE,N,2);CHKERRQ(ierr);
+  ierr = MatSetType(C1,MATDENSE);CHKERRQ(ierr);
+  ierr = MatSetUp(C1);CHKERRQ(ierr);
+  ierr = MatGetOwnershipRange(C1,&Istart,&Iend);CHKERRQ(ierr);
+  ierr = MatDenseGetArray(C1,&u);CHKERRQ(ierr);
+  for (i=Istart;i<Iend;i++) {
+    u[i-Istart] = 1.0;
+    if (i==0) u[i+Iend-2*Istart] = -2.0;
+    if (i==1) u[i+Iend-2*Istart] = -1.0;
+    if (i==2) u[i+Iend-2*Istart] = -1.0;
+  }
+  ierr = MatDenseRestoreArray(C1,&u);CHKERRQ(ierr);
+  ierr = MatAssemblyBegin(C1,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
+  ierr = MatAssemblyEnd(C1,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
+  ierr = MatCreateLRC(NULL,C1,NULL,NULL,&C);CHKERRQ(ierr);
+  ierr = MatDestroy(&C1);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                 Create the solver and set various options
@@ -109,18 +108,23 @@ int main(int argc,char **argv)
   /*
      Set the matrix coefficients, the right-hand side, and the solution.
      In this case, it is a Lyapunov equation A*X+X*A'=-C where both
-     C and X are symmetric, so they are given as C=C1*C1', X=X1*X1'
+     C and X are symmetric and low-rank, C=C1*C1', X=X1*X1'
   */
   ierr = LMESetCoefficients(lme,A,NULL,NULL,NULL);CHKERRQ(ierr);
-  ierr = LMESetRHS(lme,C1,NULL);CHKERRQ(ierr);
+  ierr = LMESetRHS(lme,C);CHKERRQ(ierr);
 
-  if (rank) {  /* Create X1 only if the user has specified a nonzero value of rank */
+  if (rank) {  /* Create X only if the user has specified a nonzero value of rank */
     ierr = PetscPrintf(PETSC_COMM_WORLD," Computing a solution with prescribed rank=%d\n",rank);CHKERRQ(ierr);
-    ierr = BVCreate(PETSC_COMM_WORLD,&X1);CHKERRQ(ierr);
-    ierr = BVSetSizesFromVec(X1,t,rank);CHKERRQ(ierr);
-    ierr = BVSetFromOptions(X1);CHKERRQ(ierr);
-    ierr = LMESetSolution(lme,X1,NULL);CHKERRQ(ierr);
-    ierr = BVDestroy(&X1);CHKERRQ(ierr);
+    ierr = MatCreate(PETSC_COMM_WORLD,&X1);CHKERRQ(ierr);
+    ierr = MatSetSizes(X1,PETSC_DECIDE,PETSC_DECIDE,N,rank);CHKERRQ(ierr);
+    ierr = MatSetType(X1,MATDENSE);CHKERRQ(ierr);
+    ierr = MatSetUp(X1);CHKERRQ(ierr);
+    ierr = MatAssemblyBegin(X1,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
+    ierr = MatAssemblyEnd(X1,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
+    ierr = MatCreateLRC(NULL,X1,NULL,NULL,&X);CHKERRQ(ierr);
+    ierr = MatDestroy(&X1);CHKERRQ(ierr);
+    ierr = LMESetSolution(lme,X);CHKERRQ(ierr);
+    ierr = MatDestroy(&X);CHKERRQ(ierr);
   }
 
   /*
@@ -142,8 +146,9 @@ int main(int argc,char **argv)
   if (reason<0) SETERRQ(PETSC_COMM_WORLD,1,"Solver did not converge");
 
   if (!rank) {  /* X1 was created by the solver, so extract it and see how many columns it has */
-    ierr = LMEGetSolution(lme,&X1,NULL);CHKERRQ(ierr);
-    ierr = BVGetSizes(X1,NULL,NULL,&rank);CHKERRQ(ierr);
+    ierr = LMEGetSolution(lme,&X);CHKERRQ(ierr);
+    ierr = MatLRCGetMats(X,NULL,&X1,NULL,NULL);CHKERRQ(ierr);
+    ierr = MatGetSize(X1,NULL,&rank);CHKERRQ(ierr);
     ierr = PetscPrintf(PETSC_COMM_WORLD," The solver has computed a solution with rank=%d\n",rank);CHKERRQ(ierr);
   }
 
@@ -171,8 +176,7 @@ int main(int argc,char **argv)
   */
   ierr = LMEDestroy(&lme);CHKERRQ(ierr);
   ierr = MatDestroy(&A);CHKERRQ(ierr);
-  ierr = BVDestroy(&C1);CHKERRQ(ierr);
-  ierr = VecDestroy(&t);CHKERRQ(ierr);
+  ierr = MatDestroy(&C);CHKERRQ(ierr);
   ierr = SlepcFinalize();
   return ierr;
 }
