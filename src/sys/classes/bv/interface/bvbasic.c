@@ -201,6 +201,7 @@ PetscErrorCode BVSetSizesFromVec(BV bv,Vec t,PetscInt m)
   if (bv->ops->create) {
     ierr = (*bv->ops->create)(bv);CHKERRQ(ierr);
     bv->ops->create = 0;
+    bv->defersfo = PETSC_FALSE;
   }
   PetscFunctionReturn(0);
 }
@@ -1438,6 +1439,8 @@ PetscErrorCode BVRestoreArrayRead(BV bv,const PetscScalar **a)
    The user is responsible of destroying the returned vector.
 
    Level: beginner
+
+.seealso: BVCreateMat()
 @*/
 PetscErrorCode BVCreateVec(BV bv,Vec *v)
 {
@@ -1448,6 +1451,49 @@ PetscErrorCode BVCreateVec(BV bv,Vec *v)
   BVCheckSizes(bv,1);
   PetscValidPointer(v,2);
   ierr = VecDuplicate(bv->t,v);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "BVCreateMat"
+/*@
+   BVCreateMat - Creates a new Mat object of dense type and copies the contents
+   of the BV object.
+
+   Collective on BV
+
+   Input Parameter:
+.  bv - the basis vectors context
+
+   Output Parameter:
+.  A  - the new matrix
+
+   Note:
+   The user is responsible of destroying the returned matrix.
+
+   Level: intermediate
+
+.seealso: BVCreateFromMat(), BVCreateVec()
+@*/
+PetscErrorCode BVCreateMat(BV bv,Mat *A)
+{
+  PetscErrorCode    ierr;
+  PetscScalar       *aa;
+  const PetscScalar *vv;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(bv,BV_CLASSID,1);
+  BVCheckSizes(bv,1);
+  PetscValidPointer(A,2);
+
+  ierr = MatCreateDense(PetscObjectComm((PetscObject)bv->t),bv->n,PETSC_DECIDE,bv->N,bv->m,NULL,A);CHKERRQ(ierr);
+  ierr = MatDenseGetArray(*A,&aa);CHKERRQ(ierr);
+  ierr = BVGetArrayRead(bv,&vv);CHKERRQ(ierr);
+  ierr = PetscMemcpy(aa,vv,bv->m*bv->n*sizeof(PetscScalar));CHKERRQ(ierr);
+  ierr = BVRestoreArrayRead(bv,&vv);CHKERRQ(ierr);
+  ierr = MatDenseRestoreArray(*A,&aa);CHKERRQ(ierr);
+  ierr = MatAssemblyBegin(*A,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
+  ierr = MatAssemblyEnd(*A,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

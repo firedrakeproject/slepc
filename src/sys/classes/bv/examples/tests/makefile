@@ -24,10 +24,12 @@ FFLAGS     =
 CPPFLAGS   =
 FPPFLAGS   =
 LOCDIR     = src/sys/classes/bv/examples/tests/
-EXAMPLESC  = test1.c test2.c test3.c test4.c test5.c test6.c test7.c test8.c test9.c test10.c test11.c test12.c test13.c
+EXAMPLESC  = test1.c test2.c test3.c test4.c test5.c test6.c test7.c test8.c test9.c test10.c \
+             test11.c test12.c test13.c test14.c
 EXAMPLESF  = test1f.F
 MANSEC     = BV
-TESTS      = test1 test1f test2 test3 test4 test5 test6 test7 test8 test9 test10 test11 test12 test13
+TESTS      = test1 test1f test2 test3 test4 test5 test6 test7 test8 test9 test10 test11 test12 \
+             test13 test14
 
 TESTEXAMPLES_C           = test1.PETSc runtest1_1 test1.rm \
                            test2.PETSc runtest2_1 runtest2_2 test2.rm \
@@ -41,7 +43,8 @@ TESTEXAMPLES_C           = test1.PETSc runtest1_1 test1.rm \
                            test10.PETSc runtest10_1 test10.rm \
                            test11.PETSc runtest11_1 runtest11_2 runtest11_3 test11.rm \
                            test12.PETSc runtest12_1 test12.rm \
-                           test13.PETSc runtest13_1 test13.rm
+                           test13.PETSc runtest13_1 test13.rm \
+                           test14.PETSc runtest14_1 test14.rm
 TESTEXAMPLES_C_NOTSINGLE = test2.PETSc runtest2_3 test2.rm
 TESTEXAMPLES_FORTRAN     = test1f.PETSc runtest1f_1 runtest1f_2 test1f.rm
 TESTEXAMPLES_VECCUDA     = test1.PETSc runtest1_1_cuda test1.rm \
@@ -108,6 +111,10 @@ test12: test12.o chkopts
 test13: test13.o chkopts
 	-${CLINKER} -o test13 test13.o ${SLEPC_SYS_LIB}
 	${RM} test13.o
+
+test14: test14.o chkopts
+	-${CLINKER} -o test14 test14.o ${SLEPC_SYS_LIB}
+	${RM} test14.o
 
 #------------------------------------------------------------------------------------
 
@@ -315,5 +322,11 @@ runtest13_1: runtest13_1_vecs runtest13_1_contiguous runtest13_1_svec runtest13_
 runtest13_1_%:
 	-@${SETTEST}; check=test13_1; bv=$*; \
 	${MPIEXEC} -n 1 ./test13 -bv_type $$bv > $${test}.tmp 2>&1; \
+	${TESTCODE}
+
+runtest14_1: runtest14_1_vecs runtest14_1_contiguous runtest14_1_svec runtest14_1_mat
+runtest14_1_%:
+	-@${SETTEST}; check=test14_1; bv=$*; \
+	${MPIEXEC} -n 2 ./test14 -bv_type $$bv > $${test}.tmp 2>&1; \
 	${TESTCODE}
 

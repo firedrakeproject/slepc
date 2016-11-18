@@ -488,6 +488,11 @@ PETSC_EXTERN PetscErrorCode BVCreate_Mat(BV bv)
     ierr = PetscObjectSetName((PetscObject)ctx->A,str);CHKERRQ(ierr);
   }
 
+  if (bv->Acreate) {
+    ierr = MatCopy(bv->Acreate,ctx->A,SAME_NONZERO_PATTERN);CHKERRQ(ierr);
+    ierr = MatDestroy(&bv->Acreate);CHKERRQ(ierr);
+  }
+
   if (ctx->mpi) {
     ierr = VecCreateMPIWithArray(PetscObjectComm((PetscObject)bv->t),bs,nloc,PETSC_DECIDE,NULL,&bv->cv[0]);CHKERRQ(ierr);
     ierr = VecCreateMPIWithArray(PetscObjectComm((PetscObject)bv->t),bs,nloc,PETSC_DECIDE,NULL,&bv->cv[1]);CHKERRQ(ierr);

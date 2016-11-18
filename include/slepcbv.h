@@ -195,5 +195,8 @@ PETSC_EXTERN PetscErrorCode BVGetOptionsPrefix(BV,const char*[]);
 PETSC_EXTERN PetscFunctionList BVList;
 PETSC_EXTERN PetscErrorCode BVRegister(const char[],PetscErrorCode(*)(BV));
 
+PETSC_EXTERN PetscErrorCode BVCreateFromMat(Mat,BV*);
+PETSC_EXTERN PetscErrorCode BVCreateMat(BV,Mat*);
+
 #endif
 

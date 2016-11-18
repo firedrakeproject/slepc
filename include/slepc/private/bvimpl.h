@@ -98,6 +98,7 @@ struct _p_BV {
   PetscObjectState   bvstate;      /* state of BV when BVApplyMatrixBV() was called */
   PetscRandom        rand;         /* random number generator */
   PetscBool          rrandom;      /* reproducible random vectors */
+  Mat                Acreate;      /* matrix given at BVCreateFromMat() */
   PetscScalar        *work;
   PetscInt           lwork;
   void               *data;

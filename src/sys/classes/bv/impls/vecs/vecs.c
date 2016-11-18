@@ -583,6 +583,13 @@ PETSC_EXTERN PetscErrorCode BVCreate_Vecs(BV bv)
     }
   }
 
+  if (bv->Acreate) {
+    for (j=0;j<bv->m;j++) {
+      ierr = MatGetColumnVector(bv->Acreate,ctx->V[j],j);CHKERRQ(ierr);
+    }
+    ierr = MatDestroy(&bv->Acreate);CHKERRQ(ierr);
+  }
+
   /* Default version of BVMultInPlace */
   ierr = PetscObjectTypeCompareAny((PetscObject)bv->t,&isgpu,VECSEQCUDA,VECMPICUDA,VECSEQCUSP,VECMPICUSP,"");CHKERRQ(ierr);
   ctx->vmip = isgpu? 1: 0;
