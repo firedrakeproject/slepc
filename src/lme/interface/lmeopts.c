@@ -42,7 +42,7 @@
 
    Level: developer
 
-.seealso: LMEMonitorSet(), LMESetTrackAll(), LMEConvMonitorSetFromOptions()
+.seealso: LMEMonitorSet()
 @*/
 PetscErrorCode LMEMonitorSetFromOptions(LME lme,const char name[],const char help[],const char manual[],PetscErrorCode (*monitor)(LME,PetscInt,PetscReal,PetscViewerAndFormat*))
 {

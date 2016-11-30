@@ -78,7 +78,7 @@ $   monitor(LME lme,int its,PetscReal errest,void *mctx)
 
    Level: intermediate
 
-.seealso: LMEMonitorFirst(), LMEMonitorAll(), LMEMonitorCancel()
+.seealso: LMEMonitorCancel()
 @*/
 PetscErrorCode LMEMonitorSet(LME lme,PetscErrorCode (*monitor)(LME,PetscInt,PetscReal,void*),void *mctx,PetscErrorCode (*monitordestroy)(void**))
 {

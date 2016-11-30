@@ -42,7 +42,7 @@
 
    Level: developer
 
-.seealso: MFNMonitorSet(), MFNSetTrackAll(), MFNConvMonitorSetFromOptions()
+.seealso: MFNMonitorSet()
 @*/
 PetscErrorCode MFNMonitorSetFromOptions(MFN mfn,const char name[],const char help[],const char manual[],PetscErrorCode (*monitor)(MFN,PetscInt,PetscReal,PetscViewerAndFormat*))
 {
