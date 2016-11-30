@@ -34,7 +34,7 @@ static const char citation[] =
   "   number = \"4\",\n"
   "   pages = \"730--745\",\n"
   "   year = \"2016,\"\n"
-  "   doi = \"http://dx.doi.org/10.1002/nla.2052\"\n"
+  "   doi = \"https://doi.org/10.1002/nla.2052\"\n"
   "}\n";
 
 #undef __FUNCT__

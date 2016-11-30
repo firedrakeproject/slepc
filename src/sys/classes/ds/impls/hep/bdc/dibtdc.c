@@ -40,7 +40,7 @@ static PetscErrorCode cutlr_(PetscBLASInt start,PetscBLASInt n,PetscBLASInt blkc
 /*     Small adaptations of original code written by */
 /*     Wilfried Gansterer and Bob Ward, */
 /*     Department of Computer Science, University of Tennessee */
-/*     see http://dx.doi.org/10.1137/S1064827501399432 */
+/*     see https://doi.org/10.1137/S1064827501399432 */
 /* *************************************************** */
 
 /*  Purpose */
@@ -200,7 +200,7 @@ PetscErrorCode BDC_dibtdc_(const char *jobz,PetscBLASInt n,PetscBLASInt nblks,
 /*     Small adaptations of original code written by */
 /*     Wilfried Gansterer and Bob Ward, */
 /*     Department of Computer Science, University of Tennessee */
-/*     see http://dx.doi.org/10.1137/S1064827501399432 */
+/*     see https://doi.org/10.1137/S1064827501399432 */
 /* *************************************************** */
 
 /*  Purpose */

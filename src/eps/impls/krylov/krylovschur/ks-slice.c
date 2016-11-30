@@ -47,7 +47,7 @@ static const char citation[] =
   "   number = \"2\",\n"
   "   pages = \"279--295\",\n"
   "   year = \"2012,\"\n"
-  "   doi = \"http://dx.doi.org/10.1007/s11075-012-9564-z\"\n"
+  "   doi = \"https://doi.org/10.1007/s11075-012-9564-z\"\n"
   "}\n";
 
 #define SLICE_PTOL PETSC_SQRT_MACHINE_EPSILON

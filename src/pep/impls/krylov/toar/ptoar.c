@@ -51,7 +51,7 @@ static const char citation[] =
   "   number = \"5\",\n"
   "   pages = \"S385--S411\",\n"
   "   year = \"2016,\"\n"
-  "   doi = \"http://dx.doi.org/10.1137/15M1022458\"\n"
+  "   doi = \"https://doi.org/10.1137/15M1022458\"\n"
   "}\n";
 
 #undef __FUNCT__
