@@ -362,6 +362,7 @@ PETSC_EXTERN PetscErrorCode BVCreate_Contiguous(BV bv)
   BV_CONTIGUOUS  *ctx;
   PetscInt       j,nloc,bs;
   PetscBool      seq;
+  PetscScalar    *aa;
   char           str[50];
 
   PetscFunctionBegin;
@@ -392,6 +393,13 @@ PETSC_EXTERN PetscErrorCode BVCreate_Contiguous(BV bv)
       ierr = PetscSNPrintf(str,50,"%s_%d",((PetscObject)bv)->name,(int)j);CHKERRQ(ierr);
       ierr = PetscObjectSetName((PetscObject)ctx->V[j],str);CHKERRQ(ierr);
     }
+  }
+
+  if (bv->Acreate) {
+    ierr = MatDenseGetArray(bv->Acreate,&aa);CHKERRQ(ierr);
+    ierr = PetscMemcpy(ctx->array,aa,bv->m*nloc*sizeof(PetscScalar));CHKERRQ(ierr);
+    ierr = MatDenseRestoreArray(bv->Acreate,&aa);CHKERRQ(ierr);
+    ierr = MatDestroy(&bv->Acreate);CHKERRQ(ierr);
   }
 
   bv->ops->mult             = BVMult_Contiguous;

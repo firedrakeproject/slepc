@@ -510,7 +510,7 @@ PetscErrorCode EPSGetErrorEstimate(EPS eps,PetscInt i,PetscReal *errest)
   PetscValidPointer(errest,3);
   EPSCheckSolved(eps,1);
   if (i<0 || i>=eps->nconv) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ARG_OUTOFRANGE,"Argument 2 out of range");
-  if (errest) *errest = eps->errest[eps->perm[i]];
+  *errest = eps->errest[eps->perm[i]];
   PetscFunctionReturn(0);
 }
 

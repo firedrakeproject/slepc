@@ -78,7 +78,7 @@ $   monitor(MFN mfn,int its,PetscReal errest,void *mctx)
 
    Level: intermediate
 
-.seealso: MFNMonitorFirst(), MFNMonitorAll(), MFNMonitorCancel()
+.seealso: MFNMonitorCancel()
 @*/
 PetscErrorCode MFNMonitorSet(MFN mfn,PetscErrorCode (*monitor)(MFN,PetscInt,PetscReal,void*),void *mctx,PetscErrorCode (*monitordestroy)(void**))
 {

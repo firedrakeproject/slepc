@@ -22,5 +22,5 @@ row 15: (11, -1.)  (14, -1.)  (15, 4.)
  Tolerance: 0.0001, maxit:  500
  Subspace dimension:   6
  Erroring out if convergence fails
- Converged reason: 2
+ Converged reason: 1
  sqrt(A)*v has norm 2.0000

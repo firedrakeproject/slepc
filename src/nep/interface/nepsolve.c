@@ -488,7 +488,7 @@ PetscErrorCode NEPGetErrorEstimate(NEP nep,PetscInt i,PetscReal *errest)
   PetscValidPointer(errest,3);
   NEPCheckSolved(nep,1);
   if (i<0 || i>=nep->nconv) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ARG_OUTOFRANGE,"Argument 2 out of range");
-  if (errest) *errest = nep->errest[nep->perm[i]];
+  *errest = nep->errest[nep->perm[i]];
   PetscFunctionReturn(0);
 }
 

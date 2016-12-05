@@ -156,7 +156,7 @@ PetscErrorCode MFNGetOperator(MFN mfn,Mat *A)
    Collective on MFN
 
    Input Parameters:
-+  mfn   - eigensolver context
++  mfn   - matrix function context
 -  extra - number of additional positions, used for methods that require a
            working basis slightly larger than ncv
 

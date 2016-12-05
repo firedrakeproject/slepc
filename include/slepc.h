@@ -25,4 +25,5 @@
 #include <slepcpep.h>
 #include <slepcnep.h>
 #include <slepcmfn.h>
+#include <slepclme.h>
 

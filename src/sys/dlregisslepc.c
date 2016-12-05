@@ -33,6 +33,7 @@ PETSC_EXTERN PetscErrorCode PetscDLLibraryRegister_slepcnep(void);
 PETSC_EXTERN PetscErrorCode PetscDLLibraryRegister_slepcpep(void);
 PETSC_EXTERN PetscErrorCode PetscDLLibraryRegister_slepcsvd(void);
 PETSC_EXTERN PetscErrorCode PetscDLLibraryRegister_slepcmfn(void);
+PETSC_EXTERN PetscErrorCode PetscDLLibraryRegister_slepclme(void);
 #endif
 
 #undef __FUNCT__
@@ -68,6 +69,7 @@ PETSC_EXTERN PetscErrorCode PetscDLLibraryRegister_slepcsys(void)
   ierr = PetscDLLibraryRegister_slepcpep();CHKERRQ(ierr);
   ierr = PetscDLLibraryRegister_slepcsvd();CHKERRQ(ierr);
   ierr = PetscDLLibraryRegister_slepcmfn();CHKERRQ(ierr);
+  ierr = PetscDLLibraryRegister_slepclme();CHKERRQ(ierr);
 #endif
   PetscFunctionReturn(0);
 }

@@ -26,11 +26,11 @@ FFLAGS    =
 SOURCEC   =
 SOURCEF   =
 SOURCEH   = slepc.h slepceps.h slepcst.h slepcsvd.h slepcpep.h \
-            slepcnep.h slepcmfn.h slepcds.h slepcfn.h slepcrg.h slepcbv.h slepcsys.h \
+            slepcnep.h slepcmfn.h slepclme.h slepcds.h slepcfn.h slepcrg.h slepcbv.h slepcsys.h \
             slepc.h90 slepceps.h90 slepcst.h90 slepcsvd.h90 \
-            slepcpep.h90 slepcnep.h90 slepcmfn.h90 slepcds.h90 \
+            slepcpep.h90 slepcnep.h90 slepcmfn.h90 slepclme.h90 slepcds.h90 \
             slepcfn.h90 slepcrg.h90 slepcbv.h90 slepcdef.h slepcepsdef.h slepcstdef.h \
-            slepcsvddef.h slepcpepdef.h slepcnepdef.h slepcmfndef.h \
+            slepcsvddef.h slepcpepdef.h slepcnepdef.h slepcmfndef.h slepclmedef.h \
             slepcdsdef.h slepcfndef.h slepcrgdef.h slepcbvdef.h slepcsysdef.h
 LIBBASE   = libslepcsys
 DIRS      =

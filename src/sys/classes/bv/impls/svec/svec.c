@@ -464,6 +464,7 @@ PETSC_EXTERN PetscErrorCode BVCreate_Svec(BV bv)
   BV_SVEC        *ctx;
   PetscInt       nloc,bs;
   PetscBool      seq;
+  PetscScalar    *aa,*vv;
   char           str[50];
 
   PetscFunctionBegin;
@@ -487,6 +488,15 @@ PETSC_EXTERN PetscErrorCode BVCreate_Svec(BV bv)
   if (((PetscObject)bv)->name) {
     ierr = PetscSNPrintf(str,50,"%s_0",((PetscObject)bv)->name);CHKERRQ(ierr);
     ierr = PetscObjectSetName((PetscObject)ctx->v,str);CHKERRQ(ierr);
+  }
+
+  if (bv->Acreate) {
+    ierr = MatDenseGetArray(bv->Acreate,&aa);CHKERRQ(ierr);
+    ierr = VecGetArray(ctx->v,&vv);CHKERRQ(ierr);
+    ierr = PetscMemcpy(vv,aa,bv->m*nloc*sizeof(PetscScalar));CHKERRQ(ierr);
+    ierr = VecRestoreArray(ctx->v,&vv);CHKERRQ(ierr);
+    ierr = MatDenseRestoreArray(bv->Acreate,&aa);CHKERRQ(ierr);
+    ierr = MatDestroy(&bv->Acreate);CHKERRQ(ierr);
   }
 
   if (ctx->cuda) {

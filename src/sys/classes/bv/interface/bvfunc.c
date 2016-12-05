@@ -148,6 +148,7 @@ PetscErrorCode BVDestroy(BV *bv)
   ierr = PetscFree((*bv)->omega);CHKERRQ(ierr);
   ierr = MatDestroy(&(*bv)->B);CHKERRQ(ierr);
   ierr = MatDestroy(&(*bv)->C);CHKERRQ(ierr);
+  ierr = MatDestroy(&(*bv)->Acreate);CHKERRQ(ierr);
   ierr = PetscRandomDestroy(&(*bv)->rand);CHKERRQ(ierr);
   ierr = PetscHeaderDestroy(bv);CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -219,11 +220,56 @@ PetscErrorCode BVCreate(MPI_Comm comm,BV *newbv)
   bv->bvstate      = 0;
   bv->rand         = NULL;
   bv->rrandom      = PETSC_FALSE;
+  bv->Acreate      = NULL;
   bv->work         = NULL;
   bv->lwork        = 0;
   bv->data         = NULL;
 
   *newbv = bv;
+  PetscFunctionReturn(0);
+}
+
+#undef __FUNCT__
+#define __FUNCT__ "BVCreateFromMat"
+/*@
+   BVCreateFromMat - Creates a basis vectors object from a dense Mat object.
+
+   Collective on Mat
+
+   Input Parameter:
+.  A - a dense tall-skinny matrix
+
+   Output Parameter:
+.  bv - the new basis vectors context
+
+   Notes:
+   The matrix values are copied to the BV data storage, memory is not shared.
+
+   The communicator of the BV object will be the same as A, and so will be
+   the dimensions.
+
+   Level: intermediate
+
+.seealso: BVCreate(), BVDestroy(), BVCreateMat()
+@*/
+PetscErrorCode BVCreateFromMat(Mat A,BV *bv)
+{
+  PetscErrorCode ierr;
+  PetscBool      match;
+  PetscInt       n,N,k;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(A,MAT_CLASSID,1);
+  ierr = PetscObjectTypeCompareAny((PetscObject)A,&match,MATSEQDENSE,MATMPIDENSE,"");CHKERRQ(ierr);
+  if (!match) SETERRQ(PetscObjectComm((PetscObject)A),PETSC_ERR_SUP,"Matrix must be of type dense");
+
+  ierr = MatGetSize(A,&N,&k);CHKERRQ(ierr);
+  ierr = MatGetLocalSize(A,&n,NULL);CHKERRQ(ierr);
+  ierr = BVCreate(PetscObjectComm((PetscObject)A),bv);CHKERRQ(ierr);
+  ierr = BVSetSizes(*bv,n,N,k);CHKERRQ(ierr);
+
+  (*bv)->Acreate = A;
+  ierr = PetscObjectReference((PetscObject)A);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
