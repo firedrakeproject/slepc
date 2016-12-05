@@ -24,6 +24,46 @@
 #include <slepc/private/lmeimpl.h>     /*I "slepclme.h" I*/
 #include <slepcblaslapack.h>
 
+#undef __FUNCT__
+#define __FUNCT__ "LMERankSVD"
+/*
+   LMERankSVD - given a square matrix L, compute its SVD U*S*V', and determine the
+   numerical rank. On exit, U contains U*S and L is overwritten with V'
+*/
+PetscErrorCode LMERankSVD(LME lme,PetscInt n,PetscScalar *L,PetscScalar *U,PetscInt *rank)
+{
+#if defined(PETSC_MISSING_LAPACK_GESVD)
+  PetscFunctionBegin;
+  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"GESVD - Lapack routine is unavailable");
+#else
+  PetscErrorCode ierr;
+  PetscInt       i,j,rk=0;
+  PetscScalar    *work;
+  PetscReal      tol,*sg,*rwork;
+  PetscBLASInt   n_,info,lw_;
+
+  PetscFunctionBegin;
+  ierr = PetscCalloc3(n,&sg,10*n,&work,5*n,&rwork);CHKERRQ(ierr);
+  ierr = PetscBLASIntCast(n,&n_);CHKERRQ(ierr);
+  lw_ = 10*n_;
+#if !defined (PETSC_USE_COMPLEX)
+  PetscStackCallBLAS("LAPACKgesvd",LAPACKgesvd_("S","O",&n_,&n_,L,&n_,sg,U,&n_,NULL,&n_,work,&lw_,&info));
+#else
+  PetscStackCallBLAS("LAPACKgesvd",LAPACKgesvd_("S","O",&n_,&n_,L,&n_,sg,U,&n_,NULL,&n_,work,&lw_,rwork,&info));
+#endif
+  tol = 10*PETSC_MACHINE_EPSILON*n*sg[0];
+  for (j=0;j<n;j++) {
+    if (sg[j]>tol) {
+      for (i=0;i<n;i++) U[i+j*n] *= sg[j];
+      rk++;
+    } else break;
+  }
+  *rank = rk;
+  ierr = PetscFree3(sg,work,rwork);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+#endif
+}
+
 #if defined(PETSC_USE_INFO)
 #undef __FUNCT__
 #define __FUNCT__ "LyapunovResidual"
