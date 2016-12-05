@@ -93,7 +93,7 @@ static PetscErrorCode LyapunovResidual(PetscScalar *H,PetscInt m,PetscInt ldh,Pe
   /* R = R+L*M' */
   PetscStackCallBLAS("BLASgemm",BLASgemm_("N","C",&n,&n,&n,&done,L,&n,M,&n,&done,R,&n));
   
-  *res = LAPACKlange_("F",&n,&n,R,&m,NULL);
+  *res = LAPACKlange_("F",&n,&n,R,&n,NULL);
   ierr = PetscFree2(M,R);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -298,8 +298,8 @@ static PetscErrorCode LyapunovChol_LAPACK(PetscScalar *H,PetscInt m,PetscInt ldh
   PetscErrorCode ierr;
   PetscBLASInt   ilo=1,lwork,info,n,ld,ione=1;
   PetscInt       i,j;
-  PetscReal      scal;
-  PetscScalar    *Q,*C,*W,*z,*wr,*work,zero=0.0,done=1.0,alpha,beta;
+  PetscReal      scal,beta;
+  PetscScalar    *Q,*C,*W,*z,*wr,*work,zero=0.0,done=1.0;
 #if !defined(PETSC_USE_COMPLEX)
   PetscScalar    *wi;
 #endif
@@ -326,7 +326,7 @@ static PetscErrorCode LyapunovChol_LAPACK(PetscScalar *H,PetscInt m,PetscInt ldh
   /* C = z*z', z = Q'*r */
   PetscStackCallBLAS("BLASgemv",BLASgemv_("C",&n,&n,&done,Q,&n,r,&ione,&zero,z,&ione));
   for (i=0;i<m;i++) {
-    for (j=0;j<m;j++) C[i+j*m] = -z[i]*z[j];
+    for (j=0;j<m;j++) C[i+j*m] = -z[i]*PetscConj(z[j]);
   }
 
   /* solve triangular Sylvester equation */
@@ -339,13 +339,8 @@ static PetscErrorCode LyapunovChol_LAPACK(PetscScalar *H,PetscInt m,PetscInt ldh
   PetscStackCallBLAS("BLASgemm",BLASgemm_("N","C",&n,&n,&n,&done,W,&n,Q,&n,&zero,C,&n));
 
   /* resnorm = norm(H(m+1,:)*Y) */
-  *res = 0.0;
-  beta = H[m+(m-1)*ldh];
-  for (j=0;j<m;j++) {
-    alpha = beta*C[m-1+j*m];
-    *res += alpha*alpha;
-  }
-  *res = PetscSqrtReal(*res);
+  beta = PetscAbsScalar(H[m+(m-1)*ldh]);
+  *res = beta*BLASnrm2_(&n,C+m-1,&n);
 
 #if 0
   /* avoid problems due to (small) negative eigenvalues */
