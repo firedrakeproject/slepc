@@ -234,7 +234,7 @@ PetscErrorCode SVDSetDimensions(SVD svd,PetscInt nsv,PetscInt ncv,PetscInt mpd)
 
 #undef __FUNCT__
 #define __FUNCT__ "SVDGetDimensions"
-/*@
+/*@C
    SVDGetDimensions - Gets the number of singular values to compute
    and the dimension of the subspace.
 

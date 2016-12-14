@@ -18,6 +18,7 @@
 !  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
         module slepcepsdef
+        use slepcsys
         use slepcstdef
         use slepcbvdef
         use slepcrgdef

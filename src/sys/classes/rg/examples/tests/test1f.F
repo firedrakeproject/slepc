@@ -24,10 +24,9 @@
 ! ----------------------------------------------------------------------
 !
       program main
-      implicit none
-
-#include <petsc/finclude/petscsys.h>
 #include <slepc/finclude/slepcrg.h>
+      use slepcrg
+      implicit none
 
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !     Declarations

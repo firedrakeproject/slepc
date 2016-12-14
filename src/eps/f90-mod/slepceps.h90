@@ -18,4 +18,63 @@
 !  along with SLEPc. If not, see <http://www.gnu.org/licenses/>.
 !  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !
+      interface EPSGetDimensions
+      subroutine EPSGetDimensions000(a,b,c,d,z)
+      use slepcepsdef
+       EPS a
+       PetscInt b
+       PetscInt c
+       PetscInt d
+       integer z
+       end subroutine
+      subroutine EPSGetDimensions100(a,b,c,d,z)
+      use slepcepsdef
+       EPS a
+       PetscInt b(*)
+       PetscInt c
+       PetscInt d
+       integer z
+       end subroutine
+      subroutine EPSGetDimensions010(a,b,c,d,z)
+      use slepcepsdef
+       EPS a
+       PetscInt b
+       PetscInt c(*)
+       PetscInt d
+       integer z
+       end subroutine
+      subroutine EPSGetDimensions001(a,b,c,d,z)
+      use slepcepsdef
+       EPS a
+       PetscInt b
+       PetscInt c
+       PetscInt d(*)
+       integer z
+       end subroutine
+      subroutine EPSGetDimensions110(a,b,c,d,z)
+      use slepcepsdef
+       EPS a
+       PetscInt b(*)
+       PetscInt c(*)
+       PetscInt d
+       integer z
+       end subroutine
+      subroutine EPSGetDimensions011(a,b,c,d,z)
+      use slepcepsdef
+       EPS a
+       PetscInt b
+       PetscInt c(*)
+       PetscInt d(*)
+       integer z
+       end subroutine
+       end interface EPSGetDimensions
 
+      interface
+      subroutine EPSSetOperators(a,b,c,z)
+      use slepcepsdef
+       EPS a ! EPS
+       Mat b ! Mat
+       Mat c ! Mat
+       integer z
+       end subroutine
+      end interface

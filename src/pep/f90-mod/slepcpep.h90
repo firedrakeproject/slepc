@@ -18,4 +18,54 @@
 !  along with SLEPc. If not, see <http://www.gnu.org/licenses/>.
 !  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !
+      interface PEPGetDimensions
+      subroutine PEPGetDimensions000(a,b,c,d,z)
+      use slepcpepdef
+       PEP a
+       PetscInt b
+       PetscInt c
+       PetscInt d
+       integer z
+       end subroutine
+      subroutine PEPGetDimensions100(a,b,c,d,z)
+      use slepcpepdef
+       PEP a
+       PetscInt b(*)
+       PetscInt c
+       PetscInt d
+       integer z
+       end subroutine
+      subroutine PEPGetDimensions010(a,b,c,d,z)
+      use slepcpepdef
+       PEP a
+       PetscInt b
+       PetscInt c(*)
+       PetscInt d
+       integer z
+       end subroutine
+      subroutine PEPGetDimensions001(a,b,c,d,z)
+      use slepcpepdef
+       PEP a
+       PetscInt b
+       PetscInt c
+       PetscInt d(*)
+       integer z
+       end subroutine
+      subroutine PEPGetDimensions110(a,b,c,d,z)
+      use slepcpepdef
+       PEP a
+       PetscInt b(*)
+       PetscInt c(*)
+       PetscInt d
+       integer z
+       end subroutine
+      subroutine PEPGetDimensions011(a,b,c,d,z)
+      use slepcpepdef
+       PEP a
+       PetscInt b
+       PetscInt c(*)
+       PetscInt d(*)
+       integer z
+       end subroutine
+       end interface PEPGetDimensions
 

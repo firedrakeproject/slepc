@@ -297,7 +297,7 @@ PetscErrorCode EPSSetUp(EPS eps)
 
 #undef __FUNCT__
 #define __FUNCT__ "EPSSetOperators"
-/*@
+/*@C
    EPSSetOperators - Sets the matrices associated with the eigenvalue problem.
 
    Collective on EPS and Mat

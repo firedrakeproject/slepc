@@ -18,8 +18,9 @@
 !  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
         module slepcbvdef
-        use petscmatdef
-        use petscvecdef
+        use petscmat
+        use petscvec
+        use slepcsys
 #include <../src/sys/classes/bv/f90-mod/slepcbv.h>
         end module
 

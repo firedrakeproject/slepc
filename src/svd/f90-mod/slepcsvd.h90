@@ -18,4 +18,67 @@
 !  along with SLEPc. If not, see <http://www.gnu.org/licenses/>.
 !  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !
+      interface SVDGetDimensions
+      subroutine SVDGetDimensions000(a,b,c,d,z)
+      use slepcsvddef
+       SVD a
+       PetscInt b
+       PetscInt c
+       PetscInt d
+       integer z
+       end subroutine
+      subroutine SVDGetDimensions100(a,b,c,d,z)
+      use slepcsvddef
+       SVD a
+       PetscInt b(*)
+       PetscInt c
+       PetscInt d
+       integer z
+       end subroutine
+      subroutine SVDGetDimensions010(a,b,c,d,z)
+      use slepcsvddef
+       SVD a
+       PetscInt b
+       PetscInt c(*)
+       PetscInt d
+       integer z
+       end subroutine
+      subroutine SVDGetDimensions001(a,b,c,d,z)
+      use slepcsvddef
+       SVD a
+       PetscInt b
+       PetscInt c
+       PetscInt d(*)
+       integer z
+       end subroutine
+      subroutine SVDGetDimensions110(a,b,c,d,z)
+      use slepcsvddef
+       SVD a
+       PetscInt b(*)
+       PetscInt c(*)
+       PetscInt d
+       integer z
+       end subroutine
+      subroutine SVDGetDimensions011(a,b,c,d,z)
+      use slepcsvddef
+       SVD a
+       PetscInt b
+       PetscInt c(*)
+       PetscInt d(*)
+       integer z
+       end subroutine
+       end interface SVDGetDimensions
+
+      interface
+      subroutine SVDGetSingularTriplet(a,b,c,d,e,z)
+      use slepcsvddef
+       SVD a
+       PetscInt b
+       PetscReal c
+       Vec d
+       Vec e
+       integer z
+       end subroutine
+      end interface
+
 

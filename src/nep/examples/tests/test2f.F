@@ -22,14 +22,9 @@
 ! ----------------------------------------------------------------------
 !
       program main
-      implicit none
-
-#include <petsc/finclude/petscsys.h>
-#include <petsc/finclude/petscvec.h>
-#include <petsc/finclude/petscmat.h>
-#include <petsc/finclude/petscviewer.h>
-#include <slepc/finclude/slepcsys.h>
 #include <slepc/finclude/slepcnep.h>
+      use slepcnep
+      implicit none
 
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !     Declarations

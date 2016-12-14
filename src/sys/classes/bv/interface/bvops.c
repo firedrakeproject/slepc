@@ -126,7 +126,7 @@ PetscErrorCode BVMult(BV Y,PetscScalar alpha,PetscScalar beta,BV X,Mat Q)
 
 .seealso: BVMult(), BVMultColumn(), BVMultInPlace(), BVSetActiveColumns()
 @*/
-PetscErrorCode BVMultVec(BV X,PetscScalar alpha,PetscScalar beta,Vec y,PetscScalar *q)
+PetscErrorCode BVMultVec(BV X,PetscScalar alpha,PetscScalar beta,Vec y,PetscScalar q[])
 {
   PetscErrorCode ierr;
   PetscInt       n,N;

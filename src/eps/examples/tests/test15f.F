@@ -28,13 +28,10 @@
 ! ----------------------------------------------------------------------
 !
       program main
+#include <slepc/finclude/slepceps.h>
+      use slepceps
       implicit none
 
-#include <petsc/finclude/petscsys.h>
-#include <petsc/finclude/petscvec.h>
-#include <petsc/finclude/petscmat.h>
-#include <slepc/finclude/slepcsys.h>
-#include <slepc/finclude/slepceps.h>
 
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !     Declarations
@@ -188,17 +185,11 @@
 !
       subroutine MyEPSMonitor(eps,its,nconv,eigr,eigi,errest,nest,dummy,&
      &                        ierr)
-
+#include <slepc/finclude/slepceps.h>
+      use slepceps
       implicit none
 
-#include <petsc/finclude/petscsys.h>
-#include <petsc/finclude/petscvec.h>
-#include <petsc/finclude/petscmat.h>
-#include <slepc/finclude/slepcsys.h>
-#include <slepc/finclude/slepceps.h>
-
       EPS            eps
-      Vec            x
       PetscErrorCode ierr
       PetscInt       its,nconv,nest,dummy
       PetscScalar    eigr(*),eigi(*)

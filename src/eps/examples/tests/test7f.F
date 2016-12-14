@@ -28,13 +28,10 @@
 ! ----------------------------------------------------------------------
 !
       program main
+#include <slepc/finclude/slepceps.h>
+      use slepceps
       implicit none
 
-#include <petsc/finclude/petscsys.h>
-#include <petsc/finclude/petscvec.h>
-#include <petsc/finclude/petscmat.h>
-#include <slepc/finclude/slepcsys.h>
-#include <slepc/finclude/slepceps.h>
 
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !     Declarations

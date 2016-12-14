@@ -24,12 +24,10 @@
 ! ----------------------------------------------------------------------
 !
       program main
+#include <slepc/finclude/slepcbv.h>
+      use slepcbv
       implicit none
 
-#include <petsc/finclude/petscsys.h>
-#include <petsc/finclude/petscvec.h>
-#include <petsc/finclude/petscmat.h>
-#include <slepc/finclude/slepcbv.h>
 
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !     Declarations

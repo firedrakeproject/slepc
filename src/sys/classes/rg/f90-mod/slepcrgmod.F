@@ -18,6 +18,7 @@
 !  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
         module slepcrgdef
+        use slepcsys
 #include <../src/sys/classes/rg/f90-mod/slepcrg.h>
         end module
 

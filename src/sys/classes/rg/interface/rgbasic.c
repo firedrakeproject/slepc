@@ -495,7 +495,7 @@ PetscErrorCode RGCheckInside(RG rg,PetscInt n,PetscScalar *ar,PetscScalar *ai,Pe
 
    Level: intermediate
 @*/
-PetscErrorCode RGComputeContour(RG rg,PetscInt n,PetscScalar *cr,PetscScalar *ci)
+PetscErrorCode RGComputeContour(RG rg,PetscInt n,PetscScalar cr[],PetscScalar ci[])
 {
   PetscInt       i;
   PetscErrorCode ierr;

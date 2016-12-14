@@ -30,14 +30,10 @@
 ! ----------------------------------------------------------------------
 !
       program main
+#include <slepc/finclude/slepceps.h>
+      use slepceps
       implicit none
 
-#include <petsc/finclude/petscsys.h>
-#include <petsc/finclude/petscvec.h>
-#include <petsc/finclude/petscmat.h>
-#include <petsc/finclude/petscviewer.h>
-#include <slepc/finclude/slepcsys.h>
-#include <slepc/finclude/slepceps.h>
 
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !     Declarations
@@ -176,11 +172,9 @@
 !   y - output vector
 !
       subroutine MatIsing_Mult(A,x,y,ierr)
+#include <slepc/finclude/slepceps.h>
+      use slepceps
       implicit none
-
-#include <petsc/finclude/petscsys.h>
-#include <petsc/finclude/petscvec.h>
-#include <petsc/finclude/petscmat.h>
 
       Mat            A
       Vec            x,y
@@ -211,6 +205,8 @@
 !     See http://math.nist.gov/MatrixMarket/data/NEP/mvmisg/mvmisg.html
 
       SUBROUTINE MVMISG( TRANS, N, M, X, LDX, Y, LDY )
+#include <petsc/finclude/petscsys.h>
+      use petscsys      
 !     ..
 !     .. Scalar Arguments ..
       PetscInt     LDY, LDX, M, N, TRANS
@@ -257,7 +253,6 @@
 !  ===================================================================
 !
 !
-#include <petsc/finclude/petscsys.h>
 
 !     .. Local Variables ..
       PetscInt    I, K

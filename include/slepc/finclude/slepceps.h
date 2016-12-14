@@ -24,6 +24,7 @@
 
 #if !defined(__SLEPCEPSDEF_H)
 #define __SLEPCEPSDEF_H
+#include "slepc/finclude/slepcsys.h"
 
 #include "slepc/finclude/slepcst.h"
 #include "slepc/finclude/slepcbv.h"

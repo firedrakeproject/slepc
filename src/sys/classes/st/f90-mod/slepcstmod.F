@@ -18,7 +18,8 @@
 !  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
         module slepcstdef
-        use petsckspdef
+        use petscksp
+        use slepcsys
         use slepcbvdef
 #include <../src/sys/classes/st/f90-mod/slepcst.h>
         end module

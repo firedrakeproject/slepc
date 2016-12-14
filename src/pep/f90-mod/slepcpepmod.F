@@ -22,7 +22,7 @@
         use slepcbvdef
         use slepcrgdef
         use slepcdsdef
-        use slepcepsdef
+        use slepceps
 #include <../src/pep/f90-mod/slepcpep.h>
         end module
 
