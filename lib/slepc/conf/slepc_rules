@@ -32,13 +32,13 @@ chk_slepcdir:
 
 slepc_manualpages:
 	-@if [ "${MANSEC}" != "" ] ; then \
-	  DOCTEXT_PATH=${PETSC_DIR}/src/docs/tex/doctext; export DOCTEXT_PATH; \
+          if [ "${SUBMANSEC}" == "" ] ; then SUBMANSEC=${MANSEC}; else SUBMANSEC=${SUBMANSEC}; fi; \
+       	  DOCTEXT_PATH=${PETSC_DIR}/src/docs/tex/doctext; export DOCTEXT_PATH; \
 	  ${DOCTEXT} -html \
-		-mpath ${LOC}/docs/manualpages/${MANSEC} -heading SLEPc \
+		-mpath ${LOC}/docs/manualpages/${SUBMANSEC} -heading SLEPc \
 		-defn ${SLEPC_DIR}/src/docs/tex/doctext/html.def \
-		-locdir ${LOCDIR} -mapref ${LOC}/docs/manualpages/manualpages.cit \
-		${SOURCEC} ${SOURCEH}; \
-		chmod -f g+w ${LOC}/docs/manualpages/${MANSEC}/* ; fi
+		-locdir ${LOCDIR} -mapref ${LOC}/docs/manualpages/manualpages.cit ${SOURCED}; \
+		chmod -f g+w ${LOC}/docs/manualpages/${SUBMANSEC}/* ; fi
 
 slepc_manexamples:
 	-@base=`basename ${LOCDIR}`; \

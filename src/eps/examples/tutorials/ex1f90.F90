@@ -30,16 +30,9 @@
 !
       program main
 
-#include <slepc/finclude/slepcepsdef.h>
+#include <slepc/finclude/slepceps.h>
       use slepceps
-
       implicit none
-
-! For usage without modules, uncomment the following lines and remove
-! the previous lines between 'program main' and 'implicit none'
-!
-!#include <petsc/finclude/petsc.h>
-!#include <slepc/finclude/slepc.h>
 
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !     Declarations
@@ -49,13 +42,8 @@
 !     A      operator matrix
 !     eps    eigenproblem solver context
 
-#if defined(PETSC_USE_FORTRAN_DATATYPES)
-      type(Mat)      A
-      type(EPS)      eps
-#else
-      Mat            A
-      EPS            eps
-#endif
+      type(tMat)     A
+      type(tEPS)     eps
       EPSType        tname
       PetscInt       n, i, Istart, Iend, one, two, three
       PetscInt       nev
@@ -75,7 +63,7 @@
       call SlepcInitialize(PETSC_NULL_CHARACTER,ierr)
       call MPI_Comm_rank(PETSC_COMM_WORLD,rank,ierr)
       n = 30
-      call PetscOptionsGetInt(PETSC_NULL_OBJECT,PETSC_NULL_CHARACTER,   &
+      call PetscOptionsGetInt(PETSC_NULL_OPTIONS,PETSC_NULL_CHARACTER,  &
      &                        '-n',n,flg,ierr)
 
       if (rank .eq. 0) then
@@ -133,7 +121,7 @@
       call EPSCreate(PETSC_COMM_WORLD,eps,ierr)
 
 !     ** Set operators. In this case, it is a standard eigenvalue problem
-      call EPSSetOperators(eps,A,PETSC_NULL_OBJECT,ierr)
+      call EPSSetOperators(eps,A,PETSC_NULL_MAT,ierr)
       call EPSSetProblemType(eps,EPS_HEP,ierr)
 
 !     ** Set solver parameters at runtime
@@ -163,10 +151,10 @@
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 !     ** show detailed info unless -terse option is given by user
-      call PetscOptionsHasName(PETSC_NULL_OBJECT,PETSC_NULL_CHARACTER,  &
+      call PetscOptionsHasName(PETSC_NULL_OPTIONS,PETSC_NULL_CHARACTER, &
      &                        '-terse',terse,ierr)
       if (terse) then
-        call EPSErrorView(eps,EPS_ERROR_RELATIVE,PETSC_NULL_OBJECT,ierr)
+        call EPSErrorView(eps,EPS_ERROR_RELATIVE,PETSC_NULL_VIEWER,ierr)
       else
         call PetscViewerPushFormat(PETSC_VIEWER_STDOUT_WORLD,           &
      &                   PETSC_VIEWER_ASCII_INFO_DETAIL,ierr)

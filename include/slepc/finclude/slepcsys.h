@@ -21,25 +21,15 @@
 !  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !
 
+#if !defined(__SLEPCSYSDEF_H)
+#define __SLEPCSYSDEF_H
 #include "petscconf.h"
-#include "petsc/finclude/petscdef.h"
+#include "petsc/finclude/petsc.h"
 #include "slepcversion.h"
-#include "slepc/finclude/slepcsysdef.h"
 
-#if !defined(PETSC_USE_FORTRAN_DATATYPES)
-      external SlepcConvMonitorDestroy
-#endif
+#define SlepcSC type(tSlepcSC)
 
-! Default tolerance for the different solvers, depending on the precision
+#define SlepcConvMonitor PetscFortranAddr
 
-      PetscReal SLEPC_DEFAULT_TOL
-#if defined(PETSC_USE_REAL_SINGLE)
-      parameter(SLEPC_DEFAULT_TOL     =  1e-6)
-#elif defined(PETSC_USE_REAL_DOUBLE)
-      parameter(SLEPC_DEFAULT_TOL     =  1e-8)
-#elif defined(PETSC_USE_REAL___FLOAT128)
-      parameter(SLEPC_DEFAULT_TOL     = 1e-16)
-#else
-      parameter(SLEPC_DEFAULT_TOL     =  1e-7)
 #endif
 

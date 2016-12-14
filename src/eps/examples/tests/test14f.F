@@ -86,9 +86,9 @@
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
       call EPSCreate(PETSC_COMM_WORLD,eps,ierr)
-      call EPSSetOperators(eps,A,PETSC_NULL_OBJECT,ierr)
-      call EPSGetOperators(eps,B,PETSC_NULL_OBJECT,ierr)
-      call MatView(B,PETSC_NULL_OBJECT,ierr)
+      call EPSSetOperators(eps,A,PETSC_NULL_MAT,ierr)
+      call EPSGetOperators(eps,B,PETSC_NULL_MAT,ierr)
+      call MatView(B,PETSC_NULL_MAT,ierr)
 
       call EPSSetType(eps,EPSKRYLOVSCHUR,ierr)
       call EPSGetType(eps,tname,ierr)
@@ -196,9 +196,9 @@
       tolabs = 1.e-35
       call KSPSetTolerances(ksp,tol,tolabs,PETSC_DEFAULT_REAL,          &
      &                      PETSC_DEFAULT_INTEGER,ierr)
-      call STView(st,PETSC_NULL_OBJECT,ierr)
+      call STView(st,PETSC_NULL_VIEWER,ierr)
       call EPSGetDS(eps,ds,ierr)
-      call DSView(ds,PETSC_NULL_OBJECT,ierr)
+      call DSView(ds,PETSC_NULL_VIEWER,ierr)
 
       call EPSSetFromOptions(eps,ierr)
       call EPSSolve(eps,ierr)
@@ -212,7 +212,7 @@
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !     Display solution and clean up
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-      call EPSErrorView(eps,EPS_ERROR_RELATIVE,PETSC_NULL_OBJECT,ierr)
+      call EPSErrorView(eps,EPS_ERROR_RELATIVE,PETSC_NULL_VIEWER,ierr)
       call EPSDestroy(eps,ierr)
       call MatDestroy(A,ierr)
 

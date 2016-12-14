@@ -21,8 +21,19 @@
 !  along with SLEPc. If not, see <http://www.gnu.org/licenses/>.
 !  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !
-#include "slepc/finclude/slepcrgdef.h"
+#if !defined(__SLEPCRGDEF_H)
+#define __SLEPCRGDEF_H
 
-!
-!  End of Fortran include file for the RG package in SLEPc
-!
+#include "petsc/finclude/petscsys.h"
+
+#define RG type(tRG)
+
+#define RGType      character*(80)
+
+#define RGINTERVAL  'interval'
+#define RGPOLYGON   'polygon'
+#define RGELLIPSE   'ellipse'
+#define RGRING      'ring'
+
+#endif
+

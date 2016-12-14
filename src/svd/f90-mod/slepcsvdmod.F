@@ -17,17 +17,17 @@
 !  along with SLEPc. If not, see <http://www.gnu.org/licenses/>.
 !  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-#define PETSC_USE_FORTRAN_MODULES
-
         module slepcsvddef
-        use slepcbv
-        use slepceps
-#include <slepc/finclude/slepcsvd.h>
-#include <slepc/finclude/ftn-custom/slepcsvddef.h90>
+        use slepcbvdef
+        use slepcepsdef
+#include <../src/svd/f90-mod/slepcsvd.h>
         end module
 
         module slepcsvd
         use slepcsvddef
-#include <slepc/finclude/slepcsvd.h90>
+#include <../src/svd/f90-mod/slepcsvd.h90>
+        interface
+#include <../src/svd/f90-mod/ftn-auto-interfaces/slepcsvd.h90>
+        end interface
         end module
 

@@ -21,98 +21,33 @@
 !  along with SLEPc. If not, see <http://www.gnu.org/licenses/>.
 !  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !
-#include "slepc/finclude/slepcnepdef.h"
+#if !defined(__SLEPCNEPDEF_H)
+#define __SLEPCNEPDEF_H
 
-!  Convergence flags.
-!  They should match the flags in $SLEPC_DIR/include/slepcnep.h
+#include "slepc/finclude/slepcbv.h"
+#include "slepc/finclude/slepcds.h"
+#include "slepc/finclude/slepcrg.h"
+#include "slepc/finclude/slepcfn.h"
+#include "slepc/finclude/slepceps.h"
+#include "slepc/finclude/slepcpep.h"
 
-      PetscEnum NEP_REFINE_NONE
-      PetscEnum NEP_REFINE_SIMPLE
-      PetscEnum NEP_REFINE_MULTIPLE
+#define NEP type(tNEP)
 
-      parameter (NEP_REFINE_NONE            =  0)
-      parameter (NEP_REFINE_SIMPLE          =  1)
-      parameter (NEP_REFINE_MULTIPLE        =  2)
+#define NEPType            character*(80)
+#define NEPConvergedReason PetscEnum
+#define NEPErrorType       PetscEnum
+#define NEPWhich           PetscEnum
+#define NEPConv            PetscEnum
+#define NEPStop            PetscEnum
+#define NEPRefine          PetscEnum
+#define NEPRefineScheme    PetscEnum
 
-      PetscEnum NEP_REFINE_SCHEME_SCHUR
-      PetscEnum NEP_REFINE_SCHEME_MBE
-      PetscEnum NEP_REFINE_SCHEME_EXPLICIT
+#define NEPRII       'rii'
+#define NEPSLP       'slp'
+#define NEPNARNOLDI  'narnoldi'
+#define NEPCISS      'ciss'
+#define NEPINTERPOL  'interpol'
+#define NEPNLEIGS    'nleigs'
 
-      parameter (NEP_REFINE_SCHEME_SCHUR    =  1)
-      parameter (NEP_REFINE_SCHEME_MBE      =  2)
-      parameter (NEP_REFINE_SCHEME_EXPLICIT =  3)
+#endif
 
-      PetscEnum NEP_CONV_ABS
-      PetscEnum NEP_CONV_REL
-      PetscEnum NEP_CONV_NORM
-      PetscEnum NEP_CONV_USER
-
-      parameter (NEP_CONV_ABS               =  0)
-      parameter (NEP_CONV_REL               =  1)
-      parameter (NEP_CONV_NORM              =  2)
-      parameter (NEP_CONV_USER              =  3)
-
-      PetscEnum NEP_STOP_BASIC
-      PetscEnum NEP_STOP_USER
-
-      parameter (NEP_STOP_BASIC             =  0)
-      parameter (NEP_STOP_USER              =  1)
-
-      PetscEnum NEP_CONVERGED_TOL
-      PetscEnum NEP_CONVERGED_USER
-      PetscEnum NEP_DIVERGED_ITS
-      PetscEnum NEP_DIVERGED_BREAKDOWN
-      PetscEnum NEP_DIVERGED_LINEAR_SOLVE
-      PetscEnum NEP_CONVERGED_ITERATING
-
-      parameter (NEP_CONVERGED_TOL            =  1)
-      parameter (NEP_CONVERGED_USER           =  2)
-      parameter (NEP_DIVERGED_ITS             = -1)
-      parameter (NEP_DIVERGED_BREAKDOWN       = -2)
-      parameter (NEP_DIVERGED_LINEAR_SOLVE    = -4)
-      parameter (NEP_CONVERGED_ITERATING      =  0)
-
-      PetscEnum NEP_LARGEST_MAGNITUDE
-      PetscEnum NEP_SMALLEST_MAGNITUDE
-      PetscEnum NEP_LARGEST_REAL
-      PetscEnum NEP_SMALLEST_REAL
-      PetscEnum NEP_LARGEST_IMAGINARY
-      PetscEnum NEP_SMALLEST_IMAGINARY
-      PetscEnum NEP_TARGET_MAGNITUDE
-      PetscEnum NEP_TARGET_REAL
-      PetscEnum NEP_TARGET_IMAGINARY
-      PetscEnum NEP_ALL
-      PetscEnum NEP_WHICH_USER
-
-      parameter (NEP_LARGEST_MAGNITUDE      =  1)
-      parameter (NEP_SMALLEST_MAGNITUDE     =  2)
-      parameter (NEP_LARGEST_REAL           =  3)
-      parameter (NEP_SMALLEST_REAL          =  4)
-      parameter (NEP_LARGEST_IMAGINARY      =  5)
-      parameter (NEP_SMALLEST_IMAGINARY     =  6)
-      parameter (NEP_TARGET_MAGNITUDE       =  7)
-      parameter (NEP_TARGET_REAL            =  8)
-      parameter (NEP_TARGET_IMAGINARY       =  9)
-      parameter (NEP_ALL                    = 10)
-      parameter (NEP_WHICH_USER             = 11)
-
-      PetscEnum NEP_ERROR_ABSOLUTE
-      PetscEnum NEP_ERROR_RELATIVE
-      PetscEnum NEP_ERROR_BACKWARD
-
-      parameter (NEP_ERROR_ABSOLUTE         =  0)
-      parameter (NEP_ERROR_RELATIVE         =  1)
-      parameter (NEP_ERROR_BACKWARD         =  2)
-
-!
-!   Possible arguments to NEPMonitorSet()
-!
-      external NEPMONITORALL
-      external NEPMONITORLG
-      external NEPMONITORLGALL
-      external NEPMONITORCONVERGED
-      external NEPMONITORFIRST
-
-!
-!  End of Fortran include file for the NEP package in SLEPc
-!

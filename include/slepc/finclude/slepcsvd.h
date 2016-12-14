@@ -21,55 +21,27 @@
 !  along with SLEPc. If not, see <http://www.gnu.org/licenses/>.
 !  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !
-#include "slepc/finclude/slepcsvddef.h"
+#if !defined(__SLEPCSVDDEF_H)
+#define __SLEPCSVDDEF_H
 
-      PetscEnum SVD_CONVERGED_TOL
-      PetscEnum SVD_CONVERGED_USER
-      PetscEnum SVD_DIVERGED_ITS
-      PetscEnum SVD_DIVERGED_BREAKDOWN
-      PetscEnum SVD_CONVERGED_ITERATING
+#include "slepc/finclude/slepcbv.h"
+#include "slepc/finclude/slepcds.h"
+#include "slepc/finclude/slepceps.h"
 
-      parameter (SVD_CONVERGED_TOL          =  1)
-      parameter (SVD_CONVERGED_USER         =  2)
-      parameter (SVD_DIVERGED_ITS           = -1)
-      parameter (SVD_DIVERGED_BREAKDOWN     = -2)
-      parameter (SVD_CONVERGED_ITERATING    =  0)
+#define SVD type(tSVD)
 
-      integer SVD_LARGEST
-      integer SVD_SMALLEST
+#define SVDType            character*(80)
+#define SVDConvergedReason PetscEnum
+#define SVDErrorType       PetscEnum
+#define SVDWhich           PetscEnum
+#define SVDConv            PetscEnum
+#define SVDStop            PetscEnum
 
-      parameter (SVD_LARGEST                =  0)
-      parameter (SVD_SMALLEST               =  1)
+#define SVDCROSS     'cross'
+#define SVDCYCLIC    'cyclic'
+#define SVDLAPACK    'lapack'
+#define SVDLANCZOS   'lanczos'
+#define SVDTRLANCZOS 'trlanczos'
 
-      PetscEnum SVD_ERROR_ABSOLUTE
-      PetscEnum SVD_ERROR_RELATIVE
+#endif
 
-      parameter (SVD_ERROR_ABSOLUTE         =  0)
-      parameter (SVD_ERROR_RELATIVE         =  1)
-
-      PetscEnum SVD_CONV_ABS
-      PetscEnum SVD_CONV_REL
-      PetscEnum SVD_CONV_USER
-
-      parameter (SVD_CONV_ABS               =  0)
-      parameter (SVD_CONV_REL               =  1)
-      parameter (SVD_CONV_USER              =  2)
-
-      PetscEnum SVD_STOP_BASIC
-      PetscEnum SVD_STOP_USER
-
-      parameter (SVD_STOP_BASIC             =  0)
-      parameter (SVD_STOP_USER              =  1)
-
-!
-!   Possible arguments to SVDMonitorSet()
-!
-      external SVDMONITORALL
-      external SVDMONITORLG
-      external SVDMONITORLGALL
-      external SVDMONITORCONVERGED
-      external SVDMONITORFIRST
-
-!
-!  End of Fortran include file for the SVD package in SLEPc
-!

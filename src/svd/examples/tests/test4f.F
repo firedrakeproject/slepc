@@ -68,9 +68,9 @@
       call SlepcInitialize(PETSC_NULL_CHARACTER,ierr)
       call MPI_Comm_rank(PETSC_COMM_WORLD,rank,ierr)
       m = 20
-      call PetscOptionsGetInt(PETSC_NULL_OBJECT,PETSC_NULL_CHARACTER,   &
+      call PetscOptionsGetInt(PETSC_NULL_OPTIONS,PETSC_NULL_CHARACTER,  &
      &                        '-m',m,flg,ierr)
-      call PetscOptionsGetInt(PETSC_NULL_OBJECT,PETSC_NULL_CHARACTER,   &
+      call PetscOptionsGetInt(PETSC_NULL_OPTIONS,PETSC_NULL_CHARACTER,  &
      &                        '-n',n,flg,ierr)
       if (.not. flg) n = m+2
 
@@ -166,7 +166,7 @@
 !     Display solution and clean up
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-      call SVDErrorView(svd,SVD_ERROR_RELATIVE,PETSC_NULL_OBJECT,ierr)
+      call SVDErrorView(svd,SVD_ERROR_RELATIVE,PETSC_NULL_VIEWER,ierr)
       call SVDDestroy(svd,ierr)
       call MatDestroy(A,ierr)
 

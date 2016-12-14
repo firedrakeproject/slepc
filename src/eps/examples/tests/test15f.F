@@ -68,7 +68,7 @@
       call SlepcInitialize(PETSC_NULL_CHARACTER,ierr)
       call MPI_Comm_rank(PETSC_COMM_WORLD,rank,ierr)
       n = 30
-      call PetscOptionsGetInt(PETSC_NULL_OBJECT,PETSC_NULL_CHARACTER,   &
+      call PetscOptionsGetInt(PETSC_NULL_OPTIONS,PETSC_NULL_CHARACTER,  &
      &                        '-n',n,flg,ierr)
 
       if (rank .eq. 0) then
@@ -128,15 +128,14 @@
       call EPSCreate(PETSC_COMM_WORLD,eps,ierr)
 
 !     ** Set operators. In this case, it is a standard eigenvalue problem
-      call EPSSetOperators(eps,A,PETSC_NULL_OBJECT,ierr)
+      call EPSSetOperators(eps,A,PETSC_NULL_MAT,ierr)
       call EPSSetProblemType(eps,EPS_HEP,ierr)
 
 !     ** Set user-defined monitor
-      call PetscOptionsHasName(PETSC_NULL_OBJECT,PETSC_NULL_CHARACTER,  &
+      call PetscOptionsHasName(PETSC_NULL_OPTIONS,PETSC_NULL_CHARACTER, &
      &                        '-my_eps_monitor',flg,ierr)
       if (flg) then
-        call EPSMonitorSet(eps,MyEPSMonitor,PETSC_NULL_OBJECT,          &
-     &                     PETSC_NULL_FUNCTION,ierr)
+        call EPSMonitorSet(eps,MyEPSMonitor,0,PETSC_NULL_FUNCTION,ierr)
       endif
 
 !     ** Set solver parameters at runtime
@@ -165,7 +164,7 @@
 !     Display solution and clean up
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-      call EPSErrorView(eps,EPS_ERROR_RELATIVE,PETSC_NULL_OBJECT,ierr)
+      call EPSErrorView(eps,EPS_ERROR_RELATIVE,PETSC_NULL_VIEWER,ierr)
       call EPSDestroy(eps,ierr)
       call MatDestroy(A,ierr)
 

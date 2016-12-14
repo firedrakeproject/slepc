@@ -28,13 +28,10 @@
 ! ----------------------------------------------------------------------
 !
       program main
-      implicit none
 
-#include <petsc/finclude/petscsys.h>
-#include <petsc/finclude/petscvec.h>
-#include <petsc/finclude/petscmat.h>
-#include <slepc/finclude/slepcsys.h>
 #include <slepc/finclude/slepcsvd.h>
+      use slepcsvd
+      implicit none
 
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !     Declarations
@@ -62,10 +59,10 @@
       call SlepcInitialize(PETSC_NULL_CHARACTER,ierr)
       call MPI_Comm_rank(PETSC_COMM_WORLD,rank,ierr)
       n = 100
-      call PetscOptionsGetInt(PETSC_NULL_OBJECT,PETSC_NULL_CHARACTER,   &
+      call PetscOptionsGetInt(PETSC_NULL_OPTIONS,PETSC_NULL_CHARACTER,  &
      &                        '-n',n,flg,ierr)
       mu = PETSC_SQRT_MACHINE_EPSILON
-      call PetscOptionsGetReal(PETSC_NULL_OBJECT,PETSC_NULL_CHARACTER,  &
+      call PetscOptionsGetReal(PETSC_NULL_OPTIONS,PETSC_NULL_CHARACTER, &
      &                        '-mu',mu,flg,ierr)
 
       if (rank .eq. 0) then
@@ -161,8 +158,8 @@
         endif
         do i=0,nconv-1
 !         ** Get i-th singular value
-          call SVDGetSingularTriplet(svd,i,sigma,PETSC_NULL_OBJECT,     &
-     &         PETSC_NULL_OBJECT,ierr)
+          call SVDGetSingularTriplet(svd,i,sigma,PETSC_NULL_VEC,        &
+     &         PETSC_NULL_VEC,ierr)
 
 !         ** Compute the relative error for each singular triplet
           call SVDComputeError(svd,i,SVD_ERROR_RELATIVE,error,ierr)

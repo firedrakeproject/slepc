@@ -17,66 +17,17 @@
 !  along with SLEPc. If not, see <http://www.gnu.org/licenses/>.
 !  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-#define PETSC_USE_FORTRAN_MODULES
-
         module slepcsysdef
-#include <slepc/finclude/slepcsys.h>
+        use petscsysdef
+        use petscmatdef
+#include <../src/sys/f90-mod/slepcsys.h>
         end module
 
         module slepcsys
         use slepcsysdef
-        end module
-
-        module slepcrgdef
-#include <slepc/finclude/slepcrg.h>
-#include <slepc/finclude/ftn-custom/slepcrgdef.h90>
-        end module
-
-        module slepcrg
-        use slepcrgdef
-#include <slepc/finclude/slepcrg.h90>
-        end module
-
-        module slepcfndef
-#include <slepc/finclude/slepcfn.h>
-#include <slepc/finclude/ftn-custom/slepcfndef.h90>
-        end module
-
-        module slepcfn
-        use slepcfndef
-#include <slepc/finclude/slepcfn.h90>
-        end module
-
-        module slepcdsdef
-        use slepcsys
-        use slepcfn
-#include <slepc/finclude/slepcds.h>
-#include <slepc/finclude/ftn-custom/slepcdsdef.h90>
-        end module
-
-        module slepcds
-        use slepcdsdef
-#include <slepc/finclude/slepcds.h90>
-        end module
-
-        module slepcbvdef
-#include <slepc/finclude/slepcbv.h>
-#include <slepc/finclude/ftn-custom/slepcbvdef.h90>
-        end module
-
-        module slepcbv
-        use slepcbvdef
-#include <slepc/finclude/slepcbv.h90>
-        end module
-
-        module slepcstdef
-        use petscksp
-#include <slepc/finclude/slepcst.h>
-#include <slepc/finclude/ftn-custom/slepcstdef.h90>
-        end module
-
-        module slepcst
-        use slepcstdef
-#include <slepc/finclude/slepcst.h90>
+#include <../src/sys/f90-mod/slepcsys.h90>
+        interface
+#include <../src/sys/f90-mod/ftn-auto-interfaces/slepcsys.h90>
+        end interface
         end module
 
