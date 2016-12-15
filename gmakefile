@@ -176,10 +176,10 @@ endif
 # Hack: manual dependencies on object files
 $(OBJDIR)/src/sys/classes/bv/f90-mod/slepcbvmod.o : $(OBJDIR)/src/sys/f90-mod/slepcsysmod.o
 $(OBJDIR)/src/sys/classes/fn/f90-mod/slepcfnmod.o : $(OBJDIR)/src/sys/f90-mod/slepcsysmod.o
-$(OBJDIR)/src/sys/classes/ds/f90-mod/slepcdsmod.o : $(OBJDIR)/src/sys/f90-mod/slepcsysmod.o
 $(OBJDIR)/src/sys/classes/rg/f90-mod/slepcrgmod.o : $(OBJDIR)/src/sys/f90-mod/slepcsysmod.o
-$(OBJDIR)/src/sys/classes/st/f90-mod/slepcstmod.o : $(OBJDIR)/src/sys/f90-mod/slepcsysmod.o
-$(OBJDIR)/src/mfn/f90-mod/slepcmfnmod.o   : $(OBJDIR)/src/sys/classes/bv/f90-mod/slepcbvmod.o $(OBJDIR)/src/sys/classes/fn/f90-mod/slepcfnmod.o $(OBJDIR)/src/sys/classes/ds/f90-mod/slepcdsmod.o
+$(OBJDIR)/src/sys/classes/ds/f90-mod/slepcdsmod.o : $(OBJDIR)/src/sys/classes/fn/f90-mod/slepcfnmod.o
+$(OBJDIR)/src/sys/classes/st/f90-mod/slepcstmod.o : $(OBJDIR)/src/sys/classes/bv/f90-mod/slepcbvmod.o
+$(OBJDIR)/src/mfn/f90-mod/slepcmfnmod.o   : $(OBJDIR)/src/sys/classes/bv/f90-mod/slepcbvmod.o $(OBJDIR)/src/sys/classes/fn/f90-mod/slepcfnmod.o
 $(OBJDIR)/src/lme/f90-mod/slepclmemod.o   : $(OBJDIR)/src/sys/classes/bv/f90-mod/slepcbvmod.o
 $(OBJDIR)/src/eps/f90-mod/slepcepsmod.o   : $(OBJDIR)/src/sys/classes/bv/f90-mod/slepcbvmod.o $(OBJDIR)/src/sys/classes/fn/f90-mod/slepcfnmod.o $(OBJDIR)/src/sys/classes/ds/f90-mod/slepcdsmod.o $(OBJDIR)/src/sys/classes/rg/f90-mod/slepcrgmod.o $(OBJDIR)/src/sys/classes/st/f90-mod/slepcstmod.o
 $(OBJDIR)/src/pep/f90-mod/slepcpepmod.o   : $(OBJDIR)/src/eps/f90-mod/slepcepsmod.o
