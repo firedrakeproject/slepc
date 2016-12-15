@@ -33,7 +33,7 @@ TESTEXAMPLES_C = ex32.PETSc runex32_1 ex32.rm
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common
 
 ex32: ex32.o chkopts
-	-${CLINKER} -o ex32 ex32.o ${SLEPC_MFN_LIB}
+	-${CLINKER} -o ex32 ex32.o ${SLEPC_LME_LIB}
 	${RM} ex32.o
 
 #------------------------------------------------------------------------------------

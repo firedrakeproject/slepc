@@ -38,8 +38,9 @@
       PetscErrorCode ierr
       PetscReal      re,im
       PetscScalar    ar,ai,cr(10),ci(10)
-      PetscScalar    vr(7),vi(7),a,b,c,d
-      PetscScalar    center,radius,vscale
+      PetscScalar    vr(7),vi(7)
+      PetscScalar    center
+      PetscReal      radius,vscale,a,b,c,d
 
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !     Beginning of program

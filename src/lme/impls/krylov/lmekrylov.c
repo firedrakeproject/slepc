@@ -2,15 +2,24 @@
 
    SLEPc matrix equation solver: "krylov"
 
-   Method: ....
+   Method: Arnoldi with Eiermann-Ernst restart
 
    Algorithm:
 
-       ....
+       Project the equation onto the Arnoldi basis and solve the compressed
+       equation the Hessenberg matrix H, restart by discarding the Krylov
+       basis but keeping H.
 
    References:
 
-       [1] ...
+       [1] Y. Saad, "Numerical solution of large Lyapunov equations", in
+           Signal processing, scattering and operator theory, and numerical
+           methods, vol. 5 of Progr. Systems Control Theory, pages 503–511,
+           1990.
+
+       [2] D. Kressner, "Memory-efficient Krylov subspace techniques for
+           solving large-scale Lyapunov equations", in 2008 IEEE Int. Conf.
+           Computer-Aided Control Systems, pages 613-618, 2008.
 
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
@@ -90,7 +99,7 @@ PetscErrorCode LMEBasicArnoldi(LME lme,PetscScalar *H,PetscInt ldh,PetscInt k,Pe
 PetscErrorCode LMESolve_Krylov_Lyapunov_Vec(LME lme,Vec b,PetscBool fixed,PetscInt rrank,BV C1,BV *X1,PetscInt *col,PetscBool *fail,PetscInt *totalits)
 {
   PetscErrorCode ierr;
-  PetscInt       n=0,m,ldh,ldg,j,rank,lrank,pass,nouter,its;
+  PetscInt       n=0,m,ldh,ldg,j,rank=0,lrank,pass,nouter=0,its;
   PetscReal      bnorm,beta,errest;
   PetscBool      breakdown;
   PetscScalar    *H,*G=NULL,*Gnew=NULL,*Gcopy,*L,*U,*r,*Qarray,sone=1.0,zero=0.0;
