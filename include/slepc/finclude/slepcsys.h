@@ -20,7 +20,6 @@
 !  along with SLEPc. If not, see <http://www.gnu.org/licenses/>.
 !  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !
-
 #if !defined(__SLEPCSYSDEF_H)
 #define __SLEPCSYSDEF_H
 #include "petscconf.h"

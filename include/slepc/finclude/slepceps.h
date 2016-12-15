@@ -1,7 +1,6 @@
 !
 !  Include file for Fortran use of the EPS object in SLEPc
 !
-!
 !  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !  SLEPc - Scalable Library for Eigenvalue Problem Computations
 !  Copyright (c) 2002-2016, Universitat Politecnica de Valencia, Spain
@@ -21,11 +20,10 @@
 !  along with SLEPc. If not, see <http://www.gnu.org/licenses/>.
 !  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !
-
 #if !defined(__SLEPCEPSDEF_H)
 #define __SLEPCEPSDEF_H
-#include "slepc/finclude/slepcsys.h"
 
+#include "slepc/finclude/slepcsys.h"
 #include "slepc/finclude/slepcst.h"
 #include "slepc/finclude/slepcbv.h"
 #include "slepc/finclude/slepcds.h"

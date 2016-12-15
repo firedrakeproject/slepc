@@ -1,3 +1,6 @@
+!
+!  Single Fortran include file for all of SLEPc
+!
 !  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !  SLEPc - Scalable Library for Eigenvalue Problem Computations
 !  Copyright (c) 2002-2016, Universitat Politecnica de Valencia, Spain
@@ -17,9 +20,6 @@
 !  along with SLEPc. If not, see <http://www.gnu.org/licenses/>.
 !  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !
-!  Single Fortran include file for all of SLEPc
-!
-
 #include "slepc/finclude/slepcsys.h"
 #include "slepc/finclude/slepcbv.h"
 #include "slepc/finclude/slepcfn.h"

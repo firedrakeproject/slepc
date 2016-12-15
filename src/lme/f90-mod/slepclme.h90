@@ -19,13 +19,3 @@
 !  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !
 
-#if !defined(__SLEPCLMEDEF_H90)
-#define __SLEPCLMEDEF_H90
-
-#if defined(PETSC_USE_FORTRAN_DATATYPES)
-      type LME
-        PetscFortranAddr:: v
-      end type LME
-#endif
-
-#endif

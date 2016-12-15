@@ -193,7 +193,7 @@ def processDir(arg,dirname,names):
 
 def processf90interfaces(petscdir,verbose):
   ''' Takes all the individually generated fortran interface files and merges them into one for each mansec'''
-  for mansec in ['sys','bv','ds','fn','rg','st','eps','svd','pep','nep','mfn']:
+  for mansec in ['sys','bv','ds','fn','rg','st','eps','svd','pep','nep','mfn','lme']:
     if mansec in ['bv','ds','fn','rg','st']:
       basedir = os.path.join(petscdir,'src','sys','classes',mansec,'f90-mod','ftn-auto-interfaces')
     else:
