@@ -106,7 +106,7 @@ def WritePkgconfigFile(pkgconfig,version,pversion,sdir,isinstall,prefixdir,slfla
 def WriteCMakeConfigFile(cmakeconf):
   ''' Write the contents of the CMake configuration file '''
   cmakeconf.write('''
-set (SLEPC_PACKAGE_LIBS "${ARPACK_LIB}" "${BLZPACK_LIB}" "${TRLAN_LIB}" "${PRIMME_LIB}" "${FEAST_LIB}" "${BLOPEX_LIB}" )
+set (SLEPC_PACKAGE_LIBS "${ARPACK_LIB}" "${BLZPACK_LIB}" "${TRLAN_LIB}" "${PRIMME_LIB}" "${FEAST_LIB}" "${BLOPEX_LIB}" "${SLICOT_LIB}" )
 set (SLEPC_PACKAGE_INCLUDES "${PRIMME_INCLUDE}")
 find_library (PETSC_LIB petsc HINTS ${PETSc_BINARY_DIR}/lib )
 if (NOT PETSC_LIB) # Interpret missing libpetsc to mean that PETSc was built --with-single-library=0
@@ -152,7 +152,7 @@ argdb = argdb.ArgDB(sys.argv)
 log   = log.Log()
 
 # Load classes for packages and process command-line options
-import slepc, petsc, arpack, blzpack, trlan, feast, primme, blopex, sowing, lapack
+import slepc, petsc, arpack, blzpack, trlan, feast, primme, blopex, sowing, lapack, slicot
 slepc   = slepc.SLEPc(argdb,log)
 petsc   = petsc.PETSc(argdb,log)
 arpack  = arpack.Arpack(argdb,log)
@@ -163,10 +163,11 @@ primme  = primme.Primme(argdb,log)
 trlan   = trlan.Trlan(argdb,log)
 sowing  = sowing.Sowing(argdb,log)
 lapack  = lapack.Lapack(argdb,log)
+slicot  = slicot.Slicot(argdb,log)
 
-externalpackages = [arpack, blopex, blzpack, feast, primme, trlan]
-optionspackages  = [slepc, arpack, blopex, blzpack, feast, primme, trlan, sowing]
-checkpackages    = [arpack, blopex, blzpack, feast, primme, trlan, lapack]
+externalpackages = [arpack, blopex, blzpack, feast, primme, slicot, trlan]
+optionspackages  = [slepc, arpack, blopex, blzpack, feast, primme, slicot, trlan, sowing]
+checkpackages    = [arpack, blopex, blzpack, feast, primme, slicot, trlan, lapack]
 
 # Print help if requested and check for wrong command-line options
 if argdb.PopHelp():
@@ -310,7 +311,7 @@ if not petsc.havepackage:
 if petsc.singlelib:
   slepcvars.write('SHLIBS = libslepc\n')
   slepcvars.write('LIBNAME = '+os.path.join('${INSTALL_LIB_DIR}','libslepc.${AR_LIB_SUFFIX}')+'\n')
-  for module in ['SYS','MFN','EPS','SVD','PEP','NEP']:
+  for module in ['SYS','EPS','SVD','PEP','NEP','MFN','LME']:
     slepcvars.write('SLEPC_'+module+'_LIB = ${CC_LINKER_SLFLAG}${SLEPC_LIB_DIR} -L${SLEPC_LIB_DIR} -lslepc ${SLEPC_EXTERNAL_LIB} ${PETSC_KSP_LIB}\n')
   slepcvars.write('SLEPC_LIB = ${CC_LINKER_SLFLAG}${SLEPC_LIB_DIR} -L${SLEPC_LIB_DIR} -lslepc ${SLEPC_EXTERNAL_LIB} ${PETSC_KSP_LIB}\n')
 

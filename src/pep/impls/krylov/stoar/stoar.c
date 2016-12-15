@@ -44,11 +44,11 @@ static const char citation[] =
   "   author = \"C. Campos and J. E. Roman\",\n"
   "   title = \"Restarted {Q-Arnoldi-type} methods exploiting symmetry in quadratic eigenvalue problems\",\n"
   "   journal = \"{BIT} Numer. Math.\",\n"
-  "   volume = \"to appear\",\n"
-  "   number = \"\",\n"
-  "   pages = \"\",\n"
+  "   volume = \"56\",\n"
+  "   number = \"4\",\n"
+  "   pages = \"1213--1236\",\n"
   "   year = \"2016,\"\n"
-  "   doi = \"http://dx.doi.org/10.1007/s10543-016-0601-5\"\n"
+  "   doi = \"https://doi.org/10.1007/s10543-016-0601-5\"\n"
   "}\n";
 
 #undef __FUNCT__

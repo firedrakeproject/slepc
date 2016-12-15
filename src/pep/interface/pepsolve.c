@@ -30,11 +30,11 @@ static const char citation[] =
   "   author = \"C. Campos and J. E. Roman\",\n"
   "   title = \"Parallel iterative refinement in polynomial eigenvalue problems\",\n"
   "   journal = \"Numer. Linear Algebra Appl.\",\n"
-  "   volume = \"to appear\",\n"
-  "   number = \"\",\n"
-  "   pages = \"\",\n"
+  "   volume = \"23\",\n"
+  "   number = \"4\",\n"
+  "   pages = \"730--745\",\n"
   "   year = \"2016,\"\n"
-  "   doi = \"http://dx.doi.org/10.1002/nla.2052\"\n"
+  "   doi = \"https://doi.org/10.1002/nla.2052\"\n"
   "}\n";
 
 #undef __FUNCT__
@@ -396,7 +396,7 @@ PetscErrorCode PEPGetErrorEstimate(PEP pep,PetscInt i,PetscReal *errest)
   PetscValidPointer(errest,3);
   PEPCheckSolved(pep,1);
   if (i<0 || i>=pep->nconv) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ARG_OUTOFRANGE,"Argument 2 out of range");
-  if (errest) *errest = pep->errest[pep->perm[i]];
+  *errest = pep->errest[pep->perm[i]];
   PetscFunctionReturn(0);
 }
 

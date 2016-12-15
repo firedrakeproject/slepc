@@ -31,3 +31,4 @@
 #include "slepc/finclude/slepcpep.h"
 #include "slepc/finclude/slepcnep.h"
 #include "slepc/finclude/slepcmfn.h"
+#include "slepc/finclude/slepclme.h"

@@ -33,7 +33,7 @@ static const char citation[] =
   "   number = \"2\",\n"
   "   pages = \"13:1--13:29\",\n"
   "   year = \"2014,\"\n"
-  "   doi = \"http://dx.doi.org/10.1145/2543696\"\n"
+  "   doi = \"https://doi.org/10.1145/2543696\"\n"
   "}\n";
 
 #undef __FUNCT__

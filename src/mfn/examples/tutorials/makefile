@@ -28,7 +28,8 @@ EXAMPLESC  = ex23.c ex26.c
 EXAMPLESF  =
 MANSEC     = MFN
 
-TESTEXAMPLES_C = ex23.PETSc runex23_1 ex23.rm ex26.PETSc runex26_1 ex26.rm
+TESTEXAMPLES_C = ex23.PETSc runex23_1 ex23.rm \
+                 ex26.PETSc runex26_1 ex26.rm
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common
 

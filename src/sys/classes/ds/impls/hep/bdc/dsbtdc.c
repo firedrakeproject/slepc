@@ -44,7 +44,7 @@ PetscErrorCode BDC_dsbtdc_(const char *jobz,const char *jobacc,PetscBLASInt n,
 /*     Small adaptations of original code written by */
 /*     Wilfried Gansterer and Bob Ward, */
 /*     Department of Computer Science, University of Tennessee */
-/*     see http://dx.doi.org/10.1137/S1064827501399432 */
+/*     see https://doi.org/10.1137/S1064827501399432 */
 /* *************************************************** */
 
 /*  Purpose */
@@ -253,7 +253,7 @@ PetscErrorCode BDC_dsbtdc_(const char *jobz,const char *jobacc,PetscBLASInt n,
 /*  Small modifications of code written by */
 /*     Wilfried Gansterer and Bob Ward, */
 /*     Department of Computer Science, University of Tennessee */
-/*     see http://dx.doi.org/10.1137/S1064827501399432 */
+/*     see https://doi.org/10.1137/S1064827501399432 */
 
 /*  Based on the design of the LAPACK code sstedc.f written by Jeff */
 /*  Rutter, Computer Science Division, University of California at */

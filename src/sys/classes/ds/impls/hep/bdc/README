@@ -15,7 +15,7 @@
      *     version written by                                *
      *     Wilfried Gansterer and Bob Ward,                  *
      *     University of Tennessee                           *
-     *     (see http://dx.doi.org/10.1137/S1064827501399432) *
+     *     (see https://doi.org/10.1137/S1064827501399432)   *
      *********************************************************
 
  The translation to C was done with f2c, and edited later to adapt the

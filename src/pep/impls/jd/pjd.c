@@ -661,6 +661,10 @@ static PetscErrorCode PEPJDCreateShellPC(PEP pep)
 #define __FUNCT__ "PEPJDUpdateExtendedPC"
 static PetscErrorCode PEPJDUpdateExtendedPC(PEP pep,PetscScalar theta)
 {
+#if defined(PETSC_MISSING_LAPACK_GESVD) || defined(PETSC_MISSING_LAPACK_GETRI) || defined(PETSC_MISSING_LAPACK_GETRF)
+  PetscFunctionBegin;
+  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"GESVD/GETRI/GETRF - Lapack routine is unavailable");
+#else
   PetscErrorCode ierr;
   PEP_JD         *pjd = (PEP_JD*)pep->data;
   PEP_JD_PCSHELL *pcctx;
@@ -670,10 +674,6 @@ static PetscErrorCode PEPJDUpdateExtendedPC(PEP pep,PetscScalar theta)
   PetscBLASInt   n_,info,ld_,*p,lw_,rk=0;
 
   PetscFunctionBegin;
-#if defined(PETSC_MISSING_LAPACK_GESVD) || defined(PETSC_MISSING_LAPACK_GETRI) || defined(PETSC_MISSING_LAPACK_GETRF)
-  PetscFunctionBegin;
-  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"GESVD/GETRI/GETRF - Lapack routine is unavailable");
-#else
   if (n) {
     ierr = PCShellGetContext(pjd->pcshell,(void**)&pcctx);CHKERRQ(ierr);
     pcctx->n = n;
@@ -758,6 +758,10 @@ static PetscErrorCode PEPJDPCMatSetUp(PEP pep,PetscScalar theta)
 #define __FUNCT__ "PEPJDEigenvectors"
 static PetscErrorCode PEPJDEigenvectors(PEP pep)
 {
+#if defined(SLEPC_MISSING_LAPACK_TREVC)
+  PetscFunctionBegin;
+  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"TREVC - Lapack routine is unavailable");
+#else
   PetscErrorCode ierr;
   PEP_JD         *pjd = (PEP_JD*)pep->data;
   PetscBLASInt   ld,nconv,info,nc;
@@ -767,10 +771,6 @@ static PetscErrorCode PEPJDEigenvectors(PEP pep)
   Mat            U;
 
   PetscFunctionBegin;
-#if defined(SLEPC_MISSING_LAPACK_TREVC)
-  PetscFunctionBegin;
-  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"TREVC - Lapack routine is unavailable");
-#else
   ierr = PetscMalloc3(pjd->nconv*pjd->nconv,&Z,3*pep->nev,&wr,2*pep->nev,&w);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(pep->nev,&ld);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(pjd->nconv,&nconv);CHKERRQ(ierr);
@@ -796,19 +796,19 @@ static PetscErrorCode PEPJDEigenvectors(PEP pep)
 #define __FUNCT__ "PEPJDLockConverged"
 static PetscErrorCode PEPJDLockConverged(PEP pep,PetscInt *nv)
 {
-  PetscErrorCode    ierr;
-  PEP_JD            *pjd = (PEP_JD*)pep->data;
-  PetscInt          j,i,ldds,rk=0,*P,nvv=*nv;
-  Vec               v,x;
-  PetscBLASInt      n,ld,rk_,nv_,info,one=1;
-  PetscScalar       sone=1.0,*Tj,*R,*r,*tt,*pX;
-  Mat               X;
-
-  PetscFunctionBegin;
 #if defined(SLEPC_MISSING_LAPACK_TRTRI)
   PetscFunctionBegin;
   SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"TRTRI - Lapack routine is unavailable");
 #else
+  PetscErrorCode ierr;
+  PEP_JD         *pjd = (PEP_JD*)pep->data;
+  PetscInt       j,i,ldds,rk=0,*P,nvv=*nv;
+  Vec            v,x;
+  PetscBLASInt   n,ld,rk_,nv_,info,one=1;
+  PetscScalar    sone=1.0,*Tj,*R,*r,*tt,*pX;
+  Mat            X;
+
+  PetscFunctionBegin;
   /* update AX and XpX */
   ierr = BVGetColumn(pjd->X,pjd->nconv-1,&x);CHKERRQ(ierr);
   for (j=0;j<pep->nmat;j++) {
