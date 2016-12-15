@@ -78,6 +78,7 @@ static PetscErrorCode LyapunovResidual(PetscScalar *H,PetscInt m,PetscInt ldh,Pe
   PetscScalar    *M,*R,zero=0.0,done=1.0;
 
   PetscFunctionBegin;
+  *res = 0;
   ierr = PetscBLASIntCast(ldh,&ld);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(m,&n);CHKERRQ(ierr);
   ierr = PetscMalloc2(m*m,&M,m*m,&R);CHKERRQ(ierr);
