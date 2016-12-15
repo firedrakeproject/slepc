@@ -44,6 +44,13 @@
 #define svdconvergedrelative_        SVDCONVERGEDRELATIVE
 #define svdsetconvergencetestfunction_ SVDSETCONVERGENCETESTFUNCTION
 #define svdsetstoppingtestfunction_  SVDSETSTOPPINGTESTFUNCTION
+#define svdgetdimensions000_         SVDGETDIMENSIONS000
+#define svdgetdimensions100_         SVDGETDIMENSIONS100
+#define svdgetdimensions010_         SVDGETDIMENSIONS010
+#define svdgetdimensions001_         SVDGETDIMENSIONS001
+#define svdgetdimensions110_         SVDGETDIMENSIONS110
+#define svdgetdimensions011_         SVDGETDIMENSIONS011
+#define svdgetsingulartriplet_       SVDGETSINGULARTRIPLET
 #elif !defined(PETSC_HAVE_FORTRAN_UNDERSCORE)
 #define svdmonitorall_               svdmonitorall
 #define svdmonitorlg_                svdmonitorlg
@@ -65,7 +72,60 @@
 #define svdconvergedrelative_        svdconvergedrelative
 #define svdsetconvergencetestfunction_ svdsetconvergencetestfunction
 #define svdsetstoppingtestfunction_  svdsetstoppingtestfunction
+#define svdgetdimensions000_         svdgetdimensions000
+#define svdgetdimensions100_         svdgetdimensions100
+#define svdgetdimensions010_         svdgetdimensions010
+#define svdgetdimensions001_         svdgetdimensions001
+#define svdgetdimensions110_         svdgetdimensions110
+#define svdgetdimensions011_         svdgetdimensions011
+#define svdgetsingulartriplet_       svdgetsingulartriplet
 #endif
+
+PETSC_EXTERN void PETSC_STDCALL  svdgetsingulartriplet_(SVD *svd,PetscInt *i,PetscReal *sigma,Vec *u,Vec *v, int *ierr )
+{
+  CHKFORTRANNULLOBJECTDEREFERENCE(u);
+  CHKFORTRANNULLOBJECTDEREFERENCE(v);
+  *ierr = SVDGetSingularTriplet(*svd,*i,sigma,*u,*v);
+}
+
+PETSC_EXTERN void PETSC_STDCALL  svdgetdimensions_(SVD *svd,PetscInt *nev,PetscInt *ncv,PetscInt *mpd, int *ierr )
+{
+  CHKFORTRANNULLINTEGER(nev);
+  CHKFORTRANNULLINTEGER(ncv);
+  CHKFORTRANNULLINTEGER(mpd);  
+  *ierr = SVDGetDimensions(*svd,nev,ncv,mpd);
+}
+
+PETSC_EXTERN void PETSC_STDCALL  svdgetdimensions000_(SVD *svd,PetscInt *nev,PetscInt *ncv,PetscInt *mpd, int *ierr )
+{
+  svdgetdimensions_(svd,nev,ncv,mpd,ierr);
+}
+
+PETSC_EXTERN void PETSC_STDCALL  svdgetdimensions100_(SVD *svd,PetscInt *nev,PetscInt *ncv,PetscInt *mpd, int *ierr )
+{
+  svdgetdimensions_(svd,nev,ncv,mpd,ierr);
+}
+
+PETSC_EXTERN void PETSC_STDCALL  svdgetdimensions010_(SVD *svd,PetscInt *nev,PetscInt *ncv,PetscInt *mpd, int *ierr )
+{
+  svdgetdimensions_(svd,nev,ncv,mpd,ierr);
+}
+
+PETSC_EXTERN void PETSC_STDCALL  svdgetdimensions001_(SVD *svd,PetscInt *nev,PetscInt *ncv,PetscInt *mpd, int *ierr )
+{
+  svdgetdimensions_(svd,nev,ncv,mpd,ierr);
+}
+
+PETSC_EXTERN void PETSC_STDCALL  svdgetdimensions110_(SVD *svd,PetscInt *nev,PetscInt *ncv,PetscInt *mpd, int *ierr )
+{
+  svdgetdimensions_(svd,nev,ncv,mpd,ierr);
+}
+
+PETSC_EXTERN void PETSC_STDCALL  svdgetdimensions011_(SVD *svd,PetscInt *nev,PetscInt *ncv,PetscInt *mpd, int *ierr )
+{
+  svdgetdimensions_(svd,nev,ncv,mpd,ierr);
+}
+
 
 /*
    These are not usually called from Fortran but allow Fortran users

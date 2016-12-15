@@ -45,6 +45,12 @@
 #define pepsetconvergencetestfunction_ PEPSETCONVERGENCETESTFUNCTION
 #define pepsetstoppingtestfunction_ PEPSETSTOPPINGTESTFUNCTION
 #define pepseteigenvaluecomparison_ PEPSETEIGENVALUECOMPARISON
+#define pepgetdimensions000_        PEPGETDIMENSIONS000
+#define pepgetdimensions100_        PEPGETDIMENSIONS100
+#define pepgetdimensions010_        PEPGETDIMENSIONS010
+#define pepgetdimensions001_        PEPGETDIMENSIONS001
+#define pepgetdimensions110_        PEPGETDIMENSIONS110
+#define pepgetdimensions011_        PEPGETDIMENSIONS011
 #elif !defined(PETSC_HAVE_FORTRAN_UNDERSCORE)
 #define pepview_                    pepview
 #define peperrorview_               peperrorview
@@ -67,7 +73,51 @@
 #define pepsetconvergencetestfunction_ pepsetconvergencetestfunction
 #define pepsetstoppingtestfunction_ pepsetstoppingtestfunction
 #define pepseteigenvaluecomparison_ pepseteigenvaluecomparison
+#define pepgetdimensions000_        pepgetdimensions000
+#define pepgetdimensions100_        pepgetdimensions100
+#define pepgetdimensions010_        pepgetdimensions010
+#define pepgetdimensions001_        pepgetdimensions001
+#define pepgetdimensions110_        pepgetdimensions110
+#define pepgetdimensions011_        pepgetdimensions011
 #endif
+
+PETSC_EXTERN void PETSC_STDCALL  pepgetdimensions_(PEP *pep,PetscInt *nev,PetscInt *ncv,PetscInt *mpd, int *ierr )
+{
+  CHKFORTRANNULLINTEGER(nev);
+  CHKFORTRANNULLINTEGER(ncv);
+  CHKFORTRANNULLINTEGER(mpd);  
+  *ierr = PEPGetDimensions(*pep,nev,ncv,mpd);
+}
+
+PETSC_EXTERN void PETSC_STDCALL  pepgetdimensions000_(PEP *pep,PetscInt *nev,PetscInt *ncv,PetscInt *mpd, int *ierr )
+{
+  pepgetdimensions_(pep,nev,ncv,mpd,ierr);
+}
+
+PETSC_EXTERN void PETSC_STDCALL  pepgetdimensions100_(PEP *pep,PetscInt *nev,PetscInt *ncv,PetscInt *mpd, int *ierr )
+{
+  pepgetdimensions_(pep,nev,ncv,mpd,ierr);
+}
+
+PETSC_EXTERN void PETSC_STDCALL  pepgetdimensions010_(PEP *pep,PetscInt *nev,PetscInt *ncv,PetscInt *mpd, int *ierr )
+{
+  pepgetdimensions_(pep,nev,ncv,mpd,ierr);
+}
+
+PETSC_EXTERN void PETSC_STDCALL  pepgetdimensions001_(PEP *pep,PetscInt *nev,PetscInt *ncv,PetscInt *mpd, int *ierr )
+{
+  pepgetdimensions_(pep,nev,ncv,mpd,ierr);
+}
+
+PETSC_EXTERN void PETSC_STDCALL  pepgetdimensions110_(PEP *pep,PetscInt *nev,PetscInt *ncv,PetscInt *mpd, int *ierr )
+{
+  pepgetdimensions_(pep,nev,ncv,mpd,ierr);
+}
+
+PETSC_EXTERN void PETSC_STDCALL  pepgetdimensions011_(PEP *pep,PetscInt *nev,PetscInt *ncv,PetscInt *mpd, int *ierr )
+{
+  pepgetdimensions_(pep,nev,ncv,mpd,ierr);
+}
 
 /*
    These are not usually called from Fortran but allow Fortran users

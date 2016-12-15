@@ -523,7 +523,7 @@ PetscErrorCode DSRestoreArrayReal(DS ds,DSMatType m,PetscReal *a[])
 
 .seealso: DSSort(), DSStateType
 @*/
-PetscErrorCode DSSolve(DS ds,PetscScalar *eigr,PetscScalar *eigi)
+PetscErrorCode DSSolve(DS ds,PetscScalar eigr[],PetscScalar eigi[])
 {
   PetscErrorCode ierr;
 

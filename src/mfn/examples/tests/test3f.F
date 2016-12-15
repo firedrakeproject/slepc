@@ -27,13 +27,9 @@
 ! ----------------------------------------------------------------------
 !
       program main
-      implicit none
-
-#include <petsc/finclude/petscsys.h>
-#include <petsc/finclude/petscvec.h>
-#include <petsc/finclude/petscmat.h>
-#include <slepc/finclude/slepcsys.h>
 #include <slepc/finclude/slepcmfn.h>
+      use slepcmfn
+      implicit none
 
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !     Declarations
@@ -60,7 +56,7 @@
       call SlepcInitialize(PETSC_NULL_CHARACTER,ierr)
       call MPI_Comm_rank(PETSC_COMM_WORLD,rank,ierr)
       n = 4
-      call PetscOptionsGetInt(PETSC_NULL_OBJECT,PETSC_NULL_CHARACTER,   &
+      call PetscOptionsGetInt(PETSC_NULL_OPTIONS,PETSC_NULL_CHARACTER,  &
      &                        '-n',n,flg,ierr)
       Nt = n*n
 
@@ -106,7 +102,7 @@
       call MatAssemblyBegin(A,MAT_FINAL_ASSEMBLY,ierr)
       call MatAssemblyEnd(A,MAT_FINAL_ASSEMBLY,ierr)
 
-      call MatCreateVecs(A,PETSC_NULL_OBJECT,v,ierr)
+      call MatCreateVecs(A,PETSC_NULL_VEC,v,ierr)
       i = 0
       val = 1.0
       call VecSetValue(v,i,val,INSERT_VALUES,ierr)

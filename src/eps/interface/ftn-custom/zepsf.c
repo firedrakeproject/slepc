@@ -53,6 +53,12 @@
 #define epskrylovschurgetsubcommpairs_ EPSKRYLOVSCHURGETSUBCOMMPAIRS
 #define epskrylovschurgetsubcommmats_  EPSKRYLOVSCHURGETSUBCOMMMATS
 #define epskrylovschurupdatesubcommmats_  EPSKRYLOVSCHURUPDATESUBCOMMMATS
+#define epsgetdimensions000_                 EPSGETDIMENSIONS000
+#define epsgetdimensions100_                 EPSGETDIMENSIONS100
+#define epsgetdimensions010_                 EPSGETDIMENSIONS010
+#define epsgetdimensions001_                 EPSGETDIMENSIONS001
+#define epsgetdimensions110_                 EPSGETDIMENSIONS110
+#define epsgetdimensions011_                 EPSGETDIMENSIONS011
 #elif !defined(PETSC_HAVE_FORTRAN_UNDERSCORE)
 #define epsview_                       epsview
 #define epserrorview_                  epserrorview
@@ -83,7 +89,58 @@
 #define epskrylovschurgetsubcommpairs_ epskrylovschurgetsubcommpairs
 #define epskrylovschurgetsubcommmats_  epskrylovschurgetsubcommmats
 #define epskrylovschurupdatesubcommmats_  epskrylovschurupdatesubcommmats
+#define epsgetdimensions000_              epsgetdimensions000
+#define epsgetdimensions100_              epsgetdimensions100
+#define epsgetdimensions010_              epsgetdimensions010
+#define epsgetdimensions001_              epsgetdimensions001
+#define epsgetdimensions110_              epsgetdimensions110
+#define epsgetdimensions011_              epsgetdimensions011
 #endif
+
+PETSC_EXTERN void PETSC_STDCALL  epsgetdimensions_(EPS *eps,PetscInt *nev,PetscInt *ncv,PetscInt *mpd, int *ierr )
+{
+  CHKFORTRANNULLINTEGER(nev);
+  CHKFORTRANNULLINTEGER(ncv);
+  CHKFORTRANNULLINTEGER(mpd);  
+  *ierr = EPSGetDimensions(*eps,nev,ncv,mpd);
+}
+
+PETSC_EXTERN void PETSC_STDCALL  epsgetdimensions000_(EPS *eps,PetscInt *nev,PetscInt *ncv,PetscInt *mpd, int *ierr )
+{
+  epsgetdimensions_(eps,nev,ncv,mpd,ierr);
+}
+
+PETSC_EXTERN void PETSC_STDCALL  epsgetdimensions100_(EPS *eps,PetscInt *nev,PetscInt *ncv,PetscInt *mpd, int *ierr )
+{
+  epsgetdimensions_(eps,nev,ncv,mpd,ierr);
+}
+
+PETSC_EXTERN void PETSC_STDCALL  epsgetdimensions010_(EPS *eps,PetscInt *nev,PetscInt *ncv,PetscInt *mpd, int *ierr )
+{
+  epsgetdimensions_(eps,nev,ncv,mpd,ierr);
+}
+
+PETSC_EXTERN void PETSC_STDCALL  epsgetdimensions001_(EPS *eps,PetscInt *nev,PetscInt *ncv,PetscInt *mpd, int *ierr )
+{
+  epsgetdimensions_(eps,nev,ncv,mpd,ierr);
+}
+
+PETSC_EXTERN void PETSC_STDCALL  epsgetdimensions110_(EPS *eps,PetscInt *nev,PetscInt *ncv,PetscInt *mpd, int *ierr )
+{
+  epsgetdimensions_(eps,nev,ncv,mpd,ierr);
+}
+
+PETSC_EXTERN void PETSC_STDCALL  epsgetdimensions011_(EPS *eps,PetscInt *nev,PetscInt *ncv,PetscInt *mpd, int *ierr )
+{
+  epsgetdimensions_(eps,nev,ncv,mpd,ierr);
+}
+
+PETSC_EXTERN void PETSC_STDCALL  epssetoperators_(EPS *eps,Mat *A,Mat *B, int *ierr )
+{
+  CHKFORTRANNULLOBJECTDEREFERENCE(A);
+  CHKFORTRANNULLOBJECTDEREFERENCE(B);  
+  *ierr = EPSSetOperators(*eps,*A,*B);
+}
 
 /*
    These are not usually called from Fortran but allow Fortran users

@@ -1,7 +1,6 @@
 !
 !  Include file for Fortran use of the LME object in SLEPc
 !
-!
 !  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !  SLEPc - Scalable Library for Eigenvalue Problem Computations
 !  Copyright (c) 2002-2016, Universitat Politecnica de Valencia, Spain
@@ -21,39 +20,19 @@
 !  along with SLEPc. If not, see <http://www.gnu.org/licenses/>.
 !  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !
-#include "slepc/finclude/slepcsysdef.h"
-#include "slepc/finclude/slepclmedef.h"
+#if !defined(__SLEPCLMEDEF_H)
+#define __SLEPCLMEDEF_H
 
-      PetscEnum LME_CONVERGED_TOL
-      PetscEnum LME_DIVERGED_ITS
-      PetscEnum LME_DIVERGED_BREAKDOWN
-      PetscEnum LME_CONVERGED_ITERATING
+#include "petsc/finclude/petscmat.h"
+#include "slepc/finclude/slepcbv.h"
 
-      parameter (LME_CONVERGED_TOL          =  1)
-      parameter (LME_DIVERGED_ITS           = -1)
-      parameter (LME_DIVERGED_BREAKDOWN     = -2)
-      parameter (LME_CONVERGED_ITERATING    =  0)
+#define LME type(tLME)
 
-      PetscEnum LME_LYAPUNOV
-      PetscEnum LME_SYLVESTER
-      PetscEnum LME_GEN_LYAPUNOV
-      PetscEnum LME_GEN_SYLVESTER
-      PetscEnum LME_DT_LYAPUNOV
-      PetscEnum LME_STEIN
+#define LMEType            character*(80)
+#define LMEConvergedReason PetscEnum
+#define LMEProblemType     PetscEnum
 
-      parameter (LME_LYAPUNOV               =  0)
-      parameter (LME_SYLVESTER              =  1)
-      parameter (LME_GEN_LYAPUNOV           =  2)
-      parameter (LME_GEN_SYLVESTER          =  3)
-      parameter (LME_DT_LYAPUNOV            =  4)
-      parameter (LME_STEIN                  =  5)
+#define LMEKRYLOV      'krylov'
+#define LMEEKRYLOV     'ekrylov'
 
-!
-!   Possible arguments to LMEMonitorSet()
-!
-      external LMEMONITORDEFAULT
-      external LMEMONITORLG
-
-!
-!  End of Fortran include file for the LME package in SLEPc
-!
+#endif

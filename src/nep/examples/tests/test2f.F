@@ -22,14 +22,9 @@
 ! ----------------------------------------------------------------------
 !
       program main
-      implicit none
-
-#include <petsc/finclude/petscsys.h>
-#include <petsc/finclude/petscvec.h>
-#include <petsc/finclude/petscmat.h>
-#include <petsc/finclude/petscviewer.h>
-#include <slepc/finclude/slepcsys.h>
 #include <slepc/finclude/slepcnep.h>
+      use slepcnep
+      implicit none
 
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !     Declarations
@@ -138,8 +133,8 @@
  110  format (' Nonlinear function with ',I2,' terms')
       i = 0
       call NEPGetSplitOperatorTerm(nep,i,B,g,ierr)
-      call MatView(B,PETSC_NULL_OBJECT,ierr)
-      call FNView(g,PETSC_NULL_OBJECT,ierr)
+      call MatView(B,PETSC_NULL_VIEWER,ierr)
+      call FNView(g,PETSC_NULL_VIEWER,ierr)
 
       call NEPSetType(nep,NEPRII,ierr)
       call NEPGetType(nep,tname,ierr)
@@ -209,11 +204,11 @@
       call NEPMonitorCancel(nep,ierr)
 
       call NEPGetDS(nep,ds,ierr)
-      call DSView(ds,PETSC_NULL_OBJECT,ierr)
+      call DSView(ds,PETSC_NULL_VIEWER,ierr)
       call NEPSetFromOptions(nep,ierr)
 
       call NEPGetRG(nep,rg,ierr)
-      call RGView(rg,PETSC_NULL_OBJECT,ierr)
+      call RGView(rg,PETSC_NULL_VIEWER,ierr)
 
       call NEPSolve(nep,ierr)
       call NEPGetConvergedReason(nep,reason,ierr)
@@ -225,7 +220,7 @@
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !     Display solution and clean up
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-      call NEPErrorView(nep,NEP_ERROR_RELATIVE,PETSC_NULL_OBJECT,ierr)
+      call NEPErrorView(nep,NEP_ERROR_RELATIVE,PETSC_NULL_VIEWER,ierr)
       call NEPDestroy(nep,ierr)
       call MatDestroy(A(1),ierr)
       call MatDestroy(A(2),ierr)

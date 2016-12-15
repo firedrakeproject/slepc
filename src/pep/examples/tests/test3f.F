@@ -22,14 +22,9 @@
 ! ----------------------------------------------------------------------
 !
       program main
-      implicit none
-
-#include <petsc/finclude/petscsys.h>
-#include <petsc/finclude/petscvec.h>
-#include <petsc/finclude/petscmat.h>
-#include <petsc/finclude/petscviewer.h>
-#include <slepc/finclude/slepcsys.h>
 #include <slepc/finclude/slepcpep.h>
+      use slepcpep
+      implicit none
 
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !     Declarations
@@ -121,7 +116,7 @@
  110  format (' Polynomial of degree ',I2)
       i = 0
       call PEPGetOperators(pep,i,B,ierr)
-      call MatView(B,PETSC_NULL_OBJECT,ierr)
+      call MatView(B,PETSC_NULL_VIEWER,ierr)
 
       call PEPSetType(pep,PEPTOAR,ierr)
       call PEPGetType(pep,tname,ierr)
@@ -158,10 +153,10 @@
       its = 5
       lambda = 1.
       scal = PEP_SCALE_SCALAR
-      call PEPSetScale(pep,scal,alpha,PETSC_NULL_OBJECT,                &
-     &                 PETSC_NULL_OBJECT,its,lambda,ierr)
-      call PEPGetScale(pep,scal,alpha,PETSC_NULL_OBJECT,                &
-     &                 PETSC_NULL_OBJECT,its,lambda,ierr)
+      call PEPSetScale(pep,scal,alpha,PETSC_NULL_VEC,                   &
+     &                 PETSC_NULL_VEC,its,lambda,ierr)
+      call PEPGetScale(pep,scal,alpha,PETSC_NULL_VEC,                   &
+     &                 PETSC_NULL_VEC,its,lambda,ierr)
       if (rank .eq. 0) then
         write(*,170) scal,alpha,its
       endif
@@ -240,9 +235,9 @@
       tolabs = 1.e-35
       call KSPSetTolerances(ksp,tol,tolabs,PETSC_DEFAULT_REAL,          &
      &                      PETSC_DEFAULT_INTEGER,ierr)
-      call STView(st,PETSC_NULL_OBJECT,ierr)
+      call STView(st,PETSC_NULL_VIEWER,ierr)
       call PEPGetDS(pep,ds,ierr)
-      call DSView(ds,PETSC_NULL_OBJECT,ierr)
+      call DSView(ds,PETSC_NULL_VIEWER,ierr)
 
       call PEPSetFromOptions(pep,ierr)
       call PEPSolve(pep,ierr)
@@ -255,7 +250,7 @@
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !     Display solution and clean up
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-      call PEPErrorView(pep,PEP_ERROR_RELATIVE,PETSC_NULL_OBJECT,ierr)
+      call PEPErrorView(pep,PEP_ERROR_RELATIVE,PETSC_NULL_VIEWER,ierr)
       call PEPDestroy(pep,ierr)
       call MatDestroy(A(1),ierr)
       call MatDestroy(A(2),ierr)

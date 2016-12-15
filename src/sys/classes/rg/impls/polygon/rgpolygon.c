@@ -92,7 +92,7 @@ static PetscErrorCode RGPolygonSetVertices_Polygon(RG rg,PetscInt n,PetscScalar 
 
 .seealso: RGPolygonGetVertices()
 @*/
-PetscErrorCode RGPolygonSetVertices(RG rg,PetscInt n,PetscScalar *vr,PetscScalar *vi)
+PetscErrorCode RGPolygonSetVertices(RG rg,PetscInt n,PetscScalar vr[],PetscScalar vi[])
 {
   PetscErrorCode ierr;
 

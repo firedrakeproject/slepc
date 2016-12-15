@@ -369,7 +369,7 @@ PetscErrorCode PEPSetTolerances(PEP pep,PetscReal tol,PetscInt maxits)
 
 #undef __FUNCT__
 #define __FUNCT__ "PEPGetDimensions"
-/*@
+/*@C
    PEPGetDimensions - Gets the number of eigenvalues to compute
    and the dimension of the subspace.
 

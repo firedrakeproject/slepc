@@ -171,7 +171,7 @@ PetscErrorCode BVDot(BV X,BV Y,Mat M)
 
 .seealso: BVDot(), BVDotColumn(), BVSetActiveColumns(), BVSetMatrix()
 @*/
-PetscErrorCode BVDotVec(BV X,Vec y,PetscScalar *m)
+PetscErrorCode BVDotVec(BV X,Vec y,PetscScalar m[])
 {
   PetscErrorCode ierr;
   PetscInt       n;
