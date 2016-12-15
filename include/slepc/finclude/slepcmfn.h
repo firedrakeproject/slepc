@@ -1,7 +1,6 @@
 !
 !  Include file for Fortran use of the MFN object in SLEPc
 !
-!
 !  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !  SLEPc - Scalable Library for Eigenvalue Problem Computations
 !  Copyright (c) 2002-2016, Universitat Politecnica de Valencia, Spain
@@ -21,27 +20,20 @@
 !  along with SLEPc. If not, see <http://www.gnu.org/licenses/>.
 !  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !
-#include "slepc/finclude/slepcsysdef.h"
-#include "slepc/finclude/slepcmfndef.h"
+#if !defined(__SLEPCMFNDEF_H)
+#define __SLEPCMFNDEF_H
 
-      PetscEnum MFN_CONVERGED_TOL
-      PetscEnum MFN_CONVERGED_ITS
-      PetscEnum MFN_DIVERGED_ITS
-      PetscEnum MFN_DIVERGED_BREAKDOWN
-      PetscEnum MFN_CONVERGED_ITERATING
+#include "petsc/finclude/petscmat.h"
+#include "slepc/finclude/slepcfn.h"
+#include "slepc/finclude/slepcbv.h"
 
-      parameter (MFN_CONVERGED_TOL          =  1)
-      parameter (MFN_CONVERGED_ITS          =  2)
-      parameter (MFN_DIVERGED_ITS           = -1)
-      parameter (MFN_DIVERGED_BREAKDOWN     = -2)
-      parameter (MFN_CONVERGED_ITERATING    =  0)
+#define MFN type(tMFN)
 
-!
-!   Possible arguments to MFNMonitorSet()
-!
-      external MFNMONITORDEFAULT
-      external MFNMONITORLG
+#define MFNType            character*(80)
+#define MFNConvergedReason PetscEnum
 
-!
-!  End of Fortran include file for the MFN package in SLEPc
-!
+#define MFNKRYLOV      'krylov'
+#define MFNEXPOKIT     'expokit'
+
+#endif
+

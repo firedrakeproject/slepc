@@ -1,7 +1,6 @@
 !
 !  Include file for Fortran use of the FN object in SLEPc
 !
-!
 !  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !  SLEPc - Scalable Library for Eigenvalue Problem Computations
 !  Copyright (c) 2002-2016, Universitat Politecnica de Valencia, Spain
@@ -21,18 +20,23 @@
 !  along with SLEPc. If not, see <http://www.gnu.org/licenses/>.
 !  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !
-#include "slepc/finclude/slepcfndef.h"
+#if !defined(__SLEPCFNDEF_H)
+#define __SLEPCFNDEF_H
 
-      PetscEnum FN_COMBINE_ADD
-      PetscEnum FN_COMBINE_MULTIPLY
-      PetscEnum FN_COMBINE_DIVIDE
-      PetscEnum FN_COMBINE_COMPOSE
+#include "petsc/finclude/petscmat.h"
 
-      parameter (FN_COMBINE_ADD           =  0)
-      parameter (FN_COMBINE_MULTIPLY      =  1)
-      parameter (FN_COMBINE_DIVIDE        =  2)
-      parameter (FN_COMBINE_COMPOSE       =  3)
+#define FN type(tFN)
 
-!
-!  End of Fortran include file for the FN package in SLEPc
-!
+#define FNType        character*(80)
+#define FNCombineType PetscEnum
+
+#define FNCOMBINE  'combine'
+#define FNRATIONAL 'rational'
+#define FNEXP      'exp'
+#define FNLOG      'log'
+#define FNPHI      'phi'
+#define FNSQRT     'sqrt'
+#define FNINVSQRT  'invsqrt'
+
+#endif
+

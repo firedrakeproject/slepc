@@ -20,16 +20,22 @@
 !  along with SLEPc. If not, see <http://www.gnu.org/licenses/>.
 !  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !
-#include "slepc/finclude/slepcstdef.h"
+#if !defined(__SLEPCSTDEF_H)
+#define __SLEPCSTDEF_H
 
-      PetscEnum ST_MATMODE_COPY
-      PetscEnum ST_MATMODE_INPLACE
-      PetscEnum ST_MATMODE_SHELL
+#include "petsc/finclude/petscksp.h"
+#include "slepc/finclude/slepcbv.h"
 
-      parameter (ST_MATMODE_COPY          =  0)
-      parameter (ST_MATMODE_INPLACE       =  1)
-      parameter (ST_MATMODE_SHELL         =  2)
+#define ST type(tST)
 
-!
-!  End of Fortran include file for the ST package in SLEPc
-!
+#define STType     character*(80)
+#define STMatMode  PetscEnum
+
+#define STSHELL    'shell'
+#define STSHIFT    'shift'
+#define STSINVERT  'sinvert'
+#define STCAYLEY   'cayley'
+#define STPRECOND  'precond'
+
+#endif
+

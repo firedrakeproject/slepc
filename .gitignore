@@ -25,6 +25,7 @@ lib/slepc/conf/slepcvariables
 configure.log*
 externalpackages/*
 ftn-auto
+ftn-auto-interfaces
 make_log_*
 test_log_*
 src/python/*

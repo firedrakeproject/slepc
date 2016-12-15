@@ -22,14 +22,9 @@
 ! ----------------------------------------------------------------------
 !
       program main
-      implicit none
-
-#include <petsc/finclude/petscsys.h>
-#include <petsc/finclude/petscvec.h>
-#include <petsc/finclude/petscmat.h>
-#include <petsc/finclude/petscviewer.h>
-#include <slepc/finclude/slepcsys.h>
 #include <slepc/finclude/slepceps.h>
+      use slepceps
+      implicit none
 
 #define MAXSUB 16
 
@@ -62,7 +57,7 @@
       call MPI_Comm_size(PETSC_COMM_WORLD,size,ierr)
       call MPI_Comm_rank(PETSC_COMM_WORLD,rank,ierr)
       n = 35
-      call PetscOptionsGetInt(PETSC_NULL_OBJECT,PETSC_NULL_CHARACTER,   &
+      call PetscOptionsGetInt(PETSC_NULL_OPTIONS,PETSC_NULL_CHARACTER,  &
      &                        '-n',n,flg,ierr)
       m = n*n
       if (rank .eq. 0) then
@@ -280,7 +275,7 @@
         mone = -1.0
         zero = 0.0
         call EPSKrylovSchurUpdateSubcommMats(eps,one,mone,Au,zero,zero, &
-     &      PETSC_NULL_OBJECT,DIFFERENT_NONZERO_PATTERN,PETSC_TRUE,ierr)
+     &      PETSC_NULL_MAT,DIFFERENT_NONZERO_PATTERN,PETSC_TRUE,ierr)
         call MatDestroy(Au,ierr)
       endif
 

@@ -24,10 +24,9 @@
 ! ----------------------------------------------------------------------
 !
       program main
-      implicit none
-
-#include <petsc/finclude/petscsys.h>
 #include <slepc/finclude/slepcrg.h>
+      use slepcrg
+      implicit none
 
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !     Declarations
@@ -61,7 +60,7 @@
       vscale = 0.1
       call RGEllipseSetParameters(rg,center,radius,vscale,ierr)
       call RGSetFromOptions(rg,ierr)
-      call RGView(rg,PETSC_NULL_OBJECT,ierr)
+      call RGView(rg,PETSC_NULL_VIEWER,ierr)
       re = 0.1
       im = 0.3
 #if defined(PETSC_USE_COMPLEX)
@@ -111,7 +110,7 @@
       d =  0.1
       call RGIntervalSetEndpoints(rg,a,b,c,d,ierr)
       call RGSetFromOptions(rg,ierr)
-      call RGView(rg,PETSC_NULL_OBJECT,ierr)
+      call RGView(rg,PETSC_NULL_VIEWER,ierr)
       re = 0.2
       im = 0
 #if defined(PETSC_USE_COMPLEX)
@@ -162,7 +161,7 @@
       n = 7
       call RGPolygonSetVertices(rg,n,vr,vi,ierr)
       call RGSetFromOptions(rg,ierr)
-      call RGView(rg,PETSC_NULL_OBJECT,ierr)
+      call RGView(rg,PETSC_NULL_VIEWER,ierr)
       re = 5
       im = 0.9
 #if defined(PETSC_USE_COMPLEX)

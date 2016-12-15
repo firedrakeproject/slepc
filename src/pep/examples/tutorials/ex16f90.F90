@@ -29,17 +29,9 @@
 ! ----------------------------------------------------------------------
 !
       program main
-
-#include <slepc/finclude/slepcpepdef.h>
+#include <slepc/finclude/slepcpep.h>
       use slepcpep
-
       implicit none
-
-! For usage without modules, uncomment the following lines and remove
-! the previous lines between 'program main' and 'implicit none'
-!
-!#include <petsc/finclude/petsc.h>
-!#include <slepc/finclude/slepc.h>
 
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !     Declarations
@@ -49,13 +41,8 @@
 !     M,C,K  problem matrices
 !     pep    polynomial eigenproblem solver context
 
-#if defined(PETSC_USE_FORTRAN_DATATYPES)
-      type(Mat)      M, C, K, A(3)
-      type(PEP)      pep
-#else
       Mat            M, C, K, A(3)
       PEP            pep
-#endif
       PEPType        tname
       PetscInt       N, nx, ny, i, j, Istart, Iend, II
       PetscInt       nev, ithree
@@ -71,9 +58,9 @@
       call SlepcInitialize(PETSC_NULL_CHARACTER,ierr)
       call MPI_Comm_rank(PETSC_COMM_WORLD,rank,ierr)
       nx = 10
-      call PetscOptionsGetInt(PETSC_NULL_OBJECT,PETSC_NULL_CHARACTER,   &
+      call PetscOptionsGetInt(PETSC_NULL_OPTIONS,PETSC_NULL_CHARACTER,  &
      &                        '-n',nx,flg,ierr)
-      call PetscOptionsGetInt(PETSC_NULL_OBJECT,PETSC_NULL_CHARACTER,   &
+      call PetscOptionsGetInt(PETSC_NULL_OPTIONS,PETSC_NULL_CHARACTER,  &
      &                        '-m',ny,flg,ierr)
       if (.not. flg) then
         ny = nx
@@ -192,10 +179,10 @@
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 !     ** show detailed info unless -terse option is given by user
-      call PetscOptionsHasName(PETSC_NULL_OBJECT,PETSC_NULL_CHARACTER,  &
+      call PetscOptionsHasName(PETSC_NULL_OPTIONS,PETSC_NULL_CHARACTER, &
      &                        '-terse',terse,ierr)
       if (terse) then
-        call PEPErrorView(pep,PEP_ERROR_BACKWARD,PETSC_NULL_OBJECT,ierr)
+        call PEPErrorView(pep,PEP_ERROR_BACKWARD,PETSC_NULL_VIEWER,ierr)
       else
         call PetscViewerPushFormat(PETSC_VIEWER_STDOUT_WORLD,           &
      &                   PETSC_VIEWER_ASCII_INFO_DETAIL,ierr)

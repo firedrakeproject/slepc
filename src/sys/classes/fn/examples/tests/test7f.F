@@ -25,12 +25,9 @@
 ! ----------------------------------------------------------------------
 !
       program main
-      implicit none
-
-#include <petsc/finclude/petscsys.h>
-#include <petsc/finclude/petscvec.h>
-#include <petsc/finclude/petscmat.h>
 #include <slepc/finclude/slepcfn.h>
+      use slepcfn
+      implicit none
 
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !     Declarations
@@ -55,15 +52,15 @@
       n = 10
       tau = 1.0
       eta = 1.0
-      call PetscOptionsGetInt(PETSC_NULL_OBJECT,PETSC_NULL_CHARACTER,   &
+      call PetscOptionsGetInt(PETSC_NULL_OPTIONS,PETSC_NULL_CHARACTER,  &
      &                        '-n',n,flg,ierr)
-      call PetscOptionsGetScalar(PETSC_NULL_OBJECT,PETSC_NULL_CHARACTER,&
-     &                        '-tau',tau,flg,ierr)
-      call PetscOptionsGetScalar(PETSC_NULL_OBJECT,PETSC_NULL_CHARACTER,&
-     &                        '-eta',eta,flg,ierr)
-      call PetscOptionsHasName(PETSC_NULL_OBJECT,PETSC_NULL_CHARACTER,  &
+      call PetscOptionsGetScalar(PETSC_NULL_OPTIONS,PETSC_NULL_CHARACTER&
+     &                       ,'-tau',tau,flg,ierr)
+      call PetscOptionsGetScalar(PETSC_NULL_OPTIONS,PETSC_NULL_CHARACTER&
+     &                       ,'-eta',eta,flg,ierr)
+      call PetscOptionsHasName(PETSC_NULL_OPTIONS,PETSC_NULL_CHARACTER, &
      &                        '-verbose',verbose,ierr)
-      call PetscOptionsHasName(PETSC_NULL_OBJECT,PETSC_NULL_CHARACTER,  &
+      call PetscOptionsHasName(PETSC_NULL_OPTIONS,PETSC_NULL_CHARACTER, &
      &                        '-inplace',inplace,ierr)
 
       if (rank .eq. 0) then
@@ -78,7 +75,7 @@
       call FNCreate(PETSC_COMM_WORLD,fn,ierr)
       call FNSetType(fn,FNSQRT,ierr)
       call FNSetScale(fn,tau,eta,ierr)
-      call FNView(fn,PETSC_NULL_OBJECT,ierr)
+      call FNView(fn,PETSC_NULL_VIEWER,ierr)
 
       call MatCreateSeqDense(PETSC_COMM_SELF,n,n,PETSC_NULL_SCALAR,A,   &
      &     ierr)
@@ -128,15 +125,15 @@
       if (inplace) then
         call MatCopy(A,S,SAME_NONZERO_PATTERN,ierr)
         call MatSetOption(S,MAT_HERMITIAN,PETSC_TRUE,ierr)
-        call FNEvaluateFunctionMat(fn,S,PETSC_NULL_OBJECT,ierr)
+        call FNEvaluateFunctionMat(fn,S,PETSC_NULL_MAT,ierr)
       else
         call FNEvaluateFunctionMat(fn,A,S,ierr)
       endif
       if (verbose) then
         if (rank .eq. 0) write (*,*) 'Matrix A - - - - - - - -'
-        call MatView(A,PETSC_NULL_OBJECT,ierr)
+        call MatView(A,PETSC_NULL_VIEWER,ierr)
         if (rank .eq. 0) write (*,*) 'Computed sqrtm(A) - - - - - - - -'
-        call MatView(S,PETSC_NULL_OBJECT,ierr)
+        call MatView(S,PETSC_NULL_VIEWER,ierr)
       endif
 
 !     *** check error ||S*S-A||_F

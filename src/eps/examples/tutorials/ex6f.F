@@ -30,14 +30,9 @@
 ! ----------------------------------------------------------------------
 !
       program main
-      implicit none
-
-#include <petsc/finclude/petscsys.h>
-#include <petsc/finclude/petscvec.h>
-#include <petsc/finclude/petscmat.h>
-#include <petsc/finclude/petscviewer.h>
-#include <slepc/finclude/slepcsys.h>
 #include <slepc/finclude/slepceps.h>
+      use slepceps
+      implicit none
 
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !     Declarations
@@ -79,7 +74,7 @@
          SETERRQ(PETSC_COMM_WORLD,1,' ',ierr)
       endif
       m = 30
-      call PetscOptionsGetInt(PETSC_NULL_OBJECT,PETSC_NULL_CHARACTER,   &
+      call PetscOptionsGetInt(PETSC_NULL_OPTIONS,PETSC_NULL_CHARACTER,  &
      &                        '-m',m,flg,ierr)
       N = 2*m
 
@@ -94,7 +89,7 @@
 !     the eigensystem, Ax=kx
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-      call MatCreateShell(PETSC_COMM_WORLD,N,N,N,N,PETSC_NULL_OBJECT,   &
+      call MatCreateShell(PETSC_COMM_WORLD,N,N,N,N,PETSC_NULL_INTEGER,  &
      &                    A,ierr)
       call MatShellSetOperation(A,MATOP_MULT,MatIsing_Mult,ierr)
 
@@ -106,7 +101,7 @@
       call EPSCreate(PETSC_COMM_WORLD,eps,ierr)
 
 !     ** Set operators. In this case, it is a standard eigenvalue problem
-      call EPSSetOperators(eps,A,PETSC_NULL_OBJECT,ierr)
+      call EPSSetOperators(eps,A,PETSC_NULL_MAT,ierr)
       call EPSSetProblemType(eps,EPS_NHEP,ierr)
 
 !     ** Set solver parameters at runtime
@@ -143,10 +138,10 @@
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 !     ** show detailed info unless -terse option is given by user
-      call PetscOptionsHasName(PETSC_NULL_OBJECT,PETSC_NULL_CHARACTER,  &
+      call PetscOptionsHasName(PETSC_NULL_OPTIONS,PETSC_NULL_CHARACTER, &
      &                        '-terse',terse,ierr)
       if (terse) then
-        call EPSErrorView(eps,EPS_ERROR_RELATIVE,PETSC_NULL_OBJECT,ierr)
+        call EPSErrorView(eps,EPS_ERROR_RELATIVE,PETSC_NULL_VIEWER,ierr)
       else
         call PetscViewerPushFormat(PETSC_VIEWER_STDOUT_WORLD,           &
      &                   PETSC_VIEWER_ASCII_INFO_DETAIL,ierr)
@@ -176,11 +171,9 @@
 !   y - output vector
 !
       subroutine MatIsing_Mult(A,x,y,ierr)
+#include <slepc/finclude/slepceps.h>
+      use slepceps
       implicit none
-
-#include <petsc/finclude/petscsys.h>
-#include <petsc/finclude/petscvec.h>
-#include <petsc/finclude/petscmat.h>
 
       Mat            A
       Vec            x,y
@@ -211,6 +204,8 @@
 !     See http://math.nist.gov/MatrixMarket/data/NEP/mvmisg/mvmisg.html
 
       SUBROUTINE MVMISG( TRANS, N, M, X, LDX, Y, LDY )
+#include <petsc/finclude/petscsys.h>
+      use petscsys      
 !     ..
 !     .. Scalar Arguments ..
       PetscInt     LDY, LDX, M, N, TRANS
@@ -257,7 +252,6 @@
 !  ===================================================================
 !
 !
-#include <petsc/finclude/petscsys.h>
 
 !     .. Local Variables ..
       PetscInt    I, K

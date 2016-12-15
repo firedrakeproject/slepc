@@ -383,7 +383,7 @@ PetscErrorCode EPSSetTolerances(EPS eps,PetscReal tol,PetscInt maxits)
 
 #undef __FUNCT__
 #define __FUNCT__ "EPSGetDimensions"
-/*@
+/*@C
    EPSGetDimensions - Gets the number of eigenvalues to compute
    and the dimension of the subspace.
 

@@ -20,38 +20,22 @@
 !  along with SLEPc. If not, see <http://www.gnu.org/licenses/>.
 !  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !
-#include "slepc/finclude/slepcbvdef.h"
+#if !defined(__SLEPCBVDEF_H)
+#define __SLEPCBVDEF_H
 
-      PetscEnum BV_ORTHOG_CGS
-      PetscEnum BV_ORTHOG_MGS
+#include "petsc/finclude/petscmat.h"
 
-      parameter (BV_ORTHOG_CGS             =  0)
-      parameter (BV_ORTHOG_MGS             =  1)
+#define BV type(tBV)
 
-      PetscEnum BV_ORTHOG_REFINE_IFNEEDED
-      PetscEnum BV_ORTHOG_REFINE_NEVER
-      PetscEnum BV_ORTHOG_REFINE_ALWAYS
+#define BVType             character*(80)
+#define BVOrthogType       PetscEnum
+#define BVOrthogRefineType PetscEnum
+#define BVOrthogBlockType  PetscEnum
+#define BVMatMultType      PetscEnum
 
-      parameter (BV_ORTHOG_REFINE_IFNEEDED =  0)
-      parameter (BV_ORTHOG_REFINE_NEVER    =  1)
-      parameter (BV_ORTHOG_REFINE_ALWAYS   =  2)
+#define BVMAT        'mat'
+#define BVSVEC       'svec'
+#define BVVECS       'vecs'
+#define BVCONTIGUOUS 'contiguous'
 
-      PetscEnum BV_ORTHOG_BLOCK_GS
-      PetscEnum BV_ORTHOG_BLOCK_CHOL
-      PetscEnum BV_ORTHOG_BLOCK_TSQR
-
-      parameter (BV_ORTHOG_BLOCK_GS        =  0)
-      parameter (BV_ORTHOG_BLOCK_CHOL      =  1)
-      parameter (BV_ORTHOG_BLOCK_TSQR      =  2)
-
-      PetscEnum BV_MATMULT_VECS
-      PetscEnum BV_MATMULT_MAT
-      PetscEnum BV_MATMULT_MAT_SAVE
-
-      parameter (BV_MATMULT_VECS           =  0)
-      parameter (BV_MATMULT_MAT            =  1)
-      parameter (BV_MATMULT_MAT_SAVE       =  2)
-
-!
-!  End of Fortran include file for the BV package in SLEPc
-!
+#endif
