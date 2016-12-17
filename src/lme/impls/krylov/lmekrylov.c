@@ -128,15 +128,15 @@ PetscErrorCode LMESolve_Krylov_Lyapunov_Vec(LME lme,Vec b,PetscBool fixed,PetscI
 
       /* compute Arnoldi factorization */
       ierr = LMEBasicArnoldi(lme,H,ldh,0,&m,&beta,&breakdown);CHKERRQ(ierr);
-      H[m+1+m*ldh] = beta;
     
       if (pass==0) {
         /* glue together the previous H and the new H obtained with Arnoldi */
         ldg = n+m+1;
         ierr = PetscCalloc1(ldg*(n+m),&Gnew);CHKERRQ(ierr);
         for (j=0;j<m;j++) {
-          ierr = PetscMemcpy(Gnew+n+(j+n)*ldg,H+j*ldh,ldh*sizeof(PetscScalar));CHKERRQ(ierr);
+          ierr = PetscMemcpy(Gnew+n+(j+n)*ldg,H+j*ldh,m*sizeof(PetscScalar));CHKERRQ(ierr);
         }
+        Gnew[n+m+(n+m-1)*ldg] = beta;
         if (G) {
           for (j=0;j<n;j++) {
             ierr = PetscMemcpy(Gnew+j*ldg,G+j*(n+1),(n+1)*sizeof(PetscScalar));CHKERRQ(ierr);
