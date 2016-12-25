@@ -24,8 +24,6 @@
 #include <slepc/private/epsimpl.h>   /*I "slepceps.h" I*/
 #include <slepcvec.h>
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSBackTransform_Default"
 PetscErrorCode EPSBackTransform_Default(EPS eps)
 {
   PetscErrorCode ierr;
@@ -35,8 +33,6 @@ PetscErrorCode EPSBackTransform_Default(EPS eps)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSComputeVectors_Hermitian"
 /*
   EPSComputeVectors_Hermitian - Copies the Lanczos vectors as eigenvectors
   using purification for generalized eigenproblems.
@@ -77,8 +73,6 @@ PetscErrorCode EPSComputeVectors_Hermitian(EPS eps)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSComputeVectors_Indefinite"
 /*
   EPSComputeVectors_Indefinite - similar to the Schur version but
   for indefinite problems
@@ -131,8 +125,6 @@ PetscErrorCode EPSComputeVectors_Indefinite(EPS eps)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSComputeVectors_Schur"
 /*
   EPSComputeVectors_Schur - Compute eigenvectors from the vectors
   provided by the eigensolver. This version is intended for solvers
@@ -212,8 +204,6 @@ PetscErrorCode EPSComputeVectors_Schur(EPS eps)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSSetWorkVecs"
 /*@
    EPSSetWorkVecs - Sets a number of work vectors into an EPS object.
 
@@ -246,8 +236,6 @@ PetscErrorCode EPSSetWorkVecs(EPS eps,PetscInt nw)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSSetWhichEigenpairs_Default"
 /*
   EPSSetWhichEigenpairs_Default - Sets the default value for which,
   depending on the ST.
@@ -264,8 +252,6 @@ PetscErrorCode EPSSetWhichEigenpairs_Default(EPS eps)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSConvergedRelative"
 /*
   EPSConvergedRelative - Checks convergence relative to the eigenvalue.
 */
@@ -279,8 +265,6 @@ PetscErrorCode EPSConvergedRelative(EPS eps,PetscScalar eigr,PetscScalar eigi,Pe
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSConvergedAbsolute"
 /*
   EPSConvergedAbsolute - Checks convergence absolutely.
 */
@@ -291,8 +275,6 @@ PetscErrorCode EPSConvergedAbsolute(EPS eps,PetscScalar eigr,PetscScalar eigi,Pe
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSConvergedNorm"
 /*
   EPSConvergedNorm - Checks convergence relative to the eigenvalue and
   the matrix norms.
@@ -307,8 +289,6 @@ PetscErrorCode EPSConvergedNorm(EPS eps,PetscScalar eigr,PetscScalar eigi,PetscR
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSStoppingBasic"
 /*@C
    EPSStoppingBasic - Default routine to determine whether the outer eigensolver
    iteration must be stopped.
@@ -357,8 +337,6 @@ PetscErrorCode EPSStoppingBasic(EPS eps,PetscInt its,PetscInt max_it,PetscInt nc
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSComputeRitzVector"
 /*
   EPSComputeRitzVector - Computes the current Ritz vector.
 
@@ -438,8 +416,6 @@ PetscErrorCode EPSComputeRitzVector(EPS eps,PetscScalar *Zr,PetscScalar *Zi,BV V
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSBuildBalance_Krylov"
 /*
   EPSBuildBalance_Krylov - uses a Krylov subspace method to compute the
   diagonal matrix to be applied for balancing in non-Hermitian problems.

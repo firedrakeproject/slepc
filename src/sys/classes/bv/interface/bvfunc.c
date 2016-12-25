@@ -32,8 +32,6 @@ const char *BVOrthogRefineTypes[] = {"IFNEEDED","NEVER","ALWAYS","BVOrthogRefine
 const char *BVOrthogBlockTypes[] = {"GS","CHOL","TSQR","BVOrthogBlockType","BV_ORTHOG_BLOCK_",0};
 const char *BVMatMultTypes[] = {"VECS","MAT","MAT_SAVE","BVMatMultType","BV_MATMULT_",0};
 
-#undef __FUNCT__
-#define __FUNCT__ "BVFinalizePackage"
 /*@C
    BVFinalizePackage - This function destroys everything in the Slepc interface
    to the BV package. It is called from SlepcFinalize().
@@ -53,8 +51,6 @@ PetscErrorCode BVFinalizePackage(void)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "BVInitializePackage"
 /*@C
    BVInitializePackage - This function initializes everything in the BV package.
    It is called from PetscDLLibraryRegister() when using dynamic libraries, and
@@ -115,8 +111,6 @@ PetscErrorCode BVInitializePackage(void)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "BVDestroy"
 /*@
    BVDestroy - Destroys BV context that was created with BVCreate().
 
@@ -154,8 +148,6 @@ PetscErrorCode BVDestroy(BV *bv)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "BVCreate"
 /*@
    BVCreate - Creates a basis vectors context.
 
@@ -229,8 +221,6 @@ PetscErrorCode BVCreate(MPI_Comm comm,BV *newbv)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "BVCreateFromMat"
 /*@
    BVCreateFromMat - Creates a basis vectors object from a dense Mat object.
 
@@ -273,8 +263,6 @@ PetscErrorCode BVCreateFromMat(Mat A,BV *bv)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "BVInsertVec"
 /*@
    BVInsertVec - Insert a vector into the specified column.
 
@@ -315,8 +303,6 @@ PetscErrorCode BVInsertVec(BV V,PetscInt j,Vec w)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "BVInsertVecs"
 /*@
    BVInsertVecs - Insert a set of vectors into the specified columns.
 
@@ -390,8 +376,6 @@ PetscErrorCode BVInsertVecs(BV V,PetscInt s,PetscInt *m,Vec *W,PetscBool orth)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "BVInsertConstraints"
 /*@
    BVInsertConstraints - Insert a set of vectors as constraints.
 
@@ -457,8 +441,6 @@ PetscErrorCode BVInsertConstraints(BV V,PetscInt *nc,Vec *C)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "BVSetOptionsPrefix"
 /*@C
    BVSetOptionsPrefix - Sets the prefix used for searching for all
    BV options in the database.
@@ -488,8 +470,6 @@ PetscErrorCode BVSetOptionsPrefix(BV bv,const char *prefix)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "BVAppendOptionsPrefix"
 /*@C
    BVAppendOptionsPrefix - Appends to the prefix used for searching for all
    BV options in the database.
@@ -519,8 +499,6 @@ PetscErrorCode BVAppendOptionsPrefix(BV bv,const char *prefix)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "BVGetOptionsPrefix"
 /*@C
    BVGetOptionsPrefix - Gets the prefix used for searching for all
    BV options in the database.
@@ -552,8 +530,6 @@ PetscErrorCode BVGetOptionsPrefix(BV bv,const char *prefix[])
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "BVView_Default"
 static PetscErrorCode BVView_Default(BV bv,PetscViewer viewer)
 {
   PetscErrorCode    ierr;
@@ -585,8 +561,6 @@ static PetscErrorCode BVView_Default(BV bv,PetscViewer viewer)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "BVView"
 /*@C
    BVView - Prints the BV data structure.
 
@@ -683,8 +657,6 @@ PetscErrorCode BVView(BV bv,PetscViewer viewer)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "BVRegister"
 /*@C
    BVRegister - Adds a new storage format to the BV package.
 
@@ -711,8 +683,6 @@ PetscErrorCode BVRegister(const char *name,PetscErrorCode (*function)(BV))
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "BVAllocateWork_Private"
 PetscErrorCode BVAllocateWork_Private(BV bv,PetscInt s)
 {
   PetscErrorCode ierr;

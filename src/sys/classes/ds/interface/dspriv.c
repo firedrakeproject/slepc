@@ -24,8 +24,6 @@
 #include <slepc/private/dsimpl.h>      /*I "slepcds.h" I*/
 #include <slepcblaslapack.h>
 
-#undef __FUNCT__
-#define __FUNCT__ "DSAllocateMatrix_Private"
 PetscErrorCode DSAllocateMatrix_Private(DS ds,DSMatType m,PetscBool isreal)
 {
   size_t         sz;
@@ -76,8 +74,6 @@ PetscErrorCode DSAllocateMatrix_Private(DS ds,DSMatType m,PetscBool isreal)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "DSAllocateWork_Private"
 PetscErrorCode DSAllocateWork_Private(DS ds,PetscInt s,PetscInt r,PetscInt i)
 {
   PetscErrorCode ierr;
@@ -104,8 +100,6 @@ PetscErrorCode DSAllocateWork_Private(DS ds,PetscInt s,PetscInt r,PetscInt i)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "DSViewMat"
 /*@C
    DSViewMat - Prints one of the internal DS matrices.
 
@@ -192,8 +186,6 @@ PetscErrorCode DSViewMat(DS ds,PetscViewer viewer,DSMatType m)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "DSSortEigenvalues_Private"
 PetscErrorCode DSSortEigenvalues_Private(DS ds,PetscScalar *wr,PetscScalar *wi,PetscInt *perm,PetscBool isghiep)
 {
   PetscErrorCode ierr;
@@ -247,8 +239,6 @@ PetscErrorCode DSSortEigenvalues_Private(DS ds,PetscScalar *wr,PetscScalar *wi,P
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "DSSortEigenvaluesReal_Private"
 PetscErrorCode DSSortEigenvaluesReal_Private(DS ds,PetscReal *eig,PetscInt *perm)
 {
   PetscErrorCode ierr;
@@ -273,8 +263,6 @@ PetscErrorCode DSSortEigenvaluesReal_Private(DS ds,PetscReal *eig,PetscInt *perm
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "DSCopyMatrix_Private"
 /*
   DSCopyMatrix_Private - Copies the trailing block of a matrix (from
   rows/columns l to n).
@@ -297,8 +285,6 @@ PetscErrorCode DSCopyMatrix_Private(DS ds,DSMatType dst,DSMatType src)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "DSPermuteColumns_Private"
 PetscErrorCode DSPermuteColumns_Private(DS ds,PetscInt l,PetscInt n,DSMatType mat,PetscInt *perm)
 {
   PetscInt    i,j,k,p,ld;
@@ -322,8 +308,6 @@ PetscErrorCode DSPermuteColumns_Private(DS ds,PetscInt l,PetscInt n,DSMatType ma
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "DSPermuteRows_Private"
 PetscErrorCode DSPermuteRows_Private(DS ds,PetscInt l,PetscInt n,DSMatType mat,PetscInt *perm)
 {
   PetscInt    i,j,m=ds->m,k,p,ld;
@@ -348,8 +332,6 @@ PetscErrorCode DSPermuteRows_Private(DS ds,PetscInt l,PetscInt n,DSMatType mat,P
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "DSPermuteBoth_Private"
 PetscErrorCode DSPermuteBoth_Private(DS ds,PetscInt l,PetscInt n,DSMatType mat1,DSMatType mat2,PetscInt *perm)
 {
   PetscInt    i,j,m=ds->m,k,p,ld;
@@ -379,8 +361,6 @@ PetscErrorCode DSPermuteBoth_Private(DS ds,PetscInt l,PetscInt n,DSMatType mat1,
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "DSSetIdentity"
 /*@
    DSSetIdentity - Copy the identity (a diagonal matrix with ones) on the
    active part of a matrix.
@@ -417,8 +397,6 @@ PetscErrorCode DSSetIdentity(DS ds,DSMatType mat)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "DSOrthogonalize"
 /*@C
    DSOrthogonalize - Orthogonalize the columns of a matrix.
 
@@ -488,8 +466,6 @@ PetscErrorCode DSOrthogonalize(DS ds,DSMatType mat,PetscInt cols,PetscInt *lindc
 #endif
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "SlepcMatDenseMult"
 /*
   Compute C <- a*A*B + b*C, where
     ldC, the leading dimension of C,
@@ -536,8 +512,6 @@ static PetscErrorCode SlepcMatDenseMult(PetscScalar *C,PetscInt _ldC,PetscScalar
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "DSPseudoOrthogonalize"
 /*@C
    DSPseudoOrthogonalize - Orthogonalize the columns of a matrix with Modified
    Gram-Schmidt in an indefinite inner product space defined by a signature.

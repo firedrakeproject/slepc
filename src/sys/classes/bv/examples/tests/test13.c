@@ -23,8 +23,6 @@ static char help[] = "Test BV operations using internal buffer instead of array 
 
 #include <slepcbv.h>
 
-#undef __FUNCT__
-#define __FUNCT__ "main"
 int main(int argc,char **argv)
 {
   PetscErrorCode ierr;

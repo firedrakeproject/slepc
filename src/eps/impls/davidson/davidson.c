@@ -36,8 +36,6 @@ static const char citation[] =
   "   doi = \"https://doi.org/10.1145/2543696\"\n"
   "}\n";
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSSetUp_XD"
 PetscErrorCode EPSSetUp_XD(EPS eps)
 {
   PetscErrorCode ierr;
@@ -196,8 +194,6 @@ PetscErrorCode EPSSetUp_XD(EPS eps)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSSolve_XD"
 PetscErrorCode EPSSolve_XD(EPS eps)
 {
   EPS_DAVIDSON   *data = (EPS_DAVIDSON*)eps->data;
@@ -238,8 +234,6 @@ PetscErrorCode EPSSolve_XD(EPS eps)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSReset_XD"
 PetscErrorCode EPSReset_XD(EPS eps)
 {
   EPS_DAVIDSON   *data = (EPS_DAVIDSON*)eps->data;
@@ -255,8 +249,6 @@ PetscErrorCode EPSReset_XD(EPS eps)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSXDSetKrylovStart_XD"
 PetscErrorCode EPSXDSetKrylovStart_XD(EPS eps,PetscBool krylovstart)
 {
   EPS_DAVIDSON *data = (EPS_DAVIDSON*)eps->data;
@@ -266,8 +258,6 @@ PetscErrorCode EPSXDSetKrylovStart_XD(EPS eps,PetscBool krylovstart)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSXDGetKrylovStart_XD"
 PetscErrorCode EPSXDGetKrylovStart_XD(EPS eps,PetscBool *krylovstart)
 {
   EPS_DAVIDSON *data = (EPS_DAVIDSON*)eps->data;
@@ -277,8 +267,6 @@ PetscErrorCode EPSXDGetKrylovStart_XD(EPS eps,PetscBool *krylovstart)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSXDSetBlockSize_XD"
 PetscErrorCode EPSXDSetBlockSize_XD(EPS eps,PetscInt blocksize)
 {
   EPS_DAVIDSON *data = (EPS_DAVIDSON*)eps->data;
@@ -290,8 +278,6 @@ PetscErrorCode EPSXDSetBlockSize_XD(EPS eps,PetscInt blocksize)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSXDGetBlockSize_XD"
 PetscErrorCode EPSXDGetBlockSize_XD(EPS eps,PetscInt *blocksize)
 {
   EPS_DAVIDSON *data = (EPS_DAVIDSON*)eps->data;
@@ -301,8 +287,6 @@ PetscErrorCode EPSXDGetBlockSize_XD(EPS eps,PetscInt *blocksize)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSXDSetRestart_XD"
 PetscErrorCode EPSXDSetRestart_XD(EPS eps,PetscInt minv,PetscInt plusk)
 {
   EPS_DAVIDSON *data = (EPS_DAVIDSON*)eps->data;
@@ -317,8 +301,6 @@ PetscErrorCode EPSXDSetRestart_XD(EPS eps,PetscInt minv,PetscInt plusk)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSXDGetRestart_XD"
 PetscErrorCode EPSXDGetRestart_XD(EPS eps,PetscInt *minv,PetscInt *plusk)
 {
   EPS_DAVIDSON *data = (EPS_DAVIDSON*)eps->data;
@@ -329,8 +311,6 @@ PetscErrorCode EPSXDGetRestart_XD(EPS eps,PetscInt *minv,PetscInt *plusk)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSXDGetInitialSize_XD"
 PetscErrorCode EPSXDGetInitialSize_XD(EPS eps,PetscInt *initialsize)
 {
   EPS_DAVIDSON *data = (EPS_DAVIDSON*)eps->data;
@@ -340,8 +320,6 @@ PetscErrorCode EPSXDGetInitialSize_XD(EPS eps,PetscInt *initialsize)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSXDSetInitialSize_XD"
 PetscErrorCode EPSXDSetInitialSize_XD(EPS eps,PetscInt initialsize)
 {
   EPS_DAVIDSON *data = (EPS_DAVIDSON*)eps->data;
@@ -353,8 +331,6 @@ PetscErrorCode EPSXDSetInitialSize_XD(EPS eps,PetscInt initialsize)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSXDSetBOrth_XD"
 PetscErrorCode EPSXDSetBOrth_XD(EPS eps,PetscBool borth)
 {
   EPS_DAVIDSON *data = (EPS_DAVIDSON*)eps->data;
@@ -364,8 +340,6 @@ PetscErrorCode EPSXDSetBOrth_XD(EPS eps,PetscBool borth)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSXDGetBOrth_XD"
 PetscErrorCode EPSXDGetBOrth_XD(EPS eps,PetscBool *borth)
 {
   EPS_DAVIDSON *data = (EPS_DAVIDSON*)eps->data;
@@ -375,8 +349,6 @@ PetscErrorCode EPSXDGetBOrth_XD(EPS eps,PetscBool *borth)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSComputeVectors_XD"
 /*
   EPSComputeVectors_XD - Compute eigenvectors from the vectors
   provided by the eigensolver. This version is intended for solvers

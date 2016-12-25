@@ -28,8 +28,6 @@ PetscBool         RGRegisterAllCalled = PETSC_FALSE;
 PetscClassId      RG_CLASSID = 0;
 static PetscBool  RGPackageInitialized = PETSC_FALSE;
 
-#undef __FUNCT__
-#define __FUNCT__ "RGFinalizePackage"
 /*@C
    RGFinalizePackage - This function destroys everything in the Slepc interface
    to the RG package. It is called from SlepcFinalize().
@@ -49,8 +47,6 @@ PetscErrorCode RGFinalizePackage(void)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "RGInitializePackage"
 /*@C
   RGInitializePackage - This function initializes everything in the RG package.
   It is called from PetscDLLibraryRegister() when using dynamic libraries, and
@@ -94,8 +90,6 @@ PetscErrorCode RGInitializePackage(void)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "RGCreate"
 /*@
    RGCreate - Creates an RG context.
 
@@ -130,8 +124,6 @@ PetscErrorCode RGCreate(MPI_Comm comm,RG *newrg)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "RGSetOptionsPrefix"
 /*@C
    RGSetOptionsPrefix - Sets the prefix used for searching for all
    RG options in the database.
@@ -161,8 +153,6 @@ PetscErrorCode RGSetOptionsPrefix(RG rg,const char *prefix)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "RGAppendOptionsPrefix"
 /*@C
    RGAppendOptionsPrefix - Appends to the prefix used for searching for all
    RG options in the database.
@@ -191,8 +181,6 @@ PetscErrorCode RGAppendOptionsPrefix(RG rg,const char *prefix)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "RGGetOptionsPrefix"
 /*@C
    RGGetOptionsPrefix - Gets the prefix used for searching for all
    RG options in the database.
@@ -224,8 +212,6 @@ PetscErrorCode RGGetOptionsPrefix(RG rg,const char *prefix[])
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "RGSetType"
 /*@C
    RGSetType - Selects the type for the RG object.
 
@@ -262,8 +248,6 @@ PetscErrorCode RGSetType(RG rg,RGType type)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "RGGetType"
 /*@C
    RGGetType - Gets the RG type name (as a string) from the RG context.
 
@@ -288,8 +272,6 @@ PetscErrorCode RGGetType(RG rg,RGType *type)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "RGSetFromOptions"
 /*@
    RGSetFromOptions - Sets RG options from the options database.
 
@@ -334,8 +316,6 @@ PetscErrorCode RGSetFromOptions(RG rg)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "RGView"
 /*@C
    RGView - Prints the RG data structure.
 
@@ -386,8 +366,6 @@ PetscErrorCode RGView(RG rg,PetscViewer viewer)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "RGIsTrivial"
 /*@
    RGIsTrivial - Whether it is the trivial region (whole complex plane).
 
@@ -417,8 +395,6 @@ PetscErrorCode RGIsTrivial(RG rg,PetscBool *trivial)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "RGCheckInside"
 /*@
    RGCheckInside - Determines if a set of given points are inside the region or not.
 
@@ -477,8 +453,6 @@ PetscErrorCode RGCheckInside(RG rg,PetscInt n,PetscScalar *ar,PetscScalar *ai,Pe
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "RGComputeContour"
 /*@
    RGComputeContour - Computes the coordinates of several points lying in the
    contour of the region.
@@ -515,8 +489,6 @@ PetscErrorCode RGComputeContour(RG rg,PetscInt n,PetscScalar cr[],PetscScalar ci
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "RGSetComplement"
 /*@
    RGSetComplement - Sets a flag to indicate that the region is the complement
    of the specified one.
@@ -543,8 +515,6 @@ PetscErrorCode RGSetComplement(RG rg,PetscBool flg)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "RGGetComplement"
 /*@
    RGGetComplement - Gets a flag that that indicates whether the region
    is complemented or not.
@@ -570,8 +540,6 @@ PetscErrorCode RGGetComplement(RG rg,PetscBool *flg)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "RGSetScale"
 /*@
    RGSetScale - Sets the scaling factor to be used when checking that a
    point is inside the region and when computing the contour.
@@ -602,8 +570,6 @@ PetscErrorCode RGSetScale(RG rg,PetscReal sfactor)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "RGGetScale"
 /*@
    RGGetScale - Gets the scaling factor.
 
@@ -628,8 +594,6 @@ PetscErrorCode RGGetScale(RG rg,PetscReal *sfactor)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "RGPushScale"
 /*@
    RGPushScale - Sets an additional scaling factor, that will multiply the
    user-defined scaling factor.
@@ -662,8 +626,6 @@ PetscErrorCode RGPushScale(RG rg,PetscReal sfactor)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "RGPopScale"
 /*@
    RGPopScale - Pops the scaling factor set with RGPushScale().
 
@@ -686,8 +648,6 @@ PetscErrorCode RGPopScale(RG rg)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "RGDestroy"
 /*@
    RGDestroy - Destroys RG context that was created with RGCreate().
 
@@ -713,8 +673,6 @@ PetscErrorCode RGDestroy(RG *rg)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "RGRegister"
 /*@C
    RGRegister - Adds a region to the RG package.
 

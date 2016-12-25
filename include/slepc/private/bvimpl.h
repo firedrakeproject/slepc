@@ -104,8 +104,6 @@ struct _p_BV {
   void               *data;
 };
 
-#undef __FUNCT__
-#define __FUNCT__ "BV_SafeSqrt"
 /*
   BV_SafeSqrt - Computes the square root of a scalar value alpha, which is
   assumed to be z'*B*z. The result is
@@ -135,8 +133,6 @@ PETSC_STATIC_INLINE PetscErrorCode BV_SafeSqrt(BV bv,PetscScalar alpha,PetscReal
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "BV_IPMatMult"
 /*
   BV_IPMatMult - Multiply a vector x by the inner-product matrix, cache the
   result in Bx.
@@ -154,8 +150,6 @@ PETSC_STATIC_INLINE PetscErrorCode BV_IPMatMult(BV bv,Vec x)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "BV_IPMatMultBV"
 /*
   BV_IPMatMultBV - Multiply BV by the inner-product matrix, cache the
   result internally in bv->cached.
@@ -178,8 +172,6 @@ PETSC_STATIC_INLINE PetscErrorCode BV_IPMatMultBV(BV bv)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "BV_AllocateCoeffs"
 /*
   BV_AllocateCoeffs - Allocate orthogonalization coefficients if not done already.
 */
@@ -195,8 +187,6 @@ PETSC_STATIC_INLINE PetscErrorCode BV_AllocateCoeffs(BV bv)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "BV_AllocateSignature"
 /*
   BV_AllocateSignature - Allocate signature coefficients if not done already.
 */
@@ -214,8 +204,6 @@ PETSC_STATIC_INLINE PetscErrorCode BV_AllocateSignature(BV bv)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "BV_AllocateMatMult"
 /*
   BV_AllocateMatMult - Allocate auxiliary matrices required for BVMatMult if not available.
 */

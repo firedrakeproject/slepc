@@ -26,8 +26,6 @@ static char help[] = "Illustrates the PGNHEP problem type. "
 
 #include <slepceps.h>
 
-#undef __FUNCT__
-#define __FUNCT__ "main"
 int main(int argc,char **argv)
 {
   EPS               eps;

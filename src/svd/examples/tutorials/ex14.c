@@ -26,8 +26,6 @@ static char help[] = "Solves a singular value problem with the matrix loaded fro
 
 #include <slepcsvd.h>
 
-#undef __FUNCT__
-#define __FUNCT__ "main"
 int main(int argc,char **argv)
 {
   Mat            A;               /* operator matrix */

@@ -23,8 +23,6 @@ static char help[] = "Test VecComp.\n\n";
 
 #include <slepcvec.h>
 
-#undef __FUNCT__
-#define __FUNCT__ "main"
 int main(int argc,char **argv)
 {
   Vec            v,w,x,y,vc,wc,xc,yc,vparent,vchild[2],vecs[2];

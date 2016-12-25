@@ -51,8 +51,6 @@ typedef struct {
   Vec diagA, diagB;
 } dvdJacobiPrecond;
 
-#undef __FUNCT__
-#define __FUNCT__ "dvd_improvex_precond_d"
 static PetscErrorCode dvd_improvex_precond_d(dvdDashboard *d)
 {
   PetscErrorCode ierr;
@@ -65,8 +63,6 @@ static PetscErrorCode dvd_improvex_precond_d(dvdDashboard *d)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "dvd_static_precond_PC_0"
 static PetscErrorCode dvd_static_precond_PC_0(dvdDashboard *d,PetscInt i,Vec x,Vec Px)
 {
   PetscErrorCode ierr;
@@ -77,8 +73,6 @@ static PetscErrorCode dvd_static_precond_PC_0(dvdDashboard *d,PetscInt i,Vec x,V
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "dvd_precond_none"
 /*
   Create a trivial preconditioner
 */
@@ -91,8 +85,6 @@ static PetscErrorCode dvd_precond_none(dvdDashboard *d,PetscInt i,Vec x,Vec Px)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "dvd_static_precond_PC"
 /*
   Create a static preconditioner from a PC
 */
@@ -140,8 +132,6 @@ PetscErrorCode dvd_static_precond_PC(dvdDashboard *d,dvdBlackboard *b,PC pc)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "dvd_harm_d"
 static PetscErrorCode dvd_harm_d(dvdDashboard *d)
 {
   PetscErrorCode ierr;
@@ -152,8 +142,6 @@ static PetscErrorCode dvd_harm_d(dvdDashboard *d)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "dvd_harm_transf"
 static PetscErrorCode dvd_harm_transf(dvdHarmonic *dvdh,PetscScalar t)
 {
   PetscFunctionBegin;
@@ -185,8 +173,6 @@ static PetscErrorCode dvd_harm_transf(dvdHarmonic *dvdh,PetscScalar t)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "dvd_harm_updateW"
 static PetscErrorCode dvd_harm_updateW(dvdDashboard *d)
 {
   dvdHarmonic    *data = (dvdHarmonic*)d->calcpairs_W_data;
@@ -215,8 +201,6 @@ static PetscErrorCode dvd_harm_updateW(dvdDashboard *d)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "dvd_harm_proj"
 static PetscErrorCode dvd_harm_proj(dvdDashboard *d)
 {
   PetscErrorCode ierr;
@@ -255,8 +239,6 @@ static PetscErrorCode dvd_harm_proj(dvdDashboard *d)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "dvd_harm_updateproj"
 PetscErrorCode dvd_harm_updateproj(dvdDashboard *d)
 {
   PetscErrorCode ierr;
@@ -294,8 +276,6 @@ PetscErrorCode dvd_harm_updateproj(dvdDashboard *d)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "dvd_harm_backtrans"
 static PetscErrorCode dvd_harm_backtrans(dvdHarmonic *data,PetscScalar *ar,PetscScalar *ai)
 {
   PetscScalar xr;
@@ -320,8 +300,6 @@ static PetscErrorCode dvd_harm_backtrans(dvdHarmonic *data,PetscScalar *ar,Petsc
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "dvd_harm_eig_backtrans"
 static PetscErrorCode dvd_harm_eig_backtrans(dvdDashboard *d,PetscScalar ar,PetscScalar ai,PetscScalar *br,PetscScalar *bi)
 {
   dvdHarmonic    *data = (dvdHarmonic*)d->calcpairs_W_data;
@@ -334,8 +312,6 @@ static PetscErrorCode dvd_harm_eig_backtrans(dvdDashboard *d,PetscScalar ar,Pets
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "dvd_harm_eigs_trans"
 static PetscErrorCode dvd_harm_eigs_trans(dvdDashboard *d)
 {
   dvdHarmonic    *data = (dvdHarmonic*)d->calcpairs_W_data;
@@ -350,8 +326,6 @@ static PetscErrorCode dvd_harm_eigs_trans(dvdDashboard *d)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "dvd_harm_conf"
 PetscErrorCode dvd_harm_conf(dvdDashboard *d,dvdBlackboard *b,HarmType_t mode,PetscBool fixedTarget,PetscScalar t)
 {
   PetscErrorCode ierr;

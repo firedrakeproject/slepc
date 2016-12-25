@@ -23,8 +23,6 @@ static char help[] = "Tests multiple calls to EPSSolve with different matrix.\n\
 
 #include <slepceps.h>
 
-#undef __FUNCT__
-#define __FUNCT__ "main"
 int main(int argc,char **argv)
 {
   Mat            A1,A2;       /* problem matrices */

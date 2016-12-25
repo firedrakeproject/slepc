@@ -24,8 +24,6 @@
 #include <slepc/private/epsimpl.h>      /*I "slepceps.h" I*/
 #include <petscdraw.h>
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSView"
 /*@C
    EPSView - Prints the EPS data structure.
 
@@ -230,8 +228,6 @@ PetscErrorCode EPSView(EPS eps,PetscViewer viewer)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSReasonView"
 /*@C
    EPSReasonView - Displays the reason an EPS solve converged or diverged.
 
@@ -267,8 +263,6 @@ PetscErrorCode EPSReasonView(EPS eps,PetscViewer viewer)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSReasonViewFromOptions"
 /*@
    EPSReasonViewFromOptions - Processes command line options to determine if/how
    the EPS converged reason is to be viewed.
@@ -302,8 +296,6 @@ PetscErrorCode EPSReasonViewFromOptions(EPS eps)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSErrorView_ASCII"
 static PetscErrorCode EPSErrorView_ASCII(EPS eps,EPSErrorType etype,PetscViewer viewer)
 {
   PetscBool      errok=PETSC_TRUE;
@@ -346,8 +338,6 @@ static PetscErrorCode EPSErrorView_ASCII(EPS eps,EPSErrorType etype,PetscViewer 
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSErrorView_DETAIL"
 static PetscErrorCode EPSErrorView_DETAIL(EPS eps,EPSErrorType etype,PetscViewer viewer)
 {
   PetscErrorCode ierr;
@@ -391,8 +381,6 @@ static PetscErrorCode EPSErrorView_DETAIL(EPS eps,EPSErrorType etype,PetscViewer
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSErrorView_MATLAB"
 static PetscErrorCode EPSErrorView_MATLAB(EPS eps,EPSErrorType etype,PetscViewer viewer)
 {
   PetscErrorCode ierr;
@@ -411,8 +399,6 @@ static PetscErrorCode EPSErrorView_MATLAB(EPS eps,EPSErrorType etype,PetscViewer
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSErrorView"
 /*@C
    EPSErrorView - Displays the errors associated with the computed solution
    (as well as the eigenvalues).
@@ -472,8 +458,6 @@ PetscErrorCode EPSErrorView(EPS eps,EPSErrorType etype,PetscViewer viewer)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSErrorViewFromOptions"
 /*@
    EPSErrorViewFromOptions - Processes command line options to determine if/how
    the errors of the computed solution are to be viewed.
@@ -521,8 +505,6 @@ PetscErrorCode EPSErrorViewFromOptions(EPS eps)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSValuesView_DRAW"
 static PetscErrorCode EPSValuesView_DRAW(EPS eps,PetscViewer viewer)
 {
   PetscErrorCode ierr;
@@ -553,8 +535,6 @@ static PetscErrorCode EPSValuesView_DRAW(EPS eps,PetscViewer viewer)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSValuesView_ASCII"
 static PetscErrorCode EPSValuesView_ASCII(EPS eps,PetscViewer viewer)
 {
   PetscInt       i,k;
@@ -572,8 +552,6 @@ static PetscErrorCode EPSValuesView_ASCII(EPS eps,PetscViewer viewer)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSValuesView_MATLAB"
 static PetscErrorCode EPSValuesView_MATLAB(EPS eps,PetscViewer viewer)
 {
   PetscErrorCode ierr;
@@ -603,8 +581,6 @@ static PetscErrorCode EPSValuesView_MATLAB(EPS eps,PetscViewer viewer)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSValuesView"
 /*@C
    EPSValuesView - Displays the computed eigenvalues in a viewer.
 
@@ -655,8 +631,6 @@ PetscErrorCode EPSValuesView(EPS eps,PetscViewer viewer)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSValuesViewFromOptions"
 /*@
    EPSValuesViewFromOptions - Processes command line options to determine if/how
    the computed eigenvalues are to be viewed.
@@ -690,8 +664,6 @@ PetscErrorCode EPSValuesViewFromOptions(EPS eps)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSVectorsView"
 /*@C
    EPSVectorsView - Outputs computed eigenvectors to a viewer.
 
@@ -743,8 +715,6 @@ PetscErrorCode EPSVectorsView(EPS eps,PetscViewer viewer)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSVectorsViewFromOptions"
 /*@
    EPSVectorsViewFromOptions - Processes command line options to determine if/how
    the computed eigenvectors are to be viewed.

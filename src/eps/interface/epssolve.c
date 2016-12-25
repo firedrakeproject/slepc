@@ -24,8 +24,6 @@
 #include <slepc/private/epsimpl.h>   /*I "slepceps.h" I*/
 #include <petscdraw.h>
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSComputeVectors"
 PetscErrorCode EPSComputeVectors(EPS eps)
 {
   PetscErrorCode ierr;
@@ -39,8 +37,6 @@ PetscErrorCode EPSComputeVectors(EPS eps)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSSolve"
 /*@
    EPSSolve - Solves the eigensystem.
 
@@ -149,8 +145,6 @@ PetscErrorCode EPSSolve(EPS eps)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSGetIterationNumber"
 /*@
    EPSGetIterationNumber - Gets the current iteration number. If the
    call to EPSSolve() is complete, then it returns the number of iterations
@@ -184,8 +178,6 @@ PetscErrorCode EPSGetIterationNumber(EPS eps,PetscInt *its)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSGetConverged"
 /*@
    EPSGetConverged - Gets the number of converged eigenpairs.
 
@@ -214,8 +206,6 @@ PetscErrorCode EPSGetConverged(EPS eps,PetscInt *nconv)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSGetConvergedReason"
 /*@
    EPSGetConvergedReason - Gets the reason why the EPSSolve() iteration was
    stopped.
@@ -252,8 +242,6 @@ PetscErrorCode EPSGetConvergedReason(EPS eps,EPSConvergedReason *reason)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSGetInvariantSubspace"
 /*@
    EPSGetInvariantSubspace - Gets an orthonormal basis of the computed invariant
    subspace.
@@ -304,8 +292,6 @@ PetscErrorCode EPSGetInvariantSubspace(EPS eps,Vec *v)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSGetEigenpair"
 /*@
    EPSGetEigenpair - Gets the i-th solution of the eigenproblem as computed by
    EPSSolve(). The solution consists in both the eigenvalue and the eigenvector.
@@ -359,8 +345,6 @@ PetscErrorCode EPSGetEigenpair(EPS eps,PetscInt i,PetscScalar *eigr,PetscScalar 
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSGetEigenvalue"
 /*@
    EPSGetEigenvalue - Gets the i-th eigenvalue as computed by EPSSolve().
 
@@ -406,8 +390,6 @@ PetscErrorCode EPSGetEigenvalue(EPS eps,PetscInt i,PetscScalar *eigr,PetscScalar
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSGetEigenvector"
 /*@
    EPSGetEigenvector - Gets the i-th right eigenvector as computed by EPSSolve().
 
@@ -479,8 +461,6 @@ PetscErrorCode EPSGetEigenvector(EPS eps,PetscInt i,Vec Vr,Vec Vi)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSGetErrorEstimate"
 /*@
    EPSGetErrorEstimate - Returns the error estimate associated to the i-th
    computed eigenpair.
@@ -514,8 +494,6 @@ PetscErrorCode EPSGetErrorEstimate(EPS eps,PetscInt i,PetscReal *errest)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSComputeResidualNorm_Private"
 /*
    EPSComputeResidualNorm_Private - Computes the norm of the residual vector
    associated with an eigenpair.
@@ -577,8 +555,6 @@ PetscErrorCode EPSComputeResidualNorm_Private(EPS eps,PetscScalar kr,PetscScalar
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSComputeError"
 /*@
    EPSComputeError - Computes the error (based on the residual norm) associated
    with the i-th computed eigenpair.
@@ -667,8 +643,6 @@ PetscErrorCode EPSComputeError(EPS eps,PetscInt i,EPSErrorType type,PetscReal *e
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSGetStartVector"
 /*
    EPSGetStartVector - Generate a suitable vector to be used as the starting vector
    for the recurrence that builds the right subspace.

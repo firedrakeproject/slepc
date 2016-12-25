@@ -26,8 +26,6 @@ typedef struct {
   PetscInt d;              /* polynomial degree */
 } DS_PEP;
 
-#undef __FUNCT__
-#define __FUNCT__ "DSAllocate_PEP"
 PetscErrorCode DSAllocate_PEP(DS ds,PetscInt ld)
 {
   PetscErrorCode ierr;
@@ -47,8 +45,6 @@ PetscErrorCode DSAllocate_PEP(DS ds,PetscInt ld)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "DSView_PEP"
 PetscErrorCode DSView_PEP(DS ds,PetscViewer viewer)
 {
   PetscErrorCode    ierr;
@@ -71,8 +67,6 @@ PetscErrorCode DSView_PEP(DS ds,PetscViewer viewer)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "DSVectors_PEP"
 PetscErrorCode DSVectors_PEP(DS ds,DSMatType mat,PetscInt *j,PetscReal *rnorm)
 {
   PetscFunctionBegin;
@@ -88,8 +82,6 @@ PetscErrorCode DSVectors_PEP(DS ds,DSMatType mat,PetscInt *j,PetscReal *rnorm)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "DSSort_PEP"
 PetscErrorCode DSSort_PEP(DS ds,PetscScalar *wr,PetscScalar *wi,PetscScalar *rr,PetscScalar *ri,PetscInt *kout)
 {
   PetscErrorCode ierr;
@@ -135,8 +127,6 @@ PetscErrorCode DSSort_PEP(DS ds,PetscScalar *wr,PetscScalar *wi,PetscScalar *rr,
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "DSSolve_PEP_QZ"
 PetscErrorCode DSSolve_PEP_QZ(DS ds,PetscScalar *wr,PetscScalar *wi)
 {
 #if defined(SLEPC_MISSING_LAPACK_GGEV)
@@ -258,8 +248,6 @@ PetscErrorCode DSSolve_PEP_QZ(DS ds,PetscScalar *wr,PetscScalar *wi)
 #endif
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "DSPEPSetDegree_PEP"
 static PetscErrorCode DSPEPSetDegree_PEP(DS ds,PetscInt d)
 {
   DS_PEP *ctx = (DS_PEP*)ds->data;
@@ -271,8 +259,6 @@ static PetscErrorCode DSPEPSetDegree_PEP(DS ds,PetscInt d)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "DSPEPSetDegree"
 /*@
    DSPEPSetDegree - Sets the polynomial degree for a DSPEP.
 
@@ -297,8 +283,6 @@ PetscErrorCode DSPEPSetDegree(DS ds,PetscInt d)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "DSPEPGetDegree_PEP"
 static PetscErrorCode DSPEPGetDegree_PEP(DS ds,PetscInt *d)
 {
   DS_PEP *ctx = (DS_PEP*)ds->data;
@@ -308,8 +292,6 @@ static PetscErrorCode DSPEPGetDegree_PEP(DS ds,PetscInt *d)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "DSPEPGetDegree"
 /*@
    DSPEPGetDegree - Returns the polynomial degree for a DSPEP.
 
@@ -336,8 +318,6 @@ PetscErrorCode DSPEPGetDegree(DS ds,PetscInt *d)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "DSDestroy_PEP"
 PetscErrorCode DSDestroy_PEP(DS ds)
 {
   PetscErrorCode ierr;
@@ -349,8 +329,6 @@ PetscErrorCode DSDestroy_PEP(DS ds)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "DSCreate_PEP"
 PETSC_EXTERN PetscErrorCode DSCreate_PEP(DS ds)
 {
   DS_PEP         *ctx;

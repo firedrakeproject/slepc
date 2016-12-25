@@ -24,8 +24,6 @@
 #include <slepc/private/svdimpl.h>      /*I "slepcsvd.h" I*/
 #include <petscdraw.h>
 
-#undef __FUNCT__
-#define __FUNCT__ "SVDSetImplicitTranspose"
 /*@
    SVDSetImplicitTranspose - Indicates how to handle the transpose of the matrix
    associated with the singular value problem.
@@ -65,8 +63,6 @@ PetscErrorCode SVDSetImplicitTranspose(SVD svd,PetscBool impl)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "SVDGetImplicitTranspose"
 /*@
    SVDGetImplicitTranspose - Gets the mode used to handle the transpose
    of the matrix associated with the singular value problem.
@@ -92,8 +88,6 @@ PetscErrorCode SVDGetImplicitTranspose(SVD svd,PetscBool *impl)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "SVDSetTolerances"
 /*@
    SVDSetTolerances - Sets the tolerance and maximum
    iteration count used by the default SVD convergence testers.
@@ -140,8 +134,6 @@ PetscErrorCode SVDSetTolerances(SVD svd,PetscReal tol,PetscInt maxits)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "SVDGetTolerances"
 /*@
    SVDGetTolerances - Gets the tolerance and maximum
    iteration count used by the default SVD convergence tests.
@@ -171,8 +163,6 @@ PetscErrorCode SVDGetTolerances(SVD svd,PetscReal *tol,PetscInt *maxits)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "SVDSetDimensions"
 /*@
    SVDSetDimensions - Sets the number of singular values to compute
    and the dimension of the subspace.
@@ -232,8 +222,6 @@ PetscErrorCode SVDSetDimensions(SVD svd,PetscInt nsv,PetscInt ncv,PetscInt mpd)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "SVDGetDimensions"
 /*@C
    SVDGetDimensions - Gets the number of singular values to compute
    and the dimension of the subspace.
@@ -265,8 +253,6 @@ PetscErrorCode SVDGetDimensions(SVD svd,PetscInt *nsv,PetscInt *ncv,PetscInt *mp
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "SVDSetWhichSingularTriplets"
 /*@
     SVDSetWhichSingularTriplets - Specifies which singular triplets are
     to be sought.
@@ -312,8 +298,6 @@ PetscErrorCode SVDSetWhichSingularTriplets(SVD svd,SVDWhich which)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "SVDGetWhichSingularTriplets"
 /*@
     SVDGetWhichSingularTriplets - Returns which singular triplets are
     to be sought.
@@ -342,8 +326,6 @@ PetscErrorCode SVDGetWhichSingularTriplets(SVD svd,SVDWhich *which)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "SVDSetConvergenceTestFunction"
 /*@C
    SVDSetConvergenceTestFunction - Sets a function to compute the error estimate
    used in the convergence test.
@@ -391,8 +373,6 @@ PetscErrorCode SVDSetConvergenceTestFunction(SVD svd,PetscErrorCode (*func)(SVD,
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "SVDSetConvergenceTest"
 /*@
    SVDSetConvergenceTest - Specifies how to compute the error estimate
    used in the convergence test.
@@ -434,8 +414,6 @@ PetscErrorCode SVDSetConvergenceTest(SVD svd,SVDConv conv)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "SVDGetConvergenceTest"
 /*@
    SVDGetConvergenceTest - Gets the method used to compute the error estimate
    used in the convergence test.
@@ -461,8 +439,6 @@ PetscErrorCode SVDGetConvergenceTest(SVD svd,SVDConv *conv)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "SVDSetStoppingTestFunction"
 /*@C
    SVDSetStoppingTestFunction - Sets a function to decide when to stop the outer
    iteration of the singular value solver.
@@ -513,8 +489,6 @@ PetscErrorCode SVDSetStoppingTestFunction(SVD svd,PetscErrorCode (*func)(SVD,Pet
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "SVDSetStoppingTest"
 /*@
    SVDSetStoppingTest - Specifies how to decide the termination of the outer
    loop of the singular value solver.
@@ -553,8 +527,6 @@ PetscErrorCode SVDSetStoppingTest(SVD svd,SVDStop stop)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "SVDGetStoppingTest"
 /*@
    SVDGetStoppingTest - Gets the method used to decide the termination of the outer
    loop of the singular value solver.
@@ -580,8 +552,6 @@ PetscErrorCode SVDGetStoppingTest(SVD svd,SVDStop *stop)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "SVDMonitorSetFromOptions"
 /*@C
    SVDMonitorSetFromOptions - Sets a monitor function and viewer appropriate for the type
    indicated by the user.
@@ -621,8 +591,6 @@ PetscErrorCode SVDMonitorSetFromOptions(SVD svd,const char name[],const char hel
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "SVDConvMonitorSetFromOptions"
 /*@C
    SVDConvMonitorSetFromOptions - Sets a monitor function and viewer appropriate for the type
    indicated by the user (for monitors that only show iteration numbers of convergence).
@@ -658,8 +626,6 @@ PetscErrorCode SVDConvMonitorSetFromOptions(SVD svd,const char name[],const char
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "SVDSetFromOptions"
 /*@
    SVDSetFromOptions - Sets SVD options from the options database.
    This routine must be called before SVDSetUp() if the user is to be
@@ -782,8 +748,6 @@ PetscErrorCode SVDSetFromOptions(SVD svd)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "SVDSetTrackAll"
 /*@
    SVDSetTrackAll - Specifies if the solver must compute the residual norm of all
    approximate singular value or not.
@@ -816,8 +780,6 @@ PetscErrorCode SVDSetTrackAll(SVD svd,PetscBool trackall)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "SVDGetTrackAll"
 /*@
    SVDGetTrackAll - Returns the flag indicating whether all residual norms must
    be computed or not.
@@ -844,8 +806,6 @@ PetscErrorCode SVDGetTrackAll(SVD svd,PetscBool *trackall)
 }
 
 
-#undef __FUNCT__
-#define __FUNCT__ "SVDSetOptionsPrefix"
 /*@C
    SVDSetOptionsPrefix - Sets the prefix used for searching for all
    SVD options in the database.
@@ -887,8 +847,6 @@ PetscErrorCode SVDSetOptionsPrefix(SVD svd,const char *prefix)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "SVDAppendOptionsPrefix"
 /*@C
    SVDAppendOptionsPrefix - Appends to the prefix used for searching for all
    SVD options in the database.
@@ -922,8 +880,6 @@ PetscErrorCode SVDAppendOptionsPrefix(SVD svd,const char *prefix)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "SVDGetOptionsPrefix"
 /*@C
    SVDGetOptionsPrefix - Gets the prefix used for searching for all
    SVD options in the database.

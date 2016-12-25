@@ -45,8 +45,6 @@ typedef struct {
   EPSPowerShiftType shift_type;
 } EPS_POWER;
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSSetUp_Power"
 PetscErrorCode EPSSetUp_Power(EPS eps)
 {
   PetscErrorCode ierr;
@@ -81,8 +79,6 @@ PetscErrorCode EPSSetUp_Power(EPS eps)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "Normalize"
 /*
    Normalize a vector x with respect to a given norm as well as the
    sign of the first entry.
@@ -109,8 +105,6 @@ static PetscErrorCode Normalize(Vec x,PetscReal norm)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSSolve_Power"
 PetscErrorCode EPSSolve_Power(EPS eps)
 {
 #if defined(SLEPC_MISSING_LAPACK_LAEV2)
@@ -255,8 +249,6 @@ PetscErrorCode EPSSolve_Power(EPS eps)
 #endif
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSBackTransform_Power"
 PetscErrorCode EPSBackTransform_Power(EPS eps)
 {
   PetscErrorCode ierr;
@@ -269,8 +261,6 @@ PetscErrorCode EPSBackTransform_Power(EPS eps)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSSetFromOptions_Power"
 PetscErrorCode EPSSetFromOptions_Power(PetscOptionItems *PetscOptionsObject,EPS eps)
 {
   PetscErrorCode    ierr;
@@ -288,8 +278,6 @@ PetscErrorCode EPSSetFromOptions_Power(PetscOptionItems *PetscOptionsObject,EPS 
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSPowerSetShiftType_Power"
 static PetscErrorCode EPSPowerSetShiftType_Power(EPS eps,EPSPowerShiftType shift)
 {
   EPS_POWER *power = (EPS_POWER*)eps->data;
@@ -307,8 +295,6 @@ static PetscErrorCode EPSPowerSetShiftType_Power(EPS eps,EPSPowerShiftType shift
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSPowerSetShiftType"
 /*@
    EPSPowerSetShiftType - Sets the type of shifts used during the power
    iteration. This can be used to emulate the Rayleigh Quotient Iteration
@@ -348,19 +334,15 @@ PetscErrorCode EPSPowerSetShiftType(EPS eps,EPSPowerShiftType shift)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSPowerGetShiftType_Power"
 static PetscErrorCode EPSPowerGetShiftType_Power(EPS eps,EPSPowerShiftType *shift)
 {
-  EPS_POWER  *power = (EPS_POWER*)eps->data;
+  EPS_POWER *power = (EPS_POWER*)eps->data;
 
   PetscFunctionBegin;
   *shift = power->shift_type;
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSPowerGetShiftType"
 /*@
    EPSPowerGetShiftType - Gets the type of shifts used during the power
    iteration.
@@ -388,8 +370,6 @@ PetscErrorCode EPSPowerGetShiftType(EPS eps,EPSPowerShiftType *shift)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSDestroy_Power"
 PetscErrorCode EPSDestroy_Power(EPS eps)
 {
   PetscErrorCode ierr;
@@ -401,8 +381,6 @@ PetscErrorCode EPSDestroy_Power(EPS eps)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSView_Power"
 PetscErrorCode EPSView_Power(EPS eps,PetscViewer viewer)
 {
   PetscErrorCode ierr;
@@ -417,8 +395,6 @@ PetscErrorCode EPSView_Power(EPS eps,PetscViewer viewer)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSCreate_Power"
 PETSC_EXTERN PetscErrorCode EPSCreate_Power(EPS eps)
 {
   EPS_POWER      *ctx;

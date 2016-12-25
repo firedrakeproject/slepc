@@ -33,8 +33,6 @@ const char *EPSCISSExtractions[] = {"RITZ","HANKEL","EPSCISSExtraction","EPS_CIS
 const char *const EPSConvergedReasons_Shifted[] = {"","DIVERGED_SYMMETRY_LOST","DIVERGED_BREAKDOWN","DIVERGED_ITS","CONVERGED_ITERATING","CONVERGED_TOL","CONVERGED_USER","EPSConvergedReason","EPS_",0};
 const char *const*EPSConvergedReasons = EPSConvergedReasons_Shifted + 4;
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSFinalizePackage"
 /*@C
   EPSFinalizePackage - This function destroys everything in the SLEPc interface
   to the EPS package. It is called from SlepcFinalize().
@@ -54,8 +52,6 @@ PetscErrorCode EPSFinalizePackage(void)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSInitializePackage"
 /*@C
   EPSInitializePackage - This function initializes everything in the EPS package.
   It is called from PetscDLLibraryRegister() when using dynamic libraries, and
@@ -103,9 +99,6 @@ PetscErrorCode EPSInitializePackage()
 }
 
 #if defined(PETSC_HAVE_DYNAMIC_LIBRARIES)
-
-#undef __FUNCT__
-#define __FUNCT__ "PetscDLLibraryRegister_slepceps"
 /*
   PetscDLLibraryRegister - This function is called when the dynamic library
   it is in is opened.

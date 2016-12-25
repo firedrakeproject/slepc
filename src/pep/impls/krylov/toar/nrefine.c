@@ -59,8 +59,6 @@ typedef struct {
   PetscInt     idx,*cols;
 } MatExplicitCtx;
 
-#undef __FUNCT__
-#define __FUNCT__ "MatFSMult"
 static PetscErrorCode MatFSMult(Mat M ,Vec x,Vec y)
 {
 #if defined(PETSC_MISSING_LAPACK_GETRS)
@@ -89,8 +87,6 @@ static PetscErrorCode MatFSMult(Mat M ,Vec x,Vec y)
 #endif
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "PEPEvaluateBasisforMatrix"
 /*
   Evaluates the first d elements of the polynomial basis
   on a given matrix H which is considered to be triangular
@@ -139,8 +135,6 @@ static PetscErrorCode PEPEvaluateBasisforMatrix(PEP pep,PetscInt nm,PetscInt k,P
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "NRefSysSetup_shell"
 static PetscErrorCode NRefSysSetup_shell(PEP pep,PetscInt k,PetscScalar *fH,PetscScalar *S,PetscInt lds,PetscScalar *fh,PetscScalar h,FSubctx *ctx)
 {
 #if defined(PETSC_MISSING_LAPACK_GESV)
@@ -247,8 +241,6 @@ static PetscErrorCode NRefSysSetup_shell(PEP pep,PetscInt k,PetscScalar *fH,Pets
 #endif
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "NRefSysSolve_shell"
 static PetscErrorCode NRefSysSolve_shell(KSP ksp,PetscInt nmat,Vec Rv,PetscScalar *Rh,PetscInt k,Vec dVi,PetscScalar *dHi)
 {
 #if defined(PETSC_MISSING_LAPACK_GETRS)
@@ -282,8 +274,6 @@ static PetscErrorCode NRefSysSolve_shell(KSP ksp,PetscInt nmat,Vec Rv,PetscScala
 #endif
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "NRefRightSide"
 /*
    Computes the residual P(H,V*S)*e_j for the polynomial
 */
@@ -373,8 +363,6 @@ static PetscErrorCode NRefRightSide(PetscInt nmat,PetscReal *pcf,Mat *A,PetscInt
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "NRefSysSolve_mbe"
 static PetscErrorCode NRefSysSolve_mbe(PetscInt k,PetscInt sz,BV W,PetscScalar *w,BV Wt,PetscScalar *wt,PetscScalar *d,PetscScalar *dt,KSP ksp,BV T2,BV T3 ,PetscScalar *T4,PetscBool trans,Vec x1,PetscScalar *x2,Vec sol1,PetscScalar *sol2,Vec vw)
 {
   PetscErrorCode ierr;
@@ -436,8 +424,6 @@ static PetscErrorCode NRefSysSolve_mbe(PetscInt k,PetscInt sz,BV W,PetscScalar *
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "NRefSysSetup_mbe"
 static PetscErrorCode NRefSysSetup_mbe(PEP pep,PetscInt k,KSP ksp,PetscScalar *fH,PetscScalar *S,PetscInt lds,PetscScalar *fh,PetscScalar h,BV V,MatExplicitCtx *matctx)
 {
   PetscErrorCode ierr;
@@ -569,8 +555,6 @@ static PetscErrorCode NRefSysSetup_mbe(PEP pep,PetscInt k,KSP ksp,PetscScalar *f
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "NRefSysSetup_explicit"
 static PetscErrorCode NRefSysSetup_explicit(PEP pep,PetscInt k,KSP ksp,PetscScalar *fH,PetscScalar *S,PetscInt lds,PetscScalar *fh,PetscScalar h,BV V,MatExplicitCtx *matctx,BV W)
 {
   PetscErrorCode    ierr;
@@ -716,8 +700,6 @@ static PetscErrorCode NRefSysSetup_explicit(PEP pep,PetscInt k,KSP ksp,PetscScal
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "NRefSysSolve_explicit"
 static PetscErrorCode NRefSysSolve_explicit(PetscInt k,KSP ksp,Vec Rv,PetscScalar *Rh,Vec dVi,PetscScalar *dHi,MatExplicitCtx *matctx)
 {
   PetscErrorCode    ierr;
@@ -759,8 +741,6 @@ static PetscErrorCode NRefSysSolve_explicit(PetscInt k,KSP ksp,Vec Rv,PetscScala
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "NRefSysIter"
 static PetscErrorCode NRefSysIter(PetscInt i,PEP pep,PetscInt k,KSP ksp,PetscScalar *fH,PetscScalar *S,PetscInt lds,PetscScalar *fh,PetscScalar *H,PetscInt ldh,Vec Rv,PetscScalar *Rh,BV V,Vec dVi,PetscScalar *dHi,MatExplicitCtx *matctx,BV W)
 {
   PetscErrorCode    ierr;
@@ -871,8 +851,6 @@ static PetscErrorCode NRefSysIter(PetscInt i,PEP pep,PetscInt k,KSP ksp,PetscSca
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "PEPNRefForwardSubstitution"
 static PetscErrorCode PEPNRefForwardSubstitution(PEP pep,PetscInt k,PetscScalar *S,PetscInt lds,PetscScalar *H,PetscInt ldh,PetscScalar *fH,BV dV,PetscScalar *dVS,PetscInt *rds,PetscScalar *dH,PetscInt lddh,KSP ksp,MatExplicitCtx *matctx)
 {
   PetscErrorCode ierr;
@@ -962,8 +940,6 @@ static PetscErrorCode PEPNRefForwardSubstitution(PEP pep,PetscInt k,PetscScalar 
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "NRefOrthogStep"
 static PetscErrorCode NRefOrthogStep(PEP pep,PetscInt k,PetscScalar *H,PetscInt ldh,PetscScalar *fH,PetscScalar *S,PetscInt lds)
 {
 #if defined(PETSC_MISSING_LAPACK_GEQRF) || defined(PETSC_MISSING_LAPACK_ORGQR)
@@ -1002,8 +978,6 @@ static PetscErrorCode NRefOrthogStep(PEP pep,PetscInt k,PetscScalar *H,PetscInt 
 #endif
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "PEPNRefUpdateInvPair"
 static PetscErrorCode PEPNRefUpdateInvPair(PEP pep,PetscInt k,PetscScalar *H,PetscInt ldh,PetscScalar *fH,PetscScalar *dH,PetscScalar *S,PetscInt lds,BV dV,PetscScalar *dVS,PetscInt rds)
 {
 #if defined(PETSC_MISSING_LAPACK_GEQRF) || defined(PETSC_MISSING_LAPACK_ORGQR)
@@ -1065,8 +1039,6 @@ static PetscErrorCode PEPNRefUpdateInvPair(PEP pep,PetscInt k,PetscScalar *H,Pet
 #endif
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "PEPNRefSetUp"
 static PetscErrorCode PEPNRefSetUp(PEP pep,PetscInt k,PetscScalar *H,PetscInt ldh,MatExplicitCtx *matctx,PetscBool ini)
 {
   PetscErrorCode    ierr;
@@ -1283,8 +1255,6 @@ static PetscErrorCode PEPNRefSetUp(PEP pep,PetscInt k,PetscScalar *H,PetscInt ld
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "NRefSubcommSetup"
 static PetscErrorCode NRefSubcommSetup(PEP pep,PetscInt k,MatExplicitCtx *matctx,PetscInt nsubc)
 {
   PetscErrorCode    ierr;
@@ -1374,8 +1344,6 @@ static PetscErrorCode NRefSubcommSetup(PEP pep,PetscInt k,MatExplicitCtx *matctx
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "NRefSubcommDestroy"
 static PetscErrorCode NRefSubcommDestroy(PEP pep,MatExplicitCtx *matctx)
 {
   PetscErrorCode ierr;
@@ -1406,8 +1374,6 @@ static PetscErrorCode NRefSubcommDestroy(PEP pep,MatExplicitCtx *matctx)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "PEPNewtonRefinement_TOAR"
 PetscErrorCode PEPNewtonRefinement_TOAR(PEP pep,PetscScalar sigma,PetscInt *maxits,PetscReal *tol,PetscInt k,PetscScalar *S,PetscInt lds)
 {
 #if defined(PETSC_MISSING_LAPACK_GETRF) || defined(PETSC_MISSING_LAPACK_GETRI)

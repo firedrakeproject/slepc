@@ -23,8 +23,6 @@
 #include <slepcrg.h>
 #include <slepcst.h>
 
-#undef __FUNCT__
-#define __FUNCT__ "SlepcSCCompare"
 /*@
    SlepcSCCompare - Compares two (possibly complex) values according
    to a certain criterion.
@@ -82,8 +80,6 @@ PetscErrorCode SlepcSCCompare(SlepcSC sc,PetscScalar ar,PetscScalar ai,PetscScal
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "SlepcSortEigenvalues"
 /*@
    SlepcSortEigenvalues - Sorts a list of eigenvalues according to the
    sorting criterion specified in a SlepcSC context.
@@ -162,8 +158,6 @@ PetscErrorCode SlepcSortEigenvalues(SlepcSC sc,PetscInt n,PetscScalar *eigr,Pets
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "SlepcMap_ST"
 /*
    SlepcMap_ST - Gateway function to call STBackTransform from outside ST.
 */
@@ -176,8 +170,6 @@ PetscErrorCode SlepcMap_ST(PetscObject obj,PetscInt n,PetscScalar* eigr,PetscSca
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "SlepcCompareLargestMagnitude"
 PetscErrorCode SlepcCompareLargestMagnitude(PetscScalar ar,PetscScalar ai,PetscScalar br,PetscScalar bi,PetscInt *result,void *ctx)
 {
   PetscReal a,b;
@@ -191,8 +183,6 @@ PetscErrorCode SlepcCompareLargestMagnitude(PetscScalar ar,PetscScalar ai,PetscS
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "SlepcCompareSmallestMagnitude"
 PetscErrorCode SlepcCompareSmallestMagnitude(PetscScalar ar,PetscScalar ai,PetscScalar br,PetscScalar bi,PetscInt *result,void *ctx)
 {
   PetscReal a,b;
@@ -206,8 +196,6 @@ PetscErrorCode SlepcCompareSmallestMagnitude(PetscScalar ar,PetscScalar ai,Petsc
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "SlepcCompareLargestReal"
 PetscErrorCode SlepcCompareLargestReal(PetscScalar ar,PetscScalar ai,PetscScalar br,PetscScalar bi,PetscInt *result,void *ctx)
 {
   PetscReal a,b;
@@ -221,8 +209,6 @@ PetscErrorCode SlepcCompareLargestReal(PetscScalar ar,PetscScalar ai,PetscScalar
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "SlepcCompareSmallestReal"
 PetscErrorCode SlepcCompareSmallestReal(PetscScalar ar,PetscScalar ai,PetscScalar br,PetscScalar bi,PetscInt *result,void *ctx)
 {
   PetscReal a,b;
@@ -236,8 +222,6 @@ PetscErrorCode SlepcCompareSmallestReal(PetscScalar ar,PetscScalar ai,PetscScala
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "SlepcCompareLargestImaginary"
 PetscErrorCode SlepcCompareLargestImaginary(PetscScalar ar,PetscScalar ai,PetscScalar br,PetscScalar bi,PetscInt *result,void *ctx)
 {
   PetscReal a,b;
@@ -256,8 +240,6 @@ PetscErrorCode SlepcCompareLargestImaginary(PetscScalar ar,PetscScalar ai,PetscS
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "SlepcCompareSmallestImaginary"
 PetscErrorCode SlepcCompareSmallestImaginary(PetscScalar ar,PetscScalar ai,PetscScalar br,PetscScalar bi,PetscInt *result,void *ctx)
 {
   PetscReal a,b;
@@ -276,8 +258,6 @@ PetscErrorCode SlepcCompareSmallestImaginary(PetscScalar ar,PetscScalar ai,Petsc
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "SlepcCompareTargetMagnitude"
 PetscErrorCode SlepcCompareTargetMagnitude(PetscScalar ar,PetscScalar ai,PetscScalar br,PetscScalar bi,PetscInt *result,void *ctx)
 {
   PetscReal   a,b;
@@ -293,8 +273,6 @@ PetscErrorCode SlepcCompareTargetMagnitude(PetscScalar ar,PetscScalar ai,PetscSc
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "SlepcCompareTargetReal"
 PetscErrorCode SlepcCompareTargetReal(PetscScalar ar,PetscScalar ai,PetscScalar br,PetscScalar bi,PetscInt *result,void *ctx)
 {
   PetscReal   a,b;
@@ -310,8 +288,6 @@ PetscErrorCode SlepcCompareTargetReal(PetscScalar ar,PetscScalar ai,PetscScalar 
 }
 
 #if defined(PETSC_USE_COMPLEX)
-#undef __FUNCT__
-#define __FUNCT__ "SlepcCompareTargetImaginary"
 PetscErrorCode SlepcCompareTargetImaginary(PetscScalar ar,PetscScalar ai,PetscScalar br,PetscScalar bi,PetscInt *result,void *ctx)
 {
   PetscReal   a,b;
@@ -327,8 +303,6 @@ PetscErrorCode SlepcCompareTargetImaginary(PetscScalar ar,PetscScalar ai,PetscSc
 }
 #endif
 
-#undef __FUNCT__
-#define __FUNCT__ "SlepcCompareSmallestPosReal"
 /*
    Used in the SVD for computing smallest singular values
    from the cyclic matrix.

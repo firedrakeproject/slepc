@@ -23,8 +23,6 @@
 
 #define DVD_CHECKSUM(b) ((b)->max_size_V + (b)->max_size_oldX)
 
-#undef __FUNCT__
-#define __FUNCT__ "dvd_schm_basic_preconf"
 PetscErrorCode dvd_schm_basic_preconf(dvdDashboard *d,dvdBlackboard *b,PetscInt mpd,PetscInt min_size_V,PetscInt bs,PetscInt ini_size_V,PetscInt size_initV,PetscInt plusk,HarmType_t harmMode,KSP ksp,InitType_t init,PetscBool allResiduals,PetscBool orth,PetscBool doubleexp)
 {
   PetscErrorCode ierr;
@@ -63,8 +61,6 @@ PetscErrorCode dvd_schm_basic_preconf(dvdDashboard *d,dvdBlackboard *b,PetscInt 
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "dvd_schm_basic_conf"
 PetscErrorCode dvd_schm_basic_conf(dvdDashboard *d,dvdBlackboard *b,PetscInt mpd,PetscInt min_size_V,PetscInt bs,PetscInt ini_size_V,PetscInt size_initV,PetscInt plusk,HarmType_t harmMode,PetscBool fixedTarget,PetscScalar t,KSP ksp,PetscReal fix,InitType_t init,PetscBool allResiduals,PetscBool orth,PetscBool dynamic,PetscBool doubleexp)
 {
   PetscInt       check_sum0,check_sum1,maxits;

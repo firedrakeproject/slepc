@@ -52,8 +52,6 @@ static const char citation[] =
 
 #define SLICE_PTOL PETSC_SQRT_MACHINE_EPSILON
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSSliceResetSR"
 static PetscErrorCode EPSSliceResetSR(EPS eps) {
   PetscErrorCode  ierr;
   EPS_KRYLOVSCHUR *ctx=(EPS_KRYLOVSCHUR*)eps->data;
@@ -81,8 +79,6 @@ static PetscErrorCode EPSSliceResetSR(EPS eps) {
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSReset_KrylovSchur_Slice"
 PetscErrorCode EPSReset_KrylovSchur_Slice(EPS eps)
 {
   PetscErrorCode  ierr;
@@ -114,8 +110,6 @@ PetscErrorCode EPSReset_KrylovSchur_Slice(EPS eps)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSSliceAllocateSolution"
 /*
   EPSSliceAllocateSolution - Allocate memory storage for common variables such
   as eigenvalues and eigenvectors. The argument extra is used for methods
@@ -166,8 +160,6 @@ static PetscErrorCode EPSSliceAllocateSolution(EPS eps,PetscInt extra)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSSliceGetEPS"
 static PetscErrorCode EPSSliceGetEPS(EPS eps)
 {
   PetscErrorCode     ierr;
@@ -325,8 +317,6 @@ static PetscErrorCode EPSSliceGetEPS(EPS eps)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSSliceGetInertia"
 static PetscErrorCode EPSSliceGetInertia(EPS eps,PetscReal shift,PetscInt *inertia,PetscInt *zeros)
 {
   PetscErrorCode ierr;
@@ -356,8 +346,6 @@ static PetscErrorCode EPSSliceGetInertia(EPS eps,PetscReal shift,PetscInt *inert
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSSetUp_KrylovSchur_Slice"
 PetscErrorCode EPSSetUp_KrylovSchur_Slice(EPS eps)
 {
   PetscErrorCode  ierr;
@@ -556,8 +544,6 @@ PetscErrorCode EPSSetUp_KrylovSchur_Slice(EPS eps)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSSliceGatherEigenVectors"
 static PetscErrorCode EPSSliceGatherEigenVectors(EPS eps)
 {
   PetscErrorCode  ierr;
@@ -620,8 +606,6 @@ static PetscErrorCode EPSSliceGatherEigenVectors(EPS eps)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSComputeVectors_Slice"
 /*
   EPSComputeVectors_Slice - Recover Eigenvectors from subcomunicators
  */
@@ -640,8 +624,6 @@ PetscErrorCode EPSComputeVectors_Slice(EPS eps)
 
 #define SWAP(a,b,t) {t=a;a=b;b=t;}
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSSliceGetInertias"
 static PetscErrorCode EPSSliceGetInertias(EPS eps,PetscInt *n,PetscReal **shifts,PetscInt **inertias)
 {
   PetscErrorCode  ierr;
@@ -696,8 +678,6 @@ static PetscErrorCode EPSSliceGetInertias(EPS eps,PetscInt *n,PetscReal **shifts
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSSliceGatherSolution"
 static PetscErrorCode EPSSliceGatherSolution(EPS eps)
 {
   PetscErrorCode  ierr;
@@ -792,8 +772,6 @@ static PetscErrorCode EPSSliceGatherSolution(EPS eps)
 /*
    Fills the fields of a shift structure
 */
-#undef __FUNCT__
-#define __FUNCT__ "EPSCreateShift"
 static PetscErrorCode EPSCreateShift(EPS eps,PetscReal val,EPS_shift neighb0,EPS_shift neighb1)
 {
   PetscErrorCode  ierr;
@@ -831,8 +809,6 @@ static PetscErrorCode EPSCreateShift(EPS eps,PetscReal val,EPS_shift neighb0,EPS
 }
 
 /* Prepare for Rational Krylov update */
-#undef __FUNCT__
-#define __FUNCT__ "EPSPrepareRational"
 static PetscErrorCode EPSPrepareRational(EPS eps)
 {
   EPS_KRYLOVSCHUR  *ctx=(EPS_KRYLOVSCHUR*)eps->data;
@@ -877,8 +853,6 @@ static PetscErrorCode EPSPrepareRational(EPS eps)
 }
 
 /* Provides next shift to be computed */
-#undef __FUNCT__
-#define __FUNCT__ "EPSExtractShift"
 static PetscErrorCode EPSExtractShift(EPS eps)
 {
   PetscErrorCode   ierr;
@@ -916,8 +890,6 @@ static PetscErrorCode EPSExtractShift(EPS eps)
    Allows searching an specific amount of eigenvalues in the subintervals left and right.
    Returns whether the search has succeeded
 */
-#undef __FUNCT__
-#define __FUNCT__ "EPSKrylovSchur_Slice"
 static PetscErrorCode EPSKrylovSchur_Slice(EPS eps)
 {
   PetscErrorCode  ierr;
@@ -1097,8 +1069,6 @@ static PetscErrorCode EPSKrylovSchur_Slice(EPS eps)
 /*
   Obtains value of subsequent shift
 */
-#undef __FUNCT__
-#define __FUNCT__ "EPSGetNewShiftValue"
 static PetscErrorCode EPSGetNewShiftValue(EPS eps,PetscInt side,PetscReal *newS)
 {
   PetscReal       lambda,d_prev;
@@ -1177,8 +1147,6 @@ static PetscErrorCode EPSGetNewShiftValue(EPS eps,PetscInt side,PetscReal *newS)
 /*
   Function for sorting an array of real values
 */
-#undef __FUNCT__
-#define __FUNCT__ "sortRealEigenvalues"
 static PetscErrorCode sortRealEigenvalues(PetscScalar *r,PetscInt *perm,PetscInt nr,PetscBool prev,PetscInt dir)
 {
   PetscReal      re;
@@ -1198,8 +1166,6 @@ static PetscErrorCode sortRealEigenvalues(PetscScalar *r,PetscInt *perm,PetscInt
 }
 
 /* Stores the pairs obtained since the last shift in the global arrays */
-#undef __FUNCT__
-#define __FUNCT__ "EPSStoreEigenpairs"
 static PetscErrorCode EPSStoreEigenpairs(EPS eps)
 {
   PetscErrorCode  ierr;
@@ -1251,8 +1217,6 @@ static PetscErrorCode EPSStoreEigenpairs(EPS eps)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSLookForDeflation"
 static PetscErrorCode EPSLookForDeflation(EPS eps)
 {
   PetscErrorCode  ierr;
@@ -1323,8 +1287,6 @@ static PetscErrorCode EPSLookForDeflation(EPS eps)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSSolve_KrylovSchur_Slice"
 PetscErrorCode EPSSolve_KrylovSchur_Slice(EPS eps)
 {
   PetscErrorCode   ierr;

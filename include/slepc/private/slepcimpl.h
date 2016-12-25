@@ -61,8 +61,6 @@ struct _n_SlepcConvMonitor {
   PetscInt          oldnconv;
 };
 
-#undef __FUNCT__
-#define __FUNCT__ "SlepcPrintEigenvalueASCII"
 /*
   SlepcPrintEigenvalueASCII - Print an eigenvalue on an ASCII viewer.
 */

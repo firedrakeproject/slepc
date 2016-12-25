@@ -25,8 +25,6 @@
 #include <slepcblaslapack.h>
 #include "pepkrylov.h"
 
-#undef __FUNCT__
-#define __FUNCT__ "PEPExtractVectors_TOAR"
 PetscErrorCode PEPExtractVectors_TOAR(PEP pep)
 {
   PetscErrorCode ierr;

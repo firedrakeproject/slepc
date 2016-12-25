@@ -24,8 +24,6 @@
 #include <slepc/private/epsimpl.h>        /*I "slepceps.h" I*/
 #include <../src/eps/impls/external/feast/feastp.h>
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSSetUp_FEAST"
 PetscErrorCode EPSSetUp_FEAST(EPS eps)
 {
   PetscErrorCode ierr;
@@ -69,8 +67,6 @@ PetscErrorCode EPSSetUp_FEAST(EPS eps)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSSolve_FEAST"
 PetscErrorCode EPSSolve_FEAST(EPS eps)
 {
   PetscErrorCode ierr;
@@ -168,8 +164,6 @@ PetscErrorCode EPSSolve_FEAST(EPS eps)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSReset_FEAST"
 PetscErrorCode EPSReset_FEAST(EPS eps)
 {
   PetscErrorCode ierr;
@@ -180,8 +174,6 @@ PetscErrorCode EPSReset_FEAST(EPS eps)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSDestroy_FEAST"
 PetscErrorCode EPSDestroy_FEAST(EPS eps)
 {
   PetscErrorCode ierr;
@@ -193,8 +185,6 @@ PetscErrorCode EPSDestroy_FEAST(EPS eps)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSSetFromOptions_FEAST"
 PetscErrorCode EPSSetFromOptions_FEAST(PetscOptionItems *PetscOptionsObject,EPS eps)
 {
   PetscErrorCode ierr;
@@ -213,8 +203,6 @@ PetscErrorCode EPSSetFromOptions_FEAST(PetscOptionItems *PetscOptionsObject,EPS 
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSView_FEAST"
 PetscErrorCode EPSView_FEAST(EPS eps,PetscViewer viewer)
 {
   PetscErrorCode ierr;
@@ -229,8 +217,6 @@ PetscErrorCode EPSView_FEAST(EPS eps,PetscViewer viewer)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSSetDefaultST_FEAST"
 PetscErrorCode EPSSetDefaultST_FEAST(EPS eps)
 {
   PetscErrorCode ierr;
@@ -242,8 +228,6 @@ PetscErrorCode EPSSetDefaultST_FEAST(EPS eps)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSFEASTSetNumPoints_FEAST"
 static PetscErrorCode EPSFEASTSetNumPoints_FEAST(EPS eps,PetscInt npoints)
 {
   PetscErrorCode ierr;
@@ -257,8 +241,6 @@ static PetscErrorCode EPSFEASTSetNumPoints_FEAST(EPS eps,PetscInt npoints)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSFEASTSetNumPoints"
 /*@
    EPSFEASTSetNumPoints - Sets the number of contour integration points for
    the FEAST package.
@@ -287,8 +269,6 @@ PetscErrorCode EPSFEASTSetNumPoints(EPS eps,PetscInt npoints)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSFEASTGetNumPoints_FEAST"
 static PetscErrorCode EPSFEASTGetNumPoints_FEAST(EPS eps,PetscInt *npoints)
 {
   EPS_FEAST *ctx = (EPS_FEAST*)eps->data;
@@ -298,8 +278,6 @@ static PetscErrorCode EPSFEASTGetNumPoints_FEAST(EPS eps,PetscInt *npoints)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSFEASTGetNumPoints"
 /*@
    EPSFEASTGetNumPoints - Gets the number of contour integration points for
    the FEAST package.
@@ -327,8 +305,6 @@ PetscErrorCode EPSFEASTGetNumPoints(EPS eps,PetscInt *npoints)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSCreate_FEAST"
 PETSC_EXTERN PetscErrorCode EPSCreate_FEAST(EPS eps)
 {
   EPS_FEAST      *ctx;

@@ -42,8 +42,6 @@ typedef struct {
   KSP       ksp;              /* linear solver object */
 } NEP_RII;
 
-#undef __FUNCT__
-#define __FUNCT__ "NEPRII_KSPSolve"
 PETSC_STATIC_INLINE PetscErrorCode NEPRII_KSPSolve(NEP nep,Vec b,Vec x)
 {
   PetscErrorCode ierr;
@@ -57,8 +55,6 @@ PETSC_STATIC_INLINE PetscErrorCode NEPRII_KSPSolve(NEP nep,Vec b,Vec x)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "NEPSetUp_RII"
 PetscErrorCode NEPSetUp_RII(NEP nep)
 {
   PetscErrorCode ierr;
@@ -81,8 +77,6 @@ PetscErrorCode NEPSetUp_RII(NEP nep)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "NEPSolve_RII"
 PetscErrorCode NEPSolve_RII(NEP nep)
 {
   PetscErrorCode     ierr;
@@ -177,8 +171,6 @@ PetscErrorCode NEPSolve_RII(NEP nep)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "NEPSetFromOptions_RII"
 PetscErrorCode NEPSetFromOptions_RII(PetscOptionItems *PetscOptionsObject,NEP nep)
 {
   PetscErrorCode ierr;
@@ -204,8 +196,6 @@ PetscErrorCode NEPSetFromOptions_RII(PetscOptionItems *PetscOptionsObject,NEP ne
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "NEPRIISetMaximumIterations_RII"
 static PetscErrorCode NEPRIISetMaximumIterations_RII(NEP nep,PetscInt its)
 {
   NEP_RII *ctx = (NEP_RII*)nep->data;
@@ -215,8 +205,6 @@ static PetscErrorCode NEPRIISetMaximumIterations_RII(NEP nep,PetscInt its)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "NEPRIISetMaximumIterations"
 /*@
    NEPRIISetMaximumIterations - Sets the maximum number of inner iterations to be
    used in the RII solver. These are the Newton iterations related to the computation
@@ -243,8 +231,6 @@ PetscErrorCode NEPRIISetMaximumIterations(NEP nep,PetscInt its)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "NEPRIIGetMaximumIterations_RII"
 static PetscErrorCode NEPRIIGetMaximumIterations_RII(NEP nep,PetscInt *its)
 {
   NEP_RII *ctx = (NEP_RII*)nep->data;
@@ -254,8 +240,6 @@ static PetscErrorCode NEPRIIGetMaximumIterations_RII(NEP nep,PetscInt *its)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "NEPRIIGetMaximumIterations"
 /*@
    NEPRIIGetMaximumIterations - Gets the maximum number of inner iterations of RII.
 
@@ -282,8 +266,6 @@ PetscErrorCode NEPRIIGetMaximumIterations(NEP nep,PetscInt *its)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "NEPRIISetLagPreconditioner_RII"
 static PetscErrorCode NEPRIISetLagPreconditioner_RII(NEP nep,PetscInt lag)
 {
   NEP_RII *ctx = (NEP_RII*)nep->data;
@@ -294,8 +276,6 @@ static PetscErrorCode NEPRIISetLagPreconditioner_RII(NEP nep,PetscInt lag)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "NEPRIISetLagPreconditioner"
 /*@
    NEPRIISetLagPreconditioner - Determines when the preconditioner is rebuilt in the
    nonlinear solve.
@@ -330,8 +310,6 @@ PetscErrorCode NEPRIISetLagPreconditioner(NEP nep,PetscInt lag)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "NEPRIIGetLagPreconditioner_RII"
 static PetscErrorCode NEPRIIGetLagPreconditioner_RII(NEP nep,PetscInt *lag)
 {
   NEP_RII *ctx = (NEP_RII*)nep->data;
@@ -341,8 +319,6 @@ static PetscErrorCode NEPRIIGetLagPreconditioner_RII(NEP nep,PetscInt *lag)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "NEPRIIGetLagPreconditioner"
 /*@
    NEPRIIGetLagPreconditioner - Indicates how often the preconditioner is rebuilt.
 
@@ -369,8 +345,6 @@ PetscErrorCode NEPRIIGetLagPreconditioner(NEP nep,PetscInt *lag)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "NEPRIISetConstCorrectionTol_RII"
 static PetscErrorCode NEPRIISetConstCorrectionTol_RII(NEP nep,PetscBool cct)
 {
   NEP_RII *ctx = (NEP_RII*)nep->data;
@@ -380,8 +354,6 @@ static PetscErrorCode NEPRIISetConstCorrectionTol_RII(NEP nep,PetscBool cct)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "NEPRIISetConstCorrectionTol"
 /*@
    NEPRIISetConstCorrectionTol - Sets a flag to keep the tolerance used
    in the linear solver constant.
@@ -416,8 +388,6 @@ PetscErrorCode NEPRIISetConstCorrectionTol(NEP nep,PetscBool cct)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "NEPRIIGetConstCorrectionTol_RII"
 static PetscErrorCode NEPRIIGetConstCorrectionTol_RII(NEP nep,PetscBool *cct)
 {
   NEP_RII *ctx = (NEP_RII*)nep->data;
@@ -427,8 +397,6 @@ static PetscErrorCode NEPRIIGetConstCorrectionTol_RII(NEP nep,PetscBool *cct)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "NEPRIIGetConstCorrectionTol"
 /*@
    NEPRIIGetConstCorrectionTol - Returns the constant tolerance flag.
 
@@ -455,8 +423,6 @@ PetscErrorCode NEPRIIGetConstCorrectionTol(NEP nep,PetscBool *cct)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "NEPRIISetKSP_RII"
 static PetscErrorCode NEPRIISetKSP_RII(NEP nep,KSP ksp)
 {
   PetscErrorCode ierr;
@@ -471,8 +437,6 @@ static PetscErrorCode NEPRIISetKSP_RII(NEP nep,KSP ksp)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "NEPRIISetKSP"
 /*@
    NEPRIISetKSP - Associate a linear solver object (KSP) to the nonlinear
    eigenvalue solver.
@@ -499,8 +463,6 @@ PetscErrorCode NEPRIISetKSP(NEP nep,KSP ksp)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "NEPRIIGetKSP_RII"
 static PetscErrorCode NEPRIIGetKSP_RII(NEP nep,KSP *ksp)
 {
   PetscErrorCode ierr;
@@ -520,8 +482,6 @@ static PetscErrorCode NEPRIIGetKSP_RII(NEP nep,KSP *ksp)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "NEPRIIGetKSP"
 /*@
    NEPRIIGetKSP - Retrieve the linear solver object (KSP) associated with
    the nonlinear eigenvalue solver.
@@ -549,8 +509,6 @@ PetscErrorCode NEPRIIGetKSP(NEP nep,KSP *ksp)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "NEPView_RII"
 PetscErrorCode NEPView_RII(NEP nep,PetscViewer viewer)
 {
   PetscErrorCode ierr;
@@ -575,8 +533,6 @@ PetscErrorCode NEPView_RII(NEP nep,PetscViewer viewer)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "NEPReset_RII"
 PetscErrorCode NEPReset_RII(NEP nep)
 {
   PetscErrorCode ierr;
@@ -587,8 +543,6 @@ PetscErrorCode NEPReset_RII(NEP nep)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "NEPDestroy_RII"
 PetscErrorCode NEPDestroy_RII(NEP nep)
 {
   PetscErrorCode ierr;
@@ -608,8 +562,6 @@ PetscErrorCode NEPDestroy_RII(NEP nep)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "NEPCreate_RII"
 PETSC_EXTERN PetscErrorCode NEPCreate_RII(NEP nep)
 {
   PetscErrorCode ierr;

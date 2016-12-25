@@ -24,8 +24,6 @@
 #include <slepc/private/bvimpl.h>          /*I   "slepcbv.h"   I*/
 #include <slepcblaslapack.h>
 
-#undef __FUNCT__
-#define __FUNCT__ "BV_CleanCoefficients"
 /*
    BV_CleanCoefficients - Sets to zero all entries of column j of the bv buffer
 */
@@ -45,8 +43,6 @@ PETSC_STATIC_INLINE PetscErrorCode BV_CleanCoefficients(BV bv,PetscInt j,PetscSc
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "BV_AddCoefficients"
 /*
    BV_AddCoefficients - Add the contents of the scratch (0-th column) of the bv buffer
    into column j of the bv buffer
@@ -67,8 +63,6 @@ PETSC_STATIC_INLINE PetscErrorCode BV_AddCoefficients(BV bv,PetscInt j,PetscScal
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "BV_SetValue"
 /*
    BV_SetValue - Sets value in row j (counted after the constraints) of column k
    of the coefficients array
@@ -88,8 +82,6 @@ PETSC_STATIC_INLINE PetscErrorCode BV_SetValue(BV bv,PetscInt j,PetscInt k,Petsc
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "BV_SquareSum"
 /*
    BV_SquareSum - Returns the value h'*h, where h represents the contents of the
    coefficients array (up to position j)
@@ -108,8 +100,6 @@ PETSC_STATIC_INLINE PetscErrorCode BV_SquareSum(BV bv,PetscInt j,PetscScalar *h,
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "BV_ApplySignature"
 /*
    BV_ApplySignature - Computes the pointwise product h*omega, where h represents
    the contents of the coefficients array (up to position j) and omega is the signature;
@@ -129,8 +119,6 @@ PETSC_STATIC_INLINE PetscErrorCode BV_ApplySignature(BV bv,PetscInt j,PetscScala
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "BV_SquareRoot"
 /*
    BV_SquareRoot - Returns the square root of position j (counted after the constraints)
    of the coefficients array
@@ -147,8 +135,6 @@ PETSC_STATIC_INLINE PetscErrorCode BV_SquareRoot(BV bv,PetscInt j,PetscScalar *h
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "BV_StoreCoefficients"
 /*
    BV_StoreCoefficients - Copy the contents of the coefficients array to an array dest
    provided by the caller (only values from l to j are copied)
@@ -169,8 +155,6 @@ PETSC_STATIC_INLINE PetscErrorCode BV_StoreCoefficients(BV bv,PetscInt j,PetscSc
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "BV_NormVecOrColumn"
 /*
    BV_NormVecOrColumn - Compute the 2-norm of the working vector, irrespective of
    whether it is in a column or not
@@ -185,8 +169,6 @@ PETSC_STATIC_INLINE PetscErrorCode BV_NormVecOrColumn(BV bv,PetscInt j,Vec v,Pet
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "BVDotColumnInc"
 /*
    BVDotColumnInc - Same as BVDotColumn() but also including column j, which
    is multiplied by itself
@@ -209,8 +191,6 @@ PETSC_STATIC_INLINE PetscErrorCode BVDotColumnInc(BV X,PetscInt j,PetscScalar *q
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "BVOrthogonalizeMGS1"
 /*
    BVOrthogonalizeMGS1 - Compute one step of Modified Gram-Schmidt
 */
@@ -246,8 +226,6 @@ static PetscErrorCode BVOrthogonalizeMGS1(BV bv,PetscInt j,Vec v,PetscBool *whic
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "BVOrthogonalizeCGS1"
 /*
    BVOrthogonalizeCGS1 - Compute |v'| (estimated), |v| and one step of CGS with
    only one global synchronization
@@ -300,8 +278,6 @@ static PetscErrorCode BVOrthogonalizeCGS1(BV bv,PetscInt j,Vec v,PetscBool *whic
 
 #define BVOrthogonalizeGS1(a,b,c,d,e,f,g,h) (mgs?BVOrthogonalizeMGS1:BVOrthogonalizeCGS1)(a,b,c,d,e,f,g,h)
 
-#undef __FUNCT__
-#define __FUNCT__ "BVOrthogonalizeGS"
 /*
    BVOrthogonalizeGS - Orthogonalize with (classical or modified) Gram-Schmidt
 
@@ -384,8 +360,6 @@ static PetscErrorCode BVOrthogonalizeGS(BV bv,PetscInt j,Vec v,PetscBool *which,
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "BVOrthogonalizeVec"
 /*@
    BVOrthogonalizeVec - Orthogonalize a given vector with respect to all
    active columns.
@@ -443,8 +417,6 @@ PetscErrorCode BVOrthogonalizeVec(BV bv,Vec v,PetscScalar *H,PetscReal *norm,Pet
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "BVOrthogonalizeColumn"
 /*@
    BVOrthogonalizeColumn - Orthogonalize one of the column vectors with respect to
    the previous ones.
@@ -512,8 +484,6 @@ PetscErrorCode BVOrthogonalizeColumn(BV bv,PetscInt j,PetscScalar *H,PetscReal *
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "BVOrthonormalizeColumn"
 /*@
    BVOrthonormalizeColumn - Orthonormalize one of the column vectors with respect to
    the previous ones. This is equivalent to a call to BVOrthogonalizeColumn()
@@ -601,8 +571,6 @@ PetscErrorCode BVOrthonormalizeColumn(BV bv,PetscInt j,PetscBool replace,PetscRe
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "BVOrthogonalizeSomeColumn"
 /*@
    BVOrthogonalizeSomeColumn - Orthogonalize one of the column vectors with
    respect to some of the previous ones.
@@ -663,8 +631,6 @@ PetscErrorCode BVOrthogonalizeSomeColumn(BV bv,PetscInt j,PetscBool *which,Petsc
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "BVOrthogonalize_GS"
 /*
    Orthogonalize a set of vectors with Gram-Schmidt, column by column.
  */
@@ -711,8 +677,6 @@ static PetscErrorCode BVOrthogonalize_GS(BV V,Mat R)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "MatCholeskyFactorInvert"
 /*
    Compute the upper Cholesky factor in R and its inverse in S.
  */
@@ -778,8 +742,6 @@ static PetscErrorCode MatCholeskyFactorInvert(Mat R,PetscInt l,Mat *S)
 #endif
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "BVOrthogonalize_Chol"
 /*
    Orthogonalize a set of vectors with Cholesky: R=chol(V'*V), Q=V*inv(R)
  */
@@ -802,8 +764,6 @@ static PetscErrorCode BVOrthogonalize_Chol(BV V,Mat Rin)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "BVOrthogonalize_TSQR"
 /*
    Orthogonalize a set of vectors with the Tall-Skinny QR method
  */
@@ -821,8 +781,6 @@ static PetscErrorCode BVOrthogonalize_TSQR(BV V,Mat R)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "BVOrthogonalize"
 /*@
    BVOrthogonalize - Orthogonalize all columns (except leading ones), that is,
    compute the QR decomposition.

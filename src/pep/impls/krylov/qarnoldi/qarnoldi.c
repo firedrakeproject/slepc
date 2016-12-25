@@ -42,8 +42,6 @@ typedef struct {
   PetscBool lock;         /* locking/non-locking variant */
 } PEP_QARNOLDI;
 
-#undef __FUNCT__
-#define __FUNCT__ "PEPSetUp_QArnoldi"
 PetscErrorCode PEPSetUp_QArnoldi(PEP pep)
 {
   PetscErrorCode ierr;
@@ -99,8 +97,6 @@ PetscErrorCode PEPSetUp_QArnoldi(PEP pep)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "PEPExtractVectors_QArnoldi"
 PetscErrorCode PEPExtractVectors_QArnoldi(PEP pep)
 {
   PetscErrorCode ierr;
@@ -129,8 +125,6 @@ PetscErrorCode PEPExtractVectors_QArnoldi(PEP pep)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "PEPQArnoldiCGS"
 /*
   Compute a step of Classical Gram-Schmidt orthogonalization
 */
@@ -174,8 +168,6 @@ static PetscErrorCode PEPQArnoldiCGS(PEP pep,PetscScalar *H,PetscBLASInt ldh,Pet
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "PEPQArnoldi"
 /*
   Compute a run of Q-Arnoldi iterations
 */
@@ -251,8 +243,6 @@ static PetscErrorCode PEPQArnoldi(PEP pep,PetscScalar *H,PetscInt ldh,PetscInt k
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "PEPSolve_QArnoldi"
 PetscErrorCode PEPSolve_QArnoldi(PEP pep)
 {
   PetscErrorCode ierr;
@@ -351,8 +341,6 @@ PetscErrorCode PEPSolve_QArnoldi(PEP pep)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "PEPQArnoldiSetRestart_QArnoldi"
 static PetscErrorCode PEPQArnoldiSetRestart_QArnoldi(PEP pep,PetscReal keep)
 {
   PEP_QARNOLDI *ctx = (PEP_QARNOLDI*)pep->data;
@@ -366,8 +354,6 @@ static PetscErrorCode PEPQArnoldiSetRestart_QArnoldi(PEP pep,PetscReal keep)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "PEPQArnoldiSetRestart"
 /*@
    PEPQArnoldiSetRestart - Sets the restart parameter for the Q-Arnoldi
    method, in particular the proportion of basis vectors that must be kept
@@ -400,8 +386,6 @@ PetscErrorCode PEPQArnoldiSetRestart(PEP pep,PetscReal keep)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "PEPQArnoldiGetRestart_QArnoldi"
 static PetscErrorCode PEPQArnoldiGetRestart_QArnoldi(PEP pep,PetscReal *keep)
 {
   PEP_QARNOLDI *ctx = (PEP_QARNOLDI*)pep->data;
@@ -411,8 +395,6 @@ static PetscErrorCode PEPQArnoldiGetRestart_QArnoldi(PEP pep,PetscReal *keep)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "PEPQArnoldiGetRestart"
 /*@
    PEPQArnoldiGetRestart - Gets the restart parameter used in the Q-Arnoldi method.
 
@@ -439,8 +421,6 @@ PetscErrorCode PEPQArnoldiGetRestart(PEP pep,PetscReal *keep)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "PEPQArnoldiSetLocking_QArnoldi"
 static PetscErrorCode PEPQArnoldiSetLocking_QArnoldi(PEP pep,PetscBool lock)
 {
   PEP_QARNOLDI *ctx = (PEP_QARNOLDI*)pep->data;
@@ -450,8 +430,6 @@ static PetscErrorCode PEPQArnoldiSetLocking_QArnoldi(PEP pep,PetscBool lock)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "PEPQArnoldiSetLocking"
 /*@
    PEPQArnoldiSetLocking - Choose between locking and non-locking variants of
    the Q-Arnoldi method.
@@ -488,8 +466,6 @@ PetscErrorCode PEPQArnoldiSetLocking(PEP pep,PetscBool lock)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "PEPQArnoldiGetLocking_QArnoldi"
 static PetscErrorCode PEPQArnoldiGetLocking_QArnoldi(PEP pep,PetscBool *lock)
 {
   PEP_QARNOLDI *ctx = (PEP_QARNOLDI*)pep->data;
@@ -499,8 +475,6 @@ static PetscErrorCode PEPQArnoldiGetLocking_QArnoldi(PEP pep,PetscBool *lock)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "PEPQArnoldiGetLocking"
 /*@
    PEPQArnoldiGetLocking - Gets the locking flag used in the Q-Arnoldi method.
 
@@ -527,8 +501,6 @@ PetscErrorCode PEPQArnoldiGetLocking(PEP pep,PetscBool *lock)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "PEPSetFromOptions_QArnoldi"
 PetscErrorCode PEPSetFromOptions_QArnoldi(PetscOptionItems *PetscOptionsObject,PEP pep)
 {
   PetscErrorCode ierr;
@@ -548,8 +520,6 @@ PetscErrorCode PEPSetFromOptions_QArnoldi(PetscOptionItems *PetscOptionsObject,P
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "PEPView_QArnoldi"
 PetscErrorCode PEPView_QArnoldi(PEP pep,PetscViewer viewer)
 {
   PetscErrorCode ierr;
@@ -565,8 +535,6 @@ PetscErrorCode PEPView_QArnoldi(PEP pep,PetscViewer viewer)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "PEPDestroy_QArnoldi"
 PetscErrorCode PEPDestroy_QArnoldi(PEP pep)
 {
   PetscErrorCode ierr;
@@ -580,8 +548,6 @@ PetscErrorCode PEPDestroy_QArnoldi(PEP pep)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "PEPCreate_QArnoldi"
 PETSC_EXTERN PetscErrorCode PEPCreate_QArnoldi(PEP pep)
 {
   PEP_QARNOLDI   *ctx;

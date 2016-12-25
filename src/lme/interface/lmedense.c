@@ -24,8 +24,6 @@
 #include <slepc/private/lmeimpl.h>     /*I "slepclme.h" I*/
 #include <slepcblaslapack.h>
 
-#undef __FUNCT__
-#define __FUNCT__ "LMERankSVD"
 /*
    LMERankSVD - given a square matrix L, compute its SVD U*S*V', and determine the
    numerical rank. On exit, U contains U*S and L is overwritten with V'
@@ -65,8 +63,6 @@ PetscErrorCode LMERankSVD(LME lme,PetscInt n,PetscScalar *L,PetscScalar *U,Petsc
 }
 
 #if defined(PETSC_USE_INFO)
-#undef __FUNCT__
-#define __FUNCT__ "LyapunovResidual"
 /*
    LyapunovResidual - compute the residual norm ||H*L*L'+L*L'*H'+r*r'||
 */
@@ -101,8 +97,6 @@ static PetscErrorCode LyapunovResidual(PetscScalar *H,PetscInt m,PetscInt ldh,Pe
 #endif
 
 #if defined(SLEPC_HAVE_SLICOT)
-#undef __FUNCT__
-#define __FUNCT__ "LyapunovChol_SLICOT"
 /*
    LyapunovFact_SLICOT - alternative implementation when SLICOT is not available
 */
@@ -174,8 +168,6 @@ static PetscErrorCode LyapunovChol_SLICOT(PetscScalar *H,PetscInt m,PetscInt ldh
 #else
 
 #if 0
-#undef __FUNCT__
-#define __FUNCT__ "AbsEig"
 /*
    AbsEig - given a matrix A that may be slightly indefinite (hence Cholesky fails)
    modify it by taking the absolute value of the eigenvalues: [U,S] = eig(A); A = U*abs(S)*U';
@@ -236,8 +228,6 @@ static PetscErrorCode AbsEig(PetscScalar *A,PetscInt m)
 }
 #endif
 
-#undef __FUNCT__
-#define __FUNCT__ "CholeskyFactor"
 /*
    Compute the lower Cholesky factor of A
  */
@@ -285,8 +275,6 @@ static PetscErrorCode CholeskyFactor(PetscScalar *A,PetscInt m)
 #endif
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "LyapunovChol_LAPACK"
 /*
    LyapunovFact_LAPACK - alternative implementation when SLICOT is not available
 */
@@ -362,8 +350,6 @@ static PetscErrorCode LyapunovChol_LAPACK(PetscScalar *H,PetscInt m,PetscInt ldh
 
 #endif /* SLEPC_HAVE_SLICOT */
 
-#undef __FUNCT__
-#define __FUNCT__ "LMEDenseLyapunovChol"
 /*@C
    LMEDenseLyapunovFact - Computes the Cholesky factor of the solution of a
    dense Lyapunov equation with rank-1 right-hand side.

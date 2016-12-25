@@ -24,8 +24,6 @@
 #include <slepc/private/fnimpl.h>      /*I "slepcfn.h" I*/
 #include <slepcblaslapack.h>
 
-#undef __FUNCT__
-#define __FUNCT__ "SlepcMatDenseSqrt"
 /*
    Compute the square root of an upper quasi-triangular matrix T,
    using Higham's algorithm (LAA 88, 1987). T is overwritten with sqrtm(T).
@@ -91,8 +89,6 @@ PetscErrorCode SlepcMatDenseSqrt(PetscBLASInt n,PetscScalar *T,PetscBLASInt ld)
 
 #define BLOCKSIZE 64
 
-#undef __FUNCT__
-#define __FUNCT__ "SlepcSchurParlettSqrt"
 /*
    Simplified Schur-Parlett algorithm on an upper quasi-triangular matrix T,
    particularized for the square root function. T is overwritten with sqrtm(T).

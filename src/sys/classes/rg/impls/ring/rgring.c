@@ -33,8 +33,6 @@ typedef struct {
   PetscReal   width;      /* ring width */
 } RG_RING;
 
-#undef __FUNCT__
-#define __FUNCT__ "RGRingSetParameters_Ring"
 static PetscErrorCode RGRingSetParameters_Ring(RG rg,PetscScalar center,PetscReal radius,PetscReal vscale,PetscReal start_ang,PetscReal end_ang,PetscReal width)
 {
   RG_RING *ctx = (RG_RING*)rg->data;
@@ -73,8 +71,6 @@ static PetscErrorCode RGRingSetParameters_Ring(RG rg,PetscScalar center,PetscRea
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "RGRingSetParameters"
 /*@
    RGRingSetParameters - Sets the parameters defining the ring region.
 
@@ -132,8 +128,6 @@ PetscErrorCode RGRingSetParameters(RG rg,PetscScalar center,PetscReal radius,Pet
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "RGRingGetParameters_Ring"
 static PetscErrorCode RGRingGetParameters_Ring(RG rg,PetscScalar *center,PetscReal *radius,PetscReal *vscale,PetscReal *start_ang,PetscReal *end_ang,PetscReal *width)
 {
   RG_RING *ctx = (RG_RING*)rg->data;
@@ -148,8 +142,6 @@ static PetscErrorCode RGRingGetParameters_Ring(RG rg,PetscScalar *center,PetscRe
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "RGRingGetParameters"
 /*@
    RGRingGetParameters - Gets the parameters that define the ring region.
 
@@ -180,8 +172,6 @@ PetscErrorCode RGRingGetParameters(RG rg,PetscScalar *center,PetscReal *radius,P
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "RGView_Ring"
 PetscErrorCode RGView_Ring(RG rg,PetscViewer viewer)
 {
   PetscErrorCode ierr;
@@ -198,8 +188,6 @@ PetscErrorCode RGView_Ring(RG rg,PetscViewer viewer)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "RGIsTrivial_Ring"
 PetscErrorCode RGIsTrivial_Ring(RG rg,PetscBool *trivial)
 {
   RG_RING *ctx = (RG_RING*)rg->data;
@@ -210,8 +198,6 @@ PetscErrorCode RGIsTrivial_Ring(RG rg,PetscBool *trivial)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "RGComputeContour_Ring"
 PetscErrorCode RGComputeContour_Ring(RG rg,PetscInt n,PetscScalar *cr,PetscScalar *ci)
 {
   RG_RING   *ctx = (RG_RING*)rg->data;
@@ -241,8 +227,6 @@ PetscErrorCode RGComputeContour_Ring(RG rg,PetscInt n,PetscScalar *cr,PetscScala
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "RGCheckInside_Ring"
 PetscErrorCode RGCheckInside_Ring(RG rg,PetscReal px,PetscReal py,PetscInt *inside)
 {
   RG_RING   *ctx = (RG_RING*)rg->data;
@@ -291,8 +275,6 @@ PetscErrorCode RGCheckInside_Ring(RG rg,PetscReal px,PetscReal py,PetscInt *insi
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "RGSetFromOptions_Ring"
 PetscErrorCode RGSetFromOptions_Ring(PetscOptionItems *PetscOptionsObject,RG rg)
 {
   PetscErrorCode ierr;
@@ -316,8 +298,6 @@ PetscErrorCode RGSetFromOptions_Ring(PetscOptionItems *PetscOptionsObject,RG rg)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "RGDestroy_Ring"
 PetscErrorCode RGDestroy_Ring(RG rg)
 {
   PetscErrorCode ierr;
@@ -329,8 +309,6 @@ PetscErrorCode RGDestroy_Ring(RG rg)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "RGCreate_Ring"
 PETSC_EXTERN PetscErrorCode RGCreate_Ring(RG rg)
 {
   RG_RING        *ring;

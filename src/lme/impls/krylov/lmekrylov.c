@@ -44,8 +44,6 @@
 #include <slepc/private/lmeimpl.h>
 #include <slepcblaslapack.h>
 
-#undef __FUNCT__
-#define __FUNCT__ "LMESetUp_Krylov"
 PetscErrorCode LMESetUp_Krylov(LME lme)
 {
   PetscErrorCode ierr;
@@ -59,8 +57,6 @@ PetscErrorCode LMESetUp_Krylov(LME lme)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "LMEBasicArnoldi"
 PetscErrorCode LMEBasicArnoldi(LME lme,PetscScalar *H,PetscInt ldh,PetscInt k,PetscInt *M,PetscReal *beta,PetscBool *breakdown)
 {
   PetscErrorCode ierr;
@@ -94,8 +90,6 @@ PetscErrorCode LMEBasicArnoldi(LME lme,PetscScalar *H,PetscInt ldh,PetscInt k,Pe
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "LMESolve_Krylov_Lyapunov_Vec"
 PetscErrorCode LMESolve_Krylov_Lyapunov_Vec(LME lme,Vec b,PetscBool fixed,PetscInt rrank,BV C1,BV *X1,PetscInt *col,PetscBool *fail,PetscInt *totalits)
 {
   PetscErrorCode ierr;
@@ -207,8 +201,6 @@ PetscErrorCode LMESolve_Krylov_Lyapunov_Vec(LME lme,Vec b,PetscBool fixed,PetscI
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "LMESolve_Krylov_Lyapunov"
 PetscErrorCode LMESolve_Krylov_Lyapunov(LME lme)
 {
   PetscErrorCode ierr;
@@ -252,8 +244,6 @@ PetscErrorCode LMESolve_Krylov_Lyapunov(LME lme)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "LMECreate_Krylov"
 PETSC_EXTERN PetscErrorCode LMECreate_Krylov(LME lme)
 {
   PetscFunctionBegin;

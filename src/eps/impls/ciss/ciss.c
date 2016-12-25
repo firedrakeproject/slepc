@@ -81,8 +81,6 @@ typedef struct {
   EPSCISSExtraction extraction;
 } EPS_CISS;
 
-#undef __FUNCT__
-#define __FUNCT__ "SetSolverComm"
 static PetscErrorCode SetSolverComm(EPS eps)
 {
   PetscErrorCode ierr;
@@ -103,8 +101,6 @@ static PetscErrorCode SetSolverComm(EPS eps)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "CISSRedundantMat"
 static PetscErrorCode CISSRedundantMat(EPS eps)
 {
   PetscErrorCode ierr;
@@ -130,8 +126,6 @@ static PetscErrorCode CISSRedundantMat(EPS eps)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "CISSScatterVec"
 static PetscErrorCode CISSScatterVec(EPS eps)
 {
   PetscErrorCode ierr;
@@ -171,8 +165,6 @@ static PetscErrorCode CISSScatterVec(EPS eps)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "SetPathParameter"
 static PetscErrorCode SetPathParameter(EPS eps)
 {
   PetscErrorCode ierr;
@@ -261,8 +253,6 @@ static PetscErrorCode SetPathParameter(EPS eps)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "CISSVecSetRandom"
 static PetscErrorCode CISSVecSetRandom(BV V,PetscInt i0,PetscInt i1)
 {
   PetscErrorCode ierr;
@@ -287,8 +277,6 @@ static PetscErrorCode CISSVecSetRandom(BV V,PetscInt i0,PetscInt i1)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "VecScatterVecs"
 static PetscErrorCode VecScatterVecs(EPS eps,BV Vin,PetscInt n)
 {
   PetscErrorCode    ierr;
@@ -314,8 +302,6 @@ static PetscErrorCode VecScatterVecs(EPS eps,BV Vin,PetscInt n)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "SolveLinearSystem"
 static PetscErrorCode SolveLinearSystem(EPS eps,Mat A,Mat B,BV V,PetscInt L_start,PetscInt L_end,PetscBool initksp)
 {
   PetscErrorCode ierr;
@@ -379,8 +365,6 @@ static PetscErrorCode SolveLinearSystem(EPS eps,Mat A,Mat B,BV V,PetscInt L_star
 }
 
 #if defined(PETSC_USE_COMPLEX)
-#undef __FUNCT__
-#define __FUNCT__ "EstimateNumberEigs"
 static PetscErrorCode EstimateNumberEigs(EPS eps,PetscInt *L_add)
 {
   PetscErrorCode ierr;
@@ -430,8 +414,6 @@ static PetscErrorCode EstimateNumberEigs(EPS eps,PetscInt *L_add)
 }
 #endif
 
-#undef __FUNCT__
-#define __FUNCT__ "CalcMu"
 static PetscErrorCode CalcMu(EPS eps,PetscScalar *Mu)
 {
   PetscErrorCode ierr;
@@ -485,8 +467,6 @@ static PetscErrorCode CalcMu(EPS eps,PetscScalar *Mu)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "BlockHankel"
 static PetscErrorCode BlockHankel(EPS eps,PetscScalar *Mu,PetscInt s,PetscScalar *H)
 {
   EPS_CISS *ctx = (EPS_CISS*)eps->data;
@@ -500,8 +480,6 @@ static PetscErrorCode BlockHankel(EPS eps,PetscScalar *Mu,PetscInt s,PetscScalar
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "SVD_H0"
 static PetscErrorCode SVD_H0(EPS eps,PetscScalar *S,PetscInt *K)
 {
 #if defined(PETSC_MISSING_LAPACK_GESVD)
@@ -544,8 +522,6 @@ static PetscErrorCode SVD_H0(EPS eps,PetscScalar *S,PetscInt *K)
 #endif
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "ConstructS"
 static PetscErrorCode ConstructS(EPS eps)
 {
   PetscErrorCode ierr;
@@ -594,8 +570,6 @@ static PetscErrorCode ConstructS(EPS eps)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "SVD_S"
 static PetscErrorCode SVD_S(BV S,PetscInt ml,PetscReal delta,PetscReal *sigma,PetscInt *K)
 {
 #if defined(PETSC_MISSING_LAPACK_GESVD)
@@ -706,8 +680,6 @@ static PetscErrorCode SVD_S(BV S,PetscInt ml,PetscReal delta,PetscReal *sigma,Pe
 #endif
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "isGhost"
 static PetscErrorCode isGhost(EPS eps,PetscInt ld,PetscInt nv,PetscBool *fl)
 {
   PetscErrorCode ierr;
@@ -743,8 +715,6 @@ static PetscErrorCode isGhost(EPS eps,PetscInt ld,PetscInt nv,PetscBool *fl)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "rescale_eig"
 static PetscErrorCode rescale_eig(EPS eps,PetscInt nv)
 {
   PetscErrorCode ierr;
@@ -813,8 +783,6 @@ static PetscErrorCode rescale_eig(EPS eps,PetscInt nv)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSSetUp_CISS"
 PetscErrorCode EPSSetUp_CISS(EPS eps)
 {
   PetscErrorCode ierr;
@@ -975,8 +943,6 @@ PetscErrorCode EPSSetUp_CISS(EPS eps)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSSolve_CISS"
 PetscErrorCode EPSSolve_CISS(EPS eps)
 {
   PetscErrorCode ierr;
@@ -1196,8 +1162,6 @@ PetscErrorCode EPSSolve_CISS(EPS eps)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSCISSSetSizes_CISS"
 static PetscErrorCode EPSCISSSetSizes_CISS(EPS eps,PetscInt ip,PetscInt bs,PetscInt ms,PetscInt npart,PetscInt bsmax,PetscBool realmats)
 {
   EPS_CISS *ctx = (EPS_CISS*)eps->data;
@@ -1242,8 +1206,6 @@ static PetscErrorCode EPSCISSSetSizes_CISS(EPS eps,PetscInt ip,PetscInt bs,Petsc
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSCISSSetSizes"
 /*@
    EPSCISSSetSizes - Sets the values of various size parameters in the CISS solver.
 
@@ -1291,8 +1253,6 @@ PetscErrorCode EPSCISSSetSizes(EPS eps,PetscInt ip,PetscInt bs,PetscInt ms,Petsc
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSCISSGetSizes_CISS"
 static PetscErrorCode EPSCISSGetSizes_CISS(EPS eps,PetscInt *ip,PetscInt *bs,PetscInt *ms,PetscInt *npart,PetscInt *bsmax,PetscBool *realmats)
 {
   EPS_CISS *ctx = (EPS_CISS*)eps->data;
@@ -1307,8 +1267,6 @@ static PetscErrorCode EPSCISSGetSizes_CISS(EPS eps,PetscInt *ip,PetscInt *bs,Pet
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSCISSGetSizes"
 /*@
    EPSCISSGetSizes - Gets the values of various size parameters in the CISS solver.
 
@@ -1339,8 +1297,6 @@ PetscErrorCode EPSCISSGetSizes(EPS eps,PetscInt *ip,PetscInt *bs,PetscInt *ms,Pe
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSCISSSetThreshold_CISS"
 static PetscErrorCode EPSCISSSetThreshold_CISS(EPS eps,PetscReal delta,PetscReal spur)
 {
   EPS_CISS *ctx = (EPS_CISS*)eps->data;
@@ -1361,8 +1317,6 @@ static PetscErrorCode EPSCISSSetThreshold_CISS(EPS eps,PetscReal delta,PetscReal
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSCISSSetThreshold"
 /*@
    EPSCISSSetThreshold - Sets the values of various threshold parameters in
    the CISS solver.
@@ -1394,8 +1348,6 @@ PetscErrorCode EPSCISSSetThreshold(EPS eps,PetscReal delta,PetscReal spur)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSCISSGetThreshold_CISS"
 static PetscErrorCode EPSCISSGetThreshold_CISS(EPS eps,PetscReal *delta,PetscReal *spur)
 {
   EPS_CISS *ctx = (EPS_CISS*)eps->data;
@@ -1406,8 +1358,6 @@ static PetscErrorCode EPSCISSGetThreshold_CISS(EPS eps,PetscReal *delta,PetscRea
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSCISSGetThreshold"
 /*@
    EPSCISSGetThreshold - Gets the values of various threshold parameters
    in the CISS solver.
@@ -1435,8 +1385,6 @@ PetscErrorCode EPSCISSGetThreshold(EPS eps,PetscReal *delta,PetscReal *spur)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSCISSSetRefinement_CISS"
 static PetscErrorCode EPSCISSSetRefinement_CISS(EPS eps,PetscInt inner,PetscInt blsize)
 {
   EPS_CISS *ctx = (EPS_CISS*)eps->data;
@@ -1457,8 +1405,6 @@ static PetscErrorCode EPSCISSSetRefinement_CISS(EPS eps,PetscInt inner,PetscInt 
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSCISSSetRefinement"
 /*@
    EPSCISSSetRefinement - Sets the values of various refinement parameters
    in the CISS solver.
@@ -1490,8 +1436,6 @@ PetscErrorCode EPSCISSSetRefinement(EPS eps,PetscInt inner,PetscInt blsize)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSCISSGetRefinement_CISS"
 static PetscErrorCode EPSCISSGetRefinement_CISS(EPS eps,PetscInt *inner,PetscInt *blsize)
 {
   EPS_CISS *ctx = (EPS_CISS*)eps->data;
@@ -1502,8 +1446,6 @@ static PetscErrorCode EPSCISSGetRefinement_CISS(EPS eps,PetscInt *inner,PetscInt
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSCISSGetRefinement"
 /*@
    EPSCISSGetRefinement - Gets the values of various refinement parameters
    in the CISS solver.
@@ -1531,8 +1473,6 @@ PetscErrorCode EPSCISSGetRefinement(EPS eps, PetscInt *inner, PetscInt *blsize)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSCISSSetUseST_CISS"
 static PetscErrorCode EPSCISSSetUseST_CISS(EPS eps,PetscBool usest)
 {
   EPS_CISS *ctx = (EPS_CISS*)eps->data;
@@ -1543,8 +1483,6 @@ static PetscErrorCode EPSCISSSetUseST_CISS(EPS eps,PetscBool usest)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSCISSSetUseST"
 /*@
    EPSCISSSetUseST - Sets a flag indicating that the CISS solver will
    use the ST object for the linear solves.
@@ -1573,8 +1511,6 @@ PetscErrorCode EPSCISSSetUseST(EPS eps,PetscBool usest)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSCISSGetUseST_CISS"
 static PetscErrorCode EPSCISSGetUseST_CISS(EPS eps,PetscBool *usest)
 {
   EPS_CISS *ctx = (EPS_CISS*)eps->data;
@@ -1584,8 +1520,6 @@ static PetscErrorCode EPSCISSGetUseST_CISS(EPS eps,PetscBool *usest)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSCISSGetUseST"
 /*@
    EPSCISSGetUseST - Gets the flag for using the ST object
    in the CISS solver.
@@ -1613,8 +1547,6 @@ PetscErrorCode EPSCISSGetUseST(EPS eps,PetscBool *usest)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSCISSSetQuadRule_CISS"
 static PetscErrorCode EPSCISSSetQuadRule_CISS(EPS eps,EPSCISSQuadRule quad)
 {
   EPS_CISS *ctx = (EPS_CISS*)eps->data;
@@ -1624,8 +1556,6 @@ static PetscErrorCode EPSCISSSetQuadRule_CISS(EPS eps,EPSCISSQuadRule quad)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSCISSSetQuadRule"
 /*@
    EPSCISSSetQuadRule - Sets the quadrature rule used in the CISS solver.
 
@@ -1660,8 +1590,6 @@ PetscErrorCode EPSCISSSetQuadRule(EPS eps,EPSCISSQuadRule quad)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSCISSGetQuadRule_CISS"
 static PetscErrorCode EPSCISSGetQuadRule_CISS(EPS eps,EPSCISSQuadRule *quad)
 {
   EPS_CISS *ctx = (EPS_CISS*)eps->data;
@@ -1671,8 +1599,6 @@ static PetscErrorCode EPSCISSGetQuadRule_CISS(EPS eps,EPSCISSQuadRule *quad)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSCISSGetQuadRule"
 /*@
    EPSCISSGetQuadRule - Gets the quadrature rule used in the CISS solver.
 
@@ -1699,8 +1625,6 @@ PetscErrorCode EPSCISSGetQuadRule(EPS eps, EPSCISSQuadRule *quad)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSCISSSetExtraction_CISS"
 static PetscErrorCode EPSCISSSetExtraction_CISS(EPS eps,EPSCISSExtraction extraction)
 {
   EPS_CISS *ctx = (EPS_CISS*)eps->data;
@@ -1710,8 +1634,6 @@ static PetscErrorCode EPSCISSSetExtraction_CISS(EPS eps,EPSCISSExtraction extrac
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSCISSSetExtraction"
 /*@
    EPSCISSSetExtraction - Sets the extraction technique used in the CISS solver.
 
@@ -1746,8 +1668,6 @@ PetscErrorCode EPSCISSSetExtraction(EPS eps,EPSCISSExtraction extraction)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSCISSGetExtraction_CISS"
 static PetscErrorCode EPSCISSGetExtraction_CISS(EPS eps,EPSCISSExtraction *extraction)
 {
   EPS_CISS *ctx = (EPS_CISS*)eps->data;
@@ -1757,8 +1677,6 @@ static PetscErrorCode EPSCISSGetExtraction_CISS(EPS eps,EPSCISSExtraction *extra
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSCISSGetExtraction"
 /*@
    EPSCISSGetExtraction - Gets the extraction technique used in the CISS solver.
 
@@ -1785,8 +1703,6 @@ PetscErrorCode EPSCISSGetExtraction(EPS eps,EPSCISSExtraction *extraction)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSReset_CISS"
 PetscErrorCode EPSReset_CISS(EPS eps)
 {
   PetscErrorCode ierr;
@@ -1814,8 +1730,6 @@ PetscErrorCode EPSReset_CISS(EPS eps)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSSetFromOptions_CISS"
 PetscErrorCode EPSSetFromOptions_CISS(PetscOptionItems *PetscOptionsObject,EPS eps)
 {
   PetscErrorCode    ierr;
@@ -1862,8 +1776,6 @@ PetscErrorCode EPSSetFromOptions_CISS(PetscOptionItems *PetscOptionsObject,EPS e
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSDestroy_CISS"
 PetscErrorCode EPSDestroy_CISS(EPS eps)
 {
   PetscErrorCode ierr;
@@ -1888,8 +1800,6 @@ PetscErrorCode EPSDestroy_CISS(EPS eps)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSView_CISS"
 PetscErrorCode EPSView_CISS(EPS eps,PetscViewer viewer)
 {
   PetscErrorCode ierr;
@@ -1918,8 +1828,6 @@ PetscErrorCode EPSView_CISS(EPS eps,PetscViewer viewer)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSSetDefaultST_CISS"
 PetscErrorCode EPSSetDefaultST_CISS(EPS eps)
 {
   PetscErrorCode ierr;
@@ -1939,8 +1847,6 @@ PetscErrorCode EPSSetDefaultST_CISS(EPS eps)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSCreate_CISS"
 PETSC_EXTERN PetscErrorCode EPSCreate_CISS(EPS eps)
 {
   PetscErrorCode ierr;

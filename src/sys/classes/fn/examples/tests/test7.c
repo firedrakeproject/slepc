@@ -23,8 +23,6 @@ static char help[] = "Test matrix square root.\n\n";
 
 #include <slepcfn.h>
 
-#undef __FUNCT__
-#define __FUNCT__ "TestMatSqrt"
 /*
    Compute matrix square root B = sqrtm(A)
    Check result as norm(B*B-A)
@@ -89,8 +87,6 @@ PetscErrorCode TestMatSqrt(FN fn,Mat A,PetscViewer viewer,PetscBool verbose,Pets
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "main"
 int main(int argc,char **argv)
 {
   PetscErrorCode ierr;

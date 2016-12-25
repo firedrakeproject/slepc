@@ -36,8 +36,6 @@ static char help[] = "Quadratic eigenproblem from the vibrarion analysis of a be
 
 #include <slepcpep.h>
 
-#undef __FUNCT__
-#define __FUNCT__ "main"
 int main(int argc,char **argv)
 {
   Mat            M,Mo,C,K,Ko,A[3]; /* problem matrices */

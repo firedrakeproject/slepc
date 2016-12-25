@@ -29,8 +29,6 @@ typedef struct {
   PetscInt size_X;
 } dvdImprovex_gd2;
 
-#undef __FUNCT__
-#define __FUNCT__ "dvd_improvex_gd2_d"
 static PetscErrorCode dvd_improvex_gd2_d(dvdDashboard *d)
 {
   PetscErrorCode  ierr;
@@ -42,8 +40,6 @@ static PetscErrorCode dvd_improvex_gd2_d(dvdDashboard *d)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "dvd_improvex_gd2_gen"
 static PetscErrorCode dvd_improvex_gd2_gen(dvdDashboard *d,PetscInt r_s,PetscInt r_e,PetscInt *size_D)
 {
   dvdImprovex_gd2 *data = (dvdImprovex_gd2*)d->improveX_data;
@@ -201,8 +197,6 @@ static PetscErrorCode dvd_improvex_gd2_gen(dvdDashboard *d,PetscInt r_s,PetscInt
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "dvd_improvex_gd2"
 PetscErrorCode dvd_improvex_gd2(dvdDashboard *d,dvdBlackboard *b,KSP ksp,PetscInt max_bs)
 {
   PetscErrorCode  ierr;

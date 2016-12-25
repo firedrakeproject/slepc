@@ -29,8 +29,6 @@ PETSC_EXTERN PetscErrorCode FNCreate_Phi(FN);
 PETSC_EXTERN PetscErrorCode FNCreate_Sqrt(FN);
 PETSC_EXTERN PetscErrorCode FNCreate_Invsqrt(FN);
 
-#undef __FUNCT__
-#define __FUNCT__ "FNRegisterAll"
 /*@C
    FNRegisterAll - Registers all of the math functions in the FN package.
 

@@ -23,8 +23,6 @@ static char help[] = "Test the ring region.\n\n";
 
 #include <slepcrg.h>
 
-#undef __FUNCT__
-#define __FUNCT__ "CheckPoint"
 PetscErrorCode CheckPoint(RG rg,PetscReal re,PetscReal im)
 {
   PetscErrorCode ierr;
@@ -42,8 +40,6 @@ PetscErrorCode CheckPoint(RG rg,PetscReal re,PetscReal im)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "main"
 int main(int argc,char **argv)
 {
   PetscErrorCode ierr;

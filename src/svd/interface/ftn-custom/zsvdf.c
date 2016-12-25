@@ -166,45 +166,33 @@ static struct {
 } _cb;
 
 /* These are not extern C because they are passed into non-extern C user level functions */
-#undef __FUNCT__
-#define __FUNCT__ "ourmonitor"
 static PetscErrorCode ourmonitor(SVD svd,PetscInt i,PetscInt nc,PetscReal *sigma,PetscReal *d,PetscInt l,void* ctx)
 {
   PetscObjectUseFortranCallback(svd,_cb.monitor,(SVD*,PetscInt*,PetscInt*,PetscReal*,PetscReal*,PetscInt*,void*,PetscErrorCode*),(&svd,&i,&nc,sigma,d,&l,_ctx,&ierr));
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "ourdestroy"
 static PetscErrorCode ourdestroy(void** ctx)
 {
   SVD svd = (SVD)*ctx;
   PetscObjectUseFortranCallback(svd,_cb.monitordestroy,(void*,PetscErrorCode*),(_ctx,&ierr));
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "ourconvergence"
 static PetscErrorCode ourconvergence(SVD svd,PetscReal sigma,PetscReal res,PetscReal *errest,void *ctx)
 {
   PetscObjectUseFortranCallback(svd,_cb.convergence,(SVD*,PetscReal*,PetscReal*,PetscReal*,void*,PetscErrorCode*),(&svd,&sigma,&res,errest,_ctx,&ierr));
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "ourconvdestroy"
 static PetscErrorCode ourconvdestroy(void *ctx)
 {
   SVD svd = (SVD)ctx;
   PetscObjectUseFortranCallback(svd,_cb.convdestroy,(void*,PetscErrorCode*),(_ctx,&ierr));
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "ourstopping"
 static PetscErrorCode ourstopping(SVD svd,PetscInt its,PetscInt max_it,PetscInt nconv,PetscInt nsv,SVDConvergedReason *reason,void *ctx)
 {
   PetscObjectUseFortranCallback(svd,_cb.stopping,(SVD*,PetscInt*,PetscInt*,PetscInt*,PetscInt*,SVDConvergedReason*,void*,PetscErrorCode*),(&svd,&its,&max_it,&nconv,&nsv,reason,_ctx,&ierr));
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "ourstopdestroy"
 static PetscErrorCode ourstopdestroy(void *ctx)
 {
   SVD svd = (SVD)ctx;

@@ -28,8 +28,6 @@ typedef struct {
   PetscInt neig;               /* number of available eigenpairs */
 } DS_NEP;
 
-#undef __FUNCT__
-#define __FUNCT__ "DSNEPComputeMatrix"
 /*
    DSNEPComputeMatrix - Build the matrix associated with a nonlinear operator
    T(lambda) or its derivative T'(lambda), given the parameter lambda, where
@@ -64,8 +62,6 @@ static PetscErrorCode DSNEPComputeMatrix(DS ds,PetscScalar lambda,PetscBool deri
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "DSAllocate_NEP"
 PetscErrorCode DSAllocate_NEP(DS ds,PetscInt ld)
 {
   PetscErrorCode ierr;
@@ -84,8 +80,6 @@ PetscErrorCode DSAllocate_NEP(DS ds,PetscInt ld)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "DSView_NEP"
 PetscErrorCode DSView_NEP(DS ds,PetscViewer viewer)
 {
   PetscErrorCode    ierr;
@@ -107,8 +101,6 @@ PetscErrorCode DSView_NEP(DS ds,PetscViewer viewer)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "DSVectors_NEP"
 PetscErrorCode DSVectors_NEP(DS ds,DSMatType mat,PetscInt *j,PetscReal *rnorm)
 {
   PetscFunctionBegin;
@@ -125,8 +117,6 @@ PetscErrorCode DSVectors_NEP(DS ds,DSMatType mat,PetscInt *j,PetscReal *rnorm)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "DSSort_NEP"
 PetscErrorCode DSSort_NEP(DS ds,PetscScalar *wr,PetscScalar *wi,PetscScalar *rr,PetscScalar *ri,PetscInt *dummy)
 {
   PetscErrorCode ierr;
@@ -168,8 +158,6 @@ PetscErrorCode DSSort_NEP(DS ds,PetscScalar *wr,PetscScalar *wi,PetscScalar *rr,
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "DSSolve_NEP_SLP"
 PetscErrorCode DSSolve_NEP_SLP(DS ds,PetscScalar *wr,PetscScalar *wi)
 {
 #if defined(SLEPC_MISSING_LAPACK_GGEV)
@@ -293,8 +281,6 @@ PetscErrorCode DSSolve_NEP_SLP(DS ds,PetscScalar *wr,PetscScalar *wi)
 #endif
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "DSNEPSetFN_NEP"
 static PetscErrorCode DSNEPSetFN_NEP(DS ds,PetscInt n,FN fn[])
 {
   PetscErrorCode ierr;
@@ -316,8 +302,6 @@ static PetscErrorCode DSNEPSetFN_NEP(DS ds,PetscInt n,FN fn[])
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "DSNEPSetFN"
 /*@
    DSNEPSetFN - Sets a number of functions that define the nonlinear
    eigenproblem.
@@ -358,8 +342,6 @@ PetscErrorCode DSNEPSetFN(DS ds,PetscInt n,FN fn[])
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "DSNEPGetFN_NEP"
 static PetscErrorCode DSNEPGetFN_NEP(DS ds,PetscInt k,FN *fn)
 {
   DS_NEP *ctx = (DS_NEP*)ds->data;
@@ -370,8 +352,6 @@ static PetscErrorCode DSNEPGetFN_NEP(DS ds,PetscInt k,FN *fn)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "DSNEPGetFN"
 /*@
    DSNEPGetFN - Gets the functions associated with the nonlinear DS.
 
@@ -399,8 +379,6 @@ PetscErrorCode DSNEPGetFN(DS ds,PetscInt k,FN *fn)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "DSNEPGetNumFN_NEP"
 static PetscErrorCode DSNEPGetNumFN_NEP(DS ds,PetscInt *n)
 {
   DS_NEP *ctx = (DS_NEP*)ds->data;
@@ -410,8 +388,6 @@ static PetscErrorCode DSNEPGetNumFN_NEP(DS ds,PetscInt *n)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "DSNEPGetNumFN"
 /*@
    DSNEPGetNumFN - Returns the number of functions stored internally by
    the DS.
@@ -439,8 +415,6 @@ PetscErrorCode DSNEPGetNumFN(DS ds,PetscInt *n)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "DSDestroy_NEP"
 PetscErrorCode DSDestroy_NEP(DS ds)
 {
   PetscErrorCode ierr;
@@ -458,8 +432,6 @@ PetscErrorCode DSDestroy_NEP(DS ds)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "DSCreate_NEP"
 PETSC_EXTERN PetscErrorCode DSCreate_NEP(DS ds)
 {
   DS_NEP         *ctx;

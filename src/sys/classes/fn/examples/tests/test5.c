@@ -23,8 +23,6 @@ static char help[] = "Test matrix rational function.\n\n";
 
 #include <slepcfn.h>
 
-#undef __FUNCT__
-#define __FUNCT__ "TestMatRational"
 /*
    Compute matrix rational function B = q(A)\p(A)
  */
@@ -74,8 +72,6 @@ PetscErrorCode TestMatRational(FN fn,Mat A,PetscViewer viewer,PetscBool verbose,
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "main"
 int main(int argc,char **argv)
 {
   PetscErrorCode ierr;

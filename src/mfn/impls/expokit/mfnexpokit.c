@@ -36,8 +36,6 @@
 
 #include <slepc/private/mfnimpl.h>
 
-#undef __FUNCT__
-#define __FUNCT__ "MFNSetUp_Expokit"
 PetscErrorCode MFNSetUp_Expokit(MFN mfn)
 {
   PetscErrorCode ierr;
@@ -55,8 +53,6 @@ PetscErrorCode MFNSetUp_Expokit(MFN mfn)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "MFNSolve_Expokit"
 PetscErrorCode MFNSolve_Expokit(MFN mfn,Vec b,Vec x)
 {
   PetscErrorCode ierr;
@@ -195,8 +191,6 @@ PetscErrorCode MFNSolve_Expokit(MFN mfn,Vec b,Vec x)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "MFNCreate_Expokit"
 PETSC_EXTERN PetscErrorCode MFNCreate_Expokit(MFN mfn)
 {
   PetscFunctionBegin;

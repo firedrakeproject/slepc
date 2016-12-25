@@ -24,8 +24,6 @@
 #include <slepc/private/pepimpl.h>      /*I "slepcpep.h" I*/
 #include <petscdraw.h>
 
-#undef __FUNCT__
-#define __FUNCT__ "PEPMonitor"
 /*
    Runs the user provided monitor routines, if any.
 */
@@ -41,8 +39,6 @@ PetscErrorCode PEPMonitor(PEP pep,PetscInt it,PetscInt nconv,PetscScalar *eigr,P
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "PEPMonitorSet"
 /*@C
    PEPMonitorSet - Sets an ADDITIONAL function to be called at every
    iteration to monitor the error estimates for each requested eigenpair.
@@ -101,8 +97,6 @@ PetscErrorCode PEPMonitorSet(PEP pep,PetscErrorCode (*monitor)(PEP,PetscInt,Pets
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "PEPMonitorCancel"
 /*@
    PEPMonitorCancel - Clears all monitors for a PEP object.
 
@@ -136,8 +130,6 @@ PetscErrorCode PEPMonitorCancel(PEP pep)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "PEPGetMonitorContext"
 /*@C
    PEPGetMonitorContext - Gets the monitor context, as set by
    PEPMonitorSet() for the FIRST monitor only.
@@ -162,8 +154,6 @@ PetscErrorCode PEPGetMonitorContext(PEP pep,void **ctx)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "PEPMonitorGetTrueEig"
 /*
    Helper function to compute eigenvalue that must be viewed in monitor
  */
@@ -186,8 +176,6 @@ static PetscErrorCode PEPMonitorGetTrueEig(PEP pep,PetscScalar *er,PetscScalar *
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "PEPMonitorAll"
 /*@C
    PEPMonitorAll - Print the current approximate values and
    error estimates at each iteration of the polynomial eigensolver.
@@ -245,8 +233,6 @@ PetscErrorCode PEPMonitorAll(PEP pep,PetscInt its,PetscInt nconv,PetscScalar *ei
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "PEPMonitorFirst"
 /*@C
    PEPMonitorFirst - Print the first unconverged approximate value and
    error estimate at each iteration of the polynomial eigensolver.
@@ -302,8 +288,6 @@ PetscErrorCode PEPMonitorFirst(PEP pep,PetscInt its,PetscInt nconv,PetscScalar *
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "PEPMonitorConverged"
 /*@C
    PEPMonitorConverged - Print the approximate values and
    error estimates as they converge.
@@ -364,8 +348,6 @@ PetscErrorCode PEPMonitorConverged(PEP pep,PetscInt its,PetscInt nconv,PetscScal
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "PEPMonitorLGCreate"
 /*@C
    PEPMonitorLGCreate - Creates a line graph context for use with
    PEP to monitor convergence.
@@ -410,8 +392,6 @@ PetscErrorCode PEPMonitorLGCreate(MPI_Comm comm,const char host[],const char lab
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "PEPMonitorLG"
 PetscErrorCode PEPMonitorLG(PEP pep,PetscInt its,PetscInt nconv,PetscScalar *eigr,PetscScalar *eigi,PetscReal *errest,PetscInt nest,void *ctx)
 {
   PetscDrawLG    lg = (PetscDrawLG)ctx;
@@ -436,8 +416,6 @@ PetscErrorCode PEPMonitorLG(PEP pep,PetscInt its,PetscInt nconv,PetscScalar *eig
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "PEPMonitorLGAll"
 PetscErrorCode PEPMonitorLGAll(PEP pep,PetscInt its,PetscInt nconv,PetscScalar *eigr,PetscScalar *eigi,PetscReal *errest,PetscInt nest,void *ctx)
 {
   PetscDrawLG    lg = (PetscDrawLG)ctx;

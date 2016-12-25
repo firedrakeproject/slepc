@@ -23,8 +23,6 @@ static char help[] = "Test various ST interface functions.\n\n";
 
 #include <slepceps.h>
 
-#undef __FUNCT__
-#define __FUNCT__ "main"
 int main (int argc,char **argv)
 {
   ST             st;

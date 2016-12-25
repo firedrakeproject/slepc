@@ -26,8 +26,6 @@
 
 #define BLOCKSIZE 64
 
-#undef __FUNCT__
-#define __FUNCT__ "BVMult_BLAS_Private"
 /*
     C := alpha*A*B + beta*C
 
@@ -59,8 +57,6 @@ PetscErrorCode BVMult_BLAS_Private(BV bv,PetscInt m_,PetscInt n_,PetscInt k_,Pet
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "BVMultVec_BLAS_Private"
 /*
     y := alpha*A*x + beta*y
 
@@ -79,8 +75,6 @@ PetscErrorCode BVMultVec_BLAS_Private(BV bv,PetscInt n_,PetscInt k_,PetscScalar 
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "BVMultInPlace_BLAS_Private"
 /*
     A(:,s:e-1) := A*B(:,s:e-1)
 
@@ -124,8 +118,6 @@ PetscErrorCode BVMultInPlace_BLAS_Private(BV bv,PetscInt m_,PetscInt k_,PetscInt
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "BVMultInPlace_Vecs_Private"
 /*
     V := V*B
 
@@ -179,8 +171,6 @@ PetscErrorCode BVMultInPlace_Vecs_Private(BV bv,PetscInt m_,PetscInt n_,PetscInt
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "BVAXPY_BLAS_Private"
 /*
     B := alpha*A + beta*B
 
@@ -202,8 +192,6 @@ PetscErrorCode BVAXPY_BLAS_Private(BV bv,PetscInt n_,PetscInt k_,PetscScalar alp
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "BVDot_BLAS_Private"
 /*
     C := A'*B
 
@@ -245,8 +233,6 @@ PetscErrorCode BVDot_BLAS_Private(BV bv,PetscInt m_,PetscInt n_,PetscInt k_,Pets
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "BVDotVec_BLAS_Private"
 /*
     y := A'*x
 
@@ -277,8 +263,6 @@ PetscErrorCode BVDotVec_BLAS_Private(BV bv,PetscInt n_,PetscInt k_,const PetscSc
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "BVScale_BLAS_Private"
 /*
     Scale n scalars
 */
@@ -298,8 +282,6 @@ PetscErrorCode BVScale_BLAS_Private(BV bv,PetscInt n_,PetscScalar *A,PetscScalar
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "BVNorm_LAPACK_Private"
 /*
     Compute ||A|| for an mxn matrix
 */
@@ -355,8 +337,6 @@ PetscErrorCode BVNorm_LAPACK_Private(BV bv,PetscInt m_,PetscInt n_,const PetscSc
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "BVOrthogonalize_LAPACK_Private"
 /*
     QR factorization of an mxn matrix
 */

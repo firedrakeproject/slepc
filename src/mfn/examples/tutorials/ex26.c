@@ -26,8 +26,6 @@ static char help[] = "Computes the action of the square root of the 2-D Laplacia
 
 #include <slepcmfn.h>
 
-#undef __FUNCT__
-#define __FUNCT__ "main"
 int main(int argc,char **argv)
 {
   Mat            A;           /* problem matrix */

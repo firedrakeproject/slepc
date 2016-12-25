@@ -26,8 +26,6 @@ static char help[] = "Test EPS with different builds with a matrix loaded from a
 
 #include <slepceps.h>
 
-#undef __FUNCT__
-#define __FUNCT__ "main"
 int main(int argc,char **argv)
 {
   Mat            A;               /* operator matrix */

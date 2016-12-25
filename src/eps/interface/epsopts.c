@@ -25,8 +25,6 @@
 #include <slepc/private/epsimpl.h>   /*I "slepceps.h" I*/
 #include <petscdraw.h>
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSMonitorSetFromOptions"
 /*@C
    EPSMonitorSetFromOptions - Sets a monitor function and viewer appropriate for the type
    indicated by the user.
@@ -66,8 +64,6 @@ PetscErrorCode EPSMonitorSetFromOptions(EPS eps,const char name[],const char hel
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSConvMonitorSetFromOptions"
 /*@C
    EPSConvMonitorSetFromOptions - Sets a monitor function and viewer appropriate for the type
    indicated by the user (for monitors that only show iteration numbers of convergence).
@@ -103,8 +99,6 @@ PetscErrorCode EPSConvMonitorSetFromOptions(EPS eps,const char name[],const char
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSSetFromOptions"
 /*@
    EPSSetFromOptions - Sets EPS options from the options database.
    This routine must be called before EPSSetUp() if the user is to be
@@ -303,8 +297,6 @@ PetscErrorCode EPSSetFromOptions(EPS eps)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSGetTolerances"
 /*@
    EPSGetTolerances - Gets the tolerance and maximum iteration count used
    by the EPS convergence tests.
@@ -334,8 +326,6 @@ PetscErrorCode EPSGetTolerances(EPS eps,PetscReal *tol,PetscInt *maxits)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSSetTolerances"
 /*@
    EPSSetTolerances - Sets the tolerance and maximum iteration count used
    by the EPS convergence tests.
@@ -381,8 +371,6 @@ PetscErrorCode EPSSetTolerances(EPS eps,PetscReal tol,PetscInt maxits)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSGetDimensions"
 /*@C
    EPSGetDimensions - Gets the number of eigenvalues to compute
    and the dimension of the subspace.
@@ -411,8 +399,6 @@ PetscErrorCode EPSGetDimensions(EPS eps,PetscInt *nev,PetscInt *ncv,PetscInt *mp
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSSetDimensions"
 /*@
    EPSSetDimensions - Sets the number of eigenvalues to compute
    and the dimension of the subspace.
@@ -476,8 +462,6 @@ PetscErrorCode EPSSetDimensions(EPS eps,PetscInt nev,PetscInt ncv,PetscInt mpd)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSSetWhichEigenpairs"
 /*@
    EPSSetWhichEigenpairs - Specifies which portion of the spectrum is
    to be sought.
@@ -568,8 +552,6 @@ PetscErrorCode EPSSetWhichEigenpairs(EPS eps,EPSWhich which)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSGetWhichEigenpairs"
 /*@
    EPSGetWhichEigenpairs - Returns which portion of the spectrum is to be
    sought.
@@ -598,8 +580,6 @@ PetscErrorCode EPSGetWhichEigenpairs(EPS eps,EPSWhich *which)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSSetEigenvalueComparison"
 /*@C
    EPSSetEigenvalueComparison - Specifies the eigenvalue comparison function
    when EPSSetWhichEigenpairs() is set to EPS_WHICH_USER.
@@ -641,8 +621,6 @@ PetscErrorCode EPSSetEigenvalueComparison(EPS eps,PetscErrorCode (*func)(PetscSc
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSSetArbitrarySelection"
 /*@C
    EPSSetArbitrarySelection - Specifies a function intended to look for
    eigenvalues according to an arbitrary selection criterion. This criterion
@@ -700,8 +678,6 @@ PetscErrorCode EPSSetArbitrarySelection(EPS eps,PetscErrorCode (*func)(PetscScal
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSSetConvergenceTestFunction"
 /*@C
    EPSSetConvergenceTestFunction - Sets a function to compute the error estimate
    used in the convergence test.
@@ -751,8 +727,6 @@ PetscErrorCode EPSSetConvergenceTestFunction(EPS eps,PetscErrorCode (*func)(EPS,
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSSetConvergenceTest"
 /*@
    EPSSetConvergenceTest - Specifies how to compute the error estimate
    used in the convergence test.
@@ -797,8 +771,6 @@ PetscErrorCode EPSSetConvergenceTest(EPS eps,EPSConv conv)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSGetConvergenceTest"
 /*@
    EPSGetConvergenceTest - Gets the method used to compute the error estimate
    used in the convergence test.
@@ -824,8 +796,6 @@ PetscErrorCode EPSGetConvergenceTest(EPS eps,EPSConv *conv)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSSetStoppingTestFunction"
 /*@C
    EPSSetStoppingTestFunction - Sets a function to decide when to stop the outer
    iteration of the eigensolver.
@@ -876,8 +846,6 @@ PetscErrorCode EPSSetStoppingTestFunction(EPS eps,PetscErrorCode (*func)(EPS,Pet
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSSetStoppingTest"
 /*@
    EPSSetStoppingTest - Specifies how to decide the termination of the outer
    loop of the eigensolver.
@@ -916,8 +884,6 @@ PetscErrorCode EPSSetStoppingTest(EPS eps,EPSStop stop)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSGetStoppingTest"
 /*@
    EPSGetStoppingTest - Gets the method used to decide the termination of the outer
    loop of the eigensolver.
@@ -943,8 +909,6 @@ PetscErrorCode EPSGetStoppingTest(EPS eps,EPSStop *stop)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSSetProblemType"
 /*@
    EPSSetProblemType - Specifies the type of the eigenvalue problem.
 
@@ -1024,8 +988,6 @@ PetscErrorCode EPSSetProblemType(EPS eps,EPSProblemType type)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSGetProblemType"
 /*@
    EPSGetProblemType - Gets the problem type from the EPS object.
 
@@ -1050,8 +1012,6 @@ PetscErrorCode EPSGetProblemType(EPS eps,EPSProblemType *type)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSSetExtraction"
 /*@
    EPSSetExtraction - Specifies the type of extraction technique to be employed
    by the eigensolver.
@@ -1094,8 +1054,6 @@ PetscErrorCode EPSSetExtraction(EPS eps,EPSExtraction extr)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSGetExtraction"
 /*@
    EPSGetExtraction - Gets the extraction type used by the EPS object.
 
@@ -1120,8 +1078,6 @@ PetscErrorCode EPSGetExtraction(EPS eps,EPSExtraction *extr)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSSetBalance"
 /*@
    EPSSetBalance - Specifies the balancing technique to be employed by the
    eigensolver, and some parameters associated to it.
@@ -1197,8 +1153,6 @@ PetscErrorCode EPSSetBalance(EPS eps,EPSBalance bal,PetscInt its,PetscReal cutof
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSGetBalance"
 /*@
    EPSGetBalance - Gets the balancing type used by the EPS object, and the
    associated parameters.
@@ -1230,8 +1184,6 @@ PetscErrorCode EPSGetBalance(EPS eps,EPSBalance *bal,PetscInt *its,PetscReal *cu
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSSetTrueResidual"
 /*@
    EPSSetTrueResidual - Specifies if the solver must compute the true residual
    explicitly or not.
@@ -1268,8 +1220,6 @@ PetscErrorCode EPSSetTrueResidual(EPS eps,PetscBool trueres)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSGetTrueResidual"
 /*@
    EPSGetTrueResidual - Returns the flag indicating whether true
    residuals must be computed explicitly or not.
@@ -1295,8 +1245,6 @@ PetscErrorCode EPSGetTrueResidual(EPS eps,PetscBool *trueres)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSSetTrackAll"
 /*@
    EPSSetTrackAll - Specifies if the solver must compute the residual norm of all
    approximate eigenpairs or not.
@@ -1329,8 +1277,6 @@ PetscErrorCode EPSSetTrackAll(EPS eps,PetscBool trackall)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSGetTrackAll"
 /*@
    EPSGetTrackAll - Returns the flag indicating whether all residual norms must
    be computed or not.
@@ -1356,8 +1302,6 @@ PetscErrorCode EPSGetTrackAll(EPS eps,PetscBool *trackall)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSSetPurify"
 /*@
    EPSSetPurify - Deactivate eigenvector purification (which is activated by default).
 
@@ -1390,8 +1334,6 @@ PetscErrorCode EPSSetPurify(EPS eps,PetscBool purify)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSGetPurify"
 /*@
    EPSGetPurify - Returns the flag indicating whether purification is activated
    or not.
@@ -1417,8 +1359,6 @@ PetscErrorCode EPSGetPurify(EPS eps,PetscBool *purify)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSSetOptionsPrefix"
 /*@C
    EPSSetOptionsPrefix - Sets the prefix used for searching for all
    EPS options in the database.
@@ -1463,8 +1403,6 @@ PetscErrorCode EPSSetOptionsPrefix(EPS eps,const char *prefix)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSAppendOptionsPrefix"
 /*@C
    EPSAppendOptionsPrefix - Appends to the prefix used for searching for all
    EPS options in the database.
@@ -1501,8 +1439,6 @@ PetscErrorCode EPSAppendOptionsPrefix(EPS eps,const char *prefix)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSGetOptionsPrefix"
 /*@C
    EPSGetOptionsPrefix - Gets the prefix used for searching for all
    EPS options in the database.

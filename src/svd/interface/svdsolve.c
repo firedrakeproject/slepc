@@ -23,8 +23,6 @@
 
 #include <slepc/private/svdimpl.h>   /*I "slepcsvd.h" I*/
 
-#undef __FUNCT__
-#define __FUNCT__ "SVDComputeVectors"
 PetscErrorCode SVDComputeVectors(SVD svd)
 {
   PetscErrorCode ierr;
@@ -58,8 +56,6 @@ PetscErrorCode SVDComputeVectors(SVD svd)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "SVDSolve"
 /*@
    SVDSolve - Solves the singular value problem.
 
@@ -131,8 +127,6 @@ PetscErrorCode SVDSolve(SVD svd)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "SVDGetIterationNumber"
 /*@
    SVDGetIterationNumber - Gets the current iteration number. If the
    call to SVDSolve() is complete, then it returns the number of iterations
@@ -166,8 +160,6 @@ PetscErrorCode SVDGetIterationNumber(SVD svd,PetscInt *its)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "SVDGetConvergedReason"
 /*@
    SVDGetConvergedReason - Gets the reason why the SVDSolve() iteration was
    stopped.
@@ -205,8 +197,6 @@ PetscErrorCode SVDGetConvergedReason(SVD svd,SVDConvergedReason *reason)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "SVDGetConverged"
 /*@
    SVDGetConverged - Gets the number of converged singular values.
 
@@ -234,8 +224,6 @@ PetscErrorCode SVDGetConverged(SVD svd,PetscInt *nconv)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "SVDGetSingularTriplet"
 /*@C
    SVDGetSingularTriplet - Gets the i-th triplet of the singular value decomposition
    as computed by SVDSolve(). The solution consists in the singular value and its left
@@ -291,8 +279,6 @@ PetscErrorCode SVDGetSingularTriplet(SVD svd,PetscInt i,PetscReal *sigma,Vec u,V
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "SVDComputeResidualNorms_Private"
 /*
    SVDComputeResidualNorms_Private - Computes the norms of the left and
    right residuals associated with the i-th computed singular triplet.
@@ -342,8 +328,6 @@ static PetscErrorCode SVDComputeResidualNorms_Private(SVD svd,PetscInt i,PetscRe
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "SVDComputeError"
 /*@
    SVDComputeError - Computes the error (based on the residual norm) associated
    with the i-th singular triplet.

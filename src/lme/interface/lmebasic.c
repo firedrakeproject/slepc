@@ -28,8 +28,6 @@ PetscBool         LMERegisterAllCalled = PETSC_FALSE;
 PetscClassId      LME_CLASSID = 0;
 PetscLogEvent     LME_SetUp = 0,LME_Solve = 0,LME_ComputeError = 0;
 
-#undef __FUNCT__
-#define __FUNCT__ "LMEView"
 /*@C
    LMEView - Prints the LME data structure.
 
@@ -100,8 +98,6 @@ PetscErrorCode LMEView(LME lme,PetscViewer viewer)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "LMEReasonView"
 /*@C
    LMEReasonView - Displays the reason an LME solve converged or diverged.
 
@@ -137,8 +133,6 @@ PetscErrorCode LMEReasonView(LME lme,PetscViewer viewer)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "LMEReasonViewFromOptions"
 /*@
    LMEReasonViewFromOptions - Processes command line options to determine if/how
    the LME converged reason is to be viewed.
@@ -172,8 +166,6 @@ PetscErrorCode LMEReasonViewFromOptions(LME lme)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "LMECreate"
 /*@
    LMECreate - Creates the default LME context.
 
@@ -231,8 +223,6 @@ PetscErrorCode LMECreate(MPI_Comm comm,LME *outlme)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "LMESetType"
 /*@C
    LMESetType - Selects the particular solver to be used in the LME object.
 
@@ -286,8 +276,6 @@ PetscErrorCode LMESetType(LME lme,LMEType type)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "LMEGetType"
 /*@C
    LMEGetType - Gets the LME type as a string from the LME object.
 
@@ -312,8 +300,6 @@ PetscErrorCode LMEGetType(LME lme,LMEType *type)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "LMERegister"
 /*@C
    LMERegister - Adds a method to the linear matrix equation solver package.
 
@@ -349,8 +335,6 @@ PetscErrorCode LMERegister(const char *name,PetscErrorCode (*function)(LME))
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "LMEReset"
 /*@
    LMEReset - Resets the LME context to the initial state (prior to setup)
    and destroys any allocated Vecs and Mats.
@@ -384,8 +368,6 @@ PetscErrorCode LMEReset(LME lme)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "LMEDestroy"
 /*@
    LMEDestroy - Destroys the LME context.
 
@@ -413,8 +395,6 @@ PetscErrorCode LMEDestroy(LME *lme)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "LMESetBV"
 /*@
    LMESetBV - Associates a basis vectors object to the linear matrix equation solver.
 
@@ -447,8 +427,6 @@ PetscErrorCode LMESetBV(LME lme,BV bv)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "LMEGetBV"
 /*@
    LMEGetBV - Obtain the basis vectors object associated to the matrix
    function solver.

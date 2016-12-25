@@ -31,8 +31,6 @@ typedef struct {
   PetscInt    nq;         /* length of array qcoeff, q(x) has degree nq-1 */
 } FN_RATIONAL;
 
-#undef __FUNCT__
-#define __FUNCT__ "FNEvaluateFunction_Rational"
 PetscErrorCode FNEvaluateFunction_Rational(FN fn,PetscScalar x,PetscScalar *y)
 {
   FN_RATIONAL *ctx = (FN_RATIONAL*)fn->data;
@@ -57,8 +55,6 @@ PetscErrorCode FNEvaluateFunction_Rational(FN fn,PetscScalar x,PetscScalar *y)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "FNEvaluateFunctionMat_Private"
 static PetscErrorCode FNEvaluateFunctionMat_Private(FN fn,PetscScalar *Aa,PetscScalar *Ba,PetscInt m,PetscBool firstonly)
 {
 #if defined(PETSC_MISSING_LAPACK_GESV)
@@ -113,8 +109,6 @@ static PetscErrorCode FNEvaluateFunctionMat_Private(FN fn,PetscScalar *Aa,PetscS
 #endif
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "FNEvaluateFunctionMat_Rational"
 PetscErrorCode FNEvaluateFunctionMat_Rational(FN fn,Mat A,Mat B)
 {
   PetscErrorCode ierr;
@@ -131,8 +125,6 @@ PetscErrorCode FNEvaluateFunctionMat_Rational(FN fn,Mat A,Mat B)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "FNEvaluateFunctionMatVec_Rational"
 PetscErrorCode FNEvaluateFunctionMatVec_Rational(FN fn,Mat A,Vec v)
 {
   PetscErrorCode ierr;
@@ -153,8 +145,6 @@ PetscErrorCode FNEvaluateFunctionMatVec_Rational(FN fn,Mat A,Vec v)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "FNEvaluateDerivative_Rational"
 PetscErrorCode FNEvaluateDerivative_Rational(FN fn,PetscScalar x,PetscScalar *yp)
 {
   FN_RATIONAL *ctx = (FN_RATIONAL*)fn->data;
@@ -187,8 +177,6 @@ PetscErrorCode FNEvaluateDerivative_Rational(FN fn,PetscScalar x,PetscScalar *yp
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "FNView_Rational"
 PetscErrorCode FNView_Rational(FN fn,PetscViewer viewer)
 {
   PetscErrorCode ierr;
@@ -256,8 +244,6 @@ PetscErrorCode FNView_Rational(FN fn,PetscViewer viewer)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "FNRationalSetNumerator_Rational"
 static PetscErrorCode FNRationalSetNumerator_Rational(FN fn,PetscInt np,PetscScalar *pcoeff)
 {
   PetscErrorCode ierr;
@@ -276,8 +262,6 @@ static PetscErrorCode FNRationalSetNumerator_Rational(FN fn,PetscInt np,PetscSca
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "FNRationalSetNumerator"
 /*@
    FNRationalSetNumerator - Sets the parameters defining the numerator of the
    rational function.
@@ -314,8 +298,6 @@ PetscErrorCode FNRationalSetNumerator(FN fn,PetscInt np,PetscScalar *pcoeff)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "FNRationalGetNumerator_Rational"
 static PetscErrorCode FNRationalGetNumerator_Rational(FN fn,PetscInt *np,PetscScalar *pcoeff[])
 {
   PetscErrorCode ierr;
@@ -334,8 +316,6 @@ static PetscErrorCode FNRationalGetNumerator_Rational(FN fn,PetscInt *np,PetscSc
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "FNRationalGetNumerator"
 /*@
    FNRationalGetNumerator - Gets the parameters that define the numerator of the
    rational function.
@@ -368,8 +348,6 @@ PetscErrorCode FNRationalGetNumerator(FN fn,PetscInt *np,PetscScalar *pcoeff[])
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "FNRationalSetDenominator_Rational"
 static PetscErrorCode FNRationalSetDenominator_Rational(FN fn,PetscInt nq,PetscScalar *qcoeff)
 {
   PetscErrorCode ierr;
@@ -388,8 +366,6 @@ static PetscErrorCode FNRationalSetDenominator_Rational(FN fn,PetscInt nq,PetscS
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "FNRationalSetDenominator"
 /*@
    FNRationalSetDenominator - Sets the parameters defining the denominator of the
    rational function.
@@ -426,8 +402,6 @@ PetscErrorCode FNRationalSetDenominator(FN fn,PetscInt nq,PetscScalar *qcoeff)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "FNRationalGetDenominator_Rational"
 static PetscErrorCode FNRationalGetDenominator_Rational(FN fn,PetscInt *nq,PetscScalar *qcoeff[])
 {
   PetscErrorCode ierr;
@@ -446,8 +420,6 @@ static PetscErrorCode FNRationalGetDenominator_Rational(FN fn,PetscInt *nq,Petsc
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "FNRationalGetDenominator"
 /*@
    FNRationalGetDenominator - Gets the parameters that define the denominator of the
    rational function.
@@ -480,8 +452,6 @@ PetscErrorCode FNRationalGetDenominator(FN fn,PetscInt *nq,PetscScalar *qcoeff[]
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "FNSetFromOptions_Rational"
 PetscErrorCode FNSetFromOptions_Rational(PetscOptionItems *PetscOptionsObject,FN fn)
 {
   PetscErrorCode ierr;
@@ -507,8 +477,6 @@ PetscErrorCode FNSetFromOptions_Rational(PetscOptionItems *PetscOptionsObject,FN
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "FNDuplicate_Rational"
 PetscErrorCode FNDuplicate_Rational(FN fn,MPI_Comm comm,FN *newfn)
 {
   PetscErrorCode ierr;
@@ -531,8 +499,6 @@ PetscErrorCode FNDuplicate_Rational(FN fn,MPI_Comm comm,FN *newfn)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "FNDestroy_Rational"
 PetscErrorCode FNDestroy_Rational(FN fn)
 {
   PetscErrorCode ierr;
@@ -549,8 +515,6 @@ PetscErrorCode FNDestroy_Rational(FN fn)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "FNCreate_Rational"
 PETSC_EXTERN PetscErrorCode FNCreate_Rational(FN fn)
 {
   PetscErrorCode ierr;

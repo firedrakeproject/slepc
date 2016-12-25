@@ -23,8 +23,6 @@ static char help[] = "Tests B-orthonormality of eigenvectors in a GHEP problem.\
 
 #include <slepceps.h>
 
-#undef __FUNCT__
-#define __FUNCT__ "main"
 int main(int argc,char **argv)
 {
   Mat               A,B;        /* matrices */

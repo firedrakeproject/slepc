@@ -24,8 +24,6 @@
 #include <slepc/private/epsimpl.h>
 #include <../src/eps/impls/external/arpack/arpackp.h>
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSSetUp_ARPACK"
 PetscErrorCode EPSSetUp_ARPACK(EPS eps)
 {
   PetscErrorCode ierr;
@@ -87,8 +85,6 @@ PetscErrorCode EPSSetUp_ARPACK(EPS eps)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSSolve_ARPACK"
 PetscErrorCode EPSSolve_ARPACK(EPS eps)
 {
   PetscErrorCode ierr;
@@ -286,8 +282,6 @@ PetscErrorCode EPSSolve_ARPACK(EPS eps)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSBackTransform_ARPACK"
 PetscErrorCode EPSBackTransform_ARPACK(EPS eps)
 {
   PetscErrorCode ierr;
@@ -301,8 +295,6 @@ PetscErrorCode EPSBackTransform_ARPACK(EPS eps)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSReset_ARPACK"
 PetscErrorCode EPSReset_ARPACK(EPS eps)
 {
   PetscErrorCode ierr;
@@ -319,8 +311,6 @@ PetscErrorCode EPSReset_ARPACK(EPS eps)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSDestroy_ARPACK"
 PetscErrorCode EPSDestroy_ARPACK(EPS eps)
 {
   PetscErrorCode ierr;
@@ -330,8 +320,6 @@ PetscErrorCode EPSDestroy_ARPACK(EPS eps)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSCreate_ARPACK"
 PETSC_EXTERN PetscErrorCode EPSCreate_ARPACK(EPS eps)
 {
   EPS_ARPACK     *ctx;

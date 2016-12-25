@@ -32,8 +32,6 @@ static char help[] = "Solves the same eigenproblem as in example ex2, but using 
 PetscErrorCode MatMult_Laplacian2D(Mat A,Vec x,Vec y);
 PetscErrorCode MatGetDiagonal_Laplacian2D(Mat A,Vec diag);
 
-#undef __FUNCT__
-#define __FUNCT__ "main"
 int main(int argc,char **argv)
 {
   Mat            A;               /* operator matrix */
@@ -136,8 +134,6 @@ static void tv(int nx,const PetscScalar *x,PetscScalar *y)
   y[nx-1] = dl*x[nx-2] + dd*x[nx-1];
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "MatMult_Laplacian2D"
 /*
     Matrix-vector product subroutine for the 2D Laplacian.
 
@@ -186,8 +182,6 @@ PetscErrorCode MatMult_Laplacian2D(Mat A,Vec x,Vec y)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "MatGetDiagonal_Laplacian2D"
 PetscErrorCode MatGetDiagonal_Laplacian2D(Mat A,Vec diag)
 {
   PetscErrorCode ierr;

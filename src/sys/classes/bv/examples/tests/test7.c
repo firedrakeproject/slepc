@@ -23,8 +23,6 @@ static char help[] = "Test multiplication of a Mat times a BV.\n\n";
 
 #include <slepcbv.h>
 
-#undef __FUNCT__
-#define __FUNCT__ "main"
 int main(int argc,char **argv)
 {
   PetscErrorCode ierr;

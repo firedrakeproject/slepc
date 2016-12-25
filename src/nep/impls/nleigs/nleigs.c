@@ -67,8 +67,6 @@ typedef struct {
   Vec         t;
 } ShellMatCtx;
 
-#undef __FUNCT__
-#define __FUNCT__ "NEPNLEIGSSetShifts"
 PETSC_STATIC_INLINE PetscErrorCode NEPNLEIGSSetShifts(NEP nep)
 {
   NEP_NLEIGS *ctx = (NEP_NLEIGS*)nep->data;
@@ -81,8 +79,6 @@ PETSC_STATIC_INLINE PetscErrorCode NEPNLEIGSSetShifts(NEP nep)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "NEPNLEIGSBackTransform"
 static PetscErrorCode NEPNLEIGSBackTransform(PetscObject ob,PetscInt n,PetscScalar *valr,PetscScalar *vali)
 {
   NEP         nep;
@@ -110,8 +106,6 @@ static PetscErrorCode NEPNLEIGSBackTransform(PetscObject ob,PetscInt n,PetscScal
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "NEPNLEIGSLejaBagbyPoints"
 static PetscErrorCode NEPNLEIGSLejaBagbyPoints(NEP nep)
 {
   PetscErrorCode ierr;
@@ -170,8 +164,6 @@ static PetscErrorCode NEPNLEIGSLejaBagbyPoints(NEP nep)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "NEPNLEIGSEvalNRTFunct"
 static PetscErrorCode NEPNLEIGSEvalNRTFunct(NEP nep,PetscInt k,PetscScalar sigma,PetscScalar *b)
 {
   NEP_NLEIGS  *ctx=(NEP_NLEIGS*)nep->data;
@@ -186,8 +178,6 @@ static PetscErrorCode NEPNLEIGSEvalNRTFunct(NEP nep,PetscInt k,PetscScalar sigma
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "MatMult_Fun"
 static PetscErrorCode MatMult_Fun(Mat A,Vec x,Vec y)
 {
   PetscErrorCode ierr;
@@ -205,8 +195,6 @@ static PetscErrorCode MatMult_Fun(Mat A,Vec x,Vec y)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "MatMultTranspose_Fun"
 static PetscErrorCode MatMultTranspose_Fun(Mat A,Vec x,Vec y)
 {
   PetscErrorCode ierr;
@@ -224,8 +212,6 @@ static PetscErrorCode MatMultTranspose_Fun(Mat A,Vec x,Vec y)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "MatGetDiagonal_Fun"
 static PetscErrorCode MatGetDiagonal_Fun(Mat A,Vec diag)
 {
   PetscErrorCode ierr;
@@ -243,8 +229,6 @@ static PetscErrorCode MatGetDiagonal_Fun(Mat A,Vec diag)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "MatDuplicate_Fun"
 static PetscErrorCode MatDuplicate_Fun(Mat A,MatDuplicateOption op,Mat *B)
 {
   PetscInt       n,i;
@@ -281,8 +265,6 @@ static PetscErrorCode MatDuplicate_Fun(Mat A,MatDuplicateOption op,Mat *B)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "MatDestroy_Fun"
 static PetscErrorCode MatDestroy_Fun(Mat A)
 {
   ShellMatCtx    *ctx;
@@ -302,8 +284,6 @@ static PetscErrorCode MatDestroy_Fun(Mat A)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "MatAXPY_Fun"
 static PetscErrorCode MatAXPY_Fun(Mat Y,PetscScalar a,Mat X,MatStructure str)
 {
   ShellMatCtx    *ctxY,*ctxX;
@@ -331,8 +311,6 @@ static PetscErrorCode MatAXPY_Fun(Mat Y,PetscScalar a,Mat X,MatStructure str)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "MatScale_Fun"
 static PetscErrorCode MatScale_Fun(Mat M,PetscScalar a)
 {
   ShellMatCtx    *ctx;
@@ -345,8 +323,6 @@ static PetscErrorCode MatScale_Fun(Mat M,PetscScalar a)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "NLEIGSMatToMatShellArray"
 static PetscErrorCode NLEIGSMatToMatShellArray(Mat M,Mat *Ms,PetscInt maxnmat)
 {
   PetscErrorCode ierr;
@@ -376,8 +352,6 @@ static PetscErrorCode NLEIGSMatToMatShellArray(Mat M,Mat *Ms,PetscInt maxnmat)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "NEPNLEIGSNormEstimation"
 static PetscErrorCode NEPNLEIGSNormEstimation(NEP nep,Mat M,PetscReal *norm,Vec *w)
 {
   PetscScalar    *z,*x,*y;
@@ -421,8 +395,6 @@ static PetscErrorCode NEPNLEIGSNormEstimation(NEP nep,Mat M,PetscReal *norm,Vec 
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "NEPNLEIGSDividedDifferences_split"
 static PetscErrorCode NEPNLEIGSDividedDifferences_split(NEP nep)
 {
   PetscErrorCode ierr;
@@ -493,8 +465,6 @@ static PetscErrorCode NEPNLEIGSDividedDifferences_split(NEP nep)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "NEPNLEIGSDividedDifferences_callback"
 static PetscErrorCode NEPNLEIGSDividedDifferences_callback(NEP nep)
 {
   PetscErrorCode ierr;
@@ -579,8 +549,6 @@ static PetscErrorCode NEPNLEIGSDividedDifferences_callback(NEP nep)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "NEPNLEIGSKrylovConvergence"
 /*
    NEPKrylovConvergence - This is the analogue to EPSKrylovConvergence.
 */
@@ -626,8 +594,6 @@ static PetscErrorCode NEPNLEIGSKrylovConvergence(NEP nep,PetscScalar *S,PetscInt
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "NEPSetUp_NLEIGS"
 PetscErrorCode NEPSetUp_NLEIGS(NEP nep)
 {
   PetscErrorCode ierr;
@@ -683,8 +649,6 @@ PetscErrorCode NEPSetUp_NLEIGS(NEP nep)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "NEPTOARSNorm2"
 /*
   Norm of [sp;sq]
 */
@@ -699,8 +663,6 @@ static PetscErrorCode NEPTOARSNorm2(PetscInt n,PetscScalar *S,PetscReal *norm)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "NEPTOAROrth2"
 /*
  Computes GS orthogonalization   [z;x] - [Sp;Sq]*y,
  where y = ([Sp;Sq]'*[z;x]).
@@ -752,8 +714,6 @@ static PetscErrorCode NEPTOAROrth2(NEP nep,PetscScalar *S,PetscInt ld,PetscInt d
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "NEPTOARExtendBasis"
 /*
   Extend the TOAR basis by applying the the matrix operator
   over a vector which is decomposed on the TOAR way
@@ -822,8 +782,6 @@ static PetscErrorCode NEPTOARExtendBasis(NEP nep,PetscInt idxrktg,PetscScalar *S
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "NEPTOARCoefficients"
 /*
   Compute TOAR coefficients of the blocks of the new Arnoldi vector computed
 */
@@ -843,8 +801,6 @@ static PetscErrorCode NEPTOARCoefficients(NEP nep,PetscScalar sigma,PetscInt nv,
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "NEPNLEIGS_RKcontinuation"
 /*
   Compute continuation vector coefficients for the Rational-Krylov run.
   dim(work) >= (end-ini)*(end-ini+1) + end+1 + 2*(end-ini+1), dim(t) = end.
@@ -898,8 +854,6 @@ static PetscErrorCode NEPNLEIGS_RKcontinuation(NEP nep,PetscInt ini,PetscInt end
 #endif
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "NEPNLEIGSTOARrun"
 /*
   Compute a run of Arnoldi iterations
 */
@@ -959,8 +913,6 @@ static PetscErrorCode NEPNLEIGSTOARrun(NEP nep,PetscInt *nq,PetscScalar *S,Petsc
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "NEPTOARTrunc"
 /* dim(work)=5*ld*lds dim(rwork)=6*n */
 static PetscErrorCode NEPTOARTrunc(NEP nep,PetscScalar *S,PetscInt ld,PetscInt deg,PetscInt *nq,PetscInt cs1,PetscScalar *work,PetscReal *rwork)
 {
@@ -1026,8 +978,6 @@ static PetscErrorCode NEPTOARTrunc(NEP nep,PetscScalar *S,PetscInt ld,PetscInt d
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "NEPTOARSupdate"
 /*
   S <- S*Q
   columns s-s+ncu of S
@@ -1057,8 +1007,6 @@ static PetscErrorCode NEPTOARSupdate(PetscScalar *S,PetscInt ld,PetscInt deg,Pet
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "NEPSolve_NLEIGS"
 PetscErrorCode NEPSolve_NLEIGS(NEP nep)
 {
   PetscErrorCode ierr;
@@ -1230,8 +1178,6 @@ PetscErrorCode NEPSolve_NLEIGS(NEP nep)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "NEPNLEIGSSetSingularitiesFunction_NLEIGS"
 static PetscErrorCode NEPNLEIGSSetSingularitiesFunction_NLEIGS(NEP nep,PetscErrorCode (*fun)(NEP,PetscInt*,PetscScalar*,void*),void *ctx)
 {
   NEP_NLEIGS *nepctx=(NEP_NLEIGS*)nep->data;
@@ -1242,8 +1188,6 @@ static PetscErrorCode NEPNLEIGSSetSingularitiesFunction_NLEIGS(NEP nep,PetscErro
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "NEPNLEIGSSetSingularitiesFunction"
 /*@C
    NEPNLEIGSSetSingularitiesFunction - Sets a user function to compute a discretization
    of the singularity set (where T(.) is not analytic).
@@ -1282,8 +1226,6 @@ PetscErrorCode NEPNLEIGSSetSingularitiesFunction(NEP nep,PetscErrorCode (*fun)(N
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "NEPNLEIGSGetSingularitiesFunction_NLEIGS"
 static PetscErrorCode NEPNLEIGSGetSingularitiesFunction_NLEIGS(NEP nep,PetscErrorCode (**fun)(NEP,PetscInt*,PetscScalar*,void*),void **ctx)
 {
   NEP_NLEIGS *nepctx=(NEP_NLEIGS*)nep->data;
@@ -1294,8 +1236,6 @@ static PetscErrorCode NEPNLEIGSGetSingularitiesFunction_NLEIGS(NEP nep,PetscErro
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "NEPNLEIGSGetSingularitiesFunction"
 /*@C
    NEPNLEIGSGetSingularitiesFunction - Returns the Function and optionally the user
    provided context for computing a discretization of the singularity set.
@@ -1323,8 +1263,6 @@ PetscErrorCode NEPNLEIGSGetSingularitiesFunction(NEP nep,PetscErrorCode (**fun)(
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "NEPNLEIGSSetRestart_NLEIGS"
 static PetscErrorCode NEPNLEIGSSetRestart_NLEIGS(NEP nep,PetscReal keep)
 {
   NEP_NLEIGS *ctx=(NEP_NLEIGS*)nep->data;
@@ -1338,8 +1276,6 @@ static PetscErrorCode NEPNLEIGSSetRestart_NLEIGS(NEP nep,PetscReal keep)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "NEPNLEIGSSetRestart"
 /*@
    NEPNLEIGSSetRestart - Sets the restart parameter for the NLEIGS
    method, in particular the proportion of basis vectors that must be kept
@@ -1372,8 +1308,6 @@ PetscErrorCode NEPNLEIGSSetRestart(NEP nep,PetscReal keep)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "NEPNLEIGSGetRestart_NLEIGS"
 static PetscErrorCode NEPNLEIGSGetRestart_NLEIGS(NEP nep,PetscReal *keep)
 {
   NEP_NLEIGS *ctx=(NEP_NLEIGS*)nep->data;
@@ -1383,8 +1317,6 @@ static PetscErrorCode NEPNLEIGSGetRestart_NLEIGS(NEP nep,PetscReal *keep)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "NEPNLEIGSGetRestart"
 /*@
    NEPNLEIGSGetRestart - Gets the restart parameter used in the NLEIGS method.
 
@@ -1411,8 +1343,6 @@ PetscErrorCode NEPNLEIGSGetRestart(NEP nep,PetscReal *keep)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "NEPNLEIGSSetLocking_NLEIGS"
 static PetscErrorCode NEPNLEIGSSetLocking_NLEIGS(NEP nep,PetscBool lock)
 {
   NEP_NLEIGS *ctx=(NEP_NLEIGS*)nep->data;
@@ -1422,8 +1352,6 @@ static PetscErrorCode NEPNLEIGSSetLocking_NLEIGS(NEP nep,PetscBool lock)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "NEPNLEIGSSetLocking"
 /*@
    NEPNLEIGSSetLocking - Choose between locking and non-locking variants of
    the NLEIGS method.
@@ -1458,8 +1386,6 @@ PetscErrorCode NEPNLEIGSSetLocking(NEP nep,PetscBool lock)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "NEPNLEIGSGetLocking_NLEIGS"
 static PetscErrorCode NEPNLEIGSGetLocking_NLEIGS(NEP nep,PetscBool *lock)
 {
   NEP_NLEIGS *ctx=(NEP_NLEIGS*)nep->data;
@@ -1469,8 +1395,6 @@ static PetscErrorCode NEPNLEIGSGetLocking_NLEIGS(NEP nep,PetscBool *lock)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "NEPNLEIGSGetLocking"
 /*@
    NEPNLEIGSGetLocking - Gets the locking flag used in the NLEIGS method.
 
@@ -1497,8 +1421,6 @@ PetscErrorCode NEPNLEIGSGetLocking(NEP nep,PetscBool *lock)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "NEPNLEIGSSetInterpolation_NLEIGS"
 static PetscErrorCode NEPNLEIGSSetInterpolation_NLEIGS(NEP nep,PetscReal tol,PetscInt maxits)
 {
   PetscErrorCode ierr;
@@ -1527,8 +1449,6 @@ static PetscErrorCode NEPNLEIGSSetInterpolation_NLEIGS(NEP nep,PetscReal tol,Pet
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "NEPNLEIGSSetInterpolation"
 /*@
    NEPNLEIGSSetInterpolation - Sets the tolerance and maximum iteration count used
    by the NLEIGS method when building the interpolation via divided differences.
@@ -1563,8 +1483,6 @@ PetscErrorCode NEPNLEIGSSetInterpolation(NEP nep,PetscReal tol,PetscInt maxits)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "NEPNLEIGSGetInterpolation_NLEIGS"
 static PetscErrorCode NEPNLEIGSGetInterpolation_NLEIGS(NEP nep,PetscReal *tol,PetscInt *maxits)
 {
   NEP_NLEIGS *ctx=(NEP_NLEIGS*)nep->data;
@@ -1575,8 +1493,6 @@ static PetscErrorCode NEPNLEIGSGetInterpolation_NLEIGS(NEP nep,PetscReal *tol,Pe
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "NEPNLEIGSGetInterpolation"
 /*@
    NEPNLEIGSGetInterpolation - Gets the tolerance and maximum iteration count used
    by the NLEIGS method when building the interpolation via divided differences.
@@ -1604,8 +1520,6 @@ PetscErrorCode NEPNLEIGSGetInterpolation(NEP nep,PetscReal *tol,PetscInt *maxits
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "NEPNLEIGSSetRKShifts_NLEIGS"
 static PetscErrorCode NEPNLEIGSSetRKShifts_NLEIGS(NEP nep,PetscInt ns,PetscScalar *shifts)
 {
   PetscErrorCode ierr;
@@ -1625,8 +1539,6 @@ static PetscErrorCode NEPNLEIGSSetRKShifts_NLEIGS(NEP nep,PetscInt ns,PetscScala
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "NEPNLEIGSSetRKShifts"
 /*@C
    NEPNLEIGSSetRKShifts - Sets a list of shifts to be used in the Rational
    Krylov method.
@@ -1667,8 +1579,6 @@ PetscErrorCode NEPNLEIGSSetRKShifts(NEP nep,PetscInt ns,PetscScalar *shifts)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "NEPNLEIGSGetRKShifts_NLEIGS"
 static PetscErrorCode NEPNLEIGSGetRKShifts_NLEIGS(NEP nep,PetscInt *ns,PetscScalar **shifts)
 {
   PetscErrorCode ierr;
@@ -1684,8 +1594,6 @@ static PetscErrorCode NEPNLEIGSGetRKShifts_NLEIGS(NEP nep,PetscInt *ns,PetscScal
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "NEPNLEIGSGetRKShifts"
 /*@C
    NEPNLEIGSGetRKShifts - Gets the list of shifts used in the Rational
    Krylov method.
@@ -1717,8 +1625,6 @@ PetscErrorCode NEPNLEIGSGetRKShifts(NEP nep,PetscInt *ns,PetscScalar **shifts)
 
 #define SHIFTMAX 30
 
-#undef __FUNCT__
-#define __FUNCT__ "NEPSetFromOptions_NLEIGS"
 PetscErrorCode NEPSetFromOptions_NLEIGS(PetscOptionItems *PetscOptionsObject,NEP nep)
 {
   PetscErrorCode ierr;
@@ -1767,8 +1673,6 @@ PetscErrorCode NEPSetFromOptions_NLEIGS(PetscOptionItems *PetscOptionsObject,NEP
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "NEPNLEIGSGetKSPs_NLEIGS"
 static PetscErrorCode NEPNLEIGSGetKSPs_NLEIGS(NEP nep,KSP **ksp)
 {
   PetscErrorCode ierr;
@@ -1793,8 +1697,6 @@ static PetscErrorCode NEPNLEIGSGetKSPs_NLEIGS(NEP nep,KSP **ksp)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "NEPNLEIGSGetKSPs"
 /*@C
    NEPNLEIGSGetKSPs - Retrieve the array of linear solver objects associated with
    the nonlinear eigenvalue solver.
@@ -1820,8 +1722,6 @@ PetscErrorCode NEPNLEIGSGetKSPs(NEP nep,KSP **ksp)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "NEPView_NLEIGS"
 PetscErrorCode NEPView_NLEIGS(NEP nep,PetscViewer viewer)
 {
   PetscErrorCode ierr;
@@ -1855,8 +1755,6 @@ PetscErrorCode NEPView_NLEIGS(NEP nep,PetscViewer viewer)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "NEPReset_NLEIGS"
 PetscErrorCode NEPReset_NLEIGS(NEP nep)
 {
   PetscErrorCode ierr;
@@ -1877,8 +1775,6 @@ PetscErrorCode NEPReset_NLEIGS(NEP nep)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "NEPDestroy_NLEIGS"
 PetscErrorCode NEPDestroy_NLEIGS(NEP nep)
 {
   PetscErrorCode ierr;
@@ -1904,8 +1800,6 @@ PetscErrorCode NEPDestroy_NLEIGS(NEP nep)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "NEPCreate_NLEIGS"
 PETSC_EXTERN PetscErrorCode NEPCreate_NLEIGS(NEP nep)
 {
   PetscErrorCode ierr;

@@ -23,8 +23,6 @@
 
 #include <slepc/private/stimpl.h>            /*I "slepcst.h" I*/
 
-#undef __FUNCT__
-#define __FUNCT__ "STApply"
 /*@
    STApply - Applies the spectral transformation operator to a vector, for
    instance (A - sB)^-1 B in the case of the shift-and-invert transformation
@@ -73,8 +71,6 @@ PetscErrorCode STApply(ST st,Vec x,Vec y)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "STApplyTranspose"
 /*@
    STApplyTranspose - Applies the transpose of the operator to a vector, for
    instance B^T(A - sB)^-T in the case of the shift-and-invert transformation
@@ -123,8 +119,6 @@ PetscErrorCode STApplyTranspose(ST st,Vec x,Vec y)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "STGetBilinearForm"
 /*@
    STGetBilinearForm - Returns the matrix used in the bilinear form with a
    generalized problem with semi-definite B.
@@ -156,8 +150,6 @@ PetscErrorCode STGetBilinearForm(ST st,Mat *B)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "STGetBilinearForm_Default"
 PetscErrorCode STGetBilinearForm_Default(ST st,Mat *B)
 {
   PetscErrorCode ierr;
@@ -171,8 +163,6 @@ PetscErrorCode STGetBilinearForm_Default(ST st,Mat *B)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "STComputeExplicitOperator"
 /*@
    STComputeExplicitOperator - Computes the explicit operator associated
    to the eigenvalue problem with the specified spectral transformation.
@@ -251,8 +241,6 @@ PetscErrorCode STComputeExplicitOperator(ST st,Mat *mat)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "STSetUp"
 /*@
    STSetUp - Prepares for the use of a spectral transformation.
 
@@ -313,8 +301,6 @@ PetscErrorCode STSetUp(ST st)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "STMatMAXPY_Private"
 /*
    Computes coefficients for the transformed polynomial,
    and stores the result in argument S.
@@ -406,8 +392,6 @@ PetscErrorCode STMatMAXPY_Private(ST st,PetscScalar alpha,PetscScalar beta,Petsc
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "STCoeffs_Monomial"
 /*
    Computes the values of the coefficients required by STMatMAXPY_Private
    for the case of monomial basis.
@@ -429,8 +413,6 @@ PetscErrorCode STCoeffs_Monomial(ST st, PetscScalar *coeffs)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "STPostSolve"
 /*@
    STPostSolve - Optional post-solve phase, intended for any actions that must
    be performed on the ST object after the eigensolver has finished.
@@ -457,8 +439,6 @@ PetscErrorCode STPostSolve(ST st)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "STBackTransform"
 /*@
    STBackTransform - Back-transformation phase, intended for
    spectral transformations which require to transform the computed
@@ -486,8 +466,6 @@ PetscErrorCode STBackTransform(ST st,PetscInt n,PetscScalar* eigr,PetscScalar* e
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "STMatSetUp"
 /*@
    STMatSetUp - Build the preconditioner matrix used in STMatSolve().
 

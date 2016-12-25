@@ -35,8 +35,6 @@ struct HRtr
   PetscInt    type;
 };
 
-#undef __FUNCT__
-#define __FUNCT__ "HRGen"
 /*
   Generates a hyperbolic rotation
     if x1*x1 - x2*x2 != 0
@@ -87,8 +85,6 @@ static PetscErrorCode HRGen(PetscReal x1,PetscReal x2,PetscInt *type,PetscReal *
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "HRApply"
 /*
                                 |c  s|
   Applies an hyperbolic rotator |s  c|
@@ -119,8 +115,6 @@ static PetscErrorCode HRApply(PetscInt n,PetscScalar *x1,PetscInt inc1,PetscScal
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "TridiagDiag_HHR"
 /*
   Reduction to tridiagonal-diagonal form (see F. Tisseur, SIMAX 26(1), 2004).
 
@@ -306,8 +300,6 @@ static PetscErrorCode TridiagDiag_HHR(PetscInt n,PetscScalar *A,PetscInt lda,Pet
 #endif
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "MadeHRtr"
 static PetscErrorCode MadeHRtr(PetscInt sz,PetscInt n,PetscInt idx0,PetscInt n0,PetscInt idx1,PetscInt n1,struct HRtr *tr1,struct HRtr *tr2,PetscReal *ncond,PetscScalar *work)
 {
 #if defined(SLEPC_MISSING_LAPACK_LARFG) || defined(SLEPC_MISSING_LAPACK_LARF)
@@ -388,8 +380,6 @@ static PetscErrorCode MadeHRtr(PetscInt sz,PetscInt n,PetscInt idx0,PetscInt n0,
 #endif
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "TryHRIt"
 /*
   Auxiliary function to try perform one iteration of hr routine,
   checking condition number. If it is < tolD, apply the
@@ -544,8 +534,6 @@ static PetscErrorCode TryHRIt(PetscInt n,PetscInt j,PetscInt sz,PetscScalar *H,P
 #endif
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "PseudoOrthog_HR"
 /*
   compute V = HR whit H s-orthogonal and R upper triangular
 */
@@ -643,8 +631,6 @@ static PetscErrorCode PseudoOrthog_HR(PetscInt *nv,PetscScalar *V,PetscInt ldv,P
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "DSGHIEPOrthogEigenv"
 PetscErrorCode DSGHIEPOrthogEigenv(DS ds,DSMatType mat,PetscScalar *wr,PetscScalar *wi,PetscBool accum)
 {
   PetscErrorCode ierr;
@@ -741,8 +727,6 @@ PetscErrorCode DSGHIEPOrthogEigenv(DS ds,DSMatType mat,PetscScalar *wr,PetscScal
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "DSIntermediate_GHIEP"
 /*
    Reduce to tridiagonal-diagonal pair by means of TridiagDiag_HHR.
 */

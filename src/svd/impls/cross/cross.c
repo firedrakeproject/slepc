@@ -34,8 +34,6 @@ typedef struct {
   Vec       w,diag;
 } SVD_CROSS;
 
-#undef __FUNCT__
-#define __FUNCT__ "MatMult_Cross"
 static PetscErrorCode MatMult_Cross(Mat B,Vec x,Vec y)
 {
   PetscErrorCode ierr;
@@ -50,8 +48,6 @@ static PetscErrorCode MatMult_Cross(Mat B,Vec x,Vec y)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "MatCreateVecs_Cross"
 static PetscErrorCode MatCreateVecs_Cross(Mat B,Vec *right,Vec *left)
 {
   PetscErrorCode ierr;
@@ -68,8 +64,6 @@ static PetscErrorCode MatCreateVecs_Cross(Mat B,Vec *right,Vec *left)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "MatGetDiagonal_Cross"
 static PetscErrorCode MatGetDiagonal_Cross(Mat B,Vec d)
 {
   PetscErrorCode    ierr;
@@ -119,8 +113,6 @@ static PetscErrorCode MatGetDiagonal_Cross(Mat B,Vec d)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "SVDSetUp_Cross"
 PetscErrorCode SVDSetUp_Cross(SVD svd)
 {
   PetscErrorCode ierr;
@@ -174,8 +166,6 @@ PetscErrorCode SVDSetUp_Cross(SVD svd)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "SVDSolve_Cross"
 PetscErrorCode SVDSolve_Cross(SVD svd)
 {
   PetscErrorCode ierr;
@@ -199,8 +189,6 @@ PetscErrorCode SVDSolve_Cross(SVD svd)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSMonitor_Cross"
 static PetscErrorCode EPSMonitor_Cross(EPS eps,PetscInt its,PetscInt nconv,PetscScalar *eigr,PetscScalar *eigi,PetscReal *errest,PetscInt nest,void *ctx)
 {
   PetscInt       i;
@@ -219,8 +207,6 @@ static PetscErrorCode EPSMonitor_Cross(EPS eps,PetscInt its,PetscInt nconv,Petsc
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "SVDSetFromOptions_Cross"
 PetscErrorCode SVDSetFromOptions_Cross(PetscOptionItems *PetscOptionsObject,SVD svd)
 {
   PetscErrorCode ierr;
@@ -235,8 +221,6 @@ PetscErrorCode SVDSetFromOptions_Cross(PetscOptionItems *PetscOptionsObject,SVD 
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "SVDCrossSetEPS_Cross"
 static PetscErrorCode SVDCrossSetEPS_Cross(SVD svd,EPS eps)
 {
   PetscErrorCode ierr;
@@ -252,8 +236,6 @@ static PetscErrorCode SVDCrossSetEPS_Cross(SVD svd,EPS eps)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "SVDCrossSetEPS"
 /*@
    SVDCrossSetEPS - Associate an eigensolver object (EPS) to the
    singular value solver.
@@ -280,8 +262,6 @@ PetscErrorCode SVDCrossSetEPS(SVD svd,EPS eps)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "SVDCrossGetEPS_Cross"
 static PetscErrorCode SVDCrossGetEPS_Cross(SVD svd,EPS *eps)
 {
   SVD_CROSS      *cross = (SVD_CROSS*)svd->data;
@@ -304,8 +284,6 @@ static PetscErrorCode SVDCrossGetEPS_Cross(SVD svd,EPS *eps)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "SVDCrossGetEPS"
 /*@
    SVDCrossGetEPS - Retrieve the eigensolver object (EPS) associated
    to the singular value solver.
@@ -333,8 +311,6 @@ PetscErrorCode SVDCrossGetEPS(SVD svd,EPS *eps)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "SVDView_Cross"
 PetscErrorCode SVDView_Cross(SVD svd,PetscViewer viewer)
 {
   PetscErrorCode ierr;
@@ -352,8 +328,6 @@ PetscErrorCode SVDView_Cross(SVD svd,PetscViewer viewer)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "SVDReset_Cross"
 PetscErrorCode SVDReset_Cross(SVD svd)
 {
   PetscErrorCode ierr;
@@ -367,8 +341,6 @@ PetscErrorCode SVDReset_Cross(SVD svd)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "SVDDestroy_Cross"
 PetscErrorCode SVDDestroy_Cross(SVD svd)
 {
   PetscErrorCode ierr;
@@ -382,8 +354,6 @@ PetscErrorCode SVDDestroy_Cross(SVD svd)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "SVDCreate_Cross"
 PETSC_EXTERN PetscErrorCode SVDCreate_Cross(SVD svd)
 {
   PetscErrorCode ierr;

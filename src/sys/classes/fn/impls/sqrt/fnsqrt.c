@@ -23,8 +23,6 @@
 
 #include <slepc/private/fnimpl.h>      /*I "slepcfn.h" I*/
 
-#undef __FUNCT__
-#define __FUNCT__ "FNEvaluateFunction_Sqrt"
 PetscErrorCode FNEvaluateFunction_Sqrt(FN fn,PetscScalar x,PetscScalar *y)
 {
   PetscFunctionBegin;
@@ -35,8 +33,6 @@ PetscErrorCode FNEvaluateFunction_Sqrt(FN fn,PetscScalar x,PetscScalar *y)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "FNEvaluateDerivative_Sqrt"
 PetscErrorCode FNEvaluateDerivative_Sqrt(FN fn,PetscScalar x,PetscScalar *y)
 {
   PetscFunctionBegin;
@@ -48,8 +44,6 @@ PetscErrorCode FNEvaluateDerivative_Sqrt(FN fn,PetscScalar x,PetscScalar *y)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "FNEvaluateFunctionMat_Sqrt"
 PetscErrorCode FNEvaluateFunctionMat_Sqrt(FN fn,Mat A,Mat B)
 {
   PetscErrorCode ierr;
@@ -67,8 +61,6 @@ PetscErrorCode FNEvaluateFunctionMat_Sqrt(FN fn,Mat A,Mat B)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "FNEvaluateFunctionMatVec_Sqrt"
 PetscErrorCode FNEvaluateFunctionMatVec_Sqrt(FN fn,Mat A,Vec v)
 {
   PetscErrorCode ierr;
@@ -89,8 +81,6 @@ PetscErrorCode FNEvaluateFunctionMatVec_Sqrt(FN fn,Mat A,Vec v)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "FNView_Sqrt"
 PetscErrorCode FNView_Sqrt(FN fn,PetscViewer viewer)
 {
   PetscErrorCode ierr;
@@ -123,8 +113,6 @@ PetscErrorCode FNView_Sqrt(FN fn,PetscViewer viewer)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "FNCreate_Sqrt"
 PETSC_EXTERN PetscErrorCode FNCreate_Sqrt(FN fn)
 {
   PetscFunctionBegin;

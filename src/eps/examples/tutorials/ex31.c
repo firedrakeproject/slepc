@@ -146,8 +146,6 @@ typedef struct {
 } Userctx;
 
 /* Converts from machine frame (dq) to network (phase a real,imag) reference frame */
-#undef __FUNCT__
-#define __FUNCT__ "dq2ri"
 PetscErrorCode dq2ri(PetscScalar Fd,PetscScalar Fq,PetscScalar delta,PetscScalar *Fr,PetscScalar *Fi)
 {
   PetscFunctionBegin;
@@ -157,8 +155,6 @@ PetscErrorCode dq2ri(PetscScalar Fd,PetscScalar Fq,PetscScalar delta,PetscScalar
 }
 
 /* Converts from network frame ([phase a real,imag) to machine (dq) reference frame */
-#undef __FUNCT__
-#define __FUNCT__ "ri2dq"
 PetscErrorCode ri2dq(PetscScalar Fr,PetscScalar Fi,PetscScalar delta,PetscScalar *Fd,PetscScalar *Fq)
 {
   PetscFunctionBegin;
@@ -167,8 +163,6 @@ PetscErrorCode ri2dq(PetscScalar Fr,PetscScalar Fi,PetscScalar delta,PetscScalar
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "SetInitialGuess"
 PetscErrorCode SetInitialGuess(Vec X,Userctx *user)
 {
   PetscErrorCode ierr;
@@ -254,8 +248,6 @@ PetscErrorCode SetInitialGuess(Vec X,Userctx *user)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "PreallocateJacobian"
 PetscErrorCode PreallocateJacobian(Mat J,Userctx *user)
 {
   PetscErrorCode ierr;
@@ -305,8 +297,6 @@ PetscErrorCode PreallocateJacobian(Mat J,Userctx *user)
    J = [-df_dx, -df_dy
         dg_dx, dg_dy]
 */
-#undef __FUNCT__
-#define __FUNCT__ "ResidualJacobian"
 PetscErrorCode ResidualJacobian(Vec X,Mat J,void *ctx)
 {
   PetscErrorCode ierr;
@@ -537,8 +527,6 @@ PetscErrorCode ResidualJacobian(Vec X,Mat J,void *ctx)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "main"
 int main(int argc,char **argv)
 {
   EPS            eps;

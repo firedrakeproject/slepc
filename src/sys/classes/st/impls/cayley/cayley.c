@@ -29,8 +29,6 @@ typedef struct {
   Vec         w2;
 } ST_CAYLEY;
 
-#undef __FUNCT__
-#define __FUNCT__ "STApply_Cayley"
 PetscErrorCode STApply_Cayley(ST st,Vec x,Vec y)
 {
   PetscErrorCode ierr;
@@ -43,8 +41,6 @@ PetscErrorCode STApply_Cayley(ST st,Vec x,Vec y)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "STApplyTranspose_Cayley"
 PetscErrorCode STApplyTranspose_Cayley(ST st,Vec x,Vec y)
 {
   PetscErrorCode ierr;
@@ -57,8 +53,6 @@ PetscErrorCode STApplyTranspose_Cayley(ST st,Vec x,Vec y)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "MatMult_Cayley"
 static PetscErrorCode MatMult_Cayley(Mat B,Vec x,Vec y)
 {
   PetscErrorCode ierr;
@@ -86,8 +80,6 @@ static PetscErrorCode MatMult_Cayley(Mat B,Vec x,Vec y)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "MatMultTranspose_Cayley"
 static PetscErrorCode MatMultTranspose_Cayley(Mat B,Vec x,Vec y)
 {
   PetscErrorCode ierr;
@@ -116,8 +108,6 @@ static PetscErrorCode MatMultTranspose_Cayley(Mat B,Vec x,Vec y)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "STGetBilinearForm_Cayley"
 PetscErrorCode STGetBilinearForm_Cayley(ST st,Mat *B)
 {
   PetscErrorCode ierr;
@@ -129,8 +119,6 @@ PetscErrorCode STGetBilinearForm_Cayley(ST st,Mat *B)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "STBackTransform_Cayley"
 PetscErrorCode STBackTransform_Cayley(ST st,PetscInt n,PetscScalar *eigr,PetscScalar *eigi)
 {
   ST_CAYLEY   *ctx = (ST_CAYLEY*)st->data;
@@ -161,8 +149,6 @@ PetscErrorCode STBackTransform_Cayley(ST st,PetscInt n,PetscScalar *eigr,PetscSc
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "STPostSolve_Cayley"
 PetscErrorCode STPostSolve_Cayley(ST st)
 {
   PetscErrorCode ierr;
@@ -180,8 +166,6 @@ PetscErrorCode STPostSolve_Cayley(ST st)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "STSetUp_Cayley"
 PetscErrorCode STSetUp_Cayley(ST st)
 {
   PetscErrorCode ierr;
@@ -225,8 +209,6 @@ PetscErrorCode STSetUp_Cayley(ST st)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "STSetShift_Cayley"
 PetscErrorCode STSetShift_Cayley(ST st,PetscScalar newshift)
 {
   PetscErrorCode ierr;
@@ -252,8 +234,6 @@ PetscErrorCode STSetShift_Cayley(ST st,PetscScalar newshift)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "STSetFromOptions_Cayley"
 PetscErrorCode STSetFromOptions_Cayley(PetscOptionItems *PetscOptionsObject,ST st)
 {
   PetscErrorCode ierr;
@@ -271,8 +251,6 @@ PetscErrorCode STSetFromOptions_Cayley(PetscOptionItems *PetscOptionsObject,ST s
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "STCayleySetAntishift_Cayley"
 static PetscErrorCode STCayleySetAntishift_Cayley(ST st,PetscScalar newshift)
 {
   PetscErrorCode ierr;
@@ -287,8 +265,6 @@ static PetscErrorCode STCayleySetAntishift_Cayley(ST st,PetscScalar newshift)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "STCayleySetAntishift"
 /*@
    STCayleySetAntishift - Sets the value of the anti-shift for the Cayley
    spectral transformation.
@@ -321,8 +297,6 @@ PetscErrorCode STCayleySetAntishift(ST st,PetscScalar nu)
   ierr = PetscTryMethod(st,"STCayleySetAntishift_C",(ST,PetscScalar),(st,nu));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
-#undef __FUNCT__
-#define __FUNCT__ "STCayleyGetAntishift_Cayley"
 static PetscErrorCode STCayleyGetAntishift_Cayley(ST st,PetscScalar *nu)
 {
   ST_CAYLEY *ctx = (ST_CAYLEY*)st->data;
@@ -332,8 +306,6 @@ static PetscErrorCode STCayleyGetAntishift_Cayley(ST st,PetscScalar *nu)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "STCayleyGetAntishift"
 /*@
    STCayleyGetAntishift - Gets the value of the anti-shift used in the Cayley
    spectral transformation.
@@ -361,8 +333,6 @@ PetscErrorCode STCayleyGetAntishift(ST st,PetscScalar *nu)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "STView_Cayley"
 PetscErrorCode STView_Cayley(ST st,PetscViewer viewer)
 {
   PetscErrorCode ierr;
@@ -379,8 +349,6 @@ PetscErrorCode STView_Cayley(ST st,PetscViewer viewer)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "STReset_Cayley"
 PetscErrorCode STReset_Cayley(ST st)
 {
   PetscErrorCode ierr;
@@ -391,8 +359,6 @@ PetscErrorCode STReset_Cayley(ST st)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "STDestroy_Cayley"
 PetscErrorCode STDestroy_Cayley(ST st)
 {
   PetscErrorCode ierr;
@@ -404,8 +370,6 @@ PetscErrorCode STDestroy_Cayley(ST st)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "STCreate_Cayley"
 PETSC_EXTERN PetscErrorCode STCreate_Cayley(ST st)
 {
   PetscErrorCode ierr;

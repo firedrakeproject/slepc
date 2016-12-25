@@ -27,8 +27,6 @@
 /* Nasty global variable to access EPS data from TRLan_ */
 static EPS globaleps;
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSSetUp_TRLAN"
 PetscErrorCode EPSSetUp_TRLAN(EPS eps)
 {
   PetscErrorCode ierr;
@@ -70,8 +68,6 @@ PetscErrorCode EPSSetUp_TRLAN(EPS eps)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "MatMult_TRLAN"
 static PetscBLASInt MatMult_TRLAN(PetscBLASInt *n,PetscBLASInt *m,PetscReal *xin,PetscBLASInt *ldx,PetscReal *yout,PetscBLASInt *ldy)
 {
   PetscErrorCode ierr;
@@ -94,8 +90,6 @@ static PetscBLASInt MatMult_TRLAN(PetscBLASInt *n,PetscBLASInt *m,PetscReal *xin
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSSolve_TRLAN"
 PetscErrorCode EPSSolve_TRLAN(EPS eps)
 {
   PetscErrorCode ierr;
@@ -153,8 +147,6 @@ PetscErrorCode EPSSolve_TRLAN(EPS eps)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSReset_TRLAN"
 PetscErrorCode EPSReset_TRLAN(EPS eps)
 {
   PetscErrorCode ierr;
@@ -165,8 +157,6 @@ PetscErrorCode EPSReset_TRLAN(EPS eps)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSDestroy_TRLAN"
 PetscErrorCode EPSDestroy_TRLAN(EPS eps)
 {
   PetscErrorCode ierr;
@@ -176,8 +166,6 @@ PetscErrorCode EPSDestroy_TRLAN(EPS eps)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSCreate_TRLAN"
 PETSC_EXTERN PetscErrorCode EPSCreate_TRLAN(EPS eps)
 {
   EPS_TRLAN      *ctx;

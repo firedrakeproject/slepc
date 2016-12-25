@@ -23,8 +23,6 @@
 
 #include <slepc/private/stimpl.h>
 
-#undef __FUNCT__
-#define __FUNCT__ "STApply_Sinvert"
 PetscErrorCode STApply_Sinvert(ST st,Vec x,Vec y)
 {
   PetscErrorCode ierr;
@@ -41,8 +39,6 @@ PetscErrorCode STApply_Sinvert(ST st,Vec x,Vec y)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "STApplyTranspose_Sinvert"
 PetscErrorCode STApplyTranspose_Sinvert(ST st,Vec x,Vec y)
 {
   PetscErrorCode ierr;
@@ -59,8 +55,6 @@ PetscErrorCode STApplyTranspose_Sinvert(ST st,Vec x,Vec y)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "STBackTransform_Sinvert"
 PetscErrorCode STBackTransform_Sinvert(ST st,PetscInt n,PetscScalar *eigr,PetscScalar *eigi)
 {
   PetscInt    j;
@@ -86,8 +80,6 @@ PetscErrorCode STBackTransform_Sinvert(ST st,PetscInt n,PetscScalar *eigr,PetscS
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "STPostSolve_Sinvert"
 PetscErrorCode STPostSolve_Sinvert(ST st)
 {
   PetscErrorCode ierr;
@@ -105,8 +97,6 @@ PetscErrorCode STPostSolve_Sinvert(ST st)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "STSetUp_Sinvert"
 PetscErrorCode STSetUp_Sinvert(ST st)
 {
   PetscErrorCode ierr;
@@ -154,8 +144,6 @@ PetscErrorCode STSetUp_Sinvert(ST st)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "STSetShift_Sinvert"
 PetscErrorCode STSetShift_Sinvert(ST st,PetscScalar newshift)
 {
   PetscErrorCode ierr;
@@ -190,8 +178,6 @@ PetscErrorCode STSetShift_Sinvert(ST st,PetscScalar newshift)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "STCreate_Sinvert"
 PETSC_EXTERN PetscErrorCode STCreate_Sinvert(ST st)
 {
   PetscFunctionBegin;

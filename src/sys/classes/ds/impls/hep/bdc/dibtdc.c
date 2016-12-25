@@ -24,8 +24,6 @@
 #include <slepc/private/dsimpl.h>
 #include <slepcblaslapack.h>
 
-#undef __FUNCT__
-#define __FUNCT__ "cutlr_"
 static PetscErrorCode cutlr_(PetscBLASInt start,PetscBLASInt n,PetscBLASInt blkct,
         PetscBLASInt *bsizes,PetscBLASInt *ranks,PetscBLASInt *cut,
         PetscBLASInt *lsum,PetscBLASInt *lblks,PetscBLASInt *info)
@@ -181,8 +179,6 @@ static PetscErrorCode cutlr_(PetscBLASInt start,PetscBLASInt n,PetscBLASInt blkc
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "BDC_dibtdc_"
 PetscErrorCode BDC_dibtdc_(const char *jobz,PetscBLASInt n,PetscBLASInt nblks,
         PetscBLASInt *ksizes,PetscReal *d,PetscBLASInt l1d,PetscBLASInt l2d,
         PetscReal *e,PetscBLASInt *rank,PetscBLASInt l1e,PetscBLASInt l2e,

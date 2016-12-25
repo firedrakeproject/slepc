@@ -63,8 +63,6 @@ typedef struct {
   PetscReal   h;       /* mesh spacing */
 } ApplicationCtx;
 
-#undef __FUNCT__
-#define __FUNCT__ "main"
 int main(int argc,char **argv)
 {
   NEP            nep;             /* nonlinear eigensolver context */
@@ -177,8 +175,6 @@ int main(int argc,char **argv)
 }
 
 /* ------------------------------------------------------------------- */
-#undef __FUNCT__
-#define __FUNCT__ "FormInitialGuess"
 /*
    FormInitialGuess - Computes initial guess.
 
@@ -195,8 +191,6 @@ PetscErrorCode FormInitialGuess(Vec x)
 }
 
 /* ------------------------------------------------------------------- */
-#undef __FUNCT__
-#define __FUNCT__ "FormFunction"
 /*
    FormFunction - Computes Function matrix  T(lambda)
 
@@ -221,8 +215,6 @@ PetscErrorCode FormFunction(NEP nep,PetscScalar lambda,Mat fun,Mat B,void *ctx)
 }
 
 /* ------------------------------------------------------------------- */
-#undef __FUNCT__
-#define __FUNCT__ "FormJacobian"
 /*
    FormJacobian - Computes Jacobian matrix  T'(lambda)
 
@@ -247,8 +239,6 @@ PetscErrorCode FormJacobian(NEP nep,PetscScalar lambda,Mat jac,void *ctx)
 }
 
 /* ------------------------------------------------------------------- */
-#undef __FUNCT__
-#define __FUNCT__ "MatMult_Fun"
 PetscErrorCode MatMult_Fun(Mat A,Vec x,Vec y)
 {
   PetscErrorCode    ierr;
@@ -280,8 +270,6 @@ PetscErrorCode MatMult_Fun(Mat A,Vec x,Vec y)
 }
 
 /* ------------------------------------------------------------------- */
-#undef __FUNCT__
-#define __FUNCT__ "MatGetDiagonal_Fun"
 PetscErrorCode MatGetDiagonal_Fun(Mat A,Vec diag)
 {
   PetscErrorCode ierr;
@@ -304,8 +292,6 @@ PetscErrorCode MatGetDiagonal_Fun(Mat A,Vec diag)
 }
 
 /* ------------------------------------------------------------------- */
-#undef __FUNCT__
-#define __FUNCT__ "MatDestroy_Fun"
 PetscErrorCode MatDestroy_Fun(Mat A)
 {
   MatCtx         *ctx;
@@ -318,8 +304,6 @@ PetscErrorCode MatDestroy_Fun(Mat A)
 }
 
 /* ------------------------------------------------------------------- */
-#undef __FUNCT__
-#define __FUNCT__ "MatDuplicate_Fun"
 PetscErrorCode MatDuplicate_Fun(Mat A,MatDuplicateOption op,Mat *B)
 {
   MatCtx         *actx,*bctx;
@@ -346,8 +330,6 @@ PetscErrorCode MatDuplicate_Fun(Mat A,MatDuplicateOption op,Mat *B)
 }
 
 /* ------------------------------------------------------------------- */
-#undef __FUNCT__
-#define __FUNCT__ "MatMult_Jac"
 PetscErrorCode MatMult_Jac(Mat A,Vec x,Vec y)
 {
   PetscErrorCode    ierr;
@@ -378,8 +360,6 @@ PetscErrorCode MatMult_Jac(Mat A,Vec x,Vec y)
 }
 
 /* ------------------------------------------------------------------- */
-#undef __FUNCT__
-#define __FUNCT__ "MatGetDiagonal_Jac"
 PetscErrorCode MatGetDiagonal_Jac(Mat A,Vec diag)
 {
   PetscErrorCode ierr;
@@ -401,8 +381,6 @@ PetscErrorCode MatGetDiagonal_Jac(Mat A,Vec diag)
 }
 
 /* ------------------------------------------------------------------- */
-#undef __FUNCT__
-#define __FUNCT__ "MatDestroy_Jac"
 PetscErrorCode MatDestroy_Jac(Mat A)
 {
   MatCtx         *ctx;

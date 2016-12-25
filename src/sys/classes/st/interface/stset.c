@@ -26,8 +26,6 @@
 PetscBool         STRegisterAllCalled = PETSC_FALSE;
 PetscFunctionList STList = 0;
 
-#undef __FUNCT__
-#define __FUNCT__ "STSetType"
 /*@C
    STSetType - Builds ST for a particular spectral transformation.
 
@@ -79,8 +77,6 @@ PetscErrorCode STSetType(ST st,STType type)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "STGetType"
 /*@C
    STGetType - Gets the ST type name (as a string) from the ST context.
 
@@ -106,8 +102,6 @@ PetscErrorCode STGetType(ST st,STType *type)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "STSetFromOptions"
 /*@
    STSetFromOptions - Sets ST options from the options database.
    This routine must be called before STSetUp() if the user is to be
@@ -163,8 +157,6 @@ PetscErrorCode STSetFromOptions(ST st)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "STSetMatStructure"
 /*@
    STSetMatStructure - Sets an internal MatStructure attribute to
    indicate which is the relation of the sparsity pattern of all ST matrices.
@@ -210,8 +202,6 @@ PetscErrorCode STSetMatStructure(ST st,MatStructure str)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "STGetMatStructure"
 /*@
    STGetMatStructure - Gets the internal MatStructure attribute to
    indicate which is the relation of the sparsity pattern of the matrices.
@@ -238,8 +228,6 @@ PetscErrorCode STGetMatStructure(ST st,MatStructure *str)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "STSetMatMode"
 /*@
    STSetMatMode - Sets a flag to indicate how the transformed matrices are
    being stored in the spectral transformations.
@@ -290,8 +278,6 @@ PetscErrorCode STSetMatMode(ST st,STMatMode mode)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "STGetMatMode"
 /*@
    STGetMatMode - Gets a flag that indicates how the transformed matrices
    are stored in spectral transformations.
@@ -317,8 +303,6 @@ PetscErrorCode STGetMatMode(ST st,STMatMode *mode)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "STSetTransform"
 /*@
    STSetTransform - Sets a flag to indicate whether the transformed matrices are
    computed or not.
@@ -354,8 +338,6 @@ PetscErrorCode STSetTransform(ST st,PetscBool flg)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "STGetTransform"
 /*@
    STGetTransform - Gets a flag that that indicates whether the transformed
    matrices are computed or not.

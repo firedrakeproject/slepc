@@ -23,8 +23,6 @@ static char help[] = "Test DSPEP with complex eigenvalues.\n\n";
 
 #include <slepcds.h>
 
-#undef __FUNCT__
-#define __FUNCT__ "main"
 int main(int argc,char **argv)
 {
   PetscErrorCode ierr;

@@ -31,8 +31,6 @@ static char help[] = "Computes exp(t*A)*v for a matrix associated with a Markov 
 */
 PetscErrorCode MatMarkovModel(PetscInt m,Mat A);
 
-#undef __FUNCT__
-#define __FUNCT__ "main"
 int main(int argc,char **argv)
 {
   Mat                A;           /* problem matrix */
@@ -133,8 +131,6 @@ int main(int argc,char **argv)
   return ierr;
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "MatMarkovModel"
 /*
     Matrix generator for a Markov model of a random walk on a triangular grid.
     See ex5.c for additional details.

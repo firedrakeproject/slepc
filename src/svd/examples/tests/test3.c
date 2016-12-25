@@ -39,8 +39,6 @@ static char help[] = "Test SVD with user-provided initial vectors.\n\n"
 
  */
 
-#undef __FUNCT__
-#define __FUNCT__ "main"
 int main(int argc,char **argv)
 {
   Mat            A;               /* Grcar matrix */

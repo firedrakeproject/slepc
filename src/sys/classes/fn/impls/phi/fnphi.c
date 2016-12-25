@@ -45,8 +45,6 @@ static void PhiFunction(PetscScalar x,PetscScalar *y,PetscInt k)
   }
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "FNEvaluateFunction_Phi"
 PetscErrorCode FNEvaluateFunction_Phi(FN fn,PetscScalar x,PetscScalar *y)
 {
   FN_PHI *ctx = (FN_PHI*)fn->data;
@@ -72,8 +70,6 @@ static void PhiDerivative(PetscScalar x,PetscScalar *y,PetscInt k)
   }
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "FNEvaluateDerivative_Phi"
 PetscErrorCode FNEvaluateDerivative_Phi(FN fn,PetscScalar x,PetscScalar *y)
 {
   FN_PHI *ctx = (FN_PHI*)fn->data;
@@ -83,8 +79,6 @@ PetscErrorCode FNEvaluateDerivative_Phi(FN fn,PetscScalar x,PetscScalar *y)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "FNPhiSetIndex_Phi"
 static PetscErrorCode FNPhiSetIndex_Phi(FN fn,PetscInt k)
 {
   FN_PHI *ctx = (FN_PHI*)fn->data;
@@ -96,8 +90,6 @@ static PetscErrorCode FNPhiSetIndex_Phi(FN fn,PetscInt k)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "FNPhiSetIndex"
 /*@
    FNPhiSetIndex - Sets the index of the phi-function.
 
@@ -130,8 +122,6 @@ PetscErrorCode FNPhiSetIndex(FN fn,PetscInt k)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "FNPhiGetIndex_Phi"
 static PetscErrorCode FNPhiGetIndex_Phi(FN fn,PetscInt *k)
 {
   FN_PHI *ctx = (FN_PHI*)fn->data;
@@ -141,8 +131,6 @@ static PetscErrorCode FNPhiGetIndex_Phi(FN fn,PetscInt *k)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "FNPhiGetIndex"
 /*@
    FNPhiGetIndex - Gets the index of the phi-function.
 
@@ -169,8 +157,6 @@ PetscErrorCode FNPhiGetIndex(FN fn,PetscInt *k)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "FNView_Phi"
 PetscErrorCode FNView_Phi(FN fn,PetscViewer viewer)
 {
   PetscErrorCode ierr;
@@ -205,8 +191,6 @@ PetscErrorCode FNView_Phi(FN fn,PetscViewer viewer)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "FNSetFromOptions_Phi"
 PetscErrorCode FNSetFromOptions_Phi(PetscOptionItems *PetscOptionsObject,FN fn)
 {
   PetscErrorCode ierr;
@@ -224,8 +208,6 @@ PetscErrorCode FNSetFromOptions_Phi(PetscOptionItems *PetscOptionsObject,FN fn)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "FNDuplicate_Phi"
 PetscErrorCode FNDuplicate_Phi(FN fn,MPI_Comm comm,FN *newfn)
 {
   FN_PHI *ctx = (FN_PHI*)fn->data,*ctx2 = (FN_PHI*)(*newfn)->data;
@@ -235,8 +217,6 @@ PetscErrorCode FNDuplicate_Phi(FN fn,MPI_Comm comm,FN *newfn)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "FNDestroy_Phi"
 PetscErrorCode FNDestroy_Phi(FN fn)
 {
   PetscErrorCode ierr;
@@ -248,8 +228,6 @@ PetscErrorCode FNDestroy_Phi(FN fn)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "FNCreate_Phi"
 PETSC_EXTERN PetscErrorCode FNCreate_Phi(FN fn)
 {
   PetscErrorCode ierr;

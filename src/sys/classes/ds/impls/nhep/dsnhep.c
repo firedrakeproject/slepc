@@ -22,8 +22,6 @@
 #include <slepc/private/dsimpl.h>
 #include <slepcblaslapack.h>
 
-#undef __FUNCT__
-#define __FUNCT__ "DSAllocate_NHEP"
 PetscErrorCode DSAllocate_NHEP(DS ds,PetscInt ld)
 {
   PetscErrorCode ierr;
@@ -37,8 +35,6 @@ PetscErrorCode DSAllocate_NHEP(DS ds,PetscInt ld)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "DSView_NHEP"
 PetscErrorCode DSView_NHEP(DS ds,PetscViewer viewer)
 {
   PetscErrorCode ierr;
@@ -57,8 +53,6 @@ PetscErrorCode DSView_NHEP(DS ds,PetscViewer viewer)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "DSVectors_NHEP_Refined_Some"
 static PetscErrorCode DSVectors_NHEP_Refined_Some(DS ds,PetscInt *k,PetscReal *rnorm,PetscBool left)
 {
 #if defined(PETSC_MISSING_LAPACK_GESVD)
@@ -114,8 +108,6 @@ static PetscErrorCode DSVectors_NHEP_Refined_Some(DS ds,PetscInt *k,PetscReal *r
 #endif
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "DSVectors_NHEP_Refined_All"
 static PetscErrorCode DSVectors_NHEP_Refined_All(DS ds,PetscBool left)
 {
   PetscErrorCode ierr;
@@ -128,8 +120,6 @@ static PetscErrorCode DSVectors_NHEP_Refined_All(DS ds,PetscBool left)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "DSVectors_NHEP_Eigen_Some"
 static PetscErrorCode DSVectors_NHEP_Eigen_Some(DS ds,PetscInt *k,PetscReal *rnorm,PetscBool left)
 {
 #if defined(SLEPC_MISSING_LAPACK_TREVC)
@@ -201,8 +191,6 @@ static PetscErrorCode DSVectors_NHEP_Eigen_Some(DS ds,PetscInt *k,PetscReal *rno
 #endif
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "DSVectors_NHEP_Eigen_All"
 static PetscErrorCode DSVectors_NHEP_Eigen_All(DS ds,PetscBool left)
 {
 #if defined(SLEPC_MISSING_LAPACK_TREVC)
@@ -265,8 +253,6 @@ static PetscErrorCode DSVectors_NHEP_Eigen_All(DS ds,PetscBool left)
 #endif
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "DSVectors_NHEP"
 PetscErrorCode DSVectors_NHEP(DS ds,DSMatType mat,PetscInt *j,PetscReal *rnorm)
 {
   PetscErrorCode ierr;
@@ -310,8 +296,6 @@ PetscErrorCode DSVectors_NHEP(DS ds,DSMatType mat,PetscInt *j,PetscReal *rnorm)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "DSSort_NHEP_Arbitrary"
 static PetscErrorCode DSSort_NHEP_Arbitrary(DS ds,PetscScalar *wr,PetscScalar *wi,PetscScalar *rr,PetscScalar *ri,PetscInt *k)
 {
 #if defined(PETSC_MISSING_LAPACK_TRSEN)
@@ -360,8 +344,6 @@ static PetscErrorCode DSSort_NHEP_Arbitrary(DS ds,PetscScalar *wr,PetscScalar *w
 #endif
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "DSSort_NHEP_Total"
 static PetscErrorCode DSSort_NHEP_Total(DS ds,PetscScalar *wr,PetscScalar *wi)
 {
 #if defined(SLEPC_MISSING_LAPACK_TREXC)
@@ -449,8 +431,6 @@ static PetscErrorCode DSSort_NHEP_Total(DS ds,PetscScalar *wr,PetscScalar *wi)
 #endif
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "DSSort_NHEP"
 PetscErrorCode DSSort_NHEP(DS ds,PetscScalar *wr,PetscScalar *wi,PetscScalar *rr,PetscScalar *ri,PetscInt *k)
 {
   PetscErrorCode ierr;
@@ -464,8 +444,6 @@ PetscErrorCode DSSort_NHEP(DS ds,PetscScalar *wr,PetscScalar *wi,PetscScalar *rr
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "DSUpdateExtraRow_NHEP"
 PetscErrorCode DSUpdateExtraRow_NHEP(DS ds)
 {
   PetscErrorCode ierr;
@@ -488,8 +466,6 @@ PetscErrorCode DSUpdateExtraRow_NHEP(DS ds)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "DSSolve_NHEP"
 PetscErrorCode DSSolve_NHEP(DS ds,PetscScalar *wr,PetscScalar *wi)
 {
 #if defined(SLEPC_MISSING_LAPACK_GEHRD) || defined(SLEPC_MISSING_LAPACK_ORGHR) || defined(PETSC_MISSING_LAPACK_HSEQR)
@@ -566,8 +542,6 @@ PetscErrorCode DSSolve_NHEP(DS ds,PetscScalar *wr,PetscScalar *wi)
 #endif
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "DSTruncate_NHEP"
 PetscErrorCode DSTruncate_NHEP(DS ds,PetscInt n)
 {
   PetscInt       i,newn,ld=ds->ld,l=ds->l;
@@ -592,8 +566,6 @@ PetscErrorCode DSTruncate_NHEP(DS ds,PetscInt n)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "DSCond_NHEP"
 PetscErrorCode DSCond_NHEP(DS ds,PetscReal *cond)
 {
 #if defined(PETSC_MISSING_LAPACK_GETRF) || defined(PETSC_MISSING_LAPACK_GETRI) || defined(SLEPC_MISSING_LAPACK_LANGE) || defined(SLEPC_MISSING_LAPACK_LANHS)
@@ -638,8 +610,6 @@ PetscErrorCode DSCond_NHEP(DS ds,PetscReal *cond)
 #endif
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "DSTranslateHarmonic_NHEP"
 PetscErrorCode DSTranslateHarmonic_NHEP(DS ds,PetscScalar tau,PetscReal beta,PetscBool recover,PetscScalar *gin,PetscReal *gamma)
 {
 #if defined(PETSC_MISSING_LAPACK_GETRF) || defined(PETSC_MISSING_LAPACK_GETRS)
@@ -721,8 +691,6 @@ PetscErrorCode DSTranslateHarmonic_NHEP(DS ds,PetscScalar tau,PetscReal beta,Pet
 #endif
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "DSCreate_NHEP"
 PETSC_EXTERN PetscErrorCode DSCreate_NHEP(DS ds)
 {
   PetscFunctionBegin;

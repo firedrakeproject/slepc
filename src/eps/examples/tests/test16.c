@@ -23,9 +23,6 @@ static char help[] = "Tests a user-defined convergence test.\n\n";
 
 #include <slepceps.h>
 
-
-#undef __FUNCT__
-#define __FUNCT__ "MyConvergedAbsolute"
 /*
   MyConvergedAbsolute - Bizarre convergence test that requires more accuracy
   to positive eigenvalues compared to negative ones.
@@ -37,8 +34,6 @@ PetscErrorCode MyConvergedAbsolute(EPS eps,PetscScalar eigr,PetscScalar eigi,Pet
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "main"
 int main(int argc,char **argv)
 {
   Mat            A;           /* problem matrix */

@@ -43,8 +43,6 @@ static char help[] = "Delay differential equation.\n\n"
 
 #include <slepcnep.h>
 
-#undef __FUNCT__
-#define __FUNCT__ "main"
 int main(int argc,char **argv)
 {
   NEP            nep;             /* nonlinear eigensolver context */

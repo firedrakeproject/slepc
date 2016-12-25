@@ -35,8 +35,6 @@ typedef struct {
   FNCombineType comb;     /* how the functions are combined */
 } FN_COMBINE;
 
-#undef __FUNCT__
-#define __FUNCT__ "FNEvaluateFunction_Combine"
 PetscErrorCode FNEvaluateFunction_Combine(FN fn,PetscScalar x,PetscScalar *y)
 {
   PetscErrorCode ierr;
@@ -66,8 +64,6 @@ PetscErrorCode FNEvaluateFunction_Combine(FN fn,PetscScalar x,PetscScalar *y)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "FNEvaluateDerivative_Combine"
 PetscErrorCode FNEvaluateDerivative_Combine(FN fn,PetscScalar x,PetscScalar *yp)
 {
   PetscErrorCode ierr;
@@ -106,8 +102,6 @@ PetscErrorCode FNEvaluateDerivative_Combine(FN fn,PetscScalar x,PetscScalar *yp)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "FNEvaluateFunctionMat_Combine"
 PetscErrorCode FNEvaluateFunctionMat_Combine(FN fn,Mat A,Mat B)
 {
 #if defined(PETSC_MISSING_LAPACK_GESV)
@@ -168,8 +162,6 @@ PetscErrorCode FNEvaluateFunctionMat_Combine(FN fn,Mat A,Mat B)
 #endif
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "FNEvaluateFunctionMatVec_Combine"
 PetscErrorCode FNEvaluateFunctionMatVec_Combine(FN fn,Mat A,Vec v)
 {
 #if defined(PETSC_MISSING_LAPACK_GESV)
@@ -233,8 +225,6 @@ PetscErrorCode FNEvaluateFunctionMatVec_Combine(FN fn,Mat A,Vec v)
 #endif
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "FNView_Combine"
 PetscErrorCode FNView_Combine(FN fn,PetscViewer viewer)
 {
   PetscErrorCode ierr;
@@ -266,8 +256,6 @@ PetscErrorCode FNView_Combine(FN fn,PetscViewer viewer)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "FNCombineSetChildren_Combine"
 static PetscErrorCode FNCombineSetChildren_Combine(FN fn,FNCombineType comb,FN f1,FN f2)
 {
   PetscErrorCode ierr;
@@ -286,8 +274,6 @@ static PetscErrorCode FNCombineSetChildren_Combine(FN fn,FNCombineType comb,FN f
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "FNCombineSetChildren"
 /*@
    FNCombineSetChildren - Sets the two child functions that constitute this
    combined function, and the way they must be combined.
@@ -317,8 +303,6 @@ PetscErrorCode FNCombineSetChildren(FN fn,FNCombineType comb,FN f1,FN f2)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "FNCombineGetChildren_Combine"
 static PetscErrorCode FNCombineGetChildren_Combine(FN fn,FNCombineType *comb,FN *f1,FN *f2)
 {
   PetscErrorCode ierr;
@@ -343,8 +327,6 @@ static PetscErrorCode FNCombineGetChildren_Combine(FN fn,FNCombineType *comb,FN 
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "FNCombineGetChildren"
 /*@
    FNCombineGetChildren - Gets the two child functions that constitute this
    combined function, and the way they are combined.
@@ -373,8 +355,6 @@ PetscErrorCode FNCombineGetChildren(FN fn,FNCombineType *comb,FN *f1,FN *f2)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "FNDuplicate_Combine"
 PetscErrorCode FNDuplicate_Combine(FN fn,MPI_Comm comm,FN *newfn)
 {
   PetscErrorCode ierr;
@@ -387,8 +367,6 @@ PetscErrorCode FNDuplicate_Combine(FN fn,MPI_Comm comm,FN *newfn)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "FNDestroy_Combine"
 PetscErrorCode FNDestroy_Combine(FN fn)
 {
   PetscErrorCode ierr;
@@ -403,8 +381,6 @@ PetscErrorCode FNDestroy_Combine(FN fn)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "FNCreate_Combine"
 PETSC_EXTERN PetscErrorCode FNCreate_Combine(FN fn)
 {
   PetscErrorCode ierr;

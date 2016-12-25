@@ -23,8 +23,6 @@
 
 #include <slepc/private/epsimpl.h>       /*I "slepceps.h" I*/
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSSetDefaultST"
 /*
    Let the solver choose the ST type that should be used by default,
    otherwise set it to SHIFT.
@@ -43,8 +41,6 @@ PetscErrorCode EPSSetDefaultST(EPS eps)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSSetDefaultST_Precond"
 /*
    This is done by preconditioned eigensolvers that use the PC only.
    It sets STPRECOND with KSPPREONLY.
@@ -66,8 +62,6 @@ PetscErrorCode EPSSetDefaultST_Precond(EPS eps)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSSetDefaultST_GMRES"
 /*
    This is done by preconditioned eigensolvers that can also use the KSP.
    It sets STPRECOND with the default KSP (GMRES).
@@ -84,8 +78,6 @@ PetscErrorCode EPSSetDefaultST_GMRES(EPS eps)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSSetUp"
 /*@
    EPSSetUp - Sets up all the internal data structures necessary for the
    execution of the eigensolver. Then calls STSetUp() for any set-up
@@ -295,8 +287,6 @@ PetscErrorCode EPSSetUp(EPS eps)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSSetOperators"
 /*@C
    EPSSetOperators - Sets the matrices associated with the eigenvalue problem.
 
@@ -352,8 +342,6 @@ PetscErrorCode EPSSetOperators(EPS eps,Mat A,Mat B)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSGetOperators"
 /*@
    EPSGetOperators - Gets the matrices associated with the eigensystem.
 
@@ -390,8 +378,6 @@ PetscErrorCode EPSGetOperators(EPS eps,Mat *A,Mat *B)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSSetDeflationSpace"
 /*@
    EPSSetDeflationSpace - Specify a basis of vectors that constitute the deflation
    space.
@@ -432,8 +418,6 @@ PetscErrorCode EPSSetDeflationSpace(EPS eps,PetscInt n,Vec *v)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSSetInitialSpace"
 /*@
    EPSSetInitialSpace - Specify a basis of vectors that constitute the initial
    space, that is, the subspace from which the solver starts to iterate.
@@ -475,8 +459,6 @@ PetscErrorCode EPSSetInitialSpace(EPS eps,PetscInt n,Vec *is)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSSetDimensions_Default"
 /*
   EPSSetDimensions_Default - Set reasonable values for ncv, mpd if not set
   by the user. This is called at setup.
@@ -507,8 +489,6 @@ PetscErrorCode EPSSetDimensions_Default(EPS eps,PetscInt nev,PetscInt *ncv,Petsc
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSAllocateSolution"
 /*@
    EPSAllocateSolution - Allocate memory storage for common variables such
    as eigenvalues and eigenvectors.

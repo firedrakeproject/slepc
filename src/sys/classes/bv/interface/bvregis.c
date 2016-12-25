@@ -26,8 +26,6 @@ PETSC_EXTERN PetscErrorCode BVCreate_Contiguous(BV);
 PETSC_EXTERN PetscErrorCode BVCreate_Svec(BV);
 PETSC_EXTERN PetscErrorCode BVCreate_Mat(BV);
 
-#undef __FUNCT__
-#define __FUNCT__ "BVRegisterAll"
 /*@C
    BVRegisterAll - Registers all of the storage variants in the BV package.
 

@@ -30,8 +30,6 @@ PETSC_EXTERN PetscErrorCode NEPCreate_CISS(NEP);
 #endif
 PETSC_EXTERN PetscErrorCode NEPCreate_NLEIGS(NEP);
 
-#undef __FUNCT__
-#define __FUNCT__ "NEPRegisterAll"
 /*@C
    NEPRegisterAll - Registers all the solvers in the NEP package.
 

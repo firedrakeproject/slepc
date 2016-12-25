@@ -24,8 +24,6 @@
 #include <slepc/private/lmeimpl.h>   /*I "slepclme.h" I*/
 #include <petscdraw.h>
 
-#undef __FUNCT__
-#define __FUNCT__ "LMEMonitor"
 /*
    Runs the user provided monitor routines, if any.
 */
@@ -41,8 +39,6 @@ PetscErrorCode LMEMonitor(LME lme,PetscInt it,PetscReal errest)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "LMEMonitorSet"
 /*@C
    LMEMonitorSet - Sets an ADDITIONAL function to be called at every
    iteration to monitor convergence.
@@ -91,8 +87,6 @@ PetscErrorCode LMEMonitorSet(LME lme,PetscErrorCode (*monitor)(LME,PetscInt,Pets
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "LMEMonitorCancel"
 /*@
    LMEMonitorCancel - Clears all monitors for an LME object.
 
@@ -126,8 +120,6 @@ PetscErrorCode LMEMonitorCancel(LME lme)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "LMEGetMonitorContext"
 /*@C
    LMEGetMonitorContext - Gets the monitor context, as set by
    LMEMonitorSet() for the FIRST monitor only.
@@ -152,8 +144,6 @@ PetscErrorCode LMEGetMonitorContext(LME lme,void **ctx)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "LMEMonitorDefault"
 /*@C
    LMEMonitorDefault - Print the error estimate of the current approximation at each
    iteration of the linear matrix equation solver.
@@ -191,8 +181,6 @@ PetscErrorCode LMEMonitorDefault(LME lme,PetscInt its,PetscReal errest,PetscView
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "LMEMonitorLGCreate"
 /*@C
    LMEMonitorLGCreate - Creates a line graph context for use with
    LME to monitor convergence.
@@ -236,8 +224,6 @@ PetscErrorCode LMEMonitorLGCreate(MPI_Comm comm,const char host[],const char lab
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "LMEMonitorLG"
 PetscErrorCode LMEMonitorLG(LME lme,PetscInt its,PetscReal errest,void *ctx)
 {
   PetscDrawLG    lg = (PetscDrawLG)ctx;

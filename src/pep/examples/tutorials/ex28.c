@@ -35,8 +35,6 @@ PetscErrorCode MatGetDiagonal_Zero(Mat A,Vec diag);
 PetscErrorCode MatMult_Identity(Mat A,Vec x,Vec y);
 PetscErrorCode MatGetDiagonal_Identity(Mat A,Vec diag);
 
-#undef __FUNCT__
-#define __FUNCT__ "main"
 int main(int argc,char **argv)
 {
   Mat            M,C,K,A[3];      /* problem matrices */
@@ -159,8 +157,6 @@ static void tv(int nx,const PetscScalar *x,PetscScalar *y)
   y[nx-1] = dl*x[nx-2] + dd*x[nx-1];
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "MatMult_Laplacian2D"
 /*
     Matrix-vector product subroutine for the 2D Laplacian.
 
@@ -209,8 +205,6 @@ PetscErrorCode MatMult_Laplacian2D(Mat A,Vec x,Vec y)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "MatGetDiagonal_Laplacian2D"
 PetscErrorCode MatGetDiagonal_Laplacian2D(Mat A,Vec diag)
 {
   PetscErrorCode ierr;
@@ -220,8 +214,6 @@ PetscErrorCode MatGetDiagonal_Laplacian2D(Mat A,Vec diag)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "MatMult_Zero"
 /*
     Matrix-vector product subroutine for the Null matrix.
  */
@@ -234,8 +226,6 @@ PetscErrorCode MatMult_Zero(Mat A,Vec x,Vec y)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "MatGetDiagonal_Zero"
 PetscErrorCode MatGetDiagonal_Zero(Mat A,Vec diag)
 {
   PetscErrorCode ierr;
@@ -245,8 +235,6 @@ PetscErrorCode MatGetDiagonal_Zero(Mat A,Vec diag)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "MatMult_Identity"
 /*
     Matrix-vector product subroutine for the Identity matrix.
  */
@@ -259,8 +247,6 @@ PetscErrorCode MatMult_Identity(Mat A,Vec x,Vec y)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "MatGetDiagonal_Identity"
 PetscErrorCode MatGetDiagonal_Identity(Mat A,Vec diag)
 {
   PetscErrorCode ierr;

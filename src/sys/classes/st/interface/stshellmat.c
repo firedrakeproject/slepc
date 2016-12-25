@@ -34,8 +34,6 @@ typedef struct {
   PetscInt    *matIdx;
 } ST_SHELLMAT;
 
-#undef __FUNCT__
-#define __FUNCT__ "STMatShellShift"
 PetscErrorCode STMatShellShift(Mat A,PetscScalar alpha)
 {
   PetscErrorCode ierr;
@@ -47,8 +45,6 @@ PetscErrorCode STMatShellShift(Mat A,PetscScalar alpha)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "MatMult_Shell"
 /*
   For i=0:nmat-1 computes y = (sum_i (coeffs[i]*alpha^i*st->A[idx[i]]))x
   If null coeffs computes with coeffs[i]=1.0
@@ -82,8 +78,6 @@ static PetscErrorCode MatMult_Shell(Mat A,Vec x,Vec y)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "MatMultTranspose_Shell"
 static PetscErrorCode MatMultTranspose_Shell(Mat A,Vec x,Vec y)
 {
   PetscErrorCode ierr;
@@ -113,8 +107,6 @@ static PetscErrorCode MatMultTranspose_Shell(Mat A,Vec x,Vec y)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "MatGetDiagonal_Shell"
 static PetscErrorCode MatGetDiagonal_Shell(Mat A,Vec diag)
 {
   PetscErrorCode ierr;
@@ -148,8 +140,6 @@ static PetscErrorCode MatGetDiagonal_Shell(Mat A,Vec diag)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "MatDestroy_Shell"
 static PetscErrorCode MatDestroy_Shell(Mat A)
 {
   PetscErrorCode ierr;
@@ -164,8 +154,6 @@ static PetscErrorCode MatDestroy_Shell(Mat A)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "STMatShellCreate"
 PetscErrorCode STMatShellCreate(ST st,PetscScalar alpha,PetscInt nmat,PetscInt *matIdx,PetscScalar *coeffs,Mat *mat)
 {
   PetscErrorCode ierr;

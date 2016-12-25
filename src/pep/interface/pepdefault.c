@@ -23,8 +23,6 @@
 
 #include <slepc/private/pepimpl.h>     /*I "slepcpep.h" I*/
 
-#undef __FUNCT__
-#define __FUNCT__ "PEPSetWorkVecs"
 /*@
    PEPSetWorkVecs - Sets a number of work vectors into a PEP object.
 
@@ -57,8 +55,6 @@ PetscErrorCode PEPSetWorkVecs(PEP pep,PetscInt nw)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "PEPConvergedRelative"
 /*
   PEPConvergedRelative - Checks convergence relative to the eigenvalue.
 */
@@ -72,8 +68,6 @@ PetscErrorCode PEPConvergedRelative(PEP pep,PetscScalar eigr,PetscScalar eigi,Pe
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "PEPConvergedNorm"
 /*
   PEPConvergedNorm - Checks convergence relative to the matrix norms.
 */
@@ -101,8 +95,6 @@ PetscErrorCode PEPConvergedNorm(PEP pep,PetscScalar eigr,PetscScalar eigi,PetscR
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "PEPConvergedAbsolute"
 /*
   PEPConvergedAbsolute - Checks convergence absolutely.
 */
@@ -113,8 +105,6 @@ PetscErrorCode PEPConvergedAbsolute(PEP pep,PetscScalar eigr,PetscScalar eigi,Pe
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "PEPStoppingBasic"
 /*@C
    PEPStoppingBasic - Default routine to determine whether the outer eigensolver
    iteration must be stopped.
@@ -163,8 +153,6 @@ PetscErrorCode PEPStoppingBasic(PEP pep,PetscInt its,PetscInt max_it,PetscInt nc
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "PEPBackTransform_Default"
 PetscErrorCode PEPBackTransform_Default(PEP pep)
 {
   PetscErrorCode ierr;
@@ -174,8 +162,6 @@ PetscErrorCode PEPBackTransform_Default(PEP pep)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "PEPComputeVectors_Default"
 PetscErrorCode PEPComputeVectors_Default(PEP pep)
 {
   PetscErrorCode ierr;
@@ -218,8 +204,6 @@ PetscErrorCode PEPComputeVectors_Default(PEP pep)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "PEPKrylovConvergence"
 /*
    PEPKrylovConvergence - This is the analogue to EPSKrylovConvergence, but
    for polynomial Krylov methods.
@@ -270,8 +254,6 @@ PetscErrorCode PEPKrylovConvergence(PEP pep,PetscBool getall,PetscInt kini,Petsc
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "PEPBuildDiagonalScaling"
 /*
   PEPBuildDiagonalScaling - compute two diagonal matrices to be applied for balancing
   in polynomial eigenproblems.
@@ -422,8 +404,6 @@ PetscErrorCode PEPBuildDiagonalScaling(PEP pep)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "PEPComputeScaleFactor"
 /*
    PEPComputeScaleFactor - compute sfactor as described in [Betcke 2008].
 */
@@ -481,8 +461,6 @@ PetscErrorCode PEPComputeScaleFactor(PEP pep)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "PEPBasisCoefficients"
 /*
    PEPBasisCoefficients - compute polynomial basis coefficients
 */
@@ -535,8 +513,6 @@ PetscErrorCode PEPBasisCoefficients(PEP pep,PetscReal *pbc)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "PEPEvaluateBasis"
 /*
    PEPEvaluateBasis - evaluate the polynomial basis on a given parameter sigma
 */

@@ -26,8 +26,6 @@ static char help[] = "Compute all eigenvalues in an interval of a symmetric-defi
 
 #include <slepceps.h>
 
-#undef __FUNCT__
-#define __FUNCT__ "main"
 int main(int argc,char **argv)
 {
   Mat            A,B;         /* matrices */

@@ -24,8 +24,6 @@
 #include <slepc/private/svdimpl.h>   /*I "slepcsvd.h" I*/
 #include <petscdraw.h>
 
-#undef __FUNCT__
-#define __FUNCT__ "SVDMonitor"
 /*
    Runs the user provided monitor routines, if any.
 */
@@ -41,8 +39,6 @@ PetscErrorCode SVDMonitor(SVD svd,PetscInt it,PetscInt nconv,PetscReal *sigma,Pe
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "SVDMonitorSet"
 /*@C
    SVDMonitorSet - Sets an ADDITIONAL function to be called at every
    iteration to monitor the error estimates for each requested singular triplet.
@@ -99,8 +95,6 @@ PetscErrorCode SVDMonitorSet(SVD svd,PetscErrorCode (*monitor)(SVD,PetscInt,Pets
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "SVDMonitorCancel"
 /*@
    SVDMonitorCancel - Clears all monitors for an SVD object.
 
@@ -134,8 +128,6 @@ PetscErrorCode SVDMonitorCancel(SVD svd)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "SVDGetMonitorContext"
 /*@C
    SVDGetMonitorContext - Gets the monitor context, as set by
    SVDMonitorSet() for the FIRST monitor only.
@@ -160,8 +152,6 @@ PetscErrorCode SVDGetMonitorContext(SVD svd,void **ctx)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "SVDMonitorAll"
 /*@C
    SVDMonitorAll - Print the current approximate values and
    error estimates at each iteration of the singular value solver.
@@ -209,8 +199,6 @@ PetscErrorCode SVDMonitorAll(SVD svd,PetscInt its,PetscInt nconv,PetscReal *sigm
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "SVDMonitorFirst"
 /*@C
    SVDMonitorFirst - Print the first unconverged approximate values and
    error estimates at each iteration of the singular value solver.
@@ -256,8 +244,6 @@ PetscErrorCode SVDMonitorFirst(SVD svd,PetscInt its,PetscInt nconv,PetscReal *si
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "SVDMonitorConverged"
 /*@C
    SVDMonitorConverged - Print the approximate values and error estimates as they converge.
 
@@ -307,8 +293,6 @@ PetscErrorCode SVDMonitorConverged(SVD svd,PetscInt its,PetscInt nconv,PetscReal
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "SVDMonitorLGCreate"
 /*@C
    SVDMonitorLGCreate - Creates a line graph context for use with
    SVD to monitor convergence.
@@ -353,8 +337,6 @@ PetscErrorCode SVDMonitorLGCreate(MPI_Comm comm,const char host[],const char lab
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "SVDMonitorLG"
 PetscErrorCode SVDMonitorLG(SVD svd,PetscInt its,PetscInt nconv,PetscReal *sigma,PetscReal *errest,PetscInt nest,void *ctx)
 {
   PetscDrawLG    lg = (PetscDrawLG)ctx;
@@ -379,8 +361,6 @@ PetscErrorCode SVDMonitorLG(SVD svd,PetscInt its,PetscInt nconv,PetscReal *sigma
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "SVDMonitorLGAll"
 PetscErrorCode SVDMonitorLGAll(SVD svd,PetscInt its,PetscInt nconv,PetscReal *sigma,PetscReal *errest,PetscInt nest,void *ctx)
 {
   PetscDrawLG    lg = (PetscDrawLG)ctx;

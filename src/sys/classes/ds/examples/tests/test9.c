@@ -23,8 +23,6 @@ static char help[] = "Test DSGHEP.\n\n";
 
 #include <slepcds.h>
 
-#undef __FUNCT__
-#define __FUNCT__ "ComputeNorm"
 /*
    Compute the norm of the j-th column of matrix mat in ds
  */
@@ -48,8 +46,6 @@ PetscErrorCode ComputeNorm(DS ds,DSMatType mat,PetscInt j,PetscReal *onrm)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "main"
 int main(int argc,char **argv)
 {
   PetscErrorCode ierr;

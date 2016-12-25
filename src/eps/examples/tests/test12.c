@@ -26,8 +26,6 @@ static char help[] = "Diagonal eigenproblem. Illustrates use of shell preconditi
 
 #include <slepceps.h>
 
-#undef __FUNCT__
-#define __FUNCT__ "PCApply_User"
 PetscErrorCode PCApply_User(PC pc,Vec x,Vec y)
 {
   PetscErrorCode ierr;
@@ -37,8 +35,6 @@ PetscErrorCode PCApply_User(PC pc,Vec x,Vec y)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "main"
 int main(int argc,char **argv)
 {
   Mat            A;           /* problem matrix */

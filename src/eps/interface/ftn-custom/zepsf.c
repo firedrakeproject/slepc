@@ -183,61 +183,45 @@ static struct {
 } _cb;
 
 /* These are not extern C because they are passed into non-extern C user level functions */
-#undef __FUNCT__
-#define __FUNCT__ "ourmonitor"
 static PetscErrorCode ourmonitor(EPS eps,PetscInt i,PetscInt nc,PetscScalar *er,PetscScalar *ei,PetscReal *d,PetscInt l,void* ctx)
 {
   PetscObjectUseFortranCallback(eps,_cb.monitor,(EPS*,PetscInt*,PetscInt*,PetscScalar*,PetscScalar*,PetscReal*,PetscInt*,void*,PetscErrorCode*),(&eps,&i,&nc,er,ei,d,&l,_ctx,&ierr));
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "ourdestroy"
 static PetscErrorCode ourdestroy(void** ctx)
 {
   EPS eps = (EPS)*ctx;
   PetscObjectUseFortranCallback(eps,_cb.monitordestroy,(void*,PetscErrorCode*),(_ctx,&ierr));
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "ourconvergence"
 static PetscErrorCode ourconvergence(EPS eps,PetscScalar eigr,PetscScalar eigi,PetscReal res,PetscReal *errest,void *ctx)
 {
   PetscObjectUseFortranCallback(eps,_cb.convergence,(EPS*,PetscScalar*,PetscScalar*,PetscReal*,PetscReal*,void*,PetscErrorCode*),(&eps,&eigr,&eigi,&res,errest,_ctx,&ierr));
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "ourconvdestroy"
 static PetscErrorCode ourconvdestroy(void *ctx)
 {
   EPS eps = (EPS)ctx;
   PetscObjectUseFortranCallback(eps,_cb.convdestroy,(void*,PetscErrorCode*),(_ctx,&ierr));
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "ourstopping"
 static PetscErrorCode ourstopping(EPS eps,PetscInt its,PetscInt max_it,PetscInt nconv,PetscInt nev,EPSConvergedReason *reason,void *ctx)
 {
   PetscObjectUseFortranCallback(eps,_cb.stopping,(EPS*,PetscInt*,PetscInt*,PetscInt*,PetscInt*,EPSConvergedReason*,void*,PetscErrorCode*),(&eps,&its,&max_it,&nconv,&nev,reason,_ctx,&ierr));
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "ourstopdestroy"
 static PetscErrorCode ourstopdestroy(void *ctx)
 {
   EPS eps = (EPS)ctx;
   PetscObjectUseFortranCallback(eps,_cb.stopdestroy,(void*,PetscErrorCode*),(_ctx,&ierr));
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "oureigenvaluecomparison"
 static PetscErrorCode oureigenvaluecomparison(PetscScalar ar,PetscScalar ai,PetscScalar br,PetscScalar bi,PetscInt *r,void *ctx)
 {
   EPS eps = (EPS)ctx;
   PetscObjectUseFortranCallback(eps,_cb.comparison,(PetscScalar*,PetscScalar*,PetscScalar*,PetscScalar*,PetscInt*,void*,PetscErrorCode*),(&ar,&ai,&br,&bi,r,_ctx,&ierr));
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "ourarbitraryfunc"
 static PetscErrorCode ourarbitraryfunc(PetscScalar er,PetscScalar ei,Vec xr,Vec xi,PetscScalar *rr,PetscScalar *ri,void *ctx)
 {
   EPS eps = (EPS)ctx;

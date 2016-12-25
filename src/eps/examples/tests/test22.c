@@ -55,8 +55,6 @@ typedef struct {
   PetscScalar alpha,beta,tau1,tau2,sigma;
 } CTX_BRUSSEL;
 
-#undef __FUNCT__
-#define __FUNCT__ "main"
 int main(int argc,char **argv)
 {
   EPS            eps;
@@ -212,8 +210,6 @@ int main(int argc,char **argv)
   return ierr;
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "MatMult_Brussel"
 PetscErrorCode MatMult_Brussel(Mat A,Vec x,Vec y)
 {
   PetscInt          n;
@@ -251,8 +247,6 @@ PetscErrorCode MatMult_Brussel(Mat A,Vec x,Vec y)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "MatShift_Brussel"
 PetscErrorCode MatShift_Brussel(PetscScalar* a,Mat Y)
 {
   CTX_BRUSSEL    *ctx;
@@ -264,8 +258,6 @@ PetscErrorCode MatShift_Brussel(PetscScalar* a,Mat Y)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "MatGetDiagonal_Brussel"
 PetscErrorCode MatGetDiagonal_Brussel(Mat A,Vec diag)
 {
   Vec            d1,d2;

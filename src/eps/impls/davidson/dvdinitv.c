@@ -31,8 +31,6 @@ typedef struct {
   void     *old_initV_data;   /* old initV data */
 } dvdInitV;
 
-#undef __FUNCT__
-#define __FUNCT__ "dvd_initV_classic_0"
 static PetscErrorCode dvd_initV_classic_0(dvdDashboard *d)
 {
   PetscErrorCode ierr;
@@ -55,8 +53,6 @@ static PetscErrorCode dvd_initV_classic_0(dvdDashboard *d)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "dvd_initV_krylov_0"
 static PetscErrorCode dvd_initV_krylov_0(dvdDashboard *d)
 {
   PetscErrorCode ierr;
@@ -105,8 +101,6 @@ static PetscErrorCode dvd_initV_krylov_0(dvdDashboard *d)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "dvd_initV_d"
 static PetscErrorCode dvd_initV_d(dvdDashboard *d)
 {
   PetscErrorCode ierr;
@@ -121,8 +115,6 @@ static PetscErrorCode dvd_initV_d(dvdDashboard *d)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "dvd_initV"
 PetscErrorCode dvd_initV(dvdDashboard *d, dvdBlackboard *b, PetscInt k,PetscInt user, PetscBool krylov)
 {
   PetscErrorCode ierr;
@@ -146,8 +138,6 @@ PetscErrorCode dvd_initV(dvdDashboard *d, dvdBlackboard *b, PetscInt k,PetscInt 
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "dvd_orthV"
 PetscErrorCode dvd_orthV(BV V,PetscInt V_new_s,PetscInt V_new_e)
 {
   PetscErrorCode ierr;

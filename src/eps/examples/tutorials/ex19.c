@@ -27,8 +27,6 @@ static char help[] = "Standard symmetric eigenproblem for the 3-D Laplacian buil
 #include <petscdmda.h>
 #include <petsctime.h>
 
-#undef __FUNCT__
-#define __FUNCT__ "GetExactEigenvalues"
 PetscErrorCode GetExactEigenvalues(PetscInt M,PetscInt N,PetscInt P,PetscInt nconv,PetscReal *exact)
 {
   PetscInt       n,i,j,k,l;
@@ -58,8 +56,6 @@ PetscErrorCode GetExactEigenvalues(PetscInt M,PetscInt N,PetscInt P,PetscInt nco
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "FillMatrix"
 PetscErrorCode FillMatrix(DM da,Mat A)
 {
   PetscErrorCode ierr;
@@ -93,8 +89,6 @@ PetscErrorCode FillMatrix(DM da,Mat A)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "main"
 int main(int argc,char **argv)
 {
   Mat            A;               /* operator matrix */

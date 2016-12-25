@@ -40,8 +40,6 @@ static char help[] = "FEM solution of the propagation constants in a six-layer p
 #define NMAT 5
 #define NL   6
 
-#undef __FUNCT__
-#define __FUNCT__ "main"
 int main(int argc,char **argv)
 {
   Mat            A[NMAT];         /* problem matrices */

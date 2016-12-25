@@ -26,8 +26,6 @@ static char help[] = "Solves a Lypunov equation with the 2-D Laplacian.\n\n"
 
 #include <slepclme.h>
 
-#undef __FUNCT__
-#define __FUNCT__ "main"
 int main(int argc,char **argv)
 {
   Mat                A;           /* problem matrix */

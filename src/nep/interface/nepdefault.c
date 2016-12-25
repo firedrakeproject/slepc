@@ -23,8 +23,6 @@
 
 #include <slepc/private/nepimpl.h>     /*I "slepcnep.h" I*/
 
-#undef __FUNCT__
-#define __FUNCT__ "NEPSetWorkVecs"
 /*@
    NEPSetWorkVecs - Sets a number of work vectors into a NEP object
 
@@ -57,8 +55,6 @@ PetscErrorCode NEPSetWorkVecs(NEP nep,PetscInt nw)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "NEPGetDefaultShift"
 /*
   NEPGetDefaultShift - Return the value of sigma to start the nonlinear iteration.
  */
@@ -92,8 +88,6 @@ PetscErrorCode NEPGetDefaultShift(NEP nep,PetscScalar *sigma)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "NEPConvergedRelative"
 /*
   NEPConvergedRelative - Checks convergence relative to the eigenvalue.
 */
@@ -107,8 +101,6 @@ PetscErrorCode NEPConvergedRelative(NEP nep,PetscScalar eigr,PetscScalar eigi,Pe
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "NEPConvergedAbsolute"
 /*
   NEPConvergedAbsolute - Checks convergence absolutely.
 */
@@ -119,8 +111,6 @@ PetscErrorCode NEPConvergedAbsolute(NEP nep,PetscScalar eigr,PetscScalar eigi,Pe
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "NEPConvergedNorm"
 /*
   NEPConvergedNorm - Checks convergence relative to the matrix norms.
 */
@@ -150,8 +140,6 @@ PetscErrorCode NEPConvergedNorm(NEP nep,PetscScalar eigr,PetscScalar eigi,PetscR
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "NEPStoppingBasic"
 /*@C
    NEPStoppingBasic - Default routine to determine whether the outer eigensolver
    iteration must be stopped.
@@ -200,8 +188,6 @@ PetscErrorCode NEPStoppingBasic(NEP nep,PetscInt its,PetscInt max_it,PetscInt nc
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "NEPComputeVectors_Schur"
 PetscErrorCode NEPComputeVectors_Schur(NEP nep)
 {
   PetscErrorCode ierr;

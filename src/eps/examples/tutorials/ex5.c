@@ -32,8 +32,6 @@ static char help[] = "Eigenvalue problem associated with a Markov model of a ran
 */
 PetscErrorCode MatMarkovModel(PetscInt m,Mat A);
 
-#undef __FUNCT__
-#define __FUNCT__ "main"
 int main(int argc,char **argv)
 {
   Vec            v0;              /* initial vector */
@@ -130,8 +128,6 @@ int main(int argc,char **argv)
   return ierr;
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "MatMarkovModel"
 /*
     Matrix generator for a Markov model of a random walk on a triangular grid.
 

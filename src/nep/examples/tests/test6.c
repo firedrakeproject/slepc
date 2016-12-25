@@ -45,8 +45,6 @@ static char help[] = "Test the NArnoldi solver with a user-provided KSP.\n\n"
 
 #include <slepcnep.h>
 
-#undef __FUNCT__
-#define __FUNCT__ "main"
 int main(int argc,char **argv)
 {
   NEP            nep;

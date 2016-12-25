@@ -24,8 +24,6 @@
 #include <slepc/private/bvimpl.h>
 #include "./svecimpl.h"
 
-#undef __FUNCT__
-#define __FUNCT__ "BVMult_Svec"
 PetscErrorCode BVMult_Svec(BV Y,PetscScalar alpha,PetscScalar beta,BV X,Mat Q)
 {
   PetscErrorCode    ierr;
@@ -50,8 +48,6 @@ PetscErrorCode BVMult_Svec(BV Y,PetscScalar alpha,PetscScalar beta,BV X,Mat Q)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "BVMultVec_Svec"
 PetscErrorCode BVMultVec_Svec(BV X,PetscScalar alpha,PetscScalar beta,Vec y,PetscScalar *q)
 {
   PetscErrorCode ierr;
@@ -69,8 +65,6 @@ PetscErrorCode BVMultVec_Svec(BV X,PetscScalar alpha,PetscScalar beta,Vec y,Pets
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "BVMultInPlace_Svec"
 PetscErrorCode BVMultInPlace_Svec(BV V,Mat Q,PetscInt s,PetscInt e)
 {
   PetscErrorCode ierr;
@@ -88,8 +82,6 @@ PetscErrorCode BVMultInPlace_Svec(BV V,Mat Q,PetscInt s,PetscInt e)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "BVMultInPlaceTranspose_Svec"
 PetscErrorCode BVMultInPlaceTranspose_Svec(BV V,Mat Q,PetscInt s,PetscInt e)
 {
   PetscErrorCode ierr;
@@ -107,8 +99,6 @@ PetscErrorCode BVMultInPlaceTranspose_Svec(BV V,Mat Q,PetscInt s,PetscInt e)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "BVDot_Svec"
 PetscErrorCode BVDot_Svec(BV X,BV Y,Mat M)
 {
   PetscErrorCode    ierr;
@@ -129,8 +119,6 @@ PetscErrorCode BVDot_Svec(BV X,BV Y,Mat M)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "BVDotVec_Svec"
 PetscErrorCode BVDotVec_Svec(BV X,Vec y,PetscScalar *q)
 {
   PetscErrorCode    ierr;
@@ -154,8 +142,6 @@ PetscErrorCode BVDotVec_Svec(BV X,Vec y,PetscScalar *q)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "BVDotVec_Local_Svec"
 PetscErrorCode BVDotVec_Local_Svec(BV X,Vec y,PetscScalar *m)
 {
   PetscErrorCode ierr;
@@ -176,8 +162,6 @@ PetscErrorCode BVDotVec_Local_Svec(BV X,Vec y,PetscScalar *m)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "BVScale_Svec"
 PetscErrorCode BVScale_Svec(BV bv,PetscInt j,PetscScalar alpha)
 {
   PetscErrorCode ierr;
@@ -195,8 +179,6 @@ PetscErrorCode BVScale_Svec(BV bv,PetscInt j,PetscScalar alpha)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "BVNorm_Svec"
 PetscErrorCode BVNorm_Svec(BV bv,PetscInt j,NormType type,PetscReal *val)
 {
   PetscErrorCode ierr;
@@ -214,8 +196,6 @@ PetscErrorCode BVNorm_Svec(BV bv,PetscInt j,NormType type,PetscReal *val)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "BVNorm_Local_Svec"
 PetscErrorCode BVNorm_Local_Svec(BV bv,PetscInt j,NormType type,PetscReal *val)
 {
   PetscErrorCode ierr;
@@ -233,8 +213,6 @@ PetscErrorCode BVNorm_Local_Svec(BV bv,PetscInt j,NormType type,PetscReal *val)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "BVMatMult_Svec"
 PetscErrorCode BVMatMult_Svec(BV V,Mat A,BV W)
 {
   PetscErrorCode ierr;
@@ -282,8 +260,6 @@ PetscErrorCode BVMatMult_Svec(BV V,Mat A,BV W)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "BVCopy_Svec"
 PetscErrorCode BVCopy_Svec(BV V,BV W)
 {
   PetscErrorCode ierr;
@@ -301,8 +277,6 @@ PetscErrorCode BVCopy_Svec(BV V,BV W)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "BVResize_Svec"
 PetscErrorCode BVResize_Svec(BV bv,PetscInt m,PetscBool copy)
 {
   PetscErrorCode ierr;
@@ -335,8 +309,6 @@ PetscErrorCode BVResize_Svec(BV bv,PetscInt m,PetscBool copy)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "BVGetColumn_Svec"
 PetscErrorCode BVGetColumn_Svec(BV bv,PetscInt j,Vec *v)
 {
   PetscErrorCode ierr;
@@ -351,8 +323,6 @@ PetscErrorCode BVGetColumn_Svec(BV bv,PetscInt j,Vec *v)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "BVRestoreColumn_Svec"
 PetscErrorCode BVRestoreColumn_Svec(BV bv,PetscInt j,Vec *v)
 {
   PetscErrorCode ierr;
@@ -366,8 +336,6 @@ PetscErrorCode BVRestoreColumn_Svec(BV bv,PetscInt j,Vec *v)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "BVGetArray_Svec"
 PetscErrorCode BVGetArray_Svec(BV bv,PetscScalar **a)
 {
   PetscErrorCode ierr;
@@ -378,8 +346,6 @@ PetscErrorCode BVGetArray_Svec(BV bv,PetscScalar **a)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "BVRestoreArray_Svec"
 PetscErrorCode BVRestoreArray_Svec(BV bv,PetscScalar **a)
 {
   PetscErrorCode ierr;
@@ -390,8 +356,6 @@ PetscErrorCode BVRestoreArray_Svec(BV bv,PetscScalar **a)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "BVGetArrayRead_Svec"
 PetscErrorCode BVGetArrayRead_Svec(BV bv,const PetscScalar **a)
 {
   PetscErrorCode ierr;
@@ -402,8 +366,6 @@ PetscErrorCode BVGetArrayRead_Svec(BV bv,const PetscScalar **a)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "BVRestoreArrayRead_Svec"
 PetscErrorCode BVRestoreArrayRead_Svec(BV bv,const PetscScalar **a)
 {
   PetscErrorCode ierr;
@@ -414,8 +376,6 @@ PetscErrorCode BVRestoreArrayRead_Svec(BV bv,const PetscScalar **a)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "BVView_Svec"
 PetscErrorCode BVView_Svec(BV bv,PetscViewer viewer)
 {
   PetscErrorCode    ierr;
@@ -441,8 +401,6 @@ PetscErrorCode BVView_Svec(BV bv,PetscViewer viewer)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "BVDestroy_Svec"
 PetscErrorCode BVDestroy_Svec(BV bv)
 {
   PetscErrorCode ierr;
@@ -456,8 +414,6 @@ PetscErrorCode BVDestroy_Svec(BV bv)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "BVCreate_Svec"
 PETSC_EXTERN PetscErrorCode BVCreate_Svec(BV bv)
 {
   PetscErrorCode ierr;

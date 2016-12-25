@@ -24,8 +24,6 @@
 #include <slepc/private/nepimpl.h>      /*I "slepcnep.h" I*/
 #include <petscdraw.h>
 
-#undef __FUNCT__
-#define __FUNCT__ "NEPView"
 /*@C
    NEPView - Prints the NEP data structure.
 
@@ -197,8 +195,6 @@ PetscErrorCode NEPView(NEP nep,PetscViewer viewer)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "NEPReasonView"
 /*@C
    NEPReasonView - Displays the reason a NEP solve converged or diverged.
 
@@ -234,8 +230,6 @@ PetscErrorCode NEPReasonView(NEP nep,PetscViewer viewer)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "NEPReasonViewFromOptions"
 /*@
    NEPReasonViewFromOptions - Processes command line options to determine if/how
    the NEP converged reason is to be viewed.
@@ -269,8 +263,6 @@ PetscErrorCode NEPReasonViewFromOptions(NEP nep)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "NEPErrorView_ASCII"
 static PetscErrorCode NEPErrorView_ASCII(NEP nep,NEPErrorType etype,PetscViewer viewer)
 {
   PetscBool      errok=PETSC_TRUE;
@@ -313,8 +305,6 @@ static PetscErrorCode NEPErrorView_ASCII(NEP nep,NEPErrorType etype,PetscViewer 
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "NEPErrorView_DETAIL"
 static PetscErrorCode NEPErrorView_DETAIL(NEP nep,NEPErrorType etype,PetscViewer viewer)
 {
   PetscErrorCode ierr;
@@ -358,8 +348,6 @@ static PetscErrorCode NEPErrorView_DETAIL(NEP nep,NEPErrorType etype,PetscViewer
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "NEPErrorView_MATLAB"
 static PetscErrorCode NEPErrorView_MATLAB(NEP nep,NEPErrorType etype,PetscViewer viewer)
 {
   PetscErrorCode ierr;
@@ -378,8 +366,6 @@ static PetscErrorCode NEPErrorView_MATLAB(NEP nep,NEPErrorType etype,PetscViewer
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "NEPErrorView"
 /*@C
    NEPErrorView - Displays the errors associated with the computed solution
    (as well as the eigenvalues).
@@ -439,8 +425,6 @@ PetscErrorCode NEPErrorView(NEP nep,NEPErrorType etype,PetscViewer viewer)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "NEPErrorViewFromOptions"
 /*@
    NEPErrorViewFromOptions - Processes command line options to determine if/how
    the errors of the computed solution are to be viewed.
@@ -488,8 +472,6 @@ PetscErrorCode NEPErrorViewFromOptions(NEP nep)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "NEPValuesView_DRAW"
 static PetscErrorCode NEPValuesView_DRAW(NEP nep,PetscViewer viewer)
 {
   PetscErrorCode ierr;
@@ -520,8 +502,6 @@ static PetscErrorCode NEPValuesView_DRAW(NEP nep,PetscViewer viewer)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "NEPValuesView_ASCII"
 static PetscErrorCode NEPValuesView_ASCII(NEP nep,PetscViewer viewer)
 {
   PetscInt       i,k;
@@ -539,8 +519,6 @@ static PetscErrorCode NEPValuesView_ASCII(NEP nep,PetscViewer viewer)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "NEPValuesView_MATLAB"
 static PetscErrorCode NEPValuesView_MATLAB(NEP nep,PetscViewer viewer)
 {
   PetscErrorCode ierr;
@@ -570,8 +548,6 @@ static PetscErrorCode NEPValuesView_MATLAB(NEP nep,PetscViewer viewer)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "NEPValuesView"
 /*@C
    NEPValuesView - Displays the computed eigenvalues in a viewer.
 
@@ -622,8 +598,6 @@ PetscErrorCode NEPValuesView(NEP nep,PetscViewer viewer)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "NEPValuesViewFromOptions"
 /*@
    NEPValuesViewFromOptions - Processes command line options to determine if/how
    the computed eigenvalues are to be viewed.
@@ -657,8 +631,6 @@ PetscErrorCode NEPValuesViewFromOptions(NEP nep)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "NEPVectorsView"
 /*@C
    NEPVectorsView - Outputs computed eigenvectors to a viewer.
 
@@ -710,8 +682,6 @@ PetscErrorCode NEPVectorsView(NEP nep,PetscViewer viewer)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "NEPVectorsViewFromOptions"
 /*@
    NEPVectorsViewFromOptions - Processes command line options to determine if/how
    the computed eigenvectors are to be viewed.

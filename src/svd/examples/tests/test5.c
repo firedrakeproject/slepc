@@ -23,8 +23,6 @@ static char help[] = "Test SVD view and monitor functionality.\n\n";
 
 #include <slepcsvd.h>
 
-#undef __FUNCT__
-#define __FUNCT__ "main"
 int main(int argc,char **argv)
 {
   Mat            A;

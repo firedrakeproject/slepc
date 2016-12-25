@@ -43,8 +43,6 @@
 #include <slepc/private/epsimpl.h>                /*I "slepceps.h" I*/
 #include "krylovschur.h"
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSGetArbitraryValues"
 PetscErrorCode EPSGetArbitraryValues(EPS eps,PetscScalar *rr,PetscScalar *ri)
 {
   PetscErrorCode ierr;
@@ -72,8 +70,6 @@ PetscErrorCode EPSGetArbitraryValues(EPS eps,PetscScalar *rr,PetscScalar *ri)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSSetUp_KrylovSchur"
 PetscErrorCode EPSSetUp_KrylovSchur(EPS eps)
 {
   PetscErrorCode    ierr;
@@ -170,8 +166,6 @@ PetscErrorCode EPSSetUp_KrylovSchur(EPS eps)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSSolve_KrylovSchur_Default"
 PetscErrorCode EPSSolve_KrylovSchur_Default(EPS eps)
 {
   PetscErrorCode  ierr;
@@ -293,8 +287,6 @@ PetscErrorCode EPSSolve_KrylovSchur_Default(EPS eps)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSKrylovSchurSetRestart_KrylovSchur"
 static PetscErrorCode EPSKrylovSchurSetRestart_KrylovSchur(EPS eps,PetscReal keep)
 {
   EPS_KRYLOVSCHUR *ctx = (EPS_KRYLOVSCHUR*)eps->data;
@@ -308,8 +300,6 @@ static PetscErrorCode EPSKrylovSchurSetRestart_KrylovSchur(EPS eps,PetscReal kee
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSKrylovSchurSetRestart"
 /*@
    EPSKrylovSchurSetRestart - Sets the restart parameter for the Krylov-Schur
    method, in particular the proportion of basis vectors that must be kept
@@ -342,8 +332,6 @@ PetscErrorCode EPSKrylovSchurSetRestart(EPS eps,PetscReal keep)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSKrylovSchurGetRestart_KrylovSchur"
 static PetscErrorCode EPSKrylovSchurGetRestart_KrylovSchur(EPS eps,PetscReal *keep)
 {
   EPS_KRYLOVSCHUR *ctx = (EPS_KRYLOVSCHUR*)eps->data;
@@ -353,8 +341,6 @@ static PetscErrorCode EPSKrylovSchurGetRestart_KrylovSchur(EPS eps,PetscReal *ke
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSKrylovSchurGetRestart"
 /*@
    EPSKrylovSchurGetRestart - Gets the restart parameter used in the
    Krylov-Schur method.
@@ -382,8 +368,6 @@ PetscErrorCode EPSKrylovSchurGetRestart(EPS eps,PetscReal *keep)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSKrylovSchurSetLocking_KrylovSchur"
 static PetscErrorCode EPSKrylovSchurSetLocking_KrylovSchur(EPS eps,PetscBool lock)
 {
   EPS_KRYLOVSCHUR *ctx = (EPS_KRYLOVSCHUR*)eps->data;
@@ -393,8 +377,6 @@ static PetscErrorCode EPSKrylovSchurSetLocking_KrylovSchur(EPS eps,PetscBool loc
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSKrylovSchurSetLocking"
 /*@
    EPSKrylovSchurSetLocking - Choose between locking and non-locking variants of
    the Krylov-Schur method.
@@ -429,8 +411,6 @@ PetscErrorCode EPSKrylovSchurSetLocking(EPS eps,PetscBool lock)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSKrylovSchurGetLocking_KrylovSchur"
 static PetscErrorCode EPSKrylovSchurGetLocking_KrylovSchur(EPS eps,PetscBool *lock)
 {
   EPS_KRYLOVSCHUR *ctx = (EPS_KRYLOVSCHUR*)eps->data;
@@ -440,8 +420,6 @@ static PetscErrorCode EPSKrylovSchurGetLocking_KrylovSchur(EPS eps,PetscBool *lo
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSKrylovSchurGetLocking"
 /*@
    EPSKrylovSchurGetLocking - Gets the locking flag used in the Krylov-Schur
    method.
@@ -469,8 +447,6 @@ PetscErrorCode EPSKrylovSchurGetLocking(EPS eps,PetscBool *lock)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSKrylovSchurSetPartitions_KrylovSchur"
 static PetscErrorCode EPSKrylovSchurSetPartitions_KrylovSchur(EPS eps,PetscInt npart)
 {
   PetscErrorCode  ierr;
@@ -493,8 +469,6 @@ static PetscErrorCode EPSKrylovSchurSetPartitions_KrylovSchur(EPS eps,PetscInt n
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSKrylovSchurSetPartitions"
 /*@
    EPSKrylovSchurSetPartitions - Sets the number of partitions for the
    case of doing spectrum slicing for a computational interval with the
@@ -533,8 +507,6 @@ PetscErrorCode EPSKrylovSchurSetPartitions(EPS eps,PetscInt npart)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSKrylovSchurGetPartitions_KrylovSchur"
 static PetscErrorCode EPSKrylovSchurGetPartitions_KrylovSchur(EPS eps,PetscInt *npart)
 {
   EPS_KRYLOVSCHUR *ctx = (EPS_KRYLOVSCHUR*)eps->data;
@@ -544,8 +516,6 @@ static PetscErrorCode EPSKrylovSchurGetPartitions_KrylovSchur(EPS eps,PetscInt *
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSKrylovSchurGetPartitions"
 /*@
    EPSKrylovSchurGetPartitions - Gets the number of partitions of the
    communicator in case of spectrum slicing.
@@ -573,8 +543,6 @@ PetscErrorCode EPSKrylovSchurGetPartitions(EPS eps,PetscInt *npart)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSKrylovSchurSetDetectZeros_KrylovSchur"
 static PetscErrorCode EPSKrylovSchurSetDetectZeros_KrylovSchur(EPS eps,PetscBool detect)
 {
   EPS_KRYLOVSCHUR *ctx = (EPS_KRYLOVSCHUR*)eps->data;
@@ -585,8 +553,6 @@ static PetscErrorCode EPSKrylovSchurSetDetectZeros_KrylovSchur(EPS eps,PetscBool
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSKrylovSchurSetDetectZeros"
 /*@
    EPSKrylovSchurSetDetectZeros - Sets a flag to enforce detection of
    zeros during the factorizations throughout the spectrum slicing computation.
@@ -624,8 +590,6 @@ PetscErrorCode EPSKrylovSchurSetDetectZeros(EPS eps,PetscBool detect)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSKrylovSchurGetDetectZeros_KrylovSchur"
 static PetscErrorCode EPSKrylovSchurGetDetectZeros_KrylovSchur(EPS eps,PetscBool *detect)
 {
   EPS_KRYLOVSCHUR *ctx = (EPS_KRYLOVSCHUR*)eps->data;
@@ -635,8 +599,6 @@ static PetscErrorCode EPSKrylovSchurGetDetectZeros_KrylovSchur(EPS eps,PetscBool
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSKrylovSchurGetDetectZeros"
 /*@
    EPSKrylovSchurGetDetectZeros - Gets the flag that enforces zero detection
    in spectrum slicing.
@@ -664,8 +626,6 @@ PetscErrorCode EPSKrylovSchurGetDetectZeros(EPS eps,PetscBool *detect)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSKrylovSchurSetDimensions_KrylovSchur"
 static PetscErrorCode EPSKrylovSchurSetDimensions_KrylovSchur(EPS eps,PetscInt nev,PetscInt ncv,PetscInt mpd)
 {
   EPS_KRYLOVSCHUR *ctx = (EPS_KRYLOVSCHUR*)eps->data;
@@ -689,8 +649,6 @@ static PetscErrorCode EPSKrylovSchurSetDimensions_KrylovSchur(EPS eps,PetscInt n
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSKrylovSchurSetDimensions"
 /*@
    EPSKrylovSchurSetDimensions - Sets the dimensions used for each subsolve
    step in case of doing spectrum slicing for a computational interval.
@@ -726,8 +684,6 @@ PetscErrorCode EPSKrylovSchurSetDimensions(EPS eps,PetscInt nev,PetscInt ncv,Pet
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSKrylovSchurGetDimensions_KrylovSchur"
 static PetscErrorCode EPSKrylovSchurGetDimensions_KrylovSchur(EPS eps,PetscInt *nev,PetscInt *ncv,PetscInt *mpd)
 {
   EPS_KRYLOVSCHUR *ctx = (EPS_KRYLOVSCHUR*)eps->data;
@@ -739,8 +695,6 @@ static PetscErrorCode EPSKrylovSchurGetDimensions_KrylovSchur(EPS eps,PetscInt *
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSKrylovSchurGetDimensions"
 /*@
    EPSKrylovSchurGetDimensions - Gets the dimensions used for each subsolve
    step in case of doing spectrum slicing for a computational interval.
@@ -769,8 +723,6 @@ PetscErrorCode EPSKrylovSchurGetDimensions(EPS eps,PetscInt *nev,PetscInt *ncv,P
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSKrylovSchurSetSubintervals_KrylovSchur"
 static PetscErrorCode EPSKrylovSchurSetSubintervals_KrylovSchur(EPS eps,PetscReal* subint)
 {
   PetscErrorCode  ierr;
@@ -788,8 +740,6 @@ static PetscErrorCode EPSKrylovSchurSetSubintervals_KrylovSchur(EPS eps,PetscRea
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSKrylovSchurSetSubintervals"
 /*@C
    EPSKrylovSchurSetSubintervals - Sets the points that delimit the
    subintervals to be used in spectrum slicing with several partitions.
@@ -824,8 +774,6 @@ PetscErrorCode EPSKrylovSchurSetSubintervals(EPS eps,PetscReal *subint)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSKrylovSchurGetSubintervals_KrylovSchur"
 static PetscErrorCode EPSKrylovSchurGetSubintervals_KrylovSchur(EPS eps,PetscReal **subint)
 {
   PetscErrorCode  ierr;
@@ -842,8 +790,6 @@ static PetscErrorCode EPSKrylovSchurGetSubintervals_KrylovSchur(EPS eps,PetscRea
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSKrylovSchurGetSubintervals"
 /*@C
    EPSKrylovSchurGetSubintervals - Returns the points that delimit the
    subintervals used in spectrum slicing with several partitions.
@@ -888,8 +834,6 @@ PetscErrorCode EPSKrylovSchurGetSubintervals(EPS eps,PetscReal** subint)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSKrylovSchurGetInertias_KrylovSchur"
 static PetscErrorCode EPSKrylovSchurGetInertias_KrylovSchur(EPS eps,PetscInt *n,PetscReal **shifts,PetscInt **inertias)
 {
   PetscErrorCode  ierr;
@@ -933,8 +877,6 @@ static PetscErrorCode EPSKrylovSchurGetInertias_KrylovSchur(EPS eps,PetscInt *n,
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSKrylovSchurGetInertias"
 /*@C
    EPSKrylovSchurGetInertias - Gets the values of the shifts and their
    corresponding inertias in case of doing spectrum slicing for a
@@ -975,8 +917,6 @@ PetscErrorCode EPSKrylovSchurGetInertias(EPS eps,PetscInt *n,PetscReal **shifts,
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSKrylovSchurGetSubcommInfo_KrylovSchur"
 static PetscErrorCode EPSKrylovSchurGetSubcommInfo_KrylovSchur(EPS eps,PetscInt *k,PetscInt *n,Vec *v)
 {
   PetscErrorCode  ierr;
@@ -994,8 +934,6 @@ static PetscErrorCode EPSKrylovSchurGetSubcommInfo_KrylovSchur(EPS eps,PetscInt 
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSKrylovSchurGetSubcommInfo"
 /*@C
    EPSKrylovSchurGetSubcommInfo - Gets information related to the case of
    doing spectrum slicing for a computational interval with multiple
@@ -1031,8 +969,6 @@ PetscErrorCode EPSKrylovSchurGetSubcommInfo(EPS eps,PetscInt *k,PetscInt *n,Vec 
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSKrylovSchurGetSubcommPairs_KrylovSchur"
 static PetscErrorCode EPSKrylovSchurGetSubcommPairs_KrylovSchur(EPS eps,PetscInt i,PetscScalar *eig,Vec v)
 {
   PetscErrorCode  ierr;
@@ -1048,8 +984,6 @@ static PetscErrorCode EPSKrylovSchurGetSubcommPairs_KrylovSchur(EPS eps,PetscInt
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSKrylovSchurGetSubcommPairs"
 /*@C
    EPSKrylovSchurGetSubcommPairs - Gets the i-th eigenpair stored
    internally in the subcommunicator to which the calling process belongs.
@@ -1087,8 +1021,6 @@ PetscErrorCode EPSKrylovSchurGetSubcommPairs(EPS eps,PetscInt i,PetscScalar *eig
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSKrylovSchurGetSubcommMats_KrylovSchur"
 static PetscErrorCode EPSKrylovSchurGetSubcommMats_KrylovSchur(EPS eps,Mat *A,Mat *B)
 {
   PetscErrorCode  ierr;
@@ -1101,8 +1033,6 @@ static PetscErrorCode EPSKrylovSchurGetSubcommMats_KrylovSchur(EPS eps,Mat *A,Ma
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSKrylovSchurGetSubcommMats"
 /*@C
    EPSKrylovSchurGetSubcommMats - Gets the eigenproblem matrices stored
    internally in the subcommunicator to which the calling process belongs.
@@ -1136,8 +1066,6 @@ PetscErrorCode EPSKrylovSchurGetSubcommMats(EPS eps,Mat *A,Mat *B)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSKrylovSchurUpdateSubcommMats_KrylovSchur"
 static PetscErrorCode EPSKrylovSchurUpdateSubcommMats_KrylovSchur(EPS eps,PetscScalar a,PetscScalar ap,Mat Au,PetscScalar b,PetscScalar bp, Mat Bu,MatStructure str,PetscBool globalup)
 {
   PetscErrorCode  ierr;
@@ -1194,8 +1122,6 @@ static PetscErrorCode EPSKrylovSchurUpdateSubcommMats_KrylovSchur(EPS eps,PetscS
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSKrylovSchurUpdateSubcommMats"
 /*@C
    EPSKrylovSchurUpdateSubcommMats - Update the eigenproblem matrices stored
    internally in the subcommunicator to which the calling process belongs.
@@ -1252,8 +1178,6 @@ PetscErrorCode EPSKrylovSchurUpdateSubcommMats(EPS eps,PetscScalar s,PetscScalar
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSSetFromOptions_KrylovSchur"
 PetscErrorCode EPSSetFromOptions_KrylovSchur(PetscOptionItems *PetscOptionsObject,EPS eps)
 {
   PetscErrorCode  ierr;
@@ -1290,8 +1214,6 @@ PetscErrorCode EPSSetFromOptions_KrylovSchur(PetscOptionItems *PetscOptionsObjec
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSView_KrylovSchur"
 PetscErrorCode EPSView_KrylovSchur(EPS eps,PetscViewer viewer)
 {
   PetscErrorCode  ierr;
@@ -1314,8 +1236,6 @@ PetscErrorCode EPSView_KrylovSchur(EPS eps,PetscViewer viewer)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSDestroy_KrylovSchur"
 PetscErrorCode EPSDestroy_KrylovSchur(EPS eps)
 {
   PetscErrorCode ierr;
@@ -1342,8 +1262,6 @@ PetscErrorCode EPSDestroy_KrylovSchur(EPS eps)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSReset_KrylovSchur"
 PetscErrorCode EPSReset_KrylovSchur(EPS eps)
 {
   PetscErrorCode ierr;
@@ -1354,8 +1272,6 @@ PetscErrorCode EPSReset_KrylovSchur(EPS eps)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSSetDefaultST_KrylovSchur"
 PetscErrorCode EPSSetDefaultST_KrylovSchur(EPS eps)
 {
   PetscErrorCode ierr;
@@ -1369,8 +1285,6 @@ PetscErrorCode EPSSetDefaultST_KrylovSchur(EPS eps)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSCreate_KrylovSchur"
 PETSC_EXTERN PetscErrorCode EPSCreate_KrylovSchur(EPS eps)
 {
   EPS_KRYLOVSCHUR *ctx;

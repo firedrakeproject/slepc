@@ -40,8 +40,6 @@ static char help[] = "Finite element model of a loaded vibrating string.\n\n"
 
 #define NMAT 3
 
-#undef __FUNCT__
-#define __FUNCT__ "main"
 int main(int argc,char **argv)
 {
   Mat            A[NMAT];         /* problem matrices */

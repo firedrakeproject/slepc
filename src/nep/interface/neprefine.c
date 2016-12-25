@@ -39,8 +39,6 @@ typedef struct {
   PetscScalar  M4,m3;
 } FSubctx;
 
-#undef __FUNCT__
-#define __FUNCT__ "MatFSMult"
 static PetscErrorCode MatFSMult(Mat M ,Vec x,Vec y)
 {
   PetscErrorCode ierr;
@@ -56,8 +54,6 @@ static PetscErrorCode MatFSMult(Mat M ,Vec x,Vec y)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "NEPSimpleNRefSetUp"
 static PetscErrorCode NEPSimpleNRefSetUp(NEP nep,NEPSimpNRefctx **ctx_)
 {
   PetscErrorCode ierr;
@@ -141,8 +137,6 @@ static PetscErrorCode NEPSimpleNRefSetUp(NEP nep,NEPSimpNRefctx **ctx_)
 /*
   Gather Eigenpair idx from subcommunicator with color sc
 */
-#undef __FUNCT__
-#define __FUNCT__ "NEPSimpleNRefGatherEigenpair"
 static PetscErrorCode NEPSimpleNRefGatherEigenpair(NEP nep,NEPSimpNRefctx *ctx,PetscInt sc,PetscInt idx,PetscInt *fail)
 {
   PetscErrorCode ierr;
@@ -182,8 +176,6 @@ static PetscErrorCode NEPSimpleNRefGatherEigenpair(NEP nep,NEPSimpNRefctx *ctx,P
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "NEPSimpleNRefScatterEigenvector"
 static PetscErrorCode NEPSimpleNRefScatterEigenvector(NEP nep,NEPSimpNRefctx *ctx,PetscInt sc,PetscInt idx)
 {
   PetscErrorCode ierr;
@@ -208,8 +200,6 @@ static PetscErrorCode NEPSimpleNRefScatterEigenvector(NEP nep,NEPSimpNRefctx *ct
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "NEPSimpleNRefSetUpSystem"
 static PetscErrorCode NEPSimpleNRefSetUpSystem(NEP nep,NEPSimpNRefctx *ctx,Mat *A,PetscInt idx,Mat *Mt,Mat *T,Mat *P,PetscBool ini,Vec t,Vec v)
 {
   PetscErrorCode    ierr;
@@ -387,8 +377,6 @@ static PetscErrorCode NEPSimpleNRefSetUpSystem(NEP nep,NEPSimpNRefctx *ctx,Mat *
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "NEPNewtonRefinementSimple"
 PetscErrorCode NEPNewtonRefinementSimple(NEP nep,PetscInt *maxits,PetscReal tol,PetscInt k)
 {
   PetscErrorCode    ierr;

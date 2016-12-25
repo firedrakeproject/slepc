@@ -38,8 +38,6 @@ static char help[] = "SVD via the cross-product matrix with a user-provided EPS.
               |                   1  2    |
  */
 
-#undef __FUNCT__
-#define __FUNCT__ "main"
 int main(int argc,char **argv)
 {
   Mat            A;

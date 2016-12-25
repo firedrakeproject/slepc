@@ -50,8 +50,6 @@ typedef struct {
   PetscReal   h;       /* mesh spacing */
 } ApplicationCtx;
 
-#undef __FUNCT__
-#define __FUNCT__ "main"
 int main(int argc,char **argv)
 {
   NEP            nep;             /* nonlinear eigensolver context */
@@ -211,8 +209,6 @@ int main(int argc,char **argv)
 }
 
 /* ------------------------------------------------------------------- */
-#undef __FUNCT__
-#define __FUNCT__ "FormInitialGuess"
 /*
    FormInitialGuess - Computes initial guess.
 
@@ -229,8 +225,6 @@ PetscErrorCode FormInitialGuess(Vec x)
 }
 
 /* ------------------------------------------------------------------- */
-#undef __FUNCT__
-#define __FUNCT__ "FormFunction"
 /*
    FormFunction - Computes Function matrix  T(lambda)
 
@@ -303,8 +297,6 @@ PetscErrorCode FormFunction(NEP nep,PetscScalar lambda,Mat fun,Mat B,void *ctx)
 }
 
 /* ------------------------------------------------------------------- */
-#undef __FUNCT__
-#define __FUNCT__ "FormJacobian"
 /*
    FormJacobian - Computes Jacobian matrix  T'(lambda)
 
@@ -372,8 +364,6 @@ PetscErrorCode FormJacobian(NEP nep,PetscScalar lambda,Mat jac,void *ctx)
 }
 
 /* ------------------------------------------------------------------- */
-#undef __FUNCT__
-#define __FUNCT__ "CheckSolution"
 /*
    CheckSolution - Given a computed solution (lambda,x) check if it
    satisfies the analytic solution.
@@ -413,8 +403,6 @@ PetscErrorCode CheckSolution(PetscScalar lambda,Vec y,PetscReal *error,void *ctx
 }
 
 /* ------------------------------------------------------------------- */
-#undef __FUNCT__
-#define __FUNCT__ "FixSign"
 /*
    FixSign - Force the eigenfunction to be real and positive, since
    some eigensolvers may return the eigenvector multiplied by a

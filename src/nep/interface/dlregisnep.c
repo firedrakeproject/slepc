@@ -29,8 +29,6 @@ const char *NEPRefineSchemes[] = {"","SCHUR","MBE","EXPLICIT","NEPRefineScheme",
 const char *const NEPConvergedReasons_Shifted[] = {"DIVERGED_LINEAR_SOLVE","","DIVERGED_BREAKDOWN","DIVERGED_ITS","CONVERGED_ITERATING","CONVERGED_TOL","CONVERGED_USER","NEPConvergedReason","NEP_",0};
 const char *const*NEPConvergedReasons = NEPConvergedReasons_Shifted + 4;
 
-#undef __FUNCT__
-#define __FUNCT__ "NEPFinalizePackage"
 /*@C
    NEPFinalizePackage - This function destroys everything in the Slepc interface
    to the NEP package. It is called from SlepcFinalize().
@@ -50,8 +48,6 @@ PetscErrorCode NEPFinalizePackage(void)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "NEPInitializePackage"
 /*@C
    NEPInitializePackage - This function initializes everything in the NEP package.
    It is called from PetscDLLibraryRegister() when using dynamic libraries, and
@@ -103,9 +99,6 @@ PetscErrorCode NEPInitializePackage(void)
 }
 
 #if defined(PETSC_HAVE_DYNAMIC_LIBRARIES)
-
-#undef __FUNCT__
-#define __FUNCT__ "PetscDLLibraryRegister_slepcnep"
 /*
   PetscDLLibraryRegister - This function is called when the dynamic library
   it is in is opened.

@@ -26,8 +26,6 @@ static PetscBool MFNPackageInitialized = PETSC_FALSE;
 const char *const MFNConvergedReasons_Shifted[] = {"DIVERGED_BREAKDOWN","DIVERGED_ITS","CONVERGED_ITERATING","CONVERGED_TOL","CONVERGED_ITS","MFNConvergedReason","MFN_",0};
 const char *const*MFNConvergedReasons = MFNConvergedReasons_Shifted + 2;
 
-#undef __FUNCT__
-#define __FUNCT__ "MFNFinalizePackage"
 /*@C
   MFNFinalizePackage - This function destroys everything in the SLEPc interface
   to the MFN package. It is called from SlepcFinalize().
@@ -47,8 +45,6 @@ PetscErrorCode MFNFinalizePackage(void)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "MFNInitializePackage"
 /*@C
   MFNInitializePackage - This function initializes everything in the MFN package.
   It is called from PetscDLLibraryRegister() when using dynamic libraries, and
@@ -96,9 +92,6 @@ PetscErrorCode MFNInitializePackage(void)
 }
 
 #if defined(PETSC_HAVE_DYNAMIC_LIBRARIES)
-
-#undef __FUNCT__
-#define __FUNCT__ "PetscDLLibraryRegister_slepcmfn"
 /*
   PetscDLLibraryRegister - This function is called when the dynamic library
   it is in is opened.

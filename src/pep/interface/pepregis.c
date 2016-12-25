@@ -29,8 +29,6 @@ PETSC_EXTERN PetscErrorCode PEPCreate_STOAR(PEP);
 PETSC_EXTERN PetscErrorCode PEPCreate_JD(PEP);
 #endif
 
-#undef __FUNCT__
-#define __FUNCT__ "PEPRegisterAll"
 /*@C
    PEPRegisterAll - Registers all the solvers in the PEP package.
 

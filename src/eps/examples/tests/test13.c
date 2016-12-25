@@ -23,8 +23,6 @@ static char help[] = "Test EPSSetArbitrarySelection.\n\n";
 
 #include <slepceps.h>
 
-#undef __FUNCT__
-#define __FUNCT__ "MyArbitrarySelection"
 PetscErrorCode MyArbitrarySelection(PetscScalar eigr,PetscScalar eigi,Vec xr,Vec xi,PetscScalar *rr,PetscScalar *ri,void *ctx)
 {
   PetscErrorCode  ierr;

@@ -24,8 +24,6 @@
 #include <slepc/private/svdimpl.h>      /*I "slepcsvd.h" I*/
 #include <petscdraw.h>
 
-#undef __FUNCT__
-#define __FUNCT__ "SVDView"
 /*@C
    SVDView - Prints the SVD data structure.
 
@@ -117,8 +115,6 @@ PetscErrorCode SVDView(SVD svd,PetscViewer viewer)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "SVDReasonView"
 /*@C
    SVDReasonView - Displays the reason an SVD solve converged or diverged.
 
@@ -154,8 +150,6 @@ PetscErrorCode SVDReasonView(SVD svd,PetscViewer viewer)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "SVDReasonViewFromOptions"
 /*@
    SVDReasonViewFromOptions - Processes command line options to determine if/how
    the SVD converged reason is to be viewed.
@@ -189,8 +183,6 @@ PetscErrorCode SVDReasonViewFromOptions(SVD svd)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "SVDErrorView_ASCII"
 static PetscErrorCode SVDErrorView_ASCII(SVD svd,SVDErrorType etype,PetscViewer viewer)
 {
   PetscBool      errok=PETSC_TRUE;
@@ -224,8 +216,6 @@ static PetscErrorCode SVDErrorView_ASCII(SVD svd,SVDErrorType etype,PetscViewer 
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "SVDErrorView_DETAIL"
 static PetscErrorCode SVDErrorView_DETAIL(SVD svd,SVDErrorType etype,PetscViewer viewer)
 {
   PetscErrorCode ierr;
@@ -254,8 +244,6 @@ static PetscErrorCode SVDErrorView_DETAIL(SVD svd,SVDErrorType etype,PetscViewer
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "SVDErrorView_MATLAB"
 static PetscErrorCode SVDErrorView_MATLAB(SVD svd,SVDErrorType etype,PetscViewer viewer)
 {
   PetscErrorCode ierr;
@@ -274,8 +262,6 @@ static PetscErrorCode SVDErrorView_MATLAB(SVD svd,SVDErrorType etype,PetscViewer
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "SVDErrorView"
 /*@C
    SVDErrorView - Displays the errors associated with the computed solution
    (as well as the singular values).
@@ -334,8 +320,6 @@ PetscErrorCode SVDErrorView(SVD svd,SVDErrorType etype,PetscViewer viewer)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "SVDErrorViewFromOptions"
 /*@
    SVDErrorViewFromOptions - Processes command line options to determine if/how
    the errors of the computed solution are to be viewed.
@@ -376,8 +360,6 @@ PetscErrorCode SVDErrorViewFromOptions(SVD svd)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "SVDValuesView_DRAW"
 static PetscErrorCode SVDValuesView_DRAW(SVD svd,PetscViewer viewer)
 {
   PetscErrorCode ierr;
@@ -401,8 +383,6 @@ static PetscErrorCode SVDValuesView_DRAW(SVD svd,PetscViewer viewer)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "SVDValuesView_ASCII"
 static PetscErrorCode SVDValuesView_ASCII(SVD svd,PetscViewer viewer)
 {
   PetscInt       i;
@@ -417,8 +397,6 @@ static PetscErrorCode SVDValuesView_ASCII(SVD svd,PetscViewer viewer)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "SVDValuesView_MATLAB"
 static PetscErrorCode SVDValuesView_MATLAB(SVD svd,PetscViewer viewer)
 {
   PetscErrorCode ierr;
@@ -435,8 +413,6 @@ static PetscErrorCode SVDValuesView_MATLAB(SVD svd,PetscViewer viewer)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "SVDValuesView"
 /*@C
    SVDValuesView - Displays the computed singular values in a viewer.
 
@@ -487,8 +463,6 @@ PetscErrorCode SVDValuesView(SVD svd,PetscViewer viewer)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "SVDValuesViewFromOptions"
 /*@
    SVDValuesViewFromOptions - Processes command line options to determine if/how
    the computed singular values are to be viewed.
@@ -522,8 +496,6 @@ PetscErrorCode SVDValuesViewFromOptions(SVD svd)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "SVDVectorsView"
 /*@C
    SVDVectorsView - Outputs computed singular vectors to a viewer.
 
@@ -575,8 +547,6 @@ PetscErrorCode SVDVectorsView(SVD svd,PetscViewer viewer)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "SVDVectorsViewFromOptions"
 /*@
    SVDVectorsViewFromOptions - Processes command line options to determine if/how
    the computed singular vectors are to be viewed.

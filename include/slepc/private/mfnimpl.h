@@ -80,8 +80,6 @@ struct _p_MFN {
   MFNConvergedReason reason;
 };
 
-#undef __FUNCT__
-#define __FUNCT__ "MFN_CreateDenseMat"
 /*
    MFN_CreateDenseMat - Creates a dense Mat of size k unless it already has that size
 */
@@ -106,8 +104,6 @@ PETSC_STATIC_INLINE PetscErrorCode MFN_CreateDenseMat(PetscInt k,Mat *A)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "MFN_CreateVec"
 /*
    MFN_CreateVec - Creates a Vec of size k unless it already has that size
 */

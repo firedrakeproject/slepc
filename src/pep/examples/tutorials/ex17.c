@@ -27,8 +27,6 @@ static char help[] = "Solves a polynomial eigenproblem P(l)x = 0 with matrices l
 
 #define MAX_MATRICES 40
 
-#undef __FUNCT__
-#define __FUNCT__ "main"
 int main(int argc,char **argv)
 {
   Mat            A[MAX_MATRICES]; /* problem matrices */

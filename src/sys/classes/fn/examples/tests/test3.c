@@ -23,8 +23,6 @@ static char help[] = "Test matrix exponential.\n\n";
 
 #include <slepcfn.h>
 
-#undef __FUNCT__
-#define __FUNCT__ "TestMatExp"
 /*
    Compute matrix exponential B = expm(A)
  */
@@ -74,8 +72,6 @@ PetscErrorCode TestMatExp(FN fn,Mat A,PetscViewer viewer,PetscBool verbose,Petsc
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "main"
 int main(int argc,char **argv)
 {
   PetscErrorCode ierr;

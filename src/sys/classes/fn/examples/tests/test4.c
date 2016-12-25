@@ -23,8 +23,6 @@ static char help[] = "Test setting FN parameters from the command line.\n\n";
 
 #include <slepcfn.h>
 
-#undef __FUNCT__
-#define __FUNCT__ "main"
 int main(int argc,char **argv)
 {
   PetscErrorCode ierr;

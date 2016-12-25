@@ -23,8 +23,6 @@
 
 #include <slepc/private/mfnimpl.h>       /*I "slepcmfn.h" I*/
 
-#undef __FUNCT__
-#define __FUNCT__ "MFNSetUp"
 /*@
    MFNSetUp - Sets up all the internal data structures necessary for the
    execution of the matrix function solver.
@@ -82,8 +80,6 @@ PetscErrorCode MFNSetUp(MFN mfn)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "MFNSetOperator"
 /*@
    MFNSetOperator - Sets the matrix for which the matrix function is to be computed.
 
@@ -121,8 +117,6 @@ PetscErrorCode MFNSetOperator(MFN mfn,Mat A)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "MFNGetOperator"
 /*@
    MFNGetOperator - Gets the matrix associated with the MFN object.
 
@@ -147,8 +141,6 @@ PetscErrorCode MFNGetOperator(MFN mfn,Mat *A)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "MFNAllocateSolution"
 /*@
    MFNAllocateSolution - Allocate memory storage for common variables such
    as the basis vectors.

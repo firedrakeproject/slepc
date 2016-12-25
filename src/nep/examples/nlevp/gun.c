@@ -44,8 +44,6 @@ static char help[] = "Radio-frequency gun cavity.\n\n"
 
 PetscErrorCode ComputeSingularities(NEP,PetscInt*,PetscScalar*,void*);
 
-#undef __FUNCT__
-#define __FUNCT__ "main"
 int main(int argc,char **argv)
 {
   PetscErrorCode ierr;
@@ -156,8 +154,6 @@ int main(int argc,char **argv)
   return ierr;
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "ComputeSingularities"
 /*
    ComputeSingularities - Computes maxnp points (at most) in the complex plane where
    the function T(.) is not analytic.
