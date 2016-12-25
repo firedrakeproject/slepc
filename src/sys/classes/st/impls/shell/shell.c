@@ -32,8 +32,6 @@ typedef struct {
   PetscErrorCode (*backtransform)(ST,PetscInt n,PetscScalar*,PetscScalar*);
 } ST_SHELL;
 
-#undef __FUNCT__
-#define __FUNCT__ "STShellGetContext"
 /*@C
    STShellGetContext - Returns the user-provided context associated with a shell ST
 
@@ -66,8 +64,6 @@ PetscErrorCode STShellGetContext(ST st,void **ctx)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "STShellSetContext"
 /*@
    STShellSetContext - Sets the context for a shell ST
 
@@ -99,8 +95,6 @@ PetscErrorCode STShellSetContext(ST st,void *ctx)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "STApply_Shell"
 PetscErrorCode STApply_Shell(ST st,Vec x,Vec y)
 {
   PetscErrorCode   ierr;
@@ -119,8 +113,6 @@ PetscErrorCode STApply_Shell(ST st,Vec x,Vec y)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "STApplyTranspose_Shell"
 PetscErrorCode STApplyTranspose_Shell(ST st,Vec x,Vec y)
 {
   PetscErrorCode ierr;
@@ -139,8 +131,6 @@ PetscErrorCode STApplyTranspose_Shell(ST st,Vec x,Vec y)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "STBackTransform_Shell"
 PetscErrorCode STBackTransform_Shell(ST st,PetscInt n,PetscScalar *eigr,PetscScalar *eigi)
 {
   PetscErrorCode ierr;
@@ -151,8 +141,6 @@ PetscErrorCode STBackTransform_Shell(ST st,PetscInt n,PetscScalar *eigr,PetscSca
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "STDestroy_Shell"
 PetscErrorCode STDestroy_Shell(ST st)
 {
   PetscErrorCode ierr;
@@ -165,8 +153,6 @@ PetscErrorCode STDestroy_Shell(ST st)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "STShellSetApply_Shell"
 static PetscErrorCode STShellSetApply_Shell(ST st,PetscErrorCode (*apply)(ST,Vec,Vec))
 {
   ST_SHELL *shell = (ST_SHELL*)st->data;
@@ -176,8 +162,6 @@ static PetscErrorCode STShellSetApply_Shell(ST st,PetscErrorCode (*apply)(ST,Vec
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "STShellSetApply"
 /*@C
    STShellSetApply - Sets routine to use as the application of the
    operator to a vector in the user-defined spectral transformation.
@@ -209,8 +193,6 @@ PetscErrorCode STShellSetApply(ST st,PetscErrorCode (*apply)(ST,Vec,Vec))
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "STShellSetApplyTranspose_Shell"
 static PetscErrorCode STShellSetApplyTranspose_Shell(ST st,PetscErrorCode (*applytrans)(ST,Vec,Vec))
 {
   ST_SHELL *shell = (ST_SHELL*)st->data;
@@ -220,8 +202,6 @@ static PetscErrorCode STShellSetApplyTranspose_Shell(ST st,PetscErrorCode (*appl
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "STShellSetApplyTranspose"
 /*@C
    STShellSetApplyTranspose - Sets routine to use as the application of the
    transposed operator to a vector in the user-defined spectral transformation.
@@ -253,8 +233,6 @@ PetscErrorCode STShellSetApplyTranspose(ST st,PetscErrorCode (*applytrans)(ST,Ve
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "STShellSetBackTransform_Shell"
 static PetscErrorCode STShellSetBackTransform_Shell(ST st,PetscErrorCode (*backtr)(ST,PetscInt,PetscScalar*,PetscScalar*))
 {
   ST_SHELL *shell = (ST_SHELL*)st->data;
@@ -264,8 +242,6 @@ static PetscErrorCode STShellSetBackTransform_Shell(ST st,PetscErrorCode (*backt
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "STShellSetBackTransform"
 /*@C
    STShellSetBackTransform - Sets the routine to be called after the
    eigensolution process has finished in order to transform back the
@@ -317,8 +293,6 @@ $             STShellSetBackTransform(st,backtr);    (optional)
 
 M*/
 
-#undef __FUNCT__
-#define __FUNCT__ "STCreate_Shell"
 PETSC_EXTERN PetscErrorCode STCreate_Shell(ST st)
 {
   PetscErrorCode ierr;

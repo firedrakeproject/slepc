@@ -23,8 +23,6 @@
 
 PETSC_EXTERN PetscErrorCode LMECreate_Krylov(LME);
 
-#undef __FUNCT__
-#define __FUNCT__ "LMERegisterAll"
 /*@C
   LMERegisterAll - Registers all the matrix functions in the LME package.
 

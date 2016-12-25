@@ -36,8 +36,6 @@
 
 #include <slepc/private/epsimpl.h>
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSSetUp_Subspace"
 PetscErrorCode EPSSetUp_Subspace(EPS eps)
 {
   PetscErrorCode ierr;
@@ -66,8 +64,6 @@ PetscErrorCode EPSSetUp_Subspace(EPS eps)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSSubspaceFindGroup"
 /*
    EPSSubspaceFindGroup - Find a group of nearly equimodular eigenvalues, provided
    in arrays wr and wi, according to the tolerance grptol. Also the 2-norms
@@ -115,8 +111,6 @@ static PetscErrorCode EPSSubspaceFindGroup(PetscInt l,PetscInt m,PetscScalar *wr
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSSubspaceResidualNorms"
 /*
    EPSSubspaceResidualNorms - Computes the column norms of residual vectors
    OP*V(1:n,l:m) - V*T(1:m,l:m), where, on entry, OP*V has been computed and
@@ -153,8 +147,6 @@ static PetscErrorCode EPSSubspaceResidualNorms(BV V,BV AV,PetscScalar *T,PetscIn
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSSolve_Subspace"
 PetscErrorCode EPSSolve_Subspace(EPS eps)
 {
   PetscErrorCode ierr;
@@ -308,8 +300,6 @@ PetscErrorCode EPSSolve_Subspace(EPS eps)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSDestroy_Subspace"
 PetscErrorCode EPSDestroy_Subspace(EPS eps)
 {
   PetscErrorCode ierr;
@@ -319,8 +309,6 @@ PetscErrorCode EPSDestroy_Subspace(EPS eps)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSCreate_Subspace"
 PETSC_EXTERN PetscErrorCode EPSCreate_Subspace(EPS eps)
 {
   PetscFunctionBegin;

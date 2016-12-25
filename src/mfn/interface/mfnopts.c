@@ -25,8 +25,6 @@
 #include <slepc/private/mfnimpl.h>   /*I "slepcmfn.h" I*/
 #include <petscdraw.h>
 
-#undef __FUNCT__
-#define __FUNCT__ "MFNMonitorSetFromOptions"
 /*@C
    MFNMonitorSetFromOptions - Sets a monitor function and viewer appropriate for the type
    indicated by the user.
@@ -62,8 +60,6 @@ PetscErrorCode MFNMonitorSetFromOptions(MFN mfn,const char name[],const char hel
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "MFNSetFromOptions"
 /*@
    MFNSetFromOptions - Sets MFN options from the options database.
    This routine must be called before MFNSetUp() if the user is to be
@@ -148,8 +144,6 @@ PetscErrorCode MFNSetFromOptions(MFN mfn)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "MFNGetTolerances"
 /*@
    MFNGetTolerances - Gets the tolerance and maximum iteration count used
    by the MFN convergence tests.
@@ -179,8 +173,6 @@ PetscErrorCode MFNGetTolerances(MFN mfn,PetscReal *tol,PetscInt *maxits)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "MFNSetTolerances"
 /*@
    MFNSetTolerances - Sets the tolerance and maximum iteration count used
    by the MFN convergence tests.
@@ -226,8 +218,6 @@ PetscErrorCode MFNSetTolerances(MFN mfn,PetscReal tol,PetscInt maxits)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "MFNGetDimensions"
 /*@
    MFNGetDimensions - Gets the dimension of the subspace used by the solver.
 
@@ -252,8 +242,6 @@ PetscErrorCode MFNGetDimensions(MFN mfn,PetscInt *ncv)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "MFNSetDimensions"
 /*@
    MFNSetDimensions - Sets the dimension of the subspace to be used by the solver.
 
@@ -289,8 +277,6 @@ PetscErrorCode MFNSetDimensions(MFN mfn,PetscInt ncv)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "MFNSetErrorIfNotConverged"
 /*@
    MFNSetErrorIfNotConverged - Causes MFNSolve() to generate an error if the
    solver has not converged.
@@ -321,8 +307,6 @@ PetscErrorCode MFNSetErrorIfNotConverged(MFN mfn,PetscBool flg)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "MFNGetErrorIfNotConverged"
 /*@
    MFNGetErrorIfNotConverged - Return a flag indicating whether MFNSolve() will
    generate an error if the solver does not converge.
@@ -348,8 +332,6 @@ PetscErrorCode MFNGetErrorIfNotConverged(MFN mfn,PetscBool *flag)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "MFNSetOptionsPrefix"
 /*@C
    MFNSetOptionsPrefix - Sets the prefix used for searching for all
    MFN options in the database.
@@ -390,8 +372,6 @@ PetscErrorCode MFNSetOptionsPrefix(MFN mfn,const char *prefix)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "MFNAppendOptionsPrefix"
 /*@C
    MFNAppendOptionsPrefix - Appends to the prefix used for searching for all
    MFN options in the database.
@@ -424,8 +404,6 @@ PetscErrorCode MFNAppendOptionsPrefix(MFN mfn,const char *prefix)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "MFNGetOptionsPrefix"
 /*@C
    MFNGetOptionsPrefix - Gets the prefix used for searching for all
    MFN options in the database.

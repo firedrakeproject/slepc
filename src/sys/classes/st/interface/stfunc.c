@@ -29,8 +29,6 @@ static PetscBool STPackageInitialized = PETSC_FALSE;
 
 const char *STMatModes[] = {"COPY","INPLACE","SHELL","STMatMode","ST_MATMODE_",0};
 
-#undef __FUNCT__
-#define __FUNCT__ "STFinalizePackage"
 /*@C
    STFinalizePackage - This function destroys everything in the Slepc interface
    to the ST package. It is called from SlepcFinalize().
@@ -50,8 +48,6 @@ PetscErrorCode STFinalizePackage(void)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "STInitializePackage"
 /*@C
    STInitializePackage - This function initializes everything in the ST package.
    It is called from PetscDLLibraryRegister() when using dynamic libraries, and
@@ -104,8 +100,6 @@ PetscErrorCode STInitializePackage(void)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "STReset"
 /*@
    STReset - Resets the ST context to the initial state (prior to setup)
    and destroys any allocated Vecs and Mats.
@@ -138,8 +132,6 @@ PetscErrorCode STReset(ST st)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "STDestroy"
 /*@
    STDestroy - Destroys ST context that was created with STCreate().
 
@@ -167,8 +159,6 @@ PetscErrorCode STDestroy(ST *st)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "STCreate"
 /*@
    STCreate - Creates a spectral transformation context.
 
@@ -218,8 +208,6 @@ PetscErrorCode STCreate(MPI_Comm comm,ST *newst)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "STSetOperators"
 /*@
    STSetOperators - Sets the matrices associated with the eigenvalue problem.
 
@@ -282,8 +270,6 @@ PetscErrorCode STSetOperators(ST st,PetscInt n,Mat A[])
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "STGetOperators"
 /*@
    STGetOperators - Gets the matrices associated with the original eigensystem.
 
@@ -313,8 +299,6 @@ PetscErrorCode STGetOperators(ST st,PetscInt k,Mat *A)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "STGetTOperators"
 /*@
    STGetTOperators - Gets the matrices associated with the transformed eigensystem.
 
@@ -344,8 +328,6 @@ PetscErrorCode STGetTOperators(ST st,PetscInt k,Mat *T)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "STGetNumMatrices"
 /*@
    STGetNumMatrices - Returns the number of matrices stored in the ST.
 
@@ -370,8 +352,6 @@ PetscErrorCode STGetNumMatrices(ST st,PetscInt *n)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "STSetShift"
 /*@
    STSetShift - Sets the shift associated with the spectral transformation.
 
@@ -409,8 +389,6 @@ PetscErrorCode STSetShift(ST st,PetscScalar shift)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "STGetShift"
 /*@
    STGetShift - Gets the shift associated with the spectral transformation.
 
@@ -435,8 +413,6 @@ PetscErrorCode STGetShift(ST st,PetscScalar* shift)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "STSetDefaultShift"
 /*@
    STSetDefaultShift - Sets the value of the shift that should be employed if
    the user did not specify one.
@@ -460,8 +436,6 @@ PetscErrorCode STSetDefaultShift(ST st,PetscScalar defaultshift)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "STScaleShift"
 /*@
    STScaleShift - Multiply the shift with a given factor.
 
@@ -488,8 +462,6 @@ PetscErrorCode STScaleShift(ST st,PetscScalar factor)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "STSetBalanceMatrix"
 /*@
    STSetBalanceMatrix - Sets the diagonal matrix to be used for balancing.
 
@@ -524,8 +496,6 @@ PetscErrorCode STSetBalanceMatrix(ST st,Vec D)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "STGetBalanceMatrix"
 /*@
    STGetBalanceMatrix - Gets the balance matrix used by the spectral transformation.
 
@@ -553,8 +523,6 @@ PetscErrorCode STGetBalanceMatrix(ST st,Vec *D)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "STMatCreateVecs"
 /*@C
    STMatCreateVecs - Get vector(s) compatible with the ST matrices.
 
@@ -579,8 +547,6 @@ PetscErrorCode STMatCreateVecs(ST st,Vec *right,Vec *left)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "STMatGetSize"
 /*@
    STMatGetSize - Returns the number of rows and columns of the ST matrices.
 
@@ -605,8 +571,6 @@ PetscErrorCode STMatGetSize(ST st,PetscInt *m,PetscInt *n)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "STMatGetLocalSize"
 /*@
    STMatGetLocalSize - Returns the number of local rows and columns of the ST matrices.
 
@@ -631,8 +595,6 @@ PetscErrorCode STMatGetLocalSize(ST st,PetscInt *m,PetscInt *n)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "STSetOptionsPrefix"
 /*@C
    STSetOptionsPrefix - Sets the prefix used for searching for all
    ST options in the database.
@@ -665,8 +627,6 @@ PetscErrorCode STSetOptionsPrefix(ST st,const char *prefix)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "STAppendOptionsPrefix"
 /*@C
    STAppendOptionsPrefix - Appends to the prefix used for searching for all
    ST options in the database.
@@ -699,8 +659,6 @@ PetscErrorCode STAppendOptionsPrefix(ST st,const char *prefix)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "STGetOptionsPrefix"
 /*@C
    STGetOptionsPrefix - Gets the prefix used for searching for all
    ST options in the database.
@@ -732,8 +690,6 @@ PetscErrorCode STGetOptionsPrefix(ST st,const char *prefix[])
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "STView"
 /*@C
    STView - Prints the ST data structure.
 
@@ -820,8 +776,6 @@ PetscErrorCode STView(ST st,PetscViewer viewer)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "STRegister"
 /*@C
    STRegister - Adds a method to the spectral transformation package.
 

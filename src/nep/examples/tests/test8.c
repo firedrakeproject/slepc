@@ -23,8 +23,6 @@ static char help[] = "Test NEP view and monitor functionality.\n\n";
 
 #include <slepcnep.h>
 
-#undef __FUNCT__
-#define __FUNCT__ "main"
 int main(int argc,char **argv)
 {
   Mat                A[3];

@@ -33,8 +33,6 @@ const char *DSStateTypes[] = {"RAW","INTERMEDIATE","CONDENSED","TRUNCATED","DSSt
 const char *DSMatName[DS_NUM_MAT] = {"A","B","C","T","D","Q","Z","X","Y","U","VT","W","E0","E1","E2","E3","E4","E5","E6","E7","E8","E9"};
 DSMatType  DSMatExtra[DS_NUM_EXTRA] = {DS_MAT_E0,DS_MAT_E1,DS_MAT_E2,DS_MAT_E3,DS_MAT_E4,DS_MAT_E5,DS_MAT_E6,DS_MAT_E7,DS_MAT_E8,DS_MAT_E9};
 
-#undef __FUNCT__
-#define __FUNCT__ "DSFinalizePackage"
 /*@C
    DSFinalizePackage - This function destroys everything in the SLEPc interface
    to the DS package. It is called from SlepcFinalize().
@@ -54,8 +52,6 @@ PetscErrorCode DSFinalizePackage(void)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "DSInitializePackage"
 /*@C
   DSInitializePackage - This function initializes everything in the DS package.
   It is called from PetscDLLibraryRegister() when using dynamic libraries, and
@@ -103,8 +99,6 @@ PetscErrorCode DSInitializePackage()
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "DSCreate"
 /*@
    DSCreate - Creates a DS context.
 
@@ -168,8 +162,6 @@ PetscErrorCode DSCreate(MPI_Comm comm,DS *newds)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "DSSetOptionsPrefix"
 /*@C
    DSSetOptionsPrefix - Sets the prefix used for searching for all
    DS options in the database.
@@ -199,8 +191,6 @@ PetscErrorCode DSSetOptionsPrefix(DS ds,const char *prefix)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "DSAppendOptionsPrefix"
 /*@C
    DSAppendOptionsPrefix - Appends to the prefix used for searching for all
    DS options in the database.
@@ -229,8 +219,6 @@ PetscErrorCode DSAppendOptionsPrefix(DS ds,const char *prefix)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "DSGetOptionsPrefix"
 /*@C
    DSGetOptionsPrefix - Gets the prefix used for searching for all
    DS options in the database.
@@ -262,8 +250,6 @@ PetscErrorCode DSGetOptionsPrefix(DS ds,const char *prefix[])
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "DSSetType"
 /*@C
    DSSetType - Selects the type for the DS object.
 
@@ -299,8 +285,6 @@ PetscErrorCode DSSetType(DS ds,DSType type)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "DSGetType"
 /*@C
    DSGetType - Gets the DS type name (as a string) from the DS context.
 
@@ -325,8 +309,6 @@ PetscErrorCode DSGetType(DS ds,DSType *type)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "DSSetMethod"
 /*@
    DSSetMethod - Selects the method to be used to solve the problem.
 
@@ -351,8 +333,6 @@ PetscErrorCode DSSetMethod(DS ds,PetscInt meth)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "DSGetMethod"
 /*@
    DSGetMethod - Gets the method currently used in the DS.
 
@@ -377,8 +357,6 @@ PetscErrorCode DSGetMethod(DS ds,PetscInt *meth)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "DSSetCompact"
 /*@
    DSSetCompact - Switch to compact storage of matrices.
 
@@ -409,8 +387,6 @@ PetscErrorCode DSSetCompact(DS ds,PetscBool comp)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "DSGetCompact"
 /*@
    DSGetCompact - Gets the compact storage flag.
 
@@ -435,8 +411,6 @@ PetscErrorCode DSGetCompact(DS ds,PetscBool *comp)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "DSSetExtraRow"
 /*@
    DSSetExtraRow - Sets a flag to indicate that the matrix has one extra
    row.
@@ -469,8 +443,6 @@ PetscErrorCode DSSetExtraRow(DS ds,PetscBool ext)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "DSGetExtraRow"
 /*@
    DSGetExtraRow - Gets the extra row flag.
 
@@ -495,8 +467,6 @@ PetscErrorCode DSGetExtraRow(DS ds,PetscBool *ext)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "DSSetRefined"
 /*@
    DSSetRefined - Sets a flag to indicate that refined vectors must be
    computed.
@@ -530,8 +500,6 @@ PetscErrorCode DSSetRefined(DS ds,PetscBool ref)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "DSGetRefined"
 /*@
    DSGetRefined - Gets the refined vectors flag.
 
@@ -556,8 +524,6 @@ PetscErrorCode DSGetRefined(DS ds,PetscBool *ref)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "DSSetBlockSize"
 /*@
    DSSetBlockSize - Sets the block size.
 
@@ -581,8 +547,6 @@ PetscErrorCode DSSetBlockSize(DS ds,PetscInt bs)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "DSGetBlockSize"
 /*@
    DSGetBlockSize - Gets the block size.
 
@@ -607,8 +571,6 @@ PetscErrorCode DSGetBlockSize(DS ds,PetscInt *bs)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "DSSetSlepcSC"
 /*@C
    DSSetSlepcSC - Sets the sorting criterion context.
 
@@ -636,8 +598,6 @@ PetscErrorCode DSSetSlepcSC(DS ds,SlepcSC sc)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "DSGetSlepcSC"
 /*@C
    DSGetSlepcSC - Gets the sorting criterion context.
 
@@ -667,8 +627,6 @@ PetscErrorCode DSGetSlepcSC(DS ds,SlepcSC *sc)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "DSSetFromOptions"
 /*@
    DSSetFromOptions - Sets DS options from the options database.
 
@@ -708,8 +666,6 @@ PetscErrorCode DSSetFromOptions(DS ds)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "DSView"
 /*@C
    DSView - Prints the DS data structure.
 
@@ -773,8 +729,6 @@ PetscErrorCode DSView(DS ds,PetscViewer viewer)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "DSAllocate"
 /*@
    DSAllocate - Allocates memory for internal storage or matrices in DS.
 
@@ -809,8 +763,6 @@ PetscErrorCode DSAllocate(DS ds,PetscInt ld)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "DSReset"
 /*@
    DSReset - Resets the DS context to the initial state.
 
@@ -849,8 +801,6 @@ PetscErrorCode DSReset(DS ds)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "DSDestroy"
 /*@
    DSDestroy - Destroys DS context that was created with DSCreate().
 
@@ -881,8 +831,6 @@ PetscErrorCode DSDestroy(DS *ds)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "DSRegister"
 /*@C
    DSRegister - Adds a direct solver to the DS package.
 
@@ -918,8 +866,6 @@ PETSC_EXTERN PetscErrorCode DSCreate_SVD(DS);
 PETSC_EXTERN PetscErrorCode DSCreate_PEP(DS);
 PETSC_EXTERN PetscErrorCode DSCreate_NEP(DS);
 
-#undef __FUNCT__
-#define __FUNCT__ "DSRegisterAll"
 /*@C
    DSRegisterAll - Registers all of the direct solvers in the DS package.
 

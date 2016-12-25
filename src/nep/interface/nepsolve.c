@@ -24,8 +24,6 @@
 #include <slepc/private/nepimpl.h>       /*I "slepcnep.h" I*/
 #include <petscdraw.h>
 
-#undef __FUNCT__
-#define __FUNCT__ "NEPComputeVectors"
 PetscErrorCode NEPComputeVectors(NEP nep)
 {
   PetscErrorCode ierr;
@@ -39,8 +37,6 @@ PetscErrorCode NEPComputeVectors(NEP nep)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "NEPSolve"
 /*@
    NEPSolve - Solves the nonlinear eigensystem.
 
@@ -110,8 +106,6 @@ PetscErrorCode NEPSolve(NEP nep)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "NEPProjectOperator"
 /*@
    NEPProjectOperator - Computes the projection of the nonlinear operator.
 
@@ -157,8 +151,6 @@ PetscErrorCode NEPProjectOperator(NEP nep,PetscInt j0,PetscInt j1)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "NEPApplyFunction"
 /*@
    NEPApplyFunction - Applies the nonlinear function T(lambda) to a given vector.
 
@@ -215,8 +207,6 @@ PetscErrorCode NEPApplyFunction(NEP nep,PetscScalar lambda,Vec x,Vec v,Vec y,Mat
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "NEPApplyJacobian"
 /*@
    NEPApplyJacobian - Applies the nonlinear Jacobian T'(lambda) to a given vector.
 
@@ -271,8 +261,6 @@ PetscErrorCode NEPApplyJacobian(NEP nep,PetscScalar lambda,Vec x,Vec v,Vec y,Mat
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "NEPGetIterationNumber"
 /*@
    NEPGetIterationNumber - Gets the current iteration number. If the
    call to NEPSolve() is complete, then it returns the number of iterations
@@ -306,8 +294,6 @@ PetscErrorCode NEPGetIterationNumber(NEP nep,PetscInt *its)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "NEPGetConverged"
 /*@
    NEPGetConverged - Gets the number of converged eigenpairs.
 
@@ -336,8 +322,6 @@ PetscErrorCode NEPGetConverged(NEP nep,PetscInt *nconv)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "NEPGetConvergedReason"
 /*@
    NEPGetConvergedReason - Gets the reason why the NEPSolve() iteration was
    stopped.
@@ -375,8 +359,6 @@ PetscErrorCode NEPGetConvergedReason(NEP nep,NEPConvergedReason *reason)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "NEPGetEigenpair"
 /*@
    NEPGetEigenpair - Gets the i-th solution of the eigenproblem as computed by
    NEPSolve(). The solution consists in both the eigenvalue and the eigenvector.
@@ -458,8 +440,6 @@ PetscErrorCode NEPGetEigenpair(NEP nep,PetscInt i,PetscScalar *eigr,PetscScalar 
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "NEPGetErrorEstimate"
 /*@
    NEPGetErrorEstimate - Returns the error estimate associated to the i-th
    computed eigenpair.
@@ -492,8 +472,6 @@ PetscErrorCode NEPGetErrorEstimate(NEP nep,PetscInt i,PetscReal *errest)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "NEPComputeResidualNorm_Private"
 /*
    NEPComputeResidualNorm_Private - Computes the norm of the residual vector
    associated with an eigenpair.
@@ -516,8 +494,6 @@ PetscErrorCode NEPComputeResidualNorm_Private(NEP nep,PetscScalar lambda,Vec x,V
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "NEPComputeError"
 /*@
    NEPComputeError - Computes the error (based on the residual norm) associated
    with the i-th computed eigenpair.
@@ -614,8 +590,6 @@ PetscErrorCode NEPComputeError(NEP nep,PetscInt i,NEPErrorType type,PetscReal *e
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "NEPComputeFunction"
 /*@
    NEPComputeFunction - Computes the function matrix T(lambda) that has been
    set with NEPSetFunction().
@@ -676,8 +650,6 @@ PetscErrorCode NEPComputeFunction(NEP nep,PetscScalar lambda,Mat A,Mat B)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "NEPComputeJacobian"
 /*@
    NEPComputeJacobian - Computes the Jacobian matrix T'(lambda) that has been
    set with NEPSetJacobian().

@@ -26,8 +26,6 @@
 #include <slepc/private/epsimpl.h>
 #include "krylovschur.h"
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSSolve_KrylovSchur_Indefinite"
 PetscErrorCode EPSSolve_KrylovSchur_Indefinite(EPS eps)
 {
   PetscErrorCode  ierr;

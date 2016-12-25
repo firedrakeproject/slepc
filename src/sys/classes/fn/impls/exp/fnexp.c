@@ -24,8 +24,6 @@
 #include <slepc/private/fnimpl.h>      /*I "slepcfn.h" I*/
 #include <slepcblaslapack.h>
 
-#undef __FUNCT__
-#define __FUNCT__ "FNEvaluateFunction_Exp"
 PetscErrorCode FNEvaluateFunction_Exp(FN fn,PetscScalar x,PetscScalar *y)
 {
   PetscFunctionBegin;
@@ -33,8 +31,6 @@ PetscErrorCode FNEvaluateFunction_Exp(FN fn,PetscScalar x,PetscScalar *y)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "FNEvaluateDerivative_Exp"
 PetscErrorCode FNEvaluateDerivative_Exp(FN fn,PetscScalar x,PetscScalar *y)
 {
   PetscFunctionBegin;
@@ -45,8 +41,6 @@ PetscErrorCode FNEvaluateDerivative_Exp(FN fn,PetscScalar x,PetscScalar *y)
 #define MAX_PADE 6
 #define SWAP(a,b,t) {t=a;a=b;b=t;}
 
-#undef __FUNCT__
-#define __FUNCT__ "FNEvaluateFunctionMat_Exp"
 PetscErrorCode FNEvaluateFunctionMat_Exp(FN fn,Mat A,Mat B)
 {
 #if defined(PETSC_MISSING_LAPACK_GESV) || defined(SLEPC_MISSING_LAPACK_LANGE)
@@ -140,8 +134,6 @@ PetscErrorCode FNEvaluateFunctionMat_Exp(FN fn,Mat A,Mat B)
 #endif
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "FNView_Exp"
 PetscErrorCode FNView_Exp(FN fn,PetscViewer viewer)
 {
   PetscErrorCode ierr;
@@ -174,8 +166,6 @@ PetscErrorCode FNView_Exp(FN fn,PetscViewer viewer)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "FNCreate_Exp"
 PETSC_EXTERN PetscErrorCode FNCreate_Exp(FN fn)
 {
   PetscFunctionBegin;

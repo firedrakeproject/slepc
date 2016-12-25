@@ -24,8 +24,6 @@
 #include <slepc/private/dsimpl.h>
 #include <slepcblaslapack.h>
 
-#undef __FUNCT__
-#define __FUNCT__ "BDC_dsbtdc_"
 PetscErrorCode BDC_dsbtdc_(const char *jobz,const char *jobacc,PetscBLASInt n,
         PetscBLASInt nblks,PetscBLASInt *ksizes,PetscReal *d,PetscBLASInt l1d,
         PetscBLASInt l2d,PetscReal *e,PetscBLASInt l1e,PetscBLASInt l2e,PetscReal tol,

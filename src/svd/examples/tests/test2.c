@@ -24,8 +24,6 @@ static char help[] = "Test SVD with different builds with a matrix loaded from a
 
 #include <slepcsvd.h>
 
-#undef __FUNCT__
-#define __FUNCT__ "main"
 int main(int argc,char **argv)
 {
   Mat            A;               /* operator matrix */

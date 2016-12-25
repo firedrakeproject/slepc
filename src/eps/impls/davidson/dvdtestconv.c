@@ -25,8 +25,6 @@
 
 #include "davidson.h"
 
-#undef __FUNCT__
-#define __FUNCT__ "dvd_testconv_slepc_0"
 static PetscBool dvd_testconv_slepc_0(dvdDashboard *d,PetscScalar eigvr,PetscScalar eigvi,PetscReal r,PetscReal *err)
 {
   PetscErrorCode ierr;
@@ -36,8 +34,6 @@ static PetscBool dvd_testconv_slepc_0(dvdDashboard *d,PetscScalar eigvr,PetscSca
   PetscFunctionReturn(PetscNot(*err>=d->eps->tol));
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "dvd_testconv_slepc"
 PetscErrorCode dvd_testconv_slepc(dvdDashboard *d, dvdBlackboard *b)
 {
   PetscErrorCode ierr;

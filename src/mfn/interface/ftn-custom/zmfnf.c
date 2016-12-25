@@ -66,15 +66,11 @@ static struct {
 } _cb;
 
 /* These are not extern C because they are passed into non-extern C user level functions */
-#undef __FUNCT__
-#define __FUNCT__ "ourmonitor"
 static PetscErrorCode ourmonitor(MFN mfn,PetscInt i,PetscReal d,void* ctx)
 {
   PetscObjectUseFortranCallback(mfn,_cb.monitor,(MFN*,PetscInt*,PetscReal*,void*,PetscErrorCode*),(&mfn,&i,&d,_ctx,&ierr));
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "ourdestroy"
 static PetscErrorCode ourdestroy(void** ctx)
 {
   MFN mfn = (MFN)*ctx;

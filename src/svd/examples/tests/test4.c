@@ -38,8 +38,6 @@ static char help[] = "Test an SVD problem with more columns than rows.\n\n"
               |                   1  2    |
  */
 
-#undef __FUNCT__
-#define __FUNCT__ "main"
 int main(int argc,char **argv)
 {
   Mat                  A,B;

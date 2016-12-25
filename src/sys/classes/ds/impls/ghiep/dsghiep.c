@@ -21,8 +21,6 @@
 #include <slepc/private/dsimpl.h>
 #include <slepcblaslapack.h>
 
-#undef __FUNCT__
-#define __FUNCT__ "DSAllocate_GHIEP"
 PetscErrorCode DSAllocate_GHIEP(DS ds,PetscInt ld)
 {
   PetscErrorCode ierr;
@@ -39,8 +37,6 @@ PetscErrorCode DSAllocate_GHIEP(DS ds,PetscInt ld)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "DSSwitchFormat_GHIEP"
 PetscErrorCode DSSwitchFormat_GHIEP(DS ds,PetscBool tocompact)
 {
   PetscErrorCode ierr;
@@ -85,8 +81,6 @@ PetscErrorCode DSSwitchFormat_GHIEP(DS ds,PetscBool tocompact)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "DSView_GHIEP"
 PetscErrorCode DSView_GHIEP(DS ds,PetscViewer viewer)
 {
   PetscErrorCode    ierr;
@@ -173,8 +167,6 @@ PetscErrorCode DSView_GHIEP(DS ds,PetscViewer viewer)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "DSVectors_GHIEP_Eigen_Some"
 static PetscErrorCode DSVectors_GHIEP_Eigen_Some(DS ds,PetscInt *idx,PetscReal *rnorm)
 {
 #if defined(SLEPC_MISSING_LAPACK_LAG2)
@@ -274,8 +266,6 @@ static PetscErrorCode DSVectors_GHIEP_Eigen_Some(DS ds,PetscInt *idx,PetscReal *
 #endif
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "DSVectors_GHIEP"
 PetscErrorCode DSVectors_GHIEP(DS ds,DSMatType mat,PetscInt *k,PetscReal *rnorm)
 {
   PetscInt       i;
@@ -314,8 +304,6 @@ PetscErrorCode DSVectors_GHIEP(DS ds,DSMatType mat,PetscInt *k,PetscReal *rnorm)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "DSGHIEPComplexEigs"
 /*
   Extract the eigenvalues contained in the block-diagonal of the indefinite problem.
   Only the index range n0..n1 is processed.
@@ -400,8 +388,6 @@ PetscErrorCode DSGHIEPComplexEigs(DS ds,PetscInt n0,PetscInt n1,PetscScalar *wr,
 #endif
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "DSSort_GHIEP"
 PetscErrorCode DSSort_GHIEP(DS ds,PetscScalar *wr,PetscScalar *wi,PetscScalar *rr,PetscScalar *ri,PetscInt *k)
 {
   PetscErrorCode ierr;
@@ -445,8 +431,6 @@ PetscErrorCode DSSort_GHIEP(DS ds,PetscScalar *wr,PetscScalar *wi,PetscScalar *r
 }
 
 
-#undef __FUNCT__
-#define __FUNCT__ "DSGHIEPInverseIteration"
 /*
   Get eigenvectors with inverse iteration.
   The system matrix is in Hessenberg form.
@@ -530,9 +514,6 @@ PetscErrorCode DSGHIEPInverseIteration(DS ds,PetscScalar *wr,PetscScalar *wi)
 #endif
 }
 
-
-#undef __FUNCT__
-#define __FUNCT__ "DSGHIEPRealBlocks"
 /*
    Undo 2x2 blocks that have real eigenvalues.
 */
@@ -656,8 +637,6 @@ PetscErrorCode DSGHIEPRealBlocks(DS ds)
 #endif
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "DSSolve_GHIEP_QR_II"
 PetscErrorCode DSSolve_GHIEP_QR_II(DS ds,PetscScalar *wr,PetscScalar *wi)
 {
 #if defined(PETSC_MISSING_LAPACK_HSEQR)
@@ -767,8 +746,6 @@ PetscErrorCode DSSolve_GHIEP_QR_II(DS ds,PetscScalar *wr,PetscScalar *wi)
 #endif
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "DSSolve_GHIEP_QR"
 PetscErrorCode DSSolve_GHIEP_QR(DS ds,PetscScalar *wr,PetscScalar *wi)
 {
 #if defined(SLEPC_MISSING_LAPACK_GEEVX)
@@ -898,8 +875,6 @@ PetscErrorCode DSSolve_GHIEP_QR(DS ds,PetscScalar *wr,PetscScalar *wi)
 #endif
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "DSCreate_GHIEP"
 PETSC_EXTERN PetscErrorCode DSCreate_GHIEP(DS ds)
 {
   PetscFunctionBegin;

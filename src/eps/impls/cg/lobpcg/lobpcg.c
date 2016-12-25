@@ -47,8 +47,6 @@ typedef struct {
   PetscReal restart;   /* restart parameter */
 } EPS_LOBPCG;
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSSetDimensions_LOBPCG"
 PetscErrorCode EPSSetDimensions_LOBPCG(EPS eps,PetscInt nev,PetscInt *ncv,PetscInt *mpd)
 {
   EPS_LOBPCG *ctx = (EPS_LOBPCG*)eps->data;
@@ -64,8 +62,6 @@ PetscErrorCode EPSSetDimensions_LOBPCG(EPS eps,PetscInt nev,PetscInt *ncv,PetscI
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSSetUp_LOBPCG"
 PetscErrorCode EPSSetUp_LOBPCG(EPS eps)
 {
   PetscErrorCode ierr;
@@ -98,8 +94,6 @@ PetscErrorCode EPSSetUp_LOBPCG(EPS eps)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSSolve_LOBPCG"
 PetscErrorCode EPSSolve_LOBPCG(EPS eps)
 {
   PetscErrorCode ierr;
@@ -406,8 +400,6 @@ PetscErrorCode EPSSolve_LOBPCG(EPS eps)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSLOBPCGSetBlockSize_LOBPCG"
 static PetscErrorCode EPSLOBPCGSetBlockSize_LOBPCG(EPS eps,PetscInt bs)
 {
   EPS_LOBPCG *ctx = (EPS_LOBPCG*)eps->data;
@@ -417,8 +409,6 @@ static PetscErrorCode EPSLOBPCGSetBlockSize_LOBPCG(EPS eps,PetscInt bs)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSLOBPCGSetBlockSize"
 /*@
    EPSLOBPCGSetBlockSize - Sets the block size of the LOBPCG method.
 
@@ -446,8 +436,6 @@ PetscErrorCode EPSLOBPCGSetBlockSize(EPS eps,PetscInt bs)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSLOBPCGGetBlockSize_LOBPCG"
 static PetscErrorCode EPSLOBPCGGetBlockSize_LOBPCG(EPS eps,PetscInt *bs)
 {
   EPS_LOBPCG *ctx = (EPS_LOBPCG*)eps->data;
@@ -457,8 +445,6 @@ static PetscErrorCode EPSLOBPCGGetBlockSize_LOBPCG(EPS eps,PetscInt *bs)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSLOBPCGGetBlockSize"
 /*@
    EPSLOBPCGGetBlockSize - Gets the block size used in the LOBPCG method.
 
@@ -485,8 +471,6 @@ PetscErrorCode EPSLOBPCGGetBlockSize(EPS eps,PetscInt *bs)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSLOBPCGSetRestart_LOBPCG"
 static PetscErrorCode EPSLOBPCGSetRestart_LOBPCG(EPS eps,PetscReal restart)
 {
   EPS_LOBPCG *ctx = (EPS_LOBPCG*)eps->data;
@@ -500,8 +484,6 @@ static PetscErrorCode EPSLOBPCGSetRestart_LOBPCG(EPS eps,PetscReal restart)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSLOBPCGSetRestart"
 /*@
    EPSLOBPCGSetRestart - Sets the restart parameter for the LOBPCG method.
    The meaning of this parameter is the proportion of vectors within the
@@ -535,8 +517,6 @@ PetscErrorCode EPSLOBPCGSetRestart(EPS eps,PetscReal restart)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSLOBPCGGetRestart_LOBPCG"
 static PetscErrorCode EPSLOBPCGGetRestart_LOBPCG(EPS eps,PetscReal *restart)
 {
   EPS_LOBPCG *ctx = (EPS_LOBPCG*)eps->data;
@@ -546,8 +526,6 @@ static PetscErrorCode EPSLOBPCGGetRestart_LOBPCG(EPS eps,PetscReal *restart)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSLOBPCGGetRestart"
 /*@
    EPSLOBPCGGetRestart - Gets the restart parameter used in the LOBPCG method.
 
@@ -574,8 +552,6 @@ PetscErrorCode EPSLOBPCGGetRestart(EPS eps,PetscReal *restart)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSLOBPCGSetLocking_LOBPCG"
 static PetscErrorCode EPSLOBPCGSetLocking_LOBPCG(EPS eps,PetscBool lock)
 {
   EPS_LOBPCG *ctx = (EPS_LOBPCG*)eps->data;
@@ -585,8 +561,6 @@ static PetscErrorCode EPSLOBPCGSetLocking_LOBPCG(EPS eps,PetscBool lock)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSLOBPCGSetLocking"
 /*@
    EPSLOBPCGSetLocking - Choose between locking and non-locking variants of
    the LOBPCG method.
@@ -620,8 +594,6 @@ PetscErrorCode EPSLOBPCGSetLocking(EPS eps,PetscBool lock)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSLOBPCGGetLocking_LOBPCG"
 static PetscErrorCode EPSLOBPCGGetLocking_LOBPCG(EPS eps,PetscBool *lock)
 {
   EPS_LOBPCG *ctx = (EPS_LOBPCG*)eps->data;
@@ -631,8 +603,6 @@ static PetscErrorCode EPSLOBPCGGetLocking_LOBPCG(EPS eps,PetscBool *lock)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSLOBPCGGetLocking"
 /*@
    EPSLOBPCGGetLocking - Gets the locking flag used in the LOBPCG method.
 
@@ -659,8 +629,6 @@ PetscErrorCode EPSLOBPCGGetLocking(EPS eps,PetscBool *lock)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSView_LOBPCG"
 PetscErrorCode EPSView_LOBPCG(EPS eps,PetscViewer viewer)
 {
   PetscErrorCode ierr;
@@ -677,8 +645,6 @@ PetscErrorCode EPSView_LOBPCG(EPS eps,PetscViewer viewer)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSSetFromOptions_LOBPCG"
 PetscErrorCode EPSSetFromOptions_LOBPCG(PetscOptionItems *PetscOptionsObject,EPS eps)
 {
   PetscErrorCode ierr;
@@ -702,8 +668,6 @@ PetscErrorCode EPSSetFromOptions_LOBPCG(PetscOptionItems *PetscOptionsObject,EPS
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSDestroy_LOBPCG"
 PetscErrorCode EPSDestroy_LOBPCG(EPS eps)
 {
   PetscErrorCode ierr;
@@ -719,8 +683,6 @@ PetscErrorCode EPSDestroy_LOBPCG(EPS eps)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSCreate_LOBPCG"
 PETSC_EXTERN PetscErrorCode EPSCreate_LOBPCG(EPS eps)
 {
   EPS_LOBPCG     *lobpcg;

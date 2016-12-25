@@ -51,8 +51,6 @@ PETSC_EXTERN PetscErrorCode EPSCreate_RQCG(EPS eps);
 PETSC_EXTERN PetscErrorCode EPSCreate_LOBPCG(EPS eps);
 PETSC_EXTERN PetscErrorCode EPSCreate_CISS(EPS eps);
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSRegisterAll"
 /*@C
   EPSRegisterAll - Registers all the eigenvalue solvers in the EPS package.
 

@@ -37,8 +37,6 @@ static const char citation[] =
   "   doi = \"https://doi.org/10.1002/nla.2052\"\n"
   "}\n";
 
-#undef __FUNCT__
-#define __FUNCT__ "PEPComputeVectors"
 PetscErrorCode PEPComputeVectors(PEP pep)
 {
   PetscErrorCode ierr;
@@ -52,8 +50,6 @@ PetscErrorCode PEPComputeVectors(PEP pep)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "PEPExtractVectors"
 PetscErrorCode PEPExtractVectors(PEP pep)
 {
   PetscErrorCode ierr;
@@ -66,8 +62,6 @@ PetscErrorCode PEPExtractVectors(PEP pep)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "PEPSolve"
 /*@
    PEPSolve - Solves the polynomial eigensystem.
 
@@ -178,8 +172,6 @@ PetscErrorCode PEPSolve(PEP pep)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "PEPGetIterationNumber"
 /*@
    PEPGetIterationNumber - Gets the current iteration number. If the
    call to PEPSolve() is complete, then it returns the number of iterations
@@ -213,8 +205,6 @@ PetscErrorCode PEPGetIterationNumber(PEP pep,PetscInt *its)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "PEPGetConverged"
 /*@
    PEPGetConverged - Gets the number of converged eigenpairs.
 
@@ -243,8 +233,6 @@ PetscErrorCode PEPGetConverged(PEP pep,PetscInt *nconv)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "PEPGetConvergedReason"
 /*@
    PEPGetConvergedReason - Gets the reason why the PEPSolve() iteration was
    stopped.
@@ -282,8 +270,6 @@ PetscErrorCode PEPGetConvergedReason(PEP pep,PEPConvergedReason *reason)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "PEPGetEigenpair"
 /*@
    PEPGetEigenpair - Gets the i-th solution of the eigenproblem as computed by
    PEPSolve(). The solution consists in both the eigenvalue and the eigenvector.
@@ -365,8 +351,6 @@ PetscErrorCode PEPGetEigenpair(PEP pep,PetscInt i,PetscScalar *eigr,PetscScalar 
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "PEPGetErrorEstimate"
 /*@
    PEPGetErrorEstimate - Returns the error estimate associated to the i-th
    computed eigenpair.
@@ -400,8 +384,6 @@ PetscErrorCode PEPGetErrorEstimate(PEP pep,PetscInt i,PetscReal *errest)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "PEPComputeResidualNorm_Private"
 /*
    PEPComputeResidualNorm_Private - Computes the norm of the residual vector
    associated with an eigenpair.
@@ -486,8 +468,6 @@ PetscErrorCode PEPComputeResidualNorm_Private(PEP pep,PetscScalar kr,PetscScalar
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "PEPComputeError"
 /*@
    PEPComputeError - Computes the error (based on the residual norm) associated
    with the i-th computed eigenpair.

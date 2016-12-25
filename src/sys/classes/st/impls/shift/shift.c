@@ -24,8 +24,6 @@
 
 #include <slepc/private/stimpl.h>
 
-#undef __FUNCT__
-#define __FUNCT__ "STApply_Shift"
 PetscErrorCode STApply_Shift(ST st,Vec x,Vec y)
 {
   PetscErrorCode ierr;
@@ -42,8 +40,6 @@ PetscErrorCode STApply_Shift(ST st,Vec x,Vec y)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "STApplyTranspose_Shift"
 PetscErrorCode STApplyTranspose_Shift(ST st,Vec x,Vec y)
 {
   PetscErrorCode ierr;
@@ -60,8 +56,6 @@ PetscErrorCode STApplyTranspose_Shift(ST st,Vec x,Vec y)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "STBackTransform_Shift"
 PetscErrorCode STBackTransform_Shift(ST st,PetscInt n,PetscScalar *eigr,PetscScalar *eigi)
 {
   PetscInt j;
@@ -73,8 +67,6 @@ PetscErrorCode STBackTransform_Shift(ST st,PetscInt n,PetscScalar *eigr,PetscSca
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "STPostSolve_Shift"
 PetscErrorCode STPostSolve_Shift(ST st)
 {
   PetscErrorCode ierr;
@@ -92,8 +84,6 @@ PetscErrorCode STPostSolve_Shift(ST st)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "STSetUp_Shift"
 PetscErrorCode STSetUp_Shift(ST st)
 {
   PetscErrorCode ierr;
@@ -141,8 +131,6 @@ PetscErrorCode STSetUp_Shift(ST st)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "STSetShift_Shift"
 PetscErrorCode STSetShift_Shift(ST st,PetscScalar newshift)
 {
   PetscErrorCode ierr;
@@ -167,8 +155,6 @@ PetscErrorCode STSetShift_Shift(ST st,PetscScalar newshift)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "STCreate_Shift"
 PETSC_EXTERN PetscErrorCode STCreate_Shift(ST st)
 {
   PetscFunctionBegin;

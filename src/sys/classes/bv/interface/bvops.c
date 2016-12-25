@@ -24,8 +24,6 @@
 #include <slepc/private/bvimpl.h>      /*I "slepcbv.h" I*/
 #include <slepcds.h>
 
-#undef __FUNCT__
-#define __FUNCT__ "BVMult"
 /*@
    BVMult - Computes Y = beta*Y + alpha*X*Q.
 
@@ -94,8 +92,6 @@ PetscErrorCode BVMult(BV Y,PetscScalar alpha,PetscScalar beta,BV X,Mat Q)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "BVMultVec"
 /*@
    BVMultVec - Computes y = beta*y + alpha*X*q.
 
@@ -152,8 +148,6 @@ PetscErrorCode BVMultVec(BV X,PetscScalar alpha,PetscScalar beta,Vec y,PetscScal
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "BVMultColumn"
 /*@
    BVMultColumn - Computes y = beta*y + alpha*X*q, where y is the j-th column
    of X.
@@ -211,8 +205,6 @@ PetscErrorCode BVMultColumn(BV X,PetscScalar alpha,PetscScalar beta,PetscInt j,P
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "BVMultInPlace"
 /*@
    BVMultInPlace - Update a set of vectors as V(:,s:e-1) = V*Q(:,s:e-1).
 
@@ -270,8 +262,6 @@ PetscErrorCode BVMultInPlace(BV V,Mat Q,PetscInt s,PetscInt e)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "BVMultInPlaceTranspose"
 /*@
    BVMultInPlaceTranspose - Update a set of vectors as V(:,s:e-1) = V*Q'(:,s:e-1).
 
@@ -324,8 +314,6 @@ PetscErrorCode BVMultInPlaceTranspose(BV V,Mat Q,PetscInt s,PetscInt e)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "BVScale"
 /*@
    BVScale - Multiply the BV entries by a scalar value.
 
@@ -362,8 +350,6 @@ PetscErrorCode BVScale(BV bv,PetscScalar alpha)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "BVScaleColumn"
 /*@
    BVScaleColumn - Scale one column of a BV.
 
@@ -401,8 +387,6 @@ PetscErrorCode BVScaleColumn(BV bv,PetscInt j,PetscScalar alpha)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "BVSetRandomColumn_Private"
 PETSC_STATIC_INLINE PetscErrorCode BVSetRandomColumn_Private(BV bv,PetscInt k)
 {
   PetscErrorCode ierr;
@@ -427,8 +411,6 @@ PETSC_STATIC_INLINE PetscErrorCode BVSetRandomColumn_Private(BV bv,PetscInt k)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "BVSetRandom"
 /*@
    BVSetRandom - Set the columns of a BV to random numbers.
 
@@ -464,8 +446,6 @@ PetscErrorCode BVSetRandom(BV bv)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "BVSetRandomColumn"
 /*@
    BVSetRandomColumn - Set one column of a BV to random numbers.
 
@@ -498,8 +478,6 @@ PetscErrorCode BVSetRandomColumn(BV bv,PetscInt j)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "BVSetRandomCond"
 /*@
    BVSetRandomCond - Set the columns of a BV to random numbers, in a way that
    the generated matrix has a given condition number.
@@ -573,8 +551,6 @@ PetscErrorCode BVSetRandomCond(BV bv,PetscReal condn)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "BVMatMult"
 /*@
    BVMatMult - Computes the matrix-vector product for each column, Y=A*V.
 
@@ -623,8 +599,6 @@ PetscErrorCode BVMatMult(BV V,Mat A,BV Y)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "BVMatMultHermitianTranspose"
 /*@
    BVMatMultHermitianTranspose - Computes the matrix-vector product with the
    conjugate transpose of a matrix for each column, Y=A^H*V.
@@ -682,8 +656,6 @@ PetscErrorCode BVMatMultHermitianTranspose(BV V,Mat A,BV Y)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "BVMatMultColumn"
 /*@
    BVMatMultColumn - Computes the matrix-vector product for a specified
    column, storing the result in the next column: v_{j+1}=A*v_j.

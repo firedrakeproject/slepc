@@ -23,8 +23,6 @@ static char help[] = "Test PEP interface functions.\n\n";
 
 #include <slepcpep.h>
 
-#undef __FUNCT__
-#define __FUNCT__ "main"
 int main(int argc,char **argv)
 {
   Mat                A[3],B;      /* problem matrices */

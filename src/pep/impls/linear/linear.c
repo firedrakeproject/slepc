@@ -24,8 +24,6 @@
 #include <slepc/private/pepimpl.h>         /*I "slepcpep.h" I*/
 #include "linearp.h"
 
-#undef __FUNCT__
-#define __FUNCT__ "MatMult_Linear_Shift"
 static PetscErrorCode MatMult_Linear_Shift(Mat M,Vec x,Vec y)
 {
   PetscErrorCode    ierr;
@@ -108,8 +106,6 @@ static PetscErrorCode MatMult_Linear_Shift(Mat M,Vec x,Vec y)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "MatMult_Linear_Sinvert"
 static PetscErrorCode MatMult_Linear_Sinvert(Mat M,Vec x,Vec y)
 {
   PetscErrorCode    ierr;
@@ -224,8 +220,6 @@ static PetscErrorCode MatMult_Linear_Sinvert(Mat M,Vec x,Vec y)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "BackTransform_Linear"
 static PetscErrorCode BackTransform_Linear(ST st,PetscInt n,PetscScalar *eigr,PetscScalar *eigi)
 {
   PetscErrorCode ierr;
@@ -239,8 +233,6 @@ static PetscErrorCode BackTransform_Linear(ST st,PetscInt n,PetscScalar *eigr,Pe
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "Apply_Linear"
 static PetscErrorCode Apply_Linear(ST st,Vec x,Vec y)
 {
   PetscErrorCode ierr;
@@ -252,8 +244,6 @@ static PetscErrorCode Apply_Linear(ST st,Vec x,Vec y)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "PEPSetUp_Linear"
 PetscErrorCode PEPSetUp_Linear(PEP pep)
 {
   PetscErrorCode ierr;
@@ -455,8 +445,6 @@ PetscErrorCode PEPSetUp_Linear(PEP pep)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "PEPLinearExtract_Residual"
 /*
    PEPLinearExtract_Residual - Auxiliary routine that copies the solution of the
    linear eigenproblem to the PEP object. The eigenvector of the generalized
@@ -555,8 +543,6 @@ static PetscErrorCode PEPLinearExtract_Residual(PEP pep,EPS eps)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "PEPLinearExtract_None"
 /*
    PEPLinearExtract_None - Same as PEPLinearExtract_Norm but always takes
    the first block.
@@ -608,8 +594,6 @@ static PetscErrorCode PEPLinearExtract_None(PEP pep,EPS eps)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "PEPLinearExtract_Norm"
 /*
    PEPLinearExtract_Norm - Auxiliary routine that copies the solution of the
    linear eigenproblem to the PEP object. The eigenvector of the generalized
@@ -673,8 +657,6 @@ static PetscErrorCode PEPLinearExtract_Norm(PEP pep,EPS eps)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "PEPExtractVectors_Linear"
 PetscErrorCode PEPExtractVectors_Linear(PEP pep)
 {
   PetscErrorCode ierr;
@@ -697,8 +679,6 @@ PetscErrorCode PEPExtractVectors_Linear(PEP pep)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "PEPSolve_Linear"
 PetscErrorCode PEPSolve_Linear(PEP pep)
 {
   PetscErrorCode ierr;
@@ -744,8 +724,6 @@ PetscErrorCode PEPSolve_Linear(PEP pep)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSMonitor_Linear"
 static PetscErrorCode EPSMonitor_Linear(EPS eps,PetscInt its,PetscInt nconv,PetscScalar *eigr,PetscScalar *eigi,PetscReal *errest,PetscInt nest,void *ctx)
 {
   PEP            pep = (PEP)ctx;
@@ -756,8 +734,6 @@ static PetscErrorCode EPSMonitor_Linear(EPS eps,PetscInt its,PetscInt nconv,Pets
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "PEPSetFromOptions_Linear"
 PetscErrorCode PEPSetFromOptions_Linear(PetscOptionItems *PetscOptionsObject,PEP pep)
 {
   PetscErrorCode ierr;
@@ -781,8 +757,6 @@ PetscErrorCode PEPSetFromOptions_Linear(PetscOptionItems *PetscOptionsObject,PEP
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "PEPLinearSetCompanionForm_Linear"
 static PetscErrorCode PEPLinearSetCompanionForm_Linear(PEP pep,PetscInt cform)
 {
   PEP_LINEAR *ctx = (PEP_LINEAR*)pep->data;
@@ -797,8 +771,6 @@ static PetscErrorCode PEPLinearSetCompanionForm_Linear(PEP pep,PetscInt cform)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "PEPLinearSetCompanionForm"
 /*@
    PEPLinearSetCompanionForm - Choose between the two companion forms available
    for the linearization of a quadratic eigenproblem.
@@ -827,8 +799,6 @@ PetscErrorCode PEPLinearSetCompanionForm(PEP pep,PetscInt cform)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "PEPLinearGetCompanionForm_Linear"
 static PetscErrorCode PEPLinearGetCompanionForm_Linear(PEP pep,PetscInt *cform)
 {
   PEP_LINEAR *ctx = (PEP_LINEAR*)pep->data;
@@ -838,8 +808,6 @@ static PetscErrorCode PEPLinearGetCompanionForm_Linear(PEP pep,PetscInt *cform)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "PEPLinearGetCompanionForm"
 /*@
    PEPLinearGetCompanionForm - Returns the number of the companion form that
    will be used for the linearization of a quadratic eigenproblem.
@@ -867,8 +835,6 @@ PetscErrorCode PEPLinearGetCompanionForm(PEP pep,PetscInt *cform)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "PEPLinearSetExplicitMatrix_Linear"
 static PetscErrorCode PEPLinearSetExplicitMatrix_Linear(PEP pep,PetscBool explicitmatrix)
 {
   PEP_LINEAR *ctx = (PEP_LINEAR*)pep->data;
@@ -878,8 +844,6 @@ static PetscErrorCode PEPLinearSetExplicitMatrix_Linear(PEP pep,PetscBool explic
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "PEPLinearSetExplicitMatrix"
 /*@
    PEPLinearSetExplicitMatrix - Indicate if the matrices A and B for the
    linearization of the problem must be built explicitly.
@@ -908,8 +872,6 @@ PetscErrorCode PEPLinearSetExplicitMatrix(PEP pep,PetscBool explicitmatrix)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "PEPLinearGetExplicitMatrix_Linear"
 static PetscErrorCode PEPLinearGetExplicitMatrix_Linear(PEP pep,PetscBool *explicitmatrix)
 {
   PEP_LINEAR *ctx = (PEP_LINEAR*)pep->data;
@@ -919,8 +881,6 @@ static PetscErrorCode PEPLinearGetExplicitMatrix_Linear(PEP pep,PetscBool *expli
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "PEPLinearGetExplicitMatrix"
 /*@
    PEPLinearGetExplicitMatrix - Returns the flag indicating if the matrices
    A and B for the linearization are built explicitly.
@@ -948,8 +908,6 @@ PetscErrorCode PEPLinearGetExplicitMatrix(PEP pep,PetscBool *explicitmatrix)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "PEPLinearSetEPS_Linear"
 static PetscErrorCode PEPLinearSetEPS_Linear(PEP pep,EPS eps)
 {
   PetscErrorCode ierr;
@@ -965,8 +923,6 @@ static PetscErrorCode PEPLinearSetEPS_Linear(PEP pep,EPS eps)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "PEPLinearSetEPS"
 /*@
    PEPLinearSetEPS - Associate an eigensolver object (EPS) to the
    polynomial eigenvalue solver.
@@ -993,8 +949,6 @@ PetscErrorCode PEPLinearSetEPS(PEP pep,EPS eps)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "PEPLinearGetEPS_Linear"
 static PetscErrorCode PEPLinearGetEPS_Linear(PEP pep,EPS *eps)
 {
   PetscErrorCode ierr;
@@ -1013,8 +967,6 @@ static PetscErrorCode PEPLinearGetEPS_Linear(PEP pep,EPS *eps)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "PEPLinearGetEPS"
 /*@
    PEPLinearGetEPS - Retrieve the eigensolver object (EPS) associated
    to the polynomial eigenvalue solver.
@@ -1042,8 +994,6 @@ PetscErrorCode PEPLinearGetEPS(PEP pep,EPS *eps)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "PEPView_Linear"
 PetscErrorCode PEPView_Linear(PEP pep,PetscViewer viewer)
 {
   PetscErrorCode ierr;
@@ -1063,8 +1013,6 @@ PetscErrorCode PEPView_Linear(PEP pep,PetscViewer viewer)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "PEPReset_Linear"
 PetscErrorCode PEPReset_Linear(PEP pep)
 {
   PetscErrorCode ierr;
@@ -1083,8 +1031,6 @@ PetscErrorCode PEPReset_Linear(PEP pep)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "PEPDestroy_Linear"
 PetscErrorCode PEPDestroy_Linear(PEP pep)
 {
   PetscErrorCode ierr;
@@ -1102,8 +1048,6 @@ PetscErrorCode PEPDestroy_Linear(PEP pep)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "PEPCreate_Linear"
 PETSC_EXTERN PetscErrorCode PEPCreate_Linear(PEP pep)
 {
   PetscErrorCode ierr;

@@ -30,8 +30,6 @@ typedef struct {
        1: version that allocates (e-s) work vectors in every call (default in GPU) */
 } BV_VECS;
 
-#undef __FUNCT__
-#define __FUNCT__ "BVMult_Vecs"
 PetscErrorCode BVMult_Vecs(BV Y,PetscScalar alpha,PetscScalar beta,BV X,Mat Q)
 {
   PetscErrorCode ierr;
@@ -64,8 +62,6 @@ PetscErrorCode BVMult_Vecs(BV Y,PetscScalar alpha,PetscScalar beta,BV X,Mat Q)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "BVMultVec_Vecs"
 PetscErrorCode BVMultVec_Vecs(BV X,PetscScalar alpha,PetscScalar beta,Vec y,PetscScalar *q)
 {
   PetscErrorCode ierr;
@@ -88,8 +84,6 @@ PetscErrorCode BVMultVec_Vecs(BV X,PetscScalar alpha,PetscScalar beta,Vec y,Pets
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "BVMultInPlace_Vecs_ME"
 /*
    BVMultInPlace_Vecs_ME - V(:,s:e-1) = V*Q(:,s:e-1) for regular vectors.
 
@@ -124,8 +118,6 @@ PetscErrorCode BVMultInPlace_Vecs_ME(BV V,Mat Q,PetscInt s,PetscInt e)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "BVMultInPlace_Vecs_Alloc"
 /*
    BVMultInPlace_Vecs_Alloc - V(:,s:e-1) = V*Q(:,s:e-1) for regular vectors.
 
@@ -154,8 +146,6 @@ PetscErrorCode BVMultInPlace_Vecs_Alloc(BV V,Mat Q,PetscInt s,PetscInt e)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "BVMultInPlaceTranspose_Vecs"
 /*
    BVMultInPlaceTranspose_Vecs - V(:,s:e-1) = V*Q'(:,s:e-1) for regular vectors.
 */
@@ -184,8 +174,6 @@ PetscErrorCode BVMultInPlaceTranspose_Vecs(BV V,Mat Q,PetscInt s,PetscInt e)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "BVDot_Vecs"
 PetscErrorCode BVDot_Vecs(BV X,BV Y,Mat M)
 {
   PetscErrorCode ierr;
@@ -203,8 +191,6 @@ PetscErrorCode BVDot_Vecs(BV X,BV Y,Mat M)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "BVDotVec_Vecs"
 PetscErrorCode BVDotVec_Vecs(BV X,Vec y,PetscScalar *q)
 {
   PetscErrorCode ierr;
@@ -223,8 +209,6 @@ PetscErrorCode BVDotVec_Vecs(BV X,Vec y,PetscScalar *q)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "BVDotVec_Begin_Vecs"
 PetscErrorCode BVDotVec_Begin_Vecs(BV X,Vec y,PetscScalar *m)
 {
   PetscErrorCode ierr;
@@ -240,8 +224,6 @@ PetscErrorCode BVDotVec_Begin_Vecs(BV X,Vec y,PetscScalar *m)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "BVDotVec_End_Vecs"
 PetscErrorCode BVDotVec_End_Vecs(BV X,Vec y,PetscScalar *m)
 {
   PetscErrorCode ierr;
@@ -252,8 +234,6 @@ PetscErrorCode BVDotVec_End_Vecs(BV X,Vec y,PetscScalar *m)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "BVScale_Vecs"
 PetscErrorCode BVScale_Vecs(BV bv,PetscInt j,PetscScalar alpha)
 {
   PetscErrorCode ierr;
@@ -271,8 +251,6 @@ PetscErrorCode BVScale_Vecs(BV bv,PetscInt j,PetscScalar alpha)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "BVNorm_Vecs"
 PetscErrorCode BVNorm_Vecs(BV bv,PetscInt j,NormType type,PetscReal *val)
 {
   PetscErrorCode ierr;
@@ -296,8 +274,6 @@ PetscErrorCode BVNorm_Vecs(BV bv,PetscInt j,NormType type,PetscReal *val)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "BVNorm_Begin_Vecs"
 PetscErrorCode BVNorm_Begin_Vecs(BV bv,PetscInt j,NormType type,PetscReal *val)
 {
   PetscErrorCode ierr;
@@ -312,8 +288,6 @@ PetscErrorCode BVNorm_Begin_Vecs(BV bv,PetscInt j,NormType type,PetscReal *val)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "BVNorm_End_Vecs"
 PetscErrorCode BVNorm_End_Vecs(BV bv,PetscInt j,NormType type,PetscReal *val)
 {
   PetscErrorCode ierr;
@@ -328,8 +302,6 @@ PetscErrorCode BVNorm_End_Vecs(BV bv,PetscInt j,NormType type,PetscReal *val)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "BVMatMult_Vecs"
 PetscErrorCode BVMatMult_Vecs(BV V,Mat A,BV W)
 {
   PetscErrorCode ierr;
@@ -344,8 +316,6 @@ PetscErrorCode BVMatMult_Vecs(BV V,Mat A,BV W)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "BVCopy_Vecs"
 PetscErrorCode BVCopy_Vecs(BV V,BV W)
 {
   PetscErrorCode ierr;
@@ -359,8 +329,6 @@ PetscErrorCode BVCopy_Vecs(BV V,BV W)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "BVResize_Vecs"
 PetscErrorCode BVResize_Vecs(BV bv,PetscInt m,PetscBool copy)
 {
   PetscErrorCode ierr;
@@ -388,8 +356,6 @@ PetscErrorCode BVResize_Vecs(BV bv,PetscInt m,PetscBool copy)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "BVGetColumn_Vecs"
 PetscErrorCode BVGetColumn_Vecs(BV bv,PetscInt j,Vec *v)
 {
   BV_VECS  *ctx = (BV_VECS*)bv->data;
@@ -401,8 +367,6 @@ PetscErrorCode BVGetColumn_Vecs(BV bv,PetscInt j,Vec *v)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "BVGetArray_Vecs"
 PetscErrorCode BVGetArray_Vecs(BV bv,PetscScalar **a)
 {
   PetscErrorCode    ierr;
@@ -420,8 +384,6 @@ PetscErrorCode BVGetArray_Vecs(BV bv,PetscScalar **a)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "BVRestoreArray_Vecs"
 PetscErrorCode BVRestoreArray_Vecs(BV bv,PetscScalar **a)
 {
   PetscErrorCode ierr;
@@ -439,8 +401,6 @@ PetscErrorCode BVRestoreArray_Vecs(BV bv,PetscScalar **a)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "BVGetArrayRead_Vecs"
 PetscErrorCode BVGetArrayRead_Vecs(BV bv,const PetscScalar **a)
 {
   PetscErrorCode    ierr;
@@ -458,8 +418,6 @@ PetscErrorCode BVGetArrayRead_Vecs(BV bv,const PetscScalar **a)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "BVRestoreArrayRead_Vecs"
 PetscErrorCode BVRestoreArrayRead_Vecs(BV bv,const PetscScalar **a)
 {
   PetscErrorCode ierr;
@@ -469,8 +427,6 @@ PetscErrorCode BVRestoreArrayRead_Vecs(BV bv,const PetscScalar **a)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "BVVecsSetVmip"
 /*
    Sets the value of vmip flag and resets ops->multinplace accordingly
  */
@@ -486,8 +442,6 @@ PETSC_STATIC_INLINE PetscErrorCode BVVecsSetVmip(BV bv,PetscInt vmip)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "BVSetFromOptions_Vecs"
 PetscErrorCode BVSetFromOptions_Vecs(PetscOptionItems *PetscOptionsObject,BV bv)
 {
   PetscErrorCode ierr;
@@ -504,8 +458,6 @@ PetscErrorCode BVSetFromOptions_Vecs(PetscOptionItems *PetscOptionsObject,BV bv)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "BVView_Vecs"
 PetscErrorCode BVView_Vecs(BV bv,PetscViewer viewer)
 {
   PetscErrorCode    ierr;
@@ -535,8 +487,6 @@ PetscErrorCode BVView_Vecs(BV bv,PetscViewer viewer)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "BVDestroy_Vecs"
 PetscErrorCode BVDestroy_Vecs(BV bv)
 {
   PetscErrorCode ierr;
@@ -548,8 +498,6 @@ PetscErrorCode BVDestroy_Vecs(BV bv)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "BVDuplicate_Vecs"
 PetscErrorCode BVDuplicate_Vecs(BV V,BV *W)
 {
   PetscErrorCode ierr;
@@ -560,8 +508,6 @@ PetscErrorCode BVDuplicate_Vecs(BV V,BV *W)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "BVCreate_Vecs"
 PETSC_EXTERN PetscErrorCode BVCreate_Vecs(BV bv)
 {
   PetscErrorCode ierr;

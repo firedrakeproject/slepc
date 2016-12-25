@@ -39,8 +39,6 @@ typedef struct {
   EPS       eps;             /* linear eigensolver for T*z = mu*Tp*z */
 } NEP_SLP;
 
-#undef __FUNCT__
-#define __FUNCT__ "NEPSetUp_SLP"
 PetscErrorCode NEPSetUp_SLP(NEP nep)
 {
   PetscErrorCode ierr;
@@ -73,8 +71,6 @@ PetscErrorCode NEPSetUp_SLP(NEP nep)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "NEPSolve_SLP"
 PetscErrorCode NEPSolve_SLP(NEP nep)
 {
   PetscErrorCode ierr;
@@ -136,8 +132,6 @@ PetscErrorCode NEPSolve_SLP(NEP nep)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "NEPSetFromOptions_SLP"
 PetscErrorCode NEPSetFromOptions_SLP(PetscOptionItems *PetscOptionsObject,NEP nep)
 {
   PetscErrorCode ierr;
@@ -152,8 +146,6 @@ PetscErrorCode NEPSetFromOptions_SLP(PetscOptionItems *PetscOptionsObject,NEP ne
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "NEPSLPSetEPS_SLP"
 static PetscErrorCode NEPSLPSetEPS_SLP(NEP nep,EPS eps)
 {
   PetscErrorCode ierr;
@@ -168,8 +160,6 @@ static PetscErrorCode NEPSLPSetEPS_SLP(NEP nep,EPS eps)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "NEPSLPSetEPS"
 /*@
    NEPSLPSetEPS - Associate a linear eigensolver object (EPS) to the
    nonlinear eigenvalue solver.
@@ -196,8 +186,6 @@ PetscErrorCode NEPSLPSetEPS(NEP nep,EPS eps)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "NEPSLPGetEPS_SLP"
 static PetscErrorCode NEPSLPGetEPS_SLP(NEP nep,EPS *eps)
 {
   PetscErrorCode ierr;
@@ -215,8 +203,6 @@ static PetscErrorCode NEPSLPGetEPS_SLP(NEP nep,EPS *eps)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "NEPSLPGetEPS"
 /*@
    NEPSLPGetEPS - Retrieve the linear eigensolver object (EPS) associated
    to the nonlinear eigenvalue solver.
@@ -244,8 +230,6 @@ PetscErrorCode NEPSLPGetEPS(NEP nep,EPS *eps)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "NEPView_SLP"
 PetscErrorCode NEPView_SLP(NEP nep,PetscViewer viewer)
 {
   PetscErrorCode ierr;
@@ -263,8 +247,6 @@ PetscErrorCode NEPView_SLP(NEP nep,PetscViewer viewer)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "NEPReset_SLP"
 PetscErrorCode NEPReset_SLP(NEP nep)
 {
   PetscErrorCode ierr;
@@ -275,8 +257,6 @@ PetscErrorCode NEPReset_SLP(NEP nep)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "NEPDestroy_SLP"
 PetscErrorCode NEPDestroy_SLP(NEP nep)
 {
   PetscErrorCode ierr;
@@ -290,8 +270,6 @@ PetscErrorCode NEPDestroy_SLP(NEP nep)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "NEPCreate_SLP"
 PETSC_EXTERN PetscErrorCode NEPCreate_SLP(NEP nep)
 {
   PetscErrorCode ierr;

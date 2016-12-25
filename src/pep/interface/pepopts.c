@@ -25,8 +25,6 @@
 #include <slepc/private/pepimpl.h>       /*I "slepcpep.h" I*/
 #include <petscdraw.h>
 
-#undef __FUNCT__
-#define __FUNCT__ "PEPMonitorSetFromOptions"
 /*@C
    PEPMonitorSetFromOptions - Sets a monitor function and viewer appropriate for the type
    indicated by the user.
@@ -66,8 +64,6 @@ PetscErrorCode PEPMonitorSetFromOptions(PEP pep,const char name[],const char hel
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "PEPConvMonitorSetFromOptions"
 /*@C
    PEPConvMonitorSetFromOptions - Sets a monitor function and viewer appropriate for the type
    indicated by the user (for monitors that only show iteration numbers of convergence).
@@ -103,8 +99,6 @@ PetscErrorCode PEPConvMonitorSetFromOptions(PEP pep,const char name[],const char
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "PEPSetFromOptions"
 /*@
    PEPSetFromOptions - Sets PEP options from the options database.
    This routine must be called before PEPSetUp() if the user is to be
@@ -289,8 +283,6 @@ PetscErrorCode PEPSetFromOptions(PEP pep)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "PEPGetTolerances"
 /*@
    PEPGetTolerances - Gets the tolerance and maximum iteration count used
    by the PEP convergence tests.
@@ -320,8 +312,6 @@ PetscErrorCode PEPGetTolerances(PEP pep,PetscReal *tol,PetscInt *maxits)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "PEPSetTolerances"
 /*@
    PEPSetTolerances - Sets the tolerance and maximum iteration count used
    by the PEP convergence tests.
@@ -367,8 +357,6 @@ PetscErrorCode PEPSetTolerances(PEP pep,PetscReal tol,PetscInt maxits)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "PEPGetDimensions"
 /*@C
    PEPGetDimensions - Gets the number of eigenvalues to compute
    and the dimension of the subspace.
@@ -400,8 +388,6 @@ PetscErrorCode PEPGetDimensions(PEP pep,PetscInt *nev,PetscInt *ncv,PetscInt *mp
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "PEPSetDimensions"
 /*@
    PEPSetDimensions - Sets the number of eigenvalues to compute
    and the dimension of the subspace.
@@ -461,8 +447,6 @@ PetscErrorCode PEPSetDimensions(PEP pep,PetscInt nev,PetscInt ncv,PetscInt mpd)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "PEPSetWhichEigenpairs"
 /*@
    PEPSetWhichEigenpairs - Specifies which portion of the spectrum is
    to be sought.
@@ -542,8 +526,6 @@ PetscErrorCode PEPSetWhichEigenpairs(PEP pep,PEPWhich which)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "PEPGetWhichEigenpairs"
 /*@
     PEPGetWhichEigenpairs - Returns which portion of the spectrum is to be
     sought.
@@ -572,8 +554,6 @@ PetscErrorCode PEPGetWhichEigenpairs(PEP pep,PEPWhich *which)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "PEPSetEigenvalueComparison"
 /*@C
    PEPSetEigenvalueComparison - Specifies the eigenvalue comparison function
    when PEPSetWhichEigenpairs() is set to PEP_WHICH_USER.
@@ -615,8 +595,6 @@ PetscErrorCode PEPSetEigenvalueComparison(PEP pep,PetscErrorCode (*func)(PetscSc
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "PEPSetProblemType"
 /*@
    PEPSetProblemType - Specifies the type of the polynomial eigenvalue problem.
 
@@ -659,8 +637,6 @@ PetscErrorCode PEPSetProblemType(PEP pep,PEPProblemType type)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "PEPGetProblemType"
 /*@
    PEPGetProblemType - Gets the problem type from the PEP object.
 
@@ -685,8 +661,6 @@ PetscErrorCode PEPGetProblemType(PEP pep,PEPProblemType *type)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "PEPSetBasis"
 /*@
    PEPSetBasis - Specifies the type of polynomial basis used to describe the
    polynomial eigenvalue problem.
@@ -720,8 +694,6 @@ PetscErrorCode PEPSetBasis(PEP pep,PEPBasis basis)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "PEPGetBasis"
 /*@
    PEPGetBasis - Gets the type of polynomial basis from the PEP object.
 
@@ -746,8 +718,6 @@ PetscErrorCode PEPGetBasis(PEP pep,PEPBasis *basis)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "PEPSetTrackAll"
 /*@
    PEPSetTrackAll - Specifies if the solver must compute the residual of all
    approximate eigenpairs or not.
@@ -779,8 +749,6 @@ PetscErrorCode PEPSetTrackAll(PEP pep,PetscBool trackall)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "PEPGetTrackAll"
 /*@
    PEPGetTrackAll - Returns the flag indicating whether all residual norms must
    be computed or not.
@@ -806,8 +774,6 @@ PetscErrorCode PEPGetTrackAll(PEP pep,PetscBool *trackall)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "PEPSetConvergenceTestFunction"
 /*@C
    PEPSetConvergenceTestFunction - Sets a function to compute the error estimate
    used in the convergence test.
@@ -857,8 +823,6 @@ PetscErrorCode PEPSetConvergenceTestFunction(PEP pep,PetscErrorCode (*func)(PEP,
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "PEPSetConvergenceTest"
 /*@
    PEPSetConvergenceTest - Specifies how to compute the error estimate
    used in the convergence test.
@@ -903,8 +867,6 @@ PetscErrorCode PEPSetConvergenceTest(PEP pep,PEPConv conv)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "PEPGetConvergenceTest"
 /*@
    PEPGetConvergenceTest - Gets the method used to compute the error estimate
    used in the convergence test.
@@ -930,8 +892,6 @@ PetscErrorCode PEPGetConvergenceTest(PEP pep,PEPConv *conv)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "PEPSetStoppingTestFunction"
 /*@C
    PEPSetStoppingTestFunction - Sets a function to decide when to stop the outer
    iteration of the eigensolver.
@@ -982,8 +942,6 @@ PetscErrorCode PEPSetStoppingTestFunction(PEP pep,PetscErrorCode (*func)(PEP,Pet
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "PEPSetStoppingTest"
 /*@
    PEPSetStoppingTest - Specifies how to decide the termination of the outer
    loop of the eigensolver.
@@ -1022,8 +980,6 @@ PetscErrorCode PEPSetStoppingTest(PEP pep,PEPStop stop)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "PEPGetStoppingTest"
 /*@
    PEPGetStoppingTest - Gets the method used to decide the termination of the outer
    loop of the eigensolver.
@@ -1049,8 +1005,6 @@ PetscErrorCode PEPGetStoppingTest(PEP pep,PEPStop *stop)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "PEPSetScale"
 /*@
    PEPSetScale - Specifies the scaling strategy to be used.
 
@@ -1140,8 +1094,6 @@ PetscErrorCode PEPSetScale(PEP pep,PEPScale scale,PetscReal alpha,Vec Dl,Vec Dr,
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "PEPGetScale"
 /*@
    PEPGetScale - Gets the scaling strategy used by the PEP object, and the
    associated parameters.
@@ -1182,8 +1134,6 @@ PetscErrorCode PEPGetScale(PEP pep,PEPScale *scale,PetscReal *alpha,Vec *Dl,Vec 
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "PEPSetExtract"
 /*@
    PEPSetExtract - Specifies the extraction strategy to be used.
 
@@ -1209,8 +1159,6 @@ PetscErrorCode PEPSetExtract(PEP pep,PEPExtract extract)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "PEPGetExtract"
 /*@
    PEPGetExtract - Gets the extraction strategy used by the PEP object.
 
@@ -1234,8 +1182,6 @@ PetscErrorCode PEPGetExtract(PEP pep,PEPExtract *extract)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "PEPSetRefine"
 /*@
    PEPSetRefine - Specifies the refinement type (and options) to be used
    after the solve.
@@ -1327,8 +1273,6 @@ PetscErrorCode PEPSetRefine(PEP pep,PEPRefine refine,PetscInt npart,PetscReal to
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "PEPGetRefine"
 /*@
    PEPGetRefine - Gets the refinement strategy used by the PEP object, and the
    associated parameters.
@@ -1364,8 +1308,6 @@ PetscErrorCode PEPGetRefine(PEP pep,PEPRefine *refine,PetscInt *npart,PetscReal 
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "PEPSetOptionsPrefix"
 /*@C
    PEPSetOptionsPrefix - Sets the prefix used for searching for all
    PEP options in the database.
@@ -1410,8 +1352,6 @@ PetscErrorCode PEPSetOptionsPrefix(PEP pep,const char *prefix)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "PEPAppendOptionsPrefix"
 /*@C
    PEPAppendOptionsPrefix - Appends to the prefix used for searching for all
    PEP options in the database.
@@ -1448,8 +1388,6 @@ PetscErrorCode PEPAppendOptionsPrefix(PEP pep,const char *prefix)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "PEPGetOptionsPrefix"
 /*@C
    PEPGetOptionsPrefix - Gets the prefix used for searching for all
    PEP options in the database.

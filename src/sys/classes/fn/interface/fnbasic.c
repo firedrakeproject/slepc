@@ -30,8 +30,6 @@ PetscClassId      FN_CLASSID = 0;
 PetscLogEvent     FN_Evaluate = 0;
 static PetscBool  FNPackageInitialized = PETSC_FALSE;
 
-#undef __FUNCT__
-#define __FUNCT__ "FNFinalizePackage"
 /*@C
    FNFinalizePackage - This function destroys everything in the Slepc interface
    to the FN package. It is called from SlepcFinalize().
@@ -51,8 +49,6 @@ PetscErrorCode FNFinalizePackage(void)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "FNInitializePackage"
 /*@C
   FNInitializePackage - This function initializes everything in the FN package.
   It is called from PetscDLLibraryRegister() when using dynamic libraries, and
@@ -98,8 +94,6 @@ PetscErrorCode FNInitializePackage(void)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "FNCreate"
 /*@
    FNCreate - Creates an FN context.
 
@@ -137,8 +131,6 @@ PetscErrorCode FNCreate(MPI_Comm comm,FN *newfn)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "FNSetOptionsPrefix"
 /*@C
    FNSetOptionsPrefix - Sets the prefix used for searching for all
    FN options in the database.
@@ -168,8 +160,6 @@ PetscErrorCode FNSetOptionsPrefix(FN fn,const char *prefix)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "FNAppendOptionsPrefix"
 /*@C
    FNAppendOptionsPrefix - Appends to the prefix used for searching for all
    FN options in the database.
@@ -198,8 +188,6 @@ PetscErrorCode FNAppendOptionsPrefix(FN fn,const char *prefix)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "FNGetOptionsPrefix"
 /*@C
    FNGetOptionsPrefix - Gets the prefix used for searching for all
    FN options in the database.
@@ -231,8 +219,6 @@ PetscErrorCode FNGetOptionsPrefix(FN fn,const char *prefix[])
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "FNSetType"
 /*@C
    FNSetType - Selects the type for the FN object.
 
@@ -273,8 +259,6 @@ PetscErrorCode FNSetType(FN fn,FNType type)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "FNGetType"
 /*@C
    FNGetType - Gets the FN type name (as a string) from the FN context.
 
@@ -299,8 +283,6 @@ PetscErrorCode FNGetType(FN fn,FNType *type)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "FNSetScale"
 /*@
    FNSetScale - Sets the scaling parameters that define the matematical function.
 
@@ -336,8 +318,6 @@ PetscErrorCode FNSetScale(FN fn,PetscScalar alpha,PetscScalar beta)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "FNGetScale"
 /*@
    FNGetScale - Gets the scaling parameters that define the matematical function.
 
@@ -363,8 +343,6 @@ PetscErrorCode FNGetScale(FN fn,PetscScalar *alpha,PetscScalar *beta)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "FNEvaluateFunction"
 /*@
    FNEvaluateFunction - Computes the value of the function f(x) for a given x.
 
@@ -403,8 +381,6 @@ PetscErrorCode FNEvaluateFunction(FN fn,PetscScalar x,PetscScalar *y)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "FNEvaluateDerivative"
 /*@
    FNEvaluateDerivative - Computes the value of the derivative f'(x) for a given x.
 
@@ -443,8 +419,6 @@ PetscErrorCode FNEvaluateDerivative(FN fn,PetscScalar x,PetscScalar *y)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "FNEvaluateFunctionMat_Sym_Private"
 static PetscErrorCode FNEvaluateFunctionMat_Sym_Private(FN fn,PetscScalar *As,PetscScalar *Bs,PetscInt m,PetscBool firstonly)
 {
 #if defined(PETSC_MISSING_LAPACK_SYEV) || defined(SLEPC_MISSING_LAPACK_LACPY)
@@ -503,8 +477,6 @@ static PetscErrorCode FNEvaluateFunctionMat_Sym_Private(FN fn,PetscScalar *As,Pe
 #endif
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "FNEvaluateFunctionMat_Sym_Default"
 /*
    FNEvaluateFunctionMat_Sym_Default - given a symmetric matrix A,
    compute the matrix function as f(A)=Q*f(D)*Q' where the spectral
@@ -526,8 +498,6 @@ static PetscErrorCode FNEvaluateFunctionMat_Sym_Default(FN fn,Mat A,Mat B)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "FNEvaluateFunctionMat"
 /*@
    FNEvaluateFunctionMat - Computes the value of the function f(A) for a given
    matrix A, where the result is also a matrix.
@@ -627,8 +597,6 @@ PetscErrorCode FNEvaluateFunctionMat(FN fn,Mat A,Mat B)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "FNEvaluateFunctionMatVec_Default"
 /*
    FNEvaluateFunctionMatVec_Default - computes the full matrix f(A)
    and then copies the first column.
@@ -648,8 +616,6 @@ static PetscErrorCode FNEvaluateFunctionMatVec_Default(FN fn,Mat A,Vec v)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "FNEvaluateFunctionMatVec_Sym_Default"
 /*
    FNEvaluateFunctionMatVec_Sym_Default - given a symmetric matrix A,
    compute the matrix function as f(A)=Q*f(D)*Q' where the spectral
@@ -671,8 +637,6 @@ static PetscErrorCode FNEvaluateFunctionMatVec_Sym_Default(FN fn,Mat A,Vec v)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "FNEvaluateFunctionMatVec"
 /*@
    FNEvaluateFunctionMatVec - Computes the first column of the matrix f(A)
    for a given matrix A.
@@ -753,8 +717,6 @@ PetscErrorCode FNEvaluateFunctionMatVec(FN fn,Mat A,Vec v)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "FNSetFromOptions"
 /*@
    FNSetFromOptions - Sets FN options from the options database.
 
@@ -803,8 +765,6 @@ PetscErrorCode FNSetFromOptions(FN fn)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "FNView"
 /*@C
    FNView - Prints the FN data structure.
 
@@ -849,8 +809,6 @@ PetscErrorCode FNView(FN fn,PetscViewer viewer)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "FNDuplicate"
 /*@
    FNDuplicate - Duplicates a math function, copying all parameters, possibly with a
    different communicator.
@@ -893,8 +851,6 @@ PetscErrorCode FNDuplicate(FN fn,MPI_Comm comm,FN *newfn)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "FNDestroy"
 /*@
    FNDestroy - Destroys FN context that was created with FNCreate().
 
@@ -924,8 +880,6 @@ PetscErrorCode FNDestroy(FN *fn)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "FNRegister"
 /*@C
    FNRegister - Adds a mathematical function to the FN package.
 

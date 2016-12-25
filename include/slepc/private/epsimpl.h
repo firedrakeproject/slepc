@@ -140,8 +140,6 @@ struct _p_EPS {
 
 #endif
 
-#undef __FUNCT__
-#define __FUNCT__ "EPS_SetInnerProduct"
 /*
   EPS_SetInnerProduct - set B matrix for inner product if appropriate.
 */
@@ -162,8 +160,6 @@ PETSC_STATIC_INLINE PetscErrorCode EPS_SetInnerProduct(EPS eps)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPS_Purify"
 /*
   EPS_Purify - purify the first k vectors in the V basis
 */

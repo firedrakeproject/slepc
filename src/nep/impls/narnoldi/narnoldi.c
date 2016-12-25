@@ -39,8 +39,6 @@ typedef struct {
   KSP      ksp;              /* linear solver object */
 } NEP_NARNOLDI;
 
-#undef __FUNCT__
-#define __FUNCT__ "NEPNArnoldi_KSPSolve"
 PETSC_STATIC_INLINE PetscErrorCode NEPNArnoldi_KSPSolve(NEP nep,Vec b,Vec x)
 {
   PetscErrorCode ierr;
@@ -54,8 +52,6 @@ PETSC_STATIC_INLINE PetscErrorCode NEPNArnoldi_KSPSolve(NEP nep,Vec b,Vec x)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "NEPSetUp_NArnoldi"
 PetscErrorCode NEPSetUp_NArnoldi(NEP nep)
 {
   PetscErrorCode ierr;
@@ -83,8 +79,6 @@ PetscErrorCode NEPSetUp_NArnoldi(NEP nep)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "NEPSolve_NArnoldi"
 PetscErrorCode NEPSolve_NArnoldi(NEP nep)
 {
   PetscErrorCode     ierr;
@@ -177,8 +171,6 @@ PetscErrorCode NEPSolve_NArnoldi(NEP nep)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "NEPSetFromOptions_NArnoldi"
 PetscErrorCode NEPSetFromOptions_NArnoldi(PetscOptionItems *PetscOptionsObject,NEP nep)
 {
   PetscErrorCode ierr;
@@ -193,8 +185,6 @@ PetscErrorCode NEPSetFromOptions_NArnoldi(PetscOptionItems *PetscOptionsObject,N
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "NEPNArnoldiSetKSP_NArnoldi"
 static PetscErrorCode NEPNArnoldiSetKSP_NArnoldi(NEP nep,KSP ksp)
 {
   PetscErrorCode ierr;
@@ -209,8 +199,6 @@ static PetscErrorCode NEPNArnoldiSetKSP_NArnoldi(NEP nep,KSP ksp)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "NEPNArnoldiSetKSP"
 /*@
    NEPNArnoldiSetKSP - Associate a linear solver object (KSP) to the nonlinear
    eigenvalue solver.
@@ -237,8 +225,6 @@ PetscErrorCode NEPNArnoldiSetKSP(NEP nep,KSP ksp)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "NEPNArnoldiGetKSP_NArnoldi"
 static PetscErrorCode NEPNArnoldiGetKSP_NArnoldi(NEP nep,KSP *ksp)
 {
   PetscErrorCode ierr;
@@ -258,8 +244,6 @@ static PetscErrorCode NEPNArnoldiGetKSP_NArnoldi(NEP nep,KSP *ksp)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "NEPNArnoldiGetKSP"
 /*@
    NEPNArnoldiGetKSP - Retrieve the linear solver object (KSP) associated with
    the nonlinear eigenvalue solver.
@@ -287,8 +271,6 @@ PetscErrorCode NEPNArnoldiGetKSP(NEP nep,KSP *ksp)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "NEPView_NArnoldi"
 PetscErrorCode NEPView_NArnoldi(NEP nep,PetscViewer viewer)
 {
   PetscErrorCode ierr;
@@ -306,8 +288,6 @@ PetscErrorCode NEPView_NArnoldi(NEP nep,PetscViewer viewer)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "NEPReset_NArnoldi"
 PetscErrorCode NEPReset_NArnoldi(NEP nep)
 {
   PetscErrorCode ierr;
@@ -318,8 +298,6 @@ PetscErrorCode NEPReset_NArnoldi(NEP nep)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "NEPDestroy_NArnoldi"
 PetscErrorCode NEPDestroy_NArnoldi(NEP nep)
 {
   PetscErrorCode ierr;
@@ -333,8 +311,6 @@ PetscErrorCode NEPDestroy_NArnoldi(NEP nep)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "NEPCreate_NArnoldi"
 PETSC_EXTERN PetscErrorCode NEPCreate_NArnoldi(NEP nep)
 {
   PetscErrorCode ierr;

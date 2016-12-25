@@ -42,8 +42,6 @@ static char help[] = "Test the solution of a SVD without calling SVDSetFromOptio
 
  */
 
-#undef __FUNCT__
-#define __FUNCT__ "main"
 int main(int argc,char **argv)
 {
   Mat            A;               /* Grcar matrix */

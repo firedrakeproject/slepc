@@ -40,8 +40,6 @@ PetscErrorCode STApplyTranspose_User(ST,Vec,Vec);
 PetscErrorCode STBackTransform_User(ST,PetscInt,PetscScalar*,PetscScalar*);
 PetscErrorCode STDestroy_User(SampleShellST*);
 
-#undef __FUNCT__
-#define __FUNCT__ "main"
 int main (int argc,char **argv)
 {
   Mat            A;               /* operator matrix */
@@ -168,8 +166,6 @@ int main (int argc,char **argv)
 /*     Routines for a user-defined shell spectral transformation       */
 /***********************************************************************/
 
-#undef __FUNCT__
-#define __FUNCT__ "STCreate_User"
 /*
    STCreate_User - This routine creates a user-defined
    spectral transformation context.
@@ -190,8 +186,6 @@ PetscErrorCode STCreate_User(SampleShellST **shell)
   PetscFunctionReturn(0);
 }
 /* ------------------------------------------------------------------- */
-#undef __FUNCT__
-#define __FUNCT__ "STSetUp_User"
 /*
    STSetUp_User - This routine sets up a user-defined
    spectral transformation context.
@@ -221,8 +215,6 @@ PetscErrorCode STSetUp_User(SampleShellST *shell,ST st)
   PetscFunctionReturn(0);
 }
 /* ------------------------------------------------------------------- */
-#undef __FUNCT__
-#define __FUNCT__ "STApply_User"
 /*
    STApply_User - This routine demonstrates the use of a
    user-provided spectral transformation.
@@ -250,8 +242,6 @@ PetscErrorCode STApply_User(ST st,Vec x,Vec y)
   PetscFunctionReturn(0);
 }
 /* ------------------------------------------------------------------- */
-#undef __FUNCT__
-#define __FUNCT__ "STApplyTranspose_User"
 /*
    STApplyTranspose_User - This is not required unless using a two-sided
    eigensolver.
@@ -274,8 +264,6 @@ PetscErrorCode STApplyTranspose_User(ST st,Vec x,Vec y)
   PetscFunctionReturn(0);
 }
 /* ------------------------------------------------------------------- */
-#undef __FUNCT__
-#define __FUNCT__ "STBackTransform_User"
 /*
    STBackTransform_User - This routine demonstrates the use of a
    user-provided spectral transformation.
@@ -305,8 +293,6 @@ PetscErrorCode STBackTransform_User(ST st,PetscInt n,PetscScalar *eigr,PetscScal
   PetscFunctionReturn(0);
 }
 /* ------------------------------------------------------------------- */
-#undef __FUNCT__
-#define __FUNCT__ "STDestroy_User"
 /*
    STDestroy_User - This routine destroys a user-defined
    spectral transformation context.

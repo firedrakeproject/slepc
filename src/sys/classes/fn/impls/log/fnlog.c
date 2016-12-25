@@ -23,8 +23,6 @@
 
 #include <slepc/private/fnimpl.h>      /*I "slepcfn.h" I*/
 
-#undef __FUNCT__
-#define __FUNCT__ "FNEvaluateFunction_Log"
 PetscErrorCode FNEvaluateFunction_Log(FN fn,PetscScalar x,PetscScalar *y)
 {
   PetscFunctionBegin;
@@ -35,8 +33,6 @@ PetscErrorCode FNEvaluateFunction_Log(FN fn,PetscScalar x,PetscScalar *y)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "FNEvaluateDerivative_Log"
 PetscErrorCode FNEvaluateDerivative_Log(FN fn,PetscScalar x,PetscScalar *y)
 {
   PetscFunctionBegin;
@@ -48,8 +44,6 @@ PetscErrorCode FNEvaluateDerivative_Log(FN fn,PetscScalar x,PetscScalar *y)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "FNView_Log"
 PetscErrorCode FNView_Log(FN fn,PetscViewer viewer)
 {
   PetscErrorCode ierr;
@@ -82,8 +76,6 @@ PetscErrorCode FNView_Log(FN fn,PetscViewer viewer)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "FNCreate_Log"
 PETSC_EXTERN PetscErrorCode FNCreate_Log(FN fn)
 {
   PetscFunctionBegin;

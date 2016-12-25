@@ -33,8 +33,6 @@ static char help[] = "Eigenvalue problem associated with a Markov model of a ran
 PetscErrorCode MatMarkovModel(PetscInt m,Mat A);
 PetscErrorCode MyEigenSort(PetscScalar ar,PetscScalar ai,PetscScalar br,PetscScalar bi,PetscInt *r,void *ctx);
 
-#undef __FUNCT__
-#define __FUNCT__ "main"
 int main(int argc,char **argv)
 {
   Vec            v0;              /* initial vector */
@@ -128,8 +126,6 @@ int main(int argc,char **argv)
   return ierr;
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "MatMarkovModel"
 PetscErrorCode MatMarkovModel(PetscInt m,Mat A)
 {
   const PetscReal cst = 0.5/(PetscReal)(m-1);
@@ -175,8 +171,6 @@ PetscErrorCode MatMarkovModel(PetscInt m,Mat A)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "MyEigenSort"
 /*
     Function for user-defined eigenvalue ordering criterion.
 

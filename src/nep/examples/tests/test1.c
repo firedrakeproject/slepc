@@ -47,8 +47,6 @@ typedef struct {
   PetscReal   h;       /* mesh spacing */
 } ApplicationCtx;
 
-#undef __FUNCT__
-#define __FUNCT__ "main"
 int main(int argc,char **argv)
 {
   NEP            nep;             /* nonlinear eigensolver context */
@@ -121,8 +119,6 @@ int main(int argc,char **argv)
 }
 
 /* ------------------------------------------------------------------- */
-#undef __FUNCT__
-#define __FUNCT__ "FormFunction"
 /*
    FormFunction - Computes Function matrix  T(lambda)
 
@@ -195,8 +191,6 @@ PetscErrorCode FormFunction(NEP nep,PetscScalar lambda,Mat fun,Mat B,void *ctx)
 }
 
 /* ------------------------------------------------------------------- */
-#undef __FUNCT__
-#define __FUNCT__ "FormJacobian"
 /*
    FormJacobian - Computes Jacobian matrix  T'(lambda)
 

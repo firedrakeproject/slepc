@@ -24,8 +24,6 @@
 
 #include <slepc/private/stimpl.h>            /*I "slepcst.h" I*/
 
-#undef __FUNCT__
-#define __FUNCT__ "STSetDefaultKSP"
 /*
    This is used to set a default type for the KSP and PC objects.
    It is called at STSetFromOptions (before KSPSetFromOptions)
@@ -41,8 +39,6 @@ PetscErrorCode STSetDefaultKSP(ST st)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "STSetDefaultKSP_Default"
 /*
    This is done by all ST types except PRECOND.
    The default is an LU direct solver, or GMRES+Jacobi if matmode=shell.
@@ -70,8 +66,6 @@ PetscErrorCode STSetDefaultKSP_Default(ST st)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "STMatMult"
 /*@
    STMatMult - Computes the matrix-vector product y = T[k] x, where T[k] is
    the k-th matrix of the spectral transformation.
@@ -118,8 +112,6 @@ PetscErrorCode STMatMult(ST st,PetscInt k,Vec x,Vec y)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "STMatMultTranspose"
 /*@
    STMatMultTranspose - Computes the matrix-vector product y = T[k]' x, where T[k] is
    the k-th matrix of the spectral transformation.
@@ -166,8 +158,6 @@ PetscErrorCode STMatMultTranspose(ST st,PetscInt k,Vec x,Vec y)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "STMatSolve"
 /*@
    STMatSolve - Solves P x = b, where P is the preconditioner matrix of
    the spectral transformation, using a KSP object stored internally.
@@ -217,8 +207,6 @@ PetscErrorCode STMatSolve(ST st,Vec b,Vec x)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "STMatSolveTranspose"
 /*@
    STMatSolveTranspose - Solves P' x = b, where P is the preconditioner matrix of
    the spectral transformation, using a KSP object stored internally.
@@ -268,8 +256,6 @@ PetscErrorCode STMatSolveTranspose(ST st,Vec b,Vec x)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "STMatSetHermitian"
 /*
    STMatSetHermitian - Sets the Hermitian flag to the ST matrix.
 
@@ -300,8 +286,6 @@ PetscErrorCode STMatSetHermitian(ST st,Mat M)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "STCheckFactorPackage"
 PetscErrorCode STCheckFactorPackage(ST st)
 {
   PetscErrorCode         ierr;
@@ -322,8 +306,6 @@ PetscErrorCode STCheckFactorPackage(ST st)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "STSetKSP"
 /*@
    STSetKSP - Sets the KSP object associated with the spectral
    transformation.
@@ -351,8 +333,6 @@ PetscErrorCode STSetKSP(ST st,KSP ksp)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "STGetKSP"
 /*@
    STGetKSP - Gets the KSP object associated with the spectral
    transformation.
@@ -391,8 +371,6 @@ PetscErrorCode STGetKSP(ST st,KSP* ksp)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "STCheckNullSpace_Default"
 PetscErrorCode STCheckNullSpace_Default(ST st,BV V)
 {
   PetscErrorCode ierr;
@@ -435,8 +413,6 @@ PetscErrorCode STCheckNullSpace_Default(ST st,BV V)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "STCheckNullSpace"
 /*@
    STCheckNullSpace - Given a basis vectors object, this function tests each
    of its constraint vectors to be a nullspace vector of the coefficient

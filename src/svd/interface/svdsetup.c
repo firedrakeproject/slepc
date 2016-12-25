@@ -23,8 +23,6 @@
 
 #include <slepc/private/svdimpl.h>      /*I "slepcsvd.h" I*/
 
-#undef __FUNCT__
-#define __FUNCT__ "SVDSetOperator"
 /*@
    SVDSetOperator - Set the matrix associated with the singular value problem.
 
@@ -54,8 +52,6 @@ PetscErrorCode SVDSetOperator(SVD svd,Mat mat)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "SVDGetOperator"
 /*@
    SVDGetOperator - Get the matrix associated with the singular value problem.
 
@@ -80,8 +76,6 @@ PetscErrorCode SVDGetOperator(SVD svd,Mat *A)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "SVDSetUp"
 /*@
    SVDSetUp - Sets up all the internal data structures necessary for the
    execution of the singular value solver.
@@ -211,8 +205,6 @@ PetscErrorCode SVDSetUp(SVD svd)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "SVDSetInitialSpace"
 /*@
    SVDSetInitialSpace - Specify a basis of vectors that constitute the initial
    (right) space, that is, a rough approximation to the right singular subspace
@@ -255,8 +247,6 @@ PetscErrorCode SVDSetInitialSpace(SVD svd,PetscInt n,Vec *is)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "SVDSetInitialSpaceLeft"
 /*@
    SVDSetInitialSpaceLeft - Specify a basis of vectors that constitute the initial
    left space, that is, a rough approximation to the left singular subspace
@@ -299,8 +289,6 @@ PetscErrorCode SVDSetInitialSpaceLeft(SVD svd,PetscInt n,Vec *is)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "SVDSetDimensions_Default"
 /*
   SVDSetDimensions_Default - Set reasonable values for ncv, mpd if not set
   by the user. This is called at setup.
@@ -327,8 +315,6 @@ PetscErrorCode SVDSetDimensions_Default(SVD svd)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "SVDAllocateSolution"
 /*@
    SVDAllocateSolution - Allocate memory storage for common variables such
    as the singular values and the basis vectors.

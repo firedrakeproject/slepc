@@ -28,8 +28,6 @@ static PetscErrorCode MatMultTranspose_Shell(Mat S,Vec x,Vec y);
 static PetscErrorCode MatMult_Shell(Mat S,Vec x,Vec y);
 static PetscErrorCode MatDuplicate_Shell(Mat S,MatDuplicateOption op,Mat *M);
 
-#undef __FUNCT__
-#define __FUNCT__ "MyShellMatCreate"
 static PetscErrorCode MyShellMatCreate(Mat *A,Mat *M)
 {
   PetscErrorCode ierr;
@@ -48,8 +46,6 @@ static PetscErrorCode MyShellMatCreate(Mat *A,Mat *M)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "main"
 int main(int argc,char **argv)
 {
   Mat            A,S,mat[1];
@@ -154,8 +150,6 @@ int main(int argc,char **argv)
   return ierr;
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "MatMult_Shell"
 static PetscErrorCode MatMult_Shell(Mat S,Vec x,Vec y)
 {
   PetscErrorCode    ierr;
@@ -167,8 +161,6 @@ static PetscErrorCode MatMult_Shell(Mat S,Vec x,Vec y)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "MatMultTranspose_Shell"
 static PetscErrorCode MatMultTranspose_Shell(Mat S,Vec x,Vec y)
 {
   PetscErrorCode    ierr;
@@ -180,8 +172,6 @@ static PetscErrorCode MatMultTranspose_Shell(Mat S,Vec x,Vec y)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "MatGetDiagonal_Shell"
 static PetscErrorCode MatGetDiagonal_Shell(Mat S,Vec diag)
 {
   PetscErrorCode    ierr;
@@ -193,8 +183,6 @@ static PetscErrorCode MatGetDiagonal_Shell(Mat S,Vec diag)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "MatDuplicate_Shell"
 static PetscErrorCode MatDuplicate_Shell(Mat S,MatDuplicateOption op,Mat *M)
 {
   PetscErrorCode ierr;

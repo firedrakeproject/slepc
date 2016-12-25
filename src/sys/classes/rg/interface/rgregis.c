@@ -26,8 +26,6 @@ PETSC_EXTERN PetscErrorCode RGCreate_Ellipse(RG);
 PETSC_EXTERN PetscErrorCode RGCreate_Ring(RG);
 PETSC_EXTERN PetscErrorCode RGCreate_Polygon(RG);
 
-#undef __FUNCT__
-#define __FUNCT__ "RGRegisterAll"
 /*@C
    RGRegisterAll - Registers all of the regions in the RG package.
 

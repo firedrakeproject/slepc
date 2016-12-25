@@ -38,8 +38,6 @@ typedef struct {
   PetscScalar  M4,m3;
 } FSubctx;
 
-#undef __FUNCT__
-#define __FUNCT__ "MatFSMult"
 static PetscErrorCode MatFSMult(Mat M ,Vec x,Vec y)
 {
   PetscErrorCode ierr;
@@ -55,8 +53,6 @@ static PetscErrorCode MatFSMult(Mat M ,Vec x,Vec y)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "PEPSimpleNRefSetUp"
 static PetscErrorCode PEPSimpleNRefSetUp(PEP pep,PEPSimpNRefctx **ctx_)
 {
   PetscErrorCode ierr;
@@ -132,8 +128,6 @@ static PetscErrorCode PEPSimpleNRefSetUp(PEP pep,PEPSimpNRefctx **ctx_)
 /*
   Gather Eigenpair idx from subcommunicator with color sc
 */
-#undef __FUNCT__
-#define __FUNCT__ "PEPSimpleNRefGatherEigenpair"
 static PetscErrorCode PEPSimpleNRefGatherEigenpair(PEP pep,PEPSimpNRefctx *ctx,PetscInt sc,PetscInt idx,PetscInt *fail)
 {
   PetscErrorCode    ierr;
@@ -173,8 +167,6 @@ static PetscErrorCode PEPSimpleNRefGatherEigenpair(PEP pep,PEPSimpNRefctx *ctx,P
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "PEPSimpleNRefScatterEigenvector"
 static PetscErrorCode PEPSimpleNRefScatterEigenvector(PEP pep,PEPSimpNRefctx *ctx,PetscInt sc,PetscInt idx)
 {
   PetscErrorCode    ierr;
@@ -199,8 +191,6 @@ static PetscErrorCode PEPSimpleNRefScatterEigenvector(PEP pep,PEPSimpNRefctx *ct
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "PEPEvaluateFunctionDerivatives"
 static PetscErrorCode PEPEvaluateFunctionDerivatives(PEP pep,PetscScalar alpha,PetscScalar *vals)
 {
   PetscInt    i,nmat=pep->nmat;
@@ -220,8 +210,6 @@ static PetscErrorCode PEPEvaluateFunctionDerivatives(PEP pep,PetscScalar alpha,P
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "PEPSimpleNRefSetUpSystem"
 static PetscErrorCode PEPSimpleNRefSetUpSystem(PEP pep,Mat *A,PEPSimpNRefctx *ctx,PetscInt idx,Mat *Mt,Mat *T,Mat *P,PetscBool ini,Vec t,Vec v)
 {
   PetscErrorCode    ierr;
@@ -393,8 +381,6 @@ static PetscErrorCode PEPSimpleNRefSetUpSystem(PEP pep,Mat *A,PEPSimpNRefctx *ct
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "PEPNewtonRefinementSimple"
 PetscErrorCode PEPNewtonRefinementSimple(PEP pep,PetscInt *maxits,PetscReal tol,PetscInt k)
 {
   PetscErrorCode     ierr;

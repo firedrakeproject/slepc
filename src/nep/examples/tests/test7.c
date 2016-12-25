@@ -52,8 +52,6 @@ typedef struct {
   PetscScalar t;  /* square root of lambda */
 } MatCtx;
 
-#undef __FUNCT__
-#define __FUNCT__ "main"
 int main(int argc,char **argv)
 {
   NEP            nep;
@@ -188,8 +186,6 @@ int main(int argc,char **argv)
   return ierr;
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "FormFunction"
 /*
    FormFunction - Computes Function matrix  T(lambda)
 */
@@ -204,8 +200,6 @@ PetscErrorCode FormFunction(NEP nep,PetscScalar lambda,Mat fun,Mat B,void *ctx)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "ComputeSingularities"
 /*
    ComputeSingularities - Computes maxnp points (at most) in the complex plane where
    the function T(.) is not analytic.
@@ -226,8 +220,6 @@ PetscErrorCode ComputeSingularities(NEP nep,PetscInt *maxnp,PetscScalar *xi,void
 
 /* -------------------------------- A0 ----------------------------------- */
 
-#undef __FUNCT__
-#define __FUNCT__ "MatMult_A0"
 PetscErrorCode MatMult_A0(Mat A,Vec x,Vec y)
 {
   PetscErrorCode    ierr;
@@ -247,8 +239,6 @@ PetscErrorCode MatMult_A0(Mat A,Vec x,Vec y)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "MatGetDiagonal_A0"
 PetscErrorCode MatGetDiagonal_A0(Mat A,Vec diag)
 {
   PetscErrorCode ierr;
@@ -258,8 +248,6 @@ PetscErrorCode MatGetDiagonal_A0(Mat A,Vec diag)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "MatDuplicate_A0"
 PetscErrorCode MatDuplicate_A0(Mat A,MatDuplicateOption op,Mat *B)
 {
   PetscInt       n;
@@ -279,8 +267,6 @@ PetscErrorCode MatDuplicate_A0(Mat A,MatDuplicateOption op,Mat *B)
 
 /* -------------------------------- A1 ----------------------------------- */
 
-#undef __FUNCT__
-#define __FUNCT__ "MatMult_A1"
 PetscErrorCode MatMult_A1(Mat A,Vec x,Vec y)
 {
   PetscErrorCode ierr;
@@ -290,8 +276,6 @@ PetscErrorCode MatMult_A1(Mat A,Vec x,Vec y)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "MatGetDiagonal_A1"
 PetscErrorCode MatGetDiagonal_A1(Mat A,Vec diag)
 {
   PetscErrorCode ierr;
@@ -301,8 +285,6 @@ PetscErrorCode MatGetDiagonal_A1(Mat A,Vec diag)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "MatDuplicate_A1"
 PetscErrorCode MatDuplicate_A1(Mat A,MatDuplicateOption op,Mat *B)
 {
   PetscInt       n;
@@ -322,8 +304,6 @@ PetscErrorCode MatDuplicate_A1(Mat A,MatDuplicateOption op,Mat *B)
 
 /* -------------------------------- F ----------------------------------- */
 
-#undef __FUNCT__
-#define __FUNCT__ "MatMult_F"
 PetscErrorCode MatMult_F(Mat A,Vec x,Vec y)
 {
   PetscErrorCode    ierr;
@@ -346,8 +326,6 @@ PetscErrorCode MatMult_F(Mat A,Vec x,Vec y)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "MatGetDiagonal_F"
 PetscErrorCode MatGetDiagonal_F(Mat A,Vec diag)
 {
   PetscErrorCode ierr;
@@ -359,8 +337,6 @@ PetscErrorCode MatGetDiagonal_F(Mat A,Vec diag)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "MatDuplicate_F"
 PetscErrorCode MatDuplicate_F(Mat A,MatDuplicateOption op,Mat *B)
 {
   MatCtx         *actx,*bctx;
@@ -383,8 +359,6 @@ PetscErrorCode MatDuplicate_F(Mat A,MatDuplicateOption op,Mat *B)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "MatDestroy_F"
 PetscErrorCode MatDestroy_F(Mat A)
 {
   MatCtx         *ctx;

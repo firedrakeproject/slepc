@@ -79,8 +79,6 @@ struct _p_ST {
   STStateType      state;            /* initial -> setup -> with updated matrices */
 };
 
-#undef __FUNCT__
-#define __FUNCT__ "ST_AllocateWorkVec"
 /*
   ST_AllocateWorkVec - Allocate work vector for the STApply operation.
 */

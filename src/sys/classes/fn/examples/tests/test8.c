@@ -23,8 +23,6 @@ static char help[] = "Test matrix inverse square root.\n\n";
 
 #include <slepcfn.h>
 
-#undef __FUNCT__
-#define __FUNCT__ "TestMatInvSqrt"
 /*
    Compute matrix inverse square root B = inv(sqrtm(A))
    Check result as norm(B*B*A-I)
@@ -94,8 +92,6 @@ PetscErrorCode TestMatInvSqrt(FN fn,Mat A,PetscViewer viewer,PetscBool verbose,P
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "main"
 int main(int argc,char **argv)
 {
   PetscErrorCode ierr;

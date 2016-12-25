@@ -26,8 +26,6 @@ static char help[] = "Eigenproblem for the 1-D Laplacian with constraints. "
 
 #include <slepceps.h>
 
-#undef __FUNCT__
-#define __FUNCT__ "main"
 int main(int argc,char **argv)
 {
   Mat            A;

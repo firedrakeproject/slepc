@@ -23,8 +23,6 @@ static char help[] = "Test ST with two matrices.\n\n";
 
 #include <slepcst.h>
 
-#undef __FUNCT__
-#define __FUNCT__ "main"
 int main(int argc,char **argv)
 {
   Mat            A,B,M,mat[2];

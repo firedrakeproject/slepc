@@ -39,8 +39,6 @@ typedef struct {
   PetscBool delayed;
 } EPS_ARNOLDI;
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSSetUp_Arnoldi"
 PetscErrorCode EPSSetUp_Arnoldi(EPS eps)
 {
   PetscErrorCode ierr;
@@ -70,8 +68,6 @@ PetscErrorCode EPSSetUp_Arnoldi(EPS eps)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSSolve_Arnoldi"
 PetscErrorCode EPSSolve_Arnoldi(EPS eps)
 {
   PetscErrorCode     ierr;
@@ -153,8 +149,6 @@ PetscErrorCode EPSSolve_Arnoldi(EPS eps)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSSetFromOptions_Arnoldi"
 PetscErrorCode EPSSetFromOptions_Arnoldi(PetscOptionItems *PetscOptionsObject,EPS eps)
 {
   PetscErrorCode ierr;
@@ -171,8 +165,6 @@ PetscErrorCode EPSSetFromOptions_Arnoldi(PetscOptionItems *PetscOptionsObject,EP
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSArnoldiSetDelayed_Arnoldi"
 static PetscErrorCode EPSArnoldiSetDelayed_Arnoldi(EPS eps,PetscBool delayed)
 {
   EPS_ARNOLDI *arnoldi = (EPS_ARNOLDI*)eps->data;
@@ -182,8 +174,6 @@ static PetscErrorCode EPSArnoldiSetDelayed_Arnoldi(EPS eps,PetscBool delayed)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSArnoldiSetDelayed"
 /*@
    EPSArnoldiSetDelayed - Activates or deactivates delayed reorthogonalization
    in the Arnoldi iteration.
@@ -217,8 +207,6 @@ PetscErrorCode EPSArnoldiSetDelayed(EPS eps,PetscBool delayed)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSArnoldiGetDelayed_Arnoldi"
 static PetscErrorCode EPSArnoldiGetDelayed_Arnoldi(EPS eps,PetscBool *delayed)
 {
   EPS_ARNOLDI *arnoldi = (EPS_ARNOLDI*)eps->data;
@@ -228,8 +216,6 @@ static PetscErrorCode EPSArnoldiGetDelayed_Arnoldi(EPS eps,PetscBool *delayed)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSArnoldiGetDelayed"
 /*@
    EPSArnoldiGetDelayed - Gets the type of reorthogonalization used during the Arnoldi
    iteration.
@@ -257,8 +243,6 @@ PetscErrorCode EPSArnoldiGetDelayed(EPS eps,PetscBool *delayed)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSDestroy_Arnoldi"
 PetscErrorCode EPSDestroy_Arnoldi(EPS eps)
 {
   PetscErrorCode ierr;
@@ -270,8 +254,6 @@ PetscErrorCode EPSDestroy_Arnoldi(EPS eps)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSView_Arnoldi"
 PetscErrorCode EPSView_Arnoldi(EPS eps,PetscViewer viewer)
 {
   PetscErrorCode ierr;
@@ -286,8 +268,6 @@ PetscErrorCode EPSView_Arnoldi(EPS eps,PetscViewer viewer)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSCreate_Arnoldi"
 PETSC_EXTERN PetscErrorCode EPSCreate_Arnoldi(EPS eps)
 {
   EPS_ARNOLDI    *ctx;

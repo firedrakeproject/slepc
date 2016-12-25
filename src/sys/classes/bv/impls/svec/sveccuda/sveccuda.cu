@@ -57,8 +57,6 @@
 #endif
 #endif
 
-#undef __FUNCT__
-#define __FUNCT__ "BVAXPY_BLAS_CUDA"
 /*
     B := alpha*A + beta*B
 
@@ -81,8 +79,6 @@ static PetscErrorCode BVAXPY_BLAS_CUDA(BV bv,PetscInt n_,PetscInt k_,PetscScalar
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "BVMult_Svec_CUDA"
 /*
     C := alpha*A*B + beta*C
 */
@@ -127,8 +123,6 @@ PetscErrorCode BVMult_Svec_CUDA(BV Y,PetscScalar alpha,PetscScalar beta,BV X,Mat
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "BVMultVec_Svec_CUDA"
 /*
     y := alpha*A*x + beta*y
 */
@@ -169,8 +163,6 @@ PetscErrorCode BVMultVec_Svec_CUDA(BV X,PetscScalar alpha,PetscScalar beta,Vec y
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "BVMultInPlace_Svec_CUDA"
 /*
     A(:,s:e-1) := A*B(:,s:e-1)
 */
@@ -207,8 +199,6 @@ PetscErrorCode BVMultInPlace_Svec_CUDA(BV V,Mat Q,PetscInt s,PetscInt e)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "BVMultInPlaceTranspose_Svec_CUDA"
 /*
     A(:,s:e-1) := A*B(:,s:e-1)
 */
@@ -245,8 +235,6 @@ PetscErrorCode BVMultInPlaceTranspose_Svec_CUDA(BV V,Mat Q,PetscInt s,PetscInt e
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "BVDot_Svec_CUDA"
 /*
     C := A'*B
 */
@@ -315,8 +303,6 @@ PetscErrorCode BVDot_Svec_CUDA(BV X,BV Y,Mat M)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "BVDotVec_Svec_CUDA"
 /*
     y := A'*x
 */
@@ -369,8 +355,6 @@ PetscErrorCode BVDotVec_Svec_CUDA(BV X,Vec y,PetscScalar *q)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "BVDotVec_Local_Svec_CUDA"
 /*
     y := A'*x
 */
@@ -407,8 +391,6 @@ PetscErrorCode BVDotVec_Local_Svec_CUDA(BV X,Vec y,PetscScalar *m)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "BVScale_Svec_CUDA"
 /*
     Scale n scalars
 */
@@ -439,8 +421,6 @@ PetscErrorCode BVScale_Svec_CUDA(BV bv,PetscInt j,PetscScalar alpha)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "BVMatMult_Svec_CUDA"
 PetscErrorCode BVMatMult_Svec_CUDA(BV V,Mat A,BV W)
 {
   PetscErrorCode    ierr;
@@ -464,8 +444,6 @@ PetscErrorCode BVMatMult_Svec_CUDA(BV V,Mat A,BV W)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "BVCopy_Svec_CUDA"
 PetscErrorCode BVCopy_Svec_CUDA(BV V,BV W)
 {
   PetscErrorCode    ierr;
@@ -485,8 +463,6 @@ PetscErrorCode BVCopy_Svec_CUDA(BV V,BV W)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "BVResize_Svec_CUDA"
 PetscErrorCode BVResize_Svec_CUDA(BV bv,PetscInt m,PetscBool copy)
 {
   PetscErrorCode    ierr;
@@ -521,8 +497,6 @@ PetscErrorCode BVResize_Svec_CUDA(BV bv,PetscInt m,PetscBool copy)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "BVGetColumn_Svec_CUDA"
 PetscErrorCode BVGetColumn_Svec_CUDA(BV bv,PetscInt j,Vec *v)
 {
   PetscErrorCode ierr;
@@ -537,8 +511,6 @@ PetscErrorCode BVGetColumn_Svec_CUDA(BV bv,PetscInt j,Vec *v)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "BVRestoreColumn_Svec_CUDA"
 PetscErrorCode BVRestoreColumn_Svec_CUDA(BV bv,PetscInt j,Vec *v)
 {
   PetscErrorCode ierr;

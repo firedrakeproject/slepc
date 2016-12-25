@@ -23,8 +23,6 @@
 
 #include <slepc/private/vecimplslepc.h>       /*I "slepcvec.h" I*/
 
-#undef __FUNCT__
-#define __FUNCT__ "SlepcVecPoolCreate"
 /*@C
    SlepcVecPoolCreate - Create a pool of Vec.
 
@@ -59,8 +57,6 @@ PetscErrorCode SlepcVecPoolCreate(Vec v,PetscInt init_size,VecPool *p)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "SlepcVecPoolDestroy"
 /*@C
    SlepcVecPoolDestroy - Destroy the pool of Vec.
 
@@ -91,8 +87,6 @@ PetscErrorCode SlepcVecPoolDestroy(VecPool *p)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "SlepcVecPoolGetVecs"
 /*@C
    SlepcVecPoolGetVecs - Get an array of Vec from the pool.
 
@@ -136,8 +130,6 @@ PetscErrorCode SlepcVecPoolGetVecs(VecPool p,PetscInt n,Vec **vecs)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "SlepcVecPoolRestoreVecs"
 /*@C
    SlepcVecPoolRestoreVecs - Get back an array of Vec previously returned by
    SlepcVecPoolGetVecs().

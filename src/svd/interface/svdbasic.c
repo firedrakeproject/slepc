@@ -28,8 +28,6 @@ PetscBool         SVDRegisterAllCalled = PETSC_FALSE;
 PetscClassId      SVD_CLASSID = 0;
 PetscLogEvent     SVD_SetUp = 0,SVD_Solve = 0;
 
-#undef __FUNCT__
-#define __FUNCT__ "SVDCreate"
 /*@
    SVDCreate - Creates the default SVD context.
 
@@ -104,8 +102,6 @@ PetscErrorCode SVDCreate(MPI_Comm comm,SVD *outsvd)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "SVDReset"
 /*@
    SVDReset - Resets the SVD context to the initial state (prior to setup)
    and destroys any allocated Vecs and Mats.
@@ -135,8 +131,6 @@ PetscErrorCode SVDReset(SVD svd)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "SVDDestroy"
 /*@
    SVDDestroy - Destroys the SVD context.
 
@@ -172,8 +166,6 @@ PetscErrorCode SVDDestroy(SVD *svd)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "SVDSetType"
 /*@C
    SVDSetType - Selects the particular solver to be used in the SVD object.
 
@@ -227,8 +219,6 @@ PetscErrorCode SVDSetType(SVD svd,SVDType type)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "SVDGetType"
 /*@C
    SVDGetType - Gets the SVD type as a string from the SVD object.
 
@@ -253,8 +243,6 @@ PetscErrorCode SVDGetType(SVD svd,SVDType *type)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "SVDRegister"
 /*@C
    SVDRegister - Adds a method to the singular value solver package.
 
@@ -290,8 +278,6 @@ PetscErrorCode SVDRegister(const char *name,PetscErrorCode (*function)(SVD))
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "SVDSetBV"
 /*@
    SVDSetBV - Associates basis vectors objects to the singular value solver.
 
@@ -335,8 +321,6 @@ PetscErrorCode SVDSetBV(SVD svd,BV V,BV U)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "SVDGetBV"
 /*@
    SVDGetBV - Obtain the basis vectors objects associated to the singular
    value solver object.
@@ -377,8 +361,6 @@ PetscErrorCode SVDGetBV(SVD svd,BV *V,BV *U)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "SVDSetDS"
 /*@
    SVDSetDS - Associates a direct solver object to the singular value solver.
 
@@ -411,8 +393,6 @@ PetscErrorCode SVDSetDS(SVD svd,DS ds)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "SVDGetDS"
 /*@
    SVDGetDS - Obtain the direct solver object associated to the singular value
    solver object.

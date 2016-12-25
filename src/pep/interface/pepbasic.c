@@ -28,8 +28,6 @@ PetscBool         PEPRegisterAllCalled = PETSC_FALSE;
 PetscClassId      PEP_CLASSID = 0;
 PetscLogEvent     PEP_SetUp = 0,PEP_Solve = 0,PEP_Refine = 0;
 
-#undef __FUNCT__
-#define __FUNCT__ "PEPCreate"
 /*@
    PEPCreate - Creates the default PEP context.
 
@@ -128,8 +126,6 @@ PetscErrorCode PEPCreate(MPI_Comm comm,PEP *outpep)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "PEPSetType"
 /*@C
    PEPSetType - Selects the particular solver to be used in the PEP object.
 
@@ -183,8 +179,6 @@ PetscErrorCode PEPSetType(PEP pep,PEPType type)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "PEPGetType"
 /*@C
    PEPGetType - Gets the PEP type as a string from the PEP object.
 
@@ -209,8 +203,6 @@ PetscErrorCode PEPGetType(PEP pep,PEPType *type)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "PEPRegister"
 /*@C
    PEPRegister - Adds a method to the polynomial eigenproblem solver package.
 
@@ -246,8 +238,6 @@ PetscErrorCode PEPRegister(const char *name,PetscErrorCode (*function)(PEP))
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "PEPReset"
 /*@
    PEPReset - Resets the PEP context to the initial state (prior to setup)
    and destroys any allocated Vecs and Mats.
@@ -285,8 +275,6 @@ PetscErrorCode PEPReset(PEP pep)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "PEPDestroy"
 /*@
    PEPDestroy - Destroys the PEP context.
 
@@ -328,8 +316,6 @@ PetscErrorCode PEPDestroy(PEP *pep)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "PEPSetBV"
 /*@
    PEPSetBV - Associates a basis vectors object to the polynomial eigensolver.
 
@@ -362,8 +348,6 @@ PetscErrorCode PEPSetBV(PEP pep,BV bv)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "PEPGetBV"
 /*@
    PEPGetBV - Obtain the basis vectors object associated to the polynomial
    eigensolver object.
@@ -395,8 +379,6 @@ PetscErrorCode PEPGetBV(PEP pep,BV *bv)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "PEPSetRG"
 /*@
    PEPSetRG - Associates a region object to the polynomial eigensolver.
 
@@ -429,8 +411,6 @@ PetscErrorCode PEPSetRG(PEP pep,RG rg)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "PEPGetRG"
 /*@
    PEPGetRG - Obtain the region object associated to the
    polynomial eigensolver object.
@@ -462,8 +442,6 @@ PetscErrorCode PEPGetRG(PEP pep,RG *rg)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "PEPSetDS"
 /*@
    PEPSetDS - Associates a direct solver object to the polynomial eigensolver.
 
@@ -496,8 +474,6 @@ PetscErrorCode PEPSetDS(PEP pep,DS ds)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "PEPGetDS"
 /*@
    PEPGetDS - Obtain the direct solver object associated to the
    polynomial eigensolver object.
@@ -529,8 +505,6 @@ PetscErrorCode PEPGetDS(PEP pep,DS *ds)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "PEPSetST"
 /*@
    PEPSetST - Associates a spectral transformation object to the eigensolver.
 
@@ -563,8 +537,6 @@ PetscErrorCode PEPSetST(PEP pep,ST st)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "PEPGetST"
 /*@
    PEPGetST - Obtain the spectral transformation (ST) object associated
    to the eigensolver object.
@@ -596,8 +568,6 @@ PetscErrorCode PEPGetST(PEP pep,ST *st)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "PEPRefineGetKSP"
 /*@
    PEPRefineGetKSP - Obtain the ksp object used by the eigensolver
    object in the refinement phase.
@@ -639,8 +609,6 @@ PetscErrorCode PEPRefineGetKSP(PEP pep,KSP *ksp)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "PEPSetTarget"
 /*@
    PEPSetTarget - Sets the value of the target.
 
@@ -678,8 +646,6 @@ PetscErrorCode PEPSetTarget(PEP pep,PetscScalar target)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "PEPGetTarget"
 /*@
    PEPGetTarget - Gets the value of the target.
 

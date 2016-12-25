@@ -27,8 +27,6 @@ typedef struct {
   PetscBool setmat;
 } ST_PRECOND;
 
-#undef __FUNCT__
-#define __FUNCT__ "STSetDefaultKSP_Precond"
 static PetscErrorCode STSetDefaultKSP_Precond(ST st)
 {
   PetscErrorCode ierr;
@@ -55,8 +53,6 @@ static PetscErrorCode STSetDefaultKSP_Precond(ST st)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "STSetUp_Precond"
 PetscErrorCode STSetUp_Precond(ST st)
 {
   Mat            P;
@@ -140,8 +136,6 @@ PetscErrorCode STSetUp_Precond(ST st)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "STSetShift_Precond"
 PetscErrorCode STSetShift_Precond(ST st,PetscScalar newshift)
 {
   PetscErrorCode ierr;
@@ -156,8 +150,6 @@ PetscErrorCode STSetShift_Precond(ST st,PetscScalar newshift)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "STPrecondGetMatForPC_Precond"
 static PetscErrorCode STPrecondGetMatForPC_Precond(ST st,Mat *mat)
 {
   PetscErrorCode ierr;
@@ -174,8 +166,6 @@ static PetscErrorCode STPrecondGetMatForPC_Precond(ST st,Mat *mat)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "STPrecondGetMatForPC"
 /*@
    STPrecondGetMatForPC - Returns the matrix previously set by STPrecondSetMatForPC().
 
@@ -203,8 +193,6 @@ PetscErrorCode STPrecondGetMatForPC(ST st,Mat *mat)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "STPrecondSetMatForPC_Precond"
 static PetscErrorCode STPrecondSetMatForPC_Precond(ST st,Mat mat)
 {
   PC             pc;
@@ -230,8 +218,6 @@ static PetscErrorCode STPrecondSetMatForPC_Precond(ST st,Mat mat)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "STPrecondSetMatForPC"
 /*@
    STPrecondSetMatForPC - Sets the matrix that must be used to build the preconditioner.
 
@@ -263,8 +249,6 @@ PetscErrorCode STPrecondSetMatForPC(ST st,Mat mat)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "STPrecondSetKSPHasMat_Precond"
 static PetscErrorCode STPrecondSetKSPHasMat_Precond(ST st,PetscBool setmat)
 {
   ST_PRECOND *data = (ST_PRECOND*)st->data;
@@ -274,8 +258,6 @@ static PetscErrorCode STPrecondSetKSPHasMat_Precond(ST st,PetscBool setmat)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "STPrecondSetKSPHasMat"
 /*@
    STPrecondSetKSPHasMat - Sets a flag indicating that during STSetUp the coefficient
    matrix of the KSP linear system (A) must be set to be the same matrix as the
@@ -307,8 +289,6 @@ PetscErrorCode STPrecondSetKSPHasMat(ST st,PetscBool setmat)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "STPrecondGetKSPHasMat_Precond"
 static PetscErrorCode STPrecondGetKSPHasMat_Precond(ST st,PetscBool *setmat)
 {
   ST_PRECOND *data = (ST_PRECOND*)st->data;
@@ -318,8 +298,6 @@ static PetscErrorCode STPrecondGetKSPHasMat_Precond(ST st,PetscBool *setmat)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "STPrecondGetKSPHasMat"
 /*@
    STPrecondGetKSPHasMat - Returns the flag indicating if the coefficient
    matrix of the KSP linear system (A) is set to be the same matrix as the
@@ -348,8 +326,6 @@ PetscErrorCode STPrecondGetKSPHasMat(ST st,PetscBool *setmat)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "STDestroy_Precond"
 PetscErrorCode STDestroy_Precond(ST st)
 {
   PetscErrorCode ierr;
@@ -363,8 +339,6 @@ PetscErrorCode STDestroy_Precond(ST st)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "STCreate_Precond"
 PETSC_EXTERN PetscErrorCode STCreate_Precond(ST st)
 {
   PetscErrorCode ierr;

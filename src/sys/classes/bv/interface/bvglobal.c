@@ -23,8 +23,6 @@
 
 #include <slepc/private/bvimpl.h>      /*I "slepcbv.h" I*/
 
-#undef __FUNCT__
-#define __FUNCT__ "BVDot_Private"
 /*
   BVDot for the particular case of non-standard inner product with
   matrix B, which is assumed to be symmetric (or complex Hermitian)
@@ -59,8 +57,6 @@ PETSC_STATIC_INLINE PetscErrorCode BVDot_Private(BV X,BV Y,Mat M)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "BVDot"
 /*@
    BVDot - Computes the 'block-dot' product of two basis vectors objects.
 
@@ -140,8 +136,6 @@ PetscErrorCode BVDot(BV X,BV Y,Mat M)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "BVDotVec"
 /*@
    BVDotVec - Computes multiple dot products of a vector against all the
    column vectors of a BV.
@@ -193,8 +187,6 @@ PetscErrorCode BVDotVec(BV X,Vec y,PetscScalar m[])
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "BVDotVecBegin"
 /*@
    BVDotVecBegin - Starts a split phase dot product computation.
 
@@ -250,8 +242,6 @@ PetscErrorCode BVDotVecBegin(BV X,Vec y,PetscScalar *m)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "BVDotVecEnd"
 /*@
    BVDotVecEnd - Ends a split phase dot product computation.
 
@@ -302,8 +292,6 @@ PetscErrorCode BVDotVecEnd(BV X,Vec y,PetscScalar *m)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "BVDotColumn"
 /*@
    BVDotColumn - Computes multiple dot products of a column against all the
    previous columns of a BV.
@@ -360,8 +348,6 @@ PetscErrorCode BVDotColumn(BV X,PetscInt j,PetscScalar *q)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "BVDotColumnBegin"
 /*@
    BVDotColumnBegin - Starts a split phase dot product computation.
 
@@ -421,8 +407,6 @@ PetscErrorCode BVDotColumnBegin(BV X,PetscInt j,PetscScalar *m)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "BVDotColumnEnd"
 /*@
    BVDotColumnEnd - Ends a split phase dot product computation.
 
@@ -483,8 +467,6 @@ PetscErrorCode BVDotColumnEnd(BV X,PetscInt j,PetscScalar *m)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "BVNorm_Private"
 PETSC_STATIC_INLINE PetscErrorCode BVNorm_Private(BV bv,Vec z,NormType type,PetscReal *val)
 {
   PetscErrorCode ierr;
@@ -497,8 +479,6 @@ PETSC_STATIC_INLINE PetscErrorCode BVNorm_Private(BV bv,Vec z,NormType type,Pets
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "BVNorm_Begin_Private"
 PETSC_STATIC_INLINE PetscErrorCode BVNorm_Begin_Private(BV bv,Vec z,NormType type,PetscReal *val)
 {
   PetscErrorCode ierr;
@@ -510,8 +490,6 @@ PETSC_STATIC_INLINE PetscErrorCode BVNorm_Begin_Private(BV bv,Vec z,NormType typ
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "BVNorm_End_Private"
 PETSC_STATIC_INLINE PetscErrorCode BVNorm_End_Private(BV bv,Vec z,NormType type,PetscReal *val)
 {
   PetscErrorCode ierr;
@@ -523,8 +501,6 @@ PETSC_STATIC_INLINE PetscErrorCode BVNorm_End_Private(BV bv,Vec z,NormType type,
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "BVNorm"
 /*@
    BVNorm - Computes the matrix norm of the BV.
 
@@ -568,8 +544,6 @@ PetscErrorCode BVNorm(BV bv,NormType type,PetscReal *val)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "BVNormVec"
 /*@
    BVNormVec - Computes the norm of a given vector.
 
@@ -622,8 +596,6 @@ PetscErrorCode BVNormVec(BV bv,Vec v,NormType type,PetscReal *val)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "BVNormVecBegin"
 /*@
    BVNormVecBegin - Starts a split phase norm computation.
 
@@ -669,8 +641,6 @@ PetscErrorCode BVNormVecBegin(BV bv,Vec v,NormType type,PetscReal *val)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "BVNormVecEnd"
 /*@
    BVNormVecEnd - Ends a split phase norm computation.
 
@@ -708,8 +678,6 @@ PetscErrorCode BVNormVecEnd(BV bv,Vec v,NormType type,PetscReal *val)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "BVNormColumn"
 /*@
    BVNormColumn - Computes the vector norm of a selected column.
 
@@ -761,8 +729,6 @@ PetscErrorCode BVNormColumn(BV bv,PetscInt j,NormType type,PetscReal *val)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "BVNormColumnBegin"
 /*@
    BVNormColumnBegin - Starts a split phase norm computation.
 
@@ -823,8 +789,6 @@ PetscErrorCode BVNormColumnBegin(BV bv,PetscInt j,NormType type,PetscReal *val)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "BVNormColumnEnd"
 /*@
    BVNormColumnEnd - Ends a split phase norm computation.
 
@@ -883,8 +847,6 @@ PetscErrorCode BVNormColumnEnd(BV bv,PetscInt j,NormType type,PetscReal *val)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "BVMatProject_Vec"
 /*
   Compute Y^H*A*X: right part column by column (with MatMult) and bottom
   part row by row (with MatMultHermitianTranspose); result placed in marray[*,ldm]
@@ -928,8 +890,6 @@ PETSC_STATIC_INLINE PetscErrorCode BVMatProject_Vec(BV X,Mat A,BV Y,PetscScalar 
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "BVMatProject_MatMult"
 /*
   Compute Y^H*A*X= [   --   | Y0'*W1 ]
                    [ Y1'*W0 | Y1'*W1 ]
@@ -985,8 +945,6 @@ PETSC_STATIC_INLINE PetscErrorCode BVMatProject_MatMult(BV X,Mat A,BV Y,PetscSca
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "BVMatProject_MatMult_2"
 /*
   Compute Y^H*A*X= [   --   | Y0'*W1 ]
                    [ Y1'*W0 | Y1'*W1 ]
@@ -1051,8 +1009,6 @@ PETSC_STATIC_INLINE PetscErrorCode BVMatProject_MatMult_2(BV X,Mat A,BV Y,PetscS
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "BVMatProject_Dot"
 /*
   Compute Y^H*X = [   --   | Y0'*X1 ]     (X contains A*X):
                   [ Y1'*X0 | Y1'*X1 ]
@@ -1102,8 +1058,6 @@ PETSC_STATIC_INLINE PetscErrorCode BVMatProject_Dot(BV X,BV Y,PetscScalar *marra
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "BVMatProject"
 /*@
    BVMatProject - Computes the projection of a matrix onto a subspace.
 

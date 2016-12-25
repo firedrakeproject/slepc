@@ -38,8 +38,6 @@ static char help[] = "SVD via the cyclic matrix with a user-provided EPS.\n\n"
               |                   1  2    |
  */
 
-#undef __FUNCT__
-#define __FUNCT__ "main"
 int main(int argc,char **argv)
 {
   Mat                  A;

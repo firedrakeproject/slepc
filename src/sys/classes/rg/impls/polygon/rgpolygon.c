@@ -30,8 +30,6 @@ typedef struct {
   PetscScalar *vr,*vi;   /* array of vertices (vi not used in complex scalars) */
 } RG_POLYGON;
 
-#undef __FUNCT__
-#define __FUNCT__ "RGPolygonSetVertices_Polygon"
 static PetscErrorCode RGPolygonSetVertices_Polygon(RG rg,PetscInt n,PetscScalar *vr,PetscScalar *vi)
 {
   PetscErrorCode ierr;
@@ -61,8 +59,6 @@ static PetscErrorCode RGPolygonSetVertices_Polygon(RG rg,PetscInt n,PetscScalar 
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "RGPolygonSetVertices"
 /*@
    RGPolygonSetVertices - Sets the vertices that define the polygon region.
 
@@ -107,8 +103,6 @@ PetscErrorCode RGPolygonSetVertices(RG rg,PetscInt n,PetscScalar vr[],PetscScala
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "RGPolygonGetVertices_Polygon"
 static PetscErrorCode RGPolygonGetVertices_Polygon(RG rg,PetscInt *n,PetscScalar **vr,PetscScalar **vi)
 {
   RG_POLYGON *ctx = (RG_POLYGON*)rg->data;
@@ -120,8 +114,6 @@ static PetscErrorCode RGPolygonGetVertices_Polygon(RG rg,PetscInt *n,PetscScalar
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "RGPolygonGetVertices"
 /*@
    RGPolygonGetVertices - Gets the vertices that define the polygon region.
 
@@ -152,8 +144,6 @@ PetscErrorCode RGPolygonGetVertices(RG rg,PetscInt *n,PetscScalar **vr,PetscScal
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "RGView_Polygon"
 PetscErrorCode RGView_Polygon(RG rg,PetscViewer viewer)
 {
   PetscErrorCode ierr;
@@ -185,8 +175,6 @@ PetscErrorCode RGView_Polygon(RG rg,PetscViewer viewer)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "RGIsTrivial_Polygon"
 PetscErrorCode RGIsTrivial_Polygon(RG rg,PetscBool *trivial)
 {
   RG_POLYGON *ctx = (RG_POLYGON*)rg->data;
@@ -196,8 +184,6 @@ PetscErrorCode RGIsTrivial_Polygon(RG rg,PetscBool *trivial)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "RGComputeContour_Polygon"
 PetscErrorCode RGComputeContour_Polygon(RG rg,PetscInt n,PetscScalar *cr,PetscScalar *ci)
 {
   RG_POLYGON  *ctx = (RG_POLYGON*)rg->data;
@@ -264,8 +250,6 @@ PetscErrorCode RGComputeContour_Polygon(RG rg,PetscInt n,PetscScalar *cr,PetscSc
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "RGCheckInside_Polygon"
 PetscErrorCode RGCheckInside_Polygon(RG rg,PetscReal px,PetscReal py,PetscInt *inout)
 {
   RG_POLYGON *ctx = (RG_POLYGON*)rg->data;
@@ -304,8 +288,6 @@ PetscErrorCode RGCheckInside_Polygon(RG rg,PetscReal px,PetscReal py,PetscInt *i
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "RGSetFromOptions_Polygon"
 PetscErrorCode RGSetFromOptions_Polygon(PetscOptionItems *PetscOptionsObject,RG rg)
 {
   PetscErrorCode ierr;
@@ -337,8 +319,6 @@ PetscErrorCode RGSetFromOptions_Polygon(PetscOptionItems *PetscOptionsObject,RG 
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "RGDestroy_Polygon"
 PetscErrorCode RGDestroy_Polygon(RG rg)
 {
   PetscErrorCode ierr;
@@ -357,8 +337,6 @@ PetscErrorCode RGDestroy_Polygon(RG rg)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "RGCreate_Polygon"
 PETSC_EXTERN PetscErrorCode RGCreate_Polygon(RG rg)
 {
   RG_POLYGON     *polygon;

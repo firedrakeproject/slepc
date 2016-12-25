@@ -23,8 +23,6 @@
 
 #include <slepc/private/svdimpl.h>      /*I "slepcsvd.h" I*/
 
-#undef __FUNCT__
-#define __FUNCT__ "SVDConvergedRelative"
 /*
   SVDConvergedRelative - Checks convergence relative to the eigenvalue.
 */
@@ -35,8 +33,6 @@ PetscErrorCode SVDConvergedRelative(SVD svd,PetscReal sigma,PetscReal res,PetscR
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "SVDConvergedAbsolute"
 /*
   SVDConvergedAbsolute - Checks convergence absolutely.
 */
@@ -47,8 +43,6 @@ PetscErrorCode SVDConvergedAbsolute(SVD svd,PetscReal sigma,PetscReal res,PetscR
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "SVDStoppingBasic"
 /*@C
    SVDStoppingBasic - Default routine to determine whether the outer singular value
    solver iteration must be stopped.

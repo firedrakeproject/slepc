@@ -40,8 +40,6 @@ static char help[] = "Stability analysis of a discretized partial delay-differen
 
 #define NMAT 3
 
-#undef __FUNCT__
-#define __FUNCT__ "MyEigenSort"
 /*
     Function for user-defined eigenvalue ordering criterion.
 
@@ -60,8 +58,6 @@ PetscErrorCode MyEigenSort(PetscScalar ar,PetscScalar ai,PetscScalar br,PetscSca
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "main"
 int main(int argc,char **argv)
 {
   Mat            A[NMAT];         /* problem matrices */

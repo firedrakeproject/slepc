@@ -28,8 +28,6 @@ PetscBool         MFNRegisterAllCalled = PETSC_FALSE;
 PetscClassId      MFN_CLASSID = 0;
 PetscLogEvent     MFN_SetUp = 0,MFN_Solve = 0;
 
-#undef __FUNCT__
-#define __FUNCT__ "MFNView"
 /*@C
    MFNView - Prints the MFN data structure.
 
@@ -93,8 +91,6 @@ PetscErrorCode MFNView(MFN mfn,PetscViewer viewer)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "MFNReasonView"
 /*@C
    MFNReasonView - Displays the reason an MFN solve converged or diverged.
 
@@ -130,8 +126,6 @@ PetscErrorCode MFNReasonView(MFN mfn,PetscViewer viewer)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "MFNReasonViewFromOptions"
 /*@
    MFNReasonViewFromOptions - Processes command line options to determine if/how
    the MFN converged reason is to be viewed.
@@ -165,8 +159,6 @@ PetscErrorCode MFNReasonViewFromOptions(MFN mfn)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "MFNCreate"
 /*@
    MFNCreate - Creates the default MFN context.
 
@@ -220,8 +212,6 @@ PetscErrorCode MFNCreate(MPI_Comm comm,MFN *outmfn)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "MFNSetType"
 /*@C
    MFNSetType - Selects the particular solver to be used in the MFN object.
 
@@ -275,8 +265,6 @@ PetscErrorCode MFNSetType(MFN mfn,MFNType type)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "MFNGetType"
 /*@C
    MFNGetType - Gets the MFN type as a string from the MFN object.
 
@@ -301,8 +289,6 @@ PetscErrorCode MFNGetType(MFN mfn,MFNType *type)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "MFNRegister"
 /*@C
    MFNRegister - Adds a method to the matrix function solver package.
 
@@ -338,8 +324,6 @@ PetscErrorCode MFNRegister(const char *name,PetscErrorCode (*function)(MFN))
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "MFNReset"
 /*@
    MFNReset - Resets the MFN context to the initial state (prior to setup)
    and destroys any allocated Vecs and Mats.
@@ -368,8 +352,6 @@ PetscErrorCode MFNReset(MFN mfn)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "MFNDestroy"
 /*@
    MFNDestroy - Destroys the MFN context.
 
@@ -398,8 +380,6 @@ PetscErrorCode MFNDestroy(MFN *mfn)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "MFNSetBV"
 /*@
    MFNSetBV - Associates a basis vectors object to the matrix function solver.
 
@@ -432,8 +412,6 @@ PetscErrorCode MFNSetBV(MFN mfn,BV bv)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "MFNGetBV"
 /*@
    MFNGetBV - Obtain the basis vectors object associated to the matrix
    function solver.
@@ -465,8 +443,6 @@ PetscErrorCode MFNGetBV(MFN mfn,BV *bv)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "MFNSetFN"
 /*@
    MFNSetFN - Specifies the function to be computed.
 
@@ -499,8 +475,6 @@ PetscErrorCode MFNSetFN(MFN mfn,FN fn)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "MFNGetFN"
 /*@
    MFNGetFN - Obtain the math function object associated to the MFN object.
 

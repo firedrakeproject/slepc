@@ -27,8 +27,6 @@ PETSC_EXTERN PetscErrorCode SVDCreate_LAPACK(SVD);
 PETSC_EXTERN PetscErrorCode SVDCreate_Lanczos(SVD);
 PETSC_EXTERN PetscErrorCode SVDCreate_TRLanczos(SVD);
 
-#undef __FUNCT__
-#define __FUNCT__ "SVDRegisterAll"
 /*@C
    SVDRegisterAll - Registers all the singular value solvers in the SVD package.
 

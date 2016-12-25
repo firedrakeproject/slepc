@@ -31,8 +31,6 @@ static char help[] = "Illustrates region filtering. "
 */
 PetscErrorCode MatMarkovModel(PetscInt m,Mat A);
 
-#undef __FUNCT__
-#define __FUNCT__ "main"
 int main(int argc,char **argv)
 {
   Mat            A;
@@ -114,8 +112,6 @@ int main(int argc,char **argv)
   return ierr;
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "MatMarkovModel"
 PetscErrorCode MatMarkovModel(PetscInt m,Mat A)
 {
   const PetscReal cst = 0.5/(PetscReal)(m-1);

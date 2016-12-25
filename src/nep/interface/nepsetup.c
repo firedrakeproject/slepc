@@ -23,8 +23,6 @@
 
 #include <slepc/private/nepimpl.h>       /*I "slepcnep.h" I*/
 
-#undef __FUNCT__
-#define __FUNCT__ "NEPSetUp"
 /*@
    NEPSetUp - Sets up all the internal data structures necessary for the
    execution of the NEP solver.
@@ -218,8 +216,6 @@ PetscErrorCode NEPSetUp(NEP nep)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "NEPSetInitialSpace"
 /*@
    NEPSetInitialSpace - Specify a basis of vectors that constitute the initial
    space, that is, the subspace from which the solver starts to iterate.
@@ -259,8 +255,6 @@ PetscErrorCode NEPSetInitialSpace(NEP nep,PetscInt n,Vec *is)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "NEPSetDimensions_Default"
 /*
   NEPSetDimensions_Default - Set reasonable values for ncv, mpd if not set
   by the user. This is called at setup.
@@ -283,8 +277,6 @@ PetscErrorCode NEPSetDimensions_Default(NEP nep,PetscInt nev,PetscInt *ncv,Petsc
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "NEPAllocateSolution"
 /*@
    NEPAllocateSolution - Allocate memory storage for common variables such
    as eigenvalues and eigenvectors.

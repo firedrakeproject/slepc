@@ -21,8 +21,6 @@
 
 #include <slepc/private/slepcimpl.h>            /*I "slepcsys.h" I*/
 
-#undef __FUNCT__
-#define __FUNCT__ "SlepcVecNormalize"
 /*@C
    SlepcVecNormalize - Normalizes a possibly complex vector by the 2-norm.
 
@@ -67,8 +65,6 @@ PetscErrorCode SlepcVecNormalize(Vec xr,Vec xi,PetscBool iscomplex,PetscReal *no
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "SlepcMatConvertSeqDense"
 /*@C
    SlepcMatConvertSeqDense - Converts a parallel matrix to another one in sequential
    dense format replicating the values in every processor.
@@ -121,8 +117,6 @@ PetscErrorCode SlepcMatConvertSeqDense(Mat mat,Mat *newmat)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "SlepcMatTile_SeqAIJ"
 static PetscErrorCode SlepcMatTile_SeqAIJ(PetscScalar a,Mat A,PetscScalar b,Mat B,PetscScalar c,Mat C,PetscScalar d,Mat D,Mat G)
 {
   PetscErrorCode    ierr;
@@ -228,8 +222,6 @@ static PetscErrorCode SlepcMatTile_SeqAIJ(PetscScalar a,Mat A,PetscScalar b,Mat 
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "SlepcMatTile_MPIAIJ"
 static PetscErrorCode SlepcMatTile_MPIAIJ(PetscScalar a,Mat A,PetscScalar b,Mat B,PetscScalar c,Mat C,PetscScalar d,Mat D,Mat G)
 {
   PetscErrorCode ierr;
@@ -367,8 +359,6 @@ static PetscErrorCode SlepcMatTile_MPIAIJ(PetscScalar a,Mat A,PetscScalar b,Mat 
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "SlepcMatTile"
 /*@
    SlepcMatTile - Explicitly build a matrix from four blocks, G = [ a*A b*B; c*C d*D ].
 
@@ -458,8 +448,6 @@ PetscErrorCode SlepcMatTile(PetscScalar a,Mat A,PetscScalar b,Mat B,PetscScalar 
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "SlepcCheckOrthogonality"
 /*@C
    SlepcCheckOrthogonality - Checks (or prints) the level of orthogonality
    of a set of vectors.
@@ -545,8 +533,6 @@ PetscErrorCode SlepcCheckOrthogonality(Vec *V,PetscInt nv,Vec *W,PetscInt nw,Mat
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "SlepcConvMonitorCreate"
 /*@C
    SlepcConvMonitorCreate - Creates a SlepcConvMonitor context.
 
@@ -582,8 +568,6 @@ PetscErrorCode SlepcConvMonitorCreate(PetscViewer viewer,PetscViewerFormat forma
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "SlepcConvMonitorDestroy"
 /*@C
    SlepcConvMonitorDestroy - Destroys a SlepcConvMonitor context.
 
@@ -607,8 +591,6 @@ PetscErrorCode SlepcConvMonitorDestroy(SlepcConvMonitor *ctx)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "SlepcBasisReference_Private"
 /*
    Given n vectors in V, this function gets references of them into W.
    If m<0 then some previous non-processed vectors remain in W and must be freed.
@@ -631,8 +613,6 @@ PetscErrorCode SlepcBasisReference_Private(PetscInt n,Vec *V,PetscInt *m,Vec **W
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "SlepcBasisDestroy_Private"
 /*
    Destroys a set of vectors.
    A negative value of m indicates that W contains vectors to be destroyed.
@@ -653,8 +633,6 @@ PetscErrorCode SlepcBasisDestroy_Private(PetscInt *m,Vec **W)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "SlepcSNPrintfScalar"
 /*@C
    SlepcSNPrintfScalar - Prints a PetscScalar variable to a string of
    given length.

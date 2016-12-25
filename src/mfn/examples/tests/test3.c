@@ -25,8 +25,6 @@ static char help[] = "Test MFN interface functions.\n\n"
 
 #include <slepcmfn.h>
 
-#undef __FUNCT__
-#define __FUNCT__ "main"
 int main(int argc,char **argv)
 {
   Mat                  A,B;

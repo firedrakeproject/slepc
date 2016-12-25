@@ -59,8 +59,6 @@ struct _p_FN {
   void        *data;
 };
 
-#undef __FUNCT__
-#define __FUNCT__ "FN_AllocateWorkMat"
 /*
   FN_AllocateWorkMat - Allocate a work Mat of the same dimension of A and copy
   its contents. The work matrix is returned in M and should be freed with
@@ -97,8 +95,6 @@ PETSC_STATIC_INLINE PetscErrorCode FN_AllocateWorkMat(FN fn,Mat A,Mat *M)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "FN_FreeWorkMat"
 /*
   FN_FreeWorkMat - Release a work matrix created with FN_AllocateWorkMat().
 */

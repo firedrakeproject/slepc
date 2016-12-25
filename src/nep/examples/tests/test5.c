@@ -44,8 +44,6 @@ static char help[] = "Test the INTERPOL solver with a user-provided PEP.\n\n"
 
 #include <slepcnep.h>
 
-#undef __FUNCT__
-#define __FUNCT__ "main"
 int main(int argc,char **argv)
 {
   NEP            nep;

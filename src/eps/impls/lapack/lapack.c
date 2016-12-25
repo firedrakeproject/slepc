@@ -24,8 +24,6 @@
 
 #include <slepc/private/epsimpl.h>
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSSetUp_LAPACK"
 PetscErrorCode EPSSetUp_LAPACK(EPS eps)
 {
   PetscErrorCode ierr,ierra,ierrb;
@@ -132,8 +130,6 @@ PetscErrorCode EPSSetUp_LAPACK(EPS eps)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSSolve_LAPACK"
 PetscErrorCode EPSSolve_LAPACK(EPS eps)
 {
   PetscErrorCode ierr;
@@ -164,8 +160,6 @@ PetscErrorCode EPSSolve_LAPACK(EPS eps)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSCreate_LAPACK"
 PETSC_EXTERN PetscErrorCode EPSCreate_LAPACK(EPS eps)
 {
   PetscFunctionBegin;

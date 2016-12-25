@@ -36,8 +36,6 @@ static char help[] = "Test combined function.\n\n";
 
 #include <slepcfn.h>
 
-#undef __FUNCT__
-#define __FUNCT__ "TestMatCombine"
 /*
    Compute matrix function B = (I-A^2) exp( -(I+A^2)\A )
  */
@@ -87,8 +85,6 @@ PetscErrorCode TestMatCombine(FN fn,Mat A,PetscViewer viewer,PetscBool verbose,P
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "main"
 int main(int argc,char **argv)
 {
   PetscErrorCode ierr;

@@ -38,8 +38,6 @@ static char help[] = "Quartic polynomial eigenproblem with T-even structure.\n\n
 
 #define NMAT 5
 
-#undef __FUNCT__
-#define __FUNCT__ "main"
 int main(int argc,char **argv)
 {
   Mat            A[NMAT];         /* problem matrices */

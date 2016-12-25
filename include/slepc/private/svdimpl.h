@@ -118,8 +118,6 @@ struct _p_SVD {
 
 #endif
 
-#undef __FUNCT__
-#define __FUNCT__ "SVDMatMult"
 PETSC_STATIC_INLINE PetscErrorCode SVDMatMult(SVD svd,PetscBool trans,Vec x,Vec y)
 {
   PetscErrorCode ierr;
@@ -149,8 +147,6 @@ PETSC_STATIC_INLINE PetscErrorCode SVDMatMult(SVD svd,PetscBool trans,Vec x,Vec 
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "SVDMatCreateVecs"
 PETSC_STATIC_INLINE PetscErrorCode SVDMatCreateVecs(SVD svd,Vec *x,Vec *y)
 {
   PetscErrorCode ierr;
@@ -164,8 +160,6 @@ PETSC_STATIC_INLINE PetscErrorCode SVDMatCreateVecs(SVD svd,Vec *x,Vec *y)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "SVDMatGetSize"
 PETSC_STATIC_INLINE PetscErrorCode SVDMatGetSize(SVD svd,PetscInt *m,PetscInt *n)
 {
   PetscErrorCode ierr;
@@ -179,8 +173,6 @@ PETSC_STATIC_INLINE PetscErrorCode SVDMatGetSize(SVD svd,PetscInt *m,PetscInt *n
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "SVDMatGetLocalSize"
 PETSC_STATIC_INLINE PetscErrorCode SVDMatGetLocalSize(SVD svd,PetscInt *m,PetscInt *n)
 {
   PetscErrorCode ierr;

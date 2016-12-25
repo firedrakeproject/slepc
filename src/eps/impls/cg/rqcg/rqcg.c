@@ -45,8 +45,6 @@ typedef struct {
   BV       AV,W,P,G;
 } EPS_RQCG;
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSSetUp_RQCG"
 PetscErrorCode EPSSetUp_RQCG(EPS eps)
 {
   PetscErrorCode ierr;
@@ -100,8 +98,6 @@ PetscErrorCode EPSSetUp_RQCG(EPS eps)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "ExtractSubmatrix"
 /*
    ExtractSubmatrix - Returns B = A(k+1:end,k+1:end).
 */
@@ -124,8 +120,6 @@ static PetscErrorCode ExtractSubmatrix(Mat A,PetscInt k,Mat *B)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSSolve_RQCG"
 PetscErrorCode EPSSolve_RQCG(EPS eps)
 {
   PetscErrorCode ierr;
@@ -296,8 +290,6 @@ PetscErrorCode EPSSolve_RQCG(EPS eps)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSRQCGSetReset_RQCG"
 static PetscErrorCode EPSRQCGSetReset_RQCG(EPS eps,PetscInt nrest)
 {
   EPS_RQCG *ctx = (EPS_RQCG*)eps->data;
@@ -307,8 +299,6 @@ static PetscErrorCode EPSRQCGSetReset_RQCG(EPS eps,PetscInt nrest)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSRQCGSetReset"
 /*@
    EPSRQCGSetReset - Sets the reset parameter of the RQCG iteration. Every
    nrest iterations, the solver performs a Rayleigh-Ritz projection step.
@@ -337,8 +327,6 @@ PetscErrorCode EPSRQCGSetReset(EPS eps,PetscInt nrest)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSRQCGGetReset_RQCG"
 static PetscErrorCode EPSRQCGGetReset_RQCG(EPS eps,PetscInt *nrest)
 {
   EPS_RQCG *ctx = (EPS_RQCG*)eps->data;
@@ -348,8 +336,6 @@ static PetscErrorCode EPSRQCGGetReset_RQCG(EPS eps,PetscInt *nrest)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSRQCGGetReset"
 /*@
    EPSRQCGGetReset - Gets the reset parameter used in the RQCG method.
 
@@ -376,8 +362,6 @@ PetscErrorCode EPSRQCGGetReset(EPS eps,PetscInt *nrest)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSReset_RQCG"
 PetscErrorCode EPSReset_RQCG(EPS eps)
 {
   PetscErrorCode ierr;
@@ -392,8 +376,6 @@ PetscErrorCode EPSReset_RQCG(EPS eps)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSSetFromOptions_RQCG"
 PetscErrorCode EPSSetFromOptions_RQCG(PetscOptionItems *PetscOptionsObject,EPS eps)
 {
   PetscErrorCode ierr;
@@ -410,8 +392,6 @@ PetscErrorCode EPSSetFromOptions_RQCG(PetscOptionItems *PetscOptionsObject,EPS e
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSDestroy_RQCG"
 PetscErrorCode EPSDestroy_RQCG(EPS eps)
 {
   PetscErrorCode ierr;
@@ -423,8 +403,6 @@ PetscErrorCode EPSDestroy_RQCG(EPS eps)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSView_RQCG"
 PetscErrorCode EPSView_RQCG(EPS eps,PetscViewer viewer)
 {
   PetscErrorCode ierr;
@@ -439,8 +417,6 @@ PetscErrorCode EPSView_RQCG(EPS eps,PetscViewer viewer)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSCreate_RQCG"
 PETSC_EXTERN PetscErrorCode EPSCreate_RQCG(EPS eps)
 {
   EPS_RQCG       *rqcg;

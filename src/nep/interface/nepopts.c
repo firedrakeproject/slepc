@@ -25,8 +25,6 @@
 #include <slepc/private/nepimpl.h>       /*I "slepcnep.h" I*/
 #include <petscdraw.h>
 
-#undef __FUNCT__
-#define __FUNCT__ "NEPMonitorSetFromOptions"
 /*@C
    NEPMonitorSetFromOptions - Sets a monitor function and viewer appropriate for the type
    indicated by the user.
@@ -66,8 +64,6 @@ PetscErrorCode NEPMonitorSetFromOptions(NEP nep,const char name[],const char hel
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "NEPConvMonitorSetFromOptions"
 /*@C
    NEPConvMonitorSetFromOptions - Sets a monitor function and viewer appropriate for the type
    indicated by the user (for monitors that only show iteration numbers of convergence).
@@ -103,8 +99,6 @@ PetscErrorCode NEPConvMonitorSetFromOptions(NEP nep,const char name[],const char
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "NEPSetFromOptions"
 /*@
    NEPSetFromOptions - Sets NEP options from the options database.
    This routine must be called before NEPSetUp() if the user is to be
@@ -266,8 +260,6 @@ PetscErrorCode NEPSetFromOptions(NEP nep)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "NEPGetTolerances"
 /*@
    NEPGetTolerances - Gets the tolerance and maximum iteration count used
    by the NEP convergence tests.
@@ -297,8 +289,6 @@ PetscErrorCode NEPGetTolerances(NEP nep,PetscReal *tol,PetscInt *maxits)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "NEPSetTolerances"
 /*@
    NEPSetTolerances - Sets the tolerance and maximum iteration count used
    by the NEP convergence tests.
@@ -344,8 +334,6 @@ PetscErrorCode NEPSetTolerances(NEP nep,PetscReal tol,PetscInt maxits)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "NEPGetDimensions"
 /*@
    NEPGetDimensions - Gets the number of eigenvalues to compute
    and the dimension of the subspace.
@@ -377,8 +365,6 @@ PetscErrorCode NEPGetDimensions(NEP nep,PetscInt *nev,PetscInt *ncv,PetscInt *mp
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "NEPSetDimensions"
 /*@
    NEPSetDimensions - Sets the number of eigenvalues to compute
    and the dimension of the subspace.
@@ -438,8 +424,6 @@ PetscErrorCode NEPSetDimensions(NEP nep,PetscInt nev,PetscInt ncv,PetscInt mpd)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "NEPSetWhichEigenpairs"
 /*@
     NEPSetWhichEigenpairs - Specifies which portion of the spectrum is
     to be sought.
@@ -522,8 +506,6 @@ PetscErrorCode NEPSetWhichEigenpairs(NEP nep,NEPWhich which)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "NEPGetWhichEigenpairs"
 /*@
     NEPGetWhichEigenpairs - Returns which portion of the spectrum is to be
     sought.
@@ -552,8 +534,6 @@ PetscErrorCode NEPGetWhichEigenpairs(NEP nep,NEPWhich *which)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "NEPSetEigenvalueComparison"
 /*@C
    NEPSetEigenvalueComparison - Specifies the eigenvalue comparison function
    when NEPSetWhichEigenpairs() is set to NEP_WHICH_USER.
@@ -595,8 +575,6 @@ PetscErrorCode NEPSetEigenvalueComparison(NEP pep,PetscErrorCode (*func)(PetscSc
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "NEPSetConvergenceTestFunction"
 /*@C
    NEPSetConvergenceTestFunction - Sets a function to compute the error estimate
    used in the convergence test.
@@ -646,8 +624,6 @@ PetscErrorCode NEPSetConvergenceTestFunction(NEP nep,PetscErrorCode (*func)(NEP,
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "NEPSetConvergenceTest"
 /*@
    NEPSetConvergenceTest - Specifies how to compute the error estimate
    used in the convergence test.
@@ -691,8 +667,6 @@ PetscErrorCode NEPSetConvergenceTest(NEP nep,NEPConv conv)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "NEPGetConvergenceTest"
 /*@
    NEPGetConvergenceTest - Gets the method used to compute the error estimate
    used in the convergence test.
@@ -718,8 +692,6 @@ PetscErrorCode NEPGetConvergenceTest(NEP nep,NEPConv *conv)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "NEPSetStoppingTestFunction"
 /*@C
    NEPSetStoppingTestFunction - Sets a function to decide when to stop the outer
    iteration of the eigensolver.
@@ -770,8 +742,6 @@ PetscErrorCode NEPSetStoppingTestFunction(NEP nep,PetscErrorCode (*func)(NEP,Pet
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "NEPSetStoppingTest"
 /*@
    NEPSetStoppingTest - Specifies how to decide the termination of the outer
    loop of the eigensolver.
@@ -810,8 +780,6 @@ PetscErrorCode NEPSetStoppingTest(NEP nep,NEPStop stop)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "NEPGetStoppingTest"
 /*@
    NEPGetStoppingTest - Gets the method used to decide the termination of the outer
    loop of the eigensolver.
@@ -837,8 +805,6 @@ PetscErrorCode NEPGetStoppingTest(NEP nep,NEPStop *stop)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "NEPSetTrackAll"
 /*@
    NEPSetTrackAll - Specifies if the solver must compute the residual of all
    approximate eigenpairs or not.
@@ -870,8 +836,6 @@ PetscErrorCode NEPSetTrackAll(NEP nep,PetscBool trackall)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "NEPGetTrackAll"
 /*@
    NEPGetTrackAll - Returns the flag indicating whether all residual norms must
    be computed or not.
@@ -897,8 +861,6 @@ PetscErrorCode NEPGetTrackAll(NEP nep,PetscBool *trackall)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "NEPSetRefine"
 /*@
    NEPSetRefine - Specifies the refinement type (and options) to be used
    after the solve.
@@ -990,8 +952,6 @@ PetscErrorCode NEPSetRefine(NEP nep,NEPRefine refine,PetscInt npart,PetscReal to
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "NEPGetRefine"
 /*@
    NEPGetRefine - Gets the refinement strategy used by the NEP object, and the
    associated parameters.
@@ -1027,8 +987,6 @@ PetscErrorCode NEPGetRefine(NEP nep,NEPRefine *refine,PetscInt *npart,PetscReal 
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "NEPSetOptionsPrefix"
 /*@C
    NEPSetOptionsPrefix - Sets the prefix used for searching for all
    NEP options in the database.
@@ -1071,8 +1029,6 @@ PetscErrorCode NEPSetOptionsPrefix(NEP nep,const char *prefix)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "NEPAppendOptionsPrefix"
 /*@C
    NEPAppendOptionsPrefix - Appends to the prefix used for searching for all
    NEP options in the database.
@@ -1107,8 +1063,6 @@ PetscErrorCode NEPAppendOptionsPrefix(NEP nep,const char *prefix)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "NEPGetOptionsPrefix"
 /*@C
    NEPGetOptionsPrefix - Gets the prefix used for searching for all
    NEP options in the database.

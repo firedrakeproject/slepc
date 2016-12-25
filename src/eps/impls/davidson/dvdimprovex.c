@@ -54,8 +54,6 @@ typedef struct {
   PetscBLASInt *iXKZPivots;        /* array of pivots */
 } dvdImprovex_jd;
 
-#undef __FUNCT__
-#define __FUNCT__ "dvd_improvex_apply_proj"
 /*
    Compute (I - KZ*iXKZ*X')*V where,
    V, the vectors to apply the projector,
@@ -114,8 +112,6 @@ static PetscErrorCode dvd_improvex_apply_proj(dvdDashboard *d,Vec *V,PetscInt cV
 #endif
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "dvd_improvex_applytrans_proj"
 /*
    Compute (I - X*iXKZ*KZ')*V where,
    V, the vectors to apply the projector,
@@ -175,8 +171,6 @@ static PetscErrorCode dvd_improvex_applytrans_proj(dvdDashboard *d,Vec *V,PetscI
 #endif
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "dvd_improvex_jd_end"
 static PetscErrorCode dvd_improvex_jd_end(dvdDashboard *d)
 {
   PetscErrorCode ierr;
@@ -193,8 +187,6 @@ static PetscErrorCode dvd_improvex_jd_end(dvdDashboard *d)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "dvd_improvex_jd_d"
 static PetscErrorCode dvd_improvex_jd_d(dvdDashboard *d)
 {
   PetscErrorCode ierr;
@@ -211,8 +203,6 @@ static PetscErrorCode dvd_improvex_jd_d(dvdDashboard *d)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "dvd_aux_matmult"
 /*
    y <- theta[1]A*x - theta[0]*B*x
    auxV, two auxiliary vectors
@@ -259,8 +249,6 @@ PETSC_STATIC_INLINE PetscErrorCode dvd_aux_matmult(dvdImprovex_jd *data,const Ve
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "dvd_aux_matmulttrans"
 /*
    y <- theta[1]'*A'*x - theta[0]'*B'*x
  */
@@ -306,8 +294,6 @@ PETSC_STATIC_INLINE PetscErrorCode dvd_aux_matmulttrans(dvdImprovex_jd *data,con
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "PCApplyBA_dvd"
 static PetscErrorCode PCApplyBA_dvd(PC pc,PCSide side,Vec in,Vec out,Vec w)
 {
   PetscErrorCode ierr;
@@ -367,8 +353,6 @@ static PetscErrorCode PCApplyBA_dvd(PC pc,PCSide side,Vec in,Vec out,Vec w)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "PCApply_dvd"
 static PetscErrorCode PCApply_dvd(PC pc,Vec in,Vec out)
 {
   PetscErrorCode ierr;
@@ -392,8 +376,6 @@ static PetscErrorCode PCApply_dvd(PC pc,Vec in,Vec out)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "PCApplyTranspose_dvd"
 static PetscErrorCode PCApplyTranspose_dvd(PC pc,Vec in,Vec out)
 {
   PetscErrorCode ierr;
@@ -424,8 +406,6 @@ static PetscErrorCode PCApplyTranspose_dvd(PC pc,Vec in,Vec out)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "MatMult_dvd_jd"
 static PetscErrorCode MatMult_dvd_jd(Mat A,Vec in,Vec out)
 {
   PetscErrorCode ierr;
@@ -449,8 +429,6 @@ static PetscErrorCode MatMult_dvd_jd(Mat A,Vec in,Vec out)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "MatMultTranspose_dvd_jd"
 static PetscErrorCode MatMultTranspose_dvd_jd(Mat A,Vec in,Vec out)
 {
   PetscErrorCode ierr;
@@ -484,8 +462,6 @@ static PetscErrorCode MatMultTranspose_dvd_jd(Mat A,Vec in,Vec out)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "MatCreateVecs_dvd_jd"
 static PetscErrorCode MatCreateVecs_dvd_jd(Mat A,Vec *right,Vec *left)
 {
   PetscErrorCode ierr;
@@ -527,8 +503,6 @@ static PetscErrorCode MatCreateVecs_dvd_jd(Mat A,Vec *right,Vec *left)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "dvd_improvex_jd_start"
 static PetscErrorCode dvd_improvex_jd_start(dvdDashboard *d)
 {
   PetscErrorCode ierr;
@@ -600,8 +574,6 @@ static PetscErrorCode dvd_improvex_jd_start(dvdDashboard *d)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "dvd_improvex_jd_proj_cuv"
 /*
   Compute: u <- X, v <- K*(theta[0]*A+theta[1]*B)*X,
   kr <- K^{-1}*(A-eig*B)*X, being X <- V*pX[i_s..i_e-1], Y <- W*pY[i_s..i_e-1]
@@ -691,8 +663,6 @@ static PetscErrorCode dvd_improvex_jd_proj_cuv(dvdDashboard *d,PetscInt i_s,Pets
 #endif
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "dvd_improvex_jd_gen"
 static PetscErrorCode dvd_improvex_jd_gen(dvdDashboard *d,PetscInt r_s,PetscInt r_e,PetscInt *size_D)
 {
   dvdImprovex_jd *data = (dvdImprovex_jd*)d->improveX_data;
@@ -823,8 +793,6 @@ static PetscErrorCode dvd_improvex_jd_gen(dvdDashboard *d,PetscInt r_s,PetscInt 
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "dvd_improvex_jd"
 PetscErrorCode dvd_improvex_jd(dvdDashboard *d,dvdBlackboard *b,KSP ksp,PetscInt max_bs,PetscBool dynamic)
 {
   PetscErrorCode ierr;
@@ -890,8 +858,6 @@ PetscErrorCode dvd_improvex_jd(dvdDashboard *d,dvdBlackboard *b,KSP ksp,PetscInt
 }
 
 #if !defined(PETSC_USE_COMPLEX)
-#undef __FUNCT__
-#define __FUNCT__ "dvd_complex_rayleigh_quotient"
 PETSC_STATIC_INLINE PetscErrorCode dvd_complex_rayleigh_quotient(Vec ur,Vec ui,Vec Axr,Vec Axi,Vec Bxr,Vec Bxi,PetscScalar *eigr,PetscScalar *eigi)
 {
   PetscErrorCode ierr;
@@ -928,8 +894,6 @@ PETSC_STATIC_INLINE PetscErrorCode dvd_complex_rayleigh_quotient(Vec ur,Vec ui,V
 }
 #endif
 
-#undef __FUNCT__
-#define __FUNCT__ "dvd_compute_n_rr"
 PETSC_STATIC_INLINE PetscErrorCode dvd_compute_n_rr(PetscInt i_s,PetscInt n,PetscScalar *eigr,PetscScalar *eigi,Vec *u,Vec *Ax,Vec *Bx)
 {
   PetscErrorCode ierr;
@@ -962,8 +926,6 @@ PETSC_STATIC_INLINE PetscErrorCode dvd_compute_n_rr(PetscInt i_s,PetscInt n,Pets
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "dvd_improvex_jd_proj_uv_KZX"
 /*
   Compute: u <- X, v <- K*(theta[0]*A+theta[1]*B)*X,
   kr <- K^{-1}*(A-eig*B)*X, being X <- V*pX[i_s..i_e-1], Y <- W*pY[i_s..i_e-1]
@@ -1081,8 +1043,6 @@ PetscErrorCode dvd_improvex_jd_proj_uv_KZX(dvdDashboard *d,PetscInt i_s,PetscInt
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "dvd_improvex_jd_lit_const_0"
 static PetscErrorCode dvd_improvex_jd_lit_const_0(dvdDashboard *d,PetscInt i,PetscScalar* theta,PetscScalar* thetai,PetscInt *maxits,PetscReal *tol)
 {
   dvdImprovex_jd *data = (dvdImprovex_jd*)d->improveX_data;
@@ -1113,8 +1073,6 @@ static PetscErrorCode dvd_improvex_jd_lit_const_0(dvdDashboard *d,PetscInt i,Pet
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "dvd_improvex_jd_lit_const"
 PetscErrorCode dvd_improvex_jd_lit_const(dvdDashboard *d,dvdBlackboard *b,PetscInt maxits,PetscReal tol,PetscReal fix)
 {
   dvdImprovex_jd  *data = (dvdImprovex_jd*)d->improveX_data;
@@ -1130,8 +1088,6 @@ PetscErrorCode dvd_improvex_jd_lit_const(dvdDashboard *d,dvdBlackboard *b,PetscI
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "dvd_improvex_jd_proj_uv"
 PetscErrorCode dvd_improvex_jd_proj_uv(dvdDashboard *d,dvdBlackboard *b)
 {
   PetscFunctionBegin;
@@ -1142,8 +1098,6 @@ PetscErrorCode dvd_improvex_jd_proj_uv(dvdDashboard *d,dvdBlackboard *b)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "dvd_improvex_compute_X"
 PetscErrorCode dvd_improvex_compute_X(dvdDashboard *d,PetscInt i_s,PetscInt i_e,Vec *u_,PetscScalar *pX,PetscInt ld)
 {
   PetscErrorCode ierr;

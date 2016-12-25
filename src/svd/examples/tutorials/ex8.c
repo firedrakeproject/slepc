@@ -42,8 +42,6 @@ static char help[] = "Estimates the 2-norm condition number of a matrix A, that 
 
  */
 
-#undef __FUNCT__
-#define __FUNCT__ "main"
 int main(int argc,char **argv)
 {
   Mat            A;               /* Grcar matrix */

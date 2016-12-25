@@ -23,8 +23,6 @@ static char help[] = "Test EPS view and monitor functionality.\n\n";
 
 #include <slepcpep.h>
 
-#undef __FUNCT__
-#define __FUNCT__ "main"
 int main(int argc,char **argv)
 {
   Mat            A;

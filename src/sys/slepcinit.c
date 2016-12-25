@@ -21,8 +21,6 @@
 
 #include <slepc/private/slepcimpl.h>           /*I "slepcsys.h" I*/
 
-#undef __FUNCT__
-#define __FUNCT__ "SlepcGetVersion"
 /*@C
     SlepcGetVersion - Gets the SLEPc version information in a string.
 
@@ -51,8 +49,6 @@ PetscErrorCode SlepcGetVersion(char version[],size_t len)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "SlepcGetVersionNumber"
 /*@C
     SlepcGetVersionNumber - Gets the SLEPc version information from the library.
 
@@ -86,8 +82,6 @@ PetscErrorCode SlepcGetVersionNumber(PetscInt *major,PetscInt *minor,PetscInt *s
   return 0;
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "SlepcPrintVersion"
 /*
    SlepcPrintVersion - Prints SLEPc version info.
 
@@ -108,8 +102,6 @@ static PetscErrorCode SlepcPrintVersion(MPI_Comm comm)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "SlepcPrintHelpIntro"
 /*
    SlepcPrintHelpIntro - Prints introductory SLEPc help info.
 
@@ -135,9 +127,6 @@ PetscBool SlepcBeganPetsc = PETSC_FALSE;
 PetscBool SlepcInitializeCalled = PETSC_FALSE;
 
 #if defined(PETSC_HAVE_DYNAMIC_LIBRARIES) && defined(PETSC_USE_SHARED_LIBRARIES)
-
-#undef __FUNCT__
-#define __FUNCT__ "SlepcLoadDynamicLibrary"
 static PetscErrorCode SlepcLoadDynamicLibrary(const char *name,PetscBool *found)
 {
   char           libs[PETSC_MAX_PATH_LEN],dlib[PETSC_MAX_PATH_LEN];
@@ -153,11 +142,8 @@ static PetscErrorCode SlepcLoadDynamicLibrary(const char *name,PetscBool *found)
   }
   PetscFunctionReturn(0);
 }
-
 #endif
 
-#undef __FUNCT__
-#define __FUNCT__ "SlepcInitialize_DynamicLibraries"
 /*
     SlepcInitialize_DynamicLibraries - Adds the default dynamic link libraries to the
     search path.
@@ -214,8 +200,6 @@ PetscErrorCode SlepcInitialize_DynamicLibraries(void)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "SlepcCitationsInitialize"
 PetscErrorCode SlepcCitationsInitialize()
 {
   PetscErrorCode ierr;
@@ -241,8 +225,6 @@ PetscErrorCode SlepcCitationsInitialize()
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "SlepcInitialize"
 /*@C
    SlepcInitialize - Initializes the SLEPc library. SlepcInitialize() calls
    PetscInitialize() if that has not been called yet, so this routine should
@@ -293,8 +275,6 @@ PetscErrorCode SlepcInitialize(int *argc,char ***args,const char file[],const ch
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "SlepcFinalize"
 /*@
    SlepcFinalize - Checks for options to be called at the conclusion
    of the SLEPc program and calls PetscFinalize().
@@ -318,8 +298,6 @@ PetscErrorCode SlepcFinalize(void)
   PetscFunctionReturn(ierr);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "SlepcInitializeNoArguments"
 /*@C
    SlepcInitializeNoArguments - Calls SlepcInitialize() from C/C++ without
    the command line arguments.
@@ -341,8 +319,6 @@ PetscErrorCode SlepcInitializeNoArguments(void)
   PetscFunctionReturn(ierr);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "SlepcInitialized"
 /*@
    SlepcInitialized - Determine whether SLEPc is initialized.
 
@@ -360,8 +336,6 @@ PetscErrorCode SlepcInitialized(PetscBool *isInitialized)
 
 PETSC_EXTERN PetscBool PetscBeganMPI;
 
-#undef __FUNCT__
-#define __FUNCT__ "SlepcInitializeNoPointers"
 /*
    SlepcInitializeNoPointers - Calls SlepcInitialize() from C/C++ without the pointers
    to argc and args (analogue to PetscInitializeNoPointers).

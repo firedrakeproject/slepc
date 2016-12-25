@@ -172,8 +172,6 @@ typedef struct {
   dvdDashboard ddb;
 } EPS_DAVIDSON;
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSDavidsonFLAdd"
 PETSC_STATIC_INLINE PetscErrorCode EPSDavidsonFLAdd(dvdFunctionList **fl,dvdCallback f)
 {
   PetscErrorCode ierr;
@@ -187,8 +185,6 @@ PETSC_STATIC_INLINE PetscErrorCode EPSDavidsonFLAdd(dvdFunctionList **fl,dvdCall
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSDavidsonFLCall"
 PETSC_STATIC_INLINE PetscErrorCode EPSDavidsonFLCall(dvdFunctionList *fl,dvdDashboard *d)
 {
   PetscErrorCode ierr;
@@ -199,8 +195,6 @@ PETSC_STATIC_INLINE PetscErrorCode EPSDavidsonFLCall(dvdFunctionList *fl,dvdDash
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSDavidsonFLDestroy"
 PETSC_STATIC_INLINE PetscErrorCode EPSDavidsonFLDestroy(dvdFunctionList **fl)
 {
   PetscErrorCode  ierr;

@@ -57,8 +57,6 @@
 
 /* - - - N1 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-#undef __FUNCT__
-#define __FUNCT__ "MatCreateExplicit_Linear_N1A"
 PetscErrorCode MatCreateExplicit_Linear_N1A(MPI_Comm comm,PEP_LINEAR *ctx,Mat *A)
 {
   PetscErrorCode ierr;
@@ -83,8 +81,6 @@ PetscErrorCode MatCreateExplicit_Linear_N1A(MPI_Comm comm,PEP_LINEAR *ctx,Mat *A
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "MatCreateExplicit_Linear_N1B"
 PetscErrorCode MatCreateExplicit_Linear_N1B(MPI_Comm comm,PEP_LINEAR *ctx,Mat *B)
 {
   PetscErrorCode ierr;
@@ -111,8 +107,6 @@ PetscErrorCode MatCreateExplicit_Linear_N1B(MPI_Comm comm,PEP_LINEAR *ctx,Mat *B
 
 /* - - - N2 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-#undef __FUNCT__
-#define __FUNCT__ "MatCreateExplicit_Linear_N2A"
 PetscErrorCode MatCreateExplicit_Linear_N2A(MPI_Comm comm,PEP_LINEAR *ctx,Mat *A)
 {
   PetscErrorCode ierr;
@@ -137,8 +131,6 @@ PetscErrorCode MatCreateExplicit_Linear_N2A(MPI_Comm comm,PEP_LINEAR *ctx,Mat *A
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "MatCreateExplicit_Linear_N2B"
 PetscErrorCode MatCreateExplicit_Linear_N2B(MPI_Comm comm,PEP_LINEAR *ctx,Mat *B)
 {
   PetscErrorCode ierr;
@@ -165,8 +157,6 @@ PetscErrorCode MatCreateExplicit_Linear_N2B(MPI_Comm comm,PEP_LINEAR *ctx,Mat *B
 
 /* - - - S1 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-#undef __FUNCT__
-#define __FUNCT__ "MatCreateExplicit_Linear_S1A"
 PetscErrorCode MatCreateExplicit_Linear_S1A(MPI_Comm comm,PEP_LINEAR *ctx,Mat *A)
 {
   PetscErrorCode ierr;
@@ -176,8 +166,6 @@ PetscErrorCode MatCreateExplicit_Linear_S1A(MPI_Comm comm,PEP_LINEAR *ctx,Mat *A
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "MatCreateExplicit_Linear_S1B"
 PetscErrorCode MatCreateExplicit_Linear_S1B(MPI_Comm comm,PEP_LINEAR *ctx,Mat *B)
 {
   PetscErrorCode ierr;
@@ -189,8 +177,6 @@ PetscErrorCode MatCreateExplicit_Linear_S1B(MPI_Comm comm,PEP_LINEAR *ctx,Mat *B
 
 /* - - - S2 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-#undef __FUNCT__
-#define __FUNCT__ "MatCreateExplicit_Linear_S2A"
 PetscErrorCode MatCreateExplicit_Linear_S2A(MPI_Comm comm,PEP_LINEAR *ctx,Mat *A)
 {
   PetscErrorCode ierr;
@@ -200,8 +186,6 @@ PetscErrorCode MatCreateExplicit_Linear_S2A(MPI_Comm comm,PEP_LINEAR *ctx,Mat *A
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "MatCreateExplicit_Linear_S2B"
 PetscErrorCode MatCreateExplicit_Linear_S2B(MPI_Comm comm,PEP_LINEAR *ctx,Mat *B)
 {
   PetscErrorCode ierr;
@@ -213,8 +197,6 @@ PetscErrorCode MatCreateExplicit_Linear_S2B(MPI_Comm comm,PEP_LINEAR *ctx,Mat *B
 
 /* - - - H1 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-#undef __FUNCT__
-#define __FUNCT__ "MatCreateExplicit_Linear_H1A"
 PetscErrorCode MatCreateExplicit_Linear_H1A(MPI_Comm comm,PEP_LINEAR *ctx,Mat *A)
 {
   PetscErrorCode ierr;
@@ -224,8 +206,6 @@ PetscErrorCode MatCreateExplicit_Linear_H1A(MPI_Comm comm,PEP_LINEAR *ctx,Mat *A
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "MatCreateExplicit_Linear_H1B"
 PetscErrorCode MatCreateExplicit_Linear_H1B(MPI_Comm comm,PEP_LINEAR *ctx,Mat *B)
 {
   PetscErrorCode ierr;
@@ -237,8 +217,6 @@ PetscErrorCode MatCreateExplicit_Linear_H1B(MPI_Comm comm,PEP_LINEAR *ctx,Mat *B
 
 /* - - - H2 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-#undef __FUNCT__
-#define __FUNCT__ "MatCreateExplicit_Linear_H2A"
 PetscErrorCode MatCreateExplicit_Linear_H2A(MPI_Comm comm,PEP_LINEAR *ctx,Mat *A)
 {
   PetscErrorCode ierr;
@@ -248,8 +226,6 @@ PetscErrorCode MatCreateExplicit_Linear_H2A(MPI_Comm comm,PEP_LINEAR *ctx,Mat *A
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "MatCreateExplicit_Linear_H2B"
 PetscErrorCode MatCreateExplicit_Linear_H2B(MPI_Comm comm,PEP_LINEAR *ctx,Mat *B)
 {
   PetscErrorCode ierr;

@@ -26,8 +26,6 @@
 PetscBool         BVRegisterAllCalled = PETSC_FALSE;
 PetscFunctionList BVList = 0;
 
-#undef __FUNCT__
-#define __FUNCT__ "BVSetType"
 /*@C
    BVSetType - Selects the type for the BV object.
 
@@ -73,8 +71,6 @@ PetscErrorCode BVSetType(BV bv,BVType type)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "BVGetType"
 /*@C
    BVGetType - Gets the BV type name (as a string) from the BV context.
 
@@ -99,8 +95,6 @@ PetscErrorCode BVGetType(BV bv,BVType *type)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "BVSetSizes"
 /*@
    BVSetSizes - Sets the local and global sizes, and the number of columns.
 
@@ -159,8 +153,6 @@ PetscErrorCode BVSetSizes(BV bv,PetscInt n,PetscInt N,PetscInt m)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "BVSetSizesFromVec"
 /*@
    BVSetSizesFromVec - Sets the local and global sizes, and the number of columns.
    Local and global sizes are specified indirectly by passing a template vector.
@@ -206,8 +198,6 @@ PetscErrorCode BVSetSizesFromVec(BV bv,Vec t,PetscInt m)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "BVGetSizes"
 /*@
    BVGetSizes - Returns the local and global sizes, and the number of columns.
 
@@ -248,8 +238,6 @@ PetscErrorCode BVGetSizes(BV bv,PetscInt *n,PetscInt *N,PetscInt *m)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "BVSetNumConstraints"
 /*@
    BVSetNumConstraints - Set the number of constraints.
 
@@ -308,8 +296,6 @@ PetscErrorCode BVSetNumConstraints(BV V,PetscInt nc)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "BVGetNumConstraints"
 /*@
    BVGetNumConstraints - Returns the number of constraints.
 
@@ -334,8 +320,6 @@ PetscErrorCode BVGetNumConstraints(BV bv,PetscInt *nc)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "BVResize"
 /*@
    BVResize - Change the number of columns.
 
@@ -391,8 +375,6 @@ PetscErrorCode BVResize(BV bv,PetscInt m,PetscBool copy)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "BVSetActiveColumns"
 /*@
    BVSetActiveColumns - Specify the columns that will be involved in operations.
 
@@ -442,8 +424,6 @@ PetscErrorCode BVSetActiveColumns(BV bv,PetscInt l,PetscInt k)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "BVGetActiveColumns"
 /*@
    BVGetActiveColumns - Returns the current active dimensions.
 
@@ -469,8 +449,6 @@ PetscErrorCode BVGetActiveColumns(BV bv,PetscInt *l,PetscInt *k)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "BVSetMatrix"
 /*@
    BVSetMatrix - Specifies the inner product to be used in orthogonalization.
 
@@ -525,8 +503,6 @@ PetscErrorCode BVSetMatrix(BV bv,Mat B,PetscBool indef)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "BVGetMatrix"
 /*@
    BVGetMatrix - Retrieves the matrix representation of the inner product.
 
@@ -552,8 +528,6 @@ PetscErrorCode BVGetMatrix(BV bv,Mat *B,PetscBool *indef)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "BVApplyMatrix"
 /*@
    BVApplyMatrix - Multiplies a vector by the matrix representation of the
    inner product.
@@ -591,8 +565,6 @@ PetscErrorCode BVApplyMatrix(BV bv,Vec x,Vec y)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "BVApplyMatrixBV"
 /*@
    BVApplyMatrixBV - Multiplies the BV vectors by the matrix representation
    of the inner product.
@@ -635,8 +607,6 @@ PetscErrorCode BVApplyMatrixBV(BV X,BV Y)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "BVGetCachedBV"
 /*@
    BVGetCachedBV - Returns a BV object stored internally that holds the
    result of B*X after a call to BVApplyMatrixBV().
@@ -675,8 +645,6 @@ PetscErrorCode BVGetCachedBV(BV bv,BV *cached)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "BVSetSignature"
 /*@
    BVSetSignature - Sets the signature matrix to be used in orthogonalization.
 
@@ -718,8 +686,6 @@ PetscErrorCode BVSetSignature(BV bv,Vec omega)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "BVGetSignature"
 /*@
    BVGetSignature - Retrieves the signature matrix from last orthogonalization.
 
@@ -762,8 +728,6 @@ PetscErrorCode BVGetSignature(BV bv,Vec omega)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "BVSetBufferVec"
 /*@
    BVSetBufferVec - Attach a vector object to be used as buffer space for
    several operations.
@@ -808,8 +772,6 @@ PetscErrorCode BVSetBufferVec(BV bv,Vec buffer)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "BVGetBufferVec"
 /*@
    BVGetBufferVec - Obtain the buffer vector associated with the BV object.
 
@@ -864,8 +826,6 @@ PetscErrorCode BVGetBufferVec(BV bv,Vec *buffer)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "BVSetRandomContext"
 /*@
    BVSetRandomContext - Sets the PetscRandom object associated with the BV,
    to be used in operations that need random numbers.
@@ -895,8 +855,6 @@ PetscErrorCode BVSetRandomContext(BV bv,PetscRandom rand)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "BVGetRandomContext"
 /*@
    BVGetRandomContext - Gets the PetscRandom object associated with the BV.
 
@@ -931,8 +889,6 @@ PetscErrorCode BVGetRandomContext(BV bv,PetscRandom* rand)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "BVSetFromOptions"
 /*@
    BVSetFromOptions - Sets BV options from the options database.
 
@@ -991,8 +947,6 @@ PetscErrorCode BVSetFromOptions(BV bv)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "BVSetOrthogonalization"
 /*@
    BVSetOrthogonalization - Specifies the method used for the orthogonalization of
    vectors (classical or modified Gram-Schmidt with or without refinement), and
@@ -1073,8 +1027,6 @@ PetscErrorCode BVSetOrthogonalization(BV bv,BVOrthogType type,BVOrthogRefineType
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "BVGetOrthogonalization"
 /*@
    BVGetOrthogonalization - Gets the orthogonalization settings from the BV object.
 
@@ -1104,8 +1056,6 @@ PetscErrorCode BVGetOrthogonalization(BV bv,BVOrthogType *type,BVOrthogRefineTyp
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "BVSetMatMultMethod"
 /*@
    BVSetMatMultMethod - Specifies the method used for the BVMatMult() operation.
 
@@ -1146,8 +1096,6 @@ PetscErrorCode BVSetMatMultMethod(BV bv,BVMatMultType method)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "BVGetMatMultMethod"
 /*@
    BVGetMatMultMethod - Gets the method used for the BVMatMult() operation.
 
@@ -1172,8 +1120,6 @@ PetscErrorCode BVGetMatMultMethod(BV bv,BVMatMultType *method)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "BVGetColumn"
 /*@
    BVGetColumn - Returns a Vec object that contains the entries of the
    requested column of the basis vectors object.
@@ -1226,8 +1172,6 @@ PetscErrorCode BVGetColumn(BV bv,PetscInt j,Vec *v)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "BVRestoreColumn"
 /*@
    BVRestoreColumn - Restore a column obtained with BVGetColumn().
 
@@ -1279,8 +1223,6 @@ PetscErrorCode BVRestoreColumn(BV bv,PetscInt j,Vec *v)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "BVGetArray"
 /*@C
    BVGetArray - Returns a pointer to a contiguous array that contains this
    processor's portion of the BV data.
@@ -1317,8 +1259,6 @@ PetscErrorCode BVGetArray(BV bv,PetscScalar **a)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "BVRestoreArray"
 /*@C
    BVRestoreArray - Restore the BV object after BVGetArray() has been called.
 
@@ -1352,8 +1292,6 @@ PetscErrorCode BVRestoreArray(BV bv,PetscScalar **a)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "BVGetArrayRead"
 /*@C
    BVGetArrayRead - Returns a read-only pointer to a contiguous array that
    contains this processor's portion of the BV data.
@@ -1390,8 +1328,6 @@ PetscErrorCode BVGetArrayRead(BV bv,const PetscScalar **a)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "BVRestoreArrayRead"
 /*@C
    BVRestoreArrayRead - Restore the BV object after BVGetArrayRead() has
    been called.
@@ -1421,8 +1357,6 @@ PetscErrorCode BVRestoreArrayRead(BV bv,const PetscScalar **a)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "BVCreateVec"
 /*@
    BVCreateVec - Creates a new Vec object with the same type and dimensions
    as the columns of the basis vectors object.
@@ -1454,8 +1388,6 @@ PetscErrorCode BVCreateVec(BV bv,Vec *v)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "BVCreateMat"
 /*@
    BVCreateMat - Creates a new Mat object of dense type and copies the contents
    of the BV object.
@@ -1497,8 +1429,6 @@ PetscErrorCode BVCreateMat(BV bv,Mat *A)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "BVDuplicate_Private"
 PETSC_STATIC_INLINE PetscErrorCode BVDuplicate_Private(BV V,PetscInt m,BV *W)
 {
   PetscErrorCode ierr;
@@ -1516,8 +1446,6 @@ PETSC_STATIC_INLINE PetscErrorCode BVDuplicate_Private(BV V,PetscInt m,BV *W)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "BVDuplicate"
 /*@
    BVDuplicate - Creates a new basis vector object of the same type and
    dimensions as an existing one.
@@ -1555,8 +1483,6 @@ PetscErrorCode BVDuplicate(BV V,BV *W)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "BVDuplicateResize"
 /*@
    BVDuplicateResize - Creates a new basis vector object of the same type and
    dimensions as an existing one, but with possibly different number of columns.
@@ -1592,8 +1518,6 @@ PetscErrorCode BVDuplicateResize(BV V,PetscInt m,BV *W)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "BVCopy"
 /*@
    BVCopy - Copies a basis vector object into another one, W <- V.
 
@@ -1642,8 +1566,6 @@ PetscErrorCode BVCopy(BV V,BV W)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "BVCopyVec"
 /*@
    BVCopyVec - Copies one of the columns of a basis vectors object into a Vec.
 
@@ -1689,8 +1611,6 @@ PetscErrorCode BVCopyVec(BV V,PetscInt j,Vec w)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "BVCopyColumn"
 /*@
    BVCopyColumn - Copies the values from one of the columns to another one.
 

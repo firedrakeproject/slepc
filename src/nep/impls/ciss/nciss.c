@@ -73,8 +73,6 @@ typedef struct {
   PetscBool    usest;
 } NEP_CISS;
 
-#undef __FUNCT__
-#define __FUNCT__ "SetSolverComm"
 static PetscErrorCode SetSolverComm(NEP nep)
 {
   PetscErrorCode ierr;
@@ -95,8 +93,6 @@ static PetscErrorCode SetSolverComm(NEP nep)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "SetPathParameter"
 static PetscErrorCode SetPathParameter(NEP nep)
 {
   PetscErrorCode ierr;
@@ -121,8 +117,6 @@ static PetscErrorCode SetPathParameter(NEP nep)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "CISSVecSetRandom"
 static PetscErrorCode CISSVecSetRandom(BV V,PetscInt i0,PetscInt i1)
 {
   PetscErrorCode ierr;
@@ -147,8 +141,6 @@ static PetscErrorCode CISSVecSetRandom(BV V,PetscInt i0,PetscInt i1)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "SolveLinearSystem"
 static PetscErrorCode SolveLinearSystem(NEP nep,Mat T,Mat dT,BV V,PetscInt L_start,PetscInt L_end,PetscBool initksp)
 {
   PetscErrorCode ierr;
@@ -209,8 +201,6 @@ static PetscErrorCode SolveLinearSystem(NEP nep,Mat T,Mat dT,BV V,PetscInt L_sta
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EstimateNumberEigs"
 static PetscErrorCode EstimateNumberEigs(NEP nep,PetscInt *L_add)
 {
   PetscErrorCode ierr;
@@ -252,8 +242,6 @@ static PetscErrorCode EstimateNumberEigs(NEP nep,PetscInt *L_add)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "CalcMu"
 static PetscErrorCode CalcMu(NEP nep, PetscScalar *Mu)
 {
   PetscErrorCode ierr;
@@ -302,8 +290,6 @@ static PetscErrorCode CalcMu(NEP nep, PetscScalar *Mu)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "BlockHankel"
 static PetscErrorCode BlockHankel(NEP nep,PetscScalar *Mu,PetscInt s,PetscScalar *H)
 {
   NEP_CISS *ctx = (NEP_CISS*)nep->data;
@@ -317,8 +303,6 @@ static PetscErrorCode BlockHankel(NEP nep,PetscScalar *Mu,PetscInt s,PetscScalar
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "SVD_H0"
 static PetscErrorCode SVD_H0(NEP nep,PetscScalar *S,PetscInt *K)
 {
 #if defined(PETSC_MISSING_LAPACK_GESVD)
@@ -361,8 +345,6 @@ static PetscErrorCode SVD_H0(NEP nep,PetscScalar *S,PetscInt *K)
 #endif
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "ConstructS"
 static PetscErrorCode ConstructS(NEP nep)
 {
   PetscErrorCode ierr;
@@ -405,8 +387,6 @@ static PetscErrorCode ConstructS(NEP nep)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "isGhost"
 static PetscErrorCode isGhost(NEP nep,PetscInt ld,PetscInt nv,PetscBool *fl)
 {
   PetscErrorCode ierr;
@@ -442,8 +422,6 @@ static PetscErrorCode isGhost(NEP nep,PetscInt ld,PetscInt nv,PetscBool *fl)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "NEPSetUp_CISS"
 PetscErrorCode NEPSetUp_CISS(NEP nep)
 {
   PetscErrorCode ierr;
@@ -525,8 +503,6 @@ PetscErrorCode NEPSetUp_CISS(NEP nep)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "NEPSolve_CISS"
 PetscErrorCode NEPSolve_CISS(NEP nep)
 {
   PetscErrorCode ierr;
@@ -676,8 +652,6 @@ PetscErrorCode NEPSolve_CISS(NEP nep)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "NEPCISSSetSizes_CISS"
 static PetscErrorCode NEPCISSSetSizes_CISS(NEP nep,PetscInt ip,PetscInt bs,PetscInt ms,PetscInt npart,PetscInt bsmax,PetscBool realmats)
 {
   NEP_CISS *ctx = (NEP_CISS*)nep->data;
@@ -722,8 +696,6 @@ static PetscErrorCode NEPCISSSetSizes_CISS(NEP nep,PetscInt ip,PetscInt bs,Petsc
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "NEPCISSSetSizes"
 /*@
    NEPCISSSetSizes - Sets the values of various size parameters in the CISS solver.
 
@@ -775,8 +747,6 @@ PetscErrorCode NEPCISSSetSizes(NEP nep,PetscInt ip,PetscInt bs,PetscInt ms,Petsc
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "NEPCISSGetSizes_CISS"
 static PetscErrorCode NEPCISSGetSizes_CISS(NEP nep,PetscInt *ip,PetscInt *bs,PetscInt *ms,PetscInt *npart,PetscInt *bsmax,PetscBool *realmats)
 {
   NEP_CISS *ctx = (NEP_CISS*)nep->data;
@@ -791,8 +761,6 @@ static PetscErrorCode NEPCISSGetSizes_CISS(NEP nep,PetscInt *ip,PetscInt *bs,Pet
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "NEPCISSGetSizes"
 /*@
    NEPCISSGetSizes - Gets the values of various size parameters in the CISS solver.
 
@@ -823,8 +791,6 @@ PetscErrorCode NEPCISSGetSizes(NEP nep,PetscInt *ip,PetscInt *bs,PetscInt *ms,Pe
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "NEPCISSSetThreshold_CISS"
 static PetscErrorCode NEPCISSSetThreshold_CISS(NEP nep,PetscReal delta,PetscReal spur)
 {
   NEP_CISS *ctx = (NEP_CISS*)nep->data;
@@ -845,8 +811,6 @@ static PetscErrorCode NEPCISSSetThreshold_CISS(NEP nep,PetscReal delta,PetscReal
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "NEPCISSSetThreshold"
 /*@
    NEPCISSSetThreshold - Sets the values of various threshold parameters in
    the CISS solver.
@@ -878,8 +842,6 @@ PetscErrorCode NEPCISSSetThreshold(NEP nep,PetscReal delta,PetscReal spur)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "NEPCISSGetThreshold_CISS"
 static PetscErrorCode NEPCISSGetThreshold_CISS(NEP nep,PetscReal *delta,PetscReal *spur)
 {
   NEP_CISS *ctx = (NEP_CISS*)nep->data;
@@ -890,8 +852,6 @@ static PetscErrorCode NEPCISSGetThreshold_CISS(NEP nep,PetscReal *delta,PetscRea
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "NEPCISSGetThreshold"
 /*@
    NEPCISSGetThreshold - Gets the values of various threshold parameters in
    the CISS solver.
@@ -919,8 +879,6 @@ PetscErrorCode NEPCISSGetThreshold(NEP nep,PetscReal *delta,PetscReal *spur)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "NEPCISSSetRefinement_CISS"
 static PetscErrorCode NEPCISSSetRefinement_CISS(NEP nep,PetscInt inner,PetscInt blsize)
 {
   NEP_CISS *ctx = (NEP_CISS*)nep->data;
@@ -941,8 +899,6 @@ static PetscErrorCode NEPCISSSetRefinement_CISS(NEP nep,PetscInt inner,PetscInt 
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "NEPCISSSetRefinement"
 /*@
    NEPCISSSetRefinement - Sets the values of various refinement parameters
    in the CISS solver.
@@ -974,8 +930,6 @@ PetscErrorCode NEPCISSSetRefinement(NEP nep,PetscInt inner,PetscInt blsize)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "NEPCISSGetRefinement_CISS"
 static PetscErrorCode NEPCISSGetRefinement_CISS(NEP nep,PetscInt *inner,PetscInt *blsize)
 {
   NEP_CISS *ctx = (NEP_CISS*)nep->data;
@@ -986,8 +940,6 @@ static PetscErrorCode NEPCISSGetRefinement_CISS(NEP nep,PetscInt *inner,PetscInt
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "NEPCISSGetRefinement"
 /*@
    NEPCISSGetRefinement - Gets the values of various refinement parameters
    in the CISS solver.
@@ -1015,8 +967,6 @@ PetscErrorCode NEPCISSGetRefinement(NEP nep, PetscInt *inner, PetscInt *blsize)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "NEPReset_CISS"
 PetscErrorCode NEPReset_CISS(NEP nep)
 {
   PetscErrorCode ierr;
@@ -1036,8 +986,6 @@ PetscErrorCode NEPReset_CISS(NEP nep)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "NEPSetFromOptions_CISS"
 PetscErrorCode NEPSetFromOptions_CISS(PetscOptionItems *PetscOptionsObject,NEP nep)
 {
   PetscErrorCode ierr;
@@ -1071,8 +1019,6 @@ PetscErrorCode NEPSetFromOptions_CISS(PetscOptionItems *PetscOptionsObject,NEP n
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "NEPDestroy_CISS"
 PetscErrorCode NEPDestroy_CISS(NEP nep)
 {
   PetscErrorCode ierr;
@@ -1091,8 +1037,6 @@ PetscErrorCode NEPDestroy_CISS(NEP nep)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "NEPView_CISS"
 PetscErrorCode NEPView_CISS(NEP nep,PetscViewer viewer)
 {
   PetscErrorCode ierr;
@@ -1115,8 +1059,6 @@ PetscErrorCode NEPView_CISS(NEP nep,PetscViewer viewer)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "NEPCreate_CISS"
 PETSC_EXTERN PetscErrorCode NEPCreate_CISS(NEP nep)
 {
   PetscErrorCode ierr;

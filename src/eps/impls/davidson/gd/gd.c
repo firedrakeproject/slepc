@@ -41,8 +41,6 @@
 #include <slepc/private/epsimpl.h>                /*I "slepceps.h" I*/
 #include <../src/eps/impls/davidson/davidson.h>
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSSetFromOptions_GD"
 PetscErrorCode EPSSetFromOptions_GD(PetscOptionItems *PetscOptionsObject,EPS eps)
 {
   PetscErrorCode ierr;
@@ -80,8 +78,6 @@ PetscErrorCode EPSSetFromOptions_GD(PetscOptionItems *PetscOptionsObject,EPS eps
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSSetUp_GD"
 PetscErrorCode EPSSetUp_GD(EPS eps)
 {
   PetscErrorCode ierr;
@@ -99,8 +95,6 @@ PetscErrorCode EPSSetUp_GD(EPS eps)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSView_GD"
 PetscErrorCode EPSView_GD(EPS eps,PetscViewer viewer)
 {
   PetscErrorCode ierr;
@@ -136,8 +130,6 @@ PetscErrorCode EPSView_GD(EPS eps,PetscViewer viewer)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSDestroy_GD"
 PetscErrorCode EPSDestroy_GD(EPS eps)
 {
   PetscErrorCode  ierr;
@@ -159,8 +151,6 @@ PetscErrorCode EPSDestroy_GD(EPS eps)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSGDSetKrylovStart"
 /*@
    EPSGDSetKrylovStart - Activates or deactivates starting the searching
    subspace with a Krylov basis.
@@ -190,8 +180,6 @@ PetscErrorCode EPSGDSetKrylovStart(EPS eps,PetscBool krylovstart)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSGDGetKrylovStart"
 /*@
    EPSGDGetKrylovStart - Returns a flag indicating if the search subspace is started with a
    Krylov basis.
@@ -220,8 +208,6 @@ PetscErrorCode EPSGDGetKrylovStart(EPS eps,PetscBool *krylovstart)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSGDSetBlockSize"
 /*@
    EPSGDSetBlockSize - Sets the number of vectors to be added to the searching space
    in every iteration.
@@ -250,8 +236,6 @@ PetscErrorCode EPSGDSetBlockSize(EPS eps,PetscInt blocksize)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSGDGetBlockSize"
 /*@
    EPSGDGetBlockSize - Returns the number of vectors to be added to the searching space
    in every iteration.
@@ -279,8 +263,6 @@ PetscErrorCode EPSGDGetBlockSize(EPS eps,PetscInt *blocksize)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSGDSetRestart"
 /*@
    EPSGDSetRestart - Sets the number of vectors of the searching space after
    restarting and the number of vectors saved from the previous iteration.
@@ -312,8 +294,6 @@ PetscErrorCode EPSGDSetRestart(EPS eps,PetscInt minv,PetscInt plusk)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSGDGetRestart"
 /*@
    EPSGDGetRestart - Gets the number of vectors of the searching space after
    restarting and the number of vectors saved from the previous iteration.
@@ -341,8 +321,6 @@ PetscErrorCode EPSGDGetRestart(EPS eps,PetscInt *minv,PetscInt *plusk)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSGDSetInitialSize"
 /*@
    EPSGDSetInitialSize - Sets the initial size of the searching space.
 
@@ -378,8 +356,6 @@ PetscErrorCode EPSGDSetInitialSize(EPS eps,PetscInt initialsize)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSGDGetInitialSize"
 /*@
    EPSGDGetInitialSize - Returns the initial size of the searching space.
 
@@ -414,8 +390,6 @@ PetscErrorCode EPSGDGetInitialSize(EPS eps,PetscInt *initialsize)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSGDSetBOrth"
 /*@
    EPSGDSetBOrth - Selects the orthogonalization that will be used in the search
    subspace in case of generalized Hermitian problems.
@@ -444,8 +418,6 @@ PetscErrorCode EPSGDSetBOrth(EPS eps,PetscBool borth)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSGDGetBOrth"
 /*@
    EPSGDGetBOrth - Returns the orthogonalization used in the search
    subspace in case of generalized Hermitian problems.
@@ -473,8 +445,6 @@ PetscErrorCode EPSGDGetBOrth(EPS eps,PetscBool *borth)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSGDSetDoubleExpansion_GD"
 static PetscErrorCode EPSGDSetDoubleExpansion_GD(EPS eps,PetscBool doubleexp)
 {
   EPS_DAVIDSON *data = (EPS_DAVIDSON*)eps->data;
@@ -484,8 +454,6 @@ static PetscErrorCode EPSGDSetDoubleExpansion_GD(EPS eps,PetscBool doubleexp)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSGDSetDoubleExpansion"
 /*@
    EPSGDSetDoubleExpansion - Activate a variant where the search subspace is
    expanded with K*[A*x B*x] (double expansion) instead of the classic K*r,
@@ -514,8 +482,6 @@ PetscErrorCode EPSGDSetDoubleExpansion(EPS eps,PetscBool doubleexp)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSGDGetDoubleExpansion_GD"
 static PetscErrorCode EPSGDGetDoubleExpansion_GD(EPS eps,PetscBool *doubleexp)
 {
   EPS_DAVIDSON *data = (EPS_DAVIDSON*)eps->data;
@@ -525,8 +491,6 @@ static PetscErrorCode EPSGDGetDoubleExpansion_GD(EPS eps,PetscBool *doubleexp)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSGDGetDoubleExpansion"
 /*@
    EPSGDGetDoubleExpansion - Gets a flag indicating whether the double
    expansion variant has been activated or not.
@@ -554,8 +518,6 @@ PetscErrorCode EPSGDGetDoubleExpansion(EPS eps,PetscBool *doubleexp)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSCreate_GD"
 PETSC_EXTERN PetscErrorCode EPSCreate_GD(EPS eps)
 {
   PetscErrorCode  ierr;

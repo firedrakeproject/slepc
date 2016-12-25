@@ -51,8 +51,6 @@ static const char citation[] =
   "   doi = \"https://doi.org/10.1007/s10543-016-0601-5\"\n"
   "}\n";
 
-#undef __FUNCT__
-#define __FUNCT__ "PEPSTOARNorm"
 /*
   Compute B-norm of v=[v1;v2] whith  B=diag(-pep->T[0],pep->T[2])
 */
@@ -82,8 +80,6 @@ static PetscErrorCode PEPSTOARNorm(PEP pep,PetscInt j,PetscReal *norm)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "PEPSTOARqKqMupdates"
 static PetscErrorCode PEPSTOARqKqMupdates(PEP pep,PetscInt j,Vec *wv)
 {
   PetscErrorCode ierr;
@@ -118,8 +114,6 @@ static PetscErrorCode PEPSTOARqKqMupdates(PEP pep,PetscInt j,Vec *wv)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "PEPSetUp_STOAR"
 PetscErrorCode PEPSetUp_STOAR(PEP pep)
 {
   PetscErrorCode ierr;
@@ -188,8 +182,6 @@ PetscErrorCode PEPSetUp_STOAR(PEP pep)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "PEPSTOAROrth2"
 /*
   Computes GS orthogonalization  x = [z;x] - [Sp;Sq]*y,
   where y = Omega\([Sp;Sq]'*[qK zeros(size(qK,1)) ;zeros(size(qK,1)) qM]*[z;x]).
@@ -236,8 +228,6 @@ static PetscErrorCode PEPSTOAROrth2(PEP pep,PetscInt k,PetscReal *Omega,PetscSca
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "PEPSTOARrun"
 /*
   Compute a run of Lanczos iterations. dim(work)=(ctx->ld)*4
 */
@@ -311,8 +301,6 @@ static PetscErrorCode PEPSTOARrun(PEP pep,PetscReal *a,PetscReal *b,PetscReal *o
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "PEPSTOARTrunc"
 static PetscErrorCode PEPSTOARTrunc(PEP pep,PetscInt rs1,PetscInt cs1,PetscScalar *work,PetscReal *rwork)
 {
 #if defined(PETSC_MISSING_LAPACK_GESVD)
@@ -387,8 +375,6 @@ static PetscErrorCode PEPSTOARTrunc(PEP pep,PetscInt rs1,PetscInt cs1,PetscScala
 #endif
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "PEPSTOARSupdate"
 /*
   S <- S*Q
   columns s-s+ncu of S
@@ -421,8 +407,6 @@ static PetscErrorCode PEPSTOARSupdate(PetscScalar *S,PetscInt ld,PetscInt sr,Pet
 }
 
 #if 0
-#undef __FUNCT__
-#define __FUNCT__ "PEPSTOARpreKConvergence"
 static PetscErrorCode PEPSTOARpreKConvergence(PEP pep,PetscInt nv,PetscReal *norm,Vec *w)
 {
   PetscErrorCode ierr;
@@ -450,8 +434,6 @@ static PetscErrorCode PEPSTOARpreKConvergence(PEP pep,PetscInt nv,PetscReal *nor
 }
 #endif
 
-#undef __FUNCT__
-#define __FUNCT__ "PEPSolve_STOAR"
 PetscErrorCode PEPSolve_STOAR(PEP pep)
 {
   PetscErrorCode ierr;
@@ -591,8 +573,6 @@ PetscErrorCode PEPSolve_STOAR(PEP pep)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "PEPSetFromOptions_STOAR"
 PetscErrorCode PEPSetFromOptions_STOAR(PetscOptionItems *PetscOptionsObject,PEP pep)
 {
   PetscErrorCode ierr;
@@ -608,8 +588,6 @@ PetscErrorCode PEPSetFromOptions_STOAR(PetscOptionItems *PetscOptionsObject,PEP 
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "PEPSTOARSetLocking_STOAR"
 static PetscErrorCode PEPSTOARSetLocking_STOAR(PEP pep,PetscBool lock)
 {
   PEP_TOAR *ctx = (PEP_TOAR*)pep->data;
@@ -619,8 +597,6 @@ static PetscErrorCode PEPSTOARSetLocking_STOAR(PEP pep,PetscBool lock)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "PEPSTOARSetLocking"
 /*@
    PEPSTOARSetLocking - Choose between locking and non-locking variants of
    the STOAR method.
@@ -655,8 +631,6 @@ PetscErrorCode PEPSTOARSetLocking(PEP pep,PetscBool lock)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "PEPSTOARGetLocking_STOAR"
 static PetscErrorCode PEPSTOARGetLocking_STOAR(PEP pep,PetscBool *lock)
 {
   PEP_TOAR *ctx = (PEP_TOAR*)pep->data;
@@ -666,8 +640,6 @@ static PetscErrorCode PEPSTOARGetLocking_STOAR(PEP pep,PetscBool *lock)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "PEPSTOARGetLocking"
 /*@
    PEPSTOARGetLocking - Gets the locking flag used in the STOAR method.
 
@@ -694,8 +666,6 @@ PetscErrorCode PEPSTOARGetLocking(PEP pep,PetscBool *lock)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "PEPView_STOAR"
 PetscErrorCode PEPView_STOAR(PEP pep,PetscViewer viewer)
 {
   PetscErrorCode ierr;
@@ -710,8 +680,6 @@ PetscErrorCode PEPView_STOAR(PEP pep,PetscViewer viewer)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "PEPDestroy_STOAR"
 PetscErrorCode PEPDestroy_STOAR(PEP pep)
 {
   PetscErrorCode ierr;
@@ -725,8 +693,6 @@ PetscErrorCode PEPDestroy_STOAR(PEP pep)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "PEPCreate_STOAR"
 PETSC_EXTERN PetscErrorCode PEPCreate_STOAR(PEP pep)
 {
   PetscErrorCode ierr;

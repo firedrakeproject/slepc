@@ -42,8 +42,6 @@ typedef struct {
   PetscInt  deg;
 } NEP_INTERPOL;
 
-#undef __FUNCT__
-#define __FUNCT__ "NEPSetUp_Interpol"
 PetscErrorCode NEPSetUp_Interpol(NEP nep)
 {
   PetscErrorCode ierr;
@@ -100,8 +98,6 @@ PetscErrorCode NEPSetUp_Interpol(NEP nep)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "ChebyshevNodes"
 /*
   Input:
     d, number of nodes to compute
@@ -124,8 +120,6 @@ static PetscErrorCode ChebyshevNodes(PetscInt d,PetscReal a,PetscReal b,PetscSca
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "NEPSolve_Interpol"
 PetscErrorCode NEPSolve_Interpol(NEP nep)
 {
   PetscErrorCode ierr;
@@ -184,8 +178,6 @@ PetscErrorCode NEPSolve_Interpol(NEP nep)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "PEPMonitor_Interpol"
 static PetscErrorCode PEPMonitor_Interpol(PEP pep,PetscInt its,PetscInt nconv,PetscScalar *eigr,PetscScalar *eigi,PetscReal *errest,PetscInt nest,void *ctx)
 {
   PetscInt       i,n;
@@ -212,8 +204,6 @@ static PetscErrorCode PEPMonitor_Interpol(PEP pep,PetscInt its,PetscInt nconv,Pe
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "NEPSetFromOptions_Interpol"
 PetscErrorCode NEPSetFromOptions_Interpol(PetscOptionItems *PetscOptionsObject,NEP nep)
 {
   PetscErrorCode ierr;
@@ -231,8 +221,6 @@ PetscErrorCode NEPSetFromOptions_Interpol(PetscOptionItems *PetscOptionsObject,N
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "NEPInterpolSetDegree_Interpol"
 static PetscErrorCode NEPInterpolSetDegree_Interpol(NEP nep,PetscInt deg)
 {
   NEP_INTERPOL *ctx = (NEP_INTERPOL*)nep->data;
@@ -242,8 +230,6 @@ static PetscErrorCode NEPInterpolSetDegree_Interpol(NEP nep,PetscInt deg)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "NEPInterpolSetDegree"
 /*@
    NEPInterpolSetDegree - Sets the degree of the interpolation polynomial.
 
@@ -268,8 +254,6 @@ PetscErrorCode NEPInterpolSetDegree(NEP nep,PetscInt deg)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "NEPInterpolGetDegree_Interpol"
 static PetscErrorCode NEPInterpolGetDegree_Interpol(NEP nep,PetscInt *deg)
 {
   NEP_INTERPOL *ctx = (NEP_INTERPOL*)nep->data;
@@ -279,8 +263,6 @@ static PetscErrorCode NEPInterpolGetDegree_Interpol(NEP nep,PetscInt *deg)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "NEPInterpolGetDegree"
 /*@
    NEPInterpolGetDegree - Gets the degree of the interpolation polynomial.
 
@@ -307,8 +289,6 @@ PetscErrorCode NEPInterpolGetDegree(NEP nep,PetscInt *deg)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "NEPInterpolSetPEP_Interpol"
 static PetscErrorCode NEPInterpolSetPEP_Interpol(NEP nep,PEP pep)
 {
   PetscErrorCode ierr;
@@ -323,8 +303,6 @@ static PetscErrorCode NEPInterpolSetPEP_Interpol(NEP nep,PEP pep)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "NEPInterpolSetPEP"
 /*@
    NEPInterpolSetPEP - Associate a polynomial eigensolver object (PEP) to the
    nonlinear eigenvalue solver.
@@ -351,8 +329,6 @@ PetscErrorCode NEPInterpolSetPEP(NEP nep,PEP pep)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "NEPInterpolGetPEP_Interpol"
 static PetscErrorCode NEPInterpolGetPEP_Interpol(NEP nep,PEP *pep)
 {
   PetscErrorCode ierr;
@@ -371,8 +347,6 @@ static PetscErrorCode NEPInterpolGetPEP_Interpol(NEP nep,PEP *pep)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "NEPInterpolGetPEP"
 /*@
    NEPInterpolGetPEP - Retrieve the polynomial eigensolver object (PEP)
    associated with the nonlinear eigenvalue solver.
@@ -400,8 +374,6 @@ PetscErrorCode NEPInterpolGetPEP(NEP nep,PEP *pep)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "NEPView_Interpol"
 PetscErrorCode NEPView_Interpol(NEP nep,PetscViewer viewer)
 {
   PetscErrorCode ierr;
@@ -420,8 +392,6 @@ PetscErrorCode NEPView_Interpol(NEP nep,PetscViewer viewer)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "NEPReset_Interpol"
 PetscErrorCode NEPReset_Interpol(NEP nep)
 {
   PetscErrorCode ierr;
@@ -432,8 +402,6 @@ PetscErrorCode NEPReset_Interpol(NEP nep)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "NEPDestroy_Interpol"
 PetscErrorCode NEPDestroy_Interpol(NEP nep)
 {
   PetscErrorCode ierr;
@@ -449,8 +417,6 @@ PetscErrorCode NEPDestroy_Interpol(NEP nep)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "NEPCreate_Interpol"
 PETSC_EXTERN PetscErrorCode NEPCreate_Interpol(NEP nep)
 {
   PetscErrorCode ierr;

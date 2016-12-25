@@ -24,8 +24,6 @@
 #include <slepc/private/lmeimpl.h>   /*I "slepclme.h" I*/
 #include <slepcblaslapack.h>
 
-#undef __FUNCT__
-#define __FUNCT__ "LMESolve"
 /*@
    LMESolve - Solves the linear matrix equation.
 
@@ -83,8 +81,6 @@ PetscErrorCode LMESolve(LME lme)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "LMEGetIterationNumber"
 /*@
    LMEGetIterationNumber - Gets the current iteration number. If the
    call to LMESolve() is complete, then it returns the number of iterations
@@ -118,8 +114,6 @@ PetscErrorCode LMEGetIterationNumber(LME lme,PetscInt *its)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "LMEGetConvergedReason"
 /*@
    LMEGetConvergedReason - Gets the reason why the LMESolve() iteration was
    stopped.
@@ -154,8 +148,6 @@ PetscErrorCode LMEGetConvergedReason(LME lme,LMEConvergedReason *reason)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "LMEGetErrorEstimate"
 /*@
    LMEGetErrorEstimate - Returns the error estimate obtained during solve.
 
@@ -185,8 +177,6 @@ PetscErrorCode LMEGetErrorEstimate(LME lme,PetscReal *errest)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "LMEComputeResidualNorm_Lyapunov"
 /*
    LMEComputeResidualNorm_Lyapunov - Computes the Frobenius norm of the residual matrix
    associated with the Lyapunov equation.
@@ -300,8 +290,6 @@ PetscErrorCode LMEComputeResidualNorm_Lyapunov(LME lme,PetscReal *norm)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "LMEComputeError"
 /*@
    LMEComputeError - Computes the error (based on the residual norm) associated
    with the last equation solved.

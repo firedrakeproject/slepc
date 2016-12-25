@@ -23,8 +23,6 @@
 
 #include <slepc/private/lmeimpl.h>       /*I "slepclme.h" I*/
 
-#undef __FUNCT__
-#define __FUNCT__ "LMESetUp_Lyapunov"
 PETSC_STATIC_INLINE PetscErrorCode LMESetUp_Lyapunov(LME lme)
 {
   PetscErrorCode ierr;
@@ -43,8 +41,6 @@ PETSC_STATIC_INLINE PetscErrorCode LMESetUp_Lyapunov(LME lme)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "LMESetUp_Sylvester"
 PETSC_STATIC_INLINE PetscErrorCode LMESetUp_Sylvester(LME lme)
 {
   PetscFunctionBegin;
@@ -53,8 +49,6 @@ PETSC_STATIC_INLINE PetscErrorCode LMESetUp_Sylvester(LME lme)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "LMESetUp_Gen_Lyapunov"
 PETSC_STATIC_INLINE PetscErrorCode LMESetUp_Gen_Lyapunov(LME lme)
 {
   PetscFunctionBegin;
@@ -63,8 +57,6 @@ PETSC_STATIC_INLINE PetscErrorCode LMESetUp_Gen_Lyapunov(LME lme)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "LMESetUp_Gen_Sylvester"
 PETSC_STATIC_INLINE PetscErrorCode LMESetUp_Gen_Sylvester(LME lme)
 {
   PetscFunctionBegin;
@@ -75,8 +67,6 @@ PETSC_STATIC_INLINE PetscErrorCode LMESetUp_Gen_Sylvester(LME lme)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "LMESetUp_Stein"
 PETSC_STATIC_INLINE PetscErrorCode LMESetUp_Stein(LME lme)
 {
   PetscFunctionBegin;
@@ -85,8 +75,6 @@ PETSC_STATIC_INLINE PetscErrorCode LMESetUp_Stein(LME lme)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "LMESetUp_DT_Lyapunov"
 PETSC_STATIC_INLINE PetscErrorCode LMESetUp_DT_Lyapunov(LME lme)
 {
   PetscFunctionBegin;
@@ -94,8 +82,6 @@ PETSC_STATIC_INLINE PetscErrorCode LMESetUp_DT_Lyapunov(LME lme)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "LMESetUp"
 /*@
    LMESetUp - Sets up all the internal data structures necessary for the
    execution of the linear matrix equation solver.
@@ -171,8 +157,6 @@ PetscErrorCode LMESetUp(LME lme)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "LMESetCoefficients"
 /*@
    LMESetCoefficients - Sets the coefficient matrices that define the linear matrix
    equation to be solved.
@@ -256,8 +240,6 @@ PetscErrorCode LMESetCoefficients(LME lme,Mat A,Mat B,Mat D,Mat E)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "LMEGetCoefficients"
 /*@
    LMEGetCoefficients - Gets the coefficient matrices of the matrix equation.
 
@@ -287,8 +269,6 @@ PetscErrorCode LMEGetCoefficients(LME lme,Mat *A,Mat *B,Mat *D,Mat *E)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "LMESetRHS"
 /*@
    LMESetRHS - Sets the right-hand side of the matrix equation, as a low-rank
    matrix.
@@ -335,8 +315,6 @@ PetscErrorCode LMESetRHS(LME lme,Mat C)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "LMEGetRHS"
 /*@
    LMEGetRHS - Gets the right-hand side of the matrix equation.
 
@@ -361,8 +339,6 @@ PetscErrorCode LMEGetRHS(LME lme,Mat *C)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "LMESetSolution"
 /*@
    LMESetSolution - Sets the placeholder for the solution of the matrix
    equation, as a low-rank matrix.
@@ -416,8 +392,6 @@ PetscErrorCode LMESetSolution(LME lme,Mat X)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "LMEGetSolution"
 /*@
    LMEGetSolution - Gets the solution of the matrix equation.
 
@@ -442,8 +416,6 @@ PetscErrorCode LMEGetSolution(LME lme,Mat *X)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "LMEAllocateSolution"
 /*@
    LMEAllocateSolution - Allocate memory storage for common variables such
    as the basis vectors.

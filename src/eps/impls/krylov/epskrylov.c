@@ -25,8 +25,6 @@
 #include <slepc/private/slepcimpl.h>
 #include <slepcblaslapack.h>
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSBasicArnoldi"
 /*
    EPSBasicArnoldi - Computes an m-step Arnoldi factorization. The first k
    columns are assumed to be locked and therefore they are not modified. On
@@ -75,8 +73,6 @@ PetscErrorCode EPSBasicArnoldi(EPS eps,PetscBool trans,PetscScalar *H,PetscInt l
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSDelayedArnoldi"
 /*
    EPSDelayedArnoldi - This function is equivalent to EPSBasicArnoldi but
    performs the computation in a different way. The main idea is that
@@ -189,8 +185,6 @@ PetscErrorCode EPSDelayedArnoldi(EPS eps,PetscScalar *H,PetscInt ldh,PetscInt k,
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSDelayedArnoldi1"
 /*
    EPSDelayedArnoldi1 - This function is similar to EPSDelayedArnoldi,
    but without reorthogonalization (only delayed normalization).
@@ -238,8 +232,6 @@ PetscErrorCode EPSDelayedArnoldi1(EPS eps,PetscScalar *H,PetscInt ldh,PetscInt k
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSKrylovConvergence"
 /*
    EPSKrylovConvergence - Implements the loop that checks for convergence
    in Krylov methods.
@@ -334,8 +326,6 @@ PetscErrorCode EPSKrylovConvergence(EPS eps,PetscBool getall,PetscInt kini,Petsc
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSFullLanczos"
 /*
    EPSFullLanczos - Computes an m-step Lanczos factorization with full
    reorthogonalization.  At each Lanczos step, the corresponding Lanczos
@@ -385,8 +375,6 @@ PetscErrorCode EPSFullLanczos(EPS eps,PetscReal *alpha,PetscReal *beta,PetscInt 
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSPseudoLanczos"
 PetscErrorCode EPSPseudoLanczos(EPS eps,PetscReal *alpha,PetscReal *beta,PetscReal *omega,PetscInt k,PetscInt *M,PetscBool *breakdown,PetscBool *symmlost,PetscReal *cos,Vec w)
 {
   PetscErrorCode ierr;

@@ -30,8 +30,6 @@ static char help[] = "Solves a generalized eigensystem Ax=kBx with matrices load
 
 #include <slepceps.h>
 
-#undef __FUNCT__
-#define __FUNCT__ "main"
 int main(int argc,char **argv)
 {
   Mat            A,B;             /* matrices */

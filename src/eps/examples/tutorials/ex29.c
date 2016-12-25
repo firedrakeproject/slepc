@@ -36,8 +36,6 @@ static char help[] = "Solves the same problem as in ex5, with a user-defined sto
 PetscErrorCode MyStoppingTest(EPS,PetscInt,PetscInt,PetscInt,PetscInt,EPSConvergedReason*,void*);
 PetscErrorCode MatMarkovModel(PetscInt,Mat);
 
-#undef __FUNCT__
-#define __FUNCT__ "main"
 int main(int argc,char **argv)
 {
   Mat                A;               /* operator matrix */
@@ -113,8 +111,6 @@ int main(int argc,char **argv)
   return ierr;
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "MatMarkovModel"
 /*
     Matrix generator for a Markov model of a random walk on a triangular grid.
 
@@ -179,8 +175,6 @@ PetscErrorCode MatMarkovModel(PetscInt m,Mat A)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "MyStoppingTest"
 /*
     Function for user-defined stopping test.
 

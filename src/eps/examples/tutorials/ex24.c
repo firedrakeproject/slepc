@@ -43,8 +43,6 @@ PetscErrorCode MatMult_Fold(Mat,Vec,Vec);
 PetscErrorCode RayleighQuotient(Mat,Vec,PetscScalar*);
 PetscErrorCode ComputeResidualNorm(Mat,PetscScalar,Vec,PetscReal*);
 
-#undef __FUNCT__
-#define __FUNCT__ "main"
 int main(int argc,char **argv)
 {
   Mat            A,M,P;       /* problem matrix, shell matrix and preconditioner */
@@ -204,8 +202,6 @@ int main(int argc,char **argv)
   return ierr;
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "MatMult_Fold"
 /*
     Matrix-vector product subroutine for the spectrum folding.
        y <-- (A-t*I)^2*x
@@ -226,8 +222,6 @@ PetscErrorCode MatMult_Fold(Mat M,Vec x,Vec y)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "RayleighQuotient"
 /*
     Computes the Rayleigh quotient of a vector x
        r <-- x^T*A*x       (assumes x has unit norm)
@@ -245,8 +239,6 @@ PetscErrorCode RayleighQuotient(Mat A,Vec x,PetscScalar *r)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "ComputeResidualNorm"
 /*
     Computes the residual norm of an approximate eigenvector x, |A*x-lambda*x|
  */

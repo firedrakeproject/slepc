@@ -42,8 +42,6 @@
 #include <slepc/private/epsimpl.h>                /*I "slepceps.h" I*/
 #include <../src/eps/impls/davidson/davidson.h>
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSSetFromOptions_JD"
 PetscErrorCode EPSSetFromOptions_JD(PetscOptionItems *PetscOptionsObject,EPS eps)
 {
   PetscErrorCode ierr;
@@ -87,8 +85,6 @@ PetscErrorCode EPSSetFromOptions_JD(PetscOptionItems *PetscOptionsObject,EPS eps
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSSetDefaultST_JD"
 PetscErrorCode EPSSetDefaultST_JD(EPS eps)
 {
   PetscErrorCode ierr;
@@ -107,8 +103,6 @@ PetscErrorCode EPSSetDefaultST_JD(EPS eps)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSSetUp_JD"
 PetscErrorCode EPSSetUp_JD(EPS eps)
 {
   PetscErrorCode ierr;
@@ -126,8 +120,6 @@ PetscErrorCode EPSSetUp_JD(EPS eps)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSView_JD"
 PetscErrorCode EPSView_JD(EPS eps,PetscViewer viewer)
 {
   PetscErrorCode ierr;
@@ -159,8 +151,6 @@ PetscErrorCode EPSView_JD(EPS eps,PetscViewer viewer)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSDestroy_JD"
 PetscErrorCode EPSDestroy_JD(EPS eps)
 {
   PetscErrorCode  ierr;
@@ -184,8 +174,6 @@ PetscErrorCode EPSDestroy_JD(EPS eps)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSJDSetKrylovStart"
 /*@
    EPSJDSetKrylovStart - Activates or deactivates starting the searching
    subspace with a Krylov basis.
@@ -215,8 +203,6 @@ PetscErrorCode EPSJDSetKrylovStart(EPS eps,PetscBool krylovstart)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSJDGetKrylovStart"
 /*@
    EPSJDGetKrylovStart - Returns a flag indicating if the searching subspace is started with a
    Krylov basis.
@@ -245,8 +231,6 @@ PetscErrorCode EPSJDGetKrylovStart(EPS eps,PetscBool *krylovstart)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSJDSetBlockSize"
 /*@
    EPSJDSetBlockSize - Sets the number of vectors to be added to the searching space
    in every iteration.
@@ -275,8 +259,6 @@ PetscErrorCode EPSJDSetBlockSize(EPS eps,PetscInt blocksize)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSJDGetBlockSize"
 /*@
    EPSJDGetBlockSize - Returns the number of vectors to be added to the searching space
    in every iteration.
@@ -304,8 +286,6 @@ PetscErrorCode EPSJDGetBlockSize(EPS eps,PetscInt *blocksize)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSJDSetRestart"
 /*@
    EPSJDSetRestart - Sets the number of vectors of the searching space after
    restarting and the number of vectors saved from the previous iteration.
@@ -337,8 +317,6 @@ PetscErrorCode EPSJDSetRestart(EPS eps,PetscInt minv,PetscInt plusk)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSJDGetRestart"
 /*@
    EPSJDGetRestart - Gets the number of vectors of the searching space after
    restarting and the number of vectors saved from the previous iteration.
@@ -366,8 +344,6 @@ PetscErrorCode EPSJDGetRestart(EPS eps,PetscInt *minv,PetscInt *plusk)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSJDSetInitialSize"
 /*@
    EPSJDSetInitialSize - Sets the initial size of the searching space.
 
@@ -403,8 +379,6 @@ PetscErrorCode EPSJDSetInitialSize(EPS eps,PetscInt initialsize)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSJDGetInitialSize"
 /*@
    EPSJDGetInitialSize - Returns the initial size of the searching space.
 
@@ -439,8 +413,6 @@ PetscErrorCode EPSJDGetInitialSize(EPS eps,PetscInt *initialsize)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSJDSetFix_JD"
 PetscErrorCode EPSJDSetFix_JD(EPS eps,PetscReal fix)
 {
   EPS_DAVIDSON *data = (EPS_DAVIDSON*)eps->data;
@@ -452,8 +424,6 @@ PetscErrorCode EPSJDSetFix_JD(EPS eps,PetscReal fix)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSJDSetFix"
 /*@
    EPSJDSetFix - Sets the threshold for changing the target in the correction
    equation.
@@ -487,8 +457,6 @@ PetscErrorCode EPSJDSetFix(EPS eps,PetscReal fix)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSJDGetFix_JD"
 PetscErrorCode EPSJDGetFix_JD(EPS eps,PetscReal *fix)
 {
   EPS_DAVIDSON *data = (EPS_DAVIDSON*)eps->data;
@@ -498,8 +466,6 @@ PetscErrorCode EPSJDGetFix_JD(EPS eps,PetscReal *fix)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSJDGetFix"
 /*@
    EPSJDGetFix - Returns the threshold for changing the target in the correction
    equation.
@@ -532,8 +498,6 @@ PetscErrorCode EPSJDGetFix(EPS eps,PetscReal *fix)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSJDSetConstCorrectionTol_JD"
 PetscErrorCode EPSJDSetConstCorrectionTol_JD(EPS eps,PetscBool constant)
 {
   EPS_DAVIDSON *data = (EPS_DAVIDSON*)eps->data;
@@ -543,8 +507,6 @@ PetscErrorCode EPSJDSetConstCorrectionTol_JD(EPS eps,PetscBool constant)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSJDSetConstCorrectionTol"
 /*@
    EPSJDSetConstCorrectionTol - If true, deactivates the dynamic stopping criterion
    (also called Newton) that sets the KSP relative tolerance
@@ -574,8 +536,6 @@ PetscErrorCode EPSJDSetConstCorrectionTol(EPS eps,PetscBool constant)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSJDGetConstCorrectionTol_JD"
 PetscErrorCode EPSJDGetConstCorrectionTol_JD(EPS eps,PetscBool *constant)
 {
   EPS_DAVIDSON *data = (EPS_DAVIDSON*)eps->data;
@@ -585,8 +545,6 @@ PetscErrorCode EPSJDGetConstCorrectionTol_JD(EPS eps,PetscBool *constant)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSJDGetConstCorrectionTol"
 /*@
    EPSJDGetConstCorrectionTol - Returns a flag indicating if the dynamic stopping is being used for
    solving the correction equation. If the flag is false the KSP relative tolerance is set
@@ -615,8 +573,6 @@ PetscErrorCode EPSJDGetConstCorrectionTol(EPS eps,PetscBool *constant)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSJDSetBOrth"
 /*@
    EPSJDSetBOrth - Selects the orthogonalization that will be used in the search
    subspace in case of generalized Hermitian problems.
@@ -645,8 +601,6 @@ PetscErrorCode EPSJDSetBOrth(EPS eps,PetscBool borth)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSJDGetBOrth"
 /*@
    EPSJDGetBOrth - Returns the orthogonalization used in the search
    subspace in case of generalized Hermitian problems.
@@ -674,8 +628,6 @@ PetscErrorCode EPSJDGetBOrth(EPS eps,PetscBool *borth)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSCreate_JD"
 PETSC_EXTERN PetscErrorCode EPSCreate_JD(EPS eps)
 {
   PetscErrorCode ierr;

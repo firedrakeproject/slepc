@@ -28,8 +28,6 @@ PetscBool         NEPRegisterAllCalled = PETSC_FALSE;
 PetscClassId      NEP_CLASSID = 0;
 PetscLogEvent     NEP_SetUp = 0,NEP_Solve = 0,NEP_Refine = 0,NEP_FunctionEval = 0,NEP_JacobianEval = 0,NEP_DerivativesEval = 0;
 
-#undef __FUNCT__
-#define __FUNCT__ "NEPCreate"
 /*@
    NEPCreate - Creates the default NEP context.
 
@@ -121,8 +119,6 @@ PetscErrorCode NEPCreate(MPI_Comm comm,NEP *outnep)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "NEPSetType"
 /*@C
    NEPSetType - Selects the particular solver to be used in the NEP object.
 
@@ -175,8 +171,6 @@ PetscErrorCode NEPSetType(NEP nep,NEPType type)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "NEPGetType"
 /*@C
    NEPGetType - Gets the NEP type as a string from the NEP object.
 
@@ -201,8 +195,6 @@ PetscErrorCode NEPGetType(NEP nep,NEPType *type)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "NEPRegister"
 /*@C
    NEPRegister - Adds a method to the nonlinear eigenproblem solver package.
 
@@ -238,8 +230,6 @@ PetscErrorCode NEPRegister(const char *name,PetscErrorCode (*function)(NEP))
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "NEPReset_Problem"
 /*
    NEPReset_Problem - Destroys the problem matrices.
 @*/
@@ -264,8 +254,6 @@ PetscErrorCode NEPReset_Problem(NEP nep)
   }
   PetscFunctionReturn(0);
 }
-#undef __FUNCT__
-#define __FUNCT__ "NEPReset"
 /*@
    NEPReset - Resets the NEP context to the initial state (prior to setup)
    and destroys any allocated Vecs and Mats.
@@ -295,8 +283,6 @@ PetscErrorCode NEPReset(NEP nep)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "NEPDestroy"
 /*@
    NEPDestroy - Destroys the NEP context.
 
@@ -337,8 +323,6 @@ PetscErrorCode NEPDestroy(NEP *nep)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "NEPSetBV"
 /*@
    NEPSetBV - Associates a basis vectors object to the nonlinear eigensolver.
 
@@ -371,8 +355,6 @@ PetscErrorCode NEPSetBV(NEP nep,BV bv)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "NEPGetBV"
 /*@
    NEPGetBV - Obtain the basis vectors object associated to the nonlinear
    eigensolver object.
@@ -404,8 +386,6 @@ PetscErrorCode NEPGetBV(NEP nep,BV *bv)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "NEPSetRG"
 /*@
    NEPSetRG - Associates a region object to the nonlinear eigensolver.
 
@@ -438,8 +418,6 @@ PetscErrorCode NEPSetRG(NEP nep,RG rg)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "NEPGetRG"
 /*@
    NEPGetRG - Obtain the region object associated to the
    nonlinear eigensolver object.
@@ -471,8 +449,6 @@ PetscErrorCode NEPGetRG(NEP nep,RG *rg)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "NEPSetDS"
 /*@
    NEPSetDS - Associates a direct solver object to the nonlinear eigensolver.
 
@@ -505,8 +481,6 @@ PetscErrorCode NEPSetDS(NEP nep,DS ds)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "NEPGetDS"
 /*@
    NEPGetDS - Obtain the direct solver object associated to the
    nonlinear eigensolver object.
@@ -538,8 +512,6 @@ PetscErrorCode NEPGetDS(NEP nep,DS *ds)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "NEPRefineGetKSP"
 /*@
    NEPRefineGetKSP - Obtain the ksp object used by the eigensolver
    object in the refinement phase.
@@ -582,8 +554,6 @@ PetscErrorCode NEPRefineGetKSP(NEP nep,KSP *ksp)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "NEPSetTarget"
 /*@
    NEPSetTarget - Sets the value of the target.
 
@@ -617,8 +587,6 @@ PetscErrorCode NEPSetTarget(NEP nep,PetscScalar target)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "NEPGetTarget"
 /*@
    NEPGetTarget - Gets the value of the target.
 
@@ -646,8 +614,6 @@ PetscErrorCode NEPGetTarget(NEP nep,PetscScalar* target)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "NEPSetFunction"
 /*@C
    NEPSetFunction - Sets the function to compute the nonlinear Function T(lambda)
    as well as the location to store the matrix.
@@ -708,8 +674,6 @@ PetscErrorCode NEPSetFunction(NEP nep,Mat A,Mat B,PetscErrorCode (*fun)(NEP,Pets
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "NEPGetFunction"
 /*@C
    NEPGetFunction - Returns the Function matrix and optionally the user
    provided context for evaluating the Function.
@@ -741,8 +705,6 @@ PetscErrorCode NEPGetFunction(NEP nep,Mat *A,Mat *B,PetscErrorCode (**fun)(NEP,P
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "NEPSetJacobian"
 /*@C
    NEPSetJacobian - Sets the function to compute Jacobian T'(lambda) as well
    as the location to store the matrix.
@@ -794,8 +756,6 @@ PetscErrorCode NEPSetJacobian(NEP nep,Mat A,PetscErrorCode (*jac)(NEP,PetscScala
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "NEPGetJacobian"
 /*@C
    NEPGetJacobian - Returns the Jacobian matrix and optionally the user
    provided routine and context for evaluating the Jacobian.
@@ -825,8 +785,6 @@ PetscErrorCode NEPGetJacobian(NEP nep,Mat *A,PetscErrorCode (**jac)(NEP,PetscSca
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "NEPSetSplitOperator"
 /*@
    NEPSetSplitOperator - Sets the operator of the nonlinear eigenvalue problem
    in split form.
@@ -898,8 +856,6 @@ PetscErrorCode NEPSetSplitOperator(NEP nep,PetscInt n,Mat A[],FN f[],MatStructur
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "NEPGetSplitOperatorTerm"
 /*@
    NEPGetSplitOperatorTerm - Gets the matrices and functions associated with
    the nonlinear operator in split form.
@@ -929,8 +885,6 @@ PetscErrorCode NEPGetSplitOperatorTerm(NEP nep,PetscInt k,Mat *A,FN *f)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "NEPGetSplitOperatorInfo"
 /*@
    NEPGetSplitOperatorInfo - Returns the number of terms of the split form of
    the nonlinear operator, as well as the structure flag for matrices.
@@ -958,8 +912,6 @@ PetscErrorCode NEPGetSplitOperatorInfo(NEP nep,PetscInt *n,MatStructure *str)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "NEPSetDerivatives"
 /*@C
    NEPSetDerivatives - Sets the function to compute the k-th derivative T^(k)(lambda)
    for any value of k (including 0), as well as the location to store the matrix.
@@ -1003,8 +955,6 @@ PetscErrorCode NEPSetDerivatives(NEP nep,Mat A,PetscErrorCode (*der)(NEP,PetscSc
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "NEPGetDerivatives"
 /*@C
    NEPGetDerivatives - Returns the derivatives matrix and optionally the user
    provided routine and context for evaluating the derivatives.

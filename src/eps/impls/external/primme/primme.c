@@ -56,8 +56,6 @@ static void par_GlobalSumReal(void *sendBuf,void *recvBuf,int *count,primme_para
   *ierr = MPI_Allreduce(sendBuf,recvBuf,*count,MPIU_REAL,MPIU_SUM,PetscObjectComm((PetscObject)primme->commInfo));CHKERRABORT(PetscObjectComm((PetscObject)primme->commInfo),*ierr);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSSetUp_PRIMME"
 PetscErrorCode EPSSetUp_PRIMME(EPS eps)
 {
   PetscErrorCode ierr;
@@ -151,8 +149,6 @@ PetscErrorCode EPSSetUp_PRIMME(EPS eps)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSSolve_PRIMME"
 PetscErrorCode EPSSolve_PRIMME(EPS eps)
 {
   PetscErrorCode ierr;
@@ -193,8 +189,6 @@ PetscErrorCode EPSSolve_PRIMME(EPS eps)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "multMatvec_PRIMME"
 static void multMatvec_PRIMME(void *xa,PRIMME_INT *ldx,void *ya,PRIMME_INT *ldy,int *blockSize,struct primme_params *primme,int *ierr)
 {
   PetscInt   i;
@@ -213,8 +207,6 @@ static void multMatvec_PRIMME(void *xa,PRIMME_INT *ldx,void *ya,PRIMME_INT *ldy,
   PetscFunctionReturnVoid();
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "applyPreconditioner_PRIMME"
 static void applyPreconditioner_PRIMME(void *xa,PRIMME_INT *ldx,void *ya,PRIMME_INT *ldy,int *blockSize,struct primme_params *primme,int *ierr)
 {
   PetscInt   i;
@@ -232,8 +224,6 @@ static void applyPreconditioner_PRIMME(void *xa,PRIMME_INT *ldx,void *ya,PRIMME_
   PetscFunctionReturnVoid();
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSReset_PRIMME"
 PetscErrorCode EPSReset_PRIMME(EPS eps)
 {
   PetscErrorCode ierr;
@@ -246,8 +236,6 @@ PetscErrorCode EPSReset_PRIMME(EPS eps)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSDestroy_PRIMME"
 PetscErrorCode EPSDestroy_PRIMME(EPS eps)
 {
   PetscErrorCode ierr;
@@ -261,8 +249,6 @@ PetscErrorCode EPSDestroy_PRIMME(EPS eps)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSView_PRIMME"
 PetscErrorCode EPSView_PRIMME(EPS eps,PetscViewer viewer)
 {
   PetscErrorCode  ierr;
@@ -285,8 +271,6 @@ PetscErrorCode EPSView_PRIMME(EPS eps,PetscViewer viewer)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSSetFromOptions_PRIMME"
 PetscErrorCode EPSSetFromOptions_PRIMME(PetscOptionItems *PetscOptionsObject,EPS eps)
 {
   PetscErrorCode  ierr;
@@ -308,8 +292,6 @@ PetscErrorCode EPSSetFromOptions_PRIMME(PetscOptionItems *PetscOptionsObject,EPS
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSPRIMMESetBlockSize_PRIMME"
 static PetscErrorCode EPSPRIMMESetBlockSize_PRIMME(EPS eps,PetscInt bs)
 {
   EPS_PRIMME *ops = (EPS_PRIMME*)eps->data;
@@ -321,8 +303,6 @@ static PetscErrorCode EPSPRIMMESetBlockSize_PRIMME(EPS eps,PetscInt bs)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSPRIMMESetBlockSize"
 /*@
    EPSPRIMMESetBlockSize - The maximum block size that PRIMME will try to use.
 
@@ -359,8 +339,6 @@ PetscErrorCode EPSPRIMMESetBlockSize(EPS eps,PetscInt bs)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSPRIMMEGetBlockSize_PRIMME"
 static PetscErrorCode EPSPRIMMEGetBlockSize_PRIMME(EPS eps,PetscInt *bs)
 {
   EPS_PRIMME *ops = (EPS_PRIMME*)eps->data;
@@ -370,8 +348,6 @@ static PetscErrorCode EPSPRIMMEGetBlockSize_PRIMME(EPS eps,PetscInt *bs)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSPRIMMEGetBlockSize"
 /*@
    EPSPRIMMEGetBlockSize - Get the maximum block size the code will try to use.
 
@@ -398,8 +374,6 @@ PetscErrorCode EPSPRIMMEGetBlockSize(EPS eps,PetscInt *bs)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSPRIMMESetMethod_PRIMME"
 static PetscErrorCode EPSPRIMMESetMethod_PRIMME(EPS eps,EPSPRIMMEMethod method)
 {
   EPS_PRIMME *ops = (EPS_PRIMME*)eps->data;
@@ -409,8 +383,6 @@ static PetscErrorCode EPSPRIMMESetMethod_PRIMME(EPS eps,EPSPRIMMEMethod method)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSPRIMMESetMethod"
 /*@
    EPSPRIMMESetMethod - Sets the method for the PRIMME library.
 
@@ -441,8 +413,6 @@ PetscErrorCode EPSPRIMMESetMethod(EPS eps,EPSPRIMMEMethod method)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSPRIMMEGetMethod_PRIMME"
 static PetscErrorCode EPSPRIMMEGetMethod_PRIMME(EPS eps,EPSPRIMMEMethod *method)
 {
   EPS_PRIMME *ops = (EPS_PRIMME*)eps->data;
@@ -452,8 +422,6 @@ static PetscErrorCode EPSPRIMMEGetMethod_PRIMME(EPS eps,EPSPRIMMEMethod *method)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSPRIMMEGetMethod"
 /*@
    EPSPRIMMEGetMethod - Gets the method for the PRIMME library.
 
@@ -480,8 +448,6 @@ PetscErrorCode EPSPRIMMEGetMethod(EPS eps,EPSPRIMMEMethod *method)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSCreate_PRIMME"
 PETSC_EXTERN PetscErrorCode EPSCreate_PRIMME(EPS eps)
 {
   PetscErrorCode ierr;

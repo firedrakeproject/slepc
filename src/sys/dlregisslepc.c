@@ -36,12 +36,6 @@ PETSC_EXTERN PetscErrorCode PetscDLLibraryRegister_slepcmfn(void);
 PETSC_EXTERN PetscErrorCode PetscDLLibraryRegister_slepclme(void);
 #endif
 
-#undef __FUNCT__
-#if defined(PETSC_USE_SINGLE_LIBRARY)
-#define __FUNCT__ "PetscDLLibraryRegister_slepc"
-#else
-#define __FUNCT__ "PetscDLLibraryRegister_slepcsys"
-#endif
 /*
   PetscDLLibraryRegister - This function is called when the dynamic library
   it is in is opened.

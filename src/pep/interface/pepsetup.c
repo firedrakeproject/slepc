@@ -23,8 +23,6 @@
 
 #include <slepc/private/pepimpl.h>       /*I "slepcpep.h" I*/
 
-#undef __FUNCT__
-#define __FUNCT__ "PEPSetDefaultST"
 /*
    Let the solver choose the ST type that should be used by default,
    otherwise set it to SHIFT.
@@ -43,8 +41,6 @@ PetscErrorCode PEPSetDefaultST(PEP pep)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "PEPSetDefaultST_Transform"
 /*
    This is used in Q-Arnoldi and STOAR to set the transform flag by
    default, otherwise the user has to explicitly run with -st_transform
@@ -58,8 +54,6 @@ PetscErrorCode PEPSetDefaultST_Transform(PEP pep)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "PEPSetUp"
 /*@
    PEPSetUp - Sets up all the internal data structures necessary for the
    execution of the PEP solver.
@@ -262,8 +256,6 @@ PetscErrorCode PEPSetUp(PEP pep)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "PEPSetOperators"
 /*@
    PEPSetOperators - Sets the coefficient matrices associated with the polynomial
    eigenvalue problem.
@@ -322,8 +314,6 @@ PetscErrorCode PEPSetOperators(PEP pep,PetscInt nmat,Mat A[])
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "PEPGetOperators"
 /*@
    PEPGetOperators - Gets the matrices associated with the polynomial eigensystem.
 
@@ -350,8 +340,6 @@ PetscErrorCode PEPGetOperators(PEP pep,PetscInt k,Mat *A)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "PEPGetNumMatrices"
 /*@
    PEPGetNumMatrices - Returns the number of matrices stored in the PEP.
 
@@ -376,8 +364,6 @@ PetscErrorCode PEPGetNumMatrices(PEP pep,PetscInt *nmat)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "PEPSetInitialSpace"
 /*@
    PEPSetInitialSpace - Specify a basis of vectors that constitute the initial
    space, that is, the subspace from which the solver starts to iterate.
@@ -417,8 +403,6 @@ PetscErrorCode PEPSetInitialSpace(PEP pep,PetscInt n,Vec *is)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "PEPSetDimensions_Default"
 /*
   PEPSetDimensions_Default - Set reasonable values for ncv, mpd if not set
   by the user. This is called at setup.
@@ -451,8 +435,6 @@ PetscErrorCode PEPSetDimensions_Default(PEP pep,PetscInt nev,PetscInt *ncv,Petsc
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "PEPAllocateSolution"
 /*@
    PEPAllocateSolution - Allocate memory storage for common variables such
    as eigenvalues and eigenvectors.

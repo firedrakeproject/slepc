@@ -23,8 +23,6 @@ static char help[] = "Test block orthogonalization on a rank-deficient BV.\n\n";
 
 #include <slepcbv.h>
 
-#undef __FUNCT__
-#define __FUNCT__ "main"
 int main(int argc,char **argv)
 {
   PetscErrorCode ierr;

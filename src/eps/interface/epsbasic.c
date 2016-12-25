@@ -28,8 +28,6 @@ PetscBool         EPSRegisterAllCalled = PETSC_FALSE;
 PetscClassId      EPS_CLASSID = 0;
 PetscLogEvent     EPS_SetUp = 0,EPS_Solve = 0;
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSCreate"
 /*@
    EPSCreate - Creates the default EPS context.
 
@@ -124,8 +122,6 @@ PetscErrorCode EPSCreate(MPI_Comm comm,EPS *outeps)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSSetType"
 /*@C
    EPSSetType - Selects the particular solver to be used in the EPS object.
 
@@ -179,8 +175,6 @@ PetscErrorCode EPSSetType(EPS eps,EPSType type)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSGetType"
 /*@C
    EPSGetType - Gets the EPS type as a string from the EPS object.
 
@@ -205,8 +199,6 @@ PetscErrorCode EPSGetType(EPS eps,EPSType *type)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSRegister"
 /*@C
    EPSRegister - Adds a method to the eigenproblem solver package.
 
@@ -242,8 +234,6 @@ PetscErrorCode EPSRegister(const char *name,PetscErrorCode (*function)(EPS))
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSReset"
 /*@
    EPSReset - Resets the EPS context to the initial state (prior to setup)
    and destroys any allocated Vecs and Mats.
@@ -279,8 +269,6 @@ PetscErrorCode EPSReset(EPS eps)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSDestroy"
 /*@
    EPSDestroy - Destroys the EPS context.
 
@@ -324,8 +312,6 @@ PetscErrorCode EPSDestroy(EPS *eps)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSSetTarget"
 /*@
    EPSSetTarget - Sets the value of the target.
 
@@ -363,8 +349,6 @@ PetscErrorCode EPSSetTarget(EPS eps,PetscScalar target)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSGetTarget"
 /*@
    EPSGetTarget - Gets the value of the target.
 
@@ -392,8 +376,6 @@ PetscErrorCode EPSGetTarget(EPS eps,PetscScalar* target)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSSetInterval"
 /*@
    EPSSetInterval - Defines the computational interval for spectrum slicing.
 
@@ -437,8 +419,6 @@ PetscErrorCode EPSSetInterval(EPS eps,PetscReal inta,PetscReal intb)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSGetInterval"
 /*@
    EPSGetInterval - Gets the computational interval for spectrum slicing.
 
@@ -469,8 +449,6 @@ PetscErrorCode EPSGetInterval(EPS eps,PetscReal* inta,PetscReal* intb)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSSetST"
 /*@
    EPSSetST - Associates a spectral transformation object to the eigensolver.
 
@@ -503,8 +481,6 @@ PetscErrorCode EPSSetST(EPS eps,ST st)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSGetST"
 /*@
    EPSGetST - Obtain the spectral transformation (ST) object associated
    to the eigensolver object.
@@ -536,8 +512,6 @@ PetscErrorCode EPSGetST(EPS eps,ST *st)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSSetBV"
 /*@
    EPSSetBV - Associates a basis vectors object to the eigensolver.
 
@@ -570,8 +544,6 @@ PetscErrorCode EPSSetBV(EPS eps,BV V)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSGetBV"
 /*@
    EPSGetBV - Obtain the basis vectors object associated to the eigensolver object.
 
@@ -602,8 +574,6 @@ PetscErrorCode EPSGetBV(EPS eps,BV *V)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSSetRG"
 /*@
    EPSSetRG - Associates a region object to the eigensolver.
 
@@ -636,8 +606,6 @@ PetscErrorCode EPSSetRG(EPS eps,RG rg)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSGetRG"
 /*@
    EPSGetRG - Obtain the region object associated to the eigensolver.
 
@@ -668,8 +636,6 @@ PetscErrorCode EPSGetRG(EPS eps,RG *rg)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSSetDS"
 /*@
    EPSSetDS - Associates a direct solver object to the eigensolver.
 
@@ -702,8 +668,6 @@ PetscErrorCode EPSSetDS(EPS eps,DS ds)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSGetDS"
 /*@
    EPSGetDS - Obtain the direct solver object associated to the eigensolver object.
 
@@ -734,8 +698,6 @@ PetscErrorCode EPSGetDS(EPS eps,DS *ds)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSIsGeneralized"
 /*@
    EPSIsGeneralized - Ask if the EPS object corresponds to a generalized
    eigenvalue problem.
@@ -761,8 +723,6 @@ PetscErrorCode EPSIsGeneralized(EPS eps,PetscBool* is)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSIsHermitian"
 /*@
    EPSIsHermitian - Ask if the EPS object corresponds to a Hermitian
    eigenvalue problem.
@@ -788,8 +748,6 @@ PetscErrorCode EPSIsHermitian(EPS eps,PetscBool* is)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSIsPositive"
 /*@
    EPSIsPositive - Ask if the EPS object corresponds to an eigenvalue
    problem type that requires a positive (semi-) definite matrix B.

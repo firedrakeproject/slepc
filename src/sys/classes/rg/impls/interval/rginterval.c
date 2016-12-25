@@ -29,8 +29,6 @@ typedef struct {
   PetscReal   c,d;     /* interval in the imaginary axis */
 } RG_INTERVAL;
 
-#undef __FUNCT__
-#define __FUNCT__ "RGIntervalSetEndpoints_Interval"
 static PetscErrorCode RGIntervalSetEndpoints_Interval(RG rg,PetscReal a,PetscReal b,PetscReal c,PetscReal d)
 {
   RG_INTERVAL *ctx = (RG_INTERVAL*)rg->data;
@@ -51,8 +49,6 @@ static PetscErrorCode RGIntervalSetEndpoints_Interval(RG rg,PetscReal a,PetscRea
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "RGIntervalSetEndpoints"
 /*@
    RGIntervalSetEndpoints - Sets the parameters defining the interval region.
 
@@ -89,8 +85,6 @@ PetscErrorCode RGIntervalSetEndpoints(RG rg,PetscReal a,PetscReal b,PetscReal c,
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "RGIntervalGetEndpoints_Interval"
 static PetscErrorCode RGIntervalGetEndpoints_Interval(RG rg,PetscReal *a,PetscReal *b,PetscReal *c,PetscReal *d)
 {
   RG_INTERVAL *ctx = (RG_INTERVAL*)rg->data;
@@ -103,8 +97,6 @@ static PetscErrorCode RGIntervalGetEndpoints_Interval(RG rg,PetscReal *a,PetscRe
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "RGIntervalGetEndpoints"
 /*@
    RGIntervalGetEndpoints - Gets the parameters that define the interval region.
 
@@ -131,8 +123,6 @@ PetscErrorCode RGIntervalGetEndpoints(RG rg,PetscReal *a,PetscReal *b,PetscReal 
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "RGView_Interval"
 PetscErrorCode RGView_Interval(RG rg,PetscViewer viewer)
 {
   PetscErrorCode ierr;
@@ -147,8 +137,6 @@ PetscErrorCode RGView_Interval(RG rg,PetscViewer viewer)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "RGIsTrivial_Interval"
 PetscErrorCode RGIsTrivial_Interval(RG rg,PetscBool *trivial)
 {
   RG_INTERVAL *ctx = (RG_INTERVAL*)rg->data;
@@ -159,8 +147,6 @@ PetscErrorCode RGIsTrivial_Interval(RG rg,PetscBool *trivial)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "RGComputeContour_Interval"
 PetscErrorCode RGComputeContour_Interval(RG rg,PetscInt n,PetscScalar *cr,PetscScalar *ci)
 {
   RG_INTERVAL *ctx = (RG_INTERVAL*)rg->data;
@@ -211,8 +197,6 @@ PetscErrorCode RGComputeContour_Interval(RG rg,PetscInt n,PetscScalar *cr,PetscS
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "RGCheckInside_Interval"
 PetscErrorCode RGCheckInside_Interval(RG rg,PetscReal dx,PetscReal dy,PetscInt *inside)
 {
   RG_INTERVAL *ctx = (RG_INTERVAL*)rg->data;
@@ -229,8 +213,6 @@ PetscErrorCode RGCheckInside_Interval(RG rg,PetscReal dx,PetscReal dy,PetscInt *
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "RGSetFromOptions_Interval"
 PetscErrorCode RGSetFromOptions_Interval(PetscOptionItems *PetscOptionsObject,RG rg)
 {
   PetscErrorCode ierr;
@@ -252,8 +234,6 @@ PetscErrorCode RGSetFromOptions_Interval(PetscOptionItems *PetscOptionsObject,RG
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "RGDestroy_Interval"
 PetscErrorCode RGDestroy_Interval(RG rg)
 {
   PetscErrorCode ierr;
@@ -265,8 +245,6 @@ PetscErrorCode RGDestroy_Interval(RG rg)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "RGCreate_Interval"
 PETSC_EXTERN PetscErrorCode RGCreate_Interval(RG rg)
 {
   RG_INTERVAL    *interval;

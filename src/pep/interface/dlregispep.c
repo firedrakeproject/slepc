@@ -32,8 +32,6 @@ const char *PEPErrorTypes[] = {"ABSOLUTE","RELATIVE","BACKWARD","PEPErrorType","
 const char *const PEPConvergedReasons_Shifted[] = {"","DIVERGED_SYMMETRY_LOST","DIVERGED_BREAKDOWN","DIVERGED_ITS","CONVERGED_ITERATING","CONVERGED_TOL","CONVERGED_USER","PEPConvergedReason","PEP_",0};
 const char *const*PEPConvergedReasons = PEPConvergedReasons_Shifted + 4;
 
-#undef __FUNCT__
-#define __FUNCT__ "PEPFinalizePackage"
 /*@C
    PEPFinalizePackage - This function destroys everything in the Slepc interface
    to the PEP package. It is called from SlepcFinalize().
@@ -53,8 +51,6 @@ PetscErrorCode PEPFinalizePackage(void)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "PEPInitializePackage"
 /*@C
    PEPInitializePackage - This function initializes everything in the PEP package.
    It is called from PetscDLLibraryRegister() when using dynamic libraries, and
@@ -103,9 +99,6 @@ PetscErrorCode PEPInitializePackage(void)
 }
 
 #if defined(PETSC_HAVE_DYNAMIC_LIBRARIES)
-
-#undef __FUNCT__
-#define __FUNCT__ "PetscDLLibraryRegister_slepcpep"
 /*
   PetscDLLibraryRegister - This function is called when the dynamic library
   it is in is opened.

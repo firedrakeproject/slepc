@@ -78,8 +78,6 @@ typedef struct {
   PetscScalar theta;
 } PEP_JD_MATSHELL;
 
-#undef __FUNCT__
-#define __FUNCT__ "PEPJDDuplicateBasis"
 /*
    Duplicate and resize auxiliary basis
 */
@@ -113,8 +111,6 @@ static PetscErrorCode PEPJDDuplicateBasis(PEP pep,BV *basis)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "PEPSetUp_JD"
 PetscErrorCode PEPSetUp_JD(PEP pep)
 {
   PetscErrorCode ierr;
@@ -160,8 +156,6 @@ PetscErrorCode PEPSetUp_JD(PEP pep)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "PEPJDUpdateTV"
 /*
    Updates columns (low to (high-1)) of TV[i]
 */
@@ -230,8 +224,6 @@ static PetscErrorCode PEPJDUpdateTV(PEP pep,PetscInt low,PetscInt high,Vec *w)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "PEPJDOrthogonalize"
 /*
    RRQR of X. Xin*P=Xou*R. Rank of R is rk
 */
@@ -290,8 +282,6 @@ static PetscErrorCode PEPJDOrthogonalize(PetscInt row,PetscInt col,PetscScalar *
 #endif
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "PEPJDExtendedPCApply"
 /*
    Application of extended preconditioner
 */
@@ -352,8 +342,6 @@ static PetscErrorCode PEPJDExtendedPCApply(PC pc,Vec x,Vec y)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "PCShellApply_PEPJD"
 /*
    Application of shell preconditioner:
       y = B\x - eta*B\p,  with eta = (u'*B\x)/(u'*B\p)
@@ -379,8 +367,6 @@ static PetscErrorCode PCShellApply_PEPJD(PC pc,Vec x,Vec y)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "PEPJDCopyToExtendedVec"
 static PetscErrorCode PEPJDCopyToExtendedVec(PEP pep,Vec v,PetscScalar *a,PetscInt na,PetscInt off,Vec vex,PetscBool back)
 {
   PetscErrorCode ierr;
@@ -421,8 +407,6 @@ static PetscErrorCode PEPJDCopyToExtendedVec(PEP pep,Vec v,PetscScalar *a,PetscI
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "PEPJDComputePResidual"
 static PetscErrorCode PEPJDComputePResidual(PEP pep,Vec u,PetscScalar theta,Vec p,Vec *work)
 {
   PEP_JD         *pjd = (PEP_JD*)pep->data;
@@ -497,8 +481,6 @@ static PetscErrorCode PEPJDComputePResidual(PEP pep,Vec u,PetscScalar theta,Vec 
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "PEPJDProcessInitialSpace"
 static PetscErrorCode PEPJDProcessInitialSpace(PEP pep,Vec *w)
 {
   PEP_JD         *pjd = (PEP_JD*)pep->data;
@@ -533,8 +515,6 @@ static PetscErrorCode PEPJDProcessInitialSpace(PEP pep,Vec *w)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "PEPJDShellMatMult"
 static PetscErrorCode PEPJDShellMatMult(Mat P,Vec x,Vec y)
 {
   PetscErrorCode    ierr;
@@ -612,8 +592,6 @@ static PetscErrorCode PEPJDShellMatMult(Mat P,Vec x,Vec y)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "PEPJDCreateShellPC"
 static PetscErrorCode PEPJDCreateShellPC(PEP pep)
 {
   PEP_JD          *pjd = (PEP_JD*)pep->data;
@@ -657,8 +635,6 @@ static PetscErrorCode PEPJDCreateShellPC(PEP pep)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "PEPJDUpdateExtendedPC"
 static PetscErrorCode PEPJDUpdateExtendedPC(PEP pep,PetscScalar theta)
 {
 #if defined(PETSC_MISSING_LAPACK_GESVD) || defined(PETSC_MISSING_LAPACK_GETRI) || defined(PETSC_MISSING_LAPACK_GETRF)
@@ -726,8 +702,6 @@ static PetscErrorCode PEPJDUpdateExtendedPC(PEP pep,PetscScalar theta)
 #endif
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "PEPJDPCMatSetUp"
 static PetscErrorCode PEPJDPCMatSetUp(PEP pep,PetscScalar theta)
 {
   PetscErrorCode  ierr;
@@ -754,8 +728,6 @@ static PetscErrorCode PEPJDPCMatSetUp(PEP pep,PetscScalar theta)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "PEPJDEigenvectors"
 static PetscErrorCode PEPJDEigenvectors(PEP pep)
 {
 #if defined(SLEPC_MISSING_LAPACK_TREVC)
@@ -792,8 +764,6 @@ static PetscErrorCode PEPJDEigenvectors(PEP pep)
 #endif
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "PEPJDLockConverged"
 static PetscErrorCode PEPJDLockConverged(PEP pep,PetscInt *nv)
 {
 #if defined(SLEPC_MISSING_LAPACK_TRTRI)
@@ -874,8 +844,6 @@ static PetscErrorCode PEPJDLockConverged(PEP pep,PetscInt *nv)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "PEPSolve_JD"
 PetscErrorCode PEPSolve_JD(PEP pep)
 {
   PetscErrorCode  ierr;
@@ -1061,8 +1029,6 @@ PetscErrorCode PEPSolve_JD(PEP pep)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "PEPJDSetRestart_JD"
 PetscErrorCode PEPJDSetRestart_JD(PEP pep,PetscReal keep)
 {
   PEP_JD *pjd = (PEP_JD*)pep->data;
@@ -1076,8 +1042,6 @@ PetscErrorCode PEPJDSetRestart_JD(PEP pep,PetscReal keep)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "PEPJDSetRestart"
 /*@
    PEPJDSetRestart - Sets the restart parameter for the Jacobi-Davidson
    method, in particular the proportion of basis vectors that must be kept
@@ -1110,8 +1074,6 @@ PetscErrorCode PEPJDSetRestart(PEP pep,PetscReal keep)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "PEPJDGetRestart_JD"
 PetscErrorCode PEPJDGetRestart_JD(PEP pep,PetscReal *keep)
 {
   PEP_JD *pjd = (PEP_JD*)pep->data;
@@ -1121,8 +1083,6 @@ PetscErrorCode PEPJDGetRestart_JD(PEP pep,PetscReal *keep)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "PEPJDGetRestart"
 /*@
    PEPJDGetRestart - Gets the restart parameter used in the Jacobi-Davidson method.
 
@@ -1149,8 +1109,6 @@ PetscErrorCode PEPJDGetRestart(PEP pep,PetscReal *keep)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "PEPSetFromOptions_JD"
 PetscErrorCode PEPSetFromOptions_JD(PetscOptionItems *PetscOptionsObject,PEP pep)
 {
   PetscErrorCode ierr;
@@ -1167,8 +1125,6 @@ PetscErrorCode PEPSetFromOptions_JD(PetscOptionItems *PetscOptionsObject,PEP pep
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "PEPView_JD"
 PetscErrorCode PEPView_JD(PEP pep,PetscViewer viewer)
 {
   PetscErrorCode ierr;
@@ -1183,8 +1139,6 @@ PetscErrorCode PEPView_JD(PEP pep,PetscViewer viewer)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "PEPSetDefaultST_JD"
 PetscErrorCode PEPSetDefaultST_JD(PEP pep)
 {
   PetscErrorCode ierr;
@@ -1204,8 +1158,6 @@ PetscErrorCode PEPSetDefaultST_JD(PEP pep)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "PEPReset_JD"
 PetscErrorCode PEPReset_JD(PEP pep)
 {
   PetscErrorCode ierr;
@@ -1229,8 +1181,6 @@ PetscErrorCode PEPReset_JD(PEP pep)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "PEPDestroy_JD"
 PetscErrorCode PEPDestroy_JD(PEP pep)
 {
   PetscErrorCode ierr;
@@ -1242,8 +1192,6 @@ PetscErrorCode PEPDestroy_JD(PEP pep)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "PEPCreate_JD"
 PETSC_EXTERN PetscErrorCode PEPCreate_JD(PEP pep)
 {
   PEP_JD         *pjd;

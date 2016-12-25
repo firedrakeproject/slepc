@@ -27,8 +27,6 @@ static char help[] = "Spectrum slicing on generalized symmetric eigenproblem.\n\
 
 #include <slepceps.h>
 
-#undef __FUNCT__
-#define __FUNCT__ "main"
 int main(int argc,char **argv)
 {
   Mat            A,B;         /* matrices */

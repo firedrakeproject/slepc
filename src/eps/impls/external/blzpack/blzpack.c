@@ -60,8 +60,6 @@ const char* blzpack_error[33] = {
   "parallel interface error "
 };
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSSetUp_BLZPACK"
 PetscErrorCode EPSSetUp_BLZPACK(EPS eps)
 {
   PetscErrorCode ierr;
@@ -144,8 +142,6 @@ lrstor*=10;
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSSolve_BLZPACK"
 PetscErrorCode EPSSolve_BLZPACK(EPS eps)
 {
   PetscErrorCode ierr;
@@ -276,8 +272,6 @@ PetscErrorCode EPSSolve_BLZPACK(EPS eps)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSBackTransform_BLZPACK"
 PetscErrorCode EPSBackTransform_BLZPACK(EPS eps)
 {
   PetscErrorCode ierr;
@@ -290,8 +284,6 @@ PetscErrorCode EPSBackTransform_BLZPACK(EPS eps)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSReset_BLZPACK"
 PetscErrorCode EPSReset_BLZPACK(EPS eps)
 {
   PetscErrorCode ierr;
@@ -306,8 +298,6 @@ PetscErrorCode EPSReset_BLZPACK(EPS eps)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSDestroy_BLZPACK"
 PetscErrorCode EPSDestroy_BLZPACK(EPS eps)
 {
   PetscErrorCode ierr;
@@ -319,8 +309,6 @@ PetscErrorCode EPSDestroy_BLZPACK(EPS eps)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSView_BLZPACK"
 PetscErrorCode EPSView_BLZPACK(EPS eps,PetscViewer viewer)
 {
   PetscErrorCode ierr;
@@ -339,8 +327,6 @@ PetscErrorCode EPSView_BLZPACK(EPS eps,PetscViewer viewer)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSSetFromOptions_BLZPACK"
 PetscErrorCode EPSSetFromOptions_BLZPACK(PetscOptionItems *PetscOptionsObject,EPS eps)
 {
   PetscErrorCode ierr;
@@ -363,8 +349,6 @@ PetscErrorCode EPSSetFromOptions_BLZPACK(PetscOptionItems *PetscOptionsObject,EP
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSBlzpackSetBlockSize_BLZPACK"
 static PetscErrorCode EPSBlzpackSetBlockSize_BLZPACK(EPS eps,PetscInt bs)
 {
   PetscErrorCode ierr;
@@ -379,8 +363,6 @@ static PetscErrorCode EPSBlzpackSetBlockSize_BLZPACK(EPS eps,PetscInt bs)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSBlzpackSetBlockSize"
 /*@
    EPSBlzpackSetBlockSize - Sets the block size for the BLZPACK package.
 
@@ -406,8 +388,6 @@ PetscErrorCode EPSBlzpackSetBlockSize(EPS eps,PetscInt bs)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSBlzpackSetNSteps_BLZPACK"
 static PetscErrorCode EPSBlzpackSetNSteps_BLZPACK(EPS eps,PetscInt nsteps)
 {
   PetscErrorCode ierr;
@@ -421,8 +401,6 @@ static PetscErrorCode EPSBlzpackSetNSteps_BLZPACK(EPS eps,PetscInt nsteps)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSBlzpackSetNSteps"
 /*@
    EPSBlzpackSetNSteps - Sets the maximum number of steps per run for the BLZPACK
    package.
@@ -450,8 +428,6 @@ PetscErrorCode EPSBlzpackSetNSteps(EPS eps,PetscInt nsteps)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSCreate_BLZPACK"
 PETSC_EXTERN PetscErrorCode EPSCreate_BLZPACK(EPS eps)
 {
   PetscErrorCode ierr;

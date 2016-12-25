@@ -27,8 +27,6 @@ static char help[] = "Tests the case when both arguments of MFNSolve() are the s
 
 #include <slepcmfn.h>
 
-#undef __FUNCT__
-#define __FUNCT__ "main"
 int main(int argc,char **argv)
 {
   Mat            A;           /* problem matrix */

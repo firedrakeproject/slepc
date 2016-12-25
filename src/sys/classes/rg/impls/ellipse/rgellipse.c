@@ -29,8 +29,6 @@ typedef struct {
   PetscReal   vscale;     /* vertical scale of the ellipse */
 } RG_ELLIPSE;
 
-#undef __FUNCT__
-#define __FUNCT__ "RGEllipseSetParameters_Ellipse"
 static PetscErrorCode RGEllipseSetParameters_Ellipse(RG rg,PetscScalar center,PetscReal radius,PetscReal vscale)
 {
   RG_ELLIPSE *ctx = (RG_ELLIPSE*)rg->data;
@@ -48,8 +46,6 @@ static PetscErrorCode RGEllipseSetParameters_Ellipse(RG rg,PetscScalar center,Pe
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "RGEllipseSetParameters"
 /*@
    RGEllipseSetParameters - Sets the parameters defining the ellipse region.
 
@@ -90,8 +86,6 @@ PetscErrorCode RGEllipseSetParameters(RG rg,PetscScalar center,PetscReal radius,
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "RGEllipseGetParameters_Ellipse"
 static PetscErrorCode RGEllipseGetParameters_Ellipse(RG rg,PetscScalar *center,PetscReal *radius,PetscReal *vscale)
 {
   RG_ELLIPSE *ctx = (RG_ELLIPSE*)rg->data;
@@ -103,8 +97,6 @@ static PetscErrorCode RGEllipseGetParameters_Ellipse(RG rg,PetscScalar *center,P
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "RGEllipseGetParameters"
 /*@
    RGEllipseGetParameters - Gets the parameters that define the ellipse region.
 
@@ -132,8 +124,6 @@ PetscErrorCode RGEllipseGetParameters(RG rg,PetscScalar *center,PetscReal *radiu
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "RGView_Ellipse"
 PetscErrorCode RGView_Ellipse(RG rg,PetscViewer viewer)
 {
   PetscErrorCode ierr;
@@ -150,8 +140,6 @@ PetscErrorCode RGView_Ellipse(RG rg,PetscViewer viewer)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "RGIsTrivial_Ellipse"
 PetscErrorCode RGIsTrivial_Ellipse(RG rg,PetscBool *trivial)
 {
   RG_ELLIPSE *ctx = (RG_ELLIPSE*)rg->data;
@@ -162,8 +150,6 @@ PetscErrorCode RGIsTrivial_Ellipse(RG rg,PetscBool *trivial)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "RGComputeContour_Ellipse"
 PetscErrorCode RGComputeContour_Ellipse(RG rg,PetscInt n,PetscScalar *cr,PetscScalar *ci)
 {
   RG_ELLIPSE *ctx = (RG_ELLIPSE*)rg->data;
@@ -183,8 +169,6 @@ PetscErrorCode RGComputeContour_Ellipse(RG rg,PetscInt n,PetscScalar *cr,PetscSc
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "RGCheckInside_Ellipse"
 PetscErrorCode RGCheckInside_Ellipse(RG rg,PetscReal px,PetscReal py,PetscInt *inside)
 {
   RG_ELLIPSE *ctx = (RG_ELLIPSE*)rg->data;
@@ -203,8 +187,6 @@ PetscErrorCode RGCheckInside_Ellipse(RG rg,PetscReal px,PetscReal py,PetscInt *i
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "RGSetFromOptions_Ellipse"
 PetscErrorCode RGSetFromOptions_Ellipse(PetscOptionItems *PetscOptionsObject,RG rg)
 {
   PetscErrorCode ierr;
@@ -225,8 +207,6 @@ PetscErrorCode RGSetFromOptions_Ellipse(PetscOptionItems *PetscOptionsObject,RG 
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "RGDestroy_Ellipse"
 PetscErrorCode RGDestroy_Ellipse(RG rg)
 {
   PetscErrorCode ierr;
@@ -238,8 +218,6 @@ PetscErrorCode RGDestroy_Ellipse(RG rg)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "RGCreate_Ellipse"
 PETSC_EXTERN PetscErrorCode RGCreate_Ellipse(RG rg)
 {
   RG_ELLIPSE     *ellipse;

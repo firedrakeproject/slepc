@@ -41,8 +41,6 @@
 
 static PetscErrorCode CleanDenseSchur(PetscInt n,PetscInt k,PetscScalar *S,PetscInt ldS,PetscScalar *T,PetscInt ldT,PetscScalar *X,PetscInt ldX,PetscScalar *Y,PetscInt ldY,PetscBool doProd);
 
-#undef __FUNCT__
-#define __FUNCT__ "DSAllocate_GNHEP"
 PetscErrorCode DSAllocate_GNHEP(DS ds,PetscInt ld)
 {
   PetscErrorCode ierr;
@@ -58,8 +56,6 @@ PetscErrorCode DSAllocate_GNHEP(DS ds,PetscInt ld)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "DSView_GNHEP"
 PetscErrorCode DSView_GNHEP(DS ds,PetscViewer viewer)
 {
   PetscErrorCode ierr;
@@ -80,8 +76,6 @@ PetscErrorCode DSView_GNHEP(DS ds,PetscViewer viewer)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "DSVectors_GNHEP_Eigen_Some"
 static PetscErrorCode DSVectors_GNHEP_Eigen_Some(DS ds,PetscInt *k,PetscReal *rnorm,PetscBool left)
 {
 #if defined(SLEPC_MISSING_LAPACK_TGEVC)
@@ -163,8 +157,6 @@ static PetscErrorCode DSVectors_GNHEP_Eigen_Some(DS ds,PetscInt *k,PetscReal *rn
 #endif
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "DSVectors_GNHEP_Eigen_All"
 static PetscErrorCode DSVectors_GNHEP_Eigen_All(DS ds,PetscBool left)
 {
 #if defined(SLEPC_MISSING_LAPACK_TGEVC)
@@ -235,8 +227,6 @@ static PetscErrorCode DSVectors_GNHEP_Eigen_All(DS ds,PetscBool left)
 #endif
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "DSVectors_GNHEP"
 PetscErrorCode DSVectors_GNHEP(DS ds,DSMatType mat,PetscInt *k,PetscReal *rnorm)
 {
   PetscErrorCode ierr;
@@ -257,8 +247,6 @@ PetscErrorCode DSVectors_GNHEP(DS ds,DSMatType mat,PetscInt *k,PetscReal *rnorm)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "DSSort_GNHEP_Arbitrary"
 static PetscErrorCode DSSort_GNHEP_Arbitrary(DS ds,PetscScalar *wr,PetscScalar *wi,PetscScalar *rr,PetscScalar *ri,PetscInt *k)
 {
 #if defined(PETSC_MISSING_LAPACK_TGSEN)
@@ -310,8 +298,6 @@ static PetscErrorCode DSSort_GNHEP_Arbitrary(DS ds,PetscScalar *wr,PetscScalar *
 #endif
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "DSSort_GNHEP_Total"
 static PetscErrorCode DSSort_GNHEP_Total(DS ds,PetscScalar *wr,PetscScalar *wi)
 {
 #if defined(SLEPC_MISSING_LAPACK_TGEXC) || !defined(PETSC_USE_COMPLEX) && (defined(SLEPC_MISSING_LAPACK_LAMCH) || defined(SLEPC_MISSING_LAPACK_LAG2))
@@ -409,8 +395,6 @@ static PetscErrorCode DSSort_GNHEP_Total(DS ds,PetscScalar *wr,PetscScalar *wi)
 #endif
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "DSSort_GNHEP"
 PetscErrorCode DSSort_GNHEP(DS ds,PetscScalar *wr,PetscScalar *wi,PetscScalar *rr,PetscScalar *ri,PetscInt *k)
 {
   PetscErrorCode ierr;
@@ -424,8 +408,6 @@ PetscErrorCode DSSort_GNHEP(DS ds,PetscScalar *wr,PetscScalar *wi,PetscScalar *r
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "CleanDenseSchur"
 /*
    Write zeros from the column k to n in the lower triangular part of the
    matrices S and T, and inside 2-by-2 diagonal blocks of T in order to
@@ -526,8 +508,6 @@ static PetscErrorCode CleanDenseSchur(PetscInt n,PetscInt k,PetscScalar *S,Petsc
 #endif
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "DSSolve_GNHEP"
 PetscErrorCode DSSolve_GNHEP(DS ds,PetscScalar *wr,PetscScalar *wi)
 {
 #if defined(PETSC_MISSING_LAPACK_GGES)
@@ -579,8 +559,6 @@ PetscErrorCode DSSolve_GNHEP(DS ds,PetscScalar *wr,PetscScalar *wi)
 #endif
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "DSCreate_GNHEP"
 PETSC_EXTERN PetscErrorCode DSCreate_GNHEP(DS ds)
 {
   PetscFunctionBegin;

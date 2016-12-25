@@ -54,8 +54,6 @@ static const char citation[] =
   "   doi = \"https://doi.org/10.1137/15M1022458\"\n"
   "}\n";
 
-#undef __FUNCT__
-#define __FUNCT__ "PEPTOARSNorm2"
 /*
   Norm of [sp;sq]
 */
@@ -70,8 +68,6 @@ static PetscErrorCode PEPTOARSNorm2(PetscInt n,PetscScalar *S,PetscReal *norm)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "PEPSetUp_TOAR"
 PetscErrorCode PEPSetUp_TOAR(PEP pep)
 {
   PetscErrorCode ierr;
@@ -148,8 +144,6 @@ PetscErrorCode PEPSetUp_TOAR(PEP pep)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "PEPTOAROrth2"
 /*
  Computes GS orthogonalization   [z;x] - [Sp;Sq]*y,
  where y = ([Sp;Sq]'*[z;x]).
@@ -201,8 +195,6 @@ static PetscErrorCode PEPTOAROrth2(PEP pep,PetscScalar *S,PetscInt ld,PetscInt d
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "PEPTOARExtendBasis"
 /*
   Extend the TOAR basis by applying the the matrix operator
   over a vector which is decomposed in the TOAR way
@@ -287,8 +279,6 @@ static PetscErrorCode PEPTOARExtendBasis(PEP pep,PetscBool sinvert,PetscScalar s
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "PEPTOARCoefficients"
 /*
   Compute TOAR coefficients of the blocks of the new Arnoldi vector computed
 */
@@ -316,8 +306,6 @@ static PetscErrorCode PEPTOARCoefficients(PEP pep,PetscBool sinvert,PetscScalar 
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "PEPTOARrun"
 /*
   Compute a run of Arnoldi iterations dim(work)=ld
 */
@@ -373,8 +361,6 @@ static PetscErrorCode PEPTOARrun(PEP pep,PetscScalar sigma,PetscInt *nq,PetscSca
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "PEPTOARTrunc"
 /*
   dim(rwork)=6*n; dim(work)=6*ld*lds+2*cs1
 */
@@ -520,8 +506,6 @@ static PetscErrorCode PEPTOARTrunc(PEP pep,PetscScalar *S,PetscInt ld,PetscInt d
 #endif
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "PEPTOARSupdate"
 /*
   S <- S*Q
   columns s-s+ncu of S
@@ -551,8 +535,6 @@ static PetscErrorCode PEPTOARSupdate(PetscScalar *S,PetscInt ld,PetscInt deg,Pet
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "PEPEvaluateBasisM"
 /*
   Computes T_j = phi_idx(T). In T_j and T_p are phi_{idx-1}(T)
    and phi_{idx-2}(T) respectively or null if idx=0,1.
@@ -585,8 +567,6 @@ static PetscErrorCode PEPEvaluateBasisM(PEP pep,PetscInt k,PetscScalar *T,PetscI
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "PEPExtractInvariantPair"
 /* dim(work)=6*sr*k;*/
 static PetscErrorCode PEPExtractInvariantPair(PEP pep,PetscScalar sigma,PetscInt sr,PetscInt k,PetscScalar *S,PetscInt ld,PetscInt deg,PetscScalar *H,PetscInt ldh,PetscScalar *work)
 {
@@ -759,8 +739,6 @@ static PetscErrorCode PEPExtractInvariantPair(PEP pep,PetscScalar sigma,PetscInt
 #endif
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "PEPSolve_TOAR"
 PetscErrorCode PEPSolve_TOAR(PEP pep)
 {
   PetscErrorCode ierr;
@@ -935,8 +913,6 @@ PetscErrorCode PEPSolve_TOAR(PEP pep)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "PEPTOARSetRestart_TOAR"
 static PetscErrorCode PEPTOARSetRestart_TOAR(PEP pep,PetscReal keep)
 {
   PEP_TOAR *ctx = (PEP_TOAR*)pep->data;
@@ -950,8 +926,6 @@ static PetscErrorCode PEPTOARSetRestart_TOAR(PEP pep,PetscReal keep)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "PEPTOARSetRestart"
 /*@
    PEPTOARSetRestart - Sets the restart parameter for the TOAR
    method, in particular the proportion of basis vectors that must be kept
@@ -984,8 +958,6 @@ PetscErrorCode PEPTOARSetRestart(PEP pep,PetscReal keep)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "PEPTOARGetRestart_TOAR"
 static PetscErrorCode PEPTOARGetRestart_TOAR(PEP pep,PetscReal *keep)
 {
   PEP_TOAR *ctx = (PEP_TOAR*)pep->data;
@@ -995,8 +967,6 @@ static PetscErrorCode PEPTOARGetRestart_TOAR(PEP pep,PetscReal *keep)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "PEPTOARGetRestart"
 /*@
    PEPTOARGetRestart - Gets the restart parameter used in the TOAR method.
 
@@ -1023,8 +993,6 @@ PetscErrorCode PEPTOARGetRestart(PEP pep,PetscReal *keep)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "PEPTOARSetLocking_TOAR"
 static PetscErrorCode PEPTOARSetLocking_TOAR(PEP pep,PetscBool lock)
 {
   PEP_TOAR *ctx = (PEP_TOAR*)pep->data;
@@ -1034,8 +1002,6 @@ static PetscErrorCode PEPTOARSetLocking_TOAR(PEP pep,PetscBool lock)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "PEPTOARSetLocking"
 /*@
    PEPTOARSetLocking - Choose between locking and non-locking variants of
    the TOAR method.
@@ -1070,8 +1036,6 @@ PetscErrorCode PEPTOARSetLocking(PEP pep,PetscBool lock)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "PEPTOARGetLocking_TOAR"
 static PetscErrorCode PEPTOARGetLocking_TOAR(PEP pep,PetscBool *lock)
 {
   PEP_TOAR *ctx = (PEP_TOAR*)pep->data;
@@ -1081,8 +1045,6 @@ static PetscErrorCode PEPTOARGetLocking_TOAR(PEP pep,PetscBool *lock)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "PEPTOARGetLocking"
 /*@
    PEPTOARGetLocking - Gets the locking flag used in the TOAR method.
 
@@ -1109,8 +1071,6 @@ PetscErrorCode PEPTOARGetLocking(PEP pep,PetscBool *lock)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "PEPSetFromOptions_TOAR"
 PetscErrorCode PEPSetFromOptions_TOAR(PetscOptionItems *PetscOptionsObject,PEP pep)
 {
   PetscErrorCode ierr;
@@ -1130,8 +1090,6 @@ PetscErrorCode PEPSetFromOptions_TOAR(PetscOptionItems *PetscOptionsObject,PEP p
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "PEPView_TOAR"
 PetscErrorCode PEPView_TOAR(PEP pep,PetscViewer viewer)
 {
   PetscErrorCode ierr;
@@ -1147,8 +1105,6 @@ PetscErrorCode PEPView_TOAR(PEP pep,PetscViewer viewer)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "PEPDestroy_TOAR"
 PetscErrorCode PEPDestroy_TOAR(PEP pep)
 {
   PetscErrorCode ierr;
@@ -1164,8 +1120,6 @@ PetscErrorCode PEPDestroy_TOAR(PEP pep)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "PEPCreate_TOAR"
 PETSC_EXTERN PetscErrorCode PEPCreate_TOAR(PEP pep)
 {
   PEP_TOAR       *ctx;

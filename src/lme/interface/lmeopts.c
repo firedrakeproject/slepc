@@ -25,8 +25,6 @@
 #include <slepc/private/lmeimpl.h>   /*I "slepclme.h" I*/
 #include <petscdraw.h>
 
-#undef __FUNCT__
-#define __FUNCT__ "LMEMonitorSetFromOptions"
 /*@C
    LMEMonitorSetFromOptions - Sets a monitor function and viewer appropriate for the type
    indicated by the user.
@@ -62,8 +60,6 @@ PetscErrorCode LMEMonitorSetFromOptions(LME lme,const char name[],const char hel
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "LMESetFromOptions"
 /*@
    LMESetFromOptions - Sets LME options from the options database.
    This routine must be called before LMESetUp() if the user is to be
@@ -159,8 +155,6 @@ PetscErrorCode LMESetFromOptions(LME lme)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "LMESetProblemType"
 /*@
    LMESetProblemType - Specifies the type of matrix equation to be solved.
 
@@ -227,8 +221,6 @@ PetscErrorCode LMESetProblemType(LME lme,LMEProblemType type)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "LMEGetProblemType"
 /*@
    LMEGetProblemType - Gets the matrix equation type from the LME object.
 
@@ -253,8 +245,6 @@ PetscErrorCode LMEGetProblemType(LME lme,LMEProblemType *type)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "LMEGetTolerances"
 /*@
    LMEGetTolerances - Gets the tolerance and maximum iteration count used
    by the LME convergence tests.
@@ -284,8 +274,6 @@ PetscErrorCode LMEGetTolerances(LME lme,PetscReal *tol,PetscInt *maxits)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "LMESetTolerances"
 /*@
    LMESetTolerances - Sets the tolerance and maximum iteration count used
    by the LME convergence tests.
@@ -331,8 +319,6 @@ PetscErrorCode LMESetTolerances(LME lme,PetscReal tol,PetscInt maxits)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "LMEGetDimensions"
 /*@
    LMEGetDimensions - Gets the dimension of the subspace used by the solver.
 
@@ -357,8 +343,6 @@ PetscErrorCode LMEGetDimensions(LME lme,PetscInt *ncv)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "LMESetDimensions"
 /*@
    LMESetDimensions - Sets the dimension of the subspace to be used by the solver.
 
@@ -394,8 +378,6 @@ PetscErrorCode LMESetDimensions(LME lme,PetscInt ncv)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "LMESetErrorIfNotConverged"
 /*@
    LMESetErrorIfNotConverged - Causes LMESolve() to generate an error if the
    solver has not converged.
@@ -426,8 +408,6 @@ PetscErrorCode LMESetErrorIfNotConverged(LME lme,PetscBool flg)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "LMEGetErrorIfNotConverged"
 /*@
    LMEGetErrorIfNotConverged - Return a flag indicating whether LMESolve() will
    generate an error if the solver does not converge.
@@ -453,8 +433,6 @@ PetscErrorCode LMEGetErrorIfNotConverged(LME lme,PetscBool *flag)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "LMESetOptionsPrefix"
 /*@C
    LMESetOptionsPrefix - Sets the prefix used for searching for all
    LME options in the database.
@@ -493,8 +471,6 @@ PetscErrorCode LMESetOptionsPrefix(LME lme,const char *prefix)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "LMEAppendOptionsPrefix"
 /*@C
    LMEAppendOptionsPrefix - Appends to the prefix used for searching for all
    LME options in the database.
@@ -525,8 +501,6 @@ PetscErrorCode LMEAppendOptionsPrefix(LME lme,const char *prefix)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "LMEGetOptionsPrefix"
 /*@C
    LMEGetOptionsPrefix - Gets the prefix used for searching for all
    LME options in the database.

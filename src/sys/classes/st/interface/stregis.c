@@ -27,8 +27,6 @@ PETSC_EXTERN PetscErrorCode STCreate_Sinvert(ST);
 PETSC_EXTERN PetscErrorCode STCreate_Cayley(ST);
 PETSC_EXTERN PetscErrorCode STCreate_Precond(ST);
 
-#undef __FUNCT__
-#define __FUNCT__ "STRegisterAll"
 /*@C
    STRegisterAll - Registers all of the spectral transformations in the ST package.
 

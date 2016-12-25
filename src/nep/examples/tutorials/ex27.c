@@ -39,8 +39,6 @@ static char help[] = "Simple nonlinear eigenproblem using the NLEIGS solver.\n\n
 PetscErrorCode FormFunction(NEP,PetscScalar,Mat,Mat,void*);
 PetscErrorCode ComputeSingularities(NEP,PetscInt*,PetscScalar*,void*);
 
-#undef __FUNCT__
-#define __FUNCT__ "main"
 int main(int argc,char **argv)
 {
   NEP            nep;             /* nonlinear eigensolver context */
@@ -174,8 +172,6 @@ int main(int argc,char **argv)
 }
 
 /* ------------------------------------------------------------------- */
-#undef __FUNCT__
-#define __FUNCT__ "FormFunction"
 /*
    FormFunction - Computes Function matrix  T(lambda)
 */
@@ -221,8 +217,6 @@ PetscErrorCode FormFunction(NEP nep,PetscScalar lambda,Mat fun,Mat B,void *ctx)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "ComputeSingularities"
 /*
    ComputeSingularities - Computes maxnp points (at most) in the complex plane where
    the function T(.) is not analytic.
