@@ -18,4 +18,46 @@
 !  along with SLEPc. If not, see <http://www.gnu.org/licenses/>.
 !  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !
+      interface NEPGetEigenpair
+        subroutine NEPGetEigenpair00(a,b,c,d,e,f,z)
+          use slepcnepdef
+          NEP a
+          PetscInt b
+          PetscScalar c
+          PetscScalar d
+          Vec e
+          Vec f
+          integer z
+        end subroutine
+        subroutine NEPGetEigenpair10(a,b,c,d,e,f,z)
+          use slepcnepdef
+          NEP a
+          PetscInt b
+          PetscScalar c(*)
+          PetscScalar d
+          Vec e
+          Vec f
+          integer z
+        end subroutine
+        subroutine NEPGetEigenpair01(a,b,c,d,e,f,z)
+          use slepcnepdef
+          NEP a
+          PetscInt b
+          PetscScalar c
+          PetscScalar d(*)
+          Vec e
+          Vec f
+          integer z
+        end subroutine
+        subroutine NEPGetEigenpair11(a,b,c,d,e,f,z)
+          use slepcnepdef
+          NEP a
+          PetscInt b
+          PetscScalar c(*)
+          PetscScalar d(*)
+          Vec e
+          Vec f
+          integer z
+        end subroutine
+      end interface NEPGetEigenpair
 

@@ -24,100 +24,70 @@
 #include <slepc/private/pepimpl.h>
 
 #if defined(PETSC_HAVE_FORTRAN_CAPS)
-#define pepview_                    PEPVIEW
-#define peperrorview_               PEPERRORVIEW
-#define pepreasonview_              PEPREASONVIEW
-#define pepvaluesview_              PEPVALUESVIEW
-#define pepvectorsview_             PEPVECTORSVIEW
-#define pepsetoptionsprefix_        PEPSETOPTIONSPREFIX
-#define pepappendoptionsprefix_     PEPAPPENDOPTIONSPREFIX
-#define pepgetoptionsprefix_        PEPGETOPTIONSPREFIX
-#define pepsettype_                 PEPSETTYPE
-#define pepgettype_                 PEPGETTYPE
-#define pepmonitorall_              PEPMONITORALL
-#define pepmonitorlg_               PEPMONITORLG
-#define pepmonitorlgall_            PEPMONITORLGALL
-#define pepmonitorset_              PEPMONITORSET
-#define pepmonitorconverged_        PEPMONITORCONVERGED
-#define pepmonitorfirst_            PEPMONITORFIRST
-#define pepconvergedabsolute_       PEPCONVERGEDABSOLUTE
-#define pepconvergedrelative_       PEPCONVERGEDRELATIVE
-#define pepsetconvergencetestfunction_ PEPSETCONVERGENCETESTFUNCTION
-#define pepsetstoppingtestfunction_ PEPSETSTOPPINGTESTFUNCTION
-#define pepseteigenvaluecomparison_ PEPSETEIGENVALUECOMPARISON
-#define pepgetdimensions000_        PEPGETDIMENSIONS000
-#define pepgetdimensions100_        PEPGETDIMENSIONS100
-#define pepgetdimensions010_        PEPGETDIMENSIONS010
-#define pepgetdimensions001_        PEPGETDIMENSIONS001
-#define pepgetdimensions110_        PEPGETDIMENSIONS110
-#define pepgetdimensions011_        PEPGETDIMENSIONS011
+#define pepview_                          PEPVIEW
+#define peperrorview_                     PEPERRORVIEW
+#define pepreasonview_                    PEPREASONVIEW
+#define pepvaluesview_                    PEPVALUESVIEW
+#define pepvectorsview_                   PEPVECTORSVIEW
+#define pepsetoptionsprefix_              PEPSETOPTIONSPREFIX
+#define pepappendoptionsprefix_           PEPAPPENDOPTIONSPREFIX
+#define pepgetoptionsprefix_              PEPGETOPTIONSPREFIX
+#define pepsettype_                       PEPSETTYPE
+#define pepgettype_                       PEPGETTYPE
+#define pepmonitorall_                    PEPMONITORALL
+#define pepmonitorlg_                     PEPMONITORLG
+#define pepmonitorlgall_                  PEPMONITORLGALL
+#define pepmonitorset_                    PEPMONITORSET
+#define pepmonitorconverged_              PEPMONITORCONVERGED
+#define pepmonitorfirst_                  PEPMONITORFIRST
+#define pepconvergedabsolute_             PEPCONVERGEDABSOLUTE
+#define pepconvergedrelative_             PEPCONVERGEDRELATIVE
+#define pepsetconvergencetestfunction_    PEPSETCONVERGENCETESTFUNCTION
+#define pepsetstoppingtestfunction_       PEPSETSTOPPINGTESTFUNCTION
+#define pepseteigenvaluecomparison_       PEPSETEIGENVALUECOMPARISON
+#define pepgetdimensions000_              PEPGETDIMENSIONS000
+#define pepgetdimensions100_              PEPGETDIMENSIONS100
+#define pepgetdimensions010_              PEPGETDIMENSIONS010
+#define pepgetdimensions001_              PEPGETDIMENSIONS001
+#define pepgetdimensions110_              PEPGETDIMENSIONS110
+#define pepgetdimensions011_              PEPGETDIMENSIONS011
+#define pepgeteigenpair00_                PEPGETEIGENPAIR00
+#define pepgeteigenpair10_                PEPGETEIGENPAIR10
+#define pepgeteigenpair01_                PEPGETEIGENPAIR01
+#define pepgeteigenpair11_                PEPGETEIGENPAIR11
 #elif !defined(PETSC_HAVE_FORTRAN_UNDERSCORE)
-#define pepview_                    pepview
-#define peperrorview_               peperrorview
-#define pepreasonview_              pepreasonview
-#define pepvaluesview_              pepvaluesview
-#define pepvectorsview_             pepvectorsview
-#define pepsetoptionsprefix_        pepsetoptionsprefix
-#define pepappendoptionsprefix_     pepappendoptionsprefix
-#define pepgetoptionsprefix_        pepgetoptionsprefix
-#define pepsettype_                 pepsettype
-#define pepgettype_                 pepgettype
-#define pepmonitorall_              pepmonitorall
-#define pepmonitorlg_               pepmonitorlg
-#define pepmonitorlgall_            pepmonitorlgall
-#define pepmonitorset_              pepmonitorset
-#define pepmonitorconverged_        pepmonitorconverged
-#define pepmonitorfirst_            pepmonitorfirst
-#define pepconvergedabsolute_       pepconvergedabsolute
-#define pepconvergedrelative_       pepconvergedrelative
-#define pepsetconvergencetestfunction_ pepsetconvergencetestfunction
-#define pepsetstoppingtestfunction_ pepsetstoppingtestfunction
-#define pepseteigenvaluecomparison_ pepseteigenvaluecomparison
-#define pepgetdimensions000_        pepgetdimensions000
-#define pepgetdimensions100_        pepgetdimensions100
-#define pepgetdimensions010_        pepgetdimensions010
-#define pepgetdimensions001_        pepgetdimensions001
-#define pepgetdimensions110_        pepgetdimensions110
-#define pepgetdimensions011_        pepgetdimensions011
+#define pepview_                          pepview
+#define peperrorview_                     peperrorview
+#define pepreasonview_                    pepreasonview
+#define pepvaluesview_                    pepvaluesview
+#define pepvectorsview_                   pepvectorsview
+#define pepsetoptionsprefix_              pepsetoptionsprefix
+#define pepappendoptionsprefix_           pepappendoptionsprefix
+#define pepgetoptionsprefix_              pepgetoptionsprefix
+#define pepsettype_                       pepsettype
+#define pepgettype_                       pepgettype
+#define pepmonitorall_                    pepmonitorall
+#define pepmonitorlg_                     pepmonitorlg
+#define pepmonitorlgall_                  pepmonitorlgall
+#define pepmonitorset_                    pepmonitorset
+#define pepmonitorconverged_              pepmonitorconverged
+#define pepmonitorfirst_                  pepmonitorfirst
+#define pepconvergedabsolute_             pepconvergedabsolute
+#define pepconvergedrelative_             pepconvergedrelative
+#define pepsetconvergencetestfunction_    pepsetconvergencetestfunction
+#define pepsetstoppingtestfunction_       pepsetstoppingtestfunction
+#define pepseteigenvaluecomparison_       pepseteigenvaluecomparison
+#define pepgetdimensions000_              pepgetdimensions000
+#define pepgetdimensions100_              pepgetdimensions100
+#define pepgetdimensions010_              pepgetdimensions010
+#define pepgetdimensions001_              pepgetdimensions001
+#define pepgetdimensions110_              pepgetdimensions110
+#define pepgetdimensions011_              pepgetdimensions011
+#define pepgeteigenpair00_                pepgeteigenpair00
+#define pepgeteigenpair10_                pepgeteigenpair10
+#define pepgeteigenpair01_                pepgeteigenpair01
+#define pepgeteigenpair11_                pepgeteigenpair11
 #endif
-
-PETSC_EXTERN void PETSC_STDCALL  pepgetdimensions_(PEP *pep,PetscInt *nev,PetscInt *ncv,PetscInt *mpd, int *ierr )
-{
-  CHKFORTRANNULLINTEGER(nev);
-  CHKFORTRANNULLINTEGER(ncv);
-  CHKFORTRANNULLINTEGER(mpd);  
-  *ierr = PEPGetDimensions(*pep,nev,ncv,mpd);
-}
-
-PETSC_EXTERN void PETSC_STDCALL  pepgetdimensions000_(PEP *pep,PetscInt *nev,PetscInt *ncv,PetscInt *mpd, int *ierr )
-{
-  pepgetdimensions_(pep,nev,ncv,mpd,ierr);
-}
-
-PETSC_EXTERN void PETSC_STDCALL  pepgetdimensions100_(PEP *pep,PetscInt *nev,PetscInt *ncv,PetscInt *mpd, int *ierr )
-{
-  pepgetdimensions_(pep,nev,ncv,mpd,ierr);
-}
-
-PETSC_EXTERN void PETSC_STDCALL  pepgetdimensions010_(PEP *pep,PetscInt *nev,PetscInt *ncv,PetscInt *mpd, int *ierr )
-{
-  pepgetdimensions_(pep,nev,ncv,mpd,ierr);
-}
-
-PETSC_EXTERN void PETSC_STDCALL  pepgetdimensions001_(PEP *pep,PetscInt *nev,PetscInt *ncv,PetscInt *mpd, int *ierr )
-{
-  pepgetdimensions_(pep,nev,ncv,mpd,ierr);
-}
-
-PETSC_EXTERN void PETSC_STDCALL  pepgetdimensions110_(PEP *pep,PetscInt *nev,PetscInt *ncv,PetscInt *mpd, int *ierr )
-{
-  pepgetdimensions_(pep,nev,ncv,mpd,ierr);
-}
-
-PETSC_EXTERN void PETSC_STDCALL  pepgetdimensions011_(PEP *pep,PetscInt *nev,PetscInt *ncv,PetscInt *mpd, int *ierr )
-{
-  pepgetdimensions_(pep,nev,ncv,mpd,ierr);
-}
 
 /*
    These are not usually called from Fortran but allow Fortran users
@@ -359,5 +329,70 @@ PETSC_EXTERN void PETSC_STDCALL pepseteigenvaluecomparison_(PEP *pep,void (PETSC
   CHKFORTRANNULLOBJECT(ctx);
   *ierr = PetscObjectSetFortranCallback((PetscObject)*pep,PETSC_FORTRAN_CALLBACK_CLASS,&_cb.comparison,(PetscVoidFunction)func,ctx); if (*ierr) return;
   *ierr = PEPSetEigenvalueComparison(*pep,oureigenvaluecomparison,*pep);
+}
+
+PETSC_EXTERN void PETSC_STDCALL pepgetdimensions_(PEP *pep,PetscInt *nev,PetscInt *ncv,PetscInt *mpd,int *ierr)
+{
+  CHKFORTRANNULLINTEGER(nev);
+  CHKFORTRANNULLINTEGER(ncv);
+  CHKFORTRANNULLINTEGER(mpd);  
+  *ierr = PEPGetDimensions(*pep,nev,ncv,mpd);
+}
+
+PETSC_EXTERN void PETSC_STDCALL pepgetdimensions000_(PEP *pep,PetscInt *nev,PetscInt *ncv,PetscInt *mpd,int *ierr)
+{
+  pepgetdimensions_(pep,nev,ncv,mpd,ierr);
+}
+
+PETSC_EXTERN void PETSC_STDCALL pepgetdimensions100_(PEP *pep,PetscInt *nev,PetscInt *ncv,PetscInt *mpd,int *ierr)
+{
+  pepgetdimensions_(pep,nev,ncv,mpd,ierr);
+}
+
+PETSC_EXTERN void PETSC_STDCALL pepgetdimensions010_(PEP *pep,PetscInt *nev,PetscInt *ncv,PetscInt *mpd,int *ierr)
+{
+  pepgetdimensions_(pep,nev,ncv,mpd,ierr);
+}
+
+PETSC_EXTERN void PETSC_STDCALL pepgetdimensions001_(PEP *pep,PetscInt *nev,PetscInt *ncv,PetscInt *mpd,int *ierr)
+{
+  pepgetdimensions_(pep,nev,ncv,mpd,ierr);
+}
+
+PETSC_EXTERN void PETSC_STDCALL pepgetdimensions110_(PEP *pep,PetscInt *nev,PetscInt *ncv,PetscInt *mpd,int *ierr)
+{
+  pepgetdimensions_(pep,nev,ncv,mpd,ierr);
+}
+
+PETSC_EXTERN void PETSC_STDCALL pepgetdimensions011_(PEP *pep,PetscInt *nev,PetscInt *ncv,PetscInt *mpd,int *ierr)
+{
+  pepgetdimensions_(pep,nev,ncv,mpd,ierr);
+}
+
+PETSC_EXTERN void PETSC_STDCALL pepgeteigenpair_(PEP *pep,PetscInt *i,PetscScalar *eigr,PetscScalar *eigi,Vec *Vr,Vec *Vi,int *ierr)
+{
+  CHKFORTRANNULLOBJECTDEREFERENCE(Vr);
+  CHKFORTRANNULLOBJECTDEREFERENCE(Vi);
+  *ierr = PEPGetEigenpair(*pep,*i,eigr,eigi,*Vr,*Vi);
+}
+
+PETSC_EXTERN void PETSC_STDCALL pepgeteigenpair00_(PEP *pep,PetscInt *i,PetscScalar *eigr,PetscScalar *eigi,Vec *Vr,Vec *Vi,int *ierr)
+{
+  pepgeteigenpair_(pep,i,eigr,eigi,Vr,Vi,ierr);
+}
+
+PETSC_EXTERN void PETSC_STDCALL pepgeteigenpair10_(PEP *pep,PetscInt *i,PetscScalar *eigr,PetscScalar *eigi,Vec *Vr,Vec *Vi,int *ierr)
+{
+  pepgeteigenpair_(pep,i,eigr,eigi,Vr,Vi,ierr);
+}
+
+PETSC_EXTERN void PETSC_STDCALL pepgeteigenpair01_(PEP *pep,PetscInt *i,PetscScalar *eigr,PetscScalar *eigi,Vec *Vr,Vec *Vi,int *ierr)
+{
+  pepgeteigenpair_(pep,i,eigr,eigi,Vr,Vi,ierr);
+}
+
+PETSC_EXTERN void PETSC_STDCALL pepgeteigenpair11_(PEP *pep,PetscInt *i,PetscScalar *eigr,PetscScalar *eigi,Vec *Vr,Vec *Vi,int *ierr)
+{
+  pepgeteigenpair_(pep,i,eigr,eigi,Vr,Vi,ierr);
 }
 
