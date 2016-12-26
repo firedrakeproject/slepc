@@ -371,6 +371,8 @@ PETSC_EXTERN void PETSC_STDCALL pepgetdimensions011_(PEP *pep,PetscInt *nev,Pets
 
 PETSC_EXTERN void PETSC_STDCALL pepgeteigenpair_(PEP *pep,PetscInt *i,PetscScalar *eigr,PetscScalar *eigi,Vec *Vr,Vec *Vi,int *ierr)
 {
+  CHKFORTRANNULLSCALAR(eigr);
+  CHKFORTRANNULLSCALAR(eigi);
   CHKFORTRANNULLOBJECTDEREFERENCE(Vr);
   CHKFORTRANNULLOBJECTDEREFERENCE(Vi);
   *ierr = PEPGetEigenpair(*pep,*i,eigr,eigi,*Vr,*Vi);

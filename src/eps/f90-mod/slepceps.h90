@@ -122,3 +122,30 @@
         end subroutine
       end interface EPSGetEigenpair
 
+      interface EPSGetEigenvalue
+        subroutine EPSGetEigenvalue00(a,b,c,d,z)
+          use slepcepsdef
+          EPS a
+          PetscInt b
+          PetscScalar c
+          PetscScalar d
+          integer z
+        end subroutine
+        subroutine EPSGetEigenvalue10(a,b,c,d,z)
+          use slepcepsdef
+          EPS a
+          PetscInt b
+          PetscScalar c(*)
+          PetscScalar d
+          integer z
+        end subroutine
+        subroutine EPSGetEigenvalue01(a,b,c,d,z)
+          use slepcepsdef
+          EPS a
+          PetscInt b
+          PetscScalar c
+          PetscScalar d(*)
+          integer z
+        end subroutine
+      end interface EPSGetEigenvalue
+

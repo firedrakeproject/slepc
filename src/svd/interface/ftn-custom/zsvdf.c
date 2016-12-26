@@ -351,6 +351,7 @@ PETSC_EXTERN void PETSC_STDCALL svdgetdimensions011_(SVD *svd,PetscInt *nev,Pets
 
 PETSC_EXTERN void PETSC_STDCALL svdgetsingulartriplet_(SVD *svd,PetscInt *i,PetscReal *sigma,Vec *u,Vec *v,int *ierr)
 {
+  CHKFORTRANNULLREAL(sigma);
   CHKFORTRANNULLOBJECTDEREFERENCE(u);
   CHKFORTRANNULLOBJECTDEREFERENCE(v);
   *ierr = SVDGetSingularTriplet(*svd,*i,sigma,*u,*v);

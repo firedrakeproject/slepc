@@ -64,6 +64,10 @@
 #define epsgeteigenpair10_                EPSGETEIGENPAIR10
 #define epsgeteigenpair01_                EPSGETEIGENPAIR01
 #define epsgeteigenpair11_                EPSGETEIGENPAIR11
+#define epsgeteigenvalue00_               EPSGETEIGENVALUE00
+#define epsgeteigenvalue10_               EPSGETEIGENVALUE10
+#define epsgeteigenvalue01_               EPSGETEIGENVALUE01
+#define epsgeteigenvector_                EPSGETEIGENVECTOR
 #elif !defined(PETSC_HAVE_FORTRAN_UNDERSCORE)
 #define epsview_                          epsview
 #define epserrorview_                     epserrorview
@@ -105,6 +109,10 @@
 #define epsgeteigenpair10_                epsgeteigenpair10
 #define epsgeteigenpair01_                epsgeteigenpair01
 #define epsgeteigenpair11_                epsgeteigenpair11
+#define epsgeteigenvalue00_               epsgeteigenvalue00
+#define epsgeteigenvalue10_               epsgeteigenvalue10
+#define epsgeteigenvalue01_               epsgeteigenvalue01
+#define epsgeteigenvector_                epsgeteigenvector
 #endif
 
 /*
@@ -461,6 +469,8 @@ PETSC_EXTERN void PETSC_STDCALL epssetoperators_(EPS *eps,Mat *A,Mat *B,int *ier
 
 PETSC_EXTERN void PETSC_STDCALL epsgeteigenpair_(EPS *eps,PetscInt *i,PetscScalar *eigr,PetscScalar *eigi,Vec *Vr,Vec *Vi,int *ierr)
 {
+  CHKFORTRANNULLSCALAR(eigr);
+  CHKFORTRANNULLSCALAR(eigi);
   CHKFORTRANNULLOBJECTDEREFERENCE(Vr);
   CHKFORTRANNULLOBJECTDEREFERENCE(Vi);
   *ierr = EPSGetEigenpair(*eps,*i,eigr,eigi,*Vr,*Vi);
@@ -485,3 +495,33 @@ PETSC_EXTERN void PETSC_STDCALL epsgeteigenpair11_(EPS *eps,PetscInt *i,PetscSca
 {
   epsgeteigenpair_(eps,i,eigr,eigi,Vr,Vi,ierr);
 }
+
+PETSC_EXTERN void PETSC_STDCALL epsgeteigenvalue_(EPS *eps,PetscInt *i,PetscScalar *eigr,PetscScalar *eigi,int *ierr)
+{
+  CHKFORTRANNULLSCALAR(eigr);
+  CHKFORTRANNULLSCALAR(eigi);
+  *ierr = EPSGetEigenvalue(*eps,*i,eigr,eigi);
+}
+
+PETSC_EXTERN void PETSC_STDCALL epsgeteigenvalue00_(EPS *eps,PetscInt *i,PetscScalar *eigr,PetscScalar *eigi,int *ierr)
+{
+  epsgeteigenvalue_(eps,i,eigr,eigi,ierr);
+}
+
+PETSC_EXTERN void PETSC_STDCALL epsgeteigenvalue10_(EPS *eps,PetscInt *i,PetscScalar *eigr,PetscScalar *eigi,int *ierr)
+{
+  epsgeteigenvalue_(eps,i,eigr,eigi,ierr);
+}
+
+PETSC_EXTERN void PETSC_STDCALL epsgeteigenvalue01_(EPS *eps,PetscInt *i,PetscScalar *eigr,PetscScalar *eigi,int *ierr)
+{
+  epsgeteigenvalue_(eps,i,eigr,eigi,ierr);
+}
+
+PETSC_EXTERN void PETSC_STDCALL epsgeteigenvector_(EPS *eps,PetscInt *i,Vec *Vr,Vec *Vi,int *ierr)
+{
+  CHKFORTRANNULLOBJECTDEREFERENCE(Vr);
+  CHKFORTRANNULLOBJECTDEREFERENCE(Vi);
+  *ierr = EPSGetEigenvector(*eps,*i,*Vr,*Vi);
+}
+

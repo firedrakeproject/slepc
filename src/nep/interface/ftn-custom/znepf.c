@@ -321,6 +321,8 @@ PETSC_EXTERN void PETSC_STDCALL nepseteigenvaluecomparison_(NEP *nep,void (PETSC
 
 PETSC_EXTERN void PETSC_STDCALL nepgeteigenpair_(NEP *nep,PetscInt *i,PetscScalar *eigr,PetscScalar *eigi,Vec *Vr,Vec *Vi,int *ierr)
 {
+  CHKFORTRANNULLSCALAR(eigr);
+  CHKFORTRANNULLSCALAR(eigi);
   CHKFORTRANNULLOBJECTDEREFERENCE(Vr);
   CHKFORTRANNULLOBJECTDEREFERENCE(Vi);
   *ierr = NEPGetEigenpair(*nep,*i,eigr,eigi,*Vr,*Vi);
