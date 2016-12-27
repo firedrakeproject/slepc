@@ -18,4 +18,27 @@
 !  along with SLEPc. If not, see <http://www.gnu.org/licenses/>.
 !  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !
+      interface MFNGetTolerances
+        subroutine MFNGetTolerances00(a,b,c,z)
+          use slepcmfndef
+          MFN a
+          PetscReal b
+          PetscInt c
+          integer z
+        end subroutine
+        subroutine MFNGetTolerances10(a,b,c,z)
+          use slepcmfndef
+          MFN a
+          PetscReal b(*)
+          PetscInt c
+          integer z
+        end subroutine
+        subroutine MFNGetTolerances01(a,b,c,z)
+          use slepcmfndef
+          MFN a
+          PetscReal b
+          PetscInt c(*)
+          integer z
+        end subroutine
+      end interface MFNGetTolerances
 

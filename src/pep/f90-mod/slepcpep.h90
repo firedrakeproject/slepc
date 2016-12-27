@@ -112,3 +112,27 @@
         end subroutine
       end interface PEPGetEigenpair
 
+      interface PEPGetTolerances
+        subroutine PEPGetTolerances00(a,b,c,z)
+          use slepcpepdef
+          PEP a
+          PetscReal b
+          PetscInt c
+          integer z
+        end subroutine
+        subroutine PEPGetTolerances10(a,b,c,z)
+          use slepcpepdef
+          PEP a
+          PetscReal b(*)
+          PetscInt c
+          integer z
+        end subroutine
+        subroutine PEPGetTolerances01(a,b,c,z)
+          use slepcpepdef
+          PEP a
+          PetscReal b
+          PetscInt c(*)
+          integer z
+        end subroutine
+      end interface PEPGetTolerances
+

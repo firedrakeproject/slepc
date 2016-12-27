@@ -24,63 +24,69 @@
 #include <slepcsvd.h>
 
 #if defined(PETSC_HAVE_FORTRAN_CAPS)
-#define svdmonitorall_               SVDMONITORALL
-#define svdmonitorlg_                SVDMONITORLG
-#define svdmonitorlgall_             SVDMONITORLGALL
-#define svdmonitorconverged_         SVDMONITORCONVERGED
-#define svdmonitorfirst_             SVDMONITORFIRST
-#define svdview_                     SVDVIEW
-#define svderrorview_                SVDERRORVIEW
-#define svdreasonview_               SVDREASONVIEW
-#define svdvaluesview_               SVDVALUESVIEW
-#define svdvectorsview_              SVDVECTORSVIEW
-#define svdsettype_                  SVDSETTYPE
-#define svdgettype_                  SVDGETTYPE
-#define svdmonitorset_               SVDMONITORSET
-#define svdsetoptionsprefix_         SVDSETOPTIONSPREFIX
-#define svdappendoptionsprefix_      SVDAPPENDOPTIONSPREFIX
-#define svdgetoptionsprefix_         SVDGETOPTIONSPREFIX
-#define svdconvergedabsolute_        SVDCONVERGEDABSOLUTE
-#define svdconvergedrelative_        SVDCONVERGEDRELATIVE
-#define svdsetconvergencetestfunction_ SVDSETCONVERGENCETESTFUNCTION
-#define svdsetstoppingtestfunction_  SVDSETSTOPPINGTESTFUNCTION
-#define svdgetdimensions000_         SVDGETDIMENSIONS000
-#define svdgetdimensions100_         SVDGETDIMENSIONS100
-#define svdgetdimensions010_         SVDGETDIMENSIONS010
-#define svdgetdimensions001_         SVDGETDIMENSIONS001
-#define svdgetdimensions110_         SVDGETDIMENSIONS110
-#define svdgetdimensions011_         SVDGETDIMENSIONS011
-#define svdgetsingulartriplet0_       SVDGETSINGULARTRIPLET0
-#define svdgetsingulartriplet1_       SVDGETSINGULARTRIPLET1
+#define svdmonitorall_                    SVDMONITORALL
+#define svdmonitorlg_                     SVDMONITORLG
+#define svdmonitorlgall_                  SVDMONITORLGALL
+#define svdmonitorconverged_              SVDMONITORCONVERGED
+#define svdmonitorfirst_                  SVDMONITORFIRST
+#define svdview_                          SVDVIEW
+#define svderrorview_                     SVDERRORVIEW
+#define svdreasonview_                    SVDREASONVIEW
+#define svdvaluesview_                    SVDVALUESVIEW
+#define svdvectorsview_                   SVDVECTORSVIEW
+#define svdsettype_                       SVDSETTYPE
+#define svdgettype_                       SVDGETTYPE
+#define svdmonitorset_                    SVDMONITORSET
+#define svdsetoptionsprefix_              SVDSETOPTIONSPREFIX
+#define svdappendoptionsprefix_           SVDAPPENDOPTIONSPREFIX
+#define svdgetoptionsprefix_              SVDGETOPTIONSPREFIX
+#define svdconvergedabsolute_             SVDCONVERGEDABSOLUTE
+#define svdconvergedrelative_             SVDCONVERGEDRELATIVE
+#define svdsetconvergencetestfunction_    SVDSETCONVERGENCETESTFUNCTION
+#define svdsetstoppingtestfunction_       SVDSETSTOPPINGTESTFUNCTION
+#define svdgetdimensions000_              SVDGETDIMENSIONS000
+#define svdgetdimensions100_              SVDGETDIMENSIONS100
+#define svdgetdimensions010_              SVDGETDIMENSIONS010
+#define svdgetdimensions001_              SVDGETDIMENSIONS001
+#define svdgetdimensions110_              SVDGETDIMENSIONS110
+#define svdgetdimensions011_              SVDGETDIMENSIONS011
+#define svdgetsingulartriplet0_           SVDGETSINGULARTRIPLET0
+#define svdgetsingulartriplet1_           SVDGETSINGULARTRIPLET1
+#define svdgettolerances00_               SVDGETTOLERANCES00
+#define svdgettolerances10_               SVDGETTOLERANCES10
+#define svdgettolerances01_               SVDGETTOLERANCES01
 #elif !defined(PETSC_HAVE_FORTRAN_UNDERSCORE)
-#define svdmonitorall_               svdmonitorall
-#define svdmonitorlg_                svdmonitorlg
-#define svdmonitorlgall_             svdmonitorlgall
-#define svdmonitorconverged_         svdmonitorconverged
-#define svdmonitorfirst_             svdmonitorfirst
-#define svdview_                     svdview
-#define svderrorview_                svderrorview
-#define svdreasonview_               svdreasonview
-#define svdvaluesview_               svdvaluesview
-#define svdvectorsview_              svdvectorsview
-#define svdsettype_                  svdsettype
-#define svdgettype_                  svdgettype
-#define svdmonitorset_               svdmonitorset
-#define svdsetoptionsprefix_         svdsetoptionsprefix
-#define svdappendoptionsprefix_      svdappendoptionsprefix
-#define svdgetoptionsprefix_         svdgetoptionsprefix
-#define svdconvergedabsolute_        svdconvergedabsolute
-#define svdconvergedrelative_        svdconvergedrelative
-#define svdsetconvergencetestfunction_ svdsetconvergencetestfunction
-#define svdsetstoppingtestfunction_  svdsetstoppingtestfunction
-#define svdgetdimensions000_         svdgetdimensions000
-#define svdgetdimensions100_         svdgetdimensions100
-#define svdgetdimensions010_         svdgetdimensions010
-#define svdgetdimensions001_         svdgetdimensions001
-#define svdgetdimensions110_         svdgetdimensions110
-#define svdgetdimensions011_         svdgetdimensions011
-#define svdgetsingulartriplet0_      svdgetsingulartriplet0
-#define svdgetsingulartriplet1_      svdgetsingulartriplet1
+#define svdmonitorall_                    svdmonitorall
+#define svdmonitorlg_                     svdmonitorlg
+#define svdmonitorlgall_                  svdmonitorlgall
+#define svdmonitorconverged_              svdmonitorconverged
+#define svdmonitorfirst_                  svdmonitorfirst
+#define svdview_                          svdview
+#define svderrorview_                     svderrorview
+#define svdreasonview_                    svdreasonview
+#define svdvaluesview_                    svdvaluesview
+#define svdvectorsview_                   svdvectorsview
+#define svdsettype_                       svdsettype
+#define svdgettype_                       svdgettype
+#define svdmonitorset_                    svdmonitorset
+#define svdsetoptionsprefix_              svdsetoptionsprefix
+#define svdappendoptionsprefix_           svdappendoptionsprefix
+#define svdgetoptionsprefix_              svdgetoptionsprefix
+#define svdconvergedabsolute_             svdconvergedabsolute
+#define svdconvergedrelative_             svdconvergedrelative
+#define svdsetconvergencetestfunction_    svdsetconvergencetestfunction
+#define svdsetstoppingtestfunction_       svdsetstoppingtestfunction
+#define svdgetdimensions000_              svdgetdimensions000
+#define svdgetdimensions100_              svdgetdimensions100
+#define svdgetdimensions010_              svdgetdimensions010
+#define svdgetdimensions001_              svdgetdimensions001
+#define svdgetdimensions110_              svdgetdimensions110
+#define svdgetdimensions011_              svdgetdimensions011
+#define svdgetsingulartriplet0_           svdgetsingulartriplet0
+#define svdgetsingulartriplet1_           svdgetsingulartriplet1
+#define svdgettolerances00_               svdgettolerances00
+#define svdgettolerances10_               svdgettolerances10
+#define svdgettolerances01_               svdgettolerances01
 #endif
 
 /*
@@ -365,5 +371,27 @@ PETSC_EXTERN void PETSC_STDCALL svdgetsingulartriplet0_(SVD *svd,PetscInt *i,Pet
 PETSC_EXTERN void PETSC_STDCALL svdgetsingulartriplet1_(SVD *svd,PetscInt *i,PetscReal *sigma,Vec *u,Vec *v, int *ierr)
 {
   svdgetsingulartriplet_(svd,i,sigma,u,v,ierr);
+}
+
+PETSC_EXTERN void PETSC_STDCALL svdgettolerances_(SVD *svd,PetscReal *tol,PetscInt *maxits,int *ierr)
+{
+  CHKFORTRANNULLREAL(tol);
+  CHKFORTRANNULLINTEGER(maxits);
+  *ierr = SVDGetTolerances(*svd,tol,maxits);
+}
+
+PETSC_EXTERN void PETSC_STDCALL svdgettolerances00_(SVD *svd,PetscReal *tol,PetscInt *maxits,int *ierr)
+{
+  svdgettolerances_(svd,tol,maxits,ierr);
+}
+
+PETSC_EXTERN void PETSC_STDCALL svdgettolerances10_(SVD *svd,PetscReal *tol,PetscInt *maxits,int *ierr)
+{
+  svdgettolerances_(svd,tol,maxits,ierr);
+}
+
+PETSC_EXTERN void PETSC_STDCALL svdgettolerances01_(SVD *svd,PetscReal *tol,PetscInt *maxits,int *ierr)
+{
+  svdgettolerances_(svd,tol,maxits,ierr);
 }
 

@@ -102,3 +102,27 @@
         end subroutine
       end interface SVDGetSingularTriplet
 
+      interface SVDGetTolerances
+        subroutine SVDGetTolerances00(a,b,c,z)
+          use slepcsvddef
+          SVD a
+          PetscReal b
+          PetscInt c
+          integer z
+        end subroutine
+        subroutine SVDGetTolerances10(a,b,c,z)
+          use slepcsvddef
+          SVD a
+          PetscReal b(*)
+          PetscInt c
+          integer z
+        end subroutine
+        subroutine SVDGetTolerances01(a,b,c,z)
+          use slepcsvddef
+          SVD a
+          PetscReal b
+          PetscInt c(*)
+          integer z
+        end subroutine
+      end interface SVDGetTolerances
+

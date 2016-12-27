@@ -61,3 +61,27 @@
         end subroutine
       end interface NEPGetEigenpair
 
+      interface NEPGetTolerances
+        subroutine NEPGetTolerances00(a,b,c,z)
+          use slepcnepdef
+          NEP a
+          PetscReal b
+          PetscInt c
+          integer z
+        end subroutine
+        subroutine NEPGetTolerances10(a,b,c,z)
+          use slepcnepdef
+          NEP a
+          PetscReal b(*)
+          PetscInt c
+          integer z
+        end subroutine
+        subroutine NEPGetTolerances01(a,b,c,z)
+          use slepcnepdef
+          NEP a
+          PetscReal b
+          PetscInt c(*)
+          integer z
+        end subroutine
+      end interface NEPGetTolerances
+

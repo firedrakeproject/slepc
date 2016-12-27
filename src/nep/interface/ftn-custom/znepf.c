@@ -49,6 +49,9 @@
 #define nepgeteigenpair10_                NEPGETEIGENPAIR10
 #define nepgeteigenpair01_                NEPGETEIGENPAIR01
 #define nepgeteigenpair11_                NEPGETEIGENPAIR11
+#define nepgettolerances00_               NEPGETTOLERANCES00
+#define nepgettolerances10_               NEPGETTOLERANCES10
+#define nepgettolerances01_               NEPGETTOLERANCES01
 #elif !defined(PETSC_HAVE_FORTRAN_UNDERSCORE)
 #define nepview_                          nepview
 #define neperrorview_                     neperrorview
@@ -75,6 +78,9 @@
 #define nepgeteigenpair10_                nepgeteigenpair10
 #define nepgeteigenpair01_                nepgeteigenpair01
 #define nepgeteigenpair11_                nepgeteigenpair11
+#define nepgettolerances00_               nepgettolerances00
+#define nepgettolerances10_               nepgettolerances10
+#define nepgettolerances01_               nepgettolerances01
 #endif
 
 /*
@@ -346,5 +352,27 @@ PETSC_EXTERN void PETSC_STDCALL nepgeteigenpair01_(NEP *nep,PetscInt *i,PetscSca
 PETSC_EXTERN void PETSC_STDCALL nepgeteigenpair11_(NEP *nep,PetscInt *i,PetscScalar *eigr,PetscScalar *eigi,Vec *Vr,Vec *Vi,int *ierr)
 {
   nepgeteigenpair_(nep,i,eigr,eigi,Vr,Vi,ierr);
+}
+
+PETSC_EXTERN void PETSC_STDCALL nepgettolerances_(NEP *nep,PetscReal *tol,PetscInt *maxits,int *ierr)
+{
+  CHKFORTRANNULLREAL(tol);
+  CHKFORTRANNULLINTEGER(maxits);
+  *ierr = NEPGetTolerances(*nep,tol,maxits);
+}
+
+PETSC_EXTERN void PETSC_STDCALL nepgettolerances00_(NEP *nep,PetscReal *tol,PetscInt *maxits,int *ierr)
+{
+  nepgettolerances_(nep,tol,maxits,ierr);
+}
+
+PETSC_EXTERN void PETSC_STDCALL nepgettolerances10_(NEP *nep,PetscReal *tol,PetscInt *maxits,int *ierr)
+{
+  nepgettolerances_(nep,tol,maxits,ierr);
+}
+
+PETSC_EXTERN void PETSC_STDCALL nepgettolerances01_(NEP *nep,PetscReal *tol,PetscInt *maxits,int *ierr)
+{
+  nepgettolerances_(nep,tol,maxits,ierr);
 }
 

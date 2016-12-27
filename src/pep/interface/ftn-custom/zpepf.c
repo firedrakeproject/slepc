@@ -55,6 +55,9 @@
 #define pepgeteigenpair10_                PEPGETEIGENPAIR10
 #define pepgeteigenpair01_                PEPGETEIGENPAIR01
 #define pepgeteigenpair11_                PEPGETEIGENPAIR11
+#define pepgettolerances00_               PEPGETTOLERANCES00
+#define pepgettolerances10_               PEPGETTOLERANCES10
+#define pepgettolerances01_               PEPGETTOLERANCES01
 #elif !defined(PETSC_HAVE_FORTRAN_UNDERSCORE)
 #define pepview_                          pepview
 #define peperrorview_                     peperrorview
@@ -87,6 +90,9 @@
 #define pepgeteigenpair10_                pepgeteigenpair10
 #define pepgeteigenpair01_                pepgeteigenpair01
 #define pepgeteigenpair11_                pepgeteigenpair11
+#define pepgettolerances00_               pepgettolerances00
+#define pepgettolerances10_               pepgettolerances10
+#define pepgettolerances01_               pepgettolerances01
 #endif
 
 /*
@@ -396,5 +402,27 @@ PETSC_EXTERN void PETSC_STDCALL pepgeteigenpair01_(PEP *pep,PetscInt *i,PetscSca
 PETSC_EXTERN void PETSC_STDCALL pepgeteigenpair11_(PEP *pep,PetscInt *i,PetscScalar *eigr,PetscScalar *eigi,Vec *Vr,Vec *Vi,int *ierr)
 {
   pepgeteigenpair_(pep,i,eigr,eigi,Vr,Vi,ierr);
+}
+
+PETSC_EXTERN void PETSC_STDCALL pepgettolerances_(PEP *pep,PetscReal *tol,PetscInt *maxits,int *ierr)
+{
+  CHKFORTRANNULLREAL(tol);
+  CHKFORTRANNULLINTEGER(maxits);
+  *ierr = PEPGetTolerances(*pep,tol,maxits);
+}
+
+PETSC_EXTERN void PETSC_STDCALL pepgettolerances00_(PEP *pep,PetscReal *tol,PetscInt *maxits,int *ierr)
+{
+  pepgettolerances_(pep,tol,maxits,ierr);
+}
+
+PETSC_EXTERN void PETSC_STDCALL pepgettolerances10_(PEP *pep,PetscReal *tol,PetscInt *maxits,int *ierr)
+{
+  pepgettolerances_(pep,tol,maxits,ierr);
+}
+
+PETSC_EXTERN void PETSC_STDCALL pepgettolerances01_(PEP *pep,PetscReal *tol,PetscInt *maxits,int *ierr)
+{
+  pepgettolerances_(pep,tol,maxits,ierr);
 }
 

@@ -297,7 +297,7 @@ PetscErrorCode EPSSetFromOptions(EPS eps)
   PetscFunctionReturn(0);
 }
 
-/*@
+/*@C
    EPSGetTolerances - Gets the tolerance and maximum iteration count used
    by the EPS convergence tests.
 

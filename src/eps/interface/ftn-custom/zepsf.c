@@ -68,6 +68,9 @@
 #define epsgeteigenvalue10_               EPSGETEIGENVALUE10
 #define epsgeteigenvalue01_               EPSGETEIGENVALUE01
 #define epsgeteigenvector_                EPSGETEIGENVECTOR
+#define epsgettolerances00_               EPSGETTOLERANCES00
+#define epsgettolerances10_               EPSGETTOLERANCES10
+#define epsgettolerances01_               EPSGETTOLERANCES01
 #elif !defined(PETSC_HAVE_FORTRAN_UNDERSCORE)
 #define epsview_                          epsview
 #define epserrorview_                     epserrorview
@@ -113,6 +116,9 @@
 #define epsgeteigenvalue10_               epsgeteigenvalue10
 #define epsgeteigenvalue01_               epsgeteigenvalue01
 #define epsgeteigenvector_                epsgeteigenvector
+#define epsgettolerances00_               epsgettolerances00
+#define epsgettolerances10_               epsgettolerances10
+#define epsgettolerances01_               epsgettolerances01
 #endif
 
 /*
@@ -523,5 +529,27 @@ PETSC_EXTERN void PETSC_STDCALL epsgeteigenvector_(EPS *eps,PetscInt *i,Vec *Vr,
   CHKFORTRANNULLOBJECTDEREFERENCE(Vr);
   CHKFORTRANNULLOBJECTDEREFERENCE(Vi);
   *ierr = EPSGetEigenvector(*eps,*i,*Vr,*Vi);
+}
+
+PETSC_EXTERN void PETSC_STDCALL epsgettolerances_(EPS *eps,PetscReal *tol,PetscInt *maxits,int *ierr)
+{
+  CHKFORTRANNULLREAL(tol);
+  CHKFORTRANNULLINTEGER(maxits);
+  *ierr = EPSGetTolerances(*eps,tol,maxits);
+}
+
+PETSC_EXTERN void PETSC_STDCALL epsgettolerances00_(EPS *eps,PetscReal *tol,PetscInt *maxits,int *ierr)
+{
+  epsgettolerances_(eps,tol,maxits,ierr);
+}
+
+PETSC_EXTERN void PETSC_STDCALL epsgettolerances10_(EPS *eps,PetscReal *tol,PetscInt *maxits,int *ierr)
+{
+  epsgettolerances_(eps,tol,maxits,ierr);
+}
+
+PETSC_EXTERN void PETSC_STDCALL epsgettolerances01_(EPS *eps,PetscReal *tol,PetscInt *maxits,int *ierr)
+{
+  epsgettolerances_(eps,tol,maxits,ierr);
 }
 

@@ -149,3 +149,27 @@
         end subroutine
       end interface EPSGetEigenvalue
 
+      interface EPSGetTolerances
+        subroutine EPSGetTolerances00(a,b,c,z)
+          use slepcepsdef
+          EPS a
+          PetscReal b
+          PetscInt c
+          integer z
+        end subroutine
+        subroutine EPSGetTolerances10(a,b,c,z)
+          use slepcepsdef
+          EPS a
+          PetscReal b(*)
+          PetscInt c
+          integer z
+        end subroutine
+        subroutine EPSGetTolerances01(a,b,c,z)
+          use slepcepsdef
+          EPS a
+          PetscReal b
+          PetscInt c(*)
+          integer z
+        end subroutine
+      end interface EPSGetTolerances
+

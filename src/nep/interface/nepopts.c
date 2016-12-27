@@ -260,7 +260,7 @@ PetscErrorCode NEPSetFromOptions(NEP nep)
   PetscFunctionReturn(0);
 }
 
-/*@
+/*@C
    NEPGetTolerances - Gets the tolerance and maximum iteration count used
    by the NEP convergence tests.
 
