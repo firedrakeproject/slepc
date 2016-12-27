@@ -24,70 +24,90 @@
 #include <slepc/private/epsimpl.h>
 
 #if defined(PETSC_HAVE_FORTRAN_CAPS)
-#define epsview_                       EPSVIEW
-#define epserrorview_                  EPSERRORVIEW
-#define epsreasonview_                 EPSREASONVIEW
-#define epsvaluesview_                 EPSVALUESVIEW
-#define epsvectorsview_                EPSVECTORSVIEW
-#define epssetoptionsprefix_           EPSSETOPTIONSPREFIX
-#define epsappendoptionsprefix_        EPSAPPENDOPTIONSPREFIX
-#define epsgetoptionsprefix_           EPSGETOPTIONSPREFIX
-#define epssettype_                    EPSSETTYPE
-#define epsgettype_                    EPSGETTYPE
-#define epsmonitorall_                 EPSMONITORALL
-#define epsmonitorlg_                  EPSMONITORLG
-#define epsmonitorlgall_               EPSMONITORLGALL
-#define epsmonitorset_                 EPSMONITORSET
-#define epsmonitorconverged_           EPSMONITORCONVERGED
-#define epsmonitorfirst_               EPSMONITORFIRST
-#define epsconvergedabsolute_          EPSCONVERGEDABSOLUTE
-#define epsconvergedrelative_          EPSCONVERGEDRELATIVE
-#define epsconvergednorm_              EPSCONVERGEDNORM
-#define epssetconvergencetestfunction_ EPSSETCONVERGENCETESTFUNCTION
-#define epssetstoppingtestfunction_    EPSSETSTOPPINGTESTFUNCTION
-#define epsseteigenvaluecomparison_    EPSSETEIGENVALUECOMPARISON
-#define epssetarbitraryselection_      EPSSETARBITRARYSELECTION
-#define epskrylovschursetsubintervals_ EPSKRYLOVSCHURSETSUBINTERVALS
-#define epskrylovschurgetsubintervals_ EPSKRYLOVSCHURGETSUBINTERVALS
-#define epskrylovschurgetsubcomminfo_  EPSKRYLOVSCHURGETSUBCOMMINFO
-#define epskrylovschurgetsubcommpairs_ EPSKRYLOVSCHURGETSUBCOMMPAIRS
-#define epskrylovschurgetsubcommmats_  EPSKRYLOVSCHURGETSUBCOMMMATS
+#define epsview_                          EPSVIEW
+#define epserrorview_                     EPSERRORVIEW
+#define epsreasonview_                    EPSREASONVIEW
+#define epsvaluesview_                    EPSVALUESVIEW
+#define epsvectorsview_                   EPSVECTORSVIEW
+#define epssetoptionsprefix_              EPSSETOPTIONSPREFIX
+#define epsappendoptionsprefix_           EPSAPPENDOPTIONSPREFIX
+#define epsgetoptionsprefix_              EPSGETOPTIONSPREFIX
+#define epssettype_                       EPSSETTYPE
+#define epsgettype_                       EPSGETTYPE
+#define epsmonitorall_                    EPSMONITORALL
+#define epsmonitorlg_                     EPSMONITORLG
+#define epsmonitorlgall_                  EPSMONITORLGALL
+#define epsmonitorset_                    EPSMONITORSET
+#define epsmonitorconverged_              EPSMONITORCONVERGED
+#define epsmonitorfirst_                  EPSMONITORFIRST
+#define epsconvergedabsolute_             EPSCONVERGEDABSOLUTE
+#define epsconvergedrelative_             EPSCONVERGEDRELATIVE
+#define epsconvergednorm_                 EPSCONVERGEDNORM
+#define epssetconvergencetestfunction_    EPSSETCONVERGENCETESTFUNCTION
+#define epssetstoppingtestfunction_       EPSSETSTOPPINGTESTFUNCTION
+#define epsseteigenvaluecomparison_       EPSSETEIGENVALUECOMPARISON
+#define epssetarbitraryselection_         EPSSETARBITRARYSELECTION
+#define epskrylovschursetsubintervals_    EPSKRYLOVSCHURSETSUBINTERVALS
+#define epskrylovschurgetsubintervals_    EPSKRYLOVSCHURGETSUBINTERVALS
+#define epskrylovschurgetsubcomminfo_     EPSKRYLOVSCHURGETSUBCOMMINFO
+#define epskrylovschurgetsubcommpairs_    EPSKRYLOVSCHURGETSUBCOMMPAIRS
+#define epskrylovschurgetsubcommmats_     EPSKRYLOVSCHURGETSUBCOMMMATS
 #define epskrylovschurupdatesubcommmats_  EPSKRYLOVSCHURUPDATESUBCOMMMATS
-#define epsgetdimensions000_                 EPSGETDIMENSIONS000
-#define epsgetdimensions100_                 EPSGETDIMENSIONS100
-#define epsgetdimensions010_                 EPSGETDIMENSIONS010
-#define epsgetdimensions001_                 EPSGETDIMENSIONS001
-#define epsgetdimensions110_                 EPSGETDIMENSIONS110
-#define epsgetdimensions011_                 EPSGETDIMENSIONS011
+#define epsgetdimensions000_              EPSGETDIMENSIONS000
+#define epsgetdimensions100_              EPSGETDIMENSIONS100
+#define epsgetdimensions010_              EPSGETDIMENSIONS010
+#define epsgetdimensions001_              EPSGETDIMENSIONS001
+#define epsgetdimensions110_              EPSGETDIMENSIONS110
+#define epsgetdimensions011_              EPSGETDIMENSIONS011
+#define epsgetdimensions101_              EPSGETDIMENSIONS101
+#define epssetoperators_                  EPSSETOPERATORS
+#define epsgeteigenpair00_                EPSGETEIGENPAIR00
+#define epsgeteigenpair10_                EPSGETEIGENPAIR10
+#define epsgeteigenpair01_                EPSGETEIGENPAIR01
+#define epsgeteigenpair11_                EPSGETEIGENPAIR11
+#define epsgeteigenvalue00_               EPSGETEIGENVALUE00
+#define epsgeteigenvalue10_               EPSGETEIGENVALUE10
+#define epsgeteigenvalue01_               EPSGETEIGENVALUE01
+#define epsgeteigenvector_                EPSGETEIGENVECTOR
+#define epsgettolerances00_               EPSGETTOLERANCES00
+#define epsgettolerances10_               EPSGETTOLERANCES10
+#define epsgettolerances01_               EPSGETTOLERANCES01
+#define epsgetbalance000_                 EPSGETBALANCE000
+#define epsgetbalance100_                 EPSGETBALANCE100
+#define epsgetbalance010_                 EPSGETBALANCE010
+#define epsgetbalance001_                 EPSGETBALANCE001
+#define epsgetbalance110_                 EPSGETBALANCE110
+#define epsgetbalance011_                 EPSGETBALANCE011
+#define epsgetbalance101_                 EPSGETBALANCE101
 #elif !defined(PETSC_HAVE_FORTRAN_UNDERSCORE)
-#define epsview_                       epsview
-#define epserrorview_                  epserrorview
-#define epsreasonview_                 epsreasonview
-#define epsvaluesview_                 epsvaluesview
-#define epsvectorsview_                epsvectorsview
-#define epssetoptionsprefix_           epssetoptionsprefix
-#define epsappendoptionsprefix_        epsappendoptionsprefix
-#define epsgetoptionsprefix_           epsgetoptionsprefix
-#define epssettype_                    epssettype
-#define epsgettype_                    epsgettype
-#define epsmonitorall_                 epsmonitorall
-#define epsmonitorlg_                  epsmonitorlg
-#define epsmonitorlgall_               epsmonitorlgall
-#define epsmonitorset_                 epsmonitorset
-#define epsmonitorconverged_           epsmonitorconverged
-#define epsmonitorfirst_               epsmonitorfirst
-#define epsconvergedabsolute_          epsconvergedabsolute
-#define epsconvergedrelative_          epsconvergedrelative
-#define epsconvergednorm_              epsconvergednorm
-#define epssetconvergencetestfunction_ epssetconvergencetestfunction
-#define epssetstoppingtestfunction_    epssetstoppingtestfunction
-#define epsseteigenvaluecomparison_    epsseteigenvaluecomparison
-#define epssetarbitraryselection_      epssetarbitraryselection
-#define epskrylovschursetsubintervals_ epskrylovschursetsubintervals
-#define epskrylovschurgetsubintervals_ epskrylovschurgetsubintervals
-#define epskrylovschurgetsubcomminfo_  epskrylovschurgetsubcomminfo
-#define epskrylovschurgetsubcommpairs_ epskrylovschurgetsubcommpairs
-#define epskrylovschurgetsubcommmats_  epskrylovschurgetsubcommmats
+#define epsview_                          epsview
+#define epserrorview_                     epserrorview
+#define epsreasonview_                    epsreasonview
+#define epsvaluesview_                    epsvaluesview
+#define epsvectorsview_                   epsvectorsview
+#define epssetoptionsprefix_              epssetoptionsprefix
+#define epsappendoptionsprefix_           epsappendoptionsprefix
+#define epsgetoptionsprefix_              epsgetoptionsprefix
+#define epssettype_                       epssettype
+#define epsgettype_                       epsgettype
+#define epsmonitorall_                    epsmonitorall
+#define epsmonitorlg_                     epsmonitorlg
+#define epsmonitorlgall_                  epsmonitorlgall
+#define epsmonitorset_                    epsmonitorset
+#define epsmonitorconverged_              epsmonitorconverged
+#define epsmonitorfirst_                  epsmonitorfirst
+#define epsconvergedabsolute_             epsconvergedabsolute
+#define epsconvergedrelative_             epsconvergedrelative
+#define epsconvergednorm_                 epsconvergednorm
+#define epssetconvergencetestfunction_    epssetconvergencetestfunction
+#define epssetstoppingtestfunction_       epssetstoppingtestfunction
+#define epsseteigenvaluecomparison_       epsseteigenvaluecomparison
+#define epssetarbitraryselection_         epssetarbitraryselection
+#define epskrylovschursetsubintervals_    epskrylovschursetsubintervals
+#define epskrylovschurgetsubintervals_    epskrylovschurgetsubintervals
+#define epskrylovschurgetsubcomminfo_     epskrylovschurgetsubcomminfo
+#define epskrylovschurgetsubcommpairs_    epskrylovschurgetsubcommpairs
+#define epskrylovschurgetsubcommmats_     epskrylovschurgetsubcommmats
 #define epskrylovschurupdatesubcommmats_  epskrylovschurupdatesubcommmats
 #define epsgetdimensions000_              epsgetdimensions000
 #define epsgetdimensions100_              epsgetdimensions100
@@ -95,52 +115,27 @@
 #define epsgetdimensions001_              epsgetdimensions001
 #define epsgetdimensions110_              epsgetdimensions110
 #define epsgetdimensions011_              epsgetdimensions011
+#define epsgetdimensions101_              epsgetdimensions101
+#define epssetoperators_                  epssetoperators
+#define epsgeteigenpair00_                epsgeteigenpair00
+#define epsgeteigenpair10_                epsgeteigenpair10
+#define epsgeteigenpair01_                epsgeteigenpair01
+#define epsgeteigenpair11_                epsgeteigenpair11
+#define epsgeteigenvalue00_               epsgeteigenvalue00
+#define epsgeteigenvalue10_               epsgeteigenvalue10
+#define epsgeteigenvalue01_               epsgeteigenvalue01
+#define epsgeteigenvector_                epsgeteigenvector
+#define epsgettolerances00_               epsgettolerances00
+#define epsgettolerances10_               epsgettolerances10
+#define epsgettolerances01_               epsgettolerances01
+#define epsgetbalance000_                 epsgetbalance000
+#define epsgetbalance100_                 epsgetbalance100
+#define epsgetbalance010_                 epsgetbalance010
+#define epsgetbalance001_                 epsgetbalance001
+#define epsgetbalance110_                 epsgetbalance110
+#define epsgetbalance011_                 epsgetbalance011
+#define epsgetbalance101_                 epsgetbalance101
 #endif
-
-PETSC_EXTERN void PETSC_STDCALL  epsgetdimensions_(EPS *eps,PetscInt *nev,PetscInt *ncv,PetscInt *mpd, int *ierr )
-{
-  CHKFORTRANNULLINTEGER(nev);
-  CHKFORTRANNULLINTEGER(ncv);
-  CHKFORTRANNULLINTEGER(mpd);  
-  *ierr = EPSGetDimensions(*eps,nev,ncv,mpd);
-}
-
-PETSC_EXTERN void PETSC_STDCALL  epsgetdimensions000_(EPS *eps,PetscInt *nev,PetscInt *ncv,PetscInt *mpd, int *ierr )
-{
-  epsgetdimensions_(eps,nev,ncv,mpd,ierr);
-}
-
-PETSC_EXTERN void PETSC_STDCALL  epsgetdimensions100_(EPS *eps,PetscInt *nev,PetscInt *ncv,PetscInt *mpd, int *ierr )
-{
-  epsgetdimensions_(eps,nev,ncv,mpd,ierr);
-}
-
-PETSC_EXTERN void PETSC_STDCALL  epsgetdimensions010_(EPS *eps,PetscInt *nev,PetscInt *ncv,PetscInt *mpd, int *ierr )
-{
-  epsgetdimensions_(eps,nev,ncv,mpd,ierr);
-}
-
-PETSC_EXTERN void PETSC_STDCALL  epsgetdimensions001_(EPS *eps,PetscInt *nev,PetscInt *ncv,PetscInt *mpd, int *ierr )
-{
-  epsgetdimensions_(eps,nev,ncv,mpd,ierr);
-}
-
-PETSC_EXTERN void PETSC_STDCALL  epsgetdimensions110_(EPS *eps,PetscInt *nev,PetscInt *ncv,PetscInt *mpd, int *ierr )
-{
-  epsgetdimensions_(eps,nev,ncv,mpd,ierr);
-}
-
-PETSC_EXTERN void PETSC_STDCALL  epsgetdimensions011_(EPS *eps,PetscInt *nev,PetscInt *ncv,PetscInt *mpd, int *ierr )
-{
-  epsgetdimensions_(eps,nev,ncv,mpd,ierr);
-}
-
-PETSC_EXTERN void PETSC_STDCALL  epssetoperators_(EPS *eps,Mat *A,Mat *B, int *ierr )
-{
-  CHKFORTRANNULLOBJECTDEREFERENCE(A);
-  CHKFORTRANNULLOBJECTDEREFERENCE(B);  
-  *ierr = EPSSetOperators(*eps,*A,*B);
-}
 
 /*
    These are not usually called from Fortran but allow Fortran users
@@ -447,5 +442,178 @@ PETSC_EXTERN void PETSC_STDCALL epskrylovschurupdatesubcommmats_(EPS *eps,PetscS
   CHKFORTRANNULLOBJECTDEREFERENCE(Au);
   CHKFORTRANNULLOBJECTDEREFERENCE(Bu);
   *ierr = EPSKrylovSchurUpdateSubcommMats(*eps,*s,*a,*Au,*t,*b,*Bu,*str,*globalup);
+}
+
+PETSC_EXTERN void PETSC_STDCALL epsgetdimensions_(EPS *eps,PetscInt *nev,PetscInt *ncv,PetscInt *mpd,int *ierr)
+{
+  CHKFORTRANNULLINTEGER(nev);
+  CHKFORTRANNULLINTEGER(ncv);
+  CHKFORTRANNULLINTEGER(mpd);  
+  *ierr = EPSGetDimensions(*eps,nev,ncv,mpd);
+}
+
+PETSC_EXTERN void PETSC_STDCALL epsgetdimensions000_(EPS *eps,PetscInt *nev,PetscInt *ncv,PetscInt *mpd,int *ierr)
+{
+  epsgetdimensions_(eps,nev,ncv,mpd,ierr);
+}
+
+PETSC_EXTERN void PETSC_STDCALL epsgetdimensions100_(EPS *eps,PetscInt *nev,PetscInt *ncv,PetscInt *mpd,int *ierr)
+{
+  epsgetdimensions_(eps,nev,ncv,mpd,ierr);
+}
+
+PETSC_EXTERN void PETSC_STDCALL epsgetdimensions010_(EPS *eps,PetscInt *nev,PetscInt *ncv,PetscInt *mpd,int *ierr)
+{
+  epsgetdimensions_(eps,nev,ncv,mpd,ierr);
+}
+
+PETSC_EXTERN void PETSC_STDCALL epsgetdimensions001_(EPS *eps,PetscInt *nev,PetscInt *ncv,PetscInt *mpd,int *ierr)
+{
+  epsgetdimensions_(eps,nev,ncv,mpd,ierr);
+}
+
+PETSC_EXTERN void PETSC_STDCALL epsgetdimensions110_(EPS *eps,PetscInt *nev,PetscInt *ncv,PetscInt *mpd,int *ierr)
+{
+  epsgetdimensions_(eps,nev,ncv,mpd,ierr);
+}
+
+PETSC_EXTERN void PETSC_STDCALL epsgetdimensions011_(EPS *eps,PetscInt *nev,PetscInt *ncv,PetscInt *mpd,int *ierr)
+{
+  epsgetdimensions_(eps,nev,ncv,mpd,ierr);
+}
+
+PETSC_EXTERN void PETSC_STDCALL epsgetdimensions101_(EPS *eps,PetscInt *nev,PetscInt *ncv,PetscInt *mpd,int *ierr)
+{
+  epsgetdimensions_(eps,nev,ncv,mpd,ierr);
+}
+
+PETSC_EXTERN void PETSC_STDCALL epssetoperators_(EPS *eps,Mat *A,Mat *B,int *ierr)
+{
+  CHKFORTRANNULLOBJECTDEREFERENCE(A);
+  CHKFORTRANNULLOBJECTDEREFERENCE(B);  
+  *ierr = EPSSetOperators(*eps,*A,*B);
+}
+
+PETSC_EXTERN void PETSC_STDCALL epsgeteigenpair_(EPS *eps,PetscInt *i,PetscScalar *eigr,PetscScalar *eigi,Vec *Vr,Vec *Vi,int *ierr)
+{
+  CHKFORTRANNULLSCALAR(eigr);
+  CHKFORTRANNULLSCALAR(eigi);
+  CHKFORTRANNULLOBJECTDEREFERENCE(Vr);
+  CHKFORTRANNULLOBJECTDEREFERENCE(Vi);
+  *ierr = EPSGetEigenpair(*eps,*i,eigr,eigi,*Vr,*Vi);
+}
+
+PETSC_EXTERN void PETSC_STDCALL epsgeteigenpair00_(EPS *eps,PetscInt *i,PetscScalar *eigr,PetscScalar *eigi,Vec *Vr,Vec *Vi,int *ierr)
+{
+  epsgeteigenpair_(eps,i,eigr,eigi,Vr,Vi,ierr);
+}
+
+PETSC_EXTERN void PETSC_STDCALL epsgeteigenpair10_(EPS *eps,PetscInt *i,PetscScalar *eigr,PetscScalar *eigi,Vec *Vr,Vec *Vi,int *ierr)
+{
+  epsgeteigenpair_(eps,i,eigr,eigi,Vr,Vi,ierr);
+}
+
+PETSC_EXTERN void PETSC_STDCALL epsgeteigenpair01_(EPS *eps,PetscInt *i,PetscScalar *eigr,PetscScalar *eigi,Vec *Vr,Vec *Vi,int *ierr)
+{
+  epsgeteigenpair_(eps,i,eigr,eigi,Vr,Vi,ierr);
+}
+
+PETSC_EXTERN void PETSC_STDCALL epsgeteigenpair11_(EPS *eps,PetscInt *i,PetscScalar *eigr,PetscScalar *eigi,Vec *Vr,Vec *Vi,int *ierr)
+{
+  epsgeteigenpair_(eps,i,eigr,eigi,Vr,Vi,ierr);
+}
+
+PETSC_EXTERN void PETSC_STDCALL epsgeteigenvalue_(EPS *eps,PetscInt *i,PetscScalar *eigr,PetscScalar *eigi,int *ierr)
+{
+  CHKFORTRANNULLSCALAR(eigr);
+  CHKFORTRANNULLSCALAR(eigi);
+  *ierr = EPSGetEigenvalue(*eps,*i,eigr,eigi);
+}
+
+PETSC_EXTERN void PETSC_STDCALL epsgeteigenvalue00_(EPS *eps,PetscInt *i,PetscScalar *eigr,PetscScalar *eigi,int *ierr)
+{
+  epsgeteigenvalue_(eps,i,eigr,eigi,ierr);
+}
+
+PETSC_EXTERN void PETSC_STDCALL epsgeteigenvalue10_(EPS *eps,PetscInt *i,PetscScalar *eigr,PetscScalar *eigi,int *ierr)
+{
+  epsgeteigenvalue_(eps,i,eigr,eigi,ierr);
+}
+
+PETSC_EXTERN void PETSC_STDCALL epsgeteigenvalue01_(EPS *eps,PetscInt *i,PetscScalar *eigr,PetscScalar *eigi,int *ierr)
+{
+  epsgeteigenvalue_(eps,i,eigr,eigi,ierr);
+}
+
+PETSC_EXTERN void PETSC_STDCALL epsgeteigenvector_(EPS *eps,PetscInt *i,Vec *Vr,Vec *Vi,int *ierr)
+{
+  CHKFORTRANNULLOBJECTDEREFERENCE(Vr);
+  CHKFORTRANNULLOBJECTDEREFERENCE(Vi);
+  *ierr = EPSGetEigenvector(*eps,*i,*Vr,*Vi);
+}
+
+PETSC_EXTERN void PETSC_STDCALL epsgettolerances_(EPS *eps,PetscReal *tol,PetscInt *maxits,int *ierr)
+{
+  CHKFORTRANNULLREAL(tol);
+  CHKFORTRANNULLINTEGER(maxits);
+  *ierr = EPSGetTolerances(*eps,tol,maxits);
+}
+
+PETSC_EXTERN void PETSC_STDCALL epsgettolerances00_(EPS *eps,PetscReal *tol,PetscInt *maxits,int *ierr)
+{
+  epsgettolerances_(eps,tol,maxits,ierr);
+}
+
+PETSC_EXTERN void PETSC_STDCALL epsgettolerances10_(EPS *eps,PetscReal *tol,PetscInt *maxits,int *ierr)
+{
+  epsgettolerances_(eps,tol,maxits,ierr);
+}
+
+PETSC_EXTERN void PETSC_STDCALL epsgettolerances01_(EPS *eps,PetscReal *tol,PetscInt *maxits,int *ierr)
+{
+  epsgettolerances_(eps,tol,maxits,ierr);
+}
+
+PETSC_EXTERN void PETSC_STDCALL epsgetbalance_(EPS *eps,EPSBalance *bal,PetscInt *its,PetscReal *cutoff,int *ierr)
+{
+  CHKFORTRANNULLINTEGER(bal);
+  CHKFORTRANNULLINTEGER(its);
+  CHKFORTRANNULLREAL(cutoff);  
+  *ierr = EPSGetBalance(*eps,bal,its,cutoff);
+}
+
+PETSC_EXTERN void PETSC_STDCALL epsgetbalance000_(EPS *eps,EPSBalance *bal,PetscInt *its,PetscReal *cutoff,int *ierr)
+{
+  epsgetbalance_(eps,bal,its,cutoff,ierr);
+}
+
+PETSC_EXTERN void PETSC_STDCALL epsgetbalance100_(EPS *eps,EPSBalance *bal,PetscInt *its,PetscReal *cutoff,int *ierr)
+{
+  epsgetbalance_(eps,bal,its,cutoff,ierr);
+}
+
+PETSC_EXTERN void PETSC_STDCALL epsgetbalance010_(EPS *eps,EPSBalance *bal,PetscInt *its,PetscReal *cutoff,int *ierr)
+{
+  epsgetbalance_(eps,bal,its,cutoff,ierr);
+}
+
+PETSC_EXTERN void PETSC_STDCALL epsgetbalance001_(EPS *eps,EPSBalance *bal,PetscInt *its,PetscReal *cutoff,int *ierr)
+{
+  epsgetbalance_(eps,bal,its,cutoff,ierr);
+}
+
+PETSC_EXTERN void PETSC_STDCALL epsgetbalance110_(EPS *eps,EPSBalance *bal,PetscInt *its,PetscReal *cutoff,int *ierr)
+{
+  epsgetbalance_(eps,bal,its,cutoff,ierr);
+}
+
+PETSC_EXTERN void PETSC_STDCALL epsgetbalance011_(EPS *eps,EPSBalance *bal,PetscInt *its,PetscReal *cutoff,int *ierr)
+{
+  epsgetbalance_(eps,bal,its,cutoff,ierr);
+}
+
+PETSC_EXTERN void PETSC_STDCALL epsgetbalance101_(EPS *eps,EPSBalance *bal,PetscInt *its,PetscReal *cutoff,int *ierr)
+{
+  epsgetbalance_(eps,bal,its,cutoff,ierr);
 }
 

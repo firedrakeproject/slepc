@@ -283,7 +283,7 @@ PetscErrorCode PEPSetFromOptions(PEP pep)
   PetscFunctionReturn(0);
 }
 
-/*@
+/*@C
    PEPGetTolerances - Gets the tolerance and maximum iteration count used
    by the PEP convergence tests.
 

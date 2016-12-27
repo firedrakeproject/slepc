@@ -23,27 +23,33 @@
 #include <slepc/private/lmeimpl.h>
 
 #if defined(PETSC_HAVE_FORTRAN_CAPS)
-#define lmeview_                    LMEVIEW
-#define lmereasonview_              LMEREASONVIEW
-#define lmesetoptionsprefix_        LMESETOPTIONSPREFIX
-#define lmeappendoptionsprefix_     LMEAPPENDOPTIONSPREFIX
-#define lmegetoptionsprefix_        LMEGETOPTIONSPREFIX
-#define lmesettype_                 LMESETTYPE
-#define lmegettype_                 LMEGETTYPE
-#define lmemonitordefault_          LMEMONITORDEFAULT
-#define lmemonitorlg_               LMEMONITORLG
-#define lmemonitorset_              LMEMONITORSET
+#define lmeview_                          LMEVIEW
+#define lmereasonview_                    LMEREASONVIEW
+#define lmesetoptionsprefix_              LMESETOPTIONSPREFIX
+#define lmeappendoptionsprefix_           LMEAPPENDOPTIONSPREFIX
+#define lmegetoptionsprefix_              LMEGETOPTIONSPREFIX
+#define lmesettype_                       LMESETTYPE
+#define lmegettype_                       LMEGETTYPE
+#define lmemonitordefault_                LMEMONITORDEFAULT
+#define lmemonitorlg_                     LMEMONITORLG
+#define lmemonitorset_                    LMEMONITORSET
+#define lmegettolerances00_               LMEGETTOLERANCES00
+#define lmegettolerances10_               LMEGETTOLERANCES10
+#define lmegettolerances01_               LMEGETTOLERANCES01
 #elif !defined(PETSC_HAVE_FORTRAN_UNDERSCORE)
-#define lmeview_                    lmeview
-#define lmereasonview_              lmereasonview
-#define lmesetoptionsprefix_        lmesetoptionsprefix
-#define lmeappendoptionsprefix_     lmeappendoptionsprefix
-#define lmegetoptionsprefix_        lmegetoptionsprefix
-#define lmesettype_                 lmesettype
-#define lmegettype_                 lmegettype
-#define lmemonitordefault_          lmemonitordefault
-#define lmemonitorlg_               lmemonitorlg
-#define lmemonitorset_              lmemonitorset
+#define lmeview_                          lmeview
+#define lmereasonview_                    lmereasonview
+#define lmesetoptionsprefix_              lmesetoptionsprefix
+#define lmeappendoptionsprefix_           lmeappendoptionsprefix
+#define lmegetoptionsprefix_              lmegetoptionsprefix
+#define lmesettype_                       lmesettype
+#define lmegettype_                       lmegettype
+#define lmemonitordefault_                lmemonitordefault
+#define lmemonitorlg_                     lmemonitorlg
+#define lmemonitorset_                    lmemonitorset
+#define lmegettolerances00_               lmegettolerances00
+#define lmegettolerances10_               lmegettolerances10
+#define lmegettolerances01_               lmegettolerances01
 #endif
 
 /*
@@ -153,5 +159,27 @@ PETSC_EXTERN void PETSC_STDCALL lmemonitorset_(LME *lme,void (PETSC_STDCALL *mon
       *ierr = LMEMonitorSet(*lme,ourmonitor,*lme,ourdestroy);
     }
   }
+}
+
+PETSC_EXTERN void PETSC_STDCALL lmegettolerances_(LME *lme,PetscReal *tol,PetscInt *maxits,int *ierr)
+{
+  CHKFORTRANNULLREAL(tol);
+  CHKFORTRANNULLINTEGER(maxits);
+  *ierr = LMEGetTolerances(*lme,tol,maxits);
+}
+
+PETSC_EXTERN void PETSC_STDCALL lmegettolerances00_(LME *lme,PetscReal *tol,PetscInt *maxits,int *ierr)
+{
+  lmegettolerances_(lme,tol,maxits,ierr);
+}
+
+PETSC_EXTERN void PETSC_STDCALL lmegettolerances10_(LME *lme,PetscReal *tol,PetscInt *maxits,int *ierr)
+{
+  lmegettolerances_(lme,tol,maxits,ierr);
+}
+
+PETSC_EXTERN void PETSC_STDCALL lmegettolerances01_(LME *lme,PetscReal *tol,PetscInt *maxits,int *ierr)
+{
+  lmegettolerances_(lme,tol,maxits,ierr);
 }
 

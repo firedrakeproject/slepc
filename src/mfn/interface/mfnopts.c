@@ -144,7 +144,7 @@ PetscErrorCode MFNSetFromOptions(MFN mfn)
   PetscFunctionReturn(0);
 }
 
-/*@
+/*@C
    MFNGetTolerances - Gets the tolerance and maximum iteration count used
    by the MFN convergence tests.
 

@@ -24,49 +24,63 @@
 #include <slepc/private/nepimpl.h>
 
 #if defined(PETSC_HAVE_FORTRAN_CAPS)
-#define nepview_                    NEPVIEW
-#define neperrorview_               NEPERRORVIEW
-#define nepreasonview_              NEPREASONVIEW
-#define nepvaluesview_              NEPVALUESVIEW
-#define nepvectorsview_             NEPVECTORSVIEW
-#define nepsetoptionsprefix_        NEPSETOPTIONSPREFIX
-#define nepappendoptionsprefix_     NEPAPPENDOPTIONSPREFIX
-#define nepgetoptionsprefix_        NEPGETOPTIONSPREFIX
-#define nepsettype_                 NEPSETTYPE
-#define nepgettype_                 NEPGETTYPE
-#define nepmonitorall_              NEPMONITORALL
-#define nepmonitorlg_               NEPMONITORLG
-#define nepmonitorlgall_            NEPMONITORLGALL
-#define nepmonitorset_              NEPMONITORSET
-#define nepmonitorconverged_        NEPMONITORCONVERGED
-#define nepmonitorfirst_            NEPMONITORFIRST
-#define nepconvergedabsolute_       NEPCONVERGEDABSOLUTE
-#define nepconvergedrelative_       NEPCONVERGEDRELATIVE
-#define nepsetconvergencetestfunction_ NEPSETCONVERGENCETESTFUNCTION
-#define nepsetstoppingtestfunction_ NEPSETSTOPPINGTESTFUNCTION
-#define nepseteigenvaluecomparison_ NEPSETEIGENVALUECOMPARISON
+#define nepview_                          NEPVIEW
+#define neperrorview_                     NEPERRORVIEW
+#define nepreasonview_                    NEPREASONVIEW
+#define nepvaluesview_                    NEPVALUESVIEW
+#define nepvectorsview_                   NEPVECTORSVIEW
+#define nepsetoptionsprefix_              NEPSETOPTIONSPREFIX
+#define nepappendoptionsprefix_           NEPAPPENDOPTIONSPREFIX
+#define nepgetoptionsprefix_              NEPGETOPTIONSPREFIX
+#define nepsettype_                       NEPSETTYPE
+#define nepgettype_                       NEPGETTYPE
+#define nepmonitorall_                    NEPMONITORALL
+#define nepmonitorlg_                     NEPMONITORLG
+#define nepmonitorlgall_                  NEPMONITORLGALL
+#define nepmonitorset_                    NEPMONITORSET
+#define nepmonitorconverged_              NEPMONITORCONVERGED
+#define nepmonitorfirst_                  NEPMONITORFIRST
+#define nepconvergedabsolute_             NEPCONVERGEDABSOLUTE
+#define nepconvergedrelative_             NEPCONVERGEDRELATIVE
+#define nepsetconvergencetestfunction_    NEPSETCONVERGENCETESTFUNCTION
+#define nepsetstoppingtestfunction_       NEPSETSTOPPINGTESTFUNCTION
+#define nepseteigenvaluecomparison_       NEPSETEIGENVALUECOMPARISON
+#define nepgeteigenpair00_                NEPGETEIGENPAIR00
+#define nepgeteigenpair10_                NEPGETEIGENPAIR10
+#define nepgeteigenpair01_                NEPGETEIGENPAIR01
+#define nepgeteigenpair11_                NEPGETEIGENPAIR11
+#define nepgettolerances00_               NEPGETTOLERANCES00
+#define nepgettolerances10_               NEPGETTOLERANCES10
+#define nepgettolerances01_               NEPGETTOLERANCES01
 #elif !defined(PETSC_HAVE_FORTRAN_UNDERSCORE)
-#define nepview_                    nepview
-#define neperrorview_               neperrorview
-#define nepreasonview_              nepreasonview
-#define nepvaluesview_              nepvaluesview
-#define nepvectorsview_             nepvectorsview
-#define nepsetoptionsprefix_        nepsetoptionsprefix
-#define nepappendoptionsprefix_     nepappendoptionsprefix
-#define nepgetoptionsprefix_        nepgetoptionsprefix
-#define nepsettype_                 nepsettype
-#define nepgettype_                 nepgettype
-#define nepmonitorall_              nepmonitorall
-#define nepmonitorlg_               nepmonitorlg
-#define nepmonitorlgall_            nepmonitorlgall
-#define nepmonitorset_              nepmonitorset
-#define nepmonitorconverged_        nepmonitorconverged
-#define nepmonitorfirst_            nepmonitorfirst
-#define nepconvergedabsolute_       nepconvergedabsolute
-#define nepconvergedrelative_       nepconvergedrelative
-#define nepsetconvergencetestfunction_ nepsetconvergencetestfunction
-#define nepsetstoppingtestfunction_ nepsetstoppingtestfunction
-#define nepseteigenvaluecomparison_ nepseteigenvaluecomparison
+#define nepview_                          nepview
+#define neperrorview_                     neperrorview
+#define nepreasonview_                    nepreasonview
+#define nepvaluesview_                    nepvaluesview
+#define nepvectorsview_                   nepvectorsview
+#define nepsetoptionsprefix_              nepsetoptionsprefix
+#define nepappendoptionsprefix_           nepappendoptionsprefix
+#define nepgetoptionsprefix_              nepgetoptionsprefix
+#define nepsettype_                       nepsettype
+#define nepgettype_                       nepgettype
+#define nepmonitorall_                    nepmonitorall
+#define nepmonitorlg_                     nepmonitorlg
+#define nepmonitorlgall_                  nepmonitorlgall
+#define nepmonitorset_                    nepmonitorset
+#define nepmonitorconverged_              nepmonitorconverged
+#define nepmonitorfirst_                  nepmonitorfirst
+#define nepconvergedabsolute_             nepconvergedabsolute
+#define nepconvergedrelative_             nepconvergedrelative
+#define nepsetconvergencetestfunction_    nepsetconvergencetestfunction
+#define nepsetstoppingtestfunction_       nepsetstoppingtestfunction
+#define nepseteigenvaluecomparison_       nepseteigenvaluecomparison
+#define nepgeteigenpair00_                nepgeteigenpair00
+#define nepgeteigenpair10_                nepgeteigenpair10
+#define nepgeteigenpair01_                nepgeteigenpair01
+#define nepgeteigenpair11_                nepgeteigenpair11
+#define nepgettolerances00_               nepgettolerances00
+#define nepgettolerances10_               nepgettolerances10
+#define nepgettolerances01_               nepgettolerances01
 #endif
 
 /*
@@ -309,5 +323,56 @@ PETSC_EXTERN void PETSC_STDCALL nepseteigenvaluecomparison_(NEP *nep,void (PETSC
   CHKFORTRANNULLOBJECT(ctx);
   *ierr = PetscObjectSetFortranCallback((PetscObject)*nep,PETSC_FORTRAN_CALLBACK_CLASS,&_cb.comparison,(PetscVoidFunction)func,ctx); if (*ierr) return;
   *ierr = NEPSetEigenvalueComparison(*nep,oureigenvaluecomparison,*nep);
+}
+
+PETSC_EXTERN void PETSC_STDCALL nepgeteigenpair_(NEP *nep,PetscInt *i,PetscScalar *eigr,PetscScalar *eigi,Vec *Vr,Vec *Vi,int *ierr)
+{
+  CHKFORTRANNULLSCALAR(eigr);
+  CHKFORTRANNULLSCALAR(eigi);
+  CHKFORTRANNULLOBJECTDEREFERENCE(Vr);
+  CHKFORTRANNULLOBJECTDEREFERENCE(Vi);
+  *ierr = NEPGetEigenpair(*nep,*i,eigr,eigi,*Vr,*Vi);
+}
+
+PETSC_EXTERN void PETSC_STDCALL nepgeteigenpair00_(NEP *nep,PetscInt *i,PetscScalar *eigr,PetscScalar *eigi,Vec *Vr,Vec *Vi,int *ierr)
+{
+  nepgeteigenpair_(nep,i,eigr,eigi,Vr,Vi,ierr);
+}
+
+PETSC_EXTERN void PETSC_STDCALL nepgeteigenpair10_(NEP *nep,PetscInt *i,PetscScalar *eigr,PetscScalar *eigi,Vec *Vr,Vec *Vi,int *ierr)
+{
+  nepgeteigenpair_(nep,i,eigr,eigi,Vr,Vi,ierr);
+}
+
+PETSC_EXTERN void PETSC_STDCALL nepgeteigenpair01_(NEP *nep,PetscInt *i,PetscScalar *eigr,PetscScalar *eigi,Vec *Vr,Vec *Vi,int *ierr)
+{
+  nepgeteigenpair_(nep,i,eigr,eigi,Vr,Vi,ierr);
+}
+
+PETSC_EXTERN void PETSC_STDCALL nepgeteigenpair11_(NEP *nep,PetscInt *i,PetscScalar *eigr,PetscScalar *eigi,Vec *Vr,Vec *Vi,int *ierr)
+{
+  nepgeteigenpair_(nep,i,eigr,eigi,Vr,Vi,ierr);
+}
+
+PETSC_EXTERN void PETSC_STDCALL nepgettolerances_(NEP *nep,PetscReal *tol,PetscInt *maxits,int *ierr)
+{
+  CHKFORTRANNULLREAL(tol);
+  CHKFORTRANNULLINTEGER(maxits);
+  *ierr = NEPGetTolerances(*nep,tol,maxits);
+}
+
+PETSC_EXTERN void PETSC_STDCALL nepgettolerances00_(NEP *nep,PetscReal *tol,PetscInt *maxits,int *ierr)
+{
+  nepgettolerances_(nep,tol,maxits,ierr);
+}
+
+PETSC_EXTERN void PETSC_STDCALL nepgettolerances10_(NEP *nep,PetscReal *tol,PetscInt *maxits,int *ierr)
+{
+  nepgettolerances_(nep,tol,maxits,ierr);
+}
+
+PETSC_EXTERN void PETSC_STDCALL nepgettolerances01_(NEP *nep,PetscReal *tol,PetscInt *maxits,int *ierr)
+{
+  nepgettolerances_(nep,tol,maxits,ierr);
 }
 

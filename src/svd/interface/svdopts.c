@@ -134,7 +134,7 @@ PetscErrorCode SVDSetTolerances(SVD svd,PetscReal tol,PetscInt maxits)
   PetscFunctionReturn(0);
 }
 
-/*@
+/*@C
    SVDGetTolerances - Gets the tolerance and maximum
    iteration count used by the default SVD convergence tests.
 

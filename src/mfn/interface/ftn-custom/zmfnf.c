@@ -23,27 +23,33 @@
 #include <slepc/private/mfnimpl.h>
 
 #if defined(PETSC_HAVE_FORTRAN_CAPS)
-#define mfnview_                    MFNVIEW
-#define mfnreasonview_              MFNREASONVIEW
-#define mfnsetoptionsprefix_        MFNSETOPTIONSPREFIX
-#define mfnappendoptionsprefix_     MFNAPPENDOPTIONSPREFIX
-#define mfngetoptionsprefix_        MFNGETOPTIONSPREFIX
-#define mfnsettype_                 MFNSETTYPE
-#define mfngettype_                 MFNGETTYPE
-#define mfnmonitordefault_          MFNMONITORDEFAULT
-#define mfnmonitorlg_               MFNMONITORLG
-#define mfnmonitorset_              MFNMONITORSET
+#define mfnview_                          MFNVIEW
+#define mfnreasonview_                    MFNREASONVIEW
+#define mfnsetoptionsprefix_              MFNSETOPTIONSPREFIX
+#define mfnappendoptionsprefix_           MFNAPPENDOPTIONSPREFIX
+#define mfngetoptionsprefix_              MFNGETOPTIONSPREFIX
+#define mfnsettype_                       MFNSETTYPE
+#define mfngettype_                       MFNGETTYPE
+#define mfnmonitordefault_                MFNMONITORDEFAULT
+#define mfnmonitorlg_                     MFNMONITORLG
+#define mfnmonitorset_                    MFNMONITORSET
+#define mfngettolerances00_               MFNGETTOLERANCES00
+#define mfngettolerances10_               MFNGETTOLERANCES10
+#define mfngettolerances01_               MFNGETTOLERANCES01
 #elif !defined(PETSC_HAVE_FORTRAN_UNDERSCORE)
-#define mfnview_                    mfnview
-#define mfnreasonview_              mfnreasonview
-#define mfnsetoptionsprefix_        mfnsetoptionsprefix
-#define mfnappendoptionsprefix_     mfnappendoptionsprefix
-#define mfngetoptionsprefix_        mfngetoptionsprefix
-#define mfnsettype_                 mfnsettype
-#define mfngettype_                 mfngettype
-#define mfnmonitordefault_          mfnmonitordefault
-#define mfnmonitorlg_               mfnmonitorlg
-#define mfnmonitorset_              mfnmonitorset
+#define mfnview_                          mfnview
+#define mfnreasonview_                    mfnreasonview
+#define mfnsetoptionsprefix_              mfnsetoptionsprefix
+#define mfnappendoptionsprefix_           mfnappendoptionsprefix
+#define mfngetoptionsprefix_              mfngetoptionsprefix
+#define mfnsettype_                       mfnsettype
+#define mfngettype_                       mfngettype
+#define mfnmonitordefault_                mfnmonitordefault
+#define mfnmonitorlg_                     mfnmonitorlg
+#define mfnmonitorset_                    mfnmonitorset
+#define mfngettolerances00_               mfngettolerances00
+#define mfngettolerances10_               mfngettolerances10
+#define mfngettolerances01_               mfngettolerances01
 #endif
 
 /*
@@ -153,5 +159,27 @@ PETSC_EXTERN void PETSC_STDCALL mfnmonitorset_(MFN *mfn,void (PETSC_STDCALL *mon
       *ierr = MFNMonitorSet(*mfn,ourmonitor,*mfn,ourdestroy);
     }
   }
+}
+
+PETSC_EXTERN void PETSC_STDCALL mfngettolerances_(MFN *mfn,PetscReal *tol,PetscInt *maxits,int *ierr)
+{
+  CHKFORTRANNULLREAL(tol);
+  CHKFORTRANNULLINTEGER(maxits);
+  *ierr = MFNGetTolerances(*mfn,tol,maxits);
+}
+
+PETSC_EXTERN void PETSC_STDCALL mfngettolerances00_(MFN *mfn,PetscReal *tol,PetscInt *maxits,int *ierr)
+{
+  mfngettolerances_(mfn,tol,maxits,ierr);
+}
+
+PETSC_EXTERN void PETSC_STDCALL mfngettolerances10_(MFN *mfn,PetscReal *tol,PetscInt *maxits,int *ierr)
+{
+  mfngettolerances_(mfn,tol,maxits,ierr);
+}
+
+PETSC_EXTERN void PETSC_STDCALL mfngettolerances01_(MFN *mfn,PetscReal *tol,PetscInt *maxits,int *ierr)
+{
+  mfngettolerances_(mfn,tol,maxits,ierr);
 }
 

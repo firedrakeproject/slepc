@@ -359,7 +359,7 @@ PetscErrorCode NEPGetConvergedReason(NEP nep,NEPConvergedReason *reason)
   PetscFunctionReturn(0);
 }
 
-/*@
+/*@C
    NEPGetEigenpair - Gets the i-th solution of the eigenproblem as computed by
    NEPSolve(). The solution consists in both the eigenvalue and the eigenvector.
 
