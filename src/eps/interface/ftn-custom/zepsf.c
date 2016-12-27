@@ -72,6 +72,13 @@
 #define epsgettolerances00_               EPSGETTOLERANCES00
 #define epsgettolerances10_               EPSGETTOLERANCES10
 #define epsgettolerances01_               EPSGETTOLERANCES01
+#define epsgetbalance000_                 EPSGETBALANCE000
+#define epsgetbalance100_                 EPSGETBALANCE100
+#define epsgetbalance010_                 EPSGETBALANCE010
+#define epsgetbalance001_                 EPSGETBALANCE001
+#define epsgetbalance110_                 EPSGETBALANCE110
+#define epsgetbalance011_                 EPSGETBALANCE011
+#define epsgetbalance101_                 EPSGETBALANCE101
 #elif !defined(PETSC_HAVE_FORTRAN_UNDERSCORE)
 #define epsview_                          epsview
 #define epserrorview_                     epserrorview
@@ -121,6 +128,13 @@
 #define epsgettolerances00_               epsgettolerances00
 #define epsgettolerances10_               epsgettolerances10
 #define epsgettolerances01_               epsgettolerances01
+#define epsgetbalance000_                 epsgetbalance000
+#define epsgetbalance100_                 epsgetbalance100
+#define epsgetbalance010_                 epsgetbalance010
+#define epsgetbalance001_                 epsgetbalance001
+#define epsgetbalance110_                 epsgetbalance110
+#define epsgetbalance011_                 epsgetbalance011
+#define epsgetbalance101_                 epsgetbalance101
 #endif
 
 /*
@@ -558,5 +572,48 @@ PETSC_EXTERN void PETSC_STDCALL epsgettolerances10_(EPS *eps,PetscReal *tol,Pets
 PETSC_EXTERN void PETSC_STDCALL epsgettolerances01_(EPS *eps,PetscReal *tol,PetscInt *maxits,int *ierr)
 {
   epsgettolerances_(eps,tol,maxits,ierr);
+}
+
+PETSC_EXTERN void PETSC_STDCALL epsgetbalance_(EPS *eps,EPSBalance *bal,PetscInt *its,PetscReal *cutoff,int *ierr)
+{
+  CHKFORTRANNULLINTEGER(bal);
+  CHKFORTRANNULLINTEGER(its);
+  CHKFORTRANNULLREAL(cutoff);  
+  *ierr = EPSGetBalance(*eps,bal,its,cutoff);
+}
+
+PETSC_EXTERN void PETSC_STDCALL epsgetbalance000_(EPS *eps,EPSBalance *bal,PetscInt *its,PetscReal *cutoff,int *ierr)
+{
+  epsgetbalance_(eps,bal,its,cutoff,ierr);
+}
+
+PETSC_EXTERN void PETSC_STDCALL epsgetbalance100_(EPS *eps,EPSBalance *bal,PetscInt *its,PetscReal *cutoff,int *ierr)
+{
+  epsgetbalance_(eps,bal,its,cutoff,ierr);
+}
+
+PETSC_EXTERN void PETSC_STDCALL epsgetbalance010_(EPS *eps,EPSBalance *bal,PetscInt *its,PetscReal *cutoff,int *ierr)
+{
+  epsgetbalance_(eps,bal,its,cutoff,ierr);
+}
+
+PETSC_EXTERN void PETSC_STDCALL epsgetbalance001_(EPS *eps,EPSBalance *bal,PetscInt *its,PetscReal *cutoff,int *ierr)
+{
+  epsgetbalance_(eps,bal,its,cutoff,ierr);
+}
+
+PETSC_EXTERN void PETSC_STDCALL epsgetbalance110_(EPS *eps,EPSBalance *bal,PetscInt *its,PetscReal *cutoff,int *ierr)
+{
+  epsgetbalance_(eps,bal,its,cutoff,ierr);
+}
+
+PETSC_EXTERN void PETSC_STDCALL epsgetbalance011_(EPS *eps,EPSBalance *bal,PetscInt *its,PetscReal *cutoff,int *ierr)
+{
+  epsgetbalance_(eps,bal,its,cutoff,ierr);
+}
+
+PETSC_EXTERN void PETSC_STDCALL epsgetbalance101_(EPS *eps,EPSBalance *bal,PetscInt *its,PetscReal *cutoff,int *ierr)
+{
+  epsgetbalance_(eps,bal,its,cutoff,ierr);
 }
 

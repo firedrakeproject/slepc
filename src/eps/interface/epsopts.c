@@ -1153,7 +1153,7 @@ PetscErrorCode EPSSetBalance(EPS eps,EPSBalance bal,PetscInt its,PetscReal cutof
   PetscFunctionReturn(0);
 }
 
-/*@
+/*@C
    EPSGetBalance - Gets the balancing type used by the EPS object, and the
    associated parameters.
 
