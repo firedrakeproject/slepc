@@ -50,6 +50,7 @@
 #define svdgetdimensions001_              SVDGETDIMENSIONS001
 #define svdgetdimensions110_              SVDGETDIMENSIONS110
 #define svdgetdimensions011_              SVDGETDIMENSIONS011
+#define svdgetdimensions101_              SVDGETDIMENSIONS101
 #define svdgetsingulartriplet0_           SVDGETSINGULARTRIPLET0
 #define svdgetsingulartriplet1_           SVDGETSINGULARTRIPLET1
 #define svdgettolerances00_               SVDGETTOLERANCES00
@@ -82,6 +83,7 @@
 #define svdgetdimensions001_              svdgetdimensions001
 #define svdgetdimensions110_              svdgetdimensions110
 #define svdgetdimensions011_              svdgetdimensions011
+#define svdgetdimensions101_              svdgetdimensions101
 #define svdgetsingulartriplet0_           svdgetsingulartriplet0
 #define svdgetsingulartriplet1_           svdgetsingulartriplet1
 #define svdgettolerances00_               svdgettolerances00
@@ -351,6 +353,11 @@ PETSC_EXTERN void PETSC_STDCALL svdgetdimensions110_(SVD *svd,PetscInt *nev,Pets
 }
 
 PETSC_EXTERN void PETSC_STDCALL svdgetdimensions011_(SVD *svd,PetscInt *nev,PetscInt *ncv,PetscInt *mpd,int *ierr)
+{
+  svdgetdimensions_(svd,nev,ncv,mpd,ierr);
+}
+
+PETSC_EXTERN void PETSC_STDCALL svdgetdimensions101_(SVD *svd,PetscInt *nev,PetscInt *ncv,PetscInt *mpd,int *ierr)
 {
   svdgetdimensions_(svd,nev,ncv,mpd,ierr);
 }

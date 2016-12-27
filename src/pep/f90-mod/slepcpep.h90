@@ -67,6 +67,14 @@
           PetscInt d(*)
           integer z
         end subroutine
+        subroutine PEPGetDimensions101(a,b,c,d,z)
+        use slepcpepdef
+          PEP a
+          PetscInt b(*)
+          PetscInt c
+          PetscInt d(*)
+          integer z
+        end subroutine
         end interface PEPGetDimensions
 
       interface PEPGetEigenpair

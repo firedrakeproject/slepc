@@ -67,6 +67,14 @@
           PetscInt d(*)
           integer z
         end subroutine
+        subroutine EPSGetDimensions101(a,b,c,d,z)
+          use slepcepsdef
+          EPS a
+          PetscInt b(*)
+          PetscInt c
+          PetscInt d(*)
+          integer z
+        end subroutine
       end interface EPSGetDimensions
 
       interface

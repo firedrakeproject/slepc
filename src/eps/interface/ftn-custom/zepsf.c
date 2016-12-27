@@ -59,6 +59,7 @@
 #define epsgetdimensions001_              EPSGETDIMENSIONS001
 #define epsgetdimensions110_              EPSGETDIMENSIONS110
 #define epsgetdimensions011_              EPSGETDIMENSIONS011
+#define epsgetdimensions101_              EPSGETDIMENSIONS101
 #define epssetoperators_                  EPSSETOPERATORS
 #define epsgeteigenpair00_                EPSGETEIGENPAIR00
 #define epsgeteigenpair10_                EPSGETEIGENPAIR10
@@ -107,6 +108,7 @@
 #define epsgetdimensions001_              epsgetdimensions001
 #define epsgetdimensions110_              epsgetdimensions110
 #define epsgetdimensions011_              epsgetdimensions011
+#define epsgetdimensions101_              epsgetdimensions101
 #define epssetoperators_                  epssetoperators
 #define epsgeteigenpair00_                epsgeteigenpair00
 #define epsgeteigenpair10_                epsgeteigenpair10
@@ -462,6 +464,11 @@ PETSC_EXTERN void PETSC_STDCALL epsgetdimensions110_(EPS *eps,PetscInt *nev,Pets
 }
 
 PETSC_EXTERN void PETSC_STDCALL epsgetdimensions011_(EPS *eps,PetscInt *nev,PetscInt *ncv,PetscInt *mpd,int *ierr)
+{
+  epsgetdimensions_(eps,nev,ncv,mpd,ierr);
+}
+
+PETSC_EXTERN void PETSC_STDCALL epsgetdimensions101_(EPS *eps,PetscInt *nev,PetscInt *ncv,PetscInt *mpd,int *ierr)
 {
   epsgetdimensions_(eps,nev,ncv,mpd,ierr);
 }

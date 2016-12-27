@@ -51,6 +51,7 @@
 #define pepgetdimensions001_              PEPGETDIMENSIONS001
 #define pepgetdimensions110_              PEPGETDIMENSIONS110
 #define pepgetdimensions011_              PEPGETDIMENSIONS011
+#define pepgetdimensions101_              PEPGETDIMENSIONS101
 #define pepgeteigenpair00_                PEPGETEIGENPAIR00
 #define pepgeteigenpair10_                PEPGETEIGENPAIR10
 #define pepgeteigenpair01_                PEPGETEIGENPAIR01
@@ -86,6 +87,7 @@
 #define pepgetdimensions001_              pepgetdimensions001
 #define pepgetdimensions110_              pepgetdimensions110
 #define pepgetdimensions011_              pepgetdimensions011
+#define pepgetdimensions101_              pepgetdimensions101
 #define pepgeteigenpair00_                pepgeteigenpair00
 #define pepgeteigenpair10_                pepgeteigenpair10
 #define pepgeteigenpair01_                pepgeteigenpair01
