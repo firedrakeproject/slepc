@@ -1,4 +1,4 @@
-\begin{thebibliography}{37}
+\begin{thebibliography}{40}
 \expandafter\ifx\csname natexlab\endcsname\relax\def\natexlab#1{#1}\fi
 
 \bibitem[{Anderson {\em et~al.\/}(1992)Anderson, Bai, Bischof, Demmel,
@@ -58,13 +58,13 @@ Campos, C. and J.~E. Roman (2012).
 \bibitem[{Campos and Roman(2016{\natexlab{a}})}]{Campos:2016:PIR}
 Campos, C. and J.~E. Roman (2016{\natexlab{a}}).
 \newblock Parallel iterative refinement in polynomial eigenvalue problems.
-\newblock {\em Numer. Linear Algebra Appl.\/}, in press.
+\newblock {\em Numer. Linear Algebra Appl.\/}, 23(4):730--745.
 
 \bibitem[{Campos and Roman(2016{\natexlab{b}})}]{Campos:2016:PKS}
 Campos, C. and J.~E. Roman (2016{\natexlab{b}}).
 \newblock Parallel {Krylov} solvers for the polynomial eigenvalue problem in
   {SLEPc}.
-\newblock {\em {SIAM} J. Sci. Comput.\/}, 38(3):Cxxx--Cxxx.
+\newblock {\em {SIAM} J. Sci. Comput.\/}, 38(5):S385--S411.
 
 \bibitem[{Canning {\em et~al.\/}(2000)Canning, Wang, Williamson, and
   Zunger}]{Canning:2000:PEP}
@@ -190,7 +190,7 @@ Parlett, B.~N. (1980).
 \bibitem[{Polizzi(2009)}]{Polizzi:2009:DAS}
 Polizzi, E. (2009).
 \newblock Density-matrix-based algorithm for solving eigenvalue problems.
-\newblock {\em Phys. Rev. B\/}, 79:115112.
+\newblock {\em Phys. Rev. B\/}, 79(11):115112.
 
 \bibitem[{Romero and Roman(2014)}]{Romero:2014:PID}
 Romero, E. and J.~E. Roman (2014).
