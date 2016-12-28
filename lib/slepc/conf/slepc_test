@@ -49,7 +49,7 @@ testexamples_TRLAN: ${TESTEXAMPLES_TRLAN}
 
 slepc_alltests:
 	-@${RM} -f ${PETSC_ARCH}/lib/slepc/conf/alltests.log alltests.log
-	-@if [ x${PETSC_ARCH} != x -a -d "${PETSC_ARCH}" ]; then \
+	@if [ x${PETSC_ARCH} != x -a -d "${PETSC_ARCH}" ]; then \
             ln -s ${PETSC_ARCH}/lib/slepc/conf/alltests.log alltests.log; \
             ALLTESTSLOG=${PETSC_ARCH}/lib/slepc/conf/alltests.log; \
           else \
