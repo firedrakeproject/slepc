@@ -211,7 +211,7 @@ PETSC_EXTERN void PETSC_STDCALL pepvectorsview_(PEP *pep,PetscViewer *viewer,Pet
   *ierr = PEPVectorsView(*pep,v);
 }
 
-PETSC_EXTERN void PETSC_STDCALL pepsettype_(PEP *pep,CHAR type PETSC_MIXED_LEN(len),PetscErrorCode *ierr PETSC_END_LEN(len))
+PETSC_EXTERN void PETSC_STDCALL pepsettype_(PEP *pep,char *type PETSC_MIXED_LEN(len),PetscErrorCode *ierr PETSC_END_LEN(len))
 {
   char *t;
 
@@ -220,7 +220,7 @@ PETSC_EXTERN void PETSC_STDCALL pepsettype_(PEP *pep,CHAR type PETSC_MIXED_LEN(l
   FREECHAR(type,t);
 }
 
-PETSC_EXTERN void PETSC_STDCALL pepgettype_(PEP *pep,CHAR name PETSC_MIXED_LEN(len),PetscErrorCode *ierr PETSC_END_LEN(len))
+PETSC_EXTERN void PETSC_STDCALL pepgettype_(PEP *pep,char *name PETSC_MIXED_LEN(len),PetscErrorCode *ierr PETSC_END_LEN(len))
 {
   PEPType tname;
 
@@ -229,7 +229,7 @@ PETSC_EXTERN void PETSC_STDCALL pepgettype_(PEP *pep,CHAR name PETSC_MIXED_LEN(l
   FIXRETURNCHAR(PETSC_TRUE,name,len);
 }
 
-PETSC_EXTERN void PETSC_STDCALL pepsetoptionsprefix_(PEP *pep,CHAR prefix PETSC_MIXED_LEN(len),PetscErrorCode *ierr PETSC_END_LEN(len))
+PETSC_EXTERN void PETSC_STDCALL pepsetoptionsprefix_(PEP *pep,char *prefix PETSC_MIXED_LEN(len),PetscErrorCode *ierr PETSC_END_LEN(len))
 {
   char *t;
 
@@ -238,7 +238,7 @@ PETSC_EXTERN void PETSC_STDCALL pepsetoptionsprefix_(PEP *pep,CHAR prefix PETSC_
   FREECHAR(prefix,t);
 }
 
-PETSC_EXTERN void PETSC_STDCALL pepappendoptionsprefix_(PEP *pep,CHAR prefix PETSC_MIXED_LEN(len),PetscErrorCode *ierr PETSC_END_LEN(len))
+PETSC_EXTERN void PETSC_STDCALL pepappendoptionsprefix_(PEP *pep,char *prefix PETSC_MIXED_LEN(len),PetscErrorCode *ierr PETSC_END_LEN(len))
 {
   char *t;
 
@@ -247,7 +247,7 @@ PETSC_EXTERN void PETSC_STDCALL pepappendoptionsprefix_(PEP *pep,CHAR prefix PET
   FREECHAR(prefix,t);
 }
 
-PETSC_EXTERN void PETSC_STDCALL pepgetoptionsprefix_(PEP *pep,CHAR prefix PETSC_MIXED_LEN(len),PetscErrorCode *ierr PETSC_END_LEN(len))
+PETSC_EXTERN void PETSC_STDCALL pepgetoptionsprefix_(PEP *pep,char *prefix PETSC_MIXED_LEN(len),PetscErrorCode *ierr PETSC_END_LEN(len))
 {
   const char *tname;
 

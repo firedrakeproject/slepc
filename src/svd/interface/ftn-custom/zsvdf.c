@@ -198,7 +198,7 @@ PETSC_EXTERN void PETSC_STDCALL svdvectorsview_(SVD *svd,PetscViewer *viewer,Pet
   *ierr = SVDVectorsView(*svd,v);
 }
 
-PETSC_EXTERN void PETSC_STDCALL svdsettype_(SVD *svd,CHAR type PETSC_MIXED_LEN(len),PetscErrorCode *ierr PETSC_END_LEN(len))
+PETSC_EXTERN void PETSC_STDCALL svdsettype_(SVD *svd,char *type PETSC_MIXED_LEN(len),PetscErrorCode *ierr PETSC_END_LEN(len))
 {
   char *t;
 
@@ -207,7 +207,7 @@ PETSC_EXTERN void PETSC_STDCALL svdsettype_(SVD *svd,CHAR type PETSC_MIXED_LEN(l
   FREECHAR(type,t);
 }
 
-PETSC_EXTERN void PETSC_STDCALL svdgettype_(SVD *svd,CHAR name PETSC_MIXED_LEN(len),PetscErrorCode *ierr PETSC_END_LEN(len))
+PETSC_EXTERN void PETSC_STDCALL svdgettype_(SVD *svd,char *name PETSC_MIXED_LEN(len),PetscErrorCode *ierr PETSC_END_LEN(len))
 {
   SVDType tname;
 
@@ -241,7 +241,7 @@ PETSC_EXTERN void PETSC_STDCALL svdmonitorset_(SVD *svd,void (PETSC_STDCALL *mon
   }
 }
 
-PETSC_EXTERN void PETSC_STDCALL svdsetoptionsprefix_(SVD *svd,CHAR prefix PETSC_MIXED_LEN(len),PetscErrorCode *ierr PETSC_END_LEN(len))
+PETSC_EXTERN void PETSC_STDCALL svdsetoptionsprefix_(SVD *svd,char *prefix PETSC_MIXED_LEN(len),PetscErrorCode *ierr PETSC_END_LEN(len))
 {
   char *t;
 
@@ -250,7 +250,7 @@ PETSC_EXTERN void PETSC_STDCALL svdsetoptionsprefix_(SVD *svd,CHAR prefix PETSC_
   FREECHAR(prefix,t);
 }
 
-PETSC_EXTERN void PETSC_STDCALL svdappendoptionsprefix_(SVD *svd,CHAR prefix PETSC_MIXED_LEN(len),PetscErrorCode *ierr PETSC_END_LEN(len))
+PETSC_EXTERN void PETSC_STDCALL svdappendoptionsprefix_(SVD *svd,char *prefix PETSC_MIXED_LEN(len),PetscErrorCode *ierr PETSC_END_LEN(len))
 {
   char *t;
 
@@ -259,7 +259,7 @@ PETSC_EXTERN void PETSC_STDCALL svdappendoptionsprefix_(SVD *svd,CHAR prefix PET
   FREECHAR(prefix,t);
 }
 
-PETSC_EXTERN void PETSC_STDCALL svdgetoptionsprefix_(SVD *svd,CHAR prefix PETSC_MIXED_LEN(len),PetscErrorCode *ierr PETSC_END_LEN(len))
+PETSC_EXTERN void PETSC_STDCALL svdgetoptionsprefix_(SVD *svd,char *prefix PETSC_MIXED_LEN(len),PetscErrorCode *ierr PETSC_END_LEN(len))
 {
   const char *tname;
 
