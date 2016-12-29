@@ -201,7 +201,8 @@ PetscErrorCode BVDot_BLAS_Private(BV bv,PetscInt m_,PetscInt n_,PetscInt k_,Pets
 {
   PetscErrorCode ierr;
   PetscScalar    zero=0.0,one=1.0,*CC;
-  PetscBLASInt   m,n,k,ldc,j,len;
+  PetscBLASInt   m,n,k,ldc,j;
+  PetscMPIInt    len;
 
   PetscFunctionBegin;
   ierr = PetscBLASIntCast(m_,&m);CHKERRQ(ierr);
@@ -242,7 +243,8 @@ PetscErrorCode BVDotVec_BLAS_Private(BV bv,PetscInt n_,PetscInt k_,const PetscSc
 {
   PetscErrorCode ierr;
   PetscScalar    zero=0.0,done=1.0;
-  PetscBLASInt   n,k,one=1,len;
+  PetscBLASInt   n,k,one=1;
+  PetscMPIInt    len;
 
   PetscFunctionBegin;
   ierr = PetscBLASIntCast(n_,&n);CHKERRQ(ierr);
