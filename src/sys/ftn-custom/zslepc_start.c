@@ -36,7 +36,7 @@
 #define slepcinitializenoarguments_   slepcinitializenoarguments
 #endif
 
-PETSC_EXTERN void PETSC_STDCALL petscinitialize_(CHAR filename PETSC_MIXED_LEN(len),PetscErrorCode *ierr PETSC_END_LEN(len));
+PETSC_EXTERN void PETSC_STDCALL petscinitialize_(char *filename PETSC_MIXED_LEN(len),PetscErrorCode *ierr PETSC_END_LEN(len));
 PETSC_EXTERN void PETSC_STDCALL petscinitializenoarguments_(PetscErrorCode *ierr);
 
 /*
@@ -45,7 +45,7 @@ PETSC_EXTERN void PETSC_STDCALL petscinitializenoarguments_(PetscErrorCode *ierr
     Notes:
     Since this routine is called from Fortran it does not return error codes.
 */
-static void slepcinitialize_internal(CHAR filename,PetscInt len,PetscBool arguments,PetscErrorCode *ierr)
+static void slepcinitialize_internal(char *filename,PetscInt len,PetscBool arguments,PetscErrorCode *ierr)
 {
   PetscBool flg;
   *ierr = 1;
@@ -84,7 +84,7 @@ static void slepcinitialize_internal(CHAR filename,PetscInt len,PetscBool argume
   if (*ierr) { (*PetscErrorPrintf)("SlepcInitialize:Calling PetscInfo()");return; }
 }
 
-PETSC_EXTERN void PETSC_STDCALL slepcinitialize_(CHAR filename PETSC_MIXED_LEN(len),PetscErrorCode *ierr PETSC_END_LEN(len))
+PETSC_EXTERN void PETSC_STDCALL slepcinitialize_(char *filename PETSC_MIXED_LEN(len),PetscErrorCode *ierr PETSC_END_LEN(len))
 {
   slepcinitialize_internal(filename,len,PETSC_TRUE,ierr);
 }

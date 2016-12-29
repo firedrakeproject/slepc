@@ -46,7 +46,7 @@ PETSC_EXTERN void PETSC_STDCALL fnview_(FN *fn,PetscViewer *viewer,PetscErrorCod
   *ierr = FNView(*fn,v);
 }
 
-PETSC_EXTERN void PETSC_STDCALL fnsetoptionsprefix_(FN *fn,CHAR prefix PETSC_MIXED_LEN(len),PetscErrorCode *ierr PETSC_END_LEN(len))
+PETSC_EXTERN void PETSC_STDCALL fnsetoptionsprefix_(FN *fn,char *prefix PETSC_MIXED_LEN(len),PetscErrorCode *ierr PETSC_END_LEN(len))
 {
   char *t;
 
@@ -55,7 +55,7 @@ PETSC_EXTERN void PETSC_STDCALL fnsetoptionsprefix_(FN *fn,CHAR prefix PETSC_MIX
   FREECHAR(prefix,t);
 }
 
-PETSC_EXTERN void PETSC_STDCALL fnappendoptionsprefix_(FN *fn,CHAR prefix PETSC_MIXED_LEN(len),PetscErrorCode *ierr PETSC_END_LEN(len))
+PETSC_EXTERN void PETSC_STDCALL fnappendoptionsprefix_(FN *fn,char *prefix PETSC_MIXED_LEN(len),PetscErrorCode *ierr PETSC_END_LEN(len))
 {
   char *t;
 
@@ -64,7 +64,7 @@ PETSC_EXTERN void PETSC_STDCALL fnappendoptionsprefix_(FN *fn,CHAR prefix PETSC_
   FREECHAR(prefix,t);
 }
 
-PETSC_EXTERN void PETSC_STDCALL fngetoptionsprefix_(FN *fn,CHAR prefix PETSC_MIXED_LEN(len),PetscErrorCode *ierr PETSC_END_LEN(len))
+PETSC_EXTERN void PETSC_STDCALL fngetoptionsprefix_(FN *fn,char *prefix PETSC_MIXED_LEN(len),PetscErrorCode *ierr PETSC_END_LEN(len))
 {
   const char *tname;
 
@@ -73,7 +73,7 @@ PETSC_EXTERN void PETSC_STDCALL fngetoptionsprefix_(FN *fn,CHAR prefix PETSC_MIX
   FIXRETURNCHAR(PETSC_TRUE,prefix,len);
 }
 
-PETSC_EXTERN void PETSC_STDCALL fnsettype_(FN *fn,CHAR type PETSC_MIXED_LEN(len),PetscErrorCode *ierr PETSC_END_LEN(len))
+PETSC_EXTERN void PETSC_STDCALL fnsettype_(FN *fn,char *type PETSC_MIXED_LEN(len),PetscErrorCode *ierr PETSC_END_LEN(len))
 {
   char *t;
 
@@ -82,7 +82,7 @@ PETSC_EXTERN void PETSC_STDCALL fnsettype_(FN *fn,CHAR type PETSC_MIXED_LEN(len)
   FREECHAR(type,t);
 }
 
-PETSC_EXTERN void PETSC_STDCALL fngettype_(FN *fn,CHAR name PETSC_MIXED_LEN(len),PetscErrorCode *ierr PETSC_END_LEN(len))
+PETSC_EXTERN void PETSC_STDCALL fngettype_(FN *fn,char *name PETSC_MIXED_LEN(len),PetscErrorCode *ierr PETSC_END_LEN(len))
 {
   FNType tname;
 

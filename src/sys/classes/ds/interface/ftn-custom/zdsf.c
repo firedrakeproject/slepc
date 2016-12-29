@@ -44,7 +44,7 @@
 #define dssort_                   dssort
 #endif
 
-PETSC_EXTERN void PETSC_STDCALL dssettype_(DS *ds,CHAR type PETSC_MIXED_LEN(len),PetscErrorCode *ierr PETSC_END_LEN(len))
+PETSC_EXTERN void PETSC_STDCALL dssettype_(DS *ds,char *type PETSC_MIXED_LEN(len),PetscErrorCode *ierr PETSC_END_LEN(len))
 {
   char *t;
 
@@ -53,7 +53,7 @@ PETSC_EXTERN void PETSC_STDCALL dssettype_(DS *ds,CHAR type PETSC_MIXED_LEN(len)
   FREECHAR(type,t);
 }
 
-PETSC_EXTERN void PETSC_STDCALL dsgettype_(DS *ds,CHAR name PETSC_MIXED_LEN(len),PetscErrorCode *ierr PETSC_END_LEN(len))
+PETSC_EXTERN void PETSC_STDCALL dsgettype_(DS *ds,char *name PETSC_MIXED_LEN(len),PetscErrorCode *ierr PETSC_END_LEN(len))
 {
   DSType tname;
 
@@ -62,7 +62,7 @@ PETSC_EXTERN void PETSC_STDCALL dsgettype_(DS *ds,CHAR name PETSC_MIXED_LEN(len)
   FIXRETURNCHAR(PETSC_TRUE,name,len);
 }
 
-PETSC_EXTERN void PETSC_STDCALL dssetoptionsprefix_(DS *ds,CHAR prefix PETSC_MIXED_LEN(len),PetscErrorCode *ierr PETSC_END_LEN(len))
+PETSC_EXTERN void PETSC_STDCALL dssetoptionsprefix_(DS *ds,char *prefix PETSC_MIXED_LEN(len),PetscErrorCode *ierr PETSC_END_LEN(len))
 {
   char *t;
 
@@ -71,7 +71,7 @@ PETSC_EXTERN void PETSC_STDCALL dssetoptionsprefix_(DS *ds,CHAR prefix PETSC_MIX
   FREECHAR(prefix,t);
 }
 
-PETSC_EXTERN void PETSC_STDCALL dsappendoptionsprefix_(DS *ds,CHAR prefix PETSC_MIXED_LEN(len),PetscErrorCode *ierr PETSC_END_LEN(len))
+PETSC_EXTERN void PETSC_STDCALL dsappendoptionsprefix_(DS *ds,char *prefix PETSC_MIXED_LEN(len),PetscErrorCode *ierr PETSC_END_LEN(len))
 {
   char *t;
 
@@ -80,7 +80,7 @@ PETSC_EXTERN void PETSC_STDCALL dsappendoptionsprefix_(DS *ds,CHAR prefix PETSC_
   FREECHAR(prefix,t);
 }
 
-PETSC_EXTERN void PETSC_STDCALL dsgetoptionsprefix_(DS *ds,CHAR prefix PETSC_MIXED_LEN(len),PetscErrorCode *ierr PETSC_END_LEN(len))
+PETSC_EXTERN void PETSC_STDCALL dsgetoptionsprefix_(DS *ds,char *prefix PETSC_MIXED_LEN(len),PetscErrorCode *ierr PETSC_END_LEN(len))
 {
   const char *tname;
 
