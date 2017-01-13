@@ -79,7 +79,7 @@ int main(int argc,char **argv)
   ierr = MatGetOwnershipRange(C1,&Istart,&Iend);CHKERRQ(ierr);
   ierr = MatDenseGetArray(C1,&u);CHKERRQ(ierr);
   for (i=Istart;i<Iend;i++) {
-    u[i-Istart] = 1.0;
+    if (i<N/2) u[i-Istart] = 1.0;
     if (i==0) u[i+Iend-2*Istart] = -2.0;
     if (i==1) u[i+Iend-2*Istart] = -1.0;
     if (i==2) u[i+Iend-2*Istart] = -1.0;
@@ -165,9 +165,9 @@ int main(int argc,char **argv)
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
   ierr = LMEGetErrorEstimate(lme,&errest);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," Error estimate reported by the solver: %g\n",(double)errest);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD," Error estimate reported by the solver: %.4g\n",(double)errest);CHKERRQ(ierr);
   ierr = LMEComputeError(lme,&error);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," Computed residual norm: %g\n\n",(double)error);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD," Computed residual norm: %.4g\n\n",(double)error);CHKERRQ(ierr);
 
   /*
      Free work space

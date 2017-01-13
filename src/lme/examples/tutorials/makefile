@@ -28,7 +28,7 @@ EXAMPLESC  = ex32.c
 EXAMPLESF  =
 MANSEC     = LME
 
-TESTEXAMPLES_C = ex32.PETSc runex32_1 ex32.rm
+TESTEXAMPLES_C_NOTSINGLE = ex32.PETSc runex32_1 ex32.rm
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common
 
