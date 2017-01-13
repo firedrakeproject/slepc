@@ -152,12 +152,12 @@ static PetscErrorCode NEPNLEIGSLejaBagbyPoints(NEP nep)
       nrs[i] *= ((ds[i]-s[k-1])/(1.0-ds[i]/xi[k-1]))/beta[k-1];
       if (PetscAbsScalar(nrs[i])>maxnrs) {maxnrs = PetscAbsScalar(nrs[i]); s[k] = ds[i];}
     }
-    if (ndptx>=k) {
+    if (ndptx>k) {
       for (i=1;i<ndptx;i++) {
         nrxi[i] *= ((dxi[i]-s[k-1])/(1.0-dxi[i]/xi[k-1]))/beta[k-1];
         if (PetscAbsScalar(nrxi[i])<minnrxi) {minnrxi = PetscAbsScalar(nrxi[i]); xi[k] = dxi[i];}
       }
-    }  else xi[k] = PETSC_INFINITY;
+    } else xi[k] = PETSC_INFINITY;
     beta[k] = maxnrs;
   }
   ierr = PetscFree5(ds,dsi,dxi,nrs,nrxi);CHKERRQ(ierr);
