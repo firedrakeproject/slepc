@@ -115,14 +115,14 @@ PetscErrorCode LMESolve_Krylov_Lyapunov_Vec(LME lme,Vec b,PetscBool fixed,PetscI
     /* set initial vector to b/||b|| */
     ierr = BVInsertVec(lme->V,0,b);CHKERRQ(ierr);
     ierr = BVScaleColumn(lme->V,0,1.0/bnorm);CHKERRQ(ierr);
-  
+
     /* Restart loop */
     while ((pass==0 && !*fail) || (pass==1 && its+1<nouter)) {
       its++;
 
       /* compute Arnoldi factorization */
       ierr = LMEBasicArnoldi(lme,H,ldh,0,&m,&beta,&breakdown);CHKERRQ(ierr);
-    
+
       if (pass==0) {
         /* glue together the previous H and the new H obtained with Arnoldi */
         ldg = n+m+1;
@@ -152,7 +152,7 @@ PetscErrorCode LMESolve_Krylov_Lyapunov_Vec(LME lme,Vec b,PetscBool fixed,PetscI
         ierr = BVMult(*X1,1.0,1.0,lme->V,Q);CHKERRQ(ierr);
         ierr = MatDestroy(&Q);CHKERRQ(ierr);
       }
-  
+
       if (pass==0) {
         /* solve compressed Lyapunov equation */
         ierr = PetscCalloc2(n,&r,ldg*n,&Gcopy);CHKERRQ(ierr);
