@@ -71,7 +71,7 @@
         if (rank .eq. 0) then
           write(*,100) KMAX,k
         endif
-        SETERRQ(PETSC_COMM_SELF,1,' ',ierr)
+        SETERRQ(PETSC_COMM_SELF,1,' ')
       endif
  100  format (/'Program currently limited to k=',I2,', you set k=',I3)
       if (rank .eq. 0) then

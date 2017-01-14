@@ -198,7 +198,7 @@
         endif
  170    format (' Using ',I2,' partitions')
         if (npart>MAXSUB) then
-          SETERRQ(PETSC_COMM_SELF,1,'Too many subintervals',ierr)
+          SETERRQ(PETSC_COMM_SELF,1,'Too many subintervals')
         endif
 
         subint(1) = int0
