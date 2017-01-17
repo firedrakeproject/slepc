@@ -26,7 +26,7 @@ FPPFLAGS   =
 LOCDIR     = src/sys/examples/tutorials/
 EXAMPLESC  = ex1.c
 EXAMPLESF  =
-MANSEC     = Sys
+MANSEC     = sys
 
 TESTEXAMPLES_C = ex1.PETSc runex1_1 ex1.rm
 

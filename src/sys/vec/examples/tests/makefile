@@ -26,7 +26,7 @@ FPPFLAGS   =
 LOCDIR     = src/sys/vec/examples/tests/
 EXAMPLESC  = test1.c
 EXAMPLESF  =
-MANSEC     = Sys
+MANSEC     = sys
 TESTS      = test1
 
 TESTEXAMPLES_C           = test1.PETSc runtest1_1 test1.rm

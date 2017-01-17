@@ -277,7 +277,7 @@ PetscErrorCode LMEGetCoefficients(LME lme,Mat *A,Mat *B,Mat *D,Mat *E)
 
    Input Parameters:
 +  lme - the matrix function context
-+  C   - the right-hand side matrix
+-  C   - the right-hand side matrix
 
    Notes:
    The matrix equation takes the general form A*X*E+D*X*B=C, where matrix C is

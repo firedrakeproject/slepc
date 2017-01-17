@@ -51,7 +51,7 @@ typedef const char* LMEType;
 PETSC_EXTERN PetscClassId LME_CLASSID;
 
 /*E
-    PEPProblemType - Determines the type of linear matrix equation
+    LMEProblemType - Determines the type of linear matrix equation
 
     Level: beginner
 

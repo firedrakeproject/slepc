@@ -14,7 +14,7 @@
 
        [1] Y. Saad, "Numerical solution of large Lyapunov equations", in
            Signal processing, scattering and operator theory, and numerical
-           methods, vol. 5 of Progr. Systems Control Theory, pages 503–511,
+           methods, vol. 5 of Progr. Systems Control Theory, pages 503-511,
            1990.
 
        [2] D. Kressner, "Memory-efficient Krylov subspace techniques for
