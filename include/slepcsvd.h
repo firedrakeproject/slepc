@@ -156,7 +156,7 @@ PETSC_EXTERN PetscErrorCode SVDGetConverged(SVD,PetscInt*);
 PETSC_EXTERN PetscErrorCode SVDGetSingularTriplet(SVD,PetscInt,PetscReal*,Vec,Vec);
 PETSC_EXTERN PetscErrorCode SVDComputeError(SVD,PetscInt,SVDErrorType,PetscReal*);
 PETSC_DEPRECATED("Use SVDComputeError()") PETSC_STATIC_INLINE PetscErrorCode SVDComputeRelativeError(SVD svd,PetscInt i,PetscReal *r) {return SVDComputeError(svd,i,SVD_ERROR_RELATIVE,r);}
-PETSC_DEPRECATED("Use SVDComputeError() with SVD_ERROR_ABSOLUTE") PETSC_STATIC_INLINE PetscErrorCode SVDComputeResidualNorms(SVD svd,PetscInt i,PetscReal *r1,PetscReal *r2) {return SVDComputeError(svd,i,SVD_ERROR_ABSOLUTE,r1);}
+PETSC_DEPRECATED("Use SVDComputeError() with SVD_ERROR_ABSOLUTE") PETSC_STATIC_INLINE PetscErrorCode SVDComputeResidualNorms(SVD svd,PetscInt i,PetscReal *r1,PETSC_UNUSED PetscReal *r2) {return SVDComputeError(svd,i,SVD_ERROR_ABSOLUTE,r1);}
 PETSC_EXTERN PetscErrorCode SVDView(SVD,PetscViewer);
 PETSC_STATIC_INLINE PetscErrorCode SVDViewFromOptions(SVD svd,PetscObject obj,const char name[]) {return PetscObjectViewFromOptions((PetscObject)svd,obj,name);}
 PETSC_EXTERN PetscErrorCode SVDErrorView(SVD,SVDErrorType,PetscViewer);
