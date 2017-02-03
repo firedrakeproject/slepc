@@ -350,10 +350,8 @@ static PetscErrorCode NEPSimpleNRefSetUpSystem(NEP nep,NEPSimpNRefctx *ctx,Mat *
   case NEP_REFINE_SCHEME_SCHUR:
     fctx->M2 = ctx->w;
     fctx->M3 = v;
-    fctx->m3 = 0.0;
-    for (i=1;i<nt-1;i++) fctx->m3 += PetscConj(coeffs[i])*coeffs[i];
-    fctx->M4 = 0.0;
-    for (i=1;i<nt-1;i++) fctx->M4 += PetscConj(coeffs[i])*coeffs2[i];
+    fctx->m3 = 1+ PetscConj(nep->eigr[idx])*nep->eigr[idx];
+    fctx->M4 = PetscConj(nep->eigr[idx]);
     fctx->M1 = M;
     if (ini) {
       ierr = MatDuplicate(M,MAT_COPY_VALUES,P);CHKERRQ(ierr);
@@ -437,6 +435,7 @@ PetscErrorCode NEPNewtonRefinementSimple(NEP nep,PetscInt *maxits,PetscReal tol,
         if (error<=tol || its_sc[i]>=its || fail_sc[i]) {
           idx_sc[i] = idx++;
           its_sc[i] = 0;
+          fail_sc[i] = 0;
           if (idx_sc[i]<k) { ierr = NEPSimpleNRefScatterEigenvector(nep,ctx,i,idx_sc[i]);CHKERRQ(ierr); }
         } else {
           sc_pend = PETSC_FALSE;

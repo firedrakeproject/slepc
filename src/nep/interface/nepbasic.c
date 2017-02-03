@@ -547,7 +547,6 @@ PetscErrorCode NEPRefineGetKSP(NEP nep,KSP *ksp)
     ierr = PetscLogObjectParent((PetscObject)nep,(PetscObject)nep->refineksp);CHKERRQ(ierr);
     ierr = KSPSetOptionsPrefix(*ksp,((PetscObject)nep)->prefix);CHKERRQ(ierr);
     ierr = KSPAppendOptionsPrefix(*ksp,"nep_refine_");CHKERRQ(ierr);
-    ierr = KSPSetErrorIfNotConverged(*ksp,PETSC_TRUE);CHKERRQ(ierr);
     ierr = KSPSetTolerances(nep->refineksp,SLEPC_DEFAULT_TOL,PETSC_DEFAULT,PETSC_DEFAULT,PETSC_DEFAULT);CHKERRQ(ierr);
   }
   *ksp = nep->refineksp;
