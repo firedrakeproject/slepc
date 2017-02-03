@@ -124,7 +124,6 @@ PetscErrorCode NEPSetUp(NEP nep)
       }
     }
     if (nep->scheme==NEP_REFINE_SCHEME_SCHUR) {
-      if (nep->nt<=2) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"The Schur scheme for refinement is only available for problems defined with more than 2 matrices");
       if (nep->npart>1) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"The Schur scheme for refinement does not support subcommunicators");
     }
   }
