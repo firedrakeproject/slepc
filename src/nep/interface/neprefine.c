@@ -360,7 +360,7 @@ static PetscErrorCode NEPSimpleNRefSetUpSystem(NEP nep,NEPSimpNRefctx *ctx,Mat *
   case NEP_REFINE_SCHEME_SCHUR:
     fctx->M2 = ctx->w;
     fctx->M3 = v;
-    fctx->m3 = 1+ PetscConj(nep->eigr[idx])*nep->eigr[idx];
+    fctx->m3 = 1.0+PetscConj(nep->eigr[idx])*nep->eigr[idx];
     fctx->M4 = PetscConj(nep->eigr[idx]);
     fctx->M1 = M;
     if (ini) {
