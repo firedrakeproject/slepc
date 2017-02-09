@@ -96,7 +96,8 @@ class Primme(package.Package):
     g.write('LIBRARY     = libprimme.'+petsc.ar_lib_suffix+'\n')
     g.write('SOLIBRARY   = libprimme.'+petsc.sl_suffix+'\n')
     g.write('CC          = '+petsc.cc+'\n')
-    g.write('F77         = '+petsc.fc+'\n')
+    if hasattr(petsc,'fc'):
+      g.write('F77         = '+petsc.fc+'\n')
     g.write('DEFINES     = ')
     if petsc.blaslapackunderscore:
       g.write('-DF77UNDERSCORE ')

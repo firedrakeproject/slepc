@@ -34,6 +34,7 @@ class Trlan(package.Package):
     self.archive        = 'trlan-'+self.version+'.tar.gz'
     self.dirname        = 'trlan-'+self.version
     self.supportsscalar = ['real']
+    self.fortran        = True
     self.ProcessArgs(argdb)
 
   def Check(self,conf,vars,cmake,petsc):
