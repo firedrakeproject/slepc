@@ -156,7 +156,7 @@ PetscErrorCode LMESolve_Krylov_Lyapunov_Vec(LME lme,Vec b,PetscBool fixed,PetscI
       if (pass==0) {
         /* solve compressed Lyapunov equation */
         ierr = PetscCalloc2(n,&r,ldg*n,&Gcopy);CHKERRQ(ierr);
-        ierr = PetscMalloc1(n*n,&L);CHKERRQ(ierr);
+        ierr = PetscCalloc1(n*n,&L);CHKERRQ(ierr);
         r[0] = bnorm;
         ierr = PetscMemcpy(Gcopy,G,ldg*n*sizeof(PetscScalar));CHKERRQ(ierr);
         ierr = LMEDenseLyapunovChol(lme,Gcopy,n,ldg,r,L,n,&errest);CHKERRQ(ierr);
