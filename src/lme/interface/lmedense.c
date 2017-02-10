@@ -107,7 +107,7 @@ static PetscErrorCode LyapunovChol_SLICOT(PetscScalar *H,PetscInt m,PetscInt ldh
   SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"HSEQR - Lapack routines are unavailable");
 #else
   PetscErrorCode ierr;
-  PetscBLASInt   ilo=1,lwork,info,n,ld,ione=1;
+  PetscBLASInt   ilo=1,lwork,info,n,ld,ld1,ione=1;
   PetscInt       i,j;
   PetscReal      scal;
   PetscScalar    *Q,*W,*z,*wr,*work,zero=0.0,done=1.0,alpha,beta;
@@ -117,6 +117,7 @@ static PetscErrorCode LyapunovChol_SLICOT(PetscScalar *H,PetscInt m,PetscInt ldh
 
   PetscFunctionBegin;
   ierr = PetscBLASIntCast(ldh,&ld);CHKERRQ(ierr);
+  ierr = PetscBLASIntCast(ldl,&ld1);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(m,&n);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(5*m,&lwork);CHKERRQ(ierr);
 
@@ -143,11 +144,11 @@ static PetscErrorCode LyapunovChol_SLICOT(PetscScalar *H,PetscInt m,PetscInt ldh
 
   /* Tranpose L = W' */
   for (j=0;j<m;j++) {
-    for (i=j;i<m;i++) L[i+j*m] = W[j+i*m];
+    for (i=j;i<m;i++) L[i+j*ldl] = W[j+i*m];
   }
 
   /* resnorm = norm(H(m+1,:)*L*L'), use z = L*L(m,:)' */
-  PetscStackCallBLAS("BLASgemv",BLASgemv_("N",&n,&n,&done,L,&n,W+(m-1)*m,&ione,&zero,z,&ione));
+  PetscStackCallBLAS("BLASgemv",BLASgemv_("N",&n,&n,&done,L,&ld1,W+(m-1)*m,&ione,&zero,z,&ione));
   *res = 0.0;
   beta = H[m+(m-1)*ldh];
   for (j=0;j<m;j++) {
@@ -231,44 +232,44 @@ static PetscErrorCode AbsEig(PetscScalar *A,PetscInt m)
 /*
    Compute the lower Cholesky factor of A
  */
-static PetscErrorCode CholeskyFactor(PetscScalar *A,PetscInt m)
+static PetscErrorCode CholeskyFactor(PetscScalar *A,PetscInt m,PetscInt lda)
 {
 #if defined(PETSC_MISSING_LAPACK_POTRF)
   PetscFunctionBegin;
   SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"POTRF - Lapack routine is unavailable");
 #else
   PetscErrorCode ierr;
-  PetscInt       i,ld;
+  PetscInt       i;
   PetscScalar    *S;
-  PetscBLASInt   info,n;
+  PetscBLASInt   info,n,ld;
 
   PetscFunctionBegin;
   ierr = PetscBLASIntCast(m,&n);CHKERRQ(ierr);
-  ld  = m;
+  ierr = PetscBLASIntCast(lda,&ld);CHKERRQ(ierr);
   ierr = PetscMalloc1(m*m,&S);CHKERRQ(ierr);
 
   /* save a copy of matrix in S */
   for (i=0;i<m;i++) {
-    ierr = PetscMemcpy(S+i*ld,A+i*ld,n*sizeof(PetscScalar));CHKERRQ(ierr);
+    ierr = PetscMemcpy(S+i*m,A+i*lda,m*sizeof(PetscScalar));CHKERRQ(ierr);
   }
 
   /* compute upper Cholesky factor in R */
-  PetscStackCallBLAS("LAPACKpotrf",LAPACKpotrf_("L",&n,A,&n,&info));
+  PetscStackCallBLAS("LAPACKpotrf",LAPACKpotrf_("L",&n,A,&ld,&info));
   ierr = PetscLogFlops((1.0*n*n*n)/3.0);CHKERRQ(ierr);
 
   if (info) {  /* LAPACKpotrf failed, retry on diagonally perturbed matrix */
     for (i=0;i<m;i++) {
-      ierr = PetscMemcpy(A+i*ld,S+i*ld,n*sizeof(PetscScalar));CHKERRQ(ierr);
-      A[i+i*ld] += 50.0*PETSC_MACHINE_EPSILON;
+      ierr = PetscMemcpy(A+i*lda,S+i*m,m*sizeof(PetscScalar));CHKERRQ(ierr);
+      A[i+i*lda] += 50.0*PETSC_MACHINE_EPSILON;
     }
-    PetscStackCallBLAS("LAPACKpotrf",LAPACKpotrf_("L",&n,A,&n,&info));
+    PetscStackCallBLAS("LAPACKpotrf",LAPACKpotrf_("L",&n,A,&ld,&info));
     if (info) SETERRQ1(PETSC_COMM_SELF,1,"Error in Cholesky factorization, info=%D. Consider configuring SLEPc with SLICOT",(PetscInt)info);
     ierr = PetscLogFlops((1.0*n*n*n)/3.0);CHKERRQ(ierr);
   }
 
   /* Zero out entries above the diagonal */
   for (i=1;i<m;i++) {
-    ierr = PetscMemzero(A+i*ld,i*sizeof(PetscScalar));CHKERRQ(ierr);
+    ierr = PetscMemzero(A+i*lda,i*sizeof(PetscScalar));CHKERRQ(ierr);
   }
   ierr = PetscFree(S);CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -285,7 +286,7 @@ static PetscErrorCode LyapunovChol_LAPACK(PetscScalar *H,PetscInt m,PetscInt ldh
   SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"HSEQR/TRSYL - Lapack routines are unavailable");
 #else
   PetscErrorCode ierr;
-  PetscBLASInt   ilo=1,lwork,info,n,ld,ione=1;
+  PetscBLASInt   ilo=1,lwork,info,n,ld,ld1,ione=1;
   PetscInt       i,j;
   PetscReal      scal,beta;
   PetscScalar    *Q,*C,*W,*z,*wr,*work,zero=0.0,done=1.0;
@@ -295,6 +296,7 @@ static PetscErrorCode LyapunovChol_LAPACK(PetscScalar *H,PetscInt m,PetscInt ldh
 
   PetscFunctionBegin;
   ierr = PetscBLASIntCast(ldh,&ld);CHKERRQ(ierr);
+  ierr = PetscBLASIntCast(ldl,&ld1);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(m,&n);CHKERRQ(ierr);
   lwork = n;
   C = L;
@@ -315,17 +317,17 @@ static PetscErrorCode LyapunovChol_LAPACK(PetscScalar *H,PetscInt m,PetscInt ldh
   /* C = z*z', z = Q'*r */
   PetscStackCallBLAS("BLASgemv",BLASgemv_("C",&n,&n,&done,Q,&n,r,&ione,&zero,z,&ione));
   for (i=0;i<m;i++) {
-    for (j=0;j<m;j++) C[i+j*m] = -z[i]*PetscConj(z[j]);
+    for (j=0;j<m;j++) C[i+j*ldl] = -z[i]*PetscConj(z[j]);
   }
 
   /* solve triangular Sylvester equation */
-  PetscStackCallBLAS("LAPACKtrsyl",LAPACKtrsyl_("N","C",&ione,&n,&n,H,&ld,H,&ld,C,&n,&scal,&info));
+  PetscStackCallBLAS("LAPACKtrsyl",LAPACKtrsyl_("N","C",&ione,&n,&n,H,&ld,H,&ld,C,&ld1,&scal,&info));
   if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xTRSYL %d",info);
   if (scal!=1.0) SETERRQ1(PETSC_COMM_SELF,1,"Current implementation cannot handle scale factor %g",scal);
   
   /* back-transform C = Q*C*Q' */
   PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&n,&n,&n,&done,Q,&n,C,&n,&zero,W,&n));
-  PetscStackCallBLAS("BLASgemm",BLASgemm_("N","C",&n,&n,&n,&done,W,&n,Q,&n,&zero,C,&n));
+  PetscStackCallBLAS("BLASgemm",BLASgemm_("N","C",&n,&n,&n,&done,W,&n,Q,&n,&zero,C,&ld1));
 
   /* resnorm = norm(H(m+1,:)*Y) */
   beta = PetscAbsScalar(H[m+(m-1)*ldh]);
@@ -337,7 +339,7 @@ static PetscErrorCode LyapunovChol_LAPACK(PetscScalar *H,PetscInt m,PetscInt ldh
 #endif
 
   /* L = chol(C,'lower') */
-  ierr = CholeskyFactor(C,m);CHKERRQ(ierr);
+  ierr = CholeskyFactor(C,m,ldl);CHKERRQ(ierr);
 
 #if !defined(PETSC_USE_COMPLEX)
   ierr = PetscFree6(Q,W,z,wr,wi,work);CHKERRQ(ierr);

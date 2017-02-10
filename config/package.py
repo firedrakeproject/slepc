@@ -35,6 +35,7 @@ class Package:
     self.supportsscalar  = ['real', 'complex']
     self.supportssingle  = False
     self.supports64bint  = False
+    self.fortran         = False
 
   def ProcessArgs(self,argdb):
     self.requested = False
@@ -93,6 +94,8 @@ class Package:
       self.log.Exit('ERROR: precision '+petsc.precision+' is not supported for external packages.')
     if petsc.ind64 and not self.supports64bint:
       self.log.Exit('ERROR: '+package+' cannot be used with 64-bit integers.')
+    if self.downloadpackage and self.fortran and not hasattr(petsc,'fc'):
+      self.log.Exit('ERROR: option --download-'+self.packagename+' requires a Fortran compiler.')
 
   def Download(self,externdir,builddir,prefix=None):
     # Create externalpackages directory

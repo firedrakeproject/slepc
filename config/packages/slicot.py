@@ -34,6 +34,7 @@ class Slicot(package.Package):
     self.archive        = 'slicot45.tar.gz'
     self.dirname        = 'slicot'
     self.supportsscalar = ['real']
+    self.fortran        = True
     self.ProcessArgs(argdb)
 
 
