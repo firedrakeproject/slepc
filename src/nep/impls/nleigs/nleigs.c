@@ -400,21 +400,29 @@ static PetscErrorCode NEPNLEIGSDividedDifferences_split(NEP nep)
   PetscErrorCode ierr;
   NEP_NLEIGS     *ctx=(NEP_NLEIGS*)nep->data;
   PetscInt       k,j,i,maxnmat;
-  PetscReal      norm0,norm,max;
+  PetscReal      norm0,norm,max,*matnorm;
   PetscScalar    *s=ctx->s,*beta=ctx->beta,*b,alpha,*coeffs;
   Mat            T,Ts;
-  PetscBool      shell;
+  PetscBool      shell,hasmnorm;
 
   PetscFunctionBegin;
   ierr = PetscMalloc1(nep->nt*ctx->ddmaxit,&ctx->coeffD);CHKERRQ(ierr);
-  ierr = PetscMalloc2(ctx->ddmaxit+1,&b,ctx->ddmaxit+1,&coeffs);CHKERRQ(ierr);
+  ierr = PetscMalloc3(ctx->ddmaxit+1,&b,ctx->ddmaxit+1,&coeffs,nep->nt,&matnorm);CHKERRQ(ierr);
   max = 0.0;
   for (j=0;j<nep->nt;j++) {
     ierr = FNEvaluateFunction(nep->f[j],s[0],ctx->coeffD+j);CHKERRQ(ierr);
     ctx->coeffD[j] /= beta[0];
     max = PetscMax(PetscAbsScalar(ctx->coeffD[j]),max);
   }
-  norm0 = max;
+  for  (j=0;j<nep->nt;j++) {
+    ierr = MatHasOperation(nep->A[j],MATOP_NORM,&hasmnorm);CHKERRQ(ierr);
+    if (!hasmnorm) break;
+    ierr = MatNorm(nep->A[j],NORM_INFINITY,matnorm+j);CHKERRQ(ierr);
+  }
+  if (hasmnorm) {
+    norm0 = 0.0;
+    for  (j=0;j<nep->nt;j++) norm0 += matnorm[j]*PetscAbsScalar(ctx->coeffD[j]);
+  } else norm0 = max;
   ctx->nmat = ctx->ddmaxit;
   for (k=1;k<ctx->ddmaxit;k++) {
     ierr = NEPNLEIGSEvalNRTFunct(nep,k,s[k],b);CHKERRQ(ierr);
@@ -427,7 +435,10 @@ static PetscErrorCode NEPNLEIGSDividedDifferences_split(NEP nep)
       ctx->coeffD[k*nep->nt+i] /= b[k];
       max = PetscMax(PetscAbsScalar(ctx->coeffD[k*nep->nt+i]),max);
     }
-    norm = max;
+    if (hasmnorm) {
+      norm = 0.0;
+      for (j=0;j<nep->nt;j++) norm += matnorm[j]*PetscAbsScalar(ctx->coeffD[k*nep->nt+j]);
+    } else norm = max;
     if (norm/norm0 < ctx->ddtol) {
       ctx->nmat = k+1;
       break;
@@ -461,7 +472,7 @@ static PetscErrorCode NEPNLEIGSDividedDifferences_split(NEP nep)
     ierr = KSPSetUp(ctx->ksp[i]);CHKERRQ(ierr);
     ierr = MatDestroy(&T);CHKERRQ(ierr);
   }
-  ierr = PetscFree2(b,coeffs);CHKERRQ(ierr);
+  ierr = PetscFree3(b,coeffs,matnorm);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
