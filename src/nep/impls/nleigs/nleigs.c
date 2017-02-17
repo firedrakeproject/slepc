@@ -416,7 +416,7 @@ static PetscErrorCode NEPNLEIGSDividedDifferences_split(NEP nep)
     ierr = MatNorm(nep->A[j],NORM_INFINITY,matnorm+j);CHKERRQ(ierr);
   }
   /* Try matrix functions scheme */
-  ierr = PetscMalloc2(nmax*nmax,&pK,nmax*nmax,&pH);CHKERRQ(ierr);
+  ierr = PetscCalloc2(nmax*nmax,&pK,nmax*nmax,&pH);CHKERRQ(ierr);
   for (i=0;i<nmax-1;i++) {
     pK[(nmax+1)*i] = 1.0;
     pK[(nmax+1)*i+1] = beta[i+1]/xi[i];
@@ -432,11 +432,14 @@ static PetscErrorCode NEPNLEIGSDividedDifferences_split(NEP nep)
   ierr = MatCreateSeqDense(PETSC_COMM_SELF,nmax,nmax,pK,&K);CHKERRQ(ierr);
   for (j=0;matrix&&j<nep->nt;j++) {
     PetscPushErrorHandler(PetscIgnoreErrorHandler,NULL);
-    ierr = FNEvaluateFunctionMat(nep->f[j],H,K);CHKERRQ(ierr);
+    ierr = FNEvaluateFunctionMat(nep->f[j],H,K);
     PetscPopErrorHandler();
     if (!ierr) { 
       for (i=0;i<nmax;i++) {ctx->coeffD[j+i*nep->nt] = pK[i]*beta[0];}
-    } else matrix = PETSC_FALSE;
+    } else {
+      matrix = PETSC_FALSE;
+      ierr = PetscFPTrapPop();CHKERRQ(ierr);
+    }
   }
   ierr = MatDestroy(&H);CHKERRQ(ierr);
   ierr = MatDestroy(&K);CHKERRQ(ierr);
