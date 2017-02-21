@@ -54,6 +54,7 @@ typedef struct {
   PetscReal      keep;      /* restart parameter */
   PetscBool      lock;      /* locking/non-locking variant */
   PetscInt       idxrk;     /* index of next shift to use */
+  PetscBool      rational;  /* for rational NEPS */
   KSP            *ksp;      /* ksp array for storing shift factorizations */
   Vec            vrn;       /* random vector with normally distributed value */
   void           *singularitiesctx;
@@ -106,6 +107,143 @@ static PetscErrorCode NEPNLEIGSBackTransform(PetscObject ob,PetscInt n,PetscScal
   PetscFunctionReturn(0);
 }
 
+/* Computes the roots of a polynomial */
+static PetscErrorCode NEPNLEIGSAuxiliarPRootFinder(PetscInt deg,PetscScalar *polcoeffs,PetscScalar *wr,PetscScalar *wi,PetscBool *avail)
+{
+  PetscErrorCode ierr;
+  PetscScalar    *C,*work;
+  PetscBLASInt   n_,info,lwork;
+  PetscInt       i;
+#if defined(PETSC_USE_COMPLEX)
+  PetscReal      *rwork;
+#endif
+
+#if defined(SLEPC_MISSING_LAPACK_GEEV)
+  PetscFunctionBegin;
+  *avail = PETSC_FALSE;
+  PetscFunctionReturn(0)
+#else
+  PetscFunctionBegin;
+  *avail = PETSC_TRUE;
+  if (deg>0) {
+    ierr = PetscCalloc1(deg*deg,&C);CHKERRQ(ierr);
+    ierr = PetscBLASIntCast(deg,&n_);CHKERRQ(ierr);
+    for (i=0;i<deg-1;i++) {
+      C[(deg+1)*i+1] = 1.0;
+      C[(deg-1)*deg+i] = -polcoeffs[deg-i]/polcoeffs[0];
+    }
+    C[deg*deg+-1] = -polcoeffs[1]/polcoeffs[0];
+    ierr = PetscBLASIntCast(3*deg,&lwork);CHKERRQ(ierr);
+#if !defined(PETSC_USE_COMPLEX)
+    ierr = PetscMalloc1(lwork,&work);CHKERRQ(ierr);
+    PetscStackCallBLAS("LAPACKgeev",LAPACKgeev_("N","N",&n_,C,&n_,wr,wi,NULL,&n_,NULL,&n_,work,&lwork,&info));
+    if (info) *avail = PETSC_FALSE;
+    ierr = PetscFree(work);CHKERRQ(ierr); 
+#else
+    ierr = PetscMalloc2(2*deg,&rwork,lwork,&work);CHKERRQ(ierr);
+    PetscStackCallBLAS("LAPACKgeev",LAPACKgeev_("N","N",&n_,C,&n_,wr,NULL,&n_,NULL,&n_,work,&lwork,rwork,&info));
+    if (info) *avail = PETSC_FALSE;
+    ierr = PetscFree2(rwork,work);CHKERRQ(ierr);
+#endif
+    ierr = PetscFree(C);CHKERRQ(ierr);
+  }
+  PetscFunctionReturn(0);
+#endif
+}
+
+static PetscErrorCode NEPNLEIGSAuxiliarRmDuplicates(PetscInt nin,PetscScalar *pin,PetscInt *nout,PetscScalar *pout)
+{
+  PetscInt       i,j;
+
+  PetscFunctionBegin;
+  for (i=0;i<nin;i++) {
+    pout[(*nout)++] = pin[i];
+    for (j=0;j<*nout-1;j++)
+      if(PetscAbsScalar(pin[i]-pout[j])<PETSC_MACHINE_EPSILON*100) {
+        (*nout)--;
+        break;
+      }
+  }
+  PetscFunctionReturn(0);
+}
+
+static PetscErrorCode NEPNLEIGSFNSingularities(FN f,PetscInt *nisol,PetscScalar **isol,PetscBool *rational)
+{
+  PetscErrorCode ierr;
+  FNCombineType  ctype;
+  FN             f1,f2;
+  PetscInt       i,nq,nisol1,nisol2;
+  PetscScalar    *qcoeff,*wr,*wi,*isol1,*isol2;
+  PetscBool      flg,avail,rat1,rat2;
+
+  PetscFunctionBegin;
+  ierr = PetscObjectTypeCompare((PetscObject)f,FNRATIONAL,&flg);CHKERRQ(ierr);
+  if (flg) {
+    *rational = PETSC_TRUE;
+    ierr = FNRationalGetDenominator(f,&nq,&qcoeff);CHKERRQ(ierr);
+    if (nq>1) {
+      ierr = PetscMalloc2(nq-1,&wr,nq-1,&wi);
+      ierr = NEPNLEIGSAuxiliarPRootFinder(nq-1,qcoeff,wr,wi,&avail);CHKERRQ(ierr);
+      if (avail) {
+        ierr = PetscCalloc1(nq-1,isol);CHKERRQ(ierr);
+        *nisol = 0;
+        for (i=0;i<nq-1;i++) 
+#if !defined(PETSC_USE_COMPLEX)
+          if (wi[i]==0)
+#endif 
+            (*isol)[(*nisol)++] = wr[i];
+        nq = *nisol; *nisol = 0;
+        for (i=0;i<nq;i++) wr[i] = (*isol)[i];
+        ierr = NEPNLEIGSAuxiliarRmDuplicates(nq,wr,nisol,*isol);CHKERRQ(ierr);
+        ierr = PetscFree2(wr,wi);CHKERRQ(ierr);
+      } else {*nisol=0; *isol = NULL;}
+    } else {*nisol = 0; *isol = NULL;}
+    ierr = PetscFree(qcoeff);CHKERRQ(ierr);
+  }
+  ierr = PetscObjectTypeCompare((PetscObject)f,FNCOMBINE,&flg);CHKERRQ(ierr);
+  if (flg) {
+    ierr = FNCombineGetChildren(f,&ctype,&f1,&f2);CHKERRQ(ierr);
+    if(ctype != FN_COMBINE_COMPOSE) {
+      ierr = NEPNLEIGSFNSingularities(f1,&nisol1,&isol1,&rat1);CHKERRQ(ierr);
+      ierr = NEPNLEIGSFNSingularities(f2,&nisol2,&isol2,&rat2);CHKERRQ(ierr);
+      if (nisol1+nisol2>0) {
+        ierr = PetscCalloc1(nisol1+nisol2,isol);CHKERRQ(ierr);
+        *nisol = 0; 
+        ierr = NEPNLEIGSAuxiliarRmDuplicates(nisol1,isol1,nisol,*isol);CHKERRQ(ierr);
+        ierr = NEPNLEIGSAuxiliarRmDuplicates(nisol2,isol2,nisol,*isol);CHKERRQ(ierr);
+      }
+      *rational = (rat1&&rat2)?PETSC_TRUE:PETSC_FALSE;
+      ierr = PetscFree(isol1);CHKERRQ(ierr);
+      ierr = PetscFree(isol2);CHKERRQ(ierr);
+    }
+  }
+  PetscFunctionReturn(0);
+}
+
+static PetscErrorCode NEPNLEIGSRationalSingularities(NEP nep,PetscInt *ndptx,PetscScalar *dxi,PetscBool *rational)
+{
+  PetscErrorCode ierr;
+  PetscInt       nt,i,nisol;
+  FN             f;
+  PetscScalar    *isol;
+  PetscBool      rat;
+
+  PetscFunctionBegin;
+  *rational = PETSC_TRUE;
+  ierr = NEPGetSplitOperatorInfo(nep,&nt,NULL);CHKERRQ(ierr);
+  for (i=0;i<nt;i++) {
+    ierr = NEPGetSplitOperatorTerm(nep,i,NULL,&f);CHKERRQ(ierr);
+    ierr = NEPNLEIGSFNSingularities(f,&nisol,&isol,&rat);CHKERRQ(ierr);
+    *ndptx = 0;
+    if (nisol) {
+      ierr = NEPNLEIGSAuxiliarRmDuplicates(nisol,isol,ndptx,dxi);CHKERRQ(ierr);
+      ierr = PetscFree(isol);
+    }
+    *rational = ((*rational)&&rat)?PETSC_TRUE:PETSC_FALSE;
+  }
+  PetscFunctionReturn(0);
+}
+
 static PetscErrorCode NEPNLEIGSLejaBagbyPoints(NEP nep)
 {
   PetscErrorCode ierr;
@@ -113,6 +251,7 @@ static PetscErrorCode NEPNLEIGSLejaBagbyPoints(NEP nep)
   PetscInt       i,k,ndpt=NDPOINTS,ndptx=NDPOINTS;
   PetscScalar    *ds,*dsi,*dxi,*nrs,*nrxi,*s=ctx->s,*xi=ctx->xi,*beta=ctx->beta;
   PetscReal      maxnrs,minnrxi;
+  PetscBool      flg=PETSC_FALSE;
 
   PetscFunctionBegin;
   ierr = PetscMalloc5(ndpt+1,&ds,ndpt+1,&dsi,ndpt,&dxi,ndpt+1,&nrs,ndpt,&nrxi);CHKERRQ(ierr);
@@ -126,7 +265,12 @@ static PetscErrorCode NEPNLEIGSLejaBagbyPoints(NEP nep)
   /* Discretize the singularity region */
   if (ctx->computesingularities) {
     ierr = (ctx->computesingularities)(nep,&ndptx,dxi,ctx->singularitiesctx);CHKERRQ(ierr);
-  } else ndptx = 0;
+  } else {
+    ierr = PetscOptionsGetBool(NULL,NULL,"-nep_nleigs_rational_singularities",&flg,NULL);CHKERRQ(ierr);
+    if (flg) {
+      ierr = NEPNLEIGSRationalSingularities(nep,&ndptx,dxi,&ctx->rational);CHKERRQ(ierr);
+    } else ndptx = 0;
+  }
 
   /* Look for Leja-Bagby points in the discretization sets */
   s[0]    = ds[0];
@@ -657,8 +801,6 @@ PetscErrorCode NEPSetUp_NLEIGS(NEP nep)
   if (!ctx->ddmaxit) ctx->ddmaxit = LBPOINTS;
   ierr = RGIsTrivial(nep->rg,&istrivial);CHKERRQ(ierr);
   if (istrivial) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"NEPNLEIGS requires a nontrivial region defining the target set");
-  ierr = RGCheckInside(nep->rg,1,&nep->target,&zero,&in);CHKERRQ(ierr);
-  if (in<0) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"The target is not inside the target set");
   if (!nep->which) nep->which = NEP_TARGET_MAGNITUDE;
 
   /* Initialize the NLEIGS context structure */
@@ -671,6 +813,10 @@ PetscErrorCode NEPSetUp_NLEIGS(NEP nep)
 
   /* Compute Leja-Bagby points and scaling values */
   ierr = NEPNLEIGSLejaBagbyPoints(nep);CHKERRQ(ierr);
+  if (!(ctx->rational)) {
+    ierr = RGCheckInside(nep->rg,1,&nep->target,&zero,&in);CHKERRQ(ierr);
+    if (in<0) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"The target is not inside the target set");
+  }
 
   /* Compute the divided difference matrices */
   if (nep->fui==NEP_USER_INTERFACE_SPLIT) {
