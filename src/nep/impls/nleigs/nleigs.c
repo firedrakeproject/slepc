@@ -177,6 +177,7 @@ static PetscErrorCode NEPNLEIGSFNSingularities(FN f,PetscInt *nisol,PetscScalar 
   PetscBool      flg,avail,rat1,rat2;
 
   PetscFunctionBegin;
+  *rational = PETSC_FALSE;
   ierr = PetscObjectTypeCompare((PetscObject)f,FNRATIONAL,&flg);CHKERRQ(ierr);
   if (flg) {
     *rational = PETSC_TRUE;
@@ -203,7 +204,7 @@ static PetscErrorCode NEPNLEIGSFNSingularities(FN f,PetscInt *nisol,PetscScalar 
   ierr = PetscObjectTypeCompare((PetscObject)f,FNCOMBINE,&flg);CHKERRQ(ierr);
   if (flg) {
     ierr = FNCombineGetChildren(f,&ctype,&f1,&f2);CHKERRQ(ierr);
-    if(ctype != FN_COMBINE_COMPOSE) {
+    if(ctype != FN_COMBINE_COMPOSE && ctype != FN_COMBINE_DIVIDE) {
       ierr = NEPNLEIGSFNSingularities(f1,&nisol1,&isol1,&rat1);CHKERRQ(ierr);
       ierr = NEPNLEIGSFNSingularities(f2,&nisol2,&isol2,&rat2);CHKERRQ(ierr);
       if (nisol1+nisol2>0) {
