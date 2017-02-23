@@ -23,6 +23,7 @@
         use slepcbvdef
         use slepcrgdef
         use slepcdsdef
+        use slepclmedef
         use petscsnesdef
 #include <../src/eps/f90-mod/slepceps.h>
         end module

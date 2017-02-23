@@ -21,10 +21,15 @@
 
 ALL: lib
 
+CFLAGS   =
+FFLAGS   =
+SOURCEC  = lyapii.c
+SOURCEF  =
+SOURCEH  =
 LIBBASE  = libslepceps
-DIRS     = power subspace krylov davidson cg ciss lyapii lapack external
-LOCDIR   = src/eps/impls/
+DIRS     =
 MANSEC   = EPS
+LOCDIR   = src/eps/impls/lyapii/
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common
 

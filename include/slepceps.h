@@ -27,6 +27,7 @@
 #include <slepcbv.h>
 #include <slepcds.h>
 #include <slepcrg.h>
+#include <slepclme.h>
 #include <petscsnes.h>
 
 PETSC_EXTERN PetscErrorCode EPSInitializePackage(void);
@@ -59,6 +60,7 @@ typedef const char* EPSType;
 #define EPSRQCG        "rqcg"
 #define EPSLOBPCG      "lobpcg"
 #define EPSCISS        "ciss"
+#define EPSLYAPII      "lyapii"
 #define EPSLAPACK      "lapack"
 #define EPSARPACK      "arpack"
 #define EPSBLZPACK     "blzpack"
@@ -464,6 +466,9 @@ PETSC_EXTERN PetscErrorCode EPSCISSSetRefinement(EPS,PetscInt,PetscInt);
 PETSC_EXTERN PetscErrorCode EPSCISSGetRefinement(EPS,PetscInt*,PetscInt*);
 PETSC_EXTERN PetscErrorCode EPSCISSSetUseST(EPS,PetscBool);
 PETSC_EXTERN PetscErrorCode EPSCISSGetUseST(EPS,PetscBool*);
+
+PETSC_EXTERN PetscErrorCode EPSLyapIISetLME(EPS,LME);
+PETSC_EXTERN PetscErrorCode EPSLyapIIGetLME(EPS,LME*);
 
 PETSC_EXTERN PetscErrorCode EPSBLOPEXSetBlockSize(EPS,PetscInt);
 PETSC_EXTERN PetscErrorCode EPSBLOPEXGetBlockSize(EPS,PetscInt*);

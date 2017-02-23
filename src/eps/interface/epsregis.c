@@ -50,6 +50,7 @@ PETSC_EXTERN PetscErrorCode EPSCreate_JD(EPS);
 PETSC_EXTERN PetscErrorCode EPSCreate_RQCG(EPS);
 PETSC_EXTERN PetscErrorCode EPSCreate_LOBPCG(EPS);
 PETSC_EXTERN PetscErrorCode EPSCreate_CISS(EPS);
+PETSC_EXTERN PetscErrorCode EPSCreate_LyapII(EPS);
 
 /*@C
   EPSRegisterAll - Registers all the eigenvalue solvers in the EPS package.
@@ -77,6 +78,7 @@ PetscErrorCode EPSRegisterAll(void)
   ierr = EPSRegister(EPSRQCG,EPSCreate_RQCG);CHKERRQ(ierr);
   ierr = EPSRegister(EPSLOBPCG,EPSCreate_LOBPCG);CHKERRQ(ierr);
   ierr = EPSRegister(EPSCISS,EPSCreate_CISS);CHKERRQ(ierr);
+  ierr = EPSRegister(EPSLYAPII,EPSCreate_LyapII);CHKERRQ(ierr);
   ierr = EPSRegister(EPSLAPACK,EPSCreate_LAPACK);CHKERRQ(ierr);
 #if defined(SLEPC_HAVE_ARPACK)
   ierr = EPSRegister(EPSARPACK,EPSCreate_ARPACK);CHKERRQ(ierr);
