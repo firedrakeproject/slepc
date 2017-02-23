@@ -131,12 +131,12 @@ define pkg_template
   $(call libname_function,$(LIBDIR)/libslepc$(1)) : $(call concatlang,$(1))
 endef
 $(foreach pkg,$(pkgs),$(eval $(call pkg_template,$(pkg))))
-$(call libname_function,$(LIBDIR)/libslepceps) : libdep := $(call libpkg,sys)
+$(call libname_function,$(LIBDIR)/libslepclme) : libdep := $(call libpkg,sys)
+$(call libname_function,$(LIBDIR)/libslepceps) : libdep := $(call libpkg,lme sys)
 $(call libname_function,$(LIBDIR)/libslepcsvd) : libdep := $(call libpkg,eps sys)
 $(call libname_function,$(LIBDIR)/libslepcpep) : libdep := $(call libpkg,eps sys)
 $(call libname_function,$(LIBDIR)/libslepcnep) : libdep := $(call libpkg,pep eps sys)
 $(call libname_function,$(LIBDIR)/libslepcmfn) : libdep := $(call libpkg,sys)
-$(call libname_function,$(LIBDIR)/libslepclme) : libdep := $(call libpkg,sys)
 
 # The package libraries technically depend on each other (not just in an order-only way), but only
 # ABI changes like new or removed symbols requires relinking the dependent libraries.  ABI should
@@ -198,7 +198,7 @@ $(OBJDIR)/sys/classes/ds/f90-mod/slepcdsmod.o : $(OBJDIR)/sys/classes/fn/f90-mod
 $(OBJDIR)/sys/classes/st/f90-mod/slepcstmod.o : $(OBJDIR)/sys/classes/bv/f90-mod/slepcbvmod.o
 $(OBJDIR)/mfn/f90-mod/slepcmfnmod.o   : $(OBJDIR)/sys/classes/bv/f90-mod/slepcbvmod.o $(OBJDIR)/sys/classes/fn/f90-mod/slepcfnmod.o
 $(OBJDIR)/lme/f90-mod/slepclmemod.o   : $(OBJDIR)/sys/classes/bv/f90-mod/slepcbvmod.o
-$(OBJDIR)/eps/f90-mod/slepcepsmod.o   : $(OBJDIR)/sys/classes/bv/f90-mod/slepcbvmod.o $(OBJDIR)/sys/classes/fn/f90-mod/slepcfnmod.o $(OBJDIR)/sys/classes/ds/f90-mod/slepcdsmod.o $(OBJDIR)/sys/classes/rg/f90-mod/slepcrgmod.o $(OBJDIR)/sys/classes/st/f90-mod/slepcstmod.o
+$(OBJDIR)/eps/f90-mod/slepcepsmod.o   : $(OBJDIR)/sys/classes/bv/f90-mod/slepcbvmod.o $(OBJDIR)/sys/classes/fn/f90-mod/slepcfnmod.o $(OBJDIR)/sys/classes/ds/f90-mod/slepcdsmod.o $(OBJDIR)/sys/classes/rg/f90-mod/slepcrgmod.o $(OBJDIR)/sys/classes/st/f90-mod/slepcstmod.o $(OBJDIR)/lme/f90-mod/slepclmemod.o
 $(OBJDIR)/pep/f90-mod/slepcpepmod.o   : $(OBJDIR)/eps/f90-mod/slepcepsmod.o
 $(OBJDIR)/nep/f90-mod/slepcnepmod.o   : $(OBJDIR)/pep/f90-mod/slepcpepmod.o
 $(OBJDIR)/svd/f90-mod/slepcsvdmod.o   : $(OBJDIR)/eps/f90-mod/slepcepsmod.o

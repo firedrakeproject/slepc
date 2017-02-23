@@ -17,6 +17,7 @@
 #include "slepc/finclude/slepcbv.h"
 #include "slepc/finclude/slepcds.h"
 #include "slepc/finclude/slepcrg.h"
+#include "slepc/finclude/slepclme.h"
 #include "petsc/finclude/petscsnes.h"
 
 #define EPS type(tEPS)
@@ -46,6 +47,7 @@
 #define EPSRQCG        'rqcg'
 #define EPSLOBPCG      'lobpcg'
 #define EPSCISS        'ciss'
+#define EPSLYAPII      'lyapii'
 #define EPSLAPACK      'lapack'
 #define EPSARPACK      'arpack'
 #define EPSBLZPACK     'blzpack'
