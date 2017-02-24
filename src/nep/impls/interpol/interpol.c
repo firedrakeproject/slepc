@@ -40,7 +40,8 @@
 typedef struct {
   PEP       pep;
   PetscReal tol;       /* tolerance for norm of polynomial coefficients */
-  PetscInt  deg;       /* maximum number of interpolation polynomial */
+  PetscInt  maxdeg;    /* maximum number of interpolation polynomial */
+  PetscInt  deg;       /* interpolation polynomial degree */
 } NEP_INTERPOL;
 
 PetscErrorCode NEPSetUp_Interpol(NEP nep)
@@ -71,6 +72,7 @@ PetscErrorCode NEPSetUp_Interpol(NEP nep)
   ierr = PEPSetDimensions(ctx->pep,nep->nev,nep->ncv?nep->ncv:PETSC_DEFAULT,nep->mpd?nep->mpd:PETSC_DEFAULT);CHKERRQ(ierr);
   tol = ctx->pep->tol;
   if (tol==PETSC_DEFAULT) tol = (nep->tol==PETSC_DEFAULT)?SLEPC_DEFAULT_TOL:nep->tol;
+  if (ctx->tol==PETSC_DEFAULT) ctx->tol = tol;
   its=ctx->pep->max_it;
   if (!its) its = nep->max_it?nep->max_it:PETSC_DEFAULT;
   ierr = PEPSetTolerances(ctx->pep,tol,its);CHKERRQ(ierr);
@@ -127,11 +129,18 @@ PetscErrorCode NEPSolve_Interpol(NEP nep)
   NEP_INTERPOL   *ctx = (NEP_INTERPOL*)nep->data;
   Mat            *A;   /*T=nep->function,Tp=nep->jacobian;*/
   PetscScalar    *x,*fx,t;
-  PetscReal      *cs,a,b,s;
-  PetscInt       i,j,k,deg=ctx->deg;
+  PetscReal      *cs,a,b,s,aprox,aprox0,*matnorm;
+  PetscInt       i,j,k,deg=ctx->maxdeg;
+  PetscBool      hasmnorm;
 
   PetscFunctionBegin;
-  ierr = PetscMalloc4(deg+1,&A,(deg+1)*(deg+1),&cs,deg+1,&x,(deg+1)*nep->nt,&fx);CHKERRQ(ierr);
+  ierr = PetscMalloc5(deg+1,&A,(deg+1)*(deg+1),&cs,deg+1,&x,(deg+1)*nep->nt,&fx,nep->nt,&matnorm);CHKERRQ(ierr);
+  for  (j=0;j<nep->nt;j++) {
+    ierr = MatHasOperation(nep->A[j],MATOP_NORM,&hasmnorm);CHKERRQ(ierr);
+    if (!hasmnorm) break;
+    ierr = MatNorm(nep->A[j],NORM_INFINITY,matnorm+j);CHKERRQ(ierr);
+  }
+  if (!hasmnorm) for (j=0;j<nep->nt;j++) matnorm[j] = 1.0;
   ierr = RGIntervalGetEndpoints(nep->rg,&a,&b,NULL,NULL);CHKERRQ(ierr);
   ierr = ChebyshevNodes(deg,a,b,x,cs);CHKERRQ(ierr);
   for (j=0;j<nep->nt;j++) {
@@ -139,29 +148,33 @@ PetscErrorCode NEPSolve_Interpol(NEP nep)
       ierr = FNEvaluateFunction(nep->f[j],x[i],&fx[i+j*(deg+1)]);CHKERRQ(ierr);
     }
   }
-
   /* Polynomial coefficients */
+  ctx->deg = deg;
   for (k=0;k<=deg;k++) {
     ierr = MatDuplicate(nep->A[0],MAT_COPY_VALUES,&A[k]);CHKERRQ(ierr);
     t = 0.0;
     for (i=0;i<deg+1;i++) t += fx[i]*cs[i*(deg+1)+k];
     t *= 2.0/(deg+1);
     if (k==0) t /= 2.0;
+    aprox = matnorm[0]*PetscAbsScalar(t);
     ierr = MatScale(A[k],t);CHKERRQ(ierr);
     for (j=1;j<nep->nt;j++) {
       t = 0.0;
       for (i=0;i<deg+1;i++) t += fx[i+j*(deg+1)]*cs[i*(deg+1)+k];
       t *= 2.0/(deg+1);
       if (k==0) t /= 2.0;
+      aprox += matnorm[j]*PetscAbsScalar(t);
       ierr = MatAXPY(A[k],t,nep->A[j],nep->mstr);CHKERRQ(ierr);
     }
+    if (k==0)aprox0 = aprox;
+    if (aprox/aprox0<ctx->tol) {ctx->deg = k; deg = k; break;}
   }
 
   ierr = PEPSetOperators(ctx->pep,deg+1,A);CHKERRQ(ierr);
   for (k=0;k<=deg;k++) {
     ierr = MatDestroy(&A[k]);CHKERRQ(ierr);
   }
-  ierr = PetscFree4(A,cs,x,fx);CHKERRQ(ierr);
+  ierr = PetscFree5(A,cs,x,fx,matnorm);CHKERRQ(ierr);
 
   /* Solve polynomial eigenproblem */
   ierr = PEPSolve(ctx->pep);CHKERRQ(ierr);
@@ -243,13 +256,13 @@ static PetscErrorCode NEPInterpolSetInterpolation_Interpol(NEP nep,PetscReal tol
     ctx->tol = tol;
   }
   if (degree == PETSC_DEFAULT || degree == PETSC_DECIDE) {
-    ctx->deg = 0;
+    ctx->maxdeg = 0;
     if (nep->state) { ierr = NEPReset(nep);CHKERRQ(ierr); }
     nep->state = NEP_STATE_INITIAL;
   } else {
     if (degree <= 0) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of degree. Must be > 0");
-    if (ctx->deg != degree) {
-      ctx->deg = degree;
+    if (ctx->maxdeg != degree) {
+      ctx->maxdeg = degree;
       if (nep->state) { ierr = NEPReset(nep);CHKERRQ(ierr); }
       nep->state = NEP_STATE_INITIAL;
     }
@@ -297,7 +310,7 @@ static PetscErrorCode NEPInterpolGetInterpolation_Interpol(NEP nep,PetscReal *to
 
   PetscFunctionBegin;
   if (tol) *tol = ctx->tol;
-  if (deg) *deg = ctx->deg;
+  if (deg) *deg = ctx->maxdeg;
   PetscFunctionReturn(0);
 }
 
@@ -423,8 +436,8 @@ PetscErrorCode NEPView_Interpol(NEP nep,PetscViewer viewer)
   ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
   if (isascii) {
     if (!ctx->pep) { ierr = NEPInterpolGetPEP(nep,&ctx->pep);CHKERRQ(ierr); }
-    ierr = PetscViewerASCIIPrintf(viewer,"  Interpol: polynomial degree %D\n",ctx->deg);CHKERRQ(ierr);
-    ierr = PetscViewerASCIIPrintf(viewer,"  Interpol: tolerance for norm of polynomial coefficients %D\n",ctx->tol);CHKERRQ(ierr);
+    ierr = PetscViewerASCIIPrintf(viewer,"  Interpol: polynomial degree %D, max=%D\n",ctx->deg,ctx->maxdeg);CHKERRQ(ierr);
+    ierr = PetscViewerASCIIPrintf(viewer,"  Interpol: tolerance for norm of polynomial coefficients %g\n",ctx->tol);CHKERRQ(ierr);
     ierr = PetscViewerASCIIPushTab(viewer);CHKERRQ(ierr);
     ierr = PEPView(ctx->pep,viewer);CHKERRQ(ierr);
     ierr = PetscViewerASCIIPopTab(viewer);CHKERRQ(ierr);
@@ -465,7 +478,7 @@ PETSC_EXTERN PetscErrorCode NEPCreate_Interpol(NEP nep)
   PetscFunctionBegin;
   ierr = PetscNewLog(nep,&ctx);CHKERRQ(ierr);
   nep->data = (void*)ctx;
-  ctx->deg  = 5;
+  ctx->maxdeg  = 5;
   ctx->tol  = PETSC_DEFAULT;
 
   nep->ops->solve          = NEPSolve_Interpol;
