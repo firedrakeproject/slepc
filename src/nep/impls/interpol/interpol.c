@@ -40,8 +40,8 @@
 typedef struct {
   PEP       pep;
   PetscReal tol;       /* tolerance for norm of polynomial coefficients */
-  PetscInt  maxdeg;    /* maximum number of interpolation polynomial */
-  PetscInt  deg;       /* interpolation polynomial degree */
+  PetscInt  maxdeg;    /* maximum degree of interpolation polynomial */
+  PetscInt  deg;       /* actual degree of interpolation polynomial */
 } NEP_INTERPOL;
 
 PetscErrorCode NEPSetUp_Interpol(NEP nep)
@@ -127,7 +127,7 @@ PetscErrorCode NEPSolve_Interpol(NEP nep)
 {
   PetscErrorCode ierr;
   NEP_INTERPOL   *ctx = (NEP_INTERPOL*)nep->data;
-  Mat            *A;   /*T=nep->function,Tp=nep->jacobian;*/
+  Mat            *A;
   PetscScalar    *x,*fx,t;
   PetscReal      *cs,a,b,s,aprox,aprox0,*matnorm;
   PetscInt       i,j,k,deg=ctx->maxdeg;
@@ -166,8 +166,8 @@ PetscErrorCode NEPSolve_Interpol(NEP nep)
       aprox += matnorm[j]*PetscAbsScalar(t);
       ierr = MatAXPY(A[k],t,nep->A[j],nep->mstr);CHKERRQ(ierr);
     }
-    if (k==0)aprox0 = aprox;
-    if (aprox/aprox0<ctx->tol) {ctx->deg = k; deg = k; break;}
+    if (k==0) aprox0 = aprox;
+    if (aprox/aprox0<ctx->tol) { ctx->deg = k; deg = k; break; }
   }
 
   ierr = PEPSetOperators(ctx->pep,deg+1,A);CHKERRQ(ierr);
@@ -477,9 +477,9 @@ PETSC_EXTERN PetscErrorCode NEPCreate_Interpol(NEP nep)
 
   PetscFunctionBegin;
   ierr = PetscNewLog(nep,&ctx);CHKERRQ(ierr);
-  nep->data = (void*)ctx;
-  ctx->maxdeg  = 5;
-  ctx->tol  = PETSC_DEFAULT;
+  nep->data   = (void*)ctx;
+  ctx->maxdeg = 5;
+  ctx->tol    = PETSC_DEFAULT;
 
   nep->ops->solve          = NEPSolve_Interpol;
   nep->ops->setup          = NEPSetUp_Interpol;
