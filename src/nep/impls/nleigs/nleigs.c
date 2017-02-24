@@ -437,7 +437,7 @@ static PetscErrorCode NEPNLEIGSDividedDifferences_split(NEP nep)
   ierr = PetscObjectTypeCompare((PetscObject)nep->A[0],MATSHELL,&shell);CHKERRQ(ierr);
   maxnmat = PetscMax(ctx->ddmaxit,nep->nt);
   for (i=0;i<ctx->nshiftsw;i++) {
-    ierr = NEPNLEIGSEvalNRTFunct(nep,ctx->nmat,ctx->shifts[i],coeffs);CHKERRQ(ierr);
+    ierr = NEPNLEIGSEvalNRTFunct(nep,ctx->nmat-1,ctx->shifts[i],coeffs);CHKERRQ(ierr);
     if (!shell) {
       ierr = MatDuplicate(nep->A[0],MAT_COPY_VALUES,&T);CHKERRQ(ierr);
     } else {
@@ -531,7 +531,7 @@ static PetscErrorCode NEPNLEIGSDividedDifferences_callback(NEP nep)
   }
   if (!ctx->ksp) { ierr = NEPNLEIGSGetKSPs(nep,&ctx->ksp);CHKERRQ(ierr); }
   for (i=0;i<ctx->nshiftsw;i++) {
-    ierr = NEPNLEIGSEvalNRTFunct(nep,ctx->nmat,ctx->shifts[i],coeffs);CHKERRQ(ierr);
+    ierr = NEPNLEIGSEvalNRTFunct(nep,ctx->nmat-1,ctx->shifts[i],coeffs);CHKERRQ(ierr);
     ierr = MatDuplicate(ctx->D[0],MAT_COPY_VALUES,&T);CHKERRQ(ierr);
     if (coeffs[0]!=1.0) { ierr = MatScale(T,coeffs[0]);CHKERRQ(ierr); }
     for (j=1;j<ctx->nmat-1;j++) {
