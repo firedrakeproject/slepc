@@ -55,7 +55,7 @@ int main(int argc,char **argv)
   FN             funs[3];
   PetscScalar    coeffs[2],b;
   PetscInt       n=128,nev,Istart,Iend,i,deg;
-  PetscReal      tau=0.001,h,a=20,xi;
+  PetscReal      tau=0.001,h,a=20,xi,tol;
   PetscBool      terse;
   PetscErrorCode ierr;
 
@@ -152,8 +152,8 @@ int main(int argc,char **argv)
   ierr = NEPSetType(nep,NEPINTERPOL);CHKERRQ(ierr);
   ierr = NEPSetRG(nep,rg);CHKERRQ(ierr);
   ierr = NEPInterpolSetPEP(nep,pep);CHKERRQ(ierr);
-  ierr = NEPInterpolGetDegree(nep,&deg);CHKERRQ(ierr);
-  ierr = NEPInterpolSetDegree(nep,deg+2);CHKERRQ(ierr);  /* increase degree of interpolation */
+  ierr = NEPInterpolGetInterpolation(nep,&tol,&deg);CHKERRQ(ierr);
+  ierr = NEPInterpolSetInterpolation(nep,tol,deg+2);CHKERRQ(ierr);  /* increase degree of interpolation */
   ierr = NEPSetFromOptions(nep);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

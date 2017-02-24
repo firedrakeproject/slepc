@@ -1421,7 +1421,7 @@ PetscErrorCode NEPNLEIGSGetLocking(NEP nep,PetscBool *lock)
   PetscFunctionReturn(0);
 }
 
-static PetscErrorCode NEPNLEIGSSetInterpolation_NLEIGS(NEP nep,PetscReal tol,PetscInt maxits)
+static PetscErrorCode NEPNLEIGSSetInterpolation_NLEIGS(NEP nep,PetscReal tol,PetscInt degree)
 {
   PetscErrorCode ierr;
   NEP_NLEIGS     *ctx=(NEP_NLEIGS*)nep->data;
@@ -1434,14 +1434,14 @@ static PetscErrorCode NEPNLEIGSSetInterpolation_NLEIGS(NEP nep,PetscReal tol,Pet
     if (tol <= 0.0) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of tol. Must be > 0");
     ctx->ddtol = tol;
   }
-  if (maxits == PETSC_DEFAULT || maxits == PETSC_DECIDE) {
+  if (degree == PETSC_DEFAULT || degree == PETSC_DECIDE) {
     ctx->ddmaxit = 0;
     if (nep->state) { ierr = NEPReset(nep);CHKERRQ(ierr); }
     nep->state = NEP_STATE_INITIAL;
   } else {
-    if (maxits <= 0) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of maxits. Must be > 0");
-    if (ctx->ddmaxit != maxits) {
-      ctx->ddmaxit = maxits;
+    if (degree <= 0) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of degree. Must be > 0");
+    if (ctx->ddmaxit != degree) {
+      ctx->ddmaxit = degree;
       if (nep->state) { ierr = NEPReset(nep);CHKERRQ(ierr); }
       nep->state = NEP_STATE_INITIAL;
     }
@@ -1450,19 +1450,19 @@ static PetscErrorCode NEPNLEIGSSetInterpolation_NLEIGS(NEP nep,PetscReal tol,Pet
 }
 
 /*@
-   NEPNLEIGSSetInterpolation - Sets the tolerance and maximum iteration count used
-   by the NLEIGS method when building the interpolation via divided differences.
+   NEPNLEIGSSetInterpolation - Sets the tolerance and maximum degree
+   when building the interpolation via divided differences.
 
    Logically Collective on NEP
 
    Input Parameters:
 +  nep    - the nonlinear eigensolver context
-.  tol    - the convergence tolerance
--  maxits - maximum number of iterations to use
+.  tol    - tolerance to stop computing divided differences
+-  degree - maximum degree of interpolation
 
    Options Database Key:
-+  -nep_nleigs_interpolation_tol <tol> - Sets the convergence tolerance
--  -nep_nleigs_interpolation_max_it <maxits> - Sets the maximum number of iterations
++  -nep_nleigs_interpolation_tol <tol> - Sets the tolerance to stop computing divided differences
+-  -nep_nleigs_interpolation_degree <degree> - Sets the maximum degree of interpolation
 
    Notes:
    Use PETSC_DEFAULT for either argument to assign a reasonably good value.
@@ -1471,31 +1471,31 @@ static PetscErrorCode NEPNLEIGSSetInterpolation_NLEIGS(NEP nep,PetscReal tol,Pet
 
 .seealso: NEPNLEIGSGetInterpolation()
 @*/
-PetscErrorCode NEPNLEIGSSetInterpolation(NEP nep,PetscReal tol,PetscInt maxits)
+PetscErrorCode NEPNLEIGSSetInterpolation(NEP nep,PetscReal tol,PetscInt degree)
 {
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
   PetscValidLogicalCollectiveReal(nep,tol,2);
-  PetscValidLogicalCollectiveInt(nep,maxits,3);
-  ierr = PetscTryMethod(nep,"NEPNLEIGSSetInterpolation_C",(NEP,PetscReal,PetscInt),(nep,tol,maxits));CHKERRQ(ierr);
+  PetscValidLogicalCollectiveInt(nep,degree,3);
+  ierr = PetscTryMethod(nep,"NEPNLEIGSSetInterpolation_C",(NEP,PetscReal,PetscInt),(nep,tol,degree));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
-static PetscErrorCode NEPNLEIGSGetInterpolation_NLEIGS(NEP nep,PetscReal *tol,PetscInt *maxits)
+static PetscErrorCode NEPNLEIGSGetInterpolation_NLEIGS(NEP nep,PetscReal *tol,PetscInt *degree)
 {
   NEP_NLEIGS *ctx=(NEP_NLEIGS*)nep->data;
 
   PetscFunctionBegin;
   if (tol)    *tol    = ctx->ddtol;
-  if (maxits) *maxits = ctx->ddmaxit;
+  if (degree) *degree = ctx->ddmaxit;
   PetscFunctionReturn(0);
 }
 
 /*@
-   NEPNLEIGSGetInterpolation - Gets the tolerance and maximum iteration count used
-   by the NLEIGS method when building the interpolation via divided differences.
+   NEPNLEIGSGetInterpolation - Gets the tolerance and maximum degree
+   when building the interpolation via divided differences.
 
    Not Collective
 
@@ -1503,20 +1503,20 @@ static PetscErrorCode NEPNLEIGSGetInterpolation_NLEIGS(NEP nep,PetscReal *tol,Pe
 .  nep - the nonlinear eigensolver context
 
    Output Parameter:
-+  tol    - the convergence tolerance
--  maxits - maximum number of iterations
++  tol    - tolerance to stop computing divided differences
+-  degree - maximum degree of interpolation
 
    Level: advanced
 
 .seealso: NEPNLEIGSSetInterpolation()
 @*/
-PetscErrorCode NEPNLEIGSGetInterpolation(NEP nep,PetscReal *tol,PetscInt *maxits)
+PetscErrorCode NEPNLEIGSGetInterpolation(NEP nep,PetscReal *tol,PetscInt *degree)
 {
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
-  ierr = PetscTryMethod(nep,"NEPNLEIGSGetInterpolation_C",(NEP,PetscReal*,PetscInt*),(nep,tol,maxits));CHKERRQ(ierr);
+  ierr = PetscTryMethod(nep,"NEPNLEIGSGetInterpolation_C",(NEP,PetscReal*,PetscInt*),(nep,tol,degree));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -1648,7 +1648,7 @@ PetscErrorCode NEPSetFromOptions_NLEIGS(PetscOptionItems *PetscOptionsObject,NEP
 
     ierr = NEPNLEIGSGetInterpolation(nep,&r,&i);CHKERRQ(ierr);
     if (!i) i = PETSC_DEFAULT;
-    ierr = PetscOptionsInt("-nep_nleigs_interpolation_max_it","Maximum number of terms for interpolation via divided differences","NEPNLEIGSSetInterpolation",i,&i,&flg1);CHKERRQ(ierr);
+    ierr = PetscOptionsInt("-nep_nleigs_interpolation_degree","Maximum number of terms for interpolation via divided differences","NEPNLEIGSSetInterpolation",i,&i,&flg1);CHKERRQ(ierr);
     ierr = PetscOptionsReal("-nep_nleigs_interpolation_tol","Tolerance for interpolation via divided differences","NEPNLEIGSSetInterpolation",r,&r,&flg2);CHKERRQ(ierr);
     if (flg1 || flg2) { ierr = NEPNLEIGSSetInterpolation(nep,r,i);CHKERRQ(ierr); }
 

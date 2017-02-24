@@ -55,19 +55,19 @@ runloaded_string_2: runloaded_string_2_schur runloaded_string_2_explicit runload
 runloaded_string_2_%:
 	-@${SETTEST}; check=loaded_string_2; scheme=$*; \
 	if [ "$$scheme" = mbe ]; then scheme="mbe -nep_refine_ksp_type preonly -nep_refine_pc_type lu"; fi; \
-	${MPIEXEC} -n 1 ./loaded_string -nep_type interpol -rg_type interval -rg_interval_endpoints 5,700,-.1,.1 -nep_nev 7 -nep_target 5 -nep_interpol_degree 12 -nep_refine simple -nep_refine_scheme $$scheme -terse > $${test}.tmp 2>&1; \
+	${MPIEXEC} -n 1 ./loaded_string -nep_type interpol -rg_type interval -rg_interval_endpoints 5,700,-.1,.1 -nep_nev 7 -nep_target 5 -nep_interpol_interpolation_degree 12 -nep_refine simple -nep_refine_scheme $$scheme -terse > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
 runloaded_string_3: runloaded_string_3_explicit runloaded_string_3_mbe
 runloaded_string_3_%:
 	-@${SETTEST}; check=loaded_string_2; scheme=$*; \
 	if [ "$$scheme" = mbe ]; then scheme="mbe -nep_refine_ksp_type preonly -nep_refine_pc_type cholesky"; fi; \
-	${MPIEXEC} -n 2 ./loaded_string -nep_type interpol -rg_type interval -rg_interval_endpoints 5,700,-.1,.1 -nep_nev 7 -nep_target 5 -nep_interpol_degree 12 -nep_refine simple -nep_refine_partitions 2 -nep_refine_scheme $$scheme -nep_interpol_st_ksp_type bcgs -nep_interpol_st_pc_type bjacobi -terse > $${test}.tmp 2>&1; \
+	${MPIEXEC} -n 2 ./loaded_string -nep_type interpol -rg_type interval -rg_interval_endpoints 5,700,-.1,.1 -nep_nev 7 -nep_target 5 -nep_interpol_interpolation_degree 12 -nep_refine simple -nep_refine_partitions 2 -nep_refine_scheme $$scheme -nep_interpol_st_ksp_type bcgs -nep_interpol_st_pc_type bjacobi -terse > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
 runloaded_string_4:
 	-@${SETTEST}; check=loaded_string_2; \
-	${MPIEXEC} -n 4 ./loaded_string -nep_type interpol -rg_type interval -rg_interval_endpoints 5,700,-.1,.1 -nep_nev 7 -nep_target 5 -nep_interpol_degree 10 -nep_refine simple -nep_refine_partitions 2 -nep_refine_scheme explicit -nep_interpol_st_ksp_type bcgs -nep_interpol_st_pc_type bjacobi -terse -info_exclude nep,pep,fn -log_exclude nep,pep,fn > $${test}.tmp 2>&1; \
+	${MPIEXEC} -n 4 ./loaded_string -nep_type interpol -rg_type interval -rg_interval_endpoints 5,700,-.1,.1 -nep_nev 7 -nep_target 5 -nep_interpol_interpolation_degree 10 -nep_refine simple -nep_refine_partitions 2 -nep_refine_scheme explicit -nep_interpol_st_ksp_type bcgs -nep_interpol_st_pc_type bjacobi -terse -info_exclude nep,pep,fn -log_exclude nep,pep,fn > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
 rungun_1:
