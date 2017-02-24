@@ -582,7 +582,7 @@ PetscErrorCode EPSComputeError(EPS eps,PetscInt i,EPSErrorType type,PetscReal *e
   PetscErrorCode ierr;
   Mat            A,B;
   Vec            xr,xi,w[3];
-  PetscReal      t;
+  PetscReal      t,vecnorm=1.0;
   PetscScalar    kr,ki;
   PetscBool      flg;
 
@@ -611,12 +611,17 @@ PetscErrorCode EPSComputeError(EPS eps,PetscInt i,EPSErrorType type,PetscReal *e
   ierr = EPSGetEigenpair(eps,i,&kr,&ki,xr,xi);CHKERRQ(ierr);
   ierr = EPSComputeResidualNorm_Private(eps,kr,ki,xr,xi,w,error);CHKERRQ(ierr);
 
+  /* compute 2-norm of eigenvector */
+  if (eps->problem_type==EPS_GHEP) {
+    ierr = VecNorm(xr,NORM_2,&vecnorm);CHKERRQ(ierr);
+  }
+
   /* compute error */
   switch (type) {
     case EPS_ERROR_ABSOLUTE:
       break;
     case EPS_ERROR_RELATIVE:
-      *error /= SlepcAbsEigenvalue(kr,ki);
+      *error /= SlepcAbsEigenvalue(kr,ki)*vecnorm;
       break;
     case EPS_ERROR_BACKWARD:
       /* initialization of matrix norms */
@@ -635,7 +640,7 @@ PetscErrorCode EPSComputeError(EPS eps,PetscInt i,EPSErrorType type,PetscReal *e
         }
       } else eps->nrmb = 1.0;
       t = SlepcAbsEigenvalue(kr,ki);
-      *error /= eps->nrma+t*eps->nrmb;
+      *error /= (eps->nrma+t*eps->nrmb)*vecnorm;
       break;
     default:
       SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"Invalid error type");
