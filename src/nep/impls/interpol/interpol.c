@@ -69,8 +69,8 @@ PetscErrorCode NEPSetUp_Interpol(NEP nep)
   ierr = PEPGetST(ctx->pep,&st);CHKERRQ(ierr);
   ierr = STSetType(st,STSINVERT);CHKERRQ(ierr);
   ierr = PEPSetDimensions(ctx->pep,nep->nev,nep->ncv?nep->ncv:PETSC_DEFAULT,nep->mpd?nep->mpd:PETSC_DEFAULT);CHKERRQ(ierr);
-  tol=ctx->pep->tol;
-  if (tol==PETSC_DEFAULT) tol = (nep->tol==PETSC_DEFAULT)?SLEPC_DEFAULT_TOL/10.0:nep->tol/10.0;
+  tol = ctx->pep->tol;
+  if (tol==PETSC_DEFAULT) tol = (nep->tol==PETSC_DEFAULT)?SLEPC_DEFAULT_TOL:nep->tol;
   its=ctx->pep->max_it;
   if (!its) its = nep->max_it?nep->max_it:PETSC_DEFAULT;
   ierr = PEPSetTolerances(ctx->pep,tol,its);CHKERRQ(ierr);
