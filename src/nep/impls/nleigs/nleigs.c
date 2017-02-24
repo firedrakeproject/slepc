@@ -54,7 +54,7 @@ typedef struct {
   PetscReal      keep;      /* restart parameter */
   PetscBool      lock;      /* locking/non-locking variant */
   PetscInt       idxrk;     /* index of next shift to use */
-  PetscBool      rational;  /* for rational NEPS */
+  PetscBool      rational;  /* for rational NEPs */
   KSP            *ksp;      /* ksp array for storing shift factorizations */
   Vec            vrn;       /* random vector with normally distributed value */
   void           *singularitiesctx;
@@ -118,18 +118,16 @@ static PetscErrorCode NEPNLEIGSAuxiliarPRootFinder(PetscInt deg,PetscScalar *pol
   PetscReal      *rwork;
 #endif
 
-#if defined(SLEPC_MISSING_LAPACK_GEEV)
   PetscFunctionBegin;
+#if defined(PETSC_MISSING_LAPACK_GEEV)
   *avail = PETSC_FALSE;
-  PetscFunctionReturn(0)
 #else
-  PetscFunctionBegin;
   *avail = PETSC_TRUE;
   if (deg>0) {
     ierr = PetscCalloc1(deg*deg,&C);CHKERRQ(ierr);
     ierr = PetscBLASIntCast(deg,&n_);CHKERRQ(ierr);
     for (i=0;i<deg-1;i++) {
-      C[(deg+1)*i+1] = 1.0;
+      C[(deg+1)*i+1]   = 1.0;
       C[(deg-1)*deg+i] = -polcoeffs[deg-i]/polcoeffs[0];
     }
     C[deg*deg+-1] = -polcoeffs[1]/polcoeffs[0];
@@ -147,19 +145,19 @@ static PetscErrorCode NEPNLEIGSAuxiliarPRootFinder(PetscInt deg,PetscScalar *pol
 #endif
     ierr = PetscFree(C);CHKERRQ(ierr);
   }
-  PetscFunctionReturn(0);
 #endif
+  PetscFunctionReturn(0);
 }
 
 static PetscErrorCode NEPNLEIGSAuxiliarRmDuplicates(PetscInt nin,PetscScalar *pin,PetscInt *nout,PetscScalar *pout)
 {
-  PetscInt       i,j;
+  PetscInt i,j;
 
   PetscFunctionBegin;
   for (i=0;i<nin;i++) {
     pout[(*nout)++] = pin[i];
     for (j=0;j<*nout-1;j++)
-      if(PetscAbsScalar(pin[i]-pout[j])<PETSC_MACHINE_EPSILON*100) {
+      if (PetscAbsScalar(pin[i]-pout[j])<PETSC_MACHINE_EPSILON*100) {
         (*nout)--;
         break;
       }
@@ -183,7 +181,7 @@ static PetscErrorCode NEPNLEIGSFNSingularities(FN f,PetscInt *nisol,PetscScalar 
     *rational = PETSC_TRUE;
     ierr = FNRationalGetDenominator(f,&nq,&qcoeff);CHKERRQ(ierr);
     if (nq>1) {
-      ierr = PetscMalloc2(nq-1,&wr,nq-1,&wi);
+      ierr = PetscMalloc2(nq-1,&wr,nq-1,&wi);CHKERRQ(ierr);
       ierr = NEPNLEIGSAuxiliarPRootFinder(nq-1,qcoeff,wr,wi,&avail);CHKERRQ(ierr);
       if (avail) {
         ierr = PetscCalloc1(nq-1,isol);CHKERRQ(ierr);
@@ -197,14 +195,14 @@ static PetscErrorCode NEPNLEIGSFNSingularities(FN f,PetscInt *nisol,PetscScalar 
         for (i=0;i<nq;i++) wr[i] = (*isol)[i];
         ierr = NEPNLEIGSAuxiliarRmDuplicates(nq,wr,nisol,*isol);CHKERRQ(ierr);
         ierr = PetscFree2(wr,wi);CHKERRQ(ierr);
-      } else {*nisol=0; *isol = NULL;}
-    } else {*nisol = 0; *isol = NULL;}
+      } else { *nisol=0; *isol = NULL; }
+    } else { *nisol = 0; *isol = NULL; }
     ierr = PetscFree(qcoeff);CHKERRQ(ierr);
   }
   ierr = PetscObjectTypeCompare((PetscObject)f,FNCOMBINE,&flg);CHKERRQ(ierr);
   if (flg) {
     ierr = FNCombineGetChildren(f,&ctype,&f1,&f2);CHKERRQ(ierr);
-    if(ctype != FN_COMBINE_COMPOSE && ctype != FN_COMBINE_DIVIDE) {
+    if (ctype != FN_COMBINE_COMPOSE && ctype != FN_COMBINE_DIVIDE) {
       ierr = NEPNLEIGSFNSingularities(f1,&nisol1,&isol1,&rat1);CHKERRQ(ierr);
       ierr = NEPNLEIGSFNSingularities(f2,&nisol2,&isol2,&rat2);CHKERRQ(ierr);
       if (nisol1+nisol2>0) {
@@ -555,7 +553,7 @@ static PetscErrorCode NEPNLEIGSDividedDifferences_split(NEP nep)
   nmax = ctx->ddmaxit;
   ierr = PetscMalloc1(nep->nt*nmax,&ctx->coeffD);CHKERRQ(ierr);
   ierr = PetscMalloc3(nmax+1,&b,nmax+1,&coeffs,nep->nt,&matnorm);CHKERRQ(ierr);
-  for  (j=0;j<nep->nt;j++) {
+  for (j=0;j<nep->nt;j++) {
     ierr = MatHasOperation(nep->A[j],MATOP_NORM,&hasmnorm);CHKERRQ(ierr);
     if (!hasmnorm) break;
     ierr = MatNorm(nep->A[j],NORM_INFINITY,matnorm+j);CHKERRQ(ierr);
@@ -563,9 +561,9 @@ static PetscErrorCode NEPNLEIGSDividedDifferences_split(NEP nep)
   /* Try matrix functions scheme */
   ierr = PetscCalloc2(nmax*nmax,&pK,nmax*nmax,&pH);CHKERRQ(ierr);
   for (i=0;i<nmax-1;i++) {
-    pK[(nmax+1)*i] = 1.0;
+    pK[(nmax+1)*i]   = 1.0;
     pK[(nmax+1)*i+1] = beta[i+1]/xi[i];
-    pH[(nmax+1)*i] = s[i];
+    pH[(nmax+1)*i]   = s[i];
     pH[(nmax+1)*i+1] = beta[i+1];
   }
   pH[nmax*nmax-1] = s[nmax-1];
@@ -580,7 +578,7 @@ static PetscErrorCode NEPNLEIGSDividedDifferences_split(NEP nep)
     ierr = FNEvaluateFunctionMat(nep->f[j],H,K);
     PetscPopErrorHandler();
     if (!ierr) { 
-      for (i=0;i<nmax;i++) {ctx->coeffD[j+i*nep->nt] = pK[i]*beta[0];}
+      for (i=0;i<nmax;i++) { ctx->coeffD[j+i*nep->nt] = pK[i]*beta[0]; }
     } else {
       matrix = PETSC_FALSE;
       ierr = PetscFPTrapPop();CHKERRQ(ierr);
@@ -596,7 +594,7 @@ static PetscErrorCode NEPNLEIGSDividedDifferences_split(NEP nep)
   }
   if (hasmnorm) {
     norm0 = 0.0;
-    for  (j=0;j<nep->nt;j++) norm0 += matnorm[j]*PetscAbsScalar(ctx->coeffD[j]);
+    for (j=0;j<nep->nt;j++) norm0 += matnorm[j]*PetscAbsScalar(ctx->coeffD[j]);
   } else {
     norm0 = 0.0;
     for (j=0;j<nep->nt;j++) norm0 = PetscMax(PetscAbsScalar(ctx->coeffD[j]),norm0);
@@ -814,7 +812,7 @@ PetscErrorCode NEPSetUp_NLEIGS(NEP nep)
 
   /* Compute Leja-Bagby points and scaling values */
   ierr = NEPNLEIGSLejaBagbyPoints(nep);CHKERRQ(ierr);
-  if (!(ctx->rational)) {
+  if (!ctx->rational) {
     ierr = RGCheckInside(nep->rg,1,&nep->target,&zero,&in);CHKERRQ(ierr);
     if (in<0) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"The target is not inside the target set");
   }
