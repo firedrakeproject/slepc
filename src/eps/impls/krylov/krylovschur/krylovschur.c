@@ -1105,13 +1105,13 @@ static PetscErrorCode EPSKrylovSchurUpdateSubcommMats_KrylovSchur(EPS eps,PetscS
       if (ctx->submata && !reuse) {
         ierr = MatDestroyMatrices(1,&ctx->submata);CHKERRQ(ierr);
       }
-      ierr = MatGetSubMatrices(A,1,&ctx->isrow,&ctx->iscol,(reuse)?MAT_REUSE_MATRIX:MAT_INITIAL_MATRIX,&ctx->submata);CHKERRQ(ierr);
+      ierr = MatCreateSubMatrices(A,1,&ctx->isrow,&ctx->iscol,(reuse)?MAT_REUSE_MATRIX:MAT_INITIAL_MATRIX,&ctx->submata);CHKERRQ(ierr);
       ierr = MatCreateMPIMatConcatenateSeqMat(((PetscObject)Ag)->comm,ctx->submata[0],PETSC_DECIDE,MAT_REUSE_MATRIX,&Ag);CHKERRQ(ierr);
       if (B) {
         if (ctx->submatb && !reuse) {
           ierr = MatDestroyMatrices(1,&ctx->submatb);CHKERRQ(ierr);
         }
-        ierr = MatGetSubMatrices(B,1,&ctx->isrow,&ctx->iscol,(reuse)?MAT_REUSE_MATRIX:MAT_INITIAL_MATRIX,&ctx->submatb);CHKERRQ(ierr);
+        ierr = MatCreateSubMatrices(B,1,&ctx->isrow,&ctx->iscol,(reuse)?MAT_REUSE_MATRIX:MAT_INITIAL_MATRIX,&ctx->submatb);CHKERRQ(ierr);
         ierr = MatCreateMPIMatConcatenateSeqMat(((PetscObject)Bg)->comm,ctx->submatb[0],PETSC_DECIDE,MAT_REUSE_MATRIX,&Bg);CHKERRQ(ierr);
       }
     }
