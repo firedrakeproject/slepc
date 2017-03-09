@@ -91,14 +91,14 @@ PetscErrorCode SlepcMatConvertSeqDense(Mat mat,Mat *newmat)
   PetscValidPointer(newmat,2);
   ierr = MPI_Comm_size(PetscObjectComm((PetscObject)mat),&size);CHKERRQ(ierr);
   if (size > 1) {
-    ierr = MatHasOperation(mat,MATOP_GET_SUBMATRICES,&flg);CHKERRQ(ierr);
+    ierr = MatHasOperation(mat,MATOP_CREATE_SUBMATRICES,&flg);CHKERRQ(ierr);
     if (!flg) SETERRQ1(PetscObjectComm((PetscObject)mat),PETSC_ERR_SUP,"Mat type %s",((PetscObject)mat)->type_name);
 
     /* assemble full matrix on every processor */
     ierr = MatGetSize(mat,&m,&n);CHKERRQ(ierr);
     ierr = ISCreateStride(PETSC_COMM_SELF,m,0,1,&isrow);CHKERRQ(ierr);
     ierr = ISCreateStride(PETSC_COMM_SELF,n,0,1,&iscol);CHKERRQ(ierr);
-    ierr = MatGetSubMatrices(mat,1,&isrow,&iscol,MAT_INITIAL_MATRIX,&M);CHKERRQ(ierr);
+    ierr = MatCreateSubMatrices(mat,1,&isrow,&iscol,MAT_INITIAL_MATRIX,&M);CHKERRQ(ierr);
     ierr = ISDestroy(&isrow);CHKERRQ(ierr);
     ierr = ISDestroy(&iscol);CHKERRQ(ierr);
 

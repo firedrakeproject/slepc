@@ -125,8 +125,8 @@ int main(int argc,char **argv)
   bc[0] = 0; bc[1] = n;
   ierr = ISCreateGeneral(PETSC_COMM_SELF,2,bc,PETSC_USE_POINTER,&isbc);CHKERRQ(ierr);
   ierr = ISDifference(isf,isbc,&is);CHKERRQ(ierr);
-  ierr = MatGetSubMatrix(Ko,is,is,MAT_INITIAL_MATRIX,&K);CHKERRQ(ierr);
-  ierr = MatGetSubMatrix(Mo,is,is,MAT_INITIAL_MATRIX,&M);CHKERRQ(ierr);
+  ierr = MatCreateSubMatrix(Ko,is,is,MAT_INITIAL_MATRIX,&K);CHKERRQ(ierr);
+  ierr = MatCreateSubMatrix(Mo,is,is,MAT_INITIAL_MATRIX,&M);CHKERRQ(ierr);
   ierr = MatGetLocalSize(M,&mloc,&nloc);CHKERRQ(ierr);
 
   /* C is zero except for the (nele,nele)-entry */
