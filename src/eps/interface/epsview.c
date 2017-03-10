@@ -298,7 +298,6 @@ PetscErrorCode EPSReasonViewFromOptions(EPS eps)
 
 static PetscErrorCode EPSErrorView_ASCII(EPS eps,EPSErrorType etype,PetscViewer viewer)
 {
-  PetscBool      errok=PETSC_TRUE;
   PetscReal      error;
   PetscInt       i,j,k,nvals;
   PetscErrorCode ierr;
@@ -315,11 +314,10 @@ static PetscErrorCode EPSErrorView_ASCII(EPS eps,EPSErrorType etype,PetscViewer 
   }
   for (i=0;i<nvals;i++) {
     ierr = EPSComputeError(eps,i,etype,&error);CHKERRQ(ierr);
-    errok = (errok && error<5.0*eps->tol)? PETSC_TRUE: PETSC_FALSE;
-  }
-  if (!errok) {
-    ierr = PetscViewerASCIIPrintf(viewer," Problem: some of the first %D relative errors are higher than the tolerance\n\n",nvals);CHKERRQ(ierr);
-    PetscFunctionReturn(0);
+    if (error>=5.0*eps->tol) {
+      ierr = PetscViewerASCIIPrintf(viewer," Problem: some of the first %D relative errors are higher than the tolerance\n\n",nvals);CHKERRQ(ierr);
+      PetscFunctionReturn(0);
+    }
   }
   if (eps->which==EPS_ALL) {
     ierr = PetscViewerASCIIPrintf(viewer," Found %D eigenvalues, all of them computed up to the required tolerance:",nvals);CHKERRQ(ierr);
