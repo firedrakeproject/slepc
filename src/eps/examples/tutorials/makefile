@@ -278,7 +278,7 @@ runex12_1:
 
 runex13_1:
 	-@${SETTEST}; \
-	${MPIEXEC} -n 1 ./ex13 -eps_nev 4 -eps_ncv 22 -terse > $${test}.tmp 2>&1; \
+	${MPIEXEC} -n 1 ./ex13 -eps_nev 4 -eps_ncv 22 -eps_tol 1e-5 -terse > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
 runex18_1:
