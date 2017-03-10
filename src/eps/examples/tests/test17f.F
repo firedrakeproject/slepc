@@ -27,6 +27,7 @@
       implicit none
 
 #define MAXSUB 16
+#define MAXSHI 16
 
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !     Declarations
@@ -41,10 +42,11 @@
       PetscInt       n,m,i,j,k,Istart,Iend
       PetscInt       nev,ncv,mpd,nval
       PetscInt       row,col,nloc,nlocs,mlocs
-      PetscInt       II,npart
+      PetscInt       II,npart,inertias(MAXSHI)
       PetscBool      flg,lock
       PetscMPIInt    size,rank
       PetscReal      int0,int1,keep,subint(MAXSUB)
+      PetscReal      shifts(MAXSHI)
       PetscScalar    eval,one,mone,zero
       PetscErrorCode ierr
       MPI_Comm       comm
@@ -210,12 +212,10 @@
         call EPSKrylovSchurGetSubintervals(eps,subint,ierr)
         if (rank .eq. 0) then
           write(*,*) 'Using sub-interval separations ='
-        endif
-        do i=2,npart
-          if (rank .eq. 0) then
+          do i=2,npart
             write(*,180) subint(i)
-          endif
-        enddo
+          enddo
+        endif
  180    format (f6.4)
       endif
 
@@ -224,6 +224,21 @@
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !     Compute all eigenvalues in interval and display info
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+      call EPSSetUp(eps,ierr)
+      call EPSKrylovSchurGetInertias(eps,k,PETSC_NULL_REAL,             &
+     &           PETSC_NULL_INTEGER,ierr)
+      if (k>MAXSHI) then
+        SETERRQ(PETSC_COMM_SELF,1,'Too many shifts')
+      endif
+      call EPSKrylovSchurGetInertias(eps,k,shifts,inertias,ierr)
+      if (rank .eq. 0) then
+        write(*,*) 'Inertias after EPSSetUp:'
+        do i=1,k
+          write(*,185) shifts(i),inertias(i)
+        enddo
+      endif
+ 185  format (' .. ',f3.1,' (',I3,')')
 
       call EPSSolve(eps,ierr)
       call EPSGetDimensions(eps,nev,ncv,mpd,ierr)
