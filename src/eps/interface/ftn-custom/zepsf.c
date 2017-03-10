@@ -379,11 +379,14 @@ PETSC_EXTERN void PETSC_STDCALL epskrylovschurgetsubintervals_(EPS *eps,PetscRea
 PETSC_EXTERN void PETSC_STDCALL epskrylovschurgetinertias_(EPS *eps,PetscInt *nshift,PetscReal *shifts,PetscInt *inertias,PetscErrorCode *ierr)
 {
   PetscReal *oshifts;
-  PetscInt *oinertias;
-  PetscInt n;
+  PetscInt  *oinertias;
+  PetscInt  n;
+
+  CHKFORTRANNULLREAL(shifts);
+  CHKFORTRANNULLINTEGER(inertias);
   *ierr = EPSKrylovSchurGetInertias(*eps,&n,&oshifts,&oinertias); if (*ierr) return;
-  *ierr = PetscMemcpy(shifts,oshifts,n*sizeof(PetscReal)); if (*ierr) return;
-  *ierr = PetscMemcpy(inertias,oinertias,n*sizeof(PetscInt)); if (*ierr) return;
+  if (shifts) { *ierr = PetscMemcpy(shifts,oshifts,n*sizeof(PetscReal)); if (*ierr) return; }
+  if (inertias) { *ierr = PetscMemcpy(inertias,oinertias,n*sizeof(PetscInt)); if (*ierr) return; }
   *nshift = n;
   *ierr = PetscFree(oshifts);
   *ierr = PetscFree(oinertias);
