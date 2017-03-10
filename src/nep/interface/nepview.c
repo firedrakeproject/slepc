@@ -265,7 +265,6 @@ PetscErrorCode NEPReasonViewFromOptions(NEP nep)
 
 static PetscErrorCode NEPErrorView_ASCII(NEP nep,NEPErrorType etype,PetscViewer viewer)
 {
-  PetscBool      errok=PETSC_TRUE;
   PetscReal      error;
   PetscInt       i,j,k,nvals;
   PetscErrorCode ierr;
@@ -282,11 +281,10 @@ static PetscErrorCode NEPErrorView_ASCII(NEP nep,NEPErrorType etype,PetscViewer 
   }
   for (i=0;i<nvals;i++) {
     ierr = NEPComputeError(nep,i,etype,&error);CHKERRQ(ierr);
-    errok = (errok && error<5.0*nep->tol)? PETSC_TRUE: PETSC_FALSE;
-  }
-  if (!errok) {
-    ierr = PetscViewerASCIIPrintf(viewer," Problem: some of the first %D relative errors are higher than the tolerance\n\n",nvals);CHKERRQ(ierr);
-    PetscFunctionReturn(0);
+    if (error>=5.0*nep->tol) {
+      ierr = PetscViewerASCIIPrintf(viewer," Problem: some of the first %D relative errors are higher than the tolerance\n\n",nvals);CHKERRQ(ierr);
+      PetscFunctionReturn(0);
+    }
   }
   if (nep->which==NEP_ALL) {
     ierr = PetscViewerASCIIPrintf(viewer," Found %D eigenvalues, all of them computed up to the required tolerance:",nvals);CHKERRQ(ierr);

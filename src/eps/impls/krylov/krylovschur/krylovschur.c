@@ -823,7 +823,7 @@ static PetscErrorCode EPSKrylovSchurGetSubintervals_KrylovSchur(EPS eps,PetscRea
 
 .seealso: EPSKrylovSchurSetSubintervals(), EPSKrylovSchurGetPartitions(), EPSSetInterval()
 @*/
-PetscErrorCode EPSKrylovSchurGetSubintervals(EPS eps,PetscReal** subint)
+PetscErrorCode EPSKrylovSchurGetSubintervals(EPS eps,PetscReal **subint)
 {
   PetscErrorCode ierr;
 
@@ -838,7 +838,7 @@ static PetscErrorCode EPSKrylovSchurGetInertias_KrylovSchur(EPS eps,PetscInt *n,
 {
   PetscErrorCode  ierr;
   EPS_KRYLOVSCHUR *ctx = (EPS_KRYLOVSCHUR*)eps->data;
-  PetscInt        i;
+  PetscInt        i,numsh;
   EPS_SR          sr = ctx->sr;
 
   PetscFunctionBegin;
@@ -848,29 +848,32 @@ static PetscErrorCode EPSKrylovSchurGetInertias_KrylovSchur(EPS eps,PetscInt *n,
   case EPS_STATE_INITIAL:
     break;
   case EPS_STATE_SETUP:
-    *n = ctx->npart+1;
-    ierr = PetscMalloc1(*n,shifts);CHKERRQ(ierr);
-    ierr = PetscMalloc1(*n,inertias);CHKERRQ(ierr);
-    (*shifts)[0] = eps->inta;
-    (*inertias)[0] = (sr->dir==1)?sr->inertia0:sr->inertia1;
-    if (ctx->npart==1) {
-      (*shifts)[1] = eps->intb;
-      (*inertias)[1] = (sr->dir==1)?sr->inertia1:sr->inertia0;
-    } else {
-      for (i=1;i<*n;i++) {
-        (*shifts)[i] = ctx->subintervals[i];
-        (*inertias)[i] = (*inertias)[i-1]+ctx->nconv_loc[i-1];
-      }
+    numsh = ctx->npart+1;
+    if (n) *n = numsh;
+    if (shifts) {
+      ierr = PetscMalloc1(numsh,shifts);CHKERRQ(ierr);
+      (*shifts)[0] = eps->inta;
+      if (ctx->npart==1) (*shifts)[1] = eps->intb;
+      else for (i=1;i<numsh;i++) (*shifts)[i] = ctx->subintervals[i];
+    }
+    if (inertias) {
+      ierr = PetscMalloc1(numsh,inertias);CHKERRQ(ierr);
+      (*inertias)[0] = (sr->dir==1)?sr->inertia0:sr->inertia1;
+      if (ctx->npart==1) (*inertias)[1] = (sr->dir==1)?sr->inertia1:sr->inertia0;
+      else for (i=1;i<numsh;i++) (*inertias)[i] = (*inertias)[i-1]+ctx->nconv_loc[i-1];
     }
     break;
   case EPS_STATE_SOLVED:
   case EPS_STATE_EIGENVECTORS:
-    *n = ctx->nshifts;
-    ierr = PetscMalloc1(*n,shifts);CHKERRQ(ierr);
-    ierr = PetscMalloc1(*n,inertias);CHKERRQ(ierr);
-    for (i=0;i<*n;i++) {
-      (*shifts)[i] = ctx->shifts[i];
-      (*inertias)[i] = ctx->inertias[i];
+    numsh = ctx->nshifts;
+    if (n) *n = numsh;
+    if (shifts) {
+      ierr = PetscMalloc1(numsh,shifts);CHKERRQ(ierr);
+      for (i=0;i<numsh;i++) (*shifts)[i] = ctx->shifts[i];
+    }
+    if (inertias) {
+      ierr = PetscMalloc1(numsh,inertias);CHKERRQ(ierr);
+      for (i=0;i<numsh;i++) (*inertias)[i] = ctx->inertias[i];
     }
     break;
   }
@@ -900,7 +903,22 @@ static PetscErrorCode EPSKrylovSchurGetInertias_KrylovSchur(EPS eps,PetscInt *n,
 
    This function is only available for spectrum slicing runs.
 
-   The returned arrays should be freed by the user.
+   The returned arrays should be freed by the user. Can pass NULL in any of
+   the two arrays if not required.
+
+   Fortran Notes:
+   The calling sequence from Fortran is
+.vb
+   EPSKrylovSchurGetInertias(eps,n,shifts,inertias,ierr)
+   integer n
+   double precision shifts(*)
+   integer inertias(*)
+.ve
+   The arrays should be at least of length n. The value of n can be determined
+   by an initial call
+.vb
+   EPSKrylovSchurGetInertias(eps,n,PETSC_NULL_REAL,PETSC_NULL_INTEGER,ierr)
+.ve
 
    Level: advanced
 

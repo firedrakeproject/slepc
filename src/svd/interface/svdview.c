@@ -185,7 +185,6 @@ PetscErrorCode SVDReasonViewFromOptions(SVD svd)
 
 static PetscErrorCode SVDErrorView_ASCII(SVD svd,SVDErrorType etype,PetscViewer viewer)
 {
-  PetscBool      errok=PETSC_TRUE;
   PetscReal      error,sigma;
   PetscInt       i,j;
   PetscErrorCode ierr;
@@ -197,11 +196,10 @@ static PetscErrorCode SVDErrorView_ASCII(SVD svd,SVDErrorType etype,PetscViewer 
   }
   for (i=0;i<svd->nsv;i++) {
     ierr = SVDComputeError(svd,i,etype,&error);CHKERRQ(ierr);
-    errok = (errok && error<5.0*svd->tol)? PETSC_TRUE: PETSC_FALSE;
-  }
-  if (!errok) {
-    ierr = PetscViewerASCIIPrintf(viewer," Problem: some of the first %D relative errors are higher than the tolerance\n\n",svd->nsv);CHKERRQ(ierr);
-    PetscFunctionReturn(0);
+    if (error>=5.0*svd->tol) {
+      ierr = PetscViewerASCIIPrintf(viewer," Problem: some of the first %D relative errors are higher than the tolerance\n\n",svd->nsv);CHKERRQ(ierr);
+      PetscFunctionReturn(0);
+    }
   }
   ierr = PetscViewerASCIIPrintf(viewer," All requested singular values computed up to the required tolerance:");CHKERRQ(ierr);
   for (i=0;i<=(svd->nsv-1)/8;i++) {
