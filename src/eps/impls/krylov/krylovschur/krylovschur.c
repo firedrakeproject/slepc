@@ -823,7 +823,7 @@ static PetscErrorCode EPSKrylovSchurGetSubintervals_KrylovSchur(EPS eps,PetscRea
 
 .seealso: EPSKrylovSchurSetSubintervals(), EPSKrylovSchurGetPartitions(), EPSSetInterval()
 @*/
-PetscErrorCode EPSKrylovSchurGetSubintervals(EPS eps,PetscReal** subint)
+PetscErrorCode EPSKrylovSchurGetSubintervals(EPS eps,PetscReal **subint)
 {
   PetscErrorCode ierr;
 
