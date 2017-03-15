@@ -353,7 +353,7 @@ PetscErrorCode EPSSetUp_KrylovSchur_Slice(EPS eps)
   EPS_KRYLOVSCHUR *ctx = (EPS_KRYLOVSCHUR*)eps->data,*ctx_glob;
   EPS_SR          sr,sr_loc,sr_glob;
   PetscInt        nEigs,dssz=1,i,zeros=0,off=0;
-  PetscMPIInt     nproc,rank,aux;
+  PetscMPIInt     nproc,rank=0,aux;
   PetscReal       r;
   MPI_Request     req;
   Mat             A,B=NULL;
@@ -411,7 +411,7 @@ PetscErrorCode EPSSetUp_KrylovSchur_Slice(EPS eps)
     if (ctx->npart>1) {
       if ((sr->dir>0&&ctx->subc->color==0)||(sr->dir<0&&ctx->subc->color==ctx->npart-1)) sr->inertia0 = sr_loc->inertia0;
       ierr = MPI_Comm_rank(PetscSubcommChild(ctx->subc),&rank);CHKERRQ(ierr);
-      if (rank==0) {
+      if (!rank) {
         ierr = MPI_Bcast(&sr->inertia0,1,MPIU_INT,(sr->dir>0)?0:ctx->npart-1,ctx->commrank);CHKERRQ(ierr);
       }
       ierr = MPI_Bcast(&sr->inertia0,1,MPIU_INT,0,PetscSubcommChild(ctx->subc));CHKERRQ(ierr);
@@ -708,7 +708,7 @@ static PetscErrorCode EPSSliceGatherSolution(EPS eps)
   ierr = PetscMalloc1(ctx->npart,&ns_loc);CHKERRQ(ierr);
   ierr = MPI_Comm_rank(PetscSubcommChild(ctx->subc),&rank);CHKERRQ(ierr);
   ierr = PetscMPIIntCast(ns,&aux);CHKERRQ(ierr);
-  if (rank==0) { ierr = MPI_Allgather(&aux,1,MPI_INT,ns_loc,1,MPI_INT,ctx->commrank);CHKERRQ(ierr); }
+  if (!rank) { ierr = MPI_Allgather(&aux,1,MPI_INT,ns_loc,1,MPI_INT,ctx->commrank);CHKERRQ(ierr); }
   ierr = PetscMPIIntCast(ctx->npart,&aux);CHKERRQ(ierr);
   ierr = MPI_Bcast(ns_loc,aux,MPI_INT,0,PetscSubcommChild(ctx->subc));CHKERRQ(ierr);
   ctx->nshifts = 0;
@@ -736,7 +736,7 @@ static PetscErrorCode EPSSliceGatherSolution(EPS eps)
     ierr = MPI_Allreduce(&sr_loc->itsKs,&eps->its,1,MPIU_INT,MPI_SUM,ctx->commrank);CHKERRQ(ierr);
   } else { /* subcommunicators with different size */
     ierr = MPI_Comm_rank(PetscSubcommChild(ctx->subc),&rank);CHKERRQ(ierr);
-    if (rank==0) {
+    if (!rank) {
       ierr = PetscMPIIntCast(sr_loc->numEigs,&aux);CHKERRQ(ierr);
       ierr = MPI_Allgatherv(eigr_loc,aux,MPIU_SCALAR,eps->eigr,ctx->nconv_loc,disp,MPIU_SCALAR,ctx->commrank);CHKERRQ(ierr); /* eigenvalues */
       ierr = MPI_Allgatherv(perm_loc,aux,MPIU_INT,eps->perm,ctx->nconv_loc,disp,MPIU_INT,ctx->commrank);CHKERRQ(ierr); /* perm */
