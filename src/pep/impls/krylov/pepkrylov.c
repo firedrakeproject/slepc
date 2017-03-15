@@ -44,7 +44,7 @@ PetscErrorCode PEPExtractVectors_TOAR(PEP pep)
   if (k==0) PetscFunctionReturn(0);
   lds = deg*ld;
   ierr = DSGetLeadingDimension(pep->ds,&ldds);CHKERRQ(ierr);
-  ierr = PetscMalloc5(k,&er,k,&ei,k*k,&SS,pep->nmat,&vals,pep->nmat,&ivals);CHKERRQ(ierr);
+  ierr = PetscCalloc5(k,&er,k,&ei,k*k,&SS,pep->nmat,&vals,pep->nmat,&ivals);CHKERRQ(ierr);
   ierr = STGetTransform(pep->st,&flg);CHKERRQ(ierr);
   for (i=0;i<k;i++) {
     er[i] = pep->eigr[i];
