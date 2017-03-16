@@ -123,10 +123,8 @@ PetscErrorCode PEPExtractVectors_QArnoldi(PEP pep)
     ierr = PetscMemcpy(pX0+i*k,X+i*ldds,k*sizeof(PetscScalar));CHKERRQ(ierr);
   }
   ierr = MatDenseRestoreArray(X0,&pX0);CHKERRQ(ierr);
-  ierr = BVSetActiveColumns(pep->V,0,k);CHKERRQ(ierr);
   ierr = BVMultInPlace(pep->V,X0,0,k);CHKERRQ(ierr);
   ierr = MatDestroy(&X0);CHKERRQ(ierr);
-  ierr = BVSetActiveColumns(pep->V,0,k);CHKERRQ(ierr);
   ierr = DSRestoreArray(pep->ds,DS_MAT_X,&X);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

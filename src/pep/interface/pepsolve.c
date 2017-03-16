@@ -68,6 +68,7 @@ PetscErrorCode PEPExtractVectors(PEP pep)
   PEPCheckSolved(pep,1);
   switch (pep->state) {
   case PEP_STATE_SOLVED:
+    ierr = BVSetActiveColumns(pep->V,0,pep->nconv);CHKERRQ(ierr);
     if (pep->ops->extractvectors) {
       ierr = (*pep->ops->extractvectors)(pep);CHKERRQ(ierr);
     }
