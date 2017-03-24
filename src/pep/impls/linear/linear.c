@@ -434,7 +434,7 @@ PetscErrorCode PEPSetUp_Linear(PEP pep)
     ierr = VecRestoreArray(veps,&epsarray);CHKERRQ(ierr);
     ierr = EPSSetInitialSpace(ctx->eps,1,&veps);CHKERRQ(ierr);
     ierr = VecDestroy(&veps);CHKERRQ(ierr);
-    if (w) { ierr = VecDestroy(&w);CHKERRQ(ierr); }
+    ierr = VecDestroy(&w);CHKERRQ(ierr);
     ierr = SlepcBasisDestroy_Private(&pep->nini,&pep->IS);CHKERRQ(ierr);
   }
 

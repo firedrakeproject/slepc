@@ -177,7 +177,7 @@ static PetscErrorCode dvd_improvex_jd_end(dvdDashboard *d)
   dvdImprovex_jd *data = (dvdImprovex_jd*)d->improveX_data;
 
   PetscFunctionBegin;
-  if (data->friends) { ierr = VecDestroy(&data->friends);CHKERRQ(ierr); }
+  ierr = VecDestroy(&data->friends);CHKERRQ(ierr);
 
   /* Restore the pc of ksp */
   if (data->old_pc) {

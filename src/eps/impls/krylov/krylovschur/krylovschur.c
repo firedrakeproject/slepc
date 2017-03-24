@@ -456,7 +456,7 @@ static PetscErrorCode EPSKrylovSchurSetPartitions_KrylovSchur(EPS eps,PetscInt n
   PetscFunctionBegin;
   if (ctx->npart!=npart) {
     if (ctx->commset) { ierr = PetscSubcommDestroy(&ctx->subc);CHKERRQ(ierr); }
-    if (ctx->eps) { ierr = EPSDestroy(&ctx->eps);CHKERRQ(ierr); }
+    ierr = EPSDestroy(&ctx->eps);CHKERRQ(ierr);
   }
   if (npart == PETSC_DEFAULT || npart == PETSC_DECIDE) {
     ctx->npart = 1;
