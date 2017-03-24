@@ -228,7 +228,7 @@ PetscErrorCode VecDestroyVecs_Comp(PetscInt m,Vec v[])
   PetscFunctionBegin;
   PetscValidPointer(v,1);
   if (m<=0) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_OUTOFRANGE,"m must be > 0: m = %D",m);
-  for (i=0;i<m;i++) if (v[i]) { ierr = VecDestroy(&v[i]);CHKERRQ(ierr); }
+  for (i=0;i<m;i++) { ierr = VecDestroy(&v[i]);CHKERRQ(ierr); }
   ierr = PetscFree(v);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

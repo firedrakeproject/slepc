@@ -211,30 +211,30 @@ PetscErrorCode LMESetCoefficients(LME lme,Mat A,Mat B,Mat D,Mat E)
 
   ierr = MatGetSize(A,&m,&n);CHKERRQ(ierr);
   if (m!=n) SETERRQ(PetscObjectComm((PetscObject)lme),PETSC_ERR_ARG_WRONG,"A is a non-square matrix");
-  if (!lme->setupcalled && lme->A) { ierr = MatDestroy(&lme->A);CHKERRQ(ierr); }
+  if (!lme->setupcalled) { ierr = MatDestroy(&lme->A);CHKERRQ(ierr); }
   ierr = PetscObjectReference((PetscObject)A);CHKERRQ(ierr);
   lme->A = A;
   if (B) {
     ierr = MatGetSize(B,&m,&n);CHKERRQ(ierr);
     if (m!=n) SETERRQ(PetscObjectComm((PetscObject)lme),PETSC_ERR_ARG_WRONG,"B is a non-square matrix");
-    if (!lme->setupcalled && lme->B) { ierr = MatDestroy(&lme->B);CHKERRQ(ierr); }
+    if (!lme->setupcalled) { ierr = MatDestroy(&lme->B);CHKERRQ(ierr); }
     ierr = PetscObjectReference((PetscObject)B);CHKERRQ(ierr);
     lme->B = B;
-  } else if (!lme->setupcalled && lme->B) { ierr = MatDestroy(&lme->B);CHKERRQ(ierr); }
+  } else if (!lme->setupcalled) { ierr = MatDestroy(&lme->B);CHKERRQ(ierr); }
   if (D) {
     ierr = MatGetSize(D,&m,&n);CHKERRQ(ierr);
     if (m!=n) SETERRQ(PetscObjectComm((PetscObject)lme),PETSC_ERR_ARG_WRONG,"D is a non-square matrix");
-    if (!lme->setupcalled && lme->D) { ierr = MatDestroy(&lme->D);CHKERRQ(ierr); }
+    if (!lme->setupcalled) { ierr = MatDestroy(&lme->D);CHKERRQ(ierr); }
     ierr = PetscObjectReference((PetscObject)D);CHKERRQ(ierr);
     lme->D = D;
-  } else if (!lme->setupcalled && lme->D) { ierr = MatDestroy(&lme->D);CHKERRQ(ierr); }
+  } else if (!lme->setupcalled) { ierr = MatDestroy(&lme->D);CHKERRQ(ierr); }
   if (E) {
     ierr = MatGetSize(E,&m,&n);CHKERRQ(ierr);
     if (m!=n) SETERRQ(PetscObjectComm((PetscObject)lme),PETSC_ERR_ARG_WRONG,"E is a non-square matrix");
-    if (!lme->setupcalled && lme->E) { ierr = MatDestroy(&lme->E);CHKERRQ(ierr); }
+    if (!lme->setupcalled) { ierr = MatDestroy(&lme->E);CHKERRQ(ierr); }
     ierr = PetscObjectReference((PetscObject)E);CHKERRQ(ierr);
     lme->E = E;
-  } else if (!lme->setupcalled && lme->E) { ierr = MatDestroy(&lme->E);CHKERRQ(ierr); }
+  } else if (!lme->setupcalled) { ierr = MatDestroy(&lme->E);CHKERRQ(ierr); }
 
   lme->setupcalled = 0;
   PetscFunctionReturn(0);

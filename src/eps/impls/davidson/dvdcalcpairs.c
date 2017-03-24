@@ -55,7 +55,7 @@ static PetscErrorCode dvd_calcpairs_qz_d(dvdDashboard *d)
   ierr = BVDestroy(&d->BX);CHKERRQ(ierr);
   ierr = BVDestroy(&d->auxBV);CHKERRQ(ierr);
   ierr = MatDestroy(&d->H);CHKERRQ(ierr);
-  if (d->G) { ierr = MatDestroy(&d->G);CHKERRQ(ierr); }
+  ierr = MatDestroy(&d->G);CHKERRQ(ierr);
   ierr = MatDestroy(&d->auxM);CHKERRQ(ierr);
   ierr = SlepcVecPoolDestroy(&d->auxV);CHKERRQ(ierr);
   ierr = PetscFree(d->nBds);CHKERRQ(ierr);

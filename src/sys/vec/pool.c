@@ -75,13 +75,13 @@ PetscErrorCode SlepcVecPoolDestroy(VecPool *p)
   VecPool_       *pool = (VecPool_*)*p;
 
   PetscFunctionBegin;
-  PetscValidPointer(p,1);
+  if (!*p) PetscFunctionReturn(0);
   ierr = VecDestroy(&pool->v);CHKERRQ(ierr);
-  if (pool->vecs) { ierr = VecDestroyVecs(pool->n,&pool->vecs);CHKERRQ(ierr); }
+  ierr = VecDestroyVecs(pool->n,&pool->vecs);CHKERRQ(ierr);
   pool->n     = 0;
   pool->used  = 0;
   pool->guess = 0;
-  if (pool->next) { ierr = SlepcVecPoolDestroy((VecPool*)&pool->next);CHKERRQ(ierr); }
+  ierr = SlepcVecPoolDestroy((VecPool*)&pool->next);CHKERRQ(ierr);
   ierr = PetscFree(pool);CHKERRQ(ierr);
   *p = NULL;
   PetscFunctionReturn(0);

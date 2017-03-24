@@ -81,7 +81,7 @@ static PetscErrorCode SetSolverComm(NEP nep)
 
   PetscFunctionBegin;
   if (ctx->useconj) N = N/2;
-  if (ctx->subcomm) { ierr = PetscSubcommDestroy(&ctx->subcomm);CHKERRQ(ierr); }
+  ierr = PetscSubcommDestroy(&ctx->subcomm);CHKERRQ(ierr);
   ierr = PetscSubcommCreate(PetscObjectComm((PetscObject)nep),&ctx->subcomm);CHKERRQ(ierr);
   ierr = PetscSubcommSetNumber(ctx->subcomm,ctx->num_subcomm);CHKERRQ(ierr);CHKERRQ(ierr);
   ierr = PetscSubcommSetType(ctx->subcomm,PETSC_SUBCOMM_INTERLACED);CHKERRQ(ierr);
@@ -466,10 +466,10 @@ PetscErrorCode NEPSetUp_CISS(NEP nep)
   ierr = PetscLogObjectMemory((PetscObject)nep,3*ctx->N*sizeof(PetscScalar)+ctx->L_max*ctx->N*sizeof(PetscReal));CHKERRQ(ierr);
 
   /* allocate basis vectors */
-  if (ctx->S) { ierr = BVDestroy(&ctx->S);CHKERRQ(ierr); }
+  ierr = BVDestroy(&ctx->S);CHKERRQ(ierr);
   ierr = BVDuplicateResize(nep->V,ctx->L_max*ctx->M,&ctx->S);CHKERRQ(ierr);
   ierr = PetscLogObjectParent((PetscObject)nep,(PetscObject)ctx->S);CHKERRQ(ierr);
-  if (ctx->V) { ierr = BVDestroy(&ctx->V);CHKERRQ(ierr); }
+  ierr = BVDestroy(&ctx->V);CHKERRQ(ierr);
   ierr = BVDuplicateResize(nep->V,ctx->L_max,&ctx->V);CHKERRQ(ierr);
   ierr = PetscLogObjectParent((PetscObject)nep,(PetscObject)ctx->V);CHKERRQ(ierr);
 
@@ -493,7 +493,7 @@ PetscErrorCode NEPSetUp_CISS(NEP nep)
     }
   }
 
-  if (ctx->Y) { ierr = BVDestroy(&ctx->V);CHKERRQ(ierr); }
+  ierr = BVDestroy(&ctx->Y);CHKERRQ(ierr);
   ierr = BVDuplicateResize(nep->V,ctx->num_solve_point*ctx->L_max,&ctx->Y);CHKERRQ(ierr);
 
   ierr = DSSetType(nep->ds,DSGNHEP);CHKERRQ(ierr);

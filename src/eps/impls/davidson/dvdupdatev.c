@@ -85,8 +85,8 @@ static PetscErrorCode dvd_managementV_basic_d(dvdDashboard *d)
   d->updateV_data = data->old_updateV_data;
 
   /* Free local data */
-  if (data->oldU) { ierr = MatDestroy(&data->oldU);CHKERRQ(ierr); }
-  if (data->oldV) { ierr = MatDestroy(&data->oldV);CHKERRQ(ierr); }
+  ierr = MatDestroy(&data->oldU);CHKERRQ(ierr);
+  ierr = MatDestroy(&data->oldV);CHKERRQ(ierr);
   ierr = PetscFree(d->real_nR);CHKERRQ(ierr);
   ierr = PetscFree(d->real_nX);CHKERRQ(ierr);
   ierr = PetscFree(data);CHKERRQ(ierr);
