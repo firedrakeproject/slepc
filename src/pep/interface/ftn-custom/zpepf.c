@@ -272,12 +272,8 @@ PETSC_EXTERN void PETSC_STDCALL pepmonitorset_(PEP *pep,void (PETSC_STDCALL *mon
     *ierr = PEPMonitorSet(*pep,PEPMonitorLGAll,0,0);
   } else {
     *ierr = PetscObjectSetFortranCallback((PetscObject)*pep,PETSC_FORTRAN_CALLBACK_CLASS,&_cb.monitor,(PetscVoidFunction)monitor,mctx); if (*ierr) return;
-    if (!monitordestroy) {
-      *ierr = PEPMonitorSet(*pep,ourmonitor,*pep,0);
-    } else {
-      *ierr = PetscObjectSetFortranCallback((PetscObject)*pep,PETSC_FORTRAN_CALLBACK_CLASS,&_cb.monitordestroy,(PetscVoidFunction)monitordestroy,mctx); if (*ierr) return;
-      *ierr = PEPMonitorSet(*pep,ourmonitor,*pep,ourdestroy);
-    }
+    *ierr = PetscObjectSetFortranCallback((PetscObject)*pep,PETSC_FORTRAN_CALLBACK_CLASS,&_cb.monitordestroy,(PetscVoidFunction)monitordestroy,mctx); if (*ierr) return;
+    *ierr = PEPMonitorSet(*pep,ourmonitor,*pep,ourdestroy);
   }
 }
 
@@ -301,12 +297,8 @@ PETSC_EXTERN void PETSC_STDCALL pepsetconvergencetestfunction_(PEP *pep,void (PE
     *ierr = PEPSetConvergenceTest(*pep,PEP_CONV_REL);
   } else {
     *ierr = PetscObjectSetFortranCallback((PetscObject)*pep,PETSC_FORTRAN_CALLBACK_CLASS,&_cb.convergence,(PetscVoidFunction)func,ctx); if (*ierr) return;
-    if (!destroy) {
-      *ierr = PEPSetConvergenceTestFunction(*pep,ourconvergence,*pep,NULL);
-    } else {
-      *ierr = PetscObjectSetFortranCallback((PetscObject)*pep,PETSC_FORTRAN_CALLBACK_CLASS,&_cb.convdestroy,(PetscVoidFunction)destroy,ctx); if (*ierr) return;
-      *ierr = PEPSetConvergenceTestFunction(*pep,ourconvergence,*pep,ourconvdestroy);
-    }
+    *ierr = PetscObjectSetFortranCallback((PetscObject)*pep,PETSC_FORTRAN_CALLBACK_CLASS,&_cb.convdestroy,(PetscVoidFunction)destroy,ctx); if (*ierr) return;
+    *ierr = PEPSetConvergenceTestFunction(*pep,ourconvergence,*pep,ourconvdestroy);
   }
 }
 
@@ -323,12 +315,8 @@ PETSC_EXTERN void PETSC_STDCALL pepsetstoppingtestfunction_(PEP *pep,void (PETSC
     *ierr = PEPSetStoppingTest(*pep,PEP_STOP_BASIC);
   } else {
     *ierr = PetscObjectSetFortranCallback((PetscObject)*pep,PETSC_FORTRAN_CALLBACK_CLASS,&_cb.stopping,(PetscVoidFunction)func,ctx); if (*ierr) return;
-    if (!destroy) {
-      *ierr = PEPSetStoppingTestFunction(*pep,ourstopping,*pep,NULL);
-    } else {
-      *ierr = PetscObjectSetFortranCallback((PetscObject)*pep,PETSC_FORTRAN_CALLBACK_CLASS,&_cb.stopdestroy,(PetscVoidFunction)destroy,ctx); if (*ierr) return;
-      *ierr = PEPSetStoppingTestFunction(*pep,ourstopping,*pep,ourstopdestroy);
-    }
+    *ierr = PetscObjectSetFortranCallback((PetscObject)*pep,PETSC_FORTRAN_CALLBACK_CLASS,&_cb.stopdestroy,(PetscVoidFunction)destroy,ctx); if (*ierr) return;
+    *ierr = PEPSetStoppingTestFunction(*pep,ourstopping,*pep,ourstopdestroy);
   }
 }
 
