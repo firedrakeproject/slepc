@@ -152,12 +152,8 @@ PETSC_EXTERN void PETSC_STDCALL lmemonitorset_(LME *lme,void (PETSC_STDCALL *mon
     *ierr = LMEMonitorSet(*lme,LMEMonitorLG,0,0);
   } else {
     *ierr = PetscObjectSetFortranCallback((PetscObject)*lme,PETSC_FORTRAN_CALLBACK_CLASS,&_cb.monitor,(PetscVoidFunction)monitor,mctx); if (*ierr) return;
-    if (!monitordestroy) {
-      *ierr = LMEMonitorSet(*lme,ourmonitor,*lme,0);
-    } else {
-      *ierr = PetscObjectSetFortranCallback((PetscObject)*lme,PETSC_FORTRAN_CALLBACK_CLASS,&_cb.monitordestroy,(PetscVoidFunction)monitordestroy,mctx); if (*ierr) return;
-      *ierr = LMEMonitorSet(*lme,ourmonitor,*lme,ourdestroy);
-    }
+    *ierr = PetscObjectSetFortranCallback((PetscObject)*lme,PETSC_FORTRAN_CALLBACK_CLASS,&_cb.monitordestroy,(PetscVoidFunction)monitordestroy,mctx); if (*ierr) return;
+    *ierr = LMEMonitorSet(*lme,ourmonitor,*lme,ourdestroy);
   }
 }
 
