@@ -524,14 +524,14 @@ PETSC_EXTERN PetscErrorCode FNCreate_Rational(FN fn)
   ierr = PetscNewLog(fn,&ctx);CHKERRQ(ierr);
   fn->data = (void*)ctx;
 
-  fn->ops->evaluatefunction       = FNEvaluateFunction_Rational;
-  fn->ops->evaluatederivative     = FNEvaluateDerivative_Rational;
-  fn->ops->evaluatefunctionmat    = FNEvaluateFunctionMat_Rational;
-  fn->ops->evaluatefunctionmatvec = FNEvaluateFunctionMatVec_Rational;
-  fn->ops->setfromoptions         = FNSetFromOptions_Rational;
-  fn->ops->view                   = FNView_Rational;
-  fn->ops->duplicate              = FNDuplicate_Rational;
-  fn->ops->destroy                = FNDestroy_Rational;
+  fn->ops->evaluatefunction          = FNEvaluateFunction_Rational;
+  fn->ops->evaluatederivative        = FNEvaluateDerivative_Rational;
+  fn->ops->evaluatefunctionmat[0]    = FNEvaluateFunctionMat_Rational;
+  fn->ops->evaluatefunctionmatvec[0] = FNEvaluateFunctionMatVec_Rational;
+  fn->ops->setfromoptions            = FNSetFromOptions_Rational;
+  fn->ops->view                      = FNView_Rational;
+  fn->ops->duplicate                 = FNDuplicate_Rational;
+  fn->ops->destroy                   = FNDestroy_Rational;
   ierr = PetscObjectComposeFunction((PetscObject)fn,"FNRationalSetNumerator_C",FNRationalSetNumerator_Rational);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)fn,"FNRationalGetNumerator_C",FNRationalGetNumerator_Rational);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)fn,"FNRationalSetDenominator_C",FNRationalSetDenominator_Rational);CHKERRQ(ierr);

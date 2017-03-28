@@ -390,13 +390,13 @@ PETSC_EXTERN PetscErrorCode FNCreate_Combine(FN fn)
   ierr = PetscNewLog(fn,&ctx);CHKERRQ(ierr);
   fn->data = (void*)ctx;
 
-  fn->ops->evaluatefunction       = FNEvaluateFunction_Combine;
-  fn->ops->evaluatederivative     = FNEvaluateDerivative_Combine;
-  fn->ops->evaluatefunctionmat    = FNEvaluateFunctionMat_Combine;
-  fn->ops->evaluatefunctionmatvec = FNEvaluateFunctionMatVec_Combine;
-  fn->ops->view                   = FNView_Combine;
-  fn->ops->duplicate              = FNDuplicate_Combine;
-  fn->ops->destroy                = FNDestroy_Combine;
+  fn->ops->evaluatefunction          = FNEvaluateFunction_Combine;
+  fn->ops->evaluatederivative        = FNEvaluateDerivative_Combine;
+  fn->ops->evaluatefunctionmat[0]    = FNEvaluateFunctionMat_Combine;
+  fn->ops->evaluatefunctionmatvec[0] = FNEvaluateFunctionMatVec_Combine;
+  fn->ops->view                      = FNView_Combine;
+  fn->ops->duplicate                 = FNDuplicate_Combine;
+  fn->ops->destroy                   = FNDestroy_Combine;
   ierr = PetscObjectComposeFunction((PetscObject)fn,"FNCombineSetChildren_C",FNCombineSetChildren_Combine);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)fn,"FNCombineGetChildren_C",FNCombineGetChildren_Combine);CHKERRQ(ierr);
   PetscFunctionReturn(0);

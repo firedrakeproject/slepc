@@ -176,7 +176,7 @@ Whenever the solvers need to compute $f(x)$ or $f'(x)$ on a given scalar $x$, th
         FNEvaluateDerivative(FN fn,PetscScalar x,PetscScalar *y)
 	\end{Verbatim}
 The function can also be evaluated as a matrix function, $B=f(A)$, where $A,B$ are small, dense, square matrices. This is done with \ident{FNEvaluateFunctionMat}. Note that for a rational function, the corresponding expression would be $q(A)^{-1}p(A)$.
-For computing functions such as the exponential of a small matrix $A$, several methods are available. Currently, in \slepc we compute it using the eigendecomposition $A=Q\Lambda Q^*$ whenever $A$ is symmetric, as $\exp(A)=Q\,\mathrm{diag}(e^{\lambda_i})Q^*$, or using a rational Pad\'e method combined with scaling-and-squaring for the non-symmetric case. See \citep{Higham:2010:CMF} for details.
+For computing functions such as the exponential of a small matrix $A$, several methods are available. When the matrix $A$ is symmetric, the default is to compute $f(A)$ using the eigendecomposition $A=Q\Lambda Q^*$, for instance the exponential would be computed as $\exp(A)=Q\,\mathrm{diag}(e^{\lambda_i})Q^*$. In the general case, it is necessary to have recourse to one of the methods discussed in, e.g., \citep{Higham:2010:CMF}.
 
 Finally, there is a mechanism to combine simple functions in order to create more complicated functions. For instance, the function
 \begin{equation}

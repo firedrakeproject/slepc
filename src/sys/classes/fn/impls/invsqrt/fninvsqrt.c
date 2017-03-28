@@ -141,11 +141,11 @@ PetscErrorCode FNView_Invsqrt(FN fn,PetscViewer viewer)
 PETSC_EXTERN PetscErrorCode FNCreate_Invsqrt(FN fn)
 {
   PetscFunctionBegin;
-  fn->ops->evaluatefunction       = FNEvaluateFunction_Invsqrt;
-  fn->ops->evaluatederivative     = FNEvaluateDerivative_Invsqrt;
-  fn->ops->evaluatefunctionmat    = FNEvaluateFunctionMat_Invsqrt;
-  fn->ops->evaluatefunctionmatvec = FNEvaluateFunctionMatVec_Invsqrt;
-  fn->ops->view                   = FNView_Invsqrt;
+  fn->ops->evaluatefunction          = FNEvaluateFunction_Invsqrt;
+  fn->ops->evaluatederivative        = FNEvaluateDerivative_Invsqrt;
+  fn->ops->evaluatefunctionmat[0]    = FNEvaluateFunctionMat_Invsqrt;
+  fn->ops->evaluatefunctionmatvec[0] = FNEvaluateFunctionMatVec_Invsqrt;
+  fn->ops->view                      = FNView_Invsqrt;
   PetscFunctionReturn(0);
 }
 

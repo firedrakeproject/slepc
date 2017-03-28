@@ -169,10 +169,10 @@ PetscErrorCode FNView_Exp(FN fn,PetscViewer viewer)
 PETSC_EXTERN PetscErrorCode FNCreate_Exp(FN fn)
 {
   PetscFunctionBegin;
-  fn->ops->evaluatefunction    = FNEvaluateFunction_Exp;
-  fn->ops->evaluatederivative  = FNEvaluateDerivative_Exp;
-  fn->ops->evaluatefunctionmat = FNEvaluateFunctionMat_Exp;
-  fn->ops->view                = FNView_Exp;
+  fn->ops->evaluatefunction       = FNEvaluateFunction_Exp;
+  fn->ops->evaluatederivative     = FNEvaluateDerivative_Exp;
+  fn->ops->evaluatefunctionmat[0] = FNEvaluateFunctionMat_Exp;
+  fn->ops->view                   = FNView_Exp;
   PetscFunctionReturn(0);
 }
 
