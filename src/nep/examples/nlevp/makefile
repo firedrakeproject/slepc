@@ -31,7 +31,8 @@ TESTS      = loaded_string gun
 
 TESTEXAMPLES_C                     = loaded_string.PETSc runloaded_string_1 loaded_string.rm
 TESTEXAMPLES_C_NOTSINGLE           = loaded_string.PETSc runloaded_string_2 runloaded_string_3 \
-                                                         runloaded_string_4 loaded_string.rm
+                                                         runloaded_string_4 runloaded_string_5 \
+                                                         runloaded_string_6 loaded_string.rm
 TESTEXAMPLES_DATAFILESPATH_COMPLEX = gun.PETSc rungun_1 gun.rm
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common
@@ -68,6 +69,16 @@ runloaded_string_3_%:
 runloaded_string_4:
 	-@${SETTEST}; check=loaded_string_2; \
 	${MPIEXEC} -n 4 ./loaded_string -nep_type interpol -rg_type interval -rg_interval_endpoints 5,700,-.1,.1 -nep_nev 7 -nep_target 5 -nep_interpol_interpolation_degree 10 -nep_refine simple -nep_refine_partitions 2 -nep_refine_scheme explicit -nep_interpol_st_ksp_type bcgs -nep_interpol_st_pc_type bjacobi -terse -info_exclude nep,pep,fn -log_exclude nep,pep,fn > $${test}.tmp 2>&1; \
+	${TESTCODE}
+
+runloaded_string_5:
+	-@${SETTEST}; \
+	${MPIEXEC} -n 1 ./loaded_string -nep_type nleigs -nep_nleigs_rational -rg_type interval -rg_interval_endpoints 4,700 -nep_nev 8 -nep_target 5 -terse > $${test}.tmp 2>&1; \
+	${TESTCODE}
+
+runloaded_string_6:
+	-@${SETTEST}; \
+	${MPIEXEC} -n 1 ./loaded_string -nep_type nleigs -rg_type interval -rg_interval_endpoints 45,700 -nep_nev 6 -nep_target 50 -nep_nleigs_interpolation_degree 20 -terse > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
 rungun_1:
