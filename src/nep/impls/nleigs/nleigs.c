@@ -54,7 +54,8 @@ typedef struct {
   PetscReal      keep;      /* restart parameter */
   PetscBool      lock;      /* locking/non-locking variant */
   PetscInt       idxrk;     /* index of next shift to use */
-  PetscBool      rational;  /* for rational NEPs */
+  PetscBool      urational; /* the user has indicated that the NEP is rational */
+  PetscBool      rational;  /* the problem can be treated as a rational NEP */
   KSP            *ksp;      /* ksp array for storing shift factorizations */
   Vec            vrn;       /* random vector with normally distributed value */
   void           *singularitiesctx;
@@ -250,7 +251,6 @@ static PetscErrorCode NEPNLEIGSLejaBagbyPoints(NEP nep)
   PetscInt       i,k,ndpt=NDPOINTS,ndptx=NDPOINTS;
   PetscScalar    *ds,*dsi,*dxi,*nrs,*nrxi,*s=ctx->s,*xi=ctx->xi,*beta=ctx->beta;
   PetscReal      maxnrs,minnrxi;
-  PetscBool      flg=PETSC_FALSE;
 
   PetscFunctionBegin;
   ierr = PetscMalloc5(ndpt+1,&ds,ndpt+1,&dsi,ndpt,&dxi,ndpt+1,&nrs,ndpt,&nrxi);CHKERRQ(ierr);
@@ -265,8 +265,7 @@ static PetscErrorCode NEPNLEIGSLejaBagbyPoints(NEP nep)
   if (ctx->computesingularities) {
     ierr = (ctx->computesingularities)(nep,&ndptx,dxi,ctx->singularitiesctx);CHKERRQ(ierr);
   } else {
-    ierr = PetscOptionsGetBool(NULL,NULL,"-nep_nleigs_rational_singularities",&flg,NULL);CHKERRQ(ierr);
-    if (flg) {
+    if (ctx->urational) {
       ierr = NEPNLEIGSRationalSingularities(nep,&ndptx,dxi,&ctx->rational);CHKERRQ(ierr);
     } else ndptx = 0;
   }
@@ -1409,13 +1408,16 @@ $   fun(NEP nep,PetscInt *maxnp,PetscScalar *xi,void *ctx)
 .   xi    - computed values of the discretization
 -   ctx   - optional context, as set by NEPNLEIGSSetSingularitiesFunction()
 
-   Note:
+   Notes:
    The user-defined function can set a smaller value of maxnp if necessary.
    It is wrong to return a larger value.
 
+   In the case of rational eigenvalue problems, a simpler alternative is to
+   let the solver determine the singularities, see NEPNLEIGSSetRational().
+
    Level: intermediate
 
-.seealso: NEPNLEIGSGetSingularitiesFunction()
+.seealso: NEPNLEIGSGetSingularitiesFunction(), NEPNLEIGSSetRational()
 @*/
 PetscErrorCode NEPNLEIGSSetSingularitiesFunction(NEP nep,PetscErrorCode (*fun)(NEP,PetscInt*,PetscScalar*,void*),void *ctx)
 {
@@ -1721,6 +1723,85 @@ PetscErrorCode NEPNLEIGSGetInterpolation(NEP nep,PetscReal *tol,PetscInt *maxits
   PetscFunctionReturn(0);
 }
 
+static PetscErrorCode NEPNLEIGSSetRational_NLEIGS(NEP nep,PetscBool rational)
+{
+  NEP_NLEIGS *ctx=(NEP_NLEIGS*)nep->data;
+
+  PetscFunctionBegin;
+  ctx->urational = rational;
+  PetscFunctionReturn(0);
+}
+
+/*@
+   NEPNLEIGSSetRational - Hint that the problem should be treated as a rational
+   eigenvalue problem.
+
+   Logically Collective on NEP
+
+   Input Parameters:
++  nep      - the nonlinear eigensolver context
+-  rational - true if the eigenproblem is rational
+
+   Options Database Key:
+.  -nep_nleigs_rational - Sets the rational flag
+
+   Notes:
+   Normally, the NLEIGS solver requires the user to provide singularity points
+   by means of a callback function, see NEPNLEIGSSetSingularitiesFunction().
+   In the case of rational eigenvalue problems, it is often possible to determine
+   the singularities automatically, so if this flag is activated the user does
+   not need to worry about singularites.
+
+   Level: advanced
+
+.seealso: NEPNLEIGSGetRational(), NEPNLEIGSSetSingularitiesFunction()
+@*/
+PetscErrorCode NEPNLEIGSSetRational(NEP nep,PetscBool rational)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
+  PetscValidLogicalCollectiveBool(nep,rational,2);
+  ierr = PetscTryMethod(nep,"NEPNLEIGSSetRational_C",(NEP,PetscBool),(nep,rational));CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+static PetscErrorCode NEPNLEIGSGetRational_NLEIGS(NEP nep,PetscBool *rational)
+{
+  NEP_NLEIGS *ctx=(NEP_NLEIGS*)nep->data;
+
+  PetscFunctionBegin;
+  *rational = ctx->urational;
+  PetscFunctionReturn(0);
+}
+
+/*@
+   NEPNLEIGSGetRational - Gets the rational flag used in the NLEIGS method.
+
+   Not Collective
+
+   Input Parameter:
+.  nep - the nonlinear eigensolver context
+
+   Output Parameter:
+.  rational - the rational flag
+
+   Level: advanced
+
+.seealso: NEPNLEIGSSetRational()
+@*/
+PetscErrorCode NEPNLEIGSGetRational(NEP nep,PetscBool *rational)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
+  PetscValidPointer(rational,2);
+  ierr = PetscUseMethod(nep,"NEPNLEIGSGetRational_C",(NEP,PetscBool*),(nep,rational));CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
 static PetscErrorCode NEPNLEIGSSetRKShifts_NLEIGS(NEP nep,PetscInt ns,PetscScalar *shifts)
 {
   PetscErrorCode ierr;
@@ -1852,6 +1933,9 @@ PetscErrorCode NEPSetFromOptions_NLEIGS(PetscOptionItems *PetscOptionsObject,NEP
     ierr = PetscOptionsInt("-nep_nleigs_interpolation_max_it","Maximum number of terms for interpolation via divided differences","NEPNLEIGSSetInterpolation",i,&i,&flg1);CHKERRQ(ierr);
     ierr = PetscOptionsReal("-nep_nleigs_interpolation_tol","Tolerance for interpolation via divided differences","NEPNLEIGSSetInterpolation",r,&r,&flg2);CHKERRQ(ierr);
     if (flg1 || flg2) { ierr = NEPNLEIGSSetInterpolation(nep,r,i);CHKERRQ(ierr); }
+
+    ierr = PetscOptionsBool("-nep_nleigs_rational","Hint that the problem should be treated as a rational eigenvalue problem","NEPNLEIGSSetRational",PETSC_FALSE,&b,&flg1);CHKERRQ(ierr);
+    if (flg1) { ierr = NEPNLEIGSSetRational(nep,b);CHKERRQ(ierr); }
 
     k = SHIFTMAX;
     for (i=0;i<k;i++) array[i] = 0;
@@ -1995,6 +2079,8 @@ PetscErrorCode NEPDestroy_NLEIGS(NEP nep)
   ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPNLEIGSGetLocking_C",NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPNLEIGSSetInterpolation_C",NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPNLEIGSGetInterpolation_C",NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPNLEIGSSetRational_C",NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPNLEIGSGetRational_C",NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPNLEIGSSetRKShifts_C",NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPNLEIGSGetRKShifts_C",NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPNLEIGSGetKSPs_C",NULL);CHKERRQ(ierr);
@@ -2028,6 +2114,8 @@ PETSC_EXTERN PetscErrorCode NEPCreate_NLEIGS(NEP nep)
   ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPNLEIGSGetLocking_C",NEPNLEIGSGetLocking_NLEIGS);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPNLEIGSSetInterpolation_C",NEPNLEIGSSetInterpolation_NLEIGS);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPNLEIGSGetInterpolation_C",NEPNLEIGSGetInterpolation_NLEIGS);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPNLEIGSSetRational_C",NEPNLEIGSSetRational_NLEIGS);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPNLEIGSGetRational_C",NEPNLEIGSGetRational_NLEIGS);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPNLEIGSSetRKShifts_C",NEPNLEIGSSetRKShifts_NLEIGS);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPNLEIGSGetRKShifts_C",NEPNLEIGSGetRKShifts_NLEIGS);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPNLEIGSGetKSPs_C",NEPNLEIGSGetKSPs_NLEIGS);CHKERRQ(ierr);

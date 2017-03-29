@@ -258,7 +258,12 @@ The NLEIGS solver is most appropriate for problems where $T(\cdot)$ is singular 
         NEPNLEIGSSetSingularitiesFunction(NEP nep,PetscErrorCode (*fun)
                           (NEP,PetscInt*,PetscScalar*,void*),void *ctx);
 	\end{Verbatim}
-If this function is not provided by the user, then the NLEIGS solver performs a polynomial interpolation, rather than rational.
+Alternatively, if the problem is known to be a rational eigenvalue problem, the user can avoid the computation of singularities by just specifying it with
+	\findex{NEPNLEIGSSetRational}
+	\begin{Verbatim}[fontsize=\small]
+        NEPNLEIGSSetRational(NEP nep,PetscBool rational);
+	\end{Verbatim}
+If none of the above functions is invoked by the user, then the NLEIGS solver performs a polynomial interpolation, rather than rational. 
 
 %---------------------------------------------------
 \section{Retrieving the Solution}
