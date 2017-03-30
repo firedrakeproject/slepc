@@ -615,7 +615,7 @@ static PetscErrorCode NEPNLEIGSDividedDifferences_split(NEP nep)
       for (j=0;j<nep->nt;j++) norm += matnorm[j]*PetscAbsScalar(ctx->coeffD[k*nep->nt+j]);
     } else {
       norm = 0.0;
-      for (j=0;j<nep->nt;j++) norm = PetscMax(PetscAbsScalar(ctx->coeffD[k*nep->nt+i]),norm);
+      for (j=0;j<nep->nt;j++) norm = PetscMax(PetscAbsScalar(ctx->coeffD[k*nep->nt+j]),norm);
     }
     if (norm/norm0 < ctx->ddtol) {
       ctx->nmat = k+1;
