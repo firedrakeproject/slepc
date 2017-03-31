@@ -73,12 +73,14 @@ runloaded_string_4:
 
 runloaded_string_5:
 	-@${SETTEST}; \
-	${MPIEXEC} -n 1 ./loaded_string -nep_type nleigs -nep_nleigs_rational -rg_type interval -rg_interval_endpoints 4,700 -nep_nev 8 -nep_target 5 -terse > $${test}.tmp 2>&1; \
+        if [ "${PETSC_SCALAR}" = "complex" ]; then region=",-.1,.1"; fi; \
+	${MPIEXEC} -n 1 ./loaded_string -nep_type nleigs -nep_nleigs_rational -rg_type interval -rg_interval_endpoints 4,700$$region -nep_nev 8 -nep_target 5 -terse > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
 runloaded_string_6:
 	-@${SETTEST}; \
-	${MPIEXEC} -n 1 ./loaded_string -nep_type nleigs -rg_type interval -rg_interval_endpoints 45,700 -nep_nev 6 -nep_target 50 -nep_nleigs_interpolation_degree 20 -terse > $${test}.tmp 2>&1; \
+        if [ "${PETSC_SCALAR}" = "complex" ]; then region=",-.1,.1"; fi; \
+	${MPIEXEC} -n 1 ./loaded_string -nep_type nleigs -rg_type interval -rg_interval_endpoints 100,700$$region -nep_nev 5 -nep_target 140 -nep_nleigs_interpolation_degree 15 -terse > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
 rungun_1:
