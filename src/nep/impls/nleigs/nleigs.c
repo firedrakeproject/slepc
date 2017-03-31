@@ -806,7 +806,7 @@ PetscErrorCode NEPSetUp_NLEIGS(NEP nep)
   ierr = PetscMalloc4(k,&ctx->s,k,&ctx->xi,k,&ctx->beta,k,&ctx->D);CHKERRQ(ierr);
   nep->data = ctx;
   if (nep->tol==PETSC_DEFAULT) nep->tol = SLEPC_DEFAULT_TOL;
-  if (ctx->ddtol==PETSC_DEFAULT) ctx->ddtol = nep->tol;
+  if (ctx->ddtol==PETSC_DEFAULT) ctx->ddtol = nep->tol/10.0;
   if (!ctx->keep) ctx->keep = 0.5;
 
   /* Compute Leja-Bagby points and scaling values */
