@@ -80,7 +80,7 @@ runloaded_string_5:
 runloaded_string_6:
 	-@${SETTEST}; \
         if [ "${PETSC_SCALAR}" = "complex" ]; then region=",-.1,.1"; fi; \
-	${MPIEXEC} -n 1 ./loaded_string -nep_type nleigs -rg_type interval -rg_interval_endpoints 100,700$$region -nep_nev 5 -nep_target 140 -nep_nleigs_interpolation_degree 15 -terse > $${test}.tmp 2>&1; \
+	${MPIEXEC} -n 1 ./loaded_string -nep_type nleigs -rg_type interval -rg_interval_endpoints 100,700$$region -nep_nev 5 -nep_tol 1e-8 -nep_target 140 -nep_nleigs_interpolation_degree 15 -terse > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
 rungun_1:
