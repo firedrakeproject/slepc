@@ -809,7 +809,7 @@ PetscErrorCode BVNormColumnBegin(BV bv,PetscInt j,NormType type,PetscReal *val)
     sr->invecs[sr->numopsbegin] = (void*)bv;
     ierr = (*bv->ops->norm_local)(bv,j,type,&lresult);CHKERRQ(ierr);
     if (type == NORM_2) lresult = lresult*lresult;
-    else if (type == NORM_MAX) sr->reducetype[sr->numopsbegin] = REDUCE_MAX;
+    if (type == NORM_MAX) sr->reducetype[sr->numopsbegin] = REDUCE_MAX;
     else sr->reducetype[sr->numopsbegin] = REDUCE_SUM;
     sr->lvalues[sr->numopsbegin++] = lresult;
   }
