@@ -28,9 +28,10 @@ EXAMPLESC  = ex20.c ex21.c ex22.c ex27.c
 EXAMPLESF  =
 MANSEC     = NEP
 
-TESTEXAMPLES_C           = ex27.PETSc runex27_1 runex27_2 runex27_3 runex27_4 ex27.rm
+TESTEXAMPLES_C           = ex27.PETSc runex27_2 runex27_4 ex27.rm
 TESTEXAMPLES_C_NOTSINGLE = ex21.PETSc runex21_1 ex21.rm \
-                           ex22.PETSc runex22_1 runex22_2 ex22.rm
+                           ex22.PETSc runex22_1 runex22_2 ex22.rm \
+                           ex27.PETSc runex27_1 runex27_3 ex27.rm
 TESTEXAMPLES_C_COMPLEX   = ex22.PETSc runex22_1_ciss ex22.rm
 TESTEXAMPLES_F90         =
 
@@ -95,7 +96,7 @@ runex27_2:
 
 runex27_3:
 	-@${SETTEST}; check=ex27_1; \
-	${MPIEXEC} -n 1 ./ex27 -nep_nev 3 -nep_nleigs_rk_shifts 1.06,1.1,1.12,1.15 -nep_conv_norm -terse > $${test}.tmp 2>&1; \
+	${MPIEXEC} -n 1 ./ex27 -nep_nev 3 -nep_tol 1e-8 -nep_nleigs_rk_shifts 1.06,1.1,1.12,1.15 -nep_conv_norm -terse > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
 runex27_4:
