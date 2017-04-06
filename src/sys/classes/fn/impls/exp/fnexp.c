@@ -134,12 +134,89 @@ PetscErrorCode FNEvaluateFunctionMat_Exp(FN fn,Mat A,Mat B)
 #endif
 }
 
+#define ITMAX 5
+
+/*
+ * Estimate norm(A^m,1) by block 1-norm power method (required workspace is 11*n)
+ */
+static PetscReal normest1(PetscBLASInt n,PetscScalar *A,PetscInt m,PetscScalar *work,PetscRandom rand)
+{
+  PetscScalar  *X,*Y,*Z,*S,*S_old,*aux,val,sone=1.0,szero=0.0;
+  PetscReal    est=0.0,est_old,vals[2],*zvals,maxzval[2],raux;
+  PetscBLASInt i,j,t=2,it=0,ind[2],est_j,m1;
+
+  PetscFunctionBegin;
+  X = work;
+  Y = work + 2*n;
+  Z = work + 4*n;
+  S = work + 6*n;
+  S_old = work + 8*n;
+  zvals = (PetscReal*)(work + 10*n);
+
+  for (i=0;i<n;i++) {  /* X has columns of unit 1-norm */
+    X[i] = 1.0/n;
+    PetscRandomGetValue(rand,&val);
+    if (PetscRealPart(val) < 0.5) X[i+n] = -1.0/n;
+    else X[i+n] = 1.0/n;
+  }
+  for (i=0;i<t*n;i++) S[i] = 0.0;
+  ind[0] = 0; ind[1] = 0;
+  est_old = 0;
+  while (1) {
+    it++;
+    for (j=0;j<m;j++) {  /* Y = A^m*X */
+      PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&n,&t,&n,&sone,A,&n,X,&n,&szero,Y,&n));
+      if (j<m-1) SWAP(X,Y,aux);
+    }
+    for (j=0;j<t;j++) {  /* vals[j] = norm(Y(:,j),1) */
+      vals[j] = 0.0;
+      for (i=0;i<n;i++) vals[j] += PetscAbsScalar(Y[i+j*n]);
+    }
+    if (vals[0]<vals[1]) {
+      SWAP(vals[0],vals[1],raux);
+      m1 = 1;
+    } else m1 = 0;
+    est = vals[0];
+    if (est>est_old || it==2) est_j = ind[m1];
+    if (it>=2 && est<=est_old) {
+      est = est_old;
+      break;
+    }
+    est_old = est;
+    if (it>ITMAX) break;
+    SWAP(S,S_old,aux);
+    for (i=0;i<t*n;i++) {  /* S = sign(Y) */
+      S[i] = (PetscRealPart(Y[i]) < 0.0)? -1.0: 1.0;
+    }
+    for (j=0;j<m;j++) {  /* Z = (A^T)^m*S */
+      PetscStackCallBLAS("BLASgemm",BLASgemm_("C","N",&n,&t,&n,&sone,A,&n,S,&n,&szero,Z,&n));
+      if (j<m-1) SWAP(S,Z,aux);
+    }
+    maxzval[0] = -1; maxzval[1] = -1;
+    ind[0] = 0; ind[1] = 0;
+    for (i=0;i<n;i++) {  /* zvals[i] = norm(Z(i,:),inf) */
+      zvals[i] = PetscMax(PetscAbsScalar(Z[i+0*n]),PetscAbsScalar(Z[i+1*n]));
+      if (zvals[i]>maxzval[0]) {
+        maxzval[0] = zvals[i];
+        ind[0] = i;
+      } else if (zvals[i]>maxzval[1]) {
+        maxzval[1] = zvals[i];
+        ind[1] = i;
+      }
+    }
+    if (it>=2 && maxzval[0]==zvals[est_j]) break;
+    for (i=0;i<t*n;i++) X[i] = 0.0;
+    for (j=0;j<t;j++) X[ind[j]+j*n] = 1.0;
+  }
+  PetscFunctionReturn(est);
+}
+
 #define SMALLN 100
 
 /*
  * Estimate norm(A^m,1) (required workspace is 2*n*n)
  */
-static PetscReal normAm(PetscBLASInt n,PetscScalar *A,PetscInt m,PetscScalar *work)
+static PetscReal normAm(PetscBLASInt n,PetscScalar *A,PetscInt m,PetscScalar *work,PetscRandom rand)
 {
   PetscScalar  *v=work,*w=work+n*n,*aux,sone=1.0,szero=0.0;
   PetscReal    nrm,rwork[1],tmp;
@@ -175,9 +252,7 @@ static PetscReal normAm(PetscBLASInt n,PetscScalar *A,PetscInt m,PetscScalar *wo
       nrm = 0.0;
       for (i=0;i<n;i++) if ((tmp = PetscAbsScalar(v[i])) > nrm) nrm = tmp;   /* norm(v,inf) */
     } else {
-      /* [c,~,~,it] = normest1(@afun_power); */
-      nrm = 0.0;
-      SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"Not implemented yet");
+      nrm = normest1(n,A,m,work,rand);
     }
   }
   PetscFunctionReturn(nrm);
@@ -186,7 +261,7 @@ static PetscReal normAm(PetscBLASInt n,PetscScalar *A,PetscInt m,PetscScalar *wo
 /*
  * Function needed to compute optimal parameters (required workspace is 3*n*n)
  */
-static PetscReal ell(PetscBLASInt n,PetscScalar *A,PetscReal coeff,PetscInt m,PetscScalar *work)
+static PetscReal ell(PetscBLASInt n,PetscScalar *A,PetscReal coeff,PetscInt m,PetscScalar *work,PetscRandom rand)
 {
   PetscScalar  *Ascaled=work;
   PetscReal    t,nrm,alpha,rwork[1];
@@ -197,7 +272,7 @@ static PetscReal ell(PetscBLASInt n,PetscScalar *A,PetscReal coeff,PetscInt m,Pe
     for (j=0;j<n;j++) 
       Ascaled[i+j*n] = PetscPowReal(coeff,1.0/(2*m+1))*PetscAbsScalar(A[i+j*n]);
   nrm = LAPACKlange_("O",&n,&n,A,&n,rwork);
-  alpha = normAm(n,Ascaled,2*m+1,work+n*n)/nrm;
+  alpha = normAm(n,Ascaled,2*m+1,work+n*n,rand)/nrm;
   t = PetscMax(PetscCeilReal(PetscLogReal(2.0*alpha/PETSC_MACHINE_EPSILON)/PetscLogReal(2.0)/(2*m)),0.0);
   PetscFunctionReturn(t);
 }
@@ -211,6 +286,7 @@ static PetscErrorCode expm_params(PetscInt n,PetscScalar **Apowers,PetscInt *s,P
   PetscScalar     sfactor,sone=1.0,szero=0.0,*A=Apowers[0],*Ascaled;
   PetscReal       d4,d6,d8,d10,eta1,eta3,eta4,eta5,rwork[1];
   PetscBLASInt    n_,n2,one=1;
+  PetscRandom     rand;
   const PetscReal coeff[5] = { 9.92063492063492e-06, 9.94131285136576e-11,  /* backward error function */
                                2.22819456055356e-16, 1.69079293431187e-22, 8.82996160201868e-36 };
   const PetscReal theta[5] = { 1.495585217958292e-002,    /* m = 3  */
@@ -221,38 +297,39 @@ static PetscErrorCode expm_params(PetscInt n,PetscScalar **Apowers,PetscInt *s,P
 
   PetscFunctionBegin;
   ierr = PetscBLASIntCast(n,&n_);CHKERRQ(ierr);
+  ierr = PetscRandomCreate(PETSC_COMM_SELF,&rand);CHKERRQ(ierr);
   *s = 0;
   d4 = PetscPowReal(LAPACKlange_("O",&n_,&n_,Apowers[2],&n_,rwork),1.0/4.0);
   d6 = PetscPowReal(LAPACKlange_("O",&n_,&n_,Apowers[3],&n_,rwork),1.0/6.0);
   eta1 = PetscMax(d4,d6);
-  if (eta1<=theta[0] && ell(n_,A,coeff[0],3,work)==0.0) {
+  if (eta1<=theta[0] && ell(n_,A,coeff[0],3,work,rand)==0.0) {
     *m = 3;
-    PetscFunctionReturn(0);
+    goto done;
   }
-  if (eta1<=theta[1] && ell(n_,A,coeff[1],5,work)==0.0) {
+  if (eta1<=theta[1] && ell(n_,A,coeff[1],5,work,rand)==0.0) {
     *m = 5;
-    PetscFunctionReturn(0);
+    goto done;
   }
   if (n<SMALLN) {
     PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&n_,&n_,&n_,&sone,Apowers[2],&n_,Apowers[2],&n_,&szero,work,&n_));
     d8 = PetscPowReal(LAPACKlange_("O",&n_,&n_,work,&n_,rwork),1.0/8.0);
   } else {
-    d8 = PetscPowReal(normAm(n_,Apowers[2],2,work),1.0/8.0);
+    d8 = PetscPowReal(normAm(n_,Apowers[2],2,work,rand),1.0/8.0);
   }
   eta3 = PetscMax(d6,d8);
-  if (eta3<=theta[2] && ell(n_,A,coeff[2],7,work)==0.0) {
+  if (eta3<=theta[2] && ell(n_,A,coeff[2],7,work,rand)==0.0) {
     *m = 7;
-    PetscFunctionReturn(0);
+    goto done;
   }
-  if (eta3<=theta[3] && ell(n_,A,coeff[3],9,work)==0.0) {
+  if (eta3<=theta[3] && ell(n_,A,coeff[3],9,work,rand)==0.0) {
     *m = 9;
-    PetscFunctionReturn(0);
+    goto done;
   }
   if (n<SMALLN) {
     PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&n_,&n_,&n_,&sone,Apowers[2],&n_,Apowers[3],&n_,&szero,work,&n_));
     d10 = PetscPowReal(LAPACKlange_("O",&n_,&n_,work,&n_,rwork),1.0/10.0);
   } else {
-    d10 = PetscPowReal(normAm(n_,Apowers[1],5,work),1.0/10.0);
+    d10 = PetscPowReal(normAm(n_,Apowers[1],5,work,rand),1.0/10.0);
   }
   eta4 = PetscMax(d8,d10);
   eta5 = PetscMin(eta3,eta4);
@@ -264,8 +341,10 @@ static PetscErrorCode expm_params(PetscInt n,PetscScalar **Apowers,PetscInt *s,P
     sfactor = PetscPowRealInt(2.0,-(*s));
     PetscStackCallBLAS("BLASscal",BLASscal_(&n2,&sfactor,Ascaled,&one));
   } else Ascaled = A;
-  *s += ell(n_,Ascaled,coeff[4],13,work);
+  *s += ell(n_,Ascaled,coeff[4],13,work,rand);
   *m = 13;
+done:
+  ierr = PetscRandomDestroy(&rand);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -352,8 +431,8 @@ PetscErrorCode FNEvaluateFunctionMat_Exp_Higham(FN fn,Mat A,Mat B)
         Q[j+j*n] = c[0];
       }
       for (j=m;j>=3;j-=2) {
-        PetscStackCallBLAS("BLASaxpy",BLASaxpy_(&n2,&c[j],Apowers[(j-1)/2-1],&one,P,&one));
-        PetscStackCallBLAS("BLASaxpy",BLASaxpy_(&n2,&c[j-1],Apowers[(j-1)/2-1],&one,Q,&one));
+        PetscStackCallBLAS("BLASaxpy",BLASaxpy_(&n2,&c[j],Apowers[(j+1)/2-1],&one,P,&one));
+        PetscStackCallBLAS("BLASaxpy",BLASaxpy_(&n2,&c[j-1],Apowers[(j+1)/2-1],&one,Q,&one));
       }
       PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&n_,&n_,&n_,&sone,Apowers[0],&n_,P,&n_,&szero,W,&n_));
       SWAP(P,W,aux);
