@@ -6,6 +6,7 @@ FN Object: a 1 MPI processes
     FN Object: e 1 MPI processes
       type: exp
         Exponential: exp(x)
+        computing matrix functions with: scaling & squaring, [m/m] Pade approximant (Higham)
     FN Object: c 1 MPI processes
       type: rational
         Constant: -1.

@@ -99,19 +99,25 @@ runtest1_1:
 	${MPIEXEC} -n 1 ./test1 > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
-runtest2_1:
-	-@${SETTEST}; \
-	${MPIEXEC} -n 1 ./test2 > $${test}.tmp 2>&1; \
+runtest2_1: runtest2_1_higham runtest2_1_pade
+runtest2_1_%:
+	-@${SETTEST}; check=test2_1; method=$*; \
+	if [ "$$method" = higham ]; then method="-fn_method 0"; \
+	elif [ "$$method" = pade ]; then method="-fn_method 1"; fi; \
+	${MPIEXEC} -n 1 ./test2 $$method | ${GREP} -v "computing matrix functions" > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
-runtest3_1:
-	-@${SETTEST}; \
-	${MPIEXEC} -n 1 ./test3 > $${test}.tmp 2>&1; \
+runtest3_1: runtest3_1_higham runtest3_1_pade
+runtest3_1_%:
+	-@${SETTEST}; check=test3_1; method=$*; \
+	if [ "$$method" = higham ]; then method="-fn_method 0"; \
+	elif [ "$$method" = pade ]; then method="-fn_method 1"; fi; \
+	${MPIEXEC} -n 1 ./test3 $$method | ${GREP} -v "computing matrix functions" > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
 runtest3_2:
 	-@${SETTEST}; check=test3_1; \
-	${MPIEXEC} -n 1 ./test3 -inplace > $${test}.tmp 2>&1; \
+	${MPIEXEC} -n 1 ./test3 -inplace | ${GREP} -v "computing matrix functions" > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
 runtest4_1:

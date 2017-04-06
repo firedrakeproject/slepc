@@ -41,7 +41,7 @@ PetscErrorCode FNEvaluateDerivative_Exp(FN fn,PetscScalar x,PetscScalar *y)
 #define MAX_PADE 6
 #define SWAP(a,b,t) {t=a;a=b;b=t;}
 
-PetscErrorCode FNEvaluateFunctionMat_Exp(FN fn,Mat A,Mat B)
+PetscErrorCode FNEvaluateFunctionMat_Exp_Pade(FN fn,Mat A,Mat B)
 {
 #if defined(PETSC_MISSING_LAPACK_GESV) || defined(SLEPC_MISSING_LAPACK_LANGE)
   PetscFunctionBegin;
@@ -494,8 +494,8 @@ PetscErrorCode FNView_Exp(FN fn,PetscViewer viewer)
   PetscBool      isascii;
   char           str[50];
   const char     *methodname[] = {
-                  "scaling & squaring, [6/6] Pade approximant",
-                  "scaling & squaring, [m/m] Pade approximant (Higham)"
+                  "scaling & squaring, [m/m] Pade approximant (Higham)",
+                  "scaling & squaring, [6/6] Pade approximant"
   };
   const int      nmeth=sizeof(methodname)/sizeof(methodname[0]);
 
@@ -522,7 +522,7 @@ PetscErrorCode FNView_Exp(FN fn,PetscViewer viewer)
       }
     }
     if (fn->method<nmeth) {
-      ierr = PetscViewerASCIIPrintf(viewer,"computing matrix functions with: %s\n",methodname[fn->method]);CHKERRQ(ierr);
+      ierr = PetscViewerASCIIPrintf(viewer,"  computing matrix functions with: %s\n",methodname[fn->method]);CHKERRQ(ierr);
     }
   }
   PetscFunctionReturn(0);
@@ -533,8 +533,8 @@ PETSC_EXTERN PetscErrorCode FNCreate_Exp(FN fn)
   PetscFunctionBegin;
   fn->ops->evaluatefunction       = FNEvaluateFunction_Exp;
   fn->ops->evaluatederivative     = FNEvaluateDerivative_Exp;
-  fn->ops->evaluatefunctionmat[0] = FNEvaluateFunctionMat_Exp;
-  fn->ops->evaluatefunctionmat[1] = FNEvaluateFunctionMat_Exp_Higham;
+  fn->ops->evaluatefunctionmat[0] = FNEvaluateFunctionMat_Exp_Higham;
+  fn->ops->evaluatefunctionmat[1] = FNEvaluateFunctionMat_Exp_Pade;
   fn->ops->view                   = FNView_Exp;
   PetscFunctionReturn(0);
 }
