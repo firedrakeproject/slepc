@@ -1856,6 +1856,8 @@ PETSC_EXTERN PetscErrorCode EPSCreate_CISS(EPS eps)
   ierr = PetscNewLog(eps,&ctx);CHKERRQ(ierr);
   eps->data = ctx;
 
+  eps->useds = PETSC_TRUE;
+
   eps->ops->solve          = EPSSolve_CISS;
   eps->ops->setup          = EPSSetUp_CISS;
   eps->ops->setfromoptions = EPSSetFromOptions_CISS;

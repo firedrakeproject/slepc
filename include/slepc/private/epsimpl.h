@@ -118,6 +118,7 @@ struct _p_EPS {
   PetscInt       its;              /* number of iterations so far computed */
   PetscInt       n,nloc;           /* problem dimensions (global, local) */
   PetscReal      nrma,nrmb;        /* computed matrix norms */
+  PetscBool      useds;            /* whether the solver uses the DS object or not */
   PetscBool      isgeneralized;
   PetscBool      ispositive;
   PetscBool      ishermitian;

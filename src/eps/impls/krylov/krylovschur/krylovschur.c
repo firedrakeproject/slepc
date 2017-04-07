@@ -1317,6 +1317,8 @@ PETSC_EXTERN PetscErrorCode EPSCreate_KrylovSchur(EPS eps)
   ctx->detect = PETSC_FALSE;
   ctx->global = PETSC_TRUE;
 
+  eps->useds = PETSC_TRUE;
+
   /* solve and computevectors determined at setup */
   eps->ops->setup          = EPSSetUp_KrylovSchur;
   eps->ops->setfromoptions = EPSSetFromOptions_KrylovSchur;

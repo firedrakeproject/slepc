@@ -56,7 +56,7 @@ PetscErrorCode EPSView(EPS eps,PetscViewer viewer)
   PetscErrorCode ierr;
   const char     *type=NULL,*extr=NULL,*bal=NULL;
   char           str[50];
-  PetscBool      isascii,ispower,isexternal,istrivial;
+  PetscBool      isascii,isexternal,istrivial;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
@@ -207,7 +207,7 @@ PetscErrorCode EPSView(EPS eps,PetscViewer viewer)
       ierr = (*eps->ops->view)(eps,viewer);CHKERRQ(ierr);
     }
   }
-  ierr = PetscObjectTypeCompareAny((PetscObject)eps,&isexternal,EPSARPACK,EPSBLZPACK,EPSTRLAN,EPSBLOPEX,EPSPRIMME,"");CHKERRQ(ierr);
+  ierr = PetscObjectTypeCompareAny((PetscObject)eps,&isexternal,EPSARPACK,EPSBLOPEX,EPSBLZPACK,EPSFEAST,EPSPRIMME,EPSTRLAN,"");CHKERRQ(ierr);
   if (!isexternal) {
     ierr = PetscViewerPushFormat(viewer,PETSC_VIEWER_ASCII_INFO);CHKERRQ(ierr);
     if (!eps->V) { ierr = EPSGetBV(eps,&eps->V);CHKERRQ(ierr); }
@@ -216,8 +216,7 @@ PetscErrorCode EPSView(EPS eps,PetscViewer viewer)
       ierr = RGIsTrivial(eps->rg,&istrivial);CHKERRQ(ierr);
       if (!istrivial) { ierr = RGView(eps->rg,viewer);CHKERRQ(ierr); }
     }
-    ierr = PetscObjectTypeCompare((PetscObject)eps,EPSPOWER,&ispower);CHKERRQ(ierr);
-    if (!ispower) {
+    if (eps->useds) {
       if (!eps->ds) { ierr = EPSGetDS(eps,&eps->ds);CHKERRQ(ierr); }
       ierr = DSView(eps->ds,viewer);CHKERRQ(ierr);
     }

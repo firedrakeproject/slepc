@@ -123,7 +123,7 @@ PetscErrorCode EPSSetUp(EPS eps)
   if (!eps->st) { ierr = EPSGetST(eps,&eps->st);CHKERRQ(ierr); }
   ierr = EPSSetDefaultST(eps);CHKERRQ(ierr);
   ierr = STSetTransform(eps->st,PETSC_TRUE);CHKERRQ(ierr);
-  if (!eps->ds) { ierr = EPSGetDS(eps,&eps->ds);CHKERRQ(ierr); }
+  if (eps->useds && !eps->ds) { ierr = EPSGetDS(eps,&eps->ds);CHKERRQ(ierr); }
   if (!eps->rg) { ierr = EPSGetRG(eps,&eps->rg);CHKERRQ(ierr); }
   if (!((PetscObject)eps->rg)->type_name) {
     ierr = RGSetType(eps->rg,RGINTERVAL);CHKERRQ(ierr);
@@ -233,15 +233,17 @@ PetscErrorCode EPSSetUp(EPS eps)
   eps->sc->map    = NULL;
   eps->sc->mapobj = NULL;
 
-  /* fill sorting criterion for DS */
-  ierr = DSGetSlepcSC(eps->ds,&sc);CHKERRQ(ierr);
-  ierr = RGIsTrivial(eps->rg,&istrivial);CHKERRQ(ierr);
-  if (eps->which!=EPS_ALL) {
-    sc->rg            = istrivial? NULL: eps->rg;
-    sc->comparison    = eps->sc->comparison;
-    sc->comparisonctx = eps->sc->comparisonctx;
-    sc->map           = SlepcMap_ST;
-    sc->mapobj        = (PetscObject)eps->st;
+  if (eps->useds) {
+    /* fill sorting criterion for DS */
+    ierr = DSGetSlepcSC(eps->ds,&sc);CHKERRQ(ierr);
+    ierr = RGIsTrivial(eps->rg,&istrivial);CHKERRQ(ierr);
+    if (eps->which!=EPS_ALL) {
+      sc->rg            = istrivial? NULL: eps->rg;
+      sc->comparison    = eps->sc->comparison;
+      sc->comparisonctx = eps->sc->comparisonctx;
+      sc->map           = SlepcMap_ST;
+      sc->mapobj        = (PetscObject)eps->st;
+    }
   }
 
   /* Build balancing matrix if required */

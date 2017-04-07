@@ -693,6 +693,8 @@ PETSC_EXTERN PetscErrorCode EPSCreate_LOBPCG(EPS eps)
   eps->data = (void*)lobpcg;
   lobpcg->lock = PETSC_TRUE;
 
+  eps->useds = PETSC_TRUE;
+
   eps->ops->solve          = EPSSolve_LOBPCG;
   eps->ops->setup          = EPSSetUp_LOBPCG;
   eps->ops->setfromoptions = EPSSetFromOptions_LOBPCG;

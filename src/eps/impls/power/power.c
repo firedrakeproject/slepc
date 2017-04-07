@@ -404,6 +404,8 @@ PETSC_EXTERN PetscErrorCode EPSCreate_Power(EPS eps)
   ierr = PetscNewLog(eps,&ctx);CHKERRQ(ierr);
   eps->data = (void*)ctx;
 
+  eps->useds = PETSC_TRUE;
+
   eps->ops->solve          = EPSSolve_Power;
   eps->ops->setup          = EPSSetUp_Power;
   eps->ops->setfromoptions = EPSSetFromOptions_Power;
