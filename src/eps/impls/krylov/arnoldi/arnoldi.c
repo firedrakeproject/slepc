@@ -277,6 +277,8 @@ PETSC_EXTERN PetscErrorCode EPSCreate_Arnoldi(EPS eps)
   ierr = PetscNewLog(eps,&ctx);CHKERRQ(ierr);
   eps->data = (void*)ctx;
 
+  eps->useds = PETSC_TRUE;
+
   eps->ops->solve          = EPSSolve_Arnoldi;
   eps->ops->setup          = EPSSetUp_Arnoldi;
   eps->ops->setfromoptions = EPSSetFromOptions_Arnoldi;

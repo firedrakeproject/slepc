@@ -312,6 +312,8 @@ PetscErrorCode EPSDestroy_Subspace(EPS eps)
 PETSC_EXTERN PetscErrorCode EPSCreate_Subspace(EPS eps)
 {
   PetscFunctionBegin;
+  eps->useds = PETSC_TRUE;
+
   eps->ops->solve          = EPSSolve_Subspace;
   eps->ops->setup          = EPSSetUp_Subspace;
   eps->ops->destroy        = EPSDestroy_Subspace;

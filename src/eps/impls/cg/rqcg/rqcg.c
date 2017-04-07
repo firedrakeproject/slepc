@@ -426,6 +426,8 @@ PETSC_EXTERN PetscErrorCode EPSCreate_RQCG(EPS eps)
   ierr = PetscNewLog(eps,&rqcg);CHKERRQ(ierr);
   eps->data = (void*)rqcg;
 
+  eps->useds = PETSC_TRUE;
+
   eps->ops->solve          = EPSSolve_RQCG;
   eps->ops->setup          = EPSSetUp_RQCG;
   eps->ops->setfromoptions = EPSSetFromOptions_RQCG;

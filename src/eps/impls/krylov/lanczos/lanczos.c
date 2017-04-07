@@ -872,6 +872,8 @@ PETSC_EXTERN PetscErrorCode EPSCreate_Lanczos(EPS eps)
   ierr = PetscNewLog(eps,&ctx);CHKERRQ(ierr);
   eps->data = (void*)ctx;
 
+  eps->useds = PETSC_TRUE;
+
   eps->ops->solve          = EPSSolve_Lanczos;
   eps->ops->setup          = EPSSetUp_Lanczos;
   eps->ops->setfromoptions = EPSSetFromOptions_Lanczos;

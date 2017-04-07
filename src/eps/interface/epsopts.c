@@ -289,8 +289,10 @@ PetscErrorCode EPSSetFromOptions(EPS eps)
   ierr = BVSetFromOptions(eps->V);CHKERRQ(ierr);
   if (!eps->rg) { ierr = EPSGetRG(eps,&eps->rg);CHKERRQ(ierr); }
   ierr = RGSetFromOptions(eps->rg);CHKERRQ(ierr);
-  if (!eps->ds) { ierr = EPSGetDS(eps,&eps->ds);CHKERRQ(ierr); }
-  ierr = DSSetFromOptions(eps->ds);CHKERRQ(ierr);
+  if (eps->useds) {
+    if (!eps->ds) { ierr = EPSGetDS(eps,&eps->ds);CHKERRQ(ierr); }
+    ierr = DSSetFromOptions(eps->ds);CHKERRQ(ierr);
+  }
   if (!eps->st) { ierr = EPSGetST(eps,&eps->st);CHKERRQ(ierr); }
   ierr = EPSSetDefaultST(eps);CHKERRQ(ierr);
   ierr = STSetFromOptions(eps->st);CHKERRQ(ierr);
