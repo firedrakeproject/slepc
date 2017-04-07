@@ -32,6 +32,7 @@ int main(int argc,char **argv)
 
   ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
   ierr = FNCreate(PETSC_COMM_WORLD,&fn);CHKERRQ(ierr);
+  ierr = FNSetFromOptions(fn);CHKERRQ(ierr);
 
   /* plain exponential exp(x) */
   ierr = FNSetType(fn,FNEXP);CHKERRQ(ierr);

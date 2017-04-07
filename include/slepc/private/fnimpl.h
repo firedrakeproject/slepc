@@ -34,10 +34,8 @@ typedef struct _FNOps *FNOps;
 struct _FNOps {
   PetscErrorCode (*evaluatefunction)(FN,PetscScalar,PetscScalar*);
   PetscErrorCode (*evaluatederivative)(FN,PetscScalar,PetscScalar*);
-  PetscErrorCode (*evaluatefunctionmat)(FN,Mat,Mat);
-  PetscErrorCode (*evaluatefunctionmatsym)(FN,Mat,Mat);
-  PetscErrorCode (*evaluatefunctionmatvec)(FN,Mat,Vec);
-  PetscErrorCode (*evaluatefunctionmatvecsym)(FN,Mat,Vec);
+  PetscErrorCode (*evaluatefunctionmat[FN_MAX_SOLVE])(FN,Mat,Mat);
+  PetscErrorCode (*evaluatefunctionmatvec[FN_MAX_SOLVE])(FN,Mat,Vec);
   PetscErrorCode (*setfromoptions)(PetscOptionItems*,FN);
   PetscErrorCode (*view)(FN,PetscViewer);
   PetscErrorCode (*duplicate)(FN,MPI_Comm,FN*);
@@ -51,6 +49,7 @@ struct _p_FN {
   /*------------------------- User parameters --------------------------*/
   PetscScalar alpha;          /* inner scaling (argument) */
   PetscScalar beta;           /* outer scaling (result) */
+  PetscInt    method;         /* the method to compute matrix functions */
 
   /*---------------------- Cached data and workspace -------------------*/
   Mat         W[FN_MAX_W];    /* workspace matrices */

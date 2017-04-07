@@ -23,6 +23,8 @@
 #define __SLEPCFN_H
 #include <slepcsys.h>
 
+#define FN_MAX_SOLVE 6
+
 PETSC_EXTERN PetscErrorCode FNInitializePackage(void);
 /*S
    FN - Abstraction of a mathematical function.
@@ -77,6 +79,8 @@ PETSC_EXTERN PetscErrorCode FNDuplicate(FN,MPI_Comm,FN*);
 
 PETSC_EXTERN PetscErrorCode FNSetScale(FN,PetscScalar,PetscScalar);
 PETSC_EXTERN PetscErrorCode FNGetScale(FN,PetscScalar*,PetscScalar*);
+PETSC_EXTERN PetscErrorCode FNSetMethod(FN,PetscInt);
+PETSC_EXTERN PetscErrorCode FNGetMethod(FN,PetscInt*);
 
 PETSC_EXTERN PetscErrorCode FNEvaluateFunction(FN,PetscScalar,PetscScalar*);
 PETSC_EXTERN PetscErrorCode FNEvaluateDerivative(FN,PetscScalar,PetscScalar*);
