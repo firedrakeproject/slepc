@@ -283,8 +283,8 @@ PETSC_EXTERN PetscErrorCode NEPCISSGetRefinement(NEP,PetscInt*,PetscInt*);
 
 PETSC_EXTERN PetscErrorCode NEPInterpolSetPEP(NEP,PEP);
 PETSC_EXTERN PetscErrorCode NEPInterpolGetPEP(NEP,PEP*);
-PETSC_EXTERN PetscErrorCode NEPInterpolSetDegree(NEP,PetscInt);
-PETSC_EXTERN PetscErrorCode NEPInterpolGetDegree(NEP,PetscInt*);
+PETSC_EXTERN PetscErrorCode NEPInterpolSetInterpolation(NEP,PetscReal,PetscInt);
+PETSC_EXTERN PetscErrorCode NEPInterpolGetInterpolation(NEP,PetscReal*,PetscInt*);
 
 PETSC_EXTERN PetscErrorCode NEPNLEIGSSetSingularitiesFunction(NEP,PetscErrorCode (*)(NEP,PetscInt*,PetscScalar*,void*),void*);
 PETSC_EXTERN PetscErrorCode NEPNLEIGSGetSingularitiesFunction(NEP,PetscErrorCode (**)(NEP,PetscInt*,PetscScalar*,void*),void **);
