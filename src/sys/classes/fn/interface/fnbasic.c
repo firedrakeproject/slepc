@@ -530,6 +530,7 @@ static PetscErrorCode FNEvaluateFunctionMat_Sym_Private(FN fn,PetscScalar *As,Pe
 #else
   ierr = PetscFree4(eig,Q,W,work);CHKERRQ(ierr);
 #endif
+  ierr = PetscLogFlops(9.0*n*n*n+2.0*n*n*n);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 #endif
 }

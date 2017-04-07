@@ -87,6 +87,7 @@ static PetscErrorCode FNEvaluateFunctionMat_Private(FN fn,PetscScalar *Aa,PetscS
       ierr = PetscMemcpy(P,W,m*m*sizeof(PetscScalar));CHKERRQ(ierr);
       for (i=0;i<m;i++) P[i+i*ld] += ctx->pcoeff[j];
     }
+    ierr = PetscLogFlops(2.0*n*n*n*(ctx->np-1));CHKERRQ(ierr);
   }
   if (ctx->nq) {
     ierr = PetscMemzero(Q,m*m*sizeof(PetscScalar));CHKERRQ(ierr);
@@ -98,6 +99,7 @@ static PetscErrorCode FNEvaluateFunctionMat_Private(FN fn,PetscScalar *Aa,PetscS
     }
     PetscStackCallBLAS("LAPACKgesv",LAPACKgesv_(&n,&k,Q,&ld,ipiv,P,&ld,&info));
     if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xGESV %d",info);
+    ierr = PetscLogFlops(2.0*n*n*n*(ctx->nq-1)+2.0*n*n*n/3.0+2.0*n*n*k);CHKERRQ(ierr);
   }
   if (Aa==Ba) {
     ierr = PetscMemcpy(Aa,P,m*k*sizeof(PetscScalar));CHKERRQ(ierr);

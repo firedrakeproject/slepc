@@ -159,6 +159,9 @@ PetscErrorCode SlepcSchurParlettSqrt(PetscBLASInt n,PetscScalar *T,PetscBLASInt 
   PetscStackCallBLAS("BLASgemm",BLASgemm_("N","C",&n,&k,&n,&one,T,&ld,Q,&ld,&zero,W,&ld));
   PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&n,&k,&n,&one,Q,&ld,W,&ld,&zero,T,&ld));
 
+  /* flop count: Schur decomposition, triangular square root, and backtransform */
+  ierr = PetscLogFlops(25.0*n*n*n+n*n*n/3.0+4.0*n*n*k);CHKERRQ(ierr);
+
 #if !defined(PETSC_USE_COMPLEX)
   ierr = PetscFree7(wr,wi,W,Q,work,s,p);CHKERRQ(ierr);
 #else
