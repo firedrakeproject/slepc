@@ -360,21 +360,21 @@ PetscErrorCode FNEvaluateFunctionMat_Exp_Higham(FN fn,Mat A,Mat B)
   PetscFunctionBegin;
   SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"GESV/LANGE - Lapack routines are unavailable");
 #else
-  PetscErrorCode  ierr;
-  PetscBLASInt    n_,n2,*ipiv,info,one=1;
-  PetscInt        n,m,j,s;
-  PetscScalar     scale,smone=-1.0,sone=1.0,stwo=2.0,szero=0.0;
-  PetscScalar     *Aa,*Ba,*Apowers[5],*Q,*P,*W,*work,*aux;
-  const PetscReal *c;
-  const PetscReal c3[4]   = { 120, 60, 12, 1 };
-  const PetscReal c5[6]   = { 30240, 15120, 3360, 420, 30, 1 };
-  const PetscReal c7[8]   = { 17297280, 8648640, 1995840, 277200, 25200, 1512, 56, 1 };
-  const PetscReal c9[10]  = { 17643225600, 8821612800, 2075673600, 302702400, 30270240,
-                              2162160, 110880, 3960, 90, 1 };
-  const PetscReal c13[14] = { 64764752532480000, 32382376266240000, 7771770303897600,
-                              1187353796428800,  129060195264000,   10559470521600,
-                              670442572800,      33522128640,       1323241920,
-                              40840800,          960960,            16380,  182,  1 };
+  PetscErrorCode    ierr;
+  PetscBLASInt      n_,n2,*ipiv,info,one=1;
+  PetscInt          n,m,j,s;
+  PetscScalar       scale,smone=-1.0,sone=1.0,stwo=2.0,szero=0.0;
+  PetscScalar       *Aa,*Ba,*Apowers[5],*Q,*P,*W,*work,*aux;
+  const PetscScalar *c;
+  const PetscScalar c3[4]   = { 120, 60, 12, 1 };
+  const PetscScalar c5[6]   = { 30240, 15120, 3360, 420, 30, 1 };
+  const PetscScalar c7[8]   = { 17297280, 8648640, 1995840, 277200, 25200, 1512, 56, 1 };
+  const PetscScalar c9[10]  = { 17643225600, 8821612800, 2075673600, 302702400, 30270240,
+                                2162160, 110880, 3960, 90, 1 };
+  const PetscScalar c13[14] = { 64764752532480000, 32382376266240000, 7771770303897600,
+                                1187353796428800,  129060195264000,   10559470521600,
+                                670442572800,      33522128640,       1323241920,
+                                40840800,          960960,            16380,  182,  1 };
 
   PetscFunctionBegin;
   ierr = MatDenseGetArray(A,&Aa);CHKERRQ(ierr);
