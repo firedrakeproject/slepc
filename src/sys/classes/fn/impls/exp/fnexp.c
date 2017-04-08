@@ -149,7 +149,7 @@ static PetscReal normest1(PetscBLASInt n,PetscScalar *A,PetscInt m,PetscScalar *
 {
   PetscScalar  *X,*Y,*Z,*S,*S_old,*aux,val,sone=1.0,szero=0.0;
   PetscReal    est=0.0,est_old,vals[2],*zvals,maxzval[2],raux;
-  PetscBLASInt i,j,t=2,it=0,ind[2],est_j,m1;
+  PetscBLASInt i,j,t=2,it=0,ind[2],est_j=0,m1;
 
   PetscFunctionBegin;
   X = work;
@@ -309,9 +309,10 @@ static PetscErrorCode expm_params(PetscInt n,PetscScalar **Apowers,PetscInt *s,P
                                5.371920351148152e+000 };  /* m = 13 */
 
   PetscFunctionBegin;
+  *s = 0;
+  *m = 13;
   ierr = PetscBLASIntCast(n,&n_);CHKERRQ(ierr);
   ierr = PetscRandomCreate(PETSC_COMM_SELF,&rand);CHKERRQ(ierr);
-  *s = 0;
   d4 = PetscPowReal(LAPACKlange_("O",&n_,&n_,Apowers[2],&n_,rwork),1.0/4.0);
   d6 = PetscPowReal(LAPACKlange_("O",&n_,&n_,Apowers[3],&n_,rwork),1.0/6.0);
   ierr = PetscLogFlops(2.0*n*n);CHKERRQ(ierr);
@@ -359,7 +360,6 @@ static PetscErrorCode expm_params(PetscInt n,PetscScalar **Apowers,PetscInt *s,P
     ierr = PetscLogFlops(1.0*n*n);CHKERRQ(ierr);
   } else Ascaled = A;
   *s += ell(n_,Ascaled,coeff[4],13,work,rand);
-  *m = 13;
 done:
   ierr = PetscRandomDestroy(&rand);CHKERRQ(ierr);
   PetscFunctionReturn(0);
