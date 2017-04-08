@@ -116,11 +116,11 @@ PetscErrorCode FNView_Sqrt(FN fn,PetscViewer viewer)
 PETSC_EXTERN PetscErrorCode FNCreate_Sqrt(FN fn)
 {
   PetscFunctionBegin;
-  fn->ops->evaluatefunction       = FNEvaluateFunction_Sqrt;
-  fn->ops->evaluatederivative     = FNEvaluateDerivative_Sqrt;
-  fn->ops->evaluatefunctionmat    = FNEvaluateFunctionMat_Sqrt;
-  fn->ops->evaluatefunctionmatvec = FNEvaluateFunctionMatVec_Sqrt;
-  fn->ops->view                   = FNView_Sqrt;
+  fn->ops->evaluatefunction          = FNEvaluateFunction_Sqrt;
+  fn->ops->evaluatederivative        = FNEvaluateDerivative_Sqrt;
+  fn->ops->evaluatefunctionmat[0]    = FNEvaluateFunctionMat_Sqrt;
+  fn->ops->evaluatefunctionmatvec[0] = FNEvaluateFunctionMatVec_Sqrt;
+  fn->ops->view                      = FNView_Sqrt;
   PetscFunctionReturn(0);
 }
 

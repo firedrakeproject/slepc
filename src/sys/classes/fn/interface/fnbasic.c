@@ -122,6 +122,7 @@ PetscErrorCode FNCreate(MPI_Comm comm,FN *newfn)
 
   fn->alpha    = 1.0;
   fn->beta     = 1.0;
+  fn->method   = 0;
 
   fn->nw       = 0;
   fn->cw       = 0;
@@ -344,6 +345,62 @@ PetscErrorCode FNGetScale(FN fn,PetscScalar *alpha,PetscScalar *beta)
 }
 
 /*@
+   FNSetMethod - Selects the method to be used to evaluate functions of matrices.
+
+   Logically Collective on FN
+
+   Input Parameter:
++  fn   - the math function context
+-  meth - an index indentifying the method
+
+   Notes:
+   In some FN types there are more than one algorithms available for computing
+   matrix functions. In that case, this function allows choosing the wanted method.
+
+   If meth is currently set to 0 (the default) and the input argument A of
+   FNEvaluateFunctionMat() is a symmetric/Hermitian matrix, then the computation
+   is done via the eigendecomposition of A, rather than with the general algorithm.
+
+   Level: intermediate
+
+.seealso: FNGetMethod(), FNEvaluateFunctionMat()
+@*/
+PetscErrorCode FNSetMethod(FN fn,PetscInt meth)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(fn,FN_CLASSID,1);
+  PetscValidLogicalCollectiveInt(fn,meth,2);
+  if (meth<0) SETERRQ(PetscObjectComm((PetscObject)fn),PETSC_ERR_ARG_OUTOFRANGE,"The method must be a non-negative integer");
+  if (meth>FN_MAX_SOLVE) SETERRQ(PetscObjectComm((PetscObject)fn),PETSC_ERR_ARG_OUTOFRANGE,"Too large value for the method");
+  fn->method = meth;
+  PetscFunctionReturn(0);
+}
+
+/*@
+   FNGetMethod - Gets the method currently used in the FN.
+
+   Not Collective
+
+   Input Parameter:
+.  fn - the math function context
+
+   Output Parameter:
+.  meth - identifier of the method
+
+   Level: intermediate
+
+.seealso: FNSetMethod()
+@*/
+PetscErrorCode FNGetMethod(FN fn,PetscInt *meth)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(fn,FN_CLASSID,1);
+  PetscValidPointer(meth,2);
+  *meth = fn->method;
+  PetscFunctionReturn(0);
+}
+
+/*@
    FNEvaluateFunction - Computes the value of the function f(x) for a given x.
 
    Logically Collective on FN
@@ -473,6 +530,7 @@ static PetscErrorCode FNEvaluateFunctionMat_Sym_Private(FN fn,PetscScalar *As,Pe
 #else
   ierr = PetscFree4(eig,Q,W,work);CHKERRQ(ierr);
 #endif
+  ierr = PetscLogFlops(9.0*n*n*n+2.0*n*n*n);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 #endif
 }
@@ -519,15 +577,15 @@ static PetscErrorCode FNEvaluateFunctionMat_Sym_Default(FN fn,Mat A,Mat B)
    function will perform an in-place computation, overwriting A with f(A).
 
    If A is known to be real symmetric or complex Hermitian then it is
-   recommended to set the appropriate flag with MatSetOption(), so that
-   a different algorithm that exploits symmetry is used.
+   recommended to set the appropriate flag with MatSetOption(), because
+   symmetry can sometimes be exploited by the algorithm.
 
    Scaling factors are taken into account, so the actual function evaluation
    will return beta*f(alpha*A).
 
    Level: advanced
 
-.seealso: FNEvaluateFunction(), FNEvaluateFunctionMatVec()
+.seealso: FNEvaluateFunction(), FNEvaluateFunctionMatVec(), FNSetMethod()
 @*/
 PetscErrorCode FNEvaluateFunctionMat(FN fn,Mat A,Mat B)
 {
@@ -574,16 +632,12 @@ PetscErrorCode FNEvaluateFunctionMat(FN fn,Mat A,Mat B)
   /* evaluate matrix function */
   ierr = PetscLogEventBegin(FN_Evaluate,fn,0,0,0);CHKERRQ(ierr);
   ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
-  if (symm) {
-    if (fn->ops->evaluatefunctionmatsym) {
-      ierr = (*fn->ops->evaluatefunctionmatsym)(fn,M,F);CHKERRQ(ierr);
-    } else {
-      ierr = FNEvaluateFunctionMat_Sym_Default(fn,M,F);CHKERRQ(ierr);
-    }
+  if (symm && !fn->method) {  /* prefer diagonalization */
+    ierr = FNEvaluateFunctionMat_Sym_Default(fn,M,F);CHKERRQ(ierr);
   } else {
-    if (fn->ops->evaluatefunctionmat) {
-      ierr = (*fn->ops->evaluatefunctionmat)(fn,M,F);CHKERRQ(ierr);
-    } else SETERRQ1(PetscObjectComm((PetscObject)fn),PETSC_ERR_SUP,"Matrix function not implemented in FN type %s",((PetscObject)fn)->type_name);
+    if (fn->ops->evaluatefunctionmat[fn->method]) {
+      ierr = (*fn->ops->evaluatefunctionmat[fn->method])(fn,M,F);CHKERRQ(ierr);
+    } else SETERRQ(PetscObjectComm((PetscObject)fn),PETSC_ERR_ARG_OUTOFRANGE,"The specified method number does not exist for this FN");
   }
   ierr = PetscFPTrapPop();CHKERRQ(ierr);
   ierr = PetscLogEventEnd(FN_Evaluate,fn,0,0,0);CHKERRQ(ierr);
@@ -608,9 +662,9 @@ static PetscErrorCode FNEvaluateFunctionMatVec_Default(FN fn,Mat A,Vec v)
 
   PetscFunctionBegin;
   ierr = FN_AllocateWorkMat(fn,A,&F);CHKERRQ(ierr);
-  if (fn->ops->evaluatefunctionmat) {
-    ierr = (*fn->ops->evaluatefunctionmat)(fn,A,F);CHKERRQ(ierr);
-  } else SETERRQ1(PetscObjectComm((PetscObject)fn),PETSC_ERR_SUP,"Matrix function not implemented in FN type %s",((PetscObject)fn)->type_name);
+  if (fn->ops->evaluatefunctionmat[fn->method]) {
+    ierr = (*fn->ops->evaluatefunctionmat[fn->method])(fn,A,F);CHKERRQ(ierr);
+  } else SETERRQ(PetscObjectComm((PetscObject)fn),PETSC_ERR_ARG_OUTOFRANGE,"The specified method number does not exist for this FN");
   ierr = MatGetColumnVector(F,v,0);CHKERRQ(ierr);
   ierr = FN_FreeWorkMat(fn,&F);CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -656,7 +710,7 @@ static PetscErrorCode FNEvaluateFunctionMatVec_Sym_Default(FN fn,Mat A,Vec v)
 
    Level: advanced
 
-.seealso: FNEvaluateFunction(), FNEvaluateFunctionMat()
+.seealso: FNEvaluateFunction(), FNEvaluateFunctionMat(), FNSetMethod()
 @*/
 PetscErrorCode FNEvaluateFunctionMatVec(FN fn,Mat A,Vec v)
 {
@@ -692,15 +746,11 @@ PetscErrorCode FNEvaluateFunctionMatVec(FN fn,Mat A,Vec v)
   /* evaluate matrix function */
   ierr = PetscLogEventBegin(FN_Evaluate,fn,0,0,0);CHKERRQ(ierr);
   ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
-  if (symm) {
-    if (fn->ops->evaluatefunctionmatvecsym) {
-      ierr = (*fn->ops->evaluatefunctionmatvecsym)(fn,M,v);CHKERRQ(ierr);
-    } else {
-      ierr = FNEvaluateFunctionMatVec_Sym_Default(fn,M,v);CHKERRQ(ierr);
-    }
+  if (symm && !fn->method) {  /* prefer diagonalization */
+    ierr = FNEvaluateFunctionMatVec_Sym_Default(fn,M,v);CHKERRQ(ierr);
   } else {
-    if (fn->ops->evaluatefunctionmatvec) {
-      ierr = (*fn->ops->evaluatefunctionmatvec)(fn,M,v);CHKERRQ(ierr);
+    if (fn->ops->evaluatefunctionmatvec[fn->method]) {
+      ierr = (*fn->ops->evaluatefunctionmatvec[fn->method])(fn,M,v);CHKERRQ(ierr);
     } else {
       ierr = FNEvaluateFunctionMatVec_Default(fn,M,v);CHKERRQ(ierr);
     }
@@ -735,7 +785,7 @@ PetscErrorCode FNSetFromOptions(FN fn)
   PetscErrorCode ierr;
   char           type[256];
   PetscScalar    array[2];
-  PetscInt       k;
+  PetscInt       k,meth;
   PetscBool      flg;
 
   PetscFunctionBegin;
@@ -756,6 +806,9 @@ PetscErrorCode FNSetFromOptions(FN fn)
       if (k<2) array[1] = 1.0;
       ierr = FNSetScale(fn,array[0],array[1]);CHKERRQ(ierr);
     }
+
+    ierr = PetscOptionsInt("-fn_method","Method to be used for computing matrix functions","FNSetMethod",fn->method,&meth,&flg);CHKERRQ(ierr);
+    if (flg) { ierr = FNSetMethod(fn,meth);CHKERRQ(ierr); }
 
     if (fn->ops->setfromoptions) {
       ierr = (*fn->ops->setfromoptions)(PetscOptionsObject,fn);CHKERRQ(ierr);
@@ -835,6 +888,7 @@ PetscErrorCode FNDuplicate(FN fn,MPI_Comm comm,FN *newfn)
   PetscErrorCode ierr;
   FNType         type;
   PetscScalar    alpha,beta;
+  PetscInt       meth;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(fn,FN_CLASSID,1);
@@ -845,6 +899,8 @@ PetscErrorCode FNDuplicate(FN fn,MPI_Comm comm,FN *newfn)
   ierr = FNSetType(*newfn,type);CHKERRQ(ierr);
   ierr = FNGetScale(fn,&alpha,&beta);CHKERRQ(ierr);
   ierr = FNSetScale(*newfn,alpha,beta);CHKERRQ(ierr);
+  ierr = FNGetMethod(fn,&meth);CHKERRQ(ierr);
+  ierr = FNSetMethod(*newfn,meth);CHKERRQ(ierr);
   if (fn->ops->duplicate) {
     ierr = (*fn->ops->duplicate)(fn,comm,newfn);CHKERRQ(ierr);
   }

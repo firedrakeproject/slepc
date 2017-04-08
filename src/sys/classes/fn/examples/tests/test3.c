@@ -94,6 +94,7 @@ int main(int argc,char **argv)
   ierr = FNCreate(PETSC_COMM_WORLD,&fn);CHKERRQ(ierr);
   ierr = FNSetType(fn,FNEXP);CHKERRQ(ierr);
   ierr = FNSetScale(fn,tau,eta);CHKERRQ(ierr);
+  ierr = FNSetFromOptions(fn);CHKERRQ(ierr);
 
   /* Set up viewer */
   ierr = PetscViewerASCIIGetStdout(PETSC_COMM_WORLD,&viewer);CHKERRQ(ierr);

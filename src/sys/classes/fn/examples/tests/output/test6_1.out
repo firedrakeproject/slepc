@@ -14,6 +14,7 @@ FN Object: 1 MPI processes
         FN Object: 1 MPI processes
           type: exp
             Exponential: exp(x)
+            computing matrix functions with: scaling & squaring, [m/m] Pade approximant (Higham)
   f(2.2)=-2.63468
   f'(2.2)=-3.31554
 The 1-norm of f(A) is 29.747
