@@ -63,7 +63,7 @@ PetscErrorCode FNEvaluateFunctionMat_Invsqrt(FN fn,Mat A,Mat B)
   ierr = MatGetSize(A,&m,NULL);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(m,&n);CHKERRQ(ierr);
   ld = n;
-  ierr = SlepcSchurParlettSqrt(n,Ba,n,PETSC_FALSE);CHKERRQ(ierr);
+  ierr = SlepcSqrtmSchur(n,Ba,n,PETSC_FALSE);CHKERRQ(ierr);
   /* compute B = A\B */
   ierr = PetscMalloc1(ld,&ipiv);CHKERRQ(ierr);
   PetscStackCallBLAS("LAPACKgesv",LAPACKgesv_(&n,&n,Wa,&ld,ipiv,Ba,&ld,&info));
@@ -93,7 +93,7 @@ PetscErrorCode FNEvaluateFunctionMatVec_Invsqrt(FN fn,Mat A,Vec v)
   ierr = MatGetSize(A,&m,NULL);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(m,&n);CHKERRQ(ierr);
   ld = n;
-  ierr = SlepcSchurParlettSqrt(n,Ba,n,PETSC_TRUE);CHKERRQ(ierr);
+  ierr = SlepcSqrtmSchur(n,Ba,n,PETSC_TRUE);CHKERRQ(ierr);
   /* compute B_1 = A\B_1 */
   ierr = PetscMalloc1(ld,&ipiv);CHKERRQ(ierr);
   PetscStackCallBLAS("LAPACKgesv",LAPACKgesv_(&n,&one,Wa,&ld,ipiv,Ba,&ld,&info));

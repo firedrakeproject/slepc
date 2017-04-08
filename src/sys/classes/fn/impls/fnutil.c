@@ -90,11 +90,11 @@ PetscErrorCode SlepcMatDenseSqrt(PetscBLASInt n,PetscScalar *T,PetscBLASInt ld)
 #define BLOCKSIZE 64
 
 /*
-   Simplified Schur-Parlett algorithm on an upper quasi-triangular matrix T,
-   particularized for the square root function. T is overwritten with sqrtm(T).
+   Schur method for the square root of an upper quasi-triangular matrix T.
+   T is overwritten with sqrtm(T).
    If firstonly then only the first column of T will contain relevant values.
  */
-PetscErrorCode SlepcSchurParlettSqrt(PetscBLASInt n,PetscScalar *T,PetscBLASInt ld,PetscBool firstonly)
+PetscErrorCode SlepcSqrtmSchur(PetscBLASInt n,PetscScalar *T,PetscBLASInt ld,PetscBool firstonly)
 {
 #if defined(SLEPC_MISSING_LAPACK_GEES) || defined(SLEPC_MISSING_LAPACK_TRSYL)
   PetscFunctionBegin;
