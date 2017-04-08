@@ -128,6 +128,14 @@ runtest3_3_%:
 	${MPIEXEC} -n 1 ./test3 -tau 0.1 $$method | ${GREP} -v "computing matrix functions" > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
+runtest3_4: runtest3_4_higham runtest3_4_pade
+runtest3_4_%:
+	-@${SETTEST}; check=test3_4; method=$*; \
+	if [ "$$method" = higham ]; then method="-fn_method 0"; \
+	elif [ "$$method" = pade ]; then method="-fn_method 1"; fi; \
+	${MPIEXEC} -n 1 ./test3 -n 200 -tau 0.6 -eta 1.5 $$method | ${GREP} -v "computing matrix functions" > $${test}.tmp 2>&1; \
+	${TESTCODE}
+
 runtest4_1:
 	-@${SETTEST}; \
 	${MPIEXEC} -n 1 ./test4 -f1_fn_type exp -f1_fn_scale -2.5 -f2_fn_type rational -f2_fn_rational_numerator -1,1 -f2_fn_rational_denominator 1,-6,4 > $${test}.tmp 2>&1; \
