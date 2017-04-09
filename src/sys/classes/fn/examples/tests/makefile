@@ -31,7 +31,7 @@ TESTS      = test1 test2 test3 test4 test5 test6 test7 test7f test8 test9 test10
 
 TESTEXAMPLES_C       = test1.PETSc runtest1_1 test1.rm \
                        test2.PETSc runtest2_1 test2.rm \
-                       test3.PETSc runtest3_1 runtest3_2 runtest3_3 test3.rm \
+                       test3.PETSc runtest3_1 runtest3_2 runtest3_3 runtest3_4 test3.rm \
                        test4.PETSc runtest4_1 test4.rm \
                        test5.PETSc runtest5_1 runtest5_2 test5.rm \
                        test6.PETSc runtest6_1 runtest6_2 test6.rm \
