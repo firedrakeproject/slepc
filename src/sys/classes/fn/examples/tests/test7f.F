@@ -17,8 +17,7 @@
 !  along with SLEPc. If not, see <http://www.gnu.org/licenses/>.
 !  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !
-!  Program usage: mpiexec -n <np> ./test7f [-help] [-n <n>] [-tau <tau>]
-!                                     [-eta <eta>] [-verbose] [-inplace]
+!  Program usage: mpiexec -n <np> ./test7f [-help] [-n <n>] [-verbose] [-inplace]
 !
 !  Description: Simple example that tests the matrix square root.
 !
@@ -50,14 +49,8 @@
       call SlepcInitialize(PETSC_NULL_CHARACTER,ierr)
       call MPI_Comm_rank(PETSC_COMM_WORLD,rank,ierr)
       n = 10
-      tau = 1.0
-      eta = 1.0
       call PetscOptionsGetInt(PETSC_NULL_OPTIONS,PETSC_NULL_CHARACTER,  &
      &                        '-n',n,flg,ierr)
-      call PetscOptionsGetScalar(PETSC_NULL_OPTIONS,PETSC_NULL_CHARACTER&
-     &                       ,'-tau',tau,flg,ierr)
-      call PetscOptionsGetScalar(PETSC_NULL_OPTIONS,PETSC_NULL_CHARACTER&
-     &                       ,'-eta',eta,flg,ierr)
       call PetscOptionsHasName(PETSC_NULL_OPTIONS,PETSC_NULL_CHARACTER, &
      &                        '-verbose',verbose,ierr)
       call PetscOptionsHasName(PETSC_NULL_OPTIONS,PETSC_NULL_CHARACTER, &
@@ -74,7 +67,11 @@
 
       call FNCreate(PETSC_COMM_WORLD,fn,ierr)
       call FNSetType(fn,FNSQRT,ierr)
+      tau = 0.15
+      eta = 1.0
       call FNSetScale(fn,tau,eta,ierr)
+      call FNSetFromOptions(fn,ierr)
+      call FNGetScale(fn,tau,eta,ierr)
       call FNView(fn,PETSC_NULL_VIEWER,ierr)
 
       call MatCreateSeqDense(PETSC_COMM_SELF,n,n,PETSC_NULL_SCALAR,A,   &
