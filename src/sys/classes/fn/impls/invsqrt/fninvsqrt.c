@@ -46,7 +46,7 @@ PetscErrorCode FNEvaluateDerivative_Invsqrt(FN fn,PetscScalar x,PetscScalar *y)
   PetscFunctionReturn(0);
 }
 
-PetscErrorCode FNEvaluateFunctionMat_Invsqrt(FN fn,Mat A,Mat B)
+PetscErrorCode FNEvaluateFunctionMat_Invsqrt_Schur(FN fn,Mat A,Mat B)
 {
   PetscErrorCode ierr;
   PetscBLASInt   n,ld,*ipiv,info;
@@ -76,7 +76,7 @@ PetscErrorCode FNEvaluateFunctionMat_Invsqrt(FN fn,Mat A,Mat B)
   PetscFunctionReturn(0);
 }
 
-PetscErrorCode FNEvaluateFunctionMatVec_Invsqrt(FN fn,Mat A,Vec v)
+PetscErrorCode FNEvaluateFunctionMatVec_Invsqrt_Schur(FN fn,Mat A,Vec v)
 {
   PetscErrorCode ierr;
   PetscBLASInt   n,ld,*ipiv,info,one=1;
@@ -107,11 +107,33 @@ PetscErrorCode FNEvaluateFunctionMatVec_Invsqrt(FN fn,Mat A,Vec v)
   PetscFunctionReturn(0);
 }
 
+PetscErrorCode FNEvaluateFunctionMat_Invsqrt_DBP(FN fn,Mat A,Mat B)
+{
+  PetscErrorCode ierr;
+  PetscBLASInt   n;
+  PetscScalar    *T;
+  PetscInt       m;
+
+  PetscFunctionBegin;
+  if (A!=B) { ierr = MatCopy(A,B,SAME_NONZERO_PATTERN);CHKERRQ(ierr); }
+  ierr = MatDenseGetArray(B,&T);CHKERRQ(ierr);
+  ierr = MatGetSize(A,&m,NULL);CHKERRQ(ierr);
+  ierr = PetscBLASIntCast(m,&n);CHKERRQ(ierr);
+  ierr = SlepcSqrtmDenmanBeavers(n,T,n,PETSC_TRUE);CHKERRQ(ierr);
+  ierr = MatDenseRestoreArray(B,&T);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
 PetscErrorCode FNView_Invsqrt(FN fn,PetscViewer viewer)
 {
   PetscErrorCode ierr;
   PetscBool      isascii;
   char           str[50];
+  const char     *methodname[] = {
+                  "Schur method for inv(A)*sqrtm(A)",
+                  "Denman-Beavers (product form)"
+  };
+  const int      nmeth=sizeof(methodname)/sizeof(methodname[0]);
 
   PetscFunctionBegin;
   ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
@@ -135,6 +157,9 @@ PetscErrorCode FNView_Invsqrt(FN fn,PetscViewer viewer)
         ierr = PetscViewerASCIIUseTabs(viewer,PETSC_TRUE);CHKERRQ(ierr);
       }
     }
+    if (fn->method<nmeth) {
+      ierr = PetscViewerASCIIPrintf(viewer,"  computing matrix functions with: %s\n",methodname[fn->method]);CHKERRQ(ierr);
+    }
   }
   PetscFunctionReturn(0);
 }
@@ -144,8 +169,9 @@ PETSC_EXTERN PetscErrorCode FNCreate_Invsqrt(FN fn)
   PetscFunctionBegin;
   fn->ops->evaluatefunction          = FNEvaluateFunction_Invsqrt;
   fn->ops->evaluatederivative        = FNEvaluateDerivative_Invsqrt;
-  fn->ops->evaluatefunctionmat[0]    = FNEvaluateFunctionMat_Invsqrt;
-  fn->ops->evaluatefunctionmatvec[0] = FNEvaluateFunctionMatVec_Invsqrt;
+  fn->ops->evaluatefunctionmat[0]    = FNEvaluateFunctionMat_Invsqrt_Schur;
+  fn->ops->evaluatefunctionmat[1]    = FNEvaluateFunctionMat_Invsqrt_DBP;
+  fn->ops->evaluatefunctionmatvec[0] = FNEvaluateFunctionMatVec_Invsqrt_Schur;
   fn->ops->view                      = FNView_Invsqrt;
   PetscFunctionReturn(0);
 }

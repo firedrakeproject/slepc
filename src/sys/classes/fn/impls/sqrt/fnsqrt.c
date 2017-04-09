@@ -81,11 +81,33 @@ PetscErrorCode FNEvaluateFunctionMatVec_Sqrt_Schur(FN fn,Mat A,Vec v)
   PetscFunctionReturn(0);
 }
 
+PetscErrorCode FNEvaluateFunctionMat_Sqrt_DBP(FN fn,Mat A,Mat B)
+{
+  PetscErrorCode ierr;
+  PetscBLASInt   n;
+  PetscScalar    *T;
+  PetscInt       m;
+
+  PetscFunctionBegin;
+  if (A!=B) { ierr = MatCopy(A,B,SAME_NONZERO_PATTERN);CHKERRQ(ierr); }
+  ierr = MatDenseGetArray(B,&T);CHKERRQ(ierr);
+  ierr = MatGetSize(A,&m,NULL);CHKERRQ(ierr);
+  ierr = PetscBLASIntCast(m,&n);CHKERRQ(ierr);
+  ierr = SlepcSqrtmDenmanBeavers(n,T,n,PETSC_FALSE);CHKERRQ(ierr);
+  ierr = MatDenseRestoreArray(B,&T);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
 PetscErrorCode FNView_Sqrt(FN fn,PetscViewer viewer)
 {
   PetscErrorCode ierr;
   PetscBool      isascii;
   char           str[50];
+  const char     *methodname[] = {
+                  "Schur method for the square root",
+                  "Denman-Beavers (product form)"
+  };
+  const int      nmeth=sizeof(methodname)/sizeof(methodname[0]);
 
   PetscFunctionBegin;
   ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
@@ -109,6 +131,9 @@ PetscErrorCode FNView_Sqrt(FN fn,PetscViewer viewer)
         ierr = PetscViewerASCIIUseTabs(viewer,PETSC_TRUE);CHKERRQ(ierr);
       }
     }
+    if (fn->method<nmeth) {
+      ierr = PetscViewerASCIIPrintf(viewer,"  computing matrix functions with: %s\n",methodname[fn->method]);CHKERRQ(ierr);
+    }
   }
   PetscFunctionReturn(0);
 }
@@ -119,6 +144,7 @@ PETSC_EXTERN PetscErrorCode FNCreate_Sqrt(FN fn)
   fn->ops->evaluatefunction          = FNEvaluateFunction_Sqrt;
   fn->ops->evaluatederivative        = FNEvaluateDerivative_Sqrt;
   fn->ops->evaluatefunctionmat[0]    = FNEvaluateFunctionMat_Sqrt_Schur;
+  fn->ops->evaluatefunctionmat[1]    = FNEvaluateFunctionMat_Sqrt_DBP;
   fn->ops->evaluatefunctionmatvec[0] = FNEvaluateFunctionMatVec_Sqrt_Schur;
   fn->ops->view                      = FNView_Sqrt;
   PetscFunctionReturn(0);

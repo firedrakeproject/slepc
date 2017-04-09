@@ -171,3 +171,100 @@ PetscErrorCode SlepcSqrtmSchur(PetscBLASInt n,PetscScalar *T,PetscBLASInt ld,Pet
 #endif
 }
 
+#define DBMAXIT 25
+
+/*
+   Computes the principal square root of the matrix T using the product form
+   of the Denman-Beavers iteration.
+   T is overwritten with sqrtm(T) or inv(sqrtm(T)) depending on flag inv.
+ */
+PetscErrorCode SlepcSqrtmDenmanBeavers(PetscBLASInt n,PetscScalar *T,PetscBLASInt ld,PetscBool inv)
+{
+#if defined(PETSC_MISSING_LAPACK_GETRF) || defined(PETSC_MISSING_LAPACK_GETRI)
+  PetscFunctionBegin;
+  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"GETRF/GETRI - Lapack routine is unavailable");
+#else
+  PetscScalar        *Told,*M=NULL,*invM,*work,work1;
+  PetscScalar        szero=0.0,sone=1.0,smone=-1.0,spfive=0.5,sp25=0.25;
+  PetscReal          tol,Mres,detM,g,g2,reldiff,fnormdiff,fnormT;
+  PetscBLASInt       N,i,it,*piv=NULL,info,query=-1,lwork;
+  const PetscBLASInt one=1;
+  PetscBool          converged=PETSC_FALSE,scale=PETSC_FALSE;
+  PetscErrorCode     ierr;
+
+  PetscFunctionBegin;
+  N = n*n;
+  tol = PetscSqrtReal((PetscReal)n)*PETSC_MACHINE_EPSILON/2;
+
+  /* query work size */
+  PetscStackCallBLAS("LAPACKgetri",LAPACKgetri_(&n,M,&ld,piv,&work1,&query,&info));
+  lwork = (PetscBLASInt)work1;
+  ierr = PetscMalloc5(lwork,&work,n,&piv,n*n,&Told,n*n,&M,n*n,&invM);CHKERRQ(ierr);
+  ierr = PetscMemcpy(M,T,n*n*sizeof(PetscScalar));CHKERRQ(ierr);
+
+  if (inv) {  /* start recurrence with I instead of A */
+    ierr = PetscMemzero(T,n*n*sizeof(PetscScalar));CHKERRQ(ierr);
+    for (i=0;i<n;i++) T[i+i*ld]++;
+  }
+
+  for (it=0;it<DBMAXIT && !converged;it++) {
+
+    if (scale) {  /* g = (abs(det(M)))^(-1/(2*n)) */
+      ierr = PetscMemcpy(invM,M,n*n*sizeof(PetscScalar));CHKERRQ(ierr);
+      PetscStackCallBLAS("LAPACKgetrf",LAPACKgetrf_(&n,&n,invM,&ld,piv,&info));
+      if (info<0) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"LAPACKgetrf: illegal value of argument %d",PetscAbsInt(info));
+      if (info>0) SETERRQ2(PETSC_COMM_SELF,PETSC_ERR_MAT_LU_ZRPVT,"LAPACKgetrf: matrix is singular, U(%d,%d) is zero",info,info);
+      detM = invM[0];
+      for(i=1;i<n;i++) detM *= invM[i+i*ld];
+      detM = PetscAbsReal(detM);
+      g = PetscPowReal(detM,-1.0/(2.0*n));
+      PetscStackCallBLAS("BLASscal",BLASscal_(&N,&g,T,&one));
+      g2 = g*g;
+      PetscStackCallBLAS("BLASscal",BLASscal_(&N,&g2,M,&one));
+      ierr = PetscLogFlops(2.0*n*n*n/3.0+2.0*n*n);CHKERRQ(ierr);
+    }
+
+    ierr = PetscMemcpy(Told,T,n*n*sizeof(PetscScalar));CHKERRQ(ierr);
+    ierr = PetscMemcpy(invM,M,n*n*sizeof(PetscScalar));CHKERRQ(ierr);
+
+    PetscStackCallBLAS("LAPACKgetrf",LAPACKgetrf_(&n,&n,invM,&ld,piv,&info));
+    if (info<0) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"LAPACKgetrf: illegal value of argument %d",PetscAbsInt(info));
+    if (info>0) SETERRQ2(PETSC_COMM_SELF,PETSC_ERR_MAT_LU_ZRPVT,"LAPACKgetrf: matrix is singular, U(%d,%d) is zero",info,info);
+    PetscStackCallBLAS("LAPACKgetri",LAPACKgetri_(&n,invM,&ld,piv,work,&lwork,&info));
+    if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xGETRI %d",info);
+    ierr = PetscLogFlops(2.0*n*n*n/3.0+2.0*n*n*n);CHKERRQ(ierr);
+
+    for (i=0;i<n;i++) invM[i+i*ld]++;
+    PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&n,&n,&n,&spfive,Told,&ld,invM,&ld,&szero,T,&ld));
+    for (i=0;i<n;i++) invM[i+i*ld]--;
+
+    PetscStackCallBLAS("BLASaxpy",BLASaxpy_(&N,&sone,invM,&one,M,&one));
+    PetscStackCallBLAS("BLASscal",BLASscal_(&N,&sp25,M,&one));
+    for (i=0;i<n;i++) M[i+i*ld] -= 0.5;
+    ierr = PetscLogFlops(2.0*n*n*n+2.0*n*n);CHKERRQ(ierr);
+
+    Mres = LAPACKlange_("F",&n,&n,M,&n,work);
+    for (i=0;i<n;i++) M[i+i*ld]++;
+
+    /* reldiff = norm(T - Told,'fro')/norm(T,'fro') */
+    PetscStackCallBLAS("BLASaxpy",BLASaxpy_(&N,&smone,T,&one,Told,&one));
+    fnormdiff = LAPACKlange_("F",&n,&n,Told,&n,work);
+    fnormT = LAPACKlange_("F",&n,&n,T,&n,work);
+    ierr = PetscLogFlops(7.0*n*n);CHKERRQ(ierr);
+    reldiff = fnormdiff/fnormT;
+    if (scale) {
+      ierr = PetscInfo4(NULL,"it: %D reldiff: %g scale: %g tol*scale: %g\n",it,(double)reldiff,(double)g,(double)tol*g);
+    } else {
+      ierr = PetscInfo2(NULL,"it: %D reldiff: %g\n",it,(double)reldiff);
+    }
+
+    if (reldiff<1e-2) scale = PETSC_FALSE;  /* Switch off scaling */
+    if (Mres<=tol) converged = PETSC_TRUE;
+  }
+
+  if (Mres>tol) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"SQRTM not converged after %d iterations",DBMAXIT);
+  ierr = PetscFree5(work,piv,Told,M,invM);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+#endif
+}
+
