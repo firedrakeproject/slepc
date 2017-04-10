@@ -232,7 +232,7 @@ PetscErrorCode SlepcSqrtmDenmanBeavers(PetscBLASInt n,PetscScalar *T,PetscBLASIn
     if (info>0) SETERRQ2(PETSC_COMM_SELF,PETSC_ERR_MAT_LU_ZRPVT,"LAPACKgetrf: matrix is singular, U(%d,%d) is zero",info,info);
     PetscStackCallBLAS("LAPACKgetri",LAPACKgetri_(&n,invM,&ld,piv,work,&lwork,&info));
     if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xGETRI %d",info);
-    ierr = PetscLogFlops(2.0*n*n*n/3.0+2.0*n*n*n);CHKERRQ(ierr);
+    ierr = PetscLogFlops(2.0*n*n*n/3.0+4.0*n*n*n/3.0);CHKERRQ(ierr);
 
     for (i=0;i<n;i++) invM[i+i*ld]++;
     PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&n,&n,&n,&spfive,Told,&ld,invM,&ld,&szero,T,&ld));
