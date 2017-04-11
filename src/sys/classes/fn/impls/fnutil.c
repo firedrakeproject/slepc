@@ -271,3 +271,80 @@ PetscErrorCode SlepcSqrtmDenmanBeavers(PetscBLASInt n,PetscScalar *T,PetscBLASIn
 #endif
 }
 
+#define NSMAXIT 50
+
+/*
+   Computes the principal square root of the matrix A using the Newton-Schulz iteration.
+   T is overwritten with sqrtm(T) or inv(sqrtm(T)) depending on flag inv.
+ */
+PetscErrorCode SlepcSqrtmNewtonSchulz(PetscBLASInt n,PetscScalar *A,PetscBLASInt ld,PetscBool inv)
+{
+  PetscScalar        *Y=A,*Yold,*Z,*Zold,*M,alpha,sqrtnrm;
+  PetscScalar        szero=0.0,sone=1.0,smone=-1.0,spfive=0.5,sthree=3.0;
+  PetscReal          tol,Yres,nrm;
+  PetscBLASInt       i,it,N;
+  const PetscBLASInt one=1;
+  PetscBool          converged=PETSC_FALSE;
+  PetscErrorCode     ierr;
+  unsigned int       ftz;
+
+  PetscFunctionBegin;
+  N = n*n;
+  tol = PetscSqrtReal((PetscReal)n)*PETSC_MACHINE_EPSILON/2;
+  ierr = SlepcSetFlushToZero(&ftz);CHKERRQ(ierr);
+
+  ierr = PetscMalloc4(N,&Yold,N,&Z,N,&Zold,N,&M);CHKERRQ(ierr);
+
+  /* scale A so that ||I-A|| < 1 */
+  ierr = PetscMemcpy(Z,A,N*sizeof(PetscScalar));CHKERRQ(ierr);
+  for (i=0;i<n;i++) Z[i+i*ld] -= 1.0;
+  nrm = LAPACKlange_("fro",&n,&n,(PetscScalar*)Z,&n,PETSC_NULL);
+  sqrtnrm = PetscSqrtReal(nrm);
+  alpha = 1.0/nrm;
+  PetscStackCallBLAS("BLASscal",BLASscal_(&N,&alpha,A,&one));
+  tol *= nrm;
+  ierr = PetscInfo2(NULL,"||I-A||_F = %g, new tol: %g\n",(double)nrm,(double)tol);
+  ierr = PetscLogFlops(2.0*n*n);CHKERRQ(ierr);
+
+  /* Z = I */
+  ierr = PetscMemzero(Z,N*sizeof(PetscScalar));CHKERRQ(ierr);
+  for (i=0;i<n;i++) Z[i+i*ld] = 1.0;
+
+  for (it=0;it<NSMAXIT && !converged;it++) {
+    /* Yold = Y, Zold = Z */
+    ierr = PetscMemcpy(Yold,Y,N*sizeof(PetscScalar));CHKERRQ(ierr);
+    ierr = PetscMemcpy(Zold,Z,N*sizeof(PetscScalar));CHKERRQ(ierr);
+
+    /* M = (3*I-Zold*Yold) */
+    ierr = PetscMemzero(M,N*sizeof(PetscScalar));CHKERRQ(ierr);
+    for (i=0;i<n;i++) M[i+i*ld] = sthree;
+    PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&n,&n,&n,&smone,Zold,&ld,Yold,&ld,&sone,M,&ld));
+
+    /* Y = (1/2)*Yold*M, Z = (1/2)*M*Zold */
+    PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&n,&n,&n,&spfive,Yold,&ld,M,&ld,&szero,Y,&ld));
+    PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&n,&n,&n,&spfive,M,&ld,Zold,&ld,&szero,Z,&ld));
+
+    /* reldiff = norm(Y-Yold,'fro')/norm(Y,'fro') */
+    PetscStackCallBLAS("BLASaxpy",BLASaxpy_(&N,&smone,Y,&one,Yold,&one));
+    Yres = LAPACKlange_("fro",&n,&n,(PetscScalar*)Yold,&n,PETSC_NULL);
+    ierr = PetscIsNanReal(Yres);CHKERRQ(ierr);
+    if (Yres<=tol) converged = PETSC_TRUE;
+    ierr = PetscInfo2(NULL,"it: %D res: %g\n",it,(double)Yres);
+
+    ierr = PetscLogFlops(6.0*n*n*n+2.0*n*n);CHKERRQ(ierr);
+  }
+
+  if (Yres>tol) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"SQRTM not converged after %d iterations",NSMAXIT);
+
+  /* undo scaling */
+  if (inv) {
+    ierr = PetscMemcpy(A,Z,N*sizeof(PetscScalar));CHKERRQ(ierr);
+    sqrtnrm = 1.0/sqrtnrm;
+    PetscStackCallBLAS("BLASscal",BLASscal_(&N,&sqrtnrm,A,&one));
+  } else PetscStackCallBLAS("BLASscal",BLASscal_(&N,&sqrtnrm,A,&one));
+
+  ierr = PetscFree4(Yold,Z,Zold,M);CHKERRQ(ierr);
+  ierr = SlepcResetFlushToZero(&ftz);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+

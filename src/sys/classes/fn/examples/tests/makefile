@@ -191,19 +191,21 @@ runtest7f_1_%:
 	${MPIEXEC} -n 1 ./test7f -fn_scale .13,2 -n 19 $$method | ${GREP} -v "computing matrix functions" > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
-runtest8_1: runtest8_1_schur runtest8_1_dbp
+runtest8_1: runtest8_1_schur runtest8_1_dbp runtest8_1_ns
 runtest8_1_%:
 	-@${SETTEST}; check=test8_1; method=$*; \
 	if [ "$$method" = schur ]; then method="-fn_method 0"; \
-	elif [ "$$method" = dbp ]; then method="-fn_method 1"; fi; \
+	elif [ "$$method" = dbp ]; then method="-fn_method 1"; \
+	elif [ "$$method" = ns ]; then method="-fn_method 2"; fi; \
 	${MPIEXEC} -n 1 ./test8 -fn_scale 0.9,0.5 -n 10 $$method | ${GREP} -v "computing matrix functions" > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
-runtest8_2: runtest8_2_schur runtest8_2_dbp
+runtest8_2: runtest8_2_schur runtest8_2_dbp runtest8_2_ns
 runtest8_2_%:
 	-@${SETTEST}; check=test8_1; method=$*; \
 	if [ "$$method" = schur ]; then method="-fn_method 0"; \
-	elif [ "$$method" = dbp ]; then method="-fn_method 1"; fi; \
+	elif [ "$$method" = dbp ]; then method="-fn_method 1"; \
+	elif [ "$$method" = ns ]; then method="-fn_method 2"; fi; \
 	${MPIEXEC} -n 1 ./test8 -fn_scale 0.9,0.5 -n 10 -inplace $$method | ${GREP} -v "computing matrix functions" > $${test}.tmp 2>&1; \
 	${TESTCODE}
 

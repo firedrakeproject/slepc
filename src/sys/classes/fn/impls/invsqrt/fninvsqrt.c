@@ -124,6 +124,23 @@ PetscErrorCode FNEvaluateFunctionMat_Invsqrt_DBP(FN fn,Mat A,Mat B)
   PetscFunctionReturn(0);
 }
 
+PetscErrorCode FNEvaluateFunctionMat_Invsqrt_NS(FN fn,Mat A,Mat B)
+{
+  PetscErrorCode ierr;
+  PetscBLASInt   n;
+  PetscScalar    *T;
+  PetscInt       m;
+
+  PetscFunctionBegin;
+  if (A!=B) { ierr = MatCopy(A,B,SAME_NONZERO_PATTERN);CHKERRQ(ierr); }
+  ierr = MatDenseGetArray(B,&T);CHKERRQ(ierr);
+  ierr = MatGetSize(A,&m,NULL);CHKERRQ(ierr);
+  ierr = PetscBLASIntCast(m,&n);CHKERRQ(ierr);
+  ierr = SlepcSqrtmNewtonSchulz(n,T,n,PETSC_TRUE);CHKERRQ(ierr);
+  ierr = MatDenseRestoreArray(B,&T);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
 PetscErrorCode FNView_Invsqrt(FN fn,PetscViewer viewer)
 {
   PetscErrorCode ierr;
@@ -131,7 +148,8 @@ PetscErrorCode FNView_Invsqrt(FN fn,PetscViewer viewer)
   char           str[50];
   const char     *methodname[] = {
                   "Schur method for inv(A)*sqrtm(A)",
-                  "Denman-Beavers (product form)"
+                  "Denman-Beavers (product form)",
+                  "Newton-Schulz iteration"
   };
   const int      nmeth=sizeof(methodname)/sizeof(methodname[0]);
 
@@ -171,6 +189,7 @@ PETSC_EXTERN PetscErrorCode FNCreate_Invsqrt(FN fn)
   fn->ops->evaluatederivative        = FNEvaluateDerivative_Invsqrt;
   fn->ops->evaluatefunctionmat[0]    = FNEvaluateFunctionMat_Invsqrt_Schur;
   fn->ops->evaluatefunctionmat[1]    = FNEvaluateFunctionMat_Invsqrt_DBP;
+  fn->ops->evaluatefunctionmat[2]    = FNEvaluateFunctionMat_Invsqrt_NS;
   fn->ops->evaluatefunctionmatvec[0] = FNEvaluateFunctionMatVec_Invsqrt_Schur;
   fn->ops->view                      = FNView_Invsqrt;
   PetscFunctionReturn(0);
