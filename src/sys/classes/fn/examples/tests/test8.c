@@ -98,7 +98,7 @@ int main(int argc,char **argv)
   FN             fn;
   Mat            A;
   PetscInt       i,j,n=10;
-  PetscScalar    x,y,yp,*As,tau=1.0,eta=1.0;
+  PetscScalar    x,y,yp,*As;
   PetscViewer    viewer;
   PetscBool      verbose,inplace;
   PetscRandom    myrand;
@@ -107,16 +107,14 @@ int main(int argc,char **argv)
 
   ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
   ierr = PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL);CHKERRQ(ierr);
-  ierr = PetscOptionsGetScalar(NULL,NULL,"-tau",&tau,NULL);CHKERRQ(ierr);
-  ierr = PetscOptionsGetScalar(NULL,NULL,"-eta",&eta,NULL);CHKERRQ(ierr);
   ierr = PetscOptionsHasName(NULL,NULL,"-verbose",&verbose);CHKERRQ(ierr);
   ierr = PetscOptionsHasName(NULL,NULL,"-inplace",&inplace);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD,"Matrix inverse square root, n=%D.\n",n);CHKERRQ(ierr);
 
-  /* Create function eta*inv(sqrt(tau*x)) */
+  /* Create function object */
   ierr = FNCreate(PETSC_COMM_WORLD,&fn);CHKERRQ(ierr);
   ierr = FNSetType(fn,FNINVSQRT);CHKERRQ(ierr);
-  ierr = FNSetScale(fn,tau,eta);CHKERRQ(ierr);
+  ierr = FNSetFromOptions(fn);CHKERRQ(ierr);
 
   /* Set up viewer */
   ierr = PetscViewerASCIIGetStdout(PETSC_COMM_WORLD,&viewer);CHKERRQ(ierr);

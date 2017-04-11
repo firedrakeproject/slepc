@@ -95,3 +95,35 @@ M*/
 
 #endif
 
+
+/*
+   SlepcSetFlushToZero - Set the FTZ flag in floating-point arithmetic.
+*/
+PETSC_STATIC_INLINE PetscErrorCode SlepcSetFlushToZero(unsigned int *state)
+{
+  PetscFunctionBegin;
+#if defined(PETSC_HAVE_XMMINTRIN_H)
+#if defined(_MM_FLUSH_ZERO_ON)
+  *state = _MM_GET_FLUSH_ZERO_MODE();
+  _MM_SET_FLUSH_ZERO_MODE(_MM_FLUSH_ZERO_ON);
+#else
+  *state = 0;
+#endif
+#endif
+  PetscFunctionReturn(0);
+}
+
+/*
+   SlepcResetFlushToZero - Reset the FTZ flag in floating-point arithmetic.
+*/
+PETSC_STATIC_INLINE PetscErrorCode SlepcResetFlushToZero(unsigned int *state)
+{
+  PetscFunctionBegin;
+#if defined(PETSC_HAVE_XMMINTRIN_H)
+#if defined(_MM_FLUSH_ZERO_MASK)
+  _MM_SET_FLUSH_ZERO_MODE(*state & _MM_FLUSH_ZERO_MASK);
+#endif
+#endif
+  PetscFunctionReturn(0);
+}
+

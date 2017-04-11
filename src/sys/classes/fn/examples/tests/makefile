@@ -31,7 +31,7 @@ TESTS      = test1 test2 test3 test4 test5 test6 test7 test7f test8 test9 test10
 
 TESTEXAMPLES_C       = test1.PETSc runtest1_1 test1.rm \
                        test2.PETSc runtest2_1 test2.rm \
-                       test3.PETSc runtest3_1 runtest3_2 runtest3_3 test3.rm \
+                       test3.PETSc runtest3_1 runtest3_2 runtest3_3 runtest3_4 test3.rm \
                        test4.PETSc runtest4_1 test4.rm \
                        test5.PETSc runtest5_1 runtest5_2 test5.rm \
                        test6.PETSc runtest6_1 runtest6_2 test6.rm \
@@ -125,7 +125,7 @@ runtest3_3_%:
 	-@${SETTEST}; check=test3_3; method=$*; \
 	if [ "$$method" = higham ]; then method="-fn_method 0"; \
 	elif [ "$$method" = pade ]; then method="-fn_method 1"; fi; \
-	${MPIEXEC} -n 1 ./test3 -tau 0.1 $$method | ${GREP} -v "computing matrix functions" > $${test}.tmp 2>&1; \
+	${MPIEXEC} -n 1 ./test3 -fn_scale 0.1 $$method | ${GREP} -v "computing matrix functions" > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
 runtest3_4: runtest3_4_higham runtest3_4_pade
@@ -133,7 +133,7 @@ runtest3_4_%:
 	-@${SETTEST}; check=test3_4; method=$*; \
 	if [ "$$method" = higham ]; then method="-fn_method 0"; \
 	elif [ "$$method" = pade ]; then method="-fn_method 1"; fi; \
-	${MPIEXEC} -n 1 ./test3 -n 200 -tau 0.6 -eta 1.5 $$method | ${GREP} -v "computing matrix functions" > $${test}.tmp 2>&1; \
+	${MPIEXEC} -n 1 ./test3 -n 200 -fn_scale 0.6,1.5 $$method | ${GREP} -v "computing matrix functions" > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
 runtest4_1:
@@ -161,29 +161,52 @@ runtest6_2:
 	${MPIEXEC} -n 1 ./test6 -inplace > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
-runtest7_1:
-	-@${SETTEST}; \
-	${MPIEXEC} -n 1 ./test7 -tau .05 -eta 2 -n 100 > $${test}.tmp 2>&1; \
+runtest7_1: runtest7_1_schur runtest7_1_dbp runtest7_1_ns runtest7_1_sadeghi
+runtest7_1_%:
+	-@${SETTEST}; check=test7_1; method=$*; \
+	if [ "$$method" = schur ]; then method="-fn_method 0"; \
+	elif [ "$$method" = dbp ]; then method="-fn_method 1"; \
+	elif [ "$$method" = ns ]; then method="-fn_method 2"; \
+	elif [ "$$method" = sadeghi ]; then method="-fn_method 3"; fi; \
+	${MPIEXEC} -n 1 ./test7 -fn_scale .05,2 -n 100 $$method | ${GREP} -v "computing matrix functions" > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
-runtest7_2:
-	-@${SETTEST}; check=test7_1; \
-	${MPIEXEC} -n 1 ./test7 -tau .05 -eta 2 -n 100 -inplace > $${test}.tmp 2>&1; \
+runtest7_2: runtest7_2_schur runtest7_2_dbp runtest7_2_ns runtest7_2_sadeghi
+runtest7_2_%:
+	-@${SETTEST}; check=test7_1; method=$*; \
+	if [ "$$method" = schur ]; then method="-fn_method 0"; \
+	elif [ "$$method" = dbp ]; then method="-fn_method 1"; \
+	elif [ "$$method" = ns ]; then method="-fn_method 2"; \
+	elif [ "$$method" = sadeghi ]; then method="-fn_method 3"; fi; \
+	${MPIEXEC} -n 1 ./test7 -fn_scale .05,2 -n 100 -inplace $$method | ${GREP} -v "computing matrix functions" > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
-runtest7f_1:
-	-@${SETTEST}; \
-	${MPIEXEC} -n 1 ./test7f -tau .13 -eta 2 -n 19 > $${test}.tmp 2>&1; \
+runtest7f_1: runtest7f_1_schur runtest7f_1_dbp runtest7f_1_ns runtest7f_1_sadeghi
+runtest7f_1_%:
+	-@${SETTEST}; check=test7f_1; method=$*; \
+	if [ "$$method" = schur ]; then method="-fn_method 0"; \
+	elif [ "$$method" = dbp ]; then method="-fn_method 1"; \
+	elif [ "$$method" = ns ]; then method="-fn_method 2"; \
+	elif [ "$$method" = sadeghi ]; then method="-fn_method 3"; fi; \
+	${MPIEXEC} -n 1 ./test7f -fn_scale .13,2 -n 19 $$method | ${GREP} -v "computing matrix functions" > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
-runtest8_1:
-	-@${SETTEST}; \
-	${MPIEXEC} -n 1 ./test8 -tau 0.9 -eta 0.5 -n 10 > $${test}.tmp 2>&1; \
+runtest8_1: runtest8_1_schur runtest8_1_dbp runtest8_1_ns
+runtest8_1_%:
+	-@${SETTEST}; check=test8_1; method=$*; \
+	if [ "$$method" = schur ]; then method="-fn_method 0"; \
+	elif [ "$$method" = dbp ]; then method="-fn_method 1"; \
+	elif [ "$$method" = ns ]; then method="-fn_method 2"; fi; \
+	${MPIEXEC} -n 1 ./test8 -fn_scale 0.9,0.5 -n 10 $$method | ${GREP} -v "computing matrix functions" > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
-runtest8_2:
-	-@${SETTEST}; check=test8_1; \
-	${MPIEXEC} -n 1 ./test8 -tau 0.9 -eta 0.5 -n 10 -inplace > $${test}.tmp 2>&1; \
+runtest8_2: runtest8_2_schur runtest8_2_dbp runtest8_2_ns
+runtest8_2_%:
+	-@${SETTEST}; check=test8_1; method=$*; \
+	if [ "$$method" = schur ]; then method="-fn_method 0"; \
+	elif [ "$$method" = dbp ]; then method="-fn_method 1"; \
+	elif [ "$$method" = ns ]; then method="-fn_method 2"; fi; \
+	${MPIEXEC} -n 1 ./test8 -fn_scale 0.9,0.5 -n 10 -inplace $$method | ${GREP} -v "computing matrix functions" > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
 runtest9_1:
