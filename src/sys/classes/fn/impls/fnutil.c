@@ -184,9 +184,9 @@ PetscErrorCode SlepcSqrtmDenmanBeavers(PetscBLASInt n,PetscScalar *T,PetscBLASIn
   PetscFunctionBegin;
   SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"GETRF/GETRI - Lapack routine is unavailable");
 #else
-  PetscScalar        *Told,*M=NULL,*invM,*work,work1;
+  PetscScalar        *Told,*M=NULL,*invM,*work,work1,prod,alpha;
   PetscScalar        szero=0.0,sone=1.0,smone=-1.0,spfive=0.5,sp25=0.25;
-  PetscReal          tol,Mres,detM,g,g2,reldiff,fnormdiff,fnormT;
+  PetscReal          tol,Mres,detM,g,reldiff,fnormdiff,fnormT,rwork[1];
   PetscBLASInt       N,i,it,*piv=NULL,info,query=-1,lwork;
   const PetscBLASInt one=1;
   PetscBool          converged=PETSC_FALSE,scale=PETSC_FALSE;
@@ -200,13 +200,13 @@ PetscErrorCode SlepcSqrtmDenmanBeavers(PetscBLASInt n,PetscScalar *T,PetscBLASIn
 
   /* query work size */
   PetscStackCallBLAS("LAPACKgetri",LAPACKgetri_(&n,M,&ld,piv,&work1,&query,&info));
-  lwork = (PetscBLASInt)work1;
+  ierr = PetscBLASIntCast((PetscInt)PetscRealPart(work1),&lwork);CHKERRQ(ierr);
   ierr = PetscMalloc5(lwork,&work,n,&piv,n*n,&Told,n*n,&M,n*n,&invM);CHKERRQ(ierr);
   ierr = PetscMemcpy(M,T,n*n*sizeof(PetscScalar));CHKERRQ(ierr);
 
   if (inv) {  /* start recurrence with I instead of A */
     ierr = PetscMemzero(T,n*n*sizeof(PetscScalar));CHKERRQ(ierr);
-    for (i=0;i<n;i++) T[i+i*ld]++;
+    for (i=0;i<n;i++) T[i+i*ld] += 1.0;
   }
 
   for (it=0;it<DBMAXIT && !converged;it++) {
@@ -216,13 +216,14 @@ PetscErrorCode SlepcSqrtmDenmanBeavers(PetscBLASInt n,PetscScalar *T,PetscBLASIn
       PetscStackCallBLAS("LAPACKgetrf",LAPACKgetrf_(&n,&n,invM,&ld,piv,&info));
       if (info<0) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"LAPACKgetrf: illegal value of argument %d",PetscAbsInt(info));
       if (info>0) SETERRQ2(PETSC_COMM_SELF,PETSC_ERR_MAT_LU_ZRPVT,"LAPACKgetrf: matrix is singular, U(%d,%d) is zero",info,info);
-      detM = invM[0];
-      for(i=1;i<n;i++) detM *= invM[i+i*ld];
-      detM = PetscAbsReal(detM);
+      prod = invM[0];
+      for(i=1;i<n;i++) prod *= invM[i+i*ld];
+      detM = PetscAbsScalar(prod);
       g = PetscPowReal(detM,-1.0/(2.0*n));
-      PetscStackCallBLAS("BLASscal",BLASscal_(&N,&g,T,&one));
-      g2 = g*g;
-      PetscStackCallBLAS("BLASscal",BLASscal_(&N,&g2,M,&one));
+      alpha = g;
+      PetscStackCallBLAS("BLASscal",BLASscal_(&N,&alpha,T,&one));
+      alpha = g*g;
+      PetscStackCallBLAS("BLASscal",BLASscal_(&N,&alpha,M,&one));
       ierr = PetscLogFlops(2.0*n*n*n/3.0+2.0*n*n);CHKERRQ(ierr);
     }
 
@@ -236,22 +237,22 @@ PetscErrorCode SlepcSqrtmDenmanBeavers(PetscBLASInt n,PetscScalar *T,PetscBLASIn
     if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xGETRI %d",info);
     ierr = PetscLogFlops(2.0*n*n*n/3.0+4.0*n*n*n/3.0);CHKERRQ(ierr);
 
-    for (i=0;i<n;i++) invM[i+i*ld]++;
+    for (i=0;i<n;i++) invM[i+i*ld] += 1.0;
     PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&n,&n,&n,&spfive,Told,&ld,invM,&ld,&szero,T,&ld));
-    for (i=0;i<n;i++) invM[i+i*ld]--;
+    for (i=0;i<n;i++) invM[i+i*ld] -= 1.0;
 
     PetscStackCallBLAS("BLASaxpy",BLASaxpy_(&N,&sone,invM,&one,M,&one));
     PetscStackCallBLAS("BLASscal",BLASscal_(&N,&sp25,M,&one));
     for (i=0;i<n;i++) M[i+i*ld] -= 0.5;
     ierr = PetscLogFlops(2.0*n*n*n+2.0*n*n);CHKERRQ(ierr);
 
-    Mres = LAPACKlange_("F",&n,&n,M,&n,work);
-    for (i=0;i<n;i++) M[i+i*ld]++;
+    Mres = LAPACKlange_("F",&n,&n,M,&n,rwork);
+    for (i=0;i<n;i++) M[i+i*ld] += 1.0;
 
     /* reldiff = norm(T - Told,'fro')/norm(T,'fro') */
     PetscStackCallBLAS("BLASaxpy",BLASaxpy_(&N,&smone,T,&one,Told,&one));
-    fnormdiff = LAPACKlange_("F",&n,&n,Told,&n,work);
-    fnormT = LAPACKlange_("F",&n,&n,T,&n,work);
+    fnormdiff = LAPACKlange_("F",&n,&n,Told,&n,rwork);
+    fnormT = LAPACKlange_("F",&n,&n,T,&n,rwork);
     ierr = PetscLogFlops(7.0*n*n);CHKERRQ(ierr);
     reldiff = fnormdiff/fnormT;
     if (scale) {
@@ -281,7 +282,7 @@ PetscErrorCode SlepcSqrtmNewtonSchulz(PetscBLASInt n,PetscScalar *A,PetscBLASInt
 {
   PetscScalar        *Y=A,*Yold,*Z,*Zold,*M,alpha,sqrtnrm;
   PetscScalar        szero=0.0,sone=1.0,smone=-1.0,spfive=0.5,sthree=3.0;
-  PetscReal          tol,Yres,nrm;
+  PetscReal          tol,Yres,nrm,rwork[1];
   PetscBLASInt       i,it,N;
   const PetscBLASInt one=1;
   PetscBool          converged=PETSC_FALSE;
@@ -298,7 +299,7 @@ PetscErrorCode SlepcSqrtmNewtonSchulz(PetscBLASInt n,PetscScalar *A,PetscBLASInt
   /* scale A so that ||I-A|| < 1 */
   ierr = PetscMemcpy(Z,A,N*sizeof(PetscScalar));CHKERRQ(ierr);
   for (i=0;i<n;i++) Z[i+i*ld] -= 1.0;
-  nrm = LAPACKlange_("fro",&n,&n,(PetscScalar*)Z,&n,PETSC_NULL);
+  nrm = LAPACKlange_("fro",&n,&n,Z,&n,rwork);
   sqrtnrm = PetscSqrtReal(nrm);
   alpha = 1.0/nrm;
   PetscStackCallBLAS("BLASscal",BLASscal_(&N,&alpha,A,&one));
@@ -326,7 +327,7 @@ PetscErrorCode SlepcSqrtmNewtonSchulz(PetscBLASInt n,PetscScalar *A,PetscBLASInt
 
     /* reldiff = norm(Y-Yold,'fro')/norm(Y,'fro') */
     PetscStackCallBLAS("BLASaxpy",BLASaxpy_(&N,&smone,Y,&one,Yold,&one));
-    Yres = LAPACKlange_("fro",&n,&n,(PetscScalar*)Yold,&n,PETSC_NULL);
+    Yres = LAPACKlange_("fro",&n,&n,Yold,&n,rwork);
     ierr = PetscIsNanReal(Yres);CHKERRQ(ierr);
     if (Yres<=tol) converged = PETSC_TRUE;
     ierr = PetscInfo2(NULL,"it: %D res: %g\n",it,(double)Yres);

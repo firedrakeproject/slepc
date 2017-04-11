@@ -130,7 +130,7 @@ static PetscErrorCode SlepcSqrtmSadeghi(PetscBLASInt n,PetscScalar *A,PetscBLASI
 #else
   PetscScalar        *M,*M2,*G,*X=A,*work,work1,alpha,sqrtnrm;
   PetscScalar        szero=0.0,sone=1.0,smfive=-5.0,s1d16=1.0/16.0;
-  PetscReal          tol,Mres,nrm;
+  PetscReal          tol,Mres,nrm,rwork[1];
   PetscBLASInt       N,i,it,*piv=NULL,info,lwork,query=-1;
   const PetscBLASInt one=1;
   PetscBool          converged=PETSC_FALSE;
@@ -144,12 +144,13 @@ static PetscErrorCode SlepcSqrtmSadeghi(PetscBLASInt n,PetscScalar *A,PetscBLASI
 
   /* query work size */
   PetscStackCallBLAS("LAPACKgetri",LAPACKgetri_(&n,A,&ld,piv,&work1,&query,&info));
-  lwork = (PetscBLASInt)work1;
+  ierr = PetscBLASIntCast((PetscInt)PetscRealPart(work1),&lwork);CHKERRQ(ierr);
+
   ierr = PetscMalloc5(N,&M,N,&M2,N,&G,lwork,&work,n,&piv);CHKERRQ(ierr);
   ierr = PetscMemcpy(M,A,N*sizeof(PetscScalar));CHKERRQ(ierr);
 
   /* scale M */
-  nrm = LAPACKlange_("fro",&n,&n,M,&n,work);
+  nrm = LAPACKlange_("fro",&n,&n,M,&n,rwork);
   if (nrm>1.0) {
     sqrtnrm = PetscSqrtReal(nrm);
     alpha = 1.0/nrm;
@@ -189,7 +190,7 @@ static PetscErrorCode SlepcSqrtmSadeghi(PetscBLASInt n,PetscScalar *A,PetscBLASI
     /* check ||I-M|| */
     ierr = PetscMemcpy(M2,M,N*sizeof(PetscScalar));CHKERRQ(ierr);
     for (i=0;i<n;i++) M2[i+i*ld] -= 1.0;
-    Mres = LAPACKlange_("fro",&n,&n,M2,&n,work);
+    Mres = LAPACKlange_("fro",&n,&n,M2,&n,rwork);
     ierr = PetscIsNanReal(Mres);CHKERRQ(ierr);
     if (Mres<=tol) converged = PETSC_TRUE;
     ierr = PetscInfo2(NULL,"it: %D res: %g\n",it,(double)Mres);
