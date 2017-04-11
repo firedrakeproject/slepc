@@ -191,10 +191,12 @@ PetscErrorCode SlepcSqrtmDenmanBeavers(PetscBLASInt n,PetscScalar *T,PetscBLASIn
   const PetscBLASInt one=1;
   PetscBool          converged=PETSC_FALSE,scale=PETSC_FALSE;
   PetscErrorCode     ierr;
+  unsigned int       ftz;
 
   PetscFunctionBegin;
   N = n*n;
   tol = PetscSqrtReal((PetscReal)n)*PETSC_MACHINE_EPSILON/2;
+  ierr = SlepcSetFlushToZero(&ftz);CHKERRQ(ierr);
 
   /* query work size */
   PetscStackCallBLAS("LAPACKgetri",LAPACKgetri_(&n,M,&ld,piv,&work1,&query,&info));
@@ -264,6 +266,7 @@ PetscErrorCode SlepcSqrtmDenmanBeavers(PetscBLASInt n,PetscScalar *T,PetscBLASIn
 
   if (Mres>tol) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"SQRTM not converged after %d iterations",DBMAXIT);
   ierr = PetscFree5(work,piv,Told,M,invM);CHKERRQ(ierr);
+  ierr = SlepcResetFlushToZero(&ftz);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 #endif
 }

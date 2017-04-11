@@ -114,10 +114,12 @@ static PetscErrorCode SlepcSqrtmNewtonSchulz(PetscBLASInt n,PetscScalar *A,Petsc
   const PetscBLASInt one=1;
   PetscBool          converged=PETSC_FALSE;
   PetscErrorCode     ierr;
+  unsigned int       ftz;
 
   PetscFunctionBegin;
   N = n*n;
   tol = PetscSqrtReal((PetscReal)n)*PETSC_MACHINE_EPSILON/2;
+  ierr = SlepcSetFlushToZero(&ftz);CHKERRQ(ierr);
 
   ierr = PetscMalloc4(N,&Yold,N,&Z,N,&Zold,N,&M);CHKERRQ(ierr);
 
@@ -166,6 +168,7 @@ static PetscErrorCode SlepcSqrtmNewtonSchulz(PetscBLASInt n,PetscScalar *A,Petsc
   PetscStackCallBLAS("BLASscal",BLASscal_(&N,&sqrtnrm,A,&one));
 
   ierr = PetscFree4(Yold,Z,Zold,M);CHKERRQ(ierr);
+  ierr = SlepcResetFlushToZero(&ftz);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -203,10 +206,12 @@ static PetscErrorCode SlepcSqrtmSadeghi(PetscBLASInt n,PetscScalar *A,PetscBLASI
   const PetscBLASInt one=1;
   PetscBool          converged=PETSC_FALSE;
   PetscErrorCode     ierr;
+  unsigned int       ftz;
 
   PetscFunctionBegin;
   N = n*n;
   tol = PetscSqrtReal((PetscReal)n)*PETSC_MACHINE_EPSILON/2;
+  ierr = SlepcSetFlushToZero(&ftz);CHKERRQ(ierr);
 
   /* query work size */
   PetscStackCallBLAS("LAPACKgetri",LAPACKgetri_(&n,A,&ld,piv,&work1,&query,&info));
@@ -268,6 +273,7 @@ static PetscErrorCode SlepcSqrtmSadeghi(PetscBLASInt n,PetscScalar *A,PetscBLASI
   if (nrm>1.0) PetscStackCallBLAS("BLASscal",BLASscal_(&N,&sqrtnrm,A,&one));
 
   ierr = PetscFree5(M,M2,G,work,piv);CHKERRQ(ierr);
+  ierr = SlepcResetFlushToZero(&ftz);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 #endif
 }
