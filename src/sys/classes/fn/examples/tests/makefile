@@ -29,18 +29,19 @@ EXAMPLESF  = test7f.F
 MANSEC     = FN
 TESTS      = test1 test2 test3 test4 test5 test6 test7 test7f test8 test9 test10 test11
 
-TESTEXAMPLES_C       = test1.PETSc runtest1_1 test1.rm \
-                       test2.PETSc runtest2_1 test2.rm \
-                       test3.PETSc runtest3_1 runtest3_2 runtest3_3 runtest3_4 test3.rm \
-                       test4.PETSc runtest4_1 test4.rm \
-                       test5.PETSc runtest5_1 runtest5_2 test5.rm \
-                       test6.PETSc runtest6_1 runtest6_2 test6.rm \
-                       test7.PETSc runtest7_1 runtest7_2 test7.rm \
-                       test8.PETSc runtest8_1 runtest8_2 test8.rm \
-                       test9.PETSc runtest9_1 test9.rm \
-                       test10.PETSc runtest10_1 test10.rm \
-                       test11.PETSc runtest11_1 test11.rm
-TESTEXAMPLES_FORTRAN = test7f.PETSc runtest7f_1 test7f.rm
+TESTEXAMPLES_C           = test1.PETSc runtest1_1 test1.rm \
+                           test2.PETSc runtest2_1 test2.rm \
+                           test3.PETSc runtest3_1 runtest3_2 runtest3_3 runtest3_4 test3.rm \
+                           test4.PETSc runtest4_1 test4.rm \
+                           test5.PETSc runtest5_1 runtest5_2 test5.rm \
+                           test6.PETSc runtest6_1 runtest6_2 test6.rm \
+                           test7.PETSc runtest7_1 runtest7_2 test7.rm \
+                           test8.PETSc runtest8_1 runtest8_2 test8.rm \
+                           test9.PETSc runtest9_1 test9.rm \
+                           test10.PETSc runtest10_1 test10.rm \
+                           test11.PETSc runtest11_1 test11.rm
+TESTEXAMPLES_C_NOTSINGLE = test7.PETSc runtest7_1_sadeghi runtest7_2_sadeghi test7.rm
+TESTEXAMPLES_FORTRAN     = test7f.PETSc runtest7f_1 test7f.rm
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common
 
@@ -161,7 +162,7 @@ runtest6_2:
 	${MPIEXEC} -n 1 ./test6 -inplace > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
-runtest7_1: runtest7_1_schur runtest7_1_dbp runtest7_1_ns runtest7_1_sadeghi
+runtest7_1: runtest7_1_schur runtest7_1_dbp runtest7_1_ns
 runtest7_1_%:
 	-@${SETTEST}; check=test7_1; method=$*; \
 	if [ "$$method" = schur ]; then method="-fn_method 0"; \
@@ -171,7 +172,7 @@ runtest7_1_%:
 	${MPIEXEC} -n 1 ./test7 -fn_scale .05,2 -n 100 $$method | ${GREP} -v "computing matrix functions" > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
-runtest7_2: runtest7_2_schur runtest7_2_dbp runtest7_2_ns runtest7_2_sadeghi
+runtest7_2: runtest7_2_schur runtest7_2_dbp runtest7_2_ns
 runtest7_2_%:
 	-@${SETTEST}; check=test7_1; method=$*; \
 	if [ "$$method" = schur ]; then method="-fn_method 0"; \

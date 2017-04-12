@@ -30,6 +30,7 @@ MFN Object: (myprefix_) 1 MPI processes
 FN Object: (myprefix_) 1 MPI processes
   type: sqrt
     Square root: sqrt(x)
+    computing matrix functions with: Schur method for the square root
 BV Object: (myprefix_) 1 MPI processes
   type: svec
   7 columns of global length 16
