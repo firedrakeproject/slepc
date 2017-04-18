@@ -47,6 +47,7 @@
 typedef struct {
   EPSPowerShiftType shift_type;
   PetscBool         nonlinear;
+  SNES              snes;
 } EPS_POWER;
 
 PetscErrorCode EPSSetUp_Power(EPS eps)
@@ -80,6 +81,10 @@ PetscErrorCode EPSSetUp_Power(EPS eps)
   ierr = EPSSetWorkVecs(eps,2);CHKERRQ(ierr);
   ierr = DSSetType(eps->ds,DSNHEP);CHKERRQ(ierr);
   ierr = DSAllocate(eps->ds,eps->nev);CHKERRQ(ierr);
+
+  if (power->nonlinear) {
+    if (!power->snes) { ierr = EPSPowerGetSNES(eps,&power->snes);CHKERRQ(ierr); }
+  }
   PetscFunctionReturn(0);
 }
 
@@ -282,6 +287,11 @@ PetscErrorCode EPSSetFromOptions_Power(PetscOptionItems *PetscOptionsObject,EPS 
     if (flg) { ierr = EPSPowerSetNonlinear(eps,val);CHKERRQ(ierr); }
 
   ierr = PetscOptionsTail();CHKERRQ(ierr);
+
+  if (power->nonlinear) {
+    if (!power->snes) { ierr = EPSPowerGetSNES(eps,&power->snes);CHKERRQ(ierr); }
+    ierr = SNESSetFromOptions(power->snes);CHKERRQ(ierr);
+  }
   PetscFunctionReturn(0);
 }
 
@@ -468,16 +478,114 @@ PetscErrorCode EPSPowerGetNonlinear(EPS eps,PetscBool *nonlinear)
   PetscFunctionReturn(0);
 }
 
-PetscErrorCode EPSDestroy_Power(EPS eps)
+static PetscErrorCode EPSPowerSetSNES_Power(EPS eps,SNES snes)
+{
+  PetscErrorCode ierr;
+  EPS_POWER      *power = (EPS_POWER*)eps->data;
+
+  PetscFunctionBegin;
+  ierr = PetscObjectReference((PetscObject)snes);CHKERRQ(ierr);
+  ierr = SNESDestroy(&power->snes);CHKERRQ(ierr);
+  power->snes = snes;
+  ierr = PetscLogObjectParent((PetscObject)eps,(PetscObject)power->snes);CHKERRQ(ierr);
+  eps->state = EPS_STATE_INITIAL;
+  PetscFunctionReturn(0);
+}
+
+/*@
+   EPSPowerSetSNES - Associate a nonlinear solver object (SNES) to the
+   eigenvalue solver (to be used in nonlinear inverse iteration).
+
+   Collective on EPS
+
+   Input Parameters:
++  eps  - the eigenvalue solver
+-  snes - the nonlinear solver object
+
+   Level: advanced
+
+.seealso: EPSPowerGetSNES()
+@*/
+PetscErrorCode EPSPowerSetSNES(EPS eps,SNES snes)
 {
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
+  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
+  PetscValidHeaderSpecific(snes,SNES_CLASSID,2);
+  PetscCheckSameComm(eps,1,snes,2);
+  ierr = PetscTryMethod(eps,"EPSPowerSetSNES_C",(EPS,SNES),(eps,snes));CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+static PetscErrorCode EPSPowerGetSNES_Power(EPS eps,SNES *snes)
+{
+  PetscErrorCode ierr;
+  EPS_POWER      *power = (EPS_POWER*)eps->data;
+
+  PetscFunctionBegin;
+  if (!power->snes) {
+    ierr = SNESCreate(PetscObjectComm((PetscObject)eps),&power->snes);CHKERRQ(ierr);
+    ierr = SNESSetOptionsPrefix(power->snes,((PetscObject)eps)->prefix);CHKERRQ(ierr);
+    ierr = SNESAppendOptionsPrefix(power->snes,"eps_power_");CHKERRQ(ierr);
+    ierr = PetscObjectIncrementTabLevel((PetscObject)power->snes,(PetscObject)eps,1);CHKERRQ(ierr);
+    ierr = PetscLogObjectParent((PetscObject)eps,(PetscObject)power->snes);CHKERRQ(ierr);
+  }
+  *snes = power->snes;
+  PetscFunctionReturn(0);
+}
+
+/*@
+   EPSPowerGetSNES - Retrieve the nonlinear solver object (SNES) associated
+   with the eigenvalue solver.
+
+   Not Collective
+
+   Input Parameter:
+.  eps - the eigenvalue solver
+
+   Output Parameter:
+.  snes - the nonlinear solver object
+
+   Level: advanced
+
+.seealso: EPSPowerSetSNES()
+@*/
+PetscErrorCode EPSPowerGetSNES(EPS eps,SNES *snes)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
+  PetscValidPointer(snes,2);
+  ierr = PetscUseMethod(eps,"EPSPowerGetSNES_C",(EPS,SNES*),(eps,snes));CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+PetscErrorCode EPSReset_Power(EPS eps)
+{
+  PetscErrorCode ierr;
+  EPS_POWER      *power = (EPS_POWER*)eps->data;
+
+  PetscFunctionBegin;
+  if (!power->snes) { ierr = SNESReset(power->snes);CHKERRQ(ierr); }
+  PetscFunctionReturn(0);
+}
+
+PetscErrorCode EPSDestroy_Power(EPS eps)
+{
+  PetscErrorCode ierr;
+  EPS_POWER      *power = (EPS_POWER*)eps->data;
+
+  PetscFunctionBegin;
+  ierr = SNESDestroy(&power->snes);CHKERRQ(ierr);
   ierr = PetscFree(eps->data);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSPowerSetShiftType_C",NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSPowerGetShiftType_C",NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSPowerSetNonlinear_C",NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSPowerGetNonlinear_C",NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSPowerSetSNES_C",NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSPowerGetSNES_C",NULL);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -492,6 +600,10 @@ PetscErrorCode EPSView_Power(EPS eps,PetscViewer viewer)
   if (isascii) {
     if (power->nonlinear) {
       ierr = PetscViewerASCIIPrintf(viewer,"  Power: using nonlinear inverse iteration\n");CHKERRQ(ierr);
+      if (!power->snes) { ierr = EPSPowerGetSNES(eps,&power->snes);CHKERRQ(ierr); }
+      ierr = PetscViewerASCIIPushTab(viewer);CHKERRQ(ierr);
+      ierr = SNESView(power->snes,viewer);CHKERRQ(ierr);
+      ierr = PetscViewerASCIIPopTab(viewer);CHKERRQ(ierr);
     } else {
       ierr = PetscViewerASCIIPrintf(viewer,"  Power: %s shifts\n",EPSPowerShiftTypes[power->shift_type]);CHKERRQ(ierr);
     }
@@ -513,6 +625,7 @@ PETSC_EXTERN PetscErrorCode EPSCreate_Power(EPS eps)
   eps->ops->solve          = EPSSolve_Power;
   eps->ops->setup          = EPSSetUp_Power;
   eps->ops->setfromoptions = EPSSetFromOptions_Power;
+  eps->ops->reset          = EPSReset_Power;
   eps->ops->destroy        = EPSDestroy_Power;
   eps->ops->view           = EPSView_Power;
   eps->ops->backtransform  = EPSBackTransform_Power;
@@ -522,6 +635,8 @@ PETSC_EXTERN PetscErrorCode EPSCreate_Power(EPS eps)
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSPowerGetShiftType_C",EPSPowerGetShiftType_Power);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSPowerSetNonlinear_C",EPSPowerSetNonlinear_Power);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSPowerGetNonlinear_C",EPSPowerGetNonlinear_Power);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSPowerSetSNES_C",EPSPowerSetSNES_Power);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSPowerGetSNES_C",EPSPowerGetSNES_Power);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
