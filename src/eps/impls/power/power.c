@@ -13,6 +13,9 @@
        - Rayleigh Quotient Iteration (RQI): also with shift-and-invert plus
          a variable shift.
 
+       It can also be used for nonlinear inverse iteration on the problem
+       A(x)*x=lambda*B(x)*x, where A and B are not constant but depend on x.
+
    References:
 
        [1] "Single Vector Iteration Methods in SLEPc", SLEPc Technical Report
@@ -43,6 +46,7 @@
 
 typedef struct {
   EPSPowerShiftType shift_type;
+  PetscBool         nonlinear;
 } EPS_POWER;
 
 PetscErrorCode EPSSetUp_Power(EPS eps)
@@ -265,7 +269,7 @@ PetscErrorCode EPSSetFromOptions_Power(PetscOptionItems *PetscOptionsObject,EPS 
 {
   PetscErrorCode    ierr;
   EPS_POWER         *power = (EPS_POWER*)eps->data;
-  PetscBool         flg;
+  PetscBool         flg,val;
   EPSPowerShiftType shift;
 
   PetscFunctionBegin;
@@ -273,6 +277,9 @@ PetscErrorCode EPSSetFromOptions_Power(PetscOptionItems *PetscOptionsObject,EPS 
 
     ierr = PetscOptionsEnum("-eps_power_shift_type","Shift type","EPSPowerSetShiftType",EPSPowerShiftTypes,(PetscEnum)power->shift_type,(PetscEnum*)&shift,&flg);CHKERRQ(ierr);
     if (flg) { ierr = EPSPowerSetShiftType(eps,shift);CHKERRQ(ierr); }
+
+    ierr = PetscOptionsBool("-eps_power_nonlinear","Use nonlinear inverse iteration","EPSPowerSetNonlinear",power->nonlinear,&val,&flg);CHKERRQ(ierr);
+    if (flg) { ierr = EPSPowerSetNonlinear(eps,val);CHKERRQ(ierr); }
 
   ierr = PetscOptionsTail();CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -373,6 +380,94 @@ PetscErrorCode EPSPowerGetShiftType(EPS eps,EPSPowerShiftType *shift)
   PetscFunctionReturn(0);
 }
 
+static PetscErrorCode EPSPowerSetNonlinear_Power(EPS eps,PetscBool nonlinear)
+{
+  EPS_POWER *power = (EPS_POWER*)eps->data;
+
+  PetscFunctionBegin;
+  if (power->nonlinear != nonlinear) {
+    power->nonlinear = nonlinear;
+    eps->state = EPS_STATE_INITIAL;
+  }
+  PetscFunctionReturn(0);
+}
+
+/*@
+   EPSPowerSetNonlinear - Sets a flag to indicate that the problem is nonlinear.
+
+   Logically Collective on EPS
+
+   Input Parameters:
++  eps - the eigenproblem solver context
+-  nonlinear - whether the problem is nonlinear or not
+
+   Options Database Key:
+.  -eps_power_nonlinear - Sets the nonlinear flag
+
+   Notes:
+   If this flag is set, the solver assumes that the problem is nonlinear,
+   that is, the operators that define the eigenproblem are not constant
+   matrices, but depend on the eigenvector: A(x)*x=lambda*B(x)*x. This is
+   different from the case of nonlinearity with respect to the eigenvalue
+   (use the NEP solver class for this kind of problems).
+
+   The way in which nonlinear operators are specified is very similar to
+   the case of PETSc's SNES solver. The difference is that the callback
+   functions are provided via composed functions "formFunction" and
+   "formJacobian" in each of the matrix objects passed as arguments of
+   EPSSetOperators(). The application context required for these functions
+   can be attached via a composed PetscContainer.
+
+   Level: advanced
+
+.seealso: EPSPowerGetNonlinear(), EPSSetOperators()
+@*/
+PetscErrorCode EPSPowerSetNonlinear(EPS eps,PetscBool nonlinear)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
+  PetscValidLogicalCollectiveBool(eps,nonlinear,2);
+  ierr = PetscTryMethod(eps,"EPSPowerSetNonlinear_C",(EPS,PetscBool),(eps,nonlinear));CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+static PetscErrorCode EPSPowerGetNonlinear_Power(EPS eps,PetscBool *nonlinear)
+{
+  EPS_POWER *power = (EPS_POWER*)eps->data;
+
+  PetscFunctionBegin;
+  *nonlinear = power->nonlinear;
+  PetscFunctionReturn(0);
+}
+
+/*@
+   EPSPowerGetNonlinear - Returns a flag indicating if the problem is nonlinear.
+
+   Not Collective
+
+   Input Parameter:
+.  eps - the eigenproblem solver context
+
+   Input Parameter:
+.  nonlinear - the nonlinear flag
+
+   Level: advanced
+
+.seealso: EPSPowerSetNonlinear()
+@*/
+PetscErrorCode EPSPowerGetNonlinear(EPS eps,PetscBool *nonlinear)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
+  PetscValidPointer(nonlinear,2);
+  ierr = PetscUseMethod(eps,"EPSPowerGetNonlinear_C",(EPS,PetscBool*),(eps,nonlinear));CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
 PetscErrorCode EPSDestroy_Power(EPS eps)
 {
   PetscErrorCode ierr;
@@ -381,6 +476,8 @@ PetscErrorCode EPSDestroy_Power(EPS eps)
   ierr = PetscFree(eps->data);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSPowerSetShiftType_C",NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSPowerGetShiftType_C",NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSPowerSetNonlinear_C",NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSPowerGetNonlinear_C",NULL);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -393,7 +490,11 @@ PetscErrorCode EPSView_Power(EPS eps,PetscViewer viewer)
   PetscFunctionBegin;
   ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
   if (isascii) {
-    ierr = PetscViewerASCIIPrintf(viewer,"  Power: %s shifts\n",EPSPowerShiftTypes[power->shift_type]);CHKERRQ(ierr);
+    if (power->nonlinear) {
+      ierr = PetscViewerASCIIPrintf(viewer,"  Power: using nonlinear inverse iteration\n");CHKERRQ(ierr);
+    } else {
+      ierr = PetscViewerASCIIPrintf(viewer,"  Power: %s shifts\n",EPSPowerShiftTypes[power->shift_type]);CHKERRQ(ierr);
+    }
   }
   PetscFunctionReturn(0);
 }
@@ -419,6 +520,8 @@ PETSC_EXTERN PetscErrorCode EPSCreate_Power(EPS eps)
 
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSPowerSetShiftType_C",EPSPowerSetShiftType_Power);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSPowerGetShiftType_C",EPSPowerGetShiftType_Power);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSPowerSetNonlinear_C",EPSPowerSetNonlinear_Power);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSPowerGetNonlinear_C",EPSPowerGetNonlinear_Power);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

@@ -310,6 +310,8 @@ PETSC_EXTERN const char *EPSPowerShiftTypes[];
 
 PETSC_EXTERN PetscErrorCode EPSPowerSetShiftType(EPS,EPSPowerShiftType);
 PETSC_EXTERN PetscErrorCode EPSPowerGetShiftType(EPS,EPSPowerShiftType*);
+PETSC_EXTERN PetscErrorCode EPSPowerSetNonlinear(EPS,PetscBool);
+PETSC_EXTERN PetscErrorCode EPSPowerGetNonlinear(EPS,PetscBool*);
 
 PETSC_EXTERN PetscErrorCode EPSArnoldiSetDelayed(EPS,PetscBool);
 PETSC_EXTERN PetscErrorCode EPSArnoldiGetDelayed(EPS,PetscBool*);
