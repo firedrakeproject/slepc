@@ -1385,6 +1385,7 @@ static PetscErrorCode NEPNLEIGSSetSingularitiesFunction_NLEIGS(NEP nep,PetscErro
   PetscFunctionBegin;
   if (fun) nepctx->computesingularities = fun;
   if (ctx) nepctx->singularitiesctx     = ctx;
+  nep->state = NEP_STATE_INITIAL;
   PetscFunctionReturn(0);
 }
 
@@ -1728,7 +1729,10 @@ static PetscErrorCode NEPNLEIGSSetRational_NLEIGS(NEP nep,PetscBool rational)
   NEP_NLEIGS *ctx=(NEP_NLEIGS*)nep->data;
 
   PetscFunctionBegin;
-  ctx->urational = rational;
+  if (ctx->urational != rational) {
+    ctx->urational = rational;
+    nep->state = NEP_STATE_INITIAL;
+  }
   PetscFunctionReturn(0);
 }
 

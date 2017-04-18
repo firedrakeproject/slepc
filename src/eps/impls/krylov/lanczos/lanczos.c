@@ -754,7 +754,10 @@ static PetscErrorCode EPSLanczosSetReorthog_Lanczos(EPS eps,EPSLanczosReorthogTy
     case EPS_LANCZOS_REORTHOG_SELECTIVE:
     case EPS_LANCZOS_REORTHOG_PERIODIC:
     case EPS_LANCZOS_REORTHOG_PARTIAL:
-      lanczos->reorthog = reorthog;
+      if (lanczos->reorthog != reorthog) {
+        lanczos->reorthog = reorthog;
+        eps->state = EPS_STATE_INITIAL;
+      }
       break;
     default:
       SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"Invalid reorthogonalization type");

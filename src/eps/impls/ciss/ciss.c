@@ -1480,6 +1480,7 @@ static PetscErrorCode EPSCISSSetUseST_CISS(EPS eps,PetscBool usest)
   PetscFunctionBegin;
   ctx->usest     = usest;
   ctx->usest_set = PETSC_TRUE;
+  eps->state     = EPS_STATE_INITIAL;
   PetscFunctionReturn(0);
 }
 

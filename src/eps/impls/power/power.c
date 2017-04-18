@@ -287,7 +287,10 @@ static PetscErrorCode EPSPowerSetShiftType_Power(EPS eps,EPSPowerShiftType shift
     case EPS_POWER_SHIFT_CONSTANT:
     case EPS_POWER_SHIFT_RAYLEIGH:
     case EPS_POWER_SHIFT_WILKINSON:
-      power->shift_type = shift;
+      if (power->shift_type != shift) {
+        power->shift_type = shift;
+        eps->state = EPS_STATE_INITIAL;
+      }
       break;
     default:
       SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"Invalid shift type");
