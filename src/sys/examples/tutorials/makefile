@@ -24,22 +24,22 @@ FFLAGS     =
 CPPFLAGS   =
 FPPFLAGS   =
 LOCDIR     = src/sys/examples/tutorials/
-EXAMPLESC  = ex1.c
+EXAMPLESC  = ex33.c
 EXAMPLESF  =
 MANSEC     = sys
 
-TESTEXAMPLES_C = ex1.PETSc runex1_1 ex1.rm
+TESTEXAMPLES_C = ex33.PETSc runex33_1 ex33.rm
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common
 
-ex1: ex1.o chkopts
-	-${CLINKER} -o ex1 ex1.o ${SLEPC_SYS_LIB}
-	${RM} ex1.o
+ex33: ex33.o chkopts
+	-${CLINKER} -o ex33 ex33.o ${SLEPC_SYS_LIB}
+	${RM} ex33.o
 
 #------------------------------------------------------------------------------------
 
-runex1_1:
+runex33_1:
 	-@${SETTEST}; \
-	${MPIEXEC} -n 1 ./ex1 > $${test}.tmp 2>&1; \
+	${MPIEXEC} -n 1 ./ex33 > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
