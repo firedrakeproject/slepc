@@ -331,7 +331,9 @@ PetscErrorCode EPSSolve_Power(EPS eps)
     ierr = (*eps->stopping)(eps,eps->its,eps->max_it,eps->nconv,eps->nev,&eps->reason,eps->stoppingctx);CHKERRQ(ierr);
   }
 
-  if (eps->useds) {
+  if (power->nonlinear) {
+    ierr = STResetMatrixState(eps->st);CHKERRQ(ierr);
+  } else {
     ierr = DSSetDimensions(eps->ds,eps->nconv,0,0,0);CHKERRQ(ierr);
     ierr = DSSetState(eps->ds,DS_STATE_RAW);CHKERRQ(ierr);
   }

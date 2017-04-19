@@ -353,6 +353,34 @@ PetscErrorCode STGetNumMatrices(ST st,PetscInt *n)
 }
 
 /*@
+   STResetMatrixState - Resets the stored state of the matrices in the ST.
+
+   Logically Collective on ST
+
+   Input Parameter:
+.  st - the spectral transformation context
+
+   Note:
+   This is useful in solvers where the user matrices are modified during
+   the computation, as in nonlinear inverse iteration. The effect is that
+   STGetOperators() will retrieve the modified matrices as if they were
+   the matrices originally provided by the user.
+
+   Level: developer
+
+.seealso: STGetOperators(), EPSPowerSetNonlinear()
+@*/
+PetscErrorCode STResetMatrixState(ST st)
+{
+  PetscInt i;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(st,ST_CLASSID,1);
+  for (i=0;i<st->nmat;i++) st->Astate[i] = ((PetscObject)st->A[i])->state;
+  PetscFunctionReturn(0);
+}
+
+/*@
    STSetShift - Sets the shift associated with the spectral transformation.
 
    Logically Collective on ST
