@@ -404,7 +404,10 @@ static PetscErrorCode SVDTRLanczosSetOneSide_TRLanczos(SVD svd,PetscBool oneside
   SVD_TRLANCZOS *lanczos = (SVD_TRLANCZOS*)svd->data;
 
   PetscFunctionBegin;
-  lanczos->oneside = oneside;
+  if (lanczos->oneside != oneside) {
+    lanczos->oneside = oneside;
+    svd->state = SVD_STATE_INITIAL;
+  }
   PetscFunctionReturn(0);
 }
 

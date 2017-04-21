@@ -28,6 +28,7 @@
 #include "slepc/finclude/slepcbv.h"
 #include "slepc/finclude/slepcds.h"
 #include "slepc/finclude/slepcrg.h"
+#include "petsc/finclude/petscsnes.h"
 
 #define EPS type(tEPS)
 

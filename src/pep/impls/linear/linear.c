@@ -840,7 +840,10 @@ static PetscErrorCode PEPLinearSetExplicitMatrix_Linear(PEP pep,PetscBool explic
   PEP_LINEAR *ctx = (PEP_LINEAR*)pep->data;
 
   PetscFunctionBegin;
-  ctx->explicitmatrix = explicitmatrix;
+  if (ctx->explicitmatrix != explicitmatrix) {
+    ctx->explicitmatrix = explicitmatrix;
+    pep->state = PEP_STATE_INITIAL;
+  }
   PetscFunctionReturn(0);
 }
 
