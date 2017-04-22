@@ -46,7 +46,7 @@ int main(int argc,char **argv)
   ST             st;          /* spectral transformation context */
   EPSType        type;
   PetscInt       N,n=10,m,nev,nulldim=0;
-  PetscBool      flag,terse;
+  PetscBool      flag,terse,nonlin;
   AppCtx         user;
   PetscContainer container;
   PetscErrorCode ierr;
@@ -131,7 +131,8 @@ int main(int argc,char **argv)
      Optional: Get some information from the solver and display it
   */
   ierr = EPSGetType(eps,&type);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," Solution method: %s\n\n",type);CHKERRQ(ierr);
+  ierr = EPSPowerGetNonlinear(eps,&nonlin);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD," Solution method: %s%s\n\n",type,nonlin?" (nonlinear)":"");CHKERRQ(ierr);
   ierr = EPSGetDimensions(eps,&nev,NULL,NULL);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD," Number of requested eigenvalues: %D\n",nev);CHKERRQ(ierr);
 

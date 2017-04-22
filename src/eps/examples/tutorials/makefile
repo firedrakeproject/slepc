@@ -326,6 +326,6 @@ runex31_1:
 
 runex34_1:
 	-@${SETTEST}; \
-	${MPIEXEC} -n 1 ./ex34 -terse > $${test}.tmp 2>&1; \
+	${MPIEXEC} -n 1 ./ex34 -eps_tol 1e-5 -terse > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
