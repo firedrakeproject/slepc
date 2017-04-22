@@ -191,7 +191,7 @@ Unable to download package %s from: %s
     try:
       makefile = open(os.path.join(tmpdir,'makefile'),'w')
       makefile.write('checklink: checklink.o chkopts\n')
-      makefile.write('\t${CLINKER} -o checklink checklink.o ${TESTFLAGS} ${PETSC_KSP_LIB}\n')
+      makefile.write('\t${CLINKER} -o checklink checklink.o ${TESTFLAGS} ${PETSC_SNES_LIB}\n')
       makefile.write('\t@${RM} -f checklink checklink.o\n')
       makefile.write('LOCDIR = ./\n')
       makefile.write('include '+os.path.join('${PETSC_DIR}','lib','petsc','conf','variables')+'\n')
@@ -201,7 +201,7 @@ Unable to download package %s from: %s
       self.log.Exit('ERROR: Cannot create makefile in temporary directory')
 
     # Create source file
-    code = '#include "petscksp.h"\n'
+    code = '#include "petscsnes.h"\n'
     for f in functions:
       code += 'PETSC_EXTERN int\n' + f + '();\n'
 

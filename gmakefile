@@ -96,7 +96,7 @@ srcs.o := $(foreach pkg, $(pkgs), $(call concatlang,$(pkg)))
 
 # with-single-library=1 (default)
 $(libslepc_libname) : $(srcs.o) | $$(@D)/.DIR
-	$(call quiet,CLINKER) $(sl_linker_args) -o $@ $^ $(SLEPC_EXTERNAL_LIB) $(PETSC_KSP_LIB)
+	$(call quiet,CLINKER) $(sl_linker_args) -o $@ $^ $(SLEPC_EXTERNAL_LIB) $(PETSC_SNES_LIB)
 ifneq ($(DSYMUTIL),true)
 	$(call quiet,DSYMUTIL) $@
 endif

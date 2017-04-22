@@ -307,7 +307,10 @@ static PetscErrorCode SVDCyclicSetExplicitMatrix_Cyclic(SVD svd,PetscBool explic
   SVD_CYCLIC *cyclic = (SVD_CYCLIC*)svd->data;
 
   PetscFunctionBegin;
-  cyclic->explicitmatrix = explicitmatrix;
+  if (cyclic->explicitmatrix != explicitmatrix) {
+    cyclic->explicitmatrix = explicitmatrix;
+    svd->state = SVD_STATE_INITIAL;
+  }
   PetscFunctionReturn(0);
 }
 

@@ -405,7 +405,12 @@ static PetscErrorCode EPSLOBPCGSetBlockSize_LOBPCG(EPS eps,PetscInt bs)
   EPS_LOBPCG *ctx = (EPS_LOBPCG*)eps->data;
 
   PetscFunctionBegin;
-  ctx->bs = bs;
+  if (bs == PETSC_DEFAULT || bs == PETSC_DECIDE) bs = 1;
+  if (bs <= 0) SETERRQ1(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"Invalid block size %D",bs);
+  if (ctx->bs != bs) {
+    ctx->bs = bs;
+    eps->state = EPS_STATE_INITIAL;
+  }
   PetscFunctionReturn(0);
 }
 
