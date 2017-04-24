@@ -66,7 +66,7 @@ PetscErrorCode EPSSetUp_LOBPCG(EPS eps)
 {
   PetscErrorCode ierr;
   EPS_LOBPCG     *ctx = (EPS_LOBPCG*)eps->data;
-  PetscBool      precond,istrivial;
+  PetscBool      istrivial;
 
   PetscFunctionBegin;
   if (!eps->ishermitian || (eps->isgeneralized && !eps->ispositive)) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"LOBPCG only works for Hermitian problems");
@@ -82,9 +82,6 @@ PetscErrorCode EPSSetUp_LOBPCG(EPS eps)
   if (!istrivial) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"This solver does not support region filtering");
 
   if (!ctx->restart) ctx->restart = 0.9;
-
-  ierr = PetscObjectTypeCompare((PetscObject)eps->st,STPRECOND,&precond);CHKERRQ(ierr);
-  if (!precond) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"LOBPCG only works with precond ST");
 
   ierr = EPSAllocateSolution(eps,0);CHKERRQ(ierr);
   ierr = EPS_SetInnerProduct(eps);CHKERRQ(ierr);
@@ -699,6 +696,7 @@ PETSC_EXTERN PetscErrorCode EPSCreate_LOBPCG(EPS eps)
   lobpcg->lock = PETSC_TRUE;
 
   eps->useds = PETSC_TRUE;
+  eps->categ = EPS_CATEGORY_PRECOND;
 
   eps->ops->solve          = EPSSolve_LOBPCG;
   eps->ops->setup          = EPSSetUp_LOBPCG;

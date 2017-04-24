@@ -45,7 +45,7 @@ PetscErrorCode EPSSetUp_XD(EPS eps)
   PetscInt       min_size_V,bs,initv,nmat;
   Mat            A,B;
   KSP            ksp;
-  PetscBool      t,ipB,ispositive;
+  PetscBool      ipB,ispositive;
   HarmType_t     harm;
   InitType_t     init;
   PetscScalar    target;
@@ -80,10 +80,8 @@ PetscErrorCode EPSSetUp_XD(EPS eps)
     ierr = STSetDefaultShift(eps->st,PETSC_MAX_REAL);CHKERRQ(ierr);
   }
 
-  /* Davidson solvers only support STPRECOND */
+  /* Set up preconditioner */
   ierr = STSetUp(eps->st);CHKERRQ(ierr);
-  ierr = PetscObjectTypeCompare((PetscObject)eps->st,STPRECOND,&t);CHKERRQ(ierr);
-  if (!t) SETERRQ1(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"%s only works with precond spectral transformation",((PetscObject)eps)->type_name);
 
   /* Setup problem specification in dvd */
   ierr = STGetNumMatrices(eps->st,&nmat);CHKERRQ(ierr);

@@ -48,7 +48,6 @@ typedef struct {
 PetscErrorCode EPSSetUp_RQCG(EPS eps)
 {
   PetscErrorCode ierr;
-  PetscBool      precond;
   PetscInt       nmat;
   EPS_RQCG       *ctx = (EPS_RQCG*)eps->data;
 
@@ -62,8 +61,6 @@ PetscErrorCode EPSSetUp_RQCG(EPS eps)
     ierr = EPSSetExtraction(eps,EPS_RITZ);CHKERRQ(ierr);
   } else if (eps->extraction!=EPS_RITZ) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Unsupported extraction type");
   if (eps->arbitrary) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Arbitrary selection of eigenpairs not supported in this solver");
-  ierr = PetscObjectTypeCompare((PetscObject)eps->st,STPRECOND,&precond);CHKERRQ(ierr);
-  if (!precond) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"RQCG only works with precond ST");
 
   if (!ctx->nrest) ctx->nrest = 20;
 
@@ -427,6 +424,7 @@ PETSC_EXTERN PetscErrorCode EPSCreate_RQCG(EPS eps)
   eps->data = (void*)rqcg;
 
   eps->useds = PETSC_TRUE;
+  eps->categ = EPS_CATEGORY_PRECOND;
 
   eps->ops->solve          = EPSSolve_RQCG;
   eps->ops->setup          = EPSSetUp_RQCG;

@@ -1858,6 +1858,7 @@ PETSC_EXTERN PetscErrorCode EPSCreate_CISS(EPS eps)
   eps->data = ctx;
 
   eps->useds = PETSC_TRUE;
+  eps->categ = EPS_CATEGORY_CONTOUR;
 
   eps->ops->solve          = EPSSolve_CISS;
   eps->ops->setup          = EPSSetUp_CISS;

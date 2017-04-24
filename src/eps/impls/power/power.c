@@ -705,6 +705,7 @@ PETSC_EXTERN PetscErrorCode EPSCreate_Power(EPS eps)
   eps->data = (void*)ctx;
 
   eps->useds = PETSC_TRUE;
+  eps->categ = EPS_CATEGORY_OTHER;
 
   eps->ops->solve          = EPSSolve_Power;
   eps->ops->setup          = EPSSetUp_Power;

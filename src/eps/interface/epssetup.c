@@ -103,7 +103,7 @@ PetscErrorCode EPSSetUp(EPS eps)
   Mat            A,B;
   SlepcSC        sc;
   PetscInt       k,nmat;
-  PetscBool      flg,istrivial;
+  PetscBool      flg,istrivial,precond;
 #if defined(PETSC_USE_COMPLEX)
   PetscScalar    sigma;
 #endif
@@ -122,6 +122,11 @@ PetscErrorCode EPSSetUp(EPS eps)
   }
   if (!eps->st) { ierr = EPSGetST(eps,&eps->st);CHKERRQ(ierr); }
   ierr = EPSSetDefaultST(eps);CHKERRQ(ierr);
+
+  ierr = PetscObjectTypeCompare((PetscObject)eps->st,STPRECOND,&precond);CHKERRQ(ierr);
+  if (eps->categ==EPS_CATEGORY_PRECOND && !precond) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"This solver requires ST=PRECOND");
+  if (eps->categ!=EPS_CATEGORY_PRECOND && precond) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"STPRECOND is intended for preconditioned eigensolvers only");
+
   ierr = STSetTransform(eps->st,PETSC_TRUE);CHKERRQ(ierr);
   if (eps->useds && !eps->ds) { ierr = EPSGetDS(eps,&eps->ds);CHKERRQ(ierr); }
   if (!eps->rg) { ierr = EPSGetRG(eps,&eps->rg);CHKERRQ(ierr); }

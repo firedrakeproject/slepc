@@ -80,9 +80,6 @@ PetscErrorCode EPSSetUp_PRIMME(EPS eps)
   ierr = RGIsTrivial(eps->rg,&istrivial);CHKERRQ(ierr);
   if (!istrivial) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"This solver does not support region filtering");
 
-  ierr = PetscObjectTypeCompare((PetscObject)eps->st,STPRECOND,&flg);CHKERRQ(ierr);
-  if (!flg) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"PRIMME only works with STPRECOND");
-
   /* Transfer SLEPc options to PRIMME options */
   primme->n          = eps->n;
   primme->nLocal     = eps->nloc;
@@ -461,6 +458,8 @@ PETSC_EXTERN PetscErrorCode EPSCreate_PRIMME(EPS eps)
   primme->primme.matrixMatvec = multMatvec_PRIMME;
   primme->primme.globalSumReal = par_GlobalSumReal;
   primme->method = (primme_preset_method)EPS_PRIMME_DEFAULT_MIN_TIME;
+
+  eps->categ = EPS_CATEGORY_PRECOND;
 
   eps->ops->solve          = EPSSolve_PRIMME;
   eps->ops->setup          = EPSSetUp_PRIMME;

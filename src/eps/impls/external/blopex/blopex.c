@@ -142,7 +142,7 @@ PetscErrorCode EPSSetUp_BLOPEX(EPS eps)
 #else
   PetscErrorCode ierr;
   EPS_BLOPEX     *blopex = (EPS_BLOPEX*)eps->data;
-  PetscBool      isPrecond,istrivial,flg;
+  PetscBool      strivial,flg;
 
   PetscFunctionBegin;
   if (!eps->ishermitian || (eps->isgeneralized && !eps->ispositive)) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"blopex only works for Hermitian problems");
@@ -157,8 +157,6 @@ PetscErrorCode EPSSetUp_BLOPEX(EPS eps)
   ierr = RGIsTrivial(eps->rg,&istrivial);CHKERRQ(ierr);
   if (!istrivial) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"This solver does not support region filtering");
 
-  ierr = PetscObjectTypeCompare((PetscObject)eps->st,STPRECOND,&isPrecond);CHKERRQ(ierr);
-  if (!isPrecond) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"blopex only works with STPRECOND");
   blopex->st = eps->st;
 
   if (eps->converged == EPSConvergedRelative) {
@@ -425,6 +423,8 @@ PETSC_EXTERN PetscErrorCode EPSCreate_BLOPEX(EPS eps)
   PetscFunctionBegin;
   ierr = PetscNewLog(eps,&ctx);CHKERRQ(ierr);
   eps->data = (void*)ctx;
+
+  eps->categ = EPS_CATEGORY_PRECOND;
 
   eps->ops->solve          = EPSSolve_BLOPEX;
   eps->ops->setup          = EPSSetUp_BLOPEX;
