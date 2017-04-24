@@ -120,5 +120,6 @@ PETSC_INTERN PetscErrorCode STMatMAXPY_Private(ST,PetscScalar,PetscScalar,PetscI
 PETSC_INTERN PetscErrorCode STCoeffs_Monomial(ST,PetscScalar*);
 PETSC_INTERN PetscErrorCode STSetDefaultKSP(ST);
 PETSC_INTERN PetscErrorCode STSetDefaultKSP_Default(ST);
+PETSC_INTERN PetscErrorCode STIsInjective_Shell(ST,PetscBool*);
 
 #endif

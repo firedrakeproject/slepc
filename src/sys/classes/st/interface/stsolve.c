@@ -448,11 +448,13 @@ PetscErrorCode STPostSolve(ST st)
    Not Collective
 
    Input Parameters:
-   st   - the spectral transformation context
++  st   - the spectral transformation context
    eigr - real part of a computed eigenvalue
-   eigi - imaginary part of a computed eigenvalue
+-  eigi - imaginary part of a computed eigenvalue
 
    Level: developer
+
+.seealso: STIsInjective()
 @*/
 PetscErrorCode STBackTransform(ST st,PetscInt n,PetscScalar* eigr,PetscScalar* eigi)
 {
@@ -464,6 +466,39 @@ PetscErrorCode STBackTransform(ST st,PetscInt n,PetscScalar* eigr,PetscScalar* e
   if (st->ops->backtransform) {
     ierr = (*st->ops->backtransform)(st,n,eigr,eigi);CHKERRQ(ierr);
   }
+  PetscFunctionReturn(0);
+}
+
+/*@
+   STIsInjective - Ask if this spectral transformation is injective or not
+   (that is, if it corresponds to a one-to-one mapping). If not, then it
+   does not make sense to call STBackTransform().
+
+   Not collective
+
+   Input Parameter:
+.  st   - the spectral transformation context
+
+   Output Parameter:
+.  is - the answer
+
+   Level: developer
+
+.seealso: STBackTransform()
+@*/
+PetscErrorCode STIsInjective(ST st,PetscBool* is)
+{
+  PetscErrorCode ierr;
+  PetscBool      shell;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(st,ST_CLASSID,1);
+  PetscValidPointer(is,2);
+
+  ierr = PetscObjectTypeCompare((PetscObject)st,STSHELL,&shell);CHKERRQ(ierr);
+  if (shell) {
+    ierr = STIsInjective_Shell(st,is);CHKERRQ(ierr);
+  } else *is = st->ops->backtransform? PETSC_TRUE: PETSC_FALSE;
   PetscFunctionReturn(0);
 }
 

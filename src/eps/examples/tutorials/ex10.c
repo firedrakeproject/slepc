@@ -191,8 +191,8 @@ PetscErrorCode STCreate_User(SampleShellST **shell)
    spectral transformation context.
 
    Input Parameters:
-.  shell - user-defined spectral transformation context
-.  st    - spectral transformation context containing the operator matrices
++  shell - user-defined spectral transformation context
+-  st    - spectral transformation context containing the operator matrices
 
    Output Parameter:
 .  shell - fully set up user-defined transformation context
@@ -220,8 +220,8 @@ PetscErrorCode STSetUp_User(SampleShellST *shell,ST st)
    user-provided spectral transformation.
 
    Input Parameters:
-.  ctx - optional user-defined context, as set by STShellSetContext()
-.  x - input vector
++  st - spectral transformation context
+-  x - input vector
 
    Output Parameter:
 .  y - output vector
@@ -247,8 +247,8 @@ PetscErrorCode STApply_User(ST st,Vec x,Vec y)
    eigensolver.
 
    Input Parameters:
-.  ctx - optional user-defined context, as set by STShellSetContext()
-.  x - input vector
++  st - spectral transformation context
+-  x - input vector
 
    Output Parameter:
 .  y - output vector
@@ -269,13 +269,12 @@ PetscErrorCode STApplyTranspose_User(ST st,Vec x,Vec y)
    user-provided spectral transformation.
 
    Input Parameters:
-+  ctx  - optional user-defined context, as set by STShellSetContext()
-.  eigr - pointer to real part of eigenvalues
--  eigi - pointer to imaginary part of eigenvalues
++  st - spectral transformation context
+-  n  - number of eigenvalues to transform
 
-   Output Parameters:
-+  eigr - modified real part of eigenvalues
--  eigi - modified imaginary part of eigenvalues
+   Input/Output Parameters:
++  eigr - pointer to real part of eigenvalues
+-  eigi - pointer to imaginary part of eigenvalues
 
    Notes:
    This code implements the back transformation of eigenvalues in

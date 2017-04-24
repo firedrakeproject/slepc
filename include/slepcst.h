@@ -97,6 +97,7 @@ PETSC_EXTERN PetscErrorCode STAppendOptionsPrefix(ST,const char*);
 PETSC_EXTERN PetscErrorCode STGetOptionsPrefix(ST,const char*[]);
 
 PETSC_EXTERN PetscErrorCode STBackTransform(ST,PetscInt,PetscScalar*,PetscScalar*);
+PETSC_EXTERN PetscErrorCode STIsInjective(ST,PetscBool*);
 
 PETSC_EXTERN PetscErrorCode STCheckNullSpace(ST,BV);
 
