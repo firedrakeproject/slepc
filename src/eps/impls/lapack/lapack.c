@@ -164,6 +164,7 @@ PETSC_EXTERN PetscErrorCode EPSCreate_LAPACK(EPS eps)
 {
   PetscFunctionBegin;
   eps->useds = PETSC_TRUE;
+  eps->categ = EPS_CATEGORY_OTHER;
 
   eps->ops->solve          = EPSSolve_LAPACK;
   eps->ops->setup          = EPSSetUp_LAPACK;

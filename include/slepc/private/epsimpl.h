@@ -45,17 +45,28 @@ struct _EPSOps {
 };
 
 /*
-     Maximum number of monitors you can run with a single EPS
+   Maximum number of monitors you can run with a single EPS
 */
 #define MAXEPSMONITORS 5
 
+/*
+   The solution process goes through several states
+*/
 typedef enum { EPS_STATE_INITIAL,
                EPS_STATE_SETUP,
                EPS_STATE_SOLVED,
                EPS_STATE_EIGENVECTORS } EPSStateType;
 
 /*
-   Defines the EPS data structure.
+   To classify the different solvers into categories
+*/
+typedef enum { EPS_CATEGORY_KRYLOV,      /* Krylov solver: relies on STApply and STBackTransform (same as OTHER) */
+               EPS_CATEGORY_PRECOND,     /* Preconditioned solver: uses ST only to manage preconditioner */
+               EPS_CATEGORY_CONTOUR,     /* Contour integral: ST used to solve linear systems at integration points */
+               EPS_CATEGORY_OTHER } EPSSolverType;
+
+/*
+   Defines the EPS data structure
 */
 struct _p_EPS {
   PETSCHEADER(struct _EPSOps);
@@ -114,6 +125,7 @@ struct _p_EPS {
 
   /* ----------------------- Status variables --------------------------*/
   EPSStateType   state;            /* initial -> setup -> solved -> eigenvectors */
+  EPSSolverType  categ;            /* solver category */
   PetscInt       nconv;            /* number of converged eigenvalues */
   PetscInt       its;              /* number of iterations so far computed */
   PetscInt       n,nloc;           /* problem dimensions (global, local) */

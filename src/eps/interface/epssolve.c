@@ -22,6 +22,7 @@
 */
 
 #include <slepc/private/epsimpl.h>   /*I "slepceps.h" I*/
+#include <slepcblaslapack.h>
 #include <petscdraw.h>
 
 PetscErrorCode EPSComputeVectors(EPS eps)
@@ -35,6 +36,103 @@ PetscErrorCode EPSComputeVectors(EPS eps)
   }
   eps->state = EPS_STATE_EIGENVECTORS;
   PetscFunctionReturn(0);
+}
+
+static PetscErrorCode EPSComputeValues(EPS eps)
+{
+#if defined(SLEPC_MISSING_LAPACK_LAG2)
+  PetscFunctionBegin;
+  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"LAG2 - Lapack routine is unavailable");
+#else
+  PetscErrorCode ierr;
+  PetscScalar    alpha,beta;
+  PetscBool      injective;
+  PetscInt       k;
+  Mat            A,B=NULL;
+  Vec            xr,yr;
+#if !defined(PETSC_USE_COMPLEX)
+  PetscScalar    M[4],K[4];
+  PetscReal      scal1,scal2,wr1,wr2,wi,ep = LAPACKlamch_("S");
+  PetscBLASInt   two=2;
+  Vec            xi,yi;
+#endif
+
+  PetscFunctionBegin;
+  switch (eps->categ) {
+    case EPS_CATEGORY_KRYLOV:
+    case EPS_CATEGORY_OTHER:
+      ierr = STIsInjective(eps->st,&injective);CHKERRQ(ierr);
+      if (injective) {
+        /* one-to-one mapping: backtransform eigenvalues */
+        if (eps->ops->backtransform) {
+          ierr = (*eps->ops->backtransform)(eps);CHKERRQ(ierr);
+        } else SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_PLIB,"Internal error, spectral transform should have a backtransform operation");
+      } else {
+        /* compute eigenvalues from Rayleigh quotient */
+        ierr = EPSComputeVectors(eps);CHKERRQ(ierr);
+        ierr = EPSGetOperators(eps,&A,&B);CHKERRQ(ierr);
+        ierr = MatCreateVecs(A,&yr,NULL);CHKERRQ(ierr);
+#if !defined(PETSC_USE_COMPLEX)
+        ierr = VecDuplicate(yr,&yi);CHKERRQ(ierr);
+#endif
+        for (k=0;k<eps->nconv;k++) {
+#if !defined(PETSC_USE_COMPLEX)
+          if (eps->eigi[k] != 0.0) {  /* complex conjugate pair */
+            ierr = BVGetColumn(eps->V,k,&xr);CHKERRQ(ierr);
+            ierr = BVGetColumn(eps->V,k+1,&xi);CHKERRQ(ierr);
+            ierr = MatMult(A,xr,yr);CHKERRQ(ierr);
+            ierr = MatMult(A,xi,yi);CHKERRQ(ierr);
+            ierr = VecDot(yr,xr,&M[0]);CHKERRQ(ierr);
+            ierr = VecDot(yr,xi,&M[1]);CHKERRQ(ierr);
+            ierr = VecDot(yi,xr,&M[2]);CHKERRQ(ierr);
+            ierr = VecDot(yi,xi,&M[3]);CHKERRQ(ierr);
+            if (B) {
+              ierr = MatMult(B,xr,yr);CHKERRQ(ierr);
+              ierr = MatMult(B,xi,yi);CHKERRQ(ierr);
+              ierr = VecDot(yr,xr,&K[0]);CHKERRQ(ierr);
+              ierr = VecDot(yr,xi,&K[1]);CHKERRQ(ierr);
+              ierr = VecDot(yi,xr,&K[2]);CHKERRQ(ierr);
+              ierr = VecDot(yi,xi,&K[3]);CHKERRQ(ierr);
+            } else {
+              ierr = VecDot(xr,xr,&K[0]);CHKERRQ(ierr);
+              ierr = VecDot(xr,xi,&K[1]);CHKERRQ(ierr);
+              ierr = VecDot(xi,xr,&K[2]);CHKERRQ(ierr);
+              ierr = VecDot(xi,xi,&K[3]);CHKERRQ(ierr);
+            }
+            PetscStackCallBLAS("LAPACKlag2",LAPACKlag2_(M,&two,K,&two,&ep,&scal1,&scal2,&wr1,&wr2,&wi));
+            wr1 /= scal1; wr2 /= scal2; wi /= scal1;
+            ierr = BVRestoreColumn(eps->V,k,&xr);CHKERRQ(ierr);
+            ierr = BVRestoreColumn(eps->V,k+1,&xi);CHKERRQ(ierr);
+            eps->eigr[k]   = wr1;  eps->eigi[k]   = wi;
+            eps->eigr[k+1] = wr2;  eps->eigi[k+1] = -wi;
+            k++;
+          } else
+#endif
+          {
+            ierr = BVGetColumn(eps->V,k,&xr);CHKERRQ(ierr);
+            ierr = MatMult(A,xr,yr);CHKERRQ(ierr);
+            ierr = VecDot(yr,xr,&alpha);CHKERRQ(ierr);
+            if (B) {
+              ierr = MatMult(B,xr,yr);CHKERRQ(ierr);
+              ierr = VecDot(yr,xr,&beta);CHKERRQ(ierr);
+              eps->eigr[k] = alpha/beta;
+            } else eps->eigr[k] = alpha;
+            ierr = BVRestoreColumn(eps->V,k,&xr);CHKERRQ(ierr);
+          }
+        }
+        ierr = VecDestroy(&yr);CHKERRQ(ierr);
+#if !defined(PETSC_USE_COMPLEX)
+        ierr = VecDestroy(&yi);CHKERRQ(ierr);
+#endif
+      }
+      break;
+    case EPS_CATEGORY_PRECOND:
+    case EPS_CATEGORY_CONTOUR:
+      /* eigenvalues already available as an output of the solver */
+      break;
+  }
+  PetscFunctionReturn(0);
+#endif
 }
 
 /*@
@@ -97,15 +195,12 @@ PetscErrorCode EPSSolve(EPS eps)
 
   if (!eps->reason) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_PLIB,"Internal error, solver returned without setting converged reason");
 
-  /* Map eigenvalues back to the original problem, necessary in some
-  * spectral transformations */
-  if (eps->ops->backtransform) {
-    ierr = (*eps->ops->backtransform)(eps);CHKERRQ(ierr);
-  }
+  /* Map eigenvalues back to the original problem if appropriate */
+  ierr = EPSComputeValues(eps);CHKERRQ(ierr);
 
 #if !defined(PETSC_USE_COMPLEX)
   /* reorder conjugate eigenvalues (positive imaginary first) */
-  for (i=0; i<eps->nconv-1; i++) {
+  for (i=0;i<eps->nconv-1;i++) {
     if (eps->eigi[i] != 0) {
       if (eps->eigi[i] < 0) {
         eps->eigi[i] = -eps->eigi[i];

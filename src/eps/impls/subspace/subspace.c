@@ -313,6 +313,7 @@ PETSC_EXTERN PetscErrorCode EPSCreate_Subspace(EPS eps)
 {
   PetscFunctionBegin;
   eps->useds = PETSC_TRUE;
+  eps->categ = EPS_CATEGORY_OTHER;
 
   eps->ops->solve          = EPSSolve_Subspace;
   eps->ops->setup          = EPSSetUp_Subspace;

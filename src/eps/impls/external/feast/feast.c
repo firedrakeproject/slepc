@@ -314,6 +314,8 @@ PETSC_EXTERN PetscErrorCode EPSCreate_FEAST(EPS eps)
   ierr = PetscNewLog(eps,&ctx);CHKERRQ(ierr);
   eps->data = (void*)ctx;
 
+  eps->categ = EPS_CATEGORY_CONTOUR;
+
   eps->ops->solve          = EPSSolve_FEAST;
   eps->ops->setup          = EPSSetUp_FEAST;
   eps->ops->setfromoptions = EPSSetFromOptions_FEAST;

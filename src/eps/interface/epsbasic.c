@@ -107,6 +107,7 @@ PetscErrorCode EPSCreate(MPI_Comm comm,EPS *outeps)
   eps->data            = NULL;
 
   eps->state           = EPS_STATE_INITIAL;
+  eps->categ           = EPS_CATEGORY_KRYLOV;
   eps->nconv           = 0;
   eps->its             = 0;
   eps->nloc            = 0;

@@ -141,6 +141,18 @@ PetscErrorCode STBackTransform_Shell(ST st,PetscInt n,PetscScalar *eigr,PetscSca
   PetscFunctionReturn(0);
 }
 
+/*
+   STIsInjective_Shell - Check if the user has provided the backtransform operation.
+*/
+PetscErrorCode STIsInjective_Shell(ST st,PetscBool* is)
+{
+  ST_SHELL *shell = (ST_SHELL*)st->data;
+
+  PetscFunctionBegin;
+  *is = shell->backtransform? PETSC_TRUE: PETSC_FALSE;
+  PetscFunctionReturn(0);
+}
+
 PetscErrorCode STDestroy_Shell(ST st)
 {
   PetscErrorCode ierr;

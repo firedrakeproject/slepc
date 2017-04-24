@@ -647,6 +647,7 @@ PETSC_EXTERN PetscErrorCode EPSCreate_JD(EPS eps)
   data->dynamic     = PETSC_FALSE;
 
   eps->useds = PETSC_TRUE;
+  eps->categ = EPS_CATEGORY_PRECOND;
 
   eps->ops->solve          = EPSSolve_XD;
   eps->ops->setup          = EPSSetUp_JD;
