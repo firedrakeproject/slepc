@@ -29,9 +29,9 @@ static char help[] = "Shell spectral transformations with a non-injective mappin
 
 /* Context for spectrum folding spectral transformation */
 typedef struct {
-  Mat       A;
-  Vec       w;
-  PetscReal target;
+  Mat         A;
+  Vec         w;
+  PetscScalar target;
 } FoldShellST;
 
 /* Routines for shell spectral transformation */
