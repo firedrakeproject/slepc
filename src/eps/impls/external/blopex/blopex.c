@@ -142,7 +142,7 @@ PetscErrorCode EPSSetUp_BLOPEX(EPS eps)
 #else
   PetscErrorCode ierr;
   EPS_BLOPEX     *blopex = (EPS_BLOPEX*)eps->data;
-  PetscBool      strivial,flg;
+  PetscBool      istrivial,flg;
 
   PetscFunctionBegin;
   if (!eps->ishermitian || (eps->isgeneralized && !eps->ispositive)) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"blopex only works for Hermitian problems");
