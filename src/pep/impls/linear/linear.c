@@ -233,6 +233,15 @@ static PetscErrorCode BackTransform_Linear(ST st,PetscInt n,PetscScalar *eigr,Pe
   PetscFunctionReturn(0);
 }
 
+/*
+   Dummy backtransform operation
+ */
+static PetscErrorCode BackTransform_Skip(ST st,PetscInt n,PetscScalar *eigr,PetscScalar *eigi)
+{
+  PetscFunctionBegin;
+  PetscFunctionReturn(0);
+}
+
 static PetscErrorCode Apply_Linear(ST st,Vec x,Vec y)
 {
   PetscErrorCode ierr;
@@ -329,6 +338,7 @@ PetscErrorCode PEPSetUp_Linear(PEP pep)
     ierr = STSetType(st,STSHELL);CHKERRQ(ierr);
     ierr = STShellSetContext(st,(PetscObject)ctx);CHKERRQ(ierr);
     if (!transf) { ierr = STShellSetBackTransform(st,BackTransform_Linear);CHKERRQ(ierr); }
+    else { ierr = STShellSetBackTransform(st,BackTransform_Skip);CHKERRQ(ierr); }
     ierr = VecCreateMPIWithArray(PetscObjectComm((PetscObject)pep),1,pep->nloc,pep->n,NULL,&ctx->w[0]);CHKERRQ(ierr);
     ierr = VecCreateMPIWithArray(PetscObjectComm((PetscObject)pep),1,pep->nloc,pep->n,NULL,&ctx->w[1]);CHKERRQ(ierr);
     ierr = VecCreateMPIWithArray(PetscObjectComm((PetscObject)pep),1,pep->nloc,pep->n,NULL,&ctx->w[2]);CHKERRQ(ierr);

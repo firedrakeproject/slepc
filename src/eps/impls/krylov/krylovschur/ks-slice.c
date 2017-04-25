@@ -346,6 +346,15 @@ static PetscErrorCode EPSSliceGetInertia(EPS eps,PetscReal shift,PetscInt *inert
   PetscFunctionReturn(0);
 }
 
+/*
+   Dummy backtransform operation
+ */
+static PetscErrorCode EPSBackTransform_Skip(EPS eps)
+{
+  PetscFunctionBegin;
+  PetscFunctionReturn(0);
+}
+
 PetscErrorCode EPSSetUp_KrylovSchur_Slice(EPS eps)
 {
   PetscErrorCode  ierr;
@@ -372,7 +381,7 @@ PetscErrorCode EPSSetUp_KrylovSchur_Slice(EPS eps)
     if (ctx->nev==1) ctx->nev = PetscMin(40,eps->n);  /* nev not set, use default value */
     if (eps->n>10 && ctx->nev<10) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_WRONG,"nev cannot be less than 10 in spectrum slicing runs");
   }
-  eps->ops->backtransform = NULL;
+  eps->ops->backtransform = EPSBackTransform_Skip;
 
   /* create spectrum slicing context and initialize it */
   ierr = EPSSliceResetSR(eps);CHKERRQ(ierr);
