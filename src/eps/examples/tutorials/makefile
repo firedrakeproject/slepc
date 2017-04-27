@@ -336,6 +336,7 @@ runex34_1:
 
 runex35_1:
 	-@${SETTEST}; \
-	${MPIEXEC} -n 1 ./ex35 -eps_nev 4 -terse > $${test}.tmp 2>&1; \
+	if [ "${PETSC_PRECISION}" = "single" ]; then EXTRA="-eps_tol 1e-5"; fi; \
+	${MPIEXEC} -n 1 ./ex35 -m 11 -eps_nev 4 -terse $$EXTRA > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
