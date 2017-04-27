@@ -21,10 +21,15 @@
 
 ALL: lib
 
+CFLAGS   =
+FFLAGS   =
+SOURCEC  = filter.c
+SOURCEF  =
+SOURCEH  = filter.h
 LIBBASE  = libslepcsys
-DIRS     = shell shift sinvert cayley precond filter
-LOCDIR   = src/sys/classes/st/impls/
+DIRS     =
 MANSEC   = ST
+LOCDIR   = src/sys/classes/st/impls/filter/
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common
 

@@ -26,6 +26,7 @@ PETSC_EXTERN PetscErrorCode STCreate_Shift(ST);
 PETSC_EXTERN PetscErrorCode STCreate_Sinvert(ST);
 PETSC_EXTERN PetscErrorCode STCreate_Cayley(ST);
 PETSC_EXTERN PetscErrorCode STCreate_Precond(ST);
+PETSC_EXTERN PetscErrorCode STCreate_Filter(ST);
 
 /*@C
    STRegisterAll - Registers all of the spectral transformations in the ST package.
@@ -48,6 +49,7 @@ PetscErrorCode STRegisterAll(void)
   ierr = STRegister(STSINVERT,STCreate_Sinvert);CHKERRQ(ierr);
   ierr = STRegister(STCAYLEY,STCreate_Cayley);CHKERRQ(ierr);
   ierr = STRegister(STPRECOND,STCreate_Precond);CHKERRQ(ierr);
+  ierr = STRegister(STFILTER,STCreate_Filter);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
