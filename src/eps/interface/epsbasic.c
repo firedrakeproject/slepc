@@ -446,8 +446,6 @@ PetscErrorCode EPSGetInterval(EPS eps,PetscReal* inta,PetscReal* intb)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  PetscValidPointer(inta,2);
-  PetscValidPointer(intb,3);
   if (inta) *inta = eps->inta;
   if (intb) *intb = eps->intb;
   PetscFunctionReturn(0);
