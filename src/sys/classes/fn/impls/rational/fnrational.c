@@ -264,7 +264,7 @@ static PetscErrorCode FNRationalSetNumerator_Rational(FN fn,PetscInt np,PetscSca
   PetscFunctionReturn(0);
 }
 
-/*@
+/*@C
    FNRationalSetNumerator - Sets the parameters defining the numerator of the
    rational function.
 
@@ -318,7 +318,7 @@ static PetscErrorCode FNRationalGetNumerator_Rational(FN fn,PetscInt *np,PetscSc
   PetscFunctionReturn(0);
 }
 
-/*@
+/*@C
    FNRationalGetNumerator - Gets the parameters that define the numerator of the
    rational function.
 
@@ -368,7 +368,7 @@ static PetscErrorCode FNRationalSetDenominator_Rational(FN fn,PetscInt nq,PetscS
   PetscFunctionReturn(0);
 }
 
-/*@
+/*@C
    FNRationalSetDenominator - Sets the parameters defining the denominator of the
    rational function.
 
@@ -422,7 +422,7 @@ static PetscErrorCode FNRationalGetDenominator_Rational(FN fn,PetscInt *nq,Petsc
   PetscFunctionReturn(0);
 }
 
-/*@
+/*@C
    FNRationalGetDenominator - Gets the parameters that define the denominator of the
    rational function.
 
