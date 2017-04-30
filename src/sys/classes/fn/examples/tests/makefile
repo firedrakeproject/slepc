@@ -25,9 +25,9 @@ CPPFLAGS   =
 FPPFLAGS   =
 LOCDIR     = src/sys/classes/fn/examples/tests/
 EXAMPLESC  = test1.c test2.c test3.c test4.c test5.c test6.c test7.c test8.c test9.c test10.c test11.c
-EXAMPLESF  = test7f.F
+EXAMPLESF  = test1f.F test7f.F
 MANSEC     = FN
-TESTS      = test1 test2 test3 test4 test5 test6 test7 test7f test8 test9 test10 test11
+TESTS      = test1 test1f test2 test3 test4 test5 test6 test7 test7f test8 test9 test10 test11
 
 TESTEXAMPLES_C           = test1.PETSc runtest1_1 test1.rm \
                            test2.PETSc runtest2_1 test2.rm \
@@ -41,13 +41,18 @@ TESTEXAMPLES_C           = test1.PETSc runtest1_1 test1.rm \
                            test10.PETSc runtest10_1 test10.rm \
                            test11.PETSc runtest11_1 test11.rm
 TESTEXAMPLES_C_NOTSINGLE = test7.PETSc runtest7_1_sadeghi runtest7_2_sadeghi test7.rm
-TESTEXAMPLES_FORTRAN     = test7f.PETSc runtest7f_1 test7f.rm
+TESTEXAMPLES_FORTRAN     = test1f.PETSc runtest1f_1 test1f.rm \
+                           test7f.PETSc runtest7f_1 test7f.rm
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common
 
 test1: test1.o chkopts
 	-${CLINKER} -o test1 test1.o ${SLEPC_SYS_LIB}
 	${RM} test1.o
+
+test1f: test1f.o chkopts
+	-${FLINKER} -o test1f test1f.o ${SLEPC_SYS_LIB}
+	${RM} test1f.o
 
 test2: test2.o chkopts
 	-${CLINKER} -o test2 test2.o ${SLEPC_SYS_LIB}
@@ -98,6 +103,11 @@ test11: test11.o chkopts
 runtest1_1:
 	-@${SETTEST}; \
 	${MPIEXEC} -n 1 ./test1 > $${test}.tmp 2>&1; \
+	${TESTCODE}
+
+runtest1f_1:
+	-@${SETTEST}; \
+	${MPIEXEC} -n 1 ./test1f > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
 runtest2_1: runtest2_1_higham runtest2_1_pade
