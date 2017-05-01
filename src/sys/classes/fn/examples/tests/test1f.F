@@ -105,11 +105,11 @@
 
       call FNRationalGetNumerator(fn,n,pp,ierr)
       if (rank .eq. 0) then
-        write(*,100) 'Numerator',(pp(i),i=1,n)
+        write(*,100) 'Numerator',(PetscRealPart(pp(i)),i=1,n)
       end if
       call FNRationalGetDenominator(fn,n,qq,ierr)
       if (rank .eq. 0) then
-        write(*,100) 'Denominator',(qq(i),i=1,n)
+        write(*,100) 'Denominator',(PetscRealPart(qq(i)),i=1,n)
       end if
  100  format (A15,10F6.1)
 
