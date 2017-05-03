@@ -39,7 +39,7 @@ PetscErrorCode TestMatExp(FN fn,Mat A,PetscViewer viewer,PetscBool verbose,Petsc
   ierr = MatGetSize(A,&n,NULL);CHKERRQ(ierr);
   ierr = MatCreateSeqDense(PETSC_COMM_SELF,n,n,NULL,&F);CHKERRQ(ierr);
   ierr = PetscObjectSetName((PetscObject)F,"F");CHKERRQ(ierr);
-  /* compute square root */
+  /* compute matrix exponential */
   if (inplace) {
     ierr = MatCopy(A,F,SAME_NONZERO_PATTERN);CHKERRQ(ierr);
     ierr = MatIsHermitianKnown(A,&set,&flg);CHKERRQ(ierr);
