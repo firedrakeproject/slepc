@@ -21,12 +21,15 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#include <slepc/private/stimpl.h>
+#include <slepc/private/stimpl.h>         /*I "slepcst.h" I*/
 #include "./filter.h"
 
 PetscErrorCode STApply_Filter(ST st,Vec x,Vec y)
 {
+  PetscErrorCode ierr;
+
   PetscFunctionBegin;
+  ierr = STFilter_FILTLAN_Apply(st,x,y);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -36,10 +39,15 @@ PetscErrorCode STSetUp_Filter(ST st)
   ST_FILTER      *ctx = (ST_FILTER*)st->data;
 
   PetscFunctionBegin;
+  ierr = STSetWorkVecs(st,4);CHKERRQ(ierr);
   if (st->nmat>1) SETERRQ(PetscObjectComm((PetscObject)st),1,"Only implemented for standard eigenvalue problem");
   if (ctx->intb >= PETSC_MAX_REAL && ctx->inta <= PETSC_MIN_REAL) SETERRQ(PetscObjectComm((PetscObject)st),1,"Must pass an interval with STFilterSetInterval()");
   if (!ctx->polyDegree) ctx->polyDegree = 100;
-  ierr = MatCreateVecs(st->A[0],&ctx->w,NULL);CHKERRQ(ierr);
+  ctx->frame[0] = 0.01026135321620758;   /* PENDING: COMPUTE */
+  ctx->frame[1] = ctx->inta;
+  ctx->frame[2] = ctx->intb;
+  ctx->frame[3] = 3.9897386467837923;   /* PENDING: COMPUTE */
+  ierr = STFilter_FILTLAN_setFilter(st);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -247,21 +255,15 @@ PetscErrorCode STView_Filter(ST st,PetscViewer viewer)
   PetscFunctionReturn(0);
 }
 
-PetscErrorCode STReset_Filter(ST st)
+PetscErrorCode STDestroy_Filter(ST st)
 {
   PetscErrorCode ierr;
   ST_FILTER      *ctx = (ST_FILTER*)st->data;
 
   PetscFunctionBegin;
-  ierr = VecDestroy(&ctx->w);CHKERRQ(ierr);
-  PetscFunctionReturn(0);
-}
-
-PetscErrorCode STDestroy_Filter(ST st)
-{
-  PetscErrorCode ierr;
-
-  PetscFunctionBegin;
+  ierr = PetscFree(ctx->opts);CHKERRQ(ierr);
+  ierr = PetscFree(ctx->filterInfo);CHKERRQ(ierr);
+  ierr = MatDestroy(&ctx->baseFilter);CHKERRQ(ierr);
   ierr = PetscFree(st->data);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)st,"STFilterSetInterval_C",NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)st,"STFilterGetInterval_C",NULL);CHKERRQ(ierr);
@@ -274,7 +276,8 @@ PETSC_EXTERN PetscErrorCode STCreate_Filter(ST st)
 {
   PetscErrorCode ierr;
   ST_FILTER      *ctx;
-
+  FILTLAN_IOP    iop;
+  FILTLAN_PFI    pfi;
   PetscFunctionBegin;
   ierr = PetscNewLog(st,&ctx);CHKERRQ(ierr);
   st->data = (void*)ctx;
@@ -282,13 +285,36 @@ PETSC_EXTERN PetscErrorCode STCreate_Filter(ST st)
   ctx->inta               = PETSC_MIN_REAL;
   ctx->intb               = PETSC_MAX_REAL;
   ctx->polyDegree         = 0;
+  ctx->baseDegree         = 10;
 
-  st->ops->apply           = STApply_Filter;
-  st->ops->setfromoptions  = STSetFromOptions_Filter;
-  st->ops->setup           = STSetUp_Filter;
-  st->ops->destroy         = STDestroy_Filter;
-  st->ops->reset           = STReset_Filter;
-  st->ops->view            = STView_Filter;
+  ierr = PetscNewLog(st,&iop);CHKERRQ(ierr);
+  ctx->opts               = iop;
+  iop->intervalWeights[0] = 100.0;
+  iop->intervalWeights[1] = 1.0;
+  iop->intervalWeights[2] = 1.0;
+  iop->intervalWeights[3] = 1.0;
+  iop->intervalWeights[4] = 100.0;
+  iop->transIntervalRatio = 0.6;
+  iop->reverseInterval    = PETSC_FALSE;
+  iop->initialPlateau     = 0.1;
+  iop->plateauShrinkRate  = 1.5;
+  iop->initialShiftStep   = 0.01;
+  iop->shiftStepExpanRate = 1.5;
+  iop->maxInnerIter       = 30;
+  iop->yLimitTol          = 0.0001;
+  iop->maxOuterIter       = 50;
+  iop->numGridPoints      = 200;
+  iop->yBottomLine        = 0.001;
+  iop->yRippleLimit       = 0.8;
+
+  ierr = PetscNewLog(st,&pfi);CHKERRQ(ierr);
+  ctx->filterInfo         = pfi;
+
+  st->ops->apply          = STApply_Filter;
+  st->ops->setfromoptions = STSetFromOptions_Filter;
+  st->ops->setup          = STSetUp_Filter;
+  st->ops->destroy        = STDestroy_Filter;
+  st->ops->view           = STView_Filter;
 
   ierr = PetscObjectComposeFunction((PetscObject)st,"STFilterSetInterval_C",STFilterSetInterval_Filter);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)st,"STFilterGetInterval_C",STFilterGetInterval_Filter);CHKERRQ(ierr);
