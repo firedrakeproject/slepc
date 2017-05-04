@@ -333,6 +333,10 @@ PetscErrorCode EPSSolve_Power(EPS eps)
 
   if (power->nonlinear) {
     ierr = STResetMatrixState(eps->st);CHKERRQ(ierr);
+    /*
+     * EPSComputeVectors_Schur does not work for the nonlinear case
+     * */
+    eps->ops->computevectors = NULL;
   } else {
     ierr = DSSetDimensions(eps->ds,eps->nconv,0,0,0);CHKERRQ(ierr);
     ierr = DSSetState(eps->ds,DS_STATE_RAW);CHKERRQ(ierr);
