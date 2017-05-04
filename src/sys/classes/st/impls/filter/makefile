@@ -23,7 +23,7 @@ ALL: lib
 
 CFLAGS   =
 FFLAGS   =
-SOURCEC  = filter.c
+SOURCEC  = filter.c filtlan.c
 SOURCEF  =
 SOURCEH  = filter.h
 LIBBASE  = libslepcsys
