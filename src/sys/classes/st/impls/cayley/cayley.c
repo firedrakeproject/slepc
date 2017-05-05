@@ -26,7 +26,6 @@
 typedef struct {
   PetscScalar nu;
   PetscBool   nu_set;
-  Vec         w2;
 } ST_CAYLEY;
 
 PetscErrorCode STApply_Cayley(ST st,Vec x,Vec y)
@@ -36,8 +35,8 @@ PetscErrorCode STApply_Cayley(ST st,Vec x,Vec y)
   PetscFunctionBegin;
   /* standard eigenproblem: y = (A - sI)^-1 (A + tI)x */
   /* generalized eigenproblem: y = (A - sB)^-1 (A + tB)x */
-  ierr = MatMult(st->T[0],x,st->w);CHKERRQ(ierr);
-  ierr = STMatSolve(st,st->w,y);CHKERRQ(ierr);
+  ierr = MatMult(st->T[0],x,st->work[0]);CHKERRQ(ierr);
+  ierr = STMatSolve(st,st->work[0],y);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -48,8 +47,8 @@ PetscErrorCode STApplyTranspose_Cayley(ST st,Vec x,Vec y)
   PetscFunctionBegin;
   /* standard eigenproblem: y =  (A + tI)^T (A - sI)^-T x */
   /* generalized eigenproblem: y = (A + tB)^T (A - sB)^-T x */
-  ierr = STMatSolveTranspose(st,x,st->w);CHKERRQ(ierr);
-  ierr = MatMultTranspose(st->T[0],st->w,y);CHKERRQ(ierr);
+  ierr = STMatSolveTranspose(st,x,st->work[0]);CHKERRQ(ierr);
+  ierr = MatMultTranspose(st->T[0],st->work[0],y);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -70,8 +69,8 @@ static PetscErrorCode MatMult_Cayley(Mat B,Vec x,Vec y)
   if (st->nmat>1) {
     /* generalized eigenproblem: y = (A + tB)x */
     ierr = MatMult(st->A[0],x,y);CHKERRQ(ierr);
-    ierr = MatMult(st->A[1],x,ctx->w2);CHKERRQ(ierr);
-    ierr = VecAXPY(y,nu,ctx->w2);CHKERRQ(ierr);
+    ierr = MatMult(st->A[1],x,st->work[1]);CHKERRQ(ierr);
+    ierr = VecAXPY(y,nu,st->work[1]);CHKERRQ(ierr);
   } else {
     /* standard eigenproblem: y = (A + tI)x */
     ierr = MatMult(st->A[0],x,y);CHKERRQ(ierr);
@@ -98,8 +97,8 @@ static PetscErrorCode MatMultTranspose_Cayley(Mat B,Vec x,Vec y)
   if (st->nmat>1) {
     /* generalized eigenproblem: y = (A + tB)x */
     ierr = MatMultTranspose(st->A[0],x,y);CHKERRQ(ierr);
-    ierr = MatMultTranspose(st->A[1],x,ctx->w2);CHKERRQ(ierr);
-    ierr = VecAXPY(y,nu,ctx->w2);CHKERRQ(ierr);
+    ierr = MatMultTranspose(st->A[1],x,st->work[1]);CHKERRQ(ierr);
+    ierr = VecAXPY(y,nu,st->work[1]);CHKERRQ(ierr);
   } else {
     /* standard eigenproblem: y = (A + tI)x */
     ierr = MatMultTranspose(st->A[0],x,y);CHKERRQ(ierr);
@@ -173,7 +172,7 @@ PetscErrorCode STSetUp_Cayley(ST st)
   ST_CAYLEY      *ctx = (ST_CAYLEY*)st->data;
 
   PetscFunctionBegin;
-  ierr = ST_AllocateWorkVec(st);CHKERRQ(ierr);
+  ierr = STSetWorkVecs(st,2);CHKERRQ(ierr);
 
   /* if the user did not set the shift, use the target value */
   if (!st->sigma_set) st->sigma = st->defsigma;
@@ -197,11 +196,6 @@ PetscErrorCode STSetUp_Cayley(ST st)
   ierr = PetscObjectReference((PetscObject)st->T[1]);CHKERRQ(ierr);
   ierr = MatDestroy(&st->P);CHKERRQ(ierr);
   st->P = st->T[1];
-  if (st->nmat>1) {
-    ierr = VecDestroy(&ctx->w2);CHKERRQ(ierr);
-    ierr = MatCreateVecs(st->A[1],&ctx->w2,NULL);CHKERRQ(ierr);
-    ierr = PetscLogObjectParent((PetscObject)st,(PetscObject)ctx->w2);CHKERRQ(ierr);
-  }
   if (!st->ksp) { ierr = STGetKSP(st,&st->ksp);CHKERRQ(ierr); }
   ierr = STCheckFactorPackage(st);CHKERRQ(ierr);
   ierr = KSPSetOperators(st->ksp,st->P,st->P);CHKERRQ(ierr);
@@ -349,16 +343,6 @@ PetscErrorCode STView_Cayley(ST st,PetscViewer viewer)
   PetscFunctionReturn(0);
 }
 
-PetscErrorCode STReset_Cayley(ST st)
-{
-  PetscErrorCode ierr;
-  ST_CAYLEY      *ctx = (ST_CAYLEY*)st->data;
-
-  PetscFunctionBegin;
-  ierr = VecDestroy(&ctx->w2);CHKERRQ(ierr);
-  PetscFunctionReturn(0);
-}
-
 PetscErrorCode STDestroy_Cayley(ST st)
 {
   PetscErrorCode ierr;
@@ -388,7 +372,6 @@ PETSC_EXTERN PetscErrorCode STCreate_Cayley(ST st)
   st->ops->setup           = STSetUp_Cayley;
   st->ops->setshift        = STSetShift_Cayley;
   st->ops->destroy         = STDestroy_Cayley;
-  st->ops->reset           = STReset_Cayley;
   st->ops->view            = STView_Cayley;
   st->ops->checknullspace  = STCheckNullSpace_Default;
   st->ops->setdefaultksp   = STSetDefaultKSP_Default;

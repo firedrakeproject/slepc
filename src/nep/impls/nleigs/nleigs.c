@@ -230,11 +230,11 @@ static PetscErrorCode NEPNLEIGSRationalSingularities(NEP nep,PetscInt *ndptx,Pet
 
   PetscFunctionBegin;
   *rational = PETSC_TRUE;
+  *ndptx = 0;
   ierr = NEPGetSplitOperatorInfo(nep,&nt,NULL);CHKERRQ(ierr);
   for (i=0;i<nt;i++) {
     ierr = NEPGetSplitOperatorTerm(nep,i,NULL,&f);CHKERRQ(ierr);
     ierr = NEPNLEIGSFNSingularities(f,&nisol,&isol,&rat);CHKERRQ(ierr);
-    *ndptx = 0;
     if (nisol) {
       ierr = NEPNLEIGSAuxiliarRmDuplicates(nisol,isol,ndptx,dxi);CHKERRQ(ierr);
       ierr = PetscFree(isol);

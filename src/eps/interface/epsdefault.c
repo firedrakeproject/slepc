@@ -225,6 +225,9 @@ PetscErrorCode EPSSetWorkVecs(EPS eps,PetscInt nw)
   Vec            t;
 
   PetscFunctionBegin;
+  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
+  PetscValidLogicalCollectiveInt(eps,nw,2);
+  if (nw <= 0) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_OUTOFRANGE,"nw must be > 0: nw = %D",nw);
   if (eps->nwork < nw) {
     ierr = VecDestroyVecs(eps->nwork,&eps->work);CHKERRQ(ierr);
     eps->nwork = nw;

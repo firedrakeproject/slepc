@@ -125,7 +125,8 @@ PetscErrorCode STReset(ST st)
   ierr = MatDestroyMatrices(PetscMax(2,st->nmat),&st->A);CHKERRQ(ierr);
   ierr = PetscFree(st->Astate);CHKERRQ(ierr);
   ierr = MatDestroy(&st->P);CHKERRQ(ierr);
-  ierr = VecDestroy(&st->w);CHKERRQ(ierr);
+  ierr = VecDestroyVecs(st->nwork,&st->work);CHKERRQ(ierr);
+  st->nwork = 0;
   ierr = VecDestroy(&st->wb);CHKERRQ(ierr);
   ierr = VecDestroy(&st->D);CHKERRQ(ierr);
   st->state = ST_STATE_INITIAL;
@@ -198,7 +199,8 @@ PetscErrorCode STCreate(MPI_Comm comm,ST *newst)
   st->transform    = PETSC_FALSE;
 
   st->ksp          = NULL;
-  st->w            = NULL;
+  st->nwork        = 0;
+  st->work         = NULL;
   st->D            = NULL;
   st->wb           = NULL;
   st->data         = NULL;
