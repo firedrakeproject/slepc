@@ -543,3 +543,36 @@ PetscErrorCode STMatSetUp(ST st,PetscScalar sigma,PetscScalar *coeffs)
   PetscFunctionReturn(0);
 }
 
+/*@
+   STSetWorkVecs - Sets a number of work vectors into the ST object.
+
+   Collective on ST
+
+   Input Parameters:
++  st - the spectral transformation context
+-  nw - number of work vectors to allocate
+
+   Developers Note:
+   This is PETSC_EXTERN because it may be required by shell STs.
+
+   Level: developer
+@*/
+PetscErrorCode STSetWorkVecs(ST st,PetscInt nw)
+{
+  PetscErrorCode ierr;
+  PetscInt       i;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(st,ST_CLASSID,1);
+  PetscValidLogicalCollectiveInt(st,nw,2);
+  if (nw <= 0) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_OUTOFRANGE,"nw must be > 0: nw = %D",nw);
+  if (st->nwork < nw) {
+    ierr = VecDestroyVecs(st->nwork,&st->work);CHKERRQ(ierr);
+    st->nwork = nw;
+    ierr = PetscMalloc1(nw,&st->work);CHKERRQ(ierr);
+    for (i=0;i<nw;i++) { ierr = STMatCreateVecs(st,&st->work[i],NULL);CHKERRQ(ierr); }
+    ierr = PetscLogObjectParents(st,nw,st->work);CHKERRQ(ierr);
+  }
+  PetscFunctionReturn(0);
+}
+

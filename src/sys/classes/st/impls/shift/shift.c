@@ -31,8 +31,8 @@ PetscErrorCode STApply_Shift(ST st,Vec x,Vec y)
   PetscFunctionBegin;
   if (st->nmat>1) {
     /* generalized eigenproblem: y = B^-1 (A - sB) x */
-    ierr = MatMult(st->T[0],x,st->w);CHKERRQ(ierr);
-    ierr = STMatSolve(st,st->w,y);CHKERRQ(ierr);
+    ierr = MatMult(st->T[0],x,st->work[0]);CHKERRQ(ierr);
+    ierr = STMatSolve(st,st->work[0],y);CHKERRQ(ierr);
   } else {
     /* standard eigenproblem: y = (A - sI) x */
     ierr = MatMult(st->T[0],x,y);CHKERRQ(ierr);
@@ -47,8 +47,8 @@ PetscErrorCode STApplyTranspose_Shift(ST st,Vec x,Vec y)
   PetscFunctionBegin;
   if (st->nmat>1) {
     /* generalized eigenproblem: y = (A - sB)^T B^-T  x */
-    ierr = STMatSolveTranspose(st,x,st->w);CHKERRQ(ierr);
-    ierr = MatMultTranspose(st->T[0],st->w,y);CHKERRQ(ierr);
+    ierr = STMatSolveTranspose(st,x,st->work[0]);CHKERRQ(ierr);
+    ierr = MatMultTranspose(st->T[0],st->work[0],y);CHKERRQ(ierr);
   } else {
     /* standard eigenproblem: y = (A^T - sI) x */
     ierr = MatMultTranspose(st->T[0],x,y);CHKERRQ(ierr);
@@ -92,7 +92,7 @@ PetscErrorCode STSetUp_Shift(ST st)
 
   PetscFunctionBegin;
   if (st->nmat>1) {
-    ierr = ST_AllocateWorkVec(st);CHKERRQ(ierr);
+    ierr = STSetWorkVecs(st,1);CHKERRQ(ierr);
   }
   if (nmat<3 || st->transform) {
     if (nmat>2) {

@@ -80,6 +80,7 @@ PETSC_EXTERN PetscErrorCode STComputeExplicitOperator(ST,Mat*);
 PETSC_EXTERN PetscErrorCode STMatSetUp(ST,PetscScalar,PetscScalar*);
 PETSC_EXTERN PetscErrorCode STPostSolve(ST);
 PETSC_EXTERN PetscErrorCode STResetMatrixState(ST);
+PETSC_EXTERN PetscErrorCode STSetWorkVecs(ST,PetscInt);
 
 PETSC_EXTERN PetscErrorCode STSetKSP(ST,KSP);
 PETSC_EXTERN PetscErrorCode STGetKSP(ST,KSP*);
