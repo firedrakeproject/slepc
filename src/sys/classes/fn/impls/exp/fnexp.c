@@ -399,7 +399,7 @@ PetscErrorCode FNEvaluateFunctionMat_Exp_Higham(FN fn,Mat A,Mat B)
   ierr = MatGetSize(A,&n,NULL);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(n,&n_);CHKERRQ(ierr);
   n2 = n_*n_;
-  ierr = PetscMalloc2(9*n*n,&work,n,&ipiv);CHKERRQ(ierr);
+  ierr = PetscMalloc2(8*n*n,&work,n,&ipiv);CHKERRQ(ierr);
 
   /* Matrix powers */
   Apowers[0] = work;                  /* Apowers[0] = A   */
@@ -415,7 +415,7 @@ PetscErrorCode FNEvaluateFunctionMat_Exp_Higham(FN fn,Mat A,Mat B)
   ierr = PetscLogFlops(6.0*n*n*n);CHKERRQ(ierr);
 
   /* Compute scaling parameter and order of Pade approximant */
-  ierr = expm_params(n,Apowers,&s,&m,Apowers[4]+n*n);CHKERRQ(ierr);
+  ierr = expm_params(n,Apowers,&s,&m,Apowers[4]);CHKERRQ(ierr);
 
   if (s) { /* rescale */
     for (j=0;j<4;j++) {
@@ -505,7 +505,7 @@ PetscErrorCode FNEvaluateFunctionMat_Exp_Higham(FN fn,Mat A,Mat B)
     PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&n_,&n_,&n_,&sone,P,&n_,P,&n_,&szero,W,&n_));
     SWAP(P,W,aux);
   }
-  if (P!=Ba) { ierr = PetscMemcpy(Ba,P,n2*sizeof(PetscScalar));CHKERRQ(ierr); SWAP(P,W,aux); }
+  if (P!=Ba) { ierr = PetscMemcpy(Ba,P,n2*sizeof(PetscScalar));CHKERRQ(ierr); }
   ierr = PetscLogFlops(2.0*n*n*n*s);CHKERRQ(ierr);
 
   ierr = PetscFree2(work,ipiv);CHKERRQ(ierr);
