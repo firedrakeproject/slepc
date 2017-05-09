@@ -19,18 +19,17 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
+#requirespackage 'PETSC_HAVE_VECCUDA'
 ALL: lib
 
 CFLAGS   =
 FFLAGS   =
-SOURCEC  = bvbasic.c bvfunc.c bvops.c bvglobal.c bvblas.c bvorthog.c bvregis.c
+SOURCECU = bvorthogcuda.cu
 SOURCEF  =
 SOURCEH  =
 LIBBASE  = libslepcsys
-DIRS     = cuda
+DIRS     =
 MANSEC   = BV
-LOCDIR   = src/sys/classes/bv/interface/
+LOCDIR   = src/sys/classes/bv/interface/cuda/
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common
-
-
