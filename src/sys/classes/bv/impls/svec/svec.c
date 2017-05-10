@@ -411,6 +411,7 @@ PetscErrorCode BVDestroy_Svec(BV bv)
   ierr = VecDestroy(&bv->cv[0]);CHKERRQ(ierr);
   ierr = VecDestroy(&bv->cv[1]);CHKERRQ(ierr);
   ierr = PetscFree(bv->data);CHKERRQ(ierr);
+  bv->cuda = PETSC_FALSE;
   PetscFunctionReturn(0);
 }
 

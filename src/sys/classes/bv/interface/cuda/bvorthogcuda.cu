@@ -24,10 +24,6 @@
 #include <slepc/private/bvimpl.h>          /*I   "slepcbv.h"   I*/
 #include <slepcblaslapack.h>
 
-#if defined(PETSC_HAVE_VECCUDA)
-
-#undef __FUNCT__
-#define __FUNCT__ "BV_CleanCoefficients_CUDA"
 /*
    BV_CleanCoefficients_CUDA - Sets to zero all entries of column j of the bv buffer
 */
@@ -50,8 +46,6 @@ PetscErrorCode BV_CleanCoefficients_CUDA(BV bv,PetscInt j,PetscScalar *h)
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "BV_AddCoefficients_CUDA"
 /*
    BV_AddCoefficients_CUDA - Add the contents of the scratch (0-th column) of the bv buffer
    into column j of the bv buffer
@@ -77,8 +71,6 @@ PetscErrorCode BV_AddCoefficients_CUDA(BV bv,PetscInt j,PetscScalar *h,PetscScal
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "BV_SetValue_CUDA"
 /*
    BV_SetValue_CUDA - Sets value in row j (counted after the constraints) of column k
    of the coefficients array
@@ -102,8 +94,6 @@ PetscErrorCode BV_SetValue_CUDA(BV bv,PetscInt j,PetscInt k,PetscScalar *h,Petsc
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "BV_SquareSum_CUDA"
 /*
    BV_SquareSum_CUDA - Returns the value h'*h, where h represents the contents of the
    coefficients array (up to position j)
@@ -135,13 +125,10 @@ PetscErrorCode BV_SquareSum_CUDA(BV bv,PetscInt j,PetscScalar *h,PetscReal *sum)
 #define BLOCK_SIZE_X 64
 #define TILE_SIZE_X  16 /* work to be done by any thread on axis x */
 
-#undef __FUNCT__
-#define __FUNCT__ "SetGrid1D"
 /*
    Set the grid dimensions
    This function assumes that the dimension to divide fits in any GPU device.
  */
-
 PetscErrorCode SetGrid1D(PetscInt n, dim3 *dimGrid, dim3 *dimBlock,PetscInt *xcount)
 {
   PetscInt              one=1,card;
@@ -151,48 +138,42 @@ PetscErrorCode SetGrid1D(PetscInt n, dim3 *dimGrid, dim3 *dimBlock,PetscInt *xco
   PetscFunctionBegin;
   if (n>BLOCK_SIZE_X) {
     dimBlock->x = BLOCK_SIZE_X;
-    dimGrid->x = (n+((BLOCK_SIZE_X*TILE_SIZE_X)-one))/BLOCK_SIZE_X*TILE_SIZE_X;
+    dimGrid->x = (n+BLOCK_SIZE_X*TILE_SIZE_X-one)/BLOCK_SIZE_X*TILE_SIZE_X;
   } else {
-    dimBlock->x = (n+(TILE_SIZE_X-one))/TILE_SIZE_X;
+    dimBlock->x = (n+TILE_SIZE_X-one)/TILE_SIZE_X;
     dimGrid->x = one;
   }
   cerr = cudaGetDevice(&card);CHKERRCUDA(cerr);
   cerr = cudaGetDeviceProperties(&devprop,card);CHKERRCUDA(cerr);
   if (dimGrid->x>(unsigned)devprop.maxGridSize[X_AXIS]) {
-    *xcount = (dimGrid->x+(devprop.maxGridSize[X_AXIS]-one))/devprop.maxGridSize[X_AXIS];
+    *xcount = (dimGrid->x+devprop.maxGridSize[X_AXIS]-one)/devprop.maxGridSize[X_AXIS];
     dimGrid->x = devprop.maxGridSize[X_AXIS];
   }
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "PointwiseMult_kernel"
 /* pointwise multiplication */
 __global__ void PointwiseMult_kernel(PetscInt xcount,PetscScalar *a,const PetscReal *b,PetscInt n)
 {
-  PetscInt       i,x;
+  PetscInt i,x;
 
-  x = (xcount*gridDim.x*blockDim.x)+blockIdx.x*blockDim.x*TILE_SIZE_X+threadIdx.x*TILE_SIZE_X;
+  x = xcount*gridDim.x*blockDim.x+blockIdx.x*blockDim.x*TILE_SIZE_X+threadIdx.x*TILE_SIZE_X;
   for (i=x;i<x+TILE_SIZE_X;i++) {
     a[i] *= b[i];
   }
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "PointwiseDiv_kernel"
 /* pointwise division */
 __global__ void PointwiseDiv_kernel(PetscInt xcount,PetscScalar *a,const PetscReal *b,PetscInt n)
 {
-  PetscInt       i,x;
+  PetscInt i,x;
 
-  x = (xcount*gridDim.x*blockDim.x)+blockIdx.x*blockDim.x*TILE_SIZE_X+threadIdx.x*TILE_SIZE_X;
+  x = xcount*gridDim.x*blockDim.x+blockIdx.x*blockDim.x*TILE_SIZE_X+threadIdx.x*TILE_SIZE_X;
   for (i=x;i<x+TILE_SIZE_X;i++) {
     a[i] /= b[i];
   }
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "BV_ApplySignature_CUDA"
 /*
    BV_ApplySignature_CUDA - Computes the pointwise product h*omega, where h represents
    the contents of the coefficients array (up to position j) and omega is the signature;
@@ -233,8 +214,6 @@ PetscErrorCode BV_ApplySignature_CUDA(BV bv,PetscInt j,PetscScalar *h,PetscBool 
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "BV_SquareRoot_CUDA"
 /*
    BV_SquareRoot_CUDA - Returns the square root of position j (counted after the constraints)
    of the coefficients array
@@ -259,8 +238,6 @@ PetscErrorCode BV_SquareRoot_CUDA(BV bv,PetscInt j,PetscScalar *h,PetscReal *bet
   PetscFunctionReturn(0);
 }
 
-#undef __FUNCT__
-#define __FUNCT__ "BV_StoreCoefficients_CUDA"
 /*
    BV_StoreCoefficients_CUDA - Copy the contents of the coefficients array to an array dest
    provided by the caller (only values from l to j are copied)
@@ -285,5 +262,3 @@ PetscErrorCode BV_StoreCoefficients_CUDA(BV bv,PetscInt j,PetscScalar *h,PetscSc
   PetscFunctionReturn(0);
 }
 
-
-#endif /* PETSC_HAVE_VECCUDA */

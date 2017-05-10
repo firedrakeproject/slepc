@@ -191,13 +191,13 @@ PETSC_STATIC_INLINE PetscErrorCode BVDotColumnInc(BV X,PetscInt j,PetscScalar *q
   PetscFunctionReturn(0);
 }
 
-#define BV_CleanCoefficients(a,b,c)   (bv->cuda?BV_CleanCoefficients_CUDA:BV_CleanCoefficients_Default)((a),(b),(c))
-#define BV_AddCoefficients(a,b,c,d)   (bv->cuda?BV_AddCoefficients_CUDA:BV_AddCoefficients_Default)((a),(b),(c),(d))
-#define BV_SetValue(a,b,c,d,e)        (bv->cuda?BV_SetValue_CUDA:BV_SetValue_Default)((a),(b),(c),(d),(e))
-#define BV_SquareSum(a,b,c,d)         (bv->cuda?BV_SquareSum_CUDA:BV_SquareSum_Default)((a),(b),(c),(d))
-#define BV_ApplySignature(a,b,c,d)    (bv->cuda?BV_ApplySignature_CUDA:BV_ApplySignature_Default)((a),(b),(c),(d))
-#define BV_SquareRoot(a,b,c,d)        (bv->cuda?BV_SquareRoot_CUDA:BV_SquareRoot_Default)((a),(b),(c),(d))
-#define BV_StoreCoefficients(a,b,c,d) (bv->cuda?BV_StoreCoefficients_CUDA:BV_StoreCoefficients_Default)((a),(b),(c),(d))
+#define BV_CleanCoefficients(a,b,c)   ((a)->cuda?BV_CleanCoefficients_CUDA:BV_CleanCoefficients_Default)((a),(b),(c))
+#define BV_AddCoefficients(a,b,c,d)   ((a)->cuda?BV_AddCoefficients_CUDA:BV_AddCoefficients_Default)((a),(b),(c),(d))
+#define BV_SetValue(a,b,c,d,e)        ((a)->cuda?BV_SetValue_CUDA:BV_SetValue_Default)((a),(b),(c),(d),(e))
+#define BV_SquareSum(a,b,c,d)         ((a)->cuda?BV_SquareSum_CUDA:BV_SquareSum_Default)((a),(b),(c),(d))
+#define BV_ApplySignature(a,b,c,d)    ((a)->cuda?BV_ApplySignature_CUDA:BV_ApplySignature_Default)((a),(b),(c),(d))
+#define BV_SquareRoot(a,b,c,d)        ((a)->cuda?BV_SquareRoot_CUDA:BV_SquareRoot_Default)((a),(b),(c),(d))
+#define BV_StoreCoefficients(a,b,c,d) ((a)->cuda?BV_StoreCoefficients_CUDA:BV_StoreCoefficients_Default)((a),(b),(c),(d))
 
 /*
    BVOrthogonalizeMGS1 - Compute one step of Modified Gram-Schmidt
