@@ -25,9 +25,9 @@
 #include <slepcblaslapack.h>
 
 /*
-   BV_CleanCoefficients - Sets to zero all entries of column j of the bv buffer
+   BV_CleanCoefficients_Default - Sets to zero all entries of column j of the bv buffer
 */
-PETSC_STATIC_INLINE PetscErrorCode BV_CleanCoefficients(BV bv,PetscInt j,PetscScalar *h)
+PETSC_STATIC_INLINE PetscErrorCode BV_CleanCoefficients_Default(BV bv,PetscInt j,PetscScalar *h)
 {
   PetscErrorCode ierr;
   PetscScalar    *hh=h,*a;
@@ -44,10 +44,10 @@ PETSC_STATIC_INLINE PetscErrorCode BV_CleanCoefficients(BV bv,PetscInt j,PetscSc
 }
 
 /*
-   BV_AddCoefficients - Add the contents of the scratch (0-th column) of the bv buffer
+   BV_AddCoefficients_Default - Add the contents of the scratch (0-th column) of the bv buffer
    into column j of the bv buffer
 */
-PETSC_STATIC_INLINE PetscErrorCode BV_AddCoefficients(BV bv,PetscInt j,PetscScalar *h,PetscScalar *c)
+PETSC_STATIC_INLINE PetscErrorCode BV_AddCoefficients_Default(BV bv,PetscInt j,PetscScalar *h,PetscScalar *c)
 {
   PetscErrorCode ierr;
   PetscScalar    *hh=h,*cc=c;
@@ -64,10 +64,10 @@ PETSC_STATIC_INLINE PetscErrorCode BV_AddCoefficients(BV bv,PetscInt j,PetscScal
 }
 
 /*
-   BV_SetValue - Sets value in row j (counted after the constraints) of column k
+   BV_SetValue_Default - Sets value in row j (counted after the constraints) of column k
    of the coefficients array
 */
-PETSC_STATIC_INLINE PetscErrorCode BV_SetValue(BV bv,PetscInt j,PetscInt k,PetscScalar *h,PetscScalar value)
+PETSC_STATIC_INLINE PetscErrorCode BV_SetValue_Default(BV bv,PetscInt j,PetscInt k,PetscScalar *h,PetscScalar value)
 {
   PetscErrorCode ierr;
   PetscScalar    *hh=h,*a;
@@ -83,10 +83,10 @@ PETSC_STATIC_INLINE PetscErrorCode BV_SetValue(BV bv,PetscInt j,PetscInt k,Petsc
 }
 
 /*
-   BV_SquareSum - Returns the value h'*h, where h represents the contents of the
+   BV_SquareSum_Default - Returns the value h'*h, where h represents the contents of the
    coefficients array (up to position j)
 */
-PETSC_STATIC_INLINE PetscErrorCode BV_SquareSum(BV bv,PetscInt j,PetscScalar *h,PetscReal *sum)
+PETSC_STATIC_INLINE PetscErrorCode BV_SquareSum_Default(BV bv,PetscInt j,PetscScalar *h,PetscReal *sum)
 {
   PetscErrorCode ierr;
   PetscScalar    *hh=h;
@@ -101,11 +101,11 @@ PETSC_STATIC_INLINE PetscErrorCode BV_SquareSum(BV bv,PetscInt j,PetscScalar *h,
 }
 
 /*
-   BV_ApplySignature - Computes the pointwise product h*omega, where h represents
+   BV_ApplySignature_Default - Computes the pointwise product h*omega, where h represents
    the contents of the coefficients array (up to position j) and omega is the signature;
    if inverse=TRUE then the operation is h/omega
 */
-PETSC_STATIC_INLINE PetscErrorCode BV_ApplySignature(BV bv,PetscInt j,PetscScalar *h,PetscBool inverse)
+PETSC_STATIC_INLINE PetscErrorCode BV_ApplySignature_Default(BV bv,PetscInt j,PetscScalar *h,PetscBool inverse)
 {
   PetscErrorCode ierr;
   PetscScalar    *hh=h;
@@ -120,10 +120,10 @@ PETSC_STATIC_INLINE PetscErrorCode BV_ApplySignature(BV bv,PetscInt j,PetscScala
 }
 
 /*
-   BV_SquareRoot - Returns the square root of position j (counted after the constraints)
+   BV_SquareRoot_Default - Returns the square root of position j (counted after the constraints)
    of the coefficients array
 */
-PETSC_STATIC_INLINE PetscErrorCode BV_SquareRoot(BV bv,PetscInt j,PetscScalar *h,PetscReal *beta)
+PETSC_STATIC_INLINE PetscErrorCode BV_SquareRoot_Default(BV bv,PetscInt j,PetscScalar *h,PetscReal *beta)
 {
   PetscErrorCode ierr;
   PetscScalar    *hh=h;
@@ -136,10 +136,10 @@ PETSC_STATIC_INLINE PetscErrorCode BV_SquareRoot(BV bv,PetscInt j,PetscScalar *h
 }
 
 /*
-   BV_StoreCoefficients - Copy the contents of the coefficients array to an array dest
+   BV_StoreCoefficients_Default - Copy the contents of the coefficients array to an array dest
    provided by the caller (only values from l to j are copied)
 */
-PETSC_STATIC_INLINE PetscErrorCode BV_StoreCoefficients(BV bv,PetscInt j,PetscScalar *h,PetscScalar *dest)
+PETSC_STATIC_INLINE PetscErrorCode BV_StoreCoefficients_Default(BV bv,PetscInt j,PetscScalar *h,PetscScalar *dest)
 {
   PetscErrorCode ierr;
   PetscScalar    *hh=h,*a;
@@ -190,6 +190,14 @@ PETSC_STATIC_INLINE PetscErrorCode BVDotColumnInc(BV X,PetscInt j,PetscScalar *q
   ierr = PetscLogEventEnd(BV_DotVec,X,0,0,0);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
+
+#define BV_CleanCoefficients(a,b,c)   ((a)->cuda?BV_CleanCoefficients_CUDA:BV_CleanCoefficients_Default)((a),(b),(c))
+#define BV_AddCoefficients(a,b,c,d)   ((a)->cuda?BV_AddCoefficients_CUDA:BV_AddCoefficients_Default)((a),(b),(c),(d))
+#define BV_SetValue(a,b,c,d,e)        ((a)->cuda?BV_SetValue_CUDA:BV_SetValue_Default)((a),(b),(c),(d),(e))
+#define BV_SquareSum(a,b,c,d)         ((a)->cuda?BV_SquareSum_CUDA:BV_SquareSum_Default)((a),(b),(c),(d))
+#define BV_ApplySignature(a,b,c,d)    ((a)->cuda?BV_ApplySignature_CUDA:BV_ApplySignature_Default)((a),(b),(c),(d))
+#define BV_SquareRoot(a,b,c,d)        ((a)->cuda?BV_SquareRoot_CUDA:BV_SquareRoot_Default)((a),(b),(c),(d))
+#define BV_StoreCoefficients(a,b,c,d) ((a)->cuda?BV_StoreCoefficients_CUDA:BV_StoreCoefficients_Default)((a),(b),(c),(d))
 
 /*
    BVOrthogonalizeMGS1 - Compute one step of Modified Gram-Schmidt

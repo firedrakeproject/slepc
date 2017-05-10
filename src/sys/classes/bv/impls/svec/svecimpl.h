@@ -25,7 +25,6 @@
 typedef struct {
   Vec       v;
   PetscBool mpi;    /* true if either VECMPI or VECMPICUSP */
-  PetscBool cuda;   /* true if either VECSEQCUDA or VECMPICUDA */
 } BV_SVEC;
 
 PETSC_INTERN PetscErrorCode BVMult_Svec_CUDA(BV,PetscScalar,PetscScalar,BV,Mat);
