@@ -411,6 +411,7 @@ PetscErrorCode BVDestroy_Svec(BV bv)
   ierr = VecDestroy(&bv->cv[0]);CHKERRQ(ierr);
   ierr = VecDestroy(&bv->cv[1]);CHKERRQ(ierr);
   ierr = PetscFree(bv->data);CHKERRQ(ierr);
+  bv->cuda = PETSC_FALSE;
   PetscFunctionReturn(0);
 }
 
@@ -427,11 +428,11 @@ PETSC_EXTERN PetscErrorCode BVCreate_Svec(BV bv)
   ierr = PetscNewLog(bv,&ctx);CHKERRQ(ierr);
   bv->data = (void*)ctx;
 
-  ierr = PetscObjectTypeCompareAny((PetscObject)bv->t,&ctx->cuda,VECSEQCUDA,VECMPICUDA,"");CHKERRQ(ierr);
+  ierr = PetscObjectTypeCompareAny((PetscObject)bv->t,&bv->cuda,VECSEQCUDA,VECMPICUDA,"");CHKERRQ(ierr);
   ierr = PetscObjectTypeCompareAny((PetscObject)bv->t,&ctx->mpi,VECMPI,VECMPICUDA,"");CHKERRQ(ierr);
 
   ierr = PetscObjectTypeCompare((PetscObject)bv->t,VECSEQ,&seq);CHKERRQ(ierr);
-  if (!seq && !ctx->mpi && !ctx->cuda) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"BVSVEC does not support the type of the provided template vector");
+  if (!seq && !ctx->mpi && !bv->cuda) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"BVSVEC does not support the type of the provided template vector");
 
   ierr = VecGetLocalSize(bv->t,&nloc);CHKERRQ(ierr);
   ierr = VecGetBlockSize(bv->t,&bs);CHKERRQ(ierr);
@@ -455,7 +456,7 @@ PETSC_EXTERN PetscErrorCode BVCreate_Svec(BV bv)
     ierr = MatDestroy(&bv->Acreate);CHKERRQ(ierr);
   }
 
-  if (ctx->cuda) {
+  if (bv->cuda) {
 #if defined(PETSC_HAVE_VECCUDA)
     if (ctx->mpi) {
       ierr = VecCreateMPICUDAWithArray(PetscObjectComm((PetscObject)bv->t),bs,nloc,PETSC_DECIDE,NULL,&bv->cv[0]);CHKERRQ(ierr);
@@ -477,7 +478,7 @@ PETSC_EXTERN PetscErrorCode BVCreate_Svec(BV bv)
 
   ierr = VecSetType(bv->cv[0],((PetscObject)bv->t)->type_name);CHKERRQ(ierr);
   ierr = VecSetType(bv->cv[1],((PetscObject)bv->t)->type_name);CHKERRQ(ierr);
-  if (ctx->cuda) {
+  if (bv->cuda) {
 #if defined(PETSC_HAVE_VECCUDA)
     bv->ops->mult             = BVMult_Svec_CUDA;
     bv->ops->multvec          = BVMultVec_Svec_CUDA;
