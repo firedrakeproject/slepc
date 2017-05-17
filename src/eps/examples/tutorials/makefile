@@ -25,7 +25,7 @@ CPPFLAGS   =
 FPPFLAGS   =
 LOCDIR     = src/eps/examples/tutorials/
 EXAMPLESC  = ex1.c ex2.c ex3.c ex4.c ex5.c ex7.c ex9.c ex10.c ex11.c ex12.c ex13.c \
-             ex18.c ex19.c ex24.c ex25.c ex29.c ex30.c ex31.c ex34.c ex35.c
+             ex18.c ex19.c ex24.c ex25.c ex29.c ex30.c ex31.c ex34.c ex35.c ex36.c
 EXAMPLESF  = ex1f.F ex1f90.F90 ex6f.F
 MANSEC     = EPS
 
@@ -34,7 +34,8 @@ TESTEXAMPLES_C                     = ex5.PETSc runex5_1 ex5.rm \
                                      ex24.PETSc runex24_1 ex24.rm \
                                      ex29.PETSc runex29_1 ex29.rm \
                                      ex34.PETSc runex34_1 ex34.rm \
-                                     ex35.PETSc runex35_1 ex35.rm
+                                     ex35.PETSc runex35_1 ex35.rm \
+                                     ex36.PETSc runex36_1 ex36.rm
 TESTEXAMPLES_C_DOUBLE              = ex2.PETSc runex2_ciss_1 runex2_ciss_2 ex2.rm \
                                      ex19.PETSc runex19_1 ex19.rm
 TESTEXAMPLES_C_NOTSINGLE           = ex2.PETSc runex2_1 runex2_2 ex2.rm \
@@ -149,6 +150,10 @@ ex34: ex34.o chkopts
 ex35: ex35.o chkopts
 	-${CLINKER} -o ex35 ex35.o ${SLEPC_EPS_LIB}
 	${RM} ex35.o
+
+ex36: ex36.o chkopts
+	-${CLINKER} -o ex36 ex36.o ${SLEPC_EPS_LIB}
+	${RM} ex36.o
 
 #------------------------------------------------------------------------------------
 DATAPATH = ${SLEPC_DIR}/share/slepc/datafiles/matrices
@@ -338,5 +343,10 @@ runex35_1:
 	-@${SETTEST}; \
 	if [ "${PETSC_PRECISION}" = "single" ]; then EXTRA="-eps_tol 1e-5"; fi; \
 	${MPIEXEC} -n 1 ./ex35 -m 11 -eps_nev 4 -terse $$EXTRA > $${test}.tmp 2>&1; \
+	${TESTCODE}
+
+runex36_1:
+	-@${SETTEST}; \
+	${MPIEXEC} -n 1 ./ex36 -eps_nev 4 -terse > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
