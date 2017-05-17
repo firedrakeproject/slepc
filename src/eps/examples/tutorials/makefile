@@ -283,7 +283,7 @@ runex11_1:
 
 runex11_2:
 	-@${SETTEST}; check=ex11_1; \
-	${MPIEXEC} -n 1 ./ex11 -eps_nev 4 -eps_ncv 20 -st_type sinvert -st_ksp_type cg -st_pc_type jacobi -terse > $${test}.tmp 2>&1; \
+	${MPIEXEC} -n 1 ./ex11 -eps_nev 4 -eps_ncv 20 -eps_target 0 -st_type sinvert -st_ksp_type cg -st_pc_type jacobi -terse > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
 runex12_1:

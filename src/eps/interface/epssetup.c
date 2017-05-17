@@ -272,6 +272,8 @@ PetscErrorCode EPSSetUp(EPS eps)
 #endif
   ierr = PetscObjectTypeCompare((PetscObject)eps->st,STCAYLEY,&flg);CHKERRQ(ierr);
   if (flg && eps->problem_type == EPS_PGNHEP) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Cayley spectral transformation is not compatible with PGNHEP");
+  ierr = PetscObjectTypeCompareAny((PetscObject)eps->st,&flg,STSINVERT,STCAYLEY,"");CHKERRQ(ierr);
+  if (flg && (eps->categ==EPS_CATEGORY_KRYLOV || eps->categ==EPS_CATEGORY_OTHER) && (eps->which==EPS_SMALLEST_MAGNITUDE || eps->which==EPS_SMALLEST_REAL || eps->which==EPS_SMALLEST_IMAGINARY)) SETERRQ(PetscObjectComm((PetscObject)eps),1,"Must select a target sorting criterion if using shift-and-invert");
 
   /* process deflation and initial vectors */
   if (eps->nds<0) {
