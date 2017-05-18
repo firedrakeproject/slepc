@@ -34,8 +34,7 @@ TESTEXAMPLES_C                     = ex5.PETSc runex5_1 ex5.rm \
                                      ex24.PETSc runex24_1 ex24.rm \
                                      ex29.PETSc runex29_1 ex29.rm \
                                      ex34.PETSc runex34_1 ex34.rm \
-                                     ex35.PETSc runex35_1 ex35.rm \
-                                     ex36.PETSc runex36_1 ex36.rm
+                                     ex35.PETSc runex35_1 ex35.rm
 TESTEXAMPLES_C_DOUBLE              = ex2.PETSc runex2_ciss_1 runex2_ciss_2 ex2.rm \
                                      ex19.PETSc runex19_1 ex19.rm
 TESTEXAMPLES_C_NOTSINGLE           = ex2.PETSc runex2_1 runex2_2 ex2.rm \
@@ -44,7 +43,8 @@ TESTEXAMPLES_C_NOTSINGLE           = ex2.PETSc runex2_1 runex2_2 ex2.rm \
                                      ex11.PETSc runex11_1 runex11_2 ex11.rm \
                                      ex12.PETSc runex12_1 ex12.rm \
                                      ex18.PETSc runex18_1 ex18.rm \
-                                     ex30.PETSc runex30_1 ex30.rm
+                                     ex30.PETSc runex30_1 ex30.rm \
+                                     ex36.PETSc runex36_1 ex36.rm
 TESTEXAMPLES_C_DATAFILE            = ex4.PETSc runex4_1 ex4.rm \
                                      ex7.PETSc runex7_1 ex7.rm \
                                      ex9.PETSc runex9_3 runex9_7 ex9.rm \
@@ -152,7 +152,7 @@ ex35: ex35.o chkopts
 	${RM} ex35.o
 
 ex36: ex36.o chkopts
-	-${CLINKER} -o ex36 ex36.o ${SLEPC_EPS_LIB}
+	-${CLINKER} -o ex36 ex36.o ${SLEPC_EPS_LIB} ${SLEPC_MFN_LIB}
 	${RM} ex36.o
 
 #------------------------------------------------------------------------------------
@@ -347,6 +347,9 @@ runex35_1:
 
 runex36_1:
 	-@${SETTEST}; \
-	${MPIEXEC} -n 1 ./ex36 -eps_nev 4 -terse > $${test}.tmp 2>&1; \
-	${TESTCODE}
+	if ${GREP} "\#define PETSC_HAVE_C99_COMPLEX" ${PETSC_DIR}/${PETSC_ARCH}/include/petscconf.h > /dev/null; then \
+	  if [ "${PETSC_PRECISION}" = "__float128" ]; then EXTRA="-eps_tol 1e-14"; fi; \
+	  ${MPIEXEC} -n 1 ./ex36 -eps_nev 4 -mfn_ncv 14 -terse $$EXTRA > $${test}.tmp 2>&1; \
+	  ${TESTCODE}; \
+	fi 
 
