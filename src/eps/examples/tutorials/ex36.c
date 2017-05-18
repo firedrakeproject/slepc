@@ -65,7 +65,7 @@ int main(int argc,char **argv)
   PetscErrorCode ierr;
 
   ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
-
+#if (defined(__cplusplus) && defined(PETSC_HAVE_CXX_COMPLEX)) || (!defined(__cplusplus) && defined(PETSC_HAVE_C99_COMPLEX))
   ierr = PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD,"\nBrusselator wave model with matrix exponential, n=%D\n\n",n);CHKERRQ(ierr);
 
@@ -171,6 +171,9 @@ int main(int argc,char **argv)
   ierr = EPSDestroy(&eps);CHKERRQ(ierr);
   ierr = MatDestroy(&A);CHKERRQ(ierr);
   ierr = MFNDestroy(&mfn);CHKERRQ(ierr);
+#else
+  SETERRQ(PETSC_COMM_SELF,1,"This examples requires C99 complex numbers");
+#endif
   ierr = SlepcFinalize();
   return ierr;
 }
@@ -189,6 +192,7 @@ int main(int argc,char **argv)
 */
 PetscErrorCode STBackTransform_Exp(ST st,PetscInt n,PetscScalar *eigr,PetscScalar *eigi)
 {
+#if (defined(__cplusplus) && defined(PETSC_HAVE_CXX_COMPLEX)) || (!defined(__cplusplus) && defined(PETSC_HAVE_C99_COMPLEX))
   PetscErrorCode ierr;
   PetscInt       j;
   MFN            mfn;
@@ -213,6 +217,9 @@ PetscErrorCode STBackTransform_Exp(ST st,PetscInt n,PetscScalar *eigr,PetscScala
 #endif
   }
   PetscFunctionReturn(0);
+#else
+  return 0;
+#endif
 }
 
 /*
