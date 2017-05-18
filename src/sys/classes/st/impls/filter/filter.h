@@ -74,7 +74,7 @@ typedef struct {
                                       the base filter approximated by a polynomial filter;
                                       the j-th interval is [intervals(j),intervals(j+1)) */
   PetscReal   intervals2[6];       /* modified intervals */
-  Mat         baseFilter;          /* coefficients of the base filter (a piecewise polynomial) */
+  PetscReal   *baseFilter;         /* coefficients of the base filter (a piecewise polynomial) */
 } ST_FILTER;
 
 PETSC_INTERN PetscErrorCode STFilter_FILTLAN_Apply(ST,Vec,Vec);
