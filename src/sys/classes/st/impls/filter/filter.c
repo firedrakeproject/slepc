@@ -240,6 +240,40 @@ PetscErrorCode STFilterGetDegree(ST st,PetscInt *deg)
   PetscFunctionReturn(0);
 }
 
+static PetscErrorCode STFilterGetThreshold_Filter(ST st,PetscReal *gamma)
+{
+  ST_FILTER *ctx = (ST_FILTER*)st->data;
+
+  PetscFunctionBegin;
+  *gamma = ctx->filterInfo->yLimit;
+  PetscFunctionReturn(0);
+}
+
+/*@
+   STFilterGetThreshold - Gets the threshold value gamma such that rho(lambda)>=gamma for
+   eigenvalues lambda inside the wanted interval and rho(lambda)<gamma for those outside.
+
+   Not Collective
+
+   Input Parameter:
+.  st  - the spectral transformation context
+
+   Output Parameter:
+.  gamma - the threshold value
+
+   Level: developer
+@*/
+PetscErrorCode STFilterGetThreshold(ST st,PetscReal *gamma)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(st,ST_CLASSID,1);
+  PetscValidPointer(gamma,2);
+  ierr = PetscUseMethod(st,"STFilterGetThreshold_C",(ST,PetscReal*),(st,gamma));CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
 PetscErrorCode STView_Filter(ST st,PetscViewer viewer)
 {
   PetscErrorCode ierr;
@@ -272,6 +306,7 @@ PetscErrorCode STDestroy_Filter(ST st)
   ierr = PetscObjectComposeFunction((PetscObject)st,"STFilterGetInterval_C",NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)st,"STFilterSetDegree_C",NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)st,"STFilterGetDegree_C",NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)st,"STFilterGetThreshold_C",NULL);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -323,5 +358,6 @@ PETSC_EXTERN PetscErrorCode STCreate_Filter(ST st)
   ierr = PetscObjectComposeFunction((PetscObject)st,"STFilterGetInterval_C",STFilterGetInterval_Filter);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)st,"STFilterSetDegree_C",STFilterSetDegree_Filter);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)st,"STFilterGetDegree_C",STFilterGetDegree_Filter);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)st,"STFilterGetThreshold_C",STFilterGetThreshold_Filter);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

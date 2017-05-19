@@ -73,6 +73,7 @@ PetscErrorCode EPSGetArbitraryValues(EPS eps,PetscScalar *rr,PetscScalar *ri)
 static PetscErrorCode EPSSetUp_KrylovSchur_Filter(EPS eps)
 {
   PetscErrorCode ierr;
+  SlepcSC        sc;
 
   PetscFunctionBegin;
   if (eps->intb >= PETSC_MAX_REAL && eps->inta <= PETSC_MIN_REAL) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_WRONG,"The defined computational interval should have at least one of their sides bounded");
@@ -83,6 +84,13 @@ static PetscErrorCode EPSSetUp_KrylovSchur_Filter(EPS eps)
   ierr = EPSSetDimensions_Default(eps,eps->nev,&eps->ncv,&eps->mpd);CHKERRQ(ierr);
   if (eps->ncv>eps->nev+eps->mpd) SETERRQ(PetscObjectComm((PetscObject)eps),1,"The value of ncv must not be larger than nev+mpd");
   if (!eps->max_it) eps->max_it = PetscMax(100,2*eps->n/eps->ncv);
+
+  ierr = DSGetSlepcSC(eps->ds,&sc);CHKERRQ(ierr);
+  sc->rg            = NULL;
+  sc->comparison    = SlepcCompareLargestReal;
+  sc->comparisonctx = NULL;
+  sc->map           = NULL;
+  sc->mapobj        = NULL;
   PetscFunctionReturn(0);
 }
 
