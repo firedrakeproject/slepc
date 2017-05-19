@@ -37,11 +37,13 @@ PetscErrorCode EPSComputeVectors(EPS eps)
   PetscFunctionReturn(0);
 }
 
+#define SWAP(a,b,t) {t=a;a=b;b=t;}
+
 static PetscErrorCode EPSComputeValues(EPS eps)
 {
   PetscErrorCode ierr;
-  PetscBool      injective,iscomp;
-  PetscInt       n;
+  PetscBool      injective,iscomp,isfilter;
+  PetscInt       i,n,aux,nconv0;
   Mat            A,B=NULL,G,Z;
 
   PetscFunctionBegin;
@@ -77,6 +79,20 @@ static PetscErrorCode EPSComputeValues(EPS eps)
           ierr = DSGetMat(eps->ds,DS_MAT_X,&Z);CHKERRQ(ierr);
           ierr = BVMultInPlace(eps->V,Z,0,n);CHKERRQ(ierr);
           ierr = MatDestroy(&Z);CHKERRQ(ierr);
+        }
+        /* in case of STFILTER discard computed eigenvalues that lie outside the wanted interval */
+        ierr = PetscObjectTypeCompare((PetscObject)eps->st,STFILTER,&isfilter);CHKERRQ(ierr);
+        if (isfilter) {
+          nconv0 = eps->nconv;
+          for (i=0;i<nconv0;i++) {
+            if (PetscRealPart(eps->eigr[i])<eps->inta || PetscRealPart(eps->eigr[i])>eps->intb) {
+              eps->nconv--;
+              if (i<eps->nconv) SWAP(eps->perm[i],eps->perm[eps->nconv],aux);
+            }
+          }
+          if (nconv0>eps->nconv) {
+            ierr = PetscInfo1(eps,"Discarded %D computed eigenvalues lying outside the interval\n",nconv0-eps->nconv);CHKERRQ(ierr);
+          }
         }
       }
       break;

@@ -159,6 +159,7 @@ PETSC_EXTERN PetscErrorCode STFilterSetInterval(ST,PetscReal,PetscReal);
 PETSC_EXTERN PetscErrorCode STFilterGetInterval(ST,PetscReal*,PetscReal*);
 PETSC_EXTERN PetscErrorCode STFilterSetDegree(ST,PetscInt);
 PETSC_EXTERN PetscErrorCode STFilterGetDegree(ST,PetscInt*);
+PETSC_EXTERN PetscErrorCode STFilterGetThreshold(ST,PetscReal*);
 
 #endif
 
