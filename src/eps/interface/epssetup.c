@@ -69,12 +69,15 @@ PetscErrorCode EPSSetDefaultST_Precond(EPS eps)
 PetscErrorCode EPSSetDefaultST_GMRES(EPS eps)
 {
   PetscErrorCode ierr;
+  KSP            ksp;
 
   PetscFunctionBegin;
   if (!((PetscObject)eps->st)->type_name) {
     ierr = STSetType(eps->st,STPRECOND);CHKERRQ(ierr);
     ierr = STPrecondSetKSPHasMat(eps->st,PETSC_TRUE);CHKERRQ(ierr);
   }
+  ierr = STGetKSP(eps->st,&ksp);CHKERRQ(ierr);
+  ierr = KSPSetTolerances(ksp,PETSC_DEFAULT,PETSC_DEFAULT,PETSC_DEFAULT,5);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
