@@ -157,6 +157,8 @@ PETSC_EXTERN PetscErrorCode STPrecondSetKSPHasMat(ST,PetscBool);
 
 PETSC_EXTERN PetscErrorCode STFilterSetInterval(ST,PetscReal,PetscReal);
 PETSC_EXTERN PetscErrorCode STFilterGetInterval(ST,PetscReal*,PetscReal*);
+PETSC_EXTERN PetscErrorCode STFilterSetRange(ST,PetscReal,PetscReal);
+PETSC_EXTERN PetscErrorCode STFilterGetRange(ST,PetscReal*,PetscReal*);
 PETSC_EXTERN PetscErrorCode STFilterSetDegree(ST,PetscInt);
 PETSC_EXTERN PetscErrorCode STFilterGetDegree(ST,PetscInt*);
 PETSC_EXTERN PetscErrorCode STFilterGetThreshold(ST,PetscReal*);

@@ -62,6 +62,7 @@ typedef struct _n_FILTLAN_PFI *FILTLAN_PFI;
 typedef struct {
   /* user options */
   PetscReal   inta,intb;           /* bounds of the interval of desired eigenvalues */
+  PetscReal   left,right;          /* approximate left and right bounds of the interval containing all eigenvalues */
   PetscInt    polyDegree;          /* degree of s(z), with z*s(z) the polynomial filter */
   PetscInt    baseDegree;          /* left and right degrees of the base filter for each interval */
   FILTLAN_IOP opts;                /* interval options */

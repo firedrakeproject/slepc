@@ -70,14 +70,46 @@ PetscErrorCode EPSGetArbitraryValues(EPS eps,PetscScalar *rr,PetscScalar *ri)
   PetscFunctionReturn(0);
 }
 
+static PetscErrorCode EstimateRange(Mat A,PetscReal *left,PetscReal *right)
+{
+  PetscErrorCode ierr;
+  PetscInt       nconv;
+  EPS            eps;
+
+  PetscFunctionBegin;
+  ierr = EPSCreate(PetscObjectComm((PetscObject)A),&eps);CHKERRQ(ierr);
+  ierr = EPSSetOperators(eps,A,NULL);CHKERRQ(ierr);
+  ierr = EPSSetProblemType(eps,EPS_HEP);CHKERRQ(ierr);
+  ierr = EPSSetTolerances(eps,1e-3,50);CHKERRQ(ierr);
+  ierr = EPSSetWhichEigenpairs(eps,EPS_SMALLEST_REAL);CHKERRQ(ierr);
+  ierr = EPSSolve(eps);CHKERRQ(ierr);
+  ierr = EPSGetConverged(eps,&nconv);CHKERRQ(ierr);
+  if (nconv>0) {
+    ierr = EPSGetEigenvalue(eps,0,left,NULL);CHKERRQ(ierr);
+  } else *left = eps->eigr[0];
+  ierr = EPSSetWhichEigenpairs(eps,EPS_LARGEST_REAL);CHKERRQ(ierr);
+  ierr = EPSSolve(eps);CHKERRQ(ierr);
+  ierr = EPSGetConverged(eps,&nconv);CHKERRQ(ierr);
+  if (nconv>0) {
+    ierr = EPSGetEigenvalue(eps,0,right,NULL);CHKERRQ(ierr);
+  } else *right = eps->eigr[0];
+  ierr = EPSDestroy(&eps);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
 static PetscErrorCode EPSSetUp_KrylovSchur_Filter(EPS eps)
 {
   PetscErrorCode ierr;
   SlepcSC        sc;
+  PetscReal      rleft,rright;
+  Mat            A;
 
   PetscFunctionBegin;
   if (eps->intb >= PETSC_MAX_REAL && eps->inta <= PETSC_MIN_REAL) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_WRONG,"The defined computational interval should have at least one of their sides bounded");
   ierr = STFilterSetInterval(eps->st,eps->inta,eps->intb);CHKERRQ(ierr);
+  ierr = STGetMatrix(eps->st,0,&A);CHKERRQ(ierr);
+  ierr = EstimateRange(A,&rleft,&rright);CHKERRQ(ierr);
+  ierr = STFilterSetRange(eps->st,rleft,rright);CHKERRQ(ierr);
   if (!eps->ishermitian) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Spectrum slicing only available for symmetric/Hermitian eigenproblems");
   if (eps->arbitrary) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Arbitrary selection of eigenpairs cannot be used with spectrum slicing");
   if (eps->tol==PETSC_DEFAULT) eps->tol = SLEPC_DEFAULT_TOL*1e-2;  /* use tighter tolerance */
