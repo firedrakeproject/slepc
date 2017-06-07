@@ -42,11 +42,13 @@ PetscErrorCode STSetUp_Filter(ST st)
   ierr = STSetWorkVecs(st,4);CHKERRQ(ierr);
   if (st->nmat>1) SETERRQ(PetscObjectComm((PetscObject)st),1,"Only implemented for standard eigenvalue problem");
   if (ctx->intb >= PETSC_MAX_REAL && ctx->inta <= PETSC_MIN_REAL) SETERRQ(PetscObjectComm((PetscObject)st),1,"Must pass an interval with STFilterSetInterval()");
+  if (ctx->right >= PETSC_MAX_REAL && ctx->left <= PETSC_MIN_REAL) SETERRQ(PetscObjectComm((PetscObject)st),1,"Must pass an approximate numerical range with STFilterSetRange()");
+  if (ctx->left > ctx->inta || ctx->right < ctx->intb) SETERRQ4(PetscObjectComm((PetscObject)st),1,"The requested interval [%g,%g] must be contained in the numerical range [%g,%g]",(double)ctx->inta,(double)ctx->intb,(double)ctx->left,(double)ctx->right);
   if (!ctx->polyDegree) ctx->polyDegree = 100;
-  ctx->frame[0] = 0.01026135321620758;   /* PENDING: COMPUTE */
+  ctx->frame[0] = ctx->left;
   ctx->frame[1] = ctx->inta;
   ctx->frame[2] = ctx->intb;
-  ctx->frame[3] = 3.9897386467837923;   /* PENDING: COMPUTE */
+  ctx->frame[3] = ctx->right;
   ierr = STFilter_FILTLAN_setFilter(st);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -66,6 +68,12 @@ PetscErrorCode STSetFromOptions_Filter(PetscOptionItems *PetscOptionsObject,ST s
     if (flg) {
       if (k<2) SETERRQ(PetscObjectComm((PetscObject)st),PETSC_ERR_ARG_SIZ,"Must pass two values in -st_filter_interval (comma-separated without spaces)");
       ierr = STFilterSetInterval(st,array[0],array[1]);CHKERRQ(ierr);
+    }
+    k = 2;
+    ierr = PetscOptionsRealArray("-st_filter_range","Interval containing all eigenvalues (two real values separated with a comma without spaces)","STFilterSetRange",array,&k,&flg);CHKERRQ(ierr);
+    if (flg) {
+      if (k<2) SETERRQ(PetscObjectComm((PetscObject)st),PETSC_ERR_ARG_SIZ,"Must pass two values in -st_filter_range (comma-separated without spaces)");
+      ierr = STFilterSetRange(st,array[0],array[1]);CHKERRQ(ierr);
     }
     ierr = PetscOptionsInt("-st_filter_degree","Degree of filter polynomial","STFilterSetDegree",100,&k,&flg);CHKERRQ(ierr);
     if (flg) { ierr = STFilterSetDegree(st,k);CHKERRQ(ierr); }
@@ -110,7 +118,10 @@ static PetscErrorCode STFilterSetInterval_Filter(ST st,PetscReal inta,PetscReal 
 
    Common usage is to set the interval in EPS with EPSSetInterval().
 
-.seealso: STFilterGetInterval(), EPSSetInterval()
+   The interval must be contained within the numerical range of the matrix, see
+   STFilterSetRange().
+
+.seealso: STFilterGetInterval(), STFilterSetRange(), EPSSetInterval()
 @*/
 PetscErrorCode STFilterSetInterval(ST st,PetscReal inta,PetscReal intb)
 {
@@ -157,6 +168,90 @@ PetscErrorCode STFilterGetInterval(ST st,PetscReal *inta,PetscReal *intb)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
   ierr = PetscUseMethod(st,"STFilterGetInterval_C",(ST,PetscReal*,PetscReal*),(st,inta,intb));CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+static PetscErrorCode STFilterSetRange_Filter(ST st,PetscReal left,PetscReal right)
+{
+  ST_FILTER *ctx = (ST_FILTER*)st->data;
+
+  PetscFunctionBegin;
+  if (left>right) SETERRQ(PetscObjectComm((PetscObject)st),PETSC_ERR_ARG_WRONG,"Badly defined interval, must be left<right");
+  if (ctx->left != left || ctx->right != right) {
+    ctx->left  = left;
+    ctx->right = right;
+    st->state  = ST_STATE_INITIAL;
+  }
+  PetscFunctionReturn(0);
+}
+
+/*@
+   STFilterSetRange - Defines the numerical range (or field of values) of the matrix, that is,
+   the interval containing all eigenvalues.
+
+   Logically Collective on ST
+
+   Input Parameters:
++  st    - the spectral transformation context
+.  left  - left end of the interval
+-  right - right end of the interval
+
+   Options Database Key:
+.  -st_filter_range <a,b> - set [a,b] as the numerical range
+
+   Level: intermediate
+
+   Notes:
+   The filter will be most effective if the numerical range is tight, that is, left and right
+   are good approximations to the leftmost and rightmost eigenvalues, respectively.
+
+.seealso: STFilterGetRange(), STFilterSetInterval()
+@*/
+PetscErrorCode STFilterSetRange(ST st,PetscReal left,PetscReal right)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(st,ST_CLASSID,1);
+  PetscValidLogicalCollectiveReal(st,left,2);
+  PetscValidLogicalCollectiveReal(st,right,3);
+  ierr = PetscTryMethod(st,"STFilterSetRange_C",(ST,PetscReal,PetscReal),(st,left,right));CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+static PetscErrorCode STFilterGetRange_Filter(ST st,PetscReal *left,PetscReal *right)
+{
+  ST_FILTER *ctx = (ST_FILTER*)st->data;
+
+  PetscFunctionBegin;
+  if (left)  *left  = ctx->left;
+  if (right) *right = ctx->right;
+  PetscFunctionReturn(0);
+}
+
+/*@
+   STFilterGetRange - Gets the interval containing all eigenvalues.
+
+   Not Collective
+
+   Input Parameter:
+.  st  - the spectral transformation context
+
+   Output Parameter:
++  left  - left end of the interval
+-  right - right end of the interval
+
+   Level: intermediate
+
+.seealso: STFilterSetRange()
+@*/
+PetscErrorCode STFilterGetRange(ST st,PetscReal *left,PetscReal *right)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(st,ST_CLASSID,1);
+  ierr = PetscUseMethod(st,"STFilterGetRange_C",(ST,PetscReal*,PetscReal*),(st,left,right));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -284,6 +379,7 @@ PetscErrorCode STView_Filter(ST st,PetscViewer viewer)
   ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
   if (isascii) {
     ierr = PetscViewerASCIIPrintf(viewer,"  Filter: interval of desired eigenvalues is [%g,%g]\n",(double)ctx->inta,(double)ctx->intb);CHKERRQ(ierr);
+    ierr = PetscViewerASCIIPrintf(viewer,"  Filter: numerical range is [%g,%g]\n",(double)ctx->left,(double)ctx->right);CHKERRQ(ierr);
     ierr = PetscViewerASCIIPrintf(viewer,"  Filter: degree of filter polynomial is %D\n",ctx->polyDegree);CHKERRQ(ierr);
     if (st->state>=ST_STATE_SETUP) {
       ierr = PetscViewerASCIIPrintf(viewer,"  Filter: limit to accept eigenvalues: theta=%g\n",ctx->filterInfo->yLimit);CHKERRQ(ierr);
@@ -304,6 +400,8 @@ PetscErrorCode STDestroy_Filter(ST st)
   ierr = PetscFree(st->data);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)st,"STFilterSetInterval_C",NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)st,"STFilterGetInterval_C",NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)st,"STFilterSetRange_C",NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)st,"STFilterGetRange_C",NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)st,"STFilterSetDegree_C",NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)st,"STFilterGetDegree_C",NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)st,"STFilterGetThreshold_C",NULL);CHKERRQ(ierr);
@@ -322,6 +420,8 @@ PETSC_EXTERN PetscErrorCode STCreate_Filter(ST st)
 
   ctx->inta               = PETSC_MIN_REAL;
   ctx->intb               = PETSC_MAX_REAL;
+  ctx->left               = PETSC_MIN_REAL;
+  ctx->right              = PETSC_MAX_REAL;
   ctx->polyDegree         = 0;
   ctx->baseDegree         = 10;
 
@@ -356,8 +456,11 @@ PETSC_EXTERN PetscErrorCode STCreate_Filter(ST st)
 
   ierr = PetscObjectComposeFunction((PetscObject)st,"STFilterSetInterval_C",STFilterSetInterval_Filter);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)st,"STFilterGetInterval_C",STFilterGetInterval_Filter);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)st,"STFilterSetRange_C",STFilterSetRange_Filter);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)st,"STFilterGetRange_C",STFilterGetRange_Filter);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)st,"STFilterSetDegree_C",STFilterSetDegree_Filter);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)st,"STFilterGetDegree_C",STFilterGetDegree_Filter);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)st,"STFilterGetThreshold_C",STFilterGetThreshold_Filter);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
+
