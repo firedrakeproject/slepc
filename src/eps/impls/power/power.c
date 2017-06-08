@@ -133,7 +133,6 @@ PetscErrorCode EPSSetUp_Power(EPS eps)
         ierr = PetscContainerGetPointer(container,&power->formFunctionBctx);CHKERRQ(ierr);
       } else power->formFunctionBctx = NULL;
     }
-    ierr = PetscObjectCompose((PetscObject)power->snes, "eps", (PetscObject)eps);CHKERRQ(ierr);
   } else {
     ierr = EPSSetWorkVecs(eps,2);CHKERRQ(ierr);
     ierr = DSSetType(eps->ds,DSNHEP);CHKERRQ(ierr);
@@ -249,28 +248,28 @@ static PetscErrorCode EPSPowerComputeInitialGuess_Update(EPS eps)
 {
   EPS            powereps;
   Mat            A,B;
-  Vec            v1, v2;
+  Vec            v1,v2;
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  ierr = EPSCreate(PetscObjectComm((PetscObject)eps), &powereps);CHKERRQ(ierr);
-  ierr = EPSGetOperators(eps, &A, &B);CHKERRQ(ierr);
+  ierr = EPSCreate(PetscObjectComm((PetscObject)eps),&powereps);CHKERRQ(ierr);
+  ierr = EPSGetOperators(eps,&A,&B);CHKERRQ(ierr);
   ierr = EPSSetType(powereps,EPSPOWER);CHKERRQ(ierr);
-  ierr = EPSSetOperators(powereps, A, B);CHKERRQ(ierr);
-  ierr = EPSSetTolerances(powereps, 1e-6,4);CHKERRQ(ierr);
+  ierr = EPSSetOperators(powereps,A,B);CHKERRQ(ierr);
+  ierr = EPSSetTolerances(powereps,1e-6,4);CHKERRQ(ierr);
   ierr = EPSSetOptionsPrefix(powereps,((PetscObject)eps)->prefix);CHKERRQ(ierr);
   ierr = EPSAppendOptionsPrefix(powereps,"init_");CHKERRQ(ierr);
-  ierr = EPSSetProblemType(powereps, EPS_GNHEP);CHKERRQ(ierr);
-  ierr = EPSSetWhichEigenpairs(powereps, EPS_LARGEST_MAGNITUDE);CHKERRQ(ierr);
+  ierr = EPSSetProblemType(powereps,EPS_GNHEP);CHKERRQ(ierr);
+  ierr = EPSSetWhichEigenpairs(powereps,EPS_TARGET_MAGNITUDE);CHKERRQ(ierr);
   ierr = EPSPowerSetNonlinear(powereps,PETSC_TRUE);CHKERRQ(ierr);
   ierr = STSetType(powereps->st,STSINVERT);CHKERRQ(ierr);
   ierr = EPSSetFromOptions(powereps);CHKERRQ(ierr);
   ierr = EPSSolve(powereps);CHKERRQ(ierr);
-  ierr = BVGetColumn(eps->V, 0, &v2);CHKERRQ(ierr);
-  ierr = BVGetColumn(powereps->V, 0, &v1);CHKERRQ(ierr);
+  ierr = BVGetColumn(eps->V,0,&v2);CHKERRQ(ierr);
+  ierr = BVGetColumn(powereps->V,0,&v1);CHKERRQ(ierr);
   ierr = VecCopy(v1,v2);CHKERRQ(ierr);
-  ierr = BVRestoreColumn(eps->V, 0, &v2);CHKERRQ(ierr);
-  ierr = BVRestoreColumn(powereps->V, 0, &v1);CHKERRQ(ierr);
+  ierr = BVRestoreColumn(powereps->V,0,&v1);CHKERRQ(ierr);
+  ierr = BVRestoreColumn(eps->V,0,&v2);CHKERRQ(ierr);
   ierr = EPSDestroy(&powereps);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -301,18 +300,24 @@ PetscErrorCode EPSSolve_Power(EPS eps)
 
   if (power->shift_type != EPS_POWER_SHIFT_CONSTANT) { ierr = STGetKSP(eps->st,&ksp);CHKERRQ(ierr); }
   if (eps->useds) { ierr = DSGetLeadingDimension(eps->ds,&ld);CHKERRQ(ierr); }
-  if (power->update) {
-    ierr = EPSPowerComputeInitialGuess_Update(eps);CHKERRQ(ierr);
-  } else {
-    ierr = EPSGetStartVector(eps,0,NULL);CHKERRQ(ierr);
-    if (power->nonlinear) {
-      ierr = BVGetColumn(eps->V,0,&v);CHKERRQ(ierr);
-      ierr = EPSPowerUpdateFunctionB(eps,v,Bx);CHKERRQ(ierr);
-      ierr = VecNorm(Bx,NORM_2,&norm);CHKERRQ(ierr);
-      ierr = Normalize(Bx,norm);CHKERRQ(ierr);
-      ierr = BVRestoreColumn(eps->V,0,&v);CHKERRQ(ierr);
+  if (power->nonlinear) {
+    ierr = PetscObjectCompose((PetscObject)power->snes, "eps", (PetscObject)eps);CHKERRQ(ierr);
+    if (power->update) {
+      ierr = EPSPowerComputeInitialGuess_Update(eps);CHKERRQ(ierr);
     }
   }
+  if (!power->update) {
+    ierr = EPSGetStartVector(eps,0,NULL);CHKERRQ(ierr);
+  }
+  if (power->nonlinear) {
+    ierr = BVGetColumn(eps->V,0,&v);CHKERRQ(ierr);
+    ierr = EPSPowerUpdateFunctionB(eps,v,Bx);CHKERRQ(ierr);
+    ierr = VecNorm(Bx,NORM_2,&norm);CHKERRQ(ierr);
+    ierr = Normalize(Bx,norm);CHKERRQ(ierr);
+    ierr = BVRestoreColumn(eps->V,0,&v);CHKERRQ(ierr);
+  }
+
+
   ierr = STGetShift(eps->st,&sigma);CHKERRQ(ierr);    /* original shift */
   rho = sigma;
 
@@ -443,6 +448,7 @@ PetscErrorCode EPSSolve_Power(EPS eps)
 
   if (power->nonlinear) {
     ierr = STResetMatrixState(eps->st);CHKERRQ(ierr);
+    ierr = PetscObjectCompose((PetscObject)power->snes, "eps", NULL);CHKERRQ(ierr);
     /*
      * EPSComputeVectors_Schur does not work for the nonlinear case because there is no DS
      * */
@@ -851,7 +857,6 @@ PetscErrorCode EPSDestroy_Power(EPS eps)
 
   PetscFunctionBegin;
   if (power->nonlinear) {
-    ierr = PetscObjectCompose((PetscObject)power->snes, "eps",NULL);CHKERRQ(ierr);
     ierr = SNESDestroy(&power->snes);CHKERRQ(ierr);
   }
   ierr = PetscFree(eps->data);CHKERRQ(ierr);
