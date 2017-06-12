@@ -705,7 +705,7 @@ static PetscErrorCode EPSPowerGetUpdate_Power(EPS eps,PetscBool *update)
 .  eps - the eigenproblem solver context
 
    Input Parameter:
-.  nonlinear - the update flag
+.  nonlinear - the nonlinear flag
 
    Level: advanced
 
