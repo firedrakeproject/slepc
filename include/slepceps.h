@@ -313,6 +313,8 @@ PETSC_EXTERN PetscErrorCode EPSPowerSetShiftType(EPS,EPSPowerShiftType);
 PETSC_EXTERN PetscErrorCode EPSPowerGetShiftType(EPS,EPSPowerShiftType*);
 PETSC_EXTERN PetscErrorCode EPSPowerSetNonlinear(EPS,PetscBool);
 PETSC_EXTERN PetscErrorCode EPSPowerGetNonlinear(EPS,PetscBool*);
+PETSC_EXTERN PetscErrorCode EPSPowerSetUpdate(EPS,PetscBool);
+PETSC_EXTERN PetscErrorCode EPSPowerGetUpdate(EPS,PetscBool*);
 PETSC_EXTERN PetscErrorCode EPSPowerSetSNES(EPS,SNES);
 PETSC_EXTERN PetscErrorCode EPSPowerGetSNES(EPS,SNES*);
 
