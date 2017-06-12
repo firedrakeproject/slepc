@@ -169,9 +169,6 @@ static PetscErrorCode Normalize(Vec x,PetscReal norm)
 }
 
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSPowerUpdateFunctionB"
-
 static PetscErrorCode EPSPowerUpdateFunctionB(EPS eps,Vec x,Vec Bx)
 {
   PetscErrorCode ierr;
@@ -192,9 +189,6 @@ static PetscErrorCode EPSPowerUpdateFunctionB(EPS eps,Vec x,Vec Bx)
   PetscFunctionReturn(0);
 }
 
-
-#undef __FUNCT__
-#define __FUNCT__ "EPSPowerFormFunction_Update"
 
 static PetscErrorCode EPSPowerFormFunction_Update(SNES snes,Vec x,Vec y,void *ctx)
 {
@@ -239,8 +233,6 @@ static PetscErrorCode EPSPowerApply_SNES(EPS eps,Vec x,Vec y)
 }
 
 
-#undef __FUNCT__
-#define __FUNCT__ "EPSPowerComputeInitialGuess_Update"
 /*
  Use a nonlinear inverse power to compute an initial guess
 */
