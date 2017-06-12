@@ -20,20 +20,19 @@
 */
 
 /*
- * This is a nonlinear eigenvalue problem. When p=2, it is reduced to a linear Laplace eigenvalue
- * problem.
- *
- *-\nabla\cdot(|\nabla u|^{p-2} \nabla u) = k |u|^{p-2} u in (0,1)x(0,1),
- *
- * u = 0 on the entire boundary
- *
- * The code is implemented based on DMPlex using Q1 FEM on a quadrilateral mesh. In this code, we consider p=3.
- *
- * */
+   This is a nonlinear eigenvalue problem. When p=2, it is reduced to a linear Laplace eigenvalue
+   problem.
+
+  -\nabla\cdot(|\nabla u|^{p-2} \nabla u) = k |u|^{p-2} u in (0,1)x(0,1),
+
+   u = 0 on the entire boundary.
+
+   The code is implemented based on DMPlex using Q1 FEM on a quadrilateral mesh. In this code, we consider p=3.
+*/
 
 /*
- * Contributed  by Fande Kong fdkong.jd@gmail.com
- * */
+  Contributed  by Fande Kong fdkong.jd@gmail.com
+*/
 
 static char help[] = "Nonlinear eigenvalue problems.\n\n";
 
@@ -48,7 +47,7 @@ PetscErrorCode FormJacobianA(SNES,Vec,Mat,Mat,void*);
 PetscErrorCode FormFunctionA(SNES,Vec,Vec,void*);
 PetscErrorCode FormJacobianB(SNES,Vec,Mat,Mat,void*);
 PetscErrorCode FormFunctionB(SNES,Vec,Vec,void*);
-PetscErrorCode BoundaryGlobalIndex(DM, const char*, IS*);
+PetscErrorCode BoundaryGlobalIndex(DM,const char*,IS*);
 
 typedef struct {
 IS    bdis; /* global indices for boundary DoFs */
@@ -115,8 +114,8 @@ int main(int argc,char **argv)
   ierr = STSetType(st,STSINVERT);CHKERRQ(ierr);
 
   /*
-   * Attach DM to SNES
-   * */
+    Attach DM to SNES
+  */
   ierr = EPSPowerGetSNES(eps,&snes);CHKERRQ(ierr);
   ierr = SNESSetDM(snes,dm);CHKERRQ(ierr);
   ierr = EPSSetFromOptions(eps);CHKERRQ(ierr);
@@ -218,12 +217,12 @@ PetscErrorCode SetupDiscretization(DM dm)
 
   PetscFunctionBeginUser;
   /* Create finite element */
-  ierr = PetscFECreateDefault(dm, 2, 1, PETSC_FALSE, NULL, -1, &fe);CHKERRQ(ierr);
+  ierr = PetscFECreateDefault(dm,2,1,PETSC_FALSE,NULL,-1,&fe);CHKERRQ(ierr);
   ierr = PetscObjectSetName((PetscObject) fe, "u");CHKERRQ(ierr);
-  ierr = DMGetDS(dm, &prob);CHKERRQ(ierr);
-  ierr = PetscDSSetDiscretization(prob, 0, (PetscObject) fe);CHKERRQ(ierr);
+  ierr = DMGetDS(dm,&prob);CHKERRQ(ierr);
+  ierr = PetscDSSetDiscretization(prob,0,(PetscObject) fe);CHKERRQ(ierr);
   ierr = DMSetDS(dm,prob);CHKERRQ(ierr);
-  ierr = PetscDSGetTotalDimension(prob, &totDim);CHKERRQ(ierr);
+  ierr = PetscDSGetTotalDimension(prob,&totDim);CHKERRQ(ierr);
   ierr = PetscFEDestroy(&fe);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -231,11 +230,11 @@ PetscErrorCode SetupDiscretization(DM dm)
 
 PetscErrorCode CreateSqureMesh(MPI_Comm comm,DM *dm)
 {
-  PetscInt  cells[] = {8,8};
-  PetscInt  dim = 2;
-  DM          pdm;
-  PetscMPIInt size;
-  PetscErrorCode ierr;
+  PetscInt         cells[] = {8,8};
+  PetscInt         dim = 2;
+  DM               pdm;
+  PetscMPIInt      size;
+  PetscErrorCode   ierr;
 
   PetscFunctionBegin;
   ierr = MPI_Comm_size(comm,&size);CHKERRQ(ierr);
@@ -252,11 +251,11 @@ PetscErrorCode CreateSqureMesh(MPI_Comm comm,DM *dm)
 }
 
 
-PetscErrorCode BoundaryGlobalIndex(DM dm, const char labelname[], IS *bdis)
+PetscErrorCode BoundaryGlobalIndex(DM dm,const char labelname[],IS *bdis)
 {
   IS              bdpoints;
-  PetscInt        nindices, *indices, numDof, offset, npoints,i,j;
-  const PetscInt* bdpoints_indices;
+  PetscInt        nindices,*indices,numDof,offset,npoints,i,j;
+  const PetscInt  *bdpoints_indices;
   DMLabel         bdmarker;
   PetscSection    gsection;
   PetscErrorCode  ierr;
@@ -279,7 +278,7 @@ PetscErrorCode BoundaryGlobalIndex(DM dm, const char labelname[], IS *bdis)
     ierr = PetscSectionGetDof(gsection,bdpoints_indices[i],&numDof);CHKERRQ(ierr);
     if(numDof<=0) continue;
     ierr = PetscSectionGetOffset(gsection,bdpoints_indices[i],&offset);CHKERRQ(ierr);
-    for(j=0;j<numDof;j++)
+    for (j=0;j<numDof;j++)
       indices[nindices++] = offset+j;
   }
   ierr = ISRestoreIndices(bdpoints,&bdpoints_indices);CHKERRQ(ierr);
@@ -317,13 +316,13 @@ PetscErrorCode FormJacobianA(SNES snes,Vec X,Mat A,Mat B,void *ctx)
   PetscErrorCode ierr;
   DM             dm;
   PetscDS        prob;
-  AppCtx        *userctx = (AppCtx *)ctx;
+  AppCtx         *userctx = (AppCtx *)ctx;
 
   PetscFunctionBegin;
   ierr = MatSetOption(B,MAT_KEEP_NONZERO_PATTERN,PETSC_TRUE);CHKERRQ(ierr);
   ierr = SNESGetDM(snes,&dm);CHKERRQ(ierr);
   ierr = DMGetDS(dm,&prob);CHKERRQ(ierr);
-  ierr = PetscDSSetJacobian(prob, 0, 0, NULL, NULL, NULL, g3_uu);CHKERRQ(ierr);
+  ierr = PetscDSSetJacobian(prob,0,0,NULL,NULL,NULL,g3_uu);CHKERRQ(ierr);
   ierr = FormJacobian(snes,X,A,B,ctx);CHKERRQ(ierr);
   ierr = MatZeroRowsIS(B,userctx->bdis,1.0,NULL,NULL);CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -334,13 +333,13 @@ PetscErrorCode FormJacobianB(SNES snes,Vec X,Mat A,Mat B,void *ctx)
   PetscErrorCode ierr;
   DM             dm;
   PetscDS        prob;
-  AppCtx        *userctx = (AppCtx *)ctx;
+  AppCtx         *userctx = (AppCtx *)ctx;
 
   PetscFunctionBegin;
   ierr = MatSetOption(B,MAT_KEEP_NONZERO_PATTERN,PETSC_TRUE);CHKERRQ(ierr);
   ierr = SNESGetDM(snes,&dm);CHKERRQ(ierr);
   ierr = DMGetDS(dm,&prob);CHKERRQ(ierr);
-  ierr = PetscDSSetJacobian(prob, 0, 0, g0_uu, NULL, NULL, NULL);CHKERRQ(ierr);
+  ierr = PetscDSSetJacobian(prob,0,0,g0_uu,NULL,NULL,NULL);CHKERRQ(ierr);
   ierr = FormJacobian(snes,X,A,B,ctx);CHKERRQ(ierr);
   ierr = MatZeroRowsIS(B,userctx->bdis,0.0,NULL,NULL);CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -379,38 +378,38 @@ PetscErrorCode FormFunctionA(SNES snes,Vec X,Vec F,void *ctx)
   PetscErrorCode ierr;
   DM             dm;
   PetscDS        prob;
-  PetscInt       nindices, iStart,iEnd, i;
+  PetscInt       nindices,iStart,iEnd,i;
   AppCtx         *userctx = (AppCtx *)ctx;
   PetscScalar    *array,value;
   const PetscInt *indices;
-  PetscInt        vecstate;
+  PetscInt       vecstate;
 
   PetscFunctionBegin;
   ierr = SNESGetDM(snes,&dm);CHKERRQ(ierr);
   ierr = DMGetDS(dm,&prob);CHKERRQ(ierr);
   /* hook functions */
-  ierr = PetscDSSetResidual(prob, 0, NULL, f1_u);CHKERRQ(ierr);
+  ierr = PetscDSSetResidual(prob,0,NULL,f1_u);CHKERRQ(ierr);
   ierr = FormFunction(snes,X,F,ctx);CHKERRQ(ierr);
   /* Boundary condition */
-   ierr = VecLockGet(X,&vecstate);CHKERRQ(ierr);
-   if (vecstate>0) {
-     ierr = VecLockPop(X);CHKERRQ(ierr);
-   }
-   ierr = VecGetOwnershipRange(X,&iStart,&iEnd);CHKERRQ(ierr);
-   ierr = VecGetArray(X,&array);CHKERRQ(ierr);
-   ierr = ISGetLocalSize(userctx->bdis,&nindices);CHKERRQ(ierr);
-   ierr = ISGetIndices(userctx->bdis,&indices);CHKERRQ(ierr);
-   for (i=0;i<nindices;i++) {
-     value = array[indices[i]-iStart] - 0;
-     ierr = VecSetValue(F,indices[i],value,INSERT_VALUES);CHKERRQ(ierr);
-   }
-   ierr = ISRestoreIndices(userctx->bdis,&indices);CHKERRQ(ierr);
-   ierr = VecRestoreArray(X,&array);CHKERRQ(ierr);
-   if (vecstate>0) {
-     ierr = VecLockPush(X);CHKERRQ(ierr);
-   }
-   ierr = VecAssemblyBegin(F);CHKERRQ(ierr);
-   ierr = VecAssemblyEnd(F);CHKERRQ(ierr);
+  ierr = VecLockGet(X,&vecstate);CHKERRQ(ierr);
+  if (vecstate>0) {
+    ierr = VecLockPop(X);CHKERRQ(ierr);
+  }
+  ierr = VecGetOwnershipRange(X,&iStart,&iEnd);CHKERRQ(ierr);
+  ierr = VecGetArray(X,&array);CHKERRQ(ierr);
+  ierr = ISGetLocalSize(userctx->bdis,&nindices);CHKERRQ(ierr);
+  ierr = ISGetIndices(userctx->bdis,&indices);CHKERRQ(ierr);
+  for (i=0;i<nindices;i++) {
+    value = array[indices[i]-iStart] - 0;
+    ierr = VecSetValue(F,indices[i],value,INSERT_VALUES);CHKERRQ(ierr);
+  }
+  ierr = ISRestoreIndices(userctx->bdis,&indices);CHKERRQ(ierr);
+  ierr = VecRestoreArray(X,&array);CHKERRQ(ierr);
+  if (vecstate>0) {
+    ierr = VecLockPush(X);CHKERRQ(ierr);
+  }
+  ierr = VecAssemblyBegin(F);CHKERRQ(ierr);
+  ierr = VecAssemblyEnd(F);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -420,7 +419,7 @@ PetscErrorCode FormFunctionB(SNES snes,Vec X,Vec F,void *ctx)
   PetscErrorCode ierr;
   DM             dm;
   PetscDS        prob;
-  PetscInt       nindices, iStart,iEnd, i;
+  PetscInt       nindices,iStart,iEnd,i;
   AppCtx         *userctx = (AppCtx *)ctx;
   PetscScalar    value;
   const PetscInt *indices;
@@ -429,18 +428,18 @@ PetscErrorCode FormFunctionB(SNES snes,Vec X,Vec F,void *ctx)
   ierr = SNESGetDM(snes,&dm);CHKERRQ(ierr);
   ierr = DMGetDS(dm,&prob);CHKERRQ(ierr);
   /* hook functions */
-  ierr = PetscDSSetResidual(prob, 0, f0_u, NULL);CHKERRQ(ierr);
+  ierr = PetscDSSetResidual(prob,0,f0_u,NULL);CHKERRQ(ierr);
   ierr = FormFunction(snes,X,F,ctx);CHKERRQ(ierr);
   /* Boundary condition */
-   ierr = VecGetOwnershipRange(F,&iStart,&iEnd);CHKERRQ(ierr);
-   ierr = ISGetLocalSize(userctx->bdis,&nindices);CHKERRQ(ierr);
-   ierr = ISGetIndices(userctx->bdis,&indices);CHKERRQ(ierr);
-   for (i=0;i<nindices;i++) {
-     value = 0;
-     ierr = VecSetValue(F,indices[i],value,INSERT_VALUES);CHKERRQ(ierr);
-   }
-   ierr = ISRestoreIndices(userctx->bdis,&indices);CHKERRQ(ierr);
-   ierr = VecAssemblyBegin(F);CHKERRQ(ierr);
-   ierr = VecAssemblyEnd(F);CHKERRQ(ierr);
+  ierr = VecGetOwnershipRange(F,&iStart,&iEnd);CHKERRQ(ierr);
+  ierr = ISGetLocalSize(userctx->bdis,&nindices);CHKERRQ(ierr);
+  ierr = ISGetIndices(userctx->bdis,&indices);CHKERRQ(ierr);
+  for (i=0;i<nindices;i++) {
+    value = 0;
+    ierr = VecSetValue(F,indices[i],value,INSERT_VALUES);CHKERRQ(ierr);
+  }
+  ierr = ISRestoreIndices(userctx->bdis,&indices);CHKERRQ(ierr);
+  ierr = VecAssemblyBegin(F);CHKERRQ(ierr);
+  ierr = VecAssemblyEnd(F);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
