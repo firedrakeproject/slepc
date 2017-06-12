@@ -44,7 +44,7 @@
 #include <slepc/private/epsimpl.h>                /*I "slepceps.h" I*/
 #include <slepcblaslapack.h>
 
-static PetscErrorCode EPSPowerFormFunction_Update(SNES snes, Vec x, Vec y, void *ctx);
+static PetscErrorCode EPSPowerFormFunction_Update(SNES,Vec,Vec,void*);
 
 typedef struct {
   EPSPowerShiftType shift_type;
@@ -172,7 +172,7 @@ static PetscErrorCode Normalize(Vec x,PetscReal norm)
 #undef __FUNCT__
 #define __FUNCT__ "EPSPowerUpdateFunctionB"
 
-static PetscErrorCode EPSPowerUpdateFunctionB(EPS eps, Vec x, Vec Bx)
+static PetscErrorCode EPSPowerUpdateFunctionB(EPS eps,Vec x,Vec Bx)
 {
   PetscErrorCode ierr;
   EPS_POWER      *power = (EPS_POWER*)eps->data;
@@ -187,7 +187,7 @@ static PetscErrorCode EPSPowerUpdateFunctionB(EPS eps, Vec x, Vec Bx)
       ierr = MatMult(B,x,Bx);CHKERRQ(ierr);
     }
   } else {
-    ierr = VecCopy(x, Bx);CHKERRQ(ierr);
+    ierr = VecCopy(x,Bx);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }
@@ -196,7 +196,7 @@ static PetscErrorCode EPSPowerUpdateFunctionB(EPS eps, Vec x, Vec Bx)
 #undef __FUNCT__
 #define __FUNCT__ "EPSPowerFormFunction_Update"
 
-static PetscErrorCode EPSPowerFormFunction_Update(SNES snes, Vec x, Vec y, void *ctx)
+static PetscErrorCode EPSPowerFormFunction_Update(SNES snes,Vec x,Vec y,void *ctx)
 {
   PetscErrorCode ierr;
   EPS eps;
@@ -205,15 +205,15 @@ static PetscErrorCode EPSPowerFormFunction_Update(SNES snes, Vec x, Vec y, void 
   Vec Bx;
 
   PetscFunctionBegin;
-  ierr = PetscObjectQuery((PetscObject)snes, "eps", (PetscObject *)&eps);CHKERRQ(ierr);
+  ierr = PetscObjectQuery((PetscObject)snes,"eps",(PetscObject *)&eps);CHKERRQ(ierr);
   if(!eps) SETERRQ(PETSC_COMM_WORLD,PETSC_ERR_ARG_NULL,"No composed EPS \n");
   power = (EPS_POWER *)eps->data;
   Bx = eps->work[2];
   ierr = EPSPowerUpdateFunctionB(eps,x,Bx);CHKERRQ(ierr);
   ierr = VecNorm(Bx,NORM_2,&bx);CHKERRQ(ierr);
   ierr = Normalize(Bx,bx);CHKERRQ(ierr);
-  ierr = power->formFunctionA(power->snes, x, y, power->formFunctionActx);CHKERRQ(ierr);
-  ierr = VecAXPY(y, -1.0, Bx);CHKERRQ(ierr);
+  ierr = power->formFunctionA(power->snes,x,y,power->formFunctionActx);CHKERRQ(ierr);
+  ierr = VecAXPY(y,-1.0,Bx);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -284,7 +284,7 @@ PetscErrorCode EPSSolve_Power(EPS eps)
   PetscErrorCode     ierr;
   EPS_POWER          *power = (EPS_POWER*)eps->data;
   PetscInt           k,ld;
-  Vec                v,y,e, Bx;
+  Vec                v,y,e,Bx;
   Mat                A;
   KSP                ksp;
   PetscReal          relerr,norm,norm1,rt1,rt2,cs1;
@@ -301,7 +301,7 @@ PetscErrorCode EPSSolve_Power(EPS eps)
   if (power->shift_type != EPS_POWER_SHIFT_CONSTANT) { ierr = STGetKSP(eps->st,&ksp);CHKERRQ(ierr); }
   if (eps->useds) { ierr = DSGetLeadingDimension(eps->ds,&ld);CHKERRQ(ierr); }
   if (power->nonlinear) {
-    ierr = PetscObjectCompose((PetscObject)power->snes, "eps", (PetscObject)eps);CHKERRQ(ierr);
+    ierr = PetscObjectCompose((PetscObject)power->snes,"eps",(PetscObject)eps);CHKERRQ(ierr);
     if (power->update) {
       ierr = EPSPowerComputeInitialGuess_Update(eps);CHKERRQ(ierr);
     }
@@ -450,8 +450,8 @@ PetscErrorCode EPSSolve_Power(EPS eps)
     ierr = STResetMatrixState(eps->st);CHKERRQ(ierr);
     ierr = PetscObjectCompose((PetscObject)power->snes, "eps", NULL);CHKERRQ(ierr);
     /*
-     * EPSComputeVectors_Schur does not work for the nonlinear case because there is no DS
-     * */
+      EPSComputeVectors_Schur does not work for the nonlinear case because there is no DS
+    */
     eps->ops->computevectors = NULL;
   } else {
     ierr = DSSetDimensions(eps->ds,eps->nconv,0,0,0);CHKERRQ(ierr);
