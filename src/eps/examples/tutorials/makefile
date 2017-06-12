@@ -336,7 +336,7 @@ runex31_1:
 
 runex34_1:
 	-@${SETTEST}; \
-	${MPIEXEC} -n 1 ./ex34 -eps_tol 1e-5 -terse > $${test}.tmp 2>&1; \
+	${MPIEXEC} -n 1 ./ex34 -petscspace_order 1   -petscspace_poly_tensor -st_pc_type none > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
 runex35_1:
@@ -351,5 +351,5 @@ runex36_1:
 	  if [ "${PETSC_PRECISION}" = "__float128" ]; then EXTRA="-eps_tol 1e-14"; fi; \
 	  ${MPIEXEC} -n 1 ./ex36 -eps_nev 4 -mfn_ncv 14 -terse $$EXTRA > $${test}.tmp 2>&1; \
 	  ${TESTCODE}; \
-	fi 
+	fi
 
