@@ -149,7 +149,7 @@ int main(int argc,char **argv)
     ierr = VecAXPY(a,-k,b);CHKERRQ(ierr);
     ierr = VecNorm(a,NORM_2,&na);CHKERRQ(ierr);
     ierr = VecNorm(b,NORM_2,&nb);CHKERRQ(ierr);
-    ierr = PetscPrintf(comm,"k: %g error: %g\n",k,na/nb);CHKERRQ(ierr);
+    ierr = PetscPrintf(comm,"k: %g error: %g\n",PetscRealPart(k),na/nb);CHKERRQ(ierr);
     ierr = VecDestroy(&a);CHKERRQ(ierr);
     ierr = VecDestroy(&b);CHKERRQ(ierr);
     ierr = VecDestroy(&eigen);CHKERRQ(ierr);
@@ -401,7 +401,7 @@ PetscErrorCode FormFunctionA(SNES snes,Vec X,Vec F,void *ctx)
   ierr = ISGetLocalSize(userctx->bdis,&nindices);CHKERRQ(ierr);
   ierr = ISGetIndices(userctx->bdis,&indices);CHKERRQ(ierr);
   for (i=0;i<nindices;i++) {
-    value = array[indices[i]-iStart] - 0;
+    value = array[indices[i]-iStart] - 0.0;
     ierr = VecSetValue(F,indices[i],value,INSERT_VALUES);CHKERRQ(ierr);
   }
   ierr = ISRestoreIndices(userctx->bdis,&indices);CHKERRQ(ierr);
@@ -436,7 +436,7 @@ PetscErrorCode FormFunctionB(SNES snes,Vec X,Vec F,void *ctx)
   ierr = ISGetLocalSize(userctx->bdis,&nindices);CHKERRQ(ierr);
   ierr = ISGetIndices(userctx->bdis,&indices);CHKERRQ(ierr);
   for (i=0;i<nindices;i++) {
-    value = 0;
+    value = 0.0;
     ierr = VecSetValue(F,indices[i],value,INSERT_VALUES);CHKERRQ(ierr);
   }
   ierr = ISRestoreIndices(userctx->bdis,&indices);CHKERRQ(ierr);
