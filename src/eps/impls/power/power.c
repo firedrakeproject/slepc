@@ -195,7 +195,7 @@ static PetscErrorCode EPSPowerFormFunction_Update(SNES snes,Vec x,Vec y,void *ct
   PetscErrorCode ierr;
   EPS eps;
   EPS_POWER   *power = 0;
-  PetscScalar bx;
+  PetscReal   bx;
   Vec Bx;
 
   PetscFunctionBegin;
