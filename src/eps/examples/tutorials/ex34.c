@@ -137,8 +137,9 @@ int main(int argc,char **argv)
 
   /* print eigenvalue and error */
   {
-    PetscScalar k = 0,na,nb;
-    Vec         a,b,eigen;
+    PetscScalar   k;
+    PetscReal     na,nb;
+    Vec           a,b,eigen;
     ierr = DMCreateGlobalVector(dm,&a);CHKERRQ(ierr);
     ierr = VecDuplicate(a,&b);CHKERRQ(ierr);
     ierr = VecDuplicate(a,&eigen);CHKERRQ(ierr);
@@ -168,7 +169,7 @@ static void f0_u(PetscInt dim, PetscInt Nf, PetscInt NfAux,
                  const PetscInt aOff[], const PetscInt aOff_x[], const PetscScalar a[], const PetscScalar a_t[], const PetscScalar a_x[],
                  PetscReal t, const PetscReal x[], PetscInt numConstants, const PetscScalar constants[], PetscScalar f0[])
 {
-  PetscScalar cof = PetscAbsReal(u[0]);
+  PetscScalar cof = PetscAbsScalar(u[0]);
 
   f0[0] = cof*u[0];
 }
@@ -180,11 +181,11 @@ static void f1_u(PetscInt dim, PetscInt Nf, PetscInt NfAux,
                  const PetscInt aOff[], const PetscInt aOff_x[], const PetscScalar a[], const PetscScalar a_t[], const PetscScalar a_x[],
                  PetscReal t, const PetscReal x[], PetscInt numConstants, const PetscScalar constants[], PetscScalar f1[])
 {
-  PetscInt d;
+  PetscInt    d;
   PetscScalar cof = 0;
   for (d = 0; d < dim; ++d)  cof += u_x[d]*u_x[d];
 
-  cof = PetscSqrtReal(cof);
+  cof = PetscSqrtScalar(cof);
 
   for (d = 0; d < dim; ++d) f1[d] = u_x[d]*cof;
 }
@@ -195,7 +196,7 @@ static void g0_uu(PetscInt dim, PetscInt Nf, PetscInt NfAux,
                   const PetscInt aOff[], const PetscInt aOff_x[], const PetscScalar a[], const PetscScalar a_t[], const PetscScalar a_x[],
                   PetscReal t, PetscReal u_tShift, const PetscReal x[], PetscInt numConstants, const PetscScalar constants[], PetscScalar g0[])
 {
-  g0[0] = 1.0*PetscAbsReal(u[0]);
+  g0[0] = 1.0*PetscAbsScalar(u[0]);
 }
 
 /* approximate  Jacobian for   <|\nabla u| \nabla u, \nabla v> */
