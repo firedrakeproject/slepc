@@ -350,6 +350,6 @@ runex36_1:
 
 runex37_1:
 	-@${SETTEST}; \
-	${MPIEXEC} -n 1 ./ex37 -petscspace_order 1   -petscspace_poly_tensor  > $${test}.tmp 2>&1; \
+	${MPIEXEC} -n 1 ./ex37 -petscspace_order 1   -petscspace_poly_tensor -st_pc_type none > $${test}.tmp 2>&1; \
 	${TESTCODE}	 
 
