@@ -63,7 +63,7 @@ int main(int argc,char **argv)
   EPSType        type;
   Mat            A,B;
   PetscContainer container;
-  PetscInt       nev;
+  PetscInt       nev,nconv;
   PetscBool      nonlin;
   SNES           snes;
   PetscErrorCode ierr;
@@ -136,7 +136,8 @@ int main(int argc,char **argv)
   ierr = PetscPrintf(comm," Number of requested eigenvalues: %D\n",nev);CHKERRQ(ierr);
 
   /* print eigenvalue and error */
-  {
+  ierr = EPSGetConverged(eps,&nconv);CHKERRQ(ierr);
+  if (nconv>0) {
     PetscScalar   k;
     PetscReal     na,nb;
     Vec           a,b,eigen;
@@ -153,6 +154,8 @@ int main(int argc,char **argv)
     ierr = VecDestroy(&a);CHKERRQ(ierr);
     ierr = VecDestroy(&b);CHKERRQ(ierr);
     ierr = VecDestroy(&eigen);CHKERRQ(ierr);
+  } else {
+    ierr = PetscPrintf(comm,"Solver did not converge\n");CHKERRQ(ierr);
   }
 
   ierr = MatDestroy(&A);CHKERRQ(ierr);
