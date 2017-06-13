@@ -336,7 +336,7 @@ runex31_1:
 
 runex34_1:
 	-@${SETTEST}; \
-	${MPIEXEC} -n 1 ./ex34 -petscspace_order 1 -petscspace_poly_tensor -st_pc_type none > $${test}.tmp 2>&1; \
+	${MPIEXEC} -n 1 ./ex34 -petscspace_order 1 -petscspace_poly_tensor > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
 runex35_1:

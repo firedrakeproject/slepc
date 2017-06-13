@@ -878,6 +878,22 @@ PetscErrorCode EPSView_Power(EPS eps,PetscViewer viewer)
   PetscFunctionReturn(0);
 }
 
+PetscErrorCode EPSSetDefaultST_Power(EPS eps)
+{
+  PetscErrorCode ierr;
+  EPS_POWER      *power = (EPS_POWER*)eps->data;
+  KSP            ksp;
+  PC             pc;
+
+  PetscFunctionBegin;
+  if (power->nonlinear) {
+    ierr = STGetKSP(eps->st,&ksp);CHKERRQ(ierr);
+    ierr = KSPGetPC(ksp,&pc);CHKERRQ(ierr);
+    ierr = PCSetType(pc,PCNONE);CHKERRQ(ierr);
+  }
+  PetscFunctionReturn(0);
+}
+
 PETSC_EXTERN PetscErrorCode EPSCreate_Power(EPS eps)
 {
   EPS_POWER      *ctx;
@@ -898,6 +914,7 @@ PETSC_EXTERN PetscErrorCode EPSCreate_Power(EPS eps)
   eps->ops->view           = EPSView_Power;
   eps->ops->backtransform  = EPSBackTransform_Power;
   eps->ops->computevectors = EPSComputeVectors_Schur;
+  eps->ops->setdefaultst   = EPSSetDefaultST_Power;
 
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSPowerSetShiftType_C",EPSPowerSetShiftType_Power);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSPowerGetShiftType_C",EPSPowerGetShiftType_Power);CHKERRQ(ierr);
