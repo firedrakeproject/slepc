@@ -133,6 +133,10 @@ PetscErrorCode EPSSetUp_Power(EPS eps)
         ierr = PetscContainerGetPointer(container,&power->formFunctionBctx);CHKERRQ(ierr);
       } else power->formFunctionBctx = NULL;
     }
+    /*
+      EPSComputeVectors_Schur does not work for the nonlinear case because there is no DS
+    */
+    eps->ops->computevectors = NULL;
   } else {
     ierr = EPSSetWorkVecs(eps,2);CHKERRQ(ierr);
     ierr = DSSetType(eps->ds,DSNHEP);CHKERRQ(ierr);
@@ -140,7 +144,6 @@ PetscErrorCode EPSSetUp_Power(EPS eps)
   }
   PetscFunctionReturn(0);
 }
-
 
 /*
    Normalize a vector x with respect to a given norm as well as the
@@ -168,7 +171,6 @@ static PetscErrorCode Normalize(Vec x,PetscReal norm)
   PetscFunctionReturn(0);
 }
 
-
 static PetscErrorCode EPSPowerUpdateFunctionB(EPS eps,Vec x,Vec Bx)
 {
   PetscErrorCode ierr;
@@ -189,28 +191,26 @@ static PetscErrorCode EPSPowerUpdateFunctionB(EPS eps,Vec x,Vec Bx)
   PetscFunctionReturn(0);
 }
 
-
 static PetscErrorCode EPSPowerFormFunction_Update(SNES snes,Vec x,Vec y,void *ctx)
 {
   PetscErrorCode ierr;
-  EPS eps;
-  EPS_POWER   *power = 0;
-  PetscReal   bx;
-  Vec Bx;
+  EPS            eps;
+  EPS_POWER      *power = NULL;
+  PetscReal      bx;
+  Vec            Bx;
 
   PetscFunctionBegin;
   ierr = PetscObjectQuery((PetscObject)snes,"eps",(PetscObject *)&eps);CHKERRQ(ierr);
-  if(!eps) SETERRQ(PETSC_COMM_WORLD,PETSC_ERR_ARG_NULL,"No composed EPS \n");
-  power = (EPS_POWER *)eps->data;
+  if (!eps) SETERRQ(PETSC_COMM_WORLD,PETSC_ERR_ARG_NULL,"No composed EPS\n");
+  power = (EPS_POWER*)eps->data;
   Bx = eps->work[2];
   ierr = EPSPowerUpdateFunctionB(eps,x,Bx);CHKERRQ(ierr);
   ierr = VecNorm(Bx,NORM_2,&bx);CHKERRQ(ierr);
   ierr = Normalize(Bx,bx);CHKERRQ(ierr);
-  ierr = power->formFunctionA(power->snes,x,y,power->formFunctionActx);CHKERRQ(ierr);
+  ierr = (*power->formFunctionA)(power->snes,x,y,power->formFunctionActx);CHKERRQ(ierr);
   ierr = VecAXPY(y,-1.0,Bx);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
-
 
 /*
    Use SNES to compute y = A^{-1}*B*x for the nonlinear problem
@@ -225,16 +225,15 @@ static PetscErrorCode EPSPowerApply_SNES(EPS eps,Vec x,Vec y)
   ierr = VecCopy(x,y);CHKERRQ(ierr);
   if (power->update) {
     ierr = SNESSolve(power->snes,NULL,y);CHKERRQ(ierr);
-    PetscFunctionReturn(0);
+  } else {
+    Bx = eps->work[2];
+    ierr = SNESSolve(power->snes,Bx,y);CHKERRQ(ierr);
   }
-  Bx = eps->work[2];
-  ierr = SNESSolve(power->snes,Bx,y);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
-
 /*
- Use a nonlinear inverse power to compute an initial guess
+   Use nonlinear inverse power to compute an initial guess
 */
 static PetscErrorCode EPSPowerComputeInitialGuess_Update(EPS eps)
 {
@@ -265,7 +264,6 @@ static PetscErrorCode EPSPowerComputeInitialGuess_Update(EPS eps)
   ierr = EPSDestroy(&powereps);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
-
 
 PetscErrorCode EPSSolve_Power(EPS eps)
 {
@@ -308,7 +306,6 @@ PetscErrorCode EPSSolve_Power(EPS eps)
     ierr = Normalize(Bx,norm);CHKERRQ(ierr);
     ierr = BVRestoreColumn(eps->V,0,&v);CHKERRQ(ierr);
   }
-
 
   ierr = STGetShift(eps->st,&sigma);CHKERRQ(ierr);    /* original shift */
   rho = sigma;
@@ -355,7 +352,7 @@ PetscErrorCode EPSSolve_Power(EPS eps)
       /* compute relative error as ||y-theta v||_2/|theta| */
       ierr = VecCopy(y,e);CHKERRQ(ierr);
       ierr = BVGetColumn(eps->V,k,&v);CHKERRQ(ierr);
-      ierr = VecAXPY(e,power->nonlinear? -1.0:-theta,v);CHKERRQ(ierr);
+      ierr = VecAXPY(e,power->nonlinear?-1.0:-theta,v);CHKERRQ(ierr);
       ierr = BVRestoreColumn(eps->V,k,&v);CHKERRQ(ierr);
       ierr = VecNorm(e,NORM_2,&relerr);CHKERRQ(ierr);
       relerr /= PetscAbsScalar(theta);
@@ -419,7 +416,7 @@ PetscErrorCode EPSSolve_Power(EPS eps)
     eps->errest[eps->nconv] = relerr;
 
     /* normalize */
-    ierr = Normalize(power->nonlinear? Bx:y,norm);CHKERRQ(ierr);
+    ierr = Normalize(power->nonlinear?Bx:y,norm);CHKERRQ(ierr);
     ierr = BVInsertVec(eps->V,k,y);CHKERRQ(ierr);
 
     /* if relerr<tol, accept eigenpair */
@@ -440,11 +437,7 @@ PetscErrorCode EPSSolve_Power(EPS eps)
 
   if (power->nonlinear) {
     ierr = STResetMatrixState(eps->st);CHKERRQ(ierr);
-    ierr = PetscObjectCompose((PetscObject)power->snes, "eps", NULL);CHKERRQ(ierr);
-    /*
-      EPSComputeVectors_Schur does not work for the nonlinear case because there is no DS
-    */
-    eps->ops->computevectors = NULL;
+    ierr = PetscObjectCompose((PetscObject)power->snes,"eps",NULL);CHKERRQ(ierr);
   } else {
     ierr = DSSetDimensions(eps->ds,eps->nconv,0,0,0);CHKERRQ(ierr);
     ierr = DSSetState(eps->ds,DS_STATE_RAW);CHKERRQ(ierr);
@@ -485,7 +478,6 @@ PetscErrorCode EPSSetFromOptions_Power(PetscOptionItems *PetscOptionsObject,EPS 
     if (flg) { ierr = EPSPowerSetUpdate(eps,val);CHKERRQ(ierr); }
 
   ierr = PetscOptionsTail();CHKERRQ(ierr);
-
   PetscFunctionReturn(0);
 }
 
@@ -647,6 +639,31 @@ static PetscErrorCode EPSPowerGetNonlinear_Power(EPS eps,PetscBool *nonlinear)
   PetscFunctionReturn(0);
 }
 
+/*@
+   EPSPowerGetNonlinear - Returns a flag indicating if the problem is nonlinear.
+
+   Not Collective
+
+   Input Parameter:
+.  eps - the eigenproblem solver context
+
+   Input Parameter:
+.  nonlinear - the nonlinear flag
+
+   Level: advanced
+
+.seealso: EPSPowerSetUpdate(), EPSPowerSetNonlinear()
+@*/
+PetscErrorCode EPSPowerGetNonlinear(EPS eps,PetscBool *nonlinear)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
+  PetscValidPointer(nonlinear,2);
+  ierr = PetscUseMethod(eps,"EPSPowerGetNonlinear_C",(EPS,PetscBool*),(eps,nonlinear));CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
 
 static PetscErrorCode EPSPowerSetUpdate_Power(EPS eps,PetscBool update)
 {
@@ -659,9 +676,9 @@ static PetscErrorCode EPSPowerSetUpdate_Power(EPS eps,PetscBool update)
   PetscFunctionReturn(0);
 }
 
-
 /*@
-   EPSPowerSetUpdate - Sets a flag to indicate that if the residual is updated monolithically for nonlinear problems. This potentially have a better converge.
+   EPSPowerSetUpdate - Sets a flag to indicate that the residual is updated monolithically
+   for nonlinear problems. This potentially has a better convergence.
 
    Logically Collective on EPS
 
@@ -697,33 +714,8 @@ static PetscErrorCode EPSPowerGetUpdate_Power(EPS eps,PetscBool *update)
 }
 
 /*@
-   EPSPowerGetNonlinear - Returns a flag indicating if the problem is nonlinear.
-
-   Not Collective
-
-   Input Parameter:
-.  eps - the eigenproblem solver context
-
-   Input Parameter:
-.  nonlinear - the nonlinear flag
-
-   Level: advanced
-
-.seealso: EPSPowerSetUpdate(), EPSPowerSetNonlinear()
-@*/
-PetscErrorCode EPSPowerGetNonlinear(EPS eps,PetscBool *nonlinear)
-{
-  PetscErrorCode ierr;
-
-  PetscFunctionBegin;
-  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  PetscValidPointer(nonlinear,2);
-  ierr = PetscUseMethod(eps,"EPSPowerGetNonlinear_C",(EPS,PetscBool*),(eps,nonlinear));CHKERRQ(ierr);
-  PetscFunctionReturn(0);
-}
-
-/*@
-   EPSPowerGetUpdate - Returns a flag indicating if the residual is updated monolithically for nonlinear problems.
+   EPSPowerGetUpdate - Returns a flag indicating if the residual is updated monolithically
+   for nonlinear problems.
 
    Not Collective
 
@@ -874,6 +866,9 @@ PetscErrorCode EPSView_Power(EPS eps,PetscViewer viewer)
   if (isascii) {
     if (power->nonlinear) {
       ierr = PetscViewerASCIIPrintf(viewer,"  Power: using nonlinear inverse iteration\n");CHKERRQ(ierr);
+      if (power->update) {
+        ierr = PetscViewerASCIIPrintf(viewer,"  Power: updating the residual monolithically\n");CHKERRQ(ierr);
+      }
       if (!power->snes) { ierr = EPSPowerGetSNES(eps,&power->snes);CHKERRQ(ierr); }
       ierr = PetscViewerASCIIPushTab(viewer);CHKERRQ(ierr);
       ierr = SNESView(power->snes,viewer);CHKERRQ(ierr);
