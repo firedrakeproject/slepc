@@ -95,9 +95,6 @@ PetscErrorCode EPSSetUp_Power(EPS eps)
 
   if (power->nonlinear) {
     if (eps->nev>1) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Nonlinear inverse iteration cannot compute more than one eigenvalue");
-    ierr = PetscObjectTypeCompare((PetscObject)eps->st,STSINVERT,&flg);CHKERRQ(ierr);
-    if (!flg) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Nonlinear inverse iteration requires shift-and-invert ST");
-    if (eps->target!=0.0) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Nonlinear inverse iteration not implemented for nonzero target");
     ierr = EPSSetWorkVecs(eps,4);CHKERRQ(ierr);
 
     /* set up SNES solver */
@@ -452,7 +449,8 @@ PetscErrorCode EPSBackTransform_Power(EPS eps)
   EPS_POWER      *power = (EPS_POWER*)eps->data;
 
   PetscFunctionBegin;
-  if (power->shift_type == EPS_POWER_SHIFT_CONSTANT) {
+  if (power->nonlinear) eps->eigr[0] = 1.0/eps->eigr[0];
+  else if (power->shift_type == EPS_POWER_SHIFT_CONSTANT) {
     ierr = EPSBackTransform_Default(eps);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
