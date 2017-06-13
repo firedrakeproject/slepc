@@ -130,10 +130,6 @@ PetscErrorCode EPSSetUp_Power(EPS eps)
         ierr = PetscContainerGetPointer(container,&power->formFunctionBctx);CHKERRQ(ierr);
       } else power->formFunctionBctx = NULL;
     }
-    /*
-      EPSComputeVectors_Schur does not work for the nonlinear case because there is no DS
-    */
-    eps->ops->computevectors = NULL;
   } else {
     ierr = EPSSetWorkVecs(eps,2);CHKERRQ(ierr);
     ierr = DSSetType(eps->ds,DSNHEP);CHKERRQ(ierr);
@@ -878,6 +874,18 @@ PetscErrorCode EPSView_Power(EPS eps,PetscViewer viewer)
   PetscFunctionReturn(0);
 }
 
+PetscErrorCode EPSComputeVectors_Power(EPS eps)
+{
+  PetscErrorCode ierr;
+  EPS_POWER      *power = (EPS_POWER*)eps->data;
+
+  PetscFunctionBegin;
+  if (!power->nonlinear) {
+    ierr = EPSComputeVectors_Schur(eps);CHKERRQ(ierr);
+  }
+  PetscFunctionReturn(0);
+}
+
 PetscErrorCode EPSSetDefaultST_Power(EPS eps)
 {
   PetscErrorCode ierr;
@@ -913,7 +921,7 @@ PETSC_EXTERN PetscErrorCode EPSCreate_Power(EPS eps)
   eps->ops->destroy        = EPSDestroy_Power;
   eps->ops->view           = EPSView_Power;
   eps->ops->backtransform  = EPSBackTransform_Power;
-  eps->ops->computevectors = EPSComputeVectors_Schur;
+  eps->ops->computevectors = EPSComputeVectors_Power;
   eps->ops->setdefaultst   = EPSSetDefaultST_Power;
 
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSPowerSetShiftType_C",EPSPowerSetShiftType_Power);CHKERRQ(ierr);
