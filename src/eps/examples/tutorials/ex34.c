@@ -59,7 +59,6 @@ int main(int argc,char **argv)
   MPI_Comm       comm;
   AppCtx         user;
   EPS            eps;  /* eigenproblem solver context */
-  ST             st;   /* spectral transformation context */
   EPSType        type;
   Mat            A,B;
   PetscContainer container;
@@ -104,15 +103,6 @@ int main(int argc,char **argv)
   */
   ierr = EPSSetType(eps,EPSPOWER);CHKERRQ(ierr);
   ierr = EPSPowerSetNonlinear(eps,PETSC_TRUE);CHKERRQ(ierr);
-
-  /*
-     Nonlinear inverse iteration requires shift-and-invert with target=0
-  */
-  ierr = EPSSetTarget(eps,0.0);CHKERRQ(ierr);
-  ierr = EPSSetWhichEigenpairs(eps,EPS_TARGET_MAGNITUDE);CHKERRQ(ierr);
-  ierr = EPSGetST(eps,&st);CHKERRQ(ierr);
-  ierr = STSetType(st,STSINVERT);CHKERRQ(ierr);
-
   /*
     Attach DM to SNES
   */

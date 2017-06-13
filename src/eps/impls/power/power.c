@@ -95,9 +95,6 @@ PetscErrorCode EPSSetUp_Power(EPS eps)
 
   if (power->nonlinear) {
     if (eps->nev>1) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Nonlinear inverse iteration cannot compute more than one eigenvalue");
-    ierr = PetscObjectTypeCompare((PetscObject)eps->st,STSINVERT,&flg);CHKERRQ(ierr);
-    if (!flg) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Nonlinear inverse iteration requires shift-and-invert ST");
-    if (eps->target!=0.0) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Nonlinear inverse iteration not implemented for nonzero target");
     ierr = EPSSetWorkVecs(eps,4);CHKERRQ(ierr);
 
     /* set up SNES solver */
@@ -133,10 +130,6 @@ PetscErrorCode EPSSetUp_Power(EPS eps)
         ierr = PetscContainerGetPointer(container,&power->formFunctionBctx);CHKERRQ(ierr);
       } else power->formFunctionBctx = NULL;
     }
-    /*
-      EPSComputeVectors_Schur does not work for the nonlinear case because there is no DS
-    */
-    eps->ops->computevectors = NULL;
   } else {
     ierr = EPSSetWorkVecs(eps,2);CHKERRQ(ierr);
     ierr = DSSetType(eps->ds,DSNHEP);CHKERRQ(ierr);
@@ -452,7 +445,8 @@ PetscErrorCode EPSBackTransform_Power(EPS eps)
   EPS_POWER      *power = (EPS_POWER*)eps->data;
 
   PetscFunctionBegin;
-  if (power->shift_type == EPS_POWER_SHIFT_CONSTANT) {
+  if (power->nonlinear) eps->eigr[0] = 1.0/eps->eigr[0];
+  else if (power->shift_type == EPS_POWER_SHIFT_CONSTANT) {
     ierr = EPSBackTransform_Default(eps);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
@@ -880,6 +874,34 @@ PetscErrorCode EPSView_Power(EPS eps,PetscViewer viewer)
   PetscFunctionReturn(0);
 }
 
+PetscErrorCode EPSComputeVectors_Power(EPS eps)
+{
+  PetscErrorCode ierr;
+  EPS_POWER      *power = (EPS_POWER*)eps->data;
+
+  PetscFunctionBegin;
+  if (!power->nonlinear) {
+    ierr = EPSComputeVectors_Schur(eps);CHKERRQ(ierr);
+  }
+  PetscFunctionReturn(0);
+}
+
+PetscErrorCode EPSSetDefaultST_Power(EPS eps)
+{
+  PetscErrorCode ierr;
+  EPS_POWER      *power = (EPS_POWER*)eps->data;
+  KSP            ksp;
+  PC             pc;
+
+  PetscFunctionBegin;
+  if (power->nonlinear) {
+    ierr = STGetKSP(eps->st,&ksp);CHKERRQ(ierr);
+    ierr = KSPGetPC(ksp,&pc);CHKERRQ(ierr);
+    ierr = PCSetType(pc,PCNONE);CHKERRQ(ierr);
+  }
+  PetscFunctionReturn(0);
+}
+
 PETSC_EXTERN PetscErrorCode EPSCreate_Power(EPS eps)
 {
   EPS_POWER      *ctx;
@@ -899,7 +921,8 @@ PETSC_EXTERN PetscErrorCode EPSCreate_Power(EPS eps)
   eps->ops->destroy        = EPSDestroy_Power;
   eps->ops->view           = EPSView_Power;
   eps->ops->backtransform  = EPSBackTransform_Power;
-  eps->ops->computevectors = EPSComputeVectors_Schur;
+  eps->ops->computevectors = EPSComputeVectors_Power;
+  eps->ops->setdefaultst   = EPSSetDefaultST_Power;
 
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSPowerSetShiftType_C",EPSPowerSetShiftType_Power);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSPowerGetShiftType_C",EPSPowerGetShiftType_Power);CHKERRQ(ierr);
