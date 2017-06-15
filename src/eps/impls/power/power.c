@@ -43,6 +43,9 @@
 
 #include <slepc/private/epsimpl.h>                /*I "slepceps.h" I*/
 #include <slepcblaslapack.h>
+/* petsc headers */
+#include <petscdm.h>
+#include <petsc/private/snesimpl.h>
 
 static PetscErrorCode EPSPowerFormFunction_Update(SNES,Vec,Vec,void*);
 
@@ -260,7 +263,6 @@ static PetscErrorCode EPSPowerComputeInitialGuess_Update(EPS eps)
   ierr = EPSPowerGetSNES(powereps,&snes);CHKERRQ(ierr);
   ierr = SNESSetDM(snes,dm);CHKERRQ(ierr);
   ierr = EPSSetFromOptions(powereps);CHKERRQ(ierr);
-  ierr = EPSSetUp(powereps);CHKERRQ(ierr);
   ierr = EPSSolve(powereps);CHKERRQ(ierr);
   ierr = BVGetColumn(eps->V,0,&v2);CHKERRQ(ierr);
   ierr = BVGetColumn(powereps->V,0,&v1);CHKERRQ(ierr);
