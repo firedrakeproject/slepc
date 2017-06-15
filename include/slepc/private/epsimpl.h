@@ -24,6 +24,9 @@
 
 #include <slepceps.h>
 #include <slepc/private/slepcimpl.h>
+/* petsc headers */
+#include <petscdm.h>
+#include <petsc/private/snesimpl.h>
 
 PETSC_EXTERN PetscBool EPSRegisterAllCalled;
 PETSC_EXTERN PetscErrorCode EPSRegisterAll(void);
