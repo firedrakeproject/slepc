@@ -43,6 +43,9 @@
 
 #include <slepc/private/epsimpl.h>                /*I "slepceps.h" I*/
 #include <slepcblaslapack.h>
+/* petsc headers */
+#include <petscdm.h>
+#include <petsc/private/snesimpl.h>
 
 static PetscErrorCode EPSPowerFormFunction_Update(SNES,Vec,Vec,void*);
 
@@ -233,6 +236,8 @@ static PetscErrorCode EPSPowerComputeInitialGuess_Update(EPS eps)
   EPS            powereps;
   Mat            A,B;
   Vec            v1,v2;
+  SNES           snes;
+  DM             dm,newdm;
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
@@ -247,6 +252,16 @@ static PetscErrorCode EPSPowerComputeInitialGuess_Update(EPS eps)
   ierr = EPSSetWhichEigenpairs(powereps,EPS_TARGET_MAGNITUDE);CHKERRQ(ierr);
   ierr = EPSPowerSetNonlinear(powereps,PETSC_TRUE);CHKERRQ(ierr);
   ierr = STSetType(powereps->st,STSINVERT);CHKERRQ(ierr);
+  /* attach dm to initial solve */
+  ierr = EPSPowerGetSNES(eps,&snes);CHKERRQ(ierr);
+  ierr = SNESGetDM(snes,&dm);CHKERRQ(ierr);
+  /* use  dmshell to temporarily store snes context */
+  ierr = DMCreate(PetscObjectComm((PetscObject)eps),&newdm);CHKERRQ(ierr);
+  ierr = DMSetType(newdm,DMSHELL);CHKERRQ(ierr);
+  ierr = DMSetUp(newdm);CHKERRQ(ierr);
+  ierr = DMCopyDMSNES(dm,newdm);CHKERRQ(ierr);
+  ierr = EPSPowerGetSNES(powereps,&snes);CHKERRQ(ierr);
+  ierr = SNESSetDM(snes,dm);CHKERRQ(ierr);
   ierr = EPSSetFromOptions(powereps);CHKERRQ(ierr);
   ierr = EPSSolve(powereps);CHKERRQ(ierr);
   ierr = BVGetColumn(eps->V,0,&v2);CHKERRQ(ierr);
@@ -255,6 +270,9 @@ static PetscErrorCode EPSPowerComputeInitialGuess_Update(EPS eps)
   ierr = BVRestoreColumn(powereps->V,0,&v1);CHKERRQ(ierr);
   ierr = BVRestoreColumn(eps->V,0,&v2);CHKERRQ(ierr);
   ierr = EPSDestroy(&powereps);CHKERRQ(ierr);
+  /* restore context back to the old nonlinear solver */
+  ierr = DMCopyDMSNES(newdm,dm);CHKERRQ(ierr);
+  ierr = DMDestroy(&newdm);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
