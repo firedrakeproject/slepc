@@ -33,7 +33,7 @@ TESTEXAMPLES_C                     = ex5.PETSc runex5_1 ex5.rm \
                                      ex13.PETSc runex13_1 ex13.rm \
                                      ex24.PETSc runex24_1 ex24.rm \
                                      ex29.PETSc runex29_1 ex29.rm \
-                                     ex34.PETSc runex34_1 ex34.rm \
+                                     ex34.PETSc runex34_1 runex34_2 ex34.rm \
                                      ex35.PETSc runex35_1 ex35.rm
 TESTEXAMPLES_C_DOUBLE              = ex2.PETSc runex2_ciss_1 runex2_ciss_2 ex2.rm \
                                      ex19.PETSc runex19_1 ex19.rm
@@ -337,6 +337,11 @@ runex31_1:
 runex34_1:
 	-@${SETTEST}; \
 	${MPIEXEC} -n 1 ./ex34 -petscspace_order 1 -petscspace_poly_tensor > $${test}.tmp 2>&1; \
+	${TESTCODE}
+
+runex34_2:
+	-@${SETTEST}; \
+	${MPIEXEC} -n 1 ./ex34 -petscspace_order 1 -petscspace_poly_tensor -eps_power_update > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
 runex35_1:
