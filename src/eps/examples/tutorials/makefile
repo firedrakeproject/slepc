@@ -304,8 +304,9 @@ runex18_1:
 runex19_1: runex19_1_krylovschur runex19_1_lobpcg
 runex19_1_%:
 	-@${SETTEST}; check=ex19_1; eps=$*; \
-	if [ "$$eps" = krylovschur ]; then eps="krylovschur -eps_ncv 64"; fi; \
-	${MPIEXEC} -n 1 ./ex19 -eps_nev 8 -eps_type $$eps -terse > $${test}.tmp 2>&1; \
+	if [ "$$eps" = krylovschur ]; then EXTRA="-eps_ncv 64"; \
+	else EXTRA="-eps_tol 1e-9"; fi; \
+	${MPIEXEC} -n 1 ./ex19 -eps_nev 8 -eps_type $$eps $$EXTRA -terse > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
 runex24_1:
