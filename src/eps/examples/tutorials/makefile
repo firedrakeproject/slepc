@@ -355,7 +355,7 @@ runex36_1:
 	-@${SETTEST}; \
 	if ${GREP} "\#define PETSC_HAVE_C99_COMPLEX" ${PETSC_DIR}/${PETSC_ARCH}/include/petscconf.h > /dev/null; then \
 	  if [ "${PETSC_PRECISION}" = "__float128" ]; then EXTRA="-eps_tol 1e-14"; fi; \
-	  ${MPIEXEC} -n 1 ./ex36 -eps_nev 4 -mfn_ncv 14 -terse $$EXTRA > $${test}.tmp 2>&1; \
+	  ${MPIEXEC} -n 1 ./ex36 -eps_nev 4 -mfn_ncv 16 -terse $$EXTRA > $${test}.tmp 2>&1; \
 	  ${TESTCODE}; \
 	fi
 

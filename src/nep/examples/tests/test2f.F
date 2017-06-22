@@ -71,7 +71,7 @@
       call MatSetUp(A(1),ierr)
       call MatGetOwnershipRange(A(1),Istart,Iend,ierr)
       do i=Istart,Iend-1
-        val = i+1.
+        val = i+1
         call MatSetValue(A(1),i,i,val,INSERT_VALUES,ierr)
       enddo
       call MatAssemblyBegin(A(1),MAT_FINAL_ASSEMBLY,ierr)
@@ -95,7 +95,7 @@
       call MatSetUp(A(3),ierr)
       call MatGetOwnershipRange(A(3),Istart,Iend,ierr)
       do i=Istart,Iend-1
-        val = n/(i+1.)
+        val = n/dble(i+1)
         call MatSetValue(A(3),i,i,val,INSERT_VALUES,ierr)
       enddo
       call MatAssemblyBegin(A(3),MAT_FINAL_ASSEMBLY,ierr)
