@@ -118,7 +118,7 @@
 !     ** Fill Y entries
       do j=0,l-1
         call BVGetColumn(Y,j,v,ierr)
-        val = (j+1)/4.0
+        val = dble(j+1)/4.0
         call VecSet(v,val,ierr)
         call BVRestoreColumn(Y,j,v,ierr)
       end do
