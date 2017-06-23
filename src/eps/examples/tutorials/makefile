@@ -305,7 +305,7 @@ runex19_1: runex19_1_krylovschur runex19_1_lobpcg
 runex19_1_%:
 	-@${SETTEST}; check=ex19_1; eps=$*; \
 	if [ "$$eps" = krylovschur ]; then EXTRA="-eps_ncv 64"; \
-	else EXTRA="-eps_tol 1e-9"; fi; \
+	else EXTRA="-eps_tol 1e-7"; fi; \
 	${MPIEXEC} -n 1 ./ex19 -eps_nev 8 -eps_type $$eps $$EXTRA -terse > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
@@ -355,7 +355,7 @@ runex36_1:
 	-@${SETTEST}; \
 	if ${GREP} "\#define PETSC_HAVE_C99_COMPLEX" ${PETSC_DIR}/${PETSC_ARCH}/include/petscconf.h > /dev/null; then \
 	  if [ "${PETSC_PRECISION}" = "__float128" ]; then EXTRA="-eps_tol 1e-14"; fi; \
-	  ${MPIEXEC} -n 1 ./ex36 -eps_nev 4 -mfn_ncv 16 -terse $$EXTRA > $${test}.tmp 2>&1; \
+	  ${MPIEXEC} -n 1 ./ex36 -eps_nev 4 -mfn_ncv 16 -terse $$EXTRA | ${SED} -e "s/-2/+2/g" > $${test}.tmp 2>&1; \
 	  ${TESTCODE}; \
 	fi
 
