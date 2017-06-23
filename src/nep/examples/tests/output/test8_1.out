@@ -57,7 +57,7 @@ NEP Object: nep 1 MPI processes
           total: nonzeros=6, allocated nonzeros=6
           total number of mallocs used during MatSetValues calls =0
             not using I-node routines
-  nonlinear operator in split form
+  nonlinear operator in split form, with 3 terms
   selected portion of the spectrum: closest to target: -0.5 (in magnitude)
   number of eigenvalues (nev): 1
   number of column vectors (ncv): 1
