@@ -16,8 +16,8 @@ PEP of diagonal problem, n=6
   1 PEP nconv=12 Values (Errors) 3. (removed) 2.5 (removed) 2. (removed) 1.5 (removed) 1. (removed) 0.5 (removed) -2. (removed) -4. (removed) -6. (removed) -8. (removed) -10. (removed) -12. (removed)
 PEP Object: pep 1 MPI processes
   type: toar
-    TOAR: 50% of basis vectors kept after restart
-    TOAR: using the locking variant
+    50% of basis vectors kept after restart
+    using the locking variant
   polynomial represented in MONOMIAL basis
   selected portion of the spectrum: largest real parts
   number of eigenvalues (nev): 1

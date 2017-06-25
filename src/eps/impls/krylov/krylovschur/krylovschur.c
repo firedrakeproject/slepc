@@ -1241,13 +1241,13 @@ PetscErrorCode EPSView_KrylovSchur(EPS eps,PetscViewer viewer)
   PetscFunctionBegin;
   ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
   if (isascii) {
-    ierr = PetscViewerASCIIPrintf(viewer,"  Krylov-Schur: %d%% of basis vectors kept after restart\n",(int)(100*ctx->keep));CHKERRQ(ierr);
-    ierr = PetscViewerASCIIPrintf(viewer,"  Krylov-Schur: using the %slocking variant\n",ctx->lock?"":"non-");CHKERRQ(ierr);
+    ierr = PetscViewerASCIIPrintf(viewer,"  %d%% of basis vectors kept after restart\n",(int)(100*ctx->keep));CHKERRQ(ierr);
+    ierr = PetscViewerASCIIPrintf(viewer,"  using the %slocking variant\n",ctx->lock?"":"non-");CHKERRQ(ierr);
     if (eps->which==EPS_ALL) {
-      ierr = PetscViewerASCIIPrintf(viewer,"  Krylov-Schur: doing spectrum slicing with nev=%D, ncv=%D, mpd=%D\n",ctx->nev,ctx->ncv,ctx->mpd);CHKERRQ(ierr);
+      ierr = PetscViewerASCIIPrintf(viewer,"  doing spectrum slicing with nev=%D, ncv=%D, mpd=%D\n",ctx->nev,ctx->ncv,ctx->mpd);CHKERRQ(ierr);
       if (ctx->npart>1) {
-        ierr = PetscViewerASCIIPrintf(viewer,"  Krylov-Schur: multi-communicator spectrum slicing with %D partitions\n",ctx->npart);CHKERRQ(ierr);
-        if (ctx->detect) { ierr = PetscViewerASCIIPrintf(viewer,"  Krylov-Schur: detecting zeros when factorizing at subinterval boundaries\n");CHKERRQ(ierr); }
+        ierr = PetscViewerASCIIPrintf(viewer,"  multi-communicator spectrum slicing with %D partitions\n",ctx->npart);CHKERRQ(ierr);
+        if (ctx->detect) { ierr = PetscViewerASCIIPrintf(viewer,"  detecting zeros when factorizing at subinterval boundaries\n");CHKERRQ(ierr); }
       }
     }
   }

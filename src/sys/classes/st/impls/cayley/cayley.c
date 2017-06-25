@@ -338,7 +338,7 @@ PetscErrorCode STView_Cayley(ST st,PetscViewer viewer)
   ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
   if (isascii) {
     ierr = SlepcSNPrintfScalar(str,50,ctx->nu,PETSC_FALSE);CHKERRQ(ierr);
-    ierr = PetscViewerASCIIPrintf(viewer,"  Cayley: antishift: %s\n",str);CHKERRQ(ierr);
+    ierr = PetscViewerASCIIPrintf(viewer,"  antishift: %s\n",str);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }
