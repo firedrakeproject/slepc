@@ -640,9 +640,9 @@ PetscErrorCode EPSView_LOBPCG(EPS eps,PetscViewer viewer)
   PetscFunctionBegin;
   ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
   if (isascii) {
-    ierr = PetscViewerASCIIPrintf(viewer,"  LOBPCG: block size %D\n",ctx->bs);CHKERRQ(ierr);
-    ierr = PetscViewerASCIIPrintf(viewer,"  LOBPCG: restart parameter=%g (using %d guard vectors)\n",(double)ctx->restart,(int)((1.0-ctx->restart)*ctx->bs));CHKERRQ(ierr);
-    ierr = PetscViewerASCIIPrintf(viewer,"  LOBPCG: soft locking %sactivated\n",ctx->lock?"":"de");CHKERRQ(ierr);
+    ierr = PetscViewerASCIIPrintf(viewer,"  block size %D\n",ctx->bs);CHKERRQ(ierr);
+    ierr = PetscViewerASCIIPrintf(viewer,"  restart parameter=%g (using %d guard vectors)\n",(double)ctx->restart,(int)((1.0-ctx->restart)*ctx->bs));CHKERRQ(ierr);
+    ierr = PetscViewerASCIIPrintf(viewer,"  soft locking %sactivated\n",ctx->lock?"":"de");CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }

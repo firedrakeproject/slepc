@@ -519,12 +519,12 @@ PetscErrorCode NEPView_RII(NEP nep,PetscViewer viewer)
   ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
   if (isascii) {
     if (!ctx->ksp) { ierr = NEPRIIGetKSP(nep,&ctx->ksp);CHKERRQ(ierr); }
-    ierr = PetscViewerASCIIPrintf(viewer,"  RII: maximum number of inner iterations: %D\n",ctx->max_inner_it);CHKERRQ(ierr);
+    ierr = PetscViewerASCIIPrintf(viewer,"  maximum number of inner iterations: %D\n",ctx->max_inner_it);CHKERRQ(ierr);
     if (ctx->cctol) {
-      ierr = PetscViewerASCIIPrintf(viewer,"  RII: using a constant tolerance for the linear solver\n");CHKERRQ(ierr);
+      ierr = PetscViewerASCIIPrintf(viewer,"  using a constant tolerance for the linear solver\n");CHKERRQ(ierr);
     }
     if (ctx->lag) {
-      ierr = PetscViewerASCIIPrintf(viewer,"  RII: updating the preconditioner every %D iterations\n",ctx->lag);CHKERRQ(ierr);
+      ierr = PetscViewerASCIIPrintf(viewer,"  updating the preconditioner every %D iterations\n",ctx->lag);CHKERRQ(ierr);
     }
     ierr = PetscViewerASCIIPushTab(viewer);CHKERRQ(ierr);
     ierr = KSPView(ctx->ksp,viewer);CHKERRQ(ierr);

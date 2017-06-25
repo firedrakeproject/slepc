@@ -12,8 +12,8 @@ SVD Object: svd 1 MPI processes
   type: cross
     EPS Object: (svd_cross_) 1 MPI processes
       type: krylovschur
-        Krylov-Schur: 50% of basis vectors kept after restart
-        Krylov-Schur: using the locking variant
+        50% of basis vectors kept after restart
+        using the locking variant
       selected portion of the spectrum: largest real parts
       computing all residuals (for tracking convergence)
       number of eigenvalues (nev): 1

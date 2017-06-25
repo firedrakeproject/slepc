@@ -155,7 +155,7 @@ PetscErrorCode RGView_Polygon(RG rg,PetscViewer viewer)
   PetscFunctionBegin;
   ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
   if (isascii) {
-    ierr = PetscViewerASCIIPrintf(viewer,"vertices: ");CHKERRQ(ierr);
+    ierr = PetscViewerASCIIPrintf(viewer,"  vertices: ");CHKERRQ(ierr);
     ierr = PetscViewerASCIIUseTabs(viewer,PETSC_FALSE);CHKERRQ(ierr);
     for (i=0;i<ctx->n;i++) {
 #if defined(PETSC_USE_COMPLEX)
