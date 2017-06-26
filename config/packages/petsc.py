@@ -56,8 +56,6 @@ class PETSc(package.Package):
             minor = l[2]
           elif l[1] == 'PETSC_VERSION_SUBMINOR':
             subminor = l[2]
-          elif l[1] == 'PETSC_VERSION_PATCH':
-            patchlevel = l[2]
       f.close()
       self.version = major + '.' + minor
       self.lversion = major + '.' + minor + '.' + subminor
