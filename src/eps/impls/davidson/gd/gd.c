@@ -107,25 +107,25 @@ PetscErrorCode EPSView_GD(EPS eps,PetscViewer viewer)
   ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
   if (isascii) {
     if (data->doubleexp) {
-      ierr = PetscViewerASCIIPrintf(viewer,"  GD: using double expansion variant (GD2)\n");CHKERRQ(ierr);
+      ierr = PetscViewerASCIIPrintf(viewer,"  using double expansion variant (GD2)\n");CHKERRQ(ierr);
     }
     ierr = EPSXDGetBOrth_XD(eps,&borth);CHKERRQ(ierr);
     if (borth) {
-      ierr = PetscViewerASCIIPrintf(viewer,"  GD: search subspace is B-orthogonalized\n");CHKERRQ(ierr);
+      ierr = PetscViewerASCIIPrintf(viewer,"  search subspace is B-orthogonalized\n");CHKERRQ(ierr);
     } else {
-      ierr = PetscViewerASCIIPrintf(viewer,"  GD: search subspace is orthogonalized\n");CHKERRQ(ierr);
+      ierr = PetscViewerASCIIPrintf(viewer,"  search subspace is orthogonalized\n");CHKERRQ(ierr);
     }
     ierr = EPSXDGetBlockSize_XD(eps,&opi);CHKERRQ(ierr);
-    ierr = PetscViewerASCIIPrintf(viewer,"  GD: block size=%D\n",opi);CHKERRQ(ierr);
+    ierr = PetscViewerASCIIPrintf(viewer,"  block size=%D\n",opi);CHKERRQ(ierr);
     ierr = EPSXDGetKrylovStart_XD(eps,&opb);CHKERRQ(ierr);
     if (!opb) {
-      ierr = PetscViewerASCIIPrintf(viewer,"  GD: type of the initial subspace: non-Krylov\n");CHKERRQ(ierr);
+      ierr = PetscViewerASCIIPrintf(viewer,"  type of the initial subspace: non-Krylov\n");CHKERRQ(ierr);
     } else {
-      ierr = PetscViewerASCIIPrintf(viewer,"  GD: type of the initial subspace: Krylov\n");CHKERRQ(ierr);
+      ierr = PetscViewerASCIIPrintf(viewer,"  type of the initial subspace: Krylov\n");CHKERRQ(ierr);
     }
     ierr = EPSXDGetRestart_XD(eps,&opi,&opi0);CHKERRQ(ierr);
-    ierr = PetscViewerASCIIPrintf(viewer,"  GD: size of the subspace after restarting: %D\n",opi);CHKERRQ(ierr);
-    ierr = PetscViewerASCIIPrintf(viewer,"  GD: number of vectors after restarting from the previous iteration: %D\n",opi0);CHKERRQ(ierr);
+    ierr = PetscViewerASCIIPrintf(viewer,"  size of the subspace after restarting: %D\n",opi);CHKERRQ(ierr);
+    ierr = PetscViewerASCIIPrintf(viewer,"  number of vectors after restarting from the previous iteration: %D\n",opi0);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }

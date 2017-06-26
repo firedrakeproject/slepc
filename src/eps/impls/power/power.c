@@ -877,16 +877,16 @@ PetscErrorCode EPSView_Power(EPS eps,PetscViewer viewer)
   ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
   if (isascii) {
     if (power->nonlinear) {
-      ierr = PetscViewerASCIIPrintf(viewer,"  Power: using nonlinear inverse iteration\n");CHKERRQ(ierr);
+      ierr = PetscViewerASCIIPrintf(viewer,"  using nonlinear inverse iteration\n");CHKERRQ(ierr);
       if (power->update) {
-        ierr = PetscViewerASCIIPrintf(viewer,"  Power: updating the residual monolithically\n");CHKERRQ(ierr);
+        ierr = PetscViewerASCIIPrintf(viewer,"  updating the residual monolithically\n");CHKERRQ(ierr);
       }
       if (!power->snes) { ierr = EPSPowerGetSNES(eps,&power->snes);CHKERRQ(ierr); }
       ierr = PetscViewerASCIIPushTab(viewer);CHKERRQ(ierr);
       ierr = SNESView(power->snes,viewer);CHKERRQ(ierr);
       ierr = PetscViewerASCIIPopTab(viewer);CHKERRQ(ierr);
     } else {
-      ierr = PetscViewerASCIIPrintf(viewer,"  Power: %s shifts\n",EPSPowerShiftTypes[power->shift_type]);CHKERRQ(ierr);
+      ierr = PetscViewerASCIIPrintf(viewer,"  %s shifts\n",EPSPowerShiftTypes[power->shift_type]);CHKERRQ(ierr);
     }
   }
   PetscFunctionReturn(0);

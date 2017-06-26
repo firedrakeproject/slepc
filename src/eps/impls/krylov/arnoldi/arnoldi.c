@@ -263,7 +263,7 @@ PetscErrorCode EPSView_Arnoldi(EPS eps,PetscViewer viewer)
   PetscFunctionBegin;
   ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
   if (isascii && arnoldi->delayed) {
-    ierr = PetscViewerASCIIPrintf(viewer,"  Arnoldi: using delayed reorthogonalization\n");CHKERRQ(ierr);
+    ierr = PetscViewerASCIIPrintf(viewer,"  using delayed reorthogonalization\n");CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }

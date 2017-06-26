@@ -183,7 +183,7 @@ PetscErrorCode RGView_Ring(RG rg,PetscViewer viewer)
   ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
   if (isascii) {
     ierr = SlepcSNPrintfScalar(str,50,ctx->center,PETSC_FALSE);CHKERRQ(ierr);
-    ierr = PetscViewerASCIIPrintf(viewer,"center: %s, radius: %g, vscale: %g, start angle: %g, end angle: %g, ring width: %g\n",str,RGShowReal(ctx->radius),RGShowReal(ctx->vscale),(double)ctx->start_ang,(double)ctx->end_ang,(double)ctx->width);CHKERRQ(ierr);
+    ierr = PetscViewerASCIIPrintf(viewer,"  center: %s, radius: %g, vscale: %g, start angle: %g, end angle: %g, ring width: %g\n",str,RGShowReal(ctx->radius),RGShowReal(ctx->vscale),(double)ctx->start_ang,(double)ctx->end_ang,(double)ctx->width);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }

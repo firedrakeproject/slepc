@@ -10,8 +10,8 @@ EPS of diagonal problem, n=6
   1 EPS nconv=6 Values (Errors) 6. (removed) 5. (removed) 4. (removed) 3. (removed) 2. (removed) 1. (removed)
 EPS Object: eps 1 MPI processes
   type: krylovschur
-    Krylov-Schur: 50% of basis vectors kept after restart
-    Krylov-Schur: using the locking variant
+    50% of basis vectors kept after restart
+    using the locking variant
   problem type: non-symmetric eigenvalue problem
   selected portion of the spectrum: largest real parts
   computing all residuals (for tracking convergence)
