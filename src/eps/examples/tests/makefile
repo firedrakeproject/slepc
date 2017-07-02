@@ -28,7 +28,7 @@ EXAMPLESC  = test1.c test2.c test3.c test4.c test5.c test6.c \
              test8.c test9.c test10.c test11.c test12.c test13.c \
              test14.c test16.c test17.c test18.c test19.c test20.c \
              test21.c test22.c test23.c test24.c test25.c test26.c test27.c
-EXAMPLESF  = test7f.F test14f.F test15f.F test17f.F
+EXAMPLESF  = test7f.F test14f.F test15f.F test17f.F90
 MANSEC     = EPS
 TESTS      = test1 test2 test3 test4 test5 test6 test7f test8 test9 test10 \
              test11 test12 test13 test14 test14f test15f test16 test17 test17f \
