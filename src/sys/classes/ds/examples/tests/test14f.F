@@ -63,7 +63,7 @@
         if (rank .eq. 0) then
           write(*,100) n
         endif
-        SETERRQ(PETSC_COMM_SELF,1,' ')
+        SETERRA(PETSC_COMM_SELF,1,' ')
       endif
  100  format (/'Program currently limited to n=100, you set n=',I3)
 
