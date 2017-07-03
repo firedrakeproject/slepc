@@ -62,8 +62,7 @@
       call SlepcInitialize(PETSC_NULL_CHARACTER,ierr)
       call MPI_Comm_rank(PETSC_COMM_WORLD,rank,ierr)
       n = 30
-      call PetscOptionsGetInt(PETSC_NULL_OPTIONS,PETSC_NULL_CHARACTER,  &
-     &                        '-n',n,flg,ierr)
+      call PetscOptionsGetInt(PETSC_NULL_OPTIONS,PETSC_NULL_CHARACTER,'-n',n,flg,ierr)
 
       if (rank .eq. 0) then
         write(*,100) n
@@ -138,8 +137,7 @@
         write(*,120) tname
       endif
  120  format (' Solution method: ',A)
-      call EPSGetDimensions(eps,nev,PETSC_NULL_INTEGER,                 &
-     &                      PETSC_NULL_INTEGER,ierr)
+      call EPSGetDimensions(eps,nev,PETSC_NULL_INTEGER,PETSC_NULL_INTEGER,ierr)
       if (rank .eq. 0) then
         write(*,130) nev
       endif
@@ -150,16 +148,13 @@
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 !     ** show detailed info unless -terse option is given by user
-      call PetscOptionsHasName(PETSC_NULL_OPTIONS,PETSC_NULL_CHARACTER, &
-     &                        '-terse',terse,ierr)
+      call PetscOptionsHasName(PETSC_NULL_OPTIONS,PETSC_NULL_CHARACTER,'-terse',terse,ierr)
       if (terse) then
         call EPSErrorView(eps,EPS_ERROR_RELATIVE,PETSC_NULL_VIEWER,ierr)
       else
-        call PetscViewerPushFormat(PETSC_VIEWER_STDOUT_WORLD,           &
-     &                   PETSC_VIEWER_ASCII_INFO_DETAIL,ierr)
+        call PetscViewerPushFormat(PETSC_VIEWER_STDOUT_WORLD,PETSC_VIEWER_ASCII_INFO_DETAIL,ierr)
         call EPSReasonView(eps,PETSC_VIEWER_STDOUT_WORLD,ierr)
-        call EPSErrorView(eps,EPS_ERROR_RELATIVE,                       &
-     &                   PETSC_VIEWER_STDOUT_WORLD,ierr)
+        call EPSErrorView(eps,EPS_ERROR_RELATIVE,PETSC_VIEWER_STDOUT_WORLD,ierr)
         call PetscViewerPopFormat(PETSC_VIEWER_STDOUT_WORLD,ierr)
       endif
       call EPSDestroy(eps,ierr)

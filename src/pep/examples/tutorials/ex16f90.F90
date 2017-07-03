@@ -58,10 +58,8 @@
       call SlepcInitialize(PETSC_NULL_CHARACTER,ierr)
       call MPI_Comm_rank(PETSC_COMM_WORLD,rank,ierr)
       nx = 10
-      call PetscOptionsGetInt(PETSC_NULL_OPTIONS,PETSC_NULL_CHARACTER,  &
-     &                        '-n',nx,flg,ierr)
-      call PetscOptionsGetInt(PETSC_NULL_OPTIONS,PETSC_NULL_CHARACTER,  &
-     &                        '-m',ny,flg,ierr)
+      call PetscOptionsGetInt(PETSC_NULL_OPTIONS,PETSC_NULL_CHARACTER,'-n',nx,flg,ierr)
+      call PetscOptionsGetInt(PETSC_NULL_OPTIONS,PETSC_NULL_CHARACTER,'-m',ny,flg,ierr)
       if (.not. flg) then
         ny = nx
       endif
@@ -167,8 +165,7 @@
         write(*,120) tname
       endif
  120  format (' Solution method: ',A)
-      call PEPGetDimensions(pep,nev,PETSC_NULL_INTEGER,                 &
-     &                      PETSC_NULL_INTEGER,ierr)
+      call PEPGetDimensions(pep,nev,PETSC_NULL_INTEGER,PETSC_NULL_INTEGER,ierr)
       if (rank .eq. 0) then
         write(*,130) nev
       endif
@@ -179,16 +176,13 @@
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 !     ** show detailed info unless -terse option is given by user
-      call PetscOptionsHasName(PETSC_NULL_OPTIONS,PETSC_NULL_CHARACTER, &
-     &                        '-terse',terse,ierr)
+      call PetscOptionsHasName(PETSC_NULL_OPTIONS,PETSC_NULL_CHARACTER,'-terse',terse,ierr)
       if (terse) then
         call PEPErrorView(pep,PEP_ERROR_BACKWARD,PETSC_NULL_VIEWER,ierr)
       else
-        call PetscViewerPushFormat(PETSC_VIEWER_STDOUT_WORLD,           &
-     &                   PETSC_VIEWER_ASCII_INFO_DETAIL,ierr)
+        call PetscViewerPushFormat(PETSC_VIEWER_STDOUT_WORLD,PETSC_VIEWER_ASCII_INFO_DETAIL,ierr)
         call PEPReasonView(pep,PETSC_VIEWER_STDOUT_WORLD,ierr)
-        call PEPErrorView(pep,PEP_ERROR_BACKWARD,                       &
-     &                   PETSC_VIEWER_STDOUT_WORLD,ierr)
+        call PEPErrorView(pep,PEP_ERROR_BACKWARD,PETSC_VIEWER_STDOUT_WORLD,ierr)
         call PetscViewerPopFormat(PETSC_VIEWER_STDOUT_WORLD,ierr)
       endif
       call PEPDestroy(pep,ierr)

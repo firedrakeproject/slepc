@@ -59,8 +59,7 @@
       call MPI_Comm_size(PETSC_COMM_WORLD,size,ierr)
       call MPI_Comm_rank(PETSC_COMM_WORLD,rank,ierr)
       n = 35
-      call PetscOptionsGetInt(PETSC_NULL_OPTIONS,PETSC_NULL_CHARACTER,  &
-     &                        '-n',n,flg,ierr)
+      call PetscOptionsGetInt(PETSC_NULL_OPTIONS,PETSC_NULL_CHARACTER,'-n',n,flg,ierr)
       m = n*n
       if (rank .eq. 0) then
         write(*,100) n
@@ -179,8 +178,7 @@
       if (rank .eq. 0) then
         write(*,150) nev,ncv,mpd
       endif
- 150  format (' Sub-solve dimensions before changing: nev=',I2,', ncv=',&
-     &        I2,', mpd=',I2)
+ 150  format (' Sub-solve dimensions before changing: nev=',I2,', ncv=',I2,', mpd=',I2)
       nev = 30
       ncv = 60
       mpd = 60
@@ -226,8 +224,7 @@
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
       call EPSSetUp(eps,ierr)
-      call EPSKrylovSchurGetInertias(eps,k,PETSC_NULL_REAL,             &
-     &           PETSC_NULL_INTEGER,ierr)
+      call EPSKrylovSchurGetInertias(eps,k,PETSC_NULL_REAL,PETSC_NULL_INTEGER,ierr)
       if (k>MAXSHI) then
         SETERRQ(PETSC_COMM_SELF,1,'Too many shifts')
       endif
@@ -246,8 +243,7 @@
       if (rank .eq. 0) then
         write(*,190) nev,int0,int1
       endif
- 190  format (' Found ',I2,' eigenvalues in interval [',f6.4,',',f6.4,  &
-     &      ']')
+ 190  format (' Found ',I2,' eigenvalues in interval [',f6.4,',',f6.4,']')
 
       if (size>0) then
         call EPSKrylovSchurGetSubcommInfo(eps,k,nval,v,ierr)
@@ -258,8 +254,7 @@
             write(*,210) PetscRealPart(eval)
           enddo
         endif
- 200    format (' Process ',I2,' has worked in sub-interval ',I2,       &
-     &        ', containing ',I2,' eigenvalues')
+ 200    format (' Process ',I2,' has worked in sub-interval ',I2,', containing ',I2,' eigenvalues')
  210    format (f6.4)
         call VecDestroy(v,ierr)
 
@@ -269,8 +264,7 @@
         if (rank .eq. 0) then
           write(*,220) rank,nloc,nlocs
         endif
- 220    format (' Process ',I2,' owns ',I5,', rows of the global',      &
-     &     ' matrices, and ',I5,' rows in the subcommunicator')
+ 220    format (' Process ',I2,' owns ',I5,', rows of the global',' matrices, and ',I5,' rows in the subcommunicator')
 
 
 !       modify A on subcommunicators
