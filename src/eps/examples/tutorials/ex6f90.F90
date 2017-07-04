@@ -61,12 +61,16 @@
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
       call SlepcInitialize(PETSC_NULL_CHARACTER,ierr)
+      if (ierr .ne. 0) then
+        print*,'SlepcInitialize failed'
+        stop
+      endif
 #if defined(PETSC_USE_COMPLEX)
       write(*,*) 'This example requires real numbers.'
       goto 999
 #endif
-      call MPI_Comm_size(PETSC_COMM_WORLD,sz,ierr)
-      call MPI_Comm_rank(PETSC_COMM_WORLD,rank,ierr)
+      call MPI_Comm_size(PETSC_COMM_WORLD,sz,ierr);CHKERRA(ierr)
+      call MPI_Comm_rank(PETSC_COMM_WORLD,rank,ierr);CHKERRA(ierr)
       if (sz .ne. 1) then
          if (rank .eq. 0) then
             write(*,*) 'This is a uniprocessor example only!'
@@ -74,8 +78,7 @@
          SETERRA(PETSC_COMM_WORLD,1,' ')
       endif
       m = 30
-      call PetscOptionsGetInt(PETSC_NULL_OPTIONS,PETSC_NULL_CHARACTER,  &
-     &                        '-m',m,flg,ierr)
+      call PetscOptionsGetInt(PETSC_NULL_OPTIONS,PETSC_NULL_CHARACTER,'-m',m,flg,ierr);CHKERRA(ierr)
       N = 2*m
 
       if (rank .eq. 0) then
@@ -89,48 +92,45 @@
 !     the eigensystem, Ax=kx
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-      call MatCreateShell(PETSC_COMM_WORLD,N,N,N,N,PETSC_NULL_INTEGER,  &
-     &                    A,ierr)
-      call MatShellSetOperation(A,MATOP_MULT,MatIsing_Mult,ierr)
+      call MatCreateShell(PETSC_COMM_WORLD,N,N,N,N,PETSC_NULL_INTEGER,A,ierr);CHKERRA(ierr)
+      call MatShellSetOperation(A,MATOP_MULT,MatIsing_Mult,ierr);CHKERRA(ierr)
 
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !     Create the eigensolver and display info
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 !     ** Create eigensolver context
-      call EPSCreate(PETSC_COMM_WORLD,eps,ierr)
+      call EPSCreate(PETSC_COMM_WORLD,eps,ierr);CHKERRA(ierr)
 
 !     ** Set operators. In this case, it is a standard eigenvalue problem
-      call EPSSetOperators(eps,A,PETSC_NULL_MAT,ierr)
-      call EPSSetProblemType(eps,EPS_NHEP,ierr)
+      call EPSSetOperators(eps,A,PETSC_NULL_MAT,ierr);CHKERRA(ierr)
+      call EPSSetProblemType(eps,EPS_NHEP,ierr);CHKERRA(ierr)
 
 !     ** Set solver parameters at runtime
-      call EPSSetFromOptions(eps,ierr)
+      call EPSSetFromOptions(eps,ierr);CHKERRA(ierr)
 
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !     Solve the eigensystem
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-      call EPSSolve(eps,ierr)
-      call EPSGetIterationNumber(eps,its,ierr)
+      call EPSSolve(eps,ierr);CHKERRA(ierr)
+      call EPSGetIterationNumber(eps,its,ierr);CHKERRA(ierr)
       if (rank .eq. 0) then
-        write(*,'(A,I4)') ' Number of iterations of the method: ', its
+        write(*,'(A,I4)') ' Number of iterations of the method: ',its
       endif
 
 !     ** Optional: Get some information from the solver and display it
-      call EPSGetType(eps,tname,ierr)
+      call EPSGetType(eps,tname,ierr);CHKERRA(ierr)
       if (rank .eq. 0) then
         write(*,'(A,A)') ' Solution method: ', tname
       endif
-      call EPSGetDimensions(eps,nev,PETSC_NULL_INTEGER,                 &
-     &                      PETSC_NULL_INTEGER,ierr)
+      call EPSGetDimensions(eps,nev,PETSC_NULL_INTEGER,PETSC_NULL_INTEGER,ierr);CHKERRA(ierr)
       if (rank .eq. 0) then
-        write(*,'(A,I2)') ' Number of requested eigenvalues:', nev
+        write(*,'(A,I2)') ' Number of requested eigenvalues:',nev
       endif
-      call EPSGetTolerances(eps,tol,maxit,ierr)
+      call EPSGetTolerances(eps,tol,maxit,ierr);CHKERRA(ierr)
       if (rank .eq. 0) then
-        write(*,'(A,1PE10.4,A,I6)') ' Stopping condition: tol=', tol,   &
-     &                              ', maxit=', maxit
+        write(*,'(A,1PE10.4,A,I6)') ' Stopping condition: tol=',tol,', maxit=', maxit
       endif
 
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -138,20 +138,17 @@
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 !     ** show detailed info unless -terse option is given by user
-      call PetscOptionsHasName(PETSC_NULL_OPTIONS,PETSC_NULL_CHARACTER, &
-     &                        '-terse',terse,ierr)
+      call PetscOptionsHasName(PETSC_NULL_OPTIONS,PETSC_NULL_CHARACTER,'-terse',terse,ierr);CHKERRA(ierr)
       if (terse) then
-        call EPSErrorView(eps,EPS_ERROR_RELATIVE,PETSC_NULL_VIEWER,ierr)
+        call EPSErrorView(eps,EPS_ERROR_RELATIVE,PETSC_NULL_VIEWER,ierr);CHKERRA(ierr)
       else
-        call PetscViewerPushFormat(PETSC_VIEWER_STDOUT_WORLD,           &
-     &                   PETSC_VIEWER_ASCII_INFO_DETAIL,ierr)
-        call EPSReasonView(eps,PETSC_VIEWER_STDOUT_WORLD,ierr)
-        call EPSErrorView(eps,EPS_ERROR_RELATIVE,                       &
-     &                   PETSC_VIEWER_STDOUT_WORLD,ierr)
-        call PetscViewerPopFormat(PETSC_VIEWER_STDOUT_WORLD,ierr)
+        call PetscViewerPushFormat(PETSC_VIEWER_STDOUT_WORLD,PETSC_VIEWER_ASCII_INFO_DETAIL,ierr);CHKERRA(ierr)
+        call EPSReasonView(eps,PETSC_VIEWER_STDOUT_WORLD,ierr);CHKERRA(ierr)
+        call EPSErrorView(eps,EPS_ERROR_RELATIVE,PETSC_VIEWER_STDOUT_WORLD,ierr);CHKERRA(ierr)
+        call PetscViewerPopFormat(PETSC_VIEWER_STDOUT_WORLD,ierr);CHKERRA(ierr)
       endif
-      call EPSDestroy(eps,ierr)
-      call MatDestroy(A,ierr)
+      call EPSDestroy(eps,ierr);CHKERRA(ierr)
+      call MatDestroy(A,ierr);CHKERRA(ierr)
 
 #if defined(PETSC_USE_COMPLEX)
  999  continue
@@ -171,8 +168,8 @@
 !   y - output vector
 !
       subroutine MatIsing_Mult(A,x,y,ierr)
-#include <slepc/finclude/slepceps.h>
-      use slepceps
+#include <petsc/finclude/petscmat.h>
+      use petscmat
       implicit none
 
       Mat            A
@@ -185,16 +182,16 @@
 !     The actual routine for the matrix-vector product
       external mvmisg
 
-      call MatGetSize(A,N,PETSC_NULL_INTEGER,ierr)
-      call VecGetArrayRead(x,x_array,i_x,ierr)
-      call VecGetArray(y,y_array,i_y,ierr)
+      call MatGetSize(A,N,PETSC_NULL_INTEGER,ierr);CHKERRQ(ierr)
+      call VecGetArrayRead(x,x_array,i_x,ierr);CHKERRQ(ierr)
+      call VecGetArray(y,y_array,i_y,ierr);CHKERRQ(ierr)
 
       trans = 0
       one = 1
       call mvmisg(trans,N,one,x_array(i_x+1),N,y_array(i_y+1),N)
 
-      call VecRestoreArrayRead(x,x_array,i_x,ierr)
-      call VecRestoreArray(y,y_array,i_y,ierr)
+      call VecRestoreArrayRead(x,x_array,i_x,ierr);CHKERRQ(ierr)
+      call VecRestoreArray(y,y_array,i_y,ierr);CHKERRQ(ierr)
 
       return
       end

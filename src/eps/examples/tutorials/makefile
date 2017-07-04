@@ -26,7 +26,7 @@ FPPFLAGS   =
 LOCDIR     = src/eps/examples/tutorials/
 EXAMPLESC  = ex1.c ex2.c ex3.c ex4.c ex5.c ex7.c ex9.c ex10.c ex11.c ex12.c ex13.c \
              ex18.c ex19.c ex24.c ex25.c ex29.c ex30.c ex31.c ex34.c ex35.c ex36.c
-EXAMPLESF  = ex1f.F ex1f90.F90 ex6f.F
+EXAMPLESF  = ex1f.F ex1f90.F90 ex6f90.F90
 MANSEC     = EPS
 
 TESTEXAMPLES_C                     = ex5.PETSc runex5_1 ex5.rm \
@@ -52,7 +52,7 @@ TESTEXAMPLES_C_DATAFILE            = ex4.PETSc runex4_1 ex4.rm \
 TESTEXAMPLES_C_COMPLEX             = ex9.PETSc runex9_6 ex9.rm
 TESTEXAMPLES_C_NOCOMPLEX           = ex25.PETSc runex25_1 ex25.rm
 TESTEXAMPLES_C_NOCOMPLEX_NOTSINGLE = ex9.PETSc runex9_1 runex9_2 runex9_4 runex9_5 runex9_8 ex9.rm
-TESTEXAMPLES_FORTRAN_NOCOMPLEX     = ex6f.PETSc runex6f_1 ex6f.rm
+TESTEXAMPLES_FORTRAN_NOCOMPLEX     = ex6f90.PETSc runex6f90_1 ex6f90.rm
 TESTEXAMPLES_F90                   = ex1f90.PETSc runex1f90_1 ex1f90.rm
 TESTEXAMPLES_DATAFILESPATH_COMPLEX = ex4.PETSc runex4_ciss_1 ex4.rm \
                                      ex7.PETSc runex7_ciss_1 ex7.rm
@@ -87,9 +87,9 @@ ex5: ex5.o chkopts
 	-${CLINKER} -o ex5 ex5.o ${SLEPC_EPS_LIB}
 	${RM} ex5.o
 
-ex6f: ex6f.o chkopts
-	-${FLINKER} -o ex6f ex6f.o ${SLEPC_EPS_LIB}
-	${RM} ex6f.o
+ex6f90: ex6f90.o chkopts
+	-${FLINKER} -o ex6f90 ex6f90.o ${SLEPC_EPS_LIB}
+	${RM} ex6f90.o
 
 ex7: ex7.o chkopts
 	-${CLINKER} -o ex7 ex7.o ${SLEPC_EPS_LIB}
@@ -213,9 +213,9 @@ runex5_1:
 	${MPIEXEC} -n 1 ./ex5 -eps_largest_real -eps_nev 4 -terse > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
-runex6f_1:
+runex6f90_1:
 	-@${SETTEST}; \
-	${MPIEXEC} -n 1 ./ex6f -eps_max_it 1000 -eps_ncv 12 -eps_tol 1e-5 -eps_nev 4 -eps_largest_imaginary -terse > $${test}.tmp 2>&1; \
+	${MPIEXEC} -n 1 ./ex6f90 -eps_max_it 1000 -eps_ncv 12 -eps_tol 1e-5 -eps_nev 4 -eps_largest_imaginary -terse > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
 runex7_1:
