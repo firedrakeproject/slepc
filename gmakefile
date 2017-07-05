@@ -17,11 +17,8 @@ SLEPC_VERSION_MAJOR := $(shell awk '/\#define SLEPC_VERSION_MAJOR/{print $$3;}' 
 SLEPC_VERSION_MINOR := $(shell awk '/\#define SLEPC_VERSION_MINOR/{print $$3;}' ./include/slepcversion.h)
 SLEPC_VERSION_SUBMINOR := $(shell awk '/\#define SLEPC_VERSION_SUBMINOR/{print $$3;}' ./include/slepcversion.h)
 SLEPC_VERSION_RELEASE := $(shell awk '/\#define SLEPC_VERSION_RELEASE/{print $$3;}' ./include/slepcversion.h)
-ifeq ($(SLEPC_VERSION_RELEASE),0)
-  SLEPC_VERSION_MINOR := 0$(SLEPC_VERSION_MINOR)
-endif
 
-libslepc_abi_version := $(SLEPC_VERSION_MAJOR).$(SLEPC_VERSION_MINOR)
+libslepc_abi_version := $(SLEPC_VERSION_MAJOR).$(if $(filter $(SLEPC_VERSION_RELEASE), 0 -2 -3 -4 -5),0)$(SLEPC_VERSION_MINOR)
 libslepc_lib_version := $(libslepc_abi_version).$(SLEPC_VERSION_SUBMINOR)
 soname_function = $(call SONAME_FUNCTION,$(1),$(libslepc_abi_version))
 libname_function = $(call SONAME_FUNCTION,$(1),$(libslepc_lib_version))
