@@ -419,7 +419,7 @@ PETSC_EXTERN PetscErrorCode BVCreate_Svec(BV bv)
 {
   PetscErrorCode ierr;
   BV_SVEC        *ctx;
-  PetscInt       nloc,bs;
+  PetscInt       nloc,N,bs;
   PetscBool      seq;
   PetscScalar    *aa,*vv;
   char           str[50];
@@ -435,11 +435,12 @@ PETSC_EXTERN PetscErrorCode BVCreate_Svec(BV bv)
   if (!seq && !ctx->mpi && !bv->cuda) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"BVSVEC does not support the type of the provided template vector");
 
   ierr = VecGetLocalSize(bv->t,&nloc);CHKERRQ(ierr);
+  ierr = VecGetSize(bv->t,&N);CHKERRQ(ierr);
   ierr = VecGetBlockSize(bv->t,&bs);CHKERRQ(ierr);
 
   ierr = VecCreate(PetscObjectComm((PetscObject)bv->t),&ctx->v);CHKERRQ(ierr);
   ierr = VecSetType(ctx->v,((PetscObject)bv->t)->type_name);CHKERRQ(ierr);
-  ierr = VecSetSizes(ctx->v,bv->m*nloc,PETSC_DECIDE);CHKERRQ(ierr);
+  ierr = VecSetSizes(ctx->v,bv->m*nloc,bv->m*N);CHKERRQ(ierr);
   ierr = VecSetBlockSize(ctx->v,bs);CHKERRQ(ierr);
   ierr = PetscLogObjectParent((PetscObject)bv,(PetscObject)ctx->v);CHKERRQ(ierr);
   if (((PetscObject)bv)->name) {
@@ -459,8 +460,8 @@ PETSC_EXTERN PetscErrorCode BVCreate_Svec(BV bv)
   if (bv->cuda) {
 #if defined(PETSC_HAVE_VECCUDA)
     if (ctx->mpi) {
-      ierr = VecCreateMPICUDAWithArray(PetscObjectComm((PetscObject)bv->t),bs,nloc,PETSC_DECIDE,NULL,&bv->cv[0]);CHKERRQ(ierr);
-      ierr = VecCreateMPICUDAWithArray(PetscObjectComm((PetscObject)bv->t),bs,nloc,PETSC_DECIDE,NULL,&bv->cv[1]);CHKERRQ(ierr);
+      ierr = VecCreateMPICUDAWithArray(PetscObjectComm((PetscObject)bv->t),bs,nloc,N,NULL,&bv->cv[0]);CHKERRQ(ierr);
+      ierr = VecCreateMPICUDAWithArray(PetscObjectComm((PetscObject)bv->t),bs,nloc,N,NULL,&bv->cv[1]);CHKERRQ(ierr);
     } else {
       ierr = VecCreateSeqCUDAWithArray(PetscObjectComm((PetscObject)bv->t),bs,nloc,NULL,&bv->cv[0]);CHKERRQ(ierr);
       ierr = VecCreateSeqCUDAWithArray(PetscObjectComm((PetscObject)bv->t),bs,nloc,NULL,&bv->cv[1]);CHKERRQ(ierr);
@@ -468,8 +469,8 @@ PETSC_EXTERN PetscErrorCode BVCreate_Svec(BV bv)
 #endif
   } else {
     if (ctx->mpi) {
-      ierr = VecCreateMPIWithArray(PetscObjectComm((PetscObject)bv->t),bs,nloc,PETSC_DECIDE,NULL,&bv->cv[0]);CHKERRQ(ierr);
-      ierr = VecCreateMPIWithArray(PetscObjectComm((PetscObject)bv->t),bs,nloc,PETSC_DECIDE,NULL,&bv->cv[1]);CHKERRQ(ierr);
+      ierr = VecCreateMPIWithArray(PetscObjectComm((PetscObject)bv->t),bs,nloc,N,NULL,&bv->cv[0]);CHKERRQ(ierr);
+      ierr = VecCreateMPIWithArray(PetscObjectComm((PetscObject)bv->t),bs,nloc,N,NULL,&bv->cv[1]);CHKERRQ(ierr);
     } else {
       ierr = VecCreateSeqWithArray(PetscObjectComm((PetscObject)bv->t),bs,nloc,NULL,&bv->cv[0]);CHKERRQ(ierr);
       ierr = VecCreateSeqWithArray(PetscObjectComm((PetscObject)bv->t),bs,nloc,NULL,&bv->cv[1]);CHKERRQ(ierr);
