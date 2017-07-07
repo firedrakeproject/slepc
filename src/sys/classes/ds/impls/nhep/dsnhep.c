@@ -466,6 +466,59 @@ PetscErrorCode DSUpdateExtraRow_NHEP(DS ds)
   PetscFunctionReturn(0);
 }
 
+/*
+   Reduce a matrix A to upper Hessenberg form Q'*A*Q, where Q is an orthogonal matrix.
+   The result overwrites A. Matrix A has the form
+
+         [ S | * ]
+     A = [-------]
+         [ R | H ]
+
+  where S is an upper (quasi-)triangular matrix of order k, H is an upper Hessenberg
+  matrix of order n-k, and R is all zeros except the first row (the arrow).
+  The algorithm uses elementary reflectors to annihilate entries in the arrow, and
+  then proceeds upwards. 
+  If ilo>1, then it is assumed that the first ilo-1 entries of the arrow are zero, and
+  hence the first ilo-1 rows and columns of Q are set to the identity matrix.
+
+  Required workspace is 2*n.
+*/
+static PetscErrorCode ArrowHessenberg(PetscBLASInt n,PetscBLASInt k,PetscBLASInt ilo,PetscScalar *A,PetscBLASInt lda,PetscScalar *Q,PetscBLASInt ldq,PetscScalar *work)
+{
+#if defined(SLEPC_MISSING_LAPACK_LARFG) || defined(SLEPC_MISSING_LAPACK_LARF)
+  PetscFunctionBegin;
+  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"LARFG/LARF - Lapack routines are unavailable");
+#else
+  PetscBLASInt i,j,n0,m,inc=1,incn=-1;
+  PetscScalar  t,*v=work,*w=work+n,tau,tauc;
+
+  PetscFunctionBegin;
+  m = n-ilo+1;
+  for (i=k;i>ilo;i--) {
+    for (j=0;j<=i-ilo;j++) v[j] = A[i+(i-j-1)*lda];  /* _larfg does not allow negative inc, so use buffer */
+    n0 = i-ilo+1;
+    PetscStackCallBLAS("LAPACKlarfg",LAPACKlarfg_(&n0,v,v+1,&inc,&tau));
+    for (j=1;j<=i-ilo;j++) v[j] = PetscConj(v[j]);
+    tauc = PetscConj(tau);
+    A[i+(i-1)*lda] = v[0];
+    v[0] = 1.0;
+    PetscStackCallBLAS("LAPACKlarf",LAPACKlarf_("R",&i,&n0,v,&incn,&tauc,A+(ilo-1)*lda,&lda,w));
+    for (j=1;j<=i-ilo;j++) A[i+(i-j-1)*lda] = 0.0;
+    PetscStackCallBLAS("LAPACKlarf",LAPACKlarf_("L",&n0,&m,v,&incn,&tau,A+ilo-1+(ilo-1)*lda,&lda,w));
+    PetscStackCallBLAS("LAPACKlarf",LAPACKlarf_("L",&n0,&m,v,&incn,&tau,Q+ilo-1+(ilo-1)*ldq,&ldq,w));
+  }
+  /* trivial in-place transposition of Q */
+  for (j=ilo-1;j<k;j++) {
+    for (i=j;i<k;i++) {
+      t = Q[i+j*ldq];
+      if (i!=j) Q[i+j*ldq] = PetscConj(Q[j+i*ldq]);
+      Q[j+i*ldq] = PetscConj(t);
+    }
+  }
+  PetscFunctionReturn(0);
+#endif
+}
+
 PetscErrorCode DSSolve_NHEP(DS ds,PetscScalar *wr,PetscScalar *wi)
 {
 #if defined(SLEPC_MISSING_LAPACK_GEHRD) || defined(SLEPC_MISSING_LAPACK_ORGHR) || defined(PETSC_MISSING_LAPACK_HSEQR)
@@ -475,7 +528,7 @@ PetscErrorCode DSSolve_NHEP(DS ds,PetscScalar *wr,PetscScalar *wi)
   PetscErrorCode ierr;
   PetscScalar    *work,*tau;
   PetscInt       i,j;
-  PetscBLASInt   ilo,lwork,info,n,ld;
+  PetscBLASInt   ilo,lwork,info,n,k,ld;
   PetscScalar    *A = ds->mat[DS_MAT_A];
   PetscScalar    *Q = ds->mat[DS_MAT_Q];
 
@@ -486,15 +539,15 @@ PetscErrorCode DSSolve_NHEP(DS ds,PetscScalar *wr,PetscScalar *wi)
   ierr = PetscBLASIntCast(ds->n,&n);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(ds->ld,&ld);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(ds->l+1,&ilo);CHKERRQ(ierr);
-  ierr = DSAllocateWork_Private(ds,ld+ld*ld,0,0);CHKERRQ(ierr);
+  ierr = PetscBLASIntCast(ds->k,&k);CHKERRQ(ierr);
+  ierr = DSAllocateWork_Private(ds,ld+6*ld,0,0);CHKERRQ(ierr);
   tau  = ds->work;
   work = ds->work+ld;
-  lwork = ld*ld;
+  lwork = 6*ld;
 
   /* initialize orthogonal matrix */
   ierr = PetscMemzero(Q,ld*ld*sizeof(PetscScalar));CHKERRQ(ierr);
-  for (i=0;i<n;i++)
-    Q[i+i*ld] = 1.0;
+  for (i=0;i<n;i++) Q[i+i*ld] = 1.0;
   if (n==1) { /* quick return */
     wr[0] = A[0];
     wi[0] = 0.0;
@@ -503,16 +556,20 @@ PetscErrorCode DSSolve_NHEP(DS ds,PetscScalar *wr,PetscScalar *wi)
 
   /* reduce to upper Hessenberg form */
   if (ds->state<DS_STATE_INTERMEDIATE) {
-    PetscStackCallBLAS("LAPACKgehrd",LAPACKgehrd_(&n,&ilo,&n,A,&ld,tau,work,&lwork,&info));
-    if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xGEHRD %d",info);
-    for (j=0;j<n-1;j++) {
-      for (i=j+2;i<n;i++) {
-        Q[i+j*ld] = A[i+j*ld];
-        A[i+j*ld] = 0.0;
+    if (k>0) {
+      ierr = ArrowHessenberg(n,k,ilo,A,ld,Q,ld,work);CHKERRQ(ierr);
+    } else {
+      PetscStackCallBLAS("LAPACKgehrd",LAPACKgehrd_(&n,&ilo,&n,A,&ld,tau,work,&lwork,&info));
+      if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xGEHRD %d",info);
+      for (j=0;j<n-1;j++) {
+        for (i=j+2;i<n;i++) {
+          Q[i+j*ld] = A[i+j*ld];
+          A[i+j*ld] = 0.0;
+        }
       }
+      PetscStackCallBLAS("LAPACKorghr",LAPACKorghr_(&n,&ilo,&n,Q,&ld,tau,work,&lwork,&info));
+      if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xORGHR %d",info);
     }
-    PetscStackCallBLAS("LAPACKorghr",LAPACKorghr_(&n,&ilo,&n,Q,&ld,tau,work,&lwork,&info));
-    if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xORGHR %d",info);
   }
 
   /* compute the (real) Schur form */
@@ -544,8 +601,8 @@ PetscErrorCode DSSolve_NHEP(DS ds,PetscScalar *wr,PetscScalar *wi)
 
 PetscErrorCode DSTruncate_NHEP(DS ds,PetscInt n)
 {
-  PetscInt       i,newn,ld=ds->ld,l=ds->l;
-  PetscScalar    *A;
+  PetscInt    i,newn,ld=ds->ld,l=ds->l;
+  PetscScalar *A;
 
   PetscFunctionBegin;
   if (ds->state==DS_STATE_CONDENSED) ds->t = ds->n;
