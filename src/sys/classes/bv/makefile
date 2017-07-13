@@ -22,7 +22,7 @@
 ALL: lib
 
 SOURCEH  = ../../../../include/slepc/private/bvimpl.h ../../../../include/slepcbv.h
-DIRS     = interface impls examples
+DIRS     = interface impls examples f90-mod
 LOCDIR   = src/sys/classes/bv/
 MANSEC   = BV
 

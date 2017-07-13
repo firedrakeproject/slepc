@@ -29,7 +29,7 @@ SOURCEH  =
 LIBBASE  = libslepcsys
 MANSEC   = sys
 LOCDIR   = src/sys/
-DIRS     = classes vec f90-mod examples
+DIRS     = f90-mod classes vec examples
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common
 
