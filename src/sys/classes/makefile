@@ -29,7 +29,7 @@ SOURCEH  =
 LIBBASE  = libslepcsys
 MANSEC   = sys
 LOCDIR   = src/sys/classes/
-DIRS     = ds fn st bv rg
+DIRS     = fn ds bv st rg
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common
 

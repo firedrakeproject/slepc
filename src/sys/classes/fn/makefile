@@ -22,7 +22,7 @@
 ALL: lib
 
 SOURCEH  = ../../../../include/slepc/private/fnimpl.h ../../../../include/slepcfn.h
-DIRS     = interface impls examples
+DIRS     = interface impls examples f90-mod
 LOCDIR   = src/sys/classes/fn/
 MANSEC   = FN
 
