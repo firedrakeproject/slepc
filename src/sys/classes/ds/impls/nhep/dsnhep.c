@@ -556,7 +556,7 @@ PetscErrorCode DSSolve_NHEP(DS ds,PetscScalar *wr,PetscScalar *wi)
 
   /* reduce to upper Hessenberg form */
   if (ds->state<DS_STATE_INTERMEDIATE) {
-    if (k>0) {
+    if (PETSC_FALSE && k>0) {
       ierr = ArrowHessenberg(n,k,ilo,A,ld,Q,ld,work);CHKERRQ(ierr);
     } else {
       PetscStackCallBLAS("LAPACKgehrd",LAPACKgehrd_(&n,&ilo,&n,A,&ld,tau,work,&lwork,&info));
