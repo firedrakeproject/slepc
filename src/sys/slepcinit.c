@@ -150,7 +150,9 @@ static PetscErrorCode SlepcLoadDynamicLibrary(const char *name,PetscBool *found)
 */
 PetscErrorCode SlepcInitialize_DynamicLibraries(void)
 {
+#if (defined(PETSC_HAVE_DYNAMIC_LIBRARIES) && defined(PETSC_USE_SHARED_LIBRARIES)) || defined(PETSC_HAVE_THREADSAFETY)
   PetscErrorCode ierr;
+#endif
 #if defined(PETSC_HAVE_DYNAMIC_LIBRARIES) && defined(PETSC_USE_SHARED_LIBRARIES)
   PetscBool      found,preload;
 #endif
@@ -194,8 +196,6 @@ PetscErrorCode SlepcInitialize_DynamicLibraries(void)
   ierr = NEPInitializePackage();CHKERRQ(ierr);
   ierr = MFNInitializePackage();CHKERRQ(ierr);
   ierr = LMEInitializePackage();CHKERRQ(ierr);
-#else
-  ierr = 0;  /* avoid compiler warning */
 #endif
   PetscFunctionReturn(0);
 }
