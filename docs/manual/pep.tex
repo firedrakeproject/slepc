@@ -242,7 +242,7 @@ As mentioned in \S\ref{sec:qep}, it is possible to distinguish among different p
 The problem type can be specified at run time with the corresponding command line key or, more usually, within the program with the function
 	\findex{PEPSetProblemType}
 	\begin{Verbatim}[fontsize=\small]
-	EPSSetProblemType(PEP eps,PEPProblemType type);
+	PEPSetProblemType(PEP pep,PEPProblemType type);
 	\end{Verbatim}
 Currently, the problem type is ignored in most solvers and it is taken into account only in some cases for the quadratic eigenproblem only.
 

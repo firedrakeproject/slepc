@@ -54,6 +54,7 @@
 PetscErrorCode NEPView(NEP nep,PetscViewer viewer)
 {
   PetscErrorCode ierr;
+  const char     *type=NULL;
   char           str[50];
   PetscInt       i;
   PetscBool      isascii,istrivial,nods;
@@ -73,6 +74,13 @@ PetscErrorCode NEPView(NEP nep,PetscViewer viewer)
       ierr = (*nep->ops->view)(nep,viewer);CHKERRQ(ierr);
       ierr = PetscViewerASCIIPopTab(viewer);CHKERRQ(ierr);
     }
+    if (nep->problem_type) {
+      switch (nep->problem_type) {
+        case NEP_GENERAL:  type = "general nonlinear eigenvalue problem"; break;
+        case NEP_RATIONAL: type = "rational eigenvalue problem"; break;
+      }
+    } else type = "not yet set";
+    ierr = PetscViewerASCIIPrintf(viewer,"  problem type: %s\n",type);CHKERRQ(ierr);
     if (nep->fui) {
       switch (nep->fui) {
       case NEP_USER_INTERFACE_CALLBACK:

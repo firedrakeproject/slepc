@@ -78,6 +78,7 @@ struct _p_NEP {
   NEPConv        conv;             /* convergence test */
   NEPStop        stop;             /* stopping test */
   NEPWhich       which;            /* which part of the spectrum to be sought */
+  NEPProblemType problem_type;     /* which kind of problem to be solved */
   NEPRefine      refine;           /* type of refinement to be applied after solve */
   PetscInt       npart;            /* number of partitions of the communicator */
   PetscReal      rtol;             /* tolerance for refinement */

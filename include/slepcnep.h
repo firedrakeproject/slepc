@@ -58,6 +58,17 @@ typedef const char* NEPType;
 PETSC_EXTERN PetscClassId NEP_CLASSID;
 
 /*E
+    NEPProblemType - Determines the type of the nonlinear eigenproblem
+
+    Level: intermediate
+
+.seealso: NEPSetProblemType(), NEPGetProblemType()
+E*/
+typedef enum { NEP_GENERAL=1,
+               NEP_RATIONAL     /* NEP defined in split form with all f_i rational */
+             } NEPProblemType;
+
+/*E
     NEPWhich - Determines which part of the spectrum is requested
 
     Level: intermediate
@@ -158,6 +169,8 @@ PETSC_EXTERN PetscErrorCode NEPDestroy(NEP*);
 PETSC_EXTERN PetscErrorCode NEPReset(NEP);
 PETSC_EXTERN PetscErrorCode NEPSetType(NEP,NEPType);
 PETSC_EXTERN PetscErrorCode NEPGetType(NEP,NEPType*);
+PETSC_EXTERN PetscErrorCode NEPSetProblemType(NEP,NEPProblemType);
+PETSC_EXTERN PetscErrorCode NEPGetProblemType(NEP,NEPProblemType*);
 PETSC_EXTERN PetscErrorCode NEPSetTarget(NEP,PetscScalar);
 PETSC_EXTERN PetscErrorCode NEPGetTarget(NEP,PetscScalar*);
 PETSC_EXTERN PetscErrorCode NEPSetFromOptions(NEP);
@@ -294,8 +307,6 @@ PETSC_EXTERN PetscErrorCode NEPNLEIGSSetLocking(NEP,PetscBool);
 PETSC_EXTERN PetscErrorCode NEPNLEIGSGetLocking(NEP,PetscBool*);
 PETSC_EXTERN PetscErrorCode NEPNLEIGSSetInterpolation(NEP,PetscReal,PetscInt);
 PETSC_EXTERN PetscErrorCode NEPNLEIGSGetInterpolation(NEP,PetscReal*,PetscInt*);
-PETSC_EXTERN PetscErrorCode NEPNLEIGSSetRational(NEP,PetscBool);
-PETSC_EXTERN PetscErrorCode NEPNLEIGSGetRational(NEP,PetscBool*);
 PETSC_EXTERN PetscErrorCode NEPNLEIGSSetRKShifts(NEP,PetscInt,PetscScalar*);
 PETSC_EXTERN PetscErrorCode NEPNLEIGSGetRKShifts(NEP,PetscInt*,PetscScalar**);
 PETSC_EXTERN PetscErrorCode NEPNLEIGSGetKSPs(NEP,KSP**);

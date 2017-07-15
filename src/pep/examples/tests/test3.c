@@ -101,10 +101,10 @@ int main(int argc,char **argv)
   ierr = PetscPrintf(PETSC_COMM_WORLD," Problem type before changing = %d",(int)ptype);CHKERRQ(ierr);
   ierr = PEPSetProblemType(pep,PEP_HERMITIAN);CHKERRQ(ierr);
   ierr = PEPGetProblemType(pep,&ptype);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," ... changed to %d.",(int)ptype);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD," ... changed to %d.\n",(int)ptype);CHKERRQ(ierr);
 
   ierr = PEPGetExtract(pep,&extr);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"\n Extraction before changing = %d",(int)extr);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD," Extraction before changing = %d",(int)extr);CHKERRQ(ierr);
   ierr = PEPSetExtract(pep,PEP_EXTRACT_STRUCTURED);CHKERRQ(ierr);
   ierr = PEPGetExtract(pep,&extr);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD," ... changed to %d\n",(int)extr);CHKERRQ(ierr);
