@@ -179,12 +179,6 @@ PetscErrorCode NEPSetFromOptions(NEP nep)
       ierr = NEPSetDimensions(nep,i,j,k);CHKERRQ(ierr);
     }
 
-    ierr = PetscOptionsScalar("-nep_target","Value of the target","NEPSetTarget",nep->target,&s,&flg);CHKERRQ(ierr);
-    if (flg) {
-      ierr = NEPSetWhichEigenpairs(nep,NEP_TARGET_MAGNITUDE);CHKERRQ(ierr);
-      ierr = NEPSetTarget(nep,s);CHKERRQ(ierr);
-    }
-
     ierr = PetscOptionsBoolGroupBegin("-nep_largest_magnitude","Compute largest eigenvalues in magnitude","NEPSetWhichEigenpairs",&flg);CHKERRQ(ierr);
     if (flg) { ierr = NEPSetWhichEigenpairs(nep,NEP_LARGEST_MAGNITUDE);CHKERRQ(ierr); }
     ierr = PetscOptionsBoolGroup("-nep_smallest_magnitude","Compute smallest eigenvalues in magnitude","NEPSetWhichEigenpairs",&flg);CHKERRQ(ierr);
@@ -205,6 +199,14 @@ PetscErrorCode NEPSetFromOptions(NEP nep)
     if (flg) { ierr = NEPSetWhichEigenpairs(nep,NEP_TARGET_IMAGINARY);CHKERRQ(ierr); }
     ierr = PetscOptionsBoolGroupEnd("-nep_all","Compute all eigenvalues in a region","NEPSetWhichEigenpairs",&flg);CHKERRQ(ierr);
     if (flg) { ierr = NEPSetWhichEigenpairs(nep,NEP_ALL);CHKERRQ(ierr); }
+
+    ierr = PetscOptionsScalar("-nep_target","Value of the target","NEPSetTarget",nep->target,&s,&flg);CHKERRQ(ierr);
+    if (flg) {
+      if (nep->which!=NEP_TARGET_REAL && nep->which!=NEP_TARGET_IMAGINARY) {
+        ierr = NEPSetWhichEigenpairs(nep,NEP_TARGET_MAGNITUDE);CHKERRQ(ierr);
+      }
+      ierr = NEPSetTarget(nep,s);CHKERRQ(ierr);
+    }
 
     /* -----------------------------------------------------------------------*/
     /*
