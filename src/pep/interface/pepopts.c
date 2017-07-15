@@ -198,12 +198,6 @@ PetscErrorCode PEPSetFromOptions(PEP pep)
     ierr = PetscOptionsInt("-pep_mpd","Maximum dimension of projected problem","PEPSetDimensions",pep->mpd,&k,&flg3);CHKERRQ(ierr);
     if (flg1 || flg2 || flg3) { ierr = PEPSetDimensions(pep,i,j,k);CHKERRQ(ierr); }
 
-    ierr = PetscOptionsScalar("-pep_target","Value of the target","PEPSetTarget",pep->target,&s,&flg);CHKERRQ(ierr);
-    if (flg) {
-      ierr = PEPSetWhichEigenpairs(pep,PEP_TARGET_MAGNITUDE);CHKERRQ(ierr);
-      ierr = PEPSetTarget(pep,s);CHKERRQ(ierr);
-    }
-
     ierr = PetscOptionsEnum("-pep_basis","Polynomial basis","PEPSetBasis",PEPBasisTypes,(PetscEnum)pep->basis,(PetscEnum*)&pep->basis,NULL);CHKERRQ(ierr);
 
     ierr = PetscOptionsBoolGroupBegin("-pep_largest_magnitude","Compute largest eigenvalues in magnitude","PEPSetWhichEigenpairs",&flg);CHKERRQ(ierr);
@@ -224,6 +218,14 @@ PetscErrorCode PEPSetFromOptions(PEP pep)
     if (flg) { ierr = PEPSetWhichEigenpairs(pep,PEP_TARGET_REAL);CHKERRQ(ierr); }
     ierr = PetscOptionsBoolGroupEnd("-pep_target_imaginary","Compute eigenvalues with imaginary parts closest to target","PEPSetWhichEigenpairs",&flg);CHKERRQ(ierr);
     if (flg) { ierr = PEPSetWhichEigenpairs(pep,PEP_TARGET_IMAGINARY);CHKERRQ(ierr); }
+
+    ierr = PetscOptionsScalar("-pep_target","Value of the target","PEPSetTarget",pep->target,&s,&flg);CHKERRQ(ierr);
+    if (flg) {
+      if (pep->which!=PEP_TARGET_REAL && pep->which!=PEP_TARGET_IMAGINARY) {
+        ierr = PEPSetWhichEigenpairs(pep,PEP_TARGET_MAGNITUDE);CHKERRQ(ierr);
+      }
+      ierr = PEPSetTarget(pep,s);CHKERRQ(ierr);
+    }
 
     /* -----------------------------------------------------------------------*/
     /*
