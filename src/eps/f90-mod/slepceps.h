@@ -167,12 +167,12 @@
       PetscEnum EPS_PRIMME_LOBPCG_ORTHOBASIS
       PetscEnum EPS_PRIMME_LOBPCG_ORTHOBASISW
 
-      parameter (EPS_PRIMME_DYNAMIC             =  0)
-      parameter (EPS_PRIMME_DEFAULT_MIN_TIME    =  1)
-      parameter (EPS_PRIMME_DEFAULT_MIN_MATVECS =  2)
-      parameter (EPS_PRIMME_ARNOLDI             =  3)
-      parameter (EPS_PRIMME_GD                  =  4)
-      parameter (EPS_PRIMME_GD_PLUSK            =  5)
+      parameter (EPS_PRIMME_DYNAMIC             =  1)
+      parameter (EPS_PRIMME_DEFAULT_MIN_TIME    =  2)
+      parameter (EPS_PRIMME_DEFAULT_MIN_MATVECS =  3)
+      parameter (EPS_PRIMME_ARNOLDI             =  4)
+      parameter (EPS_PRIMME_GD                  =  5)
+      parameter (EPS_PRIMME_GD_PLUSK            =  6)
       parameter (EPS_PRIMME_GD_OLSEN_PLUSK      =  7)
       parameter (EPS_PRIMME_JD_OLSEN_PLUSK      =  8)
       parameter (EPS_PRIMME_RQI                 =  9)

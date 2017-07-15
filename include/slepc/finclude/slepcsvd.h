@@ -35,12 +35,14 @@
 #define SVDWhich           PetscEnum
 #define SVDConv            PetscEnum
 #define SVDStop            PetscEnum
+#define SVDPRIMMEMethod    PetscEnum
 
 #define SVDCROSS     'cross'
 #define SVDCYCLIC    'cyclic'
 #define SVDLAPACK    'lapack'
 #define SVDLANCZOS   'lanczos'
 #define SVDTRLANCZOS 'trlanczos'
+#define SVDPRIMME    'primme'
 
 #endif
 

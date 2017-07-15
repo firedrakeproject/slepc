@@ -26,6 +26,9 @@ PETSC_EXTERN PetscErrorCode SVDCreate_Cyclic(SVD);
 PETSC_EXTERN PetscErrorCode SVDCreate_LAPACK(SVD);
 PETSC_EXTERN PetscErrorCode SVDCreate_Lanczos(SVD);
 PETSC_EXTERN PetscErrorCode SVDCreate_TRLanczos(SVD);
+#if defined(SLEPC_HAVE_PRIMME)
+PETSC_EXTERN PetscErrorCode SVDCreate_PRIMME(SVD);
+#endif
 
 /*@C
    SVDRegisterAll - Registers all the singular value solvers in the SVD package.
@@ -48,6 +51,9 @@ PetscErrorCode SVDRegisterAll(void)
   ierr = SVDRegister(SVDLAPACK,SVDCreate_LAPACK);CHKERRQ(ierr);
   ierr = SVDRegister(SVDLANCZOS,SVDCreate_Lanczos);CHKERRQ(ierr);
   ierr = SVDRegister(SVDTRLANCZOS,SVDCreate_TRLanczos);CHKERRQ(ierr);
+#if defined(SLEPC_HAVE_PRIMME)
+  ierr = SVDRegister(SVDPRIMME,SVDCreate_PRIMME);CHKERRQ(ierr);
+#endif
   PetscFunctionReturn(0);
 }
 
