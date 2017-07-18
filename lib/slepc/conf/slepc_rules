@@ -131,11 +131,7 @@ modcopy_slepc:
 slepc_tree: ${ACTION}
 	-@for dir in ${DIRS} ftn-auto ftn-custom f90-custom; do \
             if [ -d $$dir ]; then \
-              if [ "${INSTALLED_PETSC}" != "" ]; then \
-                PETSCCONF="${PETSC_DIR}/include/petscconf.h" ; \
-              else \
-                PETSCCONF="${PETSC_DIR}/${PETSC_ARCH}/include/petscconf.h" ; \
-              fi; \
+              PETSCCONF="${PETSCCONF_H}"; \
 	      r=`grep -w requirespackage $$dir/makefile`; \
               if [ "$$?" = 0 ]; then \
 		PKGFLG=`echo $$r | cut -d \' -f2`;\
