@@ -60,7 +60,6 @@ PetscErrorCode SVDSetUp_PRIMME(SVD svd)
   PetscInt           n,m,nloc,mloc;
   SVD_PRIMME         *ops = (SVD_PRIMME*)svd->data;
   primme_svds_params *primme = &ops->primme;
-  PetscBool          flg;
 
   PetscFunctionBegin;
   ierr = MPI_Comm_size(PetscObjectComm((PetscObject)svd),&numProcs);CHKERRQ(ierr);
@@ -113,8 +112,6 @@ PetscErrorCode SVDSetUp_PRIMME(SVD svd)
 
   /* Set workspace */
   ierr = SVDAllocateSolution(svd,0);CHKERRQ(ierr);
-  ierr = PetscObjectTypeCompare((PetscObject)svd->V,BVVECS,&flg);CHKERRQ(ierr);
-  if (flg) SETERRQ(PetscObjectComm((PetscObject)svd),PETSC_ERR_SUP,"This solver requires a BV with contiguous storage");
 
   /* Prepare auxiliary vectors */
   if (!ops->x) {
