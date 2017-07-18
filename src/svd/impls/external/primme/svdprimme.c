@@ -131,7 +131,6 @@ PetscErrorCode SVDSolve_PRIMME(SVD svd)
   PetscErrorCode ierr;
   SVD_PRIMME     *ops = (SVD_PRIMME*)svd->data;
   PetscScalar    *svecs, *a;
-  Vec            v0;
 
   PetscFunctionBegin;
   /* Reset some parameters left from previous runs */
@@ -151,17 +150,13 @@ PetscErrorCode SVDSolve_PRIMME(SVD svd)
   if (ierr) SETERRQ1(PetscObjectComm((PetscObject)svd),PETSC_ERR_LIB,"PRIMME library failed with error code=%d",ierr);
 
   /* Copy left and right singular vectors into svd */
-  ierr = BVGetColumn(svd->U,0,&v0);CHKERRQ(ierr);
-  ierr = VecGetArray(v0,&a);CHKERRQ(ierr);
+  ierr = BVGetArray(svd->U,&a);CHKERRQ(ierr);
   ierr = PetscMemcpy(a,svecs,sizeof(PetscScalar)*ops->primme.mLocal*ops->primme.initSize);CHKERRQ(ierr);
-  ierr = VecRestoreArray(v0,&a);CHKERRQ(ierr);
-  ierr = BVRestoreColumn(svd->U,0,&v0);CHKERRQ(ierr);
+  ierr = BVRestoreArray(svd->U,&a);CHKERRQ(ierr);
 
-  ierr = BVGetColumn(svd->V,0,&v0);CHKERRQ(ierr);
-  ierr = VecGetArray(v0,&a);CHKERRQ(ierr);
+  ierr = BVGetArray(svd->V,&a);CHKERRQ(ierr);
   ierr = PetscMemcpy(a,svecs+ops->primme.mLocal*ops->primme.initSize,sizeof(PetscScalar)*ops->primme.nLocal*ops->primme.initSize);CHKERRQ(ierr);
-  ierr = VecRestoreArray(v0,&a);CHKERRQ(ierr);
-  ierr = BVRestoreColumn(svd->V,0,&v0);CHKERRQ(ierr);
+  ierr = BVRestoreArray(svd->V,&a);CHKERRQ(ierr);
 
   ierr = PetscFree(svecs);CHKERRQ(ierr);
 
