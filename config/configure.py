@@ -372,7 +372,7 @@ bfort = petsc.bfort
 if sowing.downloadpackage:
   bfort = sowing.Install(archdir,petsc.make)
 
-if slepc.isrepo and hasattr(petsc,'fc'):
+if slepc.isrepo and petsc.fortran:
   try:
     if not os.path.exists(bfort):
       bfort = os.path.join(archdir,'bin','bfort')
