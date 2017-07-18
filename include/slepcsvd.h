@@ -52,6 +52,7 @@ typedef const char* SVDType;
 #define SVDLAPACK      "lapack"
 #define SVDLANCZOS     "lanczos"
 #define SVDTRLANCZOS   "trlanczos"
+#define SVDPRIMME      "primme"
 
 /* Logging support */
 PETSC_EXTERN PetscClassId SVD_CLASSID;
@@ -187,6 +188,13 @@ PETSC_EXTERN PetscErrorCode SVDMonitorLGAll(SVD,PetscInt,PetscInt,PetscReal*,Pet
 PETSC_EXTERN PetscErrorCode SVDSetTrackAll(SVD,PetscBool);
 PETSC_EXTERN PetscErrorCode SVDGetTrackAll(SVD,PetscBool*);
 
+PETSC_EXTERN PetscFunctionList SVDList;
+PETSC_EXTERN PetscErrorCode SVDRegister(const char[],PetscErrorCode(*)(SVD));
+
+PETSC_EXTERN PetscErrorCode SVDAllocateSolution(SVD,PetscInt);
+
+/* --------- options specific to particular solvers -------- */
+
 PETSC_EXTERN PetscErrorCode SVDCrossSetEPS(SVD,EPS);
 PETSC_EXTERN PetscErrorCode SVDCrossGetEPS(SVD,EPS*);
 
@@ -201,9 +209,21 @@ PETSC_EXTERN PetscErrorCode SVDLanczosGetOneSide(SVD,PetscBool*);
 PETSC_EXTERN PetscErrorCode SVDTRLanczosSetOneSide(SVD,PetscBool);
 PETSC_EXTERN PetscErrorCode SVDTRLanczosGetOneSide(SVD,PetscBool*);
 
-PETSC_EXTERN PetscFunctionList SVDList;
-PETSC_EXTERN PetscErrorCode SVDRegister(const char[],PetscErrorCode(*)(SVD));
+/*E
+    SVDPRIMMEMethod - determines the SVD method selected in the PRIMME library
 
-PETSC_EXTERN PetscErrorCode SVDAllocateSolution(SVD,PetscInt);
+    Level: advanced
+
+.seealso: SVDPRIMMESetMethod(), SVDPRIMMEGetMethod()
+E*/
+typedef enum { SVD_PRIMME_HYBRID=1,
+               SVD_PRIMME_NORMALEQUATIONS,
+               SVD_PRIMME_AUGMENTED } SVDPRIMMEMethod;
+PETSC_EXTERN const char *SVDPRIMMEMethods[];
+
+PETSC_EXTERN PetscErrorCode SVDPRIMMESetBlockSize(SVD,PetscInt);
+PETSC_EXTERN PetscErrorCode SVDPRIMMEGetBlockSize(SVD,PetscInt*);
+PETSC_EXTERN PetscErrorCode SVDPRIMMESetMethod(SVD,SVDPRIMMEMethod);
+PETSC_EXTERN PetscErrorCode SVDPRIMMEGetMethod(SVD,SVDPRIMMEMethod*);
 
 #endif

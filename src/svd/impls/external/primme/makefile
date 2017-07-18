@@ -21,10 +21,17 @@
 
 ALL: lib
 
+#requiresdefine  'SLEPC_HAVE_PRIMME'
+
+CFLAGS   = ${PRIMME_FLAGS}
+FFLAGS   =
+SOURCEC  = svdprimme.c
+SOURCEF  =
+SOURCEH  =
 LIBBASE  = libslepcsvd
-DIRS     = cross cyclic lapack lanczos trlanczos external
-LOCDIR   = src/svd/impls/
+DIRS     =
 MANSEC   = SVD
+LOCDIR   = src/svd/impls/external/primme/
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common
 

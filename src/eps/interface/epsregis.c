@@ -40,16 +40,16 @@ PETSC_EXTERN PetscErrorCode EPSCreate_TRLAN(EPS);
 PETSC_EXTERN PetscErrorCode EPSCreate_BLOPEX(EPS);
 #endif
 #if defined(SLEPC_HAVE_PRIMME)
-PETSC_EXTERN PetscErrorCode EPSCreate_PRIMME(EPS eps);
+PETSC_EXTERN PetscErrorCode EPSCreate_PRIMME(EPS);
 #endif
 #if defined(SLEPC_HAVE_FEAST)
 PETSC_EXTERN PetscErrorCode EPSCreate_FEAST(EPS);
 #endif
-PETSC_EXTERN PetscErrorCode EPSCreate_GD(EPS eps);
-PETSC_EXTERN PetscErrorCode EPSCreate_JD(EPS eps);
-PETSC_EXTERN PetscErrorCode EPSCreate_RQCG(EPS eps);
-PETSC_EXTERN PetscErrorCode EPSCreate_LOBPCG(EPS eps);
-PETSC_EXTERN PetscErrorCode EPSCreate_CISS(EPS eps);
+PETSC_EXTERN PetscErrorCode EPSCreate_GD(EPS);
+PETSC_EXTERN PetscErrorCode EPSCreate_JD(EPS);
+PETSC_EXTERN PetscErrorCode EPSCreate_RQCG(EPS);
+PETSC_EXTERN PetscErrorCode EPSCreate_LOBPCG(EPS);
+PETSC_EXTERN PetscErrorCode EPSCreate_CISS(EPS);
 
 /*@C
   EPSRegisterAll - Registers all the eigenvalue solvers in the EPS package.
