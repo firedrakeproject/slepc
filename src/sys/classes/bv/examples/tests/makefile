@@ -52,7 +52,11 @@ TESTEXAMPLES_VECCUDA     = test1.PETSc runtest1_1_cuda test1.rm \
                            test3.PETSc runtest3_1_cuda test3.rm \
                            test4.PETSc runtest4_1_cuda test4.rm \
                            test6.PETSc runtest6_1_cuda test6.rm \
-                           test7.PETSc runtest7_1_cuda test7.rm
+                           test7.PETSc runtest7_1_cuda test7.rm \
+                           test8.PETSc runtest8_1_cuda test8.rm \
+                           test9.PETSc runtest9_1_cuda test9.rm \
+                           test10.PETSc runtest10_1_cuda test10.rm \
+                           test13.PETSc runtest13_1_cuda test13.rm
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common
 
@@ -269,6 +273,11 @@ runtest8_3_%:
 	${MPIEXEC} -n 1 ./test8 -bv_type $$bv -bv_orthog_refine always > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
+runtest8_1_cuda:
+	-@${SETTEST}; check=test8_1; \
+	${MPIEXEC} -n 1 ./test8 -bv_type svec -vec_type cuda > $${test}.tmp 2>&1; \
+	${TESTCODE_CUDA}
+
 runtest9_1: runtest9_1_vecs runtest9_1_contiguous runtest9_1_svec runtest9_1_svec_vecs runtest9_1_mat
 runtest9_1_%:
 	-@${SETTEST}; check=test9_1; bv=$*; \
@@ -283,11 +292,21 @@ runtest9_2_%:
 	${MPIEXEC} -n 2 ./test9 -bv_type $$bv > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
+runtest9_1_cuda:
+	-@${SETTEST}; check=test9_1; \
+	${MPIEXEC} -n 1 ./test9 -bv_type svec -mat_type aijcusparse > $${test}.tmp 2>&1; \
+	${TESTCODE_CUDA}
+
 runtest10_1: runtest10_1_vecs runtest10_1_contiguous runtest10_1_svec runtest10_1_mat
 runtest10_1_%:
 	-@${SETTEST}; check=test10_1; bv=$*; \
 	${MPIEXEC} -n 2 ./test10 -bv_type $$bv > $${test}.tmp 2>&1; \
 	${TESTCODE}
+
+runtest10_1_cuda:
+	-@${SETTEST}; check=test10_1; \
+	${MPIEXEC} -n 2 ./test10 -bv_type svec -vec_type cuda > $${test}.tmp 2>&1; \
+	${TESTCODE_CUDA}
 
 runtest11_1: runtest11_1_vecs runtest11_1_contiguous runtest11_1_svec runtest11_1_mat
 runtest11_1_%:
@@ -323,6 +342,11 @@ runtest13_1_%:
 	-@${SETTEST}; check=test13_1; bv=$*; \
 	${MPIEXEC} -n 1 ./test13 -bv_type $$bv > $${test}.tmp 2>&1; \
 	${TESTCODE}
+
+runtest13_1_cuda:
+	-@${SETTEST}; check=test13_1; \
+	${MPIEXEC} -n 1 ./test13 -bv_type svec -vec_type cuda > $${test}.tmp 2>&1; \
+	${TESTCODE_CUDA}
 
 runtest14_1: runtest14_1_vecs runtest14_1_contiguous runtest14_1_svec runtest14_1_mat
 runtest14_1_%:
