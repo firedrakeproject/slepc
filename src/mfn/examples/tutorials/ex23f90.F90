@@ -84,7 +84,7 @@
       call MatSetUp(A,ierr);CHKERRA(ierr)
       call MatGetOwnershipRange(A,Istart,Iend,ierr);CHKERRA(ierr)
       ix = 0
-      cst = 0.5/(m-1)
+      cst = 0.5/real(m-1)
       do i=1,m
         jmax = m-i+1
         do j=1,jmax
@@ -149,7 +149,7 @@
       call FNSetType(f,FNEXP,ierr);CHKERRA(ierr)
       z = 1.0
       call FNSetScale(f,t,z,ierr);CHKERRA(ierr)
-      tol = 1.d-7
+      tol = 0.0000001
       call MFNSetTolerances(mfn,tol,PETSC_DEFAULT_INTEGER,ierr);CHKERRA(ierr)
 
 !     ** Set solver parameters at runtime
