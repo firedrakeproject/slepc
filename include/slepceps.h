@@ -386,8 +386,8 @@ typedef enum { EPS_PRIMME_DYNAMIC=1,
 PETSC_EXTERN const char *EPSPRIMMEMethods[];
 
 PETSC_EXTERN PetscErrorCode EPSPRIMMESetBlockSize(EPS,PetscInt);
-PETSC_EXTERN PetscErrorCode EPSPRIMMESetMethod(EPS,EPSPRIMMEMethod);
 PETSC_EXTERN PetscErrorCode EPSPRIMMEGetBlockSize(EPS,PetscInt*);
+PETSC_EXTERN PetscErrorCode EPSPRIMMESetMethod(EPS,EPSPRIMMEMethod);
 PETSC_EXTERN PetscErrorCode EPSPRIMMEGetMethod(EPS,EPSPRIMMEMethod*);
 
 PETSC_EXTERN PetscErrorCode EPSGDSetKrylovStart(EPS,PetscBool);

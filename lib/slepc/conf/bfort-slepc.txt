@@ -46,6 +46,7 @@ native SVDErrorType
 native SVDConv
 native SVDStop
 native SVDConvergedReason
+native SVDPRIMMEMethod
 #
 nativeptr EPS
 nativeptr PEP

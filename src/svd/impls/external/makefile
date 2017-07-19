@@ -22,8 +22,8 @@
 ALL: lib
 
 LIBBASE  = libslepcsvd
-DIRS     = cross cyclic lapack lanczos trlanczos external
-LOCDIR   = src/svd/impls/
+DIRS     = primme
+LOCDIR   = src/svd/impls/external/
 MANSEC   = SVD
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common

@@ -65,6 +65,14 @@
       parameter (SVD_STOP_BASIC             =  0)
       parameter (SVD_STOP_USER              =  1)
 
+      PetscEnum SVD_PRIMME_HYBRID
+      PetscEnum SVD_PRIMME_NORMALEQUATIONS
+      PetscEnum SVD_PRIMME_AUGMENTED
+
+      parameter (SVD_PRIMME_HYBRID          =  1)
+      parameter (SVD_PRIMME_NORMALEQUATIONS =  2)
+      parameter (SVD_PRIMME_AUGMENTED       =  3)
+
 !
 !   Possible arguments to SVDMonitorSet()
 !

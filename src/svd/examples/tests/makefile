@@ -38,6 +38,9 @@ TESTEXAMPLES_C_NOTSINGLE = test3.PETSc runtest3_1 runtest3_2 test3.rm \
                            test4.PETSc runtest4_1_lapack test4.rm \
                            test7.PETSc runtest7_1 test7.rm
 TESTEXAMPLES_FORTRAN     = test4f.PETSc runtest4f_1 test4f.rm
+TESTEXAMPLES_PRIMME      = test1.PETSc runtest1_1_primme test1.rm \
+                           test2.PETSc runtest2_1_primme test2.rm \
+                           test3.PETSc runtest3_1_primme test3.rm
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common
 
