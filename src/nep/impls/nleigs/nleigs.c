@@ -272,21 +272,13 @@ static PetscErrorCode NEPNLEIGSLejaBagbyPoints(NEP nep)
   /* Look for Leja-Bagby points in the discretization sets */
   s[0]    = ds[0];
   xi[0]   = (ndptx>0)?dxi[0]:PETSC_INFINITY;
+  if (PetscAbsScalar(xi[0])<10*PETSC_MACHINE_EPSILON) SETERRQ2(PetscObjectComm((PetscObject)nep),1,"Singularity point %D is nearly zero: %g; consider removing the singularity or shifting the problem",0,(double)PetscAbsScalar(xi[0]));
   beta[0] = 1.0; /* scaling factors are also computed here */
-  maxnrs  = 0.0;
-  minnrxi = PETSC_MAX_REAL;
   for (i=0;i<ndpt;i++) {
-    nrs[i] = (ds[i]-s[0])/(1.0-ds[i]/xi[0]);
-    if (PetscAbsScalar(nrs[i])>=maxnrs) {maxnrs = PetscAbsScalar(nrs[i]); s[1] = ds[i];}
+    nrs[i] = 1.0;
+    nrxi[i] = 1.0;
   }
-  for (i=1;i<ndptx;i++) {
-    nrxi[i] = (dxi[i]-s[0])/(1.0-dxi[i]/xi[0]);
-    if (PetscAbsScalar(nrxi[i])<=minnrxi) {minnrxi = PetscAbsScalar(nrxi[i]); xi[1] = dxi[i];}
-  }
-  if (ndptx<2) xi[1] = PETSC_INFINITY;
-
-  beta[1] = maxnrs;
-  for (k=2;k<ctx->ddmaxit;k++) {
+  for (k=1;k<ctx->ddmaxit;k++) {
     maxnrs = 0.0;
     minnrxi = PETSC_MAX_REAL;
     for (i=0;i<ndpt;i++) {
@@ -298,6 +290,7 @@ static PetscErrorCode NEPNLEIGSLejaBagbyPoints(NEP nep)
         nrxi[i] *= ((dxi[i]-s[k-1])/(1.0-dxi[i]/xi[k-1]))/beta[k-1];
         if (PetscAbsScalar(nrxi[i])<minnrxi) {minnrxi = PetscAbsScalar(nrxi[i]); xi[k] = dxi[i];}
       }
+      if (PetscAbsScalar(xi[k])<10*PETSC_MACHINE_EPSILON) SETERRQ2(PetscObjectComm((PetscObject)nep),1,"Singularity point %D is nearly zero: %g; consider removing the singularity or shifting the problem",k,(double)PetscAbsScalar(xi[k]));
     } else xi[k] = PETSC_INFINITY;
     beta[k] = maxnrs;
   }
