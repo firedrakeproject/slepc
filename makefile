@@ -101,17 +101,13 @@ info: chk_makej
 	-@echo "-----------------------------------------"
 	-@echo "Using SLEPc configure options: ${SLEPC_CONFIGURE_OPTIONS}"
 	-@echo "Using SLEPc configuration flags:"
-	-@grep "\#define " ${SLEPC_DIR}/${PETSC_ARCH}/include/slepcconf.h
+	-@grep "\#define " ${SLEPCCONF_H}
 	-@echo "-----------------------------------------"
 	-@grep "define PETSC_VERSION" ${PETSC_DIR}/include/petscversion.h | ${SED} "s/........//"
 	-@echo "-----------------------------------------"
 	-@echo "Using PETSc configure options: ${CONFIGURE_OPTIONS}"
 	-@echo "Using PETSc configuration flags:"
-	-@if [ "${INSTALLED_PETSC}" != "" ]; then \
-	   grep "\#define " ${PETSC_DIR}/include/petscconf.h; \
-	 else \
-	   grep "\#define " ${PETSC_DIR}/${PETSC_ARCH}/include/petscconf.h; \
-         fi
+	-@grep "\#define " ${PETSCCONF_H}
 	-@echo "-----------------------------------------"
 	-@echo "Using C/C++ include paths: ${SLEPC_CC_INCLUDES}"
 	-@echo "Using C/C++ compiler: ${PCC} ${PCC_FLAGS} ${COPTFLAGS} ${CFLAGS}"
@@ -152,9 +148,10 @@ test_build:
 	-@echo "Using SLEPC_DIR=${SLEPC_DIR}, PETSC_DIR=${PETSC_DIR} and PETSC_ARCH=${PETSC_ARCH}"
 	@cd src/eps/examples/tests && \
          ${OMAKE} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} SLEPC_DIR=${SLEPC_DIR} testtest10 && \
-	 if [ "${FC}" != "" ]; then \
+	 egrep "^#define PETSC_HAVE_FORTRAN 1" ${PETSCCONF_H} | tee .ftn.log > /dev/null; \
+         if test -s .ftn.log; then \
            ${OMAKE} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} SLEPC_DIR=${SLEPC_DIR} testtest7f; \
-         fi && \
+         fi ; ${RM} .ftn.log && \
 	 if [ "${BLOPEX_LIB}" != "" ]; then \
            ${OMAKE} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} SLEPC_DIR=${SLEPC_DIR} testtest5_blopex; \
          fi

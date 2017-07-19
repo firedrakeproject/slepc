@@ -18,6 +18,7 @@
 #  along with SLEPc. If not, see <http://www.gnu.org/licenses/>.
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
+#requiresdefine   'PETSC_HAVE_FORTRAN'
 #requiresdefine   'PETSC_USING_F90'
 #
 #   Makes Fortran module functions from *.h90 files in include/slepc/finclude

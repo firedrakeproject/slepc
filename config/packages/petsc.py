@@ -145,6 +145,7 @@ class PETSc(package.Package):
     self.singlelib = False
     self.blaslapackunderscore = False
     self.blaslapackint64 = False
+    self.fortran = False
     try:
       f = open(petscconf_h)
       for l in f.readlines():
@@ -159,8 +160,10 @@ class PETSc(package.Package):
           self.singlelib = True
         elif len(l)==3 and l[0]=='#define' and l[1]=='PETSC_BLASLAPACK_UNDERSCORE' and l[2]=='1':
           self.blaslapackunderscore = True
-        elif len(l)==3 and l[0]=='#define' and l[1]=='HAVE_64BIT_BLAS_INDICES' and l[2]=='1':
+        elif len(l)==3 and l[0]=='#define' and l[1]=='PETSC_HAVE_64BIT_BLAS_INDICES' and l[2]=='1':
           self.blaslapackint64 = True
+        elif len(l)==3 and l[0]=='#define' and l[1]=='PETSC_HAVE_FORTRAN' and l[2]=='1':
+          self.fortran = True
         elif self.isinstall and len(l)==3 and l[0]=='#define' and l[1]=='PETSC_ARCH':
           self.arch = l[2].strip('"')
       f.close()
