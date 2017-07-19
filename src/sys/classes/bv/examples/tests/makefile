@@ -51,6 +51,7 @@ TESTEXAMPLES_VECCUDA     = test1.PETSc runtest1_1_cuda test1.rm \
                            test2.PETSc runtest2_1_cuda runtest2_2_cuda test2.rm \
                            test3.PETSc runtest3_1_cuda test3.rm \
                            test4.PETSc runtest4_1_cuda test4.rm \
+                           test5.PETSc runtest5_1_cuda test5.rm \
                            test6.PETSc runtest6_1_cuda test6.rm \
                            test7.PETSc runtest7_1_cuda test7.rm \
                            test8.PETSc runtest8_1_cuda test8.rm \
@@ -214,6 +215,11 @@ runtest5_1_%:
 	-@${SETTEST}; check=test5_1; bv=$*; \
 	${MPIEXEC} -n 1 ./test5 -bv_orthog_refine always -bv_type $$bv > $${test}.tmp 2>&1; \
 	${TESTCODE}
+
+runtest5_1_cuda:
+	-@${SETTEST}; check=test5_1; \
+	${MPIEXEC} -n 1 ./test5 -bv_orthog_refine always -bv_type svec -mat_type aijcusparse > $${test}.tmp 2>&1; \
+	${TESTCODE_CUDA}
 
 runtest6_1: runtest6_1_vecs runtest6_1_contiguous runtest6_1_svec runtest6_1_mat
 runtest6_1_%:
