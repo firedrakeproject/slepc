@@ -112,6 +112,7 @@ PETSC_STATIC_INLINE PetscErrorCode BV_ApplySignature_Default(BV bv,PetscInt j,Pe
   PetscInt       i;
 
   PetscFunctionBegin;
+  if (!(bv->nc+j)) PetscFunctionReturn(0);
   if (!h) { ierr = VecGetArray(bv->buffer,&hh);CHKERRQ(ierr); }
   if (inverse) for (i=0;i<bv->nc+j;i++) hh[i] /= bv->omega[i];
   else for (i=0;i<bv->nc+j;i++) hh[i] *= bv->omega[i];

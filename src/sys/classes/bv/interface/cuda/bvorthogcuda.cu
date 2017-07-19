@@ -189,6 +189,7 @@ PetscErrorCode BV_ApplySignature_CUDA(BV bv,PetscInt j,PetscScalar *h,PetscBool 
   cudaError_t    cerr;
 
   PetscFunctionBegin;
+  if (!(bv->nc+j)) PetscFunctionReturn(0);
   if (!h) {
     ierr = VecCUDAGetArrayReadWrite(bv->buffer,&d_h);CHKERRQ(ierr);
     cerr = cudaMalloc((void**)&d_omega,(bv->nc+j)*sizeof(PetscReal));CHKERRCUDA(cerr);
