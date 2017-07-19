@@ -54,7 +54,6 @@ typedef struct {
   PetscReal      keep;      /* restart parameter */
   PetscBool      lock;      /* locking/non-locking variant */
   PetscInt       idxrk;     /* index of next shift to use */
-  PetscBool      rational;  /* the problem can be treated as a rational NEP */
   KSP            *ksp;      /* ksp array for storing shift factorizations */
   Vec            vrn;       /* random vector with normally distributed value */
   void           *singularitiesctx;
@@ -250,6 +249,7 @@ static PetscErrorCode NEPNLEIGSLejaBagbyPoints(NEP nep)
   PetscInt       i,k,ndpt=NDPOINTS,ndptx=NDPOINTS;
   PetscScalar    *ds,*dsi,*dxi,*nrs,*nrxi,*s=ctx->s,*xi=ctx->xi,*beta=ctx->beta;
   PetscReal      maxnrs,minnrxi;
+  PetscBool      rational;
 
   PetscFunctionBegin;
   ierr = PetscMalloc5(ndpt+1,&ds,ndpt+1,&dsi,ndpt,&dxi,ndpt+1,&nrs,ndpt,&nrxi);CHKERRQ(ierr);
@@ -265,7 +265,8 @@ static PetscErrorCode NEPNLEIGSLejaBagbyPoints(NEP nep)
     ierr = (ctx->computesingularities)(nep,&ndptx,dxi,ctx->singularitiesctx);CHKERRQ(ierr);
   } else {
     if (nep->problem_type==NEP_RATIONAL) {
-      ierr = NEPNLEIGSRationalSingularities(nep,&ndptx,dxi,&ctx->rational);CHKERRQ(ierr);
+      ierr = NEPNLEIGSRationalSingularities(nep,&ndptx,dxi,&rational);CHKERRQ(ierr);
+      if (!rational) SETERRQ(PetscObjectComm((PetscObject)nep),1,"Failed to determine singularities automatically in rational problem; consider solving the problem as general");
     } else ndptx = 0;
   }
 
@@ -803,7 +804,7 @@ PetscErrorCode NEPSetUp_NLEIGS(NEP nep)
 
   /* Compute Leja-Bagby points and scaling values */
   ierr = NEPNLEIGSLejaBagbyPoints(nep);CHKERRQ(ierr);
-  if (!ctx->rational) {
+  if (nep->problem_type!=NEP_RATIONAL) {
     ierr = RGCheckInside(nep->rg,1,&nep->target,&zero,&in);CHKERRQ(ierr);
     if (in<0) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"The target is not inside the target set");
   }
