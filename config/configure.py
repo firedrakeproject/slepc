@@ -321,7 +321,9 @@ for pkg in checkpackages:
 
 # Determine which tests must be run
 testruns = set(petsc.test_runs.split())
-testruns = testruns.intersection(set(['C','F90','Fortran','C_Complex','Fortran_Complex','C_NoComplex','F90_NoComplex','Fortran_NoComplex','C_NotSingle','Fortran_NotSingle','C_NoComplex_NotSingle','VECCUDA','VECCUDA_Complex','VECCUDA_NoComplex']))
+testruns = testruns.intersection(set(['C','C_Complex','C_NoComplex','C_NotSingle','C_NoComplex_NotSingle','VECCUDA','VECCUDA_Complex','VECCUDA_NoComplex']))
+if petsc.fortran:
+  testruns = testruns.intersection(set(['F90','Fortran','Fortran_Complex','F90_NoComplex','Fortran_NoComplex','Fortran_NotSingle']))
 if not petsc.mpiuni:
   if petsc.precision == 'double':
     testruns = testruns.union(set(['C_Double']))
