@@ -54,6 +54,7 @@
 PetscErrorCode NEPView(NEP nep,PetscViewer viewer)
 {
   PetscErrorCode ierr;
+  const char     *type=NULL;
   char           str[50];
   PetscInt       i;
   PetscBool      isascii,istrivial,nods;
@@ -73,13 +74,20 @@ PetscErrorCode NEPView(NEP nep,PetscViewer viewer)
       ierr = (*nep->ops->view)(nep,viewer);CHKERRQ(ierr);
       ierr = PetscViewerASCIIPopTab(viewer);CHKERRQ(ierr);
     }
+    if (nep->problem_type) {
+      switch (nep->problem_type) {
+        case NEP_GENERAL:  type = "general nonlinear eigenvalue problem"; break;
+        case NEP_RATIONAL: type = "rational eigenvalue problem"; break;
+      }
+    } else type = "not yet set";
+    ierr = PetscViewerASCIIPrintf(viewer,"  problem type: %s\n",type);CHKERRQ(ierr);
     if (nep->fui) {
       switch (nep->fui) {
       case NEP_USER_INTERFACE_CALLBACK:
         ierr = PetscViewerASCIIPrintf(viewer,"  nonlinear operator from user callbacks\n");CHKERRQ(ierr);
         break;
       case NEP_USER_INTERFACE_SPLIT:
-        ierr = PetscViewerASCIIPrintf(viewer,"  nonlinear operator in split form\n");CHKERRQ(ierr);
+        ierr = PetscViewerASCIIPrintf(viewer,"  nonlinear operator in split form, with %D terms\n",nep->nt);CHKERRQ(ierr);
         break;
       case NEP_USER_INTERFACE_DERIVATIVES:
         ierr = PetscViewerASCIIPrintf(viewer,"  nonlinear operator from user callbacks for the successive derivatives\n");CHKERRQ(ierr);

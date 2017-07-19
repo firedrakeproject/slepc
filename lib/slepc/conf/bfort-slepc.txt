@@ -22,6 +22,7 @@ native FNCombineType
 native MFNConvergedReason
 native LMEProblemType
 native LMEConvergedReason
+native NEPProblemType
 native NEPWhich
 native NEPErrorType
 native NEPRefine

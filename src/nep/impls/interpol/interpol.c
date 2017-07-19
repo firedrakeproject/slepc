@@ -129,7 +129,7 @@ PetscErrorCode NEPSolve_Interpol(NEP nep)
   NEP_INTERPOL   *ctx = (NEP_INTERPOL*)nep->data;
   Mat            *A;
   PetscScalar    *x,*fx,t;
-  PetscReal      *cs,a,b,s,aprox,aprox0,*matnorm;
+  PetscReal      *cs,a,b,s,aprox,aprox0=1.0,*matnorm;
   PetscInt       i,j,k,deg=ctx->maxdeg;
   PetscBool      hasmnorm;
 

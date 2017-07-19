@@ -33,6 +33,7 @@
 #define NEP type(tNEP)
 
 #define NEPType            character*(80)
+#define NEPProblemType     PetscEnum
 #define NEPConvergedReason PetscEnum
 #define NEPErrorType       PetscEnum
 #define NEPWhich           PetscEnum

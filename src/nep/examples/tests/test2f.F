@@ -46,6 +46,7 @@
       NEPRefineScheme    rscheme
       NEPConv            conv
       NEPStop            stp
+      NEPProblemType     ptype
       MatStructure       mstr
       PetscMPIInt        rank
       PetscErrorCode     ierr
@@ -142,6 +143,18 @@
         write(*,120) tname
       endif
  120  format (' Type set to ',A)
+
+      call NEPGetProblemType(nep,ptype,ierr)
+      if (rank .eq. 0) then
+        write(*,130) ptype
+      endif
+ 130  format (' Problem type before changing = ',I2)
+      call NEPSetProblemType(nep,NEP_RATIONAL,ierr)
+      call NEPGetProblemType(nep,ptype,ierr)
+      if (rank .eq. 0) then
+        write(*,140) ptype
+      endif
+ 140  format (' ... changed to ',I2)
 
       np = 1
       tol = 1e-9

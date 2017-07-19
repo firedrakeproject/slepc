@@ -69,12 +69,18 @@
       PetscEnum NEP_DIVERGED_LINEAR_SOLVE
       PetscEnum NEP_CONVERGED_ITERATING
 
-      parameter (NEP_CONVERGED_TOL            =  1)
-      parameter (NEP_CONVERGED_USER           =  2)
-      parameter (NEP_DIVERGED_ITS             = -1)
-      parameter (NEP_DIVERGED_BREAKDOWN       = -2)
-      parameter (NEP_DIVERGED_LINEAR_SOLVE    = -4)
-      parameter (NEP_CONVERGED_ITERATING      =  0)
+      parameter (NEP_CONVERGED_TOL          =  1)
+      parameter (NEP_CONVERGED_USER         =  2)
+      parameter (NEP_DIVERGED_ITS           = -1)
+      parameter (NEP_DIVERGED_BREAKDOWN     = -2)
+      parameter (NEP_DIVERGED_LINEAR_SOLVE  = -4)
+      parameter (NEP_CONVERGED_ITERATING    =  0)
+
+      PetscEnum NEP_GENERAL
+      PetscEnum NEP_RATIONAL
+
+      parameter (NEP_GENERAL                =  1)
+      parameter (NEP_RATIONAL               =  2)
 
       PetscEnum NEP_LARGEST_MAGNITUDE
       PetscEnum NEP_SMALLEST_MAGNITUDE

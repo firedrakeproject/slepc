@@ -74,7 +74,7 @@ runloaded_string_4:
 runloaded_string_5:
 	-@${SETTEST}; \
         if [ "${PETSC_SCALAR}" = "complex" ]; then region=",-.1,.1"; fi; \
-	${MPIEXEC} -n 1 ./loaded_string -nep_type nleigs -nep_nleigs_rational -rg_type interval -rg_interval_endpoints 4,700$$region -nep_nev 8 -nep_target 5 -terse > $${test}.tmp 2>&1; \
+	${MPIEXEC} -n 1 ./loaded_string -nep_type nleigs -nep_rational -rg_type interval -rg_interval_endpoints 4,700$$region -nep_nev 8 -nep_target 5 -terse > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
 runloaded_string_6:
