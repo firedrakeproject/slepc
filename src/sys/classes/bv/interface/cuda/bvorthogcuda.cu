@@ -126,8 +126,8 @@ PetscErrorCode BV_SquareSum_CUDA(BV bv,PetscInt j,PetscScalar *h,PetscReal *sum)
 #define TILE_SIZE_X  16 /* work to be done by any thread on axis x */
 
 /*
-   Set the grid dimensions
-   This function assumes that the dimension to divide fits in any GPU device.
+   Set the kernels grid dimensions
+   xcount: number of kernel calls needed for the requested size
  */
 PetscErrorCode SetGrid1D(PetscInt n, dim3 *dimGrid, dim3 *dimBlock,PetscInt *xcount)
 {
@@ -136,6 +136,7 @@ PetscErrorCode SetGrid1D(PetscInt n, dim3 *dimGrid, dim3 *dimBlock,PetscInt *xco
   cudaError_t           cerr;
 
   PetscFunctionBegin;
+  *xcount = 1;
   if (n>BLOCK_SIZE_X) {
     dimBlock->x = BLOCK_SIZE_X;
     dimGrid->x = (n+BLOCK_SIZE_X*TILE_SIZE_X-one)/BLOCK_SIZE_X*TILE_SIZE_X;
@@ -189,6 +190,7 @@ PetscErrorCode BV_ApplySignature_CUDA(BV bv,PetscInt j,PetscScalar *h,PetscBool 
   cudaError_t    cerr;
 
   PetscFunctionBegin;
+  if (!(bv->nc+j)) PetscFunctionReturn(0);
   if (!h) {
     ierr = VecCUDAGetArrayReadWrite(bv->buffer,&d_h);CHKERRQ(ierr);
     cerr = cudaMalloc((void**)&d_omega,(bv->nc+j)*sizeof(PetscReal));CHKERRCUDA(cerr);

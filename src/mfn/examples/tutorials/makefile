@@ -25,17 +25,22 @@ CPPFLAGS   =
 FPPFLAGS   =
 LOCDIR     = src/mfn/examples/tutorials/
 EXAMPLESC  = ex23.c ex26.c
-EXAMPLESF  =
+EXAMPLESF  = ex23f90.F90
 MANSEC     = MFN
 
-TESTEXAMPLES_C = ex23.PETSc runex23_1 ex23.rm \
-                 ex26.PETSc runex26_1 ex26.rm
+TESTEXAMPLES_C   = ex23.PETSc runex23_1 ex23.rm \
+                   ex26.PETSc runex26_1 ex26.rm
+TESTEXAMPLES_F90 = ex23f90.PETSc runex23f90_1 ex23f90.rm
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common
 
 ex23: ex23.o chkopts
 	-${CLINKER} -o ex23 ex23.o ${SLEPC_MFN_LIB}
 	${RM} ex23.o
+
+ex23f90: ex23f90.o chkopts
+	-${FLINKER} -o ex23f90 ex23f90.o ${SLEPC_MFN_LIB}
+	${RM} ex23f90.o
 
 ex26: ex26.o chkopts
 	-${CLINKER} -o ex26 ex26.o ${SLEPC_MFN_LIB}
@@ -46,6 +51,11 @@ ex26: ex26.o chkopts
 runex23_1:
 	-@${SETTEST}; \
 	${MPIEXEC} -n 1 ./ex23 -mfn_ncv 6 > $${test}.tmp 2>&1; \
+	${TESTCODE}
+
+runex23f90_1:
+	-@${SETTEST}; \
+	${MPIEXEC} -n 1 ./ex23f90 -mfn_ncv 6 > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
 runex26_1:
