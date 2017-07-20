@@ -137,6 +137,11 @@ PetscErrorCode NEPSetFromOptions(NEP nep)
       ierr = NEPSetType(nep,NEPRII);CHKERRQ(ierr);
     }
 
+    ierr = PetscOptionsBoolGroupBegin("-nep_general","General nonlinear eigenvalue problem","NEPSetProblemType",&flg);CHKERRQ(ierr);
+    if (flg) { ierr = NEPSetProblemType(nep,NEP_GENERAL);CHKERRQ(ierr); }
+    ierr = PetscOptionsBoolGroupEnd("-nep_rational","Rational eigenvalue problem","NEPSetProblemType",&flg);CHKERRQ(ierr);
+    if (flg) { ierr = NEPSetProblemType(nep,NEP_RATIONAL);CHKERRQ(ierr); }
+
     refine = nep->refine;
     ierr = PetscOptionsEnum("-nep_refine","Iterative refinement method","NEPSetRefine",NEPRefineTypes,(PetscEnum)refine,(PetscEnum*)&refine,&flg1);CHKERRQ(ierr);
     i = nep->npart;
@@ -543,7 +548,7 @@ PetscErrorCode NEPGetWhichEigenpairs(NEP nep,NEPWhich *which)
    Logically Collective on NEP
 
    Input Parameters:
-+  pep  - eigensolver context obtained from NEPCreate()
++  nep  - eigensolver context obtained from NEPCreate()
 .  func - a pointer to the comparison function
 -  ctx  - a context pointer (the last parameter to the comparison function)
 
@@ -567,13 +572,75 @@ $   func(PetscScalar ar,PetscScalar ai,PetscScalar br,PetscScalar bi,PetscInt *r
 
 .seealso: NEPSetWhichEigenpairs(), NEPWhich
 @*/
-PetscErrorCode NEPSetEigenvalueComparison(NEP pep,PetscErrorCode (*func)(PetscScalar,PetscScalar,PetscScalar,PetscScalar,PetscInt*,void*),void* ctx)
+PetscErrorCode NEPSetEigenvalueComparison(NEP nep,PetscErrorCode (*func)(PetscScalar,PetscScalar,PetscScalar,PetscScalar,PetscInt*,void*),void* ctx)
 {
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(pep,NEP_CLASSID,1);
-  pep->sc->comparison    = func;
-  pep->sc->comparisonctx = ctx;
-  pep->which             = NEP_WHICH_USER;
+  PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
+  nep->sc->comparison    = func;
+  nep->sc->comparisonctx = ctx;
+  nep->which             = NEP_WHICH_USER;
+  PetscFunctionReturn(0);
+}
+
+/*@
+   NEPSetProblemType - Specifies the type of the nonlinear eigenvalue problem.
+
+   Logically Collective on NEP
+
+   Input Parameters:
++  nep  - the nonlinear eigensolver context
+-  type - a known type of nonlinear eigenvalue problem
+
+   Options Database Keys:
++  -nep_general - general problem with no particular structure
+-  -nep_rational - a rational eigenvalue problem defined in split form with all f_i rational
+
+   Notes:
+   Allowed values for the problem type are: general (NEP_GENERAL), and rational
+   (NEP_RATIONAL).
+
+   This function is used to provide a hint to the NEP solver to exploit certain
+   properties of the nonlinear eigenproblem. This hint may be used or not,
+   depending on the solver. By default, no particular structure is assumed.
+
+   Level: intermediate
+
+.seealso: NEPSetType(), NEPGetProblemType(), NEPProblemType
+@*/
+PetscErrorCode NEPSetProblemType(NEP nep,NEPProblemType type)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
+  PetscValidLogicalCollectiveEnum(nep,type,2);
+  if (type!=NEP_GENERAL && type!=NEP_RATIONAL) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_WRONG,"Unknown eigenvalue problem type");
+  if (type != nep->problem_type) {
+    nep->problem_type = type;
+    nep->state = NEP_STATE_INITIAL;
+  }
+  PetscFunctionReturn(0);
+}
+
+/*@
+   NEPGetProblemType - Gets the problem type from the NEP object.
+
+   Not Collective
+
+   Input Parameter:
+.  nep - the nonlinear eigensolver context
+
+   Output Parameter:
+.  type - the problem type
+
+   Level: intermediate
+
+.seealso: NEPSetProblemType(), NEPProblemType
+@*/
+PetscErrorCode NEPGetProblemType(NEP nep,NEPProblemType *type)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
+  PetscValidPointer(type,2);
+  *type = nep->problem_type;
   PetscFunctionReturn(0);
 }
 

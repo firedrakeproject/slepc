@@ -94,6 +94,11 @@ PetscErrorCode NEPSetUp(NEP nep)
     break;
   }
 
+  /* set default problem type */
+  if (!nep->problem_type) {
+    ierr = NEPSetProblemType(nep,NEP_GENERAL);CHKERRQ(ierr);
+  }
+
   /* check consistency of refinement options */
   if (nep->refine) {
     if (nep->fui!=NEP_USER_INTERFACE_SPLIT) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"Iterative refinement only implemented in split form");

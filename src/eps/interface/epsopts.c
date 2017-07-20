@@ -999,7 +999,7 @@ PetscErrorCode EPSSetProblemType(EPS eps,EPSProblemType type)
 .  eps - the eigensolver context
 
    Output Parameter:
-.  type - name of EPS problem type
+.  type - the problem type
 
    Level: intermediate
 

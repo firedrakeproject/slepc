@@ -40,6 +40,7 @@ int main(int argc,char **argv)
   NEPRefineScheme      rscheme;
   NEPConv              conv;
   NEPStop              stop;
+  NEPProblemType       ptype;
   MatStructure         mstr;
   PetscErrorCode       ierr;
   PetscViewerAndFormat *vf;
@@ -119,6 +120,12 @@ int main(int argc,char **argv)
   ierr = NEPSetType(nep,NEPRII);CHKERRQ(ierr);
   ierr = NEPGetType(nep,&type);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD," Type set to %s\n",type);CHKERRQ(ierr);
+
+  ierr = NEPGetProblemType(nep,&ptype);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD," Problem type before changing = %d",(int)ptype);CHKERRQ(ierr);
+  ierr = NEPSetProblemType(nep,NEP_RATIONAL);CHKERRQ(ierr);
+  ierr = NEPGetProblemType(nep,&ptype);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD," ... changed to %d.\n",(int)ptype);CHKERRQ(ierr);
 
   ierr = NEPSetRefine(nep,NEP_REFINE_SIMPLE,1,1e-9,2,NEP_REFINE_SCHEME_EXPLICIT);CHKERRQ(ierr);
   ierr = NEPGetRefine(nep,&refine,NULL,&tol,&its,&rscheme);CHKERRQ(ierr);

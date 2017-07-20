@@ -648,7 +648,7 @@ PetscErrorCode PEPSetProblemType(PEP pep,PEPProblemType type)
 .  pep - the polynomial eigensolver context
 
    Output Parameter:
-.  type - name of PEP problem type
+.  type - the problem type
 
    Level: intermediate
 
