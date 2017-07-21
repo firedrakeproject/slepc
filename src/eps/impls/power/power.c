@@ -45,7 +45,7 @@
 #include <slepcblaslapack.h>
 /* petsc headers */
 #include <petscdm.h>
-#include <petsc/private/snesimpl.h>
+#include <petscsnes.h>
 
 static PetscErrorCode EPSPowerFormFunction_Update(SNES,Vec,Vec,void*);
 
