@@ -159,7 +159,7 @@ __global__ void PointwiseMult_kernel(PetscInt xcount,PetscScalar *a,const PetscR
   PetscInt i,x;
 
   x = xcount*gridDim.x*blockDim.x+blockIdx.x*blockDim.x*TILE_SIZE_X+threadIdx.x*TILE_SIZE_X;
-  for (i=x;i<x+TILE_SIZE_X;i++) {
+  for (i=x;i<x+TILE_SIZE_X&&i<n;i++) {
     a[i] *= b[i];
   }
 }
@@ -170,7 +170,7 @@ __global__ void PointwiseDiv_kernel(PetscInt xcount,PetscScalar *a,const PetscRe
   PetscInt i,x;
 
   x = xcount*gridDim.x*blockDim.x+blockIdx.x*blockDim.x*TILE_SIZE_X+threadIdx.x*TILE_SIZE_X;
-  for (i=x;i<x+TILE_SIZE_X;i++) {
+  for (i=x;i<x+TILE_SIZE_X&&i<n;i++) {
     a[i] /= b[i];
   }
 }
