@@ -65,58 +65,6 @@ PetscErrorCode SlepcVecNormalize(Vec xr,Vec xi,PetscBool iscomplex,PetscReal *no
   PetscFunctionReturn(0);
 }
 
-/*@C
-   SlepcMatConvertSeqDense - Converts a parallel matrix to another one in sequential
-   dense format replicating the values in every processor.
-
-   Collective on Mat
-
-   Input parameters:
-+  A  - the source matrix
--  B  - the target matrix
-
-   Level: developer
-@*/
-PetscErrorCode SlepcMatConvertSeqDense(Mat mat,Mat *newmat)
-{
-  PetscErrorCode ierr;
-  PetscInt       m,n;
-  PetscMPIInt    size;
-  PetscBool      flg;
-  Mat            *M;
-  IS             isrow,iscol;
-
-  PetscFunctionBegin;
-  PetscValidHeaderSpecific(mat,MAT_CLASSID,1);
-  PetscValidPointer(newmat,2);
-  ierr = MPI_Comm_size(PetscObjectComm((PetscObject)mat),&size);CHKERRQ(ierr);
-  if (size > 1) {
-    ierr = MatHasOperation(mat,MATOP_CREATE_SUBMATRICES,&flg);CHKERRQ(ierr);
-    if (!flg) SETERRQ1(PetscObjectComm((PetscObject)mat),PETSC_ERR_SUP,"Mat type %s",((PetscObject)mat)->type_name);
-
-    /* assemble full matrix on every processor */
-    ierr = MatGetSize(mat,&m,&n);CHKERRQ(ierr);
-    ierr = ISCreateStride(PETSC_COMM_SELF,m,0,1,&isrow);CHKERRQ(ierr);
-    ierr = ISCreateStride(PETSC_COMM_SELF,n,0,1,&iscol);CHKERRQ(ierr);
-    ierr = MatCreateSubMatrices(mat,1,&isrow,&iscol,MAT_INITIAL_MATRIX,&M);CHKERRQ(ierr);
-    ierr = ISDestroy(&isrow);CHKERRQ(ierr);
-    ierr = ISDestroy(&iscol);CHKERRQ(ierr);
-
-    /* Fake support for "inplace" convert */
-    if (*newmat == mat) {
-      ierr = MatDestroy(&mat);CHKERRQ(ierr);
-    }
-
-    /* convert matrix to MatSeqDense */
-    ierr = MatConvert(*M,MATSEQDENSE,MAT_INITIAL_MATRIX,newmat);CHKERRQ(ierr);
-    ierr = MatDestroyMatrices(1,&M);CHKERRQ(ierr);
-  } else {
-    /* convert matrix to MatSeqDense */
-    ierr = MatConvert(mat,MATSEQDENSE,MAT_INITIAL_MATRIX,newmat);CHKERRQ(ierr);
-  }
-  PetscFunctionReturn(0);
-}
-
 static PetscErrorCode SlepcMatTile_SeqAIJ(PetscScalar a,Mat A,PetscScalar b,Mat B,PetscScalar c,Mat C,PetscScalar d,Mat D,Mat G)
 {
   PetscErrorCode    ierr;

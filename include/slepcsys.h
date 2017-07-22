@@ -70,7 +70,14 @@ PETSC_EXTERN PetscErrorCode SlepcInitialized(PetscBool*);
 PETSC_EXTERN PetscErrorCode SlepcGetVersion(char[],size_t);
 PETSC_EXTERN PetscErrorCode SlepcGetVersionNumber(PetscInt*,PetscInt*,PetscInt*,PetscInt*);
 
-PETSC_EXTERN PetscErrorCode SlepcMatConvertSeqDense(Mat,Mat*);
+PETSC_DEPRECATED("Use MatCreateRedundantMatrix() followed by MatConvert()") PETSC_STATIC_INLINE PetscErrorCode SlepcMatConvertSeqDense(Mat mat,Mat *newmat) {
+  PetscErrorCode ierr; Mat Ar; 
+  ierr = MatCreateRedundantMatrix(mat,0,PETSC_COMM_SELF,MAT_INITIAL_MATRIX,&Ar);CHKERRQ(ierr);
+  ierr = MatConvert(Ar,MATSEQDENSE,MAT_INITIAL_MATRIX,newmat);CHKERRQ(ierr);
+  ierr = MatDestroy(&Ar);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
 PETSC_EXTERN PetscErrorCode SlepcMatTile(PetscScalar,Mat,PetscScalar,Mat,PetscScalar,Mat,PetscScalar,Mat,Mat*);
 PETSC_EXTERN PetscErrorCode SlepcCheckOrthogonality(Vec*,PetscInt,Vec*,PetscInt,Mat,PetscViewer,PetscReal*);
 PETSC_EXTERN PetscErrorCode SlepcSNPrintfScalar(char*,size_t,PetscScalar,PetscBool);

@@ -27,8 +27,8 @@
 PetscErrorCode EPSSetUp_LAPACK(EPS eps)
 {
   PetscErrorCode ierr,ierra,ierrb;
-  PetscBool      isshift,denseok=PETSC_FALSE;
-  Mat            A,B,OP,Adense=NULL,Bdense=NULL;
+  PetscBool      isshift,flg,denseok=PETSC_FALSE;
+  Mat            A,B,OP,Ar,Br,Adense=NULL,Bdense=NULL;
   PetscScalar    shift,*Ap,*Bp;
   PetscInt       i,ld,nmat;
   KSP            ksp;
@@ -49,15 +49,25 @@ PetscErrorCode EPSSetUp_LAPACK(EPS eps)
   if (isshift) {
     ierr = STGetNumMatrices(eps->st,&nmat);CHKERRQ(ierr);
     ierr = STGetOperators(eps->st,0,&A);CHKERRQ(ierr);
-    if (nmat>1) { ierr = STGetOperators(eps->st,1,&B);CHKERRQ(ierr); }
-    PetscPushErrorHandler(PetscIgnoreErrorHandler,NULL);
-    ierra = SlepcMatConvertSeqDense(A,&Adense);CHKERRQ(ierr);
+    ierr = MatHasOperation(A,MATOP_CREATE_SUBMATRICES,&flg);CHKERRQ(ierr);
+    if (flg) {
+      PetscPushErrorHandler(PetscIgnoreErrorHandler,NULL);
+      ierra  = MatCreateRedundantMatrix(A,0,PETSC_COMM_SELF,MAT_INITIAL_MATRIX,&Ar);
+      if (!ierra) { ierra |= MatConvert(Ar,MATSEQDENSE,MAT_INITIAL_MATRIX,&Adense); }
+      ierra |= MatDestroy(&Ar);
+      PetscPopErrorHandler();
+    } else ierra = 1;
     if (nmat>1) {
-      ierrb = SlepcMatConvertSeqDense(B,&Bdense);CHKERRQ(ierr);
-    } else {
-      ierrb = 0;
-    }
-    PetscPopErrorHandler();
+      ierr = STGetOperators(eps->st,1,&B);CHKERRQ(ierr);
+      ierr = MatHasOperation(B,MATOP_CREATE_SUBMATRICES,&flg);CHKERRQ(ierr);
+      if (flg) {
+        PetscPushErrorHandler(PetscIgnoreErrorHandler,NULL);
+        ierrb  = MatCreateRedundantMatrix(B,0,PETSC_COMM_SELF,MAT_INITIAL_MATRIX,&Br);
+        if (!ierrb) { ierrb |= MatConvert(Br,MATSEQDENSE,MAT_INITIAL_MATRIX,&Bdense); }
+        ierrb |= MatDestroy(&Br);
+        PetscPopErrorHandler();
+      } else ierrb = 1;
+    } else ierrb = 0;
     denseok = PetscNot(ierra || ierrb);
   }
 
@@ -101,7 +111,10 @@ PetscErrorCode EPSSetUp_LAPACK(EPS eps)
     ierr = PetscInfo(eps,"Using slow explicit operator\n");CHKERRQ(ierr);
     ierr = STComputeExplicitOperator(eps->st,&OP);CHKERRQ(ierr);
     ierr = MatDestroy(&Adense);CHKERRQ(ierr);
-    ierr = SlepcMatConvertSeqDense(OP,&Adense);CHKERRQ(ierr);
+    ierr = MatCreateRedundantMatrix(OP,0,PETSC_COMM_SELF,MAT_INITIAL_MATRIX,&Ar);CHKERRQ(ierr);
+    ierr = MatDestroy(&OP);CHKERRQ(ierr);
+    ierr = MatConvert(Ar,MATSEQDENSE,MAT_INITIAL_MATRIX,&Adense);CHKERRQ(ierr);
+    ierr = MatDestroy(&Ar);CHKERRQ(ierr);
   }
 
   /* fill DS matrices */
@@ -125,8 +138,7 @@ PetscErrorCode EPSSetUp_LAPACK(EPS eps)
   ierr = VecDestroy(&v);CHKERRQ(ierr);
   ierr = DSSetState(eps->ds,DS_STATE_RAW);CHKERRQ(ierr);
   ierr = MatDestroy(&Adense);CHKERRQ(ierr);
-  if (!denseok) { ierr = MatDestroy(&OP);CHKERRQ(ierr); }
-  if (denseok && eps->isgeneralized) { ierr = MatDestroy(&Bdense);CHKERRQ(ierr); }
+  ierr = MatDestroy(&Bdense);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
