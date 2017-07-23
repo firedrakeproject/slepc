@@ -500,7 +500,7 @@ static PetscErrorCode PEPLinearExtract_Residual(PEP pep,EPS eps)
       ierr = VecGetArrayRead(xi,&py);CHKERRQ(ierr);
       ierr = VecPlaceArray(wr,px);CHKERRQ(ierr);
       ierr = VecPlaceArray(wi,py);CHKERRQ(ierr);
-      ierr = SlepcVecNormalize(wr,wi,PETSC_TRUE,NULL);CHKERRQ(ierr);
+      ierr = VecNormalizeComplex(wr,wi,PETSC_TRUE,NULL);CHKERRQ(ierr);
       ierr = PEPComputeResidualNorm_Private(pep,er[i],ei[i],wr,wi,pep->work,&rn1);CHKERRQ(ierr);
       ierr = BVInsertVec(pep->V,i,wr);CHKERRQ(ierr);
       ierr = BVInsertVec(pep->V,i+1,wi);CHKERRQ(ierr);
@@ -509,7 +509,7 @@ static PetscErrorCode PEPLinearExtract_Residual(PEP pep,EPS eps)
         ierr = VecResetArray(wi);CHKERRQ(ierr);
         ierr = VecPlaceArray(wr,px+k*pep->nloc);CHKERRQ(ierr);
         ierr = VecPlaceArray(wi,py+k*pep->nloc);CHKERRQ(ierr);
-        ierr = SlepcVecNormalize(wr,wi,PETSC_TRUE,NULL);CHKERRQ(ierr);
+        ierr = VecNormalizeComplex(wr,wi,PETSC_TRUE,NULL);CHKERRQ(ierr);
         ierr = PEPComputeResidualNorm_Private(pep,er[i],ei[i],wr,wi,pep->work,&rn2);CHKERRQ(ierr);
         if (rn1>rn2) {
           ierr = BVInsertVec(pep->V,i,wr);CHKERRQ(ierr);
@@ -527,13 +527,13 @@ static PetscErrorCode PEPLinearExtract_Residual(PEP pep,EPS eps)
     {
       ierr = VecGetArrayRead(xr,&px);CHKERRQ(ierr);
       ierr = VecPlaceArray(wr,px);CHKERRQ(ierr);
-      ierr = SlepcVecNormalize(wr,NULL,PETSC_FALSE,NULL);CHKERRQ(ierr);
+      ierr = VecNormalizeComplex(wr,NULL,PETSC_FALSE,NULL);CHKERRQ(ierr);
       ierr = PEPComputeResidualNorm_Private(pep,er[i],ei[i],wr,NULL,pep->work,&rn1);CHKERRQ(ierr);
       ierr = BVInsertVec(pep->V,i,wr);CHKERRQ(ierr);
       for (k=1;k<pep->nmat-1;k++) {
         ierr = VecResetArray(wr);CHKERRQ(ierr);
         ierr = VecPlaceArray(wr,px+k*pep->nloc);CHKERRQ(ierr);
-        ierr = SlepcVecNormalize(wr,NULL,PETSC_FALSE,NULL);CHKERRQ(ierr);
+        ierr = VecNormalizeComplex(wr,NULL,PETSC_FALSE,NULL);CHKERRQ(ierr);
         ierr = PEPComputeResidualNorm_Private(pep,er[i],ei[i],wr,NULL,pep->work,&rn2);CHKERRQ(ierr);
         if (rn1>rn2) {
           ierr = BVInsertVec(pep->V,i,wr);CHKERRQ(ierr);

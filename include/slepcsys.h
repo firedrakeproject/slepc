@@ -50,6 +50,10 @@
     slepcsc.h contains definition of sorting criterion
 */
 #include <slepcsc.h>
+/*
+    slepcvec.h contains utilities related to Vec, extends functionality in PETSc
+*/
+#include <slepcvec.h>
 
 /*
     Creation and destruction of context for monitors of type XXXMonitorConverged
@@ -70,6 +74,8 @@ PETSC_EXTERN PetscErrorCode SlepcInitialized(PetscBool*);
 PETSC_EXTERN PetscErrorCode SlepcGetVersion(char[],size_t);
 PETSC_EXTERN PetscErrorCode SlepcGetVersionNumber(PetscInt*,PetscInt*,PetscInt*,PetscInt*);
 
+PETSC_EXTERN PetscErrorCode SlepcSNPrintfScalar(char*,size_t,PetscScalar,PetscBool);
+
 PETSC_DEPRECATED("Use MatCreateRedundantMatrix() followed by MatConvert()") PETSC_STATIC_INLINE PetscErrorCode SlepcMatConvertSeqDense(Mat mat,Mat *newmat) {
   PetscErrorCode ierr; Mat Ar; 
   ierr = MatCreateRedundantMatrix(mat,0,PETSC_COMM_SELF,MAT_INITIAL_MATRIX,&Ar);CHKERRQ(ierr);
@@ -77,11 +83,10 @@ PETSC_DEPRECATED("Use MatCreateRedundantMatrix() followed by MatConvert()") PETS
   ierr = MatDestroy(&Ar);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
+PETSC_DEPRECATED("Use VecNormalizeComplex()") PETSC_STATIC_INLINE PetscErrorCode SlepcVecNormalize(Vec xr,Vec xi,PetscBool c,PetscReal *nrm) {return VecNormalizeComplex(xr,xi,c,nrm);}
+PETSC_DEPRECATED("Use VecCheckOrthogonality()") PETSC_STATIC_INLINE PetscErrorCode SlepcCheckOrthogonality(Vec *V,PetscInt nv,Vec *W,PetscInt nw,Mat B,PetscViewer viewer,PetscReal *lev) {return VecCheckOrthogonality(V,nv,W,nw,B,viewer,lev);}
 
 PETSC_EXTERN PetscErrorCode SlepcMatTile(PetscScalar,Mat,PetscScalar,Mat,PetscScalar,Mat,PetscScalar,Mat,Mat*);
-PETSC_EXTERN PetscErrorCode SlepcCheckOrthogonality(Vec*,PetscInt,Vec*,PetscInt,Mat,PetscViewer,PetscReal*);
-PETSC_EXTERN PetscErrorCode SlepcSNPrintfScalar(char*,size_t,PetscScalar,PetscBool);
-PETSC_EXTERN PetscErrorCode SlepcVecNormalize(Vec,Vec,PetscBool,PetscReal*);
 
 PETSC_EXTERN PetscBool SlepcInitializeCalled;
 

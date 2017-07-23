@@ -23,7 +23,7 @@
 
 #if !defined(__SLEPCVEC_H)
 #define __SLEPCVEC_H
-#include <slepcsys.h>
+#include <petscmat.h>
 
 /* VecComp: Vec composed of several smaller Vecs */
 #define VECCOMP  "comp"
@@ -32,6 +32,10 @@ PETSC_EXTERN PetscErrorCode VecCreateComp(MPI_Comm,PetscInt*,PetscInt,VecType,Ve
 PETSC_EXTERN PetscErrorCode VecCreateCompWithVecs(Vec*,PetscInt,Vec,Vec*);
 PETSC_EXTERN PetscErrorCode VecCompGetSubVecs(Vec,PetscInt*,const Vec**);
 PETSC_EXTERN PetscErrorCode VecCompSetSubVecs(Vec,PetscInt,Vec*);
+
+/* Some auxiliary functions */
+PETSC_EXTERN PetscErrorCode VecNormalizeComplex(Vec,Vec,PetscBool,PetscReal*);
+PETSC_EXTERN PetscErrorCode VecCheckOrthogonality(Vec*,PetscInt,Vec*,PetscInt,Mat,PetscViewer,PetscReal*);
 
 #endif
 
