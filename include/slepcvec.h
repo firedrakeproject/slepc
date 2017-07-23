@@ -36,6 +36,7 @@ PETSC_EXTERN PetscErrorCode VecCompSetSubVecs(Vec,PetscInt,Vec*);
 /* Some auxiliary functions */
 PETSC_EXTERN PetscErrorCode VecNormalizeComplex(Vec,Vec,PetscBool,PetscReal*);
 PETSC_EXTERN PetscErrorCode VecCheckOrthogonality(Vec*,PetscInt,Vec*,PetscInt,Mat,PetscViewer,PetscReal*);
+PETSC_EXTERN PetscErrorCode VecDuplicateEmpty(Vec,Vec*);
 
 #endif
 

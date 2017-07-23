@@ -150,3 +150,58 @@ PetscErrorCode VecCheckOrthogonality(Vec *V,PetscInt nv,Vec *W,PetscInt nw,Mat B
   PetscFunctionReturn(0);
 }
 
+/*@
+   VecDuplicateEmpty - Creates a new vector of the same type as an existing vector,
+   but without internal array.
+
+   Collective on Vec
+
+   Input parameters:
+.  v - a vector to mimic
+
+   Output parameter:
+.  newv - location to put new vector
+
+   Notes:
+   This is similar to VecDuplicate(), but the new vector does not have an internal
+   array, so the intended usage is with VecPlaceArray().
+
+   Level: developer
+@*/
+PetscErrorCode VecDuplicateEmpty(Vec v,Vec *newv)
+{
+  PetscErrorCode ierr;
+  PetscBool      sup,cuda,mpi;
+  PetscInt       N,nloc,bs;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(v,VEC_CLASSID,1);
+  PetscValidPointer(newv,2);
+  PetscValidType(v,1);
+
+  ierr = PetscObjectTypeCompareAny((PetscObject)v,&sup,VECSEQ,VECMPI,VECSEQCUDA,VECMPICUDA,"");CHKERRQ(ierr);
+  if (!sup) SETERRQ1(PetscObjectComm((PetscObject)v),PETSC_ERR_SUP,"Vector type %s not supported",((PetscObject)v)->type_name);
+  ierr = PetscObjectTypeCompareAny((PetscObject)v,&cuda,VECSEQCUDA,VECMPICUDA,"");CHKERRQ(ierr);
+  ierr = PetscObjectTypeCompareAny((PetscObject)v,&mpi,VECMPI,VECMPICUDA,"");CHKERRQ(ierr);
+  ierr = VecGetLocalSize(v,&nloc);CHKERRQ(ierr);
+  ierr = VecGetSize(v,&N);CHKERRQ(ierr);
+  ierr = VecGetBlockSize(v,&bs);CHKERRQ(ierr);
+
+  if (cuda) {
+#if defined(PETSC_HAVE_VECCUDA)
+    if (mpi) {
+      ierr = VecCreateMPICUDAWithArray(PetscObjectComm((PetscObject)v),bs,nloc,N,NULL,newv);CHKERRQ(ierr);
+    } else {
+      ierr = VecCreateSeqCUDAWithArray(PetscObjectComm((PetscObject)v),bs,nloc,NULL,newv);CHKERRQ(ierr);
+    }
+#endif
+  } else {
+    if (mpi) {
+      ierr = VecCreateMPIWithArray(PetscObjectComm((PetscObject)v),bs,nloc,N,NULL,newv);CHKERRQ(ierr);
+    } else {
+      ierr = VecCreateSeqWithArray(PetscObjectComm((PetscObject)v),bs,nloc,NULL,newv);CHKERRQ(ierr);
+    }
+  }
+  PetscFunctionReturn(0);
+}
+
