@@ -51,8 +51,9 @@
 */
 #include <slepcsc.h>
 /*
-    slepcvec.h contains utilities related to Vec, extends functionality in PETSc
+    slepcmat.h, slepcvec.h contain utilities related to Mat and Vec, extend functionality in PETSc
 */
+#include <slepcmat.h>
 #include <slepcvec.h>
 
 /*
@@ -85,8 +86,7 @@ PETSC_DEPRECATED("Use MatCreateRedundantMatrix() followed by MatConvert()") PETS
 }
 PETSC_DEPRECATED("Use VecNormalizeComplex()") PETSC_STATIC_INLINE PetscErrorCode SlepcVecNormalize(Vec xr,Vec xi,PetscBool c,PetscReal *nrm) {return VecNormalizeComplex(xr,xi,c,nrm);}
 PETSC_DEPRECATED("Use VecCheckOrthogonality()") PETSC_STATIC_INLINE PetscErrorCode SlepcCheckOrthogonality(Vec *V,PetscInt nv,Vec *W,PetscInt nw,Mat B,PetscViewer viewer,PetscReal *lev) {return VecCheckOrthogonality(V,nv,W,nw,B,viewer,lev);}
-
-PETSC_EXTERN PetscErrorCode SlepcMatTile(PetscScalar,Mat,PetscScalar,Mat,PetscScalar,Mat,PetscScalar,Mat,Mat*);
+PETSC_DEPRECATED("Use MatCreateTile()") PETSC_STATIC_INLINE PetscErrorCode SlepcMatTile(PetscScalar a,Mat A,PetscScalar b,Mat B,PetscScalar c,Mat C,PetscScalar d,Mat D,Mat *G) {return MatCreateTile(a,A,b,B,c,C,d,D,G);}
 
 PETSC_EXTERN PetscBool SlepcInitializeCalled;
 

@@ -76,7 +76,7 @@ PetscErrorCode MatCreateExplicit_Linear_N1A(MPI_Comm comm,PEP_LINEAR *ctx,Mat *A
   }
   ierr = MatAssemblyBegin(Id,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
   ierr = MatAssemblyEnd(Id,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
-  ierr = SlepcMatTile(0.0,Id,1.0,Id,-ctx->dsfactor,ctx->K,-ctx->sfactor*ctx->dsfactor,ctx->C,A);CHKERRQ(ierr);
+  ierr = MatCreateTile(0.0,Id,1.0,Id,-ctx->dsfactor,ctx->K,-ctx->sfactor*ctx->dsfactor,ctx->C,A);CHKERRQ(ierr);
   ierr = MatDestroy(&Id);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -100,7 +100,7 @@ PetscErrorCode MatCreateExplicit_Linear_N1B(MPI_Comm comm,PEP_LINEAR *ctx,Mat *B
   }
   ierr = MatAssemblyBegin(Id,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
   ierr = MatAssemblyEnd(Id,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
-  ierr = SlepcMatTile(1.0,Id,0.0,Id,0.0,Id,ctx->sfactor*ctx->sfactor*ctx->dsfactor,ctx->M,B);CHKERRQ(ierr);
+  ierr = MatCreateTile(1.0,Id,0.0,Id,0.0,Id,ctx->sfactor*ctx->sfactor*ctx->dsfactor,ctx->M,B);CHKERRQ(ierr);
   ierr = MatDestroy(&Id);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -126,7 +126,7 @@ PetscErrorCode MatCreateExplicit_Linear_N2A(MPI_Comm comm,PEP_LINEAR *ctx,Mat *A
   }
   ierr = MatAssemblyBegin(Id,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
   ierr = MatAssemblyEnd(Id,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
-  ierr = SlepcMatTile(-1.0,ctx->K,0.0,Id,0.0,Id,1.0,Id,A);CHKERRQ(ierr);
+  ierr = MatCreateTile(-1.0,ctx->K,0.0,Id,0.0,Id,1.0,Id,A);CHKERRQ(ierr);
   ierr = MatDestroy(&Id);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -150,7 +150,7 @@ PetscErrorCode MatCreateExplicit_Linear_N2B(MPI_Comm comm,PEP_LINEAR *ctx,Mat *B
   }
   ierr = MatAssemblyBegin(Id,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
   ierr = MatAssemblyEnd(Id,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
-  ierr = SlepcMatTile(ctx->sfactor,ctx->C,ctx->sfactor*ctx->sfactor,ctx->M,1.0,Id,0.0,Id,B);CHKERRQ(ierr);
+  ierr = MatCreateTile(ctx->sfactor,ctx->C,ctx->sfactor*ctx->sfactor,ctx->M,1.0,Id,0.0,Id,B);CHKERRQ(ierr);
   ierr = MatDestroy(&Id);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -162,7 +162,7 @@ PetscErrorCode MatCreateExplicit_Linear_S1A(MPI_Comm comm,PEP_LINEAR *ctx,Mat *A
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  ierr = SlepcMatTile(0.0,ctx->K,-1.0,ctx->K,-1.0,ctx->K,-ctx->sfactor,ctx->C,A);CHKERRQ(ierr);
+  ierr = MatCreateTile(0.0,ctx->K,-1.0,ctx->K,-1.0,ctx->K,-ctx->sfactor,ctx->C,A);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -171,7 +171,7 @@ PetscErrorCode MatCreateExplicit_Linear_S1B(MPI_Comm comm,PEP_LINEAR *ctx,Mat *B
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  ierr = SlepcMatTile(-1.0,ctx->K,0.0,ctx->M,0.0,ctx->M,ctx->sfactor*ctx->sfactor,ctx->M,B);CHKERRQ(ierr);
+  ierr = MatCreateTile(-1.0,ctx->K,0.0,ctx->M,0.0,ctx->M,ctx->sfactor*ctx->sfactor,ctx->M,B);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -182,7 +182,7 @@ PetscErrorCode MatCreateExplicit_Linear_S2A(MPI_Comm comm,PEP_LINEAR *ctx,Mat *A
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  ierr = SlepcMatTile(-1.0,ctx->K,0.0,ctx->M,0.0,ctx->M,ctx->sfactor*ctx->sfactor,ctx->M,A);CHKERRQ(ierr);
+  ierr = MatCreateTile(-1.0,ctx->K,0.0,ctx->M,0.0,ctx->M,ctx->sfactor*ctx->sfactor,ctx->M,A);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -191,7 +191,7 @@ PetscErrorCode MatCreateExplicit_Linear_S2B(MPI_Comm comm,PEP_LINEAR *ctx,Mat *B
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  ierr = SlepcMatTile(ctx->sfactor,ctx->C,ctx->sfactor*ctx->sfactor,ctx->M,ctx->sfactor*ctx->sfactor,ctx->M,0.0,ctx->M,B);CHKERRQ(ierr);
+  ierr = MatCreateTile(ctx->sfactor,ctx->C,ctx->sfactor*ctx->sfactor,ctx->M,ctx->sfactor*ctx->sfactor,ctx->M,0.0,ctx->M,B);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -202,7 +202,7 @@ PetscErrorCode MatCreateExplicit_Linear_H1A(MPI_Comm comm,PEP_LINEAR *ctx,Mat *A
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  ierr = SlepcMatTile(1.0,ctx->K,0.0,ctx->K,ctx->sfactor,ctx->C,1.0,ctx->K,A);CHKERRQ(ierr);
+  ierr = MatCreateTile(1.0,ctx->K,0.0,ctx->K,ctx->sfactor,ctx->C,1.0,ctx->K,A);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -211,7 +211,7 @@ PetscErrorCode MatCreateExplicit_Linear_H1B(MPI_Comm comm,PEP_LINEAR *ctx,Mat *B
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  ierr = SlepcMatTile(0.0,ctx->K,1.0,ctx->K,-ctx->sfactor*ctx->sfactor,ctx->M,0.0,ctx->K,B);CHKERRQ(ierr);
+  ierr = MatCreateTile(0.0,ctx->K,1.0,ctx->K,-ctx->sfactor*ctx->sfactor,ctx->M,0.0,ctx->K,B);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -222,7 +222,7 @@ PetscErrorCode MatCreateExplicit_Linear_H2A(MPI_Comm comm,PEP_LINEAR *ctx,Mat *A
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  ierr = SlepcMatTile(0.0,ctx->K,-1.0,ctx->K,ctx->sfactor*ctx->sfactor,ctx->M,0.0,ctx->K,A);CHKERRQ(ierr);
+  ierr = MatCreateTile(0.0,ctx->K,-1.0,ctx->K,ctx->sfactor*ctx->sfactor,ctx->M,0.0,ctx->K,A);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -231,7 +231,7 @@ PetscErrorCode MatCreateExplicit_Linear_H2B(MPI_Comm comm,PEP_LINEAR *ctx,Mat *B
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  ierr = SlepcMatTile(ctx->sfactor*ctx->sfactor,ctx->M,ctx->sfactor,ctx->C,0.0,ctx->C,ctx->sfactor*ctx->sfactor,ctx->M,B);CHKERRQ(ierr);
+  ierr = MatCreateTile(ctx->sfactor*ctx->sfactor,ctx->M,ctx->sfactor,ctx->C,0.0,ctx->C,ctx->sfactor*ctx->sfactor,ctx->M,B);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
