@@ -575,11 +575,11 @@ runtest18_1_%:
 	${MPIEXEC} -n 1 ./test18 -eps_type $$eps -eps_nev 4 -eps_ncv 12 -terse > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
-runtest18_2_cuda: runtest18_2_cuda_krylovschur runtest18_2_cuda_krylovschur_gnhep
+runtest18_2_cuda: runtest18_2_cuda_krylovschur runtest18_2_cuda_ks_gnhep
 runtest18_2_cuda_%:
 	-@${SETTEST}; check=test18_1; eps=$*; \
 	if [ "$$eps" = krylovschur ]; then eps="krylovschur -st_type sinvert -eps_krylovschur_restart .3"; \
-	elif [ "$$eps" = krylovschur_gnhep ]; then eps="krylovschur -eps_gen_non_hermitian -st_type sinvert -eps_krylovschur_restart .3"; fi; \
+	elif [ "$$eps" = ks_gnhep ]; then eps="krylovschur -eps_gen_non_hermitian -st_type sinvert -eps_krylovschur_restart .3"; fi; \
 	${MPIEXEC} -n 1 ./test18 -eps_type $$eps -eps_nev 4 -eps_ncv 12 -terse -mat_type aijcusparse > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
