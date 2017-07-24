@@ -162,7 +162,7 @@ PetscErrorCode VecCheckOrthogonality(Vec *V,PetscInt nv,Vec *W,PetscInt nw,Mat B
    Output parameter:
 .  newv - location to put new vector
 
-   Notes:
+   Note:
    This is similar to VecDuplicate(), but the new vector does not have an internal
    array, so the intended usage is with VecPlaceArray().
 
@@ -192,14 +192,14 @@ PetscErrorCode VecDuplicateEmpty(Vec v,Vec *newv)
     if (mpi) {
       ierr = VecCreateMPICUDAWithArray(PetscObjectComm((PetscObject)v),bs,nloc,N,NULL,newv);CHKERRQ(ierr);
     } else {
-      ierr = VecCreateSeqCUDAWithArray(PetscObjectComm((PetscObject)v),bs,nloc,NULL,newv);CHKERRQ(ierr);
+      ierr = VecCreateSeqCUDAWithArray(PetscObjectComm((PetscObject)v),bs,N,NULL,newv);CHKERRQ(ierr);
     }
 #endif
   } else {
     if (mpi) {
       ierr = VecCreateMPIWithArray(PetscObjectComm((PetscObject)v),bs,nloc,N,NULL,newv);CHKERRQ(ierr);
     } else {
-      ierr = VecCreateSeqWithArray(PetscObjectComm((PetscObject)v),bs,nloc,NULL,newv);CHKERRQ(ierr);
+      ierr = VecCreateSeqWithArray(PetscObjectComm((PetscObject)v),bs,N,NULL,newv);CHKERRQ(ierr);
     }
   }
   PetscFunctionReturn(0);

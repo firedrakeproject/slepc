@@ -352,3 +352,78 @@ PetscErrorCode MatCreateTile(PetscScalar a,Mat A,PetscScalar b,Mat B,PetscScalar
   PetscFunctionReturn(0);
 }
 
+/*@C
+   MatCreateVecsEmpty - Get vector(s) compatible with the matrix, i.e. with the same
+   parallel layout, but without internal array.
+
+   Collective on Mat
+
+   Input Parameter:
+.  mat - the matrix
+
+   Output Parameters:
++  right - (optional) vector that the matrix can be multiplied against
+-  left - (optional) vector that the matrix vector product can be stored in
+
+   Note:
+   This is similar to MatCreateVecs(), but the new vectors do not have an internal
+   array, so the intended usage is with VecPlaceArray().
+
+   Level: developer
+@*/
+PetscErrorCode MatCreateVecsEmpty(Mat mat,Vec *right,Vec *left)
+{
+  PetscErrorCode ierr;
+  PetscBool      notsup,cuda;
+  PetscInt       M,N,mloc,nloc,rbs,cbs;
+  PetscMPIInt    size;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(mat,MAT_CLASSID,1);
+  PetscValidType(mat,1);
+
+  ierr = PetscObjectTypeCompareAny((PetscObject)mat,&notsup,MATSEQAIJCUSP,MATMPIAIJCUSP,MATSEQAIJVIENNACL,MATMPIAIJVIENNACL,"");CHKERRQ(ierr);
+  if (notsup) SETERRQ1(PetscObjectComm((PetscObject)mat),PETSC_ERR_SUP,"Matrix type %s not supported",((PetscObject)mat)->type_name);
+  ierr = PetscObjectTypeCompareAny((PetscObject)mat,&cuda,MATSEQAIJCUSPARSE,MATMPIAIJCUSPARSE,"");CHKERRQ(ierr);
+  ierr = MPI_Comm_size(PetscObjectComm((PetscObject)mat),&size);CHKERRQ(ierr);
+  ierr = MatGetLocalSize(mat,&mloc,&nloc);CHKERRQ(ierr);
+  ierr = MatGetSize(mat,&M,&N);CHKERRQ(ierr);
+  ierr = MatGetBlockSizes(mat,&rbs,&cbs);CHKERRQ(ierr);
+
+  if (right) {
+    if (cuda) {
+#if defined(PETSC_HAVE_VECCUDA)
+      if (size>1) {
+        ierr = VecCreateMPICUDAWithArray(PetscObjectComm((PetscObject)mat),cbs,nloc,N,NULL,right);CHKERRQ(ierr);
+      } else {
+        ierr = VecCreateSeqCUDAWithArray(PetscObjectComm((PetscObject)mat),cbs,N,NULL,right);CHKERRQ(ierr);
+      }
+#endif
+    } else {
+      if (size>1) {
+        ierr = VecCreateMPIWithArray(PetscObjectComm((PetscObject)mat),cbs,nloc,N,NULL,right);CHKERRQ(ierr);
+      } else {
+        ierr = VecCreateSeqWithArray(PetscObjectComm((PetscObject)mat),cbs,N,NULL,right);CHKERRQ(ierr);
+      }
+    }
+  }
+  if (left) {
+    if (cuda) {
+#if defined(PETSC_HAVE_VECCUDA)
+      if (size>1) {
+        ierr = VecCreateMPICUDAWithArray(PetscObjectComm((PetscObject)mat),rbs,mloc,M,NULL,left);CHKERRQ(ierr);
+      } else {
+        ierr = VecCreateSeqCUDAWithArray(PetscObjectComm((PetscObject)mat),rbs,M,NULL,left);CHKERRQ(ierr);
+      }
+#endif
+    } else {
+      if (size>1) {
+        ierr = VecCreateMPIWithArray(PetscObjectComm((PetscObject)mat),rbs,mloc,M,NULL,left);CHKERRQ(ierr);
+      } else {
+        ierr = VecCreateSeqWithArray(PetscObjectComm((PetscObject)mat),rbs,M,NULL,left);CHKERRQ(ierr);
+      }
+    }
+  }
+  PetscFunctionReturn(0);
+}
+

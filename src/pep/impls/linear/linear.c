@@ -339,12 +339,9 @@ PetscErrorCode PEPSetUp_Linear(PEP pep)
     ierr = STShellSetContext(st,(PetscObject)ctx);CHKERRQ(ierr);
     if (!transf) { ierr = STShellSetBackTransform(st,BackTransform_Linear);CHKERRQ(ierr); }
     else { ierr = STShellSetBackTransform(st,BackTransform_Skip);CHKERRQ(ierr); }
-    ierr = VecCreateMPIWithArray(PetscObjectComm((PetscObject)pep),1,pep->nloc,pep->n,NULL,&ctx->w[0]);CHKERRQ(ierr);
-    ierr = VecCreateMPIWithArray(PetscObjectComm((PetscObject)pep),1,pep->nloc,pep->n,NULL,&ctx->w[1]);CHKERRQ(ierr);
-    ierr = VecCreateMPIWithArray(PetscObjectComm((PetscObject)pep),1,pep->nloc,pep->n,NULL,&ctx->w[2]);CHKERRQ(ierr);
-    ierr = VecCreateMPIWithArray(PetscObjectComm((PetscObject)pep),1,pep->nloc,pep->n,NULL,&ctx->w[3]);CHKERRQ(ierr);
-    ierr = MatCreateVecs(pep->A[0],&ctx->w[4],NULL);CHKERRQ(ierr);
-    ierr = MatCreateVecs(pep->A[0],&ctx->w[5],NULL);CHKERRQ(ierr);
+    ierr = MatCreateVecsEmpty(pep->A[0],&ctx->w[0],&ctx->w[1]);CHKERRQ(ierr);
+    ierr = MatCreateVecsEmpty(pep->A[0],&ctx->w[2],&ctx->w[3]);CHKERRQ(ierr);
+    ierr = MatCreateVecs(pep->A[0],&ctx->w[4],&ctx->w[5]);CHKERRQ(ierr);
     ierr = PetscLogObjectParents(pep,6,ctx->w);CHKERRQ(ierr);
     ierr = MatCreateShell(PetscObjectComm((PetscObject)pep),deg*pep->nloc,deg*pep->nloc,deg*pep->n,deg*pep->n,ctx,&ctx->A);CHKERRQ(ierr);
     if (sinv && !transf) {
@@ -487,10 +484,10 @@ static PetscErrorCode PEPLinearExtract_Residual(PEP pep,EPS eps)
 #endif
   ierr = EPSGetOperators(eps,&A,NULL);CHKERRQ(ierr);
   ierr = MatCreateVecs(A,&xr,NULL);CHKERRQ(ierr);
-  ierr = VecCreateMPIWithArray(PetscObjectComm((PetscObject)pep),1,pep->nloc,pep->n,NULL,&wr);CHKERRQ(ierr);
+  ierr = MatCreateVecsEmpty(pep->A[0],&wr,NULL);CHKERRQ(ierr);
 #if !defined(PETSC_USE_COMPLEX)
   ierr = VecDuplicate(xr,&xi);CHKERRQ(ierr);
-  ierr = VecCreateMPIWithArray(PetscObjectComm((PetscObject)pep),1,pep->nloc,pep->n,NULL,&wi);CHKERRQ(ierr);
+  ierr = VecDuplicateEmpty(wr,&wi);CHKERRQ(ierr);
 #endif
   for (i=0;i<pep->nconv;i++) {
     ierr = EPSGetEigenpair(eps,i,NULL,NULL,xr,xi);CHKERRQ(ierr);
@@ -572,7 +569,7 @@ static PetscErrorCode PEPLinearExtract_None(PEP pep,EPS eps)
   ierr = EPSGetOperators(eps,&A,NULL);CHKERRQ(ierr);
   ierr = MatCreateVecs(A,&xr,NULL);CHKERRQ(ierr);
   ierr = VecDuplicate(xr,&xi);CHKERRQ(ierr);
-  ierr = VecCreateMPIWithArray(PetscObjectComm((PetscObject)pep),1,pep->nloc,pep->n,NULL,&w);CHKERRQ(ierr);
+  ierr = MatCreateVecsEmpty(pep->A[0],&w,NULL);CHKERRQ(ierr);
   for (i=0;i<pep->nconv;i++) {
     ierr = EPSGetEigenpair(eps,i,NULL,NULL,xr,xi);CHKERRQ(ierr);
 #if !defined(PETSC_USE_COMPLEX)
@@ -631,7 +628,7 @@ static PetscErrorCode PEPLinearExtract_Norm(PEP pep,EPS eps)
 #if !defined(PETSC_USE_COMPLEX)
   ierr = VecDuplicate(xr,&xi);CHKERRQ(ierr);
 #endif
-  ierr = VecCreateMPIWithArray(PetscObjectComm((PetscObject)pep),1,pep->nloc,pep->n,NULL,&w);CHKERRQ(ierr);
+  ierr = MatCreateVecsEmpty(pep->A[0],&w,NULL);CHKERRQ(ierr);
   for (i=0;i<pep->nconv;i++) {
     ierr = EPSGetEigenpair(eps,i,NULL,NULL,xr,xi);CHKERRQ(ierr);
     if (SlepcAbsEigenvalue(er[i],ei[i])>1.0) offset = (pep->nmat-2)*pep->nloc;

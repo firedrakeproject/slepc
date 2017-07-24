@@ -119,10 +119,8 @@ PetscErrorCode SVDSetUp_Cyclic(SVD svd)
       ierr = MatDestroy(&Zm);CHKERRQ(ierr);
       ierr = MatDestroy(&Zn);CHKERRQ(ierr);
     } else {
-      ierr = VecCreateMPIWithArray(PetscObjectComm((PetscObject)svd),1,m,M,NULL,&cyclic->x1);CHKERRQ(ierr);
-      ierr = VecCreateMPIWithArray(PetscObjectComm((PetscObject)svd),1,n,N,NULL,&cyclic->x2);CHKERRQ(ierr);
-      ierr = VecCreateMPIWithArray(PetscObjectComm((PetscObject)svd),1,m,M,NULL,&cyclic->y1);CHKERRQ(ierr);
-      ierr = VecCreateMPIWithArray(PetscObjectComm((PetscObject)svd),1,n,N,NULL,&cyclic->y2);CHKERRQ(ierr);
+      ierr = MatCreateVecsEmpty(svd->A,&cyclic->x2,&cyclic->x1);CHKERRQ(ierr);
+      ierr = MatCreateVecsEmpty(svd->A,&cyclic->y2,&cyclic->y1);CHKERRQ(ierr);
       ierr = PetscLogObjectParent((PetscObject)svd,(PetscObject)cyclic->x1);CHKERRQ(ierr);
       ierr = PetscLogObjectParent((PetscObject)svd,(PetscObject)cyclic->x2);CHKERRQ(ierr);
       ierr = PetscLogObjectParent((PetscObject)svd,(PetscObject)cyclic->y1);CHKERRQ(ierr);
@@ -226,8 +224,7 @@ PetscErrorCode SVDSolve_Cyclic(SVD svd)
   ierr = MatCreateVecs(cyclic->mat,&x,NULL);CHKERRQ(ierr);
   ierr = SVDMatGetSize(svd,&M,&N);CHKERRQ(ierr);
   ierr = SVDMatGetLocalSize(svd,&m,&n);CHKERRQ(ierr);
-  ierr = VecCreateMPIWithArray(PetscObjectComm((PetscObject)svd),1,m,M,NULL,&x1);CHKERRQ(ierr);
-  ierr = VecCreateMPIWithArray(PetscObjectComm((PetscObject)svd),1,n,N,NULL,&x2);CHKERRQ(ierr);
+  ierr = MatCreateVecsEmpty(svd->A,&x2,&x1);CHKERRQ(ierr);
   for (i=0,j=0;i<svd->nconv;i++) {
     ierr = EPSGetEigenpair(cyclic->eps,i,&sigma,NULL,x,NULL);CHKERRQ(ierr);
     if (PetscRealPart(sigma) > 0.0) {

@@ -138,8 +138,7 @@ PetscErrorCode EPSSetUp_PRIMME(EPS eps)
 
   /* Prepare auxiliary vectors */
   if (!ops->x) {
-    ierr = VecCreateMPIWithArray(PetscObjectComm((PetscObject)eps),1,eps->nloc,eps->n,NULL,&ops->x);CHKERRQ(ierr);
-    ierr = VecCreateMPIWithArray(PetscObjectComm((PetscObject)eps),1,eps->nloc,eps->n,NULL,&ops->y);CHKERRQ(ierr);
+    ierr = MatCreateVecsEmpty(ops->A,&ops->x,&ops->y);CHKERRQ(ierr);
     ierr = PetscLogObjectParent((PetscObject)eps,(PetscObject)ops->x);CHKERRQ(ierr);
     ierr = PetscLogObjectParent((PetscObject)eps,(PetscObject)ops->y);CHKERRQ(ierr);
   }

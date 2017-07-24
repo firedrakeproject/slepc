@@ -25,7 +25,10 @@
 #include <../src/eps/impls/external/trlan/trlanp.h>
 
 /* Nasty global variable to access EPS data from TRLan_ */
-static EPS globaleps;
+static struct {
+  EPS eps;
+  Vec x,y;
+} globaldata;
 
 PetscErrorCode EPSSetUp_TRLAN(EPS eps)
 {
@@ -71,22 +74,19 @@ PetscErrorCode EPSSetUp_TRLAN(EPS eps)
 static PetscBLASInt MatMult_TRLAN(PetscBLASInt *n,PetscBLASInt *m,PetscReal *xin,PetscBLASInt *ldx,PetscReal *yout,PetscBLASInt *ldy)
 {
   PetscErrorCode ierr;
-  Vec            x,y;
+  Vec            x=globaldata.x,y=globaldata.y;
+  EPS            eps=globaldata.eps;
   PetscBLASInt   i;
 
   PetscFunctionBegin;
-  ierr = VecCreateMPIWithArray(PetscObjectComm((PetscObject)globaleps),1,*n,PETSC_DECIDE,NULL,&x);CHKERRQ(ierr);
-  ierr = VecCreateMPIWithArray(PetscObjectComm((PetscObject)globaleps),1,*n,PETSC_DECIDE,NULL,&y);CHKERRQ(ierr);
   for (i=0;i<*m;i++) {
     ierr = VecPlaceArray(x,(PetscScalar*)xin+i*(*ldx));CHKERRQ(ierr);
     ierr = VecPlaceArray(y,(PetscScalar*)yout+i*(*ldy));CHKERRQ(ierr);
-    ierr = STApply(globaleps->st,x,y);CHKERRQ(ierr);
-    ierr = BVOrthogonalizeVec(globaleps->V,y,NULL,NULL,NULL);CHKERRQ(ierr);
+    ierr = STApply(eps->st,x,y);CHKERRQ(ierr);
+    ierr = BVOrthogonalizeVec(eps->V,y,NULL,NULL,NULL);CHKERRQ(ierr);
     ierr = VecResetArray(x);CHKERRQ(ierr);
     ierr = VecResetArray(y);CHKERRQ(ierr);
   }
-  ierr = VecDestroy(&x);CHKERRQ(ierr);
-  ierr = VecDestroy(&y);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -98,6 +98,7 @@ PetscErrorCode EPSSolve_TRLAN(EPS eps)
   EPS_TRLAN      *tr = (EPS_TRLAN*)eps->data;
   PetscScalar    *pV;
   Vec            v0;
+  Mat            A;
 
   PetscFunctionBegin;
   ierr = PetscBLASIntCast(eps->ncv,&ncv);CHKERRQ(ierr);
@@ -107,7 +108,9 @@ PetscErrorCode EPSSolve_TRLAN(EPS eps)
   else if (eps->which==EPS_SMALLEST_REAL) lohi = -1;
   else SETERRQ(PetscObjectComm((PetscObject)eps),1,"Wrong value of eps->which");
 
-  globaleps = eps;
+  globaldata.eps = eps;
+  ierr = STGetOperators(eps->st,0,&A);CHKERRQ(ierr);
+  ierr = MatCreateVecsEmpty(A,&globaldata.x,&globaldata.y);CHKERRQ(ierr);
 
   ipar[0]  = 0;            /* stat: error flag */
   ipar[1]  = lohi;         /* smallest (lohi<0) or largest eigenvalues (lohi>0) */
@@ -143,6 +146,8 @@ PetscErrorCode EPSSolve_TRLAN(EPS eps)
   eps->its    = ipar[25];
   eps->reason = EPS_CONVERGED_TOL;
 
+  ierr = VecDestroy(&globaldata.x);CHKERRQ(ierr);
+  ierr = VecDestroy(&globaldata.y);CHKERRQ(ierr);
   if (stat!=0) SETERRQ1(PetscObjectComm((PetscObject)eps),PETSC_ERR_LIB,"Error in TRLAN (code=%d)",stat);
   PetscFunctionReturn(0);
 }

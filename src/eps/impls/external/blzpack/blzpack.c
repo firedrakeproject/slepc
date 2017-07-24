@@ -150,13 +150,13 @@ PetscErrorCode EPSSolve_BLZPACK(EPS eps)
   PetscBLASInt   i,nneig,lflag,nvopu;
   Vec            x,y,v0;
   PetscScalar    sigma,*pV;
-  Mat            A;
+  Mat            A,M;
   KSP            ksp;
   PC             pc;
 
   PetscFunctionBegin;
-  ierr = VecCreateMPIWithArray(PetscObjectComm((PetscObject)eps),1,eps->nloc,PETSC_DECIDE,NULL,&x);CHKERRQ(ierr);
-  ierr = VecCreateMPIWithArray(PetscObjectComm((PetscObject)eps),1,eps->nloc,PETSC_DECIDE,NULL,&y);CHKERRQ(ierr);
+  ierr = STGetOperators(eps->st,0,&A);CHKERRQ(ierr);
+  ierr = MatCreateVecsEmpty(A,&x,&y);CHKERRQ(ierr);
   ierr = EPSGetStartVector(eps,0,NULL);CHKERRQ(ierr);
   ierr = BVSetActiveColumns(eps->V,0,0);CHKERRQ(ierr);  /* just for deflation space */
   ierr = BVGetColumn(eps->V,0,&v0);CHKERRQ(ierr);
@@ -236,8 +236,8 @@ PetscErrorCode EPSSolve_BLZPACK(EPS eps)
       ierr = STSetShift(eps->st,sigma);CHKERRQ(ierr);
       ierr = STGetKSP(eps->st,&ksp);CHKERRQ(ierr);
       ierr = KSPGetPC(ksp,&pc);CHKERRQ(ierr);
-      ierr = PCFactorGetMatrix(pc,&A);CHKERRQ(ierr);
-      ierr = MatGetInertia(A,&nn,NULL,NULL);CHKERRQ(ierr);
+      ierr = PCFactorGetMatrix(pc,&M);CHKERRQ(ierr);
+      ierr = MatGetInertia(M,&nn,NULL,NULL);CHKERRQ(ierr);
       ierr = PetscBLASIntCast(nn,&nneig);CHKERRQ(ierr);
       break;
     case 4:

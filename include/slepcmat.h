@@ -26,6 +26,7 @@
 #include <petscmat.h>
 
 PETSC_EXTERN PetscErrorCode MatCreateTile(PetscScalar,Mat,PetscScalar,Mat,PetscScalar,Mat,PetscScalar,Mat,Mat*);
+PETSC_EXTERN PetscErrorCode MatCreateVecsEmpty(Mat,Vec*,Vec*);
 
 #endif
 
