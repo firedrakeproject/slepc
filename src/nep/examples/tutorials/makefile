@@ -28,10 +28,10 @@ EXAMPLESC  = ex20.c ex21.c ex22.c ex27.c
 EXAMPLESF  =
 MANSEC     = NEP
 
-TESTEXAMPLES_C           = ex27.PETSc runex27_2 runex27_4 ex27.rm
+TESTEXAMPLES_C           = ex27.PETSc runex27_1 runex27_2 runex27_4 ex27.rm
 TESTEXAMPLES_C_NOTSINGLE = ex21.PETSc runex21_1 ex21.rm \
                            ex22.PETSc runex22_1 runex22_2 ex22.rm \
-                           ex27.PETSc runex27_1 runex27_3 ex27.rm
+                           ex27.PETSc runex27_3 ex27.rm
 TESTEXAMPLES_C_COMPLEX   = ex22.PETSc runex22_1_ciss ex22.rm
 TESTEXAMPLES_F90         =
 
@@ -86,12 +86,12 @@ runex22_2_%:
 
 runex27_1:
 	-@${SETTEST}; \
-	${MPIEXEC} -n 1 ./ex27 -nep_nev 3 -terse > $${test}.tmp 2>&1; \
+	${MPIEXEC} -n 1 ./ex27 -nep_nev 3 -nep_nleigs_interpolation_degree 90 -terse > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
 runex27_2:
 	-@${SETTEST}; \
-	${MPIEXEC} -n 1 ./ex27 -split 0 -nep_nev 3 -terse > $${test}.tmp 2>&1; \
+	${MPIEXEC} -n 1 ./ex27 -split 0 -nep_nev 3 -nep_nleigs_interpolation_degree 90 -terse > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
 runex27_3:
@@ -101,6 +101,6 @@ runex27_3:
 
 runex27_4:
 	-@${SETTEST}; check=ex27_2; \
-	${MPIEXEC} -n 1 ./ex27 -split 0 -nep_nev 3 -nep_nleigs_rk_shifts 1.06,1.1,1.12,1.15 -terse > $${test}.tmp 2>&1; \
+	${MPIEXEC} -n 1 ./ex27 -split 0 -nep_nev 3 -nep_nleigs_rk_shifts 1.06,1.1,1.12,1.15 -nep_nleigs_interpolation_degree 90 -terse > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
