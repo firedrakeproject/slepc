@@ -24,7 +24,7 @@
 static PetscErrorCode MatCreateTile_SeqAIJ(PetscScalar a,Mat A,PetscScalar b,Mat B,PetscScalar c,Mat C,PetscScalar d,Mat D,Mat G)
 {
   PetscErrorCode    ierr;
-  PetscInt          i,j,M1,M2,N1,N2,*nnz,ncols,*scols;
+  PetscInt          i,j,M1,M2,N1,N2,*nnz,ncols,*scols,bs;
   PetscScalar       *svals,*buf;
   const PetscInt    *cols;
   const PetscScalar *vals;
@@ -32,41 +32,42 @@ static PetscErrorCode MatCreateTile_SeqAIJ(PetscScalar a,Mat A,PetscScalar b,Mat
   PetscFunctionBegin;
   ierr = MatGetSize(A,&M1,&N1);CHKERRQ(ierr);
   ierr = MatGetSize(D,&M2,&N2);CHKERRQ(ierr);
+  ierr = MatGetBlockSize(A,&bs);CHKERRQ(ierr);
 
-  ierr = PetscCalloc1(M1+M2,&nnz);CHKERRQ(ierr);
+  ierr = PetscCalloc1((M1+M2)/bs,&nnz);CHKERRQ(ierr);
   /* Preallocate for A */
   if (a!=0.0) {
-    for (i=0;i<M1;i++) {
-      ierr = MatGetRow(A,i,&ncols,NULL,NULL);CHKERRQ(ierr);
-      nnz[i] += ncols;
-      ierr = MatRestoreRow(A,i,&ncols,NULL,NULL);CHKERRQ(ierr);
+    for (i=0;i<(M1+bs-1)/bs;i++) {
+      ierr = MatGetRow(A,i*bs,&ncols,NULL,NULL);CHKERRQ(ierr);
+      nnz[i] += ncols/bs;
+      ierr = MatRestoreRow(A,i*bs,&ncols,NULL,NULL);CHKERRQ(ierr);
     }
   }
   /* Preallocate for B */
   if (b!=0.0) {
-    for (i=0;i<M1;i++) {
-      ierr = MatGetRow(B,i,&ncols,NULL,NULL);CHKERRQ(ierr);
-      nnz[i] += ncols;
-      ierr = MatRestoreRow(B,i,&ncols,NULL,NULL);CHKERRQ(ierr);
+    for (i=0;i<(M1+bs-1)/bs;i++) {
+      ierr = MatGetRow(B,i*bs,&ncols,NULL,NULL);CHKERRQ(ierr);
+      nnz[i] += ncols/bs;
+      ierr = MatRestoreRow(B,i*bs,&ncols,NULL,NULL);CHKERRQ(ierr);
     }
   }
   /* Preallocate for C */
   if (c!=0.0) {
-    for (i=0;i<M2;i++) {
-      ierr = MatGetRow(C,i,&ncols,NULL,NULL);CHKERRQ(ierr);
-      nnz[i+M1] += ncols;
-      ierr = MatRestoreRow(C,i,&ncols,NULL,NULL);CHKERRQ(ierr);
+    for (i=0;i<(M2+bs-1)/bs;i++) {
+      ierr = MatGetRow(C,i*bs,&ncols,NULL,NULL);CHKERRQ(ierr);
+      nnz[i+M1/bs] += ncols/bs;
+      ierr = MatRestoreRow(C,i*bs,&ncols,NULL,NULL);CHKERRQ(ierr);
     }
   }
   /* Preallocate for D */
   if (d!=0.0) {
-    for (i=0;i<M2;i++) {
-      ierr = MatGetRow(D,i,&ncols,NULL,NULL);CHKERRQ(ierr);
-      nnz[i+M1] += ncols;
-      ierr = MatRestoreRow(D,i,&ncols,NULL,NULL);CHKERRQ(ierr);
+    for (i=0;i<(M2+bs-1)/bs;i++) {
+      ierr = MatGetRow(D,i*bs,&ncols,NULL,NULL);CHKERRQ(ierr);
+      nnz[i+M1/bs] += ncols/bs;
+      ierr = MatRestoreRow(D,i*bs,&ncols,NULL,NULL);CHKERRQ(ierr);
     }
   }
-  ierr = MatSeqAIJSetPreallocation(G,0,nnz);CHKERRQ(ierr);
+  ierr = MatXAIJSetPreallocation(G,bs,nnz,NULL,NULL,NULL);CHKERRQ(ierr);
   ierr = PetscFree(nnz);CHKERRQ(ierr);
 
   ierr = PetscMalloc2(PetscMax(N1,N2),&buf,PetscMax(N1,N2),&scols);CHKERRQ(ierr);
@@ -293,8 +294,9 @@ static PetscErrorCode MatCreateTile_MPIAIJ(PetscScalar a,Mat A,PetscScalar b,Mat
 PetscErrorCode MatCreateTile(PetscScalar a,Mat A,PetscScalar b,Mat B,PetscScalar c,Mat C,PetscScalar d,Mat D,Mat *G)
 {
   PetscErrorCode ierr;
-  PetscInt       M1,M2,N1,N2,M,N,m1,m2,n1,n2,m,n;
+  PetscInt       M1,M2,N1,N2,M,N,m1,m2,n1,n2,m,n,bs;
   PetscBool      flg1,flg2;
+  MatType        Atype;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(A,MAT_CLASSID,2);
@@ -331,19 +333,20 @@ PetscErrorCode MatCreateTile(PetscScalar a,Mat A,PetscScalar b,Mat B,PetscScalar
   ierr = MatGetLocalSize(D,NULL,&n);CHKERRQ(ierr);
   if (N!=N2 || n!=n2) SETERRQ(PetscObjectComm((PetscObject)A),PETSC_ERR_ARG_INCOMP,"Incompatible dimensions");
 
+  ierr = MatGetType(A,&Atype);CHKERRQ(ierr);
+  ierr = MatGetBlockSize(A,&bs);CHKERRQ(ierr);
   ierr = MatCreate(PetscObjectComm((PetscObject)A),G);CHKERRQ(ierr);
   ierr = MatSetSizes(*G,m1+m2,n1+n2,M1+M2,N1+N2);CHKERRQ(ierr);
-  ierr = MatSetFromOptions(*G);CHKERRQ(ierr);
+  ierr = MatSetType(*G,Atype);CHKERRQ(ierr);
+  ierr = MatSetBlockSize(*G,bs);CHKERRQ(ierr);
   ierr = MatSetUp(*G);CHKERRQ(ierr);
 
-  ierr = PetscObjectTypeCompare((PetscObject)*G,MATMPIAIJ,&flg1);CHKERRQ(ierr);
-  ierr = PetscObjectTypeCompare((PetscObject)A,MATMPIAIJ,&flg2);CHKERRQ(ierr);
-  if (flg1 && flg2) {
+  ierr = PetscObjectTypeCompareAny((PetscObject)A,&flg1,MATMPIAIJ,MATMPIAIJCUSPARSE,"");CHKERRQ(ierr);
+  if (flg1) {
     ierr = MatCreateTile_MPIAIJ(a,A,b,B,c,C,d,D,*G);CHKERRQ(ierr);
   } else {
-    ierr = PetscObjectTypeCompare((PetscObject)*G,MATSEQAIJ,&flg1);CHKERRQ(ierr);
-    ierr = PetscObjectTypeCompare((PetscObject)A,MATSEQAIJ,&flg2);CHKERRQ(ierr);
-    if (flg1 && flg2) {
+    ierr = PetscObjectTypeCompareAny((PetscObject)A,&flg1,MATSEQAIJ,MATSEQAIJCUSPARSE,MATSEQBAIJ,"");CHKERRQ(ierr);
+    if (flg1) {
       ierr = MatCreateTile_SeqAIJ(a,A,b,B,c,C,d,D,*G);CHKERRQ(ierr);
     } else SETERRQ(PetscObjectComm((PetscObject)A),PETSC_ERR_SUP,"Not implemented for this matrix type");
   }
