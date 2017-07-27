@@ -72,8 +72,8 @@ TESTEXAMPLES_FORTRAN               = test7f.PETSc runtest7f_1 test7f.rm \
 TESTEXAMPLES_VECCUDA               = test1.PETSc runtest1_7_cuda runtest1_8_cuda test1.rm \
                                      test2.PETSc runtest2_4_cuda test2.rm \
                                      test18.PETSc runtest18_2_cuda test18.rm \
-                                     test24.PETSc runtest24_2_cuda test24.rm \
-                                     test25.PETSc runtest25_2_cuda test25.rm
+                                     test24.PETSc runtest24_2_cuda test24.rm
+TESTEXAMPLES_VECCUDA_NOCOMPLEX     = test25.PETSc runtest25_2_cuda test25.rm
 TESTEXAMPLES_ARPACK                = test3.PETSc runtest3_1_arpack test3.rm \
                                      test4.PETSc runtest4_1_arpack test4.rm \
                                      test6.PETSc runtest6_1_arpack test6.rm \

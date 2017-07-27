@@ -29,12 +29,12 @@ EXAMPLESF  = test3f.F
 MANSEC     = MFN
 TESTS      = test1 test2 test3 test3f
 
-TESTEXAMPLES_C           = test2.PETSc runtest2_1 test2.rm \
-                           test3.PETSc runtest3_1 test3.rm
-TESTEXAMPLES_C_DATAFILE  = test1.PETSc runtest1_1 test1.rm
-TESTEXAMPLES_FORTRAN     = test3f.PETSc runtest3f_1 test3f.rm
-TESTEXAMPLES_VECCUDA     = test1.PETSc runtest1_2_cuda test1.rm \
-                           test2.PETSc runtest2_2_cuda test2.rm
+TESTEXAMPLES_C                 = test2.PETSc runtest2_1 test2.rm \
+                                 test3.PETSc runtest3_1 test3.rm
+TESTEXAMPLES_C_DATAFILE        = test1.PETSc runtest1_1 test1.rm
+TESTEXAMPLES_FORTRAN           = test3f.PETSc runtest3f_1 test3f.rm
+TESTEXAMPLES_VECCUDA_NOCOMPLEX = test1.PETSc runtest1_2_cuda test1.rm \
+                                 test2.PETSc runtest2_2_cuda test2.rm
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common
 
