@@ -1099,7 +1099,7 @@ static PetscErrorCode PEPNRefSetUp(PEP pep,PetscInt k,PetscScalar *H,PetscInt ld
       ierr = MatCreateDense(comm,m1-n1,m0_-n0_,PETSC_DECIDE,PETSC_DECIDE,NULL,&C);CHKERRQ(ierr);
       ierr = MatAssemblyBegin(C,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
       ierr = MatAssemblyEnd(C,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
-      ierr = SlepcMatTile(1.0,E[0],1.0,B,1.0,C,1.0,E[1],&M);CHKERRQ(ierr);
+      ierr = MatCreateTile(1.0,E[0],1.0,B,1.0,C,1.0,E[1],&M);CHKERRQ(ierr);
       ierr = MatDestroy(&B);CHKERRQ(ierr);
       ierr = MatDestroy(&C);CHKERRQ(ierr);
       matctx->compM1 = PETSC_TRUE;

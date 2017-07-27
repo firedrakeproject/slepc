@@ -23,13 +23,14 @@ ALL: lib
 
 CFLAGS   =
 FFLAGS   =
-SOURCEC  = slepcinit.c slepcutil.c slepcsc.c dlregisslepc.c
+SOURCEC  = matutil.c
 SOURCEF  =
 SOURCEH  =
 LIBBASE  = libslepcsys
+DIRS     = examples
 MANSEC   = sys
-LOCDIR   = src/sys/
-DIRS     = f90-mod vec mat classes examples
+LOCDIR   = src/sys/mat/
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common
+
 

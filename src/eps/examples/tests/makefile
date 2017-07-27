@@ -69,6 +69,11 @@ TESTEXAMPLES_C_DOUBLE              = test5.PETSc runtest5_1 test5.rm
 TESTEXAMPLES_FORTRAN               = test7f.PETSc runtest7f_1 test7f.rm \
                                      test14f.PETSc runtest14f_1 test14f.rm \
                                      test17f.PETSc runtest17f_1 test17f.rm
+TESTEXAMPLES_VECCUDA               = test1.PETSc runtest1_7_cuda runtest1_8_cuda test1.rm \
+                                     test2.PETSc runtest2_4_cuda test2.rm \
+                                     test18.PETSc runtest18_2_cuda test18.rm \
+                                     test24.PETSc runtest24_2_cuda test24.rm
+TESTEXAMPLES_VECCUDA_NOCOMPLEX     = test25.PETSc runtest25_2_cuda test25.rm
 TESTEXAMPLES_ARPACK                = test3.PETSc runtest3_1_arpack test3.rm \
                                      test4.PETSc runtest4_1_arpack test4.rm \
                                      test6.PETSc runtest6_1_arpack test6.rm \
@@ -250,6 +255,22 @@ runtest1_6_%:
 	${MPIEXEC} -n 1 ./test1 -n 18 -eps_type $$eps -eps_nev 12 -eps_mpd 8 -eps_max_it 3000 > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
+runtest1_7_cuda: runtest1_7_cuda_krylovschur runtest1_7_cuda_ks_sinvert runtest1_7_cuda_subspace runtest1_7_cuda_arnoldi runtest1_7_cuda_lanczos runtest1_7_cuda_gd runtest1_7_cuda_jd runtest1_7_cuda_ciss
+runtest1_7_cuda_%:
+	-@${SETTEST}; check=test1_1; eps=$*; \
+	if [ "$$eps" = ks_sinvert ]; then eps="krylovschur -st_type sinvert -eps_target 22"; \
+	elif [ "$$eps" = lanczos ]; then eps="lanczos -eps_lanczos_reorthog full"; \
+	elif [ "$$eps" = ciss ]; then eps="ciss -rg_interval_endpoints 20.8,22 -eps_largest_real"; fi; \
+	${MPIEXEC} -n 1 ./test1 -n 18 -eps_type $$eps -eps_nev 4 -eps_max_it 1500 -mat_type aijcusparse > $${test}.tmp 2>&1; \
+	${TESTCODE}
+
+runtest1_8_cuda: runtest1_8_cuda_rqcg runtest1_8_cuda_lobpcg
+runtest1_8_cuda_%:
+	-@${SETTEST}; check=test1_5; eps=$*; \
+	if [ "$$eps" = lobpcg ]; then eps="lobpcg -eps_lobpcg_blocksize 3"; fi; \
+	${MPIEXEC} -n 1 ./test1 -n 18 -eps_type $$eps -eps_nev 3 -eps_smallest_real -eps_max_it 500 -st_pc_type sor -mat_type aijcusparse > $${test}.tmp 2>&1; \
+	${TESTCODE}
+
 runtest2_1: runtest2_1_krylovschur runtest2_1_arnoldi runtest2_1_gd runtest2_1_jd runtest2_1_gd2 runtest2_1_lapack
 runtest2_1_%:
 	-@${SETTEST}; check=test2_1; eps=$*; \
@@ -270,6 +291,12 @@ runtest2_3_%:
 	elif [ "$$eps" = gd ]; then eps="gd -eps_gd_krylov_start"; fi; \
 	${MPIEXEC} -n 2 ./test2 -n 32 -eps_type $$eps -eps_nev 4 > $${test}.tmp 2>&1; \
 	${TESTCODE}
+
+runtest2_4_cuda: runtest2_4_cuda_krylovschur runtest2_4_cuda_arnoldi runtest2_4_cuda_gd runtest2_4_cuda_jd
+runtest2_4_cuda_%:
+	-@${SETTEST}; check=test2_1; eps=$*; \
+        ${MPIEXEC} -n 1 ./test2 -eps_type $$eps -eps_nev 4 -mat_type aijcusparse > $${test}.tmp 2>&1; \
+        ${TESTCODE}
 
 runtest3_1: runtest3_1_krylovschur runtest3_1_power runtest3_1_subspace runtest3_1_arnoldi runtest3_1_lanczos runtest3_1_gd runtest3_1_jd runtest3_1_gd2 runtest3_1_lapack
 runtest3_1_%:
@@ -322,7 +349,7 @@ runtest5_2_%:
 
 testtest5_blopex: test5.PETSc
 	@fail=0; if [ "${PETSC_WITH_BATCH}" != "" -o "${MPIEXEC}" = "/bin/false" ]; then \
-          echo "Skipping BLOPEX test"; \
+	  echo "Skipping BLOPEX test"; \
 	elif [ -f test5 ]; then \
 	  test=test5_2_blopex; check=test5_2; \
 	  if [ "${PETSC_SCALAR}" = "complex" ]; then check=$${check}_complex; fi; \
@@ -548,6 +575,14 @@ runtest18_1_%:
 	${MPIEXEC} -n 1 ./test18 -eps_type $$eps -eps_nev 4 -eps_ncv 12 -terse > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
+runtest18_2_cuda: runtest18_2_cuda_krylovschur runtest18_2_cuda_ks_gnhep
+runtest18_2_cuda_%:
+	-@${SETTEST}; check=test18_1; eps=$*; \
+	if [ "$$eps" = krylovschur ]; then eps="krylovschur -st_type sinvert -eps_krylovschur_restart .3"; \
+	elif [ "$$eps" = ks_gnhep ]; then eps="krylovschur -eps_gen_non_hermitian -st_type sinvert -eps_krylovschur_restart .3"; fi; \
+	${MPIEXEC} -n 1 ./test18 -eps_type $$eps -eps_nev 4 -eps_ncv 12 -terse -mat_type aijcusparse > $${test}.tmp 2>&1; \
+	${TESTCODE}
+
 runtest19_1:
 	-@${SETTEST}; \
 	${MPIEXEC} -n 1 ./test19 -check_myprefix_eps_nev 2 -check_myprefix_st_type sinvert > $${test}.tmp 2>&1; \
@@ -586,9 +621,19 @@ runtest24_1:
 	${MPIEXEC} -n 1 ./test24 -ncon 2 > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
+runtest24_2_cuda:
+	-@${SETTEST}; check=test24_1; \
+	${MPIEXEC} -n 1 ./test24 -ncon 2 -mat_type aijcusparse > $${test}.tmp 2>&1; \
+	${TESTCODE}
+
 runtest25_1:
 	-@${SETTEST}; \
 	${MPIEXEC} -n 1 ./test25 -f1 ${DATAPATH}/bfw62a.petsc -f2 ${DATAPATH}/bfw62b.petsc > $${test}.tmp 2>&1; \
+	${TESTCODE}
+
+runtest25_2_cuda:
+	-@${SETTEST}; check=test25_1; \
+	${MPIEXEC} -n 1 ./test25 -f1 ${DATAPATH}/bfw62a.petsc -f2 ${DATAPATH}/bfw62b.petsc -mat_type aijcusparse > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
 runtest26_1: runtest26_1_0 runtest26_1_1

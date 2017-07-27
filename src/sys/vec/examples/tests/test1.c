@@ -21,7 +21,7 @@
 
 static char help[] = "Test VecComp.\n\n";
 
-#include <slepcvec.h>
+#include <slepcsys.h>
 
 int main(int argc,char **argv)
 {

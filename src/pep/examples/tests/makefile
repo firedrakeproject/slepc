@@ -40,6 +40,7 @@ TESTEXAMPLES_C_NOTSINGLE           = test2.PETSc runtest2_1 runtest2_3 runtest2_
                                                  runtest2_6 runtest2_7 runtest2_9 test2.rm
 TESTEXAMPLES_C_DOUBLE              = test2.PETSc runtest2_10 test2.rm
 TESTEXAMPLES_FORTRAN               = test3f.PETSc runtest3f_1 test3f.rm
+TESTEXAMPLES_VECCUDA               = test2.PETSc runtest2_11_cuda test2.rm
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common
 
@@ -157,6 +158,14 @@ runtest2_9_%:
 runtest2_10:
 	-@${SETTEST}; check=test2_2; \
 	${MPIEXEC} -n 4 ./test2 -st_type sinvert -pep_target -0.43 -pep_nev 4 -pep_refine simple -pep_refine_scheme explicit -pep_refine_partitions 2 -st_ksp_type bcgs -st_pc_type bjacobi -pep_scale diagonal -pep_scale_its 4 >> $${test}.tmp 2>&1; \
+	${TESTCODE}
+
+runtest2_11_cuda: runtest2_11_cuda_toar runtest2_11_cuda_qarnoldi runtest2_11_cuda_linear runtest2_11_cuda_linear_gd
+runtest2_11_cuda_%:
+	-@${SETTEST}; check=test2_1; pep=$*; \
+	if [ "$$pep" = linear_gd ]; then pep="linear -pep_linear_eps_type gd -pep_linear_explicitmatrix"; \
+	elif [ "$$pep" = qarnoldi ]; then pep="qarnoldi -bv_orthog_refine never"; fi; \
+	${MPIEXEC} -n 1 ./test2 -pep_type $${pep} -pep_nev 4 -initv -mat_type aijcusparse >> $${test}.tmp 2>&1; \
 	${TESTCODE}
 
 runtest3_1:
