@@ -38,6 +38,8 @@ TESTEXAMPLES_C_NOTSINGLE       = test1.PETSc runtest1_1 test1.rm \
 TESTEXAMPLES_C_DATAFILE        = test6.PETSc runtest6_1 test6.rm \
                                  test8.PETSc runtest8_1 test8.rm
 TESTEXAMPLES_FORTRAN_NOTSINGLE = test2f.PETSc runtest2f_1 test2f.rm
+TESTEXAMPLES_VECCUDA           = test1.PETSc runtest1_2_cuda test1.rm \
+                                 test5.PETSc runtest5_2_cuda test5.rm
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common
 
@@ -85,6 +87,12 @@ runtest1_1_%:
 	${MPIEXEC} -n 1 ./test1 -nep_type $${nep} -nep_target 21 -terse >> $${test}.tmp 2>&1; \
 	${TESTCODE}
 
+runtest1_2_cuda: runtest1_2_cuda_rii runtest1_2_cuda_slp
+runtest1_2_cuda_%:
+	-@${SETTEST}; check=test1_1; nep=$*; \
+	${MPIEXEC} -n 1 ./test1 -nep_type $${nep} -nep_target 21 -mat_type aijcusparse -terse >> $${test}.tmp 2>&1; \
+	${TESTCODE}
+
 runtest2_1:
 	-@${SETTEST}; \
 	${MPIEXEC} -n 1 ./test2 > $${test}.tmp 2>&1; \
@@ -108,6 +116,11 @@ runtest4_1:
 runtest5_1:
 	-@${SETTEST}; \
 	${MPIEXEC} -n 1 ./test5 -nep_nev 3 -nep_target 5 -terse > $${test}.tmp 2>&1; \
+	${TESTCODE}
+
+runtest5_2_cuda:
+	-@${SETTEST}; check=test5_1; \
+	${MPIEXEC} -n 1 ./test5 -nep_nev 3 -nep_target 5 -mat_type aijcusparse -terse > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
 runtest6_1:
