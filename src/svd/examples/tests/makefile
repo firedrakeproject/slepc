@@ -40,7 +40,8 @@ TESTEXAMPLES_C_NOTSINGLE = test3.PETSc runtest3_1 runtest3_2 test3.rm \
 TESTEXAMPLES_FORTRAN     = test4f.PETSc runtest4f_1 test4f.rm
 TESTEXAMPLES_VECCUDA     = test3.PETSc runtest3_3_cuda test3.rm \
                            test4.PETSc runtest4_2_cuda test4.rm \
-                           test6.PETSc runtest6_2_cuda test6.rm
+                           test6.PETSc runtest6_2_cuda test6.rm \
+                           test7.PETSc runtest7_2_cuda test7.rm
 TESTEXAMPLES_PRIMME      = test1.PETSc runtest1_1_primme test1.rm \
                            test2.PETSc runtest2_1_primme test2.rm \
                            test3.PETSc runtest3_1_primme test3.rm
@@ -116,10 +117,11 @@ runtest3_2_%:
 	${MPIEXEC} -n 1 ./test3 -svd_implicittranspose -svd_type $$svd -svd_nsv 4 -svd_tol 1e-5 > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
-runtest3_3_cuda: runtest3_3_cuda_lanczos runtest3_3_cuda_lanczos_one runtest3_3_cuda_trlanczos runtest3_3_cuda_trl_one runtest3_3_cuda_trl_one_mgs runtest3_3_cuda_trl_one_alway runtest3_3_cuda_cross
+runtest3_3_cuda: runtest3_3_cuda_lanczos runtest3_3_cuda_lanczos_one runtest3_3_cuda_trlanczos runtest3_3_cuda_trl_one runtest3_3_cuda_trl_one_mgs runtest3_3_cuda_trl_one_alway runtest3_3_cuda_cross runtest3_3_cuda_cyclic runtest3_3_cuda_cyclic_exp
 runtest3_3_cuda_%:
 	-@${SETTEST}; check=test3_1; svd=$*; \
 	if [ "$$svd" = lanczos_one ]; then svd="lanczos -svd_lanczos_oneside"; \
+	elif [ "$$svd" = cyclic_exp ]; then svd="cyclic -svd_cyclic_explicitmatrix"; \
 	elif [ "$$svd" = trl_one ]; then svd="trlanczos -svd_trlanczos_oneside"; \
 	elif [ "$$svd" = trl_one_mgs ]; then svd="trlanczos -svd_trlanczos_oneside -bv_orthog_type mgs"; \
 	elif [ "$$svd" = trl_one_alway ]; then svd="trlanczos -svd_trlanczos_oneside -bv_orthog_refine always"; fi; \
@@ -163,5 +165,10 @@ runtest6_2_cuda:
 runtest7_1:
 	-@${SETTEST}; \
 	${MPIEXEC} -n 1 ./test7 -info_exclude svd -log_exclude svd >> $${test}.tmp 2>&1; \
+	${TESTCODE}
+
+runtest7_2_cuda:
+	-@${SETTEST}; check=test7_1; \
+	${MPIEXEC} -n 1 ./test7 -info_exclude svd -log_exclude svd -mat_type aijcusparse >> $${test}.tmp 2>&1; \
 	${TESTCODE}
 
