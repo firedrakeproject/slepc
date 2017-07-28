@@ -286,10 +286,10 @@ runtest2_2_%:
 
 runtest2_3: runtest2_3_krylovschur runtest2_3_gd runtest2_3_jd runtest2_3_lapack
 runtest2_3_%:
-	-@${SETTEST}; check=test2_1; eps=$*; \
+	-@${SETTEST}; check=test2_3; eps=$*; \
 	if [ "$$eps" = jd ]; then eps="jd -eps_jd_krylov_start -eps_ncv 18"; \
 	elif [ "$$eps" = gd ]; then eps="gd -eps_gd_krylov_start"; fi; \
-	${MPIEXEC} -n 2 ./test2 -eps_type $$eps -eps_nev 4 > $${test}.tmp 2>&1; \
+	${MPIEXEC} -n 2 ./test2 -n 32 -eps_type $$eps -eps_nev 4 > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
 runtest2_4_cuda: runtest2_4_cuda_krylovschur runtest2_4_cuda_arnoldi runtest2_4_cuda_gd runtest2_4_cuda_jd
