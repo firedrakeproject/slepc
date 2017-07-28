@@ -110,8 +110,6 @@ PetscErrorCode EPSSolve_ARPACK(EPS eps)
   ierr = PetscBLASIntCast(MPI_Comm_c2f(PetscObjectComm((PetscObject)eps)),&fcomm);CHKERRQ(ierr);
 #endif
   ierr = PetscBLASIntCast(eps->nloc,&n);CHKERRQ(ierr);
-  ierr = VecCreateMPIWithArray(PetscObjectComm((PetscObject)eps),1,eps->nloc,PETSC_DECIDE,NULL,&x);CHKERRQ(ierr);
-  ierr = VecCreateMPIWithArray(PetscObjectComm((PetscObject)eps),1,eps->nloc,PETSC_DECIDE,NULL,&y);CHKERRQ(ierr);
   ierr = EPSGetStartVector(eps,0,NULL);CHKERRQ(ierr);
   ierr = BVSetActiveColumns(eps->V,0,0);CHKERRQ(ierr);  /* just for deflation space */
   ierr = BVGetColumn(eps->V,0,&v0);CHKERRQ(ierr);
@@ -140,6 +138,7 @@ PetscErrorCode EPSSolve_ARPACK(EPS eps)
   ierr = PetscObjectTypeCompare((PetscObject)eps->st,STSHIFT,&isShift);CHKERRQ(ierr);
   ierr = STGetShift(eps->st,&sigmar);CHKERRQ(ierr);
   ierr = STGetOperators(eps->st,0,&A);CHKERRQ(ierr);
+  ierr = MatCreateVecsEmpty(A,&x,&y);CHKERRQ(ierr);
 
   if (isSinv) {
     /* shift-and-invert mode */

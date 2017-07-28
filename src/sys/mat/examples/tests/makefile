@@ -19,17 +19,33 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-ALL: lib
+CFLAGS     =
+FFLAGS     =
+CPPFLAGS   =
+FPPFLAGS   =
+LOCDIR     = src/sys/mat/examples/tests/
+EXAMPLESC  = test1.c
+EXAMPLESF  =
+MANSEC     = sys
+TESTS      = test1
 
-CFLAGS   =
-FFLAGS   =
-SOURCEC  = slepcinit.c slepcutil.c slepcsc.c dlregisslepc.c
-SOURCEF  =
-SOURCEH  =
-LIBBASE  = libslepcsys
-MANSEC   = sys
-LOCDIR   = src/sys/
-DIRS     = f90-mod vec mat classes examples
+TESTEXAMPLES_C           = test1.PETSc runtest1_1 runtest1_2 test1.rm
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common
+
+test1: test1.o chkopts
+	-${CLINKER} -o test1 test1.o ${SLEPC_SYS_LIB}
+	${RM} test1.o
+
+#------------------------------------------------------------------------------------
+
+runtest1_1:
+	-@${SETTEST}; \
+	${MPIEXEC} -n 1 ./test1 > $${test}.tmp 2>&1; \
+	${TESTCODE}
+
+runtest1_2:
+	-@${SETTEST}; \
+	${MPIEXEC} -n 2 ./test1 > $${test}.tmp 2>&1; \
+	${TESTCODE}
 

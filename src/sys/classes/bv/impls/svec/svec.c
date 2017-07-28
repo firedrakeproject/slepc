@@ -457,26 +457,8 @@ PETSC_EXTERN PetscErrorCode BVCreate_Svec(BV bv)
     ierr = MatDestroy(&bv->Acreate);CHKERRQ(ierr);
   }
 
-  if (bv->cuda) {
-#if defined(PETSC_HAVE_VECCUDA)
-    if (ctx->mpi) {
-      ierr = VecCreateMPICUDAWithArray(PetscObjectComm((PetscObject)bv->t),bs,nloc,N,NULL,&bv->cv[0]);CHKERRQ(ierr);
-      ierr = VecCreateMPICUDAWithArray(PetscObjectComm((PetscObject)bv->t),bs,nloc,N,NULL,&bv->cv[1]);CHKERRQ(ierr);
-    } else {
-      ierr = VecCreateSeqCUDAWithArray(PetscObjectComm((PetscObject)bv->t),bs,nloc,NULL,&bv->cv[0]);CHKERRQ(ierr);
-      ierr = VecCreateSeqCUDAWithArray(PetscObjectComm((PetscObject)bv->t),bs,nloc,NULL,&bv->cv[1]);CHKERRQ(ierr);
-    }
-#endif
-  } else {
-    if (ctx->mpi) {
-      ierr = VecCreateMPIWithArray(PetscObjectComm((PetscObject)bv->t),bs,nloc,N,NULL,&bv->cv[0]);CHKERRQ(ierr);
-      ierr = VecCreateMPIWithArray(PetscObjectComm((PetscObject)bv->t),bs,nloc,N,NULL,&bv->cv[1]);CHKERRQ(ierr);
-    } else {
-      ierr = VecCreateSeqWithArray(PetscObjectComm((PetscObject)bv->t),bs,nloc,NULL,&bv->cv[0]);CHKERRQ(ierr);
-      ierr = VecCreateSeqWithArray(PetscObjectComm((PetscObject)bv->t),bs,nloc,NULL,&bv->cv[1]);CHKERRQ(ierr);
-    }
-  }
-
+  ierr = VecDuplicateEmpty(bv->t,&bv->cv[0]);CHKERRQ(ierr);
+  ierr = VecDuplicateEmpty(bv->t,&bv->cv[1]);CHKERRQ(ierr);
   ierr = VecSetType(bv->cv[0],((PetscObject)bv->t)->type_name);CHKERRQ(ierr);
   ierr = VecSetType(bv->cv[1],((PetscObject)bv->t)->type_name);CHKERRQ(ierr);
   if (bv->cuda) {

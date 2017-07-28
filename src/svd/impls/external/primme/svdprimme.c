@@ -115,8 +115,7 @@ PetscErrorCode SVDSetUp_PRIMME(SVD svd)
 
   /* Prepare auxiliary vectors */
   if (!ops->x) {
-    ierr = VecCreateMPIWithArray(PetscObjectComm((PetscObject)svd),1,nloc,n,NULL,&ops->x);CHKERRQ(ierr);
-    ierr = VecCreateMPIWithArray(PetscObjectComm((PetscObject)svd),1,mloc,m,NULL,&ops->y);CHKERRQ(ierr);
+    ierr = MatCreateVecsEmpty(svd->A,&ops->x,&ops->y);CHKERRQ(ierr);
     ierr = PetscLogObjectParent((PetscObject)svd,(PetscObject)ops->x);CHKERRQ(ierr);
     ierr = PetscLogObjectParent((PetscObject)svd,(PetscObject)ops->y);CHKERRQ(ierr);
   }

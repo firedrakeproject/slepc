@@ -33,7 +33,8 @@ TESTCODE = \
 
 TESTCODE_CUDA = \
         [ x${SAVE_OUTPUT} = xyes ] && cp $${test}.tmp output/$${check}.out; \
-        ${SED} 's/type: seqcuda/type: seq/' $${test}.tmp | ${DIFF} - output/$${check}.out || \
+        ${SED} 's/type: seqcuda/type: seq/' $${test}.tmp | \
+        ${SED} 's/type: seqaijcusparse/type: seqaij/' | ${DIFF} - output/$${check}.out || \
         echo "Possible problem with $${test}, diffs above"; \
         ${RM} $${test}.tmp
 

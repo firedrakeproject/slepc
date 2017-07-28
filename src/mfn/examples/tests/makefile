@@ -29,10 +29,12 @@ EXAMPLESF  = test3f.F
 MANSEC     = MFN
 TESTS      = test1 test2 test3 test3f
 
-TESTEXAMPLES_C           = test2.PETSc runtest2_1 test2.rm \
-                           test3.PETSc runtest3_1 test3.rm
-TESTEXAMPLES_C_DATAFILE  = test1.PETSc runtest1_1 test1.rm
-TESTEXAMPLES_FORTRAN     = test3f.PETSc runtest3f_1 test3f.rm
+TESTEXAMPLES_C                 = test2.PETSc runtest2_1 test2.rm \
+                                 test3.PETSc runtest3_1 test3.rm
+TESTEXAMPLES_C_DATAFILE        = test1.PETSc runtest1_1 test1.rm
+TESTEXAMPLES_FORTRAN           = test3f.PETSc runtest3f_1 test3f.rm
+TESTEXAMPLES_VECCUDA_NOCOMPLEX = test1.PETSc runtest1_2_cuda test1.rm \
+                                 test2.PETSc runtest2_2_cuda test2.rm
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common
 
@@ -61,10 +63,22 @@ runtest1_1_%:
 	${MPIEXEC} -n 1 ./test1 -file ${DATAPATH}/bfw62b.petsc -mfn_type $$mfn > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
+runtest1_2_cuda: runtest1_2_cuda_krylov runtest1_2_cuda_expokit
+runtest1_2_cuda_%:
+	-@${SETTEST}; check=test1; mfn=$*; \
+	${MPIEXEC} -n 1 ./test1 -file ${DATAPATH}/bfw62b.petsc -mfn_type $$mfn -mat_type aijcusparse > $${test}.tmp 2>&1; \
+	${TESTCODE}
+
 runtest2_1: runtest2_1_krylov runtest2_1_expokit
 runtest2_1_%:
 	-@${SETTEST}; check=test2; mfn=$*; \
 	${MPIEXEC} -n 1 ./test2 -mfn_type $$mfn > $${test}.tmp 2>&1; \
+	${TESTCODE}
+
+runtest2_2_cuda: runtest2_2_cuda_krylov runtest2_2_cuda_expokit
+runtest2_2_cuda_%:
+	-@${SETTEST}; check=test2; mfn=$*; \
+	${MPIEXEC} -n 1 ./test2 -mfn_type $$mfn -mat_type aijcusparse > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
 runtest3_1:

@@ -1,5 +1,5 @@
 /*
-   User interface for various vector operations added in SLEPc.
+   User interface for various matrix operations added in SLEPc.
 
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
@@ -21,22 +21,12 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#if !defined(__SLEPCVEC_H)
-#define __SLEPCVEC_H
+#if !defined(__SLEPCMAT_H)
+#define __SLEPCMAT_H
 #include <petscmat.h>
 
-/* VecComp: Vec composed of several smaller Vecs */
-#define VECCOMP  "comp"
-
-PETSC_EXTERN PetscErrorCode VecCreateComp(MPI_Comm,PetscInt*,PetscInt,VecType,Vec,Vec*);
-PETSC_EXTERN PetscErrorCode VecCreateCompWithVecs(Vec*,PetscInt,Vec,Vec*);
-PETSC_EXTERN PetscErrorCode VecCompGetSubVecs(Vec,PetscInt*,const Vec**);
-PETSC_EXTERN PetscErrorCode VecCompSetSubVecs(Vec,PetscInt,Vec*);
-
-/* Some auxiliary functions */
-PETSC_EXTERN PetscErrorCode VecNormalizeComplex(Vec,Vec,PetscBool,PetscReal*);
-PETSC_EXTERN PetscErrorCode VecCheckOrthogonality(Vec*,PetscInt,Vec*,PetscInt,Mat,PetscViewer,PetscReal*);
-PETSC_EXTERN PetscErrorCode VecDuplicateEmpty(Vec,Vec*);
+PETSC_EXTERN PetscErrorCode MatCreateTile(PetscScalar,Mat,PetscScalar,Mat,PetscScalar,Mat,PetscScalar,Mat,Mat*);
+PETSC_EXTERN PetscErrorCode MatCreateVecsEmpty(Mat,Vec*,Vec*);
 
 #endif
 

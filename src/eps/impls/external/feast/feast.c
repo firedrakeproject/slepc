@@ -93,8 +93,6 @@ PetscErrorCode EPSSolve_FEAST(EPS eps)
 #endif
 
   ierr = PetscMalloc1(eps->ncv,&evals);CHKERRQ(ierr);
-  ierr = VecCreateMPIWithArray(PetscObjectComm((PetscObject)eps),1,eps->nloc,PETSC_DECIDE,NULL,&x);CHKERRQ(ierr);
-  ierr = VecCreateMPIWithArray(PetscObjectComm((PetscObject)eps),1,eps->nloc,PETSC_DECIDE,NULL,&y);CHKERRQ(ierr);
   ierr = BVGetColumn(eps->V,0,&v0);CHKERRQ(ierr);
   ierr = VecGetArray(v0,&pV);CHKERRQ(ierr);
 
@@ -103,6 +101,7 @@ PetscErrorCode EPSSolve_FEAST(EPS eps)
   ierr = STGetOperators(eps->st,0,&A);CHKERRQ(ierr);
   if (nmat>1) { ierr = STGetOperators(eps->st,1,&B);CHKERRQ(ierr); }
   else B = NULL;
+  ierr = MatCreateVecsEmpty(A,&x,&y);CHKERRQ(ierr);
 
   do {
 

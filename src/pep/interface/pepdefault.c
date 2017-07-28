@@ -189,7 +189,7 @@ PetscErrorCode PEPComputeVectors_Default(PEP pep)
     if (pep->eigi[i]!=0.0) {   /* first eigenvalue of a complex conjugate pair */
       ierr = BVGetColumn(pep->V,i,&v);CHKERRQ(ierr);
       ierr = BVGetColumn(pep->V,i+1,&v1);CHKERRQ(ierr);
-      ierr = SlepcVecNormalize(v,v1,PETSC_TRUE,NULL);CHKERRQ(ierr);
+      ierr = VecNormalizeComplex(v,v1,PETSC_TRUE,NULL);CHKERRQ(ierr);
       ierr = BVRestoreColumn(pep->V,i,&v);CHKERRQ(ierr);
       ierr = BVRestoreColumn(pep->V,i+1,&v1);CHKERRQ(ierr);
       i++;
@@ -197,7 +197,7 @@ PetscErrorCode PEPComputeVectors_Default(PEP pep)
 #endif
     {
       ierr = BVGetColumn(pep->V,i,&v);CHKERRQ(ierr);
-      ierr = SlepcVecNormalize(v,NULL,PETSC_FALSE,NULL);CHKERRQ(ierr);
+      ierr = VecNormalizeComplex(v,NULL,PETSC_FALSE,NULL);CHKERRQ(ierr);
       ierr = BVRestoreColumn(pep->V,i,&v);CHKERRQ(ierr);
     }
   }
