@@ -295,7 +295,7 @@ PetscErrorCode MatCreateTile(PetscScalar a,Mat A,PetscScalar b,Mat B,PetscScalar
 {
   PetscErrorCode ierr;
   PetscInt       M1,M2,N1,N2,M,N,m1,m2,n1,n2,m,n,bs;
-  PetscBool      flg1,flg2;
+  PetscBool      flg1;
   MatType        Atype;
 
   PetscFunctionBegin;
