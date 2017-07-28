@@ -44,14 +44,16 @@ PetscErrorCode SVDSetUp_LAPACK(SVD svd)
 PetscErrorCode SVDSolve_LAPACK(SVD svd)
 {
   PetscErrorCode ierr;
-  PetscInt       M,N,n,i,j,k,ld;
-  Mat            mat;
+  PetscInt       M,N,n,i,j,k,ld,lowu,lowv,highu,highv;
+  Mat            Ar,mat;
   Vec            u,v;
   PetscScalar    *pU,*pVT,*pmat,*pu,*pv,*A,*w;
 
   PetscFunctionBegin;
   ierr = DSGetLeadingDimension(svd->ds,&ld);CHKERRQ(ierr);
-  ierr = MatConvert(svd->OP,MATSEQDENSE,MAT_INITIAL_MATRIX,&mat);CHKERRQ(ierr);
+  ierr = MatCreateRedundantMatrix(svd->OP,0,PETSC_COMM_SELF,MAT_INITIAL_MATRIX,&Ar);CHKERRQ(ierr);
+  ierr = MatConvert(Ar,MATSEQDENSE,MAT_INITIAL_MATRIX,&mat);CHKERRQ(ierr);
+  ierr = MatDestroy(&Ar);CHKERRQ(ierr);
   ierr = MatGetSize(mat,&M,&N);CHKERRQ(ierr);
   ierr = DSSetDimensions(svd->ds,M,N,0,0);CHKERRQ(ierr);
   ierr = MatDenseGetArray(mat,&pmat);CHKERRQ(ierr);
@@ -77,14 +79,16 @@ PetscErrorCode SVDSolve_LAPACK(SVD svd)
     svd->sigma[k] = PetscRealPart(w[i]);
     ierr = BVGetColumn(svd->U,k,&u);CHKERRQ(ierr);
     ierr = BVGetColumn(svd->V,k,&v);CHKERRQ(ierr);
+    ierr = VecGetOwnershipRange(u,&lowu,&highu);CHKERRQ(ierr);
+    ierr = VecGetOwnershipRange(v,&lowv,&highv);CHKERRQ(ierr);
     ierr = VecGetArray(u,&pu);CHKERRQ(ierr);
     ierr = VecGetArray(v,&pv);CHKERRQ(ierr);
     if (M>=N) {
-      for (j=0;j<M;j++) pu[j] = pU[i*ld+j];
-      for (j=0;j<N;j++) pv[j] = PetscConj(pVT[j*ld+i]);
+      for (j=lowu;j<highu;j++) pu[j-lowu] = pU[i*ld+j];
+      for (j=lowv;j<highv;j++) pv[j-lowv] = PetscConj(pVT[j*ld+i]);
     } else {
-      for (j=0;j<N;j++) pu[j] = PetscConj(pVT[j*ld+i]);
-      for (j=0;j<M;j++) pv[j] = pU[i*ld+j];
+      for (j=lowu;j<highu;j++) pu[j-lowu] = PetscConj(pVT[j*ld+i]);
+      for (j=lowv;j<highv;j++) pv[j-lowv] = pU[i*ld+j];
     }
     ierr = VecRestoreArray(u,&pu);CHKERRQ(ierr);
     ierr = VecRestoreArray(v,&pv);CHKERRQ(ierr);
