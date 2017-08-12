@@ -34,7 +34,7 @@ TESTEXAMPLES_C           = test1.PETSc runtest1_1 test1.rm \
                            test5.PETSc runtest5_1 test5.rm \
                            test6.PETSc runtest6_1 test6.rm
 TESTEXAMPLES_C_DOUBLE    = test2.PETSc runtest2_1 test2.rm
-TESTEXAMPLES_C_NOTSINGLE = test3.PETSc runtest3_1 runtest3_2 test3.rm \
+TESTEXAMPLES_C_NOTSINGLE = test3.PETSc runtest3_1 runtest3_2 runtest3_4 test3.rm \
                            test4.PETSc runtest4_1_lapack test4.rm \
                            test7.PETSc runtest7_1 test7.rm
 TESTEXAMPLES_FORTRAN     = test4f.PETSc runtest4f_1 test4f.rm
@@ -126,6 +126,11 @@ runtest3_3_cuda_%:
 	elif [ "$$svd" = trl_one_mgs ]; then svd="trlanczos -svd_trlanczos_oneside -bv_orthog_type mgs"; \
 	elif [ "$$svd" = trl_one_alway ]; then svd="trlanczos -svd_trlanczos_oneside -bv_orthog_refine always"; fi; \
 	${MPIEXEC} -n 1 ./test3 -svd_type $$svd -svd_nsv 4 -mat_type aijcusparse > $${test}.tmp 2>&1; \
+	${TESTCODE}
+
+runtest3_4:
+	-@${SETTEST}; check=test3_1; \
+	${MPIEXEC} -n 2 ./test3 -svd_type lapack -svd_nsv 4 > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
 runtest4_1: runtest4_1_lanczos runtest4_1_trlanczos runtest4_1_cross runtest4_1_cyclic
