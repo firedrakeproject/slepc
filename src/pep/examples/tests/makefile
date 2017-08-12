@@ -111,7 +111,7 @@ runtest2_4_%:
 	elif [ "$$refine" = mbe ]; then refine="simple -pep_refine_scheme mbe -pep_refine_ksp_type preonly -pep_refine_pc_type lu"; \
 	elif [ "$$refine" = explicit ]; then refine="simple -pep_refine_scheme explicit"; \
 	elif [ "$$refine" = multiple_schur ]; then refine="multiple -pep_refine_scheme schur"; \
-	elif [ "$$refine" = multiple_mbe ]; then refine="multiple -pep_refine_scheme mbe -pep_refine_ksp_type preonly -pep_refine_pc_type lu"; \
+	elif [ "$$refine" = multiple_mbe ]; then refine="multiple -pep_refine_scheme mbe -pep_refine_ksp_type preonly -pep_refine_pc_type lu -pep_refine_pc_factor_shift_type nonzero"; \
 	elif [ "$$refine" = multiple_explicit ]; then refine="multiple -pep_refine_scheme explicit"; fi; \
 	${MPIEXEC} -n 1 ./test2 -st_type sinvert -pep_target -0.43 -pep_nev 4 -pep_refine $${refine} >> $${test}.tmp 2>&1; \
 	${TESTCODE}
