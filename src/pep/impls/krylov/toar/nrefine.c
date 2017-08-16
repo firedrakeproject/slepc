@@ -8,7 +8,8 @@
            435(3):514-536, 2011.
 
        [2] C. Campos and J.E. Roman, "Parallel iterative refinement in
-           polynomial eigenvalue problems", submitted, 2015.
+           polynomial eigenvalue problems", Numer. Linear Algebra Appl. 23(4):
+           730-745, 2016.
 
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
