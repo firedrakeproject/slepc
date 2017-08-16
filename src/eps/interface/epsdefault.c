@@ -456,12 +456,12 @@ PetscErrorCode EPSBuildBalance_Krylov(EPS eps)
     ierr = VecPointwiseDivide(r,z,eps->D);CHKERRQ(ierr);
     ierr = STApply(eps->st,r,p);CHKERRQ(ierr);
     ierr = VecPointwiseMult(p,p,eps->D);CHKERRQ(ierr);
-    if (j==0) {
-      /* Estimate the matrix inf-norm */
-      ierr = VecAbs(p);CHKERRQ(ierr);
-      ierr = VecMax(p,NULL,&norma);CHKERRQ(ierr);
-    }
     if (eps->balance == EPS_BALANCE_TWOSIDE) {
+      if (j==0) {
+        /* Estimate the matrix inf-norm */
+        ierr = VecAbs(p);CHKERRQ(ierr);
+        ierr = VecMax(p,NULL,&norma);CHKERRQ(ierr);
+      }
       /* Compute r=D\(A'Dz) */
       ierr = VecPointwiseMult(z,z,eps->D);CHKERRQ(ierr);
       ierr = STApplyTranspose(eps->st,z,r);CHKERRQ(ierr);
@@ -477,7 +477,7 @@ PetscErrorCode EPSBuildBalance_Krylov(EPS eps)
         if (PetscAbsScalar(pp[i])>eps->balance_cutoff*norma && pr[i]!=0.0)
           pD[i] *= PetscSqrtReal(PetscAbsScalar(pr[i]/pp[i]));
       } else {
-        if (pp[i]!=0.0) pD[i] *= 1.0/PetscAbsScalar(pp[i]);
+        if (pp[i]!=0.0) pD[i] /= PetscAbsScalar(pp[i]);
       }
     }
     ierr = VecRestoreArrayRead(r,&pr);CHKERRQ(ierr);
