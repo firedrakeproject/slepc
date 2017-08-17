@@ -45,9 +45,9 @@ static PetscErrorCode dvd_updateV_start(dvdDashboard *d)
   PetscFunctionBegin;
   for (i=0;i<d->eps->ncv;i++) d->eigi[i] = 0.0;
   d->nR = d->real_nR;
-  for (i=0;i<d->eps->ncv;i++) d->nR[i] = PETSC_MAX_REAL;
+  for (i=0;i<d->eps->ncv;i++) d->nR[i] = 1.0;
   d->nX = d->real_nX;
-  for (i=0;i<d->eps->ncv;i++) d->errest[i] = PETSC_MAX_REAL;
+  for (i=0;i<d->eps->ncv;i++) d->errest[i] = 1.0;
   data->size_oldU = 0;
   d->nconv = 0;
   d->npreconv = 0;
@@ -250,7 +250,7 @@ static PetscErrorCode dvd_updateV_testConv(dvdDashboard *d,PetscInt s,PetscInt p
     if (j>*nConv) (*nConv)--;
   }
 #endif
-  for (i=pre;i<e;i++) d->errest[i] = d->nR[i] = PETSC_MAX_REAL;
+  for (i=pre;i<e;i++) d->errest[i] = d->nR[i] = 1.0;
   PetscFunctionReturn(0);
 }
 
