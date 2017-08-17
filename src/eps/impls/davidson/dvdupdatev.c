@@ -115,7 +115,7 @@ static PetscErrorCode dvd_updateV_conv_gen(dvdDashboard *d)
   npreconv = PetscMax(PetscMin(d->nev-d->nconv,npreconv),0);
 #endif
   /* For GHEP without B-ortho, converge all of the requested pairs at once */
-  ierr = PetscObjectTypeCompareAny((PetscObject)d->eps->ds,&t,DSGHEP,"");CHKERRQ(ierr);
+  ierr = PetscObjectTypeCompare((PetscObject)d->eps->ds,DSGHEP,&t);CHKERRQ(ierr);
   if (t && d->nconv+npreconv<d->nev) npreconv = 0;
   /* Quick exit */
   if (npreconv == 0) PetscFunctionReturn(0);
