@@ -45,9 +45,9 @@ static PetscErrorCode dvd_updateV_start(dvdDashboard *d)
   PetscFunctionBegin;
   for (i=0;i<d->eps->ncv;i++) d->eigi[i] = 0.0;
   d->nR = d->real_nR;
-  for (i=0;i<d->eps->ncv;i++) d->nR[i] = PETSC_MAX_REAL;
+  for (i=0;i<d->eps->ncv;i++) d->nR[i] = 1.0;
   d->nX = d->real_nX;
-  for (i=0;i<d->eps->ncv;i++) d->errest[i] = PETSC_MAX_REAL;
+  for (i=0;i<d->eps->ncv;i++) d->errest[i] = 1.0;
   data->size_oldU = 0;
   d->nconv = 0;
   d->npreconv = 0;
@@ -115,7 +115,7 @@ static PetscErrorCode dvd_updateV_conv_gen(dvdDashboard *d)
   npreconv = PetscMax(PetscMin(d->nev-d->nconv,npreconv),0);
 #endif
   /* For GHEP without B-ortho, converge all of the requested pairs at once */
-  ierr = PetscObjectTypeCompareAny((PetscObject)d->eps->ds,&t,DSGHEP,"");CHKERRQ(ierr);
+  ierr = PetscObjectTypeCompare((PetscObject)d->eps->ds,DSGHEP,&t);CHKERRQ(ierr);
   if (t && d->nconv+npreconv<d->nev) npreconv = 0;
   /* Quick exit */
   if (npreconv == 0) PetscFunctionReturn(0);
@@ -250,7 +250,7 @@ static PetscErrorCode dvd_updateV_testConv(dvdDashboard *d,PetscInt s,PetscInt p
     if (j>*nConv) (*nConv)--;
   }
 #endif
-  for (i=pre;i<e;i++) d->errest[i] = d->nR[i] = PETSC_MAX_REAL;
+  for (i=pre;i<e;i++) d->errest[i] = d->nR[i] = 1.0;
   PetscFunctionReturn(0);
 }
 

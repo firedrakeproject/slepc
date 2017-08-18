@@ -223,8 +223,8 @@ PetscErrorCode EPSSolve_XD(EPS eps)
     /* Monitor progress */
     eps->nconv = d->nconv;
     eps->its++;
-    ierr = BVGetActiveColumns(d->eps->V,&l,&k);CHKERRQ(ierr);
-    ierr = EPSMonitor(eps,eps->its,eps->nconv+d->npreconv,eps->eigr,eps->eigi,eps->errest,k);CHKERRQ(ierr);
+    ierr = BVGetActiveColumns(d->eps->V,NULL,&k);CHKERRQ(ierr);
+    ierr = EPSMonitor(eps,eps->its,eps->nconv+d->npreconv,eps->eigr,eps->eigi,eps->errest,PetscMin(k,eps->nev));CHKERRQ(ierr);
   }
 
   /* Call the ending routines */
