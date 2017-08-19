@@ -196,7 +196,7 @@ PetscErrorCode DSVectors_HEP(DS ds,DSMatType mat,PetscInt *j,PetscReal *rnorm)
       break;
     case DS_MAT_U:
     case DS_MAT_VT:
-      SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"Not implemented yet");
+      SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_SUP,"Not implemented yet");
       break;
     default:
       SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_OUTOFRANGE,"Invalid mat parameter");
@@ -345,9 +345,9 @@ static PetscErrorCode DSIntermediate_HEP(DS ds)
       work = ds->work+ld;
       lwork = ld*ld;
       PetscStackCallBLAS("LAPACKsytrd",LAPACKsytrd_("L",&n3,Q+off,&ld,d+l,e+l,tau,work,&lwork,&info));
-      if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xSYTRD %d",info);
+      SlepcCheckLapackInfo("sytrd",info);
       PetscStackCallBLAS("LAPACKorgtr",LAPACKorgtr_("L",&n3,Q+off,&ld,tau,work,&lwork,&info));
-      if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xORGTR %d",info);
+      SlepcCheckLapackInfo("orgtr",info);
     } else {
       /* copy tridiagonal to d,e */
       for (i=l;i<n;i++) d[i] = PetscRealPart(A[i+i*ld]);
@@ -430,7 +430,7 @@ PetscErrorCode DSSolve_HEP_QR(DS ds,PetscScalar *wr,PetscScalar *wi)
   PetscReal      *d,*e;
 
   PetscFunctionBegin;
-  if (ds->bs>1) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"This method is not prepared for bs>1");
+  if (ds->bs>1) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_SUP,"This method is not prepared for bs>1");
   ierr = PetscBLASIntCast(ds->n,&n);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(ds->l,&l);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(ds->ld,&ld);CHKERRQ(ierr);
@@ -451,7 +451,7 @@ PetscErrorCode DSSolve_HEP_QR(DS ds,PetscScalar *wr,PetscScalar *wi)
 
   ierr = DSAllocateWork_Private(ds,0,2*ld,0);CHKERRQ(ierr);
   PetscStackCallBLAS("LAPACKsteqr",LAPACKsteqr_("V",&n3,d+l,e+l,Q+off,&ld,ds->rwork,&info));
-  if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xSTEQR %d",info);
+  SlepcCheckLapackInfo("steqr",info);
   for (i=l;i<n;i++) wr[i] = d[i];
 
   /* Create diagonal matrix as a result */
@@ -487,7 +487,7 @@ PetscErrorCode DSSolve_HEP_MRRR(DS ds,PetscScalar *wr,PetscScalar *wi)
 #endif
 
   PetscFunctionBegin;
-  if (ds->bs>1) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"This method is not prepared for bs>1");
+  if (ds->bs>1) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_SUP,"This method is not prepared for bs>1");
   ierr = PetscBLASIntCast(ds->n,&n);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(ds->l,&l);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(ds->ld,&ld);CHKERRQ(ierr);
@@ -525,7 +525,7 @@ PetscErrorCode DSSolve_HEP_MRRR(DS ds,PetscScalar *wr,PetscScalar *wi)
 #else
   PetscStackCallBLAS("LAPACKstevr",LAPACKstevr_("V","A",&n3,d+l,e+l,&vl,&vu,&il,&iu,&abstol,&m,wr+l,Q+off,&ld,isuppz,ds->rwork,&lwork,ds->iwork,&liwork,&info));
 #endif
-  if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack DSTEVR %d",info);
+  SlepcCheckLapackInfo("stevr",info);
 #if defined(PETSC_USE_COMPLEX)
   for (i=l;i<n;i++)
     for (j=l;j<n;j++)
@@ -570,7 +570,7 @@ PetscErrorCode DSSolve_HEP_DC(DS ds,PetscScalar *wr,PetscScalar *wi)
 #endif
 
   PetscFunctionBegin;
-  if (ds->bs>1) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"This method is not prepared for bs>1");
+  if (ds->bs>1) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_SUP,"This method is not prepared for bs>1");
   ierr = PetscBLASIntCast(ds->l,&l);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(ds->ld,&ld);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(ds->n-ds->l,&n1);CHKERRQ(ierr);
@@ -599,7 +599,7 @@ PetscErrorCode DSSolve_HEP_DC(DS ds,PetscScalar *wr,PetscScalar *wi)
   for (j=ds->l;j<ds->n;j++)
     for (i=0;i<ds->l;i++) Q[i+j*ld] = 0.0;
 #endif
-  if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xSTEDC %d",info);
+  SlepcCheckLapackInfo("stedc",info);
   for (i=l;i<ds->n;i++) wr[i] = d[i];
 
   /* Create diagonal matrix as a result */
@@ -627,8 +627,8 @@ PetscErrorCode DSSolve_HEP_BDC(DS ds,PetscScalar *wr,PetscScalar *wi)
   PetscReal      *D,*E,*d,*e,tol=PETSC_MACHINE_EPSILON/2,tau1=1e-16,tau2=1e-18,*rwork,mingap;
 
   PetscFunctionBegin;
-  if (ds->l>0) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"This method is not prepared for l>1");
-  if (ds->compact) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"Not implemented for compact storage");
+  if (ds->l>0) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_SUP,"This method is not prepared for l>1");
+  if (ds->compact) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_SUP,"Not implemented for compact storage");
   ierr = PetscBLASIntCast(ds->ld,&ld);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(ds->bs,&bs);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(ds->n,&n);CHKERRQ(ierr);
@@ -737,9 +737,9 @@ PetscErrorCode DSCond_HEP(DS ds,PetscReal *cond)
 
   /* norm of inv(A) */
   PetscStackCallBLAS("LAPACKgetrf",LAPACKgetrf_(&n,&n,A,&ld,ipiv,&info));
-  if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xGETRF %d",info);
+  SlepcCheckLapackInfo("getrf",info);
   PetscStackCallBLAS("LAPACKgetri",LAPACKgetri_(&n,A,&ld,ipiv,work,&lwork,&info));
-  if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xGETRI %d",info);
+  SlepcCheckLapackInfo("getri",info);
   hin = LAPACKlange_("I",&n,&n,A,&ld,rwork);
 
   *cond = hn*hin;
@@ -779,14 +779,14 @@ PetscErrorCode DSTranslateRKS_HEP(DS ds,PetscScalar alpha)
   ierr = PetscBLASIntCast(k+1,&n1);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(k,&n0);CHKERRQ(ierr);
   PetscStackCallBLAS("LAPACKgeqrf",LAPACKgeqrf_(&n1,&n0,Q,&ld,tau,work,&lwork,&info));
-  if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xGEQRF %d",info);
+  SlepcCheckLapackInfo("geqrf",info);
   /* Copy R from Q */
   for (j=0;j<k;j++)
     for (i=0;i<=j;i++)
       R[i+j*ld] = Q[i+j*ld];
   /* Compute orthogonal matrix in Q */
   PetscStackCallBLAS("LAPACKungqr",LAPACKungqr_(&n1,&n1,&n0,Q,&ld,tau,work,&lwork,&info));
-  if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xORGQR %d",info);
+  SlepcCheckLapackInfo("ungqr",info);
   /* Compute the updated matrix of projected problem */
   for (j=0;j<k;j++)
     for (i=0;i<k+1;i++)

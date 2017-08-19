@@ -73,7 +73,7 @@ PetscErrorCode MFNSolve(MFN mfn,Vec b,Vec x)
 
   /* check nonzero right-hand side */
   ierr = VecNorm(b,NORM_2,&mfn->bnorm);CHKERRQ(ierr);
-  if (!mfn->bnorm) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Cannot pass a zero b vector to MFNSolve()");
+  if (!mfn->bnorm) SETERRQ(PetscObjectComm((PetscObject)mfn),PETSC_ERR_ARG_WRONG,"Cannot pass a zero b vector to MFNSolve()");
 
   /* call solver */
   ierr = PetscLogEventBegin(MFN_Solve,mfn,b,x,0);CHKERRQ(ierr);

@@ -38,8 +38,8 @@ PetscErrorCode __SUF__(VecDot_Comp)(Vec a,Vec b,PetscScalar *z)
   Vec_Comp       *as = (Vec_Comp*)a->data,*bs = (Vec_Comp*)b->data;
 
   PetscFunctionBegin;
-  SlepcValidVecComp(a);
-  SlepcValidVecComp(b);
+  SlepcValidVecComp(a,1);
+  SlepcValidVecComp(b,2);
   if (as->x[0]->ops->dot_local) {
     for (i=0,sum=0.0;i<as->n->n;i++) {
       ierr = as->x[i]->ops->dot_local(as->x[i],bs->x[i],&work);CHKERRQ(ierr);
@@ -68,8 +68,8 @@ PetscErrorCode __SUF__(VecMDot_Comp)(Vec a,PetscInt n,const Vec b[],PetscScalar 
   PetscInt       i,j;
 
   PetscFunctionBegin;
-  SlepcValidVecComp(a);
-  for (i=0;i<n;i++) SlepcValidVecComp(b[i]);
+  SlepcValidVecComp(a,1);
+  for (i=0;i<n;i++) SlepcValidVecComp(b[i],3);
 
   if (as->n->n == 0) {
     *z = 0;
@@ -119,8 +119,8 @@ PetscErrorCode __SUF__(VecTDot_Comp)(Vec a,Vec b,PetscScalar *z)
   Vec_Comp       *as = (Vec_Comp*)a->data,*bs = (Vec_Comp*)b->data;
 
   PetscFunctionBegin;
-  SlepcValidVecComp(a);
-  SlepcValidVecComp(b);
+  SlepcValidVecComp(a,1);
+  SlepcValidVecComp(b,2);
   if (as->x[0]->ops->tdot_local) {
     for (i=0,sum=0.0;i<as->n->n;i++) {
       ierr = as->x[i]->ops->tdot_local(as->x[i],bs->x[i],&work);CHKERRQ(ierr);
@@ -149,8 +149,8 @@ PetscErrorCode __SUF__(VecMTDot_Comp)(Vec a,PetscInt n,const Vec b[],PetscScalar
   PetscInt       i,j;
 
   PetscFunctionBegin;
-  SlepcValidVecComp(a);
-  for (i=0;i<n;i++) SlepcValidVecComp(b[i]);
+  SlepcValidVecComp(a,1);
+  for (i=0;i<n;i++) SlepcValidVecComp(b[i],3);
 
   if (as->n->n == 0) {
     *z = 0;
@@ -200,7 +200,7 @@ PetscErrorCode __SUF__(VecNorm_Comp)(Vec a,NormType t,PetscReal *norm)
   PetscInt       i;
 
   PetscFunctionBegin;
-  SlepcValidVecComp(a);
+  SlepcValidVecComp(a,1);
   /* Initialize norm */
   switch (t) {
     case NORM_1: case NORM_INFINITY: *norm = 0.0; break;
@@ -278,8 +278,8 @@ PetscErrorCode __SUF__(VecDotNorm2_Comp)(Vec v,Vec w,PetscScalar *dp,PetscScalar
   ierr = PetscObjectTypeCompare((PetscObject)v,VECCOMP,&t0);CHKERRQ(ierr);
   ierr = PetscObjectTypeCompare((PetscObject)w,VECCOMP,&t1);CHKERRQ(ierr);
   if (t0 && t1) {
-    SlepcValidVecComp(v);
-    SlepcValidVecComp(w);
+    SlepcValidVecComp(v,1);
+    SlepcValidVecComp(w,2);
     for (i=0;i<vs->n->n;i++) {
       ierr = VecDotNorm2_Comp_Seq(vs->x[i],ws->x[i],&dp1,&nm1);CHKERRQ(ierr);
       dp0 += dp1;

@@ -480,7 +480,7 @@ static PetscErrorCode EPSLOBPCGSetRestart_LOBPCG(EPS eps,PetscReal restart)
   PetscFunctionBegin;
   if (restart==PETSC_DEFAULT) ctx->restart = 0.6;
   else {
-    if (restart<0.1 || restart>1.0) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"The restart argument must be in the range [0.1,1.0]");
+    if (restart<0.1 || restart>1.0) SETERRQ1(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"The restart argument %g must be in the range [0.1,1.0]",(double)restart);
     ctx->restart = restart;
   }
   PetscFunctionReturn(0);

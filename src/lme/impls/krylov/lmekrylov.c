@@ -108,7 +108,7 @@ PetscErrorCode LMESolve_Krylov_Lyapunov_Vec(LME lme,Vec b,PetscBool fixed,PetscI
   ierr = PetscCalloc1(ldh*m,&H);CHKERRQ(ierr);
 
   ierr = VecNorm(b,NORM_2,&bnorm);CHKERRQ(ierr);
-  if (!bnorm) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Cannot process a zero vector in the right-hand side");
+  if (!bnorm) SETERRQ(PetscObjectComm((PetscObject)lme),PETSC_ERR_ARG_WRONG,"Cannot process a zero vector in the right-hand side");
 
   for (pass=0;pass<2;pass++) {
 

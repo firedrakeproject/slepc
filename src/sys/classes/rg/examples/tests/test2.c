@@ -55,11 +55,11 @@ int main(int argc,char **argv)
 
   ierr = RGSetType(rg,RGRING);CHKERRQ(ierr);
   ierr = RGIsTrivial(rg,&triv);CHKERRQ(ierr);
-  if (!triv) SETERRQ(PETSC_COMM_SELF,1,"Region should be trivial before setting parameters");
+  if (!triv) SETERRQ(PETSC_COMM_WORLD,1,"Region should be trivial before setting parameters");
   ierr = RGRingSetParameters(rg,2,PETSC_DEFAULT,0.5,PETSC_DEFAULT,0.25,0.1);CHKERRQ(ierr);
   ierr = RGSetFromOptions(rg);CHKERRQ(ierr);
   ierr = RGIsTrivial(rg,&triv);CHKERRQ(ierr);
-  if (triv) SETERRQ(PETSC_COMM_SELF,1,"Region should be non-trivial after setting parameters");
+  if (triv) SETERRQ(PETSC_COMM_WORLD,1,"Region should be non-trivial after setting parameters");
   ierr = RGView(rg,NULL);CHKERRQ(ierr);
 
   ierr = RGGetType(rg,&rtype);CHKERRQ(ierr);

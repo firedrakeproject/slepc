@@ -216,7 +216,7 @@ PETSC_STATIC_INLINE PetscErrorCode dvd_calcpairs_updateBV0_gen(dvdDashboard *d,B
   ierr = MatCreateSeqDense(PETSC_COMM_SELF,k,k,NULL,&auxM);CHKERRQ(ierr);
   ierr = MatZeroEntries(auxM);CHKERRQ(ierr);
   ierr = DSGetDimensions(d->eps->ds,&n,NULL,NULL,NULL,NULL);CHKERRQ(ierr);
-  if (k-l!=n) SETERRQ(PETSC_COMM_SELF,1, "Consistency broken");
+  if (k-l!=n) SETERRQ(PETSC_COMM_SELF,1,"Consistency broken");
   ierr = DSCopyMat(d->eps->ds,mat,0,0,auxM,l,l,n,d->V_tra_e,PETSC_TRUE);CHKERRQ(ierr);
   ierr = BVMultInPlace(bv,auxM,l,l+d->V_tra_e);CHKERRQ(ierr);
   ierr = MatDestroy(&auxM);CHKERRQ(ierr);
@@ -259,7 +259,7 @@ static PetscErrorCode dvd_calcpairs_proj(dvdDashboard *d)
     ierr = dvd_orthV(d->eps->V,l+d->V_new_s,l+d->V_new_e);CHKERRQ(ierr);
     /* 3. AV <- [AV A * V(V_new_s:V_new_e-1)] */
     /* Check consistency */
-    if (k-l != d->V_new_s) SETERRQ(PETSC_COMM_SELF,1, "Consistency broken");
+    if (k-l != d->V_new_s) SETERRQ(PETSC_COMM_SELF,1,"Consistency broken");
     for (i=l+d->V_new_s;i<l+d->V_new_e;i++) {
       ierr = BVGetColumn(d->eps->V,i,&v1);CHKERRQ(ierr);
       ierr = BVGetColumn(d->AX,i,&v2);CHKERRQ(ierr);
@@ -270,7 +270,7 @@ static PetscErrorCode dvd_calcpairs_proj(dvdDashboard *d)
     /* 4. BV <- [BV B * V(V_new_s:V_new_e-1)] */
     if (d->BX) {
       /* Check consistency */
-      if (k-l != d->V_new_s) SETERRQ(PETSC_COMM_SELF,1, "Consistency broken");
+      if (k-l != d->V_new_s) SETERRQ(PETSC_COMM_SELF,1,"Consistency broken");
       for (i=l+d->V_new_s;i<l+d->V_new_e;i++) {
         ierr = BVGetColumn(d->eps->V,i,&v1);CHKERRQ(ierr);
         ierr = BVGetColumn(d->BX,i,&v2);CHKERRQ(ierr);

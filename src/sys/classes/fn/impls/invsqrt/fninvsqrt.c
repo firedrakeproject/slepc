@@ -48,6 +48,10 @@ PetscErrorCode FNEvaluateDerivative_Invsqrt(FN fn,PetscScalar x,PetscScalar *y)
 
 PetscErrorCode FNEvaluateFunctionMat_Invsqrt_Schur(FN fn,Mat A,Mat B)
 {
+#if defined(PETSC_MISSING_LAPACK_GESV)
+  PetscFunctionBegin;
+  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"GESV - Lapack routine is unavailable");
+#else
   PetscErrorCode ierr;
   PetscBLASInt   n,ld,*ipiv,info;
   PetscScalar    *Ba,*Wa;
@@ -67,17 +71,22 @@ PetscErrorCode FNEvaluateFunctionMat_Invsqrt_Schur(FN fn,Mat A,Mat B)
   /* compute B = A\B */
   ierr = PetscMalloc1(ld,&ipiv);CHKERRQ(ierr);
   PetscStackCallBLAS("LAPACKgesv",LAPACKgesv_(&n,&n,Wa,&ld,ipiv,Ba,&ld,&info));
-  if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xGESV %d",info);
+  SlepcCheckLapackInfo("gesv",info);
   ierr = PetscLogFlops(2.0*n*n*n/3.0+2.0*n*n*n);CHKERRQ(ierr);
   ierr = PetscFree(ipiv);CHKERRQ(ierr);
   ierr = MatDenseRestoreArray(W,&Wa);CHKERRQ(ierr);
   ierr = MatDenseRestoreArray(B,&Ba);CHKERRQ(ierr);
   ierr = FN_FreeWorkMat(fn,&W);CHKERRQ(ierr);
   PetscFunctionReturn(0);
+#endif
 }
 
 PetscErrorCode FNEvaluateFunctionMatVec_Invsqrt_Schur(FN fn,Mat A,Vec v)
 {
+#if defined(PETSC_MISSING_LAPACK_GESV)
+  PetscFunctionBegin;
+  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"GESV - Lapack routine is unavailable");
+#else
   PetscErrorCode ierr;
   PetscBLASInt   n,ld,*ipiv,info,one=1;
   PetscScalar    *Ba,*Wa;
@@ -97,7 +106,7 @@ PetscErrorCode FNEvaluateFunctionMatVec_Invsqrt_Schur(FN fn,Mat A,Vec v)
   /* compute B_1 = A\B_1 */
   ierr = PetscMalloc1(ld,&ipiv);CHKERRQ(ierr);
   PetscStackCallBLAS("LAPACKgesv",LAPACKgesv_(&n,&one,Wa,&ld,ipiv,Ba,&ld,&info));
-  if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xGESV %d",info);
+  SlepcCheckLapackInfo("gesv",info);
   ierr = PetscFree(ipiv);CHKERRQ(ierr);
   ierr = MatDenseRestoreArray(W,&Wa);CHKERRQ(ierr);
   ierr = MatDenseRestoreArray(B,&Ba);CHKERRQ(ierr);
@@ -105,6 +114,7 @@ PetscErrorCode FNEvaluateFunctionMatVec_Invsqrt_Schur(FN fn,Mat A,Vec v)
   ierr = FN_FreeWorkMat(fn,&W);CHKERRQ(ierr);
   ierr = FN_FreeWorkMat(fn,&B);CHKERRQ(ierr);
   PetscFunctionReturn(0);
+#endif
 }
 
 PetscErrorCode FNEvaluateFunctionMat_Invsqrt_DBP(FN fn,Mat A,Mat B)

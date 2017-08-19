@@ -98,7 +98,7 @@ static PetscErrorCode FNEvaluateFunctionMat_Private(FN fn,PetscScalar *Aa,PetscS
       for (i=0;i<m;i++) Q[i+i*ld] += ctx->qcoeff[j];
     }
     PetscStackCallBLAS("LAPACKgesv",LAPACKgesv_(&n,&k,Q,&ld,ipiv,P,&ld,&info));
-    if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xGESV %d",info);
+    SlepcCheckLapackInfo("gesv",info);
     ierr = PetscLogFlops(2.0*n*n*n*(ctx->nq-1)+2.0*n*n*n/3.0+2.0*n*n*k);CHKERRQ(ierr);
   }
   if (Aa==Ba) {

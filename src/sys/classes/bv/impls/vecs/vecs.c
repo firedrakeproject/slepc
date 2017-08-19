@@ -267,7 +267,7 @@ PetscErrorCode BVNorm_Vecs(BV bv,PetscInt j,NormType type,PetscReal *val)
         *val += nrm*nrm;
       }
       *val = PetscSqrtReal(*val);
-    } else SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"Requested norm not implemented in BVVECS");
+    } else SETERRQ(PetscObjectComm((PetscObject)bv),PETSC_ERR_SUP,"Requested norm not implemented in BVVECS");
   } else {
     ierr = VecNorm(ctx->V[bv->nc+j],type,val);CHKERRQ(ierr);
   }
@@ -280,9 +280,8 @@ PetscErrorCode BVNorm_Begin_Vecs(BV bv,PetscInt j,NormType type,PetscReal *val)
   BV_VECS        *ctx = (BV_VECS*)bv->data;
 
   PetscFunctionBegin;
-  if (j<0) {
-    SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"Requested norm not implemented in BVVECS");
-  } else {
+  if (j<0) SETERRQ(PetscObjectComm((PetscObject)bv),PETSC_ERR_SUP,"Requested norm not implemented in BVVECS");
+  else {
     ierr = VecNormBegin(ctx->V[bv->nc+j],type,val);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
@@ -294,9 +293,8 @@ PetscErrorCode BVNorm_End_Vecs(BV bv,PetscInt j,NormType type,PetscReal *val)
   BV_VECS        *ctx = (BV_VECS*)bv->data;
 
   PetscFunctionBegin;
-  if (j<0) {
-    SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"Requested norm not implemented in BVVECS");
-  } else {
+  if (j<0) SETERRQ(PetscObjectComm((PetscObject)bv),PETSC_ERR_SUP,"Requested norm not implemented in BVVECS");
+  else {
     ierr = VecNormEnd(ctx->V[bv->nc+j],type,val);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);

@@ -25,6 +25,12 @@
 #define __SLEPCBLASLAPACK_H
 #include <petscblaslapack.h>
 
+/* Macro to check nonzero info after LAPACK call */
+#define SlepcCheckLapackInfo(routine,info) \
+  do { \
+    if (info) SETERRQ2(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in LAPACK subroutine %s: info=%d",routine,(int)info); \
+  } while (0)
+
 /* Macros for building LAPACK names */
 #if defined(PETSC_BLASLAPACK_UNDERSCORE)
 #if defined(PETSC_USE_REAL_SINGLE)

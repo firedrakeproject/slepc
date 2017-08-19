@@ -380,7 +380,7 @@ PetscErrorCode PEPGetErrorEstimate(PEP pep,PetscInt i,PetscReal *errest)
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
   PetscValidPointer(errest,3);
   PEPCheckSolved(pep,1);
-  if (i<0 || i>=pep->nconv) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ARG_OUTOFRANGE,"Argument 2 out of range");
+  if (i<0 || i>=pep->nconv) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"Argument 2 out of range");
   *errest = pep->errest[pep->perm[i]];
   PetscFunctionReturn(0);
 }

@@ -96,8 +96,7 @@ PetscErrorCode EPSSetUp_KrylovSchur(EPS eps)
 
   if (!eps->extraction) {
     ierr = EPSSetExtraction(eps,EPS_RITZ);CHKERRQ(ierr);
-  } else if (eps->extraction!=EPS_RITZ && eps->extraction!=EPS_HARMONIC)
-    SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Unsupported extraction type");
+  } else if (eps->extraction!=EPS_RITZ && eps->extraction!=EPS_HARMONIC) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Unsupported extraction type");
   if (eps->extraction==EPS_HARMONIC && ctx->lock) { ierr = PetscInfo(eps,"Locking was requested but will be deactivated since is not supported with harmonic extraction\n");CHKERRQ(ierr); }
 
   if (!ctx->keep) ctx->keep = 0.5;
@@ -294,7 +293,7 @@ static PetscErrorCode EPSKrylovSchurSetRestart_KrylovSchur(EPS eps,PetscReal kee
   PetscFunctionBegin;
   if (keep==PETSC_DEFAULT) ctx->keep = 0.5;
   else {
-    if (keep<0.1 || keep>0.9) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"The keep argument must be in the range [0.1,0.9]");
+    if (keep<0.1 || keep>0.9) SETERRQ1(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"The keep argument %g must be in the range [0.1,0.9]",keep);
     ctx->keep = keep;
   }
   PetscFunctionReturn(0);

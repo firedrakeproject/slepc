@@ -824,7 +824,7 @@ PetscErrorCode NEPSetSplitOperator(NEP nep,PetscInt n,Mat A[],FN f[],MatStructur
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
   PetscValidLogicalCollectiveInt(nep,n,2);
-  if (n <= 0) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_OUTOFRANGE,"Must have one or more terms, you have %D",n);
+  if (n <= 0) SETERRQ1(PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_OUTOFRANGE,"Must have one or more terms, you have %D",n);
   PetscValidPointer(A,3);
   PetscCheckSameComm(nep,1,*A,3);
   PetscValidPointer(f,4);
@@ -879,7 +879,7 @@ PetscErrorCode NEPGetSplitOperatorTerm(NEP nep,PetscInt k,Mat *A,FN *f)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
   NEPCheckSplit(nep,1);
-  if (k<0 || k>=nep->nt) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_OUTOFRANGE,"k must be between 0 and %D",nep->nt-1);
+  if (k<0 || k>=nep->nt) SETERRQ1(PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_OUTOFRANGE,"k must be between 0 and %D",nep->nt-1);
   if (A) *A = nep->A[k];
   if (f) *f = nep->f[k];
   PetscFunctionReturn(0);

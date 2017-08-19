@@ -432,7 +432,7 @@ PETSC_EXTERN PetscErrorCode BVCreate_Svec(BV bv)
   ierr = PetscObjectTypeCompareAny((PetscObject)bv->t,&ctx->mpi,VECMPI,VECMPICUDA,"");CHKERRQ(ierr);
 
   ierr = PetscObjectTypeCompare((PetscObject)bv->t,VECSEQ,&seq);CHKERRQ(ierr);
-  if (!seq && !ctx->mpi && !bv->cuda) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"BVSVEC does not support the type of the provided template vector");
+  if (!seq && !ctx->mpi && !bv->cuda) SETERRQ(PetscObjectComm((PetscObject)bv),PETSC_ERR_SUP,"BVSVEC does not support the type of the provided template vector");
 
   ierr = VecGetLocalSize(bv->t,&nloc);CHKERRQ(ierr);
   ierr = VecGetSize(bv->t,&N);CHKERRQ(ierr);

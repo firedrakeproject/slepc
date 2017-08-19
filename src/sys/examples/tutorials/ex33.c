@@ -40,9 +40,9 @@ int main(int argc,char **argv)
   }
 
   ierr = SlepcGetVersionNumber(&major,&minor,&subminor,NULL);CHKERRQ(ierr);
-  if (major != SLEPC_VERSION_MAJOR) SETERRQ2(PETSC_COMM_SELF,PETSC_ERR_PLIB,"Library major %d does not equal include %d",(int)major,SLEPC_VERSION_MAJOR);
-  if (minor != SLEPC_VERSION_MINOR) SETERRQ2(PETSC_COMM_SELF,PETSC_ERR_PLIB,"Library minor %d does not equal include %d",(int)minor,SLEPC_VERSION_MINOR);
-  if (subminor != SLEPC_VERSION_SUBMINOR) SETERRQ2(PETSC_COMM_SELF,PETSC_ERR_PLIB,"Library subminor %d does not equal include %d",(int)subminor,SLEPC_VERSION_SUBMINOR);
+  if (major != SLEPC_VERSION_MAJOR) SETERRQ2(PETSC_COMM_WORLD,PETSC_ERR_PLIB,"Library major %d does not equal include %d",(int)major,SLEPC_VERSION_MAJOR);
+  if (minor != SLEPC_VERSION_MINOR) SETERRQ2(PETSC_COMM_WORLD,PETSC_ERR_PLIB,"Library minor %d does not equal include %d",(int)minor,SLEPC_VERSION_MINOR);
+  if (subminor != SLEPC_VERSION_SUBMINOR) SETERRQ2(PETSC_COMM_WORLD,PETSC_ERR_PLIB,"Library subminor %d does not equal include %d",(int)subminor,SLEPC_VERSION_SUBMINOR);
 
   ierr = SlepcFinalize();
   return ierr;

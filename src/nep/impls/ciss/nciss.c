@@ -331,7 +331,7 @@ static PetscErrorCode SVD_H0(NEP nep,PetscScalar *S,PetscInt *K)
 #else
   PetscStackCallBLAS("LAPACKgesvd",LAPACKgesvd_("N","N",&m,&n,S,&lda,ctx->sigma,NULL,&ldu,NULL,&ldvt,work,&lwork,&info));
 #endif
-  if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xGESVD %d",info);
+  SlepcCheckLapackInfo("gesvd",info);
   ierr = PetscFPTrapPop();CHKERRQ(ierr);
   (*K) = 0;
   for (i=0;i<ml;i++) {

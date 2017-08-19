@@ -342,7 +342,7 @@ PetscErrorCode BVInsertVecs(BV V,PetscInt s,PetscInt *m,Vec *W,PetscBool orth)
   PetscValidPointer(m,3);
   PetscValidLogicalCollectiveInt(V,*m,3);
   if (!*m) PetscFunctionReturn(0);
-  if (*m<0) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_OUTOFRANGE,"Number of vectors (given %D) cannot be negative",*m);
+  if (*m<0) SETERRQ1(PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_OUTOFRANGE,"Number of vectors (given %D) cannot be negative",*m);
   PetscValidPointer(W,4);
   PetscValidHeaderSpecific(*W,VEC_CLASSID,4);
   PetscValidLogicalCollectiveBool(V,orth,5);
@@ -421,7 +421,7 @@ PetscErrorCode BVInsertConstraints(BV V,PetscInt *nc,Vec *C)
   PetscValidPointer(nc,2);
   PetscValidLogicalCollectiveInt(V,*nc,2);
   if (!*nc) PetscFunctionReturn(0);
-  if (*nc<0) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_OUTOFRANGE,"Number of constraints (given %D) cannot be negative",*nc);
+  if (*nc<0) SETERRQ1(PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_OUTOFRANGE,"Number of constraints (given %D) cannot be negative",*nc);
   PetscValidPointer(C,3);
   PetscValidHeaderSpecific(*C,VEC_CLASSID,3);
   PetscValidType(V,1);
