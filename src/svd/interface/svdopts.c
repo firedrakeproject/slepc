@@ -487,11 +487,14 @@ PetscErrorCode SVDSetStoppingTestFunction(SVD svd,PetscErrorCode (*func)(SVD,Pet
   if (svd->stoppingdestroy) {
     ierr = (*svd->stoppingdestroy)(svd->stoppingctx);CHKERRQ(ierr);
   }
-  svd->stopping        = func;
+  svd->stoppinguser    = func;
   svd->stoppingdestroy = destroy;
   svd->stoppingctx     = ctx;
   if (func == SVDStoppingBasic) svd->stop = SVD_STOP_BASIC;
-  else svd->stop = SVD_STOP_USER;
+  else {
+    svd->stop     = SVD_STOP_USER;
+    svd->stopping = svd->stoppinguser;
+  }
   PetscFunctionReturn(0);
 }
 
@@ -525,7 +528,10 @@ PetscErrorCode SVDSetStoppingTest(SVD svd,SVDStop stop)
   PetscValidLogicalCollectiveEnum(svd,stop,2);
   switch (stop) {
     case SVD_STOP_BASIC: svd->stopping = SVDStoppingBasic; break;
-    case SVD_STOP_USER:  break;
+    case SVD_STOP_USER:
+      if (!svd->stoppinguser) SETERRQ(PetscObjectComm((PetscObject)svd),PETSC_ERR_ORDER,"Must call SVDSetStoppingTestFunction() first");
+      svd->stopping = svd->stoppinguser;
+      break;
     default:
       SETERRQ(PetscObjectComm((PetscObject)svd),PETSC_ERR_ARG_OUTOFRANGE,"Invalid 'stop' value");
   }

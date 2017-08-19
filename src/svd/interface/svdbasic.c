@@ -75,6 +75,7 @@ PetscErrorCode SVDCreate(MPI_Comm comm,SVD *outsvd)
   svd->convergeduser    = NULL;
   svd->convergeddestroy = NULL;
   svd->stopping         = SVDStoppingBasic;
+  svd->stoppinguser     = NULL;
   svd->stoppingdestroy  = NULL;
   svd->convergedctx     = NULL;
   svd->stoppingctx      = NULL;

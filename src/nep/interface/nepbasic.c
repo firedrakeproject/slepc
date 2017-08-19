@@ -82,6 +82,7 @@ PetscErrorCode NEPCreate(MPI_Comm comm,NEP *outnep)
   nep->convergeduser   = NULL;
   nep->convergeddestroy= NULL;
   nep->stopping        = NEPStoppingBasic;
+  nep->stoppinguser    = NULL;
   nep->stoppingdestroy = NULL;
   nep->convergedctx    = NULL;
   nep->stoppingctx     = NULL;

@@ -83,6 +83,7 @@ PetscErrorCode EPSCreate(MPI_Comm comm,EPS *outeps)
   eps->convergeduser   = NULL;
   eps->convergeddestroy= NULL;
   eps->stopping        = EPSStoppingBasic;
+  eps->stoppinguser    = NULL;
   eps->stoppingdestroy = NULL;
   eps->arbitrary       = NULL;
   eps->convergedctx    = NULL;

@@ -97,6 +97,7 @@ struct _p_NEP {
   PetscErrorCode (*convergeduser)(NEP,PetscScalar,PetscScalar,PetscReal,PetscReal*,void*);
   PetscErrorCode (*convergeddestroy)(void*);
   PetscErrorCode (*stopping)(NEP,PetscInt,PetscInt,PetscInt,PetscInt,NEPConvergedReason*,void*);
+  PetscErrorCode (*stoppinguser)(NEP,PetscInt,PetscInt,PetscInt,PetscInt,NEPConvergedReason*,void*);
   PetscErrorCode (*stoppingdestroy)(void*);
   void           *convergedctx;
   void           *stoppingctx;

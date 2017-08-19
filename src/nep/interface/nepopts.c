@@ -809,11 +809,14 @@ PetscErrorCode NEPSetStoppingTestFunction(NEP nep,PetscErrorCode (*func)(NEP,Pet
   if (nep->stoppingdestroy) {
     ierr = (*nep->stoppingdestroy)(nep->stoppingctx);CHKERRQ(ierr);
   }
-  nep->stopping        = func;
+  nep->stoppinguser    = func;
   nep->stoppingdestroy = destroy;
   nep->stoppingctx     = ctx;
   if (func == NEPStoppingBasic) nep->stop = NEP_STOP_BASIC;
-  else nep->stop = NEP_STOP_USER;
+  else {
+    nep->stop     = NEP_STOP_USER;
+    nep->stopping = nep->stoppinguser;
+  }
   PetscFunctionReturn(0);
 }
 
@@ -847,7 +850,10 @@ PetscErrorCode NEPSetStoppingTest(NEP nep,NEPStop stop)
   PetscValidLogicalCollectiveEnum(nep,stop,2);
   switch (stop) {
     case NEP_STOP_BASIC: nep->stopping = NEPStoppingBasic; break;
-    case NEP_STOP_USER:  break;
+    case NEP_STOP_USER:
+      if (!nep->stoppinguser) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_ORDER,"Must call NEPSetStoppingTestFunction() first");
+      nep->stopping = nep->stoppinguser;
+      break;
     default:
       SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_OUTOFRANGE,"Invalid 'stop' value");
   }
