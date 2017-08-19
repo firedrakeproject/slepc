@@ -113,9 +113,8 @@ PetscErrorCode EPSSolve_KrylovSchur_Indefinite(EPS eps)
     if (!ctx->lock && l>0) { l += k; k = 0; } /* non-locking variant: reset no. of converged pairs */
 
     if (eps->reason == EPS_CONVERGED_ITERATING) {
-      if (breakdown) {
-        SETERRQ1(PetscObjectComm((PetscObject)eps),PETSC_ERR_CONV_FAILED,"Breakdown in Indefinite Krylov-Schur (beta=%g)",beta);
-      } else {
+      if (breakdown) SETERRQ1(PetscObjectComm((PetscObject)eps),PETSC_ERR_CONV_FAILED,"Breakdown in Indefinite Krylov-Schur (beta=%g)",beta);
+      else {
         /* Prepare the Rayleigh quotient for restart */
         ierr = DSGetArray(eps->ds,DS_MAT_Q,&Q);CHKERRQ(ierr);
         ierr = DSGetArrayReal(eps->ds,DS_MAT_T,&a);CHKERRQ(ierr);

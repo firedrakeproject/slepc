@@ -447,15 +447,15 @@ PetscErrorCode DSOrthogonalize(DS ds,DSMatType mat,PetscInt cols,PetscInt *lindc
   ierr = PetscBLASIntCast(cols,&cA);CHKERRQ(ierr);
   lw = -1;
   PetscStackCallBLAS("LAPACKgeqrf",LAPACKgeqrf_(&rA,&cA,A,&ld_,&dummy,&saux,&lw,&info));
-  if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xGEQRF %d",info);
+  SlepcCheckLapackInfo("geqrf",info);
   lw = (PetscBLASInt)PetscRealPart(saux);
   ierr = DSAllocateWork_Private(ds,lw+ltau,0,0);CHKERRQ(ierr);
   tau = ds->work;
   w = &tau[ltau];
   PetscStackCallBLAS("LAPACKgeqrf",LAPACKgeqrf_(&rA,&cA,&A[ld*l+l],&ld_,tau,w,&lw,&info));
-  if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xGEQRF %d",info);
+  SlepcCheckLapackInfo("geqrf",info);
   PetscStackCallBLAS("LAPACKungqr",LAPACKungqr_(&rA,&ltau,&ltau,&A[ld*l+l],&ld_,tau,w,&lw,&info));
-  if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xORGQR %d",info);
+  SlepcCheckLapackInfo("ungqr",info);
   if (lindcols) *lindcols = ltau;
 
   ierr = PetscFPTrapPop();CHKERRQ(ierr);
@@ -494,7 +494,7 @@ static PetscErrorCode SlepcMatDenseMult(PetscScalar *C,PetscInt _ldC,PetscScalar
   if (Bt) tmp = rB, rB = cB, cB = tmp, qB = T;
 
   /* Check size */
-  if (cA != rB) SETERRQ(PETSC_COMM_SELF,1, "Matrix dimensions do not match");
+  if (cA != rB) SETERRQ(PETSC_COMM_SELF,1,"Matrix dimensions do not match");
 
   /* Do stub */
   if ((rA == 1) && (cA == 1) && (cB == 1)) {

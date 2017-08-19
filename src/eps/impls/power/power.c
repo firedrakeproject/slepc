@@ -197,7 +197,7 @@ static PetscErrorCode EPSPowerFormFunction_Update(SNES snes,Vec x,Vec y,void *ct
 
   PetscFunctionBegin;
   ierr = PetscObjectQuery((PetscObject)snes,"eps",(PetscObject *)&eps);CHKERRQ(ierr);
-  if (!eps) SETERRQ(PETSC_COMM_WORLD,PETSC_ERR_ARG_NULL,"No composed EPS\n");
+  if (!eps) SETERRQ(PETSC_COMM_WORLD,PETSC_ERR_ARG_NULL,"No composed EPS");
   power = (EPS_POWER*)eps->data;
   Bx = eps->work[2];
   ierr = EPSPowerUpdateFunctionB(eps,x,Bx);CHKERRQ(ierr);

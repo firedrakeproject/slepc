@@ -111,7 +111,7 @@ PetscErrorCode FNEvaluateFunctionMat_Exp_Pade(FN fn,Mat A,Mat B)
     SWAP(Q,W,aux);
     PetscStackCallBLAS("BLASaxpy",BLASaxpy_(&ld2,&mone,P,&inc,Q,&inc));
     PetscStackCallBLAS("LAPACKgesv",LAPACKgesv_(&n,&n,Q,&ld,ipiv,P,&ld,&info));
-    if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xGESV %d",info);
+    SlepcCheckLapackInfo("gesv",info);
     PetscStackCallBLAS("BLASscal",BLASscal_(&ld2,&two,P,&inc));
     for (j=0;j<n;j++) P[j+j*ld] += 1.0;
     PetscStackCallBLAS("BLASscal",BLASscal_(&ld2,&mone,P,&inc));
@@ -120,7 +120,7 @@ PetscErrorCode FNEvaluateFunctionMat_Exp_Pade(FN fn,Mat A,Mat B)
     SWAP(P,W,aux);
     PetscStackCallBLAS("BLASaxpy",BLASaxpy_(&ld2,&mone,P,&inc,Q,&inc));
     PetscStackCallBLAS("LAPACKgesv",LAPACKgesv_(&n,&n,Q,&ld,ipiv,P,&ld,&info));
-    if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xGESV %d",info);
+    SlepcCheckLapackInfo("gesv",info);
     PetscStackCallBLAS("BLASscal",BLASscal_(&ld2,&two,P,&inc));
     for (j=0;j<n;j++) P[j+j*ld] += 1.0;
   }
@@ -495,7 +495,7 @@ PetscErrorCode FNEvaluateFunctionMat_Exp_Higham(FN fn,Mat A,Mat B)
   }
   PetscStackCallBLAS("BLASaxpy",BLASaxpy_(&n2,&smone,P,&one,Q,&one));
   PetscStackCallBLAS("LAPACKgesv",LAPACKgesv_(&n_,&n_,Q,&n_,ipiv,P,&n_,&info));
-  if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xGESV %d",info);
+  SlepcCheckLapackInfo("gesv",info);
   PetscStackCallBLAS("BLASscal",BLASscal_(&n2,&stwo,P,&one));
   for (j=0;j<n;j++) P[j+j*n] += 1.0;
   ierr = PetscLogFlops(2.0*n*n*n/3.0+4.0*n*n);CHKERRQ(ierr);

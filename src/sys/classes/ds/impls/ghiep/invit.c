@@ -250,8 +250,7 @@ static PetscErrorCode TridiagDiag_HHR(PetscInt n,PetscScalar *A,PetscInt lda,Pet
         if (cond > 1.0/(10*PETSC_SQRT_MACHINE_EPSILON)) {
           breakdown = PETSC_TRUE;
           k++;
-          if (k==n || flip)
-            SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"Breakdown in construction of hyperbolic transformation");
+          if (k==n || flip) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"Breakdown in construction of hyperbolic transformation");
           break;
         }
         A[ni-n0+j*lda] = r; A[n-n1+j*lda] = 0.0;
@@ -415,9 +414,7 @@ static PetscErrorCode TryHRIt(PetscInt n,PetscInt j,PetscInt sz,PetscScalar *H,P
     /* Hyperbolic transformation to make zeros in x */
     ierr = MadeHRtr(sz,n,*idx0,*n0,*idx1,*n1,&tr1_t,NULL,&ncond,work+nwu);CHKERRQ(ierr);
     /* Check condition number to single column*/
-    if (ncond>tolD) {
-      *ok = PETSC_FALSE;
-    }
+    if (ncond>tolD) *ok = PETSC_FALSE;
     tr1 = &tr1_t;
     tr2 = &tr2_t;
   } else {

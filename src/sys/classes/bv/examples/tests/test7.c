@@ -139,7 +139,7 @@ int main(int argc,char **argv)
   ierr = BVCopy(Zcopy,Z);CHKERRQ(ierr);
   ierr = BVGetArray(Z,&pZ);CHKERRQ(ierr);
   if (Istart==0) {
-    if (Iend<3) SETERRQ(PETSC_COMM_SELF,1,"First process must have at least 3 rows");
+    if (Iend<3) SETERRQ(PETSC_COMM_WORLD,1,"First process must have at least 3 rows");
     pZ[Iend]   = 5.0;   /* modify 3 first entries of second column */
     pZ[Iend+1] = -4.0;
     pZ[Iend+2] = 1.0;

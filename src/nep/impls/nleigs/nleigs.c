@@ -1030,7 +1030,7 @@ static PetscErrorCode NEPNLEIGS_RKcontinuation(NEP nep,PetscInt ini,PetscInt end
     ierr = PetscBLASIntCast(n1,&n1_);CHKERRQ(ierr);
     ierr = PetscBLASIntCast(end+1,&dim);CHKERRQ(ierr);
     PetscStackCallBLAS("LAPACKgeqrf",LAPACKgeqrf_(&n1_,&n_,W,&n1_,tau,work+nwu,&n1_,&info));
-    if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xGEQRF %d",info);
+    SlepcCheckLapackInfo("geqrf",info);
     for (i=0;i<end;i++) t[i] = 0.0;
     t[end] = 1.0;
     for (j=n-1;j>=0;j--) {
@@ -1109,6 +1109,10 @@ static PetscErrorCode NEPNLEIGSTOARrun(NEP nep,PetscInt *nq,PetscScalar *S,Petsc
 /* dim(work)=5*ld*lds dim(rwork)=6*n */
 static PetscErrorCode NEPTOARTrunc(NEP nep,PetscScalar *S,PetscInt ld,PetscInt deg,PetscInt *nq,PetscInt cs1,PetscScalar *work,PetscReal *rwork)
 {
+#if defined(PETSC_MISSING_LAPACK_GESVD)
+  PetscFunctionBegin;
+  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"GESVD - Lapack routine is unavailable");
+#else
   PetscErrorCode ierr;
   PetscInt       lwa,nwu=0,nrwu=0;
   PetscInt       j,i,n,lds=deg*ld,rk=0,rs1;
@@ -1144,7 +1148,7 @@ static PetscErrorCode NEPTOARTrunc(NEP nep,PetscScalar *S,PetscInt ld,PetscInt d
 #else
   PetscStackCall("LAPACKgesvd",LAPACKgesvd_("S","S",&rs1_,&cs1tdeg,M,&rs1_,sg,pU,&rs1_,V,&n_,work+nwu,&lw_,rwork+nrwu,&info));
 #endif
-  if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xGESVD %d",info);
+  SlepcCheckLapackInfo("gesvd",info);
 
   /* Update the corresponding vectors V(:,idx) = V*Q(:,idx) */
   ierr = MatCreateSeqDense(PETSC_COMM_SELF,rs1,cs1+deg-1,pU,&U);CHKERRQ(ierr);
@@ -1169,6 +1173,7 @@ static PetscErrorCode NEPTOARTrunc(NEP nep,PetscScalar *S,PetscInt ld,PetscInt d
   }
   *nq = rk;
   PetscFunctionReturn(0);
+#endif
 }
 
 /*

@@ -241,7 +241,7 @@ PetscErrorCode DSSolve_SVD_DC(DS ds,PetscScalar *wr,PetscScalar *wi)
     VTr = VT;
 #endif
     PetscStackCallBLAS("LAPACKbdsdc",LAPACKbdsdc_("U","I",&n3,d+l,e+l,Ur+off,&ld,VTr+off,&ld,NULL,NULL,ds->rwork,ds->iwork,&info));
-    if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xBDSDC %d",info);
+    SlepcCheckLapackInfo("bdsdc",info);
 #if defined(PETSC_USE_COMPLEX)
     for (i=l;i<n;i++) {
       for (j=0;j<n;j++) {
@@ -263,7 +263,7 @@ PetscErrorCode DSSolve_SVD_DC(DS ds,PetscScalar *wr,PetscScalar *wi)
 #else
     PetscStackCallBLAS("LAPACKgesdd",LAPACKgesdd_("A",&n3,&m3,A+off,&ld,d+l,U+off,&ld,VT+off,&ld,&qwork,&lwork,ds->iwork,&info));
 #endif
-    if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xGESDD %d",info);
+    SlepcCheckLapackInfo("gesdd",info);
     ierr = PetscBLASIntCast((PetscInt)PetscRealPart(qwork),&lwork);CHKERRQ(ierr);
     ierr = DSAllocateWork_Private(ds,lwork,0,0);CHKERRQ(ierr);
 #if defined(PETSC_USE_COMPLEX)
@@ -271,7 +271,7 @@ PetscErrorCode DSSolve_SVD_DC(DS ds,PetscScalar *wr,PetscScalar *wi)
 #else
     PetscStackCallBLAS("LAPACKgesdd",LAPACKgesdd_("A",&n3,&m3,A+off,&ld,d+l,U+off,&ld,VT+off,&ld,ds->work,&lwork,ds->iwork,&info));
 #endif
-    if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xGESDD %d",info);
+    SlepcCheckLapackInfo("gesdd",info);
   }
   for (i=l;i<PetscMin(ds->n,ds->m);i++) wr[i] = d[i];
 

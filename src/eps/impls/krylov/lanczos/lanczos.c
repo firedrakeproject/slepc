@@ -198,7 +198,7 @@ static PetscErrorCode DenseTridiagonal(PetscInt n_,PetscReal *D,PetscReal *E,Pet
   PetscStackCallBLAS("LAPACKstevr",LAPACKstevr_(jobz,"A",&n,D,E,&vl,&vu,&il,&iu,&abstol,&m,w,V,&n,isuppz,work,&lwork,iwork,&liwork,&info));
 #endif
   ierr = PetscFPTrapPop();CHKERRQ(ierr);
-  if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack DSTEVR %d",info);
+  SlepcCheckLapackInfo("stevr",info);
 #if defined(PETSC_USE_COMPLEX)
   if (V) {
     for (i=0;i<n;i++)

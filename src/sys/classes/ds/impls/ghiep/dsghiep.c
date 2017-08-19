@@ -296,7 +296,7 @@ PetscErrorCode DSVectors_GHIEP(DS ds,DSMatType mat,PetscInt *k,PetscReal *rnorm)
       break;
     case DS_MAT_U:
     case DS_MAT_VT:
-      SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"Not implemented yet");
+      SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_SUP,"Not implemented yet");
       break;
     default:
       SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_OUTOFRANGE,"Invalid mat parameter");
@@ -507,8 +507,7 @@ PetscErrorCode DSGHIEPInverseIteration(DS ds,PetscScalar *wr,PetscScalar *wi)
     }
   }
 #endif
-  if (info<0) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in hsein routine %D",-i);
-  if (info>0) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Convergence error in hsein routine %D",i);
+  SlepcCheckLapackInfo("hsein",info);
   ierr = DSGHIEPOrthogEigenv(ds,DS_MAT_X,wr,wi,PETSC_TRUE);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 #endif
@@ -731,7 +730,7 @@ PetscErrorCode DSSolve_GHIEP_QR_II(DS ds,PetscScalar *wr,PetscScalar *wi)
       }
   }
 #endif
-  if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xHSEQR %d",&info);
+  SlepcCheckLapackInfo("hseqr",info);
   /* Compute Eigenvectors with Inverse Iteration */
   ierr = DSGHIEPInverseIteration(ds,wr,wi);CHKERRQ(ierr);
 
@@ -859,7 +858,7 @@ PetscErrorCode DSSolve_GHIEP_QR(DS ds,PetscScalar *wr,PetscScalar *wi)
     }
   }
 #endif
-  if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xHSEQR %d",&info);
+  SlepcCheckLapackInfo("geevx",info);
 
   /* Compute real s-orthonormal basis */
   ierr = DSGHIEPOrthogEigenv(ds,DS_MAT_X,wr,wi,PETSC_FALSE);CHKERRQ(ierr);

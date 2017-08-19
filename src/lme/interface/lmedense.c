@@ -49,6 +49,7 @@ PetscErrorCode LMERankSVD(LME lme,PetscInt n,PetscScalar *L,PetscScalar *U,Petsc
 #else
   PetscStackCallBLAS("LAPACKgesvd",LAPACKgesvd_("S","O",&n_,&n_,L,&n_,sg,U,&n_,NULL,&n_,work,&lw_,rwork,&info));
 #endif
+  SlepcCheckLapackInfo("gesvd",info);
   tol = 10*PETSC_MACHINE_EPSILON*n*sg[0];
   for (j=0;j<n;j++) {
     if (sg[j]>tol) {
@@ -98,13 +99,13 @@ static PetscErrorCode LyapunovResidual(PetscScalar *H,PetscInt m,PetscInt ldh,Pe
 
 #if defined(SLEPC_HAVE_SLICOT)
 /*
-   LyapunovFact_SLICOT - alternative implementation when SLICOT is not available
+   LyapunovFact_SLICOT - implementation used when SLICOT is available
 */
 static PetscErrorCode LyapunovChol_SLICOT(PetscScalar *H,PetscInt m,PetscInt ldh,PetscScalar *r,PetscScalar *L,PetscInt ldl,PetscReal *res)
 {
 #if defined(PETSC_MISSING_LAPACK_HSEQR)
   PetscFunctionBegin;
-  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"HSEQR - Lapack routines are unavailable");
+  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"HSEQR - Lapack routine is unavailable");
 #else
   PetscErrorCode ierr;
   PetscBLASInt   ilo=1,lwork,info,n,ld,ld1,ione=1;
@@ -129,7 +130,7 @@ static PetscErrorCode LyapunovChol_SLICOT(PetscScalar *H,PetscInt m,PetscInt ldh
   ierr = PetscCalloc5(m*m,&Q,m*m,&W,m,&z,m,&wr,5*m,&work);CHKERRQ(ierr);
   PetscStackCallBLAS("LAPACKhseqr",LAPACKhseqr_("S","I",&n,&ilo,&n,H,&ld,wr,Q,&n,work,&lwork,&info));
 #endif
-  if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xHSEQR %d",info);
+  SlepcCheckLapackInfo("hseqr",info);
 #if defined(PETSC_USE_DEBUG)
   for (i=0;i<m;i++) if (PetscRealPart(wr[i])>0.0) SETERRQ(PETSC_COMM_SELF,1,"Positive eigenvalue found, the coefficient matrix is not stable");
 #endif
@@ -139,7 +140,7 @@ static PetscErrorCode LyapunovChol_SLICOT(PetscScalar *H,PetscInt m,PetscInt ldh
 
   /* solve Lyapunov equation (Hammarling) */
   PetscStackCallBLAS("SLICOTsb03od",SLICOTsb03od_("C","F","N",&n,&ione,H,&ld,Q,&n,W,&n,&scal,wr,wi,work,&lwork,&info));
-  if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in SLICOT subroutine SB03OD %d",info);
+  if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in SLICOT subroutine SB03OD %d",(int)info);
   if (scal!=1.0) SETERRQ1(PETSC_COMM_SELF,1,"Current implementation cannot handle scale factor %g",scal);
 
   /* Tranpose L = W' */
@@ -211,7 +212,7 @@ static PetscErrorCode AbsEig(PetscScalar *A,PetscInt m)
 #else
   PetscStackCallBLAS("LAPACKsyev",LAPACKsyev_("V","L",&n,Q,&ld,eig,work,&lwork,&info));
 #endif
-  if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xSYEV %i",info);
+  SlepcCheckLapackInfo("syev",info);
 
   /* W = f(Lambda)*Q' */
   for (i=0;i<n;i++) {
@@ -263,7 +264,7 @@ static PetscErrorCode CholeskyFactor(PetscScalar *A,PetscInt m,PetscInt lda)
       A[i+i*lda] += 50.0*PETSC_MACHINE_EPSILON;
     }
     PetscStackCallBLAS("LAPACKpotrf",LAPACKpotrf_("L",&n,A,&ld,&info));
-    if (info) SETERRQ1(PETSC_COMM_SELF,1,"Error in Cholesky factorization, info=%D. Consider configuring SLEPc with SLICOT",(PetscInt)info);
+    SlepcCheckLapackInfo("potrf",info);
     ierr = PetscLogFlops((1.0*n*n*n)/3.0);CHKERRQ(ierr);
   }
 
@@ -309,7 +310,7 @@ static PetscErrorCode LyapunovChol_LAPACK(PetscScalar *H,PetscInt m,PetscInt ldh
   ierr = PetscMalloc5(m*m,&Q,m*m,&W,m,&z,m,&wr,m,&work);CHKERRQ(ierr);
   PetscStackCallBLAS("LAPACKhseqr",LAPACKhseqr_("S","I",&n,&ilo,&n,H,&ld,wr,Q,&n,work,&lwork,&info));
 #endif
-  if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xHSEQR %d",info);
+  SlepcCheckLapackInfo("hseqr",info);
 #if defined(PETSC_USE_DEBUG)
   for (i=0;i<m;i++) if (PetscRealPart(wr[i])>0.0) SETERRQ(PETSC_COMM_SELF,1,"Positive eigenvalue found, the coefficient matrix is not stable");
 #endif
@@ -322,7 +323,7 @@ static PetscErrorCode LyapunovChol_LAPACK(PetscScalar *H,PetscInt m,PetscInt ldh
 
   /* solve triangular Sylvester equation */
   PetscStackCallBLAS("LAPACKtrsyl",LAPACKtrsyl_("N","C",&ione,&n,&n,H,&ld,H,&ld,C,&ld1,&scal,&info));
-  if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xTRSYL %d",info);
+  SlepcCheckLapackInfo("trsyl",info);
   if (scal!=1.0) SETERRQ1(PETSC_COMM_SELF,1,"Current implementation cannot handle scale factor %g",scal);
   
   /* back-transform C = Q*C*Q' */

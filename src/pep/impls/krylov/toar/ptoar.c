@@ -324,7 +324,7 @@ static PetscErrorCode PEPTOARrun(PEP pep,PetscScalar sigma,PetscInt *nq,PetscSca
   if (!flg) {
     /* spectral transformation handled by the solver */
     ierr = PetscObjectTypeCompareAny((PetscObject)pep->st,&flg,STSINVERT,STSHIFT,"");CHKERRQ(ierr);
-    if (!flg) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"STtype not supported fr TOAR without transforming matrices");
+    if (!flg) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"ST type not supported for TOAR without transforming matrices");
     ierr = PetscObjectTypeCompare((PetscObject)pep->st,STSINVERT,&sinvert);CHKERRQ(ierr);
   }
   for (j=k;j<m;j++) {
@@ -416,7 +416,7 @@ static PetscErrorCode PEPTOARTrunc(PEP pep,PetscScalar *S,PetscInt ld,PetscInt d
 #else
     PetscStackCallBLAS("LAPACKgesvd",LAPACKgesvd_("S","S",&nrow_,&newctdeg,M,&nrow_,sg,pU+offu,&rs1_,V,&n_,work+nwu,&lw_,rwork+nrwu,&info));
 #endif
-    if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xGESVD %d",info);
+    SlepcCheckLapackInfo("gesvd",info);
     /* SVD has rank min(newc,nrow) */
     rk = PetscMin(newc,nrow);
     for (i=0;i<rk;i++) {
@@ -453,7 +453,7 @@ static PetscErrorCode PEPTOARTrunc(PEP pep,PetscScalar *S,PetscInt ld,PetscInt d
 #else
   PetscStackCallBLAS("LAPACKgesvd",LAPACKgesvd_("S","S",&nrow_,&nnctdeg,M,&nrow_,sg,pU+offu+newc*rs1,&rs1_,V,&n_,work+nwu,&lw_,rwork+nrwu,&info));
 #endif
-  if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xGESVD %d",info);
+  SlepcCheckLapackInfo("gesvd",info);
   tol = PetscMax(rs1,deg*cs1)*PETSC_MACHINE_EPSILON*sg[0];
   for (i=0;i<PetscMin(n_,nnctdeg);i++) if (sg[i]>tol) rk++;
   rk = PetscMin(nnc+deg-1,rk);
@@ -485,10 +485,12 @@ static PetscErrorCode PEPTOARTrunc(PEP pep,PetscScalar *S,PetscInt ld,PetscInt d
   ierr = PetscBLASIntCast(rk,&rk_);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(cs1-lock,&nnc_);CHKERRQ(ierr);
   PetscStackCallBLAS("LAPACKgeqrf",LAPACKgeqrf_(&nrow_,&rk_,pU+offu,&rs1_,tau,work+nwu,&lw_,&info));
+  SlepcCheckLapackInfo("geqrf",info);
   for (i=0;i<deg;i++) {
     PetscStackCallBLAS("BLAStrmm",BLAStrmm_("L","U","N","N",&rk_,&nnc_,&sone,pU+offu,&rs1_,S+lock*lds+lock+i*ld,&lds_));
   }
   PetscStackCallBLAS("LAPACKungqr",LAPACKungqr_(&nrow_,&rk_,&rk_,pU+offu,&rs1_,tau,work+nwu,&lw_,&info));
+  SlepcCheckLapackInfo("ungqr",info);
 
   /* update vectors V(:,idx) = V*Q(:,idx) */
   rk = rk+lock;
@@ -617,8 +619,10 @@ static PetscErrorCode PEPExtractInvariantPair(PEP pep,PetscScalar sigma,PetscInt
     }
     if (flg) {
       PetscStackCallBLAS("LAPACKgetrf",LAPACKgetrf_(&k_,&k_,T,&k_,p,&info));
+      SlepcCheckLapackInfo("getrf",info);
       ierr = PetscBLASIntCast(nw-nwu,&lwork);CHKERRQ(ierr);
       PetscStackCallBLAS("LAPACKgetri",LAPACKgetri_(&k_,T,&k_,p,work+nwu,&lwork,&info));
+      SlepcCheckLapackInfo("getri",info);
     }
     if (sigma!=0.0) for (i=0;i<k;i++) T[i+k*i] += sigma;
   } else {
@@ -728,7 +732,7 @@ static PetscErrorCode PEPExtractInvariantPair(PEP pep,PetscScalar sigma,PetscInt
       PetscStackCallBLAS("BLASgemm",BLASgemm_("N","C",&k_,&k_,&k_,&sone,Hj,&k_,Hj,&k_,&sone,Bt,&k_));
     }
     PetscStackCallBLAS("LAPACKgesv",LAPACKgesv_(&k_,&sr_,Bt,&k_,p,At,&k_,&info));
-    if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xGESV %d",info);
+    SlepcCheckLapackInfo("gesv",info);
     for (j=0;j<sr;j++) {
       for (i=0;i<k;i++) S[i*lds+j] = PetscConj(At[j*k+i]);
     }

@@ -33,7 +33,7 @@ PetscErrorCode DSAllocate_PEP(DS ds,PetscInt ld)
   PetscInt       i;
 
   PetscFunctionBegin;
-  if (!ctx->d) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONGSTATE,"DSPEP requires specifying the polynomial degree via DSPEPSetDegree()");
+  if (!ctx->d) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_WRONGSTATE,"DSPEP requires specifying the polynomial degree via DSPEPSetDegree()");
   ierr = DSAllocateMat_Private(ds,DS_MAT_X);CHKERRQ(ierr);
   ierr = DSAllocateMat_Private(ds,DS_MAT_Y);CHKERRQ(ierr);
   for (i=0;i<=ctx->d;i++) {
@@ -70,7 +70,7 @@ PetscErrorCode DSView_PEP(DS ds,PetscViewer viewer)
 PetscErrorCode DSVectors_PEP(DS ds,DSMatType mat,PetscInt *j,PetscReal *rnorm)
 {
   PetscFunctionBegin;
-  if (rnorm) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"Not implemented yet");
+  if (rnorm) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_SUP,"Not implemented yet");
   switch (mat) {
     case DS_MAT_X:
       break;
@@ -198,11 +198,10 @@ PetscErrorCode DSSolve_PEP_QZ(DS ds,PetscScalar *wr,PetscScalar *wi)
 #if defined(PETSC_USE_COMPLEX)
   rwork = ds->rwork;
   PetscStackCallBLAS("LAPACKggev",LAPACKggev_("V","V",&nd,A,&ldd,B,&ldd,wr,beta,U,&ldd,W,&ldd,work,&lwork,rwork,&info));
-  if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack ZGGEV %d",info);
 #else
   PetscStackCallBLAS("LAPACKggev",LAPACKggev_("V","V",&nd,A,&ldd,B,&ldd,wr,wi,beta,U,&ldd,W,&ldd,work,&lwork,&info));
-  if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack DGGEV %d",info);
 #endif
+  SlepcCheckLapackInfo("ggev",info);
 
   /* copy eigenvalues */
   for (i=0;i<nd;i++) {

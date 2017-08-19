@@ -515,7 +515,7 @@ static PetscErrorCode FNEvaluateFunctionMat_Sym_Private(FN fn,PetscScalar *As,Pe
 #else
   PetscStackCallBLAS("LAPACKsyev",LAPACKsyev_("V","L",&n,Q,&ld,eig,work,&lwork,&info));
 #endif
-  if (info) SETERRQ1(PetscObjectComm((PetscObject)fn),PETSC_ERR_LIB,"Error in Lapack xSYEV %i",info);
+  SlepcCheckLapackInfo("syev",info);
 
   /* W = f(Lambda)*Q' */
   for (i=0;i<n;i++) {

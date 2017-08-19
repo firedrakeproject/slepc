@@ -133,14 +133,14 @@ int main(int argc,char **argv)
   ierr = VecAXPY(t,-1.0,v);CHKERRQ(ierr);
   ierr = BVRestoreColumn(X,0,&v);CHKERRQ(ierr);
   ierr = VecNorm(t,NORM_2,&nrm);CHKERRQ(ierr);
-  if (PetscAbsReal(nrm)>10*PETSC_MACHINE_EPSILON) SETERRQ1(PETSC_COMM_SELF,1,"Wrong value, nrm = %g\n",(double)nrm);
+  if (PetscAbsReal(nrm)>10*PETSC_MACHINE_EPSILON) SETERRQ1(PETSC_COMM_WORLD,1,"Wrong value, nrm = %g\n",(double)nrm);
 
   ierr = BVApplyMatrixBV(X,Y);CHKERRQ(ierr);
   ierr = BVGetColumn(Y,0,&v);CHKERRQ(ierr);
   ierr = VecAXPY(w,-1.0,v);CHKERRQ(ierr);
   ierr = BVRestoreColumn(Y,0,&v);CHKERRQ(ierr);
   ierr = VecNorm(w,NORM_2,&nrm);CHKERRQ(ierr);
-  if (PetscAbsReal(nrm)>10*PETSC_MACHINE_EPSILON) SETERRQ1(PETSC_COMM_SELF,1,"Wrong value, nrm = %g\n",(double)nrm);
+  if (PetscAbsReal(nrm)>10*PETSC_MACHINE_EPSILON) SETERRQ1(PETSC_COMM_WORLD,1,"Wrong value, nrm = %g\n",(double)nrm);
 
   ierr = BVDestroy(&X);CHKERRQ(ierr);
   ierr = BVDestroy(&Y);CHKERRQ(ierr);

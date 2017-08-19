@@ -118,7 +118,7 @@ PetscErrorCode EPSSolve_ARPACK(EPS eps)
   ierr = VecGetArray(eps->work[1],&resid);CHKERRQ(ierr);
 
   ido  = 0;            /* first call to reverse communication interface */
-  info = 1;            /* indicates a initial vector is provided */
+  info = 1;            /* indicates an initial vector is provided */
   iparam[0] = 1;       /* use exact shifts */
   ierr = PetscBLASIntCast(eps->max_it,&iparam[2]);CHKERRQ(ierr);  /* max Arnoldi iterations */
   iparam[3] = 1;       /* blocksize */
@@ -151,8 +151,7 @@ PetscErrorCode EPSSolve_ARPACK(EPS eps)
     bmat[0] = 'G';
   } else {
     /* regular mode */
-    if (eps->ishermitian && eps->isgeneralized)
-      SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Spectral transformation not supported by ARPACK hermitian solver");
+    if (eps->ishermitian && eps->isgeneralized) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Spectral transformation not supported by ARPACK hermitian solver");
     iparam[6] = 1;
     bmat[0] = 'I';
   }
@@ -244,7 +243,7 @@ PetscErrorCode EPSSolve_ARPACK(EPS eps)
   eps->its = iparam[2];
 
   if (info==3) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_LIB,"No shift could be applied in xxAUPD.\nTry increasing the size of NCV relative to NEV");
-  else if (info!=0 && info!=1) SETERRQ1(PetscObjectComm((PetscObject)eps),PETSC_ERR_LIB,"Error reported by ARPACK subroutine xxAUPD (%d)",info);
+  else if (info!=0 && info!=1) SETERRQ1(PetscObjectComm((PetscObject)eps),PETSC_ERR_LIB,"Error reported by ARPACK subroutine xxAUPD (%d)",(int)info);
 
   rvec = PETSC_TRUE;
 
@@ -261,7 +260,7 @@ PetscErrorCode EPSSolve_ARPACK(EPS eps)
     ierr = EPSMonitor(eps,eps->its,iparam[4],&ar->workl[ipntr[5]-1],eps->eigi,(PetscReal*)&ar->workl[ipntr[7]-1],eps->ncv);CHKERRQ(ierr);
     PetscStackCall("ARPACKneupd",ARPACKneupd_(&fcomm,&rvec,howmny,ar->select,eps->eigr,pV,&n,&sigmar,ar->workev,bmat,&n,which,&nev,&eps->tol,resid,&ncv,pV,&n,iparam,ipntr,ar->workd,ar->workl,&ar->lworkl,ar->rwork,&info));
 #endif
-    if (info!=0) SETERRQ1(PetscObjectComm((PetscObject)eps),PETSC_ERR_LIB,"Error reported by ARPACK subroutine xxEUPD (%d)",info);
+    if (info!=0) SETERRQ1(PetscObjectComm((PetscObject)eps),PETSC_ERR_LIB,"Error reported by ARPACK subroutine xxEUPD (%d)",(int)info);
   }
 
   ierr = VecRestoreArray(v0,&pV);CHKERRQ(ierr);

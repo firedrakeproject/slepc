@@ -63,7 +63,7 @@ static PetscErrorCode dvd_improvex_apply_proj(dvdDashboard *d,Vec *V,PetscInt cV
 {
 #if defined(PETSC_MISSING_LAPACK_GETRS)
   PetscFunctionBegin;
-  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"GETRS - Lapack routines are unavailable");
+  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"GETRS - Lapack routine is unavailable");
 #else
   PetscErrorCode ierr;
   dvdImprovex_jd *data = (dvdImprovex_jd*)d->improveX_data;
@@ -99,7 +99,7 @@ static PetscErrorCode dvd_improvex_apply_proj(dvdDashboard *d,Vec *V,PetscInt cV
   ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
   PetscStackCallBLAS("LAPACKgetrs",LAPACKgetrs_("N",&n,&cV_,data->iXKZ,&ld,data->iXKZPivots,h,&n,&info));
   ierr = PetscFPTrapPop();CHKERRQ(ierr);
-  if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack XGETRS %d",info);
+  SlepcCheckLapackInfo("getrs",info);
 
   /* V <- V - KZ*h */
   ierr = BVSetActiveColumns(data->KZ,0,k);CHKERRQ(ierr);
@@ -121,7 +121,7 @@ static PetscErrorCode dvd_improvex_applytrans_proj(dvdDashboard *d,Vec *V,PetscI
 {
 #if defined(PETSC_MISSING_LAPACK_GETRS)
   PetscFunctionBegin;
-  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"GETRS - Lapack routines are unavailable");
+  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"GETRS - Lapack routine is unavailable");
   PetscFunctionReturn(0);
 #else
   PetscErrorCode ierr;
@@ -158,7 +158,7 @@ static PetscErrorCode dvd_improvex_applytrans_proj(dvdDashboard *d,Vec *V,PetscI
   ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
   PetscStackCallBLAS("LAPACKgetrs",LAPACKgetrs_("C",&n,&cV_,data->iXKZ,&ld,data->iXKZPivots,h,&n,&info));
   ierr = PetscFPTrapPop();CHKERRQ(ierr);
-  if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack XGETRS %d",info);
+  SlepcCheckLapackInfo("getrs",info);
 
   /* V <- V - U*h */
   ierr = BVSetActiveColumns(data->U,0,k);CHKERRQ(ierr);
@@ -599,7 +599,7 @@ static PetscErrorCode dvd_improvex_jd_proj_cuv(dvdDashboard *d,PetscInt i_s,Pets
   /* Check consistency */
   ierr = BVGetActiveColumns(d->eps->V,&lv,&kv);CHKERRQ(ierr);
   V_new = lv - data->size_cX;
-  if (V_new > data->old_size_X) SETERRQ(PETSC_COMM_SELF,1, "Consistency broken");
+  if (V_new > data->old_size_X) SETERRQ(PETSC_COMM_SELF,1,"Consistency broken");
   data->old_size_X = n;
   data->size_cX = lv;
 
@@ -658,7 +658,7 @@ static PetscErrorCode dvd_improvex_jd_proj_cuv(dvdDashboard *d,PetscInt i_s,Pets
   ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
   PetscStackCallBLAS("LAPACKgetrf",LAPACKgetrf_(&s,&s,data->iXKZ,&ldXKZ,data->iXKZPivots,&info));
   ierr = PetscFPTrapPop();CHKERRQ(ierr);
-  if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack XGETRF %d",info);
+  SlepcCheckLapackInfo("getrf",info);
   PetscFunctionReturn(0);
 #endif
 }

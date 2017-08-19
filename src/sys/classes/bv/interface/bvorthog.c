@@ -685,7 +685,7 @@ static PetscErrorCode BVOrthogonalize_GS(BV V,Mat R)
     } else {
       ierr = BVOrthogonalizeColumn(V,j,NULL,&norm,NULL);CHKERRQ(ierr);
     }
-    if (!norm) SETERRQ(PETSC_COMM_SELF,1,"Breakdown in BVOrthogonalize due to a linearly dependent column");
+    if (!norm) SETERRQ(PetscObjectComm((PetscObject)V),1,"Breakdown in BVOrthogonalize due to a linearly dependent column");
     if (V->matrix && V->orthog_type==BV_ORTHOG_CGS) {  /* fill cached BV */
       ierr = BVGetColumn(V->cached,j,&v);CHKERRQ(ierr);
       ierr = VecCopy(V->Bx,v);CHKERRQ(ierr);
@@ -738,7 +738,7 @@ static PetscErrorCode MatCholeskyFactorInvert(Mat R,PetscInt l,Mat *S)
       pR[i+i*ld] += 50.0*PETSC_MACHINE_EPSILON;
     }
     PetscStackCallBLAS("LAPACKpotrf",LAPACKpotrf_("U",&n_,pR+l*ld+l,&ld_,&info));
-    if (info) SETERRQ1(PETSC_COMM_SELF,1,"Error in Cholesky factorization, info=%D",(PetscInt)info);
+    SlepcCheckLapackInfo("potrf",info);
     ierr = PetscLogFlops((1.0*n*n*n)/3.0);CHKERRQ(ierr);
   }
 
@@ -748,7 +748,7 @@ static PetscErrorCode MatCholeskyFactorInvert(Mat R,PetscInt l,Mat *S)
     ierr = PetscMemcpy(pS+i*ld+l,pR+i*ld+l,n*sizeof(PetscScalar));CHKERRQ(ierr);
   }
   PetscStackCallBLAS("LAPACKtrtri",LAPACKtrtri_("U","N",&n_,pS+l*ld+l,&ld_,&info));
-  if (info) SETERRQ1(PETSC_COMM_SELF,1,"Error in xTRTRI, info=%D",(PetscInt)info);
+  SlepcCheckLapackInfo("trtri",info);
   ierr = PetscLogFlops(1.0*n*n*n);CHKERRQ(ierr);
 
   /* Zero out entries below the diagonal */
