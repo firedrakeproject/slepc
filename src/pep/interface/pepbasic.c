@@ -83,8 +83,10 @@ PetscErrorCode PEPCreate(MPI_Comm comm,PEP *outpep)
   pep->trackall        = PETSC_FALSE;
 
   pep->converged       = PEPConvergedRelative;
+  pep->convergeduser   = NULL;
   pep->convergeddestroy= NULL;
   pep->stopping        = PEPStoppingBasic;
+  pep->stoppinguser    = NULL;
   pep->stoppingdestroy = NULL;
   pep->convergedctx    = NULL;
   pep->stoppingctx     = NULL;
