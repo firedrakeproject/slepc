@@ -94,6 +94,7 @@ struct _p_EPS {
 
   /*-------------- User-provided functions and contexts -----------------*/
   PetscErrorCode (*converged)(EPS,PetscScalar,PetscScalar,PetscReal,PetscReal*,void*);
+  PetscErrorCode (*convergeduser)(EPS,PetscScalar,PetscScalar,PetscReal,PetscReal*,void*);
   PetscErrorCode (*convergeddestroy)(void*);
   PetscErrorCode (*stopping)(EPS,PetscInt,PetscInt,PetscInt,PetscInt,EPSConvergedReason*,void*);
   PetscErrorCode (*stoppingdestroy)(void*);

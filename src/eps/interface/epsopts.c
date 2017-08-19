@@ -719,13 +719,16 @@ PetscErrorCode EPSSetConvergenceTestFunction(EPS eps,PetscErrorCode (*func)(EPS,
   if (eps->convergeddestroy) {
     ierr = (*eps->convergeddestroy)(eps->convergedctx);CHKERRQ(ierr);
   }
-  eps->converged        = func;
+  eps->convergeduser    = func;
   eps->convergeddestroy = destroy;
   eps->convergedctx     = ctx;
   if (func == EPSConvergedRelative) eps->conv = EPS_CONV_REL;
   else if (func == EPSConvergedNorm) eps->conv = EPS_CONV_NORM;
   else if (func == EPSConvergedAbsolute) eps->conv = EPS_CONV_ABS;
-  else eps->conv = EPS_CONV_USER;
+  else {
+    eps->conv      = EPS_CONV_USER;
+    eps->converged = eps->convergeduser;
+  }
   PetscFunctionReturn(0);
 }
 
@@ -765,7 +768,10 @@ PetscErrorCode EPSSetConvergenceTest(EPS eps,EPSConv conv)
     case EPS_CONV_ABS:  eps->converged = EPSConvergedAbsolute; break;
     case EPS_CONV_REL:  eps->converged = EPSConvergedRelative; break;
     case EPS_CONV_NORM: eps->converged = EPSConvergedNorm; break;
-    case EPS_CONV_USER: break;
+    case EPS_CONV_USER:
+      if (!eps->convergeduser) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ORDER,"Must call EPSSetConvergenceTestFunction() first");
+      eps->converged = eps->convergeduser;
+      break;
     default:
       SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"Invalid 'conv' value");
   }

@@ -87,6 +87,7 @@ struct _p_PEP {
 
   /*-------------- User-provided functions and contexts -----------------*/
   PetscErrorCode (*converged)(PEP,PetscScalar,PetscScalar,PetscReal,PetscReal*,void*);
+  PetscErrorCode (*convergeduser)(PEP,PetscScalar,PetscScalar,PetscReal,PetscReal*,void*);
   PetscErrorCode (*convergeddestroy)(void*);
   PetscErrorCode (*stopping)(PEP,PetscInt,PetscInt,PetscInt,PetscInt,PEPConvergedReason*,void*);
   PetscErrorCode (*stoppingdestroy)(void*);
