@@ -28,7 +28,7 @@ PetscErrorCode EPSSetUp_LAPACK(EPS eps)
 {
   PetscErrorCode ierr,ierra,ierrb;
   PetscBool      isshift,flg,denseok=PETSC_FALSE;
-  Mat            A,B,OP,Ar,Br,Adense=NULL,Bdense=NULL;
+  Mat            A,B,OP,shell,Ar,Br,Adense=NULL,Bdense=NULL;
   PetscScalar    shift,*Ap,*Bp;
   PetscInt       i,ld,nmat;
   KSP            ksp;
@@ -109,7 +109,9 @@ PetscErrorCode EPSSetUp_LAPACK(EPS eps)
     ierr = PCSetType(pc,PCNONE);CHKERRQ(ierr);
   } else {
     ierr = PetscInfo(eps,"Using slow explicit operator\n");CHKERRQ(ierr);
-    ierr = STComputeExplicitOperator(eps->st,&OP);CHKERRQ(ierr);
+    ierr = STGetOperator(eps->st,&shell);CHKERRQ(ierr);
+    ierr = MatComputeExplicitOperator(shell,&OP);CHKERRQ(ierr);
+    ierr = MatDestroy(&shell);CHKERRQ(ierr);
     ierr = MatDestroy(&Adense);CHKERRQ(ierr);
     ierr = MatCreateRedundantMatrix(OP,0,PETSC_COMM_SELF,MAT_INITIAL_MATRIX,&Ar);CHKERRQ(ierr);
     ierr = MatDestroy(&OP);CHKERRQ(ierr);
