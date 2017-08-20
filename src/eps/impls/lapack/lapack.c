@@ -28,7 +28,7 @@ PetscErrorCode EPSSetUp_LAPACK(EPS eps)
 {
   PetscErrorCode ierr,ierra,ierrb;
   PetscBool      isshift,flg,denseok=PETSC_FALSE;
-  Mat            A,B,OP,Ar,Br,Adense=NULL,Bdense=NULL;
+  Mat            A,B,OP,shell,Ar,Br,Adense=NULL,Bdense=NULL;
   PetscScalar    shift,*Ap,*Bp;
   PetscInt       i,ld,nmat;
   KSP            ksp;
@@ -48,7 +48,7 @@ PetscErrorCode EPSSetUp_LAPACK(EPS eps)
   ierr = PetscObjectTypeCompare((PetscObject)eps->st,STSHIFT,&isshift);CHKERRQ(ierr);
   if (isshift) {
     ierr = STGetNumMatrices(eps->st,&nmat);CHKERRQ(ierr);
-    ierr = STGetOperators(eps->st,0,&A);CHKERRQ(ierr);
+    ierr = STGetMatrix(eps->st,0,&A);CHKERRQ(ierr);
     ierr = MatHasOperation(A,MATOP_CREATE_SUBMATRICES,&flg);CHKERRQ(ierr);
     if (flg) {
       PetscPushErrorHandler(PetscIgnoreErrorHandler,NULL);
@@ -58,7 +58,7 @@ PetscErrorCode EPSSetUp_LAPACK(EPS eps)
       PetscPopErrorHandler();
     } else ierra = 1;
     if (nmat>1) {
-      ierr = STGetOperators(eps->st,1,&B);CHKERRQ(ierr);
+      ierr = STGetMatrix(eps->st,1,&B);CHKERRQ(ierr);
       ierr = MatHasOperation(B,MATOP_CREATE_SUBMATRICES,&flg);CHKERRQ(ierr);
       if (flg) {
         PetscPushErrorHandler(PetscIgnoreErrorHandler,NULL);
@@ -109,7 +109,9 @@ PetscErrorCode EPSSetUp_LAPACK(EPS eps)
     ierr = PCSetType(pc,PCNONE);CHKERRQ(ierr);
   } else {
     ierr = PetscInfo(eps,"Using slow explicit operator\n");CHKERRQ(ierr);
-    ierr = STComputeExplicitOperator(eps->st,&OP);CHKERRQ(ierr);
+    ierr = STGetOperator(eps->st,&shell);CHKERRQ(ierr);
+    ierr = MatComputeExplicitOperator(shell,&OP);CHKERRQ(ierr);
+    ierr = MatDestroy(&shell);CHKERRQ(ierr);
     ierr = MatDestroy(&Adense);CHKERRQ(ierr);
     ierr = MatCreateRedundantMatrix(OP,0,PETSC_COMM_SELF,MAT_INITIAL_MATRIX,&Ar);CHKERRQ(ierr);
     ierr = MatDestroy(&OP);CHKERRQ(ierr);

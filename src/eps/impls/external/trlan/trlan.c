@@ -109,7 +109,7 @@ PetscErrorCode EPSSolve_TRLAN(EPS eps)
   else SETERRQ(PetscObjectComm((PetscObject)eps),1,"Wrong value of eps->which");
 
   globaldata.eps = eps;
-  ierr = STGetOperators(eps->st,0,&A);CHKERRQ(ierr);
+  ierr = STGetMatrix(eps->st,0,&A);CHKERRQ(ierr);
   ierr = MatCreateVecsEmpty(A,&globaldata.x,&globaldata.y);CHKERRQ(ierr);
 
   ipar[0]  = 0;            /* stat: error flag */

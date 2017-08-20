@@ -98,8 +98,8 @@ PetscErrorCode EPSSolve_FEAST(EPS eps)
 
   ijob = -1;           /* first call to reverse communication interface */
   ierr = STGetNumMatrices(eps->st,&nmat);CHKERRQ(ierr);
-  ierr = STGetOperators(eps->st,0,&A);CHKERRQ(ierr);
-  if (nmat>1) { ierr = STGetOperators(eps->st,1,&B);CHKERRQ(ierr); }
+  ierr = STGetMatrix(eps->st,0,&A);CHKERRQ(ierr);
+  if (nmat>1) { ierr = STGetMatrix(eps->st,1,&B);CHKERRQ(ierr); }
   else B = NULL;
   ierr = MatCreateVecsEmpty(A,&x,&y);CHKERRQ(ierr);
 

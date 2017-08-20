@@ -155,7 +155,7 @@ PetscErrorCode EPSSolve_BLZPACK(EPS eps)
   PC             pc;
 
   PetscFunctionBegin;
-  ierr = STGetOperators(eps->st,0,&A);CHKERRQ(ierr);
+  ierr = STGetMatrix(eps->st,0,&A);CHKERRQ(ierr);
   ierr = MatCreateVecsEmpty(A,&x,&y);CHKERRQ(ierr);
   ierr = EPSGetStartVector(eps,0,NULL);CHKERRQ(ierr);
   ierr = BVSetActiveColumns(eps->V,0,0);CHKERRQ(ierr);  /* just for deflation space */

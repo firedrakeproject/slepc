@@ -278,7 +278,7 @@ PetscErrorCode PEPBuildDiagonalScaling(PEP pep)
   ierr = STGetMatStructure(pep->st,&str);CHKERRQ(ierr);
   ierr = PetscMalloc1(nmat,&T);CHKERRQ(ierr);
   for (k=0;k<nmat;k++) {
-    ierr = STGetTOperators(pep->st,k,&T[k]);CHKERRQ(ierr);
+    ierr = STGetMatrixTransformed(pep->st,k,&T[k]);CHKERRQ(ierr);
   }
   /* Form local auxiliar matrix M */
   ierr = PetscObjectTypeCompareAny((PetscObject)T[0],&cont,MATMPIAIJ,MATSEQAIJ,"");CHKERRQ(ierr);
@@ -429,8 +429,8 @@ PetscErrorCode PEPComputeScaleFactor(PEP pep)
   if (basis==PEP_BASIS_MONOMIAL) {
     ierr = STGetTransform(pep->st,&flg);CHKERRQ(ierr);
     if (flg) {
-      ierr = STGetTOperators(pep->st,0,&T[0]);CHKERRQ(ierr);
-      ierr = STGetTOperators(pep->st,pep->nmat-1,&T[1]);CHKERRQ(ierr);
+      ierr = STGetMatrixTransformed(pep->st,0,&T[0]);CHKERRQ(ierr);
+      ierr = STGetMatrixTransformed(pep->st,pep->nmat-1,&T[1]);CHKERRQ(ierr);
     } else {
       T[0] = pep->A[0];
       T[1] = pep->A[pep->nmat-1];
@@ -444,7 +444,7 @@ PetscErrorCode PEPComputeScaleFactor(PEP pep)
         pep->sfactor = PetscPowReal(norm0/norm1,1.0/(pep->nmat-1));
         pep->dsfactor = norm1;
         for (i=pep->nmat-2;i>0;i--) {
-          ierr = STGetTOperators(pep->st,i,&T[1]);CHKERRQ(ierr);
+          ierr = STGetMatrixTransformed(pep->st,i,&T[1]);CHKERRQ(ierr);
           ierr = MatHasOperation(T[1],MATOP_NORM,&has1);CHKERRQ(ierr);
           if (has1) {
             ierr = MatNorm(T[1],NORM_INFINITY,&norm1);CHKERRQ(ierr);

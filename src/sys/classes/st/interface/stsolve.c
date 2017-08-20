@@ -163,81 +163,63 @@ PetscErrorCode STGetBilinearForm_Default(ST st,Mat *B)
   PetscFunctionReturn(0);
 }
 
+static PetscErrorCode MatMult_STOperator(Mat Op,Vec x,Vec y)
+{
+  PetscErrorCode ierr;
+  ST             st;
+
+  PetscFunctionBegin;
+  ierr = MatShellGetContext(Op,(void**)&st);CHKERRQ(ierr);
+  ierr = STApply(st,x,y);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+static PetscErrorCode MatMultTranspose_STOperator(Mat Op,Vec x,Vec y)
+{
+  PetscErrorCode ierr;
+  ST             st;
+
+  PetscFunctionBegin;
+  ierr = MatShellGetContext(Op,(void**)&st);CHKERRQ(ierr);
+  ierr = STApplyTranspose(st,x,y);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
 /*@
-   STComputeExplicitOperator - Computes the explicit operator associated
-   to the eigenvalue problem with the specified spectral transformation.
+   STGetOperator - Returns a shell matrix that represents the spectral transformation.
 
    Collective on ST
 
-   Input Parameter:
-.  st - the spectral transform context
+   Input Parameters:
+.  st - the spectral transformation context
 
    Output Parameter:
-.  mat - the explicit operator
+.  Op - output matrix
 
    Notes:
-   This routine builds a matrix containing the explicit operator. For
-   example, in generalized problems with shift-and-invert spectral
-   transformation the result would be matrix (A - s B)^-1 B.
-
-   This computation is done by applying the operator to columns of the
-   identity matrix. This is analogous to MatComputeExplicitOperator().
+   The returned shell matrix is essentially a wrapper to the STApply() and
+   STApplyTranspose() operations. It must be destroyed after use.
 
    Level: advanced
 
-.seealso: STApply()
+.seealso: STApply(), STApplyTranspose()
 @*/
-PetscErrorCode STComputeExplicitOperator(ST st,Mat *mat)
+PetscErrorCode STGetOperator(ST st,Mat *Op)
 {
-  PetscErrorCode    ierr;
-  Vec               in,out;
-  PetscInt          i,M,m,*rows,start,end;
-  const PetscScalar *array;
-  PetscScalar       one = 1.0;
-  PetscMPIInt       size;
+  PetscErrorCode ierr;
+  PetscInt       m,n,M,N;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
-  PetscValidPointer(mat,2);
+  PetscValidType(st,1);
+  PetscValidPointer(Op,2);
   STCheckMatrices(st,1);
-  if (st->nmat>2) SETERRQ(PetscObjectComm((PetscObject)st),PETSC_ERR_ARG_WRONGSTATE,"Can only be used with 1 or 2 matrices");
-  ierr = MPI_Comm_size(PetscObjectComm((PetscObject)st),&size);CHKERRQ(ierr);
 
-  ierr = MatCreateVecs(st->A[0],&in,&out);CHKERRQ(ierr);
-  ierr = VecGetSize(out,&M);CHKERRQ(ierr);
-  ierr = VecGetLocalSize(out,&m);CHKERRQ(ierr);
-  ierr = VecSetOption(in,VEC_IGNORE_OFF_PROC_ENTRIES,PETSC_TRUE);CHKERRQ(ierr);
-  ierr = VecGetOwnershipRange(out,&start,&end);CHKERRQ(ierr);
-  ierr = PetscMalloc1(m,&rows);CHKERRQ(ierr);
-  for (i=0;i<m;i++) rows[i] = start + i;
-
-  ierr = MatCreate(PetscObjectComm((PetscObject)st),mat);CHKERRQ(ierr);
-  ierr = MatSetSizes(*mat,m,m,M,M);CHKERRQ(ierr);
-  if (size == 1) {
-    ierr = MatSetType(*mat,MATSEQDENSE);CHKERRQ(ierr);
-    ierr = MatSeqDenseSetPreallocation(*mat,NULL);CHKERRQ(ierr);
-  } else {
-    ierr = MatSetType(*mat,MATMPIAIJ);CHKERRQ(ierr);
-    ierr = MatMPIAIJSetPreallocation(*mat,m,NULL,M-m,NULL);CHKERRQ(ierr);
-  }
-
-  for (i=0;i<M;i++) {
-    ierr = VecSet(in,0.0);CHKERRQ(ierr);
-    ierr = VecSetValues(in,1,&i,&one,INSERT_VALUES);CHKERRQ(ierr);
-    ierr = VecAssemblyBegin(in);CHKERRQ(ierr);
-    ierr = VecAssemblyEnd(in);CHKERRQ(ierr);
-
-    ierr = STApply(st,in,out);CHKERRQ(ierr);
-
-    ierr = VecGetArrayRead(out,&array);CHKERRQ(ierr);
-    ierr = MatSetValues(*mat,m,rows,1,&i,array,INSERT_VALUES);CHKERRQ(ierr);
-    ierr = VecRestoreArrayRead(out,&array);CHKERRQ(ierr);
-  }
-  ierr = PetscFree(rows);CHKERRQ(ierr);
-  ierr = VecDestroy(&in);CHKERRQ(ierr);
-  ierr = VecDestroy(&out);CHKERRQ(ierr);
-  ierr = MatAssemblyBegin(*mat,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
-  ierr = MatAssemblyEnd(*mat,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
+  ierr = MatGetLocalSize(st->A[0],&m,&n);CHKERRQ(ierr);
+  ierr = MatGetSize(st->A[0],&M,&N);CHKERRQ(ierr);
+  ierr = MatCreateShell(PetscObjectComm((PetscObject)st),m,n,M,N,st,Op);CHKERRQ(ierr);
+  ierr = MatShellSetOperation(*Op,MATOP_MULT,(void(*)(void))MatMult_STOperator);CHKERRQ(ierr);
+  ierr = MatShellSetOperation(*Op,MATOP_MULT_TRANSPOSE,(void(*)(void))MatMultTranspose_STOperator);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

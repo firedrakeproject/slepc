@@ -450,7 +450,7 @@ static PetscErrorCode NRefSysSetup_mbe(PEP pep,PetscInt k,KSP ksp,PetscScalar *f
   if (flg) {
     ierr = PetscMalloc1(pep->nmat,&At);CHKERRQ(ierr);
     for (i=0;i<pep->nmat;i++) {
-      ierr = STGetTOperators(pep->st,i,&At[i]);CHKERRQ(ierr);
+      ierr = STGetMatrixTransformed(pep->st,i,&At[i]);CHKERRQ(ierr);
     }
   } else At = pep->A;
   if (matctx->subc) A = matctx->A;
@@ -587,7 +587,7 @@ static PetscErrorCode NRefSysSetup_explicit(PEP pep,PetscInt k,KSP ksp,PetscScal
   if (flg) {
     ierr = PetscMalloc1(pep->nmat,&At);CHKERRQ(ierr);
     for (i=0;i<pep->nmat;i++) {
-      ierr = STGetTOperators(pep->st,i,&At[i]);CHKERRQ(ierr);
+      ierr = STGetMatrixTransformed(pep->st,i,&At[i]);CHKERRQ(ierr);
     }
   } else At = pep->A;
   if (matctx->subc) A = matctx->A;
@@ -908,7 +908,7 @@ static PetscErrorCode PEPNRefForwardSubstitution(PEP pep,PetscInt k,PetscScalar 
   if (flg) {
     ierr = PetscMalloc1(pep->nmat,&At);CHKERRQ(ierr);
     for (i=0;i<pep->nmat;i++) {
-      ierr = STGetTOperators(pep->st,i,&At[i]);CHKERRQ(ierr);
+      ierr = STGetMatrixTransformed(pep->st,i,&At[i]);CHKERRQ(ierr);
     }
   } else At = pep->A;
 
@@ -1067,7 +1067,7 @@ static PetscErrorCode PEPNRefSetUp(PEP pep,PetscInt k,PetscScalar *H,PetscInt ld
   if (flg) {
     ierr = PetscMalloc1(pep->nmat,&At);CHKERRQ(ierr);
     for (i=0;i<pep->nmat;i++) {
-      ierr = STGetTOperators(pep->st,i,&At[i]);CHKERRQ(ierr);
+      ierr = STGetMatrixTransformed(pep->st,i,&At[i]);CHKERRQ(ierr);
     }
   } else At = pep->A;
   switch (pep->scheme) {
@@ -1276,7 +1276,7 @@ static PetscErrorCode NRefSubcommSetup(PEP pep,PetscInt k,MatExplicitCtx *matctx
   if (flg) {
     ierr = PetscMalloc1(pep->nmat,&A);CHKERRQ(ierr);
     for (i=0;i<pep->nmat;i++) {
-      ierr = STGetTOperators(pep->st,i,&A[i]);CHKERRQ(ierr);
+      ierr = STGetMatrixTransformed(pep->st,i,&A[i]);CHKERRQ(ierr);
     }
   } else A = pep->A;
 

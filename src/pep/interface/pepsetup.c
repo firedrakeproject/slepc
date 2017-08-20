@@ -105,7 +105,7 @@ PetscErrorCode PEPSetUp(PEP pep)
 
   /* check matrices, transfer them to ST */
   if (!pep->A) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_WRONGSTATE,"PEPSetOperators must be called first");
-  ierr = STSetOperators(pep->st,pep->nmat,pep->A);CHKERRQ(ierr);
+  ierr = STSetMatrices(pep->st,pep->nmat,pep->A);CHKERRQ(ierr);
 
   /* set problem dimensions */
   ierr = MatGetSize(pep->A[0],&pep->n,NULL);CHKERRQ(ierr);

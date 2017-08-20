@@ -131,8 +131,8 @@ PetscErrorCode EPSSolve_RQCG(EPS eps)
   PetscFunctionBegin;
   ierr = DSGetLeadingDimension(eps->ds,&ld);CHKERRQ(ierr);
   ierr = STGetNumMatrices(eps->st,&nmat);CHKERRQ(ierr);
-  ierr = STGetOperators(eps->st,0,&A);CHKERRQ(ierr);
-  if (nmat>1) { ierr = STGetOperators(eps->st,1,&B);CHKERRQ(ierr); }
+  ierr = STGetMatrix(eps->st,0,&A);CHKERRQ(ierr);
+  if (nmat>1) { ierr = STGetMatrix(eps->st,1,&B);CHKERRQ(ierr); }
   else B = NULL;
   ierr = PetscMalloc1(eps->mpd,&gamma);CHKERRQ(ierr);
 

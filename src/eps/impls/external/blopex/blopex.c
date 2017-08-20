@@ -72,8 +72,8 @@ static void OperatorASingleVector(void *data,void *x,void *y)
 
   PetscFunctionBegin;
   ierr = STGetNumMatrices(blopex->st,&nmat);CHKERRABORT(comm,ierr);
-  ierr = STGetOperators(blopex->st,0,&A);CHKERRABORT(comm,ierr);
-  if (nmat>1) { ierr = STGetOperators(blopex->st,1,&B);CHKERRABORT(comm,ierr); }
+  ierr = STGetMatrix(blopex->st,0,&A);CHKERRABORT(comm,ierr);
+  if (nmat>1) { ierr = STGetMatrix(blopex->st,1,&B);CHKERRABORT(comm,ierr); }
   ierr = MatMult(A,(Vec)x,(Vec)y);CHKERRABORT(comm,ierr);
   ierr = STGetShift(blopex->st,&sigma);CHKERRABORT(comm,ierr);
   if (sigma != 0.0) {
@@ -104,7 +104,7 @@ static void OperatorBSingleVector(void *data,void *x,void *y)
   Mat            B;
 
   PetscFunctionBegin;
-  ierr = STGetOperators(blopex->st,1,&B);CHKERRABORT(comm,ierr);
+  ierr = STGetMatrix(blopex->st,1,&B);CHKERRABORT(comm,ierr);
   ierr = MatMult(B,(Vec)x,(Vec)y);CHKERRABORT(comm,ierr);
   PetscFunctionReturnVoid();
 }
