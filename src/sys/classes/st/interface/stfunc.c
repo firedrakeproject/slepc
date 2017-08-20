@@ -302,7 +302,7 @@ PetscErrorCode STGetOperators(ST st,PetscInt k,Mat *A)
 }
 
 /*@
-   STGetTOperators - Gets the matrices associated with the transformed eigensystem.
+   STGetMatrixTransformed - Gets the matrices associated with the transformed eigensystem.
 
    Not collective, though parallel Mats are returned if the ST is parallel
 
@@ -317,7 +317,7 @@ PetscErrorCode STGetOperators(ST st,PetscInt k,Mat *A)
 
 .seealso: STGetOperators(), STGetNumMatrices()
 @*/
-PetscErrorCode STGetTOperators(ST st,PetscInt k,Mat *T)
+PetscErrorCode STGetMatrixTransformed(ST st,PetscInt k,Mat *T)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_CLASSID,1);

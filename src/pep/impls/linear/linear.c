@@ -301,9 +301,9 @@ PetscErrorCode PEPSetUp_Linear(PEP pep)
     if (pep->scale==PEP_SCALE_DIAGONAL || pep->scale==PEP_SCALE_BOTH) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Diagonal scaling not allowed in PEPLINEAR with explicit matrices");
     if (sinv && !transf) { ierr = STSetType(st,STSINVERT);CHKERRQ(ierr); }
     ierr = RGPushScale(pep->rg,1.0/pep->sfactor);CHKERRQ(ierr);
-    ierr = STGetTOperators(pep->st,0,&ctx->K);CHKERRQ(ierr);
-    ierr = STGetTOperators(pep->st,1,&ctx->C);CHKERRQ(ierr);
-    ierr = STGetTOperators(pep->st,2,&ctx->M);CHKERRQ(ierr);
+    ierr = STGetMatrixTransformed(pep->st,0,&ctx->K);CHKERRQ(ierr);
+    ierr = STGetMatrixTransformed(pep->st,1,&ctx->C);CHKERRQ(ierr);
+    ierr = STGetMatrixTransformed(pep->st,2,&ctx->M);CHKERRQ(ierr);
     ctx->sfactor = pep->sfactor;
     ctx->dsfactor = pep->dsfactor;
 
