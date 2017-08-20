@@ -683,13 +683,16 @@ PetscErrorCode NEPSetConvergenceTestFunction(NEP nep,PetscErrorCode (*func)(NEP,
   if (nep->convergeddestroy) {
     ierr = (*nep->convergeddestroy)(nep->convergedctx);CHKERRQ(ierr);
   }
-  nep->converged        = func;
+  nep->convergeduser    = func;
   nep->convergeddestroy = destroy;
   nep->convergedctx     = ctx;
   if (func == NEPConvergedRelative) nep->conv = NEP_CONV_REL;
   else if (func == NEPConvergedNorm) nep->conv = NEP_CONV_NORM;
   else if (func == NEPConvergedAbsolute) nep->conv = NEP_CONV_ABS;
-  else nep->conv = NEP_CONV_USER;
+  else {
+    nep->conv      = NEP_CONV_USER;
+    nep->converged = nep->convergeduser;
+  }
   PetscFunctionReturn(0);
 }
 
@@ -728,7 +731,10 @@ PetscErrorCode NEPSetConvergenceTest(NEP nep,NEPConv conv)
     case NEP_CONV_ABS:  nep->converged = NEPConvergedAbsolute; break;
     case NEP_CONV_REL:  nep->converged = NEPConvergedRelative; break;
     case NEP_CONV_NORM: nep->converged = NEPConvergedNorm; break;
-    case NEP_CONV_USER: break;
+    case NEP_CONV_USER:
+      if (!nep->convergeduser) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_ORDER,"Must call NEPSetConvergenceTestFunction() first");
+      nep->converged = nep->convergeduser;
+      break;
     default:
       SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_OUTOFRANGE,"Invalid 'conv' value");
   }
@@ -803,11 +809,14 @@ PetscErrorCode NEPSetStoppingTestFunction(NEP nep,PetscErrorCode (*func)(NEP,Pet
   if (nep->stoppingdestroy) {
     ierr = (*nep->stoppingdestroy)(nep->stoppingctx);CHKERRQ(ierr);
   }
-  nep->stopping        = func;
+  nep->stoppinguser    = func;
   nep->stoppingdestroy = destroy;
   nep->stoppingctx     = ctx;
   if (func == NEPStoppingBasic) nep->stop = NEP_STOP_BASIC;
-  else nep->stop = NEP_STOP_USER;
+  else {
+    nep->stop     = NEP_STOP_USER;
+    nep->stopping = nep->stoppinguser;
+  }
   PetscFunctionReturn(0);
 }
 
@@ -841,7 +850,10 @@ PetscErrorCode NEPSetStoppingTest(NEP nep,NEPStop stop)
   PetscValidLogicalCollectiveEnum(nep,stop,2);
   switch (stop) {
     case NEP_STOP_BASIC: nep->stopping = NEPStoppingBasic; break;
-    case NEP_STOP_USER:  break;
+    case NEP_STOP_USER:
+      if (!nep->stoppinguser) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_ORDER,"Must call NEPSetStoppingTestFunction() first");
+      nep->stopping = nep->stoppinguser;
+      break;
     default:
       SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_OUTOFRANGE,"Invalid 'stop' value");
   }

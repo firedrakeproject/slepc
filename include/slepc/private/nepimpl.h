@@ -94,8 +94,10 @@ struct _p_NEP {
   PetscErrorCode (*computederivatives)(NEP,PetscScalar,PetscInt,Mat,void*);
   void           *derivativesctx;
   PetscErrorCode (*converged)(NEP,PetscScalar,PetscScalar,PetscReal,PetscReal*,void*);
+  PetscErrorCode (*convergeduser)(NEP,PetscScalar,PetscScalar,PetscReal,PetscReal*,void*);
   PetscErrorCode (*convergeddestroy)(void*);
   PetscErrorCode (*stopping)(NEP,PetscInt,PetscInt,PetscInt,PetscInt,NEPConvergedReason*,void*);
+  PetscErrorCode (*stoppinguser)(NEP,PetscInt,PetscInt,PetscInt,PetscInt,NEPConvergedReason*,void*);
   PetscErrorCode (*stoppingdestroy)(void*);
   void           *convergedctx;
   void           *stoppingctx;

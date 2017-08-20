@@ -815,13 +815,16 @@ PetscErrorCode PEPSetConvergenceTestFunction(PEP pep,PetscErrorCode (*func)(PEP,
   if (pep->convergeddestroy) {
     ierr = (*pep->convergeddestroy)(pep->convergedctx);CHKERRQ(ierr);
   }
-  pep->converged        = func;
+  pep->convergeduser    = func;
   pep->convergeddestroy = destroy;
   pep->convergedctx     = ctx;
   if (func == PEPConvergedRelative) pep->conv = PEP_CONV_REL;
   else if (func == PEPConvergedNorm) pep->conv = PEP_CONV_NORM;
   else if (func == PEPConvergedAbsolute) pep->conv = PEP_CONV_ABS;
-  else pep->conv = PEP_CONV_USER;
+  else {
+    pep->conv      = PEP_CONV_USER;
+    pep->converged = pep->convergeduser;
+  }
   PetscFunctionReturn(0);
 }
 
@@ -858,10 +861,13 @@ PetscErrorCode PEPSetConvergenceTest(PEP pep,PEPConv conv)
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
   PetscValidLogicalCollectiveEnum(pep,conv,2);
   switch (conv) {
-    case PEP_CONV_ABS:    pep->converged = PEPConvergedAbsolute; break;
-    case PEP_CONV_REL:    pep->converged = PEPConvergedRelative; break;
-    case PEP_CONV_NORM:   pep->converged = PEPConvergedNorm; break;
-    case PEP_CONV_USER: break;
+    case PEP_CONV_ABS:  pep->converged = PEPConvergedAbsolute; break;
+    case PEP_CONV_REL:  pep->converged = PEPConvergedRelative; break;
+    case PEP_CONV_NORM: pep->converged = PEPConvergedNorm; break;
+    case PEP_CONV_USER:
+      if (!pep->convergeduser) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_ORDER,"Must call PEPSetConvergenceTestFunction() first");
+      pep->converged = pep->convergeduser;
+      break;
     default:
       SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"Invalid 'conv' value");
   }
@@ -936,11 +942,14 @@ PetscErrorCode PEPSetStoppingTestFunction(PEP pep,PetscErrorCode (*func)(PEP,Pet
   if (pep->stoppingdestroy) {
     ierr = (*pep->stoppingdestroy)(pep->stoppingctx);CHKERRQ(ierr);
   }
-  pep->stopping        = func;
+  pep->stoppinguser    = func;
   pep->stoppingdestroy = destroy;
   pep->stoppingctx     = ctx;
   if (func == PEPStoppingBasic) pep->stop = PEP_STOP_BASIC;
-  else pep->stop = PEP_STOP_USER;
+  else {
+    pep->stop     = PEP_STOP_USER;
+    pep->stopping = pep->stoppinguser;
+  }
   PetscFunctionReturn(0);
 }
 
@@ -974,7 +983,10 @@ PetscErrorCode PEPSetStoppingTest(PEP pep,PEPStop stop)
   PetscValidLogicalCollectiveEnum(pep,stop,2);
   switch (stop) {
     case PEP_STOP_BASIC: pep->stopping = PEPStoppingBasic; break;
-    case PEP_STOP_USER:  break;
+    case PEP_STOP_USER:
+      if (!pep->stoppinguser) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_ORDER,"Must call PEPSetStoppingTestFunction() first");
+      pep->stopping = pep->stoppinguser;
+      break;
     default:
       SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"Invalid 'stop' value");
   }

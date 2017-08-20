@@ -72,8 +72,10 @@ struct _p_SVD {
 
   /*-------------- User-provided functions and contexts -----------------*/
   PetscErrorCode (*converged)(SVD,PetscReal,PetscReal,PetscReal*,void*);
+  PetscErrorCode (*convergeduser)(SVD,PetscReal,PetscReal,PetscReal*,void*);
   PetscErrorCode (*convergeddestroy)(void*);
   PetscErrorCode (*stopping)(SVD,PetscInt,PetscInt,PetscInt,PetscInt,SVDConvergedReason*,void*);
+  PetscErrorCode (*stoppinguser)(SVD,PetscInt,PetscInt,PetscInt,PetscInt,SVDConvergedReason*,void*);
   PetscErrorCode (*stoppingdestroy)(void*);
   void           *convergedctx;
   void           *stoppingctx;

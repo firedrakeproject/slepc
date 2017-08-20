@@ -364,12 +364,15 @@ PetscErrorCode SVDSetConvergenceTestFunction(SVD svd,PetscErrorCode (*func)(SVD,
   if (svd->convergeddestroy) {
     ierr = (*svd->convergeddestroy)(svd->convergedctx);CHKERRQ(ierr);
   }
-  svd->converged        = func;
+  svd->convergeduser    = func;
   svd->convergeddestroy = destroy;
   svd->convergedctx     = ctx;
   if (func == SVDConvergedRelative) svd->conv = SVD_CONV_REL;
   else if (func == SVDConvergedAbsolute) svd->conv = SVD_CONV_ABS;
-  else svd->conv = SVD_CONV_USER;
+  else {
+    svd->conv      = SVD_CONV_USER;
+    svd->converged = svd->convergeduser;
+  }
   PetscFunctionReturn(0);
 }
 
@@ -406,7 +409,10 @@ PetscErrorCode SVDSetConvergenceTest(SVD svd,SVDConv conv)
   switch (conv) {
     case SVD_CONV_ABS:  svd->converged = SVDConvergedAbsolute; break;
     case SVD_CONV_REL:  svd->converged = SVDConvergedRelative; break;
-    case SVD_CONV_USER: break;
+    case SVD_CONV_USER:
+      if (!svd->convergeduser) SETERRQ(PetscObjectComm((PetscObject)svd),PETSC_ERR_ORDER,"Must call SVDSetConvergenceTestFunction() first");
+      svd->converged = svd->convergeduser;
+      break;
     default:
       SETERRQ(PetscObjectComm((PetscObject)svd),PETSC_ERR_ARG_OUTOFRANGE,"Invalid 'conv' value");
   }
@@ -481,11 +487,14 @@ PetscErrorCode SVDSetStoppingTestFunction(SVD svd,PetscErrorCode (*func)(SVD,Pet
   if (svd->stoppingdestroy) {
     ierr = (*svd->stoppingdestroy)(svd->stoppingctx);CHKERRQ(ierr);
   }
-  svd->stopping        = func;
+  svd->stoppinguser    = func;
   svd->stoppingdestroy = destroy;
   svd->stoppingctx     = ctx;
   if (func == SVDStoppingBasic) svd->stop = SVD_STOP_BASIC;
-  else svd->stop = SVD_STOP_USER;
+  else {
+    svd->stop     = SVD_STOP_USER;
+    svd->stopping = svd->stoppinguser;
+  }
   PetscFunctionReturn(0);
 }
 
@@ -519,7 +528,10 @@ PetscErrorCode SVDSetStoppingTest(SVD svd,SVDStop stop)
   PetscValidLogicalCollectiveEnum(svd,stop,2);
   switch (stop) {
     case SVD_STOP_BASIC: svd->stopping = SVDStoppingBasic; break;
-    case SVD_STOP_USER:  break;
+    case SVD_STOP_USER:
+      if (!svd->stoppinguser) SETERRQ(PetscObjectComm((PetscObject)svd),PETSC_ERR_ORDER,"Must call SVDSetStoppingTestFunction() first");
+      svd->stopping = svd->stoppinguser;
+      break;
     default:
       SETERRQ(PetscObjectComm((PetscObject)svd),PETSC_ERR_ARG_OUTOFRANGE,"Invalid 'stop' value");
   }
