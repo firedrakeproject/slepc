@@ -65,6 +65,7 @@ PETSC_EXTERN PetscErrorCode STSetMatrices(ST,PetscInt,Mat*);
 PETSC_EXTERN PetscErrorCode STGetMatrix(ST,PetscInt,Mat*);
 PETSC_EXTERN PetscErrorCode STGetMatrixTransformed(ST,PetscInt,Mat*);
 PETSC_EXTERN PetscErrorCode STGetNumMatrices(ST,PetscInt*);
+PETSC_EXTERN PetscErrorCode STGetOperator(ST,Mat*);
 PETSC_EXTERN PetscErrorCode STSetUp(ST);
 PETSC_EXTERN PetscErrorCode STSetFromOptions(ST);
 PETSC_EXTERN PetscErrorCode STView(ST,PetscViewer);

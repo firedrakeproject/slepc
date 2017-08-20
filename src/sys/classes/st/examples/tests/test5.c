@@ -28,7 +28,7 @@ int main (int argc,char **argv)
   ST             st;
   KSP            ksp;
   PC             pc;
-  Mat            A,mat[1];
+  Mat            A,mat[1],Op;
   Vec            v,w;
   PetscInt       N,n=4,i,j,II,Istart,Iend;
   PetscScalar    d;
@@ -110,6 +110,16 @@ int main (int argc,char **argv)
 
   ierr = STMatSolveTranspose(st,v,w);CHKERRQ(ierr);
   ierr = VecView(w,NULL);CHKERRQ(ierr);
+
+  /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+     Get the operator matrix
+     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+  ierr = STGetOperator(st,&Op);CHKERRQ(ierr);
+  ierr = MatMult(Op,v,w);CHKERRQ(ierr);
+  ierr = VecView(w,NULL);CHKERRQ(ierr);
+  ierr = MatMultTranspose(Op,v,w);CHKERRQ(ierr);
+  ierr = VecView(w,NULL);CHKERRQ(ierr);
+  ierr = MatDestroy(&Op);CHKERRQ(ierr);
 
   ierr = STDestroy(&st);CHKERRQ(ierr);
   ierr = MatDestroy(&A);CHKERRQ(ierr);

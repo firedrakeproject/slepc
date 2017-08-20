@@ -163,6 +163,66 @@ PetscErrorCode STGetBilinearForm_Default(ST st,Mat *B)
   PetscFunctionReturn(0);
 }
 
+static PetscErrorCode MatMult_STOperator(Mat Op,Vec x,Vec y)
+{
+  PetscErrorCode ierr;
+  ST             st;
+
+  PetscFunctionBegin;
+  ierr = MatShellGetContext(Op,(void**)&st);CHKERRQ(ierr);
+  ierr = STApply(st,x,y);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+static PetscErrorCode MatMultTranspose_STOperator(Mat Op,Vec x,Vec y)
+{
+  PetscErrorCode ierr;
+  ST             st;
+
+  PetscFunctionBegin;
+  ierr = MatShellGetContext(Op,(void**)&st);CHKERRQ(ierr);
+  ierr = STApplyTranspose(st,x,y);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+/*@
+   STGetOperator - Returns a shell matrix that represents the spectral transformation.
+
+   Collective on ST
+
+   Input Parameters:
+.  st - the spectral transformation context
+
+   Output Parameter:
+.  Op - output matrix
+
+   Notes:
+   The returned shell matrix is essentially a wrapper to the STApply() and
+   STApplyTranspose() operations. It must be destroyed after use.
+
+   Level: advanced
+
+.seealso: STApply(), STApplyTranspose()
+@*/
+PetscErrorCode STGetOperator(ST st,Mat *Op)
+{
+  PetscErrorCode ierr;
+  PetscInt       m,n,M,N;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(st,ST_CLASSID,1);
+  PetscValidType(st,1);
+  PetscValidPointer(Op,2);
+  STCheckMatrices(st,1);
+
+  ierr = MatGetLocalSize(st->A[0],&m,&n);CHKERRQ(ierr);
+  ierr = MatGetSize(st->A[0],&M,&N);CHKERRQ(ierr);
+  ierr = MatCreateShell(PetscObjectComm((PetscObject)st),m,n,M,N,st,Op);CHKERRQ(ierr);
+  ierr = MatShellSetOperation(*Op,MATOP_MULT,(void(*)(void))MatMult_STOperator);CHKERRQ(ierr);
+  ierr = MatShellSetOperation(*Op,MATOP_MULT_TRANSPOSE,(void(*)(void))MatMultTranspose_STOperator);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
 /*@
    STComputeExplicitOperator - Computes the explicit operator associated
    to the eigenvalue problem with the specified spectral transformation.
