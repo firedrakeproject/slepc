@@ -73,7 +73,7 @@ int main (int argc,char **argv)
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
   ierr = STCreate(PETSC_COMM_WORLD,&st);CHKERRQ(ierr);
   mat[0] = A;
-  ierr = STSetOperators(st,1,mat);CHKERRQ(ierr);
+  ierr = STSetMatrices(st,1,mat);CHKERRQ(ierr);
   ierr = STSetType(st,STCAYLEY);CHKERRQ(ierr);
   ierr = STSetShift(st,2.0);CHKERRQ(ierr);
   ierr = STCayleySetAntishift(st,1.0);CHKERRQ(ierr);

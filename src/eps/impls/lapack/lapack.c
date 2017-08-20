@@ -48,7 +48,7 @@ PetscErrorCode EPSSetUp_LAPACK(EPS eps)
   ierr = PetscObjectTypeCompare((PetscObject)eps->st,STSHIFT,&isshift);CHKERRQ(ierr);
   if (isshift) {
     ierr = STGetNumMatrices(eps->st,&nmat);CHKERRQ(ierr);
-    ierr = STGetOperators(eps->st,0,&A);CHKERRQ(ierr);
+    ierr = STGetMatrix(eps->st,0,&A);CHKERRQ(ierr);
     ierr = MatHasOperation(A,MATOP_CREATE_SUBMATRICES,&flg);CHKERRQ(ierr);
     if (flg) {
       PetscPushErrorHandler(PetscIgnoreErrorHandler,NULL);
@@ -58,7 +58,7 @@ PetscErrorCode EPSSetUp_LAPACK(EPS eps)
       PetscPopErrorHandler();
     } else ierra = 1;
     if (nmat>1) {
-      ierr = STGetOperators(eps->st,1,&B);CHKERRQ(ierr);
+      ierr = STGetMatrix(eps->st,1,&B);CHKERRQ(ierr);
       ierr = MatHasOperation(B,MATOP_CREATE_SUBMATRICES,&flg);CHKERRQ(ierr);
       if (flg) {
         PetscPushErrorHandler(PetscIgnoreErrorHandler,NULL);

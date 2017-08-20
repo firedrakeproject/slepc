@@ -85,8 +85,8 @@ PetscErrorCode EPSSetUp_XD(EPS eps)
 
   /* Setup problem specification in dvd */
   ierr = STGetNumMatrices(eps->st,&nmat);CHKERRQ(ierr);
-  ierr = STGetOperators(eps->st,0,&A);CHKERRQ(ierr);
-  if (nmat>1) { ierr = STGetOperators(eps->st,1,&B);CHKERRQ(ierr); }
+  ierr = STGetMatrix(eps->st,0,&A);CHKERRQ(ierr);
+  if (nmat>1) { ierr = STGetMatrix(eps->st,1,&B);CHKERRQ(ierr); }
   ierr = EPSReset_XD(eps);CHKERRQ(ierr);
   ierr = PetscMemzero(dvd,sizeof(dvdDashboard));CHKERRQ(ierr);
   dvd->A = A; dvd->B = eps->isgeneralized? B: NULL;

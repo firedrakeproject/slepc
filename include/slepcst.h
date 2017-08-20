@@ -61,14 +61,16 @@ PETSC_EXTERN PetscErrorCode STDestroy(ST*);
 PETSC_EXTERN PetscErrorCode STReset(ST);
 PETSC_EXTERN PetscErrorCode STSetType(ST,STType);
 PETSC_EXTERN PetscErrorCode STGetType(ST,STType*);
-PETSC_EXTERN PetscErrorCode STSetOperators(ST,PetscInt,Mat*);
-PETSC_EXTERN PetscErrorCode STGetOperators(ST,PetscInt,Mat*);
+PETSC_EXTERN PetscErrorCode STSetMatrices(ST,PetscInt,Mat*);
+PETSC_EXTERN PetscErrorCode STGetMatrix(ST,PetscInt,Mat*);
 PETSC_EXTERN PetscErrorCode STGetMatrixTransformed(ST,PetscInt,Mat*);
 PETSC_EXTERN PetscErrorCode STGetNumMatrices(ST,PetscInt*);
 PETSC_EXTERN PetscErrorCode STSetUp(ST);
 PETSC_EXTERN PetscErrorCode STSetFromOptions(ST);
 PETSC_EXTERN PetscErrorCode STView(ST,PetscViewer);
 
+PETSC_DEPRECATED("Use STSetMatrices()") PETSC_STATIC_INLINE PetscErrorCode STSetOperators(ST st,PetscInt n,Mat *A) {return STSetMatrices(st,n,A);}
+PETSC_DEPRECATED("Use STGetMatrix()") PETSC_STATIC_INLINE PetscErrorCode STGetOperators(ST st,PetscInt k,Mat *A) {return STGetMatrix(st,k,A);}
 PETSC_DEPRECATED("Use STGetMatrixTransformed()") PETSC_STATIC_INLINE PetscErrorCode STGetTOperators(ST st,PetscInt k,Mat *A) {return STGetMatrixTransformed(st,k,A);}
 
 PETSC_EXTERN PetscErrorCode STApply(ST,Vec,Vec);

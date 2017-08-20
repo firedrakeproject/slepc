@@ -111,11 +111,11 @@ static PetscErrorCode CISSRedundantMat(EPS eps)
   PetscFunctionBegin;
   ierr = STGetNumMatrices(eps->st,&nmat);CHKERRQ(ierr);
   if (ctx->subcomm->n != 1) {
-    ierr = STGetOperators(eps->st,0,&A);CHKERRQ(ierr);
+    ierr = STGetMatrix(eps->st,0,&A);CHKERRQ(ierr);
     ierr = MatDestroy(&ctx->pA);CHKERRQ(ierr);
     ierr = MatCreateRedundantMatrix(A,ctx->subcomm->n,PetscSubcommChild(ctx->subcomm),MAT_INITIAL_MATRIX,&ctx->pA);CHKERRQ(ierr);
     if (nmat>1) {
-      ierr = STGetOperators(eps->st,1,&B);CHKERRQ(ierr);
+      ierr = STGetMatrix(eps->st,1,&B);CHKERRQ(ierr);
       ierr = MatDestroy(&ctx->pB);CHKERRQ(ierr);
       ierr = MatCreateRedundantMatrix(B,ctx->subcomm->n,PetscSubcommChild(ctx->subcomm),MAT_INITIAL_MATRIX,&ctx->pB);CHKERRQ(ierr);
     } else ctx->pB = NULL;
@@ -863,7 +863,7 @@ PetscErrorCode EPSSetUp_CISS(EPS eps)
   ierr = BVDuplicateResize(eps->V,ctx->L_max,&ctx->V);CHKERRQ(ierr);
   ierr = PetscLogObjectParent((PetscObject)eps,(PetscObject)ctx->V);CHKERRQ(ierr);
 
-  ierr = STGetOperators(eps->st,0,&A);CHKERRQ(ierr);
+  ierr = STGetMatrix(eps->st,0,&A);CHKERRQ(ierr);
   ierr = PetscObjectTypeCompare((PetscObject)A,MATSHELL,&flg);CHKERRQ(ierr);
   if (flg) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Matrix type shell is not supported in this solver");
 
@@ -972,8 +972,8 @@ PetscErrorCode EPSSolve_CISS(EPS eps)
   ierr = VecGetLocalSize(w[0],&nlocal);CHKERRQ(ierr);
   ierr = DSGetLeadingDimension(eps->ds,&ld);CHKERRQ(ierr);
   ierr = STGetNumMatrices(eps->st,&nmat);CHKERRQ(ierr);
-  ierr = STGetOperators(eps->st,0,&A);CHKERRQ(ierr);
-  if (nmat>1) { ierr = STGetOperators(eps->st,1,&B);CHKERRQ(ierr); }
+  ierr = STGetMatrix(eps->st,0,&A);CHKERRQ(ierr);
+  if (nmat>1) { ierr = STGetMatrix(eps->st,1,&B);CHKERRQ(ierr); }
   else B = NULL;
   ierr = SetPathParameter(eps);CHKERRQ(ierr);
   ierr = CISSVecSetRandom(ctx->V,0,ctx->L);CHKERRQ(ierr);

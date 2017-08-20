@@ -137,7 +137,7 @@ PetscErrorCode EPSSolve_ARPACK(EPS eps)
   ierr = PetscObjectTypeCompare((PetscObject)eps->st,STSINVERT,&isSinv);CHKERRQ(ierr);
   ierr = PetscObjectTypeCompare((PetscObject)eps->st,STSHIFT,&isShift);CHKERRQ(ierr);
   ierr = STGetShift(eps->st,&sigmar);CHKERRQ(ierr);
-  ierr = STGetOperators(eps->st,0,&A);CHKERRQ(ierr);
+  ierr = STGetMatrix(eps->st,0,&A);CHKERRQ(ierr);
   ierr = MatCreateVecsEmpty(A,&x,&y);CHKERRQ(ierr);
 
   if (isSinv) {
