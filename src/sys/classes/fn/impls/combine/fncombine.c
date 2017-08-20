@@ -147,8 +147,8 @@ PetscErrorCode FNEvaluateFunctionMat_Combine(FN fn,Mat A,Mat B)
       ierr = FNEvaluateFunctionMat(ctx->f1,A,B);CHKERRQ(ierr);
       ierr = PetscMalloc1(ld,&ipiv);CHKERRQ(ierr);
       PetscStackCallBLAS("LAPACKgesv",LAPACKgesv_(&n,&n,Wa,&ld,ipiv,Ba,&ld,&info));
+      SlepcCheckLapackInfo("gesv",info);
       ierr = PetscLogFlops(2.0*n*n*n/3.0+2.0*n*n*n);CHKERRQ(ierr);
-      if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xGESV %d",info);
       ierr = PetscFree(ipiv);CHKERRQ(ierr);
       break;
     case FN_COMBINE_COMPOSE:
@@ -210,8 +210,8 @@ PetscErrorCode FNEvaluateFunctionMatVec_Combine(FN fn,Mat A,Vec v)
       ierr = MatDenseGetArray(Z,&Za);CHKERRQ(ierr);
       ierr = VecGetArray(v,&va);CHKERRQ(ierr);
       PetscStackCallBLAS("LAPACKgesv",LAPACKgesv_(&n,&one,Za,&ld,ipiv,va,&ld,&info));
+      SlepcCheckLapackInfo("gesv",info);
       ierr = PetscLogFlops(2.0*n*n*n/3.0+2.0*n*n);CHKERRQ(ierr);
-      if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xGESV %d",info);
       ierr = VecRestoreArray(v,&va);CHKERRQ(ierr);
       ierr = MatDenseRestoreArray(Z,&Za);CHKERRQ(ierr);
       ierr = PetscFree(ipiv);CHKERRQ(ierr);

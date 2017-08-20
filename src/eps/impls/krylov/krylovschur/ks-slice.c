@@ -1070,7 +1070,7 @@ static PetscErrorCode EPSKrylovSchur_Slice(EPS eps)
   }
   sPres->comp[0] = PetscNot(count0 < sPres->nsch[0]);
   sPres->comp[1] = PetscNot(count1 < sPres->nsch[1]);
-  if (count0 > sPres->nsch[0] || count1 > sPres->nsch[1])SETERRQ(PetscObjectComm((PetscObject)eps),1,"Mismatch between number of values found and information from inertia, consider using EPSKrylovSchurSetDetectZeros()");
+  if (count0 > sPres->nsch[0] || count1 > sPres->nsch[1]) SETERRQ(PetscObjectComm((PetscObject)eps),1,"Mismatch between number of values found and information from inertia, consider using EPSKrylovSchurSetDetectZeros()");
   ierr = PetscFree(iwork);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -1263,12 +1263,12 @@ static PetscErrorCode EPSLookForDeflation(EPS eps)
   /* The number of values on each side are found */
   if (sPres->neighb[0]) {
     sPres->nsch[0] = (sr->dir)*(sPres->inertia - sPres->neighb[0]->inertia)-count0;
-    if (sPres->nsch[0]<0)SETERRQ(PetscObjectComm((PetscObject)eps),1,"Mismatch between number of values found and information from inertia, consider using EPSKrylovSchurSetDetectZeros()");
+    if (sPres->nsch[0]<0) SETERRQ(PetscObjectComm((PetscObject)eps),1,"Mismatch between number of values found and information from inertia, consider using EPSKrylovSchurSetDetectZeros()");
   } else sPres->nsch[0] = 0;
 
   if (sPres->neighb[1]) {
     sPres->nsch[1] = (sr->dir)*(sPres->neighb[1]->inertia - sPres->inertia) - count1;
-    if (sPres->nsch[1]<0)SETERRQ(PetscObjectComm((PetscObject)eps),1,"Mismatch between number of values found and information from inertia, consider using EPSKrylovSchurSetDetectZeros()");
+    if (sPres->nsch[1]<0) SETERRQ(PetscObjectComm((PetscObject)eps),1,"Mismatch between number of values found and information from inertia, consider using EPSKrylovSchurSetDetectZeros()");
   } else sPres->nsch[1] = (sr->dir)*(sr->inertia1 - sPres->inertia);
 
   /* Completing vector of indexes for deflation */

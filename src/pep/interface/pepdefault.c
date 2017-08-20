@@ -323,7 +323,7 @@ PetscErrorCode PEPBuildDiagonalScaling(PEP pep)
     }
   }
   ierr = MatGetRowIJ(M,0,PETSC_FALSE,PETSC_FALSE,&nr,&ridx,&cidx,&cont);CHKERRQ(ierr);
-  if (!cont) SETERRQ(PetscObjectComm((PetscObject)T[0]), PETSC_ERR_SUP,"It is not possible to compute scaling diagonals for these PEP matrices");
+  if (!cont) SETERRQ(PetscObjectComm((PetscObject)T[0]),PETSC_ERR_SUP,"It is not possible to compute scaling diagonals for these PEP matrices");
   ierr = MatGetInfo(M,MAT_LOCAL,&info);CHKERRQ(ierr);
   nz = (PetscInt)info.nz_used;
   ierr = VecGetOwnershipRange(pep->Dl,&lst,&lend);CHKERRQ(ierr);

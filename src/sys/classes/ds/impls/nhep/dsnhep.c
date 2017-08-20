@@ -71,7 +71,7 @@ static PetscErrorCode DSVectors_NHEP_Refined_Some(DS ds,PetscInt *k,PetscReal *r
   PetscScalar    *W;
 
   PetscFunctionBegin;
-  if (left) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"Not implemented for left vectors");
+  if (left) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_SUP,"Not implemented for left vectors");
   ierr = PetscBLASIntCast(ds->n,&n);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(ds->ld,&ld);CHKERRQ(ierr);
   n1 = n+1;
@@ -96,7 +96,7 @@ static PetscErrorCode DSVectors_NHEP_Refined_Some(DS ds,PetscInt *k,PetscReal *r
 #else
   PetscStackCallBLAS("LAPACKgesvd",LAPACKgesvd_("N","O",&n1,&n,W,&ld,sigma,&sdummy,&ld,&sdummy,&ld,ds->work,&lwork,ds->rwork,&info));
 #endif
-  if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xGESVD %d",info);
+  SlepcCheckLapackInfo("gesvd",info);
 
   /* the smallest singular value is the new error estimate */
   if (rnorm) *rnorm = sigma[n-1];
@@ -157,7 +157,7 @@ static PetscErrorCode DSVectors_NHEP_Eigen_Some(DS ds,PetscInt *k,PetscReal *rno
   ierr = DSAllocateWork_Private(ds,2*ld,ld,0);CHKERRQ(ierr);
   PetscStackCallBLAS("LAPACKtrevc",LAPACKtrevc_(left?"L":"R","S",select,&n,A,&ld,Y,&ld,Y,&ld,&mm,&mout,ds->work,ds->rwork,&info));
 #endif
-  if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xTREVC %d",info);
+  SlepcCheckLapackInfo("trevc",info);
   if (mout != mm) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Inconsistent arguments");
 
   /* accumulate and normalize eigenvectors */
@@ -230,7 +230,7 @@ static PetscErrorCode DSVectors_NHEP_Eigen_All(DS ds,PetscBool left)
   ierr = DSAllocateWork_Private(ds,2*ld,ld,0);CHKERRQ(ierr);
   PetscStackCallBLAS("LAPACKtrevc",LAPACKtrevc_(side,back,NULL,&n,A,&ld,Y,&ld,X,&ld,&n,&mout,ds->work,ds->rwork,&info));
 #endif
-  if (info) SETERRQ1(PetscObjectComm((PetscObject)ds),PETSC_ERR_LIB,"Error in Lapack xTREVC %i",info);
+  SlepcCheckLapackInfo("trevc",info);
 
   /* normalize eigenvectors */
   for (i=0;i<n;i++) {
@@ -261,7 +261,7 @@ PetscErrorCode DSVectors_NHEP(DS ds,DSMatType mat,PetscInt *j,PetscReal *rnorm)
   switch (mat) {
     case DS_MAT_X:
       if (ds->refined) {
-        if (!ds->extrarow) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"Refined vectors require activating the extra row");
+        if (!ds->extrarow) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_SUP,"Refined vectors require activating the extra row");
         if (j) {
           ierr = DSVectors_NHEP_Refined_Some(ds,j,rnorm,PETSC_FALSE);CHKERRQ(ierr);
         } else {
@@ -276,7 +276,7 @@ PetscErrorCode DSVectors_NHEP(DS ds,DSMatType mat,PetscInt *j,PetscReal *rnorm)
       }
       break;
     case DS_MAT_Y:
-      if (ds->refined) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"Not implemented yet");
+      if (ds->refined) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_SUP,"Not implemented yet");
       if (j) {
         ierr = DSVectors_NHEP_Eigen_Some(ds,j,rnorm,PETSC_TRUE);CHKERRQ(ierr);
       } else {
@@ -285,7 +285,7 @@ PetscErrorCode DSVectors_NHEP(DS ds,DSMatType mat,PetscInt *j,PetscReal *rnorm)
       break;
     case DS_MAT_U:
     case DS_MAT_VT:
-      SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"Not implemented yet");
+      SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_SUP,"Not implemented yet");
       break;
     default:
       SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_OUTOFRANGE,"Invalid mat parameter");
@@ -311,7 +311,7 @@ static PetscErrorCode DSSort_NHEP_Arbitrary(DS ds,PetscScalar *wr,PetscScalar *w
 #endif
 
   PetscFunctionBegin;
-  if (!k) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Must supply argument k");
+  if (!k) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_WRONG,"Must supply argument k");
   ierr = PetscBLASIntCast(ds->n,&n);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(ds->ld,&ld);CHKERRQ(ierr);
 #if !defined(PETSC_USE_COMPLEX)
@@ -338,7 +338,7 @@ static PetscErrorCode DSSort_NHEP_Arbitrary(DS ds,PetscScalar *wr,PetscScalar *w
 #else
   PetscStackCallBLAS("LAPACKtrsen",LAPACKtrsen_("N","V",selection,&n,T,&ld,Q,&ld,wr,&mout,NULL,NULL,work,&lwork,&info));
 #endif
-  if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xTRSEN %d",info);
+  SlepcCheckLapackInfo("trsen",info);
   *k = mout;
   PetscFunctionReturn(0);
 #endif
@@ -405,7 +405,7 @@ static PetscErrorCode DSSort_NHEP_Total(DS ds,PetscScalar *wr,PetscScalar *wi)
 #else
       PetscStackCallBLAS("LAPACKtrexc",LAPACKtrexc_("V",&n,T,&ld,Q,&ld,&ifst,&ilst,&info));
 #endif
-      if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xTREXC %d",info);
+      SlepcCheckLapackInfo("trexc",info);
       /* recover original eigenvalues from T matrix */
       for (j=i;j<n;j++) {
         wr[j] = T[j+j*ld];
@@ -560,7 +560,7 @@ PetscErrorCode DSSolve_NHEP(DS ds,PetscScalar *wr,PetscScalar *wi)
       ierr = ArrowHessenberg(n,k,ilo,A,ld,Q,ld,work);CHKERRQ(ierr);
     } else {
       PetscStackCallBLAS("LAPACKgehrd",LAPACKgehrd_(&n,&ilo,&n,A,&ld,tau,work,&lwork,&info));
-      if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xGEHRD %d",info);
+      SlepcCheckLapackInfo("gehrd",info);
       for (j=0;j<n-1;j++) {
         for (i=j+2;i<n;i++) {
           Q[i+j*ld] = A[i+j*ld];
@@ -568,7 +568,7 @@ PetscErrorCode DSSolve_NHEP(DS ds,PetscScalar *wr,PetscScalar *wi)
         }
       }
       PetscStackCallBLAS("LAPACKorghr",LAPACKorghr_(&n,&ilo,&n,Q,&ld,tau,work,&lwork,&info));
-      if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xORGHR %d",info);
+      SlepcCheckLapackInfo("orghr",info);
     }
   }
 
@@ -594,7 +594,7 @@ PetscErrorCode DSSolve_NHEP(DS ds,PetscScalar *wr,PetscScalar *wi)
   PetscStackCallBLAS("LAPACKhseqr",LAPACKhseqr_("S","V",&n,&ilo,&n,A,&ld,wr,Q,&ld,work,&lwork,&info));
   if (wi) for (i=ds->l;i<n;i++) wi[i] = 0.0;
 #endif
-  if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xHSEQR %d",info);
+  SlepcCheckLapackInfo("hseqr",info);
   PetscFunctionReturn(0);
 #endif
 }
@@ -657,9 +657,9 @@ PetscErrorCode DSCond_NHEP(DS ds,PetscReal *cond)
 
   /* norm of inv(A) */
   PetscStackCallBLAS("LAPACKgetrf",LAPACKgetrf_(&n,&n,A,&ld,ipiv,&info));
-  if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xGETRF %d",info);
+  SlepcCheckLapackInfo("getrf",info);
   PetscStackCallBLAS("LAPACKgetri",LAPACKgetri_(&n,A,&ld,ipiv,work,&lwork,&info));
-  if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xGETRI %d",info);
+  SlepcCheckLapackInfo("getri",info);
   hin = LAPACKlange_("I",&n,&n,A,&ld,rwork);
 
   *cond = hn*hin;
@@ -706,11 +706,10 @@ PetscErrorCode DSTranslateHarmonic_NHEP(DS ds,PetscScalar tau,PetscReal beta,Pet
     for (i=0;i<n;i++)
       B[i+i*ld] -= tau;
     PetscStackCallBLAS("LAPACKgetrf",LAPACKgetrf_(&n,&n,B,&ld,ipiv,&info));
-    if (info<0) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_LIB,"Bad argument to LU factorization");
-    if (info>0) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_MAT_LU_ZRPVT,"Bad LU factorization");
+    SlepcCheckLapackInfo("getrf",info);
     ierr = PetscLogFlops(2.0*n*n*n/3.0);CHKERRQ(ierr);
     PetscStackCallBLAS("LAPACKgetrs",LAPACKgetrs_("C",&n,&one,B,&ld,ipiv,g,&ld,&info));
-    if (info) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_LIB,"GETRS - Bad solve");
+    SlepcCheckLapackInfo("getrs",info);
     ierr = PetscLogFlops(2.0*n*n-n);CHKERRQ(ierr);
 
     /* A = A + g*b' */

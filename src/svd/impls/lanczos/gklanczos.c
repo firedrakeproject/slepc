@@ -135,7 +135,7 @@ static PetscErrorCode SVDOneSideLanczos(SVD svd,PetscReal *alpha,PetscReal *beta
     ierr = BVDotColumn(V,i,work);CHKERRQ(ierr);
     ierr = BVMultColumn(V,-1.0,1.0,i,work);CHKERRQ(ierr);
     ierr = BVNormColumn(V,i,NORM_2,&b);CHKERRQ(ierr);
-    if (PetscAbsReal(b)<10*PETSC_MACHINE_EPSILON) SETERRQ(PETSC_COMM_SELF,1,"Recurrence generated a zero vector; use a two-sided variant");
+    if (PetscAbsReal(b)<10*PETSC_MACHINE_EPSILON) SETERRQ(PetscObjectComm((PetscObject)svd),1,"Recurrence generated a zero vector; use a two-sided variant");
     ierr = BVScaleColumn(V,i,1.0/b);CHKERRQ(ierr);
 
     ierr = BVGetColumn(V,i,&z);CHKERRQ(ierr);

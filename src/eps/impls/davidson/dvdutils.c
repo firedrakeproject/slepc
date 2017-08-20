@@ -160,7 +160,7 @@ static PetscErrorCode dvd_harm_transf(dvdHarmonic *dvdh,PetscScalar t)
     break;
   case DVD_HARM_NONE:
   default:
-    SETERRQ(PETSC_COMM_SELF,1, "Harmonic type not supported");
+    SETERRQ(PETSC_COMM_SELF,1,"Harmonic type not supported");
   }
 
   /* Check the transformation does not change the sign of the imaginary part */
@@ -188,7 +188,7 @@ static PetscErrorCode dvd_harm_updateW(dvdDashboard *d)
 
   /* W(i) <- Wa*AV(i) - Wb*BV(i) */
   ierr = BVGetActiveColumns(d->eps->V,&l,&k);CHKERRQ(ierr);
-  if (k != l+d->V_new_s) SETERRQ(PETSC_COMM_SELF,1, "Consistency broken");
+  if (k != l+d->V_new_s) SETERRQ(PETSC_COMM_SELF,1,"Consistency broken");
   ierr = BVSetActiveColumns(d->W,l+d->V_new_s,l+d->V_new_e);CHKERRQ(ierr);
   ierr = BVSetActiveColumns(d->AX,l+d->V_new_s,l+d->V_new_e);CHKERRQ(ierr);
   ierr = BVSetActiveColumns(BX,l+d->V_new_s,l+d->V_new_e);CHKERRQ(ierr);

@@ -124,10 +124,10 @@ PetscErrorCode BVSetSizes(BV bv,PetscInt n,PetscInt N,PetscInt m)
   PetscValidHeaderSpecific(bv,BV_CLASSID,1);
   if (N >= 0) PetscValidLogicalCollectiveInt(bv,N,3);
   PetscValidLogicalCollectiveInt(bv,m,4);
-  if (N >= 0 && n > N) SETERRQ2(PETSC_COMM_SELF,PETSC_ERR_ARG_INCOMP,"Local size %D cannot be larger than global size %D",n,N);
-  if (m <= 0) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_INCOMP,"Number of columns %D must be positive",m);
-  if ((bv->n >= 0 || bv->N >= 0) && (bv->n != n || bv->N != N)) SETERRQ4(PETSC_COMM_SELF,PETSC_ERR_SUP,"Cannot change/reset vector sizes to %D local %D global after previously setting them to %D local %D global",n,N,bv->n,bv->N);
-  if (bv->m > 0 && bv->m != m) SETERRQ2(PETSC_COMM_SELF,PETSC_ERR_SUP,"Cannot change the number of columns to %D after previously setting it to %D; use BVResize()",m,bv->m);
+  if (N >= 0 && n > N) SETERRQ2(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_INCOMP,"Local size %D cannot be larger than global size %D",n,N);
+  if (m <= 0) SETERRQ1(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_INCOMP,"Number of columns %D must be positive",m);
+  if ((bv->n >= 0 || bv->N >= 0) && (bv->n != n || bv->N != N)) SETERRQ4(PetscObjectComm((PetscObject)bv),PETSC_ERR_SUP,"Cannot change/reset vector sizes to %D local %D global after previously setting them to %D local %D global",n,N,bv->n,bv->N);
+  if (bv->m > 0 && bv->m != m) SETERRQ2(PetscObjectComm((PetscObject)bv),PETSC_ERR_SUP,"Cannot change the number of columns to %D after previously setting it to %D; use BVResize()",m,bv->m);
   bv->n = n;
   bv->N = N;
   bv->m = m;
@@ -140,7 +140,7 @@ PetscErrorCode BVSetSizes(BV bv,PetscInt n,PetscInt N,PetscInt m)
     ierr = VecGetLocalSize(bv->t,&bv->n);CHKERRQ(ierr);
     if (bv->matrix) {  /* check compatible dimensions of user-provided matrix */
       ierr = MatGetLocalSize(bv->matrix,&ma,NULL);CHKERRQ(ierr);
-      if (bv->n!=ma) SETERRQ2(PETSC_COMM_SELF,PETSC_ERR_ARG_INCOMP,"Local dimension %D does not match that of matrix given at BVSetMatrix %D",bv->n,ma);
+      if (bv->n!=ma) SETERRQ2(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_INCOMP,"Local dimension %D does not match that of matrix given at BVSetMatrix %D",bv->n,ma);
     }
   }
   if (bv->ops->create) {
@@ -178,13 +178,13 @@ PetscErrorCode BVSetSizesFromVec(BV bv,Vec t,PetscInt m)
   PetscValidHeaderSpecific(t,VEC_CLASSID,2);
   PetscCheckSameComm(bv,1,t,2);
   PetscValidLogicalCollectiveInt(bv,m,3);
-  if (m <= 0) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_INCOMP,"Number of columns %D must be positive",m);
-  if (bv->t) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"Template vector was already set by a previous call to BVSetSizes/FromVec");
+  if (m <= 0) SETERRQ1(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_INCOMP,"Number of columns %D must be positive",m);
+  if (bv->t) SETERRQ(PetscObjectComm((PetscObject)bv),PETSC_ERR_SUP,"Template vector was already set by a previous call to BVSetSizes/FromVec");
   ierr = VecGetSize(t,&bv->N);CHKERRQ(ierr);
   ierr = VecGetLocalSize(t,&bv->n);CHKERRQ(ierr);
   if (bv->matrix) {  /* check compatible dimensions of user-provided matrix */
     ierr = MatGetLocalSize(bv->matrix,&ma,NULL);CHKERRQ(ierr);
-    if (bv->n!=ma) SETERRQ2(PETSC_COMM_SELF,PETSC_ERR_ARG_INCOMP,"Local dimension %D does not match that of matrix given at BVSetMatrix %D",bv->n,ma);
+    if (bv->n!=ma) SETERRQ2(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_INCOMP,"Local dimension %D does not match that of matrix given at BVSetMatrix %D",bv->n,ma);
   }
   bv->m = m;
   bv->k = m;
@@ -268,7 +268,7 @@ PetscErrorCode BVSetNumConstraints(BV V,PetscInt nc)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(V,BV_CLASSID,1);
   PetscValidLogicalCollectiveInt(V,nc,2);
-  if (nc<0) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_OUTOFRANGE,"Number of constraints (given %D) cannot be negative",nc);
+  if (nc<0) SETERRQ1(PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_OUTOFRANGE,"Number of constraints (given %D) cannot be negative",nc);
   PetscValidType(V,1);
   BVCheckSizes(V,1);
   if (V->ci[0]!=-V->nc-1 || V->ci[1]!=-V->nc-1) SETERRQ(PetscObjectComm((PetscObject)V),PETSC_ERR_SUP,"Cannot call BVSetNumConstraints after BVGetColumn");
@@ -349,8 +349,8 @@ PetscErrorCode BVResize(BV bv,PetscInt m,PetscBool copy)
   PetscValidLogicalCollectiveInt(bv,m,2);
   PetscValidLogicalCollectiveBool(bv,copy,3);
   PetscValidType(bv,1);
-  if (m <= 0) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_INCOMP,"Number of columns %D must be positive",m);
-  if (bv->nc) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONGSTATE,"Cannot resize a BV with constraints");
+  if (m <= 0) SETERRQ1(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_INCOMP,"Number of columns %D must be positive",m);
+  if (bv->nc) SETERRQ(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_WRONGSTATE,"Cannot resize a BV with constraints");
   if (bv->m == m) PetscFunctionReturn(0);
 
   ierr = PetscLogEventBegin(BV_Create,bv,0,0,0);CHKERRQ(ierr);
@@ -489,8 +489,8 @@ PetscErrorCode BVSetMatrix(BV bv,Mat B,PetscBool indef)
   if (B) {
     PetscValidHeaderSpecific(B,MAT_CLASSID,2);
     ierr = MatGetLocalSize(B,&m,&n);CHKERRQ(ierr);
-    if (m!=n) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ARG_SIZ,"Matrix must be square");
-    if (bv->m && bv->n!=n) SETERRQ2(PETSC_COMM_SELF,PETSC_ERR_ARG_INCOMP,"Mismatching local dimension BV %D, Mat %D",bv->n,n);
+    if (m!=n) SETERRQ(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_SIZ,"Matrix must be square");
+    if (bv->m && bv->n!=n) SETERRQ2(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_INCOMP,"Mismatching local dimension BV %D, Mat %D",bv->n,n);
   }
   ierr = MatDestroy(&bv->matrix);CHKERRQ(ierr);
   if (B) PetscObjectReference((PetscObject)B);
@@ -1551,8 +1551,8 @@ PetscErrorCode BVCopy(BV V,BV W)
   PetscValidType(W,2);
   BVCheckSizes(W,2);
   PetscCheckSameTypeAndComm(V,1,W,2);
-  if (V->n!=W->n) SETERRQ2(PETSC_COMM_SELF,PETSC_ERR_ARG_INCOMP,"Mismatching local dimension V %D, W %D",V->n,W->n);
-  if (V->k-V->l>W->m-W->l) SETERRQ2(PETSC_COMM_SELF,PETSC_ERR_ARG_SIZ,"W has %D non-leading columns, not enough to store %D columns",W->m-W->l,V->k-V->l);
+  if (V->n!=W->n) SETERRQ2(PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_INCOMP,"Mismatching local dimension V %D, W %D",V->n,W->n);
+  if (V->k-V->l>W->m-W->l) SETERRQ2(PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_SIZ,"W has %D non-leading columns, not enough to store %D columns",W->m-W->l,V->k-V->l);
   if (!V->n) PetscFunctionReturn(0);
 
   ierr = PetscLogEventBegin(BV_Copy,V,W,0,0);CHKERRQ(ierr);

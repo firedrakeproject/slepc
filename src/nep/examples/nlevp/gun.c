@@ -62,7 +62,7 @@ int main(int argc,char **argv)
 
   ierr = PetscPrintf(PETSC_COMM_WORLD,"GUN problem\n\n");CHKERRQ(ierr);
 #if !defined(PETSC_USE_COMPLEX)
-  SETERRQ(PETSC_COMM_SELF,1,"This example requires complex scalars!");
+  SETERRQ(PETSC_COMM_WORLD,1,"This example requires complex scalars!");
 #endif
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

@@ -27,14 +27,13 @@
 
 #if !defined(PETSC_USE_DEBUG)
 
-#define SlepcValidVecComp(y) do {} while (0)
+#define SlepcValidVecComp(y,arg) do {} while (0)
 
 #else
 
-#define SlepcValidVecComp(y) \
+#define SlepcValidVecComp(y,arg) \
   do { \
-    if (((Vec_Comp*)(y)->data)->nx < ((Vec_Comp*)(y)->data)->n->n) \
-      SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Invalid number of subvectors required!"); \
+    if (((Vec_Comp*)(y)->data)->nx < ((Vec_Comp*)(y)->data)->n->n) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONGSTATE,"Invalid number of subvectors required: Parameter #%d",arg); \
   } while (0)
 
 #endif

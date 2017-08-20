@@ -467,7 +467,7 @@ PetscErrorCode NEPGetErrorEstimate(NEP nep,PetscInt i,PetscReal *errest)
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
   PetscValidPointer(errest,3);
   NEPCheckSolved(nep,1);
-  if (i<0 || i>=nep->nconv) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ARG_OUTOFRANGE,"Argument 2 out of range");
+  if (i<0 || i>=nep->nconv) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_OUTOFRANGE,"Argument 2 out of range");
   *errest = nep->errest[nep->perm[i]];
   PetscFunctionReturn(0);
 }
@@ -552,7 +552,7 @@ PetscErrorCode NEPComputeError(NEP nep,PetscInt i,NEPErrorType type,PetscReal *e
   /* compute residual norms */
   ierr = NEPGetEigenpair(nep,i,&kr,&ki,xr,xi);CHKERRQ(ierr);
 #if !defined(PETSC_USE_COMPLEX)
-  if (ki) SETERRQ(PETSC_COMM_SELF,1,"Not implemented for complex eigenvalues with real scalars");
+  if (ki) SETERRQ(PetscObjectComm((PetscObject)nep),1,"Not implemented for complex eigenvalues with real scalars");
 #endif
   ierr = NEPComputeResidualNorm_Private(nep,kr,xr,nep->work,error);CHKERRQ(ierr);
   ierr = VecNorm(xr,NORM_2,&er);CHKERRQ(ierr);

@@ -229,9 +229,9 @@ static PetscErrorCode PEPJDUpdateTV(PEP pep,PetscInt low,PetscInt high,Vec *w)
 */
 static PetscErrorCode PEPJDOrthogonalize(PetscInt row,PetscInt col,PetscScalar *X,PetscInt ldx,PetscInt *rk,PetscInt *P,PetscScalar *R,PetscInt ldr)
 {
-#if defined(SLEPC_MISSING_LAPACK_GEQP3)
+#if defined(SLEPC_MISSING_LAPACK_GEQP3) || defined(PETSC_MISSING_LAPACK_ORGQR)
   PetscFunctionBegin;
-  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"GEQP3 - Lapack routine is unavailable");
+  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"GEQP3/QRGQR - Lapack routines are unavailable");
 #else
   PetscErrorCode ierr;
   PetscInt       i,j,n,r;
@@ -256,7 +256,7 @@ static PetscErrorCode PEPJDOrthogonalize(PetscInt row,PetscInt col,PetscScalar *
 #else
   PetscStackCallBLAS("LAPACKgeqp3",LAPACKgeqp3_(&row_,&col_,X,&ldx_,p,tau,work,&lwork,&info));
 #endif
-  if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xGEQP3 %d",info);
+  SlepcCheckLapackInfo("geqp3",info);
   if (P) for (i=0;i<col;i++) P[i] = p[i];
 
   /* rank computation */
@@ -276,7 +276,7 @@ static PetscErrorCode PEPJDOrthogonalize(PetscInt row,PetscInt col,PetscScalar *
      }
   }
   PetscStackCallBLAS("LAPACKungqr",LAPACKungqr_(&row_,&n_,&n_,X,&ldx_,tau,work,&lwork,&info));
-  if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xORGQR %d",info);
+  SlepcCheckLapackInfo("ungqr",info);
   ierr = PetscFree4(p,tau,work,rwork);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 #endif
@@ -508,9 +508,7 @@ static PetscErrorCode PEPJDProcessInitialSpace(PEP pep,Vec *w)
     ierr = BVRestoreColumn(pjd->V,0,&vg);CHKERRQ(ierr);
     ierr = BVNormColumn(pjd->W,0,NORM_2,&norm);CHKERRQ(ierr);
     ierr = BVScaleColumn(pjd->W,0,1.0/norm);CHKERRQ(ierr);
-  } else {
-   SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"TO DO");
-  }
+  } else SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"Support for initial vectors not implemented yet");
   ierr = PetscFree(tt);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -639,7 +637,7 @@ static PetscErrorCode PEPJDUpdateExtendedPC(PEP pep,PetscScalar theta)
 {
 #if defined(PETSC_MISSING_LAPACK_GESVD) || defined(PETSC_MISSING_LAPACK_GETRI) || defined(PETSC_MISSING_LAPACK_GETRF)
   PetscFunctionBegin;
-  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"GESVD/GETRI/GETRF - Lapack routine is unavailable");
+  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"GESVD/GETRI/GETRF - Lapack routines are unavailable");
 #else
   PetscErrorCode ierr;
   PEP_JD         *pjd = (PEP_JD*)pep->data;
@@ -670,6 +668,7 @@ static PetscErrorCode PEPJDUpdateExtendedPC(PEP pep,PetscScalar theta)
 #else
     PetscStackCallBLAS("LAPACKgesvd",LAPACKgesvd_("S","S",&n_,&n_,S,&n_,sg,U,&n_,V,&n_,work,&lw_,rwork,&info));
 #endif
+    SlepcCheckLapackInfo("gesvd",info);
     for (i=0;i<n;i++) maxeig = PetscMax(maxeig,sg[i]);
     tol = 10*PETSC_MACHINE_EPSILON*n*maxeig;
     for (j=0;j<n;j++) {
@@ -695,7 +694,9 @@ static PetscErrorCode PEPJDUpdateExtendedPC(PEP pep,PetscScalar theta)
     }
     /* inverse */
     PetscStackCallBLAS("LAPACKgetrf",LAPACKgetrf_(&n_,&n_,M,&ld_,p,&info));
+    SlepcCheckLapackInfo("getrf",info);
     PetscStackCallBLAS("LAPACKgetri",LAPACKgetri_(&n_,M,&ld_,p,work,&n_,&info));
+    SlepcCheckLapackInfo("getri",info);
     ierr = PetscFree7(U,V,S,sg,work,rwork,p);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
@@ -751,6 +752,7 @@ static PetscErrorCode PEPJDEigenvectors(PEP pep)
 #else
   PetscStackCallBLAS("LAPACKtrevc",LAPACKtrevc_("R","A",NULL,&nconv,pjd->T,&ld,NULL,&nconv,Z,&nconv,&nconv,&nc,w,wr,&info));
 #endif
+  SlepcCheckLapackInfo("trevc",info);
   ierr = MatCreateSeqDense(PETSC_COMM_SELF,nconv,nconv,Z,&U);CHKERRQ(ierr);
   ierr = BVSetActiveColumns(pjd->X,0,pjd->nconv);CHKERRQ(ierr);
   ierr = BVMultInPlace(pjd->X,U,0,pjd->nconv);CHKERRQ(ierr);
@@ -815,7 +817,7 @@ static PetscErrorCode PEPJDLockConverged(PEP pep,PetscInt *nv)
   ierr = PetscBLASIntCast(rk,&rk_);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(nvv,&nv_);CHKERRQ(ierr);
   PetscStackCallBLAS("LAPACKtrtri",LAPACKtrtri_("U","N",&rk_,R,&nv_,&info));
-  if (info) SETERRQ1(PETSC_COMM_SELF,1,"Error in xTRTRI, info=%D",(PetscInt)info);
+  SlepcCheckLapackInfo("trtri",info);
   PetscStackCallBLAS("BLAStrmv",BLAStrmv_("U","C","N",&rk_,R,&nv_,r,&one));
   for (i=0;i<rk;i++) r[i] = PetscConj(r[i]); /* revert */
   ierr = BVSetActiveColumns(pjd->V,0,nvv);CHKERRQ(ierr);

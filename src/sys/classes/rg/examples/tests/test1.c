@@ -38,11 +38,11 @@ int main(int argc,char **argv)
   /* ellipse */
   ierr = RGSetType(rg,RGELLIPSE);CHKERRQ(ierr);
   ierr = RGIsTrivial(rg,&triv);CHKERRQ(ierr);
-  if (!triv) SETERRQ(PETSC_COMM_SELF,1,"Region should be trivial before setting parameters");
+  if (!triv) SETERRQ(PETSC_COMM_WORLD,1,"Region should be trivial before setting parameters");
   ierr = RGEllipseSetParameters(rg,1.1,2,0.1);CHKERRQ(ierr);
   ierr = RGSetFromOptions(rg);CHKERRQ(ierr);
   ierr = RGIsTrivial(rg,&triv);CHKERRQ(ierr);
-  if (triv) SETERRQ(PETSC_COMM_SELF,1,"Region should be non-trivial after setting parameters");
+  if (triv) SETERRQ(PETSC_COMM_WORLD,1,"Region should be non-trivial after setting parameters");
   ierr = RGView(rg,NULL);CHKERRQ(ierr);
   re = 0.1; im = 0.3;
 #if defined(PETSC_USE_COMPLEX)
@@ -70,11 +70,11 @@ int main(int argc,char **argv)
   /* interval */
   ierr = RGSetType(rg,RGINTERVAL);CHKERRQ(ierr);
   ierr = RGIsTrivial(rg,&triv);CHKERRQ(ierr);
-  if (!triv) SETERRQ(PETSC_COMM_SELF,1,"Region should be trivial before setting parameters");
+  if (!triv) SETERRQ(PETSC_COMM_WORLD,1,"Region should be trivial before setting parameters");
   ierr = RGIntervalSetEndpoints(rg,-1,1,-0.1,0.1);CHKERRQ(ierr);
   ierr = RGSetFromOptions(rg);CHKERRQ(ierr);
   ierr = RGIsTrivial(rg,&triv);CHKERRQ(ierr);
-  if (triv) SETERRQ(PETSC_COMM_SELF,1,"Region should be non-trivial after setting parameters");
+  if (triv) SETERRQ(PETSC_COMM_WORLD,1,"Region should be non-trivial after setting parameters");
   ierr = RGView(rg,NULL);CHKERRQ(ierr);
   re = 0.2; im = 0;
 #if defined(PETSC_USE_COMPLEX)
@@ -119,11 +119,11 @@ int main(int argc,char **argv)
 #endif
   ierr = RGSetType(rg,RGPOLYGON);CHKERRQ(ierr);
   ierr = RGIsTrivial(rg,&triv);CHKERRQ(ierr);
-  if (!triv) SETERRQ(PETSC_COMM_SELF,1,"Region should be trivial before setting parameters");
+  if (!triv) SETERRQ(PETSC_COMM_WORLD,1,"Region should be trivial before setting parameters");
   ierr = RGPolygonSetVertices(rg,7,vr,vi);CHKERRQ(ierr);
   ierr = RGSetFromOptions(rg);CHKERRQ(ierr);
   ierr = RGIsTrivial(rg,&triv);CHKERRQ(ierr);
-  if (triv) SETERRQ(PETSC_COMM_SELF,1,"Region should be non-trivial after setting parameters");
+  if (triv) SETERRQ(PETSC_COMM_WORLD,1,"Region should be non-trivial after setting parameters");
   ierr = RGView(rg,NULL);CHKERRQ(ierr);
   re = 5; im = 0.9;
 #if defined(PETSC_USE_COMPLEX)
@@ -150,13 +150,13 @@ int main(int argc,char **argv)
 
   /* check vertices */
   ierr = RGPolygonGetVertices(rg,&nv,&pr,&pi);CHKERRQ(ierr);
-  if (nv!=7) SETERRQ1(PETSC_COMM_SELF,1,"Wrong number of vertices: %D",nv);
+  if (nv!=7) SETERRQ1(PETSC_COMM_WORLD,1,"Wrong number of vertices: %D",nv);
   for (i=0;i<nv;i++) {
     if (pr[i]!=vr[i]
 #if !defined(PETSC_USE_COMPLEX)
         || pi[i]!=vi[i]
 #endif
-       ) SETERRQ1(PETSC_COMM_SELF,1,"Vertex number %D does not match",i);
+       ) SETERRQ1(PETSC_COMM_WORLD,1,"Vertex number %D does not match",i);
   }
 
   ierr = RGDestroy(&rg);CHKERRQ(ierr);
