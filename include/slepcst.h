@@ -61,13 +61,25 @@ PETSC_EXTERN PetscErrorCode STDestroy(ST*);
 PETSC_EXTERN PetscErrorCode STReset(ST);
 PETSC_EXTERN PetscErrorCode STSetType(ST,STType);
 PETSC_EXTERN PetscErrorCode STGetType(ST,STType*);
-PETSC_EXTERN PetscErrorCode STSetOperators(ST,PetscInt,Mat*);
-PETSC_EXTERN PetscErrorCode STGetOperators(ST,PetscInt,Mat*);
-PETSC_EXTERN PetscErrorCode STGetTOperators(ST,PetscInt,Mat*);
+PETSC_EXTERN PetscErrorCode STSetMatrices(ST,PetscInt,Mat*);
+PETSC_EXTERN PetscErrorCode STGetMatrix(ST,PetscInt,Mat*);
+PETSC_EXTERN PetscErrorCode STGetMatrixTransformed(ST,PetscInt,Mat*);
 PETSC_EXTERN PetscErrorCode STGetNumMatrices(ST,PetscInt*);
+PETSC_EXTERN PetscErrorCode STGetOperator(ST,Mat*);
 PETSC_EXTERN PetscErrorCode STSetUp(ST);
 PETSC_EXTERN PetscErrorCode STSetFromOptions(ST);
 PETSC_EXTERN PetscErrorCode STView(ST,PetscViewer);
+
+PETSC_DEPRECATED("Use STSetMatrices()") PETSC_STATIC_INLINE PetscErrorCode STSetOperators(ST st,PetscInt n,Mat *A) {return STSetMatrices(st,n,A);}
+PETSC_DEPRECATED("Use STGetMatrix()") PETSC_STATIC_INLINE PetscErrorCode STGetOperators(ST st,PetscInt k,Mat *A) {return STGetMatrix(st,k,A);}
+PETSC_DEPRECATED("Use STGetMatrixTransformed()") PETSC_STATIC_INLINE PetscErrorCode STGetTOperators(ST st,PetscInt k,Mat *A) {return STGetMatrixTransformed(st,k,A);}
+PETSC_DEPRECATED("Use STGetOperator() followed by MatComputeExplicitOperator()") PETSC_STATIC_INLINE PetscErrorCode STComputeExplicitOperator(ST st,Mat *A) {
+  PetscErrorCode ierr; Mat Op; 
+  ierr = STGetOperator(st,&Op);CHKERRQ(ierr);
+  ierr = MatComputeExplicitOperator(Op,A);CHKERRQ(ierr);
+  ierr = MatDestroy(&Op);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
 
 PETSC_EXTERN PetscErrorCode STApply(ST,Vec,Vec);
 PETSC_EXTERN PetscErrorCode STMatMult(ST,PetscInt,Vec,Vec);
@@ -76,7 +88,6 @@ PETSC_EXTERN PetscErrorCode STMatSolve(ST,Vec,Vec);
 PETSC_EXTERN PetscErrorCode STMatSolveTranspose(ST,Vec,Vec);
 PETSC_EXTERN PetscErrorCode STGetBilinearForm(ST,Mat*);
 PETSC_EXTERN PetscErrorCode STApplyTranspose(ST,Vec,Vec);
-PETSC_EXTERN PetscErrorCode STComputeExplicitOperator(ST,Mat*);
 PETSC_EXTERN PetscErrorCode STMatSetUp(ST,PetscScalar,PetscScalar*);
 PETSC_EXTERN PetscErrorCode STPostSolve(ST);
 PETSC_EXTERN PetscErrorCode STResetMatrixState(ST);

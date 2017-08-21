@@ -70,7 +70,7 @@ PetscErrorCode EPSSetUp_PRIMME(EPS eps)
 
   /* Check some constraints and set some default values */
   if (!eps->max_it) eps->max_it = PetscMax(1000,eps->n);
-  ierr = STGetOperators(eps->st,0,&ops->A);CHKERRQ(ierr);
+  ierr = STGetMatrix(eps->st,0,&ops->A);CHKERRQ(ierr);
   if (!eps->ishermitian) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"PRIMME is only available for Hermitian problems");
   if (eps->isgeneralized) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"PRIMME is not available for generalized problems");
   if (eps->arbitrary) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Arbitrary selection of eigenpairs not supported in this solver");

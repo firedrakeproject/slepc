@@ -396,7 +396,7 @@ PetscErrorCode EPSSolve_Power(EPS eps)
           beta1 = norm1;
 
           /* alpha2 = (e'*A*e)/(beta1*beta1), where e is the residual */
-          ierr = STGetOperators(eps->st,0,&A);CHKERRQ(ierr);
+          ierr = STGetMatrix(eps->st,0,&A);CHKERRQ(ierr);
           ierr = BVGetColumn(eps->V,k,&v);CHKERRQ(ierr);
           ierr = MatMult(A,v,e);CHKERRQ(ierr);
           ierr = VecDot(v,e,&alpha2);CHKERRQ(ierr);

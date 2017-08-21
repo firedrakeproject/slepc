@@ -564,8 +564,8 @@ PetscErrorCode EPSComputeResidualNorm_Private(EPS eps,PetscScalar kr,PetscScalar
   PetscFunctionBegin;
   u = z[0]; w = z[2];
   ierr = STGetNumMatrices(eps->st,&nmat);CHKERRQ(ierr);
-  ierr = STGetOperators(eps->st,0,&A);CHKERRQ(ierr);
-  if (nmat>1) { ierr = STGetOperators(eps->st,1,&B);CHKERRQ(ierr); }
+  ierr = STGetMatrix(eps->st,0,&A);CHKERRQ(ierr);
+  if (nmat>1) { ierr = STGetMatrix(eps->st,1,&B);CHKERRQ(ierr); }
 
 #if !defined(PETSC_USE_COMPLEX)
   v = z[1];
@@ -673,14 +673,14 @@ PetscErrorCode EPSComputeError(EPS eps,PetscInt i,EPSErrorType type,PetscReal *e
     case EPS_ERROR_BACKWARD:
       /* initialization of matrix norms */
       if (!eps->nrma) {
-        ierr = STGetOperators(eps->st,0,&A);CHKERRQ(ierr);
+        ierr = STGetMatrix(eps->st,0,&A);CHKERRQ(ierr);
         ierr = MatHasOperation(A,MATOP_NORM,&flg);CHKERRQ(ierr);
         if (!flg) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_WRONG,"The computation of backward errors requires a matrix norm operation");
         ierr = MatNorm(A,NORM_INFINITY,&eps->nrma);CHKERRQ(ierr);
       }
       if (eps->isgeneralized) {
         if (!eps->nrmb) {
-          ierr = STGetOperators(eps->st,1,&B);CHKERRQ(ierr);
+          ierr = STGetMatrix(eps->st,1,&B);CHKERRQ(ierr);
           ierr = MatHasOperation(B,MATOP_NORM,&flg);CHKERRQ(ierr);
           if (!flg) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_WRONG,"The computation of backward errors requires a matrix norm operation");
           ierr = MatNorm(B,NORM_INFINITY,&eps->nrmb);CHKERRQ(ierr);

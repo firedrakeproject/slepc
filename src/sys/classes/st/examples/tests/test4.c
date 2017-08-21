@@ -102,7 +102,7 @@ int main(int argc,char **argv)
   mat[1] = B;
   mat[2] = C;
   mat[3] = D;
-  ierr = STSetOperators(st,4,mat);CHKERRQ(ierr);
+  ierr = STSetMatrices(st,4,mat);CHKERRQ(ierr);
   ierr = STGetKSP(st,&ksp);CHKERRQ(ierr);
   ierr = KSPSetTolerances(ksp,100*PETSC_MACHINE_EPSILON,PETSC_DEFAULT,PETSC_DEFAULT,PETSC_DEFAULT);CHKERRQ(ierr);
   ierr = STSetFromOptions(st);CHKERRQ(ierr);

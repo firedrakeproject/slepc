@@ -211,7 +211,7 @@ PetscErrorCode STCreate(MPI_Comm comm,ST *newst)
 }
 
 /*@
-   STSetOperators - Sets the matrices associated with the eigenvalue problem.
+   STSetMatrices - Sets the matrices associated with the eigenvalue problem.
 
    Collective on ST and Mat
 
@@ -226,9 +226,9 @@ PetscErrorCode STCreate(MPI_Comm comm,ST *newst)
 
    Level: intermediate
 
-.seealso: STGetOperators(), STGetNumMatrices(), STSetUp(), STReset()
+.seealso: STGetMatrix(), STGetNumMatrices(), STSetUp(), STReset()
  @*/
-PetscErrorCode STSetOperators(ST st,PetscInt n,Mat A[])
+PetscErrorCode STSetMatrices(ST st,PetscInt n,Mat A[])
 {
   PetscInt       i;
   PetscErrorCode ierr;
@@ -273,7 +273,7 @@ PetscErrorCode STSetOperators(ST st,PetscInt n,Mat A[])
 }
 
 /*@
-   STGetOperators - Gets the matrices associated with the original eigensystem.
+   STGetMatrix - Gets the matrices associated with the original eigensystem.
 
    Not collective, though parallel Mats are returned if the ST is parallel
 
@@ -286,9 +286,9 @@ PetscErrorCode STSetOperators(ST st,PetscInt n,Mat A[])
 
    Level: intermediate
 
-.seealso: STSetOperators(), STGetNumMatrices()
+.seealso: STSetMatrices(), STGetNumMatrices()
 @*/
-PetscErrorCode STGetOperators(ST st,PetscInt k,Mat *A)
+PetscErrorCode STGetMatrix(ST st,PetscInt k,Mat *A)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
@@ -302,7 +302,7 @@ PetscErrorCode STGetOperators(ST st,PetscInt k,Mat *A)
 }
 
 /*@
-   STGetTOperators - Gets the matrices associated with the transformed eigensystem.
+   STGetMatrixTransformed - Gets the matrices associated with the transformed eigensystem.
 
    Not collective, though parallel Mats are returned if the ST is parallel
 
@@ -315,9 +315,9 @@ PetscErrorCode STGetOperators(ST st,PetscInt k,Mat *A)
 
    Level: developer
 
-.seealso: STGetOperators(), STGetNumMatrices()
+.seealso: STGetMatrix(), STGetNumMatrices()
 @*/
-PetscErrorCode STGetTOperators(ST st,PetscInt k,Mat *T)
+PetscErrorCode STGetMatrixTransformed(ST st,PetscInt k,Mat *T)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
@@ -339,11 +339,11 @@ PetscErrorCode STGetTOperators(ST st,PetscInt k,Mat *T)
 .  st - the spectral transformation context
 
    Output Parameters:
-.  n - the number of matrices passed in STSetOperators()
+.  n - the number of matrices passed in STSetMatrices()
 
    Level: intermediate
 
-.seealso: STSetOperators()
+.seealso: STSetMatrices()
 @*/
 PetscErrorCode STGetNumMatrices(ST st,PetscInt *n)
 {
@@ -365,12 +365,12 @@ PetscErrorCode STGetNumMatrices(ST st,PetscInt *n)
    Note:
    This is useful in solvers where the user matrices are modified during
    the computation, as in nonlinear inverse iteration. The effect is that
-   STGetOperators() will retrieve the modified matrices as if they were
+   STGetMatrix() will retrieve the modified matrices as if they were
    the matrices originally provided by the user.
 
    Level: developer
 
-.seealso: STGetOperators(), EPSPowerSetNonlinear()
+.seealso: STGetMatrix(), EPSPowerSetNonlinear()
 @*/
 PetscErrorCode STResetMatrixState(ST st)
 {

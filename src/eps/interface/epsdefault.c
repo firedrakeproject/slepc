@@ -58,7 +58,7 @@ PetscErrorCode EPSComputeVectors_Hermitian(EPS eps)
     /* In the case of Cayley transform, eigenvectors need to be B-normalized */
     ierr = PetscObjectTypeCompare((PetscObject)eps->st,STCAYLEY,&iscayley);CHKERRQ(ierr);
     if (iscayley && eps->isgeneralized) {
-      ierr = STGetOperators(eps->st,1,&B);CHKERRQ(ierr);
+      ierr = STGetMatrix(eps->st,1,&B);CHKERRQ(ierr);
       ierr = MatCreateVecs(B,NULL,&w);CHKERRQ(ierr);
       for (i=0;i<eps->nconv;i++) {
         ierr = BVGetColumn(eps->V,i,&x);CHKERRQ(ierr);

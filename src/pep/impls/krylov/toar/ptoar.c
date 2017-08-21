@@ -665,7 +665,7 @@ static PetscErrorCode PEPExtractInvariantPair(PEP pep,PetscScalar sigma,PetscInt
     if (flg) {
       ierr = PetscMalloc1(pep->nmat,&A);CHKERRQ(ierr);
       for (i=0;i<pep->nmat;i++) {
-        ierr = STGetTOperators(pep->st,i,A+i);CHKERRQ(ierr);
+        ierr = STGetMatrixTransformed(pep->st,i,A+i);CHKERRQ(ierr);
       }
     } else A = pep->A;
     ierr = PetscMalloc1(pep->nmat-1,&R);CHKERRQ(ierr);

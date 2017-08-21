@@ -183,7 +183,7 @@ PetscErrorCode STSetFromOptions(ST st)
 
    Level: advanced
 
-.seealso: STSetOperators(), MatAXPY()
+.seealso: STSetMatrices(), MatAXPY()
 @*/
 PetscErrorCode STSetMatStructure(ST st,MatStructure str)
 {
@@ -217,7 +217,7 @@ PetscErrorCode STSetMatStructure(ST st,MatStructure str)
 
    Level: advanced
 
-.seealso: STSetMatStructure(), STSetOperators(), MatAXPY()
+.seealso: STSetMatStructure(), STSetMatrices(), MatAXPY()
 @*/
 PetscErrorCode STGetMatStructure(ST st,MatStructure *str)
 {
@@ -264,7 +264,7 @@ PetscErrorCode STGetMatStructure(ST st,MatStructure *str)
 
    Level: intermediate
 
-.seealso: STSetOperators(), STSetMatStructure(), STGetMatMode(), STMatMode
+.seealso: STSetMatrices(), STSetMatStructure(), STGetMatMode(), STMatMode
 @*/
 PetscErrorCode STSetMatMode(ST st,STMatMode mode)
 {

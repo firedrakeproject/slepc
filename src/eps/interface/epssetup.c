@@ -162,11 +162,11 @@ PetscErrorCode EPSSetUp(EPS eps)
   /* initialization of matrix norms */
   if (eps->conv==EPS_CONV_NORM) {
     if (!eps->nrma) {
-      ierr = STGetOperators(eps->st,0,&A);CHKERRQ(ierr);
+      ierr = STGetMatrix(eps->st,0,&A);CHKERRQ(ierr);
       ierr = MatNorm(A,NORM_INFINITY,&eps->nrma);CHKERRQ(ierr);
     }
     if (nmat>1 && !eps->nrmb) {
-      ierr = STGetOperators(eps->st,1,&B);CHKERRQ(ierr);
+      ierr = STGetMatrix(eps->st,1,&B);CHKERRQ(ierr);
       ierr = MatNorm(B,NORM_INFINITY,&eps->nrmb);CHKERRQ(ierr);
     }
   }
@@ -317,7 +317,7 @@ PetscErrorCode EPSSetUp(EPS eps)
 
    Level: beginner
 
-.seealso: EPSSolve(), EPSSetUp(), EPSReset(), EPSGetST(), STGetOperators()
+.seealso: EPSSolve(), EPSSetUp(), EPSReset(), EPSGetST(), STGetMatrix()
 @*/
 PetscErrorCode EPSSetOperators(EPS eps,Mat A,Mat B)
 {
@@ -349,7 +349,7 @@ PetscErrorCode EPSSetOperators(EPS eps,Mat A,Mat B)
     mat[1] = B;
     nmat = 2;
   } else nmat = 1;
-  ierr = STSetOperators(eps->st,nmat,mat);CHKERRQ(ierr);
+  ierr = STSetMatrices(eps->st,nmat,mat);CHKERRQ(ierr);
   eps->state = EPS_STATE_INITIAL;
   PetscFunctionReturn(0);
 }
@@ -368,7 +368,7 @@ PetscErrorCode EPSSetOperators(EPS eps,Mat A,Mat B)
 
    Level: intermediate
 
-.seealso: EPSSolve(), EPSGetST(), STGetOperators(), STSetOperators()
+.seealso: EPSSolve(), EPSGetST(), STGetMatrix(), STSetMatrices()
 @*/
 PetscErrorCode EPSGetOperators(EPS eps,Mat *A,Mat *B)
 {
@@ -379,12 +379,12 @@ PetscErrorCode EPSGetOperators(EPS eps,Mat *A,Mat *B)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   ierr = EPSGetST(eps,&st);CHKERRQ(ierr);
-  if (A) { ierr = STGetOperators(st,0,A);CHKERRQ(ierr); }
+  if (A) { ierr = STGetMatrix(st,0,A);CHKERRQ(ierr); }
   if (B) {
     ierr = STGetNumMatrices(st,&k);CHKERRQ(ierr);
     if (k==1) B = NULL;
     else {
-      ierr = STGetOperators(st,1,B);CHKERRQ(ierr);
+      ierr = STGetMatrix(st,1,B);CHKERRQ(ierr);
     }
   }
   PetscFunctionReturn(0);
