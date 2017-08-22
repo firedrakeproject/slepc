@@ -150,8 +150,8 @@ static PetscErrorCode EPSSubspaceResidualNorms(BV V,BV AV,PetscScalar *T,PetscIn
 PetscErrorCode EPSSolve_Subspace(EPS eps)
 {
   PetscErrorCode ierr;
-  Vec            v,av,w=eps->work[0];
-  Mat            H,Q;
+  Vec            w=eps->work[0];
+  Mat            H,Q,S;
   BV             AV;
   PetscInt       i,k,ld,ngrp,nogrp,*itrsd,*itrsdold;
   PetscInt       nxtsrr,idsrr,idort,nxtort,nv,ncv = eps->ncv,its;
@@ -172,6 +172,7 @@ PetscErrorCode EPSSolve_Subspace(EPS eps)
   ierr = PetscMalloc3(ncv,&rsd,ncv,&itrsd,ncv,&itrsdold);CHKERRQ(ierr);
   ierr = DSGetLeadingDimension(eps->ds,&ld);CHKERRQ(ierr);
   ierr = BVDuplicate(eps->V,&AV);CHKERRQ(ierr);
+  ierr = STGetOperator(eps->st,&S);CHKERRQ(ierr);
 
   for (i=0;i<ncv;i++) {
     rsd[i] = 0.0;
@@ -193,17 +194,12 @@ PetscErrorCode EPSSolve_Subspace(EPS eps)
     ierr = EPSSubspaceFindGroup(eps->nconv,nv,eps->eigr,eps->eigi,rsd,grptol,&nogrp,&octr,&oae,&oarsd);CHKERRQ(ierr);
 
     /* AV(:,idx) = OP * V(:,idx) */
-    for (i=eps->nconv;i<nv;i++) {
-      ierr = BVGetColumn(eps->V,i,&v);CHKERRQ(ierr);
-      ierr = BVGetColumn(AV,i,&av);CHKERRQ(ierr);
-      ierr = STApply(eps->st,v,av);CHKERRQ(ierr);
-      ierr = BVRestoreColumn(eps->V,i,&v);CHKERRQ(ierr);
-      ierr = BVRestoreColumn(AV,i,&av);CHKERRQ(ierr);
-    }
+    ierr = BVSetActiveColumns(eps->V,eps->nconv,nv);CHKERRQ(ierr);
+    ierr = BVSetActiveColumns(AV,eps->nconv,nv);CHKERRQ(ierr);
+    ierr = BVMatMult(eps->V,S,AV);CHKERRQ(ierr);
 
     /* T(:,idx) = V' * AV(:,idx) */
     ierr = BVSetActiveColumns(eps->V,0,nv);CHKERRQ(ierr);
-    ierr = BVSetActiveColumns(AV,eps->nconv,nv);CHKERRQ(ierr);
     ierr = DSGetMat(eps->ds,DS_MAT_A,&H);CHKERRQ(ierr);
     ierr = BVDot(AV,eps->V,H);CHKERRQ(ierr);
     ierr = DSRestoreMat(eps->ds,DS_MAT_A,&H);CHKERRQ(ierr);
@@ -271,28 +267,24 @@ PetscErrorCode EPSSolve_Subspace(EPS eps)
     /* Orthogonalization loop */
     do {
       while (its<nxtort) {
-
         /* A(:,idx) = OP*V(:,idx) with normalization */
+        ierr = BVMatMult(eps->V,S,AV);CHKERRQ(ierr);
+        ierr = BVCopy(AV,eps->V);CHKERRQ(ierr);
         for (i=eps->nconv;i<nv;i++) {
-          ierr = BVGetColumn(eps->V,i,&v);CHKERRQ(ierr);
-          ierr = STApply(eps->st,v,w);CHKERRQ(ierr);
-          ierr = VecCopy(w,v);CHKERRQ(ierr);
-          ierr = BVRestoreColumn(eps->V,i,&v);CHKERRQ(ierr);
           ierr = BVNormColumn(eps->V,i,NORM_INFINITY,&norm);CHKERRQ(ierr);
           ierr = BVScaleColumn(eps->V,i,1/norm);CHKERRQ(ierr);
         }
         its++;
       }
       /* Orthonormalize vectors */
-      for (i=eps->nconv;i<nv;i++) {
-        ierr = BVOrthonormalizeColumn(eps->V,i,PETSC_TRUE,NULL,NULL);CHKERRQ(ierr);
-      }
+      ierr = BVOrthogonalize(eps->V,NULL);CHKERRQ(ierr);
       nxtort = PetscMin(its+idort,nxtsrr);
     } while (its<nxtsrr);
   }
 
   ierr = PetscFree3(rsd,itrsd,itrsdold);CHKERRQ(ierr);
   ierr = BVDestroy(&AV);CHKERRQ(ierr);
+  ierr = MatDestroy(&S);CHKERRQ(ierr);
   /* truncate Schur decomposition and change the state to raw so that
      DSVectors() computes eigenvectors from scratch */
   ierr = DSSetDimensions(eps->ds,eps->nconv,0,0,0);CHKERRQ(ierr);
