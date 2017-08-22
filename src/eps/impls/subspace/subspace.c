@@ -194,6 +194,8 @@ PetscErrorCode EPSSolve_Subspace(EPS eps)
     ierr = EPSSubspaceFindGroup(eps->nconv,nv,eps->eigr,eps->eigi,rsd,grptol,&nogrp,&octr,&oae,&oarsd);CHKERRQ(ierr);
 
     /* AV(:,idx) = OP * V(:,idx) */
+    ierr = BVSetActiveColumns(eps->V,eps->nconv,nv);CHKERRQ(ierr);
+    ierr = BVSetActiveColumns(AV,eps->nconv,nv);CHKERRQ(ierr);
     ierr = BVMatMult(eps->V,S,AV);CHKERRQ(ierr);
 
     /* T(:,idx) = V' * AV(:,idx) */
