@@ -188,10 +188,10 @@ Problem Type  & \ident{NEPProblemType}    & Command line key\\\hline
 General       & \texttt{NEP\_GENERAL}     & \texttt{-nep\_general}\\
 Rational      & \texttt{NEP\_RATIONAL}    & \texttt{-nep\_rational}\\\hline
 \end{tabular} }
-\caption{\label{tab:ptypeq}Problem types considered in \ident{NEP}.}
+\caption{\label{tab:ntypeq}Problem types considered in \ident{NEP}.}
 \end{table}
 
-When defining the problem in split form, it may also be useful to specify a problem type. For example, if the user knows that all $f_i$ functions are rational, as in \eqref{eq:rep}, then setting the problem type to \texttt{NEP\_RATIONAL} gives a hint to the solver that may simplify the solution process. The problem types currently supported for \ident{NEP} are listed in Table \ref{tab:ptypeq}. When in doubt, use the default problem type (\texttt{NEP\_GENERAL}).
+When defining the problem in split form, it may also be useful to specify a problem type. For example, if the user knows that all $f_i$ functions are rational, as in \eqref{eq:rep}, then setting the problem type to \texttt{NEP\_RATIONAL} gives a hint to the solver that may simplify the solution process. The problem types currently supported for \ident{NEP} are listed in Table \ref{tab:ntypeq}. When in doubt, use the default problem type (\texttt{NEP\_GENERAL}).
 
 The problem type can be specified at run time with the corresponding command line key or, more usually, within the program with the function
 	\findex{NEPSetProblemType}
