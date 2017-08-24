@@ -822,14 +822,14 @@ PetscErrorCode DSCopyMat(DS ds,DSMatType m,PetscInt mr,PetscInt mc,Mat A,PetscIn
   DSCheckAlloc(ds,1);
   PetscValidLogicalCollectiveEnum(ds,m,2);
   DSCheckValidMat(ds,m,2);
-  PetscValidHeaderSpecific(A,MAT_CLASSID,3);
-  PetscValidLogicalCollectiveBool(ds,out,4);
-  PetscValidLogicalCollectiveInt(ds,mr,5);
-  PetscValidLogicalCollectiveInt(ds,mc,6);
-  PetscValidLogicalCollectiveInt(ds,Ar,7);
-  PetscValidLogicalCollectiveInt(ds,Ac,8);
-  PetscValidLogicalCollectiveInt(ds,rows,9);
-  PetscValidLogicalCollectiveInt(ds,rows,10);
+  PetscValidLogicalCollectiveInt(ds,mr,3);
+  PetscValidLogicalCollectiveInt(ds,mc,4);
+  PetscValidHeaderSpecific(A,MAT_CLASSID,5);
+  PetscValidLogicalCollectiveInt(ds,Ar,6);
+  PetscValidLogicalCollectiveInt(ds,Ac,7);
+  PetscValidLogicalCollectiveInt(ds,rows,8);
+  PetscValidLogicalCollectiveInt(ds,cols,9);
+  PetscValidLogicalCollectiveBool(ds,out,10);
   if (!rows || !cols) PetscFunctionReturn(0);
 
   mrows = PetscMax(ds->n,ds->t);
