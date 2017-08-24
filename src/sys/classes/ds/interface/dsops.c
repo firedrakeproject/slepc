@@ -235,6 +235,7 @@ PetscErrorCode DSTruncate(DS ds,PetscInt n)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
+  PetscValidType(ds,1);
   DSCheckAlloc(ds,1);
   DSCheckSolved(ds,1);
   PetscValidLogicalCollectiveInt(ds,n,2);
@@ -503,6 +504,7 @@ PetscErrorCode DSSolve(DS ds,PetscScalar eigr[],PetscScalar eigi[])
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
+  PetscValidType(ds,1);
   DSCheckAlloc(ds,1);
   PetscValidPointer(eigr,2);
   if (ds->state>=DS_STATE_CONDENSED) PetscFunctionReturn(0);
@@ -557,6 +559,7 @@ PetscErrorCode DSSort(DS ds,PetscScalar *eigr,PetscScalar *eigi,PetscScalar *rr,
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
+  PetscValidType(ds,1);
   DSCheckSolved(ds,1);
   PetscValidPointer(eigr,2);
   if (rr) PetscValidPointer(rr,4);
@@ -618,6 +621,7 @@ PetscErrorCode DSVectors(DS ds,DSMatType mat,PetscInt *j,PetscReal *rnorm)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
+  PetscValidType(ds,1);
   DSCheckAlloc(ds,1);
   PetscValidLogicalCollectiveEnum(ds,mat,2);
   if (mat>=DS_NUM_MAT) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_WRONG,"Invalid matrix");
@@ -652,6 +656,7 @@ PetscErrorCode DSUpdateExtraRow(DS ds)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
+  PetscValidType(ds,1);
   DSCheckAlloc(ds,1);
   if (!ds->ops->update) SETERRQ1(PetscObjectComm((PetscObject)ds),PETSC_ERR_SUP,"DS type %s",((PetscObject)ds)->type_name);
   if (!ds->extrarow) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_WRONGSTATE,"Should have called DSSetExtraRow");
@@ -683,6 +688,7 @@ PetscErrorCode DSCond(DS ds,PetscReal *cond)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
+  PetscValidType(ds,1);
   DSCheckAlloc(ds,1);
   PetscValidPointer(cond,2);
   if (!ds->ops->cond) SETERRQ1(PetscObjectComm((PetscObject)ds),PETSC_ERR_SUP,"DS type %s",((PetscObject)ds)->type_name);
@@ -730,6 +736,7 @@ PetscErrorCode DSTranslateHarmonic(DS ds,PetscScalar tau,PetscReal beta,PetscBoo
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
+  PetscValidType(ds,1);
   DSCheckAlloc(ds,1);
   if (!ds->ops->transharm) SETERRQ1(PetscObjectComm((PetscObject)ds),PETSC_ERR_SUP,"DS type %s",((PetscObject)ds)->type_name);
   ierr = PetscLogEventBegin(DS_Other,ds,0,0,0);CHKERRQ(ierr);
@@ -772,6 +779,7 @@ PetscErrorCode DSTranslateRKS(DS ds,PetscScalar alpha)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
+  PetscValidType(ds,1);
   DSCheckAlloc(ds,1);
   if (!ds->ops->transrks) SETERRQ1(PetscObjectComm((PetscObject)ds),PETSC_ERR_SUP,"DS type %s",((PetscObject)ds)->type_name);
   ierr = PetscLogEventBegin(DS_Other,ds,0,0,0);CHKERRQ(ierr);

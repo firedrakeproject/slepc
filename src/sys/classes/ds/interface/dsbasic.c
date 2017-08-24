@@ -754,6 +754,7 @@ PetscErrorCode DSAllocate(DS ds,PetscInt ld)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
   PetscValidLogicalCollectiveInt(ds,ld,2);
+  PetscValidType(ds,1);
   if (ld<1) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_OUTOFRANGE,"Leading dimension should be at least one");
   if (ld!=ds->ld) {
     ierr = DSReset(ds);CHKERRQ(ierr);
