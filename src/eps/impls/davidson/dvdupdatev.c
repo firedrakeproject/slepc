@@ -98,7 +98,7 @@ static PetscErrorCode dvd_updateV_conv_gen(dvdDashboard *d)
   dvdManagV_basic *data = (dvdManagV_basic*)d->updateV_data;
   PetscInt        npreconv,cMT,cMTX,lV,kV,nV;
   PetscErrorCode  ierr;
-  Mat             Q;
+  Mat             Z;
   PetscBool       t;
 #if !defined(PETSC_USE_COMPLEX)
   PetscInt        i;
@@ -127,9 +127,9 @@ static PetscErrorCode dvd_updateV_conv_gen(dvdDashboard *d)
      If the problem is standard or hermitian, left and right vectors are the same */
   if (!(d->W||DVD_IS(d->sEP,DVD_EP_STD)||DVD_IS(d->sEP,DVD_EP_HERMITIAN))) {
     /* ps.Q <- [ps.Q(0:npreconv-1) ps.Z(npreconv:size_H-1)] */
-    ierr = DSGetMat(d->eps->ds,DS_MAT_Q,&Q);CHKERRQ(ierr);
-    ierr = DSCopyMat(d->eps->ds,DS_MAT_Z,0,npreconv,Q,0,npreconv,nV,cMT,PETSC_TRUE);CHKERRQ(ierr);
-    ierr = DSRestoreMat(d->eps->ds,DS_MAT_Q,&Q);CHKERRQ(ierr);
+    ierr = DSGetMat(d->eps->ds,DS_MAT_Z,&Z);CHKERRQ(ierr);
+    ierr = DSCopyMat(d->eps->ds,DS_MAT_Q,0,npreconv,Z,0,npreconv,nV,cMT,PETSC_FALSE);CHKERRQ(ierr);
+    ierr = MatDestroy(&Z);CHKERRQ(ierr);
   }
   if (DVD_IS(d->sEP,DVD_EP_INDEFINITE)) {
     ierr = DSPseudoOrthogonalize(d->eps->ds,DS_MAT_Q,nV,d->nBds,&cMTX,d->nBds);CHKERRQ(ierr);
@@ -164,7 +164,7 @@ static PetscErrorCode dvd_updateV_restart_gen(dvdDashboard *d)
 {
   dvdManagV_basic *data = (dvdManagV_basic*)d->updateV_data;
   PetscInt        lV,kV,nV,size_plusk,size_X,cMTX,cMTY;
-  Mat             Q;
+  Mat             Z;
   PetscErrorCode  ierr;
 
   PetscFunctionBegin;
@@ -181,9 +181,9 @@ static PetscErrorCode dvd_updateV_restart_gen(dvdDashboard *d)
   /* Harmonics restarts wiht right eigenvectors, and other with the left ones.
      If the problem is standard or hermitian, left and right vectors are the same */
   if (!(d->W||DVD_IS(d->sEP,DVD_EP_STD)||DVD_IS(d->sEP,DVD_EP_HERMITIAN))) {
-    ierr = DSGetMat(d->eps->ds,DS_MAT_Q,&Q);CHKERRQ(ierr);
-    ierr = DSCopyMat(d->eps->ds,DS_MAT_Z,0,0,Q,0,0,nV,size_X,PETSC_TRUE);CHKERRQ(ierr);
-    ierr = DSRestoreMat(d->eps->ds,DS_MAT_Q,&Q);CHKERRQ(ierr);
+    ierr = DSGetMat(d->eps->ds,DS_MAT_Z,&Z);CHKERRQ(ierr);
+    ierr = DSCopyMat(d->eps->ds,DS_MAT_Q,0,0,Z,0,0,nV,size_X,PETSC_FALSE);CHKERRQ(ierr);
+    ierr = MatDestroy(&Z);CHKERRQ(ierr);
   }
   if (size_plusk > 0 && DVD_IS(d->sEP,DVD_EP_INDEFINITE)) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"Unsupported plusk>0 in indefinite eigenvalue problems");
   if (size_plusk > 0) {

@@ -162,7 +162,7 @@ PetscErrorCode EPSSolve_LOBPCG(EPS eps)
   ierr = DSGetMat(eps->ds,DS_MAT_X,&M);CHKERRQ(ierr);
   ierr = BVMultInPlace(X,M,0,nv);CHKERRQ(ierr);
   ierr = BVMultInPlace(AX,M,0,nv);CHKERRQ(ierr);
-  ierr = DSRestoreMat(eps->ds,DS_MAT_X,&M);CHKERRQ(ierr);
+  ierr = MatDestroy(&M);CHKERRQ(ierr);
 
   /* 5. Initialize range of active iterates */
   locked = 0;  /* hard-locked vectors, the leading locked columns of V are eigenvectors */
@@ -189,7 +189,7 @@ PetscErrorCode EPSSolve_LOBPCG(EPS eps)
     } else {
       ierr = BVMult(R,-1.0,1.0,X,M);CHKERRQ(ierr);
     }
-    ierr = DSRestoreMat(eps->ds,DS_MAT_A,&M);CHKERRQ(ierr);
+    ierr = MatDestroy(&M);CHKERRQ(ierr);
 
     /* 8. Compute residual norms and update index set of active iterates */
     ini = (ctx->lock)? nconv: 0;
@@ -291,7 +291,7 @@ PetscErrorCode EPSSolve_LOBPCG(EPS eps)
       ierr = DSGetMat(eps->ds,DS_MAT_X,&M);CHKERRQ(ierr);
       ierr = BVMultInPlace(X,M,0,nv);CHKERRQ(ierr);
       ierr = BVMultInPlace(AX,M,0,nv);CHKERRQ(ierr);
-      ierr = DSRestoreMat(eps->ds,DS_MAT_X,&M);CHKERRQ(ierr);
+      ierr = MatDestroy(&M);CHKERRQ(ierr);
 
       continue;   /* skip the rest of the iteration */
     }
@@ -379,7 +379,7 @@ PetscErrorCode EPSSolve_LOBPCG(EPS eps)
       ierr = BVSetActiveColumns(X,nconv,ctx->bs);CHKERRQ(ierr);
     }
     ierr = BVMatMult(X,A,AX);CHKERRQ(ierr);
-    ierr = DSRestoreMat(eps->ds,DS_MAT_X,&M);CHKERRQ(ierr);
+    ierr = MatDestroy(&M);CHKERRQ(ierr);
   }
 
   ierr = PetscFree(eigr);CHKERRQ(ierr);

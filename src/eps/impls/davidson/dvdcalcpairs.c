@@ -170,8 +170,8 @@ static PetscErrorCode dvd_calcpairs_updateproj(dvdDashboard *d)
   ierr = BVGetActiveColumns(d->eps->V,&lV,&kV);CHKERRQ(ierr);
   ierr = EPSXDUpdateProj(Q,Z,0,d->H,lV,lV+d->V_tra_e,d->auxM);CHKERRQ(ierr);
   if (d->G) { ierr = EPSXDUpdateProj(Q,Z,0,d->G,lV,lV+d->V_tra_e,d->auxM);CHKERRQ(ierr); }
-  ierr = DSRestoreMat(d->eps->ds,DS_MAT_Q,&Q);CHKERRQ(ierr);
-  if (d->W) { ierr = DSRestoreMat(d->eps->ds,DS_MAT_Z,&Z);CHKERRQ(ierr); }
+  ierr = MatDestroy(&Q);CHKERRQ(ierr);
+  if (d->W) { ierr = MatDestroy(&Z);CHKERRQ(ierr); }
 
   ierr = PetscObjectTypeCompareAny((PetscObject)d->eps->ds,&symm,DSHEP,DSGHIEP,DSGHEP,"");CHKERRQ(ierr);
   if (d->V_tra_s==0 || symm) PetscFunctionReturn(0);

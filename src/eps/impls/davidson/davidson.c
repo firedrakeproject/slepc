@@ -370,6 +370,6 @@ PetscErrorCode EPSComputeVectors_XD(EPS eps)
   ierr = DSGetMat(eps->ds,DS_MAT_X,&X);CHKERRQ(ierr);
   ierr = BVSetActiveColumns(eps->V,0,eps->nconv);CHKERRQ(ierr);
   ierr = BVMultInPlace(eps->V,X,0,eps->nconv);CHKERRQ(ierr);
-  ierr = DSRestoreMat(eps->ds,DS_MAT_X,&X);CHKERRQ(ierr);
+  ierr = MatDestroy(&X);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
