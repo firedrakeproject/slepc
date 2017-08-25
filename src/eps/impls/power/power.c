@@ -197,6 +197,7 @@ static PetscErrorCode EPSPowerUpdateFunctionB(EPS eps,Vec x,Vec Bx)
   Mat            B;
 
   PetscFunctionBegin;
+  ierr = STResetMatrixState(eps->st);CHKERRQ(ierr);
   ierr = EPSGetOperators(eps,NULL,&B);CHKERRQ(ierr);
   if (B) {
     if (power->formFunctionB) {
@@ -206,6 +207,27 @@ static PetscErrorCode EPSPowerUpdateFunctionB(EPS eps,Vec x,Vec Bx)
     }
   } else {
     ierr = VecCopy(x,Bx);CHKERRQ(ierr);
+  }
+  PetscFunctionReturn(0);
+}
+
+static PetscErrorCode EPSPowerUpdateFunctionA(EPS eps,Vec x,Vec Ax)
+{
+  PetscErrorCode ierr;
+  EPS_POWER      *power = (EPS_POWER*)eps->data;
+  Mat            A;
+
+  PetscFunctionBegin;
+  ierr = STResetMatrixState(eps->st);CHKERRQ(ierr);
+  ierr = EPSGetOperators(eps,&A,NULL);CHKERRQ(ierr);
+  if (A) {
+    if (power->formFunctionA) {
+      ierr = (*power->formFunctionA)(power->snes,x,Ax,power->formFunctionActx);CHKERRQ(ierr);
+    } else {
+      ierr = MatMult(A,x,Ax);CHKERRQ(ierr);
+    }
+  } else {
+    SETERRQ(PETSC_COMM_WORLD,PETSC_ERR_ARG_NULL,"Matrix A is required for an eigenvalue problem \n");CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }
@@ -226,7 +248,8 @@ static PetscErrorCode EPSPowerFormFunction_Update(SNES snes,Vec x,Vec y,void *ct
   ierr = EPSPowerUpdateFunctionB(eps,x,Bx);CHKERRQ(ierr);
   ierr = VecNorm(Bx,NORM_2,&bx);CHKERRQ(ierr);
   ierr = Normalize(Bx,bx);CHKERRQ(ierr);
-  ierr = (*power->formFunctionA)(power->snes,x,y,power->formFunctionActx);CHKERRQ(ierr);
+  /*ierr = (*power->formFunctionA)(power->snes,x,y,power->formFunctionActx);CHKERRQ(ierr);*/
+  ierr = EPSPowerUpdateFunctionA(eps,x,y);CHKERRQ(ierr);
   ierr = VecAXPY(y,-1.0,Bx);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -471,7 +494,6 @@ PetscErrorCode EPSSolve_Power(EPS eps)
   }
 
   if (power->nonlinear) {
-    ierr = STResetMatrixState(eps->st);CHKERRQ(ierr);
     ierr = PetscObjectCompose((PetscObject)power->snes,"eps",NULL);CHKERRQ(ierr);
   } else {
     ierr = DSSetDimensions(eps->ds,eps->nconv,0,0,0);CHKERRQ(ierr);
