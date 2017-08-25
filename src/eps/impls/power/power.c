@@ -48,6 +48,7 @@
 #include <petscsnes.h>
 
 static PetscErrorCode EPSPowerFormFunction_Update(SNES,Vec,Vec,void*);
+static PetscErrorCode SNESLineSearchPostheckFunction(SNESLineSearch linesearch,Vec x,Vec y,  Vec w,PetscBool *changed_y, PetscBool *changed_w, void *ctx);
 
 typedef struct {
   EPSPowerShiftType shift_type;
@@ -72,6 +73,7 @@ PetscErrorCode EPSSetUp_Power(EPS eps)
   PetscErrorCode (*formFunctionA)(SNES,Vec,Vec,void*);
   PetscErrorCode (*formJacobianA)(SNES,Vec,Mat,Mat,void*);
   void           *ctx;
+  SNESLineSearch linesearch;
 
   PetscFunctionBegin;
   if (eps->ncv) {
@@ -124,6 +126,9 @@ PetscErrorCode EPSSetUp_Power(EPS eps)
       ierr = PetscContainerGetPointer(container,&ctx);CHKERRQ(ierr);
     } else ctx = NULL;
     ierr = SNESSetJacobian(power->snes,A,A,formJacobianA,ctx);CHKERRQ(ierr);
+    ierr = SNESGetLineSearch(power->snes,&linesearch);CHKERRQ(ierr);
+    ierr = SNESLineSearchSetType(linesearch,SNESLINESEARCHBASIC);CHKERRQ(ierr);
+    ierr = SNESLineSearchSetPostCheck(linesearch,SNESLineSearchPostheckFunction,ctx);CHKERRQ(ierr);
     ierr = SNESSetFromOptions(power->snes);CHKERRQ(ierr);
     ierr = SNESSetUp(power->snes);CHKERRQ(ierr);
     if (B) {
@@ -140,6 +145,24 @@ PetscErrorCode EPSSetUp_Power(EPS eps)
   }
   PetscFunctionReturn(0);
 }
+
+static PetscErrorCode SNESLineSearchPostheckFunction(SNESLineSearch linesearch,Vec x,Vec y,  Vec w,PetscBool *changed_y, PetscBool *changed_w, void *ctx)
+{
+  PetscErrorCode ierr;
+  SNES           snes;
+  EPS            eps;
+  Vec            oldx;
+
+  PetscFunctionBegin;
+  ierr = SNESLineSearchGetSNES(linesearch,&snes);CHKERRQ(ierr);
+  ierr = PetscObjectQuery((PetscObject)snes,"eps",(PetscObject *)&eps);CHKERRQ(ierr);
+  if (!eps) SETERRQ(PETSC_COMM_WORLD,PETSC_ERR_ARG_NULL,"No composed EPS");
+  oldx = eps->work[3];
+  ierr = VecCopy(x,oldx);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+
 
 /*
    Normalize a vector x with respect to a given norm as well as the
@@ -330,6 +353,7 @@ PetscErrorCode EPSSolve_Power(EPS eps)
     if (power->nonlinear) {
       ierr = VecCopy(v,eps->work[3]);CHKERRQ(ierr);
       ierr = EPSPowerApply_SNES(eps,v,y);CHKERRQ(ierr);
+      ierr = VecCopy(eps->work[3],v);CHKERRQ(ierr);
     } else {
       ierr = STApply(eps->st,v,y);CHKERRQ(ierr);
     }
