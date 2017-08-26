@@ -191,11 +191,11 @@ PetscErrorCode DSSetDimensions(DS ds,PetscInt n,PetscInt m,PetscInt l,PetscInt k
 .  k  - intermediate dimension (e.g., position of arrow)
 -  t  - truncated length
 
-   Level: intermediate
-
    Note:
    The t parameter makes sense only if DSTruncate() has been called.
    Otherwise its value equals n.
+
+   Level: intermediate
 
 .seealso: DSSetDimensions(), DSTruncate()
 @*/
@@ -235,6 +235,7 @@ PetscErrorCode DSTruncate(DS ds,PetscInt n)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
+  PetscValidType(ds,1);
   DSCheckAlloc(ds,1);
   DSCheckSolved(ds,1);
   PetscValidLogicalCollectiveInt(ds,n,2);
@@ -247,6 +248,82 @@ PetscErrorCode DSTruncate(DS ds,PetscInt n)
   ierr = PetscLogEventEnd(DS_Other,ds,0,0,0);CHKERRQ(ierr);
   ds->state = DS_STATE_TRUNCATED;
   ierr = PetscObjectStateIncrease((PetscObject)ds);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+/*@
+   DSMatGetSize - Returns the numbers of rows and columns of one of the DS matrices.
+
+   Not Collective
+
+   Input Parameters:
++  ds - the direct solver context
+-  t  - the requested matrix
+
+   Output Parameters:
++  n  - the number of rows
+-  m  - the number of columns
+
+   Note:
+   This is equivalent to MatGetSize() on a matrix obtained with DSGetMat().
+
+   Level: developer
+
+.seealso: DSSetDimensions(), DSGetMat()
+@*/
+PetscErrorCode DSMatGetSize(DS ds,DSMatType t,PetscInt *m,PetscInt *n)
+{
+  PetscErrorCode ierr;
+  PetscInt       rows,cols;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(ds,DS_CLASSID,1);
+  PetscValidType(ds,1);
+  DSCheckValidMat(ds,t,2);
+  if (ds->ops->matgetsize) {
+    ierr = (*ds->ops->matgetsize)(ds,t,&rows,&cols);CHKERRQ(ierr);
+  } else {
+    if (ds->state==DS_STATE_TRUNCATED && t>=DS_MAT_Q) rows = ds->t;
+    else rows = (t==DS_MAT_A && ds->extrarow)? ds->n+1: ds->n;
+    cols = ds->n;
+  }
+  if (m) *m = rows;
+  if (n) *n = cols;
+  PetscFunctionReturn(0);
+}
+
+/*@
+   DSMatIsHermitian - Checks if one of the DS matrices is known to be Hermitian.
+
+   Not Collective
+
+   Input Parameters:
++  ds - the direct solver context
+-  t  - the requested matrix
+
+   Output Parameter:
+.  flg - the Hermitian flag
+
+   Note:
+   Does not check the matrix values directly. The flag is set according to the
+   problem structure. For instance, in DSHEP matrix A is Hermitian.
+
+   Level: developer
+
+.seealso: DSGetMat()
+@*/
+PetscErrorCode DSMatIsHermitian(DS ds,DSMatType t,PetscBool *flg)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(ds,DS_CLASSID,1);
+  PetscValidType(ds,1);
+  DSCheckValidMat(ds,t,2);
+  PetscValidPointer(flg,3);
+  if (ds->ops->hermitian) {
+    ierr = (*ds->ops->hermitian)(ds,t,flg);CHKERRQ(ierr);
+  } else *flg = PETSC_FALSE;
   PetscFunctionReturn(0);
 }
 
@@ -281,7 +358,7 @@ PetscErrorCode DSGetMat(DS ds,DSMatType m,Mat *A)
 {
   PetscErrorCode ierr;
   PetscInt       j,rows,cols,arows,acols;
-  PetscBool      create=PETSC_FALSE;
+  PetscBool      create=PETSC_FALSE,flg;
   PetscScalar    *pA,*M;
 
   PetscFunctionBegin;
@@ -289,9 +366,9 @@ PetscErrorCode DSGetMat(DS ds,DSMatType m,Mat *A)
   DSCheckAlloc(ds,1);
   DSCheckValidMat(ds,m,2);
   PetscValidPointer(A,3);
+  if (m==DS_MAT_T || m==DS_MAT_D) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_WRONG,"Not implemented for T or D matrices");
 
-  rows = PetscMax(ds->n,ds->t);
-  cols = ds->m? ds->m: ds->n;
+  ierr = DSMatGetSize(ds,m,&rows,&cols);CHKERRQ(ierr);
   if (!ds->omat[m]) create=PETSC_TRUE;
   else {
     ierr = MatGetSize(ds->omat[m],&arows,&acols);CHKERRQ(ierr);
@@ -303,6 +380,12 @@ PetscErrorCode DSGetMat(DS ds,DSMatType m,Mat *A)
   if (create) {
     ierr = MatCreateSeqDense(PETSC_COMM_SELF,rows,cols,NULL,&ds->omat[m]);CHKERRQ(ierr);
   }
+
+  /* set Hermitian flag */
+  ierr = DSMatIsHermitian(ds,m,&flg);CHKERRQ(ierr);
+  ierr = MatSetOption(ds->omat[m],MAT_HERMITIAN,flg);CHKERRQ(ierr);
+
+  /* copy entries */
   ierr = PetscObjectReference((PetscObject)ds->omat[m]);CHKERRQ(ierr);
   *A = ds->omat[m];
   M  = ds->mat[m];
@@ -503,6 +586,7 @@ PetscErrorCode DSSolve(DS ds,PetscScalar eigr[],PetscScalar eigi[])
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
+  PetscValidType(ds,1);
   DSCheckAlloc(ds,1);
   PetscValidPointer(eigr,2);
   if (ds->state>=DS_STATE_CONDENSED) PetscFunctionReturn(0);
@@ -557,6 +641,7 @@ PetscErrorCode DSSort(DS ds,PetscScalar *eigr,PetscScalar *eigi,PetscScalar *rr,
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
+  PetscValidType(ds,1);
   DSCheckSolved(ds,1);
   PetscValidPointer(eigr,2);
   if (rr) PetscValidPointer(rr,4);
@@ -618,6 +703,7 @@ PetscErrorCode DSVectors(DS ds,DSMatType mat,PetscInt *j,PetscReal *rnorm)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
+  PetscValidType(ds,1);
   DSCheckAlloc(ds,1);
   PetscValidLogicalCollectiveEnum(ds,mat,2);
   if (mat>=DS_NUM_MAT) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_WRONG,"Invalid matrix");
@@ -652,6 +738,7 @@ PetscErrorCode DSUpdateExtraRow(DS ds)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
+  PetscValidType(ds,1);
   DSCheckAlloc(ds,1);
   if (!ds->ops->update) SETERRQ1(PetscObjectComm((PetscObject)ds),PETSC_ERR_SUP,"DS type %s",((PetscObject)ds)->type_name);
   if (!ds->extrarow) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_WRONGSTATE,"Should have called DSSetExtraRow");
@@ -683,6 +770,7 @@ PetscErrorCode DSCond(DS ds,PetscReal *cond)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
+  PetscValidType(ds,1);
   DSCheckAlloc(ds,1);
   PetscValidPointer(cond,2);
   if (!ds->ops->cond) SETERRQ1(PetscObjectComm((PetscObject)ds),PETSC_ERR_SUP,"DS type %s",((PetscObject)ds)->type_name);
@@ -730,6 +818,7 @@ PetscErrorCode DSTranslateHarmonic(DS ds,PetscScalar tau,PetscReal beta,PetscBoo
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
+  PetscValidType(ds,1);
   DSCheckAlloc(ds,1);
   if (!ds->ops->transharm) SETERRQ1(PetscObjectComm((PetscObject)ds),PETSC_ERR_SUP,"DS type %s",((PetscObject)ds)->type_name);
   ierr = PetscLogEventBegin(DS_Other,ds,0,0,0);CHKERRQ(ierr);
@@ -772,6 +861,7 @@ PetscErrorCode DSTranslateRKS(DS ds,PetscScalar alpha)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
+  PetscValidType(ds,1);
   DSCheckAlloc(ds,1);
   if (!ds->ops->transrks) SETERRQ1(PetscObjectComm((PetscObject)ds),PETSC_ERR_SUP,"DS type %s",((PetscObject)ds)->type_name);
   ierr = PetscLogEventBegin(DS_Other,ds,0,0,0);CHKERRQ(ierr);
@@ -822,19 +912,19 @@ PetscErrorCode DSCopyMat(DS ds,DSMatType m,PetscInt mr,PetscInt mc,Mat A,PetscIn
   DSCheckAlloc(ds,1);
   PetscValidLogicalCollectiveEnum(ds,m,2);
   DSCheckValidMat(ds,m,2);
-  PetscValidHeaderSpecific(A,MAT_CLASSID,3);
-  PetscValidLogicalCollectiveBool(ds,out,4);
-  PetscValidLogicalCollectiveInt(ds,mr,5);
-  PetscValidLogicalCollectiveInt(ds,mc,6);
-  PetscValidLogicalCollectiveInt(ds,Ar,7);
-  PetscValidLogicalCollectiveInt(ds,Ac,8);
-  PetscValidLogicalCollectiveInt(ds,rows,9);
-  PetscValidLogicalCollectiveInt(ds,rows,10);
+  PetscValidLogicalCollectiveInt(ds,mr,3);
+  PetscValidLogicalCollectiveInt(ds,mc,4);
+  PetscValidHeaderSpecific(A,MAT_CLASSID,5);
+  PetscValidLogicalCollectiveInt(ds,Ar,6);
+  PetscValidLogicalCollectiveInt(ds,Ac,7);
+  PetscValidLogicalCollectiveInt(ds,rows,8);
+  PetscValidLogicalCollectiveInt(ds,cols,9);
+  PetscValidLogicalCollectiveBool(ds,out,10);
   if (!rows || !cols) PetscFunctionReturn(0);
 
-  mrows = PetscMax(ds->n,ds->t);
-  mcols = ds->m? ds->m: ds->n;
+  ierr = DSMatGetSize(ds,m,&mrows,&mcols);CHKERRQ(ierr);
   ierr = MatGetSize(A,&arows,&acols);CHKERRQ(ierr);
+  if (m==DS_MAT_T || m==DS_MAT_D) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_WRONG,"Not implemented for T or D matrices");
   if (mr<0 || mr>=mrows) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_OUTOFRANGE,"Invalid initial row in m");
   if (mc<0 || mc>=mcols) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_OUTOFRANGE,"Invalid initial column in m");
   if (Ar<0 || Ar>=arows) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_OUTOFRANGE,"Invalid initial row in A");

@@ -60,9 +60,7 @@ PetscErrorCode DSView_PEP(DS ds,PetscViewer viewer)
     ierr = DSViewMat(ds,viewer,DSMatExtra[i]);CHKERRQ(ierr);
   }
   if (ds->state>DS_STATE_INTERMEDIATE) {
-    ds->m = ctx->d*ds->n;  /* temporarily set number of columns */
     ierr = DSViewMat(ds,viewer,DS_MAT_X);CHKERRQ(ierr);
-    ds->m = 0;
   }
   PetscFunctionReturn(0);
 }
@@ -328,6 +326,19 @@ PetscErrorCode DSDestroy_PEP(DS ds)
   PetscFunctionReturn(0);
 }
 
+PetscErrorCode DSMatGetSize_PEP(DS ds,DSMatType t,PetscInt *rows,PetscInt *cols)
+{
+  DS_PEP *ctx = (DS_PEP*)ds->data;
+
+  PetscFunctionBegin;
+  if (!ctx->d) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_WRONGSTATE,"DSPEP requires specifying the polynomial degree via DSPEPSetDegree()");
+  *rows = ds->n;
+  if (t==DS_MAT_A || t==DS_MAT_B || t==DS_MAT_W || t==DS_MAT_U) *rows *= ctx->d;
+  *cols = ds->n;
+  if (t==DS_MAT_A || t==DS_MAT_B || t==DS_MAT_W || t==DS_MAT_U || t==DS_MAT_X || t==DS_MAT_Y) *cols *= ctx->d;
+  PetscFunctionReturn(0);
+}
+
 PETSC_EXTERN PetscErrorCode DSCreate_PEP(DS ds)
 {
   DS_PEP         *ctx;
@@ -343,6 +354,7 @@ PETSC_EXTERN PetscErrorCode DSCreate_PEP(DS ds)
   ds->ops->solve[0]      = DSSolve_PEP_QZ;
   ds->ops->sort          = DSSort_PEP;
   ds->ops->destroy       = DSDestroy_PEP;
+  ds->ops->matgetsize    = DSMatGetSize_PEP;
   ierr = PetscObjectComposeFunction((PetscObject)ds,"DSPEPSetDegree_C",DSPEPSetDegree_PEP);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)ds,"DSPEPGetDegree_C",DSPEPGetDegree_PEP);CHKERRQ(ierr);
   PetscFunctionReturn(0);

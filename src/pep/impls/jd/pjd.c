@@ -971,10 +971,10 @@ PetscErrorCode PEPSolve_JD(PEP pep)
       ierr = DSRestoreArray(pep->ds,DS_MAT_Y,&pX);CHKERRQ(ierr);
       ierr = DSGetMat(pep->ds,DS_MAT_X,&X);CHKERRQ(ierr);
       ierr = BVMultInPlace(pjd->V,X,pep->nconv,minv);CHKERRQ(ierr);
-      ierr = DSRestoreMat(pep->ds,DS_MAT_X,&X);CHKERRQ(ierr);
+      ierr = MatDestroy(&X);CHKERRQ(ierr);
       ierr = DSGetMat(pep->ds,DS_MAT_Y,&Y);CHKERRQ(ierr);
       ierr = BVMultInPlace(pjd->W,Y,pep->nconv,minv);CHKERRQ(ierr);
-      ierr = DSRestoreMat(pep->ds,DS_MAT_Y,&Y);CHKERRQ(ierr);
+      ierr = MatDestroy(&Y);CHKERRQ(ierr);
       nv = minv;
       flgre = PETSC_TRUE;
     } else {

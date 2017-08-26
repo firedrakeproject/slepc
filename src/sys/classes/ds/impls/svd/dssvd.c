@@ -74,11 +74,11 @@ static PetscErrorCode DSSwitchFormat_SVD(DS ds,PetscBool tocompact)
   if (tocompact) { /* switch from dense (arrow) to compact storage */
     ierr = PetscMemzero(T,3*ld*sizeof(PetscReal));CHKERRQ(ierr);
     for (i=0;i<k;i++) {
-      T[i] = PetscRealPart(A[i+i*ld]);
+      T[i]    = PetscRealPart(A[i+i*ld]);
       T[i+ld] = PetscRealPart(A[i+k*ld]);
     }
     for (i=k;i<m-1;i++) {
-      T[i] = PetscRealPart(A[i+i*ld]);
+      T[i]    = PetscRealPart(A[i+i*ld]);
       T[i+ld] = PetscRealPart(A[i+(i+1)*ld]);
     }
     T[m-1] = PetscRealPart(A[m-1+(m-1)*ld]);
@@ -90,7 +90,7 @@ static PetscErrorCode DSSwitchFormat_SVD(DS ds,PetscBool tocompact)
     }
     A[k+k*ld] = T[k];
     for (i=k+1;i<m;i++) {
-      A[i+i*ld] = T[i];
+      A[i+i*ld]   = T[i];
       A[i-1+i*ld] = T[i-1+ld];
     }
   }
@@ -228,7 +228,7 @@ PetscErrorCode DSSolve_SVD_DC(DS ds,PetscScalar *wr,PetscScalar *wi)
   for (i=0;i<l;i++) VT[i+i*ld] = 1.0;
 
   if (ds->state>DS_STATE_RAW) {
-    /* Solve bidiagonal SVD problem */
+    /* solve bidiagonal SVD problem */
     for (i=0;i<l;i++) wr[i] = d[i];
     ierr = DSAllocateWork_Private(ds,0,3*ld*ld+4*ld,8*ld);CHKERRQ(ierr);
 #if defined(PETSC_USE_COMPLEX)
@@ -251,7 +251,7 @@ PetscErrorCode DSSolve_SVD_DC(DS ds,PetscScalar *wr,PetscScalar *wi)
     }
 #endif
   } else {
-    /* Solve general rectangular SVD problem */
+    /* solve general rectangular SVD problem */
     if (ds->compact) { ierr = DSSwitchFormat_SVD(ds,PETSC_FALSE);CHKERRQ(ierr); }
     for (i=0;i<l;i++) wr[i] = d[i];
     nm = PetscMin(n,m);
@@ -275,7 +275,7 @@ PetscErrorCode DSSolve_SVD_DC(DS ds,PetscScalar *wr,PetscScalar *wi)
   }
   for (i=l;i<PetscMin(ds->n,ds->m);i++) wr[i] = d[i];
 
-  /* Create diagonal matrix as a result */
+  /* create diagonal matrix as a result */
   if (ds->compact) {
     ierr = PetscMemzero(e,(n-1)*sizeof(PetscReal));CHKERRQ(ierr);
   } else {
@@ -288,6 +288,29 @@ PetscErrorCode DSSolve_SVD_DC(DS ds,PetscScalar *wr,PetscScalar *wi)
 #endif
 }
 
+PetscErrorCode DSMatGetSize_SVD(DS ds,DSMatType t,PetscInt *rows,PetscInt *cols)
+{
+  PetscFunctionBegin;
+  switch (t) {
+    case DS_MAT_A:
+    case DS_MAT_T:
+      *rows = ds->n;
+      *cols = ds->m;
+      break;
+    case DS_MAT_U:
+      *rows = ds->n;
+      *cols = ds->n;
+      break;
+    case DS_MAT_VT:
+      *rows = ds->m;
+      *cols = ds->m;
+      break;
+    default:
+      SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_OUTOFRANGE,"Invalid t parameter");
+  }
+  PetscFunctionReturn(0);
+}
+
 PETSC_EXTERN PetscErrorCode DSCreate_SVD(DS ds)
 {
   PetscFunctionBegin;
@@ -296,6 +319,7 @@ PETSC_EXTERN PetscErrorCode DSCreate_SVD(DS ds)
   ds->ops->vectors       = DSVectors_SVD;
   ds->ops->solve[0]      = DSSolve_SVD_DC;
   ds->ops->sort          = DSSort_SVD;
+  ds->ops->matgetsize    = DSMatGetSize_SVD;
   PetscFunctionReturn(0);
 }
 

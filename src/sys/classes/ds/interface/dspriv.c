@@ -121,10 +121,9 @@ PetscErrorCode DSAllocateWork_Private(DS ds,PetscInt s,PetscInt r,PetscInt i)
 PetscErrorCode DSViewMat(DS ds,PetscViewer viewer,DSMatType m)
 {
   PetscErrorCode    ierr;
-  PetscInt          i,j,rows,cols,d;
+  PetscInt          i,j,rows,cols;
   PetscScalar       *v;
   PetscViewerFormat format;
-  PetscBool         ispep;
 #if defined(PETSC_USE_COMPLEX)
   PetscBool         allreal = PETSC_TRUE;
 #endif
@@ -139,14 +138,7 @@ PetscErrorCode DSViewMat(DS ds,PetscViewer viewer,DSMatType m)
   ierr = PetscViewerGetFormat(viewer,&format);CHKERRQ(ierr);
   if (format == PETSC_VIEWER_ASCII_INFO || format == PETSC_VIEWER_ASCII_INFO_DETAIL) PetscFunctionReturn(0);
   ierr = PetscViewerASCIIUseTabs(viewer,PETSC_FALSE);CHKERRQ(ierr);
-  if (ds->state==DS_STATE_TRUNCATED && m>=DS_MAT_Q) rows = ds->t;
-  else rows = (m==DS_MAT_A && ds->extrarow)? ds->n+1: ds->n;
-  cols = (ds->m!=0)? ds->m: ds->n;
-  ierr = PetscObjectTypeCompare((PetscObject)ds,DSPEP,&ispep);CHKERRQ(ierr);
-  if (ispep) {
-    ierr = DSPEPGetDegree(ds,&d);CHKERRQ(ierr);
-  }
-  if (ispep && (m==DS_MAT_X || m==DS_MAT_Y)) cols = d*ds->n;
+  ierr = DSMatGetSize(ds,m,&rows,&cols);CHKERRQ(ierr);
 #if defined(PETSC_USE_COMPLEX)
   /* determine if matrix has all real values */
   v = ds->mat[m];
@@ -368,8 +360,8 @@ PetscErrorCode DSPermuteBoth_Private(DS ds,PetscInt l,PetscInt n,DSMatType mat1,
    Logically Collective on DS
 
    Input Parameters:
-+  ds     - the direct solver context
--  mat    - the matrix to modify
++  ds  - the direct solver context
+-  mat - the matrix to modify
 
    Level: intermediate
 @*/
@@ -389,9 +381,7 @@ PetscErrorCode DSSetIdentity(DS ds,DSMatType mat)
   ierr = PetscLogEventBegin(DS_Other,ds,0,0,0);CHKERRQ(ierr);
   ierr = DSGetArray(ds,mat,&x);CHKERRQ(ierr);
   ierr = PetscMemzero(&x[ld*l],ld*(n-l)*sizeof(PetscScalar));CHKERRQ(ierr);
-  for (i=l;i<n;i++) {
-    x[ld*i+i] = 1.0;
-  }
+  for (i=l;i<n;i++) x[i+i*ld] = 1.0;
   ierr = DSRestoreArray(ds,mat,&x);CHKERRQ(ierr);
   ierr = PetscLogEventEnd(DS_Other,ds,0,0,0);CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -508,7 +498,7 @@ static PetscErrorCode SlepcMatDenseMult(PetscScalar *C,PetscInt _ldC,PetscScalar
     PetscStackCallBLAS("BLASgemm",BLASgemm_(qA,qB,&m,&n,&k,&a,(PetscScalar*)A,&ldA,(PetscScalar*)B,&ldB,&b,C,&ldC));
   }
 
-  ierr = PetscLogFlops(m*n*2*k);CHKERRQ(ierr);
+  ierr = PetscLogFlops(2.0*m*n*k);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
