@@ -360,8 +360,8 @@ PetscErrorCode DSPermuteBoth_Private(DS ds,PetscInt l,PetscInt n,DSMatType mat1,
    Logically Collective on DS
 
    Input Parameters:
-+  ds     - the direct solver context
--  mat    - the matrix to modify
++  ds  - the direct solver context
+-  mat - the matrix to modify
 
    Level: intermediate
 @*/
@@ -381,9 +381,7 @@ PetscErrorCode DSSetIdentity(DS ds,DSMatType mat)
   ierr = PetscLogEventBegin(DS_Other,ds,0,0,0);CHKERRQ(ierr);
   ierr = DSGetArray(ds,mat,&x);CHKERRQ(ierr);
   ierr = PetscMemzero(&x[ld*l],ld*(n-l)*sizeof(PetscScalar));CHKERRQ(ierr);
-  for (i=l;i<n;i++) {
-    x[ld*i+i] = 1.0;
-  }
+  for (i=l;i<n;i++) x[i+i*ld] = 1.0;
   ierr = DSRestoreArray(ds,mat,&x);CHKERRQ(ierr);
   ierr = PetscLogEventEnd(DS_Other,ds,0,0,0);CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -500,7 +498,7 @@ static PetscErrorCode SlepcMatDenseMult(PetscScalar *C,PetscInt _ldC,PetscScalar
     PetscStackCallBLAS("BLASgemm",BLASgemm_(qA,qB,&m,&n,&k,&a,(PetscScalar*)A,&ldA,(PetscScalar*)B,&ldB,&b,C,&ldC));
   }
 
-  ierr = PetscLogFlops(m*n*2*k);CHKERRQ(ierr);
+  ierr = PetscLogFlops(2.0*m*n*k);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

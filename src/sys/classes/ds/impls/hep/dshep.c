@@ -76,7 +76,7 @@ static PetscErrorCode DSSwitchFormat_HEP(DS ds,PetscBool tocompact)
       T[i+ld] = PetscRealPart(A[k+i*ld]);
     }
     for (i=k;i<n-1;i++) {
-      T[i] = PetscRealPart(A[i+i*ld]);
+      T[i]    = PetscRealPart(A[i+i*ld]);
       T[i+ld] = PetscRealPart(A[i+1+i*ld]);
     }
     T[n-1] = PetscRealPart(A[n-1+(n-1)*ld]);
@@ -90,8 +90,8 @@ static PetscErrorCode DSSwitchFormat_HEP(DS ds,PetscBool tocompact)
     }
     A[k+k*ld] = T[k];
     for (i=k+1;i<n;i++) {
-      A[i+i*ld] = T[i];
-      A[i-1+i*ld] = T[i-1+ld];
+      A[i+i*ld]     = T[i];
+      A[i-1+i*ld]   = T[i-1+ld];
       A[i+(i-1)*ld] = T[i-1+ld];
     }
     if (ds->extrarow) A[n+(n-1)*ld] = T[n-1+ld];
@@ -350,7 +350,7 @@ static PetscErrorCode DSIntermediate_HEP(DS ds)
       SlepcCheckLapackInfo("orgtr",info);
     } else {
       /* copy tridiagonal to d,e */
-      for (i=l;i<n;i++) d[i] = PetscRealPart(A[i+i*ld]);
+      for (i=l;i<n;i++)   d[i] = PetscRealPart(A[i+i*ld]);
       for (i=l;i<n-1;i++) e[i] = PetscRealPart(A[(i+1)+i*ld]);
     }
   }
@@ -768,33 +768,38 @@ PetscErrorCode DSTranslateRKS_HEP(DS ds,PetscScalar alpha)
   A  = ds->mat[DS_MAT_A];
   Q  = ds->mat[DS_MAT_Q];
   R  = ds->mat[DS_MAT_W];
-  /* Copy I+alpha*A */
+
+  /* copy I+alpha*A */
   ierr = PetscMemzero(Q,ld*ld*sizeof(PetscScalar));CHKERRQ(ierr);
   ierr = PetscMemzero(R,ld*ld*sizeof(PetscScalar));CHKERRQ(ierr);
   for (i=0;i<k;i++) {
     Q[i+i*ld] = 1.0 + alpha*A[i+i*ld];
     Q[k+i*ld] = alpha*A[k+i*ld];
   }
-  /* Compute qr */
+
+  /* compute qr */
   ierr = PetscBLASIntCast(k+1,&n1);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(k,&n0);CHKERRQ(ierr);
   PetscStackCallBLAS("LAPACKgeqrf",LAPACKgeqrf_(&n1,&n0,Q,&ld,tau,work,&lwork,&info));
   SlepcCheckLapackInfo("geqrf",info);
-  /* Copy R from Q */
+
+  /* copy R from Q */
   for (j=0;j<k;j++)
     for (i=0;i<=j;i++)
       R[i+j*ld] = Q[i+j*ld];
-  /* Compute orthogonal matrix in Q */
+
+  /* compute orthogonal matrix in Q */
   PetscStackCallBLAS("LAPACKungqr",LAPACKungqr_(&n1,&n1,&n0,Q,&ld,tau,work,&lwork,&info));
   SlepcCheckLapackInfo("ungqr",info);
-  /* Compute the updated matrix of projected problem */
+
+  /* compute the updated matrix of projected problem */
   for (j=0;j<k;j++)
     for (i=0;i<k+1;i++)
       A[j*ld+i] = Q[i*ld+j];
   alpha = -1.0/alpha;
   PetscStackCallBLAS("BLAStrsm",BLAStrsm_("R","U","N","N",&n1,&n0,&alpha,R,&ld,A,&ld));
   for (i=0;i<k;i++)
-    A[ld*i+i]-=alpha;
+    A[ld*i+i] -= alpha;
   PetscFunctionReturn(0);
 #endif
 }

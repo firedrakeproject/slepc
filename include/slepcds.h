@@ -47,14 +47,14 @@ typedef struct _p_DS* DS;
 .seealso: DSSetType(), DS
 J*/
 typedef const char* DSType;
-#define DSHEP             "hep"
-#define DSNHEP            "nhep"
-#define DSGHEP            "ghep"
-#define DSGHIEP           "ghiep"
-#define DSGNHEP           "gnhep"
-#define DSSVD             "svd"
-#define DSPEP             "pep"
-#define DSNEP             "nep"
+#define DSHEP    "hep"
+#define DSNHEP   "nhep"
+#define DSGHEP   "ghep"
+#define DSGHIEP  "ghiep"
+#define DSGNHEP  "gnhep"
+#define DSSVD    "svd"
+#define DSPEP    "pep"
+#define DSNEP    "nep"
 
 /* Logging support */
 PETSC_EXTERN PetscClassId DS_CLASSID;

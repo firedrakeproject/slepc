@@ -703,8 +703,7 @@ PetscErrorCode DSTranslateHarmonic_NHEP(DS ds,PetscScalar tau,PetscReal beta,Pet
     g[n-1] = beta;
 
     /* g = (A-tau*eye(n))'\b */
-    for (i=0;i<n;i++)
-      B[i+i*ld] -= tau;
+    for (i=0;i<n;i++) B[i+i*ld] -= tau;
     PetscStackCallBLAS("LAPACKgetrf",LAPACKgetrf_(&n,&n,B,&ld,ipiv,&info));
     SlepcCheckLapackInfo("getrf",info);
     ierr = PetscLogFlops(2.0*n*n*n/3.0);CHKERRQ(ierr);
@@ -713,8 +712,7 @@ PetscErrorCode DSTranslateHarmonic_NHEP(DS ds,PetscScalar tau,PetscReal beta,Pet
     ierr = PetscLogFlops(2.0*n*n-n);CHKERRQ(ierr);
 
     /* A = A + g*b' */
-    for (i=0;i<n;i++)
-      A[i+(n-1)*ld] += g[i]*beta;
+    for (i=0;i<n;i++) A[i+(n-1)*ld] += g[i]*beta;
 
   } else { /* recover */
 
@@ -739,8 +737,7 @@ PetscErrorCode DSTranslateHarmonic_NHEP(DS ds,PetscScalar tau,PetscReal beta,Pet
   /* Compute gamma factor */
   if (gamma) {
     gnorm = 0.0;
-    for (i=0;i<n;i++)
-      gnorm = gnorm + PetscRealPart(g[i]*PetscConj(g[i]));
+    for (i=0;i<n;i++) gnorm = gnorm + PetscRealPart(g[i]*PetscConj(g[i]));
     *gamma = PetscSqrtReal(1.0+gnorm);
   }
   PetscFunctionReturn(0);

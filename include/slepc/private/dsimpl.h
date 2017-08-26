@@ -129,7 +129,6 @@ PETSC_INTERN PetscErrorCode DSGHIEPInverseIteration(DS,PetscScalar*,PetscScalar*
 PETSC_INTERN PetscErrorCode DSIntermediate_GHIEP(DS);
 PETSC_INTERN PetscErrorCode DSSwitchFormat_GHIEP(DS,PetscBool);
 PETSC_INTERN PetscErrorCode DSGHIEPRealBlocks(DS);
-
 PETSC_INTERN PetscErrorCode DSSolve_GHIEP_HZ(DS,PetscScalar*,PetscScalar*);
 
 PETSC_INTERN PetscErrorCode BDC_dibtdc_(const char*,PetscBLASInt,PetscBLASInt,PetscBLASInt*,PetscReal*,PetscBLASInt,PetscBLASInt,PetscReal*,PetscBLASInt*,PetscBLASInt,PetscBLASInt,PetscReal,PetscReal*,PetscReal*,PetscBLASInt,PetscReal*,PetscBLASInt,PetscBLASInt*,PetscBLASInt,PetscBLASInt*,PetscBLASInt);
