@@ -125,7 +125,7 @@ PetscErrorCode SVDSetUp_Cross(SVD svd)
     ierr = SVDMatGetLocalSize(svd,NULL,&n);CHKERRQ(ierr);
     ierr = MatCreateShell(PetscObjectComm((PetscObject)svd),n,n,PETSC_DETERMINE,PETSC_DETERMINE,svd,&cross->mat);CHKERRQ(ierr);
     ierr = MatShellSetOperation(cross->mat,MATOP_MULT,(void(*)(void))MatMult_Cross);CHKERRQ(ierr);
-    ierr = MatShellSetOperation(cross->mat,MATOP_GET_VECS,(void(*)(void))MatCreateVecs_Cross);CHKERRQ(ierr);
+    ierr = MatShellSetOperation(cross->mat,MATOP_CREATE_VECS,(void(*)(void))MatCreateVecs_Cross);CHKERRQ(ierr);
     ierr = MatShellSetOperation(cross->mat,MATOP_GET_DIAGONAL,(void(*)(void))MatGetDiagonal_Cross);CHKERRQ(ierr);
     ierr = SVDMatCreateVecs(svd,NULL,&cross->w);CHKERRQ(ierr);
     ierr = PetscLogObjectParent((PetscObject)svd,(PetscObject)cross->mat);CHKERRQ(ierr);

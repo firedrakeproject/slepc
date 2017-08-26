@@ -550,7 +550,7 @@ static PetscErrorCode dvd_improvex_jd_start(dvdDashboard *d)
     ierr = MatCreateShell(PetscObjectComm((PetscObject)d->A),rlA*data->ksp_max_size,clA*data->ksp_max_size,rA*data->ksp_max_size,cA*data->ksp_max_size,data,&A);CHKERRQ(ierr);
     ierr = MatShellSetOperation(A,MATOP_MULT,(void(*)(void))MatMult_dvd_jd);CHKERRQ(ierr);
     ierr = MatShellSetOperation(A,MATOP_MULT_TRANSPOSE,(void(*)(void))MatMultTranspose_dvd_jd);CHKERRQ(ierr);
-    ierr = MatShellSetOperation(A,MATOP_GET_VECS,(void(*)(void))MatCreateVecs_dvd_jd);CHKERRQ(ierr);
+    ierr = MatShellSetOperation(A,MATOP_CREATE_VECS,(void(*)(void))MatCreateVecs_dvd_jd);CHKERRQ(ierr);
 
     /* Try to avoid KSPReset */
     ierr = KSPGetOperatorsSet(data->ksp,&t,NULL);CHKERRQ(ierr);
