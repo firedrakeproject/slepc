@@ -876,6 +876,14 @@ PetscErrorCode DSSolve_GHIEP_QR(DS ds,PetscScalar *wr,PetscScalar *wi)
 #endif
 }
 
+PetscErrorCode DSHermitian_GHIEP(DS ds,DSMatType m,PetscBool *flg)
+{
+  PetscFunctionBegin;
+  if (m==DS_MAT_A || m==DS_MAT_B) *flg = PETSC_TRUE;
+  else *flg = PETSC_FALSE;
+  PetscFunctionReturn(0);
+}
+
 PETSC_EXTERN PetscErrorCode DSCreate_GHIEP(DS ds)
 {
   PetscFunctionBegin;
@@ -886,6 +894,7 @@ PETSC_EXTERN PetscErrorCode DSCreate_GHIEP(DS ds)
   ds->ops->solve[1]      = DSSolve_GHIEP_HZ;
   ds->ops->solve[2]      = DSSolve_GHIEP_QR;
   ds->ops->sort          = DSSort_GHIEP;
+  ds->ops->hermitian     = DSHermitian_GHIEP;
   PetscFunctionReturn(0);
 }
 

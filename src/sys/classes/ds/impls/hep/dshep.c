@@ -804,6 +804,14 @@ PetscErrorCode DSTranslateRKS_HEP(DS ds,PetscScalar alpha)
 #endif
 }
 
+PetscErrorCode DSHermitian_HEP(DS ds,DSMatType m,PetscBool *flg)
+{
+  PetscFunctionBegin;
+  if (m==DS_MAT_A && !ds->extrarow) *flg = PETSC_TRUE;
+  else *flg = PETSC_FALSE;
+  PetscFunctionReturn(0);
+}
+
 PETSC_EXTERN PetscErrorCode DSCreate_HEP(DS ds)
 {
   PetscFunctionBegin;
@@ -821,6 +829,7 @@ PETSC_EXTERN PetscErrorCode DSCreate_HEP(DS ds)
   ds->ops->update        = DSUpdateExtraRow_HEP;
   ds->ops->cond          = DSCond_HEP;
   ds->ops->transrks      = DSTranslateRKS_HEP;
+  ds->ops->hermitian     = DSHermitian_HEP;
   PetscFunctionReturn(0);
 }
 

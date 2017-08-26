@@ -191,11 +191,11 @@ PetscErrorCode DSSetDimensions(DS ds,PetscInt n,PetscInt m,PetscInt l,PetscInt k
 .  k  - intermediate dimension (e.g., position of arrow)
 -  t  - truncated length
 
-   Level: intermediate
-
    Note:
    The t parameter makes sense only if DSTruncate() has been called.
    Otherwise its value equals n.
+
+   Level: intermediate
 
 .seealso: DSSetDimensions(), DSTruncate()
 @*/
@@ -264,10 +264,10 @@ PetscErrorCode DSTruncate(DS ds,PetscInt n)
 +  n  - the number of rows
 -  m  - the number of columns
 
-   Level: developer
-
    Note:
    This is equivalent to MatGetSize() on a matrix obtained with DSGetMat().
+
+   Level: developer
 
 .seealso: DSSetDimensions(), DSGetMat()
 @*/
@@ -289,6 +289,41 @@ PetscErrorCode DSMatGetSize(DS ds,DSMatType t,PetscInt *m,PetscInt *n)
   }
   if (m) *m = rows;
   if (n) *n = cols;
+  PetscFunctionReturn(0);
+}
+
+/*@
+   DSMatIsHermitian - Checks if one of the DS matrices is known to be Hermitian.
+
+   Not Collective
+
+   Input Parameters:
++  ds - the direct solver context
+-  t  - the requested matrix
+
+   Output Parameter:
+.  flg - the Hermitian flag
+
+   Note:
+   Does not check the matrix values directly. The flag is set according to the
+   problem structure. For instance, in DSHEP matrix A is Hermitian.
+
+   Level: developer
+
+.seealso: DSGetMat()
+@*/
+PetscErrorCode DSMatIsHermitian(DS ds,DSMatType t,PetscBool *flg)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(ds,DS_CLASSID,1);
+  PetscValidType(ds,1);
+  DSCheckValidMat(ds,t,2);
+  PetscValidPointer(flg,3);
+  if (ds->ops->hermitian) {
+    ierr = (*ds->ops->hermitian)(ds,t,flg);CHKERRQ(ierr);
+  } else *flg = PETSC_FALSE;
   PetscFunctionReturn(0);
 }
 
@@ -323,7 +358,7 @@ PetscErrorCode DSGetMat(DS ds,DSMatType m,Mat *A)
 {
   PetscErrorCode ierr;
   PetscInt       j,rows,cols,arows,acols;
-  PetscBool      create=PETSC_FALSE;
+  PetscBool      create=PETSC_FALSE,flg;
   PetscScalar    *pA,*M;
 
   PetscFunctionBegin;
@@ -345,6 +380,12 @@ PetscErrorCode DSGetMat(DS ds,DSMatType m,Mat *A)
   if (create) {
     ierr = MatCreateSeqDense(PETSC_COMM_SELF,rows,cols,NULL,&ds->omat[m]);CHKERRQ(ierr);
   }
+
+  /* set Hermitian flag */
+  ierr = DSMatIsHermitian(ds,m,&flg);CHKERRQ(ierr);
+  ierr = MatSetOption(ds->omat[m],MAT_HERMITIAN,flg);CHKERRQ(ierr);
+
+  /* copy entries */
   ierr = PetscObjectReference((PetscObject)ds->omat[m]);CHKERRQ(ierr);
   *A = ds->omat[m];
   M  = ds->mat[m];

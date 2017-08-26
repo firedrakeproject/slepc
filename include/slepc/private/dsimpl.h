@@ -45,6 +45,7 @@ struct _DSOps {
   PetscErrorCode (*transrks)(DS,PetscScalar);
   PetscErrorCode (*destroy)(DS);
   PetscErrorCode (*matgetsize)(DS,DSMatType,PetscInt*,PetscInt*);
+  PetscErrorCode (*hermitian)(DS,DSMatType,PetscBool*);
 };
 
 struct _p_DS {
