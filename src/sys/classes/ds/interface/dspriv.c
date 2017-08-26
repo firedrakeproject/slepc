@@ -121,10 +121,9 @@ PetscErrorCode DSAllocateWork_Private(DS ds,PetscInt s,PetscInt r,PetscInt i)
 PetscErrorCode DSViewMat(DS ds,PetscViewer viewer,DSMatType m)
 {
   PetscErrorCode    ierr;
-  PetscInt          i,j,rows,cols,d;
+  PetscInt          i,j,rows,cols;
   PetscScalar       *v;
   PetscViewerFormat format;
-  PetscBool         ispep;
 #if defined(PETSC_USE_COMPLEX)
   PetscBool         allreal = PETSC_TRUE;
 #endif
@@ -139,14 +138,7 @@ PetscErrorCode DSViewMat(DS ds,PetscViewer viewer,DSMatType m)
   ierr = PetscViewerGetFormat(viewer,&format);CHKERRQ(ierr);
   if (format == PETSC_VIEWER_ASCII_INFO || format == PETSC_VIEWER_ASCII_INFO_DETAIL) PetscFunctionReturn(0);
   ierr = PetscViewerASCIIUseTabs(viewer,PETSC_FALSE);CHKERRQ(ierr);
-  if (ds->state==DS_STATE_TRUNCATED && m>=DS_MAT_Q) rows = ds->t;
-  else rows = (m==DS_MAT_A && ds->extrarow)? ds->n+1: ds->n;
-  cols = (ds->m!=0)? ds->m: ds->n;
-  ierr = PetscObjectTypeCompare((PetscObject)ds,DSPEP,&ispep);CHKERRQ(ierr);
-  if (ispep) {
-    ierr = DSPEPGetDegree(ds,&d);CHKERRQ(ierr);
-  }
-  if (ispep && (m==DS_MAT_X || m==DS_MAT_Y)) cols = d*ds->n;
+  ierr = DSMatGetSize(ds,m,&rows,&cols);CHKERRQ(ierr);
 #if defined(PETSC_USE_COMPLEX)
   /* determine if matrix has all real values */
   v = ds->mat[m];

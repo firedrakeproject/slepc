@@ -288,6 +288,29 @@ PetscErrorCode DSSolve_SVD_DC(DS ds,PetscScalar *wr,PetscScalar *wi)
 #endif
 }
 
+PetscErrorCode DSMatGetSize_SVD(DS ds,DSMatType t,PetscInt *rows,PetscInt *cols)
+{
+  PetscFunctionBegin;
+  switch (t) {
+    case DS_MAT_A:
+    case DS_MAT_T:
+      *rows = ds->n;
+      *cols = ds->m;
+      break;
+    case DS_MAT_U:
+      *rows = ds->n;
+      *cols = ds->n;
+      break;
+    case DS_MAT_VT:
+      *rows = ds->m;
+      *cols = ds->m;
+      break;
+    default:
+      SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_OUTOFRANGE,"Invalid t parameter");
+  }
+  PetscFunctionReturn(0);
+}
+
 PETSC_EXTERN PetscErrorCode DSCreate_SVD(DS ds)
 {
   PetscFunctionBegin;
@@ -296,6 +319,7 @@ PETSC_EXTERN PetscErrorCode DSCreate_SVD(DS ds)
   ds->ops->vectors       = DSVectors_SVD;
   ds->ops->solve[0]      = DSSolve_SVD_DC;
   ds->ops->sort          = DSSort_SVD;
+  ds->ops->matgetsize    = DSMatGetSize_SVD;
   PetscFunctionReturn(0);
 }
 

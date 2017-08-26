@@ -688,8 +688,8 @@ PetscErrorCode DSSolve_HEP_BDC(DS ds,PetscScalar *wr,PetscScalar *wi)
 
 PetscErrorCode DSTruncate_HEP(DS ds,PetscInt n)
 {
-  PetscInt       i,ld=ds->ld,l=ds->l;
-  PetscScalar    *A;
+  PetscInt    i,ld=ds->ld,l=ds->l;
+  PetscScalar *A;
 
   PetscFunctionBegin;
   if (ds->state==DS_STATE_CONDENSED) ds->t = ds->n;

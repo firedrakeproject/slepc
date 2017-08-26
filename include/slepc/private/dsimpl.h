@@ -44,6 +44,7 @@ struct _DSOps {
   PetscErrorCode (*transharm)(DS,PetscScalar,PetscReal,PetscBool,PetscScalar*,PetscReal*);
   PetscErrorCode (*transrks)(DS,PetscScalar);
   PetscErrorCode (*destroy)(DS);
+  PetscErrorCode (*matgetsize)(DS,DSMatType,PetscInt*,PetscInt*);
 };
 
 struct _p_DS {

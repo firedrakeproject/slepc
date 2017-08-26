@@ -252,6 +252,47 @@ PetscErrorCode DSTruncate(DS ds,PetscInt n)
 }
 
 /*@
+   DSMatGetSize - Returns the numbers of rows and columns of one of the DS matrices.
+
+   Not Collective
+
+   Input Parameters:
++  ds - the direct solver context
+-  t  - the requested matrix
+
+   Output Parameters:
++  n  - the number of rows
+-  m  - the number of columns
+
+   Level: developer
+
+   Note:
+   This is equivalent to MatGetSize() on a matrix obtained with DSGetMat().
+
+.seealso: DSSetDimensions(), DSGetMat()
+@*/
+PetscErrorCode DSMatGetSize(DS ds,DSMatType t,PetscInt *m,PetscInt *n)
+{
+  PetscErrorCode ierr;
+  PetscInt       rows,cols;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(ds,DS_CLASSID,1);
+  PetscValidType(ds,1);
+  DSCheckValidMat(ds,t,2);
+  if (ds->ops->matgetsize) {
+    ierr = (*ds->ops->matgetsize)(ds,t,&rows,&cols);CHKERRQ(ierr);
+  } else {
+    if (ds->state==DS_STATE_TRUNCATED && t>=DS_MAT_Q) rows = ds->t;
+    else rows = (t==DS_MAT_A && ds->extrarow)? ds->n+1: ds->n;
+    cols = ds->n;
+  }
+  if (m) *m = rows;
+  if (n) *n = cols;
+  PetscFunctionReturn(0);
+}
+
+/*@
    DSGetMat - Returns a sequential dense Mat object containing the requested
    matrix.
 
@@ -291,8 +332,7 @@ PetscErrorCode DSGetMat(DS ds,DSMatType m,Mat *A)
   DSCheckValidMat(ds,m,2);
   PetscValidPointer(A,3);
 
-  rows = PetscMax(ds->n,ds->t);
-  cols = ds->m? ds->m: ds->n;
+  ierr = DSMatGetSize(ds,m,&rows,&cols);CHKERRQ(ierr);
   if (!ds->omat[m]) create=PETSC_TRUE;
   else {
     ierr = MatGetSize(ds->omat[m],&arows,&acols);CHKERRQ(ierr);
@@ -840,8 +880,7 @@ PetscErrorCode DSCopyMat(DS ds,DSMatType m,PetscInt mr,PetscInt mc,Mat A,PetscIn
   PetscValidLogicalCollectiveBool(ds,out,10);
   if (!rows || !cols) PetscFunctionReturn(0);
 
-  mrows = PetscMax(ds->n,ds->t);
-  mcols = ds->m? ds->m: ds->n;
+  ierr = DSMatGetSize(ds,m,&mrows,&mcols);CHKERRQ(ierr);
   ierr = MatGetSize(A,&arows,&acols);CHKERRQ(ierr);
   if (mr<0 || mr>=mrows) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_OUTOFRANGE,"Invalid initial row in m");
   if (mc<0 || mc>=mcols) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_OUTOFRANGE,"Invalid initial column in m");
