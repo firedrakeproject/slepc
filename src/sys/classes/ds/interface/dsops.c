@@ -331,6 +331,7 @@ PetscErrorCode DSGetMat(DS ds,DSMatType m,Mat *A)
   DSCheckAlloc(ds,1);
   DSCheckValidMat(ds,m,2);
   PetscValidPointer(A,3);
+  if (m==DS_MAT_T || m==DS_MAT_D) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_WRONG,"Not implemented for T or D matrices");
 
   ierr = DSMatGetSize(ds,m,&rows,&cols);CHKERRQ(ierr);
   if (!ds->omat[m]) create=PETSC_TRUE;
@@ -882,6 +883,7 @@ PetscErrorCode DSCopyMat(DS ds,DSMatType m,PetscInt mr,PetscInt mc,Mat A,PetscIn
 
   ierr = DSMatGetSize(ds,m,&mrows,&mcols);CHKERRQ(ierr);
   ierr = MatGetSize(A,&arows,&acols);CHKERRQ(ierr);
+  if (m==DS_MAT_T || m==DS_MAT_D) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_WRONG,"Not implemented for T or D matrices");
   if (mr<0 || mr>=mrows) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_OUTOFRANGE,"Invalid initial row in m");
   if (mc<0 || mc>=mcols) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_OUTOFRANGE,"Invalid initial column in m");
   if (Ar<0 || Ar>=arows) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_OUTOFRANGE,"Invalid initial row in A");
