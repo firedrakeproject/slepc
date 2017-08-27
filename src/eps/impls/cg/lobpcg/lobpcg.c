@@ -75,7 +75,7 @@ PetscErrorCode EPSSetUp_LOBPCG(EPS eps)
   ierr = EPSSetDimensions_LOBPCG(eps,eps->nev,&eps->ncv,&eps->mpd);CHKERRQ(ierr);
   if (!eps->max_it) eps->max_it = PetscMax(100,2*eps->n/eps->ncv);
   if (!eps->which) eps->which = EPS_SMALLEST_REAL;
-  if (eps->which!=EPS_SMALLEST_REAL) SETERRQ(PetscObjectComm((PetscObject)eps),1,"Wrong value of eps->which");
+  if (eps->which!=EPS_SMALLEST_REAL && eps->which!=EPS_LARGEST_REAL) SETERRQ(PetscObjectComm((PetscObject)eps),1,"Wrong value of eps->which");
   if (eps->arbitrary) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Arbitrary selection of eigenpairs not supported in this solver");
   if (eps->extraction) { ierr = PetscInfo(eps,"Warning: extraction type ignored\n");CHKERRQ(ierr); }
   ierr = RGIsTrivial(eps->rg,&istrivial);CHKERRQ(ierr);
@@ -98,10 +98,11 @@ PetscErrorCode EPSSolve_LOBPCG(EPS eps)
   PetscInt       i,j,k,ld,nv,ini,nmat,nc,nconv,locked,guard,its;
   PetscReal      norm;
   PetscScalar    *eigr;
-  PetscBool      breakdown,countc;
+  PetscBool      breakdown,countc,flip=PETSC_FALSE;
   Mat            A,B,M;
   Vec            v,w=eps->work[0];
   BV             X,Y,Z,R,P,AX,BX;
+  SlepcSC        sc;
 
   PetscFunctionBegin;
   ierr = DSGetLeadingDimension(eps->ds,&ld);CHKERRQ(ierr);
@@ -111,6 +112,12 @@ PetscErrorCode EPSSolve_LOBPCG(EPS eps)
   else B = NULL;
 
   guard = (PetscInt)((1.0-ctx->restart)*ctx->bs);  /* number of guard vectors */
+
+  if (eps->which==EPS_LARGEST_REAL) {  /* flip spectrum */
+    flip = PETSC_TRUE;
+    ierr = DSGetSlepcSC(eps->ds,&sc);CHKERRQ(ierr);
+    sc->comparison = SlepcCompareSmallestReal;
+  }
 
   /* 1. Allocate memory */
   ierr = PetscCalloc1(3*ctx->bs,&eigr);CHKERRQ(ierr);
@@ -153,11 +160,13 @@ PetscErrorCode EPSSolve_LOBPCG(EPS eps)
   ierr = DSSetDimensions(eps->ds,nv,0,0,0);CHKERRQ(ierr);
   ierr = DSGetMat(eps->ds,DS_MAT_A,&M);CHKERRQ(ierr);
   ierr = BVMatProject(AX,NULL,X,M);CHKERRQ(ierr);
+  if (flip) { ierr = MatScale(M,-1.0);CHKERRQ(ierr); }
   ierr = DSRestoreMat(eps->ds,DS_MAT_A,&M);CHKERRQ(ierr);
   ierr = DSSetIdentity(eps->ds,DS_MAT_B);CHKERRQ(ierr);
   ierr = DSSetState(eps->ds,DS_STATE_RAW);CHKERRQ(ierr);
-  ierr = DSSolve(eps->ds,eps->eigr,NULL);CHKERRQ(ierr);
-  ierr = DSSort(eps->ds,eps->eigr,NULL,NULL,NULL,NULL);CHKERRQ(ierr);
+  ierr = DSSolve(eps->ds,eigr,NULL);CHKERRQ(ierr);
+  ierr = DSSort(eps->ds,eigr,NULL,NULL,NULL,NULL);CHKERRQ(ierr);
+  for (j=0;j<nv;j++) eps->eigr[j] = flip? -eigr[j]: eigr[j];
   ierr = DSVectors(eps->ds,DS_MAT_X,NULL,NULL);CHKERRQ(ierr);
   ierr = DSGetMat(eps->ds,DS_MAT_X,&M);CHKERRQ(ierr);
   ierr = BVMultInPlace(X,M,0,nv);CHKERRQ(ierr);
@@ -185,9 +194,9 @@ PetscErrorCode EPSSolve_LOBPCG(EPS eps)
     ierr = BVCopy(AX,R);CHKERRQ(ierr);
     if (B) {
       ierr = BVMatMult(X,B,BX);CHKERRQ(ierr);
-      ierr = BVMult(R,-1.0,1.0,BX,M);CHKERRQ(ierr);
+      ierr = BVMult(R,flip?1.0:-1.0,1.0,BX,M);CHKERRQ(ierr);
     } else {
-      ierr = BVMult(R,-1.0,1.0,X,M);CHKERRQ(ierr);
+      ierr = BVMult(R,flip?1.0:-1.0,1.0,X,M);CHKERRQ(ierr);
     }
     ierr = MatDestroy(&M);CHKERRQ(ierr);
 
@@ -281,12 +290,13 @@ PetscErrorCode EPSSolve_LOBPCG(EPS eps)
       ierr = DSSetDimensions(eps->ds,nv,0,0,0);CHKERRQ(ierr);
       ierr = DSGetMat(eps->ds,DS_MAT_A,&M);CHKERRQ(ierr);
       ierr = BVMatProject(AX,NULL,X,M);CHKERRQ(ierr);
+      if (flip) { ierr = MatScale(M,-1.0);CHKERRQ(ierr); }
       ierr = DSRestoreMat(eps->ds,DS_MAT_A,&M);CHKERRQ(ierr);
       ierr = DSSetIdentity(eps->ds,DS_MAT_B);CHKERRQ(ierr);
       ierr = DSSetState(eps->ds,DS_STATE_RAW);CHKERRQ(ierr);
       ierr = DSSolve(eps->ds,eigr,NULL);CHKERRQ(ierr);
       ierr = DSSort(eps->ds,eigr,NULL,NULL,NULL,NULL);CHKERRQ(ierr);
-      for (j=0;j<nv;j++) if (locked+j<eps->ncv) eps->eigr[locked+j] = eigr[j];
+      for (j=0;j<nv;j++) if (locked+j<eps->ncv) eps->eigr[locked+j] = flip? -eigr[j]: eigr[j];
       ierr = DSVectors(eps->ds,DS_MAT_X,NULL,NULL);CHKERRQ(ierr);
       ierr = DSGetMat(eps->ds,DS_MAT_X,&M);CHKERRQ(ierr);
       ierr = BVMultInPlace(X,M,0,nv);CHKERRQ(ierr);
@@ -346,6 +356,7 @@ PetscErrorCode EPSSolve_LOBPCG(EPS eps)
     ierr = DSSetDimensions(eps->ds,nv,0,0,0);CHKERRQ(ierr);
     ierr = DSGetMat(eps->ds,DS_MAT_A,&M);CHKERRQ(ierr);
     ierr = BVMatProject(Z,A,Z,M);CHKERRQ(ierr);
+    if (flip) { ierr = MatScale(M,-1.0);CHKERRQ(ierr); }
     ierr = DSRestoreMat(eps->ds,DS_MAT_A,&M);CHKERRQ(ierr);
     ierr = DSGetMat(eps->ds,DS_MAT_B,&M);CHKERRQ(ierr);
     if (B) {
@@ -359,7 +370,7 @@ PetscErrorCode EPSSolve_LOBPCG(EPS eps)
     ierr = DSSetState(eps->ds,DS_STATE_RAW);CHKERRQ(ierr);
     ierr = DSSolve(eps->ds,eigr,NULL);CHKERRQ(ierr);
     ierr = DSSort(eps->ds,eigr,NULL,NULL,NULL,NULL);CHKERRQ(ierr);
-    for (j=0;j<nv;j++) if (locked+j<eps->ncv) eps->eigr[locked+j] = eigr[j];
+    for (j=0;j<nv;j++) if (locked+j<eps->ncv) eps->eigr[locked+j] = flip? -eigr[j]: eigr[j];
     ierr = DSVectors(eps->ds,DS_MAT_X,NULL,NULL);CHKERRQ(ierr);
 
     /* 25-33. Compute Ritz vectors */
@@ -382,6 +393,7 @@ PetscErrorCode EPSSolve_LOBPCG(EPS eps)
     ierr = MatDestroy(&M);CHKERRQ(ierr);
   }
 
+  if (flip) sc->comparison = SlepcCompareLargestReal;
   ierr = PetscFree(eigr);CHKERRQ(ierr);
   ierr = BVDestroy(&Z);CHKERRQ(ierr);
   ierr = BVDestroy(&X);CHKERRQ(ierr);
