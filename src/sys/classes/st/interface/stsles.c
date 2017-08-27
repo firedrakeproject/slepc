@@ -34,6 +34,8 @@ PetscErrorCode STSetDefaultKSP(ST st)
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
+  PetscValidHeaderSpecific(st,ST_CLASSID,1);
+  PetscValidType(st,1);
   if (!st->ksp) { ierr = STGetKSP(st,&st->ksp);CHKERRQ(ierr); }
   if (st->ops->setdefaultksp) { ierr = (*st->ops->setdefaultksp)(st);CHKERRQ(ierr); }
   PetscFunctionReturn(0);

@@ -169,6 +169,14 @@ PetscErrorCode DSSolve_GHEP(DS ds,PetscScalar *wr,PetscScalar *wi)
 #endif
 }
 
+PetscErrorCode DSHermitian_GHEP(DS ds,DSMatType m,PetscBool *flg)
+{
+  PetscFunctionBegin;
+  if (m==DS_MAT_A || m==DS_MAT_B) *flg = PETSC_TRUE;
+  else *flg = PETSC_FALSE;
+  PetscFunctionReturn(0);
+}
+
 PETSC_EXTERN PetscErrorCode DSCreate_GHEP(DS ds)
 {
   PetscFunctionBegin;
@@ -177,6 +185,7 @@ PETSC_EXTERN PetscErrorCode DSCreate_GHEP(DS ds)
   ds->ops->vectors       = DSVectors_GHEP;
   ds->ops->solve[0]      = DSSolve_GHEP;
   ds->ops->sort          = DSSort_GHEP;
+  ds->ops->hermitian     = DSHermitian_GHEP;
   PetscFunctionReturn(0);
 }
 

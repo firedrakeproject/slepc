@@ -242,6 +242,7 @@ PetscErrorCode STSetUp(ST st)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
+  PetscValidType(st,1);
   STCheckMatrices(st,1);
   switch (st->state) {
     case ST_STATE_INITIAL:
@@ -475,6 +476,7 @@ PetscErrorCode STIsInjective(ST st,PetscBool* is)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
+  PetscValidType(st,1);
   PetscValidPointer(is,2);
 
   ierr = PetscObjectTypeCompare((PetscObject)st,STSHELL,&shell);CHKERRQ(ierr);

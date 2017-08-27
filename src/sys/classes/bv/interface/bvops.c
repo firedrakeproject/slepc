@@ -538,7 +538,7 @@ PetscErrorCode BVSetRandomCond(BV bv,PetscReal condn)
   ierr = MatMatMult(X,M,MAT_REUSE_MATRIX,PETSC_DEFAULT,&Y);CHKERRQ(ierr);
   ierr = MatTranspose(X,MAT_REUSE_MATRIX,&Xt);CHKERRQ(ierr);
   ierr = MatMatMult(Y,Xt,MAT_REUSE_MATRIX,PETSC_DEFAULT,&M);CHKERRQ(ierr);
-  ierr = DSRestoreMat(ds,DS_MAT_X,&X);CHKERRQ(ierr);
+  ierr = MatDestroy(&X);CHKERRQ(ierr);
   /* B = B*M */
   ierr = BVMultInPlace(bv,M,bv->l,bv->k);CHKERRQ(ierr);
   ierr = MatDestroy(&Y);CHKERRQ(ierr);

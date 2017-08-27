@@ -120,7 +120,7 @@ int main(int argc,char **argv)
   ierr = MatCreateVecs(X,NULL,&x0);CHKERRQ(ierr);
   ierr = MatGetColumnVector(X,x0,0);CHKERRQ(ierr);
   ierr = VecNorm(x0,NORM_2,&nrm);CHKERRQ(ierr);
-  ierr = DSRestoreMat(ds,DS_MAT_X,&X);CHKERRQ(ierr);
+  ierr = MatDestroy(&X);CHKERRQ(ierr);
   ierr = VecDestroy(&x0);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD,"Norm of 1st vector = %.3f\n",(double)nrm);CHKERRQ(ierr);
   if (verbose) {
