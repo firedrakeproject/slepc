@@ -100,7 +100,7 @@ PetscErrorCode EPSSolve_LOBPCG(EPS eps)
   PetscScalar    *eigr;
   PetscBool      breakdown,countc,flip=PETSC_FALSE;
   Mat            A,B,M;
-  Vec            v,w=eps->work[0];
+  Vec            v,z,w=eps->work[0];
   BV             X,Y,Z,R,P,AX,BX;
   SlepcSC        sc;
 
@@ -189,18 +189,18 @@ PetscErrorCode EPSSolve_LOBPCG(EPS eps)
     }
 
     /* 7. Compute residuals */
-    ierr = DSGetMat(eps->ds,DS_MAT_A,&M);CHKERRQ(ierr);
+    ini = (ctx->lock)? nconv: 0;
     ierr = BVCopy(AX,R);CHKERRQ(ierr);
-    if (B) {
-      ierr = BVMatMult(X,B,BX);CHKERRQ(ierr);
-      ierr = BVMult(R,flip?1.0:-1.0,1.0,BX,M);CHKERRQ(ierr);
-    } else {
-      ierr = BVMult(R,flip?1.0:-1.0,1.0,X,M);CHKERRQ(ierr);
+    if (B) { ierr = BVMatMult(X,B,BX);CHKERRQ(ierr); }
+    for (j=ini;j<ctx->bs;j++) {
+      ierr = BVGetColumn(R,j,&v);CHKERRQ(ierr);
+      ierr = BVGetColumn(B?BX:X,j,&z);CHKERRQ(ierr);
+      ierr = VecAXPY(v,-eps->eigr[locked+j],z);CHKERRQ(ierr);
+      ierr = BVRestoreColumn(R,j,&v);CHKERRQ(ierr);
+      ierr = BVRestoreColumn(B?BX:X,j,&z);CHKERRQ(ierr);
     }
-    ierr = MatDestroy(&M);CHKERRQ(ierr);
 
     /* 8. Compute residual norms and update index set of active iterates */
-    ini = (ctx->lock)? nconv: 0;
     k = ini;
     countc = PETSC_TRUE;
     for (j=ini;j<ctx->bs;j++) {
