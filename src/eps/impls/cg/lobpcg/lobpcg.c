@@ -143,7 +143,8 @@ PetscErrorCode EPSSolve_LOBPCG(EPS eps)
   }
 
   /* 2. Apply the constraints to the initial vectors */
-  for (k=eps->nini;k<eps->ncv-ctx->bs;k++) { /* Generate more initial vectors if necessary */
+  /* 3. B-orthogonalize initial vectors */
+  for (k=eps->nini;k<ctx->bs;k++) { /* Generate more initial vectors if necessary */
     ierr = BVSetRandomColumn(eps->V,k);CHKERRQ(ierr);
     ierr = BVOrthonormalizeColumn(eps->V,k,PETSC_TRUE,NULL,NULL);CHKERRQ(ierr);
   }
@@ -152,8 +153,6 @@ PetscErrorCode EPSSolve_LOBPCG(EPS eps)
   ierr = BVSetActiveColumns(Z,0,nv);CHKERRQ(ierr);
   ierr = BVCopy(eps->V,Z);CHKERRQ(ierr);
   ierr = BVCopy(Z,X);CHKERRQ(ierr);
-
-  /* 3. B-orthogonalize initial vectors */
 
   /* 4. Compute initial Ritz vectors */
   ierr = BVMatMult(X,A,AX);CHKERRQ(ierr);
@@ -263,10 +262,8 @@ PetscErrorCode EPSSolve_LOBPCG(EPS eps)
       }
 
       /* set new initial vectors */
-      ierr = BVSetActiveColumns(eps->V,locked+ctx->bs,locked+ctx->bs+nconv);CHKERRQ(ierr);
-      ierr = BVSetActiveColumns(X,ctx->bs-nconv,ctx->bs);CHKERRQ(ierr);
-      ierr = BVCopy(eps->V,X);CHKERRQ(ierr);
       for (j=ctx->bs-nconv;j<ctx->bs;j++) {
+        ierr = BVSetRandomColumn(X,j);CHKERRQ(ierr);
         ierr = BVGetColumn(X,j,&v);CHKERRQ(ierr);
         ierr = BVOrthogonalizeVec(Y,v,NULL,&norm,&breakdown);CHKERRQ(ierr);
         if (norm>0.0 && !breakdown) {
