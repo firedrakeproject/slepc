@@ -239,15 +239,6 @@ PetscErrorCode EPSSolve_LOBPCG(EPS eps)
       /* extend constraints */
       ierr = BVSetActiveColumns(Y,nc+locked,nc+locked+nconv);CHKERRQ(ierr);
       ierr = BVCopy(X,Y);CHKERRQ(ierr);
-      for (j=0;j<nconv;j++) {
-        ierr = BVOrthonormalizeColumn(Y,nc+locked+j,PETSC_FALSE,&norm,&breakdown);CHKERRQ(ierr);
-        if (norm==0.0 || breakdown) break;
-      }
-      if (j<nconv) {
-        ierr = PetscInfo(eps,"Orthogonalization of constraints failed");CHKERRQ(ierr);
-        eps->reason = EPS_DIVERGED_BREAKDOWN;
-        break;
-      }
       ierr = BVSetActiveColumns(Y,0,nc+locked+nconv);CHKERRQ(ierr);
 
       /* shift work BV's */
