@@ -97,8 +97,8 @@ PetscErrorCode EPSSolve_LOBPCG(EPS eps)
   EPS_LOBPCG     *ctx = (EPS_LOBPCG*)eps->data;
   PetscInt       i,j,k,ld,nv,ini,nmat,nc,nconv,locked,guard,its;
   PetscReal      norm;
-  PetscScalar    *eigr;
-  PetscBool      breakdown,countc,flip=PETSC_FALSE;
+  PetscScalar    *eigr,dot;
+  PetscBool      breakdown,countc,flip=PETSC_FALSE,checkprecond=PETSC_FALSE;
   Mat            A,B,M;
   Vec            v,z,w=eps->work[0];
   BV             X,Y,Z,R,P,AX,BX;
@@ -118,6 +118,9 @@ PetscErrorCode EPSSolve_LOBPCG(EPS eps)
     ierr = DSGetSlepcSC(eps->ds,&sc);CHKERRQ(ierr);
     sc->comparison = SlepcCompareSmallestReal;
   }
+
+  /* undocumented option to check for a positive-definite preconditioner (turn-off by default) */
+  ierr = PetscOptionsGetBool(NULL,NULL,"-eps_lobpcg_checkprecond",&checkprecond,NULL);CHKERRQ(ierr);
 
   /* 1. Allocate memory */
   ierr = PetscCalloc1(3*ctx->bs,&eigr);CHKERRQ(ierr);
@@ -308,6 +311,10 @@ PetscErrorCode EPSSolve_LOBPCG(EPS eps)
     for (j=ini;j<ctx->bs;j++) {
       ierr = BVGetColumn(R,j,&v);CHKERRQ(ierr);
       ierr = STMatSolve(eps->st,v,w);CHKERRQ(ierr);
+      if (checkprecond) {
+        ierr = VecDot(v,w,&dot);CHKERRQ(ierr);
+        if (PetscRealPart(dot)<0.0) SETERRQ(PetscObjectComm((PetscObject)eps),1,"The preconditioner is not positive-definite");
+      }
       if (nc+locked>0) {
         ierr = BVOrthogonalizeVec(Y,w,NULL,&norm,&breakdown);CHKERRQ(ierr);
         if (norm>0.0 && !breakdown) {
