@@ -97,8 +97,8 @@ PetscErrorCode EPSSolve_LOBPCG(EPS eps)
   EPS_LOBPCG     *ctx = (EPS_LOBPCG*)eps->data;
   PetscInt       i,j,k,ld,nv,ini,nmat,nc,nconv,locked,guard,its;
   PetscReal      norm;
-  PetscScalar    *eigr;
-  PetscBool      breakdown,countc,flip=PETSC_FALSE;
+  PetscScalar    *eigr,dot;
+  PetscBool      breakdown,countc,flip=PETSC_FALSE,checkprecond=PETSC_FALSE;
   Mat            A,B,M;
   Vec            v,z,w=eps->work[0];
   BV             X,Y,Z,R,P,AX,BX;
@@ -118,6 +118,9 @@ PetscErrorCode EPSSolve_LOBPCG(EPS eps)
     ierr = DSGetSlepcSC(eps->ds,&sc);CHKERRQ(ierr);
     sc->comparison = SlepcCompareSmallestReal;
   }
+
+  /* undocumented option to check for a positive-definite preconditioner (turn-off by default) */
+  ierr = PetscOptionsGetBool(NULL,NULL,"-eps_lobpcg_checkprecond",&checkprecond,NULL);CHKERRQ(ierr);
 
   /* 1. Allocate memory */
   ierr = PetscCalloc1(3*ctx->bs,&eigr);CHKERRQ(ierr);
@@ -227,7 +230,6 @@ PetscErrorCode EPSSolve_LOBPCG(EPS eps)
       ierr = BVCopy(X,eps->V);CHKERRQ(ierr);
     }
     if (eps->reason != EPS_CONVERGED_ITERATING) {
-      eps->its += its;
       break;
     } else if (nconv >= ctx->bs-guard) {
       eps->its += its-1;
@@ -259,7 +261,11 @@ PetscErrorCode EPSSolve_LOBPCG(EPS eps)
         ierr = BVOrthogonalizeVec(Y,v,NULL,&norm,&breakdown);CHKERRQ(ierr);
         if (norm>0.0 && !breakdown) {
           ierr = VecScale(v,1.0/norm);CHKERRQ(ierr);
-        } else SETERRQ(PetscObjectComm((PetscObject)eps),1,"Orthogonalization of initial vector failed");
+        } else {
+          ierr = PetscInfo(eps,"Orthogonalization of initial vector failed");CHKERRQ(ierr);
+          eps->reason = EPS_DIVERGED_BREAKDOWN;
+          goto diverged;
+        }
         ierr = BVRestoreColumn(X,j,&v);CHKERRQ(ierr);
       }
       locked += nconv;
@@ -308,11 +314,23 @@ PetscErrorCode EPSSolve_LOBPCG(EPS eps)
     for (j=ini;j<ctx->bs;j++) {
       ierr = BVGetColumn(R,j,&v);CHKERRQ(ierr);
       ierr = STMatSolve(eps->st,v,w);CHKERRQ(ierr);
+      if (checkprecond) {
+        ierr = VecDot(v,w,&dot);CHKERRQ(ierr);
+        if (PetscRealPart(dot)<0.0) {
+          ierr = PetscInfo(eps,"The preconditioner is not positive-definite");CHKERRQ(ierr);
+          eps->reason = EPS_DIVERGED_BREAKDOWN;
+          goto diverged;
+        }
+      }
       if (nc+locked>0) {
         ierr = BVOrthogonalizeVec(Y,w,NULL,&norm,&breakdown);CHKERRQ(ierr);
         if (norm>0.0 && !breakdown) {
           ierr = VecScale(w,1.0/norm);CHKERRQ(ierr);
-        } else SETERRQ(PetscObjectComm((PetscObject)eps),1,"Orthogonalization of preconditioned residual failed");
+        } else {
+          ierr = PetscInfo(eps,"Orthogonalization of preconditioned residual failed");CHKERRQ(ierr);
+          eps->reason = EPS_DIVERGED_BREAKDOWN;
+          goto diverged;
+        }
       }
       ierr = VecCopy(w,v);CHKERRQ(ierr);
       ierr = BVRestoreColumn(R,j,&v);CHKERRQ(ierr);
@@ -380,6 +398,9 @@ PetscErrorCode EPSSolve_LOBPCG(EPS eps)
     ierr = BVMatMult(X,A,AX);CHKERRQ(ierr);
     ierr = MatDestroy(&M);CHKERRQ(ierr);
   }
+
+diverged:
+  eps->its += its;
 
   if (flip) sc->comparison = SlepcCompareLargestReal;
   ierr = PetscFree(eigr);CHKERRQ(ierr);
