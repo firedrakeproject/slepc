@@ -230,7 +230,7 @@ PetscErrorCode EPSSolve_LOBPCG(EPS eps)
       eps->its += its;
       break;
     } else if (nconv >= ctx->bs-guard) {
-      eps->its += its;
+      eps->its += its-1;
       its = 0;
     } else its++;
 
