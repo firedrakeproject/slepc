@@ -933,10 +933,6 @@ PetscErrorCode EPSSetUp_CISS(EPS eps)
   ierr = DSAllocate(eps->ds,eps->ncv);CHKERRQ(ierr);
   ierr = EPSSetWorkVecs(eps,2);CHKERRQ(ierr);
 
-  /* In GHEP problems, deactivate purification to avoid losing
-     B-normalization of eigenvectors in EPSComputeVectors_Schur */
-  eps->purify = PETSC_FALSE;
-
 #if !defined(PETSC_USE_COMPLEX)
   if (!eps->ishermitian) { ierr = PetscInfo(eps,"Warning: complex eigenvalues are not calculated exactly without --with-scalar-type=complex in PETSc\n");CHKERRQ(ierr); }
 #endif

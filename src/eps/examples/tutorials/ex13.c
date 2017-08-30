@@ -99,7 +99,7 @@ int main(int argc,char **argv)
   */
   ierr = EPSSetFromOptions(eps);CHKERRQ(ierr);
 
-  ierr = PetscObjectTypeCompareAny((PetscObject)eps,&flag,EPSBLOPEX,EPSRQCG,"");CHKERRQ(ierr);
+  ierr = PetscObjectTypeCompareAny((PetscObject)eps,&flag,EPSBLOPEX,EPSLOBPCG,EPSRQCG,"");CHKERRQ(ierr);
   if (flag) {
     ierr = EPSSetWhichEigenpairs(eps,EPS_SMALLEST_REAL);CHKERRQ(ierr);
   } else {
