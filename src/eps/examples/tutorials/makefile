@@ -298,7 +298,7 @@ runex13_1:
 
 runex13_2:
 	-@${SETTEST}; \
-	${MPIEXEC} -n 1 ./ex13 -n 110 -nulldim 6 -eps_nev 4 -eps_ncv 18 -eps_tol 1e-5 -eps_purify 1 -st_type sinvert -eps_target .3 -terse > $${test}.tmp 2>&1; \
+	${MPIEXEC} -n 1 ./ex13 -n 110 -nulldim 6 -eps_nev 4 -eps_ncv 18 -eps_tol 1e-5 -eps_purify 1 -st_type sinvert -terse > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
 runex18_1:
