@@ -367,11 +367,7 @@ PetscErrorCode EPSSolve_LOBPCG(EPS eps)
     if (flip) { ierr = MatScale(M,-1.0);CHKERRQ(ierr); }
     ierr = DSRestoreMat(eps->ds,DS_MAT_A,&M);CHKERRQ(ierr);
     ierr = DSGetMat(eps->ds,DS_MAT_B,&M);CHKERRQ(ierr);
-    if (B) {
-      ierr = BVMatProject(Z,B,Z,M);CHKERRQ(ierr);
-    } else {
-      ierr = BVDot(Z,Z,M);CHKERRQ(ierr);
-    }
+    ierr = BVMatProject(Z,B,Z,M);CHKERRQ(ierr); /* covers also the case B=NULL */
     ierr = DSRestoreMat(eps->ds,DS_MAT_B,&M);CHKERRQ(ierr);
 
     /* 24. Solve the generalized eigenvalue problem */

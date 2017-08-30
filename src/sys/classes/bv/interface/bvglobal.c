@@ -1141,14 +1141,12 @@ PetscErrorCode BVMatProject(BV X,Mat A,BV Y,Mat M)
 
   ierr = PetscObjectGetId((PetscObject)X,&idx);CHKERRQ(ierr);
   ierr = PetscObjectGetId((PetscObject)Y,&idy);CHKERRQ(ierr);
-  if (!A && idx==idy) SETERRQ(PetscObjectComm((PetscObject)X),PETSC_ERR_ARG_WRONG,"Cannot set X=Y if A=NULL");
-
-  ierr = MatDenseGetArray(M,&marray);CHKERRQ(ierr);
-
   if (A && idx==idy) { /* check symmetry of M=X'AX */
     ierr = MatIsHermitianKnown(A,&set,&flg);CHKERRQ(ierr);
     symm = set? flg: PETSC_FALSE;
   }
+
+  ierr = MatDenseGetArray(M,&marray);CHKERRQ(ierr);
 
   if (A) {
     if (X->vmm==BV_MATMULT_VECS) {
