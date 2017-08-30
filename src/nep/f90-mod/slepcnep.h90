@@ -18,6 +18,65 @@
 !  along with SLEPc. If not, see <http://www.gnu.org/licenses/>.
 !  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !
+      interface NEPGetDimensions
+        subroutine NEPGetDimensions000(a,b,c,d,z)
+        use slepcnepdef
+          NEP a
+          PetscInt b
+          PetscInt c
+          PetscInt d
+          integer z
+        end subroutine
+        subroutine NEPGetDimensions100(a,b,c,d,z)
+        use slepcnepdef
+          NEP a
+          PetscInt b(*)
+          PetscInt c
+          PetscInt d
+          integer z
+        end subroutine
+        subroutine NEPGetDimensions010(a,b,c,d,z)
+        use slepcnepdef
+          NEP a
+          PetscInt b
+          PetscInt c(*)
+          PetscInt d
+          integer z
+        end subroutine
+        subroutine NEPGetDimensions001(a,b,c,d,z)
+        use slepcnepdef
+          NEP a
+          PetscInt b
+          PetscInt c
+          PetscInt d(*)
+          integer z
+        end subroutine
+        subroutine NEPGetDimensions110(a,b,c,d,z)
+        use slepcnepdef
+          NEP a
+          PetscInt b(*)
+          PetscInt c(*)
+          PetscInt d
+          integer z
+        end subroutine
+        subroutine NEPGetDimensions011(a,b,c,d,z)
+        use slepcnepdef
+          NEP a
+          PetscInt b
+          PetscInt c(*)
+          PetscInt d(*)
+          integer z
+        end subroutine
+        subroutine NEPGetDimensions101(a,b,c,d,z)
+        use slepcnepdef
+          NEP a
+          PetscInt b(*)
+          PetscInt c
+          PetscInt d(*)
+          integer z
+        end subroutine
+        end interface NEPGetDimensions
+
       interface NEPGetEigenpair
         subroutine NEPGetEigenpair00(a,b,c,d,e,f,z)
           use slepcnepdef
@@ -84,4 +143,87 @@
           integer z
         end subroutine
       end interface NEPGetTolerances
+
+      interface NEPGetRefine
+        subroutine NEPGetRefine000(a,b,c,d,e,f,z)
+          use slepcnepdef
+          NEP a
+          NEPRefine b
+          PetscInt c
+          PetscReal d
+          PetscInt e
+          NEPRefineScheme f
+          integer z
+        end subroutine
+        subroutine NEPGetRefine100(a,b,c,d,e,f,z)
+          use slepcnepdef
+          NEP a
+          NEPRefine b
+          PetscInt c(*)
+          PetscReal d
+          PetscInt e
+          NEPRefineScheme f
+          integer z
+        end subroutine
+        subroutine NEPGetRefine010(a,b,c,d,e,f,z)
+          use slepcnepdef
+          NEP a
+          NEPRefine b
+          PetscInt c
+          PetscReal d(*)
+          PetscInt e
+          NEPRefineScheme f
+          integer z
+        end subroutine
+        subroutine NEPGetRefine001(a,b,c,d,e,f,z)
+          use slepcnepdef
+          NEP a
+          NEPRefine b
+          PetscInt c
+          PetscReal d
+          PetscInt e(*)
+          NEPRefineScheme f
+          integer z
+        end subroutine
+        subroutine NEPGetRefine110(a,b,c,d,e,f,z)
+          use slepcnepdef
+          NEP a
+          NEPRefine b
+          PetscInt c(*)
+          PetscReal d(*)
+          PetscInt e
+          NEPRefineScheme f
+          integer z
+        end subroutine
+        subroutine NEPGetRefine011(a,b,c,d,e,f,z)
+          use slepcnepdef
+          NEP a
+          NEPRefine b
+          PetscInt c
+          PetscReal d(*)
+          PetscInt e(*)
+          NEPRefineScheme f
+          integer z
+        end subroutine
+        subroutine NEPGetRefine101(a,b,c,d,e,f,z)
+          use slepcnepdef
+          NEP a
+          NEPRefine b
+          PetscInt c(*)
+          PetscReal d
+          PetscInt e(*)
+          NEPRefineScheme f
+          integer z
+        end subroutine
+        subroutine NEPGetRefine111(a,b,c,d,e,f,z)
+          use slepcnepdef
+          NEP a
+          NEPRefine b
+          PetscInt c(*)
+          PetscReal d(*)
+          PetscInt e(*)
+          NEPRefineScheme f
+          integer z
+        end subroutine
+      end interface NEPGetRefine
 

@@ -59,6 +59,23 @@
 #define pepgettolerances00_               PEPGETTOLERANCES00
 #define pepgettolerances10_               PEPGETTOLERANCES10
 #define pepgettolerances01_               PEPGETTOLERANCES01
+#define pepsetscale_                      PEPSETSCALE
+#define pepgetscale000_                   PEPGETSCALE000
+#define pepgetscale100_                   PEPGETSCALE100
+#define pepgetscale010_                   PEPGETSCALE010
+#define pepgetscale001_                   PEPGETSCALE001
+#define pepgetscale110_                   PEPGETSCALE110
+#define pepgetscale011_                   PEPGETSCALE011
+#define pepgetscale101_                   PEPGETSCALE101
+#define pepgetscale111_                   PEPGETSCALE111
+#define pepgetrefine000_                  PEPGETREFINE000
+#define pepgetrefine100_                  PEPGETREFINE100
+#define pepgetrefine010_                  PEPGETREFINE010
+#define pepgetrefine001_                  PEPGETREFINE001
+#define pepgetrefine110_                  PEPGETREFINE110
+#define pepgetrefine011_                  PEPGETREFINE011
+#define pepgetrefine101_                  PEPGETREFINE101
+#define pepgetrefine111_                  PEPGETREFINE111
 #elif !defined(PETSC_HAVE_FORTRAN_UNDERSCORE)
 #define pepview_                          pepview
 #define peperrorview_                     peperrorview
@@ -95,6 +112,23 @@
 #define pepgettolerances00_               pepgettolerances00
 #define pepgettolerances10_               pepgettolerances10
 #define pepgettolerances01_               pepgettolerances01
+#define pepsetscale_                      pepsetscale
+#define pepgetscale000_                   pepgetscale000
+#define pepgetscale100_                   pepgetscale100
+#define pepgetscale010_                   pepgetscale010
+#define pepgetscale001_                   pepgetscale001
+#define pepgetscale110_                   pepgetscale110
+#define pepgetscale011_                   pepgetscale011
+#define pepgetscale101_                   pepgetscale101
+#define pepgetscale111_                   pepgetscale111
+#define pepgetrefine000_                  pepgetrefine000
+#define pepgetrefine100_                  pepgetrefine100
+#define pepgetrefine010_                  pepgetrefine010
+#define pepgetrefine001_                  pepgetrefine001
+#define pepgetrefine110_                  pepgetrefine110
+#define pepgetrefine011_                  pepgetrefine011
+#define pepgetrefine101_                  pepgetrefine101
+#define pepgetrefine111_                  pepgetrefine111
 #endif
 
 /*
@@ -331,7 +365,7 @@ PETSC_EXTERN void PETSC_STDCALL pepgetdimensions_(PEP *pep,PetscInt *nev,PetscIn
 {
   CHKFORTRANNULLINTEGER(nev);
   CHKFORTRANNULLINTEGER(ncv);
-  CHKFORTRANNULLINTEGER(mpd);  
+  CHKFORTRANNULLINTEGER(mpd);
   *ierr = PEPGetDimensions(*pep,nev,ncv,mpd);
 }
 
@@ -414,5 +448,108 @@ PETSC_EXTERN void PETSC_STDCALL pepgettolerances10_(PEP *pep,PetscReal *tol,Pets
 PETSC_EXTERN void PETSC_STDCALL pepgettolerances01_(PEP *pep,PetscReal *tol,PetscInt *maxits,int *ierr)
 {
   pepgettolerances_(pep,tol,maxits,ierr);
+}
+
+PETSC_EXTERN void PETSC_STDCALL pepsetscale_(PEP *pep,PEPScale *scale,PetscReal *alpha,Vec *Dl,Vec *Dr,PetscInt *its,PetscReal *lambda,int *ierr)
+{
+  CHKFORTRANNULLOBJECTDEREFERENCE(Dl);
+  CHKFORTRANNULLOBJECTDEREFERENCE(Dr);
+  *ierr = PEPSetScale(*pep,*scale,*alpha,*Dl,*Dr,*its,*lambda);
+}
+
+PETSC_EXTERN void PETSC_STDCALL pepgetscale_(PEP *pep,PEPScale *scale,PetscReal *alpha,Vec *Dl,Vec *Dr,PetscInt *its,PetscReal *lambda,int *ierr)
+{
+  CHKFORTRANNULLREAL(alpha);
+  CHKFORTRANNULLINTEGER(its);
+  CHKFORTRANNULLREAL(lambda);
+  *ierr = PEPGetScale(*pep,scale,alpha,Dl,Dr,its,lambda);
+}
+
+PETSC_EXTERN void PETSC_STDCALL pepgetscale000_(PEP *pep,PEPScale *scale,PetscReal *alpha,Vec *Dl,Vec *Dr,PetscInt *its,PetscReal *lambda,int *ierr)
+{
+  pepgetscale_(pep,scale,alpha,Dl,Dr,its,lambda,ierr);
+}
+
+PETSC_EXTERN void PETSC_STDCALL pepgetscale100_(PEP *pep,PEPScale *scale,PetscReal *alpha,Vec *Dl,Vec *Dr,PetscInt *its,PetscReal *lambda,int *ierr)
+{
+  pepgetscale_(pep,scale,alpha,Dl,Dr,its,lambda,ierr);
+}
+
+PETSC_EXTERN void PETSC_STDCALL pepgetscale010_(PEP *pep,PEPScale *scale,PetscReal *alpha,Vec *Dl,Vec *Dr,PetscInt *its,PetscReal *lambda,int *ierr)
+{
+  pepgetscale_(pep,scale,alpha,Dl,Dr,its,lambda,ierr);
+}
+
+PETSC_EXTERN void PETSC_STDCALL pepgetscale001_(PEP *pep,PEPScale *scale,PetscReal *alpha,Vec *Dl,Vec *Dr,PetscInt *its,PetscReal *lambda,int *ierr)
+{
+  pepgetscale_(pep,scale,alpha,Dl,Dr,its,lambda,ierr);
+}
+
+PETSC_EXTERN void PETSC_STDCALL pepgetscale110_(PEP *pep,PEPScale *scale,PetscReal *alpha,Vec *Dl,Vec *Dr,PetscInt *its,PetscReal *lambda,int *ierr)
+{
+  pepgetscale_(pep,scale,alpha,Dl,Dr,its,lambda,ierr);
+}
+
+PETSC_EXTERN void PETSC_STDCALL pepgetscale011_(PEP *pep,PEPScale *scale,PetscReal *alpha,Vec *Dl,Vec *Dr,PetscInt *its,PetscReal *lambda,int *ierr)
+{
+  pepgetscale_(pep,scale,alpha,Dl,Dr,its,lambda,ierr);
+}
+
+PETSC_EXTERN void PETSC_STDCALL pepgetscale101_(PEP *pep,PEPScale *scale,PetscReal *alpha,Vec *Dl,Vec *Dr,PetscInt *its,PetscReal *lambda,int *ierr)
+{
+  pepgetscale_(pep,scale,alpha,Dl,Dr,its,lambda,ierr);
+}
+
+PETSC_EXTERN void PETSC_STDCALL pepgetscale111_(PEP *pep,PEPScale *scale,PetscReal *alpha,Vec *Dl,Vec *Dr,PetscInt *its,PetscReal *lambda,int *ierr)
+{
+  pepgetscale_(pep,scale,alpha,Dl,Dr,its,lambda,ierr);
+}
+
+PETSC_EXTERN void PETSC_STDCALL pepgetrefine_(PEP *pep,PEPRefine *refine,PetscInt *npart,PetscReal *tol,PetscInt *its,PEPRefineScheme *scheme,int *ierr)
+{
+  CHKFORTRANNULLINTEGER(npart);
+  CHKFORTRANNULLREAL(tol);
+  CHKFORTRANNULLINTEGER(its);
+  *ierr = PEPGetRefine(*pep,refine,npart,tol,its,scheme);
+}
+
+PETSC_EXTERN void PETSC_STDCALL pepgetrefine000_(PEP *pep,PEPRefine *refine,PetscInt *npart,PetscReal *tol,PetscInt *its,PEPRefineScheme *scheme,int *ierr)
+{
+  pepgetrefine_(pep,refine,npart,tol,its,scheme,ierr);
+}
+
+PETSC_EXTERN void PETSC_STDCALL pepgetrefine100_(PEP *pep,PEPRefine *refine,PetscInt *npart,PetscReal *tol,PetscInt *its,PEPRefineScheme *scheme,int *ierr)
+{
+  pepgetrefine_(pep,refine,npart,tol,its,scheme,ierr);
+}
+
+PETSC_EXTERN void PETSC_STDCALL pepgetrefine010_(PEP *pep,PEPRefine *refine,PetscInt *npart,PetscReal *tol,PetscInt *its,PEPRefineScheme *scheme,int *ierr)
+{
+  pepgetrefine_(pep,refine,npart,tol,its,scheme,ierr);
+}
+
+PETSC_EXTERN void PETSC_STDCALL pepgetrefine001_(PEP *pep,PEPRefine *refine,PetscInt *npart,PetscReal *tol,PetscInt *its,PEPRefineScheme *scheme,int *ierr)
+{
+  pepgetrefine_(pep,refine,npart,tol,its,scheme,ierr);
+}
+
+PETSC_EXTERN void PETSC_STDCALL pepgetrefine110_(PEP *pep,PEPRefine *refine,PetscInt *npart,PetscReal *tol,PetscInt *its,PEPRefineScheme *scheme,int *ierr)
+{
+  pepgetrefine_(pep,refine,npart,tol,its,scheme,ierr);
+}
+
+PETSC_EXTERN void PETSC_STDCALL pepgetrefine011_(PEP *pep,PEPRefine *refine,PetscInt *npart,PetscReal *tol,PetscInt *its,PEPRefineScheme *scheme,int *ierr)
+{
+  pepgetrefine_(pep,refine,npart,tol,its,scheme,ierr);
+}
+
+PETSC_EXTERN void PETSC_STDCALL pepgetrefine101_(PEP *pep,PEPRefine *refine,PetscInt *npart,PetscReal *tol,PetscInt *its,PEPRefineScheme *scheme,int *ierr)
+{
+  pepgetrefine_(pep,refine,npart,tol,its,scheme,ierr);
+}
+
+PETSC_EXTERN void PETSC_STDCALL pepgetrefine111_(PEP *pep,PEPRefine *refine,PetscInt *npart,PetscReal *tol,PetscInt *its,PEPRefineScheme *scheme,int *ierr)
+{
+  pepgetrefine_(pep,refine,npart,tol,its,scheme,ierr);
 }
 
