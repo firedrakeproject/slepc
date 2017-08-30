@@ -421,7 +421,8 @@ runtest8_2_%:
 runtest8_3: runtest8_3_rqcg runtest8_3_lobpcg runtest8_3_lanczos
 runtest8_3_%:
 	-@${SETTEST}; check=test8_3; eps=$*; \
-	if [ "${PETSC_PRECISION}" = "single" ]; then EXTRA="-eps_tol 1e-5"; fi; \
+	if [ "${PETSC_PRECISION}" = "single" ]; then EXTRA="-eps_tol 1e-5"; \
+	elif [ "${PETSC_PRECISION}" = "__float128" ]; then EXTRA="-eps_tol 1e-25"; fi; \
 	if [ "$$eps" = lobpcg ]; then eps="lobpcg -eps_lobpcg_blocksize 3 -eps_lobpcg_locking 0 -st_ksp_type preonly -st_pc_type jacobi"; fi; \
 	${MPIEXEC} -n 1 ./test8 -eps_type $$eps -eps_nev 12 -eps_mpd 9 -eps_smallest_real -eps_max_it 1000 $$EXTRA > $${test}.tmp 2>&1; \
 	${TESTCODE}
