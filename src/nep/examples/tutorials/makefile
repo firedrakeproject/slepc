@@ -25,7 +25,7 @@ CPPFLAGS   =
 FPPFLAGS   =
 LOCDIR     = src/nep/examples/tutorials/
 EXAMPLESC  = ex20.c ex21.c ex22.c ex27.c
-EXAMPLESF  =
+EXAMPLESF  = ex22f90.F90
 MANSEC     = NEP
 
 TESTEXAMPLES_C           = ex27.PETSc runex27_1 runex27_2 runex27_4 ex27.rm
@@ -34,6 +34,7 @@ TESTEXAMPLES_C_NOTSINGLE = ex21.PETSc runex21_1 ex21.rm \
                            ex27.PETSc runex27_3 ex27.rm
 TESTEXAMPLES_C_COMPLEX   = ex22.PETSc runex22_1_ciss ex22.rm
 TESTEXAMPLES_VECCUDA     = ex27.PETSc runex27_5_cuda runex27_6_cuda ex27.rm
+TESTEXAMPLES_F90         = ex22f90.PETSc runex22f90_1 ex22f90.rm
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common
 
@@ -48,6 +49,10 @@ ex21: ex21.o chkopts
 ex22: ex22.o chkopts
 	-${CLINKER} -o ex22 ex22.o ${SLEPC_NEP_LIB}
 	${RM} ex22.o
+
+ex22f90: ex22f90.o chkopts
+	-${FLINKER} -o ex22f90 ex22f90.o ${SLEPC_NEP_LIB}
+	${RM} ex22f90.o
 
 ex27: ex27.o chkopts
 	-${CLINKER} -o ex27 ex27.o ${SLEPC_NEP_LIB}
@@ -82,6 +87,11 @@ runex22_2: runex22_2_none runex22_2_norm runex22_2_residual
 runex22_2_%:
 	-@${SETTEST}; check=ex22_2; extract=$*; \
 	${MPIEXEC} -n 1 ./ex22 -nep_type interpol -nep_interpol_pep_extract $$extract -rg_type interval -rg_interval_endpoints 5,20,-.1,.1 -nep_nev 3 -nep_target 5 -terse > $${test}.tmp 2>&1; \
+	${TESTCODE}
+
+runex22f90_1:
+	-@${SETTEST}; \
+	${MPIEXEC} -n 1 ./ex22f90 -terse > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
 runex27_1:
