@@ -75,7 +75,7 @@ PetscErrorCode EPSSetUp_LOBPCG(EPS eps)
   ierr = EPSSetDimensions_LOBPCG(eps,eps->nev,&eps->ncv,&eps->mpd);CHKERRQ(ierr);
   if (!eps->max_it) eps->max_it = PetscMax(100,2*eps->n/eps->ncv);
   if (!eps->which) eps->which = EPS_SMALLEST_REAL;
-  if (eps->which!=EPS_SMALLEST_REAL) SETERRQ(PetscObjectComm((PetscObject)eps),1,"Wrong value of eps->which");
+  if (eps->which!=EPS_SMALLEST_REAL && eps->which!=EPS_LARGEST_REAL) SETERRQ(PetscObjectComm((PetscObject)eps),1,"Wrong value of eps->which");
   if (eps->arbitrary) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Arbitrary selection of eigenpairs not supported in this solver");
   if (eps->extraction) { ierr = PetscInfo(eps,"Warning: extraction type ignored\n");CHKERRQ(ierr); }
   ierr = RGIsTrivial(eps->rg,&istrivial);CHKERRQ(ierr);
@@ -97,11 +97,12 @@ PetscErrorCode EPSSolve_LOBPCG(EPS eps)
   EPS_LOBPCG     *ctx = (EPS_LOBPCG*)eps->data;
   PetscInt       i,j,k,ld,nv,ini,nmat,nc,nconv,locked,guard,its;
   PetscReal      norm;
-  PetscScalar    *eigr;
-  PetscBool      breakdown,countc;
+  PetscScalar    *eigr,dot;
+  PetscBool      breakdown,countc,flip=PETSC_FALSE,checkprecond=PETSC_FALSE;
   Mat            A,B,M;
-  Vec            v,w=eps->work[0];
+  Vec            v,z,w=eps->work[0];
   BV             X,Y,Z,R,P,AX,BX;
+  SlepcSC        sc;
 
   PetscFunctionBegin;
   ierr = DSGetLeadingDimension(eps->ds,&ld);CHKERRQ(ierr);
@@ -111,6 +112,15 @@ PetscErrorCode EPSSolve_LOBPCG(EPS eps)
   else B = NULL;
 
   guard = (PetscInt)((1.0-ctx->restart)*ctx->bs);  /* number of guard vectors */
+
+  if (eps->which==EPS_LARGEST_REAL) {  /* flip spectrum */
+    flip = PETSC_TRUE;
+    ierr = DSGetSlepcSC(eps->ds,&sc);CHKERRQ(ierr);
+    sc->comparison = SlepcCompareSmallestReal;
+  }
+
+  /* undocumented option to check for a positive-definite preconditioner (turn-off by default) */
+  ierr = PetscOptionsGetBool(NULL,NULL,"-eps_lobpcg_checkprecond",&checkprecond,NULL);CHKERRQ(ierr);
 
   /* 1. Allocate memory */
   ierr = PetscCalloc1(3*ctx->bs,&eigr);CHKERRQ(ierr);
@@ -136,6 +146,7 @@ PetscErrorCode EPSSolve_LOBPCG(EPS eps)
   }
 
   /* 2. Apply the constraints to the initial vectors */
+  /* 3. B-orthogonalize initial vectors */
   for (k=eps->nini;k<eps->ncv-ctx->bs;k++) { /* Generate more initial vectors if necessary */
     ierr = BVSetRandomColumn(eps->V,k);CHKERRQ(ierr);
     ierr = BVOrthonormalizeColumn(eps->V,k,PETSC_TRUE,NULL,NULL);CHKERRQ(ierr);
@@ -146,18 +157,18 @@ PetscErrorCode EPSSolve_LOBPCG(EPS eps)
   ierr = BVCopy(eps->V,Z);CHKERRQ(ierr);
   ierr = BVCopy(Z,X);CHKERRQ(ierr);
 
-  /* 3. B-orthogonalize initial vectors */
-
   /* 4. Compute initial Ritz vectors */
   ierr = BVMatMult(X,A,AX);CHKERRQ(ierr);
   ierr = DSSetDimensions(eps->ds,nv,0,0,0);CHKERRQ(ierr);
   ierr = DSGetMat(eps->ds,DS_MAT_A,&M);CHKERRQ(ierr);
   ierr = BVMatProject(AX,NULL,X,M);CHKERRQ(ierr);
+  if (flip) { ierr = MatScale(M,-1.0);CHKERRQ(ierr); }
   ierr = DSRestoreMat(eps->ds,DS_MAT_A,&M);CHKERRQ(ierr);
   ierr = DSSetIdentity(eps->ds,DS_MAT_B);CHKERRQ(ierr);
   ierr = DSSetState(eps->ds,DS_STATE_RAW);CHKERRQ(ierr);
-  ierr = DSSolve(eps->ds,eps->eigr,NULL);CHKERRQ(ierr);
-  ierr = DSSort(eps->ds,eps->eigr,NULL,NULL,NULL,NULL);CHKERRQ(ierr);
+  ierr = DSSolve(eps->ds,eigr,NULL);CHKERRQ(ierr);
+  ierr = DSSort(eps->ds,eigr,NULL,NULL,NULL,NULL);CHKERRQ(ierr);
+  for (j=0;j<nv;j++) eps->eigr[j] = flip? -eigr[j]: eigr[j];
   ierr = DSVectors(eps->ds,DS_MAT_X,NULL,NULL);CHKERRQ(ierr);
   ierr = DSGetMat(eps->ds,DS_MAT_X,&M);CHKERRQ(ierr);
   ierr = BVMultInPlace(X,M,0,nv);CHKERRQ(ierr);
@@ -181,18 +192,18 @@ PetscErrorCode EPSSolve_LOBPCG(EPS eps)
     }
 
     /* 7. Compute residuals */
-    ierr = DSGetMat(eps->ds,DS_MAT_A,&M);CHKERRQ(ierr);
+    ini = (ctx->lock)? nconv: 0;
     ierr = BVCopy(AX,R);CHKERRQ(ierr);
-    if (B) {
-      ierr = BVMatMult(X,B,BX);CHKERRQ(ierr);
-      ierr = BVMult(R,-1.0,1.0,BX,M);CHKERRQ(ierr);
-    } else {
-      ierr = BVMult(R,-1.0,1.0,X,M);CHKERRQ(ierr);
+    if (B) { ierr = BVMatMult(X,B,BX);CHKERRQ(ierr); }
+    for (j=ini;j<ctx->bs;j++) {
+      ierr = BVGetColumn(R,j,&v);CHKERRQ(ierr);
+      ierr = BVGetColumn(B?BX:X,j,&z);CHKERRQ(ierr);
+      ierr = VecAXPY(v,-eps->eigr[locked+j],z);CHKERRQ(ierr);
+      ierr = BVRestoreColumn(R,j,&v);CHKERRQ(ierr);
+      ierr = BVRestoreColumn(B?BX:X,j,&z);CHKERRQ(ierr);
     }
-    ierr = MatDestroy(&M);CHKERRQ(ierr);
 
     /* 8. Compute residual norms and update index set of active iterates */
-    ini = (ctx->lock)? nconv: 0;
     k = ini;
     countc = PETSC_TRUE;
     for (j=ini;j<ctx->bs;j++) {
@@ -219,10 +230,9 @@ PetscErrorCode EPSSolve_LOBPCG(EPS eps)
       ierr = BVCopy(X,eps->V);CHKERRQ(ierr);
     }
     if (eps->reason != EPS_CONVERGED_ITERATING) {
-      eps->its += its;
       break;
     } else if (nconv >= ctx->bs-guard) {
-      eps->its += its;
+      eps->its += its-1;
       its = 0;
     } else its++;
 
@@ -231,15 +241,6 @@ PetscErrorCode EPSSolve_LOBPCG(EPS eps)
       /* extend constraints */
       ierr = BVSetActiveColumns(Y,nc+locked,nc+locked+nconv);CHKERRQ(ierr);
       ierr = BVCopy(X,Y);CHKERRQ(ierr);
-      for (j=0;j<nconv;j++) {
-        ierr = BVOrthonormalizeColumn(Y,nc+locked+j,PETSC_FALSE,&norm,&breakdown);CHKERRQ(ierr);
-        if (norm==0.0 || breakdown) break;
-      }
-      if (j<nconv) {
-        ierr = PetscInfo(eps,"Orthogonalization of constraints failed");CHKERRQ(ierr);
-        eps->reason = EPS_DIVERGED_BREAKDOWN;
-        break;
-      }
       ierr = BVSetActiveColumns(Y,0,nc+locked+nconv);CHKERRQ(ierr);
 
       /* shift work BV's */
@@ -262,7 +263,11 @@ PetscErrorCode EPSSolve_LOBPCG(EPS eps)
         ierr = BVOrthogonalizeVec(Y,v,NULL,&norm,&breakdown);CHKERRQ(ierr);
         if (norm>0.0 && !breakdown) {
           ierr = VecScale(v,1.0/norm);CHKERRQ(ierr);
-        } else SETERRQ(PetscObjectComm((PetscObject)eps),1,"Orthogonalization of initial vector failed");
+        } else {
+          ierr = PetscInfo(eps,"Orthogonalization of initial vector failed");CHKERRQ(ierr);
+          eps->reason = EPS_DIVERGED_BREAKDOWN;
+          goto diverged;
+        }
         ierr = BVRestoreColumn(X,j,&v);CHKERRQ(ierr);
       }
       locked += nconv;
@@ -281,12 +286,13 @@ PetscErrorCode EPSSolve_LOBPCG(EPS eps)
       ierr = DSSetDimensions(eps->ds,nv,0,0,0);CHKERRQ(ierr);
       ierr = DSGetMat(eps->ds,DS_MAT_A,&M);CHKERRQ(ierr);
       ierr = BVMatProject(AX,NULL,X,M);CHKERRQ(ierr);
+      if (flip) { ierr = MatScale(M,-1.0);CHKERRQ(ierr); }
       ierr = DSRestoreMat(eps->ds,DS_MAT_A,&M);CHKERRQ(ierr);
       ierr = DSSetIdentity(eps->ds,DS_MAT_B);CHKERRQ(ierr);
       ierr = DSSetState(eps->ds,DS_STATE_RAW);CHKERRQ(ierr);
       ierr = DSSolve(eps->ds,eigr,NULL);CHKERRQ(ierr);
       ierr = DSSort(eps->ds,eigr,NULL,NULL,NULL,NULL);CHKERRQ(ierr);
-      for (j=0;j<nv;j++) if (locked+j<eps->ncv) eps->eigr[locked+j] = eigr[j];
+      for (j=0;j<nv;j++) if (locked+j<eps->ncv) eps->eigr[locked+j] = flip? -eigr[j]: eigr[j];
       ierr = DSVectors(eps->ds,DS_MAT_X,NULL,NULL);CHKERRQ(ierr);
       ierr = DSGetMat(eps->ds,DS_MAT_X,&M);CHKERRQ(ierr);
       ierr = BVMultInPlace(X,M,0,nv);CHKERRQ(ierr);
@@ -310,11 +316,23 @@ PetscErrorCode EPSSolve_LOBPCG(EPS eps)
     for (j=ini;j<ctx->bs;j++) {
       ierr = BVGetColumn(R,j,&v);CHKERRQ(ierr);
       ierr = STMatSolve(eps->st,v,w);CHKERRQ(ierr);
+      if (checkprecond) {
+        ierr = VecDot(v,w,&dot);CHKERRQ(ierr);
+        if (PetscRealPart(dot)<0.0) {
+          ierr = PetscInfo(eps,"The preconditioner is not positive-definite");CHKERRQ(ierr);
+          eps->reason = EPS_DIVERGED_BREAKDOWN;
+          goto diverged;
+        }
+      }
       if (nc+locked>0) {
         ierr = BVOrthogonalizeVec(Y,w,NULL,&norm,&breakdown);CHKERRQ(ierr);
         if (norm>0.0 && !breakdown) {
           ierr = VecScale(w,1.0/norm);CHKERRQ(ierr);
-        } else SETERRQ(PetscObjectComm((PetscObject)eps),1,"Orthogonalization of preconditioned residual failed");
+        } else {
+          ierr = PetscInfo(eps,"Orthogonalization of preconditioned residual failed");CHKERRQ(ierr);
+          eps->reason = EPS_DIVERGED_BREAKDOWN;
+          goto diverged;
+        }
       }
       ierr = VecCopy(w,v);CHKERRQ(ierr);
       ierr = BVRestoreColumn(R,j,&v);CHKERRQ(ierr);
@@ -346,20 +364,17 @@ PetscErrorCode EPSSolve_LOBPCG(EPS eps)
     ierr = DSSetDimensions(eps->ds,nv,0,0,0);CHKERRQ(ierr);
     ierr = DSGetMat(eps->ds,DS_MAT_A,&M);CHKERRQ(ierr);
     ierr = BVMatProject(Z,A,Z,M);CHKERRQ(ierr);
+    if (flip) { ierr = MatScale(M,-1.0);CHKERRQ(ierr); }
     ierr = DSRestoreMat(eps->ds,DS_MAT_A,&M);CHKERRQ(ierr);
     ierr = DSGetMat(eps->ds,DS_MAT_B,&M);CHKERRQ(ierr);
-    if (B) {
-      ierr = BVMatProject(Z,B,Z,M);CHKERRQ(ierr);
-    } else {
-      ierr = BVDot(Z,Z,M);CHKERRQ(ierr);
-    }
+    ierr = BVMatProject(Z,B,Z,M);CHKERRQ(ierr); /* covers also the case B=NULL */
     ierr = DSRestoreMat(eps->ds,DS_MAT_B,&M);CHKERRQ(ierr);
 
     /* 24. Solve the generalized eigenvalue problem */
     ierr = DSSetState(eps->ds,DS_STATE_RAW);CHKERRQ(ierr);
     ierr = DSSolve(eps->ds,eigr,NULL);CHKERRQ(ierr);
     ierr = DSSort(eps->ds,eigr,NULL,NULL,NULL,NULL);CHKERRQ(ierr);
-    for (j=0;j<nv;j++) if (locked+j<eps->ncv) eps->eigr[locked+j] = eigr[j];
+    for (j=0;j<nv;j++) if (locked+j<eps->ncv) eps->eigr[locked+j] = flip? -eigr[j]: eigr[j];
     ierr = DSVectors(eps->ds,DS_MAT_X,NULL,NULL);CHKERRQ(ierr);
 
     /* 25-33. Compute Ritz vectors */
@@ -382,6 +397,10 @@ PetscErrorCode EPSSolve_LOBPCG(EPS eps)
     ierr = MatDestroy(&M);CHKERRQ(ierr);
   }
 
+diverged:
+  eps->its += its;
+
+  if (flip) sc->comparison = SlepcCompareLargestReal;
   ierr = PetscFree(eigr);CHKERRQ(ierr);
   ierr = BVDestroy(&Z);CHKERRQ(ierr);
   ierr = BVDestroy(&X);CHKERRQ(ierr);

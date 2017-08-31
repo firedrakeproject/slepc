@@ -176,11 +176,14 @@ PetscErrorCode EPSSetUp(EPS eps)
 
   /* if purification is set, check that it really makes sense */
   if (eps->purify) {
-    if (!eps->isgeneralized) eps->purify = PETSC_FALSE;
-    else if (!eps->ishermitian && !eps->ispositive) eps->purify = PETSC_FALSE;
+    if (eps->categ==EPS_CATEGORY_PRECOND || eps->categ==EPS_CATEGORY_CONTOUR) eps->purify = PETSC_FALSE;
     else {
-      ierr = PetscObjectTypeCompare((PetscObject)eps->st,STCAYLEY,&flg);CHKERRQ(ierr);
-      if (flg) eps->purify = PETSC_FALSE;
+      if (!eps->isgeneralized) eps->purify = PETSC_FALSE;
+      else if (!eps->ishermitian && !eps->ispositive) eps->purify = PETSC_FALSE;
+      else {
+        ierr = PetscObjectTypeCompare((PetscObject)eps->st,STCAYLEY,&flg);CHKERRQ(ierr);
+        if (flg) eps->purify = PETSC_FALSE;
+      }
     }
   }
 
