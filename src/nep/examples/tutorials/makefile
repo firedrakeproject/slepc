@@ -25,22 +25,28 @@ CPPFLAGS   =
 FPPFLAGS   =
 LOCDIR     = src/nep/examples/tutorials/
 EXAMPLESC  = ex20.c ex21.c ex22.c ex27.c
-EXAMPLESF  = ex22f90.F90
+EXAMPLESF  = ex20f90.F90 ex22f90.F90
 MANSEC     = NEP
 
-TESTEXAMPLES_C           = ex27.PETSc runex27_1 runex27_2 runex27_4 ex27.rm
+TESTEXAMPLES_C           = ex20.PETSc runex20_1 ex20.rm \
+                           ex27.PETSc runex27_1 runex27_2 runex27_4 ex27.rm
 TESTEXAMPLES_C_NOTSINGLE = ex21.PETSc runex21_1 ex21.rm \
                            ex22.PETSc runex22_1 runex22_2 ex22.rm \
                            ex27.PETSc runex27_3 ex27.rm
 TESTEXAMPLES_C_COMPLEX   = ex22.PETSc runex22_1_ciss ex22.rm
 TESTEXAMPLES_VECCUDA     = ex27.PETSc runex27_5_cuda runex27_6_cuda ex27.rm
-TESTEXAMPLES_F90         = ex22f90.PETSc runex22f90_1 ex22f90.rm
+TESTEXAMPLES_F90         = ex20f90.PETSc runex20f90_1 ex20f90.rm \
+                           ex22f90.PETSc runex22f90_1 ex22f90.rm
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common
 
 ex20: ex20.o chkopts
 	-${CLINKER} -o ex20 ex20.o ${SLEPC_NEP_LIB}
 	${RM} ex20.o
+
+ex20f90: ex20f90.o chkopts
+	-${FLINKER} -o ex20f90 ex20f90.o ${SLEPC_NEP_LIB}
+	${RM} ex20f90.o
 
 ex21: ex21.o chkopts
 	-${CLINKER} -o ex21 ex21.o ${SLEPC_NEP_LIB}
@@ -62,7 +68,12 @@ ex27: ex27.o chkopts
 
 runex20_1:
 	-@${SETTEST}; \
-	${MPIEXEC} -n 1 ./ex20 > $${test}.tmp 2>&1; \
+	${MPIEXEC} -n 1 ./ex20 | ${SED} -e "s/[0-9]\.[0-9]*e-[0-9]*/removed/g" > $${test}.tmp 2>&1; \
+	${TESTCODE}
+
+runex20f90_1:
+	-@${SETTEST}; \
+	${MPIEXEC} -n 1 ./ex20f90 | ${SED} -e "s/[0-9]\.[0-9]*E-[0-9]*/removed/g" > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
 runex21_1: runex21_1_rii runex21_1_slp
