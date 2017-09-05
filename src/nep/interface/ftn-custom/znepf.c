@@ -22,6 +22,7 @@
 #include <petsc/private/fortranimpl.h>
 #include <slepc/private/slepcimpl.h>
 #include <slepc/private/nepimpl.h>
+#include <petsc/private/f90impl.h>
 
 #if defined(PETSC_HAVE_FORTRAN_CAPS)
 #define nepview_                          NEPVIEW
@@ -45,6 +46,17 @@
 #define nepsetconvergencetestfunction_    NEPSETCONVERGENCETESTFUNCTION
 #define nepsetstoppingtestfunction_       NEPSETSTOPPINGTESTFUNCTION
 #define nepseteigenvaluecomparison_       NEPSETEIGENVALUECOMPARISON
+#define nepsetfunction_                   NEPSETFUNCTION
+#define nepgetfunction_                   NEPGETFUNCTION
+#define nepsetjacobian_                   NEPSETJACOBIAN
+#define nepgetjacobian_                   NEPGETJACOBIAN
+#define nepgetdimensions000_              NEPGETDIMENSIONS000
+#define nepgetdimensions100_              NEPGETDIMENSIONS100
+#define nepgetdimensions010_              NEPGETDIMENSIONS010
+#define nepgetdimensions001_              NEPGETDIMENSIONS001
+#define nepgetdimensions110_              NEPGETDIMENSIONS110
+#define nepgetdimensions011_              NEPGETDIMENSIONS011
+#define nepgetdimensions101_              NEPGETDIMENSIONS101
 #define nepgeteigenpair00_                NEPGETEIGENPAIR00
 #define nepgeteigenpair10_                NEPGETEIGENPAIR10
 #define nepgeteigenpair01_                NEPGETEIGENPAIR01
@@ -52,6 +64,14 @@
 #define nepgettolerances00_               NEPGETTOLERANCES00
 #define nepgettolerances10_               NEPGETTOLERANCES10
 #define nepgettolerances01_               NEPGETTOLERANCES01
+#define nepgetrefine000_                  NEPGETREFINE000
+#define nepgetrefine100_                  NEPGETREFINE100
+#define nepgetrefine010_                  NEPGETREFINE010
+#define nepgetrefine001_                  NEPGETREFINE001
+#define nepgetrefine110_                  NEPGETREFINE110
+#define nepgetrefine011_                  NEPGETREFINE011
+#define nepgetrefine101_                  NEPGETREFINE101
+#define nepgetrefine111_                  NEPGETREFINE111
 #elif !defined(PETSC_HAVE_FORTRAN_UNDERSCORE)
 #define nepview_                          nepview
 #define neperrorview_                     neperrorview
@@ -74,6 +94,17 @@
 #define nepsetconvergencetestfunction_    nepsetconvergencetestfunction
 #define nepsetstoppingtestfunction_       nepsetstoppingtestfunction
 #define nepseteigenvaluecomparison_       nepseteigenvaluecomparison
+#define nepsetfunction_                   nepsetfunction
+#define nepgetfunction_                   nepgetfunction
+#define nepsetjacobian_                   nepsetjacobian
+#define nepgetjacobian_                   nepgetjacobian
+#define nepgetdimensions000_              nepgetdimensions000
+#define nepgetdimensions100_              nepgetdimensions100
+#define nepgetdimensions010_              nepgetdimensions010
+#define nepgetdimensions001_              nepgetdimensions001
+#define nepgetdimensions110_              nepgetdimensions110
+#define nepgetdimensions011_              nepgetdimensions011
+#define nepgetdimensions101_              nepgetdimensions101
 #define nepgeteigenpair00_                nepgeteigenpair00
 #define nepgeteigenpair10_                nepgeteigenpair10
 #define nepgeteigenpair01_                nepgeteigenpair01
@@ -81,6 +112,14 @@
 #define nepgettolerances00_               nepgettolerances00
 #define nepgettolerances10_               nepgettolerances10
 #define nepgettolerances01_               nepgettolerances01
+#define nepgetrefine000_                  nepgetrefine000
+#define nepgetrefine100_                  nepgetrefine100
+#define nepgetrefine010_                  nepgetrefine010
+#define nepgetrefine001_                  nepgetrefine001
+#define nepgetrefine110_                  nepgetrefine110
+#define nepgetrefine011_                  nepgetrefine011
+#define nepgetrefine101_                  nepgetrefine101
+#define nepgetrefine111_                  nepgetrefine111
 #endif
 
 /*
@@ -120,6 +159,12 @@ static struct {
   PetscFortranCallbackId stopping;
   PetscFortranCallbackId stopdestroy;
   PetscFortranCallbackId comparison;
+  PetscFortranCallbackId function;
+  PetscFortranCallbackId jacobian;
+#if defined(PETSC_HAVE_F90_2PTR_ARG)
+  PetscFortranCallbackId function_pgiptr;
+  PetscFortranCallbackId jacobian_pgiptr;
+#endif
 } _cb;
 
 /* These are not extern C because they are passed into non-extern C user level functions */
@@ -160,6 +205,24 @@ static PetscErrorCode oureigenvaluecomparison(PetscScalar ar,PetscScalar ai,Pets
 {
   NEP eps = (NEP)ctx;
   PetscObjectUseFortranCallback(eps,_cb.comparison,(PetscScalar*,PetscScalar*,PetscScalar*,PetscScalar*,PetscInt*,void*,PetscErrorCode*),(&ar,&ai,&br,&bi,r,_ctx,&ierr));
+}
+
+static PetscErrorCode ournepfunction(NEP nep,PetscScalar lambda,Mat T,Mat P,void *ctx)
+{
+#if defined(PETSC_HAVE_F90_2PTR_ARG)
+  void* ptr;
+  PetscObjectGetFortranCallback((PetscObject)nep,PETSC_FORTRAN_CALLBACK_CLASS,_cb.function_pgiptr,NULL,&ptr);
+#endif
+  PetscObjectUseFortranCallback(nep,_cb.function,(NEP*,PetscScalar*,Mat*,Mat*,void*,PetscErrorCode* PETSC_F90_2PTR_PROTO_NOVAR),(&nep,&lambda,&T,&P,_ctx,&ierr PETSC_F90_2PTR_PARAM(ptr)));
+}
+
+static PetscErrorCode ournepjacobian(NEP nep,PetscScalar lambda,Mat J,void *ctx)
+{
+#if defined(PETSC_HAVE_F90_2PTR_ARG)
+  void* ptr;
+  PetscObjectGetFortranCallback((PetscObject)nep,PETSC_FORTRAN_CALLBACK_CLASS,_cb.jacobian_pgiptr,NULL,&ptr);
+#endif
+  PetscObjectUseFortranCallback(nep,_cb.jacobian,(NEP*,PetscScalar*,Mat*,void*,PetscErrorCode* PETSC_F90_2PTR_PROTO_NOVAR),(&nep,&lambda,&J,_ctx,&ierr PETSC_F90_2PTR_PARAM(ptr)));
 }
 
 PETSC_EXTERN void PETSC_STDCALL nepview_(NEP *nep,PetscViewer *viewer,PetscErrorCode *ierr)
@@ -313,6 +376,81 @@ PETSC_EXTERN void PETSC_STDCALL nepseteigenvaluecomparison_(NEP *nep,void (PETSC
   *ierr = NEPSetEigenvalueComparison(*nep,oureigenvaluecomparison,*nep);
 }
 
+PETSC_EXTERN void PETSC_STDCALL nepsetfunction_(NEP *nep,Mat *A,Mat *B,void (PETSC_STDCALL *func)(NEP*,PetscScalar*,Mat*,Mat*,void*,PetscErrorCode*),void *ctx,PetscErrorCode *ierr PETSC_F90_2PTR_PROTO(ptr))
+{
+  *ierr = PetscObjectSetFortranCallback((PetscObject)*nep,PETSC_FORTRAN_CALLBACK_CLASS,&_cb.function,(PetscVoidFunction)func,ctx);if (*ierr) return;
+#if defined(PETSC_HAVE_F90_2PTR_ARG)
+  *ierr = PetscObjectSetFortranCallback((PetscObject)*nep,PETSC_FORTRAN_CALLBACK_CLASS,&_cb.function_pgiptr,NULL,ptr);if (*ierr) return;
+#endif
+  *ierr = NEPSetFunction(*nep,*A,*B,ournepfunction,NULL);
+}
+
+/* func is currently ignored from Fortran */
+PETSC_EXTERN void PETSC_STDCALL nepgetfunction_(NEP *nep,Mat *A,Mat *B,void *func,void **ctx,PetscErrorCode *ierr)
+{
+  CHKFORTRANNULLINTEGER(ctx);
+  CHKFORTRANNULLOBJECT(A);
+  CHKFORTRANNULLOBJECT(B);
+  *ierr = NEPGetFunction(*nep,A,B,NULL,NULL); if (*ierr) return;
+  *ierr = PetscObjectGetFortranCallback((PetscObject)*nep,PETSC_FORTRAN_CALLBACK_CLASS,_cb.function,NULL,ctx);
+}
+
+PETSC_EXTERN void PETSC_STDCALL nepsetjacobian_(NEP *nep,Mat *J,void (PETSC_STDCALL *func)(NEP*,PetscScalar*,Mat*,void*,PetscErrorCode*),void *ctx,PetscErrorCode *ierr PETSC_F90_2PTR_PROTO(ptr))
+{
+  *ierr = PetscObjectSetFortranCallback((PetscObject)*nep,PETSC_FORTRAN_CALLBACK_CLASS,&_cb.jacobian,(PetscVoidFunction)func,ctx);if (*ierr) return;
+#if defined(PETSC_HAVE_F90_2PTR_ARG)
+  *ierr = PetscObjectSetFortranCallback((PetscObject)*nep,PETSC_FORTRAN_CALLBACK_CLASS,&_cb.jacobian_pgiptr,NULL,ptr);if (*ierr) return;
+#endif
+  *ierr = NEPSetJacobian(*nep,*J,ournepjacobian,NULL);
+}
+
+/* func is currently ignored from Fortran */
+PETSC_EXTERN void PETSC_STDCALL nepgetjacobian_(NEP *nep,Mat *J,void *func,void **ctx,PetscErrorCode *ierr)
+{
+  CHKFORTRANNULLINTEGER(ctx);
+  CHKFORTRANNULLOBJECT(J);
+  *ierr = NEPGetJacobian(*nep,J,NULL,NULL); if (*ierr) return;
+  *ierr = PetscObjectGetFortranCallback((PetscObject)*nep,PETSC_FORTRAN_CALLBACK_CLASS,_cb.jacobian,NULL,ctx);
+}
+
+PETSC_EXTERN void PETSC_STDCALL nepgetdimensions_(NEP *nep,PetscInt *nev,PetscInt *ncv,PetscInt *mpd,int *ierr)
+{
+  CHKFORTRANNULLINTEGER(nev);
+  CHKFORTRANNULLINTEGER(ncv);
+  CHKFORTRANNULLINTEGER(mpd);
+  *ierr = NEPGetDimensions(*nep,nev,ncv,mpd);
+}
+
+PETSC_EXTERN void PETSC_STDCALL nepgetdimensions000_(NEP *nep,PetscInt *nev,PetscInt *ncv,PetscInt *mpd,int *ierr)
+{
+  nepgetdimensions_(nep,nev,ncv,mpd,ierr);
+}
+
+PETSC_EXTERN void PETSC_STDCALL nepgetdimensions100_(NEP *nep,PetscInt *nev,PetscInt *ncv,PetscInt *mpd,int *ierr)
+{
+  nepgetdimensions_(nep,nev,ncv,mpd,ierr);
+}
+
+PETSC_EXTERN void PETSC_STDCALL nepgetdimensions010_(NEP *nep,PetscInt *nev,PetscInt *ncv,PetscInt *mpd,int *ierr)
+{
+  nepgetdimensions_(nep,nev,ncv,mpd,ierr);
+}
+
+PETSC_EXTERN void PETSC_STDCALL nepgetdimensions001_(NEP *nep,PetscInt *nev,PetscInt *ncv,PetscInt *mpd,int *ierr)
+{
+  nepgetdimensions_(nep,nev,ncv,mpd,ierr);
+}
+
+PETSC_EXTERN void PETSC_STDCALL nepgetdimensions110_(NEP *nep,PetscInt *nev,PetscInt *ncv,PetscInt *mpd,int *ierr)
+{
+  nepgetdimensions_(nep,nev,ncv,mpd,ierr);
+}
+
+PETSC_EXTERN void PETSC_STDCALL nepgetdimensions011_(NEP *nep,PetscInt *nev,PetscInt *ncv,PetscInt *mpd,int *ierr)
+{
+  nepgetdimensions_(nep,nev,ncv,mpd,ierr);
+}
+
 PETSC_EXTERN void PETSC_STDCALL nepgeteigenpair_(NEP *nep,PetscInt *i,PetscScalar *eigr,PetscScalar *eigi,Vec *Vr,Vec *Vi,int *ierr)
 {
   CHKFORTRANNULLSCALAR(eigr);
@@ -362,5 +500,53 @@ PETSC_EXTERN void PETSC_STDCALL nepgettolerances10_(NEP *nep,PetscReal *tol,Pets
 PETSC_EXTERN void PETSC_STDCALL nepgettolerances01_(NEP *nep,PetscReal *tol,PetscInt *maxits,int *ierr)
 {
   nepgettolerances_(nep,tol,maxits,ierr);
+}
+
+PETSC_EXTERN void PETSC_STDCALL nepgetrefine_(NEP *nep,NEPRefine *refine,PetscInt *npart,PetscReal *tol,PetscInt *its,NEPRefineScheme *scheme,int *ierr)
+{
+  CHKFORTRANNULLINTEGER(npart);
+  CHKFORTRANNULLREAL(tol);
+  CHKFORTRANNULLINTEGER(its);
+  *ierr = NEPGetRefine(*nep,refine,npart,tol,its,scheme);
+}
+
+PETSC_EXTERN void PETSC_STDCALL nepgetrefine000_(NEP *nep,NEPRefine *refine,PetscInt *npart,PetscReal *tol,PetscInt *its,NEPRefineScheme *scheme,int *ierr)
+{
+  nepgetrefine_(nep,refine,npart,tol,its,scheme,ierr);
+}
+
+PETSC_EXTERN void PETSC_STDCALL nepgetrefine100_(NEP *nep,NEPRefine *refine,PetscInt *npart,PetscReal *tol,PetscInt *its,NEPRefineScheme *scheme,int *ierr)
+{
+  nepgetrefine_(nep,refine,npart,tol,its,scheme,ierr);
+}
+
+PETSC_EXTERN void PETSC_STDCALL nepgetrefine010_(NEP *nep,NEPRefine *refine,PetscInt *npart,PetscReal *tol,PetscInt *its,NEPRefineScheme *scheme,int *ierr)
+{
+  nepgetrefine_(nep,refine,npart,tol,its,scheme,ierr);
+}
+
+PETSC_EXTERN void PETSC_STDCALL nepgetrefine001_(NEP *nep,NEPRefine *refine,PetscInt *npart,PetscReal *tol,PetscInt *its,NEPRefineScheme *scheme,int *ierr)
+{
+  nepgetrefine_(nep,refine,npart,tol,its,scheme,ierr);
+}
+
+PETSC_EXTERN void PETSC_STDCALL nepgetrefine110_(NEP *nep,NEPRefine *refine,PetscInt *npart,PetscReal *tol,PetscInt *its,NEPRefineScheme *scheme,int *ierr)
+{
+  nepgetrefine_(nep,refine,npart,tol,its,scheme,ierr);
+}
+
+PETSC_EXTERN void PETSC_STDCALL nepgetrefine011_(NEP *nep,NEPRefine *refine,PetscInt *npart,PetscReal *tol,PetscInt *its,NEPRefineScheme *scheme,int *ierr)
+{
+  nepgetrefine_(nep,refine,npart,tol,its,scheme,ierr);
+}
+
+PETSC_EXTERN void PETSC_STDCALL nepgetrefine101_(NEP *nep,NEPRefine *refine,PetscInt *npart,PetscReal *tol,PetscInt *its,NEPRefineScheme *scheme,int *ierr)
+{
+  nepgetrefine_(nep,refine,npart,tol,its,scheme,ierr);
+}
+
+PETSC_EXTERN void PETSC_STDCALL nepgetrefine111_(NEP *nep,NEPRefine *refine,PetscInt *npart,PetscReal *tol,PetscInt *its,NEPRefineScheme *scheme,int *ierr)
+{
+  nepgetrefine_(nep,refine,npart,tol,its,scheme,ierr);
 }
 

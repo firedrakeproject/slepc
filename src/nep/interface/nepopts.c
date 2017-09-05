@@ -341,7 +341,7 @@ PetscErrorCode NEPSetTolerances(NEP nep,PetscReal tol,PetscInt maxits)
   PetscFunctionReturn(0);
 }
 
-/*@
+/*@C
    NEPGetDimensions - Gets the number of eigenvalues to compute
    and the dimension of the subspace.
 
@@ -1033,7 +1033,7 @@ PetscErrorCode NEPSetRefine(NEP nep,NEPRefine refine,PetscInt npart,PetscReal to
   PetscFunctionReturn(0);
 }
 
-/*@
+/*@C
    NEPGetRefine - Gets the refinement strategy used by the NEP object, and the
    associated parameters.
 
