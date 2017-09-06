@@ -67,7 +67,8 @@
       type(User)     ctx
       NEPType        tname
       PetscInt       n, i, k, nev, its, maxit, nconv, three, one
-      PetscReal      tol, norm, done
+      PetscReal      tol, norm
+      PetscScalar    alpha
       PetscMPIInt    rank
       PetscBool      flg
       PetscErrorCode ierr
@@ -96,7 +97,6 @@
 
       three = 3
       one = 1
-      done = 1.0
 
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !     Create matrix data structure to hold the Function and the Jacobian
@@ -142,7 +142,8 @@
 
 !     ** Evaluate initial guess
       call MatCreateVecs(F,x,PETSC_NULL_VEC,ierr);CHKERRA(ierr)
-      call VecSet(x,done,ierr);CHKERRA(ierr)
+      alpha = 1.0
+      call VecSet(x,alpha,ierr);CHKERRA(ierr)
       k = 1
       call NEPSetInitialSpace(nep,k,x,ierr);CHKERRA(ierr)
 
