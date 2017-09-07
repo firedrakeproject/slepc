@@ -28,15 +28,15 @@ EXAMPLESC  = ex20.c ex21.c ex22.c ex27.c
 EXAMPLESF  = ex20f90.F90 ex22f90.F90
 MANSEC     = NEP
 
-TESTEXAMPLES_C           = ex20.PETSc runex20_1 ex20.rm \
-                           ex27.PETSc runex27_1 runex27_2 runex27_4 ex27.rm
-TESTEXAMPLES_C_NOTSINGLE = ex21.PETSc runex21_1 ex21.rm \
-                           ex22.PETSc runex22_1 runex22_2 ex22.rm \
-                           ex27.PETSc runex27_3 ex27.rm
-TESTEXAMPLES_C_COMPLEX   = ex22.PETSc runex22_1_ciss ex22.rm
-TESTEXAMPLES_VECCUDA     = ex27.PETSc runex27_5_cuda runex27_6_cuda ex27.rm
-TESTEXAMPLES_F90         = ex20f90.PETSc runex20f90_1 ex20f90.rm \
-                           ex22f90.PETSc runex22f90_1 ex22f90.rm
+TESTEXAMPLES_C             = ex27.PETSc runex27_1 runex27_2 runex27_4 ex27.rm
+TESTEXAMPLES_C_NOTSINGLE   = ex20.PETSc runex20_1 ex20.rm \
+                             ex21.PETSc runex21_1 ex21.rm \
+                             ex22.PETSc runex22_1 runex22_2 ex22.rm \
+                             ex27.PETSc runex27_3 ex27.rm
+TESTEXAMPLES_C_COMPLEX     = ex22.PETSc runex22_1_ciss ex22.rm
+TESTEXAMPLES_VECCUDA       = ex27.PETSc runex27_5_cuda runex27_6_cuda ex27.rm
+TESTEXAMPLES_F90_NOTSINGLE = ex20f90.PETSc runex20f90_1 ex20f90.rm \
+                             ex22f90.PETSc runex22f90_1 ex22f90.rm
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common
 
