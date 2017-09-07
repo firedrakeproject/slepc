@@ -73,7 +73,7 @@ runex20_1:
 
 runex20f90_1:
 	-@${SETTEST}; \
-	${MPIEXEC} -n 1 ./ex20f90 | ${SED} -e "s/[0-9]\.[0-9]*E-[0-9]*/removed/g" -e "s/\( Number of NEP iterations =\) [0-9]*/\1/" > $${test}.tmp 2>&1; \
+	${MPIEXEC} -n 1 ./ex20f90 | ${SED} -e "s/[0-9]\.[0-9]*E-[0-9]*/removed/g" -e "s/\( Number of NEP iterations =\) [ 0-9]*/\1/" > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
 runex21_1: runex21_1_rii runex21_1_slp
