@@ -323,7 +323,7 @@ for pkg in checkpackages:
 testruns = set(petsc.test_runs.split())
 supported_tests = set(['C','C_Complex','C_NoComplex','C_NotSingle','C_NoComplex_NotSingle','VECCUDA','VECCUDA_Complex','VECCUDA_NoComplex'])
 if petsc.fortran:
-  supported_tests = supported_tests.union(set(['F90','Fortran','Fortran_Complex','F90_NoComplex','Fortran_NoComplex','Fortran_NotSingle']))
+  supported_tests = supported_tests.union(set(['F90','Fortran','F90_Complex','Fortran_Complex','F90_NoComplex','Fortran_NoComplex','F90_NotSingle','Fortran_NotSingle','Fortran_NoComplex_NotSingle']))
 testruns = testruns.intersection(supported_tests)
 if not petsc.mpiuni:
   if petsc.precision == 'double':
