@@ -115,7 +115,7 @@ int main(int argc,char **argv)
   for (i=Istart;i<Iend;i++) {
     xi = (i+1)*h;
     b = -4.1+xi*(1.0-PetscExpReal(xi-PETSC_PI));
-    ierr = MatSetValues(B,1,&i,1,&i,&b,INSERT_VALUES);CHKERRQ(ierr);
+    ierr = MatSetValue(B,i,i,b,INSERT_VALUES);CHKERRQ(ierr);
   }
   ierr = MatAssemblyBegin(B,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
   ierr = MatAssemblyEnd(B,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);

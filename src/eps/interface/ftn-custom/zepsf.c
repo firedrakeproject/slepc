@@ -380,7 +380,7 @@ PETSC_EXTERN void PETSC_STDCALL epsgetdimensions_(EPS *eps,PetscInt *nev,PetscIn
 {
   CHKFORTRANNULLINTEGER(nev);
   CHKFORTRANNULLINTEGER(ncv);
-  CHKFORTRANNULLINTEGER(mpd);  
+  CHKFORTRANNULLINTEGER(mpd);
   *ierr = EPSGetDimensions(*eps,nev,ncv,mpd);
 }
 
@@ -422,7 +422,7 @@ PETSC_EXTERN void PETSC_STDCALL epsgetdimensions101_(EPS *eps,PetscInt *nev,Pets
 PETSC_EXTERN void PETSC_STDCALL epssetoperators_(EPS *eps,Mat *A,Mat *B,int *ierr)
 {
   CHKFORTRANNULLOBJECTDEREFERENCE(A);
-  CHKFORTRANNULLOBJECTDEREFERENCE(B);  
+  CHKFORTRANNULLOBJECTDEREFERENCE(B);
   *ierr = EPSSetOperators(*eps,*A,*B);
 }
 
@@ -510,7 +510,7 @@ PETSC_EXTERN void PETSC_STDCALL epsgetbalance_(EPS *eps,EPSBalance *bal,PetscInt
 {
   CHKFORTRANNULLINTEGER(bal);
   CHKFORTRANNULLINTEGER(its);
-  CHKFORTRANNULLREAL(cutoff);  
+  CHKFORTRANNULLREAL(cutoff);
   *ierr = EPSGetBalance(*eps,bal,its,cutoff);
 }
 

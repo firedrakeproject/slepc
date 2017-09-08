@@ -1019,7 +1019,7 @@ PetscErrorCode PEPGetStoppingTest(PEP pep,PEPStop *stop)
   PetscFunctionReturn(0);
 }
 
-/*@
+/*@C
    PEPSetScale - Specifies the scaling strategy to be used.
 
    Logically Collective on PEP
@@ -1108,7 +1108,7 @@ PetscErrorCode PEPSetScale(PEP pep,PEPScale scale,PetscReal alpha,Vec Dl,Vec Dr,
   PetscFunctionReturn(0);
 }
 
-/*@
+/*@C
    PEPGetScale - Gets the scaling strategy used by the PEP object, and the
    associated parameters.
 
@@ -1287,7 +1287,7 @@ PetscErrorCode PEPSetRefine(PEP pep,PEPRefine refine,PetscInt npart,PetscReal to
   PetscFunctionReturn(0);
 }
 
-/*@
+/*@C
    PEPGetRefine - Gets the refinement strategy used by the PEP object, and the
    associated parameters.
 
