@@ -126,12 +126,11 @@ PetscErrorCode EPSSetUp_Power(EPS eps)
       ierr = PetscContainerGetPointer(container,&ctx);CHKERRQ(ierr);
     } else ctx = NULL;
     ierr = SNESSetJacobian(power->snes,A,A,formJacobianA,ctx);CHKERRQ(ierr);
+    ierr = SNESSetFromOptions(power->snes);CHKERRQ(ierr);
     ierr = SNESGetLineSearch(power->snes,&linesearch);CHKERRQ(ierr);
-    ierr = SNESLineSearchSetType(linesearch,SNESLINESEARCHBASIC);CHKERRQ(ierr);
     if (power->update) {
       ierr = SNESLineSearchSetPostCheck(linesearch,SNESLineSearchPostheckFunction,ctx);CHKERRQ(ierr);
     }
-    ierr = SNESSetFromOptions(power->snes);CHKERRQ(ierr);
     ierr = SNESSetUp(power->snes);CHKERRQ(ierr);
     if (B) {
       ierr = PetscObjectQueryFunction((PetscObject)B,"formFunction",&power->formFunctionB);CHKERRQ(ierr);
@@ -238,14 +237,12 @@ static PetscErrorCode EPSPowerFormFunction_Update(SNES snes,Vec x,Vec y,void *ct
 {
   PetscErrorCode ierr;
   EPS            eps;
-  EPS_POWER      *power = NULL;
   PetscReal      bx;
   Vec            Bx;
 
   PetscFunctionBegin;
   ierr = PetscObjectQuery((PetscObject)snes,"eps",(PetscObject *)&eps);CHKERRQ(ierr);
   if (!eps) SETERRQ(PETSC_COMM_WORLD,PETSC_ERR_ARG_NULL,"No composed EPS");
-  power = (EPS_POWER*)eps->data;
   Bx = eps->work[2];
   ierr = EPSPowerUpdateFunctionB(eps,x,Bx);CHKERRQ(ierr);
   ierr = VecNorm(Bx,NORM_2,&bx);CHKERRQ(ierr);
