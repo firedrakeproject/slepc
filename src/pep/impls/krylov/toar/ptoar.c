@@ -882,18 +882,10 @@ PetscErrorCode PEPSolve_TOAR(PEP pep)
       ierr = DSSetState(pep->ds,DS_STATE_RAW);CHKERRQ(ierr);
     }
   }
+  ierr = STGetTransform(pep->st,&flg);CHKERRQ(ierr);
   if (pep->refine!=PEP_REFINE_MULTIPLE || pep->rits==0) {
-    ierr = STGetTransform(pep->st,&flg);CHKERRQ(ierr);
-    if (!flg) {
-      if (pep->ops->backtransform) {
+    if (!flg && pep->ops->backtransform) {
         ierr = (*pep->ops->backtransform)(pep);CHKERRQ(ierr);
-      }
-      /* restore original values */
-      pep->target *= pep->sfactor;
-      ierr = STScaleShift(pep->st,pep->sfactor);CHKERRQ(ierr);
-    } else {
-      ierr = STScaleShift(pep->st,sinv?1.0/pep->sfactor:pep->sfactor);CHKERRQ(ierr);
-      pep->target = (sinv)?pep->target/pep->sfactor:pep->target*pep->sfactor;
     }
     if (pep->sfactor!=1.0) {
       for (j=0;j<pep->nconv;j++) {
@@ -906,6 +898,14 @@ PetscErrorCode PEPSolve_TOAR(PEP pep)
         pep->pbc[2*pep->nmat+i] *= pep->sfactor*pep->sfactor;
       }
     }
+  }
+  /* restore original values */
+  if (!flg) {
+    pep->target *= pep->sfactor;
+    ierr = STScaleShift(pep->st,pep->sfactor);CHKERRQ(ierr);
+  } else {
+    ierr = STScaleShift(pep->st,sinv?1.0/pep->sfactor:pep->sfactor);CHKERRQ(ierr);
+    pep->target = (sinv)?pep->target/pep->sfactor:pep->target*pep->sfactor;
   }
   if (pep->sfactor!=1.0) { ierr = RGPopScale(pep->rg);CHKERRQ(ierr); }
 
