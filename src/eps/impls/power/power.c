@@ -48,6 +48,7 @@
 #include <petscsnes.h>
 
 static PetscErrorCode EPSPowerFormFunction_Update(SNES,Vec,Vec,void*);
+static PetscErrorCode SNESLineSearchPostheckFunction(SNESLineSearch linesearch,Vec x,Vec y,Vec w,PetscBool *changed_y,PetscBool *changed_w,void *ctx);
 
 typedef struct {
   EPSPowerShiftType shift_type;
@@ -72,6 +73,7 @@ PetscErrorCode EPSSetUp_Power(EPS eps)
   PetscErrorCode (*formFunctionA)(SNES,Vec,Vec,void*);
   PetscErrorCode (*formJacobianA)(SNES,Vec,Mat,Mat,void*);
   void           *ctx;
+  SNESLineSearch linesearch;
 
   PetscFunctionBegin;
   if (eps->ncv) {
@@ -125,6 +127,10 @@ PetscErrorCode EPSSetUp_Power(EPS eps)
     } else ctx = NULL;
     ierr = SNESSetJacobian(power->snes,A,A,formJacobianA,ctx);CHKERRQ(ierr);
     ierr = SNESSetFromOptions(power->snes);CHKERRQ(ierr);
+    ierr = SNESGetLineSearch(power->snes,&linesearch);CHKERRQ(ierr);
+    if (power->update) {
+      ierr = SNESLineSearchSetPostCheck(linesearch,SNESLineSearchPostheckFunction,ctx);CHKERRQ(ierr);
+    }
     ierr = SNESSetUp(power->snes);CHKERRQ(ierr);
     if (B) {
       ierr = PetscObjectQueryFunction((PetscObject)B,"formFunction",&power->formFunctionB);CHKERRQ(ierr);
@@ -141,11 +147,12 @@ PetscErrorCode EPSSetUp_Power(EPS eps)
   PetscFunctionReturn(0);
 }
 
+
 /*
    Normalize a vector x with respect to a given norm as well as the
    sign of the first entry.
 */
-static PetscErrorCode Normalize(Vec x,PetscReal norm)
+static PetscErrorCode Normalize(Vec x,PetscReal norm,PetscScalar *sign)
 {
   PetscErrorCode    ierr;
   PetscScalar       alpha = 1.0;
@@ -162,6 +169,7 @@ static PetscErrorCode Normalize(Vec x,PetscReal norm)
     ierr = VecRestoreArrayRead(x,&xx);CHKERRQ(ierr);
   }
   ierr = MPI_Bcast(&alpha,1,MPIU_SCALAR,0,PetscObjectComm((PetscObject)x));CHKERRQ(ierr);
+  if (sign) *sign = alpha;
   alpha *= norm;
   ierr = VecScale(x,1.0/alpha);CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -174,6 +182,7 @@ static PetscErrorCode EPSPowerUpdateFunctionB(EPS eps,Vec x,Vec Bx)
   Mat            B;
 
   PetscFunctionBegin;
+  ierr = STResetMatrixState(eps->st);CHKERRQ(ierr);
   ierr = EPSGetOperators(eps,NULL,&B);CHKERRQ(ierr);
   if (B) {
     if (power->formFunctionB) {
@@ -187,23 +196,58 @@ static PetscErrorCode EPSPowerUpdateFunctionB(EPS eps,Vec x,Vec Bx)
   PetscFunctionReturn(0);
 }
 
+static PetscErrorCode EPSPowerUpdateFunctionA(EPS eps,Vec x,Vec Ax)
+{
+  PetscErrorCode ierr;
+  EPS_POWER      *power = (EPS_POWER*)eps->data;
+  Mat            A;
+
+  PetscFunctionBegin;
+  ierr = STResetMatrixState(eps->st);CHKERRQ(ierr);
+  ierr = EPSGetOperators(eps,&A,NULL);CHKERRQ(ierr);
+  if (A) {
+    if (power->formFunctionA) {
+      ierr = (*power->formFunctionA)(power->snes,x,Ax,power->formFunctionActx);CHKERRQ(ierr);
+    } else {
+      ierr = MatMult(A,x,Ax);CHKERRQ(ierr);
+    }
+  } else {
+    SETERRQ(PETSC_COMM_WORLD,PETSC_ERR_ARG_NULL,"Matrix A is required for an eigenvalue problem \n");CHKERRQ(ierr);
+  }
+  PetscFunctionReturn(0);
+}
+
+static PetscErrorCode SNESLineSearchPostheckFunction(SNESLineSearch linesearch,Vec x,Vec y,Vec w,PetscBool *changed_y,PetscBool *changed_w,void *ctx)
+{
+  PetscErrorCode ierr;
+  SNES           snes;
+  EPS            eps;
+  Vec            oldx;
+
+  PetscFunctionBegin;
+  ierr = SNESLineSearchGetSNES(linesearch,&snes);CHKERRQ(ierr);
+  ierr = PetscObjectQuery((PetscObject)snes,"eps",(PetscObject *)&eps);CHKERRQ(ierr);
+  if (!eps) SETERRQ(PETSC_COMM_WORLD,PETSC_ERR_ARG_NULL,"No composed EPS");
+  oldx = eps->work[3];
+  ierr = VecCopy(x,oldx);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
 static PetscErrorCode EPSPowerFormFunction_Update(SNES snes,Vec x,Vec y,void *ctx)
 {
   PetscErrorCode ierr;
   EPS            eps;
-  EPS_POWER      *power = NULL;
   PetscReal      bx;
   Vec            Bx;
 
   PetscFunctionBegin;
   ierr = PetscObjectQuery((PetscObject)snes,"eps",(PetscObject *)&eps);CHKERRQ(ierr);
   if (!eps) SETERRQ(PETSC_COMM_WORLD,PETSC_ERR_ARG_NULL,"No composed EPS");
-  power = (EPS_POWER*)eps->data;
   Bx = eps->work[2];
   ierr = EPSPowerUpdateFunctionB(eps,x,Bx);CHKERRQ(ierr);
   ierr = VecNorm(Bx,NORM_2,&bx);CHKERRQ(ierr);
-  ierr = Normalize(Bx,bx);CHKERRQ(ierr);
-  ierr = (*power->formFunctionA)(power->snes,x,y,power->formFunctionActx);CHKERRQ(ierr);
+  ierr = Normalize(Bx,bx,NULL);CHKERRQ(ierr);
+  ierr = EPSPowerUpdateFunctionA(eps,x,y);CHKERRQ(ierr);
   ierr = VecAXPY(y,-1.0,Bx);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -289,7 +333,7 @@ PetscErrorCode EPSSolve_Power(EPS eps)
   Mat                A;
   KSP                ksp;
   PetscReal          relerr,norm,norm1,rt1,rt2,cs1;
-  PetscScalar        theta,rho,delta,sigma,alpha2,beta1,sn1,*T;
+  PetscScalar        theta,rho,delta,sigma,alpha2,beta1,sn1,*T,sign;
   PetscBool          breakdown;
   KSPConvergedReason reason;
 
@@ -314,7 +358,7 @@ PetscErrorCode EPSSolve_Power(EPS eps)
     ierr = BVGetColumn(eps->V,0,&v);CHKERRQ(ierr);
     ierr = EPSPowerUpdateFunctionB(eps,v,Bx);CHKERRQ(ierr);
     ierr = VecNorm(Bx,NORM_2,&norm);CHKERRQ(ierr);
-    ierr = Normalize(Bx,norm);CHKERRQ(ierr);
+    ierr = Normalize(Bx,norm,NULL);CHKERRQ(ierr);
     ierr = BVRestoreColumn(eps->V,0,&v);CHKERRQ(ierr);
   }
 
@@ -330,6 +374,7 @@ PetscErrorCode EPSSolve_Power(EPS eps)
     if (power->nonlinear) {
       ierr = VecCopy(v,eps->work[3]);CHKERRQ(ierr);
       ierr = EPSPowerApply_SNES(eps,v,y);CHKERRQ(ierr);
+      ierr = VecCopy(eps->work[3],v);CHKERRQ(ierr);
     } else {
       ierr = STApply(eps->st,v,y);CHKERRQ(ierr);
     }
@@ -339,6 +384,7 @@ PetscErrorCode EPSSolve_Power(EPS eps)
     if (power->nonlinear) {
       ierr = EPSPowerUpdateFunctionB(eps,y,Bx);CHKERRQ(ierr);
       ierr = VecNorm(Bx,NORM_2,&norm);CHKERRQ(ierr);
+      ierr = Normalize(Bx,norm,&sign);CHKERRQ(ierr);
     } else {
       ierr = DSGetArray(eps->ds,DS_MAT_A,&T);CHKERRQ(ierr);
       ierr = BVSetActiveColumns(eps->V,0,k);CHKERRQ(ierr);
@@ -353,7 +399,7 @@ PetscErrorCode EPSSolve_Power(EPS eps)
       ierr = DSRestoreArray(eps->ds,DS_MAT_A,&T);CHKERRQ(ierr);
     }
 
-    if (power->nonlinear) theta = norm;
+    if (power->nonlinear) theta = norm*sign;
 
     if (power->shift_type == EPS_POWER_SHIFT_CONSTANT) { /* direct & inverse iteration */
 
@@ -427,7 +473,7 @@ PetscErrorCode EPSSolve_Power(EPS eps)
     eps->errest[eps->nconv] = relerr;
 
     /* normalize */
-    ierr = Normalize(power->nonlinear?Bx:y,norm);CHKERRQ(ierr);
+    if (!power->nonlinear) {ierr = Normalize(y,norm,NULL);CHKERRQ(ierr);}
     ierr = BVInsertVec(eps->V,k,y);CHKERRQ(ierr);
 
     /* if relerr<tol, accept eigenpair */
@@ -447,7 +493,6 @@ PetscErrorCode EPSSolve_Power(EPS eps)
   }
 
   if (power->nonlinear) {
-    ierr = STResetMatrixState(eps->st);CHKERRQ(ierr);
     ierr = PetscObjectCompose((PetscObject)power->snes,"eps",NULL);CHKERRQ(ierr);
   } else {
     ierr = DSSetDimensions(eps->ds,eps->nconv,0,0,0);CHKERRQ(ierr);
