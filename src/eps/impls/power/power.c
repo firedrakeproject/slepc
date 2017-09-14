@@ -211,9 +211,7 @@ static PetscErrorCode EPSPowerUpdateFunctionA(EPS eps,Vec x,Vec Ax)
     } else {
       ierr = MatMult(A,x,Ax);CHKERRQ(ierr);
     }
-  } else {
-    SETERRQ(PETSC_COMM_WORLD,PETSC_ERR_ARG_NULL,"Matrix A is required for an eigenvalue problem \n");CHKERRQ(ierr);
-  }
+  } else SETERRQ(PETSC_COMM_WORLD,PETSC_ERR_ARG_NULL,"Matrix A is required for an eigenvalue problem\n");CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -473,7 +471,7 @@ PetscErrorCode EPSSolve_Power(EPS eps)
     eps->errest[eps->nconv] = relerr;
 
     /* normalize */
-    if (!power->nonlinear) {ierr = Normalize(y,norm,NULL);CHKERRQ(ierr);}
+    if (!power->nonlinear) { ierr = Normalize(y,norm,NULL);CHKERRQ(ierr); }
     ierr = BVInsertVec(eps->V,k,y);CHKERRQ(ierr);
 
     /* if relerr<tol, accept eigenpair */
