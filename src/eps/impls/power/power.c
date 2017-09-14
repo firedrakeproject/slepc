@@ -126,11 +126,6 @@ PetscErrorCode EPSSetUp_Power(EPS eps)
       ierr = PetscContainerGetPointer(container,&ctx);CHKERRQ(ierr);
     } else ctx = NULL;
     ierr = SNESSetJacobian(power->snes,A,A,formJacobianA,ctx);CHKERRQ(ierr);
-    ierr = SNESGetLineSearch(power->snes,&linesearch);CHKERRQ(ierr);
-    ierr = SNESLineSearchSetType(linesearch,SNESLINESEARCHBASIC);CHKERRQ(ierr);
-    if (power->update) {
-      ierr = SNESLineSearchSetPostCheck(linesearch,SNESLineSearchPostheckFunction,ctx);CHKERRQ(ierr);
-    }
     ierr = SNESSetFromOptions(power->snes);CHKERRQ(ierr);
     ierr = SNESGetLineSearch(power->snes,&linesearch);CHKERRQ(ierr);
     if (power->update) {
