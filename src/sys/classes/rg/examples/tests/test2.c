@@ -23,6 +23,8 @@ static char help[] = "Test the ring region.\n\n";
 
 #include <slepcrg.h>
 
+#define NPOINTS 11
+
 PetscErrorCode CheckPoint(RG rg,PetscReal re,PetscReal im)
 {
   PetscErrorCode ierr;
@@ -48,7 +50,7 @@ int main(int argc,char **argv)
   PetscInt       i;
   PetscBool      triv;
   PetscReal      re,im,radius,vscale,start_ang,end_ang,width;
-  PetscScalar    center,cr[12],ci[12];
+  PetscScalar    center,cr[NPOINTS],ci[NPOINTS];
 
   ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
   ierr = RGCreate(PETSC_COMM_WORLD,&rg);CHKERRQ(ierr);
@@ -56,7 +58,7 @@ int main(int argc,char **argv)
   ierr = RGSetType(rg,RGRING);CHKERRQ(ierr);
   ierr = RGIsTrivial(rg,&triv);CHKERRQ(ierr);
   if (!triv) SETERRQ(PETSC_COMM_WORLD,1,"Region should be trivial before setting parameters");
-  ierr = RGRingSetParameters(rg,2,PETSC_DEFAULT,0.5,PETSC_DEFAULT,0.25,0.1);CHKERRQ(ierr);
+  ierr = RGRingSetParameters(rg,2,PETSC_DEFAULT,0.5,0.25,0.75,0.1);CHKERRQ(ierr);
   ierr = RGSetFromOptions(rg);CHKERRQ(ierr);
   ierr = RGIsTrivial(rg,&triv);CHKERRQ(ierr);
   if (triv) SETERRQ(PETSC_COMM_WORLD,1,"Region should be non-trivial after setting parameters");
@@ -67,11 +69,11 @@ int main(int argc,char **argv)
   ierr = PetscPrintf(PETSC_COMM_WORLD,"%s region: \n  center=%g, radius=%g, vscale=%g\n  start angle=%g, end angle=%g, width=%g\n\n",rtype,(double)PetscRealPart(center),(double)radius,(double)vscale,(double)start_ang,(double)end_ang,(double)width);
 
   ierr = CheckPoint(rg,3.0,0.3);CHKERRQ(ierr);
-  ierr = CheckPoint(rg,2.8253,0.28253);CHKERRQ(ierr);
+  ierr = CheckPoint(rg,1.1747,0.28253);CHKERRQ(ierr);
 
   ierr = PetscPrintf(PETSC_COMM_WORLD,"\nContour points: ");
-  ierr = RGComputeContour(rg,12,cr,ci);CHKERRQ(ierr);
-  for (i=0;i<10;i++) {
+  ierr = RGComputeContour(rg,NPOINTS,cr,ci);CHKERRQ(ierr);
+  for (i=0;i<NPOINTS;i++) {
 #if defined(PETSC_USE_COMPLEX)
     re = PetscRealPart(cr[i]);
     im = PetscImaginaryPart(cr[i]);

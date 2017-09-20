@@ -67,6 +67,9 @@ static PetscErrorCode RGIntervalSetEndpoints_Interval(RG rg,PetscReal a,PetscRea
    the real axis (c=d=0), similar for the imaginary axis (a=b=0), the whole
    complex plane (a=-inf,b=inf,c=-inf,d=inf), and so on.
 
+   When PETSc is built with real scalars, the region must be symmetric with
+   respect to the real axis.
+
    Level: advanced
 
 .seealso: RGIntervalGetEndpoints()

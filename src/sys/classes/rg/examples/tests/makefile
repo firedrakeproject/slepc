@@ -51,11 +51,13 @@ test2: test2.o chkopts
 
 runtest1_1:
 	-@${SETTEST}; \
+	if [ "${PETSC_SCALAR}" = "complex" ]; then check=$${check}_complex; fi; \
 	${MPIEXEC} -n 1 ./test1 > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
 runtest1f_1:
 	-@${SETTEST}; \
+	if [ "${PETSC_SCALAR}" = "complex" ]; then check=$${check}_complex; fi; \
 	${MPIEXEC} -n 1 ./test1f > $${test}.tmp 2>&1; \
 	${TESTCODE}
 

@@ -109,13 +109,13 @@ int main(int argc,char **argv)
   vr[5] = 6.0+1.0*PETSC_i;
   vr[6] = 2.0+0.0*PETSC_i;
 #else
-  vr[0] = 0.0; vi[0] = 2.0;
-  vr[1] = 1.0; vi[1] = 4.0;
-  vr[2] = 2.0; vi[2] = 5.0;
-  vr[3] = 4.0; vi[3] = 3.0;
-  vr[4] = 5.0; vi[4] = 4.0;
-  vr[5] = 6.0; vi[5] = 1.0;
-  vr[6] = 2.0; vi[6] = 0.0;
+  vr[0] = 0.0; vi[0] = 1.0;
+  vr[1] = 0.0; vi[1] = -1.0;
+  vr[2] = 0.6; vi[2] = -0.8;
+  vr[3] = 1.0; vi[3] = -1.0;
+  vr[4] = 2.0; vi[4] = 0.0;
+  vr[5] = 1.0; vi[5] = 1.0;
+  vr[6] = 0.6; vi[6] = 0.8;
 #endif
   ierr = RGSetType(rg,RGPOLYGON);CHKERRQ(ierr);
   ierr = RGIsTrivial(rg,&triv);CHKERRQ(ierr);

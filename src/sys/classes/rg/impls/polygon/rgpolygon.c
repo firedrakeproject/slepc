@@ -30,6 +30,29 @@ typedef struct {
   PetscScalar *vr,*vi;   /* array of vertices (vi not used in complex scalars) */
 } RG_POLYGON;
 
+#if !defined(PETSC_USE_COMPLEX)
+static PetscBool CheckSymmetry(PetscInt n,PetscScalar *vr,PetscScalar *vi)
+{
+  PetscInt i,j,k;
+  /* find change of sign in imaginary part */
+  j = vi[0]!=0.0? 0: 1;
+  for (k=j+1;k<n;k++) {
+    if (vi[k]!=0.0) {
+      if (vi[k]*vi[j]<0.0) break;
+      j++;
+    }
+  }
+  if (k==n) return (j==1)? PETSC_TRUE: PETSC_FALSE;
+  /* check pairing vertices */
+  for (i=0;i<n/2;i++) {
+    if (vr[k]!=vr[j] || vi[k]!=-vi[j]) return PETSC_FALSE;
+    k = (k+1)%n;
+    j = (j-1+n)%n;
+  }
+  return PETSC_TRUE;
+}
+#endif
+
 static PetscErrorCode RGPolygonSetVertices_Polygon(RG rg,PetscInt n,PetscScalar *vr,PetscScalar *vi)
 {
   PetscErrorCode ierr;
@@ -39,6 +62,9 @@ static PetscErrorCode RGPolygonSetVertices_Polygon(RG rg,PetscInt n,PetscScalar 
   PetscFunctionBegin;
   if (n<3) SETERRQ1(PetscObjectComm((PetscObject)rg),PETSC_ERR_ARG_OUTOFRANGE,"At least 3 vertices required, you provided %s",n);
   if (n>VERTMAX) SETERRQ1(PetscObjectComm((PetscObject)rg),PETSC_ERR_ARG_OUTOFRANGE,"Too many points, maximum allowed is %d",VERTMAX);
+#if !defined(PETSC_USE_COMPLEX)
+  if (!CheckSymmetry(n,vr,vi)) SETERRQ(PetscObjectComm((PetscObject)rg),PETSC_ERR_ARG_WRONG,"In real scalars the region must be symmetric wrt real axis");
+#endif
   if (ctx->n) {
     ierr = PetscFree(ctx->vr);CHKERRQ(ierr);
 #if !defined(PETSC_USE_COMPLEX)
@@ -82,7 +108,8 @@ static PetscErrorCode RGPolygonSetVertices_Polygon(RG rg,PetscInt n,PetscScalar 
 
    When PETSc is built with real scalars, the real and imaginary parts of
    the vertices must be provided in two separate arrays (or two lists in
-   the command line).
+   the command line). In this case, the region must be symmetric with
+   respect to the real axis.
 
    Level: advanced
 

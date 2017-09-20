@@ -62,6 +62,9 @@ static PetscErrorCode RGRingSetParameters_Ring(RG rg,PetscScalar center,PetscRea
     ctx->end_ang = end_ang;
   }
   if (ctx->start_ang>ctx->end_ang) SETERRQ(PetscObjectComm((PetscObject)rg),PETSC_ERR_ARG_OUTOFRANGE,"The right-hand side angle argument must be smaller than left one");
+#if !defined(PETSC_USE_COMPLEX)
+  if (ctx->start_ang+ctx->end_ang!=1.0) SETERRQ(PetscObjectComm((PetscObject)rg),PETSC_ERR_ARG_WRONG,"In real scalars the region must be symmetric wrt real axis");
+#endif
   if (width == PETSC_DEFAULT) {
     ctx->width = 0.1;
   } else {
@@ -106,7 +109,9 @@ static PetscErrorCode RGRingSetParameters_Ring(RG rg,PetscScalar center,PetscRea
    command line with [+/-][realnumber][+/-]realnumberi with no spaces, e.g.
    -rg_ring_center 1.0+2.0i
 
-   When PETSc is built with real scalars, the center is restricted to a real value.
+   When PETSc is built with real scalars, the center is restricted to a real value,
+   and the start and end angles must be such that the region is symmetric with
+   respect to the real axis.
 
    Level: advanced
 
