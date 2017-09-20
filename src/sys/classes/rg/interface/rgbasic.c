@@ -481,6 +481,7 @@ PetscErrorCode RGComputeContour(RG rg,PetscInt n,PetscScalar cr[],PetscScalar ci
 #if !defined(PETSC_USE_COMPLEX)
   PetscValidPointer(ci,4);
 #endif
+  if (rg->complement) SETERRQ(PetscObjectComm((PetscObject)rg),PETSC_ERR_SUP,"Cannot compute contour of region with complement flag set");
   ierr = (*rg->ops->computecontour)(rg,n,cr,ci);CHKERRQ(ierr);
   for (i=0;i<n;i++) {
     cr[i] *= rg->sfactor;
