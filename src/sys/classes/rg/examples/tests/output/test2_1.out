@@ -1,11 +1,11 @@
 RG Object: 1 MPI processes
   type: ring
-  center: 2., radius: 1., vscale: 0.5, start angle: 0., end angle: 0.25, ring width: 0.015
+    center: 2., radius: 1., vscale: 0.5, start angle: 0.25, end angle: 0.75, ring width: 0.015
 ring region: 
   center=2., radius=1., vscale=0.5
-  start angle=0., end angle=0.25, width=0.015
+  start angle=0.25, end angle=0.75, width=0.015
 
 Point (3.,0.3) is outside the region
-Point (2.8253,0.28253) is inside the region
+Point (1.1747,0.28253) is inside the region
 
-Contour points: (3.01,0) (2.97,0.13) (2.87,0.252) (2.71,0.356) (2.5,0.436) (2.26,0.487) (2,0.496) (2.26,0.479) (2.5,0.43) (2.7,0.351) 
+Contour points: (2,0.504) (1.41,0.408) (1.04,0.156) (1.04,-0.156) (1.41,-0.408) (2.58,-0.401) (2,-0.496) (1.42,-0.401) (1.06,-0.153) (1.06,0.153) (1.42,0.401) 

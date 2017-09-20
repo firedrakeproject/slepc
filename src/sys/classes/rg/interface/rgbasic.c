@@ -463,7 +463,7 @@ PetscErrorCode RGCheckInside(RG rg,PetscInt n,PetscScalar *ar,PetscScalar *ai,Pe
 +  rg - the region context
 -  n  - number of points to compute
 
-   Output Parameter:
+   Output Parameters:
 +  cr - location to store real parts
 -  ci - location to store imaginary parts
 
@@ -481,10 +481,56 @@ PetscErrorCode RGComputeContour(RG rg,PetscInt n,PetscScalar cr[],PetscScalar ci
 #if !defined(PETSC_USE_COMPLEX)
   PetscValidPointer(ci,4);
 #endif
+  if (rg->complement) SETERRQ(PetscObjectComm((PetscObject)rg),PETSC_ERR_SUP,"Cannot compute contour of region with complement flag set");
   ierr = (*rg->ops->computecontour)(rg,n,cr,ci);CHKERRQ(ierr);
   for (i=0;i<n;i++) {
     cr[i] *= rg->sfactor;
     ci[i] *= rg->sfactor;
+  }
+  PetscFunctionReturn(0);
+}
+
+/*@
+   RGComputeBoundingBox - Determines the endpoints of a rectangle in the complex plane that
+   contains the region.
+
+   Not Collective
+
+   Input Parameters:
+.  rg - the region context
+
+   Output Parameters:
++  a,b - endpoints of the bounding box in the real axis
+-  c,d - endpoints of the bounding box in the imaginary axis
+
+   Notes:
+   The bounding box is defined as [a,b]x[c,d]. In regions that are not bounded (e.g. an
+   open interval) or with the complement flag set, it makes no sense to compute a bounding
+   box, so the return values are infinite.
+
+   Level: intermediate
+
+.seealso: RGSetComplement()
+@*/
+PetscErrorCode RGComputeBoundingBox(RG rg,PetscReal *a,PetscReal *b,PetscReal *c,PetscReal *d)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(rg,RG_CLASSID,1);
+  PetscValidType(rg,1);
+
+  if (rg->complement) {  /* cannot compute bounding box */
+    if (a) *a = -PETSC_MAX_REAL;
+    if (b) *b =  PETSC_MAX_REAL;
+    if (c) *c = -PETSC_MAX_REAL;
+    if (d) *d =  PETSC_MAX_REAL;
+  } else {
+    ierr = (*rg->ops->computebbox)(rg,a,b,c,d);CHKERRQ(ierr);
+    if (a && *a!=-PETSC_MAX_REAL) *a *= rg->sfactor;
+    if (b && *b!= PETSC_MAX_REAL) *b *= rg->sfactor;
+    if (c && *c!=-PETSC_MAX_REAL) *c *= rg->sfactor;
+    if (d && *d!= PETSC_MAX_REAL) *d *= rg->sfactor;
   }
   PetscFunctionReturn(0);
 }
