@@ -235,6 +235,19 @@ PetscErrorCode RGComputeContour_Ring(RG rg,PetscInt n,PetscScalar *cr,PetscScala
   PetscFunctionReturn(0);
 }
 
+PetscErrorCode RGComputeBoundingBox_Ring(RG rg,PetscReal *a,PetscReal *b,PetscReal *c,PetscReal *d)
+{
+  RG_RING *ctx = (RG_RING*)rg->data;
+
+  PetscFunctionBegin;
+  /* current implementation does not return a tight bounding box */
+  if (a) *a = PetscRealPart(ctx->center) - (ctx->radius+ctx->width/2.0);
+  if (b) *b = PetscRealPart(ctx->center) + (ctx->radius+ctx->width/2.0);
+  if (c) *c = PetscImaginaryPart(ctx->center) - (ctx->radius+ctx->width/2.0)*ctx->vscale;
+  if (d) *d = PetscImaginaryPart(ctx->center) + (ctx->radius+ctx->width/2.0)*ctx->vscale;
+  PetscFunctionReturn(0);
+}
+
 PetscErrorCode RGCheckInside_Ring(RG rg,PetscReal px,PetscReal py,PetscInt *inside)
 {
   RG_RING   *ctx = (RG_RING*)rg->data;
@@ -338,6 +351,7 @@ PETSC_EXTERN PetscErrorCode RGCreate_Ring(RG rg)
 
   rg->ops->istrivial      = RGIsTrivial_Ring;
   rg->ops->computecontour = RGComputeContour_Ring;
+  rg->ops->computebbox    = RGComputeBoundingBox_Ring;
   rg->ops->checkinside    = RGCheckInside_Ring;
   rg->ops->setfromoptions = RGSetFromOptions_Ring;
   rg->ops->view           = RGView_Ring;

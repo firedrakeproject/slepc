@@ -81,6 +81,12 @@
       endif
  110  format ('Point (',F3.1,',',F3.1,') is ',A7,' the region')
 
+      call RGComputeBoundingBox(rg,a,b,c,d,ierr)
+      if (rank .eq. 0) then
+        write(*,115) a, b, c, d
+      endif
+ 115  format ('Bounding box: [',F3.1,',',F3.1,']x[',F3.1,',',F3.1,']')
+
       if (rank .eq. 0) then
         write (*,*) 'Contour points:'
       endif

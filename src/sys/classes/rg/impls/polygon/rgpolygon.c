@@ -277,6 +277,32 @@ PetscErrorCode RGComputeContour_Polygon(RG rg,PetscInt n,PetscScalar *cr,PetscSc
   PetscFunctionReturn(0);
 }
 
+PetscErrorCode RGComputeBoundingBox_Polygon(RG rg,PetscReal *a,PetscReal *b,PetscReal *c,PetscReal *d)
+{
+  RG_POLYGON *ctx = (RG_POLYGON*)rg->data;
+  PetscInt   i;
+
+  PetscFunctionBegin;
+  *a =  PETSC_MAX_REAL;
+  *b = -PETSC_MAX_REAL;
+  *c =  PETSC_MAX_REAL;
+  *d = -PETSC_MAX_REAL;
+  for (i=0;i<ctx->n;i++) {
+#if defined(PETSC_USE_COMPLEX)
+    if (a) *a = PetscMin(*a,PetscRealPart(ctx->vr[i]));
+    if (b) *b = PetscMax(*b,PetscRealPart(ctx->vr[i]));
+    if (c) *c = PetscMin(*c,PetscImaginaryPart(ctx->vr[i]));
+    if (d) *d = PetscMax(*d,PetscImaginaryPart(ctx->vr[i]));
+#else
+    if (a) *a = PetscMin(*a,ctx->vr[i]);
+    if (b) *b = PetscMax(*b,ctx->vr[i]);
+    if (c) *c = PetscMin(*c,ctx->vi[i]);
+    if (d) *d = PetscMax(*d,ctx->vi[i]);
+#endif
+  }
+  PetscFunctionReturn(0);
+}
+
 PetscErrorCode RGCheckInside_Polygon(RG rg,PetscReal px,PetscReal py,PetscInt *inout)
 {
   RG_POLYGON *ctx = (RG_POLYGON*)rg->data;
@@ -375,6 +401,7 @@ PETSC_EXTERN PetscErrorCode RGCreate_Polygon(RG rg)
 
   rg->ops->istrivial      = RGIsTrivial_Polygon;
   rg->ops->computecontour = RGComputeContour_Polygon;
+  rg->ops->computebbox    = RGComputeBoundingBox_Polygon;
   rg->ops->checkinside    = RGCheckInside_Polygon;
   rg->ops->setfromoptions = RGSetFromOptions_Polygon;
   rg->ops->view           = RGView_Polygon;

@@ -29,7 +29,7 @@ int main(int argc,char **argv)
   RG             rg;
   PetscInt       i,inside,nv;
   PetscBool      triv;
-  PetscReal      re,im;
+  PetscReal      re,im,a,b,c,d;
   PetscScalar    ar,ai,cr[10],ci[10],vr[7],vi[7],*pr,*pi;
 
   ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
@@ -52,6 +52,9 @@ int main(int argc,char **argv)
 #endif
   ierr = RGCheckInside(rg,1,&ar,&ai,&inside);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD,"Point (%g,%g) is %s the region\n",(double)re,(double)im,(inside>=0)?"inside":"outside");
+
+  ierr = RGComputeBoundingBox(rg,&a,&b,&c,&d);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"The bounding box is [%g,%g]x[%g,%g]\n",(double)a,(double)b,(double)c,(double)d);
 
   ierr = PetscPrintf(PETSC_COMM_WORLD,"Contour points: ");
   ierr = RGComputeContour(rg,10,cr,ci);CHKERRQ(ierr);
@@ -84,6 +87,9 @@ int main(int argc,char **argv)
 #endif
   ierr = RGCheckInside(rg,1,&ar,&ai,&inside);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD,"Point (%g,%g) is %s the region\n",(double)re,(double)im,(inside>=0)?"inside":"outside");
+
+  ierr = RGComputeBoundingBox(rg,&a,&b,&c,&d);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"The bounding box is [%g,%g]x[%g,%g]\n",(double)a,(double)b,(double)c,(double)d);
 
   ierr = PetscPrintf(PETSC_COMM_WORLD,"Contour points: ");
   ierr = RGComputeContour(rg,10,cr,ci);CHKERRQ(ierr);
@@ -133,6 +139,9 @@ int main(int argc,char **argv)
 #endif
   ierr = RGCheckInside(rg,1,&ar,&ai,&inside);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD,"Point (%g,%g) is %s the region\n",(double)re,(double)im,(inside>=0)?"inside":"outside");
+
+  ierr = RGComputeBoundingBox(rg,&a,&b,&c,&d);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"The bounding box is [%g,%g]x[%g,%g]\n",(double)a,(double)b,(double)c,(double)d);
 
   ierr = PetscPrintf(PETSC_COMM_WORLD,"Contour points: ");
   ierr = RGComputeContour(rg,10,cr,ci);CHKERRQ(ierr);
