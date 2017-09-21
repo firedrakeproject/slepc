@@ -30,6 +30,29 @@ typedef struct {
   PetscScalar *vr,*vi;   /* array of vertices (vi not used in complex scalars) */
 } RG_POLYGON;
 
+#if !defined(PETSC_USE_COMPLEX)
+static PetscBool CheckSymmetry(PetscInt n,PetscScalar *vr,PetscScalar *vi)
+{
+  PetscInt i,j,k;
+  /* find change of sign in imaginary part */
+  j = vi[0]!=0.0? 0: 1;
+  for (k=j+1;k<n;k++) {
+    if (vi[k]!=0.0) {
+      if (vi[k]*vi[j]<0.0) break;
+      j++;
+    }
+  }
+  if (k==n) return (j==1)? PETSC_TRUE: PETSC_FALSE;
+  /* check pairing vertices */
+  for (i=0;i<n/2;i++) {
+    if (vr[k]!=vr[j] || vi[k]!=-vi[j]) return PETSC_FALSE;
+    k = (k+1)%n;
+    j = (j-1+n)%n;
+  }
+  return PETSC_TRUE;
+}
+#endif
+
 static PetscErrorCode RGPolygonSetVertices_Polygon(RG rg,PetscInt n,PetscScalar *vr,PetscScalar *vi)
 {
   PetscErrorCode ierr;
@@ -39,6 +62,9 @@ static PetscErrorCode RGPolygonSetVertices_Polygon(RG rg,PetscInt n,PetscScalar 
   PetscFunctionBegin;
   if (n<3) SETERRQ1(PetscObjectComm((PetscObject)rg),PETSC_ERR_ARG_OUTOFRANGE,"At least 3 vertices required, you provided %s",n);
   if (n>VERTMAX) SETERRQ1(PetscObjectComm((PetscObject)rg),PETSC_ERR_ARG_OUTOFRANGE,"Too many points, maximum allowed is %d",VERTMAX);
+#if !defined(PETSC_USE_COMPLEX)
+  if (!CheckSymmetry(n,vr,vi)) SETERRQ(PetscObjectComm((PetscObject)rg),PETSC_ERR_ARG_WRONG,"In real scalars the region must be symmetric wrt real axis");
+#endif
   if (ctx->n) {
     ierr = PetscFree(ctx->vr);CHKERRQ(ierr);
 #if !defined(PETSC_USE_COMPLEX)
@@ -82,7 +108,8 @@ static PetscErrorCode RGPolygonSetVertices_Polygon(RG rg,PetscInt n,PetscScalar 
 
    When PETSc is built with real scalars, the real and imaginary parts of
    the vertices must be provided in two separate arrays (or two lists in
-   the command line).
+   the command line). In this case, the region must be symmetric with
+   respect to the real axis.
 
    Level: advanced
 
@@ -250,6 +277,32 @@ PetscErrorCode RGComputeContour_Polygon(RG rg,PetscInt n,PetscScalar *cr,PetscSc
   PetscFunctionReturn(0);
 }
 
+PetscErrorCode RGComputeBoundingBox_Polygon(RG rg,PetscReal *a,PetscReal *b,PetscReal *c,PetscReal *d)
+{
+  RG_POLYGON *ctx = (RG_POLYGON*)rg->data;
+  PetscInt   i;
+
+  PetscFunctionBegin;
+  *a =  PETSC_MAX_REAL;
+  *b = -PETSC_MAX_REAL;
+  *c =  PETSC_MAX_REAL;
+  *d = -PETSC_MAX_REAL;
+  for (i=0;i<ctx->n;i++) {
+#if defined(PETSC_USE_COMPLEX)
+    if (a) *a = PetscMin(*a,PetscRealPart(ctx->vr[i]));
+    if (b) *b = PetscMax(*b,PetscRealPart(ctx->vr[i]));
+    if (c) *c = PetscMin(*c,PetscImaginaryPart(ctx->vr[i]));
+    if (d) *d = PetscMax(*d,PetscImaginaryPart(ctx->vr[i]));
+#else
+    if (a) *a = PetscMin(*a,ctx->vr[i]);
+    if (b) *b = PetscMax(*b,ctx->vr[i]);
+    if (c) *c = PetscMin(*c,ctx->vi[i]);
+    if (d) *d = PetscMax(*d,ctx->vi[i]);
+#endif
+  }
+  PetscFunctionReturn(0);
+}
+
 PetscErrorCode RGCheckInside_Polygon(RG rg,PetscReal px,PetscReal py,PetscInt *inout)
 {
   RG_POLYGON *ctx = (RG_POLYGON*)rg->data;
@@ -348,6 +401,7 @@ PETSC_EXTERN PetscErrorCode RGCreate_Polygon(RG rg)
 
   rg->ops->istrivial      = RGIsTrivial_Polygon;
   rg->ops->computecontour = RGComputeContour_Polygon;
+  rg->ops->computebbox    = RGComputeBoundingBox_Polygon;
   rg->ops->checkinside    = RGCheckInside_Polygon;
   rg->ops->setfromoptions = RGSetFromOptions_Polygon;
   rg->ops->view           = RGView_Polygon;

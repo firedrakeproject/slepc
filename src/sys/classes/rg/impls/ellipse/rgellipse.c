@@ -169,6 +169,18 @@ PetscErrorCode RGComputeContour_Ellipse(RG rg,PetscInt n,PetscScalar *cr,PetscSc
   PetscFunctionReturn(0);
 }
 
+PetscErrorCode RGComputeBoundingBox_Ellipse(RG rg,PetscReal *a,PetscReal *b,PetscReal *c,PetscReal *d)
+{
+  RG_ELLIPSE *ctx = (RG_ELLIPSE*)rg->data;
+
+  PetscFunctionBegin;
+  if (a) *a = PetscRealPart(ctx->center) - ctx->radius;
+  if (b) *b = PetscRealPart(ctx->center) + ctx->radius;
+  if (c) *c = PetscImaginaryPart(ctx->center) - ctx->radius*ctx->vscale;
+  if (d) *d = PetscImaginaryPart(ctx->center) + ctx->radius*ctx->vscale;
+  PetscFunctionReturn(0);
+}
+
 PetscErrorCode RGCheckInside_Ellipse(RG rg,PetscReal px,PetscReal py,PetscInt *inside)
 {
   RG_ELLIPSE *ctx = (RG_ELLIPSE*)rg->data;
@@ -232,6 +244,7 @@ PETSC_EXTERN PetscErrorCode RGCreate_Ellipse(RG rg)
 
   rg->ops->istrivial      = RGIsTrivial_Ellipse;
   rg->ops->computecontour = RGComputeContour_Ellipse;
+  rg->ops->computebbox    = RGComputeBoundingBox_Ellipse;
   rg->ops->checkinside    = RGCheckInside_Ellipse;
   rg->ops->setfromoptions = RGSetFromOptions_Ellipse;
   rg->ops->view           = RGView_Ellipse;

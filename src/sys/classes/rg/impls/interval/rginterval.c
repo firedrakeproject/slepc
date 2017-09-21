@@ -67,6 +67,9 @@ static PetscErrorCode RGIntervalSetEndpoints_Interval(RG rg,PetscReal a,PetscRea
    the real axis (c=d=0), similar for the imaginary axis (a=b=0), the whole
    complex plane (a=-inf,b=inf,c=-inf,d=inf), and so on.
 
+   When PETSc is built with real scalars, the region must be symmetric with
+   respect to the real axis.
+
    Level: advanced
 
 .seealso: RGIntervalGetEndpoints()
@@ -197,6 +200,18 @@ PetscErrorCode RGComputeContour_Interval(RG rg,PetscInt n,PetscScalar *cr,PetscS
   PetscFunctionReturn(0);
 }
 
+PetscErrorCode RGComputeBoundingBox_Interval(RG rg,PetscReal *a,PetscReal *b,PetscReal *c,PetscReal *d)
+{
+  RG_INTERVAL *ctx = (RG_INTERVAL*)rg->data;
+
+  PetscFunctionBegin;
+  if (a) *a = ctx->a;
+  if (b) *b = ctx->b;
+  if (c) *c = ctx->c;
+  if (d) *d = ctx->d;
+  PetscFunctionReturn(0);
+}
+
 PetscErrorCode RGCheckInside_Interval(RG rg,PetscReal dx,PetscReal dy,PetscInt *inside)
 {
   RG_INTERVAL *ctx = (RG_INTERVAL*)rg->data;
@@ -260,6 +275,7 @@ PETSC_EXTERN PetscErrorCode RGCreate_Interval(RG rg)
 
   rg->ops->istrivial      = RGIsTrivial_Interval;
   rg->ops->computecontour = RGComputeContour_Interval;
+  rg->ops->computebbox    = RGComputeBoundingBox_Interval;
   rg->ops->checkinside    = RGCheckInside_Interval;
   rg->ops->setfromoptions = RGSetFromOptions_Interval;
   rg->ops->view           = RGView_Interval;

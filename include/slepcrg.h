@@ -61,6 +61,7 @@ PETSC_EXTERN PetscErrorCode RGPushScale(RG,PetscReal);
 PETSC_EXTERN PetscErrorCode RGPopScale(RG);
 PETSC_EXTERN PetscErrorCode RGCheckInside(RG,PetscInt,PetscScalar*,PetscScalar*,PetscInt*);
 PETSC_EXTERN PetscErrorCode RGComputeContour(RG,PetscInt,PetscScalar*,PetscScalar*);
+PETSC_EXTERN PetscErrorCode RGComputeBoundingBox(RG,PetscReal*,PetscReal*,PetscReal*,PetscReal*);
 
 PETSC_EXTERN PetscFunctionList RGList;
 PETSC_EXTERN PetscErrorCode RGRegister(const char[],PetscErrorCode(*)(RG));

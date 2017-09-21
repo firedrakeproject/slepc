@@ -81,6 +81,12 @@
       endif
  110  format ('Point (',F3.1,',',F3.1,') is ',A7,' the region')
 
+      call RGComputeBoundingBox(rg,a,b,c,d,ierr)
+      if (rank .eq. 0) then
+        write(*,115) a, b, c, d
+      endif
+ 115  format ('Bounding box: [',F3.1,',',F3.1,']x[',F3.1,',',F3.1,']')
+
       if (rank .eq. 0) then
         write (*,*) 'Contour points:'
       endif
@@ -144,19 +150,19 @@
       vr(7) = 2.0+0.0*PETSC_i
 #else
       vr(1) = 0.0
-      vi(1) = 2.0
-      vr(2) = 1.0
-      vi(2) = 4.0
-      vr(3) = 2.0
-      vi(3) = 5.0
-      vr(4) = 4.0
-      vi(4) = 3.0
-      vr(5) = 5.0
-      vi(5) = 4.0
-      vr(6) = 6.0
+      vi(1) = 1.0
+      vr(2) = 0.0
+      vi(2) = -1.0
+      vr(3) = 0.6
+      vi(3) = -0.8
+      vr(4) = 1.0
+      vi(4) = -1.0
+      vr(5) = 2.0
+      vi(5) = 0.0
+      vr(6) = 1.0
       vi(6) = 1.0
-      vr(7) = 2.0
-      vi(7) = 0.0
+      vr(7) = 0.6
+      vi(7) = 0.8
 #endif
       call RGSetType(rg,RGPOLYGON,ierr)
       n = 7

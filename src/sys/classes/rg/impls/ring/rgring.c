@@ -61,7 +61,9 @@ static PetscErrorCode RGRingSetParameters_Ring(RG rg,PetscScalar center,PetscRea
     if (end_ang>1.0) SETERRQ(PetscObjectComm((PetscObject)rg),PETSC_ERR_ARG_OUTOFRANGE,"The left-hand side angle argument must be <= 1.0");
     ctx->end_ang = end_ang;
   }
-  if (ctx->start_ang>ctx->end_ang) SETERRQ(PetscObjectComm((PetscObject)rg),PETSC_ERR_ARG_OUTOFRANGE,"The right-hand side angle argument must be smaller than left one");
+#if !defined(PETSC_USE_COMPLEX)
+  if (ctx->start_ang+ctx->end_ang!=1.0) SETERRQ(PetscObjectComm((PetscObject)rg),PETSC_ERR_ARG_WRONG,"In real scalars the region must be symmetric wrt real axis");
+#endif
   if (width == PETSC_DEFAULT) {
     ctx->width = 0.1;
   } else {
@@ -98,15 +100,20 @@ static PetscErrorCode RGRingSetParameters_Ring(RG rg,PetscScalar center,PetscRea
    ellipse region. The startangle and endangle define the span of the ring
    (by default it is the whole ring), while the width is the separation
    between the two concentric ellipses (above and below the radius by
-   width/2). The start and end angles are expressed as a fraction of the
-   circumference: the allowed range is [0..1], with 0 corresponding to 0
-   radians, 0.25 to pi/2 radians, and so on.
+   width/2).
+
+   The start and end angles are expressed as a fraction of the circumference:
+   the allowed range is [0..1], with 0 corresponding to 0 radians, 0.25 to
+   pi/2 radians, and so on. It is allowed to have startangle>endangle, in
+   which case the ring region crosses over the zero angle.
 
    In the case of complex scalars, a complex center can be provided in the
    command line with [+/-][realnumber][+/-]realnumberi with no spaces, e.g.
    -rg_ring_center 1.0+2.0i
 
-   When PETSc is built with real scalars, the center is restricted to a real value.
+   When PETSc is built with real scalars, the center is restricted to a real value,
+   and the start and end angles must be such that the region is symmetric with
+   respect to the real axis.
 
    Level: advanced
 
@@ -201,13 +208,14 @@ PetscErrorCode RGIsTrivial_Ring(RG rg,PetscBool *trivial)
 PetscErrorCode RGComputeContour_Ring(RG rg,PetscInt n,PetscScalar *cr,PetscScalar *ci)
 {
   RG_RING   *ctx = (RG_RING*)rg->data;
-  PetscReal theta;
+  PetscReal theta,start_ang;
   PetscInt  i,n2=n/2;
 
   PetscFunctionBegin;
+  start_ang = (ctx->start_ang>ctx->end_ang)? ctx->start_ang-1: ctx->start_ang;
   for (i=0;i<n;i++) {
     if (i < n2) {
-      theta = ((ctx->end_ang-ctx->start_ang)*i/n2 + ctx->start_ang)*2.0*PETSC_PI;
+      theta = ((ctx->end_ang-start_ang)*i/n2 + start_ang)*2.0*PETSC_PI;
 #if defined(PETSC_USE_COMPLEX)
       cr[i] = ctx->center + (ctx->radius+ctx->width/2.0)*(PetscCosReal(theta)+ctx->vscale*PetscSinReal(theta)*PETSC_i);
 #else
@@ -215,7 +223,7 @@ PetscErrorCode RGComputeContour_Ring(RG rg,PetscInt n,PetscScalar *cr,PetscScala
       ci[i] = (ctx->radius+ctx->width/2.0)*ctx->vscale*PetscSinReal(theta);
 #endif
     } else {
-      theta = ((ctx->end_ang-ctx->start_ang)*(n-i)/n2 + ctx->start_ang)*2.0*PETSC_PI;
+      theta = ((ctx->end_ang-start_ang)*(n-i)/n2 + start_ang)*2.0*PETSC_PI;
 #if defined(PETSC_USE_COMPLEX)
       cr[i] = ctx->center + (ctx->radius-ctx->width/2.0)*(PetscCosReal(theta)+ctx->vscale*PetscSinReal(theta)*PETSC_i);
 #else
@@ -224,6 +232,19 @@ PetscErrorCode RGComputeContour_Ring(RG rg,PetscInt n,PetscScalar *cr,PetscScala
 #endif
     }
   }
+  PetscFunctionReturn(0);
+}
+
+PetscErrorCode RGComputeBoundingBox_Ring(RG rg,PetscReal *a,PetscReal *b,PetscReal *c,PetscReal *d)
+{
+  RG_RING *ctx = (RG_RING*)rg->data;
+
+  PetscFunctionBegin;
+  /* current implementation does not return a tight bounding box */
+  if (a) *a = PetscRealPart(ctx->center) - (ctx->radius+ctx->width/2.0);
+  if (b) *b = PetscRealPart(ctx->center) + (ctx->radius+ctx->width/2.0);
+  if (c) *c = PetscImaginaryPart(ctx->center) - (ctx->radius+ctx->width/2.0)*ctx->vscale;
+  if (d) *d = PetscImaginaryPart(ctx->center) + (ctx->radius+ctx->width/2.0)*ctx->vscale;
   PetscFunctionReturn(0);
 }
 
@@ -253,25 +274,29 @@ PetscErrorCode RGCheckInside_Ring(RG rg,PetscReal px,PetscReal py,PetscInt *insi
 #endif
   r = -1.0+dx*dx+(dy*dy)/(ctx->vscale*ctx->vscale);
   *inside *= PetscSign(r);
-  /* check angles */
+  if (*inside == 1) {  /* check angles */
 #if defined(PETSC_USE_COMPLEX)
-  dx = (px-PetscRealPart(ctx->center));
-  dy = (py-PetscImaginaryPart(ctx->center));
+    dx = (px-PetscRealPart(ctx->center));
+    dy = (py-PetscImaginaryPart(ctx->center));
 #else
-  dx = px-ctx->center;
-  dy = py;
+    dx = px-ctx->center;
+    dy = py;
 #endif
-  if (dx == 0) {
-    if (dy == 0) r = -1;
-    else if (dy > 0) r = 0.25;
-    else r = 0.75;
-  } else if (dx > 0) {
-    r = PetscAtanReal((dy/ctx->vscale)/dx);
-    if (dy >= 0) r /= 2*PETSC_PI;
-    else r = r/(2*PETSC_PI)+1;
-  } else r = PetscAtanReal((dy/ctx->vscale)/dx)/(2*PETSC_PI)+0.5;
-  if (r>=ctx->start_ang && r<=ctx->end_ang && *inside == 1) *inside = 1;
-  else *inside = -1;
+    if (dx == 0) {
+      if (dy == 0) r = -1;
+      else if (dy > 0) r = 0.25;
+      else r = 0.75;
+    } else if (dx > 0) {
+      r = PetscAtanReal((dy/ctx->vscale)/dx);
+      if (dy >= 0) r /= 2*PETSC_PI;
+      else r = r/(2*PETSC_PI)+1;
+    } else r = PetscAtanReal((dy/ctx->vscale)/dx)/(2*PETSC_PI)+0.5;
+    if (ctx->start_ang>ctx->end_ang) {
+      if (r>ctx->end_ang && r<ctx->start_ang) *inside = -1;
+    } else {
+      if (r<ctx->start_ang || r>ctx->end_ang) *inside = -1;
+    }
+  }
   PetscFunctionReturn(0);
 }
 
@@ -326,6 +351,7 @@ PETSC_EXTERN PetscErrorCode RGCreate_Ring(RG rg)
 
   rg->ops->istrivial      = RGIsTrivial_Ring;
   rg->ops->computecontour = RGComputeContour_Ring;
+  rg->ops->computebbox    = RGComputeBoundingBox_Ring;
   rg->ops->checkinside    = RGCheckInside_Ring;
   rg->ops->setfromoptions = RGSetFromOptions_Ring;
   rg->ops->view           = RGView_Ring;
