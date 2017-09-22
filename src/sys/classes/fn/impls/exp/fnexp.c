@@ -272,10 +272,11 @@ static PetscReal normAm(PetscBLASInt n,PetscScalar *A,PetscInt m,PetscScalar *wo
 /*
  * Function needed to compute optimal parameters (required workspace is 3*n*n)
  */
-static PetscReal ell(PetscBLASInt n,PetscScalar *A,PetscReal coeff,PetscInt m,PetscScalar *work,PetscRandom rand)
+static PetscInt ell(PetscBLASInt n,PetscScalar *A,PetscReal coeff,PetscInt m,PetscScalar *work,PetscRandom rand)
 {
   PetscScalar  *Ascaled=work;
-  PetscReal    t,nrm,alpha,beta,rwork[1];
+  PetscReal    nrm,alpha,beta,rwork[1];
+  PetscInt     t;
   PetscBLASInt i,j;
 
   PetscFunctionBegin;
@@ -286,7 +287,7 @@ static PetscReal ell(PetscBLASInt n,PetscScalar *A,PetscReal coeff,PetscInt m,Pe
   nrm = LAPACKlange_("O",&n,&n,A,&n,rwork);
   PetscLogFlops(2.0*n*n);
   alpha = normAm(n,Ascaled,2*m+1,work+n*n,rand)/nrm;
-  t = PetscMax(PetscCeilReal(PetscLogReal(2.0*alpha/PETSC_MACHINE_EPSILON)/PetscLogReal(2.0)/(2*m)),0.0);
+  t = PetscMax((PetscInt)PetscCeilReal(PetscLogReal(2.0*alpha/PETSC_MACHINE_EPSILON)/PetscLogReal(2.0)/(2*m)),0);
   PetscFunctionReturn(t);
 }
 
@@ -314,14 +315,18 @@ static PetscErrorCode expm_params(PetscInt n,PetscScalar **Apowers,PetscInt *s,P
   ierr = PetscBLASIntCast(n,&n_);CHKERRQ(ierr);
   ierr = PetscRandomCreate(PETSC_COMM_SELF,&rand);CHKERRQ(ierr);
   d4 = PetscPowReal(LAPACKlange_("O",&n_,&n_,Apowers[2],&n_,rwork),1.0/4.0);
-  d6 = PetscPowReal(LAPACKlange_("O",&n_,&n_,Apowers[3],&n_,rwork),1.0/6.0);
-  ierr = PetscLogFlops(2.0*n*n);CHKERRQ(ierr);
-  eta1 = PetscMax(d4,d6);
-  if (eta1<=theta[0] && ell(n_,A,coeff[0],3,work,rand)==0.0) {
+  if (d4==0.0) { /* safeguard for the case A = 0 */
     *m = 3;
     goto done;
   }
-  if (eta1<=theta[1] && ell(n_,A,coeff[1],5,work,rand)==0.0) {
+  d6 = PetscPowReal(LAPACKlange_("O",&n_,&n_,Apowers[3],&n_,rwork),1.0/6.0);
+  ierr = PetscLogFlops(2.0*n*n);CHKERRQ(ierr);
+  eta1 = PetscMax(d4,d6);
+  if (eta1<=theta[0] && !ell(n_,A,coeff[0],3,work,rand)) {
+    *m = 3;
+    goto done;
+  }
+  if (eta1<=theta[1] && !ell(n_,A,coeff[1],5,work,rand)) {
     *m = 5;
     goto done;
   }
@@ -333,11 +338,11 @@ static PetscErrorCode expm_params(PetscInt n,PetscScalar **Apowers,PetscInt *s,P
     d8 = PetscPowReal(normAm(n_,Apowers[2],2,work,rand),1.0/8.0);
   }
   eta3 = PetscMax(d6,d8);
-  if (eta3<=theta[2] && ell(n_,A,coeff[2],7,work,rand)==0.0) {
+  if (eta3<=theta[2] && !ell(n_,A,coeff[2],7,work,rand)) {
     *m = 7;
     goto done;
   }
-  if (eta3<=theta[3] && ell(n_,A,coeff[3],9,work,rand)==0.0) {
+  if (eta3<=theta[3] && !ell(n_,A,coeff[3],9,work,rand)) {
     *m = 9;
     goto done;
   }
@@ -350,7 +355,7 @@ static PetscErrorCode expm_params(PetscInt n,PetscScalar **Apowers,PetscInt *s,P
   }
   eta4 = PetscMax(d8,d10);
   eta5 = PetscMin(eta3,eta4);
-  *s = PetscMax(PetscCeilReal(PetscLogReal(eta5/theta[4])/PetscLogReal(2.0)),0.0);
+  *s = PetscMax((PetscInt)PetscCeilReal(PetscLogReal(eta5/theta[4])/PetscLogReal(2.0)),0);
   if (*s) {
     Ascaled = work+3*n*n;
     n2 = n_*n_;
