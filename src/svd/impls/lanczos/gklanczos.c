@@ -250,8 +250,15 @@ PetscErrorCode SVDSolve_Lanczos(SVD svd)
     /* compute restart vector */
     ierr = DSGetArray(svd->ds,DS_MAT_VT,&PT);CHKERRQ(ierr);
     if (svd->reason == SVD_CONVERGED_ITERATING) {
-      for (j=svd->nconv;j<nv;j++) swork[j-svd->nconv] = PT[k+svd->nconv+j*ld];
-      ierr = BVMultColumn(svd->V,1.0,0.0,nv,swork);CHKERRQ(ierr);
+      if (k<nv-svd->nconv) {
+        for (j=svd->nconv;j<nv;j++) swork[j-svd->nconv] = PT[k+svd->nconv+j*ld];
+        ierr = BVMultColumn(svd->V,1.0,0.0,nv,swork);CHKERRQ(ierr);
+      } else {
+        /* all approximations have converged, generate a new initial vector */
+        ierr = BVSetRandomColumn(svd->V,nv);CHKERRQ(ierr);
+        ierr = BVOrthogonalizeColumn(svd->V,nv,NULL,&norm,NULL);CHKERRQ(ierr);
+        ierr = BVScaleColumn(svd->V,nv,1.0/norm);CHKERRQ(ierr);
+      }
     }
     ierr = DSRestoreArray(svd->ds,DS_MAT_VT,&PT);CHKERRQ(ierr);
 
