@@ -76,12 +76,12 @@ PetscErrorCode EPSSolve_KrylovSchur_Symm(EPS eps)
     nconv = k;
 
     /* Update l */
-    if (eps->reason != EPS_CONVERGED_ITERATING || breakdown) l = 0;
+    if (eps->reason != EPS_CONVERGED_ITERATING || breakdown || k==nv) l = 0;
     else l = PetscMax(1,(PetscInt)((nv-k)*ctx->keep));
     if (!ctx->lock && l>0) { l += k; k = 0; } /* non-locking variant: reset no. of converged pairs */
 
     if (eps->reason == EPS_CONVERGED_ITERATING) {
-      if (breakdown) {
+      if (breakdown || k==nv) {
         /* Start a new Lanczos factorization */
         ierr = PetscInfo2(eps,"Breakdown in Krylov-Schur method (it=%D norm=%g)\n",eps->its,(double)beta);CHKERRQ(ierr);
         if (k<eps->nev) {
