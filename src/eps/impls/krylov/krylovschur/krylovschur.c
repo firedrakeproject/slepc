@@ -222,7 +222,7 @@ PetscErrorCode EPSSolve_KrylovSchur_Default(EPS eps)
     nconv = k;
 
     /* Update l */
-    if (eps->reason != EPS_CONVERGED_ITERATING || breakdown) l = 0;
+    if (eps->reason != EPS_CONVERGED_ITERATING || breakdown || k==nv) l = 0;
     else {
       l = PetscMax(1,(PetscInt)((nv-k)*ctx->keep));
 #if !defined(PETSC_USE_COMPLEX)
@@ -237,7 +237,7 @@ PetscErrorCode EPSSolve_KrylovSchur_Default(EPS eps)
     if ((!ctx->lock || harmonic) && l>0) { l += k; k = 0; } /* non-locking variant: reset no. of converged pairs */
 
     if (eps->reason == EPS_CONVERGED_ITERATING) {
-      if (breakdown) {
+      if (breakdown || k==nv) {
         /* Start a new Arnoldi factorization */
         ierr = PetscInfo2(eps,"Breakdown in Krylov-Schur method (it=%D norm=%g)\n",eps->its,(double)beta);CHKERRQ(ierr);
         if (k<eps->nev) {

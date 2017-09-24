@@ -240,7 +240,7 @@ PetscErrorCode DSTruncate(DS ds,PetscInt n)
   DSCheckSolved(ds,1);
   PetscValidLogicalCollectiveInt(ds,n,2);
   if (!ds->ops->truncate) SETERRQ1(PetscObjectComm((PetscObject)ds),PETSC_ERR_SUP,"DS type %s",((PetscObject)ds)->type_name);
-  if (n<ds->l || n>ds->n) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of n. Must be between l and n");
+  if (n<ds->l || n>ds->n) SETERRQ3(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of n (%D). Must be between l (%D) and n (%D)",n,ds->l,ds->n);
   ierr = PetscLogEventBegin(DS_Other,ds,0,0,0);CHKERRQ(ierr);
   ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
   ierr = (*ds->ops->truncate)(ds,n);CHKERRQ(ierr);
