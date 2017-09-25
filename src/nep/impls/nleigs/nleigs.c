@@ -250,6 +250,9 @@ static PetscErrorCode NEPNLEIGSLejaBagbyPoints(NEP nep)
   PetscScalar    *ds,*dsi,*dxi,*nrs,*nrxi,*s=ctx->s,*xi=ctx->xi,*beta=ctx->beta;
   PetscReal      maxnrs,minnrxi;
   PetscBool      rational;
+#if !defined(PETSC_USE_COMPLEX)
+  PetscReal      a,b,h;
+#endif
 
   PetscFunctionBegin;
   ierr = PetscMalloc5(ndpt+1,&ds,ndpt+1,&dsi,ndpt,&dxi,ndpt+1,&nrs,ndpt,&nrxi);CHKERRQ(ierr);
@@ -258,7 +261,15 @@ static PetscErrorCode NEPNLEIGSLejaBagbyPoints(NEP nep)
   ierr = RGComputeContour(nep->rg,ndpt,ds,dsi);CHKERRQ(ierr);
 #if !defined(PETSC_USE_COMPLEX)
   for (i=0;i<ndpt;i++) if (dsi[i]!=0.0) break;
-  if (i<ndpt) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"NLEIGS with real arithmetic requires the target set to be included in the real axis");
+  if (i<ndpt) {
+    if (nep->problem_type==NEP_RATIONAL) {
+      /* Select a segment in the real axis */
+      ierr = RGComputeBoundingBox(nep->rg,&a,&b,NULL,NULL);CHKERRQ(ierr);
+      if (a<=-PETSC_MAX_REAL || b>=PETSC_MAX_REAL) SETERRQ(PetscObjectComm((PetscObject)nep),1,"NLEIGS requires a bounded target set");
+      h = (b-a)/ndpt;
+      for (i=0;i<ndpt;i++) {ds[i] = a+h*i; dsi[i] = 0.0;}
+    } else SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"NLEIGS with real arithmetic requires the target set to be included in the real axis");
+  }
 #endif
   /* Discretize the singularity region */
   if (ctx->computesingularities) {
