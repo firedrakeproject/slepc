@@ -64,7 +64,6 @@ PetscErrorCode NEPSetUp_Interpol(NEP nep)
 
   /* transfer PEP options */
   if (!ctx->pep) { ierr = NEPInterpolGetPEP(nep,&ctx->pep);CHKERRQ(ierr); }
-  ierr = PEPSetBV(ctx->pep,nep->V);CHKERRQ(ierr);
   ierr = PEPSetBasis(ctx->pep,PEP_BASIS_CHEBYSHEV1);CHKERRQ(ierr);
   ierr = PEPSetWhichEigenpairs(ctx->pep,PEP_TARGET_MAGNITUDE);CHKERRQ(ierr);
   ierr = PEPGetST(ctx->pep,&st);CHKERRQ(ierr);
@@ -131,7 +130,10 @@ PetscErrorCode NEPSolve_Interpol(NEP nep)
   PetscScalar    *x,*fx,t;
   PetscReal      *cs,a,b,s,aprox,aprox0=1.0,*matnorm;
   PetscInt       i,j,k,deg=ctx->maxdeg;
-  PetscBool      hasmnorm;
+  PetscBool      hasmnorm,same;
+  BV             pV;
+  Vec            v;
+  BVType         type;
 
   PetscFunctionBegin;
   ierr = PetscMalloc5(deg+1,&A,(deg+1)*(deg+1),&cs,deg+1,&x,(deg+1)*nep->nt,&fx,nep->nt,&matnorm);CHKERRQ(ierr);
@@ -187,6 +189,20 @@ PetscErrorCode NEPSolve_Interpol(NEP nep)
     nep->eigr[i] /= s;
     nep->eigr[i] += (a+b)/2.0;
     nep->eigi[i] /= s;
+  }
+  ierr = PEPGetBV(ctx->pep,&pV);CHKERRQ(ierr);
+  ierr = BVSetActiveColumns(pV,0,nep->nconv);CHKERRQ(ierr);  
+  ierr = BVSetActiveColumns(nep->V,0,nep->nconv);CHKERRQ(ierr);
+  ierr = BVGetType(nep->V,&type);CHKERRQ(ierr);
+  ierr = PetscObjectTypeCompare((PetscObject)pV,type,&same);CHKERRQ(ierr);
+  if (same) {
+    ierr = BVCopy(pV,nep->V);CHKERRQ(ierr);
+  } else {
+    for (i=0;i<nep->nconv;i++) {
+      ierr = BVGetColumn(pV,i,&v);CHKERRQ(ierr);
+      ierr = BVInsertVec(nep->V,i,v);CHKERRQ(ierr);
+      ierr = BVRestoreColumn(pV,i,&v);CHKERRQ(ierr);
+    }
   }
   nep->state = NEP_STATE_EIGENVECTORS;
   PetscFunctionReturn(0);
