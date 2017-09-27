@@ -324,16 +324,17 @@ PetscErrorCode EPSSolve_Power(EPS eps)
   PetscFunctionBegin;
   SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"LAEV2 - Lapack routine is unavailable");
 #else
-  PetscErrorCode     ierr;
-  EPS_POWER          *power = (EPS_POWER*)eps->data;
-  PetscInt           k,ld;
-  Vec                v,y,e,Bx;
-  Mat                A;
-  KSP                ksp;
-  PetscReal          relerr,norm,norm1,rt1,rt2,cs1;
-  PetscScalar        theta,rho,delta,sigma,alpha2,beta1,sn1,*T,sign;
-  PetscBool          breakdown;
-  KSPConvergedReason reason;
+  PetscErrorCode      ierr;
+  EPS_POWER           *power = (EPS_POWER*)eps->data;
+  PetscInt            k,ld;
+  Vec                 v,y,e,Bx;
+  Mat                 A;
+  KSP                 ksp;
+  PetscReal           relerr,norm,norm1,rt1,rt2,cs1;
+  PetscScalar         theta,rho,delta,sigma,alpha2,beta1,sn1,*T,sign;
+  PetscBool           breakdown;
+  KSPConvergedReason  reason;
+  SNESConvergedReason snesreason;
 
   PetscFunctionBegin;
   e = eps->work[0];
@@ -474,8 +475,11 @@ PetscErrorCode EPSSolve_Power(EPS eps)
     if (!power->nonlinear) { ierr = Normalize(y,norm,NULL);CHKERRQ(ierr); }
     ierr = BVInsertVec(eps->V,k,y);CHKERRQ(ierr);
 
+    if (power->update) {
+      ierr = SNESGetConvergedReason(power->snes,&snesreason);CHKERRQ(ierr);
+    }
     /* if relerr<tol, accept eigenpair */
-    if (relerr<eps->tol) {
+    if (relerr<eps->tol || (power->update && snesreason > 0)) {
       eps->nconv = eps->nconv + 1;
       if (eps->nconv<eps->nev) {
         ierr = EPSGetStartVector(eps,eps->nconv,&breakdown);CHKERRQ(ierr);
@@ -498,6 +502,25 @@ PetscErrorCode EPSSolve_Power(EPS eps)
   }
   PetscFunctionReturn(0);
 #endif
+}
+
+
+PetscErrorCode EPSStopping_Power(EPS eps,PetscInt its,PetscInt max_it,PetscInt nconv,PetscInt nev,EPSConvergedReason *reason,void *ctx)
+{
+  PetscErrorCode ierr;
+  EPS_POWER      *power = (EPS_POWER*)eps->data;
+  SNESConvergedReason snesreason;
+
+  PetscFunctionBegin;
+  if (power->update) {
+    ierr = SNESGetConvergedReason(power->snes,&snesreason);CHKERRQ(ierr);
+    if (snesreason < 0) {
+      *reason = EPS_DIVERGED_BREAKDOWN;
+      PetscFunctionReturn(0);
+    }
+  }
+  ierr = EPSStoppingBasic(eps,its,max_it,nconv,nev,reason,ctx);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
 }
 
 PetscErrorCode EPSBackTransform_Power(EPS eps)
@@ -984,6 +1007,7 @@ PETSC_EXTERN PetscErrorCode EPSCreate_Power(EPS eps)
   eps->ops->backtransform  = EPSBackTransform_Power;
   eps->ops->computevectors = EPSComputeVectors_Power;
   eps->ops->setdefaultst   = EPSSetDefaultST_Power;
+  eps->stopping            = EPSStopping_Power;
 
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSPowerSetShiftType_C",EPSPowerSetShiftType_Power);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSPowerGetShiftType_C",EPSPowerGetShiftType_Power);CHKERRQ(ierr);
