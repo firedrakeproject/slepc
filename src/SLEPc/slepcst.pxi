@@ -30,8 +30,8 @@ cdef extern from * nogil:
     int STSetKSP(SlepcST,PetscKSP)
 
     int STGetNumMatrices(SlepcST,PetscInt*)
-    int STGetOperators(SlepcST,PetscInt,PetscMat*)
-    int STSetOperators(SlepcST,PetscInt,PetscMat*)
+    int STGetMatrix(SlepcST,PetscInt,PetscMat*)
+    int STSetMatrices(SlepcST,PetscInt,PetscMat*)
     int STSetMatStructure(SlepcST,PetscMatStructure)
 
     int STGetOperationCounters(SlepcST,PetscInt*,PetscInt*)

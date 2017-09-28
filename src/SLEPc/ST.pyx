@@ -289,7 +289,7 @@ cdef class ST(Object):
         CHKERR( STGetMatMode(self.st, &val) )
         return val
 
-    def setOperators(self, operators):
+    def setMatrices(self, operators):
         """
         Sets the matrices associated with the eigenvalue problem.
 
@@ -303,9 +303,9 @@ cdef class ST(Object):
         cdef Py_ssize_t k=0, n = len(operators)
         cdef tmp = allocate(<size_t>n*sizeof(PetscMat),<void**>&mats)
         for k from 0 <= k < n: mats[k] = (<Mat?>operators[k]).mat
-        CHKERR( STSetOperators(self.st, <PetscInt>n, mats) )
+        CHKERR( STSetMatrices(self.st, <PetscInt>n, mats) )
 
-    def getOperators(self):
+    def getMatrices(self):
         """
         Gets the matrices associated with the eigenvalue problem.
 
@@ -320,7 +320,7 @@ cdef class ST(Object):
         CHKERR( STGetNumMatrices(self.st, &n) )
         cdef object operators = []
         for k from 0 <= k < n:
-            CHKERR( STGetOperators(self.st, k, &mat) )
+            CHKERR( STGetMatrix(self.st, k, &mat) )
             A = Mat(); A.mat = mat; PetscINCREF(A.obj)
             operators.append(A)
         return tuple(operators)
