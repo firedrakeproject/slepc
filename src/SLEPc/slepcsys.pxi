@@ -37,16 +37,13 @@ cdef extern from * nogil:
     int MatGetLocalSize(PetscMat,PetscInt*,PetscInt*)
 
 cdef extern from * nogil:
-    enum: SLEPC_VERSION_MAJOR
-    enum: SLEPC_VERSION_MINOR
-    enum: SLEPC_VERSION_SUBMINOR
-    enum: SLEPC_VERSION_PATCH
-    enum: SLEPC_VERSION_RELEASE
-    char* SLEPC_VERSION_DATE
-    char* SLEPC_AUTHOR_INFO
+    const_char SLEPC_AUTHOR_INFO[]
+    int SlepcGetVersion(char[],size_t)
+    int SlepcGetVersionNumber(PetscInt*,PetscInt*,PetscInt*,PetscInt*)
+
     int SlepcInitialize(int*,char***,char[],char[])
     int SlepcFinalize()
-    int SlepcInitializeCalled
+    PetscBool SlepcInitializeCalled
 
 cdef inline PetscMatStructure matstructure(object structure) \
     except <PetscMatStructure>(-1):
