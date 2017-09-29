@@ -91,7 +91,7 @@ cdef extern from *:
 
 cdef extern from "scalar.h":
     object      PyPetscScalar_FromPetscScalar(PetscScalar)
-    PetscScalar PyPetscScalar_AsPetscScalar(object) except <PetscScalar>-1.0
+    PetscScalar PyPetscScalar_AsPetscScalar(object) except? <PetscScalar>-1.0
 
 cdef inline object toInt(PetscInt value):
     return value
@@ -105,7 +105,7 @@ cdef inline PetscReal asReal(object value) except? -1:
 
 cdef inline object toScalar(PetscScalar value):
     return PyPetscScalar_FromPetscScalar(value)
-cdef inline PetscScalar asScalar(object value) except <PetscScalar>-1.0:
+cdef inline PetscScalar asScalar(object value) except? <PetscScalar>-1.0:
     return PyPetscScalar_AsPetscScalar(value)
 
 cdef inline object toComplex(PetscScalar rvalue, PetscScalar ivalue):
