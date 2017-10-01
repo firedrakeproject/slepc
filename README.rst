@@ -11,7 +11,7 @@ SLEPc_, the * Scalable Library for Eigenvalue Problem Computations*.
 Dependencies
 ------------
 
-* Python_ 2.6, 2.7, 3.2 or above.
+* Python_ 2.6, 2.7, 3.3 or above.
 
 * A recent NumPy_ release.
 
