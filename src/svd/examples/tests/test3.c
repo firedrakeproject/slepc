@@ -89,8 +89,7 @@ int main(int argc,char **argv)
   ierr = MatCreateVecs(A,&v0,&w0);CHKERRQ(ierr);
   ierr = VecSet(v0,1.0);CHKERRQ(ierr);
   ierr = VecSet(w0,1.0);CHKERRQ(ierr);
-  ierr = SVDSetInitialSpace(svd,1,&v0);CHKERRQ(ierr);
-  ierr = SVDSetInitialSpaceLeft(svd,1,&w0);CHKERRQ(ierr);
+  ierr = SVDSetInitialSpaces(svd,1,&v0,1,&w0);CHKERRQ(ierr);
 
   /*
      Compute solution

@@ -206,18 +206,22 @@ PetscErrorCode SVDSetUp(SVD svd)
 }
 
 /*@
-   SVDSetInitialSpace - Specify a basis of vectors that constitute the initial
-   (right) space, that is, a rough approximation to the right singular subspace
-   from which the solver starts to iterate.
+   SVDSetInitialSpaces - Specify two basis of vectors that constitute the initial
+   right and/or left spaces, that is, a rough approximation to the right and/or
+   left singular subspaces from which the solver starts to iterate.
 
    Collective on SVD and Vec
 
    Input Parameter:
 +  svd   - the singular value solver context
-.  n     - number of vectors
--  is    - set of basis vectors of the initial space
+.  nr    - number of right vectors
+.  isr   - set of basis vectors of the right initial space
+.  nl    - number of left vectors
+-  isl   - set of basis vectors of the left initial space
 
    Notes:
+   It is not necessary to provide both sets of vectors.
+
    Some solvers start to iterate on a single vector (initial vector). In that case,
    the other vectors are ignored.
 
@@ -231,61 +235,20 @@ PetscErrorCode SVDSetUp(SVD svd)
    of the wanted singular space. Then, convergence may be faster.
 
    Level: intermediate
-
-.seealso: SVDSetInitialSpaceLeft()
 @*/
-PetscErrorCode SVDSetInitialSpace(SVD svd,PetscInt n,Vec *is)
+PetscErrorCode SVDSetInitialSpaces(SVD svd,PetscInt nr,Vec *isr,PetscInt nl,Vec *isl)
 {
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
-  PetscValidLogicalCollectiveInt(svd,n,2);
-  if (n<0) SETERRQ(PetscObjectComm((PetscObject)svd),PETSC_ERR_ARG_OUTOFRANGE,"Argument n cannot be negative");
-  ierr = SlepcBasisReference_Private(n,is,&svd->nini,&svd->IS);CHKERRQ(ierr);
-  if (n>0) svd->state = SVD_STATE_INITIAL;
-  PetscFunctionReturn(0);
-}
-
-/*@
-   SVDSetInitialSpaceLeft - Specify a basis of vectors that constitute the initial
-   left space, that is, a rough approximation to the left singular subspace
-   from which the solver starts to iterate.
-
-   Collective on SVD and Vec
-
-   Input Parameter:
-+  svd   - the singular value solver context
-.  n     - number of vectors
--  is    - set of basis vectors of the initial space
-
-   Notes:
-   Some solvers start to iterate on a single vector (initial vector). In that case,
-   the other vectors are ignored.
-
-   These vectors do not persist from one SVDSolve() call to the other, so the
-   initial space should be set every time.
-
-   The vectors do not need to be mutually orthonormal, since they are explicitly
-   orthonormalized internally.
-
-   Common usage of this function is when the user can provide a rough approximation
-   of the wanted singular space. Then, convergence may be faster.
-
-   Level: intermediate
-
-.seealso: SVDSetInitialSpace()
-@*/
-PetscErrorCode SVDSetInitialSpaceLeft(SVD svd,PetscInt n,Vec *is)
-{
-  PetscErrorCode ierr;
-
-  PetscFunctionBegin;
-  PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
-  PetscValidLogicalCollectiveInt(svd,n,2);
-  if (n<0) SETERRQ(PetscObjectComm((PetscObject)svd),PETSC_ERR_ARG_OUTOFRANGE,"Argument n cannot be negative");
-  ierr = SlepcBasisReference_Private(n,is,&svd->ninil,&svd->ISL);CHKERRQ(ierr);
-  if (n>0) svd->state = SVD_STATE_INITIAL;
+  PetscValidLogicalCollectiveInt(svd,nr,2);
+  PetscValidLogicalCollectiveInt(svd,nl,4);
+  if (nr<0) SETERRQ(PetscObjectComm((PetscObject)svd),PETSC_ERR_ARG_OUTOFRANGE,"Argument nr cannot be negative");
+  if (nl<0) SETERRQ(PetscObjectComm((PetscObject)svd),PETSC_ERR_ARG_OUTOFRANGE,"Argument nl cannot be negative");
+  ierr = SlepcBasisReference_Private(nr,isr,&svd->nini,&svd->IS);CHKERRQ(ierr);
+  ierr = SlepcBasisReference_Private(nl,isl,&svd->ninil,&svd->ISL);CHKERRQ(ierr);
+  if (nr>0 || nl>0) svd->state = SVD_STATE_INITIAL;
   PetscFunctionReturn(0);
 }
 
