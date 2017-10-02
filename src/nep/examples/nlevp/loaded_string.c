@@ -80,7 +80,6 @@ int main(int argc,char **argv)
   }
 
   /* A1 */
-
   for (i=Istart;i<Iend;i++) {
     ierr = MatSetValue(A[1],i,i,(i==n-1)?2.0/(6.0*n):4.0/(6.0*n),INSERT_VALUES);CHKERRQ(ierr);
     if (i>0) { ierr = MatSetValue(A[1],i,i-1,1.0/(6.0*n),INSERT_VALUES);CHKERRQ(ierr); }
@@ -130,6 +129,7 @@ int main(int argc,char **argv)
 
   ierr = NEPCreate(PETSC_COMM_WORLD,&nep);CHKERRQ(ierr);
   ierr = NEPSetSplitOperator(nep,3,A,f,SUBSET_NONZERO_PATTERN);CHKERRQ(ierr);
+  ierr = NEPSetProblemType(nep,NEP_RATIONAL);CHKERRQ(ierr);
   ierr = NEPSetFromOptions(nep);CHKERRQ(ierr);
   ierr = NEPSolve(nep);CHKERRQ(ierr);
 
