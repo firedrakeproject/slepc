@@ -39,7 +39,7 @@ cdef extern from * nogil:
     int SVDSetOperator(SlepcSVD,PetscMat)
     int SVDGetOperator(SlepcSVD,PetscMat*)
 
-    int SVDSetInitialSpace(SlepcSVD,PetscInt,PetscVec*)
+    int SVDSetInitialSpaces(SlepcSVD,PetscInt,PetscVec*,PetscInt,PetscVec*)
 
     int SVDSetImplicitTranspose(SlepcSVD,PetscBool)
     int SVDGetImplicitTranspose(SlepcSVD,PetscBool*)
