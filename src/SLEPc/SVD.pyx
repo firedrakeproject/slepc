@@ -443,24 +443,27 @@ cdef class SVD(Object):
 
     #
 
-    def setInitialSpaces(self, spaceright, spaceleft=None):
+    def setInitialSpaces(self, spaceright=None, spaceleft=None):
         """
         Sets the initial spaces from which the SVD solver starts to
         iterate.
 
         Parameters
         ----------
-        spaceright: an sequence of Vec
+        spaceright: sequence of Vec
            The right initial space.
-        spaceleft: an sequence of Vec
+        spaceleft: sequence of Vec
            The left initial space.
         """
-        if isinstance(spaceright, Vec): spaceright = [spaceright]
+        cdef Py_ssize_t i = 0
+        if spaceright is None: spaceright = []
+        elif isinstance(spaceright, Vec): spaceright = [spaceright]
         cdef PetscVec *isr = NULL
-        cdef Py_ssize_t i = 0, nr = len(spaceright)
+        cdef Py_ssize_t nr = len(spaceright)
         cdef tmp1 = allocate(<size_t>nr*sizeof(Vec),<void**>&isr)
         for i in range(nr): isr[i] = (<Vec?>spaceright[i]).vec
-        if isinstance(spaceleft, Vec): spaceleft = [spaceleft]
+        if spaceleft is None: spaceright = []
+        elif isinstance(spaceleft, Vec): spaceleft = [spaceleft]
         cdef PetscVec *isl = NULL
         cdef Py_ssize_t nl = len(spaceleft)
         cdef tmp2 = allocate(<size_t>nl*sizeof(Vec),<void**>&isl)
