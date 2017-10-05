@@ -195,7 +195,7 @@ PetscErrorCode LMESetFromOptions(LME lme)
    properties of the coefficient matrices and possibly on the right-hand
    side C.
 
-   Level: basic
+   Level: beginner
 
 .seealso: LMESetCoefficients(), LMESetType(), LMEGetProblemType(), LMEProblemType
 @*/
