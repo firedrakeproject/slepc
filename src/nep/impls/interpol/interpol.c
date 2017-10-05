@@ -69,10 +69,9 @@ PetscErrorCode NEPSetUp_Interpol(NEP nep)
   ierr = PEPGetST(ctx->pep,&st);CHKERRQ(ierr);
   ierr = STSetType(st,STSINVERT);CHKERRQ(ierr);
   ierr = PEPSetDimensions(ctx->pep,nep->nev,nep->ncv?nep->ncv:PETSC_DEFAULT,nep->mpd?nep->mpd:PETSC_DEFAULT);CHKERRQ(ierr);
-  tol = ctx->pep->tol;
+  ierr = PEPGetTolerances(ctx->pep,&tol,&its);CHKERRQ(ierr);
   if (tol==PETSC_DEFAULT) tol = (nep->tol==PETSC_DEFAULT)?SLEPC_DEFAULT_TOL:nep->tol;
   if (ctx->tol==PETSC_DEFAULT) ctx->tol = tol;
-  its=ctx->pep->max_it;
   if (!its) its = nep->max_it?nep->max_it:PETSC_DEFAULT;
   ierr = PEPSetTolerances(ctx->pep,tol,its);CHKERRQ(ierr);
   ierr = NEPGetTrackAll(nep,&trackall);CHKERRQ(ierr);
@@ -130,10 +129,8 @@ PetscErrorCode NEPSolve_Interpol(NEP nep)
   PetscScalar    *x,*fx,t;
   PetscReal      *cs,a,b,s,aprox,aprox0=1.0,*matnorm;
   PetscInt       i,j,k,deg=ctx->maxdeg;
-  PetscBool      hasmnorm,same;
-  BV             pV;
-  Vec            v;
-  BVType         type;
+  PetscBool      hasmnorm;
+  Vec            vr,vi=NULL;
 
   PetscFunctionBegin;
   ierr = PetscMalloc5(deg+1,&A,(deg+1)*(deg+1),&cs,deg+1,&x,(deg+1)*nep->nt,&fx,nep->nt,&matnorm);CHKERRQ(ierr);
@@ -183,27 +180,27 @@ PetscErrorCode NEPSolve_Interpol(NEP nep)
   ierr = PEPGetConverged(ctx->pep,&nep->nconv);CHKERRQ(ierr);
   ierr = PEPGetIterationNumber(ctx->pep,&nep->its);CHKERRQ(ierr);
   ierr = PEPGetConvergedReason(ctx->pep,(PEPConvergedReason*)&nep->reason);CHKERRQ(ierr);
+  ierr = BVSetActiveColumns(nep->V,0,nep->nconv);CHKERRQ(ierr);
+  ierr = BVCreateVec(nep->V,&vr);CHKERRQ(ierr);
+#if !defined(PETSC_USE_COMPLEX)   
+  ierr = VecDuplicate(vr,&vi);CHKERRQ(ierr);
+#endif
   s = 2.0/(b-a);
   for (i=0;i<nep->nconv;i++) {
-    ierr = PEPGetEigenpair(ctx->pep,i,&nep->eigr[i],&nep->eigi[i],NULL,NULL);CHKERRQ(ierr);
+    ierr = PEPGetEigenpair(ctx->pep,i,&nep->eigr[i],&nep->eigi[i],vr,vi);CHKERRQ(ierr);
     nep->eigr[i] /= s;
     nep->eigr[i] += (a+b)/2.0;
     nep->eigi[i] /= s;
-  }
-  ierr = PEPGetBV(ctx->pep,&pV);CHKERRQ(ierr);
-  ierr = BVSetActiveColumns(pV,0,nep->nconv);CHKERRQ(ierr);  
-  ierr = BVSetActiveColumns(nep->V,0,nep->nconv);CHKERRQ(ierr);
-  ierr = BVGetType(nep->V,&type);CHKERRQ(ierr);
-  ierr = PetscObjectTypeCompare((PetscObject)pV,type,&same);CHKERRQ(ierr);
-  if (same) {
-    ierr = BVCopy(pV,nep->V);CHKERRQ(ierr);
-  } else {
-    for (i=0;i<nep->nconv;i++) {
-      ierr = BVGetColumn(pV,i,&v);CHKERRQ(ierr);
-      ierr = BVInsertVec(nep->V,i,v);CHKERRQ(ierr);
-      ierr = BVRestoreColumn(pV,i,&v);CHKERRQ(ierr);
+    ierr = BVInsertVec(nep->V,i,vr);CHKERRQ(ierr);
+#if !defined(PETSC_USE_COMPLEX)   
+    if (nep->eigi[i]!=0.0) {
+      ierr = BVInsertVec(nep->V,++i,vi);CHKERRQ(ierr);
     }
+#endif
   }
+  ierr = VecDestroy(&vr);CHKERRQ(ierr);
+  ierr = VecDestroy(&vi);CHKERRQ(ierr);
+
   nep->state = NEP_STATE_EIGENVECTORS;
   PetscFunctionReturn(0);
 }
@@ -213,6 +210,7 @@ static PetscErrorCode PEPMonitor_Interpol(PEP pep,PetscInt its,PetscInt nconv,Pe
   PetscInt       i,n;
   NEP            nep = (NEP)ctx;
   PetscReal      a,b,s;
+  ST             st;
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
@@ -222,7 +220,8 @@ static PetscErrorCode PEPMonitor_Interpol(PEP pep,PetscInt its,PetscInt nconv,Pe
     nep->eigi[i]   = eigi[i];
     nep->errest[i] = errest[i];
   }
-  ierr = STBackTransform(pep->st,n,nep->eigr,nep->eigi);CHKERRQ(ierr);
+  ierr = PEPGetST(pep,&st);CHKERRQ(ierr);
+  ierr = STBackTransform(st,n,nep->eigr,nep->eigi);CHKERRQ(ierr);
   ierr = RGIntervalGetEndpoints(nep->rg,&a,&b,NULL,NULL);CHKERRQ(ierr);
   s = 2.0/(b-a);
   for (i=0;i<n;i++) {
