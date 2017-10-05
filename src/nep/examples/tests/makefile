@@ -24,17 +24,18 @@ FFLAGS     =
 CPPFLAGS   =
 FPPFLAGS   =
 LOCDIR     = src/nep/examples/tests/
-EXAMPLESC  = test1.c test2.c test3.c test4.c test5.c test6.c test7.c test8.c
+EXAMPLESC  = test1.c test2.c test3.c test4.c test5.c test6.c test7.c test8.c test9.c
 EXAMPLESF  = test2f.F
 MANSEC     = NEP
-TESTS      = test1 test2 test2f test3 test4 test5 test6 test7 test8
+TESTS      = test1 test2 test2f test3 test4 test5 test6 test7 test8 test9
 
 TESTEXAMPLES_C_NOTSINGLE       = test1.PETSc runtest1_1 test1.rm \
                                  test2.PETSc runtest2_1 test2.rm \
                                  test3.PETSc runtest3_1 test3.rm \
                                  test4.PETSc runtest4_1 test4.rm \
                                  test5.PETSc runtest5_1 test5.rm \
-                                 test7.PETSc runtest7_1 runtest7_2 test7.rm
+                                 test7.PETSc runtest7_1 runtest7_2 test7.rm \
+                                 test9.PETSc runtest9_1 test9.rm
 TESTEXAMPLES_C_DATAFILE        = test6.PETSc runtest6_1 test6.rm \
                                  test8.PETSc runtest8_1 test8.rm
 TESTEXAMPLES_FORTRAN_NOTSINGLE = test2f.PETSc runtest2f_1 test2f.rm
@@ -78,6 +79,10 @@ test7: test7.o chkopts
 test8: test8.o chkopts
 	-${CLINKER} -o test8 test8.o ${SLEPC_NEP_LIB}
 	${RM} test8.o
+
+test9: test9.o chkopts
+	-${CLINKER} -o test9 test9.o ${SLEPC_NEP_LIB}
+	${RM} test9.o
 
 #------------------------------------------------------------------------------------
 
@@ -143,3 +148,7 @@ runtest8_1:
 	${MPIEXEC} -n 1 ./test8 -nep_type slp -nep_target -.5 -nep_error_backward ::ascii_info_detail -nep_view_values -nep_error_absolute ::ascii_matlab -nep_monitor_all -nep_converged_reason -nep_view | ${GREP} -v "tolerance" | ${GREP} -v "problem type" | ${SED} -e "s/[0-9]\.[0-9]*e[+-][0-9]*/removed/g" > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
+runtest9_1:
+	-@${SETTEST}; \
+	${MPIEXEC} -n 1 ./test9 -nep_type nleigs -rg_type interval -rg_interval_endpoints 4,700,-.1,.1 -nep_nev 8 -nep_target 5 -terse > $${test}.tmp 2>&1; \
+	${TESTCODE}
