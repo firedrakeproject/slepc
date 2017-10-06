@@ -360,7 +360,11 @@ PetscErrorCode BVResize(BV bv,PetscInt m,PetscBool copy)
   ierr = BVDestroy(&bv->cached);CHKERRQ(ierr);
   ierr = PetscFree2(bv->h,bv->c);CHKERRQ(ierr);
   if (bv->omega) {
-    ierr = VecCreateSeq(PETSC_COMM_SELF,m,&v);CHKERRQ(ierr);
+    if (bv->cuda) {
+      ierr = VecCreateSeqCUDA(PETSC_COMM_SELF,m,&v);CHKERRQ(ierr);
+    } else {
+      ierr = VecCreateSeq(PETSC_COMM_SELF,m,&v);CHKERRQ(ierr);
+    }
     ierr = PetscLogObjectParent((PetscObject)bv,(PetscObject)v);CHKERRQ(ierr);
     ierr = VecSet(v,1.0);CHKERRQ(ierr);
     if (copy) {

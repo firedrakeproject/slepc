@@ -197,7 +197,11 @@ PETSC_STATIC_INLINE PetscErrorCode BV_AllocateSignature(BV bv)
 
   PetscFunctionBegin;
   if (bv->indef && !bv->omega) {
-    ierr = VecCreateSeq(PETSC_COMM_SELF,bv->nc+bv->m,&bv->omega);CHKERRQ(ierr);
+    if (bv->cuda) {
+      ierr = VecCreateSeqCUDA(PETSC_COMM_SELF,bv->nc+bv->m,&bv->omega);CHKERRQ(ierr);
+    } else {
+      ierr = VecCreateSeq(PETSC_COMM_SELF,bv->nc+bv->m,&bv->omega);CHKERRQ(ierr);
+    }
     ierr = PetscLogObjectParent((PetscObject)bv,(PetscObject)bv->omega);CHKERRQ(ierr);
     ierr = VecSet(bv->omega,1.0);CHKERRQ(ierr);
   }
