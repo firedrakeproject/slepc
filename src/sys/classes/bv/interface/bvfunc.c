@@ -139,7 +139,7 @@ PetscErrorCode BVDestroy(BV *bv)
   ierr = BVDestroy(&(*bv)->cached);CHKERRQ(ierr);
   ierr = PetscFree((*bv)->work);CHKERRQ(ierr);
   ierr = PetscFree2((*bv)->h,(*bv)->c);CHKERRQ(ierr);
-  ierr = PetscFree((*bv)->omega);CHKERRQ(ierr);
+  ierr = VecDestroy(&(*bv)->omega);CHKERRQ(ierr);
   ierr = MatDestroy(&(*bv)->B);CHKERRQ(ierr);
   ierr = MatDestroy(&(*bv)->C);CHKERRQ(ierr);
   ierr = MatDestroy(&(*bv)->Acreate);CHKERRQ(ierr);
