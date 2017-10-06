@@ -88,6 +88,7 @@ int main(int argc,char **argv)
   if (!rank) {
     ierr = VecSetValue(v0,0,1.0,INSERT_VALUES);CHKERRQ(ierr);
     ierr = VecSetValue(v0,1,1.0,INSERT_VALUES);CHKERRQ(ierr);
+    ierr = VecSetValue(v0,2,1.0,INSERT_VALUES);CHKERRQ(ierr);
   }
   ierr = VecAssemblyBegin(v0);CHKERRQ(ierr);
   ierr = VecAssemblyEnd(v0);CHKERRQ(ierr);
