@@ -343,13 +343,13 @@ static PetscErrorCode BVOrthogonalizeGS(BV bv,PetscInt j,Vec v,PetscBool *which,
     ierr = BVOrthogonalizeGS1(bv,k,v,which,h,c,&onrm,&nrm);CHKERRQ(ierr);
     /* repeat if ||q|| < eta ||h|| */
     l = 1;
-    while (l<3 && nrm && nrm < bv->orthog_eta*onrm) {
+    while (l<3 && nrm && PetscAbsReal(nrm) < bv->orthog_eta*PetscAbsReal(onrm)) {
       l++;
-      if (mgs) onrm = nrm;
-      ierr = BVOrthogonalizeGS1(bv,k,v,which,h,c,mgs?NULL:&onrm,&nrm);CHKERRQ(ierr);
+      if (mgs||bv->indef) onrm = nrm;
+      ierr = BVOrthogonalizeGS1(bv,k,v,which,h,c,(mgs||bv->indef)?NULL:&onrm,&nrm);CHKERRQ(ierr);
     }
     /* linear dependence check: criterion not satisfied in the last iteration */
-    if (dolindep) *lindep = PetscNot(nrm && nrm >= bv->orthog_eta*onrm);
+    if (dolindep) *lindep = PetscNot(nrm && PetscAbsReal(nrm) >= bv->orthog_eta*PetscAbsReal(onrm));
     break;
 
   case BV_ORTHOG_REFINE_NEVER:
@@ -366,7 +366,7 @@ static PetscErrorCode BVOrthogonalizeGS(BV bv,PetscInt j,Vec v,PetscBool *which,
     ierr = BVOrthogonalizeGS1(bv,k,v,which,h,c,NULL,NULL);CHKERRQ(ierr);
     ierr = BVOrthogonalizeGS1(bv,k,v,which,h,c,dolindep?&onrm:NULL,(norm||dolindep||signature)?&nrm:NULL);CHKERRQ(ierr);
     /* linear dependence check: criterion not satisfied in the second iteration */
-    if (dolindep) *lindep = PetscNot(nrm && nrm >= bv->orthog_eta*onrm);
+    if (dolindep) *lindep = PetscNot(nrm && PetscAbsReal(nrm) >= bv->orthog_eta*PetscAbsReal(onrm));
     break;
   }
   if (signature) bv->omega[bv->nc+k] = (nrm<0.0)? -1.0: 1.0;

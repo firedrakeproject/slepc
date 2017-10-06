@@ -29,7 +29,7 @@ int main(int argc,char **argv)
   Vec            t,v,w,omega;
   Mat            B,M;
   BV             X,Y;
-  PetscInt       i,j,n=10,k=5,Istart,Iend;
+  PetscInt       i,j,n=10,k=5,l,Istart,Iend;
   PetscScalar    alpha;
   PetscReal      nrm;
   PetscViewer    view;
@@ -70,12 +70,14 @@ int main(int argc,char **argv)
   }
 
   /* Fill X entries */
+  l = -3;
   for (j=0;j<k;j++) {
     ierr = BVGetColumn(X,j,&v);CHKERRQ(ierr);
     ierr = VecSet(v,-1.0);CHKERRQ(ierr);
-    for (i=0;i<4;i++) {
+    for (i=0;i<n/2;i++) {
       if (i+j<n) {
-        ierr = VecSetValue(v,i+j,(PetscScalar)(3*i+j-2),INSERT_VALUES);CHKERRQ(ierr);
+        l = (l + 3*i+j-2) % n;
+        ierr = VecSetValue(v,i+j,(PetscScalar)l,INSERT_VALUES);CHKERRQ(ierr);
       }
     }
     ierr = VecAssemblyBegin(v);CHKERRQ(ierr);
