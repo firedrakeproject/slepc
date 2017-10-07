@@ -370,13 +370,14 @@ PetscErrorCode BVResize(BV bv,PetscInt m,PetscBool copy)
       ierr = VecCreateSeq(PETSC_COMM_SELF,m,&v);CHKERRQ(ierr);
     }
     ierr = PetscLogObjectParent((PetscObject)bv,(PetscObject)v);CHKERRQ(ierr);
-    ierr = VecSet(v,1.0);CHKERRQ(ierr);
     if (copy) {
       ierr = VecGetArray(v,&array);CHKERRQ(ierr);
       ierr = VecGetArrayRead(bv->omega,&omega);CHKERRQ(ierr);
-      ierr = PetscMemcpy(array,omega,PetscMin(m,bv->m)*sizeof(PetscReal));CHKERRQ(ierr);
+      ierr = PetscMemcpy(array,omega,PetscMin(m,bv->m)*sizeof(PetscScalar));CHKERRQ(ierr);
       ierr = VecRestoreArrayRead(bv->omega,&omega);CHKERRQ(ierr);
       ierr = VecRestoreArray(v,&array);CHKERRQ(ierr);
+    } else {
+      ierr = VecSet(v,1.0);CHKERRQ(ierr);
     }
     ierr = VecDestroy(&bv->omega);CHKERRQ(ierr);
     bv->omega = v;
@@ -1582,7 +1583,7 @@ PetscErrorCode BVCopy(BV V,BV W)
     ierr = BV_AllocateSignature(W);CHKERRQ(ierr);
     ierr = VecGetArrayRead(V->omega,&vomega);CHKERRQ(ierr);
     ierr = VecGetArray(W->omega,&womega);CHKERRQ(ierr);
-    ierr = PetscMemcpy(womega+W->nc+W->l,vomega+V->nc+V->l,(V->k-V->l)*sizeof(PetscReal));CHKERRQ(ierr);
+    ierr = PetscMemcpy(womega+W->nc+W->l,vomega+V->nc+V->l,(V->k-V->l)*sizeof(PetscScalar));CHKERRQ(ierr);
     ierr = VecRestoreArray(W->omega,&womega);CHKERRQ(ierr);
     ierr = VecRestoreArrayRead(V->omega,&vomega);CHKERRQ(ierr);
   }
