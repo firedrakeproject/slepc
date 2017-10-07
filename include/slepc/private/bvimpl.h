@@ -99,9 +99,9 @@ struct _p_BV {
   PetscRandom        rand;         /* random number generator */
   PetscBool          rrandom;      /* reproducible random vectors */
   Mat                Acreate;      /* matrix given at BVCreateFromMat() */
+  PetscBool          cuda;         /* true if GPU must be used in SVEC */
   PetscScalar        *work;
   PetscInt           lwork;
-  PetscBool          cuda;
   void               *data;
 };
 
@@ -198,7 +198,11 @@ PETSC_STATIC_INLINE PetscErrorCode BV_AllocateSignature(BV bv)
   PetscFunctionBegin;
   if (bv->indef && !bv->omega) {
     if (bv->cuda) {
+#if defined(PETSC_HAVE_VECCUDA)
       ierr = VecCreateSeqCUDA(PETSC_COMM_SELF,bv->nc+bv->m,&bv->omega);CHKERRQ(ierr);
+#else
+      SETERRQ(PetscObjectComm((PetscObject)bv),1,"Something wrong happened");
+#endif
     } else {
       ierr = VecCreateSeq(PETSC_COMM_SELF,bv->nc+bv->m,&bv->omega);CHKERRQ(ierr);
     }
