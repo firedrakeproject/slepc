@@ -154,24 +154,24 @@ PetscErrorCode SetGrid1D(PetscInt n, dim3 *dimGrid, dim3 *dimBlock,PetscInt *xco
 }
 
 /* pointwise multiplication */
-__global__ void PointwiseMult_kernel(PetscInt xcount,PetscScalar *a,const PetscReal *b,PetscInt n)
+__global__ void PointwiseMult_kernel(PetscInt xcount,PetscScalar *a,const PetscScalar *b,PetscInt n)
 {
   PetscInt i,x;
 
   x = xcount*gridDim.x*blockDim.x+blockIdx.x*blockDim.x*TILE_SIZE_X+threadIdx.x*TILE_SIZE_X;
   for (i=x;i<x+TILE_SIZE_X&&i<n;i++) {
-    a[i] *= b[i];
+    a[i] *= PetscRealPart(b[i]);
   }
 }
 
 /* pointwise division */
-__global__ void PointwiseDiv_kernel(PetscInt xcount,PetscScalar *a,const PetscReal *b,PetscInt n)
+__global__ void PointwiseDiv_kernel(PetscInt xcount,PetscScalar *a,const PetscScalar *b,PetscInt n)
 {
   PetscInt i,x;
 
   x = xcount*gridDim.x*blockDim.x+blockIdx.x*blockDim.x*TILE_SIZE_X+threadIdx.x*TILE_SIZE_X;
   for (i=x;i<x+TILE_SIZE_X&&i<n;i++) {
-    a[i] /= b[i];
+    a[i] /= PetscRealPart(b[i]);
   }
 }
 
@@ -182,19 +182,18 @@ __global__ void PointwiseDiv_kernel(PetscInt xcount,PetscScalar *a,const PetscRe
 */
 PetscErrorCode BV_ApplySignature_CUDA(BV bv,PetscInt j,PetscScalar *h,PetscBool inverse)
 {
-  PetscErrorCode ierr;
-  PetscScalar    *d_h;
-  PetscReal      *d_omega;
-  PetscInt       i,xcount;
-  dim3           blocks3d, threads3d;
-  cudaError_t    cerr;
+  PetscErrorCode    ierr;
+  PetscScalar       *d_h;
+  const PetscScalar *d_omega,*omega;
+  PetscInt          i,xcount;
+  dim3              blocks3d, threads3d;
+  cudaError_t       cerr;
 
   PetscFunctionBegin;
   if (!(bv->nc+j)) PetscFunctionReturn(0);
   if (!h) {
     ierr = VecCUDAGetArrayReadWrite(bv->buffer,&d_h);CHKERRQ(ierr);
-    cerr = cudaMalloc((void**)&d_omega,(bv->nc+j)*sizeof(PetscReal));CHKERRCUDA(cerr);
-    cerr = cudaMemcpy(d_omega,bv->omega,(bv->nc+j)*sizeof(PetscReal),cudaMemcpyHostToDevice);CHKERRCUDA(cerr);
+    ierr = VecCUDAGetArrayRead(bv->omega,&d_omega);CHKERRQ(ierr);
     ierr = SetGrid1D(bv->nc+j,&blocks3d,&threads3d,&xcount);CHKERRQ(ierr);
     if (inverse) {
       for (i=0;i<xcount;i++) {
@@ -207,11 +206,13 @@ PetscErrorCode BV_ApplySignature_CUDA(BV bv,PetscInt j,PetscScalar *h,PetscBool 
     }
     cerr = cudaGetLastError();CHKERRCUDA(cerr);
     ierr = WaitForGPU();CHKERRCUDA(ierr);
-    cerr = cudaFree(d_omega);CHKERRCUDA(cerr);
+    ierr = VecCUDARestoreArrayRead(bv->omega,&d_omega);CHKERRQ(ierr);
     ierr = VecCUDARestoreArrayReadWrite(bv->buffer,&d_h);CHKERRQ(ierr);
   } else {
-    if (inverse) for (i=0;i<bv->nc+j;i++) h[i] /= bv->omega[i];
-    else for (i=0;i<bv->nc+j;i++) h[i] *= bv->omega[i];
+    ierr = VecGetArrayRead(bv->omega,&omega);CHKERRQ(ierr);
+    if (inverse) for (i=0;i<bv->nc+j;i++) h[i] /= PetscRealPart(omega[i]);
+    else for (i=0;i<bv->nc+j;i++) h[i] *= PetscRealPart(omega[i]);
+    ierr = VecRestoreArrayRead(bv->omega,&omega);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }

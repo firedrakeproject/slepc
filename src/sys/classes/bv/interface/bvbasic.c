@@ -340,9 +340,10 @@ PetscErrorCode BVGetNumConstraints(BV bv,PetscInt *nc)
 @*/
 PetscErrorCode BVResize(BV bv,PetscInt m,PetscBool copy)
 {
-  PetscErrorCode ierr;
-  PetscReal      *omega;
-  PetscInt       i;
+  PetscErrorCode    ierr;
+  PetscScalar       *array;
+  const PetscScalar *omega;
+  Vec               v;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(bv,BV_CLASSID,1);
@@ -359,14 +360,27 @@ PetscErrorCode BVResize(BV bv,PetscInt m,PetscBool copy)
   ierr = BVDestroy(&bv->cached);CHKERRQ(ierr);
   ierr = PetscFree2(bv->h,bv->c);CHKERRQ(ierr);
   if (bv->omega) {
-    ierr = PetscMalloc1(m,&omega);CHKERRQ(ierr);
-    ierr = PetscLogObjectMemory((PetscObject)bv,m*sizeof(PetscReal));CHKERRQ(ierr);
-    for (i=0;i<m;i++) omega[i] = 1.0;
-    if (copy) {
-      ierr = PetscMemcpy(omega,bv->omega,PetscMin(m,bv->m)*sizeof(PetscReal));CHKERRQ(ierr);
+    if (bv->cuda) {
+#if defined(PETSC_HAVE_VECCUDA)
+      ierr = VecCreateSeqCUDA(PETSC_COMM_SELF,m,&v);CHKERRQ(ierr);
+#else
+      SETERRQ(PetscObjectComm((PetscObject)bv),1,"Something wrong happened");
+#endif
+    } else {
+      ierr = VecCreateSeq(PETSC_COMM_SELF,m,&v);CHKERRQ(ierr);
     }
-    ierr = PetscFree(bv->omega);CHKERRQ(ierr);
-    bv->omega = omega;
+    ierr = PetscLogObjectParent((PetscObject)bv,(PetscObject)v);CHKERRQ(ierr);
+    if (copy) {
+      ierr = VecGetArray(v,&array);CHKERRQ(ierr);
+      ierr = VecGetArrayRead(bv->omega,&omega);CHKERRQ(ierr);
+      ierr = PetscMemcpy(array,omega,PetscMin(m,bv->m)*sizeof(PetscScalar));CHKERRQ(ierr);
+      ierr = VecRestoreArrayRead(bv->omega,&omega);CHKERRQ(ierr);
+      ierr = VecRestoreArray(v,&array);CHKERRQ(ierr);
+    } else {
+      ierr = VecSet(v,1.0);CHKERRQ(ierr);
+    }
+    ierr = VecDestroy(&bv->omega);CHKERRQ(ierr);
+    bv->omega = v;
   }
   bv->m = m;
   bv->k = PetscMin(bv->k,m);
@@ -666,6 +680,7 @@ PetscErrorCode BVSetSignature(BV bv,Vec omega)
   PetscErrorCode    ierr;
   PetscInt          i,n;
   const PetscScalar *pomega;
+  PetscScalar       *intern;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(bv,BV_CLASSID,1);
@@ -678,7 +693,9 @@ PetscErrorCode BVSetSignature(BV bv,Vec omega)
   ierr = BV_AllocateSignature(bv);CHKERRQ(ierr);
   if (bv->indef) {
     ierr = VecGetArrayRead(omega,&pomega);CHKERRQ(ierr);
-    for (i=0;i<n;i++) bv->omega[bv->nc+i] = PetscRealPart(pomega[i]);
+    ierr = VecGetArray(bv->omega,&intern);CHKERRQ(ierr);
+    for (i=0;i<n;i++) intern[bv->nc+i] = pomega[i];
+    ierr = VecRestoreArray(bv->omega,&intern);CHKERRQ(ierr);
     ierr = VecRestoreArrayRead(omega,&pomega);CHKERRQ(ierr);
   } else {
     ierr = PetscInfo(bv,"Ignoring signature because BV is not indefinite\n");CHKERRQ(ierr);
@@ -706,9 +723,10 @@ PetscErrorCode BVSetSignature(BV bv,Vec omega)
 @*/
 PetscErrorCode BVGetSignature(BV bv,Vec omega)
 {
-  PetscErrorCode ierr;
-  PetscInt       i,n;
-  PetscScalar    *pomega;
+  PetscErrorCode    ierr;
+  PetscInt          i,n;
+  PetscScalar       *pomega;
+  const PetscScalar *intern;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(bv,BV_CLASSID,1);
@@ -720,7 +738,9 @@ PetscErrorCode BVGetSignature(BV bv,Vec omega)
   if (n!=bv->k) SETERRQ2(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_SIZ,"Vec argument has %D elements, should be %D",n,bv->k);
   if (bv->indef && bv->omega) {
     ierr = VecGetArray(omega,&pomega);CHKERRQ(ierr);
-    for (i=0;i<n;i++) pomega[i] = bv->omega[bv->nc+i];
+    ierr = VecGetArrayRead(bv->omega,&intern);CHKERRQ(ierr);
+    for (i=0;i<n;i++) pomega[i] = intern[bv->nc+i];
+    ierr = VecRestoreArrayRead(bv->omega,&intern);CHKERRQ(ierr);
     ierr = VecRestoreArray(omega,&pomega);CHKERRQ(ierr);
   } else {
     ierr = VecSet(omega,1.0);CHKERRQ(ierr);
@@ -1541,7 +1561,9 @@ PetscErrorCode BVDuplicateResize(BV V,PetscInt m,BV *W)
 @*/
 PetscErrorCode BVCopy(BV V,BV W)
 {
-  PetscErrorCode ierr;
+  PetscErrorCode    ierr;
+  PetscScalar       *womega;
+  const PetscScalar *vomega;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(V,BV_CLASSID,1);
@@ -1559,7 +1581,11 @@ PetscErrorCode BVCopy(BV V,BV W)
   if (V->indef && V->matrix && V->indef==W->indef && V->matrix==W->matrix) {
     /* copy signature */
     ierr = BV_AllocateSignature(W);CHKERRQ(ierr);
-    ierr = PetscMemcpy(W->omega+W->nc+W->l,V->omega+V->nc+V->l,(V->k-V->l)*sizeof(PetscReal));CHKERRQ(ierr);
+    ierr = VecGetArrayRead(V->omega,&vomega);CHKERRQ(ierr);
+    ierr = VecGetArray(W->omega,&womega);CHKERRQ(ierr);
+    ierr = PetscMemcpy(womega+W->nc+W->l,vomega+V->nc+V->l,(V->k-V->l)*sizeof(PetscScalar));CHKERRQ(ierr);
+    ierr = VecRestoreArray(W->omega,&womega);CHKERRQ(ierr);
+    ierr = VecRestoreArrayRead(V->omega,&vomega);CHKERRQ(ierr);
   }
   ierr = (*V->ops->copy)(V,W);CHKERRQ(ierr);
   ierr = PetscLogEventEnd(BV_Copy,V,W,0,0);CHKERRQ(ierr);
@@ -1629,6 +1655,7 @@ PetscErrorCode BVCopyColumn(BV V,PetscInt j,PetscInt i)
 {
   PetscErrorCode ierr;
   Vec            z,w;
+  PetscScalar    *omega;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(V,BV_CLASSID,1);
@@ -1639,7 +1666,11 @@ PetscErrorCode BVCopyColumn(BV V,PetscInt j,PetscInt i)
   if (j==i) PetscFunctionReturn(0);
 
   ierr = PetscLogEventBegin(BV_Copy,V,0,0,0);CHKERRQ(ierr);
-  if (V->omega) V->omega[i] = V->omega[j];
+  if (V->omega) {
+    ierr = VecGetArray(V->omega,&omega);CHKERRQ(ierr);
+    omega[i] = omega[j];
+    ierr = VecRestoreArray(V->omega,&omega);CHKERRQ(ierr);
+  }
   ierr = BVGetColumn(V,j,&z);CHKERRQ(ierr);
   ierr = BVGetColumn(V,i,&w);CHKERRQ(ierr);
   ierr = VecCopy(z,w);CHKERRQ(ierr);

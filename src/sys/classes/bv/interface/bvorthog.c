@@ -107,15 +107,18 @@ PETSC_STATIC_INLINE PetscErrorCode BV_SquareSum_Default(BV bv,PetscInt j,PetscSc
 */
 PETSC_STATIC_INLINE PetscErrorCode BV_ApplySignature_Default(BV bv,PetscInt j,PetscScalar *h,PetscBool inverse)
 {
-  PetscErrorCode ierr;
-  PetscScalar    *hh=h;
-  PetscInt       i;
+  PetscErrorCode    ierr;
+  PetscScalar       *hh=h;
+  PetscInt          i;
+  const PetscScalar *omega;
 
   PetscFunctionBegin;
   if (!(bv->nc+j)) PetscFunctionReturn(0);
   if (!h) { ierr = VecGetArray(bv->buffer,&hh);CHKERRQ(ierr); }
-  if (inverse) for (i=0;i<bv->nc+j;i++) hh[i] /= bv->omega[i];
-  else for (i=0;i<bv->nc+j;i++) hh[i] *= bv->omega[i];
+  ierr = VecGetArrayRead(bv->omega,&omega);CHKERRQ(ierr);
+  if (inverse) for (i=0;i<bv->nc+j;i++) hh[i] /= PetscRealPart(omega[i]);
+  else for (i=0;i<bv->nc+j;i++) hh[i] *= PetscRealPart(omega[i]);
+  ierr = VecRestoreArrayRead(bv->omega,&omega);CHKERRQ(ierr);
   if (!h) { ierr = VecRestoreArray(bv->buffer,&hh);CHKERRQ(ierr); }
   PetscFunctionReturn(0);
 }
@@ -217,14 +220,18 @@ PETSC_STATIC_INLINE PetscErrorCode BVDotColumnInc(BV X,PetscInt j,PetscScalar *q
 static PetscErrorCode BVOrthogonalizeMGS1(BV bv,PetscInt j,Vec v,PetscBool *which,PetscScalar *h,PetscScalar *c,PetscReal *onrm,PetscReal *nrm)
 {
   PetscErrorCode ierr;
-  PetscInt       i;
-  PetscScalar    dot;
-  Vec            vi,z,w=v;
+  PetscInt          i;
+  PetscScalar       dot;
+  Vec               vi,z,w=v;
+  const PetscScalar *omega;
 
   PetscFunctionBegin;
   if (!v) { ierr = BVGetColumn(bv,j,&w);CHKERRQ(ierr); }
   if (onrm) { ierr = BVNormVec(bv,w,NORM_2,onrm);CHKERRQ(ierr); }
   z = w;
+  if (bv->indef) {
+    ierr = VecGetArrayRead(bv->omega,&omega);CHKERRQ(ierr);
+  }
   for (i=-bv->nc;i<j;i++) {
     if (which && i>=0 && !which[i]) continue;
     ierr = BVGetColumn(bv,i,&vi);CHKERRQ(ierr);
@@ -236,13 +243,16 @@ static PetscErrorCode BVOrthogonalizeMGS1(BV bv,PetscInt j,Vec v,PetscBool *whic
     ierr = VecDot(z,vi,&dot);CHKERRQ(ierr);
     /* v <- v - h_i v_i */
     ierr = BV_SetValue(bv,i,0,c,dot);CHKERRQ(ierr);
-    if (bv->indef) dot /= bv->omega[bv->nc+i];
+    if (bv->indef) dot /= PetscRealPart(omega[bv->nc+i]);
     ierr = VecAXPY(w,-dot,vi);CHKERRQ(ierr);
     ierr = BVRestoreColumn(bv,i,&vi);CHKERRQ(ierr);
   }
   if (nrm) { ierr = BVNormVec(bv,w,NORM_2,nrm);CHKERRQ(ierr); }
   if (!v) { ierr = BVRestoreColumn(bv,j,&w);CHKERRQ(ierr); }
   ierr = BV_AddCoefficients(bv,j,h,c);CHKERRQ(ierr);
+  if (bv->indef) {
+    ierr = VecRestoreArrayRead(bv->omega,&omega);CHKERRQ(ierr);
+  }
   PetscFunctionReturn(0);
 }
 
@@ -310,7 +320,7 @@ static PetscErrorCode BVOrthogonalizeCGS1(BV bv,PetscInt j,Vec v,PetscBool *whic
 static PetscErrorCode BVOrthogonalizeGS(BV bv,PetscInt j,Vec v,PetscBool *which,PetscReal *norm,PetscBool *lindep)
 {
   PetscErrorCode ierr;
-  PetscScalar    *h,*c;
+  PetscScalar    *h,*c,*omega;
   PetscReal      onrm,nrm;
   PetscInt       k,l;
   PetscBool      mgs,dolindep,signature;
@@ -369,7 +379,11 @@ static PetscErrorCode BVOrthogonalizeGS(BV bv,PetscInt j,Vec v,PetscBool *which,
     if (dolindep) *lindep = PetscNot(nrm && PetscAbsReal(nrm) >= bv->orthog_eta*PetscAbsReal(onrm));
     break;
   }
-  if (signature) bv->omega[bv->nc+k] = (nrm<0.0)? -1.0: 1.0;
+  if (signature) {
+    ierr = VecGetArray(bv->omega,&omega);CHKERRQ(ierr);
+    omega[bv->nc+k] = (nrm<0.0)? -1.0: 1.0;
+    ierr = VecRestoreArray(bv->omega,&omega);CHKERRQ(ierr);
+  }
   if (norm) {
     *norm = nrm;
     if (!v) { /* store norm value next to the orthogonalization coefficients */
