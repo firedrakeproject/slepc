@@ -245,8 +245,8 @@ Finally, we mention the possibility of defining an arbitrary sorting criterion b
 \texttt{EPS\_SMALLEST\_MAGNITUDE}  & \texttt{-eps\_smallest\_magnitude} & Smallest $|\lambda|$ \\
 \texttt{EPS\_LARGEST\_REAL}        & \texttt{-eps\_largest\_real}       & Largest $\mathrm{Re}(\lambda)$ \\
 \texttt{EPS\_SMALLEST\_REAL}       & \texttt{-eps\_smallest\_real}      & Smallest $\mathrm{Re}(\lambda)$ \\
-\texttt{EPS\_LARGEST\_IMAGINARY}   & \texttt{-eps\_largest\_imaginary}  & Largest $\mathrm{Im}(\lambda)$\footnotemark \\
-\texttt{EPS\_SMALLEST\_IMAGINARY}  & \texttt{-eps\_smallest\_imaginary} & Smallest $\mathrm{Im}(\lambda)$\addtocounter{footnote}{-1}\footnotemark \\
+\texttt{EPS\_LARGEST\_IMAGINARY}   & \texttt{-eps\_largest\_imaginary}  & Largest $\mathrm{Im}(\lambda)$\footnotemark[1] \\
+\texttt{EPS\_SMALLEST\_IMAGINARY}  & \texttt{-eps\_smallest\_imaginary} & Smallest $\mathrm{Im}(\lambda)$\footnotemark[1] \\
 \hline
 \texttt{EPS\_TARGET\_MAGNITUDE}    & \texttt{-eps\_target\_magnitude}   & Smallest $|\lambda-\tau|$ \\
 \texttt{EPS\_TARGET\_REAL}         & \texttt{-eps\_target\_real}        & Smallest $|\mathrm{Re}(\lambda-\tau)|$ \\
@@ -258,7 +258,7 @@ Finally, we mention the possibility of defining an arbitrary sorting criterion b
 \caption{\label{tab:portion}Available possibilities for selection of the eigenvalues of interest.}
 \end{table}
 
-\footnotetext{If \slepc is compiled for real scalars, then the absolute value of the imaginary part, $|\mathrm{Im}(\lambda)|$, is used for eigenvalue selection and sorting.}
+\footnotetext[1]{If \slepc is compiled for real scalars, then the absolute value of the imaginary part, $|\mathrm{Im}(\lambda)|$, is used for eigenvalue selection and sorting.}
 
 The selection criteria discussed above are based solely on the eigenvalue. In some special situations, it is necessary to establish a user-defined criterion that also makes use of the eigenvector when deciding which are the most wanted eigenpairs. For these cases, use \ident{EPSSetArbitrarySelection}.
 

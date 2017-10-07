@@ -278,8 +278,8 @@ Finally, we mention that the use of regions for filtering is also available in \
 \texttt{PEP\_SMALLEST\_MAGNITUDE}  & \texttt{-pep\_smallest\_magnitude} & Smallest $|\lambda|$ \\
 \texttt{PEP\_LARGEST\_REAL}        & \texttt{-pep\_largest\_real}       & Largest $\mathrm{Re}(\lambda)$ \\
 \texttt{PEP\_SMALLEST\_REAL}       & \texttt{-pep\_smallest\_real}      & Smallest $\mathrm{Re}(\lambda)$ \\
-\texttt{PEP\_LARGEST\_IMAGINARY}   & \texttt{-pep\_largest\_imaginary}  & Largest $\mathrm{Im}(\lambda)$\footnotemark \\
-\texttt{PEP\_SMALLEST\_IMAGINARY}  & \texttt{-pep\_smallest\_imaginary} & Smallest $\mathrm{Im}(\lambda)$\addtocounter{footnote}{-1}\footnotemark \\\hline
+\texttt{PEP\_LARGEST\_IMAGINARY}   & \texttt{-pep\_largest\_imaginary}  & Largest $\mathrm{Im}(\lambda)$\footnotemark[1] \\
+\texttt{PEP\_SMALLEST\_IMAGINARY}  & \texttt{-pep\_smallest\_imaginary} & Smallest $\mathrm{Im}(\lambda)$\footnotemark[1] \\\hline
 \texttt{PEP\_TARGET\_MAGNITUDE}    & \texttt{-pep\_target\_magnitude}   & Smallest $|\lambda-\tau|$ \\
 \texttt{PEP\_TARGET\_REAL}         & \texttt{-pep\_target\_real}        & Smallest $|\mathrm{Re}(\lambda-\tau)|$ \\
 \texttt{PEP\_TARGET\_IMAGINARY}    & \texttt{-pep\_target\_imaginary}   & Smallest $|\mathrm{Im}(\lambda-\tau)|$ \\\hline
@@ -288,7 +288,7 @@ Finally, we mention that the use of regions for filtering is also available in \
 \caption{\label{tab:portionq}Available possibilities for selection of the eigenvalues of interest in \ident{PEP}.}
 \end{table}
 
-\footnotetext{If \slepc is compiled for real scalars, then the absolute value of the imaginary part, $|\mathrm{Im}(\lambda)|$, is used for eigenvalue selection and sorting.}
+\footnotetext[1]{If \slepc is compiled for real scalars, then the absolute value of the imaginary part, $|\mathrm{Im}(\lambda)|$, is used for eigenvalue selection and sorting.}
 
 %---------------------------------------------------
 \section{Selecting the Solver}
@@ -310,14 +310,14 @@ Method             & \ident{PEPType}   & {\footnotesize Database Name} & {\footn
 Two-level Orthogonal Arnoldi (TOAR) & \texttt{PEPTOAR}     & \texttt{toar}     & Arbitrary & Any \\
 Symmetric TOAR                      & \texttt{PEPSTOAR}    & \texttt{stoar}    & Quadratic & Monomial \\
 Quadratic Arnoldi (Q-Arnoldi)       & \texttt{PEPQARNOLDI} & \texttt{qarnoldi} & Quadratic & Monomial \\
-Linearization via \ident{EPS}       & \texttt{PEPLINEAR}   & \texttt{linear}   & Arbitrary & Any\footnotemark \\
+Linearization via \ident{EPS}       & \texttt{PEPLINEAR}   & \texttt{linear}   & Arbitrary & Any\footnotemark[2] \\
 \hline
 Jacobi-Davidson                     & \texttt{PEPJD}       & \texttt{jd}       & Arbitrary & Monomial \\
 \hline
 \end{tabular} }
 \caption{\label{tab:solversp}Polynomial eigenvalue solvers available in the \ident{PEP} module.}
 \end{table}
-\footnotetext{Except if the explicit matrix option is set.}
+\footnotetext[2]{Except if the explicit matrix option is set.}
 
 The \ident{PEPLINEAR} method carries out an explicit linearization of the quadratic eigenproblem, as described in \S\ref{sec:qep}, resulting in a generalized eigenvalue problem that is handled by an \ident{EPS} object created internally. If required, this \ident{EPS} object can be extracted with the operation
 	\findex{PEPLinearGetEPS}
