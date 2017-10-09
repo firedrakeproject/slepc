@@ -537,7 +537,7 @@ PetscErrorCode EPSAllocateSolution(EPS eps,PetscInt extra)
 
   /* allocate space for eigenvalues and friends */
   if (requested != oldsize || !eps->eigr) {
-    if (oldsize) {
+    if (oldsize || !eps->V) {
       ierr = PetscFree4(eps->eigr,eps->eigi,eps->errest,eps->perm);CHKERRQ(ierr);
     }
     ierr = PetscMalloc4(requested,&eps->eigr,requested,&eps->eigi,requested,&eps->errest,requested,&eps->perm);CHKERRQ(ierr);
