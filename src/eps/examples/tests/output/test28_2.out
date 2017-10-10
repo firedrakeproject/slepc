@@ -7,5 +7,6 @@
 
 2-D Laplacian Eigenproblem, N=440 (20x22 grid)
 
- Problem: less than 3 eigenvalues converged
+ All requested eigenvalues computed up to the required tolerance:
+     7.95903, 7.90350, 7.89252
 

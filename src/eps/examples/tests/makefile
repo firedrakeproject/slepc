@@ -60,7 +60,7 @@ TESTEXAMPLES_C_NOTSINGLE           = test1.PETSc runtest1_1 runtest1_3 runtest1_
                                      test18.PETSc runtest18_1 test18.rm \
                                      test24.PETSc runtest24_1 test24.rm \
                                      test27.PETSc runtest27_1 test27.rm \
-                                     test28.PETSc runtest28_1 runtest28_2 test28.rm
+                                     test28.PETSc runtest28_1 runtest28_2 runtest28_3 test28.rm
 TESTEXAMPLES_C_DATAFILE            = test25.PETSc runtest25_1 test25.rm \
                                      test26.PETSc runtest26_1 test26.rm
 TESTEXAMPLES_C_NOCOMPLEX_NOTSINGLE = test1.PETSc runtest1_2 test1.rm \
@@ -666,6 +666,11 @@ runtest28_1_%:
 runtest28_2: runtest28_2_power runtest28_2_subspace
 runtest28_2_%:
 	-@${SETTEST}; check=test28_2; eps=$*; \
-	${MPIEXEC} -n 1 ./test28 -eps_type $$eps -eps_largest_magnitude -terse > $${test}.tmp 2>&1; \
+	${MPIEXEC} -n 1 ./test28 -eps_type $$eps -eps_largest_magnitude -eps_max_it 15000 -terse > $${test}.tmp 2>&1; \
+	${TESTCODE}
+
+runtest28_3:
+	-@${SETTEST}; \
+	${MPIEXEC} -n 1 ./test28 -eps_interval 0.5,0.67 -st_type sinvert -st_pc_type cholesky -terse > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
