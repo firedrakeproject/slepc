@@ -28,9 +28,10 @@
 
 #define DS type(tDS)
 
-#define DSType      character*(80)
-#define DSStateType PetscEnum
-#define DSMatType   PetscEnum
+#define DSType         character*(80)
+#define DSStateType    PetscEnum
+#define DSMatType      PetscEnum
+#define DSParallelType PetscEnum
 
 #define DSHEP       'hep'
 #define DSNHEP      'nhep'

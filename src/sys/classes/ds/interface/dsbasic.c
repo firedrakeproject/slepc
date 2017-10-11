@@ -30,6 +30,7 @@ PetscLogEvent     DS_Solve = 0,DS_Vectors = 0,DS_Synchronize = 0,DS_Other = 0;
 static PetscBool  DSPackageInitialized = PETSC_FALSE;
 
 const char *DSStateTypes[] = {"RAW","INTERMEDIATE","CONDENSED","TRUNCATED","DSStateType","DS_STATE_",0};
+const char *DSParallelTypes[] = {"REDUNDANT","SYNCHRONIZED","DSParallelType","DS_PARALLEL_",0};
 const char *DSMatName[DS_NUM_MAT] = {"A","B","C","T","D","Q","Z","X","Y","U","VT","W","E0","E1","E2","E3","E4","E5","E6","E7","E8","E9"};
 DSMatType  DSMatExtra[DS_NUM_EXTRA] = {DS_MAT_E0,DS_MAT_E1,DS_MAT_E2,DS_MAT_E3,DS_MAT_E4,DS_MAT_E5,DS_MAT_E6,DS_MAT_E7,DS_MAT_E8,DS_MAT_E9};
 
@@ -144,6 +145,7 @@ PetscErrorCode DSCreate(MPI_Comm comm,DS *newds)
   ds->t             = 0;
   ds->bs            = 1;
   ds->sc            = NULL;
+  ds->pmode         = DS_PARALLEL_REDUNDANT;
 
   for (i=0;i<DS_NUM_MAT;i++) {
     ds->mat[i]      = NULL;
@@ -319,6 +321,9 @@ PetscErrorCode DSGetType(DS ds,DSType *type)
 +  ds   - the direct solver context
 -  meth - an index indentifying the method
 
+   Options Database Key:
+.  -ds_method <meth> - Sets the method
+
    Level: intermediate
 
 .seealso: DSGetMethod()
@@ -355,6 +360,66 @@ PetscErrorCode DSGetMethod(DS ds,PetscInt *meth)
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
   PetscValidPointer(meth,2);
   *meth = ds->method;
+  PetscFunctionReturn(0);
+}
+
+/*@
+   DSSetParallel - Selects the mode of operation in parallel runs.
+
+   Logically Collective on DS
+
+   Input Parameter:
++  ds    - the direct solver context
+-  pmode - the parallel mode
+
+   Options Database Key:
+.  -ds_parallel <mode> - Sets the parallel mode, either 'redundant' or 'synchronized'
+
+   Notes:
+   In the 'redundant' parallel mode, all processes will make the computation
+   redundantly, starting from the same data, and producing the same result.
+   This result may be slightly different in the different processes if using a
+   multithreaded BLAS library, which may cause issues in ill-conditioned problems.
+
+   In the 'synchronized' parallel mode, only the first MPI process performs the
+   computation and then the computed quantities are broadcast to the other
+   processes in the communicator. This communication is not done automatically,
+   an explicit call to DSSynchronize() is required.
+
+   Level: advanced
+
+.seealso: DSSynchronize(), DSGetParallel()
+@*/
+PetscErrorCode DSSetParallel(DS ds,DSParallelType pmode)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(ds,DS_CLASSID,1);
+  PetscValidLogicalCollectiveEnum(ds,pmode,2);
+  ds->pmode = pmode;
+  PetscFunctionReturn(0);
+}
+
+/*@
+   DSGetParallel - Gets the mode of operation in parallel runs.
+
+   Not Collective
+
+   Input Parameter:
+.  ds - the direct solver context
+
+   Output Parameter:
+.  pmode - the parallel mode
+
+   Level: advanced
+
+.seealso: DSSetParallel()
+@*/
+PetscErrorCode DSGetParallel(DS ds,DSParallelType *pmode)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(ds,DS_CLASSID,1);
+  PetscValidPointer(pmode,2);
+  *pmode = ds->pmode;
   PetscFunctionReturn(0);
 }
 
@@ -534,6 +599,9 @@ PetscErrorCode DSGetRefined(DS ds,PetscBool *ref)
 +  ds - the direct solver context
 -  bs - the block size
 
+   Options Database Key:
+.  -ds_block_size <bs> - Sets the block size
+
    Level: intermediate
 
 .seealso: DSGetBlockSize()
@@ -646,6 +714,7 @@ PetscErrorCode DSSetFromOptions(DS ds)
   PetscErrorCode ierr;
   PetscInt       bs,meth;
   PetscBool      flag;
+  DSParallelType pmode;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
@@ -661,6 +730,9 @@ PetscErrorCode DSSetFromOptions(DS ds)
 
     ierr = PetscOptionsInt("-ds_method","Method to be used for the dense system","DSSetMethod",ds->method,&meth,&flag);CHKERRQ(ierr);
     if (flag) { ierr = DSSetMethod(ds,meth);CHKERRQ(ierr); }
+
+    ierr = PetscOptionsEnum("-ds_parallel","Operation mode in parallel runs","DSSetParallel",DSParallelTypes,(PetscEnum)ds->pmode,(PetscEnum*)&pmode,&flag);CHKERRQ(ierr);
+    if (flag) { ierr = DSSetParallel(ds,pmode);CHKERRQ(ierr); }
 
     ierr = PetscObjectProcessOptionsHandlers(PetscOptionsObject,(PetscObject)ds);CHKERRQ(ierr);
   ierr = PetscOptionsEnd();CHKERRQ(ierr);
@@ -706,6 +778,7 @@ PetscErrorCode DSView(DS ds,PetscViewer viewer)
   if (isascii) {
     ierr = PetscViewerGetFormat(viewer,&format);CHKERRQ(ierr);
     ierr = PetscObjectPrintClassNamePrefixType((PetscObject)ds,viewer);CHKERRQ(ierr);
+    ierr = PetscViewerASCIIPrintf(viewer,"  parallel operation mode: %s\n",DSParallelTypes[ds->pmode]);CHKERRQ(ierr);
     if (format == PETSC_VIEWER_ASCII_INFO_DETAIL) {
       ierr = PetscViewerASCIIPrintf(viewer,"  current state: %s\n",DSStateTypes[ds->state]);CHKERRQ(ierr);
       ierr = PetscObjectTypeCompare((PetscObject)ds,DSSVD,&issvd);CHKERRQ(ierr);

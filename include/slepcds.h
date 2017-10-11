@@ -130,6 +130,17 @@ typedef enum { DS_MAT_A,
 PETSC_EXTERN DSMatType DSMatExtra[];
 #define DS_NUM_EXTRA  10
 
+/*E
+    DSParallelType - Indicates the parallel mode that the direct solver will use
+
+    Level: advanced
+
+.seealso: DSSetParallel()
+E*/
+typedef enum { DS_PARALLEL_REDUNDANT,
+               DS_PARALLEL_SYNCHRONIZED } DSParallelType;
+PETSC_EXTERN const char *DSParallelTypes[];
+
 PETSC_EXTERN PetscErrorCode DSCreate(MPI_Comm,DS*);
 PETSC_EXTERN PetscErrorCode DSSetType(DS,DSType);
 PETSC_EXTERN PetscErrorCode DSGetType(DS,DSType*);
@@ -154,6 +165,8 @@ PETSC_EXTERN PetscErrorCode DSTruncate(DS,PetscInt);
 PETSC_EXTERN PetscErrorCode DSSetIdentity(DS,DSMatType);
 PETSC_EXTERN PetscErrorCode DSSetMethod(DS,PetscInt);
 PETSC_EXTERN PetscErrorCode DSGetMethod(DS,PetscInt*);
+PETSC_EXTERN PetscErrorCode DSSetParallel(DS,DSParallelType);
+PETSC_EXTERN PetscErrorCode DSGetParallel(DS,DSParallelType*);
 PETSC_EXTERN PetscErrorCode DSSetCompact(DS,PetscBool);
 PETSC_EXTERN PetscErrorCode DSGetCompact(DS,PetscBool*);
 PETSC_EXTERN PetscErrorCode DSSetExtraRow(DS,PetscBool);

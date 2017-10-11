@@ -681,9 +681,14 @@ PetscErrorCode DSSort(DS ds,PetscScalar *eigr,PetscScalar *eigi,PetscScalar *rr,
    performs the necessary communication among the processes so that the
    internal data is exactly equal in all of them.
 
+   Depending on the parallel mode as set with DSSetParallel(), this function
+   will either do nothing or synchronize the matrices computed by DSSolve()
+   and DSSort(). The arguments eigr and eigi are typically those used in the
+   calls to DSSolve() and DSSort().
+
    Level: developer
 
-.seealso: DSSolve(), DSSort(), DSVectors(), DSStateType
+.seealso: DSSetParallel(), DSSolve(), DSSort()
 @*/
 PetscErrorCode DSSynchronize(DS ds,PetscScalar eigr[],PetscScalar eigi[])
 {
