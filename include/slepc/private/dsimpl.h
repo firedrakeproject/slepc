@@ -27,7 +27,7 @@
 
 PETSC_EXTERN PetscBool DSRegisterAllCalled;
 PETSC_EXTERN PetscErrorCode DSRegisterAll(void);
-PETSC_EXTERN PetscLogEvent DS_Solve,DS_Vectors,DS_Other;
+PETSC_EXTERN PetscLogEvent DS_Solve,DS_Vectors,DS_Synchronize,DS_Other;
 PETSC_INTERN const char *DSMatName[];
 
 typedef struct _DSOps *DSOps;
@@ -46,6 +46,7 @@ struct _DSOps {
   PetscErrorCode (*destroy)(DS);
   PetscErrorCode (*matgetsize)(DS,DSMatType,PetscInt*,PetscInt*);
   PetscErrorCode (*hermitian)(DS,DSMatType,PetscBool*);
+  PetscErrorCode (*synchronize)(DS,PetscScalar*,PetscScalar*);
 };
 
 struct _p_DS {
