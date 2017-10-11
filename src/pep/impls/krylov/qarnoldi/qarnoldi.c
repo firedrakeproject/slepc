@@ -269,6 +269,11 @@ PetscErrorCode PEPSolve_QArnoldi(PEP pep)
   ierr = VecScale(v,1.0/norm);CHKERRQ(ierr);
   ierr = VecScale(w,1.0/norm);CHKERRQ(ierr);
 
+  /* clean projected matrix (including the extra-arrow) */
+  ierr = DSGetArray(pep->ds,DS_MAT_A,&S);CHKERRQ(ierr);
+  ierr = PetscMemzero(S,ld*ld*sizeof(PetscScalar));CHKERRQ(ierr);
+  ierr = DSRestoreArray(pep->ds,DS_MAT_A,&S);CHKERRQ(ierr);
+  
    /* Restart loop */
   l = 0;
   while (pep->reason == PEP_CONVERGED_ITERATING) {
