@@ -768,6 +768,7 @@ PetscErrorCode DSView(DS ds,PetscViewer viewer)
   PetscBool         isascii,issvd;
   PetscViewerFormat format;
   PetscErrorCode    ierr;
+  PetscMPIInt       size;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
@@ -778,7 +779,10 @@ PetscErrorCode DSView(DS ds,PetscViewer viewer)
   if (isascii) {
     ierr = PetscViewerGetFormat(viewer,&format);CHKERRQ(ierr);
     ierr = PetscObjectPrintClassNamePrefixType((PetscObject)ds,viewer);CHKERRQ(ierr);
-    ierr = PetscViewerASCIIPrintf(viewer,"  parallel operation mode: %s\n",DSParallelTypes[ds->pmode]);CHKERRQ(ierr);
+    ierr = MPI_Comm_size(PetscObjectComm((PetscObject)ds),&size);CHKERRQ(ierr);
+    if (size>1) {
+      ierr = PetscViewerASCIIPrintf(viewer,"  parallel operation mode: %s\n",DSParallelTypes[ds->pmode]);CHKERRQ(ierr);
+    }
     if (format == PETSC_VIEWER_ASCII_INFO_DETAIL) {
       ierr = PetscViewerASCIIPrintf(viewer,"  current state: %s\n",DSStateTypes[ds->state]);CHKERRQ(ierr);
       ierr = PetscObjectTypeCompare((PetscObject)ds,DSSVD,&issvd);CHKERRQ(ierr);
