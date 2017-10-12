@@ -216,7 +216,7 @@ PetscErrorCode CreateSquareMesh(MPI_Comm comm,DM *dm)
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  ierr = DMPlexCreateHexBoxMesh(comm,dim,cells,DM_BOUNDARY_NONE, DM_BOUNDARY_NONE,DM_BOUNDARY_NONE,dm);CHKERRQ(ierr);
+  ierr = DMPlexCreateBoxMesh(comm,dim,PETSC_FALSE,cells,NULL,NULL,NULL,PETSC_TRUE,dm);CHKERRQ(ierr);
   ierr = DMSetFromOptions(*dm);CHKERRQ(ierr);
   ierr = DMSetUp(*dm);CHKERRQ(ierr);
   ierr = MPI_Comm_size(comm,&size);CHKERRQ(ierr);
