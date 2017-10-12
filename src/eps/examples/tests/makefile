@@ -666,7 +666,7 @@ runtest28_1_%:
 runtest28_2: runtest28_2_power runtest28_2_subspace
 runtest28_2_%:
 	-@${SETTEST}; check=test28_2; eps=$*; \
-	${MPIEXEC} -n 1 ./test28 -eps_type $$eps -eps_largest_magnitude -eps_max_it 15000 -terse > $${test}.tmp 2>&1; \
+	${MPIEXEC} -n 1 ./test28 -eps_type $$eps -eps_target 8 -st_type sinvert -terse > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
 runtest28_3:
