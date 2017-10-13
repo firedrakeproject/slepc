@@ -282,7 +282,7 @@ alldoc1: chk_loc deletemanualpages
 # Builds .html versions of the source
 alldoc2: chk_loc
 	-${OMAKE} ACTION=slepc_html PETSC_DIR=${PETSC_DIR} alltree LOC=${LOC}
-	cp ${LOC}/docs/manual.htm ${LOC}/docs/index.html
+	cp ${LOC}/docs/manual.html ${LOC}/docs/index.html
 
 # modify all generated html files and add in version number, date, canonical URL info.
 docsetdate: chk_petscdir
