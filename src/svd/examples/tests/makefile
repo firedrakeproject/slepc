@@ -24,15 +24,17 @@ FFLAGS     =
 CPPFLAGS   =
 FPPFLAGS   =
 LOCDIR     = src/svd/examples/tests/
-EXAMPLESC  = test1.c test2.c test3.c test4.c test5.c test6.c test7.c
+EXAMPLESC  = test1.c test2.c test3.c test4.c test5.c test6.c test7.c test8.c test9.c
 EXAMPLESF  = test4f.F
 MANSEC     = SVD
-TESTS      = test1 test2 test3 test4 test4f test5 test6 test7
+TESTS      = test1 test2 test3 test4 test4f test5 test6 test7 test8 test9
 
 TESTEXAMPLES_C           = test1.PETSc runtest1_1 test1.rm \
                            test4.PETSc runtest4_1 test4.rm \
                            test5.PETSc runtest5_1 test5.rm \
-                           test6.PETSc runtest6_1 test6.rm
+                           test6.PETSc runtest6_1 test6.rm \
+                           test8.PETSc runtest8_1 test8.rm \
+                           test9.PETSc runtest9_1 test9.rm
 TESTEXAMPLES_C_DOUBLE    = test2.PETSc runtest2_1 test2.rm
 TESTEXAMPLES_C_NOTSINGLE = test3.PETSc runtest3_1 runtest3_2 runtest3_4 test3.rm \
                            test4.PETSc runtest4_1_lapack test4.rm \
@@ -79,6 +81,14 @@ test6: test6.o chkopts
 test7: test7.o chkopts
 	-${CLINKER} -o test7 test7.o ${SLEPC_SVD_LIB}
 	${RM} test7.o
+
+test8: test8.o chkopts
+	-${CLINKER} -o test8 test8.o ${SLEPC_SVD_LIB}
+	${RM} test8.o
+
+test9: test9.o chkopts
+	-${CLINKER} -o test9 test9.o ${SLEPC_SVD_LIB}
+	${RM} test9.o
 
 #------------------------------------------------------------------------------------
 
@@ -175,5 +185,17 @@ runtest7_1:
 runtest7_2_cuda:
 	-@${SETTEST}; check=test7_1; \
 	${MPIEXEC} -n 1 ./test7 -info_exclude svd -log_exclude svd -mat_type aijcusparse >> $${test}.tmp 2>&1; \
+	${TESTCODE}
+
+runtest8_1: runtest8_1_lanczos runtest8_1_trlanczos runtest8_1_cross runtest8_1_cyclic runtest8_1_lapack
+runtest8_1_%:
+	-@${SETTEST}; check=test8_1; svd=$*; \
+	${MPIEXEC} -n 1 ./test8 -svd_type $$svd -svd_nsv 3 >> $${test}.tmp 2>&1; \
+	${TESTCODE}
+
+runtest9_1: runtest9_1_lanczos runtest9_1_trlanczos runtest9_1_cross runtest9_1_cyclic runtest9_1_lapack
+runtest9_1_%:
+	-@${SETTEST}; check=test9_1; svd=$*; \
+	${MPIEXEC} -n 1 ./test9 -svd_type $$svd -svd_nsv 3 >> $${test}.tmp 2>&1; \
 	${TESTCODE}
 
