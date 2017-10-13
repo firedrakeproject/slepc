@@ -315,9 +315,7 @@ PetscErrorCode NEPAllocateSolution(NEP nep,PetscInt extra)
 
   /* allocate space for eigenvalues and friends */
   if (requested != oldsize || !nep->eigr) {
-    if (oldsize) {
-      ierr = PetscFree4(nep->eigr,nep->eigi,nep->errest,nep->perm);CHKERRQ(ierr);
-    }
+    ierr = PetscFree4(nep->eigr,nep->eigi,nep->errest,nep->perm);CHKERRQ(ierr);
     ierr = PetscMalloc4(requested,&nep->eigr,requested,&nep->eigi,requested,&nep->errest,requested,&nep->perm);CHKERRQ(ierr);
     cnt = newc*sizeof(PetscScalar) + newc*sizeof(PetscReal) + newc*sizeof(PetscInt);
     ierr = PetscLogObjectMemory((PetscObject)nep,cnt);CHKERRQ(ierr);

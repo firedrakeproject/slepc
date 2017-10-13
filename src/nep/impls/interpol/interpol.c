@@ -466,7 +466,7 @@ PetscErrorCode NEPReset_Interpol(NEP nep)
   NEP_INTERPOL   *ctx = (NEP_INTERPOL*)nep->data;
 
   PetscFunctionBegin;
-  if (!ctx->pep) { ierr = PEPReset(ctx->pep);CHKERRQ(ierr); }
+  ierr = PEPReset(ctx->pep);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

@@ -254,6 +254,7 @@ PetscErrorCode NEPReset_Problem(NEP nep)
     }
     ierr = PetscFree(nep->f);CHKERRQ(ierr);
     ierr = PetscFree(nep->nrma);CHKERRQ(ierr);
+    nep->nt = 0;
   }
   PetscFunctionReturn(0);
 }
