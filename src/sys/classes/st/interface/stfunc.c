@@ -118,7 +118,8 @@ PetscErrorCode STReset(ST st)
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(st,ST_CLASSID,1);
+  if (st) PetscValidHeaderSpecific(st,ST_CLASSID,1);
+  if (!st) PetscFunctionReturn(0);
   if (st->ops->reset) { ierr = (*st->ops->reset)(st);CHKERRQ(ierr); }
   if (st->ksp) { ierr = KSPReset(st->ksp);CHKERRQ(ierr); }
   ierr = MatDestroyMatrices(PetscMax(2,st->nmat),&st->T);CHKERRQ(ierr);

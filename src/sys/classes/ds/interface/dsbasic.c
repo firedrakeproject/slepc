@@ -786,7 +786,8 @@ PetscErrorCode DSReset(DS ds)
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(ds,DS_CLASSID,1);
+  if (ds) PetscValidHeaderSpecific(ds,DS_CLASSID,1);
+  if (!ds) PetscFunctionReturn(0);
   ds->state    = DS_STATE_RAW;
   ds->ld       = 0;
   ds->l        = 0;

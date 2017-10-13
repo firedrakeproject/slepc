@@ -342,7 +342,8 @@ PetscErrorCode MFNReset(MFN mfn)
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(mfn,MFN_CLASSID,1);
+  if (mfn) PetscValidHeaderSpecific(mfn,MFN_CLASSID,1);
+  if (!mfn) PetscFunctionReturn(0);
   if (mfn->ops->reset) { ierr = (mfn->ops->reset)(mfn);CHKERRQ(ierr); }
   ierr = MatDestroy(&mfn->A);CHKERRQ(ierr);
   ierr = BVDestroy(&mfn->V);CHKERRQ(ierr);

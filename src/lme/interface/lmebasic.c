@@ -353,7 +353,8 @@ PetscErrorCode LMEReset(LME lme)
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(lme,LME_CLASSID,1);
+  if (lme) PetscValidHeaderSpecific(lme,LME_CLASSID,1);
+  if (!lme) PetscFunctionReturn(0);
   if (lme->ops->reset) { ierr = (lme->ops->reset)(lme);CHKERRQ(ierr); }
   ierr = MatDestroy(&lme->A);CHKERRQ(ierr);
   ierr = MatDestroy(&lme->B);CHKERRQ(ierr);

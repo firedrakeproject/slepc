@@ -258,7 +258,8 @@ PetscErrorCode PEPReset(PEP pep)
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
+  if (pep) PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
+  if (!pep) PetscFunctionReturn(0);
   if (pep->ops->reset) { ierr = (pep->ops->reset)(pep);CHKERRQ(ierr); }
   if (pep->st) { ierr = STReset(pep->st);CHKERRQ(ierr); }
   if (pep->refineksp) { ierr = KSPReset(pep->refineksp);CHKERRQ(ierr); }

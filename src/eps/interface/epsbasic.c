@@ -262,7 +262,8 @@ PetscErrorCode EPSReset(EPS eps)
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
+  if (eps) PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
+  if (!eps) PetscFunctionReturn(0);
   if (eps->ops->reset) { ierr = (eps->ops->reset)(eps);CHKERRQ(ierr); }
   if (eps->st) { ierr = STReset(eps->st);CHKERRQ(ierr); }
   ierr = VecDestroy(&eps->D);CHKERRQ(ierr);
