@@ -176,7 +176,7 @@ PetscErrorCode MFNAllocateSolution(MFN mfn,PetscInt extra)
     if (!((PetscObject)(mfn->V))->type_name) {
       ierr = BVSetType(mfn->V,BVSVEC);CHKERRQ(ierr);
     }
-    ierr = MatCreateVecs(mfn->A,&t,NULL);CHKERRQ(ierr);
+    ierr = MatCreateVecsEmpty(mfn->A,&t,NULL);CHKERRQ(ierr);
     ierr = BVSetSizesFromVec(mfn->V,t,requested);CHKERRQ(ierr);
     ierr = VecDestroy(&t);CHKERRQ(ierr);
   } else {

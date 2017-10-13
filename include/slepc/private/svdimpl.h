@@ -162,6 +162,19 @@ PETSC_STATIC_INLINE PetscErrorCode SVDMatCreateVecs(SVD svd,Vec *x,Vec *y)
   PetscFunctionReturn(0);
 }
 
+PETSC_STATIC_INLINE PetscErrorCode SVDMatCreateVecsEmpty(SVD svd,Vec *x,Vec *y)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  if (svd->A) {
+    ierr = MatCreateVecsEmpty(svd->A,x,y);CHKERRQ(ierr);
+  } else {
+    ierr = MatCreateVecsEmpty(svd->AT,y,x);CHKERRQ(ierr);
+  }
+  PetscFunctionReturn(0);
+}
+
 PETSC_STATIC_INLINE PetscErrorCode SVDMatGetSize(SVD svd,PetscInt *m,PetscInt *n)
 {
   PetscErrorCode ierr;

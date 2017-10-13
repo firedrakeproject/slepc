@@ -114,6 +114,7 @@ PETSC_EXTERN PetscErrorCode STIsInjective(ST,PetscBool*);
 PETSC_EXTERN PetscErrorCode STCheckNullSpace(ST,BV);
 
 PETSC_EXTERN PetscErrorCode STMatCreateVecs(ST,Vec*,Vec*);
+PETSC_EXTERN PetscErrorCode STMatCreateVecsEmpty(ST,Vec*,Vec*);
 PETSC_EXTERN PetscErrorCode STMatGetSize(ST,PetscInt*,PetscInt*);
 PETSC_EXTERN PetscErrorCode STMatGetLocalSize(ST,PetscInt*,PetscInt*);
 

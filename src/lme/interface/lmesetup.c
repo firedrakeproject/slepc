@@ -451,7 +451,7 @@ PetscErrorCode LMEAllocateSolution(LME lme,PetscInt extra)
     if (!((PetscObject)(lme->V))->type_name) {
       ierr = BVSetType(lme->V,BVSVEC);CHKERRQ(ierr);
     }
-    ierr = MatCreateVecs(lme->A,&t,NULL);CHKERRQ(ierr);
+    ierr = MatCreateVecsEmpty(lme->A,&t,NULL);CHKERRQ(ierr);
     ierr = BVSetSizesFromVec(lme->V,t,requested);CHKERRQ(ierr);
     ierr = VecDestroy(&t);CHKERRQ(ierr);
   } else {

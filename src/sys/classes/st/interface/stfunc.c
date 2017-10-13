@@ -578,6 +578,33 @@ PetscErrorCode STMatCreateVecs(ST st,Vec *right,Vec *left)
   PetscFunctionReturn(0);
 }
 
+/*@C
+   STMatCreateVecsEmpty - Get vector(s) compatible with the ST matrices, i.e. with the same
+   parallel layout, but without internal array.
+
+   Collective on ST
+
+   Input Parameter:
+.  st - the spectral transformation context
+
+   Output Parameters:
++  right - (optional) vector that the matrix can be multiplied against
+-  left  - (optional) vector that the matrix vector product can be stored in
+
+   Level: developer
+
+.seealso: MatCreateVecsEmpty()
+@*/
+PetscErrorCode STMatCreateVecsEmpty(ST st,Vec *right,Vec *left)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  STCheckMatrices(st,1);
+  ierr = MatCreateVecsEmpty(st->A[0],right,left);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
 /*@
    STMatGetSize - Returns the number of rows and columns of the ST matrices.
 

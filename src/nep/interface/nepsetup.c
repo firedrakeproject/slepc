@@ -333,7 +333,7 @@ PetscErrorCode NEPAllocateSolution(NEP nep,PetscInt extra)
     else {
       ierr = NEPGetFunction(nep,&T,NULL,NULL,NULL);CHKERRQ(ierr);
     }
-    ierr = MatCreateVecs(T,&t,NULL);CHKERRQ(ierr);
+    ierr = MatCreateVecsEmpty(T,&t,NULL);CHKERRQ(ierr);
     ierr = BVSetSizesFromVec(nep->V,t,requested);CHKERRQ(ierr);
     ierr = VecDestroy(&t);CHKERRQ(ierr);
   } else {
