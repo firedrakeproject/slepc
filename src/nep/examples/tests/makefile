@@ -24,10 +24,10 @@ FFLAGS     =
 CPPFLAGS   =
 FPPFLAGS   =
 LOCDIR     = src/nep/examples/tests/
-EXAMPLESC  = test1.c test2.c test3.c test4.c test5.c test6.c test7.c test8.c test9.c
+EXAMPLESC  = test1.c test2.c test3.c test4.c test5.c test6.c test7.c test8.c test9.c test10.c
 EXAMPLESF  = test2f.F
 MANSEC     = NEP
-TESTS      = test1 test2 test2f test3 test4 test5 test6 test7 test8 test9
+TESTS      = test1 test2 test2f test3 test4 test5 test6 test7 test8 test9 test10
 
 TESTEXAMPLES_C_NOTSINGLE       = test1.PETSc runtest1_1 test1.rm \
                                  test2.PETSc runtest2_1 test2.rm \
@@ -35,7 +35,8 @@ TESTEXAMPLES_C_NOTSINGLE       = test1.PETSc runtest1_1 test1.rm \
                                  test4.PETSc runtest4_1 test4.rm \
                                  test5.PETSc runtest5_1 test5.rm \
                                  test7.PETSc runtest7_1 runtest7_2 test7.rm \
-                                 test9.PETSc runtest9_1 test9.rm
+                                 test9.PETSc runtest9_1 test9.rm \
+                                 test10.PETSc runtest10_1 test10.rm
 TESTEXAMPLES_C_DATAFILE        = test6.PETSc runtest6_1 test6.rm \
                                  test8.PETSc runtest8_1 test8.rm
 TESTEXAMPLES_FORTRAN_NOTSINGLE = test2f.PETSc runtest2f_1 test2f.rm
@@ -83,6 +84,10 @@ test8: test8.o chkopts
 test9: test9.o chkopts
 	-${CLINKER} -o test9 test9.o ${SLEPC_NEP_LIB}
 	${RM} test9.o
+
+test10: test10.o chkopts
+	-${CLINKER} -o test10 test10.o ${SLEPC_NEP_LIB}
+	${RM} test10.o
 
 #------------------------------------------------------------------------------------
 
@@ -152,3 +157,11 @@ runtest9_1:
 	-@${SETTEST}; \
 	${MPIEXEC} -n 1 ./test9 -nep_type nleigs -rg_type interval -rg_interval_endpoints 4,700,-.1,.1 -nep_nev 8 -nep_target 5 -terse > $${test}.tmp 2>&1; \
 	${TESTCODE}
+
+runtest10_1: runtest10_1_rii runtest10_1_slp runtest10_1_narnoldi runtest10_1_interpol
+runtest10_1_%:
+	-@${SETTEST}; check=test10_1; nep=$*; \
+	if [ "$$nep" = interpol ]; then nep="interpol -rg_type interval -rg_interval_endpoints .5,1,-.1,.1 -nep_target .7"; fi; \
+	${MPIEXEC} -n 1 ./test10 -nep_type $${nep} > $${test}.tmp 2>&1; \
+	${TESTCODE}
+

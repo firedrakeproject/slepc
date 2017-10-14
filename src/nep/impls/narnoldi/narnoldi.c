@@ -294,7 +294,7 @@ PetscErrorCode NEPReset_NArnoldi(NEP nep)
   NEP_NARNOLDI   *ctx = (NEP_NARNOLDI*)nep->data;
 
   PetscFunctionBegin;
-  if (!ctx->ksp) { ierr = KSPReset(ctx->ksp);CHKERRQ(ierr); }
+  ierr = KSPReset(ctx->ksp);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

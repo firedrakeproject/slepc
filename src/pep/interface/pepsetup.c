@@ -468,9 +468,7 @@ PetscErrorCode PEPAllocateSolution(PEP pep,PetscInt extra)
 
   /* allocate space for eigenvalues and friends */
   if (requested != oldsize || !pep->eigr) {
-    if (oldsize) {
-      ierr = PetscFree4(pep->eigr,pep->eigi,pep->errest,pep->perm);CHKERRQ(ierr);
-    }
+    ierr = PetscFree4(pep->eigr,pep->eigi,pep->errest,pep->perm);CHKERRQ(ierr);
     ierr = PetscMalloc4(requested,&pep->eigr,requested,&pep->eigi,requested,&pep->errest,requested,&pep->perm);CHKERRQ(ierr);
     newc = PetscMax(0,requested-oldsize);
     cnt = 2*newc*sizeof(PetscScalar) + newc*sizeof(PetscReal) + newc*sizeof(PetscInt);

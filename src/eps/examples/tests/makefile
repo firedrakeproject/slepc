@@ -27,12 +27,14 @@ LOCDIR     = src/eps/examples/tests/
 EXAMPLESC  = test1.c test2.c test3.c test4.c test5.c test6.c \
              test8.c test9.c test10.c test11.c test12.c test13.c \
              test14.c test16.c test17.c test18.c test19.c test20.c \
-             test21.c test22.c test23.c test24.c test25.c test26.c test27.c
+             test21.c test22.c test23.c test24.c test25.c test26.c test27.c \
+             test28.c
 EXAMPLESF  = test7f.F test14f.F test15f.F test17f.F90
 MANSEC     = EPS
 TESTS      = test1 test2 test3 test4 test5 test6 test7f test8 test9 test10 \
              test11 test12 test13 test14 test14f test15f test16 test17 test17f \
-             test18 test19 test20 test21 test22 test23 test24 test25 test26 test27
+             test18 test19 test20 test21 test22 test23 test24 test25 test26 test27 \
+             test28
 
 TESTEXAMPLES_C                     = test1.PETSc runtest1_5 test1.rm \
                                      test4.PETSc runtest4_2 test4.rm \
@@ -57,7 +59,8 @@ TESTEXAMPLES_C_NOTSINGLE           = test1.PETSc runtest1_1 runtest1_3 runtest1_
                                      test17.PETSc runtest17_1 test17.rm \
                                      test18.PETSc runtest18_1 test18.rm \
                                      test24.PETSc runtest24_1 test24.rm \
-                                     test27.PETSc runtest27_1 test27.rm
+                                     test27.PETSc runtest27_1 test27.rm \
+                                     test28.PETSc runtest28_1 runtest28_2 runtest28_3 test28.rm
 TESTEXAMPLES_C_DATAFILE            = test25.PETSc runtest25_1 test25.rm \
                                      test26.PETSc runtest26_1 test26.rm
 TESTEXAMPLES_C_NOCOMPLEX_NOTSINGLE = test1.PETSc runtest1_2 test1.rm \
@@ -208,6 +211,10 @@ test26: test26.o chkopts
 test27: test27.o chkopts
 	-${CLINKER} -o test27 test27.o ${SLEPC_EPS_LIB}
 	${RM} test27.o
+
+test28: test28.o chkopts
+	-${CLINKER} -o test28 test28.o ${SLEPC_EPS_LIB}
+	${RM} test28.o
 
 #------------------------------------------------------------------------------------
 DATAPATH = ${SLEPC_DIR}/share/slepc/datafiles/matrices
@@ -648,5 +655,22 @@ runtest27_1: runtest27_1_gd runtest27_1_jd runtest27_1_lobpcg runtest27_1_rqcg
 runtest27_1_%:
 	-@${SETTEST}; check=test27_1; eps=$*; \
 	${MPIEXEC} -n 1 ./test27 -eps_type $$eps -terse > $${test}.tmp 2>&1; \
+	${TESTCODE}
+
+runtest28_1: runtest28_1_krylovschur runtest28_1_arnoldi runtest28_1_lanczos runtest28_1_gd runtest28_1_jd runtest28_1_rqcg runtest28_1_lobpcg runtest28_1_lapack
+runtest28_1_%:
+	-@${SETTEST}; check=test28_1; eps=$*; \
+	${MPIEXEC} -n 1 ./test28 -eps_type $$eps -terse > $${test}.tmp 2>&1; \
+	${TESTCODE}
+
+runtest28_2: runtest28_2_power runtest28_2_subspace
+runtest28_2_%:
+	-@${SETTEST}; check=test28_2; eps=$*; \
+	${MPIEXEC} -n 1 ./test28 -eps_type $$eps -eps_target 8 -st_type sinvert -terse > $${test}.tmp 2>&1; \
+	${TESTCODE}
+
+runtest28_3:
+	-@${SETTEST}; \
+	${MPIEXEC} -n 1 ./test28 -eps_interval 0.5,0.67 -st_type sinvert -st_pc_type cholesky -terse > $${test}.tmp 2>&1; \
 	${TESTCODE}
 

@@ -311,9 +311,7 @@ PetscErrorCode SVDAllocateSolution(SVD svd,PetscInt extra)
 
   /* allocate sigma */
   if (requested != oldsize || !svd->sigma) {
-    if (oldsize) {
-      ierr = PetscFree3(svd->sigma,svd->perm,svd->errest);CHKERRQ(ierr);
-    }
+    ierr = PetscFree3(svd->sigma,svd->perm,svd->errest);CHKERRQ(ierr);
     ierr = PetscMalloc3(requested,&svd->sigma,requested,&svd->perm,requested,&svd->errest);CHKERRQ(ierr);
     ierr = PetscLogObjectMemory((PetscObject)svd,PetscMax(0,requested-oldsize)*(2*sizeof(PetscReal)+sizeof(PetscInt)));CHKERRQ(ierr);
   }

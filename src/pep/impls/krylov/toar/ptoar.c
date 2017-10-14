@@ -789,6 +789,11 @@ PetscErrorCode PEPSolve_TOAR(PEP pep)
 
   if (flg) sigma = 0.0;
 
+  /* clean projected matrix (including the extra-arrow) */
+  ierr = DSGetArray(pep->ds,DS_MAT_A,&H);CHKERRQ(ierr);
+  ierr = PetscMemzero(H,ldds*ldds*sizeof(PetscScalar));CHKERRQ(ierr);
+  ierr = DSRestoreArray(pep->ds,DS_MAT_A,&H);CHKERRQ(ierr);
+  
   /* restart loop */
   l = 0;
   while (pep->reason == PEP_CONVERGED_ITERATING) {

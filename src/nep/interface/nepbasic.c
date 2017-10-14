@@ -254,6 +254,7 @@ PetscErrorCode NEPReset_Problem(NEP nep)
     }
     ierr = PetscFree(nep->f);CHKERRQ(ierr);
     ierr = PetscFree(nep->nrma);CHKERRQ(ierr);
+    nep->nt = 0;
   }
   PetscFunctionReturn(0);
 }
@@ -275,7 +276,8 @@ PetscErrorCode NEPReset(NEP nep)
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
+  if (nep) PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
+  if (!nep) PetscFunctionReturn(0);
   if (nep->ops->reset) { ierr = (nep->ops->reset)(nep);CHKERRQ(ierr); }
   if (nep->refineksp) { ierr = KSPReset(nep->refineksp);CHKERRQ(ierr); }
   ierr = NEPReset_Problem(nep);CHKERRQ(ierr);

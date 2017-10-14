@@ -539,7 +539,7 @@ PetscErrorCode NEPReset_RII(NEP nep)
   NEP_RII        *ctx = (NEP_RII*)nep->data;
 
   PetscFunctionBegin;
-  if (!ctx->ksp) { ierr = KSPReset(ctx->ksp);CHKERRQ(ierr); }
+  ierr = KSPReset(ctx->ksp);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
