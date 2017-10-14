@@ -33,12 +33,12 @@ TESTEXAMPLES_C           = test1.PETSc runtest1_1 test1.rm \
                            test4.PETSc runtest4_1 test4.rm \
                            test5.PETSc runtest5_1 test5.rm \
                            test6.PETSc runtest6_1 test6.rm \
-                           test8.PETSc runtest8_1 test8.rm \
-                           test9.PETSc runtest9_1 test9.rm
+                           test8.PETSc runtest8_1 test8.rm
 TESTEXAMPLES_C_DOUBLE    = test2.PETSc runtest2_1 test2.rm
 TESTEXAMPLES_C_NOTSINGLE = test3.PETSc runtest3_1 runtest3_2 runtest3_4 test3.rm \
                            test4.PETSc runtest4_1_lapack test4.rm \
-                           test7.PETSc runtest7_1 test7.rm
+                           test7.PETSc runtest7_1 test7.rm \
+                           test9.PETSc runtest9_1 test9.rm
 TESTEXAMPLES_FORTRAN     = test4f.PETSc runtest4f_1 test4f.rm
 TESTEXAMPLES_VECCUDA     = test3.PETSc runtest3_3_cuda test3.rm \
                            test4.PETSc runtest4_2_cuda test4.rm \
