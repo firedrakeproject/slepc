@@ -377,7 +377,7 @@ PetscErrorCode MatCreateTile(PetscScalar a,Mat A,PetscScalar b,Mat B,PetscScalar
 PetscErrorCode MatCreateVecsEmpty(Mat mat,Vec *right,Vec *left)
 {
   PetscErrorCode ierr;
-  PetscBool      notsup,cuda;
+  PetscBool      notsup,cuda=PETSC_FALSE;
   PetscInt       M,N,mloc,nloc,rbs,cbs;
   PetscMPIInt    size;
 
@@ -387,7 +387,19 @@ PetscErrorCode MatCreateVecsEmpty(Mat mat,Vec *right,Vec *left)
 
   ierr = PetscObjectTypeCompareAny((PetscObject)mat,&notsup,MATSEQAIJCUSP,MATMPIAIJCUSP,MATSEQAIJVIENNACL,MATMPIAIJVIENNACL,"");CHKERRQ(ierr);
   if (notsup) SETERRQ1(PetscObjectComm((PetscObject)mat),PETSC_ERR_SUP,"Matrix type %s not supported",((PetscObject)mat)->type_name);
+#if defined(PETSC_HAVE_VECCUDA)
   ierr = PetscObjectTypeCompareAny((PetscObject)mat,&cuda,MATSEQAIJCUSPARSE,MATMPIAIJCUSPARSE,"");CHKERRQ(ierr);
+  if (!cuda) {
+    PetscBool flg;
+    Vec       v;
+    ierr = PetscObjectTypeCompare((PetscObject)mat,MATSHELL,&flg);CHKERRQ(ierr);
+    if (flg) {
+      ierr = MatCreateVecs(mat,&v,NULL);CHKERRQ(ierr);
+      ierr = PetscObjectTypeCompareAny((PetscObject)v,&cuda,VECSEQCUDA,VECMPICUDA,"");CHKERRQ(ierr);
+      ierr = VecDestroy(&v);CHKERRQ(ierr);
+    }
+  }
+#endif
   ierr = MPI_Comm_size(PetscObjectComm((PetscObject)mat),&size);CHKERRQ(ierr);
   ierr = MatGetLocalSize(mat,&mloc,&nloc);CHKERRQ(ierr);
   ierr = MatGetSize(mat,&M,&N);CHKERRQ(ierr);
