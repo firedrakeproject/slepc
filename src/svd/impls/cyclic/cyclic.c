@@ -26,14 +26,7 @@
 
 #include <slepc/private/svdimpl.h>                /*I "slepcsvd.h" I*/
 #include <slepc/private/epsimpl.h>                /*I "slepceps.h" I*/
-
-typedef struct {
-  PetscBool explicitmatrix;
-  EPS       eps;
-  PetscBool usereps;
-  Mat       mat;
-  Vec       x1,x2,y1,y2;
-} SVD_CYCLIC;
+#include "./cyclicimpl.h"
 
 static PetscErrorCode MatMult_Cyclic(Mat B,Vec x,Vec y)
 {
@@ -85,6 +78,9 @@ PetscErrorCode SVDSetUp_Cyclic(SVD svd)
   Vec               v;
   Mat               Zm,Zn;
   ST                st;
+#if defined(PETSC_HAVE_VECCUDA)
+  PetscBool         cuda;
+#endif
 
   PetscFunctionBegin;
   ierr = SVDMatGetSize(svd,&M,&N);CHKERRQ(ierr);
@@ -124,8 +120,17 @@ PetscErrorCode SVDSetUp_Cyclic(SVD svd)
       ierr = PetscLogObjectParent((PetscObject)svd,(PetscObject)cyclic->y1);CHKERRQ(ierr);
       ierr = PetscLogObjectParent((PetscObject)svd,(PetscObject)cyclic->y2);CHKERRQ(ierr);
       ierr = MatCreateShell(PetscObjectComm((PetscObject)svd),m+n,m+n,M+N,M+N,svd,&cyclic->mat);CHKERRQ(ierr);
-      ierr = MatShellSetOperation(cyclic->mat,MATOP_MULT,(void(*)(void))MatMult_Cyclic);CHKERRQ(ierr);
       ierr = MatShellSetOperation(cyclic->mat,MATOP_GET_DIAGONAL,(void(*)(void))MatGetDiagonal_Cyclic);CHKERRQ(ierr);
+#if defined(PETSC_HAVE_VECCUDA)
+      ierr = PetscObjectTypeCompareAny((PetscObject)(svd->A?svd->A:svd->AT),&cuda,MATSEQAIJCUSPARSE,MATMPIAIJCUSPARSE,"");CHKERRQ(ierr);
+      if (cuda) {
+        ierr = MatShellSetOperation(cyclic->mat,MATOP_CREATE_VECS,(void(*)(void))MatCreateVecs_Cyclic_CUDA);CHKERRQ(ierr);
+        ierr = MatShellSetOperation(cyclic->mat,MATOP_MULT,(void(*)(void))MatMult_Cyclic_CUDA);CHKERRQ(ierr);
+      } else
+#endif
+      {
+        ierr = MatShellSetOperation(cyclic->mat,MATOP_MULT,(void(*)(void))MatMult_Cyclic);CHKERRQ(ierr);
+      }
     }
     ierr = PetscLogObjectParent((PetscObject)svd,(PetscObject)cyclic->mat);CHKERRQ(ierr);
   }

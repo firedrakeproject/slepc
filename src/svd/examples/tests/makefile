@@ -161,7 +161,7 @@ runtest4_2_cuda: runtest4_2_cuda_lanczos runtest4_2_cuda_trlanczos runtest4_2_cu
 runtest4_2_cuda_%:
 	-@${SETTEST}; check=test4_1; svd=$*; \
 	if [ "$$svd" = trlanczos ]; then svd="trlanczos -svd_ncv 12"; fi; \
-	${MPIEXEC} -n 1 ./test4 -svd_type $$svd -svd_monitor_cancel -mat_type aijcusparse >> $${test}.tmp 2>&1; \
+	${MPIEXEC} -n 1 ./test4 -svd_type $$svd -svd_monitor_cancel -mat_type aijcusparse  | ${GREP} -v "Transpose mode" >> $${test}.tmp 2>&1; \
 	${TESTCODE_CUDA}
 
 runtest4f_1:
