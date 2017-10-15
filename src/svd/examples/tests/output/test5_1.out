@@ -10,6 +10,7 @@ SVD of diagonal matrix, n=6
   1 SVD nconv=6 Values (Errors) 6. (removed) 5. (removed) 4. (removed) 3. (removed) 2. (removed) 1. (removed)
 SVD Object: svd 1 MPI processes
   type: cross
+    implicit matrix
     EPS Object: (svd_cross_) 1 MPI processes
       type: krylovschur
         50% of basis vectors kept after restart

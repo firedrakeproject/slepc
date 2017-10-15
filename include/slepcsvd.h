@@ -196,6 +196,8 @@ PETSC_EXTERN PetscErrorCode SVDAllocateSolution(SVD,PetscInt);
 
 /* --------- options specific to particular solvers -------- */
 
+PETSC_EXTERN PetscErrorCode SVDCrossSetExplicitMatrix(SVD,PetscBool);
+PETSC_EXTERN PetscErrorCode SVDCrossGetExplicitMatrix(SVD,PetscBool*);
 PETSC_EXTERN PetscErrorCode SVDCrossSetEPS(SVD,EPS);
 PETSC_EXTERN PetscErrorCode SVDCrossGetEPS(SVD,EPS*);
 

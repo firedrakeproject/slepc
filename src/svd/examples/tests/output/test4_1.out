@@ -23,7 +23,6 @@ row 16: (16, 1.)  (17, 2.)
 row 17: (17, 1.)  (18, 2.) 
 row 18: (18, 1.)  (19, 2.) 
 row 19: (19, 1.)  (20, 2.) 
- Transpose mode is explicit
  Convergence test is absolute
  Stopping test is basic
  Which = smallest
