@@ -146,12 +146,13 @@ runtest3_4:
 	${MPIEXEC} -n 2 ./test3 -svd_type lapack -svd_nsv 4 > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
-runtest4_1: runtest4_1_lanczos runtest4_1_trlanczos runtest4_1_cross runtest4_1_cross_exp runtest4_1_cross_exp_imp runtest4_1_cyclic runtest4_1_cyclic_exp
+runtest4_1: runtest4_1_lanczos runtest4_1_trlanczos runtest4_1_cross runtest4_1_cross_exp runtest4_1_cross_exp_imp runtest4_1_cyclic runtest4_1_cyclic_imp runtest4_1_cyclic_exp
 runtest4_1_%:
 	-@${SETTEST}; check=test4_1; svd=$*; \
 	if [ "$$svd" = trlanczos ]; then svd="trlanczos -svd_ncv 12"; \
 	elif [ "$$svd" = cross_exp ]; then svd="cross -svd_cross_explicitmatrix"; \
 	elif [ "$$svd" = cross_exp_imp ]; then svd="cross -svd_cross_explicitmatrix -svd_implicittranspose"; \
+	elif [ "$$svd" = cyclic_imp ]; then svd="cyclic -svd_implicittranspose"; \
 	elif [ "$$svd" = cyclic_exp ]; then svd="cyclic -svd_cyclic_explicitmatrix"; fi; \
 	${MPIEXEC} -n 1 ./test4 -svd_type $$svd -svd_monitor_cancel | ${GREP} -v "Transpose mode" >> $${test}.tmp 2>&1; \
 	${TESTCODE}

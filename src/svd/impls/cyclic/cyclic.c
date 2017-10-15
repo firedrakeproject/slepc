@@ -91,7 +91,7 @@ PetscErrorCode SVDSetUp_Cyclic(SVD svd)
   ierr = SVDMatGetLocalSize(svd,&m,&n);CHKERRQ(ierr);
   if (!cyclic->mat) {
     if (cyclic->explicitmatrix) {
-      if (!svd->AT) SETERRQ(PetscObjectComm((PetscObject)svd),PETSC_ERR_SUP,"Cannot use explicit cyclic matrix with implicit transpose");
+      if (!svd->A || !svd->AT) SETERRQ(PetscObjectComm((PetscObject)svd),PETSC_ERR_SUP,"Cannot use explicit cyclic matrix with implicit transpose");
       ierr = MatCreate(PetscObjectComm((PetscObject)svd),&Zm);CHKERRQ(ierr);
       ierr = MatSetSizes(Zm,m,m,M,M);CHKERRQ(ierr);
       ierr = MatSetFromOptions(Zm);CHKERRQ(ierr);
@@ -117,8 +117,8 @@ PetscErrorCode SVDSetUp_Cyclic(SVD svd)
       ierr = MatDestroy(&Zm);CHKERRQ(ierr);
       ierr = MatDestroy(&Zn);CHKERRQ(ierr);
     } else {
-      ierr = MatCreateVecsEmpty(svd->A,&cyclic->x2,&cyclic->x1);CHKERRQ(ierr);
-      ierr = MatCreateVecsEmpty(svd->A,&cyclic->y2,&cyclic->y1);CHKERRQ(ierr);
+      ierr = SVDMatCreateVecsEmpty(svd,&cyclic->x2,&cyclic->x1);CHKERRQ(ierr);
+      ierr = SVDMatCreateVecsEmpty(svd,&cyclic->y2,&cyclic->y1);CHKERRQ(ierr);
       ierr = PetscLogObjectParent((PetscObject)svd,(PetscObject)cyclic->x1);CHKERRQ(ierr);
       ierr = PetscLogObjectParent((PetscObject)svd,(PetscObject)cyclic->x2);CHKERRQ(ierr);
       ierr = PetscLogObjectParent((PetscObject)svd,(PetscObject)cyclic->y1);CHKERRQ(ierr);
@@ -222,7 +222,7 @@ PetscErrorCode SVDSolve_Cyclic(SVD svd)
   ierr = MatCreateVecs(cyclic->mat,&x,NULL);CHKERRQ(ierr);
   ierr = SVDMatGetSize(svd,&M,&N);CHKERRQ(ierr);
   ierr = SVDMatGetLocalSize(svd,&m,&n);CHKERRQ(ierr);
-  ierr = MatCreateVecsEmpty(svd->A,&x2,&x1);CHKERRQ(ierr);
+  ierr = SVDMatCreateVecsEmpty(svd,&x2,&x1);CHKERRQ(ierr);
   for (i=0,j=0;i<svd->nconv;i++) {
     ierr = EPSGetEigenpair(cyclic->eps,i,&sigma,NULL,x,NULL);CHKERRQ(ierr);
     if (PetscRealPart(sigma) > 0.0) {
@@ -347,7 +347,7 @@ static PetscErrorCode SVDCyclicGetExplicitMatrix_Cyclic(SVD svd,PetscBool *expli
 }
 
 /*@
-   SVDCyclicGetExplicitMatrix - Returns the flag indicating if H(A) is built explicitly
+   SVDCyclicGetExplicitMatrix - Returns the flag indicating if H(A) is built explicitly.
 
    Not Collective
 
@@ -483,7 +483,7 @@ PetscErrorCode SVDReset_Cyclic(SVD svd)
   SVD_CYCLIC     *cyclic = (SVD_CYCLIC*)svd->data;
 
   PetscFunctionBegin;
-  if (!cyclic->eps) { ierr = EPSReset(cyclic->eps);CHKERRQ(ierr); }
+  ierr = EPSReset(cyclic->eps);CHKERRQ(ierr);
   ierr = MatDestroy(&cyclic->mat);CHKERRQ(ierr);
   ierr = VecDestroy(&cyclic->x1);CHKERRQ(ierr);
   ierr = VecDestroy(&cyclic->x2);CHKERRQ(ierr);
