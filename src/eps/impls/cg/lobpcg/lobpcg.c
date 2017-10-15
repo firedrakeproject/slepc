@@ -264,7 +264,7 @@ PetscErrorCode EPSSolve_LOBPCG(EPS eps)
         if (norm>0.0 && !breakdown) {
           ierr = VecScale(v,1.0/norm);CHKERRQ(ierr);
         } else {
-          ierr = PetscInfo(eps,"Orthogonalization of initial vector failed");CHKERRQ(ierr);
+          ierr = PetscInfo(eps,"Orthogonalization of initial vector failed\n");CHKERRQ(ierr);
           eps->reason = EPS_DIVERGED_BREAKDOWN;
           goto diverged;
         }
@@ -319,7 +319,7 @@ PetscErrorCode EPSSolve_LOBPCG(EPS eps)
       if (checkprecond) {
         ierr = VecDot(v,w,&dot);CHKERRQ(ierr);
         if (PetscRealPart(dot)<0.0) {
-          ierr = PetscInfo(eps,"The preconditioner is not positive-definite");CHKERRQ(ierr);
+          ierr = PetscInfo(eps,"The preconditioner is not positive-definite\n");CHKERRQ(ierr);
           eps->reason = EPS_DIVERGED_BREAKDOWN;
           goto diverged;
         }
@@ -329,7 +329,7 @@ PetscErrorCode EPSSolve_LOBPCG(EPS eps)
         if (norm>0.0 && !breakdown) {
           ierr = VecScale(w,1.0/norm);CHKERRQ(ierr);
         } else {
-          ierr = PetscInfo(eps,"Orthogonalization of preconditioned residual failed");CHKERRQ(ierr);
+          ierr = PetscInfo(eps,"Orthogonalization of preconditioned residual failed\n");CHKERRQ(ierr);
           eps->reason = EPS_DIVERGED_BREAKDOWN;
           goto diverged;
         }
