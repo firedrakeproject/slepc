@@ -183,7 +183,8 @@ PetscErrorCode SVDSolve_Cross(SVD svd)
   PetscErrorCode ierr;
   SVD_CROSS      *cross = (SVD_CROSS*)svd->data;
   PetscInt       i;
-  PetscScalar    sigma;
+  PetscScalar    lambda;
+  PetscReal      sigma;
   Vec            v;
 
   PetscFunctionBegin;
@@ -193,10 +194,15 @@ PetscErrorCode SVDSolve_Cross(SVD svd)
   ierr = EPSGetConvergedReason(cross->eps,(EPSConvergedReason*)&svd->reason);CHKERRQ(ierr);
   for (i=0;i<svd->nconv;i++) {
     ierr = BVGetColumn(svd->V,i,&v);CHKERRQ(ierr);
-    ierr = EPSGetEigenpair(cross->eps,i,&sigma,NULL,v,NULL);CHKERRQ(ierr);
+    ierr = EPSGetEigenpair(cross->eps,i,&lambda,NULL,v,NULL);CHKERRQ(ierr);
     ierr = BVRestoreColumn(svd->V,i,&v);CHKERRQ(ierr);
-    if (PetscRealPart(sigma)<0.0) SETERRQ(PetscObjectComm((PetscObject)svd),1,"Negative eigenvalue computed by EPS");
-    svd->sigma[i] = PetscSqrtReal(PetscRealPart(sigma));
+    sigma = PetscRealPart(lambda);
+    if (sigma<-10*PETSC_MACHINE_EPSILON) SETERRQ1(PetscObjectComm((PetscObject)svd),1,"Negative eigenvalue computed by EPS: %g",sigma);
+    if (sigma<0.0) {
+      ierr = PetscInfo1(svd,"Negative eigenvalue computed by EPS: %g\n",sigma);CHKERRQ(ierr);
+      sigma = -sigma;
+    }
+    svd->sigma[i] = PetscSqrtReal(sigma);
   }
   PetscFunctionReturn(0);
 }
