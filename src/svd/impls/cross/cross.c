@@ -126,10 +126,16 @@ PetscErrorCode SVDSetUp_Cross(SVD svd)
     if (cross->explicitmatrix) {
       if (svd->A && svd->AT) {  /* explicit transpose */
         ierr = MatMatMult(svd->AT,svd->A,MAT_INITIAL_MATRIX,PETSC_DEFAULT,&cross->mat);CHKERRQ(ierr);
-      } else if (svd->A) {  /* implicit transpose */
-        ierr = MatTransposeMatMult(svd->A,svd->A,MAT_INITIAL_MATRIX,PETSC_DEFAULT,&cross->mat);CHKERRQ(ierr);
-      } else {
-        ierr = MatMatTransposeMult(svd->AT,svd->AT,MAT_INITIAL_MATRIX,PETSC_DEFAULT,&cross->mat);CHKERRQ(ierr);
+      } else {  /* implicit transpose */
+#if defined(PETSC_USE_COMPLEX)
+        SETERRQ(PetscObjectComm((PetscObject)svd),PETSC_ERR_SUP,"Must use explicit transpose with complex scalars");
+#else
+        if (svd->A) {
+          ierr = MatTransposeMatMult(svd->A,svd->A,MAT_INITIAL_MATRIX,PETSC_DEFAULT,&cross->mat);CHKERRQ(ierr);
+        } else {
+          ierr = MatMatTransposeMult(svd->AT,svd->AT,MAT_INITIAL_MATRIX,PETSC_DEFAULT,&cross->mat);CHKERRQ(ierr);
+        }
+#endif
       }
     } else {
       ierr = SVDMatGetLocalSize(svd,NULL,&n);CHKERRQ(ierr);
