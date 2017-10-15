@@ -608,7 +608,7 @@ PetscErrorCode BVView(BV bv,PetscViewer viewer)
     ierr = PetscViewerGetFormat(viewer,&format);CHKERRQ(ierr);
     ierr = PetscViewerASCIIPushTab(viewer);CHKERRQ(ierr);
     if (format == PETSC_VIEWER_ASCII_INFO || format == PETSC_VIEWER_ASCII_INFO_DETAIL) {
-      ierr = PetscViewerASCIIPrintf(viewer,"%D columns of global length %D\n",bv->m,bv->N);CHKERRQ(ierr);
+      ierr = PetscViewerASCIIPrintf(viewer,"%D columns of global length %D%s\n",bv->m,bv->N,bv->cuda?" (CUDA)":"");CHKERRQ(ierr);
       if (bv->nc>0) {
         ierr = PetscViewerASCIIPrintf(viewer,"number of constraints: %D\n",bv->nc);CHKERRQ(ierr);
       }

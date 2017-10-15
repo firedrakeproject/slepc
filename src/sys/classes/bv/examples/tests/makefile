@@ -131,7 +131,7 @@ runtest1_1_%:
 	${TESTCODE}
 
 runtest1_1_cuda:
-	-@${SETTEST}; check=test1_1_svec; \
+	-@${SETTEST}; \
 	${MPIEXEC} -n 1 ./test1 -bv_type svec -vec_type cuda -verbose > $${test}.tmp 2>&1; \
 	${TESTCODE_CUDA}
 
