@@ -216,7 +216,12 @@ while the user writes the options database command \Verb!-svd_type! followed by 
 
 The \ident{EPS}-based solvers deserve some additional comments. These SVD solvers work by creating an \ident{EPS} object internally and setting up an eigenproblem of type \ident{EPS\_HEP}. These solvers implement the cross product matrix approach, Eq.\ \ref{eq:eigleft}, and the cyclic matrix approach, Eq.\ \ref{eq:cyclic}. Therefore, the operator matrix associated with the \ident{EPS} object will be $A^*A$ in the case of the \texttt{cross} solver and $H(A)$ in the case of the \texttt{cyclic} solver.
 
-In the case of the \texttt{cross} solver, the matrix $A^*A$ is not built explicitly, since sparsity would be lost. Instead, a shell matrix is created internally in the \ident{SVD} object and passed to the \ident{EPS} object. In the case of the \texttt{cyclic} solver, the situation is different since $H(A)$ is still a sparse matrix. \slepc gives the possibility to handle it implicitly as a shell matrix (the default), or to create $H(A)$ explicitly, that is, storing its elements in a distinct matrix. The function for setting this option is
+In the case of the \texttt{cross} solver, the matrix $A^*A$ is not built explicitly by default, since the resulting matrix may be much less sparse than the original matrix. By default, a shell matrix is created internally in the \ident{SVD} object and passed to the \ident{EPS} object. Still, the user may choose to force the computation of $A^*A$ explicitly, by means of PETSc's sparse matrix-matrix product subroutines. This is set with
+	\findex{SVDCrossSetExplicitMatrix}
+	\begin{Verbatim}[fontsize=\small]
+	SVDCrossSetExplicitMatrix(SVD svd,PetscBool explicit);
+	\end{Verbatim}
+In the \texttt{cyclic} solver the user can also choose between handling $H(A)$ implicitly as a shell matrix (the default), or forming it explicitly, that is, storing its elements in a distinct matrix. The function for setting this option is
 	\findex{SVDCyclicSetExplicitMatrix}
 	\begin{Verbatim}[fontsize=\small]
 	SVDCyclicSetExplicitMatrix(SVD svd,PetscBool explicit);
@@ -234,7 +239,7 @@ A more convenient way of changing \ident{EPS} options is through the command-lin
 	$ ./program -svd_type cross -svd_cross_eps_type gd
 \end{Verbatim}
 
-At this point, one may consider changing also the options of the \ident{ST} object associated with the \ident{EPS} object in \texttt{cross} and \texttt{cyclic} SVD solvers, for example to compute singular values located at the interior of the spectrum via a shift-and-invert transformation. This is indeed possible, but some considerations have to be taken into account. When $A^*A$ or $H(A)$ are managed as shell matrices, then the potential of the spectral transformation is limited seriously, because some of the required operations will not be defined (this is discussed briefly in \S\ref{sec:supported} and \S\ref{sec:explicit}). Therefore, computing interior singular values is more likely to be successful if using the \texttt{cyclic} solver with explicit $H(A)$ matrix. To illustrate this, here is a complicated command-line example for computing singular values close to 12.0:
+At this point, one may consider changing also the options of the \ident{ST} object associated with the \ident{EPS} object in \texttt{cross} and \texttt{cyclic} SVD solvers, for example to compute singular values located at the interior of the spectrum via a shift-and-invert transformation. This is indeed possible, but some considerations have to be taken into account. When $A^*A$ or $H(A)$ are managed as shell matrices, then the potential of the spectral transformation is limited seriously, because some of the required operations will not be defined if working with implicit matrices (this is discussed briefly in \S\ref{sec:supported} and \S\ref{sec:explicit}). The following example illustrates the computation of interior singular values with the \texttt{cyclic} solver with explicit $H(A)$ matrix:
 \begin{Verbatim}[fontsize=\small]
 	$ ./program -svd_type cyclic -svd_cyclic_explicitmatrix
                     -svd_cyclic_st_type sinvert -svd_cyclic_eps_target 12.0
