@@ -47,7 +47,6 @@ PetscErrorCode PEPSetUp_QArnoldi(PEP pep)
   PetscErrorCode ierr;
   PEP_QARNOLDI   *ctx = (PEP_QARNOLDI*)pep->data;
   PetscBool      shift,sinv,flg;
-  PetscInt       i;
 
   PetscFunctionBegin;
   pep->lineariz = PETSC_TRUE;
@@ -83,17 +82,6 @@ PetscErrorCode PEPSetUp_QArnoldi(PEP pep)
   ierr = DSSetExtraRow(pep->ds,PETSC_TRUE);CHKERRQ(ierr);
   ierr = DSAllocate(pep->ds,pep->ncv+1);CHKERRQ(ierr);
 
-  /* process initial vectors */
-  for (i=0;i<2;i++) {
-    if (i<-pep->nini) {
-      ierr = BVInsertVec(pep->V,i,pep->IS[i]);CHKERRQ(ierr);
-    } else {
-      ierr = BVSetRandomColumn(pep->V,i);CHKERRQ(ierr);
-    }
-  }
-  if (pep->nini<0) {
-    ierr = SlepcBasisDestroy_Private(&pep->nini,&pep->IS);CHKERRQ(ierr);
-  }
   PetscFunctionReturn(0);
 }
 
@@ -261,6 +249,11 @@ PetscErrorCode PEPSolve_QArnoldi(PEP pep)
   ierr = STScaleShift(pep->st,sinv?pep->sfactor:1.0/pep->sfactor);CHKERRQ(ierr);
 
   /* Get the starting Arnoldi vector */
+  for (j=0;j<2;j++) {
+    if (j>=pep->nini) {
+      ierr = BVSetRandomColumn(pep->V,j);CHKERRQ(ierr);
+    }
+  }
   ierr = BVCopyVec(pep->V,0,v);CHKERRQ(ierr);
   ierr = BVCopyVec(pep->V,1,w);CHKERRQ(ierr);
   ierr = VecNorm(v,NORM_2,&x);CHKERRQ(ierr);
