@@ -39,6 +39,8 @@ TESTEXAMPLES_C_NOTSINGLE = test3.PETSc runtest3_1 runtest3_2 runtest3_4 test3.rm
                            test4.PETSc runtest4_1_lapack test4.rm \
                            test7.PETSc runtest7_1 test7.rm \
                            test9.PETSc runtest9_1 test9.rm
+TESTEXAMPLES_C_NOCOMPLEX = test3.PETSc runtest3_2_cross_exp test3.rm \
+                           test4.PETSc runtest4_1_cross_exp_imp test4.rm
 TESTEXAMPLES_FORTRAN     = test4f.PETSc runtest4f_1 test4f.rm
 TESTEXAMPLES_VECCUDA     = test3.PETSc runtest3_3_cuda test3.rm \
                            test4.PETSc runtest4_2_cuda test4.rm \
@@ -119,7 +121,7 @@ runtest3_1_%:
 	${MPIEXEC} -n 1 ./test3 -svd_type $$svd -svd_nsv 4 > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
-runtest3_2: runtest3_2_lanczos runtest3_2_lanczos_one runtest3_2_trlanczos runtest3_2_trlanczos_one runtest3_2_trlanczos_one_mgs runtest3_2_trlanczos_one_alway runtest3_2_trlanczos_one_mgs runtest3_2_cross runtest3_2_cross_exp runtest3_2_cyclic runtest3_2_lapack
+runtest3_2: runtest3_2_lanczos runtest3_2_lanczos_one runtest3_2_trlanczos runtest3_2_trlanczos_one runtest3_2_trlanczos_one_mgs runtest3_2_trlanczos_one_alway runtest3_2_trlanczos_one_mgs runtest3_2_cross runtest3_2_cyclic runtest3_2_lapack
 runtest3_2_%:
 	-@${SETTEST}; check=test3_1; svd=$*; \
 	if [ "$$svd" = lanczos_one ]; then svd="lanczos -svd_lanczos_oneside"; \
@@ -146,7 +148,7 @@ runtest3_4:
 	${MPIEXEC} -n 2 ./test3 -svd_type lapack -svd_nsv 4 > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
-runtest4_1: runtest4_1_lanczos runtest4_1_trlanczos runtest4_1_cross runtest4_1_cross_exp runtest4_1_cross_exp_imp runtest4_1_cyclic runtest4_1_cyclic_imp runtest4_1_cyclic_exp
+runtest4_1: runtest4_1_lanczos runtest4_1_trlanczos runtest4_1_cross runtest4_1_cross_exp runtest4_1_cyclic runtest4_1_cyclic_imp runtest4_1_cyclic_exp
 runtest4_1_%:
 	-@${SETTEST}; check=test4_1; svd=$*; \
 	if [ "$$svd" = trlanczos ]; then svd="trlanczos -svd_ncv 12"; \
