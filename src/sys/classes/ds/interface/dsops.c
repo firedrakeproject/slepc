@@ -700,7 +700,7 @@ PetscErrorCode DSSynchronize(DS ds,PetscScalar eigr[],PetscScalar eigi[])
   PetscValidType(ds,1);
   DSCheckAlloc(ds,1);
   ierr = MPI_Comm_size(PetscObjectComm((PetscObject)ds),&size);CHKERRQ(ierr);
-  if (size>1) {
+  if (size>1 && ds->pmode==DS_PARALLEL_SYNCHRONIZED) {
     ierr = PetscLogEventBegin(DS_Synchronize,ds,0,0,0);CHKERRQ(ierr);
     if (ds->ops->synchronize) {
       ierr = (*ds->ops->synchronize)(ds,eigr,eigi);CHKERRQ(ierr);

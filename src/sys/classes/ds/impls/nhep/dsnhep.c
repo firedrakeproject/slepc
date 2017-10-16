@@ -599,6 +599,50 @@ PetscErrorCode DSSolve_NHEP(DS ds,PetscScalar *wr,PetscScalar *wi)
 #endif
 }
 
+PetscErrorCode DSSynchronize_NHEP(DS ds,PetscScalar eigr[],PetscScalar eigi[])
+{
+  PetscErrorCode ierr;
+  PetscInt       ld=ds->ld,k;
+  PetscMPIInt    n,rank,off=0,size,ldn;
+
+  PetscFunctionBegin;
+  k = ds->n*ld;
+  if (ds->state>DS_STATE_RAW) k += ds->n*ld;
+  if (eigr) k += ds->n; 
+  if (eigi) k += ds->n; 
+  ierr = DSAllocateWork_Private(ds,k,0,0);CHKERRQ(ierr);
+  ierr = PetscMPIIntCast(k*sizeof(PetscScalar),&size);CHKERRQ(ierr);
+  ierr = PetscMPIIntCast(ds->n,&n);CHKERRQ(ierr);
+  ierr = PetscMPIIntCast(ld*ds->n,&ldn);CHKERRQ(ierr);
+  ierr = MPI_Comm_rank(PetscObjectComm((PetscObject)ds),&rank);CHKERRQ(ierr);
+  if (!rank) {
+    ierr = MPI_Pack(ds->mat[DS_MAT_A],ldn,MPIU_SCALAR,ds->work,size,&off,PetscObjectComm((PetscObject)ds));
+    if (ds->state>DS_STATE_RAW) {
+      ierr = MPI_Pack(ds->mat[DS_MAT_Q],ldn,MPIU_SCALAR,ds->work,size,&off,PetscObjectComm((PetscObject)ds));
+    }
+    if (eigr) {
+      ierr = MPI_Pack(eigr,n,MPIU_SCALAR,ds->work,size,&off,PetscObjectComm((PetscObject)ds));
+    }
+    if (eigi) {
+      ierr = MPI_Pack(eigi,n,MPIU_SCALAR,ds->work,size,&off,PetscObjectComm((PetscObject)ds));
+    }
+  }
+  ierr = MPI_Bcast(ds->work,size,MPI_BYTE,0,PetscObjectComm((PetscObject)ds));CHKERRQ(ierr);
+  if (rank) {
+    ierr = MPI_Unpack(ds->work,size,&off,ds->mat[DS_MAT_A],ldn,MPIU_SCALAR,PetscObjectComm((PetscObject)ds));
+    if (ds->state>DS_STATE_RAW) {
+      ierr = MPI_Unpack(ds->work,size,&off,ds->mat[DS_MAT_Q],ldn,MPIU_SCALAR,PetscObjectComm((PetscObject)ds));
+    }
+    if (eigr) {
+      ierr = MPI_Unpack(ds->work,size,&off,eigr,n,MPIU_SCALAR,PetscObjectComm((PetscObject)ds));
+    }
+    if (eigi) {
+      ierr = MPI_Unpack(ds->work,size,&off,eigi,n,MPIU_SCALAR,PetscObjectComm((PetscObject)ds));
+    }
+  }
+  PetscFunctionReturn(0);
+}
+
 PetscErrorCode DSTruncate_NHEP(DS ds,PetscInt n)
 {
   PetscInt    i,newn,ld=ds->ld,l=ds->l;
@@ -752,6 +796,7 @@ PETSC_EXTERN PetscErrorCode DSCreate_NHEP(DS ds)
   ds->ops->vectors       = DSVectors_NHEP;
   ds->ops->solve[0]      = DSSolve_NHEP;
   ds->ops->sort          = DSSort_NHEP;
+  ds->ops->synchronize   = DSSynchronize_NHEP;
   ds->ops->truncate      = DSTruncate_NHEP;
   ds->ops->update        = DSUpdateExtraRow_NHEP;
   ds->ops->cond          = DSCond_NHEP;
