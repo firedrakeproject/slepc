@@ -84,6 +84,6 @@ runloaded_string_6:
 
 rungun_1:
 	-@${SETTEST}; \
-	${MPIEXEC} -n 1 ./gun -K $(DATAFILESPATH)/matrices/complex/gun_K.petsc -M $(DATAFILESPATH)/matrices/complex/gun_M.petsc -W1 $(DATAFILESPATH)/matrices/complex/gun_W1.petsc -W2 $(DATAFILESPATH)/matrices/complex/gun_W2.petsc -nep_type nleigs -rg_type interval -rg_interval_endpoints 12500,120500,-1,25000 -nep_target 65000 -nep_nev 4 -nep_tol 1e-12 -terse > $${test}.tmp 2>&1; \
+	${MPIEXEC} -n 1 ./gun -K $(DATAFILESPATH)/matrices/complex/gun_K.petsc -M $(DATAFILESPATH)/matrices/complex/gun_M.petsc -W1 $(DATAFILESPATH)/matrices/complex/gun_W1.petsc -W2 $(DATAFILESPATH)/matrices/complex/gun_W2.petsc -nep_type nleigs -rg_type polygon -rg_polygon_vertices 12500-1i,120500-1i,120500+30000i,70000+30000i -nep_target 65000 -nep_nev 24 -terse > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
