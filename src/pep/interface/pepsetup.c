@@ -288,11 +288,14 @@ PetscErrorCode PEPSetOperators(PEP pep,PetscInt nmat,Mat A[])
   if (nmat <= 0) SETERRQ1(PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"Non-positive value of nmat: %D",nmat);
   if (nmat <= 2) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"Cannot solve linear eigenproblems with PEP; use EPS instead");
   PetscValidPointer(A,3);
+  PetscValidHeaderSpecific(A[0],MAT_CLASSID,3);
 
-  if (pep->state) { ierr = PEPReset(pep);CHKERRQ(ierr); }
+  ierr = MatGetSize(A[0],&m,&n);CHKERRQ(ierr);
+  if (pep->state && n!=pep->n) { ierr = PEPReset(pep);CHKERRQ(ierr); }
   else if (pep->nmat) {
     ierr = MatDestroyMatrices(pep->nmat,&pep->A);CHKERRQ(ierr);
     ierr = PetscFree2(pep->pbc,pep->nrma);CHKERRQ(ierr);
+    ierr = PetscFree(pep->solvematcoeffs);CHKERRQ(ierr);
   }
 
   ierr = PetscMalloc1(nmat,&pep->A);CHKERRQ(ierr);

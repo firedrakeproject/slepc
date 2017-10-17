@@ -117,10 +117,9 @@ static PetscErrorCode PEPSTOARqKqMupdates(PEP pep,PetscInt j,Vec *wv)
 PetscErrorCode PEPSetUp_STOAR(PEP pep)
 {
   PetscErrorCode ierr;
-  PetscBool      shift,sinv,flg,lindep;
+  PetscBool      shift,sinv,flg;
   PEP_TOAR       *ctx = (PEP_TOAR*)pep->data;
-  PetscInt       ld,i;
-  PetscReal      norm,*omega;
+  PetscInt       ld;
 
   PetscFunctionBegin;
   pep->lineariz = PETSC_TRUE;
@@ -153,32 +152,6 @@ PetscErrorCode PEPSetUp_STOAR(PEP pep)
   ctx->ld = ld;
   if (ctx->S) { ierr = PetscFree2(ctx->S,ctx->qB);CHKERRQ(ierr); }
   ierr = PetscCalloc2(ctx->d*ld*ld,&ctx->S,2*ld*ld,&ctx->qB);CHKERRQ(ierr);
-
-  /* process initial vectors */
-  ctx->nq = 0;
-  for (i=0;i<ctx->d;i++) {
-    if (i<-pep->nini) {
-      ierr = BVInsertVec(pep->V,ctx->nq,pep->IS[i]);CHKERRQ(ierr);
-    } else {
-      ierr = BVSetRandomColumn(pep->V,ctx->nq);CHKERRQ(ierr);
-    }
-    ierr = BVOrthogonalizeColumn(pep->V,ctx->nq,ctx->S+i*ctx->ld,&norm,&lindep);CHKERRQ(ierr);
-    if (!lindep) {
-      ierr = BVScaleColumn(pep->V,ctx->nq,1.0/norm);CHKERRQ(ierr);
-      ctx->S[ctx->nq+i*ctx->ld] = norm;
-      ierr = PEPSTOARqKqMupdates(pep,ctx->nq,pep->work);CHKERRQ(ierr);
-      ctx->nq++;
-    }
-  }
-  if (ctx->nq<2) SETERRQ(PetscObjectComm((PetscObject)pep),1,"PEP: Problem with initial vector");
-  ierr = PEPSTOARNorm(pep,0,&norm);CHKERRQ(ierr);
-  for (i=0;i<2;i++) { ctx->S[i+ld] /= norm; ctx->S[i] /= norm; }
-  ierr = DSGetArrayReal(pep->ds,DS_MAT_D,&omega);CHKERRQ(ierr);
-  omega[0] = (norm>0)?1.0:-1.0;
-  ierr = DSRestoreArrayReal(pep->ds,DS_MAT_D,&omega);CHKERRQ(ierr);
-  if (pep->nini<0) {
-    ierr = SlepcBasisDestroy_Private(&pep->nini,&pep->IS);CHKERRQ(ierr);
-  }
   PetscFunctionReturn(0);
 }
 
@@ -438,7 +411,7 @@ PetscErrorCode PEPSolve_STOAR(PEP pep)
 {
   PetscErrorCode ierr;
   PEP_TOAR       *ctx = (PEP_TOAR*)pep->data;
-  PetscInt       j,k,l,nv=0,ld=ctx->ld,lds=ctx->d*ctx->ld,off,ldds,t;
+  PetscInt       j,k,l,nv=0,ld=ctx->ld,lds=ctx->d*ctx->ld,off,ldds,t,nq=0;
   PetscInt       lwa,lrwa,nwu=0,nrwu=0,nconv=0;
   PetscScalar    *S=ctx->S,*Q,*work;
   PetscReal      beta,norm=1.0,*omega,*a,*b,*r,*rwork;
@@ -453,6 +426,28 @@ PetscErrorCode PEPSolve_STOAR(PEP pep)
   ierr = PetscObjectTypeCompare((PetscObject)pep->st,STSINVERT,&sinv);CHKERRQ(ierr);
   ierr = RGPushScale(pep->rg,sinv?pep->sfactor:1.0/pep->sfactor);CHKERRQ(ierr);
   ierr = STScaleShift(pep->st,sinv?pep->sfactor:1.0/pep->sfactor);CHKERRQ(ierr);
+
+  /* Get the starting Arnoldi vector */
+  for (j=0;j<ctx->d;j++) {
+    if (j>=pep->nini) {
+      ierr = BVSetRandomColumn(pep->V,nq);CHKERRQ(ierr);
+    }else {
+      ierr = BVCopyColumn(pep->V,j,nq);CHKERRQ(ierr);
+    }
+    ierr = BVOrthogonalizeColumn(pep->V,nq,ctx->S+j*ctx->ld,&norm,&breakdown);CHKERRQ(ierr);
+    if (!breakdown) {
+      ierr = BVScaleColumn(pep->V,nq,1.0/norm);CHKERRQ(ierr);
+      ctx->S[nq+j*ctx->ld] = norm;
+      ierr = PEPSTOARqKqMupdates(pep,nq,pep->work);CHKERRQ(ierr);
+      nq++;
+    }
+  }
+  if (nq<2) SETERRQ(PetscObjectComm((PetscObject)pep),1,"PEP: Problem with initial vector");
+  ierr = PEPSTOARNorm(pep,0,&norm);CHKERRQ(ierr);
+  for (j=0;j<2;j++) { ctx->S[j+ld] /= norm; ctx->S[j] /= norm; }
+  ierr = DSGetArrayReal(pep->ds,DS_MAT_D,&omega);CHKERRQ(ierr);
+  omega[0] = (norm>0)?1.0:-1.0;
+  ierr = DSRestoreArrayReal(pep->ds,DS_MAT_D,&omega);CHKERRQ(ierr);
 
   /* Restart loop */
   l = 0;

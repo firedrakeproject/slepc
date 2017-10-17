@@ -72,9 +72,8 @@ PetscErrorCode PEPSetUp_TOAR(PEP pep)
 {
   PetscErrorCode ierr;
   PEP_TOAR       *ctx = (PEP_TOAR*)pep->data;
-  PetscBool      shift,sinv,flg,lindep;
-  PetscInt       i,lds,deg=pep->nmat-1,j;
-  PetscReal      norm;
+  PetscBool      shift,sinv,flg;
+  PetscInt       i,lds;
 
   PetscFunctionBegin;
   pep->lineariz = PETSC_TRUE;
@@ -117,30 +116,6 @@ PetscErrorCode PEPSetUp_TOAR(PEP pep)
   lds = (pep->nmat-1)*ctx->ld;
   if (ctx->S) { ierr = PetscFree(ctx->S);CHKERRQ(ierr); }
   ierr = PetscCalloc1(lds*ctx->ld,&ctx->S);CHKERRQ(ierr);
-
-  /* process initial vectors */
-  ctx->nq = 0;
-  for (i=0;i<deg;i++) {
-    if (i<-pep->nini) {
-      ierr = BVInsertVec(pep->V,ctx->nq,pep->IS[i]);CHKERRQ(ierr);
-    } else {
-      ierr = BVSetRandomColumn(pep->V,ctx->nq);CHKERRQ(ierr);
-    }
-    ierr = BVOrthogonalizeColumn(pep->V,ctx->nq,ctx->S+i*ctx->ld,&norm,&lindep);CHKERRQ(ierr);
-    if (!lindep) {
-      ierr = BVScaleColumn(pep->V,ctx->nq,1.0/norm);CHKERRQ(ierr);
-      ctx->S[ctx->nq+i*ctx->ld] = norm;
-      ctx->nq++;
-    }
-  }
-  if (ctx->nq==0) SETERRQ(PetscObjectComm((PetscObject)pep),1,"PEP: Problem with initial vector");
-  ierr = PEPTOARSNorm2(lds,ctx->S,&norm);CHKERRQ(ierr);
-  for (j=0;j<deg;j++) {
-    for (i=0;i<=j;i++) ctx->S[i+j*ctx->ld] /= norm;
-  }
-  if (pep->nini<0) {
-    ierr = SlepcBasisDestroy_Private(&pep->nini,&pep->IS);CHKERRQ(ierr);
-  }
   PetscFunctionReturn(0);
 }
 
@@ -747,10 +722,10 @@ PetscErrorCode PEPSolve_TOAR(PEP pep)
 {
   PetscErrorCode ierr;
   PEP_TOAR       *ctx = (PEP_TOAR*)pep->data;
-  PetscInt       i,j,k,l,nv=0,ld,lds,off,ldds,newn,nq=ctx->nq,nconv=0,locked=0,newc;
+  PetscInt       i,j,k,l,nv=0,ld,lds,off,ldds,newn,nq=0,nconv=0,locked=0,newc;
   PetscInt       lwa,lrwa,nwu=0,nrwu=0,nmat=pep->nmat,deg=nmat-1;
   PetscScalar    *S,*Q,*work,*H,sigma;
-  PetscReal      beta,*rwork;
+  PetscReal      beta,*rwork,norm;
   PetscBool      breakdown=PETSC_FALSE,flg,falselock=PETSC_FALSE,sinv=PETSC_FALSE;
 
   PetscFunctionBegin;
@@ -794,6 +769,26 @@ PetscErrorCode PEPSolve_TOAR(PEP pep)
   ierr = PetscMemzero(H,ldds*ldds*sizeof(PetscScalar));CHKERRQ(ierr);
   ierr = DSRestoreArray(pep->ds,DS_MAT_A,&H);CHKERRQ(ierr);
   
+  /* Get the starting Arnoldi vector */
+  for (i=0;i<deg;i++) {
+    if (i>=pep->nini) {
+      ierr = BVSetRandomColumn(pep->V,nq);CHKERRQ(ierr);
+    } else {
+      ierr = BVCopyColumn(pep->V,i,nq);CHKERRQ(ierr);
+    }
+    ierr = BVOrthogonalizeColumn(pep->V,nq,S+i*ctx->ld,&norm,&breakdown);CHKERRQ(ierr);
+    if (!breakdown) {
+      ierr = BVScaleColumn(pep->V,nq,1.0/norm);CHKERRQ(ierr);
+      S[nq+i*ctx->ld] = norm;
+      nq++;
+    }
+  }
+  if (nq==0) SETERRQ(PetscObjectComm((PetscObject)pep),1,"PEP: Problem with initial vector");
+  ierr = PEPTOARSNorm2(lds,S,&norm);CHKERRQ(ierr);
+  for (j=0;j<deg;j++) {
+    for (i=0;i<=j;i++) S[i+j*ctx->ld] /= norm;
+  }
+
   /* restart loop */
   l = 0;
   while (pep->reason == PEP_CONVERGED_ITERATING) {
