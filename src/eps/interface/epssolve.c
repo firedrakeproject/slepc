@@ -84,10 +84,10 @@ static PetscErrorCode EPSComputeValues(EPS eps)
         ierr = PetscObjectTypeCompare((PetscObject)eps->st,STFILTER,&isfilter);CHKERRQ(ierr);
         if (isfilter) {
           nconv0 = eps->nconv;
-          for (i=0;i<nconv0;i++) {
-            if (PetscRealPart(eps->eigr[i])<eps->inta || PetscRealPart(eps->eigr[i])>eps->intb) {
+          for (i=0;i<eps->nconv;i++) {
+            if (PetscRealPart(eps->eigr[eps->perm[i]])<eps->inta || PetscRealPart(eps->eigr[eps->perm[i]])>eps->intb) {
               eps->nconv--;
-              if (i<eps->nconv) SWAP(eps->perm[i],eps->perm[eps->nconv],aux);
+              if (i<eps->nconv) { SWAP(eps->perm[i],eps->perm[eps->nconv],aux); i--; }
             }
           }
           if (nconv0>eps->nconv) {

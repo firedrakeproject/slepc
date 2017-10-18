@@ -238,7 +238,7 @@ PetscErrorCode EPSDelayedArnoldi1(EPS eps,PetscScalar *H,PetscInt ldh,PetscInt k
 PetscErrorCode EPSKrylovConvergence_Filter(EPS eps,PetscBool getall,PetscInt kini,PetscInt nits,PetscReal beta,PetscReal gamma,PetscInt *kout)
 {
   PetscErrorCode ierr;
-  PetscInt       k,newk,ninside,nconv;
+  PetscInt       k,ninside,nconv;
   PetscScalar    re,im;
   PetscReal      resnorm;
 
@@ -249,13 +249,11 @@ PetscErrorCode EPSKrylovConvergence_Filter(EPS eps,PetscBool getall,PetscInt kin
     ninside++;
   }
   nconv = 0;   /* count how many eigenvalues satisfy the convergence criterion */
-  for (k=kini;k<kini+nits;k++) {
+  for (k=kini;k<kini+ninside;k++) {
     /* eigenvalue */
     re = eps->eigr[k];
     im = eps->eigi[k];
-    if (PetscRealPart(eps->eigr[k]) < gamma) break;
-    newk = k;
-    ierr = DSVectors(eps->ds,DS_MAT_X,&newk,&resnorm);CHKERRQ(ierr);
+    ierr = DSVectors(eps->ds,DS_MAT_X,&k,&resnorm);CHKERRQ(ierr);
     resnorm *= beta;
     /* error estimate */
     ierr = (*eps->converged)(eps,re,im,resnorm,&eps->errest[k],eps->convergedctx);CHKERRQ(ierr);
@@ -263,6 +261,7 @@ PetscErrorCode EPSKrylovConvergence_Filter(EPS eps,PetscBool getall,PetscInt kin
   }
   if (nconv==ninside) *kout = k;   /* all eigenvalues in the interval have converged */
   else *kout = 0;
+  ierr = PetscInfo4(eps,"Found %D eigenvalue approximations inside the inverval (gamma=%g), k=%D nconv=%D\n",ninside,(double)gamma,k,nconv);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
