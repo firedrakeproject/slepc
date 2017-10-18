@@ -585,6 +585,7 @@ PetscErrorCode NEPSolve_CISS(NEP nep)
         temp[i+j*ld] = H0[i+j*ctx->L*ctx->M];
     ierr = DSRestoreArray(nep->ds,DS_MAT_B,&temp);CHKERRQ(ierr);
     ierr = DSSolve(nep->ds,nep->eigr,nep->eigi);CHKERRQ(ierr);
+    ierr = DSSynchronize(nep->ds,nep->eigr,nep->eigi);CHKERRQ(ierr);
     ierr = DSVectors(nep->ds,DS_MAT_X,NULL,NULL);CHKERRQ(ierr);
     for (i=0;i<nv;i++){
       nep->eigr[i] = (nep->eigr[i]*radius+center)*rgscale;
@@ -602,6 +603,7 @@ PetscErrorCode NEPSolve_CISS(NEP nep)
       } else rr[i] = 0.0;
     }
     ierr = DSSort(nep->ds,nep->eigr,nep->eigi,rr,NULL,&nep->nconv);CHKERRQ(ierr);
+    ierr = DSSynchronize(nep->ds,nep->eigr,nep->eigi);CHKERRQ(ierr);
     for (i=0;i<nv;i++){
       nep->eigr[i] = (nep->eigr[i]*radius+center)*rgscale;
 #if !defined(PETSC_USE_COMPLEX)

@@ -67,6 +67,7 @@ PetscErrorCode EPSSolve_KrylovSchur_Symm(EPS eps)
     if (eps->arbitrary) { ierr = EPSGetArbitraryValues(eps,eps->rr,eps->ri);CHKERRQ(ierr); }
     ierr = DSSort(eps->ds,eps->eigr,NULL,eps->rr,eps->ri,NULL);CHKERRQ(ierr);
     ierr = DSUpdateExtraRow(eps->ds);CHKERRQ(ierr);
+    ierr = DSSynchronize(eps->ds,eps->eigr,NULL);CHKERRQ(ierr);
 
     /* Check convergence */
     ierr = EPSKrylovConvergence(eps,PETSC_FALSE,eps->nconv,nv-eps->nconv,beta,1.0,&k);CHKERRQ(ierr);

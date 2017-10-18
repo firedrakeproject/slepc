@@ -368,6 +368,7 @@ PetscErrorCode EPSSetUp_KrylovSchur_Slice(EPS eps)
   Mat             A,B=NULL;
   SlepcSC         sc;
   PetscInt        flg=0;
+  DSParallelType  ptype;
 
   PetscFunctionBegin;
   if (ctx->global) {
@@ -535,6 +536,8 @@ PetscErrorCode EPSSetUp_KrylovSchur_Slice(EPS eps)
       sc->map           = NULL;
       sc->mapobj        = NULL;
     }
+    ierr = DSGetParallel(ctx->eps->ds,&ptype);CHKERRQ(ierr);
+    ierr = DSSetParallel(eps->ds,ptype);CHKERRQ(ierr);
   }
   ierr = DSSetType(eps->ds,DSHEP);CHKERRQ(ierr);
   ierr = DSSetCompact(eps->ds,PETSC_TRUE);CHKERRQ(ierr);
@@ -979,6 +982,8 @@ static PetscErrorCode EPSKrylovSchur_Slice(EPS eps)
       ierr = DSSolve(eps->ds,eps->eigr,NULL);CHKERRQ(ierr);
       ierr = DSSort(eps->ds,eps->eigr,NULL,NULL,NULL,NULL);CHKERRQ(ierr);
     }
+    ierr = DSSynchronize(eps->ds,eps->eigr,NULL);CHKERRQ(ierr);
+
     /* Residual */
     ierr = EPSKrylovConvergence(eps,PETSC_TRUE,eps->nconv,nv-eps->nconv,beta,1.0,&k);CHKERRQ(ierr);
     /* Checking values obtained for completing */

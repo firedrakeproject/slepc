@@ -71,6 +71,7 @@ static PetscErrorCode EPSComputeValues(EPS eps)
         }
         ierr = DSSolve(eps->ds,eps->eigr,eps->eigi);CHKERRQ(ierr);
         ierr = DSSort(eps->ds,eps->eigr,eps->eigi,NULL,NULL,NULL);CHKERRQ(ierr);
+        ierr = DSSynchronize(eps->ds,eps->eigr,eps->eigi);CHKERRQ(ierr);
         ierr = DSSetCompact(eps->ds,iscomp);CHKERRQ(ierr);
         if (eps->ishermitian && (!eps->isgeneralized || eps->ispositive)) { /* V = V * Z */
           ierr = DSVectors(eps->ds,DS_MAT_X,NULL,NULL);CHKERRQ(ierr);

@@ -411,6 +411,8 @@ static PetscErrorCode dvd_calcpairs_selectPairs(dvdDashboard *d,PetscInt n)
     k = 1;
     ierr = DSSort(d->eps->ds,d->eigr,d->eigi,rr,ri,&k);CHKERRQ(ierr);
   }
+  ierr = DSSynchronize(d->eps->ds,d->eigr,d->eigi);CHKERRQ(ierr);
+
   if (d->calcpairs_eigs_trans) {
     ierr = d->calcpairs_eigs_trans(d);CHKERRQ(ierr);
   }
@@ -454,6 +456,7 @@ static PetscErrorCode EPSXDComputeDSConv(dvdDashboard *d)
   }
   ierr = DSSetState(d->eps->ds,DS_STATE_RAW);CHKERRQ(ierr);
   ierr = DSSolve(d->eps->ds,d->eps->eigr,d->eps->eigi);CHKERRQ(ierr);
+  ierr = DSSynchronize(d->eps->ds,d->eps->eigr,d->eps->eigi);CHKERRQ(ierr);
   if (d->W) {
     for (i=0; i<d->eps->nconv; i++) {
       ierr = d->calcpairs_eig_backtrans(d,d->eps->eigr[i],d->eps->eigi[i],&d->eps->eigr[i],&d->eps->eigi[i]);CHKERRQ(ierr);
