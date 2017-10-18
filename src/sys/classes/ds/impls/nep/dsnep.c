@@ -280,6 +280,46 @@ PetscErrorCode DSSolve_NEP_SLP(DS ds,PetscScalar *wr,PetscScalar *wi)
 #endif
 }
 
+PetscErrorCode DSSynchronize_NEP(DS ds,PetscScalar eigr[],PetscScalar eigi[])
+{
+  PetscErrorCode ierr;
+  PetscInt       k=0,off=0;
+  PetscMPIInt    n,rank,size;
+
+  PetscFunctionBegin;
+  if (ds->state>=DS_STATE_CONDENSED) k += ds->n;
+  if (eigr) k += 1;
+  if (eigi) k += 1;
+  ierr = DSAllocateWork_Private(ds,k,0,0);CHKERRQ(ierr);
+  ierr = PetscMPIIntCast(k*sizeof(PetscScalar),&size);CHKERRQ(ierr);
+  ierr = PetscMPIIntCast(ds->n,&n);CHKERRQ(ierr);
+  ierr = MPI_Comm_rank(PetscObjectComm((PetscObject)ds),&rank);CHKERRQ(ierr);
+  if (!rank) {
+    if (ds->state>=DS_STATE_CONDENSED) {
+      ierr = MPI_Pack(ds->mat[DS_MAT_X],n,MPIU_SCALAR,ds->work,size,&off,PetscObjectComm((PetscObject)ds));CHKERRQ(ierr);
+    }
+    if (eigr) {
+      ierr = MPI_Pack(eigr,1,MPIU_SCALAR,ds->work,size,&off,PetscObjectComm((PetscObject)ds));CHKERRQ(ierr);
+    }
+    if (eigi) {
+      ierr = MPI_Pack(eigi,1,MPIU_SCALAR,ds->work,size,&off,PetscObjectComm((PetscObject)ds));CHKERRQ(ierr);
+    }
+  }
+  ierr = MPI_Bcast(ds->work,size,MPI_BYTE,0,PetscObjectComm((PetscObject)ds));CHKERRQ(ierr);
+  if (rank) {
+    if (ds->state>=DS_STATE_CONDENSED) {
+      ierr = MPI_Unpack(ds->work,size,&off,ds->mat[DS_MAT_X],n,MPIU_SCALAR,PetscObjectComm((PetscObject)ds));CHKERRQ(ierr);
+    }
+    if (eigr) {
+      ierr = MPI_Unpack(ds->work,size,&off,eigr,1,MPIU_SCALAR,PetscObjectComm((PetscObject)ds));CHKERRQ(ierr);
+    }
+    if (eigi) {
+      ierr = MPI_Unpack(ds->work,size,&off,eigi,1,MPIU_SCALAR,PetscObjectComm((PetscObject)ds));CHKERRQ(ierr);
+    }
+  }
+  PetscFunctionReturn(0);
+}
+
 static PetscErrorCode DSNEPSetFN_NEP(DS ds,PetscInt n,FN fn[])
 {
   PetscErrorCode ierr;
@@ -445,6 +485,7 @@ PETSC_EXTERN PetscErrorCode DSCreate_NEP(DS ds)
   ds->ops->vectors       = DSVectors_NEP;
   ds->ops->solve[0]      = DSSolve_NEP_SLP;
   ds->ops->sort          = DSSort_NEP;
+  ds->ops->synchronize   = DSSynchronize_NEP;
   ds->ops->destroy       = DSDestroy_NEP;
   ierr = PetscObjectComposeFunction((PetscObject)ds,"DSNEPSetFN_C",DSNEPSetFN_NEP);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)ds,"DSNEPGetFN_C",DSNEPGetFN_NEP);CHKERRQ(ierr);

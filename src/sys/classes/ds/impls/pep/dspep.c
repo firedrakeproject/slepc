@@ -245,6 +245,50 @@ PetscErrorCode DSSolve_PEP_QZ(DS ds,PetscScalar *wr,PetscScalar *wi)
 #endif
 }
 
+PetscErrorCode DSSynchronize_PEP(DS ds,PetscScalar eigr[],PetscScalar eigi[])
+{
+  PetscErrorCode ierr;
+  DS_PEP         *ctx = (DS_PEP*)ds->data;  
+  PetscInt       ld=ds->ld,k=0;
+  PetscMPIInt    ldnd,rank,off=0,size,dn;
+
+  PetscFunctionBegin;
+  if (ds->state>=DS_STATE_CONDENSED) k += 2*ctx->d*ds->n*ld;
+  if (eigr) k += ctx->d*ds->n; 
+  if (eigi) k += ctx->d*ds->n; 
+  ierr = DSAllocateWork_Private(ds,k,0,0);CHKERRQ(ierr);
+  ierr = PetscMPIIntCast(k*sizeof(PetscScalar),&size);CHKERRQ(ierr);
+  ierr = PetscMPIIntCast(ds->n*ctx->d*ld,&ldnd);CHKERRQ(ierr);
+  ierr = PetscMPIIntCast(ctx->d*ds->n,&dn);CHKERRQ(ierr);
+  ierr = MPI_Comm_rank(PetscObjectComm((PetscObject)ds),&rank);CHKERRQ(ierr);
+  if (!rank) {
+    if (ds->state>=DS_STATE_CONDENSED) {
+      ierr = MPI_Pack(ds->mat[DS_MAT_X],ldnd,MPIU_SCALAR,ds->work,size,&off,PetscObjectComm((PetscObject)ds));CHKERRQ(ierr);
+      ierr = MPI_Pack(ds->mat[DS_MAT_Y],ldnd,MPIU_SCALAR,ds->work,size,&off,PetscObjectComm((PetscObject)ds));CHKERRQ(ierr);
+    }
+    if (eigr) {
+      ierr = MPI_Pack(eigr,dn,MPIU_SCALAR,ds->work,size,&off,PetscObjectComm((PetscObject)ds));CHKERRQ(ierr);
+    }
+    if (eigi) {
+      ierr = MPI_Pack(eigi,dn,MPIU_SCALAR,ds->work,size,&off,PetscObjectComm((PetscObject)ds));CHKERRQ(ierr);
+    }
+  }
+  ierr = MPI_Bcast(ds->work,size,MPI_BYTE,0,PetscObjectComm((PetscObject)ds));CHKERRQ(ierr);
+  if (rank) {
+    if (ds->state>=DS_STATE_CONDENSED) {
+      ierr = MPI_Unpack(ds->work,size,&off,ds->mat[DS_MAT_X],ldnd,MPIU_SCALAR,PetscObjectComm((PetscObject)ds));CHKERRQ(ierr);
+      ierr = MPI_Unpack(ds->work,size,&off,ds->mat[DS_MAT_Y],ldnd,MPIU_SCALAR,PetscObjectComm((PetscObject)ds));CHKERRQ(ierr);
+    }
+    if (eigr) {
+      ierr = MPI_Unpack(ds->work,size,&off,eigr,dn,MPIU_SCALAR,PetscObjectComm((PetscObject)ds));CHKERRQ(ierr);
+    }
+    if (eigi) {
+      ierr = MPI_Unpack(ds->work,size,&off,eigi,dn,MPIU_SCALAR,PetscObjectComm((PetscObject)ds));CHKERRQ(ierr);
+    }
+  }
+  PetscFunctionReturn(0);
+}
+
 static PetscErrorCode DSPEPSetDegree_PEP(DS ds,PetscInt d)
 {
   DS_PEP *ctx = (DS_PEP*)ds->data;
@@ -353,6 +397,7 @@ PETSC_EXTERN PetscErrorCode DSCreate_PEP(DS ds)
   ds->ops->vectors       = DSVectors_PEP;
   ds->ops->solve[0]      = DSSolve_PEP_QZ;
   ds->ops->sort          = DSSort_PEP;
+  ds->ops->synchronize   = DSSynchronize_PEP;
   ds->ops->destroy       = DSDestroy_PEP;
   ds->ops->matgetsize    = DSMatGetSize_PEP;
   ierr = PetscObjectComposeFunction((PetscObject)ds,"DSPEPSetDegree_C",DSPEPSetDegree_PEP);CHKERRQ(ierr);

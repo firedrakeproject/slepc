@@ -288,6 +288,61 @@ PetscErrorCode DSSolve_SVD_DC(DS ds,PetscScalar *wr,PetscScalar *wi)
 #endif
 }
 
+PetscErrorCode DSSynchronize_SVD(DS ds,PetscScalar eigr[],PetscScalar eigi[])
+{
+  PetscErrorCode ierr;
+  PetscInt       ld=ds->ld,l=ds->l,k;
+  PetscMPIInt    n,rank,off=0,size,ldn,ld3;
+
+  PetscFunctionBegin;
+  k = (ds->compact)?3*ds->ld:(ds->n-l)*ld;
+  if (ds->state>DS_STATE_RAW) k += 2*(ds->n-l)*ld;
+  if (eigr) k += ds->n-l; 
+  if (eigi) k += ds->n-l; 
+  ierr = DSAllocateWork_Private(ds,k,0,0);CHKERRQ(ierr);
+  ierr = PetscMPIIntCast(k*sizeof(PetscScalar),&size);CHKERRQ(ierr);
+  ierr = PetscMPIIntCast(ds->n-l,&n);CHKERRQ(ierr);
+  ierr = PetscMPIIntCast(ld*(ds->n-l),&ldn);CHKERRQ(ierr);
+  ierr = PetscMPIIntCast(3*ld,&ld3);CHKERRQ(ierr);
+  ierr = MPI_Comm_rank(PetscObjectComm((PetscObject)ds),&rank);CHKERRQ(ierr);
+  if (!rank) {
+    if (ds->compact) {
+      ierr = MPI_Pack(ds->rmat[DS_MAT_T],ld3,MPIU_REAL,ds->work,size,&off,PetscObjectComm((PetscObject)ds));CHKERRQ(ierr);
+    } else {
+      ierr = MPI_Pack(ds->mat[DS_MAT_A]+l*ld,ldn,MPIU_SCALAR,ds->work,size,&off,PetscObjectComm((PetscObject)ds));CHKERRQ(ierr);
+    }
+    if (ds->state>DS_STATE_RAW) {
+      ierr = MPI_Pack(ds->mat[DS_MAT_U]+l*ld,ldn,MPIU_SCALAR,ds->work,size,&off,PetscObjectComm((PetscObject)ds));CHKERRQ(ierr);
+      ierr = MPI_Pack(ds->mat[DS_MAT_VT]+l*ld,ldn,MPIU_SCALAR,ds->work,size,&off,PetscObjectComm((PetscObject)ds));CHKERRQ(ierr);
+    }
+    if (eigr) {
+      ierr = MPI_Pack(eigr+l,n,MPIU_SCALAR,ds->work,size,&off,PetscObjectComm((PetscObject)ds));CHKERRQ(ierr);
+    }
+    if (eigi) {
+      ierr = MPI_Pack(eigi+l,n,MPIU_SCALAR,ds->work,size,&off,PetscObjectComm((PetscObject)ds));CHKERRQ(ierr);
+    }
+  }
+  ierr = MPI_Bcast(ds->work,size,MPI_BYTE,0,PetscObjectComm((PetscObject)ds));CHKERRQ(ierr);
+  if (rank) {
+    if (ds->compact) {
+      ierr = MPI_Unpack(ds->work,size,&off,ds->rmat[DS_MAT_T],ld3,MPIU_REAL,PetscObjectComm((PetscObject)ds));CHKERRQ(ierr);
+    } else {
+      ierr = MPI_Unpack(ds->work,size,&off,ds->mat[DS_MAT_A]+l*ld,ldn,MPIU_SCALAR,PetscObjectComm((PetscObject)ds));CHKERRQ(ierr);
+    }
+    if (ds->state>DS_STATE_RAW) {
+      ierr = MPI_Unpack(ds->work,size,&off,ds->mat[DS_MAT_U]+l*ld,ldn,MPIU_SCALAR,PetscObjectComm((PetscObject)ds));CHKERRQ(ierr);
+      ierr = MPI_Unpack(ds->work,size,&off,ds->mat[DS_MAT_VT]+l*ld,ldn,MPIU_SCALAR,PetscObjectComm((PetscObject)ds));CHKERRQ(ierr);
+    }
+    if (eigr) {
+      ierr = MPI_Unpack(ds->work,size,&off,eigr+l,n,MPIU_SCALAR,PetscObjectComm((PetscObject)ds));CHKERRQ(ierr);
+    }
+    if (eigi) {
+      ierr = MPI_Unpack(ds->work,size,&off,eigi+l,n,MPIU_SCALAR,PetscObjectComm((PetscObject)ds));CHKERRQ(ierr);
+    }
+  }
+  PetscFunctionReturn(0);
+}
+
 PetscErrorCode DSMatGetSize_SVD(DS ds,DSMatType t,PetscInt *rows,PetscInt *cols)
 {
   PetscFunctionBegin;
@@ -319,6 +374,7 @@ PETSC_EXTERN PetscErrorCode DSCreate_SVD(DS ds)
   ds->ops->vectors       = DSVectors_SVD;
   ds->ops->solve[0]      = DSSolve_SVD_DC;
   ds->ops->sort          = DSSort_SVD;
+  ds->ops->synchronize   = DSSynchronize_SVD;
   ds->ops->matgetsize    = DSMatGetSize_SVD;
   PetscFunctionReturn(0);
 }

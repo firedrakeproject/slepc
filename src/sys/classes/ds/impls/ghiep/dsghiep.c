@@ -876,6 +876,64 @@ PetscErrorCode DSSolve_GHIEP_QR(DS ds,PetscScalar *wr,PetscScalar *wi)
 #endif
 }
 
+PetscErrorCode DSSynchronize_GHIEP(DS ds,PetscScalar eigr[],PetscScalar eigi[])
+{
+  PetscErrorCode ierr;
+  PetscInt       ld=ds->ld,l=ds->l,k;
+  PetscMPIInt    n,rank,off=0,size,ldn,ld3,ld_;
+
+  PetscFunctionBegin;
+  k = (ds->compact)?4*ld:2*(ds->n-l)*ld;
+  if (ds->state>DS_STATE_RAW) k += (ds->n-l)*ld;
+  if (eigr) k += (ds->n-l); 
+  if (eigi) k += (ds->n-l); 
+  ierr = DSAllocateWork_Private(ds,k,0,0);CHKERRQ(ierr);
+  ierr = PetscMPIIntCast(k*sizeof(PetscScalar),&size);CHKERRQ(ierr);
+  ierr = PetscMPIIntCast(ds->n-l,&n);CHKERRQ(ierr);
+  ierr = PetscMPIIntCast(ld*(ds->n-l),&ldn);CHKERRQ(ierr);
+  ierr = PetscMPIIntCast(ld*3,&ld3);CHKERRQ(ierr);
+  ierr = PetscMPIIntCast(ld,&ld_);CHKERRQ(ierr);
+  ierr = MPI_Comm_rank(PetscObjectComm((PetscObject)ds),&rank);CHKERRQ(ierr);
+  if (!rank) {
+    if (ds->compact) {
+      ierr = MPI_Pack(ds->rmat[DS_MAT_T],ld3,MPIU_REAL,ds->work,size,&off,PetscObjectComm((PetscObject)ds));CHKERRQ(ierr);
+      ierr = MPI_Pack(ds->rmat[DS_MAT_D],ld_,MPIU_REAL,ds->work,size,&off,PetscObjectComm((PetscObject)ds));CHKERRQ(ierr);
+    } else {
+      ierr = MPI_Pack(ds->mat[DS_MAT_A]+l*ld,ldn,MPIU_SCALAR,ds->work,size,&off,PetscObjectComm((PetscObject)ds));CHKERRQ(ierr);
+      ierr = MPI_Pack(ds->mat[DS_MAT_B]+l*ld,ldn,MPIU_SCALAR,ds->work,size,&off,PetscObjectComm((PetscObject)ds));CHKERRQ(ierr);
+    }
+    if (ds->state>DS_STATE_RAW) {
+      ierr = MPI_Pack(ds->mat[DS_MAT_Q]+l*ld,ldn,MPIU_SCALAR,ds->work,size,&off,PetscObjectComm((PetscObject)ds));CHKERRQ(ierr);
+    }
+    if (eigr) {
+      ierr = MPI_Pack(eigr+l,n,MPIU_SCALAR,ds->work,size,&off,PetscObjectComm((PetscObject)ds));CHKERRQ(ierr);
+    }
+    if (eigi) {
+      ierr = MPI_Pack(eigi+l,n,MPIU_SCALAR,ds->work,size,&off,PetscObjectComm((PetscObject)ds));CHKERRQ(ierr);
+    }
+  }
+  ierr = MPI_Bcast(ds->work,size,MPI_BYTE,0,PetscObjectComm((PetscObject)ds));CHKERRQ(ierr);
+  if (rank) {
+    if (ds->compact) {
+      ierr = MPI_Unpack(ds->work,size,&off,ds->rmat[DS_MAT_T],ld3,MPIU_REAL,PetscObjectComm((PetscObject)ds));CHKERRQ(ierr);
+      ierr = MPI_Unpack(ds->work,size,&off,ds->rmat[DS_MAT_D],ld_,MPIU_REAL,PetscObjectComm((PetscObject)ds));CHKERRQ(ierr);
+    } else {
+      ierr = MPI_Unpack(ds->work,size,&off,ds->mat[DS_MAT_A]+l*ld,ldn,MPIU_SCALAR,PetscObjectComm((PetscObject)ds));CHKERRQ(ierr);
+      ierr = MPI_Unpack(ds->work,size,&off,ds->mat[DS_MAT_B]+l*ld,ldn,MPIU_SCALAR,PetscObjectComm((PetscObject)ds));CHKERRQ(ierr);
+    }
+    if (ds->state>DS_STATE_RAW) {
+      ierr = MPI_Unpack(ds->work,size,&off,ds->mat[DS_MAT_Q]+l*ld,ldn,MPIU_SCALAR,PetscObjectComm((PetscObject)ds));CHKERRQ(ierr);
+    }
+    if (eigr) {
+      ierr = MPI_Unpack(ds->work,size,&off,eigr+l,n,MPIU_SCALAR,PetscObjectComm((PetscObject)ds));CHKERRQ(ierr);
+    }
+    if (eigi) {
+      ierr = MPI_Unpack(ds->work,size,&off,eigi+l,n,MPIU_SCALAR,PetscObjectComm((PetscObject)ds));CHKERRQ(ierr);
+    }
+  }
+  PetscFunctionReturn(0);
+}
+
 PetscErrorCode DSHermitian_GHIEP(DS ds,DSMatType m,PetscBool *flg)
 {
   PetscFunctionBegin;
@@ -894,6 +952,7 @@ PETSC_EXTERN PetscErrorCode DSCreate_GHIEP(DS ds)
   ds->ops->solve[1]      = DSSolve_GHIEP_HZ;
   ds->ops->solve[2]      = DSSolve_GHIEP_QR;
   ds->ops->sort          = DSSort_GHIEP;
+  ds->ops->synchronize   = DSSynchronize_GHIEP;
   ds->ops->hermitian     = DSHermitian_GHIEP;
   PetscFunctionReturn(0);
 }
