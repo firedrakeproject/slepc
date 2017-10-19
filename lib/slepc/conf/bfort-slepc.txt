@@ -5,6 +5,7 @@ native BVOrthogBlockType
 native BVMatMultType
 native DSStateType
 native DSMatType
+native DSParallelType
 native EPSProblemType
 native EPSExtraction
 native EPSWhich

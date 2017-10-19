@@ -580,6 +580,7 @@ PetscErrorCode EPSSolve_Lanczos(EPS eps)
     /* Solve projected problem */
     ierr = DSSolve(eps->ds,ritz,NULL);CHKERRQ(ierr);
     ierr = DSSort(eps->ds,ritz,NULL,NULL,NULL,NULL);CHKERRQ(ierr);
+    ierr = DSSynchronize(eps->ds,ritz,NULL);CHKERRQ(ierr);
 
     /* Estimate ||A|| */
     for (i=nconv;i<n;i++)

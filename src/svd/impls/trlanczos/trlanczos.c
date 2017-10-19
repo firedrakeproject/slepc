@@ -328,6 +328,7 @@ PetscErrorCode SVDSolve_TRLanczos(SVD svd)
     }
     ierr = DSSolve(svd->ds,w,NULL);CHKERRQ(ierr);
     ierr = DSSort(svd->ds,w,NULL,NULL,NULL,NULL);CHKERRQ(ierr);
+    ierr = DSSynchronize(svd->ds,w,NULL);CHKERRQ(ierr);
 
     /* compute error estimates */
     k = 0;

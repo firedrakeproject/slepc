@@ -25,15 +25,15 @@ CPPFLAGS   =
 FPPFLAGS   =
 LOCDIR     = src/sys/classes/ds/examples/tests/
 EXAMPLESC  = test1.c test2.c test3.c test4.c test5.c test6.c test7.c test8.c test9.c \
-             test12.c test13.c test15.c test16.c test17.c
+             test12.c test13.c test15.c test16.c test17.c test18.c
 EXAMPLESF  = test14f.F90
 MANSEC     = DS
 TESTS      = test1 test2 test3 test4 test5 test6 test7 test8 test9 test12 test13 \
-             test14f test15 test16 test17
+             test14f test15 test16 test17 test18
 
 TESTEXAMPLES_C                     = test2.PETSc runtest2_1 test2.rm \
                                      test12.PETSc runtest12_1 test12.rm \
-                                     test16.PETSc runtest16_1 test16.rm
+                                     test16.PETSc runtest16_1 test16.rm 
 TESTEXAMPLES_C_NOTSINGLE           = test3.PETSc runtest3_1 test3.rm \
                                      test5.PETSc runtest5_1 test5.rm \
                                      test6.PETSc runtest6_1 test6.rm \
@@ -43,7 +43,8 @@ TESTEXAMPLES_C_NOTSINGLE           = test3.PETSc runtest3_1 test3.rm \
                                      test15.PETSc runtest15_1 test15.rm
 TESTEXAMPLES_C_NOCOMPLEX           = test1.PETSc runtest1_1 test1.rm \
                                      test4.PETSc runtest4_1 test4.rm \
-                                     test17.PETSc runtest17_1 test17.rm
+                                     test17.PETSc runtest17_1 test17.rm \
+                                     test18.PETSc runtest18_1 runtest18_2 test18.rm
 TESTEXAMPLES_C_NOCOMPLEX_NOTSINGLE = test13.PETSc runtest13_1 test13.rm
 TESTEXAMPLES_FORTRAN_NOCOMPLEX     = test14f.PETSc runtest14f_1 test14f.rm
 
@@ -108,6 +109,10 @@ test16: test16.o chkopts
 test17: test17.o chkopts
 	-${CLINKER} -o test17 test17.o ${SLEPC_SYS_LIB}
 	${RM} test17.o
+
+test18: test18.o chkopts
+	-${CLINKER} -o test18 test18.o ${SLEPC_SYS_LIB}
+	${RM} test18.o
 
 #------------------------------------------------------------------------------------
 
@@ -200,5 +205,17 @@ runtest16_1:
 runtest17_1:
 	-@${SETTEST}; \
 	${MPIEXEC} -n 1 ./test17 -n 7 > $${test}.tmp 2>&1; \
+	${TESTCODE}
+
+runtest18_1: runtest18_1_1 runtest18_1_2 runtest18_1_3
+runtest18_1_%:
+	-@${SETTEST}; check=test18_1; np=$*; \
+	${MPIEXEC} -n $$np ./test18 -ds_parallel redundant > $${test}.tmp 2>&1; \
+	${TESTCODE}
+
+runtest18_2: runtest18_2_1 runtest18_2_2 runtest18_2_3
+runtest18_2_%:
+	-@${SETTEST}; check=test18_1; np=$*; \
+	${MPIEXEC} -n $$np ./test18 -ds_parallel synchronized > $${test}.tmp 2>&1; \
 	${TESTCODE}
 

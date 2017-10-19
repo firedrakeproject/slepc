@@ -168,6 +168,7 @@ PetscErrorCode EPSSolve_LOBPCG(EPS eps)
   ierr = DSSetState(eps->ds,DS_STATE_RAW);CHKERRQ(ierr);
   ierr = DSSolve(eps->ds,eigr,NULL);CHKERRQ(ierr);
   ierr = DSSort(eps->ds,eigr,NULL,NULL,NULL,NULL);CHKERRQ(ierr);
+  ierr = DSSynchronize(eps->ds,eigr,NULL);CHKERRQ(ierr);
   for (j=0;j<nv;j++) eps->eigr[j] = flip? -eigr[j]: eigr[j];
   ierr = DSVectors(eps->ds,DS_MAT_X,NULL,NULL);CHKERRQ(ierr);
   ierr = DSGetMat(eps->ds,DS_MAT_X,&M);CHKERRQ(ierr);
@@ -292,6 +293,7 @@ PetscErrorCode EPSSolve_LOBPCG(EPS eps)
       ierr = DSSetState(eps->ds,DS_STATE_RAW);CHKERRQ(ierr);
       ierr = DSSolve(eps->ds,eigr,NULL);CHKERRQ(ierr);
       ierr = DSSort(eps->ds,eigr,NULL,NULL,NULL,NULL);CHKERRQ(ierr);
+      ierr = DSSynchronize(eps->ds,eigr,NULL);CHKERRQ(ierr);
       for (j=0;j<nv;j++) if (locked+j<eps->ncv) eps->eigr[locked+j] = flip? -eigr[j]: eigr[j];
       ierr = DSVectors(eps->ds,DS_MAT_X,NULL,NULL);CHKERRQ(ierr);
       ierr = DSGetMat(eps->ds,DS_MAT_X,&M);CHKERRQ(ierr);
@@ -374,6 +376,7 @@ PetscErrorCode EPSSolve_LOBPCG(EPS eps)
     ierr = DSSetState(eps->ds,DS_STATE_RAW);CHKERRQ(ierr);
     ierr = DSSolve(eps->ds,eigr,NULL);CHKERRQ(ierr);
     ierr = DSSort(eps->ds,eigr,NULL,NULL,NULL,NULL);CHKERRQ(ierr);
+    ierr = DSSynchronize(eps->ds,eigr,NULL);CHKERRQ(ierr);
     for (j=0;j<nv;j++) if (locked+j<eps->ncv) eps->eigr[locked+j] = flip? -eigr[j]: eigr[j];
     ierr = DSVectors(eps->ds,DS_MAT_X,NULL,NULL);CHKERRQ(ierr);
 

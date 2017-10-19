@@ -119,6 +119,7 @@ PetscErrorCode NEPSolve_NArnoldi(NEP nep)
     ierr = DSSetDimensions(nep->ds,n,0,0,0);CHKERRQ(ierr);
     ierr = DSSetState(nep->ds,DS_STATE_RAW);CHKERRQ(ierr);
     ierr = DSSolve(nep->ds,nep->eigr,NULL);CHKERRQ(ierr);
+    ierr = DSSynchronize(nep->ds,nep->eigr,NULL);CHKERRQ(ierr);
     lambda = nep->eigr[0];
 
     /* compute Ritz vector, x = V*s */

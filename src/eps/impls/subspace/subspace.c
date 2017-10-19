@@ -208,6 +208,7 @@ PetscErrorCode EPSSolve_Subspace(EPS eps)
     /* Solve projected problem */
     ierr = DSSolve(eps->ds,eps->eigr,eps->eigi);CHKERRQ(ierr);
     ierr = DSSort(eps->ds,eps->eigr,eps->eigi,NULL,NULL,NULL);CHKERRQ(ierr);
+    ierr = DSSynchronize(eps->ds,eps->eigr,eps->eigi);CHKERRQ(ierr);
 
     /* Update vectors V(:,idx) = V * U(:,idx) */
     ierr = DSGetMat(eps->ds,DS_MAT_Q,&Q);CHKERRQ(ierr);

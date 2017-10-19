@@ -1291,6 +1291,7 @@ PetscErrorCode NEPSolve_NLEIGS(NEP nep)
     if (!ctx->nshifts) {
       ierr = DSUpdateExtraRow(nep->ds);CHKERRQ(ierr);
     }
+    ierr = DSSynchronize(nep->ds,nep->eigr,nep->eigi);CHKERRQ(ierr);
 
     /* Check convergence */
     ierr = NEPNLEIGSKrylovConvergence(nep,S,ld,nq,Hc,PETSC_FALSE,nep->nconv,nv-nep->nconv,betak,betah,&k,nep->work);CHKERRQ(ierr);

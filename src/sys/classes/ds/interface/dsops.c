@@ -660,6 +660,57 @@ PetscErrorCode DSSort(DS ds,PetscScalar *eigr,PetscScalar *eigi,PetscScalar *rr,
   PetscFunctionReturn(0);
 }
 
+/*@
+   DSSynchronize - Make sure that all processes have the same data, performing
+   communication if necessary.
+
+   Collective on DS
+
+   Input Parameter:
++  ds   - the direct solver context
+
+   Input/Output Parameters:
++  eigr - (optional) array with the computed eigenvalues (real part)
+-  eigi - (optional) array with the computed eigenvalues (imaginary part)
+
+   Notes:
+   When the DS has been created with a communicator with more than one process,
+   the internal data, especially the computed matrices, may diverge in the
+   different processes. This happens when using multithreaded BLAS and may
+   cause numerical issues in some ill-conditioned problems. This function
+   performs the necessary communication among the processes so that the
+   internal data is exactly equal in all of them.
+
+   Depending on the parallel mode as set with DSSetParallel(), this function
+   will either do nothing or synchronize the matrices computed by DSSolve()
+   and DSSort(). The arguments eigr and eigi are typically those used in the
+   calls to DSSolve() and DSSort().
+
+   Level: developer
+
+.seealso: DSSetParallel(), DSSolve(), DSSort()
+@*/
+PetscErrorCode DSSynchronize(DS ds,PetscScalar eigr[],PetscScalar eigi[])
+{
+  PetscErrorCode ierr;
+  PetscMPIInt    size;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(ds,DS_CLASSID,1);
+  PetscValidType(ds,1);
+  DSCheckAlloc(ds,1);
+  ierr = MPI_Comm_size(PetscObjectComm((PetscObject)ds),&size);CHKERRQ(ierr);
+  if (size>1 && ds->pmode==DS_PARALLEL_SYNCHRONIZED) {
+    ierr = PetscLogEventBegin(DS_Synchronize,ds,0,0,0);CHKERRQ(ierr);
+    if (ds->ops->synchronize) {
+      ierr = (*ds->ops->synchronize)(ds,eigr,eigi);CHKERRQ(ierr);
+    }
+    ierr = PetscLogEventEnd(DS_Synchronize,ds,0,0,0);CHKERRQ(ierr);
+    ierr = PetscObjectStateIncrease((PetscObject)ds);CHKERRQ(ierr);
+  }
+  PetscFunctionReturn(0);
+}
+
 /*@C
    DSVectors - Compute vectors associated to the dense system such
    as eigenvectors.

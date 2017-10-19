@@ -169,6 +169,52 @@ PetscErrorCode DSSolve_GHEP(DS ds,PetscScalar *wr,PetscScalar *wi)
 #endif
 }
 
+PetscErrorCode DSSynchronize_GHEP(DS ds,PetscScalar eigr[],PetscScalar eigi[])
+{
+  PetscErrorCode ierr;
+  PetscInt       ld=ds->ld,l=ds->l,k;
+  PetscMPIInt    n,rank,off=0,size,ldn;
+
+  PetscFunctionBegin;
+  k = 2*(ds->n-l)*ld;
+  if (ds->state>DS_STATE_RAW) k += (ds->n-l)*ld;
+  if (eigr) k += (ds->n-l); 
+  if (eigi) k += (ds->n-l); 
+  ierr = DSAllocateWork_Private(ds,k,0,0);CHKERRQ(ierr);
+  ierr = PetscMPIIntCast(k*sizeof(PetscScalar),&size);CHKERRQ(ierr);
+  ierr = PetscMPIIntCast(ds->n-l,&n);CHKERRQ(ierr);
+  ierr = PetscMPIIntCast(ld*(ds->n-l),&ldn);CHKERRQ(ierr);
+  ierr = MPI_Comm_rank(PetscObjectComm((PetscObject)ds),&rank);CHKERRQ(ierr);
+  if (!rank) {
+    ierr = MPI_Pack(ds->mat[DS_MAT_A]+l*ld,ldn,MPIU_SCALAR,ds->work,size,&off,PetscObjectComm((PetscObject)ds));CHKERRQ(ierr);
+    ierr = MPI_Pack(ds->mat[DS_MAT_B]+l*ld,ldn,MPIU_SCALAR,ds->work,size,&off,PetscObjectComm((PetscObject)ds));CHKERRQ(ierr);
+    if (ds->state>DS_STATE_RAW) {
+      ierr = MPI_Pack(ds->mat[DS_MAT_Q]+l*ld,ldn,MPIU_SCALAR,ds->work,size,&off,PetscObjectComm((PetscObject)ds));CHKERRQ(ierr);
+    }
+    if (eigr) {
+      ierr = MPI_Pack(eigr+l,n,MPIU_SCALAR,ds->work,size,&off,PetscObjectComm((PetscObject)ds));CHKERRQ(ierr);
+    }
+    if (eigi) {
+      ierr = MPI_Pack(eigi+l,n,MPIU_SCALAR,ds->work,size,&off,PetscObjectComm((PetscObject)ds));CHKERRQ(ierr);
+    }
+  }
+  ierr = MPI_Bcast(ds->work,size,MPI_BYTE,0,PetscObjectComm((PetscObject)ds));CHKERRQ(ierr);
+  if (rank) {
+    ierr = MPI_Unpack(ds->work,size,&off,ds->mat[DS_MAT_A]+l*ld,ldn,MPIU_SCALAR,PetscObjectComm((PetscObject)ds));CHKERRQ(ierr);
+    ierr = MPI_Unpack(ds->work,size,&off,ds->mat[DS_MAT_B]+l*ld,ldn,MPIU_SCALAR,PetscObjectComm((PetscObject)ds));CHKERRQ(ierr);
+    if (ds->state>DS_STATE_RAW) {
+      ierr = MPI_Unpack(ds->work,size,&off,ds->mat[DS_MAT_Q]+l*ld,ldn,MPIU_SCALAR,PetscObjectComm((PetscObject)ds));CHKERRQ(ierr);
+    }
+    if (eigr) {
+      ierr = MPI_Unpack(ds->work,size,&off,eigr+l,n,MPIU_SCALAR,PetscObjectComm((PetscObject)ds));CHKERRQ(ierr);
+    }
+    if (eigi) {
+      ierr = MPI_Unpack(ds->work,size,&off,eigi+l,n,MPIU_SCALAR,PetscObjectComm((PetscObject)ds));CHKERRQ(ierr);
+    }
+  }
+  PetscFunctionReturn(0);
+}
+
 PetscErrorCode DSHermitian_GHEP(DS ds,DSMatType m,PetscBool *flg)
 {
   PetscFunctionBegin;
@@ -185,6 +231,7 @@ PETSC_EXTERN PetscErrorCode DSCreate_GHEP(DS ds)
   ds->ops->vectors       = DSVectors_GHEP;
   ds->ops->solve[0]      = DSSolve_GHEP;
   ds->ops->sort          = DSSort_GHEP;
+  ds->ops->synchronize   = DSSynchronize_GHEP;
   ds->ops->hermitian     = DSHermitian_GHEP;
   PetscFunctionReturn(0);
 }

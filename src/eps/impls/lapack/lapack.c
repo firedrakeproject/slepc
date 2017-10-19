@@ -154,6 +154,7 @@ PetscErrorCode EPSSolve_LAPACK(EPS eps)
   PetscFunctionBegin;
   ierr = DSSolve(eps->ds,eps->eigr,eps->eigi);CHKERRQ(ierr);
   ierr = DSSort(eps->ds,eps->eigr,eps->eigi,NULL,NULL,NULL);CHKERRQ(ierr);
+  ierr = DSSynchronize(eps->ds,eps->eigr,eps->eigi);CHKERRQ(ierr);
 
   /* right eigenvectors */
   ierr = DSVectors(eps->ds,DS_MAT_X,NULL,NULL);CHKERRQ(ierr);

@@ -524,6 +524,7 @@ PetscErrorCode BVSetRandomCond(BV bv,PetscReal condn)
   ierr = DSRestoreMat(ds,DS_MAT_A,&A);CHKERRQ(ierr);
   ierr = PetscMalloc1(bv->m,&eig);CHKERRQ(ierr);
   ierr = DSSolve(ds,eig,NULL);CHKERRQ(ierr);
+  ierr = DSSynchronize(ds,eig,NULL);CHKERRQ(ierr);
   ierr = DSVectors(ds,DS_MAT_X,NULL,NULL);CHKERRQ(ierr);
   /* M = diag(linspace(1/condn,1,n)./sqrt(diag(S)))' */
   ierr = MatCreateSeqDense(PETSC_COMM_SELF,bv->k,bv->k,NULL,&M);CHKERRQ(ierr);

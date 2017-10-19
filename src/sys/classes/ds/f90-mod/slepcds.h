@@ -32,10 +32,10 @@
       PetscEnum DS_STATE_CONDENSED
       PetscEnum DS_STATE_TRUNCATED
 
-      parameter (DS_STATE_RAW                =  0)
-      parameter (DS_STATE_INTERMEDIATE       =  1)
-      parameter (DS_STATE_CONDENSED          =  2)
-      parameter (DS_STATE_TRUNCATED          =  3)
+      parameter (DS_STATE_RAW             =  0)
+      parameter (DS_STATE_INTERMEDIATE    =  1)
+      parameter (DS_STATE_CONDENSED       =  2)
+      parameter (DS_STATE_TRUNCATED       =  3)
 
       PetscEnum DS_MAT_A
       PetscEnum DS_MAT_B
@@ -86,6 +86,12 @@
       parameter (DS_MAT_E8        = 21)
       parameter (DS_MAT_E9        = 22)
       parameter (DS_NUM_MAT       = 23)
+
+      PetscEnum DS_PARALLEL_REDUNDANT
+      PetscEnum DS_PARALLEL_SYNCHRONIZED
+
+      parameter (DS_PARALLEL_REDUNDANT    = 0)
+      parameter (DS_PARALLEL_SYNCHRONIZED = 1)
 
 !
 !  End of Fortran include file for the DS package in SLEPc

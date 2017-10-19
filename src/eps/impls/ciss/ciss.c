@@ -1085,6 +1085,7 @@ PetscErrorCode EPSSolve_CISS(EPS eps)
       }
 
       ierr = DSSolve(eps->ds,eps->eigr,eps->eigi);CHKERRQ(ierr);
+      ierr = DSSynchronize(eps->ds,eps->eigr,eps->eigi);CHKERRQ(ierr);
       ierr = DSVectors(eps->ds,DS_MAT_X,NULL,NULL);CHKERRQ(ierr);
 
       ierr = PetscMalloc3(nv,&fl1,nv,&inside,nv,&rr);CHKERRQ(ierr);
@@ -1098,6 +1099,7 @@ PetscErrorCode EPSSolve_CISS(EPS eps)
         } else rr[i] = 0.0;
       }
       ierr = DSSort(eps->ds,eps->eigr,eps->eigi,rr,NULL,&eps->nconv);CHKERRQ(ierr);
+      ierr = DSSynchronize(eps->ds,eps->eigr,eps->eigi);CHKERRQ(ierr);
       ierr = rescale_eig(eps,nv);CHKERRQ(ierr);
       ierr = PetscFree3(fl1,inside,rr);CHKERRQ(ierr);
       ierr = BVSetActiveColumns(eps->V,0,nv);CHKERRQ(ierr);
