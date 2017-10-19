@@ -248,6 +248,7 @@ PetscErrorCode EPSKrylovConvergence_Filter(EPS eps,PetscBool getall,PetscInt kin
     if (PetscRealPart(eps->eigr[k]) < gamma) break;
     ninside++;
   }
+  eps->nev = ninside+kini;  /* adjust eigenvalue count */
   nconv = 0;   /* count how many eigenvalues satisfy the convergence criterion */
   for (k=kini;k<kini+ninside;k++) {
     /* eigenvalue */
@@ -258,9 +259,9 @@ PetscErrorCode EPSKrylovConvergence_Filter(EPS eps,PetscBool getall,PetscInt kin
     /* error estimate */
     ierr = (*eps->converged)(eps,re,im,resnorm,&eps->errest[k],eps->convergedctx);CHKERRQ(ierr);
     if (eps->errest[k] < eps->tol) nconv++;
+    else break;
   }
-  if (nconv==ninside) *kout = k;   /* all eigenvalues in the interval have converged */
-  else *kout = 0;
+  *kout = kini+nconv;
   ierr = PetscInfo4(eps,"Found %D eigenvalue approximations inside the inverval (gamma=%g), k=%D nconv=%D\n",ninside,(double)gamma,k,nconv);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

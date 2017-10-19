@@ -58,8 +58,9 @@ static PetscErrorCode EPSComputeValues(EPS eps)
         } else SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_PLIB,"Internal error, spectral transform should have a backtransform operation");
       } else {
         /* compute eigenvalues from Rayleigh quotient */
-        ierr = EPSGetOperators(eps,&A,&B);CHKERRQ(ierr);
         ierr = DSGetDimensions(eps->ds,&n,NULL,NULL,NULL,NULL);CHKERRQ(ierr);
+        if (!n) break;
+        ierr = EPSGetOperators(eps,&A,&B);CHKERRQ(ierr);
         ierr = BVSetActiveColumns(eps->V,0,n);CHKERRQ(ierr);
         ierr = DSGetCompact(eps->ds,&iscomp);CHKERRQ(ierr);
         ierr = DSSetCompact(eps->ds,PETSC_FALSE);CHKERRQ(ierr);
