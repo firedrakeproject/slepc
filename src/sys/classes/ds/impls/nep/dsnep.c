@@ -283,8 +283,8 @@ PetscErrorCode DSSolve_NEP_SLP(DS ds,PetscScalar *wr,PetscScalar *wi)
 PetscErrorCode DSSynchronize_NEP(DS ds,PetscScalar eigr[],PetscScalar eigi[])
 {
   PetscErrorCode ierr;
-  PetscInt       k=0,off=0;
-  PetscMPIInt    n,rank,size;
+  PetscInt       k=0;
+  PetscMPIInt    n,rank,size,off=0;
 
   PetscFunctionBegin;
   if (ds->state>=DS_STATE_CONDENSED) k += ds->n;
