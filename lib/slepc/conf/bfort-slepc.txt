@@ -20,6 +20,7 @@ native EPSPRIMMEMethod
 native EPSCISSQuadRule
 native EPSCISSExtraction
 native FNCombineType
+native FNParallelType
 native MFNConvergedReason
 native LMEProblemType
 native LMEConvergedReason

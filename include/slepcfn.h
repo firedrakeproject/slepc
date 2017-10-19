@@ -66,6 +66,17 @@ typedef enum { FN_COMBINE_ADD,
                FN_COMBINE_DIVIDE,
                FN_COMBINE_COMPOSE } FNCombineType;
 
+/*E
+    FNParallelType - Indicates the parallel mode that will be used for matrix evaluation
+
+    Level: advanced
+
+.seealso: FNSetParallel()
+E*/
+typedef enum { FN_PARALLEL_REDUNDANT,
+               FN_PARALLEL_SYNCHRONIZED } FNParallelType;
+PETSC_EXTERN const char *FNParallelTypes[];
+
 PETSC_EXTERN PetscErrorCode FNCreate(MPI_Comm,FN*);
 PETSC_EXTERN PetscErrorCode FNSetType(FN,FNType);
 PETSC_EXTERN PetscErrorCode FNGetType(FN,FNType*);
@@ -81,6 +92,8 @@ PETSC_EXTERN PetscErrorCode FNSetScale(FN,PetscScalar,PetscScalar);
 PETSC_EXTERN PetscErrorCode FNGetScale(FN,PetscScalar*,PetscScalar*);
 PETSC_EXTERN PetscErrorCode FNSetMethod(FN,PetscInt);
 PETSC_EXTERN PetscErrorCode FNGetMethod(FN,PetscInt*);
+PETSC_EXTERN PetscErrorCode FNSetParallel(FN,FNParallelType);
+PETSC_EXTERN PetscErrorCode FNGetParallel(FN,FNParallelType*);
 
 PETSC_EXTERN PetscErrorCode FNEvaluateFunction(FN,PetscScalar,PetscScalar*);
 PETSC_EXTERN PetscErrorCode FNEvaluateDerivative(FN,PetscScalar,PetscScalar*);

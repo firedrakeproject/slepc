@@ -30,6 +30,8 @@ PetscClassId      FN_CLASSID = 0;
 PetscLogEvent     FN_Evaluate = 0;
 static PetscBool  FNPackageInitialized = PETSC_FALSE;
 
+const char *FNParallelTypes[] = {"REDUNDANT","SYNCHRONIZED","FNParallelType","FN_PARALLEL_",0};
+
 /*@C
    FNFinalizePackage - This function destroys everything in the Slepc interface
    to the FN package. It is called from SlepcFinalize().
@@ -353,6 +355,9 @@ PetscErrorCode FNGetScale(FN fn,PetscScalar *alpha,PetscScalar *beta)
 +  fn   - the math function context
 -  meth - an index indentifying the method
 
+   Options Database Key:
+.  -fn_method <meth> - Sets the method
+
    Notes:
    In some FN types there are more than one algorithms available for computing
    matrix functions. In that case, this function allows choosing the wanted method.
@@ -397,6 +402,69 @@ PetscErrorCode FNGetMethod(FN fn,PetscInt *meth)
   PetscValidHeaderSpecific(fn,FN_CLASSID,1);
   PetscValidPointer(meth,2);
   *meth = fn->method;
+  PetscFunctionReturn(0);
+}
+
+/*@
+   FNSetParallel - Selects the mode of operation in parallel runs.
+
+   Logically Collective on FN
+
+   Input Parameter:
++  fn    - the math function context
+-  pmode - the parallel mode
+
+   Options Database Key:
+.  -fn_parallel <mode> - Sets the parallel mode, either 'redundant' or 'synchronized'
+
+   Notes:
+   This is relevant only when the function is evaluated on a matrix, with
+   either FNEvaluateFunctionMat() or FNEvaluateFunctionMatVec().
+
+   In the 'redundant' parallel mode, all processes will make the computation
+   redundantly, starting from the same data, and producing the same result.
+   This result may be slightly different in the different processes if using a
+   multithreaded BLAS library, which may cause issues in ill-conditioned problems.
+
+   In the 'synchronized' parallel mode, only the first MPI process performs the
+   computation and then the computed matrix is broadcast to the other
+   processes in the communicator. This communication is done automatically at
+   the end of FNEvaluateFunctionMat() or FNEvaluateFunctionMatVec().
+
+   Level: advanced
+
+.seealso: FNEvaluateFunctionMat() or FNEvaluateFunctionMatVec(), FNGetParallel()
+@*/
+PetscErrorCode FNSetParallel(FN fn,FNParallelType pmode)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(fn,FN_CLASSID,1);
+  PetscValidLogicalCollectiveEnum(fn,pmode,2);
+  fn->pmode = pmode;
+  PetscFunctionReturn(0);
+}
+
+/*@
+   FNGetParallel - Gets the mode of operation in parallel runs.
+
+   Not Collective
+
+   Input Parameter:
+.  fn - the math function context
+
+   Output Parameter:
+.  pmode - the parallel mode
+
+   Level: advanced
+
+.seealso: FNSetParallel()
+@*/
+PetscErrorCode FNGetParallel(FN fn,FNParallelType *pmode)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(fn,FN_CLASSID,1);
+  PetscValidPointer(pmode,2);
+  *pmode = fn->pmode;
   PetscFunctionReturn(0);
 }
 
@@ -593,6 +661,8 @@ PetscErrorCode FNEvaluateFunctionMat(FN fn,Mat A,Mat B)
   PetscBool      match,set,flg,symm=PETSC_FALSE,inplace=PETSC_FALSE;
   PetscInt       m,n,n1;
   Mat            M,F;
+  PetscMPIInt    size,rank;
+  PetscScalar    *pF;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(fn,FN_CLASSID,1);
@@ -631,15 +701,24 @@ PetscErrorCode FNEvaluateFunctionMat(FN fn,Mat A,Mat B)
 
   /* evaluate matrix function */
   ierr = PetscLogEventBegin(FN_Evaluate,fn,0,0,0);CHKERRQ(ierr);
-  ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
-  if (symm && !fn->method) {  /* prefer diagonalization */
-    ierr = FNEvaluateFunctionMat_Sym_Default(fn,M,F);CHKERRQ(ierr);
-  } else {
-    if (fn->ops->evaluatefunctionmat[fn->method]) {
-      ierr = (*fn->ops->evaluatefunctionmat[fn->method])(fn,M,F);CHKERRQ(ierr);
-    } else SETERRQ(PetscObjectComm((PetscObject)fn),PETSC_ERR_ARG_OUTOFRANGE,"The specified method number does not exist for this FN");
+  ierr = MPI_Comm_size(PetscObjectComm((PetscObject)fn),&size);CHKERRQ(ierr);
+  ierr = MPI_Comm_rank(PetscObjectComm((PetscObject)fn),&rank);CHKERRQ(ierr);
+  if (size==1 || fn->pmode==FN_PARALLEL_REDUNDANT || (fn->pmode==FN_PARALLEL_SYNCHRONIZED && !rank)) {
+    ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
+    if (symm && !fn->method) {  /* prefer diagonalization */
+      ierr = FNEvaluateFunctionMat_Sym_Default(fn,M,F);CHKERRQ(ierr);
+    } else {
+      if (fn->ops->evaluatefunctionmat[fn->method]) {
+        ierr = (*fn->ops->evaluatefunctionmat[fn->method])(fn,M,F);CHKERRQ(ierr);
+      } else SETERRQ(PetscObjectComm((PetscObject)fn),PETSC_ERR_ARG_OUTOFRANGE,"The specified method number does not exist for this FN");
+    }
+    ierr = PetscFPTrapPop();CHKERRQ(ierr);
   }
-  ierr = PetscFPTrapPop();CHKERRQ(ierr);
+  if (size>1 && fn->pmode==FN_PARALLEL_SYNCHRONIZED) {  /* synchronize */
+    ierr = MatDenseGetArray(F,&pF);CHKERRQ(ierr);
+    ierr = MPI_Bcast(pF,n*n,MPIU_SCALAR,0,PetscObjectComm((PetscObject)fn));CHKERRQ(ierr);
+    ierr = MatDenseRestoreArray(F,&pF);CHKERRQ(ierr);
+  }
   ierr = PetscLogEventEnd(FN_Evaluate,fn,0,0,0);CHKERRQ(ierr);
 
   if (fn->alpha!=(PetscScalar)1.0) {
@@ -718,6 +797,8 @@ PetscErrorCode FNEvaluateFunctionMatVec(FN fn,Mat A,Vec v)
   PetscBool      match,set,flg,symm=PETSC_FALSE;
   PetscInt       m,n;
   Mat            M;
+  PetscMPIInt    size,rank;
+  PetscScalar    *pv;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(fn,FN_CLASSID,1);
@@ -745,17 +826,26 @@ PetscErrorCode FNEvaluateFunctionMatVec(FN fn,Mat A,Vec v)
 
   /* evaluate matrix function */
   ierr = PetscLogEventBegin(FN_Evaluate,fn,0,0,0);CHKERRQ(ierr);
-  ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
-  if (symm && !fn->method) {  /* prefer diagonalization */
-    ierr = FNEvaluateFunctionMatVec_Sym_Default(fn,M,v);CHKERRQ(ierr);
-  } else {
-    if (fn->ops->evaluatefunctionmatvec[fn->method]) {
-      ierr = (*fn->ops->evaluatefunctionmatvec[fn->method])(fn,M,v);CHKERRQ(ierr);
+  ierr = MPI_Comm_size(PetscObjectComm((PetscObject)fn),&size);CHKERRQ(ierr);
+  ierr = MPI_Comm_rank(PetscObjectComm((PetscObject)fn),&rank);CHKERRQ(ierr);
+  if (size==1 || fn->pmode==FN_PARALLEL_REDUNDANT || (fn->pmode==FN_PARALLEL_SYNCHRONIZED && !rank)) {
+    ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
+    if (symm && !fn->method) {  /* prefer diagonalization */
+      ierr = FNEvaluateFunctionMatVec_Sym_Default(fn,M,v);CHKERRQ(ierr);
     } else {
-      ierr = FNEvaluateFunctionMatVec_Default(fn,M,v);CHKERRQ(ierr);
+      if (fn->ops->evaluatefunctionmatvec[fn->method]) {
+        ierr = (*fn->ops->evaluatefunctionmatvec[fn->method])(fn,M,v);CHKERRQ(ierr);
+      } else {
+        ierr = FNEvaluateFunctionMatVec_Default(fn,M,v);CHKERRQ(ierr);
+      }
     }
+    ierr = PetscFPTrapPop();CHKERRQ(ierr);
   }
-  ierr = PetscFPTrapPop();CHKERRQ(ierr);
+  if (size>1 && fn->pmode==FN_PARALLEL_SYNCHRONIZED) {  /* synchronize */
+    ierr = VecGetArray(v,&pv);CHKERRQ(ierr);
+    ierr = MPI_Bcast(pv,n,MPIU_SCALAR,0,PetscObjectComm((PetscObject)fn));CHKERRQ(ierr);
+    ierr = VecRestoreArray(v,&pv);CHKERRQ(ierr);
+  }
   ierr = PetscLogEventEnd(FN_Evaluate,fn,0,0,0);CHKERRQ(ierr);
 
   if (fn->alpha!=(PetscScalar)1.0) {
@@ -787,6 +877,7 @@ PetscErrorCode FNSetFromOptions(FN fn)
   PetscScalar    array[2];
   PetscInt       k,meth;
   PetscBool      flg;
+  FNParallelType pmode;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(fn,FN_CLASSID,1);
@@ -809,6 +900,9 @@ PetscErrorCode FNSetFromOptions(FN fn)
 
     ierr = PetscOptionsInt("-fn_method","Method to be used for computing matrix functions","FNSetMethod",fn->method,&meth,&flg);CHKERRQ(ierr);
     if (flg) { ierr = FNSetMethod(fn,meth);CHKERRQ(ierr); }
+
+    ierr = PetscOptionsEnum("-fn_parallel","Operation mode in parallel runs","FNSetParallel",FNParallelTypes,(PetscEnum)fn->pmode,(PetscEnum*)&pmode,&flg);CHKERRQ(ierr);
+    if (flg) { ierr = FNSetParallel(fn,pmode);CHKERRQ(ierr); }
 
     if (fn->ops->setfromoptions) {
       ierr = (*fn->ops->setfromoptions)(PetscOptionsObject,fn);CHKERRQ(ierr);
@@ -844,6 +938,7 @@ PetscErrorCode FNView(FN fn,PetscViewer viewer)
 {
   PetscBool      isascii;
   PetscErrorCode ierr;
+  PetscMPIInt    size;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(fn,FN_CLASSID,1);
@@ -853,6 +948,10 @@ PetscErrorCode FNView(FN fn,PetscViewer viewer)
   ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
   if (isascii) {
     ierr = PetscObjectPrintClassNamePrefixType((PetscObject)fn,viewer);CHKERRQ(ierr);
+    ierr = MPI_Comm_size(PetscObjectComm((PetscObject)fn),&size);CHKERRQ(ierr);
+    if (size>1) {
+      ierr = PetscViewerASCIIPrintf(viewer,"  parallel operation mode: %s\n",FNParallelTypes[fn->pmode]);CHKERRQ(ierr);
+    }
     if (fn->ops->view) {
       ierr = PetscViewerASCIIPushTab(viewer);CHKERRQ(ierr);
       ierr = (*fn->ops->view)(fn,viewer);CHKERRQ(ierr);

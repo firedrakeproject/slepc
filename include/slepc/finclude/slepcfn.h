@@ -27,8 +27,9 @@
 
 #define FN type(tFN)
 
-#define FNType        character*(80)
-#define FNCombineType PetscEnum
+#define FNType         character*(80)
+#define FNCombineType  PetscEnum
+#define FNParallelType PetscEnum
 
 #define FNCOMBINE  'combine'
 #define FNRATIONAL 'rational'

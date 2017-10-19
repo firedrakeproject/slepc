@@ -47,15 +47,16 @@ struct _FNOps {
 struct _p_FN {
   PETSCHEADER(struct _FNOps);
   /*------------------------- User parameters --------------------------*/
-  PetscScalar alpha;          /* inner scaling (argument) */
-  PetscScalar beta;           /* outer scaling (result) */
-  PetscInt    method;         /* the method to compute matrix functions */
+  PetscScalar    alpha;          /* inner scaling (argument) */
+  PetscScalar    beta;           /* outer scaling (result) */
+  PetscInt       method;         /* the method to compute matrix functions */
+  FNParallelType pmode;          /* parallel mode (redundant or synchronized) */
 
   /*---------------------- Cached data and workspace -------------------*/
-  Mat         W[FN_MAX_W];    /* workspace matrices */
-  PetscInt    nw;             /* number of allocated W matrices */
-  PetscInt    cw;             /* current W matrix */
-  void        *data;
+  Mat            W[FN_MAX_W];    /* workspace matrices */
+  PetscInt       nw;             /* number of allocated W matrices */
+  PetscInt       cw;             /* current W matrix */
+  void           *data;
 };
 
 /*

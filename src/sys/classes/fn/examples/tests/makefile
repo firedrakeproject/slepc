@@ -35,11 +35,11 @@ TESTEXAMPLES_C           = test1.PETSc runtest1_1 test1.rm \
                            test4.PETSc runtest4_1 test4.rm \
                            test5.PETSc runtest5_1 runtest5_2 test5.rm \
                            test6.PETSc runtest6_1 runtest6_2 test6.rm \
-                           test7.PETSc runtest7_1 runtest7_2 test7.rm \
+                           test7.PETSc runtest7_1 runtest7_2 runtest7_3 runtest7_4 test7.rm \
                            test8.PETSc runtest8_1 runtest8_2 test8.rm \
                            test9.PETSc runtest9_1 test9.rm \
                            test10.PETSc runtest10_1 test10.rm \
-                           test11.PETSc runtest11_1 test11.rm
+                           test11.PETSc runtest11_1 runtest11_2 test11.rm
 TESTEXAMPLES_C_NOTSINGLE = test7.PETSc runtest7_1_sadeghi runtest7_2_sadeghi test7.rm
 TESTEXAMPLES_FORTRAN     = test1f.PETSc runtest1f_1 test1f.rm \
                            test7f.PETSc runtest7f_1 test7f.rm
@@ -190,6 +190,16 @@ runtest7_2_%:
 	elif [ "$$method" = ns ]; then method="-fn_method 2"; \
 	elif [ "$$method" = sadeghi ]; then method="-fn_method 3"; fi; \
 	${MPIEXEC} -n 1 ./test7 -fn_scale .05,2 -n 100 -inplace $$method | ${GREP} -v "computing matrix functions" > $${test}.tmp 2>&1; \
+	${TESTCODE}
+
+runtest7_3:
+	-@${SETTEST}; check=test7_1; \
+	${MPIEXEC} -n 3 ./test7 -fn_scale .05,2 -n 100 -fn_parallel synchronized | ${GREP} -v "computing matrix functions"  | ${GREP} -v "SYNCHRONIZED" | ${SED} -e "s/3 MPI/1 MPI/g" > $${test}.tmp 2>&1; \
+	${TESTCODE}
+
+runtest7_4:
+	-@${SETTEST}; check=test7_1; \
+	${MPIEXEC} -n 3 ./test7 -fn_scale .05,2 -n 100 -inplace -fn_parallel synchronized | ${GREP} -v "computing matrix functions" | ${GREP} -v "SYNCHRONIZED" | ${SED} -e "s/3 MPI/1 MPI/g" > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
 runtest7f_1: runtest7f_1_schur runtest7f_1_dbp runtest7f_1_ns runtest7f_1_sadeghi
