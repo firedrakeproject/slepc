@@ -35,7 +35,6 @@ typedef struct _p_LME* LME;
 J*/
 typedef const char* LMEType;
 #define LMEKRYLOV   "krylov"
-#define LMEEKRYLOV  "ekrylov"
 
 /* Logging support */
 PETSC_EXTERN PetscClassId LME_CLASSID;

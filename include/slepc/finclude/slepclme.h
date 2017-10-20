@@ -22,6 +22,5 @@
 #define LMEProblemType     PetscEnum
 
 #define LMEKRYLOV      'krylov'
-#define LMEEKRYLOV     'ekrylov'
 
 #endif
