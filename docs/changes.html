@@ -165,6 +165,12 @@ ul.changes li {
     <td> * </td>
     <td> May 2016 </td>
   </tr>
+  <tr>
+    <td> 3.8 </td>
+    <td> 3.8 </td>
+    <td> * </td>
+    <td> Oct 2017 </td>
+  </tr>
 </table>
 
 <tr><td>
@@ -178,6 +184,14 @@ Changes in Version 3.8</font></b>
   <li> Released under 2-clause BSD license.
   <li> New solver class LME for linear matrix equations (such as Lyapunov or Sylvester)
        whose solution has low rank.
+  <li> NEP: added specific suport for rational eigenvalue problems with NEPSetProblemType().
+  <li> Added nonlinear inverse iteration as an option of EPSPOWER.
+  <li> Added a preliminary implementation of polynomial filters in STFILTER to compute
+       interior eigenvalues of symmetric problems without factorizing a matrix.
+  <li> SVD: add wrapper to PRIMME SVD solver.
+  <li> Improved evaluation of matrix functions, both in FN and MFN.
+  <li> GPU support improved in all solver classes.
+  <li> Simplified Fortran usage as in PETSc.
   <li> Interface changes: DSNormalize has been removed; NEPInterpolSetDegree has been
        renamed to NEPInterpolSetInterpolation, and takes an additional argument.
 </ul>
