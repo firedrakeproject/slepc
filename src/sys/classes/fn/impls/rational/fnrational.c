@@ -45,7 +45,7 @@ PetscErrorCode FNEvaluateFunction_Rational(FN fn,PetscScalar x,PetscScalar *y)
   PetscFunctionReturn(0);
 }
 
-static PetscErrorCode FNEvaluateFunctionMat_Private(FN fn,PetscScalar *Aa,PetscScalar *Ba,PetscInt m,PetscBool firstonly)
+static PetscErrorCode FNEvaluateFunctionMat_Rational_Private(FN fn,PetscScalar *Aa,PetscScalar *Ba,PetscInt m,PetscBool firstonly)
 {
 #if defined(PETSC_MISSING_LAPACK_GESV)
   PetscFunctionBegin;
@@ -111,7 +111,7 @@ PetscErrorCode FNEvaluateFunctionMat_Rational(FN fn,Mat A,Mat B)
   ierr = MatDenseGetArray(A,&Aa);CHKERRQ(ierr);
   ierr = MatDenseGetArray(B,&Ba);CHKERRQ(ierr);
   ierr = MatGetSize(A,&m,NULL);CHKERRQ(ierr);
-  ierr = FNEvaluateFunctionMat_Private(fn,Aa,Ba,m,PETSC_FALSE);CHKERRQ(ierr);
+  ierr = FNEvaluateFunctionMat_Rational_Private(fn,Aa,Ba,m,PETSC_FALSE);CHKERRQ(ierr);
   ierr = MatDenseRestoreArray(A,&Aa);CHKERRQ(ierr);
   ierr = MatDenseRestoreArray(B,&Ba);CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -129,7 +129,7 @@ PetscErrorCode FNEvaluateFunctionMatVec_Rational(FN fn,Mat A,Vec v)
   ierr = MatDenseGetArray(A,&Aa);CHKERRQ(ierr);
   ierr = MatDenseGetArray(B,&Ba);CHKERRQ(ierr);
   ierr = MatGetSize(A,&m,NULL);CHKERRQ(ierr);
-  ierr = FNEvaluateFunctionMat_Private(fn,Aa,Ba,m,PETSC_TRUE);CHKERRQ(ierr);
+  ierr = FNEvaluateFunctionMat_Rational_Private(fn,Aa,Ba,m,PETSC_TRUE);CHKERRQ(ierr);
   ierr = MatDenseRestoreArray(A,&Aa);CHKERRQ(ierr);
   ierr = MatDenseRestoreArray(B,&Ba);CHKERRQ(ierr);
   ierr = MatGetColumnVector(B,v,0);CHKERRQ(ierr);
