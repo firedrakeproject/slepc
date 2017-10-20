@@ -36,6 +36,7 @@
 #define STSINVERT  'sinvert'
 #define STCAYLEY   'cayley'
 #define STPRECOND  'precond'
+#define STFILTER   'filter'
 
 #endif
 

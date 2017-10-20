@@ -52,6 +52,7 @@ typedef const char* STType;
 #define STSINVERT   "sinvert"
 #define STCAYLEY    "cayley"
 #define STPRECOND   "precond"
+#define STFILTER    "filter"
 
 /* Logging support */
 PETSC_EXTERN PetscClassId ST_CLASSID;
@@ -154,6 +155,14 @@ PETSC_EXTERN PetscErrorCode STPrecondGetMatForPC(ST,Mat*);
 PETSC_EXTERN PetscErrorCode STPrecondSetMatForPC(ST,Mat);
 PETSC_EXTERN PetscErrorCode STPrecondGetKSPHasMat(ST,PetscBool*);
 PETSC_EXTERN PetscErrorCode STPrecondSetKSPHasMat(ST,PetscBool);
+
+PETSC_EXTERN PetscErrorCode STFilterSetInterval(ST,PetscReal,PetscReal);
+PETSC_EXTERN PetscErrorCode STFilterGetInterval(ST,PetscReal*,PetscReal*);
+PETSC_EXTERN PetscErrorCode STFilterSetRange(ST,PetscReal,PetscReal);
+PETSC_EXTERN PetscErrorCode STFilterGetRange(ST,PetscReal*,PetscReal*);
+PETSC_EXTERN PetscErrorCode STFilterSetDegree(ST,PetscInt);
+PETSC_EXTERN PetscErrorCode STFilterGetDegree(ST,PetscInt*);
+PETSC_EXTERN PetscErrorCode STFilterGetThreshold(ST,PetscReal*);
 
 #endif
 

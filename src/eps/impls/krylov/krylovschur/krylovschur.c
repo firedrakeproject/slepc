@@ -70,19 +70,85 @@ PetscErrorCode EPSGetArbitraryValues(EPS eps,PetscScalar *rr,PetscScalar *ri)
   PetscFunctionReturn(0);
 }
 
+static PetscErrorCode EstimateRange(Mat A,PetscReal *left,PetscReal *right)
+{
+  PetscErrorCode ierr;
+  PetscInt       nconv;
+  PetscScalar    eig0;
+  EPS            eps;
+
+  PetscFunctionBegin;
+  *left = 0.0; *right = 0.0;
+  ierr = EPSCreate(PetscObjectComm((PetscObject)A),&eps);CHKERRQ(ierr);
+  ierr = EPSSetOperators(eps,A,NULL);CHKERRQ(ierr);
+  ierr = EPSSetProblemType(eps,EPS_HEP);CHKERRQ(ierr);
+  ierr = EPSSetTolerances(eps,1e-3,50);CHKERRQ(ierr);
+  ierr = EPSSetWhichEigenpairs(eps,EPS_SMALLEST_REAL);CHKERRQ(ierr);
+  ierr = EPSSolve(eps);CHKERRQ(ierr);
+  ierr = EPSGetConverged(eps,&nconv);CHKERRQ(ierr);
+  if (nconv>0) {
+    ierr = EPSGetEigenvalue(eps,0,&eig0,NULL);CHKERRQ(ierr);
+  } else eig0 = eps->eigr[0];
+  *left = PetscRealPart(eig0);
+  ierr = EPSSetWhichEigenpairs(eps,EPS_LARGEST_REAL);CHKERRQ(ierr);
+  ierr = EPSSolve(eps);CHKERRQ(ierr);
+  ierr = EPSGetConverged(eps,&nconv);CHKERRQ(ierr);
+  if (nconv>0) {
+    ierr = EPSGetEigenvalue(eps,0,&eig0,NULL);CHKERRQ(ierr);
+  } else eig0 = eps->eigr[0];
+  *right = PetscRealPart(eig0);
+  ierr = EPSDestroy(&eps);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+static PetscErrorCode EPSSetUp_KrylovSchur_Filter(EPS eps)
+{
+  PetscErrorCode ierr;
+  SlepcSC        sc;
+  PetscReal      rleft,rright;
+  Mat            A;
+
+  PetscFunctionBegin;
+  if (eps->intb >= PETSC_MAX_REAL && eps->inta <= PETSC_MIN_REAL) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_WRONG,"The defined computational interval should have at least one of their sides bounded");
+  ierr = STFilterSetInterval(eps->st,eps->inta,eps->intb);CHKERRQ(ierr);
+  ierr = STGetMatrix(eps->st,0,&A);CHKERRQ(ierr);
+  ierr = EstimateRange(A,&rleft,&rright);CHKERRQ(ierr);
+  ierr = STFilterSetRange(eps->st,rleft,rright);CHKERRQ(ierr);
+  if (!eps->ishermitian) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Spectrum slicing only available for symmetric/Hermitian eigenproblems");
+  if (eps->arbitrary) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Arbitrary selection of eigenpairs cannot be used with spectrum slicing");
+  if (eps->tol==PETSC_DEFAULT) eps->tol = SLEPC_DEFAULT_TOL*1e-2;  /* use tighter tolerance */
+  ierr = EPSSetDimensions_Default(eps,eps->nev,&eps->ncv,&eps->mpd);CHKERRQ(ierr);
+  if (eps->ncv>eps->nev+eps->mpd) SETERRQ(PetscObjectComm((PetscObject)eps),1,"The value of ncv must not be larger than nev+mpd");
+  if (!eps->max_it) eps->max_it = PetscMax(100,2*eps->n/eps->ncv);
+
+  ierr = DSGetSlepcSC(eps->ds,&sc);CHKERRQ(ierr);
+  sc->rg            = NULL;
+  sc->comparison    = SlepcCompareLargestReal;
+  sc->comparisonctx = NULL;
+  sc->map           = NULL;
+  sc->mapobj        = NULL;
+  PetscFunctionReturn(0);
+}
+
 PetscErrorCode EPSSetUp_KrylovSchur(EPS eps)
 {
   PetscErrorCode    ierr;
   PetscReal         eta;
+  PetscBool         isfilt;
   BVOrthogType      otype;
   BVOrthogBlockType obtype;
   EPS_KRYLOVSCHUR   *ctx = (EPS_KRYLOVSCHUR*)eps->data;
-  enum { EPS_KS_DEFAULT,EPS_KS_SYMM,EPS_KS_SLICE,EPS_KS_INDEF } variant;
+  enum { EPS_KS_DEFAULT,EPS_KS_SYMM,EPS_KS_SLICE,EPS_KS_FILTER,EPS_KS_INDEF } variant;
 
   PetscFunctionBegin;
   /* spectrum slicing requires special treatment of default values */
   if (eps->which==EPS_ALL) {
-    ierr = EPSSetUp_KrylovSchur_Slice(eps);CHKERRQ(ierr);
+    ierr = PetscObjectTypeCompare((PetscObject)eps->st,STFILTER,&isfilt);CHKERRQ(ierr);
+    if (isfilt) {
+      ierr = EPSSetUp_KrylovSchur_Filter(eps);CHKERRQ(ierr);
+    } else {
+      ierr = EPSSetUp_KrylovSchur_Slice(eps);CHKERRQ(ierr);
+    }
   } else {
     ierr = EPSSetDimensions_Default(eps,eps->nev,&eps->ncv,&eps->mpd);CHKERRQ(ierr);
     if (eps->ncv>eps->nev+eps->mpd) SETERRQ(PetscObjectComm((PetscObject)eps),1,"The value of ncv must not be larger than nev+mpd");
@@ -113,7 +179,7 @@ PetscErrorCode EPSSetUp_KrylovSchur(EPS eps)
   if (eps->ishermitian) {
     if (eps->which==EPS_ALL) {
       if (eps->isgeneralized && !eps->ispositive) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Spectrum slicing not implemented for indefinite problems");
-      else variant = EPS_KS_SLICE;
+      else variant = isfilt? EPS_KS_FILTER: EPS_KS_SLICE;
     } else if (eps->isgeneralized && !eps->ispositive) {
       variant = EPS_KS_INDEF;
     } else {
@@ -138,6 +204,7 @@ PetscErrorCode EPSSetUp_KrylovSchur(EPS eps)
       ierr = DSAllocate(eps->ds,eps->ncv+1);CHKERRQ(ierr);
       break;
     case EPS_KS_SYMM:
+    case EPS_KS_FILTER:
       eps->ops->solve = EPSSolve_KrylovSchur_Symm;
       eps->ops->computevectors = EPSComputeVectors_Hermitian;
       ierr = DSSetType(eps->ds,DSHEP);CHKERRQ(ierr);
@@ -1236,7 +1303,7 @@ PetscErrorCode EPSView_KrylovSchur(EPS eps,PetscViewer viewer)
 {
   PetscErrorCode  ierr;
   EPS_KRYLOVSCHUR *ctx = (EPS_KRYLOVSCHUR*)eps->data;
-  PetscBool       isascii;
+  PetscBool       isascii,isfilt;
 
   PetscFunctionBegin;
   ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
@@ -1244,10 +1311,15 @@ PetscErrorCode EPSView_KrylovSchur(EPS eps,PetscViewer viewer)
     ierr = PetscViewerASCIIPrintf(viewer,"  %d%% of basis vectors kept after restart\n",(int)(100*ctx->keep));CHKERRQ(ierr);
     ierr = PetscViewerASCIIPrintf(viewer,"  using the %slocking variant\n",ctx->lock?"":"non-");CHKERRQ(ierr);
     if (eps->which==EPS_ALL) {
-      ierr = PetscViewerASCIIPrintf(viewer,"  doing spectrum slicing with nev=%D, ncv=%D, mpd=%D\n",ctx->nev,ctx->ncv,ctx->mpd);CHKERRQ(ierr);
-      if (ctx->npart>1) {
-        ierr = PetscViewerASCIIPrintf(viewer,"  multi-communicator spectrum slicing with %D partitions\n",ctx->npart);CHKERRQ(ierr);
-        if (ctx->detect) { ierr = PetscViewerASCIIPrintf(viewer,"  detecting zeros when factorizing at subinterval boundaries\n");CHKERRQ(ierr); }
+      ierr = PetscObjectTypeCompare((PetscObject)eps->st,STFILTER,&isfilt);CHKERRQ(ierr);
+      if (isfilt) {
+        ierr = PetscViewerASCIIPrintf(viewer,"  using filtering to extract all eigenvalues in an interval\n");CHKERRQ(ierr);
+      } else {
+        ierr = PetscViewerASCIIPrintf(viewer,"  doing spectrum slicing with nev=%D, ncv=%D, mpd=%D\n",ctx->nev,ctx->ncv,ctx->mpd);CHKERRQ(ierr);
+        if (ctx->npart>1) {
+          ierr = PetscViewerASCIIPrintf(viewer,"  multi-communicator spectrum slicing with %D partitions\n",ctx->npart);CHKERRQ(ierr);
+          if (ctx->detect) { ierr = PetscViewerASCIIPrintf(viewer,"  detecting zeros when factorizing at subinterval boundaries\n");CHKERRQ(ierr); }
+        }
       }
     }
   }
@@ -1283,8 +1355,11 @@ PetscErrorCode EPSDestroy_KrylovSchur(EPS eps)
 PetscErrorCode EPSReset_KrylovSchur(EPS eps)
 {
   PetscErrorCode ierr;
+  PetscBool      isfilt;
+
   PetscFunctionBegin;
-  if (eps->which==EPS_ALL) {
+  ierr = PetscObjectTypeCompare((PetscObject)eps->st,STFILTER,&isfilt);CHKERRQ(ierr);
+  if (eps->which==EPS_ALL && !isfilt) {
     ierr = EPSReset_KrylovSchur_Slice(eps);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);

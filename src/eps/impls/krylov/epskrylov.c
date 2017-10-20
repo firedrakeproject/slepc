@@ -233,6 +233,40 @@ PetscErrorCode EPSDelayedArnoldi1(EPS eps,PetscScalar *H,PetscInt ldh,PetscInt k
 }
 
 /*
+   EPSKrylovConvergence_Filter - Specialized version for STFILTER.
+*/
+PetscErrorCode EPSKrylovConvergence_Filter(EPS eps,PetscBool getall,PetscInt kini,PetscInt nits,PetscReal beta,PetscReal gamma,PetscInt *kout)
+{
+  PetscErrorCode ierr;
+  PetscInt       k,ninside,nconv;
+  PetscScalar    re,im;
+  PetscReal      resnorm;
+
+  PetscFunctionBegin;
+  ninside = 0;   /* count how many eigenvalues are located in the interval */
+  for (k=kini;k<kini+nits;k++) {
+    if (PetscRealPart(eps->eigr[k]) < gamma) break;
+    ninside++;
+  }
+  eps->nev = ninside+kini;  /* adjust eigenvalue count */
+  nconv = 0;   /* count how many eigenvalues satisfy the convergence criterion */
+  for (k=kini;k<kini+ninside;k++) {
+    /* eigenvalue */
+    re = eps->eigr[k];
+    im = eps->eigi[k];
+    ierr = DSVectors(eps->ds,DS_MAT_X,&k,&resnorm);CHKERRQ(ierr);
+    resnorm *= beta;
+    /* error estimate */
+    ierr = (*eps->converged)(eps,re,im,resnorm,&eps->errest[k],eps->convergedctx);CHKERRQ(ierr);
+    if (eps->errest[k] < eps->tol) nconv++;
+    else break;
+  }
+  *kout = kini+nconv;
+  ierr = PetscInfo4(eps,"Found %D eigenvalue approximations inside the inverval (gamma=%g), k=%D nconv=%D\n",ninside,(double)gamma,k,nconv);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+/*
    EPSKrylovConvergence - Implements the loop that checks for convergence
    in Krylov methods.
 
@@ -254,11 +288,19 @@ PetscErrorCode EPSKrylovConvergence(EPS eps,PetscBool getall,PetscInt kini,Petsc
   PetscErrorCode ierr;
   PetscInt       k,newk,marker,ld,inside;
   PetscScalar    re,im,*Zr,*Zi,*X;
-  PetscReal      resnorm;
-  PetscBool      isshift,refined,istrivial;
+  PetscReal      resnorm,gamma;
+  PetscBool      isshift,isfilter,refined,istrivial;
   Vec            x,y,w[3];
 
   PetscFunctionBegin;
+  if (eps->which == EPS_ALL) {
+    ierr = PetscObjectTypeCompare((PetscObject)eps->st,STFILTER,&isfilter);CHKERRQ(ierr);
+    if (isfilter) {
+      ierr = STFilterGetThreshold(eps->st,&gamma);CHKERRQ(ierr);
+      ierr = EPSKrylovConvergence_Filter(eps,getall,kini,nits,beta,gamma,kout);CHKERRQ(ierr);
+      PetscFunctionReturn(0);
+    }
+  }
   ierr = RGIsTrivial(eps->rg,&istrivial);CHKERRQ(ierr);
   if (eps->trueres) {
     ierr = BVCreateVec(eps->V,&x);CHKERRQ(ierr);

@@ -291,6 +291,7 @@ PetscErrorCode STCayleySetAntishift(ST st,PetscScalar nu)
   ierr = PetscTryMethod(st,"STCayleySetAntishift_C",(ST,PetscScalar),(st,nu));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
+
 static PetscErrorCode STCayleyGetAntishift_Cayley(ST st,PetscScalar *nu)
 {
   ST_CAYLEY *ctx = (ST_CAYLEY*)st->data;
