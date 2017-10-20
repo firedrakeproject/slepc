@@ -98,10 +98,12 @@ int main(int argc,char **argv)
   ierr = FNCreate(PETSC_COMM_WORLD,&e);CHKERRQ(ierr);
   ierr = PetscObjectSetName((PetscObject)e,"e");CHKERRQ(ierr);
   ierr = FNSetType(e,FNEXP);CHKERRQ(ierr);
+  ierr = FNSetFromOptions(e);CHKERRQ(ierr);
   /* c(x) = -1 */
   ierr = FNCreate(PETSC_COMM_WORLD,&c);CHKERRQ(ierr);
   ierr = PetscObjectSetName((PetscObject)c,"c");CHKERRQ(ierr);
   ierr = FNSetType(c,FNRATIONAL);CHKERRQ(ierr);
+  ierr = FNSetFromOptions(c);CHKERRQ(ierr);
   np = 1;
   coeffs[0] = -1.0;
   ierr = FNRationalSetNumerator(c,np,coeffs);CHKERRQ(ierr);
@@ -109,11 +111,13 @@ int main(int argc,char **argv)
   ierr = FNCreate(PETSC_COMM_WORLD,&a);CHKERRQ(ierr);
   ierr = PetscObjectSetName((PetscObject)a,"a");CHKERRQ(ierr);
   ierr = FNSetType(a,FNCOMBINE);CHKERRQ(ierr);
+  ierr = FNSetFromOptions(a);CHKERRQ(ierr);
   ierr = FNCombineSetChildren(a,FN_COMBINE_ADD,e,c);CHKERRQ(ierr);
   /* p(x) = x */
   ierr = FNCreate(PETSC_COMM_WORLD,&p);CHKERRQ(ierr);
   ierr = PetscObjectSetName((PetscObject)p,"p");CHKERRQ(ierr);
   ierr = FNSetType(p,FNRATIONAL);CHKERRQ(ierr);
+  ierr = FNSetFromOptions(p);CHKERRQ(ierr);
   np = 2;
   coeffs[0] = 1.0; coeffs[1] = 0.0;
   ierr = FNRationalSetNumerator(p,np,coeffs);CHKERRQ(ierr);
@@ -121,6 +125,7 @@ int main(int argc,char **argv)
   ierr = FNCreate(PETSC_COMM_WORLD,&f);CHKERRQ(ierr);
   ierr = PetscObjectSetName((PetscObject)f,"f");CHKERRQ(ierr);
   ierr = FNSetType(f,FNCOMBINE);CHKERRQ(ierr);
+  ierr = FNSetFromOptions(f);CHKERRQ(ierr);
   ierr = FNCombineSetChildren(f,FN_COMBINE_DIVIDE,a,p);CHKERRQ(ierr);
 
   /* Set up viewer */

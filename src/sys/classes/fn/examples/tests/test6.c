@@ -96,9 +96,11 @@ int main(int argc,char **argv)
   /* e(x) = exp(x) */
   ierr = FNCreate(PETSC_COMM_WORLD,&e);CHKERRQ(ierr);
   ierr = FNSetType(e,FNEXP);CHKERRQ(ierr);
+  ierr = FNSetFromOptions(e);CHKERRQ(ierr);
   /* r(x) = x/(1+x^2) */
   ierr = FNCreate(PETSC_COMM_WORLD,&r);CHKERRQ(ierr);
   ierr = FNSetType(r,FNRATIONAL);CHKERRQ(ierr);
+  ierr = FNSetFromOptions(r);CHKERRQ(ierr);
   np = 2; nq = 3;
   p[0] = -1.0; p[1] = 0.0;
   q[0] = 1.0; q[1] = 0.0; q[2] = 1.0;
@@ -107,16 +109,19 @@ int main(int argc,char **argv)
   /* h(x) */
   ierr = FNCreate(PETSC_COMM_WORLD,&h);CHKERRQ(ierr);
   ierr = FNSetType(h,FNCOMBINE);CHKERRQ(ierr);
+  ierr = FNSetFromOptions(h);CHKERRQ(ierr);
   ierr = FNCombineSetChildren(h,FN_COMBINE_COMPOSE,r,e);CHKERRQ(ierr);
   /* g(x) = 1-x^2 */
   ierr = FNCreate(PETSC_COMM_WORLD,&g);CHKERRQ(ierr);
   ierr = FNSetType(g,FNRATIONAL);CHKERRQ(ierr);
+  ierr = FNSetFromOptions(g);CHKERRQ(ierr);
   np = 3;
   p[0] = -1.0; p[1] = 0.0; p[2] = 1.0;
   ierr = FNRationalSetNumerator(g,np,p);CHKERRQ(ierr);
   /* f(x) */
   ierr = FNCreate(PETSC_COMM_WORLD,&f);CHKERRQ(ierr);
   ierr = FNSetType(f,FNCOMBINE);CHKERRQ(ierr);
+  ierr = FNSetFromOptions(f);CHKERRQ(ierr);
   ierr = FNCombineSetChildren(f,FN_COMBINE_MULTIPLY,g,h);CHKERRQ(ierr);
 
   /* Set up viewer */

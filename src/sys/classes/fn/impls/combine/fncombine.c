@@ -117,24 +117,24 @@ PetscErrorCode FNEvaluateFunctionMat_Combine(FN fn,Mat A,Mat B)
 
   switch (ctx->comb) {
     case FN_COMBINE_ADD:
-      ierr = FNEvaluateFunctionMat(ctx->f1,A,W);CHKERRQ(ierr);
-      ierr = FNEvaluateFunctionMat(ctx->f2,A,B);CHKERRQ(ierr);
+      ierr = FNEvaluateFunctionMat_Private(ctx->f1,A,W,PETSC_FALSE);CHKERRQ(ierr);
+      ierr = FNEvaluateFunctionMat_Private(ctx->f2,A,B,PETSC_FALSE);CHKERRQ(ierr);
       PetscStackCallBLAS("BLASaxpy",BLASaxpy_(&ld2,&one,Wa,&inc,Ba,&inc));
       ierr = PetscLogFlops(1.0*n*n);CHKERRQ(ierr);
       break;
     case FN_COMBINE_MULTIPLY:
       ierr = FN_AllocateWorkMat(fn,A,&Z);CHKERRQ(ierr);
       ierr = MatDenseGetArray(Z,&Za);CHKERRQ(ierr);
-      ierr = FNEvaluateFunctionMat(ctx->f1,A,W);CHKERRQ(ierr);
-      ierr = FNEvaluateFunctionMat(ctx->f2,A,Z);CHKERRQ(ierr);
+      ierr = FNEvaluateFunctionMat_Private(ctx->f1,A,W,PETSC_FALSE);CHKERRQ(ierr);
+      ierr = FNEvaluateFunctionMat_Private(ctx->f2,A,Z,PETSC_FALSE);CHKERRQ(ierr);
       PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&n,&n,&n,&one,Wa,&ld,Za,&ld,&zero,Ba,&ld));
       ierr = PetscLogFlops(2.0*n*n*n);CHKERRQ(ierr);
       ierr = MatDenseRestoreArray(Z,&Za);CHKERRQ(ierr);
       ierr = FN_FreeWorkMat(fn,&Z);CHKERRQ(ierr);
       break;
     case FN_COMBINE_DIVIDE:
-      ierr = FNEvaluateFunctionMat(ctx->f2,A,W);CHKERRQ(ierr);
-      ierr = FNEvaluateFunctionMat(ctx->f1,A,B);CHKERRQ(ierr);
+      ierr = FNEvaluateFunctionMat_Private(ctx->f2,A,W,PETSC_FALSE);CHKERRQ(ierr);
+      ierr = FNEvaluateFunctionMat_Private(ctx->f1,A,B,PETSC_FALSE);CHKERRQ(ierr);
       ierr = PetscMalloc1(ld,&ipiv);CHKERRQ(ierr);
       PetscStackCallBLAS("LAPACKgesv",LAPACKgesv_(&n,&n,Wa,&ld,ipiv,Ba,&ld,&info));
       SlepcCheckLapackInfo("gesv",info);
@@ -142,8 +142,8 @@ PetscErrorCode FNEvaluateFunctionMat_Combine(FN fn,Mat A,Mat B)
       ierr = PetscFree(ipiv);CHKERRQ(ierr);
       break;
     case FN_COMBINE_COMPOSE:
-      ierr = FNEvaluateFunctionMat(ctx->f1,A,W);CHKERRQ(ierr);
-      ierr = FNEvaluateFunctionMat(ctx->f2,W,B);CHKERRQ(ierr);
+      ierr = FNEvaluateFunctionMat_Private(ctx->f1,A,W,PETSC_FALSE);CHKERRQ(ierr);
+      ierr = FNEvaluateFunctionMat_Private(ctx->f2,W,B,PETSC_FALSE);CHKERRQ(ierr);
       break;
   }
 
@@ -185,8 +185,8 @@ PetscErrorCode FNEvaluateFunctionMatVec_Combine(FN fn,Mat A,Vec v)
     case FN_COMBINE_MULTIPLY:
       ierr = VecDuplicate(v,&w);CHKERRQ(ierr);
       ierr = FN_AllocateWorkMat(fn,A,&Z);CHKERRQ(ierr);
-      ierr = FNEvaluateFunctionMat(ctx->f1,A,Z);CHKERRQ(ierr);
-      ierr = FNEvaluateFunctionMatVec(ctx->f2,A,w);CHKERRQ(ierr);
+      ierr = FNEvaluateFunctionMat_Private(ctx->f1,A,Z,PETSC_FALSE);CHKERRQ(ierr);
+      ierr = FNEvaluateFunctionMatVec_Private(ctx->f2,A,w,PETSC_FALSE);CHKERRQ(ierr);
       ierr = MatMult(Z,w,v);CHKERRQ(ierr);
       ierr = FN_FreeWorkMat(fn,&Z);CHKERRQ(ierr);
       ierr = VecDestroy(&w);CHKERRQ(ierr);
@@ -194,8 +194,8 @@ PetscErrorCode FNEvaluateFunctionMatVec_Combine(FN fn,Mat A,Vec v)
     case FN_COMBINE_DIVIDE:
       ierr = VecDuplicate(v,&w);CHKERRQ(ierr);
       ierr = FN_AllocateWorkMat(fn,A,&Z);CHKERRQ(ierr);
-      ierr = FNEvaluateFunctionMat(ctx->f2,A,Z);CHKERRQ(ierr);
-      ierr = FNEvaluateFunctionMatVec(ctx->f1,A,v);CHKERRQ(ierr);
+      ierr = FNEvaluateFunctionMat_Private(ctx->f2,A,Z,PETSC_FALSE);CHKERRQ(ierr);
+      ierr = FNEvaluateFunctionMatVec_Private(ctx->f1,A,v,PETSC_FALSE);CHKERRQ(ierr);
       ierr = PetscMalloc1(ld,&ipiv);CHKERRQ(ierr);
       ierr = MatDenseGetArray(Z,&Za);CHKERRQ(ierr);
       ierr = VecGetArray(v,&va);CHKERRQ(ierr);
@@ -210,8 +210,8 @@ PetscErrorCode FNEvaluateFunctionMatVec_Combine(FN fn,Mat A,Vec v)
       break;
     case FN_COMBINE_COMPOSE:
       ierr = FN_AllocateWorkMat(fn,A,&Z);CHKERRQ(ierr);
-      ierr = FNEvaluateFunctionMat(ctx->f1,A,Z);CHKERRQ(ierr);
-      ierr = FNEvaluateFunctionMatVec(ctx->f2,Z,v);CHKERRQ(ierr);
+      ierr = FNEvaluateFunctionMat_Private(ctx->f1,A,Z,PETSC_FALSE);CHKERRQ(ierr);
+      ierr = FNEvaluateFunctionMatVec_Private(ctx->f2,Z,v,PETSC_FALSE);CHKERRQ(ierr);
       ierr = FN_FreeWorkMat(fn,&Z);CHKERRQ(ierr);
       break;
   }

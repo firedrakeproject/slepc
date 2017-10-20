@@ -612,6 +612,56 @@ static PetscErrorCode FNEvaluateFunctionMat_Sym_Default(FN fn,Mat A,Mat B)
   PetscFunctionReturn(0);
 }
 
+PetscErrorCode FNEvaluateFunctionMat_Private(FN fn,Mat A,Mat B,PetscBool sync)
+{
+  PetscErrorCode ierr;
+  PetscBool      set,flg,symm=PETSC_FALSE;
+  PetscInt       m,n;
+  PetscMPIInt    size,rank;
+  PetscScalar    *pF;
+  Mat            M,F;
+
+  PetscFunctionBegin;
+  /* destination matrix */
+  F = B?B:A;
+
+  /* check symmetry of A */
+  ierr = MatIsHermitianKnown(A,&set,&flg);CHKERRQ(ierr);
+  symm = set? flg: PETSC_FALSE;
+
+  ierr = MPI_Comm_size(PetscObjectComm((PetscObject)fn),&size);CHKERRQ(ierr);
+  ierr = MPI_Comm_rank(PetscObjectComm((PetscObject)fn),&rank);CHKERRQ(ierr);
+  if (size==1 || fn->pmode==FN_PARALLEL_REDUNDANT || (fn->pmode==FN_PARALLEL_SYNCHRONIZED && !rank)) {
+    /* scale argument */
+    if (fn->alpha!=(PetscScalar)1.0) {
+      ierr = FN_AllocateWorkMat(fn,A,&M);CHKERRQ(ierr);
+      ierr = MatScale(M,fn->alpha);CHKERRQ(ierr);
+    } else M = A;
+    
+    ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
+    if (symm && !fn->method) {  /* prefer diagonalization */
+      ierr = FNEvaluateFunctionMat_Sym_Default(fn,M,F);CHKERRQ(ierr);
+    } else {
+      if (fn->ops->evaluatefunctionmat[fn->method]) {
+        ierr = (*fn->ops->evaluatefunctionmat[fn->method])(fn,M,F);CHKERRQ(ierr);
+      } else SETERRQ(PetscObjectComm((PetscObject)fn),PETSC_ERR_ARG_OUTOFRANGE,"The specified method number does not exist for this FN");
+    }
+    ierr = PetscFPTrapPop();CHKERRQ(ierr);
+    if (fn->alpha!=(PetscScalar)1.0) {
+      ierr = FN_FreeWorkMat(fn,&M);CHKERRQ(ierr);
+    }
+    /* scale result */
+    ierr = MatScale(F,fn->beta);CHKERRQ(ierr);
+  }
+  if (size>1 && fn->pmode==FN_PARALLEL_SYNCHRONIZED && sync) {  /* synchronize */
+    ierr = MatGetSize(A,&m,&n);CHKERRQ(ierr);
+    ierr = MatDenseGetArray(F,&pF);CHKERRQ(ierr);
+    ierr = MPI_Bcast(pF,n*n,MPIU_SCALAR,0,PetscObjectComm((PetscObject)fn));CHKERRQ(ierr);
+    ierr = MatDenseRestoreArray(F,&pF);CHKERRQ(ierr);
+  }
+  PetscFunctionReturn(0);
+}
+
 /*@
    FNEvaluateFunctionMat - Computes the value of the function f(A) for a given
    matrix A, where the result is also a matrix.
@@ -646,11 +696,8 @@ static PetscErrorCode FNEvaluateFunctionMat_Sym_Default(FN fn,Mat A,Mat B)
 PetscErrorCode FNEvaluateFunctionMat(FN fn,Mat A,Mat B)
 {
   PetscErrorCode ierr;
-  PetscBool      match,set,flg,symm=PETSC_FALSE,inplace=PETSC_FALSE;
+  PetscBool      match,inplace=PETSC_FALSE;
   PetscInt       m,n,n1;
-  Mat            M,F;
-  PetscMPIInt    size,rank;
-  PetscScalar    *pF;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(fn,FN_CLASSID,1);
@@ -674,47 +721,10 @@ PetscErrorCode FNEvaluateFunctionMat(FN fn,Mat A,Mat B)
     if (n1!=n) SETERRQ(PetscObjectComm((PetscObject)fn),PETSC_ERR_ARG_SIZ,"Matrices A and B must have the same dimension");
   }
 
-  /* check symmetry of A */
-  ierr = MatIsHermitianKnown(A,&set,&flg);CHKERRQ(ierr);
-  symm = set? flg: PETSC_FALSE;
-
-  /* scale argument */
-  if (fn->alpha!=(PetscScalar)1.0) {
-    ierr = FN_AllocateWorkMat(fn,A,&M);CHKERRQ(ierr);
-    ierr = MatScale(M,fn->alpha);CHKERRQ(ierr);
-  } else M = A;
-
-  /* destination matrix */
-  F = inplace? A: B;
-
   /* evaluate matrix function */
   ierr = PetscLogEventBegin(FN_Evaluate,fn,0,0,0);CHKERRQ(ierr);
-  ierr = MPI_Comm_size(PetscObjectComm((PetscObject)fn),&size);CHKERRQ(ierr);
-  ierr = MPI_Comm_rank(PetscObjectComm((PetscObject)fn),&rank);CHKERRQ(ierr);
-  if (size==1 || fn->pmode==FN_PARALLEL_REDUNDANT || (fn->pmode==FN_PARALLEL_SYNCHRONIZED && !rank)) {
-    ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
-    if (symm && !fn->method) {  /* prefer diagonalization */
-      ierr = FNEvaluateFunctionMat_Sym_Default(fn,M,F);CHKERRQ(ierr);
-    } else {
-      if (fn->ops->evaluatefunctionmat[fn->method]) {
-        ierr = (*fn->ops->evaluatefunctionmat[fn->method])(fn,M,F);CHKERRQ(ierr);
-      } else SETERRQ(PetscObjectComm((PetscObject)fn),PETSC_ERR_ARG_OUTOFRANGE,"The specified method number does not exist for this FN");
-    }
-    ierr = PetscFPTrapPop();CHKERRQ(ierr);
-  }
-  if (size>1 && fn->pmode==FN_PARALLEL_SYNCHRONIZED) {  /* synchronize */
-    ierr = MatDenseGetArray(F,&pF);CHKERRQ(ierr);
-    ierr = MPI_Bcast(pF,n*n,MPIU_SCALAR,0,PetscObjectComm((PetscObject)fn));CHKERRQ(ierr);
-    ierr = MatDenseRestoreArray(F,&pF);CHKERRQ(ierr);
-  }
+  ierr = FNEvaluateFunctionMat_Private(fn,A,B,PETSC_TRUE);CHKERRQ(ierr);
   ierr = PetscLogEventEnd(FN_Evaluate,fn,0,0,0);CHKERRQ(ierr);
-
-  if (fn->alpha!=(PetscScalar)1.0) {
-    ierr = FN_FreeWorkMat(fn,&M);CHKERRQ(ierr);
-  }
-
-  /* scale result */
-  ierr = MatScale(F,fn->beta);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -758,6 +768,58 @@ static PetscErrorCode FNEvaluateFunctionMatVec_Sym_Default(FN fn,Mat A,Vec v)
   PetscFunctionReturn(0);
 }
 
+PetscErrorCode FNEvaluateFunctionMatVec_Private(FN fn,Mat A,Vec v,PetscBool sync)
+{
+  PetscErrorCode ierr;
+  PetscBool      set,flg,symm=PETSC_FALSE;
+  PetscInt       m,n;
+  Mat            M;
+  PetscMPIInt    size,rank;
+  PetscScalar    *pv;
+
+  PetscFunctionBegin;
+  /* check symmetry of A */
+  ierr = MatIsHermitianKnown(A,&set,&flg);CHKERRQ(ierr);
+  symm = set? flg: PETSC_FALSE;
+
+  /* evaluate matrix function */
+  ierr = MPI_Comm_size(PetscObjectComm((PetscObject)fn),&size);CHKERRQ(ierr);
+  ierr = MPI_Comm_rank(PetscObjectComm((PetscObject)fn),&rank);CHKERRQ(ierr);
+  if (size==1 || fn->pmode==FN_PARALLEL_REDUNDANT || (fn->pmode==FN_PARALLEL_SYNCHRONIZED && !rank)) {
+    /* scale argument */
+    if (fn->alpha!=(PetscScalar)1.0) {
+      ierr = FN_AllocateWorkMat(fn,A,&M);CHKERRQ(ierr);
+      ierr = MatScale(M,fn->alpha);CHKERRQ(ierr);
+    } else M = A;
+    ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
+    if (symm && !fn->method) {  /* prefer diagonalization */
+      ierr = FNEvaluateFunctionMatVec_Sym_Default(fn,M,v);CHKERRQ(ierr);
+    } else {
+      if (fn->ops->evaluatefunctionmatvec[fn->method]) {
+        ierr = (*fn->ops->evaluatefunctionmatvec[fn->method])(fn,M,v);CHKERRQ(ierr);
+      } else {
+        ierr = FNEvaluateFunctionMatVec_Default(fn,M,v);CHKERRQ(ierr);
+      }
+    }
+    ierr = PetscFPTrapPop();CHKERRQ(ierr);
+    if (fn->alpha!=(PetscScalar)1.0) {
+      ierr = FN_FreeWorkMat(fn,&M);CHKERRQ(ierr);
+    }
+
+    /* scale result */
+    ierr = VecScale(v,fn->beta);CHKERRQ(ierr);
+  }
+
+  /* synchronize */
+  if (size>1 && fn->pmode==FN_PARALLEL_SYNCHRONIZED && sync) { 
+    ierr = MatGetSize(A,&m,&n);CHKERRQ(ierr);
+    ierr = VecGetArray(v,&pv);CHKERRQ(ierr);
+    ierr = MPI_Bcast(pv,n,MPIU_SCALAR,0,PetscObjectComm((PetscObject)fn));CHKERRQ(ierr);
+    ierr = VecRestoreArray(v,&pv);CHKERRQ(ierr);
+  }
+  PetscFunctionReturn(0);
+}
+
 /*@
    FNEvaluateFunctionMatVec - Computes the first column of the matrix f(A)
    for a given matrix A.
@@ -782,11 +844,8 @@ static PetscErrorCode FNEvaluateFunctionMatVec_Sym_Default(FN fn,Mat A,Vec v)
 PetscErrorCode FNEvaluateFunctionMatVec(FN fn,Mat A,Vec v)
 {
   PetscErrorCode ierr;
-  PetscBool      match,set,flg,symm=PETSC_FALSE;
+  PetscBool      match;
   PetscInt       m,n;
-  Mat            M;
-  PetscMPIInt    size,rank;
-  PetscScalar    *pv;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(fn,FN_CLASSID,1);
@@ -801,47 +860,9 @@ PetscErrorCode FNEvaluateFunctionMatVec(FN fn,Mat A,Vec v)
   if (m!=n) SETERRQ2(PetscObjectComm((PetscObject)fn),PETSC_ERR_ARG_SIZ,"Mat A is not square (has %D rows, %D cols)",m,n);
   ierr = VecGetSize(v,&m);CHKERRQ(ierr);
   if (m!=n) SETERRQ(PetscObjectComm((PetscObject)fn),PETSC_ERR_ARG_SIZ,"Matrix A and vector v must have the same size");
-
-  /* check symmetry of A */
-  ierr = MatIsHermitianKnown(A,&set,&flg);CHKERRQ(ierr);
-  symm = set? flg: PETSC_FALSE;
-
-  /* scale argument */
-  if (fn->alpha!=(PetscScalar)1.0) {
-    ierr = FN_AllocateWorkMat(fn,A,&M);CHKERRQ(ierr);
-    ierr = MatScale(M,fn->alpha);CHKERRQ(ierr);
-  } else M = A;
-
-  /* evaluate matrix function */
   ierr = PetscLogEventBegin(FN_Evaluate,fn,0,0,0);CHKERRQ(ierr);
-  ierr = MPI_Comm_size(PetscObjectComm((PetscObject)fn),&size);CHKERRQ(ierr);
-  ierr = MPI_Comm_rank(PetscObjectComm((PetscObject)fn),&rank);CHKERRQ(ierr);
-  if (size==1 || fn->pmode==FN_PARALLEL_REDUNDANT || (fn->pmode==FN_PARALLEL_SYNCHRONIZED && !rank)) {
-    ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
-    if (symm && !fn->method) {  /* prefer diagonalization */
-      ierr = FNEvaluateFunctionMatVec_Sym_Default(fn,M,v);CHKERRQ(ierr);
-    } else {
-      if (fn->ops->evaluatefunctionmatvec[fn->method]) {
-        ierr = (*fn->ops->evaluatefunctionmatvec[fn->method])(fn,M,v);CHKERRQ(ierr);
-      } else {
-        ierr = FNEvaluateFunctionMatVec_Default(fn,M,v);CHKERRQ(ierr);
-      }
-    }
-    ierr = PetscFPTrapPop();CHKERRQ(ierr);
-  }
-  if (size>1 && fn->pmode==FN_PARALLEL_SYNCHRONIZED) {  /* synchronize */
-    ierr = VecGetArray(v,&pv);CHKERRQ(ierr);
-    ierr = MPI_Bcast(pv,n,MPIU_SCALAR,0,PetscObjectComm((PetscObject)fn));CHKERRQ(ierr);
-    ierr = VecRestoreArray(v,&pv);CHKERRQ(ierr);
-  }
+  ierr = FNEvaluateFunctionMatVec_Private(fn,A,v,PETSC_TRUE);CHKERRQ(ierr);
   ierr = PetscLogEventEnd(FN_Evaluate,fn,0,0,0);CHKERRQ(ierr);
-
-  if (fn->alpha!=(PetscScalar)1.0) {
-    ierr = FN_FreeWorkMat(fn,&M);CHKERRQ(ierr);
-  }
-
-  /* scale result */
-  ierr = VecScale(v,fn->beta);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -976,6 +997,7 @@ PetscErrorCode FNDuplicate(FN fn,MPI_Comm comm,FN *newfn)
   FNType         type;
   PetscScalar    alpha,beta;
   PetscInt       meth;
+  FNParallelType ptype;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(fn,FN_CLASSID,1);
@@ -988,6 +1010,8 @@ PetscErrorCode FNDuplicate(FN fn,MPI_Comm comm,FN *newfn)
   ierr = FNSetScale(*newfn,alpha,beta);CHKERRQ(ierr);
   ierr = FNGetMethod(fn,&meth);CHKERRQ(ierr);
   ierr = FNSetMethod(*newfn,meth);CHKERRQ(ierr);
+  ierr = FNGetParallel(fn,&ptype);CHKERRQ(ierr);
+  ierr = FNSetParallel(*newfn,ptype);CHKERRQ(ierr);
   if (fn->ops->duplicate) {
     ierr = (*fn->ops->duplicate)(fn,comm,newfn);CHKERRQ(ierr);
   }

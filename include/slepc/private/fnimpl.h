@@ -101,5 +101,7 @@ PETSC_INTERN PetscErrorCode SlepcMatDenseSqrt(PetscBLASInt,PetscScalar*,PetscBLA
 PETSC_INTERN PetscErrorCode SlepcSqrtmSchur(PetscBLASInt,PetscScalar*,PetscBLASInt,PetscBool);
 PETSC_INTERN PetscErrorCode SlepcSqrtmDenmanBeavers(PetscBLASInt,PetscScalar*,PetscBLASInt,PetscBool);
 PETSC_INTERN PetscErrorCode SlepcSqrtmNewtonSchulz(PetscBLASInt,PetscScalar*,PetscBLASInt,PetscBool);
+PETSC_INTERN PetscErrorCode FNEvaluateFunctionMat_Private(FN,Mat,Mat,PetscBool);
+PETSC_INTERN PetscErrorCode FNEvaluateFunctionMatVec_Private(FN,Mat,Vec,PetscBool);
 
 #endif
