@@ -461,7 +461,7 @@ PetscErrorCode FNGetParallel(FN fn,FNParallelType *pmode)
 /*@
    FNEvaluateFunction - Computes the value of the function f(x) for a given x.
 
-   Logically Collective on FN
+   Not collective
 
    Input Parameters:
 +  fn - the math function context
@@ -485,7 +485,6 @@ PetscErrorCode FNEvaluateFunction(FN fn,PetscScalar x,PetscScalar *y)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(fn,FN_CLASSID,1);
-  PetscValidLogicalCollectiveScalar(fn,x,2);
   PetscValidType(fn,1);
   PetscValidPointer(y,3);
   ierr = PetscLogEventBegin(FN_Evaluate,fn,0,0,0);CHKERRQ(ierr);
@@ -499,7 +498,7 @@ PetscErrorCode FNEvaluateFunction(FN fn,PetscScalar x,PetscScalar *y)
 /*@
    FNEvaluateDerivative - Computes the value of the derivative f'(x) for a given x.
 
-   Logically Collective on FN
+   Not Collective
 
    Input Parameters:
 +  fn - the math function context
@@ -523,7 +522,6 @@ PetscErrorCode FNEvaluateDerivative(FN fn,PetscScalar x,PetscScalar *y)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(fn,FN_CLASSID,1);
-  PetscValidLogicalCollectiveScalar(fn,x,2);
   PetscValidType(fn,1);
   PetscValidPointer(y,3);
   ierr = PetscLogEventBegin(FN_Evaluate,fn,0,0,0);CHKERRQ(ierr);
