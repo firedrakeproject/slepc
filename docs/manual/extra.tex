@@ -379,6 +379,8 @@ Each \slepc source code component directory has the following subdirectories:
 
 The \slepc interface to this package allows the user to specify the maximum allowed block size with the function \ident{EPSPRIMMESetBlockSize} or at run time with the option \Verb!-eps_primme_blocksize <size>!.
 For changing the particular algorithm within \primme, use the function \ident{EPSPRIMMESetMethod}.
+
+\primme also provides a solver for the singular value decomposition that is interfaced in SLEPc's \ident{SVD}, see chapter \ref{cap:svd}.
 	\end{description}
 
 \subsection*{\underline{\blzpack}}
