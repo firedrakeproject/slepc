@@ -60,8 +60,8 @@ As explained in the previous chapter, \ident{EPS} contains preconditioned eigens
 where \texttt{type} can be one of
 \texttt{STSHIFT},
 \texttt{STSINVERT}, \texttt{STCAYLEY},
-\texttt{STPRECOND}, or \texttt{STSHELL}.
-The \ident{ST} type can also be set with the command-line option \Verb!-st_type! followed by the name of the method (see Table \ref{tab:transforms}). The first four spectral transformations are described in detail in the rest of this section. The last possibility, \texttt{STSHELL}, uses a specific, application-provided spectral transformation. Section \ref{sec:shell} describes how to implement one of these transformations.
+\texttt{STPRECOND}, \texttt{STFILTER}, or \texttt{STSHELL}.
+The \ident{ST} type can also be set with the command-line option \Verb!-st_type! followed by the name of the method (see Table \ref{tab:transforms}). The first five spectral transformations are described in detail in the rest of this section. The last possibility, \texttt{STSHELL}, uses a specific, application-provided spectral transformation. Section \ref{sec:shell} describes how to implement one of these transformations.
 
 \begin{table}
 \centering
@@ -72,6 +72,7 @@ Shift of Origin         & \texttt{STSHIFT}  & \texttt{shift}   & $B^{-1}A-\sigma
 Shift-and-invert        & \texttt{STSINVERT}& \texttt{sinvert} & $(A-\sigma B)^{-1}B$\\
 Generalized Cayley      & \texttt{STCAYLEY} & \texttt{cayley}  & $(A-\sigma B)^{-1}(A+\nu B)$\\
 Preconditioner          & \texttt{STPRECOND}& \texttt{precond} & $K^{-1}\approx(A-\sigma B)^{-1}$\\\hline
+Polynomial Filter       & \texttt{STFILTER} & \texttt{filter}  & $p(A)$\\
 Shell Transformation    & \texttt{STSHELL}  & \texttt{shell}   & \emph{user-defined}\\\hline
 \end{tabular} }
 \caption{\label{tab:transforms}Spectral transformations available in the  \ident{ST} package.}
@@ -226,6 +227,20 @@ where the system is solved approximately with a preconditioned iterative linear 
 	\end{Verbatim}
 
 	Note that preconditioned eigensolvers in \ident{EPS} select \ident{STPRECOND} by default, so the user does not need to specify it explicitly.
+
+\subsection{Polynomial Filtering}
+\label{sec:filter}
+
+The type \ident{STFILTER} is also special. It is used in the case of standard symmetric (or Hermitian) eigenvalue problems when the eigenvalues of interest are interior to the spectrum and we want to avoid the high cost associated with the matrix factorization of the shift-and-invert spectral transformation. The techniques generically known as \emph{polynomial filtering} aim at this goal.
+
+The polynomial filtering methods address the eigenvalue problem
+\begin{equation}
+\label{eq:polyfilt}
+p(A)x=\theta x,
+\end{equation}
+where $p(\cdot)$ is a suitable high-degree polynomial. Once the polynomial is built, the eigensolver relies on \ident{STApply} to compute approximations of the eigenvalues $\theta$ of the transformed problem. These approximations must be processed in some way in order to recover the $\lambda$ eigenvalues. Note that in this case there is no \ident{STBackTransform} operation. Details of the method can be found in \citep{Fang:2012:FLP}.
+
+Polynomial filtering techiques are still under development in SLEPc, and will be improved in future versions.
 
 %---------------------------------------------------
 \section{Advanced Usage}

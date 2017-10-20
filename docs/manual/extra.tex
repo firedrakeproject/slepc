@@ -67,7 +67,7 @@ where $x$ and $p$ denote the velocity and pressure fields. Similar formulations 
 \section{GPU Computing}
 \label{sec:gpu}
 
-Experimental support for graphics processor unit (GPU) computing is included since \slepc 3.2. This is related to \S\ref{sec:supported} because GPU support in \petsc is based on using special types of \texttt{Mat} and \texttt{Vec}. Currently, GPU support in \slepc has been tested only in the Krylov-Schur \ident{EPS} solver, although it may work in other solvers as well. Regarding \petsc, all iterative linear solvers are prepared to run on the GPU, but this is not the case for direct solvers and preconditioners (see \petsc documentation for details). The user must not expect a spectacular performance boost, but in general moderate gains can be achieved by running the eigensolver on the GPU instead of the CPU (in some cases a 10-fold improvement).
+Experimental support for graphics processor unit (GPU) computing is included since \slepc 3.2. This is related to \S\ref{sec:supported} because GPU support in \petsc is based on using special types of \texttt{Mat} and \texttt{Vec}. GPU support in \slepc has been tested in all solver classes and most solvers should work, although the performance gain to be expected depends on the particular algorithm. Regarding \petsc, all iterative linear solvers are prepared to run on the GPU, but this is not the case for direct solvers and preconditioners (see \petsc documentation for details). The user must not expect a spectacular performance boost, but in general moderate gains can be achieved by running the eigensolver on the GPU instead of the CPU (in some cases a 10-fold improvement).
 
 PETSc's GPU support currently relies on NVIDIA CUDA Toolkit 4.0\footnote{\url{http://developer.nvidia.com/cuda}} (and later), that provides a C/C++ compiler with CUDA extensions as well as the cuBLAS and cuSPARSE libraries that implement dense and sparse linear algebra operations\footnote{Support via the Cusp library is being deprecated.}. For instance, to configure \petsc with GPU support in single precision arithmetic use the following options:
 	\begin{Verbatim}[fontsize=\small]
@@ -76,9 +76,8 @@ PETSc's GPU support currently relies on NVIDIA CUDA Toolkit 4.0\footnote{\url{ht
 
 \ident{VECCUDA} and \ident{MATAIJCUSPARSE} are currently the mechanism in \petsc to run a computation on the GPU. \ident{VECCUDA} is a special type of \texttt{Vec} whose array is mirrored in the GPU (and similarly for \ident{MATAIJCUSPARSE}). \petsc takes care of keeping memory coherence between the two copies of the array, and performs the computation on the GPU when possible, trying to avoid unnecessary copies between the host and the device. For maximum efficiency, the user has to make sure that all vectors and matrices are of these types. If they are created in the standard way (\texttt{VecCreate} plus \texttt{VecSetFromOptions}) then it is sufficient to run the \slepc program with
 	\begin{Verbatim}[fontsize=\small]
-	$ ./program -vec_type cuda -mat_type aijcusparse -bv_type vecs
+	$ ./program -vec_type cuda -mat_type aijcusparse
 	\end{Verbatim}
-The last option is required in this version (this restriction will be removed in the future) and is related to the \ident{BV} auxiliary class, see \S\ref{sec:sys}.
 
 %---------------------------------------------------
 \section{Extending SLEPc}

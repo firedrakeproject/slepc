@@ -16,14 +16,14 @@ Bai, Z., J.~Demmel, J.~Dongarra, A.~Ruhe, and H.~van~der Vorst (eds.) (2000).
   Practical Guide\/}.
 \newblock SIAM, Philadelphia.
 
-\bibitem[{Balay {\em et~al.\/}(2016)Balay, Abhyankar, Adams, Brown, Brune,
-  Buschelman, Dalcin, Eijkhout, Gropp, Karpeyev, Kaushik, Knepley, McInnes, Rupp, Smith,
-  Zampini, Zhang, and Zhang}]{Balay:2016:PUM}
+\bibitem[{Balay {\em et~al.\/}(2017)Balay, Abhyankar, Adams, Brown, Brune,
+  Buschelman, Dalcin, Eijkhout, Gropp, Karpeyev, Kaushik, Knepley, May, McInnes,
+  Munson, Rupp, Sanan, Smith, Zampini, Zhang, and Zhang}]{Balay:2017:PUM}
 Balay, S., S.~Abhyankar, M.~Adams, J.~Brown, P.~Brune, K.~Buschelman,
-  L.~Dalcin, V.~Eijkhout, W.~Gropp, D.~Karpeyev, D.~Kaushik, M.~Knepley, L.~C. McInnes,
-  K.~Rupp, B.~Smith, S.~Zampini, H.~Zhang, and H.~Zhang (2016).
+  L.~Dalcin, V.~Eijkhout, W.~Gropp, D.~Karpeyev, D.~Kaushik, M.~Knepley, D.~May, L.~C. McInnes,
+  T.~Munson, K.~Rupp, P.~Sanan, B.~Smith, S.~Zampini, H.~Zhang, and H.~Zhang (2017).
 \newblock {PETSc} Users Manual.
-\newblock Technical Report ANL-95/11 - Revision 3.7, Argonne National
+\newblock Technical Report ANL-95/11 - Revision 3.8, Argonne National
   Laboratory.
 
 \bibitem[{Balay {\em et~al.\/}(1997)Balay, Gropp, McInnes, and
@@ -90,6 +90,12 @@ Ericsson, T. and A.~Ruhe (1980).
   solution of large sparse generalized symmetric eigenvalue problems.
 \newblock {\em Math. Comp.\/}, 35(152):1251--1268.
 
+\bibitem[{Fang and Saad(2012)}]{Fang:2012:FLP}
+Fang, H. and Y.~Saad (2012).
+\newblock A filtered {Lanczos} procedure for extreme and interior eigenvalue
+  problems.
+\newblock {\em {SIAM} J. Sci. Comput.\/}, 34(4):A2220--A2246.
+
 \bibitem[{Golub and van~der Vorst(2000)}]{Golub:2000:EC2}
 Golub, G.~H. and H.~A. van~der Vorst (2000).
 \newblock Eigenvalue computation in the 20th century.
@@ -101,6 +107,11 @@ Grimes, R.~G., J.~G. Lewis, and H.~D. Simon (1994).
 \newblock A shifted block {Lanczos} algorithm for solving sparse symmetric
   generalized eigenproblems.
 \newblock {\em {SIAM} J. Matrix Anal. Appl.\/}, 15(1):228--272.
+
+\bibitem[{G{\"u}ttel and Tisseur(2017)}]{Guttel:2017:NEP}
+G{\"u}ttel, S. and F.~Tisseur (2017).
+\newblock The nonlinear eigenvalue problem.
+\newblock {\em Acta Numerica\/}, 26:1--94.
 
 \bibitem[{Hansen(1998)}]{Hansen:1998:RDI}
 Hansen, P.~C. (1998).
