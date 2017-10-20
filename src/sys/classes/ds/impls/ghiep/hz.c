@@ -1,4 +1,13 @@
 /*
+   - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+   SLEPc - Scalable Library for Eigenvalue Problem Computations
+   Copyright (c) 2002-2017, Universitat Politecnica de Valencia, Spain
+
+   This file is part of SLEPc.
+   SLEPc is distributed under a 2-clause BSD license (see LICENSE).
+   - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+*/
+/*
    HZ iteration for generalized symmetric-indefinite eigenproblem.
    Based on Matlab code from David Watkins.
 
@@ -10,26 +19,8 @@
        [2] M.A. Brebner, J. Grad, "Eigenvalues of Ax = lambda Bx for real
            symmetric matrices A and B computed by reduction to pseudosymmetric
            form and the HR process", Linear Alg. Appl. 43:99-118, 1982.
-
-   - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-   SLEPc - Scalable Library for Eigenvalue Problem Computations
-   Copyright (c) 2002-2016, Universitat Politecnica de Valencia, Spain
-
-   This file is part of SLEPc.
-
-   SLEPc is free software: you can redistribute it and/or modify it under  the
-   terms of version 3 of the GNU Lesser General Public License as published by
-   the Free Software Foundation.
-
-   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY
-   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS
-   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for
-   more details.
-
-   You  should have received a copy of the GNU Lesser General  Public  License
-   along with SLEPc. If not, see <http://www.gnu.org/licenses/>.
-   - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
+
 #include <slepc/private/dsimpl.h>
 #include <slepcblaslapack.h>
 

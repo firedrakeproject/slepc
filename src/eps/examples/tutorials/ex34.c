@@ -1,37 +1,23 @@
 /*
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    SLEPc - Scalable Library for Eigenvalue Problem Computations
-   Copyright (c) 2002-2016, Universitat Politecnica de Valencia, Spain
+   Copyright (c) 2002-2017, Universitat Politecnica de Valencia, Spain
 
    This file is part of SLEPc.
-
-   SLEPc is free software: you can redistribute it and/or modify it under  the
-   terms of version 3 of the GNU Lesser General Public License as published by
-   the Free Software Foundation.
-
-   SLEPc  is  distributed in the hope that it will be useful, but WITHOUT  ANY
-   WARRANTY;  without even the implied warranty of MERCHANTABILITY or  FITNESS
-   FOR  A  PARTICULAR PURPOSE. See the GNU Lesser General Public  License  for
-   more details.
-
-   You  should have received a copy of the GNU Lesser General  Public  License
-   along with SLEPc. If not, see <http://www.gnu.org/licenses/>.
+   SLEPc is distributed under a 2-clause BSD license (see LICENSE).
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
-
 /*
    This is a nonlinear eigenvalue problem. When p=2, it is reduced to a linear Laplace eigenvalue
    problem.
 
-  -\nabla\cdot(|\nabla u|^{p-2} \nabla u) = k |u|^{p-2} u in (0,1)x(0,1),
+   -\nabla\cdot(|\nabla u|^{p-2} \nabla u) = k |u|^{p-2} u in (0,1)x(0,1),
 
    u = 0 on the entire boundary.
 
    The code is implemented based on DMPlex using Q1 FEM on a quadrilateral mesh. In this code, we consider p=3.
-*/
 
-/*
-  Contributed  by Fande Kong fdkong.jd@gmail.com
+   Contributed  by Fande Kong fdkong.jd@gmail.com
 */
 
 static char help[] = "Nonlinear inverse iteration for A(x)*x=lambda*B(x)*x.\n\n";

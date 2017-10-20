@@ -239,7 +239,7 @@ classifiers = """
 Development Status :: 5 - Production/Stable
 Intended Audience :: Developers
 Intended Audience :: Science/Research
-License :: OSI Approved :: GNU Library or Lesser General Public License (LGPL)
+License :: OSI Approved :: BSD License
 Operating System :: POSIX
 Programming Language :: C
 Programming Language :: C++
@@ -261,7 +261,7 @@ setup(name='slepc',
       classifiers= classifiers.split('\n')[1:-1],
       keywords = ['SLEPc','PETSc', 'MPI'],
       platforms=['POSIX'],
-      license='LGPL',
+      license='BSD',
 
       url='http://slepc.upv.es/',
       download_url=tarball(),
