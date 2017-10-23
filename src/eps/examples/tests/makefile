@@ -656,6 +656,11 @@ runtest27_1_%:
 	${MPIEXEC} -n 1 ./test27 -eps_type $$eps -terse > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
+runtest27_2:
+	-@${SETTEST}; check=test27_2; \
+	${MPIEXEC} -n 1 ./test27 -eps_interval .17,1.3 -st_type filter -terse | $(GREP) -v "requested" > $${test}.tmp 2>&1; \
+	${TESTCODE}
+
 runtest28_1: runtest28_1_krylovschur runtest28_1_arnoldi runtest28_1_lanczos runtest28_1_gd runtest28_1_jd runtest28_1_rqcg runtest28_1_lobpcg runtest28_1_lapack
 runtest28_1_%:
 	-@${SETTEST}; check=test28_1; eps=$*; \
