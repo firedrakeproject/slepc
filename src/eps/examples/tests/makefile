@@ -25,7 +25,7 @@ TESTS      = test1 test2 test3 test4 test5 test6 test7f test8 test9 test10 \
              test18 test19 test20 test21 test22 test23 test24 test25 test26 test27 \
              test28
 
-TESTEXAMPLES_C                     = test1.PETSc runtest1_5 test1.rm \
+TESTEXAMPLES_C                     = test1.PETSc runtest1_5 runtest1_9 test1.rm \
                                      test4.PETSc runtest4_2 test4.rm \
                                      test8.PETSc runtest8_2 runtest8_3 test8.rm \
                                      test13.PETSc runtest13_1 runtest13_2 test13.rm \
@@ -266,6 +266,16 @@ runtest1_8_cuda_%:
 	-@${SETTEST}; check=test1_5; eps=$*; \
 	if [ "$$eps" = lobpcg ]; then eps="lobpcg -eps_lobpcg_blocksize 3"; fi; \
 	${MPIEXEC} -n 1 ./test1 -n 18 -eps_type $$eps -eps_nev 3 -eps_smallest_real -eps_max_it 500 -st_pc_type sor -mat_type aijcusparse > $${test}.tmp 2>&1; \
+	${TESTCODE}
+
+runtest1_9: runtest1_9_ks_ghep runtest1_9_ks_gnhep runtest1_9_ks_ghiep runtest1_9_jd_ghep runtest1_9_jd_gnhep
+runtest1_9_%:
+	-@${SETTEST}; check=test1_9; t=$*; \
+	if [ "$$t" = ks_ghep -o "$$t" = jd_ghep ]; then pt="-eps_gen_hermitian"; fi; \
+	if [ "$$t" = ks_gnhep -o "$$t" = jd_gnhep ]; then pt="-eps_gen_non_hermitian"; fi; \
+	if [ "$$t" = ks_ghiep ]; then pt="-eps_gen_indefinite"; fi; \
+	if [ "$$t" = jd_ghep -o "$$t" = jd_gnhep ]; then eps="-eps_type jd"; fi; \
+	${MPIEXEC} -n 2 ./test1 -n 18 $$eps $$pt -eps_nev 10 -ds_parallel synchronized | ${GREP} -v "orthogonality" > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
 runtest2_1: runtest2_1_krylovschur runtest2_1_arnoldi runtest2_1_gd runtest2_1_jd runtest2_1_gd2 runtest2_1_lapack
