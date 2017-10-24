@@ -270,11 +270,12 @@ runtest1_8_cuda_%:
 
 runtest1_9: runtest1_9_ks_ghep runtest1_9_ks_gnhep runtest1_9_ks_ghiep runtest1_9_jd_ghep runtest1_9_jd_gnhep
 runtest1_9_%:
-	-@${SETTEST}; check=test1_9; t=$*; \
-	if [ "$$t" = ks_ghep -o "$$t" = jd_ghep ]; then pt="-eps_gen_hermitian"; fi; \
-	if [ "$$t" = ks_gnhep -o "$$t" = jd_gnhep ]; then pt="-eps_gen_non_hermitian"; fi; \
-	if [ "$$t" = ks_ghiep ]; then pt="-eps_gen_indefinite"; fi; \
-	if [ "$$t" = jd_ghep -o "$$t" = jd_gnhep ]; then eps="-eps_type jd"; fi; \
+	-@${SETTEST}; check=test1_9; eps=$*; \
+	if [ "$$eps" = ks_ghep ]; then eps="-eps_gen_hermitian -st_pc_type redundant"; \
+	elif [ "$$eps" = ks_gnhep ]; then eps="-eps_gen_non_hermitian -st_pc_type redundant"; \
+	elif [ "$$eps" = ks_ghiep ]; then eps="-eps_gen_indefinite -st_pc_type redundant"; \
+	elif [ "$$eps" = jd_ghep ]; then eps="-eps_gen_hermitian -eps_type jd"; \
+	elif [ "$$eps" = jd_gnhep ]; then eps="-eps_gen_non_hermitian -eps_type jd"; fi; \
 	${MPIEXEC} -n 2 ./test1 -n 18 $$eps $$pt -eps_nev 10 -ds_parallel synchronized | ${GREP} -v "orthogonality" > $${test}.tmp 2>&1; \
 	${TESTCODE}
 

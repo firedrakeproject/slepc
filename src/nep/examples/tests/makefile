@@ -150,8 +150,9 @@ runtest9_1:
 runtest10_1: runtest10_1_rii runtest10_1_slp runtest10_1_narnoldi runtest10_1_interpol runtest10_1_narnoldi_sync
 runtest10_1_%:
 	-@${SETTEST}; check=test10_1; nep=$*; \
-	if [ "$$nep" = interpol ]; then nep="interpol -rg_type interval -rg_interval_endpoints .5,1,-.1,.1 -nep_target .7"; \
-	elif [ "$$nep" = narnoldi_sync ]; then nep="narnoldi -ds_parallel synchronized"; fi; \
+	if [ "$$nep" = interpol ]; then nep="interpol -rg_type interval -rg_interval_endpoints .5,1,-.1,.1 -nep_target .7 -nep_interpol_st_pc_type redundant"; \
+	elif [ "$$nep" = narnoldi_sync ]; then nep="narnoldi -ds_parallel synchronized"; \
+	elif [ "$$nep" = slp ]; then nep="slp -nep_slp_st_pc_type redundant"; fi; \
 	${MPIEXEC} -n 2 ./test10 -nep_type $${nep} > $${test}.tmp 2>&1; \
 	${TESTCODE}
 

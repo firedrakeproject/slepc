@@ -35,7 +35,7 @@ ex20: ex20.o chkopts
 
 ex20f90: ex20f90.o chkopts
 	-${FLINKER} -o ex20f90 ex20f90.o ${SLEPC_NEP_LIB}
-	${RM} ex20f90.o
+	${RM} ex20f90.o usermodule.mod
 
 ex21: ex21.o chkopts
 	-${CLINKER} -o ex21 ex21.o ${SLEPC_NEP_LIB}
