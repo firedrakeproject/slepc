@@ -269,7 +269,7 @@ PetscErrorCode EPSSetUp(EPS eps)
   ierr = PetscObjectTypeCompare((PetscObject)eps->st,STCAYLEY,&flg);CHKERRQ(ierr);
   if (flg && eps->problem_type == EPS_PGNHEP) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Cayley spectral transformation is not compatible with PGNHEP");
   ierr = PetscObjectTypeCompareAny((PetscObject)eps->st,&flg,STSINVERT,STCAYLEY,"");CHKERRQ(ierr);
-  if (flg && (eps->categ==EPS_CATEGORY_KRYLOV || eps->categ==EPS_CATEGORY_OTHER) && (eps->which!=EPS_TARGET_MAGNITUDE && eps->which!=EPS_TARGET_REAL && eps->which!=EPS_TARGET_IMAGINARY)) SETERRQ(PetscObjectComm((PetscObject)eps),1,"Shift-and-invert requires a target 'which' (see EPSSetWhichEigenpairs), for instance -st_type sinvert -eps_target 0 -eps_target_magnitude");
+  if (flg && (eps->categ==EPS_CATEGORY_KRYLOV || eps->categ==EPS_CATEGORY_OTHER) && (eps->which!=EPS_TARGET_MAGNITUDE && eps->which!=EPS_TARGET_REAL && eps->which!=EPS_TARGET_IMAGINARY && eps->which!=EPS_ALL && eps->which!=EPS_WHICH_USER)) SETERRQ(PetscObjectComm((PetscObject)eps),1,"Shift-and-invert requires a target 'which' (see EPSSetWhichEigenpairs), for instance -st_type sinvert -eps_target 0 -eps_target_magnitude");
 
   /* process deflation and initial vectors */
   if (eps->nds<0) {
