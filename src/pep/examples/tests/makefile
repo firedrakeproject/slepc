@@ -24,7 +24,7 @@ TESTEXAMPLES_C                     = test2.PETSc runtest2_2 runtest2_4 runtest2_
                                      test4.PETSc runtest4_1 test4.rm
 TESTEXAMPLES_C_NOCOMPLEX_NOTSINGLE = test1.PETSc runtest1_1 test1.rm \
                                      test5.PETSc runtest5_1 test5.rm
-TESTEXAMPLES_C_COMPLEX             = test2.PETSc runtest2_2_jd runtest2_2_jd_sync test2.rm
+TESTEXAMPLES_C_COMPLEX             = test2.PETSc runtest2_2_jd runtest2_12 test2.rm
 TESTEXAMPLES_C_NOTSINGLE           = test2.PETSc runtest2_1 runtest2_3 runtest2_2_stoar \
                                                  runtest2_6 runtest2_7 runtest2_9 test2.rm \
                                      test6.PETSc runtest6_1 runtest6_2 test6.rm
@@ -82,15 +82,14 @@ runtest2_1_%:
 runtest2_2: runtest2_2_toar runtest2_2_toar_scaleboth runtest2_2_toar_transform runtest2_2_qarnoldi runtest2_2_linear runtest2_2_linear_explicit runtest2_2_linear_explicit_her
 runtest2_2_%:
 	-@${SETTEST}; check=test2_2; pep=$*; \
-	if [ "$$pep" != jd -a "$$pep" != jd_sync ]; then sinv="-st_type sinvert -st_pc_type redundant"; fi; \
-	if [ "$$pep" = jd_sync ]; then pep="jd -ds_parallel synchronized"; \
-	elif [ "$$pep" = toar_scaleboth ]; then pep="toar -pep_scale both"; \
+	if [ "$$pep" != jd ]; then sinv="-st_type sinvert"; fi; \
+	if [ "$$pep" = toar_scaleboth ]; then pep="toar -pep_scale both"; \
 	elif [ "$$pep" = toar_transform ]; then pep="toar -st_transform"; \
 	elif [ "$$pep" = stoar ]; then pep="stoar -pep_hermitian"; \
 	elif [ "$$pep" = qarnoldi ]; then pep="qarnoldi -bv_orthog_refine always"; \
-	elif [ "$$pep" = linear_explicit ]; then pep="linear -pep_linear_explicitmatrix -pep_linear_cform 2 -pep_linear_st_pc_type redundant"; \
-	elif [ "$$pep" = linear_explicit_her ]; then pep="linear -pep_linear_explicitmatrix -pep_hermitian -pep_linear_cform 2 -pep_linear_st_pc_type redundant"; fi; \
-	${MPIEXEC} -n 2 ./test2 -pep_type $${pep} -pep_target -0.43 -pep_nev 4 -pep_ncv 20 $$sinv >> $${test}.tmp 2>&1; \
+	elif [ "$$pep" = linear_explicit ]; then pep="linear -pep_linear_explicitmatrix -pep_linear_cform 2"; \
+	elif [ "$$pep" = linear_explicit_her ]; then pep="linear -pep_linear_explicitmatrix -pep_hermitian -pep_linear_cform 2"; fi; \
+	${MPIEXEC} -n 1 ./test2 -pep_type $${pep} -pep_target -0.43 -pep_nev 4 -pep_ncv 20 $$sinv >> $${test}.tmp 2>&1; \
 	${TESTCODE}
 
 runtest2_3: runtest2_3_none runtest2_3_norm runtest2_3_residual runtest2_3_structured
@@ -161,6 +160,11 @@ runtest2_11_cuda_%:
 	if [ "$$pep" = linear_gd ]; then pep="linear -pep_linear_eps_type gd -pep_linear_explicitmatrix"; \
 	elif [ "$$pep" = qarnoldi ]; then pep="qarnoldi -bv_orthog_refine never"; fi; \
 	${MPIEXEC} -n 1 ./test2 -pep_type $${pep} -pep_nev 4 -initv -mat_type aijcusparse >> $${test}.tmp 2>&1; \
+	${TESTCODE}
+
+runtest2_12:
+	-@${SETTEST}; \
+	${MPIEXEC} -n 2 ./test2 -pep_type jd -ds_parallel synchronized -pep_target -0.43 -pep_nev 4 -pep_ncv 20 >> $${test}.tmp 2>&1; \
 	${TESTCODE}
 
 runtest3_1:
