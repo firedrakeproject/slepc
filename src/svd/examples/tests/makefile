@@ -157,7 +157,7 @@ runtest4_2_cuda_%:
 
 runtest4_3:
 	-@${SETTEST}; \
-	${MPIEXEC} -n 2 ./test4 -svd_type trlanczos -ds_parallel synchronized >> $${test}.tmp 2>&1; \
+	${MPIEXEC} -n 2 ./test4 -svd_type trlanczos -svd_ncv 12 -svd_monitor_cancel -ds_parallel synchronized >> $${test}.tmp 2>&1; \
 	${TESTCODE}
 
 runtest4f_1:

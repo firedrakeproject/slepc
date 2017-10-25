@@ -27,12 +27,6 @@ row 19: (19, 1.)  (20, 2.)
  Convergence test is absolute
  Stopping test is basic
  Which = smallest
-  1 SVD nconv=0 first unconverged value (error) 2.99249 (8.32574856e-03)
-  2 SVD nconv=0 first unconverged value (error) 2.99254 (1.12151371e-03)
-  3 SVD nconv=0 first unconverged value (error) 2.99254 (7.24549267e-04)
-  4 SVD nconv=0 first unconverged value (error) 2.99254 (7.92044044e-06)
-  5 SVD nconv=0 first unconverged value (error) 2.99254 (1.76655207e-07)
-  6 SVD nconv=1 first unconverged value (error) 2.97023 (4.31681955e-07)
  Finished - converged reason = 1
  All requested singular values computed up to the required tolerance:
      2.99254
