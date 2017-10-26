@@ -19,7 +19,7 @@ MANSEC     = SVD
 TESTS      = test1 test2 test3 test4 test4f test5 test6 test7 test8 test9
 
 TESTEXAMPLES_C           = test1.PETSc runtest1_1 test1.rm \
-                           test4.PETSc runtest4_1 test4.rm \
+                           test4.PETSc runtest4_1 runtest4_3 test4.rm \
                            test5.PETSc runtest5_1 test5.rm \
                            test6.PETSc runtest6_1 test6.rm \
                            test8.PETSc runtest8_1 test8.rm
@@ -154,6 +154,11 @@ runtest4_2_cuda_%:
 	if [ "$$svd" = trlanczos ]; then svd="trlanczos -svd_ncv 12"; fi; \
 	${MPIEXEC} -n 1 ./test4 -svd_type $$svd -svd_monitor_cancel -mat_type aijcusparse  | ${GREP} -v "Transpose mode" >> $${test}.tmp 2>&1; \
 	${TESTCODE_CUDA}
+
+runtest4_3:
+	-@${SETTEST}; \
+	${MPIEXEC} -n 2 ./test4 -svd_type trlanczos -svd_ncv 12 -svd_monitor_cancel -ds_parallel synchronized >> $${test}.tmp 2>&1; \
+	${TESTCODE}
 
 runtest4f_1:
 	-@${SETTEST}; \
