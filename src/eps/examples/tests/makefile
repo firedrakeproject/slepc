@@ -274,7 +274,7 @@ runtest1_9_%:
 	if [ "$$eps" = ks_ghep ]; then eps="-eps_gen_hermitian -st_pc_type redundant -st_type sinvert"; \
 	elif [ "$$eps" = ks_gnhep ]; then eps="-eps_gen_non_hermitian -st_pc_type redundant -st_type sinvert"; \
 	elif [ "$$eps" = ks_ghiep ]; then eps="-eps_gen_indefinite -st_pc_type redundant -st_type sinvert"; \
-	elif [ "$$eps" = lobpcg_ghep ]; then eps="-eps_gen_hermitian -eps_type lobpcg -eps_max_it 200"; \
+	elif [ "$$eps" = lobpcg_ghep ]; then eps="-eps_gen_hermitian -eps_type lobpcg -eps_max_it 200 -eps_lobcpg_blocksize 6"; \
 	elif [ "$$eps" = jd_gnhep ]; then eps="-eps_gen_non_hermitian -eps_type jd -eps_target 0"; fi; \
 	${MPIEXEC} -n 2 ./test1 -n 18 $$eps -eps_nev 7 -eps_ncv 32 -ds_parallel synchronized | ${GREP} -v "orthogonality" > $${test}.tmp 2>&1; \
 	${TESTCODE}
