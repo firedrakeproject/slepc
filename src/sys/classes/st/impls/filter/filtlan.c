@@ -448,6 +448,8 @@ static PetscErrorCode FILTLAN_GetIntervals(PetscReal *intervals,PetscReal *frame
       else halfPlateau /= PetscSqrtReal(opts->plateauShrinkRate);
     }
   }
+  if (!filterInfo->filterOK) SETERRQ(PETSC_COMM_SELF,1,"STFILTER cannot get the filter specified; please adjust your filter parameters (e.g. increasing the polynomial degree)");
+
   filterInfo->totalNumIter = numIter;
   ierr = PetscFree2(polyFilter,baseFilter);CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -968,6 +970,8 @@ PetscErrorCode STFilter_FILTLAN_Apply(ST st,Vec x,Vec y)
   PetscFunctionBegin;
   npoints = (ctx->filterInfo->filterType == 2)? 6: 4;
   ierr = FILTLAN_FilteredConjugateResidualMatrixPolynomialVectorProduct(st->T[0],x,y,ctx->baseFilter,2*ctx->baseDegree+2,ctx->intervals,npoints-1,ctx->opts->intervalWeights,ctx->polyDegree,st->work);CHKERRQ(ierr);
+  ierr = VecCopy(y,st->work[0]);CHKERRQ(ierr);
+  ierr = MatMult(st->T[0],st->work[0],y);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -1015,8 +1019,10 @@ PetscErrorCode STFilter_FILTLAN_setFilter(ST st)
     }
   }
   npoints = (ctx->filterInfo->filterType == 2)? 6: 4;
+  ierr = PetscFree(ctx->baseFilter);CHKERRQ(ierr);
   ierr = PetscMalloc1((2*ctx->baseDegree+2)*(npoints-1),&ctx->baseFilter);CHKERRQ(ierr);
   ierr = FILTLAN_HermiteBaseFilterInChebyshevBasis(ctx->baseFilter,ctx->intervals,npoints,HighLowFlags,ctx->baseDegree);CHKERRQ(ierr);
+  ierr = PetscInfo1(st,"Computed value of yLimit = %g\n",ctx->filterInfo->yLimit);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
