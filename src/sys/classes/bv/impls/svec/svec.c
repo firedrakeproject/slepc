@@ -409,7 +409,7 @@ PETSC_EXTERN PetscErrorCode BVCreate_Svec(BV bv)
 {
   PetscErrorCode ierr;
   BV_SVEC        *ctx;
-  PetscInt       nloc,N,bs;
+  PetscInt       nloc,N,bs,tlocal;
   PetscBool      seq;
   PetscScalar    *aa,*vv;
   char           str[50];
@@ -427,10 +427,12 @@ PETSC_EXTERN PetscErrorCode BVCreate_Svec(BV bv)
   ierr = VecGetLocalSize(bv->t,&nloc);CHKERRQ(ierr);
   ierr = VecGetSize(bv->t,&N);CHKERRQ(ierr);
   ierr = VecGetBlockSize(bv->t,&bs);CHKERRQ(ierr);
+  tlocal = bv->m*nloc;
+  if (tlocal<0) SETERRQ2(PetscObjectComm((PetscObject)bv),1,"The product %D times %D overflows the size of PetscInt; consider reducing the number of columns, or use BVVECS instead",bv->m,nloc);
 
   ierr = VecCreate(PetscObjectComm((PetscObject)bv->t),&ctx->v);CHKERRQ(ierr);
   ierr = VecSetType(ctx->v,((PetscObject)bv->t)->type_name);CHKERRQ(ierr);
-  ierr = VecSetSizes(ctx->v,bv->m*nloc,bv->m*N);CHKERRQ(ierr);
+  ierr = VecSetSizes(ctx->v,tlocal,bv->m*N);CHKERRQ(ierr);
   ierr = VecSetBlockSize(ctx->v,bs);CHKERRQ(ierr);
   ierr = PetscLogObjectParent((PetscObject)bv,(PetscObject)ctx->v);CHKERRQ(ierr);
   if (((PetscObject)bv)->name) {
@@ -441,7 +443,7 @@ PETSC_EXTERN PetscErrorCode BVCreate_Svec(BV bv)
   if (bv->Acreate) {
     ierr = MatDenseGetArray(bv->Acreate,&aa);CHKERRQ(ierr);
     ierr = VecGetArray(ctx->v,&vv);CHKERRQ(ierr);
-    ierr = PetscMemcpy(vv,aa,bv->m*nloc*sizeof(PetscScalar));CHKERRQ(ierr);
+    ierr = PetscMemcpy(vv,aa,tlocal*sizeof(PetscScalar));CHKERRQ(ierr);
     ierr = VecRestoreArray(ctx->v,&vv);CHKERRQ(ierr);
     ierr = MatDenseRestoreArray(bv->Acreate,&aa);CHKERRQ(ierr);
     ierr = MatDestroy(&bv->Acreate);CHKERRQ(ierr);
