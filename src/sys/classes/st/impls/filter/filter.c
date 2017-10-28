@@ -32,7 +32,7 @@ PetscErrorCode STSetUp_Filter(ST st)
   ierr = STSetWorkVecs(st,4);CHKERRQ(ierr);
   if (st->nmat>1) SETERRQ(PetscObjectComm((PetscObject)st),1,"Only implemented for standard eigenvalue problem");
   if (ctx->intb >= PETSC_MAX_REAL && ctx->inta <= PETSC_MIN_REAL) SETERRQ(PetscObjectComm((PetscObject)st),1,"Must pass an interval with STFilterSetInterval()");
-  if (ctx->right >= PETSC_MAX_REAL && ctx->left <= PETSC_MIN_REAL) SETERRQ(PetscObjectComm((PetscObject)st),1,"Must pass an approximate numerical range with STFilterSetRange()");
+  if (ctx->right == 0.0 && ctx->left == 0.0) SETERRQ(PetscObjectComm((PetscObject)st),1,"Must pass an approximate numerical range with STFilterSetRange()");
   if (ctx->left > ctx->inta || ctx->right < ctx->intb) SETERRQ4(PetscObjectComm((PetscObject)st),1,"The requested interval [%g,%g] must be contained in the numerical range [%g,%g]",(double)ctx->inta,(double)ctx->intb,(double)ctx->left,(double)ctx->right);
   if (!ctx->polyDegree) ctx->polyDegree = 100;
   ctx->frame[0] = ctx->left;
@@ -359,6 +359,16 @@ PetscErrorCode STFilterGetThreshold(ST st,PetscReal *gamma)
   PetscFunctionReturn(0);
 }
 
+PetscErrorCode STReset_Filter(ST st)
+{
+  ST_FILTER *ctx = (ST_FILTER*)st->data;
+
+  PetscFunctionBegin;
+  ctx->left  = 0.0;
+  ctx->right = 0.0;
+  PetscFunctionReturn(0);
+}
+
 PetscErrorCode STView_Filter(ST st,PetscViewer viewer)
 {
   PetscErrorCode ierr;
@@ -410,8 +420,8 @@ PETSC_EXTERN PetscErrorCode STCreate_Filter(ST st)
 
   ctx->inta               = PETSC_MIN_REAL;
   ctx->intb               = PETSC_MAX_REAL;
-  ctx->left               = PETSC_MIN_REAL;
-  ctx->right              = PETSC_MAX_REAL;
+  ctx->left               = 0.0;
+  ctx->right              = 0.0;
   ctx->polyDegree         = 0;
   ctx->baseDegree         = 10;
 
@@ -442,6 +452,7 @@ PETSC_EXTERN PetscErrorCode STCreate_Filter(ST st)
   st->ops->setfromoptions = STSetFromOptions_Filter;
   st->ops->setup          = STSetUp_Filter;
   st->ops->destroy        = STDestroy_Filter;
+  st->ops->reset          = STReset_Filter;
   st->ops->view           = STView_Filter;
 
   ierr = PetscObjectComposeFunction((PetscObject)st,"STFilterSetInterval_C",STFilterSetInterval_Filter);CHKERRQ(ierr);

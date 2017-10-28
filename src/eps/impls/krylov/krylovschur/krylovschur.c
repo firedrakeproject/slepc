@@ -69,6 +69,7 @@ static PetscErrorCode EstimateRange(Mat A,PetscReal *left,PetscReal *right)
   PetscFunctionBegin;
   *left = 0.0; *right = 0.0;
   ierr = EPSCreate(PetscObjectComm((PetscObject)A),&eps);CHKERRQ(ierr);
+  ierr = EPSSetOptionsPrefix(eps,"eps_filter_");CHKERRQ(ierr);
   ierr = EPSSetOperators(eps,A,NULL);CHKERRQ(ierr);
   ierr = EPSSetProblemType(eps,EPS_HEP);CHKERRQ(ierr);
   ierr = EPSSetTolerances(eps,1e-3,50);CHKERRQ(ierr);
@@ -99,13 +100,19 @@ static PetscErrorCode EPSSetUp_KrylovSchur_Filter(EPS eps)
 
   PetscFunctionBegin;
   if (eps->intb >= PETSC_MAX_REAL && eps->inta <= PETSC_MIN_REAL) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_WRONG,"The defined computational interval should have at least one of their sides bounded");
+  if (!eps->ishermitian) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Polynomial filter only available for symmetric/Hermitian eigenproblems");
+  if (eps->isgeneralized) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Polynomial filters not available for generalized eigenproblems");
+  if (eps->arbitrary) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Arbitrary selection of eigenpairs cannot be used with polynomial filters");
+  if (eps->tol==PETSC_DEFAULT) eps->tol = SLEPC_DEFAULT_TOL*1e-2;  /* use tighter tolerance */
   ierr = STFilterSetInterval(eps->st,eps->inta,eps->intb);CHKERRQ(ierr);
   ierr = STGetMatrix(eps->st,0,&A);CHKERRQ(ierr);
-  ierr = EstimateRange(A,&rleft,&rright);CHKERRQ(ierr);
-  ierr = STFilterSetRange(eps->st,rleft,rright);CHKERRQ(ierr);
-  if (!eps->ishermitian) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Spectrum slicing only available for symmetric/Hermitian eigenproblems");
-  if (eps->arbitrary) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Arbitrary selection of eigenpairs cannot be used with spectrum slicing");
-  if (eps->tol==PETSC_DEFAULT) eps->tol = SLEPC_DEFAULT_TOL*1e-2;  /* use tighter tolerance */
+  ierr = STFilterGetRange(eps->st,&rleft,&rright);CHKERRQ(ierr);
+  if (!rleft && !rright) {
+    ierr = EstimateRange(A,&rleft,&rright);CHKERRQ(ierr);
+    ierr = PetscInfo2(eps,"Setting eigenvalue range to [%g,%g]\n",(double)rleft,(double)rright);CHKERRQ(ierr);
+    ierr = STFilterSetRange(eps->st,rleft,rright);CHKERRQ(ierr);
+  }
+  if (!eps->ncv && eps->nev==1) eps->nev = 40;  /* user did not provide nev estimation */
   ierr = EPSSetDimensions_Default(eps,eps->nev,&eps->ncv,&eps->mpd);CHKERRQ(ierr);
   if (eps->ncv>eps->nev+eps->mpd) SETERRQ(PetscObjectComm((PetscObject)eps),1,"The value of ncv must not be larger than nev+mpd");
   if (!eps->max_it) eps->max_it = PetscMax(100,2*eps->n/eps->ncv);
