@@ -213,7 +213,7 @@ static PetscErrorCode EPSMonitor_Cross(EPS eps,PetscInt its,PetscInt nconv,Petsc
   for (i=0;i<PetscMin(nest,svd->ncv);i++) {
     er = eigr[i]; ei = eigi[i];
     ierr = STBackTransform(eps->st,1,&er,&ei);CHKERRQ(ierr);
-    svd->sigma[i] = PetscSqrtReal(PetscRealPart(er));
+    svd->sigma[i] = PetscSqrtReal(PetscAbsReal(PetscRealPart(er)));
     svd->errest[i] = errest[i];
   }
   ierr = SVDMonitor(svd,its,nconv,svd->sigma,svd->errest,nest);CHKERRQ(ierr);
