@@ -54,6 +54,7 @@ PetscErrorCode STSetDefaultKSP_Default(ST st)
       ierr = PCSetType(pc,PCLU);CHKERRQ(ierr);
     }
   }
+  ierr = KSPSetErrorIfNotConverged(st->ksp,PETSC_TRUE);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -341,7 +342,6 @@ PetscErrorCode STSetKSP(ST st,KSP ksp)
 PetscErrorCode STGetKSP(ST st,KSP* ksp)
 {
   PetscErrorCode ierr;
-  PetscBool      flg;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
@@ -353,10 +353,6 @@ PetscErrorCode STGetKSP(ST st,KSP* ksp)
     ierr = PetscObjectIncrementTabLevel((PetscObject)st->ksp,(PetscObject)st,1);CHKERRQ(ierr);
     ierr = PetscLogObjectParent((PetscObject)st,(PetscObject)st->ksp);CHKERRQ(ierr);
     ierr = KSPSetTolerances(st->ksp,SLEPC_DEFAULT_TOL,PETSC_DEFAULT,PETSC_DEFAULT,PETSC_DEFAULT);CHKERRQ(ierr);
-    ierr = PetscObjectTypeCompare((PetscObject)st,STPRECOND,&flg);CHKERRQ(ierr);
-    if (!flg) {
-      ierr = KSPSetErrorIfNotConverged(st->ksp,PETSC_TRUE);CHKERRQ(ierr);
-    }
   }
   *ksp = st->ksp;
   PetscFunctionReturn(0);
