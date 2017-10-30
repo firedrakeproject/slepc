@@ -170,9 +170,11 @@ runtest5_1:
 	${MPIEXEC} -n 1 ./test5 -svd_error_relative ::ascii_info_detail -svd_view_values -svd_monitor_conv -svd_error_absolute ::ascii_matlab -svd_monitor_all -svd_converged_reason -svd_view | ${GREP} -v "tolerance" | ${GREP} -v "problem type" | ${SED} -e "s/[0-9]\.[0-9]*e-[0-9]*/removed/g" >> $${test}.tmp 2>&1; \
 	${TESTCODE}
 
-runtest6_1:
-	-@${SETTEST}; \
-	${MPIEXEC} -n 1 ./test6 -eps_type subspace >> $${test}.tmp 2>&1; \
+runtest6_1: runtest6_1_subspace runtest6_1_lobpcg
+runtest6_1_%:
+	-@${SETTEST}; check=test6_1; eps=$*; \
+	if [ "$$eps" = lobpcg ]; then eps="lobpcg -st_type precond"; fi; \
+	${MPIEXEC} -n 1 ./test6 -eps_type $$eps >> $${test}.tmp 2>&1; \
 	${TESTCODE}
 
 runtest6_2_cuda:

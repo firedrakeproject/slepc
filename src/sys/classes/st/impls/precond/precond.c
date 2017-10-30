@@ -40,6 +40,7 @@ static PetscErrorCode STSetDefaultKSP_Precond(ST st)
       ierr = PCSetType(pc,(t0 && t1)?PCJACOBI:PCNONE);CHKERRQ(ierr);
     }
   }
+  ierr = KSPSetErrorIfNotConverged(st->ksp,PETSC_FALSE);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
