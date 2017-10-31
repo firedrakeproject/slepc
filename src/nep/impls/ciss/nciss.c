@@ -59,7 +59,6 @@ typedef struct {
   PetscBool    useconj;
   PetscReal    est_eig;
   PetscSubcomm subcomm;
-  PetscBool    usest;
 } NEP_CISS;
 
 static PetscErrorCode SetSolverComm(NEP nep)
@@ -135,23 +134,17 @@ static PetscErrorCode SolveLinearSystem(NEP nep,Mat T,Mat dT,BV V,PetscInt L_sta
   PetscErrorCode ierr;
   NEP_CISS       *ctx = (NEP_CISS*)nep->data;
   PetscInt       i,j,p_id;
-  Mat            Fz,kspMat;
+  Mat            kspMat;
   PC             pc;
   Vec            Bvj,vj,yj;
-  KSP            ksp;
 
   PetscFunctionBegin;
-  if (ctx->usest) {
-    ierr = NEPComputeFunction(nep,0,T,T);CHKERRQ(ierr);
-    ierr = MatDuplicate(T,MAT_DO_NOT_COPY_VALUES,&Fz);CHKERRQ(ierr);
-    ierr = KSPCreate(PetscObjectComm((PetscObject)nep),&ksp);CHKERRQ(ierr);
-  }
   ierr = BVCreateVec(V,&Bvj);CHKERRQ(ierr);
   for (i=0;i<ctx->num_solve_point;i++) {
     p_id = i*ctx->subcomm->n + ctx->subcomm_id;
     ierr = NEPComputeFunction(nep,ctx->omega[p_id],T,T);CHKERRQ(ierr);
     ierr = NEPComputeJacobian(nep,ctx->omega[p_id],dT);CHKERRQ(ierr);
-    if (!ctx->usest && initksp == PETSC_TRUE) {
+    if (initksp == PETSC_TRUE) {
       ierr = MatDuplicate(T,MAT_COPY_VALUES,&kspMat);CHKERRQ(ierr);
       ierr = KSPSetOperators(ctx->ksp[i],kspMat,kspMat);CHKERRQ(ierr);
       ierr = MatDestroy(&kspMat);CHKERRQ(ierr);
@@ -159,32 +152,15 @@ static PetscErrorCode SolveLinearSystem(NEP nep,Mat T,Mat dT,BV V,PetscInt L_sta
       ierr = KSPGetPC(ctx->ksp[i],&pc);CHKERRQ(ierr);
       ierr = PCSetType(pc,PCLU);CHKERRQ(ierr);
       ierr = KSPSetFromOptions(ctx->ksp[i]);CHKERRQ(ierr);
-    } else if (ctx->usest) {
-      ierr = MatCopy(T,Fz,DIFFERENT_NONZERO_PATTERN);CHKERRQ(ierr);
-      ierr = KSPSetOperators(ksp,Fz,Fz);CHKERRQ(ierr);
-      ierr = KSPSetType(ksp,KSPPREONLY);CHKERRQ(ierr);
-      ierr = KSPGetPC(ksp,&pc);CHKERRQ(ierr);
-      ierr = PCSetType(pc,PCLU);CHKERRQ(ierr);
-      ierr = KSPSetTolerances(ksp,SLEPC_DEFAULT_TOL,PETSC_DEFAULT,PETSC_DEFAULT,PETSC_DEFAULT);CHKERRQ(ierr);
-      ierr = KSPSetFromOptions(ksp);CHKERRQ(ierr);
     }
     for (j=L_start;j<L_end;j++) {
       ierr = BVGetColumn(V,j,&vj);CHKERRQ(ierr);
       ierr = BVGetColumn(ctx->Y,i*ctx->L_max+j,&yj);CHKERRQ(ierr);
       ierr = MatMult(dT,vj,Bvj);CHKERRQ(ierr);
-      if (ctx->usest) {
-        ierr = KSPSolve(ksp,Bvj,yj);CHKERRQ(ierr);
-      } else {
-        ierr = KSPSolve(ctx->ksp[i],Bvj,yj);CHKERRQ(ierr);
-      }
+      ierr = KSPSolve(ctx->ksp[i],Bvj,yj);CHKERRQ(ierr);
       ierr = BVRestoreColumn(V,j,&vj);CHKERRQ(ierr);
       ierr = BVRestoreColumn(ctx->Y,i*ctx->L_max+j,&yj);CHKERRQ(ierr);
     }
-    if (ctx->usest && i<ctx->num_solve_point-1) { ierr = KSPReset(ksp);CHKERRQ(ierr); }
-  }
-  if (ctx->usest) {
-    ierr = MatDestroy(&Fz);CHKERRQ(ierr);
-    ierr = KSPDestroy(&ksp);CHKERRQ(ierr);
   }
   ierr = VecDestroy(&Bvj);CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -462,24 +438,22 @@ PetscErrorCode NEPSetUp_CISS(NEP nep)
   ierr = BVDuplicateResize(nep->V,ctx->L_max,&ctx->V);CHKERRQ(ierr);
   ierr = PetscLogObjectParent((PetscObject)nep,(PetscObject)ctx->V);CHKERRQ(ierr);
 
-  if (!ctx->usest) {
-    if (ctx->ksp) {
-      for (i=0;i<ctx->num_solve_point;i++) {
-        ierr = KSPDestroy(&ctx->ksp[i]);CHKERRQ(ierr);
-      }
-      ierr = PetscFree(ctx->ksp);CHKERRQ(ierr);
-    }
-    ierr = PetscMalloc1(ctx->num_solve_point,&ctx->ksp);CHKERRQ(ierr);
-    ierr = PetscLogObjectMemory((PetscObject)nep,ctx->num_solve_point*sizeof(KSP));CHKERRQ(ierr);
+  if (ctx->ksp) {
     for (i=0;i<ctx->num_solve_point;i++) {
-      ierr = KSPCreate(PetscSubcommChild(ctx->subcomm),&ctx->ksp[i]);CHKERRQ(ierr);
-      ierr = PetscObjectIncrementTabLevel((PetscObject)ctx->ksp[i],(PetscObject)nep,1);CHKERRQ(ierr);
-      ierr = PetscLogObjectParent((PetscObject)nep,(PetscObject)ctx->ksp[i]);CHKERRQ(ierr);
-      ierr = KSPSetOptionsPrefix(ctx->ksp[i],((PetscObject)nep)->prefix);CHKERRQ(ierr);
-      ierr = KSPAppendOptionsPrefix(ctx->ksp[i],"nep_ciss_");CHKERRQ(ierr);
-      ierr = KSPSetErrorIfNotConverged(ctx->ksp[i],PETSC_TRUE);CHKERRQ(ierr);
-      ierr = KSPSetTolerances(ctx->ksp[i],SLEPC_DEFAULT_TOL,PETSC_DEFAULT,PETSC_DEFAULT,PETSC_DEFAULT);CHKERRQ(ierr);
+      ierr = KSPDestroy(&ctx->ksp[i]);CHKERRQ(ierr);
     }
+    ierr = PetscFree(ctx->ksp);CHKERRQ(ierr);
+  }
+  ierr = PetscMalloc1(ctx->num_solve_point,&ctx->ksp);CHKERRQ(ierr);
+  ierr = PetscLogObjectMemory((PetscObject)nep,ctx->num_solve_point*sizeof(KSP));CHKERRQ(ierr);
+  for (i=0;i<ctx->num_solve_point;i++) {
+    ierr = KSPCreate(PetscSubcommChild(ctx->subcomm),&ctx->ksp[i]);CHKERRQ(ierr);
+    ierr = PetscObjectIncrementTabLevel((PetscObject)ctx->ksp[i],(PetscObject)nep,1);CHKERRQ(ierr);
+    ierr = PetscLogObjectParent((PetscObject)nep,(PetscObject)ctx->ksp[i]);CHKERRQ(ierr);
+    ierr = KSPSetOptionsPrefix(ctx->ksp[i],((PetscObject)nep)->prefix);CHKERRQ(ierr);
+    ierr = KSPAppendOptionsPrefix(ctx->ksp[i],"nep_ciss_");CHKERRQ(ierr);
+    ierr = KSPSetErrorIfNotConverged(ctx->ksp[i],PETSC_TRUE);CHKERRQ(ierr);
+    ierr = KSPSetTolerances(ctx->ksp[i],SLEPC_DEFAULT_TOL,PETSC_DEFAULT,PETSC_DEFAULT,PETSC_DEFAULT);CHKERRQ(ierr);
   }
 
   ierr = BVDestroy(&ctx->Y);CHKERRQ(ierr);
@@ -968,12 +942,10 @@ PetscErrorCode NEPReset_CISS(NEP nep)
   ierr = BVDestroy(&ctx->S);CHKERRQ(ierr);
   ierr = BVDestroy(&ctx->V);CHKERRQ(ierr);
   ierr = BVDestroy(&ctx->Y);CHKERRQ(ierr);
-  if (!ctx->usest) {
-    for (i=0;i<ctx->num_solve_point;i++) {
-      ierr = KSPDestroy(&ctx->ksp[i]);CHKERRQ(ierr);
-    }
-    ierr = PetscFree(ctx->ksp);CHKERRQ(ierr);
+  for (i=0;i<ctx->num_solve_point;i++) {
+    ierr = KSPDestroy(&ctx->ksp[i]);CHKERRQ(ierr);
   }
+  ierr = PetscFree(ctx->ksp);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -1044,7 +1016,7 @@ PetscErrorCode NEPView_CISS(NEP nep,PetscViewer viewer)
     ierr = PetscViewerASCIIPrintf(viewer,"  threshold { delta: %g, spurious threshold: %g }\n",(double)ctx->delta,(double)ctx->spurious_threshold);CHKERRQ(ierr);
     ierr = PetscViewerASCIIPrintf(viewer,"  iterative refinement  { inner: %D, blocksize: %D }\n",ctx->refine_inner, ctx->refine_blocksize);CHKERRQ(ierr);
     ierr = PetscViewerASCIIPushTab(viewer);CHKERRQ(ierr);
-    if (!ctx->usest && ctx->ksp[0]) { ierr = KSPView(ctx->ksp[0],viewer);CHKERRQ(ierr); }
+    if (ctx->ksp[0]) { ierr = KSPView(ctx->ksp[0],viewer);CHKERRQ(ierr); }
     ierr = PetscViewerASCIIPopTab(viewer);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
@@ -1065,7 +1037,6 @@ PETSC_EXTERN PetscErrorCode NEPCreate_CISS(NEP nep)
   ctx->delta              = 1e-12;
   ctx->L_max              = 64;
   ctx->spurious_threshold = 1e-4;
-  ctx->usest              = PETSC_FALSE;
   ctx->isreal             = PETSC_FALSE;
   ctx->num_subcomm        = 1;
 
