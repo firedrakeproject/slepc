@@ -210,7 +210,7 @@ PetscErrorCode NEPSetUp(NEP nep)
   PetscFunctionReturn(0);
 }
 
-/*@
+/*@C
    NEPSetInitialSpace - Specify a basis of vectors that constitute the initial
    space, that is, the subspace from which the solver starts to iterate.
 

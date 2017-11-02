@@ -195,7 +195,7 @@ PetscErrorCode SVDSetUp(SVD svd)
   PetscFunctionReturn(0);
 }
 
-/*@
+/*@C
    SVDSetInitialSpaces - Specify two basis of vectors that constitute the initial
    right and/or left spaces, that is, a rough approximation to the right and/or
    left singular subspaces from which the solver starts to iterate.

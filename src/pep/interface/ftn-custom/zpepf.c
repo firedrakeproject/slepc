@@ -65,6 +65,8 @@
 #define pepgetrefine011_                  PEPGETREFINE011
 #define pepgetrefine101_                  PEPGETREFINE101
 #define pepgetrefine111_                  PEPGETREFINE111
+#define pepsetinitialspace0_              PEPSETINITIALSPACE0
+#define pepsetinitialspace1_              PEPSETINITIALSPACE1
 #elif !defined(PETSC_HAVE_FORTRAN_UNDERSCORE)
 #define pepview_                          pepview
 #define peperrorview_                     peperrorview
@@ -118,6 +120,8 @@
 #define pepgetrefine011_                  pepgetrefine011
 #define pepgetrefine101_                  pepgetrefine101
 #define pepgetrefine111_                  pepgetrefine111
+#define pepsetinitialspace0_              pepsetinitialspace0
+#define pepsetinitialspace1_              pepsetinitialspace1
 #endif
 
 /*
@@ -540,5 +544,15 @@ PETSC_EXTERN void PETSC_STDCALL pepgetrefine101_(PEP *pep,PEPRefine *refine,Pets
 PETSC_EXTERN void PETSC_STDCALL pepgetrefine111_(PEP *pep,PEPRefine *refine,PetscInt *npart,PetscReal *tol,PetscInt *its,PEPRefineScheme *scheme,int *ierr)
 {
   pepgetrefine_(pep,refine,npart,tol,its,scheme,ierr);
+}
+
+PETSC_EXTERN void PETSC_STDCALL pepsetinitialspace0_(PEP *pep,PetscInt *n,Vec *is,int *ierr)
+{
+  *ierr = PEPSetInitialSpace(*pep,*n,is);
+}
+
+PETSC_EXTERN void PETSC_STDCALL pepsetinitialspace1_(PEP *pep,PetscInt *n,Vec *is,int *ierr)
+{
+  *ierr = PEPSetInitialSpace(*pep,*n,is);
 }
 

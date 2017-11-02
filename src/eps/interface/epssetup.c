@@ -423,7 +423,7 @@ PetscErrorCode EPSSetDeflationSpace(EPS eps,PetscInt n,Vec *v)
   PetscFunctionReturn(0);
 }
 
-/*@
+/*@C
    EPSSetInitialSpace - Specify a basis of vectors that constitute the initial
    space, that is, the subspace from which the solver starts to iterate.
 
