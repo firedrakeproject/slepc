@@ -117,8 +117,8 @@ PETSC_STATIC_INLINE PetscErrorCode BV_SafeSqrt(BV bv,PetscScalar alpha,PetscReal
   if (bv->indef) {
     *res = (realp<0.0)? -PetscSqrtReal(-realp): PetscSqrtReal(realp);
   } else {
-    if (realp<0.0) SETERRQ(PetscObjectComm((PetscObject)bv),1,"The inner product is not well defined: indefinite matrix");
-    *res = PetscSqrtReal(realp);
+    if (realp<-10*PETSC_MACHINE_EPSILON) SETERRQ(PetscObjectComm((PetscObject)bv),1,"The inner product is not well defined: indefinite matrix");
+    *res = (realp<0.0)? 0.0: PetscSqrtReal(realp);
   }
   PetscFunctionReturn(0);
 }
