@@ -123,8 +123,9 @@ PetscErrorCode DSSolve_PEP_QZ(DS ds,PetscScalar *wr,PetscScalar *wi)
 #else
   PetscErrorCode ierr;
   DS_PEP         *ctx = (DS_PEP*)ds->data;
-  PetscInt       i,j,off;
+  PetscInt       i,j,k,off;
   PetscScalar    *A,*B,*W,*X,*U,*Y,*E,*work,*beta,norm;
+  PetscReal      *ca,*cb,*cg;
   PetscBLASInt   info,n,ldd,nd,lrwork=0,lwork,one=1;
 #if defined(PETSC_USE_COMPLEX)
   PetscReal      *rwork;
@@ -168,15 +169,45 @@ PetscErrorCode DSSolve_PEP_QZ(DS ds,PetscScalar *wr,PetscScalar *wi)
 
   /* build matrices A and B of the linearization */
   ierr = PetscMemzero(A,ldd*ldd*sizeof(PetscScalar));CHKERRQ(ierr);
-  for (i=0;i<nd-ds->n;i++) A[i+(i+ds->n)*ldd] = -1.0;
-  for (i=0;i<ctx->d;i++) {
-    off = i*ds->n*ldd+(ctx->d-1)*ds->n;
-    for (j=0;j<ds->n;j++) {
-      ierr = PetscMemcpy(A+off+j*ldd,ds->mat[DSMatExtra[i]]+j*ds->ld,ds->n*sizeof(PetscScalar));CHKERRQ(ierr);
+  if (!ctx->pbc) { /* monomial basis */
+    for (i=0;i<nd-ds->n;i++) A[i+(i+ds->n)*ldd] = 1.0;
+    for (i=0;i<ctx->d;i++) {
+      off = i*ds->n*ldd+(ctx->d-1)*ds->n;
+      for (j=0;j<ds->n;j++) {
+        ierr = PetscMemcpy(A+off+j*ldd,ds->mat[DSMatExtra[i]]+j*ds->ld,ds->n*sizeof(PetscScalar));CHKERRQ(ierr);
+      }
     }
+  } else {
+    ca = ctx->pbc;
+    cb = ca+ctx->d+1;
+    cg = cb+ctx->d+1;
+    for (i=0;i<ds->n;i++) {
+      A[i+(i+ds->n)*ldd] = ca[0];
+      A[i+i*ldd] = cb[0];
+    }
+    for (;i<nd-ds->n;i++) {
+      j = i/ds->n;
+      A[i+(i+ds->n)*ldd] = ca[j];
+      A[i+i*ldd] = cb[j];
+      A[i+(i-ds->n)*ldd] = cg[j];
+    }
+    for (i=0;i<ctx->d-2;i++) {
+      off = i*ds->n*ldd+(ctx->d-1)*ds->n;
+      for (j=0;j<ds->n;j++)
+        for (k=0;k<ds->n;k++)
+          *(A+off+j*ldd+k) = *(ds->mat[DSMatExtra[i]]+j*ds->ld+k)*ca[ctx->d-1];
+    }
+    off = i*ds->n*ldd+(ctx->d-1)*ds->n;
+    for (j=0;j<ds->n;j++) 
+      for (k=0;k<ds->n;k++)
+        *(A+off+j*ldd+k) = *(ds->mat[DSMatExtra[i]]+j*ds->ld+k)*ca[ctx->d-1]-E[j*ds->ld+k]*cg[ctx->d-1];
+    off = (++i)*ds->n*ldd+(ctx->d-1)*ds->n;
+    for (j=0;j<ds->n;j++) 
+      for (k=0;k<ds->n;k++)
+        *(A+off+j*ldd+k) = *(ds->mat[DSMatExtra[i]]+j*ds->ld+k)*ca[ctx->d-1]-E[j*ds->ld+k]*cb[ctx->d-1];
   }
   ierr = PetscMemzero(B,ldd*ldd*sizeof(PetscScalar));CHKERRQ(ierr);
-  for (i=0;i<nd-ds->n;i++) B[i+i*ldd] = -1.0;
+  for (i=0;i<nd-ds->n;i++) B[i+i*ldd] = 1.0;
   off = (ctx->d-1)*ds->n*(ldd+1);
   for (j=0;j<ds->n;j++) {
     for (i=0;i<ds->n;i++) B[off+i+j*ldd] = -E[i+j*ds->ld];
