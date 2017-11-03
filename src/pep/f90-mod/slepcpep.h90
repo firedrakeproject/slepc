@@ -299,3 +299,20 @@
         end subroutine
       end interface PEPGetRefine
 
+      interface PEPSetInitialSpace
+        subroutine PEPSetInitialSpace0(a,b,c,z)
+          use slepcpepdef
+          PEP a
+          PetscInt b
+          Vec c
+          integer z
+        end subroutine
+        subroutine PEPSetInitialSpace1(a,b,c,z)
+          use slepcpepdef
+          PEP a
+          PetscInt b
+          Vec c(*)
+          integer z
+        end subroutine
+      end interface PEPSetInitialSpace
+

@@ -34,13 +34,14 @@
       EPS            eps
       EPSType        tname
       PetscInt       n, i, Istart, Iend
-      PetscInt       nev
+      PetscInt       nev, nini
       PetscInt       col(3)
       PetscInt       i1,i2,i3
       PetscMPIInt    rank
       PetscErrorCode ierr
       PetscBool      flg
-      PetscScalar    value(3)
+      PetscScalar    value(3), one
+      Vec            v
 
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !     Beginning of program
@@ -101,6 +102,10 @@
       call MatAssemblyBegin(A,MAT_FINAL_ASSEMBLY,ierr)
       call MatAssemblyEnd(A,MAT_FINAL_ASSEMBLY,ierr)
 
+      call MatCreateVecs(A,v,PETSC_NULL_VEC,ierr)
+      one = 1.0
+      call VecSet(v,one,ierr)
+
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !     Create the eigensolver and display info
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -114,6 +119,10 @@
 
 !     ** Set solver parameters at runtime
       call EPSSetFromOptions(eps,ierr)
+
+!     ** Set initial vectors
+      nini = 1
+      call EPSSetInitialSpace(eps,nini,v,ierr)
 
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !     Solve the eigensystem
@@ -141,6 +150,7 @@
       call EPSErrorView(eps,EPS_ERROR_RELATIVE,PETSC_NULL_VIEWER,ierr)
       call EPSDestroy(eps,ierr)
       call MatDestroy(A,ierr)
+      call VecDestroy(v,ierr)
 
       call SlepcFinalize(ierr)
       end
