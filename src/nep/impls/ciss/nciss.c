@@ -42,11 +42,11 @@ typedef struct {
   PetscInt     L_max;      /* maximum number of columns of the source matrix V */
   PetscReal    spurious_threshold; /* discard spurious eigenpairs */
   PetscBool    isreal;     /* T(z) is real for real z */
+  PetscInt     npart;      /* number of partitions */
   PetscInt     refine_inner;
   PetscInt     refine_blocksize;
   /* private data */
   PetscReal    *sigma;     /* threshold for numerical rank */
-  PetscInt     num_subcomm;
   PetscInt     subcomm_id;
   PetscInt     num_solve_point;
   PetscScalar  *weight;
@@ -55,29 +55,72 @@ typedef struct {
   BV           V;
   BV           S;
   BV           Y;
-  KSP          *ksp;
+  KSP          *ksp;       /* ksp array for storing factorizations at integration points */
   PetscBool    useconj;
   PetscReal    est_eig;
   PetscSubcomm subcomm;
 } NEP_CISS;
 
-static PetscErrorCode SetSolverComm(NEP nep)
+/* destroy KSP objects when the number of solve points changes */
+PETSC_STATIC_INLINE PetscErrorCode NEPCISSResetSolvers(NEP nep)
+{
+  PetscErrorCode ierr;
+  PetscInt       i;
+  NEP_CISS       *ctx = (NEP_CISS*)nep->data;
+
+  PetscFunctionBegin;
+  if (ctx->ksp) {
+    for (i=0;i<ctx->num_solve_point;i++) {
+      ierr = KSPDestroy(&ctx->ksp[i]);CHKERRQ(ierr);
+    }
+    ierr = PetscFree(ctx->ksp);CHKERRQ(ierr);
+  }
+  PetscFunctionReturn(0);
+}
+
+/* clean PetscSubcomm object when the number of partitions changes */
+PETSC_STATIC_INLINE PetscErrorCode NEPCISSResetSubcomm(NEP nep)
+{
+  PetscErrorCode ierr;
+  NEP_CISS       *ctx = (NEP_CISS*)nep->data;
+
+  PetscFunctionBegin;
+  ierr = NEPCISSResetSolvers(nep);CHKERRQ(ierr);
+  ierr = PetscSubcommDestroy(&ctx->subcomm);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+/* determine whether half of integration points can be avoided (use its conjugates);
+   depends on isreal and the center of the region */
+PETSC_STATIC_INLINE PetscErrorCode NEPCISSSetUseConj(NEP nep,PetscBool *useconj)
+{
+  PetscErrorCode ierr;
+  NEP_CISS       *ctx = (NEP_CISS*)nep->data;
+  PetscScalar    center;
+
+  PetscFunctionBegin;
+  ierr = RGEllipseGetParameters(nep->rg,&center,NULL,NULL);CHKERRQ(ierr);
+  *useconj = (ctx->isreal && PetscImaginaryPart(center) == 0.0)? PETSC_TRUE: PETSC_FALSE;
+  PetscFunctionReturn(0);
+}
+
+/* create PetscSubcomm object and determine num_solve_point (depends on npart, N, useconj) */
+PETSC_STATIC_INLINE PetscErrorCode NEPCISSSetUpSubComm(NEP nep,PetscInt *num_solve_point)
 {
   PetscErrorCode ierr;
   NEP_CISS       *ctx = (NEP_CISS*)nep->data;
   PetscInt       N = ctx->N;
 
   PetscFunctionBegin;
-  if (ctx->useconj) N = N/2;
-  ierr = PetscSubcommDestroy(&ctx->subcomm);CHKERRQ(ierr);
   ierr = PetscSubcommCreate(PetscObjectComm((PetscObject)nep),&ctx->subcomm);CHKERRQ(ierr);
-  ierr = PetscSubcommSetNumber(ctx->subcomm,ctx->num_subcomm);CHKERRQ(ierr);CHKERRQ(ierr);
+  ierr = PetscSubcommSetNumber(ctx->subcomm,ctx->npart);CHKERRQ(ierr);CHKERRQ(ierr);
   ierr = PetscSubcommSetType(ctx->subcomm,PETSC_SUBCOMM_INTERLACED);CHKERRQ(ierr);
-  ierr = PetscLogObjectMemory((PetscObject)nep,sizeof(PetscSubcomm));CHKERRQ(ierr);
-  ierr = PetscSubcommSetFromOptions(ctx->subcomm);CHKERRQ(ierr);
+  ierr = PetscLogObjectParent((PetscObject)nep,(PetscObject)ctx->subcomm);CHKERRQ(ierr);
   ctx->subcomm_id = ctx->subcomm->color;
-  ctx->num_solve_point = N / ctx->num_subcomm;
-  if ((N%ctx->num_subcomm) > ctx->subcomm_id) ctx->num_solve_point+=1;
+  ierr = NEPCISSSetUseConj(nep,&ctx->useconj);CHKERRQ(ierr);
+  if (ctx->useconj) N = N/2;
+  *num_solve_point = N / ctx->npart;
+  if (N%ctx->npart > ctx->subcomm_id) (*num_solve_point)++;
   PetscFunctionReturn(0);
 }
 
@@ -135,24 +178,20 @@ static PetscErrorCode SolveLinearSystem(NEP nep,Mat T,Mat dT,BV V,PetscInt L_sta
   NEP_CISS       *ctx = (NEP_CISS*)nep->data;
   PetscInt       i,j,p_id;
   Mat            kspMat;
-  PC             pc;
   Vec            Bvj,vj,yj;
 
   PetscFunctionBegin;
+  if (!ctx->ksp) { ierr = NEPCISSGetKSPs(nep,&ctx->num_solve_point,&ctx->ksp);CHKERRQ(ierr); }
   ierr = BVCreateVec(V,&Bvj);CHKERRQ(ierr);
   for (i=0;i<ctx->num_solve_point;i++) {
     p_id = i*ctx->subcomm->n + ctx->subcomm_id;
-    ierr = NEPComputeFunction(nep,ctx->omega[p_id],T,T);CHKERRQ(ierr);
-    ierr = NEPComputeJacobian(nep,ctx->omega[p_id],dT);CHKERRQ(ierr);
     if (initksp == PETSC_TRUE) {
+      ierr = NEPComputeFunction(nep,ctx->omega[p_id],T,T);CHKERRQ(ierr);
       ierr = MatDuplicate(T,MAT_COPY_VALUES,&kspMat);CHKERRQ(ierr);
       ierr = KSPSetOperators(ctx->ksp[i],kspMat,kspMat);CHKERRQ(ierr);
       ierr = MatDestroy(&kspMat);CHKERRQ(ierr);
-      ierr = KSPSetType(ctx->ksp[i],KSPPREONLY);CHKERRQ(ierr);
-      ierr = KSPGetPC(ctx->ksp[i],&pc);CHKERRQ(ierr);
-      ierr = PCSetType(pc,PCLU);CHKERRQ(ierr);
-      ierr = KSPSetFromOptions(ctx->ksp[i]);CHKERRQ(ierr);
     }
+    ierr = NEPComputeJacobian(nep,ctx->omega[p_id],dT);CHKERRQ(ierr);
     for (j=L_start;j<L_end;j++) {
       ierr = BVGetColumn(V,j,&vj);CHKERRQ(ierr);
       ierr = BVGetColumn(ctx->Y,i*ctx->L_max+j,&yj);CHKERRQ(ierr);
@@ -391,9 +430,8 @@ PetscErrorCode NEPSetUp_CISS(NEP nep)
 {
   PetscErrorCode ierr;
   NEP_CISS       *ctx = (NEP_CISS*)nep->data;
-  PetscInt       i,nwork;
-  PetscBool      istrivial,isellipse,flg;
-  PetscScalar    center;
+  PetscInt       nwork;
+  PetscBool      istrivial,isellipse,flg,useconj;
 
   PetscFunctionBegin;
   if (!nep->ncv) nep->ncv = ctx->L_max*ctx->M;
@@ -416,14 +454,13 @@ PetscErrorCode NEPSetUp_CISS(NEP nep)
   ierr = RGGetComplement(nep->rg,&flg);CHKERRQ(ierr);
   if (flg) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"A region with complement flag set is not allowed");
   ierr = PetscObjectTypeCompare((PetscObject)nep->rg,RGELLIPSE,&isellipse);CHKERRQ(ierr);
-  if (!isellipse) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"Currently only implemented for elliptic or arc regions");
-  ierr = RGEllipseGetParameters(nep->rg,&center,NULL,NULL);CHKERRQ(ierr);
-  if (ctx->isreal && PetscImaginaryPart(center) == 0.0) ctx->useconj = PETSC_TRUE;
-  else ctx->useconj = PETSC_FALSE;
+  if (!isellipse) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"Currently only implemented for elliptic regions");
+  /* if useconj has changed, then reset subcomm data */
+  ierr = NEPCISSSetUseConj(nep,&useconj);CHKERRQ(ierr);
+  if (useconj!=ctx->useconj) { ierr = NEPCISSResetSubcomm(nep);CHKERRQ(ierr); }
 
   /* create split comm */
-  ctx->num_subcomm = 1;
-  ierr = SetSolverComm(nep);CHKERRQ(ierr);
+  if (!ctx->subcomm) { ierr = NEPCISSSetUpSubComm(nep,&ctx->num_solve_point);CHKERRQ(ierr); }
 
   ierr = NEPAllocateSolution(nep,0);CHKERRQ(ierr);
   if (ctx->weight) { ierr = PetscFree4(ctx->weight,ctx->omega,ctx->pp,ctx->sigma);CHKERRQ(ierr); }
@@ -437,24 +474,6 @@ PetscErrorCode NEPSetUp_CISS(NEP nep)
   ierr = BVDestroy(&ctx->V);CHKERRQ(ierr);
   ierr = BVDuplicateResize(nep->V,ctx->L_max,&ctx->V);CHKERRQ(ierr);
   ierr = PetscLogObjectParent((PetscObject)nep,(PetscObject)ctx->V);CHKERRQ(ierr);
-
-  if (ctx->ksp) {
-    for (i=0;i<ctx->num_solve_point;i++) {
-      ierr = KSPDestroy(&ctx->ksp[i]);CHKERRQ(ierr);
-    }
-    ierr = PetscFree(ctx->ksp);CHKERRQ(ierr);
-  }
-  ierr = PetscMalloc1(ctx->num_solve_point,&ctx->ksp);CHKERRQ(ierr);
-  ierr = PetscLogObjectMemory((PetscObject)nep,ctx->num_solve_point*sizeof(KSP));CHKERRQ(ierr);
-  for (i=0;i<ctx->num_solve_point;i++) {
-    ierr = KSPCreate(PetscSubcommChild(ctx->subcomm),&ctx->ksp[i]);CHKERRQ(ierr);
-    ierr = PetscObjectIncrementTabLevel((PetscObject)ctx->ksp[i],(PetscObject)nep,1);CHKERRQ(ierr);
-    ierr = PetscLogObjectParent((PetscObject)nep,(PetscObject)ctx->ksp[i]);CHKERRQ(ierr);
-    ierr = KSPSetOptionsPrefix(ctx->ksp[i],((PetscObject)nep)->prefix);CHKERRQ(ierr);
-    ierr = KSPAppendOptionsPrefix(ctx->ksp[i],"nep_ciss_");CHKERRQ(ierr);
-    ierr = KSPSetErrorIfNotConverged(ctx->ksp[i],PETSC_TRUE);CHKERRQ(ierr);
-    ierr = KSPSetTolerances(ctx->ksp[i],SLEPC_DEFAULT_TOL,PETSC_DEFAULT,PETSC_DEFAULT,PETSC_DEFAULT);CHKERRQ(ierr);
-  }
 
   ierr = BVDestroy(&ctx->Y);CHKERRQ(ierr);
   ierr = BVDuplicateResize(nep->V,ctx->num_solve_point*ctx->L_max,&ctx->Y);CHKERRQ(ierr);
@@ -619,9 +638,12 @@ PetscErrorCode NEPSolve_CISS(NEP nep)
 
 static PetscErrorCode NEPCISSSetSizes_CISS(NEP nep,PetscInt ip,PetscInt bs,PetscInt ms,PetscInt npart,PetscInt bsmax,PetscBool realmats)
 {
-  NEP_CISS *ctx = (NEP_CISS*)nep->data;
+  PetscErrorCode ierr;
+  NEP_CISS       *ctx = (NEP_CISS*)nep->data;
+  PetscInt       oN,onpart;
 
   PetscFunctionBegin;
+  oN = ctx->N;
   if (ip == PETSC_DECIDE || ip == PETSC_DEFAULT) {
     if (ctx->N!=32) { ctx->N =32; ctx->M = ctx->N/4; }
   } else {
@@ -643,11 +665,13 @@ static PetscErrorCode NEPCISSSetSizes_CISS(NEP nep,PetscInt ip,PetscInt bs,Petsc
     if (ms>ctx->N) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_OUTOFRANGE,"The ms argument must be less than or equal to the number of integration points");
     ctx->M = ms;
   }
+  onpart = ctx->npart;
   if (npart == PETSC_DECIDE || npart == PETSC_DEFAULT) {
-    ctx->num_subcomm = 1;
+    ctx->npart = 1;
   } else {
     if (npart<1) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_OUTOFRANGE,"The npart argument must be > 0");
-    ctx->num_subcomm = npart;
+    ctx->npart = npart;
+    if (npart>1) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"Current implementation does not allow partitions");
   }
   if (bsmax == PETSC_DECIDE || bsmax == PETSC_DEFAULT) {
     ctx->L = 256;
@@ -656,6 +680,7 @@ static PetscErrorCode NEPCISSSetSizes_CISS(NEP nep,PetscInt ip,PetscInt bs,Petsc
     if (bsmax<ctx->L) ctx->L_max = ctx->L;
     else ctx->L_max = bsmax;
   }
+  if (onpart != ctx->npart || oN != ctx->N || realmats != ctx->isreal) { ierr = NEPCISSResetSubcomm(nep);CHKERRQ(ierr); }
   ctx->isreal = realmats;
   nep->state = NEP_STATE_INITIAL;
   PetscFunctionReturn(0);
@@ -720,7 +745,7 @@ static PetscErrorCode NEPCISSGetSizes_CISS(NEP nep,PetscInt *ip,PetscInt *bs,Pet
   if (ip) *ip = ctx->N;
   if (bs) *bs = ctx->L;
   if (ms) *ms = ctx->M;
-  if (npart) *npart = ctx->num_subcomm;
+  if (npart) *npart = ctx->npart;
   if (bsmax) *bsmax = ctx->L_max;
   if (realmats) *realmats = ctx->isreal;
   PetscFunctionReturn(0);
@@ -932,6 +957,70 @@ PetscErrorCode NEPCISSGetRefinement(NEP nep, PetscInt *inner, PetscInt *blsize)
   PetscFunctionReturn(0);
 }
 
+static PetscErrorCode NEPCISSGetKSPs_CISS(NEP nep,PetscInt *nsolve,KSP **ksp)
+{
+  PetscErrorCode ierr;
+  NEP_CISS       *ctx = (NEP_CISS*)nep->data;
+  PetscInt       i;
+  PC             pc;
+
+  PetscFunctionBegin;
+  if (!ctx->ksp) {
+    if (!ctx->subcomm) {  /* initialize subcomm first */
+      ierr = NEPCISSSetUseConj(nep,&ctx->useconj);CHKERRQ(ierr);
+      ierr = NEPCISSSetUpSubComm(nep,&ctx->num_solve_point);CHKERRQ(ierr);
+    }
+    ierr = PetscMalloc1(ctx->num_solve_point,&ctx->ksp);CHKERRQ(ierr);
+    for (i=0;i<ctx->num_solve_point;i++) {
+      ierr = KSPCreate(PetscSubcommChild(ctx->subcomm),&ctx->ksp[i]);CHKERRQ(ierr);
+      ierr = KSPSetOptionsPrefix(ctx->ksp[i],((PetscObject)nep)->prefix);CHKERRQ(ierr);
+      ierr = KSPAppendOptionsPrefix(ctx->ksp[i],"nep_ciss_");CHKERRQ(ierr);
+      ierr = PetscObjectIncrementTabLevel((PetscObject)ctx->ksp[i],(PetscObject)nep,1);CHKERRQ(ierr);
+      ierr = PetscLogObjectParent((PetscObject)nep,(PetscObject)ctx->ksp[i]);CHKERRQ(ierr);
+      ierr = KSPSetErrorIfNotConverged(ctx->ksp[i],PETSC_TRUE);CHKERRQ(ierr);
+      ierr = KSPSetTolerances(ctx->ksp[i],SLEPC_DEFAULT_TOL,PETSC_DEFAULT,PETSC_DEFAULT,PETSC_DEFAULT);CHKERRQ(ierr);
+      ierr = KSPGetPC(ctx->ksp[i],&pc);CHKERRQ(ierr);
+      ierr = KSPSetType(ctx->ksp[i],KSPPREONLY);CHKERRQ(ierr);
+      ierr = PCSetType(pc,PCLU);CHKERRQ(ierr);
+    }
+  }
+  if (nsolve) *nsolve = ctx->num_solve_point;
+  if (ksp)    *ksp    = ctx->ksp;
+  PetscFunctionReturn(0);
+}
+
+/*@C
+   NEPCISSGetKSPs - Retrieve the array of linear solver objects associated with
+   the CISS solver.
+
+   Not Collective
+
+   Input Parameter:
+.  nep - nonlinear eigenvalue solver
+
+   Output Parameters:
++  nsolve - number of solver objects
+-  ksp - array of linear solver object
+
+   Notes:
+   The number of KSP solvers is equal to the number of integration points divided by
+   the number of partitions. This value is halved in the case of real matrices with
+   a region centered at the real axis.
+
+   Level: advanced
+
+.seealso: NEPCISSSetSizes()
+@*/
+PetscErrorCode NEPCISSGetKSPs(NEP nep,PetscInt *nsolve,KSP **ksp)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
+  ierr = PetscUseMethod(nep,"NEPCISSGetKSPs_C",(NEP,PetscInt*,KSP**),(nep,nsolve,ksp));CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
 PetscErrorCode NEPReset_CISS(NEP nep)
 {
   PetscErrorCode ierr;
@@ -943,17 +1032,17 @@ PetscErrorCode NEPReset_CISS(NEP nep)
   ierr = BVDestroy(&ctx->V);CHKERRQ(ierr);
   ierr = BVDestroy(&ctx->Y);CHKERRQ(ierr);
   for (i=0;i<ctx->num_solve_point;i++) {
-    ierr = KSPDestroy(&ctx->ksp[i]);CHKERRQ(ierr);
+    ierr = KSPReset(ctx->ksp[i]);CHKERRQ(ierr);
   }
-  ierr = PetscFree(ctx->ksp);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
 PetscErrorCode NEPSetFromOptions_CISS(PetscOptionItems *PetscOptionsObject,NEP nep)
 {
   PetscErrorCode ierr;
+  NEP_CISS       *ctx = (NEP_CISS*)nep->data;
   PetscReal      r1,r2;
-  PetscInt       i1,i2,i3,i4,i5,i6,i7;
+  PetscInt       i,i1,i2,i3,i4,i5,i6,i7;
   PetscBool      b1;
 
   PetscFunctionBegin;
@@ -979,6 +1068,14 @@ PetscErrorCode NEPSetFromOptions_CISS(PetscOptionItems *PetscOptionsObject,NEP n
     ierr = NEPCISSSetRefinement(nep,i6,i7);CHKERRQ(ierr);
 
   ierr = PetscOptionsTail();CHKERRQ(ierr);
+
+  if (!nep->rg) { ierr = NEPGetRG(nep,&nep->rg);CHKERRQ(ierr); }
+  ierr = RGSetFromOptions(nep->rg);CHKERRQ(ierr); /* this is necessary here to set useconj */
+  if (!ctx->ksp) { ierr = NEPCISSGetKSPs(nep,&ctx->num_solve_point,&ctx->ksp);CHKERRQ(ierr); }
+  for (i=0;i<ctx->num_solve_point;i++) {
+    ierr = KSPSetFromOptions(ctx->ksp[i]);CHKERRQ(ierr);
+  }
+  ierr = PetscSubcommSetFromOptions(ctx->subcomm);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -988,7 +1085,7 @@ PetscErrorCode NEPDestroy_CISS(NEP nep)
   NEP_CISS       *ctx = (NEP_CISS*)nep->data;
 
   PetscFunctionBegin;
-  ierr = PetscSubcommDestroy(&ctx->subcomm);CHKERRQ(ierr);
+  ierr = NEPCISSResetSubcomm(nep);CHKERRQ(ierr);
   ierr = PetscFree4(ctx->weight,ctx->omega,ctx->pp,ctx->sigma);CHKERRQ(ierr);
   ierr = PetscFree(nep->data);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPCISSSetSizes_C",NULL);CHKERRQ(ierr);
@@ -997,6 +1094,7 @@ PetscErrorCode NEPDestroy_CISS(NEP nep)
   ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPCISSGetThreshold_C",NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPCISSSetRefinement_C",NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPCISSGetRefinement_C",NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPCISSGetKSPs_C",NULL);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -1009,14 +1107,15 @@ PetscErrorCode NEPView_CISS(NEP nep,PetscViewer viewer)
   PetscFunctionBegin;
   ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
   if (isascii) {
-    ierr = PetscViewerASCIIPrintf(viewer,"  sizes { integration points: %D, block size: %D, moment size: %D, partitions: %D, maximum block size: %D }\n",ctx->N,ctx->L,ctx->M,ctx->num_subcomm,ctx->L_max);CHKERRQ(ierr);
+    ierr = PetscViewerASCIIPrintf(viewer,"  sizes { integration points: %D, block size: %D, moment size: %D, partitions: %D, maximum block size: %D }\n",ctx->N,ctx->L,ctx->M,ctx->npart,ctx->L_max);CHKERRQ(ierr);
     if (ctx->isreal) {
       ierr = PetscViewerASCIIPrintf(viewer,"  exploiting symmetry of integration points\n");CHKERRQ(ierr);
     }
     ierr = PetscViewerASCIIPrintf(viewer,"  threshold { delta: %g, spurious threshold: %g }\n",(double)ctx->delta,(double)ctx->spurious_threshold);CHKERRQ(ierr);
     ierr = PetscViewerASCIIPrintf(viewer,"  iterative refinement  { inner: %D, blocksize: %D }\n",ctx->refine_inner, ctx->refine_blocksize);CHKERRQ(ierr);
     ierr = PetscViewerASCIIPushTab(viewer);CHKERRQ(ierr);
-    if (ctx->ksp[0]) { ierr = KSPView(ctx->ksp[0],viewer);CHKERRQ(ierr); }
+    if (!ctx->ksp) { ierr = NEPCISSGetKSPs(nep,&ctx->num_solve_point,&ctx->ksp);CHKERRQ(ierr); }
+    ierr = KSPView(ctx->ksp[0],viewer);CHKERRQ(ierr);
     ierr = PetscViewerASCIIPopTab(viewer);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
@@ -1038,7 +1137,7 @@ PETSC_EXTERN PetscErrorCode NEPCreate_CISS(NEP nep)
   ctx->L_max              = 64;
   ctx->spurious_threshold = 1e-4;
   ctx->isreal             = PETSC_FALSE;
-  ctx->num_subcomm        = 1;
+  ctx->npart              = 1;
 
   nep->ops->solve          = NEPSolve_CISS;
   nep->ops->setup          = NEPSetUp_CISS;
@@ -1053,6 +1152,7 @@ PETSC_EXTERN PetscErrorCode NEPCreate_CISS(NEP nep)
   ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPCISSGetThreshold_C",NEPCISSGetThreshold_CISS);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPCISSSetRefinement_C",NEPCISSSetRefinement_CISS);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPCISSGetRefinement_C",NEPCISSGetRefinement_CISS);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPCISSGetKSPs_C",NEPCISSGetKSPs_CISS);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
