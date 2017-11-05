@@ -661,7 +661,6 @@ static PetscErrorCode NEPCISSSetSizes_CISS(NEP nep,PetscInt ip,PetscInt bs,Petsc
     ctx->L = 16;
   } else {
     if (bs<1) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_OUTOFRANGE,"The bs argument must be > 0");
-    if (bs>ctx->L_max) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_OUTOFRANGE,"The bs argument must be less than or equal to the maximum number of block size");
     ctx->L = bs;
   }
   if (ms == PETSC_DECIDE || ms == PETSC_DEFAULT) {
@@ -680,11 +679,10 @@ static PetscErrorCode NEPCISSSetSizes_CISS(NEP nep,PetscInt ip,PetscInt bs,Petsc
     if (npart>1) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"Current implementation does not allow partitions");
   }
   if (bsmax == PETSC_DECIDE || bsmax == PETSC_DEFAULT) {
-    ctx->L = 256;
+    ctx->L_max = 64;
   } else {
     if (bsmax<1) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_OUTOFRANGE,"The bsmax argument must be > 0");
-    if (bsmax<ctx->L) ctx->L_max = ctx->L;
-    else ctx->L_max = bsmax;
+    ctx->L_max = PetscMax(bsmax,ctx->L);
   }
   if (onpart != ctx->npart || oN != ctx->N || realmats != ctx->isreal) { ierr = NEPCISSResetSubcomm(nep);CHKERRQ(ierr); }
   ctx->isreal = realmats;

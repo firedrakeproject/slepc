@@ -13,10 +13,10 @@ FFLAGS     =
 CPPFLAGS   =
 FPPFLAGS   =
 LOCDIR     = src/nep/examples/tests/
-EXAMPLESC  = test1.c test2.c test3.c test4.c test5.c test6.c test7.c test8.c test9.c test10.c
+EXAMPLESC  = test1.c test2.c test3.c test4.c test5.c test6.c test7.c test8.c test9.c test10.c test11.c
 EXAMPLESF  = test2f.F
 MANSEC     = NEP
-TESTS      = test1 test2 test2f test3 test4 test5 test6 test7 test8 test9 test10
+TESTS      = test1 test2 test2f test3 test4 test5 test6 test7 test8 test9 test10 test11
 
 TESTEXAMPLES_C_NOTSINGLE       = test1.PETSc runtest1_1 test1.rm \
                                  test2.PETSc runtest2_1 test2.rm \
@@ -26,6 +26,7 @@ TESTEXAMPLES_C_NOTSINGLE       = test1.PETSc runtest1_1 test1.rm \
                                  test7.PETSc runtest7_1 runtest7_2 test7.rm \
                                  test9.PETSc runtest9_1 test9.rm \
                                  test10.PETSc runtest10_1 test10.rm
+TESTEXAMPLES_C_COMPLEX         = test11.PETSc runtest11_1 test11.rm
 TESTEXAMPLES_C_DATAFILE        = test6.PETSc runtest6_1 test6.rm \
                                  test8.PETSc runtest8_1 test8.rm
 TESTEXAMPLES_FORTRAN_NOTSINGLE = test2f.PETSc runtest2f_1 test2f.rm
@@ -77,6 +78,10 @@ test9: test9.o chkopts
 test10: test10.o chkopts
 	-${CLINKER} -o test10 test10.o ${SLEPC_NEP_LIB}
 	${RM} test10.o
+
+test11: test11.o chkopts
+	-${CLINKER} -o test11 test11.o ${SLEPC_NEP_LIB}
+	${RM} test11.o
 
 #------------------------------------------------------------------------------------
 
@@ -154,5 +159,10 @@ runtest10_1_%:
 	elif [ "$$nep" = narnoldi_sync ]; then nep="narnoldi -ds_parallel synchronized"; \
 	elif [ "$$nep" = slp ]; then nep="slp -nep_slp_st_pc_type redundant"; fi; \
 	${MPIEXEC} -n 2 ./test10 -nep_type $${nep} > $${test}.tmp 2>&1; \
+	${TESTCODE}
+
+runtest11_1:
+	-@${SETTEST}; \
+	${MPIEXEC} -n 1 ./test11 -terse > $${test}.tmp 2>&1; \
 	${TESTCODE}
 

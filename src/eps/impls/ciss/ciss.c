@@ -1165,7 +1165,6 @@ static PetscErrorCode EPSCISSSetSizes_CISS(EPS eps,PetscInt ip,PetscInt bs,Petsc
     ctx->L = 16;
   } else {
     if (bs<1) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"The bs argument must be > 0");
-    if (bs>ctx->L_max) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"The bs argument must be less than or equal to the maximum number of block size");
     ctx->L = bs;
   }
   if (ms == PETSC_DECIDE || ms == PETSC_DEFAULT) {
@@ -1182,11 +1181,10 @@ static PetscErrorCode EPSCISSSetSizes_CISS(EPS eps,PetscInt ip,PetscInt bs,Petsc
     ctx->num_subcomm = npart;
   }
   if (bsmax == PETSC_DECIDE || bsmax == PETSC_DEFAULT) {
-    ctx->L = 256;
+    ctx->L_max = 64;
   } else {
     if (bsmax<1) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"The bsmax argument must be > 0");
-    if (bsmax<ctx->L) ctx->L_max = ctx->L;
-    else ctx->L_max = bsmax;
+    ctx->L_max = PetscMax(bsmax,ctx->L);
   }
   ctx->isreal = realmats;
   eps->state = EPS_STATE_INITIAL;
