@@ -454,6 +454,7 @@ PETSC_EXTERN PetscErrorCode EPSCISSSetRefinement(EPS,PetscInt,PetscInt);
 PETSC_EXTERN PetscErrorCode EPSCISSGetRefinement(EPS,PetscInt*,PetscInt*);
 PETSC_EXTERN PetscErrorCode EPSCISSSetUseST(EPS,PetscBool);
 PETSC_EXTERN PetscErrorCode EPSCISSGetUseST(EPS,PetscBool*);
+PETSC_EXTERN PetscErrorCode EPSCISSGetKSPs(EPS,PetscInt*,KSP**);
 
 PETSC_EXTERN PetscErrorCode EPSBLOPEXSetBlockSize(EPS,PetscInt);
 PETSC_EXTERN PetscErrorCode EPSBLOPEXGetBlockSize(EPS,PetscInt*);

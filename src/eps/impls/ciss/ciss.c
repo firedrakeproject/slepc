@@ -42,11 +42,11 @@ typedef struct {
   PetscInt          L_max;      /* maximum number of columns of the source matrix V */
   PetscReal         spurious_threshold; /* discard spurious eigenpairs */
   PetscBool         isreal;     /* A and B are real */
+  PetscInt          npart;      /* number of partitions */
   PetscInt          refine_inner;
   PetscInt          refine_blocksize;
   /* private data */
   PetscReal         *sigma;     /* threshold for numerical rank */
-  PetscInt          num_subcomm;
   PetscInt          subcomm_id;
   PetscInt          num_solve_point;
   PetscScalar       *weight;
@@ -58,7 +58,7 @@ typedef struct {
   BV                Y;
   Vec               xsub;
   Vec               xdup;
-  KSP               *ksp;
+  KSP               *ksp;       /* ksp array for storing factorizations at integration points */
   PetscBool         useconj;
   PetscReal         est_eig;
   VecScatter        scatterin;
@@ -70,23 +70,84 @@ typedef struct {
   EPSCISSExtraction extraction;
 } EPS_CISS;
 
-static PetscErrorCode SetSolverComm(EPS eps)
+/* destroy KSP objects when the number of solve points changes */
+PETSC_STATIC_INLINE PetscErrorCode EPSCISSResetSolvers(EPS eps)
+{
+  PetscErrorCode ierr;
+  PetscInt       i;
+  EPS_CISS       *ctx = (EPS_CISS*)eps->data;
+
+  PetscFunctionBegin;
+  if (ctx->ksp) {
+    for (i=0;i<ctx->num_solve_point;i++) {
+      ierr = KSPDestroy(&ctx->ksp[i]);CHKERRQ(ierr);
+    }
+    ierr = PetscFree(ctx->ksp);CHKERRQ(ierr);
+  }
+  PetscFunctionReturn(0);
+}
+
+/* clean PetscSubcomm object when the number of partitions changes */
+PETSC_STATIC_INLINE PetscErrorCode EPSCISSResetSubcomm(EPS eps)
+{
+  PetscErrorCode ierr;
+  EPS_CISS       *ctx = (EPS_CISS*)eps->data;
+
+  PetscFunctionBegin;
+  ierr = EPSCISSResetSolvers(eps);CHKERRQ(ierr);
+  ierr = PetscSubcommDestroy(&ctx->subcomm);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+/* determine whether half of integration points can be avoided (use its conjugates);
+   depends on isreal and the center of the region */
+PETSC_STATIC_INLINE PetscErrorCode EPSCISSSetUseConj(EPS eps,PetscBool *useconj)
+{
+  PetscErrorCode ierr;
+  PetscScalar    center;
+  PetscReal      c,d;
+  PetscBool      isellipse,isinterval;
+#if defined(PETSC_USE_COMPLEX)
+  EPS_CISS       *ctx = (EPS_CISS*)eps->data;
+#endif
+
+  PetscFunctionBegin;
+  *useconj = PETSC_FALSE;
+  ierr = PetscObjectTypeCompare((PetscObject)eps->rg,RGELLIPSE,&isellipse);CHKERRQ(ierr);
+  if (isellipse) {
+    ierr = RGEllipseGetParameters(eps->rg,&center,NULL,NULL);CHKERRQ(ierr);
+#if defined(PETSC_USE_COMPLEX)
+    *useconj = (ctx->isreal && PetscImaginaryPart(center) == 0.0)? PETSC_TRUE: PETSC_FALSE;
+#endif
+  } else {
+    ierr = PetscObjectTypeCompare((PetscObject)eps->rg,RGINTERVAL,&isinterval);CHKERRQ(ierr);
+    if (isinterval) {
+      ierr = RGIntervalGetEndpoints(eps->rg,NULL,NULL,&c,&d);CHKERRQ(ierr);
+#if defined(PETSC_USE_COMPLEX)
+      *useconj = (ctx->isreal && c==d)? PETSC_TRUE: PETSC_FALSE;
+#endif
+    }
+  }
+  PetscFunctionReturn(0);
+}
+
+/* create PetscSubcomm object and determine num_solve_point (depends on npart, N, useconj) */
+PETSC_STATIC_INLINE PetscErrorCode EPSCISSSetUpSubComm(EPS eps,PetscInt *num_solve_point)
 {
   PetscErrorCode ierr;
   EPS_CISS       *ctx = (EPS_CISS*)eps->data;
   PetscInt       N = ctx->N;
 
   PetscFunctionBegin;
-  if (ctx->useconj) N = N/2;
-  ierr = PetscSubcommDestroy(&ctx->subcomm);CHKERRQ(ierr);
   ierr = PetscSubcommCreate(PetscObjectComm((PetscObject)eps),&ctx->subcomm);CHKERRQ(ierr);
-  ierr = PetscSubcommSetNumber(ctx->subcomm,ctx->num_subcomm);CHKERRQ(ierr);CHKERRQ(ierr);
+  ierr = PetscSubcommSetNumber(ctx->subcomm,ctx->npart);CHKERRQ(ierr);CHKERRQ(ierr);
   ierr = PetscSubcommSetType(ctx->subcomm,PETSC_SUBCOMM_INTERLACED);CHKERRQ(ierr);
-  ierr = PetscLogObjectMemory((PetscObject)eps,sizeof(PetscSubcomm));CHKERRQ(ierr);
-  ierr = PetscSubcommSetFromOptions(ctx->subcomm);CHKERRQ(ierr);
+  ierr = PetscLogObjectParent((PetscObject)eps,(PetscObject)ctx->subcomm);CHKERRQ(ierr);
   ctx->subcomm_id = ctx->subcomm->color;
-  ctx->num_solve_point = N / ctx->num_subcomm;
-  if ((N%ctx->num_subcomm) > ctx->subcomm_id) ctx->num_solve_point+=1;
+  ierr = EPSCISSSetUseConj(eps,&ctx->useconj);CHKERRQ(ierr);
+  if (ctx->useconj) N = N/2;
+  *num_solve_point = N / ctx->npart;
+  if (N%ctx->npart > ctx->subcomm_id) (*num_solve_point)++;
   PetscFunctionReturn(0);
 }
 
@@ -297,20 +358,19 @@ static PetscErrorCode SolveLinearSystem(EPS eps,Mat A,Mat B,BV V,PetscInt L_star
   EPS_CISS       *ctx = (EPS_CISS*)eps->data;
   PetscInt       i,j,p_id;
   Mat            Fz,kspMat;
-  PC             pc;
   Vec            Bvj,vj,yj;
   KSP            ksp;
 
   PetscFunctionBegin;
+  if (!ctx->ksp) { ierr = EPSCISSGetKSPs(eps,&ctx->num_solve_point,&ctx->ksp);CHKERRQ(ierr); }
   ierr = BVCreateVec(V,&Bvj);CHKERRQ(ierr);
   if (ctx->usest) {
     ierr = MatDuplicate(A,MAT_DO_NOT_COPY_VALUES,&Fz);CHKERRQ(ierr);
   }
   for (i=0;i<ctx->num_solve_point;i++) {
     p_id = i*ctx->subcomm->n + ctx->subcomm_id;
-    if (!ctx->usest && initksp == PETSC_TRUE) {
-      ierr = MatDuplicate(A,MAT_DO_NOT_COPY_VALUES,&kspMat);CHKERRQ(ierr);
-      ierr = MatCopy(A,kspMat,DIFFERENT_NONZERO_PATTERN);CHKERRQ(ierr);
+    if (!ctx->usest && initksp) {
+      ierr = MatDuplicate(A,MAT_COPY_VALUES,&kspMat);CHKERRQ(ierr);
       if (B) {
         ierr = MatAXPY(kspMat,-ctx->omega[p_id],B,DIFFERENT_NONZERO_PATTERN);CHKERRQ(ierr);
       } else {
@@ -318,10 +378,6 @@ static PetscErrorCode SolveLinearSystem(EPS eps,Mat A,Mat B,BV V,PetscInt L_star
       }
       ierr = KSPSetOperators(ctx->ksp[i],kspMat,kspMat);CHKERRQ(ierr);
       ierr = MatDestroy(&kspMat);CHKERRQ(ierr);
-      ierr = KSPSetType(ctx->ksp[i],KSPPREONLY);CHKERRQ(ierr);
-      ierr = KSPGetPC(ctx->ksp[i],&pc);CHKERRQ(ierr);
-      ierr = PCSetType(pc,PCLU);CHKERRQ(ierr);
-      ierr = KSPSetFromOptions(ctx->ksp[i]);CHKERRQ(ierr);
     } else if (ctx->usest) {
       ierr = STSetShift(eps->st,ctx->omega[p_id]);CHKERRQ(ierr);
       ierr = STGetKSP(eps->st,&ksp);CHKERRQ(ierr);
@@ -776,23 +832,27 @@ PetscErrorCode EPSSetUp_CISS(EPS eps)
 {
   PetscErrorCode ierr;
   EPS_CISS       *ctx = (EPS_CISS*)eps->data;
-  PetscInt       i;
-  PetscBool      issinvert,istrivial,isring,isellipse,isinterval,flg;
-  PetscScalar    center;
+  PetscBool      issinvert,istrivial,isring,isellipse,isinterval,flg,useconj;
   PetscReal      c,d;
   Mat            A;
 
   PetscFunctionBegin;
-  if (!eps->ncv) eps->ncv = ctx->L_max*ctx->M;
-  else {
+  if (!eps->ncv) {
+    eps->ncv = ctx->L_max*ctx->M;
+    if (eps->ncv>eps->n) {
+      eps->ncv = eps->n;
+      ctx->L_max = eps->ncv/ctx->M;
+      if (!ctx->L_max) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Cannot adjust solver parameters, try setting a smaller value of M (moment size)");
+    }
+  } else {
     ierr = EPSSetDimensions_Default(eps,eps->nev,&eps->ncv,&eps->mpd);CHKERRQ(ierr);
     ctx->L_max = eps->ncv/ctx->M;
-    if (ctx->L_max == 0) {
+    if (!ctx->L_max) {
       ctx->L_max = 1;
       eps->ncv = ctx->L_max*ctx->M;
     }
-    if (ctx->L > ctx->L_max) ctx->L = ctx->L_max;
   }
+  ctx->L = PetscMin(ctx->L,ctx->L_max);
   if (!eps->max_it) eps->max_it = 1;
   if (!eps->mpd) eps->mpd = eps->ncv;
   if (!eps->which) eps->which = EPS_ALL;
@@ -800,6 +860,7 @@ PetscErrorCode EPSSetUp_CISS(EPS eps)
   else if (eps->extraction!=EPS_RITZ) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Unsupported extraction type");
   if (eps->arbitrary) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Arbitrary selection of eigenpairs not supported in this solver");
   if (eps->stopping!=EPSStoppingBasic) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"This solver does not support user-defined stopping test");
+
   /* check region */
   ierr = RGIsTrivial(eps->rg,&istrivial);CHKERRQ(ierr);
   if (istrivial) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"CISS requires a nontrivial region, e.g. -rg_type ellipse ...");
@@ -809,35 +870,26 @@ PetscErrorCode EPSSetUp_CISS(EPS eps)
   ierr = PetscObjectTypeCompare((PetscObject)eps->rg,RGRING,&isring);CHKERRQ(ierr);
   ierr = PetscObjectTypeCompare((PetscObject)eps->rg,RGINTERVAL,&isinterval);CHKERRQ(ierr);
   if (!isellipse && !isring && !isinterval) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Currently only implemented for interval, elliptic or ring regions");
-  if (isring) {
+  /* if useconj has changed, then reset subcomm data */
+  ierr = EPSCISSSetUseConj(eps,&useconj);CHKERRQ(ierr);
+  if (useconj!=ctx->useconj) { ierr = EPSCISSResetSubcomm(eps);CHKERRQ(ierr); }
+
 #if !defined(PETSC_USE_COMPLEX)
+  if (isring) {
     SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Ring region only supported for complex scalars");
-#endif
-    ctx->useconj = PETSC_FALSE;
   }
-  if (isellipse) {
-    ierr = RGEllipseGetParameters(eps->rg,&center,NULL,NULL);CHKERRQ(ierr);
-#if defined(PETSC_USE_COMPLEX)
-    if (ctx->isreal && PetscImaginaryPart(center) == 0.0) ctx->useconj = PETSC_TRUE;
-    else ctx->useconj = PETSC_FALSE;
-#else
-    ctx->useconj = PETSC_FALSE;
 #endif
-  }
   if (isinterval) {
     ierr = RGIntervalGetEndpoints(eps->rg,NULL,NULL,&c,&d);CHKERRQ(ierr);
-#if defined(PETSC_USE_COMPLEX)
-    if (ctx->isreal && c==d) ctx->useconj = PETSC_TRUE;
-    else ctx->useconj = PETSC_FALSE;
-#else
+#if !defined(PETSC_USE_COMPLEX)
     if (c!=d || c!=0.0) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"In real scalars, endpoints of the imaginary axis must be both zero");
-    ctx->useconj = PETSC_FALSE;
 #endif
     if (!ctx->quad && c==d) ctx->quad = EPS_CISS_QUADRULE_CHEBYSHEV;
   }
   if (!ctx->quad) ctx->quad = EPS_CISS_QUADRULE_TRAPEZOIDAL;
+
   /* create split comm */
-  ierr = SetSolverComm(eps);CHKERRQ(ierr);
+  if (!ctx->subcomm) { ierr = EPSCISSSetUpSubComm(eps,&ctx->num_solve_point);CHKERRQ(ierr); }
 
   ierr = EPSAllocateSolution(eps,0);CHKERRQ(ierr);
   if (ctx->weight) { ierr = PetscFree4(ctx->weight,ctx->omega,ctx->pp,ctx->sigma);CHKERRQ(ierr); }
@@ -856,8 +908,8 @@ PetscErrorCode EPSSetUp_CISS(EPS eps)
   ierr = PetscObjectTypeCompare((PetscObject)A,MATSHELL,&flg);CHKERRQ(ierr);
   if (flg) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Matrix type shell is not supported in this solver");
 
-  if (!ctx->usest_set) ctx->usest = (ctx->num_subcomm>1)? PETSC_FALSE: PETSC_TRUE;
-  if (ctx->usest && ctx->num_subcomm>1) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"The usest flag is not supported when partitions > 1");
+  if (!ctx->usest_set) ctx->usest = (ctx->npart>1)? PETSC_FALSE: PETSC_TRUE;
+  if (ctx->usest && ctx->npart>1) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"The usest flag is not supported when partitions > 1");
 
   ierr = CISSRedundantMat(eps);CHKERRQ(ierr);
   if (ctx->pA) {
@@ -873,24 +925,6 @@ PetscErrorCode EPSSetUp_CISS(EPS eps)
   if (ctx->usest) {
     ierr = PetscObjectTypeCompare((PetscObject)eps->st,STSINVERT,&issinvert);CHKERRQ(ierr);
     if (!issinvert) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"If the usest flag is set, you must select the STSINVERT spectral transformation");
-  } else {
-    if (ctx->ksp) {
-      for (i=0;i<ctx->num_solve_point;i++) {
-        ierr = KSPDestroy(&ctx->ksp[i]);CHKERRQ(ierr);
-      }
-      ierr = PetscFree(ctx->ksp);CHKERRQ(ierr);
-    }
-    ierr = PetscMalloc1(ctx->num_solve_point,&ctx->ksp);CHKERRQ(ierr);
-    ierr = PetscLogObjectMemory((PetscObject)eps,ctx->num_solve_point*sizeof(KSP));CHKERRQ(ierr);
-    for (i=0;i<ctx->num_solve_point;i++) {
-      ierr = KSPCreate(PetscSubcommChild(ctx->subcomm),&ctx->ksp[i]);CHKERRQ(ierr);
-      ierr = PetscObjectIncrementTabLevel((PetscObject)ctx->ksp[i],(PetscObject)eps,1);CHKERRQ(ierr);
-      ierr = PetscLogObjectParent((PetscObject)eps,(PetscObject)ctx->ksp[i]);CHKERRQ(ierr);
-      ierr = KSPSetOptionsPrefix(ctx->ksp[i],((PetscObject)eps)->prefix);CHKERRQ(ierr);
-      ierr = KSPAppendOptionsPrefix(ctx->ksp[i],"eps_ciss_");CHKERRQ(ierr);
-      ierr = KSPSetErrorIfNotConverged(ctx->ksp[i],PETSC_TRUE);CHKERRQ(ierr);
-      ierr = KSPSetTolerances(ctx->ksp[i],SLEPC_DEFAULT_TOL,PETSC_DEFAULT,PETSC_DEFAULT,PETSC_DEFAULT);CHKERRQ(ierr);
-    }
   }
 
   ierr = BVDestroy(&ctx->Y);CHKERRQ(ierr);
@@ -1151,9 +1185,12 @@ PetscErrorCode EPSSolve_CISS(EPS eps)
 
 static PetscErrorCode EPSCISSSetSizes_CISS(EPS eps,PetscInt ip,PetscInt bs,PetscInt ms,PetscInt npart,PetscInt bsmax,PetscBool realmats)
 {
-  EPS_CISS *ctx = (EPS_CISS*)eps->data;
+  PetscErrorCode ierr;
+  EPS_CISS       *ctx = (EPS_CISS*)eps->data;
+  PetscInt       oN,onpart;
 
   PetscFunctionBegin;
+  oN = ctx->N;
   if (ip == PETSC_DECIDE || ip == PETSC_DEFAULT) {
     if (ctx->N!=32) { ctx->N =32; ctx->M = ctx->N/4; }
   } else {
@@ -1174,11 +1211,12 @@ static PetscErrorCode EPSCISSSetSizes_CISS(EPS eps,PetscInt ip,PetscInt bs,Petsc
     if (ms>ctx->N) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"The ms argument must be less than or equal to the number of integration points");
     ctx->M = ms;
   }
+  onpart = ctx->npart;
   if (npart == PETSC_DECIDE || npart == PETSC_DEFAULT) {
-    ctx->num_subcomm = 1;
+    ctx->npart = 1;
   } else {
     if (npart<1) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"The npart argument must be > 0");
-    ctx->num_subcomm = npart;
+    ctx->npart = npart;
   }
   if (bsmax == PETSC_DECIDE || bsmax == PETSC_DEFAULT) {
     ctx->L_max = 64;
@@ -1186,6 +1224,7 @@ static PetscErrorCode EPSCISSSetSizes_CISS(EPS eps,PetscInt ip,PetscInt bs,Petsc
     if (bsmax<1) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"The bsmax argument must be > 0");
     ctx->L_max = PetscMax(bsmax,ctx->L);
   }
+  if (onpart != ctx->npart || oN != ctx->N || realmats != ctx->isreal) { ierr = EPSCISSResetSubcomm(eps);CHKERRQ(ierr); }
   ctx->isreal = realmats;
   eps->state = EPS_STATE_INITIAL;
   PetscFunctionReturn(0);
@@ -1246,7 +1285,7 @@ static PetscErrorCode EPSCISSGetSizes_CISS(EPS eps,PetscInt *ip,PetscInt *bs,Pet
   if (ip) *ip = ctx->N;
   if (bs) *bs = ctx->L;
   if (ms) *ms = ctx->M;
-  if (npart) *npart = ctx->num_subcomm;
+  if (npart) *npart = ctx->npart;
   if (bsmax) *bsmax = ctx->L_max;
   if (realmats) *realmats = ctx->isreal;
   PetscFunctionReturn(0);
@@ -1689,6 +1728,70 @@ PetscErrorCode EPSCISSGetExtraction(EPS eps,EPSCISSExtraction *extraction)
   PetscFunctionReturn(0);
 }
 
+static PetscErrorCode EPSCISSGetKSPs_CISS(EPS eps,PetscInt *nsolve,KSP **ksp)
+{
+  PetscErrorCode ierr;
+  EPS_CISS       *ctx = (EPS_CISS*)eps->data;
+  PetscInt       i;
+  PC             pc;
+
+  PetscFunctionBegin;
+  if (!ctx->ksp) {
+    if (!ctx->subcomm) {  /* initialize subcomm first */
+      ierr = EPSCISSSetUseConj(eps,&ctx->useconj);CHKERRQ(ierr);
+      ierr = EPSCISSSetUpSubComm(eps,&ctx->num_solve_point);CHKERRQ(ierr);
+    }
+    ierr = PetscMalloc1(ctx->num_solve_point,&ctx->ksp);CHKERRQ(ierr);
+    for (i=0;i<ctx->num_solve_point;i++) {
+      ierr = KSPCreate(PetscSubcommChild(ctx->subcomm),&ctx->ksp[i]);CHKERRQ(ierr);
+      ierr = KSPSetOptionsPrefix(ctx->ksp[i],((PetscObject)eps)->prefix);CHKERRQ(ierr);
+      ierr = KSPAppendOptionsPrefix(ctx->ksp[i],"eps_ciss_");CHKERRQ(ierr);
+      ierr = PetscObjectIncrementTabLevel((PetscObject)ctx->ksp[i],(PetscObject)eps,1);CHKERRQ(ierr);
+      ierr = PetscLogObjectParent((PetscObject)eps,(PetscObject)ctx->ksp[i]);CHKERRQ(ierr);
+      ierr = KSPSetErrorIfNotConverged(ctx->ksp[i],PETSC_TRUE);CHKERRQ(ierr);
+      ierr = KSPSetTolerances(ctx->ksp[i],SLEPC_DEFAULT_TOL,PETSC_DEFAULT,PETSC_DEFAULT,PETSC_DEFAULT);CHKERRQ(ierr);
+      ierr = KSPGetPC(ctx->ksp[i],&pc);CHKERRQ(ierr);
+      ierr = KSPSetType(ctx->ksp[i],KSPPREONLY);CHKERRQ(ierr);
+      ierr = PCSetType(pc,PCLU);CHKERRQ(ierr);
+    }
+  }
+  if (nsolve) *nsolve = ctx->num_solve_point;
+  if (ksp)    *ksp    = ctx->ksp;
+  PetscFunctionReturn(0);
+}
+
+/*@C
+   EPSCISSGetKSPs - Retrieve the array of linear solver objects associated with
+   the CISS solver.
+
+   Not Collective
+
+   Input Parameter:
+.  eps - the eigenproblem solver solver
+
+   Output Parameters:
++  nsolve - number of solver objects
+-  ksp - array of linear solver object
+
+   Notes:
+   The number of KSP solvers is equal to the number of integration points divided by
+   the number of partitions. This value is halved in the case of real matrices with
+   a region centered at the real axis.
+
+   Level: advanced
+
+.seealso: EPSCISSSetSizes()
+@*/
+PetscErrorCode EPSCISSGetKSPs(EPS eps,PetscInt *nsolve,KSP **ksp)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
+  ierr = PetscUseMethod(eps,"EPSCISSGetKSPs_C",(EPS,PetscInt*,KSP**),(eps,nsolve,ksp));CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
 PetscErrorCode EPSReset_CISS(EPS eps)
 {
   PetscErrorCode ierr;
@@ -1701,9 +1804,8 @@ PetscErrorCode EPSReset_CISS(EPS eps)
   ierr = BVDestroy(&ctx->Y);CHKERRQ(ierr);
   if (!ctx->usest) {
     for (i=0;i<ctx->num_solve_point;i++) {
-      ierr = KSPDestroy(&ctx->ksp[i]);CHKERRQ(ierr);
+      ierr = KSPReset(ctx->ksp[i]);CHKERRQ(ierr);
     }
-    ierr = PetscFree(ctx->ksp);CHKERRQ(ierr);
   }
   ierr = VecScatterDestroy(&ctx->scatterin);CHKERRQ(ierr);
   ierr = VecDestroy(&ctx->xsub);CHKERRQ(ierr);
@@ -1720,7 +1822,7 @@ PetscErrorCode EPSSetFromOptions_CISS(PetscOptionItems *PetscOptionsObject,EPS e
 {
   PetscErrorCode    ierr;
   PetscReal         r3,r4;
-  PetscInt          i1,i2,i3,i4,i5,i6,i7;
+  PetscInt          i,i1,i2,i3,i4,i5,i6,i7;
   PetscBool         b1,b2,flg;
   EPS_CISS          *ctx = (EPS_CISS*)eps->data;
   EPSCISSQuadRule   quad;
@@ -1759,6 +1861,14 @@ PetscErrorCode EPSSetFromOptions_CISS(PetscOptionItems *PetscOptionsObject,EPS e
     if (flg) { ierr = EPSCISSSetExtraction(eps,extraction);CHKERRQ(ierr); }
 
   ierr = PetscOptionsTail();CHKERRQ(ierr);
+
+  if (!eps->rg) { ierr = EPSGetRG(eps,&eps->rg);CHKERRQ(ierr); }
+  ierr = RGSetFromOptions(eps->rg);CHKERRQ(ierr); /* this is necessary here to set useconj */
+  if (!ctx->ksp) { ierr = EPSCISSGetKSPs(eps,&ctx->num_solve_point,&ctx->ksp);CHKERRQ(ierr); }
+  for (i=0;i<ctx->num_solve_point;i++) {
+    ierr = KSPSetFromOptions(ctx->ksp[i]);CHKERRQ(ierr);
+  }
+  ierr = PetscSubcommSetFromOptions(ctx->subcomm);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -1768,7 +1878,7 @@ PetscErrorCode EPSDestroy_CISS(EPS eps)
   EPS_CISS       *ctx = (EPS_CISS*)eps->data;
 
   PetscFunctionBegin;
-  ierr = PetscSubcommDestroy(&ctx->subcomm);CHKERRQ(ierr);
+  ierr = EPSCISSResetSubcomm(eps);CHKERRQ(ierr);
   ierr = PetscFree4(ctx->weight,ctx->omega,ctx->pp,ctx->sigma);CHKERRQ(ierr);
   ierr = PetscFree(eps->data);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSCISSSetSizes_C",NULL);CHKERRQ(ierr);
@@ -1783,6 +1893,7 @@ PetscErrorCode EPSDestroy_CISS(EPS eps)
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSCISSGetQuadRule_C",NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSCISSSetExtraction_C",NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSCISSGetExtraction_C",NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSCISSGetKSPs_C",NULL);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -1795,21 +1906,22 @@ PetscErrorCode EPSView_CISS(EPS eps,PetscViewer viewer)
   PetscFunctionBegin;
   ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
   if (isascii) {
-    ierr = PetscViewerASCIIPrintf(viewer,"  sizes { integration points: %D, block size: %D, moment size: %D, partitions: %D, maximum block size: %D }\n",ctx->N,ctx->L,ctx->M,ctx->num_subcomm,ctx->L_max);CHKERRQ(ierr);
+    ierr = PetscViewerASCIIPrintf(viewer,"  sizes { integration points: %D, block size: %D, moment size: %D, partitions: %D, maximum block size: %D }\n",ctx->N,ctx->L,ctx->M,ctx->npart,ctx->L_max);CHKERRQ(ierr);
     if (ctx->isreal) {
       ierr = PetscViewerASCIIPrintf(viewer,"  exploiting symmetry of integration points\n");CHKERRQ(ierr);
     }
     ierr = PetscViewerASCIIPrintf(viewer,"  threshold { delta: %g, spurious threshold: %g }\n",(double)ctx->delta,(double)ctx->spurious_threshold);CHKERRQ(ierr);
     ierr = PetscViewerASCIIPrintf(viewer,"  iterative refinement  { inner: %D, blocksize: %D }\n",ctx->refine_inner, ctx->refine_blocksize);CHKERRQ(ierr);
-    if (ctx->usest) {
-      ierr = PetscViewerASCIIPrintf(viewer,"  using ST for linear solves\n");CHKERRQ(ierr);
-    }
     ierr = PetscViewerASCIIPrintf(viewer,"  extraction: %s\n",EPSCISSExtractions[ctx->extraction]);CHKERRQ(ierr);
     ierr = PetscViewerASCIIPrintf(viewer,"  quadrature rule: %s\n",EPSCISSQuadRules[ctx->quad]);CHKERRQ(ierr);
-    ierr = PetscViewerASCIIPushTab(viewer);CHKERRQ(ierr);
-
-    if (!ctx->usest && ctx->ksp[0]) { ierr = KSPView(ctx->ksp[0],viewer);CHKERRQ(ierr); }
-    ierr = PetscViewerASCIIPopTab(viewer);CHKERRQ(ierr);
+    if (ctx->usest) {
+      ierr = PetscViewerASCIIPrintf(viewer,"  using ST for linear solves\n");CHKERRQ(ierr);
+    } else {
+      ierr = PetscViewerASCIIPushTab(viewer);CHKERRQ(ierr);
+      if (!ctx->ksp) { ierr = EPSCISSGetKSPs(eps,&ctx->num_solve_point,&ctx->ksp);CHKERRQ(ierr); }
+      ierr = KSPView(ctx->ksp[0],viewer);CHKERRQ(ierr);
+      ierr = PetscViewerASCIIPopTab(viewer);CHKERRQ(ierr);
+    }
   }
   PetscFunctionReturn(0);
 }
@@ -1822,7 +1934,7 @@ PetscErrorCode EPSSetDefaultST_CISS(EPS eps)
 
   PetscFunctionBegin;
   if (!((PetscObject)eps->st)->type_name) {
-    if (!ctx->usest_set) usest = (ctx->num_subcomm>1)? PETSC_FALSE: PETSC_TRUE;
+    if (!ctx->usest_set) usest = (ctx->npart>1)? PETSC_FALSE: PETSC_TRUE;
     if (usest) {
       ierr = STSetType(eps->st,STSINVERT);CHKERRQ(ierr);
     } else {
@@ -1866,6 +1978,7 @@ PETSC_EXTERN PetscErrorCode EPSCreate_CISS(EPS eps)
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSCISSGetQuadRule_C",EPSCISSGetQuadRule_CISS);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSCISSSetExtraction_C",EPSCISSSetExtraction_CISS);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSCISSGetExtraction_C",EPSCISSGetExtraction_CISS);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSCISSGetKSPs_C",EPSCISSGetKSPs_CISS);CHKERRQ(ierr);
   /* set default values of parameters */
   ctx->N                  = 32;
   ctx->L                  = 16;
@@ -1878,7 +1991,7 @@ PETSC_EXTERN PetscErrorCode EPSCreate_CISS(EPS eps)
   ctx->isreal             = PETSC_FALSE;
   ctx->refine_inner       = 0;
   ctx->refine_blocksize   = 0;
-  ctx->num_subcomm        = 1;
+  ctx->npart              = 1;
   ctx->quad               = (EPSCISSQuadRule)0;
   ctx->extraction         = EPS_CISS_EXTRACTION_RITZ;
   PetscFunctionReturn(0);

@@ -464,13 +464,14 @@ runtest9_5:
 	${MPIEXEC} -n 1 ./test9 -eps_type jd -eps_nev 3 -eps_target .5 -eps_harmonic -st_ksp_type bicg -eps_jd_minv 2 > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
-runtest9_6: runtest9_6_ciss runtest9_6_ciss_hankel runtest9_6_ciss_cheby runtest9_6_ciss_hankel_cheby runtest9_6_ciss_refine
+runtest9_6: runtest9_6_ciss runtest9_6_ciss_hankel runtest9_6_ciss_cheby runtest9_6_ciss_hankel_cheby runtest9_6_ciss_refine runtest9_6_ciss_bcgs
 runtest9_6_%:
 	-@${SETTEST};  check=test9_6; eps=$*; \
 	if [ "$$eps" = ciss_hankel ]; then eps="ciss -eps_ciss_extraction hankel -eps_ciss_spurious_threshold 1e-6"; \
 	elif [ "$$eps" = ciss_cheby ]; then eps="ciss -eps_ciss_quadrule chebyshev"; \
 	elif [ "$$eps" = ciss_hankel_cheby ]; then eps="ciss -eps_ciss_extraction hankel -eps_ciss_quadrule chebyshev"; \
-	elif [ "$$eps" = ciss_refine ]; then eps="ciss -eps_ciss_refine_inner 1 -eps_ciss_refine_blocksize 1"; fi; \
+	elif [ "$$eps" = ciss_refine ]; then eps="ciss -eps_ciss_refine_inner 1 -eps_ciss_refine_blocksize 1"; \
+	elif [ "$$eps" = ciss_bcgs ]; then eps="ciss -eps_ciss_realmats -eps_ciss_ksp_type bcgs -eps_ciss_pc_type sor"; fi; \
 	${MPIEXEC} -n 1 ./test9 -eps_type $$eps -eps_tol 1e-9 -rg_type ellipse -rg_ellipse_center 0.55 -rg_ellipse_radius 0.05 -rg_ellipse_vscale 0.1 -eps_ciss_usest 0 -eps_all > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
