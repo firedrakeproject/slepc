@@ -434,15 +434,21 @@ PetscErrorCode NEPSetUp_CISS(NEP nep)
   PetscBool      istrivial,isellipse,flg,useconj;
 
   PetscFunctionBegin;
-  if (!nep->ncv) nep->ncv = ctx->L_max*ctx->M;
-  else {
+  if (!nep->ncv) {
+    nep->ncv = ctx->L_max*ctx->M;
+    if (nep->ncv>nep->n) {
+      nep->ncv = nep->n;
+      ctx->L_max = nep->ncv/ctx->M;
+      if (!ctx->L_max) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"Cannot adjust solver parameters, try setting a smaller value of M (moment size)");
+    }
+  } else {
     ctx->L_max = nep->ncv/ctx->M;
-    if (ctx->L_max == 0) {
+    if (!ctx->L_max) {
       ctx->L_max = 1;
       nep->ncv = ctx->L_max*ctx->M;
     }
-    if (ctx->L > ctx->L_max) ctx->L = ctx->L_max;
   }
+  ctx->L = PetscMin(ctx->L,ctx->L_max);
   if (!nep->max_it) nep->max_it = 1;
   if (!nep->mpd) nep->mpd = nep->ncv;
   if (!nep->which) nep->which = NEP_ALL;

@@ -22,7 +22,8 @@ TESTEXAMPLES_C_NOTSINGLE   = ex20.PETSc runex20_1 ex20.rm \
                              ex21.PETSc runex21_1 ex21.rm \
                              ex22.PETSc runex22_1 runex22_2 ex22.rm \
                              ex27.PETSc runex27_3 ex27.rm
-TESTEXAMPLES_C_COMPLEX     = ex22.PETSc runex22_1_ciss ex22.rm
+TESTEXAMPLES_C_COMPLEX     = ex22.PETSc runex22_1_ciss ex22.rm \
+                             ex27.PETSc runex27_7 runex27_8 ex27.rm
 TESTEXAMPLES_VECCUDA       = ex27.PETSc runex27_5_cuda runex27_6_cuda ex27.rm
 TESTEXAMPLES_F90_NOTSINGLE = ex20f90.PETSc runex20f90_1 ex20f90.rm \
                              ex22f90.PETSc runex22f90_1 ex22f90.rm
@@ -123,3 +124,14 @@ runex27_6_cuda:
 	-@${SETTEST}; check=ex27_2; \
 	${MPIEXEC} -n 1 ./ex27 -split 0 -nep_nev 3 -mat_type aijcusparse -terse > $${test}.tmp 2>&1; \
 	${TESTCODE}
+
+runex27_7:
+	-@${SETTEST}; \
+	${MPIEXEC} -n 1 ./ex27 -split 0 -nep_type ciss -rg_type ellipse -rg_ellipse_center 8 -rg_ellipse_radius .7 -rg_ellipse_vscale 0.1 -terse > $${test}.tmp 2>&1; \
+	${TESTCODE}
+
+runex27_8:
+	-@${SETTEST}; check=ex27_7; \
+	${MPIEXEC} -n 1 ./ex27 -nep_type ciss -rg_type ellipse -rg_ellipse_center 8 -rg_ellipse_radius .7 -rg_ellipse_vscale 0.1 -terse | ${SED} -e "s/ (in split form)//" > $${test}.tmp 2>&1; \
+	${TESTCODE}
+
