@@ -1109,7 +1109,6 @@ PetscErrorCode EPSSolve_CISS(EPS eps)
 
       ierr = DSSolve(eps->ds,eps->eigr,eps->eigi);CHKERRQ(ierr);
       ierr = DSSynchronize(eps->ds,eps->eigr,eps->eigi);CHKERRQ(ierr);
-      ierr = DSVectors(eps->ds,DS_MAT_X,NULL,NULL);CHKERRQ(ierr);
 
       ierr = PetscMalloc3(nv,&fl1,nv,&inside,nv,&rr);CHKERRQ(ierr);
       ierr = rescale_eig(eps,nv);CHKERRQ(ierr);

@@ -575,7 +575,6 @@ PetscErrorCode NEPSolve_CISS(NEP nep)
     ierr = DSRestoreArray(nep->ds,DS_MAT_B,&temp);CHKERRQ(ierr);
     ierr = DSSolve(nep->ds,nep->eigr,nep->eigi);CHKERRQ(ierr);
     ierr = DSSynchronize(nep->ds,nep->eigr,nep->eigi);CHKERRQ(ierr);
-    ierr = DSVectors(nep->ds,DS_MAT_X,NULL,NULL);CHKERRQ(ierr);
     for (i=0;i<nv;i++){
       nep->eigr[i] = (nep->eigr[i]*radius+center)*rgscale;
 #if !defined(PETSC_USE_COMPLEX)
