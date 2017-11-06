@@ -99,6 +99,7 @@ PETSC_STATIC_INLINE PetscErrorCode NEPCISSSetUseConj(NEP nep,PetscBool *useconj)
   PetscScalar    center;
 
   PetscFunctionBegin;
+  *useconj = PETSC_FALSE;
   ierr = RGEllipseGetParameters(nep->rg,&center,NULL,NULL);CHKERRQ(ierr);
   *useconj = (ctx->isreal && PetscImaginaryPart(center) == 0.0)? PETSC_TRUE: PETSC_FALSE;
   PetscFunctionReturn(0);
@@ -115,7 +116,7 @@ PETSC_STATIC_INLINE PetscErrorCode NEPCISSSetUpSubComm(NEP nep,PetscInt *num_sol
   ierr = PetscSubcommCreate(PetscObjectComm((PetscObject)nep),&ctx->subcomm);CHKERRQ(ierr);
   ierr = PetscSubcommSetNumber(ctx->subcomm,ctx->npart);CHKERRQ(ierr);CHKERRQ(ierr);
   ierr = PetscSubcommSetType(ctx->subcomm,PETSC_SUBCOMM_INTERLACED);CHKERRQ(ierr);
-  ierr = PetscLogObjectParent((PetscObject)nep,(PetscObject)ctx->subcomm);CHKERRQ(ierr);
+  ierr = PetscLogObjectMemory((PetscObject)nep,sizeof(PetscSubcomm));CHKERRQ(ierr);
   ctx->subcomm_id = ctx->subcomm->color;
   ierr = NEPCISSSetUseConj(nep,&ctx->useconj);CHKERRQ(ierr);
   if (ctx->useconj) N = N/2;

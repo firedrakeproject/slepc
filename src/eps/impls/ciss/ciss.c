@@ -142,7 +142,7 @@ PETSC_STATIC_INLINE PetscErrorCode EPSCISSSetUpSubComm(EPS eps,PetscInt *num_sol
   ierr = PetscSubcommCreate(PetscObjectComm((PetscObject)eps),&ctx->subcomm);CHKERRQ(ierr);
   ierr = PetscSubcommSetNumber(ctx->subcomm,ctx->npart);CHKERRQ(ierr);CHKERRQ(ierr);
   ierr = PetscSubcommSetType(ctx->subcomm,PETSC_SUBCOMM_INTERLACED);CHKERRQ(ierr);
-  ierr = PetscLogObjectParent((PetscObject)eps,(PetscObject)ctx->subcomm);CHKERRQ(ierr);
+  ierr = PetscLogObjectMemory((PetscObject)eps,sizeof(PetscSubcomm));CHKERRQ(ierr);
   ctx->subcomm_id = ctx->subcomm->color;
   ierr = EPSCISSSetUseConj(eps,&ctx->useconj);CHKERRQ(ierr);
   if (ctx->useconj) N = N/2;
