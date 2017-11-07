@@ -48,7 +48,7 @@ int main(int argc,char **argv)
   PC             pc;
   Mat            F,A[2];
   NEPType        type;
-  PetscInt       n=100,nev,its;
+  PetscInt       i,n=100,nev,its,nsolve;
   PetscReal      keep,tol=PETSC_SQRT_MACHINE_EPSILON/10;
   PetscErrorCode ierr;
   RG             rg;
@@ -80,11 +80,13 @@ int main(int argc,char **argv)
   ierr = RGIntervalSetEndpoints(rg,0.01,16.0,0,0);CHKERRQ(ierr);
 #endif
   ierr = NEPSetTarget(nep,1.1);CHKERRQ(ierr);
-  ierr = NEPNLEIGSGetKSPs(nep,&ksp);CHKERRQ(ierr);
-  ierr = KSPSetType(ksp[0],KSPBICG);CHKERRQ(ierr);
-  ierr = KSPGetPC(ksp[0],&pc);CHKERRQ(ierr);
-  ierr = PCSetType(pc,PCJACOBI);CHKERRQ(ierr);
-  ierr = KSPSetTolerances(ksp[0],tol,PETSC_DEFAULT,PETSC_DEFAULT,PETSC_DEFAULT);CHKERRQ(ierr);
+  ierr = NEPNLEIGSGetKSPs(nep,&nsolve,&ksp);CHKERRQ(ierr);
+  for (i=0;i<nsolve;i++) {
+   ierr = KSPSetType(ksp[i],KSPBICG);CHKERRQ(ierr);
+   ierr = KSPGetPC(ksp[i],&pc);CHKERRQ(ierr);
+   ierr = PCSetType(pc,PCJACOBI);CHKERRQ(ierr);
+   ierr = KSPSetTolerances(ksp[i],tol,PETSC_DEFAULT,PETSC_DEFAULT,PETSC_DEFAULT);CHKERRQ(ierr);
+  }
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
      Define the nonlinear problem

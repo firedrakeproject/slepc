@@ -56,15 +56,15 @@ typedef struct {
   Vec         t;
 } ShellMatCtx;
 
-PETSC_STATIC_INLINE PetscErrorCode NEPNLEIGSSetShifts(NEP nep)
+PETSC_STATIC_INLINE PetscErrorCode NEPNLEIGSSetShifts(NEP nep,PetscInt *nshiftsw)
 {
   NEP_NLEIGS *ctx = (NEP_NLEIGS*)nep->data;
 
   PetscFunctionBegin;
   if (!ctx->nshifts) {
     ctx->shifts = &nep->target;
-    ctx->nshiftsw = 1;
-  } else ctx->nshiftsw = ctx->nshifts;
+    *nshiftsw = 1;
+  } else *nshiftsw = ctx->nshifts;
   PetscFunctionReturn(0);
 }
 
@@ -615,7 +615,7 @@ static PetscErrorCode NEPNLEIGSDividedDifferences_split(NEP nep)
       break;
     }
   }
-  if (!ctx->ksp) { ierr = NEPNLEIGSGetKSPs(nep,&ctx->ksp);CHKERRQ(ierr); }
+  if (!ctx->ksp) { ierr = NEPNLEIGSGetKSPs(nep,&ctx->nshiftsw,&ctx->ksp);CHKERRQ(ierr); }
   ierr = PetscObjectTypeCompare((PetscObject)nep->A[0],MATSHELL,&shell);CHKERRQ(ierr);
   maxnmat = PetscMax(ctx->ddmaxit,nep->nt);
   for (i=0;i<ctx->nshiftsw;i++) {
@@ -711,7 +711,7 @@ static PetscErrorCode NEPNLEIGSDividedDifferences_callback(NEP nep)
       break;
     }
   }
-  if (!ctx->ksp) { ierr = NEPNLEIGSGetKSPs(nep,&ctx->ksp);CHKERRQ(ierr); }
+  if (!ctx->ksp) { ierr = NEPNLEIGSGetKSPs(nep,&ctx->nshiftsw,&ctx->ksp);CHKERRQ(ierr); }
   for (i=0;i<ctx->nshiftsw;i++) {
     ierr = NEPNLEIGSEvalNRTFunct(nep,ctx->nmat-1,ctx->shifts[i],coeffs);CHKERRQ(ierr);
     ierr = MatDuplicate(ctx->D[0],MAT_COPY_VALUES,&T);CHKERRQ(ierr);
@@ -918,7 +918,7 @@ static PetscErrorCode NEPTOARExtendBasis(NEP nep,PetscInt idxrktg,PetscScalar *S
   PetscScalar    *beta=ctx->beta,*s=ctx->s,*xi=ctx->xi,*coeffs,sigma;
 
   PetscFunctionBegin;
-  if (!ctx->ksp) { ierr = NEPNLEIGSGetKSPs(nep,&ctx->ksp);CHKERRQ(ierr); }
+  if (!ctx->ksp) { ierr = NEPNLEIGSGetKSPs(nep,&ctx->nshiftsw,&ctx->ksp);CHKERRQ(ierr); }
   sigma = ctx->shifts[idxrktg];
   ierr = BVSetActiveColumns(nep->V,0,nv);CHKERRQ(ierr);
   ierr = PetscMalloc1(ctx->nmat,&coeffs);CHKERRQ(ierr);
@@ -1827,6 +1827,66 @@ PetscErrorCode NEPNLEIGSGetRKShifts(NEP nep,PetscInt *ns,PetscScalar **shifts)
   PetscFunctionReturn(0);
 }
 
+static PetscErrorCode NEPNLEIGSGetKSPs_NLEIGS(NEP nep,PetscInt *nsolve,KSP **ksp)
+{
+  PetscErrorCode ierr;
+  NEP_NLEIGS     *ctx = (NEP_NLEIGS*)nep->data;
+  PetscInt       i;
+  PC             pc;
+
+  PetscFunctionBegin;
+  if (!ctx->ksp) {
+    ierr = NEPNLEIGSSetShifts(nep,&ctx->nshiftsw);CHKERRQ(ierr);
+    ierr = PetscMalloc1(ctx->nshiftsw,&ctx->ksp);CHKERRQ(ierr);
+    for (i=0;i<ctx->nshiftsw;i++) {
+      ierr = KSPCreate(PetscObjectComm((PetscObject)nep),&ctx->ksp[i]);CHKERRQ(ierr);
+      ierr = KSPSetOptionsPrefix(ctx->ksp[i],((PetscObject)nep)->prefix);CHKERRQ(ierr);
+      ierr = KSPAppendOptionsPrefix(ctx->ksp[i],"nep_nleigs_");CHKERRQ(ierr);
+      ierr = PetscObjectIncrementTabLevel((PetscObject)ctx->ksp[i],(PetscObject)nep,1);CHKERRQ(ierr);
+      ierr = PetscLogObjectParent((PetscObject)nep,(PetscObject)ctx->ksp[i]);CHKERRQ(ierr);
+      ierr = KSPSetErrorIfNotConverged(ctx->ksp[i],PETSC_TRUE);CHKERRQ(ierr);
+      ierr = KSPSetTolerances(ctx->ksp[i],SLEPC_DEFAULT_TOL,PETSC_DEFAULT,PETSC_DEFAULT,PETSC_DEFAULT);CHKERRQ(ierr);
+      ierr = KSPGetPC(ctx->ksp[i],&pc);CHKERRQ(ierr);
+      ierr = KSPSetType(ctx->ksp[i],KSPPREONLY);CHKERRQ(ierr);
+      ierr = PCSetType(pc,PCLU);CHKERRQ(ierr);
+    }
+  }
+  if (nsolve) *nsolve = ctx->nshiftsw;
+  if (ksp)    *ksp    = ctx->ksp;
+  PetscFunctionReturn(0);
+}
+
+/*@C
+   NEPNLEIGSGetKSPs - Retrieve the array of linear solver objects associated with
+   the nonlinear eigenvalue solver.
+
+   Not Collective
+
+   Input Parameter:
+.  nep - nonlinear eigenvalue solver
+
+   Output Parameters:
++  nsolve - number of returned KSP objects
+-  ksp - array of linear solver object
+
+   Notes:
+   The number of KSP objects is equal to the number of shifts provided by the user,
+   or 1 if the user did not provide shifts.
+
+   Level: advanced
+
+.seealso: NEPNLEIGSSetRKShifts()
+@*/
+PetscErrorCode NEPNLEIGSGetKSPs(NEP nep,PetscInt *nsolve,KSP **ksp)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
+  ierr = PetscUseMethod(nep,"NEPNLEIGSGetKSPs_C",(NEP,PetscInt*,KSP**),(nep,nsolve,ksp));CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
 #define SHIFTMAX 30
 
 PetscErrorCode NEPSetFromOptions_NLEIGS(PetscOptionItems *PetscOptionsObject,NEP nep)
@@ -1837,9 +1897,6 @@ PetscErrorCode NEPSetFromOptions_NLEIGS(PetscOptionItems *PetscOptionsObject,NEP
   PetscBool      flg1,flg2,b;
   PetscReal      r;
   PetscScalar    array[SHIFTMAX];
-  PC             pc;
-  PCType         pctype;
-  KSPType        ksptype;
 
   PetscFunctionBegin;
   ierr = PetscOptionsHead(PetscOptionsObject,"NEP NLEIGS Options");CHKERRQ(ierr);
@@ -1863,66 +1920,10 @@ PetscErrorCode NEPSetFromOptions_NLEIGS(PetscOptionItems *PetscOptionsObject,NEP
 
   ierr = PetscOptionsTail();CHKERRQ(ierr);
 
-  if (!ctx->ksp) { ierr = NEPNLEIGSGetKSPs(nep,&ctx->ksp);CHKERRQ(ierr); }
+  if (!ctx->ksp) { ierr = NEPNLEIGSGetKSPs(nep,&ctx->nshiftsw,&ctx->ksp);CHKERRQ(ierr); }
   for (i=0;i<ctx->nshiftsw;i++) {
-    ierr = KSPGetPC(ctx->ksp[i],&pc);CHKERRQ(ierr);
-    ierr = KSPGetType(ctx->ksp[i],&ksptype);CHKERRQ(ierr);
-    ierr = PCGetType(pc,&pctype);CHKERRQ(ierr);
-    if (!pctype && !ksptype) {
-      ierr = KSPSetType(ctx->ksp[i],KSPPREONLY);CHKERRQ(ierr);
-      ierr = PCSetType(pc,PCLU);CHKERRQ(ierr);
-    }
     ierr = KSPSetFromOptions(ctx->ksp[i]);CHKERRQ(ierr);
   }
-  PetscFunctionReturn(0);
-}
-
-static PetscErrorCode NEPNLEIGSGetKSPs_NLEIGS(NEP nep,KSP **ksp)
-{
-  PetscErrorCode ierr;
-  NEP_NLEIGS     *ctx = (NEP_NLEIGS*)nep->data;
-  PetscInt       i;
-
-  PetscFunctionBegin;
-  if (!ctx->ksp) {
-    ierr = NEPNLEIGSSetShifts(nep);CHKERRQ(ierr);
-    ierr = PetscMalloc1(ctx->nshiftsw,&ctx->ksp);CHKERRQ(ierr);
-    for (i=0;i<ctx->nshiftsw;i++) {
-      ierr = KSPCreate(PetscObjectComm((PetscObject)nep),&ctx->ksp[i]);CHKERRQ(ierr);
-      ierr = KSPSetOptionsPrefix(ctx->ksp[i],((PetscObject)nep)->prefix);CHKERRQ(ierr);
-      ierr = KSPAppendOptionsPrefix(ctx->ksp[i],"nep_nleigs_");CHKERRQ(ierr);
-      ierr = PetscObjectIncrementTabLevel((PetscObject)ctx->ksp[i],(PetscObject)nep,1);CHKERRQ(ierr);
-      ierr = PetscLogObjectParent((PetscObject)nep,(PetscObject)ctx->ksp[i]);CHKERRQ(ierr);
-      ierr = KSPSetErrorIfNotConverged(ctx->ksp[i],PETSC_TRUE);CHKERRQ(ierr);
-      ierr = KSPSetTolerances(ctx->ksp[i],SLEPC_DEFAULT_TOL,PETSC_DEFAULT,PETSC_DEFAULT,PETSC_DEFAULT);CHKERRQ(ierr);
-    }
-  }
-  *ksp = ctx->ksp;
-  PetscFunctionReturn(0);
-}
-
-/*@C
-   NEPNLEIGSGetKSPs - Retrieve the array of linear solver objects associated with
-   the nonlinear eigenvalue solver.
-
-   Not Collective
-
-   Input Parameter:
-.  nep - nonlinear eigenvalue solver
-
-   Output Parameter:
-.  ksp - array of linear solver object
-
-   Level: advanced
-@*/
-PetscErrorCode NEPNLEIGSGetKSPs(NEP nep,KSP **ksp)
-{
-  PetscErrorCode ierr;
-
-  PetscFunctionBegin;
-  PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
-  PetscValidPointer(ksp,2);
-  ierr = PetscUseMethod(nep,"NEPNLEIGSGetKSPs_C",(NEP,KSP**),(nep,ksp));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -1951,7 +1952,7 @@ PetscErrorCode NEPView_NLEIGS(NEP nep,PetscViewer viewer)
       ierr = PetscViewerASCIIPrintf(viewer,"\n");CHKERRQ(ierr);
       ierr = PetscViewerASCIIUseTabs(viewer,PETSC_TRUE);CHKERRQ(ierr);
     }
-    if (!ctx->ksp) { ierr = NEPNLEIGSGetKSPs(nep,&ctx->ksp);CHKERRQ(ierr); }
+    if (!ctx->ksp) { ierr = NEPNLEIGSGetKSPs(nep,&ctx->nshiftsw,&ctx->ksp);CHKERRQ(ierr); }
     ierr = PetscViewerASCIIPushTab(viewer);CHKERRQ(ierr);
     ierr = KSPView(ctx->ksp[0],viewer);CHKERRQ(ierr);
     ierr = PetscViewerASCIIPopTab(viewer);CHKERRQ(ierr);
