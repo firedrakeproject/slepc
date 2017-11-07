@@ -33,6 +33,7 @@ PetscErrorCode FormJacobianA(SNES,Vec,Mat,Mat,void*);
 PetscErrorCode FormFunctionA(SNES,Vec,Vec,void*);
 PetscErrorCode FormJacobianB(SNES,Vec,Mat,Mat,void*);
 PetscErrorCode FormFunctionB(SNES,Vec,Vec,void*);
+PetscErrorCode FormFunctionAB(SNES,Vec,Vec,Vec,void*);
 PetscErrorCode BoundaryGlobalIndex(DM,const char*,IS*);
 
 typedef struct {
@@ -68,6 +69,7 @@ int main(int argc,char **argv)
      Compose callback functions and context that will be needed by the solver
   */
   ierr = PetscObjectComposeFunction((PetscObject)A,"formFunction",FormFunctionA);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)A,"formFunctionAB",FormFunctionAB);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)A,"formJacobian",FormJacobianA);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)B,"formFunction",FormFunctionB);CHKERRQ(ierr);
   ierr = PetscContainerCreate(comm,&container);CHKERRQ(ierr);
@@ -319,6 +321,23 @@ PetscErrorCode FormJacobianB(SNES snes,Vec X,Mat A,Mat B,void *ctx)
   ierr = MatZeroRowsIS(B,userctx->bdis,0.0,NULL,NULL);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
+
+PetscErrorCode FormFunctionAB(SNES snes,Vec x,Vec Ax,Vec Bx,void *ctx)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  /*
+   * In real applications, users should have a generic formFunctionAB which
+   * forms Ax and Bx simultaneously for an more efficient calculation.
+   * In this example, we just call FormFunctionA+FormFunctionB to mimic how
+   * to use FormFunctionAB
+   */
+  ierr = FormFunctionA(snes,x,Ax,ctx);CHKERRQ(ierr);
+  ierr = FormFunctionB(snes,x,Bx,ctx);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
 
 static PetscErrorCode FormFunction(SNES snes,Vec X,Vec F,void *ctx)
 {
