@@ -214,7 +214,6 @@ PetscErrorCode FormFunction(NEP nep,PetscScalar lambda,Mat fun,Mat B,void *ctx)
 
    Output Parameters:
 .  jac - Jacobian matrix
-.  B   - optionally different preconditioning matrix
 */
 PetscErrorCode FormJacobian(NEP nep,PetscScalar lambda,Mat jac,void *ctx)
 {

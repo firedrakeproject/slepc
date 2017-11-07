@@ -26,12 +26,13 @@ static char help[] = "Simple nonlinear eigenproblem using the NLEIGS solver.\n\n
    User-defined routines
 */
 PetscErrorCode FormFunction(NEP,PetscScalar,Mat,Mat,void*);
+PetscErrorCode FormJacobian(NEP,PetscScalar,Mat,void*);
 PetscErrorCode ComputeSingularities(NEP,PetscInt*,PetscScalar*,void*);
 
 int main(int argc,char **argv)
 {
   NEP            nep;             /* nonlinear eigensolver context */
-  Mat            F,A[2];
+  Mat            F,J,A[2];
   NEPType        type;
   PetscInt       n=100,nev,Istart,Iend,i;
   PetscErrorCode ierr;
@@ -117,6 +118,14 @@ int main(int argc,char **argv)
     ierr = MatMPIAIJSetPreallocation(F,3,NULL,1,NULL);CHKERRQ(ierr);
     ierr = MatSetUp(F);CHKERRQ(ierr);
     ierr = NEPSetFunction(nep,F,F,FormFunction,NULL);CHKERRQ(ierr);
+
+    ierr = MatCreate(PETSC_COMM_WORLD,&J);CHKERRQ(ierr);
+    ierr = MatSetSizes(J,PETSC_DECIDE,PETSC_DECIDE,n,n);CHKERRQ(ierr);
+    ierr = MatSetFromOptions(J);CHKERRQ(ierr);
+    ierr = MatSeqAIJSetPreallocation(J,1,NULL);CHKERRQ(ierr);
+    ierr = MatMPIAIJSetPreallocation(F,1,NULL,1,NULL);CHKERRQ(ierr);
+    ierr = MatSetUp(J);CHKERRQ(ierr);
+    ierr = NEPSetJacobian(nep,J,FormJacobian,NULL);CHKERRQ(ierr);
   }
 
   /*
@@ -155,6 +164,7 @@ int main(int argc,char **argv)
     ierr = FNDestroy(&f[1]);CHKERRQ(ierr);
   } else {
     ierr = MatDestroy(&F);CHKERRQ(ierr);
+    ierr = MatDestroy(&J);CHKERRQ(ierr);
   }
   ierr = SlepcFinalize();
   return ierr;
@@ -206,6 +216,24 @@ PetscErrorCode FormFunction(NEP nep,PetscScalar lambda,Mat fun,Mat B,void *ctx)
   PetscFunctionReturn(0);
 }
 
+/* ------------------------------------------------------------------- */
+/*
+   FormJacobian - Computes Jacobian matrix  T'(lambda)
+*/
+PetscErrorCode FormJacobian(NEP nep,PetscScalar lambda,Mat jac,void *ctx)
+{
+  PetscErrorCode ierr;
+  Vec            d;
+
+  PetscFunctionBeginUser;
+  ierr = MatCreateVecs(jac,&d,NULL);CHKERRQ(ierr);
+  ierr = VecSet(d,0.5/PetscSqrtScalar(lambda));CHKERRQ(ierr);
+  ierr = MatDiagonalSet(jac,d,INSERT_VALUES);CHKERRQ(ierr);
+  ierr = VecDestroy(&d);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+/* ------------------------------------------------------------------- */
 /*
    ComputeSingularities - Computes maxnp points (at most) in the complex plane where
    the function T(.) is not analytic.
