@@ -48,6 +48,7 @@ typedef struct {
   void              *formFunctionBctx;
   PetscErrorCode    (*formFunctionA)(SNES,Vec,Vec,void*);
   void              *formFunctionActx;
+  PetscErrorCode    (*formFunctionAB)(SNES,Vec,Vec,Vec,void*);
 } EPS_POWER;
 
 PetscErrorCode EPSSetUp_Power(EPS eps)
@@ -104,7 +105,10 @@ PetscErrorCode EPSSetUp_Power(EPS eps)
     ierr = MatCreateVecs(A,&res,NULL);CHKERRQ(ierr);
     power->formFunctionA = formFunctionA;
     power->formFunctionActx = ctx;
-    if (power->update) { ierr = SNESSetFunction(power->snes,res,EPSPowerFormFunction_Update,ctx);CHKERRQ(ierr); }
+    if (power->update) {
+      ierr = SNESSetFunction(power->snes,res,EPSPowerFormFunction_Update,ctx);CHKERRQ(ierr);
+      ierr = PetscObjectQueryFunction((PetscObject)A,"formFunctionAB",&power->formFunctionAB);CHKERRQ(ierr);
+    }
     else { ierr = SNESSetFunction(power->snes,res,formFunctionA,ctx);CHKERRQ(ierr); }
     ierr = VecDestroy(&res);CHKERRQ(ierr);
 
@@ -226,15 +230,21 @@ static PetscErrorCode EPSPowerFormFunction_Update(SNES snes,Vec x,Vec y,void *ct
   EPS            eps;
   PetscReal      bx;
   Vec            Bx;
+  EPS_POWER      *power;
 
   PetscFunctionBegin;
   ierr = PetscObjectQuery((PetscObject)snes,"eps",(PetscObject *)&eps);CHKERRQ(ierr);
   if (!eps) SETERRQ(PETSC_COMM_WORLD,PETSC_ERR_ARG_NULL,"No composed EPS");
+  power = (EPS_POWER*)eps->data;
   Bx = eps->work[2];
-  ierr = EPSPowerUpdateFunctionB(eps,x,Bx);CHKERRQ(ierr);
+  if (power->formFunctionAB) {
+    ierr = (*power->formFunctionAB)(snes,x,y,Bx,ctx);CHKERRQ(ierr);
+  } else {
+    ierr = EPSPowerUpdateFunctionA(eps,x,y);CHKERRQ(ierr);
+    ierr = EPSPowerUpdateFunctionB(eps,x,Bx);CHKERRQ(ierr);
+  }
   ierr = VecNorm(Bx,NORM_2,&bx);CHKERRQ(ierr);
   ierr = Normalize(Bx,bx,NULL);CHKERRQ(ierr);
-  ierr = EPSPowerUpdateFunctionA(eps,x,y);CHKERRQ(ierr);
   ierr = VecAXPY(y,-1.0,Bx);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
