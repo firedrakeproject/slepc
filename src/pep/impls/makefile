@@ -10,6 +10,11 @@
 
 ALL: lib
 
+CFLAGS   =
+FFLAGS   =
+SOURCEC  = peputils.c
+SOURCEF  =
+SOURCEH  = 
 LIBBASE  = libslepcpep
 DIRS     = linear krylov jd
 LOCDIR   = src/pep/impls/
