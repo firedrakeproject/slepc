@@ -26,6 +26,7 @@ TESTEXAMPLES_C_NOTSINGLE       = test1.PETSc runtest1_1 test1.rm \
                                  test7.PETSc runtest7_1 runtest7_2 test7.rm \
                                  test9.PETSc runtest9_1 test9.rm \
                                  test10.PETSc runtest10_1 test10.rm
+TESTEXAMPLES_C_COMPLEX         = test10.PETSc runtest10_2 test10.rm
 TESTEXAMPLES_C_DATAFILE        = test6.PETSc runtest6_1 test6.rm \
                                  test8.PETSc runtest8_1 test8.rm
 TESTEXAMPLES_FORTRAN_NOTSINGLE = test2f.PETSc runtest2f_1 test2f.rm
@@ -154,5 +155,10 @@ runtest10_1_%:
 	elif [ "$$nep" = narnoldi_sync ]; then nep="narnoldi -ds_parallel synchronized"; \
 	elif [ "$$nep" = slp ]; then nep="slp -nep_slp_st_pc_type redundant"; fi; \
 	${MPIEXEC} -n 2 ./test10 -nep_type $${nep} > $${test}.tmp 2>&1; \
+	${TESTCODE}
+
+runtest10_2:
+	-@${SETTEST}; \
+	${MPIEXEC} -n 1 ./test10 -nep_nev 2 -nep_type interpol -rg_type interval -rg_interval_endpoints .5,15,-.1,.1 -nep_target .7 -nep_interpol_pep_type jd -nep_interpol_st_pc_type sor > $${test}.tmp 2>&1; \
 	${TESTCODE}
 

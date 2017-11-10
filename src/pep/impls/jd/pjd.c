@@ -191,10 +191,12 @@ static PetscErrorCode PEPJDUpdateTV(PEP pep,PetscInt low,PetscInt high,Vec *w)
       ierr = PetscMPIIntCast(nconv,&count);CHKERRQ(ierr);
       ierr = MPI_Bcast(x2,nconv,MPIU_SCALAR,np-1,PetscObjectComm((PetscObject)pep));CHKERRQ(ierr);
     }
-    ierr = BVSetActiveColumns(pjd->N[0],0,nconv);CHKERRQ(ierr);
-    ierr = BVSetActiveColumns(pjd->N[1],0,nconv);CHKERRQ(ierr);
     ierr = VecPlaceArray(t1,array1);CHKERRQ(ierr);
-    if (nconv) {ierr = BVDotVec(pjd->X,t1,xx);CHKERRQ(ierr);}
+    if (nconv) {
+      ierr = BVSetActiveColumns(pjd->N[0],0,nconv);CHKERRQ(ierr);
+      ierr = BVSetActiveColumns(pjd->N[1],0,nconv);CHKERRQ(ierr);
+      ierr = BVDotVec(pjd->X,t1,xx);CHKERRQ(ierr);
+    }
     for (pp=pep->nmat-1;pp>=0;pp--) {
       ierr = BVGetColumn(pjd->TV[pp],col,&v2);CHKERRQ(ierr);
       ierr = VecGetArray(v2,&array2);CHKERRQ(ierr);
@@ -928,6 +930,7 @@ PetscErrorCode PEPSolve_JD(PEP pep)
   ierr = BVCreateVec(pjd->V,&u);CHKERRQ(ierr);
   ierr = VecDuplicate(u,&p);CHKERRQ(ierr);
   ierr = VecDuplicate(u,&r);CHKERRQ(ierr);
+  pjd->nconv = 0;
   ierr = STGetKSP(pep->st,&ksp);CHKERRQ(ierr);
 
   if (pep->nini) {
