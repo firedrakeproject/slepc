@@ -153,18 +153,24 @@ static PetscErrorCode dvd_updateV_conv_gen(dvdDashboard *d)
 static PetscErrorCode dvd_updateV_restart_gen(dvdDashboard *d)
 {
   dvdManagV_basic *data = (dvdManagV_basic*)d->updateV_data;
-  PetscInt        lV,kV,nV,size_plusk,size_X,cMTX,cMTY;
+  PetscInt        lV,kV,nV,size_plusk,size_X,cMTX,cMTY,max_restart_size;
   Mat             Z;
   PetscErrorCode  ierr;
 
   PetscFunctionBegin;
   /* Select size_X desired pairs from V */
+  /* The restarted basis should:
+     - have at least one spot to add a new direction;
+     - keep converged vectors, npreconv;
+     - keep at least 1 oldU direction if possible.
+  */
   ierr = BVGetActiveColumns(d->eps->V,&lV,&kV);CHKERRQ(ierr);
   nV = kV - lV;
-  size_X = PetscMin(data->min_size_V+d->npreconv,nV);
+  max_restart_size = PetscMax(0,PetscMin(d->eps->mpd - 1,d->eps->ncv - lV - 2));
+  size_X = PetscMin(PetscMin(data->min_size_V+d->npreconv,max_restart_size - (max_restart_size - d->npreconv > 1 && data->plusk > 0 && data->size_oldU > 0 ? 1 : 0)), nV);
 
   /* Add plusk eigenvectors from the previous iteration */
-  size_plusk = PetscMax(0,PetscMin(PetscMin(data->plusk,data->size_oldU),d->eps->ncv - size_X));
+  size_plusk = PetscMax(0,PetscMin(PetscMin(PetscMin(data->plusk,data->size_oldU),max_restart_size - size_X),nV - size_X));
 
   d->size_MT = nV;
   /* ps.Q <- orth([pX(0:size_X-1) [oldU(0:size_plusk-1); 0] ]) */
@@ -191,6 +197,7 @@ static PetscErrorCode dvd_updateV_restart_gen(dvdDashboard *d)
     ierr = DSOrthogonalize(d->eps->ds,DS_MAT_Z,size_X+size_plusk,&cMTY);CHKERRQ(ierr);
     cMTX = PetscMin(cMTX, cMTY);
   }
+  if (cMTX > size_X+size_plusk) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"Invalid number of columns to restart");
 
   /* Notify the changes in V and update the other subspaces */
   d->V_tra_s = 0;                     d->V_tra_e = cMTX;
