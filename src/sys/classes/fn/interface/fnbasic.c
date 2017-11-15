@@ -575,9 +575,9 @@ static PetscErrorCode FNEvaluateFunctionMat_Sym_Private(FN fn,PetscScalar *As,Pe
 
   /* W = f(Lambda)*Q' */
   for (i=0;i<n;i++) {
-    x = eig[i];
+    x = fn->alpha*eig[i];
     ierr = (*fn->ops->evaluatefunction)(fn,x,&y);CHKERRQ(ierr);  /* y = f(x) */
-    for (j=0;j<k;j++) W[i+j*ld] = Q[j+i*ld]*y;
+    for (j=0;j<k;j++) W[i+j*ld] = PetscConj(Q[j+i*ld])*fn->beta*y;
   }
   /* Bs = Q*W */
   PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&n,&k,&n,&one,Q,&ld,W,&ld,&zero,Bs,&ld));
@@ -632,26 +632,27 @@ PetscErrorCode FNEvaluateFunctionMat_Private(FN fn,Mat A,Mat B,PetscBool sync)
   ierr = MPI_Comm_size(PetscObjectComm((PetscObject)fn),&size);CHKERRQ(ierr);
   ierr = MPI_Comm_rank(PetscObjectComm((PetscObject)fn),&rank);CHKERRQ(ierr);
   if (size==1 || fn->pmode==FN_PARALLEL_REDUNDANT || (fn->pmode==FN_PARALLEL_SYNCHRONIZED && !rank)) {
-    /* scale argument */
-    if (fn->alpha!=(PetscScalar)1.0) {
-      ierr = FN_AllocateWorkMat(fn,A,&M);CHKERRQ(ierr);
-      ierr = MatScale(M,fn->alpha);CHKERRQ(ierr);
-    } else M = A;
     
     ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
     if (symm && !fn->method) {  /* prefer diagonalization */
-      ierr = FNEvaluateFunctionMat_Sym_Default(fn,M,F);CHKERRQ(ierr);
+      ierr = PetscInfo(fn,"Computing matrix function via diagonalization\n");CHKERRQ(ierr);
+      ierr = FNEvaluateFunctionMat_Sym_Default(fn,A,F);CHKERRQ(ierr);
     } else {
+      /* scale argument */
+      if (fn->alpha!=(PetscScalar)1.0) {
+        ierr = FN_AllocateWorkMat(fn,A,&M);CHKERRQ(ierr);
+        ierr = MatScale(M,fn->alpha);CHKERRQ(ierr);
+      } else M = A;
       if (fn->ops->evaluatefunctionmat[fn->method]) {
         ierr = (*fn->ops->evaluatefunctionmat[fn->method])(fn,M,F);CHKERRQ(ierr);
       } else SETERRQ(PetscObjectComm((PetscObject)fn),PETSC_ERR_ARG_OUTOFRANGE,"The specified method number does not exist for this FN");
+      if (fn->alpha!=(PetscScalar)1.0) {
+        ierr = FN_FreeWorkMat(fn,&M);CHKERRQ(ierr);
+      }
+      /* scale result */
+      ierr = MatScale(F,fn->beta);CHKERRQ(ierr);
     }
     ierr = PetscFPTrapPop();CHKERRQ(ierr);
-    if (fn->alpha!=(PetscScalar)1.0) {
-      ierr = FN_FreeWorkMat(fn,&M);CHKERRQ(ierr);
-    }
-    /* scale result */
-    ierr = MatScale(F,fn->beta);CHKERRQ(ierr);
   }
   if (size>1 && fn->pmode==FN_PARALLEL_SYNCHRONIZED && sync) {  /* synchronize */
     ierr = MatGetSize(A,&m,&n);CHKERRQ(ierr);
@@ -786,28 +787,28 @@ PetscErrorCode FNEvaluateFunctionMatVec_Private(FN fn,Mat A,Vec v,PetscBool sync
   ierr = MPI_Comm_size(PetscObjectComm((PetscObject)fn),&size);CHKERRQ(ierr);
   ierr = MPI_Comm_rank(PetscObjectComm((PetscObject)fn),&rank);CHKERRQ(ierr);
   if (size==1 || fn->pmode==FN_PARALLEL_REDUNDANT || (fn->pmode==FN_PARALLEL_SYNCHRONIZED && !rank)) {
-    /* scale argument */
-    if (fn->alpha!=(PetscScalar)1.0) {
-      ierr = FN_AllocateWorkMat(fn,A,&M);CHKERRQ(ierr);
-      ierr = MatScale(M,fn->alpha);CHKERRQ(ierr);
-    } else M = A;
     ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
     if (symm && !fn->method) {  /* prefer diagonalization */
-      ierr = FNEvaluateFunctionMatVec_Sym_Default(fn,M,v);CHKERRQ(ierr);
+      ierr = PetscInfo(fn,"Computing matrix function via diagonalization\n");CHKERRQ(ierr);
+      ierr = FNEvaluateFunctionMatVec_Sym_Default(fn,A,v);CHKERRQ(ierr);
     } else {
+      /* scale argument */
+      if (fn->alpha!=(PetscScalar)1.0) {
+        ierr = FN_AllocateWorkMat(fn,A,&M);CHKERRQ(ierr);
+        ierr = MatScale(M,fn->alpha);CHKERRQ(ierr);
+      } else M = A;
       if (fn->ops->evaluatefunctionmatvec[fn->method]) {
         ierr = (*fn->ops->evaluatefunctionmatvec[fn->method])(fn,M,v);CHKERRQ(ierr);
       } else {
         ierr = FNEvaluateFunctionMatVec_Default(fn,M,v);CHKERRQ(ierr);
       }
+      if (fn->alpha!=(PetscScalar)1.0) {
+        ierr = FN_FreeWorkMat(fn,&M);CHKERRQ(ierr);
+      }
+      /* scale result */
+      ierr = VecScale(v,fn->beta);CHKERRQ(ierr);
     }
     ierr = PetscFPTrapPop();CHKERRQ(ierr);
-    if (fn->alpha!=(PetscScalar)1.0) {
-      ierr = FN_FreeWorkMat(fn,&M);CHKERRQ(ierr);
-    }
-
-    /* scale result */
-    ierr = VecScale(v,fn->beta);CHKERRQ(ierr);
   }
 
   /* synchronize */
