@@ -13,10 +13,10 @@ FFLAGS     =
 CPPFLAGS   =
 FPPFLAGS   =
 LOCDIR     = src/sys/classes/fn/examples/tests/
-EXAMPLESC  = test1.c test2.c test3.c test4.c test5.c test6.c test7.c test8.c test9.c test10.c test11.c
+EXAMPLESC  = test1.c test2.c test3.c test4.c test5.c test6.c test7.c test8.c test9.c test10.c test11.c test12.c
 EXAMPLESF  = test1f.F test7f.F
 MANSEC     = FN
-TESTS      = test1 test1f test2 test3 test4 test5 test6 test7 test7f test8 test9 test10 test11
+TESTS      = test1 test1f test2 test3 test4 test5 test6 test7 test7f test8 test9 test10 test11 test12
 
 TESTEXAMPLES_C           = test1.PETSc runtest1_1 test1.rm \
                            test2.PETSc runtest2_1 test2.rm \
@@ -28,7 +28,8 @@ TESTEXAMPLES_C           = test1.PETSc runtest1_1 test1.rm \
                            test8.PETSc runtest8_1 runtest8_2 test8.rm \
                            test9.PETSc runtest9_1 test9.rm \
                            test10.PETSc runtest10_1 test10.rm \
-                           test11.PETSc runtest11_1 runtest11_2 test11.rm
+                           test11.PETSc runtest11_1 runtest11_2 test11.rm \
+                           test12.PETSc runtest12_1 test12.rm
 TESTEXAMPLES_C_NOTSINGLE = test7.PETSc runtest7_1_sadeghi runtest7_2_sadeghi test7.rm
 TESTEXAMPLES_FORTRAN     = test1f.PETSc runtest1f_1 test1f.rm \
                            test7f.PETSc runtest7f_1 test7f.rm
@@ -86,6 +87,10 @@ test10: test10.o chkopts
 test11: test11.o chkopts
 	-${CLINKER} -o test11 test11.o ${SLEPC_SYS_LIB}
 	${RM} test11.o
+
+test12: test12.o chkopts
+	-${CLINKER} -o test12 test12.o ${SLEPC_SYS_LIB}
+	${RM} test12.o
 
 #------------------------------------------------------------------------------------
 
@@ -237,5 +242,12 @@ runtest11_1:
 runtest11_2:
 	-@${SETTEST}; check=test11_1; \
 	${MPIEXEC} -n 1 ./test11 -inplace > $${test}.tmp 2>&1; \
+	${TESTCODE}
+
+runtest12_1: runtest12_1_exp runtest12_1_sqrt runtest12_1_rational
+runtest12_1_%:
+	-@${SETTEST}; check=test12_1; fun=$*; \
+	if [ "$$fun" = rational ]; then fun="rational -fn_rational_numerator 2,-1.5 -fn_rational_denominator 1,0.8"; fi; \
+	${MPIEXEC} -n 1 ./test12 -fn_type $$fun > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
