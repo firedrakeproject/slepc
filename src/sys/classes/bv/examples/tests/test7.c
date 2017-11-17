@@ -16,7 +16,7 @@ int main(int argc,char **argv)
 {
   PetscErrorCode ierr;
   Vec            t,v;
-  Mat            B;
+  Mat            B,Ymat;
   BV             X,Y,Z,Zcopy;
   PetscInt       i,j,n=10,k=5,rep=1,Istart,Iend;
   PetscScalar    *pZ;
@@ -108,6 +108,14 @@ int main(int argc,char **argv)
   if (verbose) {
     ierr = BVView(Y,view);CHKERRQ(ierr);
   }
+
+  /* Test BVGetMat/RestoreMat */
+  ierr = BVGetMat(Y,&Ymat);CHKERRQ(ierr);
+  ierr = PetscObjectSetName((PetscObject)Ymat,"Ymat");CHKERRQ(ierr);
+  if (verbose) {
+    ierr = MatView(Ymat,view);CHKERRQ(ierr);
+  }
+  ierr = BVRestoreMat(Y,&Ymat);CHKERRQ(ierr);
 
   if (!fromfile) {
     /* Create BV object Z */

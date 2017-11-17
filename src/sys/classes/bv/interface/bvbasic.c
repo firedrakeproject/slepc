@@ -1410,12 +1410,14 @@ PetscErrorCode BVCreateVec(BV bv,Vec *v)
    Output Parameter:
 .  A  - the new matrix
 
-   Note:
+   Notes:
    The user is responsible of destroying the returned matrix.
+
+   The matrix contains all columns of the BV, not just the active columns.
 
    Level: intermediate
 
-.seealso: BVCreateFromMat(), BVCreateVec()
+.seealso: BVCreateFromMat(), BVCreateVec(), BVGetMat()
 @*/
 PetscErrorCode BVCreateMat(BV bv,Mat *A)
 {
@@ -1436,6 +1438,102 @@ PetscErrorCode BVCreateMat(BV bv,Mat *A)
   ierr = MatDenseRestoreArray(*A,&aa);CHKERRQ(ierr);
   ierr = MatAssemblyBegin(*A,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
   ierr = MatAssemblyEnd(*A,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+/*@
+   BVGetMat - Returns a Mat object of dense type that shares the memory of
+   the BV object.
+
+   Collective on BV
+
+   Input Parameter:
+.  bv - the basis vectors context
+
+   Output Parameter:
+.  A  - the matrix
+
+   Notes:
+   The returned matrix contains only the active columns. If the content of
+   the Mat is modified, these changes are also done in the BV object. The
+   user must call BVRestoreMat() when no longer needed.
+
+   This operation implies a call to BVGetArray(), which may result in data
+   copies.
+
+   Level: advanced
+
+.seealso: BVRestoreMat(), BVCreateMat(), BVGetArray()
+@*/
+PetscErrorCode BVGetMat(BV bv,Mat *A)
+{
+  PetscErrorCode ierr;
+  PetscScalar    *vv,*aa;
+  PetscBool      create=PETSC_FALSE;
+  PetscInt       m,cols;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(bv,BV_CLASSID,1);
+  BVCheckSizes(bv,1);
+  PetscValidPointer(A,2);
+  m = bv->k-bv->l;
+  if (!bv->Aget) create=PETSC_TRUE;
+  else {
+    ierr = MatDenseGetArray(bv->Aget,&aa);CHKERRQ(ierr);
+    if (aa) SETERRQ(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_WRONGSTATE,"BVGetMat already called on this BV");
+    ierr = MatGetSize(bv->Aget,NULL,&cols);CHKERRQ(ierr);
+    if (cols!=m) {
+      ierr = MatDestroy(&bv->Aget);CHKERRQ(ierr);
+      create=PETSC_TRUE;
+    }
+  }
+  ierr = BVGetArray(bv,&vv);CHKERRQ(ierr);
+  if (create) {
+    ierr = MatCreateDense(PetscObjectComm((PetscObject)bv),bv->n,PETSC_DECIDE,bv->N,m,vv,&bv->Aget);CHKERRQ(ierr); /* pass a pointer to avoid allocation of storage */
+    ierr = MatDensePlaceArray(bv->Aget,NULL);CHKERRQ(ierr);  /* replace with a null pointer, the value after BVRestoreMat */
+    ierr = PetscLogObjectParent((PetscObject)bv,(PetscObject)bv->Aget);CHKERRQ(ierr);
+    ierr = MatAssemblyBegin(bv->Aget,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
+    ierr = MatAssemblyEnd(bv->Aget,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
+  }
+  ierr = MatDensePlaceArray(bv->Aget,vv+bv->l*bv->n);CHKERRQ(ierr);  /* set the actual pointer */
+  *A = bv->Aget;
+  PetscFunctionReturn(0);
+}
+
+/*@
+   BVRestoreMat - Restores the Mat obtained with BVGetMat().
+
+   Collective on BV
+
+   Input Parameters:
++  bv - the basis vectors context
+-  A  - the fetched matrix
+
+   Note:
+   A call to this function must match a previous call of BVGetMat().
+   The effect is that the contents of the Mat are copied back to the
+   BV internal data structures.
+
+   Level: advanced
+
+.seealso: BVGetMat(), BVRestoreArray()
+@*/
+PetscErrorCode BVRestoreMat(BV bv,Mat *A)
+{
+  PetscErrorCode ierr;
+  PetscScalar    *vv,*aa;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(bv,BV_CLASSID,1);
+  BVCheckSizes(bv,1);
+  PetscValidPointer(A,2);
+  if (!bv->Aget) SETERRQ(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_WRONGSTATE,"BVRestoreMat must match a previous call to BVGetMat");
+  if (bv->Aget!=*A) SETERRQ(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_WRONGSTATE,"Mat argument is not the same as the one obtained with BVGetMat");
+  ierr = MatDenseGetArray(bv->Aget,&aa);CHKERRQ(ierr);
+  vv = aa-bv->l*bv->n;
+  ierr = MatDenseResetArray(bv->Aget);CHKERRQ(ierr);
+  ierr = BVRestoreArray(bv,&vv);CHKERRQ(ierr);
+  *A = NULL;
   PetscFunctionReturn(0);
 }
 

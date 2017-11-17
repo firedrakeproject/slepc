@@ -180,15 +180,17 @@ PETSC_EXTERN PetscErrorCode BVOrthogonalizeSomeColumn(BV,PetscInt,PetscBool*,Pet
 PETSC_EXTERN PetscErrorCode BVSetMatMultMethod(BV,BVMatMultType);
 PETSC_EXTERN PetscErrorCode BVGetMatMultMethod(BV,BVMatMultType*);
 
+PETSC_EXTERN PetscErrorCode BVCreateFromMat(Mat,BV*);
+PETSC_EXTERN PetscErrorCode BVCreateMat(BV,Mat*);
+PETSC_EXTERN PetscErrorCode BVGetMat(BV,Mat*);
+PETSC_EXTERN PetscErrorCode BVRestoreMat(BV,Mat*);
+
 PETSC_EXTERN PetscErrorCode BVSetOptionsPrefix(BV,const char*);
 PETSC_EXTERN PetscErrorCode BVAppendOptionsPrefix(BV,const char*);
 PETSC_EXTERN PetscErrorCode BVGetOptionsPrefix(BV,const char*[]);
 
 PETSC_EXTERN PetscFunctionList BVList;
 PETSC_EXTERN PetscErrorCode BVRegister(const char[],PetscErrorCode(*)(BV));
-
-PETSC_EXTERN PetscErrorCode BVCreateFromMat(Mat,BV*);
-PETSC_EXTERN PetscErrorCode BVCreateMat(BV,Mat*);
 
 #endif
 
