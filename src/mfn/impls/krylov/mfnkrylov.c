@@ -146,8 +146,8 @@ PetscErrorCode MFNSolve_Krylov(MFN mfn,Vec b,Vec x)
     ierr = VecRestoreArray(F,&farray);CHKERRQ(ierr);
 
     /* check convergence */
+    if (mfn->its >= mfn->max_it) mfn->reason = MFN_DIVERGED_ITS;
     if (mfn->its>1) {
-      if (mfn->its >= mfn->max_it) mfn->reason = MFN_DIVERGED_ITS;
       if (m<mfn->ncv || breakdown || beta==0.0 || nrm<mfn->tol) mfn->reason = MFN_CONVERGED_TOL;
     }
 
