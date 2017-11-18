@@ -80,8 +80,6 @@ struct _p_BV {
   PetscObjectId      id[2];        /* object id of obtained vectors */
   PetscScalar        *h,*c;        /* orthogonalization coefficients */
   Vec                omega;        /* signature matrix values for indefinite case */
-  Mat                B,C;          /* auxiliary dense matrices for matmult operation */
-  PetscObjectId      Aid;          /* object id of matrix A of matmult operation */
   PetscBool          defersfo;     /* deferred call to setfromoptions */
   BV                 cached;       /* cached BV to store result of matrix times BV */
   PetscObjectState   bvstate;      /* state of BV when BVApplyMatrixBV() was called */
@@ -198,36 +196,6 @@ PETSC_STATIC_INLINE PetscErrorCode BV_AllocateSignature(BV bv)
     }
     ierr = PetscLogObjectParent((PetscObject)bv,(PetscObject)bv->omega);CHKERRQ(ierr);
     ierr = VecSet(bv->omega,1.0);CHKERRQ(ierr);
-  }
-  PetscFunctionReturn(0);
-}
-
-/*
-  BV_AllocateMatMult - Allocate auxiliary matrices required for BVMatMult if not available.
-*/
-PETSC_STATIC_INLINE PetscErrorCode BV_AllocateMatMult(BV bv,Mat A,PetscInt m)
-{
-  PetscErrorCode ierr;
-  PetscObjectId  Aid;
-  PetscBool      create=PETSC_FALSE;
-  PetscInt       cols;
-
-  PetscFunctionBegin;
-  if (!bv->B) create=PETSC_TRUE;
-  else {
-    ierr = MatGetSize(bv->B,NULL,&cols);CHKERRQ(ierr);
-    ierr = PetscObjectGetId((PetscObject)A,&Aid);CHKERRQ(ierr);
-    if (cols!=m || bv->Aid!=Aid) {
-      ierr = MatDestroy(&bv->B);CHKERRQ(ierr);
-      ierr = MatDestroy(&bv->C);CHKERRQ(ierr);
-      create=PETSC_TRUE;
-    }
-  }
-  if (create) {
-    ierr = MatCreateDense(PetscObjectComm((PetscObject)bv),bv->n,PETSC_DECIDE,bv->N,m,NULL,&bv->B);CHKERRQ(ierr);
-    ierr = PetscLogObjectParent((PetscObject)bv,(PetscObject)bv->B);CHKERRQ(ierr);
-    ierr = MatAssemblyBegin(bv->B,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
-    ierr = MatAssemblyEnd(bv->B,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }

@@ -5,7 +5,7 @@ BV Object: X 1 MPI processes
   vector orthogonalization method: classical Gram-Schmidt
   orthogonalization refinement: if needed (eta: 0.7071)
   block orthogonalization method: Gram-Schmidt
-  doing matmult as a single matrix-matrix product
+  doing matmult as matrix-vector products
 BV Object:X 1 MPI processes
   type: vecs
   Vec Object:  X_0   1 MPI processes

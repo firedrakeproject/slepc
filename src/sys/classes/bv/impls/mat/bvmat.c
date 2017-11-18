@@ -209,36 +209,22 @@ PetscErrorCode BVMatMult_Mat(BV V,Mat A,BV W)
 {
   PetscErrorCode ierr;
   BV_MAT         *v = (BV_MAT*)V->data,*w = (BV_MAT*)W->data;
-  PetscScalar    *pv,*pw,*pb,*pc;
-  PetscInt       j,m;
+  PetscScalar    *pv,*pw;
+  PetscInt       j;
   PetscBool      flg;
+  Mat            Vmat,Wmat;
 
   PetscFunctionBegin;
-  ierr = MatDenseGetArray(v->A,&pv);CHKERRQ(ierr);
-  ierr = MatDenseGetArray(w->A,&pw);CHKERRQ(ierr);
   ierr = MatHasOperation(A,MATOP_MAT_MULT,&flg);CHKERRQ(ierr);
   if (V->vmm && flg) {
-    m = V->k-V->l;
-    if (V->vmm==BV_MATMULT_MAT_SAVE) {
-      ierr = BV_AllocateMatMult(V,A,m);CHKERRQ(ierr);
-      ierr = MatDenseGetArray(V->B,&pb);CHKERRQ(ierr);
-      ierr = PetscMemcpy(pb,pv+(V->nc+V->l)*V->n,m*V->n*sizeof(PetscScalar));CHKERRQ(ierr);
-      ierr = MatDenseRestoreArray(V->B,&pb);CHKERRQ(ierr);
-    } else {  /* BV_MATMULT_MAT */
-      ierr = MatCreateDense(PetscObjectComm((PetscObject)V),V->n,PETSC_DECIDE,V->N,m,pv+(V->nc+V->l)*V->n,&V->B);CHKERRQ(ierr);
-    }
-    if (!V->C) {
-      ierr = MatMatMultSymbolic(A,V->B,PETSC_DEFAULT,&V->C);CHKERRQ(ierr);
-    }
-    ierr = MatMatMultNumeric(A,V->B,V->C);CHKERRQ(ierr);
-    ierr = MatDenseGetArray(V->C,&pc);CHKERRQ(ierr);
-    ierr = PetscMemcpy(pw+(W->nc+W->l)*W->n,pc,m*V->n*sizeof(PetscScalar));CHKERRQ(ierr);
-    ierr = MatDenseRestoreArray(V->C,&pc);CHKERRQ(ierr);
-    if (V->vmm==BV_MATMULT_MAT) {
-      ierr = MatDestroy(&V->B);CHKERRQ(ierr);
-      ierr = MatDestroy(&V->C);CHKERRQ(ierr);
-    }
+    ierr = BVGetMat(V,&Vmat);CHKERRQ(ierr);
+    ierr = BVGetMat(W,&Wmat);CHKERRQ(ierr);
+    ierr = MatMatMult(A,Vmat,MAT_REUSE_MATRIX,PETSC_DEFAULT,&Wmat);CHKERRQ(ierr);
+    ierr = BVRestoreMat(V,&Vmat);CHKERRQ(ierr);
+    ierr = BVRestoreMat(W,&Wmat);CHKERRQ(ierr);
   } else {
+    ierr = MatDenseGetArray(v->A,&pv);CHKERRQ(ierr);
+    ierr = MatDenseGetArray(w->A,&pw);CHKERRQ(ierr);
     for (j=0;j<V->k-V->l;j++) {
       ierr = VecPlaceArray(V->cv[1],pv+(V->nc+V->l+j)*V->n);CHKERRQ(ierr);
       ierr = VecPlaceArray(W->cv[1],pw+(W->nc+W->l+j)*W->n);CHKERRQ(ierr);
@@ -246,9 +232,9 @@ PetscErrorCode BVMatMult_Mat(BV V,Mat A,BV W)
       ierr = VecResetArray(V->cv[1]);CHKERRQ(ierr);
       ierr = VecResetArray(W->cv[1]);CHKERRQ(ierr);
     }
+    ierr = MatDenseRestoreArray(v->A,&pv);CHKERRQ(ierr);
+    ierr = MatDenseRestoreArray(w->A,&pw);CHKERRQ(ierr);
   }
-  ierr = MatDenseRestoreArray(v->A,&pv);CHKERRQ(ierr);
-  ierr = MatDenseRestoreArray(w->A,&pw);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

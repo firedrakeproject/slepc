@@ -295,11 +295,21 @@ PetscErrorCode BVMatMult_Vecs(BV V,Mat A,BV W)
   PetscErrorCode ierr;
   BV_VECS        *v = (BV_VECS*)V->data,*w = (BV_VECS*)W->data;
   PetscInt       j;
+  PetscBool      flg;
+  Mat            Vmat,Wmat;
 
   PetscFunctionBegin;
-  if (V->vmm) { ierr = PetscInfo(V,"BVMatMult_Vecs: ignoring method\n");CHKERRQ(ierr); }
-  for (j=0;j<V->k-V->l;j++) {
-    ierr = MatMult(A,v->V[V->nc+V->l+j],w->V[W->nc+W->l+j]);CHKERRQ(ierr);
+  ierr = MatHasOperation(A,MATOP_MAT_MULT,&flg);CHKERRQ(ierr);
+  if (V->vmm && flg) {
+    ierr = BVGetMat(V,&Vmat);CHKERRQ(ierr);
+    ierr = BVGetMat(W,&Wmat);CHKERRQ(ierr);
+    ierr = MatMatMult(A,Vmat,MAT_REUSE_MATRIX,PETSC_DEFAULT,&Wmat);CHKERRQ(ierr);
+    ierr = BVRestoreMat(V,&Vmat);CHKERRQ(ierr);
+    ierr = BVRestoreMat(W,&Wmat);CHKERRQ(ierr);
+  } else {
+    for (j=0;j<V->k-V->l;j++) {
+      ierr = MatMult(A,v->V[V->nc+V->l+j],w->V[W->nc+W->l+j]);CHKERRQ(ierr);
+    }
   }
   PetscFunctionReturn(0);
 }
@@ -527,6 +537,9 @@ PETSC_EXTERN PetscErrorCode BVCreate_Vecs(BV bv)
   /* Default version of BVMultInPlace */
   ierr = PetscObjectTypeCompareAny((PetscObject)bv->t,&isgpu,VECSEQCUDA,VECMPICUDA,VECSEQCUSP,VECMPICUSP,"");CHKERRQ(ierr);
   ctx->vmip = isgpu? 1: 0;
+
+  /* Default BVMatMult method */
+  bv->vmm = BV_MATMULT_VECS;
 
   /* Deferred call to setfromoptions */
   if (bv->defersfo) {

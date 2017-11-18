@@ -1078,12 +1078,13 @@ PetscErrorCode BVGetOrthogonalization(BV bv,BVOrthogType *type,BVOrthogRefineTyp
    Options Database Keys:
 .  -bv_matmult <meth> - choose one of the methods: vecs, mat, mat_save
 
-   Note:
-   Allowed values are:
+   Notes:
+   Allowed values are
 +  BV_MATMULT_VECS - perform a matrix-vector multiply per each column
 .  BV_MATMULT_MAT - carry out a MatMatMult() product with a dense matrix
--  BV_MATMULT_MAT_SAVE - call MatMatMult() and keep auxiliary matrices
-   The default is BV_MATMULT_MAT.
+-  BV_MATMULT_MAT_SAVE - this case is deprecated
+
+   The default is BV_MATMULT_MAT except in the case of BVVECS.
 
    Level: advanced
 
@@ -1091,14 +1092,19 @@ PetscErrorCode BVGetOrthogonalization(BV bv,BVOrthogType *type,BVOrthogRefineTyp
 @*/
 PetscErrorCode BVSetMatMultMethod(BV bv,BVMatMultType method)
 {
+  PetscErrorCode ierr;
+
   PetscFunctionBegin;
   PetscValidHeaderSpecific(bv,BV_CLASSID,1);
   PetscValidLogicalCollectiveEnum(bv,method,2);
   switch (method) {
     case BV_MATMULT_VECS:
     case BV_MATMULT_MAT:
-    case BV_MATMULT_MAT_SAVE:
       bv->vmm = method;
+      break;
+    case BV_MATMULT_MAT_SAVE:
+      ierr = PetscInfo(bv,"BV_MATMULT_MAT_SAVE is deprecated, using BV_MATMULT_MAT\n");CHKERRQ(ierr);
+      bv->vmm = BV_MATMULT_MAT;
       break;
     default:
       SETERRQ(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_WRONG,"Unknown matmult method");
