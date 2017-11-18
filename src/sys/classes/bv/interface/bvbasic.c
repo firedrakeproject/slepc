@@ -1076,7 +1076,7 @@ PetscErrorCode BVGetOrthogonalization(BV bv,BVOrthogType *type,BVOrthogRefineTyp
 -  method - the method for the BVMatMult() operation
 
    Options Database Keys:
-.  -bv_matmult <meth> - choose one of the methods: vecs, mat, mat_save
+.  -bv_matmult <meth> - choose one of the methods: vecs, mat
 
    Notes:
    Allowed values are

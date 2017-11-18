@@ -26,7 +26,7 @@ TESTEXAMPLES_C           = test1.PETSc runtest1_1 test1.rm \
                            test4.PETSc runtest4_1 runtest4_2 test4.rm \
                            test5.PETSc runtest5_1 runtest5_2 test5.rm \
                            test6.PETSc runtest6_1 runtest6_2 runtest6_3 test6.rm \
-                           test7.PETSc runtest7_1 runtest7_2 runtest7_3 test7.rm \
+                           test7.PETSc runtest7_1 runtest7_2 test7.rm \
                            test8.PETSc runtest8_1 runtest8_2 runtest8_3 runtest8_4 test8.rm \
                            test9.PETSc runtest9_1 runtest9_2 test9.rm \
                            test10.PETSc runtest10_1 test10.rm \
@@ -235,12 +235,6 @@ runtest7_2: runtest7_2_vecs runtest7_2_contiguous runtest7_2_svec runtest7_2_mat
 runtest7_2_%:
 	-@${SETTEST}; check=test7_1; bv=$*; \
 	${MPIEXEC} -n 1 ./test7 -bv_type $$bv -bv_matmult mat | ${GREP} -v "Using method" > $${test}.tmp 2>&1; \
-	${TESTCODE}
-
-runtest7_3: runtest7_3_vecs runtest7_3_contiguous runtest7_3_svec runtest7_3_mat
-runtest7_3_%:
-	-@${SETTEST}; check=test7_1; bv=$*; \
-	${MPIEXEC} -n 1 ./test7 -bv_type $$bv -bv_matmult mat_save | ${GREP} -v "Using method" > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
 runtest8_1: runtest8_1_vecs runtest8_1_contiguous runtest8_1_svec runtest8_1_mat
