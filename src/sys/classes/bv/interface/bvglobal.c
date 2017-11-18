@@ -900,6 +900,7 @@ PETSC_STATIC_INLINE PetscErrorCode BVMatProject_MatMult(BV X,Mat A,BV Y,PetscSca
   ly = Y->l; ky = Y->k;
   ierr = BVDuplicate(X,&W);CHKERRQ(ierr);
   X->l = 0; X->k = kx;
+  W->l = 0; W->k = kx;
   ierr = BVMatMult(X,A,W);CHKERRQ(ierr);
 
   /* top-right part, Y0'*AX1 */
