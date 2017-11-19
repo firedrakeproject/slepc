@@ -1501,7 +1501,7 @@ PetscErrorCode BVGetMat(BV bv,Mat *A)
     ierr = MatAssemblyBegin(bv->Aget,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
     ierr = MatAssemblyEnd(bv->Aget,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
   }
-  ierr = MatDensePlaceArray(bv->Aget,vv+bv->l*bv->n);CHKERRQ(ierr);  /* set the actual pointer */
+  ierr = MatDensePlaceArray(bv->Aget,vv+(bv->nc+bv->l)*bv->n);CHKERRQ(ierr);  /* set the actual pointer */
   *A = bv->Aget;
   PetscFunctionReturn(0);
 }
@@ -1536,7 +1536,7 @@ PetscErrorCode BVRestoreMat(BV bv,Mat *A)
   if (!bv->Aget) SETERRQ(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_WRONGSTATE,"BVRestoreMat must match a previous call to BVGetMat");
   if (bv->Aget!=*A) SETERRQ(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_WRONGSTATE,"Mat argument is not the same as the one obtained with BVGetMat");
   ierr = MatDenseGetArray(bv->Aget,&aa);CHKERRQ(ierr);
-  vv = aa-bv->l*bv->n;
+  vv = aa-(bv->nc+bv->l)*bv->n;
   ierr = MatDenseResetArray(bv->Aget);CHKERRQ(ierr);
   ierr = BVRestoreArray(bv,&vv);CHKERRQ(ierr);
   *A = NULL;
