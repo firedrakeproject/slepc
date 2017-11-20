@@ -31,7 +31,8 @@ TESTEXAMPLES_C           = test1.PETSc runtest1_1 test1.rm \
                            test9.PETSc runtest9_1 runtest9_2 test9.rm \
                            test10.PETSc runtest10_1 test10.rm \
                            test11.PETSc runtest11_1 runtest11_2 runtest11_3 runtest11_4 \
-                                        runtest11_5 test11.rm \
+                                        runtest11_5 runtest11_6 runtest11_7 runtest11_8 \
+                                        runtest11_9 runtest11_10 test11.rm \
                            test12.PETSc runtest12_1 test12.rm \
                            test13.PETSc runtest13_1 test13.rm \
                            test14.PETSc runtest14_1 test14.rm
@@ -48,7 +49,9 @@ TESTEXAMPLES_VECCUDA     = test1.PETSc runtest1_1_cuda test1.rm \
                            test9.PETSc runtest9_1_cuda test9.rm \
                            test10.PETSc runtest10_1_cuda test10.rm \
                            test11.PETSc runtest11_1_cuda runtest11_2_cuda runtest11_3_cuda \
-                                        runtest11_4_cuda runtest11_5_cuda test11.rm \
+                                        runtest11_4_cuda runtest11_5_cuda runtest11_6_cuda \
+                                        runtest11_7_cuda runtest11_8_cuda runtest11_9_cuda \
+                                        runtest11_10_cuda test11.rm \
                            test13.PETSc runtest13_1_cuda test13.rm
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common
@@ -320,6 +323,41 @@ runtest11_5_%:
 	-@${SETTEST}; check=test11_4; bv=$*; \
 	if [ "$$bv" = cuda ]; then bv="svec -vec_type cuda -mat_type aijcusparse"; fi; \
 	${MPIEXEC} -n 2 ./test11 -withb -bv_orthog_block chol -bv_type $$bv > $${test}.tmp 2>&1; \
+	${TESTCODE}
+
+runtest11_6: runtest11_6_vecs runtest11_6_contiguous runtest11_6_svec runtest11_6_mat
+runtest11_6_%:
+	-@${SETTEST}; check=test11_6; bv=$*; \
+	if [ "$$bv" = cuda ]; then bv="svec -vec_type cuda -mat_type aijcusparse"; fi; \
+	${MPIEXEC} -n 2 ./test11 -resid -bv_orthog_block gs -bv_type $$bv > $${test}.tmp 2>&1; \
+	${TESTCODE}
+
+runtest11_7: runtest11_7_vecs runtest11_7_contiguous runtest11_7_svec runtest11_7_mat
+runtest11_7_%:
+	-@${SETTEST}; check=test11_6; bv=$*; \
+	if [ "$$bv" = cuda ]; then bv="svec -vec_type cuda -mat_type aijcusparse"; fi; \
+	${MPIEXEC} -n 2 ./test11 -resid -bv_orthog_block chol -bv_type $$bv > $${test}.tmp 2>&1; \
+	${TESTCODE}
+
+runtest11_8: runtest11_8_vecs runtest11_8_contiguous runtest11_8_svec runtest11_8_mat
+runtest11_8_%:
+	-@${SETTEST}; check=test11_6; bv=$*; \
+	if [ "$$bv" = cuda ]; then bv="svec -vec_type cuda -mat_type aijcusparse"; fi; \
+	${MPIEXEC} -n 2 ./test11 -resid -bv_orthog_block tsqr -bv_type $$bv > $${test}.tmp 2>&1; \
+	${TESTCODE}
+
+runtest11_9: runtest11_9_vecs runtest11_9_contiguous runtest11_9_svec runtest11_9_mat
+runtest11_9_%:
+	-@${SETTEST}; check=test11_9; bv=$*; \
+	if [ "$$bv" = cuda ]; then bv="svec -vec_type cuda -mat_type aijcusparse"; fi; \
+	${MPIEXEC} -n 2 ./test11 -resid -withb -bv_orthog_block gs -bv_type $$bv > $${test}.tmp 2>&1; \
+	${TESTCODE}
+
+runtest11_10: runtest11_10_vecs runtest11_10_contiguous runtest11_10_svec runtest11_10_mat
+runtest11_10_%:
+	-@${SETTEST}; check=test11_9; bv=$*; \
+	if [ "$$bv" = cuda ]; then bv="svec -vec_type cuda -mat_type aijcusparse"; fi; \
+	${MPIEXEC} -n 2 ./test11 -resid -withb -bv_orthog_block chol -bv_type $$bv > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
 runtest12_1: runtest12_1_vecs runtest12_1_contiguous runtest12_1_svec runtest12_1_mat

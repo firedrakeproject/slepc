@@ -16,11 +16,11 @@ int main(int argc,char **argv)
 {
   PetscErrorCode    ierr;
   BV                X,Y,Z,cached;
-  Mat               B,M;
+  Mat               B,M,R=NULL;
   Vec               v,t;
   PetscInt          i,j,n=20,l=2,k=8,Istart,Iend;
   PetscViewer       view;
-  PetscBool         withb,verbose;
+  PetscBool         withb,resid,verbose;
   PetscReal         norm;
   PetscScalar       alpha;
   BVOrthogBlockType btype;
@@ -30,8 +30,11 @@ int main(int argc,char **argv)
   ierr = PetscOptionsGetInt(NULL,NULL,"-l",&l,NULL);CHKERRQ(ierr);
   ierr = PetscOptionsGetInt(NULL,NULL,"-k",&k,NULL);CHKERRQ(ierr);
   ierr = PetscOptionsHasName(NULL,NULL,"-withb",&withb);CHKERRQ(ierr);
+  ierr = PetscOptionsHasName(NULL,NULL,"-resid",&resid);CHKERRQ(ierr);
   ierr = PetscOptionsHasName(NULL,NULL,"-verbose",&verbose);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD,"Test BV block orthogonalization (length %D, l=%D, k=%D)%s.\n",n,l,k,withb?" with non-standard inner product":"");CHKERRQ(ierr);
+
+  l = 0;  /* temporarily ignore leading columns */
 
   /* Create template vector */
   ierr = VecCreate(PETSC_COMM_WORLD,&t);CHKERRQ(ierr);
@@ -108,10 +111,17 @@ int main(int argc,char **argv)
     }
   }
 
+  if (resid) {
+    /* Create matrix R to store triangular factor */
+    ierr = MatCreateSeqDense(PETSC_COMM_SELF,k,k,NULL,&R);CHKERRQ(ierr);
+    ierr = PetscObjectSetName((PetscObject)R,"R");CHKERRQ(ierr);
+  }
+
   /* Test BVOrthogonalize */
-  ierr = BVOrthogonalize(Y,NULL);CHKERRQ(ierr);
+  ierr = BVOrthogonalize(Y,R);CHKERRQ(ierr);
   if (verbose) {
     ierr = BVView(Y,view);CHKERRQ(ierr);
+    if (resid) { ierr = MatView(R,view);CHKERRQ(ierr); }
   }
 
   if (withb) {
@@ -142,6 +152,19 @@ int main(int argc,char **argv)
     ierr = PetscPrintf(PETSC_COMM_WORLD,"Level of orthogonality < 100*eps\n");CHKERRQ(ierr);
   } else {
     ierr = PetscPrintf(PETSC_COMM_WORLD,"Level of orthogonality: %g\n",(double)norm);CHKERRQ(ierr);
+  }
+
+  if (resid) {
+    /* Check residual */
+    ierr = BVMult(X,-1.0,1.0,Y,R);CHKERRQ(ierr);
+    ierr = BVSetMatrix(X,NULL,PETSC_FALSE);CHKERRQ(ierr);
+    ierr = BVNorm(X,NORM_FROBENIUS,&norm);CHKERRQ(ierr);
+    if (norm<100*PETSC_MACHINE_EPSILON) {
+      ierr = PetscPrintf(PETSC_COMM_WORLD,"Residual ||X-QR|| < 100*eps\n");CHKERRQ(ierr);
+    } else {
+      ierr = PetscPrintf(PETSC_COMM_WORLD,"Residual ||X-QR||: %g\n",(double)norm);CHKERRQ(ierr);
+    }
+    ierr = MatDestroy(&R);CHKERRQ(ierr);
   }
 
   ierr = MatDestroy(&M);CHKERRQ(ierr);
