@@ -706,17 +706,20 @@ static PetscErrorCode BVOrthogonalize_GS(BV V,Mat R)
 static PetscErrorCode BVOrthogonalize_Chol(BV V,Mat Rin)
 {
   PetscErrorCode ierr;
-  Mat            R;
+  Mat            R,S;
 
   PetscFunctionBegin;
-  if (Rin) R = Rin;
-  else {
-    ierr = BV_AllocateWorkMat(V,V->k,V->k);CHKERRQ(ierr);
+  ierr = BV_AllocateWorkMat(V,V->k,V->k);CHKERRQ(ierr);
+  if (Rin) {
+    R = Rin;
+    S = V->Awork;
+  } else {
     R = V->Awork;
+    S = R;
   }
   ierr = BVDot(V,V,R);CHKERRQ(ierr);
-  ierr = BVMatCholInv_LAPACK_Private(V,R);CHKERRQ(ierr);
-  ierr = BVMultInPlace(V,R,V->l,V->k);CHKERRQ(ierr);
+  ierr = BVMatCholInv_LAPACK_Private(V,R,S);CHKERRQ(ierr);
+  ierr = BVMultInPlace(V,S,V->l,V->k);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

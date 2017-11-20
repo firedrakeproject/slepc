@@ -70,9 +70,10 @@ PetscErrorCode BVNorm_LAPACK_Private(BV bv,PetscInt m_,PetscInt n_,const PetscSc
 }
 
 /*
-   Overwrite R with the inverse of its upper Cholesky factor.
+   Compute the upper Cholesky factor in R and its inverse in S.
+   If S == R then the inverse overwrites the Cholesky factor.
  */
-PetscErrorCode BVMatCholInv_LAPACK_Private(BV bv,Mat R)
+PetscErrorCode BVMatCholInv_LAPACK_Private(BV bv,Mat R,Mat S)
 {
 #if defined(PETSC_MISSING_LAPACK_POTRF) || defined(SLEPC_MISSING_LAPACK_TRTRI)
   PetscFunctionBegin;
@@ -80,7 +81,7 @@ PetscErrorCode BVMatCholInv_LAPACK_Private(BV bv,Mat R)
 #else
   PetscErrorCode ierr;
   PetscInt       i,l,n,m,ld;
-  PetscScalar    *pR,*S;
+  PetscScalar    *pR,*pS;
   PetscBLASInt   info,n_,l_,m_,ld_;
 
   PetscFunctionBegin;
@@ -94,12 +95,16 @@ PetscErrorCode BVMatCholInv_LAPACK_Private(BV bv,Mat R)
   ld_ = m_;
   ierr = MatDenseGetArray(R,&pR);CHKERRQ(ierr);
 
-  ierr = BVAllocateWork_Private(bv,m*m);CHKERRQ(ierr);
-  S = bv->work;
+  if (S==R) {
+    ierr = BVAllocateWork_Private(bv,m*m);CHKERRQ(ierr);
+    pS = bv->work;
+  } else {
+    ierr = MatDenseGetArray(S,&pS);CHKERRQ(ierr);
+  }
 
   /* save a copy of matrix in S */
   for (i=l;i<m;i++) {
-    ierr = PetscMemcpy(S+i*ld+l,pR+i*ld+l,n*sizeof(PetscScalar));CHKERRQ(ierr);
+    ierr = PetscMemcpy(pS+i*ld+l,pR+i*ld+l,n*sizeof(PetscScalar));CHKERRQ(ierr);
   }
 
   /* compute upper Cholesky factor in R */
@@ -108,7 +113,7 @@ PetscErrorCode BVMatCholInv_LAPACK_Private(BV bv,Mat R)
 
   if (info) {  /* LAPACKpotrf failed, retry on diagonally perturbed matrix */
     for (i=l;i<m;i++) {
-      ierr = PetscMemcpy(pR+i*ld+l,S+i*ld+l,n*sizeof(PetscScalar));CHKERRQ(ierr);
+      ierr = PetscMemcpy(pR+i*ld+l,pS+i*ld+l,n*sizeof(PetscScalar));CHKERRQ(ierr);
       pR[i+i*ld] += 50.0*PETSC_MACHINE_EPSILON;
     }
     PetscStackCallBLAS("LAPACKpotrf",LAPACKpotrf_("U",&n_,pR+l*ld+l,&ld_,&info));
@@ -116,22 +121,32 @@ PetscErrorCode BVMatCholInv_LAPACK_Private(BV bv,Mat R)
     ierr = PetscLogFlops((1.0*n*n*n)/3.0);CHKERRQ(ierr);
   }
 
-  /* compute R = inv(R) */
-  PetscStackCallBLAS("LAPACKtrtri",LAPACKtrtri_("U","N",&n_,pR+l*ld+l,&ld_,&info));
+  /* compute S = inv(R) */
+  if (S==R) {
+    PetscStackCallBLAS("LAPACKtrtri",LAPACKtrtri_("U","N",&n_,pR+l*ld+l,&ld_,&info));
+  } else {
+    ierr = PetscMemzero(pS,m*m*sizeof(PetscScalar));CHKERRQ(ierr);
+    for (i=l;i<m;i++) {
+      ierr = PetscMemcpy(pS+i*ld+l,pR+i*ld+l,n*sizeof(PetscScalar));CHKERRQ(ierr);
+    }
+    PetscStackCallBLAS("LAPACKtrtri",LAPACKtrtri_("U","N",&n_,pS+l*ld+l,&ld_,&info));
+  }
   SlepcCheckLapackInfo("trtri",info);
   ierr = PetscLogFlops(1.0*n*n*n);CHKERRQ(ierr);
 
   /* Zero out entries below the diagonal */
   for (i=l;i<m-1;i++) {
     ierr = PetscMemzero(pR+i*ld+i+1,(m-i-1)*sizeof(PetscScalar));CHKERRQ(ierr);
+    if (S!=R) { ierr = PetscMemzero(pS+i*ld+i+1,(m-i-1)*sizeof(PetscScalar));CHKERRQ(ierr); }
   }
   ierr = MatDenseRestoreArray(R,&pR);CHKERRQ(ierr);
+  if (S!=R) { ierr = MatDenseRestoreArray(S,&pS);CHKERRQ(ierr); }
   PetscFunctionReturn(0);
 #endif
 }
 
 /*
-    QR factorization of an mxn matrix
+    QR factorization of an mxn matrix via parallel TSQR
 */
 PetscErrorCode BVOrthogonalize_LAPACK_Private(BV bv,PetscInt m_,PetscInt n_,PetscScalar *Q,PetscScalar *R)
 {
