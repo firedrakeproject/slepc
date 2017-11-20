@@ -80,14 +80,19 @@ PetscErrorCode BVMatCholInv_LAPACK_Private(BV bv,Mat R,Mat S)
   SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"POTRF/TRTRI - Lapack routine is unavailable");
 #else
   PetscErrorCode ierr;
-  PetscInt       i,l,n,m,ld;
+  PetscInt       i,k,l,n,m,ms,ld,lds;
   PetscScalar    *pR,*pS;
-  PetscBLASInt   info,n_,l_,m_,ld_;
+  PetscBLASInt   info,n_,l_,m_,k_,ld_,lds_;
 
   PetscFunctionBegin;
   l = bv->l;
+  k = bv->k;
+  if (S!=R) {
+    ierr = MatGetSize(S,&ms,NULL);CHKERRQ(ierr);
+    if (k!=ms) SETERRQ(PetscObjectComm((PetscObject)bv),1,"Wrong dimensions");
+  }
   ierr = MatGetSize(R,&m,NULL);CHKERRQ(ierr);
-  n = m-l;
+  n = k-l;
   ierr = PetscBLASIntCast(m,&m_);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(l,&l_);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(n,&n_);CHKERRQ(ierr);
@@ -96,15 +101,20 @@ PetscErrorCode BVMatCholInv_LAPACK_Private(BV bv,Mat R,Mat S)
   ierr = MatDenseGetArray(R,&pR);CHKERRQ(ierr);
 
   if (S==R) {
-    ierr = BVAllocateWork_Private(bv,m*m);CHKERRQ(ierr);
+    ierr = BVAllocateWork_Private(bv,k*k);CHKERRQ(ierr);
     pS = bv->work;
+    lds = ld;
+    lds_ = ld_;
   } else {
     ierr = MatDenseGetArray(S,&pS);CHKERRQ(ierr);
+    ierr = PetscBLASIntCast(k,&k_);CHKERRQ(ierr);
+    lds  = k;
+    lds_ = k_;
   }
 
   /* save a copy of matrix in S */
-  for (i=l;i<m;i++) {
-    ierr = PetscMemcpy(pS+i*ld+l,pR+i*ld+l,n*sizeof(PetscScalar));CHKERRQ(ierr);
+  for (i=l;i<k;i++) {
+    ierr = PetscMemcpy(pS+i*lds+l,pR+i*ld+l,n*sizeof(PetscScalar));CHKERRQ(ierr);
   }
 
   /* compute upper Cholesky factor in R */
@@ -112,8 +122,8 @@ PetscErrorCode BVMatCholInv_LAPACK_Private(BV bv,Mat R,Mat S)
   ierr = PetscLogFlops((1.0*n*n*n)/3.0);CHKERRQ(ierr);
 
   if (info) {  /* LAPACKpotrf failed, retry on diagonally perturbed matrix */
-    for (i=l;i<m;i++) {
-      ierr = PetscMemcpy(pR+i*ld+l,pS+i*ld+l,n*sizeof(PetscScalar));CHKERRQ(ierr);
+    for (i=l;i<k;i++) {
+      ierr = PetscMemcpy(pR+i*ld+l,pS+i*lds+l,n*sizeof(PetscScalar));CHKERRQ(ierr);
       pR[i+i*ld] += 50.0*PETSC_MACHINE_EPSILON;
     }
     PetscStackCallBLAS("LAPACKpotrf",LAPACKpotrf_("U",&n_,pR+l*ld+l,&ld_,&info));
@@ -125,19 +135,19 @@ PetscErrorCode BVMatCholInv_LAPACK_Private(BV bv,Mat R,Mat S)
   if (S==R) {
     PetscStackCallBLAS("LAPACKtrtri",LAPACKtrtri_("U","N",&n_,pR+l*ld+l,&ld_,&info));
   } else {
-    ierr = PetscMemzero(pS,m*m*sizeof(PetscScalar));CHKERRQ(ierr);
-    for (i=l;i<m;i++) {
-      ierr = PetscMemcpy(pS+i*ld+l,pR+i*ld+l,n*sizeof(PetscScalar));CHKERRQ(ierr);
+    ierr = PetscMemzero(pS,k*k*sizeof(PetscScalar));CHKERRQ(ierr);
+    for (i=l;i<k;i++) {
+      ierr = PetscMemcpy(pS+i*lds+l,pR+i*ld+l,n*sizeof(PetscScalar));CHKERRQ(ierr);
     }
-    PetscStackCallBLAS("LAPACKtrtri",LAPACKtrtri_("U","N",&n_,pS+l*ld+l,&ld_,&info));
+    PetscStackCallBLAS("LAPACKtrtri",LAPACKtrtri_("U","N",&n_,pS+l*lds+l,&lds_,&info));
   }
   SlepcCheckLapackInfo("trtri",info);
   ierr = PetscLogFlops(1.0*n*n*n);CHKERRQ(ierr);
 
   /* Zero out entries below the diagonal */
-  for (i=l;i<m-1;i++) {
-    ierr = PetscMemzero(pR+i*ld+i+1,(m-i-1)*sizeof(PetscScalar));CHKERRQ(ierr);
-    if (S!=R) { ierr = PetscMemzero(pS+i*ld+i+1,(m-i-1)*sizeof(PetscScalar));CHKERRQ(ierr); }
+  for (i=l;i<k-1;i++) {
+    ierr = PetscMemzero(pR+i*ld+i+1,(k-i-1)*sizeof(PetscScalar));CHKERRQ(ierr);
+    if (S!=R) { ierr = PetscMemzero(pS+i*lds+i+1,(k-i-1)*sizeof(PetscScalar));CHKERRQ(ierr); }
   }
   ierr = MatDenseRestoreArray(R,&pR);CHKERRQ(ierr);
   if (S!=R) { ierr = MatDenseRestoreArray(S,&pS);CHKERRQ(ierr); }
