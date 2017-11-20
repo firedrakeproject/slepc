@@ -130,9 +130,9 @@ PetscErrorCode BVDestroy(BV *bv)
   ierr = PetscFree((*bv)->work);CHKERRQ(ierr);
   ierr = PetscFree2((*bv)->h,(*bv)->c);CHKERRQ(ierr);
   ierr = VecDestroy(&(*bv)->omega);CHKERRQ(ierr);
-  ierr = MatDestroy(&(*bv)->B);CHKERRQ(ierr);
-  ierr = MatDestroy(&(*bv)->C);CHKERRQ(ierr);
   ierr = MatDestroy(&(*bv)->Acreate);CHKERRQ(ierr);
+  ierr = MatDestroy(&(*bv)->Aget);CHKERRQ(ierr);
+  ierr = MatDestroy(&(*bv)->Awork);CHKERRQ(ierr);
   ierr = PetscRandomDestroy(&(*bv)->rand);CHKERRQ(ierr);
   ierr = PetscHeaderDestroy(bv);CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -194,15 +194,14 @@ PetscErrorCode BVCreate(MPI_Comm comm,BV *newbv)
   bv->h            = NULL;
   bv->c            = NULL;
   bv->omega        = NULL;
-  bv->B            = NULL;
-  bv->C            = NULL;
-  bv->Aid          = 0;
   bv->defersfo     = PETSC_FALSE;
   bv->cached       = NULL;
   bv->bvstate      = 0;
   bv->rand         = NULL;
   bv->rrandom      = PETSC_FALSE;
   bv->Acreate      = NULL;
+  bv->Aget         = NULL;
+  bv->Awork        = NULL;
   bv->cuda         = PETSC_FALSE;
   bv->work         = NULL;
   bv->lwork        = 0;
@@ -631,7 +630,7 @@ PetscErrorCode BVView(BV bv,PetscViewer viewer)
           ierr = PetscViewerASCIIPrintf(viewer,"doing matmult as a single matrix-matrix product\n");CHKERRQ(ierr);
           break;
         case BV_MATMULT_MAT_SAVE:
-          ierr = PetscViewerASCIIPrintf(viewer,"doing matmult as a single matrix-matrix product, saving aux matrices\n");CHKERRQ(ierr);
+          ierr = PetscViewerASCIIPrintf(viewer,"mat_save is deprecated, use mat\n");CHKERRQ(ierr);
           break;
       }
       if (bv->rrandom) {

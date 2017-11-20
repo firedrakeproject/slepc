@@ -115,6 +115,7 @@ int main(int argc,char **argv)
   ierr = BVDuplicate(X,&Z);CHKERRQ(ierr);
   ierr = PetscObjectSetName((PetscObject)Z,"Z");CHKERRQ(ierr);
   ierr = BVSetActiveColumns(X,0,kx);CHKERRQ(ierr);
+  ierr = BVSetActiveColumns(Z,0,kx);CHKERRQ(ierr);
   ierr = BVMatMult(X,G,Z);CHKERRQ(ierr);
   ierr = BVSetActiveColumns(X,lx,kx);CHKERRQ(ierr);
   ierr = BVSetActiveColumns(Z,lx,kx);CHKERRQ(ierr);

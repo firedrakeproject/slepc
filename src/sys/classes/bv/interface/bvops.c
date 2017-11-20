@@ -558,6 +558,8 @@ PetscErrorCode BVSetRandomCond(BV bv,PetscReal condn)
    Both V and Y must be distributed in the same manner. Only active columns
    (excluding the leading ones) are processed.
    In the result Y, columns are overwritten starting from the leading ones.
+   The number of active columns in V and Y should match, although they need
+   not be the same columns.
 
    It is possible to choose whether the computation is done column by column
    or as a Mat-Mat product, see BVSetMatMultMethod().
@@ -582,7 +584,7 @@ PetscErrorCode BVMatMult(BV V,Mat A,BV Y)
   PetscCheckSameComm(V,1,A,2);
   PetscCheckSameTypeAndComm(V,1,Y,3);
   if (V->n!=Y->n) SETERRQ2(PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_INCOMP,"Mismatching local dimension V %D, Y %D",V->n,Y->n);
-  if (V->k-V->l>Y->m-Y->l) SETERRQ2(PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_SIZ,"Y has %D non-leading columns, not enough to store %D columns",Y->m-Y->l,V->k-V->l);
+  if (V->k-V->l!=Y->k-Y->l) SETERRQ2(PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_SIZ,"Y has %D active columns, should match %D active columns in V",Y->k-Y->l,V->k-V->l);
 
   ierr = PetscLogEventBegin(BV_MatMult,V,A,Y,0);CHKERRQ(ierr);
   ierr = (*V->ops->matmult)(V,A,Y);CHKERRQ(ierr);

@@ -12,7 +12,6 @@
 */
 
 #include <slepc/private/bvimpl.h>          /*I   "slepcbv.h"   I*/
-#include <slepcblaslapack.h>
 
 /*
    BV_CleanCoefficients_Default - Sets to zero all entries of column j of the bv buffer
@@ -702,89 +701,22 @@ static PetscErrorCode BVOrthogonalize_GS(BV V,Mat R)
 }
 
 /*
-   Compute the upper Cholesky factor in R and its inverse in S.
- */
-static PetscErrorCode MatCholeskyFactorInvert(Mat R,PetscInt l,Mat *S)
-{
-#if defined(PETSC_MISSING_LAPACK_POTRF) || defined(SLEPC_MISSING_LAPACK_TRTRI)
-  PetscFunctionBegin;
-  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"POTRF/TRTRI - Lapack routine is unavailable");
-#else
-  PetscErrorCode ierr;
-  PetscInt       i,n,m,ld;
-  PetscScalar    *pR,*pS;
-  PetscBLASInt   info,n_,l_,m_,ld_;
-
-  PetscFunctionBegin;
-  ierr = MatGetSize(R,&m,NULL);CHKERRQ(ierr);
-  n = m-l;
-  ierr = PetscBLASIntCast(m,&m_);CHKERRQ(ierr);
-  ierr = PetscBLASIntCast(l,&l_);CHKERRQ(ierr);
-  ierr = PetscBLASIntCast(n,&n_);CHKERRQ(ierr);
-  ld  = m;
-  ld_ = m_;
-  ierr = MatCreateSeqDense(PETSC_COMM_SELF,ld,ld,NULL,S);CHKERRQ(ierr);
-  ierr = MatDenseGetArray(R,&pR);CHKERRQ(ierr);
-  ierr = MatDenseGetArray(*S,&pS);CHKERRQ(ierr);
-
-  /* save a copy of matrix in S */
-  for (i=l;i<m;i++) {
-    ierr = PetscMemcpy(pS+i*ld+l,pR+i*ld+l,n*sizeof(PetscScalar));CHKERRQ(ierr);
-  }
-
-  /* compute upper Cholesky factor in R */
-  PetscStackCallBLAS("LAPACKpotrf",LAPACKpotrf_("U",&n_,pR+l*ld+l,&ld_,&info));
-  ierr = PetscLogFlops((1.0*n*n*n)/3.0);CHKERRQ(ierr);
-
-  if (info) {  /* LAPACKpotrf failed, retry on diagonally perturbed matrix */
-    for (i=l;i<m;i++) {
-      ierr = PetscMemcpy(pR+i*ld+l,pS+i*ld+l,n*sizeof(PetscScalar));CHKERRQ(ierr);
-      pR[i+i*ld] += 50.0*PETSC_MACHINE_EPSILON;
-    }
-    PetscStackCallBLAS("LAPACKpotrf",LAPACKpotrf_("U",&n_,pR+l*ld+l,&ld_,&info));
-    SlepcCheckLapackInfo("potrf",info);
-    ierr = PetscLogFlops((1.0*n*n*n)/3.0);CHKERRQ(ierr);
-  }
-
-  /* compute S = inv(R) */
-  ierr = PetscMemzero(pS,m*m*sizeof(PetscScalar));CHKERRQ(ierr);
-  for (i=l;i<m;i++) {
-    ierr = PetscMemcpy(pS+i*ld+l,pR+i*ld+l,n*sizeof(PetscScalar));CHKERRQ(ierr);
-  }
-  PetscStackCallBLAS("LAPACKtrtri",LAPACKtrtri_("U","N",&n_,pS+l*ld+l,&ld_,&info));
-  SlepcCheckLapackInfo("trtri",info);
-  ierr = PetscLogFlops(1.0*n*n*n);CHKERRQ(ierr);
-
-  /* Zero out entries below the diagonal */
-  for (i=l;i<m-1;i++) {
-    ierr = PetscMemzero(pR+i*ld+i+1,(m-i-1)*sizeof(PetscScalar));CHKERRQ(ierr);
-    ierr = PetscMemzero(pS+i*ld+i+1,(m-i-1)*sizeof(PetscScalar));CHKERRQ(ierr);
-  }
-  ierr = MatDenseRestoreArray(R,&pR);CHKERRQ(ierr);
-  ierr = MatDenseRestoreArray(*S,&pS);CHKERRQ(ierr);
-  PetscFunctionReturn(0);
-#endif
-}
-
-/*
    Orthogonalize a set of vectors with Cholesky: R=chol(V'*V), Q=V*inv(R)
  */
 static PetscErrorCode BVOrthogonalize_Chol(BV V,Mat Rin)
 {
   PetscErrorCode ierr;
-  Mat            S,R=Rin;
+  Mat            R;
 
   PetscFunctionBegin;
-  if (!Rin) {
-    ierr = MatCreateSeqDense(PETSC_COMM_SELF,V->k,V->k,NULL,&R);CHKERRQ(ierr);
+  if (Rin) R = Rin;
+  else {
+    ierr = BV_AllocateWorkMat(V,V->k,V->k);CHKERRQ(ierr);
+    R = V->Awork;
   }
   ierr = BVDot(V,V,R);CHKERRQ(ierr);
-  ierr = MatCholeskyFactorInvert(R,V->l,&S);CHKERRQ(ierr);
-  ierr = BVMultInPlace(V,S,V->l,V->k);CHKERRQ(ierr);
-  ierr = MatDestroy(&S);CHKERRQ(ierr);
-  if (!Rin) {
-    ierr = MatDestroy(&R);CHKERRQ(ierr);
-  }
+  ierr = BVMatCholInv_LAPACK_Private(V,R);CHKERRQ(ierr);
+  ierr = BVMultInPlace(V,R,V->l,V->k);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

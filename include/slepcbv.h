@@ -83,15 +83,19 @@ typedef enum { BV_ORTHOG_BLOCK_GS,
 PETSC_EXTERN const char *BVOrthogBlockTypes[];
 
 /*E
-    BVMatMultType - Determines how to perform the BVMatMult() operation:
-       BV_MATMULT_VECS: perform a matrix-vector multiply per each column;
-       BV_MATMULT_MAT: carry out a MatMatMult() product with a dense matrix (default);
-       BV_MATMULT_MAT_SAVE: call MatMatMult() and keep auxiliary matrices
-         (more efficient but needs more memory)
+   BVMatMultType - Different ways of performing the BVMatMult() operation
 
-    Level: advanced
+   Notes:
+   Allowed values are
++  BV_MATMULT_VECS - perform a matrix-vector multiply per each column
+.  BV_MATMULT_MAT - carry out a MatMatMult() product with a dense matrix
+-  BV_MATMULT_MAT_SAVE - this case is deprecated
 
-.seealso: BVMatMult()
+   The default is BV_MATMULT_MAT except in the case of BVVECS.
+
+   Level: advanced
+
+.seealso: BVSetMatMultMethod(), BVMatMult()
 E*/
 typedef enum { BV_MATMULT_VECS,
                BV_MATMULT_MAT,
@@ -180,15 +184,17 @@ PETSC_EXTERN PetscErrorCode BVOrthogonalizeSomeColumn(BV,PetscInt,PetscBool*,Pet
 PETSC_EXTERN PetscErrorCode BVSetMatMultMethod(BV,BVMatMultType);
 PETSC_EXTERN PetscErrorCode BVGetMatMultMethod(BV,BVMatMultType*);
 
+PETSC_EXTERN PetscErrorCode BVCreateFromMat(Mat,BV*);
+PETSC_EXTERN PetscErrorCode BVCreateMat(BV,Mat*);
+PETSC_EXTERN PetscErrorCode BVGetMat(BV,Mat*);
+PETSC_EXTERN PetscErrorCode BVRestoreMat(BV,Mat*);
+
 PETSC_EXTERN PetscErrorCode BVSetOptionsPrefix(BV,const char*);
 PETSC_EXTERN PetscErrorCode BVAppendOptionsPrefix(BV,const char*);
 PETSC_EXTERN PetscErrorCode BVGetOptionsPrefix(BV,const char*[]);
 
 PETSC_EXTERN PetscFunctionList BVList;
 PETSC_EXTERN PetscErrorCode BVRegister(const char[],PetscErrorCode(*)(BV));
-
-PETSC_EXTERN PetscErrorCode BVCreateFromMat(Mat,BV*);
-PETSC_EXTERN PetscErrorCode BVCreateMat(BV,Mat*);
 
 #endif
 

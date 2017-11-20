@@ -80,14 +80,14 @@ struct _p_BV {
   PetscObjectId      id[2];        /* object id of obtained vectors */
   PetscScalar        *h,*c;        /* orthogonalization coefficients */
   Vec                omega;        /* signature matrix values for indefinite case */
-  Mat                B,C;          /* auxiliary dense matrices for matmult operation */
-  PetscObjectId      Aid;          /* object id of matrix A of matmult operation */
   PetscBool          defersfo;     /* deferred call to setfromoptions */
   BV                 cached;       /* cached BV to store result of matrix times BV */
   PetscObjectState   bvstate;      /* state of BV when BVApplyMatrixBV() was called */
   PetscRandom        rand;         /* random number generator */
   PetscBool          rrandom;      /* reproducible random vectors */
   Mat                Acreate;      /* matrix given at BVCreateFromMat() */
+  Mat                Aget;         /* matrix returned for BVGetMat() */
+  Mat                Awork;        /* auxiliary seqdense matrix used in BVOrthogonalize() */
   PetscBool          cuda;         /* true if GPU must be used in SVEC */
   PetscScalar        *work;
   PetscInt           lwork;
@@ -202,31 +202,26 @@ PETSC_STATIC_INLINE PetscErrorCode BV_AllocateSignature(BV bv)
 }
 
 /*
-  BV_AllocateMatMult - Allocate auxiliary matrices required for BVMatMult if not available.
+  BV_AllocateWorkMat - Allocate auxiliary seqdense matrix used in BVOrthogonalize if not available.
 */
-PETSC_STATIC_INLINE PetscErrorCode BV_AllocateMatMult(BV bv,Mat A,PetscInt m)
+PETSC_STATIC_INLINE PetscErrorCode BV_AllocateWorkMat(BV bv,PetscInt m,PetscInt n)
 {
   PetscErrorCode ierr;
-  PetscObjectId  Aid;
   PetscBool      create=PETSC_FALSE;
-  PetscInt       cols;
+  PetscInt       rows,cols;
 
   PetscFunctionBegin;
-  if (!bv->B) create=PETSC_TRUE;
+  if (!bv->Awork) create=PETSC_TRUE;
   else {
-    ierr = MatGetSize(bv->B,NULL,&cols);CHKERRQ(ierr);
-    ierr = PetscObjectGetId((PetscObject)A,&Aid);CHKERRQ(ierr);
-    if (cols!=m || bv->Aid!=Aid) {
-      ierr = MatDestroy(&bv->B);CHKERRQ(ierr);
-      ierr = MatDestroy(&bv->C);CHKERRQ(ierr);
+    ierr = MatGetSize(bv->Awork,&rows,&cols);CHKERRQ(ierr);
+    if (rows!=m || cols!=n) {
+      ierr = MatDestroy(&bv->Awork);CHKERRQ(ierr);
       create=PETSC_TRUE;
     }
   }
   if (create) {
-    ierr = MatCreateDense(PetscObjectComm((PetscObject)bv),bv->n,PETSC_DECIDE,bv->N,m,NULL,&bv->B);CHKERRQ(ierr);
-    ierr = PetscLogObjectParent((PetscObject)bv,(PetscObject)bv->B);CHKERRQ(ierr);
-    ierr = MatAssemblyBegin(bv->B,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
-    ierr = MatAssemblyEnd(bv->B,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
+    ierr = MatCreateSeqDense(PETSC_COMM_SELF,m,n,NULL,&bv->Awork);CHKERRQ(ierr);
+    ierr = PetscLogObjectParent((PetscObject)bv,(PetscObject)bv->Awork);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }
@@ -266,6 +261,7 @@ PETSC_INTERN PetscErrorCode BVDot_BLAS_Private(BV,PetscInt,PetscInt,PetscInt,Pet
 PETSC_INTERN PetscErrorCode BVDotVec_BLAS_Private(BV,PetscInt,PetscInt,const PetscScalar*,const PetscScalar*,PetscScalar*,PetscBool);
 PETSC_INTERN PetscErrorCode BVScale_BLAS_Private(BV,PetscInt,PetscScalar*,PetscScalar);
 PETSC_INTERN PetscErrorCode BVNorm_LAPACK_Private(BV,PetscInt,PetscInt,const PetscScalar*,NormType,PetscReal*,PetscBool);
+PETSC_INTERN PetscErrorCode BVMatCholInv_LAPACK_Private(BV,Mat);
 PETSC_INTERN PetscErrorCode BVOrthogonalize_LAPACK_Private(BV,PetscInt,PetscInt,PetscScalar*,PetscScalar*);
 
 #if defined(PETSC_HAVE_VECCUDA)
