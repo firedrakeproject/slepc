@@ -35,9 +35,9 @@ PETSC_STATIC_INLINE PetscErrorCode BVDot_Private(BV X,BV Y,Mat M)
   jend = X->k;
   for (j=X->l;j<jend;j++) {
     if (symm) Y->k = j+1;
-    ierr = BVGetColumn(X,j,&z);CHKERRQ(ierr);
+    ierr = BVGetColumn(X->cached,j,&z);CHKERRQ(ierr);
     ierr = (*Y->ops->dotvec)(Y,z,marray+j*m+Y->l);CHKERRQ(ierr);
-    ierr = BVRestoreColumn(X,j,&z);CHKERRQ(ierr);
+    ierr = BVRestoreColumn(X->cached,j,&z);CHKERRQ(ierr);
     if (symm) {
       for (i=X->l;i<j;i++)
         marray[j+i*m] = PetscConj(marray[i+j*m]);
@@ -108,17 +108,17 @@ PetscErrorCode BVDot(BV X,BV Y,Mat M)
 
   ierr = PetscLogEventBegin(BV_Dot,X,Y,0,0);CHKERRQ(ierr);
   if (X->matrix) { /* non-standard inner product */
+    /* compute BX first */
+    ierr = BV_IPMatMultBV(X);CHKERRQ(ierr);
+    B = X->matrix;
+    X->matrix = NULL;
     if (X->vmm==BV_MATMULT_VECS) {
       /* perform computation column by column */
       ierr = BVDot_Private(X,Y,M);CHKERRQ(ierr);
     } else {
-      /* compute BX first */
-      ierr = BV_IPMatMultBV(X);CHKERRQ(ierr);
-      B = X->matrix;
-      X->matrix = NULL;
       ierr = (*X->ops->dot)(X->cached,Y,M);CHKERRQ(ierr);
-      X->matrix = B;
     }
+    X->matrix = B;
   } else {
     ierr = (*X->ops->dot)(X,Y,M);CHKERRQ(ierr);
   }
