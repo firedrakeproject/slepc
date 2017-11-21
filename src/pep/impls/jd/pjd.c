@@ -34,6 +34,7 @@
 
 typedef struct {
   PetscReal   keep;          /* restart parameter */
+  PetscReal   fix;           /* fix parameter */
   BV          V;             /* work basis vectors to store the search space */
   BV          W;             /* work basis vectors to store the test space */
   BV          *TV;           /* work basis vectors to store T*V (each TV[i] is the coefficient for \lambda^i of T*V for the extended T) */
@@ -1177,6 +1178,93 @@ PetscErrorCode PEPJDGetRestart(PEP pep,PetscReal *keep)
   PetscFunctionReturn(0);
 }
 
+PetscErrorCode PEPJDSetFix_JD(PEP pep,PetscReal fix)
+{
+  PEP_JD *pjd = (PEP_JD*)pep->data;
+
+  PetscFunctionBegin;
+  if (fix == PETSC_DEFAULT || fix == PETSC_DECIDE) pjd->fix = 0.01;
+  else {
+    if (fix < 0.0) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"Invalid fix value");
+    pjd->fix = fix;
+  }
+  PetscFunctionReturn(0);
+}
+
+/*@
+   PEPJDSetFix - Sets the threshold for changing the target in the correction
+   equation.
+
+   Logically Collective on PEP
+
+   Input Parameters:
++  pep - the eigenproblem solver context
+-  fix - threshold for changing the target
+
+   Options Database Key:
+.  -pep_jd_fix - the fix value
+
+   Note:
+   The target in the correction equation is fixed at the first iterations.
+   When the norm of the residual vector is lower than the fix value,
+   the target is set to the corresponding eigenvalue.
+
+   Level: advanced
+
+.seealso: PEPJDGetFix()
+@*/
+PetscErrorCode PEPJDSetFix(PEP pep,PetscReal fix)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
+  PetscValidLogicalCollectiveReal(pep,fix,2);
+  ierr = PetscTryMethod(pep,"PEPJDSetFix_C",(PEP,PetscReal),(pep,fix));CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+PetscErrorCode PEPJDGetFix_JD(PEP pep,PetscReal *fix)
+{
+  PEP_JD *pjd = (PEP_JD*)pep->data;
+
+  PetscFunctionBegin;
+  *fix = pjd->fix;
+  PetscFunctionReturn(0);
+}
+
+/*@
+   PEPJDGetFix - Returns the threshold for changing the target in the correction
+   equation.
+
+   Not Collective
+
+   Input Parameter:
+.  pep - the eigenproblem solver context
+
+   Output Parameter:
+.  fix - threshold for changing the target
+
+   Note:
+   The target in the correction equation is fixed at the first iterations.
+   When the norm of the residual vector is lower than the fix value,
+   the target is set to the corresponding eigenvalue.
+
+   Level: advanced
+
+.seealso: PEPJDSetFix()
+@*/
+PetscErrorCode PEPJDGetFix(PEP pep,PetscReal *fix)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
+  PetscValidPointer(fix,2);
+  ierr = PetscUseMethod(pep,"PEPJDGetFix_C",(PEP,PetscReal*),(pep,fix));CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
 PetscErrorCode PEPSetFromOptions_JD(PetscOptionItems *PetscOptionsObject,PEP pep)
 {
   PetscErrorCode ierr;
@@ -1188,6 +1276,9 @@ PetscErrorCode PEPSetFromOptions_JD(PetscOptionItems *PetscOptionsObject,PEP pep
 
     ierr = PetscOptionsReal("-pep_jd_restart","Proportion of vectors kept after restart","PEPJDSetRestart",0.5,&r1,&flg);CHKERRQ(ierr);
     if (flg) { ierr = PEPJDSetRestart(pep,r1);CHKERRQ(ierr); }
+
+    ierr = PetscOptionsReal("-pep_jd_fix","Tolerance for changing the target in the correction equation","PEPJDSetFix",0.01,&r1,&flg);CHKERRQ(ierr);
+    if (flg) { ierr = PEPJDSetFix(pep,r1);CHKERRQ(ierr); }
 
   ierr = PetscOptionsTail();CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -1203,6 +1294,7 @@ PetscErrorCode PEPView_JD(PEP pep,PetscViewer viewer)
   ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
   if (isascii) {
     ierr = PetscViewerASCIIPrintf(viewer,"  %d%% of basis vectors kept after restart\n",(int)(100*pjd->keep));CHKERRQ(ierr);
+    ierr = PetscViewerASCIIPrintf(viewer,"  threshold for changing the target in the correction equation (fix): %g\n",(double)pjd->fix);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }
@@ -1259,6 +1351,8 @@ PetscErrorCode PEPDestroy_JD(PEP pep)
   ierr = PetscFree(pep->data);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)pep,"PEPJDSetRestart_C",NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)pep,"PEPJDGetRestart_C",NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)pep,"PEPJDSetFix_C",NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)pep,"PEPJDGetFix_C",NULL);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -1271,6 +1365,8 @@ PETSC_EXTERN PetscErrorCode PEPCreate_JD(PEP pep)
   ierr = PetscNewLog(pep,&pjd);CHKERRQ(ierr);
   pep->data = (void*)pjd;
 
+  pjd->fix = 0.01;
+
   pep->ops->solve          = PEPSolve_JD;
   pep->ops->setup          = PEPSetUp_JD;
   pep->ops->setfromoptions = PEPSetFromOptions_JD;
@@ -1281,6 +1377,8 @@ PETSC_EXTERN PetscErrorCode PEPCreate_JD(PEP pep)
 
   ierr = PetscObjectComposeFunction((PetscObject)pep,"PEPJDSetRestart_C",PEPJDSetRestart_JD);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)pep,"PEPJDGetRestart_C",PEPJDGetRestart_JD);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)pep,"PEPJDSetFix_C",PEPJDSetFix_JD);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)pep,"PEPJDGetFix_C",PEPJDGetFix_JD);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
