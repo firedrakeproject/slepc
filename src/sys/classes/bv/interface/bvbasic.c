@@ -376,6 +376,7 @@ PetscErrorCode BVResize(BV bv,PetscInt m,PetscBool copy)
   bv->k = PetscMin(bv->k,m);
   bv->l = PetscMin(bv->l,m);
   ierr = PetscLogEventEnd(BV_Create,bv,0,0,0);CHKERRQ(ierr);
+  ierr = PetscObjectStateIncrease((PetscObject)bv);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -504,6 +505,7 @@ PetscErrorCode BVSetMatrix(BV bv,Mat B,PetscBool indef)
     ierr = MatCreateVecs(B,&bv->Bx,NULL);CHKERRQ(ierr);
     ierr = PetscLogObjectParent((PetscObject)bv,(PetscObject)bv->Bx);CHKERRQ(ierr);
   }
+  ierr = PetscObjectStateIncrease((PetscObject)bv);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -690,6 +692,7 @@ PetscErrorCode BVSetSignature(BV bv,Vec omega)
   } else {
     ierr = PetscInfo(bv,"Ignoring signature because BV is not indefinite\n");CHKERRQ(ierr);
   }
+  ierr = PetscObjectStateIncrease((PetscObject)bv);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -1683,6 +1686,7 @@ PetscErrorCode BVCopy(BV V,BV W)
   }
   ierr = (*V->ops->copy)(V,W);CHKERRQ(ierr);
   ierr = PetscLogEventEnd(BV_Copy,V,W,0,0);CHKERRQ(ierr);
+  ierr = PetscObjectStateIncrease((PetscObject)W);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -1771,6 +1775,7 @@ PetscErrorCode BVCopyColumn(BV V,PetscInt j,PetscInt i)
   ierr = BVRestoreColumn(V,j,&z);CHKERRQ(ierr);
   ierr = BVRestoreColumn(V,i,&w);CHKERRQ(ierr);
   ierr = PetscLogEventEnd(BV_Copy,V,0,0,0);CHKERRQ(ierr);
+  ierr = PetscObjectStateIncrease((PetscObject)V);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

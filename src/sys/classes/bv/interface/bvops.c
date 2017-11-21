@@ -192,6 +192,7 @@ PetscErrorCode BVMultColumn(BV X,PetscScalar alpha,PetscScalar beta,PetscInt j,P
   ierr = BVRestoreColumn(X,j,&y);CHKERRQ(ierr);
   X->k = ksave;
   ierr = PetscLogEventEnd(BV_MultVec,X,0,0,0);CHKERRQ(ierr);
+  ierr = PetscObjectStateIncrease((PetscObject)X);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -589,6 +590,7 @@ PetscErrorCode BVMatMult(BV V,Mat A,BV Y)
   ierr = PetscLogEventBegin(BV_MatMult,V,A,Y,0);CHKERRQ(ierr);
   ierr = (*V->ops->matmult)(V,A,Y);CHKERRQ(ierr);
   ierr = PetscLogEventEnd(BV_MatMult,V,A,Y,0);CHKERRQ(ierr);
+  ierr = PetscObjectStateIncrease((PetscObject)Y);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -646,6 +648,7 @@ PetscErrorCode BVMatMultHermitianTranspose(BV V,Mat A,BV Y)
     ierr = BVRestoreColumn(Y,Y->l+j,&f);CHKERRQ(ierr);
   }
   ierr = PetscLogEventEnd(BV_MatMult,V,A,Y,0);CHKERRQ(ierr);
+  ierr = PetscObjectStateIncrease((PetscObject)Y);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -688,6 +691,7 @@ PetscErrorCode BVMatMultColumn(BV V,Mat A,PetscInt j)
   ierr = BVRestoreColumn(V,j,&vj);CHKERRQ(ierr);
   ierr = BVRestoreColumn(V,j+1,&vj1);CHKERRQ(ierr);
   ierr = PetscLogEventEnd(BV_MatMultVec,V,A,0,0);CHKERRQ(ierr);
+  ierr = PetscObjectStateIncrease((PetscObject)V);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

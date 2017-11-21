@@ -150,8 +150,8 @@ PETSC_STATIC_INLINE PetscErrorCode BV_IPMatMultBV(BV bv)
 
   PetscFunctionBegin;
   ierr = BVGetCachedBV(bv,&bv->cached);CHKERRQ(ierr);
-  ierr = BVSetActiveColumns(bv->cached,bv->l,bv->k);CHKERRQ(ierr);
-  if (((PetscObject)bv)->state != bv->bvstate) {
+  if (((PetscObject)bv)->state != bv->bvstate || bv->l != bv->cached->l || bv->k != bv->cached->k) {
+    ierr = BVSetActiveColumns(bv->cached,bv->l,bv->k);CHKERRQ(ierr);
     if (bv->matrix) {
       ierr = BVMatMult(bv,bv->matrix,bv->cached);CHKERRQ(ierr);
     } else {
