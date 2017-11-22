@@ -425,13 +425,8 @@ PETSC_EXTERN PetscErrorCode BVCreate_Mat(BV bv)
     ierr = MatDestroy(&bv->Acreate);CHKERRQ(ierr);
   }
 
-  if (ctx->mpi) {
-    ierr = VecCreateMPIWithArray(PetscObjectComm((PetscObject)bv->t),bs,nloc,PETSC_DECIDE,NULL,&bv->cv[0]);CHKERRQ(ierr);
-    ierr = VecCreateMPIWithArray(PetscObjectComm((PetscObject)bv->t),bs,nloc,PETSC_DECIDE,NULL,&bv->cv[1]);CHKERRQ(ierr);
-  } else {
-    ierr = VecCreateSeqWithArray(PetscObjectComm((PetscObject)bv->t),bs,nloc,NULL,&bv->cv[0]);CHKERRQ(ierr);
-    ierr = VecCreateSeqWithArray(PetscObjectComm((PetscObject)bv->t),bs,nloc,NULL,&bv->cv[1]);CHKERRQ(ierr);
-  }
+  ierr = VecDuplicateEmpty(bv->t,&bv->cv[0]);CHKERRQ(ierr);
+  ierr = VecDuplicateEmpty(bv->t,&bv->cv[1]);CHKERRQ(ierr);
 
   bv->ops->mult             = BVMult_Mat;
   bv->ops->multvec          = BVMultVec_Mat;

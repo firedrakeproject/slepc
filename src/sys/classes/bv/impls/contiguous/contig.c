@@ -316,8 +316,7 @@ PETSC_EXTERN PetscErrorCode BVCreate_Contiguous(BV bv)
 
   ierr = VecGetLocalSize(bv->t,&nloc);CHKERRQ(ierr);
   ierr = VecGetBlockSize(bv->t,&bs);CHKERRQ(ierr);
-  ierr = PetscMalloc1(bv->m*nloc,&ctx->array);CHKERRQ(ierr);
-  ierr = PetscMemzero(ctx->array,bv->m*nloc*sizeof(PetscScalar));CHKERRQ(ierr);
+  ierr = PetscCalloc1(bv->m*nloc,&ctx->array);CHKERRQ(ierr);
   ierr = PetscMalloc1(bv->m,&ctx->V);CHKERRQ(ierr);
   for (j=0;j<bv->m;j++) {
     if (ctx->mpi) {

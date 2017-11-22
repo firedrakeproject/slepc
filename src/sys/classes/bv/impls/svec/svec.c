@@ -437,8 +437,7 @@ PETSC_EXTERN PetscErrorCode BVCreate_Svec(BV bv)
 
   ierr = VecDuplicateEmpty(bv->t,&bv->cv[0]);CHKERRQ(ierr);
   ierr = VecDuplicateEmpty(bv->t,&bv->cv[1]);CHKERRQ(ierr);
-  ierr = VecSetType(bv->cv[0],((PetscObject)bv->t)->type_name);CHKERRQ(ierr);
-  ierr = VecSetType(bv->cv[1],((PetscObject)bv->t)->type_name);CHKERRQ(ierr);
+
   if (bv->cuda) {
 #if defined(PETSC_HAVE_VECCUDA)
     bv->ops->mult             = BVMult_Svec_CUDA;
