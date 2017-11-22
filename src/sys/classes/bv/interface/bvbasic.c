@@ -610,44 +610,6 @@ PetscErrorCode BVApplyMatrixBV(BV X,BV Y)
 }
 
 /*@
-   BVGetCachedBV - Returns a BV object stored internally that holds the
-   result of B*X after a call to BVApplyMatrixBV().
-
-   Not collective
-
-   Input Parameter:
-.  bv    - the basis vectors context
-
-   Output Parameter:
-.  cached - the cached BV
-
-   Note:
-   The cached BV is created if not available previously.
-
-   Level: developer
-
-.seealso: BVApplyMatrixBV()
-@*/
-PetscErrorCode BVGetCachedBV(BV bv,BV *cached)
-{
-  PetscErrorCode ierr;
-
-  PetscFunctionBegin;
-  PetscValidHeaderSpecific(bv,BV_CLASSID,1);
-  PetscValidPointer(cached,2);
-  BVCheckSizes(bv,1);
-  if (!bv->cached) {
-    ierr = BVCreate(PetscObjectComm((PetscObject)bv),&bv->cached);CHKERRQ(ierr);
-    ierr = BVSetSizesFromVec(bv->cached,bv->t,bv->m);CHKERRQ(ierr);
-    ierr = BVSetType(bv->cached,((PetscObject)bv)->type_name);CHKERRQ(ierr);
-    ierr = BVSetOrthogonalization(bv->cached,bv->orthog_type,bv->orthog_ref,bv->orthog_eta,bv->orthog_block);CHKERRQ(ierr);
-    ierr = PetscLogObjectParent((PetscObject)bv,(PetscObject)bv->cached);CHKERRQ(ierr);
-  }
-  *cached = bv->cached;
-  PetscFunctionReturn(0);
-}
-
-/*@
    BVSetSignature - Sets the signature matrix to be used in orthogonalization.
 
    Logically Collective on BV
@@ -1542,20 +1504,26 @@ PetscErrorCode BVRestoreMat(BV bv,Mat *A)
   PetscFunctionReturn(0);
 }
 
-PETSC_STATIC_INLINE PetscErrorCode BVDuplicate_Private(BV V,PetscInt m,BV *W)
+/*
+   Copy all user-provided attributes of V to another BV object W
+ */
+PETSC_STATIC_INLINE PetscErrorCode BVDuplicate_Private(BV V,BV W)
 {
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  ierr = BVCreate(PetscObjectComm((PetscObject)V),W);CHKERRQ(ierr);
-  ierr = BVSetSizesFromVec(*W,V->t,m);CHKERRQ(ierr);
-  ierr = BVSetType(*W,((PetscObject)V)->type_name);CHKERRQ(ierr);
-  ierr = BVSetMatrix(*W,V->matrix,V->indef);CHKERRQ(ierr);
-  ierr = BVSetOrthogonalization(*W,V->orthog_type,V->orthog_ref,V->orthog_eta,V->orthog_block);CHKERRQ(ierr);
-  (*W)->vmm     = V->vmm;
-  (*W)->rrandom = V->rrandom;
+  ierr = BVSetType(W,((PetscObject)V)->type_name);CHKERRQ(ierr);
+  W->orthog_type  = V->orthog_type;
+  W->orthog_ref   = V->orthog_ref;
+  W->orthog_eta   = V->orthog_eta;
+  W->orthog_block = V->orthog_block;
+  if (V->matrix) PetscObjectReference((PetscObject)V->matrix);
+  W->matrix       = V->matrix;
+  W->indef        = V->indef;
+  W->vmm          = V->vmm;
+  W->rrandom      = V->rrandom;
   if (V->ops->duplicate) { ierr = (*V->ops->duplicate)(V,W);CHKERRQ(ierr); }
-  ierr = PetscObjectStateIncrease((PetscObject)*W);CHKERRQ(ierr);
+  ierr = PetscObjectStateIncrease((PetscObject)W);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -1592,7 +1560,9 @@ PetscErrorCode BVDuplicate(BV V,BV *W)
   PetscValidType(V,1);
   BVCheckSizes(V,1);
   PetscValidPointer(W,2);
-  ierr = BVDuplicate_Private(V,V->m,W);CHKERRQ(ierr);
+  ierr = BVCreate(PetscObjectComm((PetscObject)V),W);CHKERRQ(ierr);
+  ierr = BVSetSizesFromVec(*W,V->t,V->m);CHKERRQ(ierr);
+  ierr = BVDuplicate_Private(V,*W);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -1627,7 +1597,46 @@ PetscErrorCode BVDuplicateResize(BV V,PetscInt m,BV *W)
   BVCheckSizes(V,1);
   PetscValidLogicalCollectiveInt(V,m,2);
   PetscValidPointer(W,3);
-  ierr = BVDuplicate_Private(V,m,W);CHKERRQ(ierr);
+  ierr = BVCreate(PetscObjectComm((PetscObject)V),W);CHKERRQ(ierr);
+  ierr = BVSetSizesFromVec(*W,V->t,m);CHKERRQ(ierr);
+  ierr = BVDuplicate_Private(V,*W);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+/*@
+   BVGetCachedBV - Returns a BV object stored internally that holds the
+   result of B*X after a call to BVApplyMatrixBV().
+
+   Not collective
+
+   Input Parameter:
+.  bv    - the basis vectors context
+
+   Output Parameter:
+.  cached - the cached BV
+
+   Note:
+   The cached BV is created if not available previously.
+
+   Level: developer
+
+.seealso: BVApplyMatrixBV()
+@*/
+PetscErrorCode BVGetCachedBV(BV bv,BV *cached)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(bv,BV_CLASSID,1);
+  PetscValidPointer(cached,2);
+  BVCheckSizes(bv,1);
+  if (!bv->cached) {
+    ierr = BVCreate(PetscObjectComm((PetscObject)bv),&bv->cached);CHKERRQ(ierr);
+    ierr = BVSetSizesFromVec(bv->cached,bv->t,bv->m);CHKERRQ(ierr);
+    ierr = BVDuplicate_Private(bv,bv->cached);CHKERRQ(ierr);
+    ierr = PetscLogObjectParent((PetscObject)bv,(PetscObject)bv->cached);CHKERRQ(ierr);
+  }
+  *cached = bv->cached;
   PetscFunctionReturn(0);
 }
 

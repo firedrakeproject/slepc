@@ -45,7 +45,7 @@ struct _BVOps {
   PetscErrorCode (*restorearray)(BV,PetscScalar**);
   PetscErrorCode (*getarrayread)(BV,const PetscScalar**);
   PetscErrorCode (*restorearrayread)(BV,const PetscScalar**);
-  PetscErrorCode (*duplicate)(BV,BV*);
+  PetscErrorCode (*duplicate)(BV,BV);
   PetscErrorCode (*create)(BV);
   PetscErrorCode (*setfromoptions)(PetscOptionItems*,BV);
   PetscErrorCode (*view)(BV,PetscViewer);
@@ -68,6 +68,7 @@ struct _p_BV {
   Mat                matrix;       /* inner product matrix */
   PetscBool          indef;        /* matrix is indefinite */
   BVMatMultType      vmm;          /* version of matmult operation */
+  PetscBool          rrandom;      /* reproducible random vectors */
 
   /*---------------------- Cached data and workspace -------------------*/
   Vec                buffer;       /* buffer vector used in orthogonalization */
@@ -84,7 +85,6 @@ struct _p_BV {
   BV                 cached;       /* cached BV to store result of matrix times BV */
   PetscObjectState   bvstate;      /* state of BV when BVApplyMatrixBV() was called */
   PetscRandom        rand;         /* random number generator */
-  PetscBool          rrandom;      /* reproducible random vectors */
   Mat                Acreate;      /* matrix given at BVCreateFromMat() */
   Mat                Aget;         /* matrix returned for BVGetMat() */
   Mat                Awork;        /* auxiliary seqdense matrix used in BVOrthogonalize() */

@@ -496,13 +496,13 @@ PetscErrorCode BVDestroy_Vecs(BV bv)
   PetscFunctionReturn(0);
 }
 
-PetscErrorCode BVDuplicate_Vecs(BV V,BV *W)
+PetscErrorCode BVDuplicate_Vecs(BV V,BV W)
 {
   PetscErrorCode ierr;
   BV_VECS        *ctx = (BV_VECS*)V->data;
 
   PetscFunctionBegin;
-  ierr = BVVecsSetVmip(*W,ctx->vmip);CHKERRQ(ierr);
+  ierr = BVVecsSetVmip(W,ctx->vmip);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
