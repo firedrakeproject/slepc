@@ -269,4 +269,6 @@ PETSC_INTERN PetscErrorCode EPSXDGetInitialSize_XD(EPS,PetscInt*);
 PETSC_INTERN PetscErrorCode EPSXDSetInitialSize_XD(EPS,PetscInt);
 PETSC_INTERN PetscErrorCode EPSXDSetBOrth_XD(EPS,PetscBool);
 PETSC_INTERN PetscErrorCode EPSXDGetBOrth_XD(EPS,PetscBool*);
+PETSC_INTERN PetscErrorCode EPSJDGetFix_JD(EPS,PetscReal*);
+PETSC_INTERN PetscErrorCode EPSJDGetConstCorrectionTol_JD(EPS,PetscBool*);
 
