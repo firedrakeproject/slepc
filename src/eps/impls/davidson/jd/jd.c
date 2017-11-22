@@ -113,14 +113,14 @@ PetscErrorCode EPSView_JD(EPS eps,PetscViewer viewer)
 {
   PetscErrorCode ierr;
   PetscBool      isascii,opb;
+  PetscReal      opf;
   PetscInt       opi,opi0;
-  PetscBool      borth;
 
   PetscFunctionBegin;
   ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
   if (isascii) {
-    ierr = EPSXDGetBOrth_XD(eps,&borth);CHKERRQ(ierr);
-    if (borth) {
+    ierr = EPSXDGetBOrth_XD(eps,&opb);CHKERRQ(ierr);
+    if (opb) {
       ierr = PetscViewerASCIIPrintf(viewer,"  search subspace is B-orthogonalized\n");CHKERRQ(ierr);
     } else {
       ierr = PetscViewerASCIIPrintf(viewer,"  search subspace is orthogonalized\n");CHKERRQ(ierr);
@@ -136,6 +136,12 @@ PetscErrorCode EPSView_JD(EPS eps,PetscViewer viewer)
     ierr = EPSXDGetRestart_XD(eps,&opi,&opi0);CHKERRQ(ierr);
     ierr = PetscViewerASCIIPrintf(viewer,"  size of the subspace after restarting: %D\n",opi);CHKERRQ(ierr);
     ierr = PetscViewerASCIIPrintf(viewer,"  number of vectors after restarting from the previous iteration: %D\n",opi0);CHKERRQ(ierr);
+
+    ierr = EPSJDGetFix_JD(eps,&opf);CHKERRQ(ierr);
+    ierr = PetscViewerASCIIPrintf(viewer,"  threshold for changing the target in the correction equation (fix): %g\n",(double)opf);CHKERRQ(ierr);
+
+    ierr = EPSJDGetConstCorrectionTol_JD(eps,&opb);CHKERRQ(ierr);
+    if (!opb) { ierr = PetscViewerASCIIPrintf(viewer,"  using dynamic tolerance for the correction equation\n");CHKERRQ(ierr); }
   }
   PetscFunctionReturn(0);
 }
