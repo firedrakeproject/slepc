@@ -501,10 +501,6 @@ PetscErrorCode BVSetMatrix(BV bv,Mat B,PetscBool indef)
   if (B) PetscObjectReference((PetscObject)B);
   bv->matrix = B;
   bv->indef  = indef;
-  if (B && !bv->Bx) {
-    ierr = MatCreateVecs(B,&bv->Bx,NULL);CHKERRQ(ierr);
-    ierr = PetscLogObjectParent((PetscObject)bv,(PetscObject)bv->Bx);CHKERRQ(ierr);
-  }
   ierr = PetscObjectStateIncrease((PetscObject)bv);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

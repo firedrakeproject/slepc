@@ -70,8 +70,8 @@ struct _p_BV {
   BVMatMultType      vmm;          /* version of matmult operation */
 
   /*---------------------- Cached data and workspace -------------------*/
-  Vec                Bx;           /* result of matrix times a vector x */
   Vec                buffer;       /* buffer vector used in orthogonalization */
+  Vec                Bx;           /* result of matrix times a vector x */
   PetscObjectId      xid;          /* object id of vector x */
   PetscObjectState   xstate;       /* state of vector x */
   Vec                cv[2];        /* column vectors obtained with BVGetColumn() */
@@ -133,6 +133,10 @@ PETSC_STATIC_INLINE PetscErrorCode BV_IPMatMult(BV bv,Vec x)
 
   PetscFunctionBegin;
   if (((PetscObject)x)->id != bv->xid || ((PetscObject)x)->state != bv->xstate) {
+    if (!bv->Bx) {
+      ierr = MatCreateVecs(bv->matrix,&bv->Bx,NULL);CHKERRQ(ierr);
+      ierr = PetscLogObjectParent((PetscObject)bv,(PetscObject)bv->Bx);CHKERRQ(ierr);
+    }
     ierr = MatMult(bv->matrix,x,bv->Bx);CHKERRQ(ierr);
     bv->xid = ((PetscObject)x)->id;
     bv->xstate = ((PetscObject)x)->state;
