@@ -19,7 +19,7 @@ PetscErrorCode PrintFirstRow(BV X)
 {
   PetscErrorCode    ierr;
   PetscMPIInt       rank;
-  PetscInt          i,nloc,k;
+  PetscInt          i,nloc,k,nc;
   const PetscScalar *pX;
   const char        *name;
 
@@ -28,10 +28,11 @@ PetscErrorCode PrintFirstRow(BV X)
   if (!rank) {
     ierr = BVGetActiveColumns(X,NULL,&k);CHKERRQ(ierr);
     ierr = BVGetSizes(X,&nloc,NULL,NULL);CHKERRQ(ierr);
+    ierr = BVGetNumConstraints(X,&nc);CHKERRQ(ierr);
     ierr = PetscObjectGetName((PetscObject)X,&name);CHKERRQ(ierr);
     ierr = PetscPrintf(PetscObjectComm((PetscObject)X),"First row of %s =\n",name);CHKERRQ(ierr);
     ierr = BVGetArrayRead(X,&pX);CHKERRQ(ierr);
-    for (i=0;i<k;i++) {
+    for (i=0;i<nc+k;i++) {
       ierr = PetscPrintf(PetscObjectComm((PetscObject)X),"%g ",(double)PetscRealPart(pX[i*nloc]));CHKERRQ(ierr);
     }
     ierr = PetscPrintf(PetscObjectComm((PetscObject)X),"\n");CHKERRQ(ierr);
@@ -43,9 +44,11 @@ PetscErrorCode PrintFirstRow(BV X)
 int main(int argc,char **argv)
 {
   PetscErrorCode ierr;
-  Vec            t,v;
+  Vec            t,v,*C;
   BV             X,L,R;
-  PetscInt       i,j,n=10,k=5,l=3,nloc;
+  PetscInt       i,j,n=10,k=5,l=3,nc=0,nloc;
+  PetscReal      norm;
+  PetscScalar    alpha;
   PetscViewer    view;
   PetscBool      verbose;
 
@@ -53,8 +56,9 @@ int main(int argc,char **argv)
   ierr = PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL);CHKERRQ(ierr);
   ierr = PetscOptionsGetInt(NULL,NULL,"-k",&k,NULL);CHKERRQ(ierr);
   ierr = PetscOptionsGetInt(NULL,NULL,"-l",&l,NULL);CHKERRQ(ierr);
+  ierr = PetscOptionsGetInt(NULL,NULL,"-nc",&nc,NULL);CHKERRQ(ierr);
   ierr = PetscOptionsHasName(NULL,NULL,"-verbose",&verbose);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"Test BVGetSplit (length %D, l=%D, k=%D).\n",n,l,k);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"Test BVGetSplit (length %D, l=%D, k=%D, nc=%D).\n",n,l,k,nc);CHKERRQ(ierr);
 
   /* Create template vector */
   ierr = VecCreate(PETSC_COMM_WORLD,&t);CHKERRQ(ierr);
@@ -67,6 +71,20 @@ int main(int argc,char **argv)
   ierr = PetscObjectSetName((PetscObject)X,"X");CHKERRQ(ierr);
   ierr = BVSetSizesFromVec(X,t,k);CHKERRQ(ierr);
   ierr = BVSetFromOptions(X);CHKERRQ(ierr);
+
+  /* Generate constraints and attach them to X */
+  if (nc>0) {
+    ierr = VecDuplicateVecs(t,nc,&C);CHKERRQ(ierr);
+    for (j=0;j<nc;j++) {
+      for (i=0;i<=j;i++) {
+        ierr = VecSetValue(C[j],nc-i+1,1.0,INSERT_VALUES);CHKERRQ(ierr);
+      }
+      ierr = VecAssemblyBegin(C[j]);CHKERRQ(ierr);
+      ierr = VecAssemblyEnd(C[j]);CHKERRQ(ierr);
+    }
+    ierr = BVInsertConstraints(X,&nc,C);CHKERRQ(ierr);
+    ierr = VecDestroyVecs(nc,&C);CHKERRQ(ierr);
+  }
 
   /* Set up viewer */
   ierr = PetscViewerASCIIGetStdout(PETSC_COMM_WORLD,&view);CHKERRQ(ierr);
@@ -116,7 +134,11 @@ int main(int argc,char **argv)
 
   /* Get the left split BV only */
   ierr = BVGetSplit(X,&L,NULL);CHKERRQ(ierr);
-  ierr = BVOrthogonalize(L,NULL);CHKERRQ(ierr);
+  for (j=0;j<l;j++) {
+    ierr = BVOrthogonalizeColumn(X,j,NULL,&norm,NULL);CHKERRQ(ierr);
+    alpha = 1.0/norm;
+    ierr = BVScaleColumn(X,j,alpha);CHKERRQ(ierr);
+  }
   ierr = BVRestoreSplit(X,&L,NULL);CHKERRQ(ierr);
   ierr = PrintFirstRow(X);CHKERRQ(ierr);
   if (verbose) {

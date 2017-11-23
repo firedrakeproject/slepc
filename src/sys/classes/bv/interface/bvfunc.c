@@ -120,6 +120,7 @@ PetscErrorCode BVDestroy(BV *bv)
   PetscFunctionBegin;
   if (!*bv) PetscFunctionReturn(0);
   PetscValidHeaderSpecific(*bv,BV_CLASSID,1);
+  if ((*bv)->lsplit) SETERRQ(PetscObjectComm((PetscObject)(*bv)),PETSC_ERR_ARG_WRONGSTATE,"Must call BVRestoreSplit before destroying the BV");
   if (--((PetscObject)(*bv))->refct > 0) { *bv = 0; PetscFunctionReturn(0); }
   if ((*bv)->ops->destroy) { ierr = (*(*bv)->ops->destroy)(*bv);CHKERRQ(ierr); }
   ierr = VecDestroy(&(*bv)->t);CHKERRQ(ierr);
@@ -424,6 +425,7 @@ PetscErrorCode BVInsertConstraints(BV V,PetscInt *nc,Vec *C)
   PetscValidType(V,1);
   BVCheckSizes(V,1);
   PetscCheckSameComm(V,1,*C,3);
+  if (V->issplit) SETERRQ(PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_WRONGSTATE,"Operation not permitted for a BV obtained from BVGetSplit");
   if (V->nc) SETERRQ(PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_WRONGSTATE,"Constraints already present in this BV object");
   if (V->ci[0]!=-1 || V->ci[1]!=-1) SETERRQ(PetscObjectComm((PetscObject)V),PETSC_ERR_SUP,"Cannot call BVInsertConstraints after BVGetColumn");
 

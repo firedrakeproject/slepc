@@ -36,7 +36,7 @@ TESTEXAMPLES_C           = test1.PETSc runtest1_1 test1.rm \
                            test12.PETSc runtest12_1 test12.rm \
                            test13.PETSc runtest13_1 test13.rm \
                            test14.PETSc runtest14_1 test14.rm \
-                           test15.PETSc runtest15_1 test15.rm
+                           test15.PETSc runtest15_1 runtest15_2 test15.rm
 TESTEXAMPLES_C_NOTSINGLE = test2.PETSc runtest2_3 test2.rm
 TESTEXAMPLES_FORTRAN     = test1f.PETSc runtest1f_1 runtest1f_2 test1f.rm
 TESTEXAMPLES_VECCUDA     = test1.PETSc runtest1_1_cuda test1.rm \
@@ -54,7 +54,7 @@ TESTEXAMPLES_VECCUDA     = test1.PETSc runtest1_1_cuda test1.rm \
                                         runtest11_7_cuda runtest11_8_cuda runtest11_9_cuda \
                                         runtest11_10_cuda test11.rm \
                            test13.PETSc runtest13_1_cuda test13.rm \
-                           test15.PETSc runtest15_1_cuda test15.rm
+                           test15.PETSc runtest15_1_cuda runtest15_2_cuda test15.rm
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common
 
@@ -399,4 +399,15 @@ runtest15_1_%:
 runtest15_1_cuda:
 	-@${SETTEST}; check=test15_1; \
 	${MPIEXEC} -n 2 ./test15 -bv_type svec -vec_type cuda > $${test}.tmp 2>&1; \
+	${TESTCODE_CUDA}
+
+runtest15_2: runtest15_2_vecs runtest15_2_contiguous runtest15_2_svec runtest15_2_mat
+runtest15_2_%:
+	-@${SETTEST}; check=test15_2; bv=$*; \
+	${MPIEXEC} -n 2 ./test15 -nc 2 -bv_type $$bv > $${test}.tmp 2>&1; \
+	${TESTCODE}
+
+runtest15_2_cuda:
+	-@${SETTEST}; check=test15_2; \
+	${MPIEXEC} -n 2 ./test15 -nc 2 -bv_type svec -vec_type cuda > $${test}.tmp 2>&1; \
 	${TESTCODE_CUDA}

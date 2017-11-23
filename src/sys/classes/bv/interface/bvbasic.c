@@ -341,7 +341,7 @@ PetscErrorCode BVResize(BV bv,PetscInt m,PetscBool copy)
   PetscValidLogicalCollectiveBool(bv,copy,3);
   PetscValidType(bv,1);
   if (m <= 0) SETERRQ1(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_INCOMP,"Number of columns %D must be positive",m);
-  if (bv->nc) SETERRQ(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_WRONGSTATE,"Cannot resize a BV with constraints");
+  if (bv->nc && !bv->issplit) SETERRQ(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_WRONGSTATE,"Cannot resize a BV with constraints");
   if (bv->m == m) PetscFunctionReturn(0);
 
   ierr = PetscLogEventBegin(BV_Create,bv,0,0,0);CHKERRQ(ierr);
@@ -1801,8 +1801,10 @@ static PetscErrorCode BVGetSplit_Private(BV bv,PetscBool left,BV *split)
   } else {
     ierr = BVResize(*split,ncols,PETSC_FALSE);CHKERRQ(ierr);
   }
-  (*split)->l = 0;
-  (*split)->k = left? bv->l: bv->k-bv->l;
+  (*split)->l  = 0;
+  (*split)->k  = left? bv->l: bv->k-bv->l;
+  (*split)->nc = left? bv->nc: 0;
+  (*split)->m  = ncols-(*split)->nc;
   PetscFunctionReturn(0);
 }
 
@@ -1848,7 +1850,7 @@ PetscErrorCode BVGetSplit(BV bv,BV *L,BV *R)
   BVCheckSizes(bv,1);
   if (!bv->l) SETERRQ(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_WRONGSTATE,"Must indicate the number of leading columns with BVSetActiveColumns()");
   if (bv->lsplit) SETERRQ(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_WRONGSTATE,"Cannot get the split BV's twice before restoring them with BVRestoreSplit()");
-  bv->lsplit = bv->l;
+  bv->lsplit = bv->nc+bv->l;
   ierr = BVGetSplit_Private(bv,PETSC_TRUE,&bv->L);CHKERRQ(ierr);
   ierr = BVGetSplit_Private(bv,PETSC_FALSE,&bv->R);CHKERRQ(ierr);
   if (L) *L = bv->L;

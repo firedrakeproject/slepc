@@ -1,4 +1,4 @@
-Test BVGetSplit (length 10, l=3, k=5).
+Test BVGetSplit (length 10, l=3, k=5, nc=0).
 First row of X =
 -2. 0. 0. -1. 0. 
 First row of X =
