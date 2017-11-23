@@ -119,7 +119,21 @@ int main(int argc,char **argv)
   ierr = BVOrthogonalize(L,NULL);CHKERRQ(ierr);
   ierr = BVRestoreSplit(X,&L,NULL);CHKERRQ(ierr);
   ierr = PrintFirstRow(X);CHKERRQ(ierr);
+  if (verbose) {
+    ierr = BVView(X,view);CHKERRQ(ierr);
+  }
 
+  /* Now get the right split BV after changing the number of leading columns */
+  ierr = BVSetActiveColumns(X,l-1,k);CHKERRQ(ierr);
+  ierr = BVGetSplit(X,NULL,&R);CHKERRQ(ierr);
+  ierr = BVGetColumn(R,0,&v);CHKERRQ(ierr);
+  ierr = BVInsertVec(X,0,v);CHKERRQ(ierr);
+  ierr = BVRestoreColumn(R,0,&v);CHKERRQ(ierr);
+  ierr = BVRestoreSplit(X,NULL,&R);CHKERRQ(ierr);
+  ierr = PrintFirstRow(X);CHKERRQ(ierr);
+  if (verbose) {
+    ierr = BVView(X,view);CHKERRQ(ierr);
+  }
 
   ierr = BVDestroy(&X);CHKERRQ(ierr);
   ierr = VecDestroy(&t);CHKERRQ(ierr);

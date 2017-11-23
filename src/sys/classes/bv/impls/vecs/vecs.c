@@ -332,25 +332,32 @@ PetscErrorCode BVResize_Vecs(BV bv,PetscInt m,PetscBool copy)
   PetscErrorCode ierr;
   BV_VECS        *ctx = (BV_VECS*)bv->data;
   Vec            *newV;
-  PetscInt       j;
+  PetscInt       j,lsplit;
   char           str[50];
+  BV             parent;
 
   PetscFunctionBegin;
-  ierr = VecDuplicateVecs(bv->t,m,&newV);CHKERRQ(ierr);
-  ierr = PetscLogObjectParents(bv,m,newV);CHKERRQ(ierr);
-  if (((PetscObject)bv)->name) {
-    for (j=0;j<m;j++) {
-      ierr = PetscSNPrintf(str,50,"%s_%D",((PetscObject)bv)->name,j);CHKERRQ(ierr);
-      ierr = PetscObjectSetName((PetscObject)newV[j],str);CHKERRQ(ierr);
+  if (bv->issplit==2) {
+    parent = bv->splitparent;
+    lsplit = parent->lsplit;
+    ctx->V = ((BV_VECS*)parent->data)->V+lsplit;
+  } else if (!bv->issplit) {
+    ierr = VecDuplicateVecs(bv->t,m,&newV);CHKERRQ(ierr);
+    ierr = PetscLogObjectParents(bv,m,newV);CHKERRQ(ierr);
+    if (((PetscObject)bv)->name) {
+      for (j=0;j<m;j++) {
+        ierr = PetscSNPrintf(str,50,"%s_%D",((PetscObject)bv)->name,j);CHKERRQ(ierr);
+        ierr = PetscObjectSetName((PetscObject)newV[j],str);CHKERRQ(ierr);
+      }
     }
-  }
-  if (copy) {
-    for (j=0;j<PetscMin(m,bv->m);j++) {
-      ierr = VecCopy(ctx->V[j],newV[j]);CHKERRQ(ierr);
+    if (copy) {
+      for (j=0;j<PetscMin(m,bv->m);j++) {
+        ierr = VecCopy(ctx->V[j],newV[j]);CHKERRQ(ierr);
+      }
     }
+    ierr = VecDestroyVecs(bv->m,&ctx->V);CHKERRQ(ierr);
+    ctx->V = newV;
   }
-  ierr = VecDestroyVecs(bv->m,&ctx->V);CHKERRQ(ierr);
-  ctx->V = newV;
   PetscFunctionReturn(0);
 }
 
