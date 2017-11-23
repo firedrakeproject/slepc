@@ -393,12 +393,15 @@ PetscErrorCode BVDestroy_Svec(BV bv)
 
 PETSC_EXTERN PetscErrorCode BVCreate_Svec(BV bv)
 {
-  PetscErrorCode ierr;
-  BV_SVEC        *ctx;
-  PetscInt       nloc,N,bs,tlocal;
-  PetscBool      seq;
-  PetscScalar    *aa,*vv;
-  char           str[50];
+  PetscErrorCode    ierr;
+  BV_SVEC           *ctx;
+  PetscInt          nloc,N,bs,tlocal,lsplit;
+  PetscBool         seq;
+  PetscScalar       *aa,*vv;
+  const PetscScalar *array,*ptr;
+  char              str[50];
+  BV                parent;
+  Vec               vpar;
 
   PetscFunctionBegin;
   ierr = PetscNewLog(bv,&ctx);CHKERRQ(ierr);
@@ -416,10 +419,36 @@ PETSC_EXTERN PetscErrorCode BVCreate_Svec(BV bv)
   tlocal = bv->m*nloc;
   if (tlocal<0) SETERRQ2(PetscObjectComm((PetscObject)bv),1,"The product %D times %D overflows the size of PetscInt; consider reducing the number of columns, or use BVVECS instead",bv->m,nloc);
 
-  ierr = VecCreate(PetscObjectComm((PetscObject)bv->t),&ctx->v);CHKERRQ(ierr);
-  ierr = VecSetType(ctx->v,((PetscObject)bv->t)->type_name);CHKERRQ(ierr);
-  ierr = VecSetSizes(ctx->v,tlocal,bv->m*N);CHKERRQ(ierr);
-  ierr = VecSetBlockSize(ctx->v,bs);CHKERRQ(ierr);
+  if (bv->issplit) {
+    /* split BV: create Vec sharing the memory of the parent BV */
+    parent = bv->splitparent;
+    lsplit = parent->lsplit;
+    vpar = ((BV_SVEC*)parent->data)->v;
+    ierr = VecGetArrayRead(vpar,&array);CHKERRQ(ierr);
+    ptr = (bv->issplit==1)? array: array+lsplit*nloc;
+    ierr = VecRestoreArrayRead(vpar,&array);CHKERRQ(ierr);
+    if (bv->cuda) {
+#if defined(PETSC_HAVE_VECCUDA)
+      if (ctx->mpi) {
+        ierr = VecCreateMPICUDAWithArray(PetscObjectComm((PetscObject)bv->t),bs,tlocal,bv->m*N,ptr,&ctx->v);CHKERRQ(ierr);
+      } else {
+        ierr = VecCreateSeqCUDAWithArray(PetscObjectComm((PetscObject)bv->t),bs,tlocal,ptr,&ctx->v);CHKERRQ(ierr);
+      }
+#endif
+    } else {
+      if (ctx->mpi) {
+        ierr = VecCreateMPIWithArray(PetscObjectComm((PetscObject)bv->t),bs,tlocal,bv->m*N,ptr,&ctx->v);CHKERRQ(ierr);
+      } else {
+        ierr = VecCreateSeqWithArray(PetscObjectComm((PetscObject)bv->t),bs,tlocal,ptr,&ctx->v);CHKERRQ(ierr);
+      }
+    }
+  } else {
+    /* regular BV: create Vec to store the BV entries */
+    ierr = VecCreate(PetscObjectComm((PetscObject)bv->t),&ctx->v);CHKERRQ(ierr);
+    ierr = VecSetType(ctx->v,((PetscObject)bv->t)->type_name);CHKERRQ(ierr);
+    ierr = VecSetSizes(ctx->v,tlocal,bv->m*N);CHKERRQ(ierr);
+    ierr = VecSetBlockSize(ctx->v,bs);CHKERRQ(ierr);
+  }
   ierr = PetscLogObjectParent((PetscObject)bv,(PetscObject)ctx->v);CHKERRQ(ierr);
   if (((PetscObject)bv)->name) {
     ierr = PetscSNPrintf(str,50,"%s_0",((PetscObject)bv)->name);CHKERRQ(ierr);

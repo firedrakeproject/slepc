@@ -491,7 +491,7 @@ PetscErrorCode BVDestroy_Vecs(BV bv)
   BV_VECS        *ctx = (BV_VECS*)bv->data;
 
   PetscFunctionBegin;
-  ierr = VecDestroyVecs(bv->nc+bv->m,&ctx->V);CHKERRQ(ierr);
+  if (!bv->issplit) { ierr = VecDestroyVecs(bv->nc+bv->m,&ctx->V);CHKERRQ(ierr); }
   ierr = PetscFree(bv->data);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -510,20 +510,31 @@ PETSC_EXTERN PetscErrorCode BVCreate_Vecs(BV bv)
 {
   PetscErrorCode ierr;
   BV_VECS        *ctx;
-  PetscInt       j;
+  PetscInt       j,lsplit;
   PetscBool      isgpu;
   char           str[50];
+  BV             parent;
+  Vec            *Vpar;
 
   PetscFunctionBegin;
   ierr = PetscNewLog(bv,&ctx);CHKERRQ(ierr);
   bv->data = (void*)ctx;
 
-  ierr = VecDuplicateVecs(bv->t,bv->m,&ctx->V);CHKERRQ(ierr);
-  ierr = PetscLogObjectParents(bv,bv->m,ctx->V);CHKERRQ(ierr);
-  if (((PetscObject)bv)->name) {
-    for (j=0;j<bv->m;j++) {
-      ierr = PetscSNPrintf(str,50,"%s_%D",((PetscObject)bv)->name,j);CHKERRQ(ierr);
-      ierr = PetscObjectSetName((PetscObject)ctx->V[j],str);CHKERRQ(ierr);
+  if (bv->issplit) {
+    /* split BV: share the Vecs of the parent BV */
+    parent = bv->splitparent;
+    lsplit = parent->lsplit;
+    Vpar   = ((BV_VECS*)parent->data)->V;
+    ctx->V = (bv->issplit==1)? Vpar: Vpar+lsplit;
+  } else {
+    /* regular BV: create array of Vecs to store the BV columns */
+    ierr = VecDuplicateVecs(bv->t,bv->m,&ctx->V);CHKERRQ(ierr);
+    ierr = PetscLogObjectParents(bv,bv->m,ctx->V);CHKERRQ(ierr);
+    if (((PetscObject)bv)->name) {
+      for (j=0;j<bv->m;j++) {
+        ierr = PetscSNPrintf(str,50,"%s_%D",((PetscObject)bv)->name,j);CHKERRQ(ierr);
+        ierr = PetscObjectSetName((PetscObject)ctx->V[j],str);CHKERRQ(ierr);
+      }
     }
   }
 

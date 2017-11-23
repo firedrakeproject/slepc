@@ -116,6 +116,8 @@ PETSC_STATIC_INLINE PetscErrorCode BVViewFromOptions(BV bv,PetscObject obj,const
 
 PETSC_EXTERN PetscErrorCode BVGetColumn(BV,PetscInt,Vec*);
 PETSC_EXTERN PetscErrorCode BVRestoreColumn(BV,PetscInt,Vec*);
+PETSC_EXTERN PetscErrorCode BVGetSplit(BV,BV*,BV*);
+PETSC_EXTERN PetscErrorCode BVRestoreSplit(BV,BV*,BV*);
 PETSC_EXTERN PetscErrorCode BVGetArray(BV,PetscScalar**);
 PETSC_EXTERN PetscErrorCode BVRestoreArray(BV,PetscScalar**);
 PETSC_EXTERN PetscErrorCode BVGetArrayRead(BV,const PetscScalar**);

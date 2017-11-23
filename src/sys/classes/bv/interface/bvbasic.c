@@ -1784,3 +1784,107 @@ PetscErrorCode BVCopyColumn(BV V,PetscInt j,PetscInt i)
   PetscFunctionReturn(0);
 }
 
+static PetscErrorCode BVGetSplit_Private(BV bv,PetscBool left,BV *split)
+{
+  PetscErrorCode ierr;
+  PetscInt       ncols;
+
+  PetscFunctionBegin;
+  ncols = left? bv->nc+bv->l: bv->m-bv->l;
+  if (!*split) {
+    ierr = BVCreate(PetscObjectComm((PetscObject)bv),split);CHKERRQ(ierr);
+    ierr = PetscLogObjectParent((PetscObject)bv,(PetscObject)*split);CHKERRQ(ierr);
+    (*split)->issplit = left? 1: 2;
+    (*split)->splitparent = bv;
+    ierr = BVSetSizesFromVec(*split,bv->t,ncols);CHKERRQ(ierr);
+    ierr = BVDuplicate_Private(bv,*split);CHKERRQ(ierr);
+  } else {
+    ierr = BVResize(*split,ncols,PETSC_FALSE);CHKERRQ(ierr);
+  }
+  (*split)->l = 0;
+  (*split)->k = left? bv->l: bv->k-bv->l;
+  PetscFunctionReturn(0);
+}
+
+/*@
+   BVGetSplit - Splits the BV object into two BV objects that share the
+   internal data, one of them containing the leading columns and the other
+   one containing the remaining columns.
+
+   Logically Collective on BV
+
+   Input Parameters:
+.  bv - the basis vectors context
+
+   Output Parameters:
++  L - left BV containing leading columns (can be NULL)
+-  R - right BV containing remaining columns (can be NULL)
+
+   Notes:
+   The columns are split in two sets. The leading columns (including the
+   constraints) are assigned to the left BV and the remaining columns
+   are assigned to the right BV. The number of leading columns, as
+   specified with BVSetActiveColumns(), must be between 1 and m-1 (to
+   guarantee that both L and R have at least one column).
+
+   The returned BV's must be seen as references (not copies) of the input
+   BV, that is, modifying them will change the entries of bv as well.
+   The returned BV's must not be destroyed. BVRestoreSplit() must be called
+   when they are no longer needed.
+
+   Pass NULL for any of the output BV's that is not needed.
+
+   Level: advanced
+
+.seealso: BVRestoreSplit(), BVSetActiveColumns(), BVSetNumConstraints()
+@*/
+PetscErrorCode BVGetSplit(BV bv,BV *L,BV *R)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(bv,BV_CLASSID,1);
+  PetscValidType(bv,1);
+  BVCheckSizes(bv,1);
+  if (!bv->l) SETERRQ(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_WRONGSTATE,"Must indicate the number of leading columns with BVSetActiveColumns()");
+  if (bv->lsplit) SETERRQ(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_WRONGSTATE,"Cannot get the split BV's twice before restoring them with BVRestoreSplit()");
+  bv->lsplit = bv->l;
+  ierr = BVGetSplit_Private(bv,PETSC_TRUE,&bv->L);CHKERRQ(ierr);
+  ierr = BVGetSplit_Private(bv,PETSC_FALSE,&bv->R);CHKERRQ(ierr);
+  if (L) *L = bv->L;
+  if (R) *R = bv->R;
+  PetscFunctionReturn(0);
+}
+
+/*@
+   BVRestoreSplit - Restore the BV objects obtained with BVGetSplit().
+
+   Logically Collective on BV
+
+   Input Parameters:
++  bv - the basis vectors context
+.  L  - left BV obtained with BVGetSplit()
+-  R  - right BV obtained with BVGetSplit()
+
+   Note:
+   The arguments must match the corresponding call to BVGetSplit().
+
+   Level: advanced
+
+.seealso: BVGetSplit()
+@*/
+PetscErrorCode BVRestoreSplit(BV bv,BV *L,BV *R)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(bv,BV_CLASSID,1);
+  PetscValidType(bv,1);
+  BVCheckSizes(bv,1);
+  if (!bv->lsplit) SETERRQ(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_WRONGSTATE,"Must call BVGetSplit first");
+  if (L && *L!=bv->L) SETERRQ(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_WRONG,"Argument 2 is not the same BV that was obtained with BVGetSplit");
+  if (R && *R!=bv->R) SETERRQ(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_WRONG,"Argument 3 is not the same BV that was obtained with BVGetSplit");
+  bv->lsplit = 0;
+  if (L) *L = NULL;
+  if (R) *R = NULL;
+  PetscFunctionReturn(0);
+}
+

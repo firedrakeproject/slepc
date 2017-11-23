@@ -14,11 +14,11 @@ CPPFLAGS   =
 FPPFLAGS   =
 LOCDIR     = src/sys/classes/bv/examples/tests/
 EXAMPLESC  = test1.c test2.c test3.c test4.c test5.c test6.c test7.c test8.c test9.c test10.c \
-             test11.c test12.c test13.c test14.c
+             test11.c test12.c test13.c test14.c test15.c
 EXAMPLESF  = test1f.F90
 MANSEC     = BV
 TESTS      = test1 test1f test2 test3 test4 test5 test6 test7 test8 test9 test10 test11 test12 \
-             test13 test14
+             test13 test14 test15
 
 TESTEXAMPLES_C           = test1.PETSc runtest1_1 test1.rm \
                            test2.PETSc runtest2_1 runtest2_2 test2.rm \
@@ -35,7 +35,8 @@ TESTEXAMPLES_C           = test1.PETSc runtest1_1 test1.rm \
                                         runtest11_9 runtest11_10 test11.rm \
                            test12.PETSc runtest12_1 test12.rm \
                            test13.PETSc runtest13_1 test13.rm \
-                           test14.PETSc runtest14_1 test14.rm
+                           test14.PETSc runtest14_1 test14.rm \
+                           test15.PETSc runtest15_1 test15.rm
 TESTEXAMPLES_C_NOTSINGLE = test2.PETSc runtest2_3 test2.rm
 TESTEXAMPLES_FORTRAN     = test1f.PETSc runtest1f_1 runtest1f_2 test1f.rm
 TESTEXAMPLES_VECCUDA     = test1.PETSc runtest1_1_cuda test1.rm \
@@ -52,7 +53,8 @@ TESTEXAMPLES_VECCUDA     = test1.PETSc runtest1_1_cuda test1.rm \
                                         runtest11_4_cuda runtest11_5_cuda runtest11_6_cuda \
                                         runtest11_7_cuda runtest11_8_cuda runtest11_9_cuda \
                                         runtest11_10_cuda test11.rm \
-                           test13.PETSc runtest13_1_cuda test13.rm
+                           test13.PETSc runtest13_1_cuda test13.rm \
+                           test15.PETSc runtest15_1_cuda test15.rm
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common
 
@@ -115,6 +117,10 @@ test13: test13.o chkopts
 test14: test14.o chkopts
 	-${CLINKER} -o test14 test14.o ${SLEPC_SYS_LIB}
 	${RM} test14.o
+
+test15: test15.o chkopts
+	-${CLINKER} -o test15 test15.o ${SLEPC_SYS_LIB}
+	${RM} test15.o
 
 #------------------------------------------------------------------------------------
 
@@ -384,3 +390,13 @@ runtest14_1_%:
 	${MPIEXEC} -n 2 ./test14 -bv_type $$bv > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
+runtest15_1: runtest15_1_vecs runtest15_1_contiguous runtest15_1_svec runtest15_1_mat
+runtest15_1_%:
+	-@${SETTEST}; check=test15_1; bv=$*; \
+	${MPIEXEC} -n 2 ./test15 -bv_type $$bv > $${test}.tmp 2>&1; \
+	${TESTCODE}
+
+runtest15_1_cuda:
+	-@${SETTEST}; check=test15_1; \
+	${MPIEXEC} -n 2 ./test15 -bv_type svec -vec_type cuda > $${test}.tmp 2>&1; \
+	${TESTCODE_CUDA}

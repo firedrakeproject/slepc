@@ -394,9 +394,11 @@ PETSC_EXTERN PetscErrorCode BVCreate_Mat(BV bv)
 {
   PetscErrorCode ierr;
   BV_MAT         *ctx;
-  PetscInt       nloc,bs;
+  PetscInt       nloc,bs,lsplit;
   PetscBool      seq;
   char           str[50];
+  PetscScalar    *array,*ptr;
+  BV             parent;
 
   PetscFunctionBegin;
   ierr = PetscNewLog(bv,&ctx);CHKERRQ(ierr);
@@ -411,7 +413,18 @@ PETSC_EXTERN PetscErrorCode BVCreate_Mat(BV bv)
   ierr = VecGetLocalSize(bv->t,&nloc);CHKERRQ(ierr);
   ierr = VecGetBlockSize(bv->t,&bs);CHKERRQ(ierr);
 
-  ierr = MatCreateDense(PetscObjectComm((PetscObject)bv->t),nloc,PETSC_DECIDE,PETSC_DECIDE,bv->m,NULL,&ctx->A);CHKERRQ(ierr);
+  if (bv->issplit) {
+    /* split BV: share the memory of the parent BV */
+    parent = bv->splitparent;
+    lsplit = parent->lsplit;
+    ierr = MatDenseGetArray(((BV_MAT*)parent->data)->A,&array);CHKERRQ(ierr);
+    ptr = (bv->issplit==1)? array: array+lsplit*nloc;
+    ierr = MatDenseRestoreArray(((BV_MAT*)parent->data)->A,&array);CHKERRQ(ierr);
+  } else {
+    /* regular BV: allocate memory for the BV entries */
+    ptr = NULL;
+  }
+  ierr = MatCreateDense(PetscObjectComm((PetscObject)bv->t),nloc,PETSC_DECIDE,PETSC_DECIDE,bv->m,ptr,&ctx->A);CHKERRQ(ierr);
   ierr = MatAssemblyBegin(ctx->A,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
   ierr = MatAssemblyEnd(ctx->A,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
   ierr = PetscLogObjectParent((PetscObject)bv,(PetscObject)ctx->A);CHKERRQ(ierr);

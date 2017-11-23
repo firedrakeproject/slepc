@@ -127,6 +127,8 @@ PetscErrorCode BVDestroy(BV *bv)
   ierr = VecDestroy(&(*bv)->Bx);CHKERRQ(ierr);
   ierr = VecDestroy(&(*bv)->buffer);CHKERRQ(ierr);
   ierr = BVDestroy(&(*bv)->cached);CHKERRQ(ierr);
+  ierr = BVDestroy(&(*bv)->L);CHKERRQ(ierr);
+  ierr = BVDestroy(&(*bv)->R);CHKERRQ(ierr);
   ierr = PetscFree((*bv)->work);CHKERRQ(ierr);
   ierr = PetscFree2((*bv)->h,(*bv)->c);CHKERRQ(ierr);
   ierr = VecDestroy(&(*bv)->omega);CHKERRQ(ierr);
@@ -197,6 +199,11 @@ PetscErrorCode BVCreate(MPI_Comm comm,BV *newbv)
   bv->defersfo     = PETSC_FALSE;
   bv->cached       = NULL;
   bv->bvstate      = 0;
+  bv->L            = NULL;
+  bv->R            = NULL;
+  bv->lsplit       = 0;
+  bv->issplit      = 0;
+  bv->splitparent  = NULL;
   bv->rand         = NULL;
   bv->rrandom      = PETSC_FALSE;
   bv->Acreate      = NULL;

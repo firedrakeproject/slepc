@@ -289,8 +289,10 @@ PetscErrorCode BVDestroy_Contiguous(BV bv)
   BV_CONTIGUOUS  *ctx = (BV_CONTIGUOUS*)bv->data;
 
   PetscFunctionBegin;
-  ierr = VecDestroyVecs(bv->nc+bv->m,&ctx->V);CHKERRQ(ierr);
-  ierr = PetscFree(ctx->array);CHKERRQ(ierr);
+  if (!bv->issplit) {
+    ierr = VecDestroyVecs(bv->nc+bv->m,&ctx->V);CHKERRQ(ierr);
+    ierr = PetscFree(ctx->array);CHKERRQ(ierr);
+  }
   ierr = PetscFree(bv->data);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -299,10 +301,13 @@ PETSC_EXTERN PetscErrorCode BVCreate_Contiguous(BV bv)
 {
   PetscErrorCode ierr;
   BV_CONTIGUOUS  *ctx;
-  PetscInt       j,nloc,bs;
+  PetscInt       j,nloc,bs,lsplit;
   PetscBool      seq;
   PetscScalar    *aa;
   char           str[50];
+  PetscScalar    *array;
+  BV             parent;
+  Vec            *Vpar;
 
   PetscFunctionBegin;
   ierr = PetscNewLog(bv,&ctx);CHKERRQ(ierr);
@@ -316,16 +321,28 @@ PETSC_EXTERN PetscErrorCode BVCreate_Contiguous(BV bv)
 
   ierr = VecGetLocalSize(bv->t,&nloc);CHKERRQ(ierr);
   ierr = VecGetBlockSize(bv->t,&bs);CHKERRQ(ierr);
-  ierr = PetscCalloc1(bv->m*nloc,&ctx->array);CHKERRQ(ierr);
-  ierr = PetscMalloc1(bv->m,&ctx->V);CHKERRQ(ierr);
-  for (j=0;j<bv->m;j++) {
-    if (ctx->mpi) {
-      ierr = VecCreateMPIWithArray(PetscObjectComm((PetscObject)bv->t),bs,nloc,PETSC_DECIDE,ctx->array+j*nloc,ctx->V+j);CHKERRQ(ierr);
-    } else {
-      ierr = VecCreateSeqWithArray(PetscObjectComm((PetscObject)bv->t),bs,nloc,ctx->array+j*nloc,ctx->V+j);CHKERRQ(ierr);
+
+  if (bv->issplit) {
+    /* split BV: share memory and Vecs of the parent BV */
+    parent = bv->splitparent;
+    lsplit = parent->lsplit;
+    Vpar   = ((BV_CONTIGUOUS*)parent->data)->V;
+    ctx->V = (bv->issplit==1)? Vpar: Vpar+lsplit;
+    array  = ((BV_CONTIGUOUS*)parent->data)->array;
+    ctx->array = (bv->issplit==1)? array: array+lsplit*nloc;
+  } else {
+    /* regular BV: allocate memory and Vecs for the BV entries */
+    ierr = PetscCalloc1(bv->m*nloc,&ctx->array);CHKERRQ(ierr);
+    ierr = PetscMalloc1(bv->m,&ctx->V);CHKERRQ(ierr);
+    for (j=0;j<bv->m;j++) {
+      if (ctx->mpi) {
+        ierr = VecCreateMPIWithArray(PetscObjectComm((PetscObject)bv->t),bs,nloc,PETSC_DECIDE,ctx->array+j*nloc,ctx->V+j);CHKERRQ(ierr);
+      } else {
+        ierr = VecCreateSeqWithArray(PetscObjectComm((PetscObject)bv->t),bs,nloc,ctx->array+j*nloc,ctx->V+j);CHKERRQ(ierr);
+      }
     }
+    ierr = PetscLogObjectParents(bv,bv->m,ctx->V);CHKERRQ(ierr);
   }
-  ierr = PetscLogObjectParents(bv,bv->m,ctx->V);CHKERRQ(ierr);
   if (((PetscObject)bv)->name) {
     for (j=0;j<bv->m;j++) {
       ierr = PetscSNPrintf(str,50,"%s_%d",((PetscObject)bv)->name,(int)j);CHKERRQ(ierr);
