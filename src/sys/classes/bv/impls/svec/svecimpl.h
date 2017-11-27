@@ -29,6 +29,7 @@ PETSC_INTERN PetscErrorCode BVCopy_Svec_CUDA(BV,BV);
 PETSC_INTERN PetscErrorCode BVResize_Svec_CUDA(BV,PetscInt,PetscBool);
 PETSC_INTERN PetscErrorCode BVGetColumn_Svec_CUDA(BV,PetscInt,Vec*);
 PETSC_INTERN PetscErrorCode BVRestoreColumn_Svec_CUDA(BV,PetscInt,Vec*);
+PETSC_INTERN PetscErrorCode BVRestoreSplit_Svec_CUDA(BV,BV*,BV*);
 
 #endif
 

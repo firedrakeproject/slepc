@@ -413,6 +413,9 @@ PETSC_EXTERN PetscErrorCode BVCreate_Svec(BV bv)
   char              str[50];
   BV                parent;
   Vec               vpar;
+#if defined(PETSC_HAVE_VECCUDA)
+  PetscScalar       *gpuarray,*gptr;
+#endif
 
   PetscFunctionBegin;
   ierr = PetscNewLog(bv,&ctx);CHKERRQ(ierr);
@@ -435,18 +438,22 @@ PETSC_EXTERN PetscErrorCode BVCreate_Svec(BV bv)
     parent = bv->splitparent;
     lsplit = parent->lsplit;
     vpar = ((BV_SVEC*)parent->data)->v;
-    ierr = VecGetArrayRead(vpar,&array);CHKERRQ(ierr);
-    ptr = (bv->issplit==1)? array: array+lsplit*nloc;
-    ierr = VecRestoreArrayRead(vpar,&array);CHKERRQ(ierr);
     if (bv->cuda) {
 #if defined(PETSC_HAVE_VECCUDA)
+      ierr = VecCUDAGetArrayReadWrite(vpar,&gpuarray);CHKERRQ(ierr);
+      gptr = (bv->issplit==1)? gpuarray: gpuarray+lsplit*nloc;
+      ierr = VecCUDARestoreArrayReadWrite(vpar,&gpuarray);CHKERRQ(ierr);
       if (ctx->mpi) {
-        ierr = VecCreateMPICUDAWithArray(PetscObjectComm((PetscObject)bv->t),bs,tlocal,bv->m*N,ptr,&ctx->v);CHKERRQ(ierr);
+        ierr = VecCreateMPICUDAWithArray(PetscObjectComm((PetscObject)bv->t),bs,tlocal,bv->m*N,NULL,&ctx->v);CHKERRQ(ierr);
       } else {
-        ierr = VecCreateSeqCUDAWithArray(PetscObjectComm((PetscObject)bv->t),bs,tlocal,ptr,&ctx->v);CHKERRQ(ierr);
+        ierr = VecCreateSeqCUDAWithArray(PetscObjectComm((PetscObject)bv->t),bs,tlocal,NULL,&ctx->v);CHKERRQ(ierr);
       }
+      ierr = VecCUDAPlaceArray(ctx->v,gptr);CHKERRQ(ierr);
 #endif
     } else {
+      ierr = VecGetArrayRead(vpar,&array);CHKERRQ(ierr);
+      ptr = (bv->issplit==1)? array: array+lsplit*nloc;
+      ierr = VecRestoreArrayRead(vpar,&array);CHKERRQ(ierr);
       if (ctx->mpi) {
         ierr = VecCreateMPIWithArray(PetscObjectComm((PetscObject)bv->t),bs,tlocal,bv->m*N,ptr,&ctx->v);CHKERRQ(ierr);
       } else {
@@ -493,6 +500,7 @@ PETSC_EXTERN PetscErrorCode BVCreate_Svec(BV bv)
     bv->ops->resize           = BVResize_Svec_CUDA;
     bv->ops->getcolumn        = BVGetColumn_Svec_CUDA;
     bv->ops->restorecolumn    = BVRestoreColumn_Svec_CUDA;
+    bv->ops->restoresplit     = BVRestoreSplit_Svec_CUDA;
 #endif
   } else {
     bv->ops->mult             = BVMult_Svec;

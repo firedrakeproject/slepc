@@ -45,6 +45,7 @@ struct _BVOps {
   PetscErrorCode (*restorearray)(BV,PetscScalar**);
   PetscErrorCode (*getarrayread)(BV,const PetscScalar**);
   PetscErrorCode (*restorearrayread)(BV,const PetscScalar**);
+  PetscErrorCode (*restoresplit)(BV,BV*,BV*);
   PetscErrorCode (*duplicate)(BV,BV);
   PetscErrorCode (*create)(BV);
   PetscErrorCode (*setfromoptions)(PetscOptionItems*,BV);
@@ -85,6 +86,7 @@ struct _p_BV {
   BV                 cached;       /* cached BV to store result of matrix times BV */
   PetscObjectState   bvstate;      /* state of BV when BVApplyMatrixBV() was called */
   BV                 L,R;          /* BV objects obtained with BVGetSplit() */
+  PetscObjectState   lstate,rstate;/* state of L and R when BVGetSplit() was called */
   PetscInt           lsplit;       /* the value of l when BVGetSplit() was called */
   PetscInt           issplit;      /* >0 if this BV has been created by splitting (1=left, 2=right) */
   BV                 splitparent;  /* my parent if I am a split BV */

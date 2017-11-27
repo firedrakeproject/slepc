@@ -135,9 +135,9 @@ int main(int argc,char **argv)
   /* Get the left split BV only */
   ierr = BVGetSplit(X,&L,NULL);CHKERRQ(ierr);
   for (j=0;j<l;j++) {
-    ierr = BVOrthogonalizeColumn(X,j,NULL,&norm,NULL);CHKERRQ(ierr);
+    ierr = BVOrthogonalizeColumn(L,j,NULL,&norm,NULL);CHKERRQ(ierr);
     alpha = 1.0/norm;
-    ierr = BVScaleColumn(X,j,alpha);CHKERRQ(ierr);
+    ierr = BVScaleColumn(L,j,alpha);CHKERRQ(ierr);
   }
   ierr = BVRestoreSplit(X,&L,NULL);CHKERRQ(ierr);
   ierr = PrintFirstRow(X);CHKERRQ(ierr);

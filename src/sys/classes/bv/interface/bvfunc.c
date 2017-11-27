@@ -202,6 +202,8 @@ PetscErrorCode BVCreate(MPI_Comm comm,BV *newbv)
   bv->bvstate      = 0;
   bv->L            = NULL;
   bv->R            = NULL;
+  bv->lstate       = 0;
+  bv->rstate       = 0;
   bv->lsplit       = 0;
   bv->issplit      = 0;
   bv->splitparent  = NULL;

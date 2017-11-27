@@ -479,32 +479,43 @@ PetscErrorCode BVResize_Svec_CUDA(BV bv,PetscInt m,PetscBool copy)
   PetscErrorCode    ierr;
   BV_SVEC           *ctx = (BV_SVEC*)bv->data;
   const PetscScalar *d_pv;
-  PetscScalar       *d_pnew;
-  PetscInt          bs;
-  Vec               vnew;
+  PetscScalar       *d_pnew,*d_ptr;
+  PetscInt          bs,lsplit;
+  Vec               vnew,vpar;
   char              str[50];
   cudaError_t       err;
+  BV                parent;
 
   PetscFunctionBegin;
-  ierr = VecGetBlockSize(bv->t,&bs);CHKERRQ(ierr);
-  ierr = VecCreate(PetscObjectComm((PetscObject)bv->t),&vnew);CHKERRQ(ierr);
-  ierr = VecSetType(vnew,((PetscObject)bv->t)->type_name);CHKERRQ(ierr);
-  ierr = VecSetSizes(vnew,m*bv->n,PETSC_DECIDE);CHKERRQ(ierr);
-  ierr = VecSetBlockSize(vnew,bs);CHKERRQ(ierr);
-  ierr = PetscLogObjectParent((PetscObject)bv,(PetscObject)vnew);CHKERRQ(ierr);
-  if (((PetscObject)bv)->name) {
-    ierr = PetscSNPrintf(str,50,"%s_0",((PetscObject)bv)->name);CHKERRQ(ierr);
-    ierr = PetscObjectSetName((PetscObject)vnew,str);CHKERRQ(ierr);
+  if (bv->issplit==2) {
+    parent = bv->splitparent;
+    lsplit = parent->lsplit;
+    vpar = ((BV_SVEC*)parent->data)->v;
+    ierr = VecCUDAResetArray(ctx->v);CHKERRQ(ierr);
+    ierr = VecCUDAGetArrayReadWrite(vpar,&d_ptr);CHKERRQ(ierr);
+    ierr = VecCUDAPlaceArray(ctx->v,d_ptr+lsplit*bv->n);CHKERRQ(ierr);
+    ierr = VecCUDARestoreArrayReadWrite(vpar,&d_ptr);CHKERRQ(ierr);
+  } else if (!bv->issplit) {
+    ierr = VecGetBlockSize(bv->t,&bs);CHKERRQ(ierr);
+    ierr = VecCreate(PetscObjectComm((PetscObject)bv->t),&vnew);CHKERRQ(ierr);
+    ierr = VecSetType(vnew,((PetscObject)bv->t)->type_name);CHKERRQ(ierr);
+    ierr = VecSetSizes(vnew,m*bv->n,PETSC_DECIDE);CHKERRQ(ierr);
+    ierr = VecSetBlockSize(vnew,bs);CHKERRQ(ierr);
+    ierr = PetscLogObjectParent((PetscObject)bv,(PetscObject)vnew);CHKERRQ(ierr);
+    if (((PetscObject)bv)->name) {
+      ierr = PetscSNPrintf(str,50,"%s_0",((PetscObject)bv)->name);CHKERRQ(ierr);
+      ierr = PetscObjectSetName((PetscObject)vnew,str);CHKERRQ(ierr);
+    }
+    if (copy) {
+      ierr = VecCUDAGetArrayRead(ctx->v,&d_pv);CHKERRQ(ierr);
+      ierr = VecCUDAGetArrayWrite(vnew,&d_pnew);CHKERRQ(ierr);
+      err = cudaMemcpy(d_pnew,d_pv,PetscMin(m,bv->m)*bv->n*sizeof(PetscScalar),cudaMemcpyDeviceToDevice);CHKERRCUDA(err);
+      ierr = VecCUDARestoreArrayRead(ctx->v,&d_pv);CHKERRQ(ierr);
+      ierr = VecCUDARestoreArrayWrite(vnew,&d_pnew);CHKERRQ(ierr);
+    }
+    ierr = VecDestroy(&ctx->v);CHKERRQ(ierr);
+    ctx->v = vnew;
   }
-  if (copy) {
-    ierr = VecCUDAGetArrayRead(ctx->v,&d_pv);CHKERRQ(ierr);
-    ierr = VecCUDAGetArrayWrite(vnew,&d_pnew);CHKERRQ(ierr);
-    err = cudaMemcpy(d_pnew,d_pv,PetscMin(m,bv->m)*bv->n*sizeof(PetscScalar),cudaMemcpyDeviceToDevice);CHKERRCUDA(err);
-    ierr = VecCUDARestoreArrayRead(ctx->v,&d_pv);CHKERRQ(ierr);
-    ierr = VecCUDARestoreArrayWrite(vnew,&d_pnew);CHKERRQ(ierr);
-  }
-  ierr = VecDestroy(&ctx->v);CHKERRQ(ierr);
-  ctx->v = vnew;
   PetscFunctionReturn(0);
 }
 
@@ -535,3 +546,38 @@ PetscErrorCode BVRestoreColumn_Svec_CUDA(BV bv,PetscInt j,Vec *v)
   PetscFunctionReturn(0);
 }
 
+PetscErrorCode BVRestoreSplit_Svec_CUDA(BV bv,BV *L,BV *R)
+{
+  PetscErrorCode    ierr;
+  Vec               v;
+  const PetscScalar *d_pv;
+  PetscObjectState  lstate,rstate;
+  PetscBool         change=PETSC_FALSE;
+
+  PetscFunctionBegin;
+  /* force sync flag to PETSC_CUDA_BOTH */
+  if (L) {
+    ierr = PetscObjectStateGet((PetscObject)*L,&lstate);CHKERRQ(ierr);
+    if (lstate != bv->lstate) {
+      v = ((BV_SVEC*)bv->L->data)->v;
+      ierr = VecCUDAGetArrayRead(v,&d_pv);CHKERRQ(ierr);
+      ierr = VecCUDARestoreArrayRead(v,&d_pv);CHKERRQ(ierr);
+      change = PETSC_TRUE;
+    }
+  }
+  if (R) {
+    ierr = PetscObjectStateGet((PetscObject)*R,&rstate);CHKERRQ(ierr);
+    if (rstate != bv->rstate) {
+      v = ((BV_SVEC*)bv->R->data)->v;
+      ierr = VecCUDAGetArrayRead(v,&d_pv);CHKERRQ(ierr);
+      ierr = VecCUDARestoreArrayRead(v,&d_pv);CHKERRQ(ierr);
+      change = PETSC_TRUE;
+    }
+  }
+  if (change) {
+    v = ((BV_SVEC*)bv->data)->v;
+    ierr = VecCUDAGetArrayReadWrite(v,(PetscScalar **)&d_pv);CHKERRQ(ierr);
+    ierr = VecCUDARestoreArrayReadWrite(v,(PetscScalar **)&d_pv);CHKERRQ(ierr);
+  }
+  PetscFunctionReturn(0);
+}
