@@ -1805,6 +1805,10 @@ static PetscErrorCode BVGetSplit_Private(BV bv,PetscBool left,BV *split)
   (*split)->k  = left? bv->l: bv->k-bv->l;
   (*split)->nc = left? bv->nc: 0;
   (*split)->m  = ncols-(*split)->nc;
+  if ((*split)->nc) {
+    (*split)->ci[0] = -(*split)->nc-1;
+    (*split)->ci[1] = -(*split)->nc-1;
+  }
   if (left) {
     ierr = PetscObjectStateGet((PetscObject)*split,&bv->lstate);CHKERRQ(ierr);
   } else {
@@ -1891,6 +1895,9 @@ PetscErrorCode BVRestoreSplit(BV bv,BV *L,BV *R)
   if (!bv->lsplit) SETERRQ(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_WRONGSTATE,"Must call BVGetSplit first");
   if (L && *L!=bv->L) SETERRQ(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_WRONG,"Argument 2 is not the same BV that was obtained with BVGetSplit");
   if (R && *R!=bv->R) SETERRQ(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_WRONG,"Argument 3 is not the same BV that was obtained with BVGetSplit");
+  if (L && ((*L)->ci[0]>(*L)->nc-1 || (*L)->ci[1]>(*L)->nc-1)) SETERRQ(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_WRONGSTATE,"Argument 2 has unrestored columns, use BVRestoreColumn()");
+  if (R && ((*R)->ci[0]>(*R)->nc-1 || (*R)->ci[1]>(*R)->nc-1)) SETERRQ(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_WRONGSTATE,"Argument 3 has unrestored columns, use BVRestoreColumn()");
+
   if (bv->ops->restoresplit) {
     ierr = (*bv->ops->restoresplit)(bv,L,R);CHKERRQ(ierr);
   }
