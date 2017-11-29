@@ -658,6 +658,22 @@ PetscErrorCode BVOrthogonalizeSomeColumn(BV bv,PetscInt j,PetscBool *which,Petsc
 }
 
 /*
+   Block Gram-Schmidt: V2 = V2 - V1*R12, where R12 = V1'*V2
+ */
+static PetscErrorCode BVOrthogonalize_BlockGS(BV V,Mat R)
+{
+  PetscErrorCode ierr;
+  BV             V1;
+
+  PetscFunctionBegin;
+  ierr = BVGetSplit(V,&V1,NULL);CHKERRQ(ierr);
+  ierr = BVDot(V,V1,R);CHKERRQ(ierr);
+  ierr = BVMult(V,-1.0,1.0,V1,R);CHKERRQ(ierr);
+  ierr = BVRestoreSplit(V,&V1,NULL);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+/*
    Orthogonalize a set of vectors with Gram-Schmidt, column by column.
  */
 static PetscErrorCode BVOrthogonalize_GS(BV V,Mat R)
@@ -665,7 +681,7 @@ static PetscErrorCode BVOrthogonalize_GS(BV V,Mat R)
   PetscErrorCode ierr;
   PetscScalar    *r=NULL;
   PetscReal      norm;
-  PetscInt       j,ldr;
+  PetscInt       j,ldr,lsave;
   Vec            v,w;
 
   PetscFunctionBegin;
@@ -686,7 +702,11 @@ static PetscErrorCode BVOrthogonalize_GS(BV V,Mat R)
       ierr = BVRestoreColumn(V->cached,j,&v);CHKERRQ(ierr);
     }
     if (R) {
-      ierr = BVOrthogonalizeColumn(V,j,r+j*ldr+V->l,&norm,NULL);CHKERRQ(ierr);
+      ierr = BVOrthogonalizeColumn(V,j,NULL,&norm,NULL);CHKERRQ(ierr);
+      lsave = V->l;
+      V->l = -V->nc;
+      ierr = BV_StoreCoefficients(V,j,NULL,r+j*ldr);CHKERRQ(ierr);
+      V->l = lsave;
       r[j+j*ldr] = norm;
     } else {
       ierr = BVOrthogonalizeColumn(V,j,NULL,&norm,NULL);CHKERRQ(ierr);
@@ -720,6 +740,7 @@ static PetscErrorCode BVOrthogonalize_Chol(BV V,Mat Rin)
     R = V->Awork;
     S = R;
   }
+  if (V->l) { ierr = BVOrthogonalize_BlockGS(V,R);CHKERRQ(ierr); }
   ierr = BVDot(V,V,R);CHKERRQ(ierr);
   ierr = BVMatCholInv_LAPACK_Private(V,R,S);CHKERRQ(ierr);
   ierr = BVMultInPlace(V,S,V->l,V->k);CHKERRQ(ierr);
@@ -729,40 +750,58 @@ static PetscErrorCode BVOrthogonalize_Chol(BV V,Mat Rin)
 /*
    Orthogonalize a set of vectors with the Tall-Skinny QR method
  */
-static PetscErrorCode BVOrthogonalize_TSQR(BV V,Mat R)
+static PetscErrorCode BVOrthogonalize_TSQR(BV V,Mat Rin)
 {
   PetscErrorCode ierr;
   PetscScalar    *pv,*r=NULL;
+  PetscInt       ldr;
+  Mat            R;
 
   PetscFunctionBegin;
-  if (R) { ierr = MatDenseGetArray(R,&r);CHKERRQ(ierr); }
+  if (Rin) R = Rin;
+  else {
+    ierr = BV_AllocateWorkMat(V,V->k,V->k);CHKERRQ(ierr);
+    R = V->Awork;
+  }
+  if (V->l) { ierr = BVOrthogonalize_BlockGS(V,R);CHKERRQ(ierr); }
+  ierr = MatGetSize(R,&ldr,NULL);CHKERRQ(ierr);
+  ierr = MatDenseGetArray(R,&r);CHKERRQ(ierr);
   ierr = BVGetArray(V,&pv);CHKERRQ(ierr);
-  ierr = BVOrthogonalize_LAPACK_Private(V,V->n,V->k,pv+V->nc*V->n,r);CHKERRQ(ierr);
+  ierr = BVOrthogonalize_LAPACK_Private(V,V->n,V->k-V->l,pv+(V->nc+V->l)*V->n,r+V->l*ldr+V->l,ldr);CHKERRQ(ierr);
   ierr = BVRestoreArray(V,&pv);CHKERRQ(ierr);
-  if (R) { ierr = MatDenseRestoreArray(R,&r);CHKERRQ(ierr); }
+  ierr = MatDenseRestoreArray(R,&r);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
 /*@
-   BVOrthogonalize - Orthogonalize all columns (except leading ones), that is,
-   compute the QR decomposition.
+   BVOrthogonalize - Orthogonalize all columns (starting from the leading ones),
+   that is, compute the QR decomposition.
 
    Collective on BV
 
-   Input Parameter:
-.  V - basis vectors
+   Input Parameters:
++  V - basis vectors to be orthogonalized (or B-orthogonalized)
+-  R - a sequential dense matrix (or NULL)
 
    Output Parameters:
 +  V - the modified basis vectors
--  R - a sequential dense matrix (or NULL)
+-  R - (if not NULL) the triangular factor of the QR decomposition
 
    Notes:
-   On input, matrix R must be a sequential dense Mat, with at least as many rows
-   and columns as the number of active columns of V. The output satisfies
-   V0 = V*R (where V0 represent the input V) and V'*V = I.
+   On input, matrix R must be a square sequential dense Mat, with at least as many
+   rows and columns as the number of active columns of V. The output satisfies
+   V0 = V*R (where V0 represent the input V) and V'*V = I (or V'*B*V = I if an
+   inner product matrix B has been specified with BVSetMatrix()).
 
    If V has leading columns, then they are not modified (are assumed to be already
-   orthonormal) and the corresponding part of R is not referenced.
+   orthonormal) and the leading columns of R are not referenced. Let the
+   decomposition be
+.vb
+   [ V01 V02 ] = [ V1 V2 ] [ R11 R12 ]
+                           [  0  R22 ]
+.ve
+   then V1 is left unchanged (equal to V01) as well as R11 (it should satisfy
+   V01 = V1*R11).
 
    Can pass NULL if R is not required.
 
@@ -778,7 +817,7 @@ static PetscErrorCode BVOrthogonalize_TSQR(BV V,Mat R)
 
    Level: intermediate
 
-.seealso: BVOrthogonalizeColumn(), BVOrthogonalizeVec(), BVSetActiveColumns(), BVSetOrthogonalization(), BVOrthogBlockType
+.seealso: BVOrthogonalizeColumn(), BVOrthogonalizeVec(), BVSetMatrix(), BVSetActiveColumns(), BVSetOrthogonalization(), BVOrthogBlockType
 @*/
 PetscErrorCode BVOrthogonalize(BV V,Mat R)
 {
@@ -793,7 +832,6 @@ PetscErrorCode BVOrthogonalize(BV V,Mat R)
   if (R) {
     PetscValidHeaderSpecific(R,MAT_CLASSID,2);
     PetscValidType(R,2);
-    if (V->l>0 && V->orthog_block==BV_ORTHOG_BLOCK_GS) SETERRQ(PetscObjectComm((PetscObject)V),PETSC_ERR_SUP,"Cannot request matrix R in Gram-Schmidt orthogonalization if l>0");
     ierr = PetscObjectTypeCompare((PetscObject)R,MATSEQDENSE,&match);CHKERRQ(ierr);
     if (!match) SETERRQ(PetscObjectComm((PetscObject)V),PETSC_ERR_SUP,"Mat argument must be of type seqdense");
     ierr = MatGetSize(R,&m,&n);CHKERRQ(ierr);
