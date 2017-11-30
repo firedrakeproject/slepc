@@ -24,6 +24,7 @@ PETSC_STATIC_INLINE PetscErrorCode BVDot_Private(BV X,BV Y,Mat M)
   PetscInt       i,j,jend,m;
   PetscScalar    *marray;
   PetscBool      symm=PETSC_FALSE;
+  Mat            B;
   Vec            z;
 
   PetscFunctionBegin;
@@ -31,6 +32,8 @@ PETSC_STATIC_INLINE PetscErrorCode BVDot_Private(BV X,BV Y,Mat M)
   ierr = MatDenseGetArray(M,&marray);CHKERRQ(ierr);
   ierr = PetscObjectGetId((PetscObject)X,&idx);CHKERRQ(ierr);
   ierr = PetscObjectGetId((PetscObject)Y,&idy);CHKERRQ(ierr);
+  B = Y->matrix;
+  Y->matrix = NULL;
   if (idx==idy) symm=PETSC_TRUE;  /* M=X'BX is symmetric */
   jend = X->k;
   for (j=X->l;j<jend;j++) {
@@ -44,6 +47,7 @@ PETSC_STATIC_INLINE PetscErrorCode BVDot_Private(BV X,BV Y,Mat M)
     }
   }
   ierr = MatDenseRestoreArray(M,&marray);CHKERRQ(ierr);
+  Y->matrix = B;
   PetscFunctionReturn(0);
 }
 
@@ -84,7 +88,6 @@ PetscErrorCode BVDot(BV X,BV Y,Mat M)
   PetscErrorCode ierr;
   PetscBool      match;
   PetscInt       m,n;
-  Mat            B;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(X,BV_CLASSID,1);
@@ -110,15 +113,12 @@ PetscErrorCode BVDot(BV X,BV Y,Mat M)
   if (X->matrix) { /* non-standard inner product */
     /* compute BX first */
     ierr = BV_IPMatMultBV(X);CHKERRQ(ierr);
-    B = X->matrix;
-    X->matrix = NULL;
     if (X->vmm==BV_MATMULT_VECS) {
       /* perform computation column by column */
       ierr = BVDot_Private(X,Y,M);CHKERRQ(ierr);
     } else {
       ierr = (*X->ops->dot)(X->cached,Y,M);CHKERRQ(ierr);
     }
-    X->matrix = B;
   } else {
     ierr = (*X->ops->dot)(X,Y,M);CHKERRQ(ierr);
   }
