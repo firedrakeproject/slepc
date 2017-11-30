@@ -191,6 +191,8 @@ PETSC_EXTERN PetscErrorCode DSPseudoOrthogonalize(DS,DSMatType,PetscInt,PetscRea
 
 PETSC_EXTERN PetscErrorCode DSPEPSetDegree(DS,PetscInt);
 PETSC_EXTERN PetscErrorCode DSPEPGetDegree(DS,PetscInt*);
+PETSC_EXTERN PetscErrorCode DSPEPSetCoefficients(DS,PetscReal*);
+PETSC_EXTERN PetscErrorCode DSPEPGetCoefficients(DS,PetscReal**);
 
 PETSC_EXTERN PetscErrorCode DSNEPSetFN(DS,PetscInt,FN*);
 PETSC_EXTERN PetscErrorCode DSNEPGetFN(DS,PetscInt,FN*);

@@ -55,8 +55,11 @@ PetscErrorCode NEPSetUp_Interpol(NEP nep)
   if (!ctx->pep) { ierr = NEPInterpolGetPEP(nep,&ctx->pep);CHKERRQ(ierr); }
   ierr = PEPSetBasis(ctx->pep,PEP_BASIS_CHEBYSHEV1);CHKERRQ(ierr);
   ierr = PEPSetWhichEigenpairs(ctx->pep,PEP_TARGET_MAGNITUDE);CHKERRQ(ierr);
-  ierr = PEPGetST(ctx->pep,&st);CHKERRQ(ierr);
-  ierr = STSetType(st,STSINVERT);CHKERRQ(ierr);
+  ierr = PetscObjectTypeCompare((PetscObject)ctx->pep,PEPJD,&flg);CHKERRQ(ierr);
+  if (!flg) {
+    ierr = PEPGetST(ctx->pep,&st);CHKERRQ(ierr);
+    ierr = STSetType(st,STSINVERT);CHKERRQ(ierr);
+  }
   ierr = PEPSetDimensions(ctx->pep,nep->nev,nep->ncv?nep->ncv:PETSC_DEFAULT,nep->mpd?nep->mpd:PETSC_DEFAULT);CHKERRQ(ierr);
   ierr = PEPGetTolerances(ctx->pep,&tol,&its);CHKERRQ(ierr);
   if (tol==PETSC_DEFAULT) tol = (nep->tol==PETSC_DEFAULT)?SLEPC_DEFAULT_TOL:nep->tol;

@@ -8,17 +8,14 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
+#requiresdefine   'PETSC_HAVE_FORTRAN'
 ALL: lib
-
 CFLAGS   =
 FFLAGS   =
-SOURCEC  = peputils.c
+SOURCEC  = zdspepf.c
 SOURCEF  =
-SOURCEH  = 
-LIBBASE  = libslepcpep
-DIRS     = linear krylov jd
-LOCDIR   = src/pep/impls/
-MANSEC   = PEP
-
+SOURCEH  =
+DIRS     =
+LIBBASE  = libslepcsys
+LOCDIR   = src/sys/classes/ds/impls/pep/ftn-custom/
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common
-

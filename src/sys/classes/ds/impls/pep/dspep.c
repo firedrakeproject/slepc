@@ -12,7 +12,8 @@
 #include <slepcblaslapack.h>
 
 typedef struct {
-  PetscInt d;              /* polynomial degree */
+  PetscInt  d;              /* polynomial degree */
+  PetscReal *pbc;           /* polynomial basis coefficients */
 } DS_PEP;
 
 PetscErrorCode DSAllocate_PEP(DS ds,PetscInt ld)
@@ -122,8 +123,9 @@ PetscErrorCode DSSolve_PEP_QZ(DS ds,PetscScalar *wr,PetscScalar *wi)
 #else
   PetscErrorCode ierr;
   DS_PEP         *ctx = (DS_PEP*)ds->data;
-  PetscInt       i,j,off;
+  PetscInt       i,j,k,off;
   PetscScalar    *A,*B,*W,*X,*U,*Y,*E,*work,*beta,norm;
+  PetscReal      *ca,*cb,*cg;
   PetscBLASInt   info,n,ldd,nd,lrwork=0,lwork,one=1;
 #if defined(PETSC_USE_COMPLEX)
   PetscReal      *rwork;
@@ -167,15 +169,45 @@ PetscErrorCode DSSolve_PEP_QZ(DS ds,PetscScalar *wr,PetscScalar *wi)
 
   /* build matrices A and B of the linearization */
   ierr = PetscMemzero(A,ldd*ldd*sizeof(PetscScalar));CHKERRQ(ierr);
-  for (i=0;i<nd-ds->n;i++) A[i+(i+ds->n)*ldd] = -1.0;
-  for (i=0;i<ctx->d;i++) {
-    off = i*ds->n*ldd+(ctx->d-1)*ds->n;
-    for (j=0;j<ds->n;j++) {
-      ierr = PetscMemcpy(A+off+j*ldd,ds->mat[DSMatExtra[i]]+j*ds->ld,ds->n*sizeof(PetscScalar));CHKERRQ(ierr);
+  if (!ctx->pbc) { /* monomial basis */
+    for (i=0;i<nd-ds->n;i++) A[i+(i+ds->n)*ldd] = 1.0;
+    for (i=0;i<ctx->d;i++) {
+      off = i*ds->n*ldd+(ctx->d-1)*ds->n;
+      for (j=0;j<ds->n;j++) {
+        ierr = PetscMemcpy(A+off+j*ldd,ds->mat[DSMatExtra[i]]+j*ds->ld,ds->n*sizeof(PetscScalar));CHKERRQ(ierr);
+      }
     }
+  } else {
+    ca = ctx->pbc;
+    cb = ca+ctx->d+1;
+    cg = cb+ctx->d+1;
+    for (i=0;i<ds->n;i++) {
+      A[i+(i+ds->n)*ldd] = ca[0];
+      A[i+i*ldd] = cb[0];
+    }
+    for (;i<nd-ds->n;i++) {
+      j = i/ds->n;
+      A[i+(i+ds->n)*ldd] = ca[j];
+      A[i+i*ldd] = cb[j];
+      A[i+(i-ds->n)*ldd] = cg[j];
+    }
+    for (i=0;i<ctx->d-2;i++) {
+      off = i*ds->n*ldd+(ctx->d-1)*ds->n;
+      for (j=0;j<ds->n;j++)
+        for (k=0;k<ds->n;k++)
+          *(A+off+j*ldd+k) = *(ds->mat[DSMatExtra[i]]+j*ds->ld+k)*ca[ctx->d-1];
+    }
+    off = i*ds->n*ldd+(ctx->d-1)*ds->n;
+    for (j=0;j<ds->n;j++) 
+      for (k=0;k<ds->n;k++)
+        *(A+off+j*ldd+k) = *(ds->mat[DSMatExtra[i]]+j*ds->ld+k)*ca[ctx->d-1]-E[j*ds->ld+k]*cg[ctx->d-1];
+    off = (++i)*ds->n*ldd+(ctx->d-1)*ds->n;
+    for (j=0;j<ds->n;j++) 
+      for (k=0;k<ds->n;k++)
+        *(A+off+j*ldd+k) = *(ds->mat[DSMatExtra[i]]+j*ds->ld+k)*ca[ctx->d-1]-E[j*ds->ld+k]*cb[ctx->d-1];
   }
   ierr = PetscMemzero(B,ldd*ldd*sizeof(PetscScalar));CHKERRQ(ierr);
-  for (i=0;i<nd-ds->n;i++) B[i+i*ldd] = -1.0;
+  for (i=0;i<nd-ds->n;i++) B[i+i*ldd] = 1.0;
   off = (ctx->d-1)*ds->n*(ldd+1);
   for (j=0;j<ds->n;j++) {
     for (i=0;i<ds->n;i++) B[off+i+j*ldd] = -E[i+j*ds->ld];
@@ -348,14 +380,119 @@ PetscErrorCode DSPEPGetDegree(DS ds,PetscInt *d)
   PetscFunctionReturn(0);
 }
 
-PetscErrorCode DSDestroy_PEP(DS ds)
+static PetscErrorCode DSPEPSetCoefficients_PEP(DS ds,PetscReal *pbc)
+{
+  PetscErrorCode ierr;
+  DS_PEP         *ctx = (DS_PEP*)ds->data;
+  PetscInt       i;
+
+  PetscFunctionBegin;
+  if (!ctx->d) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_WRONGSTATE,"Must first specify the polynomial degree via DSPEPSetDegree()");
+  if (ctx->pbc) { ierr = PetscFree(ctx->pbc);CHKERRQ(ierr); }
+  ierr = PetscMalloc1(3*(ctx->d+1),&ctx->pbc);CHKERRQ(ierr);
+  for (i=0;i<3*(ctx->d+1);i++) ctx->pbc[i] = pbc[i];
+  ds->state = DS_STATE_RAW;
+  PetscFunctionReturn(0);
+}
+
+/*@C
+   DSPEPSetCoefficients - Sets the polynomial basis coefficients for a DSPEP.
+
+   Logically Collective on DS
+
+   Input Parameters:
++  ds  - the direct solver context
+-  pbc - the polynomial basis coefficients
+
+   Notes:
+   This function is required only in the case of a polynomial specified in a
+   non-monomial basis, to provide the coefficients that will be used
+   during the linearization, multiplying the identity blocks on the three main
+   diagonal blocks. Depending on the polynomial basis (Chebyshev, Legendre, ...) 
+   the coefficients must be different.
+
+   There must be a total of 3*(d+1) coefficients, where d is the degree of the
+   polynomial. The coefficients are arranged in three groups: alpha, beta, and
+   gamma, according to the definition of the three-term recurrence. In the case
+   of the monomial basis, alpha=1 and beta=gamma=0, in which case it is not
+   necessary to invoke this function.
+
+   Level: advanced
+
+.seealso: DSPEPGetCoefficients(), DSPEPSetDegree()
+@*/
+PetscErrorCode DSPEPSetCoefficients(DS ds,PetscReal *pbc)
 {
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
+  PetscValidHeaderSpecific(ds,DS_CLASSID,1);
+  ierr = PetscTryMethod(ds,"DSPEPSetCoefficients_C",(DS,PetscReal*),(ds,pbc));CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+static PetscErrorCode DSPEPGetCoefficients_PEP(DS ds,PetscReal **pbc)
+{
+  PetscErrorCode ierr;
+  DS_PEP         *ctx = (DS_PEP*)ds->data;
+  PetscInt       i;
+
+  PetscFunctionBegin;
+  if (!ctx->d) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_WRONGSTATE,"Must first specify the polynomial degree via DSPEPSetDegree()");
+  ierr = PetscCalloc1(3*(ctx->d+1),pbc);CHKERRQ(ierr);
+  if (ctx->pbc) for (i=0;i<3*(ctx->d+1);i++) (*pbc)[i] = ctx->pbc[i];
+  else for (i=0;i<ctx->d+1;i++) (*pbc)[i] = 1.0;
+  PetscFunctionReturn(0);
+}
+
+/*@C
+   DSPEPGetCoefficients - Returns the polynomial basis coefficients for a DSPEP.
+
+   Not collective
+
+   Input Parameter:
+.  ds - the direct solver context
+
+   Output Parameters:
+.  pbc - the polynomial basis coefficients
+
+   Note:
+   The returned array has length 3*(d+1) and should be freed by the user.
+
+   Fortran Note:
+   The calling sequence from Fortran is
+.vb
+   DSPEPGetCoefficients(eps,pbc,ierr)
+   double precision pbc(d+1) output
+.ve
+
+   Level: advanced
+
+.seealso: DSPEPSetCoefficients()
+@*/
+PetscErrorCode DSPEPGetCoefficients(DS ds,PetscReal **pbc)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(ds,DS_CLASSID,1);
+  PetscValidPointer(pbc,2);
+  ierr = PetscUseMethod(ds,"DSPEPGetCoefficients_C",(DS,PetscReal**),(ds,pbc));CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+PetscErrorCode DSDestroy_PEP(DS ds)
+{
+  PetscErrorCode ierr;
+  DS_PEP         *ctx = (DS_PEP*)ds->data;
+
+  PetscFunctionBegin;
+  if (ctx->pbc) { ierr = PetscFree(ctx->pbc);CHKERRQ(ierr); }
   ierr = PetscFree(ds->data);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)ds,"DSPEPSetDegree_C",NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)ds,"DSPEPGetDegree_C",NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)ds,"DSPEPSetCoefficients_C",NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)ds,"DSPEPGetCoefficients_C",NULL);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -391,6 +528,8 @@ PETSC_EXTERN PetscErrorCode DSCreate_PEP(DS ds)
   ds->ops->matgetsize    = DSMatGetSize_PEP;
   ierr = PetscObjectComposeFunction((PetscObject)ds,"DSPEPSetDegree_C",DSPEPSetDegree_PEP);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)ds,"DSPEPGetDegree_C",DSPEPGetDegree_PEP);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)ds,"DSPEPSetCoefficients_C",DSPEPSetCoefficients_PEP);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)ds,"DSPEPGetCoefficients_C",DSPEPGetCoefficients_PEP);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

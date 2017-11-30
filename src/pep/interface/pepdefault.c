@@ -503,28 +503,3 @@ PetscErrorCode PEPBasisCoefficients(PEP pep,PetscReal *pbc)
   PetscFunctionReturn(0);
 }
 
-/*
-   PEPEvaluateBasis - evaluate the polynomial basis on a given parameter sigma
-*/
-PetscErrorCode PEPEvaluateBasis(PEP pep,PetscScalar sigma,PetscScalar isigma,PetscScalar *vals,PetscScalar *ivals)
-{
-  PetscInt   nmat=pep->nmat,k;
-  PetscReal  *a=pep->pbc,*b=pep->pbc+nmat,*g=pep->pbc+2*nmat;
-
-  PetscFunctionBegin;
-  if (ivals) for (k=0;k<nmat;k++) ivals[k] = 0.0;
-  vals[0] = 1.0;
-  vals[1] = (sigma-b[0])/a[0];
-#if !defined(PETSC_USE_COMPLEX)
-  if (ivals) ivals[1] = isigma/a[0];
-#endif
-  for (k=2;k<nmat;k++) {
-    vals[k] = ((sigma-b[k-1])*vals[k-1]-g[k-1]*vals[k-2])/a[k-1];
-    if (ivals) vals[k] -= isigma*ivals[k-1]/a[k-1];
-#if !defined(PETSC_USE_COMPLEX)
-    if (ivals) ivals[k] = ((sigma-b[k-1])*ivals[k-1]+isigma*vals[k-1]-g[k-1]*ivals[k-2])/a[k-1];
-#endif
-  }
-  PetscFunctionReturn(0);
-}
-
