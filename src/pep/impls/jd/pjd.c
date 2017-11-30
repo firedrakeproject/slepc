@@ -160,7 +160,7 @@ static PetscErrorCode PEPJDUpdateTV(PEP pep,PetscInt low,PetscInt high,Vec *w)
   PEP_JD         *pjd = (PEP_JD*)pep->data;
   PetscInt       pp,col,i,nloc,nconv;
   Vec            v1,v2,t1,t2;
-  PetscScalar    *array1,*array2,*x2,*tt,*xx,*N,*Np,*y2,zero=0.0,sone=1.0,*pT,fact,*psc;
+  PetscScalar    *array1,*array2,*x2,*tt,*xx,*N,*Np,*y2=NULL,zero=0.0,sone=1.0,*pT,fact,*psc;
   PetscReal      *cg,*ca,*cb;
   PetscMPIInt    rk,np,count;
   PetscBLASInt   n_,ld_,one=1;
