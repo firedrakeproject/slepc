@@ -73,6 +73,7 @@ struct _p_BV {
 
   /*---------------------- Cached data and workspace -------------------*/
   Vec                buffer;       /* buffer vector used in orthogonalization */
+  Mat                Abuffer;      /* auxiliary seqdense matrix that wraps the buffer */
   Vec                Bx;           /* result of matrix times a vector x */
   PetscObjectId      xid;          /* object id of vector x */
   PetscObjectState   xstate;       /* state of vector x */
@@ -93,7 +94,6 @@ struct _p_BV {
   PetscRandom        rand;         /* random number generator */
   Mat                Acreate;      /* matrix given at BVCreateFromMat() */
   Mat                Aget;         /* matrix returned for BVGetMat() */
-  Mat                Awork;        /* auxiliary seqdense matrix used in BVOrthogonalize() */
   PetscBool          cuda;         /* true if GPU must be used in SVEC */
   PetscScalar        *work;
   PetscInt           lwork;
@@ -207,31 +207,6 @@ PETSC_STATIC_INLINE PetscErrorCode BV_AllocateSignature(BV bv)
     }
     ierr = PetscLogObjectParent((PetscObject)bv,(PetscObject)bv->omega);CHKERRQ(ierr);
     ierr = VecSet(bv->omega,1.0);CHKERRQ(ierr);
-  }
-  PetscFunctionReturn(0);
-}
-
-/*
-  BV_AllocateWorkMat - Allocate auxiliary seqdense matrix used in BVOrthogonalize if not available.
-*/
-PETSC_STATIC_INLINE PetscErrorCode BV_AllocateWorkMat(BV bv,PetscInt m,PetscInt n)
-{
-  PetscErrorCode ierr;
-  PetscBool      create=PETSC_FALSE;
-  PetscInt       rows,cols;
-
-  PetscFunctionBegin;
-  if (!bv->Awork) create=PETSC_TRUE;
-  else {
-    ierr = MatGetSize(bv->Awork,&rows,&cols);CHKERRQ(ierr);
-    if (rows!=m || cols!=n) {
-      ierr = MatDestroy(&bv->Awork);CHKERRQ(ierr);
-      create=PETSC_TRUE;
-    }
-  }
-  if (create) {
-    ierr = MatCreateSeqDense(PETSC_COMM_SELF,m,n,NULL,&bv->Awork);CHKERRQ(ierr);
-    ierr = PetscLogObjectParent((PetscObject)bv,(PetscObject)bv->Awork);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }

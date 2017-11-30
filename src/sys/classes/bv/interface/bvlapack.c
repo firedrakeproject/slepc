@@ -80,17 +80,13 @@ PetscErrorCode BVMatCholInv_LAPACK_Private(BV bv,Mat R,Mat S)
   SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"POTRF/TRTRI - Lapack routine is unavailable");
 #else
   PetscErrorCode ierr;
-  PetscInt       i,k,l,n,m,ms,ld,lds;
+  PetscInt       i,k,l,n,m,ld,lds;
   PetscScalar    *pR,*pS;
-  PetscBLASInt   info,n_,l_,m_,k_,ld_,lds_;
+  PetscBLASInt   info,n_,l_,m_,ld_,lds_;
 
   PetscFunctionBegin;
   l = bv->l;
   k = bv->k;
-  if (S!=R) {
-    ierr = MatGetSize(S,&ms,NULL);CHKERRQ(ierr);
-    if (k!=ms) SETERRQ(PetscObjectComm((PetscObject)bv),1,"Wrong dimensions");
-  }
   ierr = MatGetSize(R,&m,NULL);CHKERRQ(ierr);
   n = k-l;
   ierr = PetscBLASIntCast(m,&m_);CHKERRQ(ierr);
@@ -101,15 +97,14 @@ PetscErrorCode BVMatCholInv_LAPACK_Private(BV bv,Mat R,Mat S)
   ierr = MatDenseGetArray(R,&pR);CHKERRQ(ierr);
 
   if (S==R) {
-    ierr = BVAllocateWork_Private(bv,k*k);CHKERRQ(ierr);
+    ierr = BVAllocateWork_Private(bv,m*k);CHKERRQ(ierr);
     pS = bv->work;
     lds = ld;
     lds_ = ld_;
   } else {
     ierr = MatDenseGetArray(S,&pS);CHKERRQ(ierr);
-    ierr = PetscBLASIntCast(k,&k_);CHKERRQ(ierr);
-    lds  = k;
-    lds_ = k_;
+    ierr = MatGetSize(S,&lds,NULL);CHKERRQ(ierr);
+    ierr = PetscBLASIntCast(lds,&lds_);CHKERRQ(ierr);
   }
 
   /* save a copy of matrix in S */
@@ -135,7 +130,7 @@ PetscErrorCode BVMatCholInv_LAPACK_Private(BV bv,Mat R,Mat S)
   if (S==R) {
     PetscStackCallBLAS("LAPACKtrtri",LAPACKtrtri_("U","N",&n_,pR+l*ld+l,&ld_,&info));
   } else {
-    ierr = PetscMemzero(pS,k*k*sizeof(PetscScalar));CHKERRQ(ierr);
+    ierr = PetscMemzero(pS+l*lds,(k-l)*k*sizeof(PetscScalar));CHKERRQ(ierr);
     for (i=l;i<k;i++) {
       ierr = PetscMemcpy(pS+i*lds+l,pR+i*ld+l,n*sizeof(PetscScalar));CHKERRQ(ierr);
     }

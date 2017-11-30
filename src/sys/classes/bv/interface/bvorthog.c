@@ -724,6 +724,51 @@ static PetscErrorCode BVOrthogonalize_GS(BV V,Mat R)
 }
 
 /*
+  BV_GetBufferMat - Create auxiliary seqdense matrix that wraps the bv->buffer.
+*/
+PETSC_STATIC_INLINE PetscErrorCode BV_GetBufferMat(BV bv)
+{
+  PetscErrorCode ierr;
+  PetscInt       ld;
+  PetscScalar    *array;
+
+  PetscFunctionBegin;
+  if (!bv->Abuffer) {
+    if (!bv->buffer) { ierr = BVGetBufferVec(bv,&bv->buffer);CHKERRQ(ierr); }
+    ld = bv->m+bv->nc;
+    ierr = VecGetArray(bv->buffer,&array);CHKERRQ(ierr);
+    ierr = MatCreateSeqDense(PETSC_COMM_SELF,ld,bv->m,array,&bv->Abuffer);CHKERRQ(ierr);
+    ierr = VecRestoreArray(bv->buffer,&array);CHKERRQ(ierr);
+    ierr = PetscLogObjectParent((PetscObject)bv,(PetscObject)bv->Abuffer);CHKERRQ(ierr);
+  }
+  PetscFunctionReturn(0);
+}
+
+/*
+   BV_StoreCoeffsBlock_Default - Copy the contents of the BV buffer to a dense Mat
+   provided by the caller. Only the upper triangular entries of columns l:k-1 are copied
+*/
+PETSC_STATIC_INLINE PetscErrorCode BV_StoreCoeffsBlock_Default(BV bv,Mat R)
+{
+  PetscErrorCode    ierr;
+  const PetscScalar *bb;
+  PetscScalar       *rr;
+  PetscInt          j,ldr,ldb;
+
+  PetscFunctionBegin;
+  ierr = MatGetSize(R,&ldr,NULL);CHKERRQ(ierr);
+  ierr = MatDenseGetArray(R,&rr);CHKERRQ(ierr);
+  ldb  = bv->m+bv->nc;
+  ierr = VecGetArrayRead(bv->buffer,&bb);CHKERRQ(ierr);
+  for (j=bv->l;j<bv->k;j++) {
+    ierr = PetscMemcpy(rr+j*ldr,bb+j*ldb,(j+1+bv->nc)*sizeof(PetscScalar));CHKERRQ(ierr);
+  }
+  ierr = VecRestoreArrayRead(bv->buffer,&bb);CHKERRQ(ierr);
+  ierr = MatDenseRestoreArray(R,&rr);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+/*
    Orthogonalize a set of vectors with Cholesky: R=chol(V'*V), Q=V*inv(R)
  */
 static PetscErrorCode BVOrthogonalize_Chol(BV V,Mat Rin)
@@ -732,18 +777,15 @@ static PetscErrorCode BVOrthogonalize_Chol(BV V,Mat Rin)
   Mat            R,S;
 
   PetscFunctionBegin;
-  ierr = BV_AllocateWorkMat(V,V->k,V->k);CHKERRQ(ierr);
-  if (Rin) {
-    R = Rin;
-    S = V->Awork;
-  } else {
-    R = V->Awork;
-    S = R;
-  }
+  ierr = BV_GetBufferMat(V);CHKERRQ(ierr);
+  R = V->Abuffer;
+  if (Rin) S = Rin;   /* use Rin as a workspace for S */
+  else S = R;
   if (V->l) { ierr = BVOrthogonalize_BlockGS(V,R);CHKERRQ(ierr); }
   ierr = BVDot(V,V,R);CHKERRQ(ierr);
   ierr = BVMatCholInv_LAPACK_Private(V,R,S);CHKERRQ(ierr);
   ierr = BVMultInPlace(V,S,V->l,V->k);CHKERRQ(ierr);
+  if (Rin) { ierr = BV_StoreCoeffsBlock_Default(V,Rin);CHKERRQ(ierr); }
   PetscFunctionReturn(0);
 }
 
@@ -758,11 +800,8 @@ static PetscErrorCode BVOrthogonalize_TSQR(BV V,Mat Rin)
   Mat            R;
 
   PetscFunctionBegin;
-  if (Rin) R = Rin;
-  else {
-    ierr = BV_AllocateWorkMat(V,V->k,V->k);CHKERRQ(ierr);
-    R = V->Awork;
-  }
+  ierr = BV_GetBufferMat(V);CHKERRQ(ierr);
+  R = V->Abuffer;
   if (V->l) { ierr = BVOrthogonalize_BlockGS(V,R);CHKERRQ(ierr); }
   ierr = MatGetSize(R,&ldr,NULL);CHKERRQ(ierr);
   ierr = MatDenseGetArray(R,&r);CHKERRQ(ierr);
@@ -770,6 +809,7 @@ static PetscErrorCode BVOrthogonalize_TSQR(BV V,Mat Rin)
   ierr = BVOrthogonalize_LAPACK_Private(V,V->n,V->k-V->l,pv+(V->nc+V->l)*V->n,r+V->l*ldr+V->l,ldr);CHKERRQ(ierr);
   ierr = BVRestoreArray(V,&pv);CHKERRQ(ierr);
   ierr = MatDenseRestoreArray(R,&r);CHKERRQ(ierr);
+  if (Rin) { ierr = BV_StoreCoeffsBlock_Default(V,Rin);CHKERRQ(ierr); }
   PetscFunctionReturn(0);
 }
 
