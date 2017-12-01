@@ -1,6 +1,6 @@
 pipelines:
   branches:
-    maint: &default-step
+    next: &default-step
       - step:
           script:
             - sudo apt-get -yq --no-install-suggests --no-install-recommends --force-yes install gfortran libblas-dev liblapack-dev
@@ -16,7 +16,3 @@ pipelines:
             - make
             - make test
             - make slepc_alltests ALLTESTS_CHECK_FAILURES=yes ALLTESTS_PRINT_PROGRESS=dot
-    master:  *default-step
-    next:    *default-step
-    pr*/*/*: *default-step
-    ci/*/*:  *default-step
