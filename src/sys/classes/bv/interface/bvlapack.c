@@ -80,17 +80,13 @@ PetscErrorCode BVMatCholInv_LAPACK_Private(BV bv,Mat R,Mat S)
   SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"POTRF/TRTRI - Lapack routine is unavailable");
 #else
   PetscErrorCode ierr;
-  PetscInt       i,k,l,n,m,ms,ld,lds;
+  PetscInt       i,k,l,n,m,ld,lds;
   PetscScalar    *pR,*pS;
-  PetscBLASInt   info,n_,l_,m_,k_,ld_,lds_;
+  PetscBLASInt   info,n_,l_,m_,ld_,lds_;
 
   PetscFunctionBegin;
   l = bv->l;
   k = bv->k;
-  if (S!=R) {
-    ierr = MatGetSize(S,&ms,NULL);CHKERRQ(ierr);
-    if (k!=ms) SETERRQ(PetscObjectComm((PetscObject)bv),1,"Wrong dimensions");
-  }
   ierr = MatGetSize(R,&m,NULL);CHKERRQ(ierr);
   n = k-l;
   ierr = PetscBLASIntCast(m,&m_);CHKERRQ(ierr);
@@ -101,15 +97,14 @@ PetscErrorCode BVMatCholInv_LAPACK_Private(BV bv,Mat R,Mat S)
   ierr = MatDenseGetArray(R,&pR);CHKERRQ(ierr);
 
   if (S==R) {
-    ierr = BVAllocateWork_Private(bv,k*k);CHKERRQ(ierr);
+    ierr = BVAllocateWork_Private(bv,m*k);CHKERRQ(ierr);
     pS = bv->work;
     lds = ld;
     lds_ = ld_;
   } else {
     ierr = MatDenseGetArray(S,&pS);CHKERRQ(ierr);
-    ierr = PetscBLASIntCast(k,&k_);CHKERRQ(ierr);
-    lds  = k;
-    lds_ = k_;
+    ierr = MatGetSize(S,&lds,NULL);CHKERRQ(ierr);
+    ierr = PetscBLASIntCast(lds,&lds_);CHKERRQ(ierr);
   }
 
   /* save a copy of matrix in S */
@@ -135,7 +130,7 @@ PetscErrorCode BVMatCholInv_LAPACK_Private(BV bv,Mat R,Mat S)
   if (S==R) {
     PetscStackCallBLAS("LAPACKtrtri",LAPACKtrtri_("U","N",&n_,pR+l*ld+l,&ld_,&info));
   } else {
-    ierr = PetscMemzero(pS,k*k*sizeof(PetscScalar));CHKERRQ(ierr);
+    ierr = PetscMemzero(pS+l*lds,(k-l)*k*sizeof(PetscScalar));CHKERRQ(ierr);
     for (i=l;i<k;i++) {
       ierr = PetscMemcpy(pS+i*lds+l,pR+i*ld+l,n*sizeof(PetscScalar));CHKERRQ(ierr);
     }
@@ -158,7 +153,7 @@ PetscErrorCode BVMatCholInv_LAPACK_Private(BV bv,Mat R,Mat S)
 /*
     QR factorization of an mxn matrix via parallel TSQR
 */
-PetscErrorCode BVOrthogonalize_LAPACK_Private(BV bv,PetscInt m_,PetscInt n_,PetscScalar *Q,PetscScalar *R)
+PetscErrorCode BVOrthogonalize_LAPACK_Private(BV bv,PetscInt m_,PetscInt n_,PetscScalar *Q,PetscScalar *R,PetscInt ldr)
 {
 #if defined(PETSC_MISSING_LAPACK_GEQRF) || defined(PETSC_MISSING_LAPACK_ORGQR)
   PetscFunctionBegin;
@@ -200,11 +195,14 @@ PetscErrorCode BVOrthogonalize_LAPACK_Private(BV bv,PetscInt m_,PetscInt n_,Pets
 
   /* Extract R */
   if (R || mpi) {
-    ierr = PetscMemzero(mpi? Rl: R,n*n*sizeof(PetscScalar));CHKERRQ(ierr);
     for (j=0;j<n;j++) {
       for (i=0;i<=j;i++) {
         if (mpi) Rl[i+j*n] = Q[i+j*m];
-        else R[i+j*n] = Q[i+j*m];
+        else R[i+j*ldr] = Q[i+j*m];
+      }
+      for (i=j+1;i<n;i++) {
+        if (mpi) Rl[i+j*n] = 0.0;
+        else R[i+j*ldr] = 0.0;
       }
     }
   }
@@ -228,10 +226,10 @@ PetscErrorCode BVOrthogonalize_LAPACK_Private(BV bv,PetscInt m_,PetscInt n_,Pets
 
     /* Extract R */
     if (R) {
-      ierr = PetscMemzero(R,n*n*sizeof(PetscScalar));CHKERRQ(ierr);
-      for (j=0;j<n;j++)
-        for (i=0;i<=j;i++)
-          R[i+j*n] = A[i+j*l];
+      for (j=0;j<n;j++) {
+        for (i=0;i<=j;i++) R[i+j*ldr] = A[i+j*l];
+        for (i=j+1;i<n;i++) R[i+j*ldr] = 0.0;
+      }
     }
 
     /* Accumulate orthogonal matrix */

@@ -135,7 +135,7 @@ PetscErrorCode BVDestroy(BV *bv)
   ierr = VecDestroy(&(*bv)->omega);CHKERRQ(ierr);
   ierr = MatDestroy(&(*bv)->Acreate);CHKERRQ(ierr);
   ierr = MatDestroy(&(*bv)->Aget);CHKERRQ(ierr);
-  ierr = MatDestroy(&(*bv)->Awork);CHKERRQ(ierr);
+  ierr = MatDestroy(&(*bv)->Abuffer);CHKERRQ(ierr);
   ierr = PetscRandomDestroy(&(*bv)->rand);CHKERRQ(ierr);
   ierr = PetscHeaderDestroy(bv);CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -184,6 +184,7 @@ PetscErrorCode BVCreate(MPI_Comm comm,BV *newbv)
 
   bv->Bx           = NULL;
   bv->buffer       = NULL;
+  bv->Abuffer      = NULL;
   bv->xid          = 0;
   bv->xstate       = 0;
   bv->cv[0]        = NULL;
@@ -211,7 +212,6 @@ PetscErrorCode BVCreate(MPI_Comm comm,BV *newbv)
   bv->rrandom      = PETSC_FALSE;
   bv->Acreate      = NULL;
   bv->Aget         = NULL;
-  bv->Awork        = NULL;
   bv->cuda         = PETSC_FALSE;
   bv->work         = NULL;
   bv->lwork        = 0;
