@@ -226,9 +226,10 @@ PetscErrorCode BVOrthogonalize_LAPACK_Private(BV bv,PetscInt m_,PetscInt n_,Pets
 
     /* Extract R */
     if (R) {
-      for (j=0;j<n;j++)
+      for (j=0;j<n;j++) {
         for (i=0;i<=j;i++) R[i+j*ldr] = A[i+j*l];
         for (i=j+1;i<n;i++) R[i+j*ldr] = 0.0;
+      }
     }
 
     /* Accumulate orthogonal matrix */

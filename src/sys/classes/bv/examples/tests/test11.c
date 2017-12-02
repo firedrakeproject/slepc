@@ -20,17 +20,18 @@ PetscErrorCode MyMatNorm(Mat A,PetscInt lda,PetscInt l,PetscInt k,PetscScalar di
   PetscErrorCode ierr;
   PetscInt       i,j;
   PetscScalar    s,*pA;
+  PetscReal      val;
 
   PetscFunctionBeginUser;
   ierr = MatDenseGetArray(A,&pA);CHKERRQ(ierr);
   s = 0.0;
   for (i=l;i<k;i++) {
     for (j=l;j<k;j++) {
-      if (i==j) s += (pA[i+j*lda]-diag)*(pA[i+j*lda]-diag);
-      else s += pA[i+j*lda]*pA[i+j*lda];
+      val = (i==j)? PetscAbsScalar(pA[i+j*lda]-diag): PetscAbsScalar(pA[i+j*lda]);
+      s += val*val;
     }
   }
-  *norm = PetscSqrtScalar(s);
+  *norm = PetscSqrtReal(s);
   ierr = MatDenseRestoreArray(A,&pA);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
