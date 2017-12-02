@@ -330,7 +330,7 @@ PetscErrorCode RGSetFromOptions(RG rg)
 @*/
 PetscErrorCode RGView(RG rg,PetscViewer viewer)
 {
-  PetscBool      isascii;
+  PetscBool      isdraw,isascii;
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
@@ -338,6 +338,7 @@ PetscErrorCode RGView(RG rg,PetscViewer viewer)
   if (!viewer) viewer = PETSC_VIEWER_STDOUT_(PetscObjectComm((PetscObject)rg));
   PetscValidHeaderSpecific(viewer,PETSC_VIEWER_CLASSID,2);
   PetscCheckSameComm(rg,1,viewer,2);
+  ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERDRAW,&isdraw);CHKERRQ(ierr);
   ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
   if (isascii) {
     ierr = PetscObjectPrintClassNamePrefixType((PetscObject)rg,viewer);CHKERRQ(ierr);
@@ -352,6 +353,8 @@ PetscErrorCode RGView(RG rg,PetscViewer viewer)
     if (rg->sfactor!=1.0) {
       ierr = PetscViewerASCIIPrintf(viewer,"  scaling factor = %g\n",(double)rg->sfactor);CHKERRQ(ierr);
     }
+  } else if (isdraw) {
+    if (rg->ops->view) { ierr = (*rg->ops->view)(rg,viewer);CHKERRQ(ierr); }
   }
   PetscFunctionReturn(0);
 }

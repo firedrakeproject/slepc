@@ -13,6 +13,7 @@
 */
 
 #include <slepc/private/rgimpl.h>      /*I "slepcrg.h" I*/
+#include <petscdraw.h>
 
 typedef struct {
   PetscReal   a,b;     /* interval in the real axis */
@@ -120,12 +121,32 @@ PetscErrorCode RGView_Interval(RG rg,PetscViewer viewer)
 {
   PetscErrorCode ierr;
   RG_INTERVAL    *ctx = (RG_INTERVAL*)rg->data;
-  PetscBool      isascii;
+  PetscBool      isdraw,isascii;
+  PetscDraw      draw;
+  PetscDrawAxis  axis;
+  PetscReal      ab,cd,lx,ly,w,scale=1.2;
 
   PetscFunctionBegin;
+  ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERDRAW,&isdraw);CHKERRQ(ierr);
   ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
   if (isascii) {
     ierr = PetscViewerASCIIPrintf(viewer,"  region: [%g,%g]x[%g,%g]\n",RGShowReal(ctx->a),RGShowReal(ctx->b),RGShowReal(ctx->c),RGShowReal(ctx->d));CHKERRQ(ierr);
+  } else if (isdraw) {
+    ierr = PetscViewerDrawGetDraw(viewer,0,&draw);CHKERRQ(ierr);
+    ierr = PetscDrawSetTitle(draw,"Interval region");CHKERRQ(ierr);
+    ierr = PetscDrawAxisCreate(draw,&axis);CHKERRQ(ierr);
+    lx = ctx->b-ctx->a;
+    ly = ctx->d-ctx->c;
+    ab = (ctx->a+ctx->b)/2;
+    cd = (ctx->c+ctx->d)/2;
+    w  = scale*PetscMax(lx,ly)/2;
+    ierr = PetscDrawAxisSetLimits(axis,ab-w,ab+w,cd-w,cd+w);CHKERRQ(ierr);
+    ierr = PetscDrawAxisDraw(axis);CHKERRQ(ierr);
+    ierr = PetscDrawAxisDestroy(&axis);CHKERRQ(ierr);
+    ierr = PetscDrawRectangle(draw,ctx->a,ctx->c,ctx->b,ctx->d,PETSC_DRAW_BLUE,PETSC_DRAW_BLUE,PETSC_DRAW_BLUE,PETSC_DRAW_BLUE);CHKERRQ(ierr);
+    ierr = PetscDrawFlush(draw);CHKERRQ(ierr);
+    ierr = PetscDrawSave(draw);CHKERRQ(ierr);
+    ierr = PetscDrawPause(draw);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }

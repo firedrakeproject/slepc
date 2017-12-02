@@ -13,6 +13,7 @@
 */
 
 #include <slepc/private/rgimpl.h>      /*I "slepcrg.h" I*/
+#include <petscdraw.h>
 
 typedef struct {
   PetscScalar center;     /* center of the ellipse */
@@ -173,14 +174,59 @@ PetscErrorCode RGView_Ring(RG rg,PetscViewer viewer)
 {
   PetscErrorCode ierr;
   RG_RING        *ctx = (RG_RING*)rg->data;
-  PetscBool      isascii;
+  PetscBool      isdraw,isascii;
+  PetscDraw      draw;
+  PetscDrawAxis  axis;
+  PetscReal      a,b,c,d,end_ang,x1,y1,x2,y2,r,theta,scale=1.2;
   char           str[50];
 
   PetscFunctionBegin;
+  ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERDRAW,&isdraw);CHKERRQ(ierr);
   ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
   if (isascii) {
     ierr = SlepcSNPrintfScalar(str,50,ctx->center,PETSC_FALSE);CHKERRQ(ierr);
     ierr = PetscViewerASCIIPrintf(viewer,"  center: %s, radius: %g, vscale: %g, start angle: %g, end angle: %g, ring width: %g\n",str,RGShowReal(ctx->radius),RGShowReal(ctx->vscale),(double)ctx->start_ang,(double)ctx->end_ang,(double)ctx->width);CHKERRQ(ierr);
+  } else if (isdraw) {
+    ierr = PetscViewerDrawGetDraw(viewer,0,&draw);CHKERRQ(ierr);
+    ierr = PetscDrawSetTitle(draw,"Ring region");CHKERRQ(ierr);
+    ierr = PetscDrawAxisCreate(draw,&axis);CHKERRQ(ierr);
+    if (ctx->vscale>1) {
+      r = scale*(ctx->radius+ctx->width)*ctx->vscale;
+      c = PetscImaginaryPart(ctx->center)-r;
+      d = PetscImaginaryPart(ctx->center)+r;
+      a = PetscRealPart(ctx->center)-scale*(d-c)/2;
+      b = PetscRealPart(ctx->center)+scale*(d-c)/2;
+    } else {
+      r = scale*(ctx->radius+ctx->width);
+      a = PetscRealPart(ctx->center)-r;
+      b = PetscRealPart(ctx->center)+r;
+      c = PetscImaginaryPart(ctx->center)-scale*(b-a)/2;
+      d = PetscImaginaryPart(ctx->center)+scale*(b-a)/2;
+    }
+    ierr = PetscDrawAxisSetLimits(axis,a,b,c,d);CHKERRQ(ierr);
+    ierr = PetscDrawAxisDraw(axis);CHKERRQ(ierr);
+    ierr = PetscDrawAxisDestroy(&axis);CHKERRQ(ierr);
+    /* draw outer ellipse */
+    ierr = PetscDrawEllipse(draw,PetscRealPart(ctx->center),PetscImaginaryPart(ctx->center),2*(ctx->radius+ctx->width),2*(ctx->radius+ctx->width)*ctx->vscale,PETSC_DRAW_RED);CHKERRQ(ierr);
+    /* remove inner part */
+    ierr = PetscDrawEllipse(draw,PetscRealPart(ctx->center),PetscImaginaryPart(ctx->center),2*(ctx->radius-ctx->width),2*(ctx->radius-ctx->width)*ctx->vscale,PETSC_DRAW_WHITE);CHKERRQ(ierr);
+    if (ctx->start_ang!=ctx->end_ang) {
+      /* remove section from end_ang to start_ang */
+      end_ang = (ctx->start_ang<ctx->end_ang)? ctx->end_ang-1: ctx->end_ang;
+      theta = end_ang;
+      x1 = (a+b)/2+r*PetscCosReal(2.0*PETSC_PI*theta);
+      y1 = (c+d)/2+r*PetscSinReal(2.0*PETSC_PI*theta);
+      do {
+        theta = PetscMin(PetscFloorReal(8*theta+1)/8,ctx->start_ang);
+        x2 = (a+b)/2+r*PetscCosReal(2.0*PETSC_PI*theta);
+        y2 = (c+d)/2+r*PetscSinReal(2.0*PETSC_PI*theta);
+        ierr = PetscDrawTriangle(draw,PetscRealPart(ctx->center),PetscImaginaryPart(ctx->center),x1,y1,x2,y2,PETSC_DRAW_WHITE,PETSC_DRAW_WHITE,PETSC_DRAW_WHITE);CHKERRQ(ierr);
+        x1 = x2; y1 = y2;
+      } while (theta<ctx->start_ang);
+    }
+    ierr = PetscDrawFlush(draw);CHKERRQ(ierr);
+    ierr = PetscDrawSave(draw);CHKERRQ(ierr);
+    ierr = PetscDrawPause(draw);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }

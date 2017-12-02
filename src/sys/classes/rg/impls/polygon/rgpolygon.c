@@ -12,6 +12,7 @@
 */
 
 #include <slepc/private/rgimpl.h>      /*I "slepcrg.h" I*/
+#include <petscdraw.h>
 
 #define VERTMAX 30
 
@@ -19,6 +20,8 @@ typedef struct {
   PetscInt    n;         /* number of vertices */
   PetscScalar *vr,*vi;   /* array of vertices (vi not used in complex scalars) */
 } RG_POLYGON;
+
+PetscErrorCode RGComputeBoundingBox_Polygon(RG,PetscReal*,PetscReal*,PetscReal*,PetscReal*);
 
 #if !defined(PETSC_USE_COMPLEX)
 static PetscBool CheckSymmetry(PetscInt n,PetscScalar *vr,PetscScalar *vi)
@@ -165,11 +168,15 @@ PetscErrorCode RGView_Polygon(RG rg,PetscViewer viewer)
 {
   PetscErrorCode ierr;
   RG_POLYGON     *ctx = (RG_POLYGON*)rg->data;
-  PetscBool      isascii;
+  PetscBool      isdraw,isascii;
+  PetscDraw      draw;
+  PetscDrawAxis  axis;
+  PetscReal      a,b,c,d,ab,cd,lx,ly,w,x0,y0,x1,y1,scale=1.2;
   PetscInt       i;
   char           str[50];
 
   PetscFunctionBegin;
+  ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERDRAW,&isdraw);CHKERRQ(ierr);
   ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
   if (isascii) {
     ierr = PetscViewerASCIIPrintf(viewer,"  vertices: ");CHKERRQ(ierr);
@@ -188,6 +195,40 @@ PetscErrorCode RGView_Polygon(RG rg,PetscViewer viewer)
     }
     ierr = PetscViewerASCIIPrintf(viewer,"\n");CHKERRQ(ierr);
     ierr = PetscViewerASCIIUseTabs(viewer,PETSC_TRUE);CHKERRQ(ierr);
+  } else if (isdraw) {
+    ierr = PetscViewerDrawGetDraw(viewer,0,&draw);CHKERRQ(ierr);
+    ierr = PetscDrawSetTitle(draw,"Polygonal region");CHKERRQ(ierr);
+    ierr = PetscDrawAxisCreate(draw,&axis);CHKERRQ(ierr);
+    ierr = RGComputeBoundingBox_Polygon(rg,&a,&b,&c,&d);
+    lx = b-a;
+    ly = d-c;
+    ab = (a+b)/2;
+    cd = (c+d)/2;
+    w  = scale*PetscMax(lx,ly)/2;
+    ierr = PetscDrawAxisSetLimits(axis,ab-w,ab+w,cd-w,cd+w);CHKERRQ(ierr);
+    ierr = PetscDrawAxisDraw(axis);CHKERRQ(ierr);
+    ierr = PetscDrawAxisDestroy(&axis);CHKERRQ(ierr);
+    for (i=0;i<ctx->n;i++) {
+#if defined(PETSC_USE_COMPLEX)
+      x0 = PetscRealPart(ctx->vr[i]); y0 = PetscImaginaryPart(ctx->vr[i]);
+      if (i<ctx->n-1) {
+        x1 = PetscRealPart(ctx->vr[i+1]); y1 = PetscImaginaryPart(ctx->vr[i+1]);
+      } else {
+        x1 = PetscRealPart(ctx->vr[0]); y1 = PetscImaginaryPart(ctx->vr[0]);
+      }
+#else
+      x0 = ctx->vr[i]; y0 = ctx->vi[i];
+      if (i<ctx->n-1) {
+        x1 = ctx->vr[i+1]; y1 = ctx->vi[i+1];
+      } else {
+        x1 = ctx->vr[0]; y1 = ctx->vi[0];
+      }
+#endif
+      ierr = PetscDrawLine(draw,x0,y0,x1,y1,PETSC_DRAW_MAGENTA);CHKERRQ(ierr);
+    }
+    ierr = PetscDrawFlush(draw);CHKERRQ(ierr);
+    ierr = PetscDrawSave(draw);CHKERRQ(ierr);
+    ierr = PetscDrawPause(draw);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }
