@@ -19,8 +19,8 @@ PetscErrorCode MyMatNorm(Mat A,PetscInt lda,PetscInt l,PetscInt k,PetscScalar di
 {
   PetscErrorCode ierr;
   PetscInt       i,j;
-  PetscScalar    s,*pA;
-  PetscReal      val;
+  PetscScalar    *pA;
+  PetscReal      s,val;
 
   PetscFunctionBeginUser;
   ierr = MatDenseGetArray(A,&pA);CHKERRQ(ierr);
