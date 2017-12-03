@@ -122,6 +122,7 @@ PetscErrorCode RGView_Interval(RG rg,PetscViewer viewer)
   PetscErrorCode ierr;
   RG_INTERVAL    *ctx = (RG_INTERVAL*)rg->data;
   PetscBool      isdraw,isascii;
+  PetscInt       winw,winh;
   PetscDraw      draw;
   PetscDrawAxis  axis;
   PetscReal      ab,cd,lx,ly,w,scale=1.2;
@@ -133,14 +134,18 @@ PetscErrorCode RGView_Interval(RG rg,PetscViewer viewer)
     ierr = PetscViewerASCIIPrintf(viewer,"  region: [%g,%g]x[%g,%g]\n",RGShowReal(ctx->a),RGShowReal(ctx->b),RGShowReal(ctx->c),RGShowReal(ctx->d));CHKERRQ(ierr);
   } else if (isdraw) {
     ierr = PetscViewerDrawGetDraw(viewer,0,&draw);CHKERRQ(ierr);
+    ierr = PetscDrawCheckResizedWindow(draw);CHKERRQ(ierr);
+    ierr = PetscDrawGetWindowSize(draw,&winw,&winh);CHKERRQ(ierr);
+    winw = PetscMax(winw,1); winh = PetscMax(winh,1);
+    ierr = PetscDrawClear(draw);CHKERRQ(ierr);
     ierr = PetscDrawSetTitle(draw,"Interval region");CHKERRQ(ierr);
     ierr = PetscDrawAxisCreate(draw,&axis);CHKERRQ(ierr);
     lx = ctx->b-ctx->a;
     ly = ctx->d-ctx->c;
     ab = (ctx->a+ctx->b)/2;
     cd = (ctx->c+ctx->d)/2;
-    w  = scale*PetscMax(lx,ly)/2;
-    ierr = PetscDrawAxisSetLimits(axis,ab-w,ab+w,cd-w,cd+w);CHKERRQ(ierr);
+    w  = scale*PetscMax(lx/winw,ly/winh)/2;
+    ierr = PetscDrawAxisSetLimits(axis,ab-w*winw,ab+w*winw,cd-w*winh,cd+w*winh);CHKERRQ(ierr);
     ierr = PetscDrawAxisDraw(axis);CHKERRQ(ierr);
     ierr = PetscDrawAxisDestroy(&axis);CHKERRQ(ierr);
     ierr = PetscDrawRectangle(draw,ctx->a,ctx->c,ctx->b,ctx->d,PETSC_DRAW_BLUE,PETSC_DRAW_BLUE,PETSC_DRAW_BLUE,PETSC_DRAW_BLUE);CHKERRQ(ierr);

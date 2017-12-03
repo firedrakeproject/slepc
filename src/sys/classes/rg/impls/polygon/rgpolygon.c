@@ -169,6 +169,7 @@ PetscErrorCode RGView_Polygon(RG rg,PetscViewer viewer)
   PetscErrorCode ierr;
   RG_POLYGON     *ctx = (RG_POLYGON*)rg->data;
   PetscBool      isdraw,isascii;
+  PetscInt       winw,winh;
   PetscDraw      draw;
   PetscDrawAxis  axis;
   PetscReal      a,b,c,d,ab,cd,lx,ly,w,x0,y0,x1,y1,scale=1.2;
@@ -197,6 +198,10 @@ PetscErrorCode RGView_Polygon(RG rg,PetscViewer viewer)
     ierr = PetscViewerASCIIUseTabs(viewer,PETSC_TRUE);CHKERRQ(ierr);
   } else if (isdraw) {
     ierr = PetscViewerDrawGetDraw(viewer,0,&draw);CHKERRQ(ierr);
+    ierr = PetscDrawCheckResizedWindow(draw);CHKERRQ(ierr);
+    ierr = PetscDrawGetWindowSize(draw,&winw,&winh);CHKERRQ(ierr);
+    winw = PetscMax(winw,1); winh = PetscMax(winh,1);
+    ierr = PetscDrawClear(draw);CHKERRQ(ierr);
     ierr = PetscDrawSetTitle(draw,"Polygonal region");CHKERRQ(ierr);
     ierr = PetscDrawAxisCreate(draw,&axis);CHKERRQ(ierr);
     ierr = RGComputeBoundingBox_Polygon(rg,&a,&b,&c,&d);
@@ -204,8 +209,8 @@ PetscErrorCode RGView_Polygon(RG rg,PetscViewer viewer)
     ly = d-c;
     ab = (a+b)/2;
     cd = (c+d)/2;
-    w  = scale*PetscMax(lx,ly)/2;
-    ierr = PetscDrawAxisSetLimits(axis,ab-w,ab+w,cd-w,cd+w);CHKERRQ(ierr);
+    w  = scale*PetscMax(lx/winw,ly/winh)/2;
+    ierr = PetscDrawAxisSetLimits(axis,ab-w*winw,ab+w*winw,cd-w*winh,cd+w*winh);CHKERRQ(ierr);
     ierr = PetscDrawAxisDraw(axis);CHKERRQ(ierr);
     ierr = PetscDrawAxisDestroy(&axis);CHKERRQ(ierr);
     for (i=0;i<ctx->n;i++) {
