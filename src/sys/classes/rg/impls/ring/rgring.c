@@ -195,8 +195,8 @@ PetscErrorCode RGView_Ring(RG rg,PetscViewer viewer)
     ierr = PetscDrawClear(draw);CHKERRQ(ierr);
     ierr = PetscDrawSetTitle(draw,"Ring region");CHKERRQ(ierr);
     ierr = PetscDrawAxisCreate(draw,&axis);CHKERRQ(ierr);
-    lx = 2*scale*(ctx->radius+ctx->width);
-    ly = 2*scale*(ctx->radius+ctx->width)*ctx->vscale;
+    lx = 2*(ctx->radius+ctx->width);
+    ly = 2*(ctx->radius+ctx->width)*ctx->vscale;
     ab = PetscRealPart(ctx->center);
     cd = PetscImaginaryPart(ctx->center);
     w  = scale*PetscMax(lx/winw,ly/winh)/2;
