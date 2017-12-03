@@ -52,6 +52,7 @@ int main(int argc,char **argv)
   ierr = RGIsTrivial(rg,&triv);CHKERRQ(ierr);
   if (triv) SETERRQ(PETSC_COMM_WORLD,1,"Region should be non-trivial after setting parameters");
   ierr = RGView(rg,NULL);CHKERRQ(ierr);
+  ierr = RGViewFromOptions(rg,NULL,"-rg_view");CHKERRQ(ierr);
 
   ierr = RGGetType(rg,&rtype);CHKERRQ(ierr);
   ierr = RGRingGetParameters(rg,&center,&radius,&vscale,&start_ang,&end_ang,&width);CHKERRQ(ierr);
