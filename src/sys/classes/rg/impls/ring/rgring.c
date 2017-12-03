@@ -204,7 +204,7 @@ PetscErrorCode RGView_Ring(RG rg,PetscViewer viewer)
     ierr = PetscDrawAxisDraw(axis);CHKERRQ(ierr);
     ierr = PetscDrawAxisDestroy(&axis);CHKERRQ(ierr);
     /* draw outer ellipse */
-    ierr = PetscDrawEllipse(draw,PetscRealPart(ctx->center),PetscImaginaryPart(ctx->center),2*(ctx->radius+ctx->width),2*(ctx->radius+ctx->width)*ctx->vscale,PETSC_DRAW_RED);CHKERRQ(ierr);
+    ierr = PetscDrawEllipse(draw,PetscRealPart(ctx->center),PetscImaginaryPart(ctx->center),2*(ctx->radius+ctx->width),2*(ctx->radius+ctx->width)*ctx->vscale,PETSC_DRAW_ORANGE);CHKERRQ(ierr);
     /* remove inner part */
     ierr = PetscDrawEllipse(draw,PetscRealPart(ctx->center),PetscImaginaryPart(ctx->center),2*(ctx->radius-ctx->width),2*(ctx->radius-ctx->width)*ctx->vscale,PETSC_DRAW_WHITE);CHKERRQ(ierr);
     if (ctx->start_ang!=ctx->end_ang) {
