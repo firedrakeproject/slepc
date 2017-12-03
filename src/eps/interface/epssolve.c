@@ -142,6 +142,7 @@ PetscErrorCode EPSSolve(EPS eps)
     eps->perm[i]   = i;
   }
   ierr = EPSViewFromOptions(eps,NULL,"-eps_view_pre");CHKERRQ(ierr);
+  ierr = RGViewFromOptions(eps->rg,NULL,"-rg_view");CHKERRQ(ierr);
 
   /* call solver */
   ierr = (*eps->ops->solve)(eps);CHKERRQ(ierr);

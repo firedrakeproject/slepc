@@ -68,6 +68,7 @@ PetscErrorCode NEPSolve(NEP nep)
     nep->perm[i]   = i;
   }
   ierr = NEPViewFromOptions(nep,NULL,"-nep_view_pre");CHKERRQ(ierr);
+  ierr = RGViewFromOptions(nep->rg,NULL,"-rg_view");CHKERRQ(ierr);
 
   ierr = (*nep->ops->solve)(nep);CHKERRQ(ierr);
   nep->state = NEP_STATE_SOLVED;

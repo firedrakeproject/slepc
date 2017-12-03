@@ -101,6 +101,7 @@ PetscErrorCode PEPSolve(PEP pep)
     pep->perm[i]   = i;
   }
   ierr = PEPViewFromOptions(pep,NULL,"-pep_view_pre");CHKERRQ(ierr);
+  ierr = RGViewFromOptions(pep->rg,NULL,"-rg_view");CHKERRQ(ierr);
 
   ierr = (*pep->ops->solve)(pep);CHKERRQ(ierr);
 
