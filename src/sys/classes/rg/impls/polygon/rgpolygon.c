@@ -205,6 +205,10 @@ PetscErrorCode RGView_Polygon(RG rg,PetscViewer viewer)
     ierr = PetscDrawSetTitle(draw,"Polygonal region");CHKERRQ(ierr);
     ierr = PetscDrawAxisCreate(draw,&axis);CHKERRQ(ierr);
     ierr = RGComputeBoundingBox_Polygon(rg,&a,&b,&c,&d);
+    a *= rg->sfactor;
+    b *= rg->sfactor;
+    c *= rg->sfactor;
+    d *= rg->sfactor;
     lx = b-a;
     ly = d-c;
     ab = (a+b)/2;
@@ -229,7 +233,7 @@ PetscErrorCode RGView_Polygon(RG rg,PetscViewer viewer)
         x1 = ctx->vr[0]; y1 = ctx->vi[0];
       }
 #endif
-      ierr = PetscDrawLine(draw,x0,y0,x1,y1,PETSC_DRAW_MAGENTA);CHKERRQ(ierr);
+      ierr = PetscDrawLine(draw,x0*rg->sfactor,y0*rg->sfactor,x1*rg->sfactor,y1*rg->sfactor,PETSC_DRAW_MAGENTA);CHKERRQ(ierr);
     }
     ierr = PetscDrawFlush(draw);CHKERRQ(ierr);
     ierr = PetscDrawSave(draw);CHKERRQ(ierr);

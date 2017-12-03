@@ -125,7 +125,7 @@ PetscErrorCode RGView_Interval(RG rg,PetscViewer viewer)
   PetscInt       winw,winh;
   PetscDraw      draw;
   PetscDrawAxis  axis;
-  PetscReal      ab,cd,lx,ly,w,scale=1.2;
+  PetscReal      a,b,c,d,ab,cd,lx,ly,w,scale=1.2;
 
   PetscFunctionBegin;
   ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERDRAW,&isdraw);CHKERRQ(ierr);
@@ -140,15 +140,19 @@ PetscErrorCode RGView_Interval(RG rg,PetscViewer viewer)
     ierr = PetscDrawClear(draw);CHKERRQ(ierr);
     ierr = PetscDrawSetTitle(draw,"Interval region");CHKERRQ(ierr);
     ierr = PetscDrawAxisCreate(draw,&axis);CHKERRQ(ierr);
-    lx = ctx->b-ctx->a;
-    ly = ctx->d-ctx->c;
-    ab = (ctx->a+ctx->b)/2;
-    cd = (ctx->c+ctx->d)/2;
+    a  = ctx->a*rg->sfactor;
+    b  = ctx->b*rg->sfactor;
+    c  = ctx->c*rg->sfactor;
+    d  = ctx->d*rg->sfactor;
+    lx = b-a;
+    ly = d-c;
+    ab = (a+b)/2;
+    cd = (c+d)/2;
     w  = scale*PetscMax(lx/winw,ly/winh)/2;
     ierr = PetscDrawAxisSetLimits(axis,ab-w*winw,ab+w*winw,cd-w*winh,cd+w*winh);CHKERRQ(ierr);
     ierr = PetscDrawAxisDraw(axis);CHKERRQ(ierr);
     ierr = PetscDrawAxisDestroy(&axis);CHKERRQ(ierr);
-    ierr = PetscDrawRectangle(draw,ctx->a,ctx->c,ctx->b,ctx->d,PETSC_DRAW_BLUE,PETSC_DRAW_BLUE,PETSC_DRAW_BLUE,PETSC_DRAW_BLUE);CHKERRQ(ierr);
+    ierr = PetscDrawRectangle(draw,a,c,b,d,PETSC_DRAW_BLUE,PETSC_DRAW_BLUE,PETSC_DRAW_BLUE,PETSC_DRAW_BLUE);CHKERRQ(ierr);
     ierr = PetscDrawFlush(draw);CHKERRQ(ierr);
     ierr = PetscDrawSave(draw);CHKERRQ(ierr);
     ierr = PetscDrawPause(draw);CHKERRQ(ierr);

@@ -123,7 +123,7 @@ PetscErrorCode RGView_Ellipse(RG rg,PetscViewer viewer)
   PetscInt       winw,winh;
   PetscDraw      draw;
   PetscDrawAxis  axis;
-  PetscReal      ab,cd,lx,ly,w,scale=1.2;
+  PetscReal      cx,cy,r,ab,cd,lx,ly,w,scale=1.2;
   char           str[50];
 
   PetscFunctionBegin;
@@ -140,15 +140,18 @@ PetscErrorCode RGView_Ellipse(RG rg,PetscViewer viewer)
     ierr = PetscDrawClear(draw);CHKERRQ(ierr);
     ierr = PetscDrawSetTitle(draw,"Ellipse region");CHKERRQ(ierr);
     ierr = PetscDrawAxisCreate(draw,&axis);CHKERRQ(ierr);
-    lx = 2*ctx->radius;
-    ly = 2*ctx->radius*ctx->vscale;
-    ab = PetscRealPart(ctx->center);
-    cd = PetscImaginaryPart(ctx->center);
+    cx = PetscRealPart(ctx->center)*rg->sfactor;
+    cy = PetscImaginaryPart(ctx->center)*rg->sfactor;
+    r  = ctx->radius*rg->sfactor;
+    lx = 2*r;
+    ly = 2*r*ctx->vscale;
+    ab = cx;
+    cd = cy;
     w  = scale*PetscMax(lx/winw,ly/winh)/2;
     ierr = PetscDrawAxisSetLimits(axis,ab-w*winw,ab+w*winw,cd-w*winh,cd+w*winh);CHKERRQ(ierr);
     ierr = PetscDrawAxisDraw(axis);CHKERRQ(ierr);
     ierr = PetscDrawAxisDestroy(&axis);CHKERRQ(ierr);
-    ierr = PetscDrawEllipse(draw,PetscRealPart(ctx->center),PetscImaginaryPart(ctx->center),2*ctx->radius,2*ctx->radius*ctx->vscale,PETSC_DRAW_RED);CHKERRQ(ierr);
+    ierr = PetscDrawEllipse(draw,cx,cy,2*r,2*r*ctx->vscale,PETSC_DRAW_RED);CHKERRQ(ierr);
     ierr = PetscDrawFlush(draw);CHKERRQ(ierr);
     ierr = PetscDrawSave(draw);CHKERRQ(ierr);
     ierr = PetscDrawPause(draw);CHKERRQ(ierr);

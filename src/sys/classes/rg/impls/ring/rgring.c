@@ -178,7 +178,7 @@ PetscErrorCode RGView_Ring(RG rg,PetscViewer viewer)
   PetscBool      isdraw,isascii;
   PetscDraw      draw;
   PetscDrawAxis  axis;
-  PetscReal      ab,cd,lx,ly,w,end_ang,x1,y1,x2,y2,r,theta,scale=1.2;
+  PetscReal      cx,cy,radius,width,ab,cd,lx,ly,w,end_ang,x1,y1,x2,y2,r,theta,scale=1.2;
   char           str[50];
 
   PetscFunctionBegin;
@@ -195,23 +195,27 @@ PetscErrorCode RGView_Ring(RG rg,PetscViewer viewer)
     ierr = PetscDrawClear(draw);CHKERRQ(ierr);
     ierr = PetscDrawSetTitle(draw,"Ring region");CHKERRQ(ierr);
     ierr = PetscDrawAxisCreate(draw,&axis);CHKERRQ(ierr);
-    lx = 2*(ctx->radius+ctx->width);
-    ly = 2*(ctx->radius+ctx->width)*ctx->vscale;
-    ab = PetscRealPart(ctx->center);
-    cd = PetscImaginaryPart(ctx->center);
+    cx = PetscRealPart(ctx->center)*rg->sfactor;
+    cy = PetscImaginaryPart(ctx->center)*rg->sfactor;
+    radius = ctx->radius*rg->sfactor;
+    width  = ctx->width*rg->sfactor;
+    lx = 2*(radius+width);
+    ly = 2*(radius+width)*ctx->vscale;
+    ab = cx;
+    cd = cy;
     w  = scale*PetscMax(lx/winw,ly/winh)/2;
     ierr = PetscDrawAxisSetLimits(axis,ab-w*winw,ab+w*winw,cd-w*winh,cd+w*winh);CHKERRQ(ierr);
     ierr = PetscDrawAxisDraw(axis);CHKERRQ(ierr);
     ierr = PetscDrawAxisDestroy(&axis);CHKERRQ(ierr);
     /* draw outer ellipse */
-    ierr = PetscDrawEllipse(draw,PetscRealPart(ctx->center),PetscImaginaryPart(ctx->center),2*(ctx->radius+ctx->width),2*(ctx->radius+ctx->width)*ctx->vscale,PETSC_DRAW_ORANGE);CHKERRQ(ierr);
+    ierr = PetscDrawEllipse(draw,cx,cy,2*(radius+width),2*(radius+width)*ctx->vscale,PETSC_DRAW_ORANGE);CHKERRQ(ierr);
     /* remove inner part */
-    ierr = PetscDrawEllipse(draw,PetscRealPart(ctx->center),PetscImaginaryPart(ctx->center),2*(ctx->radius-ctx->width),2*(ctx->radius-ctx->width)*ctx->vscale,PETSC_DRAW_WHITE);CHKERRQ(ierr);
+    ierr = PetscDrawEllipse(draw,cx,cy,2*(radius-width),2*(radius-width)*ctx->vscale,PETSC_DRAW_WHITE);CHKERRQ(ierr);
     if (ctx->start_ang!=ctx->end_ang) {
       /* remove section from end_ang to start_ang */
       end_ang = (ctx->start_ang<ctx->end_ang)? ctx->end_ang-1: ctx->end_ang;
       theta = end_ang;
-      r = scale*(ctx->radius+ctx->width);
+      r = scale*(radius+width);
       if (ctx->vscale>1) r *= ctx->vscale;
       x1 = PetscMin(PetscMax(ab+r*PetscCosReal(2.0*PETSC_PI*theta),ab-w*winw),ab+w*winw);
       y1 = PetscMin(PetscMax(cd+r*PetscSinReal(2.0*PETSC_PI*theta),cd-w*winh),cd+w*winh);
@@ -219,7 +223,7 @@ PetscErrorCode RGView_Ring(RG rg,PetscViewer viewer)
         theta = PetscMin(PetscFloorReal(8*theta+1)/8,ctx->start_ang);
         x2 = PetscMin(PetscMax(ab+r*PetscCosReal(2.0*PETSC_PI*theta),ab-w*winw),ab+w*winw);
         y2 = PetscMin(PetscMax(cd+r*PetscSinReal(2.0*PETSC_PI*theta),cd-w*winh),cd+w*winh);
-        ierr = PetscDrawTriangle(draw,PetscRealPart(ctx->center),PetscImaginaryPart(ctx->center),x1,y1,x2,y2,PETSC_DRAW_WHITE,PETSC_DRAW_WHITE,PETSC_DRAW_WHITE);CHKERRQ(ierr);
+        ierr = PetscDrawTriangle(draw,cx,cy,x1,y1,x2,y2,PETSC_DRAW_WHITE,PETSC_DRAW_WHITE,PETSC_DRAW_WHITE);CHKERRQ(ierr);
         x1 = x2; y1 = y2;
       } while (theta<ctx->start_ang);
     }
