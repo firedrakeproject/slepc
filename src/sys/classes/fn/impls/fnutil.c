@@ -236,19 +236,17 @@ PetscErrorCode SlepcSqrtmDenmanBeavers(PetscBLASInt n,PetscScalar *T,PetscBLASIn
     Mres = LAPACKlange_("F",&n,&n,M,&n,rwork);
     for (i=0;i<n;i++) M[i+i*ld] += 1.0;
 
-    /* reldiff = norm(T - Told,'fro')/norm(T,'fro') */
-    PetscStackCallBLAS("BLASaxpy",BLASaxpy_(&N,&smone,T,&one,Told,&one));
-    fnormdiff = LAPACKlange_("F",&n,&n,Told,&n,rwork);
-    fnormT = LAPACKlange_("F",&n,&n,T,&n,rwork);
-    ierr = PetscLogFlops(7.0*n*n);CHKERRQ(ierr);
-    reldiff = fnormdiff/fnormT;
     if (scale) {
+      /* reldiff = norm(T - Told,'fro')/norm(T,'fro') */
+      PetscStackCallBLAS("BLASaxpy",BLASaxpy_(&N,&smone,T,&one,Told,&one));
+      fnormdiff = LAPACKlange_("F",&n,&n,Told,&n,rwork);
+      fnormT = LAPACKlange_("F",&n,&n,T,&n,rwork);
+      ierr = PetscLogFlops(7.0*n*n);CHKERRQ(ierr);
+      reldiff = fnormdiff/fnormT;
       ierr = PetscInfo4(NULL,"it: %D reldiff: %g scale: %g tol*scale: %g\n",it,(double)reldiff,(double)g,(double)tol*g);
-    } else {
-      ierr = PetscInfo2(NULL,"it: %D reldiff: %g\n",it,(double)reldiff);
+      if (reldiff<1e-2) scale = PETSC_FALSE;  /* Switch off scaling */
     }
 
-    if (reldiff<1e-2) scale = PETSC_FALSE;  /* Switch off scaling */
     if (Mres<=tol) converged = PETSC_TRUE;
   }
 
