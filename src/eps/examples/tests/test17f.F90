@@ -191,9 +191,7 @@
           write(*,170) npart
         endif
  170    format (' Using ',I2,' partitions')
-        if (npart>MAXSUB) then
-          SETERRA(PETSC_COMM_SELF,1,'Too many subintervals')
-        endif
+        if (npart>MAXSUB) then SETERRA(PETSC_COMM_SELF,1,'Too many subintervals')
 
         subint(1) = int0
         subint(npart+1) = int1
@@ -219,9 +217,7 @@
 
       call EPSSetUp(eps,ierr);CHKERRA(ierr)
       call EPSKrylovSchurGetInertias(eps,k,PETSC_NULL_REAL,PETSC_NULL_INTEGER,ierr);CHKERRA(ierr)
-      if (k>MAXSHI) then
-        SETERRA(PETSC_COMM_SELF,1,'Too many shifts')
-      endif
+      if (k>MAXSHI) then SETERRA(PETSC_COMM_SELF,1,'Too many shifts')
       call EPSKrylovSchurGetInertias(eps,k,shifts,inertias,ierr);CHKERRA(ierr)
       if (rank .eq. 0) then
         write(*,*) 'Inertias after EPSSetUp:'

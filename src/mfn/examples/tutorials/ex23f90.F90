@@ -151,9 +151,7 @@
 
       call MFNSolve(mfn,v,y,ierr);CHKERRA(ierr)
       call MFNGetConvergedReason(mfn,reason,ierr);CHKERRA(ierr)
-      if (reason.lt.0) then
-        SETERRA(PETSC_COMM_WORLD,1,'Solver did not converge')
-      end if
+      if (reason.lt.0) then SETERRA(PETSC_COMM_WORLD,1,'Solver did not converge')
       call VecNorm(y,NORM_2,norm,ierr);CHKERRA(ierr)
 
 !     ** Optional: Get some information from the solver and display it

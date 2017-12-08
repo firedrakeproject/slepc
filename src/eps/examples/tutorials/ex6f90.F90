@@ -56,13 +56,12 @@
         stop
       endif
 #if defined(PETSC_USE_COMPLEX)
-      SETERRA(PETSC_COMM_SELF,1,'This example requires real numbers')
+      call PetscError(PETSC_COMM_SELF,1,0,'This example requires real numbers')
+      call MPIU_Abort(PETSC_COMM_SELF,ierr)
 #endif
       call MPI_Comm_size(PETSC_COMM_WORLD,sz,ierr);CHKERRA(ierr)
       call MPI_Comm_rank(PETSC_COMM_WORLD,rank,ierr);CHKERRA(ierr)
-      if (sz .ne. 1) then
-        SETERRA(PETSC_COMM_SELF,1,'This is a uniprocessor example only!')
-      endif
+      if (sz .ne. 1) then SETERRA(PETSC_COMM_SELF,1,'This is a uniprocessor example only!')
       m = 30
       call PetscOptionsGetInt(PETSC_NULL_OPTIONS,PETSC_NULL_CHARACTER,'-m',m,flg,ierr);CHKERRA(ierr)
       N = 2*m

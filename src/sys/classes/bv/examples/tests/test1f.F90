@@ -58,13 +58,7 @@
       call PetscOptionsGetInt(PETSC_NULL_OPTIONS,PETSC_NULL_CHARACTER,'-n',n,flg,ierr);CHKERRA(ierr)
       call PetscOptionsGetInt(PETSC_NULL_OPTIONS,PETSC_NULL_CHARACTER,'-k',k,flg,ierr);CHKERRA(ierr)
       call PetscOptionsGetInt(PETSC_NULL_OPTIONS,PETSC_NULL_CHARACTER,'-l',l,flg,ierr);CHKERRA(ierr)
-      if (k .gt. KMAX) then
-        if (rank .eq. 0) then
-          write(*,100) KMAX,k
-        endif
-        SETERRA(PETSC_COMM_SELF,1,' ')
-      endif
- 100  format (/'Program currently limited to k=',I2,', you set k=',I3)
+      if (k .gt. KMAX) then SETERRA(PETSC_COMM_SELF,1,'Program currently limited to k=35')
       if (rank .eq. 0) then
         write(*,110) k,n
       endif
