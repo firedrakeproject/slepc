@@ -931,10 +931,10 @@ PetscErrorCode PEPSolve_JD(PEP pep)
 {
   PetscErrorCode  ierr;
   PEP_JD          *pjd = (PEP_JD*)pep->data;
-  PetscInt        k,nv,ld,minv,low,high,dim;
+  PetscInt        k,nv,ld,minv,dim,bupdated=0;
   PetscScalar     theta=0.0,otheta=0.0,*pX,*eig,ritz,ritzi;
   PetscReal       norm,*res;
-  PetscBool       lindep,flglk=PETSC_FALSE,flgre=PETSC_FALSE;
+  PetscBool       lindep;
   Vec             t,u,p,r,*ww=pep->work,v;
   Mat             G,X,Y;
   KSP             ksp;
@@ -967,15 +967,12 @@ PetscErrorCode PEPSolve_JD(PEP pep)
   /* Restart loop */
   while (pep->reason == PEP_CONVERGED_ITERATING) {
     pep->its++;
-
-    low = (flglk || flgre)? 0: nv-1;
-    high = nv;
     ierr = DSSetDimensions(pep->ds,nv,0,0,0);CHKERRQ(ierr);
-    ierr = BVSetActiveColumns(pjd->V,low,high);CHKERRQ(ierr);
-    ierr = PEPJDUpdateTV(pep,low,high,ww);CHKERRQ(ierr);
-    ierr = BVSetActiveColumns(pjd->W,low,high);CHKERRQ(ierr);
+    ierr = BVSetActiveColumns(pjd->V,bupdated,nv);CHKERRQ(ierr);
+    ierr = PEPJDUpdateTV(pep,bupdated,nv,ww);CHKERRQ(ierr);
+    ierr = BVSetActiveColumns(pjd->W,bupdated,nv);CHKERRQ(ierr);
     for (k=0;k<pep->nmat;k++) {
-      ierr = BVSetActiveColumns(pjd->TV[k],low,high);CHKERRQ(ierr);
+      ierr = BVSetActiveColumns(pjd->TV[k],bupdated,nv);CHKERRQ(ierr);
       ierr = DSGetMat(pep->ds,DSMatExtra[k],&G);CHKERRQ(ierr);
       ierr = BVMatProject(pjd->TV[k],NULL,pjd->W,G);CHKERRQ(ierr);
       ierr = DSRestoreMat(pep->ds,DSMatExtra[k],&G);CHKERRQ(ierr);
@@ -1032,7 +1029,7 @@ PetscErrorCode PEPSolve_JD(PEP pep)
         ierr = BVCopyVec(pjd->V,nv-1,u);CHKERRQ(ierr);
         if (nv==1) theta = pep->target;
       }
-      flglk = PETSC_TRUE;
+      bupdated = 0;
     } else if (nv==pep->ncv-1) {
 
       /* Basis full, force restart */
@@ -1051,7 +1048,7 @@ PetscErrorCode PEPSolve_JD(PEP pep)
       ierr = BVMultInPlace(pjd->W,Y,pep->nconv,minv);CHKERRQ(ierr);
       ierr = MatDestroy(&Y);CHKERRQ(ierr);
       nv = minv;
-      flgre = PETSC_TRUE;
+      bupdated = 0;
     } else {
       /* Update system mat */
       if (theta!=otheta) {
@@ -1080,9 +1077,8 @@ PetscErrorCode PEPSolve_JD(PEP pep)
       ierr = BVOrthogonalizeColumn(pjd->W,nv,NULL,&norm,&lindep);CHKERRQ(ierr);
       if (lindep) SETERRQ(PETSC_COMM_SELF,1,"Linearly dependent continuation vector");
       ierr = BVScaleColumn(pjd->W,nv,1.0/norm);CHKERRQ(ierr);
+      bupdated = nv;
       nv++;
-      flglk = PETSC_FALSE;
-      flgre = PETSC_FALSE;
     }
     for (k=pjd->nconv;k<nv;k++) {
       eig[k] = pep->eigr[k-pjd->nconv];
