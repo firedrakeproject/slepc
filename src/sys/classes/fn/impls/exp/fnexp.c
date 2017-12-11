@@ -410,7 +410,7 @@ static PetscErrorCode getcoeffsproduct(PetscInt k,PetscInt m,PetscScalar *p,Pets
   } else {
     if (m == k+1) {
       *mult = PetscPowInt(-1,m);
-      *mult *= *mult;
+      *mult *= m;
       if (k==4) {
         for (i=0;i<4;i++) {
           p[i] = p1p4[i]; q[i] = p1q4[i];
@@ -556,17 +556,12 @@ PetscErrorCode FNEvaluateFunctionMat_Exp_GuettelNakatsukasa(FN fn,Mat A,Mat B)
     PetscFunctionReturn(0); /* quick return */
   }
 
-  ierr = PetscMalloc2(n2,&As,n,&piv);CHKERRQ(ierr);
+  ierr = PetscMalloc3(n2,&As,n2,&RR,n,&piv);CHKERRQ(ierr);
   /* scale matrix */
   ierr = PetscMemcpy(As,Maux,n2*sizeof(PetscScalar));CHKERRQ(ierr);
   scale = PetscPowRealInt(2.0,s);
   scale = 1/scale;
   PetscStackCallBLAS("BLASscal",BLASscal_(&n2,&scale,As,&one));
-
-  /* query work size */
-  PetscStackCallBLAS("LAPACKgetri",LAPACKgetri_(&n,As,&n,piv,&work1,&query,&info));
-  ierr = PetscBLASIntCast((PetscInt)PetscRealPart(work1),&lwork);CHKERRQ(ierr);
-  ierr = PetscMalloc2(lwork,&work,n2,&RR);CHKERRQ(ierr);
 
   /* evaluate Pade approximant (partial fraction or product form) */
   if (mode==PARTIAL_FRACTION_FORM || !m) { /* partial fraction */
@@ -578,49 +573,45 @@ PetscErrorCode FNEvaluateFunctionMat_Exp_GuettelNakatsukasa(FN fn,Mat A,Mat B)
     ierr = getcoeffs(k,m,r,p,remainterm,PETSC_FALSE);
 
     ierr = PetscMemzero(expmA,n2*sizeof(PetscScalar));CHKERRQ(ierr);
-    ierr = getisreal(n2,Aa,&isreal);CHKERRQ(ierr);
+    ierr = getisreal(n2,Maux,&isreal);CHKERRQ(ierr);
     if (isreal) {
       rsizediv2 = irsize/2;
       for (i=0;i<rsizediv2;i++) { /* use partial fraction to get R(As) */
-        ierr = PetscMemcpy(RR,As,n2*sizeof(PetscScalar));CHKERRQ(ierr);
+        ierr = PetscMemcpy(Maux,As,n2*sizeof(PetscScalar));CHKERRQ(ierr);
+        ierr = PetscMemzero(RR,n2*sizeof(PetscScalar));CHKERRQ(ierr);
         for (j=0;j<n;j++) {
-          RR[j+j*n] -= p[2*i];
+          Maux[j+j*n] -= p[2*i];
+          RR[j+j*n] = r[2*i];
         }
-        PetscStackCallBLAS("LAPACKgetrf",LAPACKgetrf_(&n,&n,RR,&n,piv,&info));
-        SlepcCheckLapackInfo("getrf",info);
-        PetscStackCallBLAS("LAPACKgetri",LAPACKgetri_(&n,RR,&n,piv,work,&lwork,&info));
-        SlepcCheckLapackInfo("getri",info);
-        PetscStackCallBLAS("BLASscal",BLASscal_(&n2,&r[2*i],RR,&one));
+        PetscStackCallBLAS("LAPACKgesv",LAPACKgesv_(&n,&n,Maux,&n,piv,RR,&n,&info));
+        SlepcCheckLapackInfo("gesv",info);
         for (j=0;j<n2;j++) {
           expmA[j] += RR[j] + PetscConj(RR[j]);
         }
       }
       mod = ipsize % 2;
       if (mod) {
-        ierr = PetscMemcpy(RR,As,n2*sizeof(PetscScalar));CHKERRQ(ierr);
+        ierr = PetscMemcpy(Maux,As,n2*sizeof(PetscScalar));CHKERRQ(ierr);
+        ierr = PetscMemzero(RR,n2*sizeof(PetscScalar));CHKERRQ(ierr);
         for (j=0;j<n;j++) {
-          RR[j+j*n] -= p[ipsize-1];
+          Maux[j+j*n] -= p[ipsize-1];
+          RR[j+j*n] = r[irsize-1];
         }
-        PetscStackCallBLAS("LAPACKgetrf",LAPACKgetrf_(&n,&n,RR,&n,piv,&info));
-        SlepcCheckLapackInfo("getrf",info);
-        PetscStackCallBLAS("LAPACKgetri",LAPACKgetri_(&n,RR,&n,piv,work,&lwork,&info));
-        SlepcCheckLapackInfo("getri",info);
-        PetscStackCallBLAS("BLASscal",BLASscal_(&n2,&r[irsize-1],RR,&one));
+        PetscStackCallBLAS("LAPACKgesv",LAPACKgesv_(&n,&n,Maux,&n,piv,RR,&n,&info));
+        SlepcCheckLapackInfo("gesv",info);
         for (j=0;j<n2;j++) {
           expmA[j] += RR[j];
         }
       }
     } else { /* complex */
       for (i=0;i<irsize;i++) { /* use partial fraction to get R(As) */
+        ierr = PetscMemcpy(Maux,As,n2*sizeof(PetscScalar));CHKERRQ(ierr);
         for (j=0;j<n;j++) {
-          As[j+j*n] -= p[i];
+          Maux[j+j*n] -= p[i];
+          RR[j+j*n] = r[i];
         }
-        ierr = PetscMemcpy(RR,As,n2*sizeof(PetscScalar));CHKERRQ(ierr);
-        PetscStackCallBLAS("LAPACKgetrf",LAPACKgetrf_(&n,&n,RR,&n,piv,&info));
-        SlepcCheckLapackInfo("getrf",info);
-        PetscStackCallBLAS("LAPACKgetri",LAPACKgetri_(&n,RR,&n,piv,work,&lwork,&info));
-        SlepcCheckLapackInfo("getri",info);
-        PetscStackCallBLAS("BLASscal",BLASscal_(&n2,&r[i],RR,&one));
+        PetscStackCallBLAS("LAPACKgesv",LAPACKgesv_(&n,&n,Maux,&n,piv,RR,&n,&info));
+        SlepcCheckLapackInfo("gesv",info);
         for (j=0;j<n2;j++) {
           expmA[j] += RR[j];
         }
@@ -645,7 +636,7 @@ PetscErrorCode FNEvaluateFunctionMat_Exp_GuettelNakatsukasa(FN fn,Mat A,Mat B)
       }
     }
     ierr = PetscFree3(r,p,remainterm);CHKERRQ(ierr);
-  } else  { /* product form, default */
+  } else { /* product form, default */
     ierr = getcoeffsproduct(k,m,&rsize,&psize,&mult,PETSC_TRUE);
     ierr = PetscBLASIntCast((PetscInt)PetscRealPart(rsize),&irsize);CHKERRQ(ierr);
     ierr = PetscBLASIntCast((PetscInt)PetscRealPart(psize),&ipsize);CHKERRQ(ierr);
@@ -669,12 +660,8 @@ PetscErrorCode FNEvaluateFunctionMat_Exp_GuettelNakatsukasa(FN fn,Mat A,Mat B)
       for (j=0;j<n;j++) {
         RR[j+j*n] -= rootq[i];
       }
-      PetscStackCallBLAS("LAPACKgetrf",LAPACKgetrf_(&n,&n,RR,&n,piv,&info));
-      SlepcCheckLapackInfo("getrf",info);
-      PetscStackCallBLAS("LAPACKgetri",LAPACKgetri_(&n,RR,&n,piv,work,&lwork,&info));
-      SlepcCheckLapackInfo("getri",info);
-      PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&n,&n,&n,&sone,RR,&n,expmA,&n,&szero,Maux,&n));
-      ierr = PetscMemcpy(expmA,Maux,n2*sizeof(PetscScalar));CHKERRQ(ierr);
+      PetscStackCallBLAS("LAPACKgesv",LAPACKgesv_(&n,&n,RR,&n,piv,expmA,&n,&info));
+      SlepcCheckLapackInfo("gesv",info);
     }
     /* extra enumerator */
     for (i=minlen;i<irsize;i++) {
@@ -691,12 +678,9 @@ PetscErrorCode FNEvaluateFunctionMat_Exp_GuettelNakatsukasa(FN fn,Mat A,Mat B)
       for (j=0;j<n;j++) {
         RR[j+j*n] -= rootq[i];
       }
-      PetscStackCallBLAS("LAPACKgetrf",LAPACKgetrf_(&n,&n,RR,&n,piv,&info));
-      SlepcCheckLapackInfo("getrf",info);
-      PetscStackCallBLAS("LAPACKgetri",LAPACKgetri_(&n,RR,&n,piv,work,&lwork,&info));
-      SlepcCheckLapackInfo("getri",info);
-      PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&n,&n,&n,&sone,RR,&n,expmA,&n,&szero,Maux,&n));
-      ierr = PetscMemcpy(expmA,Maux,n2*sizeof(PetscScalar));CHKERRQ(ierr);
+
+      PetscStackCallBLAS("LAPACKgesv",LAPACKgesv_(&n,&n,RR,&n,piv,expmA,&n,&info));
+      SlepcCheckLapackInfo("gesv",info);
     }
     PetscStackCallBLAS("BLASscal",BLASscal_(&n2,&mult,expmA,&one));
     ierr = PetscFree2(rootp,rootq);CHKERRQ(ierr);
@@ -711,8 +695,7 @@ PetscErrorCode FNEvaluateFunctionMat_Exp_GuettelNakatsukasa(FN fn,Mat A,Mat B)
   PetscStackCallBLAS("BLASscal",BLASscal_(&n2,&sshift,expmA,&one));
 
   ierr = PetscFree(Maux);CHKERRQ(ierr);
-  ierr = PetscFree2(As,piv);CHKERRQ(ierr);
-  ierr = PetscFree2(work,RR);CHKERRQ(ierr);
+  ierr = PetscFree3(As,RR,piv);CHKERRQ(ierr);
   ierr = MatDenseRestoreArray(A,&Aa);CHKERRQ(ierr);
   ierr = MatDenseRestoreArray(B,&Ba);CHKERRQ(ierr);
   PetscFunctionReturn(0);
