@@ -174,7 +174,7 @@ PetscErrorCode RGView_Ring(RG rg,PetscViewer viewer)
 {
   PetscErrorCode ierr;
   RG_RING        *ctx = (RG_RING*)rg->data;
-  PetscInt       winw,winh;
+  int            winw,winh;
   PetscBool      isdraw,isascii;
   PetscDraw      draw;
   PetscDrawAxis  axis;

@@ -169,7 +169,7 @@ PetscErrorCode RGView_Polygon(RG rg,PetscViewer viewer)
   PetscErrorCode ierr;
   RG_POLYGON     *ctx = (RG_POLYGON*)rg->data;
   PetscBool      isdraw,isascii;
-  PetscInt       winw,winh;
+  int            winw,winh;
   PetscDraw      draw;
   PetscDrawAxis  axis;
   PetscReal      a,b,c,d,ab,cd,lx,ly,w,x0,y0,x1,y1,scale=1.2;

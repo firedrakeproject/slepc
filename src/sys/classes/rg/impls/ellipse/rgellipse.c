@@ -120,7 +120,7 @@ PetscErrorCode RGView_Ellipse(RG rg,PetscViewer viewer)
   PetscErrorCode ierr;
   RG_ELLIPSE     *ctx = (RG_ELLIPSE*)rg->data;
   PetscBool      isdraw,isascii;
-  PetscInt       winw,winh;
+  int            winw,winh;
   PetscDraw      draw;
   PetscDrawAxis  axis;
   PetscReal      cx,cy,r,ab,cd,lx,ly,w,scale=1.2;

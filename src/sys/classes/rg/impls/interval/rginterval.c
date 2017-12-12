@@ -122,7 +122,7 @@ PetscErrorCode RGView_Interval(RG rg,PetscViewer viewer)
   PetscErrorCode ierr;
   RG_INTERVAL    *ctx = (RG_INTERVAL*)rg->data;
   PetscBool      isdraw,isascii;
-  PetscInt       winw,winh;
+  int            winw,winh;
   PetscDraw      draw;
   PetscDrawAxis  axis;
   PetscReal      a,b,c,d,ab,cd,lx,ly,w,scale=1.2;
