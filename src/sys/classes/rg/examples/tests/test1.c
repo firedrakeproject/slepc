@@ -33,6 +33,7 @@ int main(int argc,char **argv)
   ierr = RGIsTrivial(rg,&triv);CHKERRQ(ierr);
   if (triv) SETERRQ(PETSC_COMM_WORLD,1,"Region should be non-trivial after setting parameters");
   ierr = RGView(rg,NULL);CHKERRQ(ierr);
+  ierr = RGViewFromOptions(rg,NULL,"-rg_view");CHKERRQ(ierr);
   re = 0.1; im = 0.3;
 #if defined(PETSC_USE_COMPLEX)
   ar = re+im*PETSC_i;
@@ -68,6 +69,7 @@ int main(int argc,char **argv)
   ierr = RGIsTrivial(rg,&triv);CHKERRQ(ierr);
   if (triv) SETERRQ(PETSC_COMM_WORLD,1,"Region should be non-trivial after setting parameters");
   ierr = RGView(rg,NULL);CHKERRQ(ierr);
+  ierr = RGViewFromOptions(rg,NULL,"-rg_view");CHKERRQ(ierr);
   re = 0.2; im = 0;
 #if defined(PETSC_USE_COMPLEX)
   ar = re+im*PETSC_i;
@@ -120,6 +122,7 @@ int main(int argc,char **argv)
   ierr = RGIsTrivial(rg,&triv);CHKERRQ(ierr);
   if (triv) SETERRQ(PETSC_COMM_WORLD,1,"Region should be non-trivial after setting parameters");
   ierr = RGView(rg,NULL);CHKERRQ(ierr);
+  ierr = RGViewFromOptions(rg,NULL,"-rg_view");CHKERRQ(ierr);
   re = 5; im = 0.9;
 #if defined(PETSC_USE_COMPLEX)
   ar = re+im*PETSC_i;

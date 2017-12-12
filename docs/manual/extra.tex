@@ -215,7 +215,7 @@ Most \slepc solvers use a \ident{BV} object to represent the working subspace ba
 
 \paragraph{RG: Region.}
 
-The \ident{RG} object defines a region of the complex plane, that can be used to specify where eigenvalues must be sought. Currently, the following types of regions are available:
+The \ident{RG} object defines a region of the complex plane, that can be used to specify where eigenvalues must be sought. Currently, the following types of regions are available (see Figure \ref{fig:rg}):
 \begin{itemize}
 \setlength{\itemsep}{0mm}
 \item A (generalized) interval, defined as $[a,b]\times[c,d]$, where the four parameters can be set with \ident{RGIntervalSetEndpoints}. This covers the particular cases of an interval on the real axis (setting $c=d=0$), the left halfplane $[-\infty,0]\times[-\infty,+\infty]$, a quadrant, etc.
@@ -223,6 +223,191 @@ The \ident{RG} object defines a region of the complex plane, that can be used to
 \item An ellipse defined by its center, radius and vertical scale (1 by default), see \ident{RGEllipseSetParameters}.
 \item A ring region similar to an ellipse but consisting of a thin stripe along the ellipse with optional start and end angles, see \ident{RGRingSetParameters}.
 \end{itemize}
+
+\begin{figure}[p]
+% interval
+\begin{tikzpicture}[scale = 6,font=\scriptsize]
+\draw [black] (0.1148,0.085) --(0.958,0.085);
+\draw [black] (0.1148,0.085) --(0.1148,0.965);
+\draw [black] (0.1148,0.965) --(0.958,0.965);
+\draw [black] (0.958,0.085) --(0.958,0.965);
+\draw [black] (0.1148,0.085) --(0.1148,0.11);
+\draw [black] (0.1148,0.965) --(0.1148,0.94);
+\draw [black] (0.290466,0.085) --(0.290466,0.11);
+\draw [black] (0.290466,0.965) --(0.290466,0.94);
+\draw [black] (0.466133,0.085) --(0.466133,0.11);
+\draw [black] (0.466133,0.965) --(0.466133,0.94);
+\draw [black] (0.6418,0.085) --(0.6418,0.11);
+\draw [black] (0.6418,0.965) --(0.6418,0.94);
+\draw [black] (0.817466,0.085) --(0.817466,0.11);
+\draw [black] (0.817466,0.965) --(0.817466,0.94);
+\node [above right, black] at (0.0467996,0.01) {-1.2};
+\node [above right, black] at (0.201466,0.01) {-7.0e-1};
+\node [above right, black] at (0.377133,0.01) {-2.0e-1};
+\node [above right, black] at (0.5598,0.01) {3.0e-1};
+\node [above right, black] at (0.725466,0.01) {8.0e-1};
+\draw [black] (0.1148,0.0849996) --(0.1218,0.0849996);
+\draw [black] (0.958,0.0849996) --(0.951,0.0849996);
+\draw [black] (0.1148,0.268333) --(0.1218,0.268333);
+\draw [black] (0.958,0.268333) --(0.951,0.268333);
+\draw [black] (0.1148,0.451666) --(0.1218,0.451666);
+\draw [black] (0.958,0.451666) --(0.951,0.451666);
+\draw [black] (0.1148,0.635) --(0.1218,0.635);
+\draw [black] (0.958,0.635) --(0.951,0.635);
+\draw [black] (0.1148,0.818333) --(0.1218,0.818333);
+\draw [black] (0.958,0.818333) --(0.951,0.818333);
+\node [above right, black] at (0.,0.0599996) {-1.2};
+\node [above right, black] at (-0.06,0.243333) {-7.0e-1};
+\node [above right, black] at (-0.06,0.426666) {-2.0e-1};
+\node [above right, black] at (-0.04,0.61) {3.0e-1};
+\node [above right, black] at (-0.04,0.793333) {8.0e-1};
+\fill [bottom color=blue,top color=blue] (0.185067,0.488333) rectangle (0.887733,0.561667);
+\end{tikzpicture}
+\hspace{1cm}
+% polygon
+\begin{tikzpicture}[scale = 6,font=\scriptsize]
+\draw [black] (0.1148,0.085) --(0.958,0.085);
+\draw [black] (0.1148,0.085) --(0.1148,0.965);
+\draw [black] (0.1148,0.965) --(0.958,0.965);
+\draw [black] (0.958,0.085) --(0.958,0.965);
+\draw [black] (0.1148,0.085) --(0.1148,0.11);
+\draw [black] (0.1148,0.965) --(0.1148,0.94);
+\draw [black] (0.290467,0.085) --(0.290467,0.11);
+\draw [black] (0.290467,0.965) --(0.290467,0.94);
+\draw [black] (0.466133,0.085) --(0.466133,0.11);
+\draw [black] (0.466133,0.965) --(0.466133,0.94);
+\draw [black] (0.6418,0.085) --(0.6418,0.11);
+\draw [black] (0.6418,0.965) --(0.6418,0.94);
+\draw [black] (0.817467,0.085) --(0.817467,0.11);
+\draw [black] (0.817467,0.965) --(0.817467,0.94);
+\node [above right, black] at (0.0357999,0.01) {-2.0e-1};
+\node [above right, black] at (0.208467,0.01) {3.0e-1};
+\node [above right, black] at (0.384133,0.01) {8.0e-1};
+\node [above right, black] at (0.5908,0.01) {1.3};
+\node [above right, black] at (0.766467,0.01) {1.8};
+\draw [black] (0.1148,0.0849996) --(0.1218,0.0849996);
+\draw [black] (0.958,0.0849996) --(0.951,0.0849996);
+\draw [black] (0.1148,0.268333) --(0.1218,0.268333);
+\draw [black] (0.958,0.268333) --(0.951,0.268333);
+\draw [black] (0.1148,0.451666) --(0.1218,0.451666);
+\draw [black] (0.958,0.451666) --(0.951,0.451666);
+\draw [black] (0.1148,0.635) --(0.1218,0.635);
+\draw [black] (0.958,0.635) --(0.951,0.635);
+\draw [black] (0.1148,0.818333) --(0.1218,0.818333);
+\draw [black] (0.958,0.818333) --(0.951,0.818333);
+\node [above right, black] at (0.,0.0599996) {-1.2};
+\node [above right, black] at (-0.06,0.243333) {-7.0e-1};
+\node [above right, black] at (-0.06,0.426666) {-2.0e-1};
+\node [above right, black] at (-0.05,0.61) {3.0e-1};
+\node [above right, black] at (-0.05,0.793333) {8.0e-1};
+\draw [magenta] (0.185067,0.891667) --(0.185067,0.158333);
+\draw [magenta] (0.185067,0.158333) --(0.395867,0.231667);
+\draw [magenta] (0.395867,0.231667) --(0.5364,0.158333);
+\draw [magenta] (0.5364,0.158333) --(0.887733,0.525);
+\draw [magenta] (0.887733,0.525) --(0.5364,0.891667);
+\draw [magenta] (0.5364,0.891667) --(0.395867,0.818333);
+\draw [magenta] (0.395867,0.818333) --(0.185067,0.891667);
+\end{tikzpicture}
+\\[8mm]
+% ellipse
+\begin{tikzpicture}[scale = 6,font=\scriptsize]
+\draw [black] (0.1148,0.085) --(0.958,0.085);
+\draw [black] (0.1148,0.085) --(0.1148,0.965);
+\draw [black] (0.1148,0.965) --(0.958,0.965);
+\draw [black] (0.958,0.085) --(0.958,0.965);
+\draw [black] (0.1148,0.085) --(0.1148,0.11);
+\draw [black] (0.1148,0.965) --(0.1148,0.94);
+\draw [black] (0.261189,0.085) --(0.261189,0.11);
+\draw [black] (0.261189,0.965) --(0.261189,0.94);
+\draw [black] (0.407578,0.085) --(0.407578,0.11);
+\draw [black] (0.407578,0.965) --(0.407578,0.94);
+\draw [black] (0.553966,0.085) --(0.553966,0.11);
+\draw [black] (0.553966,0.965) --(0.553966,0.94);
+\draw [black] (0.700355,0.085) --(0.700355,0.11);
+\draw [black] (0.700355,0.965) --(0.700355,0.94);
+\draw [black] (0.846744,0.085) --(0.846744,0.11);
+\draw [black] (0.846744,0.965) --(0.846744,0.94);
+\node [above right, black] at (0.0377997,0.01) {-1.8};
+\node [above right, black] at (0.172189,0.01) {-7.8e-1};
+\node [above right, black] at (0.325578,0.01) {2.2e-1};
+\node [above right, black] at (0.502966,0.01) {1.2};
+\node [above right, black] at (0.649355,0.01) {2.2};
+\node [above right, black] at (0.795744,0.01) {3.2};
+\draw [black] (0.1148,0.0849996) --(0.1218,0.0849996);
+\draw [black] (0.958,0.0849996) --(0.951,0.0849996);
+\draw [black] (0.1148,0.237777) --(0.1218,0.237777);
+\draw [black] (0.958,0.237777) --(0.951,0.237777);
+\draw [black] (0.1148,0.390555) --(0.1218,0.390555);
+\draw [black] (0.958,0.390555) --(0.951,0.390555);
+\draw [black] (0.1148,0.543333) --(0.1218,0.543333);
+\draw [black] (0.958,0.543333) --(0.951,0.543333);
+\draw [black] (0.1148,0.696111) --(0.1218,0.696111);
+\draw [black] (0.958,0.696111) --(0.951,0.696111);
+\draw [black] (0.1148,0.848888) --(0.1218,0.848888);
+\draw [black] (0.958,0.848888) --(0.951,0.848888);
+\node [above right, black] at (0.,0.0599996) {-2.9};
+\node [above right, black] at (0.,0.212777) {-1.9};
+\node [above right, black] at (-0.06,0.365555) {-8.8e-1};
+\node [above right, black] at (-0.04,0.518333) {1.2e-1};
+\node [above right, black] at (0.02,0.671111) {1.1};
+\node [above right, black] at (0.02,0.823888) {2.1};
+\fill [color=red] (0.5364,0.525) circle [x radius=0.351333,y radius=0.14];
+\end{tikzpicture}
+\hspace{1cm}
+% ring
+\begin{tikzpicture}[scale = 6,font=\scriptsize]
+\draw [black] (0.1148,0.085) --(0.958,0.085);
+\draw [black] (0.1148,0.085) --(0.1148,0.965);
+\draw [black] (0.1148,0.965) --(0.958,0.965);
+\draw [black] (0.958,0.085) --(0.958,0.965);
+\draw [black] (0.1148,0.085) --(0.1148,0.11);
+\draw [black] (0.1148,0.965) --(0.1148,0.94);
+\draw [black] (0.247881,0.085) --(0.247881,0.11);
+\draw [black] (0.247881,0.965) --(0.247881,0.94);
+\draw [black] (0.380962,0.085) --(0.380962,0.11);
+\draw [black] (0.380962,0.965) --(0.380962,0.94);
+\draw [black] (0.514043,0.085) --(0.514043,0.11);
+\draw [black] (0.514043,0.965) --(0.514043,0.94);
+\draw [black] (0.647123,0.085) --(0.647123,0.11);
+\draw [black] (0.647123,0.965) --(0.647123,0.94);
+\draw [black] (0.780204,0.085) --(0.780204,0.11);
+\draw [black] (0.780204,0.965) --(0.780204,0.94);
+\draw [black] (0.913285,0.085) --(0.913285,0.11);
+\draw [black] (0.913285,0.965) --(0.913285,0.94);
+\node [above right, black] at (0.0228001,0.01) {4.2e-1};
+\node [above right, black] at (0.165881,0.01) {9.2e-1};
+\node [above right, black] at (0.329962,0.01) {1.4};
+\node [above right, black] at (0.453043,0.01) {1.9};
+\node [above right, black] at (0.586123,0.01) {2.4};
+\node [above right, black] at (0.719204,0.01) {2.9};
+\node [above right, black] at (0.852285,0.01) {3.4};
+\draw [black] (0.1148,0.0849996) --(0.1218,0.0849996);
+\draw [black] (0.958,0.0849996) --(0.951,0.0849996);
+\draw [black] (0.1148,0.223888) --(0.1218,0.223888);
+\draw [black] (0.958,0.223888) --(0.951,0.223888);
+\draw [black] (0.1148,0.362777) --(0.1218,0.362777);
+\draw [black] (0.958,0.362777) --(0.951,0.362777);
+\draw [black] (0.1148,0.501666) --(0.1218,0.501666);
+\draw [black] (0.958,0.501666) --(0.951,0.501666);
+\draw [black] (0.1148,0.640555) --(0.1218,0.640555);
+\draw [black] (0.958,0.640555) --(0.951,0.640555);
+\draw [black] (0.1148,0.779444) --(0.1218,0.779444);
+\draw [black] (0.958,0.779444) --(0.951,0.779444);
+\draw [black] (0.1148,0.918333) --(0.1218,0.918333);
+\draw [black] (0.958,0.918333) --(0.951,0.918333);
+\node [above right, black] at (0.,0.0599996) {-1.6};
+\node [above right, black] at (0.,0.198888) {-1.1};
+\node [above right, black] at (-0.06,0.337777) {-5.8e-1};
+\node [above right, black] at (-0.06,0.476666) {-8.4e-2};
+\node [above right, black] at (-0.04,0.615555) {4.2e-1};
+\node [above right, black] at (-0.04,0.754444) {9.2e-1};
+\node [above right, black] at (0.02,0.893333) {1.4};
+\fill [color=orange] (0.5364,0.525) circle [x radius=0.351333,y radius=0.183333];
+\fill [color=white] (0.5364,0.525) circle [x radius=0.287455,y radius=0.15];
+\fill [color=white] (0.5364,0.158333) rectangle (0.9,0.784272);
+\end{tikzpicture}
+\caption{\label{fig:rg}Sample regions defined via the \ident{RG} class: interval (top left), polygon (top right), ellipse (bottom left), and ring (bottom right). These plots can be generated at run time by adding the command-line option \texttt{-rg\_view draw}.}
+\end{figure}
 
 Sometimes it is useful to specify the complement of a certain region, e.g., the part of the complex plane outside an ellipse. This can be achieved with
 	\findex{RGSetComplement}

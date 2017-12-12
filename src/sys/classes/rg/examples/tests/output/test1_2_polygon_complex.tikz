@@ -1,0 +1,62 @@
+\documentclass{beamer}
+
+\usepackage{tikz}
+\usepackage{pgflibraryshapes}
+\usetikzlibrary{backgrounds}
+\usetikzlibrary{arrows}
+\newenvironment{changemargin}[2]{%
+  \begin{list}{}{%
+    \setlength{\topsep}{0pt}%
+    \setlength{\leftmargin}{#1}%
+    \setlength{\rightmargin}{#2}%
+    \setlength{\listparindent}{\parindent}%
+    \setlength{\itemindent}{\parindent}%
+    \setlength{\parsep}{\parskip}%
+  }%
+  \item[]}{\end{list}}
+
+\begin{document}
+\begin{frame}{}
+\begin{changemargin}{-1cm}{0cm}
+\begin{center}
+\begin{tikzpicture}[scale = 10.00,font=\fontsize{8}{8}\selectfont]
+\draw [black] (0.1148,0.085) --(0.958,0.085);
+\draw [black] (0.1148,0.085) --(0.1148,0.965);
+\draw [black] (0.1148,0.965) --(0.958,0.965);
+\draw [black] (0.958,0.085) --(0.958,0.965);
+\draw [black] (0.1148,0.085) --(0.1148,0.11);
+\draw [black] (0.1148,0.965) --(0.1148,0.94);
+\draw [black] (0.349022,0.085) --(0.349022,0.11);
+\draw [black] (0.349022,0.965) --(0.349022,0.94);
+\draw [black] (0.583244,0.085) --(0.583244,0.11);
+\draw [black] (0.583244,0.965) --(0.583244,0.94);
+\draw [black] (0.817467,0.085) --(0.817467,0.11);
+\draw [black] (0.817467,0.965) --(0.817467,0.94);
+\node [above right, black] at (0.0657999,0.01) {-6.0e-1};
+\node [above right, black] at (0.328022,0.01) {1.4};
+\node [above right, black] at (0.562244,0.01) {3.4};
+\node [above right, black] at (0.796467,0.01) {5.4};
+\draw [black] (0.1148,0.0849999) --(0.1218,0.0849999);
+\draw [black] (0.958,0.0849999) --(0.951,0.0849999);
+\draw [black] (0.1148,0.329444) --(0.1218,0.329444);
+\draw [black] (0.958,0.329444) --(0.951,0.329444);
+\draw [black] (0.1148,0.573889) --(0.1218,0.573889);
+\draw [black] (0.958,0.573889) --(0.951,0.573889);
+\draw [black] (0.1148,0.818333) --(0.1218,0.818333);
+\draw [black] (0.958,0.818333) --(0.951,0.818333);
+\node [above right, black] at (0.0518,0.0599999) {-1.1};
+\node [above right, black] at (0.0238,0.304444) {9.0e-1};
+\node [above right, black] at (0.0658,0.548889) {2.9};
+\node [above right, black] at (0.0658,0.793333) {4.9};
+\draw [magenta] (0.185067,0.463889) --(0.302178,0.708333);
+\draw [magenta] (0.302178,0.708333) --(0.419289,0.830556);
+\draw [magenta] (0.419289,0.830556) --(0.653511,0.586111);
+\draw [magenta] (0.653511,0.586111) --(0.770622,0.708333);
+\draw [magenta] (0.770622,0.708333) --(0.887733,0.341667);
+\draw [magenta] (0.887733,0.341667) --(0.419289,0.219444);
+\draw [magenta] (0.419289,0.219444) --(0.185067,0.463889);
+\end{tikzpicture}
+\end{center}
+\end{changemargin}
+\end{frame}
+\end{document}

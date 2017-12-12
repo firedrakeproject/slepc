@@ -1,0 +1,62 @@
+\documentclass{beamer}
+
+\usepackage{tikz}
+\usepackage{pgflibraryshapes}
+\usetikzlibrary{backgrounds}
+\usetikzlibrary{arrows}
+\newenvironment{changemargin}[2]{%
+  \begin{list}{}{%
+    \setlength{\topsep}{0pt}%
+    \setlength{\leftmargin}{#1}%
+    \setlength{\rightmargin}{#2}%
+    \setlength{\listparindent}{\parindent}%
+    \setlength{\itemindent}{\parindent}%
+    \setlength{\parsep}{\parskip}%
+  }%
+  \item[]}{\end{list}}
+
+\begin{document}
+\begin{frame}{}
+\begin{changemargin}{-1cm}{0cm}
+\begin{center}
+\begin{tikzpicture}[scale = 10.00,font=\fontsize{8}{8}\selectfont]
+\draw [black] (0.1148,0.085) --(0.958,0.085);
+\draw [black] (0.1148,0.085) --(0.1148,0.965);
+\draw [black] (0.1148,0.965) --(0.958,0.965);
+\draw [black] (0.958,0.085) --(0.958,0.965);
+\draw [black] (0.1148,0.085) --(0.1148,0.11);
+\draw [black] (0.1148,0.965) --(0.1148,0.94);
+\draw [black] (0.290466,0.085) --(0.290466,0.11);
+\draw [black] (0.290466,0.965) --(0.290466,0.94);
+\draw [black] (0.466133,0.085) --(0.466133,0.11);
+\draw [black] (0.466133,0.965) --(0.466133,0.94);
+\draw [black] (0.6418,0.085) --(0.6418,0.11);
+\draw [black] (0.6418,0.965) --(0.6418,0.94);
+\draw [black] (0.817466,0.085) --(0.817466,0.11);
+\draw [black] (0.817466,0.965) --(0.817466,0.94);
+\node [above right, black] at (0.0867998,0.01) {-1.3};
+\node [above right, black] at (0.241466,0.01) {-3.0e-1};
+\node [above right, black] at (0.424133,0.01) {7.0e-1};
+\node [above right, black] at (0.6208,0.01) {1.7};
+\node [above right, black] at (0.796466,0.01) {2.7};
+\draw [black] (0.1148,0.0849996) --(0.1218,0.0849996);
+\draw [black] (0.958,0.0849996) --(0.951,0.0849996);
+\draw [black] (0.1148,0.268333) --(0.1218,0.268333);
+\draw [black] (0.958,0.268333) --(0.951,0.268333);
+\draw [black] (0.1148,0.451666) --(0.1218,0.451666);
+\draw [black] (0.958,0.451666) --(0.951,0.451666);
+\draw [black] (0.1148,0.635) --(0.1218,0.635);
+\draw [black] (0.958,0.635) --(0.951,0.635);
+\draw [black] (0.1148,0.818333) --(0.1218,0.818333);
+\draw [black] (0.958,0.818333) --(0.951,0.818333);
+\node [above right, black] at (0.0518,0.0599996) {-2.4};
+\node [above right, black] at (0.0518,0.243333) {-1.4};
+\node [above right, black] at (0.0098,0.426666) {-4.0e-1};
+\node [above right, black] at (0.0238,0.61) {6.0e-1};
+\node [above right, black] at (0.0658,0.793333) {1.6};
+\fill [color=red] (0.5364,0.525) circle [x radius=0.351333,y radius=0.0366667];
+\end{tikzpicture}
+\end{center}
+\end{changemargin}
+\end{frame}
+\end{document}

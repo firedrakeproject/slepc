@@ -42,6 +42,7 @@ PETSC_EXTERN PetscErrorCode RGAppendOptionsPrefix(RG,const char *);
 PETSC_EXTERN PetscErrorCode RGGetOptionsPrefix(RG,const char *[]);
 PETSC_EXTERN PetscErrorCode RGSetFromOptions(RG);
 PETSC_EXTERN PetscErrorCode RGView(RG,PetscViewer);
+PETSC_STATIC_INLINE PetscErrorCode RGViewFromOptions(RG rg,PetscObject obj,const char name[]) {return PetscObjectViewFromOptions((PetscObject)rg,obj,name);}
 PETSC_EXTERN PetscErrorCode RGDestroy(RG*);
 
 PETSC_EXTERN PetscErrorCode RGIsTrivial(RG,PetscBool*);

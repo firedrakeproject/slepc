@@ -12,6 +12,7 @@
 */
 
 #include <slepc/private/rgimpl.h>      /*I "slepcrg.h" I*/
+#include <petscdraw.h>
 
 typedef struct {
   PetscScalar center;     /* center of the ellipse */
@@ -118,14 +119,42 @@ PetscErrorCode RGView_Ellipse(RG rg,PetscViewer viewer)
 {
   PetscErrorCode ierr;
   RG_ELLIPSE     *ctx = (RG_ELLIPSE*)rg->data;
-  PetscBool      isascii;
+  PetscBool      isdraw,isascii;
+  int            winw,winh;
+  PetscDraw      draw;
+  PetscDrawAxis  axis;
+  PetscReal      cx,cy,r,ab,cd,lx,ly,w,scale=1.2;
   char           str[50];
 
   PetscFunctionBegin;
+  ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERDRAW,&isdraw);CHKERRQ(ierr);
   ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
   if (isascii) {
     ierr = SlepcSNPrintfScalar(str,50,ctx->center,PETSC_FALSE);CHKERRQ(ierr);
     ierr = PetscViewerASCIIPrintf(viewer,"  center: %s, radius: %g, vscale: %g\n",str,RGShowReal(ctx->radius),RGShowReal(ctx->vscale));CHKERRQ(ierr);
+  } else if (isdraw) {
+    ierr = PetscViewerDrawGetDraw(viewer,0,&draw);CHKERRQ(ierr);
+    ierr = PetscDrawCheckResizedWindow(draw);CHKERRQ(ierr);
+    ierr = PetscDrawGetWindowSize(draw,&winw,&winh);CHKERRQ(ierr);
+    winw = PetscMax(winw,1); winh = PetscMax(winh,1);
+    ierr = PetscDrawClear(draw);CHKERRQ(ierr);
+    ierr = PetscDrawSetTitle(draw,"Ellipse region");CHKERRQ(ierr);
+    ierr = PetscDrawAxisCreate(draw,&axis);CHKERRQ(ierr);
+    cx = PetscRealPart(ctx->center)*rg->sfactor;
+    cy = PetscImaginaryPart(ctx->center)*rg->sfactor;
+    r  = ctx->radius*rg->sfactor;
+    lx = 2*r;
+    ly = 2*r*ctx->vscale;
+    ab = cx;
+    cd = cy;
+    w  = scale*PetscMax(lx/winw,ly/winh)/2;
+    ierr = PetscDrawAxisSetLimits(axis,ab-w*winw,ab+w*winw,cd-w*winh,cd+w*winh);CHKERRQ(ierr);
+    ierr = PetscDrawAxisDraw(axis);CHKERRQ(ierr);
+    ierr = PetscDrawAxisDestroy(&axis);CHKERRQ(ierr);
+    ierr = PetscDrawEllipse(draw,cx,cy,2*r,2*r*ctx->vscale,PETSC_DRAW_RED);CHKERRQ(ierr);
+    ierr = PetscDrawFlush(draw);CHKERRQ(ierr);
+    ierr = PetscDrawSave(draw);CHKERRQ(ierr);
+    ierr = PetscDrawPause(draw);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }
