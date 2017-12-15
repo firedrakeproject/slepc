@@ -18,7 +18,7 @@ PetscErrorCode EPSSetUp_ARPACK(EPS eps)
 {
   PetscErrorCode ierr;
   PetscInt       ncv;
-  PetscBool      flg,istrivial;
+  PetscBool      istrivial;
   EPS_ARPACK     *ar = (EPS_ARPACK*)eps->data;
 
   PetscFunctionBegin;
@@ -68,8 +68,6 @@ PetscErrorCode EPSSetUp_ARPACK(EPS eps)
   ierr = EPS_SetInnerProduct(eps);CHKERRQ(ierr);
   ierr = EPSSetWorkVecs(eps,2);CHKERRQ(ierr);
 
-  ierr = PetscObjectTypeCompare((PetscObject)eps->V,BVVECS,&flg);CHKERRQ(ierr);
-  if (flg) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"This solver requires a BV with contiguous storage");
   ierr = RGIsTrivial(eps->rg,&istrivial);CHKERRQ(ierr);
   if (!istrivial) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"This solver does not support region filtering");
   PetscFunctionReturn(0);
@@ -86,7 +84,7 @@ PetscErrorCode EPSSolve_ARPACK(EPS eps)
   PetscBLASInt   fcomm;
 #endif
   PetscScalar    sigmar,*pV,*resid;
-  Vec            v0,x,y,w = eps->work[0];
+  Vec            x,y,w = eps->work[0];
   Mat            A;
   PetscBool      isSinv,isShift,rvec;
 #if !defined(PETSC_USE_COMPLEX)
@@ -102,9 +100,8 @@ PetscErrorCode EPSSolve_ARPACK(EPS eps)
   ierr = PetscBLASIntCast(eps->nloc,&n);CHKERRQ(ierr);
   ierr = EPSGetStartVector(eps,0,NULL);CHKERRQ(ierr);
   ierr = BVSetActiveColumns(eps->V,0,0);CHKERRQ(ierr);  /* just for deflation space */
-  ierr = BVGetColumn(eps->V,0,&v0);CHKERRQ(ierr);
-  ierr = VecCopy(v0,eps->work[1]);CHKERRQ(ierr);
-  ierr = VecGetArray(v0,&pV);CHKERRQ(ierr);
+  ierr = BVCopyVec(eps->V,0,eps->work[1]);CHKERRQ(ierr);
+  ierr = BVGetArray(eps->V,&pV);CHKERRQ(ierr);
   ierr = VecGetArray(eps->work[1],&resid);CHKERRQ(ierr);
 
   ido  = 0;            /* first call to reverse communication interface */
@@ -240,30 +237,20 @@ PetscErrorCode EPSSolve_ARPACK(EPS eps)
   if (eps->nconv > 0) {
 #if !defined(PETSC_USE_COMPLEX)
     if (eps->ishermitian) {
-      ierr = EPSMonitor(eps,iparam[2],iparam[4],&ar->workl[ipntr[5]-1],eps->eigi,&ar->workl[ipntr[6]-1],eps->ncv);CHKERRQ(ierr);
       PetscStackCall("ARPACKseupd",ARPACKseupd_(&fcomm,&rvec,howmny,ar->select,eps->eigr,pV,&n,&sigmar,bmat,&n,which,&nev,&eps->tol,resid,&ncv,pV,&n,iparam,ipntr,ar->workd,ar->workl,&ar->lworkl,&info));
     } else {
-      ierr = EPSMonitor(eps,iparam[2],iparam[4],&ar->workl[ipntr[5]-1],&ar->workl[ipntr[6]-1],&ar->workl[ipntr[7]-1],eps->ncv);CHKERRQ(ierr);
       PetscStackCall("ARPACKneupd",ARPACKneupd_(&fcomm,&rvec,howmny,ar->select,eps->eigr,eps->eigi,pV,&n,&sigmar,&sigmai,ar->workev,bmat,&n,which,&nev,&eps->tol,resid,&ncv,pV,&n,iparam,ipntr,ar->workd,ar->workl,&ar->lworkl,&info));
     }
 #else
-    ierr = EPSMonitor(eps,eps->its,iparam[4],&ar->workl[ipntr[5]-1],eps->eigi,(PetscReal*)&ar->workl[ipntr[7]-1],eps->ncv);CHKERRQ(ierr);
     PetscStackCall("ARPACKneupd",ARPACKneupd_(&fcomm,&rvec,howmny,ar->select,eps->eigr,pV,&n,&sigmar,ar->workev,bmat,&n,which,&nev,&eps->tol,resid,&ncv,pV,&n,iparam,ipntr,ar->workd,ar->workl,&ar->lworkl,ar->rwork,&info));
 #endif
     if (info!=0) SETERRQ1(PetscObjectComm((PetscObject)eps),PETSC_ERR_LIB,"Error reported by ARPACK subroutine xxEUPD (%d)",(int)info);
   }
 
-  ierr = VecRestoreArray(v0,&pV);CHKERRQ(ierr);
-  ierr = BVRestoreColumn(eps->V,0,&v0);CHKERRQ(ierr);
+  ierr = BVRestoreArray(eps->V,&pV);CHKERRQ(ierr);
   ierr = VecRestoreArray(eps->work[1],&resid);CHKERRQ(ierr);
   if (eps->nconv >= eps->nev) eps->reason = EPS_CONVERGED_TOL;
   else eps->reason = EPS_DIVERGED_ITS;
-
-  if (eps->ishermitian) {
-    ierr = PetscMemcpy(eps->errest,&ar->workl[ipntr[8]-1],eps->nconv);CHKERRQ(ierr);
-  } else {
-    ierr = PetscMemcpy(eps->errest,&ar->workl[ipntr[10]-1],eps->nconv);CHKERRQ(ierr);
-  }
 
   ierr = VecDestroy(&x);CHKERRQ(ierr);
   ierr = VecDestroy(&y);CHKERRQ(ierr);
