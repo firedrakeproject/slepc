@@ -17,7 +17,6 @@
 typedef struct {
   PetscReal   keep;         /* restart parameter */
   PetscBool   lock;         /* locking/non-locking variant */
-  PetscReal   dtol;         /* tolerance for deflation */
   PetscInt    d;            /* polynomial degree */
   PetscInt    ld;           /* leading dimension of auxiliary matrices */
   PetscScalar *S,*qB;       /* auxiliary matrices */
