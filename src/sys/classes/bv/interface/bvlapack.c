@@ -161,8 +161,8 @@ PetscErrorCode BVOrthogonalize_LAPACK_Private(BV bv,PetscInt m_,PetscInt n_,Pets
 #else
   PetscErrorCode ierr;
   PetscInt       level,plevel,nlevels,powtwo,lda,worklen;
-  PetscBLASInt   m,n,i,j,k,l,s,nb,lwork,info;
-  PetscScalar    *tau,*work,*A=NULL,*QQ=NULL,*C=NULL,one=1.0,zero=0.0;
+  PetscBLASInt   m,n,i,j,k,l,s,nb,sz,lwork,info;
+  PetscScalar    *tau,*work,*A=NULL,*QQ=NULL,*Qhalf,*C=NULL,one=1.0,zero=0.0;
   PetscMPIInt    rank,size,count,stride;
   MPI_Datatype   tmat;
 
@@ -178,7 +178,7 @@ PetscErrorCode BVOrthogonalize_LAPACK_Private(BV bv,PetscInt m_,PetscInt n_,Pets
   nlevels = (PetscInt)PetscCeilReal(PetscLog2Real((PetscReal)size));
   powtwo  = PetscPowInt(2,(PetscInt)PetscFloorReal(PetscLog2Real((PetscReal)size)));
   worklen = n+n*nb;
-  if (nlevels) worklen += n*lda+n*lda*(nlevels+1)+PetscMax(m*n,n*lda);
+  if (nlevels) worklen += n*lda+n*lda*nlevels+n*lda;
   ierr = BVAllocateWork_Private(bv,worklen);CHKERRQ(ierr);
   tau  = bv->work;
   work = bv->work+n;
@@ -186,7 +186,7 @@ PetscErrorCode BVOrthogonalize_LAPACK_Private(BV bv,PetscInt m_,PetscInt n_,Pets
   if (nlevels) {
     A  = bv->work+n+n*nb;
     QQ = bv->work+n+n*nb+n*lda;
-    C  = bv->work+n+n*nb+n*lda+n*lda*(nlevels+1);
+    C  = bv->work+n+n*nb+n*lda+n*lda*nlevels;
   }
 
   /* Compute QR */
@@ -264,25 +264,21 @@ PetscErrorCode BVOrthogonalize_LAPACK_Private(BV bv,PetscInt m_,PetscInt n_,Pets
 
     /* Accumulate orthogonal matrices */
     for (level=1;level<=nlevels;level++) {
-
       plevel = PetscPowInt(2,level);
       s = plevel*PetscFloorReal(rank/(PetscReal)plevel)+(rank+PetscPowInt(2,level-1))%plevel;
-
-      if (rank<s) {  /* multiply top part */
-        if (level<nlevels) {
-          PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&l,&n,&n,&one,QQ+level*n*lda,&l,QQ+(level-1)*n*lda,&l,&zero,C,&l));
-          ierr = PetscMemcpy(QQ+level*n*lda,C,n*lda*sizeof(PetscScalar));CHKERRQ(ierr);
-        } else {
-          PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&m,&n,&n,&one,Q,&m,QQ+(level-1)*n*lda,&l,&zero,C,&m));
-          ierr = PetscMemcpy(Q,C,m*n*sizeof(PetscScalar));CHKERRQ(ierr);
+      Qhalf = (rank<s)? QQ+(level-1)*n*lda: QQ+(level-1)*n*lda+n;
+      if (level<nlevels) {
+        PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&l,&n,&n,&one,QQ+level*n*lda,&l,Qhalf,&l,&zero,C,&l));
+        ierr = PetscMemcpy(QQ+level*n*lda,C,n*lda*sizeof(PetscScalar));CHKERRQ(ierr);
+      } else {
+        for (i=0;i<m/l;i++) {
+          PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&l,&n,&n,&one,Q+i*l,&m,Qhalf,&l,&zero,C,&l));
+          for (j=0;j<n;j++) { ierr = PetscMemcpy(Q+i*l+j*m,C+j*l,l*sizeof(PetscScalar));CHKERRQ(ierr); }
         }
-      } else {  /* multiply bottom part */
-        if (level<nlevels) {
-          PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&l,&n,&n,&one,QQ+level*n*lda,&l,QQ+(level-1)*n*lda+n,&l,&zero,C,&l));
-          ierr = PetscMemcpy(QQ+level*n*lda,C,n*lda*sizeof(PetscScalar));CHKERRQ(ierr);
-        } else {
-          PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&m,&n,&n,&one,Q,&m,QQ+(level-1)*n*lda+n,&l,&zero,C,&m));
-          ierr = PetscMemcpy(Q,C,m*n*sizeof(PetscScalar));CHKERRQ(ierr);
+        sz = m%l;
+        if (sz) {
+          PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&sz,&n,&n,&one,Q+(m/l)*l,&m,Qhalf,&l,&zero,C,&l));
+          for (j=0;j<n;j++) { ierr = PetscMemcpy(Q+(m/l)*l+j*m,C+j*l,sz*sizeof(PetscScalar));CHKERRQ(ierr); }
         }
       }
     }
