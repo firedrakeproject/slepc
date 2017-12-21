@@ -160,38 +160,33 @@ PetscErrorCode BVOrthogonalize_LAPACK_Private(BV bv,PetscInt m_,PetscInt n_,Pets
   SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"GEQRF/ORGQR - Lapack routines are unavailable");
 #else
   PetscErrorCode ierr;
-  PetscInt       level,plevel,nlevels,powtwo,lda;
+  PetscInt       level,plevel,nlevels,powtwo,lda,worklen;
   PetscBLASInt   m,n,i,j,k,l,s,nb,lwork,info;
   PetscScalar    *tau,*work,*A=NULL,*QQ=NULL,*C=NULL,one=1.0,zero=0.0;
   PetscMPIInt    rank,size,count,stride;
-  PetscBool      mpi;
   MPI_Datatype   tmat;
 
   PetscFunctionBegin;
   ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(m_,&m);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(n_,&n);CHKERRQ(ierr);
-  k = PetscMin(m,n);
+  k  = PetscMin(m,n);
   nb = 16;
+  lda = 2*n;
   ierr = MPI_Comm_size(PetscObjectComm((PetscObject)bv),&size);CHKERRQ(ierr);
-  if (m<n) SETERRQ(PetscObjectComm((PetscObject)bv),1,"Not implemented yet for nlocal<ncolumns");
+  ierr = MPI_Comm_rank(PetscObjectComm((PetscObject)bv),&rank);CHKERRQ(ierr);
   nlevels = (PetscInt)PetscCeilReal(PetscLog2Real((PetscReal)size));
-  powtwo = PetscPowInt(2,(PetscInt)PetscFloorReal(PetscLog2Real((PetscReal)size)));
-  mpi = size>1? PETSC_TRUE: PETSC_FALSE;
-  if (mpi) {
-    ierr = MPI_Comm_rank(PetscObjectComm((PetscObject)bv),&rank);CHKERRQ(ierr);
-    ierr = BVAllocateWork_Private(bv,k+n*nb+2*n*n+2*n*n*(nlevels+1)+PetscMax(m*n,2*n*n));CHKERRQ(ierr);
-  } else {
-    ierr = BVAllocateWork_Private(bv,k+n*nb);CHKERRQ(ierr);
-   }
-  tau = bv->work;
-  work = bv->work+k;
+  powtwo  = PetscPowInt(2,(PetscInt)PetscFloorReal(PetscLog2Real((PetscReal)size)));
+  worklen = n+n*nb;
+  if (nlevels) worklen += n*lda+n*lda*(nlevels+1)+PetscMax(m*n,n*lda);
+  ierr = BVAllocateWork_Private(bv,worklen);CHKERRQ(ierr);
+  tau  = bv->work;
+  work = bv->work+n;
   ierr = PetscBLASIntCast(n*nb,&lwork);CHKERRQ(ierr);
-  if (mpi) {
-    lda = 2*n;
-    A   = bv->work+k+n*nb;
-    QQ  = bv->work+k+n*nb+n*lda;
-    C   = bv->work+k+n*nb+n*lda+n*lda*(nlevels+1);
+  if (nlevels) {
+    A  = bv->work+n+n*nb;
+    QQ = bv->work+n+n*nb+n*lda;
+    C  = bv->work+n+n*nb+n*lda+n*lda*(nlevels+1);
   }
 
   /* Compute QR */
@@ -199,24 +194,24 @@ PetscErrorCode BVOrthogonalize_LAPACK_Private(BV bv,PetscInt m_,PetscInt n_,Pets
   SlepcCheckLapackInfo("geqrf",info);
 
   /* Extract R */
-  if (R || mpi) {
+  if (R || nlevels) {
     for (j=0;j<n;j++) {
-      for (i=0;i<=j;i++) {
-        if (mpi) A[i+j*lda] = Q[i+j*m];
+      for (i=0;i<=PetscMin(j,m-1);i++) {
+        if (nlevels) A[i+j*lda] = Q[i+j*m];
         else R[i+j*ldr] = Q[i+j*m];
       }
-      for (i=j+1;i<n;i++) {
-        if (mpi) A[i+j*lda] = 0.0;
+      for (i=PetscMin(j,m-1)+1;i<n;i++) {
+        if (nlevels) A[i+j*lda] = 0.0;
         else R[i+j*ldr] = 0.0;
       }
     }
   }
 
   /* Compute orthogonal matrix in Q */
-  PetscStackCallBLAS("LAPACKungqr",LAPACKungqr_(&m,&n,&k,Q,&m,tau,work,&lwork,&info));
+  PetscStackCallBLAS("LAPACKungqr",LAPACKungqr_(&m,&k,&k,Q,&m,tau,work,&lwork,&info));
   SlepcCheckLapackInfo("ungqr",info);
 
-  if (mpi) {
+  if (nlevels) {
 
     ierr = PetscMPIIntCast(n,&count);CHKERRQ(ierr);
     ierr = PetscMPIIntCast(lda,&stride);CHKERRQ(ierr);
