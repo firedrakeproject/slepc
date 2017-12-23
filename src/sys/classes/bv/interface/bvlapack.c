@@ -231,11 +231,11 @@ PetscErrorCode BVOrthogonalize_LAPACK_Private(BV bv,PetscInt m_,PetscInt n_,Pets
         ierr = MPI_Sendrecv(A,1,tmat,rank,111,A+n,1,tmat,rank,111,PetscObjectComm((PetscObject)bv),MPI_STATUS_IGNORE);CHKERRQ(ierr);
         ierr = MPI_Sendrecv(A+n,1,tmat,s,111,A,1,tmat,s,111,PetscObjectComm((PetscObject)bv),MPI_STATUS_IGNORE);CHKERRQ(ierr);
       }
-      if (level<nlevels) {  /* for cases when size is not a power of 2 */
-        if (s+PetscPowInt(2,level)>size-powtwo && s+PetscPowInt(2,level)<size) {  /* send bottom part */
-          ierr = MPI_Send(A+n,1,tmat,s+PetscPowInt(2,level),111,PetscObjectComm((PetscObject)bv));CHKERRQ(ierr);
-        } else if (s>=size) {  /* receive bottom part */
-          ierr = MPI_Recv(A+n,1,tmat,s-PetscPowInt(2,level),111,PetscObjectComm((PetscObject)bv),MPI_STATUS_IGNORE);CHKERRQ(ierr);
+      if (level<nlevels && size!=powtwo) {  /* for cases when size is not a power of 2 */
+        if (rank<size-powtwo) {  /* send bottom part */
+          ierr = MPI_Send(A+n,1,tmat,rank+powtwo,111,PetscObjectComm((PetscObject)bv));CHKERRQ(ierr);
+        } else if (rank>=powtwo) {  /* receive bottom part */
+          ierr = MPI_Recv(A+n,1,tmat,rank-powtwo,111,PetscObjectComm((PetscObject)bv),MPI_STATUS_IGNORE);CHKERRQ(ierr);
         }
       }
       /* Compute QR and build orthogonal matrix */
