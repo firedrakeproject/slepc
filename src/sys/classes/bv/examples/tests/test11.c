@@ -44,7 +44,7 @@ int main(int argc,char **argv)
   Vec            v,t;
   PetscInt       i,j,n=20,l=2,k=8,Istart,Iend;
   PetscViewer    view;
-  PetscBool      withb,resid,verbose;
+  PetscBool      withb,resid,rand,verbose;
   PetscReal      norm;
   PetscScalar    alpha;
 
@@ -54,6 +54,7 @@ int main(int argc,char **argv)
   ierr = PetscOptionsGetInt(NULL,NULL,"-k",&k,NULL);CHKERRQ(ierr);
   ierr = PetscOptionsHasName(NULL,NULL,"-withb",&withb);CHKERRQ(ierr);
   ierr = PetscOptionsHasName(NULL,NULL,"-resid",&resid);CHKERRQ(ierr);
+  ierr = PetscOptionsHasName(NULL,NULL,"-rand",&rand);CHKERRQ(ierr);
   ierr = PetscOptionsHasName(NULL,NULL,"-verbose",&verbose);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD,"Test BV block orthogonalization (length %D, l=%D, k=%D)%s.\n",n,l,k,withb?" with non-standard inner product":"");CHKERRQ(ierr);
 
@@ -75,18 +76,22 @@ int main(int argc,char **argv)
   }
 
   /* Fill X entries */
-  for (j=0;j<k;j++) {
-    ierr = BVGetColumn(X,j,&v);CHKERRQ(ierr);
-    ierr = VecSet(v,0.0);CHKERRQ(ierr);
-    for (i=0;i<=n/2;i++) {
-      if (i+j<n) {
-        alpha = (3.0*i+j-2)/(2*(i+j+1));
-        ierr = VecSetValue(v,i+j,alpha,INSERT_VALUES);CHKERRQ(ierr);
+  if (rand) {
+    ierr = BVSetRandom(X);CHKERRQ(ierr);
+  } else {
+    for (j=0;j<k;j++) {
+      ierr = BVGetColumn(X,j,&v);CHKERRQ(ierr);
+      ierr = VecSet(v,0.0);CHKERRQ(ierr);
+      for (i=0;i<=n/2;i++) {
+        if (i+j<n) {
+          alpha = (3.0*i+j-2)/(2*(i+j+1));
+          ierr = VecSetValue(v,i+j,alpha,INSERT_VALUES);CHKERRQ(ierr);
+        }
       }
+      ierr = VecAssemblyBegin(v);CHKERRQ(ierr);
+      ierr = VecAssemblyEnd(v);CHKERRQ(ierr);
+      ierr = BVRestoreColumn(X,j,&v);CHKERRQ(ierr);
     }
-    ierr = VecAssemblyBegin(v);CHKERRQ(ierr);
-    ierr = VecAssemblyEnd(v);CHKERRQ(ierr);
-    ierr = BVRestoreColumn(X,j,&v);CHKERRQ(ierr);
   }
   if (verbose) {
     ierr = BVView(X,view);CHKERRQ(ierr);
