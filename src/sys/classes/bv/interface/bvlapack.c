@@ -160,33 +160,33 @@ PetscErrorCode BVOrthogonalize_LAPACK_Private(BV bv,PetscInt m_,PetscInt n_,Pets
   SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"GEQRF/ORGQR - Lapack routines are unavailable");
 #else
   PetscErrorCode ierr;
-  PetscBLASInt   m,n,i,j,k,l,nb,lwork,info;
-  PetscScalar    *tau,*work,*Rl=NULL,*A=NULL,*C=NULL,one=1.0,zero=0.0;
-  PetscMPIInt    rank,size,len;
-  PetscBool      mpi;
+  PetscInt       level,plevel,nlevels,powtwo,lda,worklen;
+  PetscBLASInt   m,n,i,j,k,l,s,nb,sz,lwork,info;
+  PetscScalar    *tau,*work,*A=NULL,*QQ=NULL,*Qhalf,*C=NULL,one=1.0,zero=0.0;
+  PetscMPIInt    rank,size,count,stride;
+  MPI_Datatype   tmat;
 
   PetscFunctionBegin;
   ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(m_,&m);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(n_,&n);CHKERRQ(ierr);
-  k = PetscMin(m,n);
+  k  = PetscMin(m,n);
   nb = 16;
+  lda = 2*n;
   ierr = MPI_Comm_size(PetscObjectComm((PetscObject)bv),&size);CHKERRQ(ierr);
-  if (size>2) SETERRQ(PetscObjectComm((PetscObject)bv),1,"Not implemented yet for more than two MPI processes");
-  mpi = size>1? PETSC_TRUE: PETSC_FALSE;
-  if (mpi) {
-    ierr = MPI_Comm_rank(PetscObjectComm((PetscObject)bv),&rank);CHKERRQ(ierr);
-    ierr = BVAllocateWork_Private(bv,k+n*nb+n*n+n*n*size+m*n);CHKERRQ(ierr);
-  } else {
-    ierr = BVAllocateWork_Private(bv,k+n*nb);CHKERRQ(ierr);
-   }
-  tau = bv->work;
-  work = bv->work+k;
+  ierr = MPI_Comm_rank(PetscObjectComm((PetscObject)bv),&rank);CHKERRQ(ierr);
+  nlevels = (PetscInt)PetscCeilReal(PetscLog2Real((PetscReal)size));
+  powtwo  = PetscPowInt(2,(PetscInt)PetscFloorReal(PetscLog2Real((PetscReal)size)));
+  worklen = n+n*nb;
+  if (nlevels) worklen += n*lda+n*lda*nlevels+n*lda;
+  ierr = BVAllocateWork_Private(bv,worklen);CHKERRQ(ierr);
+  tau  = bv->work;
+  work = bv->work+n;
   ierr = PetscBLASIntCast(n*nb,&lwork);CHKERRQ(ierr);
-  if (mpi) {
-    Rl = bv->work+k+n*nb;
-    A  = bv->work+k+n*nb+n*n;
-    C  = bv->work+k+n*nb+n*n+n*n*size;
+  if (nlevels) {
+    A  = bv->work+n+n*nb;
+    QQ = bv->work+n+n*nb+n*lda;
+    C  = bv->work+n+n*nb+n*lda+n*lda*nlevels;
   }
 
   /* Compute QR */
@@ -194,49 +194,96 @@ PetscErrorCode BVOrthogonalize_LAPACK_Private(BV bv,PetscInt m_,PetscInt n_,Pets
   SlepcCheckLapackInfo("geqrf",info);
 
   /* Extract R */
-  if (R || mpi) {
+  if (R || nlevels) {
     for (j=0;j<n;j++) {
-      for (i=0;i<=j;i++) {
-        if (mpi) Rl[i+j*n] = Q[i+j*m];
+      for (i=0;i<=PetscMin(j,m-1);i++) {
+        if (nlevels) A[i+j*lda] = Q[i+j*m];
         else R[i+j*ldr] = Q[i+j*m];
       }
-      for (i=j+1;i<n;i++) {
-        if (mpi) Rl[i+j*n] = 0.0;
+      for (i=PetscMin(j,m-1)+1;i<n;i++) {
+        if (nlevels) A[i+j*lda] = 0.0;
         else R[i+j*ldr] = 0.0;
       }
     }
   }
 
   /* Compute orthogonal matrix in Q */
-  PetscStackCallBLAS("LAPACKungqr",LAPACKungqr_(&m,&n,&k,Q,&m,tau,work,&lwork,&info));
+  PetscStackCallBLAS("LAPACKungqr",LAPACKungqr_(&m,&k,&k,Q,&m,tau,work,&lwork,&info));
   SlepcCheckLapackInfo("ungqr",info);
 
-  if (mpi) {
+  if (nlevels) {
 
-    /* Stack triangular matrices */
-    ierr = PetscBLASIntCast(n*size,&l);CHKERRQ(ierr);
-    ierr = PetscMPIIntCast(n,&len);CHKERRQ(ierr);
-    for (j=0;j<n;j++) {
-      ierr = MPI_Allgather(Rl+j*n,len,MPIU_SCALAR,A+j*l,len,MPIU_SCALAR,PetscObjectComm((PetscObject)bv));CHKERRQ(ierr);
+    ierr = PetscMPIIntCast(n,&count);CHKERRQ(ierr);
+    ierr = PetscMPIIntCast(lda,&stride);CHKERRQ(ierr);
+    ierr = PetscBLASIntCast(lda,&l);CHKERRQ(ierr);
+    ierr = MPI_Type_vector(count,count,stride,MPIU_SCALAR,&tmat);CHKERRQ(ierr);
+    ierr = MPI_Type_commit(&tmat);CHKERRQ(ierr);
+
+    for (level=nlevels;level>=1;level--) {
+
+      plevel = PetscPowInt(2,level);
+      s = plevel*PetscFloorReal(rank/(PetscReal)plevel)+(rank+PetscPowInt(2,level-1))%plevel;
+
+      /* Stack triangular matrices */
+      if (rank<s && s<size) {  /* send top part, receive bottom part */
+        ierr = MPI_Sendrecv(A,1,tmat,s,111,A+n,1,tmat,s,111,PetscObjectComm((PetscObject)bv),MPI_STATUS_IGNORE);CHKERRQ(ierr);
+      } else if (s<size) {  /* copy top to bottom, receive top part */
+        ierr = MPI_Sendrecv(A,1,tmat,rank,111,A+n,1,tmat,rank,111,PetscObjectComm((PetscObject)bv),MPI_STATUS_IGNORE);CHKERRQ(ierr);
+        ierr = MPI_Sendrecv(A+n,1,tmat,s,111,A,1,tmat,s,111,PetscObjectComm((PetscObject)bv),MPI_STATUS_IGNORE);CHKERRQ(ierr);
+      }
+      if (level<nlevels && size!=powtwo) {  /* for cases when size is not a power of 2 */
+        if (rank<size-powtwo) {  /* send bottom part */
+          ierr = MPI_Send(A+n,1,tmat,rank+powtwo,111,PetscObjectComm((PetscObject)bv));CHKERRQ(ierr);
+        } else if (rank>=powtwo) {  /* receive bottom part */
+          ierr = MPI_Recv(A+n,1,tmat,rank-powtwo,111,PetscObjectComm((PetscObject)bv),MPI_STATUS_IGNORE);CHKERRQ(ierr);
+        }
+      }
+      /* Compute QR and build orthogonal matrix */
+      if (level<nlevels || (level==nlevels && s<size)) {
+        PetscStackCallBLAS("LAPACKgeqrf",LAPACKgeqrf_(&l,&n,A,&l,tau,work,&lwork,&info));
+        SlepcCheckLapackInfo("geqrf",info);
+        ierr = PetscMemcpy(QQ+(level-1)*n*lda,A,n*lda*sizeof(PetscScalar));CHKERRQ(ierr);
+        PetscStackCallBLAS("LAPACKungqr",LAPACKungqr_(&l,&n,&n,QQ+(level-1)*n*lda,&l,tau,work,&lwork,&info));
+        SlepcCheckLapackInfo("ungqr",info);
+        for (j=0;j<n;j++) {
+          for (i=j+1;i<n;i++) A[i+j*lda] = 0.0;
+        }
+      } else if (level==nlevels) {  /* only one triangular matrix, set Q=I */
+        ierr = PetscMemzero(QQ+(level-1)*n*lda,n*lda*sizeof(PetscScalar));CHKERRQ(ierr);
+        for (j=0;j<n;j++) QQ[j+j*lda+(level-1)*n*lda] = 1.0;
+      }
     }
-
-    /* Compute QR */
-    PetscStackCallBLAS("LAPACKgeqrf",LAPACKgeqrf_(&l,&n,A,&l,tau,work,&lwork,&info));
-    SlepcCheckLapackInfo("geqrf",info);
 
     /* Extract R */
     if (R) {
       for (j=0;j<n;j++) {
-        for (i=0;i<=j;i++) R[i+j*ldr] = A[i+j*l];
+        for (i=0;i<=j;i++) R[i+j*ldr] = A[i+j*lda];
         for (i=j+1;i<n;i++) R[i+j*ldr] = 0.0;
       }
     }
 
-    /* Accumulate orthogonal matrix */
-    PetscStackCallBLAS("LAPACKungqr",LAPACKungqr_(&l,&n,&n,A,&l,tau,work,&lwork,&info));
-    SlepcCheckLapackInfo("ungqr",info);
-    PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&m,&n,&n,&one,Q,&m,A+rank*n,&l,&zero,C,&m));
-    ierr = PetscMemcpy(Q,C,m*n*sizeof(PetscScalar));CHKERRQ(ierr);
+    /* Accumulate orthogonal matrices */
+    for (level=1;level<=nlevels;level++) {
+      plevel = PetscPowInt(2,level);
+      s = plevel*PetscFloorReal(rank/(PetscReal)plevel)+(rank+PetscPowInt(2,level-1))%plevel;
+      Qhalf = (rank<s)? QQ+(level-1)*n*lda: QQ+(level-1)*n*lda+n;
+      if (level<nlevels) {
+        PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&l,&n,&n,&one,QQ+level*n*lda,&l,Qhalf,&l,&zero,C,&l));
+        ierr = PetscMemcpy(QQ+level*n*lda,C,n*lda*sizeof(PetscScalar));CHKERRQ(ierr);
+      } else {
+        for (i=0;i<m/l;i++) {
+          PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&l,&n,&n,&one,Q+i*l,&m,Qhalf,&l,&zero,C,&l));
+          for (j=0;j<n;j++) { ierr = PetscMemcpy(Q+i*l+j*m,C+j*l,l*sizeof(PetscScalar));CHKERRQ(ierr); }
+        }
+        sz = m%l;
+        if (sz) {
+          PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&sz,&n,&n,&one,Q+(m/l)*l,&m,Qhalf,&l,&zero,C,&l));
+          for (j=0;j<n;j++) { ierr = PetscMemcpy(Q+(m/l)*l+j*m,C+j*l,sz*sizeof(PetscScalar));CHKERRQ(ierr); }
+        }
+      }
+    }
+
+    ierr = MPI_Type_free(&tmat);CHKERRQ(ierr);
   }
 
   ierr = PetscLogFlops(3.0*m*n*n);CHKERRQ(ierr);
