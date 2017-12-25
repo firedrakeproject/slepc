@@ -32,12 +32,13 @@ TESTEXAMPLES_C           = test1.PETSc runtest1_1 test1.rm \
                            test10.PETSc runtest10_1 test10.rm \
                            test11.PETSc runtest11_1 runtest11_2 runtest11_3 runtest11_4 \
                                         runtest11_5 runtest11_6 runtest11_7 runtest11_8 \
-                                        runtest11_9 runtest11_10 runtest11_11 runtest11_12 test11.rm \
+                                        runtest11_9 runtest11_10 runtest11_11 test11.rm \
                            test12.PETSc runtest12_1 test12.rm \
                            test13.PETSc runtest13_1 test13.rm \
                            test14.PETSc runtest14_1 test14.rm \
                            test15.PETSc runtest15_1 runtest15_2 test15.rm
-TESTEXAMPLES_C_NOTSINGLE = test2.PETSc runtest2_3 test2.rm
+TESTEXAMPLES_C_NOTSINGLE = test2.PETSc runtest2_3 test2.rm \
+                           test11.PETSc runtest11_12 test11.rm
 TESTEXAMPLES_FORTRAN     = test1f.PETSc runtest1f_1 runtest1f_2 test1f.rm
 TESTEXAMPLES_VECCUDA     = test1.PETSc runtest1_1_cuda test1.rm \
                            test2.PETSc runtest2_1_cuda runtest2_2_cuda test2.rm \
