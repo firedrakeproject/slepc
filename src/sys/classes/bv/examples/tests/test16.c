@@ -43,8 +43,8 @@ int main(int argc,char **argv)
   ierr = BVSetFromOptions(U);CHKERRQ(ierr);
   ierr = PetscObjectSetName((PetscObject)U,"U");CHKERRQ(ierr);
 
-  /* Fill U entries */
-  for (j=0;j<k;j++) {
+  /* Fill first d columns of U */
+  for (j=0;j<d;j++) {
     ierr = BVGetColumn(U,j,&v);CHKERRQ(ierr);
     ierr = VecSet(v,0.0);CHKERRQ(ierr);
     for (i=0;i<4;i++) {
@@ -70,6 +70,12 @@ int main(int argc,char **argv)
   ierr = PetscViewerPopFormat(view);CHKERRQ(ierr);
   if (verbose) {
     ierr = PetscViewerPushFormat(view,PETSC_VIEWER_ASCII_MATLAB);CHKERRQ(ierr);
+    ierr = BVView(V,view);CHKERRQ(ierr);
+  }
+
+  /* Build first column from previously introduced coefficients */
+  ierr = BVTensorBuildFirstColumn(V,d);CHKERRQ(ierr);
+  if (verbose) {
     ierr = BVView(V,view);CHKERRQ(ierr);
   }
 

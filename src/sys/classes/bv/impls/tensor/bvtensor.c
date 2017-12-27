@@ -18,7 +18,7 @@ typedef struct {
   Mat         S;        /* second factor */
   PetscScalar *qB;      /* auxiliary matrix used in non-standard inner products */
   PetscInt    d;        /* degree of the tensor BV */
-  PetscInt    ld;       /* leading dimension of S */
+  PetscInt    ld;       /* leading dimension of a single block in S */
 } BV_TENSOR;
 
 PetscErrorCode BVMult_Tensor(BV Y,PetscScalar alpha,PetscScalar beta,BV X,Mat Q)
@@ -72,15 +72,38 @@ PetscErrorCode BVDotVec_Local_Tensor(BV X,Vec y,PetscScalar *m)
 
 PetscErrorCode BVScale_Tensor(BV bv,PetscInt j,PetscScalar alpha)
 {
+  PetscErrorCode ierr;
+  BV_TENSOR      *ctx = (BV_TENSOR*)bv->data;
+  PetscScalar    *pS;
+  PetscInt       lds = ctx->ld*ctx->d;
+
   PetscFunctionBegin;
-  SETERRQ(PetscObjectComm((PetscObject)bv),PETSC_ERR_SUP,"Operation not implemented in BVTENSOR");
+  ierr = MatDenseGetArray(ctx->S,&pS);CHKERRQ(ierr);
+  if (j<0) {
+    ierr = BVScale_BLAS_Private(bv,(bv->k-bv->l)*lds,pS+(bv->nc+bv->l)*lds,alpha);CHKERRQ(ierr);
+  } else {
+    ierr = BVScale_BLAS_Private(bv,lds,pS+(bv->nc+j)*lds,alpha);CHKERRQ(ierr);
+  }
+  ierr = MatDenseRestoreArray(ctx->S,&pS);CHKERRQ(ierr);
+
   PetscFunctionReturn(0);
 }
 
 PetscErrorCode BVNorm_Tensor(BV bv,PetscInt j,NormType type,PetscReal *val)
 {
+  PetscErrorCode ierr;
+  BV_TENSOR      *ctx = (BV_TENSOR*)bv->data;
+  PetscScalar    *pS;
+  PetscInt       lds = ctx->ld*ctx->d;
+
   PetscFunctionBegin;
-  SETERRQ(PetscObjectComm((PetscObject)bv),PETSC_ERR_SUP,"Operation not implemented in BVTENSOR");
+  ierr = MatDenseGetArray(ctx->S,&pS);CHKERRQ(ierr);
+  if (j<0) {
+    ierr = BVNorm_LAPACK_Private(bv,lds,bv->k-bv->l,pS+(bv->nc+bv->l)*lds,type,val,PETSC_FALSE);CHKERRQ(ierr);
+  } else {
+    ierr = BVNorm_LAPACK_Private(bv,lds,1,pS+(bv->nc+j)*lds,type,val,PETSC_FALSE);CHKERRQ(ierr);
+  }
+  ierr = MatDenseRestoreArray(ctx->S,&pS);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -183,6 +206,69 @@ PetscErrorCode BVView_Tensor(BV bv,PetscViewer viewer)
     ierr = BVView(ctx->U,viewer);CHKERRQ(ierr);
     ierr = MatView(ctx->S,viewer);CHKERRQ(ierr);
   }
+  PetscFunctionReturn(0);
+}
+
+static PetscErrorCode BVTensorBuildFirstColumn_Tensor(BV V,PetscInt k)
+{
+  PetscErrorCode ierr;
+  BV_TENSOR      *ctx = (BV_TENSOR*)V->data;
+  PetscInt       i,nq=0;
+  PetscScalar    *pS;
+  PetscReal      norm;
+  PetscBool      breakdown=PETSC_FALSE;
+
+  PetscFunctionBegin;
+  ierr = MatDenseGetArray(ctx->S,&pS);CHKERRQ(ierr);
+  for (i=0;i<ctx->d;i++) {
+    if (i>=k) {
+      ierr = BVSetRandomColumn(ctx->U,nq);CHKERRQ(ierr);
+    } else {
+      ierr = BVCopyColumn(ctx->U,i,nq);CHKERRQ(ierr);
+    }
+    ierr = BVOrthogonalizeColumn(ctx->U,nq,pS+i*ctx->ld,&norm,&breakdown);CHKERRQ(ierr);
+    if (!breakdown) {
+      ierr = BVScaleColumn(ctx->U,nq,1.0/norm);CHKERRQ(ierr);
+      pS[nq+i*ctx->ld] = norm;
+      nq++;
+    }
+  }
+  ierr = MatDenseRestoreArray(ctx->S,&pS);CHKERRQ(ierr);
+  if (nq==0) SETERRQ(PetscObjectComm((PetscObject)V),1,"Problem building first column of tensor BV");
+  ierr = BVNorm_Tensor(V,0,NORM_2,&norm);CHKERRQ(ierr);
+  ierr = BVScale_Tensor(V,0,1.0/norm);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+/*@
+   BVTensorBuildFirstColumn - Builds the first column of the tensor basis vectors
+   V from the data contained in the first k columns of U.
+
+   Collective on BV
+
+   Input Parameters:
++  V - the basis vectors context
+-  k - the number of columns of U with relevant information
+
+   Notes:
+   At most d columns are considered, where d is the degree of the tensor BV.
+   Given V = (I otimes U) S, this function computes the first column of V, that
+   is, it computes the coefficients of the first column of S by orthogonalizing
+   the first d columns of U. If k is less than d (or linearly dependent columns
+   are found) then additional random columns are used.
+
+   Level: advanced
+
+.seealso: BVCreateTensor()
+@*/
+PetscErrorCode BVTensorBuildFirstColumn(BV V,PetscInt k)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(V,BV_CLASSID,1);
+  PetscValidLogicalCollectiveInt(V,k,2);
+  ierr = PetscUseMethod(V,"BVTensorBuildFirstColumn_C",(BV,PetscInt),(V,k));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -322,6 +408,7 @@ PetscErrorCode BVDestroy_Tensor(BV bv)
   ierr = VecDestroy(&bv->cv[0]);CHKERRQ(ierr);
   ierr = VecDestroy(&bv->cv[1]);CHKERRQ(ierr);
   ierr = PetscFree(bv->data);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)bv,"BVTensorBuildFirstColumn_C",NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)bv,"BVTensorGetDegree_C",NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)bv,"BVTensorGetFactors_C",NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)bv,"BVTensorRestoreFactors_C",NULL);CHKERRQ(ierr);
@@ -336,8 +423,6 @@ PETSC_EXTERN PetscErrorCode BVCreate_Tensor(BV bv)
   PetscFunctionBegin;
   ierr = PetscNewLog(bv,&ctx);CHKERRQ(ierr);
   bv->data = (void*)ctx;
-
-  if (bv->issplit) SETERRQ(PetscObjectComm((PetscObject)bv),PETSC_ERR_SUP,"BVGetSplit() not implemented for tensor BV");
 
   ierr = VecDuplicateEmpty(bv->t,&bv->cv[0]);CHKERRQ(ierr);
   ierr = VecDuplicateEmpty(bv->t,&bv->cv[1]);CHKERRQ(ierr);
@@ -364,6 +449,7 @@ PETSC_EXTERN PetscErrorCode BVCreate_Tensor(BV bv)
   bv->ops->destroy          = BVDestroy_Tensor;
   bv->ops->view             = BVView_Tensor;
 
+  ierr = PetscObjectComposeFunction((PetscObject)bv,"BVTensorBuildFirstColumn_C",BVTensorBuildFirstColumn_Tensor);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)bv,"BVTensorGetDegree_C",BVTensorGetDegree_Tensor);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)bv,"BVTensorGetFactors_C",BVTensorGetFactors_Tensor);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)bv,"BVTensorRestoreFactors_C",BVTensorRestoreFactors_Tensor);CHKERRQ(ierr);
@@ -396,12 +482,12 @@ PETSC_EXTERN PetscErrorCode BVCreate_Tensor(BV bv)
 
    The communicator of V will be the same as U.
 
-   On input, U must have orthonormal columns, as this property is assumed
-   by some operations.
+   On input, the content of U is irrelevant. Alternatively, it may contain
+   some nonzero columns that will be used by BVTensorBuildFirstColumn().
 
    Level: advanced
 
-.seealso: BVTensorGetDegree(), BVTensorGetFactors()
+.seealso: BVTensorGetDegree(), BVTensorGetFactors(), BVTensorBuildFirstColumn()
 @*/
 PetscErrorCode BVCreateTensor(BV U,PetscInt d,BV *V)
 {
