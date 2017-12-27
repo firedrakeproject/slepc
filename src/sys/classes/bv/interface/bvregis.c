@@ -14,6 +14,7 @@ PETSC_EXTERN PetscErrorCode BVCreate_Vecs(BV);
 PETSC_EXTERN PetscErrorCode BVCreate_Contiguous(BV);
 PETSC_EXTERN PetscErrorCode BVCreate_Svec(BV);
 PETSC_EXTERN PetscErrorCode BVCreate_Mat(BV);
+PETSC_EXTERN PetscErrorCode BVCreate_Tensor(BV);
 
 /*@C
    BVRegisterAll - Registers all of the storage variants in the BV package.
@@ -35,6 +36,7 @@ PetscErrorCode BVRegisterAll(void)
   ierr = BVRegister(BVCONTIGUOUS,BVCreate_Contiguous);CHKERRQ(ierr);
   ierr = BVRegister(BVSVEC,BVCreate_Svec);CHKERRQ(ierr);
   ierr = BVRegister(BVMAT,BVCreate_Mat);CHKERRQ(ierr);
+  ierr = BVRegister(BVTENSOR,BVCreate_Tensor);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

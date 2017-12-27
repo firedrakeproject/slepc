@@ -26,5 +26,6 @@
 #define BVSVEC       'svec'
 #define BVVECS       'vecs'
 #define BVCONTIGUOUS 'contiguous'
+#define BVTENSOR     'tensor'
 
 #endif

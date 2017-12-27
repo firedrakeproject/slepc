@@ -14,11 +14,11 @@ CPPFLAGS   =
 FPPFLAGS   =
 LOCDIR     = src/sys/classes/bv/examples/tests/
 EXAMPLESC  = test1.c test2.c test3.c test4.c test5.c test6.c test7.c test8.c test9.c test10.c \
-             test11.c test12.c test13.c test14.c test15.c
+             test11.c test12.c test13.c test14.c test15.c test16.c
 EXAMPLESF  = test1f.F90
 MANSEC     = BV
 TESTS      = test1 test1f test2 test3 test4 test5 test6 test7 test8 test9 test10 test11 test12 \
-             test13 test14 test15
+             test13 test14 test15 test16
 
 TESTEXAMPLES_C           = test1.PETSc runtest1_1 test1.rm \
                            test2.PETSc runtest2_1 runtest2_2 test2.rm \
@@ -36,7 +36,8 @@ TESTEXAMPLES_C           = test1.PETSc runtest1_1 test1.rm \
                            test12.PETSc runtest12_1 test12.rm \
                            test13.PETSc runtest13_1 test13.rm \
                            test14.PETSc runtest14_1 test14.rm \
-                           test15.PETSc runtest15_1 runtest15_2 test15.rm
+                           test15.PETSc runtest15_1 runtest15_2 test15.rm \
+                           test16.PETSc runtest16_1 test16.rm
 TESTEXAMPLES_C_NOTSINGLE = test2.PETSc runtest2_3 test2.rm \
                            test11.PETSc runtest11_12 test11.rm
 TESTEXAMPLES_FORTRAN     = test1f.PETSc runtest1f_1 runtest1f_2 test1f.rm
@@ -122,6 +123,10 @@ test14: test14.o chkopts
 test15: test15.o chkopts
 	-${CLINKER} -o test15 test15.o ${SLEPC_SYS_LIB}
 	${RM} test15.o
+
+test16: test16.o chkopts
+	-${CLINKER} -o test16 test16.o ${SLEPC_SYS_LIB}
+	${RM} test16.o
 
 #------------------------------------------------------------------------------------
 
@@ -426,3 +431,10 @@ runtest15_2_cuda:
 	-@${SETTEST}; check=test15_2; \
 	${MPIEXEC} -n 2 ./test15 -nc 2 -bv_type svec -vec_type cuda > $${test}.tmp 2>&1; \
 	${TESTCODE_CUDA}
+
+runtest16_1: runtest16_1_vecs runtest16_1_contiguous runtest16_1_svec runtest16_1_mat
+runtest16_1_%:
+	-@${SETTEST}; check=test16_1; bv=$*; \
+	${MPIEXEC} -n 2 ./test16 -bv_type $$bv > $${test}.tmp 2>&1; \
+	${TESTCODE}
+

@@ -43,6 +43,8 @@ PetscErrorCode BVSetType(BV bv,BVType type)
 
   ierr = PetscObjectTypeCompare((PetscObject)bv,type,&match);CHKERRQ(ierr);
   if (match) PetscFunctionReturn(0);
+  ierr = PetscStrcmp(type,BVTENSOR,&match);CHKERRQ(ierr);
+  if (match) SETERRQ(PetscObjectComm((PetscObject)bv),1,"Use BVCreateTensor() to create a BV of type tensor");
 
   ierr =  PetscFunctionListFind(BVList,type,&r);CHKERRQ(ierr);
   if (!r) SETERRQ1(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_UNKNOWN_TYPE,"Unable to find requested BV type %s",type);

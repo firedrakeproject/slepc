@@ -647,6 +647,7 @@ PetscErrorCode BVView(BV bv,PetscViewer viewer)
       if (bv->rrandom) {
         ierr = PetscViewerASCIIPrintf(viewer,"generating random vectors independent of the number of processes\n");CHKERRQ(ierr);
       }
+      if (bv->ops->view) { ierr = (*bv->ops->view)(bv,viewer);CHKERRQ(ierr); }
     } else {
       if (bv->ops->view) { ierr = (*bv->ops->view)(bv,viewer);CHKERRQ(ierr); }
       else { ierr = BVView_Default(bv,viewer);CHKERRQ(ierr); }
