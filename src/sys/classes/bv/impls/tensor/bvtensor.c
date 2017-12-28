@@ -38,15 +38,35 @@ PetscErrorCode BVMultVec_Tensor(BV X,PetscScalar alpha,PetscScalar beta,Vec y,Pe
 
 PetscErrorCode BVMultInPlace_Tensor(BV V,Mat Q,PetscInt s,PetscInt e)
 {
+  PetscErrorCode ierr;
+  BV_TENSOR      *ctx = (BV_TENSOR*)V->data;
+  PetscScalar    *pS,*q;
+  PetscInt       ldq,lds = ctx->ld*ctx->d;
+
   PetscFunctionBegin;
-  SETERRQ(PetscObjectComm((PetscObject)V),PETSC_ERR_SUP,"Operation not implemented in BVTENSOR");
+  ierr = MatGetSize(Q,&ldq,NULL);CHKERRQ(ierr);
+  ierr = MatDenseGetArray(ctx->S,&pS);CHKERRQ(ierr);
+  ierr = MatDenseGetArray(Q,&q);CHKERRQ(ierr);
+  ierr = BVMultInPlace_BLAS_Private(V,lds,V->k-V->l,ldq,s-V->l,e-V->l,pS+(V->nc+V->l)*lds,q+V->l*ldq+V->l,PETSC_FALSE);CHKERRQ(ierr);
+  ierr = MatDenseRestoreArray(Q,&q);CHKERRQ(ierr);
+  ierr = MatDenseRestoreArray(ctx->S,&pS);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
 PetscErrorCode BVMultInPlaceTranspose_Tensor(BV V,Mat Q,PetscInt s,PetscInt e)
 {
+  PetscErrorCode ierr;
+  BV_TENSOR      *ctx = (BV_TENSOR*)V->data;
+  PetscScalar    *pS,*q;
+  PetscInt       ldq,lds = ctx->ld*ctx->d;
+
   PetscFunctionBegin;
-  SETERRQ(PetscObjectComm((PetscObject)V),PETSC_ERR_SUP,"Operation not implemented in BVTENSOR");
+  ierr = MatGetSize(Q,&ldq,NULL);CHKERRQ(ierr);
+  ierr = MatDenseGetArray(ctx->S,&pS);CHKERRQ(ierr);
+  ierr = MatDenseGetArray(Q,&q);CHKERRQ(ierr);
+  ierr = BVMultInPlace_BLAS_Private(V,lds,V->k-V->l,ldq,s-V->l,e-V->l,pS+(V->nc+V->l)*lds,q+V->l*ldq+V->l,PETSC_TRUE);CHKERRQ(ierr);
+  ierr = MatDenseRestoreArray(Q,&q);CHKERRQ(ierr);
+  ierr = MatDenseRestoreArray(ctx->S,&pS);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -86,7 +106,6 @@ PetscErrorCode BVScale_Tensor(BV bv,PetscInt j,PetscScalar alpha)
     ierr = BVScale_BLAS_Private(bv,lds,pS+(bv->nc+j)*lds,alpha);CHKERRQ(ierr);
   }
   ierr = MatDenseRestoreArray(ctx->S,&pS);CHKERRQ(ierr);
-
   PetscFunctionReturn(0);
 }
 

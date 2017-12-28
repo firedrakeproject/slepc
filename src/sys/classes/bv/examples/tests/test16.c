@@ -16,10 +16,10 @@ int main(int argc,char **argv)
 {
   PetscErrorCode    ierr;
   Vec               t,v;
-  Mat               S;
+  Mat               S,Q;
   BV                U,V,UU;
   PetscInt          i,ii,j,jj,n=10,k=6,l=3,d=3,deg,id,lds;
-  PetscScalar       *pS;
+  PetscScalar       *pS,*q;
   PetscViewer       view;
   PetscBool         verbose;
 
@@ -77,9 +77,11 @@ int main(int argc,char **argv)
   /* Build first column from previously introduced coefficients */
   ierr = BVTensorBuildFirstColumn(V,d);CHKERRQ(ierr);
   if (verbose) {
+    ierr = PetscPrintf(PETSC_COMM_WORLD,"After building the first column - - - - -\n");CHKERRQ(ierr);
     ierr = BVView(V,view);CHKERRQ(ierr);
   }
 
+  /* Test orthogonalization */
   ierr = BVTensorGetFactors(V,&UU,&S);CHKERRQ(ierr);
   ierr = BVGetActiveColumns(UU,NULL,&j);CHKERRQ(ierr);
   ierr = BVGetSizes(UU,NULL,NULL,&id);CHKERRQ(ierr);
@@ -112,11 +114,32 @@ int main(int argc,char **argv)
   }
   ierr = BVTensorRestoreFactors(V,&UU,&S);CHKERRQ(ierr);
   if (verbose) {
+    ierr = PetscPrintf(PETSC_COMM_WORLD,"After orthogonalization - - - - -\n");CHKERRQ(ierr);
+    ierr = BVView(V,view);CHKERRQ(ierr);
+  }
+
+  /* Create Mat */
+  ierr = MatCreateSeqDense(PETSC_COMM_SELF,k,l,NULL,&Q);CHKERRQ(ierr);
+  ierr = PetscObjectSetName((PetscObject)Q,"Q");CHKERRQ(ierr);
+  ierr = MatDenseGetArray(Q,&q);CHKERRQ(ierr);
+  for (i=0;i<k;i++)
+    for (j=0;j<l;j++)
+      q[i+j*k] = (i<j)? 2.0: -0.5;
+  ierr = MatDenseRestoreArray(Q,&q);CHKERRQ(ierr);
+  if (verbose) {
+    ierr = MatView(Q,NULL);CHKERRQ(ierr);
+  }
+
+  /* Test BVMultInPlace */
+  ierr = BVMultInPlace(V,Q,1,l);CHKERRQ(ierr);
+  if (verbose) {
+    ierr = PetscPrintf(PETSC_COMM_WORLD,"After BVMultInPlace - - - - -\n");CHKERRQ(ierr);
     ierr = BVView(V,view);CHKERRQ(ierr);
   }
 
   ierr = BVDestroy(&U);CHKERRQ(ierr);
   ierr = BVDestroy(&V);CHKERRQ(ierr);
+  ierr = MatDestroy(&Q);CHKERRQ(ierr);
   ierr = VecDestroy(&t);CHKERRQ(ierr);
   ierr = SlepcFinalize();
   return ierr;
