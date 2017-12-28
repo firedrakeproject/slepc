@@ -46,6 +46,7 @@ struct _BVOps {
   PetscErrorCode (*getarrayread)(BV,const PetscScalar**);
   PetscErrorCode (*restorearrayread)(BV,const PetscScalar**);
   PetscErrorCode (*restoresplit)(BV,BV*,BV*);
+  PetscErrorCode (*gramschmidt)(BV,PetscInt,Vec,PetscBool*,PetscScalar*,PetscScalar*,PetscReal*,PetscReal*);
   PetscErrorCode (*duplicate)(BV,BV);
   PetscErrorCode (*create)(BV);
   PetscErrorCode (*setfromoptions)(PetscOptionItems*,BV);
@@ -298,6 +299,159 @@ PETSC_INTERN PetscErrorCode BV_ApplySignature_CUDA(BV,PetscInt,PetscScalar*,Pets
 PETSC_INTERN PetscErrorCode BV_SquareRoot_CUDA(BV,PetscInt,PetscScalar*,PetscReal*);
 PETSC_INTERN PetscErrorCode BV_StoreCoefficients_CUDA(BV,PetscInt,PetscScalar*,PetscScalar*);
 
+#endif /* PETSC_HAVE_VECCUDA */
+
+/*
+   BV_CleanCoefficients_Default - Sets to zero all entries of column j of the bv buffer
+*/
+PETSC_STATIC_INLINE PetscErrorCode BV_CleanCoefficients_Default(BV bv,PetscInt j,PetscScalar *h)
+{
+  PetscErrorCode ierr;
+  PetscScalar    *hh=h,*a;
+  PetscInt       i;
+
+  PetscFunctionBegin;
+  if (!h) {
+    ierr = VecGetArray(bv->buffer,&a);CHKERRQ(ierr);
+    hh = a + j*(bv->nc+bv->m);
+  }
+  for (i=0;i<bv->nc+j;i++) hh[i] = 0.0;
+  if (!h) { ierr = VecRestoreArray(bv->buffer,&a);CHKERRQ(ierr); }
+  PetscFunctionReturn(0);
+}
+
+/*
+   BV_AddCoefficients_Default - Add the contents of the scratch (0-th column) of the bv buffer
+   into column j of the bv buffer
+*/
+PETSC_STATIC_INLINE PetscErrorCode BV_AddCoefficients_Default(BV bv,PetscInt j,PetscScalar *h,PetscScalar *c)
+{
+  PetscErrorCode ierr;
+  PetscScalar    *hh=h,*cc=c;
+  PetscInt       i;
+
+  PetscFunctionBegin;
+  if (!h) {
+    ierr = VecGetArray(bv->buffer,&cc);CHKERRQ(ierr);
+    hh = cc + j*(bv->nc+bv->m);
+  }
+  for (i=0;i<bv->nc+j;i++) hh[i] += cc[i];
+  if (!h) { ierr = VecRestoreArray(bv->buffer,&cc);CHKERRQ(ierr); }
+  PetscFunctionReturn(0);
+}
+
+/*
+   BV_SetValue_Default - Sets value in row j (counted after the constraints) of column k
+   of the coefficients array
+*/
+PETSC_STATIC_INLINE PetscErrorCode BV_SetValue_Default(BV bv,PetscInt j,PetscInt k,PetscScalar *h,PetscScalar value)
+{
+  PetscErrorCode ierr;
+  PetscScalar    *hh=h,*a;
+
+  PetscFunctionBegin;
+  if (!h) {
+    ierr = VecGetArray(bv->buffer,&a);CHKERRQ(ierr);
+    hh = a + k*(bv->nc+bv->m);
+  }
+  hh[bv->nc+j] = value;
+  if (!h) { ierr = VecRestoreArray(bv->buffer,&a);CHKERRQ(ierr); }
+  PetscFunctionReturn(0);
+}
+
+/*
+   BV_SquareSum_Default - Returns the value h'*h, where h represents the contents of the
+   coefficients array (up to position j)
+*/
+PETSC_STATIC_INLINE PetscErrorCode BV_SquareSum_Default(BV bv,PetscInt j,PetscScalar *h,PetscReal *sum)
+{
+  PetscErrorCode ierr;
+  PetscScalar    *hh=h;
+  PetscInt       i;
+
+  PetscFunctionBegin;
+  *sum = 0.0;
+  if (!h) { ierr = VecGetArray(bv->buffer,&hh);CHKERRQ(ierr); }
+  for (i=0;i<bv->nc+j;i++) *sum += PetscRealPart(hh[i]*PetscConj(hh[i]));
+  if (!h) { ierr = VecRestoreArray(bv->buffer,&hh);CHKERRQ(ierr); }
+  PetscFunctionReturn(0);
+}
+
+/*
+   BV_ApplySignature_Default - Computes the pointwise product h*omega, where h represents
+   the contents of the coefficients array (up to position j) and omega is the signature;
+   if inverse=TRUE then the operation is h/omega
+*/
+PETSC_STATIC_INLINE PetscErrorCode BV_ApplySignature_Default(BV bv,PetscInt j,PetscScalar *h,PetscBool inverse)
+{
+  PetscErrorCode    ierr;
+  PetscScalar       *hh=h;
+  PetscInt          i;
+  const PetscScalar *omega;
+
+  PetscFunctionBegin;
+  if (!(bv->nc+j)) PetscFunctionReturn(0);
+  if (!h) { ierr = VecGetArray(bv->buffer,&hh);CHKERRQ(ierr); }
+  ierr = VecGetArrayRead(bv->omega,&omega);CHKERRQ(ierr);
+  if (inverse) for (i=0;i<bv->nc+j;i++) hh[i] /= PetscRealPart(omega[i]);
+  else for (i=0;i<bv->nc+j;i++) hh[i] *= PetscRealPart(omega[i]);
+  ierr = VecRestoreArrayRead(bv->omega,&omega);CHKERRQ(ierr);
+  if (!h) { ierr = VecRestoreArray(bv->buffer,&hh);CHKERRQ(ierr); }
+  PetscFunctionReturn(0);
+}
+
+/*
+   BV_SquareRoot_Default - Returns the square root of position j (counted after the constraints)
+   of the coefficients array
+*/
+PETSC_STATIC_INLINE PetscErrorCode BV_SquareRoot_Default(BV bv,PetscInt j,PetscScalar *h,PetscReal *beta)
+{
+  PetscErrorCode ierr;
+  PetscScalar    *hh=h;
+
+  PetscFunctionBegin;
+  if (!h) { ierr = VecGetArray(bv->buffer,&hh);CHKERRQ(ierr); }
+  ierr = BV_SafeSqrt(bv,hh[bv->nc+j],beta);CHKERRQ(ierr);
+  if (!h) { ierr = VecRestoreArray(bv->buffer,&hh);CHKERRQ(ierr); }
+  PetscFunctionReturn(0);
+}
+
+/*
+   BV_StoreCoefficients_Default - Copy the contents of the coefficients array to an array dest
+   provided by the caller (only values from l to j are copied)
+*/
+PETSC_STATIC_INLINE PetscErrorCode BV_StoreCoefficients_Default(BV bv,PetscInt j,PetscScalar *h,PetscScalar *dest)
+{
+  PetscErrorCode ierr;
+  PetscScalar    *hh=h,*a;
+  PetscInt       i;
+
+  PetscFunctionBegin;
+  if (!h) {
+    ierr = VecGetArray(bv->buffer,&a);CHKERRQ(ierr);
+    hh = a + j*(bv->nc+bv->m);
+  }
+  for (i=bv->l;i<j;i++) dest[i-bv->l] = hh[bv->nc+i];
+  if (!h) { ierr = VecRestoreArray(bv->buffer,&a);CHKERRQ(ierr); }
+  PetscFunctionReturn(0);
+}
+
+#if defined(PETSC_HAVE_VECCUDA)
+#define BV_CleanCoefficients(a,b,c)   ((a)->cuda?BV_CleanCoefficients_CUDA:BV_CleanCoefficients_Default)((a),(b),(c))
+#define BV_AddCoefficients(a,b,c,d)   ((a)->cuda?BV_AddCoefficients_CUDA:BV_AddCoefficients_Default)((a),(b),(c),(d))
+#define BV_SetValue(a,b,c,d,e)        ((a)->cuda?BV_SetValue_CUDA:BV_SetValue_Default)((a),(b),(c),(d),(e))
+#define BV_SquareSum(a,b,c,d)         ((a)->cuda?BV_SquareSum_CUDA:BV_SquareSum_Default)((a),(b),(c),(d))
+#define BV_ApplySignature(a,b,c,d)    ((a)->cuda?BV_ApplySignature_CUDA:BV_ApplySignature_Default)((a),(b),(c),(d))
+#define BV_SquareRoot(a,b,c,d)        ((a)->cuda?BV_SquareRoot_CUDA:BV_SquareRoot_Default)((a),(b),(c),(d))
+#define BV_StoreCoefficients(a,b,c,d) ((a)->cuda?BV_StoreCoefficients_CUDA:BV_StoreCoefficients_Default)((a),(b),(c),(d))
+#else
+#define BV_CleanCoefficients(a,b,c)   BV_CleanCoefficients_Default((a),(b),(c))
+#define BV_AddCoefficients(a,b,c,d)   BV_AddCoefficients_Default((a),(b),(c),(d))
+#define BV_SetValue(a,b,c,d,e)        BV_SetValue_Default((a),(b),(c),(d),(e))
+#define BV_SquareSum(a,b,c,d)         BV_SquareSum_Default((a),(b),(c),(d))
+#define BV_ApplySignature(a,b,c,d)    BV_ApplySignature_Default((a),(b),(c),(d))
+#define BV_SquareRoot(a,b,c,d)        BV_SquareRoot_Default((a),(b),(c),(d))
+#define BV_StoreCoefficients(a,b,c,d) BV_StoreCoefficients_Default((a),(b),(c),(d))
 #endif /* PETSC_HAVE_VECCUDA */
 
 #endif

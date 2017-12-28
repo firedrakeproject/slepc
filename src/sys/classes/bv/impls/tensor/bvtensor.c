@@ -12,6 +12,7 @@
 */
 
 #include <slepc/private/bvimpl.h>
+#include <slepcblaslapack.h>
 
 typedef struct {
   BV          U;        /* first factor */
@@ -177,6 +178,62 @@ PetscErrorCode BVRestoreArrayRead_Tensor(BV bv,const PetscScalar **a)
   PetscFunctionReturn(0);
 }
 
+PetscErrorCode BVOrthogonalizeGS1_Tensor(BV bv,PetscInt k,Vec v,PetscBool *which,PetscScalar *h,PetscScalar *c,PetscReal *onorm,PetscReal *norm)
+{
+  PetscErrorCode ierr;
+  BV_TENSOR      *ctx = (BV_TENSOR*)bv->data;
+  PetscScalar    *pS,*cc,*x,dot,sonem=-1.0,sone=1.0,szero=0.0;
+  PetscInt       i,n,lds = ctx->ld*ctx->d;
+  PetscBLASInt   n_,lds_,k_,one=1;
+
+  PetscFunctionBegin;
+  if (v) SETERRQ(PetscObjectComm((PetscObject)bv),PETSC_ERR_SUP,"Orthogonalization against an external vector is not allowed in BVTENSOR");
+  ierr = MatDenseGetArray(ctx->S,&pS);CHKERRQ(ierr);
+  ierr = VecGetArray(bv->buffer,&cc);CHKERRQ(ierr);
+  c = cc + k*(bv->nc+bv->m);
+
+  n = bv->nc+k+ctx->d-1;
+  ierr = PetscBLASIntCast(n,&n_);CHKERRQ(ierr);
+  ierr = PetscBLASIntCast(lds,&lds_);CHKERRQ(ierr);
+  ierr = PetscBLASIntCast(k,&k_);CHKERRQ(ierr);
+
+  if (onorm) *onorm = BLASnrm2_(&lds_,pS+k*lds,&one);
+
+  if (bv->orthog_type==BV_ORTHOG_MGS) {  /* modified Gram-Schmidt */
+
+    for (i=-bv->nc;i<k;i++) {
+      if (which && i>=0 && !which[i]) continue;
+      /* c_i = ( s_k, s_i ) */
+      dot = BLASdot_(&lds_,pS+i*lds,&one,pS+k*lds,&one);
+      ierr = BV_SetValue(bv,i,0,c,dot);CHKERRQ(ierr);
+      /* s_k = s_k - c_i s_i */
+      dot = -dot;
+      PetscStackCallBLAS("BLASaxpy",BLASaxpy_(&lds_,&dot,pS+i*lds,&one,pS+k*lds,&one));
+    }
+
+  } else {  /* classical Gram-Schmidt */
+
+    /* c = S_{0:k-1}^* s_k */
+    x = pS+k*lds;
+    PetscStackCallBLAS("BLASgemv",BLASgemv_("C",&n_,&k_,&sone,pS,&lds_,x,&one,&szero,c,&one));
+    for (i=1;i<ctx->d;i++) {
+      x = pS+i*ctx->ld+k*lds;
+      PetscStackCallBLAS("BLASgemv",BLASgemv_("C",&n_,&k_,&sone,pS+i*ctx->ld,&lds_,x,&one,&sone,c,&one));
+    }
+    /* s_k = s_k - S_{0:k-1} c */
+    for (i=0;i<ctx->d;i++) {
+      x = pS+i*ctx->ld+k*lds;
+      PetscStackCallBLAS("BLASgemv",BLASgemv_("N",&n_,&k_,&sonem,pS+i*ctx->ld,&lds_,c,&one,&sone,x,&one));
+    }
+  }
+
+  if (norm) *norm = BLASnrm2_(&lds_,pS+k*lds,&one);
+  ierr = BV_AddCoefficients(bv,k,h,c);CHKERRQ(ierr);
+  ierr = MatDenseRestoreArray(ctx->S,&pS);CHKERRQ(ierr);
+  ierr = VecRestoreArray(bv->buffer,&cc);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
 PetscErrorCode BVView_Tensor(BV bv,PetscViewer viewer)
 {
   PetscErrorCode    ierr;
@@ -234,9 +291,12 @@ static PetscErrorCode BVTensorBuildFirstColumn_Tensor(BV V,PetscInt k)
     }
   }
   ierr = MatDenseRestoreArray(ctx->S,&pS);CHKERRQ(ierr);
-  if (nq==0) SETERRQ(PetscObjectComm((PetscObject)V),1,"Problem building first column of tensor BV");
+  if (!nq) SETERRQ1(PetscObjectComm((PetscObject)V),1,"Cannot build first column of tensor BV; U should contain k=%D nonzero columns",k);
   ierr = BVNorm_Tensor(V,0,NORM_2,&norm);CHKERRQ(ierr);
   ierr = BVScale_Tensor(V,0,1.0/norm);CHKERRQ(ierr);
+  /* set active columns */
+  ctx->U->l = 0;
+  ctx->U->k = nq;
   PetscFunctionReturn(0);
 }
 
@@ -446,6 +506,7 @@ PETSC_EXTERN PetscErrorCode BVCreate_Tensor(BV bv)
   bv->ops->restorearray     = BVRestoreArray_Tensor;
   bv->ops->getarrayread     = BVGetArrayRead_Tensor;
   bv->ops->restorearrayread = BVRestoreArrayRead_Tensor;
+  bv->ops->gramschmidt      = BVOrthogonalizeGS1_Tensor;
   bv->ops->destroy          = BVDestroy_Tensor;
   bv->ops->view             = BVView_Tensor;
 
@@ -477,8 +538,8 @@ PETSC_EXTERN PetscErrorCode BVCreate_Tensor(BV bv)
    of a matrix polynomial of degree d.
 
    The size of V (number of rows) is equal to d times n, where n is the size
-   of U. The dimensions of S are d times m rows and m-d columns, where m is
-   the number of columns of U, so m should be at least d+1.
+   of U. The dimensions of S are d times m rows and m-d+1 columns, where m is
+   the number of columns of U, so m should be at least d.
 
    The communicator of V will be the same as U.
 
@@ -504,8 +565,8 @@ PetscErrorCode BVCreateTensor(BV U,PetscInt d,BV *V)
 
   ierr = BVCreate(PetscObjectComm((PetscObject)U),V);CHKERRQ(ierr);
   ierr = BVGetSizes(U,&n,&N,&m);CHKERRQ(ierr);
-  if (m<d+1) SETERRQ2(PetscObjectComm((PetscObject)U),PETSC_ERR_ARG_SIZ,"U has %D columns, it should have at least d+1=%D",m,d+1);
-  ierr = BVSetSizes(*V,d*n,d*N,m-d);CHKERRQ(ierr);
+  if (m<d) SETERRQ2(PetscObjectComm((PetscObject)U),PETSC_ERR_ARG_SIZ,"U has %D columns, it should have at least d=%D",m,d);
+  ierr = BVSetSizes(*V,d*n,d*N,m-d+1);CHKERRQ(ierr);
   ierr = PetscObjectChangeTypeName((PetscObject)*V,BVTENSOR);CHKERRQ(ierr);
   ierr = PetscLogEventBegin(BV_Create,*V,0,0,0);CHKERRQ(ierr);
   ierr = BVCreate_Tensor(*V);CHKERRQ(ierr);
@@ -516,7 +577,7 @@ PetscErrorCode BVCreateTensor(BV U,PetscInt d,BV *V)
   ctx->d  = d;
   ctx->ld = m;
   ierr = PetscObjectReference((PetscObject)U);CHKERRQ(ierr);
-  ierr = MatCreateSeqDense(PETSC_COMM_SELF,d*m,m,NULL,&ctx->S);CHKERRQ(ierr);
+  ierr = MatCreateSeqDense(PETSC_COMM_SELF,d*m,m-d+1,NULL,&ctx->S);CHKERRQ(ierr);
   ierr = PetscLogObjectParent((PetscObject)*V,(PetscObject)ctx->S);CHKERRQ(ierr);
   ierr = PetscObjectSetName((PetscObject)ctx->S,"S");CHKERRQ(ierr);
   PetscFunctionReturn(0);
