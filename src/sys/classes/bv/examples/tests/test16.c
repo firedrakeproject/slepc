@@ -16,10 +16,11 @@ int main(int argc,char **argv)
 {
   PetscErrorCode    ierr;
   Vec               t,v;
-  Mat               S,Q;
+  Mat               S,M,Q;
   BV                U,V,UU;
   PetscInt          i,ii,j,jj,n=10,k=6,l=3,d=3,deg,id,lds;
   PetscScalar       *pS,*q;
+  PetscReal         norm;
   PetscViewer       view;
   PetscBool         verbose;
 
@@ -59,7 +60,6 @@ int main(int argc,char **argv)
 
   /* Create tensor BV */
   ierr = BVCreateTensor(U,d,&V);CHKERRQ(ierr);
-  ierr = BVSetFromOptions(V);CHKERRQ(ierr);
   ierr = PetscObjectSetName((PetscObject)V,"V");CHKERRQ(ierr);
   ierr = BVTensorGetDegree(V,&deg);CHKERRQ(ierr);
   if (deg!=d) SETERRQ(PETSC_COMM_WORLD,1,"Wrong degree");
@@ -118,6 +118,17 @@ int main(int argc,char **argv)
     ierr = BVView(V,view);CHKERRQ(ierr);
   }
 
+  /* Check orthogonality */
+  ierr = MatCreateSeqDense(PETSC_COMM_SELF,k,k,NULL,&M);CHKERRQ(ierr);
+  ierr = BVDot(V,V,M);CHKERRQ(ierr);
+  ierr = MatShift(M,-1.0);CHKERRQ(ierr);
+  ierr = MatNorm(M,NORM_1,&norm);CHKERRQ(ierr);
+  if (norm<100*PETSC_MACHINE_EPSILON) {
+    ierr = PetscPrintf(PETSC_COMM_WORLD,"Level of orthogonality < 100*eps\n");CHKERRQ(ierr);
+  } else {
+    ierr = PetscPrintf(PETSC_COMM_WORLD,"Level of orthogonality: %g\n",(double)norm);CHKERRQ(ierr);
+  }
+
   /* Create Mat */
   ierr = MatCreateSeqDense(PETSC_COMM_SELF,k,l,NULL,&Q);CHKERRQ(ierr);
   ierr = PetscObjectSetName((PetscObject)Q,"Q");CHKERRQ(ierr);
@@ -140,6 +151,7 @@ int main(int argc,char **argv)
   ierr = BVDestroy(&U);CHKERRQ(ierr);
   ierr = BVDestroy(&V);CHKERRQ(ierr);
   ierr = MatDestroy(&Q);CHKERRQ(ierr);
+  ierr = MatDestroy(&M);CHKERRQ(ierr);
   ierr = VecDestroy(&t);CHKERRQ(ierr);
   ierr = SlepcFinalize();
   return ierr;

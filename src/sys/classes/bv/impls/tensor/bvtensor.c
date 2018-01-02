@@ -72,8 +72,22 @@ PetscErrorCode BVMultInPlaceTranspose_Tensor(BV V,Mat Q,PetscInt s,PetscInt e)
 
 PetscErrorCode BVDot_Tensor(BV X,BV Y,Mat M)
 {
+  PetscErrorCode ierr;
+  BV_TENSOR      *x = (BV_TENSOR*)X->data,*y = (BV_TENSOR*)Y->data;
+  PetscScalar    *m,*px,*py;
+  PetscInt       ldm,lds = x->ld*x->d;
+
   PetscFunctionBegin;
-  SETERRQ(PetscObjectComm((PetscObject)X),PETSC_ERR_SUP,"Operation not implemented in BVTENSOR");
+  if (x->U!=y->U) SETERRQ(PetscObjectComm((PetscObject)X),PETSC_ERR_SUP,"BVDot() in BVTENSOR requires that both operands have the same U factor");
+  if (lds!=y->ld*y->d) SETERRQ2(PetscObjectComm((PetscObject)X),PETSC_ERR_ARG_SIZ,"Mismatching dimensions ld*d %D %D",lds,y->ld*y->d);
+  ierr = MatGetSize(M,&ldm,NULL);CHKERRQ(ierr);
+  ierr = MatDenseGetArray(x->S,&px);CHKERRQ(ierr);
+  ierr = MatDenseGetArray(y->S,&py);CHKERRQ(ierr);
+  ierr = MatDenseGetArray(M,&m);CHKERRQ(ierr);
+  ierr = BVDot_BLAS_Private(X,Y->k-Y->l,X->k-X->l,lds,ldm,py+(Y->nc+Y->l)*lds,px+(X->nc+X->l)*lds,m+X->l*ldm+Y->l,PETSC_FALSE);CHKERRQ(ierr);
+  ierr = MatDenseRestoreArray(M,&m);CHKERRQ(ierr);
+  ierr = MatDenseRestoreArray(x->S,&px);CHKERRQ(ierr);
+  ierr = MatDenseRestoreArray(y->S,&py);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -596,6 +610,7 @@ PetscErrorCode BVCreateTensor(BV U,PetscInt d,BV *V)
   ctx->d  = d;
   ctx->ld = m;
   ierr = PetscObjectReference((PetscObject)U);CHKERRQ(ierr);
+  ierr = PetscLogObjectParent((PetscObject)*V,(PetscObject)U);CHKERRQ(ierr);
   ierr = MatCreateSeqDense(PETSC_COMM_SELF,d*m,m-d+1,NULL,&ctx->S);CHKERRQ(ierr);
   ierr = PetscLogObjectParent((PetscObject)*V,(PetscObject)ctx->S);CHKERRQ(ierr);
   ierr = PetscObjectSetName((PetscObject)ctx->S,"S");CHKERRQ(ierr);
