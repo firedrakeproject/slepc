@@ -38,6 +38,7 @@ struct _BVOps {
   PetscErrorCode (*norm_end)(BV,PetscInt,NormType,PetscReal*);
   PetscErrorCode (*matmult)(BV,Mat,BV);
   PetscErrorCode (*copy)(BV,BV);
+  PetscErrorCode (*copycolumn)(BV,PetscInt,PetscInt);
   PetscErrorCode (*resize)(BV,PetscInt,PetscBool);
   PetscErrorCode (*getcolumn)(BV,PetscInt,Vec*);
   PetscErrorCode (*restorecolumn)(BV,PetscInt,Vec*);

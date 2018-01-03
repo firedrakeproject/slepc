@@ -1776,11 +1776,15 @@ PetscErrorCode BVCopyColumn(BV V,PetscInt j,PetscInt i)
     omega[i] = omega[j];
     ierr = VecRestoreArray(V->omega,&omega);CHKERRQ(ierr);
   }
-  ierr = BVGetColumn(V,j,&z);CHKERRQ(ierr);
-  ierr = BVGetColumn(V,i,&w);CHKERRQ(ierr);
-  ierr = VecCopy(z,w);CHKERRQ(ierr);
-  ierr = BVRestoreColumn(V,j,&z);CHKERRQ(ierr);
-  ierr = BVRestoreColumn(V,i,&w);CHKERRQ(ierr);
+  if (V->ops->copycolumn) {
+    ierr = (*V->ops->copycolumn)(V,j,i);CHKERRQ(ierr);
+  } else {
+    ierr = BVGetColumn(V,j,&z);CHKERRQ(ierr);
+    ierr = BVGetColumn(V,i,&w);CHKERRQ(ierr);
+    ierr = VecCopy(z,w);CHKERRQ(ierr);
+    ierr = BVRestoreColumn(V,j,&z);CHKERRQ(ierr);
+    ierr = BVRestoreColumn(V,i,&w);CHKERRQ(ierr);
+  }
   ierr = PetscLogEventEnd(BV_Copy,V,0,0,0);CHKERRQ(ierr);
   ierr = PetscObjectStateIncrease((PetscObject)V);CHKERRQ(ierr);
   PetscFunctionReturn(0);

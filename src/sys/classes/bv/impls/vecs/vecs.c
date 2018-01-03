@@ -327,6 +327,16 @@ PetscErrorCode BVCopy_Vecs(BV V,BV W)
   PetscFunctionReturn(0);
 }
 
+PetscErrorCode BVCopyColumn_Vecs(BV V,PetscInt j,PetscInt i)
+{
+  PetscErrorCode ierr;
+  BV_VECS        *v = (BV_VECS*)V->data;
+
+  PetscFunctionBegin;
+  ierr = VecCopy(v->V[V->nc+j],v->V[V->nc+i]);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
 PetscErrorCode BVResize_Vecs(BV bv,PetscInt m,PetscBool copy)
 {
   PetscErrorCode ierr;
@@ -581,6 +591,7 @@ PETSC_EXTERN PetscErrorCode BVCreate_Vecs(BV bv)
   bv->ops->norm_end         = BVNorm_End_Vecs;
   bv->ops->matmult          = BVMatMult_Vecs;
   bv->ops->copy             = BVCopy_Vecs;
+  bv->ops->copycolumn       = BVCopyColumn_Vecs;
   bv->ops->resize           = BVResize_Vecs;
   bv->ops->getcolumn        = BVGetColumn_Vecs;
   bv->ops->getarray         = BVGetArray_Vecs;

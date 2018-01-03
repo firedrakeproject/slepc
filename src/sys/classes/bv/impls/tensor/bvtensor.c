@@ -162,6 +162,20 @@ PetscErrorCode BVCopy_Tensor(BV V,BV W)
   PetscFunctionReturn(0);
 }
 
+PetscErrorCode BVCopyColumn_Tensor(BV V,PetscInt j,PetscInt i)
+{
+  PetscErrorCode ierr;
+  BV_TENSOR      *ctx = (BV_TENSOR*)V->data;
+  PetscScalar    *pS;
+  PetscInt       lds = ctx->ld*ctx->d;
+
+  PetscFunctionBegin;
+  ierr = MatDenseGetArray(ctx->S,&pS);CHKERRQ(ierr);
+  ierr = PetscMemcpy(pS+(V->nc+i)*lds,pS+(V->nc+j)*lds,lds*sizeof(PetscScalar));CHKERRQ(ierr);
+  ierr = MatDenseRestoreArray(ctx->S,&pS);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
 PetscErrorCode BVResize_Tensor(BV bv,PetscInt m,PetscBool copy)
 {
   PetscFunctionBegin;
@@ -723,6 +737,7 @@ PETSC_EXTERN PetscErrorCode BVCreate_Tensor(BV bv)
   bv->ops->norm_local       = BVNorm_Local_Tensor;
   bv->ops->matmult          = BVMatMult_Tensor;
   bv->ops->copy             = BVCopy_Tensor;
+  bv->ops->copycolumn       = BVCopyColumn_Tensor;
   bv->ops->resize           = BVResize_Tensor;
   bv->ops->getcolumn        = BVGetColumn_Tensor;
   bv->ops->restorecolumn    = BVRestoreColumn_Tensor;
