@@ -290,7 +290,7 @@ PetscErrorCode BVView_Tensor(BV bv,PetscViewer viewer)
       ierr = PetscObjectGetName((PetscObject)bv,&bvname);CHKERRQ(ierr);
       ierr = PetscObjectGetName((PetscObject)ctx->U,&uname);CHKERRQ(ierr);
       ierr = PetscObjectGetName((PetscObject)ctx->S,&sname);CHKERRQ(ierr);
-      ierr = PetscViewerASCIIPrintf(viewer,"%s=kron(eye(%D),%s)*%s;\n",bvname,ctx->d,uname,sname);CHKERRQ(ierr);
+      ierr = PetscViewerASCIIPrintf(viewer,"%s=kron(eye(%D),%s)*%s(:,1:%D);\n",bvname,ctx->d,uname,sname,bv->k);CHKERRQ(ierr);
     }
   } else {
     ierr = BVView(ctx->U,viewer);CHKERRQ(ierr);
@@ -362,6 +362,196 @@ PetscErrorCode BVTensorBuildFirstColumn(BV V,PetscInt k)
   PetscValidHeaderSpecific(V,BV_CLASSID,1);
   PetscValidLogicalCollectiveInt(V,k,2);
   ierr = PetscUseMethod(V,"BVTensorBuildFirstColumn_C",(BV,PetscInt),(V,k));CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+static PetscErrorCode BVTensorCompress_Tensor(BV V,PetscInt newc)
+{
+#if defined(PETSC_MISSING_LAPACK_GESVD) || defined(PETSC_MISSING_LAPACK_GEQRF) || defined(PETSC_MISSING_LAPACK_ORGQR)
+  PetscFunctionBegin;
+  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"GESVD/GEQRF/ORGQR - Lapack routine is unavailable");
+#else
+  PetscErrorCode ierr;
+  BV_TENSOR      *ctx = (BV_TENSOR*)V->data;
+  PetscInt       nwu=0,nrwu=0,nnc,nrow,lwa;
+  PetscInt       i,j,k,n,lds=ctx->ld*ctx->d,deg=ctx->d,lock=V->l,cs1=V->k,rs1=ctx->U->k,rk=0,offu;
+  PetscScalar    *S,*M,*Z,*pQ,*SS,*SS2,t,sone=1.0,zero=0.0,mone=-1.0,*p,*tau,*work;
+  PetscReal      *sg,tol,*rwork;
+  PetscBLASInt   cs1_,rs1_,cs1tdeg,n_,info,lw_,newc_,newctdeg,nnc_,nrow_,nnctdeg,lds_,rk_;
+  Mat            Q;
+
+  PetscFunctionBegin;
+  if (!cs1) PetscFunctionReturn(0);
+  lwa = 6*ctx->ld*lds+2*cs1;
+  n = PetscMin(rs1,deg*cs1);
+  nnc = cs1-lock-newc;
+  nrow = rs1-lock;
+  ierr = PetscMalloc6(deg*newc*nnc,&SS,newc*nnc,&SS2,(rs1+lock+newc)*n,&pQ,deg*rs1,&tau,lwa,&work,6*n,&rwork);CHKERRQ(ierr);
+  offu = lock*(rs1+1);
+  M = work+nwu;
+  nwu += rs1*cs1*deg;
+  sg = rwork+nrwu;
+  nrwu += n;
+  ierr = PetscMemzero(pQ,rs1*n*sizeof(PetscScalar));CHKERRQ(ierr);
+  Z = work+nwu;
+  nwu += deg*cs1*n;
+  ierr = PetscBLASIntCast(n,&n_);CHKERRQ(ierr);
+  ierr = PetscBLASIntCast(nnc,&nnc_);CHKERRQ(ierr);
+  ierr = PetscBLASIntCast(cs1,&cs1_);CHKERRQ(ierr);
+  ierr = PetscBLASIntCast(rs1,&rs1_);CHKERRQ(ierr);
+  ierr = PetscBLASIntCast(newc,&newc_);CHKERRQ(ierr);
+  ierr = PetscBLASIntCast(newc*deg,&newctdeg);CHKERRQ(ierr);
+  ierr = PetscBLASIntCast(nnc*deg,&nnctdeg);CHKERRQ(ierr);
+  ierr = PetscBLASIntCast(cs1*deg,&cs1tdeg);CHKERRQ(ierr);
+  ierr = PetscBLASIntCast(lwa-nwu,&lw_);CHKERRQ(ierr);
+  ierr = PetscBLASIntCast(nrow,&nrow_);CHKERRQ(ierr);
+  ierr = PetscBLASIntCast(lds,&lds_);CHKERRQ(ierr);
+  ierr = MatDenseGetArray(ctx->S,&S);CHKERRQ(ierr);
+
+  if (newc>0) {
+    /* truncate columns associated with new converged eigenpairs */
+    for (j=0;j<deg;j++) {
+      for (i=lock;i<lock+newc;i++) {
+        ierr = PetscMemcpy(M+(i-lock+j*newc)*nrow,S+i*lds+j*ctx->ld+lock,nrow*sizeof(PetscScalar));CHKERRQ(ierr);
+      }
+    }
+#if !defined (PETSC_USE_COMPLEX)
+    PetscStackCallBLAS("LAPACKgesvd",LAPACKgesvd_("S","S",&nrow_,&newctdeg,M,&nrow_,sg,pQ+offu,&rs1_,Z,&n_,work+nwu,&lw_,&info));
+#else
+    PetscStackCallBLAS("LAPACKgesvd",LAPACKgesvd_("S","S",&nrow_,&newctdeg,M,&nrow_,sg,pQ+offu,&rs1_,Z,&n_,work+nwu,&lw_,rwork+nrwu,&info));
+#endif
+    SlepcCheckLapackInfo("gesvd",info);
+    /* SVD has rank min(newc,nrow) */
+    rk = PetscMin(newc,nrow);
+    for (i=0;i<rk;i++) {
+      t = sg[i];
+      PetscStackCallBLAS("BLASscal",BLASscal_(&newctdeg,&t,Z+i,&n_));
+    }
+    for (i=0;i<deg;i++) {
+      for (j=lock;j<lock+newc;j++) {
+        ierr = PetscMemcpy(S+j*lds+i*ctx->ld+lock,Z+(newc*i+j-lock)*n,rk*sizeof(PetscScalar));CHKERRQ(ierr);
+        ierr = PetscMemzero(S+j*lds+i*ctx->ld+lock+rk,(ctx->ld-lock-rk)*sizeof(PetscScalar));CHKERRQ(ierr);
+      }
+    }
+    /*
+      update columns associated with non-converged vectors, orthogonalize
+      against pQ so that next M has rank nnc+d-1 insted of nrow+d-1
+    */
+    for (i=0;i<deg;i++) {
+      PetscStackCallBLAS("BLASgemm",BLASgemm_("C","N",&newc_,&nnc_,&nrow_,&sone,pQ+offu,&rs1_,S+(lock+newc)*lds+i*ctx->ld+lock,&lds_,&zero,SS+i*newc*nnc,&newc_));
+      PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&nrow_,&nnc_,&newc_,&mone,pQ+offu,&rs1_,SS+i*newc*nnc,&newc_,&sone,S+(lock+newc)*lds+i*ctx->ld+lock,&lds_));
+      /* repeat orthogonalization step */
+      PetscStackCallBLAS("BLASgemm",BLASgemm_("C","N",&newc_,&nnc_,&nrow_,&sone,pQ+offu,&rs1_,S+(lock+newc)*lds+i*ctx->ld+lock,&lds_,&zero,SS2,&newc_));
+      PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&nrow_,&nnc_,&newc_,&mone,pQ+offu,&rs1_,SS2,&newc_,&sone,S+(lock+newc)*lds+i*ctx->ld+lock,&lds_));
+      for (j=0;j<newc*nnc;j++) *(SS+i*newc*nnc+j) += SS2[j];
+    }
+  }
+
+  /* truncate columns associated with non-converged eigenpairs */
+  for (j=0;j<deg;j++) {
+    for (i=lock+newc;i<cs1;i++) {
+      ierr = PetscMemcpy(M+(i-lock-newc+j*nnc)*nrow,S+i*lds+j*ctx->ld+lock,nrow*sizeof(PetscScalar));CHKERRQ(ierr);
+    }
+  }
+#if !defined (PETSC_USE_COMPLEX)
+  PetscStackCallBLAS("LAPACKgesvd",LAPACKgesvd_("S","S",&nrow_,&nnctdeg,M,&nrow_,sg,pQ+offu+newc*rs1,&rs1_,Z,&n_,work+nwu,&lw_,&info));
+#else
+  PetscStackCallBLAS("LAPACKgesvd",LAPACKgesvd_("S","S",&nrow_,&nnctdeg,M,&nrow_,sg,pQ+offu+newc*rs1,&rs1_,Z,&n_,work+nwu,&lw_,rwork+nrwu,&info));
+#endif
+  SlepcCheckLapackInfo("gesvd",info);
+  tol = PetscMax(rs1,deg*cs1)*PETSC_MACHINE_EPSILON*sg[0];
+  for (i=0;i<PetscMin(n_,nnctdeg);i++) if (sg[i]>tol) rk++;
+  rk = PetscMin(nnc+deg-1,rk);
+  /* the SVD has rank (at most) nnc+deg-1 */
+  for (i=0;i<rk;i++) {
+    t = sg[i];
+    PetscStackCallBLAS("BLASscal",BLASscal_(&nnctdeg,&t,Z+i,&n_));
+  }
+  /* update S */
+  ierr = PetscMemzero(S+cs1*lds,(V->m-cs1)*lds*sizeof(PetscScalar));CHKERRQ(ierr);
+  k = ctx->ld-lock-newc-rk;
+  for (i=0;i<deg;i++) {
+    for (j=lock+newc;j<cs1;j++) {
+      ierr = PetscMemcpy(S+j*lds+i*ctx->ld+lock+newc,Z+(nnc*i+j-lock-newc)*n,rk*sizeof(PetscScalar));CHKERRQ(ierr);
+      ierr = PetscMemzero(S+j*lds+i*ctx->ld+lock+newc+rk,k*sizeof(PetscScalar));CHKERRQ(ierr);
+    }
+  }
+  if (newc>0) {
+    for (i=0;i<deg;i++) {
+      p = SS+nnc*newc*i;
+      for (j=lock+newc;j<cs1;j++) {
+        for (k=0;k<newc;k++) S[j*lds+i*ctx->ld+lock+k] = *(p++);
+      }
+    }
+  }
+
+  /* orthogonalize pQ */
+  rk = rk+newc;
+  ierr = PetscBLASIntCast(rk,&rk_);CHKERRQ(ierr);
+  ierr = PetscBLASIntCast(cs1-lock,&nnc_);CHKERRQ(ierr);
+  PetscStackCallBLAS("LAPACKgeqrf",LAPACKgeqrf_(&nrow_,&rk_,pQ+offu,&rs1_,tau,work+nwu,&lw_,&info));
+  SlepcCheckLapackInfo("geqrf",info);
+  for (i=0;i<deg;i++) {
+    PetscStackCallBLAS("BLAStrmm",BLAStrmm_("L","U","N","N",&rk_,&nnc_,&sone,pQ+offu,&rs1_,S+lock*lds+lock+i*ctx->ld,&lds_));
+  }
+  PetscStackCallBLAS("LAPACKungqr",LAPACKungqr_(&nrow_,&rk_,&rk_,pQ+offu,&rs1_,tau,work+nwu,&lw_,&info));
+  SlepcCheckLapackInfo("ungqr",info);
+
+  /* update vectors U(:,idx) = U*Q(:,idx) */
+  rk = rk+lock;
+  for (i=0;i<lock;i++) pQ[(i+1)*rs1] = 1.0;
+  ierr = MatCreateSeqDense(PETSC_COMM_SELF,rs1,rk,pQ,&Q);CHKERRQ(ierr);
+  ctx->U->l = lock;
+  ctx->U->k = rs1;
+  ierr = BVMultInPlace(ctx->U,Q,lock,rk);CHKERRQ(ierr);
+  ierr = MatDestroy(&Q);CHKERRQ(ierr);
+
+  /* free work space */
+  ierr = PetscFree6(SS,SS2,pQ,tau,work,rwork);CHKERRQ(ierr);
+  ierr = MatDenseRestoreArray(ctx->S,&S);CHKERRQ(ierr);
+
+  /* set active columns */
+  V->l = lock+newc;
+  ctx->U->l = 0;
+  ctx->U->k = rk;
+  PetscFunctionReturn(0);
+#endif
+}
+
+/*@
+   BVTensorCompress - Updates the U and S factors of the tensor basis vectors
+   object V by means of an SVD, removing redundant information.
+
+   Collective on BV
+
+   Input Parameters:
++  V - the tensor basis vectors context
+-  newc - additional columns to be locked
+
+   Notes:
+   This function is typically used when restarting Krylov solvers. Truncating a
+   tensor BV V = (I otimes U) S to its leading columns amounts to keeping the
+   leading columns of S. However, to effectively reduce the size of the
+   decomposition, it is necessary to compress it in a way that fewer columns of
+   U are employed. This can be achieved by means of an update that involves the
+   SVD of the low-rank matrix [S_0 S_1 ... S_{d-1}], where S_i are the pieces of S.
+
+   If newc is nonzero, it indicates that further modifications must be done so
+   that these columns are locked, which implies setting zeros in the appropriate
+   entries of S. Then the number of leading columns of V is increased by newc.
+
+   Level: advanced
+
+.seealso: BVCreateTensor(), BVSetActiveColumns()
+@*/
+PetscErrorCode BVTensorCompress(BV V,PetscInt newc)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(V,BV_CLASSID,1);
+  PetscValidLogicalCollectiveInt(V,newc,2);
+  ierr = PetscUseMethod(V,"BVTensorCompress_C",(BV,PetscInt),(V,newc));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -502,6 +692,7 @@ PetscErrorCode BVDestroy_Tensor(BV bv)
   ierr = VecDestroy(&bv->cv[1]);CHKERRQ(ierr);
   ierr = PetscFree(bv->data);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)bv,"BVTensorBuildFirstColumn_C",NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)bv,"BVTensorCompress_C",NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)bv,"BVTensorGetDegree_C",NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)bv,"BVTensorGetFactors_C",NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)bv,"BVTensorRestoreFactors_C",NULL);CHKERRQ(ierr);
@@ -544,6 +735,7 @@ PETSC_EXTERN PetscErrorCode BVCreate_Tensor(BV bv)
   bv->ops->view             = BVView_Tensor;
 
   ierr = PetscObjectComposeFunction((PetscObject)bv,"BVTensorBuildFirstColumn_C",BVTensorBuildFirstColumn_Tensor);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)bv,"BVTensorCompress_C",BVTensorCompress_Tensor);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)bv,"BVTensorGetDegree_C",BVTensorGetDegree_Tensor);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)bv,"BVTensorGetFactors_C",BVTensorGetFactors_Tensor);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)bv,"BVTensorRestoreFactors_C",BVTensorRestoreFactors_Tensor);CHKERRQ(ierr);

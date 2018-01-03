@@ -129,6 +129,14 @@ int main(int argc,char **argv)
     ierr = PetscPrintf(PETSC_COMM_WORLD,"Level of orthogonality: %g\n",(double)norm);CHKERRQ(ierr);
   }
 
+  /* Test BVTensorCompress */
+  ierr = BVSetActiveColumns(V,0,l);CHKERRQ(ierr);
+  ierr = BVTensorCompress(V,0);CHKERRQ(ierr);
+  if (verbose) {
+    ierr = PetscPrintf(PETSC_COMM_WORLD,"After BVTensorCompress - - - - -\n");CHKERRQ(ierr);
+    ierr = BVView(V,view);CHKERRQ(ierr);
+  }
+
   /* Create Mat */
   ierr = MatCreateSeqDense(PETSC_COMM_SELF,k,l,NULL,&Q);CHKERRQ(ierr);
   ierr = PetscObjectSetName((PetscObject)Q,"Q");CHKERRQ(ierr);

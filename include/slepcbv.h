@@ -194,6 +194,7 @@ PETSC_EXTERN PetscErrorCode BVRestoreMat(BV,Mat*);
 
 PETSC_EXTERN PetscErrorCode BVCreateTensor(BV,PetscInt,BV*);
 PETSC_EXTERN PetscErrorCode BVTensorBuildFirstColumn(BV,PetscInt);
+PETSC_EXTERN PetscErrorCode BVTensorCompress(BV,PetscInt);
 PETSC_EXTERN PetscErrorCode BVTensorGetDegree(BV,PetscInt*);
 PETSC_EXTERN PetscErrorCode BVTensorGetFactors(BV,BV*,Mat*);
 PETSC_EXTERN PetscErrorCode BVTensorRestoreFactors(BV,BV*,Mat*);
