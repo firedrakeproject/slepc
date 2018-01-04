@@ -236,9 +236,9 @@ PetscErrorCode BVOrthogonalizeGS1_Tensor(BV bv,PetscInt k,Vec v,PetscBool *which
   PetscFunctionBegin;
   if (v) SETERRQ(PetscObjectComm((PetscObject)bv),PETSC_ERR_SUP,"Orthogonalization against an external vector is not allowed in BVTENSOR");
   ierr = MatDenseGetArray(ctx->S,&pS);CHKERRQ(ierr);
-  ierr = VecGetArray(bv->buffer,&cc);CHKERRQ(ierr);
-  c = cc + k*(bv->nc+bv->m);
-
+  if (!c) {
+    ierr = VecGetArray(bv->buffer,&cc);CHKERRQ(ierr);
+  } else cc = c;
   n = bv->nc+k+ctx->d-1;
   ierr = PetscBLASIntCast(n,&n_);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(lds,&lds_);CHKERRQ(ierr);
@@ -252,7 +252,7 @@ PetscErrorCode BVOrthogonalizeGS1_Tensor(BV bv,PetscInt k,Vec v,PetscBool *which
       if (which && i>=0 && !which[i]) continue;
       /* c_i = ( s_k, s_i ) */
       dot = BLASdot_(&lds_,pS+i*lds,&one,pS+k*lds,&one);
-      ierr = BV_SetValue(bv,i,0,c,dot);CHKERRQ(ierr);
+      ierr = BV_SetValue(bv,i,0,cc,dot);CHKERRQ(ierr);
       /* s_k = s_k - c_i s_i */
       dot = -dot;
       PetscStackCallBLAS("BLASaxpy",BLASaxpy_(&lds_,&dot,pS+i*lds,&one,pS+k*lds,&one));
@@ -260,22 +260,22 @@ PetscErrorCode BVOrthogonalizeGS1_Tensor(BV bv,PetscInt k,Vec v,PetscBool *which
 
   } else {  /* classical Gram-Schmidt */
 
-    /* c = S_{0:k-1}^* s_k */
+    /* cc = S_{0:k-1}^* s_k */
     x = pS+k*lds;
-    PetscStackCallBLAS("BLASgemv",BLASgemv_("C",&n_,&k_,&sone,pS,&lds_,x,&one,&szero,c,&one));
+    PetscStackCallBLAS("BLASgemv",BLASgemv_("C",&n_,&k_,&sone,pS,&lds_,x,&one,&szero,cc,&one));
     for (i=1;i<ctx->d;i++) {
       x = pS+i*ctx->ld+k*lds;
-      PetscStackCallBLAS("BLASgemv",BLASgemv_("C",&n_,&k_,&sone,pS+i*ctx->ld,&lds_,x,&one,&sone,c,&one));
+      PetscStackCallBLAS("BLASgemv",BLASgemv_("C",&n_,&k_,&sone,pS+i*ctx->ld,&lds_,x,&one,&sone,cc,&one));
     }
-    /* s_k = s_k - S_{0:k-1} c */
+    /* s_k = s_k - S_{0:k-1} cc */
     for (i=0;i<ctx->d;i++) {
       x = pS+i*ctx->ld+k*lds;
-      PetscStackCallBLAS("BLASgemv",BLASgemv_("N",&n_,&k_,&sonem,pS+i*ctx->ld,&lds_,c,&one,&sone,x,&one));
+      PetscStackCallBLAS("BLASgemv",BLASgemv_("N",&n_,&k_,&sonem,pS+i*ctx->ld,&lds_,cc,&one,&sone,x,&one));
     }
   }
 
   if (norm) *norm = BLASnrm2_(&lds_,pS+k*lds,&one);
-  ierr = BV_AddCoefficients(bv,k,h,c);CHKERRQ(ierr);
+  ierr = BV_AddCoefficients(bv,k,h,cc);CHKERRQ(ierr);
   ierr = MatDenseRestoreArray(ctx->S,&pS);CHKERRQ(ierr);
   ierr = VecRestoreArray(bv->buffer,&cc);CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -388,7 +388,7 @@ static PetscErrorCode BVTensorCompress_Tensor(BV V,PetscInt newc)
   PetscErrorCode ierr;
   BV_TENSOR      *ctx = (BV_TENSOR*)V->data;
   PetscInt       nwu=0,nrwu=0,nnc,nrow,lwa;
-  PetscInt       i,j,k,n,lds=ctx->ld*ctx->d,deg=ctx->d,lock=V->l,cs1=V->k,rs1=ctx->U->k,rk=0,offu;
+  PetscInt       i,j,k,n,lds=ctx->ld*ctx->d,deg=ctx->d,lock,cs1=V->k,rs1=ctx->U->k,rk=0,offu;
   PetscScalar    *S,*M,*Z,*pQ,*SS,*SS2,t,sone=1.0,zero=0.0,mone=-1.0,*p,*tau,*work;
   PetscReal      *sg,tol,*rwork;
   PetscBLASInt   cs1_,rs1_,cs1tdeg,n_,info,lw_,newc_,newctdeg,nnc_,nrow_,nnctdeg,lds_,rk_;
@@ -398,6 +398,7 @@ static PetscErrorCode BVTensorCompress_Tensor(BV V,PetscInt newc)
   if (!cs1) PetscFunctionReturn(0);
   lwa = 6*ctx->ld*lds+2*cs1;
   n = PetscMin(rs1,deg*cs1);
+  lock = ctx->U->l;
   nnc = cs1-lock-newc;
   nrow = rs1-lock;
   ierr = PetscMalloc6(deg*newc*nnc,&SS,newc*nnc,&SS2,(rs1+lock+newc)*n,&pQ,deg*rs1,&tau,lwa,&work,6*n,&rwork);CHKERRQ(ierr);
@@ -474,7 +475,7 @@ static PetscErrorCode BVTensorCompress_Tensor(BV V,PetscInt newc)
 #endif
   SlepcCheckLapackInfo("gesvd",info);
   tol = PetscMax(rs1,deg*cs1)*PETSC_MACHINE_EPSILON*sg[0];
-  for (i=0;i<PetscMin(n_,nnctdeg);i++) if (sg[i]>tol) rk++;
+  for (i=0;i<PetscMin(nrow,nnctdeg);i++) if (sg[i]>tol) rk++;
   rk = PetscMin(nnc+deg-1,rk);
   /* the SVD has rank (at most) nnc+deg-1 */
   for (i=0;i<rk;i++) {
@@ -515,7 +516,6 @@ static PetscErrorCode BVTensorCompress_Tensor(BV V,PetscInt newc)
   rk = rk+lock;
   for (i=0;i<lock;i++) pQ[(i+1)*rs1] = 1.0;
   ierr = MatCreateSeqDense(PETSC_COMM_SELF,rs1,rk,pQ,&Q);CHKERRQ(ierr);
-  ctx->U->l = lock;
   ctx->U->k = rs1;
   ierr = BVMultInPlace(ctx->U,Q,lock,rk);CHKERRQ(ierr);
   ierr = MatDestroy(&Q);CHKERRQ(ierr);
@@ -525,8 +525,7 @@ static PetscErrorCode BVTensorCompress_Tensor(BV V,PetscInt newc)
   ierr = MatDenseRestoreArray(ctx->S,&S);CHKERRQ(ierr);
 
   /* set active columns */
-  V->l = lock+newc;
-  ctx->U->l = 0;
+  if (newc) ctx->U->l += newc;
   ctx->U->k = rk;
   PetscFunctionReturn(0);
 #endif
@@ -550,9 +549,9 @@ static PetscErrorCode BVTensorCompress_Tensor(BV V,PetscInt newc)
    U are employed. This can be achieved by means of an update that involves the
    SVD of the low-rank matrix [S_0 S_1 ... S_{d-1}], where S_i are the pieces of S.
 
-   If newc is nonzero, it indicates that further modifications must be done so
-   that these columns are locked, which implies setting zeros in the appropriate
-   entries of S. Then the number of leading columns of V is increased by newc.
+   If newc is nonzero, then newc columns are added to the leading columns of V.
+   This means that the corresponding columns of the U and S factors will remain
+   invariant in subsequent operations.
 
    Level: advanced
 
