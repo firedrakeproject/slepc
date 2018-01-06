@@ -249,7 +249,13 @@ PETSC_INTERN PetscErrorCode BVDotVec_BLAS_Private(BV,PetscInt,PetscInt,const Pet
 PETSC_INTERN PetscErrorCode BVScale_BLAS_Private(BV,PetscInt,PetscScalar*,PetscScalar);
 PETSC_INTERN PetscErrorCode BVNorm_LAPACK_Private(BV,PetscInt,PetscInt,const PetscScalar*,NormType,PetscReal*,PetscBool);
 PETSC_INTERN PetscErrorCode BVMatCholInv_LAPACK_Private(BV,Mat,Mat);
-PETSC_INTERN PetscErrorCode BVOrthogonalize_LAPACK_Private(BV,PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscInt);
+PETSC_INTERN PetscErrorCode BVMatTriInv_LAPACK_Private(BV,Mat,Mat);
+PETSC_INTERN PetscErrorCode BVOrthogonalize_LAPACK_TSQR(BV,PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscInt);
+PETSC_INTERN PetscErrorCode BVOrthogonalize_LAPACK_TSQR_OnlyR(BV,PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscInt);
+
+/* reduction operation used in BVOrthogonalize */
+PETSC_EXTERN MPI_Op MPIU_TSQR;
+PETSC_EXTERN void SlepcGivensPacked(void*,void*,PetscMPIInt*,MPI_Datatype*);
 
 #if defined(PETSC_HAVE_VECCUDA)
 #include <petsccuda.h>

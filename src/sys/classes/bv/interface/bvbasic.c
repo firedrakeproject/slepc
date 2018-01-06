@@ -992,6 +992,7 @@ PetscErrorCode BVSetOrthogonalization(BV bv,BVOrthogType type,BVOrthogRefineType
     case BV_ORTHOG_BLOCK_GS:
     case BV_ORTHOG_BLOCK_CHOL:
     case BV_ORTHOG_BLOCK_TSQR:
+    case BV_ORTHOG_BLOCK_TSQRCHOL:
       bv->orthog_block = block;
       break;
     default:

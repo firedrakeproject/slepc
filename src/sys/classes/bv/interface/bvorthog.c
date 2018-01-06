@@ -652,9 +652,37 @@ static PetscErrorCode BVOrthogonalize_TSQR(BV V,Mat Rin)
   ierr = MatGetSize(R,&ldr,NULL);CHKERRQ(ierr);
   ierr = MatDenseGetArray(R,&r);CHKERRQ(ierr);
   ierr = BVGetArray(V,&pv);CHKERRQ(ierr);
-  ierr = BVOrthogonalize_LAPACK_Private(V,V->n,V->k-V->l,pv+(V->nc+V->l)*V->n,r+V->l*ldr+V->l,ldr);CHKERRQ(ierr);
+  ierr = BVOrthogonalize_LAPACK_TSQR(V,V->n,V->k-V->l,pv+(V->nc+V->l)*V->n,r+V->l*ldr+V->l,ldr);CHKERRQ(ierr);
   ierr = BVRestoreArray(V,&pv);CHKERRQ(ierr);
   ierr = MatDenseRestoreArray(R,&r);CHKERRQ(ierr);
+  if (Rin) { ierr = BV_StoreCoeffsBlock_Default(V,Rin);CHKERRQ(ierr); }
+  PetscFunctionReturn(0);
+}
+
+/*
+   Orthogonalize a set of vectors with TSQR, but computing R only, then doing Q=V*inv(R)
+ */
+static PetscErrorCode BVOrthogonalize_TSQRCHOL(BV V,Mat Rin)
+{
+  PetscErrorCode ierr;
+  PetscScalar    *pv,*r=NULL;
+  PetscInt       ldr;
+  Mat            R,S;
+
+  PetscFunctionBegin;
+  ierr = BV_GetBufferMat(V);CHKERRQ(ierr);
+  R = V->Abuffer;
+  if (Rin) S = Rin;   /* use Rin as a workspace for S */
+  else S = R;
+  if (V->l) { ierr = BVOrthogonalize_BlockGS(V,R);CHKERRQ(ierr); }
+  ierr = MatGetSize(R,&ldr,NULL);CHKERRQ(ierr);
+  ierr = MatDenseGetArray(R,&r);CHKERRQ(ierr);
+  ierr = BVGetArray(V,&pv);CHKERRQ(ierr);
+  ierr = BVOrthogonalize_LAPACK_TSQR_OnlyR(V,V->n,V->k-V->l,pv+(V->nc+V->l)*V->n,r+V->l*ldr+V->l,ldr);CHKERRQ(ierr);
+  ierr = BVRestoreArray(V,&pv);CHKERRQ(ierr);
+  ierr = MatDenseRestoreArray(R,&r);CHKERRQ(ierr);
+  ierr = BVMatTriInv_LAPACK_Private(V,R,S);CHKERRQ(ierr);
+  ierr = BVMultInPlace(V,S,V->l,V->k);CHKERRQ(ierr);
   if (Rin) { ierr = BV_StoreCoeffsBlock_Default(V,Rin);CHKERRQ(ierr); }
   PetscFunctionReturn(0);
 }
@@ -737,6 +765,10 @@ PetscErrorCode BVOrthogonalize(BV V,Mat R)
   case BV_ORTHOG_BLOCK_TSQR:
     if (V->matrix) SETERRQ(PetscObjectComm((PetscObject)V),PETSC_ERR_SUP,"Orthogonalization method not available for non-standard inner product");
     ierr = BVOrthogonalize_TSQR(V,R);CHKERRQ(ierr);
+    break;
+  case BV_ORTHOG_BLOCK_TSQRCHOL:
+    if (V->matrix) SETERRQ(PetscObjectComm((PetscObject)V),PETSC_ERR_SUP,"Orthogonalization method not available for non-standard inner product");
+    ierr = BVOrthogonalize_TSQRCHOL(V,R);CHKERRQ(ierr);
     break;
   }
   ierr = PetscLogEventEnd(BV_Orthogonalize,V,R,0,0);CHKERRQ(ierr);

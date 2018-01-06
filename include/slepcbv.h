@@ -80,7 +80,8 @@ PETSC_EXTERN const char *BVOrthogRefineTypes[];
 E*/
 typedef enum { BV_ORTHOG_BLOCK_GS,
                BV_ORTHOG_BLOCK_CHOL,
-               BV_ORTHOG_BLOCK_TSQR } BVOrthogBlockType;
+               BV_ORTHOG_BLOCK_TSQR,
+               BV_ORTHOG_BLOCK_TSQRCHOL } BVOrthogBlockType;
 PETSC_EXTERN const char *BVOrthogBlockTypes[];
 
 /*E

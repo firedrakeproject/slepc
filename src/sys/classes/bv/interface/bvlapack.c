@@ -82,7 +82,7 @@ PetscErrorCode BVMatCholInv_LAPACK_Private(BV bv,Mat R,Mat S)
   PetscErrorCode ierr;
   PetscInt       i,k,l,n,m,ld,lds;
   PetscScalar    *pR,*pS;
-  PetscBLASInt   info,n_,l_,m_,ld_,lds_;
+  PetscBLASInt   info,n_,m_,ld_,lds_;
 
   PetscFunctionBegin;
   l = bv->l;
@@ -90,7 +90,6 @@ PetscErrorCode BVMatCholInv_LAPACK_Private(BV bv,Mat R,Mat S)
   ierr = MatGetSize(R,&m,NULL);CHKERRQ(ierr);
   n = k-l;
   ierr = PetscBLASIntCast(m,&m_);CHKERRQ(ierr);
-  ierr = PetscBLASIntCast(l,&l_);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(n,&n_);CHKERRQ(ierr);
   ld  = m;
   ld_ = m_;
@@ -137,7 +136,7 @@ PetscErrorCode BVMatCholInv_LAPACK_Private(BV bv,Mat R,Mat S)
     PetscStackCallBLAS("LAPACKtrtri",LAPACKtrtri_("U","N",&n_,pS+l*lds+l,&lds_,&info));
   }
   SlepcCheckLapackInfo("trtri",info);
-  ierr = PetscLogFlops(1.0*n*n*n);CHKERRQ(ierr);
+  ierr = PetscLogFlops(0.33*n*n*n);CHKERRQ(ierr);
 
   /* Zero out entries below the diagonal */
   for (i=l;i<k-1;i++) {
@@ -151,9 +150,65 @@ PetscErrorCode BVMatCholInv_LAPACK_Private(BV bv,Mat R,Mat S)
 }
 
 /*
+   Compute the inverse of an upper triangular matrix R, store it S.
+   If S == R then the inverse overwrites R.
+ */
+PetscErrorCode BVMatTriInv_LAPACK_Private(BV bv,Mat R,Mat S)
+{
+#if defined(SLEPC_MISSING_LAPACK_TRTRI)
+  PetscFunctionBegin;
+  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"TRTRI - Lapack routine is unavailable");
+#else
+  PetscErrorCode ierr;
+  PetscInt       i,k,l,n,m,ld,lds;
+  PetscScalar    *pR,*pS;
+  PetscBLASInt   info,n_,m_,ld_,lds_;
+
+  PetscFunctionBegin;
+  l = bv->l;
+  k = bv->k;
+  ierr = MatGetSize(R,&m,NULL);CHKERRQ(ierr);
+  n = k-l;
+  ierr = PetscBLASIntCast(m,&m_);CHKERRQ(ierr);
+  ierr = PetscBLASIntCast(n,&n_);CHKERRQ(ierr);
+  ld  = m;
+  ld_ = m_;
+  ierr = MatDenseGetArray(R,&pR);CHKERRQ(ierr);
+
+  if (S==R) {
+    ierr = BVAllocateWork_Private(bv,m*k);CHKERRQ(ierr);
+    pS = bv->work;
+    lds = ld;
+    lds_ = ld_;
+  } else {
+    ierr = MatDenseGetArray(S,&pS);CHKERRQ(ierr);
+    ierr = MatGetSize(S,&lds,NULL);CHKERRQ(ierr);
+    ierr = PetscBLASIntCast(lds,&lds_);CHKERRQ(ierr);
+  }
+
+  /* compute S = inv(R) */
+  if (S==R) {
+    PetscStackCallBLAS("LAPACKtrtri",LAPACKtrtri_("U","N",&n_,pR+l*ld+l,&ld_,&info));
+  } else {
+    ierr = PetscMemzero(pS+l*lds,(k-l)*k*sizeof(PetscScalar));CHKERRQ(ierr);
+    for (i=l;i<k;i++) {
+      ierr = PetscMemcpy(pS+i*lds+l,pR+i*ld+l,n*sizeof(PetscScalar));CHKERRQ(ierr);
+    }
+    PetscStackCallBLAS("LAPACKtrtri",LAPACKtrtri_("U","N",&n_,pS+l*lds+l,&lds_,&info));
+  }
+  SlepcCheckLapackInfo("trtri",info);
+  ierr = PetscLogFlops(0.33*n*n*n);CHKERRQ(ierr);
+
+  ierr = MatDenseRestoreArray(R,&pR);CHKERRQ(ierr);
+  if (S!=R) { ierr = MatDenseRestoreArray(S,&pS);CHKERRQ(ierr); }
+  PetscFunctionReturn(0);
+#endif
+}
+
+/*
     QR factorization of an mxn matrix via parallel TSQR
 */
-PetscErrorCode BVOrthogonalize_LAPACK_Private(BV bv,PetscInt m_,PetscInt n_,PetscScalar *Q,PetscScalar *R,PetscInt ldr)
+PetscErrorCode BVOrthogonalize_LAPACK_TSQR(BV bv,PetscInt m_,PetscInt n_,PetscScalar *Q,PetscScalar *R,PetscInt ldr)
 {
 #if defined(PETSC_MISSING_LAPACK_GEQRF) || defined(PETSC_MISSING_LAPACK_ORGQR)
   PetscFunctionBegin;
@@ -283,6 +338,96 @@ PetscErrorCode BVOrthogonalize_LAPACK_Private(BV bv,PetscInt m_,PetscInt n_,Pets
       }
     }
 
+    ierr = MPI_Type_free(&tmat);CHKERRQ(ierr);
+  }
+
+  ierr = PetscLogFlops(3.0*m*n*n);CHKERRQ(ierr);
+  ierr = PetscFPTrapPop();CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+#endif
+}
+
+/*
+    Reduction operation to compute [~,Rout]=qr([Rin1;Rin2]) in the TSQR algorithm;
+    all matrices are upper triangular stored in packed format
+*/
+PETSC_EXTERN void SlepcGivensPacked(void *in,void *inout,PetscMPIInt *len,MPI_Datatype *datatype)
+{
+  PetscBLASInt n,i,j,k,one=1;
+  PetscMPIInt  tsize;
+  PetscScalar  v,c,s,*R2=(PetscScalar*)in,*R1=(PetscScalar*)inout;
+
+  PetscFunctionBegin;
+  MPI_Type_size(*datatype,&tsize);  /* we assume len=1 */
+  tsize /= sizeof(PetscScalar);
+  n = (-1+(PetscBLASInt)PetscSqrtReal(1+8*tsize))/2;
+  for (j=0;j<n;j++) {
+    for (i=0;i<=j;i++) {
+      LAPACKlartg_(R1+(2*n-j-1)*j/2+j,R2+(2*n-i-1)*i/2+j,&c,&s,&v);
+      R1[(2*n-j-1)*j/2+j] = v;
+      k = n-j-1;
+      if (k) BLASrot_(&k,R1+(2*n-j-1)*j/2+j+1,&one,R2+(2*n-i-1)*i/2+j+1,&one,&c,&s);
+    }
+  }
+  PetscFunctionReturnVoid();
+}
+
+/*
+    Computes the R factor of the QR factorization of an mxn matrix via parallel TSQR
+*/
+PetscErrorCode BVOrthogonalize_LAPACK_TSQR_OnlyR(BV bv,PetscInt m_,PetscInt n_,PetscScalar *Q,PetscScalar *R,PetscInt ldr)
+{
+#if defined(PETSC_MISSING_LAPACK_GEQRF)
+  PetscFunctionBegin;
+  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"GEQRF - Lapack routine is unavailable");
+#else
+  PetscErrorCode ierr;
+  PetscInt       worklen;
+  PetscBLASInt   m,n,i,j,s,nb,lwork,info;
+  PetscScalar    *tau,*work,*A=NULL,*R1=NULL,*R2=NULL;
+  PetscMPIInt    size,count;
+  MPI_Datatype   tmat;
+
+  PetscFunctionBegin;
+  ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
+  ierr = PetscBLASIntCast(m_,&m);CHKERRQ(ierr);
+  ierr = PetscBLASIntCast(n_,&n);CHKERRQ(ierr);
+  nb = 16;
+  s  = n+n*(n-1)/2;  /* length of packed triangular matrix */
+  ierr = MPI_Comm_size(PetscObjectComm((PetscObject)bv),&size);CHKERRQ(ierr);
+  worklen = n+n*nb+2*s+m*n;
+  ierr = BVAllocateWork_Private(bv,worklen);CHKERRQ(ierr);
+  tau  = bv->work;
+  work = bv->work+n;
+  R1   = bv->work+n+n*nb;
+  R2   = bv->work+n+n*nb+s;
+  A    = bv->work+n+n*nb+2*s;
+  ierr = PetscBLASIntCast(n*nb,&lwork);CHKERRQ(ierr);
+  ierr = PetscMemcpy(A,Q,m*n*sizeof(PetscScalar));CHKERRQ(ierr);
+
+  /* Compute QR */
+  PetscStackCallBLAS("LAPACKgeqrf",LAPACKgeqrf_(&m,&n,A,&m,tau,work,&lwork,&info));
+  SlepcCheckLapackInfo("geqrf",info);
+
+  if (size==1) {
+    /* Extract R */
+    for (j=0;j<n;j++) {
+      for (i=0;i<=PetscMin(j,m-1);i++) R[i+j*ldr] = A[i+j*m];
+      for (i=PetscMin(j,m-1)+1;i<n;i++) R[i+j*ldr] = 0.0;
+    }
+  } else {
+    /* Use MPI reduction operation to obtain global R */
+    ierr = PetscMPIIntCast(s,&count);CHKERRQ(ierr);
+    ierr = MPI_Type_contiguous(count,MPIU_SCALAR,&tmat);CHKERRQ(ierr);
+    ierr = MPI_Type_commit(&tmat);CHKERRQ(ierr);
+    for (i=0;i<n;i++) {
+      for (j=i;j<n;j++) R1[(2*n-i-1)*i/2+j] = (i<m)?A[i+j*m]:0.0;
+    }
+    ierr = MPI_Allreduce(R1,R2,1,tmat,MPIU_TSQR,PetscObjectComm((PetscObject)bv));CHKERRQ(ierr);
+    for (i=0;i<n;i++) {
+      for (j=0;j<i;j++) R[i+j*ldr] = 0.0;
+      for (j=i;j<n;j++) R[i+j*ldr] = R2[(2*n-i-1)*i/2+j];
+    }
     ierr = MPI_Type_free(&tmat);CHKERRQ(ierr);
   }
 
