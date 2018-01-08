@@ -25,11 +25,17 @@ PetscErrorCode PEPExtractVectors_TOAR(PEP pep)
   PetscReal      norm,max,factor=1.0;
   Vec            xr,xi,w[4];
   PEP_TOAR       *ctx = (PEP_TOAR*)pep->data;
-  Mat            S0;
+  Mat            S0,MS;
 
   PetscFunctionBegin;
-  S = ctx->S;
-  ld = ctx->ld;
+  if (ctx->V) {
+    ierr = BVTensorGetFactors(ctx->V,NULL,&MS);CHKERRQ(ierr);
+    ierr = MatDenseGetArray(MS,&S);CHKERRQ(ierr);
+    ierr = BVGetSizes(pep->V,NULL,NULL,&ld);CHKERRQ(ierr);
+  } else {
+    S = ctx->S;
+    ld = ctx->ld;
+  }
   k = pep->nconv;
   if (k==0) PetscFunctionReturn(0);
   lds = deg*ld;
@@ -163,6 +169,10 @@ PetscErrorCode PEPExtractVectors_TOAR(PEP pep)
   ierr = BVMultInPlace(pep->V,S0,0,k);CHKERRQ(ierr);
   ierr = MatDestroy(&S0);CHKERRQ(ierr);
   ierr = PetscFree5(er,ei,SS,vals,ivals);CHKERRQ(ierr);
+  if (ctx->V) {
+    ierr = MatDenseRestoreArray(MS,&S);CHKERRQ(ierr);
+    ierr = BVTensorRestoreFactors(ctx->V,NULL,&MS);CHKERRQ(ierr);
+  }
   PetscFunctionReturn(0);
 }
 

@@ -20,6 +20,7 @@ typedef struct {
   PetscInt    d;            /* polynomial degree */
   PetscInt    ld;           /* leading dimension of auxiliary matrices */
   PetscScalar *S,*qB;       /* auxiliary matrices */
+  BV          V;            /* tensor basis vectors object for the linearization */
 } PEP_TOAR;
 
 #endif
