@@ -74,7 +74,7 @@ def WriteModulesFile(modules,version,sdir):
   modules.write('set slepc_dir %s\n' % sdir)
   modules.write('setenv SLEPC_DIR $slepc_dir\n')
 
-def WritePkgconfigFile(pkgconfig,version,pversion,sdir,isinstall,prefixdir,slflag):
+def WritePkgconfigFile(pkgconfig,version,pversion,sdir,isinstall,prefixdir):
   ''' Write the contents of the pkg-config file '''
   pkgconfig.write('prefix=%s\n' % prefixdir)
   pkgconfig.write('exec_prefix=${prefix}\n')
@@ -88,8 +88,6 @@ def WritePkgconfigFile(pkgconfig,version,pversion,sdir,isinstall,prefixdir,slfla
   if not isinstall:
     pkgconfig.write(' -I'+os.path.join(sdir,'include'))
   pkgconfig.write('\nLibs:')
-  if slflag:
-    pkgconfig.write(' %s${libdir}' % slflag)
   pkgconfig.write(' -L${libdir} -lslepc\n')
 
 def WriteCMakeConfigFile(cmakeconf):
@@ -338,7 +336,7 @@ else:
 log.write('pkg-config file in '+pkgconfdir)
 slflag = ''
 if petsc.buildsharedlib: slflag = petsc.slflag
-WritePkgconfigFile(pkgconfig,slepc.lversion,petsc.version,slepc.dir,slepc.isinstall,slepc.prefixdir,slflag)
+WritePkgconfigFile(pkgconfig,slepc.lversion,petsc.version,slepc.dir,slepc.isinstall,slepc.prefixdir)
 log.write('CMake configure file in '+confdir)
 WriteCMakeConfigFile(cmakeconf)
 
