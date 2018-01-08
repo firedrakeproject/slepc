@@ -1147,7 +1147,6 @@ PetscErrorCode NEPSolve_NLEIGS(NEP nep)
           ierr = DSRestoreArray(nep->ds,DS_MAT_B,&H);CHKERRQ(ierr);
           ierr = DSRestoreArray(nep->ds,DS_MAT_A,&K);CHKERRQ(ierr);
           ierr = DSRestoreArray(nep->ds,DS_MAT_Q,&Q);CHKERRQ(ierr);
-          ierr = DSSetDimensions(nep->ds,k+l,0,nep->nconv,0);CHKERRQ(ierr);
         }
       }
     }
@@ -1188,6 +1187,12 @@ PetscErrorCode NEPSolve_NLEIGS(NEP nep)
   nep->nconv = nconv;
   if (nep->nconv>0) {
     nq = nep->nconv;
+    ierr = BVSetActiveColumns(ctx->V,0,nep->nconv);CHKERRQ(ierr);
+    if (ctx->nshifts) {
+      ierr = DSGetMat(nep->ds,DS_MAT_B,&MQ);CHKERRQ(ierr);
+      ierr = BVMultInPlace(ctx->V,MQ,0,nep->nconv);CHKERRQ(ierr);
+      ierr = MatDestroy(&MQ);CHKERRQ(ierr);
+    }
     ierr = PetscMalloc1(nq*nep->nconv,&pU);CHKERRQ(ierr);
     for (i=0;i<nep->nconv;i++) {
       ierr = PetscMemcpy(pU+i*nq,S+i*lds,nq*sizeof(PetscScalar));CHKERRQ(ierr);
