@@ -11,7 +11,7 @@
    Tensor BV that is represented in compact form as V = (I otimes U) S
 */
 
-#include <slepc/private/bvimpl.h>
+#include <slepc/private/bvimpl.h>      /*I "slepcbv.h" I*/
 #include <slepcblaslapack.h>
 
 typedef struct {
