@@ -476,15 +476,15 @@ PetscErrorCode BVCopy_Svec_CUDA(BV V,BV W)
 
 PetscErrorCode BVCopyColumn_Svec_CUDA(BV V,PetscInt j,PetscInt i)
 {
-  PetscErrorCode    ierr;
-  BV_SVEC           *v = (BV_SVEC*)V->data;
-  const PetscScalar *d_pv;
-  cudaError_t       err;
+  PetscErrorCode ierr;
+  BV_SVEC        *v = (BV_SVEC*)V->data;
+  PetscScalar    *d_pv;
+  cudaError_t    err;
 
   PetscFunctionBegin;
-  ierr = VecCUDAGetArrayRead(v->v,&d_pv);CHKERRQ(ierr);
+  ierr = VecCUDAGetArrayReadWrite(v->v,&d_pv);CHKERRQ(ierr);
   err = cudaMemcpy(d_pv+(V->nc+i)*V->n,d_pv+(V->nc+j)*V->n,V->n*sizeof(PetscScalar),cudaMemcpyDeviceToDevice);CHKERRCUDA(err);
-  ierr = VecCUDARestoreArrayRead(v->v,&d_pv);CHKERRQ(ierr);
+  ierr = VecCUDARestoreArrayReadWrite(v->v,&d_pv);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
