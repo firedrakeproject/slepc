@@ -28,14 +28,9 @@ PetscErrorCode PEPExtractVectors_TOAR(PEP pep)
   Mat            S0,MS;
 
   PetscFunctionBegin;
-  if (ctx->V) {
-    ierr = BVTensorGetFactors(ctx->V,NULL,&MS);CHKERRQ(ierr);
-    ierr = MatDenseGetArray(MS,&S);CHKERRQ(ierr);
-    ierr = BVGetSizes(pep->V,NULL,NULL,&ld);CHKERRQ(ierr);
-  } else {
-    S = ctx->S;
-    ld = ctx->ld;
-  }
+  ierr = BVTensorGetFactors(ctx->V,NULL,&MS);CHKERRQ(ierr);
+  ierr = MatDenseGetArray(MS,&S);CHKERRQ(ierr);
+  ierr = BVGetSizes(pep->V,NULL,NULL,&ld);CHKERRQ(ierr);
   k = pep->nconv;
   if (k==0) PetscFunctionReturn(0);
   lds = deg*ld;

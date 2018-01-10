@@ -260,6 +260,7 @@ static PetscErrorCode PEPTOARrun(PEP pep,PetscScalar sigma,PetscScalar *H,PetscI
     ierr = BVScaleColumn(ctx->V,j+1,1.0/norm);CHKERRQ(ierr);
     ierr = BVSetActiveColumns(pep->V,l,nqt);CHKERRQ(ierr);
   }
+  ierr = BVSetActiveColumns(ctx->V,0,*M);CHKERRQ(ierr);
   ierr = MatDenseRestoreArray(MS,&S);CHKERRQ(ierr);
   ierr = BVTensorRestoreFactors(ctx->V,NULL,&MS);CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -476,8 +477,6 @@ PetscErrorCode PEPSolve_TOAR(PEP pep)
   if (ctx->lock) {
     ierr = PetscOptionsGetBool(NULL,NULL,"-pep_toar_falselocking",&falselock,NULL);CHKERRQ(ierr);
   }
-  ierr = BVGetSizes(pep->V,NULL,NULL,&ld);CHKERRQ(ierr);
-  lds = deg*ld;
   ierr = DSGetLeadingDimension(pep->ds,&ldds);CHKERRQ(ierr);
   ierr = STGetShift(pep->st,&sigma);CHKERRQ(ierr);
 
@@ -594,6 +593,8 @@ PetscErrorCode PEPSolve_TOAR(PEP pep)
       ierr = BVTensorGetFactors(ctx->V,NULL,&MS);CHKERRQ(ierr);
       ierr = MatDenseGetArray(MS,&S);CHKERRQ(ierr);
       ierr = DSGetArray(pep->ds,DS_MAT_A,&H);CHKERRQ(ierr);
+      ierr = BVGetSizes(pep->V,NULL,NULL,&ld);CHKERRQ(ierr);
+      lds = deg*ld;
       ierr = PEPExtractInvariantPair(pep,sigma,nq,pep->nconv,S,ld,deg,H,ldds);CHKERRQ(ierr);
       ierr = DSRestoreArray(pep->ds,DS_MAT_A,&H);CHKERRQ(ierr);
       ierr = DSSetDimensions(pep->ds,pep->nconv,0,0,0);CHKERRQ(ierr);
