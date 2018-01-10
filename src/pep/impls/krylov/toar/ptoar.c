@@ -206,7 +206,7 @@ static PetscErrorCode PEPTOARCoefficients(PEP pep,PetscBool sinvert,PetscScalar 
 /*
   Compute a run of Arnoldi iterations dim(work)=ld
 */
-static PetscErrorCode PEPTOARrun(PEP pep,PetscScalar sigma,PetscScalar *H,PetscInt ldh,PetscInt k,PetscInt *M,PetscBool *breakdown,PetscScalar *work,Vec *t_)
+static PetscErrorCode PEPTOARrun(PEP pep,PetscScalar sigma,PetscScalar *H,PetscInt ldh,PetscInt k,PetscInt *M,PetscBool *breakdown,Vec *t_)
 {
   PetscErrorCode ierr;
   PEP_TOAR       *ctx = (PEP_TOAR*)pep->data;
@@ -297,16 +297,15 @@ static PetscErrorCode PEPEvaluateBasisM(PEP pep,PetscInt k,PetscScalar *T,PetscI
   PetscFunctionReturn(0);
 }
 
-/* dim(work)=6*sr*k;*/
-static PetscErrorCode PEPExtractInvariantPair(PEP pep,PetscScalar sigma,PetscInt sr,PetscInt k,PetscScalar *S,PetscInt ld,PetscInt deg,PetscScalar *H,PetscInt ldh,PetscScalar *work)
+static PetscErrorCode PEPExtractInvariantPair(PEP pep,PetscScalar sigma,PetscInt sr,PetscInt k,PetscScalar *S,PetscInt ld,PetscInt deg,PetscScalar *H,PetscInt ldh)
 {
 #if defined(PETSC_MISSING_LAPACK_GESV) || defined(PETSC_MISSING_LAPACK_GETRI) || defined(PETSC_MISSING_LAPACK_GETRF)
   PetscFunctionBegin;
   SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"GESV/GETRI/GETRF - Lapack routine is unavailable");
 #else
   PetscErrorCode ierr;
-  PetscInt       nw,i,j,jj,nwu=0,lds,ldt,d=pep->nmat-1,idxcpy=0;
-  PetscScalar    *At,*Bt,*Hj,*Hp,*T,sone=1.0,g,a,*pM;
+  PetscInt       i,j,jj,lds,ldt,d=pep->nmat-1,idxcpy=0;
+  PetscScalar    *At,*Bt,*Hj,*Hp,*T,sone=1.0,g,a,*pM,*work;
   PetscBLASInt   k_,sr_,lds_,ldh_,info,*p,lwork,ldt_;
   PetscBool      transf=PETSC_FALSE,flg;
   PetscReal      nrm,norm,maxnrm,*rwork;
@@ -316,19 +315,8 @@ static PetscErrorCode PEPExtractInvariantPair(PEP pep,PetscScalar sigma,PetscInt
 
   PetscFunctionBegin;
   if (k==0) PetscFunctionReturn(0);
-  nw = 6*sr*k;
   lds = deg*ld;
-  At = work+nwu;
-  nwu += sr*k;
-  Bt = work+nwu;
-  nwu += k*k;
-  ierr = PetscMemzero(Bt,k*k*sizeof(PetscScalar));CHKERRQ(ierr);
-  Hj = work+nwu;
-  nwu += k*k;
-  Hp = work+nwu;
-  nwu += k*k;
-  ierr = PetscMemzero(Hp,k*k*sizeof(PetscScalar));CHKERRQ(ierr);
-  ierr = PetscMalloc1(k,&p);CHKERRQ(ierr);
+  ierr = PetscCalloc6(k,&p,sr*k,&At,k*k,&Bt,k*k,&Hj,k*k,&Hp,sr*k,&work);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(sr,&sr_);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(k,&k_);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(lds,&lds_);CHKERRQ(ierr);
@@ -339,17 +327,16 @@ static PetscErrorCode PEPExtractInvariantPair(PEP pep,PetscScalar sigma,PetscInt
     if (flg || sigma!=0.0) transf=PETSC_TRUE;
   }
   if (transf) {
+    ierr = PetscMalloc1(k*k,&T);CHKERRQ(ierr);
     ldt = k;
-    T = work+nwu;
-    nwu += k*k;
     for (i=0;i<k;i++) {
       ierr = PetscMemcpy(T+k*i,H+i*ldh,k*sizeof(PetscScalar));CHKERRQ(ierr);
     }
     if (flg) {
       PetscStackCallBLAS("LAPACKgetrf",LAPACKgetrf_(&k_,&k_,T,&k_,p,&info));
       SlepcCheckLapackInfo("getrf",info);
-      ierr = PetscBLASIntCast(nw-nwu,&lwork);CHKERRQ(ierr);
-      PetscStackCallBLAS("LAPACKgetri",LAPACKgetri_(&k_,T,&k_,p,work+nwu,&lwork,&info));
+      ierr = PetscBLASIntCast(sr*k,&lwork);CHKERRQ(ierr);
+      PetscStackCallBLAS("LAPACKgetri",LAPACKgetri_(&k_,T,&k_,p,work,&lwork,&info));
       SlepcCheckLapackInfo("getri",info);
     }
     if (sigma!=0.0) for (i=0;i<k;i++) T[i+k*i] += sigma;
@@ -467,6 +454,8 @@ static PetscErrorCode PEPExtractInvariantPair(PEP pep,PetscScalar sigma,PetscInt
     break;
   }
   ierr = PetscFree(p);CHKERRQ(ierr);
+  if (transf) { ierr = PetscFree(T);CHKERRQ(ierr); }
+  ierr = PetscFree6(p,At,Bt,Hj,Hp,work);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 #endif
 }
@@ -476,9 +465,9 @@ PetscErrorCode PEPSolve_TOAR(PEP pep)
   PetscErrorCode ierr;
   PEP_TOAR       *ctx = (PEP_TOAR*)pep->data;
   PetscInt       i,j,k,l,nv=0,ld,lds,ldds,newn,nq=0,nconv=0;
-  PetscInt       lwa,lrwa,nwu=0,nmat=pep->nmat,deg=nmat-1;
-  PetscScalar    *S,*work,*H,sigma;
-  PetscReal      beta,*rwork,norm;
+  PetscInt       nmat=pep->nmat,deg=nmat-1;
+  PetscScalar    *S,*H,sigma;
+  PetscReal      beta,norm;
   PetscBool      breakdown=PETSC_FALSE,flg,falselock=PETSC_FALSE,sinv=PETSC_FALSE;
   Mat            MS,MQ;
 
@@ -489,9 +478,6 @@ PetscErrorCode PEPSolve_TOAR(PEP pep)
   }
   ierr = BVGetSizes(pep->V,NULL,NULL,&ld);CHKERRQ(ierr);
   lds = deg*ld;
-  lwa = (deg+6)*ld*lds;
-  lrwa = 7*lds;
-  ierr = PetscMalloc2(lwa,&work,lrwa,&rwork);CHKERRQ(ierr);
   ierr = DSGetLeadingDimension(pep->ds,&ldds);CHKERRQ(ierr);
   ierr = STGetShift(pep->st,&sigma);CHKERRQ(ierr);
 
@@ -535,7 +521,7 @@ PetscErrorCode PEPSolve_TOAR(PEP pep)
     /* compute an nv-step Lanczos factorization */
     nv = PetscMax(PetscMin(nconv+pep->mpd,pep->ncv),nv);
     ierr = DSGetArray(pep->ds,DS_MAT_A,&H);CHKERRQ(ierr);
-    ierr = PEPTOARrun(pep,sigma,H,ldds,pep->nconv+l,&nv,&breakdown,work+nwu,pep->work);CHKERRQ(ierr);
+    ierr = PEPTOARrun(pep,sigma,H,ldds,pep->nconv+l,&nv,&breakdown,pep->work);CHKERRQ(ierr);
     beta = PetscAbsScalar(H[(nv-1)*ldds+nv]);
     ierr = DSRestoreArray(pep->ds,DS_MAT_A,&H);CHKERRQ(ierr);
     ierr = DSSetDimensions(pep->ds,nv,0,pep->nconv,pep->nconv+l);CHKERRQ(ierr);
@@ -608,7 +594,7 @@ PetscErrorCode PEPSolve_TOAR(PEP pep)
       ierr = BVTensorGetFactors(ctx->V,NULL,&MS);CHKERRQ(ierr);
       ierr = MatDenseGetArray(MS,&S);CHKERRQ(ierr);
       ierr = DSGetArray(pep->ds,DS_MAT_A,&H);CHKERRQ(ierr);
-      ierr = PEPExtractInvariantPair(pep,sigma,nq,pep->nconv,S,ld,deg,H,ldds,work+nwu);CHKERRQ(ierr);
+      ierr = PEPExtractInvariantPair(pep,sigma,nq,pep->nconv,S,ld,deg,H,ldds);CHKERRQ(ierr);
       ierr = DSRestoreArray(pep->ds,DS_MAT_A,&H);CHKERRQ(ierr);
       ierr = DSSetDimensions(pep->ds,pep->nconv,0,0,0);CHKERRQ(ierr);
       ierr = DSSetState(pep->ds,DS_STATE_RAW);CHKERRQ(ierr);
@@ -656,8 +642,6 @@ PetscErrorCode PEPSolve_TOAR(PEP pep)
   /* change the state to raw so that DSVectors() computes eigenvectors from scratch */
   ierr = DSSetDimensions(pep->ds,pep->nconv,0,0,0);CHKERRQ(ierr);
   ierr = DSSetState(pep->ds,DS_STATE_RAW);CHKERRQ(ierr);
-
-  ierr = PetscFree2(work,rwork);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
