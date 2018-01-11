@@ -208,8 +208,8 @@ PetscErrorCode BVOrthogonalize_LAPACK_Private(BV bv,PetscInt m_,PetscInt n_,Pets
   }
 
   /* Compute orthogonal matrix in Q */
-  PetscStackCallBLAS("LAPACKungqr",LAPACKungqr_(&m,&k,&k,Q,&m,tau,work,&lwork,&info));
-  SlepcCheckLapackInfo("ungqr",info);
+  PetscStackCallBLAS("LAPACKorgqr",LAPACKorgqr_(&m,&k,&k,Q,&m,tau,work,&lwork,&info));
+  SlepcCheckLapackInfo("orgqr",info);
 
   if (nlevels) {
 
@@ -243,8 +243,8 @@ PetscErrorCode BVOrthogonalize_LAPACK_Private(BV bv,PetscInt m_,PetscInt n_,Pets
         PetscStackCallBLAS("LAPACKgeqrf",LAPACKgeqrf_(&l,&n,A,&l,tau,work,&lwork,&info));
         SlepcCheckLapackInfo("geqrf",info);
         ierr = PetscMemcpy(QQ+(level-1)*n*lda,A,n*lda*sizeof(PetscScalar));CHKERRQ(ierr);
-        PetscStackCallBLAS("LAPACKungqr",LAPACKungqr_(&l,&n,&n,QQ+(level-1)*n*lda,&l,tau,work,&lwork,&info));
-        SlepcCheckLapackInfo("ungqr",info);
+        PetscStackCallBLAS("LAPACKorgqr",LAPACKorgqr_(&l,&n,&n,QQ+(level-1)*n*lda,&l,tau,work,&lwork,&info));
+        SlepcCheckLapackInfo("orgqr",info);
         for (j=0;j<n;j++) {
           for (i=j+1;i<n;i++) A[i+j*lda] = 0.0;
         }

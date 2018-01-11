@@ -453,8 +453,8 @@ static PetscErrorCode PEPTOARTrunc(PEP pep,PetscScalar *S,PetscInt ld,PetscInt d
   for (i=0;i<deg;i++) {
     PetscStackCallBLAS("BLAStrmm",BLAStrmm_("L","U","N","N",&rk_,&nnc_,&sone,pU+offu,&rs1_,S+lock*lds+lock+i*ld,&lds_));
   }
-  PetscStackCallBLAS("LAPACKungqr",LAPACKungqr_(&nrow_,&rk_,&rk_,pU+offu,&rs1_,tau,work+nwu,&lw_,&info));
-  SlepcCheckLapackInfo("ungqr",info);
+  PetscStackCallBLAS("LAPACKorgqr",LAPACKorgqr_(&nrow_,&rk_,&rk_,pU+offu,&rs1_,tau,work+nwu,&lw_,&info));
+  SlepcCheckLapackInfo("orgqr",info);
 
   /* update vectors V(:,idx) = V*Q(:,idx) */
   rk = rk+lock;

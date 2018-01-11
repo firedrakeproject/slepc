@@ -1009,8 +1009,8 @@ static PetscErrorCode PEPNRefUpdateInvPair(PEP pep,PetscInt k,PetscScalar *H,Pet
     for (i=0;i<=j;i++) S[i+j*lds] = dVS[i+j*2*k];
     for (i=j+1;i<k;i++) S[i+j*lds] = 0.0;
   }
-  PetscStackCallBLAS("LAPACKungqr",LAPACKungqr_(&k2_,&k_,&k_,dVS,&k2_,tau,work,&k_,&info));
-  SlepcCheckLapackInfo("ungqr",info);
+  PetscStackCallBLAS("LAPACKorgqr",LAPACKorgqr_(&k2_,&k_,&k_,dVS,&k2_,tau,work,&k_,&info));
+  SlepcCheckLapackInfo("orgqr",info);
   ierr = MatCreateSeqDense(PETSC_COMM_SELF,k,k,NULL,&M0);CHKERRQ(ierr);
   ierr = MatDenseGetArray(M0,&array);CHKERRQ(ierr);
   for (j=0;j<k;j++) {

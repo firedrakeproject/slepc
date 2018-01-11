@@ -434,8 +434,8 @@ PetscErrorCode DSOrthogonalize(DS ds,DSMatType mat,PetscInt cols,PetscInt *lindc
   w = &tau[ltau];
   PetscStackCallBLAS("LAPACKgeqrf",LAPACKgeqrf_(&rA,&cA,&A[ld*l+l],&ld_,tau,w,&lw,&info));
   SlepcCheckLapackInfo("geqrf",info);
-  PetscStackCallBLAS("LAPACKungqr",LAPACKungqr_(&rA,&ltau,&ltau,&A[ld*l+l],&ld_,tau,w,&lw,&info));
-  SlepcCheckLapackInfo("ungqr",info);
+  PetscStackCallBLAS("LAPACKorgqr",LAPACKorgqr_(&rA,&ltau,&ltau,&A[ld*l+l],&ld_,tau,w,&lw,&info));
+  SlepcCheckLapackInfo("orgqr",info);
   if (lindcols) *lindcols = ltau;
 
   ierr = PetscFPTrapPop();CHKERRQ(ierr);

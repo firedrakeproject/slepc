@@ -314,8 +314,8 @@ static PetscErrorCode PEPJDOrthogonalize(PetscInt row,PetscInt col,PetscScalar *
        for (j=0;j<=i;j++) R[i*ldr+j] = X[i*ldx+j];
      }
   }
-  PetscStackCallBLAS("LAPACKungqr",LAPACKungqr_(&row_,&n_,&n_,X,&ldx_,tau,work,&lwork,&info));
-  SlepcCheckLapackInfo("ungqr",info);
+  PetscStackCallBLAS("LAPACKorgqr",LAPACKorgqr_(&row_,&n_,&n_,X,&ldx_,tau,work,&lwork,&info));
+  SlepcCheckLapackInfo("orgqr",info);
   ierr = PetscFree4(p,tau,work,rwork);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 #endif
