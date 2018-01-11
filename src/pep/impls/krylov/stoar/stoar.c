@@ -281,7 +281,7 @@ static PetscErrorCode PEPSTOARrun(PEP pep,PetscReal *a,PetscReal *b,PetscReal *o
     if (j>0) fro = SlepcAbs(fro,b[j-1]);
     if (sym/fro>PetscMax(PETSC_SQRT_MACHINE_EPSILON,10*pep->tol)) {
       *symmlost = PETSC_TRUE;
-      *M=j+1;
+      *M=j;
       break;
     }
   }
@@ -372,9 +372,14 @@ PetscErrorCode PEPSolve_STOAR(PEP pep)
     nv = PetscMin(pep->nconv+pep->mpd,pep->ncv);
     ierr = PEPSTOARrun(pep,a,b,omega,pep->nconv+l,&nv,&breakdown,&symmlost,work+nwu,pep->work);CHKERRQ(ierr);
     beta = b[nv-1];
-    if (symmlost) {
+    if (symmlost && nv==pep->nconv+l) {
       pep->reason = PEP_DIVERGED_SYMMETRY_LOST;
-      if (nv==pep->nconv+l+1) { pep->nconv = nconv; break; }
+      pep->nconv = nconv;
+      if (falselock || !ctx->lock) {
+       ierr = BVSetActiveColumns(ctx->V,0,pep->nconv);CHKERRQ(ierr);
+       ierr = BVTensorCompress(ctx->V,0);CHKERRQ(ierr);
+      }
+      break;
     }
     ierr = DSRestoreArrayReal(pep->ds,DS_MAT_T,&a);CHKERRQ(ierr);
     ierr = DSRestoreArrayReal(pep->ds,DS_MAT_D,&omega);CHKERRQ(ierr);
