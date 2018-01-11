@@ -206,6 +206,100 @@ PetscErrorCode BVMatTriInv_LAPACK_Private(BV bv,Mat R,Mat S)
 }
 
 /*
+   Compute the matrix to be used for post-multiplying the basis in the SVQB
+   block orthogonalization method.
+   On input R = V'*V, on output S = D*U*Lambda^{-1/2} where (U,Lambda) is
+   the eigendecomposition of D*R*D with D=diag(R)^{-1/2}.
+   If S == R then the result overwrites R.
+ */
+PetscErrorCode BVMatSVQB_LAPACK_Private(BV bv,Mat R,Mat S)
+{
+#if defined(SLEPC_MISSING_LAPACK_SYEV)
+  PetscFunctionBegin;
+  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"SYEV - Lapack routine is unavailable");
+#else
+  PetscErrorCode ierr;
+  PetscInt       i,j,k,l,n,m,ld,lds;
+  PetscScalar    *pR,*pS,*D,*work,a;
+  PetscReal      *eig,dummy;
+  PetscBLASInt   info,lwork,n_,m_,ld_,lds_;
+#if defined(PETSC_USE_COMPLEX)
+  PetscReal      *rwork,rdummy;
+#endif
+
+  PetscFunctionBegin;
+  l = bv->l;
+  k = bv->k;
+  ierr = MatGetSize(R,&m,NULL);CHKERRQ(ierr);
+  n = k-l;
+  ierr = PetscBLASIntCast(m,&m_);CHKERRQ(ierr);
+  ierr = PetscBLASIntCast(n,&n_);CHKERRQ(ierr);
+  ld  = m;
+  ld_ = m_;
+  ierr = MatDenseGetArray(R,&pR);CHKERRQ(ierr);
+
+  if (S==R) {
+    pS = pR;
+    lds = ld;
+    lds_ = ld_;
+  } else {
+    ierr = MatDenseGetArray(S,&pS);CHKERRQ(ierr);
+    ierr = MatGetSize(S,&lds,NULL);CHKERRQ(ierr);
+    ierr = PetscBLASIntCast(lds,&lds_);CHKERRQ(ierr);
+  }
+
+  /* workspace query and memory allocation */
+  lwork = -1;
+#if defined(PETSC_USE_COMPLEX)
+  PetscStackCallBLAS("LAPACKsyev",LAPACKsyev_("V","L",&n_,pS,&lds_,&dummy,&a,&lwork,&rdummy,&info));
+  ierr = PetscBLASIntCast((PetscInt)PetscRealPart(a),&lwork);CHKERRQ(ierr);
+  ierr = PetscMalloc4(n,&eig,n,&D,lwork,&work,PetscMax(1,3*n-2),&rwork);CHKERRQ(ierr);
+#else
+  PetscStackCallBLAS("LAPACKsyev",LAPACKsyev_("V","L",&n_,pS,&lds_,&dummy,&a,&lwork,&info));
+  ierr = PetscBLASIntCast((PetscInt)PetscRealPart(a),&lwork);CHKERRQ(ierr);
+  ierr = PetscMalloc3(n,&eig,n,&D,lwork,&work);CHKERRQ(ierr);
+#endif
+
+  /* copy and scale matrix */
+  for (i=l;i<k;i++) D[i-l] = 1.0/PetscSqrtReal(PetscRealPart(pR[i+i*ld]));
+  for (i=l;i<k;i++) for (j=l;j<k;j++) pS[i+j*lds] = pR[i+j*ld]*D[i-l];
+  for (j=l;j<k;j++) for (i=l;i<k;i++) pS[i+j*lds] *= D[j-l];
+
+  /* compute eigendecomposition */
+#if defined(PETSC_USE_COMPLEX)
+  PetscStackCallBLAS("LAPACKsyev",LAPACKsyev_("V","L",&n_,pS+l*lds+l,&lds_,eig,work,&lwork,rwork,&info));
+#else
+  PetscStackCallBLAS("LAPACKsyev",LAPACKsyev_("V","L",&n_,pS+l*lds+l,&lds_,eig,work,&lwork,&info));
+#endif
+  SlepcCheckLapackInfo("syev",info);
+
+  if (S!=R) {   /* R = U' */
+    for (i=l;i<k;i++) for (j=l;j<k;j++) pR[i+j*ld] = pS[j+i*lds];
+  }
+
+  /* compute S = D*U*Lambda^{-1/2} */
+  for (i=l;i<k;i++) for (j=l;j<k;j++) pS[i+j*lds] *= D[i-l];
+  for (j=l;j<k;j++) for (i=l;i<k;i++) pS[i+j*lds] /= PetscSqrtReal(eig[j-l]);
+
+  if (S!=R) {   /* compute R = inv(S) = Lambda^{1/2}*U'/D */
+    for (i=l;i<k;i++) for (j=l;j<k;j++) pR[i+j*ld] *= PetscSqrtReal(eig[i-l]);
+    for (j=l;j<k;j++) for (i=l;i<k;i++) pR[i+j*ld] /= D[j-l];
+  }
+
+#if defined(PETSC_USE_COMPLEX)
+  ierr = PetscFree4(eig,D,work,rwork);CHKERRQ(ierr);
+#else
+  ierr = PetscFree3(eig,D,work);CHKERRQ(ierr);
+#endif
+  ierr = PetscLogFlops(9.0*n*n*n);CHKERRQ(ierr);
+
+  ierr = MatDenseRestoreArray(R,&pR);CHKERRQ(ierr);
+  if (S!=R) { ierr = MatDenseRestoreArray(S,&pS);CHKERRQ(ierr); }
+  PetscFunctionReturn(0);
+#endif
+}
+
+/*
     QR factorization of an mxn matrix via parallel TSQR
 */
 PetscErrorCode BVOrthogonalize_LAPACK_TSQR(BV bv,PetscInt m_,PetscInt n_,PetscScalar *Q,PetscScalar *R,PetscInt ldr)

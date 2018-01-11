@@ -81,7 +81,8 @@ E*/
 typedef enum { BV_ORTHOG_BLOCK_GS,
                BV_ORTHOG_BLOCK_CHOL,
                BV_ORTHOG_BLOCK_TSQR,
-               BV_ORTHOG_BLOCK_TSQRCHOL } BVOrthogBlockType;
+               BV_ORTHOG_BLOCK_TSQRCHOL,
+               BV_ORTHOG_BLOCK_SVQB     } BVOrthogBlockType;
 PETSC_EXTERN const char *BVOrthogBlockTypes[];
 
 /*E

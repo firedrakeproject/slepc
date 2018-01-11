@@ -687,6 +687,27 @@ static PetscErrorCode BVOrthogonalize_TSQRCHOL(BV V,Mat Rin)
   PetscFunctionReturn(0);
 }
 
+/*
+   Orthogonalize a set of vectors with SVQB
+ */
+static PetscErrorCode BVOrthogonalize_SVQB(BV V,Mat Rin)
+{
+  PetscErrorCode ierr;
+  Mat            R,S;
+
+  PetscFunctionBegin;
+  ierr = BV_GetBufferMat(V);CHKERRQ(ierr);
+  R = V->Abuffer;
+  if (Rin) S = Rin;   /* use Rin as a workspace for S */
+  else S = R;
+  if (V->l) { ierr = BVOrthogonalize_BlockGS(V,R);CHKERRQ(ierr); }
+  ierr = BVDot(V,V,R);CHKERRQ(ierr);
+  ierr = BVMatSVQB_LAPACK_Private(V,R,S);CHKERRQ(ierr);
+  ierr = BVMultInPlace(V,S,V->l,V->k);CHKERRQ(ierr);
+  if (Rin) { ierr = BV_StoreCoeffsBlock_Default(V,Rin);CHKERRQ(ierr); }
+  PetscFunctionReturn(0);
+}
+
 /*@
    BVOrthogonalize - Orthogonalize all columns (starting from the leading ones),
    that is, compute the QR decomposition.
@@ -769,6 +790,9 @@ PetscErrorCode BVOrthogonalize(BV V,Mat R)
   case BV_ORTHOG_BLOCK_TSQRCHOL:
     if (V->matrix) SETERRQ(PetscObjectComm((PetscObject)V),PETSC_ERR_SUP,"Orthogonalization method not available for non-standard inner product");
     ierr = BVOrthogonalize_TSQRCHOL(V,R);CHKERRQ(ierr);
+    break;
+  case BV_ORTHOG_BLOCK_SVQB:
+    ierr = BVOrthogonalize_SVQB(V,R);CHKERRQ(ierr);
     break;
   }
   ierr = PetscLogEventEnd(BV_Orthogonalize,V,R,0,0);CHKERRQ(ierr);

@@ -250,6 +250,7 @@ PETSC_INTERN PetscErrorCode BVScale_BLAS_Private(BV,PetscInt,PetscScalar*,PetscS
 PETSC_INTERN PetscErrorCode BVNorm_LAPACK_Private(BV,PetscInt,PetscInt,const PetscScalar*,NormType,PetscReal*,PetscBool);
 PETSC_INTERN PetscErrorCode BVMatCholInv_LAPACK_Private(BV,Mat,Mat);
 PETSC_INTERN PetscErrorCode BVMatTriInv_LAPACK_Private(BV,Mat,Mat);
+PETSC_INTERN PetscErrorCode BVMatSVQB_LAPACK_Private(BV,Mat,Mat);
 PETSC_INTERN PetscErrorCode BVOrthogonalize_LAPACK_TSQR(BV,PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscInt);
 PETSC_INTERN PetscErrorCode BVOrthogonalize_LAPACK_TSQR_OnlyR(BV,PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscInt);
 

@@ -20,7 +20,7 @@ MPI_Op MPIU_TSQR = 0;
 
 const char *BVOrthogTypes[] = {"CGS","MGS","BVOrthogType","BV_ORTHOG_",0};
 const char *BVOrthogRefineTypes[] = {"IFNEEDED","NEVER","ALWAYS","BVOrthogRefineType","BV_ORTHOG_REFINE_",0};
-const char *BVOrthogBlockTypes[] = {"GS","CHOL","TSQR","TSQRCHOL","BVOrthogBlockType","BV_ORTHOG_BLOCK_",0};
+const char *BVOrthogBlockTypes[] = {"GS","CHOL","TSQR","TSQRCHOL","SVQB","BVOrthogBlockType","BV_ORTHOG_BLOCK_",0};
 const char *BVMatMultTypes[] = {"VECS","MAT","MAT_SAVE","BVMatMultType","BV_MATMULT_",0};
 
 /*@C
