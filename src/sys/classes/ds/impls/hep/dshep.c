@@ -832,8 +832,8 @@ PetscErrorCode DSTranslateRKS_HEP(DS ds,PetscScalar alpha)
       R[i+j*ld] = Q[i+j*ld];
 
   /* compute orthogonal matrix in Q */
-  PetscStackCallBLAS("LAPACKungqr",LAPACKungqr_(&n1,&n1,&n0,Q,&ld,tau,work,&lwork,&info));
-  SlepcCheckLapackInfo("ungqr",info);
+  PetscStackCallBLAS("LAPACKorgqr",LAPACKorgqr_(&n1,&n1,&n0,Q,&ld,tau,work,&lwork,&info));
+  SlepcCheckLapackInfo("orgqr",info);
 
   /* compute the updated matrix of projected problem */
   for (j=0;j<k;j++)

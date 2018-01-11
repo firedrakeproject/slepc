@@ -509,8 +509,8 @@ static PetscErrorCode BVTensorCompress_Tensor(BV V,PetscInt newc)
   for (i=0;i<deg;i++) {
     PetscStackCallBLAS("BLAStrmm",BLAStrmm_("L","U","N","N",&rk_,&nnc_,&sone,pQ+offu,&rs1_,S+lock*lds+lock+i*ctx->ld,&lds_));
   }
-  PetscStackCallBLAS("LAPACKungqr",LAPACKungqr_(&nrow_,&rk_,&rk_,pQ+offu,&rs1_,tau,work+nwu,&lw_,&info));
-  SlepcCheckLapackInfo("ungqr",info);
+  PetscStackCallBLAS("LAPACKorgqr",LAPACKorgqr_(&nrow_,&rk_,&rk_,pQ+offu,&rs1_,tau,work+nwu,&lw_,&info));
+  SlepcCheckLapackInfo("orgqr",info);
 
   /* update vectors U(:,idx) = U*Q(:,idx) */
   rk = rk+lock;
