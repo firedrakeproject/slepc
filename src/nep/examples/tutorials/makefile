@@ -14,7 +14,7 @@ CPPFLAGS   =
 FPPFLAGS   =
 LOCDIR     = src/nep/examples/tutorials/
 EXAMPLESC  = ex20.c ex21.c ex22.c ex27.c
-EXAMPLESF  = ex20f90.F90 ex22f90.F90
+EXAMPLESF  = ex20f90.F90 ex22f90.F90 ex27f90.F90
 MANSEC     = NEP
 
 TESTEXAMPLES_C             = ex27.PETSc runex27_1 runex27_2 runex27_4 ex27.rm
@@ -26,7 +26,8 @@ TESTEXAMPLES_C_COMPLEX     = ex22.PETSc runex22_1_ciss ex22.rm \
                              ex27.PETSc runex27_7 runex27_8 ex27.rm
 TESTEXAMPLES_VECCUDA       = ex27.PETSc runex27_5_cuda runex27_6_cuda ex27.rm
 TESTEXAMPLES_F90_NOTSINGLE = ex20f90.PETSc runex20f90_1 ex20f90.rm \
-                             ex22f90.PETSc runex22f90_1 ex22f90.rm
+                             ex22f90.PETSc runex22f90_1 ex22f90.rm \
+                             ex27f90.PETSc runex27f90_1 ex27f90.rm
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common
 
@@ -53,6 +54,10 @@ ex22f90: ex22f90.o chkopts
 ex27: ex27.o chkopts
 	-${CLINKER} -o ex27 ex27.o ${SLEPC_NEP_LIB}
 	${RM} ex27.o
+
+ex27f90: ex27f90.o chkopts
+	-${FLINKER} -o ex27f90 ex27f90.o ${SLEPC_NEP_LIB}
+	${RM} ex27f90.o
 
 #------------------------------------------------------------------------------------
 
@@ -133,5 +138,10 @@ runex27_7:
 runex27_8:
 	-@${SETTEST}; check=ex27_7; \
 	${MPIEXEC} -n 1 ./ex27 -nep_type ciss -rg_type ellipse -rg_ellipse_center 8 -rg_ellipse_radius .7 -rg_ellipse_vscale 0.1 -terse | ${SED} -e "s/ (in split form)//" > $${test}.tmp 2>&1; \
+	${TESTCODE}
+
+runex27f90_1:
+	-@${SETTEST}; \
+	${MPIEXEC} -n 1 ./ex27f90 -nep_nev 3 -nep_nleigs_interpolation_degree 90 -terse > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
