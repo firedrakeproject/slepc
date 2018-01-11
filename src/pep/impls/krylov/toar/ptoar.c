@@ -454,7 +454,6 @@ static PetscErrorCode PEPExtractInvariantPair(PEP pep,PetscScalar sigma,PetscInt
     }
     break;
   }
-  ierr = PetscFree(p);CHKERRQ(ierr);
   if (transf) { ierr = PetscFree(T);CHKERRQ(ierr); }
   ierr = PetscFree6(p,At,Bt,Hj,Hp,work);CHKERRQ(ierr);
   PetscFunctionReturn(0);
