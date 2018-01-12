@@ -501,8 +501,8 @@ PetscErrorCode FNEvaluateFunctionMat_Exp_GuettelNakatsukasa(FN fn,Mat A,Mat B)
 #if defined(PETSC_USE_COMPLEX)
   PetscReal      *rwork;
 #endif
-  PetscComplex   *As,*RR,*expmA,*Maux,rsize,*r,psize,*p,remainsize,*remainterm,*rootp,*rootq,mult=0.0,scale,cone=1.0,czero=0.0;
-  PetscScalar    *Aa,*Ba,*sMaux,*wr,*wi,expshift,sone=1.0,szero=0.0,*work,work1;
+  PetscComplex   *As,*RR,*RR2,*expmA,*expmA2,*Maux,*Maux2,rsize,*r,psize,*p,remainsize,*remainterm,*rootp,*rootq,mult=0.0,scale,cone=1.0,czero=0.0,*aux;
+  PetscScalar    *Aa,*Ba,*Ba2,*sMaux,*wr,*wi,expshift,sone=1.0,szero=0.0,*work,work1,*saux;
   PetscErrorCode ierr;
   PetscBool      isreal;
 
@@ -511,9 +511,11 @@ PetscErrorCode FNEvaluateFunctionMat_Exp_GuettelNakatsukasa(FN fn,Mat A,Mat B)
   ierr = PetscBLASIntCast(n_,&n);CHKERRQ(ierr);
   ierr = MatDenseGetArray(A,&Aa);CHKERRQ(ierr);
   ierr = MatDenseGetArray(B,&Ba);CHKERRQ(ierr);
+  Ba2 = Ba;
   n2 = n*n;
 
   ierr = PetscMalloc2(n2,&sMaux,n2,&Maux);CHKERRQ(ierr);
+  Maux2 = Maux;
   ierr = PetscMalloc2(n,&wr,n,&wi);CHKERRQ(ierr);
   ierr = PetscMemcpy(sMaux,Aa,n2*sizeof(PetscScalar));CHKERRQ(ierr);
   /* estimate rightmost eigenvalue and shift A with it */
@@ -574,6 +576,7 @@ PetscErrorCode FNEvaluateFunctionMat_Exp_GuettelNakatsukasa(FN fn,Mat A,Mat B)
   }
 
   ierr = PetscMalloc4(n2,&expmA,n2,&As,n2,&RR,n,&piv);CHKERRQ(ierr);
+  expmA2 = expmA; RR2 = RR;
   /* scale matrix */
 #if !defined(PETSC_USE_COMPLEX)
   for (i=0;i<n2;i++) {
@@ -661,7 +664,7 @@ PetscErrorCode FNEvaluateFunctionMat_Exp_GuettelNakatsukasa(FN fn,Mat A,Mat B)
         ierr = PetscMemcpy(RR,As,n2*sizeof(PetscComplex));CHKERRQ(ierr);
         for (j=1;j<i;j++) {
           PetscStackCallBLAS("BLASCOMPLEXgemm",BLASCOMPLEXgemm_("N","N",&n,&n,&n,&cone,RR,&n,RR,&n,&czero,Maux,&n));
-          ierr = PetscMemcpy(RR,Maux,n2*sizeof(PetscComplex));CHKERRQ(ierr);
+          SWAP(RR,Maux,aux);
           ierr = PetscLogFlops(2.0*n*n*n);CHKERRQ(ierr);
         }
         PetscStackCallBLAS("BLASCOMPLEXscal",BLASCOMPLEXscal_(&n2,&remainterm[iremainsize-1-i],RR,&one));
@@ -691,7 +694,7 @@ PetscErrorCode FNEvaluateFunctionMat_Exp_GuettelNakatsukasa(FN fn,Mat A,Mat B)
         RR[j+j*n] -= rootp[i];
       }
       PetscStackCallBLAS("BLASCOMPLEXgemm",BLASCOMPLEXgemm_("N","N",&n,&n,&n,&cone,RR,&n,expmA,&n,&czero,Maux,&n));
-      ierr = PetscMemcpy(expmA,Maux,n2*sizeof(PetscComplex));CHKERRQ(ierr);
+      SWAP(expmA,Maux,aux);
       ierr = PetscMemcpy(RR,As,n2*sizeof(PetscComplex));CHKERRQ(ierr);
       for (j=0;j<n;j++) {
         RR[j+j*n] -= rootq[i];
@@ -708,7 +711,7 @@ PetscErrorCode FNEvaluateFunctionMat_Exp_GuettelNakatsukasa(FN fn,Mat A,Mat B)
         RR[j+j*n] -= rootp[i];
       }
       PetscStackCallBLAS("BLASCOMPLEXgemm",BLASCOMPLEXgemm_("N","N",&n,&n,&n,&cone,RR,&n,expmA,&n,&czero,Maux,&n));
-      ierr = PetscMemcpy(expmA,Maux,n2*sizeof(PetscComplex));CHKERRQ(ierr);
+      SWAP(expmA,Maux,aux);
       ierr = PetscLogFlops(1.0*n+2.0*n*n*n);CHKERRQ(ierr);
     }
     /* extra denominator */
@@ -729,22 +732,28 @@ PetscErrorCode FNEvaluateFunctionMat_Exp_GuettelNakatsukasa(FN fn,Mat A,Mat B)
 
 #if !defined(PETSC_USE_COMPLEX)
   for (i=0;i<n2;i++) {
-    Ba[i] = PetscRealPartComplex(expmA[i]);
+    Ba2[i] = PetscRealPartComplex(expmA[i]);
   }
 #else
-  ierr = PetscMemcpy(Ba,expmA,n2*sizeof(PetscScalar));CHKERRQ(ierr);
+  ierr = PetscMemcpy(Ba2,expmA,n2*sizeof(PetscScalar));CHKERRQ(ierr);
 #endif
 
   /* perform repeated squaring */
   for (i=0;i<s;i++) { /* final squaring */
-    PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&n,&n,&n,&sone,Ba,&n,Ba,&n,&szero,sMaux,&n));
-    ierr = PetscMemcpy(Ba,sMaux,n2*sizeof(PetscScalar));CHKERRQ(ierr);
+    PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&n,&n,&n,&sone,Ba2,&n,Ba2,&n,&szero,sMaux,&n));
+    SWAP(Ba2,sMaux,saux);
     ierr = PetscLogFlops(2.0*n*n*n);CHKERRQ(ierr);
+  }
+  if (Ba2!=Ba) {
+    ierr = PetscMemcpy(Ba,Ba2,n2*sizeof(PetscScalar));CHKERRQ(ierr);
+    sMaux = Ba2;
   }
   expshift = PetscExpReal(shift);
   PetscStackCallBLAS("BLASscal",BLASscal_(&n2,&expshift,Ba,&one));
   ierr = PetscLogFlops(1.0*n2);CHKERRQ(ierr);
 
+  /* restore pointers */
+  Maux = Maux2; expmA = expmA2; RR = RR2;
   ierr = PetscFree2(sMaux,Maux);CHKERRQ(ierr);
   ierr = PetscFree4(expmA,As,RR,piv);CHKERRQ(ierr);
   ierr = MatDenseRestoreArray(A,&Aa);CHKERRQ(ierr);
