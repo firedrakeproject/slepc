@@ -123,7 +123,7 @@ int main(int argc,char **argv)
     ierr = MatSetSizes(J,PETSC_DECIDE,PETSC_DECIDE,n,n);CHKERRQ(ierr);
     ierr = MatSetFromOptions(J);CHKERRQ(ierr);
     ierr = MatSeqAIJSetPreallocation(J,1,NULL);CHKERRQ(ierr);
-    ierr = MatMPIAIJSetPreallocation(F,1,NULL,1,NULL);CHKERRQ(ierr);
+    ierr = MatMPIAIJSetPreallocation(J,1,NULL,1,NULL);CHKERRQ(ierr);
     ierr = MatSetUp(J);CHKERRQ(ierr);
     ierr = NEPSetJacobian(nep,J,FormJacobian,NULL);CHKERRQ(ierr);
   }

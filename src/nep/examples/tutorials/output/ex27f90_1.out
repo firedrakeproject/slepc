@@ -1,4 +1,4 @@
- Square root eigenproblem, n=         100  
+ Square root eigenproblem, n=         100  (split-form)
  Solution method: nleigs                                                                           
  Number of requested eigenvalues:           3  
  All requested eigenvalues computed up to the required tolerance:

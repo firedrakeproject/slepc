@@ -145,3 +145,8 @@ runex27f90_1:
 	${MPIEXEC} -n 1 ./ex27f90 -nep_nev 3 -nep_nleigs_interpolation_degree 90 -terse > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
+runex27f90_2:
+	-@${SETTEST}; \
+	${MPIEXEC} -n 1 ./ex27f90 -split 0 -nep_nev 3 -nep_nleigs_interpolation_degree 90 -terse > $${test}.tmp 2>&1; \
+	${TESTCODE}
+
