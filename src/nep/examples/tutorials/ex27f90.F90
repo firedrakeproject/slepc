@@ -189,7 +189,7 @@ SUBROUTINE ComputeSingularities(nep,maxnp,xi,dummy,ierr)
   PetscReal      :: h
   PetscInt       :: i
 
-  h = 11.0/(maxnp-1)
+  h = 11.0/real(maxnp-1)
   xi(0) = -1e-5
   xi(maxnp-1) = -1e+6
   do i=1,maxnp-2
