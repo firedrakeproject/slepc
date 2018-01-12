@@ -162,11 +162,12 @@ static PetscErrorCode sexpm_params(PetscReal nrm,PetscInt mode,PetscInt *s,Petsc
   PetscFunctionReturn(0);
 }
 
+#if defined(PETSC_HAVE_COMPLEX)
 /*
  * Partial fraction form coefficients.
  * If query, the function returns the size necessary to store the coefficients.
  */
-static PetscErrorCode getcoeffs(PetscInt k,PetscInt m,PetscComplex *r,PetscComplex *q,PetscComplex *remain, PetscBool query)
+static PetscErrorCode getcoeffs(PetscInt k,PetscInt m,PetscComplex *r,PetscComplex *q,PetscComplex *remain,PetscBool query)
 {
   PetscInt i;
   const PetscComplex /* m == k+1 */
@@ -327,7 +328,7 @@ static PetscErrorCode getcoeffs(PetscInt k,PetscInt m,PetscComplex *r,PetscCompl
  * Product form coefficients.
  * If query, the function returns the size necessary to store the coefficients.
  */
-static PetscErrorCode getcoeffsproduct(PetscInt k,PetscInt m,PetscComplex *p,PetscComplex *q,PetscComplex *mult, PetscBool query)
+static PetscErrorCode getcoeffsproduct(PetscInt k,PetscInt m,PetscComplex *p,PetscComplex *q,PetscComplex *mult,PetscBool query)
 {
   PetscInt i;
   const PetscComplex /* m == k+1 */
@@ -380,7 +381,6 @@ static PetscErrorCode getcoeffsproduct(PetscInt k,PetscInt m,PetscComplex *p,Pet
              -2.000000000000000e+00 - 1.414213562373095e+00*PETSC_i};
 
   PetscFunctionBegin;
-
   if (query) {
     if (m == k+1) {
       *mult = 1;
@@ -462,9 +462,10 @@ static PetscErrorCode getcoeffsproduct(PetscInt k,PetscInt m,PetscComplex *p,Pet
   }
   PetscFunctionReturn(0);
 }
+#endif /* PETSC_HAVE_COMPLEX */
 
 #if defined(PETSC_USE_COMPLEX)
-static PetscErrorCode getisreal(PetscInt n, PetscComplex *a, PetscBool *result)
+static PetscErrorCode getisreal(PetscInt n,PetscComplex *a,PetscBool *result)
 {
   PetscInt i;
 
