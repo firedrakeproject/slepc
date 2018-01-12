@@ -12,13 +12,13 @@ ALL: lib
 
 CFLAGS   =
 FFLAGS   =
-SOURCEC  = bvmat.c
+SOURCEC  = bvtensor.c
 SOURCEF  =
 SOURCEH  =
 LIBBASE  = libslepcsys
 DIRS     =
 MANSEC   = BV
-LOCDIR   = src/sys/classes/bv/impls/mat/
+LOCDIR   = src/sys/classes/bv/impls/tensor/
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common
 

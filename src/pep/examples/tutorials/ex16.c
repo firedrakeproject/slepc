@@ -135,7 +135,7 @@ int main(int argc,char **argv)
         /* get converged eigenpairs */
         ierr = PEPGetEigenpair(pep,i,&kr,&ki,xr,xi);CHKERRQ(ierr);
         /* compute the relative error associated to each eigenpair */
-        ierr = PEPComputeError(pep,i,PEP_ERROR_RELATIVE,&error);CHKERRQ(ierr);
+        ierr = PEPComputeError(pep,i,PEP_ERROR_BACKWARD,&error);CHKERRQ(ierr);
 #if defined(PETSC_USE_COMPLEX)
         re = PetscRealPart(kr);
         im = PetscImaginaryPart(kr);

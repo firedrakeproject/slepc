@@ -253,6 +253,19 @@ PetscErrorCode BVCopy_Svec(BV V,BV W)
   PetscFunctionReturn(0);
 }
 
+PetscErrorCode BVCopyColumn_Svec(BV V,PetscInt j,PetscInt i)
+{
+  PetscErrorCode ierr;
+  BV_SVEC        *v = (BV_SVEC*)V->data;
+  PetscScalar    *pv;
+
+  PetscFunctionBegin;
+  ierr = VecGetArray(v->v,&pv);CHKERRQ(ierr);
+  ierr = PetscMemcpy(pv+(V->nc+i)*V->n,pv+(V->nc+j)*V->n,V->n*sizeof(PetscScalar));CHKERRQ(ierr);
+  ierr = VecRestoreArray(v->v,&pv);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
 PetscErrorCode BVResize_Svec(BV bv,PetscInt m,PetscBool copy)
 {
   PetscErrorCode    ierr;
@@ -372,10 +385,11 @@ PetscErrorCode BVView_Svec(BV bv,PetscViewer viewer)
   const char        *bvname,*name;
 
   PetscFunctionBegin;
-  ierr = VecView(ctx->v,viewer);CHKERRQ(ierr);
   ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
   if (isascii) {
     ierr = PetscViewerGetFormat(viewer,&format);CHKERRQ(ierr);
+    if (format == PETSC_VIEWER_ASCII_INFO || format == PETSC_VIEWER_ASCII_INFO_DETAIL) PetscFunctionReturn(0);
+    ierr = VecView(ctx->v,viewer);CHKERRQ(ierr);
     if (format == PETSC_VIEWER_ASCII_MATLAB) {
       ierr = PetscObjectGetName((PetscObject)bv,&bvname);CHKERRQ(ierr);
       ierr = PetscObjectGetName((PetscObject)ctx->v,&name);CHKERRQ(ierr);
@@ -384,6 +398,8 @@ PetscErrorCode BVView_Svec(BV bv,PetscViewer viewer)
         ierr = PetscViewerASCIIPrintf(viewer,"%s=%s(:,%D:end);\n",bvname,bvname,bv->nc+1);CHKERRQ(ierr);
       }
     }
+  } else {
+    ierr = VecView(ctx->v,viewer);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }
@@ -498,6 +514,7 @@ PETSC_EXTERN PetscErrorCode BVCreate_Svec(BV bv)
     bv->ops->scale            = BVScale_Svec_CUDA;
     bv->ops->matmult          = BVMatMult_Svec_CUDA;
     bv->ops->copy             = BVCopy_Svec_CUDA;
+    bv->ops->copycolumn       = BVCopyColumn_Svec_CUDA;
     bv->ops->resize           = BVResize_Svec_CUDA;
     bv->ops->getcolumn        = BVGetColumn_Svec_CUDA;
     bv->ops->restorecolumn    = BVRestoreColumn_Svec_CUDA;
@@ -514,6 +531,7 @@ PETSC_EXTERN PetscErrorCode BVCreate_Svec(BV bv)
     bv->ops->scale            = BVScale_Svec;
     bv->ops->matmult          = BVMatMult_Svec;
     bv->ops->copy             = BVCopy_Svec;
+    bv->ops->copycolumn       = BVCopyColumn_Svec;
     bv->ops->resize           = BVResize_Svec;
     bv->ops->getcolumn        = BVGetColumn_Svec;
     bv->ops->restorecolumn    = BVRestoreColumn_Svec;

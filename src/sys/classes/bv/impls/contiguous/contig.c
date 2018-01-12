@@ -216,6 +216,16 @@ PetscErrorCode BVCopy_Contiguous(BV V,BV W)
   PetscFunctionReturn(0);
 }
 
+PetscErrorCode BVCopyColumn_Contiguous(BV V,PetscInt j,PetscInt i)
+{
+  PetscErrorCode ierr;
+  BV_CONTIGUOUS  *v = (BV_CONTIGUOUS*)V->data;
+
+  PetscFunctionBegin;
+  ierr = PetscMemcpy(v->array+(V->nc+i)*V->n,v->array+(V->nc+j)*V->n,V->n*sizeof(PetscScalar));CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
 PetscErrorCode BVResize_Contiguous(BV bv,PetscInt m,PetscBool copy)
 {
   PetscErrorCode ierr;
@@ -377,6 +387,7 @@ PETSC_EXTERN PetscErrorCode BVCreate_Contiguous(BV bv)
   bv->ops->norm_local       = BVNorm_Local_Contiguous;
   bv->ops->matmult          = BVMatMult_Contiguous;
   bv->ops->copy             = BVCopy_Contiguous;
+  bv->ops->copycolumn       = BVCopyColumn_Contiguous;
   bv->ops->resize           = BVResize_Contiguous;
   bv->ops->getcolumn        = BVGetColumn_Contiguous;
   bv->ops->getarray         = BVGetArray_Contiguous;

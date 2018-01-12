@@ -255,6 +255,19 @@ PetscErrorCode BVCopy_Mat(BV V,BV W)
   PetscFunctionReturn(0);
 }
 
+PetscErrorCode BVCopyColumn_Mat(BV V,PetscInt j,PetscInt i)
+{
+  PetscErrorCode ierr;
+  BV_MAT         *v = (BV_MAT*)V->data;
+  PetscScalar    *pv;
+
+  PetscFunctionBegin;
+  ierr = MatDenseGetArray(v->A,&pv);CHKERRQ(ierr);
+  ierr = PetscMemcpy(pv+(V->nc+i)*V->n,pv+(V->nc+j)*V->n,V->n*sizeof(PetscScalar));CHKERRQ(ierr);
+  ierr = MatDenseRestoreArray(v->A,&pv);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
 PetscErrorCode BVResize_Mat(BV bv,PetscInt m,PetscBool copy)
 {
   PetscErrorCode ierr;
@@ -372,10 +385,11 @@ PetscErrorCode BVView_Mat(BV bv,PetscViewer viewer)
   const char        *bvname,*name;
 
   PetscFunctionBegin;
-  ierr = MatView(ctx->A,viewer);CHKERRQ(ierr);
   ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
   if (isascii) {
     ierr = PetscViewerGetFormat(viewer,&format);CHKERRQ(ierr);
+    if (format == PETSC_VIEWER_ASCII_INFO || format == PETSC_VIEWER_ASCII_INFO_DETAIL) PetscFunctionReturn(0);
+    ierr = MatView(ctx->A,viewer);CHKERRQ(ierr);
     if (format == PETSC_VIEWER_ASCII_MATLAB) {
       ierr = PetscObjectGetName((PetscObject)bv,&bvname);CHKERRQ(ierr);
       ierr = PetscObjectGetName((PetscObject)ctx->A,&name);CHKERRQ(ierr);
@@ -384,6 +398,8 @@ PetscErrorCode BVView_Mat(BV bv,PetscViewer viewer)
         ierr = PetscViewerASCIIPrintf(viewer,"%s=%s(:,%D:end);\n",bvname,bvname,bv->nc+1);CHKERRQ(ierr);
       }
     }
+  } else {
+    ierr = MatView(ctx->A,viewer);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }
@@ -464,6 +480,7 @@ PETSC_EXTERN PetscErrorCode BVCreate_Mat(BV bv)
   bv->ops->norm_local       = BVNorm_Local_Mat;
   bv->ops->matmult          = BVMatMult_Mat;
   bv->ops->copy             = BVCopy_Mat;
+  bv->ops->copycolumn       = BVCopyColumn_Mat;
   bv->ops->resize           = BVResize_Mat;
   bv->ops->getcolumn        = BVGetColumn_Mat;
   bv->ops->restorecolumn    = BVRestoreColumn_Mat;

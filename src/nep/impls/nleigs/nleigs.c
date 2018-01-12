@@ -30,6 +30,7 @@
 #define  NDPOINTS  1e4   /* number of discretization points */
 
 typedef struct {
+  BV             V;         /* tensor vector basis for the linearization */
   PetscInt       nmat;      /* number of interpolation points */
   PetscScalar    *s,*xi;    /* Leja-Bagby points */
   PetscScalar    *beta;     /* scaling factors */
@@ -734,7 +735,7 @@ static PetscErrorCode NEPNLEIGSDividedDifferences_callback(NEP nep)
 /*
    NEPKrylovConvergence - This is the analogue to EPSKrylovConvergence.
 */
-static PetscErrorCode NEPNLEIGSKrylovConvergence(NEP nep,PetscScalar *S,PetscInt ld,PetscInt nq,PetscScalar *H,PetscBool getall,PetscInt kini,PetscInt nits,PetscScalar betak,PetscReal betah,PetscInt *kout,Vec *w)
+static PetscErrorCode NEPNLEIGSKrylovConvergence(NEP nep,PetscBool getall,PetscInt kini,PetscInt nits,PetscScalar betak,PetscReal betah,PetscInt *kout,Vec *w)
 {
   PetscErrorCode ierr;
   PetscInt       k,newk,marker,inside;
@@ -815,7 +816,7 @@ PetscErrorCode NEPSetUp_NLEIGS(NEP nep)
   } else {
     ierr = NEPNLEIGSDividedDifferences_callback(nep);CHKERRQ(ierr);
   }
-  ierr = NEPAllocateSolution(nep,ctx->nmat);CHKERRQ(ierr);
+  ierr = NEPAllocateSolution(nep,ctx->nmat-1);CHKERRQ(ierr);
   ierr = NEPSetWorkVecs(nep,4);CHKERRQ(ierr);
 
   /* set-up DS and transfer split operator functions */
@@ -830,71 +831,8 @@ PetscErrorCode NEPSetUp_NLEIGS(NEP nep)
   sc->rg            = nep->rg;
   sc->comparison    = nep->sc->comparison;
   sc->comparisonctx = nep->sc->comparisonctx;
-  PetscFunctionReturn(0);
-}
-
-/*
-  Norm of [sp;sq]
-*/
-static PetscErrorCode NEPTOARSNorm2(PetscInt n,PetscScalar *S,PetscReal *norm)
-{
-  PetscErrorCode ierr;
-  PetscBLASInt   n_,one=1;
-
-  PetscFunctionBegin;
-  ierr = PetscBLASIntCast(n,&n_);CHKERRQ(ierr);
-  *norm = BLASnrm2_(&n_,S,&one);
-  PetscFunctionReturn(0);
-}
-
-/*
- Computes GS orthogonalization   [z;x] - [Sp;Sq]*y,
- where y = ([Sp;Sq]'*[z;x]).
-   k: Column from S to be orthogonalized against previous columns.
-   Sq = Sp+ld
-   dim(work)=k;
-*/
-static PetscErrorCode NEPTOAROrth2(NEP nep,PetscScalar *S,PetscInt ld,PetscInt deg,PetscInt k,PetscScalar *y,PetscReal *norm,PetscBool *lindep,PetscScalar *work)
-{
-  PetscErrorCode ierr;
-  PetscBLASInt   n_,lds_,k_,one=1;
-  PetscScalar    sonem=-1.0,sone=1.0,szero=0.0,*x0,*x,*c;
-  PetscInt       i,lds=deg*ld,n;
-  PetscReal      eta,onorm;
-
-  PetscFunctionBegin;
-  ierr = BVGetOrthogonalization(nep->V,NULL,NULL,&eta,NULL);CHKERRQ(ierr);
-  n = k+deg-1;
-  ierr = PetscBLASIntCast(n,&n_);CHKERRQ(ierr);
-  ierr = PetscBLASIntCast(deg*ld,&lds_);CHKERRQ(ierr);
-  ierr = PetscBLASIntCast(k,&k_);CHKERRQ(ierr); /* Number of vectors to orthogonalize against them */
-  c = work;
-  x0 = S+k*lds;
-  PetscStackCall("BLASgemv",BLASgemv_("C",&n_,&k_,&sone,S,&lds_,x0,&one,&szero,y,&one));
-  for (i=1;i<deg;i++) {
-    x = S+i*ld+k*lds;
-    PetscStackCall("BLASgemv",BLASgemv_("C",&n_,&k_,&sone,S+i*ld,&lds_,x,&one,&sone,y,&one));
-  }
-  for (i=0;i<deg;i++) {
-    x= S+i*ld+k*lds;
-    PetscStackCall("BLASgemv",BLASgemv_("N",&n_,&k_,&sonem,S+i*ld,&lds_,y,&one,&sone,x,&one));
-  }
-  ierr = NEPTOARSNorm2(lds,S+k*lds,&onorm);CHKERRQ(ierr);
-  /* twice */
-  PetscStackCall("BLASgemv",BLASgemv_("C",&n_,&k_,&sone,S,&lds_,x0,&one,&szero,c,&one));
-  for (i=1;i<deg;i++) {
-    x = S+i*ld+k*lds;
-    PetscStackCall("BLASgemv",BLASgemv_("C",&n_,&k_,&sone,S+i*ld,&lds_,x,&one,&sone,c,&one));
-  }
-  for (i=0;i<deg;i++) {
-    x= S+i*ld+k*lds;
-    PetscStackCall("BLASgemv",BLASgemv_("N",&n_,&k_,&sonem,S+i*ld,&lds_,c,&one,&sone,x,&one));
-  }
-  for (i=0;i<k;i++) y[i] += c[i];
-  if (norm) {
-    ierr = NEPTOARSNorm2(lds,S+k*lds,norm);CHKERRQ(ierr);
-    if (lindep) *lindep = (*norm < eta * onorm)?PETSC_TRUE:PETSC_FALSE;
-  }
+  ierr = BVDestroy(&ctx->V);CHKERRQ(ierr);
+  ierr = BVCreateTensor(nep->V,ctx->nmat-1,&ctx->V);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -1050,19 +988,26 @@ static PetscErrorCode NEPNLEIGS_RKcontinuation(NEP nep,PetscInt ini,PetscInt end
 /*
   Compute a run of Arnoldi iterations
 */
-static PetscErrorCode NEPNLEIGSTOARrun(NEP nep,PetscInt *nq,PetscScalar *S,PetscInt ld,PetscScalar *K,PetscScalar *H,PetscInt ldh,BV W,BV V,PetscInt k,PetscInt *M,PetscBool *breakdown,Vec *t_)
+static PetscErrorCode NEPNLEIGSTOARrun(NEP nep,PetscScalar *K,PetscScalar *H,PetscInt ldh,BV W,PetscInt k,PetscInt *M,PetscBool *breakdown,Vec *t_)
 {
   PetscErrorCode ierr;
   NEP_NLEIGS     *ctx = (NEP_NLEIGS*)nep->data;
-  PetscInt       i,j,p,m=*M,lwa,deg=ctx->nmat-1,lds=ld*deg,nqt=*nq;
-  Vec            t=t_[0];
+  PetscInt       i,j,m=*M,lwa,deg=ctx->nmat-1,lds,nqt,ld,l;
+  Vec            t;
   PetscReal      norm;
-  PetscScalar    *x,*work,*tt,sigma,*cont;
+  PetscScalar    *x,*work,*tt,sigma,*cont,*S;
   PetscBool      lindep;
+  Mat            MS;
 
   PetscFunctionBegin;
+  ierr = BVTensorGetFactors(ctx->V,NULL,&MS);CHKERRQ(ierr);
+  ierr = MatDenseGetArray(MS,&S);CHKERRQ(ierr);
+  ierr = BVGetSizes(nep->V,NULL,NULL,&ld);CHKERRQ(ierr);
+  lds = ld*deg;
+  ierr = BVGetActiveColumns(nep->V,&l,&nqt);CHKERRQ(ierr);
   lwa = PetscMax(ld,deg)+(m+1)*(m+1)+4*(m+1);
   ierr = PetscMalloc4(ld,&x,lwa,&work,m+1,&tt,lds,&cont);CHKERRQ(ierr);
+  ierr = BVSetActiveColumns(ctx->V,0,m);CHKERRQ(ierr);
   for (j=k;j<m;j++) {
     sigma = ctx->shifts[(++(ctx->idxrk))%ctx->nshiftsw];
 
@@ -1071,7 +1016,7 @@ static PetscErrorCode NEPNLEIGSTOARrun(NEP nep,PetscInt *nq,PetscScalar *S,Petsc
 
     /* apply operator */
     ierr = BVGetColumn(nep->V,nqt,&t);CHKERRQ(ierr);
-    ierr = NEPTOARExtendBasis(nep,(ctx->idxrk)%ctx->nshiftsw,cont,ld,nqt,W,V,t,S+(j+1)*lds,ld,t_+1);CHKERRQ(ierr);
+    ierr = NEPTOARExtendBasis(nep,(ctx->idxrk)%ctx->nshiftsw,cont,ld,nqt,W,nep->V,t,S+(j+1)*lds,ld,t_);CHKERRQ(ierr);
     ierr = BVRestoreColumn(nep->V,nqt,&t);CHKERRQ(ierr);
 
     /* orthogonalize */
@@ -1082,126 +1027,25 @@ static PetscErrorCode NEPNLEIGSTOARrun(NEP nep,PetscInt *nq,PetscScalar *S,Petsc
       nqt++;
     } else x[nqt] = 0.0;
 
-    ierr = NEPTOARCoefficients(nep,sigma,*nq,cont,ld,S+(j+1)*lds,ld,x,work);CHKERRQ(ierr);
+    ierr = NEPTOARCoefficients(nep,sigma,nqt-1,cont,ld,S+(j+1)*lds,ld,x,work);CHKERRQ(ierr);
 
     /* Level-2 orthogonalization */
-    ierr = NEPTOAROrth2(nep,S,ld,deg,j+1,H+j*ldh,&norm,breakdown,work);CHKERRQ(ierr);
+    ierr = BVOrthogonalizeColumn(ctx->V,j+1,H+j*ldh,&norm,breakdown);CHKERRQ(ierr);
     H[j+1+ldh*j] = norm;
     if (ctx->nshifts) {
       for (i=0;i<=j;i++) K[i+ldh*j] = sigma*H[i+ldh*j] + tt[i];
       K[j+1+ldh*j] = sigma*H[j+1+ldh*j];
     }
-    *nq = nqt;
     if (*breakdown) {
       *M = j+1;
       break;
     }
-    for (p=0;p<deg;p++) {
-      for (i=0;i<=j+deg;i++) {
-        S[i+p*ld+(j+1)*lds] /= norm;
-      }
-    }
+    ierr = BVScaleColumn(ctx->V,j+1,1.0/norm);CHKERRQ(ierr);
+    ierr = BVSetActiveColumns(nep->V,l,nqt);CHKERRQ(ierr);
   }
   ierr = PetscFree4(x,work,tt,cont);CHKERRQ(ierr);
-  PetscFunctionReturn(0);
-}
-
-/* dim(work)=5*ld*lds dim(rwork)=6*n */
-static PetscErrorCode NEPTOARTrunc(NEP nep,PetscScalar *S,PetscInt ld,PetscInt deg,PetscInt *nq,PetscInt cs1,PetscScalar *work,PetscReal *rwork)
-{
-#if defined(PETSC_MISSING_LAPACK_GESVD)
-  PetscFunctionBegin;
-  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"GESVD - Lapack routine is unavailable");
-#else
-  PetscErrorCode ierr;
-  PetscInt       lwa,nwu=0,nrwu=0;
-  PetscInt       j,i,n,lds=deg*ld,rk=0,rs1;
-  PetscScalar    *M,*V,*pU,t;
-  PetscReal      *sg,tol;
-  PetscBLASInt   cs1_,rs1_,cs1tdeg,n_,info,lw_;
-  Mat            U;
-
-  PetscFunctionBegin;
-  rs1 = *nq;
-  n = (rs1>deg*cs1)?deg*cs1:rs1;
-  lwa = 5*ld*lds;
-  M = work+nwu;
-  nwu += rs1*cs1*deg;
-  sg = rwork+nrwu;
-  nrwu += n;
-  pU = work+nwu;
-  nwu += rs1*n;
-  V = work+nwu;
-  nwu += deg*cs1*n;
-  for (i=0;i<cs1;i++) {
-    for (j=0;j<deg;j++) {
-      ierr = PetscMemcpy(M+(i+j*cs1)*rs1,S+i*lds+j*ld,rs1*sizeof(PetscScalar));CHKERRQ(ierr);
-    }
-  }
-  ierr = PetscBLASIntCast(n,&n_);CHKERRQ(ierr);
-  ierr = PetscBLASIntCast(cs1,&cs1_);CHKERRQ(ierr);
-  ierr = PetscBLASIntCast(rs1,&rs1_);CHKERRQ(ierr);
-  ierr = PetscBLASIntCast(cs1*deg,&cs1tdeg);CHKERRQ(ierr);
-  ierr = PetscBLASIntCast(lwa-nwu,&lw_);CHKERRQ(ierr);
-#if !defined (PETSC_USE_COMPLEX)
-  PetscStackCall("LAPACKgesvd",LAPACKgesvd_("S","S",&rs1_,&cs1tdeg,M,&rs1_,sg,pU,&rs1_,V,&n_,work+nwu,&lw_,&info));
-#else
-  PetscStackCall("LAPACKgesvd",LAPACKgesvd_("S","S",&rs1_,&cs1tdeg,M,&rs1_,sg,pU,&rs1_,V,&n_,work+nwu,&lw_,rwork+nrwu,&info));
-#endif
-  SlepcCheckLapackInfo("gesvd",info);
-
-  /* Update the corresponding vectors V(:,idx) = V*Q(:,idx) */
-  ierr = MatCreateSeqDense(PETSC_COMM_SELF,rs1,cs1+deg-1,pU,&U);CHKERRQ(ierr);
-  ierr = BVSetActiveColumns(nep->V,0,rs1);CHKERRQ(ierr);
-  ierr = BVMultInPlace(nep->V,U,0,cs1+deg-1);CHKERRQ(ierr);
-  ierr = BVSetActiveColumns(nep->V,0,cs1+deg-1);CHKERRQ(ierr);
-  ierr = MatDestroy(&U);CHKERRQ(ierr);
-  tol = PetscMax(rs1,deg*cs1)*PETSC_MACHINE_EPSILON*sg[0];
-  for (i=0;i<PetscMin(n_,cs1tdeg);i++) if (sg[i]>tol) rk++;
-  rk = PetscMin(cs1+deg-1,rk);
-
-  /* Update S */
-  ierr = PetscMemzero(S,lds*ld*sizeof(PetscScalar));CHKERRQ(ierr);
-  for (i=0;i<rk;i++) {
-    t = sg[i];
-    PetscStackCall("BLASscal",BLASscal_(&cs1tdeg,&t,V+i,&n_));
-  }
-  for (j=0;j<cs1;j++) {
-    for (i=0;i<deg;i++) {
-      ierr = PetscMemcpy(S+j*lds+i*ld,V+(cs1*i+j)*n,rk*sizeof(PetscScalar));CHKERRQ(ierr);
-    }
-  }
-  *nq = rk;
-  PetscFunctionReturn(0);
-#endif
-}
-
-/*
-  S <- S*Q
-  columns s-s+ncu of S
-  rows 0-sr of S
-  size(Q) qr x ncu
-  dim(work)=sr*ncu
-*/
-static PetscErrorCode NEPTOARSupdate(PetscScalar *S,PetscInt ld,PetscInt deg,PetscInt sr,PetscInt s,PetscInt ncu,PetscInt qr,PetscScalar *Q,PetscInt ldq,PetscScalar *work)
-{
-  PetscErrorCode ierr;
-  PetscScalar    a=1.0,b=0.0;
-  PetscBLASInt   sr_,ncu_,ldq_,lds_,qr_;
-  PetscInt       j,lds=deg*ld,i;
-
-  PetscFunctionBegin;
-  ierr = PetscBLASIntCast(sr,&sr_);CHKERRQ(ierr);
-  ierr = PetscBLASIntCast(qr,&qr_);CHKERRQ(ierr);
-  ierr = PetscBLASIntCast(ncu,&ncu_);CHKERRQ(ierr);
-  ierr = PetscBLASIntCast(lds,&lds_);CHKERRQ(ierr);
-  ierr = PetscBLASIntCast(ldq,&ldq_);CHKERRQ(ierr);
-  for (i=0;i<deg;i++) {
-    PetscStackCall("BLASgemm",BLASgemm_("N","N",&sr_,&ncu_,&qr_,&a,S+i*ld,&lds_,Q,&ldq_,&b,work,&sr_));
-    for (j=0;j<ncu;j++) {
-      ierr = PetscMemcpy(S+lds*(s+j)+i*ld,work+j*sr,sr*sizeof(PetscScalar));CHKERRQ(ierr);
-    }
-  }
+  ierr = MatDenseRestoreArray(MS,&S);CHKERRQ(ierr);
+  ierr = BVTensorRestoreFactors(ctx->V,NULL,&MS);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -1209,43 +1053,44 @@ PetscErrorCode NEPSolve_NLEIGS(NEP nep)
 {
   PetscErrorCode ierr;
   NEP_NLEIGS     *ctx = (NEP_NLEIGS*)nep->data;
-  PetscInt       i,j,k=0,l,nv=0,ld,lds,off,ldds,rs1,nq=0,newn;
-  PetscInt       lwa,lrwa,nwu=0,nrwu=0,deg=ctx->nmat-1,nconv=0;
-  PetscScalar    *S,*Q,*work,*H,*pU,*K,betak=0,*Hc,*eigr,*eigi;
-  PetscReal      betah,norm,*rwork;
-  PetscBool      breakdown=PETSC_FALSE,lindep;
-  Mat            U;
+  PetscInt       i,k=0,l,nv=0,ld,lds,ldds,nq,newn;
+  PetscInt       deg=ctx->nmat-1,nconv=0;
+  PetscScalar    *S,*Q,*H,*pU,*K,betak=0,*eigr,*eigi;
+  PetscReal      betah,norm;
+  PetscBool      falselock=PETSC_FALSE,breakdown=PETSC_FALSE;
   BV             W;
+  Mat            MS,MQ,U;
 
   PetscFunctionBegin;
-  ld = nep->ncv+deg;
+  if (ctx->lock) {
+    ierr = PetscOptionsGetBool(NULL,NULL,"-nep_nleigs_falselocking",&falselock,NULL);CHKERRQ(ierr);
+  }
+  ierr = BVGetSizes(nep->V,NULL,NULL,&ld);CHKERRQ(ierr);
   lds = deg*ld;
-  lwa = (deg+6)*ld*lds;
-  lrwa = 7*lds;
   ierr = DSGetLeadingDimension(nep->ds,&ldds);CHKERRQ(ierr);
-  ierr = PetscMalloc4(lwa,&work,lrwa,&rwork,lds*ld,&S,ldds*ldds,&Hc);CHKERRQ(ierr);
-  ierr = PetscMemzero(S,lds*ld*sizeof(PetscScalar));CHKERRQ(ierr);
   if (!ctx->nshifts) {
     ierr = PetscMalloc2(nep->ncv,&eigr,nep->ncv,&eigi);CHKERRQ(ierr);
   } else { eigr = nep->eigr; eigi = nep->eigi; }
   ierr = BVDuplicateResize(nep->V,PetscMax(nep->nt-1,ctx->nmat-1),&W);CHKERRQ(ierr);
 
-  /* Get the starting vector */
-  for (i=0;i<deg;i++) {
-    ierr = BVSetRandomColumn(nep->V,i);CHKERRQ(ierr);
-    ierr = BVOrthogonalizeColumn(nep->V,i,S+i*ld,&norm,&lindep);CHKERRQ(ierr);
-    if (!lindep) {
-      ierr = BVScaleColumn(nep->V,i,1/norm);CHKERRQ(ierr);
-      S[i+i*ld] = norm;
-      nq++;
-    }
-  }
-  if (!nq) SETERRQ(PetscObjectComm((PetscObject)nep),1,"NEP: Problem with initial vector");
-  ierr = NEPTOARSNorm2(lds,S,&norm);CHKERRQ(ierr);
-  for (j=0;j<deg;j++) {
-    for (i=0;i<=j;i++) S[i+j*ld] /= norm;
-  }
+  ierr = BVTensorGetFactors(ctx->V,NULL,&MS);CHKERRQ(ierr);
+  ierr = MatDenseGetArray(MS,&S);CHKERRQ(ierr);
 
+  /* clean projected matrix (including the extra-arrow) */
+  ierr = DSGetArray(nep->ds,DS_MAT_A,&H);CHKERRQ(ierr);
+  ierr = PetscMemzero(H,ldds*ldds*sizeof(PetscScalar));CHKERRQ(ierr);
+  ierr = DSRestoreArray(nep->ds,DS_MAT_A,&H);CHKERRQ(ierr);
+  if (ctx->nshifts) {
+    ierr = DSGetArray(nep->ds,DS_MAT_B,&H);CHKERRQ(ierr);
+    ierr = PetscMemzero(H,ldds*ldds*sizeof(PetscScalar));CHKERRQ(ierr);
+    ierr = DSRestoreArray(nep->ds,DS_MAT_B,&H);CHKERRQ(ierr);
+  }
+  
+  /* Get the starting Arnoldi vector */
+  ierr = BVTensorBuildFirstColumn(ctx->V,nep->nini);CHKERRQ(ierr);
+  ierr = BVNormColumn(ctx->V,0,NORM_2,&norm);CHKERRQ(ierr);
+  ierr = BVScaleColumn(ctx->V,0,1.0/norm);CHKERRQ(ierr);
+  
   /* Restart loop */
   l = 0;
   while (nep->reason == NEP_CONVERGED_ITERATING) {
@@ -1255,7 +1100,7 @@ PetscErrorCode NEPSolve_NLEIGS(NEP nep)
     nv = PetscMin(nep->nconv+nep->mpd,nep->ncv);
     if (ctx->nshifts) { ierr = DSGetArray(nep->ds,DS_MAT_A,&K);CHKERRQ(ierr); }
     ierr = DSGetArray(nep->ds,ctx->nshifts?DS_MAT_B:DS_MAT_A,&H);CHKERRQ(ierr);
-    ierr = NEPNLEIGSTOARrun(nep,&nq,S,ld,K,H,ldds,W,nep->V,nep->nconv+l,&nv,&breakdown,nep->work);CHKERRQ(ierr);
+    ierr = NEPNLEIGSTOARrun(nep,K,H,ldds,W,nep->nconv+l,&nv,&breakdown,nep->work);CHKERRQ(ierr);
     betah = PetscAbsScalar(H[(nv-1)*ldds+nv]);
     ierr = DSRestoreArray(nep->ds,ctx->nshifts?DS_MAT_B:DS_MAT_A,&H);CHKERRQ(ierr);
     if (ctx->nshifts) {
@@ -1270,11 +1115,6 @@ PetscErrorCode NEPSolve_NLEIGS(NEP nep)
     }
 
     /* Solve projected problem */
-    if (ctx->nshifts) {
-      ierr = DSGetArray(nep->ds,DS_MAT_B,&H);CHKERRQ(ierr);
-      ierr = PetscMemcpy(Hc,H,ldds*ldds*sizeof(PetscScalar));CHKERRQ(ierr);
-      ierr = DSRestoreArray(nep->ds,DS_MAT_B,&H);CHKERRQ(ierr);
-    }
     ierr = DSSolve(nep->ds,nep->eigr,nep->eigi);CHKERRQ(ierr);
     ierr = DSSort(nep->ds,nep->eigr,nep->eigi,NULL,NULL,NULL);CHKERRQ(ierr);
     if (!ctx->nshifts) {
@@ -1283,9 +1123,8 @@ PetscErrorCode NEPSolve_NLEIGS(NEP nep)
     ierr = DSSynchronize(nep->ds,nep->eigr,nep->eigi);CHKERRQ(ierr);
 
     /* Check convergence */
-    ierr = NEPNLEIGSKrylovConvergence(nep,S,ld,nq,Hc,PETSC_FALSE,nep->nconv,nv-nep->nconv,betak,betah,&k,nep->work);CHKERRQ(ierr);
+    ierr = NEPNLEIGSKrylovConvergence(nep,PETSC_FALSE,nep->nconv,nv-nep->nconv,betak,betah,&k,nep->work);CHKERRQ(ierr);
     ierr = (*nep->stopping)(nep,nep->its,nep->max_it,k,nep->nev,&nep->reason,nep->stoppingctx);CHKERRQ(ierr);
-    nconv = k;
 
     /* Update l */
     if (nep->reason != NEP_CONVERGED_ITERATING || breakdown) l = 0;
@@ -1308,29 +1147,34 @@ PetscErrorCode NEPSolve_NLEIGS(NEP nep)
           ierr = DSRestoreArray(nep->ds,DS_MAT_B,&H);CHKERRQ(ierr);
           ierr = DSRestoreArray(nep->ds,DS_MAT_A,&K);CHKERRQ(ierr);
           ierr = DSRestoreArray(nep->ds,DS_MAT_Q,&Q);CHKERRQ(ierr);
-          ierr = DSSetDimensions(nep->ds,k+l,0,nep->nconv,0);CHKERRQ(ierr);
         }
       }
     }
-    if (!ctx->lock && l>0) { l += k; k = 0; }
+    nconv = k;
+    if (!ctx->lock && nep->reason == NEP_CONVERGED_ITERATING && !breakdown) { l += k; k = 0; }
 
     /* Update S */
-    off = nep->nconv*ldds;
-    ierr = DSGetArray(nep->ds,ctx->nshifts?DS_MAT_Z:DS_MAT_Q,&Q);CHKERRQ(ierr);
-    ierr = NEPTOARSupdate(S,ld,deg,nq,nep->nconv,k+l-nep->nconv,nv,Q+off,ldds,work+nwu);CHKERRQ(ierr);
-    ierr = DSRestoreArray(nep->ds,ctx->nshifts?DS_MAT_Z:DS_MAT_Q,&Q);CHKERRQ(ierr);
+    ierr = DSGetMat(nep->ds,ctx->nshifts?DS_MAT_Z:DS_MAT_Q,&MQ);CHKERRQ(ierr);
+    ierr = BVMultInPlace(ctx->V,MQ,nep->nconv,k+l);CHKERRQ(ierr);
+    ierr = MatDestroy(&MQ);CHKERRQ(ierr);
 
     /* Copy last column of S */
-    ierr = PetscMemcpy(S+lds*(k+l),S+lds*nv,lds*sizeof(PetscScalar));CHKERRQ(ierr);
-    if (nep->reason == NEP_CONVERGED_ITERATING) {
-      if (breakdown) {
+    ierr = BVCopyColumn(ctx->V,nv,k+l);CHKERRQ(ierr);
 
-        /* Stop if breakdown */
-        ierr = PetscInfo2(nep,"Breakdown (it=%D norm=%g)\n",nep->its,(double)betah);CHKERRQ(ierr);
-        nep->reason = NEP_DIVERGED_BREAKDOWN;
+    if (breakdown && nep->reason == NEP_CONVERGED_ITERATING) {
+      /* Stop if breakdown */
+      ierr = PetscInfo2(nep,"Breakdown (it=%D norm=%g)\n",nep->its,(double)betah);CHKERRQ(ierr);
+      nep->reason = NEP_DIVERGED_BREAKDOWN;
+    }
+    if (nep->reason != NEP_CONVERGED_ITERATING) l--;
+    /* truncate S */
+    ierr = BVGetActiveColumns(nep->V,NULL,&nq);CHKERRQ(ierr);
+    if (k+l+deg<=nq) {
+      ierr = BVSetActiveColumns(ctx->V,nep->nconv,k+l+1);CHKERRQ(ierr);
+      if (!falselock && ctx->lock) {
+        ierr = BVTensorCompress(ctx->V,k-nep->nconv);CHKERRQ(ierr);
       } else {
-        /* Truncate S */
-        ierr = NEPTOARTrunc(nep,S,ld,deg,&nq,k+l+1,work+nwu,rwork+nrwu);CHKERRQ(ierr);
+        ierr = BVTensorCompress(ctx->V,0);CHKERRQ(ierr);
       }
     }
     nep->nconv = k;
@@ -1342,32 +1186,29 @@ PetscErrorCode NEPSolve_NLEIGS(NEP nep)
   }
   nep->nconv = nconv;
   if (nep->nconv>0) {
-    /* Extract invariant pair */
-    ierr = NEPTOARTrunc(nep,S,ld,deg,&nq,nep->nconv,work+nwu,rwork+nrwu);CHKERRQ(ierr);
-    /* Update vectors V = V*S or V=V*S*H */
-    rs1 = nep->nconv;
+    nq = nep->nconv;
+    ierr = BVSetActiveColumns(ctx->V,0,nep->nconv);CHKERRQ(ierr);
     if (ctx->nshifts) {
-      ierr = DSGetArray(nep->ds,DS_MAT_B,&H);CHKERRQ(ierr);
-      ierr = NEPTOARSupdate(S,ld,deg,rs1,0,nep->nconv,nep->nconv,H,ldds,work+nwu);CHKERRQ(ierr);
-      ierr = DSRestoreArray(nep->ds,DS_MAT_B,&H);CHKERRQ(ierr);
+      ierr = DSGetMat(nep->ds,DS_MAT_B,&MQ);CHKERRQ(ierr);
+      ierr = BVMultInPlace(ctx->V,MQ,0,nep->nconv);CHKERRQ(ierr);
+      ierr = MatDestroy(&MQ);CHKERRQ(ierr);
     }
-    ierr = PetscMalloc1(rs1*nep->nconv,&pU);CHKERRQ(ierr);
+    ierr = PetscMalloc1(nq*nep->nconv,&pU);CHKERRQ(ierr);
     for (i=0;i<nep->nconv;i++) {
-      ierr = PetscMemcpy(pU+i*rs1,S+i*lds,rs1*sizeof(PetscScalar));CHKERRQ(ierr);
+      ierr = PetscMemcpy(pU+i*nq,S+i*lds,nq*sizeof(PetscScalar));CHKERRQ(ierr);
     }
-    ierr = MatCreateSeqDense(PETSC_COMM_SELF,rs1,nep->nconv,pU,&U);CHKERRQ(ierr);
-    ierr = BVSetActiveColumns(nep->V,0,rs1);CHKERRQ(ierr);
+    ierr = MatCreateSeqDense(PETSC_COMM_SELF,nq,nep->nconv,pU,&U);CHKERRQ(ierr);
+    ierr = BVSetActiveColumns(nep->V,0,nq);CHKERRQ(ierr);
     ierr = BVMultInPlace(nep->V,U,0,nep->nconv);CHKERRQ(ierr);
     ierr = BVSetActiveColumns(nep->V,0,nep->nconv);CHKERRQ(ierr);
     ierr = MatDestroy(&U);CHKERRQ(ierr);
     ierr = PetscFree(pU);CHKERRQ(ierr);
+    /* truncate Schur decomposition and change the state to raw so that
+       DSVectors() computes eigenvectors from scratch */
+    ierr = DSSetDimensions(nep->ds,nep->nconv,0,0,0);CHKERRQ(ierr);
+    ierr = DSSetState(nep->ds,DS_STATE_RAW);CHKERRQ(ierr);
   }
-  /* truncate Schur decomposition and change the state to raw so that
-     DSVectors() computes eigenvectors from scratch */
-  ierr = DSSetDimensions(nep->ds,nep->nconv,0,0,0);CHKERRQ(ierr);
-  ierr = DSSetState(nep->ds,DS_STATE_RAW);CHKERRQ(ierr);
 
-  ierr = PetscFree4(work,rwork,S,Hc);CHKERRQ(ierr);
   /* Map eigenvalues back to the original problem */
   if (!ctx->nshifts) {
     ierr = NEPNLEIGSBackTransform((PetscObject)nep,nep->nconv,nep->eigr,nep->eigi);CHKERRQ(ierr);
@@ -1987,6 +1828,7 @@ PetscErrorCode NEPDestroy_NLEIGS(NEP nep)
   NEP_NLEIGS     *ctx = (NEP_NLEIGS*)nep->data;
 
   PetscFunctionBegin;
+  ierr = BVDestroy(&ctx->V);CHKERRQ(ierr);
   for (k=0;k<ctx->nshiftsw;k++) { ierr = KSPDestroy(&ctx->ksp[k]);CHKERRQ(ierr); }
   ierr = PetscFree(ctx->ksp);CHKERRQ(ierr);
   if (ctx->nshifts) { ierr = PetscFree(ctx->shifts);CHKERRQ(ierr); }

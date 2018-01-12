@@ -43,6 +43,8 @@ PetscErrorCode BVSetType(BV bv,BVType type)
 
   ierr = PetscObjectTypeCompare((PetscObject)bv,type,&match);CHKERRQ(ierr);
   if (match) PetscFunctionReturn(0);
+  ierr = PetscStrcmp(type,BVTENSOR,&match);CHKERRQ(ierr);
+  if (match) SETERRQ(PetscObjectComm((PetscObject)bv),1,"Use BVCreateTensor() to create a BV of type tensor");
 
   ierr =  PetscFunctionListFind(BVList,type,&r);CHKERRQ(ierr);
   if (!r) SETERRQ1(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_UNKNOWN_TYPE,"Unable to find requested BV type %s",type);
@@ -1774,11 +1776,15 @@ PetscErrorCode BVCopyColumn(BV V,PetscInt j,PetscInt i)
     omega[i] = omega[j];
     ierr = VecRestoreArray(V->omega,&omega);CHKERRQ(ierr);
   }
-  ierr = BVGetColumn(V,j,&z);CHKERRQ(ierr);
-  ierr = BVGetColumn(V,i,&w);CHKERRQ(ierr);
-  ierr = VecCopy(z,w);CHKERRQ(ierr);
-  ierr = BVRestoreColumn(V,j,&z);CHKERRQ(ierr);
-  ierr = BVRestoreColumn(V,i,&w);CHKERRQ(ierr);
+  if (V->ops->copycolumn) {
+    ierr = (*V->ops->copycolumn)(V,j,i);CHKERRQ(ierr);
+  } else {
+    ierr = BVGetColumn(V,j,&z);CHKERRQ(ierr);
+    ierr = BVGetColumn(V,i,&w);CHKERRQ(ierr);
+    ierr = VecCopy(z,w);CHKERRQ(ierr);
+    ierr = BVRestoreColumn(V,j,&z);CHKERRQ(ierr);
+    ierr = BVRestoreColumn(V,i,&w);CHKERRQ(ierr);
+  }
   ierr = PetscLogEventEnd(BV_Copy,V,0,0,0);CHKERRQ(ierr);
   ierr = PetscObjectStateIncrease((PetscObject)V);CHKERRQ(ierr);
   PetscFunctionReturn(0);
