@@ -12,7 +12,7 @@
 #define __SLEPCBLASLAPACK_MANGLE_H
 
 /* LAPACK functions without string parameters */
-#define BLASrot_     PETSCBLASR(rot,ROT)
+#define BLASrot_     PETSCBLASROT(rot,ROT)
 #define LAPACKlaev2_ PETSCBLAS(laev2,LAEV2)
 #define LAPACKgehrd_ PETSCBLAS(gehrd,GEHRD)
 #define LAPACKgelqf_ PETSCBLAS(gelqf,GELQF)

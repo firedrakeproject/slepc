@@ -28,6 +28,38 @@
 #define SlepcLRT PetscReal
 #endif
 
+/* Special macro for srot, csrot, drot, zdrot */
+#if !defined(PETSC_USE_COMPLEX)
+# define PETSC_BLASLAPACK_ROTPREFIX_ PETSC_BLASLAPACK_PREFIX_
+#else
+# if defined(PETSC_BLASLAPACK_CAPS)
+#  if defined(PETSC_USE_REAL_SINGLE)
+#   define PETSC_BLASLAPACK_ROTPREFIX_ CS
+#  elif defined(PETSC_USE_REAL_DOUBLE)
+#   define PETSC_BLASLAPACK_ROTPREFIX_ ZD
+#  elif defined(PETSC_USE_REAL___FLOAT128)
+#   define PETSC_BLASLAPACK_ROTPREFIX_ WQ
+#  else
+#   define PETSC_BLASLAPACK_ROTPREFIX_ KH
+#  endif
+# else
+#  if defined(PETSC_USE_REAL_SINGLE)
+#   define PETSC_BLASLAPACK_ROTPREFIX_ cs
+#  elif defined(PETSC_USE_REAL_DOUBLE)
+#   define PETSC_BLASLAPACK_ROTPREFIX_ zd
+#  elif defined(PETSC_USE_REAL___FLOAT128)
+#   define PETSC_BLASLAPACK_ROTPREFIX_ wq
+#  else
+#   define PETSC_BLASLAPACK_ROTPREFIX_ kh
+#  endif
+# endif
+#endif
+#if defined(PETSC_BLASLAPACK_CAPS)
+#  define PETSCBLASROT(x,X) PETSC_PASTE3(PETSC_BLASLAPACK_ROTPREFIX_, X, PETSC_BLASLAPACK_SUFFIX_)
+#else
+#  define PETSCBLASROT(x,X) PETSC_PASTE3(PETSC_BLASLAPACK_ROTPREFIX_, x, PETSC_BLASLAPACK_SUFFIX_)
+#endif
+
 #if defined(PETSC_BLASLAPACK_STDCALL)
 #include <slepcblaslapack_stdcall.h>
 #else
