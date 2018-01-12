@@ -54,7 +54,7 @@ int main(int argc,char **argv)
   PetscErrorCode ierr;
 
   ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
-#if (defined(__cplusplus) && defined(PETSC_HAVE_CXX_COMPLEX)) || (!defined(__cplusplus) && defined(PETSC_HAVE_C99_COMPLEX))
+#if defined(PETSC_HAVE_COMPLEX)
   ierr = PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD,"\nBrusselator wave model with matrix exponential, n=%D\n\n",n);CHKERRQ(ierr);
 
@@ -181,14 +181,14 @@ int main(int argc,char **argv)
 */
 PetscErrorCode STBackTransform_Exp(ST st,PetscInt n,PetscScalar *eigr,PetscScalar *eigi)
 {
-#if (defined(__cplusplus) && defined(PETSC_HAVE_CXX_COMPLEX)) || (!defined(__cplusplus) && defined(PETSC_HAVE_C99_COMPLEX))
+#if defined(PETSC_HAVE_COMPLEX)
   PetscErrorCode ierr;
   PetscInt       j;
   MFN            mfn;
   FN             fn;
   PetscScalar    tau,eta;
 #if !defined(PETSC_USE_COMPLEX)
-  PetscComplex theta,lambda;
+  PetscComplex   theta,lambda;
 #endif
 
   PetscFunctionBeginUser;

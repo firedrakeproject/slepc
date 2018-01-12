@@ -176,6 +176,7 @@ PETSC_EXTERN void PETSC_STDCALL PETSCBLAS(stedc,STEDC) (const char*,PetscBLASInt
 PETSC_EXTERN void PETSC_STDCALL PETSCBLAS(lascl,LASCL) (const char*,PetscBLASInt,PetscBLASInt*,PetscBLASInt*,PetscReal*,PetscReal*,PetscBLASInt*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscBLASInt*);
 #endif
 
+#if defined(PETSC_HAVE_COMPLEX)
 /* complex subroutines to be called with scalar-type=real */
 #define BLASCOMPLEXgemm_(a,b,c,d,e,f,g,h,i,j,k,l,m) PETSCBLASCOMPLEX(gemm,GEMM)((a),1,(b),1,(c),(d),(e),(f),(g),(h),(i),(j),(k),(l),(m))
 PETSC_EXTERN void PETSC_STDCALL PETSCBLASCOMPLEX(gemm,GEMM)(const char*,const char*,PetscBLASInt*,PetscBLASInt*,PetscBLASInt*,PetscComplex*,PetscComplex*,PetscBLASInt*,PetscComplex*,PetscBLASInt*,PetscComplex*,PetscComplex*,PetscBLASInt*);
@@ -183,6 +184,7 @@ PETSC_EXTERN void PETSC_STDCALL PETSCBLASCOMPLEX(gemm,GEMM)(const char*,const ch
 PETSC_EXTERN void PETSC_STDCALL PETSCBLASCOMPLEX(scal,SCAL)(const PetscBLASInt*,const PetscComplex*,PetscComplex*,const PetscBLASInt*);
 #define LAPACKCOMPLEXgesv_ PETSCBLASCOMPLEX(gesv,GESV)
 PETSC_EXTERN void PETSC_STDCALL PETSCBLASCOMPLEX(gesv,GESV)(const PetscBLASInt*,const PetscBLASInt*,PetscComplex*,const PetscBLASInt*,PetscBLASInt*,PetscComplex*,const PetscBLASInt*,PetscBLASInt*);
+#endif
 
 #endif
 

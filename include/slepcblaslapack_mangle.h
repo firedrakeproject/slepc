@@ -82,9 +82,11 @@
 #define LAPACKstedc_ PETSCBLAS(stedc,STEDC)
 #define LAPACKlascl_ PETSCBLAS(lascl,LASCL)
 
+#if defined(PETSC_HAVE_COMPLEX)
 /* complex subroutines to be called with scalar-type=real */
 #define BLASCOMPLEXgemm_   PETSCBLASCOMPLEX(gemm,GEMM)
 #define BLASCOMPLEXscal_   PETSCBLASCOMPLEX(scal,SCAL)
 #define LAPACKCOMPLEXgesv_ PETSCBLASCOMPLEX(gesv,GESV)
+#endif
 
 #endif
