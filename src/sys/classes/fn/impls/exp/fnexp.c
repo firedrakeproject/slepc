@@ -223,8 +223,8 @@ static PetscErrorCode getcoeffs(PetscInt k,PetscInt m,PetscComplex *r,PetscCompl
     m1remain4[2] = {-2.500000000000000e-01, -7.750000000000000e+00},
     m1remain3[2] = { 3.333333333333333e-01,  5.666666666666667e+00},
     m1remain2[2] = {-0.5,                   -3.5},
-    remain3[4] = {1/6, 1/2, 1, 1},
-    remain2[3] = {1/2, 1, 1};
+    remain3[4] = {1.0/6.0, 1.0/2.0, 1, 1},
+    remain2[3] = {1.0/2.0, 1, 1};
 
   PetscFunctionBegin;
   if (query) { /* query about buffer's size */
@@ -496,11 +496,11 @@ PetscErrorCode FNEvaluateFunctionMat_Exp_GuettelNakatsukasa(FN fn,Mat A,Mat B)
   PetscFunctionBegin;
   SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"GEEV/GESV/LANGE - Lapack routines are unavailable");
 #else
-  PetscInt       i,j,n_,s,k,m,mode=PRODUCT_FORM,one=1,lwork,mod;
-  PetscBLASInt   n,n2,irsize,rsizediv2,ipsize,iremainsize,query=-1,info,*piv,minlen;
+  PetscInt       i,j,n_,s,k,m,mode=PRODUCT_FORM,mod;
+  PetscBLASInt   n,n2,irsize,rsizediv2,ipsize,iremainsize,query=-1,info,*piv,minlen,lwork,one=1;
   PetscReal      nrm,shift;
 #if defined(PETSC_USE_COMPLEX)
-  PetscReal      *rwork;
+  PetscReal      *rwork=NULL;
 #endif
   PetscComplex   *As,*RR,*RR2,*expmA,*expmA2,*Maux,*Maux2,rsize,*r,psize,*p,remainsize,*remainterm,*rootp,*rootq,mult=0.0,scale,cone=1.0,czero=0.0,*aux;
   PetscScalar    *Aa,*Ba,*Ba2,*sMaux,*wr,*wi,expshift,sone=1.0,szero=0.0,*work,work1,*saux;
@@ -513,7 +513,7 @@ PetscErrorCode FNEvaluateFunctionMat_Exp_GuettelNakatsukasa(FN fn,Mat A,Mat B)
   ierr = MatDenseGetArray(A,&Aa);CHKERRQ(ierr);
   ierr = MatDenseGetArray(B,&Ba);CHKERRQ(ierr);
   Ba2 = Ba;
-  n2 = n*n;
+  ierr = PetscBLASIntCast(n*n,&n2);CHKERRQ(ierr);
 
   ierr = PetscMalloc2(n2,&sMaux,n2,&Maux);CHKERRQ(ierr);
   Maux2 = Maux;
@@ -586,8 +586,7 @@ PetscErrorCode FNEvaluateFunctionMat_Exp_GuettelNakatsukasa(FN fn,Mat A,Mat B)
 #else
   ierr = PetscMemcpy(As,sMaux,n2*sizeof(PetscScalar));CHKERRQ(ierr);
 #endif
-  scale = PetscPowRealInt(2.0,s);
-  scale = 1/scale;
+  scale = 1.0/PetscPowRealInt(2.0,s);
   PetscStackCallBLAS("BLASCOMPLEXscal",BLASCOMPLEXscal_(&n2,&scale,As,&one));
   ierr = PetscLogFlops(1.0*n2);CHKERRQ(ierr);
 
