@@ -112,34 +112,43 @@ runtest2_1_%:
 	${MPIEXEC} -n 1 ./test2 $$method | ${GREP} -v "computing matrix functions" > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
-runtest3_1: runtest3_1_higham runtest3_1_pade
+runtest3_1: runtest3_1_higham runtest3_1_pade runtest3_1_subdiagonalpade
 runtest3_1_%:
 	-@${SETTEST}; check=test3_1; method=$*; \
-	if [ "$$method" = higham ]; then method="-fn_method 0"; \
-	elif [ "$$method" = pade ]; then method="-fn_method 1"; fi; \
-	${MPIEXEC} -n 1 ./test3 $$method | ${GREP} -v "computing matrix functions" > $${test}.tmp 2>&1; \
-	${TESTCODE}
+	if [ "$$method" != subdiagonalpade ] || ${GREP} "\#define PETSC_HAVE_C99_COMPLEX" ${PETSC_DIR}/${PETSC_ARCH}/include/petscconf.h > /dev/null; then \
+	  if [ "$$method" = higham ]; then method="-fn_method 0"; \
+	  elif [ "$$method" = pade ]; then method="-fn_method 1"; \
+	  elif [ "$$method" = subdiagonalpade ]; then method="-fn_method 2"; fi; \
+	  ${MPIEXEC} -n 1 ./test3 $$method | ${GREP} -v "computing matrix functions" > $${test}.tmp 2>&1; \
+	  ${TESTCODE}; \
+	fi
 
 runtest3_2:
 	-@${SETTEST}; check=test3_1; \
 	${MPIEXEC} -n 1 ./test3 -inplace | ${GREP} -v "computing matrix functions" > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
-runtest3_3: runtest3_3_higham runtest3_3_pade
+runtest3_3: runtest3_3_higham runtest3_3_pade runtest3_3_subdiagonalpade
 runtest3_3_%:
 	-@${SETTEST}; check=test3_3; method=$*; \
-	if [ "$$method" = higham ]; then method="-fn_method 0"; \
-	elif [ "$$method" = pade ]; then method="-fn_method 1"; fi; \
-	${MPIEXEC} -n 1 ./test3 -fn_scale 0.1 $$method | ${GREP} -v "computing matrix functions" > $${test}.tmp 2>&1; \
-	${TESTCODE}
+	if [ "$$method" != subdiagonalpade ] || ${GREP} "\#define PETSC_HAVE_C99_COMPLEX" ${PETSC_DIR}/${PETSC_ARCH}/include/petscconf.h > /dev/null; then \
+	  if [ "$$method" = higham ]; then method="-fn_method 0"; \
+	  elif [ "$$method" = pade ]; then method="-fn_method 1"; \
+	  elif [ "$$method" = subdiagonalpade ]; then method="-fn_method 2"; fi; \
+	  ${MPIEXEC} -n 1 ./test3 -fn_scale 0.1 $$method | ${GREP} -v "computing matrix functions" > $${test}.tmp 2>&1; \
+	  ${TESTCODE}; \
+	fi
 
-runtest3_4: runtest3_4_higham runtest3_4_pade
+runtest3_4: runtest3_4_higham runtest3_4_pade runtest3_4_subdiagonalpade
 runtest3_4_%:
 	-@${SETTEST}; check=test3_4; method=$*; \
-	if [ "$$method" = higham ]; then method="-fn_method 0"; \
-	elif [ "$$method" = pade ]; then method="-fn_method 1"; fi; \
-	${MPIEXEC} -n 1 ./test3 -n 200 -fn_scale 0.6,1.5 $$method | ${GREP} -v "computing matrix functions" > $${test}.tmp 2>&1; \
-	${TESTCODE}
+	if [ "$$method" != subdiagonalpade ] || ${GREP} "\#define PETSC_HAVE_C99_COMPLEX" ${PETSC_DIR}/${PETSC_ARCH}/include/petscconf.h > /dev/null; then \
+	  if [ "$$method" = higham ]; then method="-fn_method 0"; \
+	  elif [ "$$method" = pade ]; then method="-fn_method 1"; \
+	  elif [ "$$method" = subdiagonalpade ]; then method="-fn_method 2"; fi; \
+	  ${MPIEXEC} -n 1 ./test3 -n 200 -fn_scale 0.6,1.5 $$method | ${GREP} -v "computing matrix functions" > $${test}.tmp 2>&1; \
+	  ${TESTCODE}; \
+	fi
 
 runtest4_1:
 	-@${SETTEST}; \
