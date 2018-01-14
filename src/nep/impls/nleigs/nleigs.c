@@ -1056,7 +1056,7 @@ PetscErrorCode NEPSolve_NLEIGS(NEP nep)
   PetscInt       i,k=0,l,nv=0,ld,lds,ldds,nq,newn;
   PetscInt       deg=ctx->nmat-1,nconv=0;
   PetscScalar    *S,*Q,*H,*pU,*K,betak=0,*eigr,*eigi;
-  PetscReal      betah,norm;
+  PetscReal      betah;
   PetscBool      falselock=PETSC_FALSE,breakdown=PETSC_FALSE;
   BV             W;
   Mat            MS,MQ,U;
@@ -1088,8 +1088,6 @@ PetscErrorCode NEPSolve_NLEIGS(NEP nep)
   
   /* Get the starting Arnoldi vector */
   ierr = BVTensorBuildFirstColumn(ctx->V,nep->nini);CHKERRQ(ierr);
-  ierr = BVNormColumn(ctx->V,0,NORM_2,&norm);CHKERRQ(ierr);
-  ierr = BVScaleColumn(ctx->V,0,1.0/norm);CHKERRQ(ierr);
   
   /* Restart loop */
   l = 0;

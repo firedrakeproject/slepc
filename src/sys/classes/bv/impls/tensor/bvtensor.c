@@ -364,6 +364,8 @@ static PetscErrorCode BVTensorBuildFirstColumn_Tensor(BV V,PetscInt k)
    the first d columns of U. If k is less than d (or linearly dependent columns
    are found) then additional random columns are used.
 
+   The computed column has unit norm.
+
    Level: advanced
 
 .seealso: BVCreateTensor()

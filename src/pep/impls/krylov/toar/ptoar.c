@@ -467,7 +467,7 @@ PetscErrorCode PEPSolve_TOAR(PEP pep)
   PetscInt       i,j,k,l,nv=0,ld,lds,ldds,newn,nq=0,nconv=0;
   PetscInt       nmat=pep->nmat,deg=nmat-1;
   PetscScalar    *S,*H,sigma;
-  PetscReal      beta,norm;
+  PetscReal      beta;
   PetscBool      breakdown=PETSC_FALSE,flg,falselock=PETSC_FALSE,sinv=PETSC_FALSE;
   Mat            MS,MQ;
 
@@ -508,8 +508,6 @@ PetscErrorCode PEPSolve_TOAR(PEP pep)
   
   /* Get the starting Arnoldi vector */
   ierr = BVTensorBuildFirstColumn(ctx->V,pep->nini);CHKERRQ(ierr);
-  ierr = BVNormColumn(ctx->V,0,NORM_2,&norm);CHKERRQ(ierr);
-  ierr = BVScaleColumn(ctx->V,0,1.0/norm);CHKERRQ(ierr);
 
   /* restart loop */
   l = 0;
