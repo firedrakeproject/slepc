@@ -17,7 +17,6 @@
 typedef struct {
   PetscReal   keep;         /* restart parameter */
   PetscBool   lock;         /* locking/non-locking variant */
-  PetscScalar *qB;          /* auxiliary matrices */
   BV          V;            /* tensor basis vectors object for the linearization */
 } PEP_TOAR;
 
