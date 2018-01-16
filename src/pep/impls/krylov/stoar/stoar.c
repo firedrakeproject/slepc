@@ -71,10 +71,13 @@ static PetscErrorCode MatDestroy_Func(Mat A)
 
 PetscErrorCode PEPSetUp_STOAR(PEP pep)
 {
-  PetscErrorCode ierr;
-  PetscBool      shift,sinv,flg;
-  PEP_TOAR       *ctx = (PEP_TOAR*)pep->data;
-  PetscInt       ld;
+  PetscErrorCode    ierr;
+  PetscBool         shift,sinv,flg;
+  PEP_TOAR          *ctx = (PEP_TOAR*)pep->data;
+  PetscInt          ld;
+  PetscReal         eta;
+  BVOrthogType      otype;
+  BVOrthogBlockType obtype;
 
   PetscFunctionBegin;
   pep->lineariz = PETSC_TRUE;
@@ -98,13 +101,14 @@ PetscErrorCode PEPSetUp_STOAR(PEP pep)
 
   ierr = PEPAllocateSolution(pep,2);CHKERRQ(ierr);
   ierr = PEPSetWorkVecs(pep,4);CHKERRQ(ierr);
-  ld = pep->ncv+2;
+  ld   = pep->ncv+2;
   ierr = DSSetType(pep->ds,DSGHIEP);CHKERRQ(ierr);
   ierr = DSSetCompact(pep->ds,PETSC_TRUE);CHKERRQ(ierr);
   ierr = DSAllocate(pep->ds,ld);CHKERRQ(ierr);
   ierr = BVDestroy(&ctx->V);CHKERRQ(ierr);
   ierr = BVCreateTensor(pep->V,pep->nmat-1,&ctx->V);CHKERRQ(ierr);
-  PetscFunctionReturn(0);
+  ierr = BVGetOrthogonalization(pep->V,&otype,NULL,&eta,&obtype);CHKERRQ(ierr);
+  ierr = BVSetOrthogonalization(ctx->V,otype,BV_ORTHOG_REFINE_ALWAYS,eta,obtype);CHKERRQ(ierr);  PetscFunctionReturn(0);
 }
 
 /*
@@ -352,11 +356,11 @@ PetscErrorCode PEPSolve_STOAR(PEP pep)
     /* Copy last column of S */
     ierr = BVCopyColumn(ctx->V,nv,k+l);CHKERRQ(ierr);
     ierr = DSGetArrayReal(pep->ds,DS_MAT_D,&omega);CHKERRQ(ierr);
-    ierr = VecCreateSeq(PETSC_COMM_SELF,k+l+1,&vomega);CHKERRQ(ierr);
+    ierr = VecCreateSeq(PETSC_COMM_SELF,k+l,&vomega);CHKERRQ(ierr);
     ierr = VecGetArray(vomega,&om);CHKERRQ(ierr);
-    for (j=0;j<k+l+1;j++) om[j] = omega[j];
+    for (j=0;j<k+l;j++) om[j] = omega[j];
     ierr = VecRestoreArray(vomega,&om);CHKERRQ(ierr);
-    ierr = BVSetActiveColumns(ctx->V,0,k+l+1);CHKERRQ(ierr);
+    ierr = BVSetActiveColumns(ctx->V,0,k+l);CHKERRQ(ierr);
     ierr = BVSetSignature(ctx->V,vomega);CHKERRQ(ierr);
     ierr = VecDestroy(&vomega);CHKERRQ(ierr);
     ierr = DSRestoreArrayReal(pep->ds,DS_MAT_D,&omega);CHKERRQ(ierr);
