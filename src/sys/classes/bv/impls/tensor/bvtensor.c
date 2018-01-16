@@ -481,13 +481,12 @@ static PetscErrorCode BVTensorCompress_Tensor(BV V,PetscInt newc)
   lock = ctx->U->l;
   nnc = cs1-lock-newc;
   nrow = rs1-lock;
-  ierr = PetscMalloc6(deg*newc*nnc,&SS,newc*nnc,&SS2,(rs1+lock+newc)*n,&pQ,deg*rs1,&tau,lwa,&work,6*n,&rwork);CHKERRQ(ierr);
+  ierr = PetscCalloc6(deg*newc*nnc,&SS,newc*nnc,&SS2,(rs1+lock+newc)*n,&pQ,deg*rs1,&tau,lwa,&work,6*n,&rwork);CHKERRQ(ierr);
   offu = lock*(rs1+1);
   M = work+nwu;
   nwu += rs1*cs1*deg;
   sg = rwork+nrwu;
   nrwu += n;
-  ierr = PetscMemzero(pQ,rs1*n*sizeof(PetscScalar));CHKERRQ(ierr);
   Z = work+nwu;
   nwu += deg*cs1*n;
   ierr = PetscBLASIntCast(n,&n_);CHKERRQ(ierr);
@@ -594,15 +593,16 @@ static PetscErrorCode BVTensorCompress_Tensor(BV V,PetscInt newc)
 
   /* update vectors U(:,idx) = U*Q(:,idx) */
   rk = rk+lock;
-  for (i=0;i<lock;i++) pQ[(i+1)*rs1] = 1.0;
+  for (i=0;i<lock;i++) pQ[i*(1+rs1)] = 1.0;
   ierr = MatCreateSeqDense(PETSC_COMM_SELF,rs1,rk,pQ,&Q);CHKERRQ(ierr);
   ctx->U->k = rs1;
   ierr = BVMultInPlace(ctx->U,Q,lock,rk);CHKERRQ(ierr);
   ierr = MatDestroy(&Q);CHKERRQ(ierr);
   
   if (ctx->qB) {
-    /* update matrix qB */
+   /* update matrix qB */
     ierr = PetscBLASIntCast(ctx->ld,&ld_);CHKERRQ(ierr);
+    ierr = PetscBLASIntCast(rk,&rk_);CHKERRQ(ierr);
     for (r=0;r<ctx->d;r++) {
       for (c=0;c<=r;c++) {
         ierr = MatNestGetSubMat(V->matrix,r,c,&A);CHKERRQ(ierr);
