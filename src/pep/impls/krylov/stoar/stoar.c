@@ -114,7 +114,7 @@ PetscErrorCode PEPSetUp_STOAR(PEP pep)
 /*
   Compute a run of Lanczos iterations. dim(work)=(ctx->ld)*4
 */
-static PetscErrorCode PEPSTOARrun(PEP pep,PetscReal *a,PetscReal *b,PetscReal *omega,PetscInt k,PetscInt *M,PetscBool *breakdown,PetscBool *symmlost,PetscScalar *work,Vec *t_)
+static PetscErrorCode PEPSTOARrun(PEP pep,PetscReal *a,PetscReal *b,PetscReal *omega,PetscInt k,PetscInt *M,PetscBool *breakdown,PetscBool *symmlost,Vec *t_)
 {
   PetscErrorCode ierr;
   PEP_TOAR       *ctx = (PEP_TOAR*)pep->data;
@@ -128,6 +128,7 @@ static PetscErrorCode PEPSTOARrun(PEP pep,PetscReal *a,PetscReal *b,PetscReal *o
   Mat            MS;
 
   PetscFunctionBegin;
+  ierr = PetscMalloc1(*M,&y);CHKERRQ(ierr);
   ierr = BVGetSizes(pep->V,NULL,NULL,&ld);CHKERRQ(ierr);
   ierr = BVTensorGetDegree(ctx->V,&d);CHKERRQ(ierr);
   ierr = BVGetActiveColumns(pep->V,&lock,&nqt);CHKERRQ(ierr);
@@ -135,7 +136,6 @@ static PetscErrorCode PEPSTOARrun(PEP pep,PetscReal *a,PetscReal *b,PetscReal *o
   offq = ld;
   *breakdown = PETSC_FALSE; /* ----- */
   ierr = DSGetDimensions(pep->ds,NULL,NULL,&l,NULL,NULL);CHKERRQ(ierr);
-  y = work;
   ierr = BVSetActiveColumns(ctx->V,0,m);CHKERRQ(ierr);
   ierr = BVSetActiveColumns(pep->V,0,nqt);CHKERRQ(ierr);
   for (j=k;j<m;j++) {
@@ -191,6 +191,7 @@ static PetscErrorCode PEPSTOARrun(PEP pep,PetscReal *a,PetscReal *b,PetscReal *o
   }
   ierr = BVSetActiveColumns(pep->V,lock,nqt);CHKERRQ(ierr);
   ierr = BVSetActiveColumns(ctx->V,0,*M);CHKERRQ(ierr);
+  ierr = PetscFree(y);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -227,9 +228,9 @@ PetscErrorCode PEPSolve_STOAR(PEP pep)
   PetscErrorCode ierr;
   PEP_TOAR       *ctx = (PEP_TOAR*)pep->data;
   PetscInt       j,k,l,nv=0,ld,ldds,t,nq=0,m,n;
-  PetscInt       lwa,lrwa,nwu=0,nconv=0,deg=pep->nmat-1;
-  PetscScalar    *Q,*work,*om,scal[2];
-  PetscReal      beta,norm=1.0,*omega,*a,*b,*r,*rwork;
+  PetscInt       nconv=0,deg=pep->nmat-1;
+  PetscScalar    *Q,*om,scal[2];
+  PetscReal      beta,norm=1.0,*omega,*a,*b,*r;
   PetscBool      breakdown,symmlost=PETSC_FALSE,sinv,falselock=PETSC_TRUE;
   Mat            MQ,A,pA[4],As[2],D[2];
   Vec            vomega;
@@ -257,9 +258,6 @@ PetscErrorCode PEPSolve_STOAR(PEP pep)
     ierr = PetscOptionsGetBool(NULL,NULL,"-pep_stoar_falselocking",&falselock,NULL);CHKERRQ(ierr);
   }
   ierr = BVGetSizes(pep->V,NULL,NULL,&ld);CHKERRQ(ierr);
-  lwa = 9*ld*ld+5*ld; 
-  lrwa = 8*ld;
-  ierr = PetscMalloc2(lwa,&work,lrwa,&rwork);CHKERRQ(ierr); /* REVIEW */
   ierr = PetscObjectTypeCompare((PetscObject)pep->st,STSINVERT,&sinv);CHKERRQ(ierr);
   ierr = RGPushScale(pep->rg,sinv?pep->sfactor:1.0/pep->sfactor);CHKERRQ(ierr);
   ierr = STScaleShift(pep->st,sinv?pep->sfactor:1.0/pep->sfactor);CHKERRQ(ierr);
@@ -287,7 +285,7 @@ PetscErrorCode PEPSolve_STOAR(PEP pep)
 
     /* Compute an nv-step Lanczos factorization */
     nv = PetscMin(pep->nconv+pep->mpd,pep->ncv);
-    ierr = PEPSTOARrun(pep,a,b,omega,pep->nconv+l,&nv,&breakdown,&symmlost,work+nwu,pep->work);CHKERRQ(ierr);
+    ierr = PEPSTOARrun(pep,a,b,omega,pep->nconv+l,&nv,&breakdown,&symmlost,pep->work);CHKERRQ(ierr);
     beta = b[nv-1];
     if (symmlost && nv==pep->nconv+l) {
       pep->reason = PEP_DIVERGED_SYMMETRY_LOST;
@@ -402,7 +400,6 @@ PetscErrorCode PEPSolve_STOAR(PEP pep)
      DSVectors() computes eigenvectors from scratch */
   ierr = DSSetDimensions(pep->ds,pep->nconv,0,0,0);CHKERRQ(ierr);
   ierr = DSSetState(pep->ds,DS_STATE_RAW);CHKERRQ(ierr);
-  ierr = PetscFree2(work,rwork);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
