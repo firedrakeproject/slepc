@@ -707,7 +707,7 @@ static PetscErrorCode NEPNLEIGSDividedDifferences_callback(NEP nep)
       }
       ierr = NEPNLEIGSNormEstimation(nep,D[k],&norm,w);CHKERRQ(ierr);
     }
-    if (norm/norm0 < ctx->ddtol) {
+    if (norm/norm0 < ctx->ddtol && k>1) {
       ctx->nmat = k+1;
       break;
     }
