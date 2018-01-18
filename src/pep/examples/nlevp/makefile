@@ -149,7 +149,7 @@ runsleeper_1_%:
 runsleeper_2: runsleeper_2_toar runsleeper_2_jd
 runsleeper_2_%:
 	-@${SETTEST}; check=sleeper_2; pep=$*; \
-	if [ "$$pep" = toar ]; then pep="toar -pep_toar_restart .15 -pep_ncv 10 -pep_max_it 2000 -st_type sinvert"; \
+	if [ "$$pep" = toar ]; then pep="toar -pep_toar_restart .35 -pep_ncv 10 -pep_max_it 2000 -st_type sinvert"; \
 	elif [ "$$pep" = jd ]; then pep="jd -pep_target -.61"; fi; \
 	${MPIEXEC} -n 1 ./sleeper -n 100 -pep_type $${pep} -pep_nev 4 -terse > $${test}.tmp 2>&1; \
 	${TESTCODE}
