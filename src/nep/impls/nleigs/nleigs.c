@@ -707,7 +707,7 @@ static PetscErrorCode NEPNLEIGSDividedDifferences_callback(NEP nep)
       }
       ierr = NEPNLEIGSNormEstimation(nep,D[k],&norm,w);CHKERRQ(ierr);
     }
-    if (norm/norm0 < ctx->ddtol) {
+    if (norm/norm0 < ctx->ddtol && k>1) {
       ctx->nmat = k+1;
       break;
     }
@@ -1073,8 +1073,6 @@ PetscErrorCode NEPSolve_NLEIGS(NEP nep)
   } else { eigr = nep->eigr; eigi = nep->eigi; }
   ierr = BVDuplicateResize(nep->V,PetscMax(nep->nt-1,ctx->nmat-1),&W);CHKERRQ(ierr);
 
-  ierr = BVTensorGetFactors(ctx->V,NULL,&MS);CHKERRQ(ierr);
-  ierr = MatDenseGetArray(MS,&S);CHKERRQ(ierr);
 
   /* clean projected matrix (including the extra-arrow) */
   ierr = DSGetArray(nep->ds,DS_MAT_A,&H);CHKERRQ(ierr);
@@ -1191,10 +1189,14 @@ PetscErrorCode NEPSolve_NLEIGS(NEP nep)
       ierr = BVMultInPlace(ctx->V,MQ,0,nep->nconv);CHKERRQ(ierr);
       ierr = MatDestroy(&MQ);CHKERRQ(ierr);
     }
+    ierr = BVTensorGetFactors(ctx->V,NULL,&MS);CHKERRQ(ierr);
+    ierr = MatDenseGetArray(MS,&S);CHKERRQ(ierr);
     ierr = PetscMalloc1(nq*nep->nconv,&pU);CHKERRQ(ierr);
     for (i=0;i<nep->nconv;i++) {
       ierr = PetscMemcpy(pU+i*nq,S+i*lds,nq*sizeof(PetscScalar));CHKERRQ(ierr);
     }
+    ierr = MatDenseRestoreArray(MS,&S);CHKERRQ(ierr);
+    ierr = BVTensorRestoreFactors(ctx->V,NULL,&MS);CHKERRQ(ierr);
     ierr = MatCreateSeqDense(PETSC_COMM_SELF,nq,nep->nconv,pU,&U);CHKERRQ(ierr);
     ierr = BVSetActiveColumns(nep->V,0,nq);CHKERRQ(ierr);
     ierr = BVMultInPlace(nep->V,U,0,nep->nconv);CHKERRQ(ierr);

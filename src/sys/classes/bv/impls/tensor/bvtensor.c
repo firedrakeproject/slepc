@@ -18,8 +18,11 @@ typedef struct {
   BV          U;        /* first factor */
   Mat         S;        /* second factor */
   PetscScalar *qB;      /* auxiliary matrix used in non-standard inner products */
+  PetscScalar *sw;      /* work space */
   PetscInt    d;        /* degree of the tensor BV */
   PetscInt    ld;       /* leading dimension of a single block in S */
+  PetscInt    puk;      /* copy of the k value */
+  Vec         u;        /* auxiliary work vector */
 } BV_TENSOR;
 
 PetscErrorCode BVMult_Tensor(BV Y,PetscScalar alpha,PetscScalar beta,BV X,Mat Q)
@@ -225,13 +228,37 @@ PetscErrorCode BVRestoreArrayRead_Tensor(BV bv,const PetscScalar **a)
   PetscFunctionReturn(0);
 }
 
-PetscErrorCode BVOrthogonalizeGS1_Tensor(BV bv,PetscInt k,Vec v,PetscBool *which,PetscScalar *h,PetscScalar *c,PetscReal *onorm,PetscReal *norm)
+static PetscErrorCode BVTensorNormColumn(BV bv,PetscInt j,PetscReal *norm)
 {
   PetscErrorCode ierr;
   BV_TENSOR      *ctx = (BV_TENSOR*)bv->data;
-  PetscScalar    *pS,*cc,*x,dot,sonem=-1.0,sone=1.0,szero=0.0;
-  PetscInt       i,n,lds = ctx->ld*ctx->d;
-  PetscBLASInt   n_,lds_,k_,one=1;
+  PetscBLASInt   one=1,lds_;
+  PetscScalar    sone=1.0,szero=0.0,*S,*x,dot;
+  PetscInt       lds,ld=ctx->ld;
+
+  PetscFunctionBegin;
+  lds = ld*ctx->d;
+  ierr = MatDenseGetArray(ctx->S,&S);CHKERRQ(ierr);
+  ierr = PetscBLASIntCast(lds,&lds_);CHKERRQ(ierr);
+  if (ctx->qB) {
+    x = ctx->sw;
+    PetscStackCallBLAS("BLASgemv",BLASgemv_("N",&lds_,&lds_,&sone,ctx->qB,&lds_,S+j*lds,&one,&szero,x,&one));
+    dot = BLASdot_(&lds_,S+j*lds,&one,x,&one);
+    ierr = BV_SafeSqrt(bv,dot,norm);CHKERRQ(ierr);
+  } else {
+    *norm = BLASnrm2_(&lds_,S+j*lds,&one);
+  }
+  PetscFunctionReturn(0);
+}
+
+PetscErrorCode BVOrthogonalizeGS1_Tensor(BV bv,PetscInt k,Vec v,PetscBool *which,PetscScalar *h,PetscScalar *c,PetscReal *onorm,PetscReal *norm)
+{
+  PetscErrorCode    ierr;
+  BV_TENSOR         *ctx = (BV_TENSOR*)bv->data;
+  PetscScalar       *pS,*cc,*x,dot,sonem=-1.0,sone=1.0,szero=0.0;
+  PetscInt          i,lds = ctx->ld*ctx->d;
+  PetscBLASInt      lds_,k_,one=1;
+  const PetscScalar *omega;
 
   PetscFunctionBegin;
   if (v) SETERRQ(PetscObjectComm((PetscObject)bv),PETSC_ERR_SUP,"Orthogonalization against an external vector is not allowed in BVTENSOR");
@@ -239,42 +266,47 @@ PetscErrorCode BVOrthogonalizeGS1_Tensor(BV bv,PetscInt k,Vec v,PetscBool *which
   if (!c) {
     ierr = VecGetArray(bv->buffer,&cc);CHKERRQ(ierr);
   } else cc = c;
-  n = bv->nc+k+ctx->d-1;
-  ierr = PetscBLASIntCast(n,&n_);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(lds,&lds_);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(k,&k_);CHKERRQ(ierr);
 
-  if (onorm) *onorm = BLASnrm2_(&lds_,pS+k*lds,&one);
+  if (onorm) { ierr = BVTensorNormColumn(bv,k,onorm);CHKERRQ(ierr); }
+
+  if (ctx->qB) x = ctx->sw;
+  else x = pS+k*lds;
 
   if (bv->orthog_type==BV_ORTHOG_MGS) {  /* modified Gram-Schmidt */
 
+    if (bv->indef) { /* signature */
+      ierr = VecGetArrayRead(bv->omega,&omega);CHKERRQ(ierr);
+    }
     for (i=-bv->nc;i<k;i++) {
       if (which && i>=0 && !which[i]) continue;
+      if (ctx->qB) PetscStackCallBLAS("BLASgemv",BLASgemv_("N",&lds_,&lds_,&sone,ctx->qB,&lds_,pS+k*lds,&one,&szero,x,&one));
       /* c_i = ( s_k, s_i ) */
-      dot = BLASdot_(&lds_,pS+i*lds,&one,pS+k*lds,&one);
+      dot = BLASdot_(&lds_,pS+i*lds,&one,x,&one);
+      if (bv->indef) dot /= PetscRealPart(omega[i]);
       ierr = BV_SetValue(bv,i,0,cc,dot);CHKERRQ(ierr);
       /* s_k = s_k - c_i s_i */
       dot = -dot;
       PetscStackCallBLAS("BLASaxpy",BLASaxpy_(&lds_,&dot,pS+i*lds,&one,pS+k*lds,&one));
     }
+    if (bv->indef) {
+      ierr = VecRestoreArrayRead(bv->omega,&omega);CHKERRQ(ierr);
+    }
 
   } else {  /* classical Gram-Schmidt */
+    if (ctx->qB) PetscStackCallBLAS("BLASgemv",BLASgemv_("N",&lds_,&lds_,&sone,ctx->qB,&lds_,pS+k*lds,&one,&szero,x,&one));
 
     /* cc = S_{0:k-1}^* s_k */
-    x = pS+k*lds;
-    PetscStackCallBLAS("BLASgemv",BLASgemv_("C",&n_,&k_,&sone,pS,&lds_,x,&one,&szero,cc,&one));
-    for (i=1;i<ctx->d;i++) {
-      x = pS+i*ctx->ld+k*lds;
-      PetscStackCallBLAS("BLASgemv",BLASgemv_("C",&n_,&k_,&sone,pS+i*ctx->ld,&lds_,x,&one,&sone,cc,&one));
-    }
+    PetscStackCallBLAS("BLASgemv",BLASgemv_("C",&lds_,&k_,&sone,pS,&lds_,x,&one,&szero,cc,&one));
+
     /* s_k = s_k - S_{0:k-1} cc */
-    for (i=0;i<ctx->d;i++) {
-      x = pS+i*ctx->ld+k*lds;
-      PetscStackCallBLAS("BLASgemv",BLASgemv_("N",&n_,&k_,&sonem,pS+i*ctx->ld,&lds_,cc,&one,&sone,x,&one));
-    }
+    if (bv->indef) { ierr = BV_ApplySignature(bv,k,cc,PETSC_TRUE);CHKERRQ(ierr); }
+     PetscStackCallBLAS("BLASgemv",BLASgemv_("N",&lds_,&k_,&sonem,pS,&lds_,cc,&one,&sone,pS+k*lds,&one));
+    if (bv->indef) { ierr = BV_ApplySignature(bv,k,cc,PETSC_FALSE);CHKERRQ(ierr); }
   }
 
-  if (norm) *norm = BLASnrm2_(&lds_,pS+k*lds,&one);
+  if (norm) { ierr = BVTensorNormColumn(bv,k,norm);CHKERRQ(ierr); }
   ierr = BV_AddCoefficients(bv,k,h,cc);CHKERRQ(ierr);
   ierr = MatDenseRestoreArray(ctx->S,&pS);CHKERRQ(ierr);
   ierr = VecRestoreArray(bv->buffer,&cc);CHKERRQ(ierr);
@@ -313,12 +345,55 @@ PetscErrorCode BVView_Tensor(BV bv,PetscViewer viewer)
   PetscFunctionReturn(0);
 }
 
+static PetscErrorCode BVTensorUpdateMatrix(BV V,PetscInt ini,PetscInt end)
+{
+  PetscErrorCode ierr;
+  BV_TENSOR      *ctx = (BV_TENSOR*)V->data;
+  PetscInt       i,j,r,c,l,k,ld=ctx->ld,lds=ctx->d*ctx->ld;
+  PetscScalar    *qB,*sqB;
+  Vec            u;
+  Mat            A;
+
+  PetscFunctionBegin;
+  if (!V->matrix) PetscFunctionReturn(0);
+  l = ctx->U->l; k = ctx->U->k;
+  /* update inner product matrix */
+  if (!ctx->qB) {
+    ierr = PetscCalloc2(lds*lds,&ctx->qB,lds,&ctx->sw);CHKERRQ(ierr);
+    ierr = VecDuplicate(ctx->U->t,&ctx->u);CHKERRQ(ierr);
+  }
+  for (i=0;i<ctx->d;i++) { ierr = PetscMemzero(ctx->qB+i*lds*ld+ini*lds,(end-ini)*lds*sizeof(PetscScalar));CHKERRQ(ierr); }
+  ctx->U->l = 0;
+  for (r=0;r<ctx->d;r++) {
+    for (c=0;c<=r;c++) {
+      ierr = MatNestGetSubMat(V->matrix,r,c,&A);CHKERRQ(ierr);
+      if (A) {
+        qB = ctx->qB+c*ld*lds+r*ld;
+        for (i=ini;i<end;i++) {
+          ierr = BVGetColumn(ctx->U,i,&u);CHKERRQ(ierr);
+          ierr = MatMult(A,u,ctx->u);CHKERRQ(ierr);
+          ctx->U->k = i+1;
+          ierr = BVDotVec(ctx->U,ctx->u,qB+i*lds);CHKERRQ(ierr);
+          ierr = BVRestoreColumn(ctx->U,i,&u);CHKERRQ(ierr);
+          for (j=0;j<i;j++) qB[i+j*lds] = PetscConj(qB[j+i*lds]);
+        }
+        if (c!=r) {
+          sqB = ctx->qB+r*ld*lds+c*ld;
+          for (i=ini;i<end;i++) for (j=0;j<i;j++) sqB[i+j*lds] = PetscConj(qB[j+i*lds]);
+        }
+      }
+    }
+  }
+  ctx->U->l = l; ctx->U->k = k;
+  PetscFunctionReturn(0);
+}
+
 static PetscErrorCode BVTensorBuildFirstColumn_Tensor(BV V,PetscInt k)
 {
   PetscErrorCode ierr;
   BV_TENSOR      *ctx = (BV_TENSOR*)V->data;
   PetscInt       i,nq=0;
-  PetscScalar    *pS;
+  PetscScalar    *pS,*omega;
   PetscReal      norm;
   PetscBool      breakdown=PETSC_FALSE;
 
@@ -339,8 +414,15 @@ static PetscErrorCode BVTensorBuildFirstColumn_Tensor(BV V,PetscInt k)
   }
   ierr = MatDenseRestoreArray(ctx->S,&pS);CHKERRQ(ierr);
   if (!nq) SETERRQ1(PetscObjectComm((PetscObject)V),1,"Cannot build first column of tensor BV; U should contain k=%D nonzero columns",k);
-  ierr = BVNorm_Tensor(V,0,NORM_2,&norm);CHKERRQ(ierr);
+  ierr = BVTensorUpdateMatrix(V,0,nq);CHKERRQ(ierr);
+  ierr = BVTensorNormColumn(V,0,&norm);CHKERRQ(ierr);
   ierr = BVScale_Tensor(V,0,1.0/norm);CHKERRQ(ierr);
+  if (V->indef) {
+    ierr = BV_AllocateSignature(V);CHKERRQ(ierr);
+    ierr = VecGetArray(V->omega,&omega);CHKERRQ(ierr);
+    omega[0] = (norm<0.0)? -1.0: 1.0;
+    ierr = VecRestoreArray(V->omega,&omega);CHKERRQ(ierr);
+  }
   /* set active columns */
   ctx->U->l = 0;
   ctx->U->k = nq;
@@ -389,12 +471,12 @@ static PetscErrorCode BVTensorCompress_Tensor(BV V,PetscInt newc)
 #else
   PetscErrorCode ierr;
   BV_TENSOR      *ctx = (BV_TENSOR*)V->data;
-  PetscInt       nwu=0,nrwu=0,nnc,nrow,lwa;
+  PetscInt       nwu=0,nrwu=0,nnc,nrow,lwa,r,c;
   PetscInt       i,j,k,n,lds=ctx->ld*ctx->d,deg=ctx->d,lock,cs1=V->k,rs1=ctx->U->k,rk=0,offu;
-  PetscScalar    *S,*M,*Z,*pQ,*SS,*SS2,t,sone=1.0,zero=0.0,mone=-1.0,*p,*tau,*work;
+  PetscScalar    *S,*M,*Z,*pQ,*SS,*SS2,t,sone=1.0,zero=0.0,mone=-1.0,*p,*tau,*work,*qB,*sqB;
   PetscReal      *sg,tol,*rwork;
-  PetscBLASInt   cs1_,rs1_,cs1tdeg,n_,info,lw_,newc_,newctdeg,nnc_,nrow_,nnctdeg,lds_,rk_;
-  Mat            Q;
+  PetscBLASInt   ld_,cs1_,rs1_,cs1tdeg,n_,info,lw_,newc_,newctdeg,nnc_,nrow_,nnctdeg,lds_,rk_;
+  Mat            Q,A;
 
   PetscFunctionBegin;
   if (!cs1) PetscFunctionReturn(0);
@@ -403,13 +485,12 @@ static PetscErrorCode BVTensorCompress_Tensor(BV V,PetscInt newc)
   lock = ctx->U->l;
   nnc = cs1-lock-newc;
   nrow = rs1-lock;
-  ierr = PetscMalloc6(deg*newc*nnc,&SS,newc*nnc,&SS2,(rs1+lock+newc)*n,&pQ,deg*rs1,&tau,lwa,&work,6*n,&rwork);CHKERRQ(ierr);
+  ierr = PetscCalloc6(deg*newc*nnc,&SS,newc*nnc,&SS2,(rs1+lock+newc)*n,&pQ,deg*rs1,&tau,lwa,&work,6*n,&rwork);CHKERRQ(ierr);
   offu = lock*(rs1+1);
   M = work+nwu;
   nwu += rs1*cs1*deg;
   sg = rwork+nrwu;
   nrwu += n;
-  ierr = PetscMemzero(pQ,rs1*n*sizeof(PetscScalar));CHKERRQ(ierr);
   Z = work+nwu;
   nwu += deg*cs1*n;
   ierr = PetscBLASIntCast(n,&n_);CHKERRQ(ierr);
@@ -516,11 +597,31 @@ static PetscErrorCode BVTensorCompress_Tensor(BV V,PetscInt newc)
 
   /* update vectors U(:,idx) = U*Q(:,idx) */
   rk = rk+lock;
-  for (i=0;i<lock;i++) pQ[(i+1)*rs1] = 1.0;
+  for (i=0;i<lock;i++) pQ[i*(1+rs1)] = 1.0;
   ierr = MatCreateSeqDense(PETSC_COMM_SELF,rs1,rk,pQ,&Q);CHKERRQ(ierr);
   ctx->U->k = rs1;
   ierr = BVMultInPlace(ctx->U,Q,lock,rk);CHKERRQ(ierr);
   ierr = MatDestroy(&Q);CHKERRQ(ierr);
+
+  if (ctx->qB) {
+   /* update matrix qB */
+    ierr = PetscBLASIntCast(ctx->ld,&ld_);CHKERRQ(ierr);
+    ierr = PetscBLASIntCast(rk,&rk_);CHKERRQ(ierr);
+    for (r=0;r<ctx->d;r++) {
+      for (c=0;c<=r;c++) {
+        ierr = MatNestGetSubMat(V->matrix,r,c,&A);CHKERRQ(ierr);
+        if (A) {
+          qB = ctx->qB+r*ctx->ld+c*ctx->ld*lds;
+          PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&rs1_,&rk_,&rs1_,&sone,qB,&lds_,pQ,&rs1_,&zero,work+nwu,&rs1_));
+          PetscStackCallBLAS("BLASgemm",BLASgemm_("C","N",&rk_,&rk_,&rs1_,&sone,pQ,&rs1_,work+nwu,&rs1_,&zero,qB,&lds_));
+          if (c!=r) {
+            sqB = ctx->qB+r*ctx->ld*lds+c*ctx->ld;
+            for (i=0;i<ctx->ld;i++) for (j=0;j<ctx->ld;j++) sqB[i+j*lds] = PetscConj(qB[j+i*lds]);
+          }
+        }
+      }
+    }
+  }
 
   /* free work space */
   ierr = PetscFree6(SS,SS2,pQ,tau,work,rwork);CHKERRQ(ierr);
@@ -610,6 +711,7 @@ static PetscErrorCode BVTensorGetFactors_Tensor(BV V,BV *U,Mat *S)
   BV_TENSOR *ctx = (BV_TENSOR*)V->data;
 
   PetscFunctionBegin;
+  ctx->puk = ctx->U->k;
   if (U) *U = ctx->U;
   if (S) *S = ctx->S;
   PetscFunctionReturn(0);
@@ -646,9 +748,11 @@ static PetscErrorCode BVTensorGetFactors_Tensor(BV V,BV *U,Mat *S)
 PetscErrorCode BVTensorGetFactors(BV V,BV *U,Mat *S)
 {
   PetscErrorCode ierr;
+  BV_TENSOR      *ctx = (BV_TENSOR*)V->data;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(V,BV_CLASSID,1);
+  if (ctx->puk>-1) SETERRQ(PetscObjectComm((PetscObject)V),PETSC_ERR_ORDER,"Previous call to BVTensonGetFactors without a BVTensorRestoreFactors call");
   ierr = PetscUseMethod(V,"BVTensorGetFactors_C",(BV,BV*,Mat*),(V,U,S));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -656,11 +760,14 @@ PetscErrorCode BVTensorGetFactors(BV V,BV *U,Mat *S)
 static PetscErrorCode BVTensorRestoreFactors_Tensor(BV V,BV *U,Mat *S)
 {
   PetscErrorCode ierr;
+  BV_TENSOR      *ctx = (BV_TENSOR*)V->data;
 
   PetscFunctionBegin;
   ierr = PetscObjectStateIncrease((PetscObject)V);CHKERRQ(ierr);
   if (U) *U = NULL;
   if (S) *S = NULL;
+  ierr = BVTensorUpdateMatrix(V,ctx->puk,ctx->U->k);CHKERRQ(ierr);
+  ctx->puk = -1;
   PetscFunctionReturn(0);
 }
 
@@ -702,7 +809,10 @@ PetscErrorCode BVDestroy_Tensor(BV bv)
   PetscFunctionBegin;
   ierr = BVDestroy(&ctx->U);CHKERRQ(ierr);
   ierr = MatDestroy(&ctx->S);CHKERRQ(ierr);
-  ierr = PetscFree(ctx->qB);CHKERRQ(ierr);
+  if (ctx->u) {
+    ierr = PetscFree2(ctx->qB,ctx->sw);CHKERRQ(ierr);
+    ierr = VecDestroy(&ctx->u);CHKERRQ(ierr);
+  }
   ierr = VecDestroy(&bv->cv[0]);CHKERRQ(ierr);
   ierr = VecDestroy(&bv->cv[1]);CHKERRQ(ierr);
   ierr = PetscFree(bv->data);CHKERRQ(ierr);
@@ -722,6 +832,7 @@ PETSC_EXTERN PetscErrorCode BVCreate_Tensor(BV bv)
   PetscFunctionBegin;
   ierr = PetscNewLog(bv,&ctx);CHKERRQ(ierr);
   bv->data = (void*)ctx;
+  ctx->puk = -1;
 
   ierr = VecDuplicateEmpty(bv->t,&bv->cv[0]);CHKERRQ(ierr);
   ierr = VecDuplicateEmpty(bv->t,&bv->cv[1]);CHKERRQ(ierr);
