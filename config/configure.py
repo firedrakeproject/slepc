@@ -74,7 +74,7 @@ def WriteModulesFile(modules,version,sdir):
   modules.write('set slepc_dir %s\n' % sdir)
   modules.write('setenv SLEPC_DIR $slepc_dir\n')
 
-def WritePkgconfigFile(pkgconfig,version,pversion,sdir,isinstall,prefixdir):
+def WritePkgconfigFile(pkgconfig,version,pversion,sdir,isinstall,prefixdir,singlelib):
   ''' Write the contents of the pkg-config file '''
   pkgconfig.write('prefix=%s\n' % prefixdir)
   pkgconfig.write('exec_prefix=${prefix}\n')
@@ -88,7 +88,10 @@ def WritePkgconfigFile(pkgconfig,version,pversion,sdir,isinstall,prefixdir):
   if not isinstall:
     pkgconfig.write(' -I'+os.path.join(sdir,'include'))
   pkgconfig.write('\nLibs:')
-  pkgconfig.write(' -L${libdir} -lslepc\n')
+  if singlelib:
+    pkgconfig.write(' -L${libdir} -lslepc\n')
+  else:
+    pkgconfig.write(' -L${libdir} -lslepcsys -lslepclme -lslepcmfn -lslepceps -lslepcsvd -lslepcpep -lslepcnep\n')
 
 def WriteCMakeConfigFile(cmakeconf):
   ''' Write the contents of the CMake configuration file '''
@@ -285,8 +288,10 @@ if emptyarch:
 log.NewSection('Checking PETSc installation...')
 if petsc.version > slepc.version:
   log.Println('\nWARNING: PETSc version '+petsc.version+' is newer than SLEPc version '+slepc.version)
-if petsc.release != slepc.release:
-  log.Exit('ERROR: Cannot mix release and development versions of SLEPc and PETSc')
+if slepc.release=='1' and not petsc.release=='1':
+  log.Exit('ERROR: a release version of SLEPc requires a release version of PETSc, not a development version')
+if slepc.release=='0' and petsc.release=='1':
+  log.Exit('ERROR: a development version of SLEPc cannot be built with a release version of PETSc')
 if petsc.isinstall:
   if os.path.realpath(petsc.destdir) != os.path.realpath(petsc.dir):
     log.Println('\nWARNING: PETSC_DIR does not point to PETSc installation path')
@@ -336,7 +341,7 @@ else:
 log.write('pkg-config file in '+pkgconfdir)
 slflag = ''
 if petsc.buildsharedlib: slflag = petsc.slflag
-WritePkgconfigFile(pkgconfig,slepc.lversion,petsc.version,slepc.dir,slepc.isinstall,slepc.prefixdir)
+WritePkgconfigFile(pkgconfig,slepc.lversion,petsc.version,slepc.dir,slepc.isinstall,slepc.prefixdir,petsc.singlelib)
 log.write('CMake configure file in '+confdir)
 WriteCMakeConfigFile(cmakeconf)
 
