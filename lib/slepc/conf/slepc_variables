@@ -37,7 +37,7 @@ SLEPC_EPS_LIB_BASIC = -lslepceps ${SLEPC_SYS_LIB_BASIC}
 SLEPC_SVD_LIB_BASIC = -lslepcsvd ${SLEPC_EPS_LIB_BASIC}
 SLEPC_PEP_LIB_BASIC = -lslepcpep ${SLEPC_EPS_LIB_BASIC}
 SLEPC_NEP_LIB_BASIC = -lslepcnep ${SLEPC_PEP_LIB_BASIC}
-SLEPC_LIB_BASIC     = -lslepcnep -lslepcpep -lslepcmfn -lslepclme ${SLEPC_SVD_LIB_BASIC}
+SLEPC_LIB_BASIC     = -lslepcnep -lslepcpep -lslepcsvd -lslepceps -lslepcmfn -lslepclme -lslepcsys
 
 SLEPC_SYS_LIB   = ${SLEPC_C_SH_LIB_PATH} -L${SLEPC_LIB_DIR} ${SLEPC_SYS_LIB_BASIC} ${SLEPC_EXTERNAL_LIB} ${PETSC_SNES_LIB}
 SLEPC_MFN_LIB   = ${SLEPC_C_SH_LIB_PATH} -L${SLEPC_LIB_DIR} ${SLEPC_MFN_LIB_BASIC} ${SLEPC_EXTERNAL_LIB} ${PETSC_SNES_LIB}

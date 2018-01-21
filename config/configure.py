@@ -91,7 +91,7 @@ def WritePkgconfigFile(pkgconfig,version,pversion,sdir,isinstall,prefixdir,singl
   if singlelib:
     pkgconfig.write(' -L${libdir} -lslepc\n')
   else:
-    pkgconfig.write(' -L${libdir} -lslepcsys -lslepclme -lslepcmfn -lslepceps -lslepcsvd -lslepcpep -lslepcnep\n')
+    pkgconfig.write(' -L${libdir} -lslepcnep -lslepcpep -lslepcsvd -lslepceps -lslepcmfn -lslepclme -lslepcsys\n')
 
 def WriteCMakeConfigFile(cmakeconf):
   ''' Write the contents of the CMake configuration file '''
