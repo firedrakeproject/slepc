@@ -234,7 +234,8 @@ static PetscErrorCode BVTensorNormColumn(BV bv,PetscInt j,PetscReal *norm)
   BV_TENSOR      *ctx = (BV_TENSOR*)bv->data;
   PetscBLASInt   one=1,lds_;
   PetscScalar    sone=1.0,szero=0.0,*S,*x,dot;
-  PetscInt       lds,ld=ctx->ld;
+  PetscReal      alpha=1.0,scale=0.0,aval;
+  PetscInt       i,lds,ld=ctx->ld;
 
   PetscFunctionBegin;
   lds = ld*ctx->d;
@@ -246,7 +247,20 @@ static PetscErrorCode BVTensorNormColumn(BV bv,PetscInt j,PetscReal *norm)
     dot = BLASdot_(&lds_,S+j*lds,&one,x,&one);
     ierr = BV_SafeSqrt(bv,dot,norm);CHKERRQ(ierr);
   } else {
-    *norm = BLASnrm2_(&lds_,S+j*lds,&one);
+    /* Compute *norm = BLASnrm2_(&lds_,S+j*lds,&one); */
+    if (lds==1) *norm = PetscAbsScalar(S[j*lds]);
+    else {
+      for (i=0;i<lds;i++) {
+        aval = PetscAbsScalar(S[i+j*lds]);
+        if (aval!=0.0) {
+          if (scale<aval) {
+            alpha = 1.0 + alpha*PetscSqr(scale/aval);
+            scale = aval;
+          } else alpha += PetscSqr(aval/scale);
+        }
+      }
+      *norm = scale*PetscSqrtReal(alpha);
+    }
   }
   PetscFunctionReturn(0);
 }
