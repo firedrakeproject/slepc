@@ -151,27 +151,27 @@ static PetscErrorCode EPSSliceAllocateSolution(EPS eps,PetscInt extra)
 
 static PetscErrorCode EPSSliceGetEPS(EPS eps)
 {
-  PetscErrorCode     ierr;
-  EPS_KRYLOVSCHUR    *ctx=(EPS_KRYLOVSCHUR*)eps->data,*ctx_local;
-  BV                 V;
-  BVType             type;
-  PetscReal          eta;
-  BVOrthogType       orthog_type;
-  BVOrthogRefineType orthog_ref;
-  BVOrthogBlockType  ob_type;
-  Mat                A,B=NULL,Ar,Br=NULL;
-  PetscInt           i;
-  PetscReal          h,a,b;
-  PetscMPIInt        rank;
-  EPS_SR             sr=ctx->sr;
-  PC                 pc;
-  PCType             pctype;
-  KSP                ksp;
-  KSPType            ksptype;
-  STType             sttype;
-  PetscObjectState   Astate,Bstate=0;
-  PetscObjectId      Aid,Bid=0;
-  const MatSolverPackage stype;
+  PetscErrorCode      ierr;
+  EPS_KRYLOVSCHUR     *ctx=(EPS_KRYLOVSCHUR*)eps->data,*ctx_local;
+  BV                  V;
+  BVType              type;
+  PetscReal           eta;
+  BVOrthogType        orthog_type;
+  BVOrthogRefineType  orthog_ref;
+  BVOrthogBlockType   ob_type;
+  Mat                 A,B=NULL,Ar,Br=NULL;
+  PetscInt            i;
+  PetscReal           h,a,b;
+  PetscMPIInt         rank;
+  EPS_SR              sr=ctx->sr;
+  PC                  pc;
+  PCType              pctype;
+  KSP                 ksp;
+  KSPType             ksptype;
+  STType              sttype;
+  PetscObjectState    Astate,Bstate=0;
+  PetscObjectId       Aid,Bid=0;
+  const MatSolverType stype;
 
   PetscFunctionBegin;
   ierr = EPSGetOperators(eps,&A,&B);CHKERRQ(ierr);
@@ -258,12 +258,12 @@ static PetscErrorCode EPSSliceGetEPS(EPS eps)
   ierr = KSPGetType(ksp,&ksptype);CHKERRQ(ierr);
   ierr = KSPGetPC(ksp,&pc);CHKERRQ(ierr);
   ierr = PCGetType(pc,&pctype);CHKERRQ(ierr);
-  ierr = PCFactorGetMatSolverPackage(pc,&stype);CHKERRQ(ierr);
+  ierr = PCFactorGetMatSolverType(pc,&stype);CHKERRQ(ierr);
   ierr = STGetKSP(ctx->eps->st,&ksp);CHKERRQ(ierr);
   ierr = KSPSetType(ksp,ksptype);CHKERRQ(ierr);
   ierr = KSPGetPC(ksp,&pc);CHKERRQ(ierr);
   ierr = PCSetType(pc,pctype);CHKERRQ(ierr);
-  if (stype) { ierr = PCFactorSetMatSolverPackage(pc,stype);CHKERRQ(ierr); }
+  if (stype) { ierr = PCFactorSetMatSolverType(pc,stype);CHKERRQ(ierr); }
 
   ierr = EPSSetConvergenceTest(ctx->eps,eps->conv);CHKERRQ(ierr);
   ierr = EPSSetInterval(ctx->eps,a,b);CHKERRQ(ierr);

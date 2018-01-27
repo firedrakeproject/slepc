@@ -113,7 +113,7 @@ int main(int argc,char **argv)
   SETERRQ(PETSC_COMM_WORLD,PETSC_ERR_SUP,"Spectrum slicing with MUMPS is not available for complex scalars");
 #endif
   ierr = EPSKrylovSchurSetDetectZeros(eps,PETSC_TRUE);CHKERRQ(ierr);  /* enforce zero detection */
-  ierr = PCFactorSetMatSolverPackage(pc,MATSOLVERMUMPS);CHKERRQ(ierr);
+  ierr = PCFactorSetMatSolverType(pc,MATSOLVERMUMPS);CHKERRQ(ierr);
   /*
      Add several MUMPS options (currently there is no better way of setting this in program):
      '-mat_mumps_icntl_13 1': turn off ScaLAPACK for matrix inertia
