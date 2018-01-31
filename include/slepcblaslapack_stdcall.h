@@ -12,14 +12,16 @@
 #define __SLEPCBLASLAPACK_STDCALL_H
 
 /* LAPACK functions without string parameters */
-#define BLASrot_     PETSCBLASROT(rot,ROT)
+#define BLASrot_     PETSCBLAS(rot,ROT)
+#define BLASMIXEDrot_ PETSCBLASMIXED(rot,ROT)
 #define LAPACKlaev2_ PETSCBLAS(laev2,LAEV2)
 #define LAPACKgehrd_ PETSCBLAS(gehrd,GEHRD)
 #define LAPACKgelqf_ PETSCBLAS(gelqf,GELQF)
 #define LAPACKlarfg_ PETSCBLAS(larfg,LARFG)
 #define LAPACKlag2_  PETSCBLASREAL(lag2,LAG2)
 #define LAPACKlasv2_ PETSCBLASREAL(lasv2,LASV2)
-#define LAPACKlartg_ PETSCBLASREAL(lartg,LARTG)
+#define LAPACKlartg_ PETSCBLAS(lartg,LARTG)
+#define LAPACKREALlartg_ PETSCBLASREAL(lartg,LARTG)
 #define LAPACKlaln2_ PETSCBLASREAL(laln2,LALN2)
 #define LAPACKlaed4_ PETSCBLASREAL(laed4,LAED4)
 #define LAPACKlamrg_ PETSCBLASREAL(lamrg,LAMRG)

@@ -449,7 +449,8 @@ PETSC_EXTERN void SlepcGivensPacked(void *in,void *inout,PetscMPIInt *len,MPI_Da
 {
   PetscBLASInt n,i,j,k,one=1;
   PetscMPIInt  tsize;
-  PetscScalar  v,c,s,*R2=(PetscScalar*)in,*R1=(PetscScalar*)inout;
+  PetscScalar  v,s,*R2=(PetscScalar*)in,*R1=(PetscScalar*)inout;
+  PetscReal    c;
 
   PetscFunctionBegin;
   MPI_Type_size(*datatype,&tsize);  /* we assume len=1 */

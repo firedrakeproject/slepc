@@ -28,36 +28,36 @@
 #define SlepcLRT PetscReal
 #endif
 
-/* Special macro for srot, csrot, drot, zdrot */
+/* Special macro for srot, csrot, drot, zdrot (BLASMIXEDrot_) */
 #if !defined(PETSC_USE_COMPLEX)
-# define PETSC_BLASLAPACK_ROTPREFIX_ PETSC_BLASLAPACK_PREFIX_
+# define PETSC_BLASLAPACK_MIXEDPREFIX_ PETSC_BLASLAPACK_PREFIX_
 #else
 # if defined(PETSC_BLASLAPACK_CAPS)
 #  if defined(PETSC_USE_REAL_SINGLE)
-#   define PETSC_BLASLAPACK_ROTPREFIX_ CS
+#   define PETSC_BLASLAPACK_MIXEDPREFIX_ CS
 #  elif defined(PETSC_USE_REAL_DOUBLE)
-#   define PETSC_BLASLAPACK_ROTPREFIX_ ZD
+#   define PETSC_BLASLAPACK_MIXEDPREFIX_ ZD
 #  elif defined(PETSC_USE_REAL___FLOAT128)
-#   define PETSC_BLASLAPACK_ROTPREFIX_ WQ
+#   define PETSC_BLASLAPACK_MIXEDPREFIX_ WQ
 #  else
-#   define PETSC_BLASLAPACK_ROTPREFIX_ KH
+#   define PETSC_BLASLAPACK_MIXEDPREFIX_ KH
 #  endif
 # else
 #  if defined(PETSC_USE_REAL_SINGLE)
-#   define PETSC_BLASLAPACK_ROTPREFIX_ cs
+#   define PETSC_BLASLAPACK_MIXEDPREFIX_ cs
 #  elif defined(PETSC_USE_REAL_DOUBLE)
-#   define PETSC_BLASLAPACK_ROTPREFIX_ zd
+#   define PETSC_BLASLAPACK_MIXEDPREFIX_ zd
 #  elif defined(PETSC_USE_REAL___FLOAT128)
-#   define PETSC_BLASLAPACK_ROTPREFIX_ wq
+#   define PETSC_BLASLAPACK_MIXEDPREFIX_ wq
 #  else
-#   define PETSC_BLASLAPACK_ROTPREFIX_ kh
+#   define PETSC_BLASLAPACK_MIXEDPREFIX_ kh
 #  endif
 # endif
 #endif
 #if defined(PETSC_BLASLAPACK_CAPS)
-#  define PETSCBLASROT(x,X) PETSC_PASTE3(PETSC_BLASLAPACK_ROTPREFIX_, X, PETSC_BLASLAPACK_SUFFIX_)
+#  define PETSCBLASMIXED(x,X) PETSC_PASTE3(PETSC_BLASLAPACK_MIXEDPREFIX_, X, PETSC_BLASLAPACK_SUFFIX_)
 #else
-#  define PETSCBLASROT(x,X) PETSC_PASTE3(PETSC_BLASLAPACK_ROTPREFIX_, x, PETSC_BLASLAPACK_SUFFIX_)
+#  define PETSCBLASMIXED(x,X) PETSC_PASTE3(PETSC_BLASLAPACK_MIXEDPREFIX_, x, PETSC_BLASLAPACK_SUFFIX_)
 #endif
 
 #if defined(PETSC_BLASLAPACK_STDCALL)
@@ -67,14 +67,16 @@
 #include <slepcblaslapack_mangle.h>
 
 /* LAPACK functions without string parameters */
-BLAS_EXTERN void     BLASrot_(PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscReal*,PetscReal*);
+BLAS_EXTERN void     BLASrot_(PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscReal*,PetscScalar*);
+BLAS_EXTERN void     BLASMIXEDrot_(PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscReal*,PetscReal*);
 BLAS_EXTERN void     LAPACKlaev2_(PetscScalar*,PetscScalar*,PetscScalar*,PetscReal*,PetscReal*,PetscReal*,PetscScalar*);
 BLAS_EXTERN void     LAPACKgehrd_(PetscBLASInt*,PetscBLASInt*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscScalar*,PetscScalar*,PetscBLASInt*,PetscBLASInt*);
 BLAS_EXTERN void     LAPACKgelqf_(PetscBLASInt*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscScalar*,PetscScalar*,PetscBLASInt*,PetscBLASInt*);
 BLAS_EXTERN void     LAPACKlarfg_(PetscBLASInt*,PetscScalar*,PetscScalar*,PetscBLASInt*,PetscScalar*);
 BLAS_EXTERN void     LAPACKlag2_(PetscReal*,PetscBLASInt*,PetscReal*,PetscBLASInt*,PetscReal*,PetscReal*,PetscReal*,PetscReal*,PetscReal*,PetscReal*);
 BLAS_EXTERN void     LAPACKlasv2_(PetscReal*,PetscReal*,PetscReal*,PetscReal*,PetscReal*,PetscReal*,PetscReal*,PetscReal*,PetscReal*);
-BLAS_EXTERN void     LAPACKlartg_(PetscReal*,PetscReal*,PetscReal*,PetscReal*,PetscReal*);
+BLAS_EXTERN void     LAPACKlartg_(PetscScalar*,PetscScalar*,PetscReal*,PetscScalar*,PetscScalar*);
+BLAS_EXTERN void     LAPACKREALlartg_(PetscReal*,PetscReal*,PetscReal*,PetscReal*,PetscReal*);
 BLAS_EXTERN void     LAPACKlaln2_(PetscBLASInt*,PetscBLASInt*,PetscBLASInt*,PetscReal*,PetscReal*,PetscReal*,PetscBLASInt*,PetscReal*,PetscReal*,PetscReal*,PetscBLASInt*,PetscReal*,PetscReal*,PetscReal*,PetscBLASInt*,PetscReal*,PetscReal*,PetscBLASInt*);
 BLAS_EXTERN void     LAPACKlaed4_(PetscBLASInt*,PetscBLASInt*,PetscReal*,PetscReal*,PetscReal*,PetscReal*,PetscReal*,PetscBLASInt*);
 BLAS_EXTERN void     LAPACKlamrg_(PetscBLASInt*,PetscBLASInt*,PetscReal*,PetscBLASInt*,PetscBLASInt*,PetscBLASInt*);

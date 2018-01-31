@@ -144,7 +144,7 @@ static PetscErrorCode HZStep(PetscBLASInt ntop,PetscBLASInt nn,PetscReal tr,Pets
         }
 
         /* Accumulate transforming matrix */
-        PetscStackCallBLAS("BLASrot",BLASrot_(&n_,uu+(jj+1)*ld,&one,uu+(jj+2)*ld,&one,&rot[0],&rot[2]));
+        PetscStackCallBLAS("BLASrot",BLASMIXEDrot_(&n_,uu+(jj+1)*ld,&one,uu+(jj+2)*ld,&one,&rot[0],&rot[2]));
       }
 
       /* Annihilate inner entry bulge20 */
@@ -188,7 +188,7 @@ static PetscErrorCode HZStep(PetscBLASInt ntop,PetscBLASInt nn,PetscReal tr,Pets
 
         /* Accumulate transforming matrix, uu(jj:jj+1,:) = rot*uu(jj:jj+1,:) */
         if (sygn==1) {
-          PetscStackCallBLAS("BLASrot",BLASrot_(&n_,uu+jj*ld,&one,uu+(jj+1)*ld,&one,&rot[0],&rot[2]));
+          PetscStackCallBLAS("BLASrot",BLASMIXEDrot_(&n_,uu+jj*ld,&one,uu+(jj+1)*ld,&one,&rot[0],&rot[2]));
         } else {
           if (PetscAbsReal(rot[0])>PetscAbsReal(rot[1])) { /* Type I */
             t = rot[1]/rot[0];
@@ -263,7 +263,7 @@ static PetscErrorCode HZIteration(PetscBLASInt nn,PetscBLASInt cgd,PetscReal *aa
           aa[nbot] = aa[nbot] - tn*bb[ntop];
           bb[ntop] = 0;
           j2 = nn-cgd;
-          PetscStackCallBLAS("BLASrot",BLASrot_(&j2,uu+ntop*ld+cgd,&one,uu+nbot*ld+cgd,&one,&c,&s));
+          PetscStackCallBLAS("BLASrot",BLASMIXEDrot_(&j2,uu+ntop*ld+cgd,&one,uu+nbot*ld+cgd,&one,&c,&s));
         }
       }
       nbot = ntop - 1;
