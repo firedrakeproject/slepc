@@ -16,10 +16,11 @@
 PetscClassId     BV_CLASSID = 0;
 PetscLogEvent    BV_Create = 0,BV_Copy = 0,BV_Mult = 0,BV_MultVec = 0,BV_MultInPlace = 0,BV_Dot = 0,BV_DotVec = 0,BV_Orthogonalize = 0,BV_OrthogonalizeVec = 0,BV_Scale = 0,BV_Norm = 0,BV_NormVec = 0,BV_SetRandom = 0,BV_MatMult = 0,BV_MatMultVec = 0,BV_MatProject = 0;
 static PetscBool BVPackageInitialized = PETSC_FALSE;
+MPI_Op MPIU_TSQR = 0;
 
 const char *BVOrthogTypes[] = {"CGS","MGS","BVOrthogType","BV_ORTHOG_",0};
 const char *BVOrthogRefineTypes[] = {"IFNEEDED","NEVER","ALWAYS","BVOrthogRefineType","BV_ORTHOG_REFINE_",0};
-const char *BVOrthogBlockTypes[] = {"GS","CHOL","TSQR","BVOrthogBlockType","BV_ORTHOG_BLOCK_",0};
+const char *BVOrthogBlockTypes[] = {"GS","CHOL","TSQR","TSQRCHOL","SVQB","BVOrthogBlockType","BV_ORTHOG_BLOCK_",0};
 const char *BVMatMultTypes[] = {"VECS","MAT","MAT_SAVE","BVMatMultType","BV_MATMULT_",0};
 
 /*@C
@@ -36,6 +37,7 @@ PetscErrorCode BVFinalizePackage(void)
 
   PetscFunctionBegin;
   ierr = PetscFunctionListDestroy(&BVList);CHKERRQ(ierr);
+  ierr = MPI_Op_free(&MPIU_TSQR);CHKERRQ(ierr);
   BVPackageInitialized = PETSC_FALSE;
   BVRegisterAllCalled  = PETSC_FALSE;
   PetscFunctionReturn(0);
@@ -81,6 +83,8 @@ PetscErrorCode BVInitializePackage(void)
   ierr = PetscLogEventRegister("BVMatMult",BV_CLASSID,&BV_MatMult);CHKERRQ(ierr);
   ierr = PetscLogEventRegister("BVMatMultVec",BV_CLASSID,&BV_MatMultVec);CHKERRQ(ierr);
   ierr = PetscLogEventRegister("BVMatProject",BV_CLASSID,&BV_MatProject);CHKERRQ(ierr);
+  /* MPI reduction operation used in BVOrthogonalize */
+  ierr = MPI_Op_create(SlepcGivensPacked,PETSC_TRUE,&MPIU_TSQR);CHKERRQ(ierr);
   /* Process info exclusions */
   ierr = PetscOptionsGetString(NULL,NULL,"-info_exclude",logList,256,&opt);CHKERRQ(ierr);
   if (opt) {

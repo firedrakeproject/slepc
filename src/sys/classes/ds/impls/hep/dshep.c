@@ -256,7 +256,7 @@ static PetscErrorCode ArrowTridiag(PetscBLASInt n,PetscReal *d,PetscReal *e,Pets
 
     /* Eliminate entry e(j) by a rotation in the planes (j,j+1) */
     temp = e[j+1];
-    PetscStackCallBLAS("LAPACKlartg",LAPACKlartg_(&temp,&e[j],&c,&s,&e[j+1]));
+    PetscStackCallBLAS("LAPACKlartg",LAPACKREALlartg_(&temp,&e[j],&c,&s,&e[j+1]));
     s = -s;
 
     /* Apply rotation to diagonal elements */
@@ -267,14 +267,14 @@ static PetscErrorCode ArrowTridiag(PetscBLASInt n,PetscReal *d,PetscReal *e,Pets
 
     /* Apply rotation to Q */
     j2 = j+2;
-    PetscStackCallBLAS("BLASrot",BLASrot_(&j2,Q+j*ld,&one,Q+(j+1)*ld,&one,&c,&s));
+    PetscStackCallBLAS("BLASrot",BLASMIXEDrot_(&j2,Q+j*ld,&one,Q+(j+1)*ld,&one,&c,&s));
 
     /* Chase newly introduced off-diagonal entry to the top left corner */
     for (i=j-1;i>=0;i--) {
       off  = -s*e[i];
       e[i] = c*e[i];
       temp = e[i+1];
-      PetscStackCallBLAS("LAPACKlartg",LAPACKlartg_(&temp,&off,&c,&s,&e[i+1]));
+      PetscStackCallBLAS("LAPACKlartg",LAPACKREALlartg_(&temp,&off,&c,&s,&e[i+1]));
       s = -s;
       temp = (d[i]-d[i+1])*s - 2.0*c*e[i];
       p = s*temp;
@@ -282,7 +282,7 @@ static PetscErrorCode ArrowTridiag(PetscBLASInt n,PetscReal *d,PetscReal *e,Pets
       d[i] -= p;
       e[i] = -e[i] - c*temp;
       j2 = j+2;
-      PetscStackCallBLAS("BLASrot",BLASrot_(&j2,Q+i*ld,&one,Q+(i+1)*ld,&one,&c,&s));
+      PetscStackCallBLAS("BLASrot",BLASMIXEDrot_(&j2,Q+i*ld,&one,Q+(i+1)*ld,&one,&c,&s));
     }
   }
   PetscFunctionReturn(0);

@@ -12,8 +12,8 @@
 
 /* Private MPI datatypes and operators */
 static MPI_Datatype MPIU_NORM2=0, MPIU_NORM1_AND_2=0;
-static MPI_Op MPIU_NORM2_SUM=0;
 static PetscBool VecCompInitialized = PETSC_FALSE;
+MPI_Op MPIU_NORM2_SUM=0;
 
 /* Private functions */
 PETSC_STATIC_INLINE void SumNorm2(PetscReal*,PetscReal*,PetscReal*,PetscReal*);
@@ -61,20 +61,19 @@ PETSC_STATIC_INLINE void AddNorm2(PetscReal *ssq,PetscReal *scale,PetscReal x)
   }
 }
 
-static void SlepcSumNorm2_Local(void *in,void *out,PetscMPIInt *cnt,MPI_Datatype *datatype)
+PETSC_EXTERN void SlepcSumNorm2_Local(void *in,void *out,PetscMPIInt *cnt,MPI_Datatype *datatype)
 {
-  PetscInt i,count = *cnt;
+  PetscInt  i,count = *cnt;
+  PetscReal *xin = (PetscReal*)in,*xout = (PetscReal*)out;
 
   PetscFunctionBegin;
   if (*datatype == MPIU_NORM2) {
-    PetscReal *xin = (PetscReal*)in,*xout = (PetscReal*)out;
-    for (i=0; i<count; i++) {
+    for (i=0;i<count;i++) {
       SumNorm2(&xin[i*2],&xin[i*2+1],&xout[i*2],&xout[i*2+1]);
     }
   } else if (*datatype == MPIU_NORM1_AND_2) {
-    PetscReal *xin = (PetscReal*)in,*xout = (PetscReal*)out;
-    for (i=0; i<count; i++) {
-      xout[i*3]+= xin[i*3];
+    for (i=0;i<count;i++) {
+      xout[i*3] += xin[i*3];
       SumNorm2(&xin[i*3+1],&xin[i*3+2],&xout[i*3+1],&xout[i*3+2]);
     }
   } else {
@@ -84,7 +83,7 @@ static void SlepcSumNorm2_Local(void *in,void *out,PetscMPIInt *cnt,MPI_Datatype
   PetscFunctionReturnVoid();
 }
 
-static PetscErrorCode VecNormCompEnd(void)
+static PetscErrorCode VecCompNormEnd(void)
 {
   PetscErrorCode ierr;
 
@@ -96,17 +95,17 @@ static PetscErrorCode VecNormCompEnd(void)
   PetscFunctionReturn(0);
 }
 
-static PetscErrorCode VecNormCompInit()
+static PetscErrorCode VecCompNormInit(void)
 {
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  ierr = MPI_Type_contiguous(sizeof(PetscReal)*2,MPI_BYTE,&MPIU_NORM2);CHKERRQ(ierr);
+  ierr = MPI_Type_contiguous(2,MPIU_REAL,&MPIU_NORM2);CHKERRQ(ierr);
   ierr = MPI_Type_commit(&MPIU_NORM2);CHKERRQ(ierr);
-  ierr = MPI_Type_contiguous(sizeof(PetscReal)*3,MPI_BYTE,&MPIU_NORM1_AND_2);CHKERRQ(ierr);
+  ierr = MPI_Type_contiguous(3,MPIU_REAL,&MPIU_NORM1_AND_2);CHKERRQ(ierr);
   ierr = MPI_Type_commit(&MPIU_NORM1_AND_2);CHKERRQ(ierr);
-  ierr = MPI_Op_create(SlepcSumNorm2_Local,1,&MPIU_NORM2_SUM);CHKERRQ(ierr);
-  ierr = PetscRegisterFinalize(VecNormCompEnd);CHKERRQ(ierr);
+  ierr = MPI_Op_create(SlepcSumNorm2_Local,PETSC_TRUE,&MPIU_NORM2_SUM);CHKERRQ(ierr);
+  ierr = PetscRegisterFinalize(VecCompNormEnd);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -232,7 +231,7 @@ static PetscErrorCode VecCreate_Comp_Private(Vec v,Vec *x,PetscInt nx,PetscBool 
   if (!VecCompInitialized) {
     VecCompInitialized = PETSC_TRUE;
     ierr = VecRegister(VECCOMP,VecCreate_Comp);CHKERRQ(ierr);
-    ierr = VecNormCompInit();CHKERRQ(ierr);
+    ierr = VecCompNormInit();CHKERRQ(ierr);
   }
 
   /* Allocate a new Vec_Comp */

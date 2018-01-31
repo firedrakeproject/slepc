@@ -592,9 +592,10 @@ PETSC_STATIC_INLINE PetscErrorCode BV_GetBufferMat(BV bv)
 
 /*
    BV_StoreCoeffsBlock_Default - Copy the contents of the BV buffer to a dense Mat
-   provided by the caller. Only the upper triangular entries of columns l:k-1 are copied
+   provided by the caller. Only columns l:k-1 are copied, restricting to the upper
+   triangular part if tri=PETSC_TRUE.
 */
-PETSC_STATIC_INLINE PetscErrorCode BV_StoreCoeffsBlock_Default(BV bv,Mat R)
+PETSC_STATIC_INLINE PetscErrorCode BV_StoreCoeffsBlock_Default(BV bv,Mat R,PetscBool tri)
 {
   PetscErrorCode    ierr;
   const PetscScalar *bb;
@@ -607,7 +608,7 @@ PETSC_STATIC_INLINE PetscErrorCode BV_StoreCoeffsBlock_Default(BV bv,Mat R)
   ldb  = bv->m+bv->nc;
   ierr = VecGetArrayRead(bv->buffer,&bb);CHKERRQ(ierr);
   for (j=bv->l;j<bv->k;j++) {
-    ierr = PetscMemcpy(rr+j*ldr,bb+j*ldb,(j+1+bv->nc)*sizeof(PetscScalar));CHKERRQ(ierr);
+    ierr = PetscMemcpy(rr+j*ldr,bb+j*ldb,((tri?(j+1):bv->k)+bv->nc)*sizeof(PetscScalar));CHKERRQ(ierr);
   }
   ierr = VecRestoreArrayRead(bv->buffer,&bb);CHKERRQ(ierr);
   ierr = MatDenseRestoreArray(R,&rr);CHKERRQ(ierr);
@@ -631,7 +632,7 @@ static PetscErrorCode BVOrthogonalize_Chol(BV V,Mat Rin)
   ierr = BVDot(V,V,R);CHKERRQ(ierr);
   ierr = BVMatCholInv_LAPACK_Private(V,R,S);CHKERRQ(ierr);
   ierr = BVMultInPlace(V,S,V->l,V->k);CHKERRQ(ierr);
-  if (Rin) { ierr = BV_StoreCoeffsBlock_Default(V,Rin);CHKERRQ(ierr); }
+  if (Rin) { ierr = BV_StoreCoeffsBlock_Default(V,Rin,PETSC_TRUE);CHKERRQ(ierr); }
   PetscFunctionReturn(0);
 }
 
@@ -652,10 +653,59 @@ static PetscErrorCode BVOrthogonalize_TSQR(BV V,Mat Rin)
   ierr = MatGetSize(R,&ldr,NULL);CHKERRQ(ierr);
   ierr = MatDenseGetArray(R,&r);CHKERRQ(ierr);
   ierr = BVGetArray(V,&pv);CHKERRQ(ierr);
-  ierr = BVOrthogonalize_LAPACK_Private(V,V->n,V->k-V->l,pv+(V->nc+V->l)*V->n,r+V->l*ldr+V->l,ldr);CHKERRQ(ierr);
+  ierr = BVOrthogonalize_LAPACK_TSQR(V,V->n,V->k-V->l,pv+(V->nc+V->l)*V->n,r+V->l*ldr+V->l,ldr);CHKERRQ(ierr);
   ierr = BVRestoreArray(V,&pv);CHKERRQ(ierr);
   ierr = MatDenseRestoreArray(R,&r);CHKERRQ(ierr);
-  if (Rin) { ierr = BV_StoreCoeffsBlock_Default(V,Rin);CHKERRQ(ierr); }
+  if (Rin) { ierr = BV_StoreCoeffsBlock_Default(V,Rin,PETSC_TRUE);CHKERRQ(ierr); }
+  PetscFunctionReturn(0);
+}
+
+/*
+   Orthogonalize a set of vectors with TSQR, but computing R only, then doing Q=V*inv(R)
+ */
+static PetscErrorCode BVOrthogonalize_TSQRCHOL(BV V,Mat Rin)
+{
+  PetscErrorCode ierr;
+  PetscScalar    *pv,*r=NULL;
+  PetscInt       ldr;
+  Mat            R,S;
+
+  PetscFunctionBegin;
+  ierr = BV_GetBufferMat(V);CHKERRQ(ierr);
+  R = V->Abuffer;
+  if (Rin) S = Rin;   /* use Rin as a workspace for S */
+  else S = R;
+  if (V->l) { ierr = BVOrthogonalize_BlockGS(V,R);CHKERRQ(ierr); }
+  ierr = MatGetSize(R,&ldr,NULL);CHKERRQ(ierr);
+  ierr = MatDenseGetArray(R,&r);CHKERRQ(ierr);
+  ierr = BVGetArray(V,&pv);CHKERRQ(ierr);
+  ierr = BVOrthogonalize_LAPACK_TSQR_OnlyR(V,V->n,V->k-V->l,pv+(V->nc+V->l)*V->n,r+V->l*ldr+V->l,ldr);CHKERRQ(ierr);
+  ierr = BVRestoreArray(V,&pv);CHKERRQ(ierr);
+  ierr = MatDenseRestoreArray(R,&r);CHKERRQ(ierr);
+  ierr = BVMatTriInv_LAPACK_Private(V,R,S);CHKERRQ(ierr);
+  ierr = BVMultInPlace(V,S,V->l,V->k);CHKERRQ(ierr);
+  if (Rin) { ierr = BV_StoreCoeffsBlock_Default(V,Rin,PETSC_TRUE);CHKERRQ(ierr); }
+  PetscFunctionReturn(0);
+}
+
+/*
+   Orthogonalize a set of vectors with SVQB
+ */
+static PetscErrorCode BVOrthogonalize_SVQB(BV V,Mat Rin)
+{
+  PetscErrorCode ierr;
+  Mat            R,S;
+
+  PetscFunctionBegin;
+  ierr = BV_GetBufferMat(V);CHKERRQ(ierr);
+  R = V->Abuffer;
+  if (Rin) S = Rin;   /* use Rin as a workspace for S */
+  else S = R;
+  if (V->l) { ierr = BVOrthogonalize_BlockGS(V,R);CHKERRQ(ierr); }
+  ierr = BVDot(V,V,R);CHKERRQ(ierr);
+  ierr = BVMatSVQB_LAPACK_Private(V,R,S);CHKERRQ(ierr);
+  ierr = BVMultInPlace(V,S,V->l,V->k);CHKERRQ(ierr);
+  if (Rin) { ierr = BV_StoreCoeffsBlock_Default(V,Rin,PETSC_FALSE);CHKERRQ(ierr); }
   PetscFunctionReturn(0);
 }
 
@@ -693,7 +743,8 @@ static PetscErrorCode BVOrthogonalize_TSQR(BV V,Mat Rin)
 
    The method to be used for block orthogonalization can be set with
    BVSetOrthogonalization(). If set to GS, the computation is done column by
-   column with successive calls to BVOrthogonalizeColumn().
+   column with successive calls to BVOrthogonalizeColumn(). Note that in the
+   SVQB method the R factor is not upper triangular.
 
    If V is rank-deficient or very ill-conditioned, that is, one or more columns are
    (almost) linearly dependent with respect to the rest, then the algorithm may
@@ -737,6 +788,13 @@ PetscErrorCode BVOrthogonalize(BV V,Mat R)
   case BV_ORTHOG_BLOCK_TSQR:
     if (V->matrix) SETERRQ(PetscObjectComm((PetscObject)V),PETSC_ERR_SUP,"Orthogonalization method not available for non-standard inner product");
     ierr = BVOrthogonalize_TSQR(V,R);CHKERRQ(ierr);
+    break;
+  case BV_ORTHOG_BLOCK_TSQRCHOL:
+    if (V->matrix) SETERRQ(PetscObjectComm((PetscObject)V),PETSC_ERR_SUP,"Orthogonalization method not available for non-standard inner product");
+    ierr = BVOrthogonalize_TSQRCHOL(V,R);CHKERRQ(ierr);
+    break;
+  case BV_ORTHOG_BLOCK_SVQB:
+    ierr = BVOrthogonalize_SVQB(V,R);CHKERRQ(ierr);
     break;
   }
   ierr = PetscLogEventEnd(BV_Orthogonalize,V,R,0,0);CHKERRQ(ierr);
