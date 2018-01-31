@@ -280,11 +280,11 @@ PetscErrorCode STMatSetHermitian(ST st,Mat M)
 
 PetscErrorCode STCheckFactorPackage(ST st)
 {
-  PetscErrorCode      ierr;
-  PC                  pc;
-  PetscMPIInt         size;
-  PetscBool           flg;
-  const MatSolverType stype;
+  PetscErrorCode ierr;
+  PC             pc;
+  PetscMPIInt    size;
+  PetscBool      flg;
+  MatSolverType  stype;
 
   PetscFunctionBegin;
   ierr = MPI_Comm_size(PetscObjectComm((PetscObject)st),&size);CHKERRQ(ierr);

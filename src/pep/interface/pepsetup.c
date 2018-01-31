@@ -64,14 +64,14 @@ PetscErrorCode PEPSetDefaultST_Transform(PEP pep)
 @*/
 PetscErrorCode PEPSetUp(PEP pep)
 {
-  PetscErrorCode      ierr;
-  SlepcSC             sc;
-  PetscBool           istrivial,flg;
-  PetscInt            k;
-  KSP                 ksp;
-  PC                  pc;
-  PetscMPIInt         size;
-  const MatSolverType stype;
+  PetscErrorCode ierr;
+  SlepcSC        sc;
+  PetscBool      istrivial,flg;
+  PetscInt       k;
+  KSP            ksp;
+  PC             pc;
+  PetscMPIInt    size;
+  MatSolverType  stype;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);

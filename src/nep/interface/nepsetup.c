@@ -33,15 +33,15 @@
 @*/
 PetscErrorCode NEPSetUp(NEP nep)
 {
-  PetscErrorCode      ierr;
-  PetscInt            k;
-  SlepcSC             sc;
-  Mat                 T;
-  PetscBool           flg;
-  KSP                 ksp;
-  PC                  pc;
-  PetscMPIInt         size;
-  const MatSolverType stype;
+  PetscErrorCode ierr;
+  PetscInt       k;
+  SlepcSC        sc;
+  Mat            T;
+  PetscBool      flg;
+  KSP            ksp;
+  PC             pc;
+  PetscMPIInt    size;
+  MatSolverType  stype;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);

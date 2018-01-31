@@ -151,27 +151,27 @@ static PetscErrorCode EPSSliceAllocateSolution(EPS eps,PetscInt extra)
 
 static PetscErrorCode EPSSliceGetEPS(EPS eps)
 {
-  PetscErrorCode      ierr;
-  EPS_KRYLOVSCHUR     *ctx=(EPS_KRYLOVSCHUR*)eps->data,*ctx_local;
-  BV                  V;
-  BVType              type;
-  PetscReal           eta;
-  BVOrthogType        orthog_type;
-  BVOrthogRefineType  orthog_ref;
-  BVOrthogBlockType   ob_type;
-  Mat                 A,B=NULL,Ar,Br=NULL;
-  PetscInt            i;
-  PetscReal           h,a,b;
-  PetscMPIInt         rank;
-  EPS_SR              sr=ctx->sr;
-  PC                  pc;
-  PCType              pctype;
-  KSP                 ksp;
-  KSPType             ksptype;
-  STType              sttype;
-  PetscObjectState    Astate,Bstate=0;
-  PetscObjectId       Aid,Bid=0;
-  const MatSolverType stype;
+  PetscErrorCode     ierr;
+  EPS_KRYLOVSCHUR    *ctx=(EPS_KRYLOVSCHUR*)eps->data,*ctx_local;
+  BV                 V;
+  BVType             type;
+  PetscReal          eta;
+  BVOrthogType       orthog_type;
+  BVOrthogRefineType orthog_ref;
+  BVOrthogBlockType  ob_type;
+  Mat                A,B=NULL,Ar,Br=NULL;
+  PetscInt           i;
+  PetscReal          h,a,b;
+  PetscMPIInt        rank;
+  EPS_SR             sr=ctx->sr;
+  PC                 pc;
+  PCType             pctype;
+  KSP                ksp;
+  KSPType            ksptype;
+  STType             sttype;
+  PetscObjectState   Astate,Bstate=0;
+  PetscObjectId      Aid,Bid=0;
+  MatSolverType      stype;
 
   PetscFunctionBegin;
   ierr = EPSGetOperators(eps,&A,&B);CHKERRQ(ierr);
