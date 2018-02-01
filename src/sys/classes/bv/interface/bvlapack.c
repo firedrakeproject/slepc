@@ -447,13 +447,14 @@ PetscErrorCode BVOrthogonalize_LAPACK_TSQR(BV bv,PetscInt m_,PetscInt n_,PetscSc
 */
 PETSC_EXTERN void SlepcGivensPacked(void *in,void *inout,PetscMPIInt *len,MPI_Datatype *datatype)
 {
-  PetscBLASInt n,i,j,k,one=1;
-  PetscMPIInt  tsize;
-  PetscScalar  v,s,*R2=(PetscScalar*)in,*R1=(PetscScalar*)inout;
-  PetscReal    c;
+  PetscErrorCode ierr;
+  PetscBLASInt   n,i,j,k,one=1;
+  PetscMPIInt    tsize;
+  PetscScalar    v,s,*R2=(PetscScalar*)in,*R1=(PetscScalar*)inout;
+  PetscReal      c;
 
   PetscFunctionBegin;
-  MPI_Type_size(*datatype,&tsize);  /* we assume len=1 */
+  ierr = MPI_Type_size(*datatype,&tsize);CHKERRABORT(PETSC_COMM_SELF,ierr);  /* we assume len=1 */
   tsize /= sizeof(PetscScalar);
   n = (-1+(PetscBLASInt)PetscSqrtReal(1+8*tsize))/2;
   for (j=0;j<n;j++) {
