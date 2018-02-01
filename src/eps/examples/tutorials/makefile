@@ -249,7 +249,7 @@ runex9_6:
 
 runex9_7:
 	-@${SETTEST}; \
-	${MPIEXEC} -n 1 ./ex9 -eps_nev 1 -eps_type arnoldi -eps_smallest_real -eps_refined -eps_max_it 200 -terse > $${test}.tmp 2>&1; \
+	${MPIEXEC} -n 1 ./ex9 -n 40 -eps_nev 1 -eps_type arnoldi -eps_smallest_real -eps_refined -eps_max_it 200 -terse > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
 runex9_8:

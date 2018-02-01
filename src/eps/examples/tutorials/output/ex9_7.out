@@ -1,9 +1,9 @@
 
-Brusselator wave model, n=30
+Brusselator wave model, n=40
 
  Solution method: arnoldi
 
  Number of requested eigenvalues: 1
  All requested eigenvalues computed up to the required tolerance:
-     -111.65234
+     -199.40168
 
