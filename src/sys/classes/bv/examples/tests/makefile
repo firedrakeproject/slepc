@@ -385,7 +385,7 @@ runtest11_12: runtest11_12_vecs runtest11_12_contiguous runtest11_12_svec runtes
 runtest11_12_%:
 	-@${SETTEST}; check=test11_12; bv=$*; \
 	if [ "$$bv" = cuda ]; then bv="svec -vec_type cuda"; fi; \
-	${MPIEXEC} -n 9 ./test11 -resid -n 180 -l 0 -k 8 -bv_orthog_block tsqr -bv_type $$bv > $${test}.tmp 2>&1; \
+	${MPIEXEC} -n 9 ./test11 -resid -n 180 -l 0 -k 7 -bv_orthog_block tsqr -bv_type $$bv > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
 runtest11_13: runtest11_13_vecs runtest11_13_contiguous runtest11_13_svec runtest11_13_mat
