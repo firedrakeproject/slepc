@@ -1065,6 +1065,7 @@ PetscErrorCode NEPSolve_NLEIGS(NEP nep)
   if (ctx->lock) {
     ierr = PetscOptionsGetBool(NULL,NULL,"-nep_nleigs_falselocking",&falselock,NULL);CHKERRQ(ierr);
   }
+
   ierr = BVGetSizes(nep->V,NULL,NULL,&ld);CHKERRQ(ierr);
   lds = deg*ld;
   ierr = DSGetLeadingDimension(nep->ds,&ldds);CHKERRQ(ierr);
@@ -1182,8 +1183,12 @@ PetscErrorCode NEPSolve_NLEIGS(NEP nep)
   }
   nep->nconv = nconv;
   if (nep->nconv>0) {
-    nq = nep->nconv;
     ierr = BVSetActiveColumns(ctx->V,0,nep->nconv);CHKERRQ(ierr);
+    ierr = BVGetActiveColumns(nep->V,NULL,&nq);CHKERRQ(ierr);
+    ierr = BVSetActiveColumns(nep->V,0,nq);CHKERRQ(ierr);
+    ierr = BVTensorCompress(ctx->V,nep->nconv);CHKERRQ(ierr);
+    ierr = BVSetActiveColumns(nep->V,0,nep->nconv);CHKERRQ(ierr);
+    nq = nep->nconv;
     if (ctx->nshifts) {
       ierr = DSGetMat(nep->ds,DS_MAT_B,&MQ);CHKERRQ(ierr);
       ierr = BVMultInPlace(ctx->V,MQ,0,nep->nconv);CHKERRQ(ierr);

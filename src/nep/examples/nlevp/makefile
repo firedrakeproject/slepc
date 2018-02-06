@@ -21,7 +21,7 @@ TESTS      = loaded_string gun
 TESTEXAMPLES_C                     = loaded_string.PETSc runloaded_string_1 loaded_string.rm
 TESTEXAMPLES_C_NOTSINGLE           = loaded_string.PETSc runloaded_string_2 runloaded_string_3 \
                                                          runloaded_string_4 runloaded_string_5 \
-                                                         runloaded_string_6 loaded_string.rm
+                                                         runloaded_string_6 runloaded_string_7 loaded_string.rm
 TESTEXAMPLES_DATAFILESPATH_COMPLEX = gun.PETSc rungun_1 gun.rm
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common
@@ -69,6 +69,12 @@ runloaded_string_6:
 	-@${SETTEST}; \
         if [ "${PETSC_SCALAR}" = "complex" ]; then region=",-.1,.1"; fi; \
 	${MPIEXEC} -n 1 ./loaded_string -nep_type nleigs -rg_type interval -rg_interval_endpoints 100,700$$region -nep_nev 5 -nep_tol 1e-9 -nep_target 140 -nep_nleigs_interpolation_degree 15 -nep_general -terse > $${test}.tmp 2>&1; \
+	${TESTCODE}
+
+runloaded_string_7:
+	-@${SETTEST}; \
+        if [ "${PETSC_SCALAR}" = "complex" ]; then region=",-.1,.1"; fi; \
+	${MPIEXEC} -n 1 ./loaded_string -nep_type interpol -rg_type interval -rg_interval_endpoints 5,700$$region -nep_nev 5 -nep_target 100 -nep_interpol_interpolation_degree 20 -nep_ncv 20 -n 20 -nep_refine simple -nep_refine_its 1 -terse > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
 rungun_1:

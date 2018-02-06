@@ -384,9 +384,10 @@ PetscErrorCode PEPSolve_STOAR(PEP pep)
 
   if (pep->nconv>0) {
     ierr = BVSetActiveColumns(ctx->V,0,pep->nconv);CHKERRQ(ierr);
-    /* Extraction */
-    ierr = DSSetDimensions(pep->ds,pep->nconv,0,0,0);CHKERRQ(ierr);
-    ierr = DSSetState(pep->ds,DS_STATE_RAW);CHKERRQ(ierr);
+    ierr = BVGetActiveColumns(pep->V,NULL,&nq);CHKERRQ(ierr);
+    ierr = BVSetActiveColumns(pep->V,0,nq);CHKERRQ(ierr);
+    ierr = BVTensorCompress(ctx->V,pep->nconv);CHKERRQ(ierr);
+    ierr = BVSetActiveColumns(pep->V,0,pep->nconv);CHKERRQ(ierr);
 
     for (j=0;j<pep->nconv;j++) {
       pep->eigr[j] *= pep->sfactor;

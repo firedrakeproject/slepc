@@ -572,6 +572,7 @@ static PetscErrorCode BVTensorCompress_Tensor(BV V,PetscInt newc)
 #endif
   SlepcCheckLapackInfo("gesvd",info);
   tol = PetscMax(rs1,deg*cs1)*PETSC_MACHINE_EPSILON*sg[0];
+  rk = 0;
   for (i=0;i<PetscMin(nrow,nnctdeg);i++) if (sg[i]>tol) rk++;
   rk = PetscMin(nnc+deg-1,rk);
   /* the SVD has rank (at most) nnc+deg-1 */

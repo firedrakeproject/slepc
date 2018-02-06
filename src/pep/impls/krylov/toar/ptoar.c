@@ -581,8 +581,12 @@ PetscErrorCode PEPSolve_TOAR(PEP pep)
   }
   if (pep->nconv>0) {
     /* {V*S_nconv^i}_{i=0}^{d-1} has rank nconv instead of nconv+d-1. Force zeros in each S_nconv^i block */
-    nq = pep->nconv;
     ierr = BVSetActiveColumns(ctx->V,0,pep->nconv);CHKERRQ(ierr);
+    ierr = BVGetActiveColumns(pep->V,NULL,&nq);CHKERRQ(ierr);
+    ierr = BVSetActiveColumns(pep->V,0,nq);CHKERRQ(ierr);
+    ierr = BVTensorCompress(ctx->V,pep->nconv);CHKERRQ(ierr);
+    ierr = BVSetActiveColumns(pep->V,0,pep->nconv);CHKERRQ(ierr);
+    nq = pep->nconv;
 
     /* perform Newton refinement if required */
     if (pep->refine==PEP_REFINE_MULTIPLE && pep->rits>0) {
@@ -605,9 +609,6 @@ PetscErrorCode PEPSolve_TOAR(PEP pep)
       ierr = MatDestroy(&MQ);CHKERRQ(ierr);
       ierr = MatDenseRestoreArray(MS,&S);CHKERRQ(ierr);
       ierr = BVTensorRestoreFactors(ctx->V,NULL,&MS);CHKERRQ(ierr);
-    } else {
-      ierr = DSSetDimensions(pep->ds,pep->nconv,0,0,0);CHKERRQ(ierr);
-      ierr = DSSetState(pep->ds,DS_STATE_RAW);CHKERRQ(ierr);
     }
   }
   ierr = STGetTransform(pep->st,&flg);CHKERRQ(ierr);

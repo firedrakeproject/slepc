@@ -310,7 +310,7 @@ PetscErrorCode PEPSolve_QArnoldi(PEP pep)
     pep->nconv = k;
     ierr = PEPMonitor(pep,pep->its,nconv,pep->eigr,pep->eigi,pep->errest,nv);CHKERRQ(ierr);
   }
-
+  ierr = BVSetActiveColumns(pep->V,0,pep->nconv);CHKERRQ(ierr);
   for (j=0;j<pep->nconv;j++) {
     pep->eigr[j] *= pep->sfactor;
     pep->eigi[j] *= pep->sfactor;
