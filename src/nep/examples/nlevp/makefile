@@ -21,7 +21,8 @@ TESTS      = loaded_string gun
 TESTEXAMPLES_C                     = loaded_string.PETSc runloaded_string_1 loaded_string.rm
 TESTEXAMPLES_C_NOTSINGLE           = loaded_string.PETSc runloaded_string_2 runloaded_string_3 \
                                                          runloaded_string_4 runloaded_string_5 \
-                                                         runloaded_string_6 runloaded_string_7 loaded_string.rm
+                                                         runloaded_string_6 loaded_string.rm
+TESTEXAMPLES_C_DOUBLE              = loaded_string.PETSc runloaded_string_7 loaded_string.rm
 TESTEXAMPLES_DATAFILESPATH_COMPLEX = gun.PETSc rungun_1 gun.rm
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common
