@@ -386,9 +386,10 @@ PetscErrorCode PEPSolve_STOAR(PEP pep)
     ierr = BVSetActiveColumns(ctx->V,0,pep->nconv);CHKERRQ(ierr);
     ierr = BVGetActiveColumns(pep->V,NULL,&nq);CHKERRQ(ierr);
     ierr = BVSetActiveColumns(pep->V,0,nq);CHKERRQ(ierr);
-    ierr = BVTensorCompress(ctx->V,pep->nconv);CHKERRQ(ierr);
-    ierr = BVSetActiveColumns(pep->V,0,pep->nconv);CHKERRQ(ierr);
-
+    if (nq>pep->nconv) {
+      ierr = BVTensorCompress(ctx->V,pep->nconv);CHKERRQ(ierr);
+      ierr = BVSetActiveColumns(pep->V,0,pep->nconv);CHKERRQ(ierr);
+    }
     for (j=0;j<pep->nconv;j++) {
       pep->eigr[j] *= pep->sfactor;
       pep->eigi[j] *= pep->sfactor;

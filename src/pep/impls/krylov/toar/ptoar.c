@@ -584,9 +584,11 @@ PetscErrorCode PEPSolve_TOAR(PEP pep)
     ierr = BVSetActiveColumns(ctx->V,0,pep->nconv);CHKERRQ(ierr);
     ierr = BVGetActiveColumns(pep->V,NULL,&nq);CHKERRQ(ierr);
     ierr = BVSetActiveColumns(pep->V,0,nq);CHKERRQ(ierr);
-    ierr = BVTensorCompress(ctx->V,pep->nconv);CHKERRQ(ierr);
-    ierr = BVSetActiveColumns(pep->V,0,pep->nconv);CHKERRQ(ierr);
-    nq = pep->nconv;
+    if (nq>pep->nconv) {
+      ierr = BVTensorCompress(ctx->V,pep->nconv);CHKERRQ(ierr);
+      ierr = BVSetActiveColumns(pep->V,0,pep->nconv);CHKERRQ(ierr);
+      nq = pep->nconv;
+    }
 
     /* perform Newton refinement if required */
     if (pep->refine==PEP_REFINE_MULTIPLE && pep->rits>0) {

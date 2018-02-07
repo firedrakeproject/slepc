@@ -1186,9 +1186,11 @@ PetscErrorCode NEPSolve_NLEIGS(NEP nep)
     ierr = BVSetActiveColumns(ctx->V,0,nep->nconv);CHKERRQ(ierr);
     ierr = BVGetActiveColumns(nep->V,NULL,&nq);CHKERRQ(ierr);
     ierr = BVSetActiveColumns(nep->V,0,nq);CHKERRQ(ierr);
-    ierr = BVTensorCompress(ctx->V,nep->nconv);CHKERRQ(ierr);
-    ierr = BVSetActiveColumns(nep->V,0,nep->nconv);CHKERRQ(ierr);
-    nq = nep->nconv;
+    if (nq>nep->nconv) {
+      ierr = BVTensorCompress(ctx->V,nep->nconv);CHKERRQ(ierr);
+      ierr = BVSetActiveColumns(nep->V,0,nep->nconv);CHKERRQ(ierr);
+      nq = nep->nconv;
+    }
     if (ctx->nshifts) {
       ierr = DSGetMat(nep->ds,DS_MAT_B,&MQ);CHKERRQ(ierr);
       ierr = BVMultInPlace(ctx->V,MQ,0,nep->nconv);CHKERRQ(ierr);
