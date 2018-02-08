@@ -314,13 +314,15 @@ for dir in dirs:
 
 
   def outputInstallDone(self):
+    arch=self.arch
+    if arch.startswith('installed-'): arch='""'
     print '''\
 ====================================
 Install complete.
 Now to check if the libraries are working do (in current directory):
-make SLEPC_DIR=%s PETSC_DIR=%s PETSC_ARCH="" test
+make SLEPC_DIR=%s PETSC_DIR=%s PETSC_ARCH=%s test
 ====================================\
-''' % (self.installDir,self.petscDir)
+''' % (self.installDir,self.petscDir,arch)
     return
 
   def outputDestDirDone(self):

@@ -181,8 +181,6 @@ if petsc.version < slepc.version:
 petsc.LoadConf()
 if not petsc.precision in ['double','single','__float128']:
   sys.exit('ERROR: This SLEPc version does not work with '+petsc.precision+' precision')
-if slepc.isinstall and not petsc.isinstall:
-  sys.exit('ERROR: SLEPc cannot be configured for non-source installation if PETSc is not configured in the same way.')
 
 # Check for empty PETSC_ARCH
 emptyarch = not ('PETSC_ARCH' in os.environ and os.environ['PETSC_ARCH'])
