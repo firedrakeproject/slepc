@@ -52,7 +52,7 @@
       call MPI_Comm_rank(PETSC_COMM_WORLD,rank,ierr);CHKERRA(ierr)
       n = 10
       call PetscOptionsGetInt(PETSC_NULL_OPTIONS,PETSC_NULL_CHARACTER,'-n',n,flg,ierr);CHKERRA(ierr)
-      if (n .gt. 100) then SETERRA(PETSC_COMM_SELF,1,'Program currently limited to n=100')
+      if (n .gt. 100) then; SETERRA(PETSC_COMM_SELF,1,'Program currently limited to n=100'); endif
 
       if (rank .eq. 0) then
         write(*,110) n

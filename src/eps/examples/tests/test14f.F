@@ -73,7 +73,7 @@
       call EPSCreate(PETSC_COMM_WORLD,eps,ierr)
       call EPSSetOperators(eps,A,PETSC_NULL_MAT,ierr)
       call EPSGetOperators(eps,B,PETSC_NULL_MAT,ierr)
-      call MatView(B,PETSC_NULL_MAT,ierr)
+      call MatView(B,PETSC_NULL_VIEWER,ierr)
 
       call EPSSetType(eps,EPSKRYLOVSCHUR,ierr)
       call EPSGetType(eps,tname,ierr)

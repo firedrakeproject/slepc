@@ -61,7 +61,7 @@
 #endif
       call MPI_Comm_size(PETSC_COMM_WORLD,sz,ierr);CHKERRA(ierr)
       call MPI_Comm_rank(PETSC_COMM_WORLD,rank,ierr);CHKERRA(ierr)
-      if (sz .ne. 1) then SETERRA(PETSC_COMM_SELF,1,'This is a uniprocessor example only!')
+      if (sz .ne. 1) then; SETERRA(PETSC_COMM_SELF,1,'This is a uniprocessor example only!'); endif
       m = 30
       call PetscOptionsGetInt(PETSC_NULL_OPTIONS,PETSC_NULL_CHARACTER,'-m',m,flg,ierr);CHKERRA(ierr)
       N = 2*m
