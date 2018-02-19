@@ -105,6 +105,11 @@ static PetscErrorCode NEPNLEIGSAuxiliarPRootFinder(PetscInt deg,PetscScalar *pol
 #if defined(PETSC_USE_COMPLEX)
   PetscReal      *rwork;
 #endif
+#if defined(PETSC_HAVE_ESSL)
+  PetscScalar    sdummy;
+  PetscBLASInt   idummy,io=0;
+  PetscScalar    *wri;
+#endif
 
   PetscFunctionBegin;
 #if defined(PETSC_MISSING_LAPACK_GEEV)
@@ -120,6 +125,9 @@ static PetscErrorCode NEPNLEIGSAuxiliarPRootFinder(PetscInt deg,PetscScalar *pol
     }
     C[deg*deg+-1] = -polcoeffs[1]/polcoeffs[0];
     ierr = PetscBLASIntCast(3*deg,&lwork);CHKERRQ(ierr);
+
+    ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
+#if !defined(PETSC_HAVE_ESSL)
 #if !defined(PETSC_USE_COMPLEX)
     ierr = PetscMalloc1(lwork,&work);CHKERRQ(ierr);
     PetscStackCallBLAS("LAPACKgeev",LAPACKgeev_("N","N",&n_,C,&n_,wr,wi,NULL,&n_,NULL,&n_,work,&lwork,&info));
@@ -131,6 +139,20 @@ static PetscErrorCode NEPNLEIGSAuxiliarPRootFinder(PetscInt deg,PetscScalar *pol
     if (info) *avail = PETSC_FALSE;
     ierr = PetscFree2(rwork,work);CHKERRQ(ierr);
 #endif
+#else
+    ierr = PetscMalloc2(lwork,&work,2*deg,&wri);CHKERRQ(ierr);
+    PetscStackCallBLAS("LAPACKgeev",LAPACKgeev_(&io,C,&n_,wri,&sdummy,&idummy,&idummy,&n_,work,&lwork));
+#if !defined(PETSC_USE_COMPLEX)
+    for (i=0;i<deg;i++) {
+      wr[i] = wri[2*i];
+      wi[i] = wri[2*i+1];
+    }
+#else
+    for (i=0;i<deg;i++) wr[i] = wri[i];
+#endif
+    ierr = PetscFree2(work,wri);CHKERRQ(ierr);
+#endif
+    ierr = PetscFPTrapPop();CHKERRQ(ierr);
     ierr = PetscFree(C);CHKERRQ(ierr);
   }
 #endif
