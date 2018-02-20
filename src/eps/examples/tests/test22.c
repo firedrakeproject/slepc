@@ -35,7 +35,6 @@ static char help[] = "Illustrates how to obtain invariant subspaces. "
 
 /* Matrix operations */
 PetscErrorCode MatMult_Brussel(Mat,Vec,Vec);
-PetscErrorCode MatShift_Brussel(PetscScalar*,Mat);
 PetscErrorCode MatGetDiagonal_Brussel(Mat,Vec);
 
 typedef struct {
@@ -106,7 +105,6 @@ int main(int argc,char **argv)
   /* Create the shell matrix */
   ierr = MatCreateShell(PETSC_COMM_WORLD,2*n,2*n,2*N,2*N,(void*)ctx,&A);CHKERRQ(ierr);
   ierr = MatShellSetOperation(A,MATOP_MULT,(void(*)())MatMult_Brussel);CHKERRQ(ierr);
-  ierr = MatShellSetOperation(A,MATOP_SHIFT,(void(*)())MatShift_Brussel);CHKERRQ(ierr);
   ierr = MatShellSetOperation(A,MATOP_GET_DIAGONAL,(void(*)())MatGetDiagonal_Brussel);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -233,17 +231,6 @@ PetscErrorCode MatMult_Brussel(Mat A,Vec x,Vec y)
   ierr = VecResetArray(ctx->x2);CHKERRQ(ierr);
   ierr = VecResetArray(ctx->y1);CHKERRQ(ierr);
   ierr = VecResetArray(ctx->y2);CHKERRQ(ierr);
-  PetscFunctionReturn(0);
-}
-
-PetscErrorCode MatShift_Brussel(PetscScalar* a,Mat Y)
-{
-  CTX_BRUSSEL    *ctx;
-  PetscErrorCode ierr;
-
-  PetscFunctionBeginUser;
-  ierr = MatShellGetContext(Y,(void**)&ctx);CHKERRQ(ierr);
-  ctx->sigma += *a;
   PetscFunctionReturn(0);
 }
 
