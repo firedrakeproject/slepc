@@ -58,5 +58,5 @@ runex26_1:
 
 runex37_1:
 	-@${SETTEST}; \
-	${MPIEXEC} -n 1 ./ex37 > $${test}.tmp 2>&1; \
+	${MPIEXEC} -n 1 ./ex37 -mfn_tol 1e-6 > $${test}.tmp 2>&1; \
 	${TESTCODE}

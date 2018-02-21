@@ -22,9 +22,9 @@ int main(int argc,char **argv)
   Mat                A;           /* problem matrix */
   MFN                mfn;
   FN                 f;
-  PetscInt           i,j,Istart,Iend,II,m,n=10,N,steps=5,its,totits,ncv,maxit;
-  PetscReal          tol,norm;
-  PetscScalar        t=1e-4,peclet=0.5,epsilon=1.0,sone=1.0,value,h,h2,c,upper,diag,lower;
+  PetscInt           i,j,Istart,Iend,II,m,n=10,N,steps=5,its,totits=0,ncv,maxit;
+  PetscReal          tol,norm,h,h2,peclet=0.5,epsilon=1.0,c;
+  PetscScalar        t=1e-4,sone=1.0,value,upper,diag,lower;
   Vec                v;
   PetscErrorCode     ierr;
   PetscBool          flg;
@@ -33,7 +33,7 @@ int main(int argc,char **argv)
   ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
 
   ierr = PetscOptionsGetScalar(NULL,NULL,"-t",&t,&flg);CHKERRQ(ierr);
-  ierr = PetscOptionsGetScalar(NULL,NULL,"-peclet",&peclet,&flg);CHKERRQ(ierr);
+  ierr = PetscOptionsGetReal(NULL,NULL,"-peclet",&peclet,&flg);CHKERRQ(ierr);
   ierr = PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL);CHKERRQ(ierr);
   ierr = PetscOptionsGetInt(NULL,NULL,"-steps",&steps,NULL);CHKERRQ(ierr);
   m = n;
@@ -72,7 +72,7 @@ int main(int argc,char **argv)
   */
   for (II=Istart;II<Iend;II++) {
     i = II/n; j = II-i*n;
-    value = 256*(((i+1)*h)*((i+1)*h))*((1-((i+1)*h))*(1-((i+1)*h)))*(((j+1)*h)*((j+1)*h))*((1-((j+1)*h))*(1-((j+1)*h)));
+    value = 256.0*(((i+1)*h)*((i+1)*h))*((1.0-((i+1)*h))*(1.0-((i+1)*h)))*(((j+1)*h)*((j+1)*h))*((1.0-((j+1)*h))*(1.0-((j+1)*h)));
     ierr = VecSetValue(v,i+j*n,value,INSERT_VALUES);CHKERRQ(ierr);
   }
   ierr = VecAssemblyBegin(v);CHKERRQ(ierr);
