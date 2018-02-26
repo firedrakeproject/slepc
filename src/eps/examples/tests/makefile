@@ -498,7 +498,7 @@ testtest10: test10.PETSc
 	    echo "Possible error running C/C++ src/eps/examples/tests/test10 with 1 MPI process"; \
 	    cat $${test}.tmp; fail=1; \
 	  fi; \
-	  if [ "${MPIEXEC}" != "${PETSC_DIR}/bin/petsc-mpiexec.uni" ]; then \
+	  if [ "${MPIEXEC}" != "${PETSC_DIR}/lib/petsc/bin/petsc-mpiexec.uni" ]; then \
 	    ${MPIEXEC} -n 2 ./test10 $$options > $${test}.tmp 2>&1; \
 	    if (${DIFF} output/$${check}.out $${test}.tmp > /dev/null 2>&1) then \
 	      echo "C/C++ example src/eps/examples/tests/test10 run successfully with 2 MPI process"; \

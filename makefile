@@ -265,7 +265,7 @@ alldoc1: chk_loc deletemanualpages
 	-@sed -e s%man+../%man+manualpages/% ${LOC}/docs/manualpages/manualpages.cit > ${LOC}/docs/manualpages/htmlmap
 	-@cat ${PETSC_DIR}/src/docs/mpi.www.index >> ${LOC}/docs/manualpages/htmlmap
 	-${OMAKE} ACTION=slepc_manualpages tree_basic LOC=${LOC}
-	-${PYTHON} ${PETSC_DIR}/bin/maint/wwwindex.py ${SLEPC_DIR} ${LOC}
+	-${PYTHON} ${PETSC_DIR}/lib/petsc/bin/maint/wwwindex.py ${SLEPC_DIR} ${LOC}
 	-${OMAKE} ACTION=slepc_manexamples tree_basic LOC=${LOC}
 
 # Builds .html versions of the source
@@ -312,8 +312,8 @@ allcleanhtml:
 # Builds Fortran stub files
 allfortranstubs:
 	-@${RM} -rf ${PETSC_ARCH}/include/slepc/finclude/ftn-auto/*-tmpdir
-	@${PYTHON} ${SLEPC_DIR}/bin/maint/generatefortranstubs.py ${BFORT} ${VERBOSE}
-	-@${PYTHON} ${SLEPC_DIR}/bin/maint/generatefortranstubs.py -merge ${VERBOSE}
+	@${PYTHON} ${SLEPC_DIR}/lib/slepc/bin/maint/generatefortranstubs.py ${BFORT} ${VERBOSE}
+	-@${PYTHON} ${SLEPC_DIR}/lib/slepc/bin/maint/generatefortranstubs.py -merge ${VERBOSE}
 	-@${RM} -rf include/slepc/finclude/ftn-auto/*-tmpdir
 deletefortranstubs:
 	-@find . -type d -name ftn-auto | xargs rm -rf
@@ -372,6 +372,6 @@ checkbadfortranstubs:
 
 # Generate tags
 alletags:
-	-@${PYTHON} ${SLEPC_DIR}/bin/maint/generateetags.py
+	-@${PYTHON} ${SLEPC_DIR}/lib/slepc/bin/maint/generateetags.py
 	-@find config -type f -name "*.py" |grep -v SCCS | xargs etags -o TAGS_PYTHON
 

@@ -373,7 +373,7 @@ if slepc.isrepo and petsc.fortran:
       bfort = sowing.Install(archdir,petsc.make)
     log.NewSection('Generating Fortran stubs...')
     log.write('Using BFORT='+bfort)
-    sys.path.insert(0, os.path.abspath(os.path.join('bin','maint')))
+    sys.path.insert(0, os.path.abspath(os.path.join('lib','slepc','bin','maint')))
     import generatefortranstubs
     generatefortranstubs.main(slepc.dir,bfort,os.getcwd(),0)
     generatefortranstubs.processf90interfaces(slepc.dir,0)
