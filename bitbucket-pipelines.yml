@@ -3,6 +3,7 @@ pipelines:
     next: &default-step
       - step:
           script:
+            - sudo apt-get update
             - sudo apt-get -yq --no-install-suggests --no-install-recommends --force-yes install gfortran libblas-dev liblapack-dev
             - export PETSC_DIR=/usr/local/petsc
             - export PETSC_ARCH=arch-bitbucket-cxx-complex
