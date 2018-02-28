@@ -93,7 +93,7 @@ PETSC_STATIC_INLINE PetscErrorCode SlepcSetFlushToZero(unsigned int *state)
 {
   PetscFunctionBegin;
 #if defined(PETSC_HAVE_XMMINTRIN_H)
-#if defined(_MM_FLUSH_ZERO_ON)
+#if defined(_MM_FLUSH_ZERO_ON) && defined(__SSE__)
   *state = _MM_GET_FLUSH_ZERO_MODE();
   _MM_SET_FLUSH_ZERO_MODE(_MM_FLUSH_ZERO_ON);
 #else
@@ -110,7 +110,7 @@ PETSC_STATIC_INLINE PetscErrorCode SlepcResetFlushToZero(unsigned int *state)
 {
   PetscFunctionBegin;
 #if defined(PETSC_HAVE_XMMINTRIN_H)
-#if defined(_MM_FLUSH_ZERO_MASK)
+#if defined(_MM_FLUSH_ZERO_MASK) && defined(__SSE__)
   _MM_SET_FLUSH_ZERO_MODE(*state & _MM_FLUSH_ZERO_MASK);
 #endif
 #endif
