@@ -30,8 +30,10 @@ static PetscErrorCode BVAXPY_BLAS_CUDA(BV bv,PetscInt n_,PetscInt k_,PetscScalar
   PetscErrorCode ierr;
   PetscBLASInt   m,one=1;
   cublasStatus_t cberr;
+  cublasHandle_t cublasv2handle;
 
   PetscFunctionBegin;
+  ierr = PetscCUBLASGetHandle(&cublasv2handle);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(n_*k_,&m);CHKERRQ(ierr);
   if (beta!=(PetscScalar)1.0) {
     cberr = cublasXscal(cublasv2handle,m,&beta,d_B,one);CHKERRCUBLAS(cberr);
@@ -55,6 +57,7 @@ PetscErrorCode BVMult_Svec_CUDA(BV Y,PetscScalar alpha,PetscScalar beta,BV X,Mat
   PetscInt          m,n,k,ldq,mq;
   cublasStatus_t    cberr;
   cudaError_t       err;
+  cublasHandle_t    cublasv2handle;
 
   PetscFunctionBegin;
   m = Y->n;
@@ -70,6 +73,7 @@ PetscErrorCode BVMult_Svec_CUDA(BV Y,PetscScalar alpha,PetscScalar beta,BV X,Mat
   d_A = d_px+(X->nc+X->l)*X->n;
   d_C = d_py+(Y->nc+Y->l)*Y->n;
   if (Q) {
+    ierr = PetscCUBLASGetHandle(&cublasv2handle);CHKERRQ(ierr);
     ierr = MatGetSize(Q,&ldq,&mq);CHKERRQ(ierr);
     ierr = MatDenseGetArray(Q,&q);CHKERRQ(ierr);
     err = cudaMalloc((void**)&d_q,ldq*mq*sizeof(PetscScalar));CHKERRCUDA(err);
@@ -99,10 +103,12 @@ PetscErrorCode BVMultVec_Svec_CUDA(BV X,PetscScalar alpha,PetscScalar beta,Vec y
   PetscScalar       *d_py,*d_q,*d_x,*d_y;
   PetscBLASInt      n,k,one=1;
   cublasStatus_t    cberr;
+  cublasHandle_t    cublasv2handle;
 
   PetscFunctionBegin;
   n = X->n;
   k = X->k-X->l;
+  ierr = PetscCUBLASGetHandle(&cublasv2handle);CHKERRQ(ierr);
   ierr = VecCUDAGetArrayRead(x->v,&d_px);CHKERRQ(ierr);
   if (beta==(PetscScalar)0.0) {
     ierr = VecCUDAGetArrayWrite(y,&d_py);CHKERRQ(ierr);
@@ -146,6 +152,7 @@ PetscErrorCode BVMultInPlace_Svec_CUDA(BV V,Mat Q,PetscInt s,PetscInt e)
   PetscInt       m,n,j,k,l,ldq,nq,bs=BLOCKSIZE;
   cublasStatus_t cberr;
   size_t         freemem,totmem;
+  cublasHandle_t cublasv2handle;
 
   PetscFunctionBegin;
   m = V->n;
@@ -157,6 +164,7 @@ PetscErrorCode BVMultInPlace_Svec_CUDA(BV V,Mat Q,PetscInt s,PetscInt e)
   ierr = MatDenseGetArray(Q,&q);CHKERRQ(ierr);
   ierr = cudaMalloc((void**)&d_q,ldq*nq*sizeof(PetscScalar));CHKERRQ(ierr);
   ierr = cudaMemcpy(d_q,q,ldq*nq*sizeof(PetscScalar),cudaMemcpyHostToDevice);CHKERRQ(ierr);
+  ierr = PetscCUBLASGetHandle(&cublasv2handle);CHKERRQ(ierr);
   /* try to allocate the whole matrix */
   ierr = cudaMemGetInfo(&freemem,&totmem);CHKERRQ(ierr);
   if (freemem>=m*n*sizeof(PetscScalar)) {
@@ -208,6 +216,7 @@ PetscErrorCode BVMultInPlaceTranspose_Svec_CUDA(BV V,Mat Q,PetscInt s,PetscInt e
   PetscScalar    *d_pv,*q,*d_q,*d_A,*d_B,*d_work,sone=1.0,szero=0.0;
   PetscInt       m,n,j,k,ldq,nq;
   cublasStatus_t cberr;
+  cublasHandle_t cublasv2handle;
 
   PetscFunctionBegin;
   m = V->n;
@@ -217,6 +226,7 @@ PetscErrorCode BVMultInPlaceTranspose_Svec_CUDA(BV V,Mat Q,PetscInt s,PetscInt e
   ierr = MatGetSize(Q,&ldq,&nq);CHKERRQ(ierr);
   ierr = VecCUDAGetArrayReadWrite(ctx->v,&d_pv);CHKERRQ(ierr);
   ierr = MatDenseGetArray(Q,&q);CHKERRQ(ierr);
+  ierr = PetscCUBLASGetHandle(&cublasv2handle);CHKERRQ(ierr);
   ierr = cudaMalloc((void**)&d_q,ldq*nq*sizeof(PetscScalar));CHKERRQ(ierr);
   ierr = cudaMemcpy(d_q,q,ldq*nq*sizeof(PetscScalar),cudaMemcpyHostToDevice);CHKERRQ(ierr);
   ierr = cudaMalloc((void**)&d_work,m*n*sizeof(PetscScalar));CHKERRQ(ierr);
@@ -246,6 +256,7 @@ PetscErrorCode BVDot_Svec_CUDA(BV X,BV Y,Mat M)
   PetscScalar       *pm,*d_work,sone=1.0,szero=0.0,*C,*CC;
   PetscInt          ldm,m,n,k,len,j;
   cublasStatus_t    cberr;
+  cublasHandle_t    cublasv2handle;
 
   PetscFunctionBegin;
   m = Y->k-Y->l;
@@ -255,6 +266,7 @@ PetscErrorCode BVDot_Svec_CUDA(BV X,BV Y,Mat M)
   ierr = VecCUDAGetArrayRead(x->v,&d_px);CHKERRQ(ierr);
   ierr = VecCUDAGetArrayRead(y->v,&d_py);CHKERRQ(ierr);
   ierr = MatDenseGetArray(M,&pm);CHKERRQ(ierr);
+  ierr = PetscCUBLASGetHandle(&cublasv2handle);CHKERRQ(ierr);
   ierr = cudaMalloc((void**)&d_work,m*n*sizeof(PetscScalar));CHKERRQ(ierr);
   d_A = d_py+(Y->nc+Y->l)*Y->n;
   d_B = d_px+(X->nc+X->l)*X->n;
@@ -343,10 +355,12 @@ PetscErrorCode BVDotVec_Svec_CUDA(BV X,Vec y,PetscScalar *q)
   PetscBLASInt      n,k,one=1,len;
   Vec               z = y;
   cublasStatus_t    cberr;
+  cublasHandle_t    cublasv2handle;
 
   PetscFunctionBegin;
   n = X->n;
   k = X->k-X->l;
+  ierr = PetscCUBLASGetHandle(&cublasv2handle);CHKERRQ(ierr);
   if (X->matrix) {
     ierr = BV_IPMatMult(X,y);CHKERRQ(ierr);
     z = X->Bx;
@@ -417,6 +431,7 @@ PetscErrorCode BVDotVec_Local_Svec_CUDA(BV X,Vec y,PetscScalar *m)
   PetscBLASInt      n,k,one=1;
   Vec               z = y;
   cublasStatus_t    cberr;
+  cublasHandle_t    cublasv2handle;
 
   PetscFunctionBegin;
   n = X->n;
@@ -425,6 +440,7 @@ PetscErrorCode BVDotVec_Local_Svec_CUDA(BV X,Vec y,PetscScalar *m)
     ierr = BV_IPMatMult(X,y);CHKERRQ(ierr);
     z = X->Bx;
   }
+  ierr = PetscCUBLASGetHandle(&cublasv2handle);CHKERRQ(ierr);
   ierr = VecCUDAGetArrayRead(x->v,&d_px);CHKERRQ(ierr);
   ierr = VecCUDAGetArrayRead(z,&d_py);CHKERRQ(ierr);
   d_A = d_px+(X->nc+X->l)*X->n;
@@ -457,6 +473,7 @@ PetscErrorCode BVScale_Svec_CUDA(BV bv,PetscInt j,PetscScalar alpha)
   PetscScalar    *d_array, *d_A;
   PetscBLASInt   n,one=1;
   cublasStatus_t cberr;
+  cublasHandle_t cublasv2handle;
 
   PetscFunctionBegin;
   ierr = VecCUDAGetArrayReadWrite(ctx->v,&d_array);CHKERRQ(ierr);
@@ -470,6 +487,7 @@ PetscErrorCode BVScale_Svec_CUDA(BV bv,PetscInt j,PetscScalar alpha)
   if (alpha == (PetscScalar)0.0) {
     ierr = cudaMemset(d_A,0,n*sizeof(PetscScalar));CHKERRQ(ierr);
   } else if (alpha != (PetscScalar)1.0) {
+    ierr = PetscCUBLASGetHandle(&cublasv2handle);CHKERRQ(ierr);
     cberr = cublasXscal(cublasv2handle,n,&alpha,d_A,one);CHKERRCUBLAS(cberr);
     ierr = WaitForGPU();CHKERRCUDA(ierr);
     ierr = PetscLogFlops(n);CHKERRQ(ierr);
