@@ -97,6 +97,19 @@ cdef class BV(Object):
         SlepcCLEAR(self.obj); self.bv = newbv
         return self
 
+    def createMat(self):
+        """
+        Creates a new Mat object of dense type and copies the contents of the
+        NV object.
+
+        Returns
+        -------
+        mat: the new matrix. 
+        """
+        cdef Mat mat = Mat()
+        CHKERR( BVCreateMat(self.bv, &mat.mat) )
+        return mat 
+    
     def duplicate(self):
         """
         Duplicate the BV object with the same type and dimensions.
