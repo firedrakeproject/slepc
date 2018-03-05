@@ -206,6 +206,7 @@ class Installer:
       line = line.replace(os.path.realpath(os.path.join(self.rootDir, 'bin')), self.installBinDir)
       line = line.replace(os.path.join(self.rootDir, 'include'), self.installIncludeDir)
       line = line.replace(os.path.realpath(os.path.join(self.rootDir, 'include')), self.installIncludeDir)
+      line = line.replace(self.rootDir, self.installDir)
       # remove SLEPC_DIR/PETSC_ARCH variables from conf-makefiles. They are no longer necessary
       line = line.replace('${SLEPC_DIR}/${PETSC_ARCH}', self.installDir)
       line = line.replace('PETSC_ARCH=${PETSC_ARCH}', '')
@@ -222,6 +223,7 @@ class Installer:
     for file in ['slepc_rules', 'slepc_variables','slepcrules', 'slepcvariables']:
       self.fixConfFile(os.path.join(self.destConfDir,file))
     self.fixConfFile(os.path.join(self.destLibDir,'pkgconfig','SLEPc.pc'))
+    self.fixConfFile(os.path.join(self.destIncludeDir,'slepcconf.h'))
     return
 
   def createUninstaller(self):
