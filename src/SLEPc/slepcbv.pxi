@@ -30,6 +30,7 @@ cdef extern from * nogil:
     int BVSetSizes(SlepcBV,PetscInt,PetscInt,PetscInt)
     int BVSetSizesFromVec(SlepcBV,PetscVec,PetscInt)
     int BVGetSizes(SlepcBV,PetscInt*,PetscInt*,PetscInt*)
+    int BVResize(SlepcBV,PetscInt,PetscBool)
 
     int BVSetOptionsPrefix(SlepcBV,char[])
     int BVGetOptionsPrefix(SlepcBV,char*[])

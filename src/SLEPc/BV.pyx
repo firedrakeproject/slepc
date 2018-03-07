@@ -794,6 +794,22 @@ cdef class BV(Object):
         CHKERR( BVNorm(self.bv, ntype, &norm) )
         return toReal(norm)
 
+    def resize(self, int m, copy=True):
+        """
+        Change the number of columns.
+
+        Parameters
+        ----------
+        m - the new number of columns.
+        copy - a flag indicating whether current values should be kept.
+
+        Notes
+        -----
+        Internal storage is reallocated. If the copy kwarg is set to True, then
+        the contents are copied to the leading part of the new space.
+        """
+        CHKERR( BVResize(self.bv, m, copy) )
+
     def setRandom(self):
         """
         Set the active columns of BV to random numbers.
