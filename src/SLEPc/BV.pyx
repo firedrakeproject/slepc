@@ -100,7 +100,7 @@ cdef class BV(Object):
     def createMat(self):
         """
         Creates a new Mat object of dense type and copies the contents of the
-        NV object.
+        BV object.
 
         Returns
         -------
