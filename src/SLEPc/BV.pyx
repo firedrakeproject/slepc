@@ -805,10 +805,12 @@ cdef class BV(Object):
 
         Notes
         -----
-        Internal storage is reallocated. If the copy kwarg is set to True, then
-        the contents are copied to the leading part of the new space.
+        Internal storage is reallocated. If copy is True, then the contents are
+        copied to the leading part of the new space.
         """
-        CHKERR( BVResize(self.bv, m, copy) )
+        cdef PetscInt ival = asInt(m)
+        cdef PetscBool tval = PETSC_TRUE if copy else PETSC_FALSE
+        CHKERR( BVResize(self.bv, ival, tval) )
 
     def setRandom(self):
         """
