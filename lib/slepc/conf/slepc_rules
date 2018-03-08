@@ -183,27 +183,23 @@ slepc_tree: ${ACTION}
 	  done
 
 # builds the SLEPc shared library
-slepc_shared: chk_makej
+slepc_shared:
 	-@${OMAKE} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} SLEPC_DIR=${SLEPC_DIR} OTHERSHAREDLIBS="${PETSC_SNES_LIB} ${SLEPC_EXTERNAL_LIB}" shared_nomesg
 
 # uses the cmake infrastructure to build/rebuild the libraries
-slepc_ccmake: chk_makej
-	@echo "Building SLEPc using CMake with ${MAKE_NP} build threads"
+slepc_ccmake:
 	@echo "=========================================="
-	@cd ${SLEPC_DIR}/${PETSC_ARCH} && ${OMAKE} -j ${MAKE_NP} VERBOSE=${VERBOSE}
+	+@cd ${SLEPC_DIR}/${PETSC_ARCH} && MAKEFLAGS="-j$(MAKE_NP) $(MAKEFLAGS)" ${OMAKE} VERBOSE=${VERBOSE}
 	@if [ "${BUILDSHAREDLIB}" = "yes" -a "${DSYMUTIL}" != "true" ]; then \
         echo "Running ${DSYMUTIL} on ${SHLIBS}";\
         for LIBNAME in ${SHLIBS}; do ${DSYMUTIL} ${INSTALL_LIB_DIR}/$$LIBNAME.${SL_LINKER_SUFFIX}; done; fi
 	@echo "========================================="
 
-slepc_cmake: chk_makej
-	@${OMAKE} slepc_ccmake VERBOSE=1
+slepc_cmake:
+	+@MAKEFLAGS="-j$(MAKE_NP) $(MAKEFLAGS)" ${OMAKE} slepc_ccmake VERBOSE=1
 
-slepc_gnumake: chk_makej
-	@echo "Building SLEPc using GNU Make with ${MAKE_NP} build threads"
-	@echo "=========================================="
-	@cd ${SLEPC_DIR} && ${OMAKE_PRINTDIR} -f gmakefile -j ${MAKE_NP} ${MAKE_PAR_OUT_FLG} V=${V}
-	@echo "========================================="
+slepc_gnumake:
+	+@cd ${SLEPC_DIR} && MAKEFLAGS="-j$(MAKE_NP) $(MAKEFLAGS)" ${OMAKE_PRINTDIR} -f gmakefile ${MAKE_PAR_OUT_FLG} V=${V}
 
 getlinklibs_slepc:
 	-@echo ${SLEPC_LIB}

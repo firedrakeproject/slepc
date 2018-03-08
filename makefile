@@ -19,11 +19,14 @@ DIRS   = src include docs
 include ./${PETSC_ARCH}/lib/slepc/conf/slepcvariables
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common
 
+# This makefile doesn't really do any work. Sub-makes still benefit from parallelism.
+.NOTPARALLEL:
+
 #
 # Basic targets to build SLEPc library
-all: chk_makej
+all:
 	@${OMAKE} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} SLEPC_DIR=${SLEPC_DIR} chk_petscdir chk_slepcdir | tee ./${PETSC_ARCH}/lib/slepc/conf/make.log
-	@if [ "${MAKE_IS_GNUMAKE}" != "" ]; then \
+	+@if [ "${MAKE_IS_GNUMAKE}" != "" ]; then \
 	   ${OMAKE_PRINTDIR} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} SLEPC_DIR=${SLEPC_DIR} all-gnumake-local 2>&1 | tee -a ./${PETSC_ARCH}/lib/slepc/conf/make.log; \
 	elif [ "${SLEPC_BUILD_USING_CMAKE}" != "" ]; then \
 	   if [ "${SLEPC_DESTDIR}" = "${SLEPC_DIR}/${PETSC_ARCH}" ]; then \
@@ -35,7 +38,7 @@ all: chk_makej
 	   ${OMAKE} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} SLEPC_DIR=${SLEPC_DIR} all-legacy-local 2>&1 | tee ./${PETSC_ARCH}/lib/slepc/conf/make.log | ${GREP} -v "has no symbols"; \
 	 fi
 	@egrep -i "( error | error: |no such file or directory)" ${PETSC_ARCH}/lib/slepc/conf/make.log | tee ./${PETSC_ARCH}/lib/slepc/conf/error.log > /dev/null
-	@if test -s ./${PETSC_ARCH}/lib/slepc/conf/error.log; then \
+	+@if test -s ./${PETSC_ARCH}/lib/slepc/conf/error.log; then \
            printf ${PETSC_TEXT_HILIGHT}"*******************************ERROR************************************\n" 2>&1 | tee -a ./${PETSC_ARCH}/lib/slepc/conf/make.log; \
            echo "  Error during compile, check ./${PETSC_ARCH}/lib/slepc/conf/make.log" 2>&1 | tee -a ./${PETSC_ARCH}/lib/slepc/conf/make.log; \
            echo "  Send all contents of ./${PETSC_ARCH}/lib/slepc/conf to slepc-maint@upv.es" 2>&1 | tee -a ./${PETSC_ARCH}/lib/slepc/conf/make.log;\
@@ -69,15 +72,15 @@ all-cmake:
 all-legacy:
 	@${OMAKE} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} SLEPC_DIR=${SLEPC_DIR} SLEPC_BUILD_USING_CMAKE="" MAKE_IS_GNUMAKE="" all
 
-all-gnumake-local: chk_makej info slepc_gnumake
+all-gnumake-local: info slepc_gnumake
 
-all-cmake-local: chk_makej info cmakegen slepc_cmake
+all-cmake-local: info cmakegen slepc_cmake
 
-all-legacy-local: chk_makej chk_petsc_dir chk_slepc_dir chklib_dir info deletelibs deletemods build slepc_shared
+all-legacy-local: chk_petsc_dir chk_slepc_dir chklib_dir info deletelibs deletemods build slepc_shared
 #
 # Prints information about the system and version of SLEPc being compiled
 #
-info: chk_makej
+info:
 	-@echo "=========================================="
 	-@echo Starting on `hostname` at `date`
 	-@echo Machine characteristics: `uname -a`
@@ -115,12 +118,14 @@ info: chk_makej
 	-@echo "Using libraries: ${SLEPC_LIB}"
 	-@echo "------------------------------------------"
 	-@echo "Using mpiexec: ${MPIEXEC}"
+	-@echo "------------------------------------------"
+	-@echo "Using MAKEFLAGS: -j$(MAKE_NP) $(MAKEFLAGS)"
 	-@echo "=========================================="
 
 #
 # Builds the SLEPc library
 #
-build: chk_makej
+build:
 	-@echo "BEGINNING TO COMPILE LIBRARIES IN ALL DIRECTORIES"
 	-@echo "========================================="
 	-@${OMAKE} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} SLEPC_DIR=${SLEPC_DIR} ACTION=libfast slepc_tree
@@ -195,9 +200,9 @@ ranlib:
 	${RANLIB} ${SLEPC_LIB_DIR}/*.${AR_LIB_SUFFIX}
 
 # Deletes SLEPc library
-deletelibs: chk_makej
+deletelibs:
 	-${RM} -r ${SLEPC_LIB_DIR}/libslepc*.*
-deletemods: chk_makej
+deletemods:
 	-${RM} -f ${SLEPC_DIR}/${PETSC_ARCH}/include/slepc*.mod
 
 # Cleans up build
