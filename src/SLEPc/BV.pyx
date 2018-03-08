@@ -794,7 +794,7 @@ cdef class BV(Object):
         CHKERR( BVNorm(self.bv, ntype, &norm) )
         return toReal(norm)
 
-    def resize(self, int m, copy=True):
+    def resize(self, m, copy=True):
         """
         Change the number of columns.
 
