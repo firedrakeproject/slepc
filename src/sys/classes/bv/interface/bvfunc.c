@@ -594,6 +594,7 @@ PetscErrorCode BVView(BV bv,PetscViewer viewer)
 {
   PetscErrorCode    ierr;
   PetscBool         isascii;
+  PetscInt          tabs;
   PetscViewerFormat format;
   const char        *orthname[2] = {"classical","modified"};
   const char        *refname[3] = {"if needed","never","always"};
@@ -608,30 +609,31 @@ PetscErrorCode BVView(BV bv,PetscViewer viewer)
 
   ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
   if (isascii) {
+    ierr = PetscViewerASCIIGetTab(viewer,&tabs);CHKERRQ(ierr);
+    ierr = PetscViewerASCIISetTab(viewer,((PetscObject)bv)->tablevel);CHKERRQ(ierr);
     ierr = PetscObjectPrintClassNamePrefixType((PetscObject)bv,viewer);CHKERRQ(ierr);
     ierr = PetscViewerGetFormat(viewer,&format);CHKERRQ(ierr);
-    ierr = PetscViewerASCIIPushTab(viewer);CHKERRQ(ierr);
     if (format == PETSC_VIEWER_ASCII_INFO || format == PETSC_VIEWER_ASCII_INFO_DETAIL) {
-      ierr = PetscViewerASCIIPrintf(viewer,"%D columns of global length %D%s\n",bv->m,bv->N,bv->cuda?" (CUDA)":"");CHKERRQ(ierr);
+      ierr = PetscViewerASCIIPrintf(viewer,"  %D columns of global length %D%s\n",bv->m,bv->N,bv->cuda?" (CUDA)":"");CHKERRQ(ierr);
       if (bv->nc>0) {
-        ierr = PetscViewerASCIIPrintf(viewer,"number of constraints: %D\n",bv->nc);CHKERRQ(ierr);
+        ierr = PetscViewerASCIIPrintf(viewer,"  number of constraints: %D\n",bv->nc);CHKERRQ(ierr);
       }
-      ierr = PetscViewerASCIIPrintf(viewer,"vector orthogonalization method: %s Gram-Schmidt\n",orthname[bv->orthog_type]);CHKERRQ(ierr);
+      ierr = PetscViewerASCIIPrintf(viewer,"  vector orthogonalization method: %s Gram-Schmidt\n",orthname[bv->orthog_type]);CHKERRQ(ierr);
       switch (bv->orthog_ref) {
         case BV_ORTHOG_REFINE_IFNEEDED:
-          ierr = PetscViewerASCIIPrintf(viewer,"orthogonalization refinement: %s (eta: %g)\n",refname[bv->orthog_ref],(double)bv->orthog_eta);CHKERRQ(ierr);
+          ierr = PetscViewerASCIIPrintf(viewer,"  orthogonalization refinement: %s (eta: %g)\n",refname[bv->orthog_ref],(double)bv->orthog_eta);CHKERRQ(ierr);
           break;
         case BV_ORTHOG_REFINE_NEVER:
         case BV_ORTHOG_REFINE_ALWAYS:
-          ierr = PetscViewerASCIIPrintf(viewer,"orthogonalization refinement: %s\n",refname[bv->orthog_ref]);CHKERRQ(ierr);
+          ierr = PetscViewerASCIIPrintf(viewer,"  orthogonalization refinement: %s\n",refname[bv->orthog_ref]);CHKERRQ(ierr);
           break;
       }
-      ierr = PetscViewerASCIIPrintf(viewer,"block orthogonalization method: %s\n",borthname[bv->orthog_block]);CHKERRQ(ierr);
+      ierr = PetscViewerASCIIPrintf(viewer,"  block orthogonalization method: %s\n",borthname[bv->orthog_block]);CHKERRQ(ierr);
       if (bv->matrix) {
         if (bv->indef) {
-          ierr = PetscViewerASCIIPrintf(viewer,"indefinite inner product\n");CHKERRQ(ierr);
+          ierr = PetscViewerASCIIPrintf(viewer,"  indefinite inner product\n");CHKERRQ(ierr);
         } else {
-          ierr = PetscViewerASCIIPrintf(viewer,"non-standard inner product\n");CHKERRQ(ierr);
+          ierr = PetscViewerASCIIPrintf(viewer,"  non-standard inner product\n");CHKERRQ(ierr);
         }
         ierr = PetscViewerPushFormat(viewer,PETSC_VIEWER_ASCII_INFO);CHKERRQ(ierr);
         ierr = MatView(bv->matrix,viewer);CHKERRQ(ierr);
@@ -639,24 +641,24 @@ PetscErrorCode BVView(BV bv,PetscViewer viewer)
       }
       switch (bv->vmm) {
         case BV_MATMULT_VECS:
-          ierr = PetscViewerASCIIPrintf(viewer,"doing matmult as matrix-vector products\n");CHKERRQ(ierr);
+          ierr = PetscViewerASCIIPrintf(viewer,"  doing matmult as matrix-vector products\n");CHKERRQ(ierr);
           break;
         case BV_MATMULT_MAT:
-          ierr = PetscViewerASCIIPrintf(viewer,"doing matmult as a single matrix-matrix product\n");CHKERRQ(ierr);
+          ierr = PetscViewerASCIIPrintf(viewer,"  doing matmult as a single matrix-matrix product\n");CHKERRQ(ierr);
           break;
         case BV_MATMULT_MAT_SAVE:
-          ierr = PetscViewerASCIIPrintf(viewer,"mat_save is deprecated, use mat\n");CHKERRQ(ierr);
+          ierr = PetscViewerASCIIPrintf(viewer,"  mat_save is deprecated, use mat\n");CHKERRQ(ierr);
           break;
       }
       if (bv->rrandom) {
-        ierr = PetscViewerASCIIPrintf(viewer,"generating random vectors independent of the number of processes\n");CHKERRQ(ierr);
+        ierr = PetscViewerASCIIPrintf(viewer,"  generating random vectors independent of the number of processes\n");CHKERRQ(ierr);
       }
       if (bv->ops->view) { ierr = (*bv->ops->view)(bv,viewer);CHKERRQ(ierr); }
     } else {
       if (bv->ops->view) { ierr = (*bv->ops->view)(bv,viewer);CHKERRQ(ierr); }
       else { ierr = BVView_Default(bv,viewer);CHKERRQ(ierr); }
     }
-    ierr = PetscViewerASCIIPopTab(viewer);CHKERRQ(ierr);
+    ierr = PetscViewerASCIISetTab(viewer,tabs);CHKERRQ(ierr);
   } else {
     ierr = (*bv->ops->view)(bv,viewer);CHKERRQ(ierr);
   }

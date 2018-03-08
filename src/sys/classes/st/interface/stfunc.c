@@ -770,6 +770,7 @@ PetscErrorCode STView(ST st,PetscViewer viewer)
   const char*    pat=NULL;
   char           str[50];
   PetscBool      isascii,isstring,flg;
+  PetscInt       tabs;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
@@ -780,6 +781,8 @@ PetscErrorCode STView(ST st,PetscViewer viewer)
   ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
   ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERSTRING,&isstring);CHKERRQ(ierr);
   if (isascii) {
+    ierr = PetscViewerASCIIGetTab(viewer,&tabs);CHKERRQ(ierr);
+    ierr = PetscViewerASCIISetTab(viewer,((PetscObject)st)->tablevel);CHKERRQ(ierr);
     ierr = PetscObjectPrintClassNamePrefixType((PetscObject)st,viewer);CHKERRQ(ierr);
     if (st->ops->view) {
       ierr = PetscViewerASCIIPushTab(viewer);CHKERRQ(ierr);
@@ -810,6 +813,7 @@ PetscErrorCode STView(ST st,PetscViewer viewer)
     if (st->transform && st->nmat>2) {
       ierr = PetscViewerASCIIPrintf(viewer,"  computing transformed matrices\n");CHKERRQ(ierr);
     }
+    ierr = PetscViewerASCIISetTab(viewer,tabs);CHKERRQ(ierr);
   } else if (isstring) {
     ierr = STGetType(st,&cstr);CHKERRQ(ierr);
     ierr = PetscViewerStringSPrintf(viewer," %-7.7s",cstr);CHKERRQ(ierr);
@@ -818,9 +822,7 @@ PetscErrorCode STView(ST st,PetscViewer viewer)
   ierr = PetscObjectTypeCompare((PetscObject)st,STSHIFT,&flg);CHKERRQ(ierr);
   if (st->nmat>1 || !flg) {
     if (!st->ksp) { ierr = STGetKSP(st,&st->ksp);CHKERRQ(ierr); }
-    ierr = PetscViewerASCIIPushTab(viewer);CHKERRQ(ierr);
     ierr = KSPView(st->ksp,viewer);CHKERRQ(ierr);
-    ierr = PetscViewerASCIIPopTab(viewer);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }

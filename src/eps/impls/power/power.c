@@ -865,9 +865,9 @@ static PetscErrorCode EPSPowerGetSNES_Power(EPS eps,SNES *snes)
   PetscFunctionBegin;
   if (!power->snes) {
     ierr = SNESCreate(PetscObjectComm((PetscObject)eps),&power->snes);CHKERRQ(ierr);
+    ierr = PetscObjectIncrementTabLevel((PetscObject)power->snes,(PetscObject)eps,1);CHKERRQ(ierr);
     ierr = SNESSetOptionsPrefix(power->snes,((PetscObject)eps)->prefix);CHKERRQ(ierr);
     ierr = SNESAppendOptionsPrefix(power->snes,"eps_power_");CHKERRQ(ierr);
-    ierr = PetscObjectIncrementTabLevel((PetscObject)power->snes,(PetscObject)eps,1);CHKERRQ(ierr);
     ierr = PetscLogObjectParent((PetscObject)eps,(PetscObject)power->snes);CHKERRQ(ierr);
   }
   *snes = power->snes;
@@ -947,9 +947,7 @@ PetscErrorCode EPSView_Power(EPS eps,PetscViewer viewer)
         ierr = PetscViewerASCIIPrintf(viewer,"  updating the residual monolithically\n");CHKERRQ(ierr);
       }
       if (!power->snes) { ierr = EPSPowerGetSNES(eps,&power->snes);CHKERRQ(ierr); }
-      ierr = PetscViewerASCIIPushTab(viewer);CHKERRQ(ierr);
       ierr = SNESView(power->snes,viewer);CHKERRQ(ierr);
-      ierr = PetscViewerASCIIPopTab(viewer);CHKERRQ(ierr);
     } else {
       ierr = PetscViewerASCIIPrintf(viewer,"  %s shifts\n",EPSPowerShiftTypes[power->shift_type]);CHKERRQ(ierr);
     }

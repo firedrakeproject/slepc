@@ -45,6 +45,7 @@ PetscErrorCode SVDView(SVD svd,PetscViewer viewer)
 {
   PetscErrorCode ierr;
   PetscBool      isascii,isshell;
+  PetscInt       tabs;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
@@ -54,6 +55,8 @@ PetscErrorCode SVDView(SVD svd,PetscViewer viewer)
 
   ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
   if (isascii) {
+    ierr = PetscViewerASCIIGetTab(viewer,&tabs);CHKERRQ(ierr);
+    ierr = PetscViewerASCIISetTab(viewer,((PetscObject)svd)->tablevel);CHKERRQ(ierr);
     ierr = PetscObjectPrintClassNamePrefixType((PetscObject)svd,viewer);CHKERRQ(ierr);
     if (svd->ops->view) {
       ierr = PetscViewerASCIIPushTab(viewer);CHKERRQ(ierr);
@@ -88,6 +91,7 @@ PetscErrorCode SVDView(SVD svd,PetscViewer viewer)
     if (svd->ninil) {
       ierr = PetscViewerASCIIPrintf(viewer,"  dimension of user-provided initial left space: %D\n",PetscAbs(svd->ninil));CHKERRQ(ierr);
     }
+    ierr = PetscViewerASCIISetTab(viewer,tabs);CHKERRQ(ierr);
   } else {
     if (svd->ops->view) {
       ierr = (*svd->ops->view)(svd,viewer);CHKERRQ(ierr);

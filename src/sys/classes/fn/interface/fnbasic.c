@@ -947,6 +947,7 @@ PetscErrorCode FNSetFromOptions(FN fn)
 PetscErrorCode FNView(FN fn,PetscViewer viewer)
 {
   PetscBool      isascii;
+  PetscInt       tabs;
   PetscErrorCode ierr;
   PetscMPIInt    size;
 
@@ -957,6 +958,8 @@ PetscErrorCode FNView(FN fn,PetscViewer viewer)
   PetscCheckSameComm(fn,1,viewer,2);
   ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
   if (isascii) {
+    ierr = PetscViewerASCIIGetTab(viewer,&tabs);CHKERRQ(ierr);
+    ierr = PetscViewerASCIISetTab(viewer,((PetscObject)fn)->tablevel);CHKERRQ(ierr);
     ierr = PetscObjectPrintClassNamePrefixType((PetscObject)fn,viewer);CHKERRQ(ierr);
     ierr = MPI_Comm_size(PetscObjectComm((PetscObject)fn),&size);CHKERRQ(ierr);
     if (size>1) {
@@ -967,6 +970,7 @@ PetscErrorCode FNView(FN fn,PetscViewer viewer)
       ierr = (*fn->ops->view)(fn,viewer);CHKERRQ(ierr);
       ierr = PetscViewerASCIIPopTab(viewer);CHKERRQ(ierr);
     }
+    ierr = PetscViewerASCIISetTab(viewer,tabs);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }
