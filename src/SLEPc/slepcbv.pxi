@@ -20,6 +20,7 @@ cdef extern from * nogil:
         BV_ORTHOG_BLOCK_CHOL
 
     int BVCreate(MPI_Comm,SlepcBV*)
+    int BVCreateMat(SlepcBV,PetscMat*)
     int BVDuplicate(SlepcBV,SlepcBV*)
     int BVCopy(SlepcBV,SlepcBV)
     int BVView(SlepcBV,PetscViewer)
@@ -29,6 +30,7 @@ cdef extern from * nogil:
     int BVSetSizes(SlepcBV,PetscInt,PetscInt,PetscInt)
     int BVSetSizesFromVec(SlepcBV,PetscVec,PetscInt)
     int BVGetSizes(SlepcBV,PetscInt*,PetscInt*,PetscInt*)
+    int BVResize(SlepcBV,PetscInt,PetscBool)
 
     int BVSetOptionsPrefix(SlepcBV,char[])
     int BVGetOptionsPrefix(SlepcBV,char*[])

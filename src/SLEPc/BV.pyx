@@ -97,6 +97,19 @@ cdef class BV(Object):
         SlepcCLEAR(self.obj); self.bv = newbv
         return self
 
+    def createMat(self):
+        """
+        Creates a new Mat object of dense type and copies the contents of the
+        BV object.
+
+        Returns
+        -------
+        mat: the new matrix. 
+        """
+        cdef Mat mat = Mat()
+        CHKERR( BVCreateMat(self.bv, &mat.mat) )
+        return mat 
+    
     def duplicate(self):
         """
         Duplicate the BV object with the same type and dimensions.
@@ -780,6 +793,24 @@ cdef class BV(Object):
         cdef PetscReal norm = 0
         CHKERR( BVNorm(self.bv, ntype, &norm) )
         return toReal(norm)
+
+    def resize(self, m, copy=True):
+        """
+        Change the number of columns.
+
+        Parameters
+        ----------
+        m - the new number of columns.
+        copy - a flag indicating whether current values should be kept.
+
+        Notes
+        -----
+        Internal storage is reallocated. If copy is True, then the contents are
+        copied to the leading part of the new space.
+        """
+        cdef PetscInt ival = asInt(m)
+        cdef PetscBool tval = PETSC_TRUE if copy else PETSC_FALSE
+        CHKERR( BVResize(self.bv, ival, tval) )
 
     def setRandom(self):
         """
