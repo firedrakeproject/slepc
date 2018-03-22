@@ -203,7 +203,7 @@ log.write('Working directory: '+os.getcwd())
 log.write('Python version:\n'+sys.version)
 log.write('make: '+petsc.make)
 log.write('PETSc source directory: '+petsc.dir)
-log.write('PETSc install directory: '+petsc.destdir)
+log.write('PETSc install directory: '+petsc.prefixdir)
 log.write('PETSc version: '+petsc.lversion)
 if not emptyarch:
   log.write('PETSc architecture: '+petsc.arch)
@@ -291,7 +291,7 @@ if slepc.release=='1' and not petsc.release=='1':
 if slepc.release=='0' and petsc.release=='1':
   log.Exit('ERROR: a development version of SLEPc cannot be built with a release version of PETSc')
 if petsc.isinstall:
-  if os.path.realpath(petsc.destdir) != os.path.realpath(petsc.dir):
+  if os.path.realpath(petsc.prefixdir) != os.path.realpath(petsc.dir):
     log.Println('\nWARNING: PETSC_DIR does not point to PETSc installation path')
 petsc.Check()
 if not petsc.havepackage:
@@ -396,7 +396,7 @@ if slepc.cmake:
   else:
     import cmakegen
     try:
-      cmakegen.main(slepc.dir,petsc.dir,petscdestdir=petsc.destdir)
+      cmakegen.main(slepc.dir,petsc.dir,petscprefixdir=petsc.prefixdir)
     except (OSError), e:
       log.Exit('ERROR: Generating CMakeLists.txt failed:\n'+str(e))
     import cmakeboot
