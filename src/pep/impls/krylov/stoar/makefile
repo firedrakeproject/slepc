@@ -12,7 +12,7 @@ ALL: lib
 
 CFLAGS   =
 FFLAGS   =
-SOURCEC  = stoar.c
+SOURCEC  = stoar.c qslice.c
 SOURCEF  =
 SOURCEH  =
 LIBBASE  = libslepcpep

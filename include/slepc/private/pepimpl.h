@@ -60,6 +60,7 @@ struct _p_PEP {
   PEPConv        conv;             /* convergence test */
   PEPStop        stop;             /* stopping test */
   PEPWhich       which;            /* which part of the spectrum to be sought */
+  PetscReal      inta,intb;        /* interval [a,b] for spectrum slicing */
   PEPBasis       basis;            /* polynomial basis used to represent the problem */
   PEPProblemType problem_type;     /* which kind of problem to be solved */
   PEPScale       scale;            /* scaling strategy to be used */
@@ -151,7 +152,6 @@ PETSC_INTERN PetscErrorCode PEPBasisCoefficients(PEP,PetscReal*);
 PETSC_INTERN PetscErrorCode PEPEvaluateBasis(PEP,PetscScalar,PetscScalar,PetscScalar*,PetscScalar*);
 PETSC_INTERN PetscErrorCode PEPEvaluateBasisDerivative(PEP,PetscScalar,PetscScalar,PetscScalar*,PetscScalar*);
 PETSC_INTERN PetscErrorCode PEPEvaluateBasisMat(PEP,PetscInt,PetscScalar*,PetscInt,PetscInt,PetscScalar*,PetscInt,PetscScalar*,PetscInt,PetscScalar*,PetscInt);
-PETSC_INTERN PetscErrorCode PEPNewtonRefinement_TOAR(PEP,PetscScalar,PetscInt*,PetscReal*,PetscInt,PetscScalar*,PetscInt);
 PETSC_INTERN PetscErrorCode PEPNewtonRefinementSimple(PEP,PetscInt*,PetscReal,PetscInt);
 PETSC_INTERN PetscErrorCode PEPSetDefaultST(PEP);
 PETSC_INTERN PetscErrorCode PEPSetDefaultST_Transform(PEP);

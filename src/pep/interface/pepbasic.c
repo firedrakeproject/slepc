@@ -666,3 +666,74 @@ PetscErrorCode PEPGetTarget(PEP pep,PetscScalar* target)
   PetscFunctionReturn(0);
 }
 
+/*@
+   PEPSetInterval - Defines the computational interval for spectrum slicing.
+
+   Logically Collective on PEP
+
+   Input Parameters:
++  pep  - eigensolver context
+.  inta - left end of the interval
+-  intb - right end of the interval
+
+   Options Database Key:
+.  -pep_interval <a,b> - set [a,b] as the interval of interest
+
+   Notes:
+   Spectrum slicing is a technique employed for computing all eigenvalues of
+   symmetric eigenproblems in a given interval. This function provides the
+   interval to be considered. It must be used in combination with PEP_ALL, see
+   PEPSetWhichEigenpairs().
+
+   In the command-line option, two values must be provided. For an open interval,
+   one can give an infinite, e.g., -pep_interval 1.0,inf or -pep_interval -inf,1.0.
+   An open interval in the programmatic interface can be specified with
+   PETSC_MAX_REAL and -PETSC_MAX_REAL.
+
+   Level: intermediate
+
+.seealso: PEPGetInterval(), PEPSetWhichEigenpairs()
+@*/
+PetscErrorCode PEPSetInterval(PEP pep,PetscReal inta,PetscReal intb)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
+  PetscValidLogicalCollectiveReal(pep,inta,2);
+  PetscValidLogicalCollectiveReal(pep,intb,3);
+  if (inta>intb) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_WRONG,"Badly defined interval, must be inta<intb");
+  if (pep->inta != inta || pep->intb != intb) {
+    pep->inta = inta;
+    pep->intb = intb;
+    pep->state = PEP_STATE_INITIAL;
+  }
+  PetscFunctionReturn(0);
+}
+
+/*@
+   PEPGetInterval - Gets the computational interval for spectrum slicing.
+
+   Not Collective
+
+   Input Parameter:
+.  pep - eigensolver context
+
+   Output Parameters:
++  inta - left end of the interval
+-  intb - right end of the interval
+
+   Level: intermediate
+
+   Note:
+   If the interval was not set by the user, then zeros are returned.
+
+.seealso: PEPSetInterval()
+@*/
+PetscErrorCode PEPGetInterval(PEP pep,PetscReal* inta,PetscReal* intb)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
+  if (inta) *inta = pep->inta;
+  if (intb) *intb = pep->intb;
+  PetscFunctionReturn(0);
+}
+

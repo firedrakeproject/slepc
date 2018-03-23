@@ -109,7 +109,7 @@ PetscErrorCode PEPSetFromOptions(PEP pep)
   PetscErrorCode  ierr;
   char            type[256];
   PetscBool       set,flg,flg1,flg2,flg3,flg4,flg5;
-  PetscReal       r,t;
+  PetscReal       r,t,array[2]={0,0};
   PetscScalar     s;
   PetscInt        i,j,k;
   PetscDrawLG     lg;
@@ -215,6 +215,14 @@ PetscErrorCode PEPSetFromOptions(PEP pep)
         ierr = PEPSetWhichEigenpairs(pep,PEP_TARGET_MAGNITUDE);CHKERRQ(ierr);
       }
       ierr = PEPSetTarget(pep,s);CHKERRQ(ierr);
+    }
+
+    k = 2;
+    ierr = PetscOptionsRealArray("-pep_interval","Computational interval (two real values separated with a comma without spaces)","PEPSetInterval",array,&k,&flg);CHKERRQ(ierr);
+    if (flg) {
+      if (k<2) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_SIZ,"Must pass two values in -pep_interval (comma-separated without spaces)");
+      ierr = PEPSetWhichEigenpairs(pep,PEP_ALL);CHKERRQ(ierr);
+      ierr = PEPSetInterval(pep,array[0],array[1]);CHKERRQ(ierr);
     }
 
     /* -----------------------------------------------------------------------*/
@@ -506,6 +514,7 @@ PetscErrorCode PEPSetWhichEigenpairs(PEP pep,PEPWhich which)
 #if defined(PETSC_USE_COMPLEX)
     case PEP_TARGET_IMAGINARY:
 #endif
+    case PEP_ALL:
     case PEP_WHICH_USER:
       if (pep->which != which) {
         pep->state = PEP_STATE_INITIAL;
