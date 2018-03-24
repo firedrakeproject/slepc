@@ -10,6 +10,10 @@
 
 include ${PETSC_DIR}/lib/petsc/conf/test
 
+ALLTESTS_PRINT_PROGRESS = no
+# To print the test name use this
+#ALLTESTS_PRINT_PROGRESS = test
+
 SETTEST = \
         test=$(subst run,,$@); check=$${test}; \
         ([ x${ALLTESTS_PRINT_PROGRESS} = xtest ] && printf "%27s in $(subst ${SLEPC_DIR},SLEPC_DIR,${PWD})\n" $${test})
@@ -85,7 +89,7 @@ alltest:
 	-@date
 	-@for i in ${TEST_RUNS} ; do \
           echo "******* Testing: ${TESTMODE}_$$i *******"; \
-          ${OMAKE} PATH="${PETSC_DIR}/${PETSC_ARCH}/lib:${PATH}" DIFF=${PETSC_DIR}/lib/petsc/bin/petscdiff PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} ACTION=${TESTMODE}_$$i MPIEXEC="${MPIEXEC}" PRINT_PROGRESS=${ALLTESTS_PRINT_PROGRESS} tree ; \
+          ${OMAKE} PATH="${PETSC_DIR}/${PETSC_ARCH}/lib:${PATH}" DIFF=${PETSC_DIR}/lib/petsc/bin/petscdiff PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} ACTION=${TESTMODE}_$$i MPIEXEC="${MPIEXEC}" PRINT_PROGRESS=${ALLTESTS_PRINT_PROGRESS} slepc_tree ; \
           if [ ${ALLTESTS_PRINT_PROGRESS}foo = dotfoo ] ; then printf "\n"; fi; \
         done
 	-@date
