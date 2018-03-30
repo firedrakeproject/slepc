@@ -374,7 +374,7 @@ PetscErrorCode MatCreateVecsEmpty(Mat mat,Vec *right,Vec *left)
   PetscValidHeaderSpecific(mat,MAT_CLASSID,1);
   PetscValidType(mat,1);
 
-  ierr = PetscObjectTypeCompareAny((PetscObject)mat,&notsup,MATSEQAIJCUSP,MATMPIAIJCUSP,MATSEQAIJVIENNACL,MATMPIAIJVIENNACL,"");CHKERRQ(ierr);
+  ierr = PetscObjectTypeCompareAny((PetscObject)mat,&notsup,MATSEQAIJVIENNACL,MATMPIAIJVIENNACL,"");CHKERRQ(ierr);
   if (notsup) SETERRQ1(PetscObjectComm((PetscObject)mat),PETSC_ERR_SUP,"Matrix type %s not supported",((PetscObject)mat)->type_name);
 #if defined(PETSC_HAVE_VECCUDA)
   ierr = PetscObjectTypeCompareAny((PetscObject)mat,&cuda,MATSEQAIJCUSPARSE,MATMPIAIJCUSPARSE,"");CHKERRQ(ierr);
