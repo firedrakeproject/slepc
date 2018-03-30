@@ -15,5 +15,5 @@ pipelines:
             - cd $SLEPC_DIR
             - ./configure
             - make
-            - make test
+            - make check
             - make slepc_alltests ALLTESTS_CHECK_FAILURES=yes ALLTESTS_PRINT_PROGRESS=dot

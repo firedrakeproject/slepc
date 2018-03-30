@@ -44,7 +44,7 @@ all:
            echo "  Send all contents of ./${PETSC_ARCH}/lib/slepc/conf to slepc-maint@upv.es" 2>&1 | tee -a ./${PETSC_ARCH}/lib/slepc/conf/make.log;\
            printf "************************************************************************"${PETSC_TEXT_NORMAL}"\n" 2>&1 | tee -a ./${PETSC_ARCH}/lib/slepc/conf/make.log; \
 	 elif [ "${SLEPC_DESTDIR}" = "${SLEPC_DIR}/${PETSC_ARCH}" ]; then \
-           echo "Now to check if the library is working do: make test";\
+           echo "Now to check if the library is working do: make check";\
            echo "=========================================";\
 	 else \
 	   echo "Now to install the library do:";\
@@ -134,6 +134,7 @@ build:
 	-@echo "========================================="
 
 # Simple test examples for checking a correct installation
+test_install: test
 check: test
 test:
 	-@${OMAKE} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} SLEPC_DIR=${SLEPC_DIR} test_build 2>&1 | tee ./${PETSC_ARCH}/lib/slepc/conf/test.log
