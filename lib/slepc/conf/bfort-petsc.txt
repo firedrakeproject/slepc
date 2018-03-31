@@ -119,7 +119,6 @@ nativeptr PetscSection
 nativeptr MatMFFD
 nativeptr TSGLLEAdapt
 nativeptr TSAdapt
-nativeptr PetscCUSPIndices
 nativeptr PetscSF
 nativeptr MatColoring
 nativeptr DMBoundary
@@ -150,8 +149,6 @@ nativeptr TaoLineSearch
 nativeptr TSMonitorDrawCtx
 nativeptr TSMonitorLGCtx
 nativeptr TSMonitorSPEigCtx
-nativeptr VecScatterCUSPIndices_PtoP
-nativeptr VecScatterCUSPIndices_StoS
 # the following are old PETSc types - they might be requird for older versions
 # of PETSc
 nativeptr AOData
