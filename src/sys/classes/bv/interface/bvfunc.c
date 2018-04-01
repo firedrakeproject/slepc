@@ -55,8 +55,7 @@ PetscErrorCode BVFinalizePackage(void)
 PetscErrorCode BVInitializePackage(void)
 {
   char           logList[256];
-  char           *className;
-  PetscBool      opt;
+  PetscBool      opt,pkg;
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
@@ -86,21 +85,18 @@ PetscErrorCode BVInitializePackage(void)
   /* MPI reduction operation used in BVOrthogonalize */
   ierr = MPI_Op_create(SlepcGivensPacked,PETSC_TRUE,&MPIU_TSQR);CHKERRQ(ierr);
   /* Process info exclusions */
-  ierr = PetscOptionsGetString(NULL,NULL,"-info_exclude",logList,256,&opt);CHKERRQ(ierr);
+  ierr = PetscOptionsGetString(NULL,NULL,"-info_exclude",logList,sizeof(logList),&opt);CHKERRQ(ierr);
   if (opt) {
-    ierr = PetscStrstr(logList,"bv",&className);CHKERRQ(ierr);
-    if (className) {
-      ierr = PetscInfoDeactivateClass(BV_CLASSID);CHKERRQ(ierr);
-    }
+    ierr = PetscStrInList("bv",logList,',',&pkg);CHKERRQ(ierr);
+    if (pkg) { ierr = PetscInfoDeactivateClass(BV_CLASSID);CHKERRQ(ierr); }
   }
   /* Process summary exclusions */
-  ierr = PetscOptionsGetString(NULL,NULL,"-log_exclude",logList,256,&opt);CHKERRQ(ierr);
+  ierr = PetscOptionsGetString(NULL,NULL,"-log_exclude",logList,sizeof(logList),&opt);CHKERRQ(ierr);
   if (opt) {
-    ierr = PetscStrstr(logList,"bv",&className);CHKERRQ(ierr);
-    if (className) {
-      ierr = PetscLogEventDeactivateClass(BV_CLASSID);CHKERRQ(ierr);
-    }
+    ierr = PetscStrInList("bv",logList,',',&pkg);CHKERRQ(ierr);
+    if (pkg) { ierr = PetscLogEventDeactivateClass(BV_CLASSID);CHKERRQ(ierr); }
   }
+  /* Register package finalizer */
   ierr = PetscRegisterFinalize(BVFinalizePackage);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

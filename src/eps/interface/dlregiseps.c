@@ -53,8 +53,7 @@ PetscErrorCode EPSFinalizePackage(void)
 PetscErrorCode EPSInitializePackage()
 {
   char           logList[256];
-  char           *className;
-  PetscBool      opt;
+  PetscBool      opt,pkg;
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
@@ -68,21 +67,18 @@ PetscErrorCode EPSInitializePackage()
   ierr = PetscLogEventRegister("EPSSetUp",EPS_CLASSID,&EPS_SetUp);CHKERRQ(ierr);
   ierr = PetscLogEventRegister("EPSSolve",EPS_CLASSID,&EPS_Solve);CHKERRQ(ierr);
   /* Process info exclusions */
-  ierr = PetscOptionsGetString(NULL,NULL,"-info_exclude",logList,256,&opt);CHKERRQ(ierr);
+  ierr = PetscOptionsGetString(NULL,NULL,"-info_exclude",logList,sizeof(logList),&opt);CHKERRQ(ierr);
   if (opt) {
-    ierr = PetscStrstr(logList,"eps",&className);CHKERRQ(ierr);
-    if (className) {
-      ierr = PetscInfoDeactivateClass(EPS_CLASSID);CHKERRQ(ierr);
-    }
+    ierr = PetscStrInList("eps",logList,',',&pkg);CHKERRQ(ierr);
+    if (pkg) { ierr = PetscInfoDeactivateClass(EPS_CLASSID);CHKERRQ(ierr); }
   }
   /* Process summary exclusions */
-  ierr = PetscOptionsGetString(NULL,NULL,"-log_exclude",logList,256,&opt);CHKERRQ(ierr);
+  ierr = PetscOptionsGetString(NULL,NULL,"-log_exclude",logList,sizeof(logList),&opt);CHKERRQ(ierr);
   if (opt) {
-    ierr = PetscStrstr(logList,"eps",&className);CHKERRQ(ierr);
-    if (className) {
-      ierr = PetscLogEventDeactivateClass(EPS_CLASSID);CHKERRQ(ierr);
-    }
+    ierr = PetscStrInList("eps",logList,',',&pkg);CHKERRQ(ierr);
+    if (pkg) { ierr = PetscLogEventDeactivateClass(EPS_CLASSID);CHKERRQ(ierr); }
   }
+  /* Register package finalizer */
   ierr = PetscRegisterFinalize(EPSFinalizePackage);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

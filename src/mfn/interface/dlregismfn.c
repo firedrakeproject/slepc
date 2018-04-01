@@ -46,8 +46,7 @@ PetscErrorCode MFNFinalizePackage(void)
 PetscErrorCode MFNInitializePackage(void)
 {
   char           logList[256];
-  char           *className;
-  PetscBool      opt;
+  PetscBool      opt,pkg;
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
@@ -61,21 +60,18 @@ PetscErrorCode MFNInitializePackage(void)
   ierr = PetscLogEventRegister("MFNSetUp",MFN_CLASSID,&MFN_SetUp);CHKERRQ(ierr);
   ierr = PetscLogEventRegister("MFNSolve",MFN_CLASSID,&MFN_Solve);CHKERRQ(ierr);
   /* Process info exclusions */
-  ierr = PetscOptionsGetString(NULL,NULL,"-info_exclude",logList,256,&opt);CHKERRQ(ierr);
+  ierr = PetscOptionsGetString(NULL,NULL,"-info_exclude",logList,sizeof(logList),&opt);CHKERRQ(ierr);
   if (opt) {
-    ierr = PetscStrstr(logList,"mfn",&className);CHKERRQ(ierr);
-    if (className) {
-      ierr = PetscInfoDeactivateClass(MFN_CLASSID);CHKERRQ(ierr);
-    }
+    ierr = PetscStrInList("mfn",logList,',',&pkg);CHKERRQ(ierr);
+    if (pkg) { ierr = PetscInfoDeactivateClass(MFN_CLASSID);CHKERRQ(ierr); }
   }
   /* Process summary exclusions */
-  ierr = PetscOptionsGetString(NULL,NULL,"-log_exclude",logList,256,&opt);CHKERRQ(ierr);
+  ierr = PetscOptionsGetString(NULL,NULL,"-log_exclude",logList,sizeof(logList),&opt);CHKERRQ(ierr);
   if (opt) {
-    ierr = PetscStrstr(logList,"mfn",&className);CHKERRQ(ierr);
-    if (className) {
-      ierr = PetscLogEventDeactivateClass(MFN_CLASSID);CHKERRQ(ierr);
-    }
+    ierr = PetscStrInList("mfn",logList,',',&pkg);CHKERRQ(ierr);
+    if (pkg) { ierr = PetscLogEventDeactivateClass(MFN_CLASSID);CHKERRQ(ierr); }
   }
+  /* Register package finalizer */
   ierr = PetscRegisterFinalize(MFNFinalizePackage);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

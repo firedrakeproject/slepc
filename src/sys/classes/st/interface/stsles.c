@@ -257,11 +257,9 @@ PetscErrorCode STMatSolveTranspose(ST st,Vec b,Vec x)
 */
 PetscErrorCode STMatSetHermitian(ST st,Mat M)
 {
-#if defined(PETSC_USE_COMPLEX)
   PetscErrorCode ierr;
   PetscBool      set,aherm,mherm;
   PetscInt       i;
-#endif
 
   PetscFunctionBegin;
 #if defined(PETSC_USE_COMPLEX)
@@ -276,6 +274,14 @@ PetscErrorCode STMatSetHermitian(ST st,Mat M)
     }
   }
   ierr = MatSetOption(M,MAT_HERMITIAN,mherm);CHKERRQ(ierr);
+#else
+  mherm = PETSC_TRUE;
+  for (i=0;i<st->nmat;i++) {
+    ierr = MatIsSymmetricKnown(st->A[i],&set,&aherm);CHKERRQ(ierr);
+    if (!set) aherm = PETSC_FALSE;
+    if (!aherm) { mherm = PETSC_FALSE; break; }
+  }
+  ierr = MatSetOption(M,MAT_SYMMETRIC,mherm);CHKERRQ(ierr);
 #endif
   PetscFunctionReturn(0);
 }

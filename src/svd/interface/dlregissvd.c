@@ -48,8 +48,7 @@ PetscErrorCode SVDFinalizePackage(void)
 PetscErrorCode SVDInitializePackage(void)
 {
   char           logList[256];
-  char           *className;
-  PetscBool      opt;
+  PetscBool      opt,pkg;
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
@@ -63,21 +62,18 @@ PetscErrorCode SVDInitializePackage(void)
   ierr = PetscLogEventRegister("SVDSetUp",SVD_CLASSID,&SVD_SetUp);CHKERRQ(ierr);
   ierr = PetscLogEventRegister("SVDSolve",SVD_CLASSID,&SVD_Solve);CHKERRQ(ierr);
   /* Process info exclusions */
-  ierr = PetscOptionsGetString(NULL,NULL,"-info_exclude",logList,256,&opt);CHKERRQ(ierr);
+  ierr = PetscOptionsGetString(NULL,NULL,"-info_exclude",logList,sizeof(logList),&opt);CHKERRQ(ierr);
   if (opt) {
-    ierr = PetscStrstr(logList,"svd",&className);CHKERRQ(ierr);
-    if (className) {
-      ierr = PetscInfoDeactivateClass(SVD_CLASSID);CHKERRQ(ierr);
-    }
+    ierr = PetscStrInList("svd",logList,',',&pkg);CHKERRQ(ierr);
+    if (pkg) { ierr = PetscInfoDeactivateClass(SVD_CLASSID);CHKERRQ(ierr); }
   }
   /* Process summary exclusions */
-  ierr = PetscOptionsGetString(NULL,NULL,"-log_exclude",logList,256,&opt);CHKERRQ(ierr);
+  ierr = PetscOptionsGetString(NULL,NULL,"-log_exclude",logList,sizeof(logList),&opt);CHKERRQ(ierr);
   if (opt) {
-    ierr = PetscStrstr(logList,"svd",&className);CHKERRQ(ierr);
-    if (className) {
-      ierr = PetscLogEventDeactivateClass(SVD_CLASSID);CHKERRQ(ierr);
-    }
+    ierr = PetscStrInList("svd",logList,',',&pkg);CHKERRQ(ierr);
+    if (pkg) { ierr = PetscLogEventDeactivateClass(SVD_CLASSID);CHKERRQ(ierr); }
   }
+  /* Register package finalizer */
   ierr = PetscRegisterFinalize(SVDFinalizePackage);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

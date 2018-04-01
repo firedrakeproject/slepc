@@ -48,10 +48,9 @@ PetscErrorCode RGFinalizePackage(void)
 @*/
 PetscErrorCode RGInitializePackage(void)
 {
-  char             logList[256];
-  char             *className;
-  PetscBool        opt;
-  PetscErrorCode   ierr;
+  char           logList[256];
+  PetscBool      opt,pkg;
+  PetscErrorCode ierr;
 
   PetscFunctionBegin;
   if (RGPackageInitialized) PetscFunctionReturn(0);
@@ -61,21 +60,18 @@ PetscErrorCode RGInitializePackage(void)
   /* Register Constructors */
   ierr = RGRegisterAll();CHKERRQ(ierr);
   /* Process info exclusions */
-  ierr = PetscOptionsGetString(NULL,NULL,"-info_exclude",logList,256,&opt);CHKERRQ(ierr);
+  ierr = PetscOptionsGetString(NULL,NULL,"-info_exclude",logList,sizeof(logList),&opt);CHKERRQ(ierr);
   if (opt) {
-    ierr = PetscStrstr(logList,"rg",&className);CHKERRQ(ierr);
-    if (className) {
-      ierr = PetscInfoDeactivateClass(RG_CLASSID);CHKERRQ(ierr);
-    }
+    ierr = PetscStrInList("rg",logList,',',&pkg);CHKERRQ(ierr);
+    if (pkg) { ierr = PetscInfoDeactivateClass(RG_CLASSID);CHKERRQ(ierr); }
   }
   /* Process summary exclusions */
-  ierr = PetscOptionsGetString(NULL,NULL,"-log_exclude",logList,256,&opt);CHKERRQ(ierr);
+  ierr = PetscOptionsGetString(NULL,NULL,"-log_exclude",logList,sizeof(logList),&opt);CHKERRQ(ierr);
   if (opt) {
-    ierr = PetscStrstr(logList,"rg",&className);CHKERRQ(ierr);
-    if (className) {
-      ierr = PetscLogEventDeactivateClass(RG_CLASSID);CHKERRQ(ierr);
-    }
+    ierr = PetscStrInList("rg",logList,',',&pkg);CHKERRQ(ierr);
+    if (pkg) { ierr = PetscLogEventDeactivateClass(RG_CLASSID);CHKERRQ(ierr); }
   }
+  /* Register package finalizer */
   ierr = PetscRegisterFinalize(RGFinalizePackage);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

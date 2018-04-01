@@ -55,8 +55,7 @@ PetscErrorCode DSFinalizePackage(void)
 PetscErrorCode DSInitializePackage()
 {
   char             logList[256];
-  char             *className;
-  PetscBool        opt;
+  PetscBool      opt,pkg;
   PetscErrorCode   ierr;
 
   PetscFunctionBegin;
@@ -72,21 +71,18 @@ PetscErrorCode DSInitializePackage()
   ierr = PetscLogEventRegister("DSSynchronize",DS_CLASSID,&DS_Synchronize);CHKERRQ(ierr);
   ierr = PetscLogEventRegister("DSOther",DS_CLASSID,&DS_Other);CHKERRQ(ierr);
   /* Process info exclusions */
-  ierr = PetscOptionsGetString(NULL,NULL,"-info_exclude",logList,256,&opt);CHKERRQ(ierr);
+  ierr = PetscOptionsGetString(NULL,NULL,"-info_exclude",logList,sizeof(logList),&opt);CHKERRQ(ierr);
   if (opt) {
-    ierr = PetscStrstr(logList,"ds",&className);CHKERRQ(ierr);
-    if (className) {
-      ierr = PetscInfoDeactivateClass(DS_CLASSID);CHKERRQ(ierr);
-    }
+    ierr = PetscStrInList("ds",logList,',',&pkg);CHKERRQ(ierr);
+    if (pkg) { ierr = PetscInfoDeactivateClass(DS_CLASSID);CHKERRQ(ierr); }
   }
   /* Process summary exclusions */
-  ierr = PetscOptionsGetString(NULL,NULL,"-log_exclude",logList,256,&opt);CHKERRQ(ierr);
+  ierr = PetscOptionsGetString(NULL,NULL,"-log_exclude",logList,sizeof(logList),&opt);CHKERRQ(ierr);
   if (opt) {
-    ierr = PetscStrstr(logList,"ds",&className);CHKERRQ(ierr);
-    if (className) {
-      ierr = PetscLogEventDeactivateClass(DS_CLASSID);CHKERRQ(ierr);
-    }
+    ierr = PetscStrInList("ds",logList,',',&pkg);CHKERRQ(ierr);
+    if (pkg) { ierr = PetscLogEventDeactivateClass(DS_CLASSID);CHKERRQ(ierr); }
   }
+  /* Register package finalizer */
   ierr = PetscRegisterFinalize(DSFinalizePackage);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
