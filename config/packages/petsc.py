@@ -65,6 +65,8 @@ class PETSc(package.Package):
     if 'PETSC_ARCH' in os.environ and os.environ['PETSC_ARCH']:
       self.isinstall = False
       self.arch = os.environ['PETSC_ARCH']
+      if os.path.basename(self.arch) != self.arch:
+        self.log.Exit(('ERROR: variable PETSC_ARCH must not be a full path\nYou set PETSC_ARCH=%s\nMaybe you meant PETSC_ARCH=%s'% (self.arch,os.path.basename(self.arch))))
       petscvariables = os.path.join(self.dir,self.arch,'lib','petsc','conf','petscvariables')
       petscconf_h = os.path.join(self.dir,self.arch,'include','petscconf.h')
     else:
