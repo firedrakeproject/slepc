@@ -3,6 +3,7 @@
 #
 #    Generates fortran stubs for PETSc using Sowings bfort program
 #
+from __future__ import print_function
 import os
 #
 def FixFile(filename):
@@ -69,7 +70,7 @@ def FixDir(petscdir,dir,verbose):
     try:
       fd=open(mfile,'r')
     except:
-      print 'Error! missing file:', mfile
+      print('Error! missing file:', mfile)
       return
     inbuf = fd.read()
     fd.close()
@@ -116,7 +117,7 @@ def FixDir(petscdir,dir,verbose):
   # save Fortran interface file generated (it is merged with others in a post-processing step)
   modfile = os.path.join(parentdir,'f90module.f90')
   if os.path.exists(modfile):
-    if verbose: print 'Generating F90 interface for '+modfile
+    if verbose: print('Generating F90 interface for '+modfile)
     fd = open(modfile)
     txt = fd.read()
     fd.close()
@@ -173,7 +174,7 @@ def processDir(arg,dirname,names):
     try:
       FixDir(petscdir,outdir,verbose)
     except:
-      print 'Error! with FixDir('+outdir+')'
+      print('Error! with FixDir('+outdir+')')
 
   # remove from list of subdirectories all directories without source code
   rmnames=[]
@@ -199,13 +200,13 @@ def processf90interfaces(petscdir,verbose):
     else:
       basedir = os.path.join(petscdir,'src',mansec,'f90-mod','ftn-auto-interfaces')
     for submansec in os.listdir(basedir):
-      if verbose: print 'Processing F90 interface for '+submansec
+      if verbose: print('Processing F90 interface for '+submansec)
       if os.path.isdir(os.path.join(basedir,submansec)):
         submansec = submansec[:-7]
         f90inc = os.path.join(basedir,'slepc'+submansec+'.h90')
         fd = open(f90inc,'w')
         for sfile in os.listdir(os.path.join(petscdir,basedir,submansec+'-tmpdir')):
-          if verbose: print '  Copying in '+sfile
+          if verbose: print('  Copying in '+sfile)
           fdr = open(os.path.join(basedir,submansec+'-tmpdir',sfile))
           txt = fdr.readline()
           while txt:

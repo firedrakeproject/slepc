@@ -1,3 +1,4 @@
+from __future__ import print_function
 #
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #  SLEPc - Scalable Library for Eigenvalue Problem Computations
@@ -21,11 +22,11 @@ class SLEPc:
     self.datadir   = argdb.PopPath('DATAFILESPATH')[0]
 
   def ShowHelp(self):
-    print '''SLEPc:
+    print('''SLEPc:
   --with-clean=<bool>          : Delete prior build files including externalpackages
   --with-cmake=<bool>          : Enable builds with CMake (disabled by default)
   --prefix=<dir>               : Specify location to install SLEPc (e.g., /usr/local)
-  --DATAFILESPATH=<dir>        : Specify location of datafiles (for SLEPc developers)'''
+  --DATAFILESPATH=<dir>        : Specify location of datafiles (for SLEPc developers)''')
 
   def InitDir(self):
     if 'SLEPC_DIR' in os.environ:
@@ -64,7 +65,7 @@ class SLEPc:
     if os.path.exists(os.path.join(self.dir,'src','docs')) and os.path.exists(os.path.join(self.dir,'.git')):
       (status, output) = commands.getstatusoutput('git rev-parse')
       if status:
-        print 'WARNING: SLEPC_DIR appears to be a git working copy, but git is not found in PATH'
+        print('WARNING: SLEPC_DIR appears to be a git working copy, but git is not found in PATH')
       else:
         self.isrepo = True
         (status, self.gitrev) = commands.getstatusoutput('git describe')

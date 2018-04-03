@@ -43,7 +43,7 @@ class Sowing(package.Package):
       try:
         result,output = commands.getstatusoutput('cd '+externdir+'&& git clone '+url)
         self.log.write(output)
-      except RuntimeError, e:
+      except RuntimeError as e:
         self.log.Exit('Error cloning '+url+': '+str(e))
 
     # Configure, build and install package

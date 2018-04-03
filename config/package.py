@@ -1,3 +1,4 @@
+from __future__ import print_function
 #
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #  SLEPc - Scalable Library for Eigenvalue Problem Computations
@@ -110,7 +111,7 @@ class Package:
         os.remove(localFile)
       try:
         urllib.urlretrieve(url, localFile)
-      except Exception, e:
+      except Exception as e:
         filename = os.path.basename(urlparse.urlparse(url)[2])
         failureMessage = '''\
 Unable to download package %s from: %s
@@ -138,7 +139,7 @@ Unable to download package %s from: %s
         else:
           result,output = commands.getstatusoutput('cd '+externdir+'; gunzip '+self.archive+'; tar -xf '+self.archive.split('.gz')[0])
           os.remove(localFile.split('.gz')[0])
-      except RuntimeError, e:
+      except RuntimeError as e:
         self.log.Exit('Error uncompressing '+self.archive+': '+str(e))
 
       # Rename directory
@@ -150,13 +151,13 @@ Unable to download package %s from: %s
   def ShowHelp(self):
     wd = 31
     if self.downloadable or self.installable:
-      print self.packagename.upper()+':'
+      print(self.packagename.upper()+':')
     if self.downloadable:
-      print ('  --download-'+self.packagename+'[=<fname>]').ljust(wd)+': Download and install '+self.packagename.upper()+' in SLEPc directory'
+      print(('  --download-'+self.packagename+'[=<fname>]').ljust(wd)+': Download and install '+self.packagename.upper()+' in SLEPc directory')
     if self.installable:
-      print ('  --with-'+self.packagename+'=<bool>').ljust(wd)+': Indicate if you wish to test for '+self.packagename.upper()
-      print ('  --with-'+self.packagename+'-dir=<dir>').ljust(wd)+': Indicate the directory for '+self.packagename.upper()+' libraries'
-      print ('  --with-'+self.packagename+'-flags=<flags>').ljust(wd)+': Indicate comma-separated flags for linking '+self.packagename.upper()
+      print(('  --with-'+self.packagename+'=<bool>').ljust(wd)+': Indicate if you wish to test for '+self.packagename.upper())
+      print(('  --with-'+self.packagename+'-dir=<dir>').ljust(wd)+': Indicate the directory for '+self.packagename.upper()+' libraries')
+      print(('  --with-'+self.packagename+'-flags=<flags>').ljust(wd)+': Indicate comma-separated flags for linking '+self.packagename.upper())
 
   def ShowInfo(self):
     if self.havepackage:

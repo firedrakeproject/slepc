@@ -9,6 +9,7 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
+from __future__ import print_function
 import os, sys, time, shutil
 
 def AddDefine(conffile,name,value,prefix='SLEPC_'):
@@ -123,10 +124,10 @@ if 'LANG' in os.environ and os.environ['LANG'] != '' and os.environ['LANG'] != '
 
 # Check python version
 if not hasattr(sys, 'version_info') or not sys.version_info[0] == 2 or not sys.version_info[1] >= 6:
-  print '*******************************************************************************'
-  print '*       Python2 version 2.6 or higher is required to run ./configure          *'
-  print '*          Try: "python2.7 ./configure" or "python2.6 ./configure"            *'
-  print '*******************************************************************************'
+  print('*******************************************************************************')
+  print('*       Python2 version 2.6 or higher is required to run ./configure          *')
+  print('*          Try: "python2.7 ./configure" or "python2.6 ./configure"            *')
+  print('*******************************************************************************')
   sys.exit(4)
 
 # Set python path
@@ -161,15 +162,15 @@ checkpackages    = [arpack, blopex, blzpack, feast, primme, slicot, trlan, lapac
 
 # Print help if requested and check for wrong command-line options
 if argdb.PopHelp():
-  print 'SLEPc Configure Help'
-  print '-'*80
+  print('SLEPc Configure Help')
+  print('-'*80)
   for pkg in optionspackages:
     pkg.ShowHelp()
   sys.exit(0)
 argdb.ErrorIfNotEmpty()
 
 # Check enviroment and PETSc version
-print 'Checking environment...',
+print('Checking environment...', end=' ')
 petsc.InitDir(slepc.prefixdir)
 slepc.InitDir()
 petsc.LoadVersion()
@@ -347,8 +348,8 @@ WriteCMakeConfigFile(cmakeconf)
 if not slepc.isinstall:
   WriteReconfigScript(reconfig,slepc.dir,argdb.UsedArgs())
   try:
-    os.chmod(reconfigpath,0775)
-  except OSError, e:
+    os.chmod(reconfigpath,0o775)
+  except OSError as e:
     log.Exit('ERROR: Unable to make reconfigure script executable:\n'+str(e))
 
 # Finish with configuration files (except slepcvars)
@@ -397,16 +398,16 @@ if slepc.cmake:
     import cmakegen
     try:
       cmakegen.main(slepc.dir,petsc.dir,petscprefixdir=petsc.prefixdir)
-    except (OSError), e:
+    except (OSError) as e:
       log.Exit('ERROR: Generating CMakeLists.txt failed:\n'+str(e))
     import cmakeboot
     try:
       cmakeok = cmakeboot.main(slepc.dir,petsc.dir,log=log)
-    except (OSError), e:
+    except (OSError) as e:
       log.Exit('ERROR: Booting CMake in PETSC_ARCH failed:\n'+str(e))
-    except (ImportError, KeyError), e:
+    except (ImportError, KeyError) as e:
       log.Exit('ERROR: Importing cmakeboot failed:\n'+str(e))
-    except (AttributeError), e:
+    except (AttributeError) as e:
       log.Println('\nxxx'+'='*73+'xxx')
       log.Println('WARNING: CMake builds are not available (initialization failed)')
       log.Println('You can ignore this warning (use default build), or try reconfiguring PETSc')
@@ -452,15 +453,15 @@ for pkg in checkpackages:
   pkg.ShowInfo()
 log.write('\nFinishing Configure Run at '+time.ctime(time.time()))
 log.write('='*79)
-print
-print 'xxx'+'='*73+'xxx'
+print()
+print('xxx'+'='*73+'xxx')
 if petsc.make_is_gnumake: buildtype = 'gnumake'
 elif cmakeok: buildtype = 'cmake'
 else: buildtype = 'legacy'
-print ' Configure stage complete. Now build the SLEPc library with ('+buildtype+' build):'
+print(' Configure stage complete. Now build the SLEPc library with ('+buildtype+' build):')
 if emptyarch:
-  print '   make SLEPC_DIR=$PWD PETSC_DIR='+petsc.dir
+  print('   make SLEPC_DIR=$PWD PETSC_DIR='+petsc.dir)
 else:
-  print '   make SLEPC_DIR=$PWD PETSC_DIR='+petsc.dir+' PETSC_ARCH='+archname
-print 'xxx'+'='*73+'xxx'
-print
+  print('   make SLEPC_DIR=$PWD PETSC_DIR='+petsc.dir+' PETSC_ARCH='+archname)
+print('xxx'+'='*73+'xxx')
+print()

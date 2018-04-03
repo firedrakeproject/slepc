@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+from __future__ import print_function
 import os, sys, shutil, commands
 
 try:
@@ -9,10 +10,10 @@ except NameError:
 class Installer:
   def __init__(self, args = None):
     if len(args)<6:
-      print '********************************************************************'
-      print 'Installation script error - not enough arguments:'
-      print './config/install.py SLEPC_DIR PETSC_DIR PETSC_ARCH DESTDIR LIB_SUFFIX RANLIB'
-      print '********************************************************************'
+      print('********************************************************************')
+      print('Installation script error - not enough arguments:')
+      print('./config/install.py SLEPC_DIR PETSC_DIR PETSC_ARCH DESTDIR LIB_SUFFIX RANLIB')
+      print('********************************************************************')
       sys.exit(1)
     self.rootDir     = args[0]
     self.petscDir    = args[1]
@@ -46,24 +47,24 @@ class Installer:
   def checkDestdir(self):
     if os.path.exists(self.destDir):
       if os.path.samefile(self.destDir, self.rootDir):
-        print '********************************************************************'
-        print 'Incorrect prefix usage. Specified destDir same as current SLEPC_DIR'
-        print '********************************************************************'
+        print('********************************************************************')
+        print('Incorrect prefix usage. Specified destDir same as current SLEPC_DIR')
+        print('********************************************************************')
         sys.exit(1)
       if os.path.samefile(self.destDir, os.path.join(self.rootDir,self.arch)):
-        print '********************************************************************'
-        print 'Incorrect prefix usage. Specified destDir same as current SLEPC_DIR/PETSC_ARCH'
-        print '********************************************************************'
+        print('********************************************************************')
+        print('Incorrect prefix usage. Specified destDir same as current SLEPC_DIR/PETSC_ARCH')
+        print('********************************************************************')
         sys.exit(1)
       if not os.path.isdir(os.path.realpath(self.destDir)):
-        print '********************************************************************'
-        print 'Specified destDir', self.destDir, 'is not a directory. Cannot proceed!'
-        print '********************************************************************'
+        print('********************************************************************')
+        print('Specified destDir', self.destDir, 'is not a directory. Cannot proceed!')
+        print('********************************************************************')
         sys.exit(1)
       if not os.access(self.destDir, os.W_OK):
-        print '********************************************************************'
-        print 'Unable to write to ', self.destDir, 'Perhaps you need to do "sudo make install"'
-        print '********************************************************************'
+        print('********************************************************************')
+        print('Unable to write to ', self.destDir, 'Perhaps you need to do "sudo make install"')
+        print('********************************************************************')
         sys.exit(1)
     return
 
@@ -74,7 +75,7 @@ class Installer:
     if not os.path.exists(dst):
       os.makedirs(dst)
     elif not os.path.isdir(dst):
-      raise shutil.Error, 'Destination is not a directory'
+      raise shutil.Error('Destination is not a directory')
     srcname = src
     dstname = os.path.join(dst, os.path.basename(src))
     try:
@@ -84,12 +85,12 @@ class Installer:
       else:
         copyFunc(srcname, dstname)
         copies.append((srcname, dstname))
-    except (IOError, os.error), why:
+    except (IOError, os.error) as why:
       errors.append((srcname, dstname, str(why)))
-    except shutil.Error, err:
+    except shutil.Error as err:
       errors.extend((srcname,dstname,str(err.args[0])))
     if errors:
-      raise shutil.Error, errors
+      raise shutil.Error(errors)
     return copies
 
   def copyexamplefiles(self, src, dst, copyFunc = shutil.copy2):
@@ -119,7 +120,7 @@ class Installer:
     """Recursively copy the examples directories
     """
     if not os.path.isdir(dst):
-      raise shutil.Error, 'Destination is not a directory'
+      raise shutil.Error('Destination is not a directory')
 
     self.copyfile(os.path.join(src,'makefile'),dst)
     names  = os.listdir(src)
@@ -161,7 +162,7 @@ class Installer:
     if not os.path.exists(dst):
       os.makedirs(dst)
     elif not os.path.isdir(dst):
-      raise shutil.Error, 'Destination is not a directory'
+      raise shutil.Error('Destination is not a directory')
     errors = []
     for name in names:
       srcname = os.path.join(src, name)
@@ -176,22 +177,22 @@ class Installer:
           copyFunc(srcname, dstname)
           copies.append((srcname, dstname))
         # XXX What about devices, sockets etc.?
-      except (IOError, os.error), why:
+      except (IOError, os.error) as why:
         errors.append((srcname, dstname, str(why)))
       # catch the Error from the recursive copytree so that we can
       # continue with other files
-      except shutil.Error, err:
+      except shutil.Error as err:
         errors.extend((srcname,dstname,str(err.args[0])))
     try:
       shutil.copystat(src, dst)
-    except OSError, e:
+    except OSError as e:
       if WindowsError is not None and isinstance(e, WindowsError):
         # Copying file access times may fail on Windows
         pass
       else:
         errors.extend((src, dst, str(e)))
     if errors:
-      raise shutil.Error, errors
+      raise shutil.Error(errors)
     return copies
 
 
@@ -255,7 +256,7 @@ for dir in dirs:
     pass
 ''')
     f.close()
-    os.chmod(uninstallscript,0744)
+    os.chmod(uninstallscript,0o744)
     return
 
   def installIncludes(self):
@@ -318,22 +319,22 @@ for dir in dirs:
   def outputInstallDone(self):
     arch=self.arch
     if arch.startswith('installed-'): arch='""'
-    print '''\
+    print('''\
 ====================================
 Install complete.
 Now to check if the libraries are working do (in current directory):
 make SLEPC_DIR=%s PETSC_DIR=%s PETSC_ARCH=%s test
 ====================================\
-''' % (self.installDir,self.petscDir,arch)
+''' % (self.installDir,self.petscDir,arch))
     return
 
   def outputDestDirDone(self):
-    print '''\
+    print('''\
 ====================================
 Copy to DESTDIR %s is now complete.
 Before use - please copy/install over to specified prefix: %s
 ====================================\
-''' % (self.destDir,self.installDir)
+''' % (self.destDir,self.installDir))
     return
 
   def runsetup(self):
@@ -343,16 +344,16 @@ Before use - please copy/install over to specified prefix: %s
 
   def runcopy(self):
     if self.destDir == self.installDir:
-      print '*** Installing SLEPc at prefix location:',self.destDir, ' ***'
+      print('*** Installing SLEPc at prefix location:',self.destDir, ' ***')
     else:
-      print '*** Copying SLEPc to DESTDIR location:',self.destDir, ' ***'
+      print('*** Copying SLEPc to DESTDIR location:',self.destDir, ' ***')
     if not os.path.exists(self.destDir):
       try:
         os.makedirs(self.destDir)
       except:
-        print '********************************************************************'
-        print 'Unable to create', self.destDir, 'Perhaps you need to do "sudo make install"'
-        print '********************************************************************'
+        print('********************************************************************')
+        print('Unable to create', self.destDir, 'Perhaps you need to do "sudo make install"')
+        print('********************************************************************')
         sys.exit(1)
     self.installIncludes()
     self.installConf()

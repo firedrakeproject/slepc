@@ -1,3 +1,4 @@
+from __future__ import print_function
 #
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #  SLEPc - Scalable Library for Eigenvalue Problem Computations
@@ -20,15 +21,15 @@ class Log:
       self.filename = filename
 
   def Println(self,string):
-    print string
+    print(string)
     self.fd.write(string+'\n')
 
   def Print(self,string):
-    print string,
+    print(string, end=' ')
     self.fd.write(string+' ')
 
   def NewSection(self,string):
-    print 'done\n'+string,
+    print('done\n'+string, end=' ')
     sys.stdout.flush()
     self.fd.write('='*80+'\n'+string+'\n')
 
@@ -36,7 +37,7 @@ class Log:
     self.fd.write(string+'\n')
 
   def Exit(self,string):
-    print '\n'+string
+    print('\n'+string)
     if hasattr(self,'fd'):
       self.fd.write('\n'+string+'\n')
       self.fd.close()
