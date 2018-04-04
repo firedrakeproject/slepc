@@ -15,7 +15,6 @@
 #define __TOAR_H
 
 PETSC_INTERN PetscErrorCode PEPExtractVectors_TOAR(PEP);
-PETSC_INTERN PetscErrorCode PEPNewtonRefinement_TOAR(PEP,PetscScalar,PetscInt*,PetscReal*,PetscInt,PetscScalar*,PetscInt);
 PETSC_INTERN PetscErrorCode MatMult_Func(Mat,Vec,Vec);
 PETSC_INTERN PetscErrorCode MatDestroy_Func(Mat);
 PETSC_INTERN PetscErrorCode PEPSolve_STOAR(PEP);
@@ -27,7 +26,7 @@ typedef struct _n_shift *PEP_shift;
 struct _n_shift {
   PetscReal     value;
   PetscInt      inertia;
-  PetscBool     comp[2];      /* Shows cTOAR vectors for each pseudo-Lanczos vector ompletion of subintervals (left and right) */
+  PetscBool     comp[2];      /* Shows completion of subintervals (left and right) */
   PEP_shift     neighb[2];    /* Adjacent shifts */
   PetscInt      index;        /* Index in eig where found values are stored */
   PetscInt      neigs;        /* Number of values found */
@@ -36,7 +35,7 @@ struct _n_shift {
   PetscInt      nconv[2];     /* Converged on each side (accepted or not) */
 };
 
-/* Identifies the TOAR vectors for each Pseudo-Lanczo's vector in the global array */
+/* Identifies the TOAR vectors for each Pseudo-Lanczos vector in the global array */
 typedef struct {
   PetscInt nq;
   PetscInt *q;
@@ -62,8 +61,6 @@ struct _n_SR {
   PetscInt      itsKs;             /* Krylovschur restarts */
   PetscInt      nleap;
   PEP_shift     s0;                /* Initial shift */
- // PetscScalar   *S;              /* Matrix for projected problem */
- // PetscInt      nS;
   PEP_shift     sPrev;
   PetscInt      nv;                /* position of restart vector */
   BV            V;                 /* full TOAR basis */

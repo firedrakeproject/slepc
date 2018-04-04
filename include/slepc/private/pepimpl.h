@@ -152,6 +152,7 @@ PETSC_INTERN PetscErrorCode PEPBasisCoefficients(PEP,PetscReal*);
 PETSC_INTERN PetscErrorCode PEPEvaluateBasis(PEP,PetscScalar,PetscScalar,PetscScalar*,PetscScalar*);
 PETSC_INTERN PetscErrorCode PEPEvaluateBasisDerivative(PEP,PetscScalar,PetscScalar,PetscScalar*,PetscScalar*);
 PETSC_INTERN PetscErrorCode PEPEvaluateBasisMat(PEP,PetscInt,PetscScalar*,PetscInt,PetscInt,PetscScalar*,PetscInt,PetscScalar*,PetscInt,PetscScalar*,PetscInt);
+PETSC_INTERN PetscErrorCode PEPNewtonRefinement_TOAR(PEP,PetscScalar,PetscInt*,PetscReal*,PetscInt,PetscScalar*,PetscInt);
 PETSC_INTERN PetscErrorCode PEPNewtonRefinementSimple(PEP,PetscInt*,PetscReal,PetscInt);
 PETSC_INTERN PetscErrorCode PEPSetDefaultST(PEP);
 PETSC_INTERN PetscErrorCode PEPSetDefaultST_Transform(PEP);

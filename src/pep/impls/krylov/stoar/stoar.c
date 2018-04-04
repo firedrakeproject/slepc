@@ -20,7 +20,7 @@
 
        [1] C. Campos and J.E. Roman, "Restarted Q-Arnoldi-type methods
            exploiting symmetry in quadratic eigenvalue problems", BIT
-           Numer. Math. (in press), 2016.
+           Numer. Math. 56(4):1213-1236, 2016.
 */
 
 #include <slepc/private/pepimpl.h>         /*I "slepcpep.h" I*/
