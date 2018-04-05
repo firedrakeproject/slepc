@@ -711,6 +711,17 @@ PetscErrorCode PEPView_STOAR(PEP pep,PetscViewer viewer)
   PetscFunctionReturn(0);
 }
 
+PetscErrorCode PEPReset_STOAR(PEP pep)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  if (pep->which==PEP_ALL) {
+    ierr = PEPReset_STOAR_QSlice(pep);CHKERRQ(ierr);
+  }
+  PetscFunctionReturn(0);
+}
+
 PetscErrorCode PEPDestroy_STOAR(PEP pep)
 {
   PetscErrorCode ierr;
@@ -746,6 +757,7 @@ PETSC_EXTERN PetscErrorCode PEPCreate_STOAR(PEP pep)
   pep->ops->computevectors = PEPComputeVectors_Default;
   pep->ops->extractvectors = PEPExtractVectors_TOAR;
   pep->ops->setdefaultst   = PEPSetDefaultST_Transform;
+  pep->ops->reset          = PEPReset_STOAR;
 
   ierr = PetscObjectComposeFunction((PetscObject)pep,"PEPSTOARSetLocking_C",PEPSTOARSetLocking_STOAR);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)pep,"PEPSTOARGetLocking_C",PEPSTOARGetLocking_STOAR);CHKERRQ(ierr);

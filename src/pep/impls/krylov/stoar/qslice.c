@@ -48,6 +48,7 @@ static PetscErrorCode PEPQSliceResetSR(PEP pep)
   PEP_TOAR       *ctx=(PEP_TOAR*)pep->data;
   PEP_SR         sr=ctx->sr;
   PEP_shift      s;
+  PetscInt       i;
 
   PetscFunctionBegin;
   if (sr) {
@@ -60,13 +61,16 @@ static PetscErrorCode PEPQSliceResetSR(PEP pep)
       }
       ierr = PetscFree(s);CHKERRQ(ierr);
     }
+    ierr = PetscFree(sr->S);CHKERRQ(ierr);
+    for (i=0;i<pep->nconv;i++) {ierr = PetscFree(sr->qinfo[i].q);CHKERRQ(ierr);}
+    ierr = PetscFree(sr->qinfo);CHKERRQ(ierr);
     ierr = PetscFree(sr);CHKERRQ(ierr);
   }
   ctx->sr = NULL;
   PetscFunctionReturn(0);
 }
 
-PetscErrorCode PEPReset_QSlice(PEP pep)
+PetscErrorCode PEPReset_STOAR_QSlice(PEP pep)
 {
   PetscErrorCode ierr;
   PEP_TOAR       *ctx=(PEP_TOAR*)pep->data;
@@ -95,8 +99,10 @@ static PetscErrorCode PEPQSliceAllocateSolution(PEP pep)
   PetscFunctionBegin;
   /* allocate space for eigenvalues and friends */
   k = PetscMax(1,sr->numEigs);
-  ierr = PetscFree5(sr->eigr,sr->eigi,sr->errest,sr->perm,sr->qinfo);CHKERRQ(ierr);
-  ierr = PetscCalloc5(k,&sr->eigr,k,&sr->eigi,k,&sr->errest,k,&sr->perm,k,&sr->qinfo);CHKERRQ(ierr);
+  ierr = PetscFree4(sr->eigr,sr->eigi,sr->errest,sr->perm);CHKERRQ(ierr);
+  ierr = PetscCalloc4(k,&sr->eigr,k,&sr->eigi,k,&sr->errest,k,&sr->perm);CHKERRQ(ierr);
+  ierr = PetscFree(sr->qinfo);CHKERRQ(ierr);
+  ierr = PetscCalloc1(k,&sr->qinfo);CHKERRQ(ierr);
   cnt = 2*k*sizeof(PetscScalar) + 2*k*sizeof(PetscReal) + k*sizeof(PetscInt);
   ierr = PetscLogObjectMemory((PetscObject)pep,cnt);CHKERRQ(ierr);
 
@@ -115,6 +121,7 @@ static PetscErrorCode PEPQSliceAllocateSolution(PEP pep)
   ierr = BVSetSizesFromVec(sr->V,t,k+1);CHKERRQ(ierr);
   ierr = VecDestroy(&t);CHKERRQ(ierr);
   sr->ld = k;
+  ierr = PetscFree(sr->S);CHKERRQ(ierr);
   ierr = PetscMalloc1((k+1)*sr->ld*(pep->nmat-1),&sr->S);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -173,7 +180,7 @@ PetscErrorCode PEPSetUp_STOAR_QSlice(PEP pep)
   ierr = PetscObjectTypeCompareAny((PetscObject)pep->st,&issinv,STSINVERT,STCAYLEY,"");CHKERRQ(ierr);
   if (!issinv) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Shift-and-invert or Cayley ST is needed for spectrum slicing");
   if (pep->tol==PETSC_DEFAULT) pep->tol = SLEPC_DEFAULT_TOL*1e-2;  /* use tighter tolerance */
-  if (ctx->nev==1) ctx->nev = PetscMin(20,pep->n);  /* nev not set, use default value */
+  if (ctx->nev==0) ctx->nev = PetscMin(20,pep->n);  /* nev not set, use default value */
   if (pep->n>10 && ctx->nev<10) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_WRONG,"nev cannot be less than 10 in spectrum slicing runs");
   pep->ops->backtransform = PEPBackTransform_Skip;
 
@@ -1056,10 +1063,13 @@ PetscErrorCode PEPSolve_STOAR_QSlice(PEP pep)
   ierr = BVSetActiveColumns(sr->V,0,pep->nconv);CHKERRQ(ierr);
   ierr = BVMultInPlace(sr->V,S,0,pep->nconv);CHKERRQ(ierr);
   ierr = MatDestroy(&S);CHKERRQ(ierr);
+  ierr = BVDestroy(&pep->V);CHKERRQ(ierr);
   pep->V = sr->V;
-  pep->eigr = sr->eigr;
-  pep->eigi = sr->eigi;
-  pep->perm = sr->perm;
+  ierr = PetscFree4(pep->eigr,pep->eigi,pep->errest,pep->perm);CHKERRQ(ierr);
+  pep->eigr   = sr->eigr;
+  pep->eigi   = sr->eigi;
+  pep->perm   = sr->perm;
+  pep->errest = sr->errest;
   if (sr->dir<0) {
     for (i=0;i<pep->nconv/2;i++) {
       ti = sr->perm[i]; sr->perm[i] = sr->perm[pep->nconv-1-i]; sr->perm[pep->nconv-1-i] = ti;

@@ -20,6 +20,7 @@ PETSC_INTERN PetscErrorCode MatDestroy_Func(Mat);
 PETSC_INTERN PetscErrorCode PEPSolve_STOAR(PEP);
 PETSC_INTERN PetscErrorCode PEPSolve_STOAR_QSlice(PEP);
 PETSC_INTERN PetscErrorCode PEPSetUp_STOAR_QSlice(PEP);
+PETSC_INTERN PetscErrorCode PEPReset_STOAR_QSlice(PEP);
 
 /* Structure characterizing a shift in spectrum slicing */
 typedef struct _n_shift *PEP_shift;
