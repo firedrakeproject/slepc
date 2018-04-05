@@ -72,6 +72,7 @@ struct _n_SR {
   PetscReal     *errest;           /* error estimates */
   PetscInt      *perm;             /* permutation */
   PEP_QInfo     *qinfo;            /* TOAR vectors for each pseudo-Lanczos vector */
+  PetscInt      intcorr;           /* Global inertia correction */
 };
 typedef struct _n_SR *PEP_SR;
 
@@ -87,6 +88,7 @@ typedef struct {
   PetscInt    ncv;       /* number of basis vectors */
   PetscInt    mpd;       /* maximum dimension of projected problem */
   PetscBool   detect;    /* check for zeros during factorizations */
+  PetscBool   hyperbolic;/* hyperbolic problem flag */
 } PEP_TOAR;
 
 typedef struct {

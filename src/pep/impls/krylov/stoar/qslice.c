@@ -126,7 +126,7 @@ static PetscErrorCode PEPQSliceAllocateSolution(PEP pep)
   PetscFunctionReturn(0);
 }
 
-static PetscErrorCode PEPQSliceGetInertia(PEP pep,PetscReal shift,PetscInt *inertia,PetscInt *zeros)
+static PetscErrorCode PEPQSliceGetInertia(PEP pep,PetscReal shift,PetscInt *inertia,PetscInt *zeros,PetscInt correction)
 {
   PetscErrorCode ierr;
   KSP            ksp;
@@ -136,7 +136,7 @@ static PetscErrorCode PEPQSliceGetInertia(PEP pep,PetscReal shift,PetscInt *iner
 
   PetscFunctionBegin;
   if (shift >= PETSC_MAX_REAL) { /* Right-open interval */
-    if (inertia) *inertia = pep->n;
+    if (inertia) *inertia = 0;
   } else if (shift <= PETSC_MIN_REAL) {
     if (inertia) *inertia = 0;
     if (zeros) *zeros = 0;
@@ -153,6 +153,9 @@ static PetscErrorCode PEPQSliceGetInertia(PEP pep,PetscReal shift,PetscInt *iner
     ierr = PCFactorGetMatrix(pc,&F);CHKERRQ(ierr);
     ierr = MatGetInertia(F,inertia,zeros,NULL);CHKERRQ(ierr);
   }
+  if (!correction) {
+    /* TO DO */
+  } else if (correction<0 && inertia) *inertia = 2*pep->n-*inertia;
   PetscFunctionReturn(0);
 }
 
@@ -212,12 +215,22 @@ PetscErrorCode PEPSetUp_STOAR_QSlice(PEP pep)
   ierr = STSetUp(pep->st);CHKERRQ(ierr);
 
   /* compute inertia0 */
-  ierr = PEPQSliceGetInertia(pep,sr->int0,&sr->inertia0,ctx->detect?&zeros:NULL);CHKERRQ(ierr);
+  ierr = PEPQSliceGetInertia(pep,sr->int0,&sr->inertia0,ctx->detect?&zeros:NULL,ctx->hyperbolic?0:1);CHKERRQ(ierr);
   if (zeros && (sr->int0==pep->inta || sr->int0==pep->intb)) SETERRQ(((PetscObject)pep)->comm,PETSC_ERR_USER,"Found singular matrix for the transformed problem in the interval endpoint");
 
-  /* last process in pep comm computes inertia1 */
-  ierr = PEPQSliceGetInertia(pep,sr->int1,&sr->inertia1,ctx->detect?&zeros:NULL);CHKERRQ(ierr);
+  /* compute inertia1 */
+  ierr = PEPQSliceGetInertia(pep,sr->int1,&sr->inertia1,ctx->detect?&zeros:NULL,ctx->hyperbolic?0:1);CHKERRQ(ierr);
   if (zeros) SETERRQ(((PetscObject)pep)->comm,PETSC_ERR_USER,"Found singular matrix for the transformed problem in an interval endpoint defined by user");
+  if (!ctx->hyperbolic) {
+    if (sr->dir*(sr->inertia1-sr->inertia0)<0) {
+      sr->intcorr = -1;
+      sr->inertia0 = 2*pep->n-sr->inertia0;
+      sr->inertia1 = 2*pep->n-sr->inertia1;
+    } else sr->intcorr = 1;
+  } else {
+    /* TO DO */
+  }
+  
   if (sr->hasEnd) {
     sr->dir = -sr->dir; r = sr->int0; sr->int0 = sr->int1; sr->int1 = r;
     i = sr->inertia0; sr->inertia0 = sr->inertia1; sr->inertia1 = i;
@@ -225,21 +238,22 @@ PetscErrorCode PEPSetUp_STOAR_QSlice(PEP pep)
 
   /* number of eigenvalues in interval */
   sr->numEigs = (sr->dir)*(sr->inertia1 - sr->inertia0);
-
-  ierr = PEPQSliceAllocateSolution(pep);
-  ierr = PEPSetDimensions_Default(pep,ctx->nev,&ctx->ncv,&ctx->mpd);CHKERRQ(ierr);
-  pep->nev = ctx->nev; pep->ncv = ctx->ncv; pep->mpd = ctx->mpd;
-  if (!pep->max_it) pep->max_it = PetscMax(100,2*(pep->nmat-1)*pep->n/pep->ncv);
-  ld   = ctx->ncv+2;
-  ierr = DSSetType(pep->ds,DSGHIEP);CHKERRQ(ierr);
-  ierr = DSSetCompact(pep->ds,PETSC_TRUE);CHKERRQ(ierr);
-  ierr = DSAllocate(pep->ds,ld);CHKERRQ(ierr);
-  ierr = DSGetSlepcSC(pep->ds,&sc);CHKERRQ(ierr);
-  sc->rg            = NULL;
-  sc->comparison    = SlepcCompareLargestMagnitude;
-  sc->comparisonctx = NULL;
-  sc->map           = NULL;
-  sc->mapobj        = NULL;
+  if (sr->numEigs) {
+    ierr = PEPQSliceAllocateSolution(pep);
+    ierr = PEPSetDimensions_Default(pep,ctx->nev,&ctx->ncv,&ctx->mpd);CHKERRQ(ierr);
+    pep->nev = ctx->nev; pep->ncv = ctx->ncv; pep->mpd = ctx->mpd;
+    if (!pep->max_it) pep->max_it = PetscMax(100,2*(pep->nmat-1)*pep->n/pep->ncv);
+    ld   = ctx->ncv+2;
+    ierr = DSSetType(pep->ds,DSGHIEP);CHKERRQ(ierr);
+    ierr = DSSetCompact(pep->ds,PETSC_TRUE);CHKERRQ(ierr);
+    ierr = DSAllocate(pep->ds,ld);CHKERRQ(ierr);
+    ierr = DSGetSlepcSC(pep->ds,&sc);CHKERRQ(ierr);
+    sc->rg            = NULL;
+    sc->comparison    = SlepcCompareLargestMagnitude;
+    sc->comparisonctx = NULL;
+    sc->map           = NULL;
+    sc->mapobj        = NULL;
+  }
   PetscFunctionReturn(0);
 }
 
@@ -298,12 +312,12 @@ static PetscErrorCode PEPExtractShift(PEP pep)
     sr->sPrev = sr->sPres;
     sr->sPres = sr->pending[--sr->nPend];
     sPres = sr->sPres;
-    ierr = PEPQSliceGetInertia(pep,sPres->value,&iner,ctx->detect?&zeros:NULL);CHKERRQ(ierr);
+    ierr = PEPQSliceGetInertia(pep,sPres->value,&iner,ctx->detect?&zeros:NULL,sr->intcorr);CHKERRQ(ierr);
     if (zeros) {
       newShift = sPres->value*(1.0+SLICE_PTOL);
       if (sr->dir*(sPres->neighb[0] && newShift-sPres->neighb[0]->value) < 0) newShift = (sPres->value+sPres->neighb[0]->value)/2;
       else if (sPres->neighb[1] && sr->dir*(sPres->neighb[1]->value-newShift) < 0) newShift = (sPres->value+sPres->neighb[1]->value)/2;
-      ierr = PEPQSliceGetInertia(pep,newShift,&iner,&zeros);CHKERRQ(ierr);
+      ierr = PEPQSliceGetInertia(pep,newShift,&iner,&zeros,sr->intcorr);CHKERRQ(ierr);
       if (zeros) SETERRQ1(((PetscObject)pep)->comm,PETSC_ERR_CONV_FAILED,"Inertia computation fails in %g",newShift);
       sPres->value = newShift;
     }
