@@ -73,6 +73,8 @@ struct _n_SR {
   PetscInt      *perm;             /* permutation */
   PEP_QInfo     *qinfo;            /* TOAR vectors for each pseudo-Lanczos vector */
   PetscInt      intcorr;           /* Global inertia correction */
+  Vec           v[3];
+  EPS           eps;
 };
 typedef struct _n_SR *PEP_SR;
 

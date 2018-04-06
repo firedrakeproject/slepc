@@ -64,6 +64,8 @@ static PetscErrorCode PEPQSliceResetSR(PEP pep)
     ierr = PetscFree(sr->S);CHKERRQ(ierr);
     for (i=0;i<pep->nconv;i++) {ierr = PetscFree(sr->qinfo[i].q);CHKERRQ(ierr);}
     ierr = PetscFree(sr->qinfo);CHKERRQ(ierr);
+    for (i=0;i<3;i++) {ierr = VecDestroy(&sr->v[i]);CHKERRQ(ierr);}
+    ierr = EPSDestroy(&sr->eps);CHKERRQ(ierr);
     ierr = PetscFree(sr);CHKERRQ(ierr);
   }
   ctx->sr = NULL;
@@ -131,14 +133,19 @@ static PetscErrorCode PEPQSliceGetInertia(PEP pep,PetscReal shift,PetscInt *iner
   PetscErrorCode ierr;
   KSP            ksp;
   PC             pc;
-  Mat            F;
+  Mat            F,P;
   PetscReal      nzshift;
+  PetscScalar    dot;
+  PetscRandom    rand;
+  PetscInt       nconv;
+  PEP_TOAR       *ctx=(PEP_TOAR*)pep->data;
+  PEP_SR         sr=ctx->sr;
 
   PetscFunctionBegin;
   if (shift >= PETSC_MAX_REAL) { /* Right-open interval */
-    if (inertia) *inertia = 0;
+    *inertia = 0;
   } else if (shift <= PETSC_MIN_REAL) {
-    if (inertia) *inertia = 0;
+    *inertia = 0;
     if (zeros) *zeros = 0;
   } else {
     /* If the shift is zero, perturb it to a very small positive value.
@@ -146,7 +153,8 @@ static PetscErrorCode PEPQSliceGetInertia(PEP pep,PetscReal shift,PetscInt *iner
        the symbolic factorizations */
     nzshift = (shift==0.0)? 10.0/PETSC_MAX_REAL: shift;
     ierr = STSetShift(pep->st,nzshift);CHKERRQ(ierr);
-    ierr = PEPEvaluateBasis(pep,nzshift,0,pep->solvematcoeffs,NULL);CHKERRQ(ierr);   ierr = STSetUp(pep->st);CHKERRQ(ierr);
+    ierr = PEPEvaluateBasis(pep,nzshift,0,pep->solvematcoeffs,NULL);CHKERRQ(ierr);
+    ierr = STSetUp(pep->st);CHKERRQ(ierr);
     ierr = STMatSetUp(pep->st,pep->sfactor,pep->solvematcoeffs);CHKERRQ(ierr);
     ierr = STGetKSP(pep->st,&ksp);CHKERRQ(ierr);
     ierr = KSPGetPC(ksp,&pc);CHKERRQ(ierr);
@@ -154,8 +162,40 @@ static PetscErrorCode PEPQSliceGetInertia(PEP pep,PetscReal shift,PetscInt *iner
     ierr = MatGetInertia(F,inertia,zeros,NULL);CHKERRQ(ierr);
   }
   if (!correction) {
-    /* TO DO */
-  } else if (correction<0 && inertia) *inertia = 2*pep->n-*inertia;
+    if (shift >= PETSC_MAX_REAL) *inertia = 2*pep->n;
+    else if (shift>PETSC_MIN_REAL) { 
+      ierr = KSPGetOperators(ksp,&P,NULL);CHKERRQ(ierr);
+      if (*inertia!=pep->n && !sr->v[0]) {
+        ierr = MatCreateVecs(P,&sr->v[0],NULL);CHKERRQ(ierr);
+        ierr = VecDuplicate(sr->v[0],&sr->v[1]);CHKERRQ(ierr);
+        ierr = VecDuplicate(sr->v[0],&sr->v[2]);CHKERRQ(ierr);
+        ierr = BVGetRandomContext(pep->V,&rand);CHKERRQ(ierr);
+        ierr = VecSetRandom(sr->v[0],rand);CHKERRQ(ierr);
+      }
+      if (*inertia<pep->n && *inertia>0) {
+        if (!sr->eps) {
+          ierr = EPSCreate(PetscObjectComm((PetscObject)pep),&sr->eps);CHKERRQ(ierr);
+          ierr = EPSSetProblemType(sr->eps,EPS_HEP);CHKERRQ(ierr);
+          ierr = EPSSetWhichEigenpairs(sr->eps,EPS_LARGEST_REAL);CHKERRQ(ierr);
+          ierr = EPSSetTolerances(sr->eps,1e-4,300);CHKERRQ(ierr);
+        }
+        ierr = EPSSetOperators(sr->eps,P,NULL);CHKERRQ(ierr);
+        ierr = EPSSolve(sr->eps);CHKERRQ(ierr);
+        ierr = EPSGetConverged(sr->eps,&nconv);CHKERRQ(ierr);
+        if (!nconv)SETERRQ1(((PetscObject)pep)->comm,PETSC_ERR_CONV_FAILED,"Inertia computation fails in %g",nzshift);
+        ierr = EPSGetEigenpair(sr->eps,0,NULL,NULL,sr->v[0],sr->v[1]);CHKERRQ(ierr); 
+      }
+      if (*inertia!=pep->n) {
+        ierr = MatMult(P,sr->v[0],sr->v[1]);CHKERRQ(ierr);
+        ierr = VecDot(sr->v[1],sr->v[0],&dot);CHKERRQ(ierr);
+        ierr = MatMult(pep->A[1],sr->v[0],sr->v[1]);CHKERRQ(ierr);
+        ierr = MatMult(pep->A[2],sr->v[0],sr->v[2]);CHKERRQ(ierr);
+        ierr = VecAXPY(sr->v[1],2*nzshift,sr->v[2]);CHKERRQ(ierr);
+        ierr = VecDot(sr->v[1],sr->v[0],&dot);CHKERRQ(ierr);
+        if (dot>0) *inertia = 2*pep->n-*inertia;
+      }
+    }
+  } else if (correction<0) *inertia = 2*pep->n-*inertia;
   PetscFunctionReturn(0);
 }
 
@@ -215,6 +255,7 @@ PetscErrorCode PEPSetUp_STOAR_QSlice(PEP pep)
   ierr = STSetUp(pep->st);CHKERRQ(ierr);
 
   /* compute inertia0 */
+  ierr = PetscOptionsGetBool(NULL,NULL,"-pep_hyperbolic",&ctx->hyperbolic,NULL);CHKERRQ(ierr);
   ierr = PEPQSliceGetInertia(pep,sr->int0,&sr->inertia0,ctx->detect?&zeros:NULL,ctx->hyperbolic?0:1);CHKERRQ(ierr);
   if (zeros && (sr->int0==pep->inta || sr->int0==pep->intb)) SETERRQ(((PetscObject)pep)->comm,PETSC_ERR_USER,"Found singular matrix for the transformed problem in the interval endpoint");
 
@@ -228,7 +269,8 @@ PetscErrorCode PEPSetUp_STOAR_QSlice(PEP pep)
       sr->inertia1 = 2*pep->n-sr->inertia1;
     } else sr->intcorr = 1;
   } else {
-    /* TO DO */
+    if (sr->inertia0<=pep->n && sr->inertia1<=pep->n) sr->intcorr = 1;
+    else if (sr->inertia0>=pep->n && sr->inertia1>=pep->n) sr->intcorr = -1;
   }
   
   if (sr->hasEnd) {
@@ -570,7 +612,7 @@ static PetscErrorCode PEPStoreEigenpairs(PEP pep)
   /* Check for completion */
   sPres->comp[0] = PetscNot(sPres->nconv[0] < sPres->nsch[0]);
   sPres->comp[1] = PetscNot(sPres->nconv[1] < sPres->nsch[1]);
-  if (sPres->nconv[0] > sPres->nsch[0] || sPres->nconv[1] > sPres->nsch[1]) SETERRQ(PetscObjectComm((PetscObject)pep),1,"Mismatch between number of values found and information from inertia, consider using EPSKrylovSchurSetDetectZeros()");
+  if (sPres->nconv[0] > sPres->nsch[0] || sPres->nconv[1] > sPres->nsch[1]) SETERRQ(PetscObjectComm((PetscObject)pep),1,"Mismatch between number of values found and information from inertia, consider using PEPKrylovSchurSetDetectZeros()");
   ierr = PetscFree4(eigr,errest,tS,aux);CHKERRQ(ierr);
   if (divide) { ierr = BVDestroy(&tV);CHKERRQ(ierr); }
   PetscFunctionReturn(0);
