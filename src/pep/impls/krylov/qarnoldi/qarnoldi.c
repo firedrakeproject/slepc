@@ -50,6 +50,7 @@ PetscErrorCode PEPSetUp_QArnoldi(PEP pep)
     if (sinv) pep->which = PEP_TARGET_MAGNITUDE;
     else pep->which = PEP_LARGEST_MAGNITUDE;
   }
+  if (pep->which==PEP_ALL) SETERRQ(PetscObjectComm((PetscObject)pep),1,"Wrong value of pep->which");
 
   if (pep->nmat!=3) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Solver only available for quadratic problems");
   if (pep->basis!=PEP_BASIS_MONOMIAL) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Solver not implemented for non-monomial bases");

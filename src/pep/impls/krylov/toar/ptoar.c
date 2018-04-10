@@ -63,6 +63,7 @@ PetscErrorCode PEPSetUp_TOAR(PEP pep)
     if (sinv) pep->which = PEP_TARGET_MAGNITUDE;
     else pep->which = PEP_LARGEST_MAGNITUDE;
   }
+  if (pep->which==PEP_ALL) SETERRQ(PetscObjectComm((PetscObject)pep),1,"Wrong value of pep->which");
   if (pep->problem_type!=PEP_GENERAL) {
     ierr = PetscInfo(pep,"Problem type ignored, performing a non-symmetric linearization\n");CHKERRQ(ierr);
   }

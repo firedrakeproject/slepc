@@ -276,6 +276,7 @@ PetscErrorCode PEPSetUp_Linear(PEP pep)
     if (sinv) pep->which = PEP_TARGET_MAGNITUDE;
     else pep->which = PEP_LARGEST_MAGNITUDE;
   }
+  if (pep->which==PEP_ALL) SETERRQ(PetscObjectComm((PetscObject)pep),1,"Wrong value of pep->which");
   ierr = STSetUp(pep->st);CHKERRQ(ierr);
   if (!ctx->eps) { ierr = PEPLinearGetEPS(pep,&ctx->eps);CHKERRQ(ierr); }
   ierr = EPSGetST(ctx->eps,&st);CHKERRQ(ierr);
