@@ -142,7 +142,7 @@ static PetscErrorCode PEPQSliceGetInertia(PEP pep,PetscReal shift,PetscInt *iner
   KSP            ksp;
   PC             pc;
   Mat            F,P;
-  PetscReal      nzshift;
+  PetscReal      nzshift=0.0;
   PetscScalar    dot;
   PetscRandom    rand;
   PetscInt       nconv;
@@ -190,7 +190,7 @@ static PetscErrorCode PEPQSliceGetInertia(PEP pep,PetscReal shift,PetscInt *iner
         ierr = EPSSetOperators(sr->eps,P,NULL);CHKERRQ(ierr);
         ierr = EPSSolve(sr->eps);CHKERRQ(ierr);
         ierr = EPSGetConverged(sr->eps,&nconv);CHKERRQ(ierr);
-        if (!nconv)SETERRQ1(((PetscObject)pep)->comm,PETSC_ERR_CONV_FAILED,"Inertia computation fails in %g",nzshift);
+        if (!nconv) SETERRQ1(((PetscObject)pep)->comm,PETSC_ERR_CONV_FAILED,"Inertia computation fails in %g",nzshift);
         ierr = EPSGetEigenpair(sr->eps,0,NULL,NULL,sr->v[0],sr->v[1]);CHKERRQ(ierr); 
       }
       if (*inertia!=pep->n) {
@@ -198,7 +198,7 @@ static PetscErrorCode PEPQSliceGetInertia(PEP pep,PetscReal shift,PetscInt *iner
         ierr = MatMult(pep->A[2],sr->v[0],sr->v[2]);CHKERRQ(ierr);
         ierr = VecAXPY(sr->v[1],2*nzshift,sr->v[2]);CHKERRQ(ierr);
         ierr = VecDot(sr->v[1],sr->v[0],&dot);CHKERRQ(ierr);
-        if (dot>0) *inertia = 2*pep->n-*inertia;
+        if (PetscRealPart(dot)>0.0) *inertia = 2*pep->n-*inertia;
       }
     }
   } else if (correction<0) *inertia = 2*pep->n-*inertia;
