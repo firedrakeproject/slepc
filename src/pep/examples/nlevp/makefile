@@ -23,7 +23,7 @@ TESTS      = acoustic_wave_1d acoustic_wave_2d butterfly damped_beam \
 TESTEXAMPLES_C                     = sleeper.PETSc runsleeper_1 sleeper.rm
 TESTEXAMPLES_C_NOTSINGLE           = damped_beam.PETSc rundamped_beam_1 damped_beam.rm \
                                      sleeper.PETSc runsleeper_2_toar runsleeper_3 sleeper.rm \
-                                     spring.PETSc runspring_1 spring.rm
+                                     spring.PETSc runspring_1 runspring_3 runspring_4 spring.rm
 TESTEXAMPLES_C_NOCOMPLEX           = butterfly.PETSc runbutterfly_1 butterfly.rm
 TESTEXAMPLES_C_DATAFILE            = butterfly.PETSc runbutterfly_2 butterfly.rm
 TESTEXAMPLES_C_NOCOMPLEX_NOTSINGLE = acoustic_wave_1d.PETSc runacoustic_wave_1d_1 runacoustic_wave_1d_2 \
@@ -172,6 +172,16 @@ runspring_1_%:
 runspring_2_jd:
 	-@${SETTEST}; check=spring_2; \
 	${MPIEXEC} -n 1 ./spring -pep_type jd -pep_nev 4 -n 24 -pep_ncv 18 -pep_target -50 -terse > $${test}.tmp 2>&1; \
+	${TESTCODE}
+
+runspring_3:
+	-@${SETTEST}; \
+	${MPIEXEC} -n 1 ./spring -n 300 -pep_hermitian -pep_interval -10.1,-9.5 -pep_type stoar -st_type sinvert -st_pc_type cholesky -terse > $${test}.tmp 2>&1; \
+	${TESTCODE}
+
+runspring_4:
+	-@${SETTEST}; \
+	${MPIEXEC} -n 1 ./spring -n 300 -pep_hermitian -pep_hyperbolic -pep_interval -9.6,-.527 -pep_type stoar -st_type sinvert -st_pc_type cholesky -terse > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
 runwiresaw_1: runwiresaw_1_toar runwiresaw_1_qarnoldi runwiresaw_1_linear_h1 runwiresaw_1_linear_h2

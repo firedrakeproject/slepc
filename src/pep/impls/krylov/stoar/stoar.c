@@ -517,6 +517,104 @@ PetscErrorCode PEPSTOARGetLocking(PEP pep,PetscBool *lock)
   PetscFunctionReturn(0);
 }
 
+static PetscErrorCode PEPSTOARGetInertias_STOAR(PEP pep,PetscInt *n,PetscReal **shifts,PetscInt **inertias)
+{
+  PetscErrorCode ierr;
+  PetscInt       i,numsh;
+  PEP_TOAR       *ctx = (PEP_TOAR*)pep->data;
+  PEP_SR         sr = ctx->sr;
+
+  PetscFunctionBegin;
+  if (!pep->state) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_WRONGSTATE,"Must call PEPSetUp() first");
+  if (!ctx->sr) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_WRONGSTATE,"Only available in interval computations, see PEPSetInterval()");
+  switch (pep->state) {
+  case PEP_STATE_INITIAL:
+    break;
+  case PEP_STATE_SETUP:
+    if (n) *n = 2;
+    if (shifts) {
+      ierr = PetscMalloc1(2,shifts);CHKERRQ(ierr);
+      (*shifts)[0] = pep->inta;
+      (*shifts)[1] = pep->intb;
+    }
+    if (inertias) {
+      ierr = PetscMalloc1(2,inertias);CHKERRQ(ierr);
+      (*inertias)[0] = (sr->dir==1)?sr->inertia0:sr->inertia1;
+      (*inertias)[1] = (sr->dir==1)?sr->inertia1:sr->inertia0;
+    }
+    break;
+  case PEP_STATE_SOLVED:
+  case PEP_STATE_EIGENVECTORS:
+    numsh = ctx->nshifts;
+    if (n) *n = numsh;
+    if (shifts) {
+      ierr = PetscMalloc1(numsh,shifts);CHKERRQ(ierr);
+      for (i=0;i<numsh;i++) (*shifts)[i] = ctx->shifts[i];
+    }
+    if (inertias) {
+      ierr = PetscMalloc1(numsh,inertias);CHKERRQ(ierr);
+      for (i=0;i<numsh;i++) (*inertias)[i] = ctx->inertias[i];
+    }
+    break;
+  }
+  PetscFunctionReturn(0);
+}
+
+/*@C
+   PEPSTOARGetInertias - Gets the values of the shifts and their
+   corresponding inertias in case of doing spectrum slicing for a
+   computational interval.
+
+   Not Collective
+
+   Input Parameter:
+.  pep - the eigenproblem solver context
+
+   Output Parameters:
++  n        - number of shifts, including the endpoints of the interval
+.  shifts   - the values of the shifts used internally in the solver
+-  inertias - the values of the inertia in each shift
+
+   Notes:
+   If called after PEPSolve(), all shifts used internally by the solver are
+   returned (including both endpoints and any intermediate ones). If called
+   before PEPSolve() and after PEPSetUp() then only the information of the
+   endpoints of subintervals is available.
+
+   This function is only available for spectrum slicing runs.
+
+   The returned arrays should be freed by the user. Can pass NULL in any of
+   the two arrays if not required.
+
+   Fortran Notes:
+   The calling sequence from Fortran is
+.vb
+   PEPSTOARGetInertias(pep,n,shifts,inertias,ierr)
+   integer n
+   double precision shifts(*)
+   integer inertias(*)
+.ve
+   The arrays should be at least of length n. The value of n can be determined
+   by an initial call
+.vb
+   PEPSTOARGetInertias(pep,n,PETSC_NULL_REAL,PETSC_NULL_INTEGER,ierr)
+.ve
+
+   Level: advanced
+
+.seealso: PEPSetInterval()
+@*/
+PetscErrorCode PEPSTOARGetInertias(PEP pep,PetscInt *n,PetscReal **shifts,PetscInt **inertias)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
+  PetscValidIntPointer(n,2);
+  ierr = PetscUseMethod(pep,"PEPSTOARGetInertias_C",(PEP,PetscInt*,PetscReal**,PetscInt**),(pep,n,shifts,inertias));CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
 static PetscErrorCode PEPSTOARSetDetectZeros_STOAR(PEP pep,PetscBool detect)
 {
   PEP_TOAR *ctx = (PEP_TOAR*)pep->data;
@@ -734,6 +832,7 @@ PetscErrorCode PEPDestroy_STOAR(PEP pep)
   ierr = PetscObjectComposeFunction((PetscObject)pep,"PEPSTOARGetLocking_C",NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)pep,"PEPSTOARSetDetectZeros_C",NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)pep,"PEPSTOARGetDetectZeros_C",NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)pep,"PEPSTOARGetInertias_C",NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)pep,"PEPSTOARGetDimensions_C",NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)pep,"PEPSTOARSetDimensions_C",NULL);CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -763,6 +862,7 @@ PETSC_EXTERN PetscErrorCode PEPCreate_STOAR(PEP pep)
   ierr = PetscObjectComposeFunction((PetscObject)pep,"PEPSTOARGetLocking_C",PEPSTOARGetLocking_STOAR);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)pep,"PEPSTOARSetDetectZeros_C",PEPSTOARSetDetectZeros_STOAR);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)pep,"PEPSTOARGetDetectZeros_C",PEPSTOARGetDetectZeros_STOAR);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)pep,"PEPSTOARGetInertias_C",PEPSTOARGetInertias_STOAR);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)pep,"PEPSTOARGetDimensions_C",PEPSTOARGetDimensions_STOAR);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)pep,"PEPSTOARSetDimensions_C",PEPSTOARSetDimensions_STOAR);CHKERRQ(ierr);
   PetscFunctionReturn(0);

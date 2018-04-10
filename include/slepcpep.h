@@ -319,6 +319,7 @@ PETSC_EXTERN PetscErrorCode PEPSTOARSetLocking(PEP,PetscBool);
 PETSC_EXTERN PetscErrorCode PEPSTOARGetLocking(PEP,PetscBool*);
 PETSC_EXTERN PetscErrorCode PEPSTOARSetDetectZeros(PEP,PetscBool);
 PETSC_EXTERN PetscErrorCode PEPSTOARGetDetectZeros(PEP,PetscBool*);
+PETSC_EXTERN PetscErrorCode PEPSTOARGetInertias(PEP,PetscInt*,PetscReal**,PetscInt**);
 PETSC_EXTERN PetscErrorCode PEPSTOARSetDimensions(PEP,PetscInt,PetscInt,PetscInt);
 PETSC_EXTERN PetscErrorCode PEPSTOARGetDimensions(PEP,PetscInt*,PetscInt*,PetscInt*);
 

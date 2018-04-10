@@ -186,8 +186,6 @@ static PetscErrorCode PEPQSliceGetInertia(PEP pep,PetscReal shift,PetscInt *iner
         ierr = EPSGetEigenpair(sr->eps,0,NULL,NULL,sr->v[0],sr->v[1]);CHKERRQ(ierr); 
       }
       if (*inertia!=pep->n) {
-        ierr = MatMult(P,sr->v[0],sr->v[1]);CHKERRQ(ierr);
-        ierr = VecDot(sr->v[1],sr->v[0],&dot);CHKERRQ(ierr);
         ierr = MatMult(pep->A[1],sr->v[0],sr->v[1]);CHKERRQ(ierr);
         ierr = MatMult(pep->A[2],sr->v[0],sr->v[2]);CHKERRQ(ierr);
         ierr = VecAXPY(sr->v[1],2*nzshift,sr->v[2]);CHKERRQ(ierr);
@@ -1016,7 +1014,7 @@ static PetscErrorCode PEPSTOAR_QSlice(PEP pep)
     pep->nconv = k;
     ierr = PEPMonitor(pep,pep->its,nconv,pep->eigr,pep->eigi,pep->errest,nv);CHKERRQ(ierr);
   }
-
+  sr->itsKs += pep->its;
   if (pep->nconv>0) {
     ierr = BVSetActiveColumns(ctx->V,0,pep->nconv);CHKERRQ(ierr);
     ierr = BVGetActiveColumns(pep->V,NULL,&nq);CHKERRQ(ierr);
@@ -1039,6 +1037,63 @@ static PetscErrorCode PEPSTOAR_QSlice(PEP pep)
   ierr = DSSetDimensions(pep->ds,pep->nconv,0,0,0);CHKERRQ(ierr);
   ierr = DSSetState(pep->ds,DS_STATE_RAW);CHKERRQ(ierr);
   ierr = PetscFree(back);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#define SWAP(a,b,t) {t=a;a=b;b=t;}
+
+static PetscErrorCode PEPQSliceGetInertias(PEP pep,PetscInt *n,PetscReal **shifts,PetscInt **inertias)
+{
+  PetscErrorCode  ierr;
+  PEP_TOAR       *ctx=(PEP_TOAR*)pep->data;
+  PEP_SR          sr=ctx->sr;
+  PetscInt        i=0,j,tmpi;
+  PetscReal       v,tmpr;
+  PEP_shift       s;
+
+  PetscFunctionBegin;
+  if (!pep->state) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_WRONGSTATE,"Must call PEPSetUp() first");
+  if (!sr) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_WRONGSTATE,"Only available in interval computations, see PEPSetInterval()");
+  if (!sr->s0) {  /* PEPSolve not called yet */
+    *n = 2;
+  } else {
+    *n = 1;
+    s = sr->s0;
+    while (s) {
+      (*n)++;
+      s = s->neighb[1];
+    }
+  }
+  ierr = PetscMalloc1(*n,shifts);CHKERRQ(ierr);
+  ierr = PetscMalloc1(*n,inertias);CHKERRQ(ierr);
+  if (!sr->s0) {  /* PEPSolve not called yet */
+    (*shifts)[0]   = sr->int0;
+    (*shifts)[1]   = sr->int1;
+    (*inertias)[0] = sr->inertia0;
+    (*inertias)[1] = sr->inertia1;
+  } else {
+    s = sr->s0;
+    while (s) {
+      (*shifts)[i]     = s->value;
+      (*inertias)[i++] = s->inertia;
+      s = s->neighb[1];
+    }
+    (*shifts)[i]   = sr->int1;
+    (*inertias)[i] = sr->inertia1;
+  }
+  /* remove possible duplicate in last position */
+  if ((*shifts)[(*n)-1]==(*shifts)[(*n)-2]) (*n)--;
+  /* sort result */
+  for (i=0;i<*n;i++) {
+    v = (*shifts)[i];
+    for (j=i+1;j<*n;j++) {
+      if (v > (*shifts)[j]) {
+        SWAP((*shifts)[i],(*shifts)[j],tmpr);
+        SWAP((*inertias)[i],(*inertias)[j],tmpi);
+        v = (*shifts)[i];
+      }
+    }
+  }
   PetscFunctionReturn(0);
 }
 
@@ -1110,6 +1165,7 @@ PetscErrorCode PEPSolve_STOAR_QSlice(PEP pep)
   pep->nconv  = sr->indexEig;
   pep->reason = PEP_CONVERGED_TOL;
   pep->its    = sr->itsKs;
+  pep->nev    = sr->indexEig;
   ierr = MatCreateSeqDense(PETSC_COMM_SELF,pep->nconv,pep->nconv,NULL,&S);CHKERRQ(ierr);
   ierr = MatDenseGetArray(S,&pS);CHKERRQ(ierr);
   for (i=0;i<pep->nconv;i++) {
@@ -1131,6 +1187,9 @@ PetscErrorCode PEPSolve_STOAR_QSlice(PEP pep)
       ti = sr->perm[i]; sr->perm[i] = sr->perm[pep->nconv-1-i]; sr->perm[pep->nconv-1-i] = ti;
     }
   }
+  ierr = PetscFree(ctx->inertias);CHKERRQ(ierr);
+  ierr = PetscFree(ctx->shifts);CHKERRQ(ierr);
+  ierr = PEPQSliceGetInertias(pep,&ctx->nshifts,&ctx->shifts,&ctx->inertias);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
