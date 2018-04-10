@@ -261,7 +261,7 @@ PetscErrorCode PEPSetUp_STOAR_QSlice(PEP pep)
   ierr = STSetUp(pep->st);CHKERRQ(ierr);
 
   /* compute inertia0 */
-  ierr = PetscOptionsGetBool(NULL,NULL,"-pep_hyperbolic",&ctx->hyperbolic,NULL);CHKERRQ(ierr);
+  ctx->hyperbolic = (pep->problem_type==PEP_HYPERBOLIC)? PETSC_TRUE: PETSC_FALSE;
   ierr = PEPQSliceGetInertia(pep,sr->int0,&sr->inertia0,ctx->detect?&zeros:NULL,ctx->hyperbolic?0:1);CHKERRQ(ierr);
   if (zeros && (sr->int0==pep->inta || sr->int0==pep->intb)) SETERRQ(((PetscObject)pep)->comm,PETSC_ERR_USER,"Found singular matrix for the transformed problem in the interval endpoint");
 

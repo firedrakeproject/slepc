@@ -75,7 +75,7 @@ PetscErrorCode PEPSetUp_STOAR(PEP pep)
   BVOrthogBlockType obtype;
 
   PetscFunctionBegin;
-  if (pep->problem_type!=PEP_HERMITIAN) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Requested method is only available for Hermitian problems");
+  if (pep->problem_type!=PEP_HERMITIAN && pep->problem_type!=PEP_HYPERBOLIC) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Requested method is only available for Hermitian (or hyperbolic) problems");
   if (pep->nmat!=3) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Solver only available for quadratic problems");
   if (pep->basis!=PEP_BASIS_MONOMIAL) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Solver not implemented for non-monomial bases");
   /* spectrum slicing requires special treatment of default values */

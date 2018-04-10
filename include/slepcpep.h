@@ -53,6 +53,7 @@ PETSC_EXTERN PetscClassId PEP_CLASSID;
 E*/
 typedef enum { PEP_GENERAL=1,
                PEP_HERMITIAN,   /* All A_i  Hermitian */
+               PEP_HYPERBOLIC,  /* QEP with Hermitian matrices, M>0, (x'Cx)^2 > 4(x'Mx)(x'Kx) */
                PEP_GYROSCOPIC   /* QEP with M, K  Hermitian, M>0, C skew-Hermitian */
              } PEPProblemType;
 

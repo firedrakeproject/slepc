@@ -307,7 +307,8 @@ PetscErrorCode PEPSetUp_Linear(PEP pep)
 
     switch (pep->problem_type) {
       case PEP_GENERAL:    i = 0; break;
-      case PEP_HERMITIAN:  i = 2; break;
+      case PEP_HERMITIAN:
+      case PEP_HYPERBOLIC: i = 2; break;
       case PEP_GYROSCOPIC: i = 4; break;
     }
     i += ctx->cform-1;

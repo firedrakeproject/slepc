@@ -181,7 +181,7 @@ runspring_3:
 
 runspring_4:
 	-@${SETTEST}; \
-	${MPIEXEC} -n 1 ./spring -n 300 -pep_hermitian -pep_hyperbolic -pep_interval -9.6,-.527 -pep_type stoar -st_type sinvert -st_pc_type cholesky -terse > $${test}.tmp 2>&1; \
+	${MPIEXEC} -n 1 ./spring -n 300 -pep_hyperbolic -pep_interval -9.6,-.527 -pep_type stoar -st_type sinvert -st_pc_type cholesky -terse > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
 runwiresaw_1: runwiresaw_1_toar runwiresaw_1_qarnoldi runwiresaw_1_linear_h1 runwiresaw_1_linear_h2

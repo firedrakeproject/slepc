@@ -132,6 +132,8 @@ PetscErrorCode PEPSetFromOptions(PEP pep)
     if (flg) { ierr = PEPSetProblemType(pep,PEP_GENERAL);CHKERRQ(ierr); }
     ierr = PetscOptionsBoolGroup("-pep_hermitian","Hermitian polynomial eigenvalue problem","PEPSetProblemType",&flg);CHKERRQ(ierr);
     if (flg) { ierr = PEPSetProblemType(pep,PEP_HERMITIAN);CHKERRQ(ierr); }
+    ierr = PetscOptionsBoolGroup("-pep_hyperbolic","Hyperbolic polynomial eigenvalue problem","PEPSetProblemType",&flg);CHKERRQ(ierr);
+    if (flg) { ierr = PEPSetProblemType(pep,PEP_HYPERBOLIC);CHKERRQ(ierr); }
     ierr = PetscOptionsBoolGroupEnd("-pep_gyroscopic","Gyroscopic polynomial eigenvalue problem","PEPSetProblemType",&flg);CHKERRQ(ierr);
     if (flg) { ierr = PEPSetProblemType(pep,PEP_GYROSCOPIC);CHKERRQ(ierr); }
 
@@ -608,18 +610,21 @@ PetscErrorCode PEPSetEigenvalueComparison(PEP pep,PetscErrorCode (*func)(PetscSc
    Options Database Keys:
 +  -pep_general - general problem with no particular structure
 .  -pep_hermitian - problem whose coefficient matrices are Hermitian
+.  -pep_hyperbolic - Hermitian problem that satisfies the definition of hyperbolic
 -  -pep_gyroscopic - problem with Hamiltonian structure
 
    Notes:
    Allowed values for the problem type are: general (PEP_GENERAL), Hermitian
-   (PEP_HERMITIAN), and gyroscopic (PEP_GYROSCOPIC).
+   (PEP_HERMITIAN), hyperbolic (PEP_HYPERBOLIC), and gyroscopic (PEP_GYROSCOPIC).
 
    This function is used to instruct SLEPc to exploit certain structure in
    the polynomial eigenproblem. By default, no particular structure is assumed.
 
    If the problem matrices are Hermitian (symmetric in the real case) or
    Hermitian/skew-Hermitian then the solver can exploit this fact to perform
-   less operations or provide better stability.
+   less operations or provide better stability. Hyperbolic problems are a
+   particular case of Hermitian problems, some solvers may treat them simply as
+   Hermitian.
 
    Level: intermediate
 
@@ -630,7 +635,7 @@ PetscErrorCode PEPSetProblemType(PEP pep,PEPProblemType type)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
   PetscValidLogicalCollectiveEnum(pep,type,2);
-  if (type!=PEP_GENERAL && type!=PEP_HERMITIAN && type!=PEP_GYROSCOPIC) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_WRONG,"Unknown eigenvalue problem type");
+  if (type!=PEP_GENERAL && type!=PEP_HERMITIAN && type!=PEP_HYPERBOLIC && type!=PEP_GYROSCOPIC) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_WRONG,"Unknown eigenvalue problem type");
   if (type != pep->problem_type) {
     pep->problem_type = type;
     pep->state = PEP_STATE_INITIAL;

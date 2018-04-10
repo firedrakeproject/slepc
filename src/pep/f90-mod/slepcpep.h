@@ -34,11 +34,13 @@
 
       PetscEnum PEP_GENERAL
       PetscEnum PEP_HERMITIAN
+      PetscEnum PEP_HYPERBOLIC
       PetscEnum PEP_GYROSCOPIC
 
       parameter (PEP_GENERAL                =  1)
       parameter (PEP_HERMITIAN              =  2)
-      parameter (PEP_GYROSCOPIC             =  3)
+      parameter (PEP_HYPERBOLIC             =  3)
+      parameter (PEP_GYROSCOPIC             =  4)
 
       PetscEnum PEP_LARGEST_MAGNITUDE
       PetscEnum PEP_SMALLEST_MAGNITUDE

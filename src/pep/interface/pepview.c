@@ -75,6 +75,7 @@ PetscErrorCode PEPView(PEP pep,PetscViewer viewer)
       switch (pep->problem_type) {
         case PEP_GENERAL:    type = "general polynomial eigenvalue problem"; break;
         case PEP_HERMITIAN:  type = HERM " polynomial eigenvalue problem"; break;
+        case PEP_HYPERBOLIC: type = "hyperbolic polynomial eigenvalue problem"; break;
         case PEP_GYROSCOPIC: type = "gyroscopic polynomial eigenvalue problem"; break;
       }
     } else type = "not yet set";
