@@ -128,6 +128,14 @@ static PetscErrorCode PEPQSliceAllocateSolution(PEP pep)
   PetscFunctionReturn(0);
 }
 
+/* Convergence test to compute positive Ritz values */
+static PetscErrorCode ConvergedPositive(EPS eps,PetscScalar eigr,PetscScalar eigi,PetscReal res,PetscReal *errest,void *ctx)
+{
+  PetscFunctionBegin;
+  *errest = (PetscRealPart(eigr)>0.0)?0.0:res;
+  PetscFunctionReturn(0);
+}
+
 static PetscErrorCode PEPQSliceGetInertia(PEP pep,PetscReal shift,PetscInt *inertia,PetscInt *zeros,PetscInt correction)
 {
   PetscErrorCode ierr;
@@ -177,7 +185,7 @@ static PetscErrorCode PEPQSliceGetInertia(PEP pep,PetscReal shift,PetscInt *iner
           ierr = EPSCreate(PetscObjectComm((PetscObject)pep),&sr->eps);CHKERRQ(ierr);
           ierr = EPSSetProblemType(sr->eps,EPS_HEP);CHKERRQ(ierr);
           ierr = EPSSetWhichEigenpairs(sr->eps,EPS_LARGEST_REAL);CHKERRQ(ierr);
-          ierr = EPSSetTolerances(sr->eps,1e-4,300);CHKERRQ(ierr);
+          ierr = EPSSetConvergenceTestFunction(sr->eps,ConvergedPositive,NULL,NULL);CHKERRQ(ierr);
         }
         ierr = EPSSetOperators(sr->eps,P,NULL);CHKERRQ(ierr);
         ierr = EPSSolve(sr->eps);CHKERRQ(ierr);
