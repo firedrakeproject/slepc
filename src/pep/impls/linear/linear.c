@@ -276,6 +276,7 @@ PetscErrorCode PEPSetUp_Linear(PEP pep)
     if (sinv) pep->which = PEP_TARGET_MAGNITUDE;
     else pep->which = PEP_LARGEST_MAGNITUDE;
   }
+  if (pep->which==PEP_ALL) SETERRQ(PetscObjectComm((PetscObject)pep),1,"Wrong value of pep->which");
   ierr = STSetUp(pep->st);CHKERRQ(ierr);
   if (!ctx->eps) { ierr = PEPLinearGetEPS(pep,&ctx->eps);CHKERRQ(ierr); }
   ierr = EPSGetST(ctx->eps,&st);CHKERRQ(ierr);
@@ -306,7 +307,8 @@ PetscErrorCode PEPSetUp_Linear(PEP pep)
 
     switch (pep->problem_type) {
       case PEP_GENERAL:    i = 0; break;
-      case PEP_HERMITIAN:  i = 2; break;
+      case PEP_HERMITIAN:
+      case PEP_HYPERBOLIC: i = 2; break;
       case PEP_GYROSCOPIC: i = 4; break;
     }
     i += ctx->cform-1;
@@ -386,6 +388,7 @@ PetscErrorCode PEPSetUp_Linear(PEP pep)
           case PEP_TARGET_MAGNITUDE:   which = EPS_TARGET_MAGNITUDE; break;
           case PEP_TARGET_REAL:        which = EPS_TARGET_REAL; break;
           case PEP_TARGET_IMAGINARY:   which = EPS_TARGET_IMAGINARY; break;
+          case PEP_ALL:                which = EPS_ALL; break;
           case PEP_WHICH_USER:         which = EPS_WHICH_USER;
             ierr = EPSSetEigenvalueComparison(ctx->eps,pep->sc->comparison,pep->sc->comparisonctx);CHKERRQ(ierr);
             break;

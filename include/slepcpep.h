@@ -53,6 +53,7 @@ PETSC_EXTERN PetscClassId PEP_CLASSID;
 E*/
 typedef enum { PEP_GENERAL=1,
                PEP_HERMITIAN,   /* All A_i  Hermitian */
+               PEP_HYPERBOLIC,  /* QEP with Hermitian matrices, M>0, (x'Cx)^2 > 4(x'Mx)(x'Kx) */
                PEP_GYROSCOPIC   /* QEP with M, K  Hermitian, M>0, C skew-Hermitian */
              } PEPProblemType;
 
@@ -72,6 +73,7 @@ typedef enum { PEP_LARGEST_MAGNITUDE=1,
                PEP_TARGET_MAGNITUDE,
                PEP_TARGET_REAL,
                PEP_TARGET_IMAGINARY,
+               PEP_ALL,
                PEP_WHICH_USER } PEPWhich;
 
 /*E
@@ -204,6 +206,8 @@ PETSC_EXTERN PetscErrorCode PEPGetOperators(PEP,PetscInt,Mat*);
 PETSC_EXTERN PetscErrorCode PEPGetNumMatrices(PEP,PetscInt*);
 PETSC_EXTERN PetscErrorCode PEPSetTarget(PEP,PetscScalar);
 PETSC_EXTERN PetscErrorCode PEPGetTarget(PEP,PetscScalar*);
+PETSC_EXTERN PetscErrorCode PEPSetInterval(PEP,PetscReal,PetscReal);
+PETSC_EXTERN PetscErrorCode PEPGetInterval(PEP,PetscReal*,PetscReal*);
 PETSC_EXTERN PetscErrorCode PEPSetFromOptions(PEP);
 PETSC_EXTERN PetscErrorCode PEPSetUp(PEP);
 PETSC_EXTERN PetscErrorCode PEPSolve(PEP);
@@ -314,6 +318,11 @@ PETSC_EXTERN PetscErrorCode PEPTOARGetLocking(PEP,PetscBool*);
 
 PETSC_EXTERN PetscErrorCode PEPSTOARSetLocking(PEP,PetscBool);
 PETSC_EXTERN PetscErrorCode PEPSTOARGetLocking(PEP,PetscBool*);
+PETSC_EXTERN PetscErrorCode PEPSTOARSetDetectZeros(PEP,PetscBool);
+PETSC_EXTERN PetscErrorCode PEPSTOARGetDetectZeros(PEP,PetscBool*);
+PETSC_EXTERN PetscErrorCode PEPSTOARGetInertias(PEP,PetscInt*,PetscReal**,PetscInt**);
+PETSC_EXTERN PetscErrorCode PEPSTOARSetDimensions(PEP,PetscInt,PetscInt,PetscInt);
+PETSC_EXTERN PetscErrorCode PEPSTOARGetDimensions(PEP,PetscInt*,PetscInt*,PetscInt*);
 
 PETSC_EXTERN PetscErrorCode PEPJDSetRestart(PEP,PetscReal);
 PETSC_EXTERN PetscErrorCode PEPJDGetRestart(PEP,PetscReal*);

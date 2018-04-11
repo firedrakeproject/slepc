@@ -191,6 +191,10 @@ PetscErrorCode PEPSetUp(PEP pep)
       pep->sc->comparisonctx = &pep->target;
 #endif
       break;
+    case PEP_ALL:
+      pep->sc->comparison    = SlepcCompareSmallestReal;
+      pep->sc->comparisonctx = NULL;
+      break;
     case PEP_WHICH_USER:
       break;
   }
@@ -198,14 +202,15 @@ PetscErrorCode PEPSetUp(PEP pep)
   pep->sc->mapobj = NULL;
 
   /* fill sorting criterion for DS */
-  ierr = DSGetSlepcSC(pep->ds,&sc);CHKERRQ(ierr);
-  ierr = RGIsTrivial(pep->rg,&istrivial);CHKERRQ(ierr);
-  sc->rg            = istrivial? NULL: pep->rg;
-  sc->comparison    = pep->sc->comparison;
-  sc->comparisonctx = pep->sc->comparisonctx;
-  sc->map           = SlepcMap_ST;
-  sc->mapobj        = (PetscObject)pep->st;
-
+  if (pep->which!=PEP_ALL) {
+    ierr = DSGetSlepcSC(pep->ds,&sc);CHKERRQ(ierr);
+    ierr = RGIsTrivial(pep->rg,&istrivial);CHKERRQ(ierr);
+    sc->rg            = istrivial? NULL: pep->rg;
+    sc->comparison    = pep->sc->comparison;
+    sc->comparisonctx = pep->sc->comparisonctx;
+    sc->map           = SlepcMap_ST;
+    sc->mapobj        = (PetscObject)pep->st;
+  }
   /* setup ST */
   ierr = STSetUp(pep->st);CHKERRQ(ierr);
 

@@ -8,18 +8,14 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
+#requiresdefine   'PETSC_HAVE_FORTRAN'
 ALL: lib
-
 CFLAGS   =
 FFLAGS   =
-SOURCEC  = stoar.c qslice.c
+SOURCEC  = zstoarf.c
 SOURCEF  =
 SOURCEH  =
-LIBBASE  = libslepcpep
 DIRS     =
-MANSEC   = PEP
-LOCDIR   = src/pep/impls/krylov/stoar/
-
+LIBBASE  = libslepcpep
+LOCDIR   = src/pep/impls/krylov/stoar/ftn-custom/
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common
-
-

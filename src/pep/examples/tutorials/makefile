@@ -13,10 +13,11 @@ FFLAGS     =
 CPPFLAGS   =
 FPPFLAGS   =
 LOCDIR     = src/pep/examples/tutorials/
-EXAMPLESC  = ex16.c ex17.c ex28.c
+EXAMPLESC  = ex16.c ex17.c ex28.c ex38.c
 EXAMPLESF  = ex16f90.F90
 MANSEC     = PEP
 
+TESTEXAMPLES_C_NOTSINGLE           = ex38.PETSc runex38_1 ex38.rm
 TESTEXAMPLES_C_NOCOMPLEX_NOTSINGLE = ex28.PETSc runex28_1 ex28.rm \
                                      ex16.PETSc runex16_1_stoar runex16_1_linear_symm ex16.rm
 TESTEXAMPLES_C_NOCOMPLEX           = ex16.PETSc runex16_1 ex16.rm
@@ -40,6 +41,10 @@ ex17: ex17.o chkopts
 ex28: ex28.o chkopts
 	-${CLINKER} -o ex28 ex28.o ${SLEPC_PEP_LIB}
 	${RM} ex28.o
+
+ex38: ex38.o chkopts
+	-${CLINKER} -o ex38 ex38.o ${SLEPC_PEP_LIB}
+	${RM} ex38.o
 
 #------------------------------------------------------------------------------------
 DATAPATH = ${SLEPC_DIR}/share/slepc/datafiles/matrices
@@ -67,5 +72,10 @@ runex28_1: runex28_1_toar runex28_1_qarnoldi runex28_1_linear
 runex28_1_%:
 	-@${SETTEST}; check=ex28_1; pep=$*; \
 	${MPIEXEC} -n 1 ./ex28 -pep_nev 4 -terse > $${test}.tmp 2>&1; \
+	${TESTCODE}
+
+runex38_1:
+	-@${SETTEST}; \
+	${MPIEXEC} -n 1 ./ex38 -terse > $${test}.tmp 2>&1; \
 	${TESTCODE}
 

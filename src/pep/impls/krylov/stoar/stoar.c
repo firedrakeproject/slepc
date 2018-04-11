@@ -20,7 +20,7 @@
 
        [1] C. Campos and J.E. Roman, "Restarted Q-Arnoldi-type methods
            exploiting symmetry in quadratic eigenvalue problems", BIT
-           Numer. Math. (in press), 2016.
+           Numer. Math. 56(4):1213-1236, 2016.
 */
 
 #include <slepc/private/pepimpl.h>         /*I "slepcpep.h" I*/
@@ -41,12 +41,7 @@ static const char citation[] =
   "}\n";
 
 
-typedef struct {
-  PetscScalar scal;
-  Mat         A;
-} ShellMatCtx;
-
-static PetscErrorCode MatMult_Func(Mat A,Vec x,Vec y)
+PetscErrorCode MatMult_Func(Mat A,Vec x,Vec y)
 {
   PetscErrorCode ierr;
   ShellMatCtx    *ctx;
@@ -58,7 +53,7 @@ static PetscErrorCode MatMult_Func(Mat A,Vec x,Vec y)
   PetscFunctionReturn(0);
 }
 
-static PetscErrorCode MatDestroy_Func(Mat A)
+PetscErrorCode MatDestroy_Func(Mat A)
 {
   ShellMatCtx    *ctx;
   PetscErrorCode ierr;
@@ -80,11 +75,30 @@ PetscErrorCode PEPSetUp_STOAR(PEP pep)
   BVOrthogBlockType obtype;
 
   PetscFunctionBegin;
-  pep->lineariz = PETSC_TRUE;
-  ierr = PEPSetDimensions_Default(pep,pep->nev,&pep->ncv,&pep->mpd);CHKERRQ(ierr);
-  if (!ctx->lock && pep->mpd<pep->ncv) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Should not use mpd parameter in non-locking variant");
-  if (!pep->max_it) pep->max_it = PetscMax(100,2*(pep->nmat-1)*pep->n/pep->ncv);
+  if (pep->problem_type!=PEP_HERMITIAN && pep->problem_type!=PEP_HYPERBOLIC) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Requested method is only available for Hermitian (or hyperbolic) problems");
+  if (pep->nmat!=3) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Solver only available for quadratic problems");
+  if (pep->basis!=PEP_BASIS_MONOMIAL) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Solver not implemented for non-monomial bases");
+  /* spectrum slicing requires special treatment of default values */
+  if (pep->which==PEP_ALL) {
+    if (pep->stopping!=PEPStoppingBasic) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Spectrum slicing does not support user-defined stopping test");
+    pep->ops->solve = PEPSolve_STOAR_QSlice;
+    pep->ops->extractvectors = NULL;
+    pep->ops->setdefaultst   = NULL;
+    ierr = PEPSetUp_STOAR_QSlice(pep);CHKERRQ(ierr);
+  } else {
+    ierr = PEPSetDimensions_Default(pep,pep->nev,&pep->ncv,&pep->mpd);CHKERRQ(ierr);
+    if (!ctx->lock && pep->mpd<pep->ncv) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Should not use mpd parameter in non-locking variant");
+    if (!pep->max_it) pep->max_it = PetscMax(100,2*(pep->nmat-1)*pep->n/pep->ncv);
+    pep->ops->solve = PEPSolve_STOAR;
+    ld   = pep->ncv+2;
+    ierr = DSSetType(pep->ds,DSGHIEP);CHKERRQ(ierr);
+    ierr = DSSetCompact(pep->ds,PETSC_TRUE);CHKERRQ(ierr);
+    ierr = DSAllocate(pep->ds,ld);CHKERRQ(ierr);
+    ierr = STGetTransform(pep->st,&flg);CHKERRQ(ierr);
+    if (!flg) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Solver requires the ST transformation flag set, see STSetTransform()");
+  }
 
+  pep->lineariz = PETSC_TRUE;
   ierr = PetscObjectTypeCompare((PetscObject)pep->st,STSHIFT,&shift);CHKERRQ(ierr);
   ierr = PetscObjectTypeCompare((PetscObject)pep->st,STSINVERT,&sinv);CHKERRQ(ierr);
   if (!shift && !sinv) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Only STSHIFT and STSINVERT spectral transformations can be used");
@@ -92,23 +106,15 @@ PetscErrorCode PEPSetUp_STOAR(PEP pep)
     if (sinv) pep->which = PEP_TARGET_MAGNITUDE;
     else pep->which = PEP_LARGEST_MAGNITUDE;
   }
-  if (pep->problem_type!=PEP_HERMITIAN) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Requested method is only available for Hermitian problems");
 
-  if (pep->nmat!=3) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Solver only available for quadratic problems");
-  if (pep->basis!=PEP_BASIS_MONOMIAL) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Solver not implemented for non-monomial bases");
-  ierr = STGetTransform(pep->st,&flg);CHKERRQ(ierr);
-  if (!flg) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Solver requires the ST transformation flag set, see STSetTransform()");
 
   ierr = PEPAllocateSolution(pep,2);CHKERRQ(ierr);
   ierr = PEPSetWorkVecs(pep,4);CHKERRQ(ierr);
-  ld   = pep->ncv+2;
-  ierr = DSSetType(pep->ds,DSGHIEP);CHKERRQ(ierr);
-  ierr = DSSetCompact(pep->ds,PETSC_TRUE);CHKERRQ(ierr);
-  ierr = DSAllocate(pep->ds,ld);CHKERRQ(ierr);
   ierr = BVDestroy(&ctx->V);CHKERRQ(ierr);
   ierr = BVCreateTensor(pep->V,pep->nmat-1,&ctx->V);CHKERRQ(ierr);
   ierr = BVGetOrthogonalization(pep->V,&otype,NULL,&eta,&obtype);CHKERRQ(ierr);
-  ierr = BVSetOrthogonalization(ctx->V,otype,BV_ORTHOG_REFINE_ALWAYS,eta,obtype);CHKERRQ(ierr);  PetscFunctionReturn(0);
+  ierr = BVSetOrthogonalization(ctx->V,otype,BV_ORTHOG_REFINE_ALWAYS,eta,obtype);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
 }
 
 /*
@@ -408,13 +414,26 @@ PetscErrorCode PEPSolve_STOAR(PEP pep)
 PetscErrorCode PEPSetFromOptions_STOAR(PetscOptionItems *PetscOptionsObject,PEP pep)
 {
   PetscErrorCode ierr;
-  PetscBool      flg,lock;
+  PetscBool      flg,lock,b,f1,f2,f3;
+  PetscInt       i,j,k;
+  PEP_TOAR *ctx = (PEP_TOAR*)pep->data;
 
   PetscFunctionBegin;
   ierr = PetscOptionsHead(PetscOptionsObject,"PEP STOAR Options");CHKERRQ(ierr);
 
-    ierr = PetscOptionsBool("-pep_stoar_locking","Choose between locking and non-locking variants","PEPSTOARSetLocking",PETSC_FALSE,&lock,&flg);CHKERRQ(ierr);
-    if (flg) { ierr = PEPSTOARSetLocking(pep,lock);CHKERRQ(ierr); }
+  ierr = PetscOptionsBool("-pep_stoar_locking","Choose between locking and non-locking variants","PEPSTOARSetLocking",PETSC_FALSE,&lock,&flg);CHKERRQ(ierr);
+  if (flg) { ierr = PEPSTOARSetLocking(pep,lock);CHKERRQ(ierr); }
+
+  b = ctx->detect;
+  ierr = PetscOptionsBool("-pep_stoar_detect_zeros","Check zeros during factorizations at interval boundaries","PEPSTOARSetDetectZeros",ctx->detect,&b,&flg);CHKERRQ(ierr);
+  if (flg) { ierr = PEPSTOARSetDetectZeros(pep,b);CHKERRQ(ierr); }
+
+  i = 1;
+  j = k = PETSC_DECIDE;
+  ierr = PetscOptionsInt("-pep_stoar_nev","Number of eigenvalues to compute in each subsolve (only for spectrum slicing)","PEPSTOARSetDimensions",20,&i,&f1);CHKERRQ(ierr);
+  ierr = PetscOptionsInt("-pep_stoar_ncv","Number of basis vectors in each subsolve (only for spectrum slicing)","PEPSTOARSetDimensions",40,&j,&f2);CHKERRQ(ierr);
+  ierr = PetscOptionsInt("-pep_stoar_mpd","Maximum dimension of projected problem in each subsolve (only for spectrum slicing)","PEPSTOARSetDimensions",40,&k,&f3);CHKERRQ(ierr);
+  if (f1 || f2 || f3) { ierr = PEPSTOARSetDimensions(pep,i,j,k);CHKERRQ(ierr); }
 
   ierr = PetscOptionsTail();CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -498,6 +517,284 @@ PetscErrorCode PEPSTOARGetLocking(PEP pep,PetscBool *lock)
   PetscFunctionReturn(0);
 }
 
+static PetscErrorCode PEPSTOARGetInertias_STOAR(PEP pep,PetscInt *n,PetscReal **shifts,PetscInt **inertias)
+{
+  PetscErrorCode ierr;
+  PetscInt       i,numsh;
+  PEP_TOAR       *ctx = (PEP_TOAR*)pep->data;
+  PEP_SR         sr = ctx->sr;
+
+  PetscFunctionBegin;
+  if (!pep->state) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_WRONGSTATE,"Must call PEPSetUp() first");
+  if (!ctx->sr) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_WRONGSTATE,"Only available in interval computations, see PEPSetInterval()");
+  switch (pep->state) {
+  case PEP_STATE_INITIAL:
+    break;
+  case PEP_STATE_SETUP:
+    if (n) *n = 2;
+    if (shifts) {
+      ierr = PetscMalloc1(2,shifts);CHKERRQ(ierr);
+      (*shifts)[0] = pep->inta;
+      (*shifts)[1] = pep->intb;
+    }
+    if (inertias) {
+      ierr = PetscMalloc1(2,inertias);CHKERRQ(ierr);
+      (*inertias)[0] = (sr->dir==1)?sr->inertia0:sr->inertia1;
+      (*inertias)[1] = (sr->dir==1)?sr->inertia1:sr->inertia0;
+    }
+    break;
+  case PEP_STATE_SOLVED:
+  case PEP_STATE_EIGENVECTORS:
+    numsh = ctx->nshifts;
+    if (n) *n = numsh;
+    if (shifts) {
+      ierr = PetscMalloc1(numsh,shifts);CHKERRQ(ierr);
+      for (i=0;i<numsh;i++) (*shifts)[i] = ctx->shifts[i];
+    }
+    if (inertias) {
+      ierr = PetscMalloc1(numsh,inertias);CHKERRQ(ierr);
+      for (i=0;i<numsh;i++) (*inertias)[i] = ctx->inertias[i];
+    }
+    break;
+  }
+  PetscFunctionReturn(0);
+}
+
+/*@C
+   PEPSTOARGetInertias - Gets the values of the shifts and their
+   corresponding inertias in case of doing spectrum slicing for a
+   computational interval.
+
+   Not Collective
+
+   Input Parameter:
+.  pep - the eigenproblem solver context
+
+   Output Parameters:
++  n        - number of shifts, including the endpoints of the interval
+.  shifts   - the values of the shifts used internally in the solver
+-  inertias - the values of the inertia in each shift
+
+   Notes:
+   If called after PEPSolve(), all shifts used internally by the solver are
+   returned (including both endpoints and any intermediate ones). If called
+   before PEPSolve() and after PEPSetUp() then only the information of the
+   endpoints of subintervals is available.
+
+   This function is only available for spectrum slicing runs.
+
+   The returned arrays should be freed by the user. Can pass NULL in any of
+   the two arrays if not required.
+
+   Fortran Notes:
+   The calling sequence from Fortran is
+.vb
+   PEPSTOARGetInertias(pep,n,shifts,inertias,ierr)
+   integer n
+   double precision shifts(*)
+   integer inertias(*)
+.ve
+   The arrays should be at least of length n. The value of n can be determined
+   by an initial call
+.vb
+   PEPSTOARGetInertias(pep,n,PETSC_NULL_REAL,PETSC_NULL_INTEGER,ierr)
+.ve
+
+   Level: advanced
+
+.seealso: PEPSetInterval()
+@*/
+PetscErrorCode PEPSTOARGetInertias(PEP pep,PetscInt *n,PetscReal **shifts,PetscInt **inertias)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
+  PetscValidIntPointer(n,2);
+  ierr = PetscUseMethod(pep,"PEPSTOARGetInertias_C",(PEP,PetscInt*,PetscReal**,PetscInt**),(pep,n,shifts,inertias));CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+static PetscErrorCode PEPSTOARSetDetectZeros_STOAR(PEP pep,PetscBool detect)
+{
+  PEP_TOAR *ctx = (PEP_TOAR*)pep->data;
+
+  PetscFunctionBegin;
+  ctx->detect = detect;
+  pep->state  = PEP_STATE_INITIAL;
+  PetscFunctionReturn(0);
+}
+
+/*@
+   PEPSTOARSetDetectZeros - Sets a flag to enforce detection of
+   zeros during the factorizations throughout the spectrum slicing computation.
+
+   Logically Collective on PEP
+
+   Input Parameters:
++  pep    - the eigenproblem solver context
+-  detect - check for zeros
+
+   Options Database Key:
+.  -pep_stoar_detect_zeros - Check for zeros; this takes an optional
+   bool value (0/1/no/yes/true/false)
+
+   Notes:
+   A zero in the factorization indicates that a shift coincides with an eigenvalue.
+
+   This flag is turned off by default, and may be necessary in some cases,
+   especially when several partitions are being used. This feature currently
+   requires an external package for factorizations with support for zero
+   detection, e.g. MUMPS.
+
+   Level: advanced
+
+.seealso: PEPSTOARSetPartitions(), PEPSetInterval()
+@*/
+PetscErrorCode PEPSTOARSetDetectZeros(PEP pep,PetscBool detect)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
+  PetscValidLogicalCollectiveBool(pep,detect,2);
+  ierr = PetscTryMethod(pep,"PEPSTOARSetDetectZeros_C",(PEP,PetscBool),(pep,detect));CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+static PetscErrorCode PEPSTOARGetDetectZeros_STOAR(PEP pep,PetscBool *detect)
+{
+  PEP_TOAR *ctx = (PEP_TOAR*)pep->data;
+
+  PetscFunctionBegin;
+  *detect = ctx->detect;
+  PetscFunctionReturn(0);
+}
+
+/*@
+   PEPSTOARGetDetectZeros - Gets the flag that enforces zero detection
+   in spectrum slicing.
+
+   Not Collective
+
+   Input Parameter:
+.  pep - the eigenproblem solver context
+
+   Output Parameter:
+.  detect - whether zeros detection is enforced during factorizations
+
+   Level: advanced
+
+.seealso: PEPSTOARSetDetectZeros()
+@*/
+PetscErrorCode PEPSTOARGetDetectZeros(PEP pep,PetscBool *detect)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
+  PetscValidPointer(detect,2);
+  ierr = PetscUseMethod(pep,"PEPSTOARGetDetectZeros_C",(PEP,PetscBool*),(pep,detect));CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+static PetscErrorCode PEPSTOARSetDimensions_STOAR(PEP pep,PetscInt nev,PetscInt ncv,PetscInt mpd)
+{
+  PEP_TOAR *ctx = (PEP_TOAR*)pep->data;
+
+  PetscFunctionBegin;
+  if (nev<1) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of nev. Must be > 0");
+  ctx->nev = nev;
+  if (ncv == PETSC_DECIDE || ncv == PETSC_DEFAULT) {
+    ctx->ncv = 0;
+  } else {
+    if (ncv<1) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of ncv. Must be > 0");
+    ctx->ncv = ncv;
+  }
+  if (mpd == PETSC_DECIDE || mpd == PETSC_DEFAULT) {
+    ctx->mpd = 0;
+  } else {
+    if (mpd<1) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of mpd. Must be > 0");
+    ctx->mpd = mpd;
+  }
+  pep->state = PEP_STATE_INITIAL;
+  PetscFunctionReturn(0);
+}
+
+/*@
+   PEPSTOARSetDimensions - Sets the dimensions used for each subsolve
+   step in case of doing spectrum slicing for a computational interval.
+   The meaning of the parameters is the same as in PEPSetDimensions().
+
+   Logically Collective on PEP
+
+   Input Parameters:
++  pep - the eigenproblem solver context
+.  nev - number of eigenvalues to compute
+.  ncv - the maximum dimension of the subspace to be used by the subsolve
+-  mpd - the maximum dimension allowed for the projected problem
+
+   Options Database Key:
++  -eps_stoar_nev <nev> - Sets the number of eigenvalues
+.  -eps_stoar_ncv <ncv> - Sets the dimension of the subspace
+-  -eps_stoar_mpd <mpd> - Sets the maximum projected dimension
+
+   Level: advanced
+
+.seealso: PEPSTOARGetDimensions(), PEPSetDimensions(), PEPSetInterval()
+@*/
+PetscErrorCode PEPSTOARSetDimensions(PEP pep,PetscInt nev,PetscInt ncv,PetscInt mpd)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
+  PetscValidLogicalCollectiveInt(pep,nev,2);
+  PetscValidLogicalCollectiveInt(pep,ncv,3);
+  PetscValidLogicalCollectiveInt(pep,mpd,4);
+  ierr = PetscTryMethod(pep,"PEPSTOARSetDimensions_C",(PEP,PetscInt,PetscInt,PetscInt),(pep,nev,ncv,mpd));CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+static PetscErrorCode PEPSTOARGetDimensions_STOAR(PEP pep,PetscInt *nev,PetscInt *ncv,PetscInt *mpd)
+{
+  PEP_TOAR *ctx = (PEP_TOAR*)pep->data;
+
+  PetscFunctionBegin;
+  if (nev) *nev = ctx->nev;
+  if (ncv) *ncv = ctx->ncv;
+  if (mpd) *mpd = ctx->mpd;
+  PetscFunctionReturn(0);
+}
+
+/*@
+   PEPSTOARGetDimensions - Gets the dimensions used for each subsolve
+   step in case of doing spectrum slicing for a computational interval.
+
+   Not Collective
+
+   Input Parameter:
+.  pep - the eigenproblem solver context
+
+   Output Parameters:
++  nev - number of eigenvalues to compute
+.  ncv - the maximum dimension of the subspace to be used by the subsolve
+-  mpd - the maximum dimension allowed for the projected problem
+
+   Level: advanced
+
+.seealso: PEPSTOARSetDimensions()
+@*/
+PetscErrorCode PEPSTOARGetDimensions(PEP pep,PetscInt *nev,PetscInt *ncv,PetscInt *mpd)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
+  ierr = PetscUseMethod(pep,"PEPSTOARGetDimensions_C",(PEP,PetscInt*,PetscInt*,PetscInt*),(pep,nev,ncv,mpd));CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
 PetscErrorCode PEPView_STOAR(PEP pep,PetscViewer viewer)
 {
   PetscErrorCode ierr;
@@ -512,6 +809,17 @@ PetscErrorCode PEPView_STOAR(PEP pep,PetscViewer viewer)
   PetscFunctionReturn(0);
 }
 
+PetscErrorCode PEPReset_STOAR(PEP pep)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  if (pep->which==PEP_ALL) {
+    ierr = PEPReset_STOAR_QSlice(pep);CHKERRQ(ierr);
+  }
+  PetscFunctionReturn(0);
+}
+
 PetscErrorCode PEPDestroy_STOAR(PEP pep)
 {
   PetscErrorCode ierr;
@@ -522,6 +830,11 @@ PetscErrorCode PEPDestroy_STOAR(PEP pep)
   ierr = PetscFree(pep->data);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)pep,"PEPSTOARSetLocking_C",NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)pep,"PEPSTOARGetLocking_C",NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)pep,"PEPSTOARSetDetectZeros_C",NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)pep,"PEPSTOARGetDetectZeros_C",NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)pep,"PEPSTOARGetInertias_C",NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)pep,"PEPSTOARGetDimensions_C",NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)pep,"PEPSTOARSetDimensions_C",NULL);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -535,7 +848,6 @@ PETSC_EXTERN PetscErrorCode PEPCreate_STOAR(PEP pep)
   pep->data = (void*)ctx;
   ctx->lock = PETSC_TRUE;
 
-  pep->ops->solve          = PEPSolve_STOAR;
   pep->ops->setup          = PEPSetUp_STOAR;
   pep->ops->setfromoptions = PEPSetFromOptions_STOAR;
   pep->ops->destroy        = PEPDestroy_STOAR;
@@ -544,9 +856,15 @@ PETSC_EXTERN PetscErrorCode PEPCreate_STOAR(PEP pep)
   pep->ops->computevectors = PEPComputeVectors_Default;
   pep->ops->extractvectors = PEPExtractVectors_TOAR;
   pep->ops->setdefaultst   = PEPSetDefaultST_Transform;
+  pep->ops->reset          = PEPReset_STOAR;
 
   ierr = PetscObjectComposeFunction((PetscObject)pep,"PEPSTOARSetLocking_C",PEPSTOARSetLocking_STOAR);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)pep,"PEPSTOARGetLocking_C",PEPSTOARGetLocking_STOAR);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)pep,"PEPSTOARSetDetectZeros_C",PEPSTOARSetDetectZeros_STOAR);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)pep,"PEPSTOARGetDetectZeros_C",PEPSTOARGetDetectZeros_STOAR);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)pep,"PEPSTOARGetInertias_C",PEPSTOARGetInertias_STOAR);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)pep,"PEPSTOARGetDimensions_C",PEPSTOARGetDimensions_STOAR);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)pep,"PEPSTOARSetDimensions_C",PEPSTOARSetDimensions_STOAR);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

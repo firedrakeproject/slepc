@@ -60,6 +60,7 @@ struct _p_PEP {
   PEPConv        conv;             /* convergence test */
   PEPStop        stop;             /* stopping test */
   PEPWhich       which;            /* which part of the spectrum to be sought */
+  PetscReal      inta,intb;        /* interval [a,b] for spectrum slicing */
   PEPBasis       basis;            /* polynomial basis used to represent the problem */
   PEPProblemType problem_type;     /* which kind of problem to be solved */
   PEPScale       scale;            /* scaling strategy to be used */

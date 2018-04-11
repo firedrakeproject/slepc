@@ -50,6 +50,7 @@ PetscErrorCode EPSSetUp_Lanczos(EPS eps)
     case EPS_LARGEST_IMAGINARY:
     case EPS_SMALLEST_IMAGINARY:
     case EPS_TARGET_IMAGINARY:
+    case EPS_ALL:
       SETERRQ(PetscObjectComm((PetscObject)eps),1,"Wrong value of eps->which");
     default: ; /* default case to remove warning */
   }
