@@ -787,16 +787,14 @@ static PetscErrorCode PEPSTOAR_QSlice(PEP pep)
   sr = ctx->sr;
   sigma = sr->sPres->value;
   k = sr->ndef0+sr->ndef1;
-  if (pep->ncv != ctx->ncv+k) {
-    pep->ncv = ctx->ncv+k;
-    pep->nev = ctx->nev+k;
-    ierr = PEPAllocateSolution(pep,2);CHKERRQ(ierr);
-    ierr = BVDestroy(&ctx->V);CHKERRQ(ierr);
-    ierr = BVCreateTensor(pep->V,pep->nmat-1,&ctx->V);CHKERRQ(ierr);
-    ierr = BVGetOrthogonalization(pep->V,&otype,NULL,&eta,&obtype);CHKERRQ(ierr);
-    ierr = BVSetOrthogonalization(ctx->V,otype,BV_ORTHOG_REFINE_ALWAYS,eta,obtype);CHKERRQ(ierr);
-    ierr = DSAllocate(pep->ds,pep->ncv+2);CHKERRQ(ierr);
-  }
+  pep->ncv = ctx->ncv+k;
+  pep->nev = ctx->nev+k;
+  ierr = PEPAllocateSolution(pep,2);CHKERRQ(ierr);
+  ierr = BVDestroy(&ctx->V);CHKERRQ(ierr);
+  ierr = BVCreateTensor(pep->V,pep->nmat-1,&ctx->V);CHKERRQ(ierr);
+  ierr = BVGetOrthogonalization(pep->V,&otype,NULL,&eta,&obtype);CHKERRQ(ierr);
+  ierr = BVSetOrthogonalization(ctx->V,otype,BV_ORTHOG_REFINE_ALWAYS,eta,obtype);CHKERRQ(ierr);
+  ierr = DSAllocate(pep->ds,pep->ncv+2);CHKERRQ(ierr);
   ierr = PetscMalloc1(pep->ncv,&back);CHKERRQ(ierr);
   ierr = DSGetLeadingDimension(pep->ds,&ldds);CHKERRQ(ierr);
 
