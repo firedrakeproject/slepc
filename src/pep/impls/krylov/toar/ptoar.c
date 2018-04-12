@@ -23,7 +23,11 @@
 
        [2] C. Campos and J.E. Roman, "Parallel Krylov solvers for the
            polynomial eigenvalue problem in SLEPc", SIAM J. Sci. Comput.
-           to appear, 2016.
+           38(5):S385-S411, 2016.
+
+       [3] D. Lu, Y. Su and Z. Bai, "Stability analysis of the two-level
+           orthogonal Arnoldi procedure", SIAM J. Matrix Anal. App.
+           37(1):195-214, 2016.
 */
 
 #include <slepc/private/pepimpl.h>    /*I "slepcpep.h" I*/
