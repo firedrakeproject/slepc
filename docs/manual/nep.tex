@@ -222,15 +222,15 @@ or via the options database command \Verb!-nep_type! followed by the name of the
 
 \begin{table}
 \centering
-{\small \begin{tabular}{lll}
-                   &                      & {\footnotesize Options} \\
-Method             & \ident{NEPType}      & {\footnotesize Database Name}\\\hline
-Residual inverse iteration & \texttt{NEPRII}      & \texttt{rii} \\
-Successive linear problems & \texttt{NEPSLP}      & \texttt{slp} \\
-Nonlinear Arnoldi          & \texttt{NEPNARNOLDI} & \texttt{narnoldi} \\
-Rational Krylov (NLEIGS)   & \texttt{NEPNLEIGS}   & \texttt{nleigs} \\
-Contour integral SS        & \texttt{NEPCISS}     & \texttt{ciss} \\
-Polynomial interpolation   & \texttt{NEPINTERPOL} & \texttt{interpol} \\\hline
+{\small \begin{tabular}{lllcc}
+                   &                      & {\footnotesize Options}  & {\footnotesize Need}  \\
+Method             & \ident{NEPType}      & {\footnotesize Database} & {\footnotesize $T'(\cdot)$} & {\footnotesize Eigenvalues} \\\hline
+Residual inverse iteration & \texttt{NEPRII}      & \texttt{rii}      & no  & only one\\
+Successive linear problems & \texttt{NEPSLP}      & \texttt{slp}      & yes & only one\\
+Nonlinear Arnoldi          & \texttt{NEPNARNOLDI} & \texttt{narnoldi} & no  & only one\\
+Rational Krylov (NLEIGS)   & \texttt{NEPNLEIGS}   & \texttt{nleigs}   & no  & many\\
+Contour integral SS        & \texttt{NEPCISS}     & \texttt{ciss}     & yes & many\\
+Polynomial interpolation   & \texttt{NEPINTERPOL} & \texttt{interpol} & no  & many\\\hline
 \end{tabular} }
 \caption{\label{tab:solversn}Nonlinear eigenvalue solvers available in the \ident{NEP} module.}
 \end{table}
