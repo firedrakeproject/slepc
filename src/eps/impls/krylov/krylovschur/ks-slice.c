@@ -161,7 +161,7 @@ static PetscErrorCode EPSSliceGetEPS(EPS eps)
   BVOrthogBlockType  ob_type;
   Mat                A,B=NULL,Ar,Br=NULL;
   PetscInt           i;
-  PetscReal          h,a,b;
+  PetscReal          h,a,b,zero;
   PetscMPIInt        rank;
   EPS_SR             sr=ctx->sr;
   PC                 pc;
@@ -259,10 +259,12 @@ static PetscErrorCode EPSSliceGetEPS(EPS eps)
   ierr = KSPGetPC(ksp,&pc);CHKERRQ(ierr);
   ierr = PCGetType(pc,&pctype);CHKERRQ(ierr);
   ierr = PCFactorGetMatSolverType(pc,&stype);CHKERRQ(ierr);
+  ierr = PCFactorGetZeroPivot(pc,&zero);CHKERRQ(ierr);
   ierr = STGetKSP(ctx->eps->st,&ksp);CHKERRQ(ierr);
   ierr = KSPSetType(ksp,ksptype);CHKERRQ(ierr);
   ierr = KSPGetPC(ksp,&pc);CHKERRQ(ierr);
   ierr = PCSetType(pc,pctype);CHKERRQ(ierr);
+  ierr = PCFactorSetZeroPivot(pc,zero);CHKERRQ(ierr);
   if (stype) { ierr = PCFactorSetMatSolverType(pc,stype);CHKERRQ(ierr); }
 
   ierr = EPSSetConvergenceTest(ctx->eps,eps->conv);CHKERRQ(ierr);
