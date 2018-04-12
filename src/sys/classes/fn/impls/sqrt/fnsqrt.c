@@ -147,7 +147,7 @@ static PetscErrorCode SlepcSqrtmSadeghi(PetscBLASInt n,PetscScalar *A,PetscBLASI
     PetscStackCallBLAS("BLASscal",BLASscal_(&N,&alpha,M,&one));
     tol *= nrm;
   }
-  ierr = PetscInfo2(NULL,"||A||_F = %g, new tol: %g\n",(double)nrm,(double)tol);
+  ierr = PetscInfo2(NULL,"||A||_F = %g, new tol: %g\n",(double)nrm,(double)tol);CHKERRQ(ierr);
 
   /* X = I */
   ierr = PetscMemzero(X,N*sizeof(PetscScalar));CHKERRQ(ierr);
@@ -182,7 +182,7 @@ static PetscErrorCode SlepcSqrtmSadeghi(PetscBLASInt n,PetscScalar *A,PetscBLASI
     Mres = LAPACKlange_("fro",&n,&n,M2,&n,rwork);
     ierr = PetscIsNanReal(Mres);CHKERRQ(ierr);
     if (Mres<=tol) converged = PETSC_TRUE;
-    ierr = PetscInfo2(NULL,"it: %D res: %g\n",it,(double)Mres);
+    ierr = PetscInfo2(NULL,"it: %D res: %g\n",it,(double)Mres);CHKERRQ(ierr);
     ierr = PetscLogFlops(8.0*n*n*n+2.0*n*n+2.0*n*n*n/3.0+4.0*n*n*n/3.0+2.0*n*n*n+2.0*n*n);CHKERRQ(ierr);
   }
 

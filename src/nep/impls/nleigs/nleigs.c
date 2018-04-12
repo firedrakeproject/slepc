@@ -247,7 +247,7 @@ static PetscErrorCode NEPNLEIGSRationalSingularities(NEP nep,PetscInt *ndptx,Pet
     ierr = NEPNLEIGSFNSingularities(f,&nisol,&isol,&rat);CHKERRQ(ierr);
     if (nisol) {
       ierr = NEPNLEIGSAuxiliarRmDuplicates(nisol,isol,ndptx,dxi);CHKERRQ(ierr);
-      ierr = PetscFree(isol);
+      ierr = PetscFree(isol);CHKERRQ(ierr);
     }
     *rational = ((*rational)&&rat)?PETSC_TRUE:PETSC_FALSE;
   }
@@ -563,7 +563,7 @@ static PetscErrorCode NEPNLEIGSDividedDifferences_split(NEP nep)
   PetscReal      norm0,norm,*matnorm;
   PetscScalar    *s=ctx->s,*beta=ctx->beta,*xi=ctx->xi,*b,alpha,*coeffs,*pK,*pH,sone=1.0;
   Mat            T,Ts,K,H;
-  PetscBool      shell,hasmnorm,matrix=PETSC_TRUE;
+  PetscBool      shell,hasmnorm=PETSC_FALSE,matrix=PETSC_TRUE;
   PetscBLASInt   n_;
 
   PetscFunctionBegin;
@@ -1765,7 +1765,7 @@ PetscErrorCode NEPSetFromOptions_NLEIGS(PetscOptionItems *PetscOptionsObject,NEP
 {
   PetscErrorCode ierr;
   NEP_NLEIGS     *ctx = (NEP_NLEIGS*)nep->data;
-  PetscInt       i,k;
+  PetscInt       i=0,k;
   PetscBool      flg1,flg2,b;
   PetscReal      r;
   PetscScalar    array[SHIFTMAX];

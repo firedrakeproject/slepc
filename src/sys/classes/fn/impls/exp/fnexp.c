@@ -592,12 +592,12 @@ PetscErrorCode FNEvaluateFunctionMat_Exp_GuettelNakatsukasa(FN fn,Mat A,Mat B)
 
   /* evaluate Pade approximant (partial fraction or product form) */
   if (mode==PARTIAL_FRACTION_FORM || !m) { /* partial fraction */
-    ierr = getcoeffs(k,m,&rsize,&psize,&remainsize,PETSC_TRUE);
+    ierr = getcoeffs(k,m,&rsize,&psize,&remainsize,PETSC_TRUE);CHKERRQ(ierr);
     ierr = PetscBLASIntCast((PetscInt)PetscRealPartComplex(rsize),&irsize);CHKERRQ(ierr);
     ierr = PetscBLASIntCast((PetscInt)PetscRealPartComplex(psize),&ipsize);CHKERRQ(ierr);
     ierr = PetscBLASIntCast((PetscInt)PetscRealPartComplex(remainsize),&iremainsize);CHKERRQ(ierr);
     ierr = PetscMalloc3(irsize,&r,ipsize,&p,iremainsize,&remainterm);CHKERRQ(ierr);
-    ierr = getcoeffs(k,m,r,p,remainterm,PETSC_FALSE);
+    ierr = getcoeffs(k,m,r,p,remainterm,PETSC_FALSE);CHKERRQ(ierr);
 
     ierr = PetscMemzero(expmA,n2*sizeof(PetscComplex));CHKERRQ(ierr);
 #if !defined(PETSC_USE_COMPLEX)
@@ -677,11 +677,11 @@ PetscErrorCode FNEvaluateFunctionMat_Exp_GuettelNakatsukasa(FN fn,Mat A,Mat B)
     }
     ierr = PetscFree3(r,p,remainterm);CHKERRQ(ierr);
   } else { /* product form, default */
-    ierr = getcoeffsproduct(k,m,&rsize,&psize,&mult,PETSC_TRUE);
+    ierr = getcoeffsproduct(k,m,&rsize,&psize,&mult,PETSC_TRUE);CHKERRQ(ierr);
     ierr = PetscBLASIntCast((PetscInt)PetscRealPartComplex(rsize),&irsize);CHKERRQ(ierr);
     ierr = PetscBLASIntCast((PetscInt)PetscRealPartComplex(psize),&ipsize);CHKERRQ(ierr);
     ierr = PetscMalloc2(irsize,&rootp,ipsize,&rootq);CHKERRQ(ierr);
-    ierr = getcoeffsproduct(k,m,rootp,rootq,&mult,PETSC_FALSE);
+    ierr = getcoeffsproduct(k,m,rootp,rootq,&mult,PETSC_FALSE);CHKERRQ(ierr);
 
     ierr = PetscMemzero(expmA,n2*sizeof(PetscComplex));CHKERRQ(ierr);
     for (i=0;i<n;i++) { /* initialize */
@@ -770,7 +770,7 @@ PetscErrorCode FNEvaluateFunctionMat_Exp_GuettelNakatsukasa(FN fn,Mat A,Mat B)
 static PetscReal normest1(PetscBLASInt n,PetscScalar *A,PetscInt m,PetscScalar *work,PetscRandom rand)
 {
   PetscScalar  *X,*Y,*Z,*S,*S_old,*aux,val,sone=1.0,szero=0.0;
-  PetscReal    est=0.0,est_old,vals[2],*zvals,maxzval[2],raux;
+  PetscReal    est=0.0,est_old,vals[2]={0.0,0.0},*zvals,maxzval[2],raux;
   PetscBLASInt i,j,t=2,it=0,ind[2],est_j=0,m1;
 
   PetscFunctionBegin;

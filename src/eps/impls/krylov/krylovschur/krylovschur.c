@@ -130,7 +130,7 @@ PetscErrorCode EPSSetUp_KrylovSchur(EPS eps)
 {
   PetscErrorCode    ierr;
   PetscReal         eta;
-  PetscBool         isfilt;
+  PetscBool         isfilt=PETSC_FALSE;
   BVOrthogType      otype;
   BVOrthogBlockType obtype;
   EPS_KRYLOVSCHUR   *ctx = (EPS_KRYLOVSCHUR*)eps->data;

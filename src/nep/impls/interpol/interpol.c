@@ -121,7 +121,7 @@ PetscErrorCode NEPSolve_Interpol(NEP nep)
   PetscScalar    *x,*fx,t;
   PetscReal      *cs,a,b,s,aprox,aprox0=1.0,*matnorm;
   PetscInt       i,j,k,deg=ctx->maxdeg;
-  PetscBool      hasmnorm;
+  PetscBool      hasmnorm=PETSC_FALSE;
   Vec            vr,vi=NULL;
 
   PetscFunctionBegin;

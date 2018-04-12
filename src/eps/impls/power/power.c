@@ -342,12 +342,13 @@ PetscErrorCode EPSSolve_Power(EPS eps)
   else Bx = NULL;
 
   if (power->shift_type != EPS_POWER_SHIFT_CONSTANT) { ierr = STGetKSP(eps->st,&ksp);CHKERRQ(ierr); }
-  if (eps->useds) { ierr = DSGetLeadingDimension(eps->ds,&ld);CHKERRQ(ierr); }
   if (power->nonlinear) {
     ierr = PetscObjectCompose((PetscObject)power->snes,"eps",(PetscObject)eps);CHKERRQ(ierr);
     if (power->update) {
       ierr = EPSPowerComputeInitialGuess_Update(eps);CHKERRQ(ierr);
     }
+  } else {
+    ierr = DSGetLeadingDimension(eps->ds,&ld);CHKERRQ(ierr);
   }
   if (!power->update) {
     ierr = EPSGetStartVector(eps,0,NULL);CHKERRQ(ierr);

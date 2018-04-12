@@ -204,7 +204,7 @@ PetscErrorCode RGView_Polygon(RG rg,PetscViewer viewer)
     ierr = PetscDrawClear(draw);CHKERRQ(ierr);
     ierr = PetscDrawSetTitle(draw,"Polygonal region");CHKERRQ(ierr);
     ierr = PetscDrawAxisCreate(draw,&axis);CHKERRQ(ierr);
-    ierr = RGComputeBoundingBox_Polygon(rg,&a,&b,&c,&d);
+    ierr = RGComputeBoundingBox_Polygon(rg,&a,&b,&c,&d);CHKERRQ(ierr);
     a *= rg->sfactor;
     b *= rg->sfactor;
     c *= rg->sfactor;

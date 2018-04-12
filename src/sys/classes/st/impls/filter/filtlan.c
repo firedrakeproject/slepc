@@ -234,6 +234,7 @@ static PetscErrorCode FILTLAN_GetIntervals(PetscReal *intervals,PetscReal *frame
   opts->numGridPoints = PetscMax(opts->numGridPoints,(PetscInt)(2.0*(b-a)/halfPlateau));
   gridSize = (b-a) / (PetscReal)(opts->numGridPoints);
 
+  for (i=0;i<6;i++) intv[i] = 0.0;
   if (filterInfo->filterType == 2) {  /* for interior eigenvalues */
     npoints = 6;
     intv[0] = a;
@@ -277,7 +278,6 @@ static PetscErrorCode FILTLAN_GetIntervals(PetscReal *intervals,PetscReal *frame
         z2 = b;
         rightBoundaryMet = PETSC_TRUE;
       }
-      c = (z1+z2) / 2.0;
       /* a <= z1 < c-h < c+h < z2 <= b, where h is halfPlateau */
       /* [z1, c-h] and [c+h, z2] are transition interval */
       intv[1] = z1;

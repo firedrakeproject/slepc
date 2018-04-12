@@ -243,7 +243,7 @@ PetscErrorCode SlepcSqrtmDenmanBeavers(PetscBLASInt n,PetscScalar *T,PetscBLASIn
       fnormT = LAPACKlange_("F",&n,&n,T,&n,rwork);
       ierr = PetscLogFlops(7.0*n*n);CHKERRQ(ierr);
       reldiff = fnormdiff/fnormT;
-      ierr = PetscInfo4(NULL,"it: %D reldiff: %g scale: %g tol*scale: %g\n",it,(double)reldiff,(double)g,(double)tol*g);
+      ierr = PetscInfo4(NULL,"it: %D reldiff: %g scale: %g tol*scale: %g\n",it,(double)reldiff,(double)g,(double)tol*g);CHKERRQ(ierr);
       if (reldiff<1e-2) scale = PETSC_FALSE;  /* Switch off scaling */
     }
 
@@ -289,7 +289,7 @@ PetscErrorCode SlepcSqrtmNewtonSchulz(PetscBLASInt n,PetscScalar *A,PetscBLASInt
   alpha = 1.0/nrm;
   PetscStackCallBLAS("BLASscal",BLASscal_(&N,&alpha,A,&one));
   tol *= nrm;
-  ierr = PetscInfo2(NULL,"||I-A||_F = %g, new tol: %g\n",(double)nrm,(double)tol);
+  ierr = PetscInfo2(NULL,"||I-A||_F = %g, new tol: %g\n",(double)nrm,(double)tol);CHKERRQ(ierr);
   ierr = PetscLogFlops(2.0*n*n);CHKERRQ(ierr);
 
   /* Z = I */
@@ -315,7 +315,7 @@ PetscErrorCode SlepcSqrtmNewtonSchulz(PetscBLASInt n,PetscScalar *A,PetscBLASInt
     Yres = LAPACKlange_("fro",&n,&n,Yold,&n,rwork);
     ierr = PetscIsNanReal(Yres);CHKERRQ(ierr);
     if (Yres<=tol) converged = PETSC_TRUE;
-    ierr = PetscInfo2(NULL,"it: %D res: %g\n",it,(double)Yres);
+    ierr = PetscInfo2(NULL,"it: %D res: %g\n",it,(double)Yres);CHKERRQ(ierr);
 
     ierr = PetscLogFlops(6.0*n*n*n+2.0*n*n);CHKERRQ(ierr);
   }

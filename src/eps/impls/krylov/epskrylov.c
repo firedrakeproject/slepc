@@ -280,7 +280,7 @@ PetscErrorCode EPSKrylovConvergence(EPS eps,PetscBool getall,PetscInt kini,Petsc
   PetscScalar    re,im,*Zr,*Zi,*X;
   PetscReal      resnorm,gamma;
   PetscBool      isshift,isfilter,refined,istrivial;
-  Vec            x,y,w[3];
+  Vec            x=NULL,y=NULL,w[3];
 
   PetscFunctionBegin;
   if (eps->which == EPS_ALL) {

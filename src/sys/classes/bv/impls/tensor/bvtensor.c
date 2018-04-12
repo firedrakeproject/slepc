@@ -485,7 +485,7 @@ static PetscErrorCode BVTensorCompress_Tensor(BV V,PetscInt newc)
 #else
   PetscErrorCode ierr;
   BV_TENSOR      *ctx = (BV_TENSOR*)V->data;
-  PetscInt       nwu=0,nrwu=0,nnc,nrow,lwa,r,c;
+  PetscInt       nwu=0,nnc,nrow,lwa,r,c;
   PetscInt       i,j,k,n,lds=ctx->ld*ctx->d,deg=ctx->d,lock,cs1=V->k,rs1=ctx->U->k,rk=0,offu;
   PetscScalar    *S,*M,*Z,*pQ,*SS,*SS2,t,sone=1.0,zero=0.0,mone=-1.0,*p,*tau,*work,*qB,*sqB;
   PetscReal      *sg,tol,*rwork;
@@ -503,8 +503,7 @@ static PetscErrorCode BVTensorCompress_Tensor(BV V,PetscInt newc)
   offu = lock*(rs1+1);
   M = work+nwu;
   nwu += rs1*cs1*deg;
-  sg = rwork+nrwu;
-  nrwu += n;
+  sg = rwork;
   Z = work+nwu;
   nwu += deg*cs1*n;
   ierr = PetscBLASIntCast(n,&n_);CHKERRQ(ierr);
@@ -530,7 +529,7 @@ static PetscErrorCode BVTensorCompress_Tensor(BV V,PetscInt newc)
 #if !defined (PETSC_USE_COMPLEX)
     PetscStackCallBLAS("LAPACKgesvd",LAPACKgesvd_("S","S",&nrow_,&newctdeg,M,&nrow_,sg,pQ+offu,&rs1_,Z,&n_,work+nwu,&lw_,&info));
 #else
-    PetscStackCallBLAS("LAPACKgesvd",LAPACKgesvd_("S","S",&nrow_,&newctdeg,M,&nrow_,sg,pQ+offu,&rs1_,Z,&n_,work+nwu,&lw_,rwork+nrwu,&info));
+    PetscStackCallBLAS("LAPACKgesvd",LAPACKgesvd_("S","S",&nrow_,&newctdeg,M,&nrow_,sg,pQ+offu,&rs1_,Z,&n_,work+nwu,&lw_,rwork+n,&info));
 #endif
     SlepcCheckLapackInfo("gesvd",info);
     /* SVD has rank min(newc,nrow) */
@@ -568,7 +567,7 @@ static PetscErrorCode BVTensorCompress_Tensor(BV V,PetscInt newc)
 #if !defined (PETSC_USE_COMPLEX)
   PetscStackCallBLAS("LAPACKgesvd",LAPACKgesvd_("S","S",&nrow_,&nnctdeg,M,&nrow_,sg,pQ+offu+newc*rs1,&rs1_,Z,&n_,work+nwu,&lw_,&info));
 #else
-  PetscStackCallBLAS("LAPACKgesvd",LAPACKgesvd_("S","S",&nrow_,&nnctdeg,M,&nrow_,sg,pQ+offu+newc*rs1,&rs1_,Z,&n_,work+nwu,&lw_,rwork+nrwu,&info));
+  PetscStackCallBLAS("LAPACKgesvd",LAPACKgesvd_("S","S",&nrow_,&nnctdeg,M,&nrow_,sg,pQ+offu+newc*rs1,&rs1_,Z,&n_,work+nwu,&lw_,rwork+n,&info));
 #endif
   SlepcCheckLapackInfo("gesvd",info);
   tol = PetscMax(rs1,deg*cs1)*PETSC_MACHINE_EPSILON*sg[0];

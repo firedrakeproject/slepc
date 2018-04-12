@@ -159,7 +159,7 @@ static PetscErrorCode EPSSliceGetEPS(EPS eps)
   BVOrthogType       orthog_type;
   BVOrthogRefineType orthog_ref;
   BVOrthogBlockType  ob_type;
-  Mat                A,B=NULL,Ar,Br=NULL;
+  Mat                A,B=NULL,Ar=NULL,Br=NULL;
   PetscInt           i;
   PetscReal          h,a,b,zero;
   PetscMPIInt        rank;
