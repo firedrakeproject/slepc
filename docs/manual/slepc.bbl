@@ -16,14 +16,16 @@ Bai, Z., J.~Demmel, J.~Dongarra, A.~Ruhe, and H.~van~der Vorst (eds.) (2000).
   Practical Guide\/}.
 \newblock SIAM, Philadelphia.
 
-\bibitem[{Balay {\em et~al.\/}(2017)Balay, Abhyankar, Adams, Brown, Brune,
-  Buschelman, Dalcin, Eijkhout, Gropp, Karpeyev, Kaushik, Knepley, May, McInnes,
-  Munson, Rupp, Sanan, Smith, Zampini, Zhang, and Zhang}]{Balay:2017:PUM}
+\bibitem[{Balay {\em et~al.\/}(2018)Balay, Abhyankar, Adams, Brown, Brune,
+  Buschelman, Dalcin, Eijkhout, Gropp, Karpeyev, Kaushik, Knepley, May,
+  McInnes, Mills, Munson, Rupp, Sanan, Smith, Zampini, Zhang, and
+  Zhang}]{Balay:2018:PUM}
 Balay, S., S.~Abhyankar, M.~Adams, J.~Brown, P.~Brune, K.~Buschelman,
-  L.~Dalcin, V.~Eijkhout, W.~Gropp, D.~Karpeyev, D.~Kaushik, M.~Knepley, D.~May, L.~C. McInnes,
-  T.~Munson, K.~Rupp, P.~Sanan, B.~Smith, S.~Zampini, H.~Zhang, and H.~Zhang (2017).
+  L.~Dalcin, V.~Eijkhout, W.~Gropp, D.~Karpeyev, D.~Kaushik, M.~Knepley,
+  D.~May, L.~C. McInnes, R.~Mills, T.~Munson, K.~Rupp, P.~Sanan, B.~Smith,
+  S.~Zampini, H.~Zhang, and H.~Zhang (2018).
 \newblock {PETSc} Users Manual.
-\newblock Technical Report ANL-95/11 - Revision 3.8, Argonne National
+\newblock Technical Report ANL-95/11 - Revision 3.9, Argonne National
   Laboratory.
 
 \bibitem[{Balay {\em et~al.\/}(1997)Balay, Gropp, McInnes, and

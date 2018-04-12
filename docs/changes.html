@@ -47,11 +47,9 @@ ul.changes li {
   </tr>
   <tr>
     <td valign="top" height="18">
-      <p><font face="Arial, Helvetica, sans-serif" size="2">The following table
+      <font face="Arial, Helvetica, sans-serif" size="2">The following table
         lists the versions of SLEPc and shows the correspondence between SLEPc
-        and PETSc releases. Versions marked as major releases are those which
-        incorporate some new functionality. The rest are just adaptations required
-        for a new PETSc release and may also include bug fixes.</font></p>
+        and PETSc releases.</font>
     </td>
   </tr>
 </table>
@@ -60,120 +58,119 @@ ul.changes li {
   <tr>
     <th width="138"> SLEPc version </th>
     <th width="175"> PETSc versions </th>
-    <th width="75"> Major </th>
     <th width="146"> Release date </th>
   </tr>
   <tr>
     <td> 2.1.0 </td>
     <td> 2.1.0 </td>
-    <td> * </td>
     <td> Not released </td>
   </tr>
   <tr>
     <td> 2.1.1 </td>
     <td> 2.1.1, 2.1.2, 2.1.3 </td>
-    <td> </td>
     <td> Dec 2002 </td>
   </tr>
   <tr>
     <td> 2.1.5 </td>
     <td> 2.1.5, 2.1.6 </td>
-    <td> </td>
     <td> May 2003 </td>
   </tr>
   <tr>
     <td> 2.2.0 </td>
     <td> 2.2.0 </td>
-    <td> * </td>
     <td> Apr 2004 </td>
   </tr>
   <tr>
     <td> 2.2.1 </td>
     <td> 2.2.1 </td>
-    <td> * </td>
     <td> Aug 2004 </td>
   </tr>
   <tr>
     <td> 2.3.0 </td>
     <td> 2.3.0 </td>
-    <td> * </td>
     <td> Jun 2005 </td>
   </tr>
   <tr>
     <td> 2.3.1 </td>
     <td> 2.3.1 </td>
-    <td> </td>
     <td> Mar 2006 </td>
   </tr>
   <tr>
     <td> 2.3.2 </td>
     <td> 2.3.1, 2.3.2 </td>
-    <td> * </td>
     <td> Oct 2006 </td>
   </tr>
   <tr>
     <td> 2.3.3 </td>
     <td> 2.3.3 </td>
-    <td> * </td>
     <td> Jun 2007 </td>
   </tr>
   <tr>
     <td> 3.0.0 </td>
     <td> 3.0.0 </td>
-    <td> * </td>
     <td> Feb 2009 </td>
   </tr>
   <tr>
     <td> 3.1 </td>
     <td> 3.1 </td>
-    <td> * </td>
     <td> Aug 2010 </td>
   </tr>
   <tr>
     <td> 3.2 </td>
     <td> 3.2 </td>
-    <td> * </td>
     <td> Oct 2011 </td>
   </tr>
   <tr>
     <td> 3.3 </td>
     <td> 3.3 </td>
-    <td> * </td>
     <td> Aug 2012 </td>
   </tr>
   <tr>
     <td> 3.4 </td>
     <td> 3.4 </td>
-    <td> * </td>
     <td> Jul 2013 </td>
   </tr>
   <tr>
     <td> 3.5 </td>
     <td> 3.5 </td>
-    <td> * </td>
     <td> Jul 2014 </td>
   </tr>
   <tr>
     <td> 3.6 </td>
     <td> 3.6 </td>
-    <td> * </td>
     <td> Jun 2015 </td>
   </tr>
   <tr>
     <td> 3.7 </td>
     <td> 3.7 </td>
-    <td> * </td>
     <td> May 2016 </td>
   </tr>
   <tr>
     <td> 3.8 </td>
     <td> 3.8 </td>
-    <td> * </td>
     <td> Oct 2017 </td>
+  </tr>
+  <tr>
+    <td> 3.9 </td>
+    <td> 3.9 </td>
+    <td> Apr 2018 </td>
   </tr>
 </table>
 
 <tr><td>
+
+<p>
+<font size="3" face="Arial, Helvetica, sans-serif"><b>
+Changes in Version 3.9</font></b>
+</p>
+
+<ul class=changes>
+  <li> PEP: add spectrum slicing for Hermitian quadratic eigenvalue problems via STOAR.
+  <li> PEP: add support for non-monomial bases in JD.
+  <li> BV: add BVTENSOR to represent subspace bases with compact representation V = (I &otimes; U) S.
+  <li> BV: improved implementation of block orthogonalization, including TSQR and SVQB.
+  <li> BV: add BVGetSplit() operation to split a given BV object in two.
+</ul>
 
 <p>
 <font size="3" face="Arial, Helvetica, sans-serif"><b>

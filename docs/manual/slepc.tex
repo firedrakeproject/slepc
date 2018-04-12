@@ -34,7 +34,7 @@
   pdfkeywords={SLEPc, PETSc, eigenvalue problems}
 }
 
-\newcommand{\slepcversion}{3.8}
+\newcommand{\slepcversion}{3.9}
 \newcommand{\slepchome}{http://slepc.upv.es}
 \newcommand{\pack}[1]{{\sc #1}\index{\textsc{#1}}\xspace}
 \newcommand{\packnoi}[1]{{\sc #1}\xspace}
@@ -113,7 +113,7 @@
 
 \date{
 	To be used with \slepc \slepcversion\\
-	October, 2017
+	April, 2018
 }
 
 \hypersetup{pageanchor=false}
@@ -141,7 +141,7 @@
 
 	The emphasis of the software is on methods and techniques appropriate for problems in which the associated matrices are large and sparse, for example, those arising after the discretization of partial differential equations. Thus, most of the methods offered by the library are projection methods, including different variants of Krylov and Davidson iterations. In addition to its own solvers, \slepc provides transparent access to some external software packages such as \packnoi{arpack}. These packages are optional and their installation is not required to use \slepc, see \S\ref{sec:wrap} for details. Apart from the solvers, \slepc also provides built-in support for some operations commonly used in the context of eigenvalue computations, such as preconditioning or the shift-and-invert spectral transformation.
 
-	\slepc is built on top of \packnoi{pets\rm c}, the Portable, Extensible Toolkit for Scientific Computation \citep{Balay:2017:PUM}. It can be considered an extension of \packnoi{pets\rm c} providing all the functionality necessary for the solution of eigenvalue problems. This means that \packnoi{pets\rm c} must be previously installed in order to use \slepc. \packnoi{pets\rm c} users will find \slepc very easy to use, since it enforces the same programming paradigm. Those readers that are not acquainted with \packnoi{pets\rm c} are highly recommended to familiarize with it before proceeding with \slepc.
+	\slepc is built on top of \packnoi{pets\rm c}, the Portable, Extensible Toolkit for Scientific Computation \citep{Balay:2018:PUM}. It can be considered an extension of \packnoi{pets\rm c} providing all the functionality necessary for the solution of eigenvalue problems. This means that \packnoi{pets\rm c} must be previously installed in order to use \slepc. \packnoi{pets\rm c} users will find \slepc very easy to use, since it enforces the same programming paradigm. Those readers that are not acquainted with \packnoi{pets\rm c} are highly recommended to familiarize with it before proceeding with \slepc.
 
 
 \subsubsection*{How to Get \slepc}
@@ -205,7 +205,7 @@ Starting from version 3.8, \slepc is released under a 2-clause BSD license (see 
 
 \begin{quote}
 \begin{sffamily}
-Copyright 2002--2017 Universitat Polit\`ecnica de Valencia, Spain
+Copyright 2002--2018 Universitat Polit\`ecnica de Valencia, Spain
 \end{sffamily}
 \end{quote}
 
@@ -238,7 +238,7 @@ Linear matrix equation        & $AXE+DXB=C$   & \texttt{LME} & See notes \\\hlin
 \item Most users are typically interested in linear eigenproblems only.
 \item In each problem class there may exist several subclasses (problem types in \slepc terminology), for instance symmetric-definite generalized eigenproblem in \texttt{EPS}.
 \item The solver class (module) is named after the problem class. For historical reasons, the one for linear eigenvalue problems is called \texttt{EPS} rather than \texttt{LEP}.
-\item In previous \slepc versions there was a \texttt{QEP} module for quadratic eigenproblems. It has been replaced by \texttt{PEP}. See \S\ref{sec:qeppep} for upgrading application code that used \texttt{QEP}.
+\item In previous \slepc versions there was a \texttt{QEP} module for quadratic eigenproblems. It has been replaced by \texttt{PEP}. %See \S\ref{sec:qeppep} for upgrading application code that used \texttt{QEP}.
 \item For the action of a matrix function (\texttt{MFN}), in \slepc we focus on methods that are closely related to methods for eigenvalue problems.
 \item The solver class \texttt{LME} is still experimental and it is not covered in this manual yet.
 \end{itemize}
@@ -292,7 +292,7 @@ Linear matrix equation        & $AXE+DXB=C$   & \texttt{LME} & See notes \\\hlin
 \item[\textrm{\sffamily[STR-8]}] V. Hern\'andez, J. E. Rom\'an, A. Tom\'as. ``Restarted Lanczos Bidiagonalization for the SVD in \slepc.''
 \item[\textrm{\sffamily[STR-9]}] J. E. Rom\'an. ``Practical Implementation of Harmonic Krylov-Schur.''
 \item[\textrm{\sffamily[STR-10]}] M. E. Hochstenbach, E. Romero, J. E. Roman. ``Davidson Type Subspace Expansions for the Linear Eigenvalue Problem.''
-\item[\textrm{\sffamily[STR-11]}] Y. Maeda, T. Sakurai, J. E. Roman. ``Contour Integral Spectrum Slicing Method in SLEPc.''
+\item[\textrm{\sffamily[STR-11]}] Y. Maeda, T. Sakurai, J. E. Roman. ``Contour Integral Spectrum Slicing Method in \slepc.''
 \end{list}
 }
 

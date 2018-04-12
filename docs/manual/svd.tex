@@ -34,7 +34,7 @@ where $U=[u_1,\ldots,u_m]$ is an $m\times m$ unitary matrix ($U^*U=I$), $V=[v_1,
 \caption{\label{fig:svd}Scheme of the thin SVD of a rectangular matrix $A$.}
 \end{figure}
 
-In the following, we will assume that $m\geq n$. If $m<n$ then $A$ should be replaced by $A^*$ (note that in \slepc this is done transparently as described later in this chapter and the user need not worry about this). In the case that $m\geq n$, the top $n$ rows of $\Sigma$ contain $\mathrm{diag}(\sigma_1,\ldots,\sigma_n)$ and its bottom $m-n$ rows are zero. The relation \ref{eq:svd} may also be written as $AV=U\Sigma$, or
+In the following, we will assume that $m\geq n$. If $m<n$ then $A$ should be replaced by $A^*$ (note that in \slepc this is done transparently as described later in this chapter and the user need not worry about this). In the case that $m\geq n$, the top $n$ rows of $\Sigma$ contain $\mathrm{diag}(\sigma_1,\ldots,\sigma_n)$ and its bottom $m-n$ rows are zero. The relation \eqref{eq:svd} may also be written as $AV=U\Sigma$, or
 \begin{equation}
 \label{eq:svdleft}
 Av_i=u_i\sigma_i\;,\quad i=1,\ldots,n,
@@ -46,7 +46,7 @@ A^*u_i&=v_i\sigma_i\;,\quad i=1,\ldots,n,\\
 \label{eq:svdright2}
 A^*u_i&=0\;,\quad i=n+1,\ldots,m.
 \end{align}
-The last left singular vectors corresponding to Eq.\ \ref{eq:svdright2} are often not computed, especially if $m\gg n$. In that case, the resulting factorization is sometimes called the \emph{thin} SVD, $A=U_n\Sigma_n V_n^*$, and is depicted in Figure \ref{fig:svd}. This factorization can also be written as
+The last left singular vectors corresponding to \eqref{eq:svdright2} are often not computed, especially if $m\gg n$. In that case, the resulting factorization is sometimes called the \emph{thin} SVD, $A=U_n\Sigma_n V_n^*$, and is depicted in Figure \ref{fig:svd}. This factorization can also be written as
 \begin{equation}
 \label{eq:svdouter}
 A=\sum_{i=1}^{n}\sigma_iu_iv_i^*.
@@ -55,11 +55,11 @@ Each $(\sigma_i,u_i,v_i)$ is called a singular triplet.
 
 The singular values are real and nonnegative, $\sigma_1\geq\sigma_2\geq\ldots\geq\sigma_r>\sigma_{r+1}=\ldots=\sigma_n=0$, where $r=\mathrm{rank}(A)$. It can be shown that $\{u_1,\ldots,u_r\}$ span the range of $A$, $\mathcal{R}(A)$, whereas $\{v_{r+1},\ldots,v_n\}$ span the null space of $A$, $\mathcal{N}(A)$.
 
-If the zero singular values are dropped from the sum in Eq.\ \ref{eq:svdouter}, the resulting factorization, $A=\sum_{i=1}^{r}\sigma_iu_iv_i^*$, is called the \emph{compact} SVD, $A=U_r\Sigma_r V_r^*$.
+If the zero singular values are dropped from the sum in \eqref{eq:svdouter}, the resulting factorization, $A=\sum_{i=1}^{r}\sigma_iu_iv_i^*$, is called the \emph{compact} SVD, $A=U_r\Sigma_r V_r^*$.
 
 In the case of a very large and sparse $A$, it is usual to compute only a subset of $k\leq r$ singular triplets. We will refer to this decomposition as the \emph{truncated} SVD of $A$. It can be shown that the matrix $A_k=U_k\Sigma_k V_k^*$ is the best rank-$k$ approximation to matrix $A$, in the least squares sense.
 
-In general, one can take an arbitrary subset of the summands in Eq.\ \ref{eq:svdouter}, and the resulting factorization is called the \emph{partial} SVD of $A$. As described later in this chapter, \slepc allows the computation of a partial SVD corresponding to either the $k$ largest or smallest singular triplets.
+In general, one can take an arbitrary subset of the summands in \eqref{eq:svdouter}, and the resulting factorization is called the \emph{partial} SVD of $A$. As described later in this chapter, \slepc allows the computation of a partial SVD corresponding to either the $k$ largest or smallest singular triplets.
 
 \paragraph{Equivalent Eigenvalue Problems.}
 
@@ -70,21 +70,21 @@ It is possible to formulate the problem of computing the singular triplets of a 
 \end{enumerate}
 In \slepc, the computation of the SVD is always based on one of these two alternatives, either by passing one of these matrices to an \ident{EPS} object or by performing the computation implicitly.
 
-By pre-multiplying Eq.\ \ref{eq:svdleft} by $A^*$ and then using Eq.\ \ref{eq:svdright}, the following relation results
+By pre-multiplying \eqref{eq:svdleft} by $A^*$ and then using \eqref{eq:svdright}, the following relation results
 \begin{equation}
 \label{eq:eigleft}
 A^*Av_i=\sigma_i^2v_i,
 \end{equation}
-that is, the $v_i$ are the eigenvectors of matrix $A^*A$ with corresponding eigenvalues equal to $\sigma_i^2$. Note that after computing $v_i$ the corresponding left singular vector, $u_i$, is readily available through Eq.\ \ref{eq:svdleft} with just a matrix-vector product, $u_i=\frac{1}{\sigma_i}Av_i$.
+that is, the $v_i$ are the eigenvectors of matrix $A^*A$ with corresponding eigenvalues equal to $\sigma_i^2$. Note that after computing $v_i$ the corresponding left singular vector, $u_i$, is readily available through \eqref{eq:svdleft} with just a matrix-vector product, $u_i=\frac{1}{\sigma_i}Av_i$.
 
-Alternatively, one could compute first the left vectors and then the right ones. For this, pre-multiply Eq.\ \ref{eq:svdright} by $A$ and then use Eq.\ \ref{eq:svdleft} to get
+Alternatively, one could first compute the left vectors and then the right ones. For this, pre-multiply \eqref{eq:svdright} by $A$ and then use \eqref{eq:svdleft} to get
 \begin{equation}
 \label{eq:eigright}
 AA^*u_i=\sigma_i^2u_i.
 \end{equation}
 In this case, the right singular vectors are obtained as $v_i=\frac{1}{\sigma_i}A^*u_i$.
 
-The two approaches represented in Eqs.\ \ref{eq:eigleft} and \ref{eq:eigright} are very similar. Note however that $A^*A$ is a square matrix of order $n$ whereas $AA^*$ is of order $m$. In cases where $m\gg n$, the computational effort will favor the $A^*A$ approach. On the other hand, the eigenproblem \ref{eq:eigleft} has $n-r$ zero eigenvalues and the eigenproblem \ref{eq:eigright} has $m-r$ zero eigenvalues. Therefore, continuing with the assumption that $m\geq n$, even in the full rank case the $AA^*$ approach may have a large null space resulting in difficulties if the smallest singular values are sought. In \slepc, this will be referred to as the cross product approach and will use whichever matrix is smaller, either $A^*A$ or $AA^*$.
+The two approaches represented in \eqref{eq:eigleft} and \eqref{eq:eigright} are very similar. Note however that $A^*A$ is a square matrix of order $n$ whereas $AA^*$ is of order $m$. In cases where $m\gg n$, the computational effort will favor the $A^*A$ approach. On the other hand, the eigenproblem \eqref{eq:eigleft} has $n-r$ zero eigenvalues and the eigenproblem \eqref{eq:eigright} has $m-r$ zero eigenvalues. Therefore, continuing with the assumption that $m\geq n$, even in the full rank case the $AA^*$ approach may have a large null space resulting in difficulties if the smallest singular values are sought. In \slepc, this will be referred to as the cross product approach and will use whichever matrix is smaller, either $A^*A$ or $AA^*$.
 
 Computing the SVD via the cross product approach may be adequate for determining the largest singular triplets of $A$, but the loss of accuracy can be severe for the smallest singular triplets. The cyclic matrix approach is an alternative that avoids this problem, but at the expense of significantly increasing the cost of the computation. Consider the eigendecomposition of
 \begin{equation}
@@ -121,7 +121,7 @@ SVDDestroy( &svd );
 \caption{\label{fig:ex-svd}Example code for basic solution with \ident{SVD}.}
 \end{figure}
 
-The basic steps for computing a partial SVD with \slepc are illustrated in Figure \ref{fig:ex-svd}. The steps are more or less the same as those described in chapter \ref{cap:eps} for the eigenvalue problem. First, the solver context is created with \ident{SVDCreate}. Then the problem matrix has to be specified with \ident{SVDSetOperator}. Then, a call to \ident{SVDSolve} invokes the actual solver. After that, \ident{SVDGetConverged} is used to determine how many solutions have been computed, which are retrieved with \ident{SVDGetSingularTriplet}. Finally, \ident{SVDDestroy} cleans up everything.
+The basic steps for computing a partial SVD with \slepc are illustrated in Figure \ref{fig:ex-svd}. The steps are more or less the same as those described in chapter \ref{cap:eps} for the eigenvalue problem. First, the solver context is created with \ident{SVDCreate}. Then the problem matrix has to be specified with \ident{SVDSetOperator}. Then, a call to \ident{SVDSolve} invokes the actual solver. After that, \ident{SVDGetConverged} is used to determine how many solutions have been computed, which are retrieved with \ident{SVDGetSingularTriplet}. Finally, \ident{SVDDestroy} gets rid of the object.
 
 If one compares this example code with the \ident{EPS} example in Figure \ref{fig:ex-eps}, the most outstanding differences are the following:
 \begin{itemize}
@@ -214,9 +214,9 @@ The solution method can be specified procedurally or via the command line. The a
 	\end{Verbatim}
 while the user writes the options database command \Verb!-svd_type! followed by the name of the method (see Table \ref{tab:svdsolvers}).
 
-The \ident{EPS}-based solvers deserve some additional comments. These SVD solvers work by creating an \ident{EPS} object internally and setting up an eigenproblem of type \ident{EPS\_HEP}. These solvers implement the cross product matrix approach, Eq.\ \ref{eq:eigleft}, and the cyclic matrix approach, Eq.\ \ref{eq:cyclic}. Therefore, the operator matrix associated with the \ident{EPS} object will be $A^*A$ in the case of the \texttt{cross} solver and $H(A)$ in the case of the \texttt{cyclic} solver.
+The \ident{EPS}-based solvers deserve some additional comments. These SVD solvers work by creating an \ident{EPS} object internally and setting up an eigenproblem of type \ident{EPS\_HEP}. These solvers implement the cross product matrix approach \eqref{eq:eigleft}, and the cyclic matrix approach \eqref{eq:cyclic}. Therefore, the operator matrix associated with the \ident{EPS} object will be $A^*A$ in the case of the \texttt{cross} solver and $H(A)$ in the case of the \texttt{cyclic} solver.
 
-In the case of the \texttt{cross} solver, the matrix $A^*A$ is not built explicitly by default, since the resulting matrix may be much less sparse than the original matrix. By default, a shell matrix is created internally in the \ident{SVD} object and passed to the \ident{EPS} object. Still, the user may choose to force the computation of $A^*A$ explicitly, by means of PETSc's sparse matrix-matrix product subroutines. This is set with
+In the case of the \texttt{cross} solver, the matrix $A^*A$ is not built explicitly by default, since the resulting matrix may be much less sparse than the original matrix. By default, a shell matrix is created internally in the \ident{SVD} object and passed to the \ident{EPS} object. Still, the user may choose to force the computation of $A^*A$ explicitly, by means of \petsc's sparse matrix-matrix product subroutines. This is set with
 	\findex{SVDCrossSetExplicitMatrix}
 	\begin{Verbatim}[fontsize=\small]
 	SVDCrossSetExplicitMatrix(SVD svd,PetscBool explicit);

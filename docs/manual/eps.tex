@@ -124,7 +124,7 @@ EPSDestroy( &eps );
 	\end{Verbatim}
 	The subroutine that is actually invoked depends on which solver has been selected by the user.
 
-        After the call to \ident{EPSSolve} has finished, all the data associated with the solution of the eigenproblem is kept internally. This information can be retrieved with different function calls, as in lines 13 to 17. This part is described in detail in \S\ref{sec:retrsol}.
+        After the call to \ident{EPSSolve} has finished, all the data associated with the solution of the eigenproblem are kept internally. This information can be retrieved with different function calls, as in lines 13 to 17. This part is described in detail in \S\ref{sec:retrsol}.
 
 	Once the \ident{EPS} context is no longer needed, it should be destroyed with the command
 	\findex{EPSDestroy}
@@ -184,7 +184,7 @@ By default, \slepc assumes that the problem is non-Hermitian. Some eigensolvers 
 In the case of generalized eigenproblems some considerations apply regarding symmetry, especially in the case of singular $B$. This topic is tackled in \S\ref{sec:symm} and \S\ref{sec:purif}.
 For all these reasons, the user is strongly recommended to always specify the problem type in the source code.
 
-	The type of the problem can be determined with the functions
+	The characteristics of the problem can be determined with the functions
 	\findex{EPSIsGeneralized} \findex{EPSIsHermitian}
 	\begin{Verbatim}[fontsize=\small]
 	EPSIsGeneralized(EPS eps,PetscBool *gen);
@@ -217,7 +217,7 @@ which can also be specified at the command line. This criterion is used both for
 	\begin{Verbatim}[fontsize=\small]
 	EPSSetTarget(EPS eps,PetscScalar target);
 	\end{Verbatim}
-or, alternatively, with the command-line key \Verb!-eps_target!. Note that, since the target is defined as a \texttt{PetscScalar}, complex values of $\tau$ are allowed only in the case of complex scalar builds of the SLEPc library.
+or, alternatively, with the command-line key \Verb!-eps_target!. Note that, since the target is defined as a \texttt{PetscScalar}, complex values of $\tau$ are allowed only in the case of complex scalar builds of the \slepc library.
 
 The use of a target value makes sense if the eigenvalues of interest are located in the interior of the spectrum. Since these eigenvalues are usually more difficult to compute, the eigensolver by itself may not be able to obtain them, and additional tools are normally required.
 There are two possibilities for this:
@@ -268,16 +268,16 @@ The selection criteria discussed above are based solely on the eigenvalue. In so
 	The available methods for solving the eigenvalue problems are the following:
 \begin{itemize}
 \setlength{\itemsep}{0pt}
-\item Basic methods
+\item Basic methods (not recommended except for simple problems):
 \begin{itemize}
 \setlength{\itemsep}{-1pt}
-\item Power Iteration with deflation. When combined with shift-and-invert (see ch.\ \ref{cap:st}), it is equivalent to the inverse iteration. Also, this solver embeds the Rayleigh Quotient iteration (RQI) by allowing variable shifts. Additionally, it provides the nonlinear inverse iteration method for the case that the problem matrix is a nonlinear operator (for this advanced usage, see \ident{EPSPowerSetNonlinear}).
+\item Power Iteration with deflation. When combined with shift-and-invert (see chapter \ref{cap:st}), it is equivalent to the inverse iteration. Also, this solver embeds the Rayleigh Quotient iteration (RQI) by allowing variable shifts. Additionally, it provides the nonlinear inverse iteration method for the case that the problem matrix is a nonlinear operator (for this advanced usage, see \ident{EPSPowerSetNonlinear}).
 \item Subspace Iteration with Rayleigh-Ritz projection and locking.
 \item Arnoldi method with explicit restart and deflation.
 \item Lanczos with explicit restart, deflation, and different reorthogonalization strategies.
 \end{itemize}
 \item Krylov-Schur, a variation of Arnoldi with a very effective restarting technique. In the case of symmetric problems, this is equivalent to the thick-restart Lanczos method.
-\item Generalized Davidson, a simple iteration based on the subspace expansion by the preconditioned residual.
+\item Generalized Davidson, a simple iteration based on subspace expansion with the preconditioned residual.
 \item Jacobi-Davidson, a preconditioned eigensolver with an effective correction equation.
 \item RQCG, a basic conjugate gradient iteration for the minimization of the Rayleigh quotient.
 \item LOBPCG, the locally-optimal block preconditioned conjugate gradient.
@@ -379,7 +379,7 @@ Method   &  Portion of spectrum & Problem type & Real/Complex \\ \hline
 \section{Retrieving the Solution}
 \label{sec:retrsol}
 
-Once the call to \ident{EPSSolve} is complete, all the data associated with the solution of the eigenproblem is kept internally in the \ident{EPS} object. This information can be obtained by the calling program by means of a set of functions described in this section.
+Once the call to \ident{EPSSolve} is complete, all the data associated with the solution of the eigenproblem are kept internally in the \ident{EPS} object. This information can be obtained by the calling program by means of a set of functions described in this section.
 
 	As explained below, the number of computed solutions depends on the convergence and, therefore, it may be different from the number of solutions requested by the user. So the first task is to find out how many solutions are available, with
 	\findex{EPSGetConverged}
@@ -425,7 +425,7 @@ or $r=A\tilde{x}-\tilde{\lambda}B\tilde{x}$ in the case of a generalized problem
 \end{equation}
 where $\lambda$ is an exact eigenvalue. Therefore, the 2-norm of the residual vector can be used as a bound for the absolute error in the eigenvalue.
 
-	In the case of non-Hermitian problems, the situation is worse because no simple relation such as Eq.\ \ref{eq:reserr} is available. This means that in this case the residual norms may still give an indication of the actual error but the user should be aware that they may sometimes be completely wrong, especially in the case of highly non-normal matrices. A better bound would involve also the residual norm of the left eigenvector.
+	In the case of non-Hermitian problems, the situation is worse because no simple relation such as \eqref{eq:reserr} is available. This means that in this case the residual norms may still give an indication of the actual error but the user should be aware that they may sometimes be completely wrong, especially in the case of highly non-normal matrices. A better bound would involve also the residual norm of the left eigenvector.
 
 	With respect to eigenvectors, we have a similar scenario in the sense that bounds for the error may be established in the Hermitian case only, for example the following one:
 \begin{equation}
@@ -441,7 +441,7 @@ where $\theta(x,\tilde{x})$ is the angle between the computed and exact eigenvec
 This is sufficient in some applications and is safer from the numerical point of view.
 
 \paragraph{Computation of Bounds.}
-It is sometimes useful to compute error bounds based on the norm of the residual $r_j$, to assess the accuracy of the computed solution. The bound can be made in absolute terms, as in Eq.\ \ref{eq:reserr}, or alternatively the error can be expressed relative to the eigenvalue or to the matrix norms. For this, the following function can be used:
+It is sometimes useful to compute error bounds based on the norm of the residual $r_j$, to assess the accuracy of the computed solution. The bound can be made in absolute terms, as in \eqref{eq:reserr}, or alternatively the error can be expressed relative to the eigenvalue or to the matrix norms. For this, the following function can be used:
 	\findex{EPSComputeError}
 	\begin{Verbatim}[fontsize=\small]
 	EPSComputeError(EPS eps,PetscInt j,EPSErrorType type,PetscReal *error);
@@ -658,7 +658,7 @@ where $d(v_i)$ is the degree of vertex $v_i$. This matrix is singular since all 
 	\end{Verbatim}
 The value \texttt{n} indicates how many vectors are passed in argument \texttt{defl}.
 
-	The deflation space can be any subspace but typically it is most useful in the case of an invariant subspace or a null-space. In any case, \slepc internally checks to see if all (or part of) the provided subspace is a null-space of the associated linear system (see \S\ref{sec:lin}). In this case, this null-space is attached to coefficient matrix of the linear solver (see \petsc's function \texttt{MatSetNullSpace}) to enable the solution of singular systems. In practice, this allows the computation of eigenvalues of singular pencils (i.e., when $A$ and $B$ share a common null-space).
+	The deflation space can be any subspace but typically it is most useful in the case of an invariant subspace or a null-space. In any case, \slepc internally checks to see if all (or part of) the provided subspace is a null-space of the associated linear system (see \S\ref{sec:lin}). In this case, this null-space is attached to the coefficient matrix of the linear solver (see \petsc's function \texttt{MatSetNullSpace}) to enable the solution of singular systems. In practice, this allows the computation of eigenvalues of singular pencils (i.e., when $A$ and $B$ share a common null-space).
 
 \subsection{Orthogonalization}
 \label{sec:orthog}

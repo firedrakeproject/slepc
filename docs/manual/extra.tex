@@ -29,9 +29,9 @@
   \item Automatic generation of back-traces of the call stack.
   \item Detection of memory leaks.
   \end{itemize}
-\item A number of viewers for visualization of data, including built-in graphics capabilities that allow for sparse pattern visualization, graphic convergence monitoring, operator's spectrum visualization and other user-defined operations.
+\item A number of viewers for visualization of data, including built-in graphics capabilities that allow for sparse pattern visualization, graphic convergence monitoring, operator's spectrum visualization and display of regions of the complex plane.
 \item Easy handling of runtime options.
-\item Support for Fortran programming, including modules, interfaces and data types in Fortran 90. See \S\ref{sec:fortran} for an example program in Fortran 77.
+\item Support for Fortran programming using Fortran 90 modules. See \S\ref{sec:fortran} for an example with fixed-format source lines.
 \end{itemize}
 
 %---------------------------------------------------
@@ -40,7 +40,7 @@
 
 	Methods implemented in \ident{EPS} merely require vector operations and matrix-vector products. In \petsc, mathematical objects such as vectors and matrices have an interface that is independent of the underlying data structures. \slepc manipulates vectors and matrices via this interface and, therefore, it can be used with any of the matrix representations provided by \petsc, including dense, sparse, and symmetric formats, either sequential or parallel.
 
-	The above statement must be reconsidered when using \ident{EPS} in combination with \ident{ST}. As explained in chapter \ref{cap:st}, in many cases the operator associated with a spectral transformation not only consists in pure matrix-vector products but also other operations may be required as well, most notably a linear system solve (see Table \ref{tab:op}). In this case, the limitation is that there must be support for the requested operation for the selected matrix representation. For instance, if one wants to use \texttt{cholesky} for the solution of the linear systems, then it may be necessary to work with a symmetric matrix format such as \texttt{MATSBAIJ}.
+	The above statement must be reconsidered when using \ident{EPS} in combination with \ident{ST}. As explained in chapter \ref{cap:st}, in many cases the operator associated with a spectral transformation not only consists in pure matrix-vector products but also other operations may be required as well, most notably a linear system solve (see Table \ref{tab:op}). In this case, the limitation is that there must be support for the requested operation for the selected matrix representation. %For instance, if one wants to use \texttt{cholesky} for the solution of the linear systems, then it may be necessary to work with a symmetric matrix format such as \texttt{MATSBAIJ}.
 
 \paragraph{Shell Matrices.}
 
@@ -53,7 +53,7 @@
 \end{equation}
 where $x$ and $p$ denote the velocity and pressure fields. Similar formulations also appear in many other situations.
 
-	Many of these problems can be solved by reformulating them as a reduced-order standard or generalized eigensystem, in which the matrices are equal to certain operations of the blocks. These matrices are not computed explicitly to avoid losing sparsity.
+	In some cases, these problems can be solved by reformulating them as a reduced-order standard or generalized eigensystem, in which the matrices are equal to certain operations of the blocks. These matrices are not computed explicitly to avoid losing sparsity.
 
 	All these cases can be easily handled in \slepc by means of shell matrices. These are matrices that do not require explicit storage of the matrix entries. Instead, the user must provide subroutines for all the necessary matrix operations, typically only the application of the linear operator to a vector.
 
@@ -67,17 +67,18 @@ where $x$ and $p$ denote the velocity and pressure fields. Similar formulations 
 \section{GPU Computing}
 \label{sec:gpu}
 
-Experimental support for graphics processor unit (GPU) computing is included since \slepc 3.2. This is related to \S\ref{sec:supported} because GPU support in \petsc is based on using special types of \texttt{Mat} and \texttt{Vec}. GPU support in \slepc has been tested in all solver classes and most solvers should work, although the performance gain to be expected depends on the particular algorithm. Regarding \petsc, all iterative linear solvers are prepared to run on the GPU, but this is not the case for direct solvers and preconditioners (see \petsc documentation for details). The user must not expect a spectacular performance boost, but in general moderate gains can be achieved by running the eigensolver on the GPU instead of the CPU (in some cases a 10-fold improvement).
+Support for graphics processor unit (GPU) computing is included in \slepc. This is related to \S\ref{sec:supported} because GPU support in \petsc is based on using special types of \texttt{Mat} and \texttt{Vec}. GPU support in \slepc has been tested in all solver classes and most solvers should work, although the performance gain to be expected depends on the particular algorithm. Regarding \petsc, all iterative linear solvers are prepared to run on the GPU, but this is not the case for direct solvers and preconditioners (see \petsc documentation for details). The user must not expect a spectacular performance boost, but in general moderate gains can be achieved by running the eigensolver on the GPU instead of the CPU (in some cases a 10-fold improvement).
 
-PETSc's GPU support currently relies on NVIDIA CUDA Toolkit 4.0\footnote{\url{http://developer.nvidia.com/cuda}} (and later), that provides a C/C++ compiler with CUDA extensions as well as the cuBLAS and cuSPARSE libraries that implement dense and sparse linear algebra operations\footnote{Support via the Cusp library is being deprecated.}. For instance, to configure \petsc with GPU support in single precision arithmetic use the following options:
+\slepc's GPU support currently relies on NVIDIA CUDA Toolkit 4.0\footnote{\url{http://developer.nvidia.com/cuda}} (and later), that provides a C/C++ compiler with CUDA extensions as well as the cuBLAS and cuSPARSE libraries that implement dense and sparse linear algebra operations. For instance, to configure \petsc with GPU support in single precision arithmetic use the following options:
 	\begin{Verbatim}[fontsize=\small]
 	$ ./configure --with-precision=single --with-cuda
 	\end{Verbatim}
 
-\ident{VECCUDA} and \ident{MATAIJCUSPARSE} are currently the mechanism in \petsc to run a computation on the GPU. \ident{VECCUDA} is a special type of \texttt{Vec} whose array is mirrored in the GPU (and similarly for \ident{MATAIJCUSPARSE}). \petsc takes care of keeping memory coherence between the two copies of the array, and performs the computation on the GPU when possible, trying to avoid unnecessary copies between the host and the device. For maximum efficiency, the user has to make sure that all vectors and matrices are of these types. If they are created in the standard way (\texttt{VecCreate} plus \texttt{VecSetFromOptions}) then it is sufficient to run the \slepc program with
+\ident{VECCUDA} and \ident{MATAIJCUSPARSE} are currently the mechanism in \petsc to run a computation on the GPU\footnote{\petsc has also support for GPU computing via ViennaCL, but this is not yet covered in \slepc.}. \ident{VECCUDA} is a special type of \texttt{Vec} whose array is mirrored in the GPU (and similarly for \ident{MATAIJCUSPARSE}). \petsc takes care of keeping memory coherence between the two copies of the array, and performs the computation on the GPU when possible, trying to avoid unnecessary copies between the host and the device. For maximum efficiency, the user has to make sure that all vectors and matrices are of these types. If they are created in the standard way (\texttt{VecCreate} plus \texttt{VecSetFromOptions}) then it is sufficient to run the \slepc program with
 	\begin{Verbatim}[fontsize=\small]
 	$ ./program -vec_type cuda -mat_type aijcusparse
 	\end{Verbatim}
+Note that the first option is unnecessary if no \texttt{Vec} is created in the main program.
 
 %---------------------------------------------------
 \section{Extending SLEPc}
@@ -360,7 +361,7 @@ Ring                   & \texttt{RGRING}     & \texttt{ring} \\\hline
 Each \slepc source code component directory has the following subdirectories:
 \begin{description}
 \item[\texttt{interface}] - The calling sequences for the abstract interface to the components. Code here does not know about particular implementations.
-\item[\texttt{impls}] - Source code for one or more implementations.
+\item[\texttt{impls}] - Source code for the different implementations.
 \item[\texttt{examples}] - Example programs, classified in:
 \begin{description}
 \setlength{\itemsep}{0mm}
@@ -423,7 +424,7 @@ Each \slepc source code component directory has the following subdirectories:
 	\item[Installation.]
 	To install from the original website: first of all, unpack \texttt{arpack96.tar.gz} and also the patch file \texttt{patch.tar.gz}. If you plan to use the parallel version, extract also the contents of the file \texttt{parpack96.tar.gz} together with the patches \texttt{ppatch.tar.gz} (make sure you delete any \texttt{mpif.h} files that could exist in the directory tree). After setting all the directories, modify the \texttt{ARmake.inc} file and then compile the software with \texttt{make all}. It is recommended that \arpack is installed with its own \lapack version since it may give unexpected results with more recent versions of \lapack.
 
-	Alternatively, one can use the \textsc{arpack-ng} distribution, available in \texttt{github.com}, that supports \texttt{configure}+\texttt{make} for installation. Also, SLEPc's \texttt{configure} allows to download this version automatically via the \texttt{-{}-download-arpack} option.
+	Alternatively, one can use the \textsc{arpack-ng} distribution, available in \texttt{github.com}, that supports \texttt{configure}+\texttt{make} for installation. Also, \slepc's \texttt{configure} allows to download this version automatically via the \texttt{-{}-download-arpack} option.
 
 	It is possible to configure \slepc with the serial version of \arpack. For this, you have to configure \petsc with the option \texttt{-{}-with-mpi=0}.
 	\end{description}
@@ -435,13 +436,13 @@ Each \slepc source code component directory has the following subdirectories:
 	\item[Website.] \url{http://www.cs.wm.edu/~andreas/software}.
 	\item[Version.] 2.1.
 	\item[Summary.] \primme (PReconditioned Iterative MultiMethod Eigensolver) is a C library for finding a number of eigenvalues and their corresponding eigenvectors of a real symmetric (or complex Hermitian) matrix. This library provides a multimethod eigensolver, based on Davidson/Jacobi-Davidson. Particular methods include GD+1, JDQMR, and LOBPCG. It supports preconditioning as well as the computation of interior eigenvalues.
-	\item[Installation.] Type \texttt{make lib} after customizing the file \texttt{Make\_flags} appropriately. Alternatively, the \texttt{-{}-download-primme} option is also available in SLEPc's \texttt{configure}.
+	\item[Installation.] Type \texttt{make lib} after customizing the file \texttt{Make\_flags} appropriately. Alternatively, the \texttt{-{}-download-primme} option is also available in \slepc's \texttt{configure}.
 	\item[Specific options.] Since PRIMME contains preconditioned solvers, the \slepc interface uses \ident{STPRECOND}, as described in \ref{sec:precond}.
 
 The \slepc interface to this package allows the user to specify the maximum allowed block size with the function \ident{EPSPRIMMESetBlockSize} or at run time with the option \Verb!-eps_primme_blocksize <size>!.
 For changing the particular algorithm within \primme, use the function \ident{EPSPRIMMESetMethod}.
 
-\primme also provides a solver for the singular value decomposition that is interfaced in SLEPc's \ident{SVD}, see chapter \ref{cap:svd}.
+\primme also provides a solver for the singular value decomposition that is interfaced in \slepc's \ident{SVD}, see chapter \ref{cap:svd}.
 	\end{description}
 
 \subsection*{\underline{\blzpack}}
@@ -466,7 +467,7 @@ For changing the particular algorithm within \primme, use the function \ident{EP
 	\item[Summary.] This package provides a Fortran 90 implementation of the dynamic thick-restart Lanczos algorithm. This is a specialized version of Lanczos that targets only the case in which one wants both eigenvalues and eigenvectors of a large real symmetric eigenvalue problem that cannot use the shift-and-invert scheme. In this case the standard non-restarted Lanczos algorithm requires to store a large number of Lanczos vectors, what can cause storage problems and make each iteration of the method very expensive.
 
 	\trlan{} requires the user to provide a matrix-vector multiplication routine. The parallel version uses MPI as the message passing layer.
-	\item[Installation.] To install this package, it is necessary to have access to a Fortran 90 compiler. The compiler name and the options used are specified in the file called \texttt{Make.inc}. To generate the library, type \texttt{make plib} in the \texttt{TRLan} directory. Alternatively, the \texttt{-{}-download-trlan} option is also available in SLEPc's \texttt{configure}.
+	\item[Installation.] To install this package, it is necessary to have access to a Fortran 90 compiler. The compiler name and the options used are specified in the file called \texttt{Make.inc}. To generate the library, type \texttt{make plib} in the \texttt{TRLan} directory. Alternatively, the \texttt{-{}-download-trlan} option is also available in \slepc's \texttt{configure}.
 
 	It is possible to configure \slepc with the serial version of \trlan (built with \texttt{make lib}). For this, you have to configure \petsc with the option \texttt{-{}-with-mpi=0}.
 	\end{description}
@@ -494,9 +495,9 @@ For changing the particular algorithm within \primme, use the function \ident{EP
 \section{Fortran Interface}
 \label{sec:fortran}
 
-	\slepc provides an interface for Fortran 77 programmers, very much like \petsc. As in the case of \petsc, there are slight differences between the C and Fortran \slepc interfaces, due to differences in Fortran syntax. For instance, the error checking variable is the final argument of all the routines in the Fortran interface, in contrast to the C convention of providing the error variable as the routine's return value.
+	\slepc provides an interface for Fortran programmers, very much like \petsc. As in the case of \petsc, there are slight differences between the C and Fortran \slepc interfaces, due to differences in Fortran syntax. For instance, the error checking variable is the final argument of all the routines in the Fortran interface, in contrast to the C convention of providing the error variable as the routine's return value.
 
-	The following code is a sample program written in Fortran 77. It is the Fortran equivalent of the program given in \S\ref{sec:simpleex} and can be found in \Verb!${SLEPC_DIR}/src/eps/examples/tutorials! (file \texttt{ex1f.F}, see also the Fortran 90 counterpart \texttt{ex1f90.F90}).
+	The following is a Fortran example with fixed-format source. It is the Fortran equivalent of the program given in \S\ref{sec:simpleex} and can be found in \Verb!${SLEPC_DIR}/src/eps/examples/tutorials! (file \texttt{ex1f.F}). It is also possible to use free-format source (see \texttt{ex1f90.F90}).
 \MyVerbatimInput{ex1f.F}
 
 %---------------------------------------------------

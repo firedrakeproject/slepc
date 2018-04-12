@@ -16,7 +16,7 @@
 	Spectral transformations are powerful tools for adjusting the way in which eigensolvers behave when coping with a problem. The general strategy consists in transforming the original problem into a new one in which eigenvalues are mapped to a new position while eigenvectors remain unchanged. These transformations can be used with several goals in mind:
 \begin{itemize}
 \setlength{\itemsep}{-2pt}
-\item Compute internal eigenvalues. In some applications, the eigenpairs of interest are not the extreme ones (largest magnitude, smallest magnitude, rightmost, leftmost), but those contained in a certain interval or those closest to a certain value of the complex plane.
+\item Compute internal eigenvalues. In some applications, the eigenpairs of interest are not the extreme ones (largest magnitude, rightmost, leftmost), but those contained in a certain interval or those closest to a certain value of the complex plane.
 \item Accelerate convergence. Convergence properties typically depend on how close the eigenvalues are from each other. With some spectral transformations, difficult eigenvalue distributions can be remapped in a more favorable way in terms of convergence.
 \item Handle some special situations. For instance, in generalized problems when matrix $B$ is singular, it may be necessary to use a spectral transformation.
 \end{itemize}
@@ -216,7 +216,7 @@ K^{-1}\approx (A-\sigma B)^{-1}.
 \begin{equation}
 (I-x_ix_i^*)(A-\theta_i B)(I-x_ix_i^*)d_i=-(A-\theta_i B)x_i,
 \end{equation}
-where the system is solved approximately with a preconditioned iterative linear solver. For building the preconditioner of this linear system, the projectors $I-x_ix_i^*$ are ignored, and again it is not recomputed in each iteration. Therefore, the preconditioner is built as in expression \ref{eq:precon} as well.
+where the system is solved approximately with a preconditioned iterative linear solver. For building the preconditioner of this linear system, the projectors $I-x_ix_i^*$ are ignored, and again it is not recomputed in each iteration. Therefore, the preconditioner is built as in \eqref{eq:precon} as well.
 
 	It should be clear from the previous discussion, that \ident{STPRECOND} does not work in the same way as the rest of spectral transformations. In particular, it is not intended to be used on the basis of operator applications with \ident{STApply}, and it does not rely on \ident{STBackTransform} either. It is rather a convenient mechanism for handling the preconditioner and linear solver (see examples in \S\ref{sec:lin}). The expressions shown in Tables \ref{tab:transforms} and \ref{tab:op} are just a reference to indicate from which matrix the preconditioner is built by default.
 
@@ -240,7 +240,7 @@ p(A)x=\theta x,
 \end{equation}
 where $p(\cdot)$ is a suitable high-degree polynomial. Once the polynomial is built, the eigensolver relies on \ident{STApply} to compute approximations of the eigenvalues $\theta$ of the transformed problem. These approximations must be processed in some way in order to recover the $\lambda$ eigenvalues. Note that in this case there is no \ident{STBackTransform} operation. Details of the method can be found in \citep{Fang:2012:FLP}.
 
-Polynomial filtering techiques are still under development in SLEPc, and will be improved in future versions.
+Polynomial filtering techiques are still under development in \slepc, and will be improved in future versions.
 
 %---------------------------------------------------
 \section{Advanced Usage}
@@ -256,7 +256,7 @@ Using the \ident{ST} object is very straightforward. However, when using spectra
 \begin{Verbatim}[fontsize=\small]
 	$ ./program
 \end{Verbatim}
-In this case, the \ident{ST} object associated with the \ident{EPS} solver creates a \ident{KSP} object whose coefficient matrix is $B$. By default, this \ident{KSP} object is set to use a direct solver\footnote{This is the default since \slepc 3.0.0.}, in particular an LU factorization. However, default settings can be changed, as illustrated below.
+In this case, the \ident{ST} object associated with the \ident{EPS} solver creates a \ident{KSP} object whose coefficient matrix is $B$. By default, this \ident{KSP} object is set to use a direct solver, in particular an LU factorization. However, default settings can be changed, as illustrated below.
 
 	The following command-line is equivalent to the previous one:
 \begin{Verbatim}[fontsize=\small]
@@ -305,7 +305,7 @@ If this happens, it is necessary to use a direct method for solving the linear s
 	$ ./ex5 -eps_type gd -st_pc_type asm
 \end{Verbatim}
 
-	The JD eigensolver uses both an iterative linear solver and a preconditioner, so both \texttt{KSP} and \texttt{PC} are meaningful in this case. The default is \texttt{gmres}+\texttt{bjacobi}. It is important to note that, contrary to the ordinary spectral transformations where a direct linear solver is recommended, in JD using an iterative linear solver is usually better than a direct solver. Indeed, the best performance may be achieved with a few iterations of the linear solver (or a large tolerance). For instance, the next example uses JD with GMRES+Jacobi limiting to 10 the number of allowed iterations for the linear solver:
+	The JD eigensolver uses both an iterative linear solver and a preconditioner, so both \texttt{KSP} and \texttt{PC} are meaningful in this case. It is important to note that, contrary to the ordinary spectral transformations where a direct linear solver is recommended, in JD using an iterative linear solver is usually better than a direct solver. Indeed, the best performance may be achieved with a few iterations of the linear solver (or a large tolerance). For instance, the next example uses JD with GMRES+Jacobi limiting to 10 the number of allowed iterations for the linear solver:
 \begin{Verbatim}[fontsize=\small]
 	$ ./ex5 -eps_type jd -st_ksp_type gmres -st_pc_type jacobi -st_ksp_max_it 10
 \end{Verbatim}
@@ -337,7 +337,7 @@ A discussion on the different options available for the Davidson solvers can be 
 	STSetMatMode(ST st,STMatMode mode);
 	\end{Verbatim}
 
-	The user must consider which approach is the most appropriate for the particular application. The different options have advantages and drawbacks. The first approach is the simplest one but severely restricts the number of possibilities available for solving the system, in particular most of the \petsc{} preconditioners would not be available, including direct methods. The only preconditioners that can be used in this case are Jacobi (only if matrices $A$ and $B$ have the operation \ident{MATOP\_GET\_DIAGONAL}) or a user-defined one.
+	The user must consider which approach is the most appropriate for the particular application. The different options have advantages and drawbacks. The ``\Verb!shell!'' approach is the simplest one but severely restricts the number of possibilities available for solving the system, in particular most of the \petsc{} preconditioners would not be available, including direct methods. The only preconditioners that can be used in this case are Jacobi (only if matrices $A$ and $B$ have the operation \ident{MATOP\_GET\_DIAGONAL}) or a user-defined one.
 	
 	The second approach (``\Verb!inplace!'') can be much faster, specially in the generalized case. A more important advantage of this approach is that, in this case, the linear system solver can be combined with any of the preconditioners available in \petsc, including those which need to access internal matrix data-structures such as ILU. The main drawback is that, in the generalized problem, this approach probably makes sense only in the case that $A$ and $B$ have the same sparse pattern, because otherwise the function \ident{MatAXPY} might be inefficient.
 If the user knows that the pattern is the same (or a subset), then this can be specified with the function
@@ -373,7 +373,7 @@ If the user knows that the pattern is the same (or a subset), then this can be s
        {The user selects the solver};
   \node[below right,fill=black!5,text width=2.2cm] (n1) at (0.15,0.03)
        {\begin{minipage}{\textwidth}Power/RQI\\Subspace iteration\\Arnoldi\\Lanczos\\
-       Krylov-Schur\\External solvers\end{minipage}};
+       Krylov-Schur\end{minipage}};
   \node[above right,rounded corners,fill=black!10,text width=2.5cm,inner ysep=2mm] (n2c) at (6,1.4)
        {The user can specify the problem type};
   \node[below right,fill=black!5,text width=2.2cm] (n2) at (6.15,1.43)
@@ -446,7 +446,7 @@ The \slepc interface hides all the complications of the algorithm. However, the 
 \setlength{\itemsep}{0pt}
 \item This is currently implemented only in Krylov-Schur.
 \item The method is based on shift-and-invert, so \ident{STSINVERT} must be used. Furthermore, direct linear solvers are required.
-\item The direct linear solver must provide the matrix inertia (see \petsc's \ident{MatGetInertia}). In particular, a symmetric factorization must be used (\texttt{cholesky}).
+\item The direct linear solver must provide the matrix inertia (see \petsc's \ident{MatGetInertia}).
 \end{itemize}
 
 An example command-line that sets up all the required options is:
@@ -455,13 +455,20 @@ An example command-line that sets up all the required options is:
                 -st_ksp_type preonly -st_pc_type cholesky
 \end{Verbatim}
 
-Note that \petsc's Cholesky factorization is not parallel, so for doing spectrum slicing in parallel it is required to use an external solver that supports inertia, e.g., MUMPS (see \S\ref{sec:lin} on how to use external linear solvers):
+Note that \petsc's Cholesky factorization is not parallel, so for doing spectrum slicing in parallel it is required to use an external solver that supports inertia. For example, with MUMPS (see \S\ref{sec:lin} on how to use external linear solvers) we would do:
 \begin{Verbatim}[fontsize=\small]
 	$ ./ex2 -n 50 -eps_interval 0.4,0.8 -st_type sinvert
                 -st_ksp_type preonly -st_pc_type cholesky
                 -st_pc_factor_mat_solver_type mumps -mat_mumps_icntl_13 1
 \end{Verbatim}
-The last option is required by MUMPS to compute the inertia.
+The last option is required by MUMPS to compute the inertia. An alternative is to use SuperLU\_DIST, in which case the required options would be:
+\begin{Verbatim}[fontsize=\small]
+	$ ./ex2 -n 50 -eps_interval 0.4,0.8 -st_type sinvert
+                -st_ksp_type preonly -st_pc_type cholesky
+                -st_pc_factor_mat_solver_type superlu_dist
+                -mat_superlu_dist_rowperm NATURAL
+\end{Verbatim}
+In the latter example, \ident{MatSetOption} must be used in both matrices to explicitly state that they are symmetric (or Hermitian in the complex case).
 
 Apart from the above recommendations, the following must be taken into account:
 \begin{itemize}
@@ -471,7 +478,7 @@ Apart from the above recommendations, the following must be taken into account:
 \end{itemize}
 
 \paragraph{Usage with Complex Scalars.}
-Currently, external packages that provide inertia information (MUMPS, Pardiso) do so only in real scalars, but not in the case of complex scalars. Hence, with complex scalars spectrum slicing is available only sequentially (with PETSc's Cholesky factorization). An alternative to spectrum slicing is to use the CISS solver with a region enclosing an interval on the real axis, see \hyperlink{str}{[STR-11]} for details.
+Some external packages that provide inertia information (MUMPS, Pardiso) do so only in real scalars, but not in the case of complex scalars. Hence, with complex scalars spectrum slicing is available only sequentially (with \petsc's Cholesky factorization) or via SuperLU\_DIST (as in the last example above). An alternative to spectrum slicing is to use the CISS solver with a region enclosing an interval on the real axis, see \hyperlink{str}{[STR-11]} for details.
 
 \paragraph{Use of Multiple Communicators.}
 Since spectrum slicing requires direct linear solves, parallel runs may suffer from bad scalability in the sense that increasing the number of MPI processes does not imply a performance gain. For this reason, \slepc provides the option of using multiple communicators, that is, splitting the initial MPI communicator in several groups, each of them in charge of processing part of the interval.
@@ -512,7 +519,7 @@ The following relation holds
 \begin{equation}\theta=(\lambda-\sigma)^2.\end{equation}
 Note that the mapping between $\lambda$ and $\theta$ is not injective, and hence this cannot be considered a true spectral transformation.
 
-The effect is that the spectrum is folded around the value of $\sigma$. Thus, eigenvalues that are closest to the shift become the smallest eigenvalues in the folded spectrum, as illustrated in Figure \ref{fig:fold}. For this reason, spectrum folding is commonly used in combination with eigensolvers that compute the smallest eigenvalues, for instance in the context of electronic structure calculations, \citep{Canning:2000:PEP}. This transformation can be an effective, low-cost alternative to shift-and-invert.
+The effect is that the spectrum is folded around the value of $\sigma$. Thus, eigenvalues that are closest to the shift become the smallest eigenvalues in the folded spectrum, as illustrated in Figure \ref{fig:fold}. For this reason, spectrum folding is commonly used in combination with eigensolvers that compute the smallest eigenvalues, for instance in the context of electronic structure calculations \citep{Canning:2000:PEP}. This transformation can be an effective, low-cost alternative to shift-and-invert.
 
   \begin{figure}
     \centering
