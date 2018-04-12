@@ -439,8 +439,9 @@ This example uses MUMPS for solving the associated linear systems, see \S\ref{se
 %---------------------------------------------------
 \subsection{\label{sec:qslice}Spectrum Slicing}
 
-Similarly to the spectrum slicing technique available in linear symmetric-definite eigenvalue problems (cf.\ \S\ref{sec:slice}), it is possible to compute all eigenvalues in a given interval $[a,b]$ for the case of symmetric (Hermitian) quadratic eigenvalue problems (\ident{PEP\_HERMITIAN} or \ident{PEP\_HYPERBOLIC}). This computation is available only in the \ident{PEPSTOAR} solver and requires that computing inertia is feasible, which essentially means that all eigenvalues in the interval must be real.
+Similarly to the spectrum slicing technique available in linear symmetric-definite eigenvalue problems (cf.\ \S\ref{sec:slice}), it is possible to compute all eigenvalues in a given interval $[a,b]$ for the case of hyperbolic quadratic eigenvalue problems (\ident{PEP\_HYPERBOLIC}). In more general symmetric (or Hermitian) quadratic eigenproblems (\ident{PEP\_HERMITIAN}), it may also be possible to do spectrum slicing provided that computing inertia is feasible, which essentially means that all eigenvalues in the interval must be real.
 
+This computation is available only in the \ident{PEPSTOAR} solver.
 The spectrum slicing mechanism implemented in \ident{PEP} is very similar to the one described in \S\ref{sec:slice} for linear problems, except for the multi-communicator option which is not implemented yet.
 
 A command line example is the following:
@@ -450,7 +451,7 @@ A command line example is the following:
                    -st_ksp_type preonly -st_pc_type cholesky
 \end{Verbatim}
 
-In hyperbolic problems, where eigenvalues form two separate groups of $n$ eigenvalues, it will be necessary to explicitly set the problem type to \texttt{-eps\_hyperbolic} if the interval $[a,b]$ includes eigenvalues from both groups.
+In hyperbolic problems, where eigenvalues form two separate groups of $n$ eigenvalues, it will be necessary to explicitly set the problem type to \texttt{-pep\_hyperbolic} if the interval $[a,b]$ includes eigenvalues from both groups.
 
 %---------------------------------------------------
 \section{Retrieving the Solution}
