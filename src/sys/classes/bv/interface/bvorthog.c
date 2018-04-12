@@ -733,7 +733,7 @@ static PetscErrorCode BVOrthogonalize_SVQB(BV V,Mat Rin)
    orthonormal) and the leading columns of R are not referenced. Let the
    decomposition be
 .vb
-   [ V01 V02 ] = [ V1 V2 ] [ R11 R12 ]
+   [ V01 V02 ] = [ V1 V2 ] [ R11 R12 ]
                            [  0  R22 ]
 .ve
    then V1 is left unchanged (equal to V01) as well as R11 (it should satisfy
