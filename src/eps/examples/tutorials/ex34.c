@@ -195,14 +195,16 @@ PetscErrorCode SetupDiscretization(DM dm)
   PetscFE        fe;
   PetscDS        prob;
   PetscInt       totDim;
+  MPI_Comm       comm;
   PetscErrorCode ierr;
 
   PetscFunctionBeginUser;
   /* Create finite element */
-  ierr = PetscFECreateDefault(dm,2,1,PETSC_FALSE,NULL,-1,&fe);CHKERRQ(ierr);
-  ierr = PetscObjectSetName((PetscObject) fe, "u");CHKERRQ(ierr);
+  ierr = PetscObjectGetComm((PetscObject)dm,&comm);CHKERRQ(ierr);
+  ierr = PetscFECreateDefault(comm,2,1,PETSC_FALSE,NULL,-1,&fe);CHKERRQ(ierr);
+  ierr = PetscObjectSetName((PetscObject)fe,"u");CHKERRQ(ierr);
   ierr = DMGetDS(dm,&prob);CHKERRQ(ierr);
-  ierr = PetscDSSetDiscretization(prob,0,(PetscObject) fe);CHKERRQ(ierr);
+  ierr = PetscDSSetDiscretization(prob,0,(PetscObject)fe);CHKERRQ(ierr);
   ierr = DMSetDS(dm,prob);CHKERRQ(ierr);
   ierr = PetscDSGetTotalDimension(prob,&totDim);CHKERRQ(ierr);
   ierr = PetscFEDestroy(&fe);CHKERRQ(ierr);
