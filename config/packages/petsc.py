@@ -164,13 +164,3 @@ class PETSc(package.Package):
       else:
         self.log.Exit('ERROR: cannot process file ' + petscconf_h)
 
-    # empty PETSC_ARCH, guess an arch name
-    if self.isinstall and not self.arch:
-      self.arch = 'arch-' + sys.platform.replace('cygwin','mswin')+ '-' + self.language
-      if self.debug:
-        self.arch += '-debug'
-      else:
-        self.arch += '-opt'
-      if not 'real' in self.scalar:
-        self.arch += '-' + self.scalar
-
