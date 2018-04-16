@@ -12,7 +12,7 @@ class Installer:
     if len(args)<6:
       print('********************************************************************')
       print('Installation script error - not enough arguments:')
-      print('./config/install.py SLEPC_DIR PETSC_DIR PETSC_ARCH DESTDIR LIB_SUFFIX RANLIB')
+      print('./config/install.py SLEPC_DIR PETSC_DIR DESTDIR PETSC_ARCH LIB_SUFFIX RANLIB')
       print('********************************************************************')
       sys.exit(1)
     self.rootDir     = args[0]
@@ -24,8 +24,23 @@ class Installer:
     self.copies = []
     return
 
+  def readDestDir(self, src):
+    try:
+      f = open(src)
+      for l in f.readlines():
+        r = l.split('=',1)
+        if len(r)!=2: continue
+        if r[0].strip() == 'SLEPC_DESTDIR':
+          break
+      f.close()
+    except:
+      print('********************************************************************')
+      print('Error reading SLEPC_DESTDIR from slepcvariables')
+      print('********************************************************************')
+      sys.exit(1)
+    return r[1].strip()
+
   def setupDirectories(self):
-    self.installDir        = self.destDir
     self.archDir           = os.path.join(self.rootDir, self.arch)
     self.rootIncludeDir    = os.path.join(self.rootDir, 'include')
     self.archIncludeDir    = os.path.join(self.rootDir, self.arch, 'include')
@@ -38,6 +53,7 @@ class Installer:
     self.destConfDir       = os.path.join(self.destDir, 'lib','slepc','conf')
     self.destLibDir        = os.path.join(self.destDir, 'lib')
     self.destBinDir        = os.path.join(self.destDir, 'lib','slepc','bin')
+    self.installDir        = self.readDestDir(os.path.join(self.archConfDir,'slepcvariables'))
     self.installIncludeDir = os.path.join(self.installDir, 'include')
     self.installBinDir     = os.path.join(self.installDir, 'lib','slepc','bin')
     self.rootShareDir      = os.path.join(self.rootDir, 'share')
