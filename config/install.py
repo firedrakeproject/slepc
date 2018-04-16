@@ -144,7 +144,7 @@ class Installer:
         nret2 = nret + nret2
     return nret2
 
-  def copytree(self, src, dst, symlinks = False, copyFunc = shutil.copy2, exclude = []):
+  def copytree(self, src, dst, symlinks = False, copyFunc = shutil.copy2, exclude = [], excludedir = []):
     """Recursively copy a directory tree using copyFunc, which defaults to shutil.copy2().
 
        The copyFunc() you provide is only used on the top level, lower levels always use shutil.copy2
@@ -172,7 +172,8 @@ class Installer:
           linkto = os.readlink(srcname)
           os.symlink(linkto, dstname)
         elif os.path.isdir(srcname):
-          copies.extend(self.copytree(srcname, dstname, symlinks,exclude = exclude))
+          if not os.path.basename(srcname) in excludedir:
+            copies.extend(self.copytree(srcname, dstname, symlinks,exclude = exclude))
         elif not (os.path.basename(srcname) in exclude or os.path.splitext(os.path.basename(srcname))[1]=='.html'):
           copyFunc(srcname, dstname)
           copies.append((srcname, dstname))
@@ -266,8 +267,8 @@ for dir in dirs:
     return
 
   def installConf(self):
-    self.copies.extend(self.copytree(self.rootConfDir, self.destConfDir, exclude = ['gmakegen.py','install.py']))
-    self.copies.extend(self.copytree(self.archConfDir, self.destConfDir))
+    self.copies.extend(self.copytree(self.rootConfDir, self.destConfDir, exclude = ['gmakegen.py','install.py','bfort-base.txt','bfort-mpi.txt','bfort-petsc.txt','bfort-slepc.txt']))
+    self.copies.extend(self.copytree(self.archConfDir, self.destConfDir, exclude = ['configure.log','error.log','files','gmake.log','make.log','test.log']))
     return
 
   def installBin(self):
@@ -312,7 +313,7 @@ for dir in dirs:
     return
 
   def installLib(self):
-    self.copies.extend(self.copytree(self.archLibDir, self.destLibDir, copyFunc = self.copyLib, exclude = ['.DIR']))
+    self.copies.extend(self.copytree(self.archLibDir, self.destLibDir, copyFunc = self.copyLib, exclude = ['.DIR'], excludedir = ['slepc']))
     return
 
 
