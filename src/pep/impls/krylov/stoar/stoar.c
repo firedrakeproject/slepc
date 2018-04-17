@@ -642,10 +642,9 @@ static PetscErrorCode PEPSTOARSetDetectZeros_STOAR(PEP pep,PetscBool detect)
    Notes:
    A zero in the factorization indicates that a shift coincides with an eigenvalue.
 
-   This flag is turned off by default, and may be necessary in some cases,
-   especially when several partitions are being used. This feature currently
-   requires an external package for factorizations with support for zero
-   detection, e.g. MUMPS.
+   This flag is turned off by default, and may be necessary in some cases.
+   This feature currently requires an external package for factorizations
+   with support for zero detection, e.g. MUMPS.
 
    Level: advanced
 
