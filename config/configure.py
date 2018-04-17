@@ -186,7 +186,14 @@ if not petsc.precision in ['double','single','__float128']:
 # Check for empty PETSC_ARCH
 emptyarch = not ('PETSC_ARCH' in os.environ and os.environ['PETSC_ARCH'])
 if emptyarch:
-  archname = 'installed-'+petsc.arch
+  pseudoarch = 'arch-' + sys.platform.replace('cygwin','mswin')+ '-' + petsc.language
+  if petsc.debug:
+    pseudoarch += '-debug'
+  else:
+    pseudoarch += '-opt'
+  if not 'real' in petsc.scalar:
+    pseudoarch += '-' + petsc.scalar
+  archname = 'installed-'+pseudoarch
 else:
   archname = petsc.arch
 
