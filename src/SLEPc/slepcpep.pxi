@@ -43,6 +43,7 @@ cdef extern from * nogil:
         PEP_TARGET_MAGNITUDE
         PEP_TARGET_REAL
         PEP_TARGET_IMAGINARY
+        PEP_ALL
         PEP_WHICH_USER
 
     ctypedef enum SlepcPEPBasis "PEPBasis":
@@ -130,6 +131,8 @@ cdef extern from * nogil:
     int PEPGetWhichEigenpairs(SlepcPEP,SlepcPEPWhich*)
     int PEPSetTarget(SlepcPEP,PetscScalar)
     int PEPGetTarget(SlepcPEP,PetscScalar*)
+    int PEPSetInterval(SlepcPEP,PetscReal,PetscReal)
+    int PEPGetInterval(SlepcPEP,PetscReal*,PetscReal*)
     int PEPGetConvergedReason(SlepcPEP,SlepcPEPConvergedReason*)
 
     int PEPLinearSetCompanionForm(SlepcPEP,PetscInt)
@@ -138,6 +141,23 @@ cdef extern from * nogil:
     int PEPLinearGetExplicitMatrix(SlepcPEP,PetscBool*)
     int PEPLinearSetEPS(SlepcPEP,SlepcEPS)
     int PEPLinearGetEPS(SlepcPEP,SlepcEPS*)
+
+    int PEPTOARSetRestart(SlepcPEP,PetscReal);
+    int PEPTOARGetRestart(SlepcPEP,PetscReal*);
+    int PEPTOARSetLocking(SlepcPEP,PetscBool);
+    int PEPTOARGetLocking(SlepcPEP,PetscBool*);
+
+    int PEPSTOARSetLocking(SlepcPEP,PetscBool);
+    int PEPSTOARGetLocking(SlepcPEP,PetscBool*);
+    int PEPSTOARSetDetectZeros(SlepcPEP,PetscBool);
+    int PEPSTOARGetDetectZeros(SlepcPEP,PetscBool*);
+    int PEPSTOARSetDimensions(SlepcPEP,PetscInt,PetscInt,PetscInt);
+    int PEPSTOARGetDimensions(SlepcPEP,PetscInt*,PetscInt*,PetscInt*);
+
+    int PEPJDSetRestart(SlepcPEP,PetscReal);
+    int PEPJDGetRestart(SlepcPEP,PetscReal*);
+    int PEPJDSetFix(SlepcPEP,PetscReal);
+    int PEPJDGetFix(SlepcPEP,PetscReal*);
 
 cdef extern from * nogil:
     int VecCopy(PetscVec,PetscVec)

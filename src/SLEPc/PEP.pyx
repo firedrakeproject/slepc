@@ -43,6 +43,7 @@ class PEPWhich(object):
     - `TARGET_MAGNITUDE`:   Closest to target (in magnitude).
     - `TARGET_REAL`:        Real part closest to target.
     - `TARGET_IMAGINARY`:   Imaginary part closest to target.
+    - `ALL`:                All eigenvalues in an interval.
     - `USER`:               User-defined criterion.
     """
     LARGEST_MAGNITUDE  = PEP_LARGEST_MAGNITUDE
@@ -54,6 +55,7 @@ class PEPWhich(object):
     TARGET_MAGNITUDE   = PEP_TARGET_MAGNITUDE
     TARGET_REAL        = PEP_TARGET_REAL
     TARGET_IMAGINARY   = PEP_TARGET_IMAGINARY
+    ALL                = PEP_ALL
     USER               = PEP_WHICH_USER
 
 class PEPBasis(object):
@@ -433,6 +435,49 @@ cdef class PEP(Object):
         cdef PetscInt  ival = 0
         CHKERR( PEPGetTolerances(self.pep, &rval, &ival) )
         return (toReal(rval), toInt(ival))
+
+    def getInterval(self):
+        """
+        Gets the computational interval for spectrum slicing.
+
+        Returns
+        -------
+        inta: float
+                The left end of the interval.
+        intb: float
+                The right end of the interval.
+
+        Notes
+        -----
+        If the interval was not set by the user, then zeros are returned.
+        """
+        cdef PetscReal inta = 0
+        cdef PetscReal intb = 0
+        CHKERR( PEPGetInterval(self.pep, &inta, &intb) )
+        return (toReal(inta), toReal(intb))
+
+    def setInterval(self, inta, intb):
+        """
+        Defines the computational interval for spectrum slicing.
+
+        Parameters
+        ----------
+        inta: float
+                The left end of the interval.
+        intb: float
+                The right end of the interval.
+
+        Notes
+        -----
+        Spectrum slicing is a technique employed for computing all
+        eigenvalues of symmetric quadratic eigenproblems in a given interval.
+        This function provides the interval to be considered. It must
+        be used in combination with `PEP.Which.ALL`, see
+        `setWhichEigenpairs()`.
+        """
+        cdef PetscReal rval1 = asReal(inta)
+        cdef PetscReal rval2 = asReal(intb)
+        CHKERR( PEPSetInterval(self.pep, rval1, rval2) )
 
     def setTolerances(self, tol=None, max_it=None):
         """
@@ -1061,6 +1106,250 @@ cdef class PEP(Object):
         cdef PetscBool sval = PETSC_FALSE
         CHKERR( PEPLinearGetExplicitMatrix(self.pep, &sval) )
         return sval
+
+    #
+
+    def setTOARRestart(self, keep):
+        """
+        Sets the restart parameter for the TOAR method, in
+        particular the proportion of basis vectors that must be kept
+        after restart.
+
+        Parameters
+        ----------
+        keep: float
+              The number of vectors to be kept at restart.
+
+        Notes
+        -----
+        Allowed values are in the range [0.1,0.9]. The default is 0.5.
+        """
+        cdef PetscReal val = keep
+        CHKERR( PEPTOARSetRestart(self.pep, val) )
+
+    def getTOARRestart(self):
+        """
+        Gets the restart parameter used in the TOAR method.
+
+        Returns
+        -------
+        keep: float
+              The number of vectors to be kept at restart.
+        """
+        cdef PetscReal val = 0
+        CHKERR( PEPTOARGetRestart(self.pep, &val) )
+        return val
+
+    def setTOARLocking(self, lock):
+        """
+        Choose between locking and non-locking variants of the
+        TOAR method.
+
+        Parameters
+        ----------
+        lock: bool
+              True if the locking variant must be selected.
+
+        Notes
+        -----
+        The default is to lock converged eigenpairs when the method restarts.
+        This behaviour can be changed so that all directions are kept in the
+        working subspace even if already converged to working accuracy (the
+        non-locking variant).
+        """
+        cdef PetscBool val = lock
+        CHKERR( PEPTOARSetLocking(self.pep, val) )
+
+    def getTOARLocking(self):
+        """
+        Gets the locking flag used in the TOAR method.
+
+        Returns
+        -------
+        lock: bool
+              The locking flag.
+        """
+        cdef PetscBool tval = PETSC_FALSE
+        CHKERR( PEPTOARGetLocking(self.pep, &tval) )
+        return <bint> tval
+
+    #
+
+    def setSTOARLocking(self, lock):
+        """
+        Choose between locking and non-locking variants of the
+        STOAR method.
+
+        Parameters
+        ----------
+        lock: bool
+              True if the locking variant must be selected.
+
+        Notes
+        -----
+        The default is to lock converged eigenpairs when the method restarts.
+        This behaviour can be changed so that all directions are kept in the
+        working subspace even if already converged to working accuracy (the
+        non-locking variant).
+        """
+        cdef PetscBool val = lock
+        CHKERR( PEPSTOARSetLocking(self.pep, val) )
+
+    def getSTOARLocking(self):
+        """
+        Gets the locking flag used in the STOAR method.
+
+        Returns
+        -------
+        lock: bool
+              The locking flag.
+        """
+        cdef PetscBool tval = PETSC_FALSE
+        CHKERR( PEPSTOARGetLocking(self.pep, &tval) )
+        return <bint> tval
+
+    def setSTOARDetectZeros(self, detect):
+        """
+        Sets a flag to enforce detection of zeros during the factorizations
+        throughout the spectrum slicing computation.
+
+        Parameters
+        ----------
+        detect: bool
+              True if zeros must checked for.
+
+        Notes
+        -----
+        A zero in the factorization indicates that a shift coincides with
+        an eigenvalue.
+
+        This flag is turned off by default, and may be necessary in some cases.
+        This feature currently requires an external package for factorizations
+        with support for zero detection, e.g. MUMPS.
+        """
+        cdef PetscBool val = detect
+        CHKERR( PEPSTOARSetDetectZeros(self.pep, val) )
+
+    def getSTOARDetectZeros(self):
+        """
+        Gets the flag that enforces zero detection in spectrum slicing.
+
+        Returns
+        -------
+        detect: bool
+              The zero detection flag.
+        """
+        cdef PetscBool tval = PETSC_FALSE
+        CHKERR( PEPSTOARGetDetectZeros(self.pep, &tval) )
+        return <bint> tval
+
+    def setSTOARDimensions(self, nev=None, ncv=None, mpd=None):
+        """
+        Sets the dimensions used for each subsolve step in case of doing
+        spectrum slicing for a computational interval. The meaning of the
+        parameters is the same as in `setDimensions()`.
+
+        Parameters
+        ----------
+        nev: int, optional
+             Number of eigenvalues to compute.
+        ncv: int, optional
+             Maximum dimension of the subspace to be used by the solver.
+        mpd: int, optional
+             Maximum dimension allowed for the projected problem.
+        """
+        cdef PetscInt ival1 = PETSC_DEFAULT
+        cdef PetscInt ival2 = PETSC_DEFAULT
+        cdef PetscInt ival3 = PETSC_DEFAULT
+        if nev is not None: ival1 = asInt(nev)
+        if ncv is not None: ival2 = asInt(ncv)
+        if mpd is not None: ival3 = asInt(mpd)
+        CHKERR( PEPSTOARSetDimensions(self.pep, ival1, ival2, ival3) )
+
+    def getSTOARDimensions(self):
+        """
+        Gets the dimensions used for each subsolve step in case of doing
+        spectrum slicing for a computational interval.
+
+        Returns
+        -------
+        nev: int
+             Number of eigenvalues to compute.
+        ncv: int
+             Maximum dimension of the subspace to be used by the solver.
+        mpd: int
+             Maximum dimension allowed for the projected problem.
+        """
+        cdef PetscInt ival1 = 0
+        cdef PetscInt ival2 = 0
+        cdef PetscInt ival3 = 0
+        CHKERR( PEPSTOARGetDimensions(self.pep, &ival1, &ival2, &ival3) )
+        return (toInt(ival1), toInt(ival2), toInt(ival3))
+
+    #
+
+    def setJDRestart(self, keep):
+        """
+        Sets the restart parameter for the Jacobi-Davidson method, in
+        particular the proportion of basis vectors that must be kept
+        after restart.
+
+        Parameters
+        ----------
+        keep: float
+              The number of vectors to be kept at restart.
+
+        Notes
+        -----
+        Allowed values are in the range [0.1,0.9]. The default is 0.5.
+        """
+        cdef PetscReal val = keep
+        CHKERR( PEPJDSetRestart(self.pep, val) )
+
+    def getJDRestart(self):
+        """
+        Gets the restart parameter used in the Jacobi-Davidson method.
+
+        Returns
+        -------
+        keep: float
+              The number of vectors to be kept at restart.
+        """
+        cdef PetscReal val = 0
+        CHKERR( PEPJDGetRestart(self.pep, &val) )
+        return val
+
+    def setJDFix(self, fix):
+        """
+        Sets the threshold for changing the target in the correction
+        equation.
+
+        Parameters
+        ----------
+        fix: float
+              Threshold for changing the target.
+
+        Notes
+        -----
+        The target in the correction equation is fixed at the first iterations.
+        When the norm of the residual vector is lower than the fix value,
+        the target is set to the corresponding eigenvalue.
+        """
+        cdef PetscReal val = fix
+        CHKERR( PEPJDSetFix(self.pep, val) )
+
+    def getJDFix(self):
+        """
+        Gets threshold for changing the target in the correction equation.
+
+        Returns
+        -------
+        fix: float
+              The threshold for changing the target.
+        """
+        cdef PetscReal val = 0
+        CHKERR( PEPJDGetFix(self.pep, &val) )
+        return val
 
 # -----------------------------------------------------------------------------
 
