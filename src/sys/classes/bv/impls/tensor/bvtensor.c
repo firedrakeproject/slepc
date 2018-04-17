@@ -29,14 +29,12 @@ PetscErrorCode BVMult_Tensor(BV Y,PetscScalar alpha,PetscScalar beta,BV X,Mat Q)
 {
   PetscFunctionBegin;
   SETERRQ(PetscObjectComm((PetscObject)Y),PETSC_ERR_SUP,"Operation not implemented in BVTENSOR");
-  PetscFunctionReturn(0);
 }
 
 PetscErrorCode BVMultVec_Tensor(BV X,PetscScalar alpha,PetscScalar beta,Vec y,PetscScalar *q)
 {
   PetscFunctionBegin;
   SETERRQ(PetscObjectComm((PetscObject)X),PETSC_ERR_SUP,"Operation not implemented in BVTENSOR");
-  PetscFunctionReturn(0);
 }
 
 PetscErrorCode BVMultInPlace_Tensor(BV V,Mat Q,PetscInt s,PetscInt e)
@@ -98,14 +96,12 @@ PetscErrorCode BVDotVec_Tensor(BV X,Vec y,PetscScalar *q)
 {
   PetscFunctionBegin;
   SETERRQ(PetscObjectComm((PetscObject)X),PETSC_ERR_SUP,"Operation not implemented in BVTENSOR");
-  PetscFunctionReturn(0);
 }
 
 PetscErrorCode BVDotVec_Local_Tensor(BV X,Vec y,PetscScalar *m)
 {
   PetscFunctionBegin;
   SETERRQ(PetscObjectComm((PetscObject)X),PETSC_ERR_SUP,"Operation not implemented in BVTENSOR");
-  PetscFunctionReturn(0);
 }
 
 PetscErrorCode BVScale_Tensor(BV bv,PetscInt j,PetscScalar alpha)
@@ -148,21 +144,18 @@ PetscErrorCode BVNorm_Local_Tensor(BV bv,PetscInt j,NormType type,PetscReal *val
 {
   PetscFunctionBegin;
   SETERRQ(PetscObjectComm((PetscObject)bv),PETSC_ERR_SUP,"Operation not implemented in BVTENSOR");
-  PetscFunctionReturn(0);
 }
 
 PetscErrorCode BVMatMult_Tensor(BV V,Mat A,BV W)
 {
   PetscFunctionBegin;
   SETERRQ(PetscObjectComm((PetscObject)V),PETSC_ERR_SUP,"Operation not implemented in BVTENSOR");
-  PetscFunctionReturn(0);
 }
 
 PetscErrorCode BVCopy_Tensor(BV V,BV W)
 {
   PetscFunctionBegin;
   SETERRQ(PetscObjectComm((PetscObject)V),PETSC_ERR_SUP,"Operation not implemented in BVTENSOR");
-  PetscFunctionReturn(0);
 }
 
 PetscErrorCode BVCopyColumn_Tensor(BV V,PetscInt j,PetscInt i)
@@ -183,49 +176,42 @@ PetscErrorCode BVResize_Tensor(BV bv,PetscInt m,PetscBool copy)
 {
   PetscFunctionBegin;
   SETERRQ(PetscObjectComm((PetscObject)bv),PETSC_ERR_SUP,"Operation not implemented in BVTENSOR");
-  PetscFunctionReturn(0);
 }
 
 PetscErrorCode BVGetColumn_Tensor(BV bv,PetscInt j,Vec *v)
 {
   PetscFunctionBegin;
   SETERRQ(PetscObjectComm((PetscObject)bv),PETSC_ERR_SUP,"Operation not implemented in BVTENSOR");
-  PetscFunctionReturn(0);
 }
 
 PetscErrorCode BVRestoreColumn_Tensor(BV bv,PetscInt j,Vec *v)
 {
   PetscFunctionBegin;
   SETERRQ(PetscObjectComm((PetscObject)bv),PETSC_ERR_SUP,"Operation not implemented in BVTENSOR");
-  PetscFunctionReturn(0);
 }
 
 PetscErrorCode BVGetArray_Tensor(BV bv,PetscScalar **a)
 {
   PetscFunctionBegin;
   SETERRQ(PetscObjectComm((PetscObject)bv),PETSC_ERR_SUP,"Operation not implemented in BVTENSOR");
-  PetscFunctionReturn(0);
 }
 
 PetscErrorCode BVRestoreArray_Tensor(BV bv,PetscScalar **a)
 {
   PetscFunctionBegin;
   SETERRQ(PetscObjectComm((PetscObject)bv),PETSC_ERR_SUP,"Operation not implemented in BVTENSOR");
-  PetscFunctionReturn(0);
 }
 
 PetscErrorCode BVGetArrayRead_Tensor(BV bv,const PetscScalar **a)
 {
   PetscFunctionBegin;
   SETERRQ(PetscObjectComm((PetscObject)bv),PETSC_ERR_SUP,"Operation not implemented in BVTENSOR");
-  PetscFunctionReturn(0);
 }
 
 PetscErrorCode BVRestoreArrayRead_Tensor(BV bv,const PetscScalar **a)
 {
   PetscFunctionBegin;
   SETERRQ(PetscObjectComm((PetscObject)bv),PETSC_ERR_SUP,"Operation not implemented in BVTENSOR");
-  PetscFunctionReturn(0);
 }
 
 static PetscErrorCode BVTensorNormColumn(BV bv,PetscInt j,PetscReal *norm)
