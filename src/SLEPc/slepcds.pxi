@@ -58,6 +58,8 @@ cdef extern from * nogil:
     int DSGetExtraRow(SlepcDS,PetscBool*)
     int DSSetRefined(SlepcDS,PetscBool)
     int DSGetRefined(SlepcDS,PetscBool*)
+    int DSGetMat(SlepcDS,SlepcDSMatType,PetscMat*)
+    int DSRestoreMat(SlepcDS,SlepcDSMatType,PetscMat*)
     int DSGetArray(SlepcDS,SlepcDSMatType,PetscScalar *a[])
     int DSRestoreArray(SlepcDS,SlepcDSMatType,PetscScalar *a[])
     int DSGetArrayReal(SlepcDS,SlepcDSMatType,PetscReal *a[])

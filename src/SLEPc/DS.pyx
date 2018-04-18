@@ -462,6 +462,21 @@ cdef class DS(Object):
         """
         CHKERR( DSUpdateExtraRow(self.ds) )
 
+    def getMat(self, matname):
+        """
+        Returns the requested matrix as a sequential dense Mat object.
+
+        Parameters
+        ----------
+        matname: `DS.MatType` enumerate
+           The requested matrix.
+        """
+        cdef SlepcDSMatType mname = matname
+        cdef Mat mat
+        mat = Mat()
+        CHKERR( DSGetMat(self.ds, mname, &mat.mat) )
+        return mat
+
 # -----------------------------------------------------------------------------
 
 del DSType
