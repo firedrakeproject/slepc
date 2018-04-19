@@ -283,6 +283,7 @@ PetscErrorCode BVResize_Svec(BV bv,PetscInt m,PetscBool copy)
     lsplit = parent->lsplit;
     vpar = ((BV_SVEC*)parent->data)->v;
     ierr = VecGetArrayRead(vpar,&pv);CHKERRQ(ierr);
+    ierr = VecResetArray(ctx->v);CHKERRQ(ierr);
     ierr = VecPlaceArray(ctx->v,pv+lsplit*bv->n);CHKERRQ(ierr);
     ierr = VecRestoreArrayRead(vpar,&pv);CHKERRQ(ierr);
   } else if (!bv->issplit) {
@@ -472,10 +473,11 @@ PETSC_EXTERN PetscErrorCode BVCreate_Svec(BV bv)
       ptr = (bv->issplit==1)? array: array+lsplit*nloc;
       ierr = VecRestoreArrayRead(vpar,&array);CHKERRQ(ierr);
       if (ctx->mpi) {
-        ierr = VecCreateMPIWithArray(PetscObjectComm((PetscObject)bv->t),bs,tlocal,bv->m*N,ptr,&ctx->v);CHKERRQ(ierr);
+        ierr = VecCreateMPIWithArray(PetscObjectComm((PetscObject)bv->t),bs,tlocal,bv->m*N,NULL,&ctx->v);CHKERRQ(ierr);
       } else {
-        ierr = VecCreateSeqWithArray(PetscObjectComm((PetscObject)bv->t),bs,tlocal,ptr,&ctx->v);CHKERRQ(ierr);
+        ierr = VecCreateSeqWithArray(PetscObjectComm((PetscObject)bv->t),bs,tlocal,NULL,&ctx->v);CHKERRQ(ierr);
       }
+      ierr = VecPlaceArray(ctx->v,ptr);CHKERRQ(ierr);
     }
   } else {
     /* regular BV: create Vec to store the BV entries */
