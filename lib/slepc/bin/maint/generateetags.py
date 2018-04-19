@@ -135,7 +135,7 @@ def main(ctags):
   else:
     ctagfile = None
   flist = []
-  (status,output) = commands.getstatusoutput('git ls-files| egrep -v \(^\(systems/\|share/slepc/datafiles/\)\|/output/\|\.\(png\|pdf\|ps\|ppt\|jpg\|tex\)$\)')
+  (status,output) = commands.getstatusoutput('git ls-files| egrep -v \(^\(docs/\|share/\)\|/output/\|\.\(png\|pdf\|ps\|ppt\|jpg\|tex\)$\)')
   if not status:
     flist = output.split('\n')
   else:
