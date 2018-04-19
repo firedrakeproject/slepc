@@ -142,6 +142,7 @@ static PetscErrorCode PEPQSliceGetInertia(PEP pep,PetscReal shift,PetscInt *iner
   KSP            ksp;
   PC             pc;
   Mat            F,P;
+  PetscBool      flg;
   PetscReal      nzshift=0.0;
   PetscScalar    dot;
   PetscRandom    rand;
@@ -166,6 +167,11 @@ static PetscErrorCode PEPQSliceGetInertia(PEP pep,PetscReal shift,PetscInt *iner
     ierr = STMatSetUp(pep->st,pep->sfactor,pep->solvematcoeffs);CHKERRQ(ierr);
     ierr = STGetKSP(pep->st,&ksp);CHKERRQ(ierr);
     ierr = KSPGetPC(ksp,&pc);CHKERRQ(ierr);
+    ierr = PetscObjectTypeCompare((PetscObject)pc,PCREDUNDANT,&flg);CHKERRQ(ierr);
+    if (flg) {
+      ierr = PCRedundantGetKSP(pc,&ksp);CHKERRQ(ierr);
+      ierr = KSPGetPC(ksp,&pc);CHKERRQ(ierr);
+    }
     ierr = PCFactorGetMatrix(pc,&F);CHKERRQ(ierr);
     ierr = MatGetInertia(F,inertia,zeros,NULL);CHKERRQ(ierr);
   }
