@@ -594,7 +594,6 @@ PetscErrorCode BVView(BV bv,PetscViewer viewer)
   PetscViewerFormat format;
   const char        *orthname[2] = {"classical","modified"};
   const char        *refname[3] = {"if needed","never","always"};
-  const char        *borthname[2] = {"Gram-Schmidt","Cholesky"};
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(bv,BV_CLASSID,1);
@@ -624,7 +623,7 @@ PetscErrorCode BVView(BV bv,PetscViewer viewer)
           ierr = PetscViewerASCIIPrintf(viewer,"  orthogonalization refinement: %s\n",refname[bv->orthog_ref]);CHKERRQ(ierr);
           break;
       }
-      ierr = PetscViewerASCIIPrintf(viewer,"  block orthogonalization method: %s\n",borthname[bv->orthog_block]);CHKERRQ(ierr);
+      ierr = PetscViewerASCIIPrintf(viewer,"  block orthogonalization method: %s\n",BVOrthogBlockTypes[bv->orthog_block]);CHKERRQ(ierr);
       if (bv->matrix) {
         if (bv->indef) {
           ierr = PetscViewerASCIIPrintf(viewer,"  indefinite inner product\n");CHKERRQ(ierr);

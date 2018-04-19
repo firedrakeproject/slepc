@@ -27,7 +27,7 @@ SVD Object: svd 1 MPI processes
       7 columns of global length 6
       vector orthogonalization method: classical Gram-Schmidt
       orthogonalization refinement: if needed (eta: 0.7071)
-      block orthogonalization method: Gram-Schmidt
+      block orthogonalization method: GS
       doing matmult as a single matrix-matrix product
     DS Object: (svd_cross_) 1 MPI processes
       type: hep
