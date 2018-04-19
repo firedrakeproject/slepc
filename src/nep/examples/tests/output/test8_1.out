@@ -23,7 +23,7 @@ NEP Object: nep 1 MPI processes
       7 columns of global length 6
       vector orthogonalization method: classical Gram-Schmidt
       orthogonalization refinement: if needed (eta: 0.7071)
-      block orthogonalization method: Gram-Schmidt
+      block orthogonalization method: GS
       doing matmult as a single matrix-matrix product
     DS Object: (nep_slp_) 1 MPI processes
       type: nhep
@@ -69,7 +69,7 @@ BV Object: 1 MPI processes
   1 columns of global length 6
   vector orthogonalization method: classical Gram-Schmidt
   orthogonalization refinement: if needed (eta: 0.7071)
-  block orthogonalization method: Gram-Schmidt
+  block orthogonalization method: GS
   doing matmult as a single matrix-matrix product
  Nonlinear eigensolve converged (1 eigenpair) due to CONVERGED_TOL; iterations 5
 Error_nep = [

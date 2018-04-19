@@ -36,7 +36,7 @@ BV Object: (myprefix_) 1 MPI processes
   7 columns of global length 16
   vector orthogonalization method: classical Gram-Schmidt
   orthogonalization refinement: if needed (eta: 0.7071)
-  block orthogonalization method: Gram-Schmidt
+  block orthogonalization method: GS
   doing matmult as a single matrix-matrix product
 myprefix_ Matrix function solve converged due to CONVERGED_TOL; iterations 3
  Finished - converged reason = 1

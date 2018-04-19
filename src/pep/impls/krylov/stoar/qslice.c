@@ -822,6 +822,7 @@ static PetscErrorCode PEPSTOAR_QSlice(PEP pep)
   ierr = STScaleShift(pep->st,sinv?pep->sfactor:1.0/pep->sfactor);CHKERRQ(ierr);
 
   /* Get the starting Arnoldi vector */
+  ierr = BVSetActiveColumns(pep->V,0,1);CHKERRQ(ierr);
   ierr = BVTensorBuildFirstColumn(ctx->V,pep->nini);CHKERRQ(ierr);
   ierr = BVSetActiveColumns(ctx->V,0,1);CHKERRQ(ierr);
   if (k) {
