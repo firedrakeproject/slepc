@@ -16,6 +16,7 @@ typedef struct {
   PetscBool mpi;    /* true if either VECMPI or VECMPICUDA */
 } BV_SVEC;
 
+#if defined(PETSC_HAVE_VECCUDA)
 PETSC_INTERN PetscErrorCode BVMult_Svec_CUDA(BV,PetscScalar,PetscScalar,BV,Mat);
 PETSC_INTERN PetscErrorCode BVMultVec_Svec_CUDA(BV,PetscScalar,PetscScalar,Vec,PetscScalar*);
 PETSC_INTERN PetscErrorCode BVMultInPlace_Svec_CUDA(BV,Mat,PetscInt,PetscInt);
@@ -31,6 +32,7 @@ PETSC_INTERN PetscErrorCode BVResize_Svec_CUDA(BV,PetscInt,PetscBool);
 PETSC_INTERN PetscErrorCode BVGetColumn_Svec_CUDA(BV,PetscInt,Vec*);
 PETSC_INTERN PetscErrorCode BVRestoreColumn_Svec_CUDA(BV,PetscInt,Vec*);
 PETSC_INTERN PetscErrorCode BVRestoreSplit_Svec_CUDA(BV,BV*,BV*);
+#endif
 
 #endif
 
