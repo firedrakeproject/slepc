@@ -525,7 +525,7 @@ static PetscErrorCode PEPStoreEigenpairs(PEP pep)
   if (nconv>sr->ndef0+sr->ndef1) {
     /* Back-transform */
     ierr = STBackTransform(pep->st,nconv,pep->eigr,pep->eigi);CHKERRQ(ierr);
-  
+    for (i=0;i<nconv;i++) if (pep->eigi[i]) pep->eigr[i] = sr->int0-sr->dir;  
     ierr = PetscObjectTypeCompare((PetscObject)pep->st,STCAYLEY,&iscayley);CHKERRQ(ierr);
     /* Sort eigenvalues */
     ierr = sortRealEigenvalues(pep->eigr,pep->perm,nconv,PETSC_FALSE,sr->dir);CHKERRQ(ierr);
