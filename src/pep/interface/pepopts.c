@@ -420,9 +420,12 @@ PetscErrorCode PEPGetDimensions(PEP pep,PetscInt *nev,PetscInt *ncv,PetscInt *mp
    ncv=nev+mpd. If nev is not too large, mpd=nev is a reasonable choice, otherwise
    a smaller value should be used.
 
+   When computing all eigenvalues in an interval, see PEPSetInterval(), these
+   parameters lose relevance, and tuning must be done with PEPSTOARSetDimensions().
+
    Level: intermediate
 
-.seealso: PEPGetDimensions()
+.seealso: PEPGetDimensions(), PEPSetInterval(), PEPSTOARSetDimensions()
 @*/
 PetscErrorCode PEPSetDimensions(PEP pep,PetscInt nev,PetscInt ncv,PetscInt mpd)
 {
@@ -471,6 +474,7 @@ PetscErrorCode PEPSetDimensions(PEP pep,PetscInt nev,PetscInt ncv,PetscInt mpd)
 .     PEP_TARGET_MAGNITUDE - eigenvalues closest to the target (in magnitude)
 .     PEP_TARGET_REAL - eigenvalues with real part closest to target
 .     PEP_TARGET_IMAGINARY - eigenvalues with imaginary part closest to target
+.     PEP_ALL - all eigenvalues contained in a given interval
 -     PEP_WHICH_USER - user defined ordering set with PEPSetEigenvalueComparison()
 
    Options Database Keys:
@@ -482,7 +486,8 @@ PetscErrorCode PEPSetDimensions(PEP pep,PetscInt nev,PetscInt ncv,PetscInt mpd)
 .   -pep_smallest_imaginary - Sets smallest imaginary parts
 .   -pep_target_magnitude - Sets eigenvalues closest to target
 .   -pep_target_real - Sets real parts closest to target
--   -pep_target_imaginary - Sets imaginary parts closest to target
+.   -pep_target_imaginary - Sets imaginary parts closest to target
+-   -pep_all - Sets all eigenvalues in an interval
 
    Notes:
    Not all eigensolvers implemented in PEP account for all the possible values
@@ -495,9 +500,15 @@ PetscErrorCode PEPSetDimensions(PEP pep,PetscInt nev,PetscInt ncv,PetscInt mpd)
    The criterion PEP_TARGET_IMAGINARY is available only in case PETSc and
    SLEPc have been built with complex scalars.
 
+   PEP_ALL is intended for use in combination with an interval (see
+   PEPSetInterval()), when all eigenvalues within the interval are requested.
+   In that case, the number of eigenvalues is unknown, so the nev parameter
+   has a different sense, see PEPSetDimensions().
+
    Level: intermediate
 
-.seealso: PEPGetWhichEigenpairs(), PEPSetTarget(), PEPSetEigenvalueComparison(), PEPWhich
+.seealso: PEPGetWhichEigenpairs(), PEPSetTarget(), PEPSetInterval(),
+          PEPSetDimensions(), PEPSetEigenvalueComparison(), PEPWhich
 @*/
 PetscErrorCode PEPSetWhichEigenpairs(PEP pep,PEPWhich which)
 {
