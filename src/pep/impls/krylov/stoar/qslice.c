@@ -522,131 +522,137 @@ static PetscErrorCode PEPStoreEigenpairs(PEP pep)
   sPres = sr->sPres;
   sPres->index = sr->indexEig;
 
-  /* Back-transform */
-  ierr = STBackTransform(pep->st,nconv,pep->eigr,pep->eigi);CHKERRQ(ierr);
-
-  ierr = PetscObjectTypeCompare((PetscObject)pep->st,STCAYLEY,&iscayley);CHKERRQ(ierr);
-  /* Sort eigenvalues */
-  ierr = sortRealEigenvalues(pep->eigr,pep->perm,nconv,PETSC_FALSE,sr->dir);CHKERRQ(ierr);
-  ierr = BVGetSizes(pep->V,NULL,NULL,&ld);CHKERRQ(ierr);
-  ierr = BVTensorGetFactors(ctx->V,NULL,&MS);CHKERRQ(ierr);
-  ierr = MatDenseGetArray(MS,&S);CHKERRQ(ierr);
-  /* Values stored in global array */
-  ierr = PetscCalloc4(nconv,&eigr,nconv,&errest,nconv*nconv*d,&tS,nconv,&aux);CHKERRQ(ierr);
-  ndef = sr->ndef0+sr->ndef1;
-  for (i=0;i<nconv;i++) {
-    lambda = PetscRealPart(pep->eigr[pep->perm[i]]);
-    err = pep->errest[pep->perm[i]];
-    if ((sr->dir)*(lambda - sPres->ext[0]) > 0 && (sr->dir)*(sPres->ext[1] - lambda) > 0) {/* Valid value */
-      if (sr->indexEig+count-ndef>=sr->numEigs) SETERRQ(PetscObjectComm((PetscObject)pep),1,"Unexpected error in Spectrum Slicing");
-      eigr[count] = lambda;
-      errest[count] = err;
-      if (((sr->dir)*(sPres->value - lambda) > 0) && ((sr->dir)*(lambda - sPres->ext[0]) > 0)) sPres->nconv[0]++;
-      if (((sr->dir)*(lambda - sPres->value) > 0) && ((sr->dir)*(sPres->ext[1] - lambda) > 0)) sPres->nconv[1]++;
-      ierr = PetscMemcpy(tS+count*(d*nconv),S+pep->perm[i]*(d*ld),nconv*sizeof(PetscScalar));CHKERRQ(ierr);
-      ierr = PetscMemcpy(tS+count*(d*nconv)+nconv,S+pep->perm[i]*(d*ld)+ld,nconv*sizeof(PetscScalar));CHKERRQ(ierr);
-      count++;
-    }
-  }
-  for (i=0;i<count;i++) {
-    ierr = PetscMemcpy(S+i*(d*ld),tS+i*nconv*d,nconv*sizeof(PetscScalar));CHKERRQ(ierr);
-    ierr = PetscMemcpy(S+i*(d*ld)+ld,tS+i*nconv*d+nconv,nconv*sizeof(PetscScalar));CHKERRQ(ierr);
-  }
-  ierr = MatDenseRestoreArray(MS,&S);CHKERRQ(ierr);
-  ierr = BVTensorRestoreFactors(ctx->V,NULL,&MS);CHKERRQ(ierr);
-  ierr = BVSetActiveColumns(ctx->V,0,count);CHKERRQ(ierr);
-  ierr = BVTensorCompress(ctx->V,count);CHKERRQ(ierr);
-  if (sr->sPres->nconv[0] && sr->sPres->nconv[1]) {
-    divide = PETSC_TRUE;
+  if (nconv>sr->ndef0+sr->ndef1) {
+    /* Back-transform */
+    ierr = STBackTransform(pep->st,nconv,pep->eigr,pep->eigi);CHKERRQ(ierr);
+  
+    ierr = PetscObjectTypeCompare((PetscObject)pep->st,STCAYLEY,&iscayley);CHKERRQ(ierr);
+    /* Sort eigenvalues */
+    ierr = sortRealEigenvalues(pep->eigr,pep->perm,nconv,PETSC_FALSE,sr->dir);CHKERRQ(ierr);
+    ierr = BVGetSizes(pep->V,NULL,NULL,&ld);CHKERRQ(ierr);
     ierr = BVTensorGetFactors(ctx->V,NULL,&MS);CHKERRQ(ierr);
     ierr = MatDenseGetArray(MS,&S);CHKERRQ(ierr);
-    ierr = PetscMemzero(tS,nconv*nconv*d*sizeof(PetscScalar));CHKERRQ(ierr);
+    /* Values stored in global array */
+    ierr = PetscCalloc4(nconv,&eigr,nconv,&errest,nconv*nconv*d,&tS,nconv,&aux);CHKERRQ(ierr);
+    ndef = sr->ndef0+sr->ndef1;
+    for (i=0;i<nconv;i++) {
+      lambda = PetscRealPart(pep->eigr[pep->perm[i]]);
+      err = pep->errest[pep->perm[i]];
+      if ((sr->dir)*(lambda - sPres->ext[0]) > 0 && (sr->dir)*(sPres->ext[1] - lambda) > 0) {/* Valid value */
+        if (sr->indexEig+count-ndef>=sr->numEigs) SETERRQ(PetscObjectComm((PetscObject)pep),1,"Unexpected error in Spectrum Slicing");
+        eigr[count] = lambda;
+        errest[count] = err;
+        if (((sr->dir)*(sPres->value - lambda) > 0) && ((sr->dir)*(lambda - sPres->ext[0]) > 0)) sPres->nconv[0]++;
+        if (((sr->dir)*(lambda - sPres->value) > 0) && ((sr->dir)*(sPres->ext[1] - lambda) > 0)) sPres->nconv[1]++;
+        ierr = PetscMemcpy(tS+count*(d*nconv),S+pep->perm[i]*(d*ld),nconv*sizeof(PetscScalar));CHKERRQ(ierr);
+        ierr = PetscMemcpy(tS+count*(d*nconv)+nconv,S+pep->perm[i]*(d*ld)+ld,nconv*sizeof(PetscScalar));CHKERRQ(ierr);
+        count++;
+      }
+    }
     for (i=0;i<count;i++) {
-      ierr = PetscMemcpy(tS+i*nconv*d,S+i*(d*ld),count*sizeof(PetscScalar));CHKERRQ(ierr);
-      ierr = PetscMemcpy(tS+i*nconv*d+nconv,S+i*(d*ld)+ld,count*sizeof(PetscScalar));CHKERRQ(ierr);
+      ierr = PetscMemcpy(S+i*(d*ld),tS+i*nconv*d,nconv*sizeof(PetscScalar));CHKERRQ(ierr);
+      ierr = PetscMemcpy(S+i*(d*ld)+ld,tS+i*nconv*d+nconv,nconv*sizeof(PetscScalar));CHKERRQ(ierr);
     }
     ierr = MatDenseRestoreArray(MS,&S);CHKERRQ(ierr);
     ierr = BVTensorRestoreFactors(ctx->V,NULL,&MS);CHKERRQ(ierr);
-    ierr = BVSetActiveColumns(pep->V,0,count);CHKERRQ(ierr);
-    ierr = BVDuplicateResize(pep->V,count,&tV);CHKERRQ(ierr);
-    ierr = BVCopy(pep->V,tV);CHKERRQ(ierr);
-  }
-  if (sr->sPres->nconv[0]) {
-    if (divide) {
-      ierr = BVSetActiveColumns(ctx->V,0,sr->sPres->nconv[0]);CHKERRQ(ierr);
-      ierr = BVTensorCompress(ctx->V,sr->sPres->nconv[0]);CHKERRQ(ierr);
-    }
-    for (i=0;i<sr->ndef0;i++) aux[i] = sr->idxDef0[i];
-    for (i=sr->ndef0;i<sr->sPres->nconv[0];i++) aux[i] = sr->indexEig+i-sr->ndef0;
-    ierr = BVTensorGetFactors(ctx->V,NULL,&MS);CHKERRQ(ierr);
-    ierr = MatDenseGetArray(MS,&S);CHKERRQ(ierr);
-    for (i=0;i<sr->sPres->nconv[0];i++) {
-      sr->eigr[aux[i]] = eigr[i];
-      sr->errest[aux[i]] = errest[i];
-      ierr = BVGetColumn(pep->V,i,&w);CHKERRQ(ierr);
-      ierr = BVInsertVec(sr->V,aux[i],w);CHKERRQ(ierr);
-      ierr = BVRestoreColumn(pep->V,i,&w);CHKERRQ(ierr);
-      idx = sr->ld*d*aux[i];
-      ierr = PetscMemzero(sr->S+idx,sr->ld*d*sizeof(PetscScalar));CHKERRQ(ierr);
-      ierr = PetscMemcpy(sr->S+idx,S+i*(ld*d),sr->sPres->nconv[0]*sizeof(PetscScalar));CHKERRQ(ierr);
-      ierr = PetscMemcpy(sr->S+idx+sr->ld,S+i*(ld*d)+ld,sr->sPres->nconv[0]*sizeof(PetscScalar));CHKERRQ(ierr);
-      ierr = PetscFree(sr->qinfo[aux[i]].q);CHKERRQ(ierr);
-      ierr = PetscMalloc1(sr->sPres->nconv[0],&sr->qinfo[aux[i]].q);CHKERRQ(ierr);
-      ierr = PetscMemcpy(sr->qinfo[aux[i]].q,aux,sr->sPres->nconv[0]*sizeof(PetscInt));CHKERRQ(ierr);
-      sr->qinfo[aux[i]].nq = sr->sPres->nconv[0];
-    }
-    ierr = MatDenseRestoreArray(MS,&S);CHKERRQ(ierr);
-    ierr = BVTensorRestoreFactors(ctx->V,NULL,&MS);CHKERRQ(ierr);
-  }
-
-  if (sr->sPres->nconv[1]) {
-    if (divide) {
+    ierr = BVSetActiveColumns(ctx->V,0,count);CHKERRQ(ierr);
+    ierr = BVTensorCompress(ctx->V,count);CHKERRQ(ierr);
+    if (sr->sPres->nconv[0] && sr->sPres->nconv[1]) {
+      divide = PETSC_TRUE;
       ierr = BVTensorGetFactors(ctx->V,NULL,&MS);CHKERRQ(ierr);
       ierr = MatDenseGetArray(MS,&S);CHKERRQ(ierr);
-      for (i=0;i<sr->sPres->nconv[1];i++) {
-        ierr = PetscMemcpy(S+i*(d*ld),tS+(sr->sPres->nconv[0]+i)*nconv*d,count*sizeof(PetscScalar));CHKERRQ(ierr);
-        ierr = PetscMemcpy(S+i*(d*ld)+ld,tS+(sr->sPres->nconv[0]+i)*nconv*d+nconv,count*sizeof(PetscScalar));CHKERRQ(ierr);
+      ierr = PetscMemzero(tS,nconv*nconv*d*sizeof(PetscScalar));CHKERRQ(ierr);
+      for (i=0;i<count;i++) {
+        ierr = PetscMemcpy(tS+i*nconv*d,S+i*(d*ld),count*sizeof(PetscScalar));CHKERRQ(ierr);
+        ierr = PetscMemcpy(tS+i*nconv*d+nconv,S+i*(d*ld)+ld,count*sizeof(PetscScalar));CHKERRQ(ierr);
       }
       ierr = MatDenseRestoreArray(MS,&S);CHKERRQ(ierr);
       ierr = BVTensorRestoreFactors(ctx->V,NULL,&MS);CHKERRQ(ierr);
       ierr = BVSetActiveColumns(pep->V,0,count);CHKERRQ(ierr);
-      ierr = BVCopy(tV,pep->V);CHKERRQ(ierr);
-      ierr = BVSetActiveColumns(ctx->V,0,sr->sPres->nconv[1]);CHKERRQ(ierr);
-      ierr = BVTensorCompress(ctx->V,sr->sPres->nconv[1]);CHKERRQ(ierr);
+      ierr = BVDuplicateResize(pep->V,count,&tV);CHKERRQ(ierr);
+      ierr = BVCopy(pep->V,tV);CHKERRQ(ierr);
     }
-    for (i=0;i<sr->ndef1;i++) aux[i] = sr->idxDef1[i];
-    for (i=sr->ndef1;i<sr->sPres->nconv[1];i++) aux[i] = sr->indexEig+sr->sPres->nconv[0]-sr->ndef0+i-sr->ndef1;
-    ierr = BVTensorGetFactors(ctx->V,NULL,&MS);CHKERRQ(ierr);
-    ierr = MatDenseGetArray(MS,&S);CHKERRQ(ierr);
-    for (i=0;i<sr->sPres->nconv[1];i++) {
-      sr->eigr[aux[i]] = eigr[sr->sPres->nconv[0]+i];
-      sr->errest[aux[i]] = errest[sr->sPres->nconv[0]+i];
-      ierr = BVGetColumn(pep->V,i,&w);CHKERRQ(ierr);
-      ierr = BVInsertVec(sr->V,aux[i],w);CHKERRQ(ierr);
-      ierr = BVRestoreColumn(pep->V,i,&w);CHKERRQ(ierr);
-      idx = sr->ld*d*aux[i];
-      ierr = PetscMemzero(sr->S+idx,sr->ld*d*sizeof(PetscScalar));CHKERRQ(ierr);
-      ierr = PetscMemcpy(sr->S+idx,S+i*(ld*d),sr->sPres->nconv[1]*sizeof(PetscScalar));CHKERRQ(ierr);
-      ierr = PetscMemcpy(sr->S+idx+sr->ld,S+i*(ld*d)+ld,sr->sPres->nconv[1]*sizeof(PetscScalar));CHKERRQ(ierr);
-      ierr = PetscFree(sr->qinfo[aux[i]].q);CHKERRQ(ierr);
-      ierr = PetscMalloc1(sr->sPres->nconv[1],&sr->qinfo[aux[i]].q);CHKERRQ(ierr);
-      ierr = PetscMemcpy(sr->qinfo[aux[i]].q,aux,sr->sPres->nconv[1]*sizeof(PetscInt));CHKERRQ(ierr);
-      sr->qinfo[aux[i]].nq = sr->sPres->nconv[1];
+    if (sr->sPres->nconv[0]) {
+      if (divide) {
+        ierr = BVSetActiveColumns(ctx->V,0,sr->sPres->nconv[0]);CHKERRQ(ierr);
+        ierr = BVTensorCompress(ctx->V,sr->sPres->nconv[0]);CHKERRQ(ierr);
+      }
+      for (i=0;i<sr->ndef0;i++) aux[i] = sr->idxDef0[i];
+      for (i=sr->ndef0;i<sr->sPres->nconv[0];i++) aux[i] = sr->indexEig+i-sr->ndef0;
+      ierr = BVTensorGetFactors(ctx->V,NULL,&MS);CHKERRQ(ierr);
+      ierr = MatDenseGetArray(MS,&S);CHKERRQ(ierr);
+      for (i=0;i<sr->sPres->nconv[0];i++) {
+        sr->eigr[aux[i]] = eigr[i];
+        sr->errest[aux[i]] = errest[i];
+        ierr = BVGetColumn(pep->V,i,&w);CHKERRQ(ierr);
+        ierr = BVInsertVec(sr->V,aux[i],w);CHKERRQ(ierr);
+        ierr = BVRestoreColumn(pep->V,i,&w);CHKERRQ(ierr);
+        idx = sr->ld*d*aux[i];
+        ierr = PetscMemzero(sr->S+idx,sr->ld*d*sizeof(PetscScalar));CHKERRQ(ierr);
+        ierr = PetscMemcpy(sr->S+idx,S+i*(ld*d),sr->sPres->nconv[0]*sizeof(PetscScalar));CHKERRQ(ierr);
+        ierr = PetscMemcpy(sr->S+idx+sr->ld,S+i*(ld*d)+ld,sr->sPres->nconv[0]*sizeof(PetscScalar));CHKERRQ(ierr);
+        ierr = PetscFree(sr->qinfo[aux[i]].q);CHKERRQ(ierr);
+        ierr = PetscMalloc1(sr->sPres->nconv[0],&sr->qinfo[aux[i]].q);CHKERRQ(ierr);
+        ierr = PetscMemcpy(sr->qinfo[aux[i]].q,aux,sr->sPres->nconv[0]*sizeof(PetscInt));CHKERRQ(ierr);
+        sr->qinfo[aux[i]].nq = sr->sPres->nconv[0];
+      }
+      ierr = MatDenseRestoreArray(MS,&S);CHKERRQ(ierr);
+      ierr = BVTensorRestoreFactors(ctx->V,NULL,&MS);CHKERRQ(ierr);
     }
-    ierr = MatDenseRestoreArray(MS,&S);CHKERRQ(ierr);
-    ierr = BVTensorRestoreFactors(ctx->V,NULL,&MS);CHKERRQ(ierr);
+  
+    if (sr->sPres->nconv[1]) {
+      if (divide) {
+        ierr = BVTensorGetFactors(ctx->V,NULL,&MS);CHKERRQ(ierr);
+        ierr = MatDenseGetArray(MS,&S);CHKERRQ(ierr);
+        for (i=0;i<sr->sPres->nconv[1];i++) {
+          ierr = PetscMemcpy(S+i*(d*ld),tS+(sr->sPres->nconv[0]+i)*nconv*d,count*sizeof(PetscScalar));CHKERRQ(ierr);
+          ierr = PetscMemcpy(S+i*(d*ld)+ld,tS+(sr->sPres->nconv[0]+i)*nconv*d+nconv,count*sizeof(PetscScalar));CHKERRQ(ierr);
+        }
+        ierr = MatDenseRestoreArray(MS,&S);CHKERRQ(ierr);
+        ierr = BVTensorRestoreFactors(ctx->V,NULL,&MS);CHKERRQ(ierr);
+        ierr = BVSetActiveColumns(pep->V,0,count);CHKERRQ(ierr);
+        ierr = BVCopy(tV,pep->V);CHKERRQ(ierr);
+        ierr = BVSetActiveColumns(ctx->V,0,sr->sPres->nconv[1]);CHKERRQ(ierr);
+        ierr = BVTensorCompress(ctx->V,sr->sPres->nconv[1]);CHKERRQ(ierr);
+      }
+      for (i=0;i<sr->ndef1;i++) aux[i] = sr->idxDef1[i];
+      for (i=sr->ndef1;i<sr->sPres->nconv[1];i++) aux[i] = sr->indexEig+sr->sPres->nconv[0]-sr->ndef0+i-sr->ndef1;
+      ierr = BVTensorGetFactors(ctx->V,NULL,&MS);CHKERRQ(ierr);
+      ierr = MatDenseGetArray(MS,&S);CHKERRQ(ierr);
+      for (i=0;i<sr->sPres->nconv[1];i++) {
+        sr->eigr[aux[i]] = eigr[sr->sPres->nconv[0]+i];
+        sr->errest[aux[i]] = errest[sr->sPres->nconv[0]+i];
+        ierr = BVGetColumn(pep->V,i,&w);CHKERRQ(ierr);
+        ierr = BVInsertVec(sr->V,aux[i],w);CHKERRQ(ierr);
+        ierr = BVRestoreColumn(pep->V,i,&w);CHKERRQ(ierr);
+        idx = sr->ld*d*aux[i];
+        ierr = PetscMemzero(sr->S+idx,sr->ld*d*sizeof(PetscScalar));CHKERRQ(ierr);
+        ierr = PetscMemcpy(sr->S+idx,S+i*(ld*d),sr->sPres->nconv[1]*sizeof(PetscScalar));CHKERRQ(ierr);
+        ierr = PetscMemcpy(sr->S+idx+sr->ld,S+i*(ld*d)+ld,sr->sPres->nconv[1]*sizeof(PetscScalar));CHKERRQ(ierr);
+        ierr = PetscFree(sr->qinfo[aux[i]].q);CHKERRQ(ierr);
+        ierr = PetscMalloc1(sr->sPres->nconv[1],&sr->qinfo[aux[i]].q);CHKERRQ(ierr);
+        ierr = PetscMemcpy(sr->qinfo[aux[i]].q,aux,sr->sPres->nconv[1]*sizeof(PetscInt));CHKERRQ(ierr);
+        sr->qinfo[aux[i]].nq = sr->sPres->nconv[1];
+      }
+      ierr = MatDenseRestoreArray(MS,&S);CHKERRQ(ierr);
+      ierr = BVTensorRestoreFactors(ctx->V,NULL,&MS);CHKERRQ(ierr);
+    }
+    sPres->neigs = count-sr->ndef0-sr->ndef1;
+    sr->indexEig += sPres->neigs;
+    sPres->nconv[0]-= sr->ndef0;
+    sPres->nconv[1]-= sr->ndef1;
+    ierr = PetscFree4(eigr,errest,tS,aux);CHKERRQ(ierr);
+  } else {
+    sPres->neigs = 0;
+    sPres->nconv[0]= 0;
+    sPres->nconv[1]= 0;
   }
-  sPres->neigs = count-sr->ndef0-sr->ndef1;
-  sr->indexEig += sPres->neigs;
-  sPres->nconv[0]-= sr->ndef0;
-  sPres->nconv[1]-= sr->ndef1;
   /* Global ordering array updating */
   ierr = sortRealEigenvalues(sr->eigr,sr->perm,sr->indexEig,PETSC_FALSE,sr->dir);CHKERRQ(ierr);
   /* Check for completion */
   sPres->comp[0] = PetscNot(sPres->nconv[0] < sPres->nsch[0]);
   sPres->comp[1] = PetscNot(sPres->nconv[1] < sPres->nsch[1]);
   if (sPres->nconv[0] > sPres->nsch[0] || sPres->nconv[1] > sPres->nsch[1]) SETERRQ(PetscObjectComm((PetscObject)pep),1,"Mismatch between number of values found and information from inertia, consider using PEPKrylovSchurSetDetectZeros()");
-  ierr = PetscFree4(eigr,errest,tS,aux);CHKERRQ(ierr);
   if (divide) { ierr = BVDestroy(&tV);CHKERRQ(ierr); }
   PetscFunctionReturn(0);
 }
