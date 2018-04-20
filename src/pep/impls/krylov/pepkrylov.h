@@ -47,6 +47,7 @@ struct _n_SR {
   PetscReal     int0,int1;         /* Extremes of the interval */
   PetscInt      dir;               /* Determines the order of values in eig (+1 incr, -1 decr) */
   PetscBool     hasEnd;            /* Tells whether the interval has an end */
+  PetscBool     dirch;             /* Tells if dir has been changed */
   PetscInt      inertia0,inertia1;
   PetscScalar   *back;
   PetscInt      numEigs;           /* Number of eigenvalues in the interval */

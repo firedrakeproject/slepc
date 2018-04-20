@@ -292,6 +292,7 @@ PetscErrorCode PEPSetUp_STOAR_QSlice(PEP pep)
 
   /* number of eigenvalues in interval */
   sr->numEigs = (sr->dir)*(sr->inertia1 - sr->inertia0);
+  ierr = PetscInfo3(pep,"QSlice setup: allocating for %D eigenvalues in [%g,%g]\n",sr->numEigs,(double)pep->inta,(double)pep->intb);CHKERRQ(ierr);
   if (sr->numEigs) {
     ierr = PEPQSliceAllocateSolution(pep);CHKERRQ(ierr);
     ierr = PEPSetDimensions_Default(pep,ctx->nev,&ctx->ncv,&ctx->mpd);CHKERRQ(ierr);
@@ -357,14 +358,29 @@ static PetscErrorCode PEPExtractShift(PEP pep)
   PetscInt       iner,zeros=0;
   PEP_TOAR       *ctx=(PEP_TOAR*)pep->data;
   PEP_SR         sr;
-  PetscReal      newShift;
+  PetscReal      newShift,aux;
   PEP_shift      sPres;
 
   PetscFunctionBegin;
   sr = ctx->sr;
   if (sr->nPend > 0) {
-    sr->sPrev = sr->sPres;
-    sr->sPres = sr->pending[--sr->nPend];
+    if (sr->dirch) {
+      aux = sr->int1; sr->int1 = sr->int0; sr->int0 = aux;
+      iner = sr->inertia1; sr->inertia1 = sr->inertia0; sr->inertia0 = iner;
+      sr->dir *= -1;
+      ierr = PetscFree(sr->s0->neighb[1]);CHKERRQ(ierr);
+      ierr = PetscFree(sr->s0);CHKERRQ(ierr);
+      sr->nPend--;
+      ierr = PEPCreateShift(pep,sr->int0,NULL,NULL);CHKERRQ(ierr);
+      sr->sPrev = NULL;
+      sr->sPres = sr->pending[--sr->nPend];
+      pep->target = sr->sPres->value;
+      sr->s0 = sr->sPres;
+      pep->reason = PEP_CONVERGED_ITERATING;
+    } else {
+      sr->sPrev = sr->sPres;
+      sr->sPres = sr->pending[--sr->nPend];
+    }
     sPres = sr->sPres;
     ierr = PEPQSliceGetInertia(pep,sPres->value,&iner,ctx->detect?&zeros:NULL,sr->intcorr);CHKERRQ(ierr);
     if (zeros) {
@@ -427,11 +443,16 @@ static PetscErrorCode PEPGetNewShiftValue(PEP pep,PetscInt side,PetscReal *newS)
             d_prev = PetscAbsReal(sPres->value - PetscRealPart(pep->eigr[pep->nconv-1]))/(pep->nconv+0.3);
           }
           *newS = sPres->value + ((sr->dir)*d_prev*pep->nev)/2;
+          sr->dirch = PETSC_FALSE;
         } else { /* No values found, no information for next shift */
-          SETERRQ(PetscObjectComm((PetscObject)pep),1,"First shift renders no information");
+          if (!sr->dirch) {
+            sr->dirch = PETSC_TRUE;
+            *newS = sr->int1;
+          } else SETERRQ(PetscObjectComm((PetscObject)pep),1,"First shift renders no information");
         }
       }
     } else { /* Accepted values found */
+      sr->dirch = PETSC_FALSE;
       sr->nleap = 0;
       /* Average distance of values in previous subinterval */
       s = sPres->neighb[0];
@@ -1139,6 +1160,7 @@ PetscErrorCode PEPSolve_STOAR_QSlice(PEP pep)
   pep->target = sr->sPres->value;
   sr->s0 = sr->sPres;
   sr->indexEig = 0;
+
   /* Memory reservation for auxiliary variables */
   ierr = PetscLogObjectMemory((PetscObject)pep,(sr->numEigs+2*pep->ncv)*sizeof(PetscScalar));CHKERRQ(ierr);
   for (i=0;i<sr->numEigs;i++) {
