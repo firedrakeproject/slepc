@@ -160,7 +160,7 @@ class Installer:
         nret2 = nret + nret2
     return nret2
 
-  def copytree(self, src, dst, symlinks = False, copyFunc = shutil.copy2, exclude = [], excludedir = []):
+  def copytree(self, src, dst, symlinks = False, copyFunc = shutil.copy2, exclude = [], exclude_ext= ['.DSYM','.o','.pyc','.html'], recurse = 1):
     """Recursively copy a directory tree using copyFunc, which defaults to shutil.copy2().
 
        The copyFunc() you provide is only used on the top level, lower levels always use shutil.copy2
@@ -187,10 +187,9 @@ class Installer:
         if symlinks and os.path.islink(srcname):
           linkto = os.readlink(srcname)
           os.symlink(linkto, dstname)
-        elif os.path.isdir(srcname):
-          if not os.path.basename(srcname) in excludedir:
-            copies.extend(self.copytree(srcname, dstname, symlinks,exclude = exclude))
-        elif not (os.path.basename(srcname) in exclude or os.path.splitext(os.path.basename(srcname))[1]=='.html'):
+        elif os.path.isdir(srcname) and recurse and not os.path.basename(srcname) in exclude:
+          copies.extend(self.copytree(srcname, dstname, symlinks,exclude = exclude, exclude_ext = exclude_ext))
+        elif os.path.isfile(srcname) and not os.path.basename(srcname) in exclude and os.path.splitext(name)[1] not in exclude_ext:
           copyFunc(srcname, dstname)
           copies.append((srcname, dstname))
         # XXX What about devices, sockets etc.?
@@ -329,7 +328,8 @@ for dir in dirs:
     return
 
   def installLib(self):
-    self.copies.extend(self.copytree(self.archLibDir, self.destLibDir, copyFunc = self.copyLib, exclude = ['.DIR'], excludedir = ['slepc']))
+    self.copies.extend(self.copytree(self.archLibDir, self.destLibDir, copyFunc = self.copyLib, exclude = ['.DIR'],recurse = 0))
+    self.copies.extend(self.copytree(os.path.join(self.archLibDir,'pkgconfig'), os.path.join(self.destLibDir,'pkgconfig'), copyFunc = self.copyLib, exclude = ['.DIR'],recurse = 0))
     return
 
 
