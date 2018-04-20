@@ -98,14 +98,16 @@ class BaseTestObject(object):
         self.assertFalse(self.obj.fortran)
 
     def testComposeQuery(self):
-        self.assertEqual(self.obj.getRefCount(), 1)
-        self.obj.compose('myobj', self.obj)
+        myobj = type(self.obj)().create()
+        self.assertEqual(myobj.getRefCount(), 1)
+        self.obj.compose('myobj', myobj)
         self.assertTrue(type(self.obj.query('myobj')) is self.CLASS)
-        self.assertEqual(self.obj.query('myobj'), self.obj)
-        self.assertEqual(self.obj.getRefCount(), 2)
+        self.assertEqual(self.obj.query('myobj'), myobj)
+        self.assertEqual(myobj.getRefCount(), 2)
         self.obj.compose('myobj', None)
-        self.assertEqual(self.obj.getRefCount(), 1)
+        self.assertEqual(myobj.getRefCount(), 1)
         self.assertEqual(self.obj.query('myobj'), None)
+        myobj.destroy()
 
     def testProperties(self):
         self.assertEqual(self.obj.getClassId(),   self.obj.classid)
