@@ -297,7 +297,7 @@ PetscErrorCode PEPSetUp_STOAR_QSlice(PEP pep)
     ierr = PEPQSliceAllocateSolution(pep);CHKERRQ(ierr);
     ierr = PEPSetDimensions_Default(pep,ctx->nev,&ctx->ncv,&ctx->mpd);CHKERRQ(ierr);
     pep->nev = ctx->nev; pep->ncv = ctx->ncv; pep->mpd = ctx->mpd;
-    if (!pep->max_it) pep->max_it = PetscMax(100,2*(pep->nmat-1)*pep->n/pep->ncv);
+    if (!pep->max_it) pep->max_it = 100;
     ld   = ctx->ncv+2;
     ierr = DSSetType(pep->ds,DSGHIEP);CHKERRQ(ierr);
     ierr = DSSetCompact(pep->ds,PETSC_TRUE);CHKERRQ(ierr);
