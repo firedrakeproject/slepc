@@ -30,6 +30,7 @@ TESTEXAMPLES_C_NOCOMPLEX_NOTSINGLE = acoustic_wave_1d.PETSc runacoustic_wave_1d_
                                                             runacoustic_wave_1d_3 acoustic_wave_1d.rm \
                                      acoustic_wave_2d.PETSc runacoustic_wave_2d_1 acoustic_wave_2d.rm \
                                      planar_waveguide.PETSc runplanar_waveguide_1 planar_waveguide.rm \
+                                     spring.PETSc runspring_5 spring.rm \
                                      wiresaw.PETSc runwiresaw_1 wiresaw.rm
 TESTEXAMPLES_C_COMPLEX             = damped_beam.PETSc rundamped_beam_1_jd damped_beam.rm \
                                      pdde_stability.PETSc runpdde_stability_1 pdde_stability.rm \
@@ -182,6 +183,11 @@ runspring_3:
 runspring_4:
 	-@${SETTEST}; \
 	${MPIEXEC} -n 1 ./spring -n 300 -pep_hyperbolic -pep_interval -9.6,-.527 -pep_type stoar -st_type sinvert -st_pc_type cholesky -terse > $${test}.tmp 2>&1; \
+	${TESTCODE}
+
+runspring_5:
+	-@${SETTEST}; \
+	${MPIEXEC} -n 1 ./spring -n 300 -pep_hyperbolic -pep_interval -.51,-.3 -pep_type stoar -st_type sinvert -st_pc_type cholesky -pep_stoar_nev 10 -terse > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
 runwiresaw_1: runwiresaw_1_toar runwiresaw_1_qarnoldi runwiresaw_1_linear_h1 runwiresaw_1_linear_h2
