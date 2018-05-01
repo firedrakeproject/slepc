@@ -26,10 +26,10 @@ int main(int argc,char **argv)
   PC             pc;
   Vec            v;
   PetscMPIInt    size,rank;
-  PetscInt       N,n=35,m,Istart,Iend,II,nev,ncv,mpd,i,j,k,*inertias,npart,nval,start,nloc,nlocs,mlocs;
+  PetscInt       N,n=35,m,Istart,Iend,II,nev,ncv,mpd,i,j,k,*inertias,npart,nval,nloc,nlocs,mlocs;
   PetscBool      flag,showinertia=PETSC_TRUE,lock,detect;
-  PetscReal      int0,int1,*shifts,keep,*subint;
-  PetscScalar    *eval;
+  PetscReal      int0,int1,*shifts,keep,*subint,*evals;
+  PetscScalar    lambda;
   char           vlist[4000];
   PetscErrorCode ierr;
 
@@ -181,16 +181,16 @@ int main(int argc,char **argv)
 
   if (size>1) {
     ierr = EPSKrylovSchurGetSubcommInfo(eps,&k,&nval,&v);CHKERRQ(ierr);
-    ierr = PetscMalloc1(nval,&eval);CHKERRQ(ierr);
-    start = 0;
+    ierr = PetscMalloc1(nval,&evals);CHKERRQ(ierr);
     for (i=0;i<nval;i++) {
-      ierr = EPSKrylovSchurGetSubcommPairs(eps,i,eval+i,v);CHKERRQ(ierr);
+      ierr = EPSKrylovSchurGetSubcommPairs(eps,i,&lambda,v);CHKERRQ(ierr);
+      evals[i] = PetscRealPart(lambda);
     }
-    ierr = PetscFormatRealArray(vlist,sizeof(vlist),"%f",nval,eval);CHKERRQ(ierr);
+    ierr = PetscFormatRealArray(vlist,sizeof(vlist),"%f",nval,evals);CHKERRQ(ierr);
     ierr = PetscSynchronizedPrintf(PETSC_COMM_WORLD," Process %d has worked in sub-interval %D, containing %D eigenvalues: %s\n",(int)rank,k,nval,vlist);CHKERRQ(ierr);
     ierr = PetscSynchronizedFlush(PETSC_COMM_WORLD,PETSC_STDOUT);CHKERRQ(ierr);
     ierr = VecDestroy(&v);CHKERRQ(ierr);
-    ierr = PetscFree(eval);CHKERRQ(ierr);
+    ierr = PetscFree(evals);CHKERRQ(ierr);
 
     ierr = EPSKrylovSchurGetSubcommMats(eps,&As,&Bs);CHKERRQ(ierr);
     ierr = MatGetLocalSize(A,&nloc,NULL);CHKERRQ(ierr);
