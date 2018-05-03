@@ -22,7 +22,7 @@
 ! ----------------------------------------------------------------------
 !
 PROGRAM main
-#include <slepc/finclude/slepc.h>
+#include <slepc/finclude/slepcnep.h>
   USE slepcnep
   implicit none
 
@@ -198,7 +198,7 @@ END PROGRAM main
 !   FormFunction - Computes Function matrix  T(lambda)
 !
 SUBROUTINE FormFunction(nep,lambda,fun,B,ctx,ierr)
-#include <slepc/finclude/slepc.h>
+#include <slepc/finclude/slepcnep.h>
   use slepcnep
   implicit none
 
@@ -264,7 +264,7 @@ END SUBROUTINE FormFunction
 !   FormJacobian - Computes Jacobian matrix  T'(lambda)
 !
 SUBROUTINE FormJacobian(nep,lambda,jac,ctx,ierr)
-#include <slepc/finclude/slepc.h>
+#include <slepc/finclude/slepcnep.h>
   USE slepcnep
   implicit none
 
@@ -297,7 +297,7 @@ END SUBROUTINE FormJacobian
 !    dummy - optional user-defined monitor context (unused here)
 !
 SUBROUTINE ComputeSingularities(nep,maxnp,xi,dummy,ierr)
-#include <slepc/finclude/slepc.h>
+#include <slepc/finclude/slepcnep.h>
   use slepcnep
   implicit none
 
