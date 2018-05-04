@@ -1041,7 +1041,7 @@ static PetscErrorCode dvd_improvex_jd_lit_const_0(dvdDashboard *d,PetscInt i,Pet
   PetscFunctionBegin;
   a = SlepcAbsEigenvalue(d->eigr[i],d->eigi[i]);
 
-  if (d->nR[i]/a < data->fix) {
+  if (d->nR[i] < data->fix*a) {
     theta[0] = d->eigr[i];
     theta[1] = 1.0;
 #if !defined(PETSC_USE_COMPLEX)
