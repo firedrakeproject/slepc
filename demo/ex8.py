@@ -110,7 +110,7 @@ nconv = nep.getConverged()
 Print( "Number of converged eigenpairs %d" % nconv )
 
 if nconv > 0:
-  x, z = Id.getVecs()
+  x = Id.createVecs('right')
   x.set(1.0)
   Print()
   Print("        k              ||T(k)x||")

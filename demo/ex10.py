@@ -108,7 +108,7 @@ def set_problem_rhs(m):
     x_f = 0.7
     mu = x_0 + (x_f - x_0)*random.random()
     sigma = 0.1**2
-    uex, f = M.getVecs()
+    uex, f = M.createVecs()
     for j in range(Istart, Iend):
         value = 2/sigma * math.exp(-(hx*j - mu)**2/sigma) * (1 - 2/sigma * (hx*j - mu)**2 )
         f.setValue(j, value)
@@ -129,7 +129,7 @@ def solve_laplace_problem(A, RHS):
     """
     Solve 1D Laplace problem with FEM.
     """
-    u, b = A.getVecs()
+    u = A.createVecs('right')
     r, c = A.getOrdering("natural")
     A.factorILU(r, c)
     A.solve(RHS, u)
@@ -210,7 +210,7 @@ def project_STS_eigenvectors_to_S_eigenvectors(bvEs, S):
     bv.setActiveColumns(0, N)
     bv.setFromOptions()
     
-    tmpvec3, tmpvec2 = S.getVecs()
+    tmpvec2 = S.createVecs('left')
     for i in range(N):
         tmpvec = bvEs.getColumn(i)
         S.mult(tmpvec, tmpvec2)
@@ -286,7 +286,7 @@ def main():
     RHSred = bv.dotVec(RHS)
 
     # Solve the problem with POD
-    alpha, rr = Ared.getVecs()
+    alpha = Ared.createVecs('right')
     alpha = solve_laplace_problem_pod(Ared,RHSred,alpha)
 
     # Project the POD solution back to the FE space

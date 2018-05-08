@@ -61,9 +61,8 @@ def solve_eigensystem(M, C, K):
     Q.setFromOptions()
     # Solve the eigensystem
     Q.solve()
-    # Create the results vectors
-    xr, tmp = K.getVecs()
-    xi, tmp = K.getVecs()
+    # Create the result vectors
+    xr, xi = K.createVecs()
 
     its = Q.getIterationNumber()
     Print("Number of iterations of the method: %i" % its)

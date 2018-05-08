@@ -59,8 +59,7 @@ def QuasiDiagonal(N):
 
 def solve_eigensystem(A, B, problem_type=SLEPc.EPS.ProblemType.GHEP):
     # Create the results vectors
-    xr, tmp = A.getVecs()
-    xi, tmp = A.getVecs()
+    xr, xi = A.createVecs()
 
     pc = PETSc.PC().create()
     # pc.setType(pc.Type.HYPRE)

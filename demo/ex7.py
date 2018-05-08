@@ -131,7 +131,7 @@ nep.setDimensions(1)
 nep.setFromOptions()
 
 # Solve the problem
-x, z = F.getVecs()
+x = F.createVecs('right')
 x.set(1.0)
 nep.setInitialSpace(x)
 nep.solve()

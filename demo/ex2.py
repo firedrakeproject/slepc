@@ -38,9 +38,8 @@ def construct_operator(m, n):
     return A
 
 def solve_eigensystem(A, problem_type=SLEPc.EPS.ProblemType.HEP):
-    # Create the results vectors
-    xr, tmp = A.getVecs()
-    xi, tmp = A.getVecs()
+    # Create the result vectors
+    xr, xi = A.createVecs()
 
     # Setup the eigensolver
     E = SLEPc.EPS().create()

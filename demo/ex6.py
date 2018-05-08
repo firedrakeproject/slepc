@@ -77,7 +77,7 @@ if __name__ == '__main__':
     opts = PETSc.Options()
     m = opts.getInt('m', 15)
     A = build_matrix(m)   # transition probability matrix
-    x, b = A.getVecs()
+    x, b = A.createVecs()
     x.set(0)
     b.set(0)
     b[0] = 1

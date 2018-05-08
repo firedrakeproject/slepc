@@ -68,8 +68,7 @@ Print( "Number of converged eigenpairs %d" % nconv )
 
 if nconv > 0:
   # Create the results vectors
-  vr, wr = A.getVecs()
-  vi, wi = A.getVecs()
+  vr, vi = A.createVecs()
   #
   Print()
   Print("        k          ||Ax-kx||/||kx|| ")

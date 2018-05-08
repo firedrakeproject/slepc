@@ -59,7 +59,7 @@ nconv = S.getConverged()
 Print( "Number of converged approximate singular triplets %d" % nconv )
 
 if nconv > 0:
-  v, u = A.getVecs()
+  v, u = A.createVecs()
   Print()
   Print("    sigma       residual norm ")
   Print("-------------  ---------------")
