@@ -10,10 +10,10 @@
 
 static char help[] = "Computes exp(t*A)*v for an advection diffusion operator with Peclet number.\n\n"
   "The command line options are:\n"
-  "  -n <idim>, where <idim> = dimension of the advection diffusion operator. dim^2.\n"
+  "  -n <idim>, where <idim> = number of subdivisions of the mesh in each spatial direction.\n"
   "  -t <sval>, where <sval> = scalar value that multiplies the argument.\n"
   "  -peclet <sval>, where <sval> = Peclet value.\n"
-  "  -steps <ival>, where <ival> = vectors computed.\n\n";
+  "  -steps <ival>, where <ival> = number of time steps.\n\n";
 
 #include <slepcmfn.h>
 
@@ -23,17 +23,16 @@ int main(int argc,char **argv)
   MFN                mfn;
   FN                 f;
   PetscInt           i,j,Istart,Iend,II,m,n=10,N,steps=5,its,totits=0,ncv,maxit;
-  PetscReal          tol,norm,h,h2,peclet=0.5,epsilon=1.0,c;
+  PetscReal          tol,norm,h,h2,peclet=0.5,epsilon=1.0,c,i1h,j1h;
   PetscScalar        t=1e-4,sone=1.0,value,upper,diag,lower;
   Vec                v;
   PetscErrorCode     ierr;
-  PetscBool          flg;
   MFNConvergedReason reason;
 
   ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
 
-  ierr = PetscOptionsGetScalar(NULL,NULL,"-t",&t,&flg);CHKERRQ(ierr);
-  ierr = PetscOptionsGetReal(NULL,NULL,"-peclet",&peclet,&flg);CHKERRQ(ierr);
+  ierr = PetscOptionsGetScalar(NULL,NULL,"-t",&t,NULL);CHKERRQ(ierr);
+  ierr = PetscOptionsGetReal(NULL,NULL,"-peclet",&peclet,NULL);CHKERRQ(ierr);
   ierr = PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL);CHKERRQ(ierr);
   ierr = PetscOptionsGetInt(NULL,NULL,"-steps",&steps,NULL);CHKERRQ(ierr);
   m = n;
@@ -42,11 +41,12 @@ int main(int argc,char **argv)
   h = 1.0/(n+1.0);
   h2 = h*h;
   c = 2.0*epsilon*peclet/h;
-  upper = (epsilon/h2)+(c/(2.0*h));
+  upper = epsilon/h2+c/(2.0*h);
   diag = 2.0*(-2.0*epsilon/h2);
-  lower = (epsilon/h2)-(c/(2.0*h));
+  lower = epsilon/h2-c/(2.0*h);
 
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"\nMatrix exponential y=exp(k*A)\n\n");CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"\nAdvection diffusion via y=exp(%g*A), n=%D, steps=%D, Peclet=%g\n\n",(double)PetscRealPart(t),n,steps,(double)peclet);CHKERRQ(ierr);
+
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                 Generate matrix A
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
@@ -68,11 +68,12 @@ int main(int argc,char **argv)
   ierr = MatCreateVecs(A,NULL,&v);CHKERRQ(ierr);
 
   /*
-     Set initial vector v = 256*i^2*(1-i)^2*j^2*(1-j)^2
+     Set initial condition v = 256*i^2*(1-i)^2*j^2*(1-j)^2
   */
   for (II=Istart;II<Iend;II++) {
     i = II/n; j = II-i*n;
-    value = 256.0*(((i+1)*h)*((i+1)*h))*((1.0-((i+1)*h))*(1.0-((i+1)*h)))*(((j+1)*h)*((j+1)*h))*((1.0-((j+1)*h))*(1.0-((j+1)*h)));
+    i1h = (i+1)*h; j1h = (j+1)*h;
+    value = 256.0*i1h*i1h*(1.0-i1h)*(1.0-i1h)*(j1h*j1h)*(1.0-j1h)*(1.0-j1h);
     ierr = VecSetValue(v,i+j*n,value,INSERT_VALUES);CHKERRQ(ierr);
   }
   ierr = VecAssemblyBegin(v);CHKERRQ(ierr);
@@ -89,9 +90,9 @@ int main(int argc,char **argv)
   ierr = MFNSetFromOptions(mfn);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-                      Solve the problem, y=exp(k*A)*v
+                      Solve the problem, y=exp(t*A)*v
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-  for(i=0;i<steps;i++) {
+  for (i=0;i<steps;i++) {
     ierr = MFNSolve(mfn,v,v);CHKERRQ(ierr);
     ierr = MFNGetConvergedReason(mfn,&reason);CHKERRQ(ierr);
     if (reason<0) SETERRQ(PETSC_COMM_WORLD,1,"Solver did not converge");

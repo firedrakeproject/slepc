@@ -1,5 +1,5 @@
 
-Matrix exponential y=exp(k*A)
+Advection diffusion via y=exp(0.0001*A), n=10, steps=5, Peclet=0.5
 
  Number of iterations of the method: 10
  Subspace dimension: 30
