@@ -49,7 +49,7 @@ int main(int argc,char **argv)
   NEPType        type;
   PetscInt       n=128,nev,i,its,maxit,nconv;
   PetscReal      re,im,tol,norm,error;
-  PetscBool      draw_sol;
+  PetscBool      draw_sol=PETSC_FALSE;
   PetscErrorCode ierr;
 
   ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
@@ -57,7 +57,7 @@ int main(int argc,char **argv)
   ierr = PetscPrintf(PETSC_COMM_WORLD,"\n1-D Nonlinear Eigenproblem, n=%D\n\n",n);CHKERRQ(ierr);
   ctx.h = 1.0/(PetscReal)n;
   ctx.kappa = 1.0;
-  ierr = PetscOptionsHasName(NULL,NULL,"-draw_sol",&draw_sol);CHKERRQ(ierr);
+  ierr = PetscOptionsGetBool(NULL,NULL,"-draw_sol",&draw_sol,NULL);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
      Create nonlinear eigensolver context

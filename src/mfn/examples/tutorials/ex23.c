@@ -10,8 +10,9 @@
 
 static char help[] = "Computes exp(t*A)*v for a matrix associated with a Markov model.\n\n"
   "The command line options are:\n"
-  "  -t <t>, where <t> = time parameter (multiplies the matrix).\n\n"
-  "  -m <m>, where <m> = number of grid subdivisions in each dimension.\n\n";
+  "  -t <t>, where <t> = time parameter (multiplies the matrix).\n"
+  "  -m <m>, where <m> = number of grid subdivisions in each dimension.\n\n"
+  "To draw the solution run with -mfn_view_solution draw -draw_pause -1\n\n";
 
 #include <slepcmfn.h>
 
@@ -30,7 +31,6 @@ int main(int argc,char **argv)
   Vec                v,y;
   PetscInt           N,m=15,ncv,maxit,its;
   PetscErrorCode     ierr;
-  PetscBool          draw_sol;
   MFNConvergedReason reason;
 
   ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
@@ -39,8 +39,6 @@ int main(int argc,char **argv)
   ierr = PetscOptionsGetScalar(NULL,NULL,"-t",&t,NULL);CHKERRQ(ierr);
   N = m*(m+1)/2;
   ierr = PetscPrintf(PETSC_COMM_WORLD,"\nMarkov y=exp(t*A)*e_1, N=%D (m=%D)\n\n",N,m);CHKERRQ(ierr);
-
-  ierr = PetscOptionsHasName(NULL,NULL,"-draw_sol",&draw_sol);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
             Compute the transition probability matrix, A
@@ -104,10 +102,6 @@ int main(int argc,char **argv)
                     Display solution and clean up
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
   ierr = PetscPrintf(PETSC_COMM_WORLD," Computed vector at time t=%.4g has norm %g\n\n",(double)PetscRealPart(t),(double)norm);CHKERRQ(ierr);
-  if (draw_sol) {
-    ierr = PetscViewerDrawSetPause(PETSC_VIEWER_DRAW_WORLD,-1);CHKERRQ(ierr);
-    ierr = VecView(y,PETSC_VIEWER_DRAW_WORLD);CHKERRQ(ierr);
-  }
 
   /*
      Free work space

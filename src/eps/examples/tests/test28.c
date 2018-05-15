@@ -109,7 +109,6 @@ int main(int argc,char **argv)
   ierr = EPSSetOperators(eps,B,NULL);CHKERRQ(ierr);
   ierr = EPSSolve(eps);CHKERRQ(ierr);
 
-  ierr = PetscOptionsHasName(NULL,NULL,"-terse",&terse);CHKERRQ(ierr);
   if (terse) {
     ierr = EPSErrorView(eps,EPS_ERROR_RELATIVE,NULL);CHKERRQ(ierr);
   } else {

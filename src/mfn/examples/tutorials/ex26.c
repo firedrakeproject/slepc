@@ -11,7 +11,8 @@
 static char help[] = "Computes the action of the square root of the 2-D Laplacian.\n\n"
   "The command line options are:\n"
   "  -n <n>, where <n> = number of grid subdivisions in x dimension.\n"
-  "  -m <m>, where <m> = number of grid subdivisions in y dimension.\n\n";
+  "  -m <m>, where <m> = number of grid subdivisions in y dimension.\n\n"
+  "To draw the solution run with -mfn_view_solution draw -draw_pause -1\n\n";
 
 #include <slepcmfn.h>
 
@@ -24,7 +25,7 @@ int main(int argc,char **argv)
   Vec            v,y,z;
   PetscInt       N,n=10,m,Istart,Iend,i,j,II;
   PetscErrorCode ierr;
-  PetscBool      flag,draw_sol;
+  PetscBool      flag;
 
   ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
 
@@ -33,8 +34,6 @@ int main(int argc,char **argv)
   if (!flag) m=n;
   N = n*m;
   ierr = PetscPrintf(PETSC_COMM_WORLD,"\nSquare root of Laplacian y=sqrt(A)*e_1, N=%D (%Dx%D grid)\n\n",N,n,m);CHKERRQ(ierr);
-
-  ierr = PetscOptionsHasName(NULL,NULL,"-draw_sol",&draw_sol);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                  Compute the discrete 2-D Laplacian, A
@@ -86,10 +85,6 @@ int main(int argc,char **argv)
   ierr = MFNSolve(mfn,v,y);CHKERRQ(ierr);
   ierr = VecNorm(y,NORM_2,&norm);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD," Intermediate vector has norm %g\n",(double)norm);CHKERRQ(ierr);
-  if (draw_sol) {
-    ierr = PetscViewerDrawSetPause(PETSC_VIEWER_DRAW_WORLD,-1);CHKERRQ(ierr);
-    ierr = VecView(y,PETSC_VIEWER_DRAW_WORLD);CHKERRQ(ierr);
-  }
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
              Second solve: z=sqrt(A)*y and compare against A*v
@@ -106,10 +101,6 @@ int main(int argc,char **argv)
     ierr = PetscPrintf(PETSC_COMM_WORLD," Error norm is less than the requested tolerance\n\n");CHKERRQ(ierr);
   } else {
     ierr = PetscPrintf(PETSC_COMM_WORLD," Error norm larger than tolerance: %3.1e\n\n",(double)norm);CHKERRQ(ierr);
-  }
-  if (draw_sol) {
-    ierr = PetscViewerDrawSetPause(PETSC_VIEWER_DRAW_WORLD,-1);CHKERRQ(ierr);
-    ierr = VecView(z,PETSC_VIEWER_DRAW_WORLD);CHKERRQ(ierr);
   }
 
   /*
