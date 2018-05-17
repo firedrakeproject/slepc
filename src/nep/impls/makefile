@@ -10,6 +10,11 @@
 
 ALL: lib
 
+CFLAGS   =
+FFLAGS   =
+SOURCEC  = nepdefl.c
+SOURCEF  =
+SOURCEH  = nepdefl.h
 LIBBASE  = libslepcnep
 DIRS     = rii slp narnoldi interpol ciss nleigs
 LOCDIR   = src/nep/impls/
