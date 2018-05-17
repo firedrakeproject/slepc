@@ -60,7 +60,7 @@ PetscErrorCode NEPDeflationCopyToExtendedVec(NEP_EXT_OP extop,Vec v,PetscScalar 
   PetscFunctionReturn(0);
 }
 
-PetscErrorCode  NEPDeflationReset(NEP_EXT_OP extop)
+PetscErrorCode NEPDeflationReset(NEP_EXT_OP extop)
 {
   PetscErrorCode    ierr;
   NEP_DEF_FUN_SOLVE solve;
@@ -99,14 +99,14 @@ PetscErrorCode NEPDeflationInitialize(NEP nep,BV X,KSP ksp,PetscInt sz,NEP_EXT_O
   PetscFunctionBegin;
   ierr = NEPDeflationReset(*extop);CHKERRQ(ierr);
   ierr = PetscNew(&op);CHKERRQ(ierr);
-  *extop = op;
+  *extop  = op;
   op->nep = nep;
-  op->n = 0;
+  op->n   = 0;
   op->szd = szd = sz-1;
   op->max_midx = PetscMin(MAX_MINIDX,szd);
   op->X = X;
   if (!X) { ierr = BVDuplicateResize(nep->V,sz,&op->X);CHKERRQ(ierr); }
-  else { ierr = PetscObjectReference((PetscObject)X);CHKERRQ(ierr);}
+  else { ierr = PetscObjectReference((PetscObject)X);CHKERRQ(ierr); }
   ierr = PetscCalloc1(sz*sz,&(op)->H);CHKERRQ(ierr);
   if (op->szd) {
     op->simpU = PETSC_FALSE;
@@ -158,7 +158,7 @@ PetscErrorCode NEPDeflationCreateVec(NEP_EXT_OP extop,Vec *v)
   PetscFunctionReturn(0);
 }
 
-PetscErrorCode NEPDeflationEvaluateBasisMat(NEP_EXT_OP extop,PetscInt idx,PetscBool hat,PetscScalar *bval,PetscScalar *Hj,PetscScalar *Hjprev)
+static PetscErrorCode NEPDeflationEvaluateBasisMat(NEP_EXT_OP extop,PetscInt idx,PetscBool hat,PetscScalar *bval,PetscScalar *Hj,PetscScalar *Hjprev)
 {
   PetscErrorCode ierr;
   PetscInt       i,k,n=extop->n,ldhj=extop->szd,ldh=extop->szd+1;
@@ -206,7 +206,7 @@ PetscErrorCode NEPDeflationLocking(NEP_EXT_OP extop,Vec u,PetscScalar lambda)
   ierr = BVRestoreColumn(extop->X,extop->n,&uu);CHKERRQ(ierr);
   ierr = BVNormColumn(extop->X,extop->n,NORM_2,&norm);CHKERRQ(ierr);
   ierr = BVScaleColumn(extop->X,extop->n,1.0/norm);CHKERRQ(ierr);
-  for(i=0;i<extop->n;i++) extop->H[extop->n*ld+i] /= norm;
+  for (i=0;i<extop->n;i++) extop->H[extop->n*ld+i] /= norm;
   extop->H[extop->n*(ld+1)] = lambda;
   extop->n++;
   ierr = BVSetActiveColumns(extop->X,0,extop->n);CHKERRQ(ierr);
@@ -225,7 +225,7 @@ PetscErrorCode NEPDeflationLocking(NEP_EXT_OP extop,Vec u,PetscScalar lambda)
   PetscFunctionReturn(0);
 }
 
-PetscErrorCode NEPDeflationEvaluateHatFunction(NEP_EXT_OP extop, PetscInt idx,PetscScalar lambda,PetscScalar *y,PetscScalar *hfj,PetscScalar *hfjp,PetscInt ld)
+static PetscErrorCode NEPDeflationEvaluateHatFunction(NEP_EXT_OP extop, PetscInt idx,PetscScalar lambda,PetscScalar *y,PetscScalar *hfj,PetscScalar *hfjp,PetscInt ld)
 {
   PetscErrorCode ierr;
   PetscInt       i,j,k,off,ini,fin,sz,ldh,n=extop->n;
@@ -261,7 +261,7 @@ PetscErrorCode NEPDeflationEvaluateHatFunction(NEP_EXT_OP extop, PetscInt idx,Pe
     for (i=0;i<n;i++) {
       ierr = MatDenseGetArray(A,&array);CHKERRQ(ierr);
       for (k=0;k<n;k++) array[n*sz+k] = 0.0;
-      array [n*sz+i] = 1.0;
+      array[n*sz+i] = 1.0;
       ierr = MatDenseRestoreArray(A,&array);CHKERRQ(ierr);
       for (j=ini;j<fin;j++) {
         ierr = FNEvaluateFunctionMat(extop->nep->f[j],A,B);CHKERRQ(ierr);
@@ -277,9 +277,9 @@ PetscErrorCode NEPDeflationEvaluateHatFunction(NEP_EXT_OP extop, PetscInt idx,Pe
   PetscFunctionReturn(0);
 }
 
-PetscErrorCode NEPDeflationMatShell_MatMult(Mat M,Vec x,Vec y)
+static PetscErrorCode NEPDeflationMatShell_MatMult(Mat M,Vec x,Vec y)
 {
-  NEP_DEF_MATSHELL *matctx;
+  NEP_DEF_MATSHELL  *matctx;
   PetscErrorCode    ierr;
   NEP_EXT_OP        extop;
   Vec               x1,y1;
@@ -319,7 +319,7 @@ PetscErrorCode NEPDeflationMatShell_MatMult(Mat M,Vec x,Vec y)
   PetscFunctionReturn(0);
 }
 
-PetscErrorCode NEPDeflationMatShell_CreateVecs(Mat M,Vec *right,Vec *left)
+static PetscErrorCode NEPDeflationMatShell_CreateVecs(Mat M,Vec *right,Vec *left)
 {
   PetscErrorCode   ierr;
   NEP_DEF_MATSHELL *matctx;
@@ -335,7 +335,7 @@ PetscErrorCode NEPDeflationMatShell_CreateVecs(Mat M,Vec *right,Vec *left)
   PetscFunctionReturn(0);
 }
 
-PetscErrorCode NEPDeflationMatShell_Destroy(Mat M)
+static PetscErrorCode NEPDeflationMatShell_Destroy(Mat M)
 {
   PetscErrorCode   ierr;
   NEP_DEF_MATSHELL *matctx;
@@ -353,10 +353,10 @@ PetscErrorCode NEPDeflationMatShell_Destroy(Mat M)
   PetscFunctionReturn(0);
 }
 
-PetscErrorCode NEPDeflationEvaluateBasis(NEP_EXT_OP extop,PetscScalar lambda,PetscInt n,PetscScalar *val,PetscBool jacobian)
+static PetscErrorCode NEPDeflationEvaluateBasis(NEP_EXT_OP extop,PetscScalar lambda,PetscInt n,PetscScalar *val,PetscBool jacobian)
 {
-  PetscScalar  p;
-  PetscInt     i;  
+  PetscScalar p;
+  PetscInt    i;  
 
   PetscFunctionBegin;
   if (!jacobian) {
@@ -373,7 +373,7 @@ PetscErrorCode NEPDeflationEvaluateBasis(NEP_EXT_OP extop,PetscScalar lambda,Pet
   PetscFunctionReturn(0);
 }
 
-PetscErrorCode NEPDeflationComputeShellMat(NEP_EXT_OP extop,PetscScalar lambda,PetscBool jacobian)
+static PetscErrorCode NEPDeflationComputeShellMat(NEP_EXT_OP extop,PetscScalar lambda,PetscBool jacobian)
 {
   PetscErrorCode   ierr;
   NEP_DEF_MATSHELL *matctx,*matctxC;
@@ -398,8 +398,8 @@ PetscErrorCode NEPDeflationComputeShellMat(NEP_EXT_OP extop,PetscScalar lambda,P
     ierr = MatShellSetOperation(Mshell,MATOP_DESTROY,(void(*)())NEPDeflationMatShell_Destroy);CHKERRQ(ierr);
     matctx->nep = extop->nep;
     matctx->extop = extop;
-    if (jacobian) { matctx->jacob = PETSC_TRUE; matctx->T = extop->nep->jacobian; extop->MJ = Mshell;}
-    else { matctx->jacob = PETSC_FALSE; matctx->T = extop->nep->function; extop->MF = Mshell;}
+    if (jacobian) { matctx->jacob = PETSC_TRUE; matctx->T = extop->nep->jacobian; extop->MJ = Mshell; }
+    else { matctx->jacob = PETSC_FALSE; matctx->T = extop->nep->function; extop->MF = Mshell; }
     if (szd) {
       ierr = BVCreateVec(extop->nep->V,matctx->w);CHKERRQ(ierr);
       ierr = VecDuplicate(matctx->w[0],matctx->w+1);CHKERRQ(ierr);
@@ -435,7 +435,7 @@ PetscErrorCode NEPDeflationComputeShellMat(NEP_EXT_OP extop,PetscScalar lambda,P
           matctx->hfjset = PETSC_TRUE;
         }
         ierr = BVSetActiveColumns(matctx->U,0,n);CHKERRQ(ierr);
-        hf = (jacobian)?hfjp:hfj;
+        hf = jacobian?hfjp:hfj;
         ierr = MatCreateSeqDense(PETSC_COMM_SELF,n,n,hf,&F);CHKERRQ(ierr);
         ierr = BVMatMult(extop->X,extop->nep->A[0],matctx->U);CHKERRQ(ierr);
         ierr = BVMultInPlace(matctx->U,F,0,n);CHKERRQ(ierr);

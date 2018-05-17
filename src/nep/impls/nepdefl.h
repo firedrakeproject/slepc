@@ -22,7 +22,7 @@ struct _n_nep_ext_op {
   NEP          nep;
   PetscScalar *H;     /* invariant pair (X,H) */
   BV           X;     /* locked eigenvectors */
-  PetscScalar  *bc;    /* polinomial basis roots */
+  PetscScalar  *bc;   /* polinomial basis roots */
   RG           rg;
   PetscInt     midx;  /* minimality index */
   PetscInt     max_midx;
@@ -41,7 +41,7 @@ struct _n_nep_ext_op {
 struct _n_nep_def_fun_solve {
   KSP          ksp;   /* */
   PetscScalar  theta;
-  PetscScalar  n;
+  PetscInt     n;
   PetscScalar  *M;
   PetscScalar  *work;
   Vec          w[2];
@@ -50,20 +50,20 @@ struct _n_nep_def_fun_solve {
 };
 
 typedef struct {
-  NEP         nep;
-  Mat         T;
-  BV          U;
-  PetscScalar *A;
-  PetscScalar *B;  
-  PetscScalar theta;
-  PetscInt    n;
-  NEP_EXT_OP  extop;
-  PetscBool   jacob;
-  Vec         w[2];
-  PetscScalar *work;
-  PetscScalar *hfj;
-  PetscScalar *hfjp;
-  PetscBool   hfjset;
+  NEP          nep;
+  Mat          T;
+  BV           U;
+  PetscScalar  *A;
+  PetscScalar  *B;  
+  PetscScalar  theta;
+  PetscInt     n;
+  NEP_EXT_OP   extop;
+  PetscBool    jacob;
+  Vec          w[2];
+  PetscScalar  *work;
+  PetscScalar  *hfj;
+  PetscScalar  *hfjp;
+  PetscBool    hfjset;
 } NEP_DEF_MATSHELL;
 
 #if 0
@@ -83,7 +83,6 @@ PETSC_INTERN PetscErrorCode NEPDeflationCopyToExtendedVec(NEP_EXT_OP,Vec,PetscSc
 PETSC_INTERN PetscErrorCode NEPDeflationReset(NEP_EXT_OP);
 PETSC_INTERN PetscErrorCode NEPDeflationInitialize(NEP,BV,KSP,PetscInt,NEP_EXT_OP*);
 PETSC_INTERN PetscErrorCode NEPDeflationCreateVec(NEP_EXT_OP,Vec*);
-PETSC_INTERN PetscErrorCode NEPDeflationExtend(NEP_EXT_OP,Vec);
 PETSC_INTERN PetscErrorCode NEPDeflationComputeFunction(NEP_EXT_OP,PetscScalar,Mat*);
 PETSC_INTERN PetscErrorCode NEPDeflationComputeJacobian(NEP_EXT_OP,PetscScalar,Mat*);
 PETSC_INTERN PetscErrorCode NEPDeflationSolveSetUp(NEP_EXT_OP,PetscScalar);

@@ -64,7 +64,7 @@ PetscErrorCode NEPSetUp_SLP(NEP nep)
 
 PetscErrorCode NEPSLPEPSMatShell_MatMult(Mat M,Vec x,Vec y)
 {
-  PetscErrorCode      ierr;
+  PetscErrorCode     ierr;
   NEP_SLP_EPS_MSHELL *ctx;
 
   PetscFunctionBegin;
@@ -76,9 +76,9 @@ PetscErrorCode NEPSLPEPSMatShell_MatMult(Mat M,Vec x,Vec y)
 
 static PetscErrorCode NEPSLPResetLinearEP(NEP nep)
 {
-  PetscErrorCode ierr;
-  NEP_SLP        *slpctx = (NEP_SLP*)nep->data;
-  Mat            Mshell;
+  PetscErrorCode     ierr;
+  NEP_SLP            *slpctx = (NEP_SLP*)nep->data;
+  Mat                Mshell;
   NEP_SLP_EPS_MSHELL *shellctx;
 
   PetscFunctionBegin;
@@ -92,10 +92,10 @@ static PetscErrorCode NEPSLPResetLinearEP(NEP nep)
 
 static PetscErrorCode NEPSLPSetUpLinearEP(NEP nep,NEP_EXT_OP extop,PetscScalar lambda,Vec u,PetscBool ini)
 {
-  PetscErrorCode ierr;
-  NEP_SLP        *slpctx = (NEP_SLP*)nep->data;
-  Mat            Mshell;
-  PetscInt       nloc,mloc;
+  PetscErrorCode     ierr;
+  NEP_SLP            *slpctx = (NEP_SLP*)nep->data;
+  Mat                Mshell;
+  PetscInt           nloc,mloc;
   NEP_SLP_EPS_MSHELL *shellctx;
 
   PetscFunctionBegin;
@@ -136,7 +136,7 @@ PetscErrorCode NEPSolve_SLP(NEP nep)
     ierr = BVSetRandomColumn(nep->V,0);CHKERRQ(ierr);
   }
   lambda = sigma;
-  if (!ctx->ksp) {ierr = NEPSLPGetKSP(nep,&ctx->ksp);CHKERRQ(ierr);}
+  if (!ctx->ksp) { ierr = NEPSLPGetKSP(nep,&ctx->ksp);CHKERRQ(ierr); }
   ierr = NEPDeflationInitialize(nep,nep->V,ctx->ksp,nep->nev,&extop);CHKERRQ(ierr);
   ierr = NEPDeflationCreateVec(extop,&u);CHKERRQ(ierr);
   ierr = VecDuplicate(u,&r);CHKERRQ(ierr);
@@ -178,14 +178,14 @@ PetscErrorCode NEPSolve_SLP(NEP nep)
           break;
         }
         ierr = EPSGetEigenpair(ctx->eps,0,&mu,&im,u,NULL);CHKERRQ(ierr);
-        mu = 1/mu;
+        mu = 1.0/mu;
         if (PetscAbsScalar(im)>PETSC_MACHINE_EPSILON) SETERRQ(PetscObjectComm((PetscObject)nep),1,"Complex eigenvalue approximation - not implemented in real scalars");
       } else {
         /* use second eigenpair computed in previous iteration */
         ierr = EPSGetConverged(ctx->eps,&nconv);CHKERRQ(ierr);
         if (nconv>=2) {
           ierr = EPSGetEigenpair(ctx->eps,1,&mu,&im,u,NULL);CHKERRQ(ierr);
-          mu = 1/mu;
+          mu = 1.0/mu;
         } else {
           ierr = VecSetRandom(u,rand);CHKERRQ(ierr);
           mu = lambda-sigma;
@@ -430,8 +430,8 @@ PetscErrorCode NEPReset_SLP(NEP nep)
 
 PetscErrorCode NEPDestroy_SLP(NEP nep)
 {
-  PetscErrorCode     ierr;
-  NEP_SLP            *ctx = (NEP_SLP*)nep->data;
+  PetscErrorCode ierr;
+  NEP_SLP        *ctx = (NEP_SLP*)nep->data;
 
   PetscFunctionBegin;
   ierr = KSPDestroy(&ctx->ksp);CHKERRQ(ierr);
