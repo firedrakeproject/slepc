@@ -9,8 +9,8 @@
 */
 
 #include <slepc/private/nepimpl.h>         /*I "slepcnep.h" I*/
-#include "nepdefl.h"
 #include <slepcblaslapack.h>
+#include "nepdefl.h"
 
 PetscErrorCode NEPDeflationGetInvariantPair(NEP_EXT_OP extop,BV *X,Mat *H)
 {
@@ -462,14 +462,8 @@ static PetscErrorCode NEPDeflationComputeShellMat(NEP_EXT_OP extop,PetscScalar l
         ierr = BVMultInPlace(matctx->U,F,0,n);CHKERRQ(ierr);
         if (jacobian) {
           ierr = NEPDeflationComputeFunction(extop,lambda,NULL);CHKERRQ(ierr);
-          ierr = PetscMemcpy(hfj+n*n,hfj,n*n*sizeof(PetscScalar));CHKERRQ(ierr);
-          PetscStackCallBLAS("BLAStrmm",BLAStrmm_("L","U","N","N",&n_,&n_,&sone,hfj,&n_,hfj+n*n,&n_));
           ierr = MatShellGetContext(extop->MF,(void**)&matctxC);CHKERRQ(ierr);
-          ierr = BVSetActiveColumns(extop->W,0,n);CHKERRQ(ierr);
-          ierr = BVMatMult(extop->X,matctxC->T,extop->W);CHKERRQ(ierr);
-          ierr = MatDensePlaceArray(F,hfj+n*n);CHKERRQ(ierr);
-          ierr = BVMult(matctxC->U,-1.0,1.0,extop->W,F);CHKERRQ(ierr);
-          ierr = MatDenseResetArray(F);CHKERRQ(ierr);
+          ierr = BVMult(matctx->U,-1.0,1.0,matctxC->U,F);CHKERRQ(ierr);
         }
         ierr = MatDestroy(&F);CHKERRQ(ierr);
       }
@@ -524,42 +518,44 @@ PetscErrorCode NEPDeflationSolveSetUp(NEP_EXT_OP extop,PetscScalar lambda)
   PetscErrorCode    ierr;
   NEP_DEF_MATSHELL  *matctx;
   NEP_DEF_FUN_SOLVE solve;
-  PetscInt          i;
+  PetscInt          i,j,n=extop->n;
   Vec               u,tu;
   Mat               F;
-  PetscScalar       snone=-1.0,sone=1.0,zero=0.0;
+  PetscScalar       snone=-1.0,sone=1.0;
   PetscBLASInt      n_,szd_,ldh_,*p,info;
 
   PetscFunctionBegin;
   solve = extop->solve;
-  if (lambda!=solve->theta || extop->n!=solve->n) {
+  if (lambda!=solve->theta || n!=solve->n) {
     ierr = NEPDeflationComputeFunction(extop,lambda,NULL);CHKERRQ(ierr);
     ierr = MatShellGetContext(extop->MF,(void**)&matctx);CHKERRQ(ierr);
     ierr = KSPSetOperators(solve->ksp,matctx->T,matctx->T);CHKERRQ(ierr);
-    if (extop->n) {
-      ierr = PetscBLASIntCast(extop->n,&n_);CHKERRQ(ierr);
+    if (n) {
+      ierr = PetscBLASIntCast(n,&n_);CHKERRQ(ierr);
       ierr = PetscBLASIntCast(extop->szd,&szd_);CHKERRQ(ierr);
       ierr = PetscBLASIntCast(extop->szd+1,&ldh_);CHKERRQ(ierr);
       if (!extop->simpU) {
-        ierr = BVSetActiveColumns(solve->T_1U,0,extop->n);CHKERRQ(ierr);
-        for (i=0;i<extop->n;i++) {
+        ierr = BVSetActiveColumns(solve->T_1U,0,n);CHKERRQ(ierr);
+        for (i=0;i<n;i++) {
           ierr = BVGetColumn(matctx->U,i,&u);CHKERRQ(ierr);
           ierr = BVGetColumn(solve->T_1U,i,&tu);CHKERRQ(ierr);
           ierr = KSPSolve(solve->ksp,u,tu);CHKERRQ(ierr);
           ierr = BVRestoreColumn(solve->T_1U,i,&tu);CHKERRQ(ierr);
           ierr = BVRestoreColumn(matctx->U,i,&u);CHKERRQ(ierr);
         }
-        ierr = MatCreateSeqDense(PETSC_COMM_SELF,extop->n,extop->n,solve->work,&F);CHKERRQ(ierr);
+        ierr = MatCreateSeqDense(PETSC_COMM_SELF,n,n,solve->work,&F);CHKERRQ(ierr);
         ierr = BVDot(solve->T_1U,extop->X,F);CHKERRQ(ierr);
         ierr = MatDestroy(&F);CHKERRQ(ierr);
       } else {
-        for (i=0;i<extop->n;i++) extop->H[i*ldh_+i] -= lambda;
-        PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&n_,&n_,&n_,&snone,extop->XpX,&szd_,extop->H,&ldh_,&zero,solve->work,&n_)); 
-        for (i=0;i<extop->n;i++) extop->H[i*ldh_+i] += lambda;
+        for (j=0;j<n;j++)
+          for (i=0;i<n;i++) solve->work[j*n+i] = extop->XpX[j*extop->szd+i];
+        for (i=0;i<n;i++) extop->H[i*ldh_+i] -= lambda;
+        PetscStackCallBLAS("BLAStrsm",BLAStrsm_("R","U","N","N",&n_,&n_,&snone,extop->H,&ldh_,solve->work,&n_));
+        for (i=0;i<n;i++) extop->H[i*ldh_+i] += lambda;
       }
       ierr = PetscMemcpy(solve->M,matctx->B,extop->szd*extop->szd*sizeof(PetscScalar));CHKERRQ(ierr);
       PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&n_,&n_,&n_,&snone,matctx->A,&szd_,solve->work,&n_,&sone,solve->M,&szd_));
-      ierr = PetscMalloc1(extop->n,&p);CHKERRQ(ierr);    
+      ierr = PetscMalloc1(n,&p);CHKERRQ(ierr);    
       PetscStackCallBLAS("LAPACKgetrf",LAPACKgetrf_(&n_,&n_,solve->M,&szd_,p,&info));
       SlepcCheckLapackInfo("getrf",info);
       PetscStackCallBLAS("LAPACKgetri",LAPACKgetri_(&n_,solve->M,&szd_,p,solve->work,&n_,&info));
@@ -567,7 +563,7 @@ PetscErrorCode NEPDeflationSolveSetUp(NEP_EXT_OP extop,PetscScalar lambda)
       ierr = PetscFree(p);CHKERRQ(ierr);    
     }
     solve->theta = lambda;
-    solve->n = extop->n;
+    solve->n = n;
   }
   PetscFunctionReturn(0);
 }
@@ -607,9 +603,10 @@ PetscErrorCode NEPDeflationFunctionSolve(NEP_EXT_OP extop,Vec b,Vec x)
     PetscStackCallBLAS("BLASgemv",BLASgemv_("N",&n_,&n_,&sone,solve->M,&szd_,w2,&one,&zero,x2,&one));
     if (extop->simpU) {
       for (i=0;i<extop->n;i++) extop->H[i+i*(extop->szd+1)] -= solve->theta;
-      PetscStackCallBLAS("BLASgemv",BLASgemv_("N",&n_,&n_,&sone,extop->H,&ldh_,x2,&one,&zero,w2,&one));
+      for (i=0;i<extop->n;i++) w[i] = x2[i];
+      PetscStackCallBLAS("BLAStrsm",BLAStrsm_("L","U","N","N",&n_,&one,&snone,extop->H,&ldh_,w,&n_));
       for (i=0;i<extop->n;i++) extop->H[i+i*(extop->szd+1)] += solve->theta;
-      ierr = BVMultVec(extop->X,1.0,1.0,x1,x2);CHKERRQ(ierr);
+      ierr = BVMultVec(extop->X,-1.0,1.0,x1,w);CHKERRQ(ierr);
     } else {
       ierr = BVMultVec(solve->T_1U,-1.0,1.0,x1,x2);CHKERRQ(ierr);
     }
