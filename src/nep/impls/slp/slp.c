@@ -74,19 +74,31 @@ PetscErrorCode NEPSLPEPSMatShell_MatMult(Mat M,Vec x,Vec y)
   PetscFunctionReturn(0);
 }
 
-static PetscErrorCode NEPSLPResetLinearEP(NEP nep)
+PetscErrorCode NEPSLPEPSMatShell_Destroy(Mat M)
 {
   PetscErrorCode     ierr;
-  NEP_SLP            *slpctx = (NEP_SLP*)nep->data;
-  Mat                Mshell;
-  NEP_SLP_EPS_MSHELL *shellctx;
+  NEP_SLP_EPS_MSHELL *ctx;
 
   PetscFunctionBegin;
-  ierr = EPSGetOperators(slpctx->eps,&Mshell,NULL);CHKERRQ(ierr);
-  ierr = MatShellGetContext(Mshell,(void**)&shellctx);CHKERRQ(ierr);
-  ierr = VecDestroy(&shellctx->w);CHKERRQ(ierr);
-  ierr = MatDestroy(&Mshell);CHKERRQ(ierr);
-  ierr = PetscFree(shellctx);CHKERRQ(ierr);
+  ierr = MatShellGetContext(M,(void**)&ctx);CHKERRQ(ierr);
+  ierr = VecDestroy(&ctx->w);CHKERRQ(ierr);
+  ierr = PetscFree(ctx);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+PetscErrorCode NEPSLPEPSMatShell_CreateVecs(Mat M,Vec *left,Vec *right)
+{
+  PetscErrorCode     ierr;
+  NEP_SLP_EPS_MSHELL *ctx;
+
+  PetscFunctionBegin;
+  ierr = MatShellGetContext(M,(void**)&ctx);CHKERRQ(ierr);
+  if (right) {
+    ierr = VecDuplicate(ctx->w,right);CHKERRQ(ierr);
+  }
+  if (left) {
+    ierr = VecDuplicate(ctx->w,left);CHKERRQ(ierr);
+  }
   PetscFunctionReturn(0);
 }
 
@@ -108,7 +120,10 @@ static PetscErrorCode NEPSLPSetUpLinearEP(NEP nep,NEP_EXT_OP extop,PetscScalar l
     nloc += extop->szd; mloc += extop->szd;
     ierr = MatCreateShell(PetscObjectComm((PetscObject)nep),nloc,mloc,PETSC_DETERMINE,PETSC_DETERMINE,shellctx,&Mshell);CHKERRQ(ierr);
     ierr = MatShellSetOperation(Mshell,MATOP_MULT,(void(*)())NEPSLPEPSMatShell_MatMult);CHKERRQ(ierr);
+    ierr = MatShellSetOperation(Mshell,MATOP_DESTROY,(void(*)())NEPSLPEPSMatShell_Destroy);CHKERRQ(ierr);
+    ierr = MatShellSetOperation(Mshell,MATOP_CREATE_VECS,(void(*)())NEPSLPEPSMatShell_CreateVecs);CHKERRQ(ierr);
     ierr = EPSSetOperators(slpctx->eps,Mshell,NULL);CHKERRQ(ierr);
+    ierr = MatDestroy(&Mshell);CHKERRQ(ierr);
   }
   ierr = NEPDeflationSolveSetUp(extop,lambda);CHKERRQ(ierr);
   ierr = NEPDeflationComputeJacobian(extop,lambda,NULL);CHKERRQ(ierr);
@@ -210,7 +225,6 @@ PetscErrorCode NEPSolve_SLP(NEP nep)
   ierr = MatDestroy(&H);CHKERRQ(ierr);
   ierr = DSSetDimensions(nep->ds,nep->nconv,0,0,nep->nconv);CHKERRQ(ierr);
   ierr = DSSolve(nep->ds,nep->eigr,nep->eigi);CHKERRQ(ierr);
-  ierr = NEPSLPResetLinearEP(nep);CHKERRQ(ierr); 
   ierr = NEPDeflationReset(extop);CHKERRQ(ierr);
   ierr = VecDestroy(&u);CHKERRQ(ierr);
   ierr = VecDestroy(&r);CHKERRQ(ierr);
