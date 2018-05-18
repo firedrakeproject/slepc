@@ -60,81 +60,6 @@ PetscErrorCode NEPDeflationCopyToExtendedVec(NEP_EXT_OP extop,Vec v,PetscScalar 
   PetscFunctionReturn(0);
 }
 
-PetscErrorCode NEPDeflationReset(NEP_EXT_OP extop)
-{
-  PetscErrorCode    ierr;
-  NEP_DEF_FUN_SOLVE solve;
-
-  PetscFunctionBegin;
-  if (!extop) PetscFunctionReturn(0);
-  ierr = PetscFree(extop->H);CHKERRQ(ierr);
-  ierr = BVDestroy(&extop->X);CHKERRQ(ierr);
-  if (extop->szd) {
-    ierr = PetscFree3(extop->Hj,extop->XpX,extop->bc);CHKERRQ(ierr);
-    ierr = BVDestroy(&extop->W);CHKERRQ(ierr);
-  }
-  ierr = MatDestroy(&extop->MF);CHKERRQ(ierr);
-  ierr = MatDestroy(&extop->MJ);CHKERRQ(ierr);
-  if (extop->solve) {
-    solve = extop->solve;
-    if (extop->szd) {
-      if (!extop->simpU) {ierr = BVDestroy(&solve->T_1U);CHKERRQ(ierr);}
-      ierr = PetscFree2(solve->M,solve->work);CHKERRQ(ierr);
-      ierr = VecDestroy(&solve->w[0]);CHKERRQ(ierr);
-      ierr = VecDestroy(&solve->w[1]);CHKERRQ(ierr);
-    }
-    ierr = PetscFree(extop->solve);CHKERRQ(ierr);
-  }
-  ierr = PetscFree(extop);CHKERRQ(ierr);
-  PetscFunctionReturn(0);
-}
-
-PetscErrorCode NEPDeflationInitialize(NEP nep,BV X,KSP ksp,PetscInt sz,NEP_EXT_OP *extop)
-{
-  PetscErrorCode    ierr;
-  NEP_EXT_OP        op;
-  NEP_DEF_FUN_SOLVE solve;
-  PetscInt          szd;
-
-  PetscFunctionBegin;
-  ierr = NEPDeflationReset(*extop);CHKERRQ(ierr);
-  ierr = PetscNew(&op);CHKERRQ(ierr);
-  *extop  = op;
-  op->nep = nep;
-  op->n   = 0;
-  op->szd = szd = sz-1;
-  op->max_midx = PetscMin(MAX_MINIDX,szd);
-  op->X = X;
-  if (!X) { ierr = BVDuplicateResize(nep->V,sz,&op->X);CHKERRQ(ierr); }
-  else { ierr = PetscObjectReference((PetscObject)X);CHKERRQ(ierr); }
-  ierr = PetscCalloc1(sz*sz,&(op)->H);CHKERRQ(ierr);
-  if (op->szd) {
-    op->simpU = PETSC_FALSE;
-    if (nep->fui==NEP_USER_INTERFACE_SPLIT) {
-      ierr = PetscOptionsGetBool(NULL,NULL,"-nep_deflation_simpleu",&op->simpU,NULL);CHKERRQ(ierr);
-    } else {
-      op->simpU = PETSC_TRUE;
-    }
-    ierr = PetscCalloc3(szd*szd*op->max_midx,&(op)->Hj,szd*szd,&(op)->XpX,szd,&op->bc);CHKERRQ(ierr);
-    ierr = BVDuplicateResize(op->X,op->szd,&op->W);CHKERRQ(ierr);
-  }
-  if (ksp) {
-    ierr = PetscNew(&solve);CHKERRQ(ierr);
-    op->solve  = solve;
-    solve->ksp = ksp;
-    solve->n   = -1;
-    if (op->szd) {
-      if (!op->simpU) {
-        ierr = BVDuplicateResize(nep->V,szd,&solve->T_1U);CHKERRQ(ierr);
-      }
-      ierr = PetscMalloc2(szd*szd,&solve->M,2*szd*szd,&solve->work);CHKERRQ(ierr);
-      ierr = BVCreateVec(nep->V,&solve->w[0]);CHKERRQ(ierr);
-      ierr = VecDuplicate(solve->w[0],&solve->w[1]);CHKERRQ(ierr);
-    }
-  }
-  PetscFunctionReturn(0);
-}
-
 PetscErrorCode NEPDeflationCreateVec(NEP_EXT_OP extop,Vec *v)
 {
   PetscErrorCode ierr;
@@ -154,6 +79,26 @@ PetscErrorCode NEPDeflationCreateVec(NEP_EXT_OP extop,Vec *v)
     ierr = VecSetSizes(*v,nloc,PETSC_DECIDE);CHKERRQ(ierr);
   } else {
     ierr = BVCreateVec(extop->nep->V,v);CHKERRQ(ierr);
+  }
+  PetscFunctionReturn(0);
+}
+
+PetscErrorCode NEPDeflationSetRandomVec(NEP_EXT_OP extop,Vec v)
+{
+  PetscErrorCode ierr;
+  PetscInt       n,next,i;
+  PetscRandom    rand;
+  PetscScalar    *array;
+
+  PetscFunctionBegin;
+  ierr = BVGetRandomContext(extop->nep->V,&rand);CHKERRQ(ierr);
+  ierr = VecSetRandom(v,rand);CHKERRQ(ierr);
+  if (extop->szd) {
+    ierr = BVGetSizes(extop->nep->V,&n,NULL,NULL);CHKERRQ(ierr);
+    ierr = VecGetLocalSize(v,&next);CHKERRQ(ierr);
+    ierr = VecGetArray(v,&array);CHKERRQ(ierr);
+    for (i=n+extop->n;i<next;i++) array[i] = 0.0;
+    ierr = VecRestoreArray(v,&array);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }
@@ -616,6 +561,81 @@ PetscErrorCode NEPDeflationFunctionSolve(NEP_EXT_OP extop,Vec b,Vec x)
     ierr = VecRestoreArray(x,&xx);CHKERRQ(ierr);
     ierr = VecResetArray(b1);CHKERRQ(ierr);
     ierr = VecRestoreArray(b,&bb);CHKERRQ(ierr);
+  }
+  PetscFunctionReturn(0);
+}
+
+PetscErrorCode NEPDeflationReset(NEP_EXT_OP extop)
+{
+  PetscErrorCode    ierr;
+  NEP_DEF_FUN_SOLVE solve;
+
+  PetscFunctionBegin;
+  if (!extop) PetscFunctionReturn(0);
+  ierr = PetscFree(extop->H);CHKERRQ(ierr);
+  ierr = BVDestroy(&extop->X);CHKERRQ(ierr);
+  if (extop->szd) {
+    ierr = PetscFree3(extop->Hj,extop->XpX,extop->bc);CHKERRQ(ierr);
+    ierr = BVDestroy(&extop->W);CHKERRQ(ierr);
+  }
+  ierr = MatDestroy(&extop->MF);CHKERRQ(ierr);
+  ierr = MatDestroy(&extop->MJ);CHKERRQ(ierr);
+  if (extop->solve) {
+    solve = extop->solve;
+    if (extop->szd) {
+      if (!extop->simpU) {ierr = BVDestroy(&solve->T_1U);CHKERRQ(ierr);}
+      ierr = PetscFree2(solve->M,solve->work);CHKERRQ(ierr);
+      ierr = VecDestroy(&solve->w[0]);CHKERRQ(ierr);
+      ierr = VecDestroy(&solve->w[1]);CHKERRQ(ierr);
+    }
+    ierr = PetscFree(extop->solve);CHKERRQ(ierr);
+  }
+  ierr = PetscFree(extop);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+PetscErrorCode NEPDeflationInitialize(NEP nep,BV X,KSP ksp,PetscInt sz,NEP_EXT_OP *extop)
+{
+  PetscErrorCode    ierr;
+  NEP_EXT_OP        op;
+  NEP_DEF_FUN_SOLVE solve;
+  PetscInt          szd;
+
+  PetscFunctionBegin;
+  ierr = NEPDeflationReset(*extop);CHKERRQ(ierr);
+  ierr = PetscNew(&op);CHKERRQ(ierr);
+  *extop  = op;
+  op->nep = nep;
+  op->n   = 0;
+  op->szd = szd = sz-1;
+  op->max_midx = PetscMin(MAX_MINIDX,szd);
+  op->X = X;
+  if (!X) { ierr = BVDuplicateResize(nep->V,sz,&op->X);CHKERRQ(ierr); }
+  else { ierr = PetscObjectReference((PetscObject)X);CHKERRQ(ierr); }
+  ierr = PetscCalloc1(sz*sz,&(op)->H);CHKERRQ(ierr);
+  if (op->szd) {
+    op->simpU = PETSC_FALSE;
+    if (nep->fui==NEP_USER_INTERFACE_SPLIT) {
+      ierr = PetscOptionsGetBool(NULL,NULL,"-nep_deflation_simpleu",&op->simpU,NULL);CHKERRQ(ierr);
+    } else {
+      op->simpU = PETSC_TRUE;
+    }
+    ierr = PetscCalloc3(szd*szd*op->max_midx,&(op)->Hj,szd*szd,&(op)->XpX,szd,&op->bc);CHKERRQ(ierr);
+    ierr = BVDuplicateResize(op->X,op->szd,&op->W);CHKERRQ(ierr);
+  }
+  if (ksp) {
+    ierr = PetscNew(&solve);CHKERRQ(ierr);
+    op->solve  = solve;
+    solve->ksp = ksp;
+    solve->n   = -1;
+    if (op->szd) {
+      if (!op->simpU) {
+        ierr = BVDuplicateResize(nep->V,szd,&solve->T_1U);CHKERRQ(ierr);
+      }
+      ierr = PetscMalloc2(szd*szd,&solve->M,2*szd*szd,&solve->work);CHKERRQ(ierr);
+      ierr = BVCreateVec(nep->V,&solve->w[0]);CHKERRQ(ierr);
+      ierr = VecDuplicate(solve->w[0],&solve->w[1]);CHKERRQ(ierr);
+    }
   }
   PetscFunctionReturn(0);
 }

@@ -89,3 +89,4 @@ PETSC_INTERN PetscErrorCode NEPDeflationSolveSetUp(NEP_EXT_OP,PetscScalar);
 PETSC_INTERN PetscErrorCode NEPDeflationFunctionSolve(NEP_EXT_OP,Vec,Vec);
 PETSC_INTERN PetscErrorCode NEPDeflationGetInvariantPair(NEP_EXT_OP,BV*,Mat*);
 PETSC_INTERN PetscErrorCode NEPDeflationLocking(NEP_EXT_OP,Vec,PetscScalar);
+PETSC_INTERN PetscErrorCode NEPDeflationSetRandomVec(NEP_EXT_OP,Vec);

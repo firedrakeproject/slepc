@@ -141,7 +141,6 @@ PetscErrorCode NEPSolve_SLP(NEP nep)
   PetscReal      resnorm;
   PetscInt       nconv,ldh,ldds,i,j;
   PetscBool      skip=PETSC_FALSE;
-  PetscRandom    rand;
   NEP_EXT_OP     extop=NULL;    /* Extended operator for deflation */
 
   PetscFunctionBegin;
@@ -158,7 +157,6 @@ PetscErrorCode NEPSolve_SLP(NEP nep)
   ierr = BVGetColumn(nep->V,0,&uu);CHKERRQ(ierr);
   ierr = NEPDeflationCopyToExtendedVec(extop,uu,NULL,u,PETSC_FALSE);CHKERRQ(ierr);
   ierr = BVRestoreColumn(nep->V,0,&uu);CHKERRQ(ierr);
-  ierr = BVGetRandomContext(nep->V,&rand);
 
   /* Restart loop */
   while (nep->reason == NEP_CONVERGED_ITERATING) {
@@ -202,7 +200,7 @@ PetscErrorCode NEPSolve_SLP(NEP nep)
           ierr = EPSGetEigenpair(ctx->eps,1,&mu,&im,u,NULL);CHKERRQ(ierr);
           mu = 1.0/mu;
         } else {
-          ierr = VecSetRandom(u,rand);CHKERRQ(ierr);
+          ierr = NEPDeflationSetRandomVec(extop,u);CHKERRQ(ierr);
           mu = lambda-sigma;
         }
         skip = PETSC_FALSE;
