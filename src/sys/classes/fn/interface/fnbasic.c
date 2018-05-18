@@ -641,7 +641,8 @@ PetscErrorCode FNEvaluateFunctionMat_Private(FN fn,Mat A,Mat B,PetscBool sync)
       } else M = A;
       if (fn->ops->evaluatefunctionmat[fn->method]) {
         ierr = (*fn->ops->evaluatefunctionmat[fn->method])(fn,M,F);CHKERRQ(ierr);
-      } else SETERRQ(PetscObjectComm((PetscObject)fn),PETSC_ERR_ARG_OUTOFRANGE,"The specified method number does not exist for this FN");
+      } else if (!fn->method) SETERRQ(PetscObjectComm((PetscObject)fn),PETSC_ERR_SUP,"Matrix functions not implemented in this FN type");
+      else SETERRQ(PetscObjectComm((PetscObject)fn),PETSC_ERR_ARG_OUTOFRANGE,"The specified method number does not exist for this FN type");
       if (fn->alpha!=(PetscScalar)1.0) {
         ierr = FN_FreeWorkMat(fn,&M);CHKERRQ(ierr);
       }
@@ -738,7 +739,8 @@ static PetscErrorCode FNEvaluateFunctionMatVec_Default(FN fn,Mat A,Vec v)
   ierr = FN_AllocateWorkMat(fn,A,&F);CHKERRQ(ierr);
   if (fn->ops->evaluatefunctionmat[fn->method]) {
     ierr = (*fn->ops->evaluatefunctionmat[fn->method])(fn,A,F);CHKERRQ(ierr);
-  } else SETERRQ(PetscObjectComm((PetscObject)fn),PETSC_ERR_ARG_OUTOFRANGE,"The specified method number does not exist for this FN");
+  } else if (!fn->method) SETERRQ(PetscObjectComm((PetscObject)fn),PETSC_ERR_SUP,"Matrix functions not implemented in this FN type");
+  else SETERRQ(PetscObjectComm((PetscObject)fn),PETSC_ERR_ARG_OUTOFRANGE,"The specified method number does not exist for this FN type");
   ierr = MatGetColumnVector(F,v,0);CHKERRQ(ierr);
   ierr = FN_FreeWorkMat(fn,&F);CHKERRQ(ierr);
   PetscFunctionReturn(0);

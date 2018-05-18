@@ -20,52 +20,39 @@ typedef struct {
   PetscInt k;    /* index of the phi-function, defaults to k=1 */
 } FN_PHI;
 
-const static PetscReal rfactorial[] = { 1, 1, 0.5, 1.0/6, 1.0/24, 1.0/120, 1.0/720, 1.0/5040, 1.0/40320, 1.0/362880 };
+#define MAX_INDEX 10
 
-static void PhiFunction(PetscScalar x,PetscScalar *y,PetscInt k)
-{
-  PetscScalar phi;
-
-  if (!k) *y = PetscExpScalar(x);
-  else if (k==1) *y = (PetscExpScalar(x)-1.0)/x;
-  else {
-    /* phi_k(x) = (phi_{k-1}(x)-1/(k-1)!)/x */
-    PhiFunction(x,&phi,k-1);
-    *y = (phi-rfactorial[k-1])/x;
-  }
-}
+const static PetscReal rfactorial[MAX_INDEX+2] = { 1, 1, 0.5, 1.0/6, 1.0/24, 1.0/120, 1.0/720, 1.0/5040, 1.0/40320, 1.0/362880, 1.0/3628800, 1.0/39916800 };
 
 PetscErrorCode FNEvaluateFunction_Phi(FN fn,PetscScalar x,PetscScalar *y)
 {
-  FN_PHI *ctx = (FN_PHI*)fn->data;
+  FN_PHI      *ctx = (FN_PHI*)fn->data;
+  PetscInt    i;
+  PetscScalar phi[MAX_INDEX+1];
 
   PetscFunctionBegin;
-  PhiFunction(x,y,ctx->k);
-  PetscFunctionReturn(0);
-}
-
-static void PhiDerivative(PetscScalar x,PetscScalar *y,PetscInt k)
-{
-  PetscScalar der,phi;
-
-  if (!k) *y = PetscExpScalar(x);
-  else if (k==1) {
-    der = PetscExpScalar(x);
-    phi = (der-1.0)/x;
-    *y = (der-phi)/x;
-  } else {
-    PhiDerivative(x,&der,k-1);
-    PhiFunction(x,&phi,k);
-    *y = (der-phi)/x;
+  if (x==0.0) *y = rfactorial[ctx->k];
+  else {
+    phi[0] = PetscExpScalar(x);
+    for (i=1;i<=ctx->k;i++) phi[i] = (phi[i-1]-rfactorial[i-1])/x;
+    *y = phi[ctx->k];
   }
+  PetscFunctionReturn(0);
 }
 
 PetscErrorCode FNEvaluateDerivative_Phi(FN fn,PetscScalar x,PetscScalar *y)
 {
-  FN_PHI *ctx = (FN_PHI*)fn->data;
+  FN_PHI      *ctx = (FN_PHI*)fn->data;
+  PetscInt    i;
+  PetscScalar phi[MAX_INDEX+2];
 
   PetscFunctionBegin;
-  PhiDerivative(x,y,ctx->k);
+  if (x==0.0) *y = rfactorial[ctx->k+1];
+  else {
+    phi[0] = PetscExpScalar(x);
+    for (i=1;i<=ctx->k+1;i++) phi[i] = (phi[i-1]-rfactorial[i-1])/x;
+    *y = phi[ctx->k] - ctx->k*phi[ctx->k+1];
+  }
   PetscFunctionReturn(0);
 }
 
@@ -75,7 +62,7 @@ static PetscErrorCode FNPhiSetIndex_Phi(FN fn,PetscInt k)
 
   PetscFunctionBegin;
   if (k<0) SETERRQ(PetscObjectComm((PetscObject)fn),PETSC_ERR_ARG_OUTOFRANGE,"Index cannot be negative");
-  if (k>10) SETERRQ(PetscObjectComm((PetscObject)fn),PETSC_ERR_ARG_OUTOFRANGE,"Only implemented for k<=10");
+  if (k>MAX_INDEX) SETERRQ1(PetscObjectComm((PetscObject)fn),PETSC_ERR_ARG_OUTOFRANGE,"Phi functions only implemented for k<=%d",MAX_INDEX);
   ctx->k = k;
   PetscFunctionReturn(0);
 }
