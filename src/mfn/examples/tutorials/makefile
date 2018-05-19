@@ -20,7 +20,7 @@ MANSEC     = MFN
 TESTEXAMPLES_C   = ex23.PETSc runex23_1 ex23.rm \
                    ex26.PETSc runex26_1 ex26.rm \
                    ex37.PETSc runex37_1 ex37.rm \
-                   ex39.PETSc runex39_1 ex39.rm
+                   ex39.PETSc runex39_1 runex39_2 ex39.rm
 TESTEXAMPLES_F90 = ex23f90.PETSc runex23f90_1 ex23f90.rm
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common
@@ -69,6 +69,11 @@ runex37_1:
 
 runex39_1:
 	-@${SETTEST}; \
-	${MPIEXEC} -n 1 ./ex39 -mfn_tol 1e-3 > $${test}.tmp 2>&1; \
+	${MPIEXEC} -n 1 ./ex39 -tend 0.25 -mfn_tol 1e-3 > $${test}.tmp 2>&1; \
+	${TESTCODE}
+
+runex39_2:
+	-@${SETTEST}; check=ex39_1; \
+	${MPIEXEC} -n 1 ./ex39 -tend 0.25 -mfn_tol 1e-3 -combine | ${SED} -e "s/ (combine)//" > $${test}.tmp 2>&1; \
 	${TESTCODE}
 

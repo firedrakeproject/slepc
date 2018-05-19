@@ -18,6 +18,8 @@
 
 typedef struct {
   PetscInt k;    /* index of the phi-function, defaults to k=1 */
+  Mat      H;    /* auxiliary matrix of order m+k */
+  Mat      F;    /* auxiliary matrix to store exp(H) */
 } FN_PHI;
 
 #define MAX_INDEX 10
@@ -51,19 +53,74 @@ PetscErrorCode FNEvaluateDerivative_Phi(FN fn,PetscScalar x,PetscScalar *y)
   else {
     phi[0] = PetscExpScalar(x);
     for (i=1;i<=ctx->k+1;i++) phi[i] = (phi[i-1]-rfactorial[i-1])/x;
-    *y = phi[ctx->k] - ctx->k*phi[ctx->k+1];
+    *y = phi[ctx->k] - phi[ctx->k+1]*(PetscReal)ctx->k;
   }
+  PetscFunctionReturn(0);
+}
+
+PetscErrorCode FNEvaluateFunctionMatVec_Phi(FN fn,Mat A,Vec v)
+{
+  PetscErrorCode ierr;
+  FN_PHI         *ctx = (FN_PHI*)fn->data;
+  PetscInt       i,j,m,n,nh;
+  PetscScalar    *Aa,*Ha,*Fa,*va,sfactor=1.0;
+
+  PetscFunctionBegin;
+  ierr = MatGetSize(A,&m,NULL);CHKERRQ(ierr);
+  n = m+ctx->k;
+  if (ctx->H) {
+    ierr = MatGetSize(ctx->H,&nh,NULL);CHKERRQ(ierr);
+    if (n!=nh) {
+      ierr = MatDestroy(&ctx->H);CHKERRQ(ierr);
+      ierr = MatDestroy(&ctx->F);CHKERRQ(ierr);
+    }
+  }
+  if (!ctx->H) {
+    ierr = MatCreateDense(PETSC_COMM_SELF,n,n,n,n,NULL,&ctx->H);CHKERRQ(ierr);
+    ierr = MatCreateDense(PETSC_COMM_SELF,n,n,n,n,NULL,&ctx->F);CHKERRQ(ierr);
+  }
+  ierr = MatDenseGetArray(ctx->H,&Ha);CHKERRQ(ierr);
+  ierr = MatDenseGetArray(A,&Aa);CHKERRQ(ierr);
+  for (j=0;j<m;j++) {
+    ierr = PetscMemcpy(Ha+j*n,Aa+j*m,m*sizeof(PetscScalar));CHKERRQ(ierr);
+  }
+  ierr = MatDenseRestoreArray(A,&Aa);CHKERRQ(ierr);
+  if (ctx->k) {
+    for (j=0;j<m;j++) for (i=m;i<n;i++) Ha[i+j*n] = 0.0;
+    for (j=m;j<n;j++) for (i=0;i<n;i++) Ha[i+j*n] = 0.0;
+    Ha[0+m*n] = fn->alpha;
+    for (j=m+1;j<n;j++) Ha[j-1+j*n] = fn->alpha;
+  }
+  ierr = MatDenseRestoreArray(ctx->H,&Ha);CHKERRQ(ierr);
+
+  ierr = FNEvaluateFunctionMat_Exp_Higham(fn,ctx->H,ctx->F);CHKERRQ(ierr);
+
+  ierr = MatDenseGetArray(ctx->F,&Fa);CHKERRQ(ierr);
+  ierr = VecGetArray(v,&va);CHKERRQ(ierr);
+  if (ctx->k) {
+    sfactor = PetscPowScalarInt(fn->alpha,-ctx->k);
+    for (i=0;i<m;i++) va[i] = sfactor*Fa[i+(n-1)*n];
+  } else {
+    for (i=0;i<m;i++) va[i] = sfactor*Fa[i+0*n];
+  }
+  ierr = VecRestoreArray(v,&va);CHKERRQ(ierr);
+  ierr = MatDenseRestoreArray(ctx->F,&Fa);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
 static PetscErrorCode FNPhiSetIndex_Phi(FN fn,PetscInt k)
 {
-  FN_PHI *ctx = (FN_PHI*)fn->data;
+  PetscErrorCode ierr;
+  FN_PHI         *ctx = (FN_PHI*)fn->data;
 
   PetscFunctionBegin;
   if (k<0) SETERRQ(PetscObjectComm((PetscObject)fn),PETSC_ERR_ARG_OUTOFRANGE,"Index cannot be negative");
   if (k>MAX_INDEX) SETERRQ1(PetscObjectComm((PetscObject)fn),PETSC_ERR_ARG_OUTOFRANGE,"Phi functions only implemented for k<=%d",MAX_INDEX);
-  ctx->k = k;
+  if (k!=ctx->k) {
+    ctx->k = k;
+    ierr = MatDestroy(&ctx->H);CHKERRQ(ierr);
+    ierr = MatDestroy(&ctx->F);CHKERRQ(ierr);
+  }
   PetscFunctionReturn(0);
 }
 
@@ -197,8 +254,11 @@ PetscErrorCode FNDuplicate_Phi(FN fn,MPI_Comm comm,FN *newfn)
 PetscErrorCode FNDestroy_Phi(FN fn)
 {
   PetscErrorCode ierr;
+  FN_PHI         *ctx = (FN_PHI*)fn->data;
 
   PetscFunctionBegin;
+  ierr = MatDestroy(&ctx->H);CHKERRQ(ierr);
+  ierr = MatDestroy(&ctx->F);CHKERRQ(ierr);
   ierr = PetscFree(fn->data);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)fn,"FNPhiSetIndex_C",NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)fn,"FNPhiGetIndex_C",NULL);CHKERRQ(ierr);
@@ -215,12 +275,13 @@ PETSC_EXTERN PetscErrorCode FNCreate_Phi(FN fn)
   fn->data = (void*)ctx;
   ctx->k   = 1;
 
-  fn->ops->evaluatefunction    = FNEvaluateFunction_Phi;
-  fn->ops->evaluatederivative  = FNEvaluateDerivative_Phi;
-  fn->ops->setfromoptions      = FNSetFromOptions_Phi;
-  fn->ops->view                = FNView_Phi;
-  fn->ops->duplicate           = FNDuplicate_Phi;
-  fn->ops->destroy             = FNDestroy_Phi;
+  fn->ops->evaluatefunction          = FNEvaluateFunction_Phi;
+  fn->ops->evaluatederivative        = FNEvaluateDerivative_Phi;
+  fn->ops->evaluatefunctionmatvec[0] = FNEvaluateFunctionMatVec_Phi;
+  fn->ops->setfromoptions            = FNSetFromOptions_Phi;
+  fn->ops->view                      = FNView_Phi;
+  fn->ops->duplicate                 = FNDuplicate_Phi;
+  fn->ops->destroy                   = FNDestroy_Phi;
   ierr = PetscObjectComposeFunction((PetscObject)fn,"FNPhiSetIndex_C",FNPhiSetIndex_Phi);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)fn,"FNPhiGetIndex_C",FNPhiGetIndex_Phi);CHKERRQ(ierr);
   PetscFunctionReturn(0);

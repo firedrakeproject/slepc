@@ -1,0 +1,5 @@
+
+Heat equation via phi functions, n=199, tend=0.25, deltat=0.01
+
+ The relative error at t=0.25 is 0.1955
+

@@ -204,7 +204,7 @@ int main(int argc,char **argv)
   ierr = VecAXPY(z,-1.0,yex);CHKERRQ(ierr);
   ierr = VecNorm(z,NORM_2,&nrmd);CHKERRQ(ierr);
   ierr = VecNorm(u,NORM_2,&nrmu);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," The relative error at t=%.4g is %g\n",(double)t,(double)nrmd/nrmu);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD," The relative error at t=%g is %.4f\n\n",(double)t,(double)(nrmd/nrmu));CHKERRQ(ierr);
 
   /*
      Free work space
