@@ -23,6 +23,7 @@
 */
 
 #include <slepc/private/nepimpl.h>         /*I "slepcnep.h" I*/
+#include <../src/nep/impls/nepdefl.h>
 
 typedef struct {
   PetscInt  max_inner_it;     /* maximum number of Newton iterations */
@@ -31,30 +32,16 @@ typedef struct {
   KSP       ksp;              /* linear solver object */
 } NEP_RII;
 
-PETSC_STATIC_INLINE PetscErrorCode NEPRII_KSPSolve(NEP nep,Vec b,Vec x)
-{
-  PetscErrorCode ierr;
-  PetscInt       lits;
-  NEP_RII        *ctx = (NEP_RII*)nep->data;
-
-  PetscFunctionBegin;
-  ierr = KSPSolve(ctx->ksp,b,x);CHKERRQ(ierr);
-  ierr = KSPGetIterationNumber(ctx->ksp,&lits);CHKERRQ(ierr);
-  ierr = PetscInfo2(nep,"iter=%D, linear solve iterations=%D\n",nep->its,lits);CHKERRQ(ierr);
-  PetscFunctionReturn(0);
-}
-
 PetscErrorCode NEPSetUp_RII(NEP nep)
 {
   PetscErrorCode ierr;
   PetscBool      istrivial;
 
   PetscFunctionBegin;
-  if (nep->nev>1) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"Requested several eigenpairs but this solver can compute only one");
-  if (nep->ncv) { ierr = PetscInfo(nep,"Setting ncv = 1, ignoring user-provided value\n");CHKERRQ(ierr); }
-  nep->ncv = 1;
-  if (nep->mpd) { ierr = PetscInfo(nep,"Setting mpd = 1, ignoring user-provided value\n");CHKERRQ(ierr); }
-  nep->mpd = 1;
+  if (nep->ncv) { ierr = PetscInfo(nep,"Setting ncv = nev, ignoring user-provided value\n");CHKERRQ(ierr); }
+  nep->ncv = nep->nev;
+  if (nep->mpd) { ierr = PetscInfo(nep,"Setting mpd = nev, ignoring user-provided value\n");CHKERRQ(ierr); }
+  nep->mpd = nep->nev;
   if (!nep->max_it) nep->max_it = PetscMax(5000,2*nep->n/nep->ncv);
   if (nep->which && nep->which!=NEP_TARGET_MAGNITUDE) SETERRQ(PetscObjectComm((PetscObject)nep),1,"Wrong value of which");
 
@@ -70,39 +57,47 @@ PetscErrorCode NEPSolve_RII(NEP nep)
 {
   PetscErrorCode     ierr;
   NEP_RII            *ctx = (NEP_RII*)nep->data;
-  Mat                T=nep->function,Tp=nep->jacobian,Tsigma;
-  Vec                u,r=nep->work[0],delta=nep->work[1];
-  PetscScalar        lambda,a1,a2,corr;
+  Mat                T,Tp,H;
+  Vec                uu,u,r,delta;
+  PetscScalar        lambda,sigma,a1,a2,corr,*Hp,*Ap;
   PetscReal          resnorm=1.0,ktol=0.1;
-  PetscBool          hascopy;
-  PetscInt           inner_its;
+  PetscBool          skip=PETSC_FALSE;
+  PetscInt           inner_its,its=0,ldh,ldds,i,j;
+  NEP_EXT_OP         extop=NULL;
   KSPConvergedReason kspreason;
 
   PetscFunctionBegin;
   /* get initial approximation of eigenvalue and eigenvector */
-  ierr = NEPGetDefaultShift(nep,&lambda);CHKERRQ(ierr);
+  ierr = NEPGetDefaultShift(nep,&sigma);CHKERRQ(ierr);
+  lambda = sigma;
   if (!nep->nini) {
     ierr = BVSetRandomColumn(nep->V,0);CHKERRQ(ierr);
   }
-  ierr = BVGetColumn(nep->V,0,&u);CHKERRQ(ierr);
-  ierr = NEPComputeFunction(nep,lambda,T,T);CHKERRQ(ierr);
+  if (!ctx->ksp) { ierr = NEPRIIGetKSP(nep,&ctx->ksp);CHKERRQ(ierr); }
+  ierr = NEPDeflationInitialize(nep,nep->V,ctx->ksp,PETSC_FALSE,nep->nev,&extop);CHKERRQ(ierr);
+  ierr = NEPDeflationCreateVec(extop,&u);CHKERRQ(ierr);
+  ierr = VecDuplicate(u,&r);CHKERRQ(ierr);
+  ierr = VecDuplicate(u,&delta);CHKERRQ(ierr);
+  ierr = BVGetColumn(nep->V,0,&uu);CHKERRQ(ierr);
+  ierr = NEPDeflationCopyToExtendedVec(extop,uu,NULL,u,PETSC_FALSE);CHKERRQ(ierr);
+  ierr = BVRestoreColumn(nep->V,0,&uu);CHKERRQ(ierr);
 
   /* prepare linear solver */
-  if (!ctx->ksp) { ierr = NEPRIIGetKSP(nep,&ctx->ksp);CHKERRQ(ierr); }
-  ierr = MatDuplicate(T,MAT_COPY_VALUES,&Tsigma);CHKERRQ(ierr);
-  ierr = KSPSetOperators(ctx->ksp,Tsigma,Tsigma);CHKERRQ(ierr);
+  ierr = NEPDeflationSolveSetUp(extop,sigma);CHKERRQ(ierr);
 
   /* Restart loop */
   while (nep->reason == NEP_CONVERGED_ITERATING) {
-    nep->its++;
+    its++;
 
     /* Use Newton's method to compute nonlinear Rayleigh functional. Current eigenvalue
        estimate as starting value. */
     inner_its=0;
     do {
-      ierr = NEPApplyFunction(nep,lambda,u,delta,r,T,T);CHKERRQ(ierr);
+      ierr = NEPDeflationComputeFunction(extop,lambda,&T);CHKERRQ(ierr);
+      ierr = MatMult(T,u,r);CHKERRQ(ierr);
       ierr = VecDot(r,u,&a1);CHKERRQ(ierr);
-      ierr = NEPApplyJacobian(nep,lambda,u,delta,r,Tp);CHKERRQ(ierr);
+      ierr = NEPDeflationComputeJacobian(extop,lambda,&Tp);CHKERRQ(ierr);
+      ierr = MatMult(Tp,u,r);CHKERRQ(ierr);
       ierr = VecDot(r,u,&a2);CHKERRQ(ierr);
       corr = a1/a2;
       lambda = lambda - corr;
@@ -110,15 +105,8 @@ PetscErrorCode NEPSolve_RII(NEP nep)
     } while (PetscAbsScalar(corr)>PETSC_SQRT_MACHINE_EPSILON && inner_its<ctx->max_inner_it);
 
     /* update preconditioner and set adaptive tolerance */
-    if (ctx->lag && !(nep->its%ctx->lag) && nep->its>2*ctx->lag && resnorm<1e-2) {
-      ierr = MatHasOperation(T,MATOP_COPY,&hascopy);CHKERRQ(ierr);
-      if (hascopy) {
-        ierr = MatCopy(T,Tsigma,DIFFERENT_NONZERO_PATTERN);CHKERRQ(ierr);
-      } else {
-        ierr = MatDestroy(&Tsigma);CHKERRQ(ierr);
-        ierr = MatDuplicate(T,MAT_COPY_VALUES,&Tsigma);CHKERRQ(ierr);
-      }
-      ierr = KSPSetOperators(ctx->ksp,Tsigma,Tsigma);CHKERRQ(ierr);
+    if (ctx->lag && !(its%ctx->lag) && its>2*ctx->lag && resnorm<1e-2) {
+      ierr = NEPDeflationSolveSetUp(extop,lambda+corr);CHKERRQ(ierr);
     }
     if (!ctx->cctol) {
       ktol = PetscMax(ktol/2.0,PETSC_MACHINE_EPSILON*10.0);
@@ -126,7 +114,8 @@ PetscErrorCode NEPSolve_RII(NEP nep)
     }
 
     /* form residual,  r = T(lambda)*u */
-    ierr = NEPApplyFunction(nep,lambda,u,delta,r,T,T);CHKERRQ(ierr);
+    ierr = NEPDeflationComputeFunction(extop,lambda,&T);CHKERRQ(ierr);
+    ierr = MatMult(T,u,r);CHKERRQ(ierr);
 
     /* convergence test */
     ierr = VecNorm(r,NORM_2,&resnorm);CHKERRQ(ierr);
@@ -134,29 +123,57 @@ PetscErrorCode NEPSolve_RII(NEP nep)
     nep->eigr[nep->nconv] = lambda;
     if (nep->errest[nep->nconv]<=nep->tol) {
       nep->nconv = nep->nconv + 1;
+      ierr = NEPDeflationLocking(extop,u,lambda);CHKERRQ(ierr);
+      nep->its += its;
+      its = 0;
+      skip = PETSC_TRUE;
     }
-    ierr = (*nep->stopping)(nep,nep->its,nep->max_it,nep->nconv,nep->nev,&nep->reason,nep->stoppingctx);CHKERRQ(ierr);
-    ierr = NEPMonitor(nep,nep->its,nep->nconv,nep->eigr,nep->eigi,nep->errest,1);CHKERRQ(ierr);
+    ierr = (*nep->stopping)(nep,nep->its+its,nep->max_it,nep->nconv,nep->nev,&nep->reason,nep->stoppingctx);CHKERRQ(ierr);
+    ierr = NEPMonitor(nep,nep->its+its,nep->nconv,nep->eigr,nep->eigi,nep->errest,nep->nconv+1);CHKERRQ(ierr);
 
     if (nep->reason == NEP_CONVERGED_ITERATING) {
+      if (!skip) {
       /* eigenvector correction: delta = T(sigma)\r */
-      ierr = NEPRII_KSPSolve(nep,r,delta);CHKERRQ(ierr);
-      ierr = KSPGetConvergedReason(ctx->ksp,&kspreason);CHKERRQ(ierr);
-      if (kspreason<0) {
-        ierr = PetscInfo1(nep,"iter=%D, linear solve failed, stopping solve\n",nep->its);CHKERRQ(ierr);
-        nep->reason = NEP_DIVERGED_LINEAR_SOLVE;
-        break;
+        ierr = NEPDeflationFunctionSolve(extop,r,delta);CHKERRQ(ierr);
+        ierr = KSPGetConvergedReason(ctx->ksp,&kspreason);CHKERRQ(ierr);
+        if (kspreason<0) {
+          ierr = PetscInfo1(nep,"iter=%D, linear solve failed, stopping solve\n",nep->its);CHKERRQ(ierr);
+          nep->reason = NEP_DIVERGED_LINEAR_SOLVE;
+          break;
+        }
+
+        /* update eigenvector: u = u - delta */
+        ierr = VecAXPY(u,-1.0,delta);CHKERRQ(ierr);
+
+        /* normalize eigenvector */
+        ierr = VecNormalize(u,NULL);CHKERRQ(ierr);
+      } else {
+        ierr = NEPDeflationSetRandomVec(extop,u);CHKERRQ(ierr);
+        ierr = NEPDeflationSolveSetUp(extop,sigma);CHKERRQ(ierr);
+        lambda = sigma;
+        skip = PETSC_FALSE;
       }
-
-      /* update eigenvector: u = u - delta */
-      ierr = VecAXPY(u,-1.0,delta);CHKERRQ(ierr);
-
-      /* normalize eigenvector */
-      ierr = VecNormalize(u,NULL);CHKERRQ(ierr);
     }
   }
-  ierr = MatDestroy(&Tsigma);CHKERRQ(ierr);
-  ierr = BVRestoreColumn(nep->V,0,&u);CHKERRQ(ierr);
+  nep->its += its;
+  ierr = NEPDeflationGetInvariantPair(extop,NULL,&H);CHKERRQ(ierr);
+  ierr = MatGetSize(H,NULL,&ldh);CHKERRQ(ierr);
+  ierr = DSSetType(nep->ds,DSNHEP);CHKERRQ(ierr);
+  ierr = DSAllocate(nep->ds,nep->nconv);CHKERRQ(ierr);
+  ierr = DSGetLeadingDimension(nep->ds,&ldds);CHKERRQ(ierr);
+  ierr = MatDenseGetArray(H,&Hp);CHKERRQ(ierr);
+  ierr = DSGetArray(nep->ds,DS_MAT_A,&Ap);CHKERRQ(ierr);
+  for (j=0;j<nep->nconv;j++)
+    for (i=0;i<nep->nconv;i++) Ap[j*ldds+i] = Hp[j*ldh+i];
+  ierr = DSRestoreArray(nep->ds,DS_MAT_A,&Ap);CHKERRQ(ierr);
+  ierr = MatDenseRestoreArray(H,&Hp);CHKERRQ(ierr);
+  ierr = MatDestroy(&H);CHKERRQ(ierr);
+  ierr = DSSetDimensions(nep->ds,nep->nconv,0,0,nep->nconv);CHKERRQ(ierr);
+  ierr = DSSolve(nep->ds,nep->eigr,nep->eigi);CHKERRQ(ierr);
+  ierr = NEPDeflationReset(extop);CHKERRQ(ierr);
+  ierr = VecDestroy(&u);CHKERRQ(ierr);
+  ierr = VecDestroy(&r);CHKERRQ(ierr);
+  ierr = VecDestroy(&delta);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -567,6 +584,7 @@ PETSC_EXTERN PetscErrorCode NEPCreate_RII(NEP nep)
   nep->ops->reset          = NEPReset_RII;
   nep->ops->destroy        = NEPDestroy_RII;
   nep->ops->view           = NEPView_RII;
+  nep->ops->computevectors = NEPComputeVectors_Schur;
 
   ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPRIISetMaximumIterations_C",NEPRIISetMaximumIterations_RII);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPRIIGetMaximumIterations_C",NEPRIIGetMaximumIterations_RII);CHKERRQ(ierr);

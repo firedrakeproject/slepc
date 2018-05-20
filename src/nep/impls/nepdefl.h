@@ -40,6 +40,8 @@ struct _n_nep_ext_op {
 
 struct _n_nep_def_fun_solve {
   KSP          ksp;   /* */
+  PetscBool    sincf;
+  Mat          T;
   PetscScalar  theta;
   PetscInt     n;
   PetscScalar  *M;
@@ -81,7 +83,7 @@ typedef struct {
 
 PETSC_INTERN PetscErrorCode NEPDeflationCopyToExtendedVec(NEP_EXT_OP,Vec,PetscScalar*,Vec,PetscBool);
 PETSC_INTERN PetscErrorCode NEPDeflationReset(NEP_EXT_OP);
-PETSC_INTERN PetscErrorCode NEPDeflationInitialize(NEP,BV,KSP,PetscInt,NEP_EXT_OP*);
+PETSC_INTERN PetscErrorCode NEPDeflationInitialize(NEP,BV,KSP,PetscBool,PetscInt,NEP_EXT_OP*);
 PETSC_INTERN PetscErrorCode NEPDeflationCreateVec(NEP_EXT_OP,Vec*);
 PETSC_INTERN PetscErrorCode NEPDeflationComputeFunction(NEP_EXT_OP,PetscScalar,Mat*);
 PETSC_INTERN PetscErrorCode NEPDeflationComputeJacobian(NEP_EXT_OP,PetscScalar,Mat*);

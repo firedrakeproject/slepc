@@ -151,7 +151,7 @@ PetscErrorCode NEPSolve_SLP(NEP nep)
   }
   lambda = sigma;
   if (!ctx->ksp) { ierr = NEPSLPGetKSP(nep,&ctx->ksp);CHKERRQ(ierr); }
-  ierr = NEPDeflationInitialize(nep,nep->V,ctx->ksp,nep->nev,&extop);CHKERRQ(ierr);
+  ierr = NEPDeflationInitialize(nep,nep->V,ctx->ksp,PETSC_TRUE,nep->nev,&extop);CHKERRQ(ierr);
   ierr = NEPDeflationCreateVec(extop,&u);CHKERRQ(ierr);
   ierr = VecDuplicate(u,&r);CHKERRQ(ierr);
   ierr = BVGetColumn(nep->V,0,&uu);CHKERRQ(ierr);
