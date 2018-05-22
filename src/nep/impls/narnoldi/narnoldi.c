@@ -51,7 +51,7 @@ PetscErrorCode NEPSetUp_NArnoldi(NEP nep)
   if (nep->ncv>nep->nev+nep->mpd) SETERRQ(PetscObjectComm((PetscObject)nep),1,"The value of ncv must not be larger than nev+mpd");
   if (nep->nev>1) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"Requested several eigenpairs but this solver can compute only one");
   if (!nep->max_it) nep->max_it = nep->ncv;
-  if (nep->max_it < nep->ncv) SETERRQ(PetscObjectComm((PetscObject)nep),1,"Current implementation is unrestarted, must set max_it >= ncv");
+  if (nep->max_it > nep->ncv) SETERRQ(PetscObjectComm((PetscObject)nep),1,"Current implementation is unrestarted, must set max_it >= ncv");
   if (nep->which && nep->which!=NEP_TARGET_MAGNITUDE) SETERRQ(PetscObjectComm((PetscObject)nep),1,"Wrong value of which");
   if (nep->fui!=NEP_USER_INTERFACE_SPLIT) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"NARNOLDI only available for split operator");
 

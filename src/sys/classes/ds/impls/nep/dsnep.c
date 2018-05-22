@@ -201,6 +201,7 @@ PetscErrorCode DSSolve_NEP_SLP(DS ds,PetscScalar *wr,PetscScalar *wi)
   X = ds->mat[DS_MAT_X];
 
   sigma = 0.0;
+  if (ds->sc->comparison==SlepcCompareTargetMagnitude || ds->sc->comparison==SlepcCompareTargetReal) sigma = *(PetscScalar*)ds->sc->comparisonctx;
   lambda = sigma;
   tol = 1000*n*PETSC_MACHINE_EPSILON;
 
@@ -250,7 +251,7 @@ PetscErrorCode DSSolve_NEP_SLP(DS ds,PetscScalar *wr,PetscScalar *wi)
 #if !defined(PETSC_USE_COMPLEX)
     if (im!=0.0) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"DSNEP found a complex eigenvalue; try rerunning with complex scalars");
 #endif
-    mu = alpha[pos];
+    mu = alpha[pos]/beta[pos];
     ierr = PetscMemcpy(X,W+pos*ld,n*sizeof(PetscScalar));CHKERRQ(ierr);
     norm = BLASnrm2_(&n,X,&one);
     norm = 1.0/norm;
