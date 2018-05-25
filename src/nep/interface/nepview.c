@@ -177,7 +177,7 @@ PetscErrorCode NEPView(NEP nep,PetscViewer viewer)
   if (!nep->rg) { ierr = NEPGetRG(nep,&nep->rg);CHKERRQ(ierr); }
   ierr = RGIsTrivial(nep->rg,&istrivial);CHKERRQ(ierr);
   if (!istrivial) { ierr = RGView(nep->rg,viewer);CHKERRQ(ierr); }
-  ierr = PetscObjectTypeCompareAny((PetscObject)nep,&nods,NEPRII,NEPSLP,NEPINTERPOL,"");CHKERRQ(ierr);
+  ierr = PetscObjectTypeCompareAny((PetscObject)nep,&nods,NEPRII,NEPSLP,NEPINTERPOL,NEPNARNOLDI,"");CHKERRQ(ierr);
   if (!nods) {
     if (!nep->ds) { ierr = NEPGetDS(nep,&nep->ds);CHKERRQ(ierr); }
     ierr = DSView(nep->ds,viewer);CHKERRQ(ierr);

@@ -212,7 +212,7 @@ PetscErrorCode NEPSolve_SLP(NEP nep)
   ierr = NEPDeflationGetInvariantPair(extop,NULL,&H);CHKERRQ(ierr);
   ierr = MatGetSize(H,NULL,&ldh);CHKERRQ(ierr);
   ierr = DSSetType(nep->ds,DSNHEP);CHKERRQ(ierr);
-  ierr = DSAllocate(nep->ds,nep->nconv);CHKERRQ(ierr);
+  ierr = DSAllocate(nep->ds,PetscMax(nep->nconv,1));CHKERRQ(ierr);
   ierr = DSGetLeadingDimension(nep->ds,&ldds);CHKERRQ(ierr);
   ierr = MatDenseGetArray(H,&Hp);CHKERRQ(ierr);
   ierr = DSGetArray(nep->ds,DS_MAT_A,&Ap);CHKERRQ(ierr);

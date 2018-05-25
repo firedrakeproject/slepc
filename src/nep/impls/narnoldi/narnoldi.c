@@ -23,6 +23,7 @@
 */
 
 #include <slepc/private/nepimpl.h>         /*I "slepcnep.h" I*/
+#include <../src/nep/impls/nepdefl.h>
 
 typedef struct {
   KSP      ksp;              /* linear solver object */
@@ -49,9 +50,7 @@ PetscErrorCode NEPSetUp_NArnoldi(NEP nep)
   PetscFunctionBegin;
   ierr = NEPSetDimensions_Default(nep,nep->nev,&nep->ncv,&nep->mpd);CHKERRQ(ierr);
   if (nep->ncv>nep->nev+nep->mpd) SETERRQ(PetscObjectComm((PetscObject)nep),1,"The value of ncv must not be larger than nev+mpd");
-  if (nep->nev>1) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"Requested several eigenpairs but this solver can compute only one");
   if (!nep->max_it) nep->max_it = nep->ncv;
-  if (nep->max_it > nep->ncv) SETERRQ(PetscObjectComm((PetscObject)nep),1,"Current implementation is unrestarted, must set max_it >= ncv");
   if (nep->which && nep->which!=NEP_TARGET_MAGNITUDE) SETERRQ(PetscObjectComm((PetscObject)nep),1,"Wrong value of which");
   if (nep->fui!=NEP_USER_INTERFACE_SPLIT) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"NARNOLDI only available for split operator");
 
@@ -61,10 +60,6 @@ PetscErrorCode NEPSetUp_NArnoldi(NEP nep)
   ierr = NEPAllocateSolution(nep,0);CHKERRQ(ierr);
   ierr = NEPSetWorkVecs(nep,3);CHKERRQ(ierr);
 
-  /* set-up DS and transfer split operator functions */
-  ierr = DSSetType(nep->ds,DSNEP);CHKERRQ(ierr);
-  ierr = DSNEPSetFN(nep->ds,nep->nt,nep->f);CHKERRQ(ierr);
-  ierr = DSAllocate(nep->ds,nep->ncv);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -72,17 +67,21 @@ PetscErrorCode NEPSolve_NArnoldi(NEP nep)
 {
   PetscErrorCode     ierr;
   NEP_NARNOLDI       *ctx = (NEP_NARNOLDI*)nep->data;
-  Mat                T=nep->function,Tsigma;
-  Vec                f,r=nep->work[0],x=nep->work[1],w=nep->work[2];
-  PetscScalar        *X,lambda;
+  Mat                T,H;
+  Vec                f,r,u,uu;
+  PetscScalar        *X,lambda,*eigr,*Hp,*Ap,sigma;
   PetscReal          beta,resnorm=0.0,nrm;
-  PetscInt           n;
-  PetscBool          breakdown;
+  PetscInt           n,i,j,ldds,ldh;
+  PetscBool          breakdown,skip=PETSC_FALSE;
+  BV                 Vext;
+  DS                 ds;
+  NEP_EXT_OP         extop=NULL;
+  SlepcSC            sc;
   KSPConvergedReason kspreason;
 
   PetscFunctionBegin;
   /* get initial space and shift */
-  ierr = NEPGetDefaultShift(nep,&lambda);CHKERRQ(ierr);
+  ierr = NEPGetDefaultShift(nep,&sigma);CHKERRQ(ierr);
   if (!nep->nini) {
     ierr = BVSetRandomColumn(nep->V,0);CHKERRQ(ierr);
     ierr = BVNormColumn(nep->V,0,NORM_2,&nrm);CHKERRQ(ierr);
@@ -90,74 +89,133 @@ PetscErrorCode NEPSolve_NArnoldi(NEP nep)
     n = 1;
   } else n = nep->nini;
 
+  if (!ctx->ksp) { ierr = NEPNArnoldiGetKSP(nep,&ctx->ksp);CHKERRQ(ierr); }
+  ierr = NEPDeflationInitialize(nep,nep->V,ctx->ksp,PETSC_FALSE,nep->nev,&extop);CHKERRQ(ierr);
+  ierr = NEPDeflationCreateBV(extop,nep->ncv,&Vext);CHKERRQ(ierr);
+  ierr = BVGetColumn(Vext,0,&f);CHKERRQ(ierr);
+  ierr = VecDuplicate(f,&r);CHKERRQ(ierr);
+  ierr = VecDuplicate(f,&u);CHKERRQ(ierr);
+  ierr = BVGetColumn(nep->V,0,&uu);CHKERRQ(ierr);
+  ierr = NEPDeflationCopyToExtendedVec(extop,uu,NULL,f,PETSC_FALSE);CHKERRQ(ierr);
+  ierr = BVRestoreColumn(nep->V,0,&uu);CHKERRQ(ierr);
+  ierr = BVRestoreColumn(Vext,0,&f);CHKERRQ(ierr);
+
+  /* set-up DS and transfer split operator functions */
+  ierr = DSCreate(PetscObjectComm((PetscObject)nep),&ds);CHKERRQ(ierr);
+  ierr = PetscLogObjectParent((PetscObject)nep,(PetscObject)ds);CHKERRQ(ierr);
+  ierr = DSSetType(ds,DSNEP);CHKERRQ(ierr);
+  ierr = DSNEPSetFN(ds,nep->nt,nep->f);CHKERRQ(ierr);
+  ierr = DSAllocate(ds,nep->ncv);CHKERRQ(ierr);
+  ierr = DSGetSlepcSC(ds,&sc);CHKERRQ(ierr);
+  sc->comparison    = nep->sc->comparison;
+  sc->comparisonctx = nep->sc->comparisonctx;
+
   /* build projected matrices for initial space */
-  ierr = DSSetDimensions(nep->ds,n,0,0,0);CHKERRQ(ierr);
-  ierr = NEPProjectOperator(nep,0,n);CHKERRQ(ierr);
+  ierr = DSSetDimensions(ds,n,0,0,0);CHKERRQ(ierr);
+  ierr = NEPDeflationProjectOperator(extop,Vext,ds,0,n);CHKERRQ(ierr);
 
   /* prepare linear solver */
-  if (!ctx->ksp) { ierr = NEPNArnoldiGetKSP(nep,&ctx->ksp);CHKERRQ(ierr); }
-  ierr = NEPComputeFunction(nep,lambda,T,T);CHKERRQ(ierr);
-  ierr = MatDuplicate(T,MAT_COPY_VALUES,&Tsigma);CHKERRQ(ierr);
-  ierr = KSPSetOperators(ctx->ksp,Tsigma,Tsigma);CHKERRQ(ierr);
+  ierr = NEPDeflationSolveSetUp(extop,sigma);CHKERRQ(ierr);
+
+  ierr = PetscMalloc1(nep->ncv,&eigr);CHKERRQ(ierr);
 
   /* Restart loop */
   while (nep->reason == NEP_CONVERGED_ITERATING) {
     nep->its++;
 
     /* solve projected problem */
-    ierr = DSSetDimensions(nep->ds,n,0,0,0);CHKERRQ(ierr);
-    ierr = DSSetState(nep->ds,DS_STATE_RAW);CHKERRQ(ierr);
-    ierr = DSSolve(nep->ds,nep->eigr,NULL);CHKERRQ(ierr);
-    ierr = DSSynchronize(nep->ds,nep->eigr,NULL);CHKERRQ(ierr);
-    lambda = nep->eigr[0];
+    ierr = DSSetDimensions(ds,n,0,0,0);CHKERRQ(ierr);
+    ierr = DSSetState(ds,DS_STATE_RAW);CHKERRQ(ierr);
+    ierr = DSSolve(ds,eigr,NULL);CHKERRQ(ierr);
+    ierr = DSSynchronize(ds,nep->eigr,NULL);CHKERRQ(ierr);
+    lambda = eigr[0];
+    nep->eigr[nep->nconv] = lambda;
 
     /* compute Ritz vector, x = V*s */
-    ierr = DSGetArray(nep->ds,DS_MAT_X,&X);CHKERRQ(ierr);
-    ierr = BVSetActiveColumns(nep->V,0,n);CHKERRQ(ierr);
-    ierr = BVMultVec(nep->V,1.0,0.0,x,X);CHKERRQ(ierr);
-    ierr = DSRestoreArray(nep->ds,DS_MAT_X,&X);CHKERRQ(ierr);
+    ierr = DSGetArray(ds,DS_MAT_X,&X);CHKERRQ(ierr);
+    ierr = BVSetActiveColumns(Vext,0,n);CHKERRQ(ierr);
+    ierr = BVMultVec(Vext,1.0,0.0,u,X);CHKERRQ(ierr);
+    ierr = DSRestoreArray(ds,DS_MAT_X,&X);CHKERRQ(ierr);
 
     /* compute the residual, r = T(lambda)*x */
-    ierr = NEPApplyFunction(nep,lambda,x,w,r,NULL,NULL);CHKERRQ(ierr);
+    ierr = NEPDeflationComputeFunction(extop,lambda,&T);CHKERRQ(ierr);
+    ierr = MatMult(T,u,r);CHKERRQ(ierr);
 
     /* convergence test */
     ierr = VecNorm(r,NORM_2,&resnorm);CHKERRQ(ierr);
     ierr = (*nep->converged)(nep,lambda,0,resnorm,&nep->errest[nep->nconv],nep->convergedctx);CHKERRQ(ierr);
     if (nep->errest[nep->nconv]<=nep->tol) {
-      ierr = BVInsertVec(nep->V,nep->nconv,x);CHKERRQ(ierr);
       nep->nconv = nep->nconv + 1;
+      ierr = NEPDeflationLocking(extop,u,lambda);CHKERRQ(ierr);
+      skip = PETSC_TRUE;
     }
     ierr = (*nep->stopping)(nep,nep->its,nep->max_it,nep->nconv,nep->nev,&nep->reason,nep->stoppingctx);CHKERRQ(ierr);
-    ierr = NEPMonitor(nep,nep->its,nep->nconv,nep->eigr,nep->eigi,nep->errest,1);CHKERRQ(ierr);
+    ierr = NEPMonitor(nep,nep->its,nep->nconv,nep->eigr,nep->eigi,nep->errest,nep->nconv+1);CHKERRQ(ierr);
 
     if (nep->reason == NEP_CONVERGED_ITERATING) {
+      if (!skip) {
+        if (n>=nep->ncv) {
+          nep->reason = NEP_DIVERGED_SUBSPACE_EXHAUSTED;
+          break;
+        }
+        /* continuation vector: f = T(sigma)\r */
+        ierr = BVGetColumn(Vext,n,&f);CHKERRQ(ierr);
+        ierr = NEPDeflationFunctionSolve(extop,r,f);CHKERRQ(ierr);
+        ierr = BVRestoreColumn(Vext,n,&f);CHKERRQ(ierr);
+        ierr = KSPGetConvergedReason(ctx->ksp,&kspreason);CHKERRQ(ierr);
+        if (kspreason<0) {
+          ierr = PetscInfo1(nep,"iter=%D, linear solve failed, stopping solve\n",nep->its);CHKERRQ(ierr);
+          nep->reason = NEP_DIVERGED_LINEAR_SOLVE;
+          break;
+        }
 
-      /* continuation vector: f = T(sigma)\r */
-      ierr = BVGetColumn(nep->V,n,&f);CHKERRQ(ierr);
-      ierr = NEPNArnoldi_KSPSolve(nep,r,f);CHKERRQ(ierr);
-      ierr = BVRestoreColumn(nep->V,n,&f);CHKERRQ(ierr);
-      ierr = KSPGetConvergedReason(ctx->ksp,&kspreason);CHKERRQ(ierr);
-      if (kspreason<0) {
-        ierr = PetscInfo1(nep,"iter=%D, linear solve failed, stopping solve\n",nep->its);CHKERRQ(ierr);
-        nep->reason = NEP_DIVERGED_LINEAR_SOLVE;
-        break;
+        /* orthonormalize */
+        ierr = BVOrthonormalizeColumn(Vext,n,PETSC_FALSE,&beta,&breakdown);CHKERRQ(ierr);
+        if (breakdown || beta==0.0) {
+          ierr = PetscInfo1(nep,"iter=%D, orthogonalization failed, stopping solve\n",nep->its);CHKERRQ(ierr);
+          nep->reason = NEP_DIVERGED_BREAKDOWN;
+          break;
+        }
+
+        /* update projected matrices */
+        ierr = DSSetDimensions(ds,n+1,0,0,0);CHKERRQ(ierr);
+        ierr = NEPDeflationProjectOperator(extop,Vext,ds,n,n+1);CHKERRQ(ierr);
+        n++;
+      } else {
+        ierr = BVGetColumn(Vext,0,&f);CHKERRQ(ierr);
+        ierr = NEPDeflationSetRandomVec(extop,f);CHKERRQ(ierr);
+        ierr = VecNorm(f,NORM_2,&nrm);CHKERRQ(ierr);
+        ierr = VecScale(f,1.0/nrm);CHKERRQ(ierr);
+        ierr = BVRestoreColumn(Vext,0,&f);CHKERRQ(ierr);
+        n = 1;
+        ierr = DSSetDimensions(ds,n,0,0,0);CHKERRQ(ierr);
+        ierr = NEPDeflationProjectOperator(extop,Vext,ds,n-1,n);CHKERRQ(ierr);
+        ierr = NEPDeflationSolveSetUp(extop,sigma);CHKERRQ(ierr);
+        skip = PETSC_FALSE;
       }
-
-      /* orthonormalize */
-      ierr = BVOrthonormalizeColumn(nep->V,n,PETSC_FALSE,&beta,&breakdown);CHKERRQ(ierr);
-      if (breakdown || beta==0.0) {
-        ierr = PetscInfo1(nep,"iter=%D, orthogonalization failed, stopping solve\n",nep->its);CHKERRQ(ierr);
-        nep->reason = NEP_DIVERGED_BREAKDOWN;
-        break;
-      }
-
-      /* update projected matrices */
-      ierr = DSSetDimensions(nep->ds,n+1,0,0,0);CHKERRQ(ierr);
-      ierr = NEPProjectOperator(nep,n,n+1);CHKERRQ(ierr);
-      n++;
     }
   }
-  ierr = MatDestroy(&Tsigma);CHKERRQ(ierr);
+
+  ierr = NEPDeflationGetInvariantPair(extop,NULL,&H);CHKERRQ(ierr);
+  ierr = MatGetSize(H,NULL,&ldh);CHKERRQ(ierr);
+  ierr = DSSetType(nep->ds,DSNHEP);CHKERRQ(ierr);
+  ierr = DSAllocate(nep->ds,PetscMax(nep->nconv,1));CHKERRQ(ierr);
+  ierr = DSGetLeadingDimension(nep->ds,&ldds);CHKERRQ(ierr);
+  ierr = MatDenseGetArray(H,&Hp);CHKERRQ(ierr);
+  ierr = DSGetArray(nep->ds,DS_MAT_A,&Ap);CHKERRQ(ierr);
+  for (j=0;j<nep->nconv;j++)
+    for (i=0;i<nep->nconv;i++) Ap[j*ldds+i] = Hp[j*ldh+i];
+  ierr = DSRestoreArray(nep->ds,DS_MAT_A,&Ap);CHKERRQ(ierr);
+  ierr = MatDenseRestoreArray(H,&Hp);CHKERRQ(ierr);
+  ierr = MatDestroy(&H);CHKERRQ(ierr);
+  ierr = DSSetDimensions(nep->ds,nep->nconv,0,0,nep->nconv);CHKERRQ(ierr);
+  ierr = DSSolve(nep->ds,nep->eigr,nep->eigi);CHKERRQ(ierr);
+  ierr = NEPDeflationReset(extop);CHKERRQ(ierr);
+  ierr = VecDestroy(&u);CHKERRQ(ierr);
+  ierr = VecDestroy(&r);CHKERRQ(ierr);
+  ierr = BVDestroy(&Vext);CHKERRQ(ierr);
+  ierr = DSDestroy(&ds);CHKERRQ(ierr);
+  ierr = PetscFree(eigr);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -314,6 +372,7 @@ PETSC_EXTERN PetscErrorCode NEPCreate_NArnoldi(NEP nep)
   nep->ops->reset          = NEPReset_NArnoldi;
   nep->ops->destroy        = NEPDestroy_NArnoldi;
   nep->ops->view           = NEPView_NArnoldi;
+  nep->ops->computevectors = NEPComputeVectors_Schur;
 
   ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPNArnoldiSetKSP_C",NEPNArnoldiSetKSP_NArnoldi);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPNArnoldiGetKSP_C",NEPNArnoldiGetKSP_NArnoldi);CHKERRQ(ierr);

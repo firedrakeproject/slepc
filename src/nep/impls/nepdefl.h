@@ -17,25 +17,28 @@
 
 typedef struct _n_nep_ext_op *NEP_EXT_OP;
 typedef struct _n_nep_def_fun_solve *NEP_DEF_FUN_SOLVE;
+typedef struct _n_nep_def_project *NEP_DEF_PROJECT;
+
 /* Structure characterizing a deflation context */
 struct _n_nep_ext_op {
-  NEP          nep;
-  PetscScalar *H;     /* invariant pair (X,H) */
-  BV           X;     /* locked eigenvectors */
-  PetscScalar  *bc;   /* polinomial basis roots */
-  RG           rg;
-  PetscInt     midx;  /* minimality index */
-  PetscInt     max_midx;
-  PetscInt     szd;   /* maxim size for deflation */
-  PetscInt     n;     /* invariant pair size */
-  Mat          MF;    /* function shell matrix */
-  Mat          MJ;    /* Jacobian shell matrix */
-  PetscBool    simpU; /* the way U is computed */
-  NEP_DEF_FUN_SOLVE solve;
+  NEP               nep;
+  PetscScalar       *H;     /* invariant pair (X,H) */
+  BV                X;      /* locked eigenvectors */
+  PetscScalar       *bc;    /* polinomial basis roots */
+  RG                rg;
+  PetscInt          midx;   /* minimality index */
+  PetscInt          max_midx;
+  PetscInt          szd;    /* maxim size for deflation */
+  PetscInt          n;      /* invariant pair size */
+  Mat               MF;     /* function shell matrix */
+  Mat               MJ;     /* Jacobian shell matrix */
+  PetscBool         simpU;  /* the way U is computed */
+  NEP_DEF_FUN_SOLVE solve;  /* MatSolve context for the operator */
+  NEP_DEF_PROJECT   proj;   /* context for the projected eigenproblem */
   /* auxiliary computations */
-  BV           W;
-  PetscScalar *Hj;    /* matrix containing the powers of the invariant pair matrix */
-  PetscScalar *XpX;   /* X^*X */
+  BV                W;
+  PetscScalar       *Hj;    /* matrix containing the powers of the invariant pair matrix */
+  PetscScalar       *XpX;   /* X^*X */
 };
 
 struct _n_nep_def_fun_solve {
@@ -68,6 +71,18 @@ typedef struct {
   PetscBool    hfjset;
 } NEP_DEF_MATSHELL;
 
+struct _n_nep_def_project {
+  Mat          *V1pApX;
+  Mat          XpV1;
+  PetscScalar  *V2;
+  Vec          w;
+  BV           V1;
+  PetscInt     dim;
+  PetscScalar  *work;
+  PetscInt     lwork;
+  NEP_EXT_OP   extop;
+};
+
 #if 0
 typedef struct {
   PC          pc;      /* basic preconditioner */
@@ -92,3 +107,5 @@ PETSC_INTERN PetscErrorCode NEPDeflationFunctionSolve(NEP_EXT_OP,Vec,Vec);
 PETSC_INTERN PetscErrorCode NEPDeflationGetInvariantPair(NEP_EXT_OP,BV*,Mat*);
 PETSC_INTERN PetscErrorCode NEPDeflationLocking(NEP_EXT_OP,Vec,PetscScalar);
 PETSC_INTERN PetscErrorCode NEPDeflationSetRandomVec(NEP_EXT_OP,Vec);
+PETSC_INTERN PetscErrorCode NEPDeflationProjectOperator(NEP_EXT_OP,BV,DS,PetscInt,PetscInt);
+PETSC_INTERN PetscErrorCode NEPDeflationCreateBV(NEP_EXT_OP,PetscInt,BV*);

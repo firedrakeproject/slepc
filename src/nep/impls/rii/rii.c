@@ -60,7 +60,7 @@ PetscErrorCode NEPSolve_RII(NEP nep)
   Mat                T,Tp,H;
   Vec                uu,u,r,delta;
   PetscScalar        lambda,sigma,a1,a2,corr,*Hp,*Ap;
-  PetscReal          resnorm=1.0,ktol=0.1;
+  PetscReal          nrm,resnorm=1.0,ktol=0.1;
   PetscBool          skip=PETSC_FALSE;
   PetscInt           inner_its,its=0,ldh,ldds,i,j;
   NEP_EXT_OP         extop=NULL;
@@ -72,6 +72,8 @@ PetscErrorCode NEPSolve_RII(NEP nep)
   lambda = sigma;
   if (!nep->nini) {
     ierr = BVSetRandomColumn(nep->V,0);CHKERRQ(ierr);
+    ierr = BVNormColumn(nep->V,0,NORM_2,&nrm);CHKERRQ(ierr);
+    ierr = BVScaleColumn(nep->V,0,1.0/nrm);CHKERRQ(ierr);
   }
   if (!ctx->ksp) { ierr = NEPRIIGetKSP(nep,&ctx->ksp);CHKERRQ(ierr); }
   ierr = NEPDeflationInitialize(nep,nep->V,ctx->ksp,PETSC_FALSE,nep->nev,&extop);CHKERRQ(ierr);
@@ -159,7 +161,7 @@ PetscErrorCode NEPSolve_RII(NEP nep)
   ierr = NEPDeflationGetInvariantPair(extop,NULL,&H);CHKERRQ(ierr);
   ierr = MatGetSize(H,NULL,&ldh);CHKERRQ(ierr);
   ierr = DSSetType(nep->ds,DSNHEP);CHKERRQ(ierr);
-  ierr = DSAllocate(nep->ds,nep->nconv);CHKERRQ(ierr);
+  ierr = DSAllocate(nep->ds,PetscMax(nep->nconv,1));CHKERRQ(ierr);
   ierr = DSGetLeadingDimension(nep->ds,&ldds);CHKERRQ(ierr);
   ierr = MatDenseGetArray(H,&Hp);CHKERRQ(ierr);
   ierr = DSGetArray(nep->ds,DS_MAT_A,&Ap);CHKERRQ(ierr);
