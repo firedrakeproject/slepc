@@ -704,7 +704,7 @@ PetscErrorCode NEPDeflationDSNEPComputeMatrix(DS ds,PetscScalar lambda,PetscBool
   NEP_DEF_PROJECT proj=(NEP_DEF_PROJECT)ctx;
   NEP_EXT_OP      extop=proj->extop;
   NEP             nep=extop->nep;
-  PetscErrorCode ierr;
+  PetscErrorCode  ierr;
 
   PetscFunctionBegin;
   ierr = DSGetDimensions(ds,&nv,NULL,NULL,NULL,NULL);CHKERRQ(ierr);
