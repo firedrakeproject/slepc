@@ -20,7 +20,7 @@ MANSEC     = NEP
 TESTEXAMPLES_C             = ex27.PETSc runex27_1 runex27_2 runex27_4 ex27.rm
 TESTEXAMPLES_C_NOTSINGLE   = ex20.PETSc runex20_1 ex20.rm \
                              ex21.PETSc runex21_1 ex21.rm \
-                             ex22.PETSc runex22_1 runex22_2 ex22.rm \
+                             ex22.PETSc runex22_1 runex22_2 runex22_3 ex22.rm \
                              ex27.PETSc runex27_3 runex27_9 ex27.rm
 TESTEXAMPLES_C_COMPLEX     = ex22.PETSc runex22_1_ciss ex22.rm \
                              ex27.PETSc runex27_7 runex27_8 ex27.rm
@@ -93,6 +93,12 @@ runex22_2: runex22_2_none runex22_2_norm runex22_2_residual
 runex22_2_%:
 	-@${SETTEST}; check=ex22_2; extract=$*; \
 	${MPIEXEC} -n 1 ./ex22 -nep_type interpol -nep_interpol_pep_extract $$extract -rg_type interval -rg_interval_endpoints 5,20,-.1,.1 -nep_nev 3 -nep_target 5 -terse > $${test}.tmp 2>&1; \
+	${TESTCODE}
+
+runex22_3: runex22_3_rii runex22_3_slp runex22_3_narnoldi
+runex22_3_%:
+	-@${SETTEST}; check=ex22_3; nep=$*; \
+	${MPIEXEC} -n 1 ./ex22 -nep_target 10 -nep_nev 4 -nep_type $${nep} -terse > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
 runex22f90_1:
