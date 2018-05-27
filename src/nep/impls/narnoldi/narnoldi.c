@@ -136,10 +136,10 @@ PetscErrorCode NEPSolve_NArnoldi(NEP nep)
       skip = PETSC_TRUE;
     }
     ierr = (*nep->stopping)(nep,nep->its,nep->max_it,nep->nconv,nep->nev,&nep->reason,nep->stoppingctx);CHKERRQ(ierr);
-    ierr = NEPMonitor(nep,nep->its,nep->nconv,nep->eigr,nep->eigi,nep->errest,nep->nconv+1);CHKERRQ(ierr);
 
     if (nep->reason == NEP_CONVERGED_ITERATING) {
       if (!skip) {
+        ierr = NEPMonitor(nep,nep->its,nep->nconv,nep->eigr,nep->eigi,nep->errest,nep->nconv+1);CHKERRQ(ierr);
         if (n>=nep->ncv) {
           nep->reason = NEP_DIVERGED_SUBSPACE_EXHAUSTED;
           break;
@@ -168,6 +168,7 @@ PetscErrorCode NEPSolve_NArnoldi(NEP nep)
         ierr = NEPDeflationProjectOperator(extop,Vext,ds,n,n+1);CHKERRQ(ierr);
         n++;
       } else {
+        nep->its--;  /* do not count this as a full iteration */
         ierr = BVGetColumn(Vext,0,&f);CHKERRQ(ierr);
         ierr = NEPDeflationSetRandomVec(extop,f);CHKERRQ(ierr);
         ierr = VecNorm(f,NORM_2,&nrm);CHKERRQ(ierr);

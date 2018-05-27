@@ -176,10 +176,10 @@ PetscErrorCode NEPSolve_SLP(NEP nep)
       ierr = NEPDeflationLocking(extop,u,lambda);CHKERRQ(ierr);
     }
     ierr = (*nep->stopping)(nep,nep->its,nep->max_it,nep->nconv,nep->nev,&nep->reason,nep->stoppingctx);CHKERRQ(ierr);
-    ierr = NEPMonitor(nep,nep->its,nep->nconv,nep->eigr,nep->eigi,nep->errest,nep->nconv+1);CHKERRQ(ierr);
 
     if (nep->reason == NEP_CONVERGED_ITERATING) {
       if (!skip) {
+        ierr = NEPMonitor(nep,nep->its,nep->nconv,nep->eigr,nep->eigi,nep->errest,nep->nconv+1);CHKERRQ(ierr);
         /* evaluate T(lambda) and T'(lambda) */
         ierr = NEPSLPSetUpLinearEP(nep,extop,lambda,u,nep->its==1?PETSC_TRUE:PETSC_FALSE);CHKERRQ(ierr);
         /* compute new eigenvalue correction mu and eigenvector approximation u */
@@ -194,6 +194,7 @@ PetscErrorCode NEPSolve_SLP(NEP nep)
         mu = 1.0/mu;
         if (PetscAbsScalar(im)>PETSC_MACHINE_EPSILON) SETERRQ(PetscObjectComm((PetscObject)nep),1,"Complex eigenvalue approximation - not implemented in real scalars");
       } else {
+        nep->its--;  /* do not count this as a full iteration */
         /* use second eigenpair computed in previous iteration */
         ierr = EPSGetConverged(ctx->eps,&nconv);CHKERRQ(ierr);
         if (nconv>=2) {

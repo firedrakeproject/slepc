@@ -127,15 +127,15 @@ PetscErrorCode NEPSolve_RII(NEP nep)
       nep->nconv = nep->nconv + 1;
       ierr = NEPDeflationLocking(extop,u,lambda);CHKERRQ(ierr);
       nep->its += its;
-      its = 0;
       skip = PETSC_TRUE;
     }
     ierr = (*nep->stopping)(nep,nep->its+its,nep->max_it,nep->nconv,nep->nev,&nep->reason,nep->stoppingctx);CHKERRQ(ierr);
-    ierr = NEPMonitor(nep,nep->its+its,nep->nconv,nep->eigr,nep->eigi,nep->errest,nep->nconv+1);CHKERRQ(ierr);
 
     if (nep->reason == NEP_CONVERGED_ITERATING) {
       if (!skip) {
-      /* eigenvector correction: delta = T(sigma)\r */
+        ierr = NEPMonitor(nep,nep->its+its,nep->nconv,nep->eigr,nep->eigi,nep->errest,nep->nconv+1);CHKERRQ(ierr);
+
+        /* eigenvector correction: delta = T(sigma)\r */
         ierr = NEPDeflationFunctionSolve(extop,r,delta);CHKERRQ(ierr);
         ierr = KSPGetConvergedReason(ctx->ksp,&kspreason);CHKERRQ(ierr);
         if (kspreason<0) {
@@ -150,6 +150,7 @@ PetscErrorCode NEPSolve_RII(NEP nep)
         /* normalize eigenvector */
         ierr = VecNormalize(u,NULL);CHKERRQ(ierr);
       } else {
+        its = -1;
         ierr = NEPDeflationSetRandomVec(extop,u);CHKERRQ(ierr);
         ierr = NEPDeflationSolveSetUp(extop,sigma);CHKERRQ(ierr);
         lambda = sigma;
@@ -157,7 +158,6 @@ PetscErrorCode NEPSolve_RII(NEP nep)
       }
     }
   }
-  nep->its += its;
   ierr = NEPDeflationGetInvariantPair(extop,NULL,&H);CHKERRQ(ierr);
   ierr = MatGetSize(H,NULL,&ldh);CHKERRQ(ierr);
   ierr = DSSetType(nep->ds,DSNHEP);CHKERRQ(ierr);
