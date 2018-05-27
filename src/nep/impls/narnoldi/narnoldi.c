@@ -29,19 +29,6 @@ typedef struct {
   KSP      ksp;              /* linear solver object */
 } NEP_NARNOLDI;
 
-PETSC_STATIC_INLINE PetscErrorCode NEPNArnoldi_KSPSolve(NEP nep,Vec b,Vec x)
-{
-  PetscErrorCode ierr;
-  PetscInt       lits;
-  NEP_NARNOLDI   *ctx = (NEP_NARNOLDI*)nep->data;
-
-  PetscFunctionBegin;
-  ierr = KSPSolve(ctx->ksp,b,x);CHKERRQ(ierr);
-  ierr = KSPGetIterationNumber(ctx->ksp,&lits);CHKERRQ(ierr);
-  ierr = PetscInfo2(nep,"iter=%D, linear solve iterations=%D\n",nep->its,lits);CHKERRQ(ierr);
-  PetscFunctionReturn(0);
-}
-
 PetscErrorCode NEPSetUp_NArnoldi(NEP nep)
 {
   PetscErrorCode ierr;
@@ -59,7 +46,6 @@ PetscErrorCode NEPSetUp_NArnoldi(NEP nep)
 
   ierr = NEPAllocateSolution(nep,0);CHKERRQ(ierr);
   ierr = NEPSetWorkVecs(nep,3);CHKERRQ(ierr);
-
   PetscFunctionReturn(0);
 }
 

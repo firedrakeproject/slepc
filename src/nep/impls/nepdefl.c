@@ -794,7 +794,6 @@ PetscErrorCode NEPDeflationDSNEPComputeMatrix(DS ds,PetscScalar lambda,PetscBool
     PetscStackCallBLAS("BLASgemm",BLASgemm_("C","N",&nv_,&nv_,&n_,&sone,proj->V2,&szd_,w,&szd_,&sone,T,&ldds_));
   }
   ierr = DSRestoreArray(ds,mat,&T);CHKERRQ(ierr);
-  if (nwork>proj->lwork) SETERRQ(PetscObjectComm((PetscObject)nep),1,"Insufficient memory allocation");
   PetscFunctionReturn(0);
 }
 
