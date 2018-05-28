@@ -59,7 +59,7 @@ PetscErrorCode NEPSolve_RII(NEP nep)
   NEP_RII            *ctx = (NEP_RII*)nep->data;
   Mat                T,Tp,H;
   Vec                uu,u,r,delta;
-  PetscScalar        lambda,sigma,a1,a2,corr,*Hp,*Ap;
+  PetscScalar        lambda,lambda2,sigma,a1,a2,corr,*Hp,*Ap;
   PetscReal          nrm,resnorm=1.0,ktol=0.1;
   PetscBool          skip=PETSC_FALSE;
   PetscInt           inner_its,its=0,ldh,ldds,i,j;
@@ -94,6 +94,7 @@ PetscErrorCode NEPSolve_RII(NEP nep)
     /* Use Newton's method to compute nonlinear Rayleigh functional. Current eigenvalue
        estimate as starting value. */
     inner_its=0;
+    lambda2 = lambda;
     do {
       ierr = NEPDeflationComputeFunction(extop,lambda,&T);CHKERRQ(ierr);
       ierr = MatMult(T,u,r);CHKERRQ(ierr);
@@ -104,11 +105,11 @@ PetscErrorCode NEPSolve_RII(NEP nep)
       corr = a1/a2;
       lambda = lambda - corr;
       inner_its++;
-    } while (PetscAbsScalar(corr)>PETSC_SQRT_MACHINE_EPSILON && inner_its<ctx->max_inner_it);
+    } while (PetscAbsScalar(corr)/PetscAbsScalar(lambda)>PETSC_SQRT_MACHINE_EPSILON && inner_its<ctx->max_inner_it);
 
     /* update preconditioner and set adaptive tolerance */
-    if (ctx->lag && !(its%ctx->lag) && its>2*ctx->lag && resnorm<1e-2) {
-      ierr = NEPDeflationSolveSetUp(extop,lambda+corr);CHKERRQ(ierr);
+    if (ctx->lag && !(its%ctx->lag) && its>2*ctx->lag && nep->errest[nep->nconv]<1e-3) {
+      ierr = NEPDeflationSolveSetUp(extop,lambda2);CHKERRQ(ierr);
     }
     if (!ctx->cctol) {
       ktol = PetscMax(ktol/2.0,PETSC_MACHINE_EPSILON*10.0);

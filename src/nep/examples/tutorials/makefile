@@ -74,7 +74,7 @@ runex20f90_1:
 runex21_1: runex21_1_rii runex21_1_slp
 runex21_1_%:
 	-@${SETTEST}; check=ex21_1; nep=$*; \
-	if [ "$$nep" = slp ]; then nep="slp -nep_slp_st_matmode shell -nep_slp_st_ksp_type bcgs -nep_target 10"; fi; \
+	if [ "$$nep" = slp ]; then nep="slp -nep_slp_pc_type jacobi -nep_slp_ksp_type bcgs -nep_target 10"; fi; \
 	${MPIEXEC} -n 1 ./ex21 -nep_type $${nep} -terse > $${test}.tmp 2>&1; \
 	${TESTCODE}
 

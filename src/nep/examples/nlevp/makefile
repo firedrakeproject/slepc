@@ -82,6 +82,7 @@ runloaded_string_7:
 runloaded_string_8: runloaded_string_8_rii runloaded_string_8_slp runloaded_string_8_narnoldi
 runloaded_string_8_%:
 	-@${SETTEST}; check=loaded_string_8; nep=$*; \
+        if [ "$$nep" = "narnoldi" ]; then nep="narnoldi -nep_tol 1e-10"; fi; \
 	${MPIEXEC} -n 1 ./loaded_string -nep_target 10 -nep_nev 4 -nep_type $${nep} -terse > $${test}.tmp 2>&1; \
 	${TESTCODE}
 

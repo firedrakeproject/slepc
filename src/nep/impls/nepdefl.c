@@ -697,7 +697,7 @@ PetscErrorCode NEPDeflationInitialize(NEP nep,BV X,KSP ksp,PetscBool sincfun,Pet
 
 PetscErrorCode NEPDeflationDSNEPComputeMatrix(DS ds,PetscScalar lambda,PetscBool deriv,DSMatType mat,void *ctx)
 {
-  PetscScalar     *T,*E,*w1,*w2,*w,*ww,*hH,*hHprev,*pts;
+  PetscScalar     *T,*E,*w1,*w2,*w=NULL,*ww,*hH,*hHprev,*pts;
   PetscScalar     alpha,alpha2,*AB,sone=1.0,zero=0.0,*basisv;
   PetscInt        i,ldds,nwork=0,szd,nv,j,k,n;
   PetscBLASInt    inc=1,nv_,ldds_,dim_,dim2,szdk,szd_,n_,ldh_;
@@ -761,9 +761,9 @@ PetscErrorCode NEPDeflationDSNEPComputeMatrix(DS ds,PetscScalar lambda,PetscBool
       } else {
         ierr = NEPDeflationEvaluateHatFunction(extop,i,lambda,NULL,w1,w2,szd);CHKERRQ(ierr);
         w = deriv?w2:w1; ww = deriv?w1:w2;
-        PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&n_,&nv_,&n_,&sone,w,&szd_,proj->V2,&szd_,&zero,ww,&dim_));
+        PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&n_,&nv_,&n_,&sone,w,&szd_,proj->V2,&szd_,&zero,ww,&szd_));
       }
-      PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&nv_,&nv_,&n_,&sone,E,&dim_,ww,&dim_,&sone,T,&ldds_));
+      PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&nv_,&nv_,&n_,&sone,E,&dim_,ww,&szd_,&sone,T,&ldds_));
       ierr = MatDenseRestoreArray(proj->V1pApX[i],&E);CHKERRQ(ierr);
     }
 
