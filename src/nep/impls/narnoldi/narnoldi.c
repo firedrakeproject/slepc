@@ -95,6 +95,7 @@ PetscErrorCode NEPSolve_NArnoldi(NEP nep)
   ierr = DSGetSlepcSC(ds,&sc);CHKERRQ(ierr);
   sc->comparison    = nep->sc->comparison;
   sc->comparisonctx = nep->sc->comparisonctx;
+  ierr = DSSetFromOptions(ds);CHKERRQ(ierr);
 
   /* build projected matrices for initial space */
   ierr = DSSetDimensions(ds,n,0,0,0);CHKERRQ(ierr);
@@ -113,7 +114,7 @@ PetscErrorCode NEPSolve_NArnoldi(NEP nep)
     ierr = DSSetDimensions(ds,n,0,0,0);CHKERRQ(ierr);
     ierr = DSSetState(ds,DS_STATE_RAW);CHKERRQ(ierr);
     ierr = DSSolve(ds,eigr,NULL);CHKERRQ(ierr);
-    ierr = DSSynchronize(ds,nep->eigr,NULL);CHKERRQ(ierr);
+    ierr = DSSynchronize(ds,eigr,NULL);CHKERRQ(ierr);
     lambda = eigr[0];
     nep->eigr[nep->nconv] = lambda;
 

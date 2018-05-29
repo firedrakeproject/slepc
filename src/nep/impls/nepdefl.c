@@ -117,6 +117,7 @@ PetscErrorCode NEPDeflationSetRandomVec(NEP_EXT_OP extop,Vec v)
   PetscInt       n,next,i;
   PetscRandom    rand;
   PetscScalar    *array;
+  PetscMPIInt    nn;
 
   PetscFunctionBegin;
   ierr = BVGetRandomContext(extop->nep->V,&rand);CHKERRQ(ierr);
@@ -126,6 +127,8 @@ PetscErrorCode NEPDeflationSetRandomVec(NEP_EXT_OP extop,Vec v)
     ierr = VecGetLocalSize(v,&next);CHKERRQ(ierr);
     ierr = VecGetArray(v,&array);CHKERRQ(ierr);
     for (i=n+extop->n;i<next;i++) array[i] = 0.0;
+    ierr = PetscMPIIntCast(extop->n,&nn);CHKERRQ(ierr);
+    ierr = MPI_Bcast(array+n,nn,MPIU_SCALAR,0,PETSC_COMM_WORLD);CHKERRQ(ierr);
     ierr = VecRestoreArray(v,&array);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
