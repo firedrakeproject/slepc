@@ -196,7 +196,7 @@ static PetscErrorCode PEPJDUpdateTV(PEP pep,PetscInt low,PetscInt high,Vec *w)
     if (nconv>0) {
       if (rk==np-1) { for (i=0;i<nconv;i++) x2[i] = array1[nloc+i]; }
       ierr = PetscMPIIntCast(nconv,&count);CHKERRQ(ierr);
-      ierr = MPI_Bcast(x2,nconv,MPIU_SCALAR,np-1,PetscObjectComm((PetscObject)pep));CHKERRQ(ierr);
+      ierr = MPI_Bcast(x2,count,MPIU_SCALAR,np-1,PetscObjectComm((PetscObject)pep));CHKERRQ(ierr);
     }
     ierr = VecPlaceArray(t1,array1);CHKERRQ(ierr);
     if (nconv) {
@@ -632,7 +632,7 @@ static PetscErrorCode PEPJDShellMatMult(Mat P,Vec x,Vec y)
       ierr = VecRestoreArrayRead(x,&array1);CHKERRQ(ierr);
     }
     ierr = PetscMPIIntCast(nconv,&count);CHKERRQ(ierr);
-    ierr = MPI_Bcast(x2,nconv,MPIU_SCALAR,np-1,PetscObjectComm((PetscObject)P));CHKERRQ(ierr);
+    ierr = MPI_Bcast(x2,count,MPIU_SCALAR,np-1,PetscObjectComm((PetscObject)P));CHKERRQ(ierr);
   }
   tx = matctx->work[0];
   ty = matctx->work[1];
