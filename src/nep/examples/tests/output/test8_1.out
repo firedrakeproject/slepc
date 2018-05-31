@@ -1,10 +1,11 @@
 
 Diagonal Nonlinear Eigenproblem, n=6
 
-  1 NEP nconv=0 Values (Errors) -0.5+0i (removed)
-  2 NEP nconv=0 Values (Errors) 2.125-removedi (removed)
-  3 NEP nconv=0 Values (Errors) 2.00152+removedi (removed)
-  4 NEP nconv=0 Values (Errors) 2.+removedi (removed)
+  1 NEP nconv=0 Values (Errors) -0.5 (removed)
+  2 NEP nconv=0 Values (Errors) 2.125 (removed)
+  3 NEP nconv=0 Values (Errors) 2.00152 (removed)
+  4 NEP nconv=0 Values (Errors) 2. (removed)
+  5 NEP nconv=1 Values (Errors) 2. (removed) 0. (removed)
 NEP Object: nep 1 MPI processes
   type: slp
   EPS Object: (nep_slp_) 1 MPI processes
