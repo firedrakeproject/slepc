@@ -63,9 +63,6 @@ BV Object: (myprefix_) 1 MPI processes
   orthogonalization refinement: if needed (eta: 0.7071)
   block orthogonalization method: GS
   doing matmult as a single matrix-matrix product
-DS Object: (myprefix_) 1 MPI processes
-  type: nep
-  number of functions: 3
  Number of requested eigenvalues: 1
      0.80889
 
