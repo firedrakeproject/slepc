@@ -279,6 +279,8 @@ PETSC_EXTERN PetscErrorCode NEPSLPGetKSP(NEP,KSP*);
 
 PETSC_EXTERN PetscErrorCode NEPNArnoldiSetKSP(NEP,KSP);
 PETSC_EXTERN PetscErrorCode NEPNArnoldiGetKSP(NEP,KSP*);
+PETSC_EXTERN PetscErrorCode NEPNArnoldiSetLagPreconditioner(NEP,PetscInt);
+PETSC_EXTERN PetscErrorCode NEPNArnoldiGetLagPreconditioner(NEP,PetscInt*);
 
 #if defined(PETSC_USE_COMPLEX)
 PETSC_EXTERN PetscErrorCode NEPCISSSetSizes(NEP,PetscInt,PetscInt,PetscInt,PetscInt,PetscInt,PetscBool);

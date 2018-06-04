@@ -26,7 +26,8 @@
 #include <../src/nep/impls/nepdefl.h>
 
 typedef struct {
-  KSP      ksp;              /* linear solver object */
+  PetscInt  lag;            /* interval to rebuild preconditioner */
+  KSP      ksp;             /* linear solver object */
 } NEP_NARNOLDI;
 
 PetscErrorCode NEPSetUp_NArnoldi(NEP nep)
@@ -55,8 +56,8 @@ PetscErrorCode NEPSolve_NArnoldi(NEP nep)
   NEP_NARNOLDI       *ctx = (NEP_NARNOLDI*)nep->data;
   Mat                T,H;
   Vec                f,r,u,uu;
-  PetscScalar        *X,lambda,*eigr,*Hp,*Ap,sigma;
-  PetscReal          beta,resnorm=0.0,nrm;
+  PetscScalar        *X,lambda,lambda2,*eigr,*Hp,*Ap,sigma;
+  PetscReal          beta,resnorm=0.0,nrm,perr;
   PetscInt           n,i,j,ldds,ldh;
   PetscBool          breakdown,skip=PETSC_FALSE;
   BV                 Vext;
@@ -78,15 +79,22 @@ PetscErrorCode NEPSolve_NArnoldi(NEP nep)
   if (!ctx->ksp) { ierr = NEPNArnoldiGetKSP(nep,&ctx->ksp);CHKERRQ(ierr); }
   ierr = NEPDeflationInitialize(nep,nep->V,ctx->ksp,PETSC_FALSE,nep->nev,&extop);CHKERRQ(ierr);
   ierr = NEPDeflationCreateBV(extop,nep->ncv,&Vext);CHKERRQ(ierr);
+
+  /* prepare linear solver */
+  ierr = NEPDeflationSolveSetUp(extop,sigma);CHKERRQ(ierr);
+
   ierr = BVGetColumn(Vext,0,&f);CHKERRQ(ierr);
   ierr = VecDuplicate(f,&r);CHKERRQ(ierr);
   ierr = VecDuplicate(f,&u);CHKERRQ(ierr);
   ierr = BVGetColumn(nep->V,0,&uu);CHKERRQ(ierr);
   ierr = NEPDeflationCopyToExtendedVec(extop,uu,NULL,f,PETSC_FALSE);CHKERRQ(ierr);
   ierr = BVRestoreColumn(nep->V,0,&uu);CHKERRQ(ierr);
+  ierr = VecCopy(f,r);CHKERRQ(ierr);
+  ierr = NEPDeflationFunctionSolve(extop,r,f);CHKERRQ(ierr);
+  ierr = VecNorm(f,NORM_2,&nrm);CHKERRQ(ierr);
+  ierr = VecScale(f,1.0/nrm);CHKERRQ(ierr);
   ierr = BVRestoreColumn(Vext,0,&f);CHKERRQ(ierr);
 
-  /* set-up DS and transfer split operator functions */
   ierr = DSCreate(PetscObjectComm((PetscObject)nep),&ds);CHKERRQ(ierr);
   ierr = PetscLogObjectParent((PetscObject)nep,(PetscObject)ds);CHKERRQ(ierr);
   ierr = DSSetType(ds,DSNEP);CHKERRQ(ierr);
@@ -101,9 +109,6 @@ PetscErrorCode NEPSolve_NArnoldi(NEP nep)
   ierr = DSSetDimensions(ds,n,0,0,0);CHKERRQ(ierr);
   ierr = NEPDeflationProjectOperator(extop,Vext,ds,0,n);CHKERRQ(ierr);
 
-  /* prepare linear solver */
-  ierr = NEPDeflationSolveSetUp(extop,sigma);CHKERRQ(ierr);
-
   ierr = PetscMalloc1(nep->ncv,&eigr);CHKERRQ(ierr);
 
   /* Restart loop */
@@ -115,6 +120,7 @@ PetscErrorCode NEPSolve_NArnoldi(NEP nep)
     ierr = DSSetState(ds,DS_STATE_RAW);CHKERRQ(ierr);
     ierr = DSSolve(ds,eigr,NULL);CHKERRQ(ierr);
     ierr = DSSynchronize(ds,eigr,NULL);CHKERRQ(ierr);
+    if (nep->its>1) lambda2 = lambda;
     lambda = eigr[0];
     nep->eigr[nep->nconv] = lambda;
 
@@ -130,6 +136,7 @@ PetscErrorCode NEPSolve_NArnoldi(NEP nep)
 
     /* convergence test */
     ierr = VecNorm(r,NORM_2,&resnorm);CHKERRQ(ierr);
+    if (nep->its>1) perr=nep->errest[nep->nconv];
     ierr = (*nep->converged)(nep,lambda,0,resnorm,&nep->errest[nep->nconv],nep->convergedctx);CHKERRQ(ierr);
     if (nep->errest[nep->nconv]<=nep->tol) {
       nep->nconv = nep->nconv + 1;
@@ -145,6 +152,10 @@ PetscErrorCode NEPSolve_NArnoldi(NEP nep)
           nep->reason = NEP_DIVERGED_SUBSPACE_EXHAUSTED;
           break;
         }
+        if (ctx->lag && !(nep->its%ctx->lag) && nep->its>=2*ctx->lag && perr && nep->errest[nep->nconv]>.5*perr) {
+          ierr = NEPDeflationSolveSetUp(extop,lambda2);CHKERRQ(ierr);
+        }
+
         /* continuation vector: f = T(sigma)\r */
         ierr = BVGetColumn(Vext,n,&f);CHKERRQ(ierr);
         ierr = NEPDeflationFunctionSolve(extop,r,f);CHKERRQ(ierr);
@@ -172,13 +183,15 @@ PetscErrorCode NEPSolve_NArnoldi(NEP nep)
         nep->its--;  /* do not count this as a full iteration */
         ierr = BVGetColumn(Vext,0,&f);CHKERRQ(ierr);
         ierr = NEPDeflationSetRandomVec(extop,f);CHKERRQ(ierr);
+        ierr = NEPDeflationSolveSetUp(extop,sigma);CHKERRQ(ierr);
+        ierr = VecCopy(f,r);CHKERRQ(ierr);
+        ierr = NEPDeflationFunctionSolve(extop,r,f);CHKERRQ(ierr);
         ierr = VecNorm(f,NORM_2,&nrm);CHKERRQ(ierr);
         ierr = VecScale(f,1.0/nrm);CHKERRQ(ierr);
         ierr = BVRestoreColumn(Vext,0,&f);CHKERRQ(ierr);
         n = 1;
         ierr = DSSetDimensions(ds,n,0,0,0);CHKERRQ(ierr);
         ierr = NEPDeflationProjectOperator(extop,Vext,ds,n-1,n);CHKERRQ(ierr);
-        ierr = NEPDeflationSolveSetUp(extop,sigma);CHKERRQ(ierr);
         skip = PETSC_FALSE;
       }
     }
@@ -207,13 +220,98 @@ PetscErrorCode NEPSolve_NArnoldi(NEP nep)
   PetscFunctionReturn(0);
 }
 
+static PetscErrorCode NEPNArnoldiSetLagPreconditioner_NArnoldi(NEP nep,PetscInt lag)
+{
+  NEP_NARNOLDI *ctx = (NEP_NARNOLDI*)nep->data;
+
+  PetscFunctionBegin;
+  if (lag<0) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ARG_OUTOFRANGE,"Lag must be non-negative");
+  ctx->lag = lag;
+  PetscFunctionReturn(0);
+}
+
+/*@
+   NEPNArnoldiSetLagPreconditioner - Determines when the preconditioner is rebuilt in the
+   nonlinear solve.
+
+   Logically Collective on NEP
+
+   Input Parameters:
++  nep - nonlinear eigenvalue solver
+-  lag - 0 indicates NEVER rebuild, 1 means rebuild every time the Jacobian is
+          computed within the nonlinear iteration, 2 means every second time
+          the Jacobian is built, etc.
+
+   Options Database Keys:
+.  -nep_narnoldi_lag_preconditioner <lag>
+
+   Notes:
+   The default is 1.
+   The preconditioner is ALWAYS built in the first iteration of a nonlinear solve.
+
+   Level: intermediate
+
+.seealso: NEPNArnoldiGetLagPreconditioner()
+@*/
+PetscErrorCode NEPNArnoldiSetLagPreconditioner(NEP nep,PetscInt lag)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
+  PetscValidLogicalCollectiveInt(nep,lag,2);
+  ierr = PetscTryMethod(nep,"NEPNArnoldiSetLagPreconditioner_C",(NEP,PetscInt),(nep,lag));CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+static PetscErrorCode NEPNArnoldiGetLagPreconditioner_NArnoldi(NEP nep,PetscInt *lag)
+{
+  NEP_NARNOLDI *ctx = (NEP_NARNOLDI*)nep->data;
+
+  PetscFunctionBegin;
+  *lag = ctx->lag;
+  PetscFunctionReturn(0);
+}
+
+/*@
+   NEPNArnoldiGetLagPreconditioner - Indicates how often the preconditioner is rebuilt.
+
+   Not Collective
+
+   Input Parameter:
+.  nep - nonlinear eigenvalue solver
+
+   Output Parameter:
+.  lag - the lag parameter
+
+   Level: intermediate
+
+.seealso: NEPNArnoldiSetLagPreconditioner()
+@*/
+PetscErrorCode NEPNArnoldiGetLagPreconditioner(NEP nep,PetscInt *lag)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
+  PetscValidPointer(lag,2);
+  ierr = PetscUseMethod(nep,"NEPNArnoldiGetLagPreconditioner_C",(NEP,PetscInt*),(nep,lag));CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
 PetscErrorCode NEPSetFromOptions_NArnoldi(PetscOptionItems *PetscOptionsObject,NEP nep)
 {
   PetscErrorCode ierr;
+  PetscInt       i;
+  PetscBool      flg;
   NEP_NARNOLDI   *ctx = (NEP_NARNOLDI*)nep->data;
 
   PetscFunctionBegin;
   ierr = PetscOptionsHead(PetscOptionsObject,"NEP N-Arnoldi Options");CHKERRQ(ierr);
+    i = 0;
+    ierr = PetscOptionsInt("-nep_narnoldi_lag_preconditioner","Interval to rebuild preconditioner","NEPNArnoldiSetLagPreconditioner",ctx->lag,&i,&flg);CHKERRQ(ierr);
+    if (flg) { ierr = NEPNArnoldiSetLagPreconditioner(nep,i);CHKERRQ(ierr); }
+
   ierr = PetscOptionsTail();CHKERRQ(ierr);
 
   if (!ctx->ksp) { ierr = NEPNArnoldiGetKSP(nep,&ctx->ksp);CHKERRQ(ierr); }
@@ -340,6 +438,8 @@ PetscErrorCode NEPDestroy_NArnoldi(NEP nep)
   PetscFunctionBegin;
   ierr = KSPDestroy(&ctx->ksp);CHKERRQ(ierr);
   ierr = PetscFree(nep->data);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPNArnoldiSetLagPreconditioner_C",NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPNArnoldiGetLagPreconditioner_C",NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPNArnoldiSetKSP_C",NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPNArnoldiGetKSP_C",NULL);CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -362,6 +462,8 @@ PETSC_EXTERN PetscErrorCode NEPCreate_NArnoldi(NEP nep)
   nep->ops->view           = NEPView_NArnoldi;
   nep->ops->computevectors = NEPComputeVectors_Schur;
 
+  ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPNArnoldiSetLagPreconditioner_C",NEPNArnoldiSetLagPreconditioner_NArnoldi);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPNArnoldiGetLagPreconditioner_C",NEPNArnoldiGetLagPreconditioner_NArnoldi);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPNArnoldiSetKSP_C",NEPNArnoldiSetKSP_NArnoldi);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPNArnoldiGetKSP_C",NEPNArnoldiGetKSP_NArnoldi);CHKERRQ(ierr);
   PetscFunctionReturn(0);

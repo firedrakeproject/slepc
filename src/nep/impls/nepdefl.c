@@ -211,18 +211,19 @@ static PetscErrorCode NEPDeflationEvaluateHatFunction(NEP_EXT_OP extop, PetscInt
   PetscFunctionBegin;
   if (idx<0) {ini = 0; fin = extop->nep->nt;}
   else {ini = idx; fin = idx+1;}
-  sz = hfjp?n+2:n+1;
+  if (y) sz = hfjp?n+2:n+1;
+  else sz = hfjp?3*n:2*n;
   ldh = extop->szd+1;
   ierr = MatCreateSeqDense(PETSC_COMM_SELF,sz,sz,NULL,&A);CHKERRQ(ierr);
   ierr = MatCreateSeqDense(PETSC_COMM_SELF,sz,sz,NULL,&B);CHKERRQ(ierr);
   ierr = MatDenseGetArray(A,&array);CHKERRQ(ierr);
   for (j=0;j<n;j++)
     for (i=0;i<n;i++) array[j*sz+i] = extop->H[j*ldh+i];
-  array[extop->n*(sz+1)] = lambda;
-  if (hfjp) { array[(n+1)*sz+n] = 1.0; array[(n+1)*sz+n+1] = lambda;}
   ierr = MatDenseRestoreArray(A,&array);CHKERRQ(ierr);
   if (y) {
     ierr = MatDenseGetArray(A,&array);CHKERRQ(ierr);
+    array[extop->n*(sz+1)] = lambda;
+    if (hfjp) { array[(n+1)*sz+n] = 1.0; array[(n+1)*sz+n+1] = lambda;}
     for (i=0;i<n;i++) array[n*sz+i] = y[i];
     ierr = MatDenseRestoreArray(A,&array);CHKERRQ(ierr);
     for (j=ini;j<fin;j++) {
@@ -234,18 +235,22 @@ static PetscErrorCode NEPDeflationEvaluateHatFunction(NEP_EXT_OP extop, PetscInt
     }
   } else {
     off = idx<0?ld*n:0;
-    for (i=0;i<n;i++) {
-      ierr = MatDenseGetArray(A,&array);CHKERRQ(ierr);
-      for (k=0;k<n;k++) array[n*sz+k] = 0.0;
-      array[n*sz+i] = 1.0;
-      ierr = MatDenseRestoreArray(A,&array);CHKERRQ(ierr);
-      for (j=ini;j<fin;j++) {
-        ierr = FNEvaluateFunctionMat(extop->nep->f[j],A,B);CHKERRQ(ierr);
-        ierr = MatDenseGetArray(B,&array);CHKERRQ(ierr);
-        for (k=0;k<n;k++) hfj[j*off+i*ld+k] = array[n*sz+k];
-        if (hfjp) for (k=0;k<n;k++) hfjp[j*off+i*ld+k] = array[(n+1)*sz+k];
-        ierr = MatDenseRestoreArray(B,&array);CHKERRQ(ierr);
-      }
+    ierr = MatDenseGetArray(A,&array);CHKERRQ(ierr);
+    for (k=0;k<n;k++) {
+      array[(n+k)*sz+k] = 1.0;
+      array[(n+k)*sz+n+k] = lambda;
+    }
+    if (hfjp) for (k=0;k<n;k++) {
+      array[(2*n+k)*sz+n+k] = 1.0;
+      array[(2*n+k)*sz+2*n+k] = lambda;
+    }
+    ierr = MatDenseRestoreArray(A,&array);CHKERRQ(ierr);
+    for (j=ini;j<fin;j++) {
+      ierr = FNEvaluateFunctionMat(extop->nep->f[j],A,B);CHKERRQ(ierr);
+      ierr = MatDenseGetArray(B,&array);CHKERRQ(ierr);
+      for (i=0;i<n;i++) for (k=0;k<n;k++) hfj[j*off+i*ld+k] = array[n*sz+i*sz+k];
+      if (hfjp) for (k=0;k<n;k++) for (i=0;i<n;i++) hfjp[j*off+i*ld+k] = array[2*n*sz+i*sz+k];
+      ierr = MatDenseRestoreArray(B,&array);CHKERRQ(ierr);
     }
   }
   ierr = MatDestroy(&A);CHKERRQ(ierr);
@@ -754,9 +759,12 @@ PetscErrorCode NEPDeflationDSNEPComputeMatrix(DS ds,PetscScalar lambda,PetscBool
         alpha = -alpha;
         PetscStackCallBLAS("BLAStrsm",BLAStrsm_("L","U","N","N",&n_,&nv_,&alpha,extop->H,&ldh_,ww,&szd_));
         if (deriv) {
-          ierr = PetscMemcpy(w,ww,szd*nv*sizeof(PetscScalar));CHKERRQ(ierr);
+          ierr = PetscBLASIntCast(szd*nv,&szdk);CHKERRQ(ierr);
           ierr = FNEvaluateFunction(nep->f[i],lambda,&alpha2);CHKERRQ(ierr);
-          alpha2 /= -alpha;
+          ierr = PetscMemcpy(w,proj->V2,szd*nv*sizeof(PetscScalar));CHKERRQ(ierr);
+          alpha2 = -alpha2;
+          PetscStackCallBLAS("BLAStrsm",BLAStrsm_("L","U","N","N",&n_,&nv_,&alpha2,extop->H,&ldh_,w,&szd_));
+          alpha2 = 1.0;
           PetscStackCallBLAS("BLAStrsm",BLAStrsm_("L","U","N","N",&n_,&nv_,&alpha2,extop->H,&ldh_,w,&szd_));
           PetscStackCallBLAS("BLASaxpy",BLASaxpy_(&szdk,&sone,w,&inc,ww,&inc));
         }
