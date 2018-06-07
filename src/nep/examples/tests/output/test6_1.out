@@ -2,7 +2,7 @@
 1-D Delay Eigenproblem, n=128, tau=0.001
 
   Convergence history for myprefix_ solve.
-  8 NEP converged value (error) #0 0.808885 (removed)
+  6 NEP converged value (error) #0 0.808885 (removed)
 NEP Object: (myprefix_) 1 MPI processes
   type: narnoldi
     KSP Object: 1 MPI processes

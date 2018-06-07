@@ -180,10 +180,12 @@ PetscErrorCode NEPSolve_SLP(NEP nep)
       ierr = NEPDeflationLocking(extop,u,lambda);CHKERRQ(ierr);
     }
     ierr = (*nep->stopping)(nep,nep->its,nep->max_it,nep->nconv,nep->nev,&nep->reason,nep->stoppingctx);CHKERRQ(ierr);
+    if (!skip || nep->reason>0) {
+      ierr = NEPMonitor(nep,nep->its,nep->nconv,nep->eigr,nep->eigi,nep->errest,(nep->reason>0)?nep->nconv:nep->nconv+1);CHKERRQ(ierr);
+    }
 
     if (nep->reason == NEP_CONVERGED_ITERATING) {
       if (!skip) {
-        ierr = NEPMonitor(nep,nep->its,nep->nconv,nep->eigr,nep->eigi,nep->errest,nep->nconv+1);CHKERRQ(ierr);
         /* evaluate T(lambda) and T'(lambda) */
         ierr = NEPSLPSetUpLinearEP(nep,extop,lambda,u,nep->its==1?PETSC_TRUE:PETSC_FALSE);CHKERRQ(ierr);
         /* compute new eigenvalue correction mu and eigenvector approximation u */
