@@ -1,7 +1,7 @@
 
-1-D Delay Eigenproblem, n=128, tau=0.001
+1-D Delay Eigenproblem, n=512, tau=0.001
 
- Number of requested eigenvalues: 4
+ Number of requested eigenvalues: 3
  All requested eigenvalues computed up to the required tolerance:
-     7.83700, 12.88864, 16.07384, 0.80889
+     7.83323, 12.88790, 16.07379
 

@@ -68,7 +68,7 @@ runex20_1:
 
 runex20f90_1:
 	-@${SETTEST}; \
-	${MPIEXEC} -n 1 ./ex20f90 | ${SED} -e "s/[0-9]\.[0-9]*E-[0-9]*/removed/g" -e "s/\( Number of NEP iterations =\) [ 0-9]*/\1/" > $${test}.tmp 2>&1; \
+	${MPIEXEC} -n 1 ./ex20f90 -nep_target 4 | ${SED} -e "s/[0-9]\.[0-9]*E-[0-9]*/removed/g" -e "s/\( Number of NEP iterations =\) [ 0-9]*/\1/" > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
 runex21_1: runex21_1_rii runex21_1_slp
@@ -98,7 +98,7 @@ runex22_2_%:
 runex22_3: runex22_3_rii runex22_3_slp runex22_3_narnoldi
 runex22_3_%:
 	-@${SETTEST}; check=ex22_3; nep=$*; \
-	${MPIEXEC} -n 1 ./ex22 -nep_target 10 -nep_nev 4 -nep_type $${nep} -terse > $${test}.tmp 2>&1; \
+	${MPIEXEC} -n 1 ./ex22 -n 512 -nep_target 10 -nep_nev 3 -nep_type $${nep} -terse > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
 runex22f90_1:

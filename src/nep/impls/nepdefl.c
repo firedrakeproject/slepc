@@ -154,7 +154,7 @@ static PetscErrorCode NEPDeflationEvaluateBasisMat(NEP_EXT_OP extop,PetscInt idx
       for (i=0;i<n;i++) extop->H[i*ldh+i] -= extop->bc[idx-1];
       PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&n_,&n_,&n_,&sone,extop->H,&ldh_,Hjprev,&ldhj_,&zero,Hj,&ldhj_));
       for (i=0;i<n;i++) extop->H[i*ldh+i] += extop->bc[idx-1];
-      if (hat) for (i=0;i<n;i++) Hj[i*(n+1)] += bval[idx-1];
+      if (hat) for (i=0;i<n;i++) Hj[i*(ldhj+1)] += bval[idx-1];
   }
   if (idx<0) {
     idx = -idx;
@@ -162,7 +162,7 @@ static PetscErrorCode NEPDeflationEvaluateBasisMat(NEP_EXT_OP extop,PetscInt idx
       for (i=0;i<n;i++) extop->H[i*ldh+i] -= extop->bc[k-1];
       PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&n_,&n_,&n_,&sone,extop->H,&ldh_,Hj+(k-1)*ldhj*ldhj,&ldhj_,&zero,Hj+k*ldhj*ldhj,&ldhj_));
       for (i=0;i<n;i++) extop->H[i*ldh+i] += extop->bc[k-1];
-      if (hat) for (i=0;i<n;i++) Hj[i*(n+1)] += bval[k-1];
+      if (hat) for (i=0;i<n;i++) Hj[i*(ldhj+1)] += bval[k-1];
     }
   }
   PetscFunctionReturn(0);
