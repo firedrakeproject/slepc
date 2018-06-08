@@ -144,10 +144,12 @@ PetscErrorCode NEPSolve_NArnoldi(NEP nep)
       skip = PETSC_TRUE;
     }
     ierr = (*nep->stopping)(nep,nep->its,nep->max_it,nep->nconv,nep->nev,&nep->reason,nep->stoppingctx);CHKERRQ(ierr);
+    if (!skip || nep->reason>0) {
+      ierr = NEPMonitor(nep,nep->its,nep->nconv,nep->eigr,nep->eigi,nep->errest,(nep->reason>0)?nep->nconv:nep->nconv+1);CHKERRQ(ierr);
+    }
 
     if (nep->reason == NEP_CONVERGED_ITERATING) {
       if (!skip) {
-        ierr = NEPMonitor(nep,nep->its,nep->nconv,nep->eigr,nep->eigi,nep->errest,nep->nconv+1);CHKERRQ(ierr);
         if (n>=nep->ncv) {
           nep->reason = NEP_DIVERGED_SUBSPACE_EXHAUSTED;
           break;

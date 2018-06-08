@@ -129,6 +129,9 @@ PetscErrorCode NEPSolve_RII(NEP nep)
       skip = PETSC_TRUE;
     }
     ierr = (*nep->stopping)(nep,nep->its+its,nep->max_it,nep->nconv,nep->nev,&nep->reason,nep->stoppingctx);CHKERRQ(ierr);
+    if (!skip || nep->reason>0) {
+      ierr = NEPMonitor(nep,nep->its+its,nep->nconv,nep->eigr,nep->eigi,nep->errest,(nep->reason>0)?nep->nconv:nep->nconv+1);CHKERRQ(ierr);
+    }
 
     if (nep->reason == NEP_CONVERGED_ITERATING) {
       if (!skip) {
@@ -140,8 +143,6 @@ PetscErrorCode NEPSolve_RII(NEP nep)
           ktol = PetscMax(ktol/2.0,PETSC_MACHINE_EPSILON*10.0);
           ierr = KSPSetTolerances(ctx->ksp,ktol,PETSC_DEFAULT,PETSC_DEFAULT,PETSC_DEFAULT);CHKERRQ(ierr);
         }
-
-        ierr = NEPMonitor(nep,nep->its+its,nep->nconv,nep->eigr,nep->eigi,nep->errest,nep->nconv+1);CHKERRQ(ierr);
 
         /* eigenvector correction: delta = T(sigma)\r */
         ierr = NEPDeflationFunctionSolve(extop,r,delta);CHKERRQ(ierr);
