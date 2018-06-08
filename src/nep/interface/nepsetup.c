@@ -194,7 +194,6 @@ PetscErrorCode NEPSetUp(NEP nep)
     sc->map    = NULL;
     sc->mapobj = NULL;
   }
-  if (nep->ncv > nep->n) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_OUTOFRANGE,"ncv must be the problem size at most");
   if (nep->nev > nep->ncv) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_OUTOFRANGE,"nev bigger than ncv");
 
   /* process initial vectors */
