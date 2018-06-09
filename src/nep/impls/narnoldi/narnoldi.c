@@ -56,7 +56,7 @@ PetscErrorCode NEPSolve_NArnoldi(NEP nep)
   NEP_NARNOLDI       *ctx = (NEP_NARNOLDI*)nep->data;
   Mat                T,H;
   Vec                f,r,u,uu;
-  PetscScalar        *X,lambda,lambda2=0.0,*eigr,*Hp,*Ap,sigma;
+  PetscScalar        *X,lambda=0.0,lambda2=0.0,*eigr,*Hp,*Ap,sigma;
   PetscReal          beta,resnorm=0.0,nrm,perr=0.0;
   PetscInt           n,i,j,ldds,ldh;
   PetscBool          breakdown,skip=PETSC_FALSE;
