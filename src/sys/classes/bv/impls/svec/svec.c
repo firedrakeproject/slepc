@@ -205,19 +205,29 @@ PetscErrorCode BVNorm_Local_Svec(BV bv,PetscInt j,NormType type,PetscReal *val)
 
 PetscErrorCode BVMatMult_Svec(BV V,Mat A,BV W)
 {
-  PetscErrorCode ierr;
-  BV_SVEC        *v = (BV_SVEC*)V->data,*w = (BV_SVEC*)W->data;
-  PetscScalar    *pv,*pw;
-  PetscInt       j;
-  PetscBool      flg;
-  Mat            Vmat,Wmat;
+  PetscErrorCode   ierr;
+  BV_SVEC          *v = (BV_SVEC*)V->data,*w = (BV_SVEC*)W->data;
+  PetscScalar      *pv,*pw;
+  PetscInt         j;
+  PetscBool        flg;
+  Mat              Vmat,Wmat,aux;
+  PetscObjectState Astate;
 
   PetscFunctionBegin;
   ierr = MatHasOperation(A,MATOP_MAT_MULT,&flg);CHKERRQ(ierr);
   if (V->vmm && flg) {
     ierr = BVGetMat(V,&Vmat);CHKERRQ(ierr);
     ierr = BVGetMat(W,&Wmat);CHKERRQ(ierr);
-    ierr = MatMatMult(A,Vmat,MAT_REUSE_MATRIX,PETSC_DEFAULT,&Wmat);CHKERRQ(ierr);
+    ierr = PetscObjectStateGet((PetscObject)A,&Astate);CHKERRQ(ierr);
+    if (V->Amult==A && V->Amultstate==Astate) {
+      ierr = MatMatMult(A,Vmat,MAT_REUSE_MATRIX,PETSC_DEFAULT,&Wmat);CHKERRQ(ierr);
+    } else {
+      ierr = MatMatMult(A,Vmat,MAT_INITIAL_MATRIX,PETSC_DEFAULT,&aux);CHKERRQ(ierr);
+      ierr = MatCopy(aux,Wmat,SAME_NONZERO_PATTERN);CHKERRQ(ierr);
+      ierr = MatDestroy(&aux);CHKERRQ(ierr);
+      V->Amult = A;
+      V->Amultstate = Astate;
+    }
     ierr = BVRestoreMat(V,&Vmat);CHKERRQ(ierr);
     ierr = BVRestoreMat(W,&Wmat);CHKERRQ(ierr);
   } else {
