@@ -412,8 +412,8 @@ PetscErrorCode PEPSetDimensions_Default(PEP pep,PetscInt nev,PetscInt *ncv,Petsc
   PetscInt       dim;
 
   PetscFunctionBegin;
-  ierr = PetscObjectTypeCompareAny((PetscObject)pep,&krylov,PEPTOAR,PEPQARNOLDI,"");CHKERRQ(ierr);
-  dim = krylov?(pep->nmat-1)*pep->n:pep->n;
+  ierr = PetscObjectTypeCompareAny((PetscObject)pep,&krylov,PEPTOAR,PEPSTOAR,PEPQARNOLDI,"");CHKERRQ(ierr);
+  dim = (pep->nmat-1)*pep->n;
   if (*ncv) { /* ncv set */
     if (krylov) {
       if (*ncv<nev+1 && !(*ncv==nev && *ncv==dim)) SETERRQ(PetscObjectComm((PetscObject)pep),1,"The value of ncv must be at least nev+1");
