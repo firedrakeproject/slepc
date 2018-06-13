@@ -40,9 +40,6 @@ int main(int argc,char **argv)
 {
   NEP            nep;
   EPS            eps;
-  ST             st;
-  KSP            ksp;
-  PC             pc;
   Mat            F,J;
   ApplicationCtx ctx;
   PetscInt       n=128;
@@ -60,13 +57,7 @@ int main(int argc,char **argv)
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
   ierr = EPSCreate(PETSC_COMM_WORLD,&eps);CHKERRQ(ierr);
-  ierr = EPSSetTarget(eps,0.0);CHKERRQ(ierr);
-  ierr = EPSGetST(eps,&st);CHKERRQ(ierr);
-  ierr = STSetType(st,STSINVERT);CHKERRQ(ierr);
-  ierr = STGetKSP(st,&ksp);CHKERRQ(ierr);
-  ierr = KSPSetType(ksp,KSPBCGS);CHKERRQ(ierr);
-  ierr = KSPGetPC(ksp,&pc);CHKERRQ(ierr);
-  ierr = PCSetType(pc,PCBJACOBI);CHKERRQ(ierr);
+  ierr = EPSSetType(eps,EPSGD);CHKERRQ(ierr);
   ierr = EPSSetFromOptions(eps);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

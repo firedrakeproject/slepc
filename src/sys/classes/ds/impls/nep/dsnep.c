@@ -12,9 +12,11 @@
 #include <slepcblaslapack.h>
 
 typedef struct {
-  PetscInt nf;                 /* number of functions in f[] */
-  FN       f[DS_NUM_EXTRA];    /* functions defining the nonlinear operator */
-  PetscInt neig;               /* number of available eigenpairs */
+  PetscInt       nf;                 /* number of functions in f[] */
+  FN             f[DS_NUM_EXTRA];    /* functions defining the nonlinear operator */
+  PetscInt       neig;               /* number of available eigenpairs */
+  void           *computematrixctx;
+  PetscErrorCode (*computematrix)(DS,PetscScalar,PetscBool,DSMatType,void*);
 } DS_NEP;
 
 /*
@@ -31,22 +33,26 @@ static PetscErrorCode DSNEPComputeMatrix(DS ds,PetscScalar lambda,PetscBool deri
   PetscBLASInt   k,inc=1;
 
   PetscFunctionBegin;
-  ierr = DSGetDimensions(ds,&n,NULL,NULL,NULL,NULL);CHKERRQ(ierr);
-  ierr = DSGetLeadingDimension(ds,&ld);CHKERRQ(ierr);
-  ierr = PetscBLASIntCast(ld*n,&k);CHKERRQ(ierr);
   ierr = PetscLogEventBegin(DS_Other,ds,0,0,0);CHKERRQ(ierr);
-  ierr = DSGetArray(ds,mat,&T);CHKERRQ(ierr);
-  ierr = PetscMemzero(T,k*sizeof(PetscScalar));CHKERRQ(ierr);
-  for (i=0;i<ctx->nf;i++) {
-    if (deriv) {
-      ierr = FNEvaluateDerivative(ctx->f[i],lambda,&alpha);CHKERRQ(ierr);
-    } else {
-      ierr = FNEvaluateFunction(ctx->f[i],lambda,&alpha);CHKERRQ(ierr);
+  if (ctx->computematrix) {
+    ierr = (*ctx->computematrix)(ds,lambda,deriv,mat,ctx->computematrixctx);CHKERRQ(ierr);
+  } else {
+    ierr = DSGetDimensions(ds,&n,NULL,NULL,NULL,NULL);CHKERRQ(ierr);
+    ierr = DSGetLeadingDimension(ds,&ld);CHKERRQ(ierr);
+    ierr = PetscBLASIntCast(ld*n,&k);CHKERRQ(ierr);
+    ierr = DSGetArray(ds,mat,&T);CHKERRQ(ierr);
+    ierr = PetscMemzero(T,k*sizeof(PetscScalar));CHKERRQ(ierr);
+    for (i=0;i<ctx->nf;i++) {
+      if (deriv) {
+        ierr = FNEvaluateDerivative(ctx->f[i],lambda,&alpha);CHKERRQ(ierr);
+      } else {
+        ierr = FNEvaluateFunction(ctx->f[i],lambda,&alpha);CHKERRQ(ierr);
+      }
+      E = ds->mat[DSMatExtra[i]];
+      PetscStackCallBLAS("BLASaxpy",BLASaxpy_(&k,&alpha,E,&inc,T,&inc));
     }
-    E = ds->mat[DSMatExtra[i]];
-    PetscStackCallBLAS("BLASaxpy",BLASaxpy_(&k,&alpha,E,&inc,T,&inc));
+    ierr = DSRestoreArray(ds,mat,&T);CHKERRQ(ierr);
   }
-  ierr = DSRestoreArray(ds,mat,&T);CHKERRQ(ierr);
   ierr = PetscLogEventEnd(DS_Other,ds,0,0,0);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -156,7 +162,7 @@ PetscErrorCode DSSolve_NEP_SLP(DS ds,PetscScalar *wr,PetscScalar *wi)
   PetscErrorCode ierr;
   DS_NEP         *ctx = (DS_NEP*)ds->data;
   PetscScalar    *A,*B,*W,*X,*work,*alpha,*beta;
-  PetscScalar    norm,sigma,lambda,mu,re,re2;
+  PetscScalar    norm,sigma,lambda,mu,re,re2,sone=1.0,zero=0.0;
   PetscBLASInt   info,n,ld,lrwork=0,lwork,one=1;
   PetscInt       it,pos,j,maxit=100,result;
   PetscReal      tol;
@@ -209,6 +215,11 @@ PetscErrorCode DSSolve_NEP_SLP(DS ds,PetscScalar *wr,PetscScalar *wi)
 
     /* evaluate T and T' */
     ierr = DSNEPComputeMatrix(ds,lambda,PETSC_FALSE,DS_MAT_A);CHKERRQ(ierr);
+    if (it) {
+      PetscStackCallBLAS("BLASgemv",BLASgemv_("N",&n,&n,&sone,A,&ld,X,&one,&zero,X+ld,&one));
+      norm = BLASnrm2_(&n,X+ld,&one);
+      if (PetscRealPart(norm)/PetscAbsScalar(lambda)<=tol) break;
+    }
     ierr = DSNEPComputeMatrix(ds,lambda,PETSC_TRUE,DS_MAT_B);CHKERRQ(ierr);
 
     /* compute eigenvalue correction mu and eigenvector u */
@@ -259,7 +270,6 @@ PetscErrorCode DSSolve_NEP_SLP(DS ds,PetscScalar *wr,PetscScalar *wi)
 
     /* correct eigenvalue approximation */
     lambda = lambda - mu;
-    if (PetscAbsScalar(mu)<=tol) break;
   }
 
   if (it==maxit) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_CONV_FAILED,"DSNEP did not converge");
@@ -444,6 +454,52 @@ PetscErrorCode DSNEPGetNumFN(DS ds,PetscInt *n)
   PetscFunctionReturn(0);
 }
 
+static PetscErrorCode DSNEPSetComputeMatrixFunction_NEP(DS ds,PetscErrorCode (*fun)(DS,PetscScalar,PetscBool,DSMatType,void*),void *ctx)
+{
+  DS_NEP *dsctx = (DS_NEP*)ds->data;
+
+  PetscFunctionBegin;
+  dsctx->computematrix    = fun;
+  dsctx->computematrixctx = ctx;
+  PetscFunctionReturn(0);
+}
+
+/*@
+   DSNEPSetComputeMatrixFunction - Sets a user-provided subroutine to compute
+   the matrices T(lambda) or T'(lambda).
+
+   Logically Collective on DS
+
+   Input Parameters:
++  ds  - the direct solver context
+.  fun - a pointer to the user function
+-  ctx - a context pointer (the last parameter to the user function)
+
+   Calling Sequence of fun:
+$   fun(DS ds,PetscScalar lambda,PetscBool deriv,DSMatType mat,void *ctx)
+
++   ds     - the direct solver object
+.   lambda - point where T(lambda) or T'(lambda) must be evaluated
+.   deriv  - if true compute T'(lambda), otherwise compute T(lambda)
+.   mat    - the DS matrix where the result must be stored
+-   ctx    - optional context, as set by DSNEPSetComputeMatrixFunction()
+
+   Note:
+   The result is computed as T(lambda) = sum_i E_i*f_i(lambda), and similarly
+   for the derivative.
+
+   Level: developer
+@*/
+PetscErrorCode DSNEPSetComputeMatrixFunction(DS ds,PetscErrorCode (*fun)(DS,PetscScalar,PetscBool,DSMatType,void*),void *ctx)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(ds,DS_CLASSID,1);
+  ierr = PetscTryMethod(ds,"DSNEPSetComputeMatrixFunction_C",(DS,PetscErrorCode (*)(DS,PetscScalar,PetscBool,DSMatType,void*),void*),(ds,fun,ctx));CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
 PetscErrorCode DSDestroy_NEP(DS ds)
 {
   PetscErrorCode ierr;
@@ -458,6 +514,7 @@ PetscErrorCode DSDestroy_NEP(DS ds)
   ierr = PetscObjectComposeFunction((PetscObject)ds,"DSNEPSetFN_C",NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)ds,"DSNEPGetFN_C",NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)ds,"DSNEPGetNumFN_C",NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)ds,"DSNEPSetComputeMatrixFunction_C",NULL);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -480,6 +537,7 @@ PETSC_EXTERN PetscErrorCode DSCreate_NEP(DS ds)
   ierr = PetscObjectComposeFunction((PetscObject)ds,"DSNEPSetFN_C",DSNEPSetFN_NEP);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)ds,"DSNEPGetFN_C",DSNEPGetFN_NEP);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)ds,"DSNEPGetNumFN_C",DSNEPGetNumFN_NEP);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)ds,"DSNEPSetComputeMatrixFunction_C",DSNEPSetComputeMatrixFunction_NEP);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

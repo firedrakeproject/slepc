@@ -197,6 +197,7 @@ PETSC_EXTERN PetscErrorCode DSPEPGetCoefficients(DS,PetscReal**);
 PETSC_EXTERN PetscErrorCode DSNEPSetFN(DS,PetscInt,FN*);
 PETSC_EXTERN PetscErrorCode DSNEPGetFN(DS,PetscInt,FN*);
 PETSC_EXTERN PetscErrorCode DSNEPGetNumFN(DS,PetscInt*);
+PETSC_EXTERN PetscErrorCode DSNEPSetComputeMatrixFunction(DS,PetscErrorCode (*fun)(DS,PetscScalar,PetscBool,DSMatType,void*),void *ctx);
 
 PETSC_EXTERN PetscFunctionList DSList;
 PETSC_EXTERN PetscErrorCode DSRegister(const char[],PetscErrorCode(*)(DS));

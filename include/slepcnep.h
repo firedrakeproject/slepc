@@ -151,6 +151,7 @@ typedef enum {/* converged */
               NEP_DIVERGED_BREAKDOWN           = -2,
                     /* unused                  = -3 */
               NEP_DIVERGED_LINEAR_SOLVE        = -4,
+              NEP_DIVERGED_SUBSPACE_EXHAUSTED  = -5,
               NEP_CONVERGED_ITERATING          =  0} NEPConvergedReason;
 PETSC_EXTERN const char *const*NEPConvergedReasons;
 
@@ -273,9 +274,13 @@ PETSC_EXTERN PetscErrorCode NEPRIIGetKSP(NEP,KSP*);
 
 PETSC_EXTERN PetscErrorCode NEPSLPSetEPS(NEP,EPS);
 PETSC_EXTERN PetscErrorCode NEPSLPGetEPS(NEP,EPS*);
+PETSC_EXTERN PetscErrorCode NEPSLPSetKSP(NEP,KSP);
+PETSC_EXTERN PetscErrorCode NEPSLPGetKSP(NEP,KSP*);
 
 PETSC_EXTERN PetscErrorCode NEPNArnoldiSetKSP(NEP,KSP);
 PETSC_EXTERN PetscErrorCode NEPNArnoldiGetKSP(NEP,KSP*);
+PETSC_EXTERN PetscErrorCode NEPNArnoldiSetLagPreconditioner(NEP,PetscInt);
+PETSC_EXTERN PetscErrorCode NEPNArnoldiGetLagPreconditioner(NEP,PetscInt*);
 
 #if defined(PETSC_USE_COMPLEX)
 PETSC_EXTERN PetscErrorCode NEPCISSSetSizes(NEP,PetscInt,PetscInt,PetscInt,PetscInt,PetscInt,PetscBool);

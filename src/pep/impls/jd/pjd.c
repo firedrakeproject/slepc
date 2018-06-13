@@ -116,7 +116,7 @@ PetscErrorCode PEPSetUp_JD(PEP pep)
   ierr = PEPSetDimensions_Default(pep,pep->nev,&pep->ncv,&pep->mpd);CHKERRQ(ierr);
   if (!pep->max_it) pep->max_it = PetscMax(100,2*pep->n/pep->ncv);
   if (!pep->which) pep->which = PEP_TARGET_MAGNITUDE;
-  if (pep->which != PEP_TARGET_MAGNITUDE) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"PEPJD only supports which=target_magnitude");;
+  if (pep->which != PEP_TARGET_MAGNITUDE) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"PEPJD only supports which=target_magnitude");
 
   ierr = PetscObjectTypeCompare((PetscObject)pep->st,STPRECOND,&isprecond);CHKERRQ(ierr);
   if (!isprecond) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"JD only works with PRECOND spectral transformation");
