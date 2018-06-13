@@ -221,7 +221,7 @@ PetscErrorCode BVDotVecBegin(BV X,Vec y,PetscScalar *m)
       if (sr->numopsbegin+i >= sr->maxops) {
         ierr = PetscSplitReductionExtend(sr);CHKERRQ(ierr);
       }
-      sr->reducetype[sr->numopsbegin+i] = REDUCE_SUM;
+      sr->reducetype[sr->numopsbegin+i] = PETSC_SR_REDUCE_SUM;
       sr->invecs[sr->numopsbegin+i]     = (void*)X;
     }
     ierr = PetscLogEventBegin(BV_DotVec,X,y,0,0);CHKERRQ(ierr);
@@ -269,7 +269,7 @@ PetscErrorCode BVDotVecEnd(BV X,Vec y,PetscScalar *m)
 
     if (sr->numopsend >= sr->numopsbegin) SETERRQ(PetscObjectComm((PetscObject)X),PETSC_ERR_ARG_WRONGSTATE,"Called VecxxxEnd() more times than VecxxxBegin()");
     if ((void*)X != sr->invecs[sr->numopsend]) SETERRQ(PetscObjectComm((PetscObject)X),PETSC_ERR_ARG_WRONGSTATE,"Called BVxxxEnd() in a different order or with a different BV than BVxxxBegin()");
-    if (sr->reducetype[sr->numopsend] != REDUCE_SUM) SETERRQ(PetscObjectComm((PetscObject)X),PETSC_ERR_ARG_WRONGSTATE,"Wrong type of reduction");
+    if (sr->reducetype[sr->numopsend] != PETSC_SR_REDUCE_SUM) SETERRQ(PetscObjectComm((PetscObject)X),PETSC_ERR_ARG_WRONGSTATE,"Wrong type of reduction");
     for (i=0;i<nv;i++) m[i] = sr->gvalues[sr->numopsend++];
 
     /* Finished getting all the results so reset to no outstanding requests */
@@ -384,7 +384,7 @@ PetscErrorCode BVDotColumnBegin(BV X,PetscInt j,PetscScalar *m)
       if (sr->numopsbegin+i >= sr->maxops) {
         ierr = PetscSplitReductionExtend(sr);CHKERRQ(ierr);
       }
-      sr->reducetype[sr->numopsbegin+i] = REDUCE_SUM;
+      sr->reducetype[sr->numopsbegin+i] = PETSC_SR_REDUCE_SUM;
       sr->invecs[sr->numopsbegin+i]     = (void*)X;
     }
     ierr = PetscLogEventBegin(BV_DotVec,X,0,0,0);CHKERRQ(ierr);
@@ -443,7 +443,7 @@ PetscErrorCode BVDotColumnEnd(BV X,PetscInt j,PetscScalar *m)
 
     if (sr->numopsend >= sr->numopsbegin) SETERRQ(PetscObjectComm((PetscObject)X),PETSC_ERR_ARG_WRONGSTATE,"Called VecxxxEnd() more times than VecxxxBegin()");
     if ((void*)X != sr->invecs[sr->numopsend]) SETERRQ(PetscObjectComm((PetscObject)X),PETSC_ERR_ARG_WRONGSTATE,"Called BVxxxEnd() in a different order or with a different BV than BVxxxBegin()");
-    if (sr->reducetype[sr->numopsend] != REDUCE_SUM) SETERRQ(PetscObjectComm((PetscObject)X),PETSC_ERR_ARG_WRONGSTATE,"Wrong type of reduction");
+    if (sr->reducetype[sr->numopsend] != PETSC_SR_REDUCE_SUM) SETERRQ(PetscObjectComm((PetscObject)X),PETSC_ERR_ARG_WRONGSTATE,"Wrong type of reduction");
     for (i=0;i<nv;i++) m[i] = sr->gvalues[sr->numopsend++];
 
     /* Finished getting all the results so reset to no outstanding requests */
@@ -770,8 +770,8 @@ PetscErrorCode BVNormColumnBegin(BV bv,PetscInt j,NormType type,PetscReal *val)
     sr->invecs[sr->numopsbegin] = (void*)bv;
     ierr = (*bv->ops->norm_local)(bv,j,type,&lresult);CHKERRQ(ierr);
     if (type == NORM_2) lresult = lresult*lresult;
-    if (type == NORM_MAX) sr->reducetype[sr->numopsbegin] = REDUCE_MAX;
-    else sr->reducetype[sr->numopsbegin] = REDUCE_SUM;
+    if (type == NORM_MAX) sr->reducetype[sr->numopsbegin] = PETSC_SR_REDUCE_MAX;
+    else sr->reducetype[sr->numopsbegin] = PETSC_SR_REDUCE_SUM;
     sr->lvalues[sr->numopsbegin++] = lresult;
   }
   ierr = BVRestoreColumn(bv,j,&z);CHKERRQ(ierr);
@@ -824,7 +824,7 @@ PetscErrorCode BVNormColumnEnd(BV bv,PetscInt j,NormType type,PetscReal *val)
 
     if (sr->numopsend >= sr->numopsbegin) SETERRQ(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_WRONGSTATE,"Called VecxxxEnd() more times then VecxxxBegin()");
     if ((void*)bv != sr->invecs[sr->numopsend]) SETERRQ(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_WRONGSTATE,"Called VecxxxEnd() in a different order or with a different vector than VecxxxBegin()");
-    if (sr->reducetype[sr->numopsend] != REDUCE_MAX && type == NORM_MAX) SETERRQ(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_WRONGSTATE,"Called BVNormEnd(,NORM_MAX,) on a reduction started with VecDotBegin() or NORM_1 or NORM_2");
+    if (sr->reducetype[sr->numopsend] != PETSC_SR_REDUCE_MAX && type == NORM_MAX) SETERRQ(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_WRONGSTATE,"Called BVNormEnd(,NORM_MAX,) on a reduction started with VecDotBegin() or NORM_1 or NORM_2");
     *val = PetscRealPart(sr->gvalues[sr->numopsend++]);
     if (type == NORM_2) *val = PetscSqrtReal(*val);
     if (sr->numopsend == sr->numopsbegin) {
