@@ -71,7 +71,7 @@ PetscErrorCode PEPExtractVectors_TOAR(PEP pep)
 #if !defined(PETSC_USE_COMPLEX)
         if (PetscRealPart(ei[i])!=0.0) {
           i++;
-          PetscStackCallBLAS("BLASgemv",BLASgemv_("N",&k_,&k_,&sone,S+idxcpy*ld,&lds_,X+i*ldds,&one,&szero,SS+i*nq,&one));
+          PetscStackCallBLAS("BLASgemv",BLASgemv_("N",&nq_,&k_,&sone,S+idxcpy*ld,&lds_,X+i*ldds,&one,&szero,SS+i*nq,&one));
         }
 #endif
       }
@@ -127,7 +127,7 @@ PetscErrorCode PEPExtractVectors_TOAR(PEP pep)
 #if !defined(PETSC_USE_COMPLEX)
           if (ei[i]!=0.0) {
             ierr = PetscMemzero(tr,k*sizeof(PetscScalar));CHKERRQ(ierr);
-            PetscStackCallBLAS("BLASaxpy",BLASaxpy_(&nq_,&vals[j],X+i*ldds,&one,tr,&one));
+            PetscStackCallBLAS("BLASaxpy",BLASaxpy_(&k_,&vals[j],X+i*ldds,&one,tr,&one));
             PetscStackCallBLAS("BLASaxpy",BLASaxpy_(&k_,&ivals[j],X+(i+1)*ldds,&one,tr,&one));
             yr = tr;
             ierr = PetscMemzero(ti,k*sizeof(PetscScalar));CHKERRQ(ierr);
