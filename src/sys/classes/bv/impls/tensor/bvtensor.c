@@ -362,7 +362,6 @@ static PetscErrorCode BVTensorUpdateMatrix(BV V,PetscInt ini,PetscInt end)
     ierr = PetscCalloc2(lds*lds,&ctx->qB,lds,&ctx->sw);CHKERRQ(ierr);
     ierr = VecDuplicate(ctx->U->t,&ctx->u);CHKERRQ(ierr);
   }
-  for (i=0;i<ctx->d;i++) { ierr = PetscMemzero(ctx->qB+i*lds*ld+ini*lds,(end-ini)*lds*sizeof(PetscScalar));CHKERRQ(ierr); }
   ctx->U->l = 0;
   for (r=0;r<ctx->d;r++) {
     for (c=0;c<=r;c++) {
@@ -379,7 +378,10 @@ static PetscErrorCode BVTensorUpdateMatrix(BV V,PetscInt ini,PetscInt end)
         }
         if (c!=r) {
           sqB = ctx->qB+r*ld*lds+c*ld;
-          for (i=ini;i<end;i++) for (j=0;j<i;j++) sqB[i+j*lds] = PetscConj(qB[j+i*lds]);
+          for (i=ini;i<end;i++) for (j=0;j<=i;j++) {
+            sqB[i+j*lds] = PetscConj(qB[j+i*lds]);
+            sqB[j+i*lds] = qB[j+i*lds];
+          }
         }
       }
     }
@@ -614,6 +616,13 @@ static PetscErrorCode BVTensorCompress_Tensor(BV V,PetscInt newc)
           qB = ctx->qB+r*ctx->ld+c*ctx->ld*lds;
           PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&rs1_,&rk_,&rs1_,&sone,qB,&lds_,pQ,&rs1_,&zero,work+nwu,&rs1_));
           PetscStackCallBLAS("BLASgemm",BLASgemm_("C","N",&rk_,&rk_,&rs1_,&sone,pQ,&rs1_,work+nwu,&rs1_,&zero,qB,&lds_));
+          for (i=0;i<rk;i++) for (j=0;j<i;j++) qB[i+j*lds] = PetscConj(qB[j+i*lds]);
+          for (i=rk;i<ctx->ld;i++) {
+            ierr = PetscMemzero(qB+i*lds,ctx->ld*sizeof(PetscScalar));CHKERRQ(ierr);
+          }
+          for (i=0;i<rk;i++) {
+            ierr = PetscMemzero(qB+i*lds+rk,(ctx->ld-rk)*sizeof(PetscScalar));CHKERRQ(ierr);
+          }
           if (c!=r) {
             sqB = ctx->qB+r*ctx->ld*lds+c*ctx->ld;
             for (i=0;i<ctx->ld;i++) for (j=0;j<ctx->ld;j++) sqB[i+j*lds] = PetscConj(qB[j+i*lds]);

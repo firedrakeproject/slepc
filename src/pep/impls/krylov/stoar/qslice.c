@@ -839,8 +839,13 @@ static PetscErrorCode PEPSTOAR_QSlice(PEP pep)
 
   ierr = STGetMatrixTransformed(pep->st,2,&D[1]);CHKERRQ(ierr); /* M */
   ierr = MatGetLocalSize(D[1],&m,&n);CHKERRQ(ierr);
-  ierr = STGetMatrixTransformed(pep->st,0,&D[0]);CHKERRQ(ierr); /* K */
-  scal[0] = -1.0; scal[1] = pep->sfactor*pep->sfactor;
+  if (ctx->linearization) {
+    ierr = STGetMatrixTransformed(pep->st,1,&D[0]);CHKERRQ(ierr); /* C */
+    scal[0] = pep->sfactor; scal[1] = pep->sfactor*pep->sfactor;
+  } else {
+    ierr = STGetMatrixTransformed(pep->st,0,&D[0]);CHKERRQ(ierr); /* K */
+    scal[0] = -1.0; scal[1] = pep->sfactor*pep->sfactor;
+  }
   for (j=0;j<2;j++) {
     ierr = PetscNew(ctxMat+j);CHKERRQ(ierr);
     (ctxMat[j])->A = D[j]; (ctxMat[j])->scal = scal[j];
@@ -848,7 +853,11 @@ static PetscErrorCode PEPSTOAR_QSlice(PEP pep)
     ierr = MatShellSetOperation(As[j],MATOP_MULT,(void(*)())MatMult_Func);CHKERRQ(ierr);
     ierr = MatShellSetOperation(As[j],MATOP_DESTROY,(void(*)())MatDestroy_Func);CHKERRQ(ierr);
   }
-  pA[0] = As[0]; pA[1] = pA[2] = NULL; pA[3] = As[1];
+  if (ctx->linearization) {
+    pA[0] = As[0]; pA[1] = pA[2] = As[1]; pA[3] = NULL;
+  } else {
+    pA[0] = As[0]; pA[1] = pA[2] = NULL; pA[3] = As[1];
+  }
   ierr = MatCreateNest(PetscObjectComm((PetscObject)pep),2,NULL,2,NULL,pA,&A);CHKERRQ(ierr);
   for (j=0;j<2;j++) { ierr = MatDestroy(&As[j]);CHKERRQ(ierr); }
   ierr = BVSetMatrix(ctx->V,A,PETSC_TRUE);CHKERRQ(ierr);
@@ -961,6 +970,7 @@ static PetscErrorCode PEPSTOAR_QSlice(PEP pep)
     if (symmlost && nv==pep->nconv+l) {
       pep->reason = PEP_DIVERGED_SYMMETRY_LOST;
       pep->nconv = nconv;
+      ierr = PetscInfo2(pep,"Symmetry lost in STOAR sigma=%g nconv=%D)\n",(double)sr->sPres->value,nconv);CHKERRQ(ierr);
       if (falselock || !ctx->lock) {
         ierr = BVSetActiveColumns(ctx->V,0,pep->nconv);CHKERRQ(ierr);
         ierr = BVTensorCompress(ctx->V,0);CHKERRQ(ierr);
@@ -1078,6 +1088,10 @@ static PetscErrorCode PEPSTOAR_QSlice(PEP pep)
   ierr = STScaleShift(pep->st,sinv?1.0/pep->sfactor:pep->sfactor);CHKERRQ(ierr);
   ierr = RGPopScale(pep->rg);CHKERRQ(ierr);
 
+  if (pep->reason == PEP_DIVERGED_SYMMETRY_LOST && nconv<sr->ndef0+sr->ndef1) {
+    if (++sr->symmlost>10) SETERRQ1(PetscObjectComm((PetscObject)pep),1,"Symmetry lost at sigma=%g",(double)sr->sPres->value);
+  } else sr->symmlost = 0;
+
   /* truncate Schur decomposition and change the state to raw so that
      DSVectors() computes eigenvectors from scratch */
   ierr = DSSetDimensions(pep->ds,pep->nconv,0,0,0);CHKERRQ(ierr);
@@ -1159,6 +1173,8 @@ PetscErrorCode PEPSolve_STOAR_QSlice(PEP pep)
     pep->reason = PEP_CONVERGED_TOL;
     PetscFunctionReturn(0);
   }
+  ierr = PetscOptionsGetInt(NULL,NULL,"-pep_stoar_linearization",&ctx->linearization,NULL);CHKERRQ(ierr);
+
   /* Array of pending shifts */
   sr->maxPend = 100; /* Initial size */
   sr->nPend = 0;
