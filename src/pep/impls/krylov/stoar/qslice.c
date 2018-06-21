@@ -139,7 +139,7 @@ static PetscErrorCode ConvergedPositive(EPS eps,PetscScalar eigr,PetscScalar eig
 static PetscErrorCode PEPQSliceGetInertia(PEP pep,PetscReal shift,PetscInt *inertia,PetscInt *zeros,PetscInt correction)
 {
   PetscErrorCode ierr;
-  KSP            ksp;
+  KSP            ksp,kspr;
   PC             pc;
   Mat            F,P;
   PetscBool      flg;
@@ -169,8 +169,8 @@ static PetscErrorCode PEPQSliceGetInertia(PEP pep,PetscReal shift,PetscInt *iner
     ierr = KSPGetPC(ksp,&pc);CHKERRQ(ierr);
     ierr = PetscObjectTypeCompare((PetscObject)pc,PCREDUNDANT,&flg);CHKERRQ(ierr);
     if (flg) {
-      ierr = PCRedundantGetKSP(pc,&ksp);CHKERRQ(ierr);
-      ierr = KSPGetPC(ksp,&pc);CHKERRQ(ierr);
+      ierr = PCRedundantGetKSP(pc,&kspr);CHKERRQ(ierr);
+      ierr = KSPGetPC(kspr,&pc);CHKERRQ(ierr);
     }
     ierr = PCFactorGetMatrix(pc,&F);CHKERRQ(ierr);
     ierr = MatGetInertia(F,inertia,zeros,NULL);CHKERRQ(ierr);
