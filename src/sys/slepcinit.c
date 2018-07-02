@@ -264,7 +264,7 @@ PetscErrorCode SlepcInitialize(int *argc,char ***args,const char file[],const ch
   PetscFunctionReturn(0);
 }
 
-/*@
+/*@C
    SlepcFinalize - Checks for options to be called at the conclusion
    of the SLEPc program and calls PetscFinalize().
 

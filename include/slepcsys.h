@@ -80,5 +80,11 @@ PETSC_DEPRECATED("Use MatCreateTile()") PETSC_STATIC_INLINE PetscErrorCode Slepc
 
 PETSC_EXTERN PetscBool SlepcInitializeCalled;
 
+#if defined(PETSC_USE_COMPLEX)
+#define SlepcLogFlopsComplex(a) PetscLogFlops((a))
+#else
+#define SlepcLogFlopsComplex(a) PetscLogFlops((4.0*a))
+#endif
+
 #endif
 

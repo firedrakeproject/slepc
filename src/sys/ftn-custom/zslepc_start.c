@@ -17,17 +17,22 @@
 #if defined(PETSC_HAVE_FORTRAN_CAPS)
 #define petscinitialize_              PETSCINITIALIZE
 #define petscinitializenoarguments_   PETSCINITIALIZENOARGUMENTS
+#define petscfinalize_                PETSCFINALIZE
 #define slepcinitialize_              SLEPCINITIALIZE
 #define slepcinitializenoarguments_   SLEPCINITIALIZENOARGUMENTS
+#define slepcfinalize_                SLEPCFINALIZE
 #elif !defined(PETSC_HAVE_FORTRAN_UNDERSCORE)
 #define petscinitialize_              petscinitialize
 #define petscinitializenoarguments_   petscinitializenoarguments
+#define petscfinalize_                petscfinalize
 #define slepcinitialize_              slepcinitialize
 #define slepcinitializenoarguments_   slepcinitializenoarguments
+#define slepcfinalize_                slepcfinalize
 #endif
 
 PETSC_EXTERN void PETSC_STDCALL petscinitialize_(char *filename PETSC_MIXED_LEN(len),PetscErrorCode *ierr PETSC_END_LEN(len));
 PETSC_EXTERN void PETSC_STDCALL petscinitializenoarguments_(PetscErrorCode *ierr);
+PETSC_EXTERN void PETSC_STDCALL petscfinalize_(PetscErrorCode *ierr);
 
 /*
     SlepcInitialize - Version called from Fortran.
@@ -82,5 +87,17 @@ PETSC_EXTERN void PETSC_STDCALL slepcinitialize_(char *filename PETSC_MIXED_LEN(
 PETSC_EXTERN void PETSC_STDCALL slepcinitializenoarguments_(PetscErrorCode *ierr)
 {
   slepcinitialize_internal(NULL,(PetscInt)0,PETSC_FALSE,ierr);
+}
+
+PETSC_EXTERN void PETSC_STDCALL slepcfinalize_(PetscErrorCode *ierr)
+{
+  *ierr = PetscInfo(0,"SlepcFinalize called from Fortran\n");
+  if (*ierr) { (*PetscErrorPrintf)("SlepcFinalize:Calling PetscInfo()");return; }
+  *ierr = 0;
+  if (SlepcBeganPetsc) {
+    petscfinalize_(ierr);
+    if (*ierr) { (*PetscErrorPrintf)("SlepcFinalize:Calling petscfinalize_()");return; }
+  }
+  SlepcInitializeCalled = PETSC_FALSE;
 }
 
