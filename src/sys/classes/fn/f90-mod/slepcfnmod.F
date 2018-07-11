@@ -8,8 +8,7 @@
 !  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !
         module slepcfndef
-        use petscmatdef
-        use petscvecdef
+        use slepcsys
 #include <../src/sys/classes/fn/f90-mod/slepcfn.h>
         end module
 
