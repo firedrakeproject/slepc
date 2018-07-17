@@ -100,7 +100,7 @@ PetscErrorCode EPSSolve_LOBPCG(EPS eps)
   if (nmat>1) { ierr = STGetMatrix(eps->st,1,&B);CHKERRQ(ierr); }
   else B = NULL;
 
-  guard = (PetscInt)((1.0-ctx->restart)*ctx->bs);  /* number of guard vectors */
+  guard = (PetscInt)PetscRoundReal((1.0-ctx->restart)*ctx->bs);  /* number of guard vectors */
 
   if (eps->which==EPS_LARGEST_REAL) {  /* flip spectrum */
     flip = PETSC_TRUE;
@@ -652,7 +652,7 @@ PetscErrorCode EPSView_LOBPCG(EPS eps,PetscViewer viewer)
   ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
   if (isascii) {
     ierr = PetscViewerASCIIPrintf(viewer,"  block size %D\n",ctx->bs);CHKERRQ(ierr);
-    ierr = PetscViewerASCIIPrintf(viewer,"  restart parameter=%g (using %d guard vectors)\n",(double)ctx->restart,(int)((1.0-ctx->restart)*ctx->bs));CHKERRQ(ierr);
+    ierr = PetscViewerASCIIPrintf(viewer,"  restart parameter=%g (using %d guard vectors)\n",(double)ctx->restart,(int)PetscRoundReal((1.0-ctx->restart)*ctx->bs));CHKERRQ(ierr);
     ierr = PetscViewerASCIIPrintf(viewer,"  soft locking %sactivated\n",ctx->lock?"":"de");CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
