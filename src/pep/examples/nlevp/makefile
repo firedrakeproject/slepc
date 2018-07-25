@@ -14,16 +14,17 @@ CPPFLAGS   =
 FPPFLAGS   =
 LOCDIR     = src/pep/examples/nlevp/
 EXAMPLESC  = acoustic_wave_1d.c acoustic_wave_2d.c butterfly.c damped_beam.c \
-             pdde_stability.c planar_waveguide.c sleeper.c spring.c wiresaw.c
+             pdde_stability.c planar_waveguide.c sleeper.c spring.c wiresaw.c loaded_string.c
 EXAMPLESF  =
 MANSEC     = PEP
 TESTS      = acoustic_wave_1d acoustic_wave_2d butterfly damped_beam \
-             pdde_stability planar_waveguide sleeper spring wiresaw
+             pdde_stability planar_waveguide sleeper spring wiresaw loaded_string
 
 TESTEXAMPLES_C                     = sleeper.PETSc runsleeper_1 sleeper.rm
 TESTEXAMPLES_C_NOTSINGLE           = damped_beam.PETSc rundamped_beam_1 damped_beam.rm \
                                      sleeper.PETSc runsleeper_2_toar runsleeper_3 sleeper.rm \
-                                     spring.PETSc runspring_1 runspring_3 runspring_4 spring.rm
+                                     spring.PETSc runspring_1 runspring_3 runspring_4 spring.rm \
+                                     loaded_string.PETSc runloaded_string_1 loaded_string.rm
 TESTEXAMPLES_C_NOCOMPLEX           = butterfly.PETSc runbutterfly_1 butterfly.rm
 TESTEXAMPLES_C_DATAFILE            = butterfly.PETSc runbutterfly_2 butterfly.rm
 TESTEXAMPLES_C_NOCOMPLEX_NOTSINGLE = acoustic_wave_1d.PETSc runacoustic_wave_1d_1 runacoustic_wave_1d_2 \
@@ -74,6 +75,10 @@ spring: spring.o chkopts
 wiresaw: wiresaw.o chkopts
 	-${CLINKER} -o wiresaw wiresaw.o ${SLEPC_PEP_LIB}
 	${RM} wiresaw.o
+
+loaded_string: loaded_string.o chkopts
+	-${CLINKER} -o loaded_string loaded_string.o ${SLEPC_PEP_LIB}
+	${RM} loaded_string.o
 
 #------------------------------------------------------------------------------------
 runacoustic_wave_1d_1: runacoustic_wave_1d_1_toar runacoustic_wave_1d_1_stoar runacoustic_wave_1d_1_qarnoldi runacoustic_wave_1d_1_linear
@@ -196,5 +201,10 @@ runwiresaw_1_%:
 	if [ "$$pep" = linear_h1 ]; then pep="linear -pep_linear_explicitmatrix -pep_linear_cform 1 -pep_linear_st_ksp_type bcgs -pep_linear_st_pc_type kaczmarz"; \
 	elif [ "$$pep" = linear_h2 ]; then pep="linear -pep_linear_explicitmatrix -pep_linear_cform 2"; fi; \
 	${MPIEXEC} -n 1 ./wiresaw -pep_type $${pep} -pep_nev 4 -terse > $${test}.tmp 2>&1; \
+	${TESTCODE}
+
+runloaded_string_1:
+	-@${SETTEST}; \
+	${MPIEXEC} -n 1 ./loaded_string -pep_hyperbolic -pep_interval 4,900 -pep_type stoar -st_type sinvert -st_pc_type cholesky -terse > $${test}.tmp 2>&1; \
 	${TESTCODE}
 
