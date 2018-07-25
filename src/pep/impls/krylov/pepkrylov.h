@@ -94,6 +94,7 @@ typedef struct {
   PetscBool   detect;         /* check for zeros during factorizations */
   PetscBool   hyperbolic;     /* hyperbolic problem flag */
   PetscInt    linearization;  /* */
+  PetscReal   alpha,beta;     /* coefficients defining the linearization */
 } PEP_TOAR;
 
 typedef struct {

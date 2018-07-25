@@ -107,7 +107,6 @@ PetscErrorCode PEPSetUp_STOAR(PEP pep)
     else pep->which = PEP_LARGEST_MAGNITUDE;
   }
 
-
   ierr = PEPAllocateSolution(pep,2);CHKERRQ(ierr);
   ierr = PEPSetWorkVecs(pep,4);CHKERRQ(ierr);
   ierr = BVDestroy(&ctx->V);CHKERRQ(ierr);
@@ -416,6 +415,7 @@ PetscErrorCode PEPSetFromOptions_STOAR(PetscOptionItems *PetscOptionsObject,PEP 
   PetscErrorCode ierr;
   PetscBool      flg,lock,b,f1,f2,f3;
   PetscInt       i,j,k;
+  PetscReal      array[2]={0,0};
   PEP_TOAR *ctx = (PEP_TOAR*)pep->data;
 
   PetscFunctionBegin;
@@ -434,6 +434,12 @@ PetscErrorCode PEPSetFromOptions_STOAR(PetscOptionItems *PetscOptionsObject,PEP 
   ierr = PetscOptionsInt("-pep_stoar_ncv","Number of basis vectors in each subsolve (only for spectrum slicing)","PEPSTOARSetDimensions",40,&j,&f2);CHKERRQ(ierr);
   ierr = PetscOptionsInt("-pep_stoar_mpd","Maximum dimension of projected problem in each subsolve (only for spectrum slicing)","PEPSTOARSetDimensions",40,&k,&f3);CHKERRQ(ierr);
   if (f1 || f2 || f3) { ierr = PEPSTOARSetDimensions(pep,i,j,k);CHKERRQ(ierr); }
+
+  k = 2;
+  ierr = PetscOptionsRealArray("-pep_stoar_linearization","Parameters of the linearization","PEPSTOARSetLinearization",array,&k,&flg);CHKERRQ(ierr);
+  if (flg) {
+    ierr = PEPSTOARSetLinearization(pep,array[0],array[1]);CHKERRQ(ierr);
+  }
 
   ierr = PetscOptionsTail();CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -697,6 +703,87 @@ PetscErrorCode PEPSTOARGetDetectZeros(PEP pep,PetscBool *detect)
   PetscFunctionReturn(0);
 }
 
+static PetscErrorCode PEPSTOARSetLinearization_STOAR(PEP pep,PetscReal alpha,PetscReal beta)
+{
+  PEP_TOAR *ctx = (PEP_TOAR*)pep->data;
+
+  PetscFunctionBegin;
+  if (beta==0.0 && alpha==0.0) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_WRONG,"Parameters alpha and beta cannot be zero simultaneously");
+  ctx->alpha = alpha;
+  ctx->beta  = beta;
+  PetscFunctionReturn(0);
+}
+
+/*@
+   PEPSTOARSetLinearization - Set the coefficients that define 
+   the linearization of a quadratic eigenproblem.
+
+   Logically Collective on PEP
+
+   Input Parameters:
++  pep   - polynomial eigenvalue solver
+.  alpha - first parameter of the linearization
+-  beta  - second parameter of the linearization
+
+   Options Database Key:
+.  -pep_stoar_linearization <alpha,beta> - Sets the coefficients
+
+   Note:
+   Cannot pass zero for both alpha and beta.
+
+   Level: advanced
+
+.seealso: PEPSTOARGetLinearization()
+@*/
+PetscErrorCode PEPSTOARSetLinearization(PEP pep,PetscReal alpha,PetscReal beta)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
+  PetscValidLogicalCollectiveReal(pep,alpha,2);
+  PetscValidLogicalCollectiveReal(pep,beta,3);
+  ierr = PetscTryMethod(pep,"PEPSTOARSetLinearization_C",(PEP,PetscReal,PetscReal),(pep,alpha,beta));CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+static PetscErrorCode PEPSTOARGetLinearization_STOAR(PEP pep,PetscReal *alpha,PetscReal *beta)
+{
+  PEP_TOAR *ctx = (PEP_TOAR*)pep->data;
+
+  PetscFunctionBegin;
+  if (alpha) *alpha = ctx->alpha;
+  if (beta)  *beta  = ctx->beta;
+  PetscFunctionReturn(0);
+}
+
+/*@
+   PEPSTOARGetLinearization - Returns the coefficients that define 
+   the linearization of a quadratic eigenproblem.
+
+   Not Collective
+
+   Input Parameter:
+.  pep  - polynomial eigenvalue solver
+
+   Output Parameters:
++  alpha - the first parameter of the linearization
+-  beta  - the second parameter of the linearization
+
+   Level: advanced
+
+.seealso: PEPSTOARSetLinearization()
+@*/
+PetscErrorCode PEPSTOARGetLinearization(PEP pep,PetscReal *alpha,PetscReal *beta)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
+  ierr = PetscUseMethod(pep,"PEPSTOARGetLinearization_C",(PEP,PetscReal*,PetscReal*),(pep,alpha,beta));CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
 static PetscErrorCode PEPSTOARSetDimensions_STOAR(PEP pep,PetscInt nev,PetscInt ncv,PetscInt mpd)
 {
   PEP_TOAR *ctx = (PEP_TOAR*)pep->data;
@@ -804,6 +891,7 @@ PetscErrorCode PEPView_STOAR(PEP pep,PetscViewer viewer)
   ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
   if (isascii) {
     ierr = PetscViewerASCIIPrintf(viewer,"  using the %slocking variant\n",ctx->lock?"":"non-");CHKERRQ(ierr);
+    ierr = PetscViewerASCIIPrintf(viewer,"  linearization parameters: alpha=%g beta=%g\n",(double)ctx->alpha,(double)ctx->beta);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }
@@ -834,6 +922,8 @@ PetscErrorCode PEPDestroy_STOAR(PEP pep)
   ierr = PetscObjectComposeFunction((PetscObject)pep,"PEPSTOARGetInertias_C",NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)pep,"PEPSTOARGetDimensions_C",NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)pep,"PEPSTOARSetDimensions_C",NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)pep,"PEPSTOARSetLinearization_C",NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)pep,"PEPSTOARGetLinearization_C",NULL);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -845,7 +935,9 @@ PETSC_EXTERN PetscErrorCode PEPCreate_STOAR(PEP pep)
   PetscFunctionBegin;
   ierr = PetscNewLog(pep,&ctx);CHKERRQ(ierr);
   pep->data = (void*)ctx;
-  ctx->lock = PETSC_TRUE;
+  ctx->lock  = PETSC_TRUE;
+  ctx->alpha = 0.0;
+  ctx->beta  = 1.0;
 
   pep->ops->setup          = PEPSetUp_STOAR;
   pep->ops->setfromoptions = PEPSetFromOptions_STOAR;
@@ -864,6 +956,8 @@ PETSC_EXTERN PetscErrorCode PEPCreate_STOAR(PEP pep)
   ierr = PetscObjectComposeFunction((PetscObject)pep,"PEPSTOARGetInertias_C",PEPSTOARGetInertias_STOAR);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)pep,"PEPSTOARGetDimensions_C",PEPSTOARGetDimensions_STOAR);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)pep,"PEPSTOARSetDimensions_C",PEPSTOARSetDimensions_STOAR);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)pep,"PEPSTOARSetLinearization_C",PEPSTOARSetLinearization_STOAR);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)pep,"PEPSTOARGetLinearization_C",PEPSTOARGetLinearization_STOAR);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
