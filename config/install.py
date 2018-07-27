@@ -160,6 +160,22 @@ class Installer:
         nret2 = nret + nret2
     return nret2
 
+  def copyConfig(self, src, dst):
+    """Recursively copy the examples directories
+    """
+    if not os.path.isdir(dst):
+      raise shutil.Error('Destination is not a directory')
+
+    self.copies.extend(self.copyfile('gmakefile.test',dst))
+    newConfigDir=os.path.join(dst,'config')  # Am not renaming at present
+    if not os.path.isdir(newConfigDir): os.mkdir(newConfigDir)
+    testConfFiles="gmakegentest.py gmakegen.py testparse.py example_template.py".split()
+    testConfFiles+="petsc_harness.sh report_tests.py".split()
+    testConfFiles+=["cmakegen.py"]
+    for tf in testConfFiles:
+      self.copies.extend(self.copyfile(os.path.join('config',tf),newConfigDir))
+    return
+
   def copytree(self, src, dst, symlinks = False, copyFunc = shutil.copy2, exclude = [], exclude_ext= ['.DSYM','.o','.pyc','.html'], recurse = 1):
     """Recursively copy a directory tree using copyFunc, which defaults to shutil.copy2().
 
@@ -299,6 +315,7 @@ for dir in dirs:
       shutil.rmtree(os.path.join(self.destShareDir,'slepc','examples'))
     os.mkdir(os.path.join(self.destShareDir,'slepc','examples'))
     self.copyExamples(self.rootDir,os.path.join(self.destShareDir,'slepc','examples'))
+    self.copyConfig(self.rootDir,examplesdir)
     self.fixExamplesMakefile(os.path.join(self.destShareDir,'slepc','examples','makefile'))
     return
 

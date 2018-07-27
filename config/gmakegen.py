@@ -9,7 +9,7 @@ from cmakegen import Mistakes, stripsplit, AUTODIRS, SKIPDIRS
 from cmakegen import defaultdict # collections.defaultdict, with fallback for python-2.4
 
 PKGS = 'sys eps svd pep nep mfn lme'.split()
-LANGS = dict(c='C', cxx='CXX', cu='CU', F='F')
+LANGS = dict(c='C', cxx='CXX', cu='CU', F='F', F90='F90')
 
 try:
     all([True, True])
