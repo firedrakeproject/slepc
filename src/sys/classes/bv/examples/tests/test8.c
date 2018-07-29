@@ -102,3 +102,45 @@ int main(int argc,char **argv)
   ierr = SlepcFinalize();
   return ierr;
 }
+
+/*TEST
+
+   test:
+      suffix: 1
+      nsize: 1
+      args: -bv_type {{vecs contiguous svec mat}shared output}
+      output_file: output/test8_1.out
+
+   test:
+      suffix: 1_cuda
+      nsize: 1
+      args: -bv_type svec -vec_type cuda
+      requires: veccuda
+      output_file: output/test8_1.out
+
+   test:
+      suffix: 2
+      nsize: 1
+      args: -bv_type {{vecs contiguous svec mat}shared output} -bv_orthog_refine never
+      output_file: output/test8_1.out
+
+   test:
+      suffix: 3
+      nsize: 1
+      args: -bv_type {{vecs contiguous svec mat}shared output} -bv_orthog_refine always
+      output_file: output/test8_1.out
+
+   test:
+      suffix: 4
+      nsize: 1
+      args: -bv_type {{vecs contiguous svec mat}shared output} -bv_orthog_type mgs
+      output_file: output/test8_1.out
+
+   test:
+      suffix: 4_cuda
+      nsize: 1
+      args: -bv_type svec -vec_type cuda -bv_orthog_type mgs
+      requires: veccuda
+      output_file: output/test8_1.out
+
+TEST*/

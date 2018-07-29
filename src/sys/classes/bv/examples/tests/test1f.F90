@@ -174,3 +174,54 @@
       call SlepcFinalize(ierr)
       end
 
+!/*TEST
+!
+!   test:
+!      suffix: 1_vecs
+!      nsize: 1
+!      args: -bv_type vecs -verbose
+!      output_file: output/test1f_1.out
+!
+!   test:
+!      suffix: 1_contiguous
+!      nsize: 1
+!      args: -bv_type contiguous -verbose
+!      output_file: output/test1f_1.out
+!
+!   test:
+!      suffix: 1_svec
+!      nsize: 1
+!      args: -bv_type svec -verbose
+!      output_file: output/test1f_1.out
+!
+!   test:
+!      suffix: 1_mat
+!      nsize: 1
+!      args: -bv_type mat -verbose
+!      output_file: output/test1f_1.out
+!
+!   test:
+!      suffix: 2_vecs
+!      nsize: 2
+!      args: -bv_type vecs -verbose
+!      output_file: output/test1f_1.out
+!
+!   test:
+!      suffix: 2_contiguous
+!      nsize: 2
+!      args: -bv_type contiguous -verbose
+!      output_file: output/test1f_1.out
+!
+!   test:
+!      suffix: 2_svec
+!      nsize: 2
+!      args: -bv_type svec -verbose
+!      output_file: output/test1f_1.out
+!
+!   test:
+!      suffix: 2_mat
+!      nsize: 2
+!      args: -bv_type mat -verbose
+!      output_file: output/test1f_1.out
+!
+!TEST*/

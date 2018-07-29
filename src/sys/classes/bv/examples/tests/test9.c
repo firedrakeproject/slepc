@@ -206,3 +206,38 @@ int main(int argc,char **argv)
   ierr = SlepcFinalize();
   return ierr;
 }
+
+/*TEST
+
+   test:
+      suffix: 1
+      nsize: 1
+      args: -bv_type {{vecs contiguous svec mat}shared output}
+      output_file: output/test9_1.out
+
+   test:
+      suffix: 1_svec_vecs
+      nsize: 1
+      args: -bv_type svec -bv_matmult vecs
+      output_file: output/test9_1.out
+
+   test:
+      suffix: 1_cuda
+      nsize: 1
+      args: -bv_type svec -mat_type aijcusparse
+      requires: veccuda
+      output_file: output/test9_1.out
+
+   test:
+      suffix: 2
+      nsize: 2
+      args: -bv_type {{vecs contiguous svec mat}shared output}
+      output_file: output/test9_1.out
+
+   test:
+      suffix: 2_svec_vecs
+      nsize: 2
+      args: -bv_type svec -bv_matmult vecs
+      output_file: output/test9_1.out
+
+TEST*/

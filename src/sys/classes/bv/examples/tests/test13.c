@@ -85,3 +85,20 @@ int main(int argc,char **argv)
   ierr = SlepcFinalize();
   return ierr;
 }
+
+/*TEST
+
+   test:
+      suffix: 1
+      nsize: 1
+      args: -bv_type {{vecs contiguous svec mat}shared output}
+      output_file: output/test13_1.out
+
+   test:
+      suffix: 1_cuda
+      nsize: 1
+      args: -bv_type svec -vec_type cuda
+      requires: veccuda
+      output_file: output/test13_1.out
+
+TEST*/
