@@ -79,3 +79,20 @@ int main(int argc,char **argv)
   ierr = SlepcFinalize();
   return ierr;
 }
+
+/*TEST
+
+   test:
+      suffix: 1
+      args: -rg_ring_width 0.015
+
+   test:
+      suffix: 2
+      args: -rg_ring_width 0.015 -rg_scale 1.5
+
+   test:
+      suffix: 3
+      args: -rg_view draw:tikz:test2_3_ring.tikz
+      filter: cat - test2_3_ring.tikz
+
+TEST*/

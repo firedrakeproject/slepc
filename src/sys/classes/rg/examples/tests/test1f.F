@@ -182,3 +182,14 @@
       call SlepcFinalize(ierr)
       end
 
+!/*TEST
+!
+!   test:
+!      suffix: 1
+!      requires: !complex
+!
+!   test:
+!      suffix: 1_complex
+!      requires: complex
+!
+!TEST*/
