@@ -150,3 +150,51 @@ int main(int argc,char **argv)
   ierr = SlepcFinalize();
   return ierr;
 }
+
+/*TEST
+
+   test:
+      suffix: 1
+      nsize: 1
+      args: -fn_scale .05,2 -n 100 -fn_method {{0 1 2}shared output}
+      filter: grep -v "computing matrix functions"
+      output_file: output/test7_1.out
+
+   test:
+      suffix: 1_sadeghi
+      nsize: 1
+      args: -fn_scale .05,2 -n 100 -fn_method 3
+      requires: !single
+      filter: grep -v "computing matrix functions"
+      output_file: output/test7_1.out
+
+   test:
+      suffix: 2
+      nsize: 1
+      args: -fn_scale .05,2 -n 100 -inplace -fn_method {{0 1 2}shared output}
+      filter: grep -v "computing matrix functions"
+      output_file: output/test7_1.out
+
+   test:
+      suffix: 2_sadeghi
+      nsize: 1
+      args: -fn_scale .05,2 -n 100 -inplace -fn_method 3
+      requires: !single
+      filter: grep -v "computing matrix functions"
+      output_file: output/test7_1.out
+
+   test:
+      suffix: 3
+      nsize: 3
+      args: -fn_scale .05,2 -n 100 -fn_parallel synchronized
+      filter: grep -v "computing matrix functions" | grep -v "SYNCHRONIZED" | sed -e "s/3 MPI/1 MPI/g"
+      output_file: output/test7_1.out
+
+   test:
+      suffix: 4
+      nsize: 3
+      args: -fn_scale .05,2 -n 100 -inplace -fn_parallel synchronized
+      filter: grep -v "computing matrix functions" | grep -v "SYNCHRONIZED" | sed -e "s/3 MPI/1 MPI/g"
+      output_file: output/test7_1.out
+
+TEST*/

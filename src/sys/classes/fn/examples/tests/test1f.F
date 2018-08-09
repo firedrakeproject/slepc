@@ -156,3 +156,10 @@
       return
       end
 
+!/*TEST
+!
+!   test:
+!      suffix: 1
+!      nsize: 1
+!
+!TEST*/

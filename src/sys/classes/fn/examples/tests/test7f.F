@@ -165,3 +165,13 @@
       return
       end
 
+!/*TEST
+!
+!   test:
+!      suffix: 1
+!      nsize: 1
+!      args: -fn_scale .13,2 -n 19 -fn_method {{0 1 2 3}shared output}
+!      filter: grep -v "computing matrix functions"
+!      output_file: output/test7f_1.out
+!
+!TEST*/

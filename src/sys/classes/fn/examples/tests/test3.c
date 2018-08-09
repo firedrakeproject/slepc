@@ -117,3 +117,59 @@ int main(int argc,char **argv)
   ierr = SlepcFinalize();
   return ierr;
 }
+
+/*TEST
+
+   test:
+      suffix: 1
+      nsize: 1
+      args: -fn_method {{0 1}shared output}
+      filter: grep -v "computing matrix functions"
+      output_file: output/test3_1.out
+
+   test:
+      suffix: 1_subdiagonalpade
+      nsize: 1
+      args: -fn_method 2
+      requires: define(PETSC_HAVE_C99_COMPLEX)
+      filter: grep -v "computing matrix functions"
+      output_file: output/test3_1.out
+
+   test:
+      suffix: 2
+      nsize: 1
+      args: -inplace
+      filter: grep -v "computing matrix functions"
+      output_file: output/test3_1.out
+
+   test:
+      suffix: 3
+      nsize: 1
+      args: -fn_scale 0.1 -fn_method {{0 1}shared output}
+      filter: grep -v "computing matrix functions"
+      output_file: output/test3_3.out
+
+   test:
+      suffix: 3_subdiagonalpade
+      nsize: 1
+      args: -fn_scale 0.1 -fn_method 2
+      requires: define(PETSC_HAVE_C99_COMPLEX)
+      filter: grep -v "computing matrix functions"
+      output_file: output/test3_3.out
+
+   test:
+      suffix: 4
+      nsize: 1
+      args: -n 200 -fn_scale 0.6,1.5 -fn_method {{0 1}shared output}
+      filter: grep -v "computing matrix functions"
+      output_file: output/test3_4.out
+
+   test:
+      suffix: 4_subdiagonalpade
+      nsize: 1
+      args: -n 200 -fn_scale 0.6,1.5 -fn_method 2
+      requires: define(PETSC_HAVE_C99_COMPLEX)
+      filter: grep -v "computing matrix functions"
+      output_file: output/test3_4.out
+
+TEST*/

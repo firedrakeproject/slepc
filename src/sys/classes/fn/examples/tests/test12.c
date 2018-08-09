@@ -102,3 +102,19 @@ int main(int argc,char **argv)
   ierr = SlepcFinalize();
   return ierr;
 }
+
+/*TEST
+
+   test:
+      suffix: 1
+      nsize: 1
+      args: -fn_type {{exp sqrt}shared output}
+      output_file: output/test12_1.out
+
+   test:
+      suffix: 1_rational
+      nsize: 1
+      args: -fn_type rational -fn_rational_numerator 2,-1.5 -fn_rational_denominator 1,0.8
+      output_file: output/test12_1.out
+
+TEST*/

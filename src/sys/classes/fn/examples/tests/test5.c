@@ -117,3 +117,17 @@ int main(int argc,char **argv)
   ierr = SlepcFinalize();
   return ierr;
 }
+
+/*TEST
+
+   test:
+      suffix: 1
+      nsize: 1
+
+   test:
+      suffix: 2
+      nsize: 1
+      args: -inplace
+      output_file: output/test5_1.out
+
+TEST*/
