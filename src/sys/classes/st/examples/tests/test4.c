@@ -164,3 +164,17 @@ int main(int argc,char **argv)
   ierr = SlepcFinalize();
   return ierr;
 }
+
+/*TEST
+
+   test:
+      suffix: 1
+      args: -st_transform -st_matmode {{copy shell}}
+      output_file: output/test4_1.out
+
+   test:
+      suffix: 2
+      args: -st_matmode {{copy shell}}
+      output_file: output/test4_2.out
+
+TEST*/

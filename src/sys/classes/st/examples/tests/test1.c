@@ -182,3 +182,11 @@ static PetscErrorCode MatDuplicate_Shell(Mat S,MatDuplicateOption op,Mat *M)
   PetscFunctionReturn(0);
 }
 
+/*TEST
+
+   test:
+      suffix: 1
+      args: -st_matmode {{inplace shell}}
+      output_file: output/test1_1.out
+
+TEST*/
