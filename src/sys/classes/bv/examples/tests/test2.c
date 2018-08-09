@@ -180,6 +180,7 @@ int main(int argc,char **argv)
       suffix: 3
       nsize: 1
       args: -bv_type {{vecs contiguous svec mat}shared output} -condn 1e8
+      requires: !single
       filter: grep -v "against"
       output_file: output/test2_3.out
 

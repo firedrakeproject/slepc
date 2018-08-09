@@ -393,13 +393,14 @@ int main(int argc,char **argv)
       suffix: 12
       nsize: 9
       args: -resid -n 180 -l 0 -k 7 -bv_orthog_block tsqr -bv_type {{vecs contiguous svec mat}shared output}
+      requires: !single
       output_file: output/test11_12.out
 
    test:
       suffix: 12_cuda
       nsize: 9
       args: -resid -n 180 -l 0 -k 7 -bv_orthog_block tsqr -bv_type svec -vec_type cuda
-      requires: veccuda
+      requires: !single veccuda
       output_file: output/test11_12.out
 
    test:

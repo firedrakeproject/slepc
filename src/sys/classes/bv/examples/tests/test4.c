@@ -186,7 +186,7 @@ int main(int argc,char **argv)
    test:
       suffix: 1_vecs_vmip
       nsize: 1
-      args: -n 18 -kx 12 -ky 8 -bv_type svec -bv_vecs_vmip 1
+      args: -n 18 -kx 12 -ky 8 -bv_type vecs -bv_vecs_vmip 1
       output_file: output/test4_1.out
 
    test:
