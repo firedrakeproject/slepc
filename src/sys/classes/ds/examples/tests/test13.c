@@ -87,3 +87,11 @@ int main(int argc,char **argv)
   ierr = SlepcFinalize();
   return ierr;
 }
+
+/*TEST
+
+   test:
+      suffix: 1
+      requires: !complex !single
+
+TEST*/

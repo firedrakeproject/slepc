@@ -119,3 +119,21 @@ int main(int argc,char **argv)
   ierr = SlepcFinalize();
   return ierr;
 }
+
+/*TEST
+
+   test:
+      suffix: 1
+      nsize: {{1 2 3}}
+      args: -ds_parallel redundant
+      requires: !complex
+      output_file: output/test18_1.out
+
+   test:
+      suffix: 2
+      nsize: {{1 2 3}}
+      args: -ds_parallel synchronized
+      requires: !complex
+      output_file: output/test18_1.out
+
+TEST*/
