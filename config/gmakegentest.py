@@ -748,7 +748,10 @@ class generateExamples(Slepc):
         if requirement == "complex":
           petscconfvar="PETSC_USE_COMPLEX"
         else:
-          petscconfvar="PETSC_HAVE_"+requirement.upper()
+          if requirement in "arpack blopex blzpack feast primme slicot trlan".split():
+            petscconfvar="SLEPC_HAVE_"+requirement.upper()
+          else:
+            petscconfvar="PETSC_HAVE_"+requirement.upper()
         if self.conf.get(petscconfvar):
           if isNull:
             testDict['SKIP'].append("Not "+petscconfvar+" requirement not met")
