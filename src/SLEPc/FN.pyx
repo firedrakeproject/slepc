@@ -250,6 +250,23 @@ cdef class FN(Object):
         cdef object tmp1 = iarray_s(alpha, &na, &a)
         CHKERR( FNRationalSetDenominator(self.fn, na, a) )
 
+    def setCombineChildren(self, comb, FN f1, FN f2):
+        """
+        Sets the two child functions that constitute this combined
+        function, and the way they must be combined.
+
+        Parameters
+        ----------
+        comb: `FN.CombineType` enumerate
+            How to combine the functions (addition, multiplication, division, composition).
+        f1: FN
+            First function.
+        f2: FN
+            Second function.
+        """
+        cdef SlepcFNCombineType val = comb
+        CHKERR( FNCombineSetChildren(self.fn, val, f1.fn, f2.fn) )
+
 # -----------------------------------------------------------------------------
 
 del FNType
