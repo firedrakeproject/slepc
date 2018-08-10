@@ -435,3 +435,15 @@ PetscErrorCode FormFunctionB(SNES snes,Vec X,Vec F,void *ctx)
   ierr = VecAssemblyEnd(F);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
+
+/*TEST
+
+   test:
+      suffix: 1
+      args: -petscspace_order 1 -petscspace_poly_tensor
+
+   test:
+      suffix: 2
+      args: -petscspace_order 1 -petscspace_poly_tensor -eps_power_update
+
+TEST*/

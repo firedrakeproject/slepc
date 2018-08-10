@@ -196,4 +196,10 @@
       ierr = 0
       end
 
-
+!/*TEST
+!
+!   test:
+!      suffix: 1
+!      args: -my_eps_monitor
+!
+!TEST*/

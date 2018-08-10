@@ -98,3 +98,60 @@ int main(int argc,char **argv)
   ierr = SlepcFinalize();
   return ierr;
 }
+
+/*TEST
+
+   testset:
+      args: -eps_nev 4
+      requires: !single
+      output_file: output/test3_1.out
+      test:
+         suffix: 1
+         args: -eps_type {{krylovschur subspace arnoldi lanczos lapack}}
+      test:
+         suffix: 1_power
+         args: -eps_type power -eps_max_it 20000
+      test:
+         suffix: 1_jd
+         args: -eps_type jd -eps_jd_initial_size 7
+      test:
+         suffix: 1_gd
+         args: -eps_type gd -eps_gd_initial_size 7
+      test:
+         suffix: 1_gd2
+         args: -eps_type gd -eps_gd_double_expansion
+      test:
+         suffix: 1_arpack
+         args: -eps_type arpack
+         requires: arpack
+      test:
+         suffix: 1_primme
+         args: -eps_type primme -eps_conv_abs
+         requires: primme
+      test:
+         suffix: 1_trlan
+         args: -eps_type trlan
+         requires: trlan
+
+   testset:
+      args: -eps_nev 4 -eps_smallest_real -eps_max_it 500
+      requires: !single
+      output_file: output/test3_2.out
+      test:
+         suffix: 2_rqcg
+         args: -eps_type rqcg -eps_rqcg_reset 5 -eps_ncv 32 -st_pc_type bjacobi
+      test:
+         suffix: 2_lobpcg
+         args: -eps_type lobpcg -eps_lobpcg_blocksize 6 -st_ksp_type preonly
+      test:
+         suffix: 2_lanczos
+         args: -eps_type lanczos
+      test:
+         suffix: 2_lanczos_delayed
+         args: -eps_type lanczos -eps_lanczos_reorthog delayed -eps_tol 1e-8
+      test:
+         suffix: 2_trlan
+         args: -eps_type trlan
+         requires: trlan
+
+TEST*/

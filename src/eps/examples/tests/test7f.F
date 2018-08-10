@@ -155,3 +155,10 @@
       call SlepcFinalize(ierr)
       end
 
+!/*TEST
+!
+!   test:
+!      suffix: 1
+!      args: -eps_nev 4
+!
+!TEST*/

@@ -105,3 +105,50 @@ int main(int argc,char **argv)
   ierr = SlepcFinalize();
   return ierr;
 }
+
+/*TEST
+
+   testset:
+      args: -eps_nev 4
+      requires: !single
+      output_file: output/test2_1.out
+      test:
+         suffix: 1
+         args: -eps_type {{krylovschur arnoldi gd jd lapack}}
+      test:
+         suffix: 1_gd2
+         args: -eps_type gd -eps_gd_double_expansion
+
+   testset:
+      args: -eps_type lanczos -eps_nev 4
+      requires: !single
+      filter: grep -v "Lanczos"
+      output_file: output/test2_1.out
+      test:
+         suffix: 2
+         args: -eps_lanczos_reorthog {{local full selective periodic partial}}
+
+   testset:
+      nsize: 2
+      args: -n 32 -eps_nev 4
+      requires: !single
+      output_file: output/test2_3.out
+      test:
+         suffix: 3
+         args: -eps_type {{krylovschur lapack}}
+      test:
+         suffix: 3_gd
+         args: -eps_type gd -eps_gd_krylov_start
+      test:
+         suffix: 3_jd
+         args: -eps_type jd -eps_jd_krylov_start -eps_ncv 18
+
+   testset:
+      args: -eps_nev 4 -mat_type aijcusparse
+      requires: veccuda !single
+      output_file: output/test2_1.out
+      test:
+         suffix: 4_cuda
+         args: -eps_type {{krylovschur arnoldi gd jd}}
+
+TEST*/

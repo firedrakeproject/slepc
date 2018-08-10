@@ -177,3 +177,67 @@ PetscErrorCode MyEigenSort(PetscScalar ar,PetscScalar ai,PetscScalar br,PetscSca
   *r = d > PETSC_SQRT_MACHINE_EPSILON ? 1 : (d < -PETSC_SQRT_MACHINE_EPSILON ? -1 : PetscSign(PetscRealPart(br)));
   PetscFunctionReturn(0);
 }
+
+/*TEST
+
+   testset:
+      args: -eps_nev 4
+      requires: !single
+      output_file: output/test9_1.out
+      test:
+         suffix: 1
+         args: -eps_type {{krylovschur arnoldi}} -eps_ncv 7 -eps_max_it 300
+      test:
+         suffix: 1_more
+         args: -eps_type {{gd lapack}}
+      test:
+         suffix: 1_gd2
+         args: -eps_type gd -eps_gd_double_expansion
+
+   test:
+      suffix: 2
+      args: -eps_balance {{none oneside twoside}} -eps_nev 4 -eps_ncv 7 -eps_max_it 500
+      requires: !single
+      output_file: output/test9_1.out
+
+   test:
+      suffix: 3
+      nsize: 2
+      args: -eps_type arnoldi -eps_arnoldi_delayed -eps_largest_real -eps_nev 3 -eps_tol 1e-7 -bv_orthog_refine {{never ifneeded}}
+      requires: !single
+      output_file: output/test9_3.out
+
+   test:
+      suffix: 4
+      args: -eps_nev 4 -eps_true_residual
+      requires: !single
+      output_file: output/test9_1.out
+
+   test:
+      suffix: 5
+      args: -eps_type jd -eps_nev 3 -eps_target .5 -eps_harmonic -st_ksp_type bicg -eps_jd_minv 2
+      requires: !single !complex
+
+   testset:
+      args: -eps_type ciss -eps_tol 1e-9 -rg_type ellipse -rg_ellipse_center 0.55 -rg_ellipse_radius 0.05 -rg_ellipse_vscale 0.1 -eps_ciss_usest 0 -eps_all
+      requires: !single
+      output_file: output/test9_6.out
+      test:
+         suffix: 6
+      test:
+         suffix: 6_hankel
+         args: -eps_ciss_extraction hankel -eps_ciss_spurious_threshold 1e-6
+      test:
+         suffix: 6_cheby
+         args: -eps_ciss_quadrule chebyshev
+      test:
+         suffix: 6_hankel_cheby
+         args: -eps_ciss_extraction hankel -eps_ciss_quadrule chebyshev
+      test:
+         suffix: 6_refine
+         args: -eps_ciss_refine_inner 1 -eps_ciss_refine_blocksize 1
+      test:
+         suffix: 6_bcgs
+         args: -eps_ciss_realmats -eps_ciss_ksp_type bcgs -eps_ciss_pc_type sor
+
+TEST*/

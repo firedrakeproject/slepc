@@ -61,3 +61,11 @@ int main(int argc,char **argv)
   ierr = SlepcFinalize();
   return ierr;
 }
+
+/*TEST
+
+   test:
+      suffix: 1
+      args: -check_myprefix_eps_nev 2 -check_myprefix_st_type sinvert
+
+TEST*/

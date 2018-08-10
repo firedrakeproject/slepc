@@ -686,3 +686,13 @@ int main(int argc,char **argv)
   ierr = SlepcFinalize();
   return ierr;
 }
+
+/*TEST
+
+   test:
+      suffix: 1
+      args: -terse
+      requires: double !complex !define(PETSC_USE_64BIT_INDICES)
+      localrunfiles: X.bin Ybus.bin
+
+TEST*/

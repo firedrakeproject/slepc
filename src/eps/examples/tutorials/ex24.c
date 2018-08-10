@@ -244,3 +244,10 @@ PetscErrorCode ComputeResidualNorm(Mat A,PetscScalar lambda,Vec x,PetscReal *r)
   PetscFunctionReturn(0);
 }
 
+/*TEST
+
+   test:
+      suffix: 1
+      args: -n 15 -eps_nev 1 -eps_ncv 12 -eps_max_it 1000 -eps_tol 1e-5 -terse
+
+TEST*/

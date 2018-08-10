@@ -185,3 +185,18 @@ int main(int argc,char **argv)
   return ierr;
 }
 
+/*TEST
+
+   testset:
+      args: -terse
+      requires: !complex
+      output_file: output/ex25_1.out
+      test:
+         suffix: 1
+         requires: !single
+      test:
+         suffix: 1_single
+         args: -eps_tol 1e-5
+         requires: single
+
+TEST*/

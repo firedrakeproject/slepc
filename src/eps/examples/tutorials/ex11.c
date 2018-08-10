@@ -128,3 +128,17 @@ int main (int argc,char **argv)
   return ierr;
 }
 
+/*TEST
+
+   testset:
+      args: -eps_nev 4 -terse
+      requires: !single
+      output_file: output/ex11_1.out
+      test:
+         suffix: 1
+         args: -eps_krylovschur_restart .2
+      test:
+         suffix: 2
+         args: -eps_ncv 20 -eps_target 0 -st_type sinvert -st_ksp_type cg -st_pc_type jacobi
+
+TEST*/

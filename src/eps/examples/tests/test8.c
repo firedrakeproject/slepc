@@ -165,3 +165,81 @@ PetscErrorCode MatGetDiagonal_Laplacian2D(Mat A,Vec diag)
   PetscFunctionReturn(0);
 }
 
+/*TEST
+
+   testset:
+      args: -n 20 -eps_nev 4 -eps_ncv 11 -eps_max_it 40000
+      requires: !single
+      output_file: output/test8_1.out
+      test:
+         suffix: 1
+         args: -eps_type {{krylovschur power subspace arnoldi lanczos lapack}}
+      test:
+         suffix: 1_krylovschur_vecs
+         args: -bv_type vecs -bv_orthog_refine always
+      test:
+         suffix: 1_jd
+         args: -eps_type jd -eps_jd_blocksize 3
+      test:
+         suffix: 1_gd
+         args: -eps_type gd -eps_gd_blocksize 3
+      test:
+         suffix: 1_gd2
+         args: -eps_type gd -eps_gd_double_expansion
+      test:
+         suffix: 1_primme
+         args: -eps_type primme -eps_conv_abs
+         requires: primme
+
+   testset:
+      args: -eps_nev 4 -eps_smallest_real -eps_max_it 500
+      output_file: output/test8_2.out
+      test:
+         suffix: 2
+         args: -eps_type {{rqcg lobpcg lanczos}}
+         requires: !single
+      test:
+         suffix: 2_single
+         args: -eps_type {{rqcg lobpcg lanczos}} -eps_tol 1e-5
+         requires: single
+      test:
+         suffix: 2_arpack
+         args: -eps_type arpack -eps_ncv 6
+         requires: arpack
+      test:
+         suffix: 2_blzpack
+         args: -eps_type blzpack
+         requires: blzpack
+      test:
+         suffix: 2_blopex
+         args: -eps_type blopex
+         requires: blopex
+
+   testset:
+      args: -eps_nev 12 -eps_mpd 9 -eps_smallest_real -eps_max_it 1000
+      output_file: output/test8_3.out
+      test:
+         suffix: 3
+         args: -eps_type {{rqcg lanczos}}
+         requires: double
+      test:
+         suffix: 3_lobpcg
+         args: -eps_type lobpcg -eps_lobpcg_blocksize 3 -eps_lobpcg_locking 0 -st_ksp_type preonly -st_pc_type jacobi
+         requires: double
+      test:
+         suffix: 3_single
+         args: -eps_type {{rqcg lanczos}} -eps_tol 1e-5
+         requires: single
+      test:
+         suffix: 3_lobpcg_single
+         args: -eps_type lobpcg -eps_lobpcg_blocksize 3 -eps_lobpcg_locking 0 -st_ksp_type preonly -st_pc_type jacobi -eps_tol 1e-5
+         requires: single
+      test:
+         suffix: 3_quad
+         args: -eps_type {{rqcg lanczos}} -eps_tol 1e-25
+         requires: __float128
+      test:
+         suffix: 3_lobpcg_quad
+         args: -eps_type lobpcg -eps_lobpcg_blocksize 3 -eps_lobpcg_locking 0 -st_ksp_type preonly -st_pc_type jacobi -eps_tol 1e-25
+         requires: __float128
+TEST*/

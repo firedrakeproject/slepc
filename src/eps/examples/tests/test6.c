@@ -72,3 +72,29 @@ int main(int argc,char **argv)
   ierr = SlepcFinalize();
   return ierr;
 }
+
+/*TEST
+
+   testset:
+      args: -eps_nev 4
+      requires: !single
+      output_file: output/test6_1.out
+      test:
+         suffix: 1
+         args: -eps_type {{krylovschur subspace arnoldi gd}}
+      test:
+         suffix: 1_power
+         args: -eps_type power -eps_max_it 20000
+      test:
+         suffix: 1_gd2
+         args: -eps_type gd -eps_gd_double_expansion
+      test:
+         suffix: 1_arpack
+         args: -eps_type arpack
+         requires: arpack
+      test:
+         suffix: 1_trlan
+         args: -eps_type trlan
+         requires: trlan
+
+TEST*/

@@ -252,3 +252,47 @@ PetscErrorCode MatGetDiagonal_Brussel(Mat A,Vec diag)
   PetscFunctionReturn(0);
 }
 
+/*TEST
+
+   test:
+      suffix: 1
+      args: -eps_nev 4 -terse
+      requires: !complex !single
+
+   test:
+      suffix: 2
+      args: -eps_nev 8 -eps_max_it 300 -eps_target -28 -rg_type interval -rg_interval_endpoints -40,-20,-.1,.1 -terse
+      requires: !complex !single
+
+   test:
+      suffix: 3
+      args: -eps_nev 4 -eps_balance oneside -terse
+      requires: double !complex !define(PETSC_USE_64BIT_INDICES)
+      output_file: output/ex9_1.out
+
+   test:
+      suffix: 4
+      args: -eps_smallest_imaginary -eps_ncv 24 -terse
+      requires: !complex !single
+
+   test:
+      suffix: 5
+      args: -eps_nev 4 -eps_target_real -eps_target -3 -terse
+      requires: !complex !single
+
+   test:
+      suffix: 6
+      args: -eps_nev 2 -eps_target_imaginary -eps_target 3i -terse
+      requires: complex !single
+
+   test:
+      suffix: 7
+      args: -n 40 -eps_nev 1 -eps_type arnoldi -eps_smallest_real -eps_refined -eps_max_it 200 -terse
+      requires: double !complex !define(PETSC_USE_64BIT_INDICES)
+
+   test:
+      suffix: 8
+      args: -eps_nev 2 -eps_target -30 -eps_type jd -st_matmode shell -eps_jd_fix 0.0001 -eps_jd_const_correction_tol 0 -terse
+      requires: !complex !single
+
+TEST*/

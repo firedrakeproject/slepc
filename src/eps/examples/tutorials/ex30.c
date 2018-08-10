@@ -270,3 +270,11 @@ PetscErrorCode MyStoppingTest(EPS eps,PetscInt its,PetscInt max_it,PetscInt ncon
   PetscFunctionReturn(0);
 }
 
+/*TEST
+
+   test:
+      suffix: 1
+      args: -n 100 -terse
+      requires: !single
+
+TEST*/

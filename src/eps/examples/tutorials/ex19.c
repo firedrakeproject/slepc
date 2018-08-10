@@ -252,3 +252,17 @@ int main(int argc,char **argv)
   return ierr;
 }
 
+/*TEST
+
+   testset:
+      args: -eps_nev 8 -terse
+      requires: double
+      output_file: output/ex19_1.out
+      test:
+         suffix: 1_krylovschur
+         args: -eps_type krylovschur -eps_ncv 64
+      test:
+         suffix: 1_lobpcg
+         args: -eps_type lobpcg -eps_tol 1e-7
+
+TEST*/

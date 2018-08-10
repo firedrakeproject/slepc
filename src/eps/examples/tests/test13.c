@@ -96,3 +96,23 @@ int main(int argc,char **argv)
   ierr = SlepcFinalize();
   return ierr;
 }
+
+/*TEST
+
+   testset:
+      args: -eps_max_it 5000
+      output_file: output/test13_1.out
+      test:
+         suffix: 1
+         args: -eps_type {{krylovschur gd jd}}
+      test:
+         suffix: 1_gd2
+         args: -eps_type gd -eps_gd_double_expansion
+      test:
+         suffix: 2
+         args: -eps_non_hermitian -eps_type {{krylovschur gd jd}}
+      test:
+         suffix: 2_gd2
+         args: -eps_non_hermitian -eps_type gd -eps_gd_double_expansion
+
+TEST*/

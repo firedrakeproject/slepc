@@ -125,3 +125,23 @@ int main(int argc,char **argv)
   return ierr;
 }
 
+/*TEST
+
+   test:
+      suffix: 1
+      args: -eps_type {{krylovschur arnoldi lanczos gd jd rqcg lobpcg lapack}} -terse
+      requires: !single
+      output_file: output/test28_1.out
+
+   test:
+      suffix: 2
+      args: -eps_type {{power subspace}} -eps_target 8 -st_type sinvert -terse
+      requires: !single
+      output_file: output/test28_2.out
+
+   test:
+      suffix: 3
+      args: -eps_interval 0.5,0.67 -st_type sinvert -st_pc_type cholesky -terse
+      requires: !single
+
+TEST*/

@@ -143,3 +143,14 @@ int main(int argc,char **argv)
   return ierr;
 }
 
+/*TEST
+
+   test:
+      suffix: 1
+      args: -eps_nev 4 -eps_ncv 22 -eps_tol 1e-5 -terse
+
+   test:
+      suffix: 2
+      args: -n 110 -nulldim 6 -eps_nev 4 -eps_ncv 18 -eps_tol 1e-5 -eps_purify 1 -st_type sinvert -terse
+
+TEST*/

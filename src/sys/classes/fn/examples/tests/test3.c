@@ -131,7 +131,7 @@ int main(int argc,char **argv)
       suffix: 1_subdiagonalpade
       nsize: 1
       args: -fn_method 2
-      requires: define(PETSC_HAVE_C99_COMPLEX)
+      requires: c99_complex
       filter: grep -v "computing matrix functions"
       output_file: output/test3_1.out
 
@@ -153,7 +153,7 @@ int main(int argc,char **argv)
       suffix: 3_subdiagonalpade
       nsize: 1
       args: -fn_scale 0.1 -fn_method 2
-      requires: define(PETSC_HAVE_C99_COMPLEX)
+      requires: c99_complex
       filter: grep -v "computing matrix functions"
       output_file: output/test3_3.out
 
@@ -168,7 +168,7 @@ int main(int argc,char **argv)
       suffix: 4_subdiagonalpade
       nsize: 1
       args: -n 200 -fn_scale 0.6,1.5 -fn_method 2
-      requires: define(PETSC_HAVE_C99_COMPLEX)
+      requires: c99_complex
       filter: grep -v "computing matrix functions"
       output_file: output/test3_4.out
 
