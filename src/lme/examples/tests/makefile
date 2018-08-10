@@ -18,8 +18,5 @@ EXAMPLESF  =
 MANSEC     = LME
 TESTS      = 
 
-TESTEXAMPLES_C           = 
-
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common
 
-#------------------------------------------------------------------------------------

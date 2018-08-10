@@ -113,3 +113,10 @@ int main(int argc,char **argv)
   return ierr;
 }
 
+/*TEST
+
+   test:
+      suffix: 1
+      args: -myprefix_mfn_monitor_cancel -myprefix_mfn_converged_reason -myprefix_mfn_view
+
+TEST*/

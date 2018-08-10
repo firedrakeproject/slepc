@@ -167,3 +167,10 @@
       call SlepcFinalize(ierr)
       end
 
+!/*TEST
+!
+!   test:
+!      suffix: 1
+!      args: -info_exclude mfn -log_exclude mfn
+!
+!TEST*/

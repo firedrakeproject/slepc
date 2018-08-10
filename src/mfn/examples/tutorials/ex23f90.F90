@@ -187,3 +187,10 @@
       call SlepcFinalize(ierr)
       end
 
+!/*TEST
+!
+!   test:
+!      suffix: 1
+!      args: -mfn_ncv 6
+!
+!TEST*/

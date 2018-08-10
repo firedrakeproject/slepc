@@ -115,3 +115,10 @@ int main(int argc,char **argv)
   return ierr;
 }
 
+/*TEST
+
+   test:
+      suffix: 1
+      args: -mfn_tol 1e-5
+
+TEST*/
