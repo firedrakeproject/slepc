@@ -114,3 +114,16 @@ int main(int argc,char **argv)
   return ierr;
 }
 
+/*TEST
+
+   test:
+      suffix: 1
+      args: -info_exclude svd -log_exclude svd
+      requires: !single
+
+   test:
+      suffix: 2_cuda
+      args: -info_exclude svd -log_exclude svd -mat_type aijcusparse
+      requires: veccuda !single
+
+TEST*/

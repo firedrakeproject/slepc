@@ -102,3 +102,19 @@ int main(int argc,char **argv)
   return ierr;
 }
 
+/*TEST
+
+   testset:
+      output_file: output/test6_1.out
+      test:
+         suffix: 1_subspace
+         args: -eps_type subspace
+      test:
+         suffix: 1_lobpcg
+         args: -eps_type lobpcg -st_type precond
+      test:
+         suffix: 2_cuda
+         args: -eps_type subspace -mat_type aijcusparse
+         requires: veccuda
+
+TEST*/

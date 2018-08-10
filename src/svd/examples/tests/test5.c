@@ -56,3 +56,11 @@ int main(int argc,char **argv)
   return ierr;
 }
 
+/*TEST
+
+   test:
+      suffix: 1
+      args: -svd_error_relative ::ascii_info_detail -svd_view_values -svd_monitor_conv -svd_error_absolute ::ascii_matlab -svd_monitor_all -svd_converged_reason -svd_view
+      filter: grep -v "tolerance" | grep -v "problem type" | sed -e "s/[0-9]\.[0-9]*e-\([0-9]*\)/removed/g"
+
+TEST*/

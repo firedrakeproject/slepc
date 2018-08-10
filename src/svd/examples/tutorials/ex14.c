@@ -104,3 +104,16 @@ int main(int argc,char **argv)
   ierr = SlepcFinalize();
   return ierr;
 }
+/*TEST
+
+   testset:
+      requires: double !complex !define(PETSC_USE_64BIT_INDICES)
+      args: -file ${SLEPC_DIR}/share/slepc/datafiles/matrices/rdb200.petsc -terse
+      test:
+         suffix: 1
+         args: -svd_nsv 4
+      test:
+         suffix: 2
+         args: -svd_nsv 2 -svd_type cyclic -svd_cyclic_explicitmatrix -svd_cyclic_st_type sinvert -svd_cyclic_eps_target 12.0 -svd_cyclic_st_ksp_type preonly -svd_cyclic_st_pc_type lu
+
+TEST*/

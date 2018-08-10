@@ -170,3 +170,9 @@
       call SlepcFinalize(ierr)
       end
 
+!/*TEST
+!
+!   test:
+!      suffix: 1
+!
+!TEST*/
