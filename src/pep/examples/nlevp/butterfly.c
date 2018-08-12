@@ -145,3 +145,23 @@ int main(int argc,char **argv)
   ierr = SlepcFinalize();
   return ierr;
 }
+
+/*TEST
+
+   testset:
+      args: -pep_nev 4 -st_type sinvert -pep_target 0.01 -terse
+      requires: !complex
+      output_file: output/butterfly_1.out
+      test:
+         suffix: 1_toar
+         args: -pep_type toar -pep_toar_restart 0.3
+      test:
+         suffix: 1_linear
+         args: -pep_type linear
+
+   test:
+      suffix: 2
+      args: -pep_type {{toar linear}} -pep_nev 4 -terse
+      requires: double !complex !define(PETSC_USE_64BIT_INDICES)
+
+TEST*/

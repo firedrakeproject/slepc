@@ -248,3 +248,11 @@
 
       call SlepcFinalize(ierr)
       end
+
+!/*TEST
+!
+!   test:
+!      suffix: 1
+!      args: -pep_tol 1e-6 -pep_ncv 22
+!
+!TEST*/

@@ -162,3 +162,25 @@ int main(int argc,char **argv)
   return ierr;
 }
 
+/*TEST
+
+   testset:
+      args: -pep_nev 4 -pep_ncv 21 -n 12 -terse
+      requires: !complex
+      output_file: output/ex16_1.out
+      test:
+         suffix: 1
+         args: -pep_type {{toar qarnoldi}}
+      test:
+         suffix: 1_linear
+         args: -pep_type linear -pep_linear_explicitmatrix
+      test:
+         suffix: 1_linear_symm
+         args: -pep_type linear -pep_linear_explicitmatrix -pep_linear_eps_gen_indefinite
+         requires: !single
+      test:
+         suffix: 1_stoar
+         args: -pep_type stoar
+         requires: !single
+
+TEST*/

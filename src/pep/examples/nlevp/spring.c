@@ -135,3 +135,41 @@ int main(int argc,char **argv)
   ierr = SlepcFinalize();
   return ierr;
 }
+
+/*TEST
+
+   testset:
+      args: -pep_nev 4 -n 24 -pep_ncv 18 -pep_target -.5 -st_type sinvert -pep_scale diagonal -terse
+      requires: !single
+      output_file: output/spring_1.out
+      test:
+         suffix: 1
+         args: -pep_type {{toar linear}} -pep_conv_norm
+      test:
+         suffix: 1_stoar
+         args: -pep_type stoar -pep_hermitian -pep_conv_rel
+      test:
+         suffix: 1_qarnoldi
+         args: -pep_type qarnoldi -pep_conv_rel
+
+   test:
+      suffix: 2
+      args: -pep_type jd -pep_nev 4 -n 24 -pep_ncv 18 -pep_target -50 -terse
+      requires: complex
+
+   test:
+      suffix: 3
+      args: -n 300 -pep_hermitian -pep_interval -10.1,-9.5 -pep_type stoar -st_type sinvert -st_pc_type cholesky -terse
+      requires: !single
+
+   test:
+      suffix: 4
+      args: -n 300 -pep_hyperbolic -pep_interval -9.6,-.527 -pep_type stoar -st_type sinvert -st_pc_type cholesky -terse
+      requires: !single
+
+   test:
+      suffix: 5
+      args: -n 300 -pep_hyperbolic -pep_interval -.51,-.3 -pep_type stoar -st_type sinvert -st_pc_type cholesky -pep_stoar_nev 10 -terse
+      requires: !single !complex
+
+TEST*/

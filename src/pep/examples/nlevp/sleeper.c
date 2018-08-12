@@ -141,3 +141,34 @@ int main(int argc,char **argv)
   ierr = SlepcFinalize();
   return ierr;
 }
+
+/*TEST
+
+   testset:
+      args: -n 100 -pep_nev 4 -pep_ncv 24 -st_type sinvert -terse
+      output_file: output/sleeper_1.out
+      test:
+         suffix: 1
+         args: -pep_type {{toar linear}}
+      test:
+         suffix: 1_qarnoldi
+         args: -pep_type qarnoldi -pep_qarnoldi_restart 0.4
+
+   testset:
+      args: -n 100 -pep_nev 4 -terse
+      output_file: output/sleeper_2.out
+      test:
+         suffix: 2_toar
+         args: -pep_type toar -pep_toar_restart .35 -pep_ncv 10 -pep_max_it 2000 -st_type sinvert
+         requires: !single
+      test:
+         suffix: 2_jd
+         args: -pep_type jd -pep_target -.61
+         requires: complex
+
+   test:
+      suffix: 3
+      args: -n 270 -pep_type stoar -pep_hermitian -st_type sinvert -pep_nev 2 -pep_target -.89 -terse
+      requires: !single
+
+TEST*/

@@ -189,3 +189,12 @@ int main(int argc,char **argv)
   ierr = SlepcFinalize();
   return ierr;
 }
+
+/*TEST
+
+   test:
+      suffix: 1
+      args: -pep_type {{toar linear}} -pep_nev 4 -st_type sinvert -terse
+      requires: !complex !single
+
+TEST*/

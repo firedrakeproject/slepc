@@ -165,3 +165,17 @@ int main(int argc,char **argv)
   return ierr;
 }
 
+/*TEST
+
+   testset:
+      args: -m 11
+      requires: !single !complex
+      output_file: output/test1_1.out
+      test:
+         suffix: 1
+         args: -type {{toar qarnoldi linear}}
+      test:
+         suffix: 1_linear_gd
+         args: -type linear -epstype gd
+
+TEST*/

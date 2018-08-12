@@ -207,3 +207,11 @@ int main(int argc,char **argv)
   return ierr;
 }
 
+/*TEST
+
+   test:
+      suffix: 1
+      requires: !single
+      args: -terse
+
+TEST*/
