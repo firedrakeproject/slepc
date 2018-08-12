@@ -246,3 +246,17 @@ PetscErrorCode FormJacobian(NEP nep,PetscScalar lambda,Mat jac,void *ctx)
   PetscFunctionReturn(0);
 }
 
+/*TEST
+
+   test:
+      suffix: 1
+      args: -nep_type {{rii slp}} -nep_target 21 -terse
+      requires: !single
+
+   test:
+      suffix: 2_cuda
+      args: -nep_type {{rii slp}} -nep_target 21 -mat_type aijcusparse -terse
+      requires: veccuda
+      output_file: output/test1_1.out
+
+TEST*/

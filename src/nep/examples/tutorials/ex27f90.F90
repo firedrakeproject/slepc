@@ -316,3 +316,17 @@ SUBROUTINE ComputeSingularities(nep,maxnp,xi,dummy,ierr)
   end do
 
 END SUBROUTINE ComputeSingularities
+
+!/*TEST
+!
+!   test:
+!      suffix: 1
+!      args: -nep_nev 3 -nep_nleigs_interpolation_degree 90 -terse
+!      requires: !single
+!
+!   test:
+!      suffix: 2
+!      args: -split 0 -nep_nev 3 -nep_nleigs_interpolation_degree 90 -terse
+!      requires: !single
+!
+!TEST*/

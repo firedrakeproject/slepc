@@ -252,3 +252,54 @@ PetscErrorCode ComputeSingularities(NEP nep,PetscInt *maxnp,PetscScalar *xi,void
   PetscFunctionReturn(0);
 }
 
+/*TEST
+
+   test:
+      suffix: 1
+      args: -nep_nev 3 -nep_nleigs_interpolation_degree 90 -terse
+
+   test:
+      suffix: 2
+      args: -split 0 -nep_nev 3 -nep_nleigs_interpolation_degree 90 -terse
+
+   test:
+      suffix: 3
+      args: -nep_nev 3 -nep_tol 1e-8 -nep_nleigs_rk_shifts 1.06,1.1,1.12,1.15 -nep_conv_norm -terse
+      requires: !single
+      output_file: output/ex27_1.out
+
+   test:
+      suffix: 4
+      args: -split 0 -nep_nev 3 -nep_nleigs_rk_shifts 1.06,1.1,1.12,1.15 -nep_nleigs_interpolation_degree 90 -terse
+      output_file: output/ex27_2.out
+
+   test:
+      suffix: 5
+      args: -nep_nev 3 -mat_type aijcusparse -terse
+      requires: veccuda
+      output_file: output/ex27_1.out
+
+   test:
+      suffix: 6
+      args: -split 0 -nep_nev 3 -mat_type aijcusparse -terse
+      requires: veccuda
+      output_file: output/ex27_2.out
+
+   test:
+      suffix: 7
+      args: -split 0 -nep_type ciss -rg_type ellipse -rg_ellipse_center 8 -rg_ellipse_radius .7 -rg_ellipse_vscale 0.1 -terse
+      requires: complex
+
+   test:
+      suffix: 8
+      args: -nep_type ciss -rg_type ellipse -rg_ellipse_center 8 -rg_ellipse_radius .7 -rg_ellipse_vscale 0.1 -terse
+      requires: complex
+      filter: sed -e "s/ (in split form)//"
+      output_file: output/ex27_7.out
+
+   test:
+      suffix: 9
+      args: -nep_nev 4 -n 20 -terse
+      requires: !single
+
+TEST*/

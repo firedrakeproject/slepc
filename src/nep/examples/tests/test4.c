@@ -270,3 +270,11 @@ PetscErrorCode FormJacobian(NEP nep,PetscScalar lambda,Mat jac,void *ctx)
   PetscFunctionReturn(0);
 }
 
+/*TEST
+
+   test:
+      suffix: 1
+      args: -nep_target 21 -nep_rii_lag_preconditioner 2 -terse
+      requires: !single
+
+TEST*/

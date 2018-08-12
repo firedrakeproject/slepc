@@ -255,3 +255,12 @@ PetscErrorCode FormJacobian(NEP nep,PetscScalar lambda,Mat jac,void *ctx)
   PetscFunctionReturn(0);
 }
 
+/*TEST
+
+   test:
+      suffix: 1
+      args: -nep_target 21 -terse
+      requires: !single
+      output_file: output/test1_1.out
+
+TEST*/

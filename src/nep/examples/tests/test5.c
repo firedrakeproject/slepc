@@ -180,3 +180,17 @@ int main(int argc,char **argv)
   return ierr;
 }
 
+/*TEST
+
+   test:
+      suffix: 1
+      args: -nep_nev 3 -nep_target 5 -terse
+      requires: !single
+
+   test:
+      suffix: 2_cuda
+      args: -nep_nev 3 -nep_target 5 -mat_type aijcusparse -terse
+      requires: veccuda
+      output_file: output/test5_1.out
+
+TEST*/

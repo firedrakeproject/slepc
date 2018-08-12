@@ -183,3 +183,12 @@ int main(int argc,char **argv)
   return ierr;
 }
 
+/*TEST
+
+   test:
+      suffix: 1
+      args: -myprefix_nep_view -myprefix_nep_monitor_conv -initv -terse
+      filter: grep -v "tolerance" | sed -e "s/[0-9]\.[0-9]*e[+-]\([0-9]*\)/removed/g"
+      requires: double !complex !define(PETSC_USE_64BIT_INDICES)
+
+TEST*/

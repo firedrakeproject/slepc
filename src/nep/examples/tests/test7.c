@@ -361,3 +361,16 @@ PetscErrorCode MatDestroy_F(Mat A)
   PetscFunctionReturn(0);
 }
 
+/*TEST
+
+   test:
+      suffix: 1
+      args: -nep_nev 3 -nep_tol 1e-8 -nep_nleigs_locking 0 -nep_nleigs_interpolation_degree 90 -nep_nleigs_interpolation_tol 1e-8 -nep_nleigs_restart 0.4 -terse
+      requires: !single
+
+   test:
+      suffix: 2
+      args: -split 0 -nep_nev 3 -nep_tol 1e-8 -terse
+      requires: !single
+
+TEST*/
