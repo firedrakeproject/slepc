@@ -156,7 +156,7 @@ int main(int argc,char **argv)
    testset:
       args: -svd_monitor_cancel  -mat_type aijcusparse
       requires: veccuda
-      filter: grep -v "Transpose mode"
+      filter: grep -v "Transpose mode" | sed -e "s/seqaijcusparse/seqaij/"
       output_file: output/test4_1.out
       test:
          suffix: 2_cuda_lanczos
