@@ -317,26 +317,6 @@ if petsc.singlelib:
 for pkg in checkpackages:
   pkg.Process(slepcconf,slepcvars,cmakeconf,petsc,archdir)
 
-# Determine which tests must be run
-testruns = set(petsc.test_runs.split())
-supported_tests = set(['C','C_Complex','C_NoComplex','C_NotSingle','C_NoComplex_NotSingle','VECCUDA','VECCUDA_Complex','VECCUDA_NoComplex'])
-if petsc.fortran:
-  supported_tests = supported_tests.union(set(['F90','Fortran','F90_Complex','Fortran_Complex','F90_NoComplex','Fortran_NoComplex','F90_NotSingle','Fortran_NotSingle','Fortran_NoComplex_NotSingle']))
-testruns = testruns.intersection(supported_tests)
-if not petsc.mpiuni:
-  if petsc.precision == 'double':
-    testruns = testruns.union(set(['C_Double']))
-  if petsc.precision == 'double' and petsc.scalar == 'real' and not petsc.ind64:
-    testruns = testruns.union(set(['C_DataFile']))
-  if slepc.datadir:
-    if petsc.scalar == 'complex':
-      testruns = testruns.union(set(['DATAFILESPATH_Complex']))
-    else:
-      testruns = testruns.union(set(['DATAFILESPATH']))
-  for pkg in externalpackages:
-    testruns = testruns.union(set(pkg.TestRuns(petsc)))
-slepcvars.write('TEST_RUNS = '+' '.join(testruns)+'\n')
-
 # Write Modules, pkg-config and CMake configuration files
 log.NewSection('Writing various configuration files...')
 log.write('Modules file in '+modulesdir)
@@ -415,10 +395,10 @@ if slepc.cmake:
     except (ImportError, KeyError) as e:
       log.Exit('ERROR: Importing cmakeboot failed:\n'+str(e))
     except (AttributeError) as e:
-      log.Println('\nxxx'+'='*73+'xxx')
+      log.Println('\nxxx'+'='*74+'xxx')
       log.Println('WARNING: CMake builds are not available (initialization failed)')
       log.Println('You can ignore this warning (use default build), or try reconfiguring PETSc')
-      log.Println('xxx'+'='*73+'xxx')
+      log.Println('xxx'+'='*74+'xxx')
     # remove files created by PETSc's script
     for f in ['build.log','build.log.bkp','RDict.log']:
       try: os.remove(f)
@@ -430,10 +410,11 @@ if cmakeok:
 slepcvars.close()
 
 # Print summary
-log.NewSection('\n')
-log.Println('='*79)
+log.NewSection('')
+log.Println('')
+log.Println('='*80)
 log.Println('SLEPc Configuration')
-log.Println('='*79)
+log.Println('='*80)
 log.Println('\nSLEPc directory:\n '+slepc.dir)
 if slepc.isrepo:
   log.Println('  It is a git repository on branch: '+slepc.branch)
@@ -448,9 +429,9 @@ if petsc.isrepo:
       petscdate = dateutil.parser.parse(petsc.gitdate)
       slepcdate = dateutil.parser.parse(slepc.gitdate)
       if abs(petscdate-slepcdate)>datetime.timedelta(days=30):
-        log.Println('xxx'+'='*73+'xxx')
+        log.Println('xxx'+'='*74+'xxx')
         log.Println('WARNING: your PETSc and SLEPc repos may not be in sync (more than 30 days apart)')
-        log.Println('xxx'+'='*73+'xxx')
+        log.Println('xxx'+'='*74+'xxx')
     except ImportError: pass
 if emptyarch and slepc.isinstall:
   log.Println('Prefix install with '+petsc.precision+' precision '+petsc.scalar+' numbers')
@@ -459,9 +440,9 @@ else:
 for pkg in checkpackages:
   pkg.ShowInfo()
 log.write('\nFinishing Configure Run at '+time.ctime(time.time()))
-log.write('='*79)
+log.write('='*80)
 print()
-print('xxx'+'='*73+'xxx')
+print('xxx'+'='*74+'xxx')
 if petsc.make_is_gnumake: buildtype = 'gnumake'
 elif cmakeok: buildtype = 'cmake'
 else: buildtype = 'legacy'
@@ -470,5 +451,5 @@ if emptyarch:
   print('   make SLEPC_DIR=$PWD PETSC_DIR='+petsc.dir)
 else:
   print('   make SLEPC_DIR=$PWD PETSC_DIR='+petsc.dir+' PETSC_ARCH='+archname)
-print('xxx'+'='*73+'xxx')
+print('xxx'+'='*74+'xxx')
 print()

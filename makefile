@@ -152,50 +152,6 @@ test_build:
          fi
 	-@echo "Completed test examples"
 
-# Builds SLEPc test examples for C
-testexamples: info
-	-@echo "BEGINNING TO COMPILE AND RUN SLEPc TEST EXAMPLES"
-	-@echo "Due to different numerical round-off on certain"
-	-@echo "machines some of the numbers may not match exactly."
-	-@echo "========================================="
-	-@${OMAKE} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} SLEPC_DIR=${SLEPC_DIR} \
-	   ACTION=testexamples_C slepc_tree
-	-@echo "Completed compiling and running test examples"
-	-@echo "========================================="
-
-# Builds SLEPc test examples for Fortran
-testfortran: info
-	-@echo "BEGINNING TO COMPILE AND RUN SLEPc FORTRAN TEST EXAMPLES"
-	-@echo "========================================="
-	-@echo "Due to different numerical round-off on certain"
-	-@echo "machines or the way Fortran formats numbers"
-	-@echo "some of the results may not match exactly."
-	-@echo "========================================="
-	-@if [ "${FC}" != "" ]; then \
-	    ${OMAKE} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} SLEPC_DIR=${SLEPC_DIR} \
-	      ACTION=testexamples_Fortran slepc_tree ; \
-            echo "Completed compiling and running Fortran test examples"; \
-          else \
-            echo "Error: No FORTRAN compiler available"; \
-          fi
-	-@echo "========================================="
-
-# Test BLOPEX use
-testblopex:
-	-@echo "BEGINNING TO COMPILE AND RUN SLEPc BLOPEX TEST EXAMPLES"
-	-@echo "========================================="
-	-@echo "Due to different numerical round-off on certain"
-	-@echo "machines some of the results may not match exactly."
-	-@echo "========================================="
-	-@if [ "${BLOPEX_LIB}" != "" ]; then \
-	    ${OMAKE} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} SLEPC_DIR=${SLEPC_DIR} \
-	      ACTION=testexamples_BLOPEX slepc_tree ; \
-            echo "Completed compiling and running BLOPEX test examples"; \
-          else \
-            echo "Error: SLEPc has not been configured with BLOPEX"; \
-          fi
-	-@echo "========================================="
-
 # Ranlib on the library
 ranlib:
 	${RANLIB} ${SLEPC_LIB_DIR}/*.${AR_LIB_SUFFIX}
