@@ -420,6 +420,9 @@ PetscErrorCode FixSign(Vec x)
 
 /*TEST
 
+   build:
+      requires: !single
+
    test:
       suffix: 1
       filter: sed -e "s/[0-9]\.[0-9]*e-\([0-9]*\)/removed/g" -e "s/ Number of NEP iterations = \([0-9]*\)/ Number of NEP iterations = /"

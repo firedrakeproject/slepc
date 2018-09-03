@@ -689,6 +689,9 @@ int main(int argc,char **argv)
 
 /*TEST
 
+   build:
+      requires: !complex
+
    test:
       suffix: 1
       args: -terse

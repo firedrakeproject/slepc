@@ -86,6 +86,9 @@ int main(int argc,char **argv)
 
 /*TEST
 
+   build:
+      requires: !__float128
+
    testset:
       args: -eps_nev 3
       requires: double !complex
