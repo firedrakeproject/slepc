@@ -113,7 +113,7 @@
       endif
       call EPSGetTolerances(eps,tol,maxit,ierr);CHKERRA(ierr)
       if (rank .eq. 0) then
-        write(*,'(A,1PE10.4,A,I6)') ' Stopping condition: tol=',tol,', maxit=', maxit
+        write(*,'(A,1PE11.4,A,I6)') ' Stopping condition: tol=',tol,', maxit=', maxit
       endif
 
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

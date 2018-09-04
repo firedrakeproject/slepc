@@ -96,8 +96,8 @@
           write(*,120) 'f''', PetscRealPart(x), re, im
         endif
       endif
- 110  format (A2,'(',F3.1,') = ',F7.5)
- 120  format (A2,'(',F3.1,') = ',F7.5,SP,F8.5,'i')
+ 110  format (A2,'(',F4.1,') = ',F8.5)
+ 120  format (A2,'(',F4.1,') = ',F8.5,SP,F8.5,'i')
 
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !     Compute matrix square root
@@ -137,7 +137,7 @@
       else
         write (*,130) nrm
       endif
- 130  format ('||S*S-A||_F = ',F7.5)
+ 130  format ('||S*S-A||_F = ',F8.5)
 
 !     *** Clean up
       call MatDestroy(S,ierr)

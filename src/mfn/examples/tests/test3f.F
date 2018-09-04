@@ -126,7 +126,7 @@
       if (rank .eq. 0) then
         write(*,110) tol,maxit
       endif
- 110  format (/' Tolerance: ',F6.4,', maxit: ',I4)
+ 110  format (/' Tolerance: ',F7.4,', maxit: ',I4)
       call MFNGetDimensions(mfn,ncv,ierr)
       if (rank .eq. 0) then
         write(*,120) ncv
@@ -157,7 +157,7 @@
       if (rank .eq. 0) then
         write(*,150) norm
       endif
- 150  format (' sqrt(A)*v has norm ',F6.4)
+ 150  format (' sqrt(A)*v has norm ',F7.4)
 
       call MFNDestroy(mfn,ierr)
       call MatDestroy(A,ierr)

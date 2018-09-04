@@ -126,7 +126,7 @@
       if (rank .eq. 0) then
         write(*,140) tol, maxit
       endif
- 140  format (' Stopping condition: tol=',1P,E10.4,', maxit=',I4)
+ 140  format (' Stopping condition: tol=',1P,E11.4,', maxit=',I4)
 
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !     Display solution and clean up
