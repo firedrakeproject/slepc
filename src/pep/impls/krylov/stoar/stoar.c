@@ -48,8 +48,12 @@ PetscErrorCode MatMult_Func(Mat A,Vec x,Vec y)
 
   PetscFunctionBegin;
   ierr = MatShellGetContext(A,&ctx);CHKERRQ(ierr);
-  ierr = MatMult(ctx->A,x,y);CHKERRQ(ierr);
-  ierr = VecScale(y,ctx->scal);CHKERRQ(ierr);
+  ierr = MatMult(ctx->A[0],x,y);CHKERRQ(ierr);
+  ierr = VecScale(y,ctx->scal[0]);CHKERRQ(ierr);
+  if (ctx->scal[1]) {
+    ierr = MatMult(ctx->A[1],x,ctx->t);CHKERRQ(ierr);
+    ierr = VecAXPY(y,ctx->scal[1],ctx->t);CHKERRQ(ierr);
+  }
   PetscFunctionReturn(0);
 }
 
@@ -60,7 +64,46 @@ PetscErrorCode MatDestroy_Func(Mat A)
 
   PetscFunctionBegin;
   ierr = MatShellGetContext(A,(void**)&ctx);CHKERRQ(ierr);
+  ierr = VecDestroy(&ctx->t);CHKERRQ(ierr);
   ierr = PetscFree(ctx);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+PetscErrorCode PEPSTOARSetUpInnerMatrix(PEP pep,Mat *B) {
+  Mat            pB[4],Bs[3],D[3];
+  PetscInt       i,j,n,m;
+  ShellMatCtx    *ctxMat[3];
+  PEP_TOAR       *ctx=(PEP_TOAR*)pep->data;
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  for (i=0;i<3;i++) {
+    ierr = STGetMatrixTransformed(pep->st,i,&D[i]);CHKERRQ(ierr); /* D[2] = M */
+  }
+  ierr = MatGetLocalSize(D[2],&m,&n);CHKERRQ(ierr);
+  
+  for (j=0;j<3;j++) {
+    ierr = PetscNew(ctxMat+j);CHKERRQ(ierr);
+    ierr = MatCreateShell(PetscObjectComm((PetscObject)pep),m,n,PETSC_DETERMINE,PETSC_DETERMINE,ctxMat[j],&Bs[j]);CHKERRQ(ierr);
+    ierr = MatShellSetOperation(Bs[j],MATOP_MULT,(void(*)())MatMult_Func);CHKERRQ(ierr);
+    ierr = MatShellSetOperation(Bs[j],MATOP_DESTROY,(void(*)())MatDestroy_Func);CHKERRQ(ierr);
+  }
+  for (i=0;i<4;i++) pB[i] = NULL;
+  if (ctx->alpha) {
+    ctxMat[0]->A[0] = D[0]; ctxMat[0]->scal[0] = ctx->alpha; ctxMat[0]->scal[1] = 0.0;
+    ctxMat[2]->A[0] = D[2]; ctxMat[2]->scal[0] = -ctx->alpha*pep->sfactor*pep->sfactor; ctxMat[2]->scal[1] = 0.0;
+    pB[0] = Bs[0]; pB[3] = Bs[2];
+  }
+  if (ctx->beta) {
+    i = (ctx->alpha)?1:0;
+    ctxMat[0]->scal[1] = 0.0;
+    ctxMat[0]->A[i] = D[1]; ctxMat[0]->scal[i] = -ctx->beta*pep->sfactor;
+    ctxMat[1]->A[0] = D[2]; ctxMat[1]->scal[0] = -ctx->beta*pep->sfactor*pep->sfactor; ctxMat[1]->scal[1] = 0.0;
+    pB[0] = Bs[0]; pB[1] = pB[2] = Bs[1];
+  }
+  ierr = BVCreateVec(pep->V,&ctxMat[0]->t);CHKERRQ(ierr);
+  ierr = MatCreateNest(PetscObjectComm((PetscObject)pep),2,NULL,2,NULL,pB,B);CHKERRQ(ierr);
+  for (j=0;j<3;j++) { ierr = MatDestroy(&Bs[j]);CHKERRQ(ierr); }
   PetscFunctionReturn(0);
 }
 
@@ -149,10 +192,14 @@ static PetscErrorCode PEPSTOARrun(PEP pep,PetscReal *a,PetscReal *b,PetscReal *o
     ierr = MatDenseGetArray(MS,&S);CHKERRQ(ierr);
     ierr = BVGetColumn(pep->V,nqt,&t);CHKERRQ(ierr);
     ierr = BVMultVec(pep->V,1.0,0.0,v,S+j*lds);CHKERRQ(ierr);
-    ierr = STMatMult(pep->st,0,v,t);CHKERRQ(ierr);
+    ierr = STMatMult(pep->st,0,v,q);CHKERRQ(ierr);
     ierr = BVMultVec(pep->V,1.0,0.0,v,S+offq+j*lds);CHKERRQ(ierr);
-    ierr = STMatMult(pep->st,1,v,q);CHKERRQ(ierr);
+    ierr = STMatMult(pep->st,1,v,t);CHKERRQ(ierr);
     ierr = VecAXPY(q,pep->sfactor,t);CHKERRQ(ierr);
+    if (ctx->beta && ctx->alpha) {
+      ierr = STMatMult(pep->st,2,v,t);CHKERRQ(ierr);
+      ierr = VecAXPY(q,-pep->sfactor*pep->sfactor*ctx->beta/ctx->alpha,t);CHKERRQ(ierr);
+    }
     ierr = STMatSolve(pep->st,q,t);CHKERRQ(ierr);
     ierr = VecScale(t,-1.0/(pep->sfactor*pep->sfactor));CHKERRQ(ierr);
     ierr = BVRestoreColumn(pep->V,nqt,&t);CHKERRQ(ierr);
@@ -165,6 +212,9 @@ static PetscErrorCode PEPSTOARrun(PEP pep,PetscReal *a,PetscReal *b,PetscReal *o
       nqt++;
     }
     for (i=0;i<=nqt-1;i++) *(S+(j+1)*lds+i) = *(S+offq+j*lds+i);
+    if (ctx->beta && ctx->alpha) {
+      for (i=0;i<=nqt-1;i++) *(S+(j+1)*lds+offq+i) -= *(S+(j+1)*lds+i)*ctx->beta/ctx->alpha;
+    }
     ierr = BVSetActiveColumns(pep->V,0,nqt);CHKERRQ(ierr);
     ierr = MatDenseRestoreArray(MS,&S);CHKERRQ(ierr);
     ierr = BVTensorRestoreFactors(ctx->V,NULL,&MS);CHKERRQ(ierr);
@@ -232,31 +282,17 @@ PetscErrorCode PEPSolve_STOAR(PEP pep)
 {
   PetscErrorCode ierr;
   PEP_TOAR       *ctx = (PEP_TOAR*)pep->data;
-  PetscInt       j,k,l,nv=0,ld,ldds,t,nq=0,m,n;
+  PetscInt       j,k,l,nv=0,ld,ldds,t,nq=0;
   PetscInt       nconv=0,deg=pep->nmat-1;
-  PetscScalar    *Q,*om,scal[2];
+  PetscScalar    *Q,*om;
   PetscReal      beta,norm=1.0,*omega,*a,*b,*r;
   PetscBool      breakdown,symmlost=PETSC_FALSE,sinv,falselock=PETSC_TRUE;
-  Mat            MQ,A,pA[4],As[2],D[2];
+  Mat            MQ,A;
   Vec            vomega;
-  ShellMatCtx    *ctxMat[2];
 
   PetscFunctionBegin;
   ierr = PetscCitationsRegister(citation,&cited);CHKERRQ(ierr);
-  ierr = STGetMatrixTransformed(pep->st,2,&D[1]);CHKERRQ(ierr); /* M */
-  ierr = MatGetLocalSize(D[1],&m,&n);CHKERRQ(ierr);
-  ierr = STGetMatrixTransformed(pep->st,0,&D[0]);CHKERRQ(ierr); /* K */
-  scal[0] = -1.0; scal[1] = pep->sfactor*pep->sfactor;
-  for (j=0;j<2;j++) {
-    ierr = PetscNew(ctxMat+j);CHKERRQ(ierr);
-    (ctxMat[j])->A = D[j]; (ctxMat[j])->scal = scal[j];
-    ierr = MatCreateShell(PetscObjectComm((PetscObject)pep),m,n,PETSC_DETERMINE,PETSC_DETERMINE,ctxMat[j],&As[j]);CHKERRQ(ierr);
-    ierr = MatShellSetOperation(As[j],MATOP_MULT,(void(*)())MatMult_Func);CHKERRQ(ierr);
-    ierr = MatShellSetOperation(As[j],MATOP_DESTROY,(void(*)())MatDestroy_Func);CHKERRQ(ierr);
-  }
-  pA[0] = As[0]; pA[1] = pA[2] = NULL; pA[3] = As[1];
-  ierr = MatCreateNest(PetscObjectComm((PetscObject)pep),2,NULL,2,NULL,pA,&A);CHKERRQ(ierr);
-  for (j=0;j<2;j++) { ierr = MatDestroy(&As[j]);CHKERRQ(ierr); }
+  ierr = PEPSTOARSetUpInnerMatrix(pep,&A);
   ierr = BVSetMatrix(ctx->V,A,PETSC_TRUE);CHKERRQ(ierr);
   ierr = MatDestroy(&A);CHKERRQ(ierr);
   if (ctx->lock) {
@@ -728,8 +764,9 @@ static PetscErrorCode PEPSTOARSetLinearization_STOAR(PEP pep,PetscReal alpha,Pet
    Options Database Key:
 .  -pep_stoar_linearization <alpha,beta> - Sets the coefficients
 
-   Note:
-   Cannot pass zero for both alpha and beta.
+   Notes:
+   Cannot pass zero for both alpha and beta. The default values are
+   alpha=1 and beta=0.
 
    Level: advanced
 
@@ -936,8 +973,8 @@ PETSC_EXTERN PetscErrorCode PEPCreate_STOAR(PEP pep)
   ierr = PetscNewLog(pep,&ctx);CHKERRQ(ierr);
   pep->data = (void*)ctx;
   ctx->lock  = PETSC_TRUE;
-  ctx->alpha = 0.0;
-  ctx->beta  = 1.0;
+  ctx->alpha = 1.0;
+  ctx->beta  = 0.0;
 
   pep->ops->setup          = PEPSetUp_STOAR;
   pep->ops->setfromoptions = PEPSetFromOptions_STOAR;

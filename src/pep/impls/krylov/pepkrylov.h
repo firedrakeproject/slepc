@@ -15,8 +15,7 @@
 #define __TOAR_H
 
 PETSC_INTERN PetscErrorCode PEPExtractVectors_TOAR(PEP);
-PETSC_INTERN PetscErrorCode MatMult_Func(Mat,Vec,Vec);
-PETSC_INTERN PetscErrorCode MatDestroy_Func(Mat);
+PETSC_INTERN PetscErrorCode PEPSTOARSetUpInnerMatrix(PEP,Mat*);
 PETSC_INTERN PetscErrorCode PEPSolve_STOAR(PEP);
 PETSC_INTERN PetscErrorCode PEPSolve_STOAR_QSlice(PEP);
 PETSC_INTERN PetscErrorCode PEPSetUp_STOAR_QSlice(PEP);
@@ -93,13 +92,13 @@ typedef struct {
   PetscInt    mpd;            /* maximum dimension of projected problem */
   PetscBool   detect;         /* check for zeros during factorizations */
   PetscBool   hyperbolic;     /* hyperbolic problem flag */
-  PetscInt    linearization;  /* */
   PetscReal   alpha,beta;     /* coefficients defining the linearization */
 } PEP_TOAR;
 
 typedef struct {
-  PetscScalar scal;
-  Mat         A;
+  PetscScalar scal[2];
+  Mat         A[2];
+  Vec         t;
 } ShellMatCtx;
 #endif
 
