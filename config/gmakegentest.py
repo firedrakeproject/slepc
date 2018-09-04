@@ -963,8 +963,8 @@ def main(slepc_dir=None, petsc_dir=None, petsc_arch=None, installed_petsc=False,
     output = os.path.join(testdir, 'testfiles')
 
     pEx=generateExamples(slepc_dir=slepc_dir, petsc_dir=petsc_dir, petsc_arch=petsc_arch,
-                         verbose=verbose, single_ex=single_ex, srcdir=srcdir,
-                         testdir=testdir)
+                         testdir=testdir, installed_petsc=installed_petsc, verbose=verbose,
+                         single_ex=single_ex, srcdir=srcdir)
     dataDict=pEx.walktree(os.path.join(pEx.srcdir))
     pEx.write_gnumake(dataDict, output)
 

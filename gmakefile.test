@@ -78,7 +78,7 @@ endif
 
 
 $(generatedtest) : $(slepcconf) $(slepcvariables) $(CONFIGDIR)/gmakegentest.py $(TESTDIR)/.DIR | $$(@D)/.DIR
-	$(PYTHON) $(CONFIGDIR)/gmakegentest.py --slepc-dir=$(SLEPC_DIR) --petsc-dir=$(PETSC_DIR) --petsc-arch=$(PETSC_ARCH) --testdir=$(TESTDIR)
+	$(PYTHON) $(CONFIGDIR)/gmakegentest.py --slepc-dir=$(SLEPC_DIR) --petsc-dir=$(PETSC_DIR) --petsc-arch=$(PETSC_ARCH) --testdir=$(TESTDIR) --installed-petsc=$(INSTALLED_PETSC)
 
 -include $(generatedtest)
 
