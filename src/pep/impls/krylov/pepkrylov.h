@@ -96,7 +96,7 @@ typedef struct {
 } PEP_TOAR;
 
 typedef struct {
-  PetscScalar scal[2];
+  PetscReal   scal[2];
   Mat         A[2];
   Vec         t;
 } ShellMatCtx;

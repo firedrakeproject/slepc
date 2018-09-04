@@ -69,7 +69,8 @@ PetscErrorCode MatDestroy_Func(Mat A)
   PetscFunctionReturn(0);
 }
 
-PetscErrorCode PEPSTOARSetUpInnerMatrix(PEP pep,Mat *B) {
+PetscErrorCode PEPSTOARSetUpInnerMatrix(PEP pep,Mat *B)
+{
   Mat            pB[4],Bs[3],D[3];
   PetscInt       i,j,n,m;
   ShellMatCtx    *ctxMat[3];
