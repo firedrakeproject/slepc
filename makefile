@@ -210,7 +210,7 @@ chk_slepc_dir:
 # Install relevant files in the prefix directory
 #
 install:
-	-@${PYTHON} ./config/install.py ${SLEPC_DIR} ${PETSC_DIR} ${SLEPC_DESTDIR} ${PETSC_ARCH} ${AR_LIB_SUFFIX} ${RANLIB};
+	@${PYTHON} ./config/install.py ${SLEPC_DIR} ${PETSC_DIR} ${SLEPC_DESTDIR} ${PETSC_ARCH} ${AR_LIB_SUFFIX} ${RANLIB};
 
 # ------------------------------------------------------------------
 #
