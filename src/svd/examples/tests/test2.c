@@ -75,6 +75,9 @@ int main(int argc,char **argv)
 
 /*TEST
 
+   build:
+      requires: !__float128
+
    testset:
       args: -svd_type {{lanczos trlanczos cross cyclic lapack}} -svd_nsv 7
       test:
