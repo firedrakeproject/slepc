@@ -201,5 +201,6 @@
 !   test:
 !      suffix: 1
 !      args: -my_eps_monitor
+!      requires: double
 !
 !TEST*/
