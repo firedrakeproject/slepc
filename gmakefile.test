@@ -57,8 +57,12 @@ endif
 ifeq ($(ALT),1)
   TESTFLAGS += -M    # Replace alt files by passing -M to petscdiff
 endif
-ifeq ($(DIFF_NUMBERS),1)
+ifndef DIFF_NUMBERS
   TESTFLAGS += -j    # Pass -j to petscdiff to diff the actual numbers
+else
+  ifneq ($(DIFF_NUMBERS),0)
+    TESTFLAGS += -j    # Pass -j to petscdiff to diff the actual numbers
+  endif
 endif
 ifdef OPTIONS
   TESTFLAGS += -a '$(OPTIONS)'   # override arguments
@@ -314,7 +318,7 @@ help-test:
 	-@echo "  NO_RM=1           Do not remove the executables after running"
 	-@echo "  REPLACE=1         Replace the output in SLEPC_DIR source tree (-m to test scripts)"
 	-@echo "  ALT=1             Replace 'alt' output in SLEPC_DIR source tree (-M to test scripts)"
-	-@echo "  DIFF_NUMBERS=1    Diff the numbers in the output (-j to test scripts and petscdiff)"
+	-@echo "  DIFF_NUMBERS=0    Do not diff numbers in the output (default is to diff numbers, as opposed to PETSc)"
 	-@echo "  VALGRIND=1        Execute the tests using valgrind (-V to test scripts)"
 	-@echo "  NP=<num proc>     Set a number of processors to pass to scripts."
 	-@echo "  FORCE=1           Force SKIP or TODO tests to run"

@@ -21,7 +21,7 @@ alltests:
             ALLTESTSLOG=${PETSC_ARCH}/lib/slepc/conf/alltests.log ;\
             ln -s $${ALLTESTSLOG} alltests.log ;\
           fi; \
-          MAKEFLAGS="DIFF_NUMBERS=1 $(MAKEFLAGS)" ${OMAKE} allgtest ALLTESTS_MAKEFILE=$${ALLTESTS_MAKEFILE} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} SLEPC_DIR=${SLEPC_DIR} MPIEXEC="${MPIEXEC}" DATAFILESPATH=${DATAFILESPATH} 2>&1 | tee $${ALLTESTSLOG};\
+          $(MAKEFLAGS)" ${OMAKE} allgtest ALLTESTS_MAKEFILE=$${ALLTESTS_MAKEFILE} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} SLEPC_DIR=${SLEPC_DIR} MPIEXEC="${MPIEXEC}" DATAFILESPATH=${DATAFILESPATH} 2>&1 | tee $${ALLTESTSLOG};\
           if [ x${ALLTESTS_CHECK_FAILURES} = xyes ]; then \
             cat $${ALLTESTSLOG} | egrep '(^not ok|not remade because of errors|^# No tests run)' | wc -l | grep '^[ ]*0$$' > /dev/null; \
           fi;
