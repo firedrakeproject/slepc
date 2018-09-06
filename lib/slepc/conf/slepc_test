@@ -13,8 +13,8 @@ ALLTESTS_CHECK_FAILURES = no
 ALLTESTS_MAKEFILE = gmakefile.test
 alltests:
 	-@${RM} -rf ${PETSC_ARCH}/lib/slepc/conf/alltests.log alltests.log
-	+@if [ -f ${PETSC_DIR}/share/slepc/examples/gmakefile.test ] ; then \
-            ALLTESTS_MAKEFILE=${PETSC_DIR}/share/slepc/examples/gmakefile.test ; \
+	+@if [ -f ${SLEPC_DIR}/share/slepc/examples/gmakefile.test ] ; then \
+            ALLTESTS_MAKEFILE=${SLEPC_DIR}/share/slepc/examples/gmakefile.test ; \
             ALLTESTSLOG=alltests.log ;\
           else \
             ALLTESTS_MAKEFILE=gmakefile.test; \
