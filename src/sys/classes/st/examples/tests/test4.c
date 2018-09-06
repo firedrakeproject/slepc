@@ -171,6 +171,7 @@ int main(int argc,char **argv)
       suffix: 1
       args: -st_transform -st_matmode {{copy shell}}
       output_file: output/test4_1.out
+      requires: !single
 
    test:
       suffix: 2

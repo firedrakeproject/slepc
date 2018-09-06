@@ -1,5 +1,5 @@
 
-Lauchli singular value decomposition, (101 x 100) mu=1.49012e-08
+Lauchli singular value decomposition, (101 x 100) mu=removed
 
  Number of iterations of the method: 1
  Solution method: trlanczos
@@ -10,14 +10,14 @@ Lauchli singular value decomposition, (101 x 100) mu=1.49012e-08
 
           sigma           relative error
   --------------------- ------------------
-        10.000000        1.5877e-15
-        0.000000        4.65661e-09
-        0.000000         2.6077e-08
-        0.000000        3.72529e-09
-        0.000000        1.11759e-08
-        0.000000        1.49012e-08
-        0.000000        2.34693e-07
-        0.000000        1.30385e-08
-        0.000000        5.58794e-09
-        0.000000        1.21072e-08
+        10.000000        removed
+        0.000000         removed
+        0.000000         removed
+        0.000000         removed
+        0.000000         removed
+        0.000000         removed
+        0.000000         removed
+        0.000000         removed
+        0.000000         removed
+        0.000000         removed
 

@@ -149,7 +149,7 @@ int main(int argc,char **argv)
 
    test:
       suffix: 1
-      args: -nep_type rii -terse
+      args: -nep_type rii -nep_target 4 -terse
       requires: !single
 
    testset:

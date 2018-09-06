@@ -388,7 +388,7 @@ PetscErrorCode MatDestroy_Jac(Mat A)
       output_file: output/ex21_1.out
       test:
          suffix: 1_rii
-         args: -nep_type rii
+         args: -nep_type rii -nep_target 4
       test:
          suffix: 1_slp
          args: -nep_type slp -nep_slp_pc_type jacobi -nep_slp_ksp_type bcgs -nep_target 10

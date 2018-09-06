@@ -159,5 +159,6 @@ int main(int argc,char **argv)
       suffix: 1
       args: -st_matmode {{copy inplace shell}}
       output_file: output/test3_1.out
+      requires: !single
 
 TEST*/

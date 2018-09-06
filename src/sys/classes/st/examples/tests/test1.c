@@ -188,5 +188,6 @@ static PetscErrorCode MatDuplicate_Shell(Mat S,MatDuplicateOption op,Mat *M)
       suffix: 1
       args: -st_matmode {{inplace shell}}
       output_file: output/test1_1.out
+      requires: !single
 
 TEST*/

@@ -94,5 +94,6 @@ int main(int argc,char **argv)
       suffix: 3
       args: -rg_view draw:tikz:test2_3_ring.tikz
       filter: cat - test2_3_ring.tikz
+      requires: !single
 
 TEST*/
