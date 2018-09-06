@@ -403,7 +403,7 @@ PetscErrorCode FixSign(Vec x)
 {
   PetscErrorCode    ierr;
   PetscMPIInt       rank;
-  PetscScalar       sign;
+  PetscScalar       sign=0.0;
   const PetscScalar *xx;
 
   PetscFunctionBeginUser;
