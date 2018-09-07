@@ -12,8 +12,10 @@
 #include "slepc/finclude/slepcrg.h"
 
       type tRG
-        PetscFortranAddr:: v
+        PetscFortranAddr:: v PETSC_FORTRAN_TYPE_INITIALIZE
       end type tRG
+
+      RG, parameter :: SLEPC_NULL_RG = tRG(0)
 
 !
 !  End of Fortran include file for the RG package in SLEPc

@@ -1034,7 +1034,7 @@ PetscErrorCode PEPGetStoppingTest(PEP pep,PEPStop *stop)
   PetscFunctionReturn(0);
 }
 
-/*@C
+/*@
    PEPSetScale - Specifies the scaling strategy to be used.
 
    Logically Collective on PEP

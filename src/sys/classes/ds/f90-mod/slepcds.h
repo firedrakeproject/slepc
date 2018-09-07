@@ -12,8 +12,10 @@
 #include "slepc/finclude/slepcds.h"
 
       type tDS
-        PetscFortranAddr:: v
+        PetscFortranAddr:: v PETSC_FORTRAN_TYPE_INITIALIZE
       end type tDS
+
+      DS, parameter :: SLEPC_NULL_DS = tDS(0)
 
       PetscEnum DS_STATE_RAW
       PetscEnum DS_STATE_INTERMEDIATE

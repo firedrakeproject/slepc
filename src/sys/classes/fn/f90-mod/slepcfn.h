@@ -12,8 +12,10 @@
 #include "slepc/finclude/slepcfn.h"
 
       type tFN
-        PetscFortranAddr:: v
+        PetscFortranAddr:: v PETSC_FORTRAN_TYPE_INITIALIZE
       end type tFN
+
+      FN, parameter :: SLEPC_NULL_FN = tFN(0)
 
       PetscEnum FN_COMBINE_ADD
       PetscEnum FN_COMBINE_MULTIPLY

@@ -13,8 +13,10 @@
 #include "slepc/finclude/slepclme.h"
 
       type tLME
-        PetscFortranAddr:: v
+        PetscFortranAddr:: v PETSC_FORTRAN_TYPE_INITIALIZE
       end type tLME
+
+      LME, parameter :: SLEPC_NULL_LME = tLME(0)
 
       PetscEnum LME_CONVERGED_TOL
       PetscEnum LME_DIVERGED_ITS

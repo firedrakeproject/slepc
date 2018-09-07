@@ -446,7 +446,7 @@ PetscErrorCode EPSGetEigenvalue(EPS eps,PetscInt i,PetscScalar *eigr,PetscScalar
   PetscFunctionReturn(0);
 }
 
-/*@C
+/*@
    EPSGetEigenvector - Gets the i-th right eigenvector as computed by EPSSolve().
 
    Logically Collective on EPS

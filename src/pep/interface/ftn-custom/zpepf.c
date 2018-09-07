@@ -396,8 +396,6 @@ PETSC_EXTERN void PETSC_STDCALL pepgeteigenpair_(PEP *pep,PetscInt *i,PetscScala
 {
   CHKFORTRANNULLSCALAR(eigr);
   CHKFORTRANNULLSCALAR(eigi);
-  CHKFORTRANNULLOBJECTDEREFERENCE(Vr);
-  CHKFORTRANNULLOBJECTDEREFERENCE(Vi);
   *ierr = PEPGetEigenpair(*pep,*i,eigr,eigi,*Vr,*Vi);
 }
 
@@ -441,13 +439,6 @@ PETSC_EXTERN void PETSC_STDCALL pepgettolerances10_(PEP *pep,PetscReal *tol,Pets
 PETSC_EXTERN void PETSC_STDCALL pepgettolerances01_(PEP *pep,PetscReal *tol,PetscInt *maxits,int *ierr)
 {
   pepgettolerances_(pep,tol,maxits,ierr);
-}
-
-PETSC_EXTERN void PETSC_STDCALL pepsetscale_(PEP *pep,PEPScale *scale,PetscReal *alpha,Vec *Dl,Vec *Dr,PetscInt *its,PetscReal *lambda,int *ierr)
-{
-  CHKFORTRANNULLOBJECTDEREFERENCE(Dl);
-  CHKFORTRANNULLOBJECTDEREFERENCE(Dr);
-  *ierr = PEPSetScale(*pep,*scale,*alpha,*Dl,*Dr,*its,*lambda);
 }
 
 PETSC_EXTERN void PETSC_STDCALL pepgetscale_(PEP *pep,PEPScale *scale,PetscReal *alpha,Vec *Dl,Vec *Dr,PetscInt *its,PetscReal *lambda,int *ierr)

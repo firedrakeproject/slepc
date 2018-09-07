@@ -12,8 +12,10 @@
 #include "slepc/finclude/slepcbv.h"
 
       type tBV
-        PetscFortranAddr:: v
+        PetscFortranAddr:: v PETSC_FORTRAN_TYPE_INITIALIZE
       end type tBV
+
+      BV, parameter :: SLEPC_NULL_BV = tBV(0)
 
       PetscEnum BV_ORTHOG_CGS
       PetscEnum BV_ORTHOG_MGS

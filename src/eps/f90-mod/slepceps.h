@@ -12,8 +12,10 @@
 #include "slepc/finclude/slepceps.h"
 
       type tEPS
-        PetscFortranAddr:: v
+        PetscFortranAddr:: v PETSC_FORTRAN_TYPE_INITIALIZE
       end type tEPS
+
+      EPS, parameter :: SLEPC_NULL_EPS = tEPS(0)
 
       PetscEnum EPS_CONVERGED_TOL
       PetscEnum EPS_CONVERGED_USER

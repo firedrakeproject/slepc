@@ -66,16 +66,6 @@
         end subroutine
       end interface EPSGetDimensions
 
-      interface
-        subroutine EPSSetOperators(a,b,c,z)
-          use slepcepsdef
-          EPS a
-          Mat b
-          Mat c
-          integer z
-        end subroutine
-      end interface
-
       interface EPSGetEigenpair
         subroutine EPSGetEigenpair00(a,b,c,d,e,f,z)
           use slepcepsdef

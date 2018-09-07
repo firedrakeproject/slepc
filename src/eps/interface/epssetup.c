@@ -292,7 +292,7 @@ PetscErrorCode EPSSetUp(EPS eps)
   PetscFunctionReturn(0);
 }
 
-/*@C
+/*@
    EPSSetOperators - Sets the matrices associated with the eigenvalue problem.
 
    Collective on EPS and Mat

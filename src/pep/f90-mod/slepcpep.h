@@ -12,8 +12,10 @@
 #include "slepc/finclude/slepcpep.h"
 
       type tPEP
-        PetscFortranAddr:: v
+        PetscFortranAddr:: v PETSC_FORTRAN_TYPE_INITIALIZE
       end type tPEP
+
+      PEP, parameter :: SLEPC_NULL_PEP = tPEP(0)
 
 !  Convergence flags.
 !  They should match the flags in $SLEPC_DIR/include/slepcpep.h

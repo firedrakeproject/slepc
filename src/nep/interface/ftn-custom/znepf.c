@@ -448,8 +448,6 @@ PETSC_EXTERN void PETSC_STDCALL nepgeteigenpair_(NEP *nep,PetscInt *i,PetscScala
 {
   CHKFORTRANNULLSCALAR(eigr);
   CHKFORTRANNULLSCALAR(eigi);
-  CHKFORTRANNULLOBJECTDEREFERENCE(Vr);
-  CHKFORTRANNULLOBJECTDEREFERENCE(Vi);
   *ierr = NEPGetEigenpair(*nep,*i,eigr,eigi,*Vr,*Vi);
 }
 

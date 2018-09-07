@@ -12,8 +12,10 @@
 #include "slepc/finclude/slepcsvd.h"
 
       type tSVD
-        PetscFortranAddr:: v
+        PetscFortranAddr:: v PETSC_FORTRAN_TYPE_INITIALIZE
       end type tSVD
+
+      SVD, parameter :: SLEPC_NULL_SVD = tSVD(0)
 
       PetscEnum SVD_CONVERGED_TOL
       PetscEnum SVD_CONVERGED_USER

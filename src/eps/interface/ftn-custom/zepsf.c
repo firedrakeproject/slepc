@@ -412,19 +412,10 @@ PETSC_EXTERN void PETSC_STDCALL epsgetdimensions101_(EPS *eps,PetscInt *nev,Pets
   epsgetdimensions_(eps,nev,ncv,mpd,ierr);
 }
 
-PETSC_EXTERN void PETSC_STDCALL epssetoperators_(EPS *eps,Mat *A,Mat *B,int *ierr)
-{
-  CHKFORTRANNULLOBJECTDEREFERENCE(A);
-  CHKFORTRANNULLOBJECTDEREFERENCE(B);
-  *ierr = EPSSetOperators(*eps,*A,*B);
-}
-
 PETSC_EXTERN void PETSC_STDCALL epsgeteigenpair_(EPS *eps,PetscInt *i,PetscScalar *eigr,PetscScalar *eigi,Vec *Vr,Vec *Vi,int *ierr)
 {
   CHKFORTRANNULLSCALAR(eigr);
   CHKFORTRANNULLSCALAR(eigi);
-  CHKFORTRANNULLOBJECTDEREFERENCE(Vr);
-  CHKFORTRANNULLOBJECTDEREFERENCE(Vi);
   *ierr = EPSGetEigenpair(*eps,*i,eigr,eigi,*Vr,*Vi);
 }
 
@@ -468,13 +459,6 @@ PETSC_EXTERN void PETSC_STDCALL epsgeteigenvalue10_(EPS *eps,PetscInt *i,PetscSc
 PETSC_EXTERN void PETSC_STDCALL epsgeteigenvalue01_(EPS *eps,PetscInt *i,PetscScalar *eigr,PetscScalar *eigi,int *ierr)
 {
   epsgeteigenvalue_(eps,i,eigr,eigi,ierr);
-}
-
-PETSC_EXTERN void PETSC_STDCALL epsgeteigenvector_(EPS *eps,PetscInt *i,Vec *Vr,Vec *Vi,int *ierr)
-{
-  CHKFORTRANNULLOBJECTDEREFERENCE(Vr);
-  CHKFORTRANNULLOBJECTDEREFERENCE(Vi);
-  *ierr = EPSGetEigenvector(*eps,*i,*Vr,*Vi);
 }
 
 PETSC_EXTERN void PETSC_STDCALL epsgettolerances_(EPS *eps,PetscReal *tol,PetscInt *maxits,int *ierr)

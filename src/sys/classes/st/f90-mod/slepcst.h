@@ -12,8 +12,10 @@
 #include "slepc/finclude/slepcst.h"
 
       type tST
-        PetscFortranAddr:: v
+        PetscFortranAddr:: v PETSC_FORTRAN_TYPE_INITIALIZE
       end type tST
+
+      ST, parameter :: SLEPC_NULL_ST = tST(0)
 
       PetscEnum ST_MATMODE_COPY
       PetscEnum ST_MATMODE_INPLACE

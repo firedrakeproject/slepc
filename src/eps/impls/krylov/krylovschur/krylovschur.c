@@ -1065,7 +1065,7 @@ static PetscErrorCode EPSKrylovSchurGetSubcommPairs_KrylovSchur(EPS eps,PetscInt
   PetscFunctionReturn(0);
 }
 
-/*@C
+/*@
    EPSKrylovSchurGetSubcommPairs - Gets the i-th eigenpair stored
    internally in the subcommunicator to which the calling process belongs.
 
@@ -1203,7 +1203,7 @@ static PetscErrorCode EPSKrylovSchurUpdateSubcommMats_KrylovSchur(EPS eps,PetscS
   PetscFunctionReturn(0);
 }
 
-/*@C
+/*@
    EPSKrylovSchurUpdateSubcommMats - Update the eigenproblem matrices stored
    internally in the subcommunicator to which the calling process belongs.
 

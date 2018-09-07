@@ -13,8 +13,10 @@
 #include "slepc/finclude/slepcmfn.h"
 
       type tMFN
-        PetscFortranAddr:: v
+        PetscFortranAddr:: v PETSC_FORTRAN_TYPE_INITIALIZE
       end type tMFN
+
+      MFN, parameter :: SLEPC_NULL_MFN = tMFN(0)
 
       PetscEnum MFN_CONVERGED_TOL
       PetscEnum MFN_CONVERGED_ITS
