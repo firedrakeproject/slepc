@@ -119,3 +119,124 @@ int main(int argc,char **argv)
   return ierr;
 }
 
+/*TEST
+
+   testset:
+      args: -n 18 -eps_nev 4 -eps_max_it 1500
+      requires: !single
+      output_file: output/test1_1.out
+      test:
+         suffix: 1
+         args: -eps_type {{krylovschur subspace arnoldi gd jd lapack}}
+      test:
+         suffix: 1_ks_nopurify
+         args: -eps_purify 0
+      test:
+         suffix: 1_ks_trueres
+         args: -eps_true_residual
+      test:
+         suffix: 1_ks_sinvert
+         args: -st_type sinvert -eps_target 22
+      test:
+         suffix: 1_ks_cayley
+         args: -st_type cayley -eps_target 22
+      test:
+         suffix: 1_lanczos
+         args: -eps_type lanczos -eps_lanczos_reorthog full
+      test:
+         suffix: 1_gd2
+         args: -eps_type gd -eps_gd_double_expansion
+      test:
+         suffix: 1_ciss
+         args: -eps_type ciss -rg_interval_endpoints 20.8,22 -eps_largest_real
+      test:
+         suffix: 1_lobpcg
+         args: -eps_type lobpcg -st_shift 22 -eps_largest_real
+
+   test:
+      suffix: 2
+      requires: !single !complex
+      args: -eps_interval .1,1.1 -eps_tol 1e-10 -st_type sinvert -st_ksp_type preonly -st_pc_type cholesky
+
+   test:
+      suffix: 3
+      requires: !single
+      args: -n 18 -eps_type power -eps_nev 3
+
+   test:
+      suffix: 4
+      requires: !single
+      args: -n 18 -eps_type power -eps_nev 3 -st_type sinvert -eps_target 1.15 -eps_power_shift_type {{constant rayleigh wilkinson}}
+
+   testset:
+      args: -n 18 -eps_nev 3 -eps_smallest_real -eps_max_it 500 -st_pc_type icc
+      output_file: output/test1_5.out
+      test:
+         suffix: 5_rqcg
+         args: -eps_type rqcg
+      test:
+         suffix: 5_lobpcg
+         args: -eps_type lobpcg -eps_lobpcg_blocksize 3
+
+   testset:
+      args: -n 18 -eps_nev 12 -eps_mpd 8 -eps_max_it 3000
+      requires: !single
+      output_file: output/test1_6.out
+      test:
+         suffix: 6
+         args: -eps_type {{krylovschur subspace arnoldi gd}}
+      test:
+         suffix: 6_lanczos
+         args: -eps_type lanczos -eps_lanczos_reorthog full
+
+   testset:
+      args: -n 18 -eps_nev 4 -eps_max_it 1500 -mat_type aijcusparse
+      requires: veccuda
+      output_file: output/test1_1.out
+      test:
+         suffix: 7
+         args: -eps_type {{krylovschur subspace arnoldi gd jd}}
+      test:
+         suffix: 7_ks_sinvert
+         args: -st_type sinvert -eps_target 22
+      test:
+         suffix: 7_lanczos
+         args: -eps_type lanczos -eps_lanczos_reorthog full
+      test:
+         suffix: 7_ciss
+         args: -eps_type ciss -rg_interval_endpoints 20.8,22 -eps_largest_real
+
+   testset:
+      args: -n 18 -eps_nev 3 -eps_smallest_real -eps_max_it 500 -st_pc_type sor -mat_type aijcusparse
+      requires: veccuda
+      output_file: output/test1_5.out
+      test:
+         suffix: 8_rqcg
+         args: -eps_type rqcg
+      test:
+         suffix: 8_lobpcg
+         args: -eps_type lobpcg -eps_lobpcg_blocksize 3
+
+   testset:
+      nsize: 2
+      args: -n 18 -eps_nev 7 -eps_ncv 32 -ds_parallel synchronized
+      requires: veccuda
+      filter: grep -v "orthogonality"
+      output_file: output/test1_9.out
+      test:
+         suffix: 9_ks_ghep
+         args: -eps_gen_hermitian -st_pc_type redundant -st_type sinvert
+      test:
+         suffix: 9_ks_gnhep
+         args: -eps_gen_non_hermitian -st_pc_type redundant -st_type sinvert
+      test:
+         suffix: 9_ks_ghiep
+         args: -eps_gen_indefinite -st_pc_type redundant -st_type sinvert
+      test:
+         suffix: 9_lobpcg_ghep
+         args: -eps_gen_hermitian -eps_type lobpcg -eps_max_it 200 -eps_lobpcg_blocksize 6
+      test:
+         suffix: 9_jd_gnhep
+         args: -eps_gen_non_hermitian -eps_type jd -eps_target 0
+
+TEST*/

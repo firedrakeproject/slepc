@@ -136,3 +136,11 @@ int main(int argc,char **argv)
   return ierr;
 }
 
+/*TEST
+
+   test:
+      suffix: 1
+      args: -showinertia 0 -eps_error_relative
+      requires: !single
+
+TEST*/

@@ -133,3 +133,21 @@ int main(int argc,char **argv)
   ierr = SlepcFinalize();
   return ierr;
 }
+
+/*TEST
+
+   testset:
+      args: -pep_nev 2 -pep_ncv 18 -terse
+      output_file: output/acoustic_wave_2d_1.out
+      requires: !complex !single
+      test:
+         suffix: 1
+         args: -pep_type {{qarnoldi linear}}
+      test:
+         suffix: 1_toar
+         args: -pep_type toar -pep_toar_locking 0
+      test:
+         suffix: 1_stoar
+         args: -pep_type stoar -pep_hermitian
+
+TEST*/

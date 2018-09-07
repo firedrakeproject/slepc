@@ -33,7 +33,7 @@ int main(int argc,char **argv)
   ierr = RGIsTrivial(rg,&triv);CHKERRQ(ierr);
   if (triv) SETERRQ(PETSC_COMM_WORLD,1,"Region should be non-trivial after setting parameters");
   ierr = RGView(rg,NULL);CHKERRQ(ierr);
-  ierr = RGViewFromOptions(rg,NULL,"-rg_view");CHKERRQ(ierr);
+  ierr = RGViewFromOptions(rg,NULL,"-rg_ellipse_view");CHKERRQ(ierr);
   re = 0.1; im = 0.3;
 #if defined(PETSC_USE_COMPLEX)
   ar = re+im*PETSC_i;
@@ -69,7 +69,7 @@ int main(int argc,char **argv)
   ierr = RGIsTrivial(rg,&triv);CHKERRQ(ierr);
   if (triv) SETERRQ(PETSC_COMM_WORLD,1,"Region should be non-trivial after setting parameters");
   ierr = RGView(rg,NULL);CHKERRQ(ierr);
-  ierr = RGViewFromOptions(rg,NULL,"-rg_view");CHKERRQ(ierr);
+  ierr = RGViewFromOptions(rg,NULL,"-rg_interval_view");CHKERRQ(ierr);
   re = 0.2; im = 0;
 #if defined(PETSC_USE_COMPLEX)
   ar = re+im*PETSC_i;
@@ -122,7 +122,7 @@ int main(int argc,char **argv)
   ierr = RGIsTrivial(rg,&triv);CHKERRQ(ierr);
   if (triv) SETERRQ(PETSC_COMM_WORLD,1,"Region should be non-trivial after setting parameters");
   ierr = RGView(rg,NULL);CHKERRQ(ierr);
-  ierr = RGViewFromOptions(rg,NULL,"-rg_view");CHKERRQ(ierr);
+  ierr = RGViewFromOptions(rg,NULL,"-rg_polygon_view");CHKERRQ(ierr);
   re = 5; im = 0.9;
 #if defined(PETSC_USE_COMPLEX)
   ar = re+im*PETSC_i;
@@ -164,3 +164,28 @@ int main(int argc,char **argv)
   ierr = SlepcFinalize();
   return ierr;
 }
+
+/*TEST
+
+   test:
+      suffix: 1
+      requires: !complex
+
+   test:
+      suffix: 1_complex
+      requires: complex
+
+   test:
+      suffix: 2
+      requires: !complex
+      args: -rg_ellipse_view draw:tikz:ellipse.tikz -rg_interval_view draw:tikz:interval.tikz -rg_polygon_view draw:tikz:polygon.tikz
+      filter: cat - ellipse.tikz interval.tikz polygon.tikz
+      requires: !single
+
+   test:
+      suffix: 2_complex
+      requires: complex
+      args: -rg_ellipse_view draw:tikz:ellipse.tikz -rg_interval_view draw:tikz:interval.tikz -rg_polygon_view draw:tikz:polygon.tikz
+      filter: cat - ellipse.tikz interval.tikz polygon.tikz
+
+TEST*/

@@ -260,3 +260,17 @@ PetscErrorCode MatGetDiagonal_Brussel(Mat A,Vec diag)
   PetscFunctionReturn(0);
 }
 
+/*TEST
+
+   test:
+      suffix: 1
+      args: -eps_nev 4 -eps_true_residual {{0 1}}
+      requires: !complex !single
+      output_file: output/test22_1.out
+
+   test:
+      suffix: 2
+      args: -eps_nev 4 -eps_true_residual -eps_balance oneside -eps_tol 1e-7
+      requires: !complex !single
+
+TEST*/

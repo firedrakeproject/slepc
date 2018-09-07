@@ -186,3 +186,11 @@
       call SlepcFinalize(ierr)
       end
 
+!/*TEST
+!
+!   test:
+!      suffix: 1
+!      args: -pep_nev 4 -pep_ncv 20 -terse
+!      requires: !complex
+!
+!TEST*/

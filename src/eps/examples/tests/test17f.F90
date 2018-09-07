@@ -147,14 +147,14 @@
       if (rank .eq. 0) then
         write(*,110) keep
       endif
- 110  format (' Restart parameter before changing = ',f6.4)
+ 110  format (' Restart parameter before changing = ',f7.4)
       keep = 0.4
       call EPSKrylovSchurSetRestart(eps,keep,ierr);CHKERRA(ierr)
       call EPSKrylovSchurGetRestart(eps,keep,ierr);CHKERRA(ierr)
       if (rank .eq. 0) then
         write(*,120) keep
       endif
- 120  format (' ... changed to ',f6.4)
+ 120  format (' ... changed to ',f7.4)
 
       call EPSKrylovSchurGetLocking(eps,lock,ierr);CHKERRA(ierr)
       if (rank .eq. 0) then
@@ -206,7 +206,7 @@
             write(*,180) subint(i)
           enddo
         endif
- 180    format (f6.4)
+ 180    format (f7.4)
       endif
 
       call EPSSetFromOptions(eps,ierr);CHKERRA(ierr)
@@ -225,7 +225,7 @@
           write(*,185) shifts(i),inertias(i)
         enddo
       endif
- 185  format (' .. ',f3.1,' (',I3,')')
+ 185  format (' .. ',f4.1,' (',I3,')')
 
       call EPSSolve(eps,ierr);CHKERRA(ierr)
       call EPSGetDimensions(eps,nev,ncv,mpd,ierr);CHKERRA(ierr)
@@ -233,7 +233,7 @@
       if (rank .eq. 0) then
         write(*,190) nev,int0,int1
       endif
- 190  format (' Found ',I2,' eigenvalues in interval [',f6.4,',',f6.4,']')
+ 190  format (' Found ',I2,' eigenvalues in interval [',f7.4,',',f7.4,']')
 
       if (size>0) then
         call EPSKrylovSchurGetSubcommInfo(eps,k,nval,v,ierr);CHKERRA(ierr)
@@ -245,7 +245,7 @@
           enddo
         endif
  200    format (' Process ',I2,' has worked in sub-interval ',I2,', containing ',I2,' eigenvalues')
- 210    format (f6.4)
+ 210    format (f7.4)
         call VecDestroy(v,ierr);CHKERRA(ierr)
 
         call EPSKrylovSchurGetSubcommMats(eps,As,Bs,ierr);CHKERRA(ierr)
@@ -284,3 +284,11 @@
 
       call SlepcFinalize(ierr)
       end
+
+!/*TEST
+!
+!   test:
+!      suffix: 1
+!      nsize: 2
+!
+!TEST*/

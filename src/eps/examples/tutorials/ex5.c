@@ -182,3 +182,10 @@ PetscErrorCode MatMarkovModel(PetscInt m,Mat A)
   PetscFunctionReturn(0);
 }
 
+/*TEST
+
+   test:
+      suffix: 1
+      args: -eps_largest_real -eps_nev 4 -terse
+
+TEST*/

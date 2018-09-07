@@ -150,3 +150,13 @@ int main(int argc,char **argv)
   ierr = SlepcFinalize();
   return ierr;
 }
+
+/*TEST
+
+   test:
+      suffix: 1
+      args: -st_matmode {{copy inplace shell}}
+      output_file: output/test2_1.out
+      requires: !single
+
+TEST*/

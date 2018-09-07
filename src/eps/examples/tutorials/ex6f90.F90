@@ -113,7 +113,7 @@
       endif
       call EPSGetTolerances(eps,tol,maxit,ierr);CHKERRA(ierr)
       if (rank .eq. 0) then
-        write(*,'(A,1PE10.4,A,I6)') ' Stopping condition: tol=',tol,', maxit=', maxit
+        write(*,'(A,1PE11.4,A,I6)') ' Stopping condition: tol=',tol,', maxit=', maxit
       endif
 
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -232,8 +232,8 @@
 !     .. Local Variables ..
       PetscInt    I, K
       PetscReal   ALPHA, BETA
-      PetscReal   COSA, COSB, SINA
-      PetscReal   SINB, TEMP, TEMP1
+      PetscReal   COSA, COSB, SINA, SINB
+      PetscScalar TEMP, TEMP1
 !
 !     .. Intrinsic functions ..
       INTRINSIC   COS, SIN
@@ -293,3 +293,12 @@
 !
 !     END OF MVMISG
       END
+
+!/*TEST
+!
+!   test:
+!      suffix: 1
+!      args: -eps_max_it 1000 -eps_ncv 12 -eps_tol 1e-5 -eps_nev 4 -eps_largest_imaginary -terse
+!      requires: !complex
+!
+!TEST*/

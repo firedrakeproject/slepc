@@ -192,8 +192,15 @@
       endif
 
  140  format(i3,' EPS nconv=',i2,' first unconverged value (error) ',   &
-     &       f6.4,' (',g9.3,')')
+     &       f7.4,' (',g10.3,')')
       ierr = 0
       end
 
-
+!/*TEST
+!
+!   test:
+!      suffix: 1
+!      args: -my_eps_monitor
+!      requires: double
+!
+!TEST*/

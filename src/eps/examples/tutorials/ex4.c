@@ -105,3 +105,16 @@ int main(int argc,char **argv)
   return ierr;
 }
 
+/*TEST
+
+   test:
+      suffix: 1
+      args: -file ${SLEPC_DIR}/share/slepc/datafiles/matrices/rdb200.petsc -eps_nev 4 -terse
+      requires: double !complex !define(PETSC_USE_64BIT_INDICES)
+
+   test:
+      suffix: ciss_1
+      args: -file ${DATAFILESPATH}/matrices/complex/qc324.petsc -eps_type ciss -rg_type ellipse -rg_ellipse_center -.012-.08i -rg_ellipse_radius .05 -terse
+      requires: complex datafilespath
+
+TEST*/

@@ -163,3 +163,10 @@ PetscErrorCode MatMarkovModel(PetscInt m,Mat A)
   PetscFunctionReturn(0);
 }
 
+/*TEST
+
+   test:
+      suffix: 1
+      args: -mfn_ncv 6
+
+TEST*/

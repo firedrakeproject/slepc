@@ -119,3 +119,18 @@ int main(int argc,char **argv)
   return ierr;
 }
 
+/*TEST
+
+   test:
+      suffix: 1
+      args: -eps_type {{gd jd rqcg lobpcg}} -terse
+      requires: !single
+      output_file: output/test27_1.out
+
+   test:
+      suffix: 2
+      args: -eps_interval .17,1.3 -st_type filter -eps_nev 1 -terse
+      filter: grep -v "requested"
+      requires: !single
+
+TEST*/

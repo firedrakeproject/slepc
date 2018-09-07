@@ -316,3 +316,12 @@
       return
       end
 
+!/*TEST
+!
+!   test:
+!      suffix: 1
+!      args: -nep_target 4
+!      filter: sed -e "s/[0-9]\.[0-9]*E-[0-9]*/removed/g" -e "s/ Number of NEP iterations = [ 0-9]*/ Number of NEP iterations = /"
+!      requires: !single
+!
+!TEST*/

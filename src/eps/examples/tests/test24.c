@@ -117,3 +117,18 @@ int main(int argc,char **argv)
   ierr = SlepcFinalize();
   return ierr;
 }
+
+/*TEST
+
+   testset:
+      args: -ncon 2
+      output_file: output/test24_1.out
+      test:
+         suffix: 1
+         requires: !single
+      test:
+         suffix: 2_cuda
+         args: -mat_type aijcusparse
+         requires: veccuda !single
+
+TEST*/

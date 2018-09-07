@@ -107,3 +107,13 @@ int main(int argc,char **argv)
   ierr = SlepcFinalize();
   return ierr;
 }
+
+/*TEST
+
+   test:
+      suffix: 1
+      args: -n 12 -ds_method {{0 1 2}}
+      filter: grep -v "solving the problem"
+      requires: !single
+
+TEST*/

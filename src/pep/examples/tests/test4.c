@@ -133,3 +133,10 @@ int main(int argc,char **argv)
   return ierr;
 }
 
+/*TEST
+
+   test:
+      suffix: 1
+      args: -pep_linear_explicitmatrix
+
+TEST*/

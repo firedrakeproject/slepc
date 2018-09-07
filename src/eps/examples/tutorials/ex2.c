@@ -108,3 +108,29 @@ int main(int argc,char **argv)
   return ierr;
 }
 
+/*TEST
+
+   testset:
+      args: -n 72 -eps_nev 4 -eps_ncv 20 -terse
+      requires: !single
+      output_file: output/ex2_1.out
+      test:
+         suffix: 1
+      test:
+         suffix: 2
+         args: -dynamic_library_preload
+
+   testset:
+      args: -n 30 -eps_type ciss -terse
+      requires: double
+      output_file: output/ex2_ciss.out
+      test:
+         suffix: ciss_1
+         nsize: 1
+         args: -rg_type interval -rg_interval_endpoints 1.1,1.25
+      test:
+         suffix: ciss_2
+         nsize: 2
+         args: -rg_type ellipse -rg_ellipse_center 1.175 -rg_ellipse_radius 0.075 -eps_ciss_partitions 2
+
+TEST*/

@@ -73,3 +73,23 @@ int main(int argc,char **argv)
   return ierr;
 }
 
+/*TEST
+
+   build:
+      requires: !__float128
+
+   testset:
+      args: -svd_type {{lanczos trlanczos cross cyclic lapack}} -svd_nsv 7
+      test:
+         suffix: 1
+         requires: double !complex
+      test:
+         suffix: 1_complex
+         requires: double complex
+      test:
+         suffix: 1_primme
+         args: -svd_type primme -svd_nsv 7
+         requires: primme
+         output_file: output/test2_1.out
+
+TEST*/

@@ -214,3 +214,28 @@ int main(int argc,char **argv)
   return ierr;
 }
 
+/*TEST
+
+   testset:
+      nsize: 2
+      requires: !single
+      output_file: output/test10_1.out
+      test:
+         suffix: 1
+         args: -nep_type {{rii narnoldi}}
+      test:
+         suffix: 1_slp
+         args: -nep_type slp -nep_slp_st_pc_type redundant
+      test:
+         suffix: 1_interpol
+         args: -nep_type interpol -rg_type interval -rg_interval_endpoints .5,1,-.1,.1 -nep_target .7 -nep_interpol_st_pc_type redundant
+      test:
+         suffix: 1_narnoldi_sync
+         args: -nep_type narnoldi -ds_parallel synchronized
+
+   test:
+      suffix: 2
+      args: -nep_nev 2 -nep_type interpol -rg_type interval -rg_interval_endpoints .5,15,-.1,.1 -nep_target .7 -nep_interpol_pep_type jd -nep_interpol_st_pc_type sor
+      requires: complex
+
+TEST*/

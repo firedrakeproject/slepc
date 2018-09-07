@@ -91,3 +91,20 @@ int main(int argc,char **argv)
   ierr = SlepcFinalize();
   return ierr;
 }
+
+/*TEST
+
+   testset:
+      requires: !single
+      output_file: output/test12_1.out
+      test:
+         suffix: 1
+         args: -eps_type {{krylovschur subspace arnoldi gd jd}} -eps_nev 4
+      test:
+         suffix: 1_power
+         args: -eps_type power -eps_max_it 10000 -eps_nev 4
+      test:
+         suffix: 1_gd2
+         args: -eps_type gd -eps_gd_double_expansion -eps_nev 4
+
+TEST*/

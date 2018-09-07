@@ -144,3 +144,74 @@ int main(int argc,char **argv)
   ierr = SlepcFinalize();
   return ierr;
 }
+
+/*TEST
+
+   test:
+      suffix: 1
+      args: -nep_type rii -nep_target 4 -terse
+      requires: !single
+
+   testset:
+      args: -nep_type interpol -rg_type interval -rg_interval_endpoints 5,700,-.1,.1 -nep_nev 7 -nep_target 5 -nep_interpol_interpolation_degree 12 -nep_refine simple -terse
+      requires: !single
+      output_file: output/loaded_string_2.out
+      test:
+         suffix: 2
+         args: -nep_refine_scheme {{schur explicit}}
+      test:
+         suffix: 2_mbe
+         args: -nep_refine_scheme mbe -nep_refine_ksp_type preonly -nep_refine_pc_type lu
+
+   testset:
+      nsize: 2
+      args: -nep_type interpol -rg_type interval -rg_interval_endpoints 5,700,-.1,.1 -nep_nev 7 -nep_target 5 -nep_interpol_interpolation_degree 12 -nep_refine simple -nep_refine_partitions 2 -nep_interpol_st_ksp_type bcgs -nep_interpol_st_pc_type bjacobi -terse
+      requires: !single
+      output_file: output/loaded_string_2.out
+      test:
+         suffix: 3_explicit
+         args: -nep_refine_scheme explicit
+      test:
+         suffix: 3_mbe
+         args: -nep_refine_scheme mbe -nep_refine_ksp_type preonly -nep_refine_pc_type cholesky
+
+   test:
+      suffix: 4
+      nsize: 4
+      args: -nep_type interpol -rg_type interval -rg_interval_endpoints 5,700,-.1,.1 -nep_nev 7 -nep_target 5 -nep_interpol_interpolation_degree 10 -nep_refine simple -nep_refine_partitions 2 -nep_refine_scheme explicit -nep_interpol_st_ksp_type bcgs -nep_interpol_st_pc_type bjacobi -terse -info_exclude nep,pep,fn -log_exclude nep,pep,fn
+      requires: !single
+      output_file: output/loaded_string_2.out
+
+   test:
+      suffix: 5
+      args: -nep_type nleigs -rg_type interval -rg_interval_endpoints 4,700,-.1,.1 -nep_nev 8 -nep_target 5 -terse
+      requires: !single
+
+   test:
+      suffix: 6
+      args: -nep_type nleigs -rg_type interval -rg_interval_endpoints 100,700 -nep_nev 5 -nep_tol 1e-9 -nep_target 140 -nep_nleigs_interpolation_degree 15 -nep_general -terse
+      requires: !complex !single
+
+   test:
+      suffix: 6_complex
+      args: -nep_type nleigs -rg_type interval -rg_interval_endpoints 100,700,-.1,.1 -nep_nev 5 -nep_tol 1e-9 -nep_target 140 -nep_nleigs_interpolation_degree 15 -nep_general -terse
+      requires: complex !single
+      output_file: output/loaded_string_6.out
+
+   test:
+      suffix: 7
+      args: -nep_type interpol -rg_type interval -rg_interval_endpoints 5,700 -nep_nev 5 -nep_target 100 -nep_interpol_interpolation_degree 20 -nep_ncv 20 -n 20 -nep_refine simple -nep_refine_its 1 -terse
+      requires: !complex double
+
+   test:
+      suffix: 7_complex
+      args: -nep_type interpol -rg_type interval -rg_interval_endpoints 5,700,-.1,.1 -nep_nev 5 -nep_target 100 -nep_interpol_interpolation_degree 20 -nep_ncv 20 -n 20 -nep_refine simple -nep_refine_its 1 -terse
+      requires: complex double
+      output_file: output/loaded_string_7.out
+
+   test:
+      suffix: 8
+      args: -nep_target 10 -nep_nev 3 -nep_tol 5e-10 -nep_type {{rii slp narnoldi}} -terse
+      requires: !single
+
+TEST*/

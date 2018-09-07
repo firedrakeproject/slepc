@@ -104,3 +104,36 @@ int main(int argc,char **argv)
   ierr = SlepcFinalize();
   return ierr;
 }
+
+/*TEST
+
+   testset:
+      requires: !single
+      output_file: output/test4_1.out
+      test:
+         suffix: 1
+         args: -type {{krylovschur subspace arnoldi lanczos gd jd gd2 lapack}}
+      test:
+         suffix: 1_arpack
+         args: -type arpack
+         requires: arpack
+      test:
+         suffix: 1_primme
+         args: -type primme
+         requires: primme
+      test:
+         suffix: 1_trlan
+         args: -type trlan
+         requires: trlan
+
+   testset:
+      output_file: output/test4_2.out
+      test:
+         suffix: 2
+         args: -type {{rqcg lobpcg}}
+      test:
+         suffix: 2_blzpack
+         args: -type blzpack
+         requires: blzpack
+
+TEST*/

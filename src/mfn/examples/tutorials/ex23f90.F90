@@ -178,7 +178,7 @@
       if (rank .eq. 0) then
         write(*,150) PetscRealPart(t),norm
       endif
- 150  format (' Computed vector at time t=',f3.1,' has norm ',f8.5)
+ 150  format (' Computed vector at time t=',f4.1,' has norm ',f8.5)
 
       call MFNDestroy(mfn,ierr);CHKERRA(ierr)
       call MatDestroy(A,ierr);CHKERRA(ierr)
@@ -187,3 +187,10 @@
       call SlepcFinalize(ierr)
       end
 
+!/*TEST
+!
+!   test:
+!      suffix: 1
+!      args: -mfn_ncv 6
+!
+!TEST*/

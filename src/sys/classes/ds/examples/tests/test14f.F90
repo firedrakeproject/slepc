@@ -130,3 +130,10 @@
       return
       end
 
+!/*TEST
+!
+!   test:
+!      suffix: 1
+!      requires: !complex
+!
+!TEST*/

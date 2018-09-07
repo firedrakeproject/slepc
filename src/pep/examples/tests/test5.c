@@ -78,3 +78,12 @@ int main(int argc,char **argv)
   return ierr;
 }
 
+/*TEST
+
+   test:
+      suffix: 1
+      args: -pep_error_backward ::ascii_info_detail -pep_largest_real -pep_view_values -pep_monitor_conv -pep_error_absolute ::ascii_matlab -pep_monitor_all -pep_converged_reason -pep_view
+      requires: !complex !single
+      filter: grep -v "tolerance" | grep -v "problem type" | sed -e "s/[0-9]\.[0-9]*e-\([0-9]*\)/removed/g"
+
+TEST*/

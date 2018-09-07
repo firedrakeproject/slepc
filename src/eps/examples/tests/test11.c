@@ -190,3 +190,24 @@ PetscErrorCode MyEigenSort(PetscScalar ar,PetscScalar ai,PetscScalar br,PetscSca
   else *r = 1;  /* 'b' is on the right */
   PetscFunctionReturn(0);
 }
+
+/*TEST
+
+   testset:
+      args: -eps_nev 4
+      requires: !single
+      output_file: output/test11_1.out
+      test:
+         suffix: 1
+         args: -eps_type {{krylovschur arnoldi lapack}} -st_type sinvert
+      test:
+         suffix: 1_ks_cayley
+         args: -st_type cayley -st_cayley_antishift 1 
+
+   test:
+      suffix: 1_gd
+      args: -eps_type gd -eps_nev 4 -eps_max_it 5000
+      requires: !single
+      output_file: output/test11_1.out
+
+TEST*/

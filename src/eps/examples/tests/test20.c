@@ -68,3 +68,17 @@ int main(int argc,char **argv)
   ierr = SlepcFinalize();
   return ierr;
 }
+
+/*TEST
+
+   test:
+      suffix: 1
+      args: -n 18 -eps_type {{krylovschur arnoldi gd jd rqcg lobpcg lapack}} -eps_max_it 1500
+      output_file: output/test20_1.out
+
+   test:
+      suffix: 1_lanczos
+      args: -n 18 -eps_type lanczos -eps_lanczos_reorthog full -eps_max_it 1500
+      output_file: output/test20_1.out
+
+TEST*/

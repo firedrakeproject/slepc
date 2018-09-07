@@ -182,3 +182,29 @@ int main(int argc,char **argv)
   return ierr;
 }
 
+/*TEST
+
+   testset:
+      args: -terse
+      requires: !single
+      output_file: output/ex22_1.out
+      test:
+         suffix: 1
+         args: -nep_type {{rii slp narnoldi}}
+
+   test:
+      suffix: 1_ciss
+      args: -nep_type ciss -rg_type ellipse -rg_ellipse_center 10 -rg_ellipse_radius 9.5 -nep_ncv 24 -terse
+      requires: complex
+
+   test:
+      suffix: 2
+      args: -nep_type interpol -nep_interpol_pep_extract {{none norm residual}} -rg_type interval -rg_interval_endpoints 5,20,-.1,.1 -nep_nev 3 -nep_target 5 -terse
+      requires: !single
+
+   test:
+      suffix: 3
+      args: -n 512 -nep_target 10 -nep_nev 3 -nep_type {{rii slp narnoldi}} -terse
+      requires: !single
+
+TEST*/

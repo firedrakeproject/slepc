@@ -86,3 +86,12 @@ int main(int argc,char **argv)
   return ierr;
 }
 
+/*TEST
+
+   test:
+      suffix: 1
+      args: -f1 ${SLEPC_DIR}/share/slepc/datafiles/matrices/bfw62a.petsc -f2 ${SLEPC_DIR}/share/slepc/datafiles/matrices/bfw62b.petsc -eps_largest_real -eps_nev 4 -eps_true_residual {{0 1}}
+      requires: double !complex !define(PETSC_USE_64BIT_INDICES)
+      output_file: output/test26_1.out
+
+TEST*/

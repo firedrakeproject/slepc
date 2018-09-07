@@ -142,3 +142,13 @@ int main(int argc,char **argv)
   ierr = SlepcFinalize();
   return ierr;
 }
+
+/*TEST
+
+   test:
+      suffix: 1
+      nsize: 1
+      args: -bv_orthog_block gs -bv_type {{vecs contiguous svec mat}shared output}
+      output_file: output/test12_1.out
+
+TEST*/

@@ -84,3 +84,75 @@ int main(int argc,char **argv)
   return ierr;
 }
 
+/*TEST
+
+   build:
+      requires: !__float128
+
+   testset:
+      args: -eps_nev 3
+      requires: double !complex
+      output_file: output/test5_1.out
+      test:
+         suffix: 1
+         args: -eps_type {{krylovschur subspace arnoldi gd}}
+      test:
+         suffix: 1_power
+         args: -eps_type power -st_type sinvert -eps_target 7
+      test:
+         suffix: 1_jd
+         args: -eps_type jd -eps_jd_minv 3 -eps_jd_plusk 1
+      test:
+         suffix: 1_gd
+         args: -eps_type gd -eps_gd_minv 3 -eps_gd_plusk 1
+      test:
+         suffix: 1_gd2
+         args: -eps_type gd -eps_gd_double_expansion
+
+   testset:
+      args: -eps_nev 3
+      requires: double complex
+      output_file: output/test5_1_complex.out
+      test:
+         suffix: 1_complex
+         args: -eps_type {{krylovschur subspace arnoldi gd}}
+      test:
+         suffix: 1_power_complex
+         args: -eps_type power -st_type sinvert -eps_target 7
+      test:
+         suffix: 1_jd_complex
+         args: -eps_type jd -eps_jd_minv 3 -eps_jd_plusk 1
+      test:
+         suffix: 1_gd_complex
+         args: -eps_type gd -eps_gd_minv 3 -eps_gd_plusk 1
+      test:
+         suffix: 1_gd2_complex
+         args: -eps_type gd -eps_gd_double_expansion
+
+   testset:
+      args: -symm -eps_nev 4 -eps_smallest_real
+      requires: double !complex
+      output_file: output/test5_2.out
+      test:
+        suffix: 2_blopex
+        args: -eps_type blopex
+        requires: blopex
+      test:
+        suffix: 2_blzpack
+        args: -eps_type blzpack
+        requires: blzpack
+      test:
+        suffix: 2_trlan
+        args: -eps_type trlan
+        requires: trlan
+
+   testset:
+      args: -symm -eps_nev 4 -eps_smallest_real
+      requires: double complex
+      output_file: output/test5_2_complex.out
+      test:
+        suffix: 2_blopex_complex
+        args: -eps_type blopex
+        requires: blopex
+
+TEST*/

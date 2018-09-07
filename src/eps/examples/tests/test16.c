@@ -74,3 +74,11 @@ int main(int argc,char **argv)
   return ierr;
 }
 
+/*TEST
+
+   test:
+      suffix: 1
+      args: -n 200 -eps_nev 6 -eps_ncv 24 -eps_smallest_magnitude
+      requires: !single
+
+TEST*/

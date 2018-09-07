@@ -200,10 +200,6 @@ $(srcs.o) : $(slepcvariables)
 clean:
 	$(RM) -rf $(OBJDIR) $(LIBDIR)/libslepc* $(MODDIR)/slepc*.mod $(MPIUNI_MOD) $(generated)
 
-# make print VAR=the-variable
-print:
-	@echo $($(VAR))
-
 allobj.d := $(srcs.o:%.o=%.d)
 # Tell make that allobj.d are all up to date.  Without this, the include
 # below has quadratic complexity, taking more than one second for a
@@ -211,3 +207,6 @@ allobj.d := $(srcs.o:%.o=%.d)
 $(allobj.d) : ;
 
 -include $(allobj.d)
+
+# Handle test framework (also defines compilation lines for both lib and test)
+include ./gmakefile.test        # This must be below the all target

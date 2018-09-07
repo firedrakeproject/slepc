@@ -151,8 +151,15 @@
           write(*,120) 'f''', PetscRealPart(x), re, im
         endif
       endif
- 110  format (A2,'(',F3.1,') = ',F10.5)
- 120  format (A2,'(',F3.1,') = ',F10.5,SP,F9.5,'i')
+ 110  format (A2,'(',F4.1,') = ',F10.5)
+ 120  format (A2,'(',F4.1,') = ',F10.5,SP,F9.5,'i')
       return
       end
 
+!/*TEST
+!
+!   test:
+!      suffix: 1
+!      nsize: 1
+!
+!TEST*/

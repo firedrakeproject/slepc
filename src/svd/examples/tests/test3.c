@@ -97,3 +97,124 @@ int main(int argc,char **argv)
   return ierr;
 }
 
+/*TEST
+
+   testset:
+      args: -svd_nsv 4
+      requires: !single
+      output_file: output/test3_1.out
+      test:
+         suffix: 1_lanczos
+         args: -svd_type lanczos
+      test:
+         suffix: 1_lanczos_one
+         args: -svd_type lanczos -svd_lanczos_oneside
+      test:
+         suffix: 1_trlanczos
+         args: -svd_type trlanczos
+      test:
+         suffix: 1_trlanczos_one
+         args: -svd_type trlanczos -svd_trlanczos_oneside
+      test:
+         suffix: 1_trlanczos_one_mgs
+         args: -svd_type trlanczos -svd_trlanczos_oneside -bv_orthog_type mgs
+      test:
+         suffix: 1_trlanczos_one_always
+         args: -svd_type trlanczos -svd_trlanczos_oneside -bv_orthog_refine always
+      test:
+         suffix: 1_cross
+         args: -svd_type cross
+      test:
+         suffix: 1_cross_exp
+         args: -svd_type cross -svd_cross_explicitmatrix
+      test:
+         suffix: 1_cyclic
+         args: -svd_type cyclic
+      test:
+         suffix: 1_cyclic_exp
+         args: -svd_type cyclic -svd_cyclic_explicitmatrix
+      test:
+         suffix: 1_lapack
+         args: -svd_type lapack
+      test:
+         suffix: 1_primme
+         args: -svd_type primme
+         requires: primme
+
+   testset:
+      args: -svd_implicittranspose -svd_nsv 4 -svd_tol 1e-5
+      requires: !single
+      output_file: output/test3_1.out
+      test:
+         suffix: 2_lanczos
+         args: -svd_type lanczos
+      test:
+         suffix: 2_lanczos_one
+         args: -svd_type lanczos -svd_lanczos_oneside
+      test:
+         suffix: 2_trlanczos
+         args: -svd_type trlanczos
+      test:
+         suffix: 2_trlanczos_one
+         args: -svd_type trlanczos -svd_trlanczos_oneside
+      test:
+         suffix: 2_trlanczos_one_mgs
+         args: -svd_type trlanczos -svd_trlanczos_oneside -bv_orthog_type mgs
+      test:
+         suffix: 2_trlanczos_one_always
+         args: -svd_type trlanczos -svd_trlanczos_oneside -bv_orthog_refine always
+      test:
+         suffix: 2_cross
+         args: -svd_type cross
+      test:
+         suffix: 2_cross_exp
+         args: -svd_type cross -svd_cross_explicitmatrix
+         requires: !complex
+      test:
+         suffix: 2_cyclic
+         args: -svd_type cyclic
+      test:
+         suffix: 2_lapack
+         args: -svd_type lapack
+
+   testset:
+      args: -svd_nsv 4 -mat_type aijcusparse
+      requires: veccuda
+      output_file: output/test3_1.out
+      test:
+         suffix: 3_cuda_lanczos
+         args: -svd_type lanczos
+      test:
+         suffix: 3_cuda_lanczos_one
+         args: -svd_type lanczos -svd_lanczos_oneside
+      test:
+         suffix: 3_cuda_trlanczos
+         args: -svd_type trlanczos
+      test:
+         suffix: 3_cuda_trlanczos_one
+         args: -svd_type trlanczos -svd_trlanczos_oneside
+      test:
+         suffix: 3_cuda_trlanczos_one_mgs
+         args: -svd_type trlanczos -svd_trlanczos_oneside -bv_orthog_type mgs
+      test:
+         suffix: 3_cuda_trlanczos_one_always
+         args: -svd_type trlanczos -svd_trlanczos_oneside -bv_orthog_refine always
+      test:
+         suffix: 3_cuda_cross
+         args: -svd_type cross
+      test:
+         suffix: 3_cuda_cyclic
+         args: -svd_type cyclic
+      test:
+         suffix: 3_cuda_cyclic_exp
+         args: -svd_type cyclic -svd_cyclic_explicitmatrix
+
+   testset:
+      suffix: 4
+      requires: !single
+      args: -svd_type lapack -svd_nsv 4
+      output_file: output/test3_1.out
+      test:
+         nsize: 2
+
+TEST*/

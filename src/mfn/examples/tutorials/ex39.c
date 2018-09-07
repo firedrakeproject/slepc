@@ -219,3 +219,17 @@ int main(int argc,char **argv)
   ierr = SlepcFinalize();
   return ierr;
 }
+
+/*TEST
+
+   test:
+      suffix: 1
+      args: -tend 0.25 -mfn_tol 1e-3 -deltat 0.025
+
+   test:
+      suffix: 2
+      args: -tend 0.25 -mfn_tol 1e-3 -deltat 0.025 -combine
+      filter: sed -e "s/ (combine)//"
+      output_file: output/ex39_1.out
+
+TEST*/

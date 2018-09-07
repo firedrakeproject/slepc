@@ -150,7 +150,7 @@
       if (rank .eq. 0) then
         write(*,170) scal,alpha,its
       endif
- 170  format (' Scaling: ',I2,', alpha=',F6.4,', its=',I2)
+ 170  format (' Scaling: ',I2,', alpha=',F7.4,', its=',I2)
 
       basis = PEP_BASIS_CHEBYSHEV1
       call PEPSetBasis(pep,basis,ierr)
@@ -170,7 +170,7 @@
       if (rank .eq. 0) then
         write(*,190) refine,tol,its,rscheme
       endif
- 190  format (' Refinement: ',I2,', tol=',F6.4,', its=',I2', schem=',I2)
+ 190  format (' Refinement: ',I2,', tol=',F7.4,', its=',I2', schem=',I2)
 
       tget = 4.8
       call PEPSetTarget(pep,tget,ierr)
@@ -180,7 +180,7 @@
       if (rank .eq. 0) then
         write(*,200) which,PetscRealPart(tget)
       endif
- 200  format (' Which = ',I2,', target = ',F3.1)
+ 200  format (' Which = ',I2,', target = ',F4.1)
 
       nev = 4
       call PEPSetDimensions(pep,nev,PETSC_DEFAULT_INTEGER,              &
@@ -198,7 +198,7 @@
       if (rank .eq. 0) then
         write(*,220) tol,its
       endif
- 220  format (' Tolerance =',F7.5,', max_its =',I4)
+ 220  format (' Tolerance =',F8.5,', max_its =',I4)
 
       call PEPSetConvergenceTest(pep,PEP_CONV_ABS,ierr)
       call PEPGetConvergenceTest(pep,conv,ierr)
@@ -248,3 +248,11 @@
 
       call SlepcFinalize(ierr)
       end
+
+!/*TEST
+!
+!   test:
+!      suffix: 1
+!      args: -pep_tol 1e-6 -pep_ncv 22
+!
+!TEST*/

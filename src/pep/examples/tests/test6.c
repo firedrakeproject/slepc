@@ -220,3 +220,17 @@ int main(int argc,char **argv)
   ierr = SlepcFinalize();
   return ierr;
 }
+
+/*TEST
+
+   test:
+      suffix: 1
+      args: -pep_type {{toar qarnoldi linear}} -pep_nev 4 -terse
+      requires: !single
+
+   test:
+      suffix: 2
+      args: -pep_type stoar -pep_hermitian -pep_nev 4 -terse
+      requires: !single
+
+TEST*/

@@ -242,3 +242,13 @@ PetscErrorCode MatGetDiagonal_Identity(Mat A,Vec diag)
   PetscFunctionReturn(0);
 }
 
+/*TEST
+
+   test:
+      suffix: 1
+      args: -pep_type {{toar qarnoldi linear}} -pep_nev 4 -terse
+      filter: grep -v Solution
+      filter_output: grep -v Solution
+      requires: !complex !single
+
+TEST*/

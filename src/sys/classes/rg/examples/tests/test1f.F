@@ -69,13 +69,13 @@
           write(*,110) re, im, 'outside'
         endif
       endif
- 110  format ('Point (',F3.1,',',F3.1,') is ',A7,' the region')
+ 110  format ('Point (',F4.1,',',F4.1,') is ',A7,' the region')
 
       call RGComputeBoundingBox(rg,a,b,c,d,ierr)
       if (rank .eq. 0) then
         write(*,115) a, b, c, d
       endif
- 115  format ('Bounding box: [',F3.1,',',F3.1,']x[',F3.1,',',F3.1,']')
+ 115  format ('Bounding box: [',F4.1,',',F4.1,']x[',F4.1,',',F4.1,']')
 
       if (rank .eq. 0) then
         write (*,*) 'Contour points:'
@@ -182,3 +182,14 @@
       call SlepcFinalize(ierr)
       end
 
+!/*TEST
+!
+!   test:
+!      suffix: 1
+!      requires: !complex
+!
+!   test:
+!      suffix: 1_complex
+!      requires: complex
+!
+!TEST*/

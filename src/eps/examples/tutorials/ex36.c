@@ -232,3 +232,19 @@ PetscErrorCode STApply_Exp(ST st,Vec x,Vec y)
   PetscFunctionReturn(0);
 }
 
+/*TEST
+
+   testset:
+      args: -eps_nev 4 -mfn_ncv 16 -terse
+      requires: c99_complex !single
+      filter: sed -e "s/-2/+2/g"
+      output_file: output/ex36_1.out
+      test:
+         suffix: 1
+         requires: !__float128
+      test:
+         suffix: 1_quad
+         args: -eps_tol 1e-14
+         requires: __float128
+
+TEST*/

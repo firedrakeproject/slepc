@@ -96,8 +96,6 @@ class PETSc(package.Package):
           self.prefixdir = v
         elif k == 'BFORT':
           self.bfort = v
-        elif k == 'TEST_RUNS':
-          self.test_runs = v
         elif k == 'CC':
           self.cc = v
         elif k == 'CC_FLAGS':

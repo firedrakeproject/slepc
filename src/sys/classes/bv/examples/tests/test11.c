@@ -243,3 +243,242 @@ int main(int argc,char **argv)
   ierr = SlepcFinalize();
   return ierr;
 }
+
+/*TEST
+
+   test:
+      suffix: 1
+      nsize: 2
+      args: -bv_orthog_block gs -bv_type {{vecs contiguous svec mat}shared output}
+      output_file: output/test11_1.out
+
+   test:
+      suffix: 1_cuda
+      nsize: 2
+      args: -bv_orthog_block gs -bv_type svec -vec_type cuda
+      requires: veccuda
+      output_file: output/test11_1.out
+
+   test:
+      suffix: 2
+      nsize: 2
+      args: -bv_orthog_block chol -bv_type {{vecs contiguous svec mat}shared output}
+      output_file: output/test11_1.out
+
+   test:
+      suffix: 2_cuda
+      nsize: 2
+      args: -bv_orthog_block chol -bv_type svec -vec_type cuda
+      requires: veccuda
+      output_file: output/test11_1.out
+
+   test:
+      suffix: 3
+      nsize: 2
+      args: -bv_orthog_block tsqr -bv_type {{vecs contiguous svec mat}shared output}
+      output_file: output/test11_1.out
+
+   test:
+      suffix: 3_cuda
+      nsize: 2
+      args: -bv_orthog_block tsqr -bv_type svec -vec_type cuda
+      requires: veccuda
+      output_file: output/test11_1.out
+
+   test:
+      suffix: 4
+      nsize: 2
+      args: -withb -bv_orthog_block gs -bv_type {{vecs contiguous svec mat}shared output}
+      output_file: output/test11_4.out
+
+   test:
+      suffix: 4_cuda
+      nsize: 2
+      args: -withb -bv_orthog_block gs -bv_type svec -vec_type cuda -mat_type aijcusparse
+      requires: veccuda
+      output_file: output/test11_4.out
+
+   test:
+      suffix: 5
+      nsize: 2
+      args: -withb -bv_orthog_block chol -bv_type {{vecs contiguous svec mat}shared output}
+      output_file: output/test11_4.out
+
+   test:
+      suffix: 5_cuda
+      nsize: 2
+      args: -withb -bv_orthog_block chol -bv_type svec -vec_type cuda -mat_type aijcusparse
+      requires: veccuda
+      output_file: output/test11_4.out
+
+   test:
+      suffix: 6
+      nsize: 2
+      args: -resid -bv_orthog_block gs -bv_type {{vecs contiguous svec mat}shared output}
+      output_file: output/test11_6.out
+
+   test:
+      suffix: 6_cuda
+      nsize: 2
+      args: -resid -bv_orthog_block gs -bv_type svec -vec_type cuda
+      requires: veccuda
+      output_file: output/test11_6.out
+
+   test:
+      suffix: 7
+      nsize: 2
+      args: -resid -bv_orthog_block chol -bv_type {{vecs contiguous svec mat}shared output}
+      output_file: output/test11_6.out
+
+   test:
+      suffix: 7_cuda
+      nsize: 2
+      args: -resid -bv_orthog_block chol -bv_type svec -vec_type cuda
+      requires: veccuda
+      output_file: output/test11_6.out
+
+   test:
+      suffix: 8
+      nsize: 2
+      args: -resid -bv_orthog_block tsqr -bv_type {{vecs contiguous svec mat}shared output}
+      output_file: output/test11_6.out
+
+   test:
+      suffix: 8_cuda
+      nsize: 2
+      args: -resid -bv_orthog_block tsqr -bv_type svec -vec_type cuda
+      requires: veccuda
+      output_file: output/test11_6.out
+
+   test:
+      suffix: 9
+      nsize: 2
+      args: -resid -withb -bv_orthog_block gs -bv_type {{vecs contiguous svec mat}shared output}
+      output_file: output/test11_9.out
+
+   test:
+      suffix: 9_cuda
+      nsize: 2
+      args: -resid -withb -bv_orthog_block gs -bv_type svec -vec_type cuda -mat_type aijcusparse
+      requires: veccuda
+      output_file: output/test11_9.out
+
+   test:
+      suffix: 10
+      nsize: 2
+      args: -resid -withb -bv_orthog_block chol -bv_type {{vecs contiguous svec mat}shared output}
+      output_file: output/test11_9.out
+
+   test:
+      suffix: 10_cuda
+      nsize: 2
+      args: -resid -withb -bv_orthog_block chol -bv_type svec -vec_type cuda -mat_type aijcusparse
+      requires: veccuda
+      output_file: output/test11_9.out
+
+   test:
+      suffix: 11
+      nsize: 7
+      args: -bv_orthog_block tsqr -bv_type {{vecs contiguous svec mat}shared output}
+      output_file: output/test11_1.out
+
+   test:
+      suffix: 11_cuda
+      nsize: 7
+      args: -bv_orthog_block tsqr -bv_type svec -vec_type cuda
+      requires: veccuda
+      output_file: output/test11_1.out
+
+   test:
+      suffix: 12
+      nsize: 9
+      args: -resid -n 180 -l 0 -k 7 -bv_orthog_block tsqr -bv_type {{vecs contiguous svec mat}shared output}
+      requires: !single
+      output_file: output/test11_12.out
+
+   test:
+      suffix: 12_cuda
+      nsize: 9
+      args: -resid -n 180 -l 0 -k 7 -bv_orthog_block tsqr -bv_type svec -vec_type cuda
+      requires: !single veccuda
+      output_file: output/test11_12.out
+
+   test:
+      suffix: 13
+      nsize: 2
+      args: -bv_orthog_block tsqrchol -bv_type {{vecs contiguous svec mat}shared output}
+      output_file: output/test11_1.out
+
+   test:
+      suffix: 13_cuda
+      nsize: 2
+      args: -bv_orthog_block tsqrchol -bv_type svec -vec_type cuda
+      requires: veccuda
+      output_file: output/test11_1.out
+
+   test:
+      suffix: 14
+      nsize: 2
+      args: -resid -bv_orthog_block tsqrchol -bv_type {{vecs contiguous svec mat}shared output}
+      output_file: output/test11_6.out
+
+   test:
+      suffix: 14_cuda
+      nsize: 2
+      args: -resid -bv_orthog_block tsqrchol -bv_type svec -vec_type cuda
+      requires: veccuda
+      output_file: output/test11_6.out
+
+   test:
+      suffix: 15
+      nsize: 2
+      args: -bv_orthog_block svqb -bv_type {{vecs contiguous svec mat}shared output}
+      output_file: output/test11_1.out
+
+   test:
+      suffix: 15_cuda
+      nsize: 2
+      args: -bv_orthog_block svqb -bv_type svec -vec_type cuda
+      requires: veccuda
+      output_file: output/test11_1.out
+
+   test:
+      suffix: 16
+      nsize: 2
+      args: -withb -bv_orthog_block svqb -bv_type {{vecs contiguous svec mat}shared output}
+      output_file: output/test11_4.out
+
+   test:
+      suffix: 16_cuda
+      nsize: 2
+      args: -withb -bv_orthog_block svqb -bv_type svec -vec_type cuda
+      requires: veccuda
+      output_file: output/test11_4.out
+
+   test:
+      suffix: 17
+      nsize: 2
+      args: -resid -bv_orthog_block svqb -bv_type {{vecs contiguous svec mat}shared output}
+      output_file: output/test11_6.out
+
+   test:
+      suffix: 17_cuda
+      nsize: 2
+      args: -resid -bv_orthog_block svqb -bv_type svec -vec_type cuda
+      requires: veccuda
+      output_file: output/test11_6.out
+
+   test:
+      suffix: 18
+      nsize: 2
+      args: -resid -withb -bv_orthog_block svqb -bv_type {{vecs contiguous svec mat}shared output}
+      output_file: output/test11_9.out
+
+   test:
+      suffix: 18_cuda
+      nsize: 2
+      args: -resid -withb -bv_orthog_block svqb -bv_type svec -vec_type cuda
+      requires: veccuda
+      output_file: output/test11_9.out
+
+TEST*/

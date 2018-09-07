@@ -173,3 +173,19 @@ int main(int argc,char **argv)
   ierr = SlepcFinalize();
   return ierr;
 }
+
+/*TEST
+
+   test:
+      suffix: 1
+      nsize: 1
+      args: -bv_type {{vecs contiguous svec mat}separate output} -verbose
+
+   test:
+      suffix: 1_cuda
+      nsize: 1
+      args: -bv_type svec -vec_type cuda -verbose
+      requires: veccuda
+      filter: sed -e "s/type: seqcuda/type: seq/"
+
+TEST*/

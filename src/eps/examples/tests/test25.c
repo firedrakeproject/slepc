@@ -100,3 +100,17 @@ int main(int argc,char **argv)
   return ierr;
 }
 
+/*TEST
+
+   testset:
+      args: -f1 ${SLEPC_DIR}/share/slepc/datafiles/matrices/bfw62a.petsc -f2 ${SLEPC_DIR}/share/slepc/datafiles/matrices/bfw62b.petsc
+      output_file: output/test25_1.out
+      test:
+         suffix: 1
+         requires: double !complex !define(PETSC_USE_64BIT_INDICES)
+      test:
+         suffix: 2_cuda
+         args: -mat_type aijcusparse
+         requires: veccuda double !complex !define(PETSC_USE_64BIT_INDICES)
+
+TEST*/

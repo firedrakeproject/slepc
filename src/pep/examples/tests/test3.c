@@ -157,3 +157,11 @@ int main(int argc,char **argv)
   ierr = SlepcFinalize();
   return ierr;
 }
+
+/*TEST
+
+   test:
+      suffix: 1
+      args: -pep_tol 1e-6 -pep_ncv 22
+
+TEST*/

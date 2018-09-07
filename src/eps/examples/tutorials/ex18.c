@@ -209,3 +209,12 @@ PetscErrorCode MyEigenSort(PetscScalar ar,PetscScalar ai,PetscScalar br,PetscSca
   else *r = 1;  /* 'b' is on the right */
   PetscFunctionReturn(0);
 }
+
+/*TEST
+
+   test:
+      suffix: 1
+      args: -eps_nev 4 -terse
+      requires: !single
+
+TEST*/

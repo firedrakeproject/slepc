@@ -166,3 +166,21 @@ int main(int argc,char **argv)
   ierr = SlepcFinalize();
   return ierr;
 }
+
+/*TEST
+
+   test:
+      suffix: 1
+      nsize: 1
+      args: -fn_scale 0.9,0.5 -n 10 -fn_method {{0 1 2}shared output}
+      filter: grep -v "computing matrix functions"
+      output_file: output/test8_1.out
+
+   test:
+      suffix: 2
+      nsize: 1
+      args: -fn_scale 0.9,0.5 -n 10 -inplace -fn_method {{0 1 2}shared output}
+      filter: grep -v "computing matrix functions"
+      output_file: output/test8_1.out
+
+TEST*/

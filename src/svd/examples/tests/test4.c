@@ -117,3 +117,62 @@ int main(int argc,char **argv)
   return ierr;
 }
 
+/*TEST
+
+   testset:
+      args: -svd_monitor_cancel
+      filter: grep -v "Transpose mode"
+      output_file: output/test4_1.out
+      test:
+         suffix: 1_lanczos
+         args: -svd_type lanczos
+      test:
+         suffix: 1_trlanczos
+         args: -svd_type trlanczos -svd_ncv 12
+      test:
+         suffix: 1_cross
+         args: -svd_type cross
+      test:
+         suffix: 1_cross_exp
+         args: -svd_type cross -svd_cross_explicitmatrix
+      test:
+         suffix: 1_cross_exp_imp
+         args: -svd_type cross -svd_cross_explicitmatrix -svd_implicittranspose
+         requires: !complex
+      test:
+         suffix: 1_cyclic
+         args: -svd_type cyclic
+      test:
+         suffix: 1_cyclic_imp
+         args: -svd_type cyclic -svd_implicittranspose
+      test:
+         suffix: 1_cyclic_exp
+         args: -svd_type cyclic -svd_cyclic_explicitmatrix
+      test:
+         suffix: 1_lapack
+         args: -svd_type lapack
+         requires: !single
+
+   testset:
+      args: -svd_monitor_cancel  -mat_type aijcusparse
+      requires: veccuda
+      filter: grep -v "Transpose mode" | sed -e "s/seqaijcusparse/seqaij/"
+      output_file: output/test4_1.out
+      test:
+         suffix: 2_cuda_lanczos
+         args: -svd_type lanczos
+      test:
+         suffix: 2_cuda_trlanczos
+         args: -svd_type trlanczos -svd_ncv 12
+      test:
+         suffix: 2_cuda_cross
+         args: -svd_type cross
+
+   testset:
+      suffix: 3
+      args: -svd_type trlanczos -svd_ncv 12 -svd_monitor_cancel -ds_parallel synchronized
+      output_file: output/test4_3.out
+      test:
+         nsize: 2
+
+TEST*/

@@ -298,3 +298,23 @@ PetscErrorCode STDestroy_User(SampleShellST *shell)
   PetscFunctionReturn(0);
 }
 
+/*TEST
+
+   testset:
+      args: -eps_nev 5 -eps_non_hermitian -terse
+      requires: !single
+      output_file: output/ex10_1.out
+      test:
+         suffix: 1_sinvert
+         args: -st_type sinvert
+      test:
+         suffix: 1_sinvert_twoside
+         args: -st_type sinvert -eps_balance twoside
+      test:
+         suffix: 1_shell
+         args: -st_type shell
+      test:
+         suffix: 1_shell_twoside
+         args: -st_type shell -eps_balance twoside
+
+TEST*/

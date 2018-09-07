@@ -113,3 +113,11 @@ int main(int argc,char **argv)
   return ierr;
 }
 
+/*TEST
+
+   test:
+      suffix: 1
+      args: -svd_type {{lanczos trlanczos cross cyclic lapack}} -svd_nsv 3
+      requires: !single
+
+TEST*/

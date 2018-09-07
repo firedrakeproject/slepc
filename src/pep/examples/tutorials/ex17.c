@@ -104,3 +104,12 @@ int main(int argc,char **argv)
   ierr = SlepcFinalize();
   return ierr;
 }
+
+/*TEST
+
+   test:
+      suffix: 1
+      args: -A ${SLEPC_DIR}/share/slepc/datafiles/matrices/speaker107k.petsc,${SLEPC_DIR}/share/slepc/datafiles/matrices/speaker107c.petsc,${SLEPC_DIR}/share/slepc/datafiles/matrices/speaker107m.petsc -pep_type {{toar qarnoldi linear}} -pep_nev 4 -pep_ncv 20 -pep_scale scalar -terse
+      requires: double !complex !define(PETSC_USE_64BIT_INDICES)
+
+TEST*/

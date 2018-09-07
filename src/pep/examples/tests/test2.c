@@ -144,3 +144,163 @@ int main(int argc,char **argv)
   ierr = SlepcFinalize();
   return ierr;
 }
+
+/*TEST
+
+   testset:
+      args: -pep_nev 4 -initv
+      requires: !single
+      output_file: output/test2_1.out
+      test:
+         suffix: 1
+         args: -pep_type {{toar linear}}
+      test:
+         suffix: 1_qarnoldi
+         args: -pep_type qarnoldi -bv_orthog_refine never
+      test:
+         suffix: 1_linear_gd
+         args: -pep_type linear -pep_linear_eps_type gd -pep_linear_explicitmatrix
+
+   testset:
+      args: -pep_target -0.43 -pep_nev 4 -pep_ncv 20 -st_type sinvert
+      output_file: output/test2_2.out
+      test:
+         suffix: 2
+         args: -pep_type {{toar linear}}
+      test:
+         suffix: 2_toar_scaleboth
+         args: -pep_type toar -pep_scale both
+      test:
+         suffix: 2_toar_transform
+         args: -pep_type toar -st_transform
+      test:
+         suffix: 2_qarnoldi
+         args: -pep_type qarnoldi -bv_orthog_refine always
+      test:
+         suffix: 2_linear_explicit
+         args: -pep_type linear -pep_linear_explicitmatrix -pep_linear_cform 2
+      test:
+         suffix: 2_linear_explicit_her
+         args: -pep_type linear -pep_linear_explicitmatrix -pep_hermitian -pep_linear_cform 2
+      test:
+         suffix: 2_stoar
+         args: -pep_type stoar -pep_hermitian
+         requires: !single
+      test:
+         suffix: 2_jd
+         args: -pep_type jd -st_type precond
+         requires: complex
+
+   test:
+      suffix: 3
+      args: -pep_nev 12 -pep_extract {{none norm residual structured}} -pep_monitor_cancel
+      requires: !single
+
+   testset:
+      args: -st_type sinvert -pep_target -0.43 -pep_nev 4
+      output_file: output/test2_2.out
+      test:
+         suffix: 4_schur
+         args: -pep_refine simple -pep_refine_scheme schur
+      test:
+         suffix: 4_mbe
+         args: -pep_refine simple -pep_refine_scheme mbe -pep_refine_ksp_type preonly -pep_refine_pc_type lu
+      test:
+         suffix: 4_explicit
+         args: -pep_refine simple -pep_refine_scheme explicit
+      test:
+         suffix: 4_multiple_schur
+         args: -pep_refine multiple -pep_refine_scheme schur
+      test:
+         suffix: 4_multiple_mbe
+         args: -pep_refine multiple -pep_refine_scheme mbe -pep_refine_ksp_type preonly -pep_refine_pc_type lu -pep_refine_pc_factor_shift_type nonzero
+      test:
+         suffix: 4_multiple_explicit
+         args: -pep_refine multiple -pep_refine_scheme explicit
+
+   test:
+      suffix: 5
+      nsize: 2
+      args: -pep_type linear -pep_linear_explicitmatrix -pep_general -pep_target -0.43 -pep_nev 4 -pep_ncv 20 -st_type sinvert -pep_linear_st_ksp_type bcgs -pep_linear_st_pc_type bjacobi
+      output_file: output/test2_2.out
+
+   test:
+      suffix: 6
+      args: -pep_type linear -pep_nev 12 -pep_extract {{none norm residual}}
+      requires: !single
+      output_file: output/test2_3.out
+
+   test:
+      suffix: 7
+      args: -pep_nev 12 -pep_extract {{none norm residual structured}} -pep_refine multiple
+      requires: !single
+      output_file: output/test2_3.out
+
+   testset:
+      args: -st_type sinvert -pep_target -0.43 -pep_nev 4 -st_transform
+      output_file: output/test2_2.out
+      test:
+         suffix: 8_schur
+         args: -pep_refine simple -pep_refine_scheme schur
+      test:
+         suffix: 8_mbe
+         args: -pep_refine simple -pep_refine_scheme mbe -pep_refine_ksp_type preonly -pep_refine_pc_type lu
+      test:
+         suffix: 8_explicit
+         args: -pep_refine simple -pep_refine_scheme explicit
+      test:
+         suffix: 8_multiple_schur
+         args: -pep_refine multiple -pep_refine_scheme schur
+      test:
+         suffix: 8_multiple_mbe
+         args: -pep_refine multiple -pep_refine_scheme mbe -pep_refine_ksp_type preonly -pep_refine_pc_type lu
+      test:
+         suffix: 8_multiple_explicit
+         args: -pep_refine multiple -pep_refine_scheme explicit
+
+   testset:
+      nsize: 2
+      args: -st_type sinvert -pep_target -0.43 -pep_nev 4 -pep_refine_partitions 2 -st_ksp_type bcgs -st_pc_type bjacobi -pep_scale diagonal -pep_scale_its 4
+      output_file: output/test2_2.out
+      requires: !single
+      test:
+         suffix: 9_mbe
+         args: -pep_refine simple -pep_refine_scheme mbe -pep_refine_ksp_type preonly -pep_refine_pc_type lu
+      test:
+         suffix: 9_explicit
+         args: -pep_refine simple -pep_refine_scheme explicit
+      test:
+         suffix: 9_multiple_mbe
+         args: -pep_refine multiple -pep_refine_scheme mbe -pep_refine_ksp_type preonly -pep_refine_pc_type lu
+      test:
+         suffix: 9_multiple_explicit
+         args: -pep_refine multiple -pep_refine_scheme explicit
+
+   test:
+      suffix: 10
+      nsize: 4
+      args: -st_type sinvert -pep_target -0.43 -pep_nev 4 -pep_refine simple -pep_refine_scheme explicit -pep_refine_partitions 2 -st_ksp_type bcgs -st_pc_type bjacobi -pep_scale diagonal -pep_scale_its 4
+      requires: double
+      output_file: output/test2_2.out
+
+   testset:
+      args: -pep_nev 4 -initv -mat_type aijcusparse
+      output_file: output/test2_1.out
+      requires: veccuda
+      test:
+         suffix: 11_cuda
+         args: -pep_type {{toar linear}}
+      test:
+         suffix: 11_cuda_qarnoldi
+         args: -pep_type qarnoldi -bv_orthog_refine never
+      test:
+         suffix: 11_cuda_linear_gd
+         args: -pep_type linear -pep_linear_eps_type gd -pep_linear_explicitmatrix
+
+   test:
+      suffix: 12
+      nsize: 2
+      args: -pep_type jd -ds_parallel synchronized -pep_target -0.43 -pep_nev 4 -pep_ncv 20
+      requires: complex
+
+TEST*/

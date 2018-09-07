@@ -126,7 +126,7 @@
       if (rank .eq. 0) then
         write(*,160) bal,its,cut
       endif
- 160  format (' Balance: ',I2,', its=',I2,', cutoff=',F8.6)
+ 160  format (' Balance: ',I2,', its=',I2,', cutoff=',F9.6)
 
       tget = 4.8
       call EPSSetTarget(eps,tget,ierr)
@@ -136,7 +136,7 @@
       if (rank .eq. 0) then
         write(*,170) which,PetscRealPart(tget)
       endif
- 170  format (' Which = ',I2,', target = ',F3.1)
+ 170  format (' Which = ',I2,', target = ',F4.1)
 
       nev = 4
       call EPSSetDimensions(eps,nev,PETSC_DEFAULT_INTEGER,              &
@@ -154,7 +154,7 @@
       if (rank .eq. 0) then
         write(*,190) tol,its
       endif
- 190  format (' Tolerance =',F7.5,', max_its =',I4)
+ 190  format (' Tolerance =',F8.5,', max_its =',I4)
 
       call EPSSetConvergenceTest(eps,EPS_CONV_ABS,ierr)
       call EPSGetConvergenceTest(eps,conv,ierr)
@@ -203,3 +203,10 @@
 
       call SlepcFinalize(ierr)
       end
+
+!/*TEST
+!
+!   test:
+!      suffix: 1
+!
+!TEST*/

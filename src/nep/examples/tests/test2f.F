@@ -167,7 +167,7 @@
       if (rank .eq. 0) then
         write(*,200) which,PetscRealPart(tget)
       endif
- 200  format (' Which = ',I2,', target = ',F3.1)
+ 200  format (' Which = ',I2,', target = ',F4.1)
 
       nev = 1
       ncv = 12
@@ -234,3 +234,11 @@
 
       call SlepcFinalize(ierr)
       end
+
+!/*TEST
+!
+!   test:
+!      suffix: 1
+!      requires: !single
+!
+!TEST*/

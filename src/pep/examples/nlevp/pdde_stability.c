@@ -148,3 +148,15 @@ int main(int argc,char **argv)
   ierr = SlepcFinalize();
   return ierr;
 }
+
+/*TEST
+
+   build:
+      requires: complex
+
+   test:
+      suffix: 1
+      args: -pep_type {{toar qarnoldi linear}} -pep_ncv 25 -terse
+      requires: complex
+
+TEST*/

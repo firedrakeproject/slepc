@@ -220,3 +220,12 @@ int main(int argc,char **argv)
   return ierr;
 }
 
+/*TEST
+
+   test:
+      suffix: 1
+      nsize: 2
+      args: -showinertia 0 -info_exclude eps,st,rg,bv,ds -log_exclude eps,st,rg,bv,ds
+      requires: !single
+
+TEST*/

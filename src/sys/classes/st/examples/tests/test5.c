@@ -118,3 +118,13 @@ int main (int argc,char **argv)
   return ierr;
 }
 
+/*TEST
+
+   testset:
+      output_file: output/test5_1.out
+      test:
+         args: -st_matmode {{copy inplace}}
+      test:
+         args: -st_matmode shell -ksp_type bcgs -pc_type jacobi
+
+TEST*/
