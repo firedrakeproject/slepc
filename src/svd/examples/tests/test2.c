@@ -79,13 +79,9 @@ int main(int argc,char **argv)
       requires: !__float128
 
    testset:
-      args: -svd_type {{lanczos trlanczos cross cyclic lapack}} -svd_nsv 7
       test:
-         suffix: 1
-         requires: double !complex
-      test:
-         suffix: 1_complex
-         requires: double complex
+         args: -svd_type {{lanczos trlanczos cross cyclic lapack}} -svd_nsv 7
+         requires: double
       test:
          suffix: 1_primme
          args: -svd_type primme -svd_nsv 7
