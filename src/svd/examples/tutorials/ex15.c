@@ -147,5 +147,6 @@ int main(int argc,char **argv)
    test:
       suffix: 1
       filter: sed -e "s/[0-9]\.[0-9]*e[+-]\([0-9]*\)/removed/g"
+      requires: double
 
 TEST*/

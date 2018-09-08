@@ -122,6 +122,7 @@ int main (int argc,char **argv)
 
    testset:
       output_file: output/test5_1.out
+      requires: !single
       test:
          args: -st_matmode {{copy inplace}}
       test:
