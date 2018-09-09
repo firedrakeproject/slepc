@@ -222,6 +222,9 @@ int main(int argc,char **argv)
 
 /*TEST
 
+   build:
+      requires: c99
+
    test:
       suffix: 1
       args: -tend 0.125 -mfn_tol 1e-3 -deltat 0.025
