@@ -149,7 +149,7 @@ int main(int argc,char **argv)
       output_file: output/sleeper_1.out
       test:
          suffix: 1
-         args: -pep_type {{toar linear}}
+         args: -pep_type {{toar linear}} -pep_ncv 20
       test:
          suffix: 1_qarnoldi
          args: -pep_type qarnoldi -pep_qarnoldi_restart 0.4

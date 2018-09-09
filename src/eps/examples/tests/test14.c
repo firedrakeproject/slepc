@@ -138,5 +138,6 @@ int main(int argc,char **argv)
 
    test:
       suffix: 1
+      args: -eps_ncv 14
 
 TEST*/
