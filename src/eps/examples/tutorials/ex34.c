@@ -441,9 +441,11 @@ PetscErrorCode FormFunctionB(SNES snes,Vec X,Vec F,void *ctx)
    test:
       suffix: 1
       args: -petscspace_degree 1 -petscspace_poly_tensor
+      requires: double !complex
 
    test:
       suffix: 2
       args: -petscspace_degree 1 -petscspace_poly_tensor -eps_power_update
+      requires: double !complex
 
 TEST*/
