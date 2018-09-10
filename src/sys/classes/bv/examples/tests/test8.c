@@ -122,6 +122,7 @@ int main(int argc,char **argv)
       suffix: 2
       nsize: 1
       args: -bv_type {{vecs contiguous svec mat}shared output} -bv_orthog_refine never
+      requires: !single
       output_file: output/test8_1.out
 
    test:

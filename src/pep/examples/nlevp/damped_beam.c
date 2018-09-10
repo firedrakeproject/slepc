@@ -193,6 +193,6 @@ int main(int argc,char **argv)
          args: -pep_type qarnoldi -pep_qarnoldi_locking 0 -st_type sinvert
       test:
          suffix: 1_jd_complex
-         args: -pep_type jd
+         args: -pep_type jd -pep_tol 1e-9
 
 TEST*/
