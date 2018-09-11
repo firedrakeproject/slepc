@@ -43,7 +43,6 @@
 #define epsgetdimensions110_              EPSGETDIMENSIONS110
 #define epsgetdimensions011_              EPSGETDIMENSIONS011
 #define epsgetdimensions101_              EPSGETDIMENSIONS101
-#define epssetoperators_                  EPSSETOPERATORS
 #define epsgeteigenpair00_                EPSGETEIGENPAIR00
 #define epsgeteigenpair10_                EPSGETEIGENPAIR10
 #define epsgeteigenpair01_                EPSGETEIGENPAIR01
@@ -51,7 +50,6 @@
 #define epsgeteigenvalue00_               EPSGETEIGENVALUE00
 #define epsgeteigenvalue10_               EPSGETEIGENVALUE10
 #define epsgeteigenvalue01_               EPSGETEIGENVALUE01
-#define epsgeteigenvector_                EPSGETEIGENVECTOR
 #define epsgettolerances00_               EPSGETTOLERANCES00
 #define epsgettolerances10_               EPSGETTOLERANCES10
 #define epsgettolerances01_               EPSGETTOLERANCES01
@@ -95,7 +93,6 @@
 #define epsgetdimensions110_              epsgetdimensions110
 #define epsgetdimensions011_              epsgetdimensions011
 #define epsgetdimensions101_              epsgetdimensions101
-#define epssetoperators_                  epssetoperators
 #define epsgeteigenpair00_                epsgeteigenpair00
 #define epsgeteigenpair10_                epsgeteigenpair10
 #define epsgeteigenpair01_                epsgeteigenpair01
@@ -103,7 +100,6 @@
 #define epsgeteigenvalue00_               epsgeteigenvalue00
 #define epsgeteigenvalue10_               epsgeteigenvalue10
 #define epsgeteigenvalue01_               epsgeteigenvalue01
-#define epsgeteigenvector_                epsgeteigenvector
 #define epsgettolerances00_               epsgettolerances00
 #define epsgettolerances10_               epsgettolerances10
 #define epsgettolerances01_               epsgettolerances01

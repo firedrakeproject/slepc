@@ -48,7 +48,6 @@
 #define pepgettolerances00_               PEPGETTOLERANCES00
 #define pepgettolerances10_               PEPGETTOLERANCES10
 #define pepgettolerances01_               PEPGETTOLERANCES01
-#define pepsetscale_                      PEPSETSCALE
 #define pepgetscale000_                   PEPGETSCALE000
 #define pepgetscale100_                   PEPGETSCALE100
 #define pepgetscale010_                   PEPGETSCALE010
@@ -103,7 +102,6 @@
 #define pepgettolerances00_               pepgettolerances00
 #define pepgettolerances10_               pepgettolerances10
 #define pepgettolerances01_               pepgettolerances01
-#define pepsetscale_                      pepsetscale
 #define pepgetscale000_                   pepgetscale000
 #define pepgetscale100_                   pepgetscale100
 #define pepgetscale010_                   pepgetscale010

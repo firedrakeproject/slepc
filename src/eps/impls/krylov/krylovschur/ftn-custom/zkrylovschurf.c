@@ -16,17 +16,13 @@
 #define epskrylovschurgetsubintervals_    EPSKRYLOVSCHURGETSUBINTERVALS
 #define epskrylovschurgetinertias_        EPSKRYLOVSCHURGETINERTIAS
 #define epskrylovschurgetsubcomminfo_     EPSKRYLOVSCHURGETSUBCOMMINFO
-#define epskrylovschurgetsubcommpairs_    EPSKRYLOVSCHURGETSUBCOMMPAIRS
 #define epskrylovschurgetsubcommmats_     EPSKRYLOVSCHURGETSUBCOMMMATS
-#define epskrylovschurupdatesubcommmats_  EPSKRYLOVSCHURUPDATESUBCOMMMATS
 #elif !defined(PETSC_HAVE_FORTRAN_UNDERSCORE)
 #define epskrylovschursetsubintervals_    epskrylovschursetsubintervals
 #define epskrylovschurgetsubintervals_    epskrylovschurgetsubintervals
 #define epskrylovschurgetinertias_        epskrylovschurgetinertias
 #define epskrylovschurgetsubcomminfo_     epskrylovschurgetsubcomminfo
-#define epskrylovschurgetsubcommpairs_    epskrylovschurgetsubcommpairs
 #define epskrylovschurgetsubcommmats_     epskrylovschurgetsubcommmats
-#define epskrylovschurupdatesubcommmats_  epskrylovschurupdatesubcommmats
 #endif
 
 PETSC_EXTERN void PETSC_STDCALL epskrylovschursetsubintervals_(EPS *eps,PetscReal *subint,PetscErrorCode *ierr)
