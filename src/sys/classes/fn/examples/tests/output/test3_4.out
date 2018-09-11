@@ -1,4 +1,4 @@
-Matrix exponential, n=200.
+Matrix exponential, n=80.
 FN Object: 1 MPI processes
   type: exp
     Exponential: +1.5*exp(+0.6*x)

@@ -48,7 +48,7 @@ ST Object: 1 MPI processes
     PC has not been set up so information may be incomplete
 DS Object: 1 MPI processes
   type not yet set
- Finished - converged reason = 1, its=   2
+ Finished - converged reason = 1, its=   3
  All requested eigenvalues computed up to the required tolerance:
      5.00000, 4.00000, 6.00000, 3.00000
 

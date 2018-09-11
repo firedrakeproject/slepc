@@ -91,7 +91,7 @@ int main(int argc,char **argv)
   ierr = VecGetArray(z,&pz);CHKERRQ(ierr);
   ierr = BVDotColumn(X,k-1,pz);CHKERRQ(ierr);
   for (i=0;i<k-1;i++) {
-    if (PetscAbsScalar(pz[i])<PETSC_MACHINE_EPSILON) pz[i]=0.0;
+    if (PetscAbsScalar(pz[i])<5.0*PETSC_MACHINE_EPSILON) pz[i]=0.0;
   }
   ierr = VecRestoreArray(z,&pz);CHKERRQ(ierr);
   ierr = VecView(z,view);CHKERRQ(ierr);
@@ -122,6 +122,7 @@ int main(int argc,char **argv)
       suffix: 2
       nsize: 1
       args: -bv_type {{vecs contiguous svec mat}shared output} -bv_orthog_refine never
+      requires: !single
       output_file: output/test8_1.out
 
    test:

@@ -39,7 +39,7 @@
       PetscMPIInt    rank
       PetscErrorCode ierr
       PetscBool      flg
-      PetscScalar    one
+      PetscScalar    one, alpha
 
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !     Beginning of program
@@ -76,7 +76,8 @@
             call MatSetValue(A,i,j,one,INSERT_VALUES,ierr)
           end do
         else
-          call MatSetValue(A,i,i-1,mu,INSERT_VALUES,ierr)
+          alpha = mu
+          call MatSetValue(A,i,i-1,alpha,INSERT_VALUES,ierr)
         end if
       enddo
 

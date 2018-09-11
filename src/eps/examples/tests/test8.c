@@ -176,7 +176,7 @@ PetscErrorCode MatGetDiagonal_Laplacian2D(Mat A,Vec diag)
          args: -eps_type {{krylovschur power subspace arnoldi lanczos lapack}}
       test:
          suffix: 1_krylovschur_vecs
-         args: -bv_type vecs -bv_orthog_refine always
+         args: -bv_type vecs -bv_orthog_refine always -eps_ncv 12
       test:
          suffix: 1_jd
          args: -eps_type jd -eps_jd_blocksize 3
@@ -205,7 +205,7 @@ PetscErrorCode MatGetDiagonal_Laplacian2D(Mat A,Vec diag)
       test:
          suffix: 2_arpack
          args: -eps_type arpack -eps_ncv 6
-         requires: arpack
+         requires: arpack !single
       test:
          suffix: 2_blzpack
          args: -eps_type blzpack

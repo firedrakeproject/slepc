@@ -150,7 +150,7 @@ PetscErrorCode MatMarkovModel(PetscInt m,Mat A)
 
    test:
       suffix: 1
-      args: -eps_nev 4
+      args: -eps_nev 4 -eps_ncv 20
       output_file: output/test11_1.out
 
 TEST*/

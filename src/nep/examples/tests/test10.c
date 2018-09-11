@@ -222,7 +222,7 @@ int main(int argc,char **argv)
       output_file: output/test10_1.out
       test:
          suffix: 1
-         args: -nep_type {{rii narnoldi}}
+         args: -nep_type {{rii narnoldi}} -nep_target 0.55
       test:
          suffix: 1_slp
          args: -nep_type slp -nep_slp_st_pc_type redundant
