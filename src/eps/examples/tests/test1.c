@@ -177,6 +177,7 @@ int main(int argc,char **argv)
       test:
          suffix: 5_lobpcg
          args: -eps_type lobpcg -eps_lobpcg_blocksize 3
+         requires: !single
 
    testset:
       args: -n 18 -eps_nev 12 -eps_mpd 8 -eps_max_it 3000

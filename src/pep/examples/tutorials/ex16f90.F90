@@ -190,7 +190,7 @@
 !
 !   test:
 !      suffix: 1
-!      args: -pep_nev 4 -pep_ncv 20 -terse
+!      args: -pep_nev 4 -pep_ncv 19 -terse
 !      requires: !complex
 !
 !TEST*/

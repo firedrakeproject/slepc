@@ -168,11 +168,9 @@ int main(int argc,char **argv)
          suffix: 2_cuda_cross
          args: -svd_type cross
 
-   testset:
+   test:
       suffix: 3
-      args: -svd_type trlanczos -svd_ncv 12 -svd_monitor_cancel -ds_parallel synchronized
-      output_file: output/test4_3.out
-      test:
-         nsize: 2
+      nsize: 2
+      args: -svd_type trlanczos -svd_ncv 14 -svd_monitor_cancel -ds_parallel synchronized
 
 TEST*/

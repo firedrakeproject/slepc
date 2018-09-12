@@ -120,14 +120,13 @@ int main(int argc,char **argv)
 
 /*TEST
 
-   test:
-      suffix: 1
-      nsize: 1
-
-   test:
-      suffix: 2
-      nsize: 1
-      args: -inplace
+   testset:
       output_file: output/test5_1.out
+      requires: !single
+      test:
+         suffix: 1
+      test:
+         suffix: 2
+         args: -inplace
 
 TEST*/

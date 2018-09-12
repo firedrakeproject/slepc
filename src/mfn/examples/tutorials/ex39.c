@@ -227,12 +227,13 @@ int main(int argc,char **argv)
 
    test:
       suffix: 1
-      args: -tend 0.125 -mfn_tol 1e-3 -deltat 0.025
+      args: -n 127 -tend 0.125 -mfn_tol 1e-3 -deltat 0.025
 
    test:
       suffix: 2
-      args: -tend 0.125 -mfn_tol 1e-3 -deltat 0.025 -combine
+      args: -n 127 -tend 0.125 -mfn_tol 1e-3 -deltat 0.025 -combine
       filter: sed -e "s/ (combine)//"
+      requires: !single
       output_file: output/ex39_1.out
 
 TEST*/
