@@ -57,6 +57,7 @@ class SLEPc:
       f.close()
       self.version = major + '.' + minor
       self.lversion = major + '.' + minor + '.' + subminor
+      self.nversion = int(major)*100 + int(minor)
     except:
       self.log.Exit('ERROR: file error while reading SLEPc version')
 

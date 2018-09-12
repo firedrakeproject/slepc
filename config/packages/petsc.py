@@ -48,6 +48,7 @@ class PETSc(package.Package):
       f.close()
       self.version = major + '.' + minor
       self.lversion = major + '.' + minor + '.' + subminor
+      self.nversion = int(major)*100 + int(minor)
     except:
       self.log.Exit('ERROR: File error while reading PETSc version')
 
