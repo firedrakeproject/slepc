@@ -256,18 +256,14 @@ PetscErrorCode PEPSetUp_Linear(PEP pep)
   Vec            veps,w=NULL;
   /* function tables */
   PetscErrorCode (*fcreate[][2])(MPI_Comm,PEP_LINEAR*,Mat*) = {
-    { MatCreateExplicit_Linear_N1A, MatCreateExplicit_Linear_N1B },   /* N1 */
-    { MatCreateExplicit_Linear_N2A, MatCreateExplicit_Linear_N2B },   /* N2 */
-    { MatCreateExplicit_Linear_S1A, MatCreateExplicit_Linear_S1B },   /* S1 */
-    { MatCreateExplicit_Linear_S2A, MatCreateExplicit_Linear_S2B },   /* S2 */
-    { MatCreateExplicit_Linear_H1A, MatCreateExplicit_Linear_H1B },   /* H1 */
-    { MatCreateExplicit_Linear_H2A, MatCreateExplicit_Linear_H2B }    /* H2 */
+    { MatCreateExplicit_Linear_NA, MatCreateExplicit_Linear_NB },
+    { MatCreateExplicit_Linear_SA, MatCreateExplicit_Linear_SB },
+    { MatCreateExplicit_Linear_HA, MatCreateExplicit_Linear_HB },
   };
 
   PetscFunctionBegin;
   if (pep->stopping!=PEPStoppingBasic) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"User-defined stopping test not supported");
   pep->lineariz = PETSC_TRUE;
-  if (!ctx->cform) ctx->cform = 1;
   ierr = STGetTransform(pep->st,&transf);CHKERRQ(ierr);
   ierr = PetscObjectTypeCompare((PetscObject)pep->st,STSHIFT,&shift);CHKERRQ(ierr);
   ierr = PetscObjectTypeCompare((PetscObject)pep->st,STSINVERT,&sinv);CHKERRQ(ierr);
@@ -308,10 +304,9 @@ PetscErrorCode PEPSetUp_Linear(PEP pep)
     switch (pep->problem_type) {
       case PEP_GENERAL:    i = 0; break;
       case PEP_HERMITIAN:
-      case PEP_HYPERBOLIC: i = 2; break;
-      case PEP_GYROSCOPIC: i = 4; break;
+      case PEP_HYPERBOLIC: i = 1; break;
+      case PEP_GYROSCOPIC: i = 2; break;
     }
-    i += ctx->cform-1;
 
     ierr = (*fcreate[i][0])(PetscObjectComm((PetscObject)pep),ctx,&ctx->A);CHKERRQ(ierr);
     ierr = (*fcreate[i][1])(PetscObjectComm((PetscObject)pep),ctx,&ctx->B);CHKERRQ(ierr);
@@ -326,7 +321,7 @@ PetscErrorCode PEPSetUp_Linear(PEP pep)
       ierr = PetscObjectTypeCompare((PetscObject)ctx->eps,EPSKRYLOVSCHUR,&ks);CHKERRQ(ierr);
       if (!ks) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Implicit matrix option only implemented for Krylov-Schur");
     }
-    if (ctx->cform!=1) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Implicit matrix option not available for 2nd companion form");
+    if (ctx->alpha!=1.0 || ctx->beta!=0.0) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Implicit matrix option does not support changing alpha,beta parameters of the linearization");
     ierr = STSetType(st,STSHELL);CHKERRQ(ierr);
     ierr = STShellSetContext(st,(PetscObject)ctx);CHKERRQ(ierr);
     if (!transf) { ierr = STShellSetBackTransform(st,BackTransform_Linear);CHKERRQ(ierr); }
@@ -738,17 +733,22 @@ PetscErrorCode PEPSetFromOptions_Linear(PetscOptionItems *PetscOptionsObject,PEP
 {
   PetscErrorCode ierr;
   PetscBool      set,val;
-  PetscInt       i;
+  PetscInt       k;
+  PetscReal      array[2]={0,0};
+  PetscBool      flg;
   PEP_LINEAR     *ctx = (PEP_LINEAR*)pep->data;
 
   PetscFunctionBegin;
   ierr = PetscOptionsHead(PetscOptionsObject,"PEP Linear Options");CHKERRQ(ierr);
 
-    ierr = PetscOptionsInt("-pep_linear_cform","Number of the companion form (1 or 2)","PEPLinearSetCompanionForm",ctx->cform,&i,&set);CHKERRQ(ierr);
-    if (set) { ierr = PEPLinearSetCompanionForm(pep,i);CHKERRQ(ierr); }
+  k = 2;
+  ierr = PetscOptionsRealArray("-pep_linear_linearization","Parameters of the linearization","PEPLinearSetLinearization",array,&k,&flg);CHKERRQ(ierr);
+  if (flg) {
+    ierr = PEPLinearSetLinearization(pep,array[0],array[1]);CHKERRQ(ierr);
+  }
 
-    ierr = PetscOptionsBool("-pep_linear_explicitmatrix","Use explicit matrix in linearization","PEPLinearSetExplicitMatrix",ctx->explicitmatrix,&val,&set);CHKERRQ(ierr);
-    if (set) { ierr = PEPLinearSetExplicitMatrix(pep,val);CHKERRQ(ierr); }
+  ierr = PetscOptionsBool("-pep_linear_explicitmatrix","Use explicit matrix in linearization","PEPLinearSetExplicitMatrix",ctx->explicitmatrix,&val,&set);CHKERRQ(ierr);
+  if (set) { ierr = PEPLinearSetExplicitMatrix(pep,val);CHKERRQ(ierr); }
 
   ierr = PetscOptionsTail();CHKERRQ(ierr);
 
@@ -757,81 +757,85 @@ PetscErrorCode PEPSetFromOptions_Linear(PetscOptionItems *PetscOptionsObject,PEP
   PetscFunctionReturn(0);
 }
 
-static PetscErrorCode PEPLinearSetCompanionForm_Linear(PEP pep,PetscInt cform)
+static PetscErrorCode PEPLinearSetLinearization_Linear(PEP pep,PetscReal alpha,PetscReal beta)
 {
   PEP_LINEAR *ctx = (PEP_LINEAR*)pep->data;
 
   PetscFunctionBegin;
-  if (!cform) PetscFunctionReturn(0);
-  if (cform==PETSC_DECIDE || cform==PETSC_DEFAULT) ctx->cform = 1;
-  else {
-    if (cform!=1 && cform!=2) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"Invalid value of argument 'cform'");
-    ctx->cform = cform;
-  }
+  if (beta==0.0 && alpha==0.0) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_WRONG,"Parameters alpha and beta cannot be zero simultaneously");
+  ctx->alpha = alpha;
+  ctx->beta  = beta;
   PetscFunctionReturn(0);
 }
 
 /*@
-   PEPLinearSetCompanionForm - Choose between the two companion forms available
-   for the linearization of a quadratic eigenproblem.
+   PEPLinearSetLinearization - Set the coefficients that define 
+   the linearization of a quadratic eigenproblem.
 
    Logically Collective on PEP
 
    Input Parameters:
 +  pep   - polynomial eigenvalue solver
--  cform - 1 or 2 (first or second companion form)
+.  alpha - first parameter of the linearization
+-  beta  - second parameter of the linearization
 
    Options Database Key:
-.  -pep_linear_cform <int> - Choose the companion form
+.  -pep_stoar_linearization <alpha,beta> - Sets the coefficients
+
+   Notes:
+   Cannot pass zero for both alpha and beta. The default values are
+   alpha=1 and beta=0.
 
    Level: advanced
 
-.seealso: PEPLinearGetCompanionForm()
+.seealso: PEPLinearGetLinearization()
 @*/
-PetscErrorCode PEPLinearSetCompanionForm(PEP pep,PetscInt cform)
+PetscErrorCode PEPLinearSetLinearization(PEP pep,PetscReal alpha,PetscReal beta)
 {
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
-  PetscValidLogicalCollectiveInt(pep,cform,2);
-  ierr = PetscTryMethod(pep,"PEPLinearSetCompanionForm_C",(PEP,PetscInt),(pep,cform));CHKERRQ(ierr);
+  PetscValidLogicalCollectiveReal(pep,alpha,2);
+  PetscValidLogicalCollectiveReal(pep,beta,3);
+  ierr = PetscTryMethod(pep,"PEPLinearSetLinearization_C",(PEP,PetscReal,PetscReal),(pep,alpha,beta));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
-static PetscErrorCode PEPLinearGetCompanionForm_Linear(PEP pep,PetscInt *cform)
+static PetscErrorCode PEPLinearGetLinearization_Linear(PEP pep,PetscReal *alpha,PetscReal *beta)
 {
   PEP_LINEAR *ctx = (PEP_LINEAR*)pep->data;
 
   PetscFunctionBegin;
-  *cform = ctx->cform;
+  if (alpha) *alpha = ctx->alpha;
+  if (beta)  *beta  = ctx->beta;
   PetscFunctionReturn(0);
 }
 
 /*@
-   PEPLinearGetCompanionForm - Returns the number of the companion form that
-   will be used for the linearization of a quadratic eigenproblem.
+   PEPLinearGetLinearization - Returns the coefficients that define 
+   the linearization of a quadratic eigenproblem.
 
    Not Collective
 
    Input Parameter:
 .  pep  - polynomial eigenvalue solver
 
-   Output Parameter:
-.  cform - the companion form number (1 or 2)
+   Output Parameters:
++  alpha - the first parameter of the linearization
+-  beta  - the second parameter of the linearization
 
    Level: advanced
 
-.seealso: PEPLinearSetCompanionForm()
+.seealso: PEPLinearSetLinearization()
 @*/
-PetscErrorCode PEPLinearGetCompanionForm(PEP pep,PetscInt *cform)
+PetscErrorCode PEPLinearGetLinearization(PEP pep,PetscReal *alpha,PetscReal *beta)
 {
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
-  PetscValidIntPointer(cform,2);
-  ierr = PetscUseMethod(pep,"PEPLinearGetCompanionForm_C",(PEP,PetscInt*),(pep,cform));CHKERRQ(ierr);
+  ierr = PetscUseMethod(pep,"PEPLinearGetLinearization_C",(PEP,PetscReal*,PetscReal*),(pep,alpha,beta));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -1008,7 +1012,7 @@ PetscErrorCode PEPView_Linear(PEP pep,PetscViewer viewer)
   if (isascii) {
     if (!ctx->eps) { ierr = PEPLinearGetEPS(pep,&ctx->eps);CHKERRQ(ierr); }
     ierr = PetscViewerASCIIPrintf(viewer,"  %s matrices\n",ctx->explicitmatrix? "explicit": "implicit");CHKERRQ(ierr);
-    ierr = PetscViewerASCIIPrintf(viewer,"  %s companion form\n",ctx->cform==1? "1st": "2nd");CHKERRQ(ierr);
+    ierr = PetscViewerASCIIPrintf(viewer,"  linearization parameters: alpha=%g beta=%g\n",(double)ctx->alpha,(double)ctx->beta);CHKERRQ(ierr);
     ierr = EPSView(ctx->eps,viewer);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
@@ -1040,8 +1044,8 @@ PetscErrorCode PEPDestroy_Linear(PEP pep)
   PetscFunctionBegin;
   ierr = EPSDestroy(&ctx->eps);CHKERRQ(ierr);
   ierr = PetscFree(pep->data);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)pep,"PEPLinearSetCompanionForm_C",NULL);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)pep,"PEPLinearGetCompanionForm_C",NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)pep,"PEPLinearSetLinearization_C",NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)pep,"PEPLinearGetLinearization_C",NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)pep,"PEPLinearSetEPS_C",NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)pep,"PEPLinearGetEPS_C",NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)pep,"PEPLinearSetExplicitMatrix_C",NULL);CHKERRQ(ierr);
@@ -1058,6 +1062,8 @@ PETSC_EXTERN PetscErrorCode PEPCreate_Linear(PEP pep)
   ierr = PetscNewLog(pep,&ctx);CHKERRQ(ierr);
   ctx->explicitmatrix = PETSC_FALSE;
   pep->data = (void*)ctx;
+  ctx->alpha = 1.0;
+  ctx->beta  = 0.0;
 
   pep->ops->solve          = PEPSolve_Linear;
   pep->ops->setup          = PEPSetUp_Linear;
@@ -1069,8 +1075,8 @@ PETSC_EXTERN PetscErrorCode PEPCreate_Linear(PEP pep)
   pep->ops->computevectors = PEPComputeVectors_Default;
   pep->ops->extractvectors = PEPExtractVectors_Linear;
 
-  ierr = PetscObjectComposeFunction((PetscObject)pep,"PEPLinearSetCompanionForm_C",PEPLinearSetCompanionForm_Linear);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)pep,"PEPLinearGetCompanionForm_C",PEPLinearGetCompanionForm_Linear);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)pep,"PEPLinearSetLinearization_C",PEPLinearSetLinearization_Linear);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)pep,"PEPLinearGetLinearization_C",PEPLinearGetLinearization_Linear);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)pep,"PEPLinearSetEPS_C",PEPLinearSetEPS_Linear);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)pep,"PEPLinearGetEPS_C",PEPLinearGetEPS_Linear);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)pep,"PEPLinearSetExplicitMatrix_C",PEPLinearSetExplicitMatrix_Linear);CHKERRQ(ierr);

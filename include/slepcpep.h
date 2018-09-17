@@ -299,8 +299,8 @@ PETSC_EXTERN PetscErrorCode PEPAllocateSolution(PEP,PetscInt);
 
 /* --------- options specific to particular eigensolvers -------- */
 
-PETSC_EXTERN PetscErrorCode PEPLinearSetCompanionForm(PEP,PetscInt);
-PETSC_EXTERN PetscErrorCode PEPLinearGetCompanionForm(PEP,PetscInt*);
+PETSC_EXTERN PetscErrorCode PEPLinearSetLinearization(PEP,PetscReal,PetscReal);
+PETSC_EXTERN PetscErrorCode PEPLinearGetLinearization(PEP,PetscReal*,PetscReal*);
 PETSC_EXTERN PetscErrorCode PEPLinearSetExplicitMatrix(PEP,PetscBool);
 PETSC_EXTERN PetscErrorCode PEPLinearGetExplicitMatrix(PEP,PetscBool*);
 PETSC_EXTERN PetscErrorCode PEPLinearSetEPS(PEP,EPS);
