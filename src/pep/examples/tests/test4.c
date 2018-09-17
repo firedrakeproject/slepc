@@ -19,8 +19,9 @@ int main(int argc,char **argv)
 {
   Mat            M,C,K,A[3];
   PEP            pep;
-  PetscInt       N,n=10,m,Istart,Iend,II,i,j,cform;
+  PetscInt       N,n=10,m,Istart,Iend,II,i,j;
   PetscBool      flag,expmat;
+  PetscReal      alpha,beta;
   EPS            eps;
   ST             st;
   KSP            ksp;
@@ -111,8 +112,8 @@ int main(int argc,char **argv)
   ierr = PEPLinearSetEPS(pep,eps);CHKERRQ(ierr);
   ierr = PEPSetFromOptions(pep);CHKERRQ(ierr);
   ierr = PEPSolve(pep);CHKERRQ(ierr);
-  ierr = PEPLinearGetCompanionForm(pep,&cform);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," Linearization with companion form %D",cform);CHKERRQ(ierr);
+  ierr = PEPLinearGetLinearization(pep,&alpha,&beta);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD," Linearization with alpha=%g, beta=%g",(double)alpha,(double)beta);CHKERRQ(ierr);
   ierr = PEPLinearGetExplicitMatrix(pep,&expmat);CHKERRQ(ierr);
   if (expmat) {
     ierr = PetscPrintf(PETSC_COMM_WORLD," with explicit matrix");CHKERRQ(ierr);
