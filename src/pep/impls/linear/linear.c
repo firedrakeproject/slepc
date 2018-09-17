@@ -741,14 +741,14 @@ PetscErrorCode PEPSetFromOptions_Linear(PetscOptionItems *PetscOptionsObject,PEP
   PetscFunctionBegin;
   ierr = PetscOptionsHead(PetscOptionsObject,"PEP Linear Options");CHKERRQ(ierr);
 
-  k = 2;
-  ierr = PetscOptionsRealArray("-pep_linear_linearization","Parameters of the linearization","PEPLinearSetLinearization",array,&k,&flg);CHKERRQ(ierr);
-  if (flg) {
-    ierr = PEPLinearSetLinearization(pep,array[0],array[1]);CHKERRQ(ierr);
-  }
+    k = 2;
+    ierr = PetscOptionsRealArray("-pep_linear_linearization","Parameters of the linearization","PEPLinearSetLinearization",array,&k,&flg);CHKERRQ(ierr);
+    if (flg) {
+      ierr = PEPLinearSetLinearization(pep,array[0],array[1]);CHKERRQ(ierr);
+    }
 
-  ierr = PetscOptionsBool("-pep_linear_explicitmatrix","Use explicit matrix in linearization","PEPLinearSetExplicitMatrix",ctx->explicitmatrix,&val,&set);CHKERRQ(ierr);
-  if (set) { ierr = PEPLinearSetExplicitMatrix(pep,val);CHKERRQ(ierr); }
+    ierr = PetscOptionsBool("-pep_linear_explicitmatrix","Use explicit matrix in linearization","PEPLinearSetExplicitMatrix",ctx->explicitmatrix,&val,&set);CHKERRQ(ierr);
+    if (set) { ierr = PEPLinearSetExplicitMatrix(pep,val);CHKERRQ(ierr); }
 
   ierr = PetscOptionsTail();CHKERRQ(ierr);
 
@@ -780,7 +780,7 @@ static PetscErrorCode PEPLinearSetLinearization_Linear(PEP pep,PetscReal alpha,P
 -  beta  - second parameter of the linearization
 
    Options Database Key:
-.  -pep_stoar_linearization <alpha,beta> - Sets the coefficients
+.  -pep_linear_linearization <alpha,beta> - Sets the coefficients
 
    Notes:
    Cannot pass zero for both alpha and beta. The default values are

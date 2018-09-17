@@ -42,7 +42,7 @@ PetscErrorCode MatCreateExplicit_Linear_NA(MPI_Comm comm,PEP_LINEAR *ctx,Mat *A)
   PetscInt       M,N,m,n,i,Istart,Iend;
   Mat            Id,T=NULL;
   PetscReal      a=ctx->alpha,b=ctx->beta;
-  PetscScalar    scalt;
+  PetscScalar    scalt=1.0;
 
   PetscFunctionBegin;
   ierr = MatGetSize(ctx->M,&M,&N);CHKERRQ(ierr);
@@ -77,7 +77,7 @@ PetscErrorCode MatCreateExplicit_Linear_NB(MPI_Comm comm,PEP_LINEAR *ctx,Mat *B)
   PetscInt       M,N,m,n,i,Istart,Iend;
   Mat            Id,T=NULL;
   PetscReal      a=ctx->alpha,b=ctx->beta;
-  PetscScalar    scalt;
+  PetscScalar    scalt=1.0;
 
   PetscFunctionBegin;
   ierr = MatGetSize(ctx->M,&M,&N);CHKERRQ(ierr);
@@ -112,7 +112,7 @@ PetscErrorCode MatCreateExplicit_Linear_SA(MPI_Comm comm,PEP_LINEAR *ctx,Mat *A)
 {
   PetscErrorCode ierr;
   Mat            T=NULL;
-  PetscScalar    scalt;
+  PetscScalar    scalt=1.0;
   PetscReal      a=ctx->alpha,b=ctx->beta;
 
   PetscFunctionBegin;
@@ -133,7 +133,7 @@ PetscErrorCode MatCreateExplicit_Linear_SB(MPI_Comm comm,PEP_LINEAR *ctx,Mat *B)
 {
   PetscErrorCode ierr;
   Mat            T=NULL;
-  PetscScalar    scalt;
+  PetscScalar    scalt=1.0;
   PetscReal      a=ctx->alpha,b=ctx->beta;
 
   PetscFunctionBegin;
@@ -156,7 +156,7 @@ PetscErrorCode MatCreateExplicit_Linear_HA(MPI_Comm comm,PEP_LINEAR *ctx,Mat *A)
 {
   PetscErrorCode ierr;
   Mat            T=NULL;
-  PetscScalar    scalt;
+  PetscScalar    scalt=1.0;
   PetscReal      a=ctx->alpha,b=ctx->beta;
 
   PetscFunctionBegin;
@@ -177,7 +177,7 @@ PetscErrorCode MatCreateExplicit_Linear_HB(MPI_Comm comm,PEP_LINEAR *ctx,Mat *B)
 {
   PetscErrorCode ierr;
   Mat            T=NULL;
-  PetscScalar    scalt;
+  PetscScalar    scalt=1.0;
   PetscReal      a=ctx->alpha,b=ctx->beta;
 
   PetscFunctionBegin;
