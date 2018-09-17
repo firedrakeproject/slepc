@@ -352,7 +352,7 @@ PetscErrorCode EPSSetUp_KrylovSchur_Slice(EPS eps)
   PetscBool       issinv;
   EPS_KRYLOVSCHUR *ctx = (EPS_KRYLOVSCHUR*)eps->data,*ctx_glob;
   EPS_SR          sr,sr_loc,sr_glob;
-  PetscInt        nEigs,dssz=1,i,zeros=0,off=0;
+  PetscInt        nEigs,dssz=1,i,zeros=0,off=0,method;
   PetscMPIInt     nproc,rank=0,aux;
   PetscReal       r;
   MPI_Request     req;
@@ -529,6 +529,8 @@ PetscErrorCode EPSSetUp_KrylovSchur_Slice(EPS eps)
     }
     ierr = DSGetParallel(ctx->eps->ds,&ptype);CHKERRQ(ierr);
     ierr = DSSetParallel(eps->ds,ptype);CHKERRQ(ierr);
+    ierr = DSGetMethod(ctx->eps->ds,&method);CHKERRQ(ierr);
+    ierr = DSSetMethod(eps->ds,method);CHKERRQ(ierr);
   }
   ierr = DSSetType(eps->ds,DSHEP);CHKERRQ(ierr);
   ierr = DSSetCompact(eps->ds,PETSC_TRUE);CHKERRQ(ierr);
