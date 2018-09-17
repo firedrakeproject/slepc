@@ -219,6 +219,7 @@ PetscErrorCode NEPRegister(const char *name,PetscErrorCode (*function)(NEP))
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
+  ierr = NEPInitializePackage();CHKERRQ(ierr);
   ierr = PetscFunctionListAdd(&NEPList,name,function);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

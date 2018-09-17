@@ -923,6 +923,7 @@ PetscErrorCode DSRegister(const char *name,PetscErrorCode (*function)(DS))
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
+  ierr = DSInitializePackage();CHKERRQ(ierr);
   ierr = PetscFunctionListAdd(&DSList,name,function);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

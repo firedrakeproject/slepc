@@ -325,6 +325,7 @@ PetscErrorCode LMERegister(const char *name,PetscErrorCode (*function)(LME))
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
+  ierr = LMEInitializePackage();CHKERRQ(ierr);
   ierr = PetscFunctionListAdd(&LMEList,name,function);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
