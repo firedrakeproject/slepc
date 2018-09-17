@@ -12,7 +12,7 @@
 #
 
 ALL: all
-LOCDIR = .
+LOCDIR = ./
 DIRS   = src include docs
 
 # Include the rest of makefiles

@@ -228,6 +228,7 @@ int main(int argc,char **argv)
    test:
       suffix: 1
       args: -n 127 -tend 0.125 -mfn_tol 1e-3 -deltat 0.025
+      timeoutfactor: 1.5
 
    test:
       suffix: 2
@@ -235,5 +236,6 @@ int main(int argc,char **argv)
       filter: sed -e "s/ (combine)//"
       requires: !single
       output_file: output/ex39_1.out
+      timeoutfactor: 1.5
 
 TEST*/
