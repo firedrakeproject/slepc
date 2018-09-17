@@ -133,5 +133,6 @@ int main(int argc,char **argv)
    test:
       suffix: 1
       args: -pep_hyperbolic -pep_interval 4,900 -pep_type stoar -st_type sinvert -st_pc_type cholesky -terse
+      requires: !single
 
 TEST*/

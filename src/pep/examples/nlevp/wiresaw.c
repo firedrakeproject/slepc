@@ -154,9 +154,9 @@ int main(int argc,char **argv)
          args: -pep_type {{toar qarnoldi}}
       test:
          suffix: 1_linear_h1
-         args: -pep_type linear -pep_linear_explicitmatrix -pep_linear_cform 1 -pep_linear_st_ksp_type bcgs -pep_linear_st_pc_type kaczmarz
+         args: -pep_type linear -pep_linear_explicitmatrix -pep_linear_linearization 1,0 -pep_linear_st_ksp_type bcgs -pep_linear_st_pc_type kaczmarz
       test:
          suffix: 1_linear_h2
-         args: -pep_type linear -pep_linear_explicitmatrix -pep_linear_cform 2
+         args: -pep_type linear -pep_linear_explicitmatrix -pep_linear_linearization 0,1
 
 TEST*/

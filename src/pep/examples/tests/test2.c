@@ -178,10 +178,10 @@ int main(int argc,char **argv)
          args: -pep_type qarnoldi -bv_orthog_refine always
       test:
          suffix: 2_linear_explicit
-         args: -pep_type linear -pep_linear_explicitmatrix -pep_linear_cform 2
+         args: -pep_type linear -pep_linear_explicitmatrix -pep_linear_linearization 0,1
       test:
          suffix: 2_linear_explicit_her
-         args: -pep_type linear -pep_linear_explicitmatrix -pep_hermitian -pep_linear_cform 2
+         args: -pep_type linear -pep_linear_explicitmatrix -pep_hermitian -pep_linear_linearization 0,1
       test:
          suffix: 2_stoar
          args: -pep_type stoar -pep_hermitian
