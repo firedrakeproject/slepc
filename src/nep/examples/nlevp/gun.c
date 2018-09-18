@@ -173,6 +173,6 @@ PetscErrorCode ComputeSingularities(NEP nep,PetscInt *maxnp,PetscScalar *xi,void
       suffix: 1
       args: -K ${DATAFILESPATH}/matrices/complex/gun_K.petsc -M ${DATAFILESPATH}/matrices/complex/gun_M.petsc -W1 ${DATAFILESPATH}/matrices/complex/gun_W1.petsc -W2 ${DATAFILESPATH}/matrices/complex/gun_W2.petsc -nep_type nleigs -rg_type polygon -rg_polygon_vertices 12500-1i,120500-1i,120500+30000i,70000+30000i -nep_target 65000 -nep_nev 24 -terse
       requires: complex datafilespath
-      timeoutfactor: 4
+      timeoutfactor: 10
 
 TEST*/
