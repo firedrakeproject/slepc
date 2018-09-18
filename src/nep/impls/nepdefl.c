@@ -324,7 +324,7 @@ static PetscErrorCode NEPDeflationMatShell_Destroy(Mat M)
   PetscFunctionBegin;
   ierr = MatShellGetContext(M,(void**)&matctx);CHKERRQ(ierr);
   if (matctx->extop->szd) {
-    ierr = BVDestroy(&matctx->U);
+    ierr = BVDestroy(&matctx->U);CHKERRQ(ierr);
     ierr = PetscFree2(matctx->hfj,matctx->work);CHKERRQ(ierr);
     ierr = PetscFree2(matctx->A,matctx->B);CHKERRQ(ierr);
     ierr = VecDestroy(&matctx->w[0]);CHKERRQ(ierr);

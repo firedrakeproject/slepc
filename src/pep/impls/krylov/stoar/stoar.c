@@ -293,7 +293,7 @@ PetscErrorCode PEPSolve_STOAR(PEP pep)
 
   PetscFunctionBegin;
   ierr = PetscCitationsRegister(citation,&cited);CHKERRQ(ierr);
-  ierr = PEPSTOARSetUpInnerMatrix(pep,&A);
+  ierr = PEPSTOARSetUpInnerMatrix(pep,&A);CHKERRQ(ierr);
   ierr = BVSetMatrix(ctx->V,A,PETSC_TRUE);CHKERRQ(ierr);
   ierr = MatDestroy(&A);CHKERRQ(ierr);
   if (ctx->lock) {

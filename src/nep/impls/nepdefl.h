@@ -28,7 +28,7 @@ struct _n_nep_ext_op {
   RG                rg;
   PetscInt          midx;   /* minimality index */
   PetscInt          max_midx;
-  PetscInt          szd;    /* maxim size for deflation */
+  PetscInt          szd;    /* maximum size for deflation */
   PetscInt          n;      /* invariant pair size */
   Mat               MF;     /* function shell matrix */
   Mat               MJ;     /* Jacobian shell matrix */

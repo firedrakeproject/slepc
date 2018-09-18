@@ -87,7 +87,7 @@ PetscErrorCode NEPSolve_RII(NEP nep)
   /* prepare linear solver */
   ierr = NEPDeflationSolveSetUp(extop,sigma);CHKERRQ(ierr);
 
-  ierr = VecCopy(u,r);
+  ierr = VecCopy(u,r);CHKERRQ(ierr);
   ierr = NEPDeflationFunctionSolve(extop,r,u);CHKERRQ(ierr);
   ierr = VecNorm(u,NORM_2,&nrm);CHKERRQ(ierr);
   ierr = VecScale(u,1.0/nrm);CHKERRQ(ierr);
