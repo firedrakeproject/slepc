@@ -150,7 +150,7 @@ PetscErrorCode BVMatCholInv_LAPACK_Private(BV bv,Mat R,Mat S)
 }
 
 /*
-   Compute the inverse of an upper triangular matrix R, store it S.
+   Compute the inverse of an upper triangular matrix R, store it in S.
    If S == R then the inverse overwrites R.
  */
 PetscErrorCode BVMatTriInv_LAPACK_Private(BV bv,Mat R,Mat S)
