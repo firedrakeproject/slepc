@@ -314,6 +314,7 @@ PetscErrorCode MFNRegister(const char *name,PetscErrorCode (*function)(MFN))
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
+  ierr = MFNInitializePackage();CHKERRQ(ierr);
   ierr = PetscFunctionListAdd(&MFNList,name,function);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

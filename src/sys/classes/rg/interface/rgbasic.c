@@ -733,6 +733,7 @@ PetscErrorCode RGRegister(const char *name,PetscErrorCode (*function)(RG))
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
+  ierr = RGInitializePackage();CHKERRQ(ierr);
   ierr = PetscFunctionListAdd(&RGList,name,function);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

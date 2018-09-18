@@ -855,6 +855,7 @@ PetscErrorCode STRegister(const char *name,PetscErrorCode (*function)(ST))
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
+  ierr = STInitializePackage();CHKERRQ(ierr);
   ierr = PetscFunctionListAdd(&STList,name,function);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

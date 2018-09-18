@@ -1071,6 +1071,7 @@ PetscErrorCode FNRegister(const char *name,PetscErrorCode (*function)(FN))
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
+  ierr = FNInitializePackage();CHKERRQ(ierr);
   ierr = PetscFunctionListAdd(&FNList,name,function);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

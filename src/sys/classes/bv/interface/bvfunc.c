@@ -682,6 +682,7 @@ PetscErrorCode BVRegister(const char *name,PetscErrorCode (*function)(BV))
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
+  ierr = BVInitializePackage();CHKERRQ(ierr);
   ierr = PetscFunctionListAdd(&BVList,name,function);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

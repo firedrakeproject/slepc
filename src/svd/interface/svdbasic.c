@@ -267,6 +267,7 @@ PetscErrorCode SVDRegister(const char *name,PetscErrorCode (*function)(SVD))
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
+  ierr = SVDInitializePackage();CHKERRQ(ierr);
   ierr = PetscFunctionListAdd(&SVDList,name,function);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

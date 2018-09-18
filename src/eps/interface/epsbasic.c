@@ -224,6 +224,7 @@ PetscErrorCode EPSRegister(const char *name,PetscErrorCode (*function)(EPS))
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
+  ierr = EPSInitializePackage();CHKERRQ(ierr);
   ierr = PetscFunctionListAdd(&EPSList,name,function);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

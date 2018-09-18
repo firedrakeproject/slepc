@@ -226,6 +226,7 @@ PetscErrorCode PEPRegister(const char *name,PetscErrorCode (*function)(PEP))
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
+  ierr = PEPInitializePackage();CHKERRQ(ierr);
   ierr = PetscFunctionListAdd(&PEPList,name,function);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
