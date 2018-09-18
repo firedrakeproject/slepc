@@ -769,7 +769,7 @@ static PetscErrorCode PEPLinearSetLinearization_Linear(PEP pep,PetscReal alpha,P
 }
 
 /*@
-   PEPLinearSetLinearization - Set the coefficients that define 
+   PEPLinearSetLinearization - Set the coefficients that define
    the linearization of a quadratic eigenproblem.
 
    Logically Collective on PEP
@@ -813,7 +813,7 @@ static PetscErrorCode PEPLinearGetLinearization_Linear(PEP pep,PetscReal *alpha,
 }
 
 /*@
-   PEPLinearGetLinearization - Returns the coefficients that define 
+   PEPLinearGetLinearization - Returns the coefficients that define
    the linearization of a quadratic eigenproblem.
 
    Not Collective

@@ -305,6 +305,8 @@ PETSC_EXTERN PetscErrorCode PEPLinearSetExplicitMatrix(PEP,PetscBool);
 PETSC_EXTERN PetscErrorCode PEPLinearGetExplicitMatrix(PEP,PetscBool*);
 PETSC_EXTERN PetscErrorCode PEPLinearSetEPS(PEP,EPS);
 PETSC_EXTERN PetscErrorCode PEPLinearGetEPS(PEP,EPS*);
+PETSC_DEPRECATED("Use PEPLinearSetLinearization()") PETSC_STATIC_INLINE PetscErrorCode PEPLinearSetCompanionForm(PEP pep,PetscInt cform) {return (cform==1)?PEPLinearSetLinearization(pep,1.0,0.0):PEPLinearSetLinearization(pep,0.0,1.0);}
+PETSC_DEPRECATED("Use PEPLinearGetLinearization()") PETSC_STATIC_INLINE PetscErrorCode PEPLinearGetCompanionForm(PEP pep,PetscInt *cform) {if (cform) *cform=1; return 0;}
 
 PETSC_EXTERN PetscErrorCode PEPQArnoldiSetRestart(PEP,PetscReal);
 PETSC_EXTERN PetscErrorCode PEPQArnoldiGetRestart(PEP,PetscReal*);
