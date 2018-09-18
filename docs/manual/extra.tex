@@ -48,8 +48,8 @@
 
 	An intermediate case is when the matrices have some block structure and the different blocks are stored separately. There are numerous situations in which this occurs, such as the discretization of equations with a mixed finite-element scheme. An example is the eigenproblem arising in the stability analysis associated with Stokes problems,
 \begin{equation}
-\left[\begin{array}{cc}A & C\\C^* & 0\end{array}\right]\left[\begin{array}{c}x\\p\end{array}\right]
-=\lambda\left[\begin{array}{cc}B & 0\\0 & 0\end{array}\right]\left[\begin{array}{c}x\\p\end{array}\right]\;\;,
+\begin{bmatrix}A & C\\C^* & 0\end{bmatrix}\begin{bmatrix}x\\p\end{bmatrix}
+=\lambda\begin{bmatrix}B & 0\\0 & 0\end{bmatrix}\begin{bmatrix}x\\p\end{bmatrix}\;\;,
 \end{equation}
 where $x$ and $p$ denote the velocity and pressure fields. Similar formulations also appear in many other situations.
 

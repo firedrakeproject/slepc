@@ -15,8 +15,7 @@
 #define __TOAR_H
 
 PETSC_INTERN PetscErrorCode PEPExtractVectors_TOAR(PEP);
-PETSC_INTERN PetscErrorCode MatMult_Func(Mat,Vec,Vec);
-PETSC_INTERN PetscErrorCode MatDestroy_Func(Mat);
+PETSC_INTERN PetscErrorCode PEPSTOARSetUpInnerMatrix(PEP,Mat*);
 PETSC_INTERN PetscErrorCode PEPSolve_STOAR(PEP);
 PETSC_INTERN PetscErrorCode PEPSolve_STOAR_QSlice(PEP);
 PETSC_INTERN PetscErrorCode PEPSetUp_STOAR_QSlice(PEP);
@@ -74,29 +73,32 @@ struct _n_SR {
   PetscInt      *perm;             /* permutation */
   PEP_QInfo     *qinfo;            /* TOAR vectors for each pseudo-Lanczos vector */
   PetscInt      intcorr;           /* Global inertia correction */
+  PetscInt      symmlost;          /* Counter for symmetry lost */
   Vec           v[3];
   EPS           eps;
 };
 typedef struct _n_SR *PEP_SR;
 
 typedef struct {
-  PetscReal   keep;      /* restart parameter */
-  PetscBool   lock;      /* locking/non-locking variant */
-  BV          V;         /* tensor basis vectors object for the linearization */
-  PEP_SR      sr;        /* spectrum slicing context */
-  PetscReal   *shifts;   /* array containing global shifts */
-  PetscInt    *inertias; /* array containing global inertias */
-  PetscInt    nshifts;   /* elements in the arrays of shifts and inertias */
-  PetscInt    nev;       /* number of eigenvalues to compute */
-  PetscInt    ncv;       /* number of basis vectors */
-  PetscInt    mpd;       /* maximum dimension of projected problem */
-  PetscBool   detect;    /* check for zeros during factorizations */
-  PetscBool   hyperbolic;/* hyperbolic problem flag */
+  PetscReal   keep;           /* restart parameter */
+  PetscBool   lock;           /* locking/non-locking variant */
+  BV          V;              /* tensor basis vectors object for the linearization */
+  PEP_SR      sr;             /* spectrum slicing context */
+  PetscReal   *shifts;        /* array containing global shifts */
+  PetscInt    *inertias;      /* array containing global inertias */
+  PetscInt    nshifts;        /* elements in the arrays of shifts and inertias */
+  PetscInt    nev;            /* number of eigenvalues to compute */
+  PetscInt    ncv;            /* number of basis vectors */
+  PetscInt    mpd;            /* maximum dimension of projected problem */
+  PetscBool   detect;         /* check for zeros during factorizations */
+  PetscBool   hyperbolic;     /* hyperbolic problem flag */
+  PetscReal   alpha,beta;     /* coefficients defining the linearization */
 } PEP_TOAR;
 
 typedef struct {
-  PetscScalar scal;
-  Mat         A;
+  PetscReal   scal[2];
+  Mat         A[2];
+  Vec         t;
 } ShellMatCtx;
 #endif
 

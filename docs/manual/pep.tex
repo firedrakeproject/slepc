@@ -33,80 +33,65 @@ where $K,C,M\in\mathbb{C}^{n\times n}$ are the coefficients of a matrix polynomi
 
 It is important to point out some outstanding differences with respect to the linear eigenproblem. In the quadratic eigenproblem, the number of eigenvalues is $2n$, and the corresponding eigenvectors do not form a linearly independent set. If $M$ is singular, some eigenvalues are infinite. Even when the three matrices are symmetric and positive definite, there is no guarantee that the eigenvalues are real, but still methods can exploit symmetry to some extent. Furthermore, numerical difficulties are more likely than in the linear case, so the computed solution can sometimes be untrustworthy.
 
-If \eqref{eq:eigquad} is written as $P(\lambda)x=0$, where $P$ is the matrix polynomial, then multiplication by $\lambda^{-2}$ results in $R(\lambda^{-1})x=0$, where $R$ is a matrix polynomial with the coefficients in the reverse order. In other words, if a method is available for computing the largest eigenvalues, then reversing the roles of $M$ and $K$ results in the computation of the smallest eigenvalues. In general, it is also possible to formulate a spectral transformation for computing eigenvalues closest to a given target, as discussed in \S\ref{sec:qst}.
+If \eqref{eq:eigquad} is written as $P(\lambda)x=0$, where $P$ is the matrix polynomial, then multiplication by $\lambda^{-2}$ results in $\rev P(\lambda^{-1})x=0$, where $\rev P$ denotes the matrix polynomial with the coefficients of $P$ in the reverse order. In other words, if a method is available for computing the largest eigenvalues, then reversing the roles of $M$ and $K$ results in the computation of the smallest eigenvalues. In general, it is also possible to formulate a spectral transformation for computing eigenvalues closest to a given target, as discussed in \S\ref{sec:qst}.
 
 \paragraph{Problem Types.}
 
 As in the case of linear eigenproblems, there are some particular properties of the coefficient matrices that confer a certain structure to the quadratic eigenproblem, e.g., symmetry of the spectrum with respect to the real or imaginary axes. These structures are important as long as the solvers are able to exploit them.
-
 \begin{itemize}
 \item Hermitian (symmetric) problems, when $M$, $C$, $K$ are all Hermitian (symmetric). Eigenvalues are real or come in complex conjugate pairs. Furthermore, if $M>0$ and $C,K\geq 0$ then the system is stable, i.e., $\text{Re}(\lambda)\leq 0$.
 \item Hyperbolic problems, a particular class of Hermitian problems where $M>0$ and $(x^*Cx)^2>4(x^*Mx)(x^*Kx)$ for all nonzero $x\in\mathbb{C}^n$. All eigenvalues are real, and form two separate groups of $n$ eigenvalues, each of them having linearly independent eigenvectors.
-\item Overdamped problems, a specialized type of hyperbolic problems, where $C>0$ and $K\geq 0$. The eigenvalues are non-positive.
+A particular subset of hyperbolic problems is the class of overdamped problems, where $C>0$ and $K\geq 0$, in which case all eigenvalues are non-positive.
 \item Gyroscopic problems, when $M$, $K$ are Hermitian, $M>0$, and $C$ is skew-Hermitian, $C=-C^*$. The spectrum is symmetric with respect to the imaginary axis, and in the real case, it has a Hamiltonian structure, i.e., eigenvalues come in quadruples $(\lambda,\bar{\lambda},-\lambda,-\bar{\lambda})$.
 \end{itemize}
-
 Currently, the problem type is not exploited by \ident{PEP} solvers, except for a few exceptions. In the future, we may add more support for structure-preserving solvers.
 
 \paragraph{Linearization.}
 
-It is possible to transform the quadratic eigenvalue problem to a linear generalized eigenproblem $L_0y=\lambda L_1y$ by doubling the order of the system, i.e., $L_0,L_1\in\mathbb{C}^{2n\times 2n}$. There are many ways of doing this.
-Below, we show some of the most common linearizations,
-which are based on defining the eigenvector of the linear problem as
-\begin{equation}
-\label{eq:linevec}
-y=\left[\begin{array}{c}x\\x\lambda\end{array}\right].
-\end{equation}
-
-\begin{itemize}
-\item Non-symmetric linearizations. The resulting matrix pencil has no particular structure.
+It is possible to transform the quadratic eigenvalue problem to a linear generalized eigenproblem $L_0y=\lambda L_1y$ by doubling the order of the system, i.e., $L_0,L_1\in\mathbb{C}^{2n\times 2n}$. There are many ways of doing this. For instance, consider the following two pencils $L(\lambda)=L_0-\lambda L_1$,
 \begin{equation}
 \label{eq:n1}
-\mbox{N1:}\qquad
-\left[\begin{array}{cc}0 & I\\-K & -C\end{array}\right]-\lambda\left[\begin{array}{cc}I & 0\\0 & M\end{array}\right]
+\begin{bmatrix}0 & I\\-K & -C\end{bmatrix}-\lambda\begin{bmatrix}I & 0\\0 & M\end{bmatrix},
 \end{equation}
 \begin{equation}
 \label{eq:n2}
-\mbox{N2:}\qquad
-\left[\begin{array}{cc}-K & 0\\0 & I\end{array}\right]-\lambda\left[\begin{array}{cc}C & M\\I & 0\end{array}\right]
+\begin{bmatrix}-K & 0\\0 & I\end{bmatrix}-\lambda\begin{bmatrix}C & M\\I & 0\end{bmatrix}.
+\end{equation}
+Both of them have the same eigenvalues as the quadratic eigenproblem, and the corresponding eigenvectors can be expressed as
+\begin{equation}
+\label{eq:linevec}
+y=\begin{bmatrix}x\\x\lambda\end{bmatrix},
+\end{equation}
+where $x$ is the eigenvector of the quadratic eigenproblem.
+
+Other \textbf{non-symmetric} linearizations can be obtained by a linear combination of \eqref{eq:n1} and \eqref{eq:n2},
+\begin{equation}
+\label{eq:lingen}
+\begin{bmatrix}-\beta K & \alpha I\\-\alpha K & -\alpha C+\beta I\end{bmatrix}-\lambda\begin{bmatrix}\alpha I+\beta C & \beta M\\\beta I & \alpha M\end{bmatrix}.
+\end{equation}
+for any $\alpha,\beta\in\mathbb{R}$. The linearizations \eqref{eq:n1} and \eqref{eq:n2} are particular cases of \eqref{eq:lingen} taking $(\alpha,\beta)=(1,0)$ and $(0,1)$, respectively.
+
+\textbf{Symmetric} linearizations are useful for the case that $M$, $C$, and $K$ are all symmetric (Hermitian), because the resulting matrix pencil is symmetric (Hermitian), although indefinite:
+\begin{equation}
+\label{eq:linsym}
+\begin{bmatrix}\beta K&\alpha K\\\alpha K&\alpha C-\beta M\end{bmatrix}-\lambda\begin{bmatrix}\alpha K-\beta C&-\beta M\\-\beta M&-\alpha M\end{bmatrix},
 \end{equation}
 
-\medskip
-\item Symmetric linearizations. If $M$, $C$, and $K$ are all symmetric (Hermitian), the resulting matrix pencil is symmetric (Hermitian), although indefinite.
+And for gyroscopic problems, we can consider \textbf{Hamiltonian} linearizations,
 \begin{equation}
-\label{eq:s1}
-\mbox{S1:}\qquad
-\left[\begin{array}{cc}0 & -K\\-K & -C\end{array}\right]-\lambda\left[\begin{array}{cc}-K & 0\\0 & M\end{array}\right]
+\label{eq:linham}
+\begin{bmatrix}\alpha K & -\beta K\\\alpha C+\beta M & \alpha K\end{bmatrix}-\lambda\begin{bmatrix}\beta M & \alpha K+\beta C\\-\alpha M & \beta M\end{bmatrix},
 \end{equation}
-\begin{equation}
-\label{eq:s2}
-\mbox{S2:}\qquad
-\left[\begin{array}{cc}-K & 0\\0 & M\end{array}\right]-\lambda\left[\begin{array}{cc}C & M\\ M & 0\end{array}\right]
-\end{equation}
-
-\medskip
-\item Hamiltonian linearizations. If the quadratic eigenproblem is gyroscopic, one of the matrices is Hamiltonian and the other is skew-Hamiltonian. The first form (H1) is recommended when $M$ is singular, whereas the second form (H2) is recommended when $K$ is singular.
-\begin{equation}
-\label{eq:h1}
-\mbox{H1:}\qquad
-\left[\begin{array}{cc}K & 0\\C & K\end{array}\right]-\lambda\left[\begin{array}{cc} 0 & K\\-M & 0\end{array}\right]
-\end{equation}
-\begin{equation}
-\label{eq:h2}
-\mbox{H2:}\qquad
-\left[\begin{array}{cc}0 & -K\\M & 0\end{array}\right]-\lambda\left[\begin{array}{cc}M & C\\ 0 & M\end{array}\right]
-\end{equation}
-\end{itemize}
+ where one of the matrices is Hamiltonian and the other one is skew-Hamiltonian if $(\alpha,\beta)$ is $(1,0)$ or $(0,1)$.
 
 In \slepc, the \ident{PEPLINEAR} solver is based on using one of the above linearizations for solving the quadratic eigenproblem. This solver makes use of linear eigensolvers from the \ident{EPS} package.
 
-We could also consider the \emph{reversed} forms, e.g., the reversed form of N2 is
+We could also consider the \emph{reversed} forms, e.g., the reversed form of \eqref{eq:n2} is
 \begin{equation}
 \label{eq:n2r}
-\mbox{N2-R:}\qquad
-\left[\begin{array}{cc}-C & -M\\I & 0\end{array}\right]-\frac{1}{\lambda}\left[\begin{array}{cc}K & 0\\0 & I\end{array}\right],
+\begin{bmatrix}-C & -M\\I & 0\end{bmatrix}-\frac{1}{\lambda}\begin{bmatrix}K & 0\\0 & I\end{bmatrix},
 \end{equation}
-which is equivalent to the form N1 for the problem $R(\lambda^{-1})x=0$. These reversed forms are not implemented in \slepc, but the user can use them simply by reversing the roles of $M$ and $K$, and considering the reciprocals of the computed eigenvalues. Alternatively, this can be viewed as a particular case of the spectral transformation (with $\sigma=0$), see \S\ref{sec:qst}.
+which is equivalent to the form \eqref{eq:n1} for the problem $\rev P(\lambda^{-1})x=0$. These reversed forms are not implemented in \slepc, but the user can use them simply by reversing the roles of $M$ and $K$, and considering the reciprocals of the computed eigenvalues. Alternatively, this can be viewed as a particular case of the spectral transformation (with $\sigma=0$), see \S\ref{sec:qst}.
 
 \subsection{\label{sec:pep1}Polynomials of Arbitrary Degree}
 
@@ -269,7 +254,7 @@ For the sorting criteria relative to a target value, the scalar $\tau$ must be s
 	\end{Verbatim}
 or in the command-line with \Verb!-pep_target!. As in \ident{EPS}, complex values of $\tau$ are allowed only in complex scalar \slepc builds. The criteria relative to a target must be used in combination with a spectral transformation as explained in \S\ref{sec:qst}.
 
-There is also support for spectrum slicing, that is, computing all eigenvalues in given interval, see \S\ref{sec:qslice}. For this, the user has to specify the computational interval with
+There is also support for spectrum slicing, that is, computing all eigenvalues in a given interval, see \S\ref{sec:qslice}. For this, the user has to specify the computational interval with
 	\findex{PEPSetInterval}
 	\begin{Verbatim}[fontsize=\small]
 	PEPSetInterval(PEP pep,PetscScalar a,PetscScalar b);
@@ -328,22 +313,19 @@ Jacobi-Davidson                     & \texttt{PEPJD}       & \texttt{jd}       &
 \end{table}
 \footnotetext[2]{Except if the explicit matrix option is set.}
 
-The \ident{PEPLINEAR} method carries out an explicit linearization of the quadratic eigenproblem, as described in \S\ref{sec:qep}, resulting in a generalized eigenvalue problem that is handled by an \ident{EPS} object created internally. If required, this \ident{EPS} object can be extracted with the operation
+The \ident{PEPLINEAR} method carries out an explicit linearization of the polynomial eigenproblem, as described in \S\ref{sec:pep}, resulting in a generalized eigenvalue problem that is handled by an \ident{EPS} object created internally. If required, this \ident{EPS} object can be extracted with the operation
 	\findex{PEPLinearGetEPS}
 	\begin{Verbatim}[fontsize=\small]
 	PEPLinearGetEPS(PEP pep,EPS *eps);
 	\end{Verbatim}
 This allows the application programmer to set any of the \ident{EPS} options directly within the code. Also, it is possible to change the \ident{EPS} options through the command-line, simply by prefixing the \ident{EPS} options with \texttt{-pep\_linear\_}.
 
-In \ident{PEPLINEAR}, the expression used in the linearization is specified by two parameters:
-\begin{enumerate}
-\item The problem type set with \ident{PEPProblemType}, which chooses from non-symmetric, symmetric, and Hamiltonian linearizations.
-\item The companion form, 1 or 2, that can be chosen with
-	\findex{PEPLinearSetCompanionForm}
+In \ident{PEPLINEAR}, if the eigenproblem is quadratic, the expression used in the linearization is dictated by the problem type set with \ident{PEPProblemType}, which chooses from non-symmetric \eqref{eq:lingen}, symmetric \eqref{eq:linsym}, and Hamiltonian \eqref{eq:linham} linearizations. The parameters $(\alpha,\beta)$ of these linearizations can be set with
+	\findex{PEPLinearSetLinearization}
 	\begin{Verbatim}[fontsize=\small]
-   PEPLinearSetCompanionForm(PEP pep,PetscInt cform);
+        PEPLinearSetLinearization(PEP pep,PetscReal alpha,PetscReal beta);
 	\end{Verbatim}
-\end{enumerate}
+For polynomial eigenproblems with degree $d>2$ the linearization is the one described in \S\ref{sec:pep1}.
 
 Another option of the \ident{PEPLINEAR} solver is whether the matrices of the linearized problem are created explicitly or not. This is set with the function
 	\findex{PEPLinearSetExplicitMatrix}
@@ -373,7 +355,7 @@ M_\sigma&\!\!=\!\!&\sigma^2 M+\sigma C+K,
 \end{eqnarray}
 and the relation between the eigenvalue of the original eigenproblem, $\lambda$, and the transformed one, $\theta$, is $\theta=(\lambda-\sigma)^{-1}$ as in the case of the linear eigenvalue problem. See chapter \ref{cap:st} for additional details.
 
-The polynomial eigenvalue problem of \eqref{eq:sinvquad} corresponds to the reversed form of the shifted polynomial, $R(\theta)$. The extension to matrix polynomials of arbitrary degree is also possible, where the coefficients of $R(\theta)$ have the general form
+The polynomial eigenvalue problem of \eqref{eq:sinvquad} corresponds to the reversed form of the shifted polynomial, $\rev P(\theta)$. The extension to matrix polynomials of arbitrary degree is also possible, where the coefficients of $\rev P(\theta)$ have the general form
 \begin{equation}
 \label{eq:sinvpep}
 T_k=\sum_{j=0}^{d-k}\binom{j+k}{k}\sigma^{j}A_{j+k},\qquad k=0,\ldots,d.
@@ -439,7 +421,7 @@ This example uses MUMPS for solving the associated linear systems, see \S\ref{se
 %---------------------------------------------------
 \subsection{\label{sec:qslice}Spectrum Slicing}
 
-Similarly to the spectrum slicing technique available in linear symmetric-definite eigenvalue problems (cf.\ \S\ref{sec:slice}), it is possible to compute all eigenvalues in a given interval $[a,b]$ for the case of hyperbolic quadratic eigenvalue problems (\ident{PEP\_HYPERBOLIC}). In more general symmetric (or Hermitian) quadratic eigenproblems (\ident{PEP\_HERMITIAN}), it may also be possible to do spectrum slicing provided that computing inertia is feasible, which essentially means that all eigenvalues in the interval must be real.
+Similarly to the spectrum slicing technique available in linear symmetric-definite eigenvalue problems (cf.\ \S\ref{sec:slice}), it is possible to compute all eigenvalues in a given interval $[a,b]$ for the case of hyperbolic quadratic eigenvalue problems (\ident{PEP\_HYPERBOLIC}). In more general symmetric (or Hermitian) quadratic eigenproblems (\ident{PEP\_HERMITIAN}), it may also be possible to do spectrum slicing provided that computing inertia is feasible, which essentially means that all eigenvalues in the interval must be real and of the same definite type.
 
 This computation is available only in the \ident{PEPSTOAR} solver.
 The spectrum slicing mechanism implemented in \ident{PEP} is very similar to the one described in \S\ref{sec:slice} for linear problems, except for the multi-communicator option which is not implemented yet.
@@ -509,7 +491,7 @@ User-defined             & \texttt{PEP\_CONV\_USER} & \texttt{-pep\_conv\_user} 
 
 \paragraph{Scaling.}
 
-When solving a quadratic eigenproblem via linearization, an accurate solution of the generalized eigenproblem does not necessarily imply a similar level of accuracy for the quadratic problem. \cite{Tisseur:2000:BEC} shows that in the case of the N1 linearization \eqref{eq:n1}, a small backward error in the generalized eigenproblem guarantees a small backward error in the quadratic eigenproblem. However, this holds only if $M$, $C$ and $K$ have a similar norm.
+When solving a quadratic eigenproblem via linearization, an accurate solution of the generalized eigenproblem does not necessarily imply a similar level of accuracy for the quadratic problem. \cite{Tisseur:2000:BEC} shows that in the case of the linearization \eqref{eq:n1}, a small backward error in the generalized eigenproblem guarantees a small backward error in the quadratic eigenproblem. However, this holds only if $M$, $C$ and $K$ have a similar norm.
 
 When the norm of $M$, $C$ and $K$ vary widely, \cite{Tisseur:2000:BEC} recommends to solve the scaled problem, defined as
 \begin{equation}

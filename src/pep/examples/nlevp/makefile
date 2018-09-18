@@ -14,11 +14,11 @@ CPPFLAGS   =
 FPPFLAGS   =
 LOCDIR     = src/pep/examples/nlevp/
 EXAMPLESC  = acoustic_wave_1d.c acoustic_wave_2d.c butterfly.c damped_beam.c \
-             pdde_stability.c planar_waveguide.c sleeper.c spring.c wiresaw.c
+             pdde_stability.c planar_waveguide.c sleeper.c spring.c wiresaw.c loaded_string.c
 EXAMPLESF  =
 MANSEC     = PEP
 TESTS      = acoustic_wave_1d acoustic_wave_2d butterfly damped_beam \
-             pdde_stability planar_waveguide sleeper spring wiresaw
+             pdde_stability planar_waveguide sleeper spring wiresaw loaded_string
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common
 
@@ -57,4 +57,8 @@ spring: spring.o chkopts
 wiresaw: wiresaw.o chkopts
 	-${CLINKER} -o wiresaw wiresaw.o ${SLEPC_PEP_LIB}
 	${RM} wiresaw.o
+
+loaded_string: loaded_string.o chkopts
+	-${CLINKER} -o loaded_string loaded_string.o ${SLEPC_PEP_LIB}
+	${RM} loaded_string.o
 

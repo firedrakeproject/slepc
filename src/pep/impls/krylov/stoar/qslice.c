@@ -139,7 +139,7 @@ static PetscErrorCode ConvergedPositive(EPS eps,PetscScalar eigr,PetscScalar eig
 static PetscErrorCode PEPQSliceGetInertia(PEP pep,PetscReal shift,PetscInt *inertia,PetscInt *zeros,PetscInt correction)
 {
   PetscErrorCode ierr;
-  KSP            ksp;
+  KSP            ksp,kspr;
   PC             pc;
   Mat            F,P;
   PetscBool      flg;
@@ -169,8 +169,8 @@ static PetscErrorCode PEPQSliceGetInertia(PEP pep,PetscReal shift,PetscInt *iner
     ierr = KSPGetPC(ksp,&pc);CHKERRQ(ierr);
     ierr = PetscObjectTypeCompare((PetscObject)pc,PCREDUNDANT,&flg);CHKERRQ(ierr);
     if (flg) {
-      ierr = PCRedundantGetKSP(pc,&ksp);CHKERRQ(ierr);
-      ierr = KSPGetPC(ksp,&pc);CHKERRQ(ierr);
+      ierr = PCRedundantGetKSP(pc,&kspr);CHKERRQ(ierr);
+      ierr = KSPGetPC(kspr,&pc);CHKERRQ(ierr);
     }
     ierr = PCFactorGetMatrix(pc,&F);CHKERRQ(ierr);
     ierr = MatGetInertia(F,inertia,zeros,NULL);CHKERRQ(ierr);
@@ -803,18 +803,17 @@ static PetscErrorCode PEPSTOARrun_QSlice(PEP pep,PetscReal *a,PetscReal *b,Petsc
   PetscFunctionReturn(0);
 }
 
-static PetscErrorCode PEPSTOAR_QSlice(PEP pep)
+static PetscErrorCode PEPSTOAR_QSlice(PEP pep,Mat B)
 {
   PetscErrorCode ierr;
   PEP_TOAR       *ctx = (PEP_TOAR*)pep->data;
-  PetscInt       j,k,l,nv=0,ld,ldds,t,nq=0,m,n,idx;
+  PetscInt       j,k,l,nv=0,ld,ldds,t,nq=0,idx;
   PetscInt       nconv=0,deg=pep->nmat-1,count0=0,count1=0;
-  PetscScalar    *Q,*om,scal[2],sigma,*back,*S,*pQ;
+  PetscScalar    *Q,*om,sigma,*back,*S,*pQ;
   PetscReal      beta,norm=1.0,*omega,*a,*b,*r,eta,lambda;
   PetscBool      breakdown,symmlost=PETSC_FALSE,sinv,falselock=PETSC_TRUE;
-  Mat            MS,MQ,A,pA[4],As[2],D[2];
+  Mat            MS,MQ;
   Vec            v,vomega;
-  ShellMatCtx    *ctxMat[2];
   PEP_SR         sr;
   BVOrthogType   otype;
   BVOrthogBlockType obtype;
@@ -828,7 +827,7 @@ static PetscErrorCode PEPSTOAR_QSlice(PEP pep)
   k = sr->ndef0+sr->ndef1;
   pep->ncv = ctx->ncv+k;
   pep->nev = ctx->nev+k;
-  ierr = PEPAllocateSolution(pep,2);CHKERRQ(ierr);
+  ierr = PEPAllocateSolution(pep,3);CHKERRQ(ierr);
   ierr = BVDestroy(&ctx->V);CHKERRQ(ierr);
   ierr = BVCreateTensor(pep->V,pep->nmat-1,&ctx->V);CHKERRQ(ierr);
   ierr = BVGetOrthogonalization(pep->V,&otype,NULL,&eta,&obtype);CHKERRQ(ierr);
@@ -836,23 +835,7 @@ static PetscErrorCode PEPSTOAR_QSlice(PEP pep)
   ierr = DSAllocate(pep->ds,pep->ncv+2);CHKERRQ(ierr);
   ierr = PetscMalloc1(pep->ncv,&back);CHKERRQ(ierr);
   ierr = DSGetLeadingDimension(pep->ds,&ldds);CHKERRQ(ierr);
-
-  ierr = STGetMatrixTransformed(pep->st,2,&D[1]);CHKERRQ(ierr); /* M */
-  ierr = MatGetLocalSize(D[1],&m,&n);CHKERRQ(ierr);
-  ierr = STGetMatrixTransformed(pep->st,0,&D[0]);CHKERRQ(ierr); /* K */
-  scal[0] = -1.0; scal[1] = pep->sfactor*pep->sfactor;
-  for (j=0;j<2;j++) {
-    ierr = PetscNew(ctxMat+j);CHKERRQ(ierr);
-    (ctxMat[j])->A = D[j]; (ctxMat[j])->scal = scal[j];
-    ierr = MatCreateShell(PetscObjectComm((PetscObject)pep),m,n,PETSC_DETERMINE,PETSC_DETERMINE,ctxMat[j],&As[j]);CHKERRQ(ierr);
-    ierr = MatShellSetOperation(As[j],MATOP_MULT,(void(*)())MatMult_Func);CHKERRQ(ierr);
-    ierr = MatShellSetOperation(As[j],MATOP_DESTROY,(void(*)())MatDestroy_Func);CHKERRQ(ierr);
-  }
-  pA[0] = As[0]; pA[1] = pA[2] = NULL; pA[3] = As[1];
-  ierr = MatCreateNest(PetscObjectComm((PetscObject)pep),2,NULL,2,NULL,pA,&A);CHKERRQ(ierr);
-  for (j=0;j<2;j++) { ierr = MatDestroy(&As[j]);CHKERRQ(ierr); }
-  ierr = BVSetMatrix(ctx->V,A,PETSC_TRUE);CHKERRQ(ierr);
-  ierr = MatDestroy(&A);CHKERRQ(ierr);
+  ierr = BVSetMatrix(ctx->V,B,PETSC_TRUE);CHKERRQ(ierr);
   if (ctx->lock) {
     ierr = PetscOptionsGetBool(NULL,NULL,"-pep_stoar_falselocking",&falselock,NULL);CHKERRQ(ierr);
   } else SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"A locking variant is needed for spectrum slicing");
@@ -961,6 +944,7 @@ static PetscErrorCode PEPSTOAR_QSlice(PEP pep)
     if (symmlost && nv==pep->nconv+l) {
       pep->reason = PEP_DIVERGED_SYMMETRY_LOST;
       pep->nconv = nconv;
+      ierr = PetscInfo2(pep,"Symmetry lost in STOAR sigma=%g nconv=%D)\n",(double)sr->sPres->value,nconv);CHKERRQ(ierr);
       if (falselock || !ctx->lock) {
         ierr = BVSetActiveColumns(ctx->V,0,pep->nconv);CHKERRQ(ierr);
         ierr = BVTensorCompress(ctx->V,0);CHKERRQ(ierr);
@@ -1078,6 +1062,10 @@ static PetscErrorCode PEPSTOAR_QSlice(PEP pep)
   ierr = STScaleShift(pep->st,sinv?1.0/pep->sfactor:pep->sfactor);CHKERRQ(ierr);
   ierr = RGPopScale(pep->rg);CHKERRQ(ierr);
 
+  if (pep->reason == PEP_DIVERGED_SYMMETRY_LOST && nconv<sr->ndef0+sr->ndef1) {
+    if (++sr->symmlost>10) SETERRQ1(PetscObjectComm((PetscObject)pep),1,"Symmetry lost at sigma=%g",(double)sr->sPres->value);
+  } else sr->symmlost = 0;
+
   /* truncate Schur decomposition and change the state to raw so that
      DSVectors() computes eigenvectors from scratch */
   ierr = DSSetDimensions(pep->ds,pep->nconv,0,0,0);CHKERRQ(ierr);
@@ -1150,7 +1138,7 @@ PetscErrorCode PEPSolve_STOAR_QSlice(PEP pep)
   PetscReal      newS;
   PEP_TOAR       *ctx=(PEP_TOAR*)pep->data;
   PEP_SR         sr=ctx->sr;
-  Mat            S;
+  Mat            S,B;
   PetscScalar    *pS;
 
   PetscFunctionBegin;
@@ -1159,6 +1147,10 @@ PetscErrorCode PEPSolve_STOAR_QSlice(PEP pep)
     pep->reason = PEP_CONVERGED_TOL;
     PetscFunctionReturn(0);
   }
+
+  /* Inner product matrix */
+  ierr = PEPSTOARSetUpInnerMatrix(pep,&B);CHKERRQ(ierr);
+
   /* Array of pending shifts */
   sr->maxPend = 100; /* Initial size */
   sr->nPend = 0;
@@ -1189,7 +1181,7 @@ PetscErrorCode PEPSolve_STOAR_QSlice(PEP pep)
     /* Search for deflation */
     ierr = PEPLookForDeflation(pep);CHKERRQ(ierr);
     /* KrylovSchur */
-    ierr = PEPSTOAR_QSlice(pep);CHKERRQ(ierr);
+    ierr = PEPSTOAR_QSlice(pep,B);CHKERRQ(ierr);
 
     ierr = PEPStoreEigenpairs(pep);CHKERRQ(ierr);
     /* Select new shift */
@@ -1236,6 +1228,7 @@ PetscErrorCode PEPSolve_STOAR_QSlice(PEP pep)
   }
   ierr = PetscFree(ctx->inertias);CHKERRQ(ierr);
   ierr = PetscFree(ctx->shifts);CHKERRQ(ierr);
+  ierr = MatDestroy(&B);CHKERRQ(ierr);
   ierr = PEPQSliceGetInertias(pep,&ctx->nshifts,&ctx->shifts,&ctx->inertias);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
