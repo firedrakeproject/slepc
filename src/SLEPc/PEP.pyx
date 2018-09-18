@@ -1055,32 +1055,37 @@ cdef class PEP(Object):
         PetscINCREF(eps.obj)
         return eps
         
-    def setLinearCompanionForm(self, int cform):
+    def setLinearLinearization(self, alpha=1.0, beta=0.0):
         """
-        Choose between the two companion forms available for the linearization of
-        a quadratic eigenproblem.
+        Set the coefficients that define the linearization of a quadratic eigenproblem.
 
         Parameters
         ----------
-        cform: integer
-            1 or 2 (first or second companion form).
+        alpha: float
+            first parameter of the linearization.
+        beta: float
+            second parameter of the linearization.
         """
-        CHKERR( PEPLinearSetCompanionForm(self.pep, cform) )
+        cdef PetscReal a = alpha
+        cdef PetscReal b = beta
+        CHKERR( PEPLinearSetLinearization(self.pep, a, b) )
 
-    def getLinearCompanionForm(self):
+    def getLinearLinearization(self):
         """
-        Returns the number of the companion form that will be used for the
-        linearization of a quadratic eigenproblem. 
- 
+        Returns the coefficients that define the linearization of a quadratic eigenproblem.
+
         Returns
         -------
-        cform: integer
-            1 or 2 (first or second companion form).
+        alpha: float
+            first parameter of the linearization.
+        beta: float
+            second parameter of the linearization.
         """
-        cdef PetscInt cform = 0
-        CHKERR( PEPLinearGetCompanionForm(self.pep, &cform) )
-        return cform
-        
+        cdef PetscReal a = 0.0
+        cdef PetscReal b = 0.0
+        CHKERR( PEPLinearGetLinearization(self.pep, &a, &b) )
+        return (a, b)
+
     def setLinearExplicitMatrix(self, flag):
         """
         Indicate if the matrices A and B for the linearization of the problem
@@ -1098,7 +1103,7 @@ cdef class PEP(Object):
         """
         Returns the flag indicating if the matrices A and B for the linearization
         are built explicitly.
- 
+
         Returns
         -------
         flag: boolean

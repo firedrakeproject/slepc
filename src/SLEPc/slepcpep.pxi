@@ -135,8 +135,8 @@ cdef extern from * nogil:
     int PEPGetInterval(SlepcPEP,PetscReal*,PetscReal*)
     int PEPGetConvergedReason(SlepcPEP,SlepcPEPConvergedReason*)
 
-    int PEPLinearSetCompanionForm(SlepcPEP,PetscInt)
-    int PEPLinearGetCompanionForm(SlepcPEP,PetscInt*)
+    int PEPLinearSetLinearization(SlepcPEP,PetscReal,PetscReal)
+    int PEPLinearGetLinearization(SlepcPEP,PetscReal*,PetscReal*)
     int PEPLinearSetExplicitMatrix(SlepcPEP,PetscBool)
     int PEPLinearGetExplicitMatrix(SlepcPEP,PetscBool*)
     int PEPLinearSetEPS(SlepcPEP,SlepcEPS)
