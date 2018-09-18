@@ -129,14 +129,15 @@ int main(int argc,char **argv)
          args: -eps_lanczos_reorthog {{local full selective periodic partial}}
 
    testset:
-      nsize: 2
       args: -n 32 -eps_nev 4
       requires: !single
       output_file: output/test2_3.out
       test:
+         nsize: 2
          suffix: 3
          args: -eps_type {{krylovschur lapack}}
       test:
+         nsize: 2
          suffix: 3_gd
          args: -eps_type gd -eps_gd_krylov_start
       test:

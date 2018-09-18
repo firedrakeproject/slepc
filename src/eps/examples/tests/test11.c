@@ -206,8 +206,9 @@ PetscErrorCode MyEigenSort(PetscScalar ar,PetscScalar ai,PetscScalar br,PetscSca
 
    test:
       suffix: 1_gd
-      args: -eps_type gd -eps_nev 4 -eps_max_it 5000
-      requires: !single
+      args: -eps_type gd -eps_nev 4 -eps_tol 1e-7 -eps_gd_krylov_start
+      requires: !single !complex
       output_file: output/test11_1.out
+      timeoutfactor: 2
 
 TEST*/

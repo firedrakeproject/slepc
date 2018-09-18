@@ -114,5 +114,6 @@ int main(int argc,char **argv)
       test:
          suffix: 2_gd2
          args: -eps_non_hermitian -eps_type gd -eps_gd_double_expansion
+         timeoutfactor: 2
 
 TEST*/

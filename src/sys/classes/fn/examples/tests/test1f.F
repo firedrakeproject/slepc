@@ -161,5 +161,6 @@
 !   test:
 !      suffix: 1
 !      nsize: 1
+!      requires: !single
 !
 !TEST*/

@@ -159,6 +159,6 @@
 !
 !   test:
 !      suffix: 1
-!      args: -eps_nev 4
+!      args: -eps_nev 4 -eps_ncv 18
 !
 !TEST*/

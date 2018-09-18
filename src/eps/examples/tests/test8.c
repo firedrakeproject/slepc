@@ -182,7 +182,7 @@ PetscErrorCode MatGetDiagonal_Laplacian2D(Mat A,Vec diag)
          args: -eps_type jd -eps_jd_blocksize 3
       test:
          suffix: 1_gd
-         args: -eps_type gd -eps_gd_blocksize 3
+         args: -eps_type gd -eps_gd_blocksize 3 -eps_tol 1e-8
       test:
          suffix: 1_gd2
          args: -eps_type gd -eps_gd_double_expansion
