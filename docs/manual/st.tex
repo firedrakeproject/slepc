@@ -496,7 +496,7 @@ The division of the interval in subintervals is done blindly, and this may resul
 	EPSKrylovSchurSetSubintervals(EPS eps,PetscReal *subint);
 	\end{Verbatim}
 
-An additional benefit of multi-communicator support is that it enables parallel spectrum slicing runs without the need to install a parallel direct solver (MUMPS). The following command-line example uses sequential linear solves in 4 partitions, one process each:
+An additional benefit of multi-communicator support is that it enables parallel spectrum slicing runs without the need to install a parallel direct solver (MUMPS), by setting the number of partitions equal to the number of MPI processes. The following command-line example uses sequential linear solves in 4 partitions, one process each:
 \begin{Verbatim}[fontsize=\small]
 	$ mpiexec -n 4 ./ex25 -eps_interval 0.4,0.8 -eps_krylovschur_partitions 4
                   -st_type sinvert -st_ksp_type preonly -st_pc_type cholesky
