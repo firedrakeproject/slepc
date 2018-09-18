@@ -1134,7 +1134,7 @@ static PetscErrorCode PEPNRefSetUp(PEP pep,PetscInt k,PetscScalar *H,PetscInt ld
           } else count =0;
           ierr = ISCreateGeneral(PetscObjectComm((PetscObject)pep),count,idx1,PETSC_COPY_VALUES,&is1);CHKERRQ(ierr);
           ierr = ISCreateGeneral(PetscObjectComm((PetscObject)pep),count,idx2,PETSC_COPY_VALUES,&is2);CHKERRQ(ierr);
-          ierr = VecScatterCreate(matctx->tp,is1,matctx->tpg,is2,&matctx->scatterp_id[si]);CHKERRQ(ierr);
+          ierr = VecScatterCreateWithData(matctx->tp,is1,matctx->tpg,is2,&matctx->scatterp_id[si]);CHKERRQ(ierr);
           ierr = ISDestroy(&is1);CHKERRQ(ierr);
           ierr = ISDestroy(&is2);CHKERRQ(ierr);
         }
@@ -1293,7 +1293,7 @@ static PetscErrorCode NRefSubcommSetup(PEP pep,PetscInt k,MatExplicitCtx *matctx
   }
   ierr = ISCreateGeneral(PetscObjectComm((PetscObject)pep),matctx->subc->n*nloc0,idx1,PETSC_COPY_VALUES,&is1);CHKERRQ(ierr);
   ierr = ISCreateGeneral(PetscObjectComm((PetscObject)pep),matctx->subc->n*nloc0,idx2,PETSC_COPY_VALUES,&is2);CHKERRQ(ierr);
-  ierr = VecScatterCreate(v,is1,matctx->tg,is2,&matctx->scatter_sub);CHKERRQ(ierr);
+  ierr = VecScatterCreateWithData(v,is1,matctx->tg,is2,&matctx->scatter_sub);CHKERRQ(ierr);
   ierr = ISDestroy(&is1);CHKERRQ(ierr);
   ierr = ISDestroy(&is2);CHKERRQ(ierr);
   for (si=0;si<matctx->subc->n;si++) {
@@ -1304,7 +1304,7 @@ static PetscErrorCode NRefSubcommSetup(PEP pep,PetscInt k,MatExplicitCtx *matctx
     }
     ierr = ISCreateGeneral(PetscObjectComm((PetscObject)pep),nloc0,idx1,PETSC_COPY_VALUES,&is1);CHKERRQ(ierr);
     ierr = ISCreateGeneral(PetscObjectComm((PetscObject)pep),nloc0,idx2,PETSC_COPY_VALUES,&is2);CHKERRQ(ierr);
-    ierr = VecScatterCreate(v,is1,matctx->tg,is2,&matctx->scatter_id[si]);CHKERRQ(ierr);
+    ierr = VecScatterCreateWithData(v,is1,matctx->tg,is2,&matctx->scatter_id[si]);CHKERRQ(ierr);
     ierr = ISDestroy(&is1);CHKERRQ(ierr);
     ierr = ISDestroy(&is2);CHKERRQ(ierr);
   }

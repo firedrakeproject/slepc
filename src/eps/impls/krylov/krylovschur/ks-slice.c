@@ -584,7 +584,7 @@ static PetscErrorCode EPSSliceGatherEigenVectors(EPS eps)
     ierr = ISCreateGeneral(PetscObjectComm((PetscObject)eps),(m0-n0),idx1,PETSC_COPY_VALUES,&is1);CHKERRQ(ierr);
     ierr = ISCreateGeneral(PetscObjectComm((PetscObject)eps),(m0-n0),idx2,PETSC_COPY_VALUES,&is2);CHKERRQ(ierr);
     ierr = BVGetColumn(eps->V,0,&v);CHKERRQ(ierr);
-    ierr = VecScatterCreate(v,is1,vg,is2,&vec_sc);CHKERRQ(ierr);
+    ierr = VecScatterCreateWithData(v,is1,vg,is2,&vec_sc);CHKERRQ(ierr);
     ierr = BVRestoreColumn(eps->V,0,&v);CHKERRQ(ierr);
     ierr = ISDestroy(&is1);CHKERRQ(ierr);
     ierr = ISDestroy(&is2);CHKERRQ(ierr);
