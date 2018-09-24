@@ -6,6 +6,12 @@ CHANGES: SLEPc for Python
 :Contact: dalcinl@gmail.com
 
 
+Release 3.10.0
+==============
+
+- Update to SLEPc 3.10 release.
+
+
 Release 3.9.0
 =============
 
