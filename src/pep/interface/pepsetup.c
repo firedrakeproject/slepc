@@ -105,6 +105,8 @@ PetscErrorCode PEPSetUp(PEP pep)
   if (!pep->problem_type) {
     ierr = PEPSetProblemType(pep,PEP_GENERAL);CHKERRQ(ierr);
   }
+  if (pep->nev > (pep->nmat-1)*pep->n) pep->nev = (pep->nmat-1)*pep->n;
+  if (pep->ncv > (pep->nmat-1)*pep->n) pep->ncv = (pep->nmat-1)*pep->n;
 
   /* check consistency of refinement options */
   if (pep->refine) {
