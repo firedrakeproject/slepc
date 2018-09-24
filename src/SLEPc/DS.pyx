@@ -381,11 +381,11 @@ cdef class DS(Object):
         Notes
         -----
         In Krylov methods it is useful that the matrix representing
-        the direct solver has one extra row, i.e., has dimension (n+1)
-        x n. If this flag is activated, all transformations applied to
-        the right of the matrix also affect this additional row. In
-        that case, (n+1) must be less or equal than the leading
-        dimension.
+        the direct solver has one extra row, i.e., has dimension
+        (n+1)*n . If this flag is activated, all transformations
+        applied to the right of the matrix also affect this additional
+        row. In that case, (n+1) must be less or equal than the
+        leading dimension.
 
         The default is ``False``.
         """
@@ -472,8 +472,7 @@ cdef class DS(Object):
            The requested matrix.
         """
         cdef SlepcDSMatType mname = matname
-        cdef Mat mat
-        mat = Mat()
+        cdef Mat mat = Mat()
         CHKERR( DSGetMat(self.ds, mname, &mat.mat) )
         return mat
 
