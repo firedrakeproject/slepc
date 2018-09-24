@@ -1729,10 +1729,12 @@ cdef class EPS(Object):
         PetscINCREF(B.obj)
         return (A, B)
 
-    def updateKrylovSchurSubcommMats(self, s=1.0, a=1.0, Mat Au=None, t=1.0, b=1.0, Mat Bu=None, structure=None, globalup=False):
+    def updateKrylovSchurSubcommMats(self, s=1.0, a=1.0, Mat Au=None,
+                                     t=1.0, b=1.0, Mat Bu=None,
+                                     structure=None, globalup=False):
         """
-        Update the eigenproblem matrices stored internally in the subcommunicator
-        to which the calling process belongs.
+        Update the eigenproblem matrices stored internally in the
+        subcommunicator to which the calling process belongs.
 
         Parameters
         ----------
@@ -1755,18 +1757,21 @@ cdef class EPS(Object):
 
         Notes
         -----
-        This function modifies the eigenproblem matrices at subcommunicator level,
-        and optionally updates the global matrices in the parent communicator.
-        The updates are expressed as ``A <-- s*A + a*Au``,  ``B <-- t*B + b*Bu``.
+        This function modifies the eigenproblem matrices at
+        subcommunicator level, and optionally updates the global
+        matrices in the parent communicator.  The updates are
+        expressed as ``A <-- s*A + a*Au``, ``B <-- t*B + b*Bu``.
 
         It is possible to update one of the matrices, or both.
 
         The matrices `Au` and `Bu` must be equal in all subcommunicators.
 
-        The `str` flag is passed to the `Mat.axpy()` operations to perform the updates.
+        The `structure` flag is passed to the `PETSc.Mat.axpy()` operations
+        to perform the updates.
 
-        If `globalup` is True, communication is carried out to reconstruct the updated
-        matrices in the parent communicator.
+        If `globalup` is True, communication is carried out to
+        reconstruct the updated matrices in the parent communicator.
+
         """
         cdef PetscMat Amat = Au.mat if Au is not None else <PetscMat>NULL
         cdef PetscMat Bmat = Bu.mat if Bu is not None else <PetscMat>NULL
