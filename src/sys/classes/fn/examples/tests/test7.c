@@ -159,6 +159,7 @@ int main(int argc,char **argv)
       args: -fn_scale .05,2 -n 100 -fn_method {{0 1 2}shared output}
       filter: grep -v "computing matrix functions"
       output_file: output/test7_1.out
+      timeoutfactor: 2
 
    test:
       suffix: 1_sadeghi
@@ -174,6 +175,7 @@ int main(int argc,char **argv)
       args: -fn_scale .05,2 -n 100 -inplace -fn_method {{0 1 2}shared output}
       filter: grep -v "computing matrix functions"
       output_file: output/test7_1.out
+      timeoutfactor: 2
 
    test:
       suffix: 2_sadeghi
