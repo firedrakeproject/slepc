@@ -225,7 +225,7 @@ int main(int argc,char **argv)
       suffix: 1_cuda
       nsize: 1
       args: -bv_type svec -mat_type aijcusparse
-      requires: veccuda
+      requires: cuda
       output_file: output/test9_1.out
 
    test:

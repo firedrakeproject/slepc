@@ -175,7 +175,7 @@ int main(int argc,char **argv)
       suffix: 1_cuda
       nsize: 2
       args: -bv_type svec -vec_type cuda
-      requires: veccuda
+      requires: cuda
       output_file: output/test15_1.out
 
    test:
@@ -188,7 +188,7 @@ int main(int argc,char **argv)
       suffix: 2_cuda
       nsize: 2
       args: -nc 2 -bv_type svec -vec_type cuda
-      requires: veccuda
+      requires: cuda
       output_file: output/test15_2.out
 
 TEST*/

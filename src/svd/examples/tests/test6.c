@@ -115,6 +115,6 @@ int main(int argc,char **argv)
       test:
          suffix: 2_cuda
          args: -eps_type subspace -mat_type aijcusparse
-         requires: veccuda
+         requires: cuda
 
 TEST*/

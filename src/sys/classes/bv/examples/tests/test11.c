@@ -256,7 +256,7 @@ int main(int argc,char **argv)
       suffix: 1_cuda
       nsize: 2
       args: -bv_orthog_block gs -bv_type svec -vec_type cuda
-      requires: veccuda
+      requires: cuda
       output_file: output/test11_1.out
 
    test:
@@ -269,7 +269,7 @@ int main(int argc,char **argv)
       suffix: 2_cuda
       nsize: 2
       args: -bv_orthog_block chol -bv_type svec -vec_type cuda
-      requires: veccuda
+      requires: cuda
       output_file: output/test11_1.out
 
    test:
@@ -282,7 +282,7 @@ int main(int argc,char **argv)
       suffix: 3_cuda
       nsize: 2
       args: -bv_orthog_block tsqr -bv_type svec -vec_type cuda
-      requires: veccuda
+      requires: cuda
       output_file: output/test11_1.out
 
    test:
@@ -295,7 +295,7 @@ int main(int argc,char **argv)
       suffix: 4_cuda
       nsize: 2
       args: -withb -bv_orthog_block gs -bv_type svec -vec_type cuda -mat_type aijcusparse
-      requires: veccuda
+      requires: cuda
       output_file: output/test11_4.out
 
    test:
@@ -308,7 +308,7 @@ int main(int argc,char **argv)
       suffix: 5_cuda
       nsize: 2
       args: -withb -bv_orthog_block chol -bv_type svec -vec_type cuda -mat_type aijcusparse
-      requires: veccuda
+      requires: cuda
       output_file: output/test11_4.out
 
    test:
@@ -321,7 +321,7 @@ int main(int argc,char **argv)
       suffix: 6_cuda
       nsize: 2
       args: -resid -bv_orthog_block gs -bv_type svec -vec_type cuda
-      requires: veccuda
+      requires: cuda
       output_file: output/test11_6.out
 
    test:
@@ -334,7 +334,7 @@ int main(int argc,char **argv)
       suffix: 7_cuda
       nsize: 2
       args: -resid -bv_orthog_block chol -bv_type svec -vec_type cuda
-      requires: veccuda
+      requires: cuda
       output_file: output/test11_6.out
 
    test:
@@ -347,7 +347,7 @@ int main(int argc,char **argv)
       suffix: 8_cuda
       nsize: 2
       args: -resid -bv_orthog_block tsqr -bv_type svec -vec_type cuda
-      requires: veccuda
+      requires: cuda
       output_file: output/test11_6.out
 
    test:
@@ -360,7 +360,7 @@ int main(int argc,char **argv)
       suffix: 9_cuda
       nsize: 2
       args: -resid -withb -bv_orthog_block gs -bv_type svec -vec_type cuda -mat_type aijcusparse
-      requires: veccuda
+      requires: cuda
       output_file: output/test11_9.out
 
    test:
@@ -373,7 +373,7 @@ int main(int argc,char **argv)
       suffix: 10_cuda
       nsize: 2
       args: -resid -withb -bv_orthog_block chol -bv_type svec -vec_type cuda -mat_type aijcusparse
-      requires: veccuda
+      requires: cuda
       output_file: output/test11_9.out
 
    test:
@@ -386,7 +386,7 @@ int main(int argc,char **argv)
       suffix: 11_cuda
       nsize: 7
       args: -bv_orthog_block tsqr -bv_type svec -vec_type cuda
-      requires: veccuda
+      requires: cuda
       output_file: output/test11_1.out
 
    test:
@@ -400,7 +400,7 @@ int main(int argc,char **argv)
       suffix: 12_cuda
       nsize: 9
       args: -resid -n 180 -l 0 -k 7 -bv_orthog_block tsqr -bv_type svec -vec_type cuda
-      requires: !single veccuda
+      requires: !single cuda
       output_file: output/test11_12.out
 
    test:
@@ -413,7 +413,7 @@ int main(int argc,char **argv)
       suffix: 13_cuda
       nsize: 2
       args: -bv_orthog_block tsqrchol -bv_type svec -vec_type cuda
-      requires: veccuda
+      requires: cuda
       output_file: output/test11_1.out
 
    test:
@@ -426,7 +426,7 @@ int main(int argc,char **argv)
       suffix: 14_cuda
       nsize: 2
       args: -resid -bv_orthog_block tsqrchol -bv_type svec -vec_type cuda
-      requires: veccuda
+      requires: cuda
       output_file: output/test11_6.out
 
    test:
@@ -439,7 +439,7 @@ int main(int argc,char **argv)
       suffix: 15_cuda
       nsize: 2
       args: -bv_orthog_block svqb -bv_type svec -vec_type cuda
-      requires: veccuda
+      requires: cuda
       output_file: output/test11_1.out
 
    test:
@@ -452,7 +452,7 @@ int main(int argc,char **argv)
       suffix: 16_cuda
       nsize: 2
       args: -withb -bv_orthog_block svqb -bv_type svec -vec_type cuda
-      requires: veccuda
+      requires: cuda
       output_file: output/test11_4.out
 
    test:
@@ -465,7 +465,7 @@ int main(int argc,char **argv)
       suffix: 17_cuda
       nsize: 2
       args: -resid -bv_orthog_block svqb -bv_type svec -vec_type cuda
-      requires: veccuda
+      requires: cuda
       output_file: output/test11_6.out
 
    test:
@@ -478,7 +478,7 @@ int main(int argc,char **argv)
       suffix: 18_cuda
       nsize: 2
       args: -resid -withb -bv_orthog_block svqb -bv_type svec -vec_type cuda
-      requires: veccuda
+      requires: cuda
       output_file: output/test11_9.out
 
 TEST*/

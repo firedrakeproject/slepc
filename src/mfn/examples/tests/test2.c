@@ -125,7 +125,7 @@ int main(int argc,char **argv)
    test:
       suffix: 2
       args: -mfn_type {{krylov expokit}} -mat_type aijcusparse
-      requires: veccuda !complex
+      requires: cuda !complex
       output_file: output/test2.out
 
 TEST*/

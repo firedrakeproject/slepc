@@ -160,7 +160,7 @@ int main(int argc,char **argv)
       suffix: 1_cuda
       nsize: 1
       args: -bv_type svec -vec_type cuda -bv_orthog_type cgs
-      requires: veccuda
+      requires: cuda
       output_file: output/test2_1.out
 
    test:
@@ -173,7 +173,7 @@ int main(int argc,char **argv)
       suffix: 2_cuda
       nsize: 1
       args: -bv_type svec -vec_type cuda -bv_orthog_type mgs
-      requires: veccuda
+      requires: cuda
       output_file: output/test2_1.out
 
    test:

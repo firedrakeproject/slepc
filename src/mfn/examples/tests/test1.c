@@ -100,7 +100,7 @@ int main(int argc,char **argv)
    test:
       suffix: 2
       args: -file ${SLEPC_DIR}/share/slepc/datafiles/matrices/bfw62b.petsc -mfn_type {{krylov expokit}} -mat_type aijcusparse
-      requires: veccuda double !complex !define(PETSC_USE_64BIT_INDICES)
+      requires: cuda double !complex !define(PETSC_USE_64BIT_INDICES)
       output_file: output/test1.out
 
 TEST*/

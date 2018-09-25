@@ -193,7 +193,7 @@ int main(int argc,char **argv)
       suffix: 1_cuda
       nsize: 1
       args: -n 18 -kx 12 -ky 8 -bv_type svec -vec_type cuda
-      requires: veccuda
+      requires: cuda
       output_file: output/test4_1.out
 
    test:

@@ -376,7 +376,7 @@ PetscErrorCode MatCreateVecsEmpty(Mat mat,Vec *right,Vec *left)
 
   ierr = PetscObjectTypeCompareAny((PetscObject)mat,&notsup,MATSEQAIJVIENNACL,MATMPIAIJVIENNACL,"");CHKERRQ(ierr);
   if (notsup) SETERRQ1(PetscObjectComm((PetscObject)mat),PETSC_ERR_SUP,"Matrix type %s not supported",((PetscObject)mat)->type_name);
-#if defined(PETSC_HAVE_VECCUDA)
+#if defined(PETSC_HAVE_CUDA)
   ierr = PetscObjectTypeCompareAny((PetscObject)mat,&cuda,MATSEQAIJCUSPARSE,MATMPIAIJCUSPARSE,"");CHKERRQ(ierr);
   if (!cuda) {
     PetscBool flg;
@@ -396,7 +396,7 @@ PetscErrorCode MatCreateVecsEmpty(Mat mat,Vec *right,Vec *left)
 
   if (right) {
     if (cuda) {
-#if defined(PETSC_HAVE_VECCUDA)
+#if defined(PETSC_HAVE_CUDA)
       if (size>1) {
         ierr = VecCreateMPICUDAWithArray(PetscObjectComm((PetscObject)mat),cbs,nloc,N,NULL,right);CHKERRQ(ierr);
       } else {
@@ -413,7 +413,7 @@ PetscErrorCode MatCreateVecsEmpty(Mat mat,Vec *right,Vec *left)
   }
   if (left) {
     if (cuda) {
-#if defined(PETSC_HAVE_VECCUDA)
+#if defined(PETSC_HAVE_CUDA)
       if (size>1) {
         ierr = VecCreateMPICUDAWithArray(PetscObjectComm((PetscObject)mat),rbs,mloc,M,NULL,left);CHKERRQ(ierr);
       } else {

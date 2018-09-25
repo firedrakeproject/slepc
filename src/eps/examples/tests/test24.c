@@ -129,6 +129,6 @@ int main(int argc,char **argv)
       test:
          suffix: 2_cuda
          args: -mat_type aijcusparse
-         requires: veccuda !single
+         requires: cuda !single
 
 TEST*/

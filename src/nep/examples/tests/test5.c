@@ -190,7 +190,7 @@ int main(int argc,char **argv)
    test:
       suffix: 2_cuda
       args: -nep_nev 3 -nep_target 5 -mat_type aijcusparse -terse
-      requires: veccuda
+      requires: cuda
       output_file: output/test5_1.out
 
 TEST*/

@@ -111,11 +111,11 @@ int main(int argc,char **argv)
       test:
          suffix: 2_cuda_ks
          args: -mat_type aijcusparse
-         requires: veccuda !single
+         requires: cuda !single
       test:
          suffix: 2_cuda_ks_gnhep
          args: -eps_gen_non_hermitian -mat_type aijcusparse
-         requires: veccuda !single
+         requires: cuda !single
 
    test:
       suffix: 1_davidson

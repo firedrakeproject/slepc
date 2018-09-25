@@ -98,7 +98,7 @@ int main(int argc,char **argv)
       suffix: 1_cuda
       nsize: 1
       args: -bv_type svec -vec_type cuda
-      requires: veccuda
+      requires: cuda
       output_file: output/test13_1.out
 
 TEST*/

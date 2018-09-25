@@ -353,7 +353,7 @@ PetscErrorCode BVResize(BV bv,PetscInt m,PetscBool copy)
   ierr = PetscFree2(bv->h,bv->c);CHKERRQ(ierr);
   if (bv->omega) {
     if (bv->cuda) {
-#if defined(PETSC_HAVE_VECCUDA)
+#if defined(PETSC_HAVE_CUDA)
       ierr = VecCreateSeqCUDA(PETSC_COMM_SELF,m,&v);CHKERRQ(ierr);
 #else
       SETERRQ(PetscObjectComm((PetscObject)bv),1,"Something wrong happened");

@@ -201,7 +201,7 @@ PETSC_STATIC_INLINE PetscErrorCode BV_AllocateSignature(BV bv)
   PetscFunctionBegin;
   if (bv->indef && !bv->omega) {
     if (bv->cuda) {
-#if defined(PETSC_HAVE_VECCUDA)
+#if defined(PETSC_HAVE_CUDA)
       ierr = VecCreateSeqCUDA(PETSC_COMM_SELF,bv->nc+bv->m,&bv->omega);CHKERRQ(ierr);
 #else
       SETERRQ(PetscObjectComm((PetscObject)bv),1,"Something wrong happened");
@@ -260,7 +260,7 @@ PETSC_INTERN PetscErrorCode BVOrthogonalize_LAPACK_TSQR_OnlyR(BV,PetscInt,PetscI
 PETSC_EXTERN MPI_Op MPIU_TSQR;
 PETSC_EXTERN void SlepcGivensPacked(void*,void*,PetscMPIInt*,MPI_Datatype*);
 
-#if defined(PETSC_HAVE_VECCUDA)
+#if defined(PETSC_HAVE_CUDA)
 #include <petsccuda.h>
 #include <cublas_v2.h>
 
@@ -309,7 +309,7 @@ PETSC_INTERN PetscErrorCode BV_ApplySignature_CUDA(BV,PetscInt,PetscScalar*,Pets
 PETSC_INTERN PetscErrorCode BV_SquareRoot_CUDA(BV,PetscInt,PetscScalar*,PetscReal*);
 PETSC_INTERN PetscErrorCode BV_StoreCoefficients_CUDA(BV,PetscInt,PetscScalar*,PetscScalar*);
 
-#endif /* PETSC_HAVE_VECCUDA */
+#endif /* PETSC_HAVE_CUDA */
 
 /*
    BV_CleanCoefficients_Default - Sets to zero all entries of column j of the bv buffer
@@ -446,7 +446,7 @@ PETSC_STATIC_INLINE PetscErrorCode BV_StoreCoefficients_Default(BV bv,PetscInt j
   PetscFunctionReturn(0);
 }
 
-#if defined(PETSC_HAVE_VECCUDA)
+#if defined(PETSC_HAVE_CUDA)
 #define BV_CleanCoefficients(a,b,c)   ((a)->cuda?BV_CleanCoefficients_CUDA:BV_CleanCoefficients_Default)((a),(b),(c))
 #define BV_AddCoefficients(a,b,c,d)   ((a)->cuda?BV_AddCoefficients_CUDA:BV_AddCoefficients_Default)((a),(b),(c),(d))
 #define BV_SetValue(a,b,c,d,e)        ((a)->cuda?BV_SetValue_CUDA:BV_SetValue_Default)((a),(b),(c),(d),(e))
@@ -462,6 +462,6 @@ PETSC_STATIC_INLINE PetscErrorCode BV_StoreCoefficients_Default(BV bv,PetscInt j
 #define BV_ApplySignature(a,b,c,d)    BV_ApplySignature_Default((a),(b),(c),(d))
 #define BV_SquareRoot(a,b,c,d)        BV_SquareRoot_Default((a),(b),(c),(d))
 #define BV_StoreCoefficients(a,b,c,d) BV_StoreCoefficients_Default((a),(b),(c),(d))
-#endif /* PETSC_HAVE_VECCUDA */
+#endif /* PETSC_HAVE_CUDA */
 
 #endif

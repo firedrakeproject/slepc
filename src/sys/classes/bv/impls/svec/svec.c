@@ -440,7 +440,7 @@ PETSC_EXTERN PetscErrorCode BVCreate_Svec(BV bv)
   char              str[50];
   BV                parent;
   Vec               vpar;
-#if defined(PETSC_HAVE_VECCUDA)
+#if defined(PETSC_HAVE_CUDA)
   PetscScalar       *gpuarray,*gptr;
 #endif
 
@@ -467,7 +467,7 @@ PETSC_EXTERN PetscErrorCode BVCreate_Svec(BV bv)
     lsplit = parent->lsplit;
     vpar = ((BV_SVEC*)parent->data)->v;
     if (bv->cuda) {
-#if defined(PETSC_HAVE_VECCUDA)
+#if defined(PETSC_HAVE_CUDA)
       ierr = VecCUDAGetArrayReadWrite(vpar,&gpuarray);CHKERRQ(ierr);
       gptr = (bv->issplit==1)? gpuarray: gpuarray+lsplit*nloc;
       ierr = VecCUDARestoreArrayReadWrite(vpar,&gpuarray);CHKERRQ(ierr);
@@ -515,7 +515,7 @@ PETSC_EXTERN PetscErrorCode BVCreate_Svec(BV bv)
   ierr = VecDuplicateEmpty(bv->t,&bv->cv[1]);CHKERRQ(ierr);
 
   if (bv->cuda) {
-#if defined(PETSC_HAVE_VECCUDA)
+#if defined(PETSC_HAVE_CUDA)
     bv->ops->mult             = BVMult_Svec_CUDA;
     bv->ops->multvec          = BVMultVec_Svec_CUDA;
     bv->ops->multinplace      = BVMultInPlace_Svec_CUDA;

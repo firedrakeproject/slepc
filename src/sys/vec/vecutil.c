@@ -177,7 +177,7 @@ PetscErrorCode VecDuplicateEmpty(Vec v,Vec *newv)
   ierr = VecGetBlockSize(v,&bs);CHKERRQ(ierr);
 
   if (cuda) {
-#if defined(PETSC_HAVE_VECCUDA)
+#if defined(PETSC_HAVE_CUDA)
     if (mpi) {
       ierr = VecCreateMPICUDAWithArray(PetscObjectComm((PetscObject)v),bs,nloc,N,NULL,newv);CHKERRQ(ierr);
     } else {

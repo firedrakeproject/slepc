@@ -67,7 +67,7 @@ PetscErrorCode SVDSetUp_Cyclic(SVD svd)
   Vec               v;
   Mat               Zm,Zn;
   ST                st;
-#if defined(PETSC_HAVE_VECCUDA)
+#if defined(PETSC_HAVE_CUDA)
   PetscBool         cuda;
 #endif
 
@@ -110,7 +110,7 @@ PetscErrorCode SVDSetUp_Cyclic(SVD svd)
       ierr = PetscLogObjectParent((PetscObject)svd,(PetscObject)cyclic->y2);CHKERRQ(ierr);
       ierr = MatCreateShell(PetscObjectComm((PetscObject)svd),m+n,m+n,M+N,M+N,svd,&cyclic->mat);CHKERRQ(ierr);
       ierr = MatShellSetOperation(cyclic->mat,MATOP_GET_DIAGONAL,(void(*)(void))MatGetDiagonal_Cyclic);CHKERRQ(ierr);
-#if defined(PETSC_HAVE_VECCUDA)
+#if defined(PETSC_HAVE_CUDA)
       ierr = PetscObjectTypeCompareAny((PetscObject)(svd->A?svd->A:svd->AT),&cuda,MATSEQAIJCUSPARSE,MATMPIAIJCUSPARSE,"");CHKERRQ(ierr);
       if (cuda) {
         ierr = MatShellSetOperation(cyclic->mat,MATOP_CREATE_VECS,(void(*)(void))MatCreateVecs_Cyclic_CUDA);CHKERRQ(ierr);

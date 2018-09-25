@@ -8,7 +8,7 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-#requirespackage 'PETSC_HAVE_VECCUDA'
+#requirespackage 'PETSC_HAVE_CUDA'
 ALL: lib
 
 CFLAGS   =

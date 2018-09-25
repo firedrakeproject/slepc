@@ -146,7 +146,7 @@ int main(int argc,char **argv)
 
    testset:
       args: -eps_nev 4 -mat_type aijcusparse
-      requires: veccuda !single
+      requires: cuda !single
       output_file: output/test2_1.out
       test:
          suffix: 4_cuda

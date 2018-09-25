@@ -111,6 +111,6 @@ int main(int argc,char **argv)
       test:
          suffix: 2_cuda
          args: -mat_type aijcusparse
-         requires: veccuda double !complex !define(PETSC_USE_64BIT_INDICES)
+         requires: cuda double !complex !define(PETSC_USE_64BIT_INDICES)
 
 TEST*/

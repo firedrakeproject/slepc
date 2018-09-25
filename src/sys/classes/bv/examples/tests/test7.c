@@ -198,7 +198,7 @@ int main(int argc,char **argv)
       suffix: 1_cuda
       nsize: 1
       args: -bv_type svec -mat_type aijcusparse -bv_matmult vecs
-      requires: veccuda
+      requires: cuda
       filter: grep -v "Using method"
       output_file: output/test7_1.out
 
