@@ -260,7 +260,7 @@ int main(int argc,char **argv)
 
    testset:
       nsize: 2
-      args: -st_type sinvert -pep_target -0.43 -pep_nev 4 -pep_refine_partitions 2 -st_ksp_type bcgs -st_pc_type bjacobi -pep_scale diagonal -pep_scale_its 4
+      args: -st_type sinvert -pep_target -0.49 -pep_nev 4 -pep_refine_partitions 2 -st_ksp_type bcgs -st_pc_type bjacobi -pep_scale diagonal -pep_scale_its 4
       output_file: output/test2_2.out
       requires: !single
       test:
