@@ -210,6 +210,49 @@ static PetscErrorCode PEPQSliceGetInertia(PEP pep,PetscReal shift,PetscInt *iner
   } else if (correction<0) *inertia = 2*pep->n-*inertia;
   PetscFunctionReturn(0);
 }
+  
+static PetscErrorCode PEPQSliceCheckEigenvalueType(PEP pep,PetscReal shift,PetscReal omega,PetscBool ini)  
+{
+  PetscErrorCode ierr;
+  PEP            pep2;
+  PetscInt       nconv;
+  PetscScalar    lambda,dot;
+  PEP_TOAR       *ctx=(PEP_TOAR*)pep->data;
+  PEP_SR         sr=ctx->sr;
+
+  PetscFunctionBegin;
+  if (!ini) {
+    if (!ctx->hyperbolic && -(omega/(shift*ctx->alpha+ctx->beta))*sr->type<0) SETERRQ1(((PetscObject)pep)->comm,PETSC_ERR_CONV_FAILED,"Different positive/negative type detected in eigenvalue %g",(double)PetscRealPart(shift));
+  } else {
+    ierr = PEPCreate(PetscObjectComm((PetscObject)pep),&pep2);CHKERRQ(ierr);
+    ierr = PEPSetTolerances(pep2,PETSC_DEFAULT,pep->max_it/4);CHKERRQ(ierr);
+    ierr = PEPSetType(pep2,PEPTOAR);CHKERRQ(ierr);
+    ierr = PEPSetOperators(pep2,pep->nmat,pep->A);CHKERRQ(ierr);
+    ierr = PEPSetWhichEigenpairs(pep2,PEP_TARGET_MAGNITUDE);CHKERRQ(ierr);
+    ierr = PEPGetRG(pep2,&pep2->rg);CHKERRQ(ierr);
+    ierr = RGSetType(pep2->rg,RGINTERVAL);
+    ierr = RGIntervalSetEndpoints(pep2->rg,pep->inta,pep->intb,0.0,0.0);CHKERRQ(ierr);
+    pep2->target = shift;
+    pep2->st = pep->st;
+    ierr = PEPSolve(pep2);CHKERRQ(ierr);
+    ierr = PEPGetConverged(pep2,&nconv);CHKERRQ(ierr);
+    if (nconv) {
+      ierr = PEPGetEigenpair(pep2,0,&lambda,NULL,pep2->work[0],NULL);CHKERRQ(ierr);
+      ierr = MatMult(pep->A[1],pep2->work[0],pep2->work[1]);CHKERRQ(ierr);
+      ierr = MatMult(pep->A[2],pep2->work[0],pep2->work[2]);CHKERRQ(ierr);
+      ierr = VecAXPY(pep2->work[1],2*lambda*pep->sfactor,pep2->work[2]);CHKERRQ(ierr);
+      ierr = VecDot(pep2->work[1],pep2->work[0],&dot);CHKERRQ(ierr);
+      ierr = PetscInfo2(pep,"lambda=%g, %s type\n",(double)PetscRealPart(lambda),(PetscRealPart(dot)>0.0)?"positive":"negative");CHKERRQ(ierr);
+      if (!sr->type) sr->type = (PetscRealPart(dot)>0.0)?1:-1;
+      else {
+        if (sr->type*dot<0.0) SETERRQ1(((PetscObject)pep)->comm,PETSC_ERR_CONV_FAILED,"Different positive/negative type detected in eigenvalue %g",(double)PetscRealPart(lambda));
+      }
+    }
+    pep2->st = NULL;
+    ierr = PEPDestroy(&pep2);CHKERRQ(ierr);
+  }
+  PetscFunctionReturn(0);
+}
 
 /*
    Dummy backtransform operation
@@ -238,6 +281,7 @@ PetscErrorCode PEPSetUp_STOAR_QSlice(PEP pep)
   if (ctx->nev==0) ctx->nev = PetscMin(20,pep->n);  /* nev not set, use default value */
   if (pep->n>10 && ctx->nev<10) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_WRONG,"nev cannot be less than 10 in spectrum slicing runs");
   pep->ops->backtransform = PEPBackTransform_Skip;
+  if (!pep->max_it) pep->max_it = 100;
 
   /* create spectrum slicing context and initialize it */
   ierr = PEPQSliceResetSR(pep);CHKERRQ(ierr);
@@ -270,11 +314,17 @@ PetscErrorCode PEPSetUp_STOAR_QSlice(PEP pep)
   ctx->hyperbolic = (pep->problem_type==PEP_HYPERBOLIC)? PETSC_TRUE: PETSC_FALSE;
   ierr = PEPQSliceGetInertia(pep,sr->int0,&sr->inertia0,ctx->detect?&zeros:NULL,ctx->hyperbolic?0:1);CHKERRQ(ierr);
   if (zeros && (sr->int0==pep->inta || sr->int0==pep->intb)) SETERRQ(((PetscObject)pep)->comm,PETSC_ERR_USER,"Found singular matrix for the transformed problem in the interval endpoint");
+  if (!ctx->hyperbolic) {
+    ierr = PEPQSliceCheckEigenvalueType(pep,sr->int0,0.0,PETSC_TRUE);CHKERRQ(ierr);
+  }
 
   /* compute inertia1 */
   ierr = PEPQSliceGetInertia(pep,sr->int1,&sr->inertia1,ctx->detect?&zeros:NULL,ctx->hyperbolic?0:1);CHKERRQ(ierr);
   if (zeros) SETERRQ(((PetscObject)pep)->comm,PETSC_ERR_USER,"Found singular matrix for the transformed problem in an interval endpoint defined by user");
   if (!ctx->hyperbolic) {
+    ierr = PEPQSliceCheckEigenvalueType(pep,sr->int1,0.0,PETSC_TRUE);CHKERRQ(ierr);
+    if (!sr->type && (sr->inertia1-sr->inertia0)) SETERRQ(((PetscObject)pep)->comm,PETSC_ERR_CONV_FAILED,"No information of eigenvalue type in Interval");
+    if (sr->type && !(sr->inertia1-sr->inertia0)) SETERRQ(((PetscObject)pep)->comm,PETSC_ERR_CONV_FAILED,"Different positive/negative type detected");
     if (sr->dir*(sr->inertia1-sr->inertia0)<0) {
       sr->intcorr = -1;
       sr->inertia0 = 2*pep->n-sr->inertia0;
@@ -297,7 +347,6 @@ PetscErrorCode PEPSetUp_STOAR_QSlice(PEP pep)
     ierr = PEPQSliceAllocateSolution(pep);CHKERRQ(ierr);
     ierr = PEPSetDimensions_Default(pep,ctx->nev,&ctx->ncv,&ctx->mpd);CHKERRQ(ierr);
     pep->nev = ctx->nev; pep->ncv = ctx->ncv; pep->mpd = ctx->mpd;
-    if (!pep->max_it) pep->max_it = 100;
     ld   = ctx->ncv+2;
     ierr = DSSetType(pep->ds,DSGHIEP);CHKERRQ(ierr);
     ierr = DSSetCompact(pep->ds,PETSC_TRUE);CHKERRQ(ierr);
@@ -513,10 +562,11 @@ static PetscErrorCode PEPStoreEigenpairs(PEP pep)
   PetscBool      iscayley,divide=PETSC_FALSE;
   PEP_SR         sr = ctx->sr;
   PEP_shift      sPres;
-  Vec            w;
+  Vec            w,vomega;
   Mat            MS;
   BV             tV;
   PetscScalar    *S,*eigr,*tS;
+  PetscReal      *omega;
 
   PetscFunctionBegin;
   sPres = sr->sPres;
@@ -535,6 +585,9 @@ static PetscErrorCode PEPStoreEigenpairs(PEP pep)
     ierr = PetscObjectTypeCompare((PetscObject)pep->st,STCAYLEY,&iscayley);CHKERRQ(ierr);
     /* Sort eigenvalues */
     ierr = sortRealEigenvalues(pep->eigr,pep->perm,nconv,PETSC_FALSE,sr->dir);CHKERRQ(ierr);
+    ierr = VecCreateSeq(PETSC_COMM_SELF,nconv,&vomega);CHKERRQ(ierr);
+    ierr = BVGetSignature(ctx->V,vomega);CHKERRQ(ierr);
+    ierr = VecGetArray(vomega,&omega);CHKERRQ(ierr);
     ierr = BVGetSizes(pep->V,NULL,NULL,&ld);CHKERRQ(ierr);
     ierr = BVTensorGetFactors(ctx->V,NULL,&MS);CHKERRQ(ierr);
     ierr = MatDenseGetArray(MS,&S);CHKERRQ(ierr);
@@ -546,6 +599,7 @@ static PetscErrorCode PEPStoreEigenpairs(PEP pep)
       err = pep->errest[pep->perm[i]];
       if ((sr->dir)*(lambda - sPres->ext[0]) > 0 && (sr->dir)*(sPres->ext[1] - lambda) > 0) {/* Valid value */
         if (sr->indexEig+count-ndef>=sr->numEigs) SETERRQ(PetscObjectComm((PetscObject)pep),1,"Unexpected error in Spectrum Slicing");
+        ierr = PEPQSliceCheckEigenvalueType(pep,lambda,omega[pep->perm[i]],PETSC_FALSE);CHKERRQ(ierr);
         eigr[count] = lambda;
         errest[count] = err;
         if (((sr->dir)*(sPres->value - lambda) > 0) && ((sr->dir)*(lambda - sPres->ext[0]) > 0)) sPres->nconv[0]++;
@@ -555,6 +609,8 @@ static PetscErrorCode PEPStoreEigenpairs(PEP pep)
         count++;
       }
     }
+    ierr = VecRestoreArray(vomega,&omega);CHKERRQ(ierr);
+    ierr = VecDestroy(&vomega);CHKERRQ(ierr);
     for (i=0;i<count;i++) {
       ierr = PetscMemcpy(S+i*(d*ld),tS+i*nconv*d,nconv*sizeof(PetscScalar));CHKERRQ(ierr);
       ierr = PetscMemcpy(S+i*(d*ld)+ld,tS+i*nconv*d+nconv,nconv*sizeof(PetscScalar));CHKERRQ(ierr);
@@ -658,7 +714,7 @@ static PetscErrorCode PEPStoreEigenpairs(PEP pep)
   /* Check for completion */
   sPres->comp[0] = PetscNot(sPres->nconv[0] < sPres->nsch[0]);
   sPres->comp[1] = PetscNot(sPres->nconv[1] < sPres->nsch[1]);
-  if (sPres->nconv[0] > sPres->nsch[0] || sPres->nconv[1] > sPres->nsch[1]) SETERRQ(PetscObjectComm((PetscObject)pep),1,"Mismatch between number of values found and information from inertia, consider using PEPKrylovSchurSetDetectZeros()");
+  if (sPres->nconv[0] > sPres->nsch[0] || sPres->nconv[1] > sPres->nsch[1]) SETERRQ(PetscObjectComm((PetscObject)pep),1,"Mismatch between number of values found and information from inertia");
   if (divide) { ierr = BVDestroy(&tV);CHKERRQ(ierr); }
   PetscFunctionReturn(0);
 }
@@ -698,12 +754,12 @@ static PetscErrorCode PEPLookForDeflation(PEP pep)
   /* The number of values on each side are found */
   if (sPres->neighb[0]) {
     sPres->nsch[0] = (sr->dir)*(sPres->inertia - sPres->neighb[0]->inertia)-count0;
-    if (sPres->nsch[0]<0) SETERRQ(PetscObjectComm((PetscObject)pep),1,"Mismatch between number of values found and information from inertia, consider using PEPSTOARSetDetectZeros()");
+    if (sPres->nsch[0]<0) SETERRQ(PetscObjectComm((PetscObject)pep),1,"Mismatch between number of values found and information from inertia");
   } else sPres->nsch[0] = 0;
 
   if (sPres->neighb[1]) {
     sPres->nsch[1] = (sr->dir)*(sPres->neighb[1]->inertia - sPres->inertia) - count1;
-    if (sPres->nsch[1]<0) SETERRQ(PetscObjectComm((PetscObject)pep),1,"Mismatch between number of values found and information from inertia, consider using PEPSTOARSetDetectZeros()");
+    if (sPres->nsch[1]<0) SETERRQ(PetscObjectComm((PetscObject)pep),1,"Mismatch between number of values found and information from inertia");
   } else sPres->nsch[1] = (sr->dir)*(sr->inertia1 - sPres->inertia);
 
   /* Completing vector of indexes for deflation */
@@ -944,7 +1000,7 @@ static PetscErrorCode PEPSTOAR_QSlice(PEP pep,Mat B)
     if (symmlost && nv==pep->nconv+l) {
       pep->reason = PEP_DIVERGED_SYMMETRY_LOST;
       pep->nconv = nconv;
-      ierr = PetscInfo2(pep,"Symmetry lost in STOAR sigma=%g nconv=%D)\n",(double)sr->sPres->value,nconv);CHKERRQ(ierr);
+      ierr = PetscInfo2(pep,"Symmetry lost in STOAR sigma=%g nconv=%D\n",(double)sr->sPres->value,nconv);CHKERRQ(ierr);
       if (falselock || !ctx->lock) {
         ierr = BVSetActiveColumns(ctx->V,0,pep->nconv);CHKERRQ(ierr);
         ierr = BVTensorCompress(ctx->V,0);CHKERRQ(ierr);
