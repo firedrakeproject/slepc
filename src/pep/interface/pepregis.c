@@ -14,9 +14,7 @@ PETSC_EXTERN PetscErrorCode PEPCreate_Linear(PEP);
 PETSC_EXTERN PetscErrorCode PEPCreate_QArnoldi(PEP);
 PETSC_EXTERN PetscErrorCode PEPCreate_TOAR(PEP);
 PETSC_EXTERN PetscErrorCode PEPCreate_STOAR(PEP);
-#if defined(PETSC_USE_COMPLEX)
 PETSC_EXTERN PetscErrorCode PEPCreate_JD(PEP);
-#endif
 
 /*@C
    PEPRegisterAll - Registers all the solvers in the PEP package.
@@ -38,9 +36,7 @@ PetscErrorCode PEPRegisterAll(void)
   ierr = PEPRegister(PEPQARNOLDI,PEPCreate_QArnoldi);CHKERRQ(ierr);
   ierr = PEPRegister(PEPTOAR,PEPCreate_TOAR);CHKERRQ(ierr);
   ierr = PEPRegister(PEPSTOAR,PEPCreate_STOAR);CHKERRQ(ierr);
-#if defined(PETSC_USE_COMPLEX)
   ierr = PEPRegister(PEPJD,PEPCreate_JD);CHKERRQ(ierr);
-#endif
   PetscFunctionReturn(0);
 }
 

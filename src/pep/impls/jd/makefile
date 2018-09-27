@@ -10,8 +10,6 @@
 
 ALL: lib
 
-#requiresscalar    complex
-
 CFLAGS   =
 FFLAGS   =
 SOURCEC  = pjd.c
