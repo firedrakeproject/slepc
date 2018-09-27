@@ -222,7 +222,7 @@ static PetscErrorCode PEPQSliceCheckEigenvalueType(PEP pep,PetscReal shift,Petsc
 
   PetscFunctionBegin;
   if (!ini) {
-    if (!ctx->hyperbolic && -(omega/(shift*ctx->alpha+ctx->beta))*sr->type<0) SETERRQ1(((PetscObject)pep)->comm,PETSC_ERR_CONV_FAILED,"Different positive/negative type detected in eigenvalue %g",(double)PetscRealPart(shift));
+    if (!ctx->hyperbolic && -(omega/(shift*ctx->alpha+ctx->beta))*sr->type<0) SETERRQ1(((PetscObject)pep)->comm,PETSC_ERR_CONV_FAILED,"Different positive/negative type detected in eigenvalue %g",(double)shift);
   } else {
     ierr = PEPCreate(PetscObjectComm((PetscObject)pep),&pep2);CHKERRQ(ierr);
     ierr = PEPSetTolerances(pep2,PETSC_DEFAULT,pep->max_it/4);CHKERRQ(ierr);
@@ -240,12 +240,12 @@ static PetscErrorCode PEPQSliceCheckEigenvalueType(PEP pep,PetscReal shift,Petsc
       ierr = PEPGetEigenpair(pep2,0,&lambda,NULL,pep2->work[0],NULL);CHKERRQ(ierr);
       ierr = MatMult(pep->A[1],pep2->work[0],pep2->work[1]);CHKERRQ(ierr);
       ierr = MatMult(pep->A[2],pep2->work[0],pep2->work[2]);CHKERRQ(ierr);
-      ierr = VecAXPY(pep2->work[1],2*lambda*pep->sfactor,pep2->work[2]);CHKERRQ(ierr);
+      ierr = VecAXPY(pep2->work[1],2.0*lambda*pep->sfactor,pep2->work[2]);CHKERRQ(ierr);
       ierr = VecDot(pep2->work[1],pep2->work[0],&dot);CHKERRQ(ierr);
       ierr = PetscInfo2(pep,"lambda=%g, %s type\n",(double)PetscRealPart(lambda),(PetscRealPart(dot)>0.0)?"positive":"negative");CHKERRQ(ierr);
       if (!sr->type) sr->type = (PetscRealPart(dot)>0.0)?1:-1;
       else {
-        if (sr->type*dot<0.0) SETERRQ1(((PetscObject)pep)->comm,PETSC_ERR_CONV_FAILED,"Different positive/negative type detected in eigenvalue %g",(double)PetscRealPart(lambda));
+        if (sr->type*PetscRealPart(dot)<0.0) SETERRQ1(((PetscObject)pep)->comm,PETSC_ERR_CONV_FAILED,"Different positive/negative type detected in eigenvalue %g",(double)PetscRealPart(lambda));
       }
     }
     pep2->st = NULL;
@@ -565,8 +565,7 @@ static PetscErrorCode PEPStoreEigenpairs(PEP pep)
   Vec            w,vomega;
   Mat            MS;
   BV             tV;
-  PetscScalar    *S,*eigr,*tS;
-  PetscReal      *omega;
+  PetscScalar    *S,*eigr,*tS,*omega;
 
   PetscFunctionBegin;
   sPres = sr->sPres;
@@ -599,7 +598,7 @@ static PetscErrorCode PEPStoreEigenpairs(PEP pep)
       err = pep->errest[pep->perm[i]];
       if ((sr->dir)*(lambda - sPres->ext[0]) > 0 && (sr->dir)*(sPres->ext[1] - lambda) > 0) {/* Valid value */
         if (sr->indexEig+count-ndef>=sr->numEigs) SETERRQ(PetscObjectComm((PetscObject)pep),1,"Unexpected error in Spectrum Slicing");
-        ierr = PEPQSliceCheckEigenvalueType(pep,lambda,omega[pep->perm[i]],PETSC_FALSE);CHKERRQ(ierr);
+        ierr = PEPQSliceCheckEigenvalueType(pep,lambda,PetscRealPart(omega[pep->perm[i]]),PETSC_FALSE);CHKERRQ(ierr);
         eigr[count] = lambda;
         errest[count] = err;
         if (((sr->dir)*(sPres->value - lambda) > 0) && ((sr->dir)*(lambda - sPres->ext[0]) > 0)) sPres->nconv[0]++;
