@@ -221,6 +221,7 @@ static PetscErrorCode PEPQSliceCheckEigenvalueType(PEP pep,PetscReal shift,Petsc
 {
   PetscErrorCode ierr;
   PEP            pep2;
+  ST             st;
   PetscInt       nconv;
   PetscScalar    lambda,dot;
   PEP_TOAR       *ctx=(PEP_TOAR*)pep->data;
@@ -231,6 +232,8 @@ static PetscErrorCode PEPQSliceCheckEigenvalueType(PEP pep,PetscReal shift,Petsc
     if (-(omega/(shift*ctx->alpha+ctx->beta))*sr->type<0) SETERRQ1(((PetscObject)pep)->comm,PETSC_ERR_CONV_FAILED,"Different positive/negative type detected in eigenvalue %g",(double)shift);
   } else {
     ierr = PEPCreate(PetscObjectComm((PetscObject)pep),&pep2);CHKERRQ(ierr);
+    ierr = PEPSetOptionsPrefix(pep2,((PetscObject)pep)->prefix);CHKERRQ(ierr);
+    ierr = PEPAppendOptionsPrefix(pep2,"pep_eigenvalue_type_");CHKERRQ(ierr);
     ierr = PEPSetTolerances(pep2,PETSC_DEFAULT,pep->max_it/4);CHKERRQ(ierr);
     ierr = PEPSetType(pep2,PEPTOAR);CHKERRQ(ierr);
     ierr = PEPSetOperators(pep2,pep->nmat,pep->A);CHKERRQ(ierr);
@@ -243,6 +246,7 @@ static PetscErrorCode PEPQSliceCheckEigenvalueType(PEP pep,PetscReal shift,Petsc
     ierr = RGIntervalSetEndpoints(pep2->rg,pep->inta,pep->intb,0.0,0.0);CHKERRQ(ierr);
 #endif
     pep2->target = shift;
+    st = pep2->st;
     pep2->st = pep->st;
     ierr = PEPSolve(pep2);CHKERRQ(ierr);
     ierr = PEPGetConverged(pep2,&nconv);CHKERRQ(ierr);
@@ -258,7 +262,7 @@ static PetscErrorCode PEPQSliceCheckEigenvalueType(PEP pep,PetscReal shift,Petsc
         if (sr->type*PetscRealPart(dot)<0.0) SETERRQ1(((PetscObject)pep)->comm,PETSC_ERR_CONV_FAILED,"Different positive/negative type detected in eigenvalue %g",(double)PetscRealPart(lambda));
       }
     }
-    pep2->st = NULL;
+    pep2->st = st;
     ierr = PEPDestroy(&pep2);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
