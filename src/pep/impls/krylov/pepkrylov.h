@@ -94,6 +94,7 @@ typedef struct {
   PetscBool   detect;         /* check for zeros during factorizations */
   PetscBool   hyperbolic;     /* hyperbolic problem flag */
   PetscReal   alpha,beta;     /* coefficients defining the linearization */
+  PetscBool   checket;        /* check eigenvalue type during spectrum slicing */
 } PEP_TOAR;
 
 typedef struct {

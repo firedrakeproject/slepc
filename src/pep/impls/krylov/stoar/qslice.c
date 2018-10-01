@@ -211,6 +211,12 @@ static PetscErrorCode PEPQSliceGetInertia(PEP pep,PetscReal shift,PetscInt *iner
   PetscFunctionReturn(0);
 }
 
+/*
+   Check eigenvalue type - used only in non-hyperbolic problems.
+   All computed eigenvalues must have the same definite type (positive or negative).
+   If ini=TRUE the type is available in omega, otherwise we compute an eigenvalue
+   closest to shift and determine its type.
+ */
 static PetscErrorCode PEPQSliceCheckEigenvalueType(PEP pep,PetscReal shift,PetscReal omega,PetscBool ini)
 {
   PetscErrorCode ierr;
@@ -222,7 +228,7 @@ static PetscErrorCode PEPQSliceCheckEigenvalueType(PEP pep,PetscReal shift,Petsc
 
   PetscFunctionBegin;
   if (!ini) {
-    if (!ctx->hyperbolic && -(omega/(shift*ctx->alpha+ctx->beta))*sr->type<0) SETERRQ1(((PetscObject)pep)->comm,PETSC_ERR_CONV_FAILED,"Different positive/negative type detected in eigenvalue %g",(double)shift);
+    if (-(omega/(shift*ctx->alpha+ctx->beta))*sr->type<0) SETERRQ1(((PetscObject)pep)->comm,PETSC_ERR_CONV_FAILED,"Different positive/negative type detected in eigenvalue %g",(double)shift);
   } else {
     ierr = PEPCreate(PetscObjectComm((PetscObject)pep),&pep2);CHKERRQ(ierr);
     ierr = PEPSetTolerances(pep2,PETSC_DEFAULT,pep->max_it/4);CHKERRQ(ierr);
@@ -318,14 +324,14 @@ PetscErrorCode PEPSetUp_STOAR_QSlice(PEP pep)
   ctx->hyperbolic = (pep->problem_type==PEP_HYPERBOLIC)? PETSC_TRUE: PETSC_FALSE;
   ierr = PEPQSliceGetInertia(pep,sr->int0,&sr->inertia0,ctx->detect?&zeros:NULL,ctx->hyperbolic?0:1);CHKERRQ(ierr);
   if (zeros && (sr->int0==pep->inta || sr->int0==pep->intb)) SETERRQ(((PetscObject)pep)->comm,PETSC_ERR_USER,"Found singular matrix for the transformed problem in the interval endpoint");
-  if (!ctx->hyperbolic) {
+  if (!ctx->hyperbolic && ctx->checket) {
     ierr = PEPQSliceCheckEigenvalueType(pep,sr->int0,0.0,PETSC_TRUE);CHKERRQ(ierr);
   }
 
   /* compute inertia1 */
   ierr = PEPQSliceGetInertia(pep,sr->int1,&sr->inertia1,ctx->detect?&zeros:NULL,ctx->hyperbolic?0:1);CHKERRQ(ierr);
   if (zeros) SETERRQ(((PetscObject)pep)->comm,PETSC_ERR_USER,"Found singular matrix for the transformed problem in an interval endpoint defined by user");
-  if (!ctx->hyperbolic) {
+  if (!ctx->hyperbolic && ctx->checket) {
     ierr = PEPQSliceCheckEigenvalueType(pep,sr->int1,0.0,PETSC_TRUE);CHKERRQ(ierr);
     if (!sr->type && (sr->inertia1-sr->inertia0)) SETERRQ(((PetscObject)pep)->comm,PETSC_ERR_CONV_FAILED,"No information of eigenvalue type in Interval");
     if (sr->type && !(sr->inertia1-sr->inertia0)) SETERRQ(((PetscObject)pep)->comm,PETSC_ERR_CONV_FAILED,"Different positive/negative type detected");
