@@ -40,6 +40,11 @@ static const char citation[] =
   "   doi = \"https://doi.org/10.1007/s10543-016-0601-5\"\n"
   "}\n";
 
+typedef struct {
+  PetscReal   scal[2];
+  Mat         A[2];
+  Vec         t;
+} ShellMatCtx;
 
 PetscErrorCode MatMult_Func(Mat A,Vec x,Vec y)
 {
@@ -74,7 +79,7 @@ PetscErrorCode PEPSTOARSetUpInnerMatrix(PEP pep,Mat *B)
   Mat            pB[4],Bs[3],D[3];
   PetscInt       i,j,n,m;
   ShellMatCtx    *ctxMat[3];
-  PEP_TOAR       *ctx=(PEP_TOAR*)pep->data;
+  PEP_STOAR      *ctx=(PEP_STOAR*)pep->data;
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
@@ -112,7 +117,7 @@ PetscErrorCode PEPSetUp_STOAR(PEP pep)
 {
   PetscErrorCode    ierr;
   PetscBool         shift,sinv,flg;
-  PEP_TOAR          *ctx = (PEP_TOAR*)pep->data;
+  PEP_STOAR         *ctx = (PEP_STOAR*)pep->data;
   PetscInt          ld;
   PetscReal         eta;
   BVOrthogType      otype;
@@ -166,7 +171,7 @@ PetscErrorCode PEPSetUp_STOAR(PEP pep)
 static PetscErrorCode PEPSTOARrun(PEP pep,PetscReal *a,PetscReal *b,PetscReal *omega,PetscInt k,PetscInt *M,PetscBool *breakdown,PetscBool *symmlost,Vec *t_)
 {
   PetscErrorCode ierr;
-  PEP_TOAR       *ctx = (PEP_TOAR*)pep->data;
+  PEP_STOAR      *ctx = (PEP_STOAR*)pep->data;
   PetscInt       i,j,m=*M,l,lock;
   PetscInt       lds,d,ld,offq,nqt;
   Vec            v=t_[0],t=t_[1],q=t_[2];
@@ -255,7 +260,7 @@ static PetscErrorCode PEPSTOARrun(PEP pep,PetscReal *a,PetscReal *b,PetscReal *o
 static PetscErrorCode PEPSTOARpreKConvergence(PEP pep,PetscInt nv,PetscReal *norm,Vec *w)
 {
   PetscErrorCode ierr;
-  PEP_TOAR      *ctx = (PEP_TOAR*)pep->data;
+  PEP_STOAR      *ctx = (PEP_STOAR*)pep->data;
   PetscBLASInt   n_,one=1;
   PetscInt       lds=2*ctx->ld;
   PetscReal      t1,t2;
@@ -282,7 +287,7 @@ static PetscErrorCode PEPSTOARpreKConvergence(PEP pep,PetscInt nv,PetscReal *nor
 PetscErrorCode PEPSolve_STOAR(PEP pep)
 {
   PetscErrorCode ierr;
-  PEP_TOAR       *ctx = (PEP_TOAR*)pep->data;
+  PEP_STOAR      *ctx = (PEP_STOAR*)pep->data;
   PetscInt       j,k,l,nv=0,ld,ldds,t,nq=0;
   PetscInt       nconv=0,deg=pep->nmat-1;
   PetscScalar    *Q,*om;
@@ -453,7 +458,7 @@ PetscErrorCode PEPSetFromOptions_STOAR(PetscOptionItems *PetscOptionsObject,PEP 
   PetscBool      flg,lock,b,f1,f2,f3;
   PetscInt       i,j,k;
   PetscReal      array[2]={0,0};
-  PEP_TOAR *ctx = (PEP_TOAR*)pep->data;
+  PEP_STOAR      *ctx = (PEP_STOAR*)pep->data;
 
   PetscFunctionBegin;
   ierr = PetscOptionsHead(PetscOptionsObject,"PEP STOAR Options");CHKERRQ(ierr);
@@ -488,7 +493,7 @@ PetscErrorCode PEPSetFromOptions_STOAR(PetscOptionItems *PetscOptionsObject,PEP 
 
 static PetscErrorCode PEPSTOARSetLocking_STOAR(PEP pep,PetscBool lock)
 {
-  PEP_TOAR *ctx = (PEP_TOAR*)pep->data;
+  PEP_STOAR *ctx = (PEP_STOAR*)pep->data;
 
   PetscFunctionBegin;
   ctx->lock = lock;
@@ -531,7 +536,7 @@ PetscErrorCode PEPSTOARSetLocking(PEP pep,PetscBool lock)
 
 static PetscErrorCode PEPSTOARGetLocking_STOAR(PEP pep,PetscBool *lock)
 {
-  PEP_TOAR *ctx = (PEP_TOAR*)pep->data;
+  PEP_STOAR *ctx = (PEP_STOAR*)pep->data;
 
   PetscFunctionBegin;
   *lock = ctx->lock;
@@ -568,7 +573,7 @@ static PetscErrorCode PEPSTOARGetInertias_STOAR(PEP pep,PetscInt *n,PetscReal **
 {
   PetscErrorCode ierr;
   PetscInt       i,numsh;
-  PEP_TOAR       *ctx = (PEP_TOAR*)pep->data;
+  PEP_STOAR      *ctx = (PEP_STOAR*)pep->data;
   PEP_SR         sr = ctx->sr;
 
   PetscFunctionBegin;
@@ -664,7 +669,7 @@ PetscErrorCode PEPSTOARGetInertias(PEP pep,PetscInt *n,PetscReal **shifts,PetscI
 
 static PetscErrorCode PEPSTOARSetDetectZeros_STOAR(PEP pep,PetscBool detect)
 {
-  PEP_TOAR *ctx = (PEP_TOAR*)pep->data;
+  PEP_STOAR *ctx = (PEP_STOAR*)pep->data;
 
   PetscFunctionBegin;
   ctx->detect = detect;
@@ -710,7 +715,7 @@ PetscErrorCode PEPSTOARSetDetectZeros(PEP pep,PetscBool detect)
 
 static PetscErrorCode PEPSTOARGetDetectZeros_STOAR(PEP pep,PetscBool *detect)
 {
-  PEP_TOAR *ctx = (PEP_TOAR*)pep->data;
+  PEP_STOAR *ctx = (PEP_STOAR*)pep->data;
 
   PetscFunctionBegin;
   *detect = ctx->detect;
@@ -746,7 +751,7 @@ PetscErrorCode PEPSTOARGetDetectZeros(PEP pep,PetscBool *detect)
 
 static PetscErrorCode PEPSTOARSetLinearization_STOAR(PEP pep,PetscReal alpha,PetscReal beta)
 {
-  PEP_TOAR *ctx = (PEP_TOAR*)pep->data;
+  PEP_STOAR *ctx = (PEP_STOAR*)pep->data;
 
   PetscFunctionBegin;
   if (beta==0.0 && alpha==0.0) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_WRONG,"Parameters alpha and beta cannot be zero simultaneously");
@@ -791,7 +796,7 @@ PetscErrorCode PEPSTOARSetLinearization(PEP pep,PetscReal alpha,PetscReal beta)
 
 static PetscErrorCode PEPSTOARGetLinearization_STOAR(PEP pep,PetscReal *alpha,PetscReal *beta)
 {
-  PEP_TOAR *ctx = (PEP_TOAR*)pep->data;
+  PEP_STOAR *ctx = (PEP_STOAR*)pep->data;
 
   PetscFunctionBegin;
   if (alpha) *alpha = ctx->alpha;
@@ -828,7 +833,7 @@ PetscErrorCode PEPSTOARGetLinearization(PEP pep,PetscReal *alpha,PetscReal *beta
 
 static PetscErrorCode PEPSTOARSetDimensions_STOAR(PEP pep,PetscInt nev,PetscInt ncv,PetscInt mpd)
 {
-  PEP_TOAR *ctx = (PEP_TOAR*)pep->data;
+  PEP_STOAR *ctx = (PEP_STOAR*)pep->data;
 
   PetscFunctionBegin;
   if (nev<1) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of nev. Must be > 0");
@@ -886,7 +891,7 @@ PetscErrorCode PEPSTOARSetDimensions(PEP pep,PetscInt nev,PetscInt ncv,PetscInt 
 
 static PetscErrorCode PEPSTOARGetDimensions_STOAR(PEP pep,PetscInt *nev,PetscInt *ncv,PetscInt *mpd)
 {
-  PEP_TOAR *ctx = (PEP_TOAR*)pep->data;
+  PEP_STOAR *ctx = (PEP_STOAR*)pep->data;
 
   PetscFunctionBegin;
   if (nev) *nev = ctx->nev;
@@ -925,7 +930,7 @@ PetscErrorCode PEPSTOARGetDimensions(PEP pep,PetscInt *nev,PetscInt *ncv,PetscIn
 
 static PetscErrorCode PEPSTOARSetCheckEigenvalueType_STOAR(PEP pep,PetscBool checket)
 {
-  PEP_TOAR *ctx = (PEP_TOAR*)pep->data;
+  PEP_STOAR *ctx = (PEP_STOAR*)pep->data;
 
   PetscFunctionBegin;
   ctx->checket = checket;
@@ -974,7 +979,7 @@ PetscErrorCode PEPSTOARSetCheckEigenvalueType(PEP pep,PetscBool checket)
 
 static PetscErrorCode PEPSTOARGetCheckEigenvalueType_STOAR(PEP pep,PetscBool *checket)
 {
-  PEP_TOAR *ctx = (PEP_TOAR*)pep->data;
+  PEP_STOAR *ctx = (PEP_STOAR*)pep->data;
 
   PetscFunctionBegin;
   *checket = ctx->checket;
@@ -1011,7 +1016,7 @@ PetscErrorCode PEPSTOARGetCheckEigenvalueType(PEP pep,PetscBool *checket)
 PetscErrorCode PEPView_STOAR(PEP pep,PetscViewer viewer)
 {
   PetscErrorCode ierr;
-  PEP_TOAR      *ctx = (PEP_TOAR*)pep->data;
+  PEP_STOAR      *ctx = (PEP_STOAR*)pep->data;
   PetscBool      isascii;
 
   PetscFunctionBegin;
@@ -1040,7 +1045,7 @@ PetscErrorCode PEPReset_STOAR(PEP pep)
 PetscErrorCode PEPDestroy_STOAR(PEP pep)
 {
   PetscErrorCode ierr;
-  PEP_TOAR       *ctx = (PEP_TOAR*)pep->data;
+  PEP_STOAR      *ctx = (PEP_STOAR*)pep->data;
 
   PetscFunctionBegin;
   ierr = BVDestroy(&ctx->V);CHKERRQ(ierr);
@@ -1062,7 +1067,7 @@ PetscErrorCode PEPDestroy_STOAR(PEP pep)
 PETSC_EXTERN PetscErrorCode PEPCreate_STOAR(PEP pep)
 {
   PetscErrorCode ierr;
-  PEP_TOAR      *ctx;
+  PEP_STOAR      *ctx;
 
   PetscFunctionBegin;
   ierr = PetscNewLog(pep,&ctx);CHKERRQ(ierr);

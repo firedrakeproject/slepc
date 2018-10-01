@@ -45,7 +45,7 @@ static const char citation[] =
 static PetscErrorCode PEPQSliceResetSR(PEP pep)
 {
   PetscErrorCode ierr;
-  PEP_TOAR       *ctx=(PEP_TOAR*)pep->data;
+  PEP_STOAR      *ctx=(PEP_STOAR*)pep->data;
   PEP_SR         sr=ctx->sr;
   PEP_shift      s;
   PetscInt       i;
@@ -75,7 +75,7 @@ static PetscErrorCode PEPQSliceResetSR(PEP pep)
 PetscErrorCode PEPReset_STOAR_QSlice(PEP pep)
 {
   PetscErrorCode ierr;
-  PEP_TOAR       *ctx=(PEP_TOAR*)pep->data;
+  PEP_STOAR      *ctx=(PEP_STOAR*)pep->data;
 
   PetscFunctionBegin;
   ierr = PEPQSliceResetSR(pep);CHKERRQ(ierr);
@@ -91,7 +91,7 @@ PetscErrorCode PEPReset_STOAR_QSlice(PEP pep)
 static PetscErrorCode PEPQSliceAllocateSolution(PEP pep)
 {
   PetscErrorCode ierr;
-  PEP_TOAR       *ctx=(PEP_TOAR*)pep->data;
+  PEP_STOAR      *ctx=(PEP_STOAR*)pep->data;
   PetscInt       k;
   PetscLogDouble cnt;
   BVType         type;
@@ -147,7 +147,7 @@ static PetscErrorCode PEPQSliceGetInertia(PEP pep,PetscReal shift,PetscInt *iner
   PetscScalar    dot;
   PetscRandom    rand;
   PetscInt       nconv;
-  PEP_TOAR       *ctx=(PEP_TOAR*)pep->data;
+  PEP_STOAR      *ctx=(PEP_STOAR*)pep->data;
   PEP_SR         sr=ctx->sr;
 
   PetscFunctionBegin;
@@ -224,7 +224,7 @@ static PetscErrorCode PEPQSliceCheckEigenvalueType(PEP pep,PetscReal shift,Petsc
   ST             st;
   PetscInt       nconv;
   PetscScalar    lambda,dot;
-  PEP_TOAR       *ctx=(PEP_TOAR*)pep->data;
+  PEP_STOAR      *ctx=(PEP_STOAR*)pep->data;
   PEP_SR         sr=ctx->sr;
 
   PetscFunctionBegin;
@@ -280,7 +280,7 @@ static PetscErrorCode PEPBackTransform_Skip(PEP pep)
 PetscErrorCode PEPSetUp_STOAR_QSlice(PEP pep)
 {
   PetscErrorCode ierr;
-  PEP_TOAR       *ctx=(PEP_TOAR*)pep->data;
+  PEP_STOAR      *ctx=(PEP_STOAR*)pep->data;
   PEP_SR         sr;
   PetscInt       ld,i,zeros=0;
   SlepcSC        sc;
@@ -384,7 +384,7 @@ static PetscErrorCode PEPCreateShift(PEP pep,PetscReal val,PEP_shift neighb0,PEP
   PEP_shift      s,*pending2;
   PetscInt       i;
   PEP_SR         sr;
-  PEP_TOAR       *ctx=(PEP_TOAR*)pep->data;
+  PEP_STOAR      *ctx=(PEP_STOAR*)pep->data;
 
   PetscFunctionBegin;
   sr = ctx->sr;
@@ -419,7 +419,7 @@ static PetscErrorCode PEPExtractShift(PEP pep)
 {
   PetscErrorCode ierr;
   PetscInt       iner,zeros=0;
-  PEP_TOAR       *ctx=(PEP_TOAR*)pep->data;
+  PEP_STOAR      *ctx=(PEP_STOAR*)pep->data;
   PEP_SR         sr;
   PetscReal      newShift,aux;
   PEP_shift      sPres;
@@ -471,7 +471,7 @@ static PetscErrorCode PEPGetNewShiftValue(PEP pep,PetscInt side,PetscReal *newS)
   PetscInt  i,idxP;
   PEP_SR    sr;
   PEP_shift sPres,s;
-  PEP_TOAR  *ctx=(PEP_TOAR*)pep->data;
+  PEP_STOAR *ctx=(PEP_STOAR*)pep->data;
 
   PetscFunctionBegin;
   sr = ctx->sr;
@@ -570,7 +570,7 @@ static PetscErrorCode sortRealEigenvalues(PetscScalar *r,PetscInt *perm,PetscInt
 static PetscErrorCode PEPStoreEigenpairs(PEP pep)
 {
   PetscErrorCode ierr;
-  PEP_TOAR       *ctx=(PEP_TOAR*)pep->data;
+  PEP_STOAR      *ctx=(PEP_STOAR*)pep->data;
   PetscReal      lambda,err,*errest;
   PetscInt       i,*aux,count=0,ndef,ld,nconv=pep->nconv,d=pep->nmat-1,idx;
   PetscBool      iscayley,divide=PETSC_FALSE;
@@ -739,7 +739,7 @@ static PetscErrorCode PEPLookForDeflation(PEP pep)
   PEP_shift sPres;
   PetscInt  ini,fin;
   PEP_SR    sr;
-  PEP_TOAR  *ctx=(PEP_TOAR*)pep->data;
+  PEP_STOAR *ctx=(PEP_STOAR*)pep->data;
 
   PetscFunctionBegin;
   sr = ctx->sr;
@@ -789,7 +789,7 @@ static PetscErrorCode PEPLookForDeflation(PEP pep)
 static PetscErrorCode PEPSTOARrun_QSlice(PEP pep,PetscReal *a,PetscReal *b,PetscReal *omega,PetscInt k,PetscInt *M,PetscBool *breakdown,PetscBool *symmlost,Vec *t_)
 {
   PetscErrorCode ierr;
-  PEP_TOAR       *ctx = (PEP_TOAR*)pep->data;
+  PEP_STOAR      *ctx = (PEP_STOAR*)pep->data;
   PetscInt       i,j,m=*M,l,lock;
   PetscInt       lds,d,ld,offq,nqt;
   Vec            v=t_[0],t=t_[1],q=t_[2];
@@ -875,7 +875,7 @@ static PetscErrorCode PEPSTOARrun_QSlice(PEP pep,PetscReal *a,PetscReal *b,Petsc
 static PetscErrorCode PEPSTOAR_QSlice(PEP pep,Mat B)
 {
   PetscErrorCode ierr;
-  PEP_TOAR       *ctx = (PEP_TOAR*)pep->data;
+  PEP_STOAR      *ctx = (PEP_STOAR*)pep->data;
   PetscInt       j,k,l,nv=0,ld,ldds,t,nq=0,idx;
   PetscInt       nconv=0,deg=pep->nmat-1,count0=0,count1=0;
   PetscScalar    *Q,*om,sigma,*back,*S,*pQ;
@@ -1149,7 +1149,7 @@ static PetscErrorCode PEPSTOAR_QSlice(PEP pep,Mat B)
 static PetscErrorCode PEPQSliceGetInertias(PEP pep,PetscInt *n,PetscReal **shifts,PetscInt **inertias)
 {
   PetscErrorCode  ierr;
-  PEP_TOAR       *ctx=(PEP_TOAR*)pep->data;
+  PEP_STOAR      *ctx=(PEP_STOAR*)pep->data;
   PEP_SR          sr=ctx->sr;
   PetscInt        i=0,j,tmpi;
   PetscReal       v,tmpr;
@@ -1206,7 +1206,7 @@ PetscErrorCode PEPSolve_STOAR_QSlice(PEP pep)
   PetscErrorCode ierr;
   PetscInt       i,j,ti,deg=pep->nmat-1;
   PetscReal      newS;
-  PEP_TOAR       *ctx=(PEP_TOAR*)pep->data;
+  PEP_STOAR      *ctx=(PEP_STOAR*)pep->data;
   PEP_SR         sr=ctx->sr;
   Mat            S,B;
   PetscScalar    *pS;
