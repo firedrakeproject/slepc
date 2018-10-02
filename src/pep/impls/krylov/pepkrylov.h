@@ -21,6 +21,12 @@ PETSC_INTERN PetscErrorCode PEPSolve_STOAR_QSlice(PEP);
 PETSC_INTERN PetscErrorCode PEPSetUp_STOAR_QSlice(PEP);
 PETSC_INTERN PetscErrorCode PEPReset_STOAR_QSlice(PEP);
 
+typedef struct {
+  PetscReal     keep;         /* restart parameter */
+  PetscBool     lock;         /* locking/non-locking variant */
+  BV            V;            /* tensor basis vectors object for the linearization */
+} PEP_TOAR;
+
 /* Structure characterizing a shift in spectrum slicing */
 typedef struct _n_shift *PEP_shift;
 struct _n_shift {
@@ -35,10 +41,10 @@ struct _n_shift {
   PetscInt      nconv[2];     /* Converged on each side (accepted or not) */
 };
 
-/* Identifies the TOAR vectors for each Pseudo-Lanczos vector in the global array */
+/* Identifies the TOAR vectors for each eigenvector in the global array */
 typedef struct {
-  PetscInt nq;
-  PetscInt *q;
+  PetscInt      nq;
+  PetscInt      *q;
 } PEP_QInfo;
 
 /* Structure for storing the state of spectrum slicing */
@@ -71,8 +77,9 @@ struct _n_SR {
   PetscScalar   *eigr,*eigi;       /* eigenvalues */
   PetscReal     *errest;           /* error estimates */
   PetscInt      *perm;             /* permutation */
-  PEP_QInfo     *qinfo;            /* TOAR vectors for each pseudo-Lanczos vector */
+  PEP_QInfo     *qinfo;            /* TOAR vectors for each eigenvector */
   PetscInt      intcorr;           /* Global inertia correction */
+  PetscInt      type;              /* Global type of eigenvalues in general case */
   PetscInt      symmlost;          /* Counter for symmetry lost */
   Vec           v[3];
   EPS           eps;
@@ -80,25 +87,21 @@ struct _n_SR {
 typedef struct _n_SR *PEP_SR;
 
 typedef struct {
-  PetscReal   keep;           /* restart parameter */
-  PetscBool   lock;           /* locking/non-locking variant */
-  BV          V;              /* tensor basis vectors object for the linearization */
-  PEP_SR      sr;             /* spectrum slicing context */
-  PetscReal   *shifts;        /* array containing global shifts */
-  PetscInt    *inertias;      /* array containing global inertias */
-  PetscInt    nshifts;        /* elements in the arrays of shifts and inertias */
-  PetscInt    nev;            /* number of eigenvalues to compute */
-  PetscInt    ncv;            /* number of basis vectors */
-  PetscInt    mpd;            /* maximum dimension of projected problem */
-  PetscBool   detect;         /* check for zeros during factorizations */
-  PetscBool   hyperbolic;     /* hyperbolic problem flag */
-  PetscReal   alpha,beta;     /* coefficients defining the linearization */
-} PEP_TOAR;
+  PetscReal     keep;           /* restart parameter */
+  PetscBool     lock;           /* locking/non-locking variant */
+  BV            V;              /* tensor basis vectors object for the linearization */
+  PEP_SR        sr;             /* spectrum slicing context */
+  PetscReal     *shifts;        /* array containing global shifts */
+  PetscInt      *inertias;      /* array containing global inertias */
+  PetscInt      nshifts;        /* elements in the arrays of shifts and inertias */
+  PetscInt      nev;            /* number of eigenvalues to compute */
+  PetscInt      ncv;            /* number of basis vectors */
+  PetscInt      mpd;            /* maximum dimension of projected problem */
+  PetscBool     detect;         /* check for zeros during factorizations */
+  PetscBool     hyperbolic;     /* hyperbolic problem flag */
+  PetscReal     alpha,beta;     /* coefficients defining the linearization */
+  PetscBool     checket;        /* check eigenvalue type during spectrum slicing */
+} PEP_STOAR;
 
-typedef struct {
-  PetscReal   scal[2];
-  Mat         A[2];
-  Vec         t;
-} ShellMatCtx;
 #endif
 

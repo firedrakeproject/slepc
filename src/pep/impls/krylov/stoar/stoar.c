@@ -40,6 +40,11 @@ static const char citation[] =
   "   doi = \"https://doi.org/10.1007/s10543-016-0601-5\"\n"
   "}\n";
 
+typedef struct {
+  PetscReal   scal[2];
+  Mat         A[2];
+  Vec         t;
+} ShellMatCtx;
 
 PetscErrorCode MatMult_Func(Mat A,Vec x,Vec y)
 {
@@ -74,7 +79,7 @@ PetscErrorCode PEPSTOARSetUpInnerMatrix(PEP pep,Mat *B)
   Mat            pB[4],Bs[3],D[3];
   PetscInt       i,j,n,m;
   ShellMatCtx    *ctxMat[3];
-  PEP_TOAR       *ctx=(PEP_TOAR*)pep->data;
+  PEP_STOAR      *ctx=(PEP_STOAR*)pep->data;
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
@@ -112,7 +117,7 @@ PetscErrorCode PEPSetUp_STOAR(PEP pep)
 {
   PetscErrorCode    ierr;
   PetscBool         shift,sinv,flg;
-  PEP_TOAR          *ctx = (PEP_TOAR*)pep->data;
+  PEP_STOAR         *ctx = (PEP_STOAR*)pep->data;
   PetscInt          ld;
   PetscReal         eta;
   BVOrthogType      otype;
@@ -166,7 +171,7 @@ PetscErrorCode PEPSetUp_STOAR(PEP pep)
 static PetscErrorCode PEPSTOARrun(PEP pep,PetscReal *a,PetscReal *b,PetscReal *omega,PetscInt k,PetscInt *M,PetscBool *breakdown,PetscBool *symmlost,Vec *t_)
 {
   PetscErrorCode ierr;
-  PEP_TOAR       *ctx = (PEP_TOAR*)pep->data;
+  PEP_STOAR      *ctx = (PEP_STOAR*)pep->data;
   PetscInt       i,j,m=*M,l,lock;
   PetscInt       lds,d,ld,offq,nqt;
   Vec            v=t_[0],t=t_[1],q=t_[2];
@@ -255,7 +260,7 @@ static PetscErrorCode PEPSTOARrun(PEP pep,PetscReal *a,PetscReal *b,PetscReal *o
 static PetscErrorCode PEPSTOARpreKConvergence(PEP pep,PetscInt nv,PetscReal *norm,Vec *w)
 {
   PetscErrorCode ierr;
-  PEP_TOAR      *ctx = (PEP_TOAR*)pep->data;
+  PEP_STOAR      *ctx = (PEP_STOAR*)pep->data;
   PetscBLASInt   n_,one=1;
   PetscInt       lds=2*ctx->ld;
   PetscReal      t1,t2;
@@ -282,7 +287,7 @@ static PetscErrorCode PEPSTOARpreKConvergence(PEP pep,PetscInt nv,PetscReal *nor
 PetscErrorCode PEPSolve_STOAR(PEP pep)
 {
   PetscErrorCode ierr;
-  PEP_TOAR       *ctx = (PEP_TOAR*)pep->data;
+  PEP_STOAR      *ctx = (PEP_STOAR*)pep->data;
   PetscInt       j,k,l,nv=0,ld,ldds,t,nq=0;
   PetscInt       nconv=0,deg=pep->nmat-1;
   PetscScalar    *Q,*om;
@@ -453,30 +458,34 @@ PetscErrorCode PEPSetFromOptions_STOAR(PetscOptionItems *PetscOptionsObject,PEP 
   PetscBool      flg,lock,b,f1,f2,f3;
   PetscInt       i,j,k;
   PetscReal      array[2]={0,0};
-  PEP_TOAR *ctx = (PEP_TOAR*)pep->data;
+  PEP_STOAR      *ctx = (PEP_STOAR*)pep->data;
 
   PetscFunctionBegin;
   ierr = PetscOptionsHead(PetscOptionsObject,"PEP STOAR Options");CHKERRQ(ierr);
 
-  ierr = PetscOptionsBool("-pep_stoar_locking","Choose between locking and non-locking variants","PEPSTOARSetLocking",PETSC_FALSE,&lock,&flg);CHKERRQ(ierr);
-  if (flg) { ierr = PEPSTOARSetLocking(pep,lock);CHKERRQ(ierr); }
+    ierr = PetscOptionsBool("-pep_stoar_locking","Choose between locking and non-locking variants","PEPSTOARSetLocking",PETSC_FALSE,&lock,&flg);CHKERRQ(ierr);
+    if (flg) { ierr = PEPSTOARSetLocking(pep,lock);CHKERRQ(ierr); }
 
-  b = ctx->detect;
-  ierr = PetscOptionsBool("-pep_stoar_detect_zeros","Check zeros during factorizations at interval boundaries","PEPSTOARSetDetectZeros",ctx->detect,&b,&flg);CHKERRQ(ierr);
-  if (flg) { ierr = PEPSTOARSetDetectZeros(pep,b);CHKERRQ(ierr); }
+    b = ctx->detect;
+    ierr = PetscOptionsBool("-pep_stoar_detect_zeros","Check zeros during factorizations at interval boundaries","PEPSTOARSetDetectZeros",ctx->detect,&b,&flg);CHKERRQ(ierr);
+    if (flg) { ierr = PEPSTOARSetDetectZeros(pep,b);CHKERRQ(ierr); }
 
-  i = 1;
-  j = k = PETSC_DECIDE;
-  ierr = PetscOptionsInt("-pep_stoar_nev","Number of eigenvalues to compute in each subsolve (only for spectrum slicing)","PEPSTOARSetDimensions",20,&i,&f1);CHKERRQ(ierr);
-  ierr = PetscOptionsInt("-pep_stoar_ncv","Number of basis vectors in each subsolve (only for spectrum slicing)","PEPSTOARSetDimensions",40,&j,&f2);CHKERRQ(ierr);
-  ierr = PetscOptionsInt("-pep_stoar_mpd","Maximum dimension of projected problem in each subsolve (only for spectrum slicing)","PEPSTOARSetDimensions",40,&k,&f3);CHKERRQ(ierr);
-  if (f1 || f2 || f3) { ierr = PEPSTOARSetDimensions(pep,i,j,k);CHKERRQ(ierr); }
+    i = 1;
+    j = k = PETSC_DECIDE;
+    ierr = PetscOptionsInt("-pep_stoar_nev","Number of eigenvalues to compute in each subsolve (only for spectrum slicing)","PEPSTOARSetDimensions",20,&i,&f1);CHKERRQ(ierr);
+    ierr = PetscOptionsInt("-pep_stoar_ncv","Number of basis vectors in each subsolve (only for spectrum slicing)","PEPSTOARSetDimensions",40,&j,&f2);CHKERRQ(ierr);
+    ierr = PetscOptionsInt("-pep_stoar_mpd","Maximum dimension of projected problem in each subsolve (only for spectrum slicing)","PEPSTOARSetDimensions",40,&k,&f3);CHKERRQ(ierr);
+    if (f1 || f2 || f3) { ierr = PEPSTOARSetDimensions(pep,i,j,k);CHKERRQ(ierr); }
 
-  k = 2;
-  ierr = PetscOptionsRealArray("-pep_stoar_linearization","Parameters of the linearization","PEPSTOARSetLinearization",array,&k,&flg);CHKERRQ(ierr);
-  if (flg) {
-    ierr = PEPSTOARSetLinearization(pep,array[0],array[1]);CHKERRQ(ierr);
-  }
+    k = 2;
+    ierr = PetscOptionsRealArray("-pep_stoar_linearization","Parameters of the linearization","PEPSTOARSetLinearization",array,&k,&flg);CHKERRQ(ierr);
+    if (flg) {
+      ierr = PEPSTOARSetLinearization(pep,array[0],array[1]);CHKERRQ(ierr);
+    }
+
+    b = ctx->checket;
+    ierr = PetscOptionsBool("-pep_stoar_check_eigenvalue_type","Check eigenvalue type during spectrum slicing","PEPSTOARSetCheckEigenvalueType",ctx->checket,&b,&flg);CHKERRQ(ierr);
+    if (flg) { ierr = PEPSTOARSetCheckEigenvalueType(pep,b);CHKERRQ(ierr); }
 
   ierr = PetscOptionsTail();CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -484,7 +493,7 @@ PetscErrorCode PEPSetFromOptions_STOAR(PetscOptionItems *PetscOptionsObject,PEP 
 
 static PetscErrorCode PEPSTOARSetLocking_STOAR(PEP pep,PetscBool lock)
 {
-  PEP_TOAR *ctx = (PEP_TOAR*)pep->data;
+  PEP_STOAR *ctx = (PEP_STOAR*)pep->data;
 
   PetscFunctionBegin;
   ctx->lock = lock;
@@ -527,7 +536,7 @@ PetscErrorCode PEPSTOARSetLocking(PEP pep,PetscBool lock)
 
 static PetscErrorCode PEPSTOARGetLocking_STOAR(PEP pep,PetscBool *lock)
 {
-  PEP_TOAR *ctx = (PEP_TOAR*)pep->data;
+  PEP_STOAR *ctx = (PEP_STOAR*)pep->data;
 
   PetscFunctionBegin;
   *lock = ctx->lock;
@@ -564,7 +573,7 @@ static PetscErrorCode PEPSTOARGetInertias_STOAR(PEP pep,PetscInt *n,PetscReal **
 {
   PetscErrorCode ierr;
   PetscInt       i,numsh;
-  PEP_TOAR       *ctx = (PEP_TOAR*)pep->data;
+  PEP_STOAR      *ctx = (PEP_STOAR*)pep->data;
   PEP_SR         sr = ctx->sr;
 
   PetscFunctionBegin;
@@ -660,7 +669,7 @@ PetscErrorCode PEPSTOARGetInertias(PEP pep,PetscInt *n,PetscReal **shifts,PetscI
 
 static PetscErrorCode PEPSTOARSetDetectZeros_STOAR(PEP pep,PetscBool detect)
 {
-  PEP_TOAR *ctx = (PEP_TOAR*)pep->data;
+  PEP_STOAR *ctx = (PEP_STOAR*)pep->data;
 
   PetscFunctionBegin;
   ctx->detect = detect;
@@ -706,7 +715,7 @@ PetscErrorCode PEPSTOARSetDetectZeros(PEP pep,PetscBool detect)
 
 static PetscErrorCode PEPSTOARGetDetectZeros_STOAR(PEP pep,PetscBool *detect)
 {
-  PEP_TOAR *ctx = (PEP_TOAR*)pep->data;
+  PEP_STOAR *ctx = (PEP_STOAR*)pep->data;
 
   PetscFunctionBegin;
   *detect = ctx->detect;
@@ -742,7 +751,7 @@ PetscErrorCode PEPSTOARGetDetectZeros(PEP pep,PetscBool *detect)
 
 static PetscErrorCode PEPSTOARSetLinearization_STOAR(PEP pep,PetscReal alpha,PetscReal beta)
 {
-  PEP_TOAR *ctx = (PEP_TOAR*)pep->data;
+  PEP_STOAR *ctx = (PEP_STOAR*)pep->data;
 
   PetscFunctionBegin;
   if (beta==0.0 && alpha==0.0) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_WRONG,"Parameters alpha and beta cannot be zero simultaneously");
@@ -787,7 +796,7 @@ PetscErrorCode PEPSTOARSetLinearization(PEP pep,PetscReal alpha,PetscReal beta)
 
 static PetscErrorCode PEPSTOARGetLinearization_STOAR(PEP pep,PetscReal *alpha,PetscReal *beta)
 {
-  PEP_TOAR *ctx = (PEP_TOAR*)pep->data;
+  PEP_STOAR *ctx = (PEP_STOAR*)pep->data;
 
   PetscFunctionBegin;
   if (alpha) *alpha = ctx->alpha;
@@ -824,7 +833,7 @@ PetscErrorCode PEPSTOARGetLinearization(PEP pep,PetscReal *alpha,PetscReal *beta
 
 static PetscErrorCode PEPSTOARSetDimensions_STOAR(PEP pep,PetscInt nev,PetscInt ncv,PetscInt mpd)
 {
-  PEP_TOAR *ctx = (PEP_TOAR*)pep->data;
+  PEP_STOAR *ctx = (PEP_STOAR*)pep->data;
 
   PetscFunctionBegin;
   if (nev<1) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of nev. Must be > 0");
@@ -882,7 +891,7 @@ PetscErrorCode PEPSTOARSetDimensions(PEP pep,PetscInt nev,PetscInt ncv,PetscInt 
 
 static PetscErrorCode PEPSTOARGetDimensions_STOAR(PEP pep,PetscInt *nev,PetscInt *ncv,PetscInt *mpd)
 {
-  PEP_TOAR *ctx = (PEP_TOAR*)pep->data;
+  PEP_STOAR *ctx = (PEP_STOAR*)pep->data;
 
   PetscFunctionBegin;
   if (nev) *nev = ctx->nev;
@@ -919,10 +928,95 @@ PetscErrorCode PEPSTOARGetDimensions(PEP pep,PetscInt *nev,PetscInt *ncv,PetscIn
   PetscFunctionReturn(0);
 }
 
+static PetscErrorCode PEPSTOARSetCheckEigenvalueType_STOAR(PEP pep,PetscBool checket)
+{
+  PEP_STOAR *ctx = (PEP_STOAR*)pep->data;
+
+  PetscFunctionBegin;
+  ctx->checket = checket;
+  pep->state   = PEP_STATE_INITIAL;
+  PetscFunctionReturn(0);
+}
+
+/*@
+   PEPSTOARSetCheckEigenvalueType - Sets a flag to check that all the eigenvalues
+   obtained throughout the spectrum slicing computation have the same definite type.
+
+   Logically Collective on PEP
+
+   Input Parameters:
++  pep     - the eigenproblem solver context
+-  checket - check eigenvalue type
+
+   Options Database Key:
+.  -pep_stoar_check_eigenvalue_type - Check eigenvalue type; this takes an optional
+   bool value (0/1/no/yes/true/false)
+
+   Notes:
+   This option is relevant only for spectrum slicing computations, but it is
+   ignored if the problem type is PEP_HYPERBOLIC.
+
+   This flag is turned on by default, to guarantee that the computed eigenvalues
+   have the same type (otherwise the computed solution might be wrong). But since
+   the check is computationally quite expensive, the check may be turned off if
+   the user knows for sure that all eigenvalues in the requested interval have
+   the same type.
+
+   Level: advanced
+
+.seealso: PEPSetProblemType(), PEPSetInterval()
+@*/
+PetscErrorCode PEPSTOARSetCheckEigenvalueType(PEP pep,PetscBool checket)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
+  PetscValidLogicalCollectiveBool(pep,checket,2);
+  ierr = PetscTryMethod(pep,"PEPSTOARSetCheckEigenvalueType_C",(PEP,PetscBool),(pep,checket));CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+static PetscErrorCode PEPSTOARGetCheckEigenvalueType_STOAR(PEP pep,PetscBool *checket)
+{
+  PEP_STOAR *ctx = (PEP_STOAR*)pep->data;
+
+  PetscFunctionBegin;
+  *checket = ctx->checket;
+  PetscFunctionReturn(0);
+}
+
+/*@
+   PEPSTOARGetCheckEigenvalueType - Gets the flag for the eigenvalue type
+   check in spectrum slicing.
+
+   Not Collective
+
+   Input Parameter:
+.  pep - the eigenproblem solver context
+
+   Output Parameter:
+.  checket - whether eigenvalue type must be checked during spectrum slcing
+
+   Level: advanced
+
+.seealso: PEPSTOARSetCheckEigenvalueType()
+@*/
+PetscErrorCode PEPSTOARGetCheckEigenvalueType(PEP pep,PetscBool *checket)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
+  PetscValidPointer(checket,2);
+  ierr = PetscUseMethod(pep,"PEPSTOARGetDetectZeros_C",(PEP,PetscBool*),(pep,checket));CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
 PetscErrorCode PEPView_STOAR(PEP pep,PetscViewer viewer)
 {
   PetscErrorCode ierr;
-  PEP_TOAR      *ctx = (PEP_TOAR*)pep->data;
+  PEP_STOAR      *ctx = (PEP_STOAR*)pep->data;
   PetscBool      isascii;
 
   PetscFunctionBegin;
@@ -930,6 +1024,9 @@ PetscErrorCode PEPView_STOAR(PEP pep,PetscViewer viewer)
   if (isascii) {
     ierr = PetscViewerASCIIPrintf(viewer,"  using the %slocking variant\n",ctx->lock?"":"non-");CHKERRQ(ierr);
     ierr = PetscViewerASCIIPrintf(viewer,"  linearization parameters: alpha=%g beta=%g\n",(double)ctx->alpha,(double)ctx->beta);CHKERRQ(ierr);
+    if (pep->which==PEP_ALL && !ctx->hyperbolic) {
+      ierr = PetscViewerASCIIPrintf(viewer,"  checking eigenvalue type: %s\n",ctx->checket?"enabled":"disabled");CHKERRQ(ierr);
+    }
   }
   PetscFunctionReturn(0);
 }
@@ -948,7 +1045,7 @@ PetscErrorCode PEPReset_STOAR(PEP pep)
 PetscErrorCode PEPDestroy_STOAR(PEP pep)
 {
   PetscErrorCode ierr;
-  PEP_TOAR       *ctx = (PEP_TOAR*)pep->data;
+  PEP_STOAR      *ctx = (PEP_STOAR*)pep->data;
 
   PetscFunctionBegin;
   ierr = BVDestroy(&ctx->V);CHKERRQ(ierr);
@@ -962,20 +1059,23 @@ PetscErrorCode PEPDestroy_STOAR(PEP pep)
   ierr = PetscObjectComposeFunction((PetscObject)pep,"PEPSTOARSetDimensions_C",NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)pep,"PEPSTOARSetLinearization_C",NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)pep,"PEPSTOARGetLinearization_C",NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)pep,"PEPSTOARSetCheckEigenvalueType_C",NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)pep,"PEPSTOARGetCheckEigenvalueType_C",NULL);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
 PETSC_EXTERN PetscErrorCode PEPCreate_STOAR(PEP pep)
 {
   PetscErrorCode ierr;
-  PEP_TOAR      *ctx;
+  PEP_STOAR      *ctx;
 
   PetscFunctionBegin;
   ierr = PetscNewLog(pep,&ctx);CHKERRQ(ierr);
   pep->data = (void*)ctx;
-  ctx->lock  = PETSC_TRUE;
-  ctx->alpha = 1.0;
-  ctx->beta  = 0.0;
+  ctx->lock    = PETSC_TRUE;
+  ctx->alpha   = 1.0;
+  ctx->beta    = 0.0;
+  ctx->checket = PETSC_TRUE;
 
   pep->ops->setup          = PEPSetUp_STOAR;
   pep->ops->setfromoptions = PEPSetFromOptions_STOAR;
@@ -996,6 +1096,8 @@ PETSC_EXTERN PetscErrorCode PEPCreate_STOAR(PEP pep)
   ierr = PetscObjectComposeFunction((PetscObject)pep,"PEPSTOARSetDimensions_C",PEPSTOARSetDimensions_STOAR);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)pep,"PEPSTOARSetLinearization_C",PEPSTOARSetLinearization_STOAR);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)pep,"PEPSTOARGetLinearization_C",PEPSTOARGetLinearization_STOAR);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)pep,"PEPSTOARSetCheckEigenvalueType_C",PEPSTOARSetCheckEigenvalueType_STOAR);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)pep,"PEPSTOARGetCheckEigenvalueType_C",PEPSTOARGetCheckEigenvalueType_STOAR);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
