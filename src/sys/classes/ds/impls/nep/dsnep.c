@@ -330,13 +330,13 @@ static PetscErrorCode DSNEPSetFN_NEP(DS ds,PetscInt n,FN fn[])
   if (n<=0) SETERRQ1(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_OUTOFRANGE,"Must have one or more functions, you have %D",n);
   if (n>DS_NUM_EXTRA) SETERRQ2(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_OUTOFRANGE,"Too many functions, you specified %D but the limit is %D",n,DS_NUM_EXTRA);
   if (ds->ld) { ierr = PetscInfo(ds,"DSNEPSetFN() called after DSAllocate()\n");CHKERRQ(ierr); }
+  for (i=0;i<n;i++) {
+    ierr = PetscObjectReference((PetscObject)fn[i]);CHKERRQ(ierr);
+  }
   for (i=0;i<ctx->nf;i++) {
     ierr = FNDestroy(&ctx->f[i]);CHKERRQ(ierr);
   }
-  for (i=0;i<n;i++) {
-    ierr = PetscObjectReference((PetscObject)fn[i]);CHKERRQ(ierr);
-    ctx->f[i] = fn[i];
-  }
+  for (i=0;i<n;i++) ctx->f[i] = fn[i];
   ctx->nf = n;
   PetscFunctionReturn(0);
 }

@@ -499,8 +499,8 @@ PetscErrorCode BVSetMatrix(BV bv,Mat B,PetscBool indef)
     if (m!=n) SETERRQ(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_SIZ,"Matrix must be square");
     if (bv->m && bv->n!=n) SETERRQ2(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_INCOMP,"Mismatching local dimension BV %D, Mat %D",bv->n,n);
   }
+  if (B) { ierr = PetscObjectReference((PetscObject)B);CHKERRQ(ierr); }
   ierr = MatDestroy(&bv->matrix);CHKERRQ(ierr);
-  if (B) PetscObjectReference((PetscObject)B);
   bv->matrix = B;
   bv->indef  = indef;
   ierr = PetscObjectStateIncrease((PetscObject)bv);CHKERRQ(ierr);
@@ -1521,7 +1521,7 @@ PETSC_STATIC_INLINE PetscErrorCode BVDuplicate_Private(BV V,BV W)
   W->orthog_ref   = V->orthog_ref;
   W->orthog_eta   = V->orthog_eta;
   W->orthog_block = V->orthog_block;
-  if (V->matrix) PetscObjectReference((PetscObject)V->matrix);
+  if (V->matrix) { ierr = PetscObjectReference((PetscObject)V->matrix);CHKERRQ(ierr); }
   W->matrix       = V->matrix;
   W->indef        = V->indef;
   W->vmm          = V->vmm;

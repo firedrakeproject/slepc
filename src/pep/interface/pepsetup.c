@@ -277,7 +277,7 @@ PetscErrorCode PEPSetUp(PEP pep)
 PetscErrorCode PEPSetOperators(PEP pep,PetscInt nmat,Mat A[])
 {
   PetscErrorCode ierr;
-  PetscInt       i,n,m,m0=0;
+  PetscInt       i,n=0,m,m0=0;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
@@ -285,9 +285,17 @@ PetscErrorCode PEPSetOperators(PEP pep,PetscInt nmat,Mat A[])
   if (nmat <= 0) SETERRQ1(PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"Non-positive value of nmat: %D",nmat);
   if (nmat <= 2) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"Cannot solve linear eigenproblems with PEP; use EPS instead");
   PetscValidPointer(A,3);
-  PetscValidHeaderSpecific(A[0],MAT_CLASSID,3);
 
-  ierr = MatGetSize(A[0],&m,&n);CHKERRQ(ierr);
+  for (i=0;i<nmat;i++) {
+    PetscValidHeaderSpecific(A[i],MAT_CLASSID,3);
+    PetscCheckSameComm(pep,1,A[i],3);
+    ierr = MatGetSize(A[i],&m,&n);CHKERRQ(ierr);
+    if (m!=n) SETERRQ1(PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_WRONG,"A[%D] is a non-square matrix",i);
+    if (!i) m0 = m;
+    if (m!=m0) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_INCOMP,"Dimensions of matrices do not match with each other");
+    ierr = PetscObjectReference((PetscObject)A[i]);CHKERRQ(ierr);
+  }
+
   if (pep->state && n!=pep->n) { ierr = PEPReset(pep);CHKERRQ(ierr); }
   else if (pep->nmat) {
     ierr = MatDestroyMatrices(pep->nmat,&pep->A);CHKERRQ(ierr);
@@ -297,17 +305,10 @@ PetscErrorCode PEPSetOperators(PEP pep,PetscInt nmat,Mat A[])
 
   ierr = PetscMalloc1(nmat,&pep->A);CHKERRQ(ierr);
   ierr = PetscCalloc2(3*nmat,&pep->pbc,nmat,&pep->nrma);CHKERRQ(ierr);
-  for (i=0;i<nmat;i++) pep->pbc[i] = 1.0;  /* default to monomial basis */
   ierr = PetscLogObjectMemory((PetscObject)pep,nmat*sizeof(Mat)+4*nmat*sizeof(PetscReal));CHKERRQ(ierr);
   for (i=0;i<nmat;i++) {
-    PetscValidHeaderSpecific(A[i],MAT_CLASSID,3);
-    PetscCheckSameComm(pep,1,A[i],3);
-    ierr = MatGetSize(A[i],&m,&n);CHKERRQ(ierr);
-    if (m!=n) SETERRQ1(PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_WRONG,"A[%D] is a non-square matrix",i);
-    if (!i) m0 = m;
-    if (m!=m0) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_INCOMP,"Dimensions of matrices do not match with each other");
-    ierr = PetscObjectReference((PetscObject)A[i]);CHKERRQ(ierr);
-    pep->A[i] = A[i];
+    pep->A[i]   = A[i];
+    pep->pbc[i] = 1.0;  /* default to monomial basis */
   }
   pep->nmat = nmat;
   pep->state = PEP_STATE_INITIAL;

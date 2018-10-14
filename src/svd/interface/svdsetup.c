@@ -34,9 +34,9 @@ PetscErrorCode SVDSetOperator(SVD svd,Mat mat)
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
   PetscValidHeaderSpecific(mat,MAT_CLASSID,2);
   PetscCheckSameComm(svd,1,mat,2);
+  ierr = PetscObjectReference((PetscObject)mat);CHKERRQ(ierr);
   if (svd->state) { ierr = SVDReset(svd);CHKERRQ(ierr); }
   else { ierr = MatDestroy(&svd->OP);CHKERRQ(ierr); }
-  ierr = PetscObjectReference((PetscObject)mat);CHKERRQ(ierr);
   svd->OP = mat;
   svd->state = SVD_STATE_INITIAL;
   PetscFunctionReturn(0);

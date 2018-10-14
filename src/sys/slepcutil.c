@@ -78,13 +78,13 @@ PetscErrorCode SlepcBasisReference_Private(PetscInt n,Vec *V,PetscInt *m,Vec **W
   PetscInt       i;
 
   PetscFunctionBegin;
+  for (i=0;i<n;i++) {
+    ierr = PetscObjectReference((PetscObject)V[i]);CHKERRQ(ierr);
+  }
   ierr = SlepcBasisDestroy_Private(m,W);CHKERRQ(ierr);
   if (n>0) {
     ierr = PetscMalloc1(n,W);CHKERRQ(ierr);
-    for (i=0;i<n;i++) {
-      ierr = PetscObjectReference((PetscObject)V[i]);CHKERRQ(ierr);
-      (*W)[i] = V[i];
-    }
+    for (i=0;i<n;i++) (*W)[i] = V[i];
     *m = -n;
   }
   PetscFunctionReturn(0);
