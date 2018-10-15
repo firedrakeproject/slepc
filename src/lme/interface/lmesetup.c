@@ -299,8 +299,8 @@ PetscErrorCode LMESetRHS(LME lme,Mat C)
   ierr = MatLRCGetMats(C,&A,NULL,NULL,NULL);CHKERRQ(ierr);
   if (A) SETERRQ(PetscObjectComm((PetscObject)C),PETSC_ERR_SUP,"The MatLRC must not have a sparse matrix term");
 
-  ierr = MatDestroy(&lme->C);CHKERRQ(ierr);
   ierr = PetscObjectReference((PetscObject)C);CHKERRQ(ierr);
+  ierr = MatDestroy(&lme->C);CHKERRQ(ierr);
   lme->C = C;
   PetscFunctionReturn(0);
 }
@@ -372,13 +372,10 @@ PetscErrorCode LMESetSolution(LME lme,Mat X)
     if (!match) SETERRQ(PetscObjectComm((PetscObject)X),PETSC_ERR_SUP,"Mat argument must have been created with MatCreateLRC");
     ierr = MatLRCGetMats(X,&A,NULL,NULL,NULL);CHKERRQ(ierr);
     if (A) SETERRQ(PetscObjectComm((PetscObject)X),PETSC_ERR_SUP,"The MatLRC must not have a sparse matrix term");
-  }
-
-  ierr = MatDestroy(&lme->X);CHKERRQ(ierr);
-  if (X) {
     ierr = PetscObjectReference((PetscObject)X);CHKERRQ(ierr);
-    lme->X = X;
   }
+  ierr = MatDestroy(&lme->X);CHKERRQ(ierr);
+  lme->X = X;
   PetscFunctionReturn(0);
 }
 

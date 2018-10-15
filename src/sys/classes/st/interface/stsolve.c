@@ -332,8 +332,8 @@ PetscErrorCode STMatMAXPY_Private(ST st,PetscScalar alpha,PetscScalar beta,Petsc
       for (i=ini+1;i<nmat&&!nz;i++) if (coeffs[i]!=0.0) nz = PETSC_TRUE;
     } else { nz = PETSC_TRUE; ini = 0; }
     if ((alpha == 0.0 || !nz) && t==1.0) {
-      ierr = MatDestroy(S);CHKERRQ(ierr);
       ierr = PetscObjectReference((PetscObject)st->A[k+ini]);CHKERRQ(ierr);
+      ierr = MatDestroy(S);CHKERRQ(ierr);
       *S = st->A[k+ini];
     } else {
       if (*S && *S!=st->A[k+ini]) {

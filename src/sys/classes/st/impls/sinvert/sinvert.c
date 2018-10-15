@@ -155,9 +155,9 @@ PetscErrorCode STSetShift_Sinvert(ST st,PetscScalar newshift)
       ierr = PetscFree(coeffs);CHKERRQ(ierr);
     }
     if (st->P!=st->T[nmat-1]) {
+      ierr = PetscObjectReference((PetscObject)st->T[nmat-1]);CHKERRQ(ierr);
       ierr = MatDestroy(&st->P);CHKERRQ(ierr);
       st->P = st->T[nmat-1];
-      ierr = PetscObjectReference((PetscObject)st->P);CHKERRQ(ierr);
     }
   }
   if (st->P) {

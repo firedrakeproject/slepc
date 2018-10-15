@@ -824,24 +824,24 @@ PetscErrorCode NEPSetSplitOperator(NEP nep,PetscInt n,Mat A[],FN f[],MatStructur
   PetscCheckSameComm(nep,1,*A,3);
   PetscValidPointer(f,4);
   PetscCheckSameComm(nep,1,*f,4);
+
+  for (i=0;i<n;i++) {
+    PetscValidHeaderSpecific(A[i],MAT_CLASSID,3);
+    PetscValidHeaderSpecific(f[i],FN_CLASSID,4);
+    ierr = PetscObjectReference((PetscObject)A[i]);CHKERRQ(ierr);
+    ierr = PetscObjectReference((PetscObject)f[i]);CHKERRQ(ierr);
+  }
+
   if (nep->state) { ierr = NEPReset(nep);CHKERRQ(ierr); }
   else { ierr = NEPReset_Problem(nep);CHKERRQ(ierr); }
 
   /* allocate space and copy matrices and functions */
   ierr = PetscMalloc1(n,&nep->A);CHKERRQ(ierr);
   ierr = PetscLogObjectMemory((PetscObject)nep,n*sizeof(Mat));CHKERRQ(ierr);
-  for (i=0;i<n;i++) {
-    PetscValidHeaderSpecific(A[i],MAT_CLASSID,3);
-    ierr = PetscObjectReference((PetscObject)A[i]);CHKERRQ(ierr);
-    nep->A[i] = A[i];
-  }
+  for (i=0;i<n;i++) nep->A[i] = A[i];
   ierr = PetscMalloc1(n,&nep->f);CHKERRQ(ierr);
   ierr = PetscLogObjectMemory((PetscObject)nep,n*sizeof(FN));CHKERRQ(ierr);
-  for (i=0;i<n;i++) {
-    PetscValidHeaderSpecific(f[i],FN_CLASSID,4);
-    ierr = PetscObjectReference((PetscObject)f[i]);CHKERRQ(ierr);
-    nep->f[i] = f[i];
-  }
+  for (i=0;i<n;i++) nep->f[i] = f[i];
   ierr = PetscCalloc1(n,&nep->nrma);CHKERRQ(ierr);
   ierr = PetscLogObjectMemory((PetscObject)nep,n*sizeof(PetscReal));CHKERRQ(ierr);
   nep->nt    = n;
