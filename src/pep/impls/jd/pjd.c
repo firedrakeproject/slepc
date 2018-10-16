@@ -608,7 +608,9 @@ static PetscErrorCode PEPJDComputeResidual(PEP pep,PetscBool derivative,PetscInt
     xxi = xx+nconv;
     if (sz==2) {
       ierr = BVDotVec(pjd->X,tui,xxi);CHKERRQ(ierr);
-    } else PetscMemzero(xxi,nconv*sizeof(PetscScalar));CHKERRQ(ierr);
+    } else {
+      ierr = PetscMemzero(xxi,nconv*sizeof(PetscScalar));CHKERRQ(ierr);
+    }
     if (rk==np-1) {
       ierr = PetscBLASIntCast(nconv,&n);CHKERRQ(ierr);
       ierr = PetscBLASIntCast(pjd->ld,&ld);CHKERRQ(ierr);
@@ -742,7 +744,7 @@ static PetscErrorCode PEPJDShellMatMult(Mat P,Vec x,Vec y)
     ierr = VecGetArray(ys[1],&arrayi2);CHKERRQ(ierr);
     ierr = VecPlaceArray(tyi,arrayi2);CHKERRQ(ierr);
     ierr = MatMult(matctx->Pr,txi,tyi);CHKERRQ(ierr);
-    if (theta[1]!=0) {
+    if (theta[1]!=0.0) {
       ierr = MatMult(matctx->Pi,txi,matctx->work[4]);CHKERRQ(ierr);
       ierr = VecAXPY(ty,-1.0,matctx->work[4]);CHKERRQ(ierr);
       ierr = MatMult(matctx->Pi,tx,matctx->work[4]);CHKERRQ(ierr);
@@ -780,7 +782,9 @@ static PetscErrorCode PEPJDShellMatMult(Mat P,Vec x,Vec y)
     xxi = xx+nconv;
     if (sz==2) {
       ierr = BVDotVec(pjd->X,txi,xxi);CHKERRQ(ierr);
-    } else PetscMemzero(xxi,nconv*sizeof(PetscScalar));CHKERRQ(ierr);
+    } else {
+      ierr = PetscMemzero(xxi,nconv*sizeof(PetscScalar));CHKERRQ(ierr);
+    }
     if (rk==np-1) {
       ierr = PetscBLASIntCast(pjd->nlock,&n);CHKERRQ(ierr);
       ierr = PetscBLASIntCast(ldt,&ld);CHKERRQ(ierr);
@@ -813,7 +817,6 @@ static PetscErrorCode PEPJDShellMatMult(Mat P,Vec x,Vec y)
     ierr = VecResetArray(tyi);CHKERRQ(ierr);
     ierr = VecRestoreArray(ys[1],&arrayi2);CHKERRQ(ierr);
   }
-
   PetscFunctionReturn(0);
 }
 
@@ -858,8 +861,7 @@ static PetscErrorCode PEPJDMatSetUp(PEP pep,PetscInt sz,PetscScalar *theta)
   PetscFunctionBegin;
   if (sz==2 && theta[1]==0.0) sz = 1;
   ierr = MatShellGetContext(pjd->Pshell,(void**)&matctx);CHKERRQ(ierr);
-  if (matctx->Pr && matctx->theta[0]==theta[0] && ((!matctx->Pi && sz==1) || (sz==2 && matctx->theta[1]==theta[1])))
-    PetscFunctionReturn(0);
+  if (matctx->Pr && matctx->theta[0]==theta[0] && ((!matctx->Pi && sz==1) || (sz==2 && matctx->theta[1]==theta[1]))) PetscFunctionReturn(0);
   ierr = PetscMalloc2(pep->nmat,&vals,pep->nmat,&valsi);CHKERRQ(ierr);
   ierr = STGetMatStructure(pep->st,&str);CHKERRQ(ierr);
   ierr = PEPEvaluateBasis(pep,theta[0],theta[1],vals,valsi);CHKERRQ(ierr);
@@ -1162,7 +1164,6 @@ PetscErrorCode PEPJDSystemSetUp(PEP pep,PetscInt sz,PetscScalar *theta,Vec *u,Ve
   }
   PetscFunctionReturn(0);
 }
-
 
 PetscErrorCode PEPSolve_JD(PEP pep)
 {
