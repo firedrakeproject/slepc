@@ -12,19 +12,28 @@ class Installer:
     if len(args)<6:
       print('********************************************************************')
       print('Installation script error - not enough arguments:')
-      print('./config/install.py SLEPC_DIR PETSC_DIR DESTDIR PETSC_ARCH LIB_SUFFIX RANLIB')
+      print('./config/install.py SLEPC_DIR PETSC_DIR SLEPC_DESTDIR -destDir=DESTDIR PETSC_ARCH LIB_SUFFIX RANLIB')
       print('********************************************************************')
       sys.exit(1)
     self.rootDir     = args[0]
     self.petscDir    = args[1]
     self.destDir     = os.path.abspath(args[2])
-    self.arch        = args[3]
-    self.arLibSuffix = args[4]
-    self.ranlib      = ' '.join(args[5:])
+    if args[3].startswith('-destDir='):
+      if args[3][9:]:
+        # prepend to prefix dir
+        self.destDir   = os.path.join(args[3][9:], os.path.relpath(self.destDir, os.sep))
+    else:
+      print('********************************************************************')
+      print('Error in argument, should start with -destDir=')
+      print('********************************************************************')
+      sys.exit(1)
+    self.arch        = args[4]
+    self.arLibSuffix = args[5]
+    self.ranlib      = ' '.join(args[6:])
     self.copies = []
     return
 
-  def readDestDir(self, src):
+  def readInstallDir(self, src):
     try:
       f = open(src)
       for l in f.readlines():
@@ -53,7 +62,7 @@ class Installer:
     self.destConfDir       = os.path.join(self.destDir, 'lib','slepc','conf')
     self.destLibDir        = os.path.join(self.destDir, 'lib')
     self.destBinDir        = os.path.join(self.destDir, 'lib','slepc','bin')
-    self.installDir        = self.readDestDir(os.path.join(self.archConfDir,'slepcvariables'))
+    self.installDir        = self.readInstallDir(os.path.join(self.archConfDir,'slepcvariables'))
     self.installIncludeDir = os.path.join(self.installDir, 'include')
     self.installBinDir     = os.path.join(self.installDir, 'lib','slepc','bin')
     self.rootShareDir      = os.path.join(self.rootDir, 'share')
