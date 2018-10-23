@@ -35,6 +35,7 @@
 typedef struct {
   PetscReal   keep;          /* restart parameter */
   PetscReal   fix;           /* fix parameter */
+  PetscBool   reusepc;       /* flag indicating whether pc is rebuilt or not */
   BV          V;             /* work basis vectors to store the search space */
   BV          W;             /* work basis vectors to store the test space */
   BV          *TV;           /* work basis vectors to store T*V (each TV[i] is the coefficient for \lambda^i of T*V for the extended T) */
@@ -528,6 +529,7 @@ static PetscErrorCode PEPJDComputeResidual(PEP pep,PetscBool derivative,PetscInt
     ierr = PetscMalloc1(2*sz*pep->nmat,&dval);CHKERRQ(ierr);
   } else {
     ierr = PetscMalloc5(2*pep->nmat,&dval,2*nconv,&xx,nconv,&tt,sz*nconv,&x2,(sz==2?3:1)*nconv*pep->nmat,&qj);CHKERRQ(ierr);
+    if (sz==2) x2i = x2+nconv;
     ierr = MPI_Comm_rank(PetscObjectComm((PetscObject)pep),&rk);CHKERRQ(ierr);
     ierr = MPI_Comm_size(PetscObjectComm((PetscObject)pep),&np);CHKERRQ(ierr);
     if (rk==np-1) {
@@ -536,7 +538,6 @@ static PetscErrorCode PEPJDComputeResidual(PEP pep,PetscBool derivative,PetscInt
       for (i=0;i<nconv;i++) x2[i] = array1[nloc+i];
       ierr = VecRestoreArray(u[0],&array1);CHKERRQ(ierr);
       if (sz==2) {
-        x2i = x2+nconv;
         ierr = VecGetArray(u[1],&arrayi1);CHKERRQ(ierr);
         for (i=0;i<nconv;i++) x2i[i] = arrayi1[nloc+i];
         ierr = VecRestoreArray(u[1],&arrayi1);CHKERRQ(ierr);
@@ -711,6 +712,7 @@ static PetscErrorCode PEPJDShellMatMult(Mat P,Vec x,Vec y)
   theta[1] = (sz==2)?matctx->theta[1]:0.0;
   if (nconv>0) {
     ierr = PetscMalloc5(nconv,&tt,sz*nconv,&x2,(sz==2?3:1)*nconv*nmat,&qj,2*nconv,&xx,2*nmat,&val);CHKERRQ(ierr);
+    if (sz==2)  x2i = x2+nconv;
     ierr = MPI_Comm_rank(PetscObjectComm((PetscObject)P),&rk);CHKERRQ(ierr);
     ierr = MPI_Comm_size(PetscObjectComm((PetscObject)P),&np);CHKERRQ(ierr);
     if (rk==np-1) {
@@ -719,7 +721,6 @@ static PetscErrorCode PEPJDShellMatMult(Mat P,Vec x,Vec y)
       for (i=0;i<nconv;i++) x2[i] = array1[nloc+i];
       ierr = VecRestoreArray(xs[0],&array1);CHKERRQ(ierr);
       if (sz==2) {
-        x2i = x2+nconv;
         ierr = VecGetArray(xs[1],&arrayi1);CHKERRQ(ierr);
         for (i=0;i<nconv;i++) x2i[i] = arrayi1[nloc+i];
         ierr = VecRestoreArray(xs[1],&arrayi1);CHKERRQ(ierr);
@@ -727,8 +728,8 @@ static PetscErrorCode PEPJDShellMatMult(Mat P,Vec x,Vec y)
     }
     ierr = PetscMPIIntCast(sz*nconv,&count);CHKERRQ(ierr);
     ierr = MPI_Bcast(x2,count,MPIU_SCALAR,np-1,PetscObjectComm((PetscObject)P));CHKERRQ(ierr);
+    vali = val+nmat;
   }
-  vali = val+nmat;
   tx = matctx->work[0];
   ty = matctx->work[1];
   ierr = VecGetArray(xs[0],&array1);CHKERRQ(ierr);
@@ -849,111 +850,6 @@ static PetscErrorCode PEPJDSellMatCreateVecs(Mat A,Vec *right,Vec *left)
   PetscFunctionReturn(0);
 }
 
-static PetscErrorCode PEPJDMatSetUp(PEP pep,PetscInt sz,PetscScalar *theta)
-{
-  PetscErrorCode  ierr;
-  PEP_JD          *pjd = (PEP_JD*)pep->data;
-  PEP_JD_MATSHELL *matctx;
-  MatStructure    str;
-  PetscScalar     *vals,*valsi;
-  PetscInt        i;
-
-  PetscFunctionBegin;
-  if (sz==2 && theta[1]==0.0) sz = 1;
-  ierr = MatShellGetContext(pjd->Pshell,(void**)&matctx);CHKERRQ(ierr);
-  if (matctx->Pr && matctx->theta[0]==theta[0] && ((!matctx->Pi && sz==1) || (sz==2 && matctx->theta[1]==theta[1]))) PetscFunctionReturn(0);
-  ierr = PetscMalloc2(pep->nmat,&vals,pep->nmat,&valsi);CHKERRQ(ierr);
-  ierr = STGetMatStructure(pep->st,&str);CHKERRQ(ierr);
-  ierr = PEPEvaluateBasis(pep,theta[0],theta[1],vals,valsi);CHKERRQ(ierr);
-  if (!matctx->Pr) {
-    ierr = MatDuplicate(pep->A[0],MAT_COPY_VALUES,&matctx->Pr);CHKERRQ(ierr);
-  } else {
-    ierr = MatCopy(pep->A[0],matctx->Pr,str);CHKERRQ(ierr);
-  }
-  for (i=1;i<pep->nmat;i++) {
-    ierr = MatAXPY(matctx->Pr,vals[i],pep->A[i],str);CHKERRQ(ierr);
-  }
-  matctx->theta[0] = theta[0];
-  if (sz==2) {
-    if (!matctx->Pi ) {
-      ierr = MatDuplicate(pep->A[0],MAT_COPY_VALUES,&matctx->Pi);CHKERRQ(ierr);
-    } else {
-      ierr = MatCopy(pep->A[1],matctx->Pi,str);CHKERRQ(ierr);
-    }
-    ierr = MatScale(matctx->Pi,valsi[1]);CHKERRQ(ierr);
-    for (i=2;i<pep->nmat;i++) {
-      ierr = MatAXPY(matctx->Pi,valsi[i],pep->A[i],str);CHKERRQ(ierr);
-    }
-    matctx->theta[1] = theta[1];
-  }
-  ierr = PetscFree2(vals,valsi);CHKERRQ(ierr);
-  PetscFunctionReturn(0);
-}
-
-static PetscErrorCode PEPJDCreateShellPC(PEP pep,Vec *ww)
-{
-  PEP_JD          *pjd = (PEP_JD*)pep->data;
-  PEP_JD_PCSHELL  *pcctx;
-  PEP_JD_MATSHELL *matctx;
-  KSP             ksp;
-  PetscInt        nloc,mloc,kspsf=1;
-  PetscMPIInt     np,rk;
-  Vec             v[2];
-  PetscScalar     target[2];
-  PetscErrorCode  ierr;
-
-  PetscFunctionBegin;
-  /* Create the reference vector */
-  ierr = BVGetColumn(pjd->V,0,&v[0]);CHKERRQ(ierr);
-  v[1] = v[0];
-#if !defined (PETSC_USE_COMPLEX)
-  kspsf = 2;
-#endif
-  ierr = VecCreateCompWithVecs(v,kspsf,NULL,&pjd->vtempl);CHKERRQ(ierr);
-  ierr = BVRestoreColumn(pjd->V,0,&v[0]);CHKERRQ(ierr);
-  ierr = PetscLogObjectParent((PetscObject)pep,(PetscObject)pjd->vtempl);CHKERRQ(ierr);
-
-  /* Replace preconditioner with one containing projectors */
-  ierr = PCCreate(PetscObjectComm((PetscObject)pep),&pjd->pcshell);CHKERRQ(ierr);
-  ierr = PCSetType(pjd->pcshell,PCSHELL);CHKERRQ(ierr);
-  ierr = PCShellSetName(pjd->pcshell,"PCPEPJD");CHKERRQ(ierr);
-  ierr = PCShellSetApply(pjd->pcshell,PCShellApply_PEPJD);CHKERRQ(ierr);
-  ierr = PetscNew(&pcctx);CHKERRQ(ierr);
-  ierr = PCShellSetContext(pjd->pcshell,pcctx);CHKERRQ(ierr);
-  ierr = STGetKSP(pep->st,&ksp);CHKERRQ(ierr);
-  ierr = BVCreateVec(pjd->V,&pcctx->Bp[0]);CHKERRQ(ierr);
-  ierr = VecDuplicate(pcctx->Bp[0],&pcctx->Bp[1]);CHKERRQ(ierr);
-  ierr = KSPGetPC(ksp,&pcctx->pc);CHKERRQ(ierr);
-  ierr = PetscObjectReference((PetscObject)pcctx->pc);CHKERRQ(ierr);
-  ierr = MatGetLocalSize(pep->A[0],&mloc,&nloc);CHKERRQ(ierr);
-  if (pjd->ld>1) {
-    ierr = MPI_Comm_rank(PetscObjectComm((PetscObject)pep),&rk);CHKERRQ(ierr);
-    ierr = MPI_Comm_size(PetscObjectComm((PetscObject)pep),&np);CHKERRQ(ierr);
-    if (rk==np-1) { nloc += pjd->ld-1; mloc += pjd->ld-1; }
-  }
-  ierr = PetscNew(&matctx);CHKERRQ(ierr);
-  ierr = MatCreateShell(PetscObjectComm((PetscObject)pep),kspsf*nloc,kspsf*mloc,PETSC_DETERMINE,PETSC_DETERMINE,matctx,&pjd->Pshell);CHKERRQ(ierr);
-  ierr = MatShellSetOperation(pjd->Pshell,MATOP_MULT,(void(*)())PEPJDShellMatMult);CHKERRQ(ierr);
-  ierr = MatShellSetOperation(pjd->Pshell,MATOP_CREATE_VECS,(void(*)(void))PEPJDSellMatCreateVecs);CHKERRQ(ierr);
-  matctx->pep = pep;
-  target[0] = pep->target; target[1] = 0.0;
-  ierr = PEPJDMatSetUp(pep,1,target);CHKERRQ(ierr);
-  ierr = PCSetOperators(pcctx->pc,matctx->Pr,matctx->Pr);CHKERRQ(ierr);
-  ierr = PCSetErrorIfFailure(pcctx->pc,PETSC_TRUE);CHKERRQ(ierr);
-  ierr = PCSetReusePreconditioner(pcctx->pc,PETSC_TRUE);CHKERRQ(ierr);
-  ierr = KSPSetPC(ksp,pjd->pcshell);CHKERRQ(ierr);
-  ierr = KSPSetReusePreconditioner(ksp,PETSC_TRUE);CHKERRQ(ierr);
-  ierr = KSPSetOperators(ksp,pjd->Pshell,pjd->Pshell);CHKERRQ(ierr);
-  if (pjd->ld>1) {
-    ierr = PetscMalloc2(pjd->ld*pjd->ld,&pcctx->M,pjd->ld*pjd->ld,&pcctx->ps);CHKERRQ(ierr);
-    pcctx->X  = pjd->X;
-    pcctx->ld = pjd->ld;
-  }
-  matctx->work = ww;
-  pcctx->work  = ww;
-  PetscFunctionReturn(0);
-}
-
 static PetscErrorCode PEPJDUpdateExtendedPC(PEP pep,PetscScalar theta)
 {
 #if defined(PETSC_MISSING_LAPACK_GESVD) || defined(PETSC_MISSING_LAPACK_GETRI) || defined(PETSC_MISSING_LAPACK_GETRF)
@@ -1022,6 +918,121 @@ static PetscErrorCode PEPJDUpdateExtendedPC(PEP pep,PetscScalar theta)
   }
   PetscFunctionReturn(0);
 #endif
+}
+
+static PetscErrorCode PEPJDMatSetUp(PEP pep,PetscInt sz,PetscScalar *theta)
+{
+  PetscErrorCode  ierr;
+  PEP_JD          *pjd = (PEP_JD*)pep->data;
+  PEP_JD_MATSHELL *matctx;
+  PEP_JD_PCSHELL  *pcctx;
+  MatStructure    str;
+  PetscScalar     *vals,*valsi;
+  PetscInt        i;
+
+  PetscFunctionBegin;
+  if (sz==2 && theta[1]==0.0) sz = 1;
+  ierr = MatShellGetContext(pjd->Pshell,(void**)&matctx);CHKERRQ(ierr);
+  ierr = PCShellGetContext(pjd->pcshell,(void**)&pcctx);CHKERRQ(ierr);
+  if (matctx->Pr && matctx->theta[0]==theta[0] && ((!matctx->Pi && sz==1) || (sz==2 && matctx->theta[1]==theta[1]))) PetscFunctionReturn(0);
+  ierr = PetscMalloc2(pep->nmat,&vals,pep->nmat,&valsi);CHKERRQ(ierr);
+  ierr = STGetMatStructure(pep->st,&str);CHKERRQ(ierr);
+  ierr = PEPEvaluateBasis(pep,theta[0],theta[1],vals,valsi);CHKERRQ(ierr);
+  if (!matctx->Pr) {
+    ierr = MatDuplicate(pep->A[0],MAT_COPY_VALUES,&matctx->Pr);CHKERRQ(ierr);
+  } else {
+    ierr = MatCopy(pep->A[0],matctx->Pr,str);CHKERRQ(ierr);
+  }
+  for (i=1;i<pep->nmat;i++) {
+    ierr = MatAXPY(matctx->Pr,vals[i],pep->A[i],str);CHKERRQ(ierr);
+  }
+  matctx->theta[0] = theta[0];
+  if (sz==2) {
+    if (!matctx->Pi ) {
+      ierr = MatDuplicate(pep->A[0],MAT_COPY_VALUES,&matctx->Pi);CHKERRQ(ierr);
+    } else {
+      ierr = MatCopy(pep->A[1],matctx->Pi,str);CHKERRQ(ierr);
+    }
+    ierr = MatScale(matctx->Pi,valsi[1]);CHKERRQ(ierr);
+    for (i=2;i<pep->nmat;i++) {
+      ierr = MatAXPY(matctx->Pi,valsi[i],pep->A[i],str);CHKERRQ(ierr);
+    }
+    matctx->theta[1] = theta[1];
+  }
+  if (!pjd->reusepc) {
+    ierr = PCSetOperators(pcctx->pc,matctx->Pr,matctx->Pr);CHKERRQ(ierr);
+    ierr = PCSetUp(pcctx->pc);CHKERRQ(ierr);
+    ierr = PEPJDUpdateExtendedPC(pep,theta[0]);CHKERRQ(ierr);
+  }
+  ierr = PetscFree2(vals,valsi);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+static PetscErrorCode PEPJDCreateShellPC(PEP pep,Vec *ww)
+{
+  PEP_JD          *pjd = (PEP_JD*)pep->data;
+  PEP_JD_PCSHELL  *pcctx;
+  PEP_JD_MATSHELL *matctx;
+  KSP             ksp;
+  PetscInt        nloc,mloc,kspsf=1;
+  PetscMPIInt     np,rk;
+  Vec             v[2];
+  PetscScalar     target[2];
+  PetscErrorCode  ierr;
+
+  PetscFunctionBegin;
+  /* Create the reference vector */
+  ierr = BVGetColumn(pjd->V,0,&v[0]);CHKERRQ(ierr);
+  v[1] = v[0];
+#if !defined (PETSC_USE_COMPLEX)
+  kspsf = 2;
+#endif
+  ierr = VecCreateCompWithVecs(v,kspsf,NULL,&pjd->vtempl);CHKERRQ(ierr);
+  ierr = BVRestoreColumn(pjd->V,0,&v[0]);CHKERRQ(ierr);
+  ierr = PetscLogObjectParent((PetscObject)pep,(PetscObject)pjd->vtempl);CHKERRQ(ierr);
+
+  /* Replace preconditioner with one containing projectors */
+  ierr = PCCreate(PetscObjectComm((PetscObject)pep),&pjd->pcshell);CHKERRQ(ierr);
+  ierr = PCSetType(pjd->pcshell,PCSHELL);CHKERRQ(ierr);
+  ierr = PCShellSetName(pjd->pcshell,"PCPEPJD");CHKERRQ(ierr);
+  ierr = PCShellSetApply(pjd->pcshell,PCShellApply_PEPJD);CHKERRQ(ierr);
+  ierr = PetscNew(&pcctx);CHKERRQ(ierr);
+  ierr = PCShellSetContext(pjd->pcshell,pcctx);CHKERRQ(ierr);
+  ierr = STGetKSP(pep->st,&ksp);CHKERRQ(ierr);
+  ierr = BVCreateVec(pjd->V,&pcctx->Bp[0]);CHKERRQ(ierr);
+  ierr = VecDuplicate(pcctx->Bp[0],&pcctx->Bp[1]);CHKERRQ(ierr);
+  ierr = KSPGetPC(ksp,&pcctx->pc);CHKERRQ(ierr);
+  ierr = PetscObjectReference((PetscObject)pcctx->pc);CHKERRQ(ierr);
+  ierr = MatGetLocalSize(pep->A[0],&mloc,&nloc);CHKERRQ(ierr);
+  if (pjd->ld>1) {
+    ierr = MPI_Comm_rank(PetscObjectComm((PetscObject)pep),&rk);CHKERRQ(ierr);
+    ierr = MPI_Comm_size(PetscObjectComm((PetscObject)pep),&np);CHKERRQ(ierr);
+    if (rk==np-1) { nloc += pjd->ld-1; mloc += pjd->ld-1; }
+  }
+  ierr = PetscNew(&matctx);CHKERRQ(ierr);
+  ierr = MatCreateShell(PetscObjectComm((PetscObject)pep),kspsf*nloc,kspsf*mloc,PETSC_DETERMINE,PETSC_DETERMINE,matctx,&pjd->Pshell);CHKERRQ(ierr);
+  ierr = MatShellSetOperation(pjd->Pshell,MATOP_MULT,(void(*)())PEPJDShellMatMult);CHKERRQ(ierr);
+  ierr = MatShellSetOperation(pjd->Pshell,MATOP_CREATE_VECS,(void(*)(void))PEPJDSellMatCreateVecs);CHKERRQ(ierr);
+  matctx->pep = pep;
+  target[0] = pep->target; target[1] = 0.0;
+  ierr = PEPJDMatSetUp(pep,1,target);CHKERRQ(ierr);
+  ierr = PCSetOperators(pcctx->pc,matctx->Pr,matctx->Pr);CHKERRQ(ierr);
+  ierr = PCSetErrorIfFailure(pcctx->pc,PETSC_TRUE);CHKERRQ(ierr);
+  ierr = KSPSetPC(ksp,pjd->pcshell);CHKERRQ(ierr);
+  if (pjd->reusepc) {
+    ierr = PCSetReusePreconditioner(pcctx->pc,PETSC_TRUE);CHKERRQ(ierr);
+    ierr = KSPSetReusePreconditioner(ksp,PETSC_TRUE);CHKERRQ(ierr);
+  }
+  ierr = KSPSetOperators(ksp,pjd->Pshell,pjd->Pshell);CHKERRQ(ierr);
+  ierr = KSPSetUp(ksp);CHKERRQ(ierr);
+  if (pjd->ld>1) {
+    ierr = PetscMalloc2(pjd->ld*pjd->ld,&pcctx->M,pjd->ld*pjd->ld,&pcctx->ps);CHKERRQ(ierr);
+    pcctx->X  = pjd->X;
+    pcctx->ld = pjd->ld;
+  }
+  matctx->work = ww;
+  pcctx->work  = ww;
+  PetscFunctionReturn(0);
 }
 
 static PetscErrorCode PEPJDEigenvectors(PEP pep)
@@ -1292,7 +1303,6 @@ PetscErrorCode PEPSolve_JD(PEP pep)
       if (idx) {
         pjd->nlock +=idx;
         ierr = PEPJDLockConverged(pep,&nv,idx);CHKERRQ(ierr);
-        ierr = PEPJDUpdateExtendedPC(pep,pep->target);CHKERRQ(ierr);
       }
       if (nv+sz>=pep->ncv-1) {
         /* Basis full, force restart */
@@ -1582,10 +1592,87 @@ PetscErrorCode PEPJDGetFix(PEP pep,PetscReal *fix)
   PetscFunctionReturn(0);
 }
 
+PetscErrorCode PEPJDSetReusePreconditioner_JD(PEP pep,PetscBool reusepc)
+{
+  PEP_JD *pjd = (PEP_JD*)pep->data;
+
+  PetscFunctionBegin;
+  pjd->reusepc = reusepc;
+  PetscFunctionReturn(0);
+}
+
+/*@
+   PEPJDSetReusePreconditioner - Sets a flag indicating whether the preconditioner
+   must be reused or not.
+
+   Logically Collective on PEP
+
+   Input Parameters:
++  pep     - the eigenproblem solver context
+-  reusepc - the reuse flag
+
+   Options Database Key:
+.  -pep_jd_reuse_preconditioner - the reuse flag
+
+   Note:
+   The default value is False. If set to True, the preconditioner is built
+   only at the beginning, using the target value. Otherwise, it may be rebuilt
+   (depending on the fix parameter) at each iteration from the Ritz value.
+
+   Level: advanced
+
+.seealso: PEPJDGetReusePreconditioner(), PEPJDSetFix()
+@*/
+PetscErrorCode PEPJDSetReusePreconditioner(PEP pep,PetscBool reusepc)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
+  PetscValidLogicalCollectiveBool(pep,reusepc,2);
+  ierr = PetscTryMethod(pep,"PEPJDSetReusePreconditioner_C",(PEP,PetscBool),(pep,reusepc));CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+PetscErrorCode PEPJDGetReusePreconditioner_JD(PEP pep,PetscBool *reusepc)
+{
+  PEP_JD *pjd = (PEP_JD*)pep->data;
+
+  PetscFunctionBegin;
+  *reusepc = pjd->reusepc;
+  PetscFunctionReturn(0);
+}
+
+/*@
+   PEPJDGetReusePreconditioner - Returns the flag for reusing the preconditioner.
+
+   Not Collective
+
+   Input Parameter:
+.  pep - the eigenproblem solver context
+
+   Output Parameter:
+.  reusepc - the reuse flag
+
+   Level: advanced
+
+.seealso: PEPJDSetReusePreconditioner()
+@*/
+PetscErrorCode PEPJDGetReusePreconditioner(PEP pep,PetscBool *reusepc)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
+  PetscValidPointer(reusepc,2);
+  ierr = PetscUseMethod(pep,"PEPJDGetReusePreconditioner_C",(PEP,PetscBool*),(pep,reusepc));CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
 PetscErrorCode PEPSetFromOptions_JD(PetscOptionItems *PetscOptionsObject,PEP pep)
 {
   PetscErrorCode ierr;
-  PetscBool      flg;
+  PetscBool      flg,b1;
   PetscReal      r1;
 
   PetscFunctionBegin;
@@ -1596,6 +1683,9 @@ PetscErrorCode PEPSetFromOptions_JD(PetscOptionItems *PetscOptionsObject,PEP pep
 
     ierr = PetscOptionsReal("-pep_jd_fix","Tolerance for changing the target in the correction equation","PEPJDSetFix",0.01,&r1,&flg);CHKERRQ(ierr);
     if (flg) { ierr = PEPJDSetFix(pep,r1);CHKERRQ(ierr); }
+
+    ierr = PetscOptionsBool("-pep_jd_reuse_preconditioner","Whether to reuse the preconditioner","PEPJDSetReusePreconditoiner",PETSC_FALSE,&b1,&flg);CHKERRQ(ierr);
+    if (flg) { ierr = PEPJDSetReusePreconditioner(pep,b1);CHKERRQ(ierr); }
 
   ierr = PetscOptionsTail();CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -1612,6 +1702,7 @@ PetscErrorCode PEPView_JD(PEP pep,PetscViewer viewer)
   if (isascii) {
     ierr = PetscViewerASCIIPrintf(viewer,"  %d%% of basis vectors kept after restart\n",(int)(100*pjd->keep));CHKERRQ(ierr);
     ierr = PetscViewerASCIIPrintf(viewer,"  threshold for changing the target in the correction equation (fix): %g\n",(double)pjd->fix);CHKERRQ(ierr);
+    if (pjd->reusepc) { ierr = PetscViewerASCIIPrintf(viewer,"  reusing the preconditioner\n");CHKERRQ(ierr); }
   }
   PetscFunctionReturn(0);
 }
@@ -1669,6 +1760,8 @@ PetscErrorCode PEPDestroy_JD(PEP pep)
   ierr = PetscObjectComposeFunction((PetscObject)pep,"PEPJDGetRestart_C",NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)pep,"PEPJDSetFix_C",NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)pep,"PEPJDGetFix_C",NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)pep,"PEPJDSetReusePreconditioner_C",NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)pep,"PEPJDGetReusePreconditioner_C",NULL);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -1695,6 +1788,8 @@ PETSC_EXTERN PetscErrorCode PEPCreate_JD(PEP pep)
   ierr = PetscObjectComposeFunction((PetscObject)pep,"PEPJDGetRestart_C",PEPJDGetRestart_JD);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)pep,"PEPJDSetFix_C",PEPJDSetFix_JD);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)pep,"PEPJDGetFix_C",PEPJDGetFix_JD);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)pep,"PEPJDSetReusePreconditioner_C",PEPJDSetReusePreconditioner_JD);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)pep,"PEPJDGetReusePreconditioner_C",PEPJDGetReusePreconditioner_JD);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

@@ -334,6 +334,8 @@ PETSC_EXTERN PetscErrorCode PEPJDSetRestart(PEP,PetscReal);
 PETSC_EXTERN PetscErrorCode PEPJDGetRestart(PEP,PetscReal*);
 PETSC_EXTERN PetscErrorCode PEPJDSetFix(PEP,PetscReal);
 PETSC_EXTERN PetscErrorCode PEPJDGetFix(PEP,PetscReal*);
+PETSC_EXTERN PetscErrorCode PEPJDSetReusePreconditioner(PEP,PetscBool);
+PETSC_EXTERN PetscErrorCode PEPJDGetReusePreconditioner(PEP,PetscBool*);
 
 #endif
 
