@@ -150,14 +150,9 @@ def install(dest_dir, dry_run=False):
     if PETSC_ARCH: PETSC_ARCH = 'PETSC_ARCH=' + PETSC_ARCH
     make = find_executable('make')
     command = [make, 'install',
-               'PETSC_DIR='+get_petsc_dir(), PETSC_ARCH,
-               'SLEPC_DESTDIR='+dest_dir]
+               'PETSC_DIR='+get_petsc_dir(), PETSC_ARCH]
     status = os.system(" ".join(command))
     if status != 0: raise RuntimeError(status)
-    slepcvariables = os.path.join(dest_dir, 'lib', 'slepc', 'conf', 'slepcvariables')
-    fh = open(slepcvariables, 'a')
-    fh.write('SLEPC_DESTDIR=%s\n' % dest_dir)
-    fh.close()
 
 class context(object):
     def __init__(self):
