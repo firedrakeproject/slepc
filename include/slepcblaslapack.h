@@ -153,7 +153,7 @@ BLAS_EXTERN void     LAPACKlascl_(const char*,PetscBLASInt*,PetscBLASInt*,PetscR
 
 #if defined(PETSC_HAVE_COMPLEX)
 /* complex subroutines to be called with scalar-type=real */
-BLAS_EXTERN void BLASCOMPLEXgemm_(const char*,const char*,PetscBLASInt*,PetscBLASInt*,PetscBLASInt*,PetscComplex*,PetscComplex*,PetscBLASInt*,PetscComplex*,PetscBLASInt*,PetscComplex*,PetscComplex*,PetscBLASInt*);
+BLAS_EXTERN void BLASCOMPLEXgemm_(const char*,const char*,const PetscBLASInt*,const PetscBLASInt*,const PetscBLASInt*,const PetscComplex*,const PetscComplex*,const PetscBLASInt*,const PetscComplex*,const PetscBLASInt*,const PetscComplex*,PetscComplex*,const PetscBLASInt*);
 BLAS_EXTERN void BLASCOMPLEXscal_(const PetscBLASInt*,const PetscComplex*,PetscComplex*,const PetscBLASInt*);
 BLAS_EXTERN void LAPACKCOMPLEXgesv_(const PetscBLASInt*,const PetscBLASInt*,PetscComplex*,const PetscBLASInt*,PetscBLASInt*,PetscComplex*,const PetscBLASInt*,PetscBLASInt*);
 #endif
