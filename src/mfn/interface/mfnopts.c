@@ -41,7 +41,7 @@ PetscErrorCode MFNMonitorSetFromOptions(MFN mfn,const char name[],const char hel
   PetscViewerAndFormat *vf;
 
   PetscFunctionBegin;
-  ierr = PetscOptionsGetViewer(PetscObjectComm((PetscObject)mfn),((PetscObject)mfn)->prefix,name,&viewer,&format,&flg);CHKERRQ(ierr);
+  ierr = PetscOptionsGetViewer(PetscObjectComm((PetscObject)mfn),((PetscObject)mfn)->options,((PetscObject)mfn)->prefix,name,&viewer,&format,&flg);CHKERRQ(ierr);
   if (flg) {
     ierr = PetscViewerAndFormatCreate(viewer,format,&vf);CHKERRQ(ierr);
     ierr = PetscObjectDereference((PetscObject)viewer);CHKERRQ(ierr);

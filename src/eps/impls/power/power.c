@@ -870,6 +870,7 @@ static PetscErrorCode EPSPowerGetSNES_Power(EPS eps,SNES *snes)
     ierr = SNESSetOptionsPrefix(power->snes,((PetscObject)eps)->prefix);CHKERRQ(ierr);
     ierr = SNESAppendOptionsPrefix(power->snes,"eps_power_");CHKERRQ(ierr);
     ierr = PetscLogObjectParent((PetscObject)eps,(PetscObject)power->snes);CHKERRQ(ierr);
+    ierr = PetscObjectSetOptions((PetscObject)power->snes,((PetscObject)eps)->options);CHKERRQ(ierr);
   }
   *snes = power->snes;
   PetscFunctionReturn(0);

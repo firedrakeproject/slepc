@@ -41,7 +41,7 @@ PetscErrorCode LMEMonitorSetFromOptions(LME lme,const char name[],const char hel
   PetscViewerAndFormat *vf;
 
   PetscFunctionBegin;
-  ierr = PetscOptionsGetViewer(PetscObjectComm((PetscObject)lme),((PetscObject)lme)->prefix,name,&viewer,&format,&flg);CHKERRQ(ierr);
+  ierr = PetscOptionsGetViewer(PetscObjectComm((PetscObject)lme),((PetscObject)lme)->options,((PetscObject)lme)->prefix,name,&viewer,&format,&flg);CHKERRQ(ierr);
   if (flg) {
     ierr = PetscViewerAndFormatCreate(viewer,format,&vf);CHKERRQ(ierr);
     ierr = PetscObjectDereference((PetscObject)viewer);CHKERRQ(ierr);

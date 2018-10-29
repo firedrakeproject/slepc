@@ -968,6 +968,7 @@ static PetscErrorCode PEPLinearGetEPS_Linear(PEP pep,EPS *eps)
     ierr = EPSSetOptionsPrefix(ctx->eps,((PetscObject)pep)->prefix);CHKERRQ(ierr);
     ierr = EPSAppendOptionsPrefix(ctx->eps,"pep_linear_");CHKERRQ(ierr);
     ierr = PetscLogObjectParent((PetscObject)pep,(PetscObject)ctx->eps);CHKERRQ(ierr);
+    ierr = PetscObjectSetOptions((PetscObject)ctx->eps,((PetscObject)pep)->options);CHKERRQ(ierr);
     ierr = EPSMonitorSet(ctx->eps,EPSMonitor_Linear,pep,NULL);CHKERRQ(ierr);
   }
   *eps = ctx->eps;

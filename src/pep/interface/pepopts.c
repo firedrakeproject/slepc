@@ -42,7 +42,7 @@ PetscErrorCode PEPMonitorSetFromOptions(PEP pep,const char name[],const char hel
   PetscViewerAndFormat *vf;
 
   PetscFunctionBegin;
-  ierr = PetscOptionsGetViewer(PetscObjectComm((PetscObject)pep),((PetscObject)pep)->prefix,name,&viewer,&format,&flg);CHKERRQ(ierr);
+  ierr = PetscOptionsGetViewer(PetscObjectComm((PetscObject)pep),((PetscObject)pep)->options,((PetscObject)pep)->prefix,name,&viewer,&format,&flg);CHKERRQ(ierr);
   if (flg) {
     ierr = PetscViewerAndFormatCreate(viewer,format,&vf);CHKERRQ(ierr);
     ierr = PetscObjectDereference((PetscObject)viewer);CHKERRQ(ierr);
@@ -80,7 +80,7 @@ PetscErrorCode PEPConvMonitorSetFromOptions(PEP pep,const char name[],const char
   SlepcConvMonitor  ctx;
 
   PetscFunctionBegin;
-  ierr = PetscOptionsGetViewer(PetscObjectComm((PetscObject)pep),((PetscObject)pep)->prefix,name,&viewer,&format,&flg);CHKERRQ(ierr);
+  ierr = PetscOptionsGetViewer(PetscObjectComm((PetscObject)pep),((PetscObject)pep)->options,((PetscObject)pep)->prefix,name,&viewer,&format,&flg);CHKERRQ(ierr);
   if (flg) {
     ierr = SlepcConvMonitorCreate(viewer,format,&ctx);CHKERRQ(ierr);
     ierr = PetscObjectDereference((PetscObject)viewer);CHKERRQ(ierr);

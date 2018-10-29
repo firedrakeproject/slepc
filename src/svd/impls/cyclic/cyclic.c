@@ -419,6 +419,7 @@ static PetscErrorCode SVDCyclicGetEPS_Cyclic(SVD svd,EPS *eps)
     ierr = EPSSetOptionsPrefix(cyclic->eps,((PetscObject)svd)->prefix);CHKERRQ(ierr);
     ierr = EPSAppendOptionsPrefix(cyclic->eps,"svd_cyclic_");CHKERRQ(ierr);
     ierr = PetscLogObjectParent((PetscObject)svd,(PetscObject)cyclic->eps);CHKERRQ(ierr);
+    ierr = PetscObjectSetOptions((PetscObject)cyclic->eps,((PetscObject)svd)->options);CHKERRQ(ierr);
     ierr = EPSSetWhichEigenpairs(cyclic->eps,EPS_LARGEST_REAL);CHKERRQ(ierr);
     ierr = EPSMonitorSet(cyclic->eps,EPSMonitor_Cyclic,svd,NULL);CHKERRQ(ierr);
   }

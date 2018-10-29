@@ -373,6 +373,7 @@ static PetscErrorCode SVDCrossGetEPS_Cross(SVD svd,EPS *eps)
     ierr = EPSSetOptionsPrefix(cross->eps,((PetscObject)svd)->prefix);CHKERRQ(ierr);
     ierr = EPSAppendOptionsPrefix(cross->eps,"svd_cross_");CHKERRQ(ierr);
     ierr = PetscLogObjectParent((PetscObject)svd,(PetscObject)cross->eps);CHKERRQ(ierr);
+    ierr = PetscObjectSetOptions((PetscObject)cross->eps,((PetscObject)svd)->options);CHKERRQ(ierr);
     ierr = EPSSetWhichEigenpairs(cross->eps,EPS_LARGEST_REAL);CHKERRQ(ierr);
     ierr = EPSMonitorSet(cross->eps,EPSMonitor_Cross,svd,NULL);CHKERRQ(ierr);
   }

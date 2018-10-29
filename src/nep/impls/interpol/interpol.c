@@ -400,6 +400,7 @@ static PetscErrorCode NEPInterpolGetPEP_Interpol(NEP nep,PEP *pep)
     ierr = PEPSetOptionsPrefix(ctx->pep,((PetscObject)nep)->prefix);CHKERRQ(ierr);
     ierr = PEPAppendOptionsPrefix(ctx->pep,"nep_interpol_");CHKERRQ(ierr);
     ierr = PetscLogObjectParent((PetscObject)nep,(PetscObject)ctx->pep);CHKERRQ(ierr);
+    ierr = PetscObjectSetOptions((PetscObject)ctx->pep,((PetscObject)nep)->options);CHKERRQ(ierr);
     ierr = PEPMonitorSet(ctx->pep,PEPMonitor_Interpol,nep,NULL);CHKERRQ(ierr);
   }
   *pep = ctx->pep;
