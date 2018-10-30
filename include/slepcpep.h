@@ -330,12 +330,27 @@ PETSC_EXTERN PetscErrorCode PEPSTOARGetDimensions(PEP,PetscInt*,PetscInt*,PetscI
 PETSC_EXTERN PetscErrorCode PEPSTOARSetCheckEigenvalueType(PEP,PetscBool);
 PETSC_EXTERN PetscErrorCode PEPSTOARGetCheckEigenvalueType(PEP,PetscBool*);
 
+/*E
+    PEPJDProjection - The scheme used for solving linear systems during iterative refinement
+
+    Level: intermediate
+
+.seealso: PEPJDSetProjection()
+E*/
+typedef enum { PEP_JD_PROJECTION_HARMONIC,
+               PEP_JD_PROJECTION_ORTHOGONAL } PEPJDProjection;
+PETSC_EXTERN const char *PEPJDProjectionTypes[];
+
 PETSC_EXTERN PetscErrorCode PEPJDSetRestart(PEP,PetscReal);
 PETSC_EXTERN PetscErrorCode PEPJDGetRestart(PEP,PetscReal*);
 PETSC_EXTERN PetscErrorCode PEPJDSetFix(PEP,PetscReal);
 PETSC_EXTERN PetscErrorCode PEPJDGetFix(PEP,PetscReal*);
 PETSC_EXTERN PetscErrorCode PEPJDSetReusePreconditioner(PEP,PetscBool);
 PETSC_EXTERN PetscErrorCode PEPJDGetReusePreconditioner(PEP,PetscBool*);
+PETSC_EXTERN PetscErrorCode PEPJDSetMinimalityIndex(PEP,PetscInt);
+PETSC_EXTERN PetscErrorCode PEPJDGetMinimalityIndex(PEP,PetscInt*);
+PETSC_EXTERN PetscErrorCode PEPJDSetProjection(PEP,PEPJDProjection);
+PETSC_EXTERN PetscErrorCode PEPJDGetProjection(PEP,PEPJDProjection*);
 
 #endif
 

@@ -50,6 +50,8 @@ typedef struct {
   Mat         Pshell;        /* auxiliary shell matrix */
   PetscInt    nlock;         /* number of locked vectors in the invariant pair */
   Vec         vtempl;        /* reference nested vector */
+  PetscInt    mmidx;         /* maximum allowed minimality index */
+  PEPJDProjection proj;      /* projection type (orthogonal, harmonic) */
 } PEP_JD;
 
 typedef struct {
@@ -1663,11 +1665,174 @@ PetscErrorCode PEPJDGetReusePreconditioner(PEP pep,PetscBool *reusepc)
   PetscFunctionReturn(0);
 }
 
-PetscErrorCode PEPSetFromOptions_JD(PetscOptionItems *PetscOptionsObject,PEP pep)
+PetscErrorCode PEPJDSetMinimalityIndex_JD(PEP pep,PetscInt mmidx)
+{
+  PEP_JD *pjd = (PEP_JD*)pep->data;
+
+  PetscFunctionBegin;
+  if (mmidx == PETSC_DEFAULT || mmidx == PETSC_DECIDE) pjd->mmidx = 1;
+  else {
+    if (mmidx < 1) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"Invalid mmidx value");
+    pjd->mmidx = mmidx;
+  }
+  PetscFunctionReturn(0);
+}
+
+/*@
+   PEPJDSetMinimalityIndex - Sets the maximum allowed value for the minimality index.
+
+   Logically Collective on PEP
+
+   Input Parameters:
++  pep   - the eigenproblem solver context
+-  mmidx - maximum minimality index
+
+   Options Database Key:
+.  -pep_jd_minimality_index - the minimality index value
+
+   Note:
+   The default value of the minimality index is 1. It should be increased in
+   problems where the wanted eigenvectors are not linearly independent.
+
+   Level: advanced
+
+.seealso: PEPJDGetMinimalityIndex()
+@*/
+PetscErrorCode PEPJDSetMinimalityIndex(PEP pep,PetscInt mmidx)
 {
   PetscErrorCode ierr;
-  PetscBool      flg,b1;
-  PetscReal      r1;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
+  PetscValidLogicalCollectiveInt(pep,mmidx,2);
+  ierr = PetscTryMethod(pep,"PEPJDSetMinimalityIndex_C",(PEP,PetscInt),(pep,mmidx));CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+PetscErrorCode PEPJDGetMinimalityIndex_JD(PEP pep,PetscInt *mmidx)
+{
+  PEP_JD *pjd = (PEP_JD*)pep->data;
+
+  PetscFunctionBegin;
+  *mmidx = pjd->mmidx;
+  PetscFunctionReturn(0);
+}
+
+/*@
+   PEPJDGetMinimalityIndex - Returns the maximum allowed value of the minimality
+   index.
+
+   Not Collective
+
+   Input Parameter:
+.  pep - the eigenproblem solver context
+
+   Output Parameter:
+.  mmidx - minimality index
+
+   Level: advanced
+
+.seealso: PEPJDSetMinimalityIndex()
+@*/
+PetscErrorCode PEPJDGetMinimalityIndex(PEP pep,PetscInt *mmidx)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
+  PetscValidPointer(mmidx,2);
+  ierr = PetscUseMethod(pep,"PEPJDGetMinimalityIndex_C",(PEP,PetscInt*),(pep,mmidx));CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+PetscErrorCode PEPJDSetProjection_JD(PEP pep,PEPJDProjection proj)
+{
+  PEP_JD *pjd = (PEP_JD*)pep->data;
+
+  PetscFunctionBegin;
+  switch (proj) {
+    case PEP_JD_PROJECTION_HARMONIC:
+    case PEP_JD_PROJECTION_ORTHOGONAL:
+      if (pjd->proj != proj) {
+        pep->state = PEP_STATE_INITIAL;
+        pjd->proj = proj;
+      }
+      break;
+    default:
+      SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"Invalid 'proj' value");
+  }
+  PetscFunctionReturn(0);
+}
+
+/*@
+   PEPJDSetProjection - Sets the type of projection to be used in the Jacobi-Davidson solver.
+
+   Logically Collective on PEP
+
+   Input Parameters:
++  pep  - the eigenproblem solver context
+-  proj - the type of projection
+
+   Options Database Key:
+.  -pep_jd_projection - the projection type, either orthogonal or harmonic
+
+   Level: advanced
+
+.seealso: PEPJDGetProjection()
+@*/
+PetscErrorCode PEPJDSetProjection(PEP pep,PEPJDProjection proj)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
+  PetscValidLogicalCollectiveEnum(pep,proj,2);
+  ierr = PetscTryMethod(pep,"PEPJDSetProjection_C",(PEP,PEPJDProjection),(pep,proj));CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+PetscErrorCode PEPJDGetProjection_JD(PEP pep,PEPJDProjection *proj)
+{
+  PEP_JD *pjd = (PEP_JD*)pep->data;
+
+  PetscFunctionBegin;
+  *proj = pjd->proj;
+  PetscFunctionReturn(0);
+}
+
+/*@
+   PEPJDGetProjection - Returns the type of projection used by the Jacobi-Davidson solver.
+
+   Not Collective
+
+   Input Parameter:
+.  pep - the eigenproblem solver context
+
+   Output Parameter:
+.  proj - the type of projection
+
+   Level: advanced
+
+.seealso: PEPJDSetProjection()
+@*/
+PetscErrorCode PEPJDGetProjection(PEP pep,PEPJDProjection *proj)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
+  PetscValidPointer(proj,2);
+  ierr = PetscUseMethod(pep,"PEPJDGetProjection_C",(PEP,PEPJDProjection*),(pep,proj));CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+PetscErrorCode PEPSetFromOptions_JD(PetscOptionItems *PetscOptionsObject,PEP pep)
+{
+  PetscErrorCode  ierr;
+  PetscBool       flg,b1;
+  PetscReal       r1;
+  PetscInt        i1;
+  PEPJDProjection proj;
 
   PetscFunctionBegin;
   ierr = PetscOptionsHead(PetscOptionsObject,"PEP JD Options");CHKERRQ(ierr);
@@ -1680,6 +1845,12 @@ PetscErrorCode PEPSetFromOptions_JD(PetscOptionItems *PetscOptionsObject,PEP pep
 
     ierr = PetscOptionsBool("-pep_jd_reuse_preconditioner","Whether to reuse the preconditioner","PEPJDSetReusePreconditoiner",PETSC_FALSE,&b1,&flg);CHKERRQ(ierr);
     if (flg) { ierr = PEPJDSetReusePreconditioner(pep,b1);CHKERRQ(ierr); }
+
+    ierr = PetscOptionsInt("-pep_jd_minimality_index","Maximum allowed minimality index","PEPJDSetMinimalityIndex",1,&i1,&flg);CHKERRQ(ierr);
+    if (flg) { ierr = PEPJDSetMinimalityIndex(pep,i1);CHKERRQ(ierr); }
+
+    ierr = PetscOptionsEnum("-pep_jd_projection","Type of projection","PEPJDSetProjection",PEPJDProjectionTypes,PEP_JD_PROJECTION_HARMONIC,(PetscEnum*)&proj,&flg);CHKERRQ(ierr);
+    if (flg) { ierr = PEPJDSetProjection(pep,proj);CHKERRQ(ierr); }
 
   ierr = PetscOptionsTail();CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -1696,6 +1867,8 @@ PetscErrorCode PEPView_JD(PEP pep,PetscViewer viewer)
   if (isascii) {
     ierr = PetscViewerASCIIPrintf(viewer,"  %d%% of basis vectors kept after restart\n",(int)(100*pjd->keep));CHKERRQ(ierr);
     ierr = PetscViewerASCIIPrintf(viewer,"  threshold for changing the target in the correction equation (fix): %g\n",(double)pjd->fix);CHKERRQ(ierr);
+    ierr = PetscViewerASCIIPrintf(viewer,"  projection type: %s\n",PEPJDProjectionTypes[pjd->proj]);CHKERRQ(ierr);
+    ierr = PetscViewerASCIIPrintf(viewer,"  maximum allowed minimality index: %d\n",pjd->mmidx);CHKERRQ(ierr);
     if (pjd->reusepc) { ierr = PetscViewerASCIIPrintf(viewer,"  reusing the preconditioner\n");CHKERRQ(ierr); }
   }
   PetscFunctionReturn(0);
@@ -1756,6 +1929,10 @@ PetscErrorCode PEPDestroy_JD(PEP pep)
   ierr = PetscObjectComposeFunction((PetscObject)pep,"PEPJDGetFix_C",NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)pep,"PEPJDSetReusePreconditioner_C",NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)pep,"PEPJDGetReusePreconditioner_C",NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)pep,"PEPJDSetMinimalityIndex_C",NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)pep,"PEPJDGetMinimalityIndex_C",NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)pep,"PEPJDSetProjection_C",NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)pep,"PEPJDGetProjection_C",NULL);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -1768,7 +1945,8 @@ PETSC_EXTERN PetscErrorCode PEPCreate_JD(PEP pep)
   ierr = PetscNewLog(pep,&pjd);CHKERRQ(ierr);
   pep->data = (void*)pjd;
 
-  pjd->fix = 0.01;
+  pjd->fix   = 0.01;
+  pjd->mmidx = 1;
 
   pep->ops->solve          = PEPSolve_JD;
   pep->ops->setup          = PEPSetUp_JD;
@@ -1784,6 +1962,10 @@ PETSC_EXTERN PetscErrorCode PEPCreate_JD(PEP pep)
   ierr = PetscObjectComposeFunction((PetscObject)pep,"PEPJDGetFix_C",PEPJDGetFix_JD);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)pep,"PEPJDSetReusePreconditioner_C",PEPJDSetReusePreconditioner_JD);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)pep,"PEPJDGetReusePreconditioner_C",PEPJDGetReusePreconditioner_JD);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)pep,"PEPJDSetMinimalityIndex_C",PEPJDSetMinimalityIndex_JD);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)pep,"PEPJDGetMinimalityIndex_C",PEPJDGetMinimalityIndex_JD);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)pep,"PEPJDSetProjection_C",PEPJDSetProjection_JD);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)pep,"PEPJDGetProjection_C",PEPJDGetProjection_JD);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
