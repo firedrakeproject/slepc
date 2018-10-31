@@ -1185,7 +1185,7 @@ PetscErrorCode PEPSolve_JD(PEP pep)
   PetscBool       lindep;
   Vec             tc,t[2]={NULL,NULL},u[2]={NULL,NULL},p[2]={NULL,NULL};
   Vec             rc,r[2]={NULL,NULL},*ww=pep->work,v[2];
-  Mat             G,X,Y;
+  Mat             G,X;
   KSP             ksp;
   PEP_JD_PCSHELL  *pcctx;
   PEP_JD_MATSHELL *matctx;
@@ -1310,15 +1310,10 @@ PetscErrorCode PEPSolve_JD(PEP pep)
         ierr = DSGetArray(pep->ds,DS_MAT_X,&pX);CHKERRQ(ierr);
         ierr = PEPJDOrthogonalize(dim,minv,pX,ld,&minv,NULL,NULL,ld);CHKERRQ(ierr);
         ierr = DSRestoreArray(pep->ds,DS_MAT_X,&pX);CHKERRQ(ierr);
-        ierr = DSGetArray(pep->ds,DS_MAT_Y,&pX);CHKERRQ(ierr);
-        ierr = PEPJDOrthogonalize(dim,minv,pX,ld,&minv,NULL,NULL,ld);CHKERRQ(ierr);
-        ierr = DSRestoreArray(pep->ds,DS_MAT_Y,&pX);CHKERRQ(ierr);
         ierr = DSGetMat(pep->ds,DS_MAT_X,&X);CHKERRQ(ierr);
         ierr = BVMultInPlace(pjd->V,X,0,minv);CHKERRQ(ierr);
+        ierr = BVMultInPlace(pjd->W,X,0,minv);CHKERRQ(ierr);
         ierr = MatDestroy(&X);CHKERRQ(ierr);
-        ierr = DSGetMat(pep->ds,DS_MAT_Y,&Y);CHKERRQ(ierr);
-        ierr = BVMultInPlace(pjd->W,Y,0,minv);CHKERRQ(ierr);
-        ierr = MatDestroy(&Y);CHKERRQ(ierr);
         nv = minv;
         bupdated = 0;
       } else {
