@@ -139,7 +139,6 @@ PetscErrorCode PEPSetUp_JD(PEP pep)
   for (i=0;i<pep->nmat;i++) {
     ierr = PEPJDDuplicateBasis(pep,pjd->TV+i);CHKERRQ(ierr);
   }
-  ierr = PEPJDDuplicateBasis(pep,&pjd->W);CHKERRQ(ierr);
   if (pjd->ld>1) {
     ierr = PEPJDDuplicateBasis(pep,&pjd->V);CHKERRQ(ierr);
     ierr = BVSetFromOptions(pjd->V);CHKERRQ(ierr);
@@ -151,6 +150,8 @@ PetscErrorCode PEPSetUp_JD(PEP pep)
     pjd->X = pep->V;
     ierr = PetscCalloc3((pjd->ld)*(pjd->ld),&pjd->XpX,pep->ncv*pep->ncv,&pjd->T,pjd->ld*pjd->ld*pep->nmat,&pjd->Tj);CHKERRQ(ierr);
   } else pjd->V = pep->V;
+  if (pjd->proj==PEP_JD_PROJECTION_HARMONIC) { ierr = PEPJDDuplicateBasis(pep,&pjd->W);CHKERRQ(ierr); }
+  else pjd->W = pjd->V;
   ierr = DSSetType(pep->ds,DSPEP);CHKERRQ(ierr);
   ierr = DSPEPSetDegree(pep->ds,pep->nmat-1);CHKERRQ(ierr);
   if (pep->basis!=PEP_BASIS_MONOMIAL) {
@@ -671,16 +672,18 @@ static PetscErrorCode PEPJDProcessInitialSpace(PEP pep,Vec *w)
     ierr = BVRestoreColumn(pjd->V,0,&vg);CHKERRQ(ierr);
     ierr = BVNormColumn(pjd->V,0,NORM_2,&norm);CHKERRQ(ierr);
     ierr = BVScaleColumn(pjd->V,0,1.0/norm);CHKERRQ(ierr);
-    ierr = BVGetColumn(pjd->V,0,&vg);CHKERRQ(ierr);
-    ierr = BVGetColumn(pjd->W,0,&wg);CHKERRQ(ierr);
-    ierr = VecSet(wg,0.0);CHKERRQ(ierr);
-    /* W = P(target)*V */
-    target[0] = pep->target; target[1] = 0.0;
-    ierr = PEPJDComputeResidual(pep,PETSC_FALSE,1,&vg,target,&wg,w);CHKERRQ(ierr);
-    ierr = BVRestoreColumn(pjd->W,0,&wg);CHKERRQ(ierr);
-    ierr = BVRestoreColumn(pjd->V,0,&vg);CHKERRQ(ierr);
-    ierr = BVNormColumn(pjd->W,0,NORM_2,&norm);CHKERRQ(ierr);
-    ierr = BVScaleColumn(pjd->W,0,1.0/norm);CHKERRQ(ierr);
+    if (pjd->proj==PEP_JD_PROJECTION_HARMONIC) {
+      ierr = BVGetColumn(pjd->V,0,&vg);CHKERRQ(ierr);
+      ierr = BVGetColumn(pjd->W,0,&wg);CHKERRQ(ierr);
+      ierr = VecSet(wg,0.0);CHKERRQ(ierr);
+      /* W = P(target)*V */
+      target[0] = pep->target; target[1] = 0.0;
+      ierr = PEPJDComputeResidual(pep,PETSC_FALSE,1,&vg,target,&wg,w);CHKERRQ(ierr);
+      ierr = BVRestoreColumn(pjd->W,0,&wg);CHKERRQ(ierr);
+      ierr = BVRestoreColumn(pjd->V,0,&vg);CHKERRQ(ierr);
+      ierr = BVNormColumn(pjd->W,0,NORM_2,&norm);CHKERRQ(ierr);
+      ierr = BVScaleColumn(pjd->W,0,1.0/norm);CHKERRQ(ierr);
+    }
   } else SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"Support for initial vectors not implemented yet");
   ierr = PetscFree(tt);CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -1093,8 +1096,8 @@ static PetscErrorCode PEPJDLockConverged(PEP pep,PetscInt *nv,PetscInt sz)
   PetscErrorCode ierr;
   PEP_JD         *pjd = (PEP_JD*)pep->data;
   PetscInt       j,i,ldds,rk=0,nvv=*nv;
-  Vec            v,x,w;
-  PetscScalar    *R,*pX,target[2];
+  Vec            v,x;
+  PetscScalar    *R,*pX;
   Mat            X;
 
   PetscFunctionBegin;
@@ -1131,19 +1134,12 @@ static PetscErrorCode PEPJDLockConverged(PEP pep,PetscInt *nv,PetscInt sz)
   ierr = DSRestoreArray(pep->ds,DS_MAT_X,&pX);CHKERRQ(ierr);
   ierr = MatCreateSeqDense(PETSC_COMM_SELF,nvv,rk,R,&X);CHKERRQ(ierr);
   ierr = BVMultInPlace(pjd->V,X,0,rk);CHKERRQ(ierr);
+  if (pjd->proj==PEP_JD_PROJECTION_HARMONIC) {
+    ierr = BVMultInPlace(pjd->W,X,0,rk);CHKERRQ(ierr);
+    ierr = BVSetActiveColumns(pjd->W,0,rk);CHKERRQ(ierr);
+  }
   ierr = MatDestroy(&X);CHKERRQ(ierr);
   ierr = BVSetActiveColumns(pjd->V,0,rk);CHKERRQ(ierr);
-  for (j=0;j<rk;j++) {
-    /* W = P(target)*V */
-    ierr = BVGetColumn(pjd->W,j,&w);CHKERRQ(ierr);
-    ierr = BVGetColumn(pjd->V,j,&v);CHKERRQ(ierr);
-    target[0] = pep->target; target[1] = 0.0;
-    ierr = PEPJDComputeResidual(pep,PETSC_FALSE,1,&v,target,&w,pep->work);CHKERRQ(ierr);
-    ierr = BVRestoreColumn(pjd->V,j,&v);CHKERRQ(ierr);
-    ierr = BVRestoreColumn(pjd->W,j,&w);CHKERRQ(ierr);
-  }
-  ierr = BVSetActiveColumns(pjd->W,0,rk);CHKERRQ(ierr);
-  ierr = BVOrthogonalize(pjd->W,NULL);CHKERRQ(ierr);
   *nv = rk;
   ierr = PetscFree(R);CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -1223,7 +1219,7 @@ PetscErrorCode PEPSolve_JD(PEP pep)
     ierr = DSSetDimensions(pep->ds,nv,0,0,0);CHKERRQ(ierr);
     ierr = BVSetActiveColumns(pjd->V,bupdated,nv);CHKERRQ(ierr);
     ierr = PEPJDUpdateTV(pep,bupdated,nv,ww);CHKERRQ(ierr);
-    ierr = BVSetActiveColumns(pjd->W,bupdated,nv);CHKERRQ(ierr);
+    if (pjd->proj==PEP_JD_PROJECTION_HARMONIC) { ierr = BVSetActiveColumns(pjd->W,bupdated,nv);CHKERRQ(ierr); }
     for (k=0;k<pep->nmat;k++) {
       ierr = BVSetActiveColumns(pjd->TV[k],bupdated,nv);CHKERRQ(ierr);
       ierr = DSGetMat(pep->ds,DSMatExtra[k],&G);CHKERRQ(ierr);
@@ -1314,7 +1310,7 @@ PetscErrorCode PEPSolve_JD(PEP pep)
         ierr = DSRestoreArray(pep->ds,DS_MAT_X,&pX);CHKERRQ(ierr);
         ierr = DSGetMat(pep->ds,DS_MAT_X,&X);CHKERRQ(ierr);
         ierr = BVMultInPlace(pjd->V,X,0,minv);CHKERRQ(ierr);
-        ierr = BVMultInPlace(pjd->W,X,0,minv);CHKERRQ(ierr);
+        if (pjd->proj==PEP_JD_PROJECTION_HARMONIC) { ierr = BVMultInPlace(pjd->W,X,0,minv);CHKERRQ(ierr); }
         ierr = MatDestroy(&X);CHKERRQ(ierr);
         nv = minv;
         bupdated = 0;
@@ -1356,26 +1352,28 @@ PetscErrorCode PEPSolve_JD(PEP pep)
             ierr = BVScaleColumn(pjd->V,nv+1-off,1.0/norm);CHKERRQ(ierr);
           }
         }
-        /* W = P(target)*V */
-        ierr = BVGetColumn(pjd->V,nv,&t[0]);CHKERRQ(ierr);
-        ierr = BVGetColumn(pjd->W,nv,&v[0]);CHKERRQ(ierr);
-        if (sz==2 && !off) {
-          ierr = BVGetColumn(pjd->V,nv+1,&t[1]);CHKERRQ(ierr);
-          ierr = BVGetColumn(pjd->W,nv+1,&v[1]);CHKERRQ(ierr);
-        }
-        theta[0] = pep->target; theta[1] = 0.0;
-        ierr = PEPJDComputeResidual(pep,PETSC_FALSE,sz-off,t,theta,v,ww);CHKERRQ(ierr);
-        ierr = BVRestoreColumn(pjd->W,nv,&v[0]);CHKERRQ(ierr);
-        ierr = BVRestoreColumn(pjd->V,nv,&t[0]);CHKERRQ(ierr);
-        ierr = BVOrthogonalizeColumn(pjd->W,nv,NULL,&norm,&lindep);CHKERRQ(ierr);
-        if (lindep || norm==0.0) SETERRQ(PETSC_COMM_SELF,1,"Linearly dependent continuation vector");
-        ierr = BVScaleColumn(pjd->W,nv,1.0/norm);CHKERRQ(ierr);
-        if (sz==2 && !off) {
-          ierr = BVRestoreColumn(pjd->W,nv+1,&v[1]);CHKERRQ(ierr);
-          ierr = BVRestoreColumn(pjd->V,nv+1,&t[1]);CHKERRQ(ierr);
-          ierr = BVOrthogonalizeColumn(pjd->W,nv+1,NULL,&norm,&lindep);CHKERRQ(ierr);
+        if (pjd->proj==PEP_JD_PROJECTION_HARMONIC) {
+          /* W = P(target)*V */
+          ierr = BVGetColumn(pjd->V,nv,&t[0]);CHKERRQ(ierr);
+          ierr = BVGetColumn(pjd->W,nv,&v[0]);CHKERRQ(ierr);
+          if (sz==2 && !off) {
+            ierr = BVGetColumn(pjd->V,nv+1,&t[1]);CHKERRQ(ierr);
+            ierr = BVGetColumn(pjd->W,nv+1,&v[1]);CHKERRQ(ierr);
+          }
+          theta[0] = pep->target; theta[1] = 0.0;
+          ierr = PEPJDComputeResidual(pep,PETSC_FALSE,sz-off,t,theta,v,ww);CHKERRQ(ierr);
+          ierr = BVRestoreColumn(pjd->W,nv,&v[0]);CHKERRQ(ierr);
+          ierr = BVRestoreColumn(pjd->V,nv,&t[0]);CHKERRQ(ierr);
+          ierr = BVOrthogonalizeColumn(pjd->W,nv,NULL,&norm,&lindep);CHKERRQ(ierr);
           if (lindep || norm==0.0) SETERRQ(PETSC_COMM_SELF,1,"Linearly dependent continuation vector");
-          ierr = BVScaleColumn(pjd->W,nv+1,1.0/norm);CHKERRQ(ierr);
+          ierr = BVScaleColumn(pjd->W,nv,1.0/norm);CHKERRQ(ierr);
+          if (sz==2 && !off) {
+            ierr = BVRestoreColumn(pjd->W,nv+1,&v[1]);CHKERRQ(ierr);
+            ierr = BVRestoreColumn(pjd->V,nv+1,&t[1]);CHKERRQ(ierr);
+            ierr = BVOrthogonalizeColumn(pjd->W,nv+1,NULL,&norm,&lindep);CHKERRQ(ierr);
+            if (lindep || norm==0.0) SETERRQ(PETSC_COMM_SELF,1,"Linearly dependent continuation vector");
+            ierr = BVScaleColumn(pjd->W,nv+1,1.0/norm);CHKERRQ(ierr);
+          }
         }
         bupdated = idx?0:nv;
         nv += sz-off;
@@ -1903,7 +1901,7 @@ PetscErrorCode PEPReset_JD(PEP pep)
   for (i=0;i<pep->nmat;i++) {
     ierr = BVDestroy(pjd->TV+i);CHKERRQ(ierr);
   }
-  ierr = BVDestroy(&pjd->W);CHKERRQ(ierr);
+  if (pjd->proj==PEP_JD_PROJECTION_HARMONIC) { ierr = BVDestroy(&pjd->W);CHKERRQ(ierr); }
   if (pjd->ld>1) {
     ierr = BVDestroy(&pjd->V);CHKERRQ(ierr);
     for (i=0;i<pep->nmat;i++) {
