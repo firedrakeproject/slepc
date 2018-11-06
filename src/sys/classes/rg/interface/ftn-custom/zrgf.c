@@ -41,7 +41,7 @@ PETSC_EXTERN void PETSC_STDCALL rggettype_(RG *rg,char *name PETSC_MIXED_LEN(len
   RGType tname;
 
   *ierr = RGGetType(*rg,&tname); if (*ierr) return;
-  *ierr = PetscStrncpy(name,tname,len);
+  *ierr = PetscStrncpy(name,tname,len);if (*ierr) return;
   FIXRETURNCHAR(PETSC_TRUE,name,len);
 }
 
@@ -50,7 +50,7 @@ PETSC_EXTERN void PETSC_STDCALL rgsetoptionsprefix_(RG *rg,char *prefix PETSC_MI
   char *t;
 
   FIXCHAR(prefix,len,t);
-  *ierr = RGSetOptionsPrefix(*rg,t);
+  *ierr = RGSetOptionsPrefix(*rg,t);if (*ierr) return;
   FREECHAR(prefix,t);
 }
 
@@ -59,7 +59,7 @@ PETSC_EXTERN void PETSC_STDCALL rgappendoptionsprefix_(RG *rg,char *prefix PETSC
   char *t;
 
   FIXCHAR(prefix,len,t);
-  *ierr = RGAppendOptionsPrefix(*rg,t);
+  *ierr = RGAppendOptionsPrefix(*rg,t);if (*ierr) return;
   FREECHAR(prefix,t);
 }
 
@@ -68,7 +68,7 @@ PETSC_EXTERN void PETSC_STDCALL rggetoptionsprefix_(RG *rg,char *prefix PETSC_MI
   const char *tname;
 
   *ierr = RGGetOptionsPrefix(*rg,&tname); if (*ierr) return;
-  *ierr = PetscStrncpy(prefix,tname,len);
+  *ierr = PetscStrncpy(prefix,tname,len);if (*ierr) return;
   FIXRETURNCHAR(PETSC_TRUE,prefix,len);
 }
 

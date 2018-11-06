@@ -200,7 +200,7 @@ PETSC_EXTERN void PETSC_STDCALL svdsettype_(SVD *svd,char *type PETSC_MIXED_LEN(
   char *t;
 
   FIXCHAR(type,len,t);
-  *ierr = SVDSetType(*svd,t);
+  *ierr = SVDSetType(*svd,t);if (*ierr) return;
   FREECHAR(type,t);
 }
 
@@ -209,7 +209,7 @@ PETSC_EXTERN void PETSC_STDCALL svdgettype_(SVD *svd,char *name PETSC_MIXED_LEN(
   SVDType tname;
 
   *ierr = SVDGetType(*svd,&tname);if (*ierr) return;
-  *ierr = PetscStrncpy(name,tname,len);
+  *ierr = PetscStrncpy(name,tname,len);if (*ierr) return;
   FIXRETURNCHAR(PETSC_TRUE,name,len);
 }
 
@@ -239,7 +239,7 @@ PETSC_EXTERN void PETSC_STDCALL svdsetoptionsprefix_(SVD *svd,char *prefix PETSC
   char *t;
 
   FIXCHAR(prefix,len,t);
-  *ierr = SVDSetOptionsPrefix(*svd,t);
+  *ierr = SVDSetOptionsPrefix(*svd,t);if (*ierr) return;
   FREECHAR(prefix,t);
 }
 
@@ -248,7 +248,7 @@ PETSC_EXTERN void PETSC_STDCALL svdappendoptionsprefix_(SVD *svd,char *prefix PE
   char *t;
 
   FIXCHAR(prefix,len,t);
-  *ierr = SVDAppendOptionsPrefix(*svd,t);
+  *ierr = SVDAppendOptionsPrefix(*svd,t);if (*ierr) return;
   FREECHAR(prefix,t);
 }
 
@@ -257,7 +257,7 @@ PETSC_EXTERN void PETSC_STDCALL svdgetoptionsprefix_(SVD *svd,char *prefix PETSC
   const char *tname;
 
   *ierr = SVDGetOptionsPrefix(*svd,&tname); if (*ierr) return;
-  *ierr = PetscStrncpy(prefix,tname,len);
+  *ierr = PetscStrncpy(prefix,tname,len);if (*ierr) return;
   FIXRETURNCHAR(PETSC_TRUE,prefix,len);
 }
 

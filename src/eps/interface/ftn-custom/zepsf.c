@@ -240,7 +240,7 @@ PETSC_EXTERN void PETSC_STDCALL epssettype_(EPS *eps,char *type PETSC_MIXED_LEN(
   char *t;
 
   FIXCHAR(type,len,t);
-  *ierr = EPSSetType(*eps,t);
+  *ierr = EPSSetType(*eps,t);if (*ierr) return;
   FREECHAR(type,t);
 }
 
@@ -249,7 +249,7 @@ PETSC_EXTERN void PETSC_STDCALL epsgettype_(EPS *eps,char *name PETSC_MIXED_LEN(
   EPSType tname;
 
   *ierr = EPSGetType(*eps,&tname);if (*ierr) return;
-  *ierr = PetscStrncpy(name,tname,len);
+  *ierr = PetscStrncpy(name,tname,len);if (*ierr) return;
   FIXRETURNCHAR(PETSC_TRUE,name,len);
 }
 
@@ -258,7 +258,7 @@ PETSC_EXTERN void PETSC_STDCALL epssetoptionsprefix_(EPS *eps,char *prefix PETSC
   char *t;
 
   FIXCHAR(prefix,len,t);
-  *ierr = EPSSetOptionsPrefix(*eps,t);
+  *ierr = EPSSetOptionsPrefix(*eps,t);if (*ierr) return;
   FREECHAR(prefix,t);
 }
 
@@ -267,7 +267,7 @@ PETSC_EXTERN void PETSC_STDCALL epsappendoptionsprefix_(EPS *eps,char *prefix PE
   char *t;
 
   FIXCHAR(prefix,len,t);
-  *ierr = EPSAppendOptionsPrefix(*eps,t);
+  *ierr = EPSAppendOptionsPrefix(*eps,t);if (*ierr) return;
   FREECHAR(prefix,t);
 }
 
@@ -276,7 +276,7 @@ PETSC_EXTERN void PETSC_STDCALL epsgetoptionsprefix_(EPS *eps,char *prefix PETSC
   const char *tname;
 
   *ierr = EPSGetOptionsPrefix(*eps,&tname); if (*ierr) return;
-  *ierr = PetscStrncpy(prefix,tname,len);
+  *ierr = PetscStrncpy(prefix,tname,len);if (*ierr) return;
   FIXRETURNCHAR(PETSC_TRUE,prefix,len);
 }
 

@@ -258,7 +258,7 @@ PETSC_EXTERN void PETSC_STDCALL nepsettype_(NEP *nep,char *type PETSC_MIXED_LEN(
   char *t;
 
   FIXCHAR(type,len,t);
-  *ierr = NEPSetType(*nep,t);
+  *ierr = NEPSetType(*nep,t);if (*ierr) return;
   FREECHAR(type,t);
 }
 
@@ -267,7 +267,7 @@ PETSC_EXTERN void PETSC_STDCALL nepgettype_(NEP *nep,char *name PETSC_MIXED_LEN(
   NEPType tname;
 
   *ierr = NEPGetType(*nep,&tname);if (*ierr) return;
-  *ierr = PetscStrncpy(name,tname,len);
+  *ierr = PetscStrncpy(name,tname,len);if (*ierr) return;
   FIXRETURNCHAR(PETSC_TRUE,name,len);
 }
 
@@ -276,7 +276,7 @@ PETSC_EXTERN void PETSC_STDCALL nepsetoptionsprefix_(NEP *nep,char *prefix PETSC
   char *t;
 
   FIXCHAR(prefix,len,t);
-  *ierr = NEPSetOptionsPrefix(*nep,t);
+  *ierr = NEPSetOptionsPrefix(*nep,t);if (*ierr) return;
   FREECHAR(prefix,t);
 }
 
@@ -285,7 +285,7 @@ PETSC_EXTERN void PETSC_STDCALL nepappendoptionsprefix_(NEP *nep,char *prefix PE
   char *t;
 
   FIXCHAR(prefix,len,t);
-  *ierr = NEPAppendOptionsPrefix(*nep,t);
+  *ierr = NEPAppendOptionsPrefix(*nep,t);if (*ierr) return;
   FREECHAR(prefix,t);
 }
 
@@ -294,7 +294,7 @@ PETSC_EXTERN void PETSC_STDCALL nepgetoptionsprefix_(NEP *nep,char *prefix PETSC
   const char *tname;
 
   *ierr = NEPGetOptionsPrefix(*nep,&tname); if (*ierr) return;
-  *ierr = PetscStrncpy(prefix,tname,len);
+  *ierr = PetscStrncpy(prefix,tname,len);if (*ierr) return;
   FIXRETURNCHAR(PETSC_TRUE,prefix,len);
 }
 

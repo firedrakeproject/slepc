@@ -32,7 +32,7 @@ PETSC_EXTERN void PETSC_STDCALL bvsettype_(BV *bv,char *type PETSC_MIXED_LEN(len
   char *t;
 
   FIXCHAR(type,len,t);
-  *ierr = BVSetType(*bv,t);
+  *ierr = BVSetType(*bv,t);if (*ierr) return;
   FREECHAR(type,t);
 }
 
@@ -41,7 +41,7 @@ PETSC_EXTERN void PETSC_STDCALL bvgettype_(BV *bv,char *name PETSC_MIXED_LEN(len
   BVType tname;
 
   *ierr = BVGetType(*bv,&tname); if (*ierr) return;
-  *ierr = PetscStrncpy(name,tname,len);
+  *ierr = PetscStrncpy(name,tname,len);if (*ierr) return;
   FIXRETURNCHAR(PETSC_TRUE,name,len);
 }
 
@@ -50,7 +50,7 @@ PETSC_EXTERN void PETSC_STDCALL bvsetoptionsprefix_(BV *bv,char *prefix PETSC_MI
   char *t;
 
   FIXCHAR(prefix,len,t);
-  *ierr = BVSetOptionsPrefix(*bv,t);
+  *ierr = BVSetOptionsPrefix(*bv,t);if (*ierr) return;
   FREECHAR(prefix,t);
 }
 
@@ -59,7 +59,7 @@ PETSC_EXTERN void PETSC_STDCALL bvappendoptionsprefix_(BV *bv,char *prefix PETSC
   char *t;
 
   FIXCHAR(prefix,len,t);
-  *ierr = BVAppendOptionsPrefix(*bv,t);
+  *ierr = BVAppendOptionsPrefix(*bv,t);if (*ierr) return;
   FREECHAR(prefix,t);
 }
 
@@ -68,7 +68,7 @@ PETSC_EXTERN void PETSC_STDCALL bvgetoptionsprefix_(BV *bv,char *prefix PETSC_MI
   const char *tname;
 
   *ierr = BVGetOptionsPrefix(*bv,&tname); if (*ierr) return;
-  *ierr = PetscStrncpy(prefix,tname,len);
+  *ierr = PetscStrncpy(prefix,tname,len);if (*ierr) return;
   FIXRETURNCHAR(PETSC_TRUE,prefix,len);
 }
 

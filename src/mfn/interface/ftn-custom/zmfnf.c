@@ -91,7 +91,7 @@ PETSC_EXTERN void PETSC_STDCALL mfnsettype_(MFN *mfn,char *type PETSC_MIXED_LEN(
   char *t;
 
   FIXCHAR(type,len,t);
-  *ierr = MFNSetType(*mfn,t);
+  *ierr = MFNSetType(*mfn,t);if (*ierr) return;
   FREECHAR(type,t);
 }
 
@@ -100,7 +100,7 @@ PETSC_EXTERN void PETSC_STDCALL mfngettype_(MFN *mfn,char *name PETSC_MIXED_LEN(
   MFNType tname;
 
   *ierr = MFNGetType(*mfn,&tname);if (*ierr) return;
-  *ierr = PetscStrncpy(name,tname,len);
+  *ierr = PetscStrncpy(name,tname,len);if (*ierr) return;
   FIXRETURNCHAR(PETSC_TRUE,name,len);
 }
 
@@ -109,7 +109,7 @@ PETSC_EXTERN void PETSC_STDCALL mfnsetoptionsprefix_(MFN *mfn,char *prefix PETSC
   char *t;
 
   FIXCHAR(prefix,len,t);
-  *ierr = MFNSetOptionsPrefix(*mfn,t);
+  *ierr = MFNSetOptionsPrefix(*mfn,t);if (*ierr) return;
   FREECHAR(prefix,t);
 }
 
@@ -118,7 +118,7 @@ PETSC_EXTERN void PETSC_STDCALL mfnappendoptionsprefix_(MFN *mfn,char *prefix PE
   char *t;
 
   FIXCHAR(prefix,len,t);
-  *ierr = MFNAppendOptionsPrefix(*mfn,t);
+  *ierr = MFNAppendOptionsPrefix(*mfn,t);if (*ierr) return;
   FREECHAR(prefix,t);
 }
 
@@ -127,7 +127,7 @@ PETSC_EXTERN void PETSC_STDCALL mfngetoptionsprefix_(MFN *mfn,char *prefix PETSC
   const char *tname;
 
   *ierr = MFNGetOptionsPrefix(*mfn,&tname); if (*ierr) return;
-  *ierr = PetscStrncpy(prefix,tname,len);
+  *ierr = PetscStrncpy(prefix,tname,len);if (*ierr) return;
   FIXRETURNCHAR(PETSC_TRUE,prefix,len);
 }
 

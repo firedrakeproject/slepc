@@ -32,7 +32,7 @@ PETSC_EXTERN void PETSC_STDCALL stsettype_(ST *st,char *type PETSC_MIXED_LEN(len
   char *t;
 
   FIXCHAR(type,len,t);
-  *ierr = STSetType(*st,t);
+  *ierr = STSetType(*st,t);if (*ierr) return;
   FREECHAR(type,t);
 }
 
@@ -41,7 +41,7 @@ PETSC_EXTERN void PETSC_STDCALL stgettype_(ST *st,char *name PETSC_MIXED_LEN(len
   STType tname;
 
   *ierr = STGetType(*st,&tname); if (*ierr) return;
-  *ierr = PetscStrncpy(name,tname,len);
+  *ierr = PetscStrncpy(name,tname,len);if (*ierr) return;
   FIXRETURNCHAR(PETSC_TRUE,name,len);
 }
 
@@ -50,7 +50,7 @@ PETSC_EXTERN void PETSC_STDCALL stsetoptionsprefix_(ST *st,char *prefix PETSC_MI
   char *t;
 
   FIXCHAR(prefix,len,t);
-  *ierr = STSetOptionsPrefix(*st,t);
+  *ierr = STSetOptionsPrefix(*st,t);if (*ierr) return;
   FREECHAR(prefix,t);
 }
 
@@ -59,7 +59,7 @@ PETSC_EXTERN void PETSC_STDCALL stappendoptionsprefix_(ST *st,char *prefix PETSC
   char *t;
 
   FIXCHAR(prefix,len,t);
-  *ierr = STAppendOptionsPrefix(*st,t);
+  *ierr = STAppendOptionsPrefix(*st,t);if (*ierr) return;
   FREECHAR(prefix,t);
 }
 
@@ -68,7 +68,7 @@ PETSC_EXTERN void PETSC_STDCALL stgetoptionsprefix_(ST *st,char *prefix PETSC_MI
   const char *tname;
 
   *ierr = STGetOptionsPrefix(*st,&tname); if (*ierr) return;
-  *ierr = PetscStrncpy(prefix,tname,len);
+  *ierr = PetscStrncpy(prefix,tname,len);if (*ierr) return;
   FIXRETURNCHAR(PETSC_TRUE,prefix,len);
 }
 

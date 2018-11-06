@@ -55,7 +55,7 @@ PETSC_EXTERN void PETSC_STDCALL epskrylovschurgetinertias_(EPS *eps,PetscInt *ns
   if (shifts) { *ierr = PetscMemcpy(shifts,oshifts,n*sizeof(PetscReal)); if (*ierr) return; }
   if (inertias) { *ierr = PetscMemcpy(inertias,oinertias,n*sizeof(PetscInt)); if (*ierr) return; }
   *nshift = n;
-  *ierr = PetscFree(oshifts);
+  *ierr = PetscFree(oshifts);if (*ierr) return;
   *ierr = PetscFree(oinertias);
 }
 

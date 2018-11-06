@@ -29,7 +29,7 @@ PETSC_EXTERN void PETSC_STDCALL pepstoargetinertias_(PEP *pep,PetscInt *nshift,P
   if (shifts) { *ierr = PetscMemcpy(shifts,oshifts,n*sizeof(PetscReal)); if (*ierr) return; }
   if (inertias) { *ierr = PetscMemcpy(inertias,oinertias,n*sizeof(PetscInt)); if (*ierr) return; }
   *nshift = n;
-  *ierr = PetscFree(oshifts);
+  *ierr = PetscFree(oshifts);if (*ierr) return;
   *ierr = PetscFree(oinertias);
 }
 

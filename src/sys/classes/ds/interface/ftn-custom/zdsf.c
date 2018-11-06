@@ -38,7 +38,7 @@ PETSC_EXTERN void PETSC_STDCALL dssettype_(DS *ds,char *type PETSC_MIXED_LEN(len
   char *t;
 
   FIXCHAR(type,len,t);
-  *ierr = DSSetType(*ds,t);
+  *ierr = DSSetType(*ds,t);if (*ierr) return;
   FREECHAR(type,t);
 }
 
@@ -47,7 +47,7 @@ PETSC_EXTERN void PETSC_STDCALL dsgettype_(DS *ds,char *name PETSC_MIXED_LEN(len
   DSType tname;
 
   *ierr = DSGetType(*ds,&tname);if (*ierr) return;
-  *ierr = PetscStrncpy(name,tname,len);
+  *ierr = PetscStrncpy(name,tname,len);if (*ierr) return;
   FIXRETURNCHAR(PETSC_TRUE,name,len);
 }
 
@@ -56,7 +56,7 @@ PETSC_EXTERN void PETSC_STDCALL dssetoptionsprefix_(DS *ds,char *prefix PETSC_MI
   char *t;
 
   FIXCHAR(prefix,len,t);
-  *ierr = DSSetOptionsPrefix(*ds,t);
+  *ierr = DSSetOptionsPrefix(*ds,t);if (*ierr) return;
   FREECHAR(prefix,t);
 }
 
@@ -65,7 +65,7 @@ PETSC_EXTERN void PETSC_STDCALL dsappendoptionsprefix_(DS *ds,char *prefix PETSC
   char *t;
 
   FIXCHAR(prefix,len,t);
-  *ierr = DSAppendOptionsPrefix(*ds,t);
+  *ierr = DSAppendOptionsPrefix(*ds,t);if (*ierr) return;
   FREECHAR(prefix,t);
 }
 
@@ -74,7 +74,7 @@ PETSC_EXTERN void PETSC_STDCALL dsgetoptionsprefix_(DS *ds,char *prefix PETSC_MI
   const char *tname;
 
   *ierr = DSGetOptionsPrefix(*ds,&tname); if (*ierr) return;
-  *ierr = PetscStrncpy(prefix,tname,len);
+  *ierr = PetscStrncpy(prefix,tname,len);if (*ierr) return;
   FIXRETURNCHAR(PETSC_TRUE,prefix,len);
 }
 

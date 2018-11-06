@@ -37,7 +37,7 @@ PETSC_EXTERN void slepcconvmonitordestroy_(SlepcConvMonitor *ctx,PetscErrorCode 
 
 PETSC_EXTERN void PETSC_STDCALL slepcgetversion_(char *version PETSC_MIXED_LEN(len1),int *ierr PETSC_END_LEN(len1))
 {
-  *ierr = SlepcGetVersion(version,len1);
+  *ierr = SlepcGetVersion(version,len1);if (*ierr) return;
   FIXRETURNCHAR(PETSC_TRUE,version,len1);
 }
 
