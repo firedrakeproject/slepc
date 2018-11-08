@@ -14,7 +14,7 @@ wPETSC_DIR='@WPETSC_DIR@'
 petsc_dir='@PETSC_DIR@'
 petsc_arch='@PETSC_ARCH@'
 # Must be consistent with gmakefile.test
-testlogfile=@TESTROOT@/examples_${petsc_arch}.log
+testlogfile=@TESTROOT@/@TESTLOGFILE@
 config_dir='@CONFIG_DIR@'
 petsc_bindir='@PETSC_BINDIR@'
 @DATAFILESPATH_LINE@

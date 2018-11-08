@@ -99,12 +99,14 @@ class generateExamples(Slepc):
       installdir=os.path.sep.join(dirlist[0:len(dirlist)-4])
       self.arch_dir=installdir
       self.srcdir=os.path.join(os.path.dirname(thisscriptdir),'src')
+      self.testlogfile = 'examples-install.log'
     else:
       if petsc_arch == '':
         raise RuntimeError('PETSC_ARCH must be set when running from build directory')
       # Case 1 discussed above
       self.arch_dir=os.path.join(self.slepc_dir,self.petsc_arch)
       self.srcdir=os.path.join(self.slepc_dir,'src')
+      self.testlogfile = 'examples_'+ petsc_arch + '.log'
 
     self.testroot_dir=os.path.abspath(testdir)
 
@@ -353,6 +355,7 @@ class generateExamples(Slepc):
     subst['exec']="../"+subst['execname']
     subst['testroot']=self.testroot_dir
     subst['testname']=testname
+    subst['testlogfile']=self.testlogfile
     dp = self.conf.get('DATAFILESPATH','')
     subst['datafilespath_line'] = 'DATAFILESPATH=${DATAFILESPATH:-"'+dp+'"}'
 
