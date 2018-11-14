@@ -240,7 +240,9 @@ static PetscErrorCode PEPJDUpdateTV(PEP pep,PetscInt low,PetscInt high,Vec *w)
             fact = -cg[pp+2];
             PetscStackCallBLAS("BLASgemm",BLASgemm_("C","N",&n_,&n_,&n_,&sone,pjd->Tj+(pp+1)*pjd->ld*pjd->ld,&ld_,pjd->XpX,&ld_,&fact,Np,&n_));
             fact = 1/ca[pp];
+            ierr = MatShift(T,-cb[pp+1]);CHKERRQ(ierr);
             PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&n_,&n_,&n_,&fact,N,&n_,pT,&n_,&fact,Np,&n_));
+            ierr = MatShift(T,cb[pp+1]);CHKERRQ(ierr);
             psc = Np; Np = N; N = psc;
             PetscStackCallBLAS("BLASgemv",BLASgemv_("N",&n_,&n_,&sone,N,&n_,x2,&one,&sone,y2,&one));
           } else if (pp==pjd->midx-2) {
@@ -365,9 +367,9 @@ static PetscErrorCode PEPJDExtendedPCApply(PC pc,Vec x,Vec y)
   ierr = VecPlaceArray(ty,array2);CHKERRQ(ierr);
   ierr = PCApply(ctx->pc,tx,ty);CHKERRQ(ierr);
   if (n) {
-    for (j=0;j<n;j++) {
-      t[j] = 0.0;
-      for (i=0;i<n;i++) t[j] += ctx->M[i+j*ld]*x2[i];
+    for (i=0;i<n;i++) {
+      t[i] = 0.0;
+      for (j=0;j<n;j++) t[i] += ctx->M[i+j*ld]*x2[j];
     }
     if (rk==np-1) for (i=0;i<n;i++) array2[nloc+i] = t[i];
     ierr = PetscBLASIntCast(ld,&ld_);CHKERRQ(ierr);
@@ -876,8 +878,8 @@ static PetscErrorCode PEPJDUpdateExtendedPC(PEP pep,PetscScalar theta)
     V = U+n*n;
     /* pseudo-inverse */
     for (j=0;j<n;j++) {
-      for (i=0;i<j;i++) S[n*j+i] = -pjd->T[pep->ncv*j+i];
-      S[n*j+j] = theta-pjd->T[pep->ncv*j+j];
+      for (i=0;i<n;i++) S[n*j+i] = -pjd->T[pep->ncv*j+i];
+      S[n*j+j] += theta;
     }
     ierr = PetscBLASIntCast(n,&n_);CHKERRQ(ierr);
     ierr = PetscBLASIntCast(ld,&ld_);CHKERRQ(ierr);
