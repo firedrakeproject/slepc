@@ -44,11 +44,12 @@ all:
            echo "  Send all contents of ./${PETSC_ARCH}/lib/slepc/conf to slepc-maint@upv.es" 2>&1 | tee -a ./${PETSC_ARCH}/lib/slepc/conf/make.log;\
            printf "************************************************************************"${PETSC_TEXT_NORMAL}"\n" 2>&1 | tee -a ./${PETSC_ARCH}/lib/slepc/conf/make.log; \
 	 elif [ "${SLEPC_DESTDIR}" = "${SLEPC_DIR}/${PETSC_ARCH}" ]; then \
-           echo "Now to check if the library is working do: make check";\
+           echo "Now to check if the library is working do:";\
+           echo "make SLEPC_DIR=${SLEPC_DIR} PETSC_DIR=${PETSC_DIR} check";\
            echo "=========================================";\
 	 else \
 	   echo "Now to install the library do:";\
-	   echo "make SLEPC_DIR=${PWD} PETSC_DIR=${PETSC_DIR} install";\
+	   echo "make SLEPC_DIR=${SLEPC_DIR} PETSC_DIR=${PETSC_DIR} install";\
 	   echo "=========================================";\
 	 fi
 	@if test -s ./${PETSC_ARCH}/lib/slepc/conf/error.log; then exit 1; fi
