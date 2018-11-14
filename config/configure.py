@@ -448,8 +448,8 @@ elif cmakeok: buildtype = 'cmake'
 else: buildtype = 'legacy'
 print(' Configure stage complete. Now build the SLEPc library with ('+buildtype+' build):')
 if emptyarch:
-  print('   make SLEPC_DIR=$PWD PETSC_DIR='+petsc.dir)
+  print('   make SLEPC_DIR='+slepc.dir+' PETSC_DIR='+petsc.dir)
 else:
-  print('   make SLEPC_DIR=$PWD PETSC_DIR='+petsc.dir+' PETSC_ARCH='+archname)
+  print('   make SLEPC_DIR='+slepc.dir+' PETSC_DIR='+petsc.dir+' PETSC_ARCH='+archname)
 print('xxx'+'='*74+'xxx')
 print()
