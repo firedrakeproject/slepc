@@ -348,7 +348,7 @@ for dir in dirs:
     if os.path.splitext(dst)[1] == '.dylib' and os.path.isfile('/usr/bin/install_name_tool'):
       (result, output) = commands.getstatusoutput('otool -D '+src)
       oldname = output[output.find("\n")+1:]
-      installName = oldname.replace(self.archDir, self.installDir)
+      installName = oldname.replace(os.path.realpath(self.archDir), self.installDir)
       (result, output) = commands.getstatusoutput('/usr/bin/install_name_tool -id ' + installName + ' ' + dst)
     # preserve the original timestamps - so that the .a vs .so time order is preserved
     shutil.copystat(src,dst)
