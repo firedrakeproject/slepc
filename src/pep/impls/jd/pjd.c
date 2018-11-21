@@ -128,6 +128,8 @@ PetscErrorCode PEPSetUp_JD(PEP pep)
   ierr = STGetTransform(pep->st,&flg);CHKERRQ(ierr);
   if (flg) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Solver requires the ST transformation flag unset, see STSetTransform()");
 
+  if (!pjd->mmidx) pjd->mmidx = pep->nmat-1;
+  pjd->mmidx = PetscMin(pjd->mmidx,pep->nmat-1);
   if (!pjd->keep) pjd->keep = 0.5;
   ierr = PEPBasisCoefficients(pep,pep->pbc);CHKERRQ(ierr);
   ierr = PEPAllocateSolution(pep,0);CHKERRQ(ierr);
@@ -1103,10 +1105,11 @@ static PetscErrorCode PEPJDLockConverged(PEP pep,PetscInt *nv,PetscInt sz)
 {
   PetscErrorCode ierr;
   PEP_JD         *pjd = (PEP_JD*)pep->data;
-  PetscInt       j,i,ldds,rk=0,nvv=*nv;
-  Vec            v,x;
-  PetscScalar    *R,*pX;
+  PetscInt       j,i,*P,ldds,rk=0,nvv=*nv;
+  Vec            v,x,w;
+  PetscScalar    *R,*r,*pX,target[2];
   Mat            X;
+  PetscBLASInt   sz_,rk_,nv_,info;
 
   PetscFunctionBegin;
   /* update AX and XpX */
@@ -1134,10 +1137,23 @@ static PetscErrorCode PEPJDLockConverged(PEP pep,PetscInt *nv,PetscInt sz)
   }
 
   /* Extend search space */
-  ierr = PetscCalloc1(nvv*nvv,&R);CHKERRQ(ierr);
+  ierr = PetscCalloc3(nvv,&P,nvv*nvv,&R,nvv*sz,&r);CHKERRQ(ierr);
   ierr = DSGetLeadingDimension(pep->ds,&ldds);CHKERRQ(ierr);
   ierr = DSGetArray(pep->ds,DS_MAT_X,&pX);CHKERRQ(ierr);
-  ierr = PEPJDOrthogonalize(nvv,nvv,pX+ldds,ldds,&rk,NULL,NULL,0);CHKERRQ(ierr);
+  ierr = PEPJDOrthogonalize(nvv,nvv,pX,ldds,&rk,P,R,nvv);CHKERRQ(ierr);
+  for (j=0;j<sz;j++) {
+    for (i=0;i<rk;i++) r[i*sz+j] = PetscConj(R[nvv*i+j]*pep->eigr[P[i]]); /* first row scaled with permuted diagonal */
+  }
+  ierr = PetscBLASIntCast(rk,&rk_);CHKERRQ(ierr);
+  ierr = PetscBLASIntCast(sz,&sz_);CHKERRQ(ierr);
+  ierr = PetscBLASIntCast(nvv,&nv_);CHKERRQ(ierr);
+  PetscStackCallBLAS("LAPACKtrtri",LAPACKtrtri_("U","N",&rk_,R,&nv_,&info));
+  SlepcCheckLapackInfo("trtri",info);
+  for (i=0;i<sz;i++) {
+    PetscStackCallBLAS("BLAStrmv",BLAStrmv_("U","C","N",&rk_,R,&nv_,r+i,&sz_));
+  }
+  for (i=0;i<sz*rk;i++) r[i] = PetscConj(r[i]); /* revert */
+  ierr = BVSetActiveColumns(pjd->V,0,nvv);CHKERRQ(ierr);
   rk -= sz;
   for (j=0;j<rk;j++) {
     ierr = PetscMemcpy(R+j*nvv,pX+(j+sz)*ldds,nvv*sizeof(PetscScalar));CHKERRQ(ierr);
@@ -1145,14 +1161,30 @@ static PetscErrorCode PEPJDLockConverged(PEP pep,PetscInt *nv,PetscInt sz)
   ierr = DSRestoreArray(pep->ds,DS_MAT_X,&pX);CHKERRQ(ierr);
   ierr = MatCreateSeqDense(PETSC_COMM_SELF,nvv,rk,R,&X);CHKERRQ(ierr);
   ierr = BVMultInPlace(pjd->V,X,0,rk);CHKERRQ(ierr);
-  if (pjd->proj==PEP_JD_PROJECTION_HARMONIC) {
-    ierr = BVMultInPlace(pjd->W,X,0,rk);CHKERRQ(ierr);
-    ierr = BVSetActiveColumns(pjd->W,0,rk);CHKERRQ(ierr);
-  }
   ierr = MatDestroy(&X);CHKERRQ(ierr);
   ierr = BVSetActiveColumns(pjd->V,0,rk);CHKERRQ(ierr);
+  for (j=0;j<rk;j++) {
+    ierr = BVGetColumn(pjd->V,j,&v);CHKERRQ(ierr);
+    ierr = PEPJDCopyToExtendedVec(pep,NULL,r+sz*(j+sz),sz,pjd->nlock-sz,v,PETSC_FALSE);CHKERRQ(ierr);
+    ierr = BVRestoreColumn(pjd->V,j,&v);CHKERRQ(ierr);
+  }
+  ierr = BVOrthogonalize(pjd->V,NULL);CHKERRQ(ierr);
+
+  if (pjd->proj==PEP_JD_PROJECTION_HARMONIC) {
+    for (j=0;j<rk;j++) {
+      /* W = P(target)*V */
+      ierr = BVGetColumn(pjd->W,j,&w);CHKERRQ(ierr);
+      ierr = BVGetColumn(pjd->V,j,&v);CHKERRQ(ierr);
+      target[0] = pep->target; target[1] = 0.0;
+      ierr = PEPJDComputeResidual(pep,PETSC_FALSE,1,&v,target,&w,pep->work);CHKERRQ(ierr);
+      ierr = BVRestoreColumn(pjd->V,j,&v);CHKERRQ(ierr);
+      ierr = BVRestoreColumn(pjd->W,j,&w);CHKERRQ(ierr);
+    }
+    ierr = BVSetActiveColumns(pjd->W,0,rk);CHKERRQ(ierr);
+    ierr = BVOrthogonalize(pjd->W,NULL);CHKERRQ(ierr);
+  }
   *nv = rk;
-  ierr = PetscFree(R);CHKERRQ(ierr);
+  ierr = PetscFree3(P,R,r);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -1682,7 +1714,8 @@ PetscErrorCode PEPJDSetMinimalityIndex_JD(PEP pep,PetscInt mmidx)
   if (mmidx == PETSC_DEFAULT || mmidx == PETSC_DECIDE) pjd->mmidx = 1;
   else {
     if (mmidx < 1) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"Invalid mmidx value");
-    pjd->mmidx = PetscMin(mmidx,pep->nmat-1);
+    pjd->mmidx = mmidx;
+    pep->state = PEP_STATE_INITIAL;
   }
   PetscFunctionReturn(0);
 }
@@ -1955,7 +1988,7 @@ PETSC_EXTERN PetscErrorCode PEPCreate_JD(PEP pep)
   pep->data = (void*)pjd;
 
   pjd->fix   = 0.01;
-  pjd->mmidx = 1;
+  pjd->mmidx = 0;
 
   pep->ops->solve          = PEPSolve_JD;
   pep->ops->setup          = PEPSetUp_JD;
