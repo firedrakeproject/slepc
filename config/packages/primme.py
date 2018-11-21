@@ -88,7 +88,7 @@ class Primme(package.Package):
     if hasattr(petsc,'fc'):
       g.write('F77         = '+petsc.fc+'\n')
     g.write('DEFINES     = ')
-    if petsc.blaslapackunderscore:
+    if petsc.blaslapackmangling == 'underscore':
       g.write('-DF77UNDERSCORE ')
     if petsc.blaslapackint64:
       g.write('-DPRIMME_BLASINT_SIZE=64')

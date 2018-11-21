@@ -133,7 +133,7 @@ class PETSc(package.Package):
     self.mpiuni = False
     self.debug = False
     self.singlelib = False
-    self.blaslapackunderscore = False
+    self.blaslapackmangling = ''
     self.blaslapackint64 = False
     self.fortran = False
     try:
@@ -149,7 +149,11 @@ class PETSc(package.Package):
         elif len(l)==3 and l[0]=='#define' and l[1]=='PETSC_USE_SINGLE_LIBRARY' and l[2]=='1':
           self.singlelib = True
         elif len(l)==3 and l[0]=='#define' and l[1]=='PETSC_BLASLAPACK_UNDERSCORE' and l[2]=='1':
-          self.blaslapackunderscore = True
+          self.blaslapackmangling = 'underscore'
+        elif len(l)==3 and l[0]=='#define' and l[1]=='PETSC_BLASLAPACK_CAPS' and l[2]=='1':
+          self.blaslapackmangling = 'caps'
+        elif len(l)==3 and l[0]=='#define' and l[1]=='PETSC_BLASLAPACK_STDCALL' and l[2]=='1':
+          self.blaslapackmangling = 'stdcall'
         elif len(l)==3 and l[0]=='#define' and l[1]=='PETSC_HAVE_64BIT_BLAS_INDICES' and l[2]=='1':
           self.blaslapackint64 = True
         elif len(l)==3 and l[0]=='#define' and l[1]=='PETSC_HAVE_FORTRAN' and l[2]=='1':

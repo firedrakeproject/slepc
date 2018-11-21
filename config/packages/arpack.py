@@ -81,7 +81,7 @@ class Arpack(package.Package):
       self.log.Exit('ERROR: --download-arpack requires that the command autoreconf is available on your PATH.')
 
     # Build package
-    confopt = '--prefix='+archdir+' F77="'+petsc.fc+'" FFLAGS="'+petsc.fc_flags.replace('-Wall','').replace('-Wshadow','')+'"'
+    confopt = '--prefix='+archdir+' CC="'+petsc.cc+'" CFLAGS="'+petsc.cc_flags+'" F77="'+petsc.fc+'" FFLAGS="'+petsc.fc_flags.replace('-Wall','').replace('-Wshadow','')+'"'
     if not petsc.mpiuni:
       confopt = confopt+' --enable-mpi'
     if not petsc.buildsharedlib:

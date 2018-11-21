@@ -170,7 +170,7 @@ Unable to download package %s from: %s
     else:
       return []
 
-  def LinkWithOutput(self,functions,callbacks,flags):
+  def LinkWithOutput(self,functions,callbacks,flags,givencode=''):
 
     # Create temporary directory and makefile
     try:
@@ -191,22 +191,25 @@ Unable to download package %s from: %s
       self.log.Exit('ERROR: Cannot create makefile in temporary directory')
 
     # Create source file
-    code = '#include "petscsnes.h"\n'
-    for f in functions:
-      code += 'PETSC_EXTERN int\n' + f + '();\n'
+    if givencode == '':
+      code = '#include "petscsnes.h"\n'
+      for f in functions:
+        code += 'PETSC_EXTERN int\n' + f + '();\n'
 
-    for c in callbacks:
-      code += 'int '+ c + '() { return 0; } \n'
+      for c in callbacks:
+        code += 'int '+ c + '() { return 0; } \n'
 
-    code += 'int main() {\n'
-    code += 'Vec v; Mat m; KSP k;\n'
-    code += 'PetscInitializeNoArguments();\n'
-    code += 'VecCreate(PETSC_COMM_WORLD,&v);\n'
-    code += 'MatCreate(PETSC_COMM_WORLD,&m);\n'
-    code += 'KSPCreate(PETSC_COMM_WORLD,&k);\n'
-    for f in functions:
-      code += f + '();\n'
-    code += 'return 0;\n}\n'
+      code += 'int main() {\n'
+      code += 'Vec v; Mat m; KSP k;\n'
+      code += 'PetscInitializeNoArguments();\n'
+      code += 'VecCreate(PETSC_COMM_WORLD,&v);\n'
+      code += 'MatCreate(PETSC_COMM_WORLD,&m);\n'
+      code += 'KSPCreate(PETSC_COMM_WORLD,&k);\n'
+      for f in functions:
+        code += f + '();\n'
+      code += 'return 0;\n}\n'
+    else:
+      code = givencode
 
     cfile = open(os.path.join(tmpdir,'checklink.c'),'w')
     cfile.write(code)

@@ -28,10 +28,26 @@ class Lapack(package.Package):
 
   def Process(self,conf,vars,cmake,petsc,archdir=''):
     self.make = petsc.make
+    self.mangling = petsc.blaslapackmangling
     if petsc.buildsharedlib:
       self.slflag = petsc.slflag
     self.log.NewSection('Checking LAPACK library...')
     self.Check(conf,vars,cmake,petsc)
+
+  def LinkBlasLapack(self,functions,callbacks,flags,petsc):
+    code = ''
+    for f in functions:
+      if petsc.language == 'c++':
+        code += 'extern "C" void ' + f + '();\n'
+      else:
+        code += 'extern void ' + f + '();\n'
+    code += 'int main() {\n'
+    for f in functions:
+      code += f + '();\n'
+    code += 'return 0;\n}\n'
+    (result, output) = self.LinkWithOutput(functions,callbacks,flags,code)
+    self.log.write(output)
+    return result
 
   def Check(self,conf,vars,cmake,petsc):
 
@@ -73,34 +89,32 @@ class Lapack(package.Package):
       functions += ['dstevr','dbdsdc','dlamch','dlag2','dlasv2','dlartg','dlaln2','dlaed4','dlamrg','dlapy2']
 
     # check for all functions at once
-    all = []
+    allf = []
     for i in functions:
-      f =  '#if defined(PETSC_BLASLAPACK_UNDERSCORE)\n'
-      f += i + '_\n'
-      f += '#elif defined(PETSC_BLASLAPACK_CAPS) || defined(PETSC_BLASLAPACK_STDCALL)\n'
-      f += i.upper() + '\n'
-      f += '#else\n'
-      f += i + '\n'
-      f += '#endif\n'
-      all.append(f)
+      if self.mangling == 'underscore':
+        f = i + '_'
+      elif self.mangling == 'caps' or self.mangling == 'stdcall':
+        f = i.upper()
+      else:
+        f = i
+      allf.append(f)
 
     self.log.write('=== Checking all LAPACK functions...')
-    if self.Link(all,[],[]):
+    if self.LinkBlasLapack(allf,[],[],petsc):
       return
 
     # check functions one by one
     self.missing = []
     for i in functions:
-      f =  '#if defined(PETSC_BLASLAPACK_UNDERSCORE)\n'
-      f += i + '_\n'
-      f += '#elif defined(PETSC_BLASLAPACK_CAPS) || defined(PETSC_BLASLAPACK_STDCALL)\n'
-      f += i.upper() + '\n'
-      f += '#else\n'
-      f += i + '\n'
-      f += '#endif\n'
+      if self.mangling == 'underscore':
+        f = i + '_\n'
+      elif self.mangling == 'caps' or self.mangling == 'stdcall':
+        f = i.upper() + '\n'
+      else:
+        f = i + '\n'
 
       self.log.write('=== Checking LAPACK '+i+' function...')
-      if not self.Link([f],[],[]):
+      if not self.LinkBlasLapack([f],[],[],petsc):
         self.missing.append(i)
         # some complex functions are represented by their real names
         if i[1:] in namesubst:
