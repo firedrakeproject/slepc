@@ -88,10 +88,10 @@ int main(int argc,char **argv)
   ctxF->kappa = ctx.kappa;
 
   ierr = MatCreateShell(PETSC_COMM_WORLD,n,n,n,n,(void*)ctxF,&F);CHKERRQ(ierr);
-  ierr = MatShellSetOperation(F,MATOP_MULT,(void(*)())MatMult_Fun);CHKERRQ(ierr);
-  ierr = MatShellSetOperation(F,MATOP_GET_DIAGONAL,(void(*)())MatGetDiagonal_Fun);CHKERRQ(ierr);
-  ierr = MatShellSetOperation(F,MATOP_DESTROY,(void(*)())MatDestroy_Fun);CHKERRQ(ierr);
-  ierr = MatShellSetOperation(F,MATOP_DUPLICATE,(void(*)())MatDuplicate_Fun);CHKERRQ(ierr);
+  ierr = MatShellSetOperation(F,MATOP_MULT,(void(*)(void))MatMult_Fun);CHKERRQ(ierr);
+  ierr = MatShellSetOperation(F,MATOP_GET_DIAGONAL,(void(*)(void))MatGetDiagonal_Fun);CHKERRQ(ierr);
+  ierr = MatShellSetOperation(F,MATOP_DESTROY,(void(*)(void))MatDestroy_Fun);CHKERRQ(ierr);
+  ierr = MatShellSetOperation(F,MATOP_DUPLICATE,(void(*)(void))MatDuplicate_Fun);CHKERRQ(ierr);
 
   /*
      Set Function matrix data structure and default Function evaluation
@@ -108,9 +108,9 @@ int main(int argc,char **argv)
   ctxJ->kappa = ctx.kappa;
 
   ierr = MatCreateShell(PETSC_COMM_WORLD,n,n,n,n,(void*)ctxJ,&J);CHKERRQ(ierr);
-  ierr = MatShellSetOperation(J,MATOP_MULT,(void(*)())MatMult_Jac);CHKERRQ(ierr);
-  ierr = MatShellSetOperation(J,MATOP_GET_DIAGONAL,(void(*)())MatGetDiagonal_Jac);CHKERRQ(ierr);
-  ierr = MatShellSetOperation(J,MATOP_DESTROY,(void(*)())MatDestroy_Jac);CHKERRQ(ierr);
+  ierr = MatShellSetOperation(J,MATOP_MULT,(void(*)(void))MatMult_Jac);CHKERRQ(ierr);
+  ierr = MatShellSetOperation(J,MATOP_GET_DIAGONAL,(void(*)(void))MatGetDiagonal_Jac);CHKERRQ(ierr);
+  ierr = MatShellSetOperation(J,MATOP_DESTROY,(void(*)(void))MatDestroy_Jac);CHKERRQ(ierr);
 
   /*
      Set Jacobian matrix data structure and default Jacobian evaluation
@@ -310,10 +310,10 @@ PetscErrorCode MatDuplicate_Fun(Mat A,MatDuplicateOption op,Mat *B)
 
   ierr = PetscObjectGetComm((PetscObject)A,&comm);CHKERRQ(ierr);
   ierr = MatCreateShell(comm,n,n,n,n,(void*)bctx,B);CHKERRQ(ierr);
-  ierr = MatShellSetOperation(*B,MATOP_MULT,(void(*)())MatMult_Fun);CHKERRQ(ierr);
-  ierr = MatShellSetOperation(*B,MATOP_GET_DIAGONAL,(void(*)())MatGetDiagonal_Fun);CHKERRQ(ierr);
-  ierr = MatShellSetOperation(*B,MATOP_DESTROY,(void(*)())MatDestroy_Fun);CHKERRQ(ierr);
-  ierr = MatShellSetOperation(*B,MATOP_DUPLICATE,(void(*)())MatDuplicate_Fun);CHKERRQ(ierr);
+  ierr = MatShellSetOperation(*B,MATOP_MULT,(void(*)(void))MatMult_Fun);CHKERRQ(ierr);
+  ierr = MatShellSetOperation(*B,MATOP_GET_DIAGONAL,(void(*)(void))MatGetDiagonal_Fun);CHKERRQ(ierr);
+  ierr = MatShellSetOperation(*B,MATOP_DESTROY,(void(*)(void))MatDestroy_Fun);CHKERRQ(ierr);
+  ierr = MatShellSetOperation(*B,MATOP_DUPLICATE,(void(*)(void))MatDuplicate_Fun);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

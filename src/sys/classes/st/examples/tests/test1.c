@@ -27,10 +27,10 @@ static PetscErrorCode MyShellMatCreate(Mat *A,Mat *M)
   ierr = MatGetSize(*A,&n,NULL);CHKERRQ(ierr);
   ierr = PetscObjectGetComm((PetscObject)*A,&comm);CHKERRQ(ierr);
   ierr = MatCreateShell(comm,PETSC_DECIDE,PETSC_DECIDE,n,n,A,M);CHKERRQ(ierr);
-  ierr = MatShellSetOperation(*M,MATOP_MULT,(void(*)())MatMult_Shell);CHKERRQ(ierr);
-  ierr = MatShellSetOperation(*M,MATOP_MULT_TRANSPOSE,(void(*)())MatMultTranspose_Shell);CHKERRQ(ierr);
-  ierr = MatShellSetOperation(*M,MATOP_GET_DIAGONAL,(void(*)())MatGetDiagonal_Shell);CHKERRQ(ierr);
-  ierr = MatShellSetOperation(*M,MATOP_DUPLICATE,(void(*)())MatDuplicate_Shell);CHKERRQ(ierr);
+  ierr = MatShellSetOperation(*M,MATOP_MULT,(void(*)(void))MatMult_Shell);CHKERRQ(ierr);
+  ierr = MatShellSetOperation(*M,MATOP_MULT_TRANSPOSE,(void(*)(void))MatMultTranspose_Shell);CHKERRQ(ierr);
+  ierr = MatShellSetOperation(*M,MATOP_GET_DIAGONAL,(void(*)(void))MatGetDiagonal_Shell);CHKERRQ(ierr);
+  ierr = MatShellSetOperation(*M,MATOP_DUPLICATE,(void(*)(void))MatDuplicate_Shell);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

@@ -1057,7 +1057,7 @@ static PetscErrorCode PEPJDCreateShellPC(PEP pep,Vec *ww)
   }
   ierr = PetscNew(&matctx);CHKERRQ(ierr);
   ierr = MatCreateShell(PetscObjectComm((PetscObject)pep),kspsf*nloc,kspsf*mloc,PETSC_DETERMINE,PETSC_DETERMINE,matctx,&pjd->Pshell);CHKERRQ(ierr);
-  ierr = MatShellSetOperation(pjd->Pshell,MATOP_MULT,(void(*)())PEPJDShellMatMult);CHKERRQ(ierr);
+  ierr = MatShellSetOperation(pjd->Pshell,MATOP_MULT,(void(*)(void))PEPJDShellMatMult);CHKERRQ(ierr);
   ierr = MatShellSetOperation(pjd->Pshell,MATOP_CREATE_VECS,(void(*)(void))PEPJDSellMatCreateVecs);CHKERRQ(ierr);
   matctx->pep = pep;
   target[0] = pep->target; target[1] = 0.0;

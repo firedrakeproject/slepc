@@ -91,8 +91,8 @@ PetscErrorCode PEPSTOARSetUpInnerMatrix(PEP pep,Mat *B)
   for (j=0;j<3;j++) {
     ierr = PetscNew(ctxMat+j);CHKERRQ(ierr);
     ierr = MatCreateShell(PetscObjectComm((PetscObject)pep),m,n,PETSC_DETERMINE,PETSC_DETERMINE,ctxMat[j],&Bs[j]);CHKERRQ(ierr);
-    ierr = MatShellSetOperation(Bs[j],MATOP_MULT,(void(*)())MatMult_Func);CHKERRQ(ierr);
-    ierr = MatShellSetOperation(Bs[j],MATOP_DESTROY,(void(*)())MatDestroy_Func);CHKERRQ(ierr);
+    ierr = MatShellSetOperation(Bs[j],MATOP_MULT,(void(*)(void))MatMult_Func);CHKERRQ(ierr);
+    ierr = MatShellSetOperation(Bs[j],MATOP_DESTROY,(void(*)(void))MatDestroy_Func);CHKERRQ(ierr);
   }
   for (i=0;i<4;i++) pB[i] = NULL;
   if (ctx->alpha) {

@@ -90,7 +90,7 @@ int main(int argc,char **argv)
   ierr = VecDuplicate(x,&ctx->w);CHKERRQ(ierr);
 
   ierr = MatCreateShell(PETSC_COMM_WORLD,nloc,mloc,N,N,ctx,&M);CHKERRQ(ierr);
-  ierr = MatShellSetOperation(M,MATOP_MULT,(void(*)())MatMult_Fold);CHKERRQ(ierr);
+  ierr = MatShellSetOperation(M,MATOP_MULT,(void(*)(void))MatMult_Fold);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                 Create the eigensolver and set various options

@@ -391,7 +391,7 @@ static PetscErrorCode MatDuplicate_Fun(Mat A,MatDuplicateOption op,Mat *B)
 {
   PetscInt       n,i;
   ShellMatCtx    *ctxnew,*ctx;
-  void           (*fun)();
+  void           (*fun)(void);
   PetscErrorCode ierr;
 
   PetscFunctionBeginUser;
@@ -502,13 +502,13 @@ static PetscErrorCode NLEIGSMatToMatShellArray(Mat M,Mat *Ms,PetscInt maxnmat)
   ierr = MatGetSize(M,&n,NULL);CHKERRQ(ierr);
   ierr = MatCreateShell(PetscObjectComm((PetscObject)M),n,n,n,n,(void*)ctx,Ms);CHKERRQ(ierr);
   ierr = MatShellSetManageScalingShifts(*Ms);CHKERRQ(ierr);
-  ierr = MatShellSetOperation(*Ms,MATOP_MULT,(void(*)())MatMult_Fun);CHKERRQ(ierr);
-  ierr = MatShellSetOperation(*Ms,MATOP_MULT_TRANSPOSE,(void(*)())MatMultTranspose_Fun);CHKERRQ(ierr);
-  ierr = MatShellSetOperation(*Ms,MATOP_GET_DIAGONAL,(void(*)())MatGetDiagonal_Fun);CHKERRQ(ierr);
-  ierr = MatShellSetOperation(*Ms,MATOP_DUPLICATE,(void(*)())MatDuplicate_Fun);CHKERRQ(ierr);
-  ierr = MatShellSetOperation(*Ms,MATOP_DESTROY,(void(*)())MatDestroy_Fun);CHKERRQ(ierr);
-  ierr = MatShellSetOperation(*Ms,MATOP_AXPY,(void(*)())MatAXPY_Fun);CHKERRQ(ierr);
-  ierr = MatShellSetOperation(*Ms,MATOP_SCALE,(void(*)())MatScale_Fun);CHKERRQ(ierr);
+  ierr = MatShellSetOperation(*Ms,MATOP_MULT,(void(*)(void))MatMult_Fun);CHKERRQ(ierr);
+  ierr = MatShellSetOperation(*Ms,MATOP_MULT_TRANSPOSE,(void(*)(void))MatMultTranspose_Fun);CHKERRQ(ierr);
+  ierr = MatShellSetOperation(*Ms,MATOP_GET_DIAGONAL,(void(*)(void))MatGetDiagonal_Fun);CHKERRQ(ierr);
+  ierr = MatShellSetOperation(*Ms,MATOP_DUPLICATE,(void(*)(void))MatDuplicate_Fun);CHKERRQ(ierr);
+  ierr = MatShellSetOperation(*Ms,MATOP_DESTROY,(void(*)(void))MatDestroy_Fun);CHKERRQ(ierr);
+  ierr = MatShellSetOperation(*Ms,MATOP_AXPY,(void(*)(void))MatAXPY_Fun);CHKERRQ(ierr);
+  ierr = MatShellSetOperation(*Ms,MATOP_SCALE,(void(*)(void))MatScale_Fun);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

@@ -114,8 +114,8 @@ int main(int argc,char **argv)
      Create the shell matrix
   */
   ierr = MatCreateShell(PETSC_COMM_WORLD,2*n,2*n,2*N,2*N,(void*)ctx,&A);CHKERRQ(ierr);
-  ierr = MatShellSetOperation(A,MATOP_MULT,(void(*)())MatMult_Brussel);CHKERRQ(ierr);
-  ierr = MatShellSetOperation(A,MATOP_GET_DIAGONAL,(void(*)())MatGetDiagonal_Brussel);CHKERRQ(ierr);
+  ierr = MatShellSetOperation(A,MATOP_MULT,(void(*)(void))MatMult_Brussel);CHKERRQ(ierr);
+  ierr = MatShellSetOperation(A,MATOP_GET_DIAGONAL,(void(*)(void))MatGetDiagonal_Brussel);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                 Create the eigensolver and configure the region

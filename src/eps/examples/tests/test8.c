@@ -44,9 +44,9 @@ int main(int argc,char **argv)
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
   ierr = MatCreateShell(PETSC_COMM_WORLD,N,N,N,N,&n,&A);CHKERRQ(ierr);
-  ierr = MatShellSetOperation(A,MATOP_MULT,(void(*)())MatMult_Laplacian2D);CHKERRQ(ierr);
-  ierr = MatShellSetOperation(A,MATOP_MULT_TRANSPOSE,(void(*)())MatMult_Laplacian2D);CHKERRQ(ierr);
-  ierr = MatShellSetOperation(A,MATOP_GET_DIAGONAL,(void(*)())MatGetDiagonal_Laplacian2D);CHKERRQ(ierr);
+  ierr = MatShellSetOperation(A,MATOP_MULT,(void(*)(void))MatMult_Laplacian2D);CHKERRQ(ierr);
+  ierr = MatShellSetOperation(A,MATOP_MULT_TRANSPOSE,(void(*)(void))MatMult_Laplacian2D);CHKERRQ(ierr);
+  ierr = MatShellSetOperation(A,MATOP_GET_DIAGONAL,(void(*)(void))MatGetDiagonal_Laplacian2D);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                 Create the eigensolver and set various options

@@ -95,17 +95,17 @@ int main(int argc,char **argv)
   if (split) {
     /* Create matrix A0 (tridiagonal) */
     ierr = MatCreateShell(PETSC_COMM_WORLD,n,n,n,n,NULL,&A[0]);CHKERRQ(ierr);
-    ierr = MatShellSetOperation(A[0],MATOP_MULT,(void(*)())MatMult_A0);CHKERRQ(ierr);
-    ierr = MatShellSetOperation(A[0],MATOP_MULT_TRANSPOSE,(void(*)())MatMult_A0);CHKERRQ(ierr);
-    ierr = MatShellSetOperation(A[0],MATOP_GET_DIAGONAL,(void(*)())MatGetDiagonal_A0);CHKERRQ(ierr);
-    ierr = MatShellSetOperation(A[0],MATOP_DUPLICATE,(void(*)())MatDuplicate_A0);CHKERRQ(ierr);
+    ierr = MatShellSetOperation(A[0],MATOP_MULT,(void(*)(void))MatMult_A0);CHKERRQ(ierr);
+    ierr = MatShellSetOperation(A[0],MATOP_MULT_TRANSPOSE,(void(*)(void))MatMult_A0);CHKERRQ(ierr);
+    ierr = MatShellSetOperation(A[0],MATOP_GET_DIAGONAL,(void(*)(void))MatGetDiagonal_A0);CHKERRQ(ierr);
+    ierr = MatShellSetOperation(A[0],MATOP_DUPLICATE,(void(*)(void))MatDuplicate_A0);CHKERRQ(ierr);
 
     /* Create matrix A0 (identity) */
     ierr = MatCreateShell(PETSC_COMM_WORLD,n,n,n,n,NULL,&A[1]);CHKERRQ(ierr);
-    ierr = MatShellSetOperation(A[1],MATOP_MULT,(void(*)())MatMult_A1);CHKERRQ(ierr);
-    ierr = MatShellSetOperation(A[1],MATOP_MULT_TRANSPOSE,(void(*)())MatMult_A1);CHKERRQ(ierr);
-    ierr = MatShellSetOperation(A[1],MATOP_GET_DIAGONAL,(void(*)())MatGetDiagonal_A1);CHKERRQ(ierr);
-    ierr = MatShellSetOperation(A[1],MATOP_DUPLICATE,(void(*)())MatDuplicate_A1);CHKERRQ(ierr);
+    ierr = MatShellSetOperation(A[1],MATOP_MULT,(void(*)(void))MatMult_A1);CHKERRQ(ierr);
+    ierr = MatShellSetOperation(A[1],MATOP_MULT_TRANSPOSE,(void(*)(void))MatMult_A1);CHKERRQ(ierr);
+    ierr = MatShellSetOperation(A[1],MATOP_GET_DIAGONAL,(void(*)(void))MatGetDiagonal_A1);CHKERRQ(ierr);
+    ierr = MatShellSetOperation(A[1],MATOP_DUPLICATE,(void(*)(void))MatDuplicate_A1);CHKERRQ(ierr);
 
     /* Define funcions for the split form */
     ierr = FNCreate(PETSC_COMM_WORLD,&f[0]);CHKERRQ(ierr);
@@ -119,11 +119,11 @@ int main(int argc,char **argv)
     /* Callback form: create shell matrix for F=A0+sqrt(lambda)*A1  */
     ierr = PetscNew(&ctx);CHKERRQ(ierr);
     ierr = MatCreateShell(PETSC_COMM_WORLD,n,n,n,n,(void*)ctx,&F);CHKERRQ(ierr);
-    ierr = MatShellSetOperation(F,MATOP_MULT,(void(*)())MatMult_F);CHKERRQ(ierr);
-    ierr = MatShellSetOperation(F,MATOP_MULT_TRANSPOSE,(void(*)())MatMult_F);CHKERRQ(ierr);
-    ierr = MatShellSetOperation(F,MATOP_GET_DIAGONAL,(void(*)())MatGetDiagonal_F);CHKERRQ(ierr);
-    ierr = MatShellSetOperation(F,MATOP_DUPLICATE,(void(*)())MatDuplicate_F);CHKERRQ(ierr);
-    ierr = MatShellSetOperation(F,MATOP_DESTROY,(void(*)())MatDestroy_F);CHKERRQ(ierr);
+    ierr = MatShellSetOperation(F,MATOP_MULT,(void(*)(void))MatMult_F);CHKERRQ(ierr);
+    ierr = MatShellSetOperation(F,MATOP_MULT_TRANSPOSE,(void(*)(void))MatMult_F);CHKERRQ(ierr);
+    ierr = MatShellSetOperation(F,MATOP_GET_DIAGONAL,(void(*)(void))MatGetDiagonal_F);CHKERRQ(ierr);
+    ierr = MatShellSetOperation(F,MATOP_DUPLICATE,(void(*)(void))MatDuplicate_F);CHKERRQ(ierr);
+    ierr = MatShellSetOperation(F,MATOP_DESTROY,(void(*)(void))MatDestroy_F);CHKERRQ(ierr);
     /* Set Function evaluation routine */
     ierr = NEPSetFunction(nep,F,F,FormFunction,NULL);CHKERRQ(ierr);
   }
@@ -249,10 +249,10 @@ PetscErrorCode MatDuplicate_A0(Mat A,MatDuplicateOption op,Mat *B)
   ierr = MatGetSize(A,&n,NULL);CHKERRQ(ierr);
   ierr = PetscObjectGetComm((PetscObject)A,&comm);CHKERRQ(ierr);
   ierr = MatCreateShell(comm,n,n,n,n,NULL,B);CHKERRQ(ierr);
-  ierr = MatShellSetOperation(*B,MATOP_MULT,(void(*)())MatMult_A0);CHKERRQ(ierr);
-  ierr = MatShellSetOperation(*B,MATOP_MULT_TRANSPOSE,(void(*)())MatMult_A0);CHKERRQ(ierr);
-  ierr = MatShellSetOperation(*B,MATOP_GET_DIAGONAL,(void(*)())MatGetDiagonal_A0);CHKERRQ(ierr);
-  ierr = MatShellSetOperation(*B,MATOP_DUPLICATE,(void(*)())MatDuplicate_A0);CHKERRQ(ierr);
+  ierr = MatShellSetOperation(*B,MATOP_MULT,(void(*)(void))MatMult_A0);CHKERRQ(ierr);
+  ierr = MatShellSetOperation(*B,MATOP_MULT_TRANSPOSE,(void(*)(void))MatMult_A0);CHKERRQ(ierr);
+  ierr = MatShellSetOperation(*B,MATOP_GET_DIAGONAL,(void(*)(void))MatGetDiagonal_A0);CHKERRQ(ierr);
+  ierr = MatShellSetOperation(*B,MATOP_DUPLICATE,(void(*)(void))MatDuplicate_A0);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -286,10 +286,10 @@ PetscErrorCode MatDuplicate_A1(Mat A,MatDuplicateOption op,Mat *B)
   ierr = MatGetSize(A,&n,NULL);CHKERRQ(ierr);
   ierr = PetscObjectGetComm((PetscObject)A,&comm);CHKERRQ(ierr);
   ierr = MatCreateShell(comm,n,n,n,n,NULL,B);CHKERRQ(ierr);
-  ierr = MatShellSetOperation(*B,MATOP_MULT,(void(*)())MatMult_A1);CHKERRQ(ierr);
-  ierr = MatShellSetOperation(*B,MATOP_MULT_TRANSPOSE,(void(*)())MatMult_A1);CHKERRQ(ierr);
-  ierr = MatShellSetOperation(*B,MATOP_GET_DIAGONAL,(void(*)())MatGetDiagonal_A1);CHKERRQ(ierr);
-  ierr = MatShellSetOperation(*B,MATOP_DUPLICATE,(void(*)())MatDuplicate_A1);CHKERRQ(ierr);
+  ierr = MatShellSetOperation(*B,MATOP_MULT,(void(*)(void))MatMult_A1);CHKERRQ(ierr);
+  ierr = MatShellSetOperation(*B,MATOP_MULT_TRANSPOSE,(void(*)(void))MatMult_A1);CHKERRQ(ierr);
+  ierr = MatShellSetOperation(*B,MATOP_GET_DIAGONAL,(void(*)(void))MatGetDiagonal_A1);CHKERRQ(ierr);
+  ierr = MatShellSetOperation(*B,MATOP_DUPLICATE,(void(*)(void))MatDuplicate_A1);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -342,11 +342,11 @@ PetscErrorCode MatDuplicate_F(Mat A,MatDuplicateOption op,Mat *B)
   bctx->t = actx->t;
   ierr = PetscObjectGetComm((PetscObject)A,&comm);CHKERRQ(ierr);
   ierr = MatCreateShell(comm,n,n,n,n,(void*)bctx,B);CHKERRQ(ierr);
-  ierr = MatShellSetOperation(*B,MATOP_MULT,(void(*)())MatMult_F);CHKERRQ(ierr);
-  ierr = MatShellSetOperation(*B,MATOP_MULT_TRANSPOSE,(void(*)())MatMult_F);CHKERRQ(ierr);
-  ierr = MatShellSetOperation(*B,MATOP_GET_DIAGONAL,(void(*)())MatGetDiagonal_F);CHKERRQ(ierr);
-  ierr = MatShellSetOperation(*B,MATOP_DUPLICATE,(void(*)())MatDuplicate_F);CHKERRQ(ierr);
-  ierr = MatShellSetOperation(*B,MATOP_DESTROY,(void(*)())MatDestroy_F);CHKERRQ(ierr);
+  ierr = MatShellSetOperation(*B,MATOP_MULT,(void(*)(void))MatMult_F);CHKERRQ(ierr);
+  ierr = MatShellSetOperation(*B,MATOP_MULT_TRANSPOSE,(void(*)(void))MatMult_F);CHKERRQ(ierr);
+  ierr = MatShellSetOperation(*B,MATOP_GET_DIAGONAL,(void(*)(void))MatGetDiagonal_F);CHKERRQ(ierr);
+  ierr = MatShellSetOperation(*B,MATOP_DUPLICATE,(void(*)(void))MatDuplicate_F);CHKERRQ(ierr);
+  ierr = MatShellSetOperation(*B,MATOP_DESTROY,(void(*)(void))MatDestroy_F);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

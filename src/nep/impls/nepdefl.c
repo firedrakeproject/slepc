@@ -377,9 +377,9 @@ static PetscErrorCode NEPDeflationComputeShellMat(NEP_EXT_OP extop,PetscScalar l
     ierr = MatGetLocalSize(extop->nep->function,&mloc,&nloc);CHKERRQ(ierr);
     nloc += szd; mloc += szd;
     ierr = MatCreateShell(PetscObjectComm((PetscObject)extop->nep),nloc,mloc,PETSC_DETERMINE,PETSC_DETERMINE,matctx,&Mshell);CHKERRQ(ierr);
-    ierr = MatShellSetOperation(Mshell,MATOP_MULT,(void(*)())NEPDeflationMatShell_MatMult);CHKERRQ(ierr);
-    ierr = MatShellSetOperation(Mshell,MATOP_CREATE_VECS,(void(*)())NEPDeflationMatShell_CreateVecs);CHKERRQ(ierr);
-    ierr = MatShellSetOperation(Mshell,MATOP_DESTROY,(void(*)())NEPDeflationMatShell_Destroy);CHKERRQ(ierr);
+    ierr = MatShellSetOperation(Mshell,MATOP_MULT,(void(*)(void))NEPDeflationMatShell_MatMult);CHKERRQ(ierr);
+    ierr = MatShellSetOperation(Mshell,MATOP_CREATE_VECS,(void(*)(void))NEPDeflationMatShell_CreateVecs);CHKERRQ(ierr);
+    ierr = MatShellSetOperation(Mshell,MATOP_DESTROY,(void(*)(void))NEPDeflationMatShell_Destroy);CHKERRQ(ierr);
     matctx->nep = extop->nep;
     matctx->extop = extop;
     if (!M) {

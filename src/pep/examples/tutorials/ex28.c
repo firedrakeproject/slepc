@@ -49,21 +49,21 @@ int main(int argc,char **argv)
 
   /* K is the 2-D Laplacian */
   ierr = MatCreateShell(PETSC_COMM_WORLD,N,N,N,N,&n,&K);CHKERRQ(ierr);
-  ierr = MatShellSetOperation(K,MATOP_MULT,(void(*)())MatMult_Laplacian2D);CHKERRQ(ierr);
-  ierr = MatShellSetOperation(K,MATOP_MULT_TRANSPOSE,(void(*)())MatMult_Laplacian2D);CHKERRQ(ierr);
-  ierr = MatShellSetOperation(K,MATOP_GET_DIAGONAL,(void(*)())MatGetDiagonal_Laplacian2D);CHKERRQ(ierr);
+  ierr = MatShellSetOperation(K,MATOP_MULT,(void(*)(void))MatMult_Laplacian2D);CHKERRQ(ierr);
+  ierr = MatShellSetOperation(K,MATOP_MULT_TRANSPOSE,(void(*)(void))MatMult_Laplacian2D);CHKERRQ(ierr);
+  ierr = MatShellSetOperation(K,MATOP_GET_DIAGONAL,(void(*)(void))MatGetDiagonal_Laplacian2D);CHKERRQ(ierr);
 
   /* C is the zero matrix */
   ierr = MatCreateShell(PETSC_COMM_WORLD,N,N,N,N,NULL,&C);CHKERRQ(ierr);
-  ierr = MatShellSetOperation(C,MATOP_MULT,(void(*)())MatMult_Zero);CHKERRQ(ierr);
-  ierr = MatShellSetOperation(C,MATOP_MULT_TRANSPOSE,(void(*)())MatMult_Zero);CHKERRQ(ierr);
-  ierr = MatShellSetOperation(C,MATOP_GET_DIAGONAL,(void(*)())MatGetDiagonal_Zero);CHKERRQ(ierr);
+  ierr = MatShellSetOperation(C,MATOP_MULT,(void(*)(void))MatMult_Zero);CHKERRQ(ierr);
+  ierr = MatShellSetOperation(C,MATOP_MULT_TRANSPOSE,(void(*)(void))MatMult_Zero);CHKERRQ(ierr);
+  ierr = MatShellSetOperation(C,MATOP_GET_DIAGONAL,(void(*)(void))MatGetDiagonal_Zero);CHKERRQ(ierr);
 
   /* M is the identity matrix */
   ierr = MatCreateShell(PETSC_COMM_WORLD,N,N,N,N,NULL,&M);CHKERRQ(ierr);
-  ierr = MatShellSetOperation(M,MATOP_MULT,(void(*)())MatMult_Identity);CHKERRQ(ierr);
-  ierr = MatShellSetOperation(M,MATOP_MULT_TRANSPOSE,(void(*)())MatMult_Identity);CHKERRQ(ierr);
-  ierr = MatShellSetOperation(M,MATOP_GET_DIAGONAL,(void(*)())MatGetDiagonal_Identity);CHKERRQ(ierr);
+  ierr = MatShellSetOperation(M,MATOP_MULT,(void(*)(void))MatMult_Identity);CHKERRQ(ierr);
+  ierr = MatShellSetOperation(M,MATOP_MULT_TRANSPOSE,(void(*)(void))MatMult_Identity);CHKERRQ(ierr);
+  ierr = MatShellSetOperation(M,MATOP_GET_DIAGONAL,(void(*)(void))MatGetDiagonal_Identity);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                 Create the eigensolver and set various options
