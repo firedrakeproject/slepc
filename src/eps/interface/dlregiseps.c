@@ -91,7 +91,7 @@ PetscErrorCode EPSInitializePackage()
   This one registers all the EPS methods that are in the basic SLEPc libslepceps
   library.
  */
-PETSC_EXTERN PetscErrorCode PetscDLLibraryRegister_slepceps()
+SLEPC_EXTERN PetscErrorCode PetscDLLibraryRegister_slepceps()
 {
   PetscErrorCode ierr;
 

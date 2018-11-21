@@ -404,7 +404,7 @@ PetscErrorCode EPSView_RQCG(EPS eps,PetscViewer viewer)
   PetscFunctionReturn(0);
 }
 
-PETSC_EXTERN PetscErrorCode EPSCreate_RQCG(EPS eps)
+SLEPC_EXTERN PetscErrorCode EPSCreate_RQCG(EPS eps)
 {
   EPS_RQCG       *rqcg;
   PetscErrorCode ierr;

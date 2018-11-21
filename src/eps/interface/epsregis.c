@@ -10,35 +10,35 @@
 
 #include <slepc/private/epsimpl.h>  /*I "slepceps.h" I*/
 
-PETSC_EXTERN PetscErrorCode EPSCreate_Power(EPS);
-PETSC_EXTERN PetscErrorCode EPSCreate_Subspace(EPS);
-PETSC_EXTERN PetscErrorCode EPSCreate_Arnoldi(EPS);
-PETSC_EXTERN PetscErrorCode EPSCreate_Lanczos(EPS);
-PETSC_EXTERN PetscErrorCode EPSCreate_KrylovSchur(EPS);
+SLEPC_EXTERN PetscErrorCode EPSCreate_Power(EPS);
+SLEPC_EXTERN PetscErrorCode EPSCreate_Subspace(EPS);
+SLEPC_EXTERN PetscErrorCode EPSCreate_Arnoldi(EPS);
+SLEPC_EXTERN PetscErrorCode EPSCreate_Lanczos(EPS);
+SLEPC_EXTERN PetscErrorCode EPSCreate_KrylovSchur(EPS);
 #if defined(SLEPC_HAVE_ARPACK)
-PETSC_EXTERN PetscErrorCode EPSCreate_ARPACK(EPS);
+SLEPC_EXTERN PetscErrorCode EPSCreate_ARPACK(EPS);
 #endif
-PETSC_EXTERN PetscErrorCode EPSCreate_LAPACK(EPS);
+SLEPC_EXTERN PetscErrorCode EPSCreate_LAPACK(EPS);
 #if defined(SLEPC_HAVE_BLZPACK)
-PETSC_EXTERN PetscErrorCode EPSCreate_BLZPACK(EPS);
+SLEPC_EXTERN PetscErrorCode EPSCreate_BLZPACK(EPS);
 #endif
 #if defined(SLEPC_HAVE_TRLAN)
-PETSC_EXTERN PetscErrorCode EPSCreate_TRLAN(EPS);
+SLEPC_EXTERN PetscErrorCode EPSCreate_TRLAN(EPS);
 #endif
 #if defined(SLEPC_HAVE_BLOPEX)
-PETSC_EXTERN PetscErrorCode EPSCreate_BLOPEX(EPS);
+SLEPC_EXTERN PetscErrorCode EPSCreate_BLOPEX(EPS);
 #endif
 #if defined(SLEPC_HAVE_PRIMME)
-PETSC_EXTERN PetscErrorCode EPSCreate_PRIMME(EPS);
+SLEPC_EXTERN PetscErrorCode EPSCreate_PRIMME(EPS);
 #endif
 #if defined(SLEPC_HAVE_FEAST)
-PETSC_EXTERN PetscErrorCode EPSCreate_FEAST(EPS);
+SLEPC_EXTERN PetscErrorCode EPSCreate_FEAST(EPS);
 #endif
-PETSC_EXTERN PetscErrorCode EPSCreate_GD(EPS);
-PETSC_EXTERN PetscErrorCode EPSCreate_JD(EPS);
-PETSC_EXTERN PetscErrorCode EPSCreate_RQCG(EPS);
-PETSC_EXTERN PetscErrorCode EPSCreate_LOBPCG(EPS);
-PETSC_EXTERN PetscErrorCode EPSCreate_CISS(EPS);
+SLEPC_EXTERN PetscErrorCode EPSCreate_GD(EPS);
+SLEPC_EXTERN PetscErrorCode EPSCreate_JD(EPS);
+SLEPC_EXTERN PetscErrorCode EPSCreate_RQCG(EPS);
+SLEPC_EXTERN PetscErrorCode EPSCreate_LOBPCG(EPS);
+SLEPC_EXTERN PetscErrorCode EPSCreate_CISS(EPS);
 
 /*@C
   EPSRegisterAll - Registers all the eigenvalue solvers in the EPS package.

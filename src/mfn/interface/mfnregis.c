@@ -10,8 +10,8 @@
 
 #include <slepc/private/mfnimpl.h>  /*I "slepcmfn.h" I*/
 
-PETSC_EXTERN PetscErrorCode MFNCreate_Krylov(MFN);
-PETSC_EXTERN PetscErrorCode MFNCreate_Expokit(MFN);
+SLEPC_EXTERN PetscErrorCode MFNCreate_Krylov(MFN);
+SLEPC_EXTERN PetscErrorCode MFNCreate_Expokit(MFN);
 
 /*@C
   MFNRegisterAll - Registers all the matrix functions in the MFN package.

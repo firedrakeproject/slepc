@@ -985,7 +985,7 @@ PetscErrorCode EPSSetDefaultST_Power(EPS eps)
   PetscFunctionReturn(0);
 }
 
-PETSC_EXTERN PetscErrorCode EPSCreate_Power(EPS eps)
+SLEPC_EXTERN PetscErrorCode EPSCreate_Power(EPS eps)
 {
   EPS_POWER      *ctx;
   PetscErrorCode ierr;

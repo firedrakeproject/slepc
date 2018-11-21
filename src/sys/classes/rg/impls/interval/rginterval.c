@@ -280,7 +280,7 @@ PetscErrorCode RGDestroy_Interval(RG rg)
   PetscFunctionReturn(0);
 }
 
-PETSC_EXTERN PetscErrorCode RGCreate_Interval(RG rg)
+SLEPC_EXTERN PetscErrorCode RGCreate_Interval(RG rg)
 {
   RG_INTERVAL    *interval;
   PetscErrorCode ierr;

@@ -15,7 +15,7 @@
 #define __SLEPCLME_H
 #include <slepcbv.h>
 
-PETSC_EXTERN PetscErrorCode LMEInitializePackage(void);
+SLEPC_EXTERN PetscErrorCode LMEInitializePackage(void);
 
 /*S
     LME - SLEPc object that encapsulates functionality for linear matrix equations
@@ -37,7 +37,7 @@ typedef const char* LMEType;
 #define LMEKRYLOV   "krylov"
 
 /* Logging support */
-PETSC_EXTERN PetscClassId LME_CLASSID;
+SLEPC_EXTERN PetscClassId LME_CLASSID;
 
 /*E
     LMEProblemType - Determines the type of linear matrix equation
@@ -52,57 +52,57 @@ typedef enum { LME_LYAPUNOV,
                LME_GEN_SYLVESTER,
                LME_DT_LYAPUNOV ,
                LME_STEIN} LMEProblemType;
-PETSC_EXTERN const char *LMEProblemTypes[];
+SLEPC_EXTERN const char *LMEProblemTypes[];
 
-PETSC_EXTERN PetscErrorCode LMECreate(MPI_Comm,LME *);
-PETSC_EXTERN PetscErrorCode LMEDestroy(LME*);
-PETSC_EXTERN PetscErrorCode LMEReset(LME);
-PETSC_EXTERN PetscErrorCode LMESetType(LME,LMEType);
-PETSC_EXTERN PetscErrorCode LMEGetType(LME,LMEType*);
-PETSC_EXTERN PetscErrorCode LMESetProblemType(LME,LMEProblemType);
-PETSC_EXTERN PetscErrorCode LMEGetProblemType(LME,LMEProblemType*);
-PETSC_EXTERN PetscErrorCode LMESetCoefficients(LME,Mat,Mat,Mat,Mat);
-PETSC_EXTERN PetscErrorCode LMEGetCoefficients(LME,Mat*,Mat*,Mat*,Mat*);
-PETSC_EXTERN PetscErrorCode LMESetRHS(LME,Mat);
-PETSC_EXTERN PetscErrorCode LMEGetRHS(LME,Mat*);
-PETSC_EXTERN PetscErrorCode LMESetSolution(LME,Mat);
-PETSC_EXTERN PetscErrorCode LMEGetSolution(LME,Mat*);
-PETSC_EXTERN PetscErrorCode LMESetFromOptions(LME);
-PETSC_EXTERN PetscErrorCode LMESetUp(LME);
-PETSC_EXTERN PetscErrorCode LMESolve(LME);
-PETSC_EXTERN PetscErrorCode LMEView(LME,PetscViewer);
+SLEPC_EXTERN PetscErrorCode LMECreate(MPI_Comm,LME *);
+SLEPC_EXTERN PetscErrorCode LMEDestroy(LME*);
+SLEPC_EXTERN PetscErrorCode LMEReset(LME);
+SLEPC_EXTERN PetscErrorCode LMESetType(LME,LMEType);
+SLEPC_EXTERN PetscErrorCode LMEGetType(LME,LMEType*);
+SLEPC_EXTERN PetscErrorCode LMESetProblemType(LME,LMEProblemType);
+SLEPC_EXTERN PetscErrorCode LMEGetProblemType(LME,LMEProblemType*);
+SLEPC_EXTERN PetscErrorCode LMESetCoefficients(LME,Mat,Mat,Mat,Mat);
+SLEPC_EXTERN PetscErrorCode LMEGetCoefficients(LME,Mat*,Mat*,Mat*,Mat*);
+SLEPC_EXTERN PetscErrorCode LMESetRHS(LME,Mat);
+SLEPC_EXTERN PetscErrorCode LMEGetRHS(LME,Mat*);
+SLEPC_EXTERN PetscErrorCode LMESetSolution(LME,Mat);
+SLEPC_EXTERN PetscErrorCode LMEGetSolution(LME,Mat*);
+SLEPC_EXTERN PetscErrorCode LMESetFromOptions(LME);
+SLEPC_EXTERN PetscErrorCode LMESetUp(LME);
+SLEPC_EXTERN PetscErrorCode LMESolve(LME);
+SLEPC_EXTERN PetscErrorCode LMEView(LME,PetscViewer);
 PETSC_STATIC_INLINE PetscErrorCode LMEViewFromOptions(LME lme,PetscObject obj,const char name[]) {return PetscObjectViewFromOptions((PetscObject)lme,obj,name);}
-PETSC_EXTERN PetscErrorCode LMEReasonView(LME,PetscViewer);
-PETSC_EXTERN PetscErrorCode LMEReasonViewFromOptions(LME);
+SLEPC_EXTERN PetscErrorCode LMEReasonView(LME,PetscViewer);
+SLEPC_EXTERN PetscErrorCode LMEReasonViewFromOptions(LME);
 
-PETSC_EXTERN PetscErrorCode LMESetBV(LME,BV);
-PETSC_EXTERN PetscErrorCode LMEGetBV(LME,BV*);
-PETSC_EXTERN PetscErrorCode LMESetTolerances(LME,PetscReal,PetscInt);
-PETSC_EXTERN PetscErrorCode LMEGetTolerances(LME,PetscReal*,PetscInt*);
-PETSC_EXTERN PetscErrorCode LMESetDimensions(LME,PetscInt);
-PETSC_EXTERN PetscErrorCode LMEGetDimensions(LME,PetscInt*);
+SLEPC_EXTERN PetscErrorCode LMESetBV(LME,BV);
+SLEPC_EXTERN PetscErrorCode LMEGetBV(LME,BV*);
+SLEPC_EXTERN PetscErrorCode LMESetTolerances(LME,PetscReal,PetscInt);
+SLEPC_EXTERN PetscErrorCode LMEGetTolerances(LME,PetscReal*,PetscInt*);
+SLEPC_EXTERN PetscErrorCode LMESetDimensions(LME,PetscInt);
+SLEPC_EXTERN PetscErrorCode LMEGetDimensions(LME,PetscInt*);
 
-PETSC_EXTERN PetscErrorCode LMEMonitor(LME,PetscInt,PetscReal);
-PETSC_EXTERN PetscErrorCode LMEMonitorSet(LME,PetscErrorCode (*)(LME,PetscInt,PetscReal,void*),void*,PetscErrorCode (*)(void**));
-PETSC_EXTERN PetscErrorCode LMEMonitorSetFromOptions(LME,const char*,const char*,const char*,PetscErrorCode (*)(LME,PetscInt,PetscReal,PetscViewerAndFormat*));
-PETSC_EXTERN PetscErrorCode LMEMonitorCancel(LME);
-PETSC_EXTERN PetscErrorCode LMEGetMonitorContext(LME,void **);
-PETSC_EXTERN PetscErrorCode LMEGetIterationNumber(LME,PetscInt*);
+SLEPC_EXTERN PetscErrorCode LMEMonitor(LME,PetscInt,PetscReal);
+SLEPC_EXTERN PetscErrorCode LMEMonitorSet(LME,PetscErrorCode (*)(LME,PetscInt,PetscReal,void*),void*,PetscErrorCode (*)(void**));
+SLEPC_EXTERN PetscErrorCode LMEMonitorSetFromOptions(LME,const char*,const char*,const char*,PetscErrorCode (*)(LME,PetscInt,PetscReal,PetscViewerAndFormat*));
+SLEPC_EXTERN PetscErrorCode LMEMonitorCancel(LME);
+SLEPC_EXTERN PetscErrorCode LMEGetMonitorContext(LME,void **);
+SLEPC_EXTERN PetscErrorCode LMEGetIterationNumber(LME,PetscInt*);
 
-PETSC_EXTERN PetscErrorCode LMEGetErrorEstimate(LME,PetscReal*);
-PETSC_EXTERN PetscErrorCode LMEComputeError(LME,PetscReal*);
-PETSC_EXTERN PetscErrorCode LMESetErrorIfNotConverged(LME,PetscBool);
-PETSC_EXTERN PetscErrorCode LMEGetErrorIfNotConverged(LME,PetscBool*);
+SLEPC_EXTERN PetscErrorCode LMEGetErrorEstimate(LME,PetscReal*);
+SLEPC_EXTERN PetscErrorCode LMEComputeError(LME,PetscReal*);
+SLEPC_EXTERN PetscErrorCode LMESetErrorIfNotConverged(LME,PetscBool);
+SLEPC_EXTERN PetscErrorCode LMEGetErrorIfNotConverged(LME,PetscBool*);
 
-PETSC_EXTERN PetscErrorCode LMEDenseLyapunovChol(LME,PetscScalar*,PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscInt,PetscReal*);
+SLEPC_EXTERN PetscErrorCode LMEDenseLyapunovChol(LME,PetscScalar*,PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscInt,PetscReal*);
 
-PETSC_EXTERN PetscErrorCode LMEMonitorDefault(LME,PetscInt,PetscReal,PetscViewerAndFormat*);
-PETSC_EXTERN PetscErrorCode LMEMonitorLGCreate(MPI_Comm,const char[],const char[],int,int,int,int,PetscDrawLG*);
-PETSC_EXTERN PetscErrorCode LMEMonitorLG(LME,PetscInt,PetscReal,void*);
+SLEPC_EXTERN PetscErrorCode LMEMonitorDefault(LME,PetscInt,PetscReal,PetscViewerAndFormat*);
+SLEPC_EXTERN PetscErrorCode LMEMonitorLGCreate(MPI_Comm,const char[],const char[],int,int,int,int,PetscDrawLG*);
+SLEPC_EXTERN PetscErrorCode LMEMonitorLG(LME,PetscInt,PetscReal,void*);
 
-PETSC_EXTERN PetscErrorCode LMESetOptionsPrefix(LME,const char*);
-PETSC_EXTERN PetscErrorCode LMEAppendOptionsPrefix(LME,const char*);
-PETSC_EXTERN PetscErrorCode LMEGetOptionsPrefix(LME,const char*[]);
+SLEPC_EXTERN PetscErrorCode LMESetOptionsPrefix(LME,const char*);
+SLEPC_EXTERN PetscErrorCode LMEAppendOptionsPrefix(LME,const char*);
+SLEPC_EXTERN PetscErrorCode LMEGetOptionsPrefix(LME,const char*[]);
 
 /*E
     LMEConvergedReason - reason a matrix function iteration was said to
@@ -118,14 +118,14 @@ typedef enum {/* converged */
               LME_DIVERGED_ITS                 = -1,
               LME_DIVERGED_BREAKDOWN           = -2,
               LME_CONVERGED_ITERATING          =  0} LMEConvergedReason;
-PETSC_EXTERN const char *const*LMEConvergedReasons;
+SLEPC_EXTERN const char *const*LMEConvergedReasons;
 
-PETSC_EXTERN PetscErrorCode LMEGetConvergedReason(LME,LMEConvergedReason *);
+SLEPC_EXTERN PetscErrorCode LMEGetConvergedReason(LME,LMEConvergedReason *);
 
-PETSC_EXTERN PetscFunctionList LMEList;
-PETSC_EXTERN PetscErrorCode LMERegister(const char[],PetscErrorCode(*)(LME));
+SLEPC_EXTERN PetscFunctionList LMEList;
+SLEPC_EXTERN PetscErrorCode LMERegister(const char[],PetscErrorCode(*)(LME));
 
-PETSC_EXTERN PetscErrorCode LMEAllocateSolution(LME,PetscInt);
+SLEPC_EXTERN PetscErrorCode LMEAllocateSolution(LME,PetscInt);
 
 #endif
 

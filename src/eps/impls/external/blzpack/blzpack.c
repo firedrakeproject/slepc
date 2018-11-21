@@ -418,7 +418,7 @@ PetscErrorCode EPSBlzpackSetNSteps(EPS eps,PetscInt nsteps)
   PetscFunctionReturn(0);
 }
 
-PETSC_EXTERN PetscErrorCode EPSCreate_BLZPACK(EPS eps)
+SLEPC_EXTERN PetscErrorCode EPSCreate_BLZPACK(EPS eps)
 {
   PetscErrorCode ierr;
   EPS_BLZPACK    *blzpack;

@@ -10,11 +10,11 @@
 
 #include <slepc/private/pepimpl.h>      /*I "slepcpep.h" I*/
 
-PETSC_EXTERN PetscErrorCode PEPCreate_Linear(PEP);
-PETSC_EXTERN PetscErrorCode PEPCreate_QArnoldi(PEP);
-PETSC_EXTERN PetscErrorCode PEPCreate_TOAR(PEP);
-PETSC_EXTERN PetscErrorCode PEPCreate_STOAR(PEP);
-PETSC_EXTERN PetscErrorCode PEPCreate_JD(PEP);
+SLEPC_EXTERN PetscErrorCode PEPCreate_Linear(PEP);
+SLEPC_EXTERN PetscErrorCode PEPCreate_QArnoldi(PEP);
+SLEPC_EXTERN PetscErrorCode PEPCreate_TOAR(PEP);
+SLEPC_EXTERN PetscErrorCode PEPCreate_STOAR(PEP);
+SLEPC_EXTERN PetscErrorCode PEPCreate_JD(PEP);
 
 /*@C
    PEPRegisterAll - Registers all the solvers in the PEP package.

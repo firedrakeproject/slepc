@@ -393,7 +393,7 @@ PetscErrorCode SVDView_Lanczos(SVD svd,PetscViewer viewer)
   PetscFunctionReturn(0);
 }
 
-PETSC_EXTERN PetscErrorCode SVDCreate_Lanczos(SVD svd)
+SLEPC_EXTERN PetscErrorCode SVDCreate_Lanczos(SVD svd)
 {
   PetscErrorCode ierr;
   SVD_LANCZOS    *ctx;

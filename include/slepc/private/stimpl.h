@@ -14,9 +14,9 @@
 #include <slepcst.h>
 #include <slepc/private/slepcimpl.h>
 
-PETSC_EXTERN PetscBool STRegisterAllCalled;
-PETSC_EXTERN PetscErrorCode STRegisterAll(void);
-PETSC_EXTERN PetscLogEvent ST_SetUp,ST_Apply,ST_ApplyTranspose,ST_MatSetUp,ST_MatMult,ST_MatMultTranspose,ST_MatSolve,ST_MatSolveTranspose;
+SLEPC_EXTERN PetscBool STRegisterAllCalled;
+SLEPC_EXTERN PetscErrorCode STRegisterAll(void);
+SLEPC_EXTERN PetscLogEvent ST_SetUp,ST_Apply,ST_ApplyTranspose,ST_MatSetUp,ST_MatMult,ST_MatMultTranspose,ST_MatSolve,ST_MatSolveTranspose;
 
 typedef struct _STOps *STOps;
 

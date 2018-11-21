@@ -265,7 +265,7 @@ PetscErrorCode FNDestroy_Phi(FN fn)
   PetscFunctionReturn(0);
 }
 
-PETSC_EXTERN PetscErrorCode FNCreate_Phi(FN fn)
+SLEPC_EXTERN PetscErrorCode FNCreate_Phi(FN fn)
 {
   PetscErrorCode ierr;
   FN_PHI         *ctx;

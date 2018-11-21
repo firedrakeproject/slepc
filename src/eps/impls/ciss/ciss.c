@@ -1943,7 +1943,7 @@ PetscErrorCode EPSSetDefaultST_CISS(EPS eps)
   PetscFunctionReturn(0);
 }
 
-PETSC_EXTERN PetscErrorCode EPSCreate_CISS(EPS eps)
+SLEPC_EXTERN PetscErrorCode EPSCreate_CISS(EPS eps)
 {
   PetscErrorCode ierr;
   EPS_CISS       *ctx = (EPS_CISS*)eps->data;

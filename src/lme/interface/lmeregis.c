@@ -10,7 +10,7 @@
 
 #include <slepc/private/lmeimpl.h>  /*I "slepclme.h" I*/
 
-PETSC_EXTERN PetscErrorCode LMECreate_Krylov(LME);
+SLEPC_EXTERN PetscErrorCode LMECreate_Krylov(LME);
 
 /*@C
   LMERegisterAll - Registers all the matrix functions in the LME package.

@@ -204,7 +204,7 @@ PetscErrorCode EPSComputeVectors_Schur(EPS eps)
 -  nw  - number of work vectors to allocate
 
    Developers Note:
-   This is PETSC_EXTERN because it may be required by user plugin EPS
+   This is SLEPC_EXTERN because it may be required by user plugin EPS
    implementations.
 
    Level: developer

@@ -86,7 +86,7 @@ PetscErrorCode LMEInitializePackage(void)
   This one registers all the LME methods that are in the basic SLEPc libslepclme
   library.
  */
-PETSC_EXTERN PetscErrorCode PetscDLLibraryRegister_slepclme()
+SLEPC_EXTERN PetscErrorCode PetscDLLibraryRegister_slepclme()
 {
   PetscErrorCode ierr;
 

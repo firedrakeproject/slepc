@@ -294,7 +294,7 @@ PetscErrorCode EPSFEASTGetNumPoints(EPS eps,PetscInt *npoints)
   PetscFunctionReturn(0);
 }
 
-PETSC_EXTERN PetscErrorCode EPSCreate_FEAST(EPS eps)
+SLEPC_EXTERN PetscErrorCode EPSCreate_FEAST(EPS eps)
 {
   EPS_FEAST      *ctx;
   PetscErrorCode ierr;

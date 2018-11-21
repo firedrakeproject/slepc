@@ -10,11 +10,11 @@
 
 #include <slepc/private/bvimpl.h>          /*I   "slepcbv.h"   I*/
 
-PETSC_EXTERN PetscErrorCode BVCreate_Vecs(BV);
-PETSC_EXTERN PetscErrorCode BVCreate_Contiguous(BV);
-PETSC_EXTERN PetscErrorCode BVCreate_Svec(BV);
-PETSC_EXTERN PetscErrorCode BVCreate_Mat(BV);
-PETSC_EXTERN PetscErrorCode BVCreate_Tensor(BV);
+SLEPC_EXTERN PetscErrorCode BVCreate_Vecs(BV);
+SLEPC_EXTERN PetscErrorCode BVCreate_Contiguous(BV);
+SLEPC_EXTERN PetscErrorCode BVCreate_Svec(BV);
+SLEPC_EXTERN PetscErrorCode BVCreate_Mat(BV);
+SLEPC_EXTERN PetscErrorCode BVCreate_Tensor(BV);
 
 /*@C
    BVRegisterAll - Registers all of the storage variants in the BV package.

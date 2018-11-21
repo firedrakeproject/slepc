@@ -14,8 +14,8 @@
 #include <slepcrg.h>
 #include <slepc/private/slepcimpl.h>
 
-PETSC_EXTERN PetscBool RGRegisterAllCalled;
-PETSC_EXTERN PetscErrorCode RGRegisterAll(void);
+SLEPC_EXTERN PetscBool RGRegisterAllCalled;
+SLEPC_EXTERN PetscErrorCode RGRegisterAll(void);
 
 typedef struct _RGOps *RGOps;
 

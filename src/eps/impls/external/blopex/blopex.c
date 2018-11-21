@@ -405,7 +405,7 @@ PetscErrorCode EPSSetFromOptions_BLOPEX(PetscOptionItems *PetscOptionsObject,EPS
   PetscFunctionReturn(0);
 }
 
-PETSC_EXTERN PetscErrorCode EPSCreate_BLOPEX(EPS eps)
+SLEPC_EXTERN PetscErrorCode EPSCreate_BLOPEX(EPS eps)
 {
   EPS_BLOPEX     *ctx;
   PetscErrorCode ierr;

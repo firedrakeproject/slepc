@@ -417,7 +417,7 @@ PetscErrorCode BVDestroy_Mat(BV bv)
   PetscFunctionReturn(0);
 }
 
-PETSC_EXTERN PetscErrorCode BVCreate_Mat(BV bv)
+SLEPC_EXTERN PetscErrorCode BVCreate_Mat(BV bv)
 {
   PetscErrorCode ierr;
   BV_MAT         *ctx;

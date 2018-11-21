@@ -15,6 +15,25 @@
 #if !defined(__SLEPCSYS_H)
 #define __SLEPCSYS_H
 
+#include <petscsys.h>
+
+#if defined(slepc_EXPORTS)
+#define SLEPC_VISIBILITY_PUBLIC PETSC_DLLEXPORT
+#else
+#define SLEPC_VISIBILITY_PUBLIC PETSC_DLLIMPORT
+#endif
+
+/*
+    Functions tagged with SLEPC_EXTERN in the header files are
+  always defined as extern "C" when compiled with C++ so they may be
+  used from C and are always visible in the shared libraries
+*/
+#if defined(__cplusplus)
+#define SLEPC_EXTERN extern "C" SLEPC_VISIBILITY_PUBLIC
+#else
+#define SLEPC_EXTERN extern SLEPC_VISIBILITY_PUBLIC
+#endif
+
 /* ========================================================================== */
 /*
    slepcconf.h is created by the configure script and placed in ${PETSC_ARCH}/include.
@@ -50,22 +69,22 @@
     Creation and destruction of context for monitors of type XXXMonitorConverged
 */
 typedef struct _n_SlepcConvMonitor* SlepcConvMonitor;
-PETSC_EXTERN PetscErrorCode SlepcConvMonitorCreate(PetscViewer,PetscViewerFormat,SlepcConvMonitor*);
-PETSC_EXTERN PetscErrorCode SlepcConvMonitorDestroy(SlepcConvMonitor*);
+SLEPC_EXTERN PetscErrorCode SlepcConvMonitorCreate(PetscViewer,PetscViewerFormat,SlepcConvMonitor*);
+SLEPC_EXTERN PetscErrorCode SlepcConvMonitorDestroy(SlepcConvMonitor*);
 
 /*
     Initialization of SLEPc and other system routines
 */
-PETSC_EXTERN PetscErrorCode SlepcInitialize(int*,char***,const char[],const char[]);
-PETSC_EXTERN PetscErrorCode SlepcInitializeNoPointers(int,char**,const char[],const char[]);
-PETSC_EXTERN PetscErrorCode SlepcInitializeNoArguments(void);
-PETSC_EXTERN PetscErrorCode SlepcFinalize(void);
-PETSC_EXTERN PetscErrorCode SlepcInitializeFortran(void);
-PETSC_EXTERN PetscErrorCode SlepcInitialized(PetscBool*);
-PETSC_EXTERN PetscErrorCode SlepcGetVersion(char[],size_t);
-PETSC_EXTERN PetscErrorCode SlepcGetVersionNumber(PetscInt*,PetscInt*,PetscInt*,PetscInt*);
+SLEPC_EXTERN PetscErrorCode SlepcInitialize(int*,char***,const char[],const char[]);
+SLEPC_EXTERN PetscErrorCode SlepcInitializeNoPointers(int,char**,const char[],const char[]);
+SLEPC_EXTERN PetscErrorCode SlepcInitializeNoArguments(void);
+SLEPC_EXTERN PetscErrorCode SlepcFinalize(void);
+SLEPC_EXTERN PetscErrorCode SlepcInitializeFortran(void);
+SLEPC_EXTERN PetscErrorCode SlepcInitialized(PetscBool*);
+SLEPC_EXTERN PetscErrorCode SlepcGetVersion(char[],size_t);
+SLEPC_EXTERN PetscErrorCode SlepcGetVersionNumber(PetscInt*,PetscInt*,PetscInt*,PetscInt*);
 
-PETSC_EXTERN PetscErrorCode SlepcSNPrintfScalar(char*,size_t,PetscScalar,PetscBool);
+SLEPC_EXTERN PetscErrorCode SlepcSNPrintfScalar(char*,size_t,PetscScalar,PetscBool);
 
 PETSC_DEPRECATED("Use MatCreateRedundantMatrix() followed by MatConvert()") PETSC_STATIC_INLINE PetscErrorCode SlepcMatConvertSeqDense(Mat mat,Mat *newmat) {
   PetscErrorCode ierr; Mat Ar; 
@@ -78,7 +97,7 @@ PETSC_DEPRECATED("Use VecNormalizeComplex()") PETSC_STATIC_INLINE PetscErrorCode
 PETSC_DEPRECATED("Use VecCheckOrthogonality()") PETSC_STATIC_INLINE PetscErrorCode SlepcCheckOrthogonality(Vec *V,PetscInt nv,Vec *W,PetscInt nw,Mat B,PetscViewer viewer,PetscReal *lev) {return VecCheckOrthogonality(V,nv,W,nw,B,viewer,lev);}
 PETSC_DEPRECATED("Use MatCreateTile()") PETSC_STATIC_INLINE PetscErrorCode SlepcMatTile(PetscScalar a,Mat A,PetscScalar b,Mat B,PetscScalar c,Mat C,PetscScalar d,Mat D,Mat *G) {return MatCreateTile(a,A,b,B,c,C,d,D,G);}
 
-PETSC_EXTERN PetscBool SlepcInitializeCalled;
+SLEPC_EXTERN PetscBool SlepcInitializeCalled;
 
 #if defined(PETSC_USE_COMPLEX)
 #define SlepcLogFlopsComplex(a) PetscLogFlops((a))

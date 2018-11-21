@@ -166,7 +166,7 @@ PetscErrorCode MFNSolve_Krylov(MFN mfn,Vec b,Vec x)
   PetscFunctionReturn(0);
 }
 
-PETSC_EXTERN PetscErrorCode MFNCreate_Krylov(MFN mfn)
+SLEPC_EXTERN PetscErrorCode MFNCreate_Krylov(MFN mfn)
 {
   PetscFunctionBegin;
   mfn->ops->solve          = MFNSolve_Krylov;

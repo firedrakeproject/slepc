@@ -25,13 +25,13 @@
 #define epskrylovschurgetsubcommmats_     epskrylovschurgetsubcommmats
 #endif
 
-PETSC_EXTERN void PETSC_STDCALL epskrylovschursetsubintervals_(EPS *eps,PetscReal *subint,PetscErrorCode *ierr)
+SLEPC_EXTERN void PETSC_STDCALL epskrylovschursetsubintervals_(EPS *eps,PetscReal *subint,PetscErrorCode *ierr)
 {
   CHKFORTRANNULLREAL(subint);
   *ierr = EPSKrylovSchurSetSubintervals(*eps,subint);
 }
 
-PETSC_EXTERN void PETSC_STDCALL epskrylovschurgetsubintervals_(EPS *eps,PetscReal *subint,PetscErrorCode *ierr)
+SLEPC_EXTERN void PETSC_STDCALL epskrylovschurgetsubintervals_(EPS *eps,PetscReal *subint,PetscErrorCode *ierr)
 {
   PetscReal *osubint;
   PetscInt  npart;
@@ -43,7 +43,7 @@ PETSC_EXTERN void PETSC_STDCALL epskrylovschurgetsubintervals_(EPS *eps,PetscRea
   *ierr = PetscFree(osubint);
 }
 
-PETSC_EXTERN void PETSC_STDCALL epskrylovschurgetinertias_(EPS *eps,PetscInt *nshift,PetscReal *shifts,PetscInt *inertias,PetscErrorCode *ierr)
+SLEPC_EXTERN void PETSC_STDCALL epskrylovschurgetinertias_(EPS *eps,PetscInt *nshift,PetscReal *shifts,PetscInt *inertias,PetscErrorCode *ierr)
 {
   PetscReal *oshifts;
   PetscInt  *oinertias;
@@ -59,13 +59,13 @@ PETSC_EXTERN void PETSC_STDCALL epskrylovschurgetinertias_(EPS *eps,PetscInt *ns
   *ierr = PetscFree(oinertias);
 }
 
-PETSC_EXTERN void PETSC_STDCALL epskrylovschurgetsubcomminfo_(EPS *eps,PetscInt *k,PetscInt *n,Vec *v,PetscErrorCode *ierr)
+SLEPC_EXTERN void PETSC_STDCALL epskrylovschurgetsubcomminfo_(EPS *eps,PetscInt *k,PetscInt *n,Vec *v,PetscErrorCode *ierr)
 {
   CHKFORTRANNULLOBJECT(v);
   *ierr = EPSKrylovSchurGetSubcommInfo(*eps,k,n,v);
 }
 
-PETSC_EXTERN void PETSC_STDCALL epskrylovschurgetsubcommmats_(EPS *eps,Mat *A,Mat *B,PetscErrorCode *ierr)
+SLEPC_EXTERN void PETSC_STDCALL epskrylovschurgetsubcommmats_(EPS *eps,Mat *A,Mat *B,PetscErrorCode *ierr)
 {
   CHKFORTRANNULLOBJECT(A);
   CHKFORTRANNULLOBJECT(B);

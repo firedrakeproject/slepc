@@ -696,7 +696,7 @@ PetscErrorCode EPSDestroy_LOBPCG(EPS eps)
   PetscFunctionReturn(0);
 }
 
-PETSC_EXTERN PetscErrorCode EPSCreate_LOBPCG(EPS eps)
+SLEPC_EXTERN PetscErrorCode EPSCreate_LOBPCG(EPS eps)
 {
   EPS_LOBPCG     *lobpcg;
   PetscErrorCode ierr;

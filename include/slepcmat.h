@@ -15,8 +15,8 @@
 #define __SLEPCMAT_H
 #include <petscmat.h>
 
-PETSC_EXTERN PetscErrorCode MatCreateTile(PetscScalar,Mat,PetscScalar,Mat,PetscScalar,Mat,PetscScalar,Mat,Mat*);
-PETSC_EXTERN PetscErrorCode MatCreateVecsEmpty(Mat,Vec*,Vec*);
+SLEPC_EXTERN PetscErrorCode MatCreateTile(PetscScalar,Mat,PetscScalar,Mat,PetscScalar,Mat,PetscScalar,Mat,Mat*);
+SLEPC_EXTERN PetscErrorCode MatCreateVecsEmpty(Mat,Vec*,Vec*);
 
 #endif
 

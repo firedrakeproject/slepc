@@ -448,7 +448,7 @@ PetscErrorCode NEPDestroy_NArnoldi(NEP nep)
   PetscFunctionReturn(0);
 }
 
-PETSC_EXTERN PetscErrorCode NEPCreate_NArnoldi(NEP nep)
+SLEPC_EXTERN PetscErrorCode NEPCreate_NArnoldi(NEP nep)
 {
   PetscErrorCode ierr;
   NEP_NARNOLDI   *ctx;

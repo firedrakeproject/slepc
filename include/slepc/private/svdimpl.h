@@ -14,9 +14,9 @@
 #include <slepcsvd.h>
 #include <slepc/private/slepcimpl.h>
 
-PETSC_EXTERN PetscBool SVDRegisterAllCalled;
-PETSC_EXTERN PetscErrorCode SVDRegisterAll(void);
-PETSC_EXTERN PetscLogEvent SVD_SetUp,SVD_Solve;
+SLEPC_EXTERN PetscBool SVDRegisterAllCalled;
+SLEPC_EXTERN PetscErrorCode SVDRegisterAll(void);
+SLEPC_EXTERN PetscLogEvent SVD_SetUp,SVD_Solve;
 
 typedef struct _SVDOps *SVDOps;
 

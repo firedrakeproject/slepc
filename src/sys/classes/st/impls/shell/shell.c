@@ -294,7 +294,7 @@ $             STShellSetBackTransform(st,backtr);    (optional)
 
 M*/
 
-PETSC_EXTERN PetscErrorCode STCreate_Shell(ST st)
+SLEPC_EXTERN PetscErrorCode STCreate_Shell(ST st)
 {
   PetscErrorCode ierr;
   ST_SHELL       *ctx;

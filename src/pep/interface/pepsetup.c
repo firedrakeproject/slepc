@@ -448,7 +448,7 @@ PetscErrorCode PEPSetDimensions_Default(PEP pep,PetscInt nev,PetscInt *ncv,Petsc
            working basis slightly larger than ncv
 
    Developers Note:
-   This is PETSC_EXTERN because it may be required by user plugin PEP
+   This is SLEPC_EXTERN because it may be required by user plugin PEP
    implementations.
 
    Level: developer

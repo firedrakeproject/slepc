@@ -14,10 +14,10 @@
 #include <slepcbv.h>
 #include <slepc/private/slepcimpl.h>
 
-PETSC_EXTERN PetscBool BVRegisterAllCalled;
-PETSC_EXTERN PetscErrorCode BVRegisterAll(void);
+SLEPC_EXTERN PetscBool BVRegisterAllCalled;
+SLEPC_EXTERN PetscErrorCode BVRegisterAll(void);
 
-PETSC_EXTERN PetscLogEvent BV_Create,BV_Copy,BV_Mult,BV_MultVec,BV_MultInPlace,BV_Dot,BV_DotVec,BV_Orthogonalize,BV_OrthogonalizeVec,BV_Scale,BV_Norm,BV_NormVec,BV_SetRandom,BV_MatMult,BV_MatMultVec,BV_MatProject;
+SLEPC_EXTERN PetscLogEvent BV_Create,BV_Copy,BV_Mult,BV_MultVec,BV_MultInPlace,BV_Dot,BV_DotVec,BV_Orthogonalize,BV_OrthogonalizeVec,BV_Scale,BV_Norm,BV_NormVec,BV_SetRandom,BV_MatMult,BV_MatMultVec,BV_MatProject;
 
 typedef struct _BVOps *BVOps;
 
@@ -257,8 +257,8 @@ PETSC_INTERN PetscErrorCode BVOrthogonalize_LAPACK_TSQR(BV,PetscInt,PetscInt,Pet
 PETSC_INTERN PetscErrorCode BVOrthogonalize_LAPACK_TSQR_OnlyR(BV,PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscInt);
 
 /* reduction operation used in BVOrthogonalize */
-PETSC_EXTERN MPI_Op MPIU_TSQR;
-PETSC_EXTERN void SlepcGivensPacked(void*,void*,PetscMPIInt*,MPI_Datatype*);
+SLEPC_EXTERN MPI_Op MPIU_TSQR;
+SLEPC_EXTERN void SlepcGivensPacked(void*,void*,PetscMPIInt*,MPI_Datatype*);
 
 #if defined(PETSC_HAVE_CUDA)
 #include <petsccuda.h>

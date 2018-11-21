@@ -476,7 +476,7 @@ PetscErrorCode NEPDestroy_Interpol(NEP nep)
   PetscFunctionReturn(0);
 }
 
-PETSC_EXTERN PetscErrorCode NEPCreate_Interpol(NEP nep)
+SLEPC_EXTERN PetscErrorCode NEPCreate_Interpol(NEP nep)
 {
   PetscErrorCode ierr;
   NEP_INTERPOL   *ctx;

@@ -97,7 +97,7 @@ PetscErrorCode SVDSolve_LAPACK(SVD svd)
   PetscFunctionReturn(0);
 }
 
-PETSC_EXTERN PetscErrorCode SVDCreate_LAPACK(SVD svd)
+SLEPC_EXTERN PetscErrorCode SVDCreate_LAPACK(SVD svd)
 {
   PetscFunctionBegin;
   svd->ops->setup   = SVDSetUp_LAPACK;

@@ -507,7 +507,7 @@ PetscErrorCode FNDestroy_Rational(FN fn)
   PetscFunctionReturn(0);
 }
 
-PETSC_EXTERN PetscErrorCode FNCreate_Rational(FN fn)
+SLEPC_EXTERN PetscErrorCode FNCreate_Rational(FN fn)
 {
   PetscErrorCode ierr;
   FN_RATIONAL    *ctx;

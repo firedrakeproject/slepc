@@ -256,7 +256,7 @@ PetscErrorCode FNView_Sqrt(FN fn,PetscViewer viewer)
   PetscFunctionReturn(0);
 }
 
-PETSC_EXTERN PetscErrorCode FNCreate_Sqrt(FN fn)
+SLEPC_EXTERN PetscErrorCode FNCreate_Sqrt(FN fn)
 {
   PetscFunctionBegin;
   fn->ops->evaluatefunction          = FNEvaluateFunction_Sqrt;

@@ -180,7 +180,7 @@ PetscErrorCode MFNSolve_Expokit(MFN mfn,Vec b,Vec x)
   PetscFunctionReturn(0);
 }
 
-PETSC_EXTERN PetscErrorCode MFNCreate_Expokit(MFN mfn)
+SLEPC_EXTERN PetscErrorCode MFNCreate_Expokit(MFN mfn)
 {
   PetscFunctionBegin;
   mfn->ops->solve          = MFNSolve_Expokit;

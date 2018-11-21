@@ -429,7 +429,7 @@ PetscErrorCode BVDestroy_Svec(BV bv)
   PetscFunctionReturn(0);
 }
 
-PETSC_EXTERN PetscErrorCode BVCreate_Svec(BV bv)
+SLEPC_EXTERN PetscErrorCode BVCreate_Svec(BV bv)
 {
   PetscErrorCode    ierr;
   BV_SVEC           *ctx;

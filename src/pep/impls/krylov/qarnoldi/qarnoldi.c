@@ -535,7 +535,7 @@ PetscErrorCode PEPDestroy_QArnoldi(PEP pep)
   PetscFunctionReturn(0);
 }
 
-PETSC_EXTERN PetscErrorCode PEPCreate_QArnoldi(PEP pep)
+SLEPC_EXTERN PetscErrorCode PEPCreate_QArnoldi(PEP pep)
 {
   PEP_QARNOLDI   *ctx;
   PetscErrorCode ierr;

@@ -61,7 +61,7 @@ PETSC_STATIC_INLINE void AddNorm2(PetscReal *ssq,PetscReal *scale,PetscReal x)
   }
 }
 
-PETSC_EXTERN void SlepcSumNorm2_Local(void *in,void *out,PetscMPIInt *cnt,MPI_Datatype *datatype)
+SLEPC_EXTERN void SlepcSumNorm2_Local(void *in,void *out,PetscMPIInt *cnt,MPI_Datatype *datatype)
 {
   PetscInt  i,count = *cnt;
   PetscReal *xin = (PetscReal*)in,*xout = (PetscReal*)out;
@@ -279,7 +279,7 @@ static PetscErrorCode VecCreate_Comp_Private(Vec v,Vec *x,PetscInt nx,PetscBool 
   PetscFunctionReturn(0);
 }
 
-PETSC_EXTERN PetscErrorCode VecCreate_Comp(Vec V)
+SLEPC_EXTERN PetscErrorCode VecCreate_Comp(Vec V)
 {
   PetscErrorCode ierr;
 

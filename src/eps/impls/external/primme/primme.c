@@ -434,7 +434,7 @@ PetscErrorCode EPSPRIMMEGetMethod(EPS eps,EPSPRIMMEMethod *method)
   PetscFunctionReturn(0);
 }
 
-PETSC_EXTERN PetscErrorCode EPSCreate_PRIMME(EPS eps)
+SLEPC_EXTERN PetscErrorCode EPSCreate_PRIMME(EPS eps)
 {
   PetscErrorCode ierr;
   EPS_PRIMME     *primme;

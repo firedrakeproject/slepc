@@ -506,7 +506,7 @@ PetscErrorCode EPSSetDimensions_Default(EPS eps,PetscInt nev,PetscInt *ncv,Petsc
            working basis slightly larger than ncv
 
    Developers Note:
-   This is PETSC_EXTERN because it may be required by user plugin EPS
+   This is SLEPC_EXTERN because it may be required by user plugin EPS
    implementations.
 
    Level: developer

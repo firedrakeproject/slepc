@@ -91,7 +91,7 @@ PetscErrorCode NEPInitializePackage(void)
   This one registers all the NEP methods that are in the basic SLEPc libslepcnep
   library.
  */
-PETSC_EXTERN PetscErrorCode PetscDLLibraryRegister_slepcnep()
+SLEPC_EXTERN PetscErrorCode PetscDLLibraryRegister_slepcnep()
 {
   PetscErrorCode ierr;
 

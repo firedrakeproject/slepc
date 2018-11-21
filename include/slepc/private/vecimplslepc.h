@@ -77,7 +77,7 @@ PETSC_INTERN PetscErrorCode VecAbs_Comp(Vec);
 PETSC_INTERN PetscErrorCode VecExp_Comp(Vec);
 PETSC_INTERN PetscErrorCode VecLog_Comp(Vec);
 PETSC_INTERN PetscErrorCode VecShift_Comp(Vec,PetscScalar);
-PETSC_EXTERN PetscErrorCode VecCreate_Comp(Vec);
+SLEPC_EXTERN PetscErrorCode VecCreate_Comp(Vec);
 
 /* Definitions and structures for BLAS-type operations in Davidson solvers */
 
@@ -114,8 +114,8 @@ typedef struct VecPool_ {
 } VecPool_;
 typedef VecPool_* VecPool;
 
-PETSC_EXTERN PetscErrorCode SlepcVecPoolCreate(Vec,PetscInt,VecPool*);
-PETSC_EXTERN PetscErrorCode SlepcVecPoolDestroy(VecPool*);
-PETSC_EXTERN PetscErrorCode SlepcVecPoolGetVecs(VecPool,PetscInt,Vec**);
-PETSC_EXTERN PetscErrorCode SlepcVecPoolRestoreVecs(VecPool,PetscInt,Vec**);
+SLEPC_EXTERN PetscErrorCode SlepcVecPoolCreate(Vec,PetscInt,VecPool*);
+SLEPC_EXTERN PetscErrorCode SlepcVecPoolDestroy(VecPool*);
+SLEPC_EXTERN PetscErrorCode SlepcVecPoolGetVecs(VecPool,PetscInt,Vec**);
+SLEPC_EXTERN PetscErrorCode SlepcVecPoolRestoreVecs(VecPool,PetscInt,Vec**);
 #endif

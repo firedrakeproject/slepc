@@ -10,10 +10,10 @@
 
 #include <slepc/private/rgimpl.h>      /*I "slepcrg.h" I*/
 
-PETSC_EXTERN PetscErrorCode RGCreate_Interval(RG);
-PETSC_EXTERN PetscErrorCode RGCreate_Ellipse(RG);
-PETSC_EXTERN PetscErrorCode RGCreate_Ring(RG);
-PETSC_EXTERN PetscErrorCode RGCreate_Polygon(RG);
+SLEPC_EXTERN PetscErrorCode RGCreate_Interval(RG);
+SLEPC_EXTERN PetscErrorCode RGCreate_Ellipse(RG);
+SLEPC_EXTERN PetscErrorCode RGCreate_Ring(RG);
+SLEPC_EXTERN PetscErrorCode RGCreate_Polygon(RG);
 
 /*@C
    RGRegisterAll - Registers all of the regions in the RG package.

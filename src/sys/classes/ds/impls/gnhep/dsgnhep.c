@@ -595,7 +595,7 @@ PetscErrorCode DSSynchronize_GNHEP(DS ds,PetscScalar eigr[],PetscScalar eigi[])
   PetscFunctionReturn(0);
 }
 
-PETSC_EXTERN PetscErrorCode DSCreate_GNHEP(DS ds)
+SLEPC_EXTERN PetscErrorCode DSCreate_GNHEP(DS ds)
 {
   PetscFunctionBegin;
   ds->ops->allocate      = DSAllocate_GNHEP;

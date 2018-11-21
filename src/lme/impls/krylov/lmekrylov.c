@@ -233,7 +233,7 @@ PetscErrorCode LMESolve_Krylov_Lyapunov(LME lme)
   PetscFunctionReturn(0);
 }
 
-PETSC_EXTERN PetscErrorCode LMECreate_Krylov(LME lme)
+SLEPC_EXTERN PetscErrorCode LMECreate_Krylov(LME lme)
 {
   PetscFunctionBegin;
   lme->ops->solve[LME_LYAPUNOV]      = LMESolve_Krylov_Lyapunov;

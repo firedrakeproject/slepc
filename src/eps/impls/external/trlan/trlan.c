@@ -161,7 +161,7 @@ PetscErrorCode EPSDestroy_TRLAN(EPS eps)
   PetscFunctionReturn(0);
 }
 
-PETSC_EXTERN PetscErrorCode EPSCreate_TRLAN(EPS eps)
+SLEPC_EXTERN PetscErrorCode EPSCreate_TRLAN(EPS eps)
 {
   EPS_TRLAN      *ctx;
   PetscErrorCode ierr;

@@ -14,9 +14,9 @@
 #include <slepclme.h>
 #include <slepc/private/slepcimpl.h>
 
-PETSC_EXTERN PetscBool LMERegisterAllCalled;
-PETSC_EXTERN PetscErrorCode LMERegisterAll(void);
-PETSC_EXTERN PetscLogEvent LME_SetUp,LME_Solve,LME_ComputeError;
+SLEPC_EXTERN PetscBool LMERegisterAllCalled;
+SLEPC_EXTERN PetscErrorCode LMERegisterAll(void);
+SLEPC_EXTERN PetscLogEvent LME_SetUp,LME_Solve,LME_ComputeError;
 
 typedef struct _LMEOps *LMEOps;
 
@@ -84,10 +84,10 @@ PETSC_INTERN PetscErrorCode LMERankSVD(LME,PetscInt,PetscScalar*,PetscScalar*,Pe
 
 #if !defined(PETSC_BLASLAPACK_STDCALL)
 #define SLICOTsb03od_(a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q) SLEPC_SLICOT(sb03od,SB03OD) ((a),(b),(c),(d),(e),(f),(g),(h),(i),(j),(k),(l),(m),(n),(o),(p),(q),1,1,1)
-PETSC_EXTERN void SLEPC_SLICOT(sb03od,SB03OD)(const char*,const char*,const char*,PetscBLASInt*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscReal*,PetscScalar*,PetscScalar*,PetscReal*,PetscBLASInt*,PetscBLASInt*,PetscBLASInt,PetscBLASInt,PetscBLASInt);
+SLEPC_EXTERN void SLEPC_SLICOT(sb03od,SB03OD)(const char*,const char*,const char*,PetscBLASInt*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscReal*,PetscScalar*,PetscScalar*,PetscReal*,PetscBLASInt*,PetscBLASInt*,PetscBLASInt,PetscBLASInt,PetscBLASInt);
 #else
 #define SLICOTsb03od_(a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q) SLEPC_SLICOT(sb03od,SB03OD) ((a),1,(b),1,(c),1,(d),(e),(f),(g),(h),(i),(j),(k),(l),(m),(n),(o),(p),(q))
-PETSC_EXTERN void PETSC_STDCALL SLEPC_SLICOT(sb03od,SB03OD)(const char*,PetscBLASInt,const char*,PetscBLASInt,const char*,PetscBLASInt,PetscBLASInt*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscReal*,PetscScalar*,PetscScalar*,PetscReal*,PetscBLASInt*,PetscBLASInt*);
+SLEPC_EXTERN void PETSC_STDCALL SLEPC_SLICOT(sb03od,SB03OD)(const char*,PetscBLASInt,const char*,PetscBLASInt,const char*,PetscBLASInt,PetscBLASInt*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscReal*,PetscScalar*,PetscScalar*,PetscReal*,PetscBLASInt*,PetscBLASInt*);
 #endif
 
 #endif

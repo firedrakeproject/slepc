@@ -1054,7 +1054,7 @@ PetscErrorCode PEPDestroy_Linear(PEP pep)
   PetscFunctionReturn(0);
 }
 
-PETSC_EXTERN PetscErrorCode PEPCreate_Linear(PEP pep)
+SLEPC_EXTERN PetscErrorCode PEPCreate_Linear(PEP pep)
 {
   PetscErrorCode ierr;
   PEP_LINEAR     *ctx;

@@ -1128,7 +1128,7 @@ PetscErrorCode NEPView_CISS(NEP nep,PetscViewer viewer)
   PetscFunctionReturn(0);
 }
 
-PETSC_EXTERN PetscErrorCode NEPCreate_CISS(NEP nep)
+SLEPC_EXTERN PetscErrorCode NEPCreate_CISS(NEP nep)
 {
   PetscErrorCode ierr;
   NEP_CISS       *ctx = (NEP_CISS*)nep->data;

@@ -145,7 +145,7 @@ PetscErrorCode STSetShift_Shift(ST st,PetscScalar newshift)
   PetscFunctionReturn(0);
 }
 
-PETSC_EXTERN PetscErrorCode STCreate_Shift(ST st)
+SLEPC_EXTERN PetscErrorCode STCreate_Shift(ST st)
 {
   PetscFunctionBegin;
   st->ops->apply           = STApply_Shift;

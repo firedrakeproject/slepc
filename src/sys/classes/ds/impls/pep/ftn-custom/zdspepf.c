@@ -19,13 +19,13 @@
 #define dspepgetcoefficients_    dspepgetcoefficients
 #endif
 
-PETSC_EXTERN void PETSC_STDCALL dspepsetcoefficients_(DS *ds,PetscReal *pbc,PetscErrorCode *ierr)
+SLEPC_EXTERN void PETSC_STDCALL dspepsetcoefficients_(DS *ds,PetscReal *pbc,PetscErrorCode *ierr)
 {
   CHKFORTRANNULLREAL(pbc);
   *ierr = DSPEPSetCoefficients(*ds,pbc);
 }
 
-PETSC_EXTERN void PETSC_STDCALL dspepgetcoefficients_(DS *ds,PetscReal *pbc,PetscErrorCode *ierr)
+SLEPC_EXTERN void PETSC_STDCALL dspepgetcoefficients_(DS *ds,PetscReal *pbc,PetscErrorCode *ierr)
 {
   PetscReal *opbc;
   PetscInt  d;

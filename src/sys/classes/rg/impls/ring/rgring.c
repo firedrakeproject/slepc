@@ -373,7 +373,7 @@ PetscErrorCode RGDestroy_Ring(RG rg)
   PetscFunctionReturn(0);
 }
 
-PETSC_EXTERN PetscErrorCode RGCreate_Ring(RG rg)
+SLEPC_EXTERN PetscErrorCode RGCreate_Ring(RG rg)
 {
   RG_RING        *ring;
   PetscErrorCode ierr;

@@ -182,7 +182,7 @@ PetscErrorCode FNView_Invsqrt(FN fn,PetscViewer viewer)
   PetscFunctionReturn(0);
 }
 
-PETSC_EXTERN PetscErrorCode FNCreate_Invsqrt(FN fn)
+SLEPC_EXTERN PetscErrorCode FNCreate_Invsqrt(FN fn)
 {
   PetscFunctionBegin;
   fn->ops->evaluatefunction          = FNEvaluateFunction_Invsqrt;

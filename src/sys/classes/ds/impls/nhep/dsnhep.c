@@ -777,7 +777,7 @@ PetscErrorCode DSTranslateHarmonic_NHEP(DS ds,PetscScalar tau,PetscReal beta,Pet
 #endif
 }
 
-PETSC_EXTERN PetscErrorCode DSCreate_NHEP(DS ds)
+SLEPC_EXTERN PetscErrorCode DSCreate_NHEP(DS ds)
 {
   PetscFunctionBegin;
   ds->ops->allocate      = DSAllocate_NHEP;

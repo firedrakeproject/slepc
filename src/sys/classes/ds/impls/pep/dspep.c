@@ -509,7 +509,7 @@ PetscErrorCode DSMatGetSize_PEP(DS ds,DSMatType t,PetscInt *rows,PetscInt *cols)
   PetscFunctionReturn(0);
 }
 
-PETSC_EXTERN PetscErrorCode DSCreate_PEP(DS ds)
+SLEPC_EXTERN PetscErrorCode DSCreate_PEP(DS ds)
 {
   DS_PEP         *ctx;
   PetscErrorCode ierr;

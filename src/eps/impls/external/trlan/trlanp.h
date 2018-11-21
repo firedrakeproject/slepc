@@ -34,7 +34,7 @@ typedef struct {
 #define TRLan_ trlan77
 #endif
 
-PETSC_EXTERN void TRLan_(PetscBLASInt(*op)(PetscBLASInt*,PetscBLASInt*,PetscReal*,PetscBLASInt*,PetscReal*,PetscBLASInt*),PetscBLASInt*,PetscBLASInt*,PetscBLASInt*,PetscScalar*,PetscScalar*,PetscBLASInt*,PetscReal*,PetscBLASInt*);
+SLEPC_EXTERN void TRLan_(PetscBLASInt(*op)(PetscBLASInt*,PetscBLASInt*,PetscReal*,PetscBLASInt*,PetscReal*,PetscBLASInt*),PetscBLASInt*,PetscBLASInt*,PetscBLASInt*,PetscScalar*,PetscScalar*,PetscBLASInt*,PetscReal*,PetscBLASInt*);
 
 #endif
 

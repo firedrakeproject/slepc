@@ -10,13 +10,13 @@
 
 #include <slepc/private/fnimpl.h>      /*I "slepcfn.h" I*/
 
-PETSC_EXTERN PetscErrorCode FNCreate_Combine(FN);
-PETSC_EXTERN PetscErrorCode FNCreate_Rational(FN);
-PETSC_EXTERN PetscErrorCode FNCreate_Exp(FN);
-PETSC_EXTERN PetscErrorCode FNCreate_Log(FN);
-PETSC_EXTERN PetscErrorCode FNCreate_Phi(FN);
-PETSC_EXTERN PetscErrorCode FNCreate_Sqrt(FN);
-PETSC_EXTERN PetscErrorCode FNCreate_Invsqrt(FN);
+SLEPC_EXTERN PetscErrorCode FNCreate_Combine(FN);
+SLEPC_EXTERN PetscErrorCode FNCreate_Rational(FN);
+SLEPC_EXTERN PetscErrorCode FNCreate_Exp(FN);
+SLEPC_EXTERN PetscErrorCode FNCreate_Log(FN);
+SLEPC_EXTERN PetscErrorCode FNCreate_Phi(FN);
+SLEPC_EXTERN PetscErrorCode FNCreate_Sqrt(FN);
+SLEPC_EXTERN PetscErrorCode FNCreate_Invsqrt(FN);
 
 /*@C
    FNRegisterAll - Registers all of the math functions in the FN package.

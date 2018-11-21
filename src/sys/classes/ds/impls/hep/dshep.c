@@ -855,7 +855,7 @@ PetscErrorCode DSHermitian_HEP(DS ds,DSMatType m,PetscBool *flg)
   PetscFunctionReturn(0);
 }
 
-PETSC_EXTERN PetscErrorCode DSCreate_HEP(DS ds)
+SLEPC_EXTERN PetscErrorCode DSCreate_HEP(DS ds)
 {
   PetscFunctionBegin;
   ds->ops->allocate      = DSAllocate_HEP;

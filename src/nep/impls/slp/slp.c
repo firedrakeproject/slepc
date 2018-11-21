@@ -465,7 +465,7 @@ PetscErrorCode NEPDestroy_SLP(NEP nep)
   PetscFunctionReturn(0);
 }
 
-PETSC_EXTERN PetscErrorCode NEPCreate_SLP(NEP nep)
+SLEPC_EXTERN PetscErrorCode NEPCreate_SLP(NEP nep)
 {
   PetscErrorCode ierr;
   NEP_SLP        *ctx;

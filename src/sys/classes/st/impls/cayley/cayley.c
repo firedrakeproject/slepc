@@ -345,7 +345,7 @@ PetscErrorCode STDestroy_Cayley(ST st)
   PetscFunctionReturn(0);
 }
 
-PETSC_EXTERN PetscErrorCode STCreate_Cayley(ST st)
+SLEPC_EXTERN PetscErrorCode STCreate_Cayley(ST st)
 {
   PetscErrorCode ierr;
   ST_CAYLEY      *ctx;

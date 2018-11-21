@@ -524,7 +524,7 @@ PetscErrorCode BVDuplicate_Vecs(BV V,BV W)
   PetscFunctionReturn(0);
 }
 
-PETSC_EXTERN PetscErrorCode BVCreate_Vecs(BV bv)
+SLEPC_EXTERN PetscErrorCode BVCreate_Vecs(BV bv)
 {
   PetscErrorCode ierr;
   BV_VECS        *ctx;

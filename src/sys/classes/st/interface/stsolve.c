@@ -527,7 +527,7 @@ PetscErrorCode STMatSetUp(ST st,PetscScalar sigma,PetscScalar *coeffs)
 -  nw - number of work vectors to allocate
 
    Developers Note:
-   This is PETSC_EXTERN because it may be required by shell STs.
+   This is SLEPC_EXTERN because it may be required by shell STs.
 
    Level: developer
 @*/

@@ -928,14 +928,14 @@ PetscErrorCode DSRegister(const char *name,PetscErrorCode (*function)(DS))
   PetscFunctionReturn(0);
 }
 
-PETSC_EXTERN PetscErrorCode DSCreate_HEP(DS);
-PETSC_EXTERN PetscErrorCode DSCreate_NHEP(DS);
-PETSC_EXTERN PetscErrorCode DSCreate_GHEP(DS);
-PETSC_EXTERN PetscErrorCode DSCreate_GHIEP(DS);
-PETSC_EXTERN PetscErrorCode DSCreate_GNHEP(DS);
-PETSC_EXTERN PetscErrorCode DSCreate_SVD(DS);
-PETSC_EXTERN PetscErrorCode DSCreate_PEP(DS);
-PETSC_EXTERN PetscErrorCode DSCreate_NEP(DS);
+SLEPC_EXTERN PetscErrorCode DSCreate_HEP(DS);
+SLEPC_EXTERN PetscErrorCode DSCreate_NHEP(DS);
+SLEPC_EXTERN PetscErrorCode DSCreate_GHEP(DS);
+SLEPC_EXTERN PetscErrorCode DSCreate_GHIEP(DS);
+SLEPC_EXTERN PetscErrorCode DSCreate_GNHEP(DS);
+SLEPC_EXTERN PetscErrorCode DSCreate_SVD(DS);
+SLEPC_EXTERN PetscErrorCode DSCreate_PEP(DS);
+SLEPC_EXTERN PetscErrorCode DSCreate_NEP(DS);
 
 /*@C
    DSRegisterAll - Registers all of the direct solvers in the DS package.

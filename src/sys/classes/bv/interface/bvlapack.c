@@ -445,7 +445,7 @@ PetscErrorCode BVOrthogonalize_LAPACK_TSQR(BV bv,PetscInt m_,PetscInt n_,PetscSc
     Reduction operation to compute [~,Rout]=qr([Rin1;Rin2]) in the TSQR algorithm;
     all matrices are upper triangular stored in packed format
 */
-PETSC_EXTERN void SlepcGivensPacked(void *in,void *inout,PetscMPIInt *len,MPI_Datatype *datatype)
+SLEPC_EXTERN void SlepcGivensPacked(void *in,void *inout,PetscMPIInt *len,MPI_Datatype *datatype)
 {
   PetscErrorCode ierr;
   PetscBLASInt   n,i,j,k,one=1;

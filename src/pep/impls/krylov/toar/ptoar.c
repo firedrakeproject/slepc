@@ -858,7 +858,7 @@ PetscErrorCode PEPDestroy_TOAR(PEP pep)
   PetscFunctionReturn(0);
 }
 
-PETSC_EXTERN PetscErrorCode PEPCreate_TOAR(PEP pep)
+SLEPC_EXTERN PetscErrorCode PEPCreate_TOAR(PEP pep)
 {
   PEP_TOAR       *ctx;
   PetscErrorCode ierr;

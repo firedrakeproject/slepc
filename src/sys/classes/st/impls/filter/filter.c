@@ -408,7 +408,7 @@ PetscErrorCode STDestroy_Filter(ST st)
   PetscFunctionReturn(0);
 }
 
-PETSC_EXTERN PetscErrorCode STCreate_Filter(ST st)
+SLEPC_EXTERN PetscErrorCode STCreate_Filter(ST st)
 {
   PetscErrorCode ierr;
   ST_FILTER      *ctx;

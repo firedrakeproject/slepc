@@ -212,7 +212,7 @@ PetscErrorCode DSHermitian_GHEP(DS ds,DSMatType m,PetscBool *flg)
   PetscFunctionReturn(0);
 }
 
-PETSC_EXTERN PetscErrorCode DSCreate_GHEP(DS ds)
+SLEPC_EXTERN PetscErrorCode DSCreate_GHEP(DS ds)
 {
   PetscFunctionBegin;
   ds->ops->allocate      = DSAllocate_GHEP;

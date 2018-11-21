@@ -1374,7 +1374,7 @@ PetscErrorCode EPSSetDefaultST_KrylovSchur(EPS eps)
   PetscFunctionReturn(0);
 }
 
-PETSC_EXTERN PetscErrorCode EPSCreate_KrylovSchur(EPS eps)
+SLEPC_EXTERN PetscErrorCode EPSCreate_KrylovSchur(EPS eps)
 {
   EPS_KRYLOVSCHUR *ctx;
   PetscErrorCode  ierr;

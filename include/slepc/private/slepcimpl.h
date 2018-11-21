@@ -79,8 +79,8 @@ PETSC_STATIC_INLINE PetscErrorCode SlepcPrintEigenvalueASCII(PetscScalar eigr,Pe
 }
 
 /* Private functions that are shared by several classes */
-PETSC_EXTERN PetscErrorCode SlepcBasisReference_Private(PetscInt,Vec*,PetscInt*,Vec**);
-PETSC_EXTERN PetscErrorCode SlepcBasisDestroy_Private(PetscInt*,Vec**);
+SLEPC_EXTERN PetscErrorCode SlepcBasisReference_Private(PetscInt,Vec*,PetscInt*,Vec**);
+SLEPC_EXTERN PetscErrorCode SlepcBasisDestroy_Private(PetscInt*,Vec**);
 
 PETSC_INTERN PetscErrorCode SlepcCitationsInitialize(void);
 PETSC_INTERN PetscErrorCode SlepcInitialize_DynamicLibraries(void);

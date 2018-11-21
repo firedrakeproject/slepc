@@ -16,7 +16,7 @@
 #include <slepcsys.h>
 #include <slepcrgtypes.h>
 
-PETSC_EXTERN PetscErrorCode RGInitializePackage(void);
+SLEPC_EXTERN PetscErrorCode RGInitializePackage(void);
 
 /*J
    RGType - String with the name of the region.
@@ -32,45 +32,45 @@ typedef const char* RGType;
 #define RGRING      "ring"
 
 /* Logging support */
-PETSC_EXTERN PetscClassId RG_CLASSID;
+SLEPC_EXTERN PetscClassId RG_CLASSID;
 
-PETSC_EXTERN PetscErrorCode RGCreate(MPI_Comm,RG*);
-PETSC_EXTERN PetscErrorCode RGSetType(RG,RGType);
-PETSC_EXTERN PetscErrorCode RGGetType(RG,RGType*);
-PETSC_EXTERN PetscErrorCode RGSetOptionsPrefix(RG,const char *);
-PETSC_EXTERN PetscErrorCode RGAppendOptionsPrefix(RG,const char *);
-PETSC_EXTERN PetscErrorCode RGGetOptionsPrefix(RG,const char *[]);
-PETSC_EXTERN PetscErrorCode RGSetFromOptions(RG);
-PETSC_EXTERN PetscErrorCode RGView(RG,PetscViewer);
+SLEPC_EXTERN PetscErrorCode RGCreate(MPI_Comm,RG*);
+SLEPC_EXTERN PetscErrorCode RGSetType(RG,RGType);
+SLEPC_EXTERN PetscErrorCode RGGetType(RG,RGType*);
+SLEPC_EXTERN PetscErrorCode RGSetOptionsPrefix(RG,const char *);
+SLEPC_EXTERN PetscErrorCode RGAppendOptionsPrefix(RG,const char *);
+SLEPC_EXTERN PetscErrorCode RGGetOptionsPrefix(RG,const char *[]);
+SLEPC_EXTERN PetscErrorCode RGSetFromOptions(RG);
+SLEPC_EXTERN PetscErrorCode RGView(RG,PetscViewer);
 PETSC_STATIC_INLINE PetscErrorCode RGViewFromOptions(RG rg,PetscObject obj,const char name[]) {return PetscObjectViewFromOptions((PetscObject)rg,obj,name);}
-PETSC_EXTERN PetscErrorCode RGDestroy(RG*);
+SLEPC_EXTERN PetscErrorCode RGDestroy(RG*);
 
-PETSC_EXTERN PetscErrorCode RGIsTrivial(RG,PetscBool*);
-PETSC_EXTERN PetscErrorCode RGSetComplement(RG,PetscBool);
-PETSC_EXTERN PetscErrorCode RGGetComplement(RG,PetscBool*);
-PETSC_EXTERN PetscErrorCode RGSetScale(RG,PetscReal);
-PETSC_EXTERN PetscErrorCode RGGetScale(RG,PetscReal*);
-PETSC_EXTERN PetscErrorCode RGPushScale(RG,PetscReal);
-PETSC_EXTERN PetscErrorCode RGPopScale(RG);
-PETSC_EXTERN PetscErrorCode RGCheckInside(RG,PetscInt,PetscScalar*,PetscScalar*,PetscInt*);
-PETSC_EXTERN PetscErrorCode RGComputeContour(RG,PetscInt,PetscScalar*,PetscScalar*);
-PETSC_EXTERN PetscErrorCode RGComputeBoundingBox(RG,PetscReal*,PetscReal*,PetscReal*,PetscReal*);
+SLEPC_EXTERN PetscErrorCode RGIsTrivial(RG,PetscBool*);
+SLEPC_EXTERN PetscErrorCode RGSetComplement(RG,PetscBool);
+SLEPC_EXTERN PetscErrorCode RGGetComplement(RG,PetscBool*);
+SLEPC_EXTERN PetscErrorCode RGSetScale(RG,PetscReal);
+SLEPC_EXTERN PetscErrorCode RGGetScale(RG,PetscReal*);
+SLEPC_EXTERN PetscErrorCode RGPushScale(RG,PetscReal);
+SLEPC_EXTERN PetscErrorCode RGPopScale(RG);
+SLEPC_EXTERN PetscErrorCode RGCheckInside(RG,PetscInt,PetscScalar*,PetscScalar*,PetscInt*);
+SLEPC_EXTERN PetscErrorCode RGComputeContour(RG,PetscInt,PetscScalar*,PetscScalar*);
+SLEPC_EXTERN PetscErrorCode RGComputeBoundingBox(RG,PetscReal*,PetscReal*,PetscReal*,PetscReal*);
 
-PETSC_EXTERN PetscFunctionList RGList;
-PETSC_EXTERN PetscErrorCode RGRegister(const char[],PetscErrorCode(*)(RG));
+SLEPC_EXTERN PetscFunctionList RGList;
+SLEPC_EXTERN PetscErrorCode RGRegister(const char[],PetscErrorCode(*)(RG));
 
 /* --------- options specific to particular regions -------- */
 
-PETSC_EXTERN PetscErrorCode RGEllipseSetParameters(RG,PetscScalar,PetscReal,PetscReal);
-PETSC_EXTERN PetscErrorCode RGEllipseGetParameters(RG,PetscScalar*,PetscReal*,PetscReal*);
+SLEPC_EXTERN PetscErrorCode RGEllipseSetParameters(RG,PetscScalar,PetscReal,PetscReal);
+SLEPC_EXTERN PetscErrorCode RGEllipseGetParameters(RG,PetscScalar*,PetscReal*,PetscReal*);
 
-PETSC_EXTERN PetscErrorCode RGIntervalSetEndpoints(RG,PetscReal,PetscReal,PetscReal,PetscReal);
-PETSC_EXTERN PetscErrorCode RGIntervalGetEndpoints(RG,PetscReal*,PetscReal*,PetscReal*,PetscReal*);
+SLEPC_EXTERN PetscErrorCode RGIntervalSetEndpoints(RG,PetscReal,PetscReal,PetscReal,PetscReal);
+SLEPC_EXTERN PetscErrorCode RGIntervalGetEndpoints(RG,PetscReal*,PetscReal*,PetscReal*,PetscReal*);
 
-PETSC_EXTERN PetscErrorCode RGPolygonSetVertices(RG,PetscInt,PetscScalar*,PetscScalar*);
-PETSC_EXTERN PetscErrorCode RGPolygonGetVertices(RG,PetscInt*,PetscScalar**,PetscScalar**);
+SLEPC_EXTERN PetscErrorCode RGPolygonSetVertices(RG,PetscInt,PetscScalar*,PetscScalar*);
+SLEPC_EXTERN PetscErrorCode RGPolygonGetVertices(RG,PetscInt*,PetscScalar**,PetscScalar**);
 
-PETSC_EXTERN PetscErrorCode RGRingSetParameters(RG,PetscScalar,PetscReal,PetscReal,PetscReal,PetscReal,PetscReal);
-PETSC_EXTERN PetscErrorCode RGRingGetParameters(RG,PetscScalar*,PetscReal*,PetscReal*,PetscReal*,PetscReal*,PetscReal*);
+SLEPC_EXTERN PetscErrorCode RGRingSetParameters(RG,PetscScalar,PetscReal,PetscReal,PetscReal,PetscReal,PetscReal);
+SLEPC_EXTERN PetscErrorCode RGRingGetParameters(RG,PetscScalar*,PetscReal*,PetscReal*,PetscReal*,PetscReal*,PetscReal*);
 
 #endif

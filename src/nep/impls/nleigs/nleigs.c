@@ -1877,7 +1877,7 @@ PetscErrorCode NEPDestroy_NLEIGS(NEP nep)
   PetscFunctionReturn(0);
 }
 
-PETSC_EXTERN PetscErrorCode NEPCreate_NLEIGS(NEP nep)
+SLEPC_EXTERN PetscErrorCode NEPCreate_NLEIGS(NEP nep)
 {
   PetscErrorCode ierr;
   NEP_NLEIGS     *ctx;

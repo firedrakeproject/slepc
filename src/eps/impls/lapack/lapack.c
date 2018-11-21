@@ -166,7 +166,7 @@ PetscErrorCode EPSSolve_LAPACK(EPS eps)
   PetscFunctionReturn(0);
 }
 
-PETSC_EXTERN PetscErrorCode EPSCreate_LAPACK(EPS eps)
+SLEPC_EXTERN PetscErrorCode EPSCreate_LAPACK(EPS eps)
 {
   PetscFunctionBegin;
   eps->useds = PETSC_TRUE;

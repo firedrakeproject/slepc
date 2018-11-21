@@ -17,7 +17,7 @@
 #define pepstoargetinertias_        pepstoargetinertias
 #endif
 
-PETSC_EXTERN void PETSC_STDCALL pepstoargetinertias_(PEP *pep,PetscInt *nshift,PetscReal *shifts,PetscInt *inertias,PetscErrorCode *ierr)
+SLEPC_EXTERN void PETSC_STDCALL pepstoargetinertias_(PEP *pep,PetscInt *nshift,PetscReal *shifts,PetscInt *inertias,PetscErrorCode *ierr)
 {
   PetscReal *oshifts;
   PetscInt  *oinertias;

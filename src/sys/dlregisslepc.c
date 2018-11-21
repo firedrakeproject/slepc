@@ -17,12 +17,12 @@
 #if defined(PETSC_HAVE_DYNAMIC_LIBRARIES)
 
 #if defined(PETSC_USE_SINGLE_LIBRARY)
-PETSC_EXTERN PetscErrorCode PetscDLLibraryRegister_slepceps(void);
-PETSC_EXTERN PetscErrorCode PetscDLLibraryRegister_slepcnep(void);
-PETSC_EXTERN PetscErrorCode PetscDLLibraryRegister_slepcpep(void);
-PETSC_EXTERN PetscErrorCode PetscDLLibraryRegister_slepcsvd(void);
-PETSC_EXTERN PetscErrorCode PetscDLLibraryRegister_slepcmfn(void);
-PETSC_EXTERN PetscErrorCode PetscDLLibraryRegister_slepclme(void);
+SLEPC_EXTERN PetscErrorCode PetscDLLibraryRegister_slepceps(void);
+SLEPC_EXTERN PetscErrorCode PetscDLLibraryRegister_slepcnep(void);
+SLEPC_EXTERN PetscErrorCode PetscDLLibraryRegister_slepcpep(void);
+SLEPC_EXTERN PetscErrorCode PetscDLLibraryRegister_slepcsvd(void);
+SLEPC_EXTERN PetscErrorCode PetscDLLibraryRegister_slepcmfn(void);
+SLEPC_EXTERN PetscErrorCode PetscDLLibraryRegister_slepclme(void);
 #endif
 
 /*
@@ -32,9 +32,9 @@ PETSC_EXTERN PetscErrorCode PetscDLLibraryRegister_slepclme(void);
   This one registers all the basic objects ST, FN, DS, BV, RG.
  */
 #if defined(PETSC_USE_SINGLE_LIBRARY)
-PETSC_EXTERN PetscErrorCode PetscDLLibraryRegister_slepc(void)
+SLEPC_EXTERN PetscErrorCode PetscDLLibraryRegister_slepc(void)
 #else
-PETSC_EXTERN PetscErrorCode PetscDLLibraryRegister_slepcsys(void)
+SLEPC_EXTERN PetscErrorCode PetscDLLibraryRegister_slepcsys(void)
 #endif
 {
   PetscErrorCode ierr;

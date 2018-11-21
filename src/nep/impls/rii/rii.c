@@ -582,7 +582,7 @@ PetscErrorCode NEPDestroy_RII(NEP nep)
   PetscFunctionReturn(0);
 }
 
-PETSC_EXTERN PetscErrorCode NEPCreate_RII(NEP nep)
+SLEPC_EXTERN PetscErrorCode NEPCreate_RII(NEP nep)
 {
   PetscErrorCode ierr;
   NEP_RII        *ctx;

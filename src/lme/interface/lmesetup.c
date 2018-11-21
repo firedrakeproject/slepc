@@ -415,7 +415,7 @@ PetscErrorCode LMEGetSolution(LME lme,Mat *X)
            working basis slightly larger than ncv
 
    Developers Note:
-   This is PETSC_EXTERN because it may be required by user plugin LME
+   This is SLEPC_EXTERN because it may be required by user plugin LME
    implementations.
 
    Level: developer

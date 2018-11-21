@@ -143,7 +143,7 @@ PetscErrorCode MFNGetOperator(MFN mfn,Mat *A)
            working basis slightly larger than ncv
 
    Developers Note:
-   This is PETSC_EXTERN because it may be required by user plugin MFN
+   This is SLEPC_EXTERN because it may be required by user plugin MFN
    implementations.
 
    Level: developer

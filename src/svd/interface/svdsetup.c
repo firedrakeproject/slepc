@@ -280,7 +280,7 @@ PetscErrorCode SVDSetDimensions_Default(SVD svd)
            working basis slightly larger than ncv
 
    Developers Notes:
-   This is PETSC_EXTERN because it may be required by user plugin SVD
+   This is SLEPC_EXTERN because it may be required by user plugin SVD
    implementations.
 
    This is called at setup after setting the value of ncv and the flag leftbasis.

@@ -168,7 +168,7 @@ PetscErrorCode STSetShift_Sinvert(ST st,PetscScalar newshift)
   PetscFunctionReturn(0);
 }
 
-PETSC_EXTERN PetscErrorCode STCreate_Sinvert(ST st)
+SLEPC_EXTERN PetscErrorCode STCreate_Sinvert(ST st)
 {
   PetscFunctionBegin;
   st->ops->apply           = STApply_Sinvert;

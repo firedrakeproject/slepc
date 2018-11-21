@@ -84,8 +84,8 @@ typedef struct {
 #define FEASTinit_(a) SLEPC_FEAST(feastinit,FEASTINIT) ((a))
 #define FEASTrci_(a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r) SLEPC_FEASTM(rci,RCI) ((a),(b),(c),(d),(e),(f),(g),(h),(i),(j),(k),(l),(m),(n),(o),(p),(q),(r))
 
-PETSC_EXTERN void   SLEPC_FEAST(feastinit,FEASTINIT)(PetscBLASInt*);
-PETSC_EXTERN void   SLEPC_FEASTM(rci,RCI)(PetscBLASInt*,PetscBLASInt*,PetscScalar*,PetscScalar*,PetscScalar*,PetscScalar*,PetscScalar*,PetscBLASInt*,PetscReal*,PetscBLASInt*,PetscReal*,PetscReal*,PetscBLASInt*,PetscReal*,PetscScalar*,PetscBLASInt*,PetscReal*,PetscBLASInt*);
+SLEPC_EXTERN void   SLEPC_FEAST(feastinit,FEASTINIT)(PetscBLASInt*);
+SLEPC_EXTERN void   SLEPC_FEASTM(rci,RCI)(PetscBLASInt*,PetscBLASInt*,PetscScalar*,PetscScalar*,PetscScalar*,PetscScalar*,PetscScalar*,PetscBLASInt*,PetscReal*,PetscBLASInt*,PetscReal*,PetscReal*,PetscBLASInt*,PetscReal*,PetscScalar*,PetscBLASInt*,PetscReal*,PetscBLASInt*);
 
 #endif
 

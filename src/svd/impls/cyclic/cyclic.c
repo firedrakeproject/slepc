@@ -500,7 +500,7 @@ PetscErrorCode SVDDestroy_Cyclic(SVD svd)
   PetscFunctionReturn(0);
 }
 
-PETSC_EXTERN PetscErrorCode SVDCreate_Cyclic(SVD svd)
+SLEPC_EXTERN PetscErrorCode SVDCreate_Cyclic(SVD svd)
 {
   PetscErrorCode ierr;
   SVD_CYCLIC     *cyclic;

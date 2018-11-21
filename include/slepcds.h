@@ -18,7 +18,7 @@
 
 #define DS_MAX_SOLVE 6
 
-PETSC_EXTERN PetscErrorCode DSInitializePackage(void);
+SLEPC_EXTERN PetscErrorCode DSInitializePackage(void);
 /*S
     DS - Direct solver (or dense system), to represent low-dimensional
     eigenproblems that must be solved within iterative solvers. This is an
@@ -49,7 +49,7 @@ typedef const char* DSType;
 #define DSNEP    "nep"
 
 /* Logging support */
-PETSC_EXTERN PetscClassId DS_CLASSID;
+SLEPC_EXTERN PetscClassId DS_CLASSID;
 
 /*E
     DSStateType - Indicates in which state the direct solver is
@@ -62,7 +62,7 @@ typedef enum { DS_STATE_RAW,
                DS_STATE_INTERMEDIATE,
                DS_STATE_CONDENSED,
                DS_STATE_TRUNCATED } DSStateType;
-PETSC_EXTERN const char *DSStateTypes[];
+SLEPC_EXTERN const char *DSStateTypes[];
 
 /*E
     DSMatType - Used to refer to one of the matrices stored internally in DS
@@ -119,7 +119,7 @@ typedef enum { DS_MAT_A,
                DS_NUM_MAT } DSMatType;
 
 /* Convenience for indexing extra matrices */
-PETSC_EXTERN DSMatType DSMatExtra[];
+SLEPC_EXTERN DSMatType DSMatExtra[];
 #define DS_NUM_EXTRA  10
 
 /*E
@@ -131,75 +131,75 @@ PETSC_EXTERN DSMatType DSMatExtra[];
 E*/
 typedef enum { DS_PARALLEL_REDUNDANT,
                DS_PARALLEL_SYNCHRONIZED } DSParallelType;
-PETSC_EXTERN const char *DSParallelTypes[];
+SLEPC_EXTERN const char *DSParallelTypes[];
 
-PETSC_EXTERN PetscErrorCode DSCreate(MPI_Comm,DS*);
-PETSC_EXTERN PetscErrorCode DSSetType(DS,DSType);
-PETSC_EXTERN PetscErrorCode DSGetType(DS,DSType*);
-PETSC_EXTERN PetscErrorCode DSSetOptionsPrefix(DS,const char *);
-PETSC_EXTERN PetscErrorCode DSAppendOptionsPrefix(DS,const char *);
-PETSC_EXTERN PetscErrorCode DSGetOptionsPrefix(DS,const char *[]);
-PETSC_EXTERN PetscErrorCode DSSetFromOptions(DS);
-PETSC_EXTERN PetscErrorCode DSView(DS,PetscViewer);
-PETSC_EXTERN PetscErrorCode DSViewMat(DS,PetscViewer,DSMatType);
-PETSC_EXTERN PetscErrorCode DSDestroy(DS*);
-PETSC_EXTERN PetscErrorCode DSReset(DS);
+SLEPC_EXTERN PetscErrorCode DSCreate(MPI_Comm,DS*);
+SLEPC_EXTERN PetscErrorCode DSSetType(DS,DSType);
+SLEPC_EXTERN PetscErrorCode DSGetType(DS,DSType*);
+SLEPC_EXTERN PetscErrorCode DSSetOptionsPrefix(DS,const char *);
+SLEPC_EXTERN PetscErrorCode DSAppendOptionsPrefix(DS,const char *);
+SLEPC_EXTERN PetscErrorCode DSGetOptionsPrefix(DS,const char *[]);
+SLEPC_EXTERN PetscErrorCode DSSetFromOptions(DS);
+SLEPC_EXTERN PetscErrorCode DSView(DS,PetscViewer);
+SLEPC_EXTERN PetscErrorCode DSViewMat(DS,PetscViewer,DSMatType);
+SLEPC_EXTERN PetscErrorCode DSDestroy(DS*);
+SLEPC_EXTERN PetscErrorCode DSReset(DS);
 
-PETSC_EXTERN PetscErrorCode DSAllocate(DS,PetscInt);
-PETSC_EXTERN PetscErrorCode DSGetLeadingDimension(DS,PetscInt*);
-PETSC_EXTERN PetscErrorCode DSSetState(DS,DSStateType);
-PETSC_EXTERN PetscErrorCode DSGetState(DS,DSStateType*);
-PETSC_EXTERN PetscErrorCode DSSetDimensions(DS,PetscInt,PetscInt,PetscInt,PetscInt);
-PETSC_EXTERN PetscErrorCode DSGetDimensions(DS,PetscInt*,PetscInt*,PetscInt*,PetscInt*,PetscInt*);
-PETSC_EXTERN PetscErrorCode DSSetBlockSize(DS,PetscInt);
-PETSC_EXTERN PetscErrorCode DSGetBlockSize(DS,PetscInt*);
-PETSC_EXTERN PetscErrorCode DSTruncate(DS,PetscInt);
-PETSC_EXTERN PetscErrorCode DSSetIdentity(DS,DSMatType);
-PETSC_EXTERN PetscErrorCode DSSetMethod(DS,PetscInt);
-PETSC_EXTERN PetscErrorCode DSGetMethod(DS,PetscInt*);
-PETSC_EXTERN PetscErrorCode DSSetParallel(DS,DSParallelType);
-PETSC_EXTERN PetscErrorCode DSGetParallel(DS,DSParallelType*);
-PETSC_EXTERN PetscErrorCode DSSetCompact(DS,PetscBool);
-PETSC_EXTERN PetscErrorCode DSGetCompact(DS,PetscBool*);
-PETSC_EXTERN PetscErrorCode DSSetExtraRow(DS,PetscBool);
-PETSC_EXTERN PetscErrorCode DSGetExtraRow(DS,PetscBool*);
-PETSC_EXTERN PetscErrorCode DSSetRefined(DS,PetscBool);
-PETSC_EXTERN PetscErrorCode DSGetRefined(DS,PetscBool*);
-PETSC_EXTERN PetscErrorCode DSGetMat(DS,DSMatType,Mat*);
-PETSC_EXTERN PetscErrorCode DSRestoreMat(DS,DSMatType,Mat*);
-PETSC_EXTERN PetscErrorCode DSGetArray(DS,DSMatType,PetscScalar*[]);
-PETSC_EXTERN PetscErrorCode DSRestoreArray(DS,DSMatType,PetscScalar*[]);
-PETSC_EXTERN PetscErrorCode DSGetArrayReal(DS,DSMatType,PetscReal*[]);
-PETSC_EXTERN PetscErrorCode DSRestoreArrayReal(DS,DSMatType,PetscReal*[]);
-PETSC_EXTERN PetscErrorCode DSVectors(DS,DSMatType,PetscInt*,PetscReal*);
-PETSC_EXTERN PetscErrorCode DSSolve(DS,PetscScalar*,PetscScalar*);
-PETSC_EXTERN PetscErrorCode DSSort(DS,PetscScalar*,PetscScalar*,PetscScalar*,PetscScalar*,PetscInt*);
-PETSC_EXTERN PetscErrorCode DSSynchronize(DS,PetscScalar*,PetscScalar*);
-PETSC_EXTERN PetscErrorCode DSCopyMat(DS,DSMatType,PetscInt,PetscInt,Mat,PetscInt,PetscInt,PetscInt,PetscInt,PetscBool);
-PETSC_EXTERN PetscErrorCode DSMatGetSize(DS,DSMatType,PetscInt*,PetscInt*);
-PETSC_EXTERN PetscErrorCode DSMatIsHermitian(DS,DSMatType,PetscBool*);
-PETSC_EXTERN PetscErrorCode DSSetSlepcSC(DS,SlepcSC);
-PETSC_EXTERN PetscErrorCode DSGetSlepcSC(DS,SlepcSC*);
-PETSC_EXTERN PetscErrorCode DSUpdateExtraRow(DS);
-PETSC_EXTERN PetscErrorCode DSCond(DS,PetscReal*);
-PETSC_EXTERN PetscErrorCode DSTranslateHarmonic(DS,PetscScalar,PetscReal,PetscBool,PetscScalar*,PetscReal*);
-PETSC_EXTERN PetscErrorCode DSTranslateRKS(DS,PetscScalar);
-PETSC_EXTERN PetscErrorCode DSOrthogonalize(DS,DSMatType,PetscInt,PetscInt*);
-PETSC_EXTERN PetscErrorCode DSPseudoOrthogonalize(DS,DSMatType,PetscInt,PetscReal*,PetscInt*,PetscReal*);
+SLEPC_EXTERN PetscErrorCode DSAllocate(DS,PetscInt);
+SLEPC_EXTERN PetscErrorCode DSGetLeadingDimension(DS,PetscInt*);
+SLEPC_EXTERN PetscErrorCode DSSetState(DS,DSStateType);
+SLEPC_EXTERN PetscErrorCode DSGetState(DS,DSStateType*);
+SLEPC_EXTERN PetscErrorCode DSSetDimensions(DS,PetscInt,PetscInt,PetscInt,PetscInt);
+SLEPC_EXTERN PetscErrorCode DSGetDimensions(DS,PetscInt*,PetscInt*,PetscInt*,PetscInt*,PetscInt*);
+SLEPC_EXTERN PetscErrorCode DSSetBlockSize(DS,PetscInt);
+SLEPC_EXTERN PetscErrorCode DSGetBlockSize(DS,PetscInt*);
+SLEPC_EXTERN PetscErrorCode DSTruncate(DS,PetscInt);
+SLEPC_EXTERN PetscErrorCode DSSetIdentity(DS,DSMatType);
+SLEPC_EXTERN PetscErrorCode DSSetMethod(DS,PetscInt);
+SLEPC_EXTERN PetscErrorCode DSGetMethod(DS,PetscInt*);
+SLEPC_EXTERN PetscErrorCode DSSetParallel(DS,DSParallelType);
+SLEPC_EXTERN PetscErrorCode DSGetParallel(DS,DSParallelType*);
+SLEPC_EXTERN PetscErrorCode DSSetCompact(DS,PetscBool);
+SLEPC_EXTERN PetscErrorCode DSGetCompact(DS,PetscBool*);
+SLEPC_EXTERN PetscErrorCode DSSetExtraRow(DS,PetscBool);
+SLEPC_EXTERN PetscErrorCode DSGetExtraRow(DS,PetscBool*);
+SLEPC_EXTERN PetscErrorCode DSSetRefined(DS,PetscBool);
+SLEPC_EXTERN PetscErrorCode DSGetRefined(DS,PetscBool*);
+SLEPC_EXTERN PetscErrorCode DSGetMat(DS,DSMatType,Mat*);
+SLEPC_EXTERN PetscErrorCode DSRestoreMat(DS,DSMatType,Mat*);
+SLEPC_EXTERN PetscErrorCode DSGetArray(DS,DSMatType,PetscScalar*[]);
+SLEPC_EXTERN PetscErrorCode DSRestoreArray(DS,DSMatType,PetscScalar*[]);
+SLEPC_EXTERN PetscErrorCode DSGetArrayReal(DS,DSMatType,PetscReal*[]);
+SLEPC_EXTERN PetscErrorCode DSRestoreArrayReal(DS,DSMatType,PetscReal*[]);
+SLEPC_EXTERN PetscErrorCode DSVectors(DS,DSMatType,PetscInt*,PetscReal*);
+SLEPC_EXTERN PetscErrorCode DSSolve(DS,PetscScalar*,PetscScalar*);
+SLEPC_EXTERN PetscErrorCode DSSort(DS,PetscScalar*,PetscScalar*,PetscScalar*,PetscScalar*,PetscInt*);
+SLEPC_EXTERN PetscErrorCode DSSynchronize(DS,PetscScalar*,PetscScalar*);
+SLEPC_EXTERN PetscErrorCode DSCopyMat(DS,DSMatType,PetscInt,PetscInt,Mat,PetscInt,PetscInt,PetscInt,PetscInt,PetscBool);
+SLEPC_EXTERN PetscErrorCode DSMatGetSize(DS,DSMatType,PetscInt*,PetscInt*);
+SLEPC_EXTERN PetscErrorCode DSMatIsHermitian(DS,DSMatType,PetscBool*);
+SLEPC_EXTERN PetscErrorCode DSSetSlepcSC(DS,SlepcSC);
+SLEPC_EXTERN PetscErrorCode DSGetSlepcSC(DS,SlepcSC*);
+SLEPC_EXTERN PetscErrorCode DSUpdateExtraRow(DS);
+SLEPC_EXTERN PetscErrorCode DSCond(DS,PetscReal*);
+SLEPC_EXTERN PetscErrorCode DSTranslateHarmonic(DS,PetscScalar,PetscReal,PetscBool,PetscScalar*,PetscReal*);
+SLEPC_EXTERN PetscErrorCode DSTranslateRKS(DS,PetscScalar);
+SLEPC_EXTERN PetscErrorCode DSOrthogonalize(DS,DSMatType,PetscInt,PetscInt*);
+SLEPC_EXTERN PetscErrorCode DSPseudoOrthogonalize(DS,DSMatType,PetscInt,PetscReal*,PetscInt*,PetscReal*);
 
 /* --------- options specific to particular solvers -------- */
 
-PETSC_EXTERN PetscErrorCode DSPEPSetDegree(DS,PetscInt);
-PETSC_EXTERN PetscErrorCode DSPEPGetDegree(DS,PetscInt*);
-PETSC_EXTERN PetscErrorCode DSPEPSetCoefficients(DS,PetscReal*);
-PETSC_EXTERN PetscErrorCode DSPEPGetCoefficients(DS,PetscReal**);
+SLEPC_EXTERN PetscErrorCode DSPEPSetDegree(DS,PetscInt);
+SLEPC_EXTERN PetscErrorCode DSPEPGetDegree(DS,PetscInt*);
+SLEPC_EXTERN PetscErrorCode DSPEPSetCoefficients(DS,PetscReal*);
+SLEPC_EXTERN PetscErrorCode DSPEPGetCoefficients(DS,PetscReal**);
 
-PETSC_EXTERN PetscErrorCode DSNEPSetFN(DS,PetscInt,FN*);
-PETSC_EXTERN PetscErrorCode DSNEPGetFN(DS,PetscInt,FN*);
-PETSC_EXTERN PetscErrorCode DSNEPGetNumFN(DS,PetscInt*);
-PETSC_EXTERN PetscErrorCode DSNEPSetComputeMatrixFunction(DS,PetscErrorCode (*fun)(DS,PetscScalar,PetscBool,DSMatType,void*),void *ctx);
+SLEPC_EXTERN PetscErrorCode DSNEPSetFN(DS,PetscInt,FN*);
+SLEPC_EXTERN PetscErrorCode DSNEPGetFN(DS,PetscInt,FN*);
+SLEPC_EXTERN PetscErrorCode DSNEPGetNumFN(DS,PetscInt*);
+SLEPC_EXTERN PetscErrorCode DSNEPSetComputeMatrixFunction(DS,PetscErrorCode (*fun)(DS,PetscScalar,PetscBool,DSMatType,void*),void *ctx);
 
-PETSC_EXTERN PetscFunctionList DSList;
-PETSC_EXTERN PetscErrorCode DSRegister(const char[],PetscErrorCode(*)(DS));
+SLEPC_EXTERN PetscFunctionList DSList;
+SLEPC_EXTERN PetscErrorCode DSRegister(const char[],PetscErrorCode(*)(DS));
 
 #endif

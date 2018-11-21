@@ -833,7 +833,7 @@ PetscErrorCode BVDestroy_Tensor(BV bv)
   PetscFunctionReturn(0);
 }
 
-PETSC_EXTERN PetscErrorCode BVCreate_Tensor(BV bv)
+SLEPC_EXTERN PetscErrorCode BVCreate_Tensor(BV bv)
 {
   PetscErrorCode ierr;
   BV_TENSOR      *ctx;

@@ -16,7 +16,7 @@
 #include <slepcbv.h>
 #include <slepcfn.h>
 
-PETSC_EXTERN PetscErrorCode MFNInitializePackage(void);
+SLEPC_EXTERN PetscErrorCode MFNInitializePackage(void);
 
 /*S
     MFN - SLEPc object that encapsulates functionality for matrix functions.
@@ -39,49 +39,49 @@ typedef const char* MFNType;
 #define MFNEXPOKIT  "expokit"
 
 /* Logging support */
-PETSC_EXTERN PetscClassId MFN_CLASSID;
+SLEPC_EXTERN PetscClassId MFN_CLASSID;
 
-PETSC_EXTERN PetscErrorCode MFNCreate(MPI_Comm,MFN *);
-PETSC_EXTERN PetscErrorCode MFNDestroy(MFN*);
-PETSC_EXTERN PetscErrorCode MFNReset(MFN);
-PETSC_EXTERN PetscErrorCode MFNSetType(MFN,MFNType);
-PETSC_EXTERN PetscErrorCode MFNGetType(MFN,MFNType*);
-PETSC_EXTERN PetscErrorCode MFNSetOperator(MFN,Mat);
-PETSC_EXTERN PetscErrorCode MFNGetOperator(MFN,Mat*);
-PETSC_EXTERN PetscErrorCode MFNSetFromOptions(MFN);
-PETSC_EXTERN PetscErrorCode MFNSetUp(MFN);
-PETSC_EXTERN PetscErrorCode MFNSolve(MFN,Vec,Vec);
-PETSC_EXTERN PetscErrorCode MFNView(MFN,PetscViewer);
+SLEPC_EXTERN PetscErrorCode MFNCreate(MPI_Comm,MFN *);
+SLEPC_EXTERN PetscErrorCode MFNDestroy(MFN*);
+SLEPC_EXTERN PetscErrorCode MFNReset(MFN);
+SLEPC_EXTERN PetscErrorCode MFNSetType(MFN,MFNType);
+SLEPC_EXTERN PetscErrorCode MFNGetType(MFN,MFNType*);
+SLEPC_EXTERN PetscErrorCode MFNSetOperator(MFN,Mat);
+SLEPC_EXTERN PetscErrorCode MFNGetOperator(MFN,Mat*);
+SLEPC_EXTERN PetscErrorCode MFNSetFromOptions(MFN);
+SLEPC_EXTERN PetscErrorCode MFNSetUp(MFN);
+SLEPC_EXTERN PetscErrorCode MFNSolve(MFN,Vec,Vec);
+SLEPC_EXTERN PetscErrorCode MFNView(MFN,PetscViewer);
 PETSC_STATIC_INLINE PetscErrorCode MFNViewFromOptions(MFN mfn,PetscObject obj,const char name[]) {return PetscObjectViewFromOptions((PetscObject)mfn,obj,name);}
-PETSC_EXTERN PetscErrorCode MFNReasonView(MFN,PetscViewer);
-PETSC_EXTERN PetscErrorCode MFNReasonViewFromOptions(MFN);
+SLEPC_EXTERN PetscErrorCode MFNReasonView(MFN,PetscViewer);
+SLEPC_EXTERN PetscErrorCode MFNReasonViewFromOptions(MFN);
 
-PETSC_EXTERN PetscErrorCode MFNSetBV(MFN,BV);
-PETSC_EXTERN PetscErrorCode MFNGetBV(MFN,BV*);
-PETSC_EXTERN PetscErrorCode MFNSetFN(MFN,FN);
-PETSC_EXTERN PetscErrorCode MFNGetFN(MFN,FN*);
-PETSC_EXTERN PetscErrorCode MFNSetTolerances(MFN,PetscReal,PetscInt);
-PETSC_EXTERN PetscErrorCode MFNGetTolerances(MFN,PetscReal*,PetscInt*);
-PETSC_EXTERN PetscErrorCode MFNSetDimensions(MFN,PetscInt);
-PETSC_EXTERN PetscErrorCode MFNGetDimensions(MFN,PetscInt*);
+SLEPC_EXTERN PetscErrorCode MFNSetBV(MFN,BV);
+SLEPC_EXTERN PetscErrorCode MFNGetBV(MFN,BV*);
+SLEPC_EXTERN PetscErrorCode MFNSetFN(MFN,FN);
+SLEPC_EXTERN PetscErrorCode MFNGetFN(MFN,FN*);
+SLEPC_EXTERN PetscErrorCode MFNSetTolerances(MFN,PetscReal,PetscInt);
+SLEPC_EXTERN PetscErrorCode MFNGetTolerances(MFN,PetscReal*,PetscInt*);
+SLEPC_EXTERN PetscErrorCode MFNSetDimensions(MFN,PetscInt);
+SLEPC_EXTERN PetscErrorCode MFNGetDimensions(MFN,PetscInt*);
 
-PETSC_EXTERN PetscErrorCode MFNMonitor(MFN,PetscInt,PetscReal);
-PETSC_EXTERN PetscErrorCode MFNMonitorSet(MFN,PetscErrorCode (*)(MFN,PetscInt,PetscReal,void*),void*,PetscErrorCode (*)(void**));
-PETSC_EXTERN PetscErrorCode MFNMonitorSetFromOptions(MFN,const char*,const char*,const char*,PetscErrorCode (*)(MFN,PetscInt,PetscReal,PetscViewerAndFormat*));
-PETSC_EXTERN PetscErrorCode MFNMonitorCancel(MFN);
-PETSC_EXTERN PetscErrorCode MFNGetMonitorContext(MFN,void **);
-PETSC_EXTERN PetscErrorCode MFNGetIterationNumber(MFN,PetscInt*);
+SLEPC_EXTERN PetscErrorCode MFNMonitor(MFN,PetscInt,PetscReal);
+SLEPC_EXTERN PetscErrorCode MFNMonitorSet(MFN,PetscErrorCode (*)(MFN,PetscInt,PetscReal,void*),void*,PetscErrorCode (*)(void**));
+SLEPC_EXTERN PetscErrorCode MFNMonitorSetFromOptions(MFN,const char*,const char*,const char*,PetscErrorCode (*)(MFN,PetscInt,PetscReal,PetscViewerAndFormat*));
+SLEPC_EXTERN PetscErrorCode MFNMonitorCancel(MFN);
+SLEPC_EXTERN PetscErrorCode MFNGetMonitorContext(MFN,void **);
+SLEPC_EXTERN PetscErrorCode MFNGetIterationNumber(MFN,PetscInt*);
 
-PETSC_EXTERN PetscErrorCode MFNSetErrorIfNotConverged(MFN,PetscBool);
-PETSC_EXTERN PetscErrorCode MFNGetErrorIfNotConverged(MFN,PetscBool*);
+SLEPC_EXTERN PetscErrorCode MFNSetErrorIfNotConverged(MFN,PetscBool);
+SLEPC_EXTERN PetscErrorCode MFNGetErrorIfNotConverged(MFN,PetscBool*);
 
-PETSC_EXTERN PetscErrorCode MFNMonitorDefault(MFN,PetscInt,PetscReal,PetscViewerAndFormat*);
-PETSC_EXTERN PetscErrorCode MFNMonitorLGCreate(MPI_Comm,const char[],const char[],int,int,int,int,PetscDrawLG*);
-PETSC_EXTERN PetscErrorCode MFNMonitorLG(MFN,PetscInt,PetscReal,void*);
+SLEPC_EXTERN PetscErrorCode MFNMonitorDefault(MFN,PetscInt,PetscReal,PetscViewerAndFormat*);
+SLEPC_EXTERN PetscErrorCode MFNMonitorLGCreate(MPI_Comm,const char[],const char[],int,int,int,int,PetscDrawLG*);
+SLEPC_EXTERN PetscErrorCode MFNMonitorLG(MFN,PetscInt,PetscReal,void*);
 
-PETSC_EXTERN PetscErrorCode MFNSetOptionsPrefix(MFN,const char*);
-PETSC_EXTERN PetscErrorCode MFNAppendOptionsPrefix(MFN,const char*);
-PETSC_EXTERN PetscErrorCode MFNGetOptionsPrefix(MFN,const char*[]);
+SLEPC_EXTERN PetscErrorCode MFNSetOptionsPrefix(MFN,const char*);
+SLEPC_EXTERN PetscErrorCode MFNAppendOptionsPrefix(MFN,const char*);
+SLEPC_EXTERN PetscErrorCode MFNGetOptionsPrefix(MFN,const char*[]);
 
 /*E
     MFNConvergedReason - reason a matrix function iteration was said to
@@ -98,14 +98,14 @@ typedef enum {/* converged */
               MFN_DIVERGED_ITS                 = -1,
               MFN_DIVERGED_BREAKDOWN           = -2,
               MFN_CONVERGED_ITERATING          =  0} MFNConvergedReason;
-PETSC_EXTERN const char *const*MFNConvergedReasons;
+SLEPC_EXTERN const char *const*MFNConvergedReasons;
 
-PETSC_EXTERN PetscErrorCode MFNGetConvergedReason(MFN,MFNConvergedReason *);
+SLEPC_EXTERN PetscErrorCode MFNGetConvergedReason(MFN,MFNConvergedReason *);
 
-PETSC_EXTERN PetscFunctionList MFNList;
-PETSC_EXTERN PetscErrorCode MFNRegister(const char[],PetscErrorCode(*)(MFN));
+SLEPC_EXTERN PetscFunctionList MFNList;
+SLEPC_EXTERN PetscErrorCode MFNRegister(const char[],PetscErrorCode(*)(MFN));
 
-PETSC_EXTERN PetscErrorCode MFNAllocateSolution(MFN,PetscInt);
+SLEPC_EXTERN PetscErrorCode MFNAllocateSolution(MFN,PetscInt);
 
 #endif
 

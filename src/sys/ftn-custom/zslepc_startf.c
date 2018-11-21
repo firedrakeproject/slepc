@@ -8,6 +8,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
+#include <slepcsys.h>
 #include <petsc/private/fortranimpl.h>
 
 #if defined(PETSC_HAVE_FORTRAN_CAPS)
@@ -42,7 +43,7 @@ PetscErrorCode SlepcInitializeFortran(void)
   return 0;
 }
 
-PETSC_EXTERN void PETSC_STDCALL slepcinitializefortran_(PetscErrorCode *info)
+SLEPC_EXTERN void PETSC_STDCALL slepcinitializefortran_(PetscErrorCode *info)
 {
   *info = SlepcInitializeFortran();
 }

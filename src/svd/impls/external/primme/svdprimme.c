@@ -400,7 +400,7 @@ PetscErrorCode SVDPRIMMEGetMethod(SVD svd,SVDPRIMMEMethod *method)
   PetscFunctionReturn(0);
 }
 
-PETSC_EXTERN PetscErrorCode SVDCreate_PRIMME(SVD svd)
+SLEPC_EXTERN PetscErrorCode SVDCreate_PRIMME(SVD svd)
 {
   PetscErrorCode ierr;
   SVD_PRIMME     *primme;

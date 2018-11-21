@@ -933,7 +933,7 @@ PetscErrorCode DSHermitian_GHIEP(DS ds,DSMatType m,PetscBool *flg)
   PetscFunctionReturn(0);
 }
 
-PETSC_EXTERN PetscErrorCode DSCreate_GHIEP(DS ds)
+SLEPC_EXTERN PetscErrorCode DSCreate_GHIEP(DS ds)
 {
   PetscFunctionBegin;
   ds->ops->allocate      = DSAllocate_GHIEP;

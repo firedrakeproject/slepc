@@ -258,7 +258,7 @@ PetscErrorCode EPSView_Arnoldi(EPS eps,PetscViewer viewer)
   PetscFunctionReturn(0);
 }
 
-PETSC_EXTERN PetscErrorCode EPSCreate_Arnoldi(EPS eps)
+SLEPC_EXTERN PetscErrorCode EPSCreate_Arnoldi(EPS eps)
 {
   EPS_ARNOLDI    *ctx;
   PetscErrorCode ierr;

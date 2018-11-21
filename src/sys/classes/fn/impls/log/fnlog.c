@@ -66,7 +66,7 @@ PetscErrorCode FNView_Log(FN fn,PetscViewer viewer)
   PetscFunctionReturn(0);
 }
 
-PETSC_EXTERN PetscErrorCode FNCreate_Log(FN fn)
+SLEPC_EXTERN PetscErrorCode FNCreate_Log(FN fn)
 {
   PetscFunctionBegin;
   fn->ops->evaluatefunction    = FNEvaluateFunction_Log;

@@ -452,7 +452,7 @@ PetscErrorCode SVDDestroy_Cross(SVD svd)
   PetscFunctionReturn(0);
 }
 
-PETSC_EXTERN PetscErrorCode SVDCreate_Cross(SVD svd)
+SLEPC_EXTERN PetscErrorCode SVDCreate_Cross(SVD svd)
 {
   PetscErrorCode ierr;
   SVD_CROSS      *cross;

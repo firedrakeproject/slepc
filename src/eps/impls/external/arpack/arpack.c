@@ -295,7 +295,7 @@ PetscErrorCode EPSDestroy_ARPACK(EPS eps)
   PetscFunctionReturn(0);
 }
 
-PETSC_EXTERN PetscErrorCode EPSCreate_ARPACK(EPS eps)
+SLEPC_EXTERN PetscErrorCode EPSCreate_ARPACK(EPS eps)
 {
   EPS_ARPACK     *ctx;
   PetscErrorCode ierr;

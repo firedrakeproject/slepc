@@ -623,7 +623,7 @@ PetscErrorCode EPSJDGetBOrth(EPS eps,PetscBool *borth)
   PetscFunctionReturn(0);
 }
 
-PETSC_EXTERN PetscErrorCode EPSCreate_JD(EPS eps)
+SLEPC_EXTERN PetscErrorCode EPSCreate_JD(EPS eps)
 {
   PetscErrorCode ierr;
   EPS_DAVIDSON   *data;

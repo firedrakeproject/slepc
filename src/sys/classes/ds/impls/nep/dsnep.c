@@ -518,7 +518,7 @@ PetscErrorCode DSDestroy_NEP(DS ds)
   PetscFunctionReturn(0);
 }
 
-PETSC_EXTERN PetscErrorCode DSCreate_NEP(DS ds)
+SLEPC_EXTERN PetscErrorCode DSCreate_NEP(DS ds)
 {
   DS_NEP         *ctx;
   PetscErrorCode ierr;

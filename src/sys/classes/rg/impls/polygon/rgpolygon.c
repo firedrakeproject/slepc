@@ -430,7 +430,7 @@ PetscErrorCode RGDestroy_Polygon(RG rg)
   PetscFunctionReturn(0);
 }
 
-PETSC_EXTERN PetscErrorCode RGCreate_Polygon(RG rg)
+SLEPC_EXTERN PetscErrorCode RGCreate_Polygon(RG rg)
 {
   RG_POLYGON     *polygon;
   PetscErrorCode ierr;

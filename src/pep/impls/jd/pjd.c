@@ -2029,7 +2029,7 @@ PetscErrorCode PEPDestroy_JD(PEP pep)
   PetscFunctionReturn(0);
 }
 
-PETSC_EXTERN PetscErrorCode PEPCreate_JD(PEP pep)
+SLEPC_EXTERN PetscErrorCode PEPCreate_JD(PEP pep)
 {
   PEP_JD         *pjd;
   PetscErrorCode ierr;

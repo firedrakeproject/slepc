@@ -10,13 +10,13 @@
 
 #include <slepc/private/svdimpl.h>       /*I "slepcsvd.h" I*/
 
-PETSC_EXTERN PetscErrorCode SVDCreate_Cross(SVD);
-PETSC_EXTERN PetscErrorCode SVDCreate_Cyclic(SVD);
-PETSC_EXTERN PetscErrorCode SVDCreate_LAPACK(SVD);
-PETSC_EXTERN PetscErrorCode SVDCreate_Lanczos(SVD);
-PETSC_EXTERN PetscErrorCode SVDCreate_TRLanczos(SVD);
+SLEPC_EXTERN PetscErrorCode SVDCreate_Cross(SVD);
+SLEPC_EXTERN PetscErrorCode SVDCreate_Cyclic(SVD);
+SLEPC_EXTERN PetscErrorCode SVDCreate_LAPACK(SVD);
+SLEPC_EXTERN PetscErrorCode SVDCreate_Lanczos(SVD);
+SLEPC_EXTERN PetscErrorCode SVDCreate_TRLanczos(SVD);
 #if defined(SLEPC_HAVE_PRIMME)
-PETSC_EXTERN PetscErrorCode SVDCreate_PRIMME(SVD);
+SLEPC_EXTERN PetscErrorCode SVDCreate_PRIMME(SVD);
 #endif
 
 /*@C

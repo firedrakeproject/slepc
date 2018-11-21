@@ -92,27 +92,27 @@
    These are not usually called from Fortran but allow Fortran users
    to transparently set these monitors from .F code, hence no STDCALL
 */
-PETSC_EXTERN void svdmonitorall_(SVD *svd,PetscInt *it,PetscInt *nconv,PetscReal *sigma,PetscReal *errest,PetscInt *nest,PetscViewerAndFormat **ctx,PetscErrorCode *ierr)
+SLEPC_EXTERN void svdmonitorall_(SVD *svd,PetscInt *it,PetscInt *nconv,PetscReal *sigma,PetscReal *errest,PetscInt *nest,PetscViewerAndFormat **ctx,PetscErrorCode *ierr)
 {
   *ierr = SVDMonitorAll(*svd,*it,*nconv,sigma,errest,*nest,*ctx);
 }
 
-PETSC_EXTERN void svdmonitorconverged_(SVD *svd,PetscInt *it,PetscInt *nconv,PetscReal *sigma,PetscReal *errest,PetscInt *nest,SlepcConvMonitor *ctx,PetscErrorCode *ierr)
+SLEPC_EXTERN void svdmonitorconverged_(SVD *svd,PetscInt *it,PetscInt *nconv,PetscReal *sigma,PetscReal *errest,PetscInt *nest,SlepcConvMonitor *ctx,PetscErrorCode *ierr)
 {
   *ierr = SVDMonitorConverged(*svd,*it,*nconv,sigma,errest,*nest,*ctx);
 }
 
-PETSC_EXTERN void svdmonitorfirst_(SVD *svd,PetscInt *it,PetscInt *nconv,PetscReal *sigma,PetscReal *errest,PetscInt *nest,PetscViewerAndFormat **ctx,PetscErrorCode *ierr)
+SLEPC_EXTERN void svdmonitorfirst_(SVD *svd,PetscInt *it,PetscInt *nconv,PetscReal *sigma,PetscReal *errest,PetscInt *nest,PetscViewerAndFormat **ctx,PetscErrorCode *ierr)
 {
   *ierr = SVDMonitorFirst(*svd,*it,*nconv,sigma,errest,*nest,*ctx);
 }
 
-PETSC_EXTERN void svdmonitorlg_(SVD *svd,PetscInt *it,PetscInt *nconv,PetscReal *sigma,PetscReal *errest,PetscInt *nest,void *ctx,PetscErrorCode *ierr)
+SLEPC_EXTERN void svdmonitorlg_(SVD *svd,PetscInt *it,PetscInt *nconv,PetscReal *sigma,PetscReal *errest,PetscInt *nest,void *ctx,PetscErrorCode *ierr)
 {
   *ierr = SVDMonitorLG(*svd,*it,*nconv,sigma,errest,*nest,ctx);
 }
 
-PETSC_EXTERN void svdmonitorlgall_(SVD *svd,PetscInt *it,PetscInt *nconv,PetscReal *sigma,PetscReal *errest,PetscInt *nest,void *ctx,PetscErrorCode *ierr)
+SLEPC_EXTERN void svdmonitorlgall_(SVD *svd,PetscInt *it,PetscInt *nconv,PetscReal *sigma,PetscReal *errest,PetscInt *nest,void *ctx,PetscErrorCode *ierr)
 {
   *ierr = SVDMonitorLGAll(*svd,*it,*nconv,sigma,errest,*nest,ctx);
 }
@@ -160,42 +160,42 @@ static PetscErrorCode ourstopdestroy(void *ctx)
   PetscObjectUseFortranCallback(svd,_cb.stopdestroy,(void*,PetscErrorCode*),(_ctx,&ierr));
 }
 
-PETSC_EXTERN void PETSC_STDCALL svdview_(SVD *svd,PetscViewer *viewer,PetscErrorCode *ierr)
+SLEPC_EXTERN void PETSC_STDCALL svdview_(SVD *svd,PetscViewer *viewer,PetscErrorCode *ierr)
 {
   PetscViewer v;
   PetscPatchDefaultViewers_Fortran(viewer,v);
   *ierr = SVDView(*svd,v);
 }
 
-PETSC_EXTERN void PETSC_STDCALL svdreasonview_(SVD *svd,PetscViewer *viewer,PetscErrorCode *ierr)
+SLEPC_EXTERN void PETSC_STDCALL svdreasonview_(SVD *svd,PetscViewer *viewer,PetscErrorCode *ierr)
 {
   PetscViewer v;
   PetscPatchDefaultViewers_Fortran(viewer,v);
   *ierr = SVDReasonView(*svd,v);
 }
 
-PETSC_EXTERN void PETSC_STDCALL svderrorview_(SVD *svd,SVDErrorType *etype,PetscViewer *viewer,PetscErrorCode *ierr)
+SLEPC_EXTERN void PETSC_STDCALL svderrorview_(SVD *svd,SVDErrorType *etype,PetscViewer *viewer,PetscErrorCode *ierr)
 {
   PetscViewer v;
   PetscPatchDefaultViewers_Fortran(viewer,v);
   *ierr = SVDErrorView(*svd,*etype,v);
 }
 
-PETSC_EXTERN void PETSC_STDCALL svdvaluesview_(SVD *svd,PetscViewer *viewer,PetscErrorCode *ierr)
+SLEPC_EXTERN void PETSC_STDCALL svdvaluesview_(SVD *svd,PetscViewer *viewer,PetscErrorCode *ierr)
 {
   PetscViewer v;
   PetscPatchDefaultViewers_Fortran(viewer,v);
   *ierr = SVDValuesView(*svd,v);
 }
 
-PETSC_EXTERN void PETSC_STDCALL svdvectorsview_(SVD *svd,PetscViewer *viewer,PetscErrorCode *ierr)
+SLEPC_EXTERN void PETSC_STDCALL svdvectorsview_(SVD *svd,PetscViewer *viewer,PetscErrorCode *ierr)
 {
   PetscViewer v;
   PetscPatchDefaultViewers_Fortran(viewer,v);
   *ierr = SVDVectorsView(*svd,v);
 }
 
-PETSC_EXTERN void PETSC_STDCALL svdsettype_(SVD *svd,char *type PETSC_MIXED_LEN(len),PetscErrorCode *ierr PETSC_END_LEN(len))
+SLEPC_EXTERN void PETSC_STDCALL svdsettype_(SVD *svd,char *type PETSC_MIXED_LEN(len),PetscErrorCode *ierr PETSC_END_LEN(len))
 {
   char *t;
 
@@ -204,7 +204,7 @@ PETSC_EXTERN void PETSC_STDCALL svdsettype_(SVD *svd,char *type PETSC_MIXED_LEN(
   FREECHAR(type,t);
 }
 
-PETSC_EXTERN void PETSC_STDCALL svdgettype_(SVD *svd,char *name PETSC_MIXED_LEN(len),PetscErrorCode *ierr PETSC_END_LEN(len))
+SLEPC_EXTERN void PETSC_STDCALL svdgettype_(SVD *svd,char *name PETSC_MIXED_LEN(len),PetscErrorCode *ierr PETSC_END_LEN(len))
 {
   SVDType tname;
 
@@ -213,7 +213,7 @@ PETSC_EXTERN void PETSC_STDCALL svdgettype_(SVD *svd,char *name PETSC_MIXED_LEN(
   FIXRETURNCHAR(PETSC_TRUE,name,len);
 }
 
-PETSC_EXTERN void PETSC_STDCALL svdmonitorset_(SVD *svd,void (PETSC_STDCALL *monitor)(SVD*,PetscInt*,PetscInt*,PetscReal*,PetscReal*,PetscInt*,void*,PetscErrorCode*),void *mctx,void (PETSC_STDCALL *monitordestroy)(void *,PetscErrorCode*),PetscErrorCode *ierr)
+SLEPC_EXTERN void PETSC_STDCALL svdmonitorset_(SVD *svd,void (PETSC_STDCALL *monitor)(SVD*,PetscInt*,PetscInt*,PetscReal*,PetscReal*,PetscInt*,void*,PetscErrorCode*),void *mctx,void (PETSC_STDCALL *monitordestroy)(void *,PetscErrorCode*),PetscErrorCode *ierr)
 {
   CHKFORTRANNULLOBJECT(mctx);
   CHKFORTRANNULLFUNCTION(monitordestroy);
@@ -234,7 +234,7 @@ PETSC_EXTERN void PETSC_STDCALL svdmonitorset_(SVD *svd,void (PETSC_STDCALL *mon
   }
 }
 
-PETSC_EXTERN void PETSC_STDCALL svdsetoptionsprefix_(SVD *svd,char *prefix PETSC_MIXED_LEN(len),PetscErrorCode *ierr PETSC_END_LEN(len))
+SLEPC_EXTERN void PETSC_STDCALL svdsetoptionsprefix_(SVD *svd,char *prefix PETSC_MIXED_LEN(len),PetscErrorCode *ierr PETSC_END_LEN(len))
 {
   char *t;
 
@@ -243,7 +243,7 @@ PETSC_EXTERN void PETSC_STDCALL svdsetoptionsprefix_(SVD *svd,char *prefix PETSC
   FREECHAR(prefix,t);
 }
 
-PETSC_EXTERN void PETSC_STDCALL svdappendoptionsprefix_(SVD *svd,char *prefix PETSC_MIXED_LEN(len),PetscErrorCode *ierr PETSC_END_LEN(len))
+SLEPC_EXTERN void PETSC_STDCALL svdappendoptionsprefix_(SVD *svd,char *prefix PETSC_MIXED_LEN(len),PetscErrorCode *ierr PETSC_END_LEN(len))
 {
   char *t;
 
@@ -252,7 +252,7 @@ PETSC_EXTERN void PETSC_STDCALL svdappendoptionsprefix_(SVD *svd,char *prefix PE
   FREECHAR(prefix,t);
 }
 
-PETSC_EXTERN void PETSC_STDCALL svdgetoptionsprefix_(SVD *svd,char *prefix PETSC_MIXED_LEN(len),PetscErrorCode *ierr PETSC_END_LEN(len))
+SLEPC_EXTERN void PETSC_STDCALL svdgetoptionsprefix_(SVD *svd,char *prefix PETSC_MIXED_LEN(len),PetscErrorCode *ierr PETSC_END_LEN(len))
 {
   const char *tname;
 
@@ -261,17 +261,17 @@ PETSC_EXTERN void PETSC_STDCALL svdgetoptionsprefix_(SVD *svd,char *prefix PETSC
   FIXRETURNCHAR(PETSC_TRUE,prefix,len);
 }
 
-PETSC_EXTERN void PETSC_STDCALL svdconvergedabsolute_(SVD *svd,PetscReal *sigma,PetscReal *res,PetscReal *errest,void *ctx,PetscErrorCode *ierr)
+SLEPC_EXTERN void PETSC_STDCALL svdconvergedabsolute_(SVD *svd,PetscReal *sigma,PetscReal *res,PetscReal *errest,void *ctx,PetscErrorCode *ierr)
 {
   *ierr = SVDConvergedAbsolute(*svd,*sigma,*res,errest,ctx);
 }
 
-PETSC_EXTERN void PETSC_STDCALL svdconvergedrelative_(SVD *svd,PetscReal *sigma,PetscReal *res,PetscReal *errest,void *ctx,PetscErrorCode *ierr)
+SLEPC_EXTERN void PETSC_STDCALL svdconvergedrelative_(SVD *svd,PetscReal *sigma,PetscReal *res,PetscReal *errest,void *ctx,PetscErrorCode *ierr)
 {
   *ierr = SVDConvergedRelative(*svd,*sigma,*res,errest,ctx);
 }
 
-PETSC_EXTERN void PETSC_STDCALL svdsetconvergencetestfunction_(SVD *svd,void (PETSC_STDCALL *func)(SVD*,PetscReal*,PetscReal*,PetscReal*,void*,PetscErrorCode*),void* ctx,void (PETSC_STDCALL *destroy)(void*,PetscErrorCode*),PetscErrorCode *ierr)
+SLEPC_EXTERN void PETSC_STDCALL svdsetconvergencetestfunction_(SVD *svd,void (PETSC_STDCALL *func)(SVD*,PetscReal*,PetscReal*,PetscReal*,void*,PetscErrorCode*),void* ctx,void (PETSC_STDCALL *destroy)(void*,PetscErrorCode*),PetscErrorCode *ierr)
 {
   CHKFORTRANNULLOBJECT(ctx);
   CHKFORTRANNULLFUNCTION(destroy);
@@ -286,12 +286,12 @@ PETSC_EXTERN void PETSC_STDCALL svdsetconvergencetestfunction_(SVD *svd,void (PE
   }
 }
 
-PETSC_EXTERN void PETSC_STDCALL svdstoppingbasic_(SVD *svd,PetscInt *its,PetscInt *max_it,PetscInt *nconv,PetscInt *nsv,SVDConvergedReason *reason,void *ctx,PetscErrorCode *ierr)
+SLEPC_EXTERN void PETSC_STDCALL svdstoppingbasic_(SVD *svd,PetscInt *its,PetscInt *max_it,PetscInt *nconv,PetscInt *nsv,SVDConvergedReason *reason,void *ctx,PetscErrorCode *ierr)
 {
   *ierr = SVDStoppingBasic(*svd,*its,*max_it,*nconv,*nsv,reason,ctx);
 }
 
-PETSC_EXTERN void PETSC_STDCALL svdsetstoppingtestfunction_(SVD *svd,void (PETSC_STDCALL *func)(SVD*,PetscInt,PetscInt,PetscInt,PetscInt,SVDConvergedReason*,void*,PetscErrorCode*),void* ctx,void (PETSC_STDCALL *destroy)(void*,PetscErrorCode*),PetscErrorCode *ierr)
+SLEPC_EXTERN void PETSC_STDCALL svdsetstoppingtestfunction_(SVD *svd,void (PETSC_STDCALL *func)(SVD*,PetscInt,PetscInt,PetscInt,PetscInt,SVDConvergedReason*,void*,PetscErrorCode*),void* ctx,void (PETSC_STDCALL *destroy)(void*,PetscErrorCode*),PetscErrorCode *ierr)
 {
   CHKFORTRANNULLOBJECT(ctx);
   CHKFORTRANNULLFUNCTION(destroy);
@@ -304,7 +304,7 @@ PETSC_EXTERN void PETSC_STDCALL svdsetstoppingtestfunction_(SVD *svd,void (PETSC
   }
 }
 
-PETSC_EXTERN void PETSC_STDCALL svdgetdimensions_(SVD *svd,PetscInt *nev,PetscInt *ncv,PetscInt *mpd,int *ierr)
+SLEPC_EXTERN void PETSC_STDCALL svdgetdimensions_(SVD *svd,PetscInt *nev,PetscInt *ncv,PetscInt *mpd,int *ierr)
 {
   CHKFORTRANNULLINTEGER(nev);
   CHKFORTRANNULLINTEGER(ncv);
@@ -312,102 +312,102 @@ PETSC_EXTERN void PETSC_STDCALL svdgetdimensions_(SVD *svd,PetscInt *nev,PetscIn
   *ierr = SVDGetDimensions(*svd,nev,ncv,mpd);
 }
 
-PETSC_EXTERN void PETSC_STDCALL svdgetdimensions000_(SVD *svd,PetscInt *nev,PetscInt *ncv,PetscInt *mpd,int *ierr)
+SLEPC_EXTERN void PETSC_STDCALL svdgetdimensions000_(SVD *svd,PetscInt *nev,PetscInt *ncv,PetscInt *mpd,int *ierr)
 {
   svdgetdimensions_(svd,nev,ncv,mpd,ierr);
 }
 
-PETSC_EXTERN void PETSC_STDCALL svdgetdimensions100_(SVD *svd,PetscInt *nev,PetscInt *ncv,PetscInt *mpd,int *ierr)
+SLEPC_EXTERN void PETSC_STDCALL svdgetdimensions100_(SVD *svd,PetscInt *nev,PetscInt *ncv,PetscInt *mpd,int *ierr)
 {
   svdgetdimensions_(svd,nev,ncv,mpd,ierr);
 }
 
-PETSC_EXTERN void PETSC_STDCALL svdgetdimensions010_(SVD *svd,PetscInt *nev,PetscInt *ncv,PetscInt *mpd,int *ierr)
+SLEPC_EXTERN void PETSC_STDCALL svdgetdimensions010_(SVD *svd,PetscInt *nev,PetscInt *ncv,PetscInt *mpd,int *ierr)
 {
   svdgetdimensions_(svd,nev,ncv,mpd,ierr);
 }
 
-PETSC_EXTERN void PETSC_STDCALL svdgetdimensions001_(SVD *svd,PetscInt *nev,PetscInt *ncv,PetscInt *mpd,int *ierr)
+SLEPC_EXTERN void PETSC_STDCALL svdgetdimensions001_(SVD *svd,PetscInt *nev,PetscInt *ncv,PetscInt *mpd,int *ierr)
 {
   svdgetdimensions_(svd,nev,ncv,mpd,ierr);
 }
 
-PETSC_EXTERN void PETSC_STDCALL svdgetdimensions110_(SVD *svd,PetscInt *nev,PetscInt *ncv,PetscInt *mpd,int *ierr)
+SLEPC_EXTERN void PETSC_STDCALL svdgetdimensions110_(SVD *svd,PetscInt *nev,PetscInt *ncv,PetscInt *mpd,int *ierr)
 {
   svdgetdimensions_(svd,nev,ncv,mpd,ierr);
 }
 
-PETSC_EXTERN void PETSC_STDCALL svdgetdimensions011_(SVD *svd,PetscInt *nev,PetscInt *ncv,PetscInt *mpd,int *ierr)
+SLEPC_EXTERN void PETSC_STDCALL svdgetdimensions011_(SVD *svd,PetscInt *nev,PetscInt *ncv,PetscInt *mpd,int *ierr)
 {
   svdgetdimensions_(svd,nev,ncv,mpd,ierr);
 }
 
-PETSC_EXTERN void PETSC_STDCALL svdgetdimensions101_(SVD *svd,PetscInt *nev,PetscInt *ncv,PetscInt *mpd,int *ierr)
+SLEPC_EXTERN void PETSC_STDCALL svdgetdimensions101_(SVD *svd,PetscInt *nev,PetscInt *ncv,PetscInt *mpd,int *ierr)
 {
   svdgetdimensions_(svd,nev,ncv,mpd,ierr);
 }
 
-PETSC_EXTERN void PETSC_STDCALL svdgetsingulartriplet_(SVD *svd,PetscInt *i,PetscReal *sigma,Vec *u,Vec *v,int *ierr)
+SLEPC_EXTERN void PETSC_STDCALL svdgetsingulartriplet_(SVD *svd,PetscInt *i,PetscReal *sigma,Vec *u,Vec *v,int *ierr)
 {
   CHKFORTRANNULLREAL(sigma);
   *ierr = SVDGetSingularTriplet(*svd,*i,sigma,*u,*v);
 }
 
-PETSC_EXTERN void PETSC_STDCALL svdgetsingulartriplet0_(SVD *svd,PetscInt *i,PetscReal *sigma,Vec *u,Vec *v, int *ierr)
+SLEPC_EXTERN void PETSC_STDCALL svdgetsingulartriplet0_(SVD *svd,PetscInt *i,PetscReal *sigma,Vec *u,Vec *v, int *ierr)
 {
   svdgetsingulartriplet_(svd,i,sigma,u,v,ierr);
 }
 
-PETSC_EXTERN void PETSC_STDCALL svdgetsingulartriplet1_(SVD *svd,PetscInt *i,PetscReal *sigma,Vec *u,Vec *v, int *ierr)
+SLEPC_EXTERN void PETSC_STDCALL svdgetsingulartriplet1_(SVD *svd,PetscInt *i,PetscReal *sigma,Vec *u,Vec *v, int *ierr)
 {
   svdgetsingulartriplet_(svd,i,sigma,u,v,ierr);
 }
 
-PETSC_EXTERN void PETSC_STDCALL svdgettolerances_(SVD *svd,PetscReal *tol,PetscInt *maxits,int *ierr)
+SLEPC_EXTERN void PETSC_STDCALL svdgettolerances_(SVD *svd,PetscReal *tol,PetscInt *maxits,int *ierr)
 {
   CHKFORTRANNULLREAL(tol);
   CHKFORTRANNULLINTEGER(maxits);
   *ierr = SVDGetTolerances(*svd,tol,maxits);
 }
 
-PETSC_EXTERN void PETSC_STDCALL svdgettolerances00_(SVD *svd,PetscReal *tol,PetscInt *maxits,int *ierr)
+SLEPC_EXTERN void PETSC_STDCALL svdgettolerances00_(SVD *svd,PetscReal *tol,PetscInt *maxits,int *ierr)
 {
   svdgettolerances_(svd,tol,maxits,ierr);
 }
 
-PETSC_EXTERN void PETSC_STDCALL svdgettolerances10_(SVD *svd,PetscReal *tol,PetscInt *maxits,int *ierr)
+SLEPC_EXTERN void PETSC_STDCALL svdgettolerances10_(SVD *svd,PetscReal *tol,PetscInt *maxits,int *ierr)
 {
   svdgettolerances_(svd,tol,maxits,ierr);
 }
 
-PETSC_EXTERN void PETSC_STDCALL svdgettolerances01_(SVD *svd,PetscReal *tol,PetscInt *maxits,int *ierr)
+SLEPC_EXTERN void PETSC_STDCALL svdgettolerances01_(SVD *svd,PetscReal *tol,PetscInt *maxits,int *ierr)
 {
   svdgettolerances_(svd,tol,maxits,ierr);
 }
 
-PETSC_EXTERN void PETSC_STDCALL svdsetinitialspaces_(SVD *svd,PetscInt *nr,Vec *isr,PetscInt *nl,Vec *isl,int *ierr)
+SLEPC_EXTERN void PETSC_STDCALL svdsetinitialspaces_(SVD *svd,PetscInt *nr,Vec *isr,PetscInt *nl,Vec *isl,int *ierr)
 {
   CHKFORTRANNULLOBJECT(isr);
   CHKFORTRANNULLOBJECT(isl);
   *ierr = SVDSetInitialSpaces(*svd,*nr,isr,*nl,isl);
 }
 
-PETSC_EXTERN void PETSC_STDCALL svdsetinitialspaces00_(SVD *svd,PetscInt *nr,Vec *isr,PetscInt *nl,Vec *isl,int *ierr)
+SLEPC_EXTERN void PETSC_STDCALL svdsetinitialspaces00_(SVD *svd,PetscInt *nr,Vec *isr,PetscInt *nl,Vec *isl,int *ierr)
 {
   svdsetinitialspaces_(svd,nr,isr,nl,isl,ierr);
 }
 
-PETSC_EXTERN void PETSC_STDCALL svdsetinitialspaces01_(SVD *svd,PetscInt *nr,Vec *isr,PetscInt *nl,Vec *isl,int *ierr)
+SLEPC_EXTERN void PETSC_STDCALL svdsetinitialspaces01_(SVD *svd,PetscInt *nr,Vec *isr,PetscInt *nl,Vec *isl,int *ierr)
 {
   svdsetinitialspaces_(svd,nr,isr,nl,isl,ierr);
 }
 
-PETSC_EXTERN void PETSC_STDCALL svdsetinitialspaces10_(SVD *svd,PetscInt *nr,Vec *isr,PetscInt *nl,Vec *isl,int *ierr)
+SLEPC_EXTERN void PETSC_STDCALL svdsetinitialspaces10_(SVD *svd,PetscInt *nr,Vec *isr,PetscInt *nl,Vec *isl,int *ierr)
 {
   svdsetinitialspaces_(svd,nr,isr,nl,isl,ierr);
 }
 
-PETSC_EXTERN void PETSC_STDCALL svdsetinitialspaces11_(SVD *svd,PetscInt *nr,Vec *isr,PetscInt *nl,Vec *isl,int *ierr)
+SLEPC_EXTERN void PETSC_STDCALL svdsetinitialspaces11_(SVD *svd,PetscInt *nr,Vec *isr,PetscInt *nl,Vec *isl,int *ierr)
 {
   svdsetinitialspaces_(svd,nr,isr,nl,isl,ierr);
 }

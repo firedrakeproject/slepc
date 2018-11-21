@@ -507,7 +507,7 @@ PetscErrorCode EPSGDGetDoubleExpansion(EPS eps,PetscBool *doubleexp)
   PetscFunctionReturn(0);
 }
 
-PETSC_EXTERN PetscErrorCode EPSCreate_GD(EPS eps)
+SLEPC_EXTERN PetscErrorCode EPSCreate_GD(EPS eps)
 {
   PetscErrorCode  ierr;
   EPS_DAVIDSON    *data;

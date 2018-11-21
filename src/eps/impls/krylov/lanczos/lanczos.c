@@ -857,7 +857,7 @@ PetscErrorCode EPSView_Lanczos(EPS eps,PetscViewer viewer)
   PetscFunctionReturn(0);
 }
 
-PETSC_EXTERN PetscErrorCode EPSCreate_Lanczos(EPS eps)
+SLEPC_EXTERN PetscErrorCode EPSCreate_Lanczos(EPS eps)
 {
   EPS_LANCZOS    *ctx;
   PetscErrorCode ierr;

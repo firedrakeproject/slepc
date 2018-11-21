@@ -23,7 +23,7 @@
 -  nw  - number of work vectors to allocate
 
    Developers Note:
-   This is PETSC_EXTERN because it may be required by user plugin PEP
+   This is SLEPC_EXTERN because it may be required by user plugin PEP
    implementations.
 
    Level: developer

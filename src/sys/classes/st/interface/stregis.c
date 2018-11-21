@@ -10,12 +10,12 @@
 
 #include <slepc/private/stimpl.h>          /*I   "slepcst.h"   I*/
 
-PETSC_EXTERN PetscErrorCode STCreate_Shell(ST);
-PETSC_EXTERN PetscErrorCode STCreate_Shift(ST);
-PETSC_EXTERN PetscErrorCode STCreate_Sinvert(ST);
-PETSC_EXTERN PetscErrorCode STCreate_Cayley(ST);
-PETSC_EXTERN PetscErrorCode STCreate_Precond(ST);
-PETSC_EXTERN PetscErrorCode STCreate_Filter(ST);
+SLEPC_EXTERN PetscErrorCode STCreate_Shell(ST);
+SLEPC_EXTERN PetscErrorCode STCreate_Shift(ST);
+SLEPC_EXTERN PetscErrorCode STCreate_Sinvert(ST);
+SLEPC_EXTERN PetscErrorCode STCreate_Cayley(ST);
+SLEPC_EXTERN PetscErrorCode STCreate_Precond(ST);
+SLEPC_EXTERN PetscErrorCode STCreate_Filter(ST);
 
 /*@C
    STRegisterAll - Registers all of the spectral transformations in the ST package.

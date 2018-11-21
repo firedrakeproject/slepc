@@ -373,7 +373,7 @@ PetscErrorCode FNDestroy_Combine(FN fn)
   PetscFunctionReturn(0);
 }
 
-PETSC_EXTERN PetscErrorCode FNCreate_Combine(FN fn)
+SLEPC_EXTERN PetscErrorCode FNCreate_Combine(FN fn)
 {
   PetscErrorCode ierr;
   FN_COMBINE     *ctx;

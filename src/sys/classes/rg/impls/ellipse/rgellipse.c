@@ -249,7 +249,7 @@ PetscErrorCode RGDestroy_Ellipse(RG rg)
   PetscFunctionReturn(0);
 }
 
-PETSC_EXTERN PetscErrorCode RGCreate_Ellipse(RG rg)
+SLEPC_EXTERN PetscErrorCode RGCreate_Ellipse(RG rg)
 {
   RG_ELLIPSE     *ellipse;
   PetscErrorCode ierr;

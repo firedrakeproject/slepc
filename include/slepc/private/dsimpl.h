@@ -14,9 +14,9 @@
 #include <slepcds.h>
 #include <slepc/private/slepcimpl.h>
 
-PETSC_EXTERN PetscBool DSRegisterAllCalled;
-PETSC_EXTERN PetscErrorCode DSRegisterAll(void);
-PETSC_EXTERN PetscLogEvent DS_Solve,DS_Vectors,DS_Synchronize,DS_Other;
+SLEPC_EXTERN PetscBool DSRegisterAllCalled;
+SLEPC_EXTERN PetscErrorCode DSRegisterAll(void);
+SLEPC_EXTERN PetscLogEvent DS_Solve,DS_Vectors,DS_Synchronize,DS_Other;
 PETSC_INTERN const char *DSMatName[];
 
 typedef struct _DSOps *DSOps;

@@ -315,7 +315,7 @@ PetscErrorCode BVDestroy_Contiguous(BV bv)
   PetscFunctionReturn(0);
 }
 
-PETSC_EXTERN PetscErrorCode BVCreate_Contiguous(BV bv)
+SLEPC_EXTERN PetscErrorCode BVCreate_Contiguous(BV bv)
 {
   PetscErrorCode ierr;
   BV_CONTIGUOUS  *ctx;

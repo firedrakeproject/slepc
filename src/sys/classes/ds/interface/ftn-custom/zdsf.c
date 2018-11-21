@@ -33,7 +33,7 @@
 #define dssort_                   dssort
 #endif
 
-PETSC_EXTERN void PETSC_STDCALL dssettype_(DS *ds,char *type PETSC_MIXED_LEN(len),PetscErrorCode *ierr PETSC_END_LEN(len))
+SLEPC_EXTERN void PETSC_STDCALL dssettype_(DS *ds,char *type PETSC_MIXED_LEN(len),PetscErrorCode *ierr PETSC_END_LEN(len))
 {
   char *t;
 
@@ -42,7 +42,7 @@ PETSC_EXTERN void PETSC_STDCALL dssettype_(DS *ds,char *type PETSC_MIXED_LEN(len
   FREECHAR(type,t);
 }
 
-PETSC_EXTERN void PETSC_STDCALL dsgettype_(DS *ds,char *name PETSC_MIXED_LEN(len),PetscErrorCode *ierr PETSC_END_LEN(len))
+SLEPC_EXTERN void PETSC_STDCALL dsgettype_(DS *ds,char *name PETSC_MIXED_LEN(len),PetscErrorCode *ierr PETSC_END_LEN(len))
 {
   DSType tname;
 
@@ -51,7 +51,7 @@ PETSC_EXTERN void PETSC_STDCALL dsgettype_(DS *ds,char *name PETSC_MIXED_LEN(len
   FIXRETURNCHAR(PETSC_TRUE,name,len);
 }
 
-PETSC_EXTERN void PETSC_STDCALL dssetoptionsprefix_(DS *ds,char *prefix PETSC_MIXED_LEN(len),PetscErrorCode *ierr PETSC_END_LEN(len))
+SLEPC_EXTERN void PETSC_STDCALL dssetoptionsprefix_(DS *ds,char *prefix PETSC_MIXED_LEN(len),PetscErrorCode *ierr PETSC_END_LEN(len))
 {
   char *t;
 
@@ -60,7 +60,7 @@ PETSC_EXTERN void PETSC_STDCALL dssetoptionsprefix_(DS *ds,char *prefix PETSC_MI
   FREECHAR(prefix,t);
 }
 
-PETSC_EXTERN void PETSC_STDCALL dsappendoptionsprefix_(DS *ds,char *prefix PETSC_MIXED_LEN(len),PetscErrorCode *ierr PETSC_END_LEN(len))
+SLEPC_EXTERN void PETSC_STDCALL dsappendoptionsprefix_(DS *ds,char *prefix PETSC_MIXED_LEN(len),PetscErrorCode *ierr PETSC_END_LEN(len))
 {
   char *t;
 
@@ -69,7 +69,7 @@ PETSC_EXTERN void PETSC_STDCALL dsappendoptionsprefix_(DS *ds,char *prefix PETSC
   FREECHAR(prefix,t);
 }
 
-PETSC_EXTERN void PETSC_STDCALL dsgetoptionsprefix_(DS *ds,char *prefix PETSC_MIXED_LEN(len),PetscErrorCode *ierr PETSC_END_LEN(len))
+SLEPC_EXTERN void PETSC_STDCALL dsgetoptionsprefix_(DS *ds,char *prefix PETSC_MIXED_LEN(len),PetscErrorCode *ierr PETSC_END_LEN(len))
 {
   const char *tname;
 
@@ -78,28 +78,28 @@ PETSC_EXTERN void PETSC_STDCALL dsgetoptionsprefix_(DS *ds,char *prefix PETSC_MI
   FIXRETURNCHAR(PETSC_TRUE,prefix,len);
 }
 
-PETSC_EXTERN void PETSC_STDCALL dsview_(DS *ds,PetscViewer *viewer,PetscErrorCode *ierr)
+SLEPC_EXTERN void PETSC_STDCALL dsview_(DS *ds,PetscViewer *viewer,PetscErrorCode *ierr)
 {
   PetscViewer v;
   PetscPatchDefaultViewers_Fortran(viewer,v);
   *ierr = DSView(*ds,v);
 }
 
-PETSC_EXTERN void PETSC_STDCALL dsviewmat_(DS *ds,PetscViewer *viewer,DSMatType *m,PetscErrorCode *ierr)
+SLEPC_EXTERN void PETSC_STDCALL dsviewmat_(DS *ds,PetscViewer *viewer,DSMatType *m,PetscErrorCode *ierr)
 {
   PetscViewer v;
   PetscPatchDefaultViewers_Fortran(viewer,v);
   *ierr = DSViewMat(*ds,v,*m);
 }
 
-PETSC_EXTERN void PETSC_STDCALL dsvectors_(DS *ds,DSMatType *mat,PetscInt *j,PetscReal *rnorm,PetscErrorCode *ierr)
+SLEPC_EXTERN void PETSC_STDCALL dsvectors_(DS *ds,DSMatType *mat,PetscInt *j,PetscReal *rnorm,PetscErrorCode *ierr)
 {
   CHKFORTRANNULLINTEGER(j);
   CHKFORTRANNULLREAL(rnorm);
   *ierr = DSVectors(*ds,*mat,j,rnorm);
 }
 
-PETSC_EXTERN void PETSC_STDCALL dssort_(DS *ds,PetscScalar *eigr,PetscScalar *eigi,PetscScalar *rr,PetscScalar *ri,PetscInt *k,PetscErrorCode *ierr)
+SLEPC_EXTERN void PETSC_STDCALL dssort_(DS *ds,PetscScalar *eigr,PetscScalar *eigi,PetscScalar *rr,PetscScalar *ri,PetscInt *k,PetscErrorCode *ierr)
 {
   CHKFORTRANNULLSCALAR(eigr);
   CHKFORTRANNULLSCALAR(eigi);

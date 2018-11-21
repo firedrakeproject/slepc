@@ -291,7 +291,7 @@ PetscErrorCode EPSDestroy_Subspace(EPS eps)
   PetscFunctionReturn(0);
 }
 
-PETSC_EXTERN PetscErrorCode EPSCreate_Subspace(EPS eps)
+SLEPC_EXTERN PetscErrorCode EPSCreate_Subspace(EPS eps)
 {
   PetscFunctionBegin;
   eps->useds = PETSC_TRUE;

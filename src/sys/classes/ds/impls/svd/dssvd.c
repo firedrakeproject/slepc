@@ -356,7 +356,7 @@ PetscErrorCode DSMatGetSize_SVD(DS ds,DSMatType t,PetscInt *rows,PetscInt *cols)
   PetscFunctionReturn(0);
 }
 
-PETSC_EXTERN PetscErrorCode DSCreate_SVD(DS ds)
+SLEPC_EXTERN PetscErrorCode DSCreate_SVD(DS ds)
 {
   PetscFunctionBegin;
   ds->ops->allocate      = DSAllocate_SVD;

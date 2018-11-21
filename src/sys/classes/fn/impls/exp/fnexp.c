@@ -1183,7 +1183,7 @@ PetscErrorCode FNView_Exp(FN fn,PetscViewer viewer)
   PetscFunctionReturn(0);
 }
 
-PETSC_EXTERN PetscErrorCode FNCreate_Exp(FN fn)
+SLEPC_EXTERN PetscErrorCode FNCreate_Exp(FN fn)
 {
   PetscFunctionBegin;
   fn->ops->evaluatefunction       = FNEvaluateFunction_Exp;

@@ -26,7 +26,7 @@ static PetscErrorCode oursingularitiesfunc(NEP nep,PetscInt *maxnp,PetscScalar *
   PetscObjectUseFortranCallback(nep,_cb.singularities,(NEP*,PetscInt*,PetscScalar*,void*,PetscErrorCode*),(&nep,maxnp,xi,_ctx,&ierr));
 }
 
-PETSC_EXTERN void PETSC_STDCALL nepnleigssetsingularitiesfunction_(NEP *nep,void (PETSC_STDCALL *func)(NEP*,PetscInt*,PetscScalar*,void*,PetscErrorCode*),void *ctx,PetscErrorCode *ierr)
+SLEPC_EXTERN void PETSC_STDCALL nepnleigssetsingularitiesfunction_(NEP *nep,void (PETSC_STDCALL *func)(NEP*,PetscInt*,PetscScalar*,void*,PetscErrorCode*),void *ctx,PetscErrorCode *ierr)
 {
   CHKFORTRANNULLOBJECT(ctx);
   *ierr = PetscObjectSetFortranCallback((PetscObject)*nep,PETSC_FORTRAN_CALLBACK_CLASS,&_cb.singularities,(PetscVoidFunction)func,ctx); if (*ierr) return;

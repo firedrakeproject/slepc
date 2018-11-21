@@ -1064,7 +1064,7 @@ PetscErrorCode PEPDestroy_STOAR(PEP pep)
   PetscFunctionReturn(0);
 }
 
-PETSC_EXTERN PetscErrorCode PEPCreate_STOAR(PEP pep)
+SLEPC_EXTERN PetscErrorCode PEPCreate_STOAR(PEP pep)
 {
   PetscErrorCode ierr;
   PEP_STOAR      *ctx;

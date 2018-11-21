@@ -330,7 +330,7 @@ PetscErrorCode STDestroy_Precond(ST st)
   PetscFunctionReturn(0);
 }
 
-PETSC_EXTERN PetscErrorCode STCreate_Precond(ST st)
+SLEPC_EXTERN PetscErrorCode STCreate_Precond(ST st)
 {
   PetscErrorCode ierr;
   ST_PRECOND     *ctx;
