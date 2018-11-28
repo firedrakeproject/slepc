@@ -163,8 +163,7 @@ int main(int argc,char **argv)
          requires: !single
       test:
          suffix: 2_jd
-         args: -pep_type jd -pep_target -.61
-         requires: complex
+         args: -pep_type jd -pep_target -.61 -pep_jd_projection orthogonal
 
    test:
       suffix: 3

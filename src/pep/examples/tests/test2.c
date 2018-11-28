@@ -301,6 +301,5 @@ int main(int argc,char **argv)
       suffix: 12
       nsize: 2
       args: -pep_type jd -ds_parallel synchronized -pep_target -0.43 -pep_nev 4 -pep_ncv 20
-      requires: complex
 
 TEST*/

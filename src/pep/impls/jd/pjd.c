@@ -1933,7 +1933,7 @@ PetscErrorCode PEPSetFromOptions_JD(PetscOptionItems *PetscOptionsObject,PEP pep
     ierr = PetscOptionsInt("-pep_jd_minimality_index","Maximum allowed minimality index","PEPJDSetMinimalityIndex",1,&i1,&flg);CHKERRQ(ierr);
     if (flg) { ierr = PEPJDSetMinimalityIndex(pep,i1);CHKERRQ(ierr); }
 
-    ierr = PetscOptionsEnum("-pep_jd_projection","Type of projection","PEPJDSetProjection",PEPJDProjectionTypes,PEP_JD_PROJECTION_HARMONIC,(PetscEnum*)&proj,&flg);CHKERRQ(ierr);
+    ierr = PetscOptionsEnum("-pep_jd_projection","Type of projection","PEPJDSetProjection",PEPJDProjectionTypes,(PetscEnum)PEP_JD_PROJECTION_HARMONIC,(PetscEnum*)&proj,&flg);CHKERRQ(ierr);
     if (flg) { ierr = PEPJDSetProjection(pep,proj);CHKERRQ(ierr); }
 
   ierr = PetscOptionsTail();CHKERRQ(ierr);

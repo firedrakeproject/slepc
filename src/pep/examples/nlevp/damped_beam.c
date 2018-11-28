@@ -171,15 +171,18 @@ int main(int argc,char **argv)
 /*TEST
 
    testset:
-      args: -pep_nev 2 -pep_ncv 12 -pep_target 0 -st_type sinvert -terse
+      args: -pep_nev 2 -pep_ncv 12 -pep_target 0 -terse
       requires: !complex !single
       output_file: output/damped_beam_1.out
       test:
          suffix: 1
-         args: -pep_type {{toar linear}}
+         args: -pep_type {{toar linear}} -st_type sinvert
       test:
          suffix: 1_qarnoldi
-         args: -pep_type qarnoldi -pep_qarnoldi_locking 0
+         args: -pep_type qarnoldi -pep_qarnoldi_locking 0 -st_type sinvert
+      test:
+         suffix: 1_jd
+         args: -pep_type jd
 
    testset:
       args: -pep_nev 2 -pep_ncv 12 -pep_target 1i -terse
@@ -193,6 +196,6 @@ int main(int argc,char **argv)
          args: -pep_type qarnoldi -pep_qarnoldi_locking 0 -st_type sinvert
       test:
          suffix: 1_jd_complex
-         args: -pep_type jd -pep_tol 1e-9
+         args: -pep_type jd
 
 TEST*/

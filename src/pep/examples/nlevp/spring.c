@@ -154,8 +154,7 @@ int main(int argc,char **argv)
 
    test:
       suffix: 2
-      args: -pep_type jd -pep_nev 4 -n 24 -pep_ncv 18 -pep_target -50 -terse
-      requires: complex
+      args: -pep_type jd -pep_jd_minimality_index 1 -pep_nev 4 -n 24 -pep_ncv 18 -pep_target -50 -terse
 
    test:
       suffix: 3

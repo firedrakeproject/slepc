@@ -236,6 +236,5 @@ int main(int argc,char **argv)
    test:
       suffix: 2
       args: -nep_nev 2 -nep_type interpol -rg_type interval -rg_interval_endpoints .5,15,-.1,.1 -nep_target .7 -nep_interpol_pep_type jd -nep_interpol_st_pc_type sor
-      requires: complex
 
 TEST*/
