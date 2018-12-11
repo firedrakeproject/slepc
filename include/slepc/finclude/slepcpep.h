@@ -32,6 +32,7 @@
 #define PEPStop            PetscEnum
 #define PEPErrorType       PetscEnum
 #define PEPConvergedReason PetscEnum
+#define PEPJDProjection    PetscEnum
 
 #define PEPLINEAR    'linear'
 #define PEPQARNOLDI  'qarnoldi'

@@ -43,6 +43,7 @@ native PEPErrorType
 native PEPConv
 native PEPStop
 native PEPConvergedReason
+native PEPJDProjection
 native STMatMode
 native SVDWhich
 native SVDErrorType
