@@ -155,15 +155,15 @@ int main(int argc,char **argv)
          args: -pep_type qarnoldi -pep_qarnoldi_restart 0.4
 
    testset:
-      args: -n 100 -pep_nev 4 -terse
+      args: -n 24 -pep_nev 4 -pep_ncv 9 -pep_target -.62 -terse 
       output_file: output/sleeper_2.out
       test:
          suffix: 2_toar
-         args: -pep_type toar -pep_toar_restart .35 -pep_ncv 10 -pep_max_it 2000 -st_type sinvert
+         args: -pep_type toar -pep_toar_restart .3 -st_type sinvert
          requires: !single
       test:
          suffix: 2_jd
-         args: -pep_type jd -pep_target -.61 -pep_jd_projection orthogonal
+         args: -pep_type jd -pep_jd_restart .3 -pep_jd_projection orthogonal
 
    test:
       suffix: 3

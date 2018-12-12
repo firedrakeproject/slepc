@@ -537,9 +537,9 @@ static PetscErrorCode PEPJDComputeResidual(PEP pep,PetscBool derivative,PetscInt
   PEP_JD         *pjd = (PEP_JD*)pep->data;
   PetscErrorCode ierr;
   PetscMPIInt    rk,np,count;
-  Vec            tu,tui,tp,tpi,w;
+  Vec            tu,tui=NULL,tp,tpi=NULL,w;
   PetscScalar    *dval,*dvali,*array1,*array2,*arrayi1,*arrayi2;
-  PetscScalar    *x2=NULL,*x2i,*y2,*y2i,*qj=NULL,*qji,*qq,*tt=NULL,*xx=NULL,*xxi,sone=1.0;
+  PetscScalar    *x2=NULL,*x2i=NULL,*y2,*y2i,*qj=NULL,*qji=NULL,*qq,*tt=NULL,*xx=NULL,*xxi=NULL,sone=1.0;
   PetscInt       i,j,nconv,nloc;
   PetscBLASInt   n,ld,one=1;
 
@@ -713,10 +713,10 @@ static PetscErrorCode PEPJDShellMatMult(Mat P,Vec x,Vec y)
   PEP_JD            *pjd;
   PetscMPIInt       rk,np,count;
   PetscInt          i,j,nconv,nloc,nmat,ldt,ncv,sz;
-  Vec               tx,ty,txi,tyi;
+  Vec               tx,ty,txi=NULL,tyi=NULL;
   const Vec         *xs,*ys;
   PetscScalar       *array2,*arrayi1,*arrayi2,*array1;
-  PetscScalar       *x2=NULL,*x2i,*y2,*y2i,*tt=NULL,*xx=NULL,*xxi,theta[2],sone=1.0,*qj,*qji,*qq,*val,*vali;
+  PetscScalar       *x2=NULL,*x2i=NULL,*y2,*y2i,*tt=NULL,*xx=NULL,*xxi,theta[2],sone=1.0,*qj,*qji=NULL,*qq,*val,*vali=NULL;
   PetscBLASInt      n,ld,one=1;
 
   PetscFunctionBegin;
@@ -1261,7 +1261,7 @@ PetscErrorCode PEPSolve_JD(PEP pep)
   PEP_JD          *pjd = (PEP_JD*)pep->data;
   PetscInt        k,nv,nvc,ld,minv,dim,bupdated=0,sz=1,kspsf=1,idx,off,maxits;
   PetscScalar     theta[2]={0.0,0.0},ritz[2]={0.0,0.0},*pX,*eig,*eigi;
-  PetscReal       norm,norm1,*res,tol,rtol,abstol, dtol;
+  PetscReal       norm,norm1,*res,tol=0.0,rtol,abstol, dtol;
   PetscBool       lindep,ini=PETSC_TRUE;
   Vec             tc,t[2]={NULL,NULL},u[2]={NULL,NULL},p[2]={NULL,NULL};
   Vec             rc,rr[2],r[2]={NULL,NULL},*ww=pep->work,v[2];

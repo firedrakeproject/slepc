@@ -171,4 +171,7 @@ int main(int argc,char **argv)
       args: -n 300 -pep_hyperbolic -pep_interval -.506,-.3 -pep_type stoar -st_type sinvert -st_pc_type cholesky -pep_stoar_nev 10 -terse
       requires: !single !complex
 
+   test:
+      suffix: 6
+      args: -n 24 -pep_ncv 18 -pep_target -.5 -terse -pep_type jd -pep_jd_restart .6 -pep_jd_fix .001
 TEST*/
