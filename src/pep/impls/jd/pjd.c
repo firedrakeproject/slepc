@@ -335,23 +335,23 @@ static PetscErrorCode PEPJDOrthogonalize(PetscInt row,PetscInt col,PetscScalar *
 */
 static PetscErrorCode PEPJDExtendedPCApply(PC pc,Vec x,Vec y)
 {
-  PetscInt          i,j,nloc,n,ld;
+  PetscInt          i,j,nloc,n,ld=0;
   PetscMPIInt       rk,np,count;
   Vec               tx,ty;
   PEP_JD_PCSHELL    *ctx;
   PetscErrorCode    ierr;
   const PetscScalar *array1;
-  PetscScalar       *x2=NULL,*t=NULL,*ps,*array2,zero=0.0,sone=1.0;
+  PetscScalar       *x2=NULL,*t=NULL,*ps=NULL,*array2,zero=0.0,sone=1.0;
   PetscBLASInt      one=1.0,ld_,n_,ncv_;
-  PEP_JD            *pjd;
+  PEP_JD            *pjd=NULL;
 
   PetscFunctionBegin;
   ierr = PCShellGetContext(pc,(void**)&ctx);CHKERRQ(ierr);
-  pjd = (PEP_JD*)ctx->pep->data;
   n  = ctx->n;
-  ps = ctx->ps;
-  ld = pjd->ld;
   if (n) {
+    pjd = (PEP_JD*)ctx->pep->data;
+    ps = ctx->ps;
+    ld = pjd->ld;
     ierr = PetscMalloc2(n,&x2,n,&t);CHKERRQ(ierr);
     ierr = MPI_Comm_rank(PetscObjectComm((PetscObject)pc),&rk);CHKERRQ(ierr);
     ierr = MPI_Comm_size(PetscObjectComm((PetscObject)pc),&np);CHKERRQ(ierr);
