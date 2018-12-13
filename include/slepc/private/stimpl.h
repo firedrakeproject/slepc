@@ -85,16 +85,16 @@ struct _p_ST {
 
 #endif
 
-PETSC_INTERN PetscErrorCode STGetBilinearForm_Default(ST,Mat*);
-PETSC_INTERN PetscErrorCode STCheckNullSpace_Default(ST,BV);
-PETSC_INTERN PetscErrorCode STMatShellCreate(ST,PetscScalar,PetscInt,PetscInt*,PetscScalar*,Mat*);
-PETSC_INTERN PetscErrorCode STMatShellShift(Mat,PetscScalar);
-PETSC_INTERN PetscErrorCode STMatSetHermitian(ST,Mat);
-PETSC_INTERN PetscErrorCode STCheckFactorPackage(ST);
-PETSC_INTERN PetscErrorCode STMatMAXPY_Private(ST,PetscScalar,PetscScalar,PetscInt,PetscScalar*,PetscBool,Mat*);
-PETSC_INTERN PetscErrorCode STCoeffs_Monomial(ST,PetscScalar*);
-PETSC_INTERN PetscErrorCode STSetDefaultKSP(ST);
-PETSC_INTERN PetscErrorCode STSetDefaultKSP_Default(ST);
-PETSC_INTERN PetscErrorCode STIsInjective_Shell(ST,PetscBool*);
+SLEPC_INTERN PetscErrorCode STGetBilinearForm_Default(ST,Mat*);
+SLEPC_INTERN PetscErrorCode STCheckNullSpace_Default(ST,BV);
+SLEPC_INTERN PetscErrorCode STMatShellCreate(ST,PetscScalar,PetscInt,PetscInt*,PetscScalar*,Mat*);
+SLEPC_INTERN PetscErrorCode STMatShellShift(Mat,PetscScalar);
+SLEPC_INTERN PetscErrorCode STMatSetHermitian(ST,Mat);
+SLEPC_INTERN PetscErrorCode STCheckFactorPackage(ST);
+SLEPC_INTERN PetscErrorCode STMatMAXPY_Private(ST,PetscScalar,PetscScalar,PetscInt,PetscScalar*,PetscBool,Mat*);
+SLEPC_INTERN PetscErrorCode STCoeffs_Monomial(ST,PetscScalar*);
+SLEPC_INTERN PetscErrorCode STSetDefaultKSP(ST);
+SLEPC_INTERN PetscErrorCode STSetDefaultKSP_Default(ST);
+SLEPC_INTERN PetscErrorCode STIsInjective_Shell(ST,PetscBool*);
 
 #endif

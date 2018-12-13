@@ -117,6 +117,6 @@ PETSC_STATIC_INLINE PetscErrorCode MFN_CreateVec(PetscInt k,Vec *v)
   PetscFunctionReturn(0);
 }
 
-PETSC_INTERN PetscErrorCode MFNBasicArnoldi(MFN,PetscScalar*,PetscInt,PetscInt,PetscInt*,PetscReal*,PetscBool*);
+SLEPC_INTERN PetscErrorCode MFNBasicArnoldi(MFN,PetscScalar*,PetscInt,PetscInt,PetscInt*,PetscReal*,PetscBool*);
 
 #endif

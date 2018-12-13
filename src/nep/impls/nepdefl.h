@@ -96,16 +96,16 @@ typedef struct {
 #endif
 #endif
 
-PETSC_INTERN PetscErrorCode NEPDeflationCopyToExtendedVec(NEP_EXT_OP,Vec,PetscScalar*,Vec,PetscBool);
-PETSC_INTERN PetscErrorCode NEPDeflationReset(NEP_EXT_OP);
-PETSC_INTERN PetscErrorCode NEPDeflationInitialize(NEP,BV,KSP,PetscBool,PetscInt,NEP_EXT_OP*);
-PETSC_INTERN PetscErrorCode NEPDeflationCreateVec(NEP_EXT_OP,Vec*);
-PETSC_INTERN PetscErrorCode NEPDeflationComputeFunction(NEP_EXT_OP,PetscScalar,Mat*);
-PETSC_INTERN PetscErrorCode NEPDeflationComputeJacobian(NEP_EXT_OP,PetscScalar,Mat*);
-PETSC_INTERN PetscErrorCode NEPDeflationSolveSetUp(NEP_EXT_OP,PetscScalar);
-PETSC_INTERN PetscErrorCode NEPDeflationFunctionSolve(NEP_EXT_OP,Vec,Vec);
-PETSC_INTERN PetscErrorCode NEPDeflationGetInvariantPair(NEP_EXT_OP,BV*,Mat*);
-PETSC_INTERN PetscErrorCode NEPDeflationLocking(NEP_EXT_OP,Vec,PetscScalar);
-PETSC_INTERN PetscErrorCode NEPDeflationSetRandomVec(NEP_EXT_OP,Vec);
-PETSC_INTERN PetscErrorCode NEPDeflationProjectOperator(NEP_EXT_OP,BV,DS,PetscInt,PetscInt);
-PETSC_INTERN PetscErrorCode NEPDeflationCreateBV(NEP_EXT_OP,PetscInt,BV*);
+SLEPC_INTERN PetscErrorCode NEPDeflationCopyToExtendedVec(NEP_EXT_OP,Vec,PetscScalar*,Vec,PetscBool);
+SLEPC_INTERN PetscErrorCode NEPDeflationReset(NEP_EXT_OP);
+SLEPC_INTERN PetscErrorCode NEPDeflationInitialize(NEP,BV,KSP,PetscBool,PetscInt,NEP_EXT_OP*);
+SLEPC_INTERN PetscErrorCode NEPDeflationCreateVec(NEP_EXT_OP,Vec*);
+SLEPC_INTERN PetscErrorCode NEPDeflationComputeFunction(NEP_EXT_OP,PetscScalar,Mat*);
+SLEPC_INTERN PetscErrorCode NEPDeflationComputeJacobian(NEP_EXT_OP,PetscScalar,Mat*);
+SLEPC_INTERN PetscErrorCode NEPDeflationSolveSetUp(NEP_EXT_OP,PetscScalar);
+SLEPC_INTERN PetscErrorCode NEPDeflationFunctionSolve(NEP_EXT_OP,Vec,Vec);
+SLEPC_INTERN PetscErrorCode NEPDeflationGetInvariantPair(NEP_EXT_OP,BV*,Mat*);
+SLEPC_INTERN PetscErrorCode NEPDeflationLocking(NEP_EXT_OP,Vec,PetscScalar);
+SLEPC_INTERN PetscErrorCode NEPDeflationSetRandomVec(NEP_EXT_OP,Vec);
+SLEPC_INTERN PetscErrorCode NEPDeflationProjectOperator(NEP_EXT_OP,BV,DS,PetscInt,PetscInt);
+SLEPC_INTERN PetscErrorCode NEPDeflationCreateBV(NEP_EXT_OP,PetscInt,BV*);

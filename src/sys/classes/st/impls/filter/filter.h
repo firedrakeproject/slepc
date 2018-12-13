@@ -67,8 +67,8 @@ typedef struct {
   PetscReal   *baseFilter;         /* coefficients of the base filter (a piecewise polynomial) */
 } ST_FILTER;
 
-PETSC_INTERN PetscErrorCode STFilter_FILTLAN_Apply(ST,Vec,Vec);
-PETSC_INTERN PetscErrorCode STFilter_FILTLAN_setFilter(ST);
+SLEPC_INTERN PetscErrorCode STFilter_FILTLAN_Apply(ST,Vec,Vec);
+SLEPC_INTERN PetscErrorCode STFilter_FILTLAN_setFilter(ST);
 
 #endif
 

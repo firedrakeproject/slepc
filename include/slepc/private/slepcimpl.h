@@ -14,7 +14,7 @@
 #include <slepcsys.h>
 #include <petsc/private/petscimpl.h>
 
-PETSC_INTERN PetscBool SlepcBeganPetsc;
+SLEPC_INTERN PetscBool SlepcBeganPetsc;
 
 /*@C
     SlepcHeaderCreate - Creates a SLEPc object
@@ -82,8 +82,8 @@ PETSC_STATIC_INLINE PetscErrorCode SlepcPrintEigenvalueASCII(PetscScalar eigr,Pe
 SLEPC_EXTERN PetscErrorCode SlepcBasisReference_Private(PetscInt,Vec*,PetscInt*,Vec**);
 SLEPC_EXTERN PetscErrorCode SlepcBasisDestroy_Private(PetscInt*,Vec**);
 
-PETSC_INTERN PetscErrorCode SlepcCitationsInitialize(void);
-PETSC_INTERN PetscErrorCode SlepcInitialize_DynamicLibraries(void);
-PETSC_INTERN PetscErrorCode SlepcInitialize_Packages(void);
+SLEPC_INTERN PetscErrorCode SlepcCitationsInitialize(void);
+SLEPC_INTERN PetscErrorCode SlepcInitialize_DynamicLibraries(void);
+SLEPC_INTERN PetscErrorCode SlepcInitialize_Packages(void);
 
 #endif

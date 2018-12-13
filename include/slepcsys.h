@@ -22,6 +22,7 @@
 #else
 #define SLEPC_VISIBILITY_PUBLIC PETSC_DLLIMPORT
 #endif
+#define SLEPC_VISIBILITY_INTERNAL PETSC_VISIBILITY_INTERNAL
 
 /*
     Functions tagged with SLEPC_EXTERN in the header files are
@@ -30,8 +31,10 @@
 */
 #if defined(__cplusplus)
 #define SLEPC_EXTERN extern "C" SLEPC_VISIBILITY_PUBLIC
+#define SLEPC_INTERN extern "C" SLEPC_VISIBILITY_INTERNAL
 #else
 #define SLEPC_EXTERN extern SLEPC_VISIBILITY_PUBLIC
+#define SLEPC_INTERN extern SLEPC_VISIBILITY_INTERNAL
 #endif
 
 /* ========================================================================== */

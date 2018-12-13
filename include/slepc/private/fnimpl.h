@@ -97,12 +97,12 @@ PETSC_STATIC_INLINE PetscErrorCode FN_FreeWorkMat(FN fn,Mat *M)
   PetscFunctionReturn(0);
 }
 
-PETSC_INTERN PetscErrorCode SlepcMatDenseSqrt(PetscBLASInt,PetscScalar*,PetscBLASInt);
-PETSC_INTERN PetscErrorCode SlepcSqrtmSchur(PetscBLASInt,PetscScalar*,PetscBLASInt,PetscBool);
-PETSC_INTERN PetscErrorCode SlepcSqrtmDenmanBeavers(PetscBLASInt,PetscScalar*,PetscBLASInt,PetscBool);
-PETSC_INTERN PetscErrorCode SlepcSqrtmNewtonSchulz(PetscBLASInt,PetscScalar*,PetscBLASInt,PetscBool);
-PETSC_INTERN PetscErrorCode FNEvaluateFunctionMat_Private(FN,Mat,Mat,PetscBool);
-PETSC_INTERN PetscErrorCode FNEvaluateFunctionMatVec_Private(FN,Mat,Vec,PetscBool);
-PETSC_INTERN PetscErrorCode FNEvaluateFunctionMat_Exp_Higham(FN,Mat,Mat); /* used in FNPHI */
+SLEPC_INTERN PetscErrorCode SlepcMatDenseSqrt(PetscBLASInt,PetscScalar*,PetscBLASInt);
+SLEPC_INTERN PetscErrorCode SlepcSqrtmSchur(PetscBLASInt,PetscScalar*,PetscBLASInt,PetscBool);
+SLEPC_INTERN PetscErrorCode SlepcSqrtmDenmanBeavers(PetscBLASInt,PetscScalar*,PetscBLASInt,PetscBool);
+SLEPC_INTERN PetscErrorCode SlepcSqrtmNewtonSchulz(PetscBLASInt,PetscScalar*,PetscBLASInt,PetscBool);
+SLEPC_INTERN PetscErrorCode FNEvaluateFunctionMat_Private(FN,Mat,Mat,PetscBool);
+SLEPC_INTERN PetscErrorCode FNEvaluateFunctionMatVec_Private(FN,Mat,Vec,PetscBool);
+SLEPC_INTERN PetscErrorCode FNEvaluateFunctionMat_Exp_Higham(FN,Mat,Mat); /* used in FNPHI */
 
 #endif

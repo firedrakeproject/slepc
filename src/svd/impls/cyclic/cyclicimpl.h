@@ -19,7 +19,7 @@ typedef struct {
   Vec       x1,x2,y1,y2;
 } SVD_CYCLIC;
 
-PETSC_INTERN PetscErrorCode MatMult_Cyclic_CUDA(Mat,Vec,Vec);
-PETSC_INTERN PetscErrorCode MatCreateVecs_Cyclic_CUDA(Mat,Vec*,Vec*);
+SLEPC_INTERN PetscErrorCode MatMult_Cyclic_CUDA(Mat,Vec,Vec);
+SLEPC_INTERN PetscErrorCode MatCreateVecs_Cyclic_CUDA(Mat,Vec*,Vec*);
 
 #endif

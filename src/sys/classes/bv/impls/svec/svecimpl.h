@@ -17,21 +17,21 @@ typedef struct {
 } BV_SVEC;
 
 #if defined(PETSC_HAVE_CUDA)
-PETSC_INTERN PetscErrorCode BVMult_Svec_CUDA(BV,PetscScalar,PetscScalar,BV,Mat);
-PETSC_INTERN PetscErrorCode BVMultVec_Svec_CUDA(BV,PetscScalar,PetscScalar,Vec,PetscScalar*);
-PETSC_INTERN PetscErrorCode BVMultInPlace_Svec_CUDA(BV,Mat,PetscInt,PetscInt);
-PETSC_INTERN PetscErrorCode BVMultInPlaceTranspose_Svec_CUDA(BV,Mat,PetscInt,PetscInt);
-PETSC_INTERN PetscErrorCode BVDot_Svec_CUDA(BV,BV,Mat);
-PETSC_INTERN PetscErrorCode BVDotVec_Svec_CUDA(BV,Vec,PetscScalar*);
-PETSC_INTERN PetscErrorCode BVDotVec_Local_Svec_CUDA(BV,Vec,PetscScalar*);
-PETSC_INTERN PetscErrorCode BVScale_Svec_CUDA(BV,PetscInt,PetscScalar);
-PETSC_INTERN PetscErrorCode BVMatMult_Svec_CUDA(BV,Mat,BV);
-PETSC_INTERN PetscErrorCode BVCopy_Svec_CUDA(BV,BV);
-PETSC_INTERN PetscErrorCode BVCopyColumn_Svec_CUDA(BV,PetscInt,PetscInt);
-PETSC_INTERN PetscErrorCode BVResize_Svec_CUDA(BV,PetscInt,PetscBool);
-PETSC_INTERN PetscErrorCode BVGetColumn_Svec_CUDA(BV,PetscInt,Vec*);
-PETSC_INTERN PetscErrorCode BVRestoreColumn_Svec_CUDA(BV,PetscInt,Vec*);
-PETSC_INTERN PetscErrorCode BVRestoreSplit_Svec_CUDA(BV,BV*,BV*);
+SLEPC_INTERN PetscErrorCode BVMult_Svec_CUDA(BV,PetscScalar,PetscScalar,BV,Mat);
+SLEPC_INTERN PetscErrorCode BVMultVec_Svec_CUDA(BV,PetscScalar,PetscScalar,Vec,PetscScalar*);
+SLEPC_INTERN PetscErrorCode BVMultInPlace_Svec_CUDA(BV,Mat,PetscInt,PetscInt);
+SLEPC_INTERN PetscErrorCode BVMultInPlaceTranspose_Svec_CUDA(BV,Mat,PetscInt,PetscInt);
+SLEPC_INTERN PetscErrorCode BVDot_Svec_CUDA(BV,BV,Mat);
+SLEPC_INTERN PetscErrorCode BVDotVec_Svec_CUDA(BV,Vec,PetscScalar*);
+SLEPC_INTERN PetscErrorCode BVDotVec_Local_Svec_CUDA(BV,Vec,PetscScalar*);
+SLEPC_INTERN PetscErrorCode BVScale_Svec_CUDA(BV,PetscInt,PetscScalar);
+SLEPC_INTERN PetscErrorCode BVMatMult_Svec_CUDA(BV,Mat,BV);
+SLEPC_INTERN PetscErrorCode BVCopy_Svec_CUDA(BV,BV);
+SLEPC_INTERN PetscErrorCode BVCopyColumn_Svec_CUDA(BV,PetscInt,PetscInt);
+SLEPC_INTERN PetscErrorCode BVResize_Svec_CUDA(BV,PetscInt,PetscBool);
+SLEPC_INTERN PetscErrorCode BVGetColumn_Svec_CUDA(BV,PetscInt,Vec*);
+SLEPC_INTERN PetscErrorCode BVRestoreColumn_Svec_CUDA(BV,PetscInt,Vec*);
+SLEPC_INTERN PetscErrorCode BVRestoreSplit_Svec_CUDA(BV,BV*,BV*);
 #endif
 
 #endif

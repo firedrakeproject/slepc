@@ -168,12 +168,12 @@ struct _p_NEP {
 
 #endif
 
-PETSC_INTERN PetscErrorCode NEPSetDimensions_Default(NEP,PetscInt,PetscInt*,PetscInt*);
-PETSC_INTERN PetscErrorCode NEPComputeVectors(NEP);
-PETSC_INTERN PetscErrorCode NEPReset_Problem(NEP);
-PETSC_INTERN PetscErrorCode NEPGetDefaultShift(NEP,PetscScalar*);
-PETSC_INTERN PetscErrorCode NEPComputeVectors_Schur(NEP);
-PETSC_INTERN PetscErrorCode NEPComputeResidualNorm_Private(NEP,PetscScalar,Vec,Vec*,PetscReal*);
-PETSC_INTERN PetscErrorCode NEPNewtonRefinementSimple(NEP,PetscInt*,PetscReal,PetscInt);
+SLEPC_INTERN PetscErrorCode NEPSetDimensions_Default(NEP,PetscInt,PetscInt*,PetscInt*);
+SLEPC_INTERN PetscErrorCode NEPComputeVectors(NEP);
+SLEPC_INTERN PetscErrorCode NEPReset_Problem(NEP);
+SLEPC_INTERN PetscErrorCode NEPGetDefaultShift(NEP,PetscScalar*);
+SLEPC_INTERN PetscErrorCode NEPComputeVectors_Schur(NEP);
+SLEPC_INTERN PetscErrorCode NEPComputeResidualNorm_Private(NEP,PetscScalar,Vec,Vec*,PetscReal*);
+SLEPC_INTERN PetscErrorCode NEPNewtonRefinementSimple(NEP,PetscInt*,PetscReal,PetscInt);
 
 #endif

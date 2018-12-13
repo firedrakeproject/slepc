@@ -190,8 +190,8 @@ PETSC_STATIC_INLINE PetscErrorCode SVDMatGetLocalSize(SVD svd,PetscInt *m,PetscI
   PetscFunctionReturn(0);
 }
 
-PETSC_INTERN PetscErrorCode SVDTwoSideLanczos(SVD,PetscReal*,PetscReal*,BV,BV,PetscInt,PetscInt);
-PETSC_INTERN PetscErrorCode SVDSetDimensions_Default(SVD);
-PETSC_INTERN PetscErrorCode SVDComputeVectors(SVD);
+SLEPC_INTERN PetscErrorCode SVDTwoSideLanczos(SVD,PetscReal*,PetscReal*,BV,BV,PetscInt,PetscInt);
+SLEPC_INTERN PetscErrorCode SVDSetDimensions_Default(SVD);
+SLEPC_INTERN PetscErrorCode SVDComputeVectors(SVD);
 
 #endif

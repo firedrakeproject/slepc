@@ -14,7 +14,7 @@
 #include <blopex_lobpcg.h>
 #include "petsc-interface.h"
 
-PETSC_INTERN PetscInt slepc_blopex_useconstr;
+SLEPC_INTERN PetscInt slepc_blopex_useconstr;
 
 extern int
 SLEPCSetupInterpreter(mv_InterfaceInterpreter *ii);

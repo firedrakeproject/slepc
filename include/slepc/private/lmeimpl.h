@@ -69,7 +69,7 @@ struct _p_LME {
   LMEConvergedReason reason;
 };
 
-PETSC_INTERN PetscErrorCode LMERankSVD(LME,PetscInt,PetscScalar*,PetscScalar*,PetscInt*);
+SLEPC_INTERN PetscErrorCode LMERankSVD(LME,PetscInt,PetscScalar*,PetscScalar*,PetscInt*);
 
 /* functions interfaced from Fortran library SLICOT */
 #if defined(SLEPC_HAVE_SLICOT)

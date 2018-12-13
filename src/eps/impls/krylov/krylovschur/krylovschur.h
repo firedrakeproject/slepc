@@ -14,13 +14,13 @@
 #if !defined(__KRYLOVSCHUR_H)
 #define __KRYLOVSCHUR_H
 
-PETSC_INTERN PetscErrorCode EPSReset_KrylovSchur_Slice(EPS);
-PETSC_INTERN PetscErrorCode EPSSolve_KrylovSchur_Default(EPS);
-PETSC_INTERN PetscErrorCode EPSSolve_KrylovSchur_Symm(EPS);
-PETSC_INTERN PetscErrorCode EPSSolve_KrylovSchur_Slice(EPS);
-PETSC_INTERN PetscErrorCode EPSSetUp_KrylovSchur_Slice(EPS);
-PETSC_INTERN PetscErrorCode EPSSolve_KrylovSchur_Indefinite(EPS);
-PETSC_INTERN PetscErrorCode EPSGetArbitraryValues(EPS,PetscScalar*,PetscScalar*);
+SLEPC_INTERN PetscErrorCode EPSReset_KrylovSchur_Slice(EPS);
+SLEPC_INTERN PetscErrorCode EPSSolve_KrylovSchur_Default(EPS);
+SLEPC_INTERN PetscErrorCode EPSSolve_KrylovSchur_Symm(EPS);
+SLEPC_INTERN PetscErrorCode EPSSolve_KrylovSchur_Slice(EPS);
+SLEPC_INTERN PetscErrorCode EPSSetUp_KrylovSchur_Slice(EPS);
+SLEPC_INTERN PetscErrorCode EPSSolve_KrylovSchur_Indefinite(EPS);
+SLEPC_INTERN PetscErrorCode EPSGetArbitraryValues(EPS,PetscScalar*,PetscScalar*);
 
 /* Structure characterizing a shift in spectrum slicing */
 typedef struct _n_shift *EPS_shift;

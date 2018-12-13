@@ -28,18 +28,18 @@ typedef struct {
 } PEP_LINEAR;
 
 /* General case for implicit matrices of degree d */
-PETSC_INTERN PetscErrorCode MatMult_Linear(Mat,Vec,Vec);
+SLEPC_INTERN PetscErrorCode MatMult_Linear(Mat,Vec,Vec);
 
 /* N */
-PETSC_INTERN PetscErrorCode MatCreateExplicit_Linear_NA(MPI_Comm,PEP_LINEAR*,Mat*);
-PETSC_INTERN PetscErrorCode MatCreateExplicit_Linear_NB(MPI_Comm,PEP_LINEAR*,Mat*);
+SLEPC_INTERN PetscErrorCode MatCreateExplicit_Linear_NA(MPI_Comm,PEP_LINEAR*,Mat*);
+SLEPC_INTERN PetscErrorCode MatCreateExplicit_Linear_NB(MPI_Comm,PEP_LINEAR*,Mat*);
 
 /* S */
-PETSC_INTERN PetscErrorCode MatCreateExplicit_Linear_SA(MPI_Comm,PEP_LINEAR*,Mat*);
-PETSC_INTERN PetscErrorCode MatCreateExplicit_Linear_SB(MPI_Comm,PEP_LINEAR*,Mat*);
+SLEPC_INTERN PetscErrorCode MatCreateExplicit_Linear_SA(MPI_Comm,PEP_LINEAR*,Mat*);
+SLEPC_INTERN PetscErrorCode MatCreateExplicit_Linear_SB(MPI_Comm,PEP_LINEAR*,Mat*);
 
 /* H */
-PETSC_INTERN PetscErrorCode MatCreateExplicit_Linear_HA(MPI_Comm,PEP_LINEAR*,Mat*);
-PETSC_INTERN PetscErrorCode MatCreateExplicit_Linear_HB(MPI_Comm,PEP_LINEAR*,Mat*);
+SLEPC_INTERN PetscErrorCode MatCreateExplicit_Linear_HA(MPI_Comm,PEP_LINEAR*,Mat*);
+SLEPC_INTERN PetscErrorCode MatCreateExplicit_Linear_HB(MPI_Comm,PEP_LINEAR*,Mat*);
 
 #endif

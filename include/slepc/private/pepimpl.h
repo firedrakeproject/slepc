@@ -138,23 +138,23 @@ struct _p_PEP {
 
 #endif
 
-PETSC_INTERN PetscErrorCode PEPSetDimensions_Default(PEP,PetscInt,PetscInt*,PetscInt*);
-PETSC_INTERN PetscErrorCode PEPExtractVectors(PEP);
-PETSC_INTERN PetscErrorCode PEPBackTransform_Default(PEP);
-PETSC_INTERN PetscErrorCode PEPComputeVectors(PEP);
-PETSC_INTERN PetscErrorCode PEPComputeVectors_Default(PEP);
-PETSC_INTERN PetscErrorCode PEPComputeVectors_Indefinite(PEP);
-PETSC_INTERN PetscErrorCode PEPComputeResidualNorm_Private(PEP,PetscScalar,PetscScalar,Vec,Vec,Vec*,PetscReal*);
-PETSC_INTERN PetscErrorCode PEPKrylovConvergence(PEP,PetscBool,PetscInt,PetscInt,PetscReal,PetscInt*);
-PETSC_INTERN PetscErrorCode PEPComputeScaleFactor(PEP);
-PETSC_INTERN PetscErrorCode PEPBuildDiagonalScaling(PEP);
-PETSC_INTERN PetscErrorCode PEPBasisCoefficients(PEP,PetscReal*);
-PETSC_INTERN PetscErrorCode PEPEvaluateBasis(PEP,PetscScalar,PetscScalar,PetscScalar*,PetscScalar*);
-PETSC_INTERN PetscErrorCode PEPEvaluateBasisDerivative(PEP,PetscScalar,PetscScalar,PetscScalar*,PetscScalar*);
-PETSC_INTERN PetscErrorCode PEPEvaluateBasisMat(PEP,PetscInt,PetscScalar*,PetscInt,PetscInt,PetscScalar*,PetscInt,PetscScalar*,PetscInt,PetscScalar*,PetscInt);
-PETSC_INTERN PetscErrorCode PEPNewtonRefinement_TOAR(PEP,PetscScalar,PetscInt*,PetscReal*,PetscInt,PetscScalar*,PetscInt);
-PETSC_INTERN PetscErrorCode PEPNewtonRefinementSimple(PEP,PetscInt*,PetscReal,PetscInt);
-PETSC_INTERN PetscErrorCode PEPSetDefaultST(PEP);
-PETSC_INTERN PetscErrorCode PEPSetDefaultST_Transform(PEP);
+SLEPC_INTERN PetscErrorCode PEPSetDimensions_Default(PEP,PetscInt,PetscInt*,PetscInt*);
+SLEPC_INTERN PetscErrorCode PEPExtractVectors(PEP);
+SLEPC_INTERN PetscErrorCode PEPBackTransform_Default(PEP);
+SLEPC_INTERN PetscErrorCode PEPComputeVectors(PEP);
+SLEPC_INTERN PetscErrorCode PEPComputeVectors_Default(PEP);
+SLEPC_INTERN PetscErrorCode PEPComputeVectors_Indefinite(PEP);
+SLEPC_INTERN PetscErrorCode PEPComputeResidualNorm_Private(PEP,PetscScalar,PetscScalar,Vec,Vec,Vec*,PetscReal*);
+SLEPC_INTERN PetscErrorCode PEPKrylovConvergence(PEP,PetscBool,PetscInt,PetscInt,PetscReal,PetscInt*);
+SLEPC_INTERN PetscErrorCode PEPComputeScaleFactor(PEP);
+SLEPC_INTERN PetscErrorCode PEPBuildDiagonalScaling(PEP);
+SLEPC_INTERN PetscErrorCode PEPBasisCoefficients(PEP,PetscReal*);
+SLEPC_INTERN PetscErrorCode PEPEvaluateBasis(PEP,PetscScalar,PetscScalar,PetscScalar*,PetscScalar*);
+SLEPC_INTERN PetscErrorCode PEPEvaluateBasisDerivative(PEP,PetscScalar,PetscScalar,PetscScalar*,PetscScalar*);
+SLEPC_INTERN PetscErrorCode PEPEvaluateBasisMat(PEP,PetscInt,PetscScalar*,PetscInt,PetscInt,PetscScalar*,PetscInt,PetscScalar*,PetscInt,PetscScalar*,PetscInt);
+SLEPC_INTERN PetscErrorCode PEPNewtonRefinement_TOAR(PEP,PetscScalar,PetscInt*,PetscReal*,PetscInt,PetscScalar*,PetscInt);
+SLEPC_INTERN PetscErrorCode PEPNewtonRefinementSimple(PEP,PetscInt*,PetscReal,PetscInt);
+SLEPC_INTERN PetscErrorCode PEPSetDefaultST(PEP);
+SLEPC_INTERN PetscErrorCode PEPSetDefaultST_Transform(PEP);
 
 #endif

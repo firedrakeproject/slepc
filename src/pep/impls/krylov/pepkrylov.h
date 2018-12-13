@@ -14,12 +14,12 @@
 #if !defined(__TOAR_H)
 #define __TOAR_H
 
-PETSC_INTERN PetscErrorCode PEPExtractVectors_TOAR(PEP);
-PETSC_INTERN PetscErrorCode PEPSTOARSetUpInnerMatrix(PEP,Mat*);
-PETSC_INTERN PetscErrorCode PEPSolve_STOAR(PEP);
-PETSC_INTERN PetscErrorCode PEPSolve_STOAR_QSlice(PEP);
-PETSC_INTERN PetscErrorCode PEPSetUp_STOAR_QSlice(PEP);
-PETSC_INTERN PetscErrorCode PEPReset_STOAR_QSlice(PEP);
+SLEPC_INTERN PetscErrorCode PEPExtractVectors_TOAR(PEP);
+SLEPC_INTERN PetscErrorCode PEPSTOARSetUpInnerMatrix(PEP,Mat*);
+SLEPC_INTERN PetscErrorCode PEPSolve_STOAR(PEP);
+SLEPC_INTERN PetscErrorCode PEPSolve_STOAR_QSlice(PEP);
+SLEPC_INTERN PetscErrorCode PEPSetUp_STOAR_QSlice(PEP);
+SLEPC_INTERN PetscErrorCode PEPReset_STOAR_QSlice(PEP);
 
 typedef struct {
   PetscReal     keep;         /* restart parameter */
