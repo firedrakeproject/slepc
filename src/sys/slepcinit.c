@@ -133,6 +133,20 @@ static PetscErrorCode SlepcLoadDynamicLibrary(const char *name,PetscBool *found)
 }
 #endif
 
+#if defined(PETSC_HAVE_THREADSAFETY)
+PETSC_EXTERN PetscErrorCode STInitializePackage(void);
+PETSC_EXTERN PetscErrorCode DSInitializePackage(void);
+PETSC_EXTERN PetscErrorCode FNInitializePackage(void);
+PETSC_EXTERN PetscErrorCode BVInitializePackage(void);
+PETSC_EXTERN PetscErrorCode RGInitializePackage(void);
+PETSC_EXTERN PetscErrorCode EPSInitializePackage(void);
+PETSC_EXTERN PetscErrorCode SVDInitializePackage(void);
+PETSC_EXTERN PetscErrorCode PEPInitializePackage(void);
+PETSC_EXTERN PetscErrorCode NEPInitializePackage(void);
+PETSC_EXTERN PetscErrorCode MFNInitializePackage(void);
+PETSC_EXTERN PetscErrorCode LMEInitializePackage(void);
+#endif
+
 /*
     SlepcInitialize_DynamicLibraries - Adds the default dynamic link libraries to the
     search path.

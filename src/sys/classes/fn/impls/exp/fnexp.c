@@ -769,9 +769,10 @@ PetscErrorCode FNEvaluateFunctionMat_Exp_GuettelNakatsukasa(FN fn,Mat A,Mat B)
  */
 static PetscReal normest1(PetscBLASInt n,PetscScalar *A,PetscInt m,PetscScalar *work,PetscRandom rand)
 {
-  PetscScalar  *X,*Y,*Z,*S,*S_old,*aux,val,sone=1.0,szero=0.0;
-  PetscReal    est=0.0,est_old,vals[2]={0.0,0.0},*zvals,maxzval[2],raux;
-  PetscBLASInt i,j,t=2,it=0,ind[2],est_j=0,m1;
+  PetscScalar    *X,*Y,*Z,*S,*S_old,*aux,val,sone=1.0,szero=0.0;
+  PetscReal      est=0.0,est_old,vals[2]={0.0,0.0},*zvals,maxzval[2],raux;
+  PetscBLASInt   i,j,t=2,it=0,ind[2],est_j=0,m1;
+  PetscErrorCode ierr;
 
   PetscFunctionBegin;
   X = work;
@@ -837,7 +838,7 @@ static PetscReal normest1(PetscBLASInt n,PetscScalar *A,PetscInt m,PetscScalar *
     for (j=0;j<t;j++) X[ind[j]+j*n] = 1.0;
   }
   /* Flop count is roughly (it * 2*m * t*gemv) = 4*its*m*t*n*n */
-  PetscLogFlops(4.0*it*m*t*n*n);
+  ierr = PetscLogFlops(4.0*it*m*t*n*n);CHKERRQ(ierr);
   PetscFunctionReturn(est);
 }
 
@@ -848,16 +849,17 @@ static PetscReal normest1(PetscBLASInt n,PetscScalar *A,PetscInt m,PetscScalar *
  */
 static PetscReal normAm(PetscBLASInt n,PetscScalar *A,PetscInt m,PetscScalar *work,PetscRandom rand)
 {
-  PetscScalar  *v=work,*w=work+n*n,*aux,sone=1.0,szero=0.0;
-  PetscReal    nrm,rwork[1],tmp;
-  PetscBLASInt i,j,one=1;
-  PetscBool    isrealpos=PETSC_TRUE;
+  PetscScalar    *v=work,*w=work+n*n,*aux,sone=1.0,szero=0.0;
+  PetscReal      nrm,rwork[1],tmp;
+  PetscBLASInt   i,j,one=1;
+  PetscBool      isrealpos=PETSC_TRUE;
+  PetscErrorCode ierr;
 
   PetscFunctionBegin;
   if (n<SMALLN) {   /* compute matrix power explicitly */
     if (m==1) {
       nrm = LAPACKlange_("O",&n,&n,A,&n,rwork);
-      PetscLogFlops(1.0*n*n);
+      ierr = PetscLogFlops(1.0*n*n);CHKERRQ(ierr);
     } else {  /* m>=2 */
       PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&n,&n,&n,&sone,A,&n,A,&n,&szero,v,&n));
       for (j=0;j<m-2;j++) {
@@ -865,7 +867,7 @@ static PetscReal normAm(PetscBLASInt n,PetscScalar *A,PetscInt m,PetscScalar *wo
         SWAP(v,w,aux);
       }
       nrm = LAPACKlange_("O",&n,&n,v,&n,rwork);
-      PetscLogFlops(2.0*n*n*n*(m-1)+1.0*n*n);
+      ierr = PetscLogFlops(2.0*n*n*n*(m-1)+1.0*n*n);CHKERRQ(ierr);
     }
   } else {
     for (i=0;i<n;i++)
@@ -881,7 +883,7 @@ static PetscReal normAm(PetscBLASInt n,PetscScalar *A,PetscInt m,PetscScalar *wo
         PetscStackCallBLAS("BLASgemv",BLASgemv_("C",&n,&n,&sone,A,&n,v,&one,&szero,w,&one));
         SWAP(v,w,aux);
       }
-      PetscLogFlops(2.0*n*n*m);
+      ierr = PetscLogFlops(2.0*n*n*m);CHKERRQ(ierr);
       nrm = 0.0;
       for (i=0;i<n;i++) if ((tmp = PetscAbsScalar(v[i])) > nrm) nrm = tmp;   /* norm(v,inf) */
     } else {
@@ -896,10 +898,11 @@ static PetscReal normAm(PetscBLASInt n,PetscScalar *A,PetscInt m,PetscScalar *wo
  */
 static PetscInt ell(PetscBLASInt n,PetscScalar *A,PetscReal coeff,PetscInt m,PetscScalar *work,PetscRandom rand)
 {
-  PetscScalar  *Ascaled=work;
-  PetscReal    nrm,alpha,beta,rwork[1];
-  PetscInt     t;
-  PetscBLASInt i,j;
+  PetscScalar    *Ascaled=work;
+  PetscReal      nrm,alpha,beta,rwork[1];
+  PetscInt       t;
+  PetscBLASInt   i,j;
+  PetscErrorCode ierr;
 
   PetscFunctionBegin;
   beta = PetscPowReal(coeff,1.0/(2*m+1));
@@ -907,7 +910,7 @@ static PetscInt ell(PetscBLASInt n,PetscScalar *A,PetscReal coeff,PetscInt m,Pet
     for (j=0;j<n;j++) 
       Ascaled[i+j*n] = beta*PetscAbsScalar(A[i+j*n]);
   nrm = LAPACKlange_("O",&n,&n,A,&n,rwork);
-  PetscLogFlops(2.0*n*n);
+  ierr = PetscLogFlops(2.0*n*n);CHKERRQ(ierr);
   alpha = normAm(n,Ascaled,2*m+1,work+n*n,rand)/nrm;
   t = PetscMax((PetscInt)PetscCeilReal(PetscLogReal(2.0*alpha/PETSC_MACHINE_EPSILON)/PetscLogReal(2.0)/(2*m)),0);
   PetscFunctionReturn(t);

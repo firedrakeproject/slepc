@@ -296,7 +296,7 @@ static PetscErrorCode MadeHRtr(PetscInt sz,PetscInt n,PetscInt idx0,PetscInt n0,
 #else
   PetscErrorCode ierr;
   PetscScalar    *x,*y;
-  PetscReal       ncond2;
+  PetscReal      ncond2=1.0;
   PetscBLASInt   n0_,n1_,inc=1;
 
   PetscFunctionBegin;
@@ -359,8 +359,8 @@ static PetscErrorCode MadeHRtr(PetscInt sz,PetscInt n,PetscInt idx0,PetscInt n0,
     if (tr2->idx[0]<tr2->idx[1]) {
       ierr = HRGen(PetscRealPart(y[tr2->idx[0]]),PetscRealPart(y[tr2->idx[1]]),&(tr2->type),&(tr2->cs),&(tr2->sn),&(tr2->alpha),&ncond2);CHKERRQ(ierr);
     } else {
-    tr2->alpha = PetscRealPart(y[tr2->idx[0]]);
-    ncond2 = 1.0;
+      tr2->alpha = PetscRealPart(y[tr2->idx[0]]);
+      ncond2 = 1.0;
     }
     if (ncond2>*ncond) *ncond = ncond2;
   }
