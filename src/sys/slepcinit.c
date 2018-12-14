@@ -134,17 +134,17 @@ static PetscErrorCode SlepcLoadDynamicLibrary(const char *name,PetscBool *found)
 #endif
 
 #if defined(PETSC_HAVE_THREADSAFETY)
-PETSC_EXTERN PetscErrorCode STInitializePackage(void);
-PETSC_EXTERN PetscErrorCode DSInitializePackage(void);
-PETSC_EXTERN PetscErrorCode FNInitializePackage(void);
-PETSC_EXTERN PetscErrorCode BVInitializePackage(void);
-PETSC_EXTERN PetscErrorCode RGInitializePackage(void);
-PETSC_EXTERN PetscErrorCode EPSInitializePackage(void);
-PETSC_EXTERN PetscErrorCode SVDInitializePackage(void);
-PETSC_EXTERN PetscErrorCode PEPInitializePackage(void);
-PETSC_EXTERN PetscErrorCode NEPInitializePackage(void);
-PETSC_EXTERN PetscErrorCode MFNInitializePackage(void);
-PETSC_EXTERN PetscErrorCode LMEInitializePackage(void);
+SLEPC_EXTERN PetscErrorCode STInitializePackage(void);
+SLEPC_EXTERN PetscErrorCode DSInitializePackage(void);
+SLEPC_EXTERN PetscErrorCode FNInitializePackage(void);
+SLEPC_EXTERN PetscErrorCode BVInitializePackage(void);
+SLEPC_EXTERN PetscErrorCode RGInitializePackage(void);
+SLEPC_EXTERN PetscErrorCode EPSInitializePackage(void);
+SLEPC_EXTERN PetscErrorCode SVDInitializePackage(void);
+SLEPC_EXTERN PetscErrorCode PEPInitializePackage(void);
+SLEPC_EXTERN PetscErrorCode NEPInitializePackage(void);
+SLEPC_EXTERN PetscErrorCode MFNInitializePackage(void);
+SLEPC_EXTERN PetscErrorCode LMEInitializePackage(void);
 #endif
 
 /*
