@@ -1784,8 +1784,8 @@ PetscErrorCode PEPJDSetMinimalityIndex_JD(PEP pep,PetscInt mmidx)
 .  -pep_jd_minimality_index - the minimality index value
 
    Note:
-   The default value of the minimality index is 1. It should be increased in
-   problems where the wanted eigenvectors are not linearly independent.
+   The default value is equal to the degree of the polynomial. A smaller value
+   can be used if the wanted eigenvectors are known to be linearly independent.
 
    Level: advanced
 
