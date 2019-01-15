@@ -1,6 +1,12 @@
 #!/usr/bin/env python
 from __future__ import print_function
-import os, sys, shutil, commands
+import os, sys, shutil
+if sys.version_info < (3,):
+  import commands
+  getstatusoutput = commands.getstatusoutput
+else:
+  import subprocess
+  getstatusoutput = subprocess.getstatusoutput
 
 try:
   WindowsError
@@ -357,12 +363,12 @@ for dir in dirs:
     if not os.path.splitext(src)[1] == '.o':
       shutil.copy2(src, dst)
     if os.path.splitext(dst)[1] == '.'+self.arLibSuffix:
-      (result, output) = commands.getstatusoutput(self.ranlib+' '+dst)
+      (result, output) = getstatusoutput(self.ranlib+' '+dst)
     if os.path.splitext(dst)[1] == '.dylib' and os.path.isfile('/usr/bin/install_name_tool'):
-      (result, output) = commands.getstatusoutput('otool -D '+src)
+      (result, output) = getstatusoutput('otool -D '+src)
       oldname = output[output.find("\n")+1:]
       installName = oldname.replace(os.path.realpath(self.archDir), self.installDir)
-      (result, output) = commands.getstatusoutput('/usr/bin/install_name_tool -id ' + installName + ' ' + dst)
+      (result, output) = getstatusoutput('/usr/bin/install_name_tool -id '+installName+' '+dst)
     # preserve the original timestamps - so that the .a vs .so time order is preserved
     shutil.copystat(src,dst)
     return
