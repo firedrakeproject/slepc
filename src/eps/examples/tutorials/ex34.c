@@ -193,8 +193,6 @@ static void g3_uu(PetscInt dim, PetscInt Nf, PetscInt NfAux,
 PetscErrorCode SetupDiscretization(DM dm)
 {
   PetscFE        fe;
-  PetscDS        prob;
-  PetscInt       totDim;
   MPI_Comm       comm;
   PetscErrorCode ierr;
 
@@ -203,10 +201,8 @@ PetscErrorCode SetupDiscretization(DM dm)
   ierr = PetscObjectGetComm((PetscObject)dm,&comm);CHKERRQ(ierr);
   ierr = PetscFECreateDefault(comm,2,1,PETSC_FALSE,NULL,-1,&fe);CHKERRQ(ierr);
   ierr = PetscObjectSetName((PetscObject)fe,"u");CHKERRQ(ierr);
-  ierr = DMGetDS(dm,&prob);CHKERRQ(ierr);
-  ierr = PetscDSSetDiscretization(prob,0,(PetscObject)fe);CHKERRQ(ierr);
-  ierr = DMSetDS(dm,prob);CHKERRQ(ierr);
-  ierr = PetscDSGetTotalDimension(prob,&totDim);CHKERRQ(ierr);
+  ierr = DMSetField(dm,0,NULL,(PetscObject)fe);CHKERRQ(ierr);
+  ierr = DMCreateDS(dm);CHKERRQ(ierr);
   ierr = PetscFEDestroy(&fe);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
