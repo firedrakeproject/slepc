@@ -1137,6 +1137,7 @@ SLEPC_EXTERN PetscErrorCode PEPCreate_STOAR(PEP pep)
   ierr = PetscNewLog(pep,&ctx);CHKERRQ(ierr);
   pep->data = (void*)ctx;
   ctx->lock    = PETSC_TRUE;
+  ctx->nev     = 1;
   ctx->alpha   = 1.0;
   ctx->beta    = 0.0;
   ctx->checket = PETSC_TRUE;

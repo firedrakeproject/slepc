@@ -83,6 +83,7 @@ struct _n_SR {
   PetscInt      symmlost;          /* Counter for symmetry lost */
   Vec           v[3];
   EPS           eps;
+  PetscReal     mu;
 };
 typedef struct _n_SR *PEP_SR;
 
