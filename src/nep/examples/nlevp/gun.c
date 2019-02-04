@@ -31,8 +31,6 @@ static char help[] = "Radio-frequency gun cavity.\n\n"
 #define NMAT 4
 #define SIGMA 108.8774
 
-PetscErrorCode ComputeSingularities(NEP,PetscInt*,PetscScalar*,void*);
-
 int main(int argc,char **argv)
 {
   PetscErrorCode ierr;
@@ -110,11 +108,6 @@ int main(int argc,char **argv)
   ierr = NEPSetSplitOperator(nep,4,A,f,DIFFERENT_NONZERO_PATTERN);CHKERRQ(ierr);
   ierr = NEPSetFromOptions(nep);CHKERRQ(ierr);
 
-  ierr = PetscObjectTypeCompare((PetscObject)nep,NEPNLEIGS,&flg);CHKERRQ(ierr);
-  if (flg) {
-    ierr = NEPNLEIGSSetSingularitiesFunction(nep,ComputeSingularities,NULL);CHKERRQ(ierr);
-  }
-
   ierr = NEPSolve(nep);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -141,27 +134,6 @@ int main(int argc,char **argv)
   }
   ierr = SlepcFinalize();
   return ierr;
-}
-
-/*
-   ComputeSingularities - Computes maxnp points (at most) in the complex plane where
-   the function T(.) is not analytic.
-
-   In this case, we discretize the singularity region (-inf,108.8774^2)~(-10e+12,-10e-12+108.8774^2)
-*/
-PetscErrorCode ComputeSingularities(NEP nep,PetscInt *maxnp,PetscScalar *xi,void *pt)
-{
-  PetscReal h;
-  PetscInt  i;
-  PetscReal   sigma,end;
-
-  PetscFunctionBeginUser;
-  sigma = SIGMA*SIGMA;
-  end = PetscLogReal(sigma);
-  h = (12.0+end)/(*maxnp-1);
-  xi[0] = sigma;
-  for (i=1;i<*maxnp;i++) xi[i] = -PetscPowReal(10,h*i)+sigma;
-  PetscFunctionReturn(0);
 }
 
 /*TEST
