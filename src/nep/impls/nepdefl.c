@@ -27,11 +27,14 @@ PetscErrorCode NEPDeflationGetInvariantPair(NEP_EXT_OP extop,BV *X,Mat *H)
 PetscErrorCode NEPDeflationCopyToExtendedVec(NEP_EXT_OP extop,Vec v,PetscScalar *a,Vec vex,PetscBool back)
 {
   PetscErrorCode ierr;
+  PetscMPIInt    np,rk,count;
   PetscScalar    *array1,*array2;
   PetscInt       nloc;
 
   PetscFunctionBegin;
   if (extop->szd) {
+    ierr = MPI_Comm_rank(PetscObjectComm((PetscObject)v),&rk);CHKERRQ(ierr);
+    ierr = MPI_Comm_size(PetscObjectComm((PetscObject)v),&np);CHKERRQ(ierr);
     ierr = BVGetSizes(extop->nep->V,&nloc,NULL,NULL);CHKERRQ(ierr);
     if (v) {
       ierr = VecGetArray(v,&array1);CHKERRQ(ierr);
@@ -48,8 +51,12 @@ PetscErrorCode NEPDeflationCopyToExtendedVec(NEP_EXT_OP extop,Vec v,PetscScalar 
       ierr = VecGetArray(vex,&array2);CHKERRQ(ierr);
       if (back) {
         ierr = PetscMemcpy(a,array2+nloc,extop->szd*sizeof(PetscScalar));CHKERRQ(ierr);
+        ierr = PetscMPIIntCast(extop->szd,&count);CHKERRQ(ierr);
+        ierr = MPI_Bcast(a,count,MPIU_SCALAR,np-1,PetscObjectComm((PetscObject)v));CHKERRQ(ierr);
       } else {
         ierr = PetscMemcpy(array2+nloc,a,extop->szd*sizeof(PetscScalar));CHKERRQ(ierr);
+        ierr = PetscMPIIntCast(extop->szd,&count);CHKERRQ(ierr);
+        ierr = MPI_Bcast(array2+nloc,count,MPIU_SCALAR,np-1,PetscObjectComm((PetscObject)v));CHKERRQ(ierr);
       }
       ierr = VecRestoreArray(vex,&array2);CHKERRQ(ierr);
     }
@@ -117,16 +124,18 @@ PetscErrorCode NEPDeflationSetRandomVec(NEP_EXT_OP extop,Vec v)
   PetscInt       n,next,i;
   PetscRandom    rand;
   PetscScalar    *array;
-  PetscMPIInt    nn;
+  PetscMPIInt    nn,np;
 
   PetscFunctionBegin;
   ierr = BVGetRandomContext(extop->nep->V,&rand);CHKERRQ(ierr);
   ierr = VecSetRandom(v,rand);CHKERRQ(ierr);
   if (extop->szd) {
+    ierr = MPI_Comm_size(PetscObjectComm((PetscObject)v),&np);CHKERRQ(ierr);    
     ierr = BVGetSizes(extop->nep->V,&n,NULL,NULL);CHKERRQ(ierr);
     ierr = VecGetLocalSize(v,&next);CHKERRQ(ierr);
     ierr = VecGetArray(v,&array);CHKERRQ(ierr);
     for (i=n+extop->n;i<next;i++) array[i] = 0.0;
+    for (i=n;i<n+extop->n;i++) array[i] /= PetscSqrtReal(np);
     ierr = PetscMPIIntCast(extop->n,&nn);CHKERRQ(ierr);
     ierr = MPI_Bcast(array+n,nn,MPIU_SCALAR,0,PETSC_COMM_WORLD);CHKERRQ(ierr);
     ierr = VecRestoreArray(v,&array);CHKERRQ(ierr);
@@ -174,6 +183,7 @@ PetscErrorCode NEPDeflationLocking(NEP_EXT_OP extop,Vec u,PetscScalar lambda)
   Vec            uu;
   PetscInt       ld,i;
   PetscReal      norm;
+  PetscMPIInt    np;
 
   PetscFunctionBegin;
   ierr = BVGetColumn(extop->X,extop->n,&uu);CHKERRQ(ierr);
@@ -182,7 +192,8 @@ PetscErrorCode NEPDeflationLocking(NEP_EXT_OP extop,Vec u,PetscScalar lambda)
   ierr = BVRestoreColumn(extop->X,extop->n,&uu);CHKERRQ(ierr);
   ierr = BVNormColumn(extop->X,extop->n,NORM_2,&norm);CHKERRQ(ierr);
   ierr = BVScaleColumn(extop->X,extop->n,1.0/norm);CHKERRQ(ierr);
-  for (i=0;i<extop->n;i++) extop->H[extop->n*ld+i] /= norm;
+  ierr = MPI_Comm_size(PetscObjectComm((PetscObject)u),&np);CHKERRQ(ierr);    
+  for (i=0;i<extop->n;i++) extop->H[extop->n*ld+i] *= PetscSqrtReal(np)/norm;
   extop->H[extop->n*(ld+1)] = lambda;
   extop->n++;
   ierr = BVSetActiveColumns(extop->X,0,extop->n);CHKERRQ(ierr);
@@ -267,9 +278,11 @@ static PetscErrorCode NEPDeflationMatShell_MatMult(Mat M,Vec x,Vec y)
   PetscScalar       *yy,sone=1.0,zero=0.0;
   const PetscScalar *xx;
   PetscInt          nloc,i;
+  PetscMPIInt       np;
   PetscBLASInt      n_,one=1,szd_;
 
   PetscFunctionBegin;
+  ierr = MPI_Comm_size(PetscObjectComm((PetscObject)M),&np);CHKERRQ(ierr);
   ierr = MatShellGetContext(M,(void**)&matctx);CHKERRQ(ierr);
   extop = matctx->extop;
   if (extop->szd) {
@@ -282,13 +295,14 @@ static PetscErrorCode NEPDeflationMatShell_MatMult(Mat M,Vec x,Vec y)
     if (extop->n) {
       ierr = VecGetLocalSize(x1,&nloc);CHKERRQ(ierr);
       /* copy for avoiding warning of constant array xx */
-      for (i=0;i<extop->n;i++) matctx->work[i] = xx[nloc+i];
+      for (i=0;i<extop->n;i++) matctx->work[i] = xx[nloc+i]*PetscSqrtReal(np);;
       ierr = BVMultVec(matctx->U,1.0,1.0,y1,matctx->work);CHKERRQ(ierr);
       ierr = BVDotVec(extop->X,x1,matctx->work);CHKERRQ(ierr);
       ierr = PetscBLASIntCast(extop->n,&n_);CHKERRQ(ierr);
       ierr = PetscBLASIntCast(extop->szd,&szd_);CHKERRQ(ierr);
       PetscStackCallBLAS("BLASgemv",BLASgemv_("N",&n_,&n_,&sone,matctx->A,&szd_,matctx->work,&one,&zero,yy+nloc,&one));
       PetscStackCallBLAS("BLASgemv",BLASgemv_("N",&n_,&n_,&sone,matctx->B,&szd_,xx+nloc,&one,&sone,yy+nloc,&one));
+      for (i=0;i<extop->n;i++) yy[nloc+i] /= PetscSqrtReal(np);
     }
     ierr = VecResetArray(x1);CHKERRQ(ierr);
     ierr = VecRestoreArrayRead(x,&xx);CHKERRQ(ierr);
@@ -570,6 +584,7 @@ PetscErrorCode NEPDeflationFunctionSolve(NEP_EXT_OP extop,Vec b,Vec x)
   NEP_DEF_FUN_SOLVE solve=extop->solve;
   PetscBLASInt      one=1,szd_,n_,ldh_;
   PetscInt          nloc,i;
+  PetscMPIInt       np,count;
 
   PetscFunctionBegin;
   if (extop->szd) {
@@ -587,7 +602,9 @@ PetscErrorCode NEPDeflationFunctionSolve(NEP_EXT_OP extop,Vec b,Vec x)
     ierr = PetscBLASIntCast(extop->n,&n_);CHKERRQ(ierr);
     ierr = PetscBLASIntCast(extop->szd+1,&ldh_);CHKERRQ(ierr);
     ierr = BVGetSizes(extop->nep->V,&nloc,NULL,NULL);CHKERRQ(ierr);
-    b2 = bb+nloc; x2 = xx+nloc;
+    ierr = PetscMalloc2(extop->n,&b2,extop->n,&x2);CHKERRQ(ierr);
+    ierr = MPI_Comm_size(PetscObjectComm((PetscObject)b),&np);CHKERRQ(ierr);
+    for (i=0;i<extop->n;i++) b2[i] = bb[nloc+i]*PetscSqrtReal(np); 
     w = solve->work; w2 = solve->work+extop->n;
     ierr = MatShellGetContext(solve->sincf?extop->MF:solve->T,(void**)&matctx);CHKERRQ(ierr);
     ierr = PetscMemcpy(w2,b2,extop->n*sizeof(PetscScalar));CHKERRQ(ierr);
@@ -603,12 +620,16 @@ PetscErrorCode NEPDeflationFunctionSolve(NEP_EXT_OP extop,Vec b,Vec x)
     } else {
       ierr = BVMultVec(solve->T_1U,-1.0,1.0,x1,x2);CHKERRQ(ierr);
     }
+    for (i=0;i<extop->n;i++) xx[i+nloc] = x2[i]/PetscSqrtReal(np);
+    ierr = PetscMPIIntCast(extop->n,&count);CHKERRQ(ierr);
+    ierr = MPI_Bcast(xx+nloc,count,MPIU_SCALAR,np-1,PetscObjectComm((PetscObject)b));CHKERRQ(ierr);
   }
   if (extop->szd) {
     ierr = VecResetArray(x1);CHKERRQ(ierr);
     ierr = VecRestoreArray(x,&xx);CHKERRQ(ierr);
     ierr = VecResetArray(b1);CHKERRQ(ierr);
     ierr = VecRestoreArray(b,&bb);CHKERRQ(ierr);
+    if (extop->n) { ierr = PetscFree2(b2,x2);CHKERRQ(ierr);}
   }
   PetscFunctionReturn(0);
 }
@@ -706,9 +727,10 @@ PetscErrorCode NEPDeflationInitialize(NEP nep,BV X,KSP ksp,PetscBool sincfun,Pet
 PetscErrorCode NEPDeflationDSNEPComputeMatrix(DS ds,PetscScalar lambda,PetscBool deriv,DSMatType mat,void *ctx)
 {
   PetscScalar     *T,*E,*w1,*w2,*w=NULL,*ww,*hH,*hHprev,*pts;
-  PetscScalar     alpha,alpha2,*AB,sone=1.0,zero=0.0,*basisv;
+  PetscScalar     alpha,alpha2,*AB,sone=1.0,zero=0.0,*basisv,s;
   PetscInt        i,ldds,nwork=0,szd,nv,j,k,n;
   PetscBLASInt    inc=1,nv_,ldds_,dim_,dim2,szdk,szd_,n_,ldh_;
+  PetscMPIInt     np;
   NEP_DEF_PROJECT proj=(NEP_DEF_PROJECT)ctx;
   NEP_EXT_OP      extop=proj->extop;
   NEP             nep=extop->nep;
@@ -755,6 +777,8 @@ PetscErrorCode NEPDeflationDSNEPComputeMatrix(DS ds,PetscScalar lambda,PetscBool
         }
         ww = w1; w = w2;
         ierr = PetscMemcpy(ww,proj->V2,szd*nv*sizeof(PetscScalar));CHKERRQ(ierr);
+        ierr = MPI_Comm_size(PetscObjectComm((PetscObject)ds),&np);CHKERRQ(ierr);
+        for (j=0;j<szd*nv;j++) ww[j] *= PetscSqrtReal(np);
         for (j=0;j<n;j++) extop->H[j*ldh_+j] -= lambda;
         alpha = -alpha;
         PetscStackCallBLAS("BLAStrsm",BLAStrsm_("L","U","N","N",&n_,&nv_,&alpha,extop->H,&ldh_,ww,&szd_));
@@ -762,6 +786,7 @@ PetscErrorCode NEPDeflationDSNEPComputeMatrix(DS ds,PetscScalar lambda,PetscBool
           ierr = PetscBLASIntCast(szd*nv,&szdk);CHKERRQ(ierr);
           ierr = FNEvaluateFunction(nep->f[i],lambda,&alpha2);CHKERRQ(ierr);
           ierr = PetscMemcpy(w,proj->V2,szd*nv*sizeof(PetscScalar));CHKERRQ(ierr);
+          for (j=0;j<szd*nv;j++) w[j] *= PetscSqrtReal(np);
           alpha2 = -alpha2;
           PetscStackCallBLAS("BLAStrsm",BLAStrsm_("L","U","N","N",&n_,&nv_,&alpha2,extop->H,&ldh_,w,&szd_));
           alpha2 = 1.0;
@@ -772,7 +797,9 @@ PetscErrorCode NEPDeflationDSNEPComputeMatrix(DS ds,PetscScalar lambda,PetscBool
       } else {
         ierr = NEPDeflationEvaluateHatFunction(extop,i,lambda,NULL,w1,w2,szd);CHKERRQ(ierr);
         w = deriv?w2:w1; ww = deriv?w1:w2;
-        PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&n_,&nv_,&n_,&sone,w,&szd_,proj->V2,&szd_,&zero,ww,&szd_));
+        ierr = MPI_Comm_size(PetscObjectComm((PetscObject)ds),&np);CHKERRQ(ierr);
+        s = PetscSqrtReal(np);
+        PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&n_,&nv_,&n_,&s,w,&szd_,proj->V2,&szd_,&zero,ww,&szd_));
       }
       PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&nv_,&nv_,&n_,&sone,E,&dim_,ww,&szd_,&sone,T,&ldds_));
       ierr = MatDenseRestoreArray(proj->V1pApX[i],&E);CHKERRQ(ierr);
