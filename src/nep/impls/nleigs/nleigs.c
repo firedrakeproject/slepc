@@ -267,7 +267,7 @@ static PetscErrorCode NEPNLEIGSAAAComputation(NEP nep,PetscInt ndpt,PetscScalar 
   PetscScalar    mean=0.0,*z,*f,*C,*A,*VT,*work,*ww,szero=0.0,sone=1.0;
   PetscScalar    *N,*D;
   PetscReal      *S,norm,err,*R;
-  PetscInt       i,k,j,idx,cont;
+  PetscInt       i,k,j,idx=0,cont;
   PetscBLASInt   n_,m_,lda_,lwork,info,one=1;
 #if defined(PETSC_USE_COMPLEX)
   PetscReal      *rwork;
