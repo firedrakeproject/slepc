@@ -295,7 +295,7 @@ static PetscErrorCode NEPDeflationMatShell_MatMult(Mat M,Vec x,Vec y)
     if (extop->n) {
       ierr = VecGetLocalSize(x1,&nloc);CHKERRQ(ierr);
       /* copy for avoiding warning of constant array xx */
-      for (i=0;i<extop->n;i++) matctx->work[i] = xx[nloc+i]*PetscSqrtReal(np);;
+      for (i=0;i<extop->n;i++) matctx->work[i] = xx[nloc+i]*PetscSqrtReal(np);
       ierr = BVMultVec(matctx->U,1.0,1.0,y1,matctx->work);CHKERRQ(ierr);
       ierr = BVDotVec(extop->X,x1,matctx->work);CHKERRQ(ierr);
       ierr = PetscBLASIntCast(extop->n,&n_);CHKERRQ(ierr);
