@@ -160,12 +160,13 @@ static PetscErrorCode NEPNLEIGSAuxiliarPRootFinder(PetscInt deg,PetscScalar *pol
   PetscFunctionReturn(0);
 }
 
-static PetscErrorCode NEPNLEIGSAuxiliarRmDuplicates(PetscInt nin,PetscScalar *pin,PetscInt *nout,PetscScalar *pout)
+static PetscErrorCode NEPNLEIGSAuxiliarRmDuplicates(PetscInt nin,PetscScalar *pin,PetscInt *nout,PetscScalar *pout,PetscInt max)
 {
   PetscInt i,j;
 
   PetscFunctionBegin;
   for (i=0;i<nin;i++) {
+    if (max && *nout>max) break;
     pout[(*nout)++] = pin[i];
     for (j=0;j<*nout-1;j++)
       if (PetscAbsScalar(pin[i]-pout[j])<PETSC_MACHINE_EPSILON*100) {
@@ -204,7 +205,7 @@ static PetscErrorCode NEPNLEIGSFNSingularities(FN f,PetscInt *nisol,PetscScalar 
             (*isol)[(*nisol)++] = wr[i];
         nq = *nisol; *nisol = 0;
         for (i=0;i<nq;i++) wr[i] = (*isol)[i];
-        ierr = NEPNLEIGSAuxiliarRmDuplicates(nq,wr,nisol,*isol);CHKERRQ(ierr);
+        ierr = NEPNLEIGSAuxiliarRmDuplicates(nq,wr,nisol,*isol,0);CHKERRQ(ierr);
         ierr = PetscFree2(wr,wi);CHKERRQ(ierr);
       } else { *nisol=0; *isol = NULL; }
     } else { *nisol = 0; *isol = NULL; }
@@ -219,8 +220,8 @@ static PetscErrorCode NEPNLEIGSFNSingularities(FN f,PetscInt *nisol,PetscScalar 
       if (nisol1+nisol2>0) {
         ierr = PetscCalloc1(nisol1+nisol2,isol);CHKERRQ(ierr);
         *nisol = 0; 
-        ierr = NEPNLEIGSAuxiliarRmDuplicates(nisol1,isol1,nisol,*isol);CHKERRQ(ierr);
-        ierr = NEPNLEIGSAuxiliarRmDuplicates(nisol2,isol2,nisol,*isol);CHKERRQ(ierr);
+        ierr = NEPNLEIGSAuxiliarRmDuplicates(nisol1,isol1,nisol,*isol,0);CHKERRQ(ierr);
+        ierr = NEPNLEIGSAuxiliarRmDuplicates(nisol2,isol2,nisol,*isol,0);CHKERRQ(ierr);
       }
       *rational = (rat1&&rat2)?PETSC_TRUE:PETSC_FALSE;
       ierr = PetscFree(isol1);CHKERRQ(ierr);
@@ -246,11 +247,168 @@ static PetscErrorCode NEPNLEIGSRationalSingularities(NEP nep,PetscInt *ndptx,Pet
     ierr = NEPGetSplitOperatorTerm(nep,i,NULL,&f);CHKERRQ(ierr);
     ierr = NEPNLEIGSFNSingularities(f,&nisol,&isol,&rat);CHKERRQ(ierr);
     if (nisol) {
-      ierr = NEPNLEIGSAuxiliarRmDuplicates(nisol,isol,ndptx,dxi);CHKERRQ(ierr);
+      ierr = NEPNLEIGSAuxiliarRmDuplicates(nisol,isol,ndptx,dxi,0);CHKERRQ(ierr);
       ierr = PetscFree(isol);CHKERRQ(ierr);
     }
     *rational = ((*rational)&&rat)?PETSC_TRUE:PETSC_FALSE;
   }
+  PetscFunctionReturn(0);
+}
+
+/*  Adaptive Anderson-Antoulas algorithm */
+static PetscErrorCode NEPNLEIGSAAAComputation(NEP nep,PetscInt ndpt,PetscScalar *ds,PetscScalar *F,PetscInt *ndptx,PetscScalar *dxi)
+{
+#if defined(SLEPC_MISSING_LAPACK_GGEV) || defined(PETSC_MISSING_LAPACK_GESVD)
+  PetscFunctionBegin;
+  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"GEEV/GESVD - Lapack routines are unavailable");
+#else
+  PetscErrorCode ierr;
+  NEP_NLEIGS     *ctx=(NEP_NLEIGS*)nep->data;
+  PetscScalar    mean=0.0,*z,*f,*C,*A,*VT,*work,*ww,szero=0.0,sone=1.0;
+  PetscScalar    *N,*D;
+  PetscReal      *S,norm,err,*R;
+  PetscInt       i,k,j,idx=0,cont;
+  PetscBLASInt   n_,m_,lda_,lwork,info,one=1;
+#if defined(PETSC_USE_COMPLEX)
+  PetscReal      *rwork;
+#endif
+
+  PetscFunctionBegin;
+  ierr = PetscBLASIntCast(8*ndpt,&lwork);CHKERRQ(ierr);
+  ierr = PetscMalloc5(ndpt,&R,ndpt,&z,ndpt,&f,ndpt*ndpt,&C,ndpt,&ww);CHKERRQ(ierr);
+  ierr = PetscMalloc6(ndpt*ndpt,&A,ndpt,&S,ndpt*ndpt,&VT,lwork,&work,ndpt,&D,ndpt,&N);CHKERRQ(ierr);
+#if defined(PETSC_USE_COMPLEX)
+  ierr = PetscMalloc1(8*ndpt,&rwork);CHKERRQ(ierr);
+#endif
+  norm = 0.0;
+  for (i=0;i<ndpt;i++) {
+    mean += F[i];
+    norm = PetscMax(PetscAbsScalar(F[i]),norm);
+  }
+  mean /= ndpt;
+  ierr = PetscBLASIntCast(ndpt,&lda_);CHKERRQ(ierr);
+  for (i=0;i<ndpt;i++) R[i] = PetscAbsScalar(F[i]-mean);
+  /* next support point */
+  err = 0.0;
+  for (i=0;i<ndpt;i++) if (R[i]>=err) {idx = i; err = R[i];}
+  for (k=0;k<ndpt-1;k++) {
+    z[k] = ds[idx]; f[k] = F[idx]; R[idx] = -1.0;
+    /* next column of Cauchy matrix */
+    for (i=0;i<ndpt;i++) {
+      C[i+k*ndpt] = 1.0/(ds[i]-ds[idx]);
+    }
+
+    ierr = PetscMemzero(A,ndpt*ndpt*sizeof(PetscScalar));
+    cont = 0;
+    for (i=0;i<ndpt;i++) {
+      if (R[i]!=-1.0) {
+        for(j=0;j<=k;j++)A[cont+j*ndpt] = C[i+j*ndpt]*F[i]-C[i+j*ndpt]*f[j];
+        cont++;
+      }
+    }
+    ierr = PetscBLASIntCast(cont,&m_);CHKERRQ(ierr);
+    ierr = PetscBLASIntCast(k+1,&n_);CHKERRQ(ierr);
+#if defined(PETSC_USE_COMPLEX)
+    PetscStackCallBLAS("LAPACKgesvd",LAPACKgesvd_("N","A",&m_,&n_,A,&lda_,S,NULL,&lda_,VT,&lda_,work,&lwork,rwork,&info));
+#else
+    PetscStackCallBLAS("LAPACKgesvd",LAPACKgesvd_("N","A",&m_,&n_,A,&lda_,S,NULL,&lda_,VT,&lda_,work,&lwork,&info));
+#endif
+    SlepcCheckLapackInfo("gesvd",info);
+    for (i=0;i<=k;i++) {
+      ww[i] = PetscConj(VT[i*ndpt+k]);
+      D[i] = ww[i]*f[i];
+    }
+    PetscStackCallBLAS("BLASgemv",BLASgemv_("N",&lda_,&n_,&sone,C,&lda_,D,&one,&szero,N,&one));
+    PetscStackCallBLAS("BLASgemv",BLASgemv_("N",&lda_,&n_,&sone,C,&lda_,ww,&one,&szero,D,&one));
+    for (i=0;i<ndpt;i++) if (R[i]>=0) R[i] = PetscAbsScalar(F[i]-N[i]/D[i]);
+    /* next support point */
+    err = 0.0;
+    for (i=0;i<ndpt;i++) if (R[i]>=err) {idx = i; err = R[i];}
+    if (err <= ctx->ddtol*norm) break;
+  }
+
+  if (k==ndpt-1) SETERRQ(PetscObjectComm((PetscObject)nep),1,"Failed to determine singularities automatically in general problem");
+  /* poles */
+  ierr = PetscMemzero(C,ndpt*ndpt*sizeof(PetscScalar));CHKERRQ(ierr);
+  ierr = PetscMemzero(A,ndpt*ndpt*sizeof(PetscScalar));CHKERRQ(ierr);
+  for (i=0;i<=k;i++) {
+    C[i+ndpt*i] = 1.0;
+    A[(i+1)*ndpt] = ww[i];
+    A[i+1] = 1.0;
+    A[i+1+(i+1)*ndpt] = z[i];
+  }
+  C[0] = 0.0; C[k+1+(k+1)*ndpt] = 1.0;
+  n_++;
+#if defined(PETSC_USE_COMPLEX)
+  PetscStackCallBLAS("LAPACKggev",LAPACKggev_("N","N",&n_,A,&lda_,C,&lda_,D,N,NULL,&lda_,NULL,&lda_,work,&lwork,rwork,&info));
+#else
+  PetscStackCallBLAS("LAPACKggev",LAPACKggev_("N","N",&n_,A,&lda_,C,&lda_,D,VT,N,NULL,&lda_,NULL,&lda_,work,&lwork,&info));
+#endif
+  SlepcCheckLapackInfo("ggev",info);
+  cont = 0.0;
+  for (i=0;i<n_;i++) if (N[i]!=0.0) {
+    dxi[cont++] = D[i]/N[i];
+  }
+  *ndptx = cont;
+  ierr = PetscFree5(R,z,f,C,ww);CHKERRQ(ierr);
+  ierr = PetscFree6(A,S,VT,work,D,N);CHKERRQ(ierr);
+#if defined(PETSC_USE_COMPLEX)
+  ierr = PetscFree(rwork);CHKERRQ(ierr);
+#endif
+#endif
+  PetscFunctionReturn(0);
+}
+
+/*  Singularities using Adaptive Anderson-Antoulas algorithm */
+static PetscErrorCode NEPNLEIGSAAASingularities(NEP nep,PetscInt ndpt,PetscScalar *ds,PetscInt *ndptx,PetscScalar *dxi)
+{
+  PetscErrorCode ierr;
+  Vec            u,v,w;
+  PetscRandom    rand;
+  PetscScalar    *F,*isol;
+  PetscInt       i,k,nisol,nt;
+  Mat            T;
+  FN             f;
+
+  PetscFunctionBegin;
+  ierr = PetscMalloc1(ndpt,&F);CHKERRQ(ierr);
+  if (nep->fui==NEP_USER_INTERFACE_SPLIT) {
+    ierr = PetscMalloc1(ndpt,&isol);CHKERRQ(ierr);
+    *ndptx = 0;
+    ierr = NEPGetSplitOperatorInfo(nep,&nt,NULL);CHKERRQ(ierr);
+    nisol = *ndptx;
+    for (k=0;k<nt;k++) {
+      ierr = NEPGetSplitOperatorTerm(nep,k,NULL,&f);CHKERRQ(ierr);
+      for (i=0;i<ndpt;i++) {
+        ierr = FNEvaluateFunction(f,ds[i],&F[i]);CHKERRQ(ierr);
+      }
+      ierr = NEPNLEIGSAAAComputation(nep,ndpt,ds,F,&nisol,isol);CHKERRQ(ierr);
+      if (nisol) {
+        ierr = NEPNLEIGSAuxiliarRmDuplicates(nisol,isol,ndptx,dxi,ndpt);CHKERRQ(ierr);
+      }
+    }
+    ierr = PetscFree(isol);CHKERRQ(ierr);
+  } else {
+    ierr = MatCreateVecs(nep->function,&u,NULL);CHKERRQ(ierr);
+    ierr = VecDuplicate(u,&v);CHKERRQ(ierr);
+    ierr = VecDuplicate(u,&w);CHKERRQ(ierr);
+    ierr = BVGetRandomContext(nep->V,&rand);CHKERRQ(ierr);
+    ierr = VecSetRandom(u,rand);CHKERRQ(ierr);
+    ierr = VecNormalize(u,NULL);CHKERRQ(ierr);
+    ierr = VecSetRandom(v,rand);CHKERRQ(ierr);
+    ierr = VecNormalize(v,NULL);CHKERRQ(ierr);
+    T = nep->function;
+    for (i=0;i<ndpt;i++) {
+      ierr = NEPComputeFunction(nep,ds[i],T,T);CHKERRQ(ierr);
+      ierr = MatMult(T,v,w);CHKERRQ(ierr);
+      ierr = VecDot(w,u,&F[i]);CHKERRQ(ierr);
+    }
+    ierr = NEPNLEIGSAAAComputation(nep,ndpt,ds,F,ndptx,dxi);CHKERRQ(ierr);
+    ierr = VecDestroy(&u);CHKERRQ(ierr);
+    ierr = VecDestroy(&v);CHKERRQ(ierr);
+    ierr = VecDestroy(&w);CHKERRQ(ierr);
+  }
+  ierr = PetscFree(F);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -267,6 +425,7 @@ static PetscErrorCode NEPNLEIGSLejaBagbyPoints(NEP nep)
 #endif
 
   PetscFunctionBegin;
+  if (!ctx->computesingularities && nep->problem_type!=NEP_RATIONAL) ndpt = ndptx = LBPOINTS;
   ierr = PetscMalloc5(ndpt+1,&ds,ndpt+1,&dsi,ndpt,&dxi,ndpt+1,&nrs,ndpt,&nrxi);CHKERRQ(ierr);
 
   /* Discretize the target region boundary */
@@ -290,9 +449,11 @@ static PetscErrorCode NEPNLEIGSLejaBagbyPoints(NEP nep)
     if (nep->problem_type==NEP_RATIONAL) {
       ierr = NEPNLEIGSRationalSingularities(nep,&ndptx,dxi,&rational);CHKERRQ(ierr);
       if (!rational) SETERRQ(PetscObjectComm((PetscObject)nep),1,"Failed to determine singularities automatically in rational problem; consider solving the problem as general");
-    } else ndptx = 0;
+    } else {
+      /* AAA algorithm */
+      ierr = NEPNLEIGSAAASingularities(nep,ndpt,ds,&ndptx,dxi);CHKERRQ(ierr);
+    }
   }
-
   /* Look for Leja-Bagby points in the discretization sets */
   s[0]    = ds[0];
   xi[0]   = (ndptx>0)?dxi[0]:PETSC_INFINITY;
