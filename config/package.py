@@ -9,8 +9,20 @@ from __future__ import print_function
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-import os, sys, commands, tempfile, shutil, urllib, urlparse, tarfile
+import os, sys, tempfile, shutil, tarfile
 import log, argdb
+try:
+  from urllib import urlretrieve
+except ImportError:
+  from urllib.request import urlretrieve
+try:
+  import urlparse
+except ImportError:
+  from urllib import parse as urlparse
+if sys.version_info < (3,):
+  import commands
+else:
+  import subprocess
 
 class Package:
 
@@ -26,6 +38,12 @@ class Package:
     self.supportssingle  = False
     self.supports64bint  = False
     self.fortran         = False
+
+  def getstatusoutput(self,instr):
+    if sys.version_info < (3,):
+      return commands.getstatusoutput(instr)
+    else:
+      return subprocess.getstatusoutput(instr)
 
   def ProcessArgs(self,argdb):
     self.requested = False
@@ -110,7 +128,7 @@ class Package:
       if os.path.exists(localFile):
         os.remove(localFile)
       try:
-        urllib.urlretrieve(url, localFile)
+        urlretrieve(url, localFile)
       except Exception as e:
         filename = os.path.basename(urlparse.urlparse(url)[2])
         failureMessage = '''\
@@ -137,7 +155,7 @@ Unable to download package %s from: %s
           tar.close()
           os.remove(localFile)
         else:
-          result,output = commands.getstatusoutput('cd '+externdir+'; gunzip '+self.archive+'; tar -xf '+self.archive.split('.gz')[0])
+          result,output = self.getstatusoutput('cd '+externdir+'; gunzip '+self.archive+'; tar -xf '+self.archive.split('.gz')[0])
           os.remove(localFile.split('.gz')[0])
       except RuntimeError as e:
         self.log.Exit('Error uncompressing '+self.archive+': '+str(e))
@@ -216,7 +234,7 @@ Unable to download package %s from: %s
     cfile.close()
 
     # Try to compile test program
-    (result, output) = commands.getstatusoutput('cd ' + tmpdir + ';' + self.make + ' checklink TESTFLAGS="'+' '.join(flags)+'"')
+    (result, output) = self.getstatusoutput('cd ' + tmpdir + ';' + self.make + ' checklink TESTFLAGS="'+' '.join(flags)+'"')
     shutil.rmtree(tmpdir)
 
     if result:

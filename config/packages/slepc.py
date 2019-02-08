@@ -9,9 +9,9 @@ from __future__ import print_function
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-import argdb, os, sys, commands
+import argdb, os, sys, package
 
-class SLEPc:
+class SLEPc(package.Package):
 
   def __init__(self,argdb,log):
     self.log       = log
@@ -64,14 +64,14 @@ class SLEPc:
     # Check whether this is a working copy of the repository
     self.isrepo = False
     if os.path.exists(os.path.join(self.dir,'src','docs')) and os.path.exists(os.path.join(self.dir,'.git')):
-      (status, output) = commands.getstatusoutput('git rev-parse')
+      (status, output) = self.getstatusoutput('git rev-parse')
       if status:
         print('WARNING: SLEPC_DIR appears to be a git working copy, but git is not found in PATH')
       else:
         self.isrepo = True
-        (status, self.gitrev) = commands.getstatusoutput('git describe')
+        (status, self.gitrev) = self.getstatusoutput('git describe')
         if not self.gitrev:
-          (status, self.gitrev) = commands.getstatusoutput('git log -1 --pretty=format:%H')
-        (status, self.gitdate) = commands.getstatusoutput('git log -1 --pretty=format:%ci')
-        (status, self.branch) = commands.getstatusoutput('git describe --contains --all HEAD')
+          (status, self.gitrev) = self.getstatusoutput('git log -1 --pretty=format:%H')
+        (status, self.gitdate) = self.getstatusoutput('git log -1 --pretty=format:%ci')
+        (status, self.branch) = self.getstatusoutput('git describe --contains --all HEAD')
 

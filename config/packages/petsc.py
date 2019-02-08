@@ -8,7 +8,7 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-import package, os, sys, commands
+import package, os, sys
 
 class PETSc(package.Package):
 
@@ -55,12 +55,12 @@ class PETSc(package.Package):
     # Check whether this is a working copy of the repository
     self.isrepo = False
     if os.path.exists(os.path.join(self.dir,'.git')):
-      (status, output) = commands.getstatusoutput('cd '+self.dir+';git rev-parse')
+      (status, output) = self.getstatusoutput('cd '+self.dir+';git rev-parse')
       if not status:
         self.isrepo = True
-        (status, self.gitrev) = commands.getstatusoutput('cd '+self.dir+';git log -1 --pretty=format:%H')
-        (status, self.gitdate) = commands.getstatusoutput('cd '+self.dir+';git log -1 --pretty=format:%ci')
-        (status, self.branch) = commands.getstatusoutput('cd '+self.dir+';git describe --contains --all HEAD')
+        (status, self.gitrev) = self.getstatusoutput('cd '+self.dir+';git log -1 --pretty=format:%H')
+        (status, self.gitdate) = self.getstatusoutput('cd '+self.dir+';git log -1 --pretty=format:%ci')
+        (status, self.branch) = self.getstatusoutput('cd '+self.dir+';git describe --contains --all HEAD')
 
   def LoadConf(self):
     if 'PETSC_ARCH' in os.environ and os.environ['PETSC_ARCH']:

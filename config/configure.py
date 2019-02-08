@@ -123,10 +123,10 @@ if 'LC_LOCAL' in os.environ and os.environ['LC_LOCAL'] != '' and os.environ['LC_
 if 'LANG' in os.environ and os.environ['LANG'] != '' and os.environ['LANG'] != 'en_US' and os.environ['LANG'] != 'en_US.UTF-8': os.environ['LANG'] = 'en_US.UTF-8'
 
 # Check python version
-if not hasattr(sys, 'version_info') or not sys.version_info[0] == 2 or not sys.version_info[1] >= 6:
+if sys.version_info < (2,6):
   print('*******************************************************************************')
-  print('*       Python2 version 2.6 or higher is required to run ./configure          *')
-  print('*          Try: "python2.7 ./configure" or "python2.6 ./configure"            *')
+  print('*        Python version 2.6+ or 3.4+ is required to run ./configure           *')
+  print('*           Try: "python2.7 ./configure" or "python3 ./configure"             *')
   print('*******************************************************************************')
   sys.exit(4)
 

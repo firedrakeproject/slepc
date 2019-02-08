@@ -11,10 +11,14 @@
 #
 import os
 import re
-from exceptions import *
 import sys
 from string import *
-import commands
+if sys.version_info < (3,):
+  import commands
+  getstatusoutput = commands.getstatusoutput
+else:
+  import subprocess
+  getstatusoutput = subprocess.getstatusoutput
 
 #
 #  Copies structs from filename to filename.tmp
@@ -44,15 +48,15 @@ def createTags(flist,etagfile,ctagfile):
   # error check for each parameter?
   frlist = [os.path.relpath(path,os.getcwd()) for path in flist]
 
-  (status,output) = commands.getstatusoutput('etags -a -o '+etagfile+' '+' '.join(frlist))
+  (status,output) = getstatusoutput('etags -a -o '+etagfile+' '+' '.join(frlist))
   if status:
     raise RuntimeError("Error running etags "+output)
 
   # linux can use '--tag-relative=yes --langmap=c:+.cu'. For others [Mac,bsd] try running ctags in root directory - with relative path to file
   if ctagfile:
-    (status,output) = commands.getstatusoutput('ctags --tag-relative=yes --langmap=c:+.cu  -a -f '+ctagfile+' '+' '.join(frlist))
+    (status,output) = getstatusoutput('ctags --tag-relative=yes --langmap=c:+.cu  -a -f '+ctagfile+' '+' '.join(frlist))
     if status:
-      (status,output) = commands.getstatusoutput('ctags -a -f '+ctagfile+' '+' '.join(frlist))
+      (status,output) = getstatusoutput('ctags -a -f '+ctagfile+' '+' '.join(frlist))
       if status:
         raise RuntimeError("Error running ctags "+output)
   return
@@ -135,7 +139,7 @@ def main(ctags):
   else:
     ctagfile = None
   flist = []
-  (status,output) = commands.getstatusoutput('git ls-files| egrep -v \(^\(docs/\|share/\)\|/output/\|\.\(png\|pdf\|ps\|ppt\|jpg\|tex\)$\)')
+  (status,output) = getstatusoutput('git ls-files| egrep -v \(^\(docs/\|share/\)\|/output/\|\.\(png\|pdf\|ps\|ppt\|jpg\|tex\)$\)')
   if not status:
     flist = output.split('\n')
   else:

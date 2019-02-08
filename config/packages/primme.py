@@ -8,8 +8,7 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-import os, commands, shutil
-import log, package
+import os, shutil, log, package
 
 class Primme(package.Package):
 
@@ -99,7 +98,7 @@ class Primme(package.Package):
     g.close()
 
     # Build package
-    result,output = commands.getstatusoutput('cd '+builddir+'&&'+petsc.make+' clean &&'+petsc.make)
+    result,output = self.getstatusoutput('cd '+builddir+'&&'+petsc.make+' clean &&'+petsc.make)
     self.log.write(output)
     if result:
       self.log.Exit('ERROR: installation of PRIMME failed.')
