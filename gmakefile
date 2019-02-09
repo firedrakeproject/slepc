@@ -6,7 +6,8 @@ OBJDIR := $(PETSC_ARCH)/obj
 MODDIR := $(PETSC_ARCH)/include
 LIBDIR := $(abspath $(PETSC_ARCH)/lib)
 
-pkgs := sys eps svd pep nep mfn lme
+pkgs  := sys eps svd pep nep mfn lme
+spkgs := sys,eps,svd,pep,nep,mfn,lme
 
 # $(call SONAME_FUNCTION,libfoo,abiversion)
 SONAME_FUNCTION ?= $(1).$(SL_LINKER_SUFFIX).$(2)
@@ -70,8 +71,15 @@ else				# Show the full command line
   quiet = $($1)
 endif
 
-$(generated) : $(slepcconf) $(slepcvariables)
-	$(PYTHON) ./config/gmakegen.py --petsc-arch=$(PETSC_ARCH) --installed-petsc=$(INSTALLED_PETSC)
+ifneq ($(INSTALLED_PETSC),)
+  INSTALL_SUBDIR=share/petsc/examples
+  PETSC_ARCH_DIR='/'
+else
+  PETSC_ARCH_DIR=$(PETSC_ARCH)
+endif
+
+$(generated) : $(slepcconf) $(slepcvariables) $(PETSC_DIR)/$(INSTALL_SUBDIR)/config/gmakegen.py
+	$(PYTHON) $(PETSC_DIR)/$(INSTALL_SUBDIR)/config/gmakegen.py --petsc-arch=$(PETSC_ARCH_DIR) --pkg-dir=$(SLEPC_DIR) --pkg-name=slepc --pkg-pkgs=$(spkgs)
 
 -include $(generated)
 

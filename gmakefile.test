@@ -1,6 +1,7 @@
 # -*- mode: makefile-gmake -*-
 
 CONFIGDIR := config
+PETSCCONFIGDIR := $(PETSC_DIR)/config
 
 # TESTSRCDIR is always relative to gmakefile.test
 #  This must be before includes
@@ -12,11 +13,12 @@ include $(SLEPC_DIR)/lib/slepc/conf/slepc_variables
 
 TESTDIR ?= ./$(PETSC_ARCH)/tests
 MODDIR := $(SLEPC_DIR)/$(PETSC_ARCH)/include
-TESTLOGFILE = $(TESTDIR)/examples_$(PETSC_ARCH).log
+TESTLOGFILE ?= $(TESTDIR)/examples_$(PETSC_ARCH).log
 REPORTFILE = $(TESTDIR)/report.log
 EXAMPLESDIR := $(TESTSRCDIR)
 
-pkgs := sys eps svd pep nep mfn lme
+pkgs  := sys eps svd pep nep mfn lme
+spkgs := sys,eps,svd,pep,nep,mfn,lme
 
 slepcconf      := $(SLEPC_DIR)/$(PETSC_ARCH)/include/slepcconf.h
 slepcvariables := $(SLEPC_DIR)/$(PETSC_ARCH)/lib/slepc/conf/slepcvariables
@@ -82,8 +84,8 @@ endif
 
 
 
-$(generatedtest) : $(slepcconf) $(slepcvariables) $(CONFIGDIR)/gmakegentest.py $(TESTDIR)/.DIR | $$(@D)/.DIR
-	$(PYTHON) $(CONFIGDIR)/gmakegentest.py --slepc-dir=$(SLEPC_DIR) --petsc-dir=$(PETSC_DIR) --petsc-arch=$(PETSC_ARCH) --testdir=$(TESTDIR) --installed-petsc=$(INSTALLED_PETSC)
+$(generatedtest) : $(generated) $(slepcconf) $(slepcvariables) $(PETSCCONFIGDIR)/gmakegentest.py $(TESTDIR)/.DIR | $$(@D)/.DIR
+	$(PYTHON) $(PETSCCONFIGDIR)/gmakegentest.py --petsc-dir=$(PETSC_DIR) --petsc-arch=$(PETSC_ARCH) --testdir=$(TESTDIR) --srcdir=$(TESTSRCDIR) --pkg-name=slepc --pkg-pkgs=$(spkgs) --pkg-arch=$(PETSC_ARCH) --pkg-dir=$(SLEPC_DIR)
 
 -include $(generatedtest)
 
