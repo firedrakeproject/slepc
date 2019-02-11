@@ -58,7 +58,7 @@ class Slicot(package.Package):
 
     # Build package
     target = 'lib'
-    result,output = self.getstatusoutput('cd '+builddir+'&&'+petsc.make+' clean &&'+petsc.make+' '+target)
+    result,output = self.RunCommand('cd '+builddir+'&&'+petsc.make+' clean &&'+petsc.make+' '+target)
     self.log.write(output)
     if result:
       self.log.Exit('ERROR: installation of SLICOT failed.')

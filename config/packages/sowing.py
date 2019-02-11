@@ -40,13 +40,13 @@ class Sowing(package.Package):
       if url=='':
         url = self.url
       try:
-        result,output = self.getstatusoutput('cd '+externdir+'&& git clone '+url)
+        result,output = self.RunCommand('cd '+externdir+'&& git clone '+url)
         self.log.write(output)
       except RuntimeError as e:
         self.log.Exit('Error cloning '+url+': '+str(e))
 
     # Configure, build and install package
-    result,output = self.getstatusoutput('cd '+builddir+'&& ./configure --prefix='+archdir+'&&'+make+'&&'+make+' install')
+    result,output = self.RunCommand('cd '+builddir+'&& ./configure --prefix='+archdir+'&&'+make+'&&'+make+' install')
     self.log.write(output)
 
     self.havepackage = True

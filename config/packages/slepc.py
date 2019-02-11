@@ -64,14 +64,14 @@ class SLEPc(package.Package):
     # Check whether this is a working copy of the repository
     self.isrepo = False
     if os.path.exists(os.path.join(self.dir,'src','docs')) and os.path.exists(os.path.join(self.dir,'.git')):
-      (status, output) = self.getstatusoutput('git rev-parse')
+      (status, output) = self.RunCommand('git rev-parse')
       if status:
         print('WARNING: SLEPC_DIR appears to be a git working copy, but git is not found in PATH')
       else:
         self.isrepo = True
-        (status, self.gitrev) = self.getstatusoutput('git describe')
+        (status, self.gitrev) = self.RunCommand('git describe')
         if not self.gitrev:
-          (status, self.gitrev) = self.getstatusoutput('git log -1 --pretty=format:%H')
-        (status, self.gitdate) = self.getstatusoutput('git log -1 --pretty=format:%ci')
-        (status, self.branch) = self.getstatusoutput('git describe --contains --all HEAD')
+          (status, self.gitrev) = self.RunCommand('git log -1 --pretty=format:%H')
+        (status, self.gitdate) = self.RunCommand('git log -1 --pretty=format:%ci')
+        (status, self.branch) = self.RunCommand('git describe --contains --all HEAD')
 

@@ -39,7 +39,10 @@ class Package:
     self.supports64bint  = False
     self.fortran         = False
 
-  def getstatusoutput(self,instr):
+  def RunCommand(self,instr):
+    try:
+      self.log.write('- '*35+'\nRunning command:\n'+instr+'\n'+'- '*35)
+    except AttributeError: pass
     if sys.version_info < (3,):
       return commands.getstatusoutput(instr)
     else:
@@ -155,7 +158,7 @@ Unable to download package %s from: %s
           tar.close()
           os.remove(localFile)
         else:
-          result,output = self.getstatusoutput('cd '+externdir+'; gunzip '+self.archive+'; tar -xf '+self.archive.split('.gz')[0])
+          result,output = self.RunCommand('cd '+externdir+'; gunzip '+self.archive+'; tar -xf '+self.archive.split('.gz')[0])
           os.remove(localFile.split('.gz')[0])
       except RuntimeError as e:
         self.log.Exit('Error uncompressing '+self.archive+': '+str(e))
@@ -234,7 +237,7 @@ Unable to download package %s from: %s
     cfile.close()
 
     # Try to compile test program
-    (result, output) = self.getstatusoutput('cd ' + tmpdir + ';' + self.make + ' checklink TESTFLAGS="'+' '.join(flags)+'"')
+    (result, output) = self.RunCommand('cd ' + tmpdir + ';' + self.make + ' checklink TESTFLAGS="'+' '.join(flags)+'"')
     shutil.rmtree(tmpdir)
 
     if result:

@@ -75,7 +75,7 @@ class Arpack(package.Package):
     self.Download(externdir,builddir)
 
     # Check for autoreconf
-    result,output = self.getstatusoutput('autoreconf --help')
+    result,output = self.RunCommand('autoreconf --help')
     if result:
       self.log.Exit('ERROR: --download-arpack requires that the command autoreconf is available on your PATH.')
 
@@ -85,7 +85,7 @@ class Arpack(package.Package):
       confopt = confopt+' --enable-mpi'
     if not petsc.buildsharedlib:
       confopt = confopt+' --disable-shared'
-    result,output = self.getstatusoutput('cd '+builddir+'&& sh bootstrap && ./configure '+confopt+' && '+petsc.make+' && '+petsc.make+' install')
+    result,output = self.RunCommand('cd '+builddir+'&& sh bootstrap && ./configure '+confopt+' && '+petsc.make+' && '+petsc.make+' install')
     self.log.write(output)
     if result:
       self.log.Exit('ERROR: installation of ARPACK failed.')
