@@ -188,12 +188,12 @@ PetscErrorCode STMatSolve(ST st,Vec b,Vec x)
   if (!flg && !st->P) {
     /* P=NULL means identity matrix */
     ierr = VecCopy(b,x);CHKERRQ(ierr);
-    PetscFunctionReturn(0);
+  } else {
+    if (!st->ksp) { ierr = STGetKSP(st,&st->ksp);CHKERRQ(ierr); }
+    ierr = KSPSolve(st->ksp,b,x);CHKERRQ(ierr);
+    ierr = KSPGetIterationNumber(st->ksp,&its);CHKERRQ(ierr);
+    ierr = PetscInfo1(st,"Linear solve iterations=%D\n",its);CHKERRQ(ierr);
   }
-  if (!st->ksp) { ierr = STGetKSP(st,&st->ksp);CHKERRQ(ierr); }
-  ierr = KSPSolve(st->ksp,b,x);CHKERRQ(ierr);
-  ierr = KSPGetIterationNumber(st->ksp,&its);CHKERRQ(ierr);
-  ierr = PetscInfo1(st,"Linear solve iterations=%D\n",its);CHKERRQ(ierr);
   ierr = PetscLogEventEnd(ST_MatSolve,st,b,x,0);CHKERRQ(ierr);
   ierr = VecLockPop(b);CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -237,12 +237,12 @@ PetscErrorCode STMatSolveTranspose(ST st,Vec b,Vec x)
   if (!flg && !st->P) {
     /* P=NULL means identity matrix */
     ierr = VecCopy(b,x);CHKERRQ(ierr);
-    PetscFunctionReturn(0);
+  } else {
+    if (!st->ksp) { ierr = STGetKSP(st,&st->ksp);CHKERRQ(ierr); }
+    ierr = KSPSolveTranspose(st->ksp,b,x);CHKERRQ(ierr);
+    ierr = KSPGetIterationNumber(st->ksp,&its);CHKERRQ(ierr);
+    ierr = PetscInfo1(st,"Linear solve iterations=%D\n",its);CHKERRQ(ierr);
   }
-  if (!st->ksp) { ierr = STGetKSP(st,&st->ksp);CHKERRQ(ierr); }
-  ierr = KSPSolveTranspose(st->ksp,b,x);CHKERRQ(ierr);
-  ierr = KSPGetIterationNumber(st->ksp,&its);CHKERRQ(ierr);
-  ierr = PetscInfo1(st,"Linear solve iterations=%D\n",its);CHKERRQ(ierr);
   ierr = PetscLogEventEnd(ST_MatSolveTranspose,st,b,x,0);CHKERRQ(ierr);
   ierr = VecLockPop(b);CHKERRQ(ierr);
   PetscFunctionReturn(0);
