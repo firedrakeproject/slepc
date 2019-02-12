@@ -196,9 +196,7 @@ class Installer:
     self.copies.extend(self.copyfile('gmakefile.test',dst))
     newConfigDir=os.path.join(dst,'config')  # Am not renaming at present
     if not os.path.isdir(newConfigDir): os.mkdir(newConfigDir)
-    testConfFiles="testparse.py example_template.py".split()
-    testConfFiles+="petsc_harness.sh report_tests.py".split()
-    testConfFiles+=["cmakegen.py"]
+    testConfFiles="cmakegen.py".split()
     for tf in testConfFiles:
       self.copies.extend(self.copyfile(os.path.join('config',tf),newConfigDir))
     return
