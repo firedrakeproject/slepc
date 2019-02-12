@@ -14,7 +14,7 @@ wPETSC_DIR='@WPETSC_DIR@'
 petsc_dir='@PETSC_DIR@'
 petsc_arch='@PETSC_ARCH@'
 # Must be consistent with gmakefile.test
-testlogfile=@TESTROOT@/@TESTLOGFILE@
+testlogfile=@TESTROOT@/examples_${petsc_arch}.log
 config_dir='@CONFIG_DIR@'
 petsc_bindir='@PETSC_BINDIR@'
 @DATAFILESPATH_LINE@
@@ -29,7 +29,6 @@ diffexec=${PETSCDIFF:-"${petsc_bindir}/petscdiff"}
 # The diff flags come from script arguments
 diff_exe="${diffexec} ${diff_flags}"
 mpiexec="${mpiexec} ${mpiexec_flags}"
-nsize=${nsize:-@NSIZE@}
 """
 
 footer='petsc_testend "@TESTROOT@" '

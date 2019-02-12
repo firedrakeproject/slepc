@@ -2,13 +2,12 @@
 
 from __future__ import print_function
 import os,shutil, string, re
-from distutils.sysconfig import parse_makefile
 import sys
 import logging, time
 import types
 sys.path.insert(0, os.path.abspath(os.path.dirname(__file__)))
 from cmakegen import Mistakes, stripsplit, AUTODIRS, SKIPDIRS
-from cmakegen import defaultdict # collections.defaultdict, with fallback for python-2.4
+from collections import defaultdict
 from gmakegen import *
 
 import inspect
@@ -99,14 +98,12 @@ class generateExamples(Slepc):
       installdir=os.path.sep.join(dirlist[0:len(dirlist)-4])
       self.arch_dir=installdir
       self.srcdir=os.path.join(os.path.dirname(thisscriptdir),'src')
-      self.testlogfile = 'examples-install.log'
     else:
       if petsc_arch == '':
         raise RuntimeError('PETSC_ARCH must be set when running from build directory')
       # Case 1 discussed above
       self.arch_dir=os.path.join(self.slepc_dir,self.petsc_arch)
       self.srcdir=os.path.join(self.slepc_dir,'src')
-      self.testlogfile = 'examples_'+ petsc_arch + '.log'
 
     self.testroot_dir=os.path.abspath(testdir)
 
@@ -117,8 +114,8 @@ class generateExamples(Slepc):
 
     # For help in setting the requirements
     self.precision_types="single double __float128 int32".split()
-    self.integer_types="int32 int64".split()
-    self.languages="fortran cuda cxx".split()    # Always requires C so do not list
+    self.integer_types="int32 int64 long32 long64".split()
+    self.languages="fortran cuda cxx cpp".split()    # Always requires C so do not list
 
     # Things that are not test
     self.buildkeys=testparse.buildkeys
@@ -192,6 +189,7 @@ class generateExamples(Slepc):
     if srcext in ".F90".split(): langReq="F90"
     if srcext in ".F".split(): langReq="F"
     if srcext in ".cxx".split(): langReq="cxx"
+    if srcext in ".cpp".split(): langReq="cpp"
     if srcext == ".cu": langReq="cu"
     if srcext == ".c": langReq="c"
     #if not langReq: print("ERROR: ", srcext, srcfile)
@@ -208,17 +206,20 @@ class generateExamples(Slepc):
       loopVars['subargs']['pc_type']=[["pc_type"],["cholesky sor"]]
     subst should be passed in instead of inDict
     """
-    loopVars={}; newargs=""
-    lkeys=inDict.keys()
+    loopVars={}; newargs=[]
     lsuffix='_'
-    argregex=re.compile('(?<![a-zA-Z])-(?=[a-zA-Z])')
+    argregex = re.compile(' (?=-[a-zA-Z])')
     from testparse import parseLoopArgs
-    for key in lkeys:
-      if type(inDict[key])!=bytes: continue
-      keystr = str(inDict[key])
+    for key in inDict:
+      if key in ('SKIP', 'regexes'):
+        continue
       akey=('subargs' if key=='args' else key)  # what to assign
       if akey not in inDict: inDict[akey]=''
-      varlist=[]
+      if akey == 'nsize' and not inDict['nsize'].startswith('{{'):
+        # Always generate a loop over nsize, even if there is only one value
+        inDict['nsize'] = '{{' + inDict['nsize'] + '}}'
+      keystr = str(inDict[key])
+      varlist = []
       for varset in argregex.split(keystr):
         if not varset.strip(): continue
         if '{{' in varset:
@@ -227,32 +228,30 @@ class generateExamples(Slepc):
           varlist.append(keyvar)
           loopVars[akey][keyvar]=[keyvar,lvars]
           if akey=='nsize':
-            inDict[akey] = '${' + keyvar + '}'
-            lsuffix+=akey+'-'+inDict[akey]+'_'
+            if len(lvars.split()) > 1:
+              lsuffix += akey +'-${' + keyvar + '}'
           else:
             inDict[akey] += ' -'+keyvar+' ${' + keyvar + '}'
             lsuffix+=keyvar+'-${' + keyvar + '}_'
         else:
-          if key=='args': newargs+=" -"+varset.strip()
-        if varlist: loopVars[akey]['varlist']=varlist
-
+          if key=='args':
+            newargs.append(varset.strip())
+        if varlist:
+          loopVars[akey]['varlist']=varlist
 
     # For subtests, args are always substituted in (not top level)
     if isSubtest:
-      inDict['subargs']+=" "+newargs.strip()
+      inDict['subargs'] += " ".join(newargs)
       inDict['args']=''
       if 'label_suffix' in inDict:
         inDict['label_suffix']+=lsuffix.rstrip('_')
       else:
         inDict['label_suffix']=lsuffix.rstrip('_')
     else:
-      if loopVars.keys():
-        inDict['args']=newargs.strip()
+      if loopVars:
+        inDict['args'] = ' '.join(newargs)
         inDict['label_suffix']=lsuffix.rstrip('_')
-    if loopVars.keys():
-      return loopVars
-    else:
-      return None
+    return loopVars
 
   def getArgLabel(self,testDict):
     """
@@ -287,6 +286,7 @@ class generateExamples(Slepc):
     relpfile=os.path.join(rpath,exfile)
     lang=self.getLanguage(exfile)
     if not lang: return
+    if pkg not in self.sources: return
     self.sources[pkg][lang]['srcs'].append(relpfile)
     self.sources[pkg][lang][relpfile] = []
     if 'depends' in srcDict:
@@ -310,6 +310,7 @@ class generateExamples(Slepc):
     nmtest=os.path.join(rpath,test)
     lang=self.getLanguage(exfile)
     if not lang: return
+    if pkg not in self.tests: return
     self.tests[pkg][lang][nmtest]={}
     self.tests[pkg][lang][nmtest]['exfile']=os.path.join(rpath,exfile)
     self.tests[pkg][lang][nmtest]['exec']=execname
@@ -335,7 +336,7 @@ class generateExamples(Slepc):
     subst={}
 
     # Handle defaults of testparse.acceptedkeys (e.g., ignores subtests)
-    if 'nsize' not in testDict: testDict['nsize']=1
+    if 'nsize' not in testDict: testDict['nsize'] = '1'
     if 'timeoutfactor' not in testDict: testDict['timeoutfactor']="1"
     for ak in testparse.acceptedkeys:
       if ak=='test': continue
@@ -355,16 +356,12 @@ class generateExamples(Slepc):
     subst['exec']="../"+subst['execname']
     subst['testroot']=self.testroot_dir
     subst['testname']=testname
-    subst['testlogfile']=self.testlogfile
     dp = self.conf.get('DATAFILESPATH','')
     subst['datafilespath_line'] = 'DATAFILESPATH=${DATAFILESPATH:-"'+dp+'"}'
 
     # This is used to label some matrices
     subst['petsc_index_size']=str(self.conf['PETSC_INDEX_SIZE'])
     subst['petsc_scalar_size']=str(self.conf['PETSC_SCALAR_SIZE'])
-
-    # These can have for loops and are treated separately later
-    subst['nsize']=str(subst['nsize'])
 
     #Conf vars
     if self.petsc_arch.find('valgrind')>=0:
@@ -506,7 +503,7 @@ class generateExamples(Slepc):
     fh.write('\n\n')
     return
 
-  def getLoopVarsHead(self,loopVars,i):
+  def getLoopVarsHead(self,loopVars,i,usedVars={}):
     """
     Generate a nicely indented string with the format loops
     Here is what the data structure looks like
@@ -515,10 +512,18 @@ class generateExamples(Slepc):
       loopVars['subargs']['pc_type']=["j","cholesky sor"]
     """
     outstr=''; indnt=self.indent
+
+    for key in loopVars:
+      if key in usedVars: continue         # Do not duplicate setting vars
+      for var in loopVars[key]['varlist']:
+        varval=loopVars[key][var]
+        outstr += "{0}_in=${{{0}:-{1}}}\n".format(*varval)
+    outstr += "\n\n"
+
     for key in loopVars:
       for var in loopVars[key]['varlist']:
         varval=loopVars[key][var]
-        outstr += indnt * i + "for "+varval[0]+" in "+varval[1]+"; do\n"
+        outstr += indnt * i + "for {0} in ${{{0}_in}}; do\n".format(*varval)
         i = i + 1
     return (outstr,i)
 
@@ -545,6 +550,9 @@ class generateExamples(Slepc):
     # Get variables to go into shell scripts.  last time testDict used
     subst=self.getSubstVars(testDict,rpath,testname)
     loopVars = self._getLoopVars(subst,testname)  # Alters subst as well
+    if 'subtests' in testDict:
+      # The subtests inherit inDict, so we don't need top-level loops.
+      loopVars = {}
 
     #Handle runfiles
     for lfile in subst.get('localrunfiles','').split():
@@ -578,21 +586,18 @@ class generateExamples(Slepc):
       if (loopHead): fh.write(loopHead+"\n")
 
     # Subtests are special
+    allLoopVars=list(loopVars.keys())
     if 'subtests' in testDict:
       substP=subst   # Subtests can inherit args but be careful
       k=0  # for label suffixes
       for stest in testDict["subtests"]:
         subst=substP.copy()
         subst.update(testDict[stest])
-        # nsize is special because it is usually overwritten
-        if 'nsize' in testDict[stest]:
-          fh.write("nsize="+str(testDict[stest]['nsize'])+"\n")
-        else:
-          fh.write("nsize=1\n")
         subst['label_suffix']='-'+string.ascii_letters[k]; k+=1
         sLoopVars = self._getLoopVars(subst,testname,isSubtest=True)
         if sLoopVars:
-          (sLoopHead,j) = self.getLoopVarsHead(sLoopVars,j)
+          (sLoopHead,j) = self.getLoopVarsHead(sLoopVars,j,allLoopVars)
+          allLoopVars+=list(sLoopVars.keys())
           fh.write(sLoopHead+"\n")
         fh.write(self.getCmds(subst,j)+"\n")
         if sLoopVars:
@@ -653,6 +658,8 @@ class generateExamples(Slepc):
       srcDict["SKIP"].append("CUDA required for this test")
     if lang=="cxx" and 'PETSC_HAVE_CXX' not in self.conf:
       srcDict["SKIP"].append("C++ required for this test")
+    if lang=="cpp" and 'PETSC_HAVE_CXX' not in self.conf:
+      srcDict["SKIP"].append("C++ required for this test")
 
     # Deprecated source files
     if srcDict.get("TODO"):
@@ -677,8 +684,7 @@ class generateExamples(Slepc):
       testDict['SKIP'] = []
     # MPI requirements
     if 'MPI_IS_MPIUNI' in self.conf:
-      nsize=testDict.get('nsize','1')
-      if str(nsize) != '1':
+      if testDict.get('nsize', '1') != '1':
         testDict['SKIP'].append("Parallel test with serial build")
 
       # The requirements for the test are the sum of all the run subtests
@@ -687,8 +693,7 @@ class generateExamples(Slepc):
         for stest in testDict['subtests']:
           if 'requires' in testDict[stest]:
             testDict['requires']+=" "+testDict[stest]['requires']
-          nsize=testDict[stest].get('nsize','1')
-          if str(nsize) != '1':
+          if testDict.get('nsize', '1') != '1':
             testDict['SKIP'].append("Parallel test with serial build")
             break
 
@@ -730,6 +735,17 @@ class generateExamples(Slepc):
               continue  # Success
             elif not isNull:
               testDict['SKIP'].append("int64 required")
+              continue
+          if requirement.startswith("long"):
+            reqsize = int(requirement[4:])//8
+            longsize = int(self.conf['PETSC_SIZEOF_LONG'].strip())
+            if longsize==reqsize:
+              if isNull:
+                testDict['SKIP'].append("not %s required" % requirement)
+                continue
+              continue  # Success
+            elif not isNull:
+              testDict['SKIP'].append("%s required" % requirement)
               continue
         # Datafilespath
         if requirement=="datafilespath" and not isNull:
@@ -962,7 +978,7 @@ def main(slepc_dir=None, petsc_dir=None, petsc_arch=None, installed_petsc=False,
     # Allow petsc_arch to have both petsc_dir and petsc_arch for convenience
     if petsc_arch:
         if len(petsc_arch.split(os.path.sep))>1:
-            petsc_dir,petsc_arch=os.path.split(petsc_arch.rstrip(os.path.sep))
+            petsc_dir,petsc_arch=os.path.split(petsc_arch)
     output = os.path.join(testdir, 'testfiles')
 
     pEx=generateExamples(slepc_dir=slepc_dir, petsc_dir=petsc_dir, petsc_arch=petsc_arch,

@@ -8,8 +8,7 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-import os, commands, shutil
-import log, package
+import os, shutil, log, package
 
 class Blopex(package.Package):
 
@@ -41,7 +40,7 @@ class Blopex(package.Package):
     g.close()
 
     # Build package
-    result,output = commands.getstatusoutput('cd '+builddir+'&&'+petsc.make+' clean &&'+petsc.make)
+    result,output = self.RunCommand('cd '+builddir+'&&'+petsc.make+' clean &&'+petsc.make)
     self.log.write(output)
     if result:
       self.log.Exit('ERROR: installation of BLOPEX failed.')
