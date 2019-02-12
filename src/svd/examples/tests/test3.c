@@ -209,12 +209,11 @@ int main(int argc,char **argv)
          suffix: 3_cuda_cyclic_exp
          args: -svd_type cyclic -svd_cyclic_explicitmatrix
 
-   testset:
+   test:
       suffix: 4
       requires: !single
       args: -svd_type lapack -svd_nsv 4
       output_file: output/test3_1.out
-      test:
-         nsize: 2
+      nsize: 2
 
 TEST*/
