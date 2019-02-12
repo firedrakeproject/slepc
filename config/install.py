@@ -196,7 +196,7 @@ class Installer:
     self.copies.extend(self.copyfile('gmakefile.test',dst))
     newConfigDir=os.path.join(dst,'config')  # Am not renaming at present
     if not os.path.isdir(newConfigDir): os.mkdir(newConfigDir)
-    testConfFiles="gmakegentest.py gmakegen.py testparse.py example_template.py".split()
+    testConfFiles="testparse.py example_template.py".split()
     testConfFiles+="petsc_harness.sh report_tests.py".split()
     testConfFiles+=["cmakegen.py"]
     for tf in testConfFiles:
@@ -325,7 +325,7 @@ for dir in dirs:
     return
 
   def installConf(self):
-    self.copies.extend(self.copytree(self.rootConfDir, self.destConfDir, exclude = ['gmakegen.py','install.py','bfort-base.txt','bfort-mpi.txt','bfort-petsc.txt','bfort-slepc.txt']))
+    self.copies.extend(self.copytree(self.rootConfDir, self.destConfDir, exclude = ['install.py','bfort-base.txt','bfort-mpi.txt','bfort-petsc.txt','bfort-slepc.txt']))
     self.copies.extend(self.copytree(self.archConfDir, self.destConfDir, exclude = ['configure.log','error.log','files','gmake.log','make.log','test.log']))
     return
 

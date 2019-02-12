@@ -1,7 +1,6 @@
 # -*- mode: makefile-gmake -*-
 
 CONFIGDIR := config
-PETSCCONFIGDIR := $(PETSC_DIR)/config
 
 # TESTSRCDIR is always relative to gmakefile.test
 #  This must be before includes
@@ -82,10 +81,19 @@ ifdef TIMEOUT
   TESTFLAGS += -t $(TIMEOUT)  # Override the default timeout
 endif
 
+ifneq ($(INSTALLED_PETSC),)
+  PETSC_ARCH_DIR=
+else
+  PETSC_ARCH_DIR=$(PETSC_ARCH)
+endif
 
+PETSCCONFIGDIR ?= $(PETSC_DIR)/config
+ifeq ($(wildcard $(PETSCCONFIGDIR)/gmakegentest.py),)
+  PETSCCONFIGDIR := $(PETSC_DIR)/share/petsc/examples/config
+endif
 
 $(generatedtest) : $(generated) $(slepcconf) $(slepcvariables) $(PETSCCONFIGDIR)/gmakegentest.py $(TESTDIR)/.DIR | $$(@D)/.DIR
-	$(PYTHON) $(PETSCCONFIGDIR)/gmakegentest.py --petsc-dir=$(PETSC_DIR) --petsc-arch=$(PETSC_ARCH) --testdir=$(TESTDIR) --srcdir=$(TESTSRCDIR) --pkg-name=slepc --pkg-pkgs=$(spkgs) --pkg-arch=$(PETSC_ARCH) --pkg-dir=$(SLEPC_DIR)
+	$(PYTHON) $(PETSCCONFIGDIR)/gmakegentest.py --petsc-dir=$(PETSC_DIR) --petsc-arch=$(PETSC_ARCH_DIR) --testdir=$(TESTDIR) --srcdir=$(TESTSRCDIR) --pkg-name=slepc --pkg-pkgs=$(spkgs) --pkg-arch=$(PETSC_ARCH) --pkg-dir=$(SLEPC_DIR)
 
 -include $(generatedtest)
 

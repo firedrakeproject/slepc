@@ -2,8 +2,8 @@
 
 include ./lib/slepc/conf/slepc_variables
 
-OBJDIR := $(PETSC_ARCH)/obj
-MODDIR := $(PETSC_ARCH)/include
+OBJDIR := ./$(PETSC_ARCH)/obj
+MODDIR := ./$(PETSC_ARCH)/include
 LIBDIR := $(abspath $(PETSC_ARCH)/lib)
 
 pkgs  := sys eps svd pep nep mfn lme
@@ -48,9 +48,9 @@ else
 endif
 libslepcall := $(if $(filter-out no,$(BUILDSHAREDLIB)),$(libslepcall_shared) $(libslepcall_soname),$(libslepcall_static))
 
-generated      := $(PETSC_ARCH)/lib/slepc/conf/files
-slepcconf      := $(PETSC_ARCH)/include/slepcconf.h
-slepcvariables := $(PETSC_ARCH)/lib/slepc/conf/slepcvariables
+generated      := ./$(PETSC_ARCH)/lib/slepc/conf/files
+slepcconf      := ./$(PETSC_ARCH)/include/slepcconf.h
+slepcvariables := ./$(PETSC_ARCH)/lib/slepc/conf/slepcvariables
 
 all : $(generated) $(libslepcall)
 
@@ -72,14 +72,18 @@ else				# Show the full command line
 endif
 
 ifneq ($(INSTALLED_PETSC),)
-  INSTALL_SUBDIR=share/petsc/examples
-  PETSC_ARCH_DIR='/'
+  PETSC_ARCH_DIR=
 else
   PETSC_ARCH_DIR=$(PETSC_ARCH)
 endif
 
-$(generated) : $(slepcconf) $(slepcvariables) $(PETSC_DIR)/$(INSTALL_SUBDIR)/config/gmakegen.py
-	$(PYTHON) $(PETSC_DIR)/$(INSTALL_SUBDIR)/config/gmakegen.py --petsc-arch=$(PETSC_ARCH_DIR) --pkg-dir=$(SLEPC_DIR) --pkg-name=slepc --pkg-pkgs=$(spkgs)
+PETSCCONFIGDIR := $(PETSC_DIR)/config
+ifeq ($(wildcard $(PETSCCONFIGDIR)/gmakegen.py),)
+  PETSCCONFIGDIR := $(PETSC_DIR)/share/petsc/examples/config
+endif
+
+$(generated) : $(slepcconf) $(slepcvariables) $(PETSCCONFIGDIR)/gmakegen.py
+	$(PYTHON) $(PETSCCONFIGDIR)/gmakegen.py --petsc-arch=$(PETSC_ARCH_DIR) --pkg-dir=$(SLEPC_DIR) --pkg-name=slepc --pkg-pkgs=$(spkgs) --pkg-arch=$(PETSC_ARCH)
 
 -include $(generated)
 
