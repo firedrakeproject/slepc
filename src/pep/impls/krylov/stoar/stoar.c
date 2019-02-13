@@ -118,7 +118,7 @@ PetscErrorCode PEPSetUp_STOAR(PEP pep)
   PetscErrorCode    ierr;
   PetscBool         shift,sinv,flg;
   PEP_STOAR         *ctx = (PEP_STOAR*)pep->data;
-  PetscInt          ld;
+  PetscInt          ld,i;
   PetscReal         eta;
   BVOrthogType      otype;
   BVOrthogBlockType obtype;
@@ -128,6 +128,7 @@ PetscErrorCode PEPSetUp_STOAR(PEP pep)
   if (pep->nmat!=3) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Solver only available for quadratic problems");
   if (pep->basis!=PEP_BASIS_MONOMIAL) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Solver not implemented for non-monomial bases");
   /* spectrum slicing requires special treatment of default values */
+  ierr = PetscObjectTypeCompare((PetscObject)pep->st,STSINVERT,&sinv);CHKERRQ(ierr);
   if (pep->which==PEP_ALL) {
     if (pep->stopping!=PEPStoppingBasic) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Spectrum slicing does not support user-defined stopping test");
     pep->ops->solve = PEPSolve_STOAR_QSlice;
@@ -143,8 +144,19 @@ PetscErrorCode PEPSetUp_STOAR(PEP pep)
     ierr = DSSetType(pep->ds,DSGHIEP);CHKERRQ(ierr);
     ierr = DSSetCompact(pep->ds,PETSC_TRUE);CHKERRQ(ierr);
     ierr = DSAllocate(pep->ds,ld);CHKERRQ(ierr);
+    ierr = PEPBasisCoefficients(pep,pep->pbc);CHKERRQ(ierr);
     ierr = STGetTransform(pep->st,&flg);CHKERRQ(ierr);
-    if (!flg) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Solver requires the ST transformation flag set, see STSetTransform()");
+    if (!flg) {
+      ierr = PetscFree(pep->solvematcoeffs);CHKERRQ(ierr);
+      ierr = PetscMalloc1(pep->nmat,&pep->solvematcoeffs);CHKERRQ(ierr);
+      ierr = PetscLogObjectMemory((PetscObject)pep,pep->nmat*sizeof(PetscScalar));CHKERRQ(ierr);
+      if (sinv) {
+        ierr = PEPEvaluateBasis(pep,pep->target,0,pep->solvematcoeffs,NULL);CHKERRQ(ierr);
+      } else {
+        for (i=0;i<pep->nmat-1;i++) pep->solvematcoeffs[i] = 0.0;
+        pep->solvematcoeffs[pep->nmat-1] = 1.0;
+      }
+    }
   }
 
   pep->lineariz = PETSC_TRUE;
@@ -176,9 +188,9 @@ static PetscErrorCode PEPSTOARrun(PEP pep,PetscReal *a,PetscReal *b,PetscReal *o
   PetscInt       lds,d,ld,offq,nqt;
   Vec            v=t_[0],t=t_[1],q=t_[2];
   PetscReal      norm,sym=0.0,fro=0.0,*f;
-  PetscScalar    *y,*S;
+  PetscScalar    *y,*S,*x,sigma;
   PetscBLASInt   j_,one=1;
-  PetscBool      lindep;
+  PetscBool      lindep,flg,sinvert=PETSC_FALSE;
   Mat            MS;
 
   PetscFunctionBegin;
@@ -192,35 +204,61 @@ static PetscErrorCode PEPSTOARrun(PEP pep,PetscReal *a,PetscReal *b,PetscReal *o
   ierr = DSGetDimensions(pep->ds,NULL,NULL,&l,NULL,NULL);CHKERRQ(ierr);
   ierr = BVSetActiveColumns(ctx->V,0,m);CHKERRQ(ierr);
   ierr = BVSetActiveColumns(pep->V,0,nqt);CHKERRQ(ierr);
+  ierr = STGetTransform(pep->st,&flg);CHKERRQ(ierr);
+  if (!flg) {
+    /* spectral transformation handled by the solver */
+    ierr = PetscObjectTypeCompareAny((PetscObject)pep->st,&flg,STSINVERT,STSHIFT,"");CHKERRQ(ierr);
+    if (!flg) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"ST type not supported for TOAR without transforming matrices");
+    ierr = PetscObjectTypeCompare((PetscObject)pep->st,STSINVERT,&sinvert);CHKERRQ(ierr);
+    ierr = STGetShift(pep->st,&sigma);CHKERRQ(ierr);
+  }
   for (j=k;j<m;j++) {
     /* apply operator */
     ierr = BVTensorGetFactors(ctx->V,NULL,&MS);CHKERRQ(ierr);
     ierr = MatDenseGetArray(MS,&S);CHKERRQ(ierr);
     ierr = BVGetColumn(pep->V,nqt,&t);CHKERRQ(ierr);
     ierr = BVMultVec(pep->V,1.0,0.0,v,S+j*lds);CHKERRQ(ierr);
-    ierr = STMatMult(pep->st,0,v,q);CHKERRQ(ierr);
-    ierr = BVMultVec(pep->V,1.0,0.0,v,S+offq+j*lds);CHKERRQ(ierr);
-    ierr = STMatMult(pep->st,1,v,t);CHKERRQ(ierr);
-    ierr = VecAXPY(q,pep->sfactor,t);CHKERRQ(ierr);
-    if (ctx->beta && ctx->alpha) {
+    if (!sinvert) {
+      ierr = STMatMult(pep->st,0,v,q);CHKERRQ(ierr);
+      ierr = BVMultVec(pep->V,1.0,0.0,v,S+offq+j*lds);CHKERRQ(ierr);
+      ierr = STMatMult(pep->st,1,v,t);CHKERRQ(ierr);
+      ierr = VecAXPY(q,pep->sfactor,t);CHKERRQ(ierr);
+      if (ctx->beta && ctx->alpha) {
+        ierr = STMatMult(pep->st,2,v,t);CHKERRQ(ierr);
+        ierr = VecAXPY(q,-pep->sfactor*pep->sfactor*ctx->beta/ctx->alpha,t);CHKERRQ(ierr);
+      }
+      ierr = STMatSolve(pep->st,q,t);CHKERRQ(ierr);
+      ierr = VecScale(t,-1.0/(pep->sfactor*pep->sfactor));CHKERRQ(ierr);
+    } else {
+      ierr = STMatMult(pep->st,1,v,q);CHKERRQ(ierr);
       ierr = STMatMult(pep->st,2,v,t);CHKERRQ(ierr);
-      ierr = VecAXPY(q,-pep->sfactor*pep->sfactor*ctx->beta/ctx->alpha,t);CHKERRQ(ierr);
+      ierr = VecAXPY(q,sigma*pep->sfactor,t);CHKERRQ(ierr);
+      ierr = VecScale(q,pep->sfactor);CHKERRQ(ierr);
+      ierr = BVMultVec(pep->V,1.0,0.0,v,S+offq+j*lds);CHKERRQ(ierr);
+      ierr = STMatMult(pep->st,2,v,t);CHKERRQ(ierr);
+      ierr = VecAXPY(q,pep->sfactor*pep->sfactor,t);CHKERRQ(ierr);
+      ierr = STMatSolve(pep->st,q,t);CHKERRQ(ierr);
+      ierr = VecScale(t,-1.0);CHKERRQ(ierr);
     }
-    ierr = STMatSolve(pep->st,q,t);CHKERRQ(ierr);
-    ierr = VecScale(t,-1.0/(pep->sfactor*pep->sfactor));CHKERRQ(ierr);
     ierr = BVRestoreColumn(pep->V,nqt,&t);CHKERRQ(ierr);
 
     /* orthogonalize */
-    ierr = BVOrthogonalizeColumn(pep->V,nqt,S+offq+(j+1)*lds,&norm,&lindep);CHKERRQ(ierr);
+    if (!sinvert) x = S+offq+(j+1)*lds;
+    else x = S+(j+1)*lds;
+    ierr = BVOrthogonalizeColumn(pep->V,nqt,x,&norm,&lindep);CHKERRQ(ierr);
+
     if (!lindep) {
-      *(S+offq+(j+1)*lds+nqt) = norm;
+      if (!sinvert) *(S+offq+(j+1)*lds+nqt) = norm;
+      else *(S+(j+1)*lds+nqt) = norm;
       ierr = BVScaleColumn(pep->V,nqt,1.0/norm);CHKERRQ(ierr);
       nqt++;
     }
-    for (i=0;i<=nqt-1;i++) *(S+(j+1)*lds+i) = *(S+offq+j*lds+i);
-    if (ctx->beta && ctx->alpha) {
-      for (i=0;i<=nqt-1;i++) *(S+(j+1)*lds+offq+i) -= *(S+(j+1)*lds+i)*ctx->beta/ctx->alpha;
-    }
+    if (!sinvert) {
+      for (i=0;i<=nqt-1;i++) *(S+(j+1)*lds+i) = *(S+offq+j*lds+i);
+      if (ctx->beta && ctx->alpha) {
+        for (i=0;i<=nqt-1;i++) *(S+(j+1)*lds+offq+i) -= *(S+(j+1)*lds+i)*ctx->beta/ctx->alpha;
+      }
+    } else for (i=0;i<nqt;i++) *(S+(j+1)*lds+offq+i) = *(S+j*lds+i)+sigma*(*(S+(j+1)*lds+i));
     ierr = BVSetActiveColumns(pep->V,0,nqt);CHKERRQ(ierr);
     ierr = MatDenseRestoreArray(MS,&S);CHKERRQ(ierr);
     ierr = BVTensorRestoreFactors(ctx->V,NULL,&MS);CHKERRQ(ierr);
@@ -290,9 +328,9 @@ PetscErrorCode PEPSolve_STOAR(PEP pep)
   PEP_STOAR      *ctx = (PEP_STOAR*)pep->data;
   PetscInt       j,k,l,nv=0,ld,ldds,t,nq=0;
   PetscInt       nconv=0,deg=pep->nmat-1;
-  PetscScalar    *Q,*om;
+  PetscScalar    *Q,*om,sigma;
   PetscReal      beta,norm=1.0,*omega,*a,*b,*r;
-  PetscBool      breakdown,symmlost=PETSC_FALSE,sinv,falselock=PETSC_TRUE;
+  PetscBool      breakdown,symmlost=PETSC_FALSE,sinv,falselock=PETSC_TRUE,flg;
   Mat            MQ,A;
   Vec            vomega;
 
@@ -305,9 +343,22 @@ PetscErrorCode PEPSolve_STOAR(PEP pep)
     ierr = PetscOptionsGetBool(NULL,NULL,"-pep_stoar_falselocking",&falselock,NULL);CHKERRQ(ierr);
   }
   ierr = BVGetSizes(pep->V,NULL,NULL,&ld);CHKERRQ(ierr);
-  ierr = PetscObjectTypeCompare((PetscObject)pep->st,STSINVERT,&sinv);CHKERRQ(ierr);
-  ierr = RGPushScale(pep->rg,sinv?pep->sfactor:1.0/pep->sfactor);CHKERRQ(ierr);
-  ierr = STScaleShift(pep->st,sinv?pep->sfactor:1.0/pep->sfactor);CHKERRQ(ierr);
+  ierr = STGetShift(pep->st,&sigma);CHKERRQ(ierr);
+  ierr = STGetTransform(pep->st,&flg);CHKERRQ(ierr);
+  if (pep->sfactor!=1.0) {
+    if (!flg) {
+      pep->target /= pep->sfactor;
+      ierr = RGPushScale(pep->rg,1.0/pep->sfactor);CHKERRQ(ierr);
+      ierr = STScaleShift(pep->st,1.0/pep->sfactor);CHKERRQ(ierr);
+      sigma /= pep->sfactor;
+    } else {
+      ierr = PetscObjectTypeCompare((PetscObject)pep->st,STSINVERT,&sinv);CHKERRQ(ierr);
+      pep->target = sinv?pep->target*pep->sfactor:pep->target/pep->sfactor;
+      ierr = RGPushScale(pep->rg,sinv?pep->sfactor:1.0/pep->sfactor);CHKERRQ(ierr);
+      ierr = STScaleShift(pep->st,sinv?pep->sfactor:1.0/pep->sfactor);CHKERRQ(ierr);
+    }
+  }
+  if (flg) sigma = 0.0;
 
   /* Get the starting Arnoldi vector */
   ierr = BVTensorBuildFirstColumn(ctx->V,pep->nini);CHKERRQ(ierr);
@@ -437,13 +488,26 @@ PetscErrorCode PEPSolve_STOAR(PEP pep)
       ierr = BVTensorCompress(ctx->V,pep->nconv);CHKERRQ(ierr);
       ierr = BVSetActiveColumns(pep->V,0,pep->nconv);CHKERRQ(ierr);
     }
+  }
+  ierr = STGetTransform(pep->st,&flg);CHKERRQ(ierr);
+  if (!flg && pep->ops->backtransform) {
+      ierr = (*pep->ops->backtransform)(pep);CHKERRQ(ierr);
+  }
+  if (pep->sfactor!=1.0) {
     for (j=0;j<pep->nconv;j++) {
       pep->eigr[j] *= pep->sfactor;
       pep->eigi[j] *= pep->sfactor;
     }
   }
-  ierr = STScaleShift(pep->st,sinv?1.0/pep->sfactor:pep->sfactor);CHKERRQ(ierr);
-  ierr = RGPopScale(pep->rg);CHKERRQ(ierr);
+  /* restore original values */
+  if (!flg) {
+    pep->target *= pep->sfactor;
+    ierr = STScaleShift(pep->st,pep->sfactor);CHKERRQ(ierr);
+  } else {
+    ierr = STScaleShift(pep->st,sinv?1.0/pep->sfactor:pep->sfactor);CHKERRQ(ierr);
+    pep->target = (sinv)?pep->target/pep->sfactor:pep->target*pep->sfactor;
+  }
+  if (pep->sfactor!=1.0) { ierr = RGPopScale(pep->rg);CHKERRQ(ierr); }
 
   /* truncate Schur decomposition and change the state to raw so that
      DSVectors() computes eigenvectors from scratch */
@@ -1084,7 +1148,6 @@ SLEPC_EXTERN PetscErrorCode PEPCreate_STOAR(PEP pep)
   pep->ops->backtransform  = PEPBackTransform_Default;
   pep->ops->computevectors = PEPComputeVectors_Default;
   pep->ops->extractvectors = PEPExtractVectors_TOAR;
-  pep->ops->setdefaultst   = PEPSetDefaultST_Transform;
   pep->ops->reset          = PEPReset_STOAR;
 
   ierr = PetscObjectComposeFunction((PetscObject)pep,"PEPSTOARSetLocking_C",PEPSTOARSetLocking_STOAR);CHKERRQ(ierr);

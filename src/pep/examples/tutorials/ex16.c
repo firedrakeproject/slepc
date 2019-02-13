@@ -182,5 +182,9 @@ int main(int argc,char **argv)
          suffix: 1_stoar
          args: -pep_type stoar
          requires: !single
+      test:
+         suffix: 1_stoar_t
+         args: -pep_type stoar -st_transform
+         requires: !single
 
 TEST*/
