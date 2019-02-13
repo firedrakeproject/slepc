@@ -203,7 +203,7 @@ libdir  = CreateDir(archdir,'lib',log)
 confdir = CreateDirTwo(libdir,'slepc','conf',log)
 
 # Open log file
-log.Open(os.path.join(confdir,'configure.log'))
+log.Open(confdir,'configure.log')
 log.write('='*80)
 log.write('Starting Configure Run at '+time.ctime(time.time()))
 log.write('Configure Options: '+' '.join(sys.argv[1:]))

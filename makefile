@@ -26,6 +26,7 @@ include ${SLEPC_DIR}/lib/slepc/conf/slepc_common
 # Basic targets to build SLEPc library
 all:
 	@${OMAKE} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} SLEPC_DIR=${SLEPC_DIR} chk_petscdir chk_slepcdir | tee ./${PETSC_ARCH}/lib/slepc/conf/make.log
+	@ln -sf ./${PETSC_ARCH}/lib/slepc/conf/make.log make.log
 	+@if [ "${MAKE_IS_GNUMAKE}" != "" ]; then \
 	   ${OMAKE_PRINTDIR} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} SLEPC_DIR=${SLEPC_DIR} all-gnumake-local 2>&1 | tee -a ./${PETSC_ARCH}/lib/slepc/conf/make.log; \
 	elif [ "${SLEPC_BUILD_USING_CMAKE}" != "" ]; then \
@@ -52,6 +53,7 @@ all:
 	   echo "make SLEPC_DIR=${SLEPC_DIR} PETSC_DIR=${PETSC_DIR} install";\
 	   echo "=========================================";\
 	 fi
+	@echo "Finishing make run at `date +'%a, %d %b %Y %H:%M:%S %z'`" >> ./${PETSC_ARCH}/lib/slepc/conf/make.log
 	@if test -s ./${PETSC_ARCH}/lib/slepc/conf/error.log; then exit 1; fi
 
 cmakegen:
@@ -83,7 +85,7 @@ all-legacy-local: chk_petsc_dir chk_slepc_dir chklib_dir info deletelibs deletem
 #
 info:
 	-@echo "=========================================="
-	-@echo Starting on `hostname` at `date`
+	-@echo Starting make run on `hostname` at `date +'%a, %d %b %Y %H:%M:%S %z'`
 	-@echo Machine characteristics: `uname -a`
 	-@echo "-----------------------------------------"
 	-@echo "Using SLEPc directory: ${SLEPC_DIR}"
