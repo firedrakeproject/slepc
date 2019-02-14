@@ -103,7 +103,7 @@ int main(int argc,char **argv)
   */
   A[0] = K; A[1] = C; A[2] = M;
   ierr = PEPSetOperators(pep,3,A);CHKERRQ(ierr);
-  ierr = PEPSetProblemType(pep,PEP_HERMITIAN);CHKERRQ(ierr);
+  ierr = PEPSetProblemType(pep,PEP_HYPERBOLIC);CHKERRQ(ierr);
 
    /*
      Set interval for spectrum slicing
