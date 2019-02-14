@@ -30,7 +30,7 @@ all:
 	+@if [ "${MAKE_IS_GNUMAKE}" != "" ]; then \
 	   ${OMAKE_PRINTDIR} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} SLEPC_DIR=${SLEPC_DIR} all-gnumake-local 2>&1 | tee -a ./${PETSC_ARCH}/lib/slepc/conf/make.log; \
 	elif [ "${SLEPC_BUILD_USING_CMAKE}" != "" ]; then \
-	   if [ "${SLEPC_DESTDIR}" = "${SLEPC_DIR}/${PETSC_ARCH}" ]; then \
+	   if [ "${SLEPC_INSTALLDIR}" = "${SLEPC_DIR}/${PETSC_ARCH}" ]; then \
 	     ${OMAKE} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} SLEPC_DIR=${SLEPC_DIR} cmakegen; \
 	   fi; \
 	   ${OMAKE} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} SLEPC_DIR=${SLEPC_DIR} all-cmake-local 2>&1 | tee ./${PETSC_ARCH}/lib/slepc/conf/make.log \
@@ -44,7 +44,7 @@ all:
            echo "  Error during compile, check ./${PETSC_ARCH}/lib/slepc/conf/make.log" 2>&1 | tee -a ./${PETSC_ARCH}/lib/slepc/conf/make.log; \
            echo "  Send all contents of ./${PETSC_ARCH}/lib/slepc/conf to slepc-maint@upv.es" 2>&1 | tee -a ./${PETSC_ARCH}/lib/slepc/conf/make.log;\
            printf "************************************************************************"${PETSC_TEXT_NORMAL}"\n" 2>&1 | tee -a ./${PETSC_ARCH}/lib/slepc/conf/make.log; \
-	 elif [ "${SLEPC_DESTDIR}" = "${SLEPC_DIR}/${PETSC_ARCH}" ]; then \
+	 elif [ "${SLEPC_INSTALLDIR}" = "${SLEPC_DIR}/${PETSC_ARCH}" ]; then \
            echo "Now to check if the library is working do:";\
            echo "make SLEPC_DIR=${SLEPC_DIR} PETSC_DIR=${PETSC_DIR} check";\
            echo "=========================================";\
@@ -66,7 +66,7 @@ all-gnumake:
 
 all-cmake:
 	@if [ "${SLEPC_BUILD_USING_CMAKE}" != "" ]; then \
-	  if [ "${SLEPC_DESTDIR}" = "${SLEPC_DIR}/${PETSC_ARCH}" ]; then \
+	  if [ "${SLEPC_INSTALLDIR}" = "${SLEPC_DIR}/${PETSC_ARCH}" ]; then \
 	    ${OMAKE} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} SLEPC_DIR=${SLEPC_DIR} cmakegen; \
 	  fi; \
           ${OMAKE} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} SLEPC_DIR=${SLEPC_DIR} MAKE_IS_GNUMAKE="" all;\
@@ -213,7 +213,7 @@ chk_slepc_dir:
 # Install relevant files in the prefix directory
 #
 install:
-	@${PYTHON} ./config/install.py ${SLEPC_DIR} ${PETSC_DIR} ${SLEPC_DESTDIR} -destDir=${DESTDIR} ${PETSC_ARCH} ${AR_LIB_SUFFIX} ${RANLIB};
+	@${PYTHON} ./config/install.py ${SLEPC_DIR} ${PETSC_DIR} ${SLEPC_INSTALLDIR} -destDir=${DESTDIR} ${PETSC_ARCH} ${AR_LIB_SUFFIX} ${RANLIB};
 
 # ------------------------------------------------------------------
 #

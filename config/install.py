@@ -18,7 +18,7 @@ class Installer:
     if len(args)<6:
       print('********************************************************************')
       print('Installation script error - not enough arguments:')
-      print('./config/install.py SLEPC_DIR PETSC_DIR SLEPC_DESTDIR -destDir=DESTDIR PETSC_ARCH LIB_SUFFIX RANLIB')
+      print('./config/install.py SLEPC_DIR PETSC_DIR SLEPC_INSTALLDIR -destDir=DESTDIR PETSC_ARCH LIB_SUFFIX RANLIB')
       print('********************************************************************')
       sys.exit(1)
     self.rootDir     = args[0]
@@ -45,12 +45,12 @@ class Installer:
       for l in f.readlines():
         r = l.split('=',1)
         if len(r)!=2: continue
-        if r[0].strip() == 'SLEPC_DESTDIR':
+        if r[0].strip() == 'SLEPC_INSTALLDIR':
           break
       f.close()
     except:
       print('********************************************************************')
-      print('Error reading SLEPC_DESTDIR from slepcvariables')
+      print('Error reading SLEPC_INSTALLDIR from slepcvariables')
       print('********************************************************************')
       sys.exit(1)
     return r[1].strip()
