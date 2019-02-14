@@ -14,7 +14,9 @@ SOURCEC  =
 SOURCEF  =
 SOURCEH  = slepc.h slepcsys.h slepcmath.h slepcversion.h slepcblaslapack.h \
            slepceps.h slepcpep.h slepcnep.h slepcsvd.h slepcmfn.h slepclme.h \
-           slepcst.h slepcds.h slepcfn.h slepcrg.h slepcbv.h slepcvec.h
+           slepcst.h slepcds.h slepcfn.h slepcrg.h slepcbv.h slepcvec.h \
+           slepcblaslapack_mangle.h slepcblaslapack_stdcall.h slepcmat.h \
+           slepcrgtypes.h slepcsc.h
 LIBBASE  = libslepcsys
 DIRS     = slepc/finclude slepc/private
 LOCDIR   = include/
