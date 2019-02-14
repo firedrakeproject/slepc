@@ -167,7 +167,7 @@ int main(int argc,char **argv)
 
    test:
       suffix: 3
-      args: -n 270 -pep_type stoar -pep_hermitian -st_type sinvert -pep_nev 2 -pep_target -.89 -terse
+      args: -n 275 -pep_type stoar -pep_hermitian -st_type sinvert -pep_nev 2 -pep_target -.89 -terse
       requires: !single
 
    test:
