@@ -19,8 +19,8 @@
    References:
 
        [1] C. Campos and J.E. Roman, "Inertia-based spectrum slicing
-           for symmetric quadratic eigenvalue problems", in preparation,
-           2018.
+           for symmetric quadratic eigenvalue problems", submitted,
+           2019.
 */
 
 #include <slepc/private/pepimpl.h>         /*I "slepcpep.h" I*/
@@ -334,7 +334,39 @@ PETSC_STATIC_INLINE PetscErrorCode PEPQSliceEvaluateQEP(PEP pep,PetscScalar x,Ma
   PetscFunctionReturn(0);
 }
 
-SLEPC_EXTERN PetscErrorCode PEPCheckDefininteQEP(PEP pep,PetscReal *xi,PetscReal *mu,PetscInt *definite,PetscInt *hyperbolic)
+/*@
+   PEPCheckDefiniteQEP - Determines if a symmetric/Hermitian quadratic eigenvalue problem
+   is definite or not.
+
+   Logically Collective on PEP
+
+   Input Parameter:
+.  pep  - eigensolver context
+
+   Output Parameters:
++  xi - first computed parameter
+.  mu - second computed parameter
+.  definite - flag indicating that the problem is definite
+-  hyperbolic - flag indicating that the problem is hyperbolic
+
+   Notes:
+   This function is intended for quadratic eigenvalue problems, Q(lambda)=A*lambda^2+B*lambda+C,
+   with symmetric (or Hermitian) coefficient matrices A,B,C.
+
+   On output, the flag 'definite' may have the values -1 (meaning that the QEP is not
+   definite), 1 (if the problem is definite), or 0 if the algorithm was not able to
+   determine whether the problem is definite or not.
+
+   If definite=1, the output flag 'hyperbolic' informs in a similar way about whether the
+   problem is hyperbolic or not.
+
+   If definite=1, the computed values xi and mu satisfy Q(xi)<0 and Q(mu)>0, as
+   obtained via the method proposed in [Niendorf and Voss, LAA 2010]. Furthermore, if
+   hyperbolic=1 then only xi is computed.
+
+   Level: advanced
+@*/
+SLEPC_EXTERN PetscErrorCode PEPCheckDefiniteQEP(PEP pep,PetscReal *xi,PetscReal *mu,PetscInt *definite,PetscInt *hyperbolic)
 {
   PetscErrorCode ierr;
   PetscRandom    rand;
