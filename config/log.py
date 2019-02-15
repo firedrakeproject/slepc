@@ -13,12 +13,17 @@ import os, sys
 
 class Log:
 
-  def Open(self,filename):
+  def Open(self,confdir,fname):
+    filename = os.path.join(confdir,fname)
     self.fd = open(filename,'w')
     try:
       self.filename = os.path.relpath(filename)  # needs python-2.6
     except AttributeError:
       self.filename = filename
+    try: # symbolic link to log file in current directory
+      if os.path.isfile(fname): os.remove(fname)
+      os.symlink(filename,fname)
+    except: pass
 
   def Println(self,string):
     print(string)

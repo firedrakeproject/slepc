@@ -18,7 +18,7 @@ class Installer:
     if len(args)<6:
       print('********************************************************************')
       print('Installation script error - not enough arguments:')
-      print('./config/install.py SLEPC_DIR PETSC_DIR SLEPC_DESTDIR -destDir=DESTDIR PETSC_ARCH LIB_SUFFIX RANLIB')
+      print('./config/install.py SLEPC_DIR PETSC_DIR SLEPC_INSTALLDIR -destDir=DESTDIR PETSC_ARCH LIB_SUFFIX RANLIB')
       print('********************************************************************')
       sys.exit(1)
     self.rootDir     = args[0]
@@ -45,12 +45,12 @@ class Installer:
       for l in f.readlines():
         r = l.split('=',1)
         if len(r)!=2: continue
-        if r[0].strip() == 'SLEPC_DESTDIR':
+        if r[0].strip() == 'SLEPC_INSTALLDIR':
           break
       f.close()
     except:
       print('********************************************************************')
-      print('Error reading SLEPC_DESTDIR from slepcvariables')
+      print('Error reading SLEPC_INSTALLDIR from slepcvariables')
       print('********************************************************************')
       sys.exit(1)
     return r[1].strip()
@@ -196,9 +196,7 @@ class Installer:
     self.copies.extend(self.copyfile('gmakefile.test',dst))
     newConfigDir=os.path.join(dst,'config')  # Am not renaming at present
     if not os.path.isdir(newConfigDir): os.mkdir(newConfigDir)
-    testConfFiles="gmakegentest.py gmakegen.py testparse.py example_template.py".split()
-    testConfFiles+="petsc_harness.sh report_tests.py".split()
-    testConfFiles+=["cmakegen.py"]
+    testConfFiles="cmakegen.py".split()
     for tf in testConfFiles:
       self.copies.extend(self.copyfile(os.path.join('config',tf),newConfigDir))
     return
@@ -325,7 +323,7 @@ for dir in dirs:
     return
 
   def installConf(self):
-    self.copies.extend(self.copytree(self.rootConfDir, self.destConfDir, exclude = ['gmakegen.py','install.py','bfort-base.txt','bfort-mpi.txt','bfort-petsc.txt','bfort-slepc.txt']))
+    self.copies.extend(self.copytree(self.rootConfDir, self.destConfDir, exclude = ['install.py','bfort-base.txt','bfort-mpi.txt','bfort-petsc.txt','bfort-slepc.txt']))
     self.copies.extend(self.copytree(self.archConfDir, self.destConfDir, exclude = ['configure.log','error.log','files','gmake.log','make.log','test.log']))
     return
 

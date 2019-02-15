@@ -203,7 +203,7 @@ libdir  = CreateDir(archdir,'lib',log)
 confdir = CreateDirTwo(libdir,'slepc','conf',log)
 
 # Open log file
-log.Open(os.path.join(confdir,'configure.log'))
+log.Open(confdir,'configure.log')
 log.write('='*80)
 log.write('Starting Configure Run at '+time.ctime(time.time()))
 log.write('Configure Options: '+' '.join(sys.argv[1:]))
@@ -265,7 +265,7 @@ else:
 
 # Write initial part of file slepcvariables
 slepcvars.write('SLEPC_CONFIGURE_OPTIONS = '+argdb.UsedArgs()+'\n')
-slepcvars.write('SLEPC_DESTDIR = '+slepc.prefixdir+'\n')
+slepcvars.write('SLEPC_INSTALLDIR = '+slepc.prefixdir+'\n')
 if emptyarch:
   slepcvars.write('INSTALLED_PETSC = 1\n')
 if slepc.datadir:

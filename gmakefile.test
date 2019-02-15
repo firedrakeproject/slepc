@@ -1,7 +1,5 @@
 # -*- mode: makefile-gmake -*-
 
-CONFIGDIR := config
-
 # TESTSRCDIR is always relative to gmakefile.test
 #  This must be before includes
 mkfile_path := $(abspath $(MAKEFILE_LIST))
@@ -12,11 +10,12 @@ include $(SLEPC_DIR)/lib/slepc/conf/slepc_variables
 
 TESTDIR ?= ./$(PETSC_ARCH)/tests
 MODDIR := $(SLEPC_DIR)/$(PETSC_ARCH)/include
-TESTLOGFILE = $(TESTDIR)/examples_$(PETSC_ARCH).log
+TESTLOGFILE ?= $(TESTDIR)/examples_$(PETSC_ARCH).log
 REPORTFILE = $(TESTDIR)/report.log
 EXAMPLESDIR := $(TESTSRCDIR)
 
-pkgs := sys eps svd pep nep mfn lme
+pkgs  := sys eps svd pep nep mfn lme
+spkgs := sys,eps,svd,pep,nep,mfn,lme
 
 slepcconf      := $(SLEPC_DIR)/$(PETSC_ARCH)/include/slepcconf.h
 slepcvariables := $(SLEPC_DIR)/$(PETSC_ARCH)/lib/slepc/conf/slepcvariables
@@ -80,10 +79,19 @@ ifdef TIMEOUT
   TESTFLAGS += -t $(TIMEOUT)  # Override the default timeout
 endif
 
+ifneq ($(INSTALLED_PETSC),)
+  PETSC_ARCH_DIR=
+else
+  PETSC_ARCH_DIR=$(PETSC_ARCH)
+endif
 
+PETSCCONFIGDIR ?= $(PETSC_DIR)/config
+ifeq ($(wildcard $(PETSCCONFIGDIR)/gmakegentest.py),)
+  PETSCCONFIGDIR := $(PETSC_DIR)/share/petsc/examples/config
+endif
 
-$(generatedtest) : $(slepcconf) $(slepcvariables) $(CONFIGDIR)/gmakegentest.py $(TESTDIR)/.DIR | $$(@D)/.DIR
-	$(PYTHON) $(CONFIGDIR)/gmakegentest.py --slepc-dir=$(SLEPC_DIR) --petsc-dir=$(PETSC_DIR) --petsc-arch=$(PETSC_ARCH) --testdir=$(TESTDIR) --installed-petsc=$(INSTALLED_PETSC)
+$(generatedtest) : $(generated) $(slepcconf) $(slepcvariables) $(PETSCCONFIGDIR)/gmakegentest.py $(TESTDIR)/.DIR | $$(@D)/.DIR
+	$(PYTHON) $(PETSCCONFIGDIR)/gmakegentest.py --petsc-dir=$(PETSC_DIR) --petsc-arch=$(PETSC_ARCH_DIR) --testdir=$(TESTDIR) --srcdir=$(TESTSRCDIR) --pkg-name=slepc --pkg-pkgs=$(spkgs) --pkg-arch=$(PETSC_ARCH) --pkg-dir=$(SLEPC_DIR)
 
 -include $(generatedtest)
 
@@ -222,16 +230,12 @@ $(testsrcs.o) : $(slepcvariables)
 .SUFFIXES: # Clear .SUFFIXES because we don't use implicit rules
 .DELETE_ON_ERROR:               # Delete likely-corrupt target file if rule fails
 
-.PHONY: clean cleantest all print
+.PHONY: clean cleantest all
 
 cleantest:
 	${RM} -r $(TESTDIR) $(generatedtest)
 
 clean: cleantest
-
-# make print VAR=the-variable
-print:
-	@echo $($(VAR))
 
 alltest.d := $(testsrcs.o:%.o=%.d)
 # Tell make that alltest.d are all up to date.  Without this, the include
@@ -277,7 +281,7 @@ print-test:
 report_tests: $(TESTTARGETS)
 	@$(eval ENDTIME := $(shell date +%s))
 	@elapsed_time=$$(($(ENDTIME)- $(STARTTIME))) && \
-	$(PYTHON) $(CONFIGDIR)/report_tests.py -m $(MAKE) -d $(TESTDIR)/counts -t 5 -e $${elapsed_time} | tee ${REPORTFILE} && \
+	$(PYTHON) $(PETSCCONFIGDIR)/report_tests.py -m $(MAKE) -d $(TESTDIR)/counts -t 5 -e $${elapsed_time} | tee ${REPORTFILE} && \
 	if [ x${ALLTESTS_CHECK_FAILURES} = xyes ]; then \
           cat ${REPORTFILE} | grep '^# FAILED' | wc -l | grep '^[ ]*0$$' > /dev/null; \
 	fi;
