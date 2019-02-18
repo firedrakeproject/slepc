@@ -1015,7 +1015,7 @@ static PetscErrorCode PEPSTOARrun_QSlice(PEP pep,PetscReal *a,PetscReal *b,Petsc
   PetscErrorCode ierr;
   PEP_STOAR      *ctx = (PEP_STOAR*)pep->data;
   PetscInt       i,j,m=*M,l,lock;
-  PetscInt       lds,d,ld,offq,nqt;
+  PetscInt       lds,d,ld,offq,nqt,ldds;
   Vec            v=t_[0],t=t_[1],q=t_[2];
   PetscReal      norm,sym=0.0,fro=0.0,*f;
   PetscScalar    *y,*S,sigma;
@@ -1030,6 +1030,7 @@ static PetscErrorCode PEPSTOARrun_QSlice(PEP pep,PetscReal *a,PetscReal *b,Petsc
   ierr = BVGetActiveColumns(pep->V,&lock,&nqt);CHKERRQ(ierr);
   lds = d*ld;
   offq = ld;
+  ierr = DSGetLeadingDimension(pep->ds,&ldds);CHKERRQ(ierr);
 
   *breakdown = PETSC_FALSE; /* ----- */
   ierr = STGetShift(pep->st,&sigma);CHKERRQ(ierr);
@@ -1075,7 +1076,7 @@ static PetscErrorCode PEPSTOARrun_QSlice(PEP pep,PetscReal *a,PetscReal *b,Petsc
     /* check symmetry */
     ierr = DSGetArrayReal(pep->ds,DS_MAT_T,&f);CHKERRQ(ierr);
     if (j==k) {
-      for (i=l;i<j-1;i++) y[i] = PetscAbsScalar(y[i])-PetscAbsReal(f[2*ld+i]);
+      for (i=l;i<j-1;i++) y[i] = PetscAbsScalar(y[i])-PetscAbsReal(f[2*ldds+i]);
       for (i=0;i<l;i++) y[i] = 0.0;
     }
     ierr = DSRestoreArrayReal(pep->ds,DS_MAT_T,&f);CHKERRQ(ierr);
