@@ -366,12 +366,12 @@ PETSC_STATIC_INLINE PetscErrorCode PEPQSliceEvaluateQEP(PEP pep,PetscScalar x,Ma
 
    Level: advanced
 @*/
-SLEPC_EXTERN PetscErrorCode PEPCheckDefiniteQEP(PEP pep,PetscReal *xi,PetscReal *mu,PetscInt *definite,PetscInt *hyperbolic)
+PetscErrorCode PEPCheckDefiniteQEP(PEP pep,PetscReal *xi,PetscReal *mu,PetscInt *definite,PetscInt *hyperbolic)
 {
   PetscErrorCode ierr;
   PetscRandom    rand;
   Vec            u,w;
-  PetscReal      d,s,sp,mut,omg,omgp;
+  PetscReal      d,s,sp,mut=0.0,omg,omgp;
   PetscInt       k,its=10,hyp=0,check=0,nconv,inertia,n;
   Mat            M=NULL;
   MatStructure   str;

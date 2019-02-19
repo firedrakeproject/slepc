@@ -39,7 +39,7 @@ int main(int argc,char **argv)
   PetscInt       n=100,Istart,Iend,i,def,hyp;
   PetscReal      muu=1,tau=10,kappa=5,inta,intb;
   PetscReal      alpha,beta,xi,mu,at[2]={0.0,0.0},c=.857,s;
-  PetscScalar    target,targett;
+  PetscScalar    target,targett,ats[2];
   PetscErrorCode ierr;
 
   ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
@@ -187,9 +187,10 @@ int main(int argc,char **argv)
       ierr = PEPSTOARSetLinearization(pep,1.0,0.0);CHKERRQ(ierr);
       ierr = PEPGetInterval(pep,&inta,&intb);CHKERRQ(ierr);
       if (inta!=intb) {
-        at[0] = inta; at[1] = intb;
-        ierr = QEPDefiniteTransformMap(hyp==1?PETSC_TRUE:PETSC_FALSE,xi,mu,2,at,PETSC_FALSE);CHKERRQ(ierr);
-        if(at[0]<at[1]) { ierr = PEPSetInterval(pep,at[0],at[1]);CHKERRQ(ierr); }
+        ats[0] = inta; ats[1] = intb;
+        ierr = QEPDefiniteTransformMap(hyp==1?PETSC_TRUE:PETSC_FALSE,xi,mu,2,ats,PETSC_FALSE);CHKERRQ(ierr);
+        at[0] = PetscRealPart(ats[0]); at[1] = PetscRealPart(ats[1]);
+        if (at[0]<at[1]) { ierr = PEPSetInterval(pep,at[0],at[1]);CHKERRQ(ierr); }
         else { ierr = PEPSetInterval(pep,PETSC_MIN_REAL,at[1]);CHKERRQ(ierr); }
       }
     }   
@@ -266,7 +267,7 @@ static PetscErrorCode QEPDefiniteTransformMap_Initial(PetscBool hyperbolic,Petsc
   else { a = mu; b = mu*xi-1; c = 1.0; d = xi+mu; }
   if (!backtransform) { s = a; a = -d; d = -s; }
   for (i=0;i<n;i++) {
-    if (val[i] >= PETSC_MAX_REAL || val[i] <= PETSC_MIN_REAL) val[i] = a/c;
+    if (PetscRealPart(val[i]) >= PETSC_MAX_REAL || PetscRealPart(val[i]) <= PETSC_MIN_REAL) val[i] = a/c;
     else if (val[i] == -d/c) val[i] = PETSC_MAX_REAL;
     else val[i] = (a*val[i]+b)/(c*val[i]+d);
   }
@@ -280,12 +281,15 @@ static PetscErrorCode QEPDefiniteTransformMap_Initial(PetscBool hyperbolic,Petsc
 PetscErrorCode QEPDefiniteTransformMap(PetscBool hyperbolic,PetscReal xi,PetscReal mu,PetscInt n,PetscScalar *val,PetscBool backtransform)
 {
   PetscReal      xit;
+  PetscScalar    alpha;
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
   xit = xi;
   if (!hyperbolic) {
-    ierr = QEPDefiniteTransformMap_Initial(PETSC_FALSE,0.0,mu,1,&xit,PETSC_FALSE);CHKERRQ(ierr);
+    alpha = xi;
+    ierr = QEPDefiniteTransformMap_Initial(PETSC_FALSE,0.0,mu,1,&alpha,PETSC_FALSE);CHKERRQ(ierr);
+    xit = PetscRealPart(alpha);
   }
   ierr = QEPDefiniteTransformMap_Initial(hyperbolic,xit,mu,n,val,backtransform);CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -343,7 +347,8 @@ PetscErrorCode QEPDefiniteTransformGetMatrices(PEP pep,PetscBool hyperbolic,Pets
   MatStructure   str;
   ST             st;
   PetscInt       i;
-  PetscReal      a,b,c,d,xit;
+  PetscReal      a,b,c,d;
+  PetscScalar    xit;
   Mat            A[3];
 
   PetscFunctionBegin;
@@ -354,7 +359,7 @@ PetscErrorCode QEPDefiniteTransformGetMatrices(PEP pep,PetscBool hyperbolic,Pets
   else {
     xit = xi;
     ierr = QEPDefiniteTransformMap_Initial(PETSC_FALSE,0.0,mu,1,&xit,PETSC_FALSE);CHKERRQ(ierr);
-    a = mu; b = mu*xit-1; c = 1.0; d = xit+mu;
+    a = mu; b = mu*PetscRealPart(xit)-1.0; c = 1.0; d = PetscRealPart(xit)+mu;
   }
   ierr = PEPGetST(pep,&st);CHKERRQ(ierr);
   ierr = STGetMatStructure(st,&str);CHKERRQ(ierr);
@@ -386,7 +391,7 @@ static PetscErrorCode PEPResidualNorm(Mat *A,PetscScalar kr,PetscScalar ki,Vec x
 #endif
   vals[0] = 1.0; ivals[0] = 0.0;  
   vals[1] = kr; ivals[1] = ki;
-  vals[2] = kr*kr-ki*ki; ivals[2] = 2*kr*ki;
+  vals[2] = kr*kr-ki*ki; ivals[2] = 2.0*kr*ki;
 #if !defined(PETSC_USE_COMPLEX)
   if (ki == 0 || PetscAbsScalar(ki) < PetscAbsScalar(kr*PETSC_MACHINE_EPSILON))
     imag = PETSC_FALSE;
