@@ -31,6 +31,7 @@ int main(int argc,char **argv)
 
   ierr = PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL);CHKERRQ(ierr);
   ierr = PetscOptionsGetBool(NULL,NULL,"-show_inertias",&show,NULL);CHKERRQ(ierr);
+  ierr = PetscOptionsHasName(NULL,NULL,"-terse",&terse);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD,"\nSpectrum slicing on PEP, n=%D\n\n",n);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -165,7 +166,7 @@ int main(int argc,char **argv)
     ierr = PetscFree(inertias);CHKERRQ(ierr);
   }
   ierr = PEPSolve(pep);CHKERRQ(ierr);
-  if (show) {
+  if (show && !terse) {
     ierr = PEPSTOARGetInertias(pep,&ns,&shifts,&inertias);
     ierr = PetscPrintf(PETSC_COMM_WORLD,"All shifts (after solve):\n");CHKERRQ(ierr);
     for (i=0;i<ns;i++) { ierr = PetscPrintf(PETSC_COMM_WORLD,"Shift %g  Inertia %D \n",shifts[i],inertias[i]);CHKERRQ(ierr); }
@@ -186,7 +187,6 @@ int main(int argc,char **argv)
   /*
      Show detailed info unless -terse option is given by user
    */
-  ierr = PetscOptionsHasName(NULL,NULL,"-terse",&terse);CHKERRQ(ierr);
   if (terse) {
     ierr = PEPErrorView(pep,PEP_ERROR_BACKWARD,NULL);CHKERRQ(ierr);
   } else {
@@ -212,6 +212,6 @@ int main(int argc,char **argv)
    test:
       suffix: 1
       requires: !single
-      args: -terse
+      args: -show_inertias -terse
 
 TEST*/
