@@ -172,7 +172,7 @@ int main(int argc,char **argv)
 
    test:
       suffix: 4
-      args: -n 270 -pep_type stoar -pep_hermitian -pep_interval -3,-2.5 -st_type sinvert -st_pc_type cholesky -terse
+      args: -n 270 -pep_type stoar -pep_hermitian -pep_interval -3,-2.51 -st_type sinvert -st_pc_type cholesky -terse
       requires: !complex !single
 
 TEST*/

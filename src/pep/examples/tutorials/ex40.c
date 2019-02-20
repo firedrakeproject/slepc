@@ -36,7 +36,7 @@ int main(int argc,char **argv)
   PC             pc;
   PEPProblemType type;
   PetscBool      terse,transform=PETSC_FALSE,nohyp=PETSC_FALSE;
-  PetscInt       n=100,Istart,Iend,i,def,hyp;
+  PetscInt       n=100,Istart,Iend,i,def=0,hyp;
   PetscReal      muu=1,tau=10,kappa=5,inta,intb;
   PetscReal      alpha,beta,xi,mu,at[2]={0.0,0.0},c=.857,s;
   PetscScalar    target,targett,ats[2];
@@ -155,7 +155,7 @@ int main(int argc,char **argv)
   ierr = PetscOptionsGetBool(NULL,NULL,"-transform",&transform,NULL);CHKERRQ(ierr);
   if (transform) {
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-                Check if the problem is definite 
+                Check if the problem is definite
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
     ierr = PEPCheckDefiniteQEP(pep,&xi,&mu,&def,&hyp);CHKERRQ(ierr);
     switch (def) {
@@ -193,7 +193,7 @@ int main(int argc,char **argv)
         if (at[0]<at[1]) { ierr = PEPSetInterval(pep,at[0],at[1]);CHKERRQ(ierr); }
         else { ierr = PEPSetInterval(pep,PETSC_MIN_REAL,at[1]);CHKERRQ(ierr); }
       }
-    }   
+    }
   }
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -213,9 +213,9 @@ int main(int argc,char **argv)
       ierr = PetscViewerPopFormat(PETSC_VIEWER_STDOUT_WORLD);CHKERRQ(ierr);
     }
   } else {
-    /* Map the solution */ 
+    /* Map the solution */
     ierr = PEPReasonView(pep,PETSC_VIEWER_STDOUT_WORLD);CHKERRQ(ierr);
-    ierr = QEPDefiniteCheckError(Op,pep,hyp==1?PETSC_TRUE:PETSC_FALSE,xi,mu);CHKERRQ(ierr);    
+    ierr = QEPDefiniteCheckError(Op,pep,hyp==1?PETSC_TRUE:PETSC_FALSE,xi,mu);CHKERRQ(ierr);
     for (i=0;i<3;i++) {ierr = MatDestroy(B+i);CHKERRQ(ierr);}
   }
   if (at[0]>at[1]) {
@@ -223,7 +223,7 @@ int main(int argc,char **argv)
     ierr = PEPSolve(pep);CHKERRQ(ierr);
     ierr = PEPReasonView(pep,PETSC_VIEWER_STDOUT_WORLD);CHKERRQ(ierr);
     /* Map the solution */
-    ierr = QEPDefiniteCheckError(Op,pep,hyp==1?PETSC_TRUE:PETSC_FALSE,xi,mu);CHKERRQ(ierr);    
+    ierr = QEPDefiniteCheckError(Op,pep,hyp==1?PETSC_TRUE:PETSC_FALSE,xi,mu);CHKERRQ(ierr);
   }
   if (def==1) {
     ierr = PEPSetTarget(pep,target);CHKERRQ(ierr);
@@ -233,7 +233,7 @@ int main(int argc,char **argv)
       ierr = PEPSetInterval(pep,inta,intb);CHKERRQ(ierr);
     }
   }
- 
+
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                     Clean up
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
@@ -375,12 +375,13 @@ static PetscErrorCode PEPResidualNorm(Mat *A,PetscScalar kr,PetscScalar ki,Vec x
 {
   PetscErrorCode ierr;
   PetscInt       i,nmat=3;
-  PetscScalar    vals[3],ivals[3];
+  PetscScalar    vals[3];
   Vec            u,w;
 #if !defined(PETSC_USE_COMPLEX)
   Vec            ui,wi;
   PetscReal      ni;
   PetscBool      imag;
+  PetscScalar    ivals[3];
 #endif
 
   PetscFunctionBegin;
@@ -389,10 +390,13 @@ static PetscErrorCode PEPResidualNorm(Mat *A,PetscScalar kr,PetscScalar ki,Vec x
 #if !defined(PETSC_USE_COMPLEX)
   ui = z[2]; wi = z[3];
 #endif
-  vals[0] = 1.0; ivals[0] = 0.0;  
-  vals[1] = kr; ivals[1] = ki;
-  vals[2] = kr*kr-ki*ki; ivals[2] = 2.0*kr*ki;
+  vals[0] = 1.0;
+  vals[1] = kr;
+  vals[2] = kr*kr-ki*ki;
 #if !defined(PETSC_USE_COMPLEX)
+  ivals[0] = 0.0;
+  ivals[1] = ki;
+  ivals[2] = 2.0*kr*ki;
   if (ki == 0 || PetscAbsScalar(ki) < PetscAbsScalar(kr*PETSC_MACHINE_EPSILON))
     imag = PETSC_FALSE;
   else {

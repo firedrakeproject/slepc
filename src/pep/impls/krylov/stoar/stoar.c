@@ -765,7 +765,7 @@ static PetscErrorCode PEPSTOARSetDetectZeros_STOAR(PEP pep,PetscBool detect)
 
    Level: advanced
 
-.seealso: PEPSTOARSetPartitions(), PEPSetInterval()
+.seealso: PEPSetInterval()
 @*/
 PetscErrorCode PEPSTOARSetDetectZeros(PEP pep,PetscBool detect)
 {
