@@ -20,7 +20,7 @@ static char help[] = "Checking the definite property in quadratic symmetric eige
   This example is based on spring.c, for fixed values mu=1,tau=10,kappa=5
 
   The transformations are based on the method proposed in [Niendorf and Voss, LAA 2010].
- */
+*/
 
 PetscErrorCode QEPDefiniteTransformGetMatrices(PEP,PetscBool,PetscReal,PetscReal,Mat[3]);
 PetscErrorCode QEPDefiniteTransformMap(PetscBool,PetscReal,PetscReal,PetscInt,PetscScalar*,PetscBool);
@@ -112,7 +112,7 @@ int main(int argc,char **argv)
     Op = At;
   } else Op = A;
 
- /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                 Create the eigensolver and solve the problem
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -127,7 +127,7 @@ int main(int argc,char **argv)
   */
   ierr = PEPSetOperators(pep,3,Op);CHKERRQ(ierr);
 
- /*
+  /*
      Set shift-and-invert with Cholesky; select MUMPS if available
   */
   ierr = PEPGetST(pep,&st);CHKERRQ(ierr);
@@ -154,9 +154,9 @@ int main(int argc,char **argv)
 
   ierr = PetscOptionsGetBool(NULL,NULL,"-transform",&transform,NULL);CHKERRQ(ierr);
   if (transform) {
-  /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-                Check if the problem is definite
-     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+    /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+                    Check if the problem is definite
+       - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
     ierr = PEPCheckDefiniteQEP(pep,&xi,&mu,&def,&hyp);CHKERRQ(ierr);
     switch (def) {
       case 1:
@@ -171,9 +171,9 @@ int main(int argc,char **argv)
         break;
     }
 
-  /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-     Transform the QEP to have a definite inner product in the linearization
-     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+    /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+      Transform the QEP to have a definite inner product in the linearization
+       - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
     if (def==1) {
       ierr = QEPDefiniteTransformGetMatrices(pep,hyp==1?PETSC_TRUE:PETSC_FALSE,xi,mu,B);CHKERRQ(ierr);
       ierr = PEPSetOperators(pep,3,B);CHKERRQ(ierr);
@@ -201,7 +201,7 @@ int main(int argc,char **argv)
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
   ierr = PEPSolve(pep);CHKERRQ(ierr);
 
-   /* show detailed info unless -terse option is given by user */
+  /* show detailed info unless -terse option is given by user */
   if (def!=1) {
     ierr = PetscOptionsHasName(NULL,NULL,"-terse",&terse);CHKERRQ(ierr);
     if (terse) {
@@ -238,11 +238,12 @@ int main(int argc,char **argv)
                     Clean up
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
   ierr = PEPDestroy(&pep);CHKERRQ(ierr);
-  for (i=0;i<3;i++) { ierr = MatDestroy(Op+i);CHKERRQ(ierr);}
+  for (i=0;i<3;i++) { ierr = MatDestroy(Op+i);CHKERRQ(ierr); }
   ierr = SlepcFinalize();
   return ierr;
 }
 
+/* ------------------------------------------------------------------- */
 /*
   QEPDefiniteTransformMap_Initial - map a scalar value with a certain Moebius transform
 
@@ -274,6 +275,7 @@ static PetscErrorCode QEPDefiniteTransformMap_Initial(PetscBool hyperbolic,Petsc
   PetscFunctionReturn(0);
 }
 
+/* ------------------------------------------------------------------- */
 /*
   QEPDefiniteTransformMap - perform the mapping if the problem is hyperbolic, otherwise
   modify the value of xi in advance
@@ -295,6 +297,7 @@ PetscErrorCode QEPDefiniteTransformMap(PetscBool hyperbolic,PetscReal xi,PetscRe
   PetscFunctionReturn(0);
 }
 
+/* ------------------------------------------------------------------- */
 /*
   TransformMatricesMoebius - transform the coefficient matrices of a QEP
 
@@ -330,6 +333,7 @@ PetscErrorCode TransformMatricesMoebius(Mat A[3],MatStructure str,PetscReal a,Pe
   PetscFunctionReturn(0);
 }
 
+/* ------------------------------------------------------------------- */
 /*
   QEPDefiniteTransformGetMatrices - given a PEP of degree 2, transform the three
   matrices with TransformMatricesMoebius
@@ -367,6 +371,7 @@ PetscErrorCode QEPDefiniteTransformGetMatrices(PEP pep,PetscBool hyperbolic,Pets
   PetscFunctionReturn(0);
 }
 
+/* ------------------------------------------------------------------- */
 /*
   Auxiliary funciton to compute the residual norm of an eigenpair of a QEP defined
   by coefficient matrices A
@@ -437,6 +442,7 @@ static PetscErrorCode PEPResidualNorm(Mat *A,PetscScalar kr,PetscScalar ki,Vec x
   PetscFunctionReturn(0);
 }
 
+/* ------------------------------------------------------------------- */
 /*
   QEPDefiniteCheckError - check and print the residual norm of a transformed PEP
 
