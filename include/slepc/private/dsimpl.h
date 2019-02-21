@@ -62,6 +62,7 @@ struct _p_DS {
   Mat            omat[DS_NUM_MAT];   /* the matrices (PETSc object) */
   PetscInt       *perm;              /* permutation */
   void           *data;              /* placeholder for solver-specific stuff */
+  PetscBool      scset;              /* the sc was provided by the user */
   PetscScalar    *work;
   PetscReal      *rwork;
   PetscBLASInt   *iwork;

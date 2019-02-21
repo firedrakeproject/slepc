@@ -54,9 +54,9 @@ PetscErrorCode DSFinalizePackage(void)
 @*/
 PetscErrorCode DSInitializePackage()
 {
-  char             logList[256];
+  char           logList[256];
   PetscBool      opt,pkg;
-  PetscErrorCode   ierr;
+  PetscErrorCode ierr;
 
   PetscFunctionBegin;
   if (DSPackageInitialized) PetscFunctionReturn(0);
@@ -140,6 +140,7 @@ PetscErrorCode DSCreate(MPI_Comm comm,DS *newds)
   }
   ds->perm          = NULL;
   ds->data          = NULL;
+  ds->scset         = PETSC_FALSE;
   ds->work          = NULL;
   ds->rwork         = NULL;
   ds->iwork         = NULL;
@@ -295,6 +296,47 @@ PetscErrorCode DSGetType(DS ds,DSType *type)
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
   PetscValidPointer(type,2);
   *type = ((PetscObject)ds)->type_name;
+  PetscFunctionReturn(0);
+}
+
+/*@
+   DSDuplicate - Creates a new direct solver object with the same options as
+   an existing one.
+
+   Collective on DS
+
+   Input Parameter:
+.  ds - direct solver context
+
+   Output Parameter:
+.  dsnew - location to put the new DS
+
+   Notes:
+   DSDuplicate() DOES NOT COPY the matrices, and the new DS does not even have
+   internal arrays allocated. Use DSAllocate() to use the new DS.
+
+   The sorting criterion options are not copied, see DSSetSlepcSC().
+
+   Level: intermediate
+
+.seealso: DSCreate(), DSAllocate(), DSSetSlepcSC()
+@*/
+PetscErrorCode DSDuplicate(DS ds,DS *dsnew)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(ds,DS_CLASSID,1);
+  PetscValidType(ds,1);
+  PetscValidPointer(dsnew,2);
+  ierr = DSCreate(PetscObjectComm((PetscObject)ds),dsnew);CHKERRQ(ierr);
+  ierr = DSSetType(*dsnew,((PetscObject)ds)->type_name);CHKERRQ(ierr);
+  (*dsnew)->method   = ds->method;
+  (*dsnew)->compact  = ds->compact;
+  (*dsnew)->refined  = ds->refined;
+  (*dsnew)->extrarow = ds->extrarow;
+  (*dsnew)->bs       = ds->bs;
+  (*dsnew)->pmode    = ds->pmode;
   PetscFunctionReturn(0);
 }
 
@@ -646,10 +688,11 @@ PetscErrorCode DSSetSlepcSC(DS ds,SlepcSC sc)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
   PetscValidPointer(sc,2);
-  if (ds->sc) {
+  if (ds->sc && !ds->scset) {
     ierr = PetscFree(ds->sc);CHKERRQ(ierr);
   }
-  ds->sc = sc;
+  ds->sc    = sc;
+  ds->scset = PETSC_TRUE;
   PetscFunctionReturn(0);
 }
 
@@ -896,7 +939,7 @@ PetscErrorCode DSDestroy(DS *ds)
   ierr = PetscFree((*ds)->work);CHKERRQ(ierr);
   ierr = PetscFree((*ds)->rwork);CHKERRQ(ierr);
   ierr = PetscFree((*ds)->iwork);CHKERRQ(ierr);
-  ierr = PetscFree((*ds)->sc);CHKERRQ(ierr);
+  if (!(*ds)->scset) { ierr = PetscFree((*ds)->sc);CHKERRQ(ierr); }
   ierr = PetscHeaderDestroy(ds);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

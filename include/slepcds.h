@@ -144,6 +144,7 @@ SLEPC_EXTERN PetscErrorCode DSView(DS,PetscViewer);
 SLEPC_EXTERN PetscErrorCode DSViewMat(DS,PetscViewer,DSMatType);
 SLEPC_EXTERN PetscErrorCode DSDestroy(DS*);
 SLEPC_EXTERN PetscErrorCode DSReset(DS);
+SLEPC_EXTERN PetscErrorCode DSDuplicate(DS,DS*);
 
 SLEPC_EXTERN PetscErrorCode DSAllocate(DS,PetscInt);
 SLEPC_EXTERN PetscErrorCode DSGetLeadingDimension(DS,PetscInt*);
