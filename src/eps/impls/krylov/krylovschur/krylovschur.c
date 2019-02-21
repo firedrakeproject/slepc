@@ -134,7 +134,7 @@ PetscErrorCode EPSSetUp_KrylovSchur(EPS eps)
   BVOrthogType      otype;
   BVOrthogBlockType obtype;
   EPS_KRYLOVSCHUR   *ctx = (EPS_KRYLOVSCHUR*)eps->data;
-  enum { EPS_KS_DEFAULT,EPS_KS_SYMM,EPS_KS_SLICE,EPS_KS_FILTER,EPS_KS_INDEF } variant;
+  enum { EPS_KS_DEFAULT,EPS_KS_SYMM,EPS_KS_SLICE,EPS_KS_FILTER,EPS_KS_INDEF,EPS_KS_TWOSIDED } variant;
 
   PetscFunctionBegin;
   /* spectrum slicing requires special treatment of default values */
@@ -185,6 +185,8 @@ PetscErrorCode EPSSetUp_KrylovSchur(EPS eps)
         default: SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Unsupported extraction type");
       }
     }
+  } else if (eps->twosided) {
+    variant = EPS_KS_TWOSIDED;
   } else {
     switch (eps->extraction) {
       case EPS_RITZ:     variant = EPS_KS_DEFAULT; break;
@@ -222,6 +224,14 @@ PetscErrorCode EPSSetUp_KrylovSchur(EPS eps)
       /* force reorthogonalization for pseudo-Lanczos */
       ierr = BVGetOrthogonalization(eps->V,&otype,NULL,&eta,&obtype);CHKERRQ(ierr);
       ierr = BVSetOrthogonalization(eps->V,otype,BV_ORTHOG_REFINE_ALWAYS,eta,obtype);CHKERRQ(ierr);
+      break;
+    case EPS_KS_TWOSIDED:
+      eps->ops->solve = EPSSolve_KrylovSchur_TwoSided;
+      eps->ops->computevectors = EPSComputeVectors_Schur;
+      ierr = DSSetType(eps->ds,DSNHEP);CHKERRQ(ierr);
+      ierr = DSAllocate(eps->ds,eps->ncv+1);CHKERRQ(ierr);
+      ierr = DSSetType(eps->dsts,DSNHEP);CHKERRQ(ierr);
+      ierr = DSAllocate(eps->dsts,eps->ncv+1);CHKERRQ(ierr);
       break;
     default: SETERRQ(PetscObjectComm((PetscObject)eps),1,"Unexpected error");
   }
@@ -1389,6 +1399,7 @@ SLEPC_EXTERN PetscErrorCode EPSCreate_KrylovSchur(EPS eps)
   ctx->global = PETSC_TRUE;
 
   eps->useds = PETSC_TRUE;
+  eps->hasts = PETSC_TRUE;
 
   /* solve and computevectors determined at setup */
   eps->ops->setup          = EPSSetUp_KrylovSchur;

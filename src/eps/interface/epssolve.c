@@ -140,6 +140,7 @@ PetscErrorCode EPSSolve(EPS eps)
     eps->eigi[i]   = 0.0;
     eps->errest[i] = 0.0;
     eps->perm[i]   = i;
+    if (eps->twosided) eps->lerrest[i] = 0.0;
   }
   ierr = EPSViewFromOptions(eps,NULL,"-eps_view_pre");CHKERRQ(ierr);
   ierr = RGViewFromOptions(eps->rg,NULL,"-rg_view");CHKERRQ(ierr);
@@ -416,7 +417,7 @@ PETSC_STATIC_INLINE PetscErrorCode EPSGetVector_Private(BV V,PetscInt k,PetscRea
 
    Level: beginner
 
-.seealso: EPSGetEigenvalue(), EPSGetEigenvector(), EPSSolve(),
+.seealso: EPSGetEigenvalue(), EPSGetEigenvector(), EPSGetLeftEigenvector(), EPSSolve(),
           EPSGetConverged(), EPSSetWhichEigenpairs(), EPSGetInvariantSubspace()
 @*/
 PetscErrorCode EPSGetEigenpair(EPS eps,PetscInt i,PetscScalar *eigr,PetscScalar *eigi,Vec Vr,Vec Vi)
@@ -509,7 +510,7 @@ PetscErrorCode EPSGetEigenvalue(EPS eps,PetscInt i,PetscScalar *eigr,PetscScalar
 
    Level: beginner
 
-.seealso: EPSSolve(), EPSGetConverged(), EPSSetWhichEigenpairs(), EPSGetEigenpair()
+.seealso: EPSSolve(), EPSGetConverged(), EPSSetWhichEigenpairs(), EPSGetEigenpair(), EPSGetLeftEigenvector()
 @*/
 PetscErrorCode EPSGetEigenvector(EPS eps,PetscInt i,Vec Vr,Vec Vi)
 {
@@ -527,6 +528,58 @@ PetscErrorCode EPSGetEigenvector(EPS eps,PetscInt i,Vec Vr,Vec Vi)
   ierr = EPSComputeVectors(eps);CHKERRQ(ierr);
   k = eps->perm[i];
   ierr = EPSGetVector_Private(eps->V,k,eps->eigi[k],Vr,Vi);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+/*@
+   EPSGetLeftEigenvector - Gets the i-th left eigenvector as computed by EPSSolve().
+
+   Logically Collective on EPS
+
+   Input Parameters:
++  eps - eigensolver context
+-  i   - index of the solution
+
+   Output Parameters:
++  Wr   - real part of left eigenvector
+-  Wi   - imaginary part of left eigenvector
+
+   Notes:
+   The caller must provide valid Vec objects, i.e., they must be created
+   by the calling program with e.g. MatCreateVecs().
+
+   If the corresponding eigenvalue is real, then Wi is set to zero. If PETSc is
+   configured with complex scalars the eigenvector is stored directly in Wr
+   (Wi is set to zero). In both cases, the user can pass NULL in Wi.
+
+   The index i should be a value between 0 and nconv-1 (see EPSGetConverged()).
+   Eigensolutions are indexed according to the ordering criterion established
+   with EPSSetWhichEigenpairs().
+
+   Left eigenvectors are available only if the twosided flag was set, see
+   EPSSetTwoSided().
+
+   Level: intermediate
+
+.seealso: EPSGetEigenvector(), EPSGetConverged(), EPSSetWhichEigenpairs(), EPSSetTwoSided()
+@*/
+PetscErrorCode EPSGetLeftEigenvector(EPS eps,PetscInt i,Vec Wr,Vec Wi)
+{
+  PetscErrorCode ierr;
+  PetscInt       k;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
+  PetscValidLogicalCollectiveInt(eps,i,2);
+  PetscValidHeaderSpecific(Wr,VEC_CLASSID,3);
+  PetscCheckSameComm(eps,1,Wr,3);
+  if (Wi) { PetscValidHeaderSpecific(Wi,VEC_CLASSID,4); PetscCheckSameComm(eps,1,Wi,4); }
+  EPSCheckSolved(eps,1);
+  if (!eps->twosided) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_WRONGSTATE,"Must request left vectors with EPSSetTwoSided");
+  if (i<0 || i>=eps->nconv) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"Argument 2 out of range");
+  ierr = EPSComputeVectors(eps);CHKERRQ(ierr);
+  k = eps->perm[i];
+  ierr = EPSGetVector_Private(eps->ishermitian?eps->V:eps->W,k,eps->eigi[k],Wr,Wi);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

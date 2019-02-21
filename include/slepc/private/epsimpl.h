@@ -80,6 +80,7 @@ struct _p_EPS {
   PetscBool      trueres;          /* whether the true residual norm must be computed */
   PetscBool      trackall;         /* whether all the residuals must be computed */
   PetscBool      purify;           /* whether eigenvectors need to be purified */
+  PetscBool      twosided;         /* whether to compute left eigenvectors (two-sided solver) */
 
   /*-------------- User-provided functions and contexts -----------------*/
   PetscErrorCode (*converged)(EPS,PetscScalar,PetscScalar,PetscReal,PetscReal*,void*);
@@ -100,14 +101,16 @@ struct _p_EPS {
   /*----------------- Child objects and working data -------------------*/
   ST             st;               /* spectral transformation object */
   DS             ds;               /* direct solver object */
+  DS             dsts;             /* auxiliary direct solver object used in two-sided case */
   BV             V;                /* set of basis vectors and computed eigenvectors */
+  BV             W;                /* left basis vectors (if left eigenvectors requested) */
   RG             rg;               /* optional region for filtering */
   SlepcSC        sc;               /* sorting criterion data */
   Vec            D;                /* diagonal matrix for balancing */
   Vec            *IS;              /* references to user-provided initial space */
   Vec            *defl;            /* references to user-provided deflation space */
   PetscScalar    *eigr,*eigi;      /* real and imaginary parts of eigenvalues */
-  PetscReal      *errest;          /* error estimates */
+  PetscReal      *errest,*lerrest; /* error estimates */
   PetscScalar    *rr,*ri;          /* values computed by user's arbitrary selection function */
   PetscInt       *perm;            /* permutation for eigenvalue ordering */
   PetscInt       nwork;            /* number of work vectors */
@@ -122,6 +125,7 @@ struct _p_EPS {
   PetscInt       n,nloc;           /* problem dimensions (global, local) */
   PetscReal      nrma,nrmb;        /* computed matrix norms */
   PetscBool      useds;            /* whether the solver uses the DS object or not */
+  PetscBool      hasts;            /* whether the solver has two-sided variant */
   PetscBool      isgeneralized;
   PetscBool      ispositive;
   PetscBool      ishermitian;

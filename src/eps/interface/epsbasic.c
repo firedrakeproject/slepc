@@ -68,6 +68,7 @@ PetscErrorCode EPSCreate(MPI_Comm comm,EPS *outeps)
   eps->trueres         = PETSC_FALSE;
   eps->trackall        = PETSC_FALSE;
   eps->purify          = PETSC_TRUE;
+  eps->twosided        = PETSC_FALSE;
 
   eps->converged       = EPSConvergedRelative;
   eps->convergeduser   = NULL;
@@ -83,7 +84,9 @@ PetscErrorCode EPSCreate(MPI_Comm comm,EPS *outeps)
 
   eps->st              = NULL;
   eps->ds              = NULL;
+  eps->dsts            = NULL;
   eps->V               = NULL;
+  eps->W               = NULL;
   eps->rg              = NULL;
   eps->D               = NULL;
   eps->IS              = NULL;
@@ -106,6 +109,7 @@ PetscErrorCode EPSCreate(MPI_Comm comm,EPS *outeps)
   eps->nrma            = 0.0;
   eps->nrmb            = 0.0;
   eps->useds           = PETSC_FALSE;
+  eps->hasts           = PETSC_FALSE;
   eps->isgeneralized   = PETSC_FALSE;
   eps->ispositive      = PETSC_FALSE;
   eps->ishermitian     = PETSC_FALSE;
@@ -259,6 +263,7 @@ PetscErrorCode EPSReset(EPS eps)
   if (eps->st) { ierr = STReset(eps->st);CHKERRQ(ierr); }
   ierr = VecDestroy(&eps->D);CHKERRQ(ierr);
   ierr = BVDestroy(&eps->V);CHKERRQ(ierr);
+  ierr = BVDestroy(&eps->W);CHKERRQ(ierr);
   ierr = VecDestroyVecs(eps->nwork,&eps->work);CHKERRQ(ierr);
   eps->nwork = 0;
   eps->state = EPS_STATE_INITIAL;
@@ -290,12 +295,16 @@ PetscErrorCode EPSDestroy(EPS *eps)
   if ((*eps)->eigr) {
     ierr = PetscFree4((*eps)->eigr,(*eps)->eigi,(*eps)->errest,(*eps)->perm);CHKERRQ(ierr);
   }
+  if ((*eps)->lerrest) {
+    ierr = PetscFree((*eps)->lerrest);CHKERRQ(ierr);
+  }
   if ((*eps)->rr) {
     ierr = PetscFree2((*eps)->rr,(*eps)->ri);CHKERRQ(ierr);
   }
   ierr = STDestroy(&(*eps)->st);CHKERRQ(ierr);
   ierr = RGDestroy(&(*eps)->rg);CHKERRQ(ierr);
   ierr = DSDestroy(&(*eps)->ds);CHKERRQ(ierr);
+  ierr = DSDestroy(&(*eps)->dsts);CHKERRQ(ierr);
   ierr = PetscFree((*eps)->sc);CHKERRQ(ierr);
   /* just in case the initial vectors have not been used */
   ierr = SlepcBasisDestroy_Private(&(*eps)->nds,&(*eps)->defl);CHKERRQ(ierr);
@@ -514,10 +523,6 @@ PetscErrorCode EPSGetST(EPS eps,ST *st)
    Input Parameters:
 +  eps - eigensolver context obtained from EPSCreate()
 -  V   - the basis vectors object
-
-   Note:
-   Use EPSGetBV() to retrieve the basis vectors context (for example,
-   to free them at the end of the computations).
 
    Level: advanced
 

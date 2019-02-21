@@ -235,6 +235,7 @@ SLEPC_EXTERN PetscErrorCode EPSGetConverged(EPS,PetscInt*);
 SLEPC_EXTERN PetscErrorCode EPSGetEigenpair(EPS,PetscInt,PetscScalar*,PetscScalar*,Vec,Vec);
 SLEPC_EXTERN PetscErrorCode EPSGetEigenvalue(EPS,PetscInt,PetscScalar*,PetscScalar*);
 SLEPC_EXTERN PetscErrorCode EPSGetEigenvector(EPS,PetscInt,Vec,Vec);
+SLEPC_EXTERN PetscErrorCode EPSGetLeftEigenvector(EPS,PetscInt,Vec,Vec);
 
 SLEPC_EXTERN PetscErrorCode EPSComputeError(EPS,PetscInt,EPSErrorType,PetscReal*);
 PETSC_DEPRECATED("Use EPSComputeError()") PETSC_STATIC_INLINE PetscErrorCode EPSComputeRelativeError(EPS eps,PetscInt i,PetscReal *r) {return EPSComputeError(eps,i,EPS_ERROR_RELATIVE,r);}
@@ -252,6 +253,8 @@ SLEPC_EXTERN PetscErrorCode EPSGetIterationNumber(EPS,PetscInt*);
 
 SLEPC_EXTERN PetscErrorCode EPSSetWhichEigenpairs(EPS,EPSWhich);
 SLEPC_EXTERN PetscErrorCode EPSGetWhichEigenpairs(EPS,EPSWhich*);
+SLEPC_EXTERN PetscErrorCode EPSSetTwoSided(EPS,PetscBool);
+SLEPC_EXTERN PetscErrorCode EPSGetTwoSided(EPS,PetscBool*);
 SLEPC_EXTERN PetscErrorCode EPSSetTrueResidual(EPS,PetscBool);
 SLEPC_EXTERN PetscErrorCode EPSGetTrueResidual(EPS,PetscBool*);
 SLEPC_EXTERN PetscErrorCode EPSSetPurify(EPS,PetscBool);

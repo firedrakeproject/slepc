@@ -108,7 +108,7 @@ PetscErrorCode EPSSetFromOptions(EPS eps)
 {
   PetscErrorCode ierr;
   char           type[256];
-  PetscBool      set,flg,flg1,flg2,flg3,purif;
+  PetscBool      set,flg,flg1,flg2,flg3,bval;
   PetscReal      r,array[2]={0,0};
   PetscScalar    s;
   PetscInt       i,j,k;
@@ -228,8 +228,10 @@ PetscErrorCode EPSSetFromOptions(EPS eps)
     }
 
     ierr = PetscOptionsBool("-eps_true_residual","Compute true residuals explicitly","EPSSetTrueResidual",eps->trueres,&eps->trueres,NULL);CHKERRQ(ierr);
-    ierr = PetscOptionsBool("-eps_purify","Postprocess eigenvectors for purification","EPSSetPurify",eps->purify,&purif,&flg);CHKERRQ(ierr);
-    if (flg) { ierr = EPSSetPurify(eps,purif);CHKERRQ(ierr); }
+    ierr = PetscOptionsBool("-eps_purify","Postprocess eigenvectors for purification","EPSSetPurify",eps->purify,&bval,&flg);CHKERRQ(ierr);
+    if (flg) { ierr = EPSSetPurify(eps,bval);CHKERRQ(ierr); }
+    ierr = PetscOptionsBool("-eps_two_sided","Use two-sided variant (to compute left eigenvectors)","EPSSetTwoSided",eps->twosided,&bval,&flg);CHKERRQ(ierr);
+    if (flg) { ierr = EPSSetTwoSided(eps,bval);CHKERRQ(ierr); }
 
     /* -----------------------------------------------------------------------*/
     /*
@@ -1189,6 +1191,65 @@ PetscErrorCode EPSGetBalance(EPS eps,EPSBalance *bal,PetscInt *its,PetscReal *cu
 }
 
 /*@
+   EPSSetTwoSided - Sets the solver to use a two-sided variant so that left
+   eigenvectors are also computed.
+
+   Logically Collective on EPS
+
+   Input Parameters:
++  eps      - the eigensolver context
+-  twosided - whether the two-sided variant is to be used or not
+
+   Options Database Keys:
+.  -eps_two_sided <boolean> - Sets/resets the twosided flag
+
+   Notes:
+   If the user sets twosided=PETSC_TRUE then the solver uses a variant of
+   the algorithm that computes both right and left eigenvectors. This is
+   usually much more costly. This option is not available in all solvers.
+
+   Level: advanced
+
+.seealso: EPSGetTwoSided()
+@*/
+PetscErrorCode EPSSetTwoSided(EPS eps,PetscBool twosided)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
+  PetscValidLogicalCollectiveBool(eps,twosided,2);
+  if (twosided!=eps->twosided) {
+    eps->twosided = twosided;
+    eps->state    = EPS_STATE_INITIAL;
+  }
+  PetscFunctionReturn(0);
+}
+
+/*@
+   EPSGetTwoSided - Returns the flag indicating whether a two-sided variant
+   of the algorithm is being used or not.
+
+   Not Collective
+
+   Input Parameter:
+.  eps - the eigensolver context
+
+   Output Parameter:
+.  twosided - the returned flag
+
+   Level: advanced
+
+.seealso: EPSSetTwoSided()
+@*/
+PetscErrorCode EPSGetTwoSided(EPS eps,PetscBool *twosided)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
+  PetscValidPointer(twosided,2);
+  *twosided = eps->twosided;
+  PetscFunctionReturn(0);
+}
+
+/*@
    EPSSetTrueResidual - Specifies if the solver must compute the true residual
    explicitly or not.
 
@@ -1333,8 +1394,10 @@ PetscErrorCode EPSSetPurify(EPS eps,PetscBool purify)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidLogicalCollectiveBool(eps,purify,2);
-  eps->purify = purify;
-  if (purify && !eps->purify) eps->state = EPS_STATE_INITIAL;
+  if (purify!=eps->purify) {
+    eps->purify = purify;
+    eps->state  = EPS_STATE_INITIAL;
+  }
   PetscFunctionReturn(0);
 }
 

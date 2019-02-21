@@ -122,6 +122,11 @@ PetscErrorCode EPSSetUp(EPS eps)
 
   ierr = STSetTransform(eps->st,PETSC_TRUE);CHKERRQ(ierr);
   if (eps->useds && !eps->ds) { ierr = EPSGetDS(eps,&eps->ds);CHKERRQ(ierr); }
+  if (eps->twosided) {
+    if (!eps->hasts) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"This solver does not support computing left eigenvectors (no two-sided variant)");
+    if (eps->ishermitian) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Two-sided methods are not intended for symmetric problems");
+    ierr = DSDuplicate(eps->ds,&eps->dsts);CHKERRQ(ierr);
+  }
   if (!eps->rg) { ierr = EPSGetRG(eps,&eps->rg);CHKERRQ(ierr); }
   if (!((PetscObject)eps->rg)->type_name) {
     ierr = RGSetType(eps->rg,RGINTERVAL);CHKERRQ(ierr);
@@ -234,16 +239,17 @@ PetscErrorCode EPSSetUp(EPS eps)
   eps->sc->map    = NULL;
   eps->sc->mapobj = NULL;
 
-  if (eps->useds) {
-    /* fill sorting criterion for DS */
+  /* fill sorting criterion for DS */
+  if (eps->useds && eps->which!=EPS_ALL) {
     ierr = DSGetSlepcSC(eps->ds,&sc);CHKERRQ(ierr);
     ierr = RGIsTrivial(eps->rg,&istrivial);CHKERRQ(ierr);
-    if (eps->which!=EPS_ALL) {
-      sc->rg            = istrivial? NULL: eps->rg;
-      sc->comparison    = eps->sc->comparison;
-      sc->comparisonctx = eps->sc->comparisonctx;
-      sc->map           = SlepcMap_ST;
-      sc->mapobj        = (PetscObject)eps->st;
+    sc->rg            = istrivial? NULL: eps->rg;
+    sc->comparison    = eps->sc->comparison;
+    sc->comparisonctx = eps->sc->comparisonctx;
+    sc->map           = SlepcMap_ST;
+    sc->mapobj        = (PetscObject)eps->st;
+    if (eps->twosided) {
+      ierr = DSSetSlepcSC(eps->dsts,sc);CHKERRQ(ierr);
     }
   }
 
@@ -530,6 +536,11 @@ PetscErrorCode EPSAllocateSolution(EPS eps,PetscInt extra)
     ierr = PetscFree4(eps->eigr,eps->eigi,eps->errest,eps->perm);CHKERRQ(ierr);
     ierr = PetscMalloc4(requested,&eps->eigr,requested,&eps->eigi,requested,&eps->errest,requested,&eps->perm);CHKERRQ(ierr);
     cnt = 2*newc*sizeof(PetscScalar) + 2*newc*sizeof(PetscReal) + newc*sizeof(PetscInt);
+    if (eps->twosided) {
+      if (eps->lerrest) { ierr = PetscFree(eps->lerrest);CHKERRQ(ierr); }
+      ierr = PetscMalloc1(requested,&eps->lerrest);CHKERRQ(ierr);
+      cnt += newc*sizeof(PetscReal);
+    }
     ierr = PetscLogObjectMemory((PetscObject)eps,cnt);CHKERRQ(ierr);
   }
 
@@ -553,6 +564,12 @@ PetscErrorCode EPSAllocateSolution(EPS eps,PetscInt extra)
     ierr = VecDestroy(&t);CHKERRQ(ierr);
   } else {
     ierr = BVResize(eps->V,requested,PETSC_FALSE);CHKERRQ(ierr);
+  }
+
+  /* allocate W */
+  if (eps->twosided) {
+    ierr = BVDestroy(&eps->W);CHKERRQ(ierr);
+    ierr = BVDuplicate(eps->V,&eps->W);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }
