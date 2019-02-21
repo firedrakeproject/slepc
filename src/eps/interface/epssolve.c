@@ -621,11 +621,12 @@ PetscErrorCode EPSGetErrorEstimate(EPS eps,PetscInt i,PetscReal *errest)
    associated with an eigenpair.
 
    Input Parameters:
+     trans - whether A' must be used instead of A
      kr,ki - eigenvalue
      xr,xi - eigenvector
      z     - three work vectors (the second one not referenced in complex scalars)
 */
-PetscErrorCode EPSComputeResidualNorm_Private(EPS eps,PetscScalar kr,PetscScalar ki,Vec xr,Vec xi,Vec *z,PetscReal *norm)
+PetscErrorCode EPSComputeResidualNorm_Private(EPS eps,PetscBool trans,PetscScalar kr,PetscScalar ki,Vec xr,Vec xi,Vec *z,PetscReal *norm)
 {
   PetscErrorCode ierr;
   PetscInt       nmat;
@@ -635,6 +636,7 @@ PetscErrorCode EPSComputeResidualNorm_Private(EPS eps,PetscScalar kr,PetscScalar
   Vec            v;
   PetscReal      ni,nr;
 #endif
+  PetscErrorCode (*matmult)(Mat,Vec,Vec) = trans? MatMultTranspose: MatMult;
 
   PetscFunctionBegin;
   u = z[0]; w = z[2];
@@ -646,26 +648,26 @@ PetscErrorCode EPSComputeResidualNorm_Private(EPS eps,PetscScalar kr,PetscScalar
   v = z[1];
   if (ki == 0 || PetscAbsScalar(ki) < PetscAbsScalar(kr*PETSC_MACHINE_EPSILON)) {
 #endif
-    ierr = MatMult(A,xr,u);CHKERRQ(ierr);                             /* u=A*x */
+    ierr = (*matmult)(A,xr,u);CHKERRQ(ierr);                          /* u=A*x */
     if (PetscAbsScalar(kr) > PETSC_MACHINE_EPSILON) {
-      if (nmat>1) { ierr = MatMult(B,xr,w);CHKERRQ(ierr); }
+      if (nmat>1) { ierr = (*matmult)(B,xr,w);CHKERRQ(ierr); }
       else { ierr = VecCopy(xr,w);CHKERRQ(ierr); }                    /* w=B*x */
       ierr = VecAXPY(u,-kr,w);CHKERRQ(ierr);                          /* u=A*x-k*B*x */
     }
     ierr = VecNorm(u,NORM_2,norm);CHKERRQ(ierr);
 #if !defined(PETSC_USE_COMPLEX)
   } else {
-    ierr = MatMult(A,xr,u);CHKERRQ(ierr);                             /* u=A*xr */
+    ierr = (*matmult)(A,xr,u);CHKERRQ(ierr);                          /* u=A*xr */
     if (SlepcAbsEigenvalue(kr,ki) > PETSC_MACHINE_EPSILON) {
-      if (nmat>1) { ierr = MatMult(B,xr,v);CHKERRQ(ierr); }
+      if (nmat>1) { ierr = (*matmult)(B,xr,v);CHKERRQ(ierr); }
       else { ierr = VecCopy(xr,v);CHKERRQ(ierr); }                    /* v=B*xr */
       ierr = VecAXPY(u,-kr,v);CHKERRQ(ierr);                          /* u=A*xr-kr*B*xr */
-      if (nmat>1) { ierr = MatMult(B,xi,w);CHKERRQ(ierr); }
+      if (nmat>1) { ierr = (*matmult)(B,xi,w);CHKERRQ(ierr); }
       else { ierr = VecCopy(xi,w);CHKERRQ(ierr); }                    /* w=B*xi */
       ierr = VecAXPY(u,ki,w);CHKERRQ(ierr);                           /* u=A*xr-kr*B*xr+ki*B*xi */
     }
     ierr = VecNorm(u,NORM_2,&nr);CHKERRQ(ierr);
-    ierr = MatMult(A,xi,u);CHKERRQ(ierr);                             /* u=A*xi */
+    ierr = (*matmult)(A,xi,u);CHKERRQ(ierr);                          /* u=A*xi */
     if (SlepcAbsEigenvalue(kr,ki) > PETSC_MACHINE_EPSILON) {
       ierr = VecAXPY(u,-kr,w);CHKERRQ(ierr);                          /* u=A*xi-kr*B*xi */
       ierr = VecAXPY(u,-ki,v);CHKERRQ(ierr);                          /* u=A*xi-kr*B*xi-ki*B*xr */
@@ -704,7 +706,7 @@ PetscErrorCode EPSComputeError(EPS eps,PetscInt i,EPSErrorType type,PetscReal *e
   PetscErrorCode ierr;
   Mat            A,B;
   Vec            xr,xi,w[3];
-  PetscReal      t,vecnorm=1.0;
+  PetscReal      t,vecnorm=1.0,errorl;
   PetscScalar    kr,ki;
   PetscBool      flg;
 
@@ -729,13 +731,20 @@ PetscErrorCode EPSComputeError(EPS eps,PetscInt i,EPSErrorType type,PetscReal *e
   w[0] = eps->work[1];
   w[2] = eps->work[2];
 
-  /* compute residual norms */
+  /* compute residual norm */
   ierr = EPSGetEigenpair(eps,i,&kr,&ki,xr,xi);CHKERRQ(ierr);
-  ierr = EPSComputeResidualNorm_Private(eps,kr,ki,xr,xi,w,error);CHKERRQ(ierr);
+  ierr = EPSComputeResidualNorm_Private(eps,PETSC_FALSE,kr,ki,xr,xi,w,error);CHKERRQ(ierr);
 
   /* compute 2-norm of eigenvector */
   if (eps->problem_type==EPS_GHEP) {
     ierr = VecNorm(xr,NORM_2,&vecnorm);CHKERRQ(ierr);
+  }
+
+  /* if two-sided, compute left residual norm and take the maximum */
+  if (eps->twosided) {
+    ierr = EPSGetLeftEigenvector(eps,i,xr,xi);CHKERRQ(ierr);
+    ierr = EPSComputeResidualNorm_Private(eps,PETSC_TRUE,kr,ki,xr,xi,w,&errorl);CHKERRQ(ierr);
+    *error = PetscMax(*error,errorl);
   }
 
   /* compute error */

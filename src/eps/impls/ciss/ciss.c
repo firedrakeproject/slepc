@@ -1143,7 +1143,7 @@ PetscErrorCode EPSSolve_CISS(EPS eps)
       max_error = 0.0;
       for (i=0;i<eps->nconv;i++) {
         ierr = BVGetColumn(ctx->S,i,&si);CHKERRQ(ierr);
-        ierr = EPSComputeResidualNorm_Private(eps,eps->eigr[i],eps->eigi[i],si,NULL,w,&error);CHKERRQ(ierr);
+        ierr = EPSComputeResidualNorm_Private(eps,PETSC_FALSE,eps->eigr[i],eps->eigi[i],si,NULL,w,&error);CHKERRQ(ierr);
         ierr = (*eps->converged)(eps,eps->eigr[i],eps->eigi[i],error,&error,eps->convergedctx);CHKERRQ(ierr);
         ierr = BVRestoreColumn(ctx->S,i,&si);CHKERRQ(ierr);
         max_error = PetscMax(max_error,error);

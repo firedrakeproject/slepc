@@ -139,8 +139,8 @@ PetscErrorCode EPSSolve_LAPACK(EPS eps)
 {
   PetscErrorCode ierr;
   PetscInt       n=eps->n,i,low,high;
-  PetscScalar    *array,*pX;
-  Vec            v;
+  PetscScalar    *array,*pX,*pY;
+  Vec            v,w;
 
   PetscFunctionBegin;
   ierr = DSSolve(eps->ds,eps->eigr,eps->eigi);CHKERRQ(ierr);
@@ -160,6 +160,21 @@ PetscErrorCode EPSSolve_LAPACK(EPS eps)
   }
   ierr = DSRestoreArray(eps->ds,DS_MAT_X,&pX);CHKERRQ(ierr);
 
+  /* left eigenvectors */
+  if (eps->twosided) {
+    ierr = DSVectors(eps->ds,DS_MAT_Y,NULL,NULL);CHKERRQ(ierr);
+    ierr = DSGetArray(eps->ds,DS_MAT_Y,&pY);CHKERRQ(ierr);
+    for (i=0;i<eps->ncv;i++) {
+      ierr = BVGetColumn(eps->W,i,&w);CHKERRQ(ierr);
+      ierr = VecGetOwnershipRange(w,&low,&high);CHKERRQ(ierr);
+      ierr = VecGetArray(w,&array);CHKERRQ(ierr);
+      ierr = PetscMemcpy(array,pY+i*n+low,(high-low)*sizeof(PetscScalar));CHKERRQ(ierr);
+      ierr = VecRestoreArray(w,&array);CHKERRQ(ierr);
+      ierr = BVRestoreColumn(eps->W,i,&w);CHKERRQ(ierr);
+    }
+    ierr = DSRestoreArray(eps->ds,DS_MAT_Y,&pY);CHKERRQ(ierr);
+  }
+
   eps->nconv  = eps->ncv;
   eps->its    = 1;
   eps->reason = EPS_CONVERGED_TOL;
@@ -170,6 +185,7 @@ SLEPC_EXTERN PetscErrorCode EPSCreate_LAPACK(EPS eps)
 {
   PetscFunctionBegin;
   eps->useds = PETSC_TRUE;
+  eps->hasts = PETSC_TRUE;
   eps->categ = EPS_CATEGORY_OTHER;
 
   eps->ops->solve          = EPSSolve_LAPACK;

@@ -332,7 +332,7 @@ PetscErrorCode EPSKrylovConvergence(EPS eps,PetscBool getall,PetscInt kini,Petsc
       else Zi = NULL;
       ierr = EPSComputeRitzVector(eps,Zr,Zi,eps->V,x,y);CHKERRQ(ierr);
       ierr = DSRestoreArray(eps->ds,DS_MAT_X,&X);CHKERRQ(ierr);
-      ierr = EPSComputeResidualNorm_Private(eps,re,im,x,y,w,&resnorm);CHKERRQ(ierr);
+      ierr = EPSComputeResidualNorm_Private(eps,PETSC_FALSE,re,im,x,y,w,&resnorm);CHKERRQ(ierr);
     }
     else if (!refined) resnorm *= beta*corrf;
     /* error estimate */

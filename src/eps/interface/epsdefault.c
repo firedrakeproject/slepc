@@ -191,6 +191,16 @@ PetscErrorCode EPSComputeVectors_Schur(EPS eps)
       }
     }
   }
+
+  /* left eigenvectors from eps->dsts */
+  if (eps->twosided) {
+    ierr = DSVectors(eps->dsts,DS_MAT_X,NULL,NULL);CHKERRQ(ierr);
+    /* W = W * Z */
+    ierr = DSGetMat(eps->dsts,DS_MAT_X,&Z);CHKERRQ(ierr);
+    ierr = BVSetActiveColumns(eps->W,0,n);CHKERRQ(ierr);
+    ierr = BVMultInPlace(eps->W,Z,0,n);CHKERRQ(ierr);
+    ierr = MatDestroy(&Z);CHKERRQ(ierr);
+  }
   PetscFunctionReturn(0);
 }
 
