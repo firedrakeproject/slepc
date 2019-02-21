@@ -1,6 +1,10 @@
 
 Spectrum slicing on PEP, n=100
 
+Subintervals (after setup):
+Shift -11.3  Inertia 87 
+Shift -9.5  Inertia 99 
+
  Solution method: stoar
 
  12 eigenvalues found in [-11.3, -9.5]

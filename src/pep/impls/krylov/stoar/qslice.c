@@ -19,8 +19,8 @@
    References:
 
        [1] C. Campos and J.E. Roman, "Inertia-based spectrum slicing
-           for symmetric quadratic eigenvalue problems", in preparation,
-           2018.
+           for symmetric quadratic eigenvalue problems", submitted,
+           2019.
 */
 
 #include <slepc/private/pepimpl.h>         /*I "slepcpep.h" I*/
@@ -136,13 +136,42 @@ static PetscErrorCode ConvergedPositive(EPS eps,PetscScalar eigr,PetscScalar eig
   PetscFunctionReturn(0);
 }
 
+static PetscErrorCode PEPQSliceMatGetInertia(PEP pep,PetscReal shift,PetscInt *inertia,PetscInt *zeros)
+{
+  KSP            ksp,kspr;
+  PC             pc;
+  Mat            F;
+  PetscBool      flg;
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  if (!pep->solvematcoeffs) {
+    ierr = PetscMalloc1(pep->nmat,&pep->solvematcoeffs);CHKERRQ(ierr);
+  }
+  if (shift==PETSC_MAX_REAL) { /* Inertia of matrix A[2] */
+    pep->solvematcoeffs[0] = 0.0; pep->solvematcoeffs[1] = 0.0; pep->solvematcoeffs[2] = 1.0;
+  } else {
+    ierr = PEPEvaluateBasis(pep,shift,0,pep->solvematcoeffs,NULL);CHKERRQ(ierr);
+  }
+  ierr = STSetUp(pep->st);CHKERRQ(ierr);
+  ierr = STMatSetUp(pep->st,pep->sfactor,pep->solvematcoeffs);CHKERRQ(ierr);
+  ierr = STGetKSP(pep->st,&ksp);CHKERRQ(ierr);
+  ierr = KSPGetPC(ksp,&pc);CHKERRQ(ierr);
+  ierr = PetscObjectTypeCompare((PetscObject)pc,PCREDUNDANT,&flg);CHKERRQ(ierr);
+  if (flg) {
+    ierr = PCRedundantGetKSP(pc,&kspr);CHKERRQ(ierr);
+    ierr = KSPGetPC(kspr,&pc);CHKERRQ(ierr);
+  }
+  ierr = PCFactorGetMatrix(pc,&F);CHKERRQ(ierr);
+  ierr = MatGetInertia(F,inertia,zeros,NULL);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
 static PetscErrorCode PEPQSliceGetInertia(PEP pep,PetscReal shift,PetscInt *inertia,PetscInt *zeros,PetscInt correction)
 {
   PetscErrorCode ierr;
-  KSP            ksp,kspr;
-  PC             pc;
-  Mat            F,P;
-  PetscBool      flg;
+  KSP            ksp;
+  Mat            P;
   PetscReal      nzshift=0.0;
   PetscScalar    dot;
   PetscRandom    rand;
@@ -161,23 +190,13 @@ static PetscErrorCode PEPQSliceGetInertia(PEP pep,PetscReal shift,PetscInt *iner
        The goal is that the nonzero pattern is the same in all cases and reuse
        the symbolic factorizations */
     nzshift = (shift==0.0)? 10.0/PETSC_MAX_REAL: shift;
+    ierr = PEPQSliceMatGetInertia(pep,nzshift,inertia,zeros);CHKERRQ(ierr);
     ierr = STSetShift(pep->st,nzshift);CHKERRQ(ierr);
-    ierr = PEPEvaluateBasis(pep,nzshift,0,pep->solvematcoeffs,NULL);CHKERRQ(ierr);
-    ierr = STSetUp(pep->st);CHKERRQ(ierr);
-    ierr = STMatSetUp(pep->st,pep->sfactor,pep->solvematcoeffs);CHKERRQ(ierr);
-    ierr = STGetKSP(pep->st,&ksp);CHKERRQ(ierr);
-    ierr = KSPGetPC(ksp,&pc);CHKERRQ(ierr);
-    ierr = PetscObjectTypeCompare((PetscObject)pc,PCREDUNDANT,&flg);CHKERRQ(ierr);
-    if (flg) {
-      ierr = PCRedundantGetKSP(pc,&kspr);CHKERRQ(ierr);
-      ierr = KSPGetPC(kspr,&pc);CHKERRQ(ierr);
-    }
-    ierr = PCFactorGetMatrix(pc,&F);CHKERRQ(ierr);
-    ierr = MatGetInertia(F,inertia,zeros,NULL);CHKERRQ(ierr);
   }
   if (!correction) {
     if (shift >= PETSC_MAX_REAL) *inertia = 2*pep->n;
     else if (shift>PETSC_MIN_REAL) {
+      ierr = STGetKSP(pep->st,&ksp);CHKERRQ(ierr);
       ierr = KSPGetOperators(ksp,&P,NULL);CHKERRQ(ierr);
       if (*inertia!=pep->n && !sr->v[0]) {
         ierr = MatCreateVecs(P,&sr->v[0],NULL);CHKERRQ(ierr);
@@ -191,8 +210,8 @@ static PetscErrorCode PEPQSliceGetInertia(PEP pep,PetscReal shift,PetscInt *iner
           ierr = EPSCreate(PetscObjectComm((PetscObject)pep),&sr->eps);CHKERRQ(ierr);
           ierr = EPSSetProblemType(sr->eps,EPS_HEP);CHKERRQ(ierr);
           ierr = EPSSetWhichEigenpairs(sr->eps,EPS_LARGEST_REAL);CHKERRQ(ierr);
-          ierr = EPSSetConvergenceTestFunction(sr->eps,ConvergedPositive,NULL,NULL);CHKERRQ(ierr);
         }
+        ierr = EPSSetConvergenceTestFunction(sr->eps,ConvergedPositive,NULL,NULL);CHKERRQ(ierr);
         ierr = EPSSetOperators(sr->eps,P,NULL);CHKERRQ(ierr);
         ierr = EPSSolve(sr->eps);CHKERRQ(ierr);
         ierr = EPSGetConverged(sr->eps,&nconv);CHKERRQ(ierr);
@@ -268,6 +287,206 @@ static PetscErrorCode PEPQSliceCheckEigenvalueType(PEP pep,PetscReal shift,Petsc
   PetscFunctionReturn(0);
 }
 
+PETSC_STATIC_INLINE PetscErrorCode PEPQSliceDiscriminant(PEP pep,Vec u,Vec w,PetscReal *d,PetscReal *smas,PetscReal *smenos)
+{
+  PetscReal      ap,bp,cp;
+  PetscScalar    ts;
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  ierr = MatMult(pep->A[0],u,w);CHKERRQ(ierr);
+  ierr = VecDot(w,u,&ts);CHKERRQ(ierr);
+  cp = PetscRealPart(ts);
+  ierr = MatMult(pep->A[1],u,w);CHKERRQ(ierr);
+  ierr = VecDot(w,u,&ts);CHKERRQ(ierr);
+  bp = PetscRealPart(ts);
+  ierr = MatMult(pep->A[2],u,w);CHKERRQ(ierr);
+  ierr = VecDot(w,u,&ts);CHKERRQ(ierr);
+  ap = PetscRealPart(ts);
+  if (d) *d = bp*bp-4*ap*cp;
+  if (*d>=0.0 && smas) {
+    if (ap>0) *smas = (-bp+PetscSqrtReal(*d))/(2*ap);
+    else if (ap<0) *smas = (-bp-PetscSqrtReal(*d))/(2*ap);
+    else {
+      if (bp >0) *smas = -cp/bp;
+      else *smas = PETSC_MAX_REAL;
+    }
+  }
+  if (*d>=0.0 && smenos) {
+    if (ap>0) *smenos = (-bp-PetscSqrtReal(*d))/(2*ap);
+    else if (ap<0) *smenos = (-bp+PetscSqrtReal(*d))/(2*ap);
+    else {
+      if (bp<0) *smenos = -cp/bp;
+      else *smenos = PETSC_MAX_REAL;
+    }
+  }
+  PetscFunctionReturn(0);
+}
+
+PETSC_STATIC_INLINE PetscErrorCode PEPQSliceEvaluateQEP(PEP pep,PetscScalar x,Mat M,MatStructure str)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  ierr = MatCopy(pep->A[0],M,SAME_NONZERO_PATTERN);CHKERRQ(ierr);
+  ierr = MatAXPY(M,x,pep->A[1],str);CHKERRQ(ierr);
+  ierr = MatAXPY(M,x*x,pep->A[2],str);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+/*@
+   PEPCheckDefiniteQEP - Determines if a symmetric/Hermitian quadratic eigenvalue problem
+   is definite or not.
+
+   Logically Collective on PEP
+
+   Input Parameter:
+.  pep  - eigensolver context
+
+   Output Parameters:
++  xi - first computed parameter
+.  mu - second computed parameter
+.  definite - flag indicating that the problem is definite
+-  hyperbolic - flag indicating that the problem is hyperbolic
+
+   Notes:
+   This function is intended for quadratic eigenvalue problems, Q(lambda)=A*lambda^2+B*lambda+C,
+   with symmetric (or Hermitian) coefficient matrices A,B,C.
+
+   On output, the flag 'definite' may have the values -1 (meaning that the QEP is not
+   definite), 1 (if the problem is definite), or 0 if the algorithm was not able to
+   determine whether the problem is definite or not.
+
+   If definite=1, the output flag 'hyperbolic' informs in a similar way about whether the
+   problem is hyperbolic or not.
+
+   If definite=1, the computed values xi and mu satisfy Q(xi)<0 and Q(mu)>0, as
+   obtained via the method proposed in [Niendorf and Voss, LAA 2010]. Furthermore, if
+   hyperbolic=1 then only xi is computed.
+
+   Level: advanced
+@*/
+PetscErrorCode PEPCheckDefiniteQEP(PEP pep,PetscReal *xi,PetscReal *mu,PetscInt *definite,PetscInt *hyperbolic)
+{
+  PetscErrorCode ierr;
+  PetscRandom    rand;
+  Vec            u,w;
+  PetscReal      d,s,sp,mut=0.0,omg,omgp;
+  PetscInt       k,its=10,hyp=0,check=0,nconv,inertia,n;
+  Mat            M=NULL;
+  MatStructure   str;
+  EPS            eps;
+  PetscBool      transform,ptypehyp;
+
+  PetscFunctionBegin;
+  if (pep->problem_type!=PEP_HERMITIAN && pep->problem_type!=PEP_HYPERBOLIC) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Only available for Hermitian (or hyperbolic) problems");
+  ptypehyp = (pep->problem_type==PEP_HYPERBOLIC)? PETSC_TRUE: PETSC_FALSE;
+  if (!pep->st) { ierr = PEPGetST(pep,&pep->st);CHKERRQ(ierr); }
+  ierr = PEPSetDefaultST(pep);CHKERRQ(ierr);
+  ierr = STSetMatrices(pep->st,pep->nmat,pep->A);CHKERRQ(ierr);
+  ierr = MatGetSize(pep->A[0],&n,NULL);CHKERRQ(ierr);
+  ierr = STGetTransform(pep->st,&transform);CHKERRQ(ierr);
+  ierr = STSetTransform(pep->st,PETSC_FALSE);CHKERRQ(ierr);
+  ierr = STSetUp(pep->st);CHKERRQ(ierr);
+  ierr = MatCreateVecs(pep->A[0],&u,&w);CHKERRQ(ierr);
+  ierr = PEPGetBV(pep,&pep->V);CHKERRQ(ierr);
+  ierr = BVGetRandomContext(pep->V,&rand);CHKERRQ(ierr);
+  ierr = VecSetRandom(u,rand);CHKERRQ(ierr);
+  ierr = VecNormalize(u,NULL);CHKERRQ(ierr);
+  ierr = PEPQSliceDiscriminant(pep,u,w,&d,&s,NULL);CHKERRQ(ierr);
+  if (d<0.0) check = -1;
+  if (!check) {
+    ierr = EPSCreate(PetscObjectComm((PetscObject)pep),&eps);CHKERRQ(ierr);
+    ierr = EPSSetProblemType(eps,EPS_HEP);CHKERRQ(ierr);
+    ierr = EPSSetWhichEigenpairs(eps,EPS_LARGEST_REAL);CHKERRQ(ierr);
+    ierr = EPSSetTolerances(eps,PetscSqrtReal(PETSC_SQRT_MACHINE_EPSILON),PETSC_DECIDE);
+    ierr = MatDuplicate(pep->A[0],MAT_DO_NOT_COPY_VALUES,&M);CHKERRQ(ierr);
+    ierr = STGetMatStructure(pep->st,&str);CHKERRQ(ierr);
+  }
+  for (k=0;k<its&&!check;k++) {
+    ierr = PEPQSliceEvaluateQEP(pep,s,M,str);CHKERRQ(ierr);
+    ierr = EPSSetOperators(eps,M,NULL);CHKERRQ(ierr);
+    ierr = EPSSolve(eps);CHKERRQ(ierr);
+    ierr = EPSGetConverged(eps,&nconv);CHKERRQ(ierr);
+    if (!nconv) break;
+    ierr = EPSGetEigenpair(eps,0,NULL,NULL,u,w);CHKERRQ(ierr);
+    sp = s;
+    ierr = PEPQSliceDiscriminant(pep,u,w,&d,&s,&omg);CHKERRQ(ierr);
+    if (d<0.0) {check = -1; break;}
+    if (PetscAbsReal((s-sp)/s)<100*PETSC_MACHINE_EPSILON) break;
+    if (s>sp) {hyp = -1;}
+    mut = 2*s-sp;
+    ierr =  PEPQSliceMatGetInertia(pep,mut,&inertia,NULL);CHKERRQ(ierr);
+    if (inertia == n) {check = 1; break;}
+  }
+  for (;k<its&&!check;k++) {
+    mut = (s-omg)/2;
+    ierr =  PEPQSliceMatGetInertia(pep,mut,&inertia,NULL);CHKERRQ(ierr);
+    if (inertia == n) {check = 1; break;}
+    if (PetscAbsReal((s-omg)/omg)<100*PETSC_MACHINE_EPSILON) break;
+    ierr = PEPQSliceEvaluateQEP(pep,omg,M,str);CHKERRQ(ierr);
+    ierr = EPSSetOperators(eps,M,NULL);CHKERRQ(ierr);
+    ierr = EPSSolve(eps);CHKERRQ(ierr);
+    ierr = EPSGetConverged(eps,&nconv);CHKERRQ(ierr);
+    if (!nconv) break;
+    ierr = EPSGetEigenpair(eps,0,NULL,NULL,u,w);CHKERRQ(ierr);
+    omgp = omg;
+    ierr = PEPQSliceDiscriminant(pep,u,w,&d,NULL,&omg);CHKERRQ(ierr);
+    if (d<0.0) {check = -1; break;}
+    if (omg<omgp) {hyp = -1;}
+  }
+  if (check==1) *xi = mut;
+  if (hyp==-1 && ptypehyp) SETERRQ(PetscObjectComm((PetscObject)pep),1,"Problem does not satisfy hyperbolic test; consider removing the hyperbolicity flag");
+  if (check==1 && hyp==0) {
+    ierr =  PEPQSliceMatGetInertia(pep,PETSC_MAX_REAL,&inertia,NULL);CHKERRQ(ierr);
+    if (inertia == 0) hyp = 1;
+    else hyp = -1;
+  }
+  if (check==1 && hyp!=1) {
+    check = 0;
+    ierr = EPSSetWhichEigenpairs(eps,EPS_SMALLEST_REAL);CHKERRQ(ierr);
+    for (;k<its&&!check;k++) {
+      ierr = PEPQSliceEvaluateQEP(pep,s,M,str);CHKERRQ(ierr);
+      ierr = EPSSetOperators(eps,M,NULL);CHKERRQ(ierr);
+      ierr = EPSSolve(eps);CHKERRQ(ierr);
+      ierr = EPSGetConverged(eps,&nconv);CHKERRQ(ierr);
+      if (!nconv) break;
+      ierr = EPSGetEigenpair(eps,0,NULL,NULL,u,w);CHKERRQ(ierr);
+      sp = s;
+      ierr = PEPQSliceDiscriminant(pep,u,w,&d,&s,&omg);CHKERRQ(ierr);
+      if (d<0.0) {check = -1; break;}
+      if (PetscAbsReal((s-sp)/s)<100*PETSC_MACHINE_EPSILON) break;
+      mut = 2*s-sp;
+      ierr =  PEPQSliceMatGetInertia(pep,mut,&inertia,NULL);CHKERRQ(ierr);
+      if (inertia == 0) {check = 1; break;}
+    }
+    for (;k<its&&!check;k++) {
+      mut = (s-omg)/2;
+      ierr =  PEPQSliceMatGetInertia(pep,mut,&inertia,NULL);CHKERRQ(ierr);
+      if (inertia == 0) {check = 1; break;}
+      if (PetscAbsReal((s-omg)/omg)<100*PETSC_MACHINE_EPSILON) break;
+      ierr = PEPQSliceEvaluateQEP(pep,omg,M,str);CHKERRQ(ierr);
+      ierr = EPSSetOperators(eps,M,NULL);CHKERRQ(ierr);
+      ierr = EPSSolve(eps);CHKERRQ(ierr);
+      ierr = EPSGetConverged(eps,&nconv);CHKERRQ(ierr);
+      if (!nconv) break;
+      ierr = EPSGetEigenpair(eps,0,NULL,NULL,u,w);CHKERRQ(ierr);
+      omgp = omg;
+      ierr = PEPQSliceDiscriminant(pep,u,w,&d,NULL,&omg);CHKERRQ(ierr);
+      if (d<0.0) {check = -1; break;}
+    }
+  }
+  if (check==1) *mu = mut;
+  *definite = check;
+  *hyperbolic = hyp;
+  if (M) { ierr = MatDestroy(&M);CHKERRQ(ierr); }
+  ierr = VecDestroy(&u);CHKERRQ(ierr);
+  ierr = VecDestroy(&w);CHKERRQ(ierr);
+  ierr = EPSDestroy(&eps);CHKERRQ(ierr);
+  ierr = STSetTransform(pep->st,transform);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
 /*
    Dummy backtransform operation
  */
@@ -292,7 +511,7 @@ PetscErrorCode PEPSetUp_STOAR_QSlice(PEP pep)
   ierr = PetscObjectTypeCompareAny((PetscObject)pep->st,&issinv,STSINVERT,STCAYLEY,"");CHKERRQ(ierr);
   if (!issinv) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Shift-and-invert or Cayley ST is needed for spectrum slicing");
   if (pep->tol==PETSC_DEFAULT) pep->tol = SLEPC_DEFAULT_TOL*1e-2;  /* use tighter tolerance */
-  if (ctx->nev==0) ctx->nev = PetscMin(20,pep->n);  /* nev not set, use default value */
+  if (ctx->nev==1) ctx->nev = PetscMin(20,pep->n);  /* nev not set, use default value */
   if (pep->n>10 && ctx->nev<10) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_WRONG,"nev cannot be less than 10 in spectrum slicing runs");
   pep->ops->backtransform = PEPBackTransform_Skip;
   if (!pep->max_it) pep->max_it = 100;
@@ -304,6 +523,15 @@ PetscErrorCode PEPSetUp_STOAR_QSlice(PEP pep)
   sr->itsKs = 0;
   sr->nleap = 0;
   sr->sPres = NULL;
+
+  if (pep->solvematcoeffs) { ierr = PetscFree(pep->solvematcoeffs);CHKERRQ(ierr); }
+  ierr = PetscMalloc1(pep->nmat,&pep->solvematcoeffs);CHKERRQ(ierr);
+  if (!pep->st) { ierr = PEPGetST(pep,&pep->st);CHKERRQ(ierr); }
+  ierr = STSetTransform(pep->st,PETSC_FALSE);CHKERRQ(ierr);
+  ierr = STSetUp(pep->st);CHKERRQ(ierr);
+
+  ctx->hyperbolic = (pep->problem_type==PEP_HYPERBOLIC)? PETSC_TRUE: PETSC_FALSE;
+
   /* check presence of ends and finding direction */
   if (pep->inta > PETSC_MIN_REAL || pep->intb >= PETSC_MAX_REAL) {
     sr->int0 = pep->inta;
@@ -319,13 +547,7 @@ PetscErrorCode PEPSetUp_STOAR_QSlice(PEP pep)
     sr->hasEnd = PetscNot(pep->inta <= PETSC_MIN_REAL);
   }
 
-  ierr = PetscMalloc1(pep->nmat,&pep->solvematcoeffs);CHKERRQ(ierr);
-  if (!pep->st) {ierr = PEPGetST(pep,&pep->st);CHKERRQ(ierr);}
-  ierr = STSetTransform(pep->st,PETSC_FALSE);CHKERRQ(ierr);
-  ierr = STSetUp(pep->st);CHKERRQ(ierr);
-
   /* compute inertia0 */
-  ctx->hyperbolic = (pep->problem_type==PEP_HYPERBOLIC)? PETSC_TRUE: PETSC_FALSE;
   ierr = PEPQSliceGetInertia(pep,sr->int0,&sr->inertia0,ctx->detect?&zeros:NULL,ctx->hyperbolic?0:1);CHKERRQ(ierr);
   if (zeros && (sr->int0==pep->inta || sr->int0==pep->intb)) SETERRQ(((PetscObject)pep)->comm,PETSC_ERR_USER,"Found singular matrix for the transformed problem in the interval endpoint");
   if (!ctx->hyperbolic && ctx->checket) {
@@ -335,7 +557,7 @@ PetscErrorCode PEPSetUp_STOAR_QSlice(PEP pep)
   /* compute inertia1 */
   ierr = PEPQSliceGetInertia(pep,sr->int1,&sr->inertia1,ctx->detect?&zeros:NULL,ctx->hyperbolic?0:1);CHKERRQ(ierr);
   if (zeros) SETERRQ(((PetscObject)pep)->comm,PETSC_ERR_USER,"Found singular matrix for the transformed problem in an interval endpoint defined by user");
-  if (!ctx->hyperbolic && ctx->checket) {
+  if (!ctx->hyperbolic && ctx->checket && sr->hasEnd) {
     ierr = PEPQSliceCheckEigenvalueType(pep,sr->int1,0.0,PETSC_TRUE);CHKERRQ(ierr);
     if (!sr->type && (sr->inertia1-sr->inertia0)) SETERRQ(((PetscObject)pep)->comm,PETSC_ERR_CONV_FAILED,"No information of eigenvalue type in Interval");
     if (sr->type && !(sr->inertia1-sr->inertia0)) SETERRQ(((PetscObject)pep)->comm,PETSC_ERR_CONV_FAILED,"Different positive/negative type detected");
@@ -791,7 +1013,7 @@ static PetscErrorCode PEPSTOARrun_QSlice(PEP pep,PetscReal *a,PetscReal *b,Petsc
   PetscErrorCode ierr;
   PEP_STOAR      *ctx = (PEP_STOAR*)pep->data;
   PetscInt       i,j,m=*M,l,lock;
-  PetscInt       lds,d,ld,offq,nqt;
+  PetscInt       lds,d,ld,offq,nqt,ldds;
   Vec            v=t_[0],t=t_[1],q=t_[2];
   PetscReal      norm,sym=0.0,fro=0.0,*f;
   PetscScalar    *y,*S,sigma;
@@ -806,6 +1028,7 @@ static PetscErrorCode PEPSTOARrun_QSlice(PEP pep,PetscReal *a,PetscReal *b,Petsc
   ierr = BVGetActiveColumns(pep->V,&lock,&nqt);CHKERRQ(ierr);
   lds = d*ld;
   offq = ld;
+  ierr = DSGetLeadingDimension(pep->ds,&ldds);CHKERRQ(ierr);
 
   *breakdown = PETSC_FALSE; /* ----- */
   ierr = STGetShift(pep->st,&sigma);CHKERRQ(ierr);
@@ -851,7 +1074,7 @@ static PetscErrorCode PEPSTOARrun_QSlice(PEP pep,PetscReal *a,PetscReal *b,Petsc
     /* check symmetry */
     ierr = DSGetArrayReal(pep->ds,DS_MAT_T,&f);CHKERRQ(ierr);
     if (j==k) {
-      for (i=l;i<j-1;i++) y[i] = PetscAbsScalar(y[i])-PetscAbsReal(f[2*ld+i]);
+      for (i=l;i<j-1;i++) y[i] = PetscAbsScalar(y[i])-PetscAbsReal(f[2*ldds+i]);
       for (i=0;i<l;i++) y[i] = 0.0;
     }
     ierr = DSRestoreArrayReal(pep->ds,DS_MAT_T,&f);CHKERRQ(ierr);

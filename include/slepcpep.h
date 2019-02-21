@@ -329,6 +329,7 @@ SLEPC_EXTERN PetscErrorCode PEPSTOARSetDimensions(PEP,PetscInt,PetscInt,PetscInt
 SLEPC_EXTERN PetscErrorCode PEPSTOARGetDimensions(PEP,PetscInt*,PetscInt*,PetscInt*);
 SLEPC_EXTERN PetscErrorCode PEPSTOARSetCheckEigenvalueType(PEP,PetscBool);
 SLEPC_EXTERN PetscErrorCode PEPSTOARGetCheckEigenvalueType(PEP,PetscBool*);
+SLEPC_EXTERN PetscErrorCode PEPCheckDefiniteQEP(PEP,PetscReal*,PetscReal*,PetscInt*,PetscInt*);
 
 /*E
     PEPJDProjection - The scheme used for solving linear systems during iterative refinement
