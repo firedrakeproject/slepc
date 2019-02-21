@@ -348,6 +348,38 @@ PetscErrorCode EPSGetInvariantSubspace(EPS eps,Vec *v)
   PetscFunctionReturn(0);
 }
 
+/*
+  EPSGetVector_Private - retrieves k-th eigenvector from basis vectors V.
+  The argument eigi is the imaginary part of the corresponding eigenvalue.
+*/
+PETSC_STATIC_INLINE PetscErrorCode EPSGetVector_Private(BV V,PetscInt k,PetscReal eigi,Vec Vr,Vec Vi)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+#if defined(PETSC_USE_COMPLEX)
+  ierr = BVCopyVec(V,k,Vr);CHKERRQ(ierr);
+  if (Vi) { ierr = VecSet(Vi,0.0);CHKERRQ(ierr); }
+#else
+  if (eigi > 0.0) { /* first value of conjugate pair */
+    ierr = BVCopyVec(V,k,Vr);CHKERRQ(ierr);
+    if (Vi) {
+      ierr = BVCopyVec(V,k+1,Vi);CHKERRQ(ierr);
+    }
+  } else if (eigi < 0.0) { /* second value of conjugate pair */
+    ierr = BVCopyVec(V,k-1,Vr);CHKERRQ(ierr);
+    if (Vi) {
+      ierr = BVCopyVec(V,k,Vi);CHKERRQ(ierr);
+      ierr = VecScale(Vi,-1.0);CHKERRQ(ierr);
+    }
+  } else { /* real eigenvalue */
+    ierr = BVCopyVec(V,k,Vr);CHKERRQ(ierr);
+    if (Vi) { ierr = VecSet(Vi,0.0);CHKERRQ(ierr); }
+  }
+#endif
+  PetscFunctionReturn(0);
+}
+
 /*@C
    EPSGetEigenpair - Gets the i-th solution of the eigenproblem as computed by
    EPSSolve(). The solution consists in both the eigenvalue and the eigenvector.
@@ -494,26 +526,7 @@ PetscErrorCode EPSGetEigenvector(EPS eps,PetscInt i,Vec Vr,Vec Vi)
   if (i<0 || i>=eps->nconv) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"Argument 2 out of range");
   ierr = EPSComputeVectors(eps);CHKERRQ(ierr);
   k = eps->perm[i];
-#if defined(PETSC_USE_COMPLEX)
-  ierr = BVCopyVec(eps->V,k,Vr);CHKERRQ(ierr);
-  if (Vi) { ierr = VecSet(Vi,0.0);CHKERRQ(ierr); }
-#else
-  if (eps->eigi[k] > 0) { /* first value of conjugate pair */
-    ierr = BVCopyVec(eps->V,k,Vr);CHKERRQ(ierr);
-    if (Vi) {
-      ierr = BVCopyVec(eps->V,k+1,Vi);CHKERRQ(ierr);
-    }
-  } else if (eps->eigi[k] < 0) { /* second value of conjugate pair */
-    ierr = BVCopyVec(eps->V,k-1,Vr);CHKERRQ(ierr);
-    if (Vi) {
-      ierr = BVCopyVec(eps->V,k,Vi);CHKERRQ(ierr);
-      ierr = VecScale(Vi,-1.0);CHKERRQ(ierr);
-    }
-  } else { /* real eigenvalue */
-    ierr = BVCopyVec(eps->V,k,Vr);CHKERRQ(ierr);
-    if (Vi) { ierr = VecSet(Vi,0.0);CHKERRQ(ierr); }
-  }
-#endif
+  ierr = EPSGetVector_Private(eps->V,k,eps->eigi[k],Vr,Vi);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
