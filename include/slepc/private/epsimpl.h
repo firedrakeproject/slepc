@@ -110,7 +110,7 @@ struct _p_EPS {
   Vec            *IS;              /* references to user-provided initial space */
   Vec            *defl;            /* references to user-provided deflation space */
   PetscScalar    *eigr,*eigi;      /* real and imaginary parts of eigenvalues */
-  PetscReal      *errest,*lerrest; /* error estimates */
+  PetscReal      *errest;          /* error estimates */
   PetscScalar    *rr,*ri;          /* values computed by user's arbitrary selection function */
   PetscInt       *perm;            /* permutation for eigenvalue ordering */
   PetscInt       nwork;            /* number of work vectors */

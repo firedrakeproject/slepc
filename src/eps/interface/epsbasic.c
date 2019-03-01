@@ -295,9 +295,6 @@ PetscErrorCode EPSDestroy(EPS *eps)
   if ((*eps)->eigr) {
     ierr = PetscFree4((*eps)->eigr,(*eps)->eigi,(*eps)->errest,(*eps)->perm);CHKERRQ(ierr);
   }
-  if ((*eps)->lerrest) {
-    ierr = PetscFree((*eps)->lerrest);CHKERRQ(ierr);
-  }
   if ((*eps)->rr) {
     ierr = PetscFree2((*eps)->rr,(*eps)->ri);CHKERRQ(ierr);
   }

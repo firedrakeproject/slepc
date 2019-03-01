@@ -140,7 +140,6 @@ PetscErrorCode EPSSolve(EPS eps)
     eps->eigi[i]   = 0.0;
     eps->errest[i] = 0.0;
     eps->perm[i]   = i;
-    if (eps->twosided) eps->lerrest[i] = 0.0;
   }
   ierr = EPSViewFromOptions(eps,NULL,"-eps_view_pre");CHKERRQ(ierr);
   ierr = RGViewFromOptions(eps->rg,NULL,"-rg_view");CHKERRQ(ierr);

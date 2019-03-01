@@ -536,11 +536,6 @@ PetscErrorCode EPSAllocateSolution(EPS eps,PetscInt extra)
     ierr = PetscFree4(eps->eigr,eps->eigi,eps->errest,eps->perm);CHKERRQ(ierr);
     ierr = PetscMalloc4(requested,&eps->eigr,requested,&eps->eigi,requested,&eps->errest,requested,&eps->perm);CHKERRQ(ierr);
     cnt = 2*newc*sizeof(PetscScalar) + 2*newc*sizeof(PetscReal) + newc*sizeof(PetscInt);
-    if (eps->twosided) {
-      if (eps->lerrest) { ierr = PetscFree(eps->lerrest);CHKERRQ(ierr); }
-      ierr = PetscMalloc1(requested,&eps->lerrest);CHKERRQ(ierr);
-      cnt += newc*sizeof(PetscReal);
-    }
     ierr = PetscLogObjectMemory((PetscObject)eps,cnt);CHKERRQ(ierr);
   }
 
