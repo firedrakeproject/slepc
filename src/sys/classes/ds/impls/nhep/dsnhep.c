@@ -433,6 +433,71 @@ PetscErrorCode DSSort_NHEP(DS ds,PetscScalar *wr,PetscScalar *wi,PetscScalar *rr
   PetscFunctionReturn(0);
 }
 
+static PetscErrorCode DSSortWithPermutation_NHEP(DS ds,PetscInt *perm,PetscScalar *wr,PetscScalar *wi)
+{
+#if defined(SLEPC_MISSING_LAPACK_TREXC)
+  PetscFunctionBegin;
+  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"TREXC - Lapack routine is unavailable");
+#else
+  PetscErrorCode ierr;
+  PetscInt       i,j,pos,inc=1;
+  PetscBLASInt   ifst,ilst,info,n,ld;
+  PetscScalar    *T = ds->mat[DS_MAT_A];
+  PetscScalar    *Q = ds->mat[DS_MAT_Q];
+#if !defined(PETSC_USE_COMPLEX)
+  PetscScalar    *work;
+#endif
+
+  PetscFunctionBegin;
+  ierr = PetscBLASIntCast(ds->n,&n);CHKERRQ(ierr);
+  ierr = PetscBLASIntCast(ds->ld,&ld);CHKERRQ(ierr);
+#if !defined(PETSC_USE_COMPLEX)
+  ierr = DSAllocateWork_Private(ds,ld,0,0);CHKERRQ(ierr);
+  work = ds->work;
+#endif
+  for (i=ds->l;i<n-1;i++) {
+    pos = perm[i];
+#if !defined(PETSC_USE_COMPLEX)
+    if (T[pos+(pos-1)*ld] != 0.0) SETERRQ1(PETSC_COMM_SELF,1,"Invalid permutation due to a 2x2 block at position %D",pos);
+    inc = (pos<n-1 && T[pos+1+pos*ld] != 0.0)? 2: 1;
+#endif
+    if (pos!=i) {
+      /* interchange blocks */
+      ierr = PetscBLASIntCast(pos+1,&ifst);CHKERRQ(ierr);
+      ierr = PetscBLASIntCast(i+1,&ilst);CHKERRQ(ierr);
+#if !defined(PETSC_USE_COMPLEX)
+      PetscStackCallBLAS("LAPACKtrexc",LAPACKtrexc_("V",&n,T,&ld,Q,&ld,&ifst,&ilst,work,&info));
+#else
+      PetscStackCallBLAS("LAPACKtrexc",LAPACKtrexc_("V",&n,T,&ld,Q,&ld,&ifst,&ilst,&info));
+#endif
+      SlepcCheckLapackInfo("trexc",info);
+      for (j=i+1;j<n;j++) {
+        if (perm[j]>=i && perm[j]<pos) perm[j]+=inc;
+      }
+      perm[i] = i;
+      if (inc==2) perm[i+1] = i+1;
+    }
+    if (inc==2) i++;
+  }
+  /* recover original eigenvalues from T matrix */
+  for (j=ds->l;j<n;j++) {
+    wr[j] = T[j+j*ld];
+#if !defined(PETSC_USE_COMPLEX)
+    if (j<n-1 && T[j+1+j*ld] != 0.0) {
+      /* complex conjugate eigenvalue */
+      wi[j] = PetscSqrtReal(PetscAbsReal(T[j+1+j*ld])) * PetscSqrtReal(PetscAbsReal(T[j+(j+1)*ld]));
+      wr[j+1] = wr[j];
+      wi[j+1] = -wi[j];
+      j++;
+    } else {
+      wi[j] = 0.0;
+    }
+#endif
+  }
+  PetscFunctionReturn(0);
+#endif
+}
+
 PetscErrorCode DSUpdateExtraRow_NHEP(DS ds)
 {
   PetscErrorCode ierr;
@@ -785,6 +850,7 @@ SLEPC_EXTERN PetscErrorCode DSCreate_NHEP(DS ds)
   ds->ops->vectors       = DSVectors_NHEP;
   ds->ops->solve[0]      = DSSolve_NHEP;
   ds->ops->sort          = DSSort_NHEP;
+  ds->ops->sortperm      = DSSortWithPermutation_NHEP;
   ds->ops->synchronize   = DSSynchronize_NHEP;
   ds->ops->truncate      = DSTruncate_NHEP;
   ds->ops->update        = DSUpdateExtraRow_NHEP;

@@ -599,13 +599,13 @@ PetscErrorCode DSSolve(DS ds,PetscScalar eigr[],PetscScalar eigi[])
 
    Input Parameters:
 +  ds   - the direct solver context
-.  eigr - array containing the computed eigenvalues (real part)
-.  eigi - array containing the computed eigenvalues (imaginary part)
 .  rr   - (optional) array containing auxiliary values (real part)
 -  ri   - (optional) array containing auxiliary values (imaginary part)
 
-   Input/Output Parameter:
-.  k    - (optional) number of elements in the leading group
+   Input/Output Parameters:
++  eigr - array containing the computed eigenvalues (real part)
+.  eigi - array containing the computed eigenvalues (imaginary part)
+-  k    - (optional) number of elements in the leading group
 
    Notes:
    This routine sorts the arrays provided in eigr and eigi, and also
@@ -622,7 +622,7 @@ PetscErrorCode DSSolve(DS ds,PetscScalar eigr[],PetscScalar eigi[])
 
    Level: intermediate
 
-.seealso: DSSolve(), DSSetSlepcSC()
+.seealso: DSSolve(), DSSetSlepcSC(), DSSortWithPermutation()
 @*/
 PetscErrorCode DSSort(DS ds,PetscScalar *eigr,PetscScalar *eigi,PetscScalar *rr,PetscScalar *ri,PetscInt *k)
 {
@@ -644,6 +644,51 @@ PetscErrorCode DSSort(DS ds,PetscScalar *eigr,PetscScalar *eigi,PetscScalar *rr,
   ierr = PetscLogEventBegin(DS_Other,ds,0,0,0);CHKERRQ(ierr);
   ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
   ierr = (*ds->ops->sort)(ds,eigr,eigi,rr,ri,k);CHKERRQ(ierr);
+  ierr = PetscFPTrapPop();CHKERRQ(ierr);
+  ierr = PetscLogEventEnd(DS_Other,ds,0,0,0);CHKERRQ(ierr);
+  ierr = PetscObjectStateIncrease((PetscObject)ds);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+/*@C
+   DSSortWithPermutation - Reorders the result of DSSolve() according to a given
+   permutation.
+
+   Logically Collective on DS
+
+   Input Parameters:
++  ds   - the direct solver context
+-  perm - permutation that indicates the new ordering
+
+   Input/Output Parameters:
++  eigr - array with the reordered eigenvalues (real part)
+-  eigi - array with the reordered eigenvalues (imaginary part)
+
+   Notes:
+   This routine reorders the arrays provided in eigr and eigi, and also the dense
+   system stored inside ds (assumed to be in condensed form). There is no sorting
+   criterion, as opposed to DSSort(). Instead, the new ordering is given in argument perm.
+
+   Level: advanced
+
+.seealso: DSSolve(), DSSort()
+@*/
+PetscErrorCode DSSortWithPermutation(DS ds,PetscInt *perm,PetscScalar *eigr,PetscScalar *eigi)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(ds,DS_CLASSID,1);
+  PetscValidType(ds,1);
+  DSCheckSolved(ds,1);
+  PetscValidPointer(perm,2);
+  PetscValidPointer(eigr,3);
+  if (ds->state==DS_STATE_TRUNCATED) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ORDER,"Cannot sort a truncated DS");
+  if (!ds->ops->sortperm) SETERRQ1(PetscObjectComm((PetscObject)ds),PETSC_ERR_SUP,"DS type %s",((PetscObject)ds)->type_name);
+
+  ierr = PetscLogEventBegin(DS_Other,ds,0,0,0);CHKERRQ(ierr);
+  ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
+  ierr = (*ds->ops->sortperm)(ds,perm,eigr,eigi);CHKERRQ(ierr);
   ierr = PetscFPTrapPop();CHKERRQ(ierr);
   ierr = PetscLogEventEnd(DS_Other,ds,0,0,0);CHKERRQ(ierr);
   ierr = PetscObjectStateIncrease((PetscObject)ds);CHKERRQ(ierr);
