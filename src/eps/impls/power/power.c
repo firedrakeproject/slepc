@@ -38,6 +38,8 @@
 
 static PetscErrorCode EPSPowerFormFunction_Update(SNES,Vec,Vec,void*);
 static PetscErrorCode SNESLineSearchPostheckFunction(SNESLineSearch linesearch,Vec x,Vec y,Vec w,PetscBool *changed_y,PetscBool *changed_w,void *ctx);
+PetscErrorCode EPSSolve_Power(EPS);
+PetscErrorCode EPSSolve_TS_Power(EPS);
 
 typedef struct {
   EPSPowerShiftType shift_type;
@@ -133,13 +135,22 @@ PetscErrorCode EPSSetUp_Power(EPS eps)
       } else power->formFunctionBctx = NULL;
     }
   } else {
-    ierr = EPSSetWorkVecs(eps,2);CHKERRQ(ierr);
+    if (eps->twosided) {
+      ierr = EPSSetWorkVecs(eps,3);CHKERRQ(ierr);
+    } else {
+      ierr = EPSSetWorkVecs(eps,2);CHKERRQ(ierr);
+    }
     ierr = DSSetType(eps->ds,DSNHEP);CHKERRQ(ierr);
     ierr = DSAllocate(eps->ds,eps->nev);CHKERRQ(ierr);
   }
+  /* dispatch solve method */
+  if (eps->twosided) {
+    if (power->nonlinear) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Nonlinear inverse iteration does not have two-sided variant");
+    if (power->shift_type == EPS_POWER_SHIFT_WILKINSON) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Two-sided variant does not support Wilkinson shifts");
+    eps->ops->solve = EPSSolve_TS_Power;
+  } else eps->ops->solve = EPSSolve_Power;
   PetscFunctionReturn(0);
 }
-
 
 /*
    Normalize a vector x with respect to a given norm as well as the
@@ -393,6 +404,7 @@ PetscErrorCode EPSSolve_Power(EPS eps)
     /* theta = (v,y)_B */
     ierr = BVSetActiveColumns(eps->V,k,k+1);CHKERRQ(ierr);
     ierr = BVDotVec(eps->V,y,&theta);CHKERRQ(ierr);
+    theta = PetscConj(theta);
     if (!power->nonlinear) {
       T[k+k*ld] = theta;
       ierr = DSRestoreArray(eps->ds,DS_MAT_A,&T);CHKERRQ(ierr);
@@ -461,7 +473,7 @@ PetscErrorCode EPSSolve_Power(EPS eps)
         ierr = KSPGetConvergedReason(ksp,&reason);CHKERRQ(ierr);
         if (reason) {
           ierr = PetscInfo(eps,"Factorization failed, repeat with a perturbed shift\n");CHKERRQ(ierr);
-          rho *= 1+PETSC_MACHINE_EPSILON;
+          rho *= 1+10*PETSC_MACHINE_EPSILON;
           ierr = STSetShift(eps->st,rho);CHKERRQ(ierr);
           ierr = KSPGetConvergedReason(ksp,&reason);CHKERRQ(ierr);
           if (reason) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_CONV_FAILED,"Second factorization failed");
@@ -504,6 +516,136 @@ PetscErrorCode EPSSolve_Power(EPS eps)
 #endif
 }
 
+PetscErrorCode EPSSolve_TS_Power(EPS eps)
+{
+  PetscErrorCode     ierr;
+  EPS_POWER          *power = (EPS_POWER*)eps->data;
+  PetscInt           k,ld;
+  Vec                v,w,y,e,z;
+  KSP                ksp;
+  PetscReal          relerr,relerrl,delta;
+  PetscScalar        theta,rho,alpha,sigma;
+  PetscBool          breakdown;
+  KSPConvergedReason reason;
+
+  PetscFunctionBegin;
+  e = eps->work[0];
+  v = eps->work[1];
+  w = eps->work[2];
+
+  if (power->shift_type != EPS_POWER_SHIFT_CONSTANT) { ierr = STGetKSP(eps->st,&ksp);CHKERRQ(ierr); }
+  ierr = DSGetLeadingDimension(eps->ds,&ld);CHKERRQ(ierr);
+  ierr = EPSGetStartVector(eps,0,NULL);CHKERRQ(ierr);
+  ierr = BVSetRandomColumn(eps->W,0);CHKERRQ(ierr);
+  ierr = BVBiorthonormalizeColumn(eps->V,eps->W,0,NULL);CHKERRQ(ierr);
+  ierr = BVCopyVec(eps->V,0,v);CHKERRQ(ierr);
+  ierr = BVCopyVec(eps->W,0,w);CHKERRQ(ierr);
+  ierr = STGetShift(eps->st,&sigma);CHKERRQ(ierr);    /* original shift */
+  rho = sigma;
+
+  while (eps->reason == EPS_CONVERGED_ITERATING) {
+    eps->its++;
+    k = eps->nconv;
+
+    /* y = OP v, z = OP' w */
+    ierr = BVGetColumn(eps->V,k,&y);CHKERRQ(ierr);
+    ierr = STApply(eps->st,v,y);CHKERRQ(ierr);
+    ierr = BVRestoreColumn(eps->V,k,&y);CHKERRQ(ierr);
+    ierr = BVGetColumn(eps->W,k,&z);CHKERRQ(ierr);
+    ierr = VecConjugate(w);CHKERRQ(ierr);
+    ierr = STApplyTranspose(eps->st,w,z);CHKERRQ(ierr);
+    ierr = VecConjugate(w);CHKERRQ(ierr);
+    ierr = VecConjugate(z);CHKERRQ(ierr);
+    ierr = BVRestoreColumn(eps->W,k,&z);CHKERRQ(ierr);
+
+    /* purge previously converged eigenvectors */
+    ierr = BVBiorthogonalizeColumn(eps->V,eps->W,k);CHKERRQ(ierr);
+
+    /* theta = (w,y)_B */
+    ierr = BVSetActiveColumns(eps->V,k,k+1);CHKERRQ(ierr);
+    ierr = BVDotVec(eps->V,w,&theta);CHKERRQ(ierr);
+    theta = PetscConj(theta);
+
+    if (power->shift_type == EPS_POWER_SHIFT_CONSTANT) { /* direct & inverse iteration */
+
+      /* approximate eigenvalue is the Rayleigh quotient */
+      eps->eigr[eps->nconv] = theta;
+
+      /* compute relative errors as ||y-theta v||_2/|theta| and ||z-conj(theta) w||_2/|theta|*/
+      ierr = BVCopyVec(eps->V,k,e);CHKERRQ(ierr);
+      ierr = VecAXPY(e,-theta,v);CHKERRQ(ierr);
+      ierr = VecNorm(e,NORM_2,&relerr);CHKERRQ(ierr);
+      ierr = BVCopyVec(eps->W,k,e);CHKERRQ(ierr);
+      ierr = VecAXPY(e,-PetscConj(theta),w);CHKERRQ(ierr);
+      ierr = VecNorm(e,NORM_2,&relerrl);CHKERRQ(ierr);
+      relerr = PetscMax(relerr,relerrl)/PetscAbsScalar(theta);
+    }
+
+    /* normalize */
+    ierr = BVSetActiveColumns(eps->V,k,k+1);CHKERRQ(ierr);
+    ierr = BVGetColumn(eps->W,k,&z);CHKERRQ(ierr);
+    ierr = BVDotVec(eps->V,z,&alpha);CHKERRQ(ierr);
+    ierr = BVRestoreColumn(eps->W,k,&z);CHKERRQ(ierr);
+    delta = PetscSqrtReal(PetscAbsScalar(alpha));
+    if (delta==0.0) SETERRQ(PetscObjectComm((PetscObject)eps),1,"Breakdown in two-sided Power/RQI");
+    ierr = BVScaleColumn(eps->V,k,1.0/PetscConj(alpha/delta));CHKERRQ(ierr);
+    ierr = BVScaleColumn(eps->W,k,1.0/delta);CHKERRQ(ierr);
+    ierr = BVCopyVec(eps->V,k,v);CHKERRQ(ierr);
+    ierr = BVCopyVec(eps->W,k,w);CHKERRQ(ierr);
+
+    if (power->shift_type == EPS_POWER_SHIFT_RAYLEIGH) { /* RQI */
+
+      /* compute relative error */
+      if (rho == 0.0) relerr = PETSC_MAX_REAL;
+      else relerr = 1.0 / PetscAbsScalar(delta*rho);
+
+      /* approximate eigenvalue is the shift */
+      eps->eigr[eps->nconv] = rho;
+
+      /* compute new shift */
+      if (relerr<eps->tol) {
+        rho = sigma;  /* if converged, restore original shift */
+        ierr = STSetShift(eps->st,rho);CHKERRQ(ierr);
+      } else {
+        rho = rho + PetscConj(theta)/(delta*delta);  /* Rayleigh quotient R(v) */
+        /* update operator according to new shift */
+        ierr = KSPSetErrorIfNotConverged(ksp,PETSC_FALSE);CHKERRQ(ierr);
+        ierr = STSetShift(eps->st,rho);CHKERRQ(ierr);
+        ierr = KSPGetConvergedReason(ksp,&reason);CHKERRQ(ierr);
+        if (reason) {
+          ierr = PetscInfo(eps,"Factorization failed, repeat with a perturbed shift\n");CHKERRQ(ierr);
+          rho *= 1+10*PETSC_MACHINE_EPSILON;
+          ierr = STSetShift(eps->st,rho);CHKERRQ(ierr);
+          ierr = KSPGetConvergedReason(ksp,&reason);CHKERRQ(ierr);
+          if (reason) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_CONV_FAILED,"Second factorization failed");
+        }
+        ierr = KSPSetErrorIfNotConverged(ksp,PETSC_TRUE);CHKERRQ(ierr);
+      }
+    }
+    eps->errest[eps->nconv] = relerr;
+
+    /* if relerr<tol, accept eigenpair */
+    if (relerr<eps->tol) {
+      eps->nconv = eps->nconv + 1;
+      if (eps->nconv<eps->nev) {
+        ierr = EPSGetStartVector(eps,eps->nconv,&breakdown);CHKERRQ(ierr);
+        if (breakdown) {
+          eps->reason = EPS_DIVERGED_BREAKDOWN;
+          ierr = PetscInfo(eps,"Unable to generate more start vectors\n");CHKERRQ(ierr);
+          break;
+        }
+        ierr = BVSetRandomColumn(eps->W,eps->nconv);CHKERRQ(ierr);
+        ierr = BVBiorthonormalizeColumn(eps->V,eps->W,eps->nconv,NULL);CHKERRQ(ierr);
+      }
+    }
+    ierr = EPSMonitor(eps,eps->its,eps->nconv,eps->eigr,eps->eigi,eps->errest,PetscMin(eps->nconv+1,eps->nev));CHKERRQ(ierr);
+    ierr = (*eps->stopping)(eps,eps->its,eps->max_it,eps->nconv,eps->nev,&eps->reason,eps->stoppingctx);CHKERRQ(ierr);
+  }
+
+  ierr = DSSetDimensions(eps->ds,eps->nconv,0,0,0);CHKERRQ(ierr);
+  ierr = DSSetState(eps->ds,DS_STATE_RAW);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
 
 PetscErrorCode EPSStopping_Power(EPS eps,PetscInt its,PetscInt max_it,PetscInt nconv,PetscInt nev,EPSConvergedReason *reason,void *ctx)
 {
@@ -963,7 +1105,7 @@ PetscErrorCode EPSComputeVectors_Power(EPS eps)
   EPS_POWER      *power = (EPS_POWER*)eps->data;
 
   PetscFunctionBegin;
-  if (!power->nonlinear) {
+  if (!power->nonlinear && !eps->twosided) {
     ierr = EPSComputeVectors_Schur(eps);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
@@ -995,9 +1137,9 @@ SLEPC_EXTERN PetscErrorCode EPSCreate_Power(EPS eps)
   eps->data = (void*)ctx;
 
   eps->useds = PETSC_TRUE;
+  eps->hasts = PETSC_TRUE;
   eps->categ = EPS_CATEGORY_OTHER;
 
-  eps->ops->solve          = EPSSolve_Power;
   eps->ops->setup          = EPSSetUp_Power;
   eps->ops->setfromoptions = EPSSetFromOptions_Power;
   eps->ops->reset          = EPSReset_Power;
