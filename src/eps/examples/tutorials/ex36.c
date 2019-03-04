@@ -247,4 +247,11 @@ PetscErrorCode STApply_Exp(ST st,Vec x,Vec y)
          args: -eps_tol 1e-14
          requires: __float128
 
+   test:
+      suffix: 2
+      args: -n 56 -eps_nev 4 -st_type sinvert -eps_target -100 -eps_target_magnitude -eps_type power
+      args: -eps_power_shift_type {{constant rayleigh}} -eps_two_sided {{0 1}} -terse
+      requires: c99_complex
+      output_file: output/ex36_2.out
+
 TEST*/

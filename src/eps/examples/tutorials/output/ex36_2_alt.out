@@ -1,0 +1,9 @@
+
+Brusselator wave model with matrix exponential, n=56
+
+ Solution method: power
+
+ Number of requested eigenvalues: 4
+ All requested eigenvalues computed up to the required tolerance:
+     -100.28614, -94.86861, -89.47813, -84.42378
+
