@@ -186,6 +186,7 @@ SLEPC_EXTERN PetscErrorCode BVOrthogonalizeVec(BV,Vec,PetscScalar*,PetscReal*,Pe
 SLEPC_EXTERN PetscErrorCode BVOrthogonalizeColumn(BV,PetscInt,PetscScalar*,PetscReal*,PetscBool*);
 SLEPC_EXTERN PetscErrorCode BVOrthonormalizeColumn(BV,PetscInt,PetscBool,PetscReal*,PetscBool*);
 SLEPC_EXTERN PetscErrorCode BVOrthogonalizeSomeColumn(BV,PetscInt,PetscBool*,PetscScalar*,PetscReal*,PetscBool*);
+SLEPC_EXTERN PetscErrorCode BVBiorthogonalizeColumn(BV,BV,PetscInt);
 SLEPC_EXTERN PetscErrorCode BVBiorthonormalizeColumn(BV,BV,PetscInt,PetscReal*);
 SLEPC_EXTERN PetscErrorCode BVSetMatMultMethod(BV,BVMatMultType);
 SLEPC_EXTERN PetscErrorCode BVGetMatMultMethod(BV,BVMatMultType*);

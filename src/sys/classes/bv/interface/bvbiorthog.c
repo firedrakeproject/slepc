@@ -82,6 +82,73 @@ static PetscErrorCode BVBiorthogonalizeGS(BV V,BV W,Vec v)
 }
 
 /*@
+   BVBiorthogonalizeColumn - Bi-orthogonalize a column of two BV objects.
+
+   Collective on BV
+
+   Input Parameters:
++  V,W - two basis vectors contexts
+-  j   - index of column to be bi-orthonormalized
+
+   Notes:
+   This function bi-orthogonalizes vectors V[j],W[j] against W[0..j-1],
+   and V[0..j-1], respectively, so that W[0..j]'*V[0..j] = diagonal.
+
+   Level: advanced
+
+.seealso: BVOrthogonalizeColumn(), BVBiorthonormalizeColumn()
+@*/
+PetscErrorCode BVBiorthogonalizeColumn(BV V,BV W,PetscInt j)
+{
+  PetscErrorCode ierr;
+  PetscInt       ksavev,lsavev,ksavew,lsavew;
+  Vec            y,z;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(V,BV_CLASSID,1);
+  PetscValidHeaderSpecific(W,BV_CLASSID,2);
+  PetscValidLogicalCollectiveInt(V,j,3);
+  PetscValidType(V,1);
+  BVCheckSizes(V,1);
+  PetscValidType(W,2);
+  BVCheckSizes(W,2);
+  PetscCheckSameTypeAndComm(V,1,W,2);
+  if (j<0) SETERRQ(PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_OUTOFRANGE,"Index j must be non-negative");
+  if (j>=V->m) SETERRQ2(PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_OUTOFRANGE,"Index j=%D but V only has %D columns",j,V->m);
+  if (j>=W->m) SETERRQ2(PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_OUTOFRANGE,"Index j=%D but W only has %D columns",j,W->m);
+  if (V->n!=W->n) SETERRQ2(PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_INCOMP,"Mismatching local dimension V %D, W %D",V->n,W->n);
+  if (V->matrix || W->matrix) SETERRQ(PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_WRONGSTATE,"V,W must not have an inner product matrix");
+  if (V->nc || W->nc) SETERRQ(PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_WRONGSTATE,"V,W cannot have different number of constraints");
+  if (V->ops->gramschmidt || W->ops->gramschmidt) SETERRQ(PetscObjectComm((PetscObject)V),PETSC_ERR_SUP,"Object has a special GS function");
+
+  /* bi-orthogonalize */
+  ierr = PetscLogEventBegin(BV_OrthogonalizeVec,V,0,0,0);CHKERRQ(ierr);
+  ksavev = V->k;
+  lsavev = V->l;
+  ksavew = W->k;
+  lsavew = W->l;
+  V->k = j;
+  V->l = -V->nc;  /* must also bi-orthogonalize against constraints and leading columns */
+  W->k = j;
+  W->l = -W->nc;
+  ierr = BV_AllocateCoeffs(V);CHKERRQ(ierr);
+  ierr = BV_AllocateCoeffs(W);CHKERRQ(ierr);
+  ierr = BVGetColumn(V,j,&y);CHKERRQ(ierr);
+  ierr = BVBiorthogonalizeGS(V,W,y);CHKERRQ(ierr);
+  ierr = BVRestoreColumn(V,j,&y);CHKERRQ(ierr);
+  ierr = BVGetColumn(W,j,&z);CHKERRQ(ierr);
+  ierr = BVBiorthogonalizeGS(W,V,z);CHKERRQ(ierr);
+  ierr = BVRestoreColumn(W,j,&z);CHKERRQ(ierr);
+  V->k = ksavev;
+  V->l = lsavev;
+  W->k = ksavew;
+  W->l = lsavew;
+  ierr = PetscLogEventEnd(BV_OrthogonalizeVec,V,0,0,0);CHKERRQ(ierr);
+  ierr = PetscObjectStateIncrease((PetscObject)V);CHKERRQ(ierr);
+  ierr = PetscObjectStateIncrease((PetscObject)W);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+/*@
    BVBiorthonormalizeColumn - Bi-orthonormalize a column of two BV objects.
 
    Collective on BV
@@ -100,7 +167,7 @@ static PetscErrorCode BVBiorthogonalizeGS(BV V,BV W,Vec v)
 
    Level: advanced
 
-.seealso: BVOrthonormalizeColumn()
+.seealso: BVOrthonormalizeColumn(), BVBiorthogonalizeColumn()
 @*/
 PetscErrorCode BVBiorthonormalizeColumn(BV V,BV W,PetscInt j,PetscReal *delta)
 {
@@ -164,6 +231,7 @@ PetscErrorCode BVBiorthonormalizeColumn(BV V,BV W,PetscInt j,PetscReal *delta)
   ierr = PetscLogEventEnd(BV_Scale,V,0,0,0);CHKERRQ(ierr);
   if (delta) *delta = deltat;
   ierr = PetscObjectStateIncrease((PetscObject)V);CHKERRQ(ierr);
+  ierr = PetscObjectStateIncrease((PetscObject)W);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
