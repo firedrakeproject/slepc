@@ -242,10 +242,21 @@ PetscErrorCode ComputeResidualNorm(Mat A,Mat B,PetscBool trans,PetscScalar kr,Pe
 
 /*TEST
 
-   test:
-      suffix: 1
-      args: -f1 ${SLEPC_DIR}/share/slepc/datafiles/matrices/bfw62a.petsc -f2 ${SLEPC_DIR}/share/slepc/datafiles/matrices/bfw62b.petsc -eps_nev 4 -eps_type power -st_type sinvert -eps_target -190000 -eps_power_shift_type rayleigh
-      filter: sed -e "s/+0.000000i//" | sed -e "s/[0-9]\.[0-9]*e[+-]\([0-9]*\)/removed/g"
+   testset:
+      args: -f1 ${SLEPC_DIR}/share/slepc/datafiles/matrices/bfw62a.petsc -f2 ${SLEPC_DIR}/share/slepc/datafiles/matrices/bfw62b.petsc -eps_nev 4 -st_type sinvert -eps_target -190000
+      filter: sed -e "s/[+-]0.000000i//" | sed -e "s/[0-9]\.[0-9]*e[+-]\([0-9]*\)/removed/g"
       requires: double !complex !define(PETSC_USE_64BIT_INDICES)
+      output_file: output/test29_1.out
+      test:
+         suffix: 1
+      test:
+         suffix: 1_rqi
+         args: -eps_type power -eps_power_shift_type rayleigh
+
+   test:
+      suffix: 2
+      args: -f1 ${DATAFILESPATH}/matrices/complex/mhd1280a.petsc -f2 ${DATAFILESPATH}/matrices/complex/mhd1280b.petsc -eps_nev 6 -eps_tol 1e-11
+      requires: complex datafilespath
+      timeoutfactor: 2
 
 TEST*/

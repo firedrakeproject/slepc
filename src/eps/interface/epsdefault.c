@@ -123,7 +123,10 @@ PetscErrorCode EPSComputeVectors_Twosided(EPS eps)
   PetscErrorCode ierr;
   PetscReal      norm;
   PetscInt       i;
-  Vec            w,y,z;
+  Vec            w,y;
+#if !defined(PETSC_USE_COMPLEX)
+  Vec            z;
+#endif
 
   PetscFunctionBegin;
   if (!eps->twosided || !eps->isgeneralized) PetscFunctionReturn(0);

@@ -275,7 +275,8 @@ PetscErrorCode ComputeResidualNorm(Mat A,PetscBool trans,PetscScalar kr,PetscSca
 
    test:
       suffix: 1
-      args: -eps_type power -st_type sinvert -eps_target 1.1 -eps_nev 4
-      filter: sed -e "s/+0.000000i//" | sed -e "s/[0-9]\.[0-9]*e[+-]\([0-9]*\)/removed/g"
+      args: -eps_type {{power krylovschur}} -st_type sinvert -eps_target 1.1 -eps_nev 4
+      filter: grep -v method | sed -e "s/[+-]0.000000i//" | sed -e "s/[0-9]\.[0-9]*e[+-]\([0-9]*\)/removed/g"
+      output_file: output/ex41_1.out
 
 TEST*/
