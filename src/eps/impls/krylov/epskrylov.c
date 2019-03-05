@@ -32,29 +32,34 @@ PetscErrorCode EPSBasicArnoldi(EPS eps,PetscBool trans,PetscScalar *H,PetscInt l
   PetscScalar    *a;
   PetscInt       j,nc,n,m = *M;
   Vec            vj,vj1,buf;
+  BV             U;
 
   PetscFunctionBegin;
-  ierr = BVSetActiveColumns(eps->V,0,m);CHKERRQ(ierr);
+  U = (trans)?eps->W:eps->V;
+  ierr = BVSetActiveColumns(U,0,m);CHKERRQ(ierr);
   for (j=k;j<m;j++) {
-    ierr = BVGetColumn(eps->V,j,&vj);CHKERRQ(ierr);
-    ierr = BVGetColumn(eps->V,j+1,&vj1);CHKERRQ(ierr);
+    ierr = BVGetColumn(U,j,&vj);CHKERRQ(ierr);
+    ierr = BVGetColumn(U,j+1,&vj1);CHKERRQ(ierr);
     if (trans) {
+      ierr = VecConjugate(vj);CHKERRQ(ierr);
       ierr = STApplyTranspose(eps->st,vj,vj1);CHKERRQ(ierr);
+      ierr = VecConjugate(vj);CHKERRQ(ierr);
+      ierr = VecConjugate(vj1);CHKERRQ(ierr);
     } else {
       ierr = STApply(eps->st,vj,vj1);CHKERRQ(ierr);
     }
-    ierr = BVRestoreColumn(eps->V,j,&vj);CHKERRQ(ierr);
-    ierr = BVRestoreColumn(eps->V,j+1,&vj1);CHKERRQ(ierr);
-    ierr = BVOrthonormalizeColumn(eps->V,j+1,PETSC_FALSE,beta,breakdown);CHKERRQ(ierr);
+    ierr = BVRestoreColumn(U,j,&vj);CHKERRQ(ierr);
+    ierr = BVRestoreColumn(U,j+1,&vj1);CHKERRQ(ierr);
+    ierr = BVOrthonormalizeColumn(U,j+1,PETSC_FALSE,beta,breakdown);CHKERRQ(ierr);
     if (*breakdown) {
       *M = j+1;
       break;
     }
   }
   /* extract Hessenberg matrix from the BV object */
-  ierr = BVGetNumConstraints(eps->V,&nc);CHKERRQ(ierr);
-  ierr = BVGetSizes(eps->V,NULL,NULL,&n);CHKERRQ(ierr);
-  ierr = BVGetBufferVec(eps->V,&buf);CHKERRQ(ierr);
+  ierr = BVGetNumConstraints(U,&nc);CHKERRQ(ierr);
+  ierr = BVGetSizes(U,NULL,NULL,&n);CHKERRQ(ierr);
+  ierr = BVGetBufferVec(U,&buf);CHKERRQ(ierr);
   ierr = VecGetArray(buf,&a);CHKERRQ(ierr);
   for (j=k;j<*M;j++) {
     ierr = PetscMemcpy(H+j*ldh,a+nc+(j+1)*(nc+n),(j+2)*sizeof(PetscScalar));CHKERRQ(ierr);
@@ -273,12 +278,12 @@ PetscErrorCode EPSKrylovConvergence_Filter(EPS eps,PetscBool getall,PetscInt kin
    Output Parameters:
      kout  - the first index where the convergence test failed
 */
-PetscErrorCode EPSKrylovConvergence(EPS eps,PetscBool getall,PetscInt kini,PetscInt nits,PetscReal beta,PetscReal corrf,PetscInt *kout)
+PetscErrorCode EPSKrylovConvergence(EPS eps,PetscBool getall,PetscInt kini,PetscInt nits,PetscReal beta,PetscReal betat,PetscReal corrf,PetscInt *kout)
 {
   PetscErrorCode ierr;
   PetscInt       k,newk,marker,ld,inside;
   PetscScalar    re,im,*Zr,*Zi,*X;
-  PetscReal      resnorm,gamma;
+  PetscReal      resnorm,gamma,lerrest;
   PetscBool      isshift,isfilter,refined,istrivial;
   Vec            x=NULL,y=NULL,w[3];
 
@@ -338,6 +343,14 @@ PetscErrorCode EPSKrylovConvergence(EPS eps,PetscBool getall,PetscInt kini,Petsc
     /* error estimate */
     ierr = (*eps->converged)(eps,re,im,resnorm,&eps->errest[k],eps->convergedctx);CHKERRQ(ierr);
     if (marker==-1 && eps->errest[k] >= eps->tol) marker = k;
+    if (eps->twosided) {
+      newk = k;
+      ierr = DSVectors(eps->dsts,DS_MAT_X,&newk,&resnorm);CHKERRQ(ierr);
+      resnorm *= betat;
+      ierr = (*eps->converged)(eps,re,im,resnorm,&lerrest,eps->convergedctx);CHKERRQ(ierr);
+      eps->errest[k] = PetscMax(eps->errest[k],lerrest);
+      if (marker==-1 && lerrest >= eps->tol) marker = k;
+    }
     if (newk==k+1) {
       eps->errest[k+1] = eps->errest[k];
       k++;

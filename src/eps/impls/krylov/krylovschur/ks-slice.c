@@ -978,7 +978,7 @@ static PetscErrorCode EPSKrylovSchur_Slice(EPS eps)
     ierr = DSSynchronize(eps->ds,eps->eigr,NULL);CHKERRQ(ierr);
 
     /* Residual */
-    ierr = EPSKrylovConvergence(eps,PETSC_TRUE,eps->nconv,nv-eps->nconv,beta,1.0,&k);CHKERRQ(ierr);
+    ierr = EPSKrylovConvergence(eps,PETSC_TRUE,eps->nconv,nv-eps->nconv,beta,0.0,1.0,&k);CHKERRQ(ierr);
     /* Checking values obtained for completing */
     for (i=0;i<k;i++) {
       sr->back[i]=eps->eigr[i];

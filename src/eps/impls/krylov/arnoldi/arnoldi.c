@@ -108,7 +108,7 @@ PetscErrorCode EPSSolve_Arnoldi(EPS eps)
     ierr = DSSynchronize(eps->ds,eps->eigr,eps->eigi);CHKERRQ(ierr);
 
     /* Check convergence */
-    ierr = EPSKrylovConvergence(eps,PETSC_FALSE,eps->nconv,nv-eps->nconv,beta,gamma,&k);CHKERRQ(ierr);
+    ierr = EPSKrylovConvergence(eps,PETSC_FALSE,eps->nconv,nv-eps->nconv,beta,0.0,gamma,&k);CHKERRQ(ierr);
     if (refined) {
       ierr = DSGetMat(eps->ds,DS_MAT_X,&U);CHKERRQ(ierr);
       ierr = BVMultInPlace(eps->V,U,eps->nconv,k+1);CHKERRQ(ierr);
