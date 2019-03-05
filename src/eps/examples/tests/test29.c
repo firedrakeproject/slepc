@@ -193,6 +193,7 @@ PetscErrorCode ComputeResidualNorm(Mat A,Mat B,PetscBool trans,PetscScalar kr,Pe
 {
   PetscErrorCode ierr;
   Vec            u,w;
+  PetscScalar    alpha;
 #if !defined(PETSC_USE_COMPLEX)
   Vec            v;
   PetscReal      ni,nr;
@@ -200,7 +201,8 @@ PetscErrorCode ComputeResidualNorm(Mat A,Mat B,PetscBool trans,PetscScalar kr,Pe
   PetscErrorCode (*matmult)(Mat,Vec,Vec) = trans? MatMultHermitianTranspose: MatMult;
 
   PetscFunctionBegin;
-  u = z[0]; w = z[2];
+  u = z[0];
+  if (B) w = z[2];
 
 #if !defined(PETSC_USE_COMPLEX)
   v = z[1];
@@ -208,17 +210,21 @@ PetscErrorCode ComputeResidualNorm(Mat A,Mat B,PetscBool trans,PetscScalar kr,Pe
 #endif
     ierr = (*matmult)(A,xr,u);CHKERRQ(ierr);                          /* u=A*x */
     if (PetscAbsScalar(kr) > PETSC_MACHINE_EPSILON) {
-      ierr = (*matmult)(B,xr,w);CHKERRQ(ierr);                        /* w=B*x */
-      ierr = VecAXPY(u,-kr,w);CHKERRQ(ierr);                          /* u=A*x-k*B*x */
+      if (B) { ierr = (*matmult)(B,xr,w);CHKERRQ(ierr); }             /* w=B*x */
+      else w = xr;
+      alpha = trans? -PetscConj(kr): -kr;
+      ierr = VecAXPY(u,alpha,w);CHKERRQ(ierr);                        /* u=A*x-k*B*x */
     }
     ierr = VecNorm(u,NORM_2,norm);CHKERRQ(ierr);
 #if !defined(PETSC_USE_COMPLEX)
   } else {
     ierr = (*matmult)(A,xr,u);CHKERRQ(ierr);                          /* u=A*xr */
     if (SlepcAbsEigenvalue(kr,ki) > PETSC_MACHINE_EPSILON) {
-      ierr = (*matmult)(B,xr,v);CHKERRQ(ierr);                        /* v=B*xr */
+      if (B) { ierr = (*matmult)(B,xr,v);CHKERRQ(ierr); }             /* v=B*xr */
+      else { ierr = VecCopy(xr,v);CHKERRQ(ierr); }
       ierr = VecAXPY(u,-kr,v);CHKERRQ(ierr);                          /* u=A*xr-kr*B*xr */
-      ierr = (*matmult)(B,xi,w);CHKERRQ(ierr);                        /* w=B*xi */
+      if (B) { ierr = (*matmult)(B,xi,w);CHKERRQ(ierr); }             /* w=B*xi */
+      else w = xi;
       ierr = VecAXPY(u,trans?-ki:ki,w);CHKERRQ(ierr);                 /* u=A*xr-kr*B*xr+ki*B*xi */
     }
     ierr = VecNorm(u,NORM_2,&nr);CHKERRQ(ierr);

@@ -8,7 +8,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-static char help[] = "Test BV orthogonalization functions.\n\n";
+static char help[] = "Test BV bi-orthogonalization functions.\n\n";
 
 #include <slepcbv.h>
 

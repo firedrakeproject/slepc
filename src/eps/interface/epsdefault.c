@@ -121,8 +121,9 @@ PetscErrorCode EPSComputeVectors_Indefinite(EPS eps)
 PetscErrorCode EPSComputeVectors_Twosided(EPS eps)
 {
   PetscErrorCode ierr;
+  PetscReal      norm;
   PetscInt       i;
-  Vec            w,y;
+  Vec            w,y,z;
 
   PetscFunctionBegin;
   if (!eps->twosided || !eps->isgeneralized) PetscFunctionReturn(0);
@@ -134,12 +135,24 @@ PetscErrorCode EPSComputeVectors_Twosided(EPS eps)
     ierr = BVGetColumn(eps->W,i,&y);CHKERRQ(ierr);
     ierr = STMatSolveTranspose(eps->st,w,y);CHKERRQ(ierr);
     ierr = VecConjugate(y);CHKERRQ(ierr);
-    /* normalize */
-    ierr = VecNormalize(y,NULL);CHKERRQ(ierr);
     ierr = BVRestoreColumn(eps->W,i,&y);CHKERRQ(ierr);
-    ierr = BVGetColumn(eps->V,i,&y);CHKERRQ(ierr);
-    ierr = VecNormalize(y,NULL);CHKERRQ(ierr);
-    ierr = BVRestoreColumn(eps->V,i,&y);CHKERRQ(ierr);
+  }
+  /* normalize */
+  for (i=0;i<eps->nconv;i++) {
+#if !defined(PETSC_USE_COMPLEX)
+    if (eps->eigi[i]!=0.0) {   /* first eigenvalue of a complex conjugate pair */
+      ierr = BVGetColumn(eps->W,i,&y);CHKERRQ(ierr);
+      ierr = BVGetColumn(eps->W,i+1,&z);CHKERRQ(ierr);
+      ierr = VecNormalizeComplex(y,z,PETSC_TRUE,NULL);CHKERRQ(ierr);
+      ierr = BVRestoreColumn(eps->W,i,&y);CHKERRQ(ierr);
+      ierr = BVRestoreColumn(eps->W,i+1,&z);CHKERRQ(ierr);
+      i++;
+    } else   /* real eigenvalue */
+#endif
+    {
+      ierr = BVNormColumn(eps->W,i,NORM_2,&norm);CHKERRQ(ierr);
+      ierr = BVScaleColumn(eps->W,i,1.0/norm);CHKERRQ(ierr);
+    }
   }
   PetscFunctionReturn(0);
 }

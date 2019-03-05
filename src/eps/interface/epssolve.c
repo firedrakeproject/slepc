@@ -631,6 +631,7 @@ PetscErrorCode EPSComputeResidualNorm_Private(EPS eps,PetscBool trans,PetscScala
   PetscInt       nmat;
   Mat            A,B;
   Vec            u,w;
+  PetscScalar    alpha;
 #if !defined(PETSC_USE_COMPLEX)
   Vec            v;
   PetscReal      ni,nr;
@@ -651,7 +652,8 @@ PetscErrorCode EPSComputeResidualNorm_Private(EPS eps,PetscBool trans,PetscScala
     if (PetscAbsScalar(kr) > PETSC_MACHINE_EPSILON) {
       if (nmat>1) { ierr = (*matmult)(B,xr,w);CHKERRQ(ierr); }
       else { ierr = VecCopy(xr,w);CHKERRQ(ierr); }                    /* w=B*x */
-      ierr = VecAXPY(u,-kr,w);CHKERRQ(ierr);                          /* u=A*x-k*B*x */
+      alpha = trans? -PetscConj(kr): -kr;
+      ierr = VecAXPY(u,alpha,w);CHKERRQ(ierr);                        /* u=A*x-k*B*x */
     }
     ierr = VecNorm(u,NORM_2,norm);CHKERRQ(ierr);
 #if !defined(PETSC_USE_COMPLEX)
@@ -663,13 +665,13 @@ PetscErrorCode EPSComputeResidualNorm_Private(EPS eps,PetscBool trans,PetscScala
       ierr = VecAXPY(u,-kr,v);CHKERRQ(ierr);                          /* u=A*xr-kr*B*xr */
       if (nmat>1) { ierr = (*matmult)(B,xi,w);CHKERRQ(ierr); }
       else { ierr = VecCopy(xi,w);CHKERRQ(ierr); }                    /* w=B*xi */
-      ierr = VecAXPY(u,ki,w);CHKERRQ(ierr);                           /* u=A*xr-kr*B*xr+ki*B*xi */
+      ierr = VecAXPY(u,trans?-ki:ki,w);CHKERRQ(ierr);                 /* u=A*xr-kr*B*xr+ki*B*xi */
     }
     ierr = VecNorm(u,NORM_2,&nr);CHKERRQ(ierr);
     ierr = (*matmult)(A,xi,u);CHKERRQ(ierr);                          /* u=A*xi */
     if (SlepcAbsEigenvalue(kr,ki) > PETSC_MACHINE_EPSILON) {
       ierr = VecAXPY(u,-kr,w);CHKERRQ(ierr);                          /* u=A*xi-kr*B*xi */
-      ierr = VecAXPY(u,-ki,v);CHKERRQ(ierr);                          /* u=A*xi-kr*B*xi-ki*B*xr */
+      ierr = VecAXPY(u,trans?ki:-ki,v);CHKERRQ(ierr);                 /* u=A*xi-kr*B*xi-ki*B*xr */
     }
     ierr = VecNorm(u,NORM_2,&ni);CHKERRQ(ierr);
     *norm = SlepcAbsEigenvalue(nr,ni);
