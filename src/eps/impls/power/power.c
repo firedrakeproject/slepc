@@ -1105,7 +1105,9 @@ PetscErrorCode EPSComputeVectors_Power(EPS eps)
   EPS_POWER      *power = (EPS_POWER*)eps->data;
 
   PetscFunctionBegin;
-  if (!power->nonlinear && !eps->twosided) {
+  if (eps->twosided) {
+    ierr = EPSComputeVectors_Twosided(eps);CHKERRQ(ierr);
+  } else if (!power->nonlinear) {
     ierr = EPSComputeVectors_Schur(eps);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);

@@ -196,6 +196,7 @@ SLEPC_INTERN PetscErrorCode EPSComputeVectors(EPS);
 SLEPC_INTERN PetscErrorCode EPSComputeVectors_Hermitian(EPS);
 SLEPC_INTERN PetscErrorCode EPSComputeVectors_Schur(EPS);
 SLEPC_INTERN PetscErrorCode EPSComputeVectors_Indefinite(EPS);
+SLEPC_INTERN PetscErrorCode EPSComputeVectors_Twosided(EPS);
 SLEPC_INTERN PetscErrorCode EPSComputeVectors_Slice(EPS);
 SLEPC_INTERN PetscErrorCode EPSComputeResidualNorm_Private(EPS,PetscBool,PetscScalar,PetscScalar,Vec,Vec,Vec*,PetscReal*);
 SLEPC_INTERN PetscErrorCode EPSComputeRitzVector(EPS,PetscScalar*,PetscScalar*,BV,Vec,Vec);

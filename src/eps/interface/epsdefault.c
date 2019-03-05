@@ -116,6 +116,35 @@ PetscErrorCode EPSComputeVectors_Indefinite(EPS eps)
 }
 
 /*
+  EPSComputeVectors_Twosided - Adjust left eigenvectors in generalized problems: y = B^-* y.
+ */
+PetscErrorCode EPSComputeVectors_Twosided(EPS eps)
+{
+  PetscErrorCode ierr;
+  PetscInt       i;
+  Vec            w,y;
+
+  PetscFunctionBegin;
+  if (!eps->twosided || !eps->isgeneralized) PetscFunctionReturn(0);
+  ierr = EPSSetWorkVecs(eps,1);CHKERRQ(ierr);
+  w = eps->work[0];
+  for (i=0;i<eps->nconv;i++) {
+    ierr = BVCopyVec(eps->W,i,w);CHKERRQ(ierr);
+    ierr = VecConjugate(w);CHKERRQ(ierr);
+    ierr = BVGetColumn(eps->W,i,&y);CHKERRQ(ierr);
+    ierr = STMatSolveTranspose(eps->st,w,y);CHKERRQ(ierr);
+    ierr = VecConjugate(y);CHKERRQ(ierr);
+    /* normalize */
+    ierr = VecNormalize(y,NULL);CHKERRQ(ierr);
+    ierr = BVRestoreColumn(eps->W,i,&y);CHKERRQ(ierr);
+    ierr = BVGetColumn(eps->V,i,&y);CHKERRQ(ierr);
+    ierr = VecNormalize(y,NULL);CHKERRQ(ierr);
+    ierr = BVRestoreColumn(eps->V,i,&y);CHKERRQ(ierr);
+  }
+  PetscFunctionReturn(0);
+}
+
+/*
   EPSComputeVectors_Schur - Compute eigenvectors from the vectors
   provided by the eigensolver. This version is intended for solvers
   that provide Schur vectors. Given the partial Schur decomposition
@@ -200,6 +229,7 @@ PetscErrorCode EPSComputeVectors_Schur(EPS eps)
     ierr = BVSetActiveColumns(eps->W,0,n);CHKERRQ(ierr);
     ierr = BVMultInPlace(eps->W,Z,0,n);CHKERRQ(ierr);
     ierr = MatDestroy(&Z);CHKERRQ(ierr);
+    ierr = EPSComputeVectors_Twosided(eps);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }

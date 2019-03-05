@@ -55,7 +55,7 @@ PetscErrorCode VecNormalizeComplex(Vec xr,Vec xi,PetscBool iscomplex,PetscReal *
 }
 
 /*@C
-   VecCheckOrthogonality - Checks (or prints) the level of orthogonality
+   VecCheckOrthogonality - Checks (or prints) the level of (bi-)orthogonality
    of a set of vectors.
 
    Collective on Vec
@@ -79,7 +79,8 @@ PetscErrorCode VecNormalizeComplex(Vec xr,Vec xi,PetscBool iscomplex,PetscReal *
    If matrix B is provided then the check uses the B-inner product, W'*B*V.
 
    If lev is not NULL, it will contain the maximum entry of matrix
-   W'*V - I (in absolute value). Otherwise, the matrix W'*V is printed.
+   W'*V - I (in absolute value) omitting the diagonal. Otherwise, the matrix W'*V
+   is printed.
 
    Level: developer
 @*/
@@ -121,8 +122,9 @@ PetscErrorCode VecCheckOrthogonality(Vec *V,PetscInt nv,Vec *W,PetscInt nw,Mat B
     }
     ierr = VecMDot(w,nv,V,vals);CHKERRQ(ierr);
     for (j=0;j<nv;j++) {
-      if (lev) *lev = PetscMax(*lev,PetscAbsScalar((j==i)? (vals[j]-1.0): vals[j]));
-      else {
+      if (lev) {
+        if (i!=j) *lev = PetscMax(*lev,PetscAbsScalar(vals[j]));
+      } else {
 #if !defined(PETSC_USE_COMPLEX)
         ierr = PetscViewerASCIIPrintf(viewer," %12g  ",(double)vals[j]);CHKERRQ(ierr);
 #else

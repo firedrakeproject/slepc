@@ -635,7 +635,7 @@ PetscErrorCode EPSComputeResidualNorm_Private(EPS eps,PetscBool trans,PetscScala
   Vec            v;
   PetscReal      ni,nr;
 #endif
-  PetscErrorCode (*matmult)(Mat,Vec,Vec) = trans? MatMultTranspose: MatMult;
+  PetscErrorCode (*matmult)(Mat,Vec,Vec) = trans? MatMultHermitianTranspose: MatMult;
 
   PetscFunctionBegin;
   u = z[0]; w = z[2];
