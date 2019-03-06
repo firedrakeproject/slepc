@@ -159,7 +159,7 @@ int main(int argc,char **argv)
   }
   ierr = EPSDestroy(&eps);CHKERRQ(ierr);
   ierr = MatDestroy(&A);CHKERRQ(ierr);
-  ierr = MFNDestroy(&mfn);CHKERRQ(ierr);
+  if (isShell) { ierr = MFNDestroy(&mfn);CHKERRQ(ierr); }
 #else
   SETERRQ(PETSC_COMM_WORLD,1,"This examples requires C99 complex numbers");
 #endif

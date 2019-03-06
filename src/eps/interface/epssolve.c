@@ -355,7 +355,7 @@ PetscErrorCode EPSGetInvariantSubspace(EPS eps,Vec *v)
   EPSGetVector_Private - retrieves k-th eigenvector from basis vectors V.
   The argument eigi is the imaginary part of the corresponding eigenvalue.
 */
-PETSC_STATIC_INLINE PetscErrorCode EPSGetVector_Private(BV V,PetscInt k,PetscReal eigi,Vec Vr,Vec Vi)
+PETSC_STATIC_INLINE PetscErrorCode EPSGetVector_Private(BV V,PetscInt k,PetscScalar eigi,Vec Vr,Vec Vi)
 {
   PetscErrorCode ierr;
 
@@ -529,11 +529,7 @@ PetscErrorCode EPSGetEigenvector(EPS eps,PetscInt i,Vec Vr,Vec Vi)
   if (i<0 || i>=eps->nconv) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"Argument 2 out of range");
   ierr = EPSComputeVectors(eps);CHKERRQ(ierr);
   k = eps->perm[i];
-#if defined(PETSC_USE_COMPLEX)
-  ierr = EPSGetVector_Private(eps->V,k,0.0,Vr,Vi);CHKERRQ(ierr);
-#else
   ierr = EPSGetVector_Private(eps->V,k,eps->eigi[k],Vr,Vi);CHKERRQ(ierr);
-#endif
   PetscFunctionReturn(0);
 }
 
@@ -585,11 +581,7 @@ PetscErrorCode EPSGetLeftEigenvector(EPS eps,PetscInt i,Vec Wr,Vec Wi)
   if (i<0 || i>=eps->nconv) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"Argument 2 out of range");
   ierr = EPSComputeVectors(eps);CHKERRQ(ierr);
   k = eps->perm[i];
-#if defined(PETSC_USE_COMPLEX)
-  ierr = EPSGetVector_Private(eps->ishermitian?eps->V:eps->W,k,0.0,Wr,Wi);CHKERRQ(ierr);
-#else
   ierr = EPSGetVector_Private(eps->ishermitian?eps->V:eps->W,k,eps->eigi[k],Wr,Wi);CHKERRQ(ierr);
-#endif
   PetscFunctionReturn(0);
 }
 

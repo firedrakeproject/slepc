@@ -127,7 +127,7 @@ PetscErrorCode EPSSolve_KrylovSchur_TwoSided(EPS eps)
   Mat             M,U;
   PetscReal       norm,beta,betat,s,t;
   PetscScalar     *pM,*S,*T,*eigr,*eigi,*Q;
-  PetscInt        ld,l,nv,ncv= eps->ncv,i,j,k,nconv,*p,cont,*idx,id;
+  PetscInt        ld,l,nv,ncv=eps->ncv,i,j,k,nconv,*p,cont,*idx,id=0;
   PetscBool       breakdownt,breakdown;
 #if defined(PETSC_USE_COMPLEX)
   Mat             A;
@@ -192,19 +192,19 @@ PetscErrorCode EPSSolve_KrylovSchur_TwoSided(EPS eps)
     ierr = DSRestoreMat(eps->dsts,DS_MAT_Q,&U);CHKERRQ(ierr);
 #endif
     ierr = DSSort(eps->dsts,eigr,eigi,NULL,NULL,NULL);CHKERRQ(ierr);
-    /* check correct eigenvalue conrespondente */
+    /* check correct eigenvalue correspondence */
     cont = 0;
     for (i=0;i<nv;i++) {
-      if (PetscAbsScalar(eigr[i]-eps->eigr[i])+PetscAbsScalar(eigi[i]-eps->eigi[i])>PETSC_SQRT_MACHINE_EPSILON) {idx[cont++] = i;}
+      if (PetscAbsScalar(eigr[i]-eps->eigr[i])+PetscAbsScalar(eigi[i]-eps->eigi[i])>PETSC_SQRT_MACHINE_EPSILON) idx[cont++] = i;
       p[i] = -1;
     }
     if (cont) {
       for (i=0;i<cont;i++) {
         t = PETSC_MAX_REAL; 
-        for (j=0;j<cont;j++) if ((s=PetscAbsScalar(eigr[idx[j]]-eps->eigr[idx[i]])+PetscAbsScalar(eigi[idx[j]]-eps->eigi[idx[i]]))<t) { id = idx[j]; t = s;}
+        for (j=0;j<cont;j++) if ((s=PetscAbsScalar(eigr[idx[j]]-eps->eigr[idx[i]])+PetscAbsScalar(eigi[idx[j]]-eps->eigi[idx[i]]))<t) { id = idx[j]; t = s; }
         p[idx[i]] = id;
       }
-      for (i=0;i<nv;i++) if (p[i]==-1)  p[i] = i;
+      for (i=0;i<nv;i++) if (p[i]==-1) p[i] = i;
       ierr = DSSortWithPermutation(eps->dsts,p,eigr,eigi);CHKERRQ(ierr);
     }
 #if defined(PETSC_USE_COMPLEX)
@@ -235,7 +235,7 @@ PetscErrorCode EPSSolve_KrylovSchur_TwoSided(EPS eps)
       ierr = DSRestoreArray(eps->ds,DS_MAT_A,&S);CHKERRQ(ierr);
 #endif
     }
-    if ((!ctx->lock ) && l>0) { l += k; k = 0; } /* non-locking variant: reset no. of converged pairs */
+    if (!ctx->lock && l>0) { l += k; k = 0; } /* non-locking variant: reset no. of converged pairs */
 
     /* Update the corresponding vectors V(:,idx) = V*Q(:,idx) */
     ierr = BVSetActiveColumns(eps->V,eps->nconv,nv);CHKERRQ(ierr);
