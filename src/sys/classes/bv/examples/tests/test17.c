@@ -18,7 +18,7 @@ int main(int argc,char **argv)
   BV             X,Y;
   Mat            M;
   Vec            v,t;
-  PetscInt       i,j,n=20,k=8;
+  PetscInt       i,j,n=20,k=7;
   PetscViewer    view;
   PetscBool      verbose;
   PetscReal      norm,condn=1.0;

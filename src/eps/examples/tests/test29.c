@@ -244,7 +244,7 @@ PetscErrorCode ComputeResidualNorm(Mat A,Mat B,PetscBool trans,PetscScalar kr,Pe
 
    testset:
       args: -f1 ${SLEPC_DIR}/share/slepc/datafiles/matrices/bfw62a.petsc -f2 ${SLEPC_DIR}/share/slepc/datafiles/matrices/bfw62b.petsc -eps_nev 4 -st_type sinvert -eps_target -190000
-      filter: grep -v "method" | sed -e "s/[+-]0.000000i//" | sed -e "s/[0-9]\.[0-9]*e[+-]\([0-9]*\)/removed/g"
+      filter: grep -v "method" | sed -e "s/[+-]0.0*i//" | sed -e "s/[0-9]\.[0-9]*e[+-]\([0-9]*\)/removed/g"
       requires: double !complex !define(PETSC_USE_64BIT_INDICES)
       output_file: output/test29_1.out
       test:
