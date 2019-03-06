@@ -144,7 +144,7 @@ int main(int argc,char **argv)
       im = ki[i];
 #endif
       if (im!=0.0) {
-        ierr = PetscPrintf(PETSC_COMM_WORLD," %8f%+8fi %12g %12g\n",(double)re,(double)im,(double)nrmr,(double)nrml);CHKERRQ(ierr);
+        ierr = PetscPrintf(PETSC_COMM_WORLD," %8f%+8fi %12g       %12g\n",(double)re,(double)im,(double)nrmr,(double)nrml);CHKERRQ(ierr);
       } else {
         ierr = PetscPrintf(PETSC_COMM_WORLD,"   %12f       %12g       %12g\n",(double)re,(double)nrmr,(double)nrml);CHKERRQ(ierr);
       }

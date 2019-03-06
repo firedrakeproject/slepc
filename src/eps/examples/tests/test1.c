@@ -166,7 +166,7 @@ int main(int argc,char **argv)
    test:
       suffix: 4
       requires: !single
-      args: -n 18 -eps_type power -eps_nev 3 -st_type sinvert -eps_target 1.15 -eps_power_shift_type {{constant rayleigh wilkinson}}
+      args: -n 18 -eps_type power -eps_nev 3 -st_type sinvert -eps_target 1.149 -eps_power_shift_type {{constant rayleigh wilkinson}}
 
    testset:
       args: -n 18 -eps_nev 3 -eps_smallest_real -eps_max_it 500 -st_pc_type icc

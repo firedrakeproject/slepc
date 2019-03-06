@@ -441,11 +441,11 @@ PetscErrorCode EPSSolve_Power(EPS eps)
         rho = sigma;  /* if converged, restore original shift */
         ierr = STSetShift(eps->st,rho);CHKERRQ(ierr);
       } else {
-        rho = rho + theta/(delta*delta);  /* Rayleigh quotient R(v) */
+        rho = rho + PetscConj(theta)/(delta*delta);  /* Rayleigh quotient R(v) */
         if (power->shift_type == EPS_POWER_SHIFT_WILKINSON) {
           /* beta1 is the norm of the residual associated with R(v) */
           ierr = BVGetColumn(eps->V,k,&v);CHKERRQ(ierr);
-          ierr = VecAXPY(v,-theta/(delta*delta),y);CHKERRQ(ierr);
+          ierr = VecAXPY(v,-PetscConj(theta)/(delta*delta),y);CHKERRQ(ierr);
           ierr = BVRestoreColumn(eps->V,k,&v);CHKERRQ(ierr);
           ierr = BVScaleColumn(eps->V,k,1.0/delta);CHKERRQ(ierr);
           ierr = BVNormColumn(eps->V,k,NORM_2,&norm1);CHKERRQ(ierr);
