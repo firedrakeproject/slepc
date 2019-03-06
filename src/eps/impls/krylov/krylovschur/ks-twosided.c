@@ -190,6 +190,7 @@ PetscErrorCode EPSSolve_KrylovSchur_TwoSided(EPS eps)
     ierr = DSGetMat(eps->dsts,DS_MAT_Q,&U);CHKERRQ(ierr);
     ierr = MatConjugate(U);CHKERRQ(ierr);
     ierr = DSRestoreMat(eps->dsts,DS_MAT_Q,&U);CHKERRQ(ierr);
+    for (i=0;i<nv;i++) eigr[i] = PetscConj(eigr[i]);
 #endif
     ierr = DSSort(eps->dsts,eigr,eigi,NULL,NULL,NULL);CHKERRQ(ierr);
     /* check correct eigenvalue correspondence */
