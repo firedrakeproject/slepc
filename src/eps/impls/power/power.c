@@ -404,7 +404,6 @@ PetscErrorCode EPSSolve_Power(EPS eps)
     /* theta = (v,y)_B */
     ierr = BVSetActiveColumns(eps->V,k,k+1);CHKERRQ(ierr);
     ierr = BVDotVec(eps->V,y,&theta);CHKERRQ(ierr);
-    theta = PetscConj(theta);
     if (!power->nonlinear) {
       T[k+k*ld] = theta;
       ierr = DSRestoreArray(eps->ds,DS_MAT_A,&T);CHKERRQ(ierr);
