@@ -192,7 +192,7 @@ int main(int argc,char **argv)
 PetscErrorCode ComputeResidualNorm(Mat A,Mat B,PetscBool trans,PetscScalar kr,PetscScalar ki,Vec xr,Vec xi,Vec *z,PetscReal *norm)
 {
   PetscErrorCode ierr;
-  Vec            u,w;
+  Vec            u,w=NULL;
   PetscScalar    alpha;
 #if !defined(PETSC_USE_COMPLEX)
   Vec            v;
@@ -244,7 +244,7 @@ PetscErrorCode ComputeResidualNorm(Mat A,Mat B,PetscBool trans,PetscScalar kr,Pe
 
    testset:
       args: -f1 ${SLEPC_DIR}/share/slepc/datafiles/matrices/bfw62a.petsc -f2 ${SLEPC_DIR}/share/slepc/datafiles/matrices/bfw62b.petsc -eps_nev 4 -st_type sinvert -eps_target -190000
-      filter: sed -e "s/[+-]0.000000i//" | sed -e "s/[0-9]\.[0-9]*e[+-]\([0-9]*\)/removed/g"
+      filter: grep -v "method" | sed -e "s/[+-]0.000000i//" | sed -e "s/[0-9]\.[0-9]*e[+-]\([0-9]*\)/removed/g"
       requires: double !complex !define(PETSC_USE_64BIT_INDICES)
       output_file: output/test29_1.out
       test:
@@ -256,6 +256,7 @@ PetscErrorCode ComputeResidualNorm(Mat A,Mat B,PetscBool trans,PetscScalar kr,Pe
    test:
       suffix: 2
       args: -f1 ${DATAFILESPATH}/matrices/complex/mhd1280a.petsc -f2 ${DATAFILESPATH}/matrices/complex/mhd1280b.petsc -eps_nev 6 -eps_tol 1e-11
+      filter: sed -e "s/[0-9]\.[0-9]*e[+-]\([0-9]*\)/removed/g"
       requires: complex datafilespath
       timeoutfactor: 2
 

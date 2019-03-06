@@ -119,6 +119,7 @@ int main(int argc,char **argv)
   }
 
   ierr = PetscFree(eig);CHKERRQ(ierr);
+  ierr = PetscFree(sc);CHKERRQ(ierr);
   ierr = DSDestroy(&ds);CHKERRQ(ierr);
   ierr = SlepcFinalize();
   return ierr;

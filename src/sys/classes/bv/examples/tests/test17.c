@@ -136,6 +136,7 @@ int main(int argc,char **argv)
       suffix: 1
       nsize: 1
       args: -bv_type {{vecs contiguous svec mat}} -bv_orthog_type cgs
+      requires: double
       output_file: output/test17_1.out
 
    test:
