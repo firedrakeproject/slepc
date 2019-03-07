@@ -500,6 +500,10 @@ PetscErrorCode SVDValuesViewFromOptions(SVD svd)
    Options Database Keys:
 .  -svd_view_vectors - output singular vectors
 
+   Note:
+   Right and left singular vectors are interleaved, that is, the vectors are
+   output in the following order: V0, U0, V1, U1, V2, U2, ...
+
    Level: intermediate
 
 .seealso: SVDSolve(), SVDValuesView(), SVDErrorView()
