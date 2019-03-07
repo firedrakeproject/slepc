@@ -37,6 +37,7 @@ static char help[] = "Solves a problem associated to the Brusselator wave model 
    Matrix operations
 */
 PetscErrorCode MatMult_Brussel(Mat,Vec,Vec);
+PetscErrorCode MatMultTranspose_Brussel(Mat,Vec,Vec);
 PetscErrorCode MatGetDiagonal_Brussel(Mat,Vec);
 
 typedef struct {
@@ -121,6 +122,7 @@ int main(int argc,char **argv)
   */
   ierr = MatCreateShell(PETSC_COMM_WORLD,2*n,2*n,2*N,2*N,(void*)ctx,&A);CHKERRQ(ierr);
   ierr = MatShellSetOperation(A,MATOP_MULT,(void(*)(void))MatMult_Brussel);CHKERRQ(ierr);
+  ierr = MatShellSetOperation(A,MATOP_MULT_TRANSPOSE,(void(*)(void))MatMultTranspose_Brussel);CHKERRQ(ierr);
   ierr = MatShellSetOperation(A,MATOP_GET_DIAGONAL,(void(*)(void))MatGetDiagonal_Brussel);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -209,13 +211,50 @@ PetscErrorCode MatMult_Brussel(Mat A,Vec x,Vec y)
 
   ierr = MatMult(ctx->T,ctx->x1,ctx->y1);CHKERRQ(ierr);
   ierr = VecScale(ctx->y1,ctx->tau1);CHKERRQ(ierr);
-  ierr = VecAXPY(ctx->y1,ctx->beta - 1.0 + ctx->sigma,ctx->x1);CHKERRQ(ierr);
-  ierr = VecAXPY(ctx->y1,ctx->alpha * ctx->alpha,ctx->x2);CHKERRQ(ierr);
+  ierr = VecAXPY(ctx->y1,ctx->beta-1.0+ctx->sigma,ctx->x1);CHKERRQ(ierr);
+  ierr = VecAXPY(ctx->y1,ctx->alpha*ctx->alpha,ctx->x2);CHKERRQ(ierr);
 
   ierr = MatMult(ctx->T,ctx->x2,ctx->y2);CHKERRQ(ierr);
   ierr = VecScale(ctx->y2,ctx->tau2);CHKERRQ(ierr);
   ierr = VecAXPY(ctx->y2,-ctx->beta,ctx->x1);CHKERRQ(ierr);
-  ierr = VecAXPY(ctx->y2,-ctx->alpha * ctx->alpha + ctx->sigma,ctx->x2);CHKERRQ(ierr);
+  ierr = VecAXPY(ctx->y2,-ctx->alpha*ctx->alpha+ctx->sigma,ctx->x2);CHKERRQ(ierr);
+
+  ierr = VecRestoreArrayRead(x,&px);CHKERRQ(ierr);
+  ierr = VecRestoreArray(y,&py);CHKERRQ(ierr);
+  ierr = VecResetArray(ctx->x1);CHKERRQ(ierr);
+  ierr = VecResetArray(ctx->x2);CHKERRQ(ierr);
+  ierr = VecResetArray(ctx->y1);CHKERRQ(ierr);
+  ierr = VecResetArray(ctx->y2);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+PetscErrorCode MatMultTranspose_Brussel(Mat A,Vec x,Vec y)
+{
+  PetscInt          n;
+  const PetscScalar *px;
+  PetscScalar       *py;
+  CTX_BRUSSEL       *ctx;
+  PetscErrorCode    ierr;
+
+  PetscFunctionBeginUser;
+  ierr = MatShellGetContext(A,(void**)&ctx);CHKERRQ(ierr);
+  ierr = MatGetLocalSize(ctx->T,&n,NULL);CHKERRQ(ierr);
+  ierr = VecGetArrayRead(x,&px);CHKERRQ(ierr);
+  ierr = VecGetArray(y,&py);CHKERRQ(ierr);
+  ierr = VecPlaceArray(ctx->x1,px);CHKERRQ(ierr);
+  ierr = VecPlaceArray(ctx->x2,px+n);CHKERRQ(ierr);
+  ierr = VecPlaceArray(ctx->y1,py);CHKERRQ(ierr);
+  ierr = VecPlaceArray(ctx->y2,py+n);CHKERRQ(ierr);
+
+  ierr = MatMultTranspose(ctx->T,ctx->x1,ctx->y1);CHKERRQ(ierr);
+  ierr = VecScale(ctx->y1,ctx->tau1);CHKERRQ(ierr);
+  ierr = VecAXPY(ctx->y1,ctx->beta-1.0+ctx->sigma,ctx->x1);CHKERRQ(ierr);
+  ierr = VecAXPY(ctx->y1,-ctx->beta,ctx->x2);CHKERRQ(ierr);
+
+  ierr = MatMultTranspose(ctx->T,ctx->x2,ctx->y2);CHKERRQ(ierr);
+  ierr = VecScale(ctx->y2,ctx->tau2);CHKERRQ(ierr);
+  ierr = VecAXPY(ctx->y2,ctx->alpha*ctx->alpha,ctx->x1);CHKERRQ(ierr);
+  ierr = VecAXPY(ctx->y2,-ctx->alpha*ctx->alpha+ctx->sigma,ctx->x2);CHKERRQ(ierr);
 
   ierr = VecRestoreArrayRead(x,&px);CHKERRQ(ierr);
   ierr = VecRestoreArray(y,&py);CHKERRQ(ierr);
@@ -256,7 +295,7 @@ PetscErrorCode MatGetDiagonal_Brussel(Mat A,Vec diag)
 
    test:
       suffix: 1
-      args: -eps_nev 4 -terse
+      args: -n 50 -eps_nev 4 -eps_two_sided {{0 1}} -terse
       requires: !complex !single
 
    test:
