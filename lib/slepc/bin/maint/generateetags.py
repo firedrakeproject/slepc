@@ -164,10 +164,10 @@ def main(ctags):
   else:
     ctagfile = None
   flist = []
-  try:
+  if os.path.isdir('.git'):
     output = check_output('git ls-files | egrep -v \(^\(docs/\|share/slepc/datafiles/\)\|/output/\|\.\(png\|pdf\|ps\|ppt\|jpg\|tex\)$\)', shell=True)
     flist = output.decode(sys.getfilesystemencoding()).splitlines()
-  except OSError:
+  else:
     for dirpath, dirnames, filenames in os.walk(os.getcwd()):
       processDir(flist, dirpath, dirnames, filenames)
     processFiles(os.getcwd(),flist)
