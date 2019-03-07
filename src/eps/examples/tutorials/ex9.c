@@ -295,8 +295,9 @@ PetscErrorCode MatGetDiagonal_Brussel(Mat A,Vec diag)
 
    test:
       suffix: 1
-      args: -n 50 -eps_nev 4 -eps_two_sided {{0 1}} -terse
+      args: -n 50 -eps_nev 4 -eps_two_sided {{0 1}} -eps_type {{krylovschur lapack}} -terse
       requires: !complex !single
+      filter: grep -v method
 
    test:
       suffix: 2

@@ -170,9 +170,6 @@ PetscErrorCode EPSSolve(EPS eps)
         /* the next correction only works with eigenvectors */
         ierr = EPSComputeVectors(eps);CHKERRQ(ierr);
         ierr = BVScaleColumn(eps->V,i+1,-1.0);CHKERRQ(ierr);
-      } else if (eps->twosided) {
-        ierr = EPSComputeVectors(eps);CHKERRQ(ierr);
-        ierr = BVScaleColumn(eps->W,i+1,-1.0);CHKERRQ(ierr);
       }
       i++;
     }

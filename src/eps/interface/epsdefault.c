@@ -246,6 +246,14 @@ PetscErrorCode EPSComputeVectors_Schur(EPS eps)
     ierr = BVMultInPlace(eps->W,Z,0,n);CHKERRQ(ierr);
     ierr = MatDestroy(&Z);CHKERRQ(ierr);
     ierr = EPSComputeVectors_Twosided(eps);CHKERRQ(ierr);
+#if !defined(PETSC_USE_COMPLEX)
+    for (i=0;i<eps->nconv-1;i++) {
+      if (eps->eigi[i] != 0.0) {
+        if (eps->eigi[i] > 0.0) { ierr = BVScaleColumn(eps->W,i+1,-1.0);CHKERRQ(ierr); }
+        i++;
+      }
+    }
+#endif
   }
   PetscFunctionReturn(0);
 }

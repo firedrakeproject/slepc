@@ -1,7 +1,6 @@
 
 Brusselator wave model, n=50
 
- Solution method: krylovschur
 
  Number of requested eigenvalues: 4
  All requested eigenvalues computed up to the required tolerance:
