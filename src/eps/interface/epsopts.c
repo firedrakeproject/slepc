@@ -1210,7 +1210,7 @@ PetscErrorCode EPSGetBalance(EPS eps,EPSBalance *bal,PetscInt *its,PetscReal *cu
 
    Level: advanced
 
-.seealso: EPSGetTwoSided()
+.seealso: EPSGetTwoSided(), EPSGetLeftEigenvector()
 @*/
 PetscErrorCode EPSSetTwoSided(EPS eps,PetscBool twosided)
 {

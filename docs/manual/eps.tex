@@ -262,6 +262,15 @@ Finally, we mention the possibility of defining an arbitrary sorting criterion b
 
 The selection criteria discussed above are based solely on the eigenvalue. In some special situations, it is necessary to establish a user-defined criterion that also makes use of the eigenvector when deciding which are the most wanted eigenpairs. For these cases, use \ident{EPSSetArbitrarySelection}.
 
+\paragraph{Left Eigenvectors.}
+
+In addition to right eigevectors, some solvers are able to compute also left eigenvectors, as defined in \eqref{eq:eigstdleft}. The algorithmic variants that compute both left and right eigenvectors are usually called \emph{two-sided}. By default, SLEPc computes right eigenvectors only. To compute also left eigenvectors, the user should set a flag by calling the following function before \ident{EPSSolve}.
+	\findex{EPSSetTwoSided}
+	\begin{Verbatim}[fontsize=\small]
+	EPSSetTwoSided(EPS eps,PetscBool twosided);
+	\end{Verbatim}
+Note that support for left eigenvectors is available only for non-Hermitian problems (either standard or generalized) and is restricted to just a few solvers, see Table \ref{tab:support}.
+
 %---------------------------------------------------
 \section{Selecting the Eigensolver}
 
@@ -327,25 +336,25 @@ while the user writes the options database command \Verb!-eps_type! followed by 
 \begin{table}
 \centering
 \begin{tabular}{ccccc} \hline
-Method   &  Portion of spectrum & Problem type & Real/Complex \\ \hline
-\texttt{power}       & Largest $|\lambda|$ & any & both \\
-\texttt{subspace}    & Largest $|\lambda|$ & any & both \\
-\texttt{arnoldi}     & any    & any & both \\
-\texttt{lanczos}     & any    & \Verb!EPS_HEP!, \Verb!EPS_GHEP! & both \\
-\texttt{krylovschur} & any                 & any & both \\
-\texttt{gd}          & any    & any & both \\
-\texttt{jd}          & any    & any & both \\
-\texttt{rqcg}        & Smallest $\mathrm{Re}(\lambda)$ & \Verb!EPS_HEP!, \Verb!EPS_GHEP! & both \\
-\texttt{lobpcg}      & Smallest $\mathrm{Re}(\lambda)$ & \Verb!EPS_HEP!, \Verb!EPS_GHEP! & both \\
-\texttt{ciss}        & All $\lambda$ in region & any & both \\
+Method   &  Portion of spectrum & Problem type & \!Real/complex\! & \!Two-sided\!\\ \hline
+\texttt{power}       & Largest $|\lambda|$ & any & both & yes\\
+\texttt{subspace}    & Largest $|\lambda|$ & any & both & \\
+\texttt{arnoldi}     & any    & any & both & \\
+\texttt{lanczos}     & any    & \Verb!EPS_HEP!, \Verb!EPS_GHEP! & both & \\
+\!\texttt{krylovschur}\! & any    & any & both & yes \\
+\texttt{gd}          & any    & any & both & \\
+\texttt{jd}          & any    & any & both & \\
+\texttt{rqcg}        & Smallest $\mathrm{Re}(\lambda)$ & \Verb!EPS_HEP!, \Verb!EPS_GHEP! & both & \\
+\texttt{lobpcg}      & Smallest $\mathrm{Re}(\lambda)$ & \Verb!EPS_HEP!, \Verb!EPS_GHEP! & both & \\
+\texttt{ciss}        & All $\lambda$ in region & any & both & \\
 \hline
-\texttt{lapack}      & any                 & any & both \\
-\texttt{arpack}      & any    & any & both \\
-\texttt{primme}      & Largest and smallest $\mathrm{Re}(\lambda)$ & \Verb!EPS_HEP! & both \\
-\texttt{blzpack}     & Smallest $\mathrm{Re}(\lambda)$ & \Verb!EPS_HEP!, \Verb!EPS_GHEP!  & real \\
-\texttt{trlan}       & Largest and smallest $\mathrm{Re}(\lambda)$ & \Verb!EPS_HEP! & real \\
-\texttt{blopex}      & Smallest $\mathrm{Re}(\lambda)$ & \Verb!EPS_HEP!, \Verb!EPS_GHEP! & both \\
-\texttt{feast}       & All $\lambda$ in an interval & \Verb!EPS_HEP!, \Verb!EPS_GHEP! & complex \\ \hline
+\texttt{lapack}      & any    & any & both & yes \\
+\texttt{arpack}      & any    & any & both & \\
+\texttt{primme}      & Largest and smallest $\mathrm{Re}(\lambda)$ & \Verb!EPS_HEP! & both & \\
+\texttt{blzpack}     & Smallest $\mathrm{Re}(\lambda)$ & \Verb!EPS_HEP!, \Verb!EPS_GHEP!& real & \\
+\texttt{trlan}       & Largest and smallest $\mathrm{Re}(\lambda)$ & \Verb!EPS_HEP! & real & \\
+\texttt{blopex}      & Smallest $\mathrm{Re}(\lambda)$ & \Verb!EPS_HEP!, \Verb!EPS_GHEP! & both & \\
+\texttt{feast}       & All $\lambda$ in an interval & \Verb!EPS_HEP!, \Verb!EPS_GHEP! & complex & \\ \hline
 \end{tabular}
 \caption{\label{tab:support}Supported problem types for all eigensolvers available in \slepc.}
 \end{table}
@@ -399,6 +408,12 @@ Usually, the number of converged solutions, \texttt{nconv}, will be equal to \te
 returns the $j$-th computed eigenvalue/eigenvector pair. Typically, this function is called inside a loop for each value of \texttt{j} from 0 to \texttt{nconv}--1. Note that eigenvalues are ordered according to the same criterion specified with function \ident{EPSSetWhichEigenpairs} for selecting the portion of the spectrum of interest.
 	The meaning of the last 4 arguments depends on whether \slepc has been compiled for real or complex scalars, as detailed below. The eigenvectors are normalized so that they have a unit 2-norm, except for problem type \ident{EPS\_GHEP} in which case returned eigenvectors have a unit $B$-norm.
 
+	In case the two-sided variant of the solver has been selected, the left eigenvectors can be obtained with
+	\findex{EPSGetLeftEigenvector}
+	\begin{Verbatim}[fontsize=\small]
+	EPSGetLeftEigenvector(EPS eps,PetscInt j,Vec yr,Vec yi);
+	\end{Verbatim}
+
 \paragraph{Real \slepc.} In this case, all \texttt{Mat} and \texttt{Vec} objects are real. The computed approximate solution returned by the function \ident{EPSGetEigenpair} is stored in the following way: \texttt{kr} and \texttt{ki} contain the real and imaginary parts of the eigenvalue, respectively, and \texttt{xr} and \texttt{xi} contain the associated eigenvector. Two cases can be distinguished:
 
 \begin{itemize}
@@ -447,7 +462,7 @@ It is sometimes useful to compute error bounds based on the norm of the residual
 	EPSComputeError(EPS eps,PetscInt j,EPSErrorType type,PetscReal *error);
 	\end{Verbatim}
 The types of errors that can be computed are summarized in Table \ref{tab:errors}.
-The way in which the error is computed is unrelated to the error estimation used internally in the solver for convergence checking, as described below.
+The way in which the error is computed is unrelated to the error estimation used internally in the solver for convergence checking, as described below. Also note that in the case of two-sided eigensolvers, the error bounds are based on $\max\{\|\ell_j\|,\|r_j\|\}$, where the left residual $\ell_j$ is defined as $\ell_j=A^*\tilde{y}-\bar{\tilde\lambda}\tilde{y}$.
 
 \begin{table}
 \centering
