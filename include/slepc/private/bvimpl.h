@@ -446,6 +446,36 @@ PETSC_STATIC_INLINE PetscErrorCode BV_StoreCoefficients_Default(BV bv,PetscInt j
   PetscFunctionReturn(0);
 }
 
+/*
+  BV_GetEigenvector - retrieves k-th eigenvector from basis vectors V.
+  The argument eigi is the imaginary part of the corresponding eigenvalue.
+*/
+PETSC_STATIC_INLINE PetscErrorCode BV_GetEigenvector(BV V,PetscInt k,PetscScalar eigi,Vec Vr,Vec Vi)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+#if defined(PETSC_USE_COMPLEX)
+  if (Vr) { ierr = BVCopyVec(V,k,Vr);CHKERRQ(ierr); }
+  if (Vi) { ierr = VecSet(Vi,0.0);CHKERRQ(ierr); }
+#else
+  if (eigi > 0.0) { /* first value of conjugate pair */
+    if (Vr) { ierr = BVCopyVec(V,k,Vr);CHKERRQ(ierr); }
+    if (Vi) { ierr = BVCopyVec(V,k+1,Vi);CHKERRQ(ierr); }
+  } else if (eigi < 0.0) { /* second value of conjugate pair */
+    if (Vr) { ierr = BVCopyVec(V,k-1,Vr);CHKERRQ(ierr); }
+    if (Vi) {
+      ierr = BVCopyVec(V,k,Vi);CHKERRQ(ierr);
+      ierr = VecScale(Vi,-1.0);CHKERRQ(ierr);
+    }
+  } else { /* real eigenvalue */
+    if (Vr) { ierr = BVCopyVec(V,k,Vr);CHKERRQ(ierr); }
+    if (Vi) { ierr = VecSet(Vi,0.0);CHKERRQ(ierr); }
+  }
+#endif
+  PetscFunctionReturn(0);
+}
+
 #if defined(PETSC_HAVE_CUDA)
 #define BV_CleanCoefficients(a,b,c)   ((a)->cuda?BV_CleanCoefficients_CUDA:BV_CleanCoefficients_Default)((a),(b),(c))
 #define BV_AddCoefficients(a,b,c,d)   ((a)->cuda?BV_AddCoefficients_CUDA:BV_AddCoefficients_Default)((a),(b),(c),(d))

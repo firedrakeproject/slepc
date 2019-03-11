@@ -12,6 +12,7 @@
 */
 
 #include <slepc/private/nepimpl.h>       /*I "slepcnep.h" I*/
+#include <slepc/private/bvimpl.h>        /*I "slepcbv.h" I*/
 #include <petscdraw.h>
 
 PetscErrorCode NEPComputeVectors(NEP nep)
@@ -412,24 +413,7 @@ PetscErrorCode NEPGetEigenpair(NEP nep,PetscInt i,PetscScalar *eigr,PetscScalar 
 #endif
 
   /* eigenvector */
-#if defined(PETSC_USE_COMPLEX)
-  if (Vr) { ierr = BVCopyVec(nep->V,k,Vr);CHKERRQ(ierr); }
-  if (Vi) { ierr = VecSet(Vi,0.0);CHKERRQ(ierr); }
-#else
-  if (nep->eigi[k]>0) { /* first value of conjugate pair */
-    if (Vr) { ierr = BVCopyVec(nep->V,k,Vr);CHKERRQ(ierr); }
-    if (Vi) { ierr = BVCopyVec(nep->V,k+1,Vi);CHKERRQ(ierr); }
-  } else if (nep->eigi[k]<0) { /* second value of conjugate pair */
-    if (Vr) { ierr = BVCopyVec(nep->V,k-1,Vr);CHKERRQ(ierr); }
-    if (Vi) {
-      ierr = BVCopyVec(nep->V,k,Vi);CHKERRQ(ierr);
-      ierr = VecScale(Vi,-1.0);CHKERRQ(ierr);
-    }
-  } else { /* real eigenvalue */
-    if (Vr) { ierr = BVCopyVec(nep->V,k,Vr);CHKERRQ(ierr); }
-    if (Vi) { ierr = VecSet(Vi,0.0);CHKERRQ(ierr); }
-  }
-#endif
+  ierr = BV_GetEigenvector(nep->V,k,nep->eigi[k],Vr,Vi);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
