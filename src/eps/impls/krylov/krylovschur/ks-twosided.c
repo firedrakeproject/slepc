@@ -125,7 +125,7 @@ PetscErrorCode EPSSolve_KrylovSchur_TwoSided(EPS eps)
   PetscErrorCode  ierr;
   EPS_KRYLOVSCHUR *ctx = (EPS_KRYLOVSCHUR*)eps->data;
   Mat             M,U;
-  PetscReal       norm,beta,betat,s,t;
+  PetscReal       norm,norm2,beta,betat,s,t;
   PetscScalar     *pM,*S,*T,*eigr,*eigi,*Q;
   PetscInt        ld,l,nv,ncv=eps->ncv,i,j,k,nconv,*p,cont,*idx,id=0;
   PetscBool       breakdownt,breakdown;
@@ -219,7 +219,9 @@ PetscErrorCode EPSSolve_KrylovSchur_TwoSided(EPS eps)
     ierr = DSSynchronize(eps->dsts,eigr,eigi);CHKERRQ(ierr);
 
     /* Check convergence */
-    ierr = EPSKrylovConvergence(eps,PETSC_FALSE,eps->nconv,nv-eps->nconv,beta,betat,1.0,&k);CHKERRQ(ierr);
+    ierr = BVNormColumn(eps->V,nv,NORM_2,&norm);CHKERRQ(ierr);
+    ierr = BVNormColumn(eps->W,nv,NORM_2,&norm2);CHKERRQ(ierr);
+    ierr = EPSKrylovConvergence(eps,PETSC_FALSE,eps->nconv,nv-eps->nconv,beta*norm,betat*norm2,1.0,&k);CHKERRQ(ierr);
     ierr = (*eps->stopping)(eps,eps->its,eps->max_it,k,eps->nev,&eps->reason,eps->stoppingctx);CHKERRQ(ierr);
     nconv = k;
 
