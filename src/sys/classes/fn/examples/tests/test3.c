@@ -130,7 +130,7 @@ int main(int argc,char **argv)
    test:
       suffix: 1_subdiagonalpade
       nsize: 1
-      args: -fn_method 2
+      args: -fn_method {{2 3}}
       requires: c99_complex !single
       filter: grep -v "computing matrix functions"
       output_file: output/test3_1.out
@@ -152,7 +152,7 @@ int main(int argc,char **argv)
    test:
       suffix: 3_subdiagonalpade
       nsize: 1
-      args: -fn_scale 0.1 -fn_method 2
+      args: -fn_scale 0.1 -fn_method {{2 3}}
       requires: c99_complex
       filter: grep -v "computing matrix functions"
       output_file: output/test3_3.out
@@ -168,7 +168,7 @@ int main(int argc,char **argv)
    test:
       suffix: 4_subdiagonalpade
       nsize: 1
-      args: -n 80 -fn_scale 0.6,1.5 -fn_method 2
+      args: -n 80 -fn_scale 0.6,1.5 -fn_method {{2 3}}
       requires: c99_complex
       filter: grep -v "computing matrix functions"
       output_file: output/test3_4.out

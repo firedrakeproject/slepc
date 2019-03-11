@@ -130,13 +130,10 @@ PetscErrorCode FNEvaluateFunctionMat_Exp_Pade(FN fn,Mat A,Mat B)
 #endif
 }
 
-#define PARTIAL_FRACTION_FORM 0
-#define PRODUCT_FORM          1
-
 /*
  * Set scaling factor (s) and Pade degree (k,m)
  */
-static PetscErrorCode sexpm_params(PetscReal nrm,PetscInt mode,PetscInt *s,PetscInt *k,PetscInt *m)
+static PetscErrorCode sexpm_params(PetscReal nrm,PetscInt *s,PetscInt *k,PetscInt *m)
 {
   PetscFunctionBegin;
   if (nrm>1) {
@@ -210,7 +207,7 @@ static PetscErrorCode getcoeffs(PetscInt k,PetscInt m,PetscComplex *r,PetscCompl
                 6.796058759868242e+00 - 1.886649260140217e+00*PETSC_i},
     m1r4[3] = { 2.484269593165883e+01 + 7.460342395992306e+01*PETSC_i,
                 2.484269593165883e+01 - 7.460342395992306e+01*PETSC_i,
-               -2.734353918633177e+02                                },
+               -1.734353918633177e+02                                },
     m1q4[3] = { 4.675757014491557e+00 + 3.913489560603711e+00*PETSC_i,
                 4.675757014491557e+00 - 3.913489560603711e+00*PETSC_i,
                 5.648485971016893e+00                                },
@@ -496,7 +493,7 @@ PetscErrorCode FNEvaluateFunctionMat_Exp_GuettelNakatsukasa(FN fn,Mat A,Mat B)
   PetscFunctionBegin;
   SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"GEEV/GESV/LANGE - Lapack routines are unavailable");
 #else
-  PetscInt       i,j,n_,s,k,m,mode=PRODUCT_FORM,mod;
+  PetscInt       i,j,n_,s,k,m,mod;
   PetscBLASInt   n,n2,irsize,rsizediv2,ipsize,iremainsize,query=-1,info,*piv,minlen,lwork,one=1;
   PetscReal      nrm,shift;
 #if defined(PETSC_USE_COMPLEX)
@@ -561,9 +558,9 @@ PetscErrorCode FNEvaluateFunctionMat_Exp_GuettelNakatsukasa(FN fn,Mat A,Mat B)
   /* estimate norm(A) and select the scaling factor */
   nrm = LAPACKlange_("O",&n,&n,sMaux,&n,NULL);
   ierr = PetscLogFlops(1.0*n*n);CHKERRQ(ierr);
-  ierr = sexpm_params(nrm,mode,&s,&k,&m);CHKERRQ(ierr);
+  ierr = sexpm_params(nrm,&s,&k,&m);CHKERRQ(ierr);
   if (s==0 && k==1 && m==0) { /* exp(A) = I+A to eps! */
-    expshift = PetscExpScalar(shift);
+    expshift = PetscExpReal(shift);
     for (i=0;i<n;i++) {
       sMaux[i+i*n] += 1.0;
     }
@@ -591,7 +588,7 @@ PetscErrorCode FNEvaluateFunctionMat_Exp_GuettelNakatsukasa(FN fn,Mat A,Mat B)
   ierr = SlepcLogFlopsComplex(1.0*n2);CHKERRQ(ierr);
 
   /* evaluate Pade approximant (partial fraction or product form) */
-  if (mode==PARTIAL_FRACTION_FORM || !m) { /* partial fraction */
+  if (fn->method==3 || !m) { /* partial fraction */
     ierr = getcoeffs(k,m,&rsize,&psize,&remainsize,PETSC_TRUE);CHKERRQ(ierr);
     ierr = PetscBLASIntCast((PetscInt)PetscRealPartComplex(rsize),&irsize);CHKERRQ(ierr);
     ierr = PetscBLASIntCast((PetscInt)PetscRealPartComplex(psize),&ipsize);CHKERRQ(ierr);
@@ -1153,7 +1150,8 @@ PetscErrorCode FNView_Exp(FN fn,PetscViewer viewer)
   const char     *methodname[] = {
                   "scaling & squaring, [m/m] Pade approximant (Higham)",
                   "scaling & squaring, [6/6] Pade approximant",
-                  "scaling & squaring, subdiagonal Pade approximant"
+                  "scaling & squaring, subdiagonal Pade approximant (product form)",
+                  "scaling & squaring, subdiagonal Pade approximant (partial fraction)"
   };
   const int      nmeth=sizeof(methodname)/sizeof(methodname[0]);
 
@@ -1193,7 +1191,8 @@ SLEPC_EXTERN PetscErrorCode FNCreate_Exp(FN fn)
   fn->ops->evaluatederivative     = FNEvaluateDerivative_Exp;
   fn->ops->evaluatefunctionmat[0] = FNEvaluateFunctionMat_Exp_Higham;
   fn->ops->evaluatefunctionmat[1] = FNEvaluateFunctionMat_Exp_Pade;
-  fn->ops->evaluatefunctionmat[2] = FNEvaluateFunctionMat_Exp_GuettelNakatsukasa;
+  fn->ops->evaluatefunctionmat[2] = FNEvaluateFunctionMat_Exp_GuettelNakatsukasa; /* product form */
+  fn->ops->evaluatefunctionmat[3] = FNEvaluateFunctionMat_Exp_GuettelNakatsukasa; /* partial fraction */
   fn->ops->view                   = FNView_Exp;
   PetscFunctionReturn(0);
 }
