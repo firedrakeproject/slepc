@@ -214,6 +214,7 @@ SLEPC_EXTERN PetscErrorCode NEPGetRefine(NEP,NEPRefine*,PetscInt*,PetscReal*,Pet
 
 SLEPC_EXTERN PetscErrorCode NEPGetConverged(NEP,PetscInt*);
 SLEPC_EXTERN PetscErrorCode NEPGetEigenpair(NEP,PetscInt,PetscScalar*,PetscScalar*,Vec,Vec);
+SLEPC_EXTERN PetscErrorCode NEPGetLeftEigenvector(NEP,PetscInt,Vec,Vec);
 
 SLEPC_EXTERN PetscErrorCode NEPComputeError(NEP,PetscInt,NEPErrorType,PetscReal*);
 PETSC_DEPRECATED("Use NEPComputeError()") PETSC_STATIC_INLINE PetscErrorCode NEPComputeRelativeError(NEP nep,PetscInt i,PetscReal *r) {return NEPComputeError(nep,i,NEP_ERROR_RELATIVE,r);}
@@ -237,6 +238,9 @@ SLEPC_EXTERN PetscErrorCode NEPGetIterationNumber(NEP,PetscInt*);
 SLEPC_EXTERN PetscErrorCode NEPSetInitialSpace(NEP,PetscInt,Vec*);
 SLEPC_EXTERN PetscErrorCode NEPSetWhichEigenpairs(NEP,NEPWhich);
 SLEPC_EXTERN PetscErrorCode NEPGetWhichEigenpairs(NEP,NEPWhich*);
+SLEPC_EXTERN PetscErrorCode NEPSetTwoSided(NEP,PetscBool);
+SLEPC_EXTERN PetscErrorCode NEPGetTwoSided(NEP,PetscBool*);
+
 SLEPC_EXTERN PetscErrorCode NEPSetEigenvalueComparison(NEP,PetscErrorCode (*func)(PetscScalar,PetscScalar,PetscScalar,PetscScalar,PetscInt*,void*),void*);
 
 SLEPC_EXTERN PetscErrorCode NEPMonitorAll(NEP,PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscReal*,PetscInt,PetscViewerAndFormat*);

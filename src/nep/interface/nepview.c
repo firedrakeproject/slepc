@@ -129,6 +129,9 @@ PetscErrorCode NEPView(NEP nep,PetscViewer viewer)
         break;
     }
     ierr = PetscViewerASCIIUseTabs(viewer,PETSC_TRUE);CHKERRQ(ierr);
+    if (nep->twosided) {
+      ierr = PetscViewerASCIIPrintf(viewer,"  using two-sided variant (for left eigenvectors)\n");CHKERRQ(ierr);
+    }
     ierr = PetscViewerASCIIPrintf(viewer,"  number of eigenvalues (nev): %D\n",nep->nev);CHKERRQ(ierr);
     ierr = PetscViewerASCIIPrintf(viewer,"  number of column vectors (ncv): %D\n",nep->ncv);CHKERRQ(ierr);
     ierr = PetscViewerASCIIPrintf(viewer,"  maximum dimension of projected problem (mpd): %D\n",nep->mpd);CHKERRQ(ierr);
@@ -642,10 +645,14 @@ PetscErrorCode NEPValuesViewFromOptions(NEP nep)
    Options Database Keys:
 .  -nep_view_vectors - output eigenvectors.
 
-   Note:
+   Notes:
    If PETSc was configured with real scalars, complex conjugate eigenvectors
    will be viewed as two separate real vectors, one containing the real part
    and another one containing the imaginary part.
+
+   If left eigenvectors were computed with a two-sided eigensolver, the right
+   and left eigenvectors are interleaved, that is, the vectors are output in
+   the following order: X0, Y0, X1, Y1, X2, Y2, ...
 
    Level: intermediate
 
@@ -671,11 +678,18 @@ PetscErrorCode NEPVectorsView(NEP nep,PetscViewer viewer)
     ierr = NEPComputeVectors(nep);CHKERRQ(ierr);
     for (i=0;i<nep->nconv;i++) {
       k = nep->perm[i];
-      ierr = PetscSNPrintf(vname,NMLEN,"V%d_%s",(int)i,ename);CHKERRQ(ierr);
+      ierr = PetscSNPrintf(vname,NMLEN,"X%d_%s",(int)i,ename);CHKERRQ(ierr);
       ierr = BVGetColumn(nep->V,k,&x);CHKERRQ(ierr);
       ierr = PetscObjectSetName((PetscObject)x,vname);CHKERRQ(ierr);
       ierr = VecView(x,viewer);CHKERRQ(ierr);
       ierr = BVRestoreColumn(nep->V,k,&x);CHKERRQ(ierr);
+      if (nep->twosided) {
+        ierr = PetscSNPrintf(vname,NMLEN,"Y%d_%s",(int)i,ename);CHKERRQ(ierr);
+        ierr = BVGetColumn(nep->W,k,&x);CHKERRQ(ierr);
+        ierr = PetscObjectSetName((PetscObject)x,vname);CHKERRQ(ierr);
+        ierr = VecView(x,viewer);CHKERRQ(ierr);
+        ierr = BVRestoreColumn(nep->W,k,&x);CHKERRQ(ierr);
+      }
     }
   }
   PetscFunctionReturn(0);

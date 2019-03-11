@@ -61,6 +61,7 @@ PetscErrorCode NEPSetUp(NEP nep)
   if (!((PetscObject)nep->rg)->type_name) {
     ierr = RGSetType(nep->rg,RGINTERVAL);CHKERRQ(ierr);
   }
+  if (nep->twosided && !nep->hasts) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"This solver does not support computing left eigenvectors (no two-sided variant)");
 
   /* set problem dimensions */
   switch (nep->fui) {
@@ -325,6 +326,12 @@ PetscErrorCode NEPAllocateSolution(NEP nep,PetscInt extra)
     ierr = VecDestroy(&t);CHKERRQ(ierr);
   } else {
     ierr = BVResize(nep->V,requested,PETSC_FALSE);CHKERRQ(ierr);
+  }
+
+  /* allocate W */
+  if (nep->twosided) {
+    ierr = BVDestroy(&nep->W);CHKERRQ(ierr);
+    ierr = BVDuplicate(nep->V,&nep->W);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }
