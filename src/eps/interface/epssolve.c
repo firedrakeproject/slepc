@@ -466,7 +466,8 @@ PetscErrorCode EPSGetEigenvalue(EPS eps,PetscInt i,PetscScalar *eigr,PetscScalar
 
    If the corresponding eigenvalue is real, then Vi is set to zero. If PETSc is
    configured with complex scalars the eigenvector is stored
-   directly in Vr (Vi is set to zero). In both cases, the user can pass NULL in Vi.
+   directly in Vr (Vi is set to zero). In any case, the user can pass NULL in Vr
+   or Vi if one of them is not required.
 
    The index i should be a value between 0 and nconv-1 (see EPSGetConverged()).
    Eigenpairs are indexed according to the ordering criterion established
@@ -488,8 +489,7 @@ PetscErrorCode EPSGetEigenvector(EPS eps,PetscInt i,Vec Vr,Vec Vi)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidLogicalCollectiveInt(eps,i,2);
-  PetscValidHeaderSpecific(Vr,VEC_CLASSID,3);
-  PetscCheckSameComm(eps,1,Vr,3);
+  if (Vr) { PetscValidHeaderSpecific(Vr,VEC_CLASSID,3); PetscCheckSameComm(eps,1,Vr,3); }
   if (Vi) { PetscValidHeaderSpecific(Vi,VEC_CLASSID,4); PetscCheckSameComm(eps,1,Vi,4); }
   EPSCheckSolved(eps,1);
   if (i<0 || i>=eps->nconv) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"Argument 2 out of range");
@@ -518,7 +518,8 @@ PetscErrorCode EPSGetEigenvector(EPS eps,PetscInt i,Vec Vr,Vec Vi)
 
    If the corresponding eigenvalue is real, then Wi is set to zero. If PETSc is
    configured with complex scalars the eigenvector is stored directly in Wr
-   (Wi is set to zero). In both cases, the user can pass NULL in Wi.
+   (Wi is set to zero). In any case, the user can pass NULL in Wr or Wi if
+   one of them is not required.
 
    The index i should be a value between 0 and nconv-1 (see EPSGetConverged()).
    Eigensolutions are indexed according to the ordering criterion established
@@ -539,15 +540,14 @@ PetscErrorCode EPSGetLeftEigenvector(EPS eps,PetscInt i,Vec Wr,Vec Wi)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidLogicalCollectiveInt(eps,i,2);
-  PetscValidHeaderSpecific(Wr,VEC_CLASSID,3);
-  PetscCheckSameComm(eps,1,Wr,3);
+  if (Wr) { PetscValidHeaderSpecific(Wr,VEC_CLASSID,3); PetscCheckSameComm(eps,1,Wr,3); }
   if (Wi) { PetscValidHeaderSpecific(Wi,VEC_CLASSID,4); PetscCheckSameComm(eps,1,Wi,4); }
   EPSCheckSolved(eps,1);
   if (!eps->twosided) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_WRONGSTATE,"Must request left vectors with EPSSetTwoSided");
   if (i<0 || i>=eps->nconv) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"Argument 2 out of range");
   ierr = EPSComputeVectors(eps);CHKERRQ(ierr);
   k = eps->perm[i];
-  ierr = BV_GetEigenvector(eps->ishermitian?eps->V:eps->W,k,eps->eigi[k],Wr,Wi);CHKERRQ(ierr);
+  ierr = BV_GetEigenvector(eps->W,k,eps->eigi[k],Wr,Wi);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

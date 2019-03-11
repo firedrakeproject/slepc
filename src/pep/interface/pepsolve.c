@@ -286,7 +286,8 @@ PetscErrorCode PEPGetConvergedReason(PEP pep,PEPConvergedReason *reason)
    If the eigenvalue is real, then eigi and Vi are set to zero. If PETSc is
    configured with complex scalars the eigenvalue is stored
    directly in eigr (eigi is set to zero) and the eigenvector in Vr (Vi is
-   set to zero). In both cases, the user can pass NULL in eigi and Vi.
+   set to zero). In any case, the user can pass NULL in Vr or Vi if one of
+   them is not required.
 
    The index i should be a value between 0 and nconv-1 (see PEPGetConverged()).
    Eigenpairs are indexed according to the ordering criterion established
