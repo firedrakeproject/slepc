@@ -769,7 +769,9 @@ PetscErrorCode STView(ST st,PetscViewer viewer)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
-  if (!viewer) viewer = PETSC_VIEWER_STDOUT_(PetscObjectComm((PetscObject)st));
+  if (!viewer) {
+    ierr = PetscViewerASCIIGetStdout(PetscObjectComm((PetscObject)st),&viewer);CHKERRQ(ierr);
+  }
   PetscValidHeaderSpecific(viewer,PETSC_VIEWER_CLASSID,2);
   PetscCheckSameComm(st,1,viewer,2);
 

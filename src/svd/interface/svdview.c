@@ -48,7 +48,9 @@ PetscErrorCode SVDView(SVD svd,PetscViewer viewer)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
-  if (!viewer) viewer = PETSC_VIEWER_STDOUT_(PetscObjectComm((PetscObject)svd));
+  if (!viewer) {
+    ierr = PetscViewerASCIIGetStdout(PetscObjectComm((PetscObject)svd),&viewer);CHKERRQ(ierr);
+  }
   PetscValidHeaderSpecific(viewer,PETSC_VIEWER_CLASSID,2);
   PetscCheckSameComm(svd,1,viewer,2);
 
@@ -283,7 +285,9 @@ PetscErrorCode SVDErrorView(SVD svd,SVDErrorType etype,PetscViewer viewer)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
-  if (!viewer) viewer = PETSC_VIEWER_STDOUT_(PetscObjectComm((PetscObject)svd));
+  if (!viewer) {
+    ierr = PetscViewerASCIIGetStdout(PetscObjectComm((PetscObject)svd),&viewer);CHKERRQ(ierr);
+  }
   PetscValidHeaderSpecific(viewer,PETSC_VIEWER_CLASSID,2);
   PetscCheckSameComm(svd,1,viewer,2);
   SVDCheckSolved(svd,1);
@@ -425,7 +429,9 @@ PetscErrorCode SVDValuesView(SVD svd,PetscViewer viewer)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
-  if (!viewer) viewer = PETSC_VIEWER_STDOUT_(PetscObjectComm((PetscObject)svd));
+  if (!viewer) {
+    ierr = PetscViewerASCIIGetStdout(PetscObjectComm((PetscObject)svd),&viewer);CHKERRQ(ierr);
+  }
   PetscValidHeaderSpecific(viewer,PETSC_VIEWER_CLASSID,2);
   PetscCheckSameComm(svd,1,viewer,2);
   SVDCheckSolved(svd,1);
@@ -515,7 +521,9 @@ PetscErrorCode SVDVectorsView(SVD svd,PetscViewer viewer)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
-  if (!viewer) viewer = PETSC_VIEWER_STDOUT_(PetscObjectComm((PetscObject)svd));
+  if (!viewer) {
+    ierr = PetscViewerASCIIGetStdout(PetscObjectComm((PetscObject)svd),&viewer);CHKERRQ(ierr);
+  }
   PetscValidHeaderSpecific(viewer,PETSC_VIEWER_CLASSID,2);
   PetscCheckSameComm(svd,1,viewer,2);
   SVDCheckSolved(svd,1);

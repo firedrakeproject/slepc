@@ -52,7 +52,9 @@ PetscErrorCode MFNView(MFN mfn,PetscViewer viewer)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(mfn,MFN_CLASSID,1);
-  if (!viewer) viewer = PETSC_VIEWER_STDOUT_(PetscObjectComm((PetscObject)mfn));
+  if (!viewer) {
+    ierr = PetscViewerASCIIGetStdout(PetscObjectComm((PetscObject)mfn),&viewer);CHKERRQ(ierr);
+  }
   PetscValidHeaderSpecific(viewer,PETSC_VIEWER_CLASSID,2);
   PetscCheckSameComm(mfn,1,viewer,2);
 

@@ -331,7 +331,9 @@ PetscErrorCode RGView(RG rg,PetscViewer viewer)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(rg,RG_CLASSID,1);
-  if (!viewer) viewer = PETSC_VIEWER_STDOUT_(PetscObjectComm((PetscObject)rg));
+  if (!viewer) {
+    ierr = PetscViewerASCIIGetStdout(PetscObjectComm((PetscObject)rg),&viewer);CHKERRQ(ierr);
+  }
   PetscValidHeaderSpecific(viewer,PETSC_VIEWER_CLASSID,2);
   PetscCheckSameComm(rg,1,viewer,2);
   ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERDRAW,&isdraw);CHKERRQ(ierr);

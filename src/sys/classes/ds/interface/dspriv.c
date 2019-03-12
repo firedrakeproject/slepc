@@ -122,7 +122,9 @@ PetscErrorCode DSViewMat(DS ds,PetscViewer viewer,DSMatType m)
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
   PetscValidLogicalCollectiveEnum(ds,m,3);
   DSCheckValidMat(ds,m,3);
-  if (!viewer) viewer = PETSC_VIEWER_STDOUT_(PetscObjectComm((PetscObject)ds));
+  if (!viewer) {
+    ierr = PetscViewerASCIIGetStdout(PetscObjectComm((PetscObject)ds),&viewer);CHKERRQ(ierr);
+  }
   PetscValidHeaderSpecific(viewer,PETSC_VIEWER_CLASSID,2);
   PetscCheckSameComm(ds,1,viewer,2);
   ierr = PetscViewerGetFormat(viewer,&format);CHKERRQ(ierr);

@@ -97,7 +97,9 @@ PetscErrorCode VecCheckOrthogonality(Vec *V,PetscInt nv,Vec *W,PetscInt nw,Mat B
   PetscValidPointer(V,1);
   PetscValidHeaderSpecific(*V,VEC_CLASSID,1);
   if (!lev) {
-    if (!viewer) viewer = PETSC_VIEWER_STDOUT_(PetscObjectComm((PetscObject)*V));
+    if (!viewer) {
+      ierr = PetscViewerASCIIGetStdout(PetscObjectComm((PetscObject)*V),&viewer);CHKERRQ(ierr);
+    }
     PetscValidHeaderSpecific(viewer,PETSC_VIEWER_CLASSID,2);
     PetscCheckSameComm(*V,1,viewer,6);
     ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);

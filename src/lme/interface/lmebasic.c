@@ -60,7 +60,9 @@ PetscErrorCode LMEView(LME lme,PetscViewer viewer)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(lme,LME_CLASSID,1);
-  if (!viewer) viewer = PETSC_VIEWER_STDOUT_(PetscObjectComm((PetscObject)lme));
+  if (!viewer) {
+    ierr = PetscViewerASCIIGetStdout(PetscObjectComm((PetscObject)lme),&viewer);CHKERRQ(ierr);
+  }
   PetscValidHeaderSpecific(viewer,PETSC_VIEWER_CLASSID,2);
   PetscCheckSameComm(lme,1,viewer,2);
 
