@@ -159,3 +159,60 @@ PetscErrorCode SlepcSNPrintfScalar(char *str,size_t len,PetscScalar val,PetscBoo
   PetscFunctionReturn(0);
 }
 
+/*
+   SlepcDebugViewMatrix - prints an array as a matrix, to be used from within a debugger.
+   Output can be pasted to Matlab.
+
+     nrows, ncols: size of printed matrix
+     Xr, Xi: array to be printed (Xi not referenced in complex scalars)
+     ldx: leading dimension
+     s: name of Matlab variable
+     filename: optionally write output to a file
+ */
+#if defined(PETSC_USE_DEBUG)
+PETSC_UNUSED PetscErrorCode SlepcDebugViewMatrix(PetscInt nrows,PetscInt ncols,PetscScalar *Xr,PetscScalar *Xi,PetscInt ldx,const char *s,const char *filename)
+{
+  PetscErrorCode ierr;
+  PetscInt       i,j;
+  PetscViewer    viewer;
+
+  PetscFunctionBegin;
+  if (filename) {
+    ierr = PetscViewerASCIIOpen(PETSC_COMM_WORLD,filename,&viewer);CHKERRQ(ierr);
+  } else {
+    ierr = PetscViewerASCIIGetStdout(PETSC_COMM_WORLD,&viewer);CHKERRQ(ierr);
+  }
+  ierr = PetscViewerASCIIPrintf(viewer,"%s = [\n",s);CHKERRQ(ierr);
+  for (i=0;i<nrows;i++) {
+    for (j=0;j<ncols;j++) {
+#if defined(PETSC_USE_COMPLEX)
+      ierr = PetscViewerASCIIPrintf(viewer,"%.18g+%.18gi ",PetscRealPart(Xr[i+j*ldx]),PetscImaginaryPart(Xr[i+j*ldx]));CHKERRQ(ierr);
+#else
+      if (Xi) { ierr = PetscViewerASCIIPrintf(viewer,"%.18g+%.18gi ",Xr[i+j*ldx],Xi[i+j*ldx]);CHKERRQ(ierr); }
+      else { ierr = PetscViewerASCIIPrintf(viewer,"%.18g ",Xr[i+j*ldx]);CHKERRQ(ierr); }
+#endif
+    }
+    ierr = PetscViewerASCIIPrintf(viewer,"\n");CHKERRQ(ierr);
+  }
+  ierr = PetscViewerASCIIPrintf(viewer,"];\n");CHKERRQ(ierr);
+  if (filename) { ierr = PetscViewerDestroy(&viewer);CHKERRQ(ierr); }
+  PetscFunctionReturn(0);
+}
+#endif
+
+/*
+   SlepcDebugSetMatlabStdout - sets Matlab format in stdout, to be used from within a debugger.
+ */
+#if defined(PETSC_USE_DEBUG)
+PetscErrorCode SlepcDebugSetMatlabStdout(void)
+{
+  PetscErrorCode ierr;
+  PetscViewer    viewer;
+
+  PetscFunctionBegin;
+  ierr = PetscViewerASCIIGetStdout(PETSC_COMM_WORLD,&viewer);CHKERRQ(ierr);
+  ierr = PetscViewerPushFormat(viewer,PETSC_VIEWER_ASCII_MATLAB);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+#endif
+
