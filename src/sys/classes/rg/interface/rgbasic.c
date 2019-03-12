@@ -327,7 +327,6 @@ PetscErrorCode RGSetFromOptions(RG rg)
 PetscErrorCode RGView(RG rg,PetscViewer viewer)
 {
   PetscBool      isdraw,isascii;
-  PetscInt       tabs;
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
@@ -338,8 +337,6 @@ PetscErrorCode RGView(RG rg,PetscViewer viewer)
   ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERDRAW,&isdraw);CHKERRQ(ierr);
   ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
   if (isascii) {
-    ierr = PetscViewerASCIIGetTab(viewer,&tabs);CHKERRQ(ierr);
-    ierr = PetscViewerASCIISetTab(viewer,((PetscObject)rg)->tablevel);CHKERRQ(ierr);
     ierr = PetscObjectPrintClassNamePrefixType((PetscObject)rg,viewer);CHKERRQ(ierr);
     if (rg->ops->view) {
       ierr = PetscViewerASCIIPushTab(viewer);CHKERRQ(ierr);
@@ -352,7 +349,6 @@ PetscErrorCode RGView(RG rg,PetscViewer viewer)
     if (rg->sfactor!=1.0) {
       ierr = PetscViewerASCIIPrintf(viewer,"  scaling factor = %g\n",(double)rg->sfactor);CHKERRQ(ierr);
     }
-    ierr = PetscViewerASCIISetTab(viewer,tabs);CHKERRQ(ierr);
   } else if (isdraw) {
     if (rg->ops->view) { ierr = (*rg->ops->view)(rg,viewer);CHKERRQ(ierr); }
   }

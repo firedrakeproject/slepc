@@ -590,7 +590,6 @@ PetscErrorCode BVView(BV bv,PetscViewer viewer)
 {
   PetscErrorCode    ierr;
   PetscBool         isascii;
-  PetscInt          tabs;
   PetscViewerFormat format;
   const char        *orthname[2] = {"classical","modified"};
   const char        *refname[3] = {"if needed","never","always"};
@@ -604,8 +603,6 @@ PetscErrorCode BVView(BV bv,PetscViewer viewer)
 
   ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
   if (isascii) {
-    ierr = PetscViewerASCIIGetTab(viewer,&tabs);CHKERRQ(ierr);
-    ierr = PetscViewerASCIISetTab(viewer,((PetscObject)bv)->tablevel);CHKERRQ(ierr);
     ierr = PetscObjectPrintClassNamePrefixType((PetscObject)bv,viewer);CHKERRQ(ierr);
     ierr = PetscViewerGetFormat(viewer,&format);CHKERRQ(ierr);
     if (format == PETSC_VIEWER_ASCII_INFO || format == PETSC_VIEWER_ASCII_INFO_DETAIL) {
@@ -653,7 +650,6 @@ PetscErrorCode BVView(BV bv,PetscViewer viewer)
       if (bv->ops->view) { ierr = (*bv->ops->view)(bv,viewer);CHKERRQ(ierr); }
       else { ierr = BVView_Default(bv,viewer);CHKERRQ(ierr); }
     }
-    ierr = PetscViewerASCIISetTab(viewer,tabs);CHKERRQ(ierr);
   } else {
     ierr = (*bv->ops->view)(bv,viewer);CHKERRQ(ierr);
   }

@@ -47,7 +47,6 @@ PetscErrorCode EPSView(EPS eps,PetscViewer viewer)
   const char     *type=NULL,*extr=NULL,*bal=NULL;
   char           str[50];
   PetscBool      isascii,isexternal,istrivial;
-  PetscInt       tabs;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
@@ -62,8 +61,6 @@ PetscErrorCode EPSView(EPS eps,PetscViewer viewer)
 #endif
   ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
   if (isascii) {
-    ierr = PetscViewerASCIIGetTab(viewer,&tabs);CHKERRQ(ierr);
-    ierr = PetscViewerASCIISetTab(viewer,((PetscObject)eps)->tablevel);CHKERRQ(ierr);
     ierr = PetscObjectPrintClassNamePrefixType((PetscObject)eps,viewer);CHKERRQ(ierr);
     if (eps->ops->view) {
       ierr = PetscViewerASCIIPushTab(viewer);CHKERRQ(ierr);
@@ -198,7 +195,6 @@ PetscErrorCode EPSView(EPS eps,PetscViewer viewer)
     if (eps->nds) {
       ierr = PetscViewerASCIIPrintf(viewer,"  dimension of user-provided deflation space: %D\n",PetscAbs(eps->nds));CHKERRQ(ierr);
     }
-    ierr = PetscViewerASCIISetTab(viewer,tabs);CHKERRQ(ierr);
   } else {
     if (eps->ops->view) {
       ierr = (*eps->ops->view)(eps,viewer);CHKERRQ(ierr);

@@ -242,8 +242,10 @@ PetscErrorCode FNView_Combine(FN fn,PetscViewer viewer)
         ierr = PetscViewerASCIIPrintf(viewer,"  Two composed functions f2(f1(.))\n");CHKERRQ(ierr);
         break;
     }
+    ierr = PetscViewerASCIIPushTab(viewer);CHKERRQ(ierr);
     ierr = FNView(ctx->f1,viewer);CHKERRQ(ierr);
     ierr = FNView(ctx->f2,viewer);CHKERRQ(ierr);
+    ierr = PetscViewerASCIIPopTab(viewer);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }

@@ -795,7 +795,6 @@ PetscErrorCode DSSetFromOptions(DS ds)
 PetscErrorCode DSView(DS ds,PetscViewer viewer)
 {
   PetscBool         isascii,issvd;
-  PetscInt          tabs;
   PetscViewerFormat format;
   PetscErrorCode    ierr;
   PetscMPIInt       size;
@@ -807,8 +806,6 @@ PetscErrorCode DSView(DS ds,PetscViewer viewer)
   PetscCheckSameComm(ds,1,viewer,2);
   ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
   if (isascii) {
-    ierr = PetscViewerASCIIGetTab(viewer,&tabs);CHKERRQ(ierr);
-    ierr = PetscViewerASCIISetTab(viewer,((PetscObject)ds)->tablevel);CHKERRQ(ierr);
     ierr = PetscViewerGetFormat(viewer,&format);CHKERRQ(ierr);
     ierr = PetscObjectPrintClassNamePrefixType((PetscObject)ds,viewer);CHKERRQ(ierr);
     ierr = MPI_Comm_size(PetscObjectComm((PetscObject)ds),&size);CHKERRQ(ierr);
@@ -835,7 +832,6 @@ PetscErrorCode DSView(DS ds,PetscViewer viewer)
       ierr = (*ds->ops->view)(ds,viewer);CHKERRQ(ierr);
       ierr = PetscViewerASCIIPopTab(viewer);CHKERRQ(ierr);
     }
-    ierr = PetscViewerASCIISetTab(viewer,tabs);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }

@@ -47,7 +47,7 @@ PetscErrorCode PEPView(PEP pep,PetscViewer viewer)
   const char     *type=NULL;
   char           str[50];
   PetscBool      isascii,islinear,istrivial;
-  PetscInt       i,tabs;
+  PetscInt       i;
   PetscViewer    sviewer;
 
   PetscFunctionBegin;
@@ -63,8 +63,6 @@ PetscErrorCode PEPView(PEP pep,PetscViewer viewer)
 #endif
   ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
   if (isascii) {
-    ierr = PetscViewerASCIIGetTab(viewer,&tabs);CHKERRQ(ierr);
-    ierr = PetscViewerASCIISetTab(viewer,((PetscObject)pep)->tablevel);CHKERRQ(ierr);
     ierr = PetscObjectPrintClassNamePrefixType((PetscObject)pep,viewer);CHKERRQ(ierr);
     if (pep->ops->view) {
       ierr = PetscViewerASCIIPushTab(viewer);CHKERRQ(ierr);
@@ -176,7 +174,6 @@ PetscErrorCode PEPView(PEP pep,PetscViewer viewer)
     if (pep->nini) {
       ierr = PetscViewerASCIIPrintf(viewer,"  dimension of user-provided initial space: %D\n",PetscAbs(pep->nini));CHKERRQ(ierr);
     }
-    ierr = PetscViewerASCIISetTab(viewer,tabs);CHKERRQ(ierr);
   } else {
     if (pep->ops->view) {
       ierr = (*pep->ops->view)(pep,viewer);CHKERRQ(ierr);

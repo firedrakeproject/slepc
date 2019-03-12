@@ -1987,7 +1987,9 @@ PetscErrorCode NEPView_NLEIGS(NEP nep,PetscViewer viewer)
       ierr = PetscViewerASCIIUseTabs(viewer,PETSC_TRUE);CHKERRQ(ierr);
     }
     if (!ctx->ksp) { ierr = NEPNLEIGSGetKSPs(nep,&ctx->nshiftsw,&ctx->ksp);CHKERRQ(ierr); }
+    ierr = PetscViewerASCIIPushTab(viewer);CHKERRQ(ierr);
     ierr = KSPView(ctx->ksp[0],viewer);CHKERRQ(ierr);
+    ierr = PetscViewerASCIIPopTab(viewer);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }

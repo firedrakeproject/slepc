@@ -1090,7 +1090,9 @@ PetscErrorCode EPSView_Power(EPS eps,PetscViewer viewer)
         ierr = PetscViewerASCIIPrintf(viewer,"  updating the residual monolithically\n");CHKERRQ(ierr);
       }
       if (!power->snes) { ierr = EPSPowerGetSNES(eps,&power->snes);CHKERRQ(ierr); }
+      ierr = PetscViewerASCIIPushTab(viewer);CHKERRQ(ierr);
       ierr = SNESView(power->snes,viewer);CHKERRQ(ierr);
+      ierr = PetscViewerASCIIPopTab(viewer);CHKERRQ(ierr);
     } else {
       ierr = PetscViewerASCIIPrintf(viewer,"  %s shifts\n",EPSPowerShiftTypes[power->shift_type]);CHKERRQ(ierr);
     }
