@@ -503,6 +503,11 @@ PetscErrorCode FNEvaluateFunctionMat_Exp_GuettelNakatsukasa(FN fn,Mat A,Mat B)
   PetscScalar    *Aa,*Ba,*Ba2,*sMaux,*wr,*wi,expshift,sone=1.0,szero=0.0,*work,work1,*saux;
   PetscErrorCode ierr;
   PetscBool      isreal;
+#if defined(PETSC_HAVE_ESSL)
+  PetscScalar    sdummy;
+  PetscBLASInt   idummy,io=0;
+  PetscScalar    *wri;
+#endif
 
   PetscFunctionBegin;
   ierr = MatGetSize(A,&n_,NULL);CHKERRQ(ierr);
@@ -517,6 +522,7 @@ PetscErrorCode FNEvaluateFunctionMat_Exp_GuettelNakatsukasa(FN fn,Mat A,Mat B)
   ierr = PetscMalloc2(n,&wr,n,&wi);CHKERRQ(ierr);
   ierr = PetscMemcpy(sMaux,Aa,n2*sizeof(PetscScalar));CHKERRQ(ierr);
   /* estimate rightmost eigenvalue and shift A with it */
+#if !defined(PETSC_HAVE_ESSL)
 #if !defined(PETSC_USE_COMPLEX)
   PetscStackCallBLAS("LAPACKgeev",LAPACKgeev_("N","N",&n,sMaux,&n,wr,wi,NULL,&n,NULL,&n,&work1,&query,&info));
   SlepcCheckLapackInfo("geev",info);
@@ -534,6 +540,20 @@ PetscErrorCode FNEvaluateFunctionMat_Exp_GuettelNakatsukasa(FN fn,Mat A,Mat B)
   ierr = PetscFree2(rwork,work);CHKERRQ(ierr);
 #endif
   SlepcCheckLapackInfo("geev",info);
+#else /* defined(PETSC_HAVE_ESSL) */
+  ierr = PetscBLASIntCast(3*n,&lwork);CHKERRQ(ierr);
+  ierr = PetscMalloc2(lwork,&work,2*n,&wri);CHKERRQ(ierr);
+  PetscStackCallBLAS("LAPACKgeev",LAPACKgeev_(&io,Maux,&n,wri,&sdummy,&idummy,&idummy,&n,work,&lwork));
+#if !defined(PETSC_USE_COMPLEX)
+  for (i=0;i<n;i++) {
+    wr[i] = wri[2*i];
+    wi[i] = wri[2*i+1];
+  }
+#else
+  for (i=0;i<n;i++) wr[i] = wri[i];
+#endif
+  ierr = PetscFree2(work,wri);CHKERRQ(ierr);
+#endif
   ierr = PetscLogFlops(25.0*n*n*n+(n*n*n)/3.0+1.0*n*n*n);CHKERRQ(ierr);
 
   shift = PetscRealPart(wr[0]);
