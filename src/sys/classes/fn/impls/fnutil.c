@@ -334,3 +334,136 @@ PetscErrorCode SlepcSqrtmNewtonSchulz(PetscBLASInt n,PetscScalar *A,PetscBLASInt
   PetscFunctionReturn(0);
 }
 
+#define ITMAX 5
+#define SWAP(a,b,t) {t=a;a=b;b=t;}
+
+/*
+   Estimate norm(A^m,1) by block 1-norm power method (required workspace is 11*n)
+*/
+static PetscErrorCode SlepcNormEst1(PetscBLASInt n,PetscScalar *A,PetscInt m,PetscScalar *work,PetscRandom rand,PetscReal *nrm)
+{
+  PetscScalar    *X,*Y,*Z,*S,*S_old,*aux,val,sone=1.0,szero=0.0;
+  PetscReal      est=0.0,est_old,vals[2]={0.0,0.0},*zvals,maxzval[2],raux;
+  PetscBLASInt   i,j,t=2,it=0,ind[2],est_j=0,m1;
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  X = work;
+  Y = work + 2*n;
+  Z = work + 4*n;
+  S = work + 6*n;
+  S_old = work + 8*n;
+  zvals = (PetscReal*)(work + 10*n);
+
+  for (i=0;i<n;i++) {  /* X has columns of unit 1-norm */
+    X[i] = 1.0/n;
+    PetscRandomGetValue(rand,&val);
+    if (PetscRealPart(val) < 0.5) X[i+n] = -1.0/n;
+    else X[i+n] = 1.0/n;
+  }
+  for (i=0;i<t*n;i++) S[i] = 0.0;
+  ind[0] = 0; ind[1] = 0;
+  est_old = 0;
+  while (1) {
+    it++;
+    for (j=0;j<m;j++) {  /* Y = A^m*X */
+      PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&n,&t,&n,&sone,A,&n,X,&n,&szero,Y,&n));
+      if (j<m-1) SWAP(X,Y,aux);
+    }
+    for (j=0;j<t;j++) {  /* vals[j] = norm(Y(:,j),1) */
+      vals[j] = 0.0;
+      for (i=0;i<n;i++) vals[j] += PetscAbsScalar(Y[i+j*n]);
+    }
+    if (vals[0]<vals[1]) {
+      SWAP(vals[0],vals[1],raux);
+      m1 = 1;
+    } else m1 = 0;
+    est = vals[0];
+    if (est>est_old || it==2) est_j = ind[m1];
+    if (it>=2 && est<=est_old) {
+      est = est_old;
+      break;
+    }
+    est_old = est;
+    if (it>ITMAX) break;
+    SWAP(S,S_old,aux);
+    for (i=0;i<t*n;i++) {  /* S = sign(Y) */
+      S[i] = (PetscRealPart(Y[i]) < 0.0)? -1.0: 1.0;
+    }
+    for (j=0;j<m;j++) {  /* Z = (A^T)^m*S */
+      PetscStackCallBLAS("BLASgemm",BLASgemm_("C","N",&n,&t,&n,&sone,A,&n,S,&n,&szero,Z,&n));
+      if (j<m-1) SWAP(S,Z,aux);
+    }
+    maxzval[0] = -1; maxzval[1] = -1;
+    ind[0] = 0; ind[1] = 0;
+    for (i=0;i<n;i++) {  /* zvals[i] = norm(Z(i,:),inf) */
+      zvals[i] = PetscMax(PetscAbsScalar(Z[i+0*n]),PetscAbsScalar(Z[i+1*n]));
+      if (zvals[i]>maxzval[0]) {
+        maxzval[0] = zvals[i];
+        ind[0] = i;
+      } else if (zvals[i]>maxzval[1]) {
+        maxzval[1] = zvals[i];
+        ind[1] = i;
+      }
+    }
+    if (it>=2 && maxzval[0]==zvals[est_j]) break;
+    for (i=0;i<t*n;i++) X[i] = 0.0;
+    for (j=0;j<t;j++) X[ind[j]+j*n] = 1.0;
+  }
+  *nrm = est;
+  /* Flop count is roughly (it * 2*m * t*gemv) = 4*its*m*t*n*n */
+  ierr = PetscLogFlops(4.0*it*m*t*n*n);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#define SMALLN 100
+
+/*
+   Estimate norm(A^m,1) (required workspace is 2*n*n)
+*/
+PetscErrorCode SlepcNormAm(PetscBLASInt n,PetscScalar *A,PetscInt m,PetscScalar *work,PetscRandom rand,PetscReal *nrm)
+{
+  PetscScalar    *v=work,*w=work+n*n,*aux,sone=1.0,szero=0.0;
+  PetscReal      rwork[1],tmp;
+  PetscBLASInt   i,j,one=1;
+  PetscBool      isrealpos=PETSC_TRUE;
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  if (n<SMALLN) {   /* compute matrix power explicitly */
+    if (m==1) {
+      *nrm = LAPACKlange_("O",&n,&n,A,&n,rwork);
+      ierr = PetscLogFlops(1.0*n*n);CHKERRQ(ierr);
+    } else {  /* m>=2 */
+      PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&n,&n,&n,&sone,A,&n,A,&n,&szero,v,&n));
+      for (j=0;j<m-2;j++) {
+        PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&n,&n,&n,&sone,A,&n,v,&n,&szero,w,&n));
+        SWAP(v,w,aux);
+      }
+      *nrm = LAPACKlange_("O",&n,&n,v,&n,rwork);
+      ierr = PetscLogFlops(2.0*n*n*n*(m-1)+1.0*n*n);CHKERRQ(ierr);
+    }
+  } else {
+    for (i=0;i<n;i++)
+      for (j=0;j<n;j++)
+#if defined(PETSC_USE_COMPLEX)
+        if (PetscRealPart(A[i+j*n])<0.0 || PetscImaginaryPart(A[i+j*n])!=0.0) { isrealpos = PETSC_FALSE; break; }
+#else
+        if (A[i+j*n]<0.0) { isrealpos = PETSC_FALSE; break; }
+#endif
+    if (isrealpos) {   /* for positive matrices only */
+      for (i=0;i<n;i++) v[i] = 1.0;
+      for (j=0;j<m;j++) {  /* w = A'*v */
+        PetscStackCallBLAS("BLASgemv",BLASgemv_("C",&n,&n,&sone,A,&n,v,&one,&szero,w,&one));
+        SWAP(v,w,aux);
+      }
+      ierr = PetscLogFlops(2.0*n*n*m);CHKERRQ(ierr);
+      *nrm = 0.0;
+      for (i=0;i<n;i++) if ((tmp = PetscAbsScalar(v[i])) > *nrm) *nrm = tmp;   /* norm(v,inf) */
+    } else {
+      ierr = SlepcNormEst1(n,A,m,work,rand,nrm);CHKERRQ(ierr);
+    }
+  }
+  PetscFunctionReturn(0);
+}
+
