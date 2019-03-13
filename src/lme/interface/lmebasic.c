@@ -49,7 +49,6 @@ PetscErrorCode LMEView(LME lme,PetscViewer viewer)
 {
   PetscErrorCode ierr;
   PetscBool      isascii;
-  PetscInt       tabs;
   const char     *eqname[] = {
                    "continuous-time Lyapunov",
                    "continuous-time Sylvester",
@@ -61,14 +60,14 @@ PetscErrorCode LMEView(LME lme,PetscViewer viewer)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(lme,LME_CLASSID,1);
-  if (!viewer) viewer = PETSC_VIEWER_STDOUT_(PetscObjectComm((PetscObject)lme));
+  if (!viewer) {
+    ierr = PetscViewerASCIIGetStdout(PetscObjectComm((PetscObject)lme),&viewer);CHKERRQ(ierr);
+  }
   PetscValidHeaderSpecific(viewer,PETSC_VIEWER_CLASSID,2);
   PetscCheckSameComm(lme,1,viewer,2);
 
   ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
   if (isascii) {
-    ierr = PetscViewerASCIIGetTab(viewer,&tabs);CHKERRQ(ierr);
-    ierr = PetscViewerASCIISetTab(viewer,((PetscObject)lme)->tablevel);CHKERRQ(ierr);
     ierr = PetscObjectPrintClassNamePrefixType((PetscObject)lme,viewer);CHKERRQ(ierr);
     if (lme->ops->view) {
       ierr = PetscViewerASCIIPushTab(viewer);CHKERRQ(ierr);
@@ -79,7 +78,6 @@ PetscErrorCode LMEView(LME lme,PetscViewer viewer)
     ierr = PetscViewerASCIIPrintf(viewer,"  number of column vectors (ncv): %D\n",lme->ncv);CHKERRQ(ierr);
     ierr = PetscViewerASCIIPrintf(viewer,"  maximum number of iterations: %D\n",lme->max_it);CHKERRQ(ierr);
     ierr = PetscViewerASCIIPrintf(viewer,"  tolerance: %g\n",(double)lme->tol);CHKERRQ(ierr);
-    ierr = PetscViewerASCIISetTab(viewer,tabs);CHKERRQ(ierr);
   } else {
     if (lme->ops->view) {
       ierr = (*lme->ops->view)(lme,viewer);CHKERRQ(ierr);
