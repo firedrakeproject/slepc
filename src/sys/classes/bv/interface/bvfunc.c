@@ -701,3 +701,28 @@ PetscErrorCode BVAllocateWork_Private(BV bv,PetscInt s)
   PetscFunctionReturn(0);
 }
 
+#if defined(PETSC_USE_DEBUG)
+SLEPC_EXTERN PetscErrorCode SlepcDebugViewMatrix(PetscInt nrows,PetscInt ncols,PetscScalar *Xr,PetscScalar *Xi,PetscInt ldx,const char *s,const char *filename);
+
+/*
+   SlepcDebugBVView - partially view a BV object, to be used from within a debugger.
+
+     ini, end: columns to be viewed
+     s: name of Matlab variable
+     filename: optionally write output to a file
+ */
+PetscErrorCode SlepcDebugBVView(BV bv,PetscInt ini,PetscInt end,const char *s,const char *filename)
+{
+  PetscErrorCode ierr;
+  PetscInt       N,m;
+  PetscScalar    *array;
+
+  PetscFunctionBegin;
+  ierr = BVGetArray(bv,&array);CHKERRQ(ierr);
+  ierr = BVGetSizes(bv,NULL,&N,&m);CHKERRQ(ierr);
+  ierr = SlepcDebugViewMatrix(N,end-ini+1,array+ini*N,NULL,N,s,filename);CHKERRQ(ierr);
+  ierr = BVRestoreArray(bv,&array);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+#endif
+
