@@ -42,12 +42,12 @@ PetscErrorCode STApply(ST st,Vec x,Vec y)
   PetscValidType(st,1);
   STCheckMatrices(st,1);
   if (x == y) SETERRQ(PetscObjectComm((PetscObject)st),PETSC_ERR_ARG_IDN,"x and y must be different vectors");
-  VecLocked(y,3);
+  ierr = VecSetErrorIfLocked(y,3);CHKERRQ(ierr);
 
   if (st->state!=ST_STATE_SETUP) { ierr = STSetUp(st);CHKERRQ(ierr); }
 
   if (!st->ops->apply) SETERRQ(PetscObjectComm((PetscObject)st),PETSC_ERR_SUP,"ST does not have apply");
-  ierr = VecLockPush(x);CHKERRQ(ierr);
+  ierr = VecLockReadPush(x);CHKERRQ(ierr);
   ierr = PetscLogEventBegin(ST_Apply,st,x,y,0);CHKERRQ(ierr);
   if (st->D) { /* with balancing */
     ierr = VecPointwiseDivide(st->wb,x,st->D);CHKERRQ(ierr);
@@ -57,7 +57,7 @@ PetscErrorCode STApply(ST st,Vec x,Vec y)
     ierr = (*st->ops->apply)(st,x,y);CHKERRQ(ierr);
   }
   ierr = PetscLogEventEnd(ST_Apply,st,x,y,0);CHKERRQ(ierr);
-  ierr = VecLockPop(x);CHKERRQ(ierr);
+  ierr = VecLockReadPop(x);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -90,12 +90,12 @@ PetscErrorCode STApplyTranspose(ST st,Vec x,Vec y)
   PetscValidType(st,1);
   STCheckMatrices(st,1);
   if (x == y) SETERRQ(PetscObjectComm((PetscObject)st),PETSC_ERR_ARG_IDN,"x and y must be different vectors");
-  VecLocked(y,3);
+  ierr = VecSetErrorIfLocked(y,3);CHKERRQ(ierr);
 
   if (st->state!=ST_STATE_SETUP) { ierr = STSetUp(st);CHKERRQ(ierr); }
 
   if (!st->ops->applytrans) SETERRQ(PetscObjectComm((PetscObject)st),PETSC_ERR_SUP,"ST does not have applytrans");
-  ierr = VecLockPush(x);CHKERRQ(ierr);
+  ierr = VecLockReadPush(x);CHKERRQ(ierr);
   ierr = PetscLogEventBegin(ST_ApplyTranspose,st,x,y,0);CHKERRQ(ierr);
   if (st->D) { /* with balancing */
     ierr = VecPointwiseMult(st->wb,x,st->D);CHKERRQ(ierr);
@@ -105,7 +105,7 @@ PetscErrorCode STApplyTranspose(ST st,Vec x,Vec y)
     ierr = (*st->ops->applytrans)(st,x,y);CHKERRQ(ierr);
   }
   ierr = PetscLogEventEnd(ST_ApplyTranspose,st,x,y,0);CHKERRQ(ierr);
-  ierr = VecLockPop(x);CHKERRQ(ierr);
+  ierr = VecLockReadPop(x);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

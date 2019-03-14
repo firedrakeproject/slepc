@@ -382,7 +382,7 @@ PetscErrorCode FormFunctionA(SNES snes,Vec X,Vec F,void *ctx)
   /* Boundary condition */
   ierr = VecLockGet(X,&vecstate);CHKERRQ(ierr);
   if (vecstate>0) {
-    ierr = VecLockPop(X);CHKERRQ(ierr);
+    ierr = VecLockReadPop(X);CHKERRQ(ierr);
   }
   ierr = VecGetOwnershipRange(X,&iStart,&iEnd);CHKERRQ(ierr);
   ierr = VecGetArray(X,&array);CHKERRQ(ierr);
@@ -395,7 +395,7 @@ PetscErrorCode FormFunctionA(SNES snes,Vec X,Vec F,void *ctx)
   ierr = ISRestoreIndices(userctx->bdis,&indices);CHKERRQ(ierr);
   ierr = VecRestoreArray(X,&array);CHKERRQ(ierr);
   if (vecstate>0) {
-    ierr = VecLockPush(X);CHKERRQ(ierr);
+    ierr = VecLockReadPush(X);CHKERRQ(ierr);
   }
   ierr = VecAssemblyBegin(F);CHKERRQ(ierr);
   ierr = VecAssemblyEnd(F);CHKERRQ(ierr);
