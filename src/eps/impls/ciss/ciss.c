@@ -207,7 +207,7 @@ static PetscErrorCode CISSScatterVec(EPS eps)
   }
   ierr = ISCreateGeneral(PetscObjectComm((PetscObject)eps),ctx->subcomm->n*mlocal,idx1,PETSC_COPY_VALUES,&is1);CHKERRQ(ierr);
   ierr = ISCreateGeneral(PetscObjectComm((PetscObject)eps),ctx->subcomm->n*mlocal,idx2,PETSC_COPY_VALUES,&is2);CHKERRQ(ierr);
-  ierr = VecScatterCreateWithData(v0,is1,ctx->xdup,is2,&ctx->scatterin);CHKERRQ(ierr);
+  ierr = VecScatterCreate(v0,is1,ctx->xdup,is2,&ctx->scatterin);CHKERRQ(ierr);
   ierr = ISDestroy(&is1);CHKERRQ(ierr);
   ierr = ISDestroy(&is2);CHKERRQ(ierr);
   ierr = PetscFree2(idx1,idx2);CHKERRQ(ierr);

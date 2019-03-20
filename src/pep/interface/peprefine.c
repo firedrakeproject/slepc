@@ -84,7 +84,7 @@ static PetscErrorCode PEPSimpleNRefSetUp(PEP pep,PEPSimpNRefctx **ctx_)
       ierr = ISCreateGeneral(PetscObjectComm((PetscObject)pep),(m0-n0),idx1,PETSC_COPY_VALUES,&is1);CHKERRQ(ierr);
       ierr = ISCreateGeneral(PetscObjectComm((PetscObject)pep),(m0-n0),idx2,PETSC_COPY_VALUES,&is2);CHKERRQ(ierr);
       ierr = BVGetColumn(pep->V,0,&v);CHKERRQ(ierr);
-      ierr = VecScatterCreateWithData(v,is1,ctx->vg,is2,&ctx->scatter_id[si]);CHKERRQ(ierr);
+      ierr = VecScatterCreate(v,is1,ctx->vg,is2,&ctx->scatter_id[si]);CHKERRQ(ierr);
       ierr = BVRestoreColumn(pep->V,0,&v);CHKERRQ(ierr);
       ierr = ISDestroy(&is1);CHKERRQ(ierr);
       ierr = ISDestroy(&is2);CHKERRQ(ierr);
@@ -104,7 +104,7 @@ static PetscErrorCode PEPSimpleNRefSetUp(PEP pep,PEPSimpNRefctx **ctx_)
       ierr = PetscMalloc1(m0-n0,&idx1);CHKERRQ(ierr);
       for (i=n0;i<m0;i++) idx1[i-n0] = i;
       ierr = ISCreateGeneral(PetscObjectComm((PetscObject)ctx->A[0]),(m0-n0),idx1,PETSC_COPY_VALUES,&is1);CHKERRQ(ierr);
-      ierr = VecScatterCreateWithData(v,is1,ctx->nv,is1,&ctx->nst);CHKERRQ(ierr);
+      ierr = VecScatterCreate(v,is1,ctx->nv,is1,&ctx->nst);CHKERRQ(ierr);
       if (pep->npart==1) {
         ierr = BVRestoreColumn(pep->V,0,&v);CHKERRQ(ierr);
       }
