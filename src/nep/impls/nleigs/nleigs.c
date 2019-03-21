@@ -25,51 +25,9 @@
 
 #include <slepc/private/nepimpl.h>         /*I "slepcnep.h" I*/
 #include <slepcblaslapack.h>
+#include "nleigs.h"
 
-#define  LBPOINTS  100   /* default value of the maximum number of Leja-Bagby points */
-#define  NDPOINTS  1e4   /* number of discretization points */
-
-typedef struct {
-  BV             V;         /* tensor vector basis for the linearization */
-  PetscInt       nmat;      /* number of interpolation points */
-  PetscScalar    *s,*xi;    /* Leja-Bagby points */
-  PetscScalar    *beta;     /* scaling factors */
-  Mat            *D;        /* divided difference matrices */
-  PetscScalar    *coeffD;   /* coefficients for divided differences in split form */
-  PetscInt       nshifts;   /* provided number of shifts */
-  PetscScalar    *shifts;   /* user-provided shifts for the Rational Krylov variant */
-  PetscInt       nshiftsw;  /* actual number of shifts (1 if Krylov-Schur) */
-  PetscReal      ddtol;     /* tolerance for divided difference convergence */
-  PetscInt       ddmaxit;   /* maximum number of divided difference terms */
-  PetscReal      keep;      /* restart parameter */
-  PetscBool      lock;      /* locking/non-locking variant */
-  PetscInt       idxrk;     /* index of next shift to use */
-  KSP            *ksp;      /* ksp array for storing shift factorizations */
-  Vec            vrn;       /* random vector with normally distributed value */
-  void           *singularitiesctx;
-  PetscErrorCode (*computesingularities)(NEP,PetscInt*,PetscScalar*,void*);
-} NEP_NLEIGS;
-
-typedef struct {
-  PetscInt    nmat,maxnmat;
-  PetscScalar *coeff;
-  Mat         *A;
-  Vec         t;
-} ShellMatCtx;
-
-PETSC_STATIC_INLINE PetscErrorCode NEPNLEIGSSetShifts(NEP nep,PetscInt *nshiftsw)
-{
-  NEP_NLEIGS *ctx = (NEP_NLEIGS*)nep->data;
-
-  PetscFunctionBegin;
-  if (!ctx->nshifts) {
-    ctx->shifts = &nep->target;
-    *nshiftsw = 1;
-  } else *nshiftsw = ctx->nshifts;
-  PetscFunctionReturn(0);
-}
-
-static PetscErrorCode NEPNLEIGSBackTransform(PetscObject ob,PetscInt n,PetscScalar *valr,PetscScalar *vali)
+PetscErrorCode NEPNLEIGSBackTransform(PetscObject ob,PetscInt n,PetscScalar *valr,PetscScalar *vali)
 {
   NEP         nep;
   PetscInt    j;
@@ -483,7 +441,7 @@ static PetscErrorCode NEPNLEIGSLejaBagbyPoints(NEP nep)
   PetscFunctionReturn(0);
 }
 
-static PetscErrorCode NEPNLEIGSEvalNRTFunct(NEP nep,PetscInt k,PetscScalar sigma,PetscScalar *b)
+PetscErrorCode NEPNLEIGSEvalNRTFunct(NEP nep,PetscInt k,PetscScalar sigma,PetscScalar *b)
 {
   NEP_NLEIGS  *ctx=(NEP_NLEIGS*)nep->data;
   PetscInt    i;
@@ -920,7 +878,7 @@ static PetscErrorCode NEPNLEIGSDividedDifferences_callback(NEP nep)
 /*
    NEPKrylovConvergence - This is the analogue to EPSKrylovConvergence.
 */
-static PetscErrorCode NEPNLEIGSKrylovConvergence(NEP nep,PetscBool getall,PetscInt kini,PetscInt nits,PetscScalar betak,PetscReal betah,PetscInt *kout,Vec *w)
+PetscErrorCode NEPNLEIGSKrylovConvergence(NEP nep,PetscBool getall,PetscInt kini,PetscInt nits,PetscScalar betah,PetscReal betak,PetscInt *kout,Vec *w)
 {
   PetscErrorCode ierr;
   PetscInt       k,newk,marker,inside;
@@ -1003,21 +961,29 @@ PetscErrorCode NEPSetUp_NLEIGS(NEP nep)
   }
   ierr = NEPAllocateSolution(nep,ctx->nmat-1);CHKERRQ(ierr);
   ierr = NEPSetWorkVecs(nep,4);CHKERRQ(ierr);
-
-  /* set-up DS and transfer split operator functions */
-  ierr = DSSetType(nep->ds,ctx->nshifts?DSGNHEP:DSNHEP);CHKERRQ(ierr);
-  ierr = DSAllocate(nep->ds,nep->ncv+1);CHKERRQ(ierr);
-  ierr = DSGetSlepcSC(nep->ds,&sc);CHKERRQ(ierr);
-  if (!ctx->nshifts) {
-    sc->map = NEPNLEIGSBackTransform;
-    ierr = DSSetExtraRow(nep->ds,PETSC_TRUE);CHKERRQ(ierr);
+ierr = PetscOptionsGetBool(NULL,NULL,"-nep_nleigs_full_basis",&ctx->fullbasis,NULL);
+  if (!ctx->fullbasis) {
+    /* set-up DS and transfer split operator functions */
+    ierr = DSSetType(nep->ds,ctx->nshifts?DSGNHEP:DSNHEP);CHKERRQ(ierr);
+    ierr = DSAllocate(nep->ds,nep->ncv+1);CHKERRQ(ierr);
+      ierr = DSGetSlepcSC(nep->ds,&sc);CHKERRQ(ierr);
+    if (!ctx->nshifts) {
+      sc->map = NEPNLEIGSBackTransform;
+      ierr = DSSetExtraRow(nep->ds,PETSC_TRUE);CHKERRQ(ierr);
+    }
+    sc->mapobj        = (PetscObject)nep;
+    sc->rg            = nep->rg;
+    sc->comparison    = nep->sc->comparison;
+    sc->comparisonctx = nep->sc->comparisonctx;
+    ierr = BVDestroy(&ctx->V);CHKERRQ(ierr);
+    ierr = BVCreateTensor(nep->V,ctx->nmat-1,&ctx->V);CHKERRQ(ierr);
+    nep->ops->solve          = NEPSolve_NLEIGS;
+    nep->ops->computevectors = NEPComputeVectors_Schur;
+  } else {
+    ierr = NEPSetUp_NLEIGS_FullBasis(nep);CHKERRQ(ierr);
+    nep->ops->solve          = NEPSolve_NLEIGS_FullBasis;
+    nep->ops->computevectors = NULL;
   }
-  sc->mapobj        = (PetscObject)nep;
-  sc->rg            = nep->rg;
-  sc->comparison    = nep->sc->comparison;
-  sc->comparisonctx = nep->sc->comparisonctx;
-  ierr = BVDestroy(&ctx->V);CHKERRQ(ierr);
-  ierr = BVCreateTensor(nep->V,ctx->nmat-1,&ctx->V);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -1173,7 +1139,7 @@ static PetscErrorCode NEPNLEIGS_RKcontinuation(NEP nep,PetscInt ini,PetscInt end
 /*
   Compute a run of Arnoldi iterations
 */
-static PetscErrorCode NEPNLEIGSTOARrun(NEP nep,PetscScalar *K,PetscScalar *H,PetscInt ldh,BV W,PetscInt k,PetscInt *M,PetscBool *breakdown,Vec *t_)
+PetscErrorCode NEPNLEIGSTOARrun(NEP nep,PetscScalar *K,PetscScalar *H,PetscInt ldh,BV W,PetscInt k,PetscInt *M,PetscBool *breakdown,Vec *t_)
 {
   PetscErrorCode ierr;
   NEP_NLEIGS     *ctx = (NEP_NLEIGS*)nep->data;
@@ -1305,7 +1271,7 @@ PetscErrorCode NEPSolve_NLEIGS(NEP nep)
     ierr = DSSynchronize(nep->ds,nep->eigr,nep->eigi);CHKERRQ(ierr);
 
     /* Check convergence */
-    ierr = NEPNLEIGSKrylovConvergence(nep,PETSC_FALSE,nep->nconv,nv-nep->nconv,betak,betah,&k,nep->work);CHKERRQ(ierr);
+    ierr = NEPNLEIGSKrylovConvergence(nep,PETSC_FALSE,nep->nconv,nv-nep->nconv,betah,betak,&k,nep->work);CHKERRQ(ierr);
     ierr = (*nep->stopping)(nep,nep->its,nep->max_it,k,nep->nev,&nep->reason,nep->stoppingctx);CHKERRQ(ierr);
 
     /* Update l */
@@ -2009,6 +1975,11 @@ PetscErrorCode NEPReset_NLEIGS(NEP nep)
   if (ctx->vrn) {
     ierr = VecDestroy(&ctx->vrn);CHKERRQ(ierr);
   }
+  if (ctx->fullbasis) {
+    ierr = MatDestroy(&ctx->A);CHKERRQ(ierr);
+    ierr = EPSReset(ctx->eps);CHKERRQ(ierr);
+    for (k=0;k<4;k++) { ierr = VecDestroy(&ctx->w[k]);CHKERRQ(ierr); }
+  }
   PetscFunctionReturn(0);
 }
 
@@ -2023,6 +1994,7 @@ PetscErrorCode NEPDestroy_NLEIGS(NEP nep)
   for (k=0;k<ctx->nshiftsw;k++) { ierr = KSPDestroy(&ctx->ksp[k]);CHKERRQ(ierr); }
   ierr = PetscFree(ctx->ksp);CHKERRQ(ierr);
   if (ctx->nshifts) { ierr = PetscFree(ctx->shifts);CHKERRQ(ierr); }
+  if (ctx->fullbasis) { ierr = EPSDestroy(&ctx->eps);CHKERRQ(ierr); }
   ierr = PetscFree(nep->data);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPNLEIGSSetSingularitiesFunction_C",NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPNLEIGSGetSingularitiesFunction_C",NULL);CHKERRQ(ierr);
@@ -2035,6 +2007,7 @@ PetscErrorCode NEPDestroy_NLEIGS(NEP nep)
   ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPNLEIGSSetRKShifts_C",NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPNLEIGSGetRKShifts_C",NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPNLEIGSGetKSPs_C",NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPNLEIGSGetEPS_C",NULL);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -2049,13 +2022,11 @@ SLEPC_EXTERN PetscErrorCode NEPCreate_NLEIGS(NEP nep)
   ctx->lock  = PETSC_TRUE;
   ctx->ddtol = PETSC_DEFAULT;
 
-  nep->ops->solve          = NEPSolve_NLEIGS;
   nep->ops->setup          = NEPSetUp_NLEIGS;
   nep->ops->setfromoptions = NEPSetFromOptions_NLEIGS;
   nep->ops->view           = NEPView_NLEIGS;
   nep->ops->destroy        = NEPDestroy_NLEIGS;
   nep->ops->reset          = NEPReset_NLEIGS;
-  nep->ops->computevectors = NEPComputeVectors_Schur;
 
   ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPNLEIGSSetSingularitiesFunction_C",NEPNLEIGSSetSingularitiesFunction_NLEIGS);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPNLEIGSGetSingularitiesFunction_C",NEPNLEIGSGetSingularitiesFunction_NLEIGS);CHKERRQ(ierr);
@@ -2068,6 +2039,7 @@ SLEPC_EXTERN PetscErrorCode NEPCreate_NLEIGS(NEP nep)
   ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPNLEIGSSetRKShifts_C",NEPNLEIGSSetRKShifts_NLEIGS);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPNLEIGSGetRKShifts_C",NEPNLEIGSGetRKShifts_NLEIGS);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPNLEIGSGetKSPs_C",NEPNLEIGSGetKSPs_NLEIGS);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPNLEIGSGetEPS_C",NEPNLEIGSGetEPS_NLEIGS);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
