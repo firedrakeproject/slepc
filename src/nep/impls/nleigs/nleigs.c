@@ -1894,6 +1894,7 @@ static PetscErrorCode NEPNLEIGSSetFullBasis_NLEIGS(NEP nep,PetscBool fullbasis)
   if (fullbasis!=ctx->fullbasis) {
     ctx->fullbasis = fullbasis;
     nep->state     = NEP_STATE_INITIAL;
+    nep->useds     = PetscNot(fullbasis);
   }
   PetscFunctionReturn(0);
 }
@@ -2124,6 +2125,8 @@ SLEPC_EXTERN PetscErrorCode NEPCreate_NLEIGS(NEP nep)
   nep->data  = (void*)ctx;
   ctx->lock  = PETSC_TRUE;
   ctx->ddtol = PETSC_DEFAULT;
+
+  nep->useds = PETSC_TRUE;
 
   nep->ops->setup          = NEPSetUp_NLEIGS;
   nep->ops->setfromoptions = NEPSetFromOptions_NLEIGS;

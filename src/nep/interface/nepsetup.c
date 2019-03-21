@@ -56,7 +56,7 @@ PetscErrorCode NEPSetUp(NEP nep)
   if (!((PetscObject)nep)->type_name) {
     ierr = NEPSetType(nep,NEPRII);CHKERRQ(ierr);
   }
-  if (!nep->ds) { ierr = NEPGetDS(nep,&nep->ds);CHKERRQ(ierr); }
+  if (nep->useds && !nep->ds) { ierr = NEPGetDS(nep,&nep->ds);CHKERRQ(ierr); }
   if (!nep->rg) { ierr = NEPGetRG(nep,&nep->rg);CHKERRQ(ierr); }
   if (!((PetscObject)nep->rg)->type_name) {
     ierr = RGSetType(nep->rg,RGINTERVAL);CHKERRQ(ierr);
@@ -187,13 +187,15 @@ PetscErrorCode NEPSetUp(NEP nep)
   nep->sc->mapobj = NULL;
 
   /* fill sorting criterion for DS */
-  ierr = DSGetSlepcSC(nep->ds,&sc);CHKERRQ(ierr);
-  sc->comparison    = nep->sc->comparison;
-  sc->comparisonctx = nep->sc->comparisonctx;
-  ierr = PetscObjectTypeCompare((PetscObject)nep,NEPNLEIGS,&flg);CHKERRQ(ierr);
-  if (!flg) {
-    sc->map    = NULL;
-    sc->mapobj = NULL;
+  if (nep->useds) {
+    ierr = DSGetSlepcSC(nep->ds,&sc);CHKERRQ(ierr);
+    sc->comparison    = nep->sc->comparison;
+    sc->comparisonctx = nep->sc->comparisonctx;
+    ierr = PetscObjectTypeCompare((PetscObject)nep,NEPNLEIGS,&flg);CHKERRQ(ierr);
+    if (!flg) {
+      sc->map    = NULL;
+      sc->mapobj = NULL;
+    }
   }
   if (nep->nev > nep->ncv) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_OUTOFRANGE,"nev bigger than ncv");
 

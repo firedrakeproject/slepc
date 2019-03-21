@@ -127,6 +127,7 @@ struct _p_NEP {
   PetscInt       n,nloc;           /* problem dimensions (global, local) */
   PetscReal      *nrma;            /* computed matrix norms */
   NEPUserInterface fui;            /* how the user has defined the nonlinear operator */
+  PetscBool      useds;            /* whether the solver uses the DS object or not */
   PetscBool      hasts;            /* whether the solver has two-sided variant */
   NEPConvergedReason reason;
 };

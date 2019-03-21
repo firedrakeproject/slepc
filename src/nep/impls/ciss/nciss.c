@@ -1146,6 +1146,8 @@ SLEPC_EXTERN PetscErrorCode NEPCreate_CISS(NEP nep)
   ctx->isreal             = PETSC_FALSE;
   ctx->npart              = 1;
 
+  nep->useds = PETSC_TRUE;
+
   nep->ops->solve          = NEPSolve_CISS;
   nep->ops->setup          = NEPSetUp_CISS;
   nep->ops->setfromoptions = NEPSetFromOptions_CISS;

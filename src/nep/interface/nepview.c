@@ -47,7 +47,7 @@ PetscErrorCode NEPView(NEP nep,PetscViewer viewer)
   const char     *type=NULL;
   char           str[50];
   PetscInt       i,tabs;
-  PetscBool      isascii,istrivial,nods;
+  PetscBool      isascii,istrivial;
   PetscViewer    sviewer;
 
   PetscFunctionBegin;
@@ -180,8 +180,7 @@ PetscErrorCode NEPView(NEP nep,PetscViewer viewer)
   if (!nep->rg) { ierr = NEPGetRG(nep,&nep->rg);CHKERRQ(ierr); }
   ierr = RGIsTrivial(nep->rg,&istrivial);CHKERRQ(ierr);
   if (!istrivial) { ierr = RGView(nep->rg,viewer);CHKERRQ(ierr); }
-  ierr = PetscObjectTypeCompareAny((PetscObject)nep,&nods,NEPRII,NEPSLP,NEPINTERPOL,NEPNARNOLDI,"");CHKERRQ(ierr);
-  if (!nods) {
+  if (nep->useds) {
     if (!nep->ds) { ierr = NEPGetDS(nep,&nep->ds);CHKERRQ(ierr); }
     ierr = DSView(nep->ds,viewer);CHKERRQ(ierr);
   }

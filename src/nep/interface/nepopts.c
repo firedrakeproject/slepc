@@ -253,8 +253,10 @@ PetscErrorCode NEPSetFromOptions(NEP nep)
   ierr = BVSetFromOptions(nep->V);CHKERRQ(ierr);
   if (!nep->rg) { ierr = NEPGetRG(nep,&nep->rg);CHKERRQ(ierr); }
   ierr = RGSetFromOptions(nep->rg);CHKERRQ(ierr);
-  if (!nep->ds) { ierr = NEPGetDS(nep,&nep->ds);CHKERRQ(ierr); }
-  ierr = DSSetFromOptions(nep->ds);CHKERRQ(ierr);
+  if (nep->useds) {
+    if (!nep->ds) { ierr = NEPGetDS(nep,&nep->ds);CHKERRQ(ierr); }
+    ierr = DSSetFromOptions(nep->ds);CHKERRQ(ierr);
+  }
   if (!nep->refineksp) { ierr = NEPRefineGetKSP(nep,&nep->refineksp);CHKERRQ(ierr); }
   ierr = KSPSetFromOptions(nep->refineksp);CHKERRQ(ierr);
   if (nep->fui==NEP_USER_INTERFACE_SPLIT) for (i=0;i<nep->nt;i++) {ierr = FNSetFromOptions(nep->f[i]);CHKERRQ(ierr);}
