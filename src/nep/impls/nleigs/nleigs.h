@@ -64,6 +64,7 @@ PETSC_STATIC_INLINE PetscErrorCode NEPNLEIGSSetShifts(NEP nep,PetscInt *nshiftsw
 }
 
 SLEPC_EXTERN PetscErrorCode NEPSetUp_NLEIGS_FullBasis(NEP);
+SLEPC_EXTERN PetscErrorCode NEPNLEIGSSetEPS_NLEIGS(NEP,EPS);
 SLEPC_EXTERN PetscErrorCode NEPNLEIGSGetEPS_NLEIGS(NEP,EPS*);
 SLEPC_EXTERN PetscErrorCode NEPNLEIGSBackTransform(PetscObject,PetscInt,PetscScalar*,PetscScalar *vali);
 SLEPC_EXTERN PetscErrorCode NEPNLEIGSEvalNRTFunct(NEP,PetscInt,PetscScalar,PetscScalar*);

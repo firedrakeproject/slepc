@@ -961,7 +961,6 @@ PetscErrorCode NEPSetUp_NLEIGS(NEP nep)
   }
   ierr = NEPAllocateSolution(nep,ctx->nmat-1);CHKERRQ(ierr);
   ierr = NEPSetWorkVecs(nep,4);CHKERRQ(ierr);
-ierr = PetscOptionsGetBool(NULL,NULL,"-nep_nleigs_full_basis",&ctx->fullbasis,NULL);
   if (!ctx->fullbasis) {
     /* set-up DS and transfer split operator functions */
     ierr = DSSetType(nep->ds,ctx->nshifts?DSGNHEP:DSNHEP);CHKERRQ(ierr);
@@ -1887,6 +1886,92 @@ PetscErrorCode NEPNLEIGSGetKSPs(NEP nep,PetscInt *nsolve,KSP **ksp)
   PetscFunctionReturn(0);
 }
 
+static PetscErrorCode NEPNLEIGSSetFullBasis_NLEIGS(NEP nep,PetscBool fullbasis)
+{
+  NEP_NLEIGS *ctx=(NEP_NLEIGS*)nep->data;
+
+  PetscFunctionBegin;
+  if (fullbasis!=ctx->fullbasis) {
+    ctx->fullbasis = fullbasis;
+    nep->state     = NEP_STATE_INITIAL;
+  }
+  PetscFunctionReturn(0);
+}
+
+/*@
+   NEPNLEIGSSetFullBasis - Choose between TOAR-basis (default) and full-basis
+   variants of the NLEIGS method.
+
+   Logically Collective on NEP
+
+   Input Parameters:
++  nep  - the nonlinear eigensolver context
+-  fullbasis - true if the full-basis variant must be selected
+
+   Options Database Key:
+.  -nep_nleigs_full_basis - Sets the full-basis flag
+
+   Notes:
+   The default is to use a compact representation of the Krylov basis, that is,
+   V = (I otimes U) S, with a tensor BV. This behaviour can be changed so that
+   the full basis V is explicitly stored and operated with. This variant is more
+   expensive in terms of memory and computation, but is necessary in some cases,
+   particularly for two-sided computations, see NEPSetTwoSided().
+
+   In the full-basis variant, the NLEIGS solver uses an EPS object to explicitly
+   solve the linearized eigenproblem, see NEPNLEIGSGetEPS().
+
+   Level: advanced
+
+.seealso: NEPNLEIGSGetFullBasis(), NEPNLEIGSGetEPS(), NEPSetTwoSided(), BVCreateTensor()
+@*/
+PetscErrorCode NEPNLEIGSSetFullBasis(NEP nep,PetscBool fullbasis)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
+  PetscValidLogicalCollectiveBool(nep,fullbasis,2);
+  ierr = PetscTryMethod(nep,"NEPNLEIGSSetFullBasis_C",(NEP,PetscBool),(nep,fullbasis));CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+static PetscErrorCode NEPNLEIGSGetFullBasis_NLEIGS(NEP nep,PetscBool *fullbasis)
+{
+  NEP_NLEIGS *ctx=(NEP_NLEIGS*)nep->data;
+
+  PetscFunctionBegin;
+  *fullbasis = ctx->fullbasis;
+  PetscFunctionReturn(0);
+}
+
+/*@
+   NEPNLEIGSGetFullBasis - Gets the flag that indicates if NLEIGS is using the
+   full-basis variant.
+
+   Not Collective
+
+   Input Parameter:
+.  nep - the nonlinear eigensolver context
+
+   Output Parameter:
+.  fullbasis - the flag
+
+   Level: advanced
+
+.seealso: NEPNLEIGSSetFullBasis()
+@*/
+PetscErrorCode NEPNLEIGSGetFullBasis(NEP nep,PetscBool *fullbasis)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
+  PetscValidPointer(fullbasis,2);
+  ierr = PetscUseMethod(nep,"NEPNLEIGSGetFullBasis_C",(NEP,PetscBool*),(nep,fullbasis));CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
 #define SHIFTMAX 30
 
 PetscErrorCode NEPSetFromOptions_NLEIGS(PetscOptionItems *PetscOptionsObject,NEP nep)
@@ -1907,6 +1992,9 @@ PetscErrorCode NEPSetFromOptions_NLEIGS(PetscOptionItems *PetscOptionsObject,NEP
     ierr = PetscOptionsBool("-nep_nleigs_locking","Choose between locking and non-locking variants","NEPNLEIGSSetLocking",PETSC_FALSE,&b,&flg1);CHKERRQ(ierr);
     if (flg1) { ierr = NEPNLEIGSSetLocking(nep,b);CHKERRQ(ierr); }
 
+    ierr = PetscOptionsBool("-nep_nleigs_full_basis","Choose between TOAR and full-basis variants","NEPNLEIGSSetFullBasis",PETSC_FALSE,&b,&flg1);CHKERRQ(ierr);
+    if (flg1) { ierr = NEPNLEIGSSetFullBasis(nep,b);CHKERRQ(ierr); }
+
     ierr = NEPNLEIGSGetInterpolation(nep,&r,&i);CHKERRQ(ierr);
     if (!i) i = PETSC_DEFAULT;
     ierr = PetscOptionsInt("-nep_nleigs_interpolation_degree","Maximum number of terms for interpolation via divided differences","NEPNLEIGSSetInterpolation",i,&i,&flg1);CHKERRQ(ierr);
@@ -1924,6 +2012,11 @@ PetscErrorCode NEPSetFromOptions_NLEIGS(PetscOptionItems *PetscOptionsObject,NEP
   for (i=0;i<ctx->nshiftsw;i++) {
     ierr = KSPSetFromOptions(ctx->ksp[i]);CHKERRQ(ierr);
   }
+
+  if (ctx->fullbasis) {
+    if (!ctx->eps) { ierr = NEPNLEIGSGetEPS(nep,&ctx->eps);CHKERRQ(ierr); }
+    ierr = EPSSetFromOptions(ctx->eps);CHKERRQ(ierr);
+  }
   PetscFunctionReturn(0);
 }
 
@@ -1940,6 +2033,9 @@ PetscErrorCode NEPView_NLEIGS(NEP nep,PetscViewer viewer)
   if (isascii) {
     ierr = PetscViewerASCIIPrintf(viewer,"  %d%% of basis vectors kept after restart\n",(int)(100*ctx->keep));CHKERRQ(ierr);
     ierr = PetscViewerASCIIPrintf(viewer,"  using the %slocking variant\n",ctx->lock?"":"non-");CHKERRQ(ierr);
+    if (ctx->fullbasis) {
+      ierr = PetscViewerASCIIPrintf(viewer,"  using the full-basis variant\n");CHKERRQ(ierr);
+    }
     ierr = PetscViewerASCIIPrintf(viewer,"  divided difference terms: used=%D, max=%D\n",ctx->nmat,ctx->ddmaxit);CHKERRQ(ierr);
     ierr = PetscViewerASCIIPrintf(viewer,"  tolerance for divided difference convergence: %g\n",(double)ctx->ddtol);CHKERRQ(ierr);
     if (ctx->nshifts) {
@@ -1954,6 +2050,10 @@ PetscErrorCode NEPView_NLEIGS(NEP nep,PetscViewer viewer)
     }
     if (!ctx->ksp) { ierr = NEPNLEIGSGetKSPs(nep,&ctx->nshiftsw,&ctx->ksp);CHKERRQ(ierr); }
     ierr = KSPView(ctx->ksp[0],viewer);CHKERRQ(ierr);
+    if (ctx->fullbasis) {
+      if (!ctx->eps) { ierr = NEPNLEIGSGetEPS(nep,&ctx->eps);CHKERRQ(ierr); }
+      ierr = EPSView(ctx->eps,viewer);CHKERRQ(ierr);
+    }
   }
   PetscFunctionReturn(0);
 }
@@ -2007,6 +2107,9 @@ PetscErrorCode NEPDestroy_NLEIGS(NEP nep)
   ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPNLEIGSSetRKShifts_C",NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPNLEIGSGetRKShifts_C",NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPNLEIGSGetKSPs_C",NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPNLEIGSSetFullBasis_C",NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPNLEIGSGetFullBasis_C",NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPNLEIGSSetEPS_C",NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPNLEIGSGetEPS_C",NULL);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -2039,6 +2142,9 @@ SLEPC_EXTERN PetscErrorCode NEPCreate_NLEIGS(NEP nep)
   ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPNLEIGSSetRKShifts_C",NEPNLEIGSSetRKShifts_NLEIGS);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPNLEIGSGetRKShifts_C",NEPNLEIGSGetRKShifts_NLEIGS);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPNLEIGSGetKSPs_C",NEPNLEIGSGetKSPs_NLEIGS);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPNLEIGSSetFullBasis_C",NEPNLEIGSSetFullBasis_NLEIGS);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPNLEIGSGetFullBasis_C",NEPNLEIGSGetFullBasis_NLEIGS);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPNLEIGSSetEPS_C",NEPNLEIGSSetEPS_NLEIGS);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPNLEIGSGetEPS_C",NEPNLEIGSGetEPS_NLEIGS);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

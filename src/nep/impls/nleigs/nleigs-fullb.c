@@ -128,7 +128,6 @@ PetscErrorCode NEPSetUp_NLEIGS_FullBasis(NEP nep)
 
   PetscFunctionBegin;
   if (!ctx->eps) { ierr = NEPNLEIGSGetEPS(nep,&ctx->eps);CHKERRQ(ierr); }
-EPSSetFromOptions(ctx->eps);
   ierr = EPSGetST(ctx->eps,&st);CHKERRQ(ierr);
   ierr = EPSSetTarget(ctx->eps,nep->target);CHKERRQ(ierr);
   ierr = STSetDefaultShift(st,nep->target);CHKERRQ(ierr);
@@ -249,6 +248,45 @@ PetscErrorCode NEPSolve_NLEIGS_FullBasis(NEP nep)
 #endif 
   }
   ierr = NEPNLEIGSExtract_None(nep,ctx->eps);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+PetscErrorCode NEPNLEIGSSetEPS_NLEIGS(NEP nep,EPS eps)
+{
+  PetscErrorCode ierr;
+  NEP_NLEIGS     *ctx=(NEP_NLEIGS*)nep->data;
+
+  PetscFunctionBegin;
+  ierr = PetscObjectReference((PetscObject)eps);CHKERRQ(ierr);
+  ierr = EPSDestroy(&ctx->eps);CHKERRQ(ierr);
+  ctx->eps = eps;
+  ierr = PetscLogObjectParent((PetscObject)nep,(PetscObject)ctx->eps);CHKERRQ(ierr);
+  nep->state = NEP_STATE_INITIAL;
+  PetscFunctionReturn(0);
+}
+
+/*@
+   NEPNLEIGSSetEPS - Associate an eigensolver object (EPS) to the NLEIGS solver.
+
+   Collective on NEP
+
+   Input Parameters:
++  nep - nonlinear eigenvalue solver
+-  eps - the eigensolver object
+
+   Level: advanced
+
+.seealso: NEPNLEIGSGetEPS()
+@*/
+PetscErrorCode NEPNLEIGSSetEPS(NEP nep,EPS eps)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
+  PetscValidHeaderSpecific(eps,EPS_CLASSID,2);
+  PetscCheckSameComm(nep,1,eps,2);
+  ierr = PetscTryMethod(nep,"NEPNLEIGSSetEPS_C",(NEP,EPS),(nep,eps));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
