@@ -290,6 +290,16 @@ PetscErrorCode NEPNLEIGSSetEPS(NEP nep,EPS eps)
   PetscFunctionReturn(0);
 }
 
+static PetscErrorCode EPSMonitor_NLEIGS(EPS eps,PetscInt its,PetscInt nconv,PetscScalar *eigr,PetscScalar *eigi,PetscReal *errest,PetscInt nest,void *ctx)
+{
+  NEP            nep = (NEP)ctx;
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  ierr = NEPMonitor(nep,its,nconv,eigr,eigi,errest,nest);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
 PetscErrorCode NEPNLEIGSGetEPS_NLEIGS(NEP nep,EPS *eps)
 {
   PetscErrorCode ierr;
@@ -303,6 +313,7 @@ PetscErrorCode NEPNLEIGSGetEPS_NLEIGS(NEP nep,EPS *eps)
     ierr = EPSAppendOptionsPrefix(ctx->eps,"nep_nleigs_");CHKERRQ(ierr);
     ierr = PetscLogObjectParent((PetscObject)nep,(PetscObject)ctx->eps);CHKERRQ(ierr);
     ierr = PetscObjectSetOptions((PetscObject)ctx->eps,((PetscObject)nep)->options);CHKERRQ(ierr);
+    ierr = EPSMonitorSet(ctx->eps,EPSMonitor_NLEIGS,nep,NULL);CHKERRQ(ierr);
   }
   *eps = ctx->eps;
   PetscFunctionReturn(0);
