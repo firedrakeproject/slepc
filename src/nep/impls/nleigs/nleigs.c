@@ -966,7 +966,7 @@ ierr = PetscOptionsGetBool(NULL,NULL,"-nep_nleigs_full_basis",&ctx->fullbasis,NU
     /* set-up DS and transfer split operator functions */
     ierr = DSSetType(nep->ds,ctx->nshifts?DSGNHEP:DSNHEP);CHKERRQ(ierr);
     ierr = DSAllocate(nep->ds,nep->ncv+1);CHKERRQ(ierr);
-      ierr = DSGetSlepcSC(nep->ds,&sc);CHKERRQ(ierr);
+    ierr = DSGetSlepcSC(nep->ds,&sc);CHKERRQ(ierr);
     if (!ctx->nshifts) {
       sc->map = NEPNLEIGSBackTransform;
       ierr = DSSetExtraRow(nep->ds,PETSC_TRUE);CHKERRQ(ierr);

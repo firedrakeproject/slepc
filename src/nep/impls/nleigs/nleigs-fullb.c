@@ -122,7 +122,6 @@ PetscErrorCode NEPSetUp_NLEIGS_FullBasis(NEP nep)
   ST             st;
   Mat            Q;
   PetscInt       i=0,deg=ctx->nmat-1;
-  EPSProblemType ptype;
   PetscBool      trackall,istrivial,ks;
   PetscScalar    *epsarray,*neparray;
   Vec            veps,w=NULL;
@@ -151,10 +150,8 @@ EPSSetFromOptions(ctx->eps);
   ierr = STShellSetApply(st,Apply_FullBasis);CHKERRQ(ierr);
   ierr = PetscLogObjectParent((PetscObject)nep,(PetscObject)ctx->A);CHKERRQ(ierr);
   ierr = EPSSetOperators(ctx->eps,ctx->A,NULL);CHKERRQ(ierr);
-  ierr = EPSGetProblemType(ctx->eps,&ptype);CHKERRQ(ierr);
-  ierr = EPSSetProblemType(ctx->eps,EPS_GNHEP);CHKERRQ(ierr);
-  ierr = EPSSetEigenvalueComparison(ctx->eps,nep->sc->comparison,nep->sc->comparisonctx);CHKERRQ(ierr);
-  ierr = EPSSetWhichEigenpairs(ctx->eps,nep->which);CHKERRQ(ierr);
+  ierr = EPSSetProblemType(ctx->eps,EPS_NHEP);CHKERRQ(ierr);
+  ierr = EPSSetWhichEigenpairs(ctx->eps,EPS_LARGEST_MAGNITUDE);CHKERRQ(ierr);
   ierr = RGIsTrivial(nep->rg,&istrivial);CHKERRQ(ierr);
   if (!istrivial) { ierr = EPSSetRG(ctx->eps,nep->rg);CHKERRQ(ierr);}
   ierr = EPSSetDimensions(ctx->eps,nep->nev,nep->ncv?nep->ncv:PETSC_DEFAULT,nep->mpd?nep->mpd:PETSC_DEFAULT);CHKERRQ(ierr);
@@ -204,16 +201,18 @@ static PetscErrorCode NEPNLEIGSExtract_None(NEP nep,EPS eps)
   PetscInt          i;
   const PetscScalar *px;
   Mat               A;
-  Vec               xr,xi,w;
+  Vec               xr,xi=NULL,w;
   PetscReal         norm;
 
   PetscFunctionBegin;
   ierr = EPSGetOperators(eps,&A,NULL);CHKERRQ(ierr);
   ierr = MatCreateVecs(A,&xr,NULL);CHKERRQ(ierr);
+#if !defined(PETSC_USE_COMPLEX)
   ierr = VecDuplicate(xr,&xi);CHKERRQ(ierr);
+#endif
   w = nep->work[0];
   for (i=0;i<nep->nconv;i++) {
-    ierr = EPSGetEigenpair(eps,i,NULL,NULL,xr,xi);CHKERRQ(ierr);
+    ierr = EPSGetEigenvector(eps,i,xr,xi);CHKERRQ(ierr);
     ierr = VecGetArrayRead(xr,&px);CHKERRQ(ierr);
     ierr = VecPlaceArray(w,px);CHKERRQ(ierr);
     ierr = BVInsertVec(nep->V,i,w);CHKERRQ(ierr);
@@ -223,7 +222,9 @@ static PetscErrorCode NEPNLEIGSExtract_None(NEP nep,EPS eps)
     ierr = VecRestoreArrayRead(xr,&px);CHKERRQ(ierr);
   }
   ierr = VecDestroy(&xr);CHKERRQ(ierr);
+#if !defined(PETSC_USE_COMPLEX)
   ierr = VecDestroy(&xi);CHKERRQ(ierr);
+#endif
   PetscFunctionReturn(0);
 }
 

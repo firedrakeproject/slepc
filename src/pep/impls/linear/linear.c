@@ -548,7 +548,7 @@ static PetscErrorCode PEPLinearExtract_None(PEP pep,EPS eps)
   PetscInt          i;
   const PetscScalar *px;
   Mat               A;
-  Vec               xr,xi,w;
+  Vec               xr,xi=NULL,w;
 #if !defined(PETSC_USE_COMPLEX)
   PetscScalar       *ei=pep->eigi;
 #endif
@@ -556,10 +556,12 @@ static PetscErrorCode PEPLinearExtract_None(PEP pep,EPS eps)
   PetscFunctionBegin;
   ierr = EPSGetOperators(eps,&A,NULL);CHKERRQ(ierr);
   ierr = MatCreateVecs(A,&xr,NULL);CHKERRQ(ierr);
+#if !defined(PETSC_USE_COMPLEX)
   ierr = VecDuplicate(xr,&xi);CHKERRQ(ierr);
+#endif
   ierr = MatCreateVecsEmpty(pep->A[0],&w,NULL);CHKERRQ(ierr);
   for (i=0;i<pep->nconv;i++) {
-    ierr = EPSGetEigenpair(eps,i,NULL,NULL,xr,xi);CHKERRQ(ierr);
+    ierr = EPSGetEigenvector(eps,i,xr,xi);CHKERRQ(ierr);
 #if !defined(PETSC_USE_COMPLEX)
     if (ei[i]!=0.0) {   /* complex conjugate pair */
       ierr = VecGetArrayRead(xr,&px);CHKERRQ(ierr);
@@ -585,7 +587,9 @@ static PetscErrorCode PEPLinearExtract_None(PEP pep,EPS eps)
   }
   ierr = VecDestroy(&w);CHKERRQ(ierr);
   ierr = VecDestroy(&xr);CHKERRQ(ierr);
+#if !defined(PETSC_USE_COMPLEX)
   ierr = VecDestroy(&xi);CHKERRQ(ierr);
+#endif
   PetscFunctionReturn(0);
 }
 
