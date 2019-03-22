@@ -20,7 +20,7 @@ static PetscErrorCode MatMult_FullBasis_Sinvert(Mat M,Vec x,Vec y)
   NEP_NLEIGS        *ctx;
   NEP               nep;
   const PetscScalar *px;
-  PetscScalar       *beta,*s,*xi,*coeffs,*t,*py,sigma;
+  PetscScalar       *beta,*s,*xi,*t,*py,sigma;
   PetscInt          nmat,d,i,k,m;
   Vec               xx,xxx,yy,yyy,w,ww,www;
 
@@ -32,10 +32,9 @@ static PetscErrorCode MatMult_FullBasis_Sinvert(Mat M,Vec x,Vec y)
   nmat = ctx->nmat;
   d = nmat-1;
   m = nep->nloc;
-  ierr = PetscMalloc2(ctx->nmat,&coeffs,ctx->nmat,&t);CHKERRQ(ierr);
+  ierr = PetscMalloc1(ctx->nmat,&t);CHKERRQ(ierr);
   xx = ctx->w[0]; xxx = ctx->w[1]; yy = ctx->w[2]; yyy=ctx->w[3];
   w = nep->work[0]; ww = nep->work[1]; www = nep->work[2];
-  ierr = EPSGetTarget(ctx->eps,&sigma);CHKERRQ(ierr);
   ierr = VecGetArrayRead(x,&px);CHKERRQ(ierr);
   ierr = VecGetArray(y,&py);CHKERRQ(ierr);
   ierr = VecPlaceArray(xx,px+(d-1)*m);CHKERRQ(ierr);
@@ -90,7 +89,7 @@ static PetscErrorCode MatMult_FullBasis_Sinvert(Mat M,Vec x,Vec y)
   }
   ierr = VecPlaceArray(yy,py+(d-1)*m);CHKERRQ(ierr);
   ierr = KSPSolve(ctx->ksp[0],w,yy);CHKERRQ(ierr);
-  ierr = NEPNLEIGSEvalNRTFunct(nep,d-1,sigma,t);CHKERRQ(ierr);  
+  ierr = NEPNLEIGSEvalNRTFunct(nep,d-1,sigma,t);CHKERRQ(ierr);
   for (i=0;i<d-1;i++) {
     ierr = VecPlaceArray(yyy,py+i*m);CHKERRQ(ierr);
     ierr = VecAXPY(yyy,t[i],yy);CHKERRQ(ierr);
@@ -100,7 +99,93 @@ static PetscErrorCode MatMult_FullBasis_Sinvert(Mat M,Vec x,Vec y)
   ierr = VecResetArray(yy);CHKERRQ(ierr);
   ierr = VecRestoreArrayRead(x,&px);CHKERRQ(ierr);
   ierr = VecRestoreArray(y,&py);CHKERRQ(ierr);
-  ierr = PetscFree2(coeffs,t);CHKERRQ(ierr);
+  ierr = PetscFree(t);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+static PetscErrorCode MatMultTranspose_FullBasis_Sinvert(Mat M,Vec x,Vec y)
+{
+  PetscErrorCode    ierr;
+  NEP_NLEIGS        *ctx;
+  NEP               nep;
+  const PetscScalar *px;
+  PetscScalar       *beta,*s,*xi,*t,*py,sigma;
+  PetscInt          nmat,d,i,m;
+  Vec               xx,yy,yyy,w,z0;
+
+  PetscFunctionBegin;
+  ierr = MatShellGetContext(M,(void**)&nep);CHKERRQ(ierr);
+  ctx = (NEP_NLEIGS*)nep->data;
+  beta = ctx->beta; s = ctx->s; xi = ctx->xi;
+  sigma = ctx->shifts[0];
+  nmat = ctx->nmat;
+  d = nmat-1;
+  m = nep->nloc;
+  ierr = PetscMalloc1(ctx->nmat,&t);CHKERRQ(ierr);
+  xx = ctx->w[0]; yy = ctx->w[1]; yyy=ctx->w[2];
+  w = nep->work[0]; z0 = nep->work[1];
+  ierr = VecGetArrayRead(x,&px);CHKERRQ(ierr);
+  ierr = VecGetArray(y,&py);CHKERRQ(ierr);
+  ierr = NEPNLEIGSEvalNRTFunct(nep,d,sigma,t);CHKERRQ(ierr);
+  ierr = VecPlaceArray(xx,px+(d-1)*m);CHKERRQ(ierr);
+  ierr = VecCopy(xx,w);CHKERRQ(ierr);
+  ierr = VecResetArray(xx);CHKERRQ(ierr);
+  for (i=0;i<d-1;i++) {
+    ierr = VecPlaceArray(xx,px+i*m);CHKERRQ(ierr);
+    ierr = VecAXPY(w,t[i]/t[i+1],xx);CHKERRQ(ierr);
+    ierr = VecResetArray(xx);CHKERRQ(ierr);
+  }
+  ierr = VecScale(w,t[d-1]);CHKERRQ(ierr);
+  ierr = KSPSolveTranspose(ctx->ksp[0],w,z0);CHKERRQ(ierr);
+
+  ierr = VecPlaceArray(yy,py);CHKERRQ(ierr);
+  if (nep->fui==NEP_USER_INTERFACE_SPLIT) {
+  } else {
+    ierr = MatMultTranspose(ctx->D[0],z0,yy);CHKERRQ(ierr);
+  }
+  ierr = VecPlaceArray(xx,px);CHKERRQ(ierr);
+  ierr = VecAXPY(yy,-1.0,xx);;CHKERRQ(ierr);
+  ierr = VecResetArray(xx);CHKERRQ(ierr);
+  ierr = VecScale(yy,-1.0/(s[0]-sigma));CHKERRQ(ierr);
+  ierr = VecResetArray(yy);CHKERRQ(ierr);
+  for (i=2;i<d;i++) {
+    ierr = VecPlaceArray(yy,py+(i-1)*m);CHKERRQ(ierr);
+    if (nep->fui==NEP_USER_INTERFACE_SPLIT) {
+
+    } else {
+      ierr = MatMultTranspose(ctx->D[i-1],z0,yy);CHKERRQ(ierr);
+    }
+    ierr = VecPlaceArray(yyy,py+(i-2)*m);CHKERRQ(ierr);
+    ierr = VecAXPY(yy,beta[i-1]*(1.0-sigma/xi[i-2]),yyy);CHKERRQ(ierr);
+    ierr = VecResetArray(yyy);CHKERRQ(ierr);
+    ierr = VecPlaceArray(xx,px+(i-1)*m);CHKERRQ(ierr);
+    ierr = VecAXPY(yy,-1.0,xx);CHKERRQ(ierr);
+    ierr = VecResetArray(xx);CHKERRQ(ierr);
+    ierr = VecScale(yy,-1.0/(s[i-1]-sigma));CHKERRQ(ierr);
+    ierr = VecResetArray(yy);CHKERRQ(ierr);
+  }
+  ierr = VecPlaceArray(yy,py+(d-1)*m);CHKERRQ(ierr);
+  if (nep->fui==NEP_USER_INTERFACE_SPLIT) {
+  } else {
+    ierr = MatMultTranspose(ctx->D[d],z0,yy);CHKERRQ(ierr);
+  }
+  ierr = VecScale(yy,-1.0/beta[d]);CHKERRQ(ierr);
+  ierr = VecPlaceArray(yyy,py+(d-2)*m);CHKERRQ(ierr);
+  ierr = VecAXPY(yy,beta[d-1]/xi[d-2],yyy);CHKERRQ(ierr);
+  ierr = VecResetArray(yyy);CHKERRQ(ierr);
+  ierr = VecResetArray(yy);CHKERRQ(ierr);
+
+  for (i=d-2;i>0;i--) {
+    ierr = VecPlaceArray(yyy,py+(i-1)*m);CHKERRQ(ierr);
+    ierr = VecPlaceArray(yy,py+i*m);CHKERRQ(ierr);
+    ierr = VecAXPY(yy,beta[i]/xi[i-1],yyy);CHKERRQ(ierr);
+    ierr = VecResetArray(yyy);CHKERRQ(ierr);
+    ierr = VecResetArray(yy);CHKERRQ(ierr);
+  }
+
+  ierr = VecRestoreArrayRead(x,&px);CHKERRQ(ierr);
+  ierr = VecRestoreArray(y,&py);CHKERRQ(ierr);
+  ierr = PetscFree(t);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -125,6 +210,19 @@ static PetscErrorCode Apply_FullBasis(ST st,Vec x,Vec y)
   ierr = STShellGetContext(st,(void**)&nep);CHKERRQ(ierr);
   ctx = (NEP_NLEIGS*)nep->data;
   ierr = MatMult(ctx->A,x,y);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+static PetscErrorCode ApplyTranspose_FullBasis(ST st,Vec x,Vec y)
+{
+  PetscErrorCode ierr;
+  NEP            nep;
+  NEP_NLEIGS     *ctx;
+
+  PetscFunctionBegin;
+  ierr = STShellGetContext(st,(void**)&nep);CHKERRQ(ierr);
+  ctx = (NEP_NLEIGS*)nep->data;
+  ierr = MatMultTranspose(ctx->A,x,y);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -159,7 +257,9 @@ PetscErrorCode NEPSetUp_NLEIGS_FullBasis(NEP nep)
   ierr = PetscLogObjectParents(nep,6,ctx->w);CHKERRQ(ierr);
   ierr = MatCreateShell(PetscObjectComm((PetscObject)nep),deg*nep->nloc,deg*nep->nloc,deg*nep->n,deg*nep->n,nep,&ctx->A);CHKERRQ(ierr);
   ierr = MatShellSetOperation(ctx->A,MATOP_MULT,(void(*)(void))MatMult_FullBasis_Sinvert);CHKERRQ(ierr);
+  ierr = MatShellSetOperation(ctx->A,MATOP_MULT_TRANSPOSE,(void(*)(void))MatMultTranspose_FullBasis_Sinvert);CHKERRQ(ierr);
   ierr = STShellSetApply(st,Apply_FullBasis);CHKERRQ(ierr);
+  ierr = STShellSetApplyTranspose(st,ApplyTranspose_FullBasis);CHKERRQ(ierr);
   ierr = PetscLogObjectParent((PetscObject)nep,(PetscObject)ctx->A);CHKERRQ(ierr);
   ierr = EPSSetOperators(ctx->eps,ctx->A,NULL);CHKERRQ(ierr);
   ierr = EPSSetProblemType(ctx->eps,EPS_NHEP);CHKERRQ(ierr);
@@ -168,6 +268,7 @@ PetscErrorCode NEPSetUp_NLEIGS_FullBasis(NEP nep)
   if (!istrivial) { ierr = EPSSetRG(ctx->eps,nep->rg);CHKERRQ(ierr);}
   ierr = EPSSetDimensions(ctx->eps,nep->nev,nep->ncv?nep->ncv:PETSC_DEFAULT,nep->mpd?nep->mpd:PETSC_DEFAULT);CHKERRQ(ierr);
   ierr = EPSSetTolerances(ctx->eps,nep->tol==PETSC_DEFAULT?SLEPC_DEFAULT_TOL:nep->tol,nep->max_it?nep->max_it:PETSC_DEFAULT);CHKERRQ(ierr);
+  ierr = EPSSetTwoSided(ctx->eps,nep->twosided);CHKERRQ(ierr);
   /* Transfer the trackall option from pep to eps */
   ierr = NEPGetTrackAll(nep,&trackall);CHKERRQ(ierr);
   ierr = EPSSetTrackAll(ctx->eps,trackall);CHKERRQ(ierr);
@@ -254,11 +355,11 @@ PetscErrorCode NEPSolve_NLEIGS_FullBasis(NEP nep)
   ierr = EPSGetConvergedReason(ctx->eps,(EPSConvergedReason*)&nep->reason);CHKERRQ(ierr);
 
   /* recover eigenvalues */
-  for (i=0;i<nep->nconv;i++) { 
+  for (i=0;i<nep->nconv;i++) {
     ierr = EPSGetEigenpair(ctx->eps,i,&nep->eigr[i],&eigi,NULL,NULL);CHKERRQ(ierr);
 #if !defined(PETSC_USE_COMPLEX)
     if (eigi!=0.0) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"Complex value requires complex arithmetic");
-#endif 
+#endif
   }
   ierr = NEPNLEIGSExtract_None(nep,ctx->eps);CHKERRQ(ierr);
   PetscFunctionReturn(0);

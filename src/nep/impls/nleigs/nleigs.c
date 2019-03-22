@@ -2127,6 +2127,7 @@ SLEPC_EXTERN PetscErrorCode NEPCreate_NLEIGS(NEP nep)
   ctx->ddtol = PETSC_DEFAULT;
 
   nep->useds = PETSC_TRUE;
+  nep->hasts = PETSC_TRUE;
 
   nep->ops->setup          = NEPSetUp_NLEIGS;
   nep->ops->setfromoptions = NEPSetFromOptions_NLEIGS;
