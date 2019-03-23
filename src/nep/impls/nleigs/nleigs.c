@@ -256,7 +256,7 @@ static PetscErrorCode NEPNLEIGSAAAComputation(NEP nep,PetscInt ndpt,PetscScalar 
       C[i+k*ndpt] = 1.0/(ds[i]-ds[idx]);
     }
 
-    ierr = PetscMemzero(A,ndpt*ndpt*sizeof(PetscScalar));
+    ierr = PetscMemzero(A,ndpt*ndpt*sizeof(PetscScalar));CHKERRQ(ierr);
     cont = 0;
     for (i=0;i<ndpt;i++) {
       if (R[i]!=-1.0) {

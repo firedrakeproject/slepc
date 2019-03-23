@@ -110,7 +110,7 @@ static PetscErrorCode MatMultTranspose_FullBasis_Sinvert(Mat M,Vec x,Vec y)
   NEP               nep;
   const PetscScalar *px;
   PetscScalar       *beta,*s,*xi,*t,*py,sigma;
-  PetscInt          nmat,d,i,m;
+  PetscInt          nmat,d,i,k,m;
   Vec               xx,yy,yyy,w,z0;
 
   PetscFunctionBegin;
@@ -129,17 +129,22 @@ static PetscErrorCode MatMultTranspose_FullBasis_Sinvert(Mat M,Vec x,Vec y)
   ierr = NEPNLEIGSEvalNRTFunct(nep,d,sigma,t);CHKERRQ(ierr);
   ierr = VecPlaceArray(xx,px+(d-1)*m);CHKERRQ(ierr);
   ierr = VecCopy(xx,w);CHKERRQ(ierr);
+  ierr = VecScale(w,t[d-1]);CHKERRQ(ierr);
   ierr = VecResetArray(xx);CHKERRQ(ierr);
   for (i=0;i<d-1;i++) {
     ierr = VecPlaceArray(xx,px+i*m);CHKERRQ(ierr);
-    ierr = VecAXPY(w,t[i]/t[i+1],xx);CHKERRQ(ierr);
+    ierr = VecAXPY(w,t[i],xx);CHKERRQ(ierr);
     ierr = VecResetArray(xx);CHKERRQ(ierr);
   }
-  ierr = VecScale(w,t[d-1]);CHKERRQ(ierr);
   ierr = KSPSolveTranspose(ctx->ksp[0],w,z0);CHKERRQ(ierr);
 
   ierr = VecPlaceArray(yy,py);CHKERRQ(ierr);
   if (nep->fui==NEP_USER_INTERFACE_SPLIT) {
+    ierr = VecZeroEntries(yy);CHKERRQ(ierr);
+    for (k=0;k<nep->nt;k++) {
+      ierr = MatMult(nep->A[k],z0,w);CHKERRQ(ierr);
+      ierr = VecAXPY(yy,ctx->coeffD[k],w);CHKERRQ(ierr);
+    }
   } else {
     ierr = MatMultTranspose(ctx->D[0],z0,yy);CHKERRQ(ierr);
   }
@@ -151,7 +156,11 @@ static PetscErrorCode MatMultTranspose_FullBasis_Sinvert(Mat M,Vec x,Vec y)
   for (i=2;i<d;i++) {
     ierr = VecPlaceArray(yy,py+(i-1)*m);CHKERRQ(ierr);
     if (nep->fui==NEP_USER_INTERFACE_SPLIT) {
-
+      ierr = VecZeroEntries(yy);CHKERRQ(ierr);
+      for (k=0;k<nep->nt;k++) {
+        ierr = MatMult(nep->A[k],z0,w);CHKERRQ(ierr);
+        ierr = VecAXPY(yy,ctx->coeffD[k+(i-1)*nep->nt],w);CHKERRQ(ierr);
+      }
     } else {
       ierr = MatMultTranspose(ctx->D[i-1],z0,yy);CHKERRQ(ierr);
     }
@@ -166,6 +175,11 @@ static PetscErrorCode MatMultTranspose_FullBasis_Sinvert(Mat M,Vec x,Vec y)
   }
   ierr = VecPlaceArray(yy,py+(d-1)*m);CHKERRQ(ierr);
   if (nep->fui==NEP_USER_INTERFACE_SPLIT) {
+    ierr = VecZeroEntries(yy);CHKERRQ(ierr);
+    for (k=0;k<nep->nt;k++) {
+      ierr = MatMult(nep->A[k],z0,w);CHKERRQ(ierr);
+      ierr = VecAXPY(yy,ctx->coeffD[k+d*nep->nt],w);CHKERRQ(ierr);
+    }
   } else {
     ierr = MatMultTranspose(ctx->D[d],z0,yy);CHKERRQ(ierr);
   }
@@ -333,6 +347,18 @@ static PetscErrorCode NEPNLEIGSExtract_None(NEP nep,EPS eps)
     ierr = BVScaleColumn(nep->V,i,1.0/norm);CHKERRQ(ierr);
     ierr = VecResetArray(w);CHKERRQ(ierr);
     ierr = VecRestoreArrayRead(xr,&px);CHKERRQ(ierr);
+  }
+  if (nep->twosided) {
+    for (i=0;i<nep->nconv;i++) {
+      ierr = EPSGetLeftEigenvector(eps,i,xr,xi);CHKERRQ(ierr);
+      ierr = VecGetArrayRead(xr,&px);CHKERRQ(ierr);
+      ierr = VecPlaceArray(w,px);CHKERRQ(ierr);
+      ierr = BVInsertVec(nep->W,i,w);CHKERRQ(ierr);
+      ierr = BVNormColumn(nep->W,i,NORM_2,&norm);CHKERRQ(ierr);
+      ierr = BVScaleColumn(nep->W,i,1.0/norm);CHKERRQ(ierr);
+      ierr = VecResetArray(w);CHKERRQ(ierr);
+      ierr = VecRestoreArrayRead(xr,&px);CHKERRQ(ierr);
+    }
   }
   ierr = VecDestroy(&xr);CHKERRQ(ierr);
 #if !defined(PETSC_USE_COMPLEX)
