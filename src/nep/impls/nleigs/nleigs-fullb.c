@@ -250,6 +250,7 @@ PetscErrorCode NEPSetUp_NLEIGS_FullBasis(NEP nep)
   PetscBool      trackall,istrivial,ks;
   PetscScalar    *epsarray,*neparray;
   Vec            veps,w=NULL;
+  EPSWhich       which;
 
   PetscFunctionBegin;
   if (!ctx->eps) { ierr = NEPNLEIGSGetEPS(nep,&ctx->eps);CHKERRQ(ierr); }
@@ -277,7 +278,16 @@ PetscErrorCode NEPSetUp_NLEIGS_FullBasis(NEP nep)
   ierr = PetscLogObjectParent((PetscObject)nep,(PetscObject)ctx->A);CHKERRQ(ierr);
   ierr = EPSSetOperators(ctx->eps,ctx->A,NULL);CHKERRQ(ierr);
   ierr = EPSSetProblemType(ctx->eps,EPS_NHEP);CHKERRQ(ierr);
-  ierr = EPSSetWhichEigenpairs(ctx->eps,nep->which);CHKERRQ(ierr);
+  switch (nep->which) {
+    case NEP_TARGET_MAGNITUDE:   which = EPS_TARGET_MAGNITUDE; break;
+    case NEP_TARGET_REAL:        which = EPS_TARGET_REAL; break;
+    case NEP_TARGET_IMAGINARY:   which = EPS_TARGET_IMAGINARY; break;
+    case NEP_WHICH_USER:         which = EPS_WHICH_USER;
+      ierr = EPSSetEigenvalueComparison(ctx->eps,nep->sc->comparison,nep->sc->comparisonctx);CHKERRQ(ierr);
+      break;
+    default: SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"Should set a target selection in NEPSetWhichEigenvalues()");
+  }
+  ierr = EPSSetWhichEigenpairs(ctx->eps,which);CHKERRQ(ierr);
   ierr = RGIsTrivial(nep->rg,&istrivial);CHKERRQ(ierr);
   if (!istrivial) { ierr = EPSSetRG(ctx->eps,nep->rg);CHKERRQ(ierr);}
   ierr = EPSSetDimensions(ctx->eps,nep->nev,nep->ncv?nep->ncv:PETSC_DEFAULT,nep->mpd?nep->mpd:PETSC_DEFAULT);CHKERRQ(ierr);

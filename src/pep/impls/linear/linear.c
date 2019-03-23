@@ -374,19 +374,19 @@ PetscErrorCode PEPSetUp_Linear(PEP pep)
     if (transf) which = EPS_LARGEST_MAGNITUDE;
     else {
       switch (pep->which) {
-          case PEP_LARGEST_MAGNITUDE:  which = EPS_LARGEST_MAGNITUDE; break;
-          case PEP_SMALLEST_MAGNITUDE: which = EPS_SMALLEST_MAGNITUDE; break;
-          case PEP_LARGEST_REAL:       which = EPS_LARGEST_REAL; break;
-          case PEP_SMALLEST_REAL:      which = EPS_SMALLEST_REAL; break;
-          case PEP_LARGEST_IMAGINARY:  which = EPS_LARGEST_IMAGINARY; break;
-          case PEP_SMALLEST_IMAGINARY: which = EPS_SMALLEST_IMAGINARY; break;
-          case PEP_TARGET_MAGNITUDE:   which = EPS_TARGET_MAGNITUDE; break;
-          case PEP_TARGET_REAL:        which = EPS_TARGET_REAL; break;
-          case PEP_TARGET_IMAGINARY:   which = EPS_TARGET_IMAGINARY; break;
-          case PEP_ALL:                which = EPS_ALL; break;
-          case PEP_WHICH_USER:         which = EPS_WHICH_USER;
-            ierr = EPSSetEigenvalueComparison(ctx->eps,pep->sc->comparison,pep->sc->comparisonctx);CHKERRQ(ierr);
-            break;
+        case PEP_LARGEST_MAGNITUDE:  which = EPS_LARGEST_MAGNITUDE; break;
+        case PEP_SMALLEST_MAGNITUDE: which = EPS_SMALLEST_MAGNITUDE; break;
+        case PEP_LARGEST_REAL:       which = EPS_LARGEST_REAL; break;
+        case PEP_SMALLEST_REAL:      which = EPS_SMALLEST_REAL; break;
+        case PEP_LARGEST_IMAGINARY:  which = EPS_LARGEST_IMAGINARY; break;
+        case PEP_SMALLEST_IMAGINARY: which = EPS_SMALLEST_IMAGINARY; break;
+        case PEP_TARGET_MAGNITUDE:   which = EPS_TARGET_MAGNITUDE; break;
+        case PEP_TARGET_REAL:        which = EPS_TARGET_REAL; break;
+        case PEP_TARGET_IMAGINARY:   which = EPS_TARGET_IMAGINARY; break;
+        case PEP_ALL:                which = EPS_ALL; break;
+        case PEP_WHICH_USER:         which = EPS_WHICH_USER;
+          ierr = EPSSetEigenvalueComparison(ctx->eps,pep->sc->comparison,pep->sc->comparisonctx);CHKERRQ(ierr);
+          break;
       }
     }
     ierr = EPSSetWhichEigenpairs(ctx->eps,which);CHKERRQ(ierr);

@@ -937,6 +937,7 @@ PetscErrorCode NEPSetUp_NLEIGS(NEP nep)
   ierr = RGIsTrivial(nep->rg,&istrivial);CHKERRQ(ierr);
   if (istrivial) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"NEPNLEIGS requires a nontrivial region defining the target set");
   if (!nep->which) nep->which = NEP_TARGET_MAGNITUDE;
+  if (nep->which!=NEP_TARGET_MAGNITUDE && nep->which!=NEP_TARGET_REAL && nep->which!=NEP_TARGET_IMAGINARY && nep->which!=NEP_WHICH_USER) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"Should set a target selection in NEPSetWhichEigenvalues()");
 
   /* Initialize the NLEIGS context structure */
   k = ctx->ddmaxit;
