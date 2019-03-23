@@ -963,6 +963,7 @@ PetscErrorCode NEPSetUp_NLEIGS(NEP nep)
   ierr = NEPAllocateSolution(nep,ctx->nmat-1);CHKERRQ(ierr);
   ierr = NEPSetWorkVecs(nep,4);CHKERRQ(ierr);
   if (!ctx->fullbasis) {
+    if (nep->twosided) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"Two-sided variant requires the full-basis option, rerun with -nep_nleigs_full_basis");
     /* set-up DS and transfer split operator functions */
     ierr = DSSetType(nep->ds,ctx->nshifts?DSGNHEP:DSNHEP);CHKERRQ(ierr);
     ierr = DSAllocate(nep->ds,nep->ncv+1);CHKERRQ(ierr);
