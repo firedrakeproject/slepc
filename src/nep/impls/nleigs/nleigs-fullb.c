@@ -335,44 +335,63 @@ PetscErrorCode NEPSetUp_NLEIGS_FullBasis(NEP nep)
 static PetscErrorCode NEPNLEIGSExtract_None(NEP nep,EPS eps)
 {
   PetscErrorCode    ierr;
-  PetscInt          i;
+  PetscInt          i,k,m,d;
   const PetscScalar *px;
+  PetscScalar       sigma=nep->target,*b;
   Mat               A;
-  Vec               xr,xi=NULL,w;
+  Vec               xxr,xxi=NULL,w,t,xx;
   PetscReal         norm;
+  NEP_NLEIGS        *ctx=(NEP_NLEIGS*)nep->data;
 
   PetscFunctionBegin;
+  d = ctx->nmat-1;
   ierr = EPSGetOperators(eps,&A,NULL);CHKERRQ(ierr);
-  ierr = MatCreateVecs(A,&xr,NULL);CHKERRQ(ierr);
+  ierr = MatCreateVecs(A,&xxr,NULL);CHKERRQ(ierr);
 #if !defined(PETSC_USE_COMPLEX)
-  ierr = VecDuplicate(xr,&xi);CHKERRQ(ierr);
+  ierr = VecDuplicate(xxr,&xxi);CHKERRQ(ierr);
 #endif
   w = nep->work[0];
   for (i=0;i<nep->nconv;i++) {
-    ierr = EPSGetEigenvector(eps,i,xr,xi);CHKERRQ(ierr);
-    ierr = VecGetArrayRead(xr,&px);CHKERRQ(ierr);
+    ierr = EPSGetEigenvector(eps,i,xxr,xxi);CHKERRQ(ierr);
+    ierr = VecGetArrayRead(xxr,&px);CHKERRQ(ierr);
     ierr = VecPlaceArray(w,px);CHKERRQ(ierr);
     ierr = BVInsertVec(nep->V,i,w);CHKERRQ(ierr);
     ierr = BVNormColumn(nep->V,i,NORM_2,&norm);CHKERRQ(ierr);
     ierr = BVScaleColumn(nep->V,i,1.0/norm);CHKERRQ(ierr);
     ierr = VecResetArray(w);CHKERRQ(ierr);
-    ierr = VecRestoreArrayRead(xr,&px);CHKERRQ(ierr);
+    ierr = VecRestoreArrayRead(xxr,&px);CHKERRQ(ierr);
   }
   if (nep->twosided) {
-    for (i=0;i<nep->nconv;i++) {
-      ierr = EPSGetLeftEigenvector(eps,i,xr,xi);CHKERRQ(ierr);
-      ierr = VecGetArrayRead(xr,&px);CHKERRQ(ierr);
-      ierr = VecPlaceArray(w,px);CHKERRQ(ierr);
-      ierr = BVInsertVec(nep->W,i,w);CHKERRQ(ierr);
-      ierr = BVNormColumn(nep->W,i,NORM_2,&norm);CHKERRQ(ierr);
-      ierr = BVScaleColumn(nep->W,i,1.0/norm);CHKERRQ(ierr);
-      ierr = VecResetArray(w);CHKERRQ(ierr);
-      ierr = VecRestoreArrayRead(xr,&px);CHKERRQ(ierr);
+    ierr = PetscMalloc1(ctx->nmat,&b);CHKERRQ(ierr);
+    ierr = NEPNLEIGSEvalNRTFunct(nep,d,sigma,b);CHKERRQ(ierr);
+    m = nep->nloc;
+    xx = ctx->w[0];
+    w = nep->work[0]; t = nep->work[1];
+    for (k=0;k<nep->nconv;k++) {
+      ierr = EPSGetLeftEigenvector(eps,k,xxr,xxi);CHKERRQ(ierr);
+      ierr = VecGetArrayRead(xxr,&px);CHKERRQ(ierr);
+      ierr = VecPlaceArray(xx,px+(d-1)*m);CHKERRQ(ierr);
+      ierr = VecCopy(xx,w);CHKERRQ(ierr);
+      ierr = VecScale(w,PetscConj(b[d-1]));CHKERRQ(ierr);
+      ierr = VecResetArray(xx);CHKERRQ(ierr);
+      for (i=0;i<d-1;i++) {
+        ierr = VecPlaceArray(xx,px+i*m);CHKERRQ(ierr);
+        ierr = VecAXPY(w,PetscConj(b[i]),xx);CHKERRQ(ierr);
+        ierr = VecResetArray(xx);CHKERRQ(ierr);
+      }
+      ierr = VecConjugate(w);CHKERRQ(ierr);
+      ierr = KSPSolveTranspose(ctx->ksp[0],w,t);CHKERRQ(ierr);
+      ierr = VecConjugate(t);CHKERRQ(ierr);
+      ierr = BVInsertVec(nep->W,k,t);CHKERRQ(ierr);
+      ierr = BVNormColumn(nep->W,k,NORM_2,&norm);CHKERRQ(ierr);
+      ierr = BVScaleColumn(nep->W,k,1.0/norm);CHKERRQ(ierr);
+      ierr = VecRestoreArrayRead(xxr,&px);CHKERRQ(ierr);
     }
+    ierr = PetscFree(b);CHKERRQ(ierr);
   }
-  ierr = VecDestroy(&xr);CHKERRQ(ierr);
+  ierr = VecDestroy(&xxr);CHKERRQ(ierr);
 #if !defined(PETSC_USE_COMPLEX)
-  ierr = VecDestroy(&xi);CHKERRQ(ierr);
+  ierr = VecDestroy(&xxi);CHKERRQ(ierr);
 #endif
   PetscFunctionReturn(0);
 }
