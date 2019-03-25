@@ -36,9 +36,10 @@ int main(int argc,char **argv)
   FN             f[NMAT];         /* functions to define the nonlinear operator */
   NEP            nep;             /* nonlinear eigensolver context */
   RG             rg;
+  Vec            v,r,z,w;
   PetscInt       n=100,Istart,Iend,i;
   PetscReal      kappa=1.0,m=1.0;
-  PetscScalar    sigma,numer[2],denom[2];
+  PetscScalar    sigma,numer[2],denom[2],omega;
   PetscBool      terse;
   PetscErrorCode ierr;
 
@@ -139,7 +140,7 @@ int main(int argc,char **argv)
   ierr = NEPSolve(nep);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-                    Display solution and clean up
+                         Display solution
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
   /* show detailed info unless -terse option is given by user */
@@ -152,11 +153,27 @@ int main(int argc,char **argv)
     ierr = NEPErrorView(nep,NEP_ERROR_RELATIVE,PETSC_VIEWER_STDOUT_WORLD);CHKERRQ(ierr);
     ierr = PetscViewerPopFormat(PETSC_VIEWER_STDOUT_WORLD);CHKERRQ(ierr);
   }
+
+  /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+                      Operate with resolvent
+     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+  ierr = MatCreateVecs(A[0],&v,&r);CHKERRQ(ierr);
+  ierr = MatCreateVecs(A[0],&w,&z);CHKERRQ(ierr);
+  ierr = NEPGetEigenpair(nep,0,NULL,NULL,w,NULL);CHKERRQ(ierr);
+  omega = 150.0;
+  ierr = NEPApplyJacobian(nep,omega,w,z,v,NULL);CHKERRQ(ierr);
+  ierr = NEPApplyResolvent(nep,NULL,omega,v,r);CHKERRQ(ierr);
+
+  /* clean up */
   ierr = NEPDestroy(&nep);CHKERRQ(ierr);
   for (i=0;i<NMAT;i++) {
     ierr = MatDestroy(&A[i]);CHKERRQ(ierr);
     ierr = FNDestroy(&f[i]);CHKERRQ(ierr);
   }
+  ierr = VecDestroy(&v);CHKERRQ(ierr);
+  ierr = VecDestroy(&r);CHKERRQ(ierr);
+  ierr = VecDestroy(&w);CHKERRQ(ierr);
+  ierr = VecDestroy(&z);CHKERRQ(ierr);
   ierr = SlepcFinalize();
   return ierr;
 }

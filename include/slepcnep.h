@@ -241,6 +241,8 @@ SLEPC_EXTERN PetscErrorCode NEPGetWhichEigenpairs(NEP,NEPWhich*);
 SLEPC_EXTERN PetscErrorCode NEPSetTwoSided(NEP,PetscBool);
 SLEPC_EXTERN PetscErrorCode NEPGetTwoSided(NEP,PetscBool*);
 
+SLEPC_EXTERN PetscErrorCode NEPApplyResolvent(NEP,RG,PetscScalar,Vec,Vec);
+
 SLEPC_EXTERN PetscErrorCode NEPSetEigenvalueComparison(NEP,PetscErrorCode (*func)(PetscScalar,PetscScalar,PetscScalar,PetscScalar,PetscInt*,void*),void*);
 
 SLEPC_EXTERN PetscErrorCode NEPMonitorAll(NEP,PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscReal*,PetscInt,PetscViewerAndFormat*);

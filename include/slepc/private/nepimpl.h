@@ -16,7 +16,7 @@
 
 SLEPC_EXTERN PetscBool NEPRegisterAllCalled;
 SLEPC_EXTERN PetscErrorCode NEPRegisterAll(void);
-SLEPC_EXTERN PetscLogEvent NEP_SetUp,NEP_Solve,NEP_Refine,NEP_FunctionEval,NEP_JacobianEval,NEP_DerivativesEval;
+SLEPC_EXTERN PetscLogEvent NEP_SetUp,NEP_Solve,NEP_Refine,NEP_FunctionEval,NEP_JacobianEval,NEP_DerivativesEval,NEP_Resolvent;
 
 typedef struct _NEPOps *NEPOps;
 
@@ -129,6 +129,7 @@ struct _p_NEP {
   NEPUserInterface fui;            /* how the user has defined the nonlinear operator */
   PetscBool      useds;            /* whether the solver uses the DS object or not */
   PetscBool      hasts;            /* whether the solver has two-sided variant */
+  Mat            resolvent;        /* shell matrix to be used in NEPApplyResolvent */
   NEPConvergedReason reason;
 };
 
