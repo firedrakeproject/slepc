@@ -148,8 +148,8 @@ PETSC_STATIC_INLINE PetscErrorCode BV_IPMatMult(BV bv,Vec x)
       ierr = PetscLogObjectParent((PetscObject)bv,(PetscObject)bv->Bx);CHKERRQ(ierr);
     }
     ierr = MatMult(bv->matrix,x,bv->Bx);CHKERRQ(ierr);
-    bv->xid = ((PetscObject)x)->id;
-    bv->xstate = ((PetscObject)x)->state;
+    ierr = PetscObjectGetId((PetscObject)x,&bv->xid);CHKERRQ(ierr);
+    ierr = PetscObjectStateGet((PetscObject)x,&bv->xstate);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }

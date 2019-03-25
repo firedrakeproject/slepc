@@ -14,20 +14,59 @@
 #include <slepc/private/nepimpl.h>       /*I "slepcnep.h" I*/
 
 typedef struct {
-  NEP         nep;
-  //PetscInt    nmat,maxnmat;
-  //PetscScalar *coeff;
+  NEP              nep;
+  RG               rg;
+  PetscScalar      omega;
+  PetscScalar      *nfactor;         /* normalization factors y_i'*T'(lambda_i)*x_i */
+  PetscBool        *nfactor_avail;
+  PetscScalar      *dots;            /* inner products y_i'*v */
+  PetscBool        *dots_avail;
+  PetscObjectId    vid;
+  PetscObjectState vstate;
 } ResolventCtx;
 
-static PetscErrorCode MatMult_Resolvent(Mat M,Vec x,Vec y)
+static PetscErrorCode MatMult_Resolvent(Mat M,Vec v,Vec r)
 {
   PetscErrorCode ierr;
   ResolventCtx   *ctx;
   NEP            nep;
+  PetscInt       i,inside=1;
+  PetscScalar    alpha;
+  Vec            x,y,z,w;
 
   PetscFunctionBegin;
   ierr = MatShellGetContext(M,(void**)&ctx);CHKERRQ(ierr);
   nep = ctx->nep;
+  w = nep->work[0];
+  z = nep->work[1];
+  if (((PetscObject)v)->id != ctx->vid || ((PetscObject)v)->state != ctx->vstate) {
+    ierr = PetscMemzero(ctx->dots_avail,ctx->nep->nconv*sizeof(PetscBool));CHKERRQ(ierr);
+    ierr = PetscObjectGetId((PetscObject)v,&ctx->vid);CHKERRQ(ierr);
+    ierr = PetscObjectStateGet((PetscObject)v,&ctx->vstate);CHKERRQ(ierr);
+  }
+  ierr = VecSet(r,0.0);CHKERRQ(ierr);
+  for (i=0;i<nep->nconv;i++) {
+    if (ctx->rg) {
+      ierr = RGCheckInside(ctx->rg,1,&nep->eigr[i],&nep->eigi[i],&inside);CHKERRQ(ierr);
+    }
+    if (inside>=0) {
+      ierr = BVGetColumn(nep->V,i,&x);CHKERRQ(ierr);
+      ierr = BVGetColumn(nep->W,i,&y);CHKERRQ(ierr);
+      ierr = NEPApplyJacobian(nep,nep->eigr[i],x,z,w,NULL);CHKERRQ(ierr);
+      if (!ctx->dots_avail[i]) {
+        ierr = VecDot(v,y,&ctx->dots[i]);CHKERRQ(ierr);
+        ctx->dots_avail[i] = PETSC_TRUE;
+      }
+      if (!ctx->nfactor_avail[i]) {
+        ierr = VecDot(w,y,&ctx->nfactor[i]);CHKERRQ(ierr);
+        ctx->nfactor_avail[i] = PETSC_TRUE;
+      }
+      alpha = ctx->dots[i]/(ctx->nfactor[i]*(ctx->omega-nep->eigr[i]));
+      ierr = VecAXPY(r,alpha,x);CHKERRQ(ierr);
+      ierr = BVRestoreColumn(nep->V,i,&x);CHKERRQ(ierr);
+      ierr = BVRestoreColumn(nep->W,i,&y);CHKERRQ(ierr);
+    }
+  }
   PetscFunctionReturn(0);
 }
 
@@ -39,6 +78,7 @@ static PetscErrorCode MatDestroy_Resolvent(Mat M)
   PetscFunctionBegin;
   if (M) {
     ierr = MatShellGetContext(M,(void**)&ctx);CHKERRQ(ierr);
+    ierr = PetscFree4(ctx->nfactor,ctx->nfactor_avail,ctx->dots,ctx->dots_avail);CHKERRQ(ierr);
     ierr = PetscFree(ctx);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
@@ -74,9 +114,6 @@ PetscErrorCode NEPApplyResolvent(NEP nep,RG rg,PetscScalar omega,Vec v,Vec r)
 {
   PetscErrorCode ierr;
   ResolventCtx   *ctx;
-  PetscInt       i,inside=1;
-  PetscScalar    alpha,dot;
-  Vec            x,y,z,w;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
@@ -88,31 +125,19 @@ PetscErrorCode NEPApplyResolvent(NEP nep,RG rg,PetscScalar omega,Vec v,Vec r)
   ierr = PetscLogEventBegin(NEP_Resolvent,nep,0,0,0);CHKERRQ(ierr);
   if (!nep->resolvent) {
     ierr = PetscNew(&ctx);CHKERRQ(ierr);
+    ctx->nep = nep;
+    ierr = PetscCalloc4(nep->nconv,&ctx->nfactor,nep->nconv,&ctx->nfactor_avail,nep->nconv,&ctx->dots,nep->nconv,&ctx->dots_avail);CHKERRQ(ierr);
     ierr = MatCreateShell(PetscObjectComm((PetscObject)nep),nep->nloc,nep->nloc,nep->n,nep->n,ctx,&nep->resolvent);CHKERRQ(ierr);
     ierr = MatShellSetOperation(nep->resolvent,MATOP_MULT,(void(*)(void))MatMult_Resolvent);CHKERRQ(ierr);
     ierr = MatShellSetOperation(nep->resolvent,MATOP_DESTROY,(void(*)(void))MatDestroy_Resolvent);CHKERRQ(ierr);
+  } else {
+    ierr = MatShellGetContext(nep->resolvent,(void**)&ctx);CHKERRQ(ierr);
   }
   ierr = NEPComputeVectors(nep);CHKERRQ(ierr);
   ierr = NEPSetWorkVecs(nep,2);CHKERRQ(ierr);
-  w = nep->work[0];
-  z = nep->work[1];
-  ierr = VecSet(r,0.0);CHKERRQ(ierr);
-  for (i=0;i<nep->nconv;i++) {
-    if (rg) {
-      ierr = RGCheckInside(rg,1,&nep->eigr[i],&nep->eigi[i],&inside);CHKERRQ(ierr);
-    }
-    if (inside>=0) {
-      ierr = BVGetColumn(nep->V,i,&x);CHKERRQ(ierr);
-      ierr = BVGetColumn(nep->W,i,&y);CHKERRQ(ierr);
-      ierr = NEPApplyJacobian(nep,nep->eigr[i],x,z,w,NULL);CHKERRQ(ierr);
-      ierr = VecDot(v,y,&alpha);CHKERRQ(ierr);
-      ierr = VecDot(w,y,&dot);CHKERRQ(ierr);
-      alpha /= dot*(omega-nep->eigr[i]);
-      ierr = VecAXPY(r,alpha,x);CHKERRQ(ierr);
-      ierr = BVRestoreColumn(nep->V,i,&x);CHKERRQ(ierr);
-      ierr = BVRestoreColumn(nep->W,i,&y);CHKERRQ(ierr);
-    }
-  }
+  ctx->rg    = rg;
+  ctx->omega = omega;
+  ierr = MatMult(nep->resolvent,v,r);CHKERRQ(ierr);
   ierr = PetscLogEventEnd(NEP_Resolvent,nep,0,0,0);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

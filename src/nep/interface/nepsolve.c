@@ -95,6 +95,9 @@ PetscErrorCode NEPSolve(NEP nep)
 
   /* Remove the initial subspace */
   nep->nini = 0;
+
+  /* Reset resolvent information */
+  ierr = MatDestroy(&nep->resolvent);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
