@@ -224,6 +224,7 @@ SLEPC_EXTERN PetscErrorCode NEPGetErrorEstimate(NEP,PetscInt,PetscReal*);
 SLEPC_EXTERN PetscErrorCode NEPComputeFunction(NEP,PetscScalar,Mat,Mat);
 SLEPC_EXTERN PetscErrorCode NEPComputeJacobian(NEP,PetscScalar,Mat);
 SLEPC_EXTERN PetscErrorCode NEPApplyFunction(NEP,PetscScalar,Vec,Vec,Vec,Mat,Mat);
+SLEPC_EXTERN PetscErrorCode NEPApplyAdjoint(NEP,PetscScalar,Vec,Vec,Vec,Mat,Mat);
 SLEPC_EXTERN PetscErrorCode NEPApplyJacobian(NEP,PetscScalar,Vec,Vec,Vec,Mat);
 SLEPC_EXTERN PetscErrorCode NEPProjectOperator(NEP,PetscInt,PetscInt);
 

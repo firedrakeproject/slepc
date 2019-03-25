@@ -74,9 +74,8 @@ PetscErrorCode NEPApplyResolvent(NEP nep,RG rg,PetscScalar omega,Vec v,Vec r)
 {
   PetscErrorCode ierr;
   ResolventCtx   *ctx;
-  PetscInt       inside=1;
+  PetscInt       i,inside=1;
   PetscScalar    alpha,dot;
-  PetscInt       i;
   Vec            x,y,z,w;
 
   PetscFunctionBegin;

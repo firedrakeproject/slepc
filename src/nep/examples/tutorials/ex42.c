@@ -37,10 +37,9 @@ int main(int argc,char **argv)
   NEP            nep;             /* nonlinear eigensolver context */
   RG             rg;
   Vec            v,r,z,w;
-  PetscInt       n=100,Istart,Iend,i;
-  PetscReal      kappa=1.0,m=1.0;
-  PetscScalar    sigma,numer[2],denom[2],omega;
-  PetscBool      terse;
+  PetscInt       n=100,Istart,Iend,i,nconv;
+  PetscReal      kappa=1.0,m=1.0,nrm,tol;
+  PetscScalar    lambda,sigma,numer[2],denom[2],omega1,omega2;
   PetscErrorCode ierr;
 
   ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
@@ -122,6 +121,7 @@ int main(int argc,char **argv)
   ierr = NEPCreate(PETSC_COMM_WORLD,&nep);CHKERRQ(ierr);
   ierr = NEPSetSplitOperator(nep,3,A,f,SUBSET_NONZERO_PATTERN);CHKERRQ(ierr);
   ierr = NEPSetProblemType(nep,NEP_RATIONAL);CHKERRQ(ierr);
+  ierr = NEPSetDimensions(nep,8,PETSC_DEFAULT,PETSC_DEFAULT);CHKERRQ(ierr);
 
   /* set two-sided NLEIGS solver */
   ierr = NEPSetType(nep,NEPNLEIGS);CHKERRQ(ierr);
@@ -140,29 +140,46 @@ int main(int argc,char **argv)
   ierr = NEPSolve(nep);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-                         Display solution
+                       Check left residual
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-
-  /* show detailed info unless -terse option is given by user */
-  ierr = PetscOptionsHasName(NULL,NULL,"-terse",&terse);CHKERRQ(ierr);
-  if (terse) {
-    ierr = NEPErrorView(nep,NEP_ERROR_RELATIVE,NULL);CHKERRQ(ierr);
-  } else {
-    ierr = PetscViewerPushFormat(PETSC_VIEWER_STDOUT_WORLD,PETSC_VIEWER_ASCII_INFO_DETAIL);CHKERRQ(ierr);
-    ierr = NEPReasonView(nep,PETSC_VIEWER_STDOUT_WORLD);CHKERRQ(ierr);
-    ierr = NEPErrorView(nep,NEP_ERROR_RELATIVE,PETSC_VIEWER_STDOUT_WORLD);CHKERRQ(ierr);
-    ierr = PetscViewerPopFormat(PETSC_VIEWER_STDOUT_WORLD);CHKERRQ(ierr);
+  ierr = MatCreateVecs(A[0],&v,&r);CHKERRQ(ierr);
+  ierr = VecDuplicate(v,&w);CHKERRQ(ierr);
+  ierr = VecDuplicate(v,&z);CHKERRQ(ierr);
+  ierr = NEPGetConverged(nep,&nconv);CHKERRQ(ierr);
+  ierr = NEPGetTolerances(nep,&tol,NULL);CHKERRQ(ierr);
+  for (i=0;i<nconv;i++) {
+    ierr = NEPGetEigenpair(nep,i,&lambda,NULL,NULL,NULL);CHKERRQ(ierr);
+    ierr = NEPGetLeftEigenvector(nep,i,v,NULL);CHKERRQ(ierr);
+    ierr = NEPApplyAdjoint(nep,lambda,v,w,r,NULL,NULL);CHKERRQ(ierr);
+    ierr = VecNorm(r,NORM_2,&nrm);CHKERRQ(ierr);
+    if (nrm>tol*PetscAbsScalar(lambda)) {
+      ierr = PetscPrintf(PETSC_COMM_WORLD,"Left residual i=%D is above tolerance --> %g\n",i,nrm/PetscAbsScalar(lambda));
+    }
   }
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                       Operate with resolvent
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-  ierr = MatCreateVecs(A[0],&v,&r);CHKERRQ(ierr);
-  ierr = MatCreateVecs(A[0],&w,&z);CHKERRQ(ierr);
-  ierr = NEPGetEigenpair(nep,0,NULL,NULL,w,NULL);CHKERRQ(ierr);
-  omega = 150.0;
-  ierr = NEPApplyJacobian(nep,omega,w,z,v,NULL);CHKERRQ(ierr);
-  ierr = NEPApplyResolvent(nep,NULL,omega,v,r);CHKERRQ(ierr);
+  omega1 = 20.0;
+  omega2 = 150.0;
+  ierr = VecSet(v,0.0);CHKERRQ(ierr);
+  ierr = VecSetValue(v,0,-1.0,INSERT_VALUES);CHKERRQ(ierr);
+  ierr = VecSetValue(v,1,3.0,INSERT_VALUES);CHKERRQ(ierr);
+  ierr = VecAssemblyBegin(v);CHKERRQ(ierr);
+  ierr = VecAssemblyEnd(v);CHKERRQ(ierr);
+  ierr = NEPApplyResolvent(nep,NULL,omega1,v,r);CHKERRQ(ierr);
+  ierr = VecNorm(r,NORM_2,&nrm);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"resolvent, omega=%g: norm of computed vector=%g\n",PetscRealPart(omega1),nrm);CHKERRQ(ierr);
+  ierr = NEPApplyResolvent(nep,NULL,omega2,v,r);CHKERRQ(ierr);
+  ierr = VecNorm(r,NORM_2,&nrm);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"resolvent, omega=%g: norm of computed vector=%g\n",PetscRealPart(omega2),nrm);CHKERRQ(ierr);
+  ierr = VecSet(v,1.0);CHKERRQ(ierr);
+  ierr = NEPApplyResolvent(nep,NULL,omega1,v,r);CHKERRQ(ierr);
+  ierr = VecNorm(r,NORM_2,&nrm);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"resolvent, omega=%g: norm of computed vector=%g\n",PetscRealPart(omega1),nrm);CHKERRQ(ierr);
+  ierr = NEPApplyResolvent(nep,NULL,omega2,v,r);CHKERRQ(ierr);
+  ierr = VecNorm(r,NORM_2,&nrm);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"resolvent, omega=%g: norm of computed vector=%g\n",PetscRealPart(omega2),nrm);CHKERRQ(ierr);
 
   /* clean up */
   ierr = NEPDestroy(&nep);CHKERRQ(ierr);
@@ -182,7 +199,6 @@ int main(int argc,char **argv)
 
    test:
       suffix: 1
-      args: -nep_nev 8 -terse
       requires: !single
 
 TEST*/
