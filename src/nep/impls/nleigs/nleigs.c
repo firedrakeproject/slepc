@@ -2035,9 +2035,10 @@ PetscErrorCode NEPView_NLEIGS(NEP nep,PetscViewer viewer)
   ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
   if (isascii) {
     ierr = PetscViewerASCIIPrintf(viewer,"  %d%% of basis vectors kept after restart\n",(int)(100*ctx->keep));CHKERRQ(ierr);
-    ierr = PetscViewerASCIIPrintf(viewer,"  using the %slocking variant\n",ctx->lock?"":"non-");CHKERRQ(ierr);
     if (ctx->fullbasis) {
       ierr = PetscViewerASCIIPrintf(viewer,"  using the full-basis variant\n");CHKERRQ(ierr);
+    } else {
+      ierr = PetscViewerASCIIPrintf(viewer,"  using the %slocking variant\n",ctx->lock?"":"non-");CHKERRQ(ierr);
     }
     ierr = PetscViewerASCIIPrintf(viewer,"  divided difference terms: used=%D, max=%D\n",ctx->nmat,ctx->ddmaxit);CHKERRQ(ierr);
     ierr = PetscViewerASCIIPrintf(viewer,"  tolerance for divided difference convergence: %g\n",(double)ctx->ddtol);CHKERRQ(ierr);
