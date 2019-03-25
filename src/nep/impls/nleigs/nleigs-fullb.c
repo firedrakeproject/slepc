@@ -462,10 +462,17 @@ PetscErrorCode NEPNLEIGSSetEPS(NEP nep,EPS eps)
 static PetscErrorCode EPSMonitor_NLEIGS(EPS eps,PetscInt its,PetscInt nconv,PetscScalar *eigr,PetscScalar *eigi,PetscReal *errest,PetscInt nest,void *ctx)
 {
   NEP            nep = (NEP)ctx;
+  PetscInt       i,nv = PetscMin(nest,nep->ncv);
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  ierr = NEPMonitor(nep,its,nconv,eigr,eigi,errest,nest);CHKERRQ(ierr);
+  for (i=0;i<nv;i++) {
+    nep->eigr[i]   = eigr[i];
+    nep->eigi[i]   = eigi[i];
+    nep->errest[i] = errest[i];
+  }
+  ierr = NEPNLEIGSBackTransform((PetscObject)nep,nv,nep->eigr,nep->eigi);CHKERRQ(ierr);
+  ierr = NEPMonitor(nep,its,nconv,nep->eigr,nep->eigi,nep->errest,nest);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
