@@ -127,7 +127,7 @@ PetscErrorCode EPSSolve_KrylovSchur_TwoSided(EPS eps)
   Mat             M,U;
   PetscReal       norm,norm2,beta,betat,s,t;
   PetscScalar     *pM,*S,*T,*eigr,*eigi,*Q;
-  PetscInt        ld,l,nv,ncv=eps->ncv,i,j,k,nconv,*p,cont,*idx,id=0;
+  PetscInt        ld,l,nv,ncv=eps->ncv,i,j,k,nconv,*p,cont,*idx,*idx2,id=0;
   PetscBool       breakdownt,breakdown;
 #if defined(PETSC_USE_COMPLEX)
   Mat             A;
@@ -141,7 +141,7 @@ PetscErrorCode EPSSolve_KrylovSchur_TwoSided(EPS eps)
   ierr = BVNormColumn(eps->W,0,NORM_2,&norm);CHKERRQ(ierr);
   ierr = BVScaleColumn(eps->W,0,1.0/norm);CHKERRQ(ierr);
   l = 0;
-  ierr = PetscMalloc5(ncv*ncv,&pM,ncv,&eigr,ncv,&eigi,ncv,&idx,ncv,&p);CHKERRQ(ierr);
+  ierr = PetscMalloc6(ncv*ncv,&pM,ncv,&eigr,ncv,&eigi,ncv,&idx,ncv,&idx2,ncv,&p);CHKERRQ(ierr);
   ierr = MatCreateSeqDense(PETSC_COMM_SELF,eps->ncv,eps->ncv,pM,&M);CHKERRQ(ierr);
 
   /* Restart loop */
@@ -196,14 +196,15 @@ PetscErrorCode EPSSolve_KrylovSchur_TwoSided(EPS eps)
     /* check correct eigenvalue correspondence */
     cont = 0;
     for (i=0;i<nv;i++) {
-      if (PetscAbsScalar(eigr[i]-eps->eigr[i])+PetscAbsScalar(eigi[i]-eps->eigi[i])>PETSC_SQRT_MACHINE_EPSILON) idx[cont++] = i;
+      if (PetscAbsScalar(eigr[i]-eps->eigr[i])+PetscAbsScalar(eigi[i]-eps->eigi[i])>PETSC_SQRT_MACHINE_EPSILON) {idx2[cont] =i; idx[cont++] = i;}
       p[i] = -1;
     }
     if (cont) {
       for (i=0;i<cont;i++) {
         t = PETSC_MAX_REAL; 
-        for (j=0;j<cont;j++) if ((s=PetscAbsScalar(eigr[idx[j]]-eps->eigr[idx[i]])+PetscAbsScalar(eigi[idx[j]]-eps->eigi[idx[i]]))<t) { id = idx[j]; t = s; }
-        p[idx[i]] = id;
+        for (j=0;j<cont;j++) if (idx2[j]!=-1 && (s=PetscAbsScalar(eigr[idx[j]]-eps->eigr[idx[i]])+PetscAbsScalar(eigi[idx[j]]-eps->eigi[idx[i]]))<t) { id = j; t = s; }
+        p[idx[i]] = idx[id];
+        idx2[id] = -1;
       }
       for (i=0;i<nv;i++) if (p[i]==-1) p[i] = i;
       ierr = DSSortWithPermutation(eps->dsts,p,eigr,eigi);CHKERRQ(ierr);
@@ -290,7 +291,7 @@ PetscErrorCode EPSSolve_KrylovSchur_TwoSided(EPS eps)
   ierr = DSSetState(eps->ds,DS_STATE_RAW);CHKERRQ(ierr);
   ierr = DSSetDimensions(eps->dsts,eps->nconv,0,0,0);CHKERRQ(ierr);
   ierr = DSSetState(eps->dsts,DS_STATE_RAW);CHKERRQ(ierr);
-  ierr = PetscFree5(pM,eigr,eigi,idx,p);CHKERRQ(ierr);
+  ierr = PetscFree6(pM,eigr,eigi,idx,idx2,p);CHKERRQ(ierr);
   ierr = MatDestroy(&M);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
