@@ -169,17 +169,17 @@ int main(int argc,char **argv)
   ierr = VecAssemblyEnd(v);CHKERRQ(ierr);
   ierr = NEPApplyResolvent(nep,NULL,omega1,v,r);CHKERRQ(ierr);
   ierr = VecNorm(r,NORM_2,&nrm);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"resolvent, omega=%g: norm of computed vector=%g\n",PetscRealPart(omega1),nrm);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"resolvent, omega=%g: norm of computed vector=%g\n",(double)PetscRealPart(omega1),(double)nrm);CHKERRQ(ierr);
   ierr = NEPApplyResolvent(nep,NULL,omega2,v,r);CHKERRQ(ierr);
   ierr = VecNorm(r,NORM_2,&nrm);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"resolvent, omega=%g: norm of computed vector=%g\n",PetscRealPart(omega2),nrm);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"resolvent, omega=%g: norm of computed vector=%g\n",(double)PetscRealPart(omega2),(double)nrm);CHKERRQ(ierr);
   ierr = VecSet(v,1.0);CHKERRQ(ierr);
   ierr = NEPApplyResolvent(nep,NULL,omega1,v,r);CHKERRQ(ierr);
   ierr = VecNorm(r,NORM_2,&nrm);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"resolvent, omega=%g: norm of computed vector=%g\n",PetscRealPart(omega1),nrm);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"resolvent, omega=%g: norm of computed vector=%g\n",(double)PetscRealPart(omega1),(double)nrm);CHKERRQ(ierr);
   ierr = NEPApplyResolvent(nep,NULL,omega2,v,r);CHKERRQ(ierr);
   ierr = VecNorm(r,NORM_2,&nrm);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"resolvent, omega=%g: norm of computed vector=%g\n",PetscRealPart(omega2),nrm);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"resolvent, omega=%g: norm of computed vector=%g\n",(double)PetscRealPart(omega2),(double)nrm);CHKERRQ(ierr);
 
   /* clean up */
   ierr = NEPDestroy(&nep);CHKERRQ(ierr);
