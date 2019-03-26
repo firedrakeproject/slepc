@@ -12,6 +12,7 @@
 */
 
 #include <slepc/private/nepimpl.h>       /*I "slepcnep.h" I*/
+#include <slepc/private/bvimpl.h>        /*I "slepcbv.h" I*/
 #include <petscdraw.h>
 
 PetscErrorCode NEPComputeVectors(NEP nep)
@@ -94,6 +95,9 @@ PetscErrorCode NEPSolve(NEP nep)
 
   /* Remove the initial subspace */
   nep->nini = 0;
+
+  /* Reset resolvent information */
+  ierr = MatDestroy(&nep->resolvent);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -167,7 +171,7 @@ PetscErrorCode NEPProjectOperator(NEP nep,PetscInt j0,PetscInt j1)
 
    Level: developer
 
-.seealso: NEPSetSplitOperator(), NEPComputeFunction()
+.seealso: NEPSetSplitOperator(), NEPComputeFunction(), NEPApplyAdjoint()
 @*/
 PetscErrorCode NEPApplyFunction(NEP nep,PetscScalar lambda,Vec x,Vec v,Vec y,Mat A,Mat B)
 {
@@ -195,6 +199,58 @@ PetscErrorCode NEPApplyFunction(NEP nep,PetscScalar lambda,Vec x,Vec v,Vec y,Mat
     ierr = NEPComputeFunction(nep,lambda,A,B);CHKERRQ(ierr);
     ierr = MatMult(A,x,y);CHKERRQ(ierr);
   }
+  PetscFunctionReturn(0);
+}
+
+/*@
+   NEPApplyAdjoint - Applies the adjoint nonlinear function T(lambda)^* to a given vector.
+
+   Collective on NEP
+
+   Input Parameters:
++  nep    - the nonlinear eigensolver context
+.  lambda - scalar argument
+.  x      - vector to be multiplied against
+-  v      - workspace vector (used only in the case of split form)
+
+   Output Parameters:
++  y   - result vector
+.  A   - Function matrix
+-  B   - optional preconditioning matrix
+
+   Level: developer
+
+.seealso: NEPSetSplitOperator(), NEPComputeFunction(), NEPApplyFunction()
+@*/
+PetscErrorCode NEPApplyAdjoint(NEP nep,PetscScalar lambda,Vec x,Vec v,Vec y,Mat A,Mat B)
+{
+  PetscErrorCode ierr;
+  PetscInt       i;
+  PetscScalar    alpha;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
+  PetscValidLogicalCollectiveScalar(nep,lambda,2);
+  PetscValidHeaderSpecific(x,VEC_CLASSID,3);
+  if (v) PetscValidHeaderSpecific(v,VEC_CLASSID,4);
+  PetscValidHeaderSpecific(y,VEC_CLASSID,5);
+  if (A) PetscValidHeaderSpecific(A,MAT_CLASSID,6);
+  if (B) PetscValidHeaderSpecific(B,MAT_CLASSID,7);
+
+  ierr = VecConjugate(x);CHKERRQ(ierr);
+  if (nep->fui==NEP_USER_INTERFACE_SPLIT) {
+    ierr = VecSet(y,0.0);CHKERRQ(ierr);
+    for (i=0;i<nep->nt;i++) {
+      ierr = FNEvaluateFunction(nep->f[i],lambda,&alpha);CHKERRQ(ierr);
+      ierr = MatMultTranspose(nep->A[i],x,v);CHKERRQ(ierr);
+      ierr = VecAXPY(y,alpha,v);CHKERRQ(ierr);
+    }
+  } else {
+    ierr = NEPComputeFunction(nep,lambda,A,B);CHKERRQ(ierr);
+    ierr = MatMultTranspose(A,x,y);CHKERRQ(ierr);
+  }
+  ierr = VecConjugate(x);CHKERRQ(ierr);
+  ierr = VecConjugate(y);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -376,7 +432,8 @@ PetscErrorCode NEPGetConvergedReason(NEP nep,NEPConvergedReason *reason)
    If the eigenvalue is real, then eigi and Vi are set to zero. If PETSc is
    configured with complex scalars the eigenvalue is stored
    directly in eigr (eigi is set to zero) and the eigenvector in Vr (Vi is
-   set to zero). In both cases, the user can pass NULL in eigi and Vi.
+   set to zero). In any case, the user can pass NULL in Vr or Vi if one of
+   them is not required.
 
    The index i should be a value between 0 and nconv-1 (see NEPGetConverged()).
    Eigenpairs are indexed according to the ordering criterion established
@@ -384,7 +441,7 @@ PetscErrorCode NEPGetConvergedReason(NEP nep,NEPConvergedReason *reason)
 
    Level: beginner
 
-.seealso: NEPSolve(), NEPGetConverged(), NEPSetWhichEigenpairs()
+.seealso: NEPSolve(), NEPGetConverged(), NEPSetWhichEigenpairs(), NEPGetLeftEigenvector()
 @*/
 PetscErrorCode NEPGetEigenpair(NEP nep,PetscInt i,PetscScalar *eigr,PetscScalar *eigi,Vec Vr,Vec Vi)
 {
@@ -412,24 +469,59 @@ PetscErrorCode NEPGetEigenpair(NEP nep,PetscInt i,PetscScalar *eigr,PetscScalar 
 #endif
 
   /* eigenvector */
-#if defined(PETSC_USE_COMPLEX)
-  if (Vr) { ierr = BVCopyVec(nep->V,k,Vr);CHKERRQ(ierr); }
-  if (Vi) { ierr = VecSet(Vi,0.0);CHKERRQ(ierr); }
-#else
-  if (nep->eigi[k]>0) { /* first value of conjugate pair */
-    if (Vr) { ierr = BVCopyVec(nep->V,k,Vr);CHKERRQ(ierr); }
-    if (Vi) { ierr = BVCopyVec(nep->V,k+1,Vi);CHKERRQ(ierr); }
-  } else if (nep->eigi[k]<0) { /* second value of conjugate pair */
-    if (Vr) { ierr = BVCopyVec(nep->V,k-1,Vr);CHKERRQ(ierr); }
-    if (Vi) {
-      ierr = BVCopyVec(nep->V,k,Vi);CHKERRQ(ierr);
-      ierr = VecScale(Vi,-1.0);CHKERRQ(ierr);
-    }
-  } else { /* real eigenvalue */
-    if (Vr) { ierr = BVCopyVec(nep->V,k,Vr);CHKERRQ(ierr); }
-    if (Vi) { ierr = VecSet(Vi,0.0);CHKERRQ(ierr); }
-  }
-#endif
+  ierr = BV_GetEigenvector(nep->V,k,nep->eigi[k],Vr,Vi);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+/*@
+   NEPGetLeftEigenvector - Gets the i-th left eigenvector as computed by NEPSolve().
+
+   Logically Collective on NEP
+
+   Input Parameters:
++  nep - eigensolver context
+-  i   - index of the solution
+
+   Output Parameters:
++  Wr   - real part of left eigenvector
+-  Wi   - imaginary part of left eigenvector
+
+   Notes:
+   The caller must provide valid Vec objects, i.e., they must be created
+   by the calling program with e.g. MatCreateVecs().
+
+   If the corresponding eigenvalue is real, then Wi is set to zero. If PETSc is
+   configured with complex scalars the eigenvector is stored directly in Wr
+   (Wi is set to zero). In any case, the user can pass NULL in Wr or Wi if one of
+   them is not required.
+
+   The index i should be a value between 0 and nconv-1 (see NEPGetConverged()).
+   Eigensolutions are indexed according to the ordering criterion established
+   with NEPSetWhichEigenpairs().
+
+   Left eigenvectors are available only if the twosided flag was set, see
+   NEPSetTwoSided().
+
+   Level: intermediate
+
+.seealso: NEPGetEigenpair(), NEPGetConverged(), NEPSetWhichEigenpairs(), NEPSetTwoSided()
+@*/
+PetscErrorCode NEPGetLeftEigenvector(NEP nep,PetscInt i,Vec Wr,Vec Wi)
+{
+  PetscErrorCode ierr;
+  PetscInt       k;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
+  PetscValidLogicalCollectiveInt(nep,i,2);
+  if (Wr) { PetscValidHeaderSpecific(Wr,VEC_CLASSID,3); PetscCheckSameComm(nep,1,Wr,3); }
+  if (Wi) { PetscValidHeaderSpecific(Wi,VEC_CLASSID,4); PetscCheckSameComm(nep,1,Wi,4); }
+  NEPCheckSolved(nep,1);
+  if (!nep->twosided) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_WRONGSTATE,"Must request left vectors with NEPSetTwoSided");
+  if (i<0 || i>=nep->nconv) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_OUTOFRANGE,"Argument 2 out of range");
+  ierr = NEPComputeVectors(nep);CHKERRQ(ierr);
+  k = nep->perm[i];
+  ierr = BV_GetEigenvector(nep->W,k,nep->eigi[k],Wr,Wi);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -470,11 +562,12 @@ PetscErrorCode NEPGetErrorEstimate(NEP nep,PetscInt i,PetscReal *errest)
    associated with an eigenpair.
 
    Input Parameters:
+     adj    - whether the adjoint T^* must be used instead of T
      lambda - eigenvalue
      x      - eigenvector
      w      - array of work vectors (two vectors in split form, one vector otherwise)
 */
-PetscErrorCode NEPComputeResidualNorm_Private(NEP nep,PetscScalar lambda,Vec x,Vec *w,PetscReal *norm)
+PetscErrorCode NEPComputeResidualNorm_Private(NEP nep,PetscBool adj,PetscScalar lambda,Vec x,Vec *w,PetscReal *norm)
 {
   PetscErrorCode ierr;
   Vec            y,z=NULL;
@@ -482,7 +575,11 @@ PetscErrorCode NEPComputeResidualNorm_Private(NEP nep,PetscScalar lambda,Vec x,V
   PetscFunctionBegin;
   y = w[0];
   if (nep->fui==NEP_USER_INTERFACE_SPLIT) z = w[1];
-  ierr = NEPApplyFunction(nep,lambda,x,z,y,nep->function,nep->function_pre);CHKERRQ(ierr);
+  if (adj) {
+    ierr = NEPApplyAdjoint(nep,lambda,x,z,y,nep->function,nep->function_pre);CHKERRQ(ierr);
+  } else {
+    ierr = NEPApplyFunction(nep,lambda,x,z,y,nep->function,nep->function_pre);CHKERRQ(ierr);
+  }
   ierr = VecNorm(y,NORM_2,norm);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -516,7 +613,7 @@ PetscErrorCode NEPComputeError(NEP nep,PetscInt i,NEPErrorType type,PetscReal *e
   Vec            xr,xi=NULL;
   PetscInt       j,nwork,issplit=0;
   PetscScalar    kr,ki,s;
-  PetscReal      er,z=0.0;
+  PetscReal      er,z=0.0,errorl;
   PetscBool      flg;
 
   PetscFunctionBegin;
@@ -547,8 +644,15 @@ PetscErrorCode NEPComputeError(NEP nep,PetscInt i,NEPErrorType type,PetscReal *e
 #if !defined(PETSC_USE_COMPLEX)
   if (ki) SETERRQ(PetscObjectComm((PetscObject)nep),1,"Not implemented for complex eigenvalues with real scalars");
 #endif
-  ierr = NEPComputeResidualNorm_Private(nep,kr,xr,nep->work,error);CHKERRQ(ierr);
+  ierr = NEPComputeResidualNorm_Private(nep,PETSC_FALSE,kr,xr,nep->work,error);CHKERRQ(ierr);
   ierr = VecNorm(xr,NORM_2,&er);CHKERRQ(ierr);
+
+  /* if two-sided, compute left residual norm and take the maximum */
+  if (nep->twosided) {
+    ierr = NEPGetLeftEigenvector(nep,i,xr,xi);CHKERRQ(ierr);
+    ierr = NEPComputeResidualNorm_Private(nep,PETSC_TRUE,kr,xr,nep->work,&errorl);CHKERRQ(ierr);
+    *error = PetscMax(*error,errorl);
+  }
 
   /* compute error */
   switch (type) {

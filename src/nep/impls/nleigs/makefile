@@ -12,9 +12,9 @@ ALL: lib
 
 CFLAGS   =
 FFLAGS   =
-SOURCEC  = nleigs.c
+SOURCEC  = nleigs.c nleigs-fullb.c
 SOURCEF  =
-SOURCEH  =
+SOURCEH  = nleigs.h
 LIBBASE  = libslepc
 DIRS     =
 MANSEC   = NEP

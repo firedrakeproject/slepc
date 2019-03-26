@@ -16,7 +16,7 @@
 
 SLEPC_EXTERN PetscBool NEPRegisterAllCalled;
 SLEPC_EXTERN PetscErrorCode NEPRegisterAll(void);
-SLEPC_EXTERN PetscLogEvent NEP_SetUp,NEP_Solve,NEP_Refine,NEP_FunctionEval,NEP_JacobianEval,NEP_DerivativesEval;
+SLEPC_EXTERN PetscLogEvent NEP_SetUp,NEP_Solve,NEP_Refine,NEP_FunctionEval,NEP_JacobianEval,NEP_DerivativesEval,NEP_Resolvent;
 
 typedef struct _NEPOps *NEPOps;
 
@@ -74,6 +74,7 @@ struct _p_NEP {
   PetscInt       rits;             /* number of iterations of the refinement method */
   NEPRefineScheme scheme;          /* scheme for solving linear systems within refinement */
   PetscBool      trackall;         /* whether all the residuals must be computed */
+  PetscBool      twosided;         /* whether to compute left eigenvectors (two-sided solver) */
 
   /*-------------- User-provided functions and contexts -----------------*/
   PetscErrorCode (*computefunction)(NEP,PetscScalar,Mat,Mat,void*);
@@ -98,6 +99,7 @@ struct _p_NEP {
   /*----------------- Child objects and working data -------------------*/
   DS             ds;               /* direct solver object */
   BV             V;                /* set of basis vectors and computed eigenvectors */
+  BV             W;                /* left basis vectors (if left eigenvectors requested) */
   RG             rg;               /* optional region for filtering */
   SlepcSC        sc;               /* sorting criterion data */
   Mat            function;         /* function matrix */
@@ -125,6 +127,9 @@ struct _p_NEP {
   PetscInt       n,nloc;           /* problem dimensions (global, local) */
   PetscReal      *nrma;            /* computed matrix norms */
   NEPUserInterface fui;            /* how the user has defined the nonlinear operator */
+  PetscBool      useds;            /* whether the solver uses the DS object or not */
+  PetscBool      hasts;            /* whether the solver has two-sided variant */
+  Mat            resolvent;        /* shell matrix to be used in NEPApplyResolvent */
   NEPConvergedReason reason;
 };
 
@@ -173,7 +178,7 @@ SLEPC_INTERN PetscErrorCode NEPComputeVectors(NEP);
 SLEPC_INTERN PetscErrorCode NEPReset_Problem(NEP);
 SLEPC_INTERN PetscErrorCode NEPGetDefaultShift(NEP,PetscScalar*);
 SLEPC_INTERN PetscErrorCode NEPComputeVectors_Schur(NEP);
-SLEPC_INTERN PetscErrorCode NEPComputeResidualNorm_Private(NEP,PetscScalar,Vec,Vec*,PetscReal*);
+SLEPC_INTERN PetscErrorCode NEPComputeResidualNorm_Private(NEP,PetscBool,PetscScalar,Vec,Vec*,PetscReal*);
 SLEPC_INTERN PetscErrorCode NEPNewtonRefinementSimple(NEP,PetscInt*,PetscReal,PetscInt);
 
 #endif

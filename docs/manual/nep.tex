@@ -142,6 +142,18 @@ For the sorting criteria relative to a target value, $\tau$ must be specified wi
 
 \ident{NEP} solvers can also work with a region of the complex plane (\ident{RG}), as discussed in \S\ref{sec:region} for linear problems. Some eigensolvers (NLEIGS) use the definition of the region to compute \texttt{nev} eigenvalues in its interior. If \emph{all} eigenvalues inside the region are required, then a contour-integral method is required, see discussion in \hyperlink{str}{[STR-11]}.
 
+\paragraph{Left Eigenvectors.}
+
+As in the case of linear eigensolvers, some \ident{NEP} solvers have two-sided variants to compute also left eigenvectors. In the case of \ident{NEP}, left eigenvectors are defined as
+\begin{equation}
+y^*T(\lambda)=0^*,\qquad y\neq 0.\label{eq:nepleft}
+\end{equation}
+Two-sided variants can be selected with
+	\findex{NEPSetTwoSided}
+	\begin{Verbatim}[fontsize=\small]
+	NEPSetTwoSided(NEP eps,PetscBool twosided);
+	\end{Verbatim}
+
 %---------------------------------------------------
 \subsection{\label{sec:nepsplit}Expressing the NEP in Split Form}
 
@@ -222,13 +234,13 @@ or via the options database command \Verb!-nep_type! followed by the name of the
 
 \begin{table}
 \centering
-{\small \begin{tabular}{lllcc}
+{\small \begin{tabular}{lllccc}
                    &                      & {\footnotesize Options}  & {\footnotesize Need}  \\
-Method             & \ident{NEPType}      & {\footnotesize Database} & {\footnotesize $T'(\cdot)$} & {\footnotesize Eigenvalues} \\\hline
+Method             & \ident{NEPType}      & {\footnotesize Database} & {\footnotesize $T'(\cdot)$} & {\footnotesize Eigenvalues} & Two-sided \\\hline
 Residual inverse iteration & \texttt{NEPRII}      & \texttt{rii}      & no  & only one\\
 Successive linear problems & \texttt{NEPSLP}      & \texttt{slp}      & yes & only one\\
 Nonlinear Arnoldi          & \texttt{NEPNARNOLDI} & \texttt{narnoldi} & no  & only one\\
-Rational Krylov (NLEIGS)   & \texttt{NEPNLEIGS}   & \texttt{nleigs}   & no  & many\\
+Rational Krylov (NLEIGS)   & \texttt{NEPNLEIGS}   & \texttt{nleigs}   & no  & many & yes\\
 Contour integral SS        & \texttt{NEPCISS}     & \texttt{ciss}     & yes & many\\
 Polynomial interpolation   & \texttt{NEPINTERPOL} & \texttt{interpol} & no  & many\\\hline
 \end{tabular} }
@@ -280,7 +292,7 @@ The NLEIGS solver is most appropriate for problems where $T(\cdot)$ is singular 
                           (NEP,PetscInt*,PetscScalar*,void*),void *ctx);
 	\end{Verbatim}
 Alternatively, if the problem is known to be a rational eigenvalue problem, the user can avoid the computation of singularities by just specifying the problem type with \ident{NEPSetProblemType}, as explained at the end of the previous section.
-If none of the above functions is invoked by the user, then the NLEIGS solver performs a polynomial interpolation, rather than rational. 
+If none of the above functions is invoked by the user, then the NLEIGS solver performs a polynomial interpolation, rather than rational.
 
 %---------------------------------------------------
 \section{Retrieving the Solution}
@@ -291,6 +303,11 @@ The procedure for obtaining the computed eigenpairs is similar to previously dis
 	\begin{Verbatim}[fontsize=\small]
 	NEPGetEigenpair(NEP nep,PetscInt j,PetscScalar *kr,PetscScalar *ki,
                         Vec xr,Vec xi);
+	\end{Verbatim}
+In two-sided solvers (see Table \ref{tab:solversn}), it is also possible to retrieve left eigenvectors with
+	\findex{NEPGetLeftEigenvector}
+	\begin{Verbatim}[fontsize=\small]
+	NEPGetLeftEigenvector(NEP nep,PetscInt j,Vec yr,Vec yi);
 	\end{Verbatim}
 
 \textbf{Note about real/complex scalar versions}: The interface makes provision for returning a complex eigenvalue (or eigenvector) when doing the computation in a \petsc/\slepc version built with real scalars, as is done in other eigensolvers such as \ident{EPS}. However, in some cases this will not be possible. In particular, when callback functions are used and a complex eigenvalue approximation is hit, the solver will fail unless configured with complex scalars. The reason is that the user interface for callback functions only have a single \texttt{PetscScalar lambda} argument and hence cannot handle complex arguments in real arithmetic.

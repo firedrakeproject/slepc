@@ -447,8 +447,6 @@ SLEPC_EXTERN PetscErrorCode EPSCISSSetExtraction(EPS,EPSCISSExtraction);
 SLEPC_EXTERN PetscErrorCode EPSCISSGetExtraction(EPS,EPSCISSExtraction*);
 SLEPC_EXTERN PetscErrorCode EPSCISSSetQuadRule(EPS,EPSCISSQuadRule);
 SLEPC_EXTERN PetscErrorCode EPSCISSGetQuadRule(EPS,EPSCISSQuadRule*);
-SLEPC_EXTERN PetscErrorCode EPSCISSSetRegion(EPS,PetscScalar,PetscReal,PetscReal);
-SLEPC_EXTERN PetscErrorCode EPSCISSGetRegion(EPS,PetscScalar*,PetscReal*,PetscReal*);
 SLEPC_EXTERN PetscErrorCode EPSCISSSetSizes(EPS,PetscInt,PetscInt,PetscInt,PetscInt,PetscInt,PetscBool);
 SLEPC_EXTERN PetscErrorCode EPSCISSGetSizes(EPS,PetscInt*,PetscInt*,PetscInt*,PetscInt*,PetscInt*,PetscBool*);
 SLEPC_EXTERN PetscErrorCode EPSCISSSetThreshold(EPS,PetscReal,PetscReal);

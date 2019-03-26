@@ -813,7 +813,7 @@ PetscErrorCode STView(ST st,PetscViewer viewer)
     ierr = PetscViewerStringSPrintf(viewer," %-7.7s",cstr);CHKERRQ(ierr);
     if (st->ops->view) { ierr = (*st->ops->view)(st,viewer);CHKERRQ(ierr); }
   }
-  ierr = PetscObjectTypeCompare((PetscObject)st,STSHIFT,&flg);CHKERRQ(ierr);
+  ierr = PetscObjectTypeCompareAny((PetscObject)st,&flg,STSHIFT,STSHELL,"");CHKERRQ(ierr);
   if (st->nmat>1 || !flg) {
     if (!st->ksp) { ierr = STGetKSP(st,&st->ksp);CHKERRQ(ierr); }
     ierr = PetscViewerASCIIPushTab(viewer);CHKERRQ(ierr);

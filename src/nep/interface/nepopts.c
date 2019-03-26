@@ -108,7 +108,7 @@ PetscErrorCode NEPSetFromOptions(NEP nep)
 {
   PetscErrorCode  ierr;
   char            type[256];
-  PetscBool       set,flg,flg1,flg2,flg3,flg4,flg5;
+  PetscBool       set,flg,flg1,flg2,flg3,flg4,flg5,bval;
   PetscReal       r;
   PetscScalar     s;
   PetscInt        i,j,k;
@@ -203,6 +203,9 @@ PetscErrorCode NEPSetFromOptions(NEP nep)
       ierr = NEPSetTarget(nep,s);CHKERRQ(ierr);
     }
 
+    ierr = PetscOptionsBool("-nep_two_sided","Use two-sided variant (to compute left eigenvectors)","NEPSetTwoSided",nep->twosided,&bval,&flg);CHKERRQ(ierr);
+    if (flg) { ierr = NEPSetTwoSided(nep,bval);CHKERRQ(ierr); }
+
     /* -----------------------------------------------------------------------*/
     /*
       Cancels all monitors hardwired into code before call to NEPSetFromOptions()
@@ -250,8 +253,10 @@ PetscErrorCode NEPSetFromOptions(NEP nep)
   ierr = BVSetFromOptions(nep->V);CHKERRQ(ierr);
   if (!nep->rg) { ierr = NEPGetRG(nep,&nep->rg);CHKERRQ(ierr); }
   ierr = RGSetFromOptions(nep->rg);CHKERRQ(ierr);
-  if (!nep->ds) { ierr = NEPGetDS(nep,&nep->ds);CHKERRQ(ierr); }
-  ierr = DSSetFromOptions(nep->ds);CHKERRQ(ierr);
+  if (nep->useds) {
+    if (!nep->ds) { ierr = NEPGetDS(nep,&nep->ds);CHKERRQ(ierr); }
+    ierr = DSSetFromOptions(nep->ds);CHKERRQ(ierr);
+  }
   if (!nep->refineksp) { ierr = NEPRefineGetKSP(nep,&nep->refineksp);CHKERRQ(ierr); }
   ierr = KSPSetFromOptions(nep->refineksp);CHKERRQ(ierr);
   if (nep->fui==NEP_USER_INTERFACE_SPLIT) for (i=0;i<nep->nt;i++) {ierr = FNSetFromOptions(nep->f[i]);CHKERRQ(ierr);}
@@ -632,6 +637,68 @@ PetscErrorCode NEPGetProblemType(NEP nep,NEPProblemType *type)
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
   PetscValidPointer(type,2);
   *type = nep->problem_type;
+  PetscFunctionReturn(0);
+}
+
+/*@
+   NEPSetTwoSided - Sets the solver to use a two-sided variant so that left
+   eigenvectors are also computed.
+
+   Logically Collective on NEP
+
+   Input Parameters:
++  nep      - the eigensolver context
+-  twosided - whether the two-sided variant is to be used or not
+
+   Options Database Keys:
+.  -nep_two_sided <boolean> - Sets/resets the twosided flag
+
+   Notes:
+   If the user sets twosided=PETSC_TRUE then the solver uses a variant of
+   the algorithm that computes both right and left eigenvectors. This is
+   usually much more costly. This option is not available in all solvers.
+
+   When using two-sided solvers, the problem matrices must have both the
+   MatMult and MatMultTranspose operations defined.
+
+   Level: advanced
+
+.seealso: NEPGetTwoSided(), NEPGetLeftEigenvector()
+@*/
+PetscErrorCode NEPSetTwoSided(NEP nep,PetscBool twosided)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
+  PetscValidLogicalCollectiveBool(nep,twosided,2);
+  if (twosided!=nep->twosided) {
+    nep->twosided = twosided;
+    nep->state    = NEP_STATE_INITIAL;
+  }
+  PetscFunctionReturn(0);
+}
+
+/*@
+   NEPGetTwoSided - Returns the flag indicating whether a two-sided variant
+   of the algorithm is being used or not.
+
+   Not Collective
+
+   Input Parameter:
+.  nep - the eigensolver context
+
+   Output Parameter:
+.  twosided - the returned flag
+
+   Level: advanced
+
+.seealso: NEPSetTwoSided()
+@*/
+PetscErrorCode NEPGetTwoSided(NEP nep,PetscBool *twosided)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
+  PetscValidPointer(twosided,2);
+  *twosided = nep->twosided;
   PetscFunctionReturn(0);
 }
 

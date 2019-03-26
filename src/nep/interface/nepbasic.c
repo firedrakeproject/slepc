@@ -16,7 +16,7 @@
 PetscFunctionList NEPList = 0;
 PetscBool         NEPRegisterAllCalled = PETSC_FALSE;
 PetscClassId      NEP_CLASSID = 0;
-PetscLogEvent     NEP_SetUp = 0,NEP_Solve = 0,NEP_Refine = 0,NEP_FunctionEval = 0,NEP_JacobianEval = 0,NEP_DerivativesEval = 0;
+PetscLogEvent     NEP_SetUp = 0,NEP_Solve = 0,NEP_Refine = 0,NEP_FunctionEval = 0,NEP_JacobianEval = 0,NEP_DerivativesEval = 0,NEP_Resolvent = 0;
 
 /*@
    NEPCreate - Creates the default NEP context.
@@ -61,6 +61,7 @@ PetscErrorCode NEPCreate(MPI_Comm comm,NEP *outnep)
   nep->rits            = PETSC_DEFAULT;
   nep->scheme          = (NEPRefineScheme)0;
   nep->trackall        = PETSC_FALSE;
+  nep->twosided        = PETSC_FALSE;
 
   nep->computefunction = NULL;
   nep->computejacobian = NULL;
@@ -80,6 +81,7 @@ PetscErrorCode NEPCreate(MPI_Comm comm,NEP *outnep)
 
   nep->ds              = NULL;
   nep->V               = NULL;
+  nep->W               = NULL;
   nep->rg              = NULL;
   nep->function        = NULL;
   nep->function_pre    = NULL;
@@ -105,6 +107,9 @@ PetscErrorCode NEPCreate(MPI_Comm comm,NEP *outnep)
   nep->nloc            = 0;
   nep->nrma            = NULL;
   nep->fui             = (NEPUserInterface)0;
+  nep->useds           = PETSC_FALSE;
+  nep->hasts           = PETSC_FALSE;
+  nep->resolvent       = NULL;
   nep->reason          = NEP_CONVERGED_ITERATING;
 
   ierr = PetscNewLog(nep,&nep->sc);CHKERRQ(ierr);
@@ -273,7 +278,9 @@ PetscErrorCode NEPReset(NEP nep)
   if (nep->refineksp) { ierr = KSPReset(nep->refineksp);CHKERRQ(ierr); }
   ierr = NEPReset_Problem(nep);CHKERRQ(ierr);
   ierr = BVDestroy(&nep->V);CHKERRQ(ierr);
+  ierr = BVDestroy(&nep->W);CHKERRQ(ierr);
   ierr = VecDestroyVecs(nep->nwork,&nep->work);CHKERRQ(ierr);
+  ierr = MatDestroy(&nep->resolvent);CHKERRQ(ierr);
   nep->nwork = 0;
   nep->state = NEP_STATE_INITIAL;
   PetscFunctionReturn(0);

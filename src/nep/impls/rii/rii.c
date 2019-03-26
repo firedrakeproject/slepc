@@ -596,6 +596,8 @@ SLEPC_EXTERN PetscErrorCode NEPCreate_RII(NEP nep)
   ctx->lag          = 1;
   ctx->cctol        = PETSC_FALSE;
 
+  nep->useds = PETSC_TRUE;
+
   nep->ops->solve          = NEPSolve_RII;
   nep->ops->setup          = NEPSetUp_RII;
   nep->ops->setfromoptions = NEPSetFromOptions_RII;

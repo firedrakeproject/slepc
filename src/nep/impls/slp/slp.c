@@ -476,6 +476,8 @@ SLEPC_EXTERN PetscErrorCode NEPCreate_SLP(NEP nep)
   ierr = PetscNewLog(nep,&ctx);CHKERRQ(ierr);
   nep->data = (void*)ctx;
 
+  nep->useds = PETSC_TRUE;
+
   nep->ops->solve          = NEPSolve_SLP;
   nep->ops->setup          = NEPSetUp_SLP;
   nep->ops->setfromoptions = NEPSetFromOptions_SLP;

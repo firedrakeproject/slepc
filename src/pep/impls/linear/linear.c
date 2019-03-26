@@ -374,19 +374,19 @@ PetscErrorCode PEPSetUp_Linear(PEP pep)
     if (transf) which = EPS_LARGEST_MAGNITUDE;
     else {
       switch (pep->which) {
-          case PEP_LARGEST_MAGNITUDE:  which = EPS_LARGEST_MAGNITUDE; break;
-          case PEP_SMALLEST_MAGNITUDE: which = EPS_SMALLEST_MAGNITUDE; break;
-          case PEP_LARGEST_REAL:       which = EPS_LARGEST_REAL; break;
-          case PEP_SMALLEST_REAL:      which = EPS_SMALLEST_REAL; break;
-          case PEP_LARGEST_IMAGINARY:  which = EPS_LARGEST_IMAGINARY; break;
-          case PEP_SMALLEST_IMAGINARY: which = EPS_SMALLEST_IMAGINARY; break;
-          case PEP_TARGET_MAGNITUDE:   which = EPS_TARGET_MAGNITUDE; break;
-          case PEP_TARGET_REAL:        which = EPS_TARGET_REAL; break;
-          case PEP_TARGET_IMAGINARY:   which = EPS_TARGET_IMAGINARY; break;
-          case PEP_ALL:                which = EPS_ALL; break;
-          case PEP_WHICH_USER:         which = EPS_WHICH_USER;
-            ierr = EPSSetEigenvalueComparison(ctx->eps,pep->sc->comparison,pep->sc->comparisonctx);CHKERRQ(ierr);
-            break;
+        case PEP_LARGEST_MAGNITUDE:  which = EPS_LARGEST_MAGNITUDE; break;
+        case PEP_SMALLEST_MAGNITUDE: which = EPS_SMALLEST_MAGNITUDE; break;
+        case PEP_LARGEST_REAL:       which = EPS_LARGEST_REAL; break;
+        case PEP_SMALLEST_REAL:      which = EPS_SMALLEST_REAL; break;
+        case PEP_LARGEST_IMAGINARY:  which = EPS_LARGEST_IMAGINARY; break;
+        case PEP_SMALLEST_IMAGINARY: which = EPS_SMALLEST_IMAGINARY; break;
+        case PEP_TARGET_MAGNITUDE:   which = EPS_TARGET_MAGNITUDE; break;
+        case PEP_TARGET_REAL:        which = EPS_TARGET_REAL; break;
+        case PEP_TARGET_IMAGINARY:   which = EPS_TARGET_IMAGINARY; break;
+        case PEP_ALL:                which = EPS_ALL; break;
+        case PEP_WHICH_USER:         which = EPS_WHICH_USER;
+          ierr = EPSSetEigenvalueComparison(ctx->eps,pep->sc->comparison,pep->sc->comparisonctx);CHKERRQ(ierr);
+          break;
       }
     }
     ierr = EPSSetWhichEigenpairs(ctx->eps,which);CHKERRQ(ierr);
@@ -548,7 +548,7 @@ static PetscErrorCode PEPLinearExtract_None(PEP pep,EPS eps)
   PetscInt          i;
   const PetscScalar *px;
   Mat               A;
-  Vec               xr,xi,w;
+  Vec               xr,xi=NULL,w;
 #if !defined(PETSC_USE_COMPLEX)
   PetscScalar       *ei=pep->eigi;
 #endif
@@ -556,10 +556,12 @@ static PetscErrorCode PEPLinearExtract_None(PEP pep,EPS eps)
   PetscFunctionBegin;
   ierr = EPSGetOperators(eps,&A,NULL);CHKERRQ(ierr);
   ierr = MatCreateVecs(A,&xr,NULL);CHKERRQ(ierr);
+#if !defined(PETSC_USE_COMPLEX)
   ierr = VecDuplicate(xr,&xi);CHKERRQ(ierr);
+#endif
   ierr = MatCreateVecsEmpty(pep->A[0],&w,NULL);CHKERRQ(ierr);
   for (i=0;i<pep->nconv;i++) {
-    ierr = EPSGetEigenpair(eps,i,NULL,NULL,xr,xi);CHKERRQ(ierr);
+    ierr = EPSGetEigenvector(eps,i,xr,xi);CHKERRQ(ierr);
 #if !defined(PETSC_USE_COMPLEX)
     if (ei[i]!=0.0) {   /* complex conjugate pair */
       ierr = VecGetArrayRead(xr,&px);CHKERRQ(ierr);
@@ -585,7 +587,9 @@ static PetscErrorCode PEPLinearExtract_None(PEP pep,EPS eps)
   }
   ierr = VecDestroy(&w);CHKERRQ(ierr);
   ierr = VecDestroy(&xr);CHKERRQ(ierr);
+#if !defined(PETSC_USE_COMPLEX)
   ierr = VecDestroy(&xi);CHKERRQ(ierr);
+#endif
   PetscFunctionReturn(0);
 }
 

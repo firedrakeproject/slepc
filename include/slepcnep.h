@@ -214,6 +214,7 @@ SLEPC_EXTERN PetscErrorCode NEPGetRefine(NEP,NEPRefine*,PetscInt*,PetscReal*,Pet
 
 SLEPC_EXTERN PetscErrorCode NEPGetConverged(NEP,PetscInt*);
 SLEPC_EXTERN PetscErrorCode NEPGetEigenpair(NEP,PetscInt,PetscScalar*,PetscScalar*,Vec,Vec);
+SLEPC_EXTERN PetscErrorCode NEPGetLeftEigenvector(NEP,PetscInt,Vec,Vec);
 
 SLEPC_EXTERN PetscErrorCode NEPComputeError(NEP,PetscInt,NEPErrorType,PetscReal*);
 PETSC_DEPRECATED("Use NEPComputeError()") PETSC_STATIC_INLINE PetscErrorCode NEPComputeRelativeError(NEP nep,PetscInt i,PetscReal *r) {return NEPComputeError(nep,i,NEP_ERROR_RELATIVE,r);}
@@ -223,6 +224,7 @@ SLEPC_EXTERN PetscErrorCode NEPGetErrorEstimate(NEP,PetscInt,PetscReal*);
 SLEPC_EXTERN PetscErrorCode NEPComputeFunction(NEP,PetscScalar,Mat,Mat);
 SLEPC_EXTERN PetscErrorCode NEPComputeJacobian(NEP,PetscScalar,Mat);
 SLEPC_EXTERN PetscErrorCode NEPApplyFunction(NEP,PetscScalar,Vec,Vec,Vec,Mat,Mat);
+SLEPC_EXTERN PetscErrorCode NEPApplyAdjoint(NEP,PetscScalar,Vec,Vec,Vec,Mat,Mat);
 SLEPC_EXTERN PetscErrorCode NEPApplyJacobian(NEP,PetscScalar,Vec,Vec,Vec,Mat);
 SLEPC_EXTERN PetscErrorCode NEPProjectOperator(NEP,PetscInt,PetscInt);
 
@@ -237,6 +239,11 @@ SLEPC_EXTERN PetscErrorCode NEPGetIterationNumber(NEP,PetscInt*);
 SLEPC_EXTERN PetscErrorCode NEPSetInitialSpace(NEP,PetscInt,Vec*);
 SLEPC_EXTERN PetscErrorCode NEPSetWhichEigenpairs(NEP,NEPWhich);
 SLEPC_EXTERN PetscErrorCode NEPGetWhichEigenpairs(NEP,NEPWhich*);
+SLEPC_EXTERN PetscErrorCode NEPSetTwoSided(NEP,PetscBool);
+SLEPC_EXTERN PetscErrorCode NEPGetTwoSided(NEP,PetscBool*);
+
+SLEPC_EXTERN PetscErrorCode NEPApplyResolvent(NEP,RG,PetscScalar,Vec,Vec);
+
 SLEPC_EXTERN PetscErrorCode NEPSetEigenvalueComparison(NEP,PetscErrorCode (*func)(PetscScalar,PetscScalar,PetscScalar,PetscScalar,PetscInt*,void*),void*);
 
 SLEPC_EXTERN PetscErrorCode NEPMonitorAll(NEP,PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscReal*,PetscInt,PetscViewerAndFormat*);
@@ -321,6 +328,10 @@ SLEPC_EXTERN PetscErrorCode NEPNLEIGSGetInterpolation(NEP,PetscReal*,PetscInt*);
 SLEPC_EXTERN PetscErrorCode NEPNLEIGSSetRKShifts(NEP,PetscInt,PetscScalar*);
 SLEPC_EXTERN PetscErrorCode NEPNLEIGSGetRKShifts(NEP,PetscInt*,PetscScalar**);
 SLEPC_EXTERN PetscErrorCode NEPNLEIGSGetKSPs(NEP,PetscInt*,KSP**);
+SLEPC_EXTERN PetscErrorCode NEPNLEIGSSetFullBasis(NEP,PetscBool);
+SLEPC_EXTERN PetscErrorCode NEPNLEIGSGetFullBasis(NEP,PetscBool*);
+SLEPC_EXTERN PetscErrorCode NEPNLEIGSSetEPS(NEP,EPS);
+SLEPC_EXTERN PetscErrorCode NEPNLEIGSGetEPS(NEP,EPS*);
 
 #endif
 

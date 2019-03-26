@@ -66,6 +66,7 @@ PetscErrorCode NEPInitializePackage(void)
   ierr = PetscLogEventRegister("NEPFunctionEval",NEP_CLASSID,&NEP_FunctionEval);CHKERRQ(ierr);
   ierr = PetscLogEventRegister("NEPJacobianEval",NEP_CLASSID,&NEP_JacobianEval);CHKERRQ(ierr);
   ierr = PetscLogEventRegister("NEPDerivativesEval",NEP_CLASSID,&NEP_DerivativesEval);CHKERRQ(ierr);
+  ierr = PetscLogEventRegister("NEPResolvent",NEP_CLASSID,&NEP_Resolvent);CHKERRQ(ierr);
   /* Process info exclusions */
   ierr = PetscOptionsGetString(NULL,NULL,"-info_exclude",logList,sizeof(logList),&opt);CHKERRQ(ierr);
   if (opt) {

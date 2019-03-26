@@ -1208,6 +1208,9 @@ PetscErrorCode EPSGetBalance(EPS eps,EPSBalance *bal,PetscInt *its,PetscReal *cu
    the algorithm that computes both right and left eigenvectors. This is
    usually much more costly. This option is not available in all solvers.
 
+   When using two-sided solvers, the problem matrices must have both the
+   MatMult and MatMultTranspose operations defined.
+
    Level: advanced
 
 .seealso: EPSGetTwoSided(), EPSGetLeftEigenvector()

@@ -12,6 +12,7 @@
 */
 
 #include <slepc/private/pepimpl.h>       /*I "slepcpep.h" I*/
+#include <slepc/private/bvimpl.h>        /*I "slepcbv.h" I*/
 #include <petscdraw.h>
 
 static PetscBool  cited = PETSC_FALSE;
@@ -285,7 +286,8 @@ PetscErrorCode PEPGetConvergedReason(PEP pep,PEPConvergedReason *reason)
    If the eigenvalue is real, then eigi and Vi are set to zero. If PETSc is
    configured with complex scalars the eigenvalue is stored
    directly in eigr (eigi is set to zero) and the eigenvector in Vr (Vi is
-   set to zero). In both cases, the user can pass NULL in eigi and Vi.
+   set to zero). In any case, the user can pass NULL in Vr or Vi if one of
+   them is not required.
 
    The index i should be a value between 0 and nconv-1 (see PEPGetConverged()).
    Eigenpairs are indexed according to the ordering criterion established
@@ -321,24 +323,7 @@ PetscErrorCode PEPGetEigenpair(PEP pep,PetscInt i,PetscScalar *eigr,PetscScalar 
 #endif
 
   /* eigenvector */
-#if defined(PETSC_USE_COMPLEX)
-  if (Vr) { ierr = BVCopyVec(pep->V,k,Vr);CHKERRQ(ierr); }
-  if (Vi) { ierr = VecSet(Vi,0.0);CHKERRQ(ierr); }
-#else
-  if (pep->eigi[k]>0) { /* first value of conjugate pair */
-    if (Vr) { ierr = BVCopyVec(pep->V,k,Vr);CHKERRQ(ierr); }
-    if (Vi) { ierr = BVCopyVec(pep->V,k+1,Vi);CHKERRQ(ierr); }
-  } else if (pep->eigi[k]<0) { /* second value of conjugate pair */
-    if (Vr) { ierr = BVCopyVec(pep->V,k-1,Vr);CHKERRQ(ierr); }
-    if (Vi) {
-      ierr = BVCopyVec(pep->V,k,Vi);CHKERRQ(ierr);
-      ierr = VecScale(Vi,-1.0);CHKERRQ(ierr);
-    }
-  } else { /* real eigenvalue */
-    if (Vr) { ierr = BVCopyVec(pep->V,k,Vr);CHKERRQ(ierr); }
-    if (Vi) { ierr = VecSet(Vi,0.0);CHKERRQ(ierr); }
-  }
-#endif
+  ierr = BV_GetEigenvector(pep->V,k,pep->eigi[k],Vr,Vi);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

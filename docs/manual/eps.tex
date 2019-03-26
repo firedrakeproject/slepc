@@ -264,7 +264,7 @@ The selection criteria discussed above are based solely on the eigenvalue. In so
 
 \paragraph{Left Eigenvectors.}
 
-In addition to right eigevectors, some solvers are able to compute also left eigenvectors, as defined in \eqref{eq:eigstdleft}. The algorithmic variants that compute both left and right eigenvectors are usually called \emph{two-sided}. By default, SLEPc computes right eigenvectors only. To compute also left eigenvectors, the user should set a flag by calling the following function before \ident{EPSSolve}.
+In addition to right eigenvectors, some solvers are able to compute also left eigenvectors, as defined in \eqref{eq:eigstdleft}. The algorithmic variants that compute both left and right eigenvectors are usually called \emph{two-sided}. By default, SLEPc computes right eigenvectors only. To compute also left eigenvectors, the user should set a flag by calling the following function before \ident{EPSSolve}.
 	\findex{EPSSetTwoSided}
 	\begin{Verbatim}[fontsize=\small]
 	EPSSetTwoSided(EPS eps,PetscBool twosided);

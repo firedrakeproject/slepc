@@ -617,7 +617,7 @@ PetscErrorCode NEPSolve_CISS(NEP nep)
     for (i=0;i<nep->nconv;i++) {
       ierr = BVGetColumn(nep->V,i,&si);CHKERRQ(ierr);
       ierr = VecNormalize(si,NULL);CHKERRQ(ierr);
-      ierr = NEPComputeResidualNorm_Private(nep,nep->eigr[i],si,nep->work,&error);CHKERRQ(ierr);
+      ierr = NEPComputeResidualNorm_Private(nep,PETSC_FALSE,nep->eigr[i],si,nep->work,&error);CHKERRQ(ierr);
       ierr = (*nep->converged)(nep,nep->eigr[i],0,error,&error,nep->convergedctx);CHKERRQ(ierr);
       ierr = BVRestoreColumn(nep->V,i,&si);CHKERRQ(ierr);
       max_error = PetscMax(max_error,error);
@@ -1147,6 +1147,8 @@ SLEPC_EXTERN PetscErrorCode NEPCreate_CISS(NEP nep)
   ctx->spurious_threshold = 1e-4;
   ctx->isreal             = PETSC_FALSE;
   ctx->npart              = 1;
+
+  nep->useds = PETSC_TRUE;
 
   nep->ops->solve          = NEPSolve_CISS;
   nep->ops->setup          = NEPSetUp_CISS;
