@@ -341,14 +341,18 @@ PetscErrorCode SVDGetBV(SVD svd,BV *V,BV *U)
   if (V) {
     if (!svd->V) {
       ierr = BVCreate(PetscObjectComm((PetscObject)svd),&svd->V);CHKERRQ(ierr);
+      ierr = PetscObjectIncrementTabLevel((PetscObject)svd->V,(PetscObject)svd,0);CHKERRQ(ierr);
       ierr = PetscLogObjectParent((PetscObject)svd,(PetscObject)svd->V);CHKERRQ(ierr);
+      ierr = PetscObjectSetOptions((PetscObject)svd->V,((PetscObject)svd)->options);CHKERRQ(ierr);
     }
     *V = svd->V;
   }
   if (U) {
     if (!svd->U) {
       ierr = BVCreate(PetscObjectComm((PetscObject)svd),&svd->U);CHKERRQ(ierr);
+      ierr = PetscObjectIncrementTabLevel((PetscObject)svd->U,(PetscObject)svd,0);CHKERRQ(ierr);
       ierr = PetscLogObjectParent((PetscObject)svd,(PetscObject)svd->U);CHKERRQ(ierr);
+      ierr = PetscObjectSetOptions((PetscObject)svd->U,((PetscObject)svd)->options);CHKERRQ(ierr);
     }
     *U = svd->U;
   }
@@ -412,7 +416,9 @@ PetscErrorCode SVDGetDS(SVD svd,DS *ds)
   PetscValidPointer(ds,2);
   if (!svd->ds) {
     ierr = DSCreate(PetscObjectComm((PetscObject)svd),&svd->ds);CHKERRQ(ierr);
+    ierr = PetscObjectIncrementTabLevel((PetscObject)svd->ds,(PetscObject)svd,0);CHKERRQ(ierr);
     ierr = PetscLogObjectParent((PetscObject)svd,(PetscObject)svd->ds);CHKERRQ(ierr);
+    ierr = PetscObjectSetOptions((PetscObject)svd->ds,((PetscObject)svd)->options);CHKERRQ(ierr);
   }
   *ds = svd->ds;
   PetscFunctionReturn(0);

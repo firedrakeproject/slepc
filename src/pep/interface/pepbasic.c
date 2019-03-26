@@ -367,7 +367,9 @@ PetscErrorCode PEPGetBV(PEP pep,BV *bv)
   PetscValidPointer(bv,2);
   if (!pep->V) {
     ierr = BVCreate(PetscObjectComm((PetscObject)pep),&pep->V);CHKERRQ(ierr);
+    ierr = PetscObjectIncrementTabLevel((PetscObject)pep->V,(PetscObject)pep,0);CHKERRQ(ierr);
     ierr = PetscLogObjectParent((PetscObject)pep,(PetscObject)pep->V);CHKERRQ(ierr);
+    ierr = PetscObjectSetOptions((PetscObject)pep->V,((PetscObject)pep)->options);CHKERRQ(ierr);
   }
   *bv = pep->V;
   PetscFunctionReturn(0);
@@ -430,7 +432,9 @@ PetscErrorCode PEPGetRG(PEP pep,RG *rg)
   PetscValidPointer(rg,2);
   if (!pep->rg) {
     ierr = RGCreate(PetscObjectComm((PetscObject)pep),&pep->rg);CHKERRQ(ierr);
+    ierr = PetscObjectIncrementTabLevel((PetscObject)pep->rg,(PetscObject)pep,0);CHKERRQ(ierr);
     ierr = PetscLogObjectParent((PetscObject)pep,(PetscObject)pep->rg);CHKERRQ(ierr);
+    ierr = PetscObjectSetOptions((PetscObject)pep->rg,((PetscObject)pep)->options);CHKERRQ(ierr);
   }
   *rg = pep->rg;
   PetscFunctionReturn(0);
@@ -493,7 +497,9 @@ PetscErrorCode PEPGetDS(PEP pep,DS *ds)
   PetscValidPointer(ds,2);
   if (!pep->ds) {
     ierr = DSCreate(PetscObjectComm((PetscObject)pep),&pep->ds);CHKERRQ(ierr);
+    ierr = PetscObjectIncrementTabLevel((PetscObject)pep->ds,(PetscObject)pep,0);CHKERRQ(ierr);
     ierr = PetscLogObjectParent((PetscObject)pep,(PetscObject)pep->ds);CHKERRQ(ierr);
+    ierr = PetscObjectSetOptions((PetscObject)pep->ds,((PetscObject)pep)->options);CHKERRQ(ierr);
   }
   *ds = pep->ds;
   PetscFunctionReturn(0);
@@ -556,7 +562,9 @@ PetscErrorCode PEPGetST(PEP pep,ST *st)
   PetscValidPointer(st,2);
   if (!pep->st) {
     ierr = STCreate(PetscObjectComm((PetscObject)pep),&pep->st);CHKERRQ(ierr);
+    ierr = PetscObjectIncrementTabLevel((PetscObject)pep->st,(PetscObject)pep,0);CHKERRQ(ierr);
     ierr = PetscLogObjectParent((PetscObject)pep,(PetscObject)pep->st);CHKERRQ(ierr);
+    ierr = PetscObjectSetOptions((PetscObject)pep->st,((PetscObject)pep)->options);CHKERRQ(ierr);
   }
   *st = pep->st;
   PetscFunctionReturn(0);
@@ -594,7 +602,9 @@ PetscErrorCode PEPRefineGetKSP(PEP pep,KSP *ksp)
       ierr = PetscLogObjectMemory((PetscObject)pep,sizeof(PetscSubcomm));CHKERRQ(ierr);
     }
     ierr = KSPCreate((pep->npart==1)?PetscObjectComm((PetscObject)pep):PetscSubcommChild(pep->refinesubc),&pep->refineksp);CHKERRQ(ierr);
+    ierr = PetscObjectIncrementTabLevel((PetscObject)pep->refineksp,(PetscObject)pep,0);CHKERRQ(ierr);
     ierr = PetscLogObjectParent((PetscObject)pep,(PetscObject)pep->refineksp);CHKERRQ(ierr);
+    ierr = PetscObjectSetOptions((PetscObject)pep->refineksp,((PetscObject)pep)->options);CHKERRQ(ierr);
     ierr = KSPSetOptionsPrefix(*ksp,((PetscObject)pep)->prefix);CHKERRQ(ierr);
     ierr = KSPAppendOptionsPrefix(*ksp,"pep_refine_");CHKERRQ(ierr);
     ierr = KSPSetTolerances(pep->refineksp,SLEPC_DEFAULT_TOL,PETSC_DEFAULT,PETSC_DEFAULT,PETSC_DEFAULT);CHKERRQ(ierr);

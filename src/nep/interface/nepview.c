@@ -185,6 +185,7 @@ PetscErrorCode NEPView(NEP nep,PetscViewer viewer)
   }
   ierr = PetscViewerPopFormat(viewer);CHKERRQ(ierr);
   if (nep->refine!=NEP_REFINE_NONE) {
+    ierr = PetscViewerASCIIPushTab(viewer);CHKERRQ(ierr);
     if (nep->npart>1) {
       if (nep->refinesubc->color==0) {
         ierr = PetscViewerASCIIGetStdout(PetscSubcommChild(nep->refinesubc),&sviewer);CHKERRQ(ierr);
@@ -193,6 +194,7 @@ PetscErrorCode NEPView(NEP nep,PetscViewer viewer)
     } else {
       ierr = KSPView(nep->refineksp,viewer);CHKERRQ(ierr);
     }
+    ierr = PetscViewerASCIIPopTab(viewer);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }

@@ -383,7 +383,9 @@ PetscErrorCode NEPGetBV(NEP nep,BV *bv)
   PetscValidPointer(bv,2);
   if (!nep->V) {
     ierr = BVCreate(PetscObjectComm((PetscObject)nep),&nep->V);CHKERRQ(ierr);
+    ierr = PetscObjectIncrementTabLevel((PetscObject)nep->V,(PetscObject)nep,0);CHKERRQ(ierr);
     ierr = PetscLogObjectParent((PetscObject)nep,(PetscObject)nep->V);CHKERRQ(ierr);
+    ierr = PetscObjectSetOptions((PetscObject)nep->V,((PetscObject)nep)->options);CHKERRQ(ierr);
   }
   *bv = nep->V;
   PetscFunctionReturn(0);
@@ -446,7 +448,9 @@ PetscErrorCode NEPGetRG(NEP nep,RG *rg)
   PetscValidPointer(rg,2);
   if (!nep->rg) {
     ierr = RGCreate(PetscObjectComm((PetscObject)nep),&nep->rg);CHKERRQ(ierr);
+    ierr = PetscObjectIncrementTabLevel((PetscObject)nep->rg,(PetscObject)nep,0);CHKERRQ(ierr);
     ierr = PetscLogObjectParent((PetscObject)nep,(PetscObject)nep->rg);CHKERRQ(ierr);
+    ierr = PetscObjectSetOptions((PetscObject)nep->rg,((PetscObject)nep)->options);CHKERRQ(ierr);
   }
   *rg = nep->rg;
   PetscFunctionReturn(0);
@@ -509,7 +513,9 @@ PetscErrorCode NEPGetDS(NEP nep,DS *ds)
   PetscValidPointer(ds,2);
   if (!nep->ds) {
     ierr = DSCreate(PetscObjectComm((PetscObject)nep),&nep->ds);CHKERRQ(ierr);
+    ierr = PetscObjectIncrementTabLevel((PetscObject)nep->ds,(PetscObject)nep,0);CHKERRQ(ierr);
     ierr = PetscLogObjectParent((PetscObject)nep,(PetscObject)nep->ds);CHKERRQ(ierr);
+    ierr = PetscObjectSetOptions((PetscObject)nep->ds,((PetscObject)nep)->options);CHKERRQ(ierr);
   }
   *ds = nep->ds;
   PetscFunctionReturn(0);
@@ -547,7 +553,9 @@ PetscErrorCode NEPRefineGetKSP(NEP nep,KSP *ksp)
       ierr = PetscLogObjectMemory((PetscObject)nep,sizeof(PetscSubcomm));CHKERRQ(ierr);
     }
     ierr = KSPCreate((nep->npart==1)?PetscObjectComm((PetscObject)nep):PetscSubcommChild(nep->refinesubc),&nep->refineksp);CHKERRQ(ierr);
+    ierr = PetscObjectIncrementTabLevel((PetscObject)nep->refineksp,(PetscObject)nep,0);CHKERRQ(ierr);
     ierr = PetscLogObjectParent((PetscObject)nep,(PetscObject)nep->refineksp);CHKERRQ(ierr);
+    ierr = PetscObjectSetOptions((PetscObject)nep->refineksp,((PetscObject)nep)->options);CHKERRQ(ierr);
     ierr = KSPSetOptionsPrefix(*ksp,((PetscObject)nep)->prefix);CHKERRQ(ierr);
     ierr = KSPAppendOptionsPrefix(*ksp,"nep_refine_");CHKERRQ(ierr);
     ierr = KSPSetTolerances(nep->refineksp,SLEPC_DEFAULT_TOL,PETSC_DEFAULT,PETSC_DEFAULT,PETSC_DEFAULT);CHKERRQ(ierr);

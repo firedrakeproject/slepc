@@ -506,7 +506,9 @@ PetscErrorCode EPSGetST(EPS eps,ST *st)
   PetscValidPointer(st,2);
   if (!eps->st) {
     ierr = STCreate(PetscObjectComm((PetscObject)eps),&eps->st);CHKERRQ(ierr);
+    ierr = PetscObjectIncrementTabLevel((PetscObject)eps->st,(PetscObject)eps,0);CHKERRQ(ierr);
     ierr = PetscLogObjectParent((PetscObject)eps,(PetscObject)eps->st);CHKERRQ(ierr);
+    ierr = PetscObjectSetOptions((PetscObject)eps->st,((PetscObject)eps)->options);CHKERRQ(ierr);
   }
   *st = eps->st;
   PetscFunctionReturn(0);
@@ -564,7 +566,9 @@ PetscErrorCode EPSGetBV(EPS eps,BV *V)
   PetscValidPointer(V,2);
   if (!eps->V) {
     ierr = BVCreate(PetscObjectComm((PetscObject)eps),&eps->V);CHKERRQ(ierr);
+    ierr = PetscObjectIncrementTabLevel((PetscObject)eps->V,(PetscObject)eps,0);CHKERRQ(ierr);
     ierr = PetscLogObjectParent((PetscObject)eps,(PetscObject)eps->V);CHKERRQ(ierr);
+    ierr = PetscObjectSetOptions((PetscObject)eps->V,((PetscObject)eps)->options);CHKERRQ(ierr);
   }
   *V = eps->V;
   PetscFunctionReturn(0);
@@ -626,7 +630,9 @@ PetscErrorCode EPSGetRG(EPS eps,RG *rg)
   PetscValidPointer(rg,2);
   if (!eps->rg) {
     ierr = RGCreate(PetscObjectComm((PetscObject)eps),&eps->rg);CHKERRQ(ierr);
+    ierr = PetscObjectIncrementTabLevel((PetscObject)eps->rg,(PetscObject)eps,0);CHKERRQ(ierr);
     ierr = PetscLogObjectParent((PetscObject)eps,(PetscObject)eps->rg);CHKERRQ(ierr);
+    ierr = PetscObjectSetOptions((PetscObject)eps->rg,((PetscObject)eps)->options);CHKERRQ(ierr);
   }
   *rg = eps->rg;
   PetscFunctionReturn(0);
@@ -688,7 +694,9 @@ PetscErrorCode EPSGetDS(EPS eps,DS *ds)
   PetscValidPointer(ds,2);
   if (!eps->ds) {
     ierr = DSCreate(PetscObjectComm((PetscObject)eps),&eps->ds);CHKERRQ(ierr);
+    ierr = PetscObjectIncrementTabLevel((PetscObject)eps->ds,(PetscObject)eps,0);CHKERRQ(ierr);
     ierr = PetscLogObjectParent((PetscObject)eps,(PetscObject)eps->ds);CHKERRQ(ierr);
+    ierr = PetscObjectSetOptions((PetscObject)eps->ds,((PetscObject)eps)->options);CHKERRQ(ierr);
   }
   *ds = eps->ds;
   PetscFunctionReturn(0);

@@ -2058,7 +2058,9 @@ PetscErrorCode NEPView_NLEIGS(NEP nep,PetscViewer viewer)
     ierr = PetscViewerASCIIPopTab(viewer);CHKERRQ(ierr);
     if (ctx->fullbasis) {
       if (!ctx->eps) { ierr = NEPNLEIGSGetEPS(nep,&ctx->eps);CHKERRQ(ierr); }
+      ierr = PetscViewerASCIIPushTab(viewer);CHKERRQ(ierr);
       ierr = EPSView(ctx->eps,viewer);CHKERRQ(ierr);
+      ierr = PetscViewerASCIIPopTab(viewer);CHKERRQ(ierr);
     }
   }
   PetscFunctionReturn(0);

@@ -446,7 +446,9 @@ PetscErrorCode LMEGetBV(LME lme,BV *bv)
   PetscValidPointer(bv,2);
   if (!lme->V) {
     ierr = BVCreate(PetscObjectComm((PetscObject)lme),&lme->V);CHKERRQ(ierr);
+    ierr = PetscObjectIncrementTabLevel((PetscObject)lme->V,(PetscObject)lme,0);CHKERRQ(ierr);
     ierr = PetscLogObjectParent((PetscObject)lme,(PetscObject)lme->V);CHKERRQ(ierr);
+    ierr = PetscObjectSetOptions((PetscObject)lme->V,((PetscObject)lme)->options);CHKERRQ(ierr);
   }
   *bv = lme->V;
   PetscFunctionReturn(0);

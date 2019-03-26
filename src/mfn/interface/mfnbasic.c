@@ -431,7 +431,9 @@ PetscErrorCode MFNGetBV(MFN mfn,BV *bv)
   PetscValidPointer(bv,2);
   if (!mfn->V) {
     ierr = BVCreate(PetscObjectComm((PetscObject)mfn),&mfn->V);CHKERRQ(ierr);
+    ierr = PetscObjectIncrementTabLevel((PetscObject)mfn->V,(PetscObject)mfn,0);CHKERRQ(ierr);
     ierr = PetscLogObjectParent((PetscObject)mfn,(PetscObject)mfn->V);CHKERRQ(ierr);
+    ierr = PetscObjectSetOptions((PetscObject)mfn->V,((PetscObject)mfn)->options);CHKERRQ(ierr);
   }
   *bv = mfn->V;
   PetscFunctionReturn(0);
@@ -493,7 +495,9 @@ PetscErrorCode MFNGetFN(MFN mfn,FN *fn)
   PetscValidPointer(fn,2);
   if (!mfn->fn) {
     ierr = FNCreate(PetscObjectComm((PetscObject)mfn),&mfn->fn);CHKERRQ(ierr);
+    ierr = PetscObjectIncrementTabLevel((PetscObject)mfn->fn,(PetscObject)mfn,0);CHKERRQ(ierr);
     ierr = PetscLogObjectParent((PetscObject)mfn,(PetscObject)mfn->fn);CHKERRQ(ierr);
+    ierr = PetscObjectSetOptions((PetscObject)mfn->fn,((PetscObject)mfn)->options);CHKERRQ(ierr);
   }
   *fn = mfn->fn;
   PetscFunctionReturn(0);

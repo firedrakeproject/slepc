@@ -196,6 +196,7 @@ PetscErrorCode PEPView(PEP pep,PetscViewer viewer)
   if (!pep->st) { ierr = PEPGetST(pep,&pep->st);CHKERRQ(ierr); }
   ierr = STView(pep->st,viewer);CHKERRQ(ierr);
   if (pep->refine!=PEP_REFINE_NONE) {
+    ierr = PetscViewerASCIIPushTab(viewer);CHKERRQ(ierr);
     if (pep->npart>1) {
       if (pep->refinesubc->color==0) {
         ierr = PetscViewerASCIIGetStdout(PetscSubcommChild(pep->refinesubc),&sviewer);CHKERRQ(ierr);
@@ -204,6 +205,7 @@ PetscErrorCode PEPView(PEP pep,PetscViewer viewer)
     } else {
       ierr = KSPView(pep->refineksp,viewer);CHKERRQ(ierr);
     }
+    ierr = PetscViewerASCIIPopTab(viewer);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }

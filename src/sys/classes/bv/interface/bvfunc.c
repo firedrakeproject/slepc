@@ -627,8 +627,11 @@ PetscErrorCode BVView(BV bv,PetscViewer viewer)
         } else {
           ierr = PetscViewerASCIIPrintf(viewer,"  non-standard inner product\n");CHKERRQ(ierr);
         }
+        ierr = PetscViewerASCIIPrintf(viewer,"  inner product matrix:\n");CHKERRQ(ierr);
         ierr = PetscViewerPushFormat(viewer,PETSC_VIEWER_ASCII_INFO);CHKERRQ(ierr);
+        ierr = PetscViewerASCIIPushTab(viewer);CHKERRQ(ierr);
         ierr = MatView(bv->matrix,viewer);CHKERRQ(ierr);
+        ierr = PetscViewerASCIIPopTab(viewer);CHKERRQ(ierr);
         ierr = PetscViewerPopFormat(viewer);CHKERRQ(ierr);
       }
       switch (bv->vmm) {
