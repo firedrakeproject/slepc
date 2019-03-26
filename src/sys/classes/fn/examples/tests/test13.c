@@ -19,15 +19,20 @@ PetscErrorCode TestMatLog(FN fn,Mat A,PetscViewer viewer,PetscBool verbose,Petsc
 {
   PetscErrorCode ierr;
   PetscBool      set,flg;
+  PetscScalar    tau,eta;
   PetscInt       n;
-  Mat            F;
+  Mat            F,R;
   Vec            v,f0;
+  FN             fnexp;
   PetscReal      nrm;
 
   PetscFunctionBeginUser;
   ierr = MatGetSize(A,&n,NULL);CHKERRQ(ierr);
   ierr = MatCreateSeqDense(PETSC_COMM_SELF,n,n,NULL,&F);CHKERRQ(ierr);
   ierr = PetscObjectSetName((PetscObject)F,"F");CHKERRQ(ierr);
+  ierr = MatCreateSeqDense(PETSC_COMM_SELF,n,n,NULL,&R);CHKERRQ(ierr);
+  ierr = PetscObjectSetName((PetscObject)R,"R");CHKERRQ(ierr);
+  ierr = FNGetScale(fn,&tau,&eta);CHKERRQ(ierr);
   /* compute matrix logarithm */
   if (inplace) {
     ierr = MatCopy(A,F,SAME_NONZERO_PATTERN);CHKERRQ(ierr);
@@ -43,9 +48,22 @@ PetscErrorCode TestMatLog(FN fn,Mat A,PetscViewer viewer,PetscBool verbose,Petsc
     ierr = PetscPrintf(PETSC_COMM_WORLD,"Computed logm(A) - - - - - - -\n");CHKERRQ(ierr);
     ierr = MatView(F,viewer);CHKERRQ(ierr);
   }
-  /* print matrix norm for checking */
-  ierr = MatNorm(F,NORM_1,&nrm);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"The 1-norm of f(A) is %g\n",(double)nrm);CHKERRQ(ierr);
+  /* check error ||expm(F)-A||_F */
+  ierr = FNCreate(PETSC_COMM_WORLD,&fnexp);CHKERRQ(ierr);
+  ierr = FNSetType(fnexp,FNEXP);CHKERRQ(ierr);
+  ierr = MatCopy(F,R,SAME_NONZERO_PATTERN);CHKERRQ(ierr);
+  if (eta!=1.0) {
+    ierr = MatScale(R,1.0/eta);CHKERRQ(ierr);
+  }
+  ierr = FNEvaluateFunctionMat(fnexp,R,NULL);CHKERRQ(ierr);
+  ierr = FNDestroy(&fnexp);CHKERRQ(ierr);
+  ierr = MatAXPY(R,-tau,A,SAME_NONZERO_PATTERN);CHKERRQ(ierr);
+  ierr = MatNorm(R,NORM_FROBENIUS,&nrm);CHKERRQ(ierr);
+  if (nrm<100*PETSC_MACHINE_EPSILON) {
+    ierr = PetscPrintf(PETSC_COMM_WORLD,"||expm(F)-A||_F < 100*eps\n");CHKERRQ(ierr);
+  } else {
+    ierr = PetscPrintf(PETSC_COMM_WORLD,"||expm(F)-A||_F = %g\n",(double)nrm);CHKERRQ(ierr);
+  }
   /* check FNEvaluateFunctionMatVec() */
   ierr = MatCreateVecs(A,&v,&f0);CHKERRQ(ierr);
   ierr = MatGetColumnVector(F,f0,0);CHKERRQ(ierr);
@@ -56,6 +74,7 @@ PetscErrorCode TestMatLog(FN fn,Mat A,PetscViewer viewer,PetscBool verbose,Petsc
     ierr = PetscPrintf(PETSC_COMM_WORLD,"Warning: the norm of f(A)*e_1-v is %g\n",(double)nrm);CHKERRQ(ierr);
   }
   ierr = MatDestroy(&F);CHKERRQ(ierr);
+  ierr = MatDestroy(&R);CHKERRQ(ierr);
   ierr = VecDestroy(&v);CHKERRQ(ierr);
   ierr = VecDestroy(&f0);CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -99,6 +118,7 @@ int main(int argc,char **argv)
   for (j=1;j<3;j++) {
     for (i=0;i<n-j;i++) { As[i+(i+j)*n]=1.0; As[(i+j)+i*n]=-1.0; }
   }
+  As[(n-1)*n] = -5.0;
   ierr = MatDenseRestoreArray(A,&As);CHKERRQ(ierr);
   ierr = MatSetOption(A,MAT_HERMITIAN,PETSC_FALSE);CHKERRQ(ierr);
   ierr = TestMatLog(fn,A,viewer,verbose,inplace);CHKERRQ(ierr);
@@ -114,6 +134,7 @@ int main(int argc,char **argv)
    test:
       suffix: 1
       requires: c99_complex
+      args: -fn_scale .05,2 -n 100
       filter: grep -v "computing matrix functions"
 
 TEST*/

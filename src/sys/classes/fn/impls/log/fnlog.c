@@ -468,7 +468,7 @@ static PetscErrorCode pade_approx(PetscBLASInt n,PetscScalar *T,PetscScalar *L,P
   ierr = PetscMemzero(L,n*n*sizeof(PetscScalar));CHKERRQ(ierr);
   for (k=0;k<m;k++) {
     for (i=0;i<n;i++) for (j=0;j<n;j++) K[i+j*ld] = nodes[k]*T[i+j*ld];
-    for (i=0;i<n;i++) K[i+j*ld] += 1.0;
+    for (i=0;i<n;i++) K[i+i*ld] += 1.0;
     for (i=0;i<n;i++) for (j=0;j<n;j++) W[i+j*ld] = T[i+j*ld];
     PetscStackCallBLAS("LAPACKgesv",LAPACKgesv_(&n,&n,K,&n,ipiv,W,&n,&info));
     for (i=0;i<n;i++) for (j=0;j<n;j++) L[i+j*ld] += wts[k]*W[i+j*ld];
@@ -600,8 +600,8 @@ static PetscErrorCode SlepcLogmPade(PetscBLASInt n,PetscScalar *T,PetscBLASInt l
   /* recompute diagonal blocks */
   ierr = recompute_diag_blocks_log(n,L,T,ld,blockformat);CHKERRQ(ierr);
 
-  /* backtransform B = Q*T*Q' */
-  PetscStackCallBLAS("BLASgemm",BLASgemm_("N","C",&n,&k,&n,&one,T,&ld,Q,&ld,&zero,W,&ld));
+  /* backtransform B = Q*L*Q' */
+  PetscStackCallBLAS("BLASgemm",BLASgemm_("N","C",&n,&k,&n,&one,L,&ld,Q,&ld,&zero,W,&ld));
   PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&n,&k,&n,&one,Q,&ld,W,&ld,&zero,T,&ld));
 
   /* flop count: Schur decomposition, and backtransform */
