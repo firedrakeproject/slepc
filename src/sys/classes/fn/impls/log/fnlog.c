@@ -260,9 +260,11 @@ PETSC_STATIC_INLINE PetscScalar myatanh(PetscScalar x)
 
   PetscFunctionBegin;
 #if !defined(PETSC_USE_COMPLEX)
-  if (x<-1.0 || x>1.0) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ARG_OUTOFRANGE,"x should be in [-1,1]");
-#endif
+  if (x<=-1.0 || x>=1.0) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ARG_OUTOFRANGE,"x should be in (-1,1)");
   t = 0.5*PetscLogScalar((1.0+x)/(1.0-x));
+#else
+  t = 0.5*PetscLogScalar(1.0+x)-0.5*PetscLogScalar(1.0-x);
+#endif
   PetscFunctionReturn(t);
 }
 
@@ -544,12 +546,10 @@ static PetscErrorCode SlepcLogmPade(PetscBLASInt n,PetscScalar *T,PetscBLASInt l
 #else
   PetscErrorCode ierr;
   PetscBLASInt   k,sdim,lwork,info;
-  PetscScalar    *wr,*W,*Q,*Troot,*L,*work,one=1.0,zero=0.0,alpha;
+  PetscScalar    *wr,*wi=NULL,*W,*Q,*Troot,*L,*work,one=1.0,zero=0.0,alpha;
   PetscInt       i,j,s,m,*blockformat;
 #if defined(PETSC_USE_COMPLEX)
   PetscReal      *rwork;
-#else
-  PetscReal      *wi;
 #endif
 
   PetscFunctionBegin;
@@ -578,11 +578,7 @@ static PetscErrorCode SlepcLogmPade(PetscBLASInt n,PetscScalar *T,PetscBLASInt l
   ierr = qtri_struct(n,T,ld,blockformat);CHKERRQ(ierr);
 
   /* get parameters */
-#if !defined(PETSC_USE_COMPLEX)
   ierr = logm_params(n,T,ld,wr,wi,100,&s,&m,Troot,work);CHKERRQ(ierr);
-#else
-  ierr = logm_params(n,T,ld,wr,NULL,100,&s,&m,Troot,work);CHKERRQ(ierr);
-#endif
 
   /* compute Troot - I = T(1/2^s) - I more accurately */
   ierr = recompute_diag_blocks_sqrt(n,Troot,T,ld,blockformat,s);CHKERRQ(ierr);
