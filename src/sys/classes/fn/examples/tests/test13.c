@@ -88,12 +88,13 @@ int main(int argc,char **argv)
   PetscInt       i,j,n=10;
   PetscScalar    *As;
   PetscViewer    viewer;
-  PetscBool      verbose,inplace;
+  PetscBool      verbose,inplace,random;
 
   ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
   ierr = PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL);CHKERRQ(ierr);
   ierr = PetscOptionsHasName(NULL,NULL,"-verbose",&verbose);CHKERRQ(ierr);
   ierr = PetscOptionsHasName(NULL,NULL,"-inplace",&inplace);CHKERRQ(ierr);
+  ierr = PetscOptionsHasName(NULL,NULL,"-random",&random);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD,"Matrix logarithm, n=%D.\n",n);CHKERRQ(ierr);
 
   /* Create logarithm function object */
@@ -112,15 +113,18 @@ int main(int argc,char **argv)
   ierr = MatCreateSeqDense(PETSC_COMM_SELF,n,n,NULL,&A);CHKERRQ(ierr);
   ierr = PetscObjectSetName((PetscObject)A,"A");CHKERRQ(ierr);
 
-  /* Fill A with a non-symmetric Toeplitz matrix */
-  ierr = MatDenseGetArray(A,&As);CHKERRQ(ierr);
-  for (i=0;i<n;i++) As[i+i*n]=2.0;
-  for (j=1;j<3;j++) {
-    for (i=0;i<n-j;i++) { As[i+(i+j)*n]=1.0; As[(i+j)+i*n]=-1.0; }
+  if (random) {
+    ierr = MatSetRandom(A,NULL);CHKERRQ(ierr);
+  } else {
+    /* Fill A with a non-symmetric Toeplitz matrix */
+    ierr = MatDenseGetArray(A,&As);CHKERRQ(ierr);
+    for (i=0;i<n;i++) As[i+i*n]=2.0;
+    for (j=1;j<3;j++) {
+      for (i=0;i<n-j;i++) { As[i+(i+j)*n]=1.0; As[(i+j)+i*n]=-1.0; }
+    }
+    As[(n-1)*n] = -5.0;
+    ierr = MatDenseRestoreArray(A,&As);CHKERRQ(ierr);
   }
-  As[(n-1)*n] = -5.0;
-  ierr = MatDenseRestoreArray(A,&As);CHKERRQ(ierr);
-  ierr = MatSetOption(A,MAT_HERMITIAN,PETSC_FALSE);CHKERRQ(ierr);
   ierr = TestMatLog(fn,A,viewer,verbose,inplace);CHKERRQ(ierr);
 
   ierr = MatDestroy(&A);CHKERRQ(ierr);
@@ -131,10 +135,16 @@ int main(int argc,char **argv)
 
 /*TEST
 
-   test:
-      suffix: 1
-      requires: c99_complex
-      args: -fn_scale .05,2 -n 100
+   testset:
       filter: grep -v "computing matrix functions"
+      output_file: output/test13_1.out
+      test:
+         suffix: 1
+         args: -fn_scale .04,2 -n 75
+         requires: c99_complex
+      test:
+         suffix: 1_random
+         args: -fn_scale .04,2 -n 75 -random
+         requires: complex
 
 TEST*/

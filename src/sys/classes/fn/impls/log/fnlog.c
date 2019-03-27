@@ -104,6 +104,8 @@ static PetscErrorCode logm_params(PetscBLASInt n,PetscScalar *T,PetscBLASInt ld,
       PetscComplex z = PetscSqrtComplex(wr[i]+wi[i]*PETSC_i);
       wr[i] = PetscRealPartComplex(z);
       wi[i] = PetscImaginaryPartComplex(z);
+#else
+      SETERRQ(PETSC_COMM_SELF,1,"This operation requires a compiler with C99 or C++ complex support");
 #endif
 #endif
     }
@@ -249,17 +251,18 @@ static PetscErrorCode sqrtm_tbt(PetscScalar *T)
   PetscFunctionReturn(0);
 }
 
-#if !defined(PETSC_USE_COMPLEX)
 /*
    Inverse hyperbolic tangent of x
 */
-PETSC_STATIC_INLINE PetscReal myatanh(PetscScalar x)
+PETSC_STATIC_INLINE PetscScalar myatanh(PetscScalar x)
 {
-  PetscReal t;
+  PetscScalar t;
 
   PetscFunctionBegin;
+#if !defined(PETSC_USE_COMPLEX)
   if (x<-1.0 || x>1.0) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ARG_OUTOFRANGE,"x should be in [-1,1]");
-  t = 0.5*PetscLogReal((1.0+x)/(1.0-x));
+#endif
+  t = 0.5*PetscLogScalar((1.0+x)/(1.0-x));
   PetscFunctionReturn(t);
 }
 
@@ -274,7 +277,6 @@ PETSC_STATIC_INLINE PetscInt unwinding(PetscScalar z)
   u = PetscCeilReal((PetscImaginaryPart(z)-PETSC_PI)/(2.0*PETSC_PI));
   PetscFunctionReturn(u);
 }
-#endif
 
 /*
    Power of 2-by-2 upper triangular matrix A.
@@ -282,30 +284,25 @@ PETSC_STATIC_INLINE PetscInt unwinding(PetscScalar z)
 */
 static PetscScalar powerm2by2(PetscScalar A11,PetscScalar A22,PetscScalar A12,PetscReal p)
 {
-#if defined(PETSC_USE_COMPLEX)
-  PetscFunctionBegin;
-  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"Should not arrive here in complex scalars");
-#else
-  PetscReal a1,a2,a1p,a2p,loga1,loga2,w,dd,x12;
+  PetscScalar a1,a2,a1p,a2p,loga1,loga2,w,dd,x12;
 
   PetscFunctionBegin;
   a1 = A11;
   a2 = A22;
   if (a1 == a2) {
-    x12 = p*A12*PetscPowReal(a1,p-1);
-  } else if (PetscAbsReal(a1) < 0.5*PetscAbsReal(a2) || PetscAbsReal(a2) < 0.5*PetscAbsReal(a1)) {
-    a1p = PetscPowReal(a1,p);
-    a2p = PetscPowReal(a2,p);
+    x12 = p*A12*PetscPowScalarReal(a1,p-1);
+  } else if (PetscAbsScalar(a1) < 0.5*PetscAbsScalar(a2) || PetscAbsScalar(a2) < 0.5*PetscAbsScalar(a1)) {
+    a1p = PetscPowScalarReal(a1,p);
+    a2p = PetscPowScalarReal(a2,p);
     x12 = A12*(a2p-a1p)/(a2-a1);
   } else {  /* Close eigenvalues */
-    loga1 = PetscLogReal(a1);
-    loga2 = PetscLogReal(a2);
+    loga1 = PetscLogScalar(a1);
+    loga2 = PetscLogScalar(a2);
     w = myatanh((a2-a1)/(a2+a1)) + PETSC_i*PETSC_PI*unwinding(loga2-loga1);
-    dd = 2.0*PetscExpReal(p*(loga1+loga2)/2.0)*PetscSinhReal(p*w)/(a2-a1);
+    dd = 2.0*PetscExpScalar(p*(loga1+loga2)/2.0)*PetscSinhScalar(p*w)/(a2-a1);
     x12 = A12*dd;
   }
   PetscFunctionReturn(x12);
-#endif
 }
 
 /*
