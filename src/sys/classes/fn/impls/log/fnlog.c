@@ -268,6 +268,7 @@ PETSC_STATIC_INLINE PetscScalar myatanh(PetscScalar x)
   PetscFunctionReturn(t);
 }
 
+#if defined(PETSC_USE_COMPLEX)
 /*
    Unwinding number of z
 */
@@ -279,6 +280,7 @@ PETSC_STATIC_INLINE PetscInt unwinding(PetscScalar z)
   u = PetscCeilReal((PetscImaginaryPart(z)-PETSC_PI)/(2.0*PETSC_PI));
   PetscFunctionReturn(u);
 }
+#endif
 
 /*
    Power of 2-by-2 upper triangular matrix A.
@@ -300,7 +302,10 @@ static PetscScalar powerm2by2(PetscScalar A11,PetscScalar A22,PetscScalar A12,Pe
   } else {  /* Close eigenvalues */
     loga1 = PetscLogScalar(a1);
     loga2 = PetscLogScalar(a2);
-    w = myatanh((a2-a1)/(a2+a1)) + PETSC_i*PETSC_PI*unwinding(loga2-loga1);
+    w = myatanh((a2-a1)/(a2+a1));
+#if defined(PETSC_USE_COMPLEX)
+    w += PETSC_i*PETSC_PI*unwinding(loga2-loga1);
+#endif
     dd = 2.0*PetscExpScalar(p*(loga1+loga2)/2.0)*PetscSinhScalar(p*w)/(a2-a1);
     x12 = A12*dd;
   }
@@ -512,7 +517,11 @@ static PetscErrorCode recompute_diag_blocks_log(PetscBLASInt n,PetscScalar *L,Pe
           a12 = T[j+(j+1)*ld]*(loga2-loga1)/(a2-a1);
         } else {  /* Close eigenvalues */
           z = (a2-a1)/(a2+a1);
-          dd = (2.0*myatanh(z) + 2.0*PETSC_PI*PETSC_i*(unwinding(loga2-loga1))) / (a2-a1);
+          dd = 2.0*myatanh(z);
+#if defined(PETSC_USE_COMPLEX)
+          dd += 2.0*PETSC_i*PETSC_PI*unwinding(loga2-loga1);
+#endif
+          dd /= (a2-a1);
           a12 = T[j+(j+1)*ld]*dd;
         }
         L[j+(j+1)*ld] = a12;
