@@ -92,7 +92,6 @@ PetscErrorCode SVDGetImplicitTranspose(SVD svd,PetscBool *impl)
    Options Database Keys:
 +  -svd_tol <tol> - Sets the convergence tolerance
 -  -svd_max_it <maxits> - Sets the maximum number of iterations allowed
-   (use PETSC_DECIDE to compute an educated guess based on basis and matrix sizes)
 
    Note:
    Use PETSC_DEFAULT for either argument to assign a reasonably good value.

@@ -1060,7 +1060,7 @@ PetscErrorCode PEPGetStoppingTest(PEP pep,PEPStop *stop)
    In the scalar strategy, scaling is applied to the eigenvalue, that is,
    mu = lambda/alpha is the new eigenvalue and all matrices are scaled
    accordingly. After solving the scaled problem, the original lambda is
-   recovered. Parameter 'alpha' must be positive. Use PETSC_DECIDE to let
+   recovered. Parameter 'alpha' must be positive. Use PETSC_DEFAULT to let
    the solver compute a reasonable scaling factor.
 
    In the diagonal strategy, the solver works implicitly with matrix Dl*A*Dr,
@@ -1070,7 +1070,7 @@ PetscErrorCode PEPGetStoppingTest(PEP pep,PEPStop *stop)
    provided, these matrices are computed internally. This option requires
    that the polynomial coefficient matrices are of MATAIJ type.
    The parameter 'its' is the number of iterations performed by the method.
-   Parameter 'lambda' must be positive. Use PETSC_DECIDE or set lambda = 1.0 if
+   Parameter 'lambda' must be positive. Use PETSC_DEFAULT or set lambda = 1.0 if
    no information about eigenvalues is available.
 
    Level: intermediate
