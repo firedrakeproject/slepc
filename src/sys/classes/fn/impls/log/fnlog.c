@@ -272,9 +272,9 @@ PETSC_STATIC_INLINE PetscScalar myatanh(PetscScalar x)
 /*
    Unwinding number of z
 */
-PETSC_STATIC_INLINE PetscInt unwinding(PetscScalar z)
+PETSC_STATIC_INLINE PetscReal unwinding(PetscScalar z)
 {
-  PetscInt u;
+  PetscReal u;
 
   PetscFunctionBegin;
   u = PetscCeilReal((PetscImaginaryPart(z)-PETSC_PI)/(2.0*PETSC_PI));
@@ -485,8 +485,11 @@ static PetscErrorCode pade_approx(PetscBLASInt n,PetscScalar *T,PetscScalar *L,P
 */
 static PetscErrorCode recompute_diag_blocks_log(PetscBLASInt n,PetscScalar *L,PetscScalar *T,PetscBLASInt ld,PetscInt *blockStruct)
 {
-  PetscScalar a1,a2,a12,loga1,loga2,z,dd,f,t;
+  PetscScalar a1,a2,a12,loga1,loga2,z,dd;
   PetscInt    j,last_block=0;
+#if !defined(PETSC_USE_COMPLEX)
+  PetscScalar f,t;
+#endif
 
   PetscFunctionBegin;
   for (j=0;j<n-1;j++) {
@@ -528,12 +531,16 @@ static PetscErrorCode recompute_diag_blocks_log(PetscBLASInt n,PetscScalar *L,Pe
         break;
       case 2: /* Start of quasi-tri block */
         last_block = 2;
+#if defined(PETSC_USE_COMPLEX)
+        SETERRQ(PETSC_COMM_SELF,1,"Should not reach this line in complex scalars");
+#else
         f = 0.5*PetscLogScalar(T[j+j*ld]*T[j+j*ld]-T[j+(j+1)*ld]*T[j+1+j*ld]);
         t = PetscAtan2Real(PetscSqrtScalar(-T[j+(j+1)*ld]*T[j+1+j*ld]),T[j+j*ld])/PetscSqrtScalar(-T[j+(j+1)*ld]*T[j+1+j*ld]);
         L[j+j*ld]       = f;
         L[j+1+j*ld]     = t*T[j+1+j*ld];
         L[j+(j+1)*ld]   = t*T[j+(j+1)*ld];
         L[j+1+(j+1)*ld] = f;
+#endif
     }
   }
   PetscFunctionReturn(0);
@@ -556,7 +563,7 @@ static PetscErrorCode SlepcLogmPade(PetscBLASInt n,PetscScalar *T,PetscBLASInt l
   PetscErrorCode ierr;
   PetscBLASInt   k,sdim,lwork,info;
   PetscScalar    *wr,*wi=NULL,*W,*Q,*Troot,*L,*work,one=1.0,zero=0.0,alpha;
-  PetscInt       i,j,s,m,*blockformat;
+  PetscInt       i,j,s=0,m=0,*blockformat;
 #if defined(PETSC_USE_COMPLEX)
   PetscReal      *rwork;
 #endif
@@ -566,7 +573,7 @@ static PetscErrorCode SlepcLogmPade(PetscBLASInt n,PetscScalar *T,PetscBLASInt l
   k     = firstonly? 1: n;
 
   /* compute Schur decomposition A*Q = Q*T */
-  ierr = PetscMalloc7(n,&wr,n*k,&W,n*n,&Q,n*n,&Troot,n*n,&L,lwork,&work,n-1,&blockformat);CHKERRQ(ierr);
+  ierr = PetscCalloc7(n,&wr,n*k,&W,n*n,&Q,n*n,&Troot,n*n,&L,lwork,&work,n-1,&blockformat);CHKERRQ(ierr);
 #if !defined(PETSC_USE_COMPLEX)
   ierr = PetscMalloc1(n,&wi);CHKERRQ(ierr);
   PetscStackCallBLAS("LAPACKgees",LAPACKgees_("V","N",NULL,&n,T,&ld,&sdim,wr,wi,Q,&ld,work,&lwork,NULL,&info));
