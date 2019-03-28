@@ -173,3 +173,53 @@ PetscErrorCode PEPExtractVectors_TOAR(PEP pep)
   PetscFunctionReturn(0);
 }
 
+/*
+   PEPKrylovConvergence - This is the analogue to EPSKrylovConvergence, but
+   for polynomial Krylov methods.
+
+   Differences:
+   - Always non-symmetric
+   - Does not check for STSHIFT
+   - No correction factor
+   - No support for true residual
+*/
+PetscErrorCode PEPKrylovConvergence(PEP pep,PetscBool getall,PetscInt kini,PetscInt nits,PetscReal beta,PetscInt *kout)
+{
+  PetscErrorCode ierr;
+  PetscInt       k,newk,marker,inside;
+  PetscScalar    re,im;
+  PetscReal      resnorm;
+  PetscBool      istrivial;
+
+  PetscFunctionBegin;
+  ierr = RGIsTrivial(pep->rg,&istrivial);CHKERRQ(ierr);
+  marker = -1;
+  if (pep->trackall) getall = PETSC_TRUE;
+  for (k=kini;k<kini+nits;k++) {
+    /* eigenvalue */
+    re = pep->eigr[k];
+    im = pep->eigi[k];
+    if (!istrivial) {
+      ierr = STBackTransform(pep->st,1,&re,&im);CHKERRQ(ierr);
+      ierr = RGCheckInside(pep->rg,1,&re,&im,&inside);CHKERRQ(ierr);
+      if (marker==-1 && inside<0) marker = k;
+      re = pep->eigr[k];
+      im = pep->eigi[k];
+    }
+    newk = k;
+    ierr = DSVectors(pep->ds,DS_MAT_X,&newk,&resnorm);CHKERRQ(ierr);
+    resnorm *= beta;
+    /* error estimate */
+    ierr = (*pep->converged)(pep,re,im,resnorm,&pep->errest[k],pep->convergedctx);CHKERRQ(ierr);
+    if (marker==-1 && pep->errest[k] >= pep->tol) marker = k;
+    if (newk==k+1) {
+      pep->errest[k+1] = pep->errest[k];
+      k++;
+    }
+    if (marker!=-1 && !getall) break;
+  }
+  if (marker!=-1) k = marker;
+  *kout = k;
+  PetscFunctionReturn(0);
+}
+
