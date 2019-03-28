@@ -59,5 +59,6 @@ int main(int argc,char **argv)
    test:
       suffix: 1
       nsize: 1
+      filter: grep -v "computing matrix functions"
 
 TEST*/
