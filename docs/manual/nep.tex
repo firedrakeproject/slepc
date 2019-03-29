@@ -285,14 +285,14 @@ Recomputing the preconditioner every 2 iterations, say, will introduce a conside
 \end{Verbatim}
 The example uses RII with BiCGStab plus ILU, where the preconditioner is updated every two outer iterations and linear systems are solved up to a tolerance of $10^{-3}$.
 
-The NLEIGS solver is most appropriate for problems where $T(\cdot)$ is singular at some known parts of the complex plane, for instance the case that $T(\cdot)$ contains $\sqrt{\lambda}$. To treat this case effectively, the NLEIGS solver requires a discretization of the singularity set, which must be provided in the form of a callback function:
+The NLEIGS solver is most appropriate for problems where $T(\cdot)$ is singular at some known parts of the complex plane, for instance the case that $T(\cdot)$ contains $\sqrt{\lambda}$. To treat this case effectively, the NLEIGS solver requires a discretization of the singularity set, which can be provided by the user in the form of a callback function:
 	\findex{NEPNLEIGSSetSingularitiesFunction}
 	\begin{Verbatim}[fontsize=\small]
         NEPNLEIGSSetSingularitiesFunction(NEP nep,PetscErrorCode (*fun)
                           (NEP,PetscInt*,PetscScalar*,void*),void *ctx);
 	\end{Verbatim}
 Alternatively, if the problem is known to be a rational eigenvalue problem, the user can avoid the computation of singularities by just specifying the problem type with \ident{NEPSetProblemType}, as explained at the end of the previous section.
-If none of the above functions is invoked by the user, then the NLEIGS solver performs a polynomial interpolation, rather than rational.
+If none of the above functions is invoked by the user, then the NLEIGS solver attempts to determine the singularities automatically.
 
 %---------------------------------------------------
 \section{Retrieving the Solution}

@@ -231,7 +231,7 @@ The special case of computing all eigenvalues in an interval is discussed in the
 	\begin{Verbatim}[fontsize=\small]
 	EPSSetInterval(EPS eps,PetscScalar a,PetscScalar b);
 	\end{Verbatim}
-which is equivalent to \Verb!-eps_interval <a,b>!.
+which is equivalent to \Verb!-eps_interval a,b!.
 
 There is also support for specifying a region of the complex plane so that the eigensolver finds eigenvalues within that region only. This possibility is described in \S\ref{sec:region}. If \emph{all} eigenvalues inside the region are required, then a contour-integral method must be used, as described in \hyperlink{str}{[STR-11]}.
 
