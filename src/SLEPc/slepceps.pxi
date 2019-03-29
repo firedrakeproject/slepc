@@ -135,6 +135,9 @@ cdef extern from * nogil:
     int EPSSetOperators(SlepcEPS,PetscMat,PetscMat)
     int EPSGetOperators(SlepcEPS,PetscMat*,PetscMat*)
 
+    int EPSSetTwoSided(SlepcEPS,PetscBool)
+    int EPSGetTwoSided(SlepcEPS,PetscBool*)
+
     int EPSSetConvergenceTest(SlepcEPS,SlepcEPSConv)
     int EPSGetConvergenceTest(SlepcEPS,SlepcEPSConv*)
 

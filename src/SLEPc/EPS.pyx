@@ -693,6 +693,33 @@ cdef class EPS(Object):
         if max_it is not None: ival = asInt(max_it)
         CHKERR( EPSSetTolerances(self.eps, rval, ival) )
 
+    def getTwoSided(self):
+        """
+        Returns the flag indicating whether a two-sided variant
+        of the algorithm is being used or not.
+
+        Returns
+        -------
+        twosided: bool
+            Whether the two-sided variant is to be used or not.
+        """
+        cdef PetscBool tval = PETSC_FALSE
+        CHKERR( EPSGetTwoSided(self.eps, &tval) )
+        return <bint> tval
+
+    def setTwoSided(self, twosided):
+        """
+        Sets the solver to use a two-sided variant so that left
+        eigenvectors are also computed.
+
+        Parameters
+        ----------
+        twosided: bool
+            Whether the two-sided variant is to be used or not.
+        """
+        cdef PetscBool tval = twosided
+        CHKERR( EPSSetTwoSided(self.eps, tval) )
+
     def getConvergenceTest(self):
         """
         Return the method used to compute the error estimate 

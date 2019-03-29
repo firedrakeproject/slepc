@@ -672,6 +672,33 @@ cdef class NEP(Object):
             Fs[i] = (<FN?>f[i]).fn
         CHKERR( NEPSetSplitOperator(self.nep, <PetscInt>n, As, Fs, mstr) )
 
+    def getTwoSided(self):
+        """
+        Returns the flag indicating whether a two-sided variant
+        of the algorithm is being used or not.
+
+        Returns
+        -------
+        twosided: bool
+            Whether the two-sided variant is to be used or not.
+        """
+        cdef PetscBool tval = PETSC_FALSE
+        CHKERR( NEPGetTwoSided(self.nep, &tval) )
+        return <bint> tval
+
+    def setTwoSided(self, twosided):
+        """
+        Sets the solver to use a two-sided variant so that left
+        eigenvectors are also computed.
+
+        Parameters
+        ----------
+        twosided: bool
+            Whether the two-sided variant is to be used or not.
+        """
+        cdef PetscBool tval = twosided
+        CHKERR( NEPSetTwoSided(self.nep, tval) )
+
 # -----------------------------------------------------------------------------
 
 del NEPType

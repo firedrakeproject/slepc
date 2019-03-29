@@ -86,6 +86,9 @@ cdef extern from * nogil:
     int NEPSetTolerances(SlepcNEP,PetscReal,PetscInt)
     int NEPGetTolerances(SlepcNEP,PetscReal*,PetscInt*)
 
+    int NEPSetTwoSided(SlepcNEP,PetscBool)
+    int NEPGetTwoSided(SlepcNEP,PetscBool*)
+
     int NEPSetTrackAll(SlepcNEP,PetscBool)
     int NEPGetTrackAll(SlepcNEP,PetscBool*)
 
