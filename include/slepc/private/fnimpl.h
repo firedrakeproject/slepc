@@ -101,7 +101,7 @@ SLEPC_INTERN PetscErrorCode SlepcMatDenseSqrt(PetscBLASInt,PetscScalar*,PetscBLA
 SLEPC_INTERN PetscErrorCode SlepcSqrtmSchur(PetscBLASInt,PetscScalar*,PetscBLASInt,PetscBool);
 SLEPC_INTERN PetscErrorCode SlepcSqrtmDenmanBeavers(PetscBLASInt,PetscScalar*,PetscBLASInt,PetscBool);
 SLEPC_INTERN PetscErrorCode SlepcSqrtmNewtonSchulz(PetscBLASInt,PetscScalar*,PetscBLASInt,PetscBool);
-SLEPC_INTERN PetscErrorCode SlepcNormAm(PetscInt,PetscScalar*,PetscInt,PetscScalar*,PetscRandom,PetscReal*);
+SLEPC_INTERN PetscErrorCode SlepcNormAm(PetscBLASInt,PetscScalar*,PetscInt,PetscScalar*,PetscRandom,PetscReal*);
 SLEPC_INTERN PetscErrorCode FNEvaluateFunctionMat_Private(FN,Mat,Mat,PetscBool);
 SLEPC_INTERN PetscErrorCode FNEvaluateFunctionMatVec_Private(FN,Mat,Vec,PetscBool);
 SLEPC_INTERN PetscErrorCode FNEvaluateFunctionMat_Exp_Higham(FN,Mat,Mat); /* used in FNPHI */
