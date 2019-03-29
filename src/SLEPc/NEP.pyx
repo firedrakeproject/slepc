@@ -535,6 +535,33 @@ cdef class NEP(Object):
         CHKERR( NEPGetEigenpair(self.nep, i, &sval1, &sval2, vecr, veci) )
         return toComplex(sval1, sval2)
 
+    def getLeftEigenvector(self, int i, Vec Wr, Vec Wi=None):
+        """
+        Gets the i-th left eigenvector as computed by `solve()`.
+
+        Parameters
+        ----------
+        i: int
+           Index of the solution to be obtained.
+        Wr: Vec
+            Placeholder for the returned eigenvector (real part).
+        Wi: Vec, optional
+            Placeholder for the returned eigenvector (imaginary part).
+
+        Notes
+        -----
+        The index ``i`` should be a value between ``0`` and
+        ``nconv-1`` (see `getConverged()`). Eigensolutions are indexed
+        according to the ordering criterion established with
+        `setWhichEigenpairs()`.
+
+        Left eigenvectors are available only if the twosided flag was set
+        with `setTwoSided()`.
+        """
+        cdef PetscVec vecr = Wr.vec
+        cdef PetscVec veci = Wi.vec if Wi is not None else <PetscVec>NULL
+        CHKERR( NEPGetLeftEigenvector(self.nep, i, vecr, veci) )
+
     def getErrorEstimate(self, int i):
         """
         Returns the error estimate associated to the i-th computed

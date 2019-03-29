@@ -160,6 +160,7 @@ cdef extern from * nogil:
     int EPSGetConverged(SlepcEPS,PetscInt*)
     int EPSGetEigenvalue(SlepcEPS,PetscInt,PetscScalar*,PetscScalar*)
     int EPSGetEigenvector(SlepcEPS,PetscInt,PetscVec,PetscVec)
+    int EPSGetLeftEigenvector(SlepcEPS,PetscInt,PetscVec,PetscVec)
     int EPSGetEigenpair(SlepcEPS,PetscInt,PetscScalar*,PetscScalar*,PetscVec,PetscVec)
     int EPSGetInvariantSubspace(SlepcEPS,PetscVec*)
 

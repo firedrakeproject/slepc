@@ -1227,6 +1227,33 @@ cdef class EPS(Object):
         cdef PetscVec veci = Vi.vec if Vi is not None else <PetscVec>NULL
         CHKERR( EPSGetEigenvector(self.eps, i, vecr, veci) )
 
+    def getLeftEigenvector(self, int i, Vec Wr, Vec Wi=None):
+        """
+        Gets the i-th left eigenvector as computed by `solve()`.
+
+        Parameters
+        ----------
+        i: int
+           Index of the solution to be obtained.
+        Wr: Vec
+            Placeholder for the returned eigenvector (real part).
+        Wi: Vec, optional
+            Placeholder for the returned eigenvector (imaginary part).
+
+        Notes
+        -----
+        The index ``i`` should be a value between ``0`` and
+        ``nconv-1`` (see `getConverged()`). Eigensolutions are indexed
+        according to the ordering criterion established with
+        `setWhichEigenpairs()`.
+
+        Left eigenvectors are available only if the twosided flag was set
+        with `setTwoSided()`.
+        """
+        cdef PetscVec vecr = Wr.vec
+        cdef PetscVec veci = Wi.vec if Wi is not None else <PetscVec>NULL
+        CHKERR( EPSGetLeftEigenvector(self.eps, i, vecr, veci) )
+
     def getEigenpair(self, int i, Vec Vr=None, Vec Vi=None):
         """
         Gets the i-th solution of the eigenproblem as computed by
