@@ -286,7 +286,7 @@ int main(int argc,char **argv)
    testset:
       args: -pep_nev 4 -initv -mat_type aijcusparse
       output_file: output/test2_1.out
-      requires: cuda
+      requires: cuda !single
       test:
          suffix: 11_cuda
          args: -pep_type {{toar linear}}

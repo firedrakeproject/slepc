@@ -179,7 +179,7 @@ int main(int argc,char **argv)
 
    testset:
       args: -svd_nsv 4 -mat_type aijcusparse
-      requires: cuda
+      requires: cuda !single
       output_file: output/test3_1.out
       test:
          suffix: 3_cuda_lanczos
