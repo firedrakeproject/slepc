@@ -209,9 +209,15 @@ int main(int argc,char **argv)
 
 /*TEST
 
-   test:
-      suffix: 1
+   testset:
       requires: !single
       args: -show_inertias -terse
+      output_file: output/ex38_1.out
+      test:
+         suffix: 1
+         requires: !complex
+      test:
+         suffix: 1_complex
+         requires: complex !mumps
 
 TEST*/

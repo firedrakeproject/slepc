@@ -118,6 +118,7 @@ int main(int argc,char **argv)
       test:
          suffix: 1_gd2
          args: -eps_type gd -eps_gd_double_expansion
+         timeoutfactor: 2
 
    testset:
       args: -eps_type lanczos -eps_nev 4

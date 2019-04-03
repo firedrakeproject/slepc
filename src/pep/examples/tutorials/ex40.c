@@ -505,8 +505,16 @@ PetscErrorCode QEPDefiniteCheckError(Mat *A,PEP pep,PetscBool hyperbolic,PetscRe
       filter: grep -v "Definite" | sed -e "s/iterations [0-9]\([0-9]*\)/iterations xx/g" | sed -e "s/[0-9]\.[0-9]*e[+-]\([0-9]*\)/removed/g"
       test:
          suffix: 1
+         requires: !complex
+      test:
+         suffix: 1_complex
+         requires: complex !mumps
       test:
          suffix: 1_transform
+         requires: !complex
          args: -transform
+      test:
+         suffix: 1_transform_complex
+         requires: complex !mumps
 
 TEST*/
