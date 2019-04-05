@@ -54,7 +54,7 @@ PetscErrorCode EPSSetDefaultST_Precond(EPS eps)
 
 /*
    This is done by preconditioned eigensolvers that can also use the KSP.
-   It sets STPRECOND with the default KSP (GMRES).
+   It sets STPRECOND with the default KSP (GMRES) and maxit=5.
 */
 PetscErrorCode EPSSetDefaultST_GMRES(EPS eps)
 {
@@ -67,7 +67,10 @@ PetscErrorCode EPSSetDefaultST_GMRES(EPS eps)
     ierr = STPrecondSetKSPHasMat(eps->st,PETSC_TRUE);CHKERRQ(ierr);
   }
   ierr = STGetKSP(eps->st,&ksp);CHKERRQ(ierr);
-  ierr = KSPSetTolerances(ksp,PETSC_DEFAULT,PETSC_DEFAULT,PETSC_DEFAULT,5);CHKERRQ(ierr);
+  if (!((PetscObject)ksp)->type_name) {
+    ierr = KSPSetType(ksp,KSPGMRES);CHKERRQ(ierr);
+    ierr = KSPSetTolerances(ksp,PETSC_DEFAULT,PETSC_DEFAULT,PETSC_DEFAULT,5);CHKERRQ(ierr);
+  }
   PetscFunctionReturn(0);
 }
 
