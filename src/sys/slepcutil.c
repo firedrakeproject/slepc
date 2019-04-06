@@ -170,7 +170,7 @@ PetscErrorCode SlepcSNPrintfScalar(char *str,size_t len,PetscScalar val,PetscBoo
      filename: optionally write output to a file
  */
 #if defined(PETSC_USE_DEBUG)
-PETSC_UNUSED PetscErrorCode SlepcDebugViewMatrix(PetscInt nrows,PetscInt ncols,PetscScalar *Xr,PetscScalar *Xi,PetscInt ldx,const char *s,const char *filename)
+PetscErrorCode SlepcDebugViewMatrix(PetscInt nrows,PetscInt ncols,PetscScalar *Xr,PetscScalar *Xi,PetscInt ldx,const char *s,const char *filename)
 {
   PetscErrorCode ierr;
   PetscInt       i,j;
@@ -204,7 +204,7 @@ PETSC_UNUSED PetscErrorCode SlepcDebugViewMatrix(PetscInt nrows,PetscInt ncols,P
    SlepcDebugSetMatlabStdout - sets Matlab format in stdout, to be used from within a debugger.
  */
 #if defined(PETSC_USE_DEBUG)
-PetscErrorCode SlepcDebugSetMatlabStdout(void)
+PETSC_UNUSED PetscErrorCode SlepcDebugSetMatlabStdout(void)
 {
   PetscErrorCode ierr;
   PetscViewer    viewer;
