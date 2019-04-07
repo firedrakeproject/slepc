@@ -55,6 +55,9 @@ all : $(generated) $(libslepcall)
 
 .SECONDEXPANSION:		# to expand $$(@D)/.DIR
 
+# Test framework includes rules and variables relevant to both build and test
+include ./gmakefile.test        # This must be below the all target
+
 ifneq ($(INSTALLED_PETSC),)
   PETSC_ARCH_DIR=
 else
@@ -216,7 +219,4 @@ allobj.d := $(srcs.o:%.o=%.d)
 $(allobj.d) : ;
 
 -include $(allobj.d)
-
-# Handle test framework (also defines compilation lines for both lib and test)
-include ./gmakefile.test        # This must be below the all target
 
