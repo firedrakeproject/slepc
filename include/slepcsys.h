@@ -97,5 +97,11 @@ SLEPC_EXTERN PetscBool SlepcInitializeCalled;
 #define SlepcLogFlopsComplex(a) PetscLogFlops((4.0*a))
 #endif
 
+/*
+    Developer routines to be used with a debugger
+*/
+#if defined(PETSC_USE_DEBUG)
+SLEPC_EXTERN PetscErrorCode SlepcDebugViewMatrix(PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscInt,const char*,const char*);
+#endif
 #endif
 
