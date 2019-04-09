@@ -490,7 +490,8 @@ PetscErrorCode STScaleShift(ST st,PetscScalar factor)
 -  D  - the diagonal matrix (represented as a vector)
 
    Notes:
-   If this matrix is set, STApply will effectively apply D*OP*D^{-1}.
+   If this matrix is set, STApply will effectively apply D*OP*D^{-1}. Use NULL
+   to reset a previously passed D.
 
    Balancing is usually set via EPSSetBalance, but the advanced user may use
    this function to bypass the usual balancing methods.
@@ -505,9 +506,11 @@ PetscErrorCode STSetBalanceMatrix(ST st,Vec D)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
-  PetscValidHeaderSpecific(D,VEC_CLASSID,2);
-  PetscCheckSameComm(st,1,D,2);
-  ierr = PetscObjectReference((PetscObject)D);CHKERRQ(ierr);
+  if (D) {
+    PetscValidHeaderSpecific(D,VEC_CLASSID,2);
+    PetscCheckSameComm(st,1,D,2);
+    ierr = PetscObjectReference((PetscObject)D);CHKERRQ(ierr);
+  }
   ierr = VecDestroy(&st->D);CHKERRQ(ierr);
   st->D = D;
   st->state = ST_STATE_INITIAL;
