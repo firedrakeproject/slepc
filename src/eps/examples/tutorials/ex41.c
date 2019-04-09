@@ -273,11 +273,16 @@ PetscErrorCode ComputeResidualNorm(Mat A,PetscBool trans,PetscScalar kr,PetscSca
 
 /*TEST
 
-   test:
-      suffix: 1
-      args: -eps_type {{power krylovschur}} -st_type sinvert -eps_target 1.1 -eps_nev 4
+   testset:
+      args: -st_type sinvert -eps_target 1.1 -eps_nev 4
       filter: grep -v method | sed -e "s/[+-]0.0*i//" | sed -e "s/[0-9]\.[0-9]*e[+-]\([0-9]*\)/removed/g"
       requires: !single
       output_file: output/ex41_1.out
+      test:
+         suffix: 1
+         args: -eps_type {{power krylovschur}}
+      test:
+         suffix: 1_balance
+         args: -eps_balance {{oneside twoside}}
 
 TEST*/
