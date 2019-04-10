@@ -283,6 +283,6 @@ PetscErrorCode ComputeResidualNorm(Mat A,PetscBool trans,PetscScalar kr,PetscSca
          args: -eps_type {{power krylovschur}}
       test:
          suffix: 1_balance
-         args: -eps_balance {{oneside twoside}}
+         args: -eps_balance {{oneside twoside}} -eps_ncv 16
 
 TEST*/
