@@ -24,7 +24,6 @@ static char help[] = "Simple 1-D nonlinear eigenproblem (matrix-free version, se
 /*
    User-defined routines
 */
-PetscErrorCode FormInitialGuess(Vec);
 PetscErrorCode FormFunction(NEP,PetscScalar,Mat,Mat,void*);
 PetscErrorCode FormJacobian(NEP,PetscScalar,Mat,void*);
 
@@ -161,22 +160,6 @@ int main(int argc,char **argv)
   ierr = MatDestroy(&J);CHKERRQ(ierr);
   ierr = SlepcFinalize();
   return ierr;
-}
-
-/* ------------------------------------------------------------------- */
-/*
-   FormInitialGuess - Computes initial guess.
-
-   Input/Output Parameter:
-.  x - the solution vector
-*/
-PetscErrorCode FormInitialGuess(Vec x)
-{
-  PetscErrorCode ierr;
-
-  PetscFunctionBeginUser;
-  ierr = VecSet(x,1.0);CHKERRQ(ierr);
-  PetscFunctionReturn(0);
 }
 
 /* ------------------------------------------------------------------- */
