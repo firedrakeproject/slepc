@@ -90,7 +90,7 @@ int main(int argc,char **argv)
   ierr = MatSetSizes(J,PETSC_DECIDE,PETSC_DECIDE,n,n);CHKERRQ(ierr);
   ierr = MatSetFromOptions(J);CHKERRQ(ierr);
   ierr = MatSeqAIJSetPreallocation(J,3,NULL);CHKERRQ(ierr);
-  ierr = MatMPIAIJSetPreallocation(F,3,NULL,1,NULL);CHKERRQ(ierr);
+  ierr = MatMPIAIJSetPreallocation(J,3,NULL,1,NULL);CHKERRQ(ierr);
   ierr = MatSetUp(J);CHKERRQ(ierr);
 
   /*
