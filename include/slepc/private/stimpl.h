@@ -61,6 +61,7 @@ struct _p_ST {
 
   /*------------------------- Misc data --------------------------*/
   KSP              ksp;
+  PetscBool        usesksp;          /* whether the KSP object is used or not */
   PetscInt         nwork;            /* number of work vectors */
   Vec              *work;            /* work vectors */
   Vec              D;                /* diagonal matrix for balancing */

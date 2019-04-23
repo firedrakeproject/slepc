@@ -267,7 +267,7 @@ PetscErrorCode STSetUp(ST st)
       ierr = PetscLogObjectParent((PetscObject)st,(PetscObject)st->wb);CHKERRQ(ierr);
     }
   }
-  ierr = STSetDefaultKSP(st);CHKERRQ(ierr);
+  if (st->usesksp) { ierr = STSetDefaultKSP(st);CHKERRQ(ierr); }
   if (st->ops->setup) { ierr = (*st->ops->setup)(st);CHKERRQ(ierr); }
   st->state = ST_STATE_SETUP;
   ierr = PetscLogEventEnd(ST_SetUp,st,0,0,0);CHKERRQ(ierr);

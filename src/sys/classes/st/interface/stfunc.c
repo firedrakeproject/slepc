@@ -186,6 +186,7 @@ PetscErrorCode STCreate(MPI_Comm comm,ST *newst)
   st->transform    = PETSC_FALSE;
 
   st->ksp          = NULL;
+  st->usesksp      = PETSC_FALSE;
   st->nwork        = 0;
   st->work         = NULL;
   st->D            = NULL;
@@ -768,7 +769,7 @@ PetscErrorCode STView(ST st,PetscViewer viewer)
   STType         cstr;
   const char*    pat=NULL;
   char           str[50];
-  PetscBool      isascii,isstring,flg;
+  PetscBool      isascii,isstring;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
@@ -816,8 +817,7 @@ PetscErrorCode STView(ST st,PetscViewer viewer)
     ierr = PetscViewerStringSPrintf(viewer," %-7.7s",cstr);CHKERRQ(ierr);
     if (st->ops->view) { ierr = (*st->ops->view)(st,viewer);CHKERRQ(ierr); }
   }
-  ierr = PetscObjectTypeCompareAny((PetscObject)st,&flg,STSHIFT,STSHELL,"");CHKERRQ(ierr);
-  if (st->nmat>1 || !flg) {
+  if (st->usesksp) {
     if (!st->ksp) { ierr = STGetKSP(st,&st->ksp);CHKERRQ(ierr); }
     ierr = PetscViewerASCIIPushTab(viewer);CHKERRQ(ierr);
     ierr = KSPView(st->ksp,viewer);CHKERRQ(ierr);

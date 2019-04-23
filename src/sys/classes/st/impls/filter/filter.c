@@ -418,6 +418,8 @@ SLEPC_EXTERN PetscErrorCode STCreate_Filter(ST st)
   ierr = PetscNewLog(st,&ctx);CHKERRQ(ierr);
   st->data = (void*)ctx;
 
+  st->usesksp = PETSC_FALSE;
+
   ctx->inta               = PETSC_MIN_REAL;
   ctx->intb               = PETSC_MAX_REAL;
   ctx->left               = 0.0;

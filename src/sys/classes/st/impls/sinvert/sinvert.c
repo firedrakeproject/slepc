@@ -171,6 +171,8 @@ PetscErrorCode STSetShift_Sinvert(ST st,PetscScalar newshift)
 SLEPC_EXTERN PetscErrorCode STCreate_Sinvert(ST st)
 {
   PetscFunctionBegin;
+  st->usesksp = PETSC_TRUE;
+
   st->ops->apply           = STApply_Sinvert;
   st->ops->getbilinearform = STGetBilinearForm_Default;
   st->ops->applytrans      = STApplyTranspose_Sinvert;

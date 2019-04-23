@@ -356,6 +356,8 @@ SLEPC_EXTERN PetscErrorCode STCreate_Cayley(ST st)
   ierr = PetscNewLog(st,&ctx);CHKERRQ(ierr);
   st->data = (void*)ctx;
 
+  st->usesksp = PETSC_TRUE;
+
   st->ops->apply           = STApply_Cayley;
   st->ops->getbilinearform = STGetBilinearForm_Cayley;
   st->ops->applytrans      = STApplyTranspose_Cayley;

@@ -339,6 +339,8 @@ SLEPC_EXTERN PetscErrorCode STCreate_Precond(ST st)
   ierr = PetscNewLog(st,&ctx);CHKERRQ(ierr);
   st->data = (void*)ctx;
 
+  st->usesksp = PETSC_TRUE;
+
   st->ops->getbilinearform = STGetBilinearForm_Default;
   st->ops->setup           = STSetUp_Precond;
   st->ops->setshift        = STSetShift_Precond;

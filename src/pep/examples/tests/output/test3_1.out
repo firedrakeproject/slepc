@@ -38,15 +38,6 @@ ST Object: 1 MPI processes
   type not yet set
   shift: 0.
   number of matrices: 0
-  KSP Object:  (st_)   1 MPI processes
-    type not yet set
-    maximum iterations=10000, initial guess is zero
-    tolerances:  relative=1e-08, absolute=1e-35, divergence=10000.
-    left preconditioning
-    using DEFAULT norm type for convergence test
-  PC Object:  (st_)   1 MPI processes
-    type not yet set
-    PC has not been set up so information may be incomplete
 DS Object: 1 MPI processes
   type not yet set
  Finished - converged reason = 1

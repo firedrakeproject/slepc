@@ -84,6 +84,7 @@ PetscErrorCode STSetUp_Shift(ST st)
   if (st->nmat>1) {
     ierr = STSetWorkVecs(st,1);CHKERRQ(ierr);
   }
+  st->usesksp = (st->nmat>1)? PETSC_TRUE: PETSC_FALSE;
   if (nmat<3 || st->transform) {
     if (nmat>2) {
       nc = (nmat*(nmat+1))/2;
@@ -148,6 +149,8 @@ PetscErrorCode STSetShift_Shift(ST st,PetscScalar newshift)
 SLEPC_EXTERN PetscErrorCode STCreate_Shift(ST st)
 {
   PetscFunctionBegin;
+  st->usesksp = PETSC_TRUE;
+
   st->ops->apply           = STApply_Shift;
   st->ops->getbilinearform = STGetBilinearForm_Default;
   st->ops->applytrans      = STApplyTranspose_Shift;
