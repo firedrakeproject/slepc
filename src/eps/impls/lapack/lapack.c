@@ -101,13 +101,11 @@ PetscErrorCode EPSSetUp_LAPACK(EPS eps)
   } else {
     ierr = PetscInfo(eps,"Using slow explicit operator\n");CHKERRQ(ierr);
     ierr = STGetOperator(eps->st,&shell);CHKERRQ(ierr);
-    ierr = MatComputeExplicitOperator(shell,&OP);CHKERRQ(ierr);
+    ierr = MatComputeOperator(shell,MATDENSE,&OP);CHKERRQ(ierr);
     ierr = MatDestroy(&shell);CHKERRQ(ierr);
     ierr = MatDestroy(&Adense);CHKERRQ(ierr);
-    ierr = MatCreateRedundantMatrix(OP,0,PETSC_COMM_SELF,MAT_INITIAL_MATRIX,&Ar);CHKERRQ(ierr);
+    ierr = MatCreateRedundantMatrix(OP,0,PETSC_COMM_SELF,MAT_INITIAL_MATRIX,&Adense);CHKERRQ(ierr);
     ierr = MatDestroy(&OP);CHKERRQ(ierr);
-    ierr = MatConvert(Ar,MATSEQDENSE,MAT_INITIAL_MATRIX,&Adense);CHKERRQ(ierr);
-    ierr = MatDestroy(&Ar);CHKERRQ(ierr);
   }
 
   /* fill DS matrices */
