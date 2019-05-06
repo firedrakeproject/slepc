@@ -82,7 +82,7 @@ PetscErrorCode LMEBasicArnoldi(LME lme,PetscScalar *H,PetscInt ldh,PetscInt k,Pe
 PetscErrorCode LMESolve_Krylov_Lyapunov_Vec(LME lme,Vec b,PetscBool fixed,PetscInt rrank,BV C1,BV *X1,PetscInt *col,PetscBool *fail,PetscInt *totalits)
 {
   PetscErrorCode ierr;
-  PetscInt       n=0,m,ldh,ldg,j,rank=0,lrank,pass,nouter=0,its;
+  PetscInt       n=0,m,ldh,ldg=0,j,rank=0,lrank,pass,nouter=0,its;
   PetscReal      bnorm,beta,errest;
   PetscBool      breakdown;
   PetscScalar    *H,*G=NULL,*Gnew=NULL,*Gcopy,*L,*U,*r,*Qarray,sone=1.0,zero=0.0;

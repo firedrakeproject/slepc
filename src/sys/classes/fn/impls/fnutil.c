@@ -175,7 +175,7 @@ PetscErrorCode SlepcSqrtmDenmanBeavers(PetscBLASInt n,PetscScalar *T,PetscBLASIn
 #else
   PetscScalar        *Told,*M=NULL,*invM,*work,work1,prod,alpha;
   PetscScalar        szero=0.0,sone=1.0,smone=-1.0,spfive=0.5,sp25=0.25;
-  PetscReal          tol,Mres,detM,g,reldiff,fnormdiff,fnormT,rwork[1];
+  PetscReal          tol,Mres=0.0,detM,g,reldiff,fnormdiff,fnormT,rwork[1];
   PetscBLASInt       N,i,it,*piv=NULL,info,query=-1,lwork;
   const PetscBLASInt one=1;
   PetscBool          converged=PETSC_FALSE,scale=PETSC_FALSE;
@@ -267,7 +267,7 @@ PetscErrorCode SlepcSqrtmNewtonSchulz(PetscBLASInt n,PetscScalar *A,PetscBLASInt
 {
   PetscScalar        *Y=A,*Yold,*Z,*Zold,*M,alpha,sqrtnrm;
   PetscScalar        szero=0.0,sone=1.0,smone=-1.0,spfive=0.5,sthree=3.0;
-  PetscReal          tol,Yres,nrm,rwork[1];
+  PetscReal          tol,Yres=0.0,nrm,rwork[1];
   PetscBLASInt       i,it,N;
   const PetscBLASInt one=1;
   PetscBool          converged=PETSC_FALSE;

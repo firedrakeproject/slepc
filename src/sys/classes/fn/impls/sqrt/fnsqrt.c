@@ -120,7 +120,7 @@ static PetscErrorCode SlepcSqrtmSadeghi(PetscBLASInt n,PetscScalar *A,PetscBLASI
 #else
   PetscScalar        *M,*M2,*G,*X=A,*work,work1,alpha,sqrtnrm;
   PetscScalar        szero=0.0,sone=1.0,smfive=-5.0,s1d16=1.0/16.0;
-  PetscReal          tol,Mres,nrm,rwork[1];
+  PetscReal          tol,Mres=0.0,nrm,rwork[1];
   PetscBLASInt       N,i,it,*piv=NULL,info,lwork,query=-1;
   const PetscBLASInt one=1;
   PetscBool          converged=PETSC_FALSE;
