@@ -217,8 +217,8 @@ SLEPC_EXTERN PetscErrorCode NEPGetEigenpair(NEP,PetscInt,PetscScalar*,PetscScala
 SLEPC_EXTERN PetscErrorCode NEPGetLeftEigenvector(NEP,PetscInt,Vec,Vec);
 
 SLEPC_EXTERN PetscErrorCode NEPComputeError(NEP,PetscInt,NEPErrorType,PetscReal*);
-PETSC_DEPRECATED("Use NEPComputeError()") PETSC_STATIC_INLINE PetscErrorCode NEPComputeRelativeError(NEP nep,PetscInt i,PetscReal *r) {return NEPComputeError(nep,i,NEP_ERROR_RELATIVE,r);}
-PETSC_DEPRECATED("Use NEPComputeError() with NEP_ERROR_ABSOLUTE") PETSC_STATIC_INLINE PetscErrorCode NEPComputeResidualNorm(NEP nep,PetscInt i,PetscReal *r) {return NEPComputeError(nep,i,NEP_ERROR_ABSOLUTE,r);}
+PETSC_DEPRECATED_FUNCTION("Use NEPComputeError()") PETSC_STATIC_INLINE PetscErrorCode NEPComputeRelativeError(NEP nep,PetscInt i,PetscReal *r) {return NEPComputeError(nep,i,NEP_ERROR_RELATIVE,r);}
+PETSC_DEPRECATED_FUNCTION("Use NEPComputeError() with NEP_ERROR_ABSOLUTE") PETSC_STATIC_INLINE PetscErrorCode NEPComputeResidualNorm(NEP nep,PetscInt i,PetscReal *r) {return NEPComputeError(nep,i,NEP_ERROR_ABSOLUTE,r);}
 SLEPC_EXTERN PetscErrorCode NEPGetErrorEstimate(NEP,PetscInt,PetscReal*);
 
 SLEPC_EXTERN PetscErrorCode NEPComputeFunction(NEP,PetscScalar,Mat,Mat);

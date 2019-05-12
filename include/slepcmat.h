@@ -19,14 +19,14 @@ SLEPC_EXTERN PetscErrorCode MatCreateTile(PetscScalar,Mat,PetscScalar,Mat,PetscS
 SLEPC_EXTERN PetscErrorCode MatCreateVecsEmpty(Mat,Vec*,Vec*);
 
 /* Deprecated functions */
-PETSC_DEPRECATED("Use MatCreateRedundantMatrix() followed by MatConvert()") PETSC_STATIC_INLINE PetscErrorCode SlepcMatConvertSeqDense(Mat mat,Mat *newmat) {
+PETSC_DEPRECATED_FUNCTION("Use MatCreateRedundantMatrix() followed by MatConvert()") PETSC_STATIC_INLINE PetscErrorCode SlepcMatConvertSeqDense(Mat mat,Mat *newmat) {
   PetscErrorCode ierr; Mat Ar;
   ierr = MatCreateRedundantMatrix(mat,0,PETSC_COMM_SELF,MAT_INITIAL_MATRIX,&Ar);CHKERRQ(ierr);
   ierr = MatConvert(Ar,MATSEQDENSE,MAT_INITIAL_MATRIX,newmat);CHKERRQ(ierr);
   ierr = MatDestroy(&Ar);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
-PETSC_DEPRECATED("Use MatCreateTile()") PETSC_STATIC_INLINE PetscErrorCode SlepcMatTile(PetscScalar a,Mat A,PetscScalar b,Mat B,PetscScalar c,Mat C,PetscScalar d,Mat D,Mat *G) {return MatCreateTile(a,A,b,B,c,C,d,D,G);}
+PETSC_DEPRECATED_FUNCTION("Use MatCreateTile()") PETSC_STATIC_INLINE PetscErrorCode SlepcMatTile(PetscScalar a,Mat A,PetscScalar b,Mat B,PetscScalar c,Mat C,PetscScalar d,Mat D,Mat *G) {return MatCreateTile(a,A,b,B,c,C,d,D,G);}
 
 #endif
 

@@ -61,10 +61,10 @@ SLEPC_EXTERN PetscErrorCode STSetUp(ST);
 SLEPC_EXTERN PetscErrorCode STSetFromOptions(ST);
 SLEPC_EXTERN PetscErrorCode STView(ST,PetscViewer);
 
-PETSC_DEPRECATED("Use STSetMatrices()") PETSC_STATIC_INLINE PetscErrorCode STSetOperators(ST st,PetscInt n,Mat *A) {return STSetMatrices(st,n,A);}
-PETSC_DEPRECATED("Use STGetMatrix()") PETSC_STATIC_INLINE PetscErrorCode STGetOperators(ST st,PetscInt k,Mat *A) {return STGetMatrix(st,k,A);}
-PETSC_DEPRECATED("Use STGetMatrixTransformed()") PETSC_STATIC_INLINE PetscErrorCode STGetTOperators(ST st,PetscInt k,Mat *A) {return STGetMatrixTransformed(st,k,A);}
-PETSC_DEPRECATED("Use STGetOperator() followed by MatComputeOperator()") PETSC_STATIC_INLINE PetscErrorCode STComputeExplicitOperator(ST st,Mat *A) {
+PETSC_DEPRECATED_FUNCTION("Use STSetMatrices()") PETSC_STATIC_INLINE PetscErrorCode STSetOperators(ST st,PetscInt n,Mat *A) {return STSetMatrices(st,n,A);}
+PETSC_DEPRECATED_FUNCTION("Use STGetMatrix()") PETSC_STATIC_INLINE PetscErrorCode STGetOperators(ST st,PetscInt k,Mat *A) {return STGetMatrix(st,k,A);}
+PETSC_DEPRECATED_FUNCTION("Use STGetMatrixTransformed()") PETSC_STATIC_INLINE PetscErrorCode STGetTOperators(ST st,PetscInt k,Mat *A) {return STGetMatrixTransformed(st,k,A);}
+PETSC_DEPRECATED_FUNCTION("Use STGetOperator() followed by MatComputeOperator()") PETSC_STATIC_INLINE PetscErrorCode STComputeExplicitOperator(ST st,Mat *A) {
   PetscErrorCode ierr; Mat Op; 
   ierr = STGetOperator(st,&Op);CHKERRQ(ierr);
   ierr = MatComputeOperator(Op,MATAIJ,A);CHKERRQ(ierr);

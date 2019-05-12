@@ -193,7 +193,7 @@ SLEPC_EXTERN PetscErrorCode EPSSolve(EPS);
 SLEPC_EXTERN PetscErrorCode EPSView(EPS,PetscViewer);
 PETSC_STATIC_INLINE PetscErrorCode EPSViewFromOptions(EPS eps,PetscObject obj,const char name[]) {return PetscObjectViewFromOptions((PetscObject)eps,obj,name);}
 SLEPC_EXTERN PetscErrorCode EPSErrorView(EPS,EPSErrorType,PetscViewer);
-PETSC_DEPRECATED("Use EPSErrorView()") PETSC_STATIC_INLINE PetscErrorCode EPSPrintSolution(EPS eps,PetscViewer v) {return EPSErrorView(eps,EPS_ERROR_RELATIVE,v);}
+PETSC_DEPRECATED_FUNCTION("Use EPSErrorView()") PETSC_STATIC_INLINE PetscErrorCode EPSPrintSolution(EPS eps,PetscViewer v) {return EPSErrorView(eps,EPS_ERROR_RELATIVE,v);}
 SLEPC_EXTERN PetscErrorCode EPSErrorViewFromOptions(EPS);
 SLEPC_EXTERN PetscErrorCode EPSReasonView(EPS,PetscViewer);
 SLEPC_EXTERN PetscErrorCode EPSReasonViewFromOptions(EPS);
@@ -238,8 +238,8 @@ SLEPC_EXTERN PetscErrorCode EPSGetEigenvector(EPS,PetscInt,Vec,Vec);
 SLEPC_EXTERN PetscErrorCode EPSGetLeftEigenvector(EPS,PetscInt,Vec,Vec);
 
 SLEPC_EXTERN PetscErrorCode EPSComputeError(EPS,PetscInt,EPSErrorType,PetscReal*);
-PETSC_DEPRECATED("Use EPSComputeError()") PETSC_STATIC_INLINE PetscErrorCode EPSComputeRelativeError(EPS eps,PetscInt i,PetscReal *r) {return EPSComputeError(eps,i,EPS_ERROR_RELATIVE,r);}
-PETSC_DEPRECATED("Use EPSComputeError() with EPS_ERROR_ABSOLUTE") PETSC_STATIC_INLINE PetscErrorCode EPSComputeResidualNorm(EPS eps,PetscInt i,PetscReal *r) {return EPSComputeError(eps,i,EPS_ERROR_ABSOLUTE,r);}
+PETSC_DEPRECATED_FUNCTION("Use EPSComputeError()") PETSC_STATIC_INLINE PetscErrorCode EPSComputeRelativeError(EPS eps,PetscInt i,PetscReal *r) {return EPSComputeError(eps,i,EPS_ERROR_RELATIVE,r);}
+PETSC_DEPRECATED_FUNCTION("Use EPSComputeError() with EPS_ERROR_ABSOLUTE") PETSC_STATIC_INLINE PetscErrorCode EPSComputeResidualNorm(EPS eps,PetscInt i,PetscReal *r) {return EPSComputeError(eps,i,EPS_ERROR_ABSOLUTE,r);}
 SLEPC_EXTERN PetscErrorCode EPSGetInvariantSubspace(EPS,Vec*);
 SLEPC_EXTERN PetscErrorCode EPSGetErrorEstimate(EPS,PetscInt,PetscReal*);
 

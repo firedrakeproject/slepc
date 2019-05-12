@@ -117,8 +117,8 @@ SLEPC_EXTERN PetscErrorCode SVDGetType(SVD,SVDType*);
 SLEPC_EXTERN PetscErrorCode SVDSetOperator(SVD,Mat);
 SLEPC_EXTERN PetscErrorCode SVDGetOperator(SVD,Mat*);
 SLEPC_EXTERN PetscErrorCode SVDSetInitialSpaces(SVD,PetscInt,Vec*,PetscInt,Vec*);
-PETSC_DEPRECATED("Use SVDSetInitialSpaces()") PETSC_STATIC_INLINE PetscErrorCode SVDSetInitialSpace(SVD svd,PetscInt nr,Vec *isr) {return SVDSetInitialSpaces(svd,nr,isr,0,NULL);}
-PETSC_DEPRECATED("Use SVDSetInitialSpaces()") PETSC_STATIC_INLINE PetscErrorCode SVDSetInitialSpaceLeft(SVD svd,PetscInt nl,Vec *isl) {return SVDSetInitialSpaces(svd,0,NULL,nl,isl);}
+PETSC_DEPRECATED_FUNCTION("Use SVDSetInitialSpaces()") PETSC_STATIC_INLINE PetscErrorCode SVDSetInitialSpace(SVD svd,PetscInt nr,Vec *isr) {return SVDSetInitialSpaces(svd,nr,isr,0,NULL);}
+PETSC_DEPRECATED_FUNCTION("Use SVDSetInitialSpaces()") PETSC_STATIC_INLINE PetscErrorCode SVDSetInitialSpaceLeft(SVD svd,PetscInt nl,Vec *isl) {return SVDSetInitialSpaces(svd,0,NULL,nl,isl);}
 SLEPC_EXTERN PetscErrorCode SVDSetImplicitTranspose(SVD,PetscBool);
 SLEPC_EXTERN PetscErrorCode SVDGetImplicitTranspose(SVD,PetscBool*);
 SLEPC_EXTERN PetscErrorCode SVDSetDimensions(SVD,PetscInt,PetscInt,PetscInt);
@@ -147,12 +147,12 @@ SLEPC_EXTERN PetscErrorCode SVDGetConvergedReason(SVD,SVDConvergedReason*);
 SLEPC_EXTERN PetscErrorCode SVDGetConverged(SVD,PetscInt*);
 SLEPC_EXTERN PetscErrorCode SVDGetSingularTriplet(SVD,PetscInt,PetscReal*,Vec,Vec);
 SLEPC_EXTERN PetscErrorCode SVDComputeError(SVD,PetscInt,SVDErrorType,PetscReal*);
-PETSC_DEPRECATED("Use SVDComputeError()") PETSC_STATIC_INLINE PetscErrorCode SVDComputeRelativeError(SVD svd,PetscInt i,PetscReal *r) {return SVDComputeError(svd,i,SVD_ERROR_RELATIVE,r);}
-PETSC_DEPRECATED("Use SVDComputeError() with SVD_ERROR_ABSOLUTE") PETSC_STATIC_INLINE PetscErrorCode SVDComputeResidualNorms(SVD svd,PetscInt i,PetscReal *r1,PETSC_UNUSED PetscReal *r2) {return SVDComputeError(svd,i,SVD_ERROR_ABSOLUTE,r1);}
+PETSC_DEPRECATED_FUNCTION("Use SVDComputeError()") PETSC_STATIC_INLINE PetscErrorCode SVDComputeRelativeError(SVD svd,PetscInt i,PetscReal *r) {return SVDComputeError(svd,i,SVD_ERROR_RELATIVE,r);}
+PETSC_DEPRECATED_FUNCTION("Use SVDComputeError() with SVD_ERROR_ABSOLUTE") PETSC_STATIC_INLINE PetscErrorCode SVDComputeResidualNorms(SVD svd,PetscInt i,PetscReal *r1,PETSC_UNUSED PetscReal *r2) {return SVDComputeError(svd,i,SVD_ERROR_ABSOLUTE,r1);}
 SLEPC_EXTERN PetscErrorCode SVDView(SVD,PetscViewer);
 PETSC_STATIC_INLINE PetscErrorCode SVDViewFromOptions(SVD svd,PetscObject obj,const char name[]) {return PetscObjectViewFromOptions((PetscObject)svd,obj,name);}
 SLEPC_EXTERN PetscErrorCode SVDErrorView(SVD,SVDErrorType,PetscViewer);
-PETSC_DEPRECATED("Use SVDErrorView()") PETSC_STATIC_INLINE PetscErrorCode SVDPrintSolution(SVD svd,PetscViewer v) {return SVDErrorView(svd,SVD_ERROR_RELATIVE,v);}
+PETSC_DEPRECATED_FUNCTION("Use SVDErrorView()") PETSC_STATIC_INLINE PetscErrorCode SVDPrintSolution(SVD svd,PetscViewer v) {return SVDErrorView(svd,SVD_ERROR_RELATIVE,v);}
 SLEPC_EXTERN PetscErrorCode SVDErrorViewFromOptions(SVD);
 SLEPC_EXTERN PetscErrorCode SVDReasonView(SVD,PetscViewer);
 SLEPC_EXTERN PetscErrorCode SVDReasonViewFromOptions(SVD);

@@ -214,7 +214,7 @@ SLEPC_EXTERN PetscErrorCode PEPSolve(PEP);
 SLEPC_EXTERN PetscErrorCode PEPView(PEP,PetscViewer);
 PETSC_STATIC_INLINE PetscErrorCode PEPViewFromOptions(PEP pep,PetscObject obj,const char name[]) {return PetscObjectViewFromOptions((PetscObject)pep,obj,name);}
 SLEPC_EXTERN PetscErrorCode PEPErrorView(PEP,PEPErrorType,PetscViewer);
-PETSC_DEPRECATED("Use PEPErrorView()") PETSC_STATIC_INLINE PetscErrorCode PEPPrintSolution(PEP pep,PetscViewer v) {return PEPErrorView(pep,PEP_ERROR_BACKWARD,v);}
+PETSC_DEPRECATED_FUNCTION("Use PEPErrorView()") PETSC_STATIC_INLINE PetscErrorCode PEPPrintSolution(PEP pep,PetscViewer v) {return PEPErrorView(pep,PEP_ERROR_BACKWARD,v);}
 SLEPC_EXTERN PetscErrorCode PEPErrorViewFromOptions(PEP);
 SLEPC_EXTERN PetscErrorCode PEPReasonView(PEP,PetscViewer);
 SLEPC_EXTERN PetscErrorCode PEPReasonViewFromOptions(PEP);
@@ -260,8 +260,8 @@ SLEPC_EXTERN PetscErrorCode PEPGetBasis(PEP,PEPBasis*);
 SLEPC_EXTERN PetscErrorCode PEPGetConverged(PEP,PetscInt*);
 SLEPC_EXTERN PetscErrorCode PEPGetEigenpair(PEP,PetscInt,PetscScalar*,PetscScalar*,Vec,Vec);
 SLEPC_EXTERN PetscErrorCode PEPComputeError(PEP,PetscInt,PEPErrorType,PetscReal*);
-PETSC_DEPRECATED("Use PEPComputeError()") PETSC_STATIC_INLINE PetscErrorCode PEPComputeRelativeError(PEP pep,PetscInt i,PetscReal *r) {return PEPComputeError(pep,i,PEP_ERROR_BACKWARD,r);}
-PETSC_DEPRECATED("Use PEPComputeError() with PEP_ERROR_ABSOLUTE") PETSC_STATIC_INLINE PetscErrorCode PEPComputeResidualNorm(PEP pep,PetscInt i,PetscReal *r) {return PEPComputeError(pep,i,PEP_ERROR_ABSOLUTE,r);}
+PETSC_DEPRECATED_FUNCTION("Use PEPComputeError()") PETSC_STATIC_INLINE PetscErrorCode PEPComputeRelativeError(PEP pep,PetscInt i,PetscReal *r) {return PEPComputeError(pep,i,PEP_ERROR_BACKWARD,r);}
+PETSC_DEPRECATED_FUNCTION("Use PEPComputeError() with PEP_ERROR_ABSOLUTE") PETSC_STATIC_INLINE PetscErrorCode PEPComputeResidualNorm(PEP pep,PetscInt i,PetscReal *r) {return PEPComputeError(pep,i,PEP_ERROR_ABSOLUTE,r);}
 SLEPC_EXTERN PetscErrorCode PEPGetErrorEstimate(PEP,PetscInt,PetscReal*);
 
 SLEPC_EXTERN PetscErrorCode PEPMonitor(PEP,PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscReal*,PetscInt);
@@ -305,8 +305,8 @@ SLEPC_EXTERN PetscErrorCode PEPLinearSetExplicitMatrix(PEP,PetscBool);
 SLEPC_EXTERN PetscErrorCode PEPLinearGetExplicitMatrix(PEP,PetscBool*);
 SLEPC_EXTERN PetscErrorCode PEPLinearSetEPS(PEP,EPS);
 SLEPC_EXTERN PetscErrorCode PEPLinearGetEPS(PEP,EPS*);
-PETSC_DEPRECATED("Use PEPLinearSetLinearization()") PETSC_STATIC_INLINE PetscErrorCode PEPLinearSetCompanionForm(PEP pep,PetscInt cform) {return (cform==1)?PEPLinearSetLinearization(pep,1.0,0.0):PEPLinearSetLinearization(pep,0.0,1.0);}
-PETSC_DEPRECATED("Use PEPLinearGetLinearization()") PETSC_STATIC_INLINE PetscErrorCode PEPLinearGetCompanionForm(PEP pep,PetscInt *cform) {if (cform) *cform=1; return 0;}
+PETSC_DEPRECATED_FUNCTION("Use PEPLinearSetLinearization()") PETSC_STATIC_INLINE PetscErrorCode PEPLinearSetCompanionForm(PEP pep,PetscInt cform) {return (cform==1)?PEPLinearSetLinearization(pep,1.0,0.0):PEPLinearSetLinearization(pep,0.0,1.0);}
+PETSC_DEPRECATED_FUNCTION("Use PEPLinearGetLinearization()") PETSC_STATIC_INLINE PetscErrorCode PEPLinearGetCompanionForm(PEP pep,PetscInt *cform) {if (cform) *cform=1; return 0;}
 
 SLEPC_EXTERN PetscErrorCode PEPQArnoldiSetRestart(PEP,PetscReal);
 SLEPC_EXTERN PetscErrorCode PEPQArnoldiGetRestart(PEP,PetscReal*);
