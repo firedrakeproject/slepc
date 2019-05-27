@@ -68,7 +68,7 @@ PetscErrorCode BVMult_Svec_CUDA(BV Y,PetscScalar alpha,PetscScalar beta,BV X,Mat
   if (beta==(PetscScalar)0.0) {
     ierr = VecCUDAGetArrayWrite(y->v,&d_py);CHKERRQ(ierr);
   } else {
-    ierr = VecCUDAGetArrayReadWrite(y->v,&d_py);CHKERRQ(ierr);
+    ierr = VecCUDAGetArray(y->v,&d_py);CHKERRQ(ierr);
   }
   d_A = d_px+(X->nc+X->l)*X->n;
   d_C = d_py+(Y->nc+Y->l)*Y->n;
@@ -113,10 +113,10 @@ PetscErrorCode BVMultVec_Svec_CUDA(BV X,PetscScalar alpha,PetscScalar beta,Vec y
   if (beta==(PetscScalar)0.0) {
     ierr = VecCUDAGetArrayWrite(y,&d_py);CHKERRQ(ierr);
   } else {
-    ierr = VecCUDAGetArrayReadWrite(y,&d_py);CHKERRQ(ierr);
+    ierr = VecCUDAGetArray(y,&d_py);CHKERRQ(ierr);
   }
   if (!q) {
-    ierr = VecCUDAGetArrayReadWrite(X->buffer,&d_q);CHKERRQ(ierr);
+    ierr = VecCUDAGetArray(X->buffer,&d_q);CHKERRQ(ierr);
   } else {
     ierr = cudaMalloc((void**)&d_q,k*sizeof(PetscScalar));CHKERRQ(ierr);
     ierr = cudaMemcpy(d_q,q,k*sizeof(PetscScalar),cudaMemcpyHostToDevice);CHKERRQ(ierr);
@@ -130,10 +130,10 @@ PetscErrorCode BVMultVec_Svec_CUDA(BV X,PetscScalar alpha,PetscScalar beta,Vec y
   if (beta==(PetscScalar)0.0) {
     ierr = VecCUDARestoreArrayWrite(y,&d_py);CHKERRQ(ierr);
   } else {
-    ierr = VecCUDARestoreArrayReadWrite(y,&d_py);CHKERRQ(ierr);
+    ierr = VecCUDARestoreArray(y,&d_py);CHKERRQ(ierr);
   }
   if (!q) {
-    ierr = VecCUDARestoreArrayReadWrite(X->buffer,&d_q);CHKERRQ(ierr);
+    ierr = VecCUDARestoreArray(X->buffer,&d_q);CHKERRQ(ierr);
   } else {
     ierr = cudaFree(d_q);CHKERRQ(ierr);
   }
@@ -160,7 +160,7 @@ PetscErrorCode BVMultInPlace_Svec_CUDA(BV V,Mat Q,PetscInt s,PetscInt e)
   k = V->k-V->l;
   if (!m) PetscFunctionReturn(0);
   ierr = MatGetSize(Q,&ldq,&nq);CHKERRQ(ierr);
-  ierr = VecCUDAGetArrayReadWrite(ctx->v,&d_pv);CHKERRQ(ierr);
+  ierr = VecCUDAGetArray(ctx->v,&d_pv);CHKERRQ(ierr);
   ierr = MatDenseGetArray(Q,&q);CHKERRQ(ierr);
   ierr = cudaMalloc((void**)&d_q,ldq*nq*sizeof(PetscScalar));CHKERRQ(ierr);
   ierr = cudaMemcpy(d_q,q,ldq*nq*sizeof(PetscScalar),cudaMemcpyHostToDevice);CHKERRQ(ierr);
@@ -201,7 +201,7 @@ PetscErrorCode BVMultInPlace_Svec_CUDA(BV V,Mat Q,PetscInt s,PetscInt e)
   ierr = MatDenseRestoreArray(Q,&q);CHKERRQ(ierr);
   ierr = cudaFree(d_q);CHKERRQ(ierr);
   ierr = cudaFree(d_work);CHKERRQ(ierr);
-  ierr = VecCUDARestoreArrayReadWrite(ctx->v,&d_pv);CHKERRQ(ierr);
+  ierr = VecCUDARestoreArray(ctx->v,&d_pv);CHKERRQ(ierr);
   ierr = PetscLogFlops(2.0*m*n*k);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -224,7 +224,7 @@ PetscErrorCode BVMultInPlaceTranspose_Svec_CUDA(BV V,Mat Q,PetscInt s,PetscInt e
   k = V->k-V->l;
   if (!m) PetscFunctionReturn(0);
   ierr = MatGetSize(Q,&ldq,&nq);CHKERRQ(ierr);
-  ierr = VecCUDAGetArrayReadWrite(ctx->v,&d_pv);CHKERRQ(ierr);
+  ierr = VecCUDAGetArray(ctx->v,&d_pv);CHKERRQ(ierr);
   ierr = MatDenseGetArray(Q,&q);CHKERRQ(ierr);
   ierr = PetscCUBLASGetHandle(&cublasv2handle);CHKERRQ(ierr);
   ierr = cudaMalloc((void**)&d_q,ldq*nq*sizeof(PetscScalar));CHKERRQ(ierr);
@@ -240,7 +240,7 @@ PetscErrorCode BVMultInPlaceTranspose_Svec_CUDA(BV V,Mat Q,PetscInt s,PetscInt e
   ierr = MatDenseRestoreArray(Q,&q);CHKERRQ(ierr);
   ierr = cudaFree(d_q);CHKERRQ(ierr);
   ierr = cudaFree(d_work);CHKERRQ(ierr);
-  ierr = VecCUDARestoreArrayReadWrite(ctx->v,&d_pv);CHKERRQ(ierr);
+  ierr = VecCUDARestoreArray(ctx->v,&d_pv);CHKERRQ(ierr);
   ierr = PetscLogFlops(2.0*m*n*k);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -476,7 +476,7 @@ PetscErrorCode BVScale_Svec_CUDA(BV bv,PetscInt j,PetscScalar alpha)
   cublasHandle_t cublasv2handle;
 
   PetscFunctionBegin;
-  ierr = VecCUDAGetArrayReadWrite(ctx->v,&d_array);CHKERRQ(ierr);
+  ierr = VecCUDAGetArray(ctx->v,&d_array);CHKERRQ(ierr);
   if (j<0) {
     d_A = d_array+(bv->nc+bv->l)*bv->n;
     n = (bv->k-bv->l)*bv->n;
@@ -492,7 +492,7 @@ PetscErrorCode BVScale_Svec_CUDA(BV bv,PetscInt j,PetscScalar alpha)
     ierr = WaitForGPU();CHKERRCUDA(ierr);
     ierr = PetscLogFlops(n);CHKERRQ(ierr);
   }
-  ierr = VecCUDARestoreArrayReadWrite(ctx->v,&d_array);CHKERRQ(ierr);
+  ierr = VecCUDARestoreArray(ctx->v,&d_array);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -546,9 +546,9 @@ PetscErrorCode BVCopyColumn_Svec_CUDA(BV V,PetscInt j,PetscInt i)
   cudaError_t    err;
 
   PetscFunctionBegin;
-  ierr = VecCUDAGetArrayReadWrite(v->v,&d_pv);CHKERRQ(ierr);
+  ierr = VecCUDAGetArray(v->v,&d_pv);CHKERRQ(ierr);
   err = cudaMemcpy(d_pv+(V->nc+i)*V->n,d_pv+(V->nc+j)*V->n,V->n*sizeof(PetscScalar),cudaMemcpyDeviceToDevice);CHKERRCUDA(err);
-  ierr = VecCUDARestoreArrayReadWrite(v->v,&d_pv);CHKERRQ(ierr);
+  ierr = VecCUDARestoreArray(v->v,&d_pv);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -570,9 +570,9 @@ PetscErrorCode BVResize_Svec_CUDA(BV bv,PetscInt m,PetscBool copy)
     lsplit = parent->lsplit;
     vpar = ((BV_SVEC*)parent->data)->v;
     ierr = VecCUDAResetArray(ctx->v);CHKERRQ(ierr);
-    ierr = VecCUDAGetArrayReadWrite(vpar,&d_ptr);CHKERRQ(ierr);
+    ierr = VecCUDAGetArray(vpar,&d_ptr);CHKERRQ(ierr);
     ierr = VecCUDAPlaceArray(ctx->v,d_ptr+lsplit*bv->n);CHKERRQ(ierr);
-    ierr = VecCUDARestoreArrayReadWrite(vpar,&d_ptr);CHKERRQ(ierr);
+    ierr = VecCUDARestoreArray(vpar,&d_ptr);CHKERRQ(ierr);
   } else if (!bv->issplit) {
     ierr = VecGetBlockSize(bv->t,&bs);CHKERRQ(ierr);
     ierr = VecCreate(PetscObjectComm((PetscObject)bv->t),&vnew);CHKERRQ(ierr);
@@ -606,7 +606,7 @@ PetscErrorCode BVGetColumn_Svec_CUDA(BV bv,PetscInt j,Vec *v)
 
   PetscFunctionBegin;
   l = BVAvailableVec;
-  ierr = VecCUDAGetArrayReadWrite(ctx->v,&d_pv);CHKERRQ(ierr);
+  ierr = VecCUDAGetArray(ctx->v,&d_pv);CHKERRQ(ierr);
   ierr = VecCUDAPlaceArray(bv->cv[l],d_pv+(bv->nc+j)*bv->n);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -620,7 +620,7 @@ PetscErrorCode BVRestoreColumn_Svec_CUDA(BV bv,PetscInt j,Vec *v)
   PetscFunctionBegin;
   l = (j==bv->ci[0])? 0: 1;
   ierr = VecCUDAResetArray(bv->cv[l]);CHKERRQ(ierr);
-  ierr = VecCUDARestoreArrayReadWrite(ctx->v,NULL);CHKERRQ(ierr);
+  ierr = VecCUDARestoreArray(ctx->v,NULL);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -654,8 +654,8 @@ PetscErrorCode BVRestoreSplit_Svec_CUDA(BV bv,BV *L,BV *R)
   }
   if (change) {
     v = ((BV_SVEC*)bv->data)->v;
-    ierr = VecCUDAGetArrayReadWrite(v,(PetscScalar **)&d_pv);CHKERRQ(ierr);
-    ierr = VecCUDARestoreArrayReadWrite(v,(PetscScalar **)&d_pv);CHKERRQ(ierr);
+    ierr = VecCUDAGetArray(v,(PetscScalar **)&d_pv);CHKERRQ(ierr);
+    ierr = VecCUDARestoreArray(v,(PetscScalar **)&d_pv);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }

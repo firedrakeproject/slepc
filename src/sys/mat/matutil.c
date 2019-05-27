@@ -295,6 +295,10 @@ PetscErrorCode MatCreateTile(PetscScalar a,Mat A,PetscScalar b,Mat B,PetscScalar
   PetscCheckSameTypeAndComm(A,2,B,4);
   PetscCheckSameTypeAndComm(A,2,C,6);
   PetscCheckSameTypeAndComm(A,2,D,8);
+  PetscValidLogicalCollectiveScalar(A,a,1);
+  PetscValidLogicalCollectiveScalar(A,b,3);
+  PetscValidLogicalCollectiveScalar(A,c,5);
+  PetscValidLogicalCollectiveScalar(A,d,7);
   PetscValidPointer(G,9);
 
   /* check row 1 */

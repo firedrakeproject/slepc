@@ -25,11 +25,11 @@ PetscErrorCode BV_CleanCoefficients_CUDA(BV bv,PetscInt j,PetscScalar *h)
 
   PetscFunctionBegin;
   if (!h) {
-    ierr = VecCUDAGetArrayReadWrite(bv->buffer,&d_a);CHKERRQ(ierr);
+    ierr = VecCUDAGetArray(bv->buffer,&d_a);CHKERRQ(ierr);
     d_hh = d_a + j*(bv->nc+bv->m);
     ierr = cudaMemset(d_hh,0,(bv->nc+j)*sizeof(PetscScalar));CHKERRQ(ierr);
     ierr = WaitForGPU();CHKERRCUDA(ierr);
-    ierr = VecCUDARestoreArrayReadWrite(bv->buffer,&d_a);CHKERRQ(ierr);
+    ierr = VecCUDARestoreArray(bv->buffer,&d_a);CHKERRQ(ierr);
   } else { /* cpu memory */
     for (i=0;i<bv->nc+j;i++) h[i] = 0.0;
   }
@@ -52,11 +52,11 @@ PetscErrorCode BV_AddCoefficients_CUDA(BV bv,PetscInt j,PetscScalar *h,PetscScal
   PetscFunctionBegin;
   if (!h) {
     ierr = PetscCUBLASGetHandle(&cublasv2handle);CHKERRQ(ierr);
-    ierr = VecCUDAGetArrayReadWrite(bv->buffer,&d_c);CHKERRQ(ierr);
+    ierr = VecCUDAGetArray(bv->buffer,&d_c);CHKERRQ(ierr);
     d_h = d_c + j*(bv->nc+bv->m);
     cberr = cublasXaxpy(cublasv2handle,bv->nc+j,&sone,d_c,one,d_h,one);CHKERRCUBLAS(cberr);
     ierr = WaitForGPU();CHKERRCUDA(ierr);
-    ierr = VecCUDARestoreArrayReadWrite(bv->buffer,&d_c);CHKERRQ(ierr);
+    ierr = VecCUDARestoreArray(bv->buffer,&d_c);CHKERRQ(ierr);
   } else { /* cpu memory */
     for (i=0;i<bv->nc+j;i++) h[i] += c[i];
   }
@@ -75,11 +75,11 @@ PetscErrorCode BV_SetValue_CUDA(BV bv,PetscInt j,PetscInt k,PetscScalar *h,Petsc
 
   PetscFunctionBegin;
   if (!h) {
-    ierr = VecCUDAGetArrayReadWrite(bv->buffer,&a);CHKERRQ(ierr);
+    ierr = VecCUDAGetArray(bv->buffer,&a);CHKERRQ(ierr);
     d_h = a + k*(bv->nc+bv->m) + bv->nc+j;
     cerr = cudaMemcpy(d_h,&value,sizeof(PetscScalar),cudaMemcpyHostToDevice);CHKERRCUDA(cerr);
     ierr = WaitForGPU();CHKERRCUDA(ierr);
-    ierr = VecCUDARestoreArrayReadWrite(bv->buffer,&a);CHKERRQ(ierr);
+    ierr = VecCUDARestoreArray(bv->buffer,&a);CHKERRQ(ierr);
   } else { /* cpu memory */
     h[bv->nc+j] = value;
   }
@@ -186,7 +186,7 @@ PetscErrorCode BV_ApplySignature_CUDA(BV bv,PetscInt j,PetscScalar *h,PetscBool 
   PetscFunctionBegin;
   if (!(bv->nc+j)) PetscFunctionReturn(0);
   if (!h) {
-    ierr = VecCUDAGetArrayReadWrite(bv->buffer,&d_h);CHKERRQ(ierr);
+    ierr = VecCUDAGetArray(bv->buffer,&d_h);CHKERRQ(ierr);
     ierr = VecCUDAGetArrayRead(bv->omega,&d_omega);CHKERRQ(ierr);
     ierr = SetGrid1D(bv->nc+j,&blocks3d,&threads3d,&xcount);CHKERRQ(ierr);
     if (inverse) {
@@ -201,7 +201,7 @@ PetscErrorCode BV_ApplySignature_CUDA(BV bv,PetscInt j,PetscScalar *h,PetscBool 
     cerr = cudaGetLastError();CHKERRCUDA(cerr);
     ierr = WaitForGPU();CHKERRCUDA(ierr);
     ierr = VecCUDARestoreArrayRead(bv->omega,&d_omega);CHKERRQ(ierr);
-    ierr = VecCUDARestoreArrayReadWrite(bv->buffer,&d_h);CHKERRQ(ierr);
+    ierr = VecCUDARestoreArray(bv->buffer,&d_h);CHKERRQ(ierr);
   } else {
     ierr = VecGetArrayRead(bv->omega,&omega);CHKERRQ(ierr);
     if (inverse) for (i=0;i<bv->nc+j;i++) h[i] /= PetscRealPart(omega[i]);

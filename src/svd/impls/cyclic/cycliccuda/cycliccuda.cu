@@ -28,7 +28,7 @@ PetscErrorCode MatMult_Cyclic_CUDA(Mat B,Vec x,Vec y)
   cyclic = (SVD_CYCLIC*)svd->data;
   ierr = SVDMatGetLocalSize(svd,&m,NULL);CHKERRQ(ierr);
   ierr = VecCUDAGetArrayRead(x,(const PetscScalar**)&d_px);CHKERRQ(ierr);
-  ierr = VecCUDAGetArrayReadWrite(y,&d_py);CHKERRQ(ierr);
+  ierr = VecCUDAGetArray(y,&d_py);CHKERRQ(ierr);
   ierr = VecCUDAPlaceArray(cyclic->x1,d_px);CHKERRQ(ierr);
   ierr = VecCUDAPlaceArray(cyclic->x2,d_px+m);CHKERRQ(ierr);
   ierr = VecCUDAPlaceArray(cyclic->y1,d_py);CHKERRQ(ierr);
@@ -40,7 +40,7 @@ PetscErrorCode MatMult_Cyclic_CUDA(Mat B,Vec x,Vec y)
   ierr = VecCUDAResetArray(cyclic->y1);CHKERRQ(ierr);
   ierr = VecCUDAResetArray(cyclic->y2);CHKERRQ(ierr);
   ierr = VecCUDARestoreArrayRead(x,(const PetscScalar**)&d_px);CHKERRQ(ierr);
-  ierr = VecCUDARestoreArrayReadWrite(y,&d_py);CHKERRQ(ierr);
+  ierr = VecCUDARestoreArray(y,&d_py);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

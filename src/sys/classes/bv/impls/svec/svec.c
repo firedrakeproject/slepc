@@ -468,9 +468,9 @@ SLEPC_EXTERN PetscErrorCode BVCreate_Svec(BV bv)
     vpar = ((BV_SVEC*)parent->data)->v;
     if (bv->cuda) {
 #if defined(PETSC_HAVE_CUDA)
-      ierr = VecCUDAGetArrayReadWrite(vpar,&gpuarray);CHKERRQ(ierr);
+      ierr = VecCUDAGetArray(vpar,&gpuarray);CHKERRQ(ierr);
       gptr = (bv->issplit==1)? gpuarray: gpuarray+lsplit*nloc;
-      ierr = VecCUDARestoreArrayReadWrite(vpar,&gpuarray);CHKERRQ(ierr);
+      ierr = VecCUDARestoreArray(vpar,&gpuarray);CHKERRQ(ierr);
       if (ctx->mpi) {
         ierr = VecCreateMPICUDAWithArray(PetscObjectComm((PetscObject)bv->t),bs,tlocal,bv->m*N,NULL,&ctx->v);CHKERRQ(ierr);
       } else {
