@@ -194,12 +194,12 @@ class Installer:
       raise shutil.Error('Destination is not a directory')
 
     self.copies.extend(self.copyfile('gmakefile.test',dst))
-    newConfigDir=os.path.join(dst,'config')  # Am not renaming at present
-    if not os.path.isdir(newConfigDir): os.mkdir(newConfigDir)
-    testConfFiles="cmakegen.py".split()
-    for tf in testConfFiles:
-      self.copies.extend(self.copyfile(os.path.join('config',tf),newConfigDir))
-    return
+    #newConfigDir=os.path.join(dst,'config')  # Am not renaming at present
+    #if not os.path.isdir(newConfigDir): os.mkdir(newConfigDir)
+    #testConfFiles="".split()
+    #for tf in testConfFiles:
+    #  self.copies.extend(self.copyfile(os.path.join('config',tf),newConfigDir))
+    #return
 
   def copytree(self, src, dst, symlinks = False, copyFunc = shutil.copy2, exclude = [], exclude_ext= ['.DSYM','.o','.pyc','.html'], recurse = 1):
     """Recursively copy a directory tree using copyFunc, which defaults to shutil.copy2().

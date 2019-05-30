@@ -37,16 +37,16 @@ ifeq ($(RM),true)
 .SECONDARY: $(ex%.o) $(ex%f.o) $(ex%f90.o) $(test%.o) $(test%f.o) $(test%f90.o)
 endif
 
-ex%f90: ex%f90.o | chkopts
+ex%f90: ex%f90.o
 	-${FLINKER} -o $@ $^ ${SLEPC_LIB}
-ex%f: ex%f.o | chkopts
+ex%f: ex%f.o
 	-${FLINKER} -o $@ $^ ${SLEPC_LIB}
-ex%: ex%.o | chkopts
+ex%: ex%.o
 	-${CLINKER} -o $@ $^ ${SLEPC_LIB}
-test%f90: test%f90.o | chkopts
+test%f90: test%f90.o
 	-${FLINKER} -o $@ $^ ${SLEPC_LIB}
-test%f: test%f.o | chkopts
+test%f: test%f.o
 	-${FLINKER} -o $@ $^ ${SLEPC_LIB}
-test%: test%.o | chkopts
+test%: test%.o
 	-${CLINKER} -o $@ $^ ${SLEPC_LIB}
 

@@ -27,17 +27,7 @@ include ${SLEPC_DIR}/lib/slepc/conf/slepc_common
 all:
 	@${OMAKE} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} SLEPC_DIR=${SLEPC_DIR} chk_petscdir chk_slepcdir | tee ./${PETSC_ARCH}/lib/slepc/conf/make.log
 	@ln -sf ./${PETSC_ARCH}/lib/slepc/conf/make.log make.log
-	+@if [ "${MAKE_IS_GNUMAKE}" != "" ]; then \
-	   ${OMAKE_PRINTDIR} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} SLEPC_DIR=${SLEPC_DIR} all-gnumake-local 2>&1 | tee -a ./${PETSC_ARCH}/lib/slepc/conf/make.log; \
-	elif [ "${SLEPC_BUILD_USING_CMAKE}" != "" ]; then \
-	   if [ "${SLEPC_INSTALLDIR}" = "${SLEPC_DIR}/${PETSC_ARCH}" ]; then \
-	     ${OMAKE} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} SLEPC_DIR=${SLEPC_DIR} cmakegen; \
-	   fi; \
-	   ${OMAKE} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} SLEPC_DIR=${SLEPC_DIR} all-cmake-local 2>&1 | tee ./${PETSC_ARCH}/lib/slepc/conf/make.log \
-	          | egrep -v '( --check-build-system |cmake -E | -o CMakeFiles/slepc[[:lower:]]*.dir/| -o lib/libslepc|CMakeFiles/slepc[[:lower:]]*\.dir/(build|depend|requires)|-f CMakeFiles/Makefile2|Dependee .* is newer than depender |provides\.build. is up to date)'; \
-	 else \
-	   ${OMAKE} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} SLEPC_DIR=${SLEPC_DIR} all-legacy-local 2>&1 | tee ./${PETSC_ARCH}/lib/slepc/conf/make.log | ${GREP} -v "has no symbols"; \
-	 fi
+	+@${OMAKE_PRINTDIR} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} SLEPC_DIR=${SLEPC_DIR} all-local 2>&1 | tee -a ./${PETSC_ARCH}/lib/slepc/conf/make.log;
 	@egrep -i "( error | error: |no such file or directory)" ${PETSC_ARCH}/lib/slepc/conf/make.log | tee ./${PETSC_ARCH}/lib/slepc/conf/error.log > /dev/null
 	+@if test -s ./${PETSC_ARCH}/lib/slepc/conf/error.log; then \
            printf ${PETSC_TEXT_HILIGHT}"*******************************ERROR************************************\n" 2>&1 | tee -a ./${PETSC_ARCH}/lib/slepc/conf/make.log; \
@@ -56,30 +46,8 @@ all:
 	@echo "Finishing make run at `date +'%a, %d %b %Y %H:%M:%S %z'`" >> ./${PETSC_ARCH}/lib/slepc/conf/make.log
 	@if test -s ./${PETSC_ARCH}/lib/slepc/conf/error.log; then exit 1; fi
 
-cmakegen:
-	-@${PYTHON} config/cmakegen.py
+all-local: info slepc_libs
 
-all-gnumake:
-	@if [ "${MAKE_IS_GNUMAKE}" != "" ]; then \
-          ${OMAKE_PRINTDIR} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} SLEPC_DIR=${SLEPC_DIR} SLEPC_BUILD_USING_CMAKE="" all;\
-        else printf ${PETSC_TEXT_HILIGHT}"Build not configured for GNUMAKE. Quiting"${PETSC_TEXT_NORMAL}"\n"; exit 1; fi
-
-all-cmake:
-	@if [ "${SLEPC_BUILD_USING_CMAKE}" != "" ]; then \
-	  if [ "${SLEPC_INSTALLDIR}" = "${SLEPC_DIR}/${PETSC_ARCH}" ]; then \
-	    ${OMAKE} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} SLEPC_DIR=${SLEPC_DIR} cmakegen; \
-	  fi; \
-          ${OMAKE} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} SLEPC_DIR=${SLEPC_DIR} MAKE_IS_GNUMAKE="" all;\
-        else printf ${PETSC_TEXT_HILIGHT}"Build not configured for CMAKE. Quiting"${PETSC_TEXT_NORMAL}"\n"; exit 1; fi
-
-all-legacy:
-	@${OMAKE} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} SLEPC_DIR=${SLEPC_DIR} SLEPC_BUILD_USING_CMAKE="" MAKE_IS_GNUMAKE="" all
-
-all-gnumake-local: info slepc_gnumake
-
-all-cmake-local: info cmakegen slepc_cmake
-
-all-legacy-local: chk_petsc_dir chk_slepc_dir chklib_dir info deletelibs deletemods build slepc_shared
 #
 # Prints information about the system and version of SLEPc being compiled
 #
@@ -122,19 +90,8 @@ info:
 	-@echo "------------------------------------------"
 	-@echo "Using mpiexec: ${MPIEXEC}"
 	-@echo "------------------------------------------"
-	-@echo "Using MAKEFLAGS: -j$(MAKE_NP) $(MAKEFLAGS)"
+	-@echo "Using MAKEFLAGS: -j$(MAKE_NP) -l$(MAKE_LOAD) $(MAKEFLAGS)"
 	-@echo "=========================================="
-
-#
-# Builds the SLEPc library
-#
-build:
-	-@echo "BEGINNING TO COMPILE LIBRARIES IN ALL DIRECTORIES"
-	-@echo "========================================="
-	-@${OMAKE} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} SLEPC_DIR=${SLEPC_DIR} ACTION=libfast slepc_tree
-	-@${RANLIB} ${SLEPC_LIB_DIR}/*.${AR_LIB_SUFFIX}  > tmpf 2>&1 ; ${GREP} -v "has no symbols" tmpf; ${RM} tmpf;
-	-@echo "Completed building libraries"
-	-@echo "========================================="
 
 # Simple test examples for checking a correct installation
 test_install: test
@@ -144,7 +101,7 @@ test:
 test_build:
 	-@echo "Running test examples to verify correct installation"
 	-@echo "Using SLEPC_DIR=${SLEPC_DIR}, PETSC_DIR=${PETSC_DIR} and PETSC_ARCH=${PETSC_ARCH}"
-	@cd src/eps/examples/tests && \
+	+@cd src/eps/examples/tests && \
          ${OMAKE} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} SLEPC_DIR=${SLEPC_DIR} testtest10 && \
 	 egrep "^#define PETSC_HAVE_FORTRAN 1" ${PETSCCONF_H} | tee .ftn.log > /dev/null; \
          if test -s .ftn.log; then \
@@ -155,37 +112,19 @@ test_build:
          fi
 	-@echo "Completed test examples"
 
-# Ranlib on the library
-ranlib:
-	${RANLIB} ${SLEPC_LIB_DIR}/*.${AR_LIB_SUFFIX}
-
 # Deletes SLEPc library
 deletelibs:
 	-${RM} -r ${SLEPC_LIB_DIR}/libslepc*.*
 deletemods:
 	-${RM} -f ${SLEPC_DIR}/${PETSC_ARCH}/include/slepc*.mod
 
-# Cleans up build
-allclean-legacy: deletelibs deletemods
-	-@${OMAKE} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} SLEPC_DIR=${SLEPC_DIR} ACTION=clean slepc_tree
-allclean-cmake:
-	-@cd ./${PETSC_ARCH} && ${OMAKE} clean
-allclean-gnumake:
-	-@${OMAKE} -f gmakefile clean
-
 allclean:
-	@if [ "${MAKE_IS_GNUMAKE}" != "" ]; then \
-	   ${OMAKE} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} SLEPC_DIR=${SLEPC_DIR} allclean-gnumake; \
-	elif [ "${PETSC_BUILD_USING_CMAKE}" != "" ]; then \
-	   ${OMAKE} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} SLEPC_DIR=${SLEPC_DIR} allclean-cmake; \
-	else \
-	   ${OMAKE} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} SLEPC_DIR=${SLEPC_DIR} allclean-legacy; \
-	fi
+	-@${OMAKE} -f gmakefile clean
 
 clean:: allclean
 
 reconfigure:
-	@${PYTHON} ${PETSC_ARCH}/lib/slepc/conf/reconfigure-${PETSC_ARCH}.py
+	@unset MAKEFLAGS && ${PYTHON} ${PETSC_ARCH}/lib/slepc/conf/reconfigure-${PETSC_ARCH}.py
 
 #
 # Check if PETSC_DIR variable specified is valid
@@ -339,4 +278,6 @@ checkbadfortranstubs:
 alletags:
 	-@${PYTHON} ${SLEPC_DIR}/lib/slepc/bin/maint/generateetags.py
 	-@find config -type f -name "*.py" |grep -v SCCS | xargs etags -o TAGS_PYTHON
+
+.PHONY: info all deletelibs allclean alletags alldoc allcleanhtml countfortranfunctions install
 

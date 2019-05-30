@@ -20,10 +20,10 @@ TESTS      = loaded_string gun
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common
 
-loaded_string: loaded_string.o chkopts
+loaded_string: loaded_string.o
 	-${CLINKER} -o loaded_string loaded_string.o ${SLEPC_NEP_LIB}
 	${RM} loaded_string.o
 
-gun: gun.o chkopts
+gun: gun.o
 	-${CLINKER} -o gun gun.o ${SLEPC_NEP_LIB}
 	${RM} gun.o

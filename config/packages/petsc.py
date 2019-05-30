@@ -76,8 +76,6 @@ class PETSc(package.Package):
       petscconf_h = os.path.join(self.dir,'include','petscconf.h')
 
     self.buildsharedlib = False
-    self.build_using_cmake = 0
-    self.make_is_gnumake = 0
     self.language = 'c'
     self.bfort = 'nobfortinpetsc'
     try:
@@ -119,10 +117,6 @@ class PETSc(package.Package):
           self.sl_suffix = v
         elif k == 'RANLIB':
           self.ranlib = v
-        elif k == 'PETSC_BUILD_USING_CMAKE':
-          self.build_using_cmake = v
-        elif k == 'MAKE_IS_GNUMAKE':
-          self.make_is_gnumake = v
         elif k == 'PETSC_LANGUAGE' and v=='CXXONLY':
           self.language = 'c++'
       f.close()

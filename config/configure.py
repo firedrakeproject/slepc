@@ -94,22 +94,6 @@ def WritePkgconfigFile(pkgconfig,version,pversion,sdir,isinstall,prefixdir,singl
   else:
     pkgconfig.write(' -L${libdir} -lslepcnep -lslepcpep -lslepcsvd -lslepceps -lslepcmfn -lslepclme -lslepcsys\n')
 
-def WriteCMakeConfigFile(cmakeconf):
-  ''' Write the contents of the CMake configuration file '''
-  cmakeconf.write('''
-set (SLEPC_PACKAGE_LIBS "${ARPACK_LIB}" "${BLZPACK_LIB}" "${TRLAN_LIB}" "${PRIMME_LIB}" "${FEAST_LIB}" "${BLOPEX_LIB}" "${SLICOT_LIB}" )
-set (SLEPC_PACKAGE_INCLUDES "${PRIMME_INCLUDE}")
-find_library (PETSC_LIB petsc HINTS ${PETSc_BINARY_DIR}/lib )
-if (NOT PETSC_LIB) # Interpret missing libpetsc to mean that PETSc was built --with-single-library=0
-  set (PETSC_LIB "")
-  foreach (pkg sys vec mat dm ksp snes ts tao)
-    string (TOUPPER ${pkg} PKG)
-    find_library (PETSC${PKG}_LIB "petsc${pkg}" HINTS ${PETSc_BINARY_DIR}/lib)
-    list (APPEND PETSC_LIB "${PETSC${PKG}_LIB}")
-  endforeach ()
-endif ()
-''')
-
 def WriteReconfigScript(reconfig,slepcdir,usedargs):
   ''' Write the contents of the reconfigure script '''
   reconfig.write('#!/usr/bin/env python\n\n')
@@ -240,7 +224,7 @@ if archdirexisted:
             os.remove(os.path.join(root,name))
     except:
       log.Exit('ERROR: Cannot remove existing files in '+archdir)
-    for rdir in ['CMakeFiles','obj','externalpackages']:
+    for rdir in ['obj','externalpackages']:
       try:
         shutil.rmtree(os.path.join(archdir,rdir))
       except: pass
@@ -254,7 +238,6 @@ pkgconfdir = CreateDir(libdir,'pkgconfig',log)
 slepcvars  = CreateFile(confdir,'slepcvariables',log)
 slepcrules = CreateFile(confdir,'slepcrules',log)
 slepcconf  = CreateFile(includedir,'slepcconf.h',log)
-cmakeconf  = CreateFile(confdir,'SLEPcBuildInternal.cmake',log)
 pkgconfig  = CreateFile(pkgconfdir,'SLEPc.pc',log)
 if slepc.isinstall:
   modules  = CreateFile(modulesdir,slepc.lversion,log)
@@ -315,9 +298,9 @@ if petsc.singlelib:
 
 # Check for external packages and for missing LAPACK functions
 for pkg in checkpackages:
-  pkg.Process(slepcconf,slepcvars,cmakeconf,petsc,archdir)
+  pkg.Process(slepcconf,slepcvars,petsc,archdir)
 
-# Write Modules, pkg-config and CMake configuration files
+# Write Modules and pkg-config configuration files
 log.NewSection('Writing various configuration files...')
 log.write('Modules file in '+modulesdir)
 if slepc.isinstall:
@@ -328,8 +311,6 @@ log.write('pkg-config file in '+pkgconfdir)
 slflag = ''
 if petsc.buildsharedlib: slflag = petsc.slflag
 WritePkgconfigFile(pkgconfig,slepc.lversion,petsc.version,slepc.dir,slepc.isinstall,slepc.prefixdir,petsc.singlelib)
-log.write('CMake configure file in '+confdir)
-WriteCMakeConfigFile(cmakeconf)
 
 # Write reconfigure file
 if not slepc.isinstall:
@@ -343,7 +324,6 @@ if not slepc.isinstall:
 slepcrules.close()
 slepcconf.write('#endif\n')
 slepcconf.close()
-cmakeconf.close()
 pkgconfig.close()
 modules.close()
 if not slepc.isinstall: reconfig.close()
@@ -370,41 +350,6 @@ if slepc.isrepo and petsc.fortran:
 
 if bfort != petsc.bfort:
   slepcvars.write('BFORT = '+bfort+'\n')
-
-# CMake stuff
-cmakeok = False
-if slepc.cmake:
-  log.NewSection('Configuring CMake builds...')
-  if sys.version_info < (2,5):
-    log.Exit('ERROR: python version should be 2.5 or higher')
-  elif petsc.isinstall:
-    log.Exit('ERROR: CMake builds cannot be used with prefix-installed PETSc')
-  elif not petsc.build_using_cmake:
-    log.Exit('ERROR: CMake builds need a PETSc configured --with-cmake')
-  else:
-    import cmakegen
-    try:
-      cmakegen.main(slepc.dir,petsc.dir,petscprefixdir=petsc.prefixdir)
-    except (OSError) as e:
-      log.Exit('ERROR: Generating CMakeLists.txt failed:\n'+str(e))
-    import cmakeboot
-    try:
-      cmakeok = cmakeboot.main(slepc.dir,petsc.dir,log=log)
-    except (OSError) as e:
-      log.Exit('ERROR: Booting CMake in PETSC_ARCH failed:\n'+str(e))
-    except (ImportError, KeyError) as e:
-      log.Exit('ERROR: Importing cmakeboot failed:\n'+str(e))
-    except (AttributeError) as e:
-      log.Println('\nxxx'+'='*74+'xxx')
-      log.Println('WARNING: CMake builds are not available (initialization failed)')
-      log.Println('You can ignore this warning (use default build), or try reconfiguring PETSc')
-      log.Println('xxx'+'='*74+'xxx')
-    # remove files created by PETSc's script
-    for f in ['build.log','build.log.bkp','RDict.log']:
-      try: os.remove(f)
-      except OSError: pass
-if cmakeok:
-  slepcvars.write('SLEPC_BUILD_USING_CMAKE = 1\n')
 
 # Finally we can close the slepcvariables file
 slepcvars.close()
@@ -443,10 +388,7 @@ log.write('\nFinishing Configure Run at '+time.ctime(time.time()))
 log.write('='*80)
 print()
 print('xxx'+'='*74+'xxx')
-if petsc.make_is_gnumake: buildtype = 'gnumake'
-elif cmakeok: buildtype = 'cmake'
-else: buildtype = 'legacy'
-print(' Configure stage complete. Now build the SLEPc library with ('+buildtype+' build):')
+print(' Configure stage complete. Now build the SLEPc library with:')
 if emptyarch:
   print('   make SLEPC_DIR='+slepc.dir+' PETSC_DIR='+petsc.dir)
 else:

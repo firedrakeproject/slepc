@@ -51,7 +51,7 @@ class Arpack(package.Package):
     return functions
 
 
-  def Check(self,conf,vars,cmake,petsc):
+  def Check(self,conf,vars,petsc):
     functions = self.Functions(petsc)
     if self.packagelibs:
       libs = [self.packagelibs]
@@ -66,10 +66,10 @@ class Arpack(package.Package):
     else:
       dirs = self.GenerateGuesses('Arpack')
 
-    self.FortranLib(conf,vars,cmake,dirs,libs,functions)
+    self.FortranLib(conf,vars,dirs,libs,functions)
 
 
-  def Install(self,conf,vars,cmake,petsc,archdir):
+  def Install(self,conf,vars,petsc,archdir):
     externdir = os.path.join(archdir,'externalpackages')
     builddir  = os.path.join(externdir,self.dirname)
     self.Download(externdir,builddir)
@@ -98,6 +98,6 @@ class Arpack(package.Package):
       libs = [['-lparpack','-larpack']]
     libDir = os.path.join(archdir,'lib')
     dirs = [libDir]
-    self.FortranLib(conf,vars,cmake,dirs,libs,functions)
+    self.FortranLib(conf,vars,dirs,libs,functions)
     self.havepackage = True
 

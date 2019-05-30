@@ -22,43 +22,43 @@ TESTS      = acoustic_wave_1d acoustic_wave_2d butterfly damped_beam \
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common
 
-acoustic_wave_1d: acoustic_wave_1d.o chkopts
+acoustic_wave_1d: acoustic_wave_1d.o
 	-${CLINKER} -o acoustic_wave_1d acoustic_wave_1d.o ${SLEPC_PEP_LIB}
 	${RM} acoustic_wave_1d.o
 
-acoustic_wave_2d: acoustic_wave_2d.o chkopts
+acoustic_wave_2d: acoustic_wave_2d.o
 	-${CLINKER} -o acoustic_wave_2d acoustic_wave_2d.o ${SLEPC_PEP_LIB}
 	${RM} acoustic_wave_2d.o
 
-butterfly: butterfly.o chkopts
+butterfly: butterfly.o
 	-${CLINKER} -o butterfly butterfly.o ${SLEPC_PEP_LIB}
 	${RM} butterfly.o
 
-damped_beam: damped_beam.o chkopts
+damped_beam: damped_beam.o
 	-${CLINKER} -o damped_beam damped_beam.o ${SLEPC_PEP_LIB}
 	${RM} damped_beam.o
 
-pdde_stability: pdde_stability.o chkopts
+pdde_stability: pdde_stability.o
 	-${CLINKER} -o pdde_stability pdde_stability.o ${SLEPC_PEP_LIB}
 	${RM} pdde_stability.o
 
-planar_waveguide: planar_waveguide.o chkopts
+planar_waveguide: planar_waveguide.o
 	-${CLINKER} -o planar_waveguide planar_waveguide.o ${SLEPC_PEP_LIB}
 	${RM} planar_waveguide.o
 
-sleeper: sleeper.o chkopts
+sleeper: sleeper.o
 	-${CLINKER} -o sleeper sleeper.o ${SLEPC_PEP_LIB}
 	${RM} sleeper.o
 
-spring: spring.o chkopts
+spring: spring.o
 	-${CLINKER} -o spring spring.o ${SLEPC_PEP_LIB}
 	${RM} spring.o
 
-wiresaw: wiresaw.o chkopts
+wiresaw: wiresaw.o
 	-${CLINKER} -o wiresaw wiresaw.o ${SLEPC_PEP_LIB}
 	${RM} wiresaw.o
 
-loaded_string: loaded_string.o chkopts
+loaded_string: loaded_string.o
 	-${CLINKER} -o loaded_string loaded_string.o ${SLEPC_PEP_LIB}
 	${RM} loaded_string.o
 

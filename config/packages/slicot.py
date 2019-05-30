@@ -26,7 +26,7 @@ class Slicot(package.Package):
     self.ProcessArgs(argdb)
 
 
-  def Check(self,conf,vars,cmake,petsc):
+  def Check(self,conf,vars,petsc):
     functions = ['sb03od']
     if self.packagelibs:
       libs = [self.packagelibs]
@@ -38,10 +38,10 @@ class Slicot(package.Package):
     else:
       dirs = self.GenerateGuesses('slicot')
 
-    self.FortranLib(conf,vars,cmake,dirs,libs,functions)
+    self.FortranLib(conf,vars,dirs,libs,functions)
 
 
-  def Install(self,conf,vars,cmake,petsc,archdir):
+  def Install(self,conf,vars,petsc,archdir):
     externdir = os.path.join(archdir,'externalpackages')
     builddir  = os.path.join(externdir,self.dirname)
     self.Download(externdir,builddir)
@@ -72,6 +72,6 @@ class Slicot(package.Package):
     libs = [['-lslicot']]
     libDir = os.path.join(archdir,'lib')
     dirs = [libDir]
-    self.FortranLib(conf,vars,cmake,dirs,libs,functions)
+    self.FortranLib(conf,vars,dirs,libs,functions)
     self.havepackage = True
 

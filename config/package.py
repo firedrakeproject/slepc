@@ -72,7 +72,7 @@ class Package:
         self.packageurl = url
         self.downloadpackage = flag
 
-  def Process(self,conf,vars,cmake,petsc,archdir=''):
+  def Process(self,conf,vars,petsc,archdir=''):
     self.make = petsc.make
     if petsc.buildsharedlib:
       self.slflag = petsc.slflag
@@ -84,11 +84,11 @@ class Package:
         else:
           self.log.NewSection('Installing '+name+'...')
         self.Precondition(petsc)
-        self.Install(conf,vars,cmake,petsc,archdir)
+        self.Install(conf,vars,petsc,archdir)
       elif self.installable:
         self.log.NewSection('Checking '+name+'...')
         self.Precondition(petsc)
-        self.Check(conf,vars,cmake,petsc)
+        self.Check(conf,vars,petsc)
 
   def Precondition(self,petsc):
     package = self.packagename.upper()
@@ -201,7 +201,7 @@ Unable to download package %s from: %s
       self.log.Exit('ERROR: Cannot create temporary directory')
     try:
       makefile = open(os.path.join(tmpdir,'makefile'),'w')
-      makefile.write('checklink: checklink.o chkopts\n')
+      makefile.write('checklink: checklink.o\n')
       makefile.write('\t${CLINKER} -o checklink checklink.o ${TESTFLAGS} ${PETSC_SNES_LIB}\n')
       makefile.write('\t@${RM} -f checklink checklink.o\n')
       makefile.write('LOCDIR = ./\n')
@@ -298,7 +298,7 @@ Unable to download package %s from: %s
     dirs = [''] + dirs
     return dirs
 
-  def FortranLib(self,conf,vars,cmake,dirs,libs,functions,callbacks = []):
+  def FortranLib(self,conf,vars,dirs,libs,functions,callbacks = []):
     name = self.packagename.upper()
     error = ''
     mangling = ''
@@ -327,10 +327,6 @@ Unable to download package %s from: %s
 
     conf.write('#ifndef SLEPC_HAVE_' + name + '\n#define SLEPC_HAVE_' + name + ' 1\n#define SLEPC_' + name + '_HAVE_'+mangling+' 1\n#endif\n\n')
     vars.write(name + '_LIB = '+' '.join(flags)+'\n')
-    cmake.write('set (SLEPC_HAVE_' + name + ' YES)\n')
-    libname = ' '.join([s.lstrip('-l') for s in l])
-    cmake.write('set (' + name + '_LIB "")\nforeach (libname ' + libname + ')\n  string (TOUPPER ${libname} LIBNAME)\n  find_library (${LIBNAME}LIB ${libname} HINTS '+ d +')\n  list (APPEND ' + name + '_LIB "${${LIBNAME}LIB}")\nendforeach()\n')
-
     self.havepackage = True
     self.packageflags = flags
 

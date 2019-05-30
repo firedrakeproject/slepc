@@ -26,13 +26,13 @@ class Lapack(package.Package):
       self.log.Println('WARNING: Some SLEPc functionality will not be available')
       self.log.Println('PLEASE reconfigure and recompile PETSc with a full LAPACK implementation')
 
-  def Process(self,conf,vars,cmake,petsc,archdir=''):
+  def Process(self,conf,vars,petsc,archdir=''):
     self.make = petsc.make
     self.mangling = petsc.blaslapackmangling
     if petsc.buildsharedlib:
       self.slflag = petsc.slflag
     self.log.NewSection('Checking LAPACK library...')
-    self.Check(conf,vars,cmake,petsc)
+    self.Check(conf,vars,petsc)
 
   def LinkBlasLapack(self,functions,callbacks,flags,petsc):
     code = ''
@@ -49,7 +49,7 @@ class Lapack(package.Package):
     self.log.write(output)
     return result
 
-  def Check(self,conf,vars,cmake,petsc):
+  def Check(self,conf,vars,petsc):
 
     # LAPACK standard functions
     l = ['laev2','gehrd','lanhs','lange','trexc','trevc','geevx','gees','ggev','ggevx','gelqf','geqp3','gesdd','tgexc','tgevc','pbtrf','stedc','hsein','larfg','larf','lacpy','lascl','lansy','laset','trsyl','trtri']
@@ -122,8 +122,4 @@ class Lapack(package.Package):
         else:
           nf = i[1:]
         conf.write('#ifndef SLEPC_MISSING_LAPACK_' + nf.upper() + '\n#define SLEPC_MISSING_LAPACK_' + nf.upper() + ' 1\n#endif\n\n')
-        cmake.write('set (SLEPC_MISSING_LAPACK_' + nf.upper() + ' YES)\n')
-
-    if self.missing:
-      cmake.write('mark_as_advanced (' + ' '.join([s.upper() for s in self.missing]) + ')\n')
 
