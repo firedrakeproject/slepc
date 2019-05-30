@@ -182,4 +182,3 @@ getincludedirs_slepc:
 	-@echo ${SLEPC_CC_INCLUDES}
 
 include ${PETSC_DIR}/lib/petsc/conf/rules
-include ${SLEPC_DIR}/${PETSC_ARCH}/lib/slepc/conf/slepcrules

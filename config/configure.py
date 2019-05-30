@@ -236,7 +236,6 @@ includedir = CreateDir(archdir,'include',log)
 modulesdir = CreateDirTwo(confdir,'modules','slepc',log)
 pkgconfdir = CreateDir(libdir,'pkgconfig',log)
 slepcvars  = CreateFile(confdir,'slepcvariables',log)
-slepcrules = CreateFile(confdir,'slepcrules',log)
 slepcconf  = CreateFile(includedir,'slepcconf.h',log)
 pkgconfig  = CreateFile(pkgconfdir,'SLEPc.pc',log)
 if slepc.isinstall:
@@ -321,7 +320,6 @@ if not slepc.isinstall:
     log.Exit('ERROR: Unable to make reconfigure script executable:\n'+str(e))
 
 # Finish with configuration files (except slepcvars)
-slepcrules.close()
 slepcconf.write('#endif\n')
 slepcconf.close()
 pkgconfig.close()
