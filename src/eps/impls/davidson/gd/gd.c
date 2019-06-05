@@ -144,7 +144,7 @@ PetscErrorCode EPSDestroy_GD(EPS eps)
    EPSGDSetKrylovStart - Activates or deactivates starting the searching
    subspace with a Krylov basis.
 
-   Logically Collective on EPS
+   Logically Collective on eps
 
    Input Parameters:
 +  eps - the eigenproblem solver context
@@ -201,7 +201,7 @@ PetscErrorCode EPSGDGetKrylovStart(EPS eps,PetscBool *krylovstart)
    EPSGDSetBlockSize - Sets the number of vectors to be added to the searching space
    in every iteration.
 
-   Logically Collective on EPS
+   Logically Collective on eps
 
    Input Parameters:
 +  eps - the eigenproblem solver context
@@ -256,7 +256,7 @@ PetscErrorCode EPSGDGetBlockSize(EPS eps,PetscInt *blocksize)
    EPSGDSetRestart - Sets the number of vectors of the searching space after
    restarting and the number of vectors saved from the previous iteration.
 
-   Logically Collective on EPS
+   Logically Collective on eps
 
    Input Parameters:
 +  eps - the eigenproblem solver context
@@ -313,7 +313,7 @@ PetscErrorCode EPSGDGetRestart(EPS eps,PetscInt *minv,PetscInt *plusk)
 /*@
    EPSGDSetInitialSize - Sets the initial size of the searching space.
 
-   Logically Collective on EPS
+   Logically Collective on eps
 
    Input Parameters:
 +  eps - the eigenproblem solver context
@@ -383,7 +383,7 @@ PetscErrorCode EPSGDGetInitialSize(EPS eps,PetscInt *initialsize)
    EPSGDSetBOrth - Selects the orthogonalization that will be used in the search
    subspace in case of generalized Hermitian problems.
 
-   Logically Collective on EPS
+   Logically Collective on eps
 
    Input Parameters:
 +  eps   - the eigenproblem solver context
@@ -449,7 +449,7 @@ static PetscErrorCode EPSGDSetDoubleExpansion_GD(EPS eps,PetscBool doubleexp)
    where K is the preconditioner, x the selected approximate eigenvector and
    r its associated residual vector.
 
-   Logically Collective on EPS
+   Logically Collective on eps
 
    Input Parameters:
 +  eps - the eigenproblem solver context

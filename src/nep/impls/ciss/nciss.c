@@ -697,7 +697,7 @@ static PetscErrorCode NEPCISSSetSizes_CISS(NEP nep,PetscInt ip,PetscInt bs,Petsc
 /*@
    NEPCISSSetSizes - Sets the values of various size parameters in the CISS solver.
 
-   Logically Collective on NEP
+   Logically Collective on nep
 
    Input Parameters:
 +  nep   - the eigenproblem solver context
@@ -813,7 +813,7 @@ static PetscErrorCode NEPCISSSetThreshold_CISS(NEP nep,PetscReal delta,PetscReal
    NEPCISSSetThreshold - Sets the values of various threshold parameters in
    the CISS solver.
 
-   Logically Collective on NEP
+   Logically Collective on nep
 
    Input Parameters:
 +  nep   - the eigenproblem solver context
@@ -901,7 +901,7 @@ static PetscErrorCode NEPCISSSetRefinement_CISS(NEP nep,PetscInt inner,PetscInt 
    NEPCISSSetRefinement - Sets the values of various refinement parameters
    in the CISS solver.
 
-   Logically Collective on NEP
+   Logically Collective on nep
 
    Input Parameters:
 +  nep    - the eigenproblem solver context

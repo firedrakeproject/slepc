@@ -292,7 +292,7 @@ static PetscErrorCode EPSBLOPEXSetBlockSize_BLOPEX(EPS eps,PetscInt bs)
 /*@
    EPSBLOPEXSetBlockSize - Sets the block size of the BLOPEX solver.
 
-   Logically Collective on EPS
+   Logically Collective on eps
 
    Input Parameters:
 +  eps - the eigenproblem solver context

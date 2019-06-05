@@ -17,7 +17,7 @@
    MFNSetUp - Sets up all the internal data structures necessary for the
    execution of the matrix function solver.
 
-   Collective on MFN
+   Collective on mfn
 
    Input Parameter:
 .  mfn   - matrix function context
@@ -73,7 +73,7 @@ PetscErrorCode MFNSetUp(MFN mfn)
 /*@
    MFNSetOperator - Sets the matrix for which the matrix function is to be computed.
 
-   Collective on MFN and Mat
+   Collective on mfn
 
    Input Parameters:
 +  mfn - the matrix function context
@@ -110,7 +110,7 @@ PetscErrorCode MFNSetOperator(MFN mfn,Mat A)
 /*@
    MFNGetOperator - Gets the matrix associated with the MFN object.
 
-   Collective on MFN and Mat
+   Collective on mfn
 
    Input Parameter:
 .  mfn - the MFN context
@@ -135,7 +135,7 @@ PetscErrorCode MFNGetOperator(MFN mfn,Mat *A)
    MFNAllocateSolution - Allocate memory storage for common variables such
    as the basis vectors.
 
-   Collective on MFN
+   Collective on mfn
 
    Input Parameters:
 +  mfn   - matrix function context

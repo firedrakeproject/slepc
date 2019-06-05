@@ -31,7 +31,7 @@ PetscErrorCode NEPComputeVectors(NEP nep)
 /*@
    NEPSolve - Solves the nonlinear eigensystem.
 
-   Collective on NEP
+   Collective on nep
 
    Input Parameter:
 .  nep - eigensolver context obtained from NEPCreate()
@@ -104,7 +104,7 @@ PetscErrorCode NEPSolve(NEP nep)
 /*@
    NEPProjectOperator - Computes the projection of the nonlinear operator.
 
-   Collective on NEP
+   Collective on nep
 
    Input Parameters:
 +  nep - the nonlinear eigensolver context
@@ -149,7 +149,7 @@ PetscErrorCode NEPProjectOperator(NEP nep,PetscInt j0,PetscInt j1)
 /*@
    NEPApplyFunction - Applies the nonlinear function T(lambda) to a given vector.
 
-   Collective on NEP
+   Collective on nep
 
    Input Parameters:
 +  nep    - the nonlinear eigensolver context
@@ -205,7 +205,7 @@ PetscErrorCode NEPApplyFunction(NEP nep,PetscScalar lambda,Vec x,Vec v,Vec y,Mat
 /*@
    NEPApplyAdjoint - Applies the adjoint nonlinear function T(lambda)^* to a given vector.
 
-   Collective on NEP
+   Collective on nep
 
    Input Parameters:
 +  nep    - the nonlinear eigensolver context
@@ -257,7 +257,7 @@ PetscErrorCode NEPApplyAdjoint(NEP nep,PetscScalar lambda,Vec x,Vec v,Vec y,Mat 
 /*@
    NEPApplyJacobian - Applies the nonlinear Jacobian T'(lambda) to a given vector.
 
-   Collective on NEP
+   Collective on nep
 
    Input Parameters:
 +  nep    - the nonlinear eigensolver context
@@ -412,7 +412,7 @@ PetscErrorCode NEPGetConvergedReason(NEP nep,NEPConvergedReason *reason)
    NEPGetEigenpair - Gets the i-th solution of the eigenproblem as computed by
    NEPSolve(). The solution consists in both the eigenvalue and the eigenvector.
 
-   Logically Collective on NEP
+   Logically Collective on nep
 
    Input Parameters:
 +  nep - nonlinear eigensolver context
@@ -476,7 +476,7 @@ PetscErrorCode NEPGetEigenpair(NEP nep,PetscInt i,PetscScalar *eigr,PetscScalar 
 /*@
    NEPGetLeftEigenvector - Gets the i-th left eigenvector as computed by NEPSolve().
 
-   Logically Collective on NEP
+   Logically Collective on nep
 
    Input Parameters:
 +  nep - eigensolver context
@@ -588,7 +588,7 @@ PetscErrorCode NEPComputeResidualNorm_Private(NEP nep,PetscBool adj,PetscScalar 
    NEPComputeError - Computes the error (based on the residual norm) associated
    with the i-th computed eigenpair.
 
-   Collective on NEP
+   Collective on nep
 
    Input Parameter:
 +  nep  - the nonlinear eigensolver context
@@ -691,7 +691,7 @@ PetscErrorCode NEPComputeError(NEP nep,PetscInt i,NEPErrorType type,PetscReal *e
    NEPComputeFunction - Computes the function matrix T(lambda) that has been
    set with NEPSetFunction().
 
-   Collective on NEP and Mat
+   Collective on nep
 
    Input Parameters:
 +  nep    - the NEP context
@@ -751,7 +751,7 @@ PetscErrorCode NEPComputeFunction(NEP nep,PetscScalar lambda,Mat A,Mat B)
    NEPComputeJacobian - Computes the Jacobian matrix T'(lambda) that has been
    set with NEPSetJacobian().
 
-   Collective on NEP and Mat
+   Collective on nep
 
    Input Parameters:
 +  nep    - the NEP context

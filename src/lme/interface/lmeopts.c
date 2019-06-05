@@ -19,7 +19,7 @@
    LMEMonitorSetFromOptions - Sets a monitor function and viewer appropriate for the type
    indicated by the user.
 
-   Collective on LME
+   Collective on lme
 
    Input Parameters:
 +  lme      - the eigensolver context
@@ -55,7 +55,7 @@ PetscErrorCode LMEMonitorSetFromOptions(LME lme,const char name[],const char hel
    This routine must be called before LMESetUp() if the user is to be
    allowed to set the solver type.
 
-   Collective on LME
+   Collective on lme
 
    Input Parameters:
 .  lme - the linear matrix equation solver context
@@ -148,7 +148,7 @@ PetscErrorCode LMESetFromOptions(LME lme)
 /*@
    LMESetProblemType - Specifies the type of matrix equation to be solved.
 
-   Logically Collective on LME
+   Logically Collective on lme
 
    Input Parameters:
 +  lme  - the linear matrix equation solver context
@@ -268,7 +268,7 @@ PetscErrorCode LMEGetTolerances(LME lme,PetscReal *tol,PetscInt *maxits)
    LMESetTolerances - Sets the tolerance and maximum iteration count used
    by the LME convergence tests.
 
-   Logically Collective on LME
+   Logically Collective on lme
 
    Input Parameters:
 +  lme - the linear matrix equation solver context
@@ -336,7 +336,7 @@ PetscErrorCode LMEGetDimensions(LME lme,PetscInt *ncv)
 /*@
    LMESetDimensions - Sets the dimension of the subspace to be used by the solver.
 
-   Logically Collective on LME
+   Logically Collective on lme
 
    Input Parameters:
 +  lme - the linear matrix equation solver context
@@ -372,7 +372,7 @@ PetscErrorCode LMESetDimensions(LME lme,PetscInt ncv)
    LMESetErrorIfNotConverged - Causes LMESolve() to generate an error if the
    solver has not converged.
 
-   Logically Collective on LME
+   Logically Collective on lme
 
    Input Parameters:
 +  lme - the linear matrix equation solver context
@@ -427,7 +427,7 @@ PetscErrorCode LMEGetErrorIfNotConverged(LME lme,PetscBool *flag)
    LMESetOptionsPrefix - Sets the prefix used for searching for all
    LME options in the database.
 
-   Logically Collective on LME
+   Logically Collective on lme
 
    Input Parameters:
 +  lme - the linear matrix equation solver context
@@ -465,7 +465,7 @@ PetscErrorCode LMESetOptionsPrefix(LME lme,const char *prefix)
    LMEAppendOptionsPrefix - Appends to the prefix used for searching for all
    LME options in the database.
 
-   Logically Collective on LME
+   Logically Collective on lme
 
    Input Parameters:
 +  lme - the linear matrix equation solver context

@@ -33,7 +33,7 @@ PetscErrorCode MFNMonitor(MFN mfn,PetscInt it,PetscReal errest)
    MFNMonitorSet - Sets an ADDITIONAL function to be called at every
    iteration to monitor convergence.
 
-   Logically Collective on MFN
+   Logically Collective on mfn
 
    Input Parameters:
 +  mfn     - matrix function context obtained from MFNCreate()
@@ -80,7 +80,7 @@ PetscErrorCode MFNMonitorSet(MFN mfn,PetscErrorCode (*monitor)(MFN,PetscInt,Pets
 /*@
    MFNMonitorCancel - Clears all monitors for an MFN object.
 
-   Logically Collective on MFN
+   Logically Collective on mfn
 
    Input Parameters:
 .  mfn - matrix function context obtained from MFNCreate()
@@ -138,7 +138,7 @@ PetscErrorCode MFNGetMonitorContext(MFN mfn,void **ctx)
    MFNMonitorDefault - Print the error estimate of the current approximation at each
    iteration of the matrix function solver.
 
-   Collective on MFN
+   Collective on mfn
 
    Input Parameters:
 +  mfn    - matrix function context
@@ -175,7 +175,7 @@ PetscErrorCode MFNMonitorDefault(MFN mfn,PetscInt its,PetscReal errest,PetscView
    MFNMonitorLGCreate - Creates a line graph context for use with
    MFN to monitor convergence.
 
-   Collective on MPI_Comm
+   Collective
 
    Input Parameters:
 +  comm - communicator context

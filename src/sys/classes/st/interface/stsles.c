@@ -62,7 +62,7 @@ PetscErrorCode STSetDefaultKSP_Default(ST st)
    STMatMult - Computes the matrix-vector product y = T[k] x, where T[k] is
    the k-th matrix of the spectral transformation.
 
-   Collective on ST
+   Neighbor-wise Collective on st
 
    Input Parameters:
 +  st - the spectral transformation context
@@ -108,7 +108,7 @@ PetscErrorCode STMatMult(ST st,PetscInt k,Vec x,Vec y)
    STMatMultTranspose - Computes the matrix-vector product y = T[k]' x, where T[k] is
    the k-th matrix of the spectral transformation.
 
-   Collective on ST
+   Neighbor-wise Collective on st
 
    Input Parameters:
 +  st - the spectral transformation context
@@ -154,7 +154,7 @@ PetscErrorCode STMatMultTranspose(ST st,PetscInt k,Vec x,Vec y)
    STMatSolve - Solves P x = b, where P is the preconditioner matrix of
    the spectral transformation, using a KSP object stored internally.
 
-   Collective on ST
+   Collective on st
 
    Input Parameters:
 +  st - the spectral transformation context
@@ -203,7 +203,7 @@ PetscErrorCode STMatSolve(ST st,Vec b,Vec x)
    STMatSolveTranspose - Solves P' x = b, where P is the preconditioner matrix of
    the spectral transformation, using a KSP object stored internally.
 
-   Collective on ST
+   Collective on st
 
    Input Parameters:
 .  st - the spectral transformation context
@@ -310,7 +310,7 @@ PetscErrorCode STCheckFactorPackage(ST st)
    STSetKSP - Sets the KSP object associated with the spectral
    transformation.
 
-   Collective on ST
+   Collective on st
 
    Input Parameters:
 +  st   - the spectral transformation context
@@ -415,7 +415,7 @@ PetscErrorCode STCheckNullSpace_Default(ST st,BV V)
    matrix of the associated KSP object. All these nullspace vectors are passed
    to the KSP object.
 
-   Collective on ST
+   Collective on st
 
    Input Parameters:
 +  st - the spectral transformation context

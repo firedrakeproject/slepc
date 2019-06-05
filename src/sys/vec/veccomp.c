@@ -292,7 +292,7 @@ SLEPC_EXTERN PetscErrorCode VecCreate_Comp(Vec V)
    VecCreateComp - Creates a new vector containing several subvectors,
    each stored separately.
 
-   Collective on Vec
+   Collective
 
    Input Parameters:
 +  comm - communicator for the new Vec
@@ -335,7 +335,7 @@ PetscErrorCode VecCreateComp(MPI_Comm comm,PetscInt *Nx,PetscInt n,VecType t,Vec
    VecCreateCompWithVecs - Creates a new vector containing several subvectors,
    each stored separately, from an array of Vecs.
 
-   Collective on Vec
+   Collective on x
 
    Input Parameters:
 +  x - array of Vecs
@@ -398,7 +398,7 @@ static PetscErrorCode VecCompGetSubVecs_Comp(Vec win,PetscInt *n,const Vec **x)
    VecCompGetSubVecs - Returns the entire array of vectors defining a
    compound vector.
 
-   Collective on Vec
+   Collective on win
 
    Input Parameter:
 .  win - compound vector
@@ -463,7 +463,7 @@ static PetscErrorCode VecCompSetSubVecs_Comp(Vec win,PetscInt n,Vec *x)
    VecCompSetSubVecs - Resets the number of subvectors defining a compound vector,
    or replaces the subvectors.
 
-   Collective on Vec
+   Collective on win
 
    Input Parameters:
 +  win - compound vector

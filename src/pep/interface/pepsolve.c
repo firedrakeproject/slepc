@@ -56,7 +56,7 @@ PetscErrorCode PEPExtractVectors(PEP pep)
 /*@
    PEPSolve - Solves the polynomial eigensystem.
 
-   Collective on PEP
+   Collective on pep
 
    Input Parameter:
 .  pep - eigensolver context obtained from PEPCreate()
@@ -266,7 +266,7 @@ PetscErrorCode PEPGetConvergedReason(PEP pep,PEPConvergedReason *reason)
    PEPGetEigenpair - Gets the i-th solution of the eigenproblem as computed by
    PEPSolve(). The solution consists in both the eigenvalue and the eigenvector.
 
-   Logically Collective on EPS
+   Logically Collective on pep
 
    Input Parameters:
 +  pep - polynomial eigensolver context
@@ -448,7 +448,7 @@ PetscErrorCode PEPComputeResidualNorm_Private(PEP pep,PetscScalar kr,PetscScalar
    PEPComputeError - Computes the error (based on the residual norm) associated
    with the i-th computed eigenpair.
 
-   Collective on PEP
+   Collective on pep
 
    Input Parameter:
 +  pep  - the polynomial eigensolver context

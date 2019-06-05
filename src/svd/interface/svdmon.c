@@ -33,7 +33,7 @@ PetscErrorCode SVDMonitor(SVD svd,PetscInt it,PetscInt nconv,PetscReal *sigma,Pe
    SVDMonitorSet - Sets an ADDITIONAL function to be called at every
    iteration to monitor the error estimates for each requested singular triplet.
 
-   Collective on SVD
+   Collective on svd
 
    Input Parameters:
 +  svd     - singular value solver context obtained from SVDCreate()
@@ -88,7 +88,7 @@ PetscErrorCode SVDMonitorSet(SVD svd,PetscErrorCode (*monitor)(SVD,PetscInt,Pets
 /*@
    SVDMonitorCancel - Clears all monitors for an SVD object.
 
-   Collective on SVD
+   Collective on svd
 
    Input Parameters:
 .  svd - singular value solver context obtained from SVDCreate()
@@ -146,7 +146,7 @@ PetscErrorCode SVDGetMonitorContext(SVD svd,void **ctx)
    SVDMonitorAll - Print the current approximate values and
    error estimates at each iteration of the singular value solver.
 
-   Collective on SVD
+   Collective on svd
 
    Input Parameters:
 +  svd    - singular value solver context
@@ -193,7 +193,7 @@ PetscErrorCode SVDMonitorAll(SVD svd,PetscInt its,PetscInt nconv,PetscReal *sigm
    SVDMonitorFirst - Print the first unconverged approximate values and
    error estimates at each iteration of the singular value solver.
 
-   Collective on SVD
+   Collective on svd
 
    Input Parameters:
 +  svd    - singular value solver context
@@ -237,7 +237,7 @@ PetscErrorCode SVDMonitorFirst(SVD svd,PetscInt its,PetscInt nconv,PetscReal *si
 /*@C
    SVDMonitorConverged - Print the approximate values and error estimates as they converge.
 
-   Collective on SVD
+   Collective on svd
 
    Input Parameters:
 +  svd    - singular value solver context
@@ -287,7 +287,7 @@ PetscErrorCode SVDMonitorConverged(SVD svd,PetscInt its,PetscInt nconv,PetscReal
    SVDMonitorLGCreate - Creates a line graph context for use with
    SVD to monitor convergence.
 
-   Collective on MPI_Comm
+   Collective
 
    Input Parameters:
 +  comm - communicator context

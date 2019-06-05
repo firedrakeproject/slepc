@@ -33,7 +33,7 @@ PetscErrorCode NEPMonitor(NEP nep,PetscInt it,PetscInt nconv,PetscScalar *eigr,P
    NEPMonitorSet - Sets an ADDITIONAL function to be called at every
    iteration to monitor the error estimates for each requested eigenpair.
 
-   Logically Collective on NEP
+   Logically Collective on nep
 
    Input Parameters:
 +  nep     - eigensolver context obtained from NEPCreate()
@@ -91,7 +91,7 @@ PetscErrorCode NEPMonitorSet(NEP nep,PetscErrorCode (*monitor)(NEP,PetscInt,Pets
 /*@
    NEPMonitorCancel - Clears all monitors for a NEP object.
 
-   Logically Collective on NEP
+   Logically Collective on nep
 
    Input Parameters:
 .  nep - eigensolver context obtained from NEPCreate()
@@ -149,7 +149,7 @@ PetscErrorCode NEPGetMonitorContext(NEP nep,void **ctx)
    NEPMonitorAll - Print the current approximate values and
    error estimates at each iteration of the nonlinear eigensolver.
 
-   Collective on NEP
+   Collective on nep
 
    Input Parameters:
 +  nep    - nonlinear eigensolver context
@@ -203,7 +203,7 @@ PetscErrorCode NEPMonitorAll(NEP nep,PetscInt its,PetscInt nconv,PetscScalar *ei
    NEPMonitorFirst - Print the first unconverged approximate value and
    error estimate at each iteration of the nonlinear eigensolver.
 
-   Collective on NEP
+   Collective on nep
 
    Input Parameters:
 +  nep    - nonlinear eigensolver context
@@ -255,7 +255,7 @@ PetscErrorCode NEPMonitorFirst(NEP nep,PetscInt its,PetscInt nconv,PetscScalar *
    NEPMonitorConverged - Print the approximate values and
    error estimates as they converge.
 
-   Collective on NEP
+   Collective on nep
 
    Input Parameters:
 +  nep    - nonlinear eigensolver context
@@ -312,7 +312,7 @@ PetscErrorCode NEPMonitorConverged(NEP nep,PetscInt its,PetscInt nconv,PetscScal
    NEPMonitorLGCreate - Creates a line graph context for use with
    NEP to monitor convergence.
 
-   Collective on MPI_Comm
+   Collective
 
    Input Parameters:
 +  comm - communicator context

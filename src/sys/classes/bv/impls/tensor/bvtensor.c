@@ -435,7 +435,7 @@ static PetscErrorCode BVTensorBuildFirstColumn_Tensor(BV V,PetscInt k)
    BVTensorBuildFirstColumn - Builds the first column of the tensor basis vectors
    V from the data contained in the first k columns of U.
 
-   Collective on BV
+   Collective on V
 
    Input Parameters:
 +  V - the basis vectors context
@@ -647,7 +647,7 @@ static PetscErrorCode BVTensorCompress_Tensor(BV V,PetscInt newc)
    BVTensorCompress - Updates the U and S factors of the tensor basis vectors
    object V by means of an SVD, removing redundant information.
 
-   Collective on BV
+   Collective on V
 
    Input Parameters:
 +  V - the tensor basis vectors context
@@ -730,7 +730,7 @@ static PetscErrorCode BVTensorGetFactors_Tensor(BV V,BV *U,Mat *S)
    BVTensorGetFactors - Returns the two factors involved in the definition of the
    tensor basis vectors object, V = (I otimes U) S.
 
-   Logically Collective on BV
+   Logically Collective on V
 
    Input Parameter:
 .  V - the basis vectors context
@@ -784,7 +784,7 @@ static PetscErrorCode BVTensorRestoreFactors_Tensor(BV V,BV *U,Mat *S)
    BVTensorRestoreFactors - Restore the two factors that were obtained with
    BVTensorGetFactors().
 
-   Logically Collective on BV
+   Logically Collective on V
 
    Input Parameters:
 +  V - the basis vectors context
@@ -882,7 +882,7 @@ SLEPC_EXTERN PetscErrorCode BVCreate_Tensor(BV bv)
    BVCreateTensor - Creates a tensor BV that is represented in compact form
    as V = (I otimes U) S, where U has orthonormal columns.
 
-   Collective on BV
+   Collective on U
 
    Input Parameters:
 +  U - a basis vectors object

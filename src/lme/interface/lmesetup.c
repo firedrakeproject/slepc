@@ -76,7 +76,7 @@ PETSC_STATIC_INLINE PetscErrorCode LMESetUp_DT_Lyapunov(LME lme)
    LMESetUp - Sets up all the internal data structures necessary for the
    execution of the linear matrix equation solver.
 
-   Collective on LME
+   Collective on lme
 
    Input Parameter:
 .  lme   - linear matrix equation solver context
@@ -151,7 +151,7 @@ PetscErrorCode LMESetUp(LME lme)
    LMESetCoefficients - Sets the coefficient matrices that define the linear matrix
    equation to be solved.
 
-   Collective on LME and Mat
+   Collective on lme
 
    Input Parameters:
 +  lme - the matrix function context
@@ -233,7 +233,7 @@ PetscErrorCode LMESetCoefficients(LME lme,Mat A,Mat B,Mat D,Mat E)
 /*@
    LMEGetCoefficients - Gets the coefficient matrices of the matrix equation.
 
-   Collective on LME and Mat
+   Collective on lme
 
    Input Parameter:
 .  lme - the LME context
@@ -263,7 +263,7 @@ PetscErrorCode LMEGetCoefficients(LME lme,Mat *A,Mat *B,Mat *D,Mat *E)
    LMESetRHS - Sets the right-hand side of the matrix equation, as a low-rank
    matrix.
 
-   Collective on LME and Mat
+   Collective on lme
 
    Input Parameters:
 +  lme - the matrix function context
@@ -308,7 +308,7 @@ PetscErrorCode LMESetRHS(LME lme,Mat C)
 /*@
    LMEGetRHS - Gets the right-hand side of the matrix equation.
 
-   Collective on LME and Mat
+   Collective on lme
 
    Input Parameter:
 .  lme - the LME context
@@ -333,7 +333,7 @@ PetscErrorCode LMEGetRHS(LME lme,Mat *C)
    LMESetSolution - Sets the placeholder for the solution of the matrix
    equation, as a low-rank matrix.
 
-   Collective on LME and Mat
+   Collective on lme
 
    Input Parameters:
 +  lme - the matrix function context
@@ -382,7 +382,7 @@ PetscErrorCode LMESetSolution(LME lme,Mat X)
 /*@
    LMEGetSolution - Gets the solution of the matrix equation.
 
-   Collective on LME and Mat
+   Collective on lme
 
    Input Parameter:
 .  lme - the LME context
@@ -407,7 +407,7 @@ PetscErrorCode LMEGetSolution(LME lme,Mat *X)
    LMEAllocateSolution - Allocate memory storage for common variables such
    as the basis vectors.
 
-   Collective on LME
+   Collective on lme
 
    Input Parameters:
 +  lme   - linear matrix equation solver context

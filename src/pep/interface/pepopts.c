@@ -19,7 +19,7 @@
    PEPMonitorSetFromOptions - Sets a monitor function and viewer appropriate for the type
    indicated by the user.
 
-   Collective on PEP
+   Collective on pep
 
    Input Parameters:
 +  pep      - the polynomial eigensolver context
@@ -58,7 +58,7 @@ PetscErrorCode PEPMonitorSetFromOptions(PEP pep,const char name[],const char hel
    PEPConvMonitorSetFromOptions - Sets a monitor function and viewer appropriate for the type
    indicated by the user (for monitors that only show iteration numbers of convergence).
 
-   Collective on PEP
+   Collective on pep
 
    Input Parameters:
 +  pep      - the polynomial eigensolver context
@@ -94,7 +94,7 @@ PetscErrorCode PEPConvMonitorSetFromOptions(PEP pep,const char name[],const char
    This routine must be called before PEPSetUp() if the user is to be
    allowed to set the solver type.
 
-   Collective on PEP
+   Collective on pep
 
    Input Parameters:
 .  pep - the polynomial eigensolver context
@@ -318,7 +318,7 @@ PetscErrorCode PEPGetTolerances(PEP pep,PetscReal *tol,PetscInt *maxits)
    PEPSetTolerances - Sets the tolerance and maximum iteration count used
    by the PEP convergence tests.
 
-   Logically Collective on PEP
+   Logically Collective on pep
 
    Input Parameters:
 +  pep - the polynomial eigensolver context
@@ -394,7 +394,7 @@ PetscErrorCode PEPGetDimensions(PEP pep,PetscInt *nev,PetscInt *ncv,PetscInt *mp
    PEPSetDimensions - Sets the number of eigenvalues to compute
    and the dimension of the subspace.
 
-   Logically Collective on PEP
+   Logically Collective on pep
 
    Input Parameters:
 +  pep - the polynomial eigensolver context
@@ -456,7 +456,7 @@ PetscErrorCode PEPSetDimensions(PEP pep,PetscInt nev,PetscInt ncv,PetscInt mpd)
    PEPSetWhichEigenpairs - Specifies which portion of the spectrum is
    to be sought.
 
-   Logically Collective on PEP
+   Logically Collective on pep
 
    Input Parameters:
 +  pep   - eigensolver context obtained from PEPCreate()
@@ -572,7 +572,7 @@ PetscErrorCode PEPGetWhichEigenpairs(PEP pep,PEPWhich *which)
    PEPSetEigenvalueComparison - Specifies the eigenvalue comparison function
    when PEPSetWhichEigenpairs() is set to PEP_WHICH_USER.
 
-   Logically Collective on PEP
+   Logically Collective on pep
 
    Input Parameters:
 +  pep  - eigensolver context obtained from PEPCreate()
@@ -612,7 +612,7 @@ PetscErrorCode PEPSetEigenvalueComparison(PEP pep,PetscErrorCode (*func)(PetscSc
 /*@
    PEPSetProblemType - Specifies the type of the polynomial eigenvalue problem.
 
-   Logically Collective on PEP
+   Logically Collective on pep
 
    Input Parameters:
 +  pep  - the polynomial eigensolver context
@@ -682,7 +682,7 @@ PetscErrorCode PEPGetProblemType(PEP pep,PEPProblemType *type)
    PEPSetBasis - Specifies the type of polynomial basis used to describe the
    polynomial eigenvalue problem.
 
-   Logically Collective on PEP
+   Logically Collective on pep
 
    Input Parameters:
 +  pep   - the polynomial eigensolver context
@@ -739,7 +739,7 @@ PetscErrorCode PEPGetBasis(PEP pep,PEPBasis *basis)
    PEPSetTrackAll - Specifies if the solver must compute the residual of all
    approximate eigenpairs or not.
 
-   Logically Collective on PEP
+   Logically Collective on pep
 
    Input Parameters:
 +  pep      - the eigensolver context
@@ -795,7 +795,7 @@ PetscErrorCode PEPGetTrackAll(PEP pep,PetscBool *trackall)
    PEPSetConvergenceTestFunction - Sets a function to compute the error estimate
    used in the convergence test.
 
-   Logically Collective on PEP
+   Logically Collective on pep
 
    Input Parameters:
 +  pep     - eigensolver context obtained from PEPCreate()
@@ -847,7 +847,7 @@ PetscErrorCode PEPSetConvergenceTestFunction(PEP pep,PetscErrorCode (*func)(PEP,
    PEPSetConvergenceTest - Specifies how to compute the error estimate
    used in the convergence test.
 
-   Logically Collective on PEP
+   Logically Collective on pep
 
    Input Parameters:
 +  pep  - eigensolver context obtained from PEPCreate()
@@ -919,7 +919,7 @@ PetscErrorCode PEPGetConvergenceTest(PEP pep,PEPConv *conv)
    PEPSetStoppingTestFunction - Sets a function to decide when to stop the outer
    iteration of the eigensolver.
 
-   Logically Collective on PEP
+   Logically Collective on pep
 
    Input Parameters:
 +  pep     - eigensolver context obtained from PEPCreate()
@@ -972,7 +972,7 @@ PetscErrorCode PEPSetStoppingTestFunction(PEP pep,PetscErrorCode (*func)(PEP,Pet
    PEPSetStoppingTest - Specifies how to decide the termination of the outer
    loop of the eigensolver.
 
-   Logically Collective on PEP
+   Logically Collective on pep
 
    Input Parameters:
 +  pep  - eigensolver context obtained from PEPCreate()
@@ -1037,7 +1037,7 @@ PetscErrorCode PEPGetStoppingTest(PEP pep,PEPStop *stop)
 /*@
    PEPSetScale - Specifies the scaling strategy to be used.
 
-   Logically Collective on PEP
+   Logically Collective on pep
 
    Input Parameters:
 +  pep    - the eigensolver context
@@ -1166,7 +1166,7 @@ PetscErrorCode PEPGetScale(PEP pep,PEPScale *scale,PetscReal *alpha,Vec *Dl,Vec 
 /*@
    PEPSetExtract - Specifies the extraction strategy to be used.
 
-   Logically Collective on PEP
+   Logically Collective on pep
 
    Input Parameters:
 +  pep     - the eigensolver context
@@ -1215,7 +1215,7 @@ PetscErrorCode PEPGetExtract(PEP pep,PEPExtract *extract)
    PEPSetRefine - Specifies the refinement type (and options) to be used
    after the solve.
 
-   Logically Collective on PEP
+   Logically Collective on pep
 
    Input Parameters:
 +  pep    - the polynomial eigensolver context
@@ -1341,7 +1341,7 @@ PetscErrorCode PEPGetRefine(PEP pep,PEPRefine *refine,PetscInt *npart,PetscReal 
    PEPSetOptionsPrefix - Sets the prefix used for searching for all
    PEP options in the database.
 
-   Logically Collective on PEP
+   Logically Collective on pep
 
    Input Parameters:
 +  pep - the polynomial eigensolver context
@@ -1385,7 +1385,7 @@ PetscErrorCode PEPSetOptionsPrefix(PEP pep,const char *prefix)
    PEPAppendOptionsPrefix - Appends to the prefix used for searching for all
    PEP options in the database.
 
-   Logically Collective on PEP
+   Logically Collective on pep
 
    Input Parameters:
 +  pep - the polynomial eigensolver context

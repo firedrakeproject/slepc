@@ -127,7 +127,7 @@ static PetscErrorCode FNPhiSetIndex_Phi(FN fn,PetscInt k)
 /*@
    FNPhiSetIndex - Sets the index of the phi-function.
 
-   Logically Collective on FN
+   Logically Collective on fn
 
    Input Parameters:
 +  fn - the math function context

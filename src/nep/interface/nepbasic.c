@@ -21,7 +21,7 @@ PetscLogEvent     NEP_SetUp = 0,NEP_Solve = 0,NEP_Refine = 0,NEP_FunctionEval = 
 /*@
    NEPCreate - Creates the default NEP context.
 
-   Collective on MPI_Comm
+   Collective
 
    Input Parameter:
 .  comm - MPI communicator
@@ -120,7 +120,7 @@ PetscErrorCode NEPCreate(MPI_Comm comm,NEP *outnep)
 /*@C
    NEPSetType - Selects the particular solver to be used in the NEP object.
 
-   Logically Collective on NEP
+   Logically Collective on nep
 
    Input Parameters:
 +  nep      - the nonlinear eigensolver context
@@ -258,7 +258,7 @@ PetscErrorCode NEPReset_Problem(NEP nep)
    NEPReset - Resets the NEP context to the initial state (prior to setup)
    and destroys any allocated Vecs and Mats.
 
-   Collective on NEP
+   Collective on nep
 
    Input Parameter:
 .  nep - eigensolver context obtained from NEPCreate()
@@ -289,7 +289,7 @@ PetscErrorCode NEPReset(NEP nep)
 /*@
    NEPDestroy - Destroys the NEP context.
 
-   Collective on NEP
+   Collective on nep
 
    Input Parameter:
 .  nep - eigensolver context obtained from NEPCreate()
@@ -329,7 +329,7 @@ PetscErrorCode NEPDestroy(NEP *nep)
 /*@
    NEPSetBV - Associates a basis vectors object to the nonlinear eigensolver.
 
-   Collective on NEP
+   Collective on nep
 
    Input Parameters:
 +  nep - eigensolver context obtained from NEPCreate()
@@ -394,7 +394,7 @@ PetscErrorCode NEPGetBV(NEP nep,BV *bv)
 /*@
    NEPSetRG - Associates a region object to the nonlinear eigensolver.
 
-   Collective on NEP
+   Collective on nep
 
    Input Parameters:
 +  nep - eigensolver context obtained from NEPCreate()
@@ -459,7 +459,7 @@ PetscErrorCode NEPGetRG(NEP nep,RG *rg)
 /*@
    NEPSetDS - Associates a direct solver object to the nonlinear eigensolver.
 
-   Collective on NEP
+   Collective on nep
 
    Input Parameters:
 +  nep - eigensolver context obtained from NEPCreate()
@@ -567,7 +567,7 @@ PetscErrorCode NEPRefineGetKSP(NEP nep,KSP *ksp)
 /*@
    NEPSetTarget - Sets the value of the target.
 
-   Logically Collective on NEP
+   Logically Collective on nep
 
    Input Parameters:
 +  nep    - eigensolver context
@@ -628,7 +628,7 @@ PetscErrorCode NEPGetTarget(NEP nep,PetscScalar* target)
    NEPSetFunction - Sets the function to compute the nonlinear Function T(lambda)
    as well as the location to store the matrix.
 
-   Logically Collective on NEP and Mat
+   Logically Collective on nep
 
    Input Parameters:
 +  nep - the NEP context
@@ -719,7 +719,7 @@ PetscErrorCode NEPGetFunction(NEP nep,Mat *A,Mat *B,PetscErrorCode (**fun)(NEP,P
    NEPSetJacobian - Sets the function to compute Jacobian T'(lambda) as well
    as the location to store the matrix.
 
-   Logically Collective on NEP and Mat
+   Logically Collective on nep
 
    Input Parameters:
 +  nep - the NEP context
@@ -799,7 +799,7 @@ PetscErrorCode NEPGetJacobian(NEP nep,Mat *A,PetscErrorCode (**jac)(NEP,PetscSca
    NEPSetSplitOperator - Sets the operator of the nonlinear eigenvalue problem
    in split form.
 
-   Collective on NEP, Mat and FN
+   Collective on nep
 
    Input Parameters:
 +  nep - the nonlinear eigensolver context
@@ -926,7 +926,7 @@ PetscErrorCode NEPGetSplitOperatorInfo(NEP nep,PetscInt *n,MatStructure *str)
    NEPSetDerivatives - Sets the function to compute the k-th derivative T^(k)(lambda)
    for any value of k (including 0), as well as the location to store the matrix.
 
-   Logically Collective on NEP and Mat
+   Logically Collective on nep
 
    Input Parameters:
 +  nep - the NEP context

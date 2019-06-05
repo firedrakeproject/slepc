@@ -21,7 +21,7 @@ PetscLogEvent     MFN_SetUp = 0,MFN_Solve = 0;
 /*@C
    MFNView - Prints the MFN data structure.
 
-   Collective on MFN
+   Collective on mfn
 
    Input Parameters:
 +  mfn - the matrix function solver context
@@ -86,7 +86,7 @@ PetscErrorCode MFNView(MFN mfn,PetscViewer viewer)
 /*@C
    MFNReasonView - Displays the reason an MFN solve converged or diverged.
 
-   Collective on MFN
+   Collective on mfn
 
    Parameter:
 +  mfn - the matrix function context
@@ -122,7 +122,7 @@ PetscErrorCode MFNReasonView(MFN mfn,PetscViewer viewer)
    MFNReasonViewFromOptions - Processes command line options to determine if/how
    the MFN converged reason is to be viewed.
 
-   Collective on MFN
+   Collective on mfn
 
    Input Parameters:
 .  mfn - the matrix function context
@@ -154,7 +154,7 @@ PetscErrorCode MFNReasonViewFromOptions(MFN mfn)
 /*@
    MFNCreate - Creates the default MFN context.
 
-   Collective on MPI_Comm
+   Collective
 
    Input Parameter:
 .  comm - MPI communicator
@@ -207,7 +207,7 @@ PetscErrorCode MFNCreate(MPI_Comm comm,MFN *outmfn)
 /*@C
    MFNSetType - Selects the particular solver to be used in the MFN object.
 
-   Logically Collective on MFN
+   Logically Collective on mfn
 
    Input Parameters:
 +  mfn  - the matrix function context
@@ -321,7 +321,7 @@ PetscErrorCode MFNRegister(const char *name,PetscErrorCode (*function)(MFN))
    MFNReset - Resets the MFN context to the initial state (prior to setup)
    and destroys any allocated Vecs and Mats.
 
-   Collective on MFN
+   Collective on mfn
 
    Input Parameter:
 .  mfn - matrix function context obtained from MFNCreate()
@@ -349,7 +349,7 @@ PetscErrorCode MFNReset(MFN mfn)
 /*@
    MFNDestroy - Destroys the MFN context.
 
-   Collective on MFN
+   Collective on mfn
 
    Input Parameter:
 .  mfn - matrix function context obtained from MFNCreate()
@@ -377,7 +377,7 @@ PetscErrorCode MFNDestroy(MFN *mfn)
 /*@
    MFNSetBV - Associates a basis vectors object to the matrix function solver.
 
-   Collective on MFN
+   Collective on mfn
 
    Input Parameters:
 +  mfn - matrix function context obtained from MFNCreate()
@@ -442,7 +442,7 @@ PetscErrorCode MFNGetBV(MFN mfn,BV *bv)
 /*@
    MFNSetFN - Specifies the function to be computed.
 
-   Collective on MFN
+   Collective on mfn
 
    Input Parameters:
 +  mfn - matrix function context obtained from MFNCreate()

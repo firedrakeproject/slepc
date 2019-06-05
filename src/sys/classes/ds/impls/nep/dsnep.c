@@ -345,7 +345,7 @@ static PetscErrorCode DSNEPSetFN_NEP(DS ds,PetscInt n,FN fn[])
    DSNEPSetFN - Sets a number of functions that define the nonlinear
    eigenproblem.
 
-   Collective on DS and FN
+   Collective on ds
 
    Input Parameters:
 +  ds - the direct solver context
@@ -468,7 +468,7 @@ static PetscErrorCode DSNEPSetComputeMatrixFunction_NEP(DS ds,PetscErrorCode (*f
    DSNEPSetComputeMatrixFunction - Sets a user-provided subroutine to compute
    the matrices T(lambda) or T'(lambda).
 
-   Logically Collective on DS
+   Logically Collective on ds
 
    Input Parameters:
 +  ds  - the direct solver context

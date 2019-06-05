@@ -16,7 +16,7 @@
 /*@
    NEPSetWorkVecs - Sets a number of work vectors into a NEP object
 
-   Collective on NEP
+   Collective on nep
 
    Input Parameters:
 +  nep - nonlinear eigensolver context
@@ -134,7 +134,7 @@ PetscErrorCode NEPConvergedNorm(NEP nep,PetscScalar eigr,PetscScalar eigi,PetscR
    NEPStoppingBasic - Default routine to determine whether the outer eigensolver
    iteration must be stopped.
 
-   Collective on NEP
+   Collective on nep
 
    Input Parameters:
 +  nep    - nonlinear eigensolver context obtained from NEPCreate()

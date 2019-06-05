@@ -236,7 +236,7 @@ static PetscErrorCode NEPNArnoldiSetLagPreconditioner_NArnoldi(NEP nep,PetscInt 
    NEPNArnoldiSetLagPreconditioner - Determines when the preconditioner is rebuilt in the
    nonlinear solve.
 
-   Logically Collective on NEP
+   Logically Collective on nep
 
    Input Parameters:
 +  nep - nonlinear eigenvalue solver
@@ -339,7 +339,7 @@ static PetscErrorCode NEPNArnoldiSetKSP_NArnoldi(NEP nep,KSP ksp)
    NEPNArnoldiSetKSP - Associate a linear solver object (KSP) to the nonlinear
    eigenvalue solver.
 
-   Collective on NEP
+   Collective on nep
 
    Input Parameters:
 +  nep - eigenvalue solver

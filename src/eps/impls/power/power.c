@@ -725,7 +725,7 @@ static PetscErrorCode EPSPowerSetShiftType_Power(EPS eps,EPSPowerShiftType shift
    iteration. This can be used to emulate the Rayleigh Quotient Iteration
    (RQI) method.
 
-   Logically Collective on EPS
+   Logically Collective on eps
 
    Input Parameters:
 +  eps - the eigenproblem solver context
@@ -811,7 +811,7 @@ static PetscErrorCode EPSPowerSetNonlinear_Power(EPS eps,PetscBool nonlinear)
 /*@
    EPSPowerSetNonlinear - Sets a flag to indicate that the problem is nonlinear.
 
-   Logically Collective on EPS
+   Logically Collective on eps
 
    Input Parameters:
 +  eps - the eigenproblem solver context
@@ -899,7 +899,7 @@ static PetscErrorCode EPSPowerSetUpdate_Power(EPS eps,PetscBool update)
    EPSPowerSetUpdate - Sets a flag to indicate that the residual is updated monolithically
    for nonlinear problems. This potentially has a better convergence.
 
-   Logically Collective on EPS
+   Logically Collective on eps
 
    Input Parameters:
 +  eps - the eigenproblem solver context
@@ -977,7 +977,7 @@ static PetscErrorCode EPSPowerSetSNES_Power(EPS eps,SNES snes)
    EPSPowerSetSNES - Associate a nonlinear solver object (SNES) to the
    eigenvalue solver (to be used in nonlinear inverse iteration).
 
-   Collective on EPS
+   Collective on eps
 
    Input Parameters:
 +  eps  - the eigenvalue solver

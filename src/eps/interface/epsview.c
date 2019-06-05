@@ -17,7 +17,7 @@
 /*@C
    EPSView - Prints the EPS data structure.
 
-   Collective on EPS
+   Collective on eps
 
    Input Parameters:
 +  eps - the eigenproblem solver context
@@ -225,7 +225,7 @@ PetscErrorCode EPSView(EPS eps,PetscViewer viewer)
 /*@C
    EPSReasonView - Displays the reason an EPS solve converged or diverged.
 
-   Collective on EPS
+   Collective on eps
 
    Parameter:
 +  eps - the eigensolver context
@@ -261,7 +261,7 @@ PetscErrorCode EPSReasonView(EPS eps,PetscViewer viewer)
    EPSReasonViewFromOptions - Processes command line options to determine if/how
    the EPS converged reason is to be viewed.
 
-   Collective on EPS
+   Collective on eps
 
    Input Parameters:
 .  eps - the eigensolver context
@@ -395,7 +395,7 @@ static PetscErrorCode EPSErrorView_MATLAB(EPS eps,EPSErrorType etype,PetscViewer
    EPSErrorView - Displays the errors associated with the computed solution
    (as well as the eigenvalues).
 
-   Collective on EPS
+   Collective on eps
 
    Input Parameters:
 +  eps    - the eigensolver context
@@ -456,7 +456,7 @@ PetscErrorCode EPSErrorView(EPS eps,EPSErrorType etype,PetscViewer viewer)
    EPSErrorViewFromOptions - Processes command line options to determine if/how
    the errors of the computed solution are to be viewed.
 
-   Collective on EPS
+   Collective on eps
 
    Input Parameters:
 .  eps - the eigensolver context
@@ -578,7 +578,7 @@ static PetscErrorCode EPSValuesView_MATLAB(EPS eps,PetscViewer viewer)
 /*@C
    EPSValuesView - Displays the computed eigenvalues in a viewer.
 
-   Collective on EPS
+   Collective on eps
 
    Input Parameters:
 +  eps    - the eigensolver context
@@ -631,7 +631,7 @@ PetscErrorCode EPSValuesView(EPS eps,PetscViewer viewer)
    EPSValuesViewFromOptions - Processes command line options to determine if/how
    the computed eigenvalues are to be viewed.
 
-   Collective on EPS
+   Collective on eps
 
    Input Parameters:
 .  eps - the eigensolver context
@@ -663,7 +663,7 @@ PetscErrorCode EPSValuesViewFromOptions(EPS eps)
 /*@C
    EPSVectorsView - Outputs computed eigenvectors to a viewer.
 
-   Collective on EPS
+   Collective on eps
 
    Parameter:
 +  eps    - the eigensolver context
@@ -728,7 +728,7 @@ PetscErrorCode EPSVectorsView(EPS eps,PetscViewer viewer)
    EPSVectorsViewFromOptions - Processes command line options to determine if/how
    the computed eigenvectors are to be viewed.
 
-   Collective on EPS
+   Collective on eps
 
    Input Parameters:
 .  eps - the eigensolver context

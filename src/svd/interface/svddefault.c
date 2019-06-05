@@ -37,7 +37,7 @@ PetscErrorCode SVDConvergedAbsolute(SVD svd,PetscReal sigma,PetscReal res,PetscR
    SVDStoppingBasic - Default routine to determine whether the outer singular value
    solver iteration must be stopped.
 
-   Collective on SVD
+   Collective on svd
 
    Input Parameters:
 +  svd    - singular value solver context obtained from SVDCreate()

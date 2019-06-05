@@ -173,7 +173,7 @@ PetscErrorCode EPSDestroy_JD(EPS eps)
    EPSJDSetKrylovStart - Activates or deactivates starting the searching
    subspace with a Krylov basis.
 
-   Logically Collective on EPS
+   Logically Collective on eps
 
    Input Parameters:
 +  eps - the eigenproblem solver context
@@ -230,7 +230,7 @@ PetscErrorCode EPSJDGetKrylovStart(EPS eps,PetscBool *krylovstart)
    EPSJDSetBlockSize - Sets the number of vectors to be added to the searching space
    in every iteration.
 
-   Logically Collective on EPS
+   Logically Collective on eps
 
    Input Parameters:
 +  eps - the eigenproblem solver context
@@ -285,7 +285,7 @@ PetscErrorCode EPSJDGetBlockSize(EPS eps,PetscInt *blocksize)
    EPSJDSetRestart - Sets the number of vectors of the searching space after
    restarting and the number of vectors saved from the previous iteration.
 
-   Logically Collective on EPS
+   Logically Collective on eps
 
    Input Parameters:
 +  eps - the eigenproblem solver context
@@ -342,7 +342,7 @@ PetscErrorCode EPSJDGetRestart(EPS eps,PetscInt *minv,PetscInt *plusk)
 /*@
    EPSJDSetInitialSize - Sets the initial size of the searching space.
 
-   Logically Collective on EPS
+   Logically Collective on eps
 
    Input Parameters:
 +  eps - the eigenproblem solver context
@@ -423,7 +423,7 @@ PetscErrorCode EPSJDSetFix_JD(EPS eps,PetscReal fix)
    EPSJDSetFix - Sets the threshold for changing the target in the correction
    equation.
 
-   Logically Collective on EPS
+   Logically Collective on eps
 
    Input Parameters:
 +  eps - the eigenproblem solver context
@@ -507,7 +507,7 @@ PetscErrorCode EPSJDSetConstCorrectionTol_JD(EPS eps,PetscBool constant)
    (also called Newton) that sets the KSP relative tolerance
    to 0.5**i, where i is the number of EPS iterations from the last converged value.
 
-   Logically Collective on EPS
+   Logically Collective on eps
 
    Input Parameters:
 +  eps - the eigenproblem solver context
@@ -572,7 +572,7 @@ PetscErrorCode EPSJDGetConstCorrectionTol(EPS eps,PetscBool *constant)
    EPSJDSetBOrth - Selects the orthogonalization that will be used in the search
    subspace in case of generalized Hermitian problems.
 
-   Logically Collective on EPS
+   Logically Collective on eps
 
    Input Parameters:
 +  eps   - the eigenproblem solver context

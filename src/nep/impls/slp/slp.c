@@ -270,7 +270,7 @@ static PetscErrorCode NEPSLPSetEPS_SLP(NEP nep,EPS eps)
    NEPSLPSetEPS - Associate a linear eigensolver object (EPS) to the
    nonlinear eigenvalue solver.
 
-   Collective on NEP
+   Collective on nep
 
    Input Parameters:
 +  nep - nonlinear eigenvalue solver
@@ -355,7 +355,7 @@ static PetscErrorCode NEPSLPSetKSP_SLP(NEP nep,KSP ksp)
    NEPSLPSetKSP - Associate a linear solver object (KSP) to the nonlinear
    eigenvalue solver.
 
-   Collective on NEP
+   Collective on nep
 
    Input Parameters:
 +  nep - eigenvalue solver

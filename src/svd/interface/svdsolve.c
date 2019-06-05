@@ -49,7 +49,7 @@ PetscErrorCode SVDComputeVectors(SVD svd)
 /*@
    SVDSolve - Solves the singular value problem.
 
-   Collective on SVD
+   Collective on svd
 
    Input Parameter:
 .  svd - singular value solver context obtained from SVDCreate()
@@ -322,7 +322,7 @@ static PetscErrorCode SVDComputeResidualNorms_Private(SVD svd,PetscInt i,PetscRe
    SVDComputeError - Computes the error (based on the residual norm) associated
    with the i-th singular triplet.
 
-   Collective on SVD
+   Collective on svd
 
    Input Parameter:
 +  svd  - the singular value solver context

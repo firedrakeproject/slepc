@@ -234,7 +234,7 @@ static PetscErrorCode EPSFEASTSetNumPoints_FEAST(EPS eps,PetscInt npoints)
    EPSFEASTSetNumPoints - Sets the number of contour integration points for
    the FEAST package.
 
-   Collective on EPS
+   Collective on eps
 
    Input Parameters:
 +  eps     - the eigenproblem solver context
@@ -271,7 +271,7 @@ static PetscErrorCode EPSFEASTGetNumPoints_FEAST(EPS eps,PetscInt *npoints)
    EPSFEASTGetNumPoints - Gets the number of contour integration points for
    the FEAST package.
 
-   Collective on EPS
+   Collective on eps
 
    Input Parameter:
 .  eps     - the eigenproblem solver context

@@ -19,7 +19,7 @@
    NEPMonitorSetFromOptions - Sets a monitor function and viewer appropriate for the type
    indicated by the user.
 
-   Collective on NEP
+   Collective on nep
 
    Input Parameters:
 +  nep      - the nonlinear eigensolver context
@@ -58,7 +58,7 @@ PetscErrorCode NEPMonitorSetFromOptions(NEP nep,const char name[],const char hel
    NEPConvMonitorSetFromOptions - Sets a monitor function and viewer appropriate for the type
    indicated by the user (for monitors that only show iteration numbers of convergence).
 
-   Collective on NEP
+   Collective on nep
 
    Input Parameters:
 +  nep      - the nonlinear eigensolver context
@@ -94,7 +94,7 @@ PetscErrorCode NEPConvMonitorSetFromOptions(NEP nep,const char name[],const char
    This routine must be called before NEPSetUp() if the user is to be
    allowed to set the solver type.
 
-   Collective on NEP
+   Collective on nep
 
    Input Parameters:
 .  nep - the nonlinear eigensolver context
@@ -296,7 +296,7 @@ PetscErrorCode NEPGetTolerances(NEP nep,PetscReal *tol,PetscInt *maxits)
    NEPSetTolerances - Sets the tolerance and maximum iteration count used
    by the NEP convergence tests.
 
-   Logically Collective on NEP
+   Logically Collective on nep
 
    Input Parameters:
 +  nep    - the nonlinear eigensolver context
@@ -372,7 +372,7 @@ PetscErrorCode NEPGetDimensions(NEP nep,PetscInt *nev,PetscInt *ncv,PetscInt *mp
    NEPSetDimensions - Sets the number of eigenvalues to compute
    and the dimension of the subspace.
 
-   Logically Collective on NEP
+   Logically Collective on nep
 
    Input Parameters:
 +  nep - the nonlinear eigensolver context
@@ -431,7 +431,7 @@ PetscErrorCode NEPSetDimensions(NEP nep,PetscInt nev,PetscInt ncv,PetscInt mpd)
     NEPSetWhichEigenpairs - Specifies which portion of the spectrum is
     to be sought.
 
-    Logically Collective on NEP
+    Logically Collective on nep
 
     Input Parameters:
 +   nep   - eigensolver context obtained from NEPCreate()
@@ -541,7 +541,7 @@ PetscErrorCode NEPGetWhichEigenpairs(NEP nep,NEPWhich *which)
    NEPSetEigenvalueComparison - Specifies the eigenvalue comparison function
    when NEPSetWhichEigenpairs() is set to NEP_WHICH_USER.
 
-   Logically Collective on NEP
+   Logically Collective on nep
 
    Input Parameters:
 +  nep  - eigensolver context obtained from NEPCreate()
@@ -581,7 +581,7 @@ PetscErrorCode NEPSetEigenvalueComparison(NEP nep,PetscErrorCode (*func)(PetscSc
 /*@
    NEPSetProblemType - Specifies the type of the nonlinear eigenvalue problem.
 
-   Logically Collective on NEP
+   Logically Collective on nep
 
    Input Parameters:
 +  nep  - the nonlinear eigensolver context
@@ -644,7 +644,7 @@ PetscErrorCode NEPGetProblemType(NEP nep,NEPProblemType *type)
    NEPSetTwoSided - Sets the solver to use a two-sided variant so that left
    eigenvectors are also computed.
 
-   Logically Collective on NEP
+   Logically Collective on nep
 
    Input Parameters:
 +  nep      - the eigensolver context
@@ -706,7 +706,7 @@ PetscErrorCode NEPGetTwoSided(NEP nep,PetscBool *twosided)
    NEPSetConvergenceTestFunction - Sets a function to compute the error estimate
    used in the convergence test.
 
-   Logically Collective on NEP
+   Logically Collective on nep
 
    Input Parameters:
 +  nep     - nonlinear eigensolver context obtained from NEPCreate()
@@ -758,7 +758,7 @@ PetscErrorCode NEPSetConvergenceTestFunction(NEP nep,PetscErrorCode (*func)(NEP,
    NEPSetConvergenceTest - Specifies how to compute the error estimate
    used in the convergence test.
 
-   Logically Collective on NEP
+   Logically Collective on nep
 
    Input Parameters:
 +  nep  - nonlinear eigensolver context obtained from NEPCreate()
@@ -829,7 +829,7 @@ PetscErrorCode NEPGetConvergenceTest(NEP nep,NEPConv *conv)
    NEPSetStoppingTestFunction - Sets a function to decide when to stop the outer
    iteration of the eigensolver.
 
-   Logically Collective on NEP
+   Logically Collective on nep
 
    Input Parameters:
 +  nep     - nonlinear eigensolver context obtained from NEPCreate()
@@ -882,7 +882,7 @@ PetscErrorCode NEPSetStoppingTestFunction(NEP nep,PetscErrorCode (*func)(NEP,Pet
    NEPSetStoppingTest - Specifies how to decide the termination of the outer
    loop of the eigensolver.
 
-   Logically Collective on NEP
+   Logically Collective on nep
 
    Input Parameters:
 +  nep  - nonlinear eigensolver context obtained from NEPCreate()
@@ -948,7 +948,7 @@ PetscErrorCode NEPGetStoppingTest(NEP nep,NEPStop *stop)
    NEPSetTrackAll - Specifies if the solver must compute the residual of all
    approximate eigenpairs or not.
 
-   Logically Collective on NEP
+   Logically Collective on nep
 
    Input Parameters:
 +  nep      - the eigensolver context
@@ -1004,7 +1004,7 @@ PetscErrorCode NEPGetTrackAll(NEP nep,PetscBool *trackall)
    NEPSetRefine - Specifies the refinement type (and options) to be used
    after the solve.
 
-   Logically Collective on NEP
+   Logically Collective on nep
 
    Input Parameters:
 +  nep    - the nonlinear eigensolver context
@@ -1130,7 +1130,7 @@ PetscErrorCode NEPGetRefine(NEP nep,NEPRefine *refine,PetscInt *npart,PetscReal 
    NEPSetOptionsPrefix - Sets the prefix used for searching for all
    NEP options in the database.
 
-   Logically Collective on NEP
+   Logically Collective on nep
 
    Input Parameters:
 +  nep - the nonlinear eigensolver context
@@ -1172,7 +1172,7 @@ PetscErrorCode NEPSetOptionsPrefix(NEP nep,const char *prefix)
    NEPAppendOptionsPrefix - Appends to the prefix used for searching for all
    NEP options in the database.
 
-   Logically Collective on NEP
+   Logically Collective on nep
 
    Input Parameters:
 +  nep - the nonlinear eigensolver context

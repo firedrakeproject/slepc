@@ -18,7 +18,7 @@
    instance (A - sB)^-1 B in the case of the shift-and-invert transformation
    and generalized eigenproblem.
 
-   Collective on ST and Vec
+   Collective on st
 
    Input Parameters:
 +  st - the spectral transformation context
@@ -66,7 +66,7 @@ PetscErrorCode STApply(ST st,Vec x,Vec y)
    instance B^T(A - sB)^-T in the case of the shift-and-invert transformation
    and generalized eigenproblem.
 
-   Collective on ST and Vec
+   Collective on st
 
    Input Parameters:
 +  st - the spectral transformation context
@@ -178,7 +178,7 @@ static PetscErrorCode MatMultTranspose_STOperator(Mat Op,Vec x,Vec y)
 /*@
    STGetOperator - Returns a shell matrix that represents the spectral transformation.
 
-   Collective on ST
+   Collective on st
 
    Input Parameters:
 .  st - the spectral transformation context
@@ -216,7 +216,7 @@ PetscErrorCode STGetOperator(ST st,Mat *Op)
 /*@
    STSetUp - Prepares for the use of a spectral transformation.
 
-   Collective on ST
+   Collective on st
 
    Input Parameter:
 .  st - the spectral transformation context
@@ -391,7 +391,7 @@ PetscErrorCode STCoeffs_Monomial(ST st, PetscScalar *coeffs)
    STPostSolve - Optional post-solve phase, intended for any actions that must
    be performed on the ST object after the eigensolver has finished.
 
-   Collective on ST
+   Collective on st
 
    Input Parameters:
 .  st  - the spectral transformation context
@@ -479,7 +479,7 @@ PetscErrorCode STIsInjective(ST st,PetscBool* is)
 /*@
    STMatSetUp - Build the preconditioner matrix used in STMatSolve().
 
-   Collective on ST
+   Collective on st
 
    Input Parameters:
 +  st     - the spectral transformation context
@@ -520,7 +520,7 @@ PetscErrorCode STMatSetUp(ST st,PetscScalar sigma,PetscScalar *coeffs)
 /*@
    STSetWorkVecs - Sets a number of work vectors into the ST object.
 
-   Collective on ST
+   Collective on st
 
    Input Parameters:
 +  st - the spectral transformation context

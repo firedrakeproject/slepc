@@ -54,7 +54,7 @@ PETSC_STATIC_INLINE PetscErrorCode BVDot_Private(BV X,BV Y,Mat M)
 /*@
    BVDot - Computes the 'block-dot' product of two basis vectors objects.
 
-   Collective on BV
+   Collective on X
 
    Input Parameters:
 +  X, Y - basis vectors
@@ -130,7 +130,7 @@ PetscErrorCode BVDot(BV X,BV Y,Mat M)
    BVDotVec - Computes multiple dot products of a vector against all the
    column vectors of a BV.
 
-   Collective on BV and Vec
+   Collective on X
 
    Input Parameters:
 +  X - basis vectors
@@ -286,7 +286,7 @@ PetscErrorCode BVDotVecEnd(BV X,Vec y,PetscScalar *m)
    BVDotColumn - Computes multiple dot products of a column against all the
    previous columns of a BV.
 
-   Collective on BV
+   Collective on X
 
    Input Parameters:
 +  X - basis vectors
@@ -494,7 +494,7 @@ PETSC_STATIC_INLINE PetscErrorCode BVNorm_End_Private(BV bv,Vec z,NormType type,
 /*@
    BVNorm - Computes the matrix norm of the BV.
 
-   Collective on BV
+   Collective on bv
 
    Input Parameters:
 +  bv   - basis vectors
@@ -537,7 +537,7 @@ PetscErrorCode BVNorm(BV bv,NormType type,PetscReal *val)
 /*@
    BVNormVec - Computes the norm of a given vector.
 
-   Collective on BV
+   Collective on bv
 
    Input Parameters:
 +  bv   - basis vectors
@@ -671,7 +671,7 @@ PetscErrorCode BVNormVecEnd(BV bv,Vec v,NormType type,PetscReal *val)
 /*@
    BVNormColumn - Computes the vector norm of a selected column.
 
-   Collective on BV
+   Collective on bv
 
    Input Parameters:
 +  bv   - basis vectors
@@ -1052,7 +1052,7 @@ PETSC_STATIC_INLINE PetscErrorCode BVMatProject_Dot(BV X,BV Y,PetscScalar *marra
 /*@
    BVMatProject - Computes the projection of a matrix onto a subspace.
 
-   Collective on BV
+   Collective on X
 
    Input Parameters:
 +  X - basis vectors

@@ -33,7 +33,7 @@ PetscErrorCode PEPMonitor(PEP pep,PetscInt it,PetscInt nconv,PetscScalar *eigr,P
    PEPMonitorSet - Sets an ADDITIONAL function to be called at every
    iteration to monitor the error estimates for each requested eigenpair.
 
-   Logically Collective on PEP
+   Logically Collective on pep
 
    Input Parameters:
 +  pep     - eigensolver context obtained from PEPCreate()
@@ -90,7 +90,7 @@ PetscErrorCode PEPMonitorSet(PEP pep,PetscErrorCode (*monitor)(PEP,PetscInt,Pets
 /*@
    PEPMonitorCancel - Clears all monitors for a PEP object.
 
-   Logically Collective on PEP
+   Logically Collective on pep
 
    Input Parameters:
 .  pep - eigensolver context obtained from PEPCreate()
@@ -170,7 +170,7 @@ static PetscErrorCode PEPMonitorGetTrueEig(PEP pep,PetscScalar *er,PetscScalar *
    PEPMonitorAll - Print the current approximate values and
    error estimates at each iteration of the polynomial eigensolver.
 
-   Collective on PEP
+   Collective on pep
 
    Input Parameters:
 +  pep    - polynomial eigensolver context
@@ -227,7 +227,7 @@ PetscErrorCode PEPMonitorAll(PEP pep,PetscInt its,PetscInt nconv,PetscScalar *ei
    PEPMonitorFirst - Print the first unconverged approximate value and
    error estimate at each iteration of the polynomial eigensolver.
 
-   Collective on PEP
+   Collective on pep
 
    Input Parameters:
 +  pep    - polynomial eigensolver context
@@ -282,7 +282,7 @@ PetscErrorCode PEPMonitorFirst(PEP pep,PetscInt its,PetscInt nconv,PetscScalar *
    PEPMonitorConverged - Print the approximate values and
    error estimates as they converge.
 
-   Collective on PEP
+   Collective on pep
 
    Input Parameters:
 +  pep    - polynomial eigensolver context
@@ -342,7 +342,7 @@ PetscErrorCode PEPMonitorConverged(PEP pep,PetscInt its,PetscInt nconv,PetscScal
    PEPMonitorLGCreate - Creates a line graph context for use with
    PEP to monitor convergence.
 
-   Collective on MPI_Comm
+   Collective
 
    Input Parameters:
 +  comm - communicator context

@@ -13,7 +13,7 @@
 /*@
    VecNormalizeComplex - Normalizes a possibly complex vector by the 2-norm.
 
-   Collective on Vec
+   Collective on xr
 
    Input parameters:
 +  xr - the real part of the vector (overwritten on output)
@@ -58,7 +58,7 @@ PetscErrorCode VecNormalizeComplex(Vec xr,Vec xi,PetscBool iscomplex,PetscReal *
    VecCheckOrthogonality - Checks (or prints) the level of (bi-)orthogonality
    of a set of vectors.
 
-   Collective on Vec
+   Collective on V
 
    Input parameters:
 +  V  - a set of vectors
@@ -147,7 +147,7 @@ PetscErrorCode VecCheckOrthogonality(Vec *V,PetscInt nv,Vec *W,PetscInt nw,Mat B
    VecDuplicateEmpty - Creates a new vector of the same type as an existing vector,
    but without internal array.
 
-   Collective on Vec
+   Collective on v
 
    Input parameters:
 .  v - a vector to mimic

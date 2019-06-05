@@ -19,7 +19,7 @@ PetscFunctionList BVList = 0;
 /*@C
    BVSetType - Selects the type for the BV object.
 
-   Logically Collective on BV
+   Logically Collective on bv
 
    Input Parameter:
 +  bv   - the basis vectors context
@@ -90,7 +90,7 @@ PetscErrorCode BVGetType(BV bv,BVType *type)
 /*@
    BVSetSizes - Sets the local and global sizes, and the number of columns.
 
-   Collective on BV
+   Collective on bv
 
    Input Parameters:
 +  bv - the basis vectors
@@ -149,7 +149,7 @@ PetscErrorCode BVSetSizes(BV bv,PetscInt n,PetscInt N,PetscInt m)
    BVSetSizesFromVec - Sets the local and global sizes, and the number of columns.
    Local and global sizes are specified indirectly by passing a template vector.
 
-   Collective on BV
+   Collective on bv
 
    Input Parameters:
 +  bv - the basis vectors
@@ -233,7 +233,7 @@ PetscErrorCode BVGetSizes(BV bv,PetscInt *n,PetscInt *N,PetscInt *m)
 /*@
    BVSetNumConstraints - Set the number of constraints.
 
-   Logically Collective on BV
+   Logically Collective on V
 
    Input Parameters:
 +  V  - basis vectors
@@ -315,7 +315,7 @@ PetscErrorCode BVGetNumConstraints(BV bv,PetscInt *nc)
 /*@
    BVResize - Change the number of columns.
 
-   Collective on BV
+   Collective on bv
 
    Input Parameters:
 +  bv   - the basis vectors
@@ -385,7 +385,7 @@ PetscErrorCode BVResize(BV bv,PetscInt m,PetscBool copy)
 /*@
    BVSetActiveColumns - Specify the columns that will be involved in operations.
 
-   Logically Collective on BV
+   Logically Collective on bv
 
    Input Parameters:
 +  bv - the basis vectors context
@@ -459,7 +459,7 @@ PetscErrorCode BVGetActiveColumns(BV bv,PetscInt *l,PetscInt *k)
 /*@
    BVSetMatrix - Specifies the inner product to be used in orthogonalization.
 
-   Collective on BV
+   Collective on bv
 
    Input Parameters:
 +  bv    - the basis vectors context
@@ -536,7 +536,7 @@ PetscErrorCode BVGetMatrix(BV bv,Mat *B,PetscBool *indef)
    BVApplyMatrix - Multiplies a vector by the matrix representation of the
    inner product.
 
-   Neighbor-wise Collective on BV and Vec
+   Neighbor-wise Collective on bv
 
    Input Parameter:
 +  bv - the basis vectors context
@@ -573,7 +573,7 @@ PetscErrorCode BVApplyMatrix(BV bv,Vec x,Vec y)
    BVApplyMatrixBV - Multiplies the BV vectors by the matrix representation
    of the inner product.
 
-   Neighbor-wise Collective on BV
+   Neighbor-wise Collective on X
 
    Input Parameter:
 .  X - the basis vectors context
@@ -614,7 +614,7 @@ PetscErrorCode BVApplyMatrixBV(BV X,BV Y)
 /*@
    BVSetSignature - Sets the signature matrix to be used in orthogonalization.
 
-   Logically Collective on BV
+   Logically Collective on bv
 
    Input Parameter:
 +  bv    - the basis vectors context
@@ -705,7 +705,7 @@ PetscErrorCode BVGetSignature(BV bv,Vec omega)
    BVSetBufferVec - Attach a vector object to be used as buffer space for
    several operations.
 
-   Collective on BV
+   Collective on bv
 
    Input Parameters:
 +  bv     - the basis vectors context)
@@ -748,7 +748,7 @@ PetscErrorCode BVSetBufferVec(BV bv,Vec buffer)
 /*@
    BVGetBufferVec - Obtain the buffer vector associated with the BV object.
 
-   Not Collective
+   Not Collective, but Vec returned is parallel if BV is parallel
 
    Input Parameters:
 .  bv - the basis vectors context
@@ -803,7 +803,7 @@ PetscErrorCode BVGetBufferVec(BV bv,Vec *buffer)
    BVSetRandomContext - Sets the PetscRandom object associated with the BV,
    to be used in operations that need random numbers.
 
-   Collective on BV
+   Collective on bv
 
    Input Parameters:
 +  bv   - the basis vectors context
@@ -865,7 +865,7 @@ PetscErrorCode BVGetRandomContext(BV bv,PetscRandom* rand)
 /*@
    BVSetFromOptions - Sets BV options from the options database.
 
-   Collective on BV
+   Collective on bv
 
    Input Parameter:
 .  bv - the basis vectors context
@@ -926,7 +926,7 @@ PetscErrorCode BVSetFromOptions(BV bv)
    for the block-orthogonalization (simultaneous orthogonalization of a set of
    vectors).
 
-   Logically Collective on BV
+   Logically Collective on bv
 
    Input Parameters:
 +  bv     - the basis vectors context
@@ -1034,7 +1034,7 @@ PetscErrorCode BVGetOrthogonalization(BV bv,BVOrthogType *type,BVOrthogRefineTyp
 /*@
    BVSetMatMultMethod - Specifies the method used for the BVMatMult() operation.
 
-   Logically Collective on BV
+   Logically Collective on bv
 
    Input Parameters:
 +  bv     - the basis vectors context
@@ -1105,7 +1105,7 @@ PetscErrorCode BVGetMatMultMethod(BV bv,BVMatMultType *method)
    BVGetColumn - Returns a Vec object that contains the entries of the
    requested column of the basis vectors object.
 
-   Logically Collective on BV
+   Logically Collective on bv
 
    Input Parameters:
 +  bv - the basis vectors context
@@ -1156,7 +1156,7 @@ PetscErrorCode BVGetColumn(BV bv,PetscInt j,Vec *v)
 /*@
    BVRestoreColumn - Restore a column obtained with BVGetColumn().
 
-   Logically Collective on BV
+   Logically Collective on bv
 
    Input Parameters:
 +  bv - the basis vectors context
@@ -1208,7 +1208,7 @@ PetscErrorCode BVRestoreColumn(BV bv,PetscInt j,Vec *v)
    BVGetArray - Returns a pointer to a contiguous array that contains this
    processor's portion of the BV data.
 
-   Logically Collective on BV
+   Logically Collective on bv
 
    Input Parameters:
 .  bv - the basis vectors context
@@ -1243,7 +1243,7 @@ PetscErrorCode BVGetArray(BV bv,PetscScalar **a)
 /*@C
    BVRestoreArray - Restore the BV object after BVGetArray() has been called.
 
-   Logically Collective on BV
+   Logically Collective on bv
 
    Input Parameters:
 +  bv - the basis vectors context
@@ -1342,7 +1342,7 @@ PetscErrorCode BVRestoreArrayRead(BV bv,const PetscScalar **a)
    BVCreateVec - Creates a new Vec object with the same type and dimensions
    as the columns of the basis vectors object.
 
-   Collective on BV
+   Collective on bv
 
    Input Parameter:
 .  bv - the basis vectors context
@@ -1373,7 +1373,7 @@ PetscErrorCode BVCreateVec(BV bv,Vec *v)
    BVCreateMat - Creates a new Mat object of dense type and copies the contents
    of the BV object.
 
-   Collective on BV
+   Collective on bv
 
    Input Parameter:
 .  bv - the basis vectors context
@@ -1416,7 +1416,7 @@ PetscErrorCode BVCreateMat(BV bv,Mat *A)
    BVGetMat - Returns a Mat object of dense type that shares the memory of
    the BV object.
 
-   Collective on BV
+   Collective on bv
 
    Input Parameter:
 .  bv - the basis vectors context
@@ -1474,7 +1474,7 @@ PetscErrorCode BVGetMat(BV bv,Mat *A)
 /*@
    BVRestoreMat - Restores the Mat obtained with BVGetMat().
 
-   Collective on BV
+   Logically Collective on bv
 
    Input Parameters:
 +  bv - the basis vectors context
@@ -1535,7 +1535,7 @@ PETSC_STATIC_INLINE PetscErrorCode BVDuplicate_Private(BV V,BV W)
    BVDuplicate - Creates a new basis vector object of the same type and
    dimensions as an existing one.
 
-   Collective on BV
+   Collective on V
 
    Input Parameter:
 .  V - basis vectors context
@@ -1574,7 +1574,7 @@ PetscErrorCode BVDuplicate(BV V,BV *W)
    BVDuplicateResize - Creates a new basis vector object of the same type and
    dimensions as an existing one, but with possibly different number of columns.
 
-   Collective on BV
+   Collective on V
 
    Input Parameter:
 +  V - basis vectors context
@@ -1647,7 +1647,7 @@ PetscErrorCode BVGetCachedBV(BV bv,BV *cached)
 /*@
    BVCopy - Copies a basis vector object into another one, W <- V.
 
-   Logically Collective on BV
+   Logically Collective on V
 
    Input Parameter:
 .  V - basis vectors context
@@ -1702,7 +1702,7 @@ PetscErrorCode BVCopy(BV V,BV W)
 /*@
    BVCopyVec - Copies one of the columns of a basis vectors object into a Vec.
 
-   Logically Collective on BV
+   Logically Collective on V
 
    Input Parameter:
 +  V - basis vectors context
@@ -1747,7 +1747,7 @@ PetscErrorCode BVCopyVec(BV V,PetscInt j,Vec w)
 /*@
    BVCopyColumn - Copies the values from one of the columns to another one.
 
-   Logically Collective on BV
+   Logically Collective on V
 
    Input Parameter:
 +  V - basis vectors context
@@ -1830,7 +1830,7 @@ static PetscErrorCode BVGetSplit_Private(BV bv,PetscBool left,BV *split)
    internal data, one of them containing the leading columns and the other
    one containing the remaining columns.
 
-   Logically Collective on BV
+   Logically Collective on bv
 
    Input Parameters:
 .  bv - the basis vectors context
@@ -1878,7 +1878,7 @@ PetscErrorCode BVGetSplit(BV bv,BV *L,BV *R)
 /*@
    BVRestoreSplit - Restore the BV objects obtained with BVGetSplit().
 
-   Logically Collective on BV
+   Logically Collective on bv
 
    Input Parameters:
 +  bv - the basis vectors context

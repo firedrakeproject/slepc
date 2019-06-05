@@ -356,7 +356,7 @@ static PetscErrorCode EPSBlzpackSetBlockSize_BLZPACK(EPS eps,PetscInt bs)
 /*@
    EPSBlzpackSetBlockSize - Sets the block size for the BLZPACK package.
 
-   Collective on EPS
+   Collective on eps
 
    Input Parameters:
 +  eps - the eigenproblem solver context
@@ -395,7 +395,7 @@ static PetscErrorCode EPSBlzpackSetNSteps_BLZPACK(EPS eps,PetscInt nsteps)
    EPSBlzpackSetNSteps - Sets the maximum number of steps per run for the BLZPACK
    package.
 
-   Collective on EPS
+   Collective on eps
 
    Input Parameters:
 +  eps     - the eigenproblem solver context

@@ -569,7 +569,7 @@ static PetscErrorCode PEPSTOARSetLocking_STOAR(PEP pep,PetscBool lock)
    PEPSTOARSetLocking - Choose between locking and non-locking variants of
    the STOAR method.
 
-   Logically Collective on PEP
+   Logically Collective on pep
 
    Input Parameters:
 +  pep  - the eigenproblem solver context
@@ -746,7 +746,7 @@ static PetscErrorCode PEPSTOARSetDetectZeros_STOAR(PEP pep,PetscBool detect)
    PEPSTOARSetDetectZeros - Sets a flag to enforce detection of
    zeros during the factorizations throughout the spectrum slicing computation.
 
-   Logically Collective on PEP
+   Logically Collective on pep
 
    Input Parameters:
 +  pep    - the eigenproblem solver context
@@ -829,7 +829,7 @@ static PetscErrorCode PEPSTOARSetLinearization_STOAR(PEP pep,PetscReal alpha,Pet
    PEPSTOARSetLinearization - Set the coefficients that define 
    the linearization of a quadratic eigenproblem.
 
-   Logically Collective on PEP
+   Logically Collective on pep
 
    Input Parameters:
 +  pep   - polynomial eigenvalue solver
@@ -924,7 +924,7 @@ static PetscErrorCode PEPSTOARSetDimensions_STOAR(PEP pep,PetscInt nev,PetscInt 
    step in case of doing spectrum slicing for a computational interval.
    The meaning of the parameters is the same as in PEPSetDimensions().
 
-   Logically Collective on PEP
+   Logically Collective on pep
 
    Input Parameters:
 +  pep - the eigenproblem solver context
@@ -1007,7 +1007,7 @@ static PetscErrorCode PEPSTOARSetCheckEigenvalueType_STOAR(PEP pep,PetscBool che
    PEPSTOARSetCheckEigenvalueType - Sets a flag to check that all the eigenvalues
    obtained throughout the spectrum slicing computation have the same definite type.
 
-   Logically Collective on PEP
+   Logically Collective on pep
 
    Input Parameters:
 +  pep     - the eigenproblem solver context

@@ -13,7 +13,7 @@
 /*@C
    SlepcConvMonitorCreate - Creates a SlepcConvMonitor context.
 
-   Collective on PetscViewer
+   Collective on viewer
 
    Input Parameters:
 +  viewer - the viewer where the monitor must send data
@@ -48,7 +48,7 @@ PetscErrorCode SlepcConvMonitorCreate(PetscViewer viewer,PetscViewerFormat forma
 /*@C
    SlepcConvMonitorDestroy - Destroys a SlepcConvMonitor context.
 
-   Collective on PetscViewer
+   Collective
 
    Input Parameters:
 .  ctx - the SlepcConvMonitor context to be destroyed.

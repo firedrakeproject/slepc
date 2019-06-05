@@ -85,7 +85,7 @@ PetscErrorCode FNInitializePackage(void)
 /*@
    FNCreate - Creates an FN context.
 
-   Collective on MPI_Comm
+   Collective
 
    Input Parameter:
 .  comm - MPI communicator
@@ -124,7 +124,7 @@ PetscErrorCode FNCreate(MPI_Comm comm,FN *newfn)
    FNSetOptionsPrefix - Sets the prefix used for searching for all
    FN options in the database.
 
-   Logically Collective on FN
+   Logically Collective on fn
 
    Input Parameters:
 +  fn - the math function context
@@ -153,7 +153,7 @@ PetscErrorCode FNSetOptionsPrefix(FN fn,const char *prefix)
    FNAppendOptionsPrefix - Appends to the prefix used for searching for all
    FN options in the database.
 
-   Logically Collective on FN
+   Logically Collective on fn
 
    Input Parameters:
 +  fn - the math function context
@@ -211,7 +211,7 @@ PetscErrorCode FNGetOptionsPrefix(FN fn,const char *prefix[])
 /*@C
    FNSetType - Selects the type for the FN object.
 
-   Logically Collective on FN
+   Logically Collective on fn
 
    Input Parameter:
 +  fn   - the math function context
@@ -275,7 +275,7 @@ PetscErrorCode FNGetType(FN fn,FNType *type)
 /*@
    FNSetScale - Sets the scaling parameters that define the matematical function.
 
-   Logically Collective on FN
+   Logically Collective on fn
 
    Input Parameters:
 +  fn    - the math function context
@@ -336,7 +336,7 @@ PetscErrorCode FNGetScale(FN fn,PetscScalar *alpha,PetscScalar *beta)
 /*@
    FNSetMethod - Selects the method to be used to evaluate functions of matrices.
 
-   Logically Collective on FN
+   Logically Collective on fn
 
    Input Parameter:
 +  fn   - the math function context
@@ -395,7 +395,7 @@ PetscErrorCode FNGetMethod(FN fn,PetscInt *meth)
 /*@
    FNSetParallel - Selects the mode of operation in parallel runs.
 
-   Logically Collective on FN
+   Logically Collective on fn
 
    Input Parameter:
 +  fn    - the math function context
@@ -665,7 +665,7 @@ PetscErrorCode FNEvaluateFunctionMat_Private(FN fn,Mat A,Mat B,PetscBool sync)
    FNEvaluateFunctionMat - Computes the value of the function f(A) for a given
    matrix A, where the result is also a matrix.
 
-   Logically Collective on FN
+   Logically Collective on fn
 
    Input Parameters:
 +  fn - the math function context
@@ -824,7 +824,7 @@ PetscErrorCode FNEvaluateFunctionMatVec_Private(FN fn,Mat A,Vec v,PetscBool sync
    FNEvaluateFunctionMatVec - Computes the first column of the matrix f(A)
    for a given matrix A.
 
-   Logically Collective on FN
+   Logically Collective on fn
 
    Input Parameters:
 +  fn - the math function context
@@ -869,7 +869,7 @@ PetscErrorCode FNEvaluateFunctionMatVec(FN fn,Mat A,Vec v)
 /*@
    FNSetFromOptions - Sets FN options from the options database.
 
-   Collective on FN
+   Collective on fn
 
    Input Parameters:
 .  fn - the math function context
@@ -924,7 +924,7 @@ PetscErrorCode FNSetFromOptions(FN fn)
 /*@C
    FNView - Prints the FN data structure.
 
-   Collective on FN
+   Collective on fn
 
    Input Parameters:
 +  fn - the math function context
@@ -976,7 +976,7 @@ PetscErrorCode FNView(FN fn,PetscViewer viewer)
    FNDuplicate - Duplicates a math function, copying all parameters, possibly with a
    different communicator.
 
-   Collective on FN
+   Collective on fn
 
    Input Parameters:
 +  fn   - the math function context
@@ -1023,7 +1023,7 @@ PetscErrorCode FNDuplicate(FN fn,MPI_Comm comm,FN *newfn)
 /*@
    FNDestroy - Destroys FN context that was created with FNCreate().
 
-   Collective on FN
+   Collective on fn
 
    Input Parameter:
 .  fn - the math function context

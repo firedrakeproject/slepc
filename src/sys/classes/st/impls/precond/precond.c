@@ -212,7 +212,7 @@ static PetscErrorCode STPrecondSetMatForPC_Precond(ST st,Mat mat)
 /*@
    STPrecondSetMatForPC - Sets the matrix that must be used to build the preconditioner.
 
-   Logically Collective on ST and Mat
+   Logically Collective on st
 
    Input Parameter:
 +  st - the spectral transformation context
@@ -254,7 +254,7 @@ static PetscErrorCode STPrecondSetKSPHasMat_Precond(ST st,PetscBool setmat)
    matrix of the KSP linear system (A) must be set to be the same matrix as the
    preconditioner (P).
 
-   Collective on ST
+   Collective on st
 
    Input Parameter:
 +  st - the spectral transformation context

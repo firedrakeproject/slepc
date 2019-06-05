@@ -302,7 +302,7 @@ static PetscErrorCode SVDLanczosSetOneSide_Lanczos(SVD svd,PetscBool oneside)
    SVDLanczosSetOneSide - Indicate if the variant of the Lanczos method
    to be used is one-sided or two-sided.
 
-   Logically Collective on SVD
+   Logically Collective on svd
 
    Input Parameters:
 +  svd     - singular value solver

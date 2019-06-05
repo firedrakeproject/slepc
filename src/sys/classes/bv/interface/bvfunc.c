@@ -104,7 +104,7 @@ PetscErrorCode BVInitializePackage(void)
 /*@
    BVDestroy - Destroys BV context that was created with BVCreate().
 
-   Collective on BV
+   Collective on bv
 
    Input Parameter:
 .  bv - the basis vectors context
@@ -144,7 +144,7 @@ PetscErrorCode BVDestroy(BV *bv)
 /*@
    BVCreate - Creates a basis vectors context.
 
-   Collective on MPI_Comm
+   Collective
 
    Input Parameter:
 .  comm - MPI communicator
@@ -224,7 +224,7 @@ PetscErrorCode BVCreate(MPI_Comm comm,BV *newbv)
 /*@
    BVCreateFromMat - Creates a basis vectors object from a dense Mat object.
 
-   Collective on Mat
+   Collective on A
 
    Input Parameter:
 .  A - a dense tall-skinny matrix
@@ -266,7 +266,7 @@ PetscErrorCode BVCreateFromMat(Mat A,BV *bv)
 /*@
    BVInsertVec - Insert a vector into the specified column.
 
-   Collective on BV
+   Collective on V
 
    Input Parameters:
 +  V - basis vectors
@@ -306,7 +306,7 @@ PetscErrorCode BVInsertVec(BV V,PetscInt j,Vec w)
 /*@
    BVInsertVecs - Insert a set of vectors into the specified columns.
 
-   Collective on BV
+   Collective on V
 
    Input Parameters:
 +  V - basis vectors
@@ -379,7 +379,7 @@ PetscErrorCode BVInsertVecs(BV V,PetscInt s,PetscInt *m,Vec *W,PetscBool orth)
 /*@
    BVInsertConstraints - Insert a set of vectors as constraints.
 
-   Collective on BV
+   Collective on V
 
    Input Parameters:
 +  V - basis vectors
@@ -446,7 +446,7 @@ PetscErrorCode BVInsertConstraints(BV V,PetscInt *nc,Vec *C)
    BVSetOptionsPrefix - Sets the prefix used for searching for all
    BV options in the database.
 
-   Logically Collective on BV
+   Logically Collective on bv
 
    Input Parameters:
 +  bv     - the basis vectors context
@@ -475,7 +475,7 @@ PetscErrorCode BVSetOptionsPrefix(BV bv,const char *prefix)
    BVAppendOptionsPrefix - Appends to the prefix used for searching for all
    BV options in the database.
 
-   Logically Collective on BV
+   Logically Collective on bv
 
    Input Parameters:
 +  bv     - the basis vectors context
@@ -565,7 +565,7 @@ static PetscErrorCode BVView_Default(BV bv,PetscViewer viewer)
 /*@C
    BVView - Prints the BV data structure.
 
-   Collective on BV
+   Collective on bv
 
    Input Parameters:
 +  bv     - the BV context

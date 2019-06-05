@@ -669,7 +669,7 @@ static PetscErrorCode PEPTOARSetRestart_TOAR(PEP pep,PetscReal keep)
    method, in particular the proportion of basis vectors that must be kept
    after restart.
 
-   Logically Collective on PEP
+   Logically Collective on pep
 
    Input Parameters:
 +  pep  - the eigenproblem solver context
@@ -744,7 +744,7 @@ static PetscErrorCode PEPTOARSetLocking_TOAR(PEP pep,PetscBool lock)
    PEPTOARSetLocking - Choose between locking and non-locking variants of
    the TOAR method.
 
-   Logically Collective on PEP
+   Logically Collective on pep
 
    Input Parameters:
 +  pep  - the eigenproblem solver context

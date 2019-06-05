@@ -79,7 +79,7 @@ PetscErrorCode RGInitializePackage(void)
 /*@
    RGCreate - Creates an RG context.
 
-   Collective on MPI_Comm
+   Collective
 
    Input Parameter:
 .  comm - MPI communicator
@@ -114,7 +114,7 @@ PetscErrorCode RGCreate(MPI_Comm comm,RG *newrg)
    RGSetOptionsPrefix - Sets the prefix used for searching for all
    RG options in the database.
 
-   Logically Collective on RG
+   Logically Collective on rg
 
    Input Parameters:
 +  rg     - the region context
@@ -143,7 +143,7 @@ PetscErrorCode RGSetOptionsPrefix(RG rg,const char *prefix)
    RGAppendOptionsPrefix - Appends to the prefix used for searching for all
    RG options in the database.
 
-   Logically Collective on RG
+   Logically Collective on rg
 
    Input Parameters:
 +  rg     - the region context
@@ -201,7 +201,7 @@ PetscErrorCode RGGetOptionsPrefix(RG rg,const char *prefix[])
 /*@C
    RGSetType - Selects the type for the RG object.
 
-   Logically Collective on RG
+   Logically Collective on rg
 
    Input Parameter:
 +  rg   - the region context
@@ -261,7 +261,7 @@ PetscErrorCode RGGetType(RG rg,RGType *type)
 /*@
    RGSetFromOptions - Sets RG options from the options database.
 
-   Collective on RG
+   Collective on rg
 
    Input Parameters:
 .  rg - the region context
@@ -305,7 +305,7 @@ PetscErrorCode RGSetFromOptions(RG rg)
 /*@C
    RGView - Prints the RG data structure.
 
-   Collective on RG
+   Collective on rg
 
    Input Parameters:
 +  rg - the region context
@@ -530,7 +530,7 @@ PetscErrorCode RGComputeBoundingBox(RG rg,PetscReal *a,PetscReal *b,PetscReal *c
    RGSetComplement - Sets a flag to indicate that the region is the complement
    of the specified one.
 
-   Logically Collective on RG
+   Logically Collective on rg
 
    Input Parameters:
 +  rg  - the region context
@@ -581,7 +581,7 @@ PetscErrorCode RGGetComplement(RG rg,PetscBool *flg)
    RGSetScale - Sets the scaling factor to be used when checking that a
    point is inside the region and when computing the contour.
 
-   Logically Collective on RG
+   Logically Collective on rg
 
    Input Parameters:
 +  rg      - the region context
@@ -635,7 +635,7 @@ PetscErrorCode RGGetScale(RG rg,PetscReal *sfactor)
    RGPushScale - Sets an additional scaling factor, that will multiply the
    user-defined scaling factor.
 
-   Logically Collective on RG
+   Logically Collective on rg
 
    Input Parameters:
 +  rg      - the region context
@@ -688,7 +688,7 @@ PetscErrorCode RGPopScale(RG rg)
 /*@
    RGDestroy - Destroys RG context that was created with RGCreate().
 
-   Collective on RG
+   Collective on rg
 
    Input Parameter:
 .  rg - the region context

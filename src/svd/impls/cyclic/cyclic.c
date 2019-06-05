@@ -307,7 +307,7 @@ static PetscErrorCode SVDCyclicSetExplicitMatrix_Cyclic(SVD svd,PetscBool explic
    SVDCyclicSetExplicitMatrix - Indicate if the eigensolver operator
    H(A) = [ 0  A ; A^T 0 ] must be computed explicitly.
 
-   Logically Collective on SVD
+   Logically Collective on svd
 
    Input Parameters:
 +  svd      - singular value solver
@@ -385,7 +385,7 @@ static PetscErrorCode SVDCyclicSetEPS_Cyclic(SVD svd,EPS eps)
    SVDCyclicSetEPS - Associate an eigensolver object (EPS) to the
    singular value solver.
 
-   Collective on SVD
+   Collective on svd
 
    Input Parameters:
 +  svd - singular value solver

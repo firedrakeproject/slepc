@@ -254,7 +254,7 @@ PetscErrorCode EPSComputeVectors_Schur(EPS eps)
 /*@
    EPSSetWorkVecs - Sets a number of work vectors into an EPS object.
 
-   Collective on EPS
+   Collective on eps
 
    Input Parameters:
 +  eps - eigensolver context
@@ -343,7 +343,7 @@ PetscErrorCode EPSConvergedNorm(EPS eps,PetscScalar eigr,PetscScalar eigi,PetscR
    EPSStoppingBasic - Default routine to determine whether the outer eigensolver
    iteration must be stopped.
 
-   Collective on EPS
+   Collective on eps
 
    Input Parameters:
 +  eps    - eigensolver context obtained from EPSCreate()

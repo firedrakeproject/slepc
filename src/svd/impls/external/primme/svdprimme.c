@@ -258,7 +258,7 @@ static PetscErrorCode SVDPRIMMESetBlockSize_PRIMME(SVD svd,PetscInt bs)
 /*@
    SVDPRIMMESetBlockSize - The maximum block size that PRIMME will try to use.
 
-   Logically Collective on SVD
+   Logically Collective on svd
 
    Input Parameters:
 +  svd - the singular value solver context
@@ -338,7 +338,7 @@ static PetscErrorCode SVDPRIMMESetMethod_PRIMME(SVD svd,SVDPRIMMEMethod method)
 /*@
    SVDPRIMMESetMethod - Sets the method for the PRIMME SVD solver.
 
-   Logically Collective on SVD
+   Logically Collective on svd
 
    Input Parameters:
 +  svd - the singular value solver context

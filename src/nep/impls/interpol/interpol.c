@@ -281,7 +281,7 @@ static PetscErrorCode NEPInterpolSetInterpolation_Interpol(NEP nep,PetscReal tol
    NEPInterpolSetInterpolation - Sets the tolerance and maximum degree when building
    the interpolation polynomial.
 
-   Collective on NEP
+   Collective on nep
 
    Input Parameters:
 +  nep - nonlinear eigenvalue solver
@@ -366,7 +366,7 @@ static PetscErrorCode NEPInterpolSetPEP_Interpol(NEP nep,PEP pep)
    NEPInterpolSetPEP - Associate a polynomial eigensolver object (PEP) to the
    nonlinear eigenvalue solver.
 
-   Collective on NEP
+   Collective on nep
 
    Input Parameters:
 +  nep - nonlinear eigenvalue solver

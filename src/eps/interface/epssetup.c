@@ -79,7 +79,7 @@ PetscErrorCode EPSSetDefaultST_GMRES(EPS eps)
    execution of the eigensolver. Then calls STSetUp() for any set-up
    operations associated to the ST object.
 
-   Collective on EPS
+   Collective on eps
 
    Input Parameter:
 .  eps   - eigenproblem solver context
@@ -305,7 +305,7 @@ PetscErrorCode EPSSetUp(EPS eps)
 /*@
    EPSSetOperators - Sets the matrices associated with the eigenvalue problem.
 
-   Collective on EPS and Mat
+   Collective on eps
 
    Input Parameters:
 +  eps - the eigenproblem solver context
@@ -360,7 +360,7 @@ PetscErrorCode EPSSetOperators(EPS eps,Mat A,Mat B)
 /*@
    EPSGetOperators - Gets the matrices associated with the eigensystem.
 
-   Collective on EPS and Mat
+   Collective on eps
 
    Input Parameter:
 .  eps - the EPS context
@@ -397,7 +397,7 @@ PetscErrorCode EPSGetOperators(EPS eps,Mat *A,Mat *B)
    EPSSetDeflationSpace - Specify a basis of vectors that constitute the deflation
    space.
 
-   Collective on EPS and Vec
+   Collective on eps
 
    Input Parameter:
 +  eps - the eigenproblem solver context
@@ -437,7 +437,7 @@ PetscErrorCode EPSSetDeflationSpace(EPS eps,PetscInt n,Vec *v)
    EPSSetInitialSpace - Specify a basis of vectors that constitute the initial
    space, that is, the subspace from which the solver starts to iterate.
 
-   Collective on EPS and Vec
+   Collective on eps
 
    Input Parameter:
 +  eps - the eigenproblem solver context
@@ -508,7 +508,7 @@ PetscErrorCode EPSSetDimensions_Default(EPS eps,PetscInt nev,PetscInt *ncv,Petsc
    EPSAllocateSolution - Allocate memory storage for common variables such
    as eigenvalues and eigenvectors.
 
-   Collective on EPS
+   Collective on eps
 
    Input Parameters:
 +  eps   - eigensolver context

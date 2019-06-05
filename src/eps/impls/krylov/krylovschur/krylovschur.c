@@ -378,7 +378,7 @@ static PetscErrorCode EPSKrylovSchurSetRestart_KrylovSchur(EPS eps,PetscReal kee
    method, in particular the proportion of basis vectors that must be kept
    after restart.
 
-   Logically Collective on EPS
+   Logically Collective on eps
 
    Input Parameters:
 +  eps - the eigenproblem solver context
@@ -454,7 +454,7 @@ static PetscErrorCode EPSKrylovSchurSetLocking_KrylovSchur(EPS eps,PetscBool loc
    EPSKrylovSchurSetLocking - Choose between locking and non-locking variants of
    the Krylov-Schur method.
 
-   Logically Collective on EPS
+   Logically Collective on eps
 
    Input Parameters:
 +  eps  - the eigenproblem solver context
@@ -547,7 +547,7 @@ static PetscErrorCode EPSKrylovSchurSetPartitions_KrylovSchur(EPS eps,PetscInt n
    case of doing spectrum slicing for a computational interval with the
    communicator split in several sub-communicators.
 
-   Logically Collective on EPS
+   Logically Collective on eps
 
    Input Parameters:
 +  eps   - the eigenproblem solver context
@@ -630,7 +630,7 @@ static PetscErrorCode EPSKrylovSchurSetDetectZeros_KrylovSchur(EPS eps,PetscBool
    EPSKrylovSchurSetDetectZeros - Sets a flag to enforce detection of
    zeros during the factorizations throughout the spectrum slicing computation.
 
-   Logically Collective on EPS
+   Logically Collective on eps
 
    Input Parameters:
 +  eps    - the eigenproblem solver context
@@ -727,7 +727,7 @@ static PetscErrorCode EPSKrylovSchurSetDimensions_KrylovSchur(EPS eps,PetscInt n
    step in case of doing spectrum slicing for a computational interval.
    The meaning of the parameters is the same as in EPSSetDimensions().
 
-   Logically Collective on EPS
+   Logically Collective on eps
 
    Input Parameters:
 +  eps - the eigenproblem solver context
@@ -817,7 +817,7 @@ static PetscErrorCode EPSKrylovSchurSetSubintervals_KrylovSchur(EPS eps,PetscRea
    EPSKrylovSchurSetSubintervals - Sets the points that delimit the
    subintervals to be used in spectrum slicing with several partitions.
 
-   Logically Collective on EPS
+   Logically Collective on eps
 
    Input Parameters:
 +  eps    - the eigenproblem solver context
@@ -867,7 +867,7 @@ static PetscErrorCode EPSKrylovSchurGetSubintervals_KrylovSchur(EPS eps,PetscRea
    EPSKrylovSchurGetSubintervals - Returns the points that delimit the
    subintervals used in spectrum slicing with several partitions.
 
-   Logically Collective on EPS
+   Logically Collective on eps
 
    Input Parameter:
 .  eps    - the eigenproblem solver context
@@ -1217,7 +1217,7 @@ static PetscErrorCode EPSKrylovSchurUpdateSubcommMats_KrylovSchur(EPS eps,PetscS
    EPSKrylovSchurUpdateSubcommMats - Update the eigenproblem matrices stored
    internally in the subcommunicator to which the calling process belongs.
 
-   Collective on EPS
+   Collective on eps
 
    Input Parameters:
 +  eps - the eigenproblem solver context

@@ -17,7 +17,7 @@
    NEPSetUp - Sets up all the internal data structures necessary for the
    execution of the NEP solver.
 
-   Collective on NEP
+   Collective on nep
 
    Input Parameter:
 .  nep   - solver context
@@ -216,7 +216,7 @@ PetscErrorCode NEPSetUp(NEP nep)
    NEPSetInitialSpace - Specify a basis of vectors that constitute the initial
    space, that is, the subspace from which the solver starts to iterate.
 
-   Collective on NEP and Vec
+   Collective on nep
 
    Input Parameter:
 +  nep   - the nonlinear eigensolver context
@@ -277,7 +277,7 @@ PetscErrorCode NEPSetDimensions_Default(NEP nep,PetscInt nev,PetscInt *ncv,Petsc
    NEPAllocateSolution - Allocate memory storage for common variables such
    as eigenvalues and eigenvectors.
 
-   Collective on NEP
+   Collective on nep
 
    Input Parameters:
 +  nep   - eigensolver context

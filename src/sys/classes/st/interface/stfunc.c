@@ -90,7 +90,7 @@ PetscErrorCode STInitializePackage(void)
    STReset - Resets the ST context to the initial state (prior to setup)
    and destroys any allocated Vecs and Mats.
 
-   Collective on ST
+   Collective on st
 
    Input Parameter:
 .  st - the spectral transformation context
@@ -123,7 +123,7 @@ PetscErrorCode STReset(ST st)
 /*@
    STDestroy - Destroys ST context that was created with STCreate().
 
-   Collective on ST
+   Collective on st
 
    Input Parameter:
 .  st - the spectral transformation context
@@ -150,7 +150,7 @@ PetscErrorCode STDestroy(ST *st)
 /*@
    STCreate - Creates a spectral transformation context.
 
-   Collective on MPI_Comm
+   Collective
 
    Input Parameter:
 .  comm - MPI communicator
@@ -200,7 +200,7 @@ PetscErrorCode STCreate(MPI_Comm comm,ST *newst)
 /*@
    STSetMatrices - Sets the matrices associated with the eigenvalue problem.
 
-   Collective on ST and Mat
+   Collective on st
 
    Input Parameters:
 +  st - the spectral transformation context
@@ -344,7 +344,7 @@ PetscErrorCode STGetNumMatrices(ST st,PetscInt *n)
 /*@
    STResetMatrixState - Resets the stored state of the matrices in the ST.
 
-   Logically Collective on ST
+   Logically Collective on st
 
    Input Parameter:
 .  st - the spectral transformation context
@@ -372,7 +372,7 @@ PetscErrorCode STResetMatrixState(ST st)
 /*@
    STSetShift - Sets the shift associated with the spectral transformation.
 
-   Logically Collective on ST
+   Logically Collective on st
 
    Input Parameters:
 +  st - the spectral transformation context
@@ -435,7 +435,7 @@ PetscErrorCode STGetShift(ST st,PetscScalar* shift)
    STSetDefaultShift - Sets the value of the shift that should be employed if
    the user did not specify one.
 
-   Logically Collective on ST
+   Logically Collective on st
 
    Input Parameters:
 +  st - the spectral transformation context
@@ -457,7 +457,7 @@ PetscErrorCode STSetDefaultShift(ST st,PetscScalar defaultshift)
 /*@
    STScaleShift - Multiply the shift with a given factor.
 
-   Logically Collective on ST
+   Logically Collective on st
 
    Input Parameters:
 +  st     - the spectral transformation context
@@ -483,7 +483,7 @@ PetscErrorCode STScaleShift(ST st,PetscScalar factor)
 /*@
    STSetBalanceMatrix - Sets the diagonal matrix to be used for balancing.
 
-   Collective on ST and Vec
+   Collective on st
 
    Input Parameters:
 +  st - the spectral transformation context
@@ -547,7 +547,7 @@ PetscErrorCode STGetBalanceMatrix(ST st,Vec *D)
 /*@C
    STMatCreateVecs - Get vector(s) compatible with the ST matrices.
 
-   Collective on ST
+   Collective on st
 
    Input Parameter:
 .  st - the spectral transformation context
@@ -572,7 +572,7 @@ PetscErrorCode STMatCreateVecs(ST st,Vec *right,Vec *left)
    STMatCreateVecsEmpty - Get vector(s) compatible with the ST matrices, i.e. with the same
    parallel layout, but without internal array.
 
-   Collective on ST
+   Collective on st
 
    Input Parameter:
 .  st - the spectral transformation context
@@ -647,7 +647,7 @@ PetscErrorCode STMatGetLocalSize(ST st,PetscInt *m,PetscInt *n)
    STSetOptionsPrefix - Sets the prefix used for searching for all
    ST options in the database.
 
-   Logically Collective on ST
+   Logically Collective on st
 
    Input Parameters:
 +  st     - the spectral transformation context
@@ -679,7 +679,7 @@ PetscErrorCode STSetOptionsPrefix(ST st,const char *prefix)
    STAppendOptionsPrefix - Appends to the prefix used for searching for all
    ST options in the database.
 
-   Logically Collective on ST
+   Logically Collective on st
 
    Input Parameters:
 +  st     - the spectral transformation context
@@ -741,7 +741,7 @@ PetscErrorCode STGetOptionsPrefix(ST st,const char *prefix[])
 /*@C
    STView - Prints the ST data structure.
 
-   Collective on ST
+   Collective on st
 
    Input Parameters:
 +  st - the ST context

@@ -93,7 +93,7 @@ PetscErrorCode DSAllocateWork_Private(DS ds,PetscInt s,PetscInt r,PetscInt i)
 /*@C
    DSViewMat - Prints one of the internal DS matrices.
 
-   Collective on DS
+   Collective on ds
 
    Input Parameters:
 +  ds     - the direct solver context
@@ -349,7 +349,7 @@ PetscErrorCode DSPermuteBoth_Private(DS ds,PetscInt l,PetscInt n,DSMatType mat1,
    DSSetIdentity - Copy the identity (a diagonal matrix with ones) on the
    active part of a matrix.
 
-   Logically Collective on DS
+   Logically Collective on ds
 
    Input Parameters:
 +  ds  - the direct solver context
@@ -382,7 +382,7 @@ PetscErrorCode DSSetIdentity(DS ds,DSMatType mat)
 /*@C
    DSOrthogonalize - Orthogonalize the columns of a matrix.
 
-   Logically Collective on DS
+   Logically Collective on ds
 
    Input Parameters:
 +  ds   - the direct solver context
@@ -498,7 +498,7 @@ static PetscErrorCode SlepcMatDenseMult(PetscScalar *C,PetscInt _ldC,PetscScalar
    DSPseudoOrthogonalize - Orthogonalize the columns of a matrix with Modified
    Gram-Schmidt in an indefinite inner product space defined by a signature.
 
-   Logically Collective on DS
+   Logically Collective on ds
 
    Input Parameters:
 +  ds   - the direct solver context

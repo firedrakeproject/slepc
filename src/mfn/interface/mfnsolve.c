@@ -17,7 +17,7 @@
    MFNSolve - Solves the matrix function problem. Given a vector b, the
    vector x = f(A)*b is returned.
 
-   Collective on MFN
+   Collective on mfn
 
    Input Parameters:
 +  mfn - matrix function context obtained from MFNCreate()

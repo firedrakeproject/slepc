@@ -74,7 +74,7 @@ PetscErrorCode SlepcGetVersionNumber(PetscInt *major,PetscInt *minor,PetscInt *s
 /*
    SlepcPrintVersion - Prints SLEPc version info.
 
-   Collective on MPI_Comm
+   Collective
 */
 static PetscErrorCode SlepcPrintVersion(MPI_Comm comm)
 {
@@ -94,7 +94,7 @@ static PetscErrorCode SlepcPrintVersion(MPI_Comm comm)
 /*
    SlepcPrintHelpIntro - Prints introductory SLEPc help info.
 
-   Collective on MPI_Comm
+   Collective
 */
 static PetscErrorCode SlepcPrintHelpIntro(MPI_Comm comm)
 {

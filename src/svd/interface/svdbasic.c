@@ -21,7 +21,7 @@ PetscLogEvent     SVD_SetUp = 0,SVD_Solve = 0;
 /*@
    SVDCreate - Creates the default SVD context.
 
-   Collective on MPI_Comm
+   Collective
 
    Input Parameter:
 .  comm - MPI communicator
@@ -98,7 +98,7 @@ PetscErrorCode SVDCreate(MPI_Comm comm,SVD *outsvd)
    SVDReset - Resets the SVD context to the initial state (prior to setup)
    and destroys any allocated Vecs and Mats.
 
-   Collective on SVD
+   Collective on svd
 
    Input Parameter:
 .  svd - singular value solver context obtained from SVDCreate()
@@ -127,7 +127,7 @@ PetscErrorCode SVDReset(SVD svd)
 /*@
    SVDDestroy - Destroys the SVD context.
 
-   Collective on SVD
+   Collective on svd
 
    Input Parameter:
 .  svd - singular value solver context obtained from SVDCreate()
@@ -162,7 +162,7 @@ PetscErrorCode SVDDestroy(SVD *svd)
 /*@C
    SVDSetType - Selects the particular solver to be used in the SVD object.
 
-   Logically Collective on SVD
+   Logically Collective on svd
 
    Input Parameters:
 +  svd      - the singular value solver context
@@ -275,7 +275,7 @@ PetscErrorCode SVDRegister(const char *name,PetscErrorCode (*function)(SVD))
 /*@
    SVDSetBV - Associates basis vectors objects to the singular value solver.
 
-   Collective on SVD
+   Collective on svd
 
    Input Parameters:
 +  svd - singular value solver context obtained from SVDCreate()
@@ -362,7 +362,7 @@ PetscErrorCode SVDGetBV(SVD svd,BV *V,BV *U)
 /*@
    SVDSetDS - Associates a direct solver object to the singular value solver.
 
-   Collective on SVD
+   Collective on svd
 
    Input Parameters:
 +  svd - singular value solver context obtained from SVDCreate()

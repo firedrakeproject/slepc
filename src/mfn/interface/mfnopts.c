@@ -19,7 +19,7 @@
    MFNMonitorSetFromOptions - Sets a monitor function and viewer appropriate for the type
    indicated by the user.
 
-   Collective on MFN
+   Collective on mfn
 
    Input Parameters:
 +  mfn      - the eigensolver context
@@ -55,7 +55,7 @@ PetscErrorCode MFNMonitorSetFromOptions(MFN mfn,const char name[],const char hel
    This routine must be called before MFNSetUp() if the user is to be
    allowed to set the solver type.
 
-   Collective on MFN
+   Collective on mfn
 
    Input Parameters:
 .  mfn - the matrix function context
@@ -167,7 +167,7 @@ PetscErrorCode MFNGetTolerances(MFN mfn,PetscReal *tol,PetscInt *maxits)
    MFNSetTolerances - Sets the tolerance and maximum iteration count used
    by the MFN convergence tests.
 
-   Logically Collective on MFN
+   Logically Collective on mfn
 
    Input Parameters:
 +  mfn - the matrix function context
@@ -235,7 +235,7 @@ PetscErrorCode MFNGetDimensions(MFN mfn,PetscInt *ncv)
 /*@
    MFNSetDimensions - Sets the dimension of the subspace to be used by the solver.
 
-   Logically Collective on MFN
+   Logically Collective on mfn
 
    Input Parameters:
 +  mfn - the matrix function context
@@ -271,7 +271,7 @@ PetscErrorCode MFNSetDimensions(MFN mfn,PetscInt ncv)
    MFNSetErrorIfNotConverged - Causes MFNSolve() to generate an error if the
    solver has not converged.
 
-   Logically Collective on MFN
+   Logically Collective on mfn
 
    Input Parameters:
 +  mfn - the matrix function context
@@ -326,7 +326,7 @@ PetscErrorCode MFNGetErrorIfNotConverged(MFN mfn,PetscBool *flag)
    MFNSetOptionsPrefix - Sets the prefix used for searching for all
    MFN options in the database.
 
-   Logically Collective on MFN
+   Logically Collective on mfn
 
    Input Parameters:
 +  mfn - the matrix function context
@@ -366,7 +366,7 @@ PetscErrorCode MFNSetOptionsPrefix(MFN mfn,const char *prefix)
    MFNAppendOptionsPrefix - Appends to the prefix used for searching for all
    MFN options in the database.
 
-   Logically Collective on MFN
+   Logically Collective on mfn
 
    Input Parameters:
 +  mfn - the matrix function context

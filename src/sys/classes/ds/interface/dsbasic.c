@@ -90,7 +90,7 @@ PetscErrorCode DSInitializePackage()
 /*@
    DSCreate - Creates a DS context.
 
-   Collective on MPI_Comm
+   Collective
 
    Input Parameter:
 .  comm - MPI communicator
@@ -156,7 +156,7 @@ PetscErrorCode DSCreate(MPI_Comm comm,DS *newds)
    DSSetOptionsPrefix - Sets the prefix used for searching for all
    DS options in the database.
 
-   Logically Collective on DS
+   Logically Collective on ds
 
    Input Parameters:
 +  ds - the direct solver context
@@ -185,7 +185,7 @@ PetscErrorCode DSSetOptionsPrefix(DS ds,const char *prefix)
    DSAppendOptionsPrefix - Appends to the prefix used for searching for all
    DS options in the database.
 
-   Logically Collective on DS
+   Logically Collective on ds
 
    Input Parameters:
 +  ds - the direct solver context
@@ -243,7 +243,7 @@ PetscErrorCode DSGetOptionsPrefix(DS ds,const char *prefix[])
 /*@C
    DSSetType - Selects the type for the DS object.
 
-   Logically Collective on DS
+   Logically Collective on ds
 
    Input Parameter:
 +  ds   - the direct solver context
@@ -303,7 +303,7 @@ PetscErrorCode DSGetType(DS ds,DSType *type)
    DSDuplicate - Creates a new direct solver object with the same options as
    an existing one.
 
-   Collective on DS
+   Collective on ds
 
    Input Parameter:
 .  ds - direct solver context
@@ -343,7 +343,7 @@ PetscErrorCode DSDuplicate(DS ds,DS *dsnew)
 /*@
    DSSetMethod - Selects the method to be used to solve the problem.
 
-   Logically Collective on DS
+   Logically Collective on ds
 
    Input Parameter:
 +  ds   - the direct solver context
@@ -394,7 +394,7 @@ PetscErrorCode DSGetMethod(DS ds,PetscInt *meth)
 /*@
    DSSetParallel - Selects the mode of operation in parallel runs.
 
-   Logically Collective on DS
+   Logically Collective on ds
 
    Input Parameter:
 +  ds    - the direct solver context
@@ -454,7 +454,7 @@ PetscErrorCode DSGetParallel(DS ds,DSParallelType *pmode)
 /*@
    DSSetCompact - Switch to compact storage of matrices.
 
-   Logically Collective on DS
+   Logically Collective on ds
 
    Input Parameter:
 +  ds   - the direct solver context
@@ -509,7 +509,7 @@ PetscErrorCode DSGetCompact(DS ds,PetscBool *comp)
    DSSetExtraRow - Sets a flag to indicate that the matrix has one extra
    row.
 
-   Logically Collective on DS
+   Logically Collective on ds
 
    Input Parameter:
 +  ds  - the direct solver context
@@ -565,7 +565,7 @@ PetscErrorCode DSGetExtraRow(DS ds,PetscBool *ext)
    DSSetRefined - Sets a flag to indicate that refined vectors must be
    computed.
 
-   Logically Collective on DS
+   Logically Collective on ds
 
    Input Parameter:
 +  ds  - the direct solver context
@@ -621,7 +621,7 @@ PetscErrorCode DSGetRefined(DS ds,PetscBool *ref)
 /*@
    DSSetBlockSize - Sets the block size.
 
-   Logically Collective on DS
+   Logically Collective on ds
 
    Input Parameter:
 +  ds - the direct solver context
@@ -728,7 +728,7 @@ PetscErrorCode DSGetSlepcSC(DS ds,SlepcSC *sc)
 /*@
    DSSetFromOptions - Sets DS options from the options database.
 
-   Collective on DS
+   Collective on ds
 
    Input Parameters:
 .  ds - the direct solver context
@@ -771,7 +771,7 @@ PetscErrorCode DSSetFromOptions(DS ds)
 /*@C
    DSView - Prints the DS data structure.
 
-   Collective on DS
+   Collective on ds
 
    Input Parameters:
 +  ds - the direct solver context
@@ -841,7 +841,7 @@ PetscErrorCode DSView(DS ds,PetscViewer viewer)
 /*@
    DSAllocate - Allocates memory for internal storage or matrices in DS.
 
-   Logically Collective on DS
+   Logically Collective on ds
 
    Input Parameters:
 +  ds - the direct solver context
@@ -876,7 +876,7 @@ PetscErrorCode DSAllocate(DS ds,PetscInt ld)
 /*@
    DSReset - Resets the DS context to the initial state.
 
-   Collective on DS
+   Collective on ds
 
    Input Parameter:
 .  ds - the direct solver context
@@ -915,7 +915,7 @@ PetscErrorCode DSReset(DS ds)
 /*@
    DSDestroy - Destroys DS context that was created with DSCreate().
 
-   Collective on DS
+   Collective on ds
 
    Input Parameter:
 .  ds - the direct solver context

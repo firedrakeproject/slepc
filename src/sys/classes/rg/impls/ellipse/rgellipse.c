@@ -40,7 +40,7 @@ static PetscErrorCode RGEllipseSetParameters_Ellipse(RG rg,PetscScalar center,Pe
 /*@
    RGEllipseSetParameters - Sets the parameters defining the ellipse region.
 
-   Logically Collective on RG
+   Logically Collective on rg
 
    Input Parameters:
 +  rg     - the region context

@@ -33,7 +33,7 @@ PetscErrorCode EPSMonitor(EPS eps,PetscInt it,PetscInt nconv,PetscScalar *eigr,P
    EPSMonitorSet - Sets an ADDITIONAL function to be called at every
    iteration to monitor the error estimates for each requested eigenpair.
 
-   Logically Collective on EPS
+   Logically Collective on eps
 
    Input Parameters:
 +  eps     - eigensolver context obtained from EPSCreate()
@@ -90,7 +90,7 @@ PetscErrorCode EPSMonitorSet(EPS eps,PetscErrorCode (*monitor)(EPS,PetscInt,Pets
 /*@
    EPSMonitorCancel - Clears all monitors for an EPS object.
 
-   Logically Collective on EPS
+   Logically Collective on eps
 
    Input Parameters:
 .  eps - eigensolver context obtained from EPSCreate()
@@ -148,7 +148,7 @@ PetscErrorCode EPSGetMonitorContext(EPS eps,void **ctx)
    EPSMonitorAll - Print the current approximate values and
    error estimates at each iteration of the eigensolver.
 
-   Collective on EPS
+   Collective on eps
 
    Input Parameters:
 +  eps    - eigensolver context
@@ -205,7 +205,7 @@ PetscErrorCode EPSMonitorAll(EPS eps,PetscInt its,PetscInt nconv,PetscScalar *ei
    EPSMonitorFirst - Print the first approximate value and
    error estimate at each iteration of the eigensolver.
 
-   Collective on EPS
+   Collective on eps
 
    Input Parameters:
 +  eps    - eigensolver context
@@ -260,7 +260,7 @@ PetscErrorCode EPSMonitorFirst(EPS eps,PetscInt its,PetscInt nconv,PetscScalar *
    EPSMonitorConverged - Print the approximate values and
    error estimates as they converge.
 
-   Collective on EPS
+   Collective on eps
 
    Input Parameters:
 +  eps    - eigensolver context
@@ -320,7 +320,7 @@ PetscErrorCode EPSMonitorConverged(EPS eps,PetscInt its,PetscInt nconv,PetscScal
    EPSMonitorLGCreate - Creates a line graph context for use with
    EPS to monitor convergence.
 
-   Collective on MPI_Comm
+   Collective
 
    Input Parameters:
 +  comm - communicator context

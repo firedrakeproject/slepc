@@ -347,7 +347,7 @@ static PetscErrorCode LyapunovChol_LAPACK(PetscScalar *H,PetscInt m,PetscInt ldh
    LMEDenseLyapunovFact - Computes the Cholesky factor of the solution of a
    dense Lyapunov equation with rank-1 right-hand side.
 
-   Logically Collective on LME
+   Logically Collective on lme
 
    Input Parameters:
 +  lme - linear matrix equation solver context

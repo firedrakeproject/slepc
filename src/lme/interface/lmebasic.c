@@ -21,7 +21,7 @@ PetscLogEvent     LME_SetUp = 0,LME_Solve = 0,LME_ComputeError = 0;
 /*@C
    LMEView - Prints the LME data structure.
 
-   Collective on LME
+   Collective on lme
 
    Input Parameters:
 +  lme - the linear matrix equation solver context
@@ -93,7 +93,7 @@ PetscErrorCode LMEView(LME lme,PetscViewer viewer)
 /*@C
    LMEReasonView - Displays the reason an LME solve converged or diverged.
 
-   Collective on LME
+   Collective on lme
 
    Parameter:
 +  lme - the linear matrix equation context
@@ -129,7 +129,7 @@ PetscErrorCode LMEReasonView(LME lme,PetscViewer viewer)
    LMEReasonViewFromOptions - Processes command line options to determine if/how
    the LME converged reason is to be viewed.
 
-   Collective on LME
+   Collective on lme
 
    Input Parameters:
 .  lme - the linear matrix equation context
@@ -161,7 +161,7 @@ PetscErrorCode LMEReasonViewFromOptions(LME lme)
 /*@
    LMECreate - Creates the default LME context.
 
-   Collective on MPI_Comm
+   Collective
 
    Input Parameter:
 .  comm - MPI communicator
@@ -218,7 +218,7 @@ PetscErrorCode LMECreate(MPI_Comm comm,LME *outlme)
 /*@C
    LMESetType - Selects the particular solver to be used in the LME object.
 
-   Logically Collective on LME
+   Logically Collective on lme
 
    Input Parameters:
 +  lme  - the linear matrix equation context
@@ -332,7 +332,7 @@ PetscErrorCode LMERegister(const char *name,PetscErrorCode (*function)(LME))
    LMEReset - Resets the LME context to the initial state (prior to setup)
    and destroys any allocated Vecs and Mats.
 
-   Collective on LME
+   Collective on lme
 
    Input Parameter:
 .  lme - linear matrix equation context obtained from LMECreate()
@@ -365,7 +365,7 @@ PetscErrorCode LMEReset(LME lme)
 /*@
    LMEDestroy - Destroys the LME context.
 
-   Collective on LME
+   Collective on lme
 
    Input Parameter:
 .  lme - linear matrix equation context obtained from LMECreate()
@@ -392,7 +392,7 @@ PetscErrorCode LMEDestroy(LME *lme)
 /*@
    LMESetBV - Associates a basis vectors object to the linear matrix equation solver.
 
-   Collective on LME
+   Collective on lme
 
    Input Parameters:
 +  lme - linear matrix equation context obtained from LMECreate()

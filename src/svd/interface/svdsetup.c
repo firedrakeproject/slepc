@@ -16,7 +16,7 @@
 /*@
    SVDSetOperator - Set the matrix associated with the singular value problem.
 
-   Collective on SVD and Mat
+   Collective on svd
 
    Input Parameters:
 +  svd - the singular value solver context
@@ -70,7 +70,7 @@ PetscErrorCode SVDGetOperator(SVD svd,Mat *A)
    SVDSetUp - Sets up all the internal data structures necessary for the
    execution of the singular value solver.
 
-   Collective on SVD
+   Collective on svd
 
    Input Parameter:
 .  svd   - singular value solver context
@@ -200,7 +200,7 @@ PetscErrorCode SVDSetUp(SVD svd)
    right and/or left spaces, that is, a rough approximation to the right and/or
    left singular subspaces from which the solver starts to iterate.
 
-   Collective on SVD and Vec
+   Collective on svd
 
    Input Parameter:
 +  svd   - the singular value solver context
@@ -272,7 +272,7 @@ PetscErrorCode SVDSetDimensions_Default(SVD svd)
    SVDAllocateSolution - Allocate memory storage for common variables such
    as the singular values and the basis vectors.
 
-   Collective on SVD
+   Collective on svd
 
    Input Parameters:
 +  svd   - eigensolver context

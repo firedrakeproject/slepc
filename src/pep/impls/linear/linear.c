@@ -776,7 +776,7 @@ static PetscErrorCode PEPLinearSetLinearization_Linear(PEP pep,PetscReal alpha,P
    PEPLinearSetLinearization - Set the coefficients that define
    the linearization of a quadratic eigenproblem.
 
-   Logically Collective on PEP
+   Logically Collective on pep
 
    Input Parameters:
 +  pep   - polynomial eigenvalue solver
@@ -859,7 +859,7 @@ static PetscErrorCode PEPLinearSetExplicitMatrix_Linear(PEP pep,PetscBool explic
    PEPLinearSetExplicitMatrix - Indicate if the matrices A and B for the
    linearization of the problem must be built explicitly.
 
-   Logically Collective on PEP
+   Logically Collective on pep
 
    Input Parameters:
 +  pep      - polynomial eigenvalue solver
@@ -938,7 +938,7 @@ static PetscErrorCode PEPLinearSetEPS_Linear(PEP pep,EPS eps)
    PEPLinearSetEPS - Associate an eigensolver object (EPS) to the
    polynomial eigenvalue solver.
 
-   Collective on PEP
+   Collective on pep
 
    Input Parameters:
 +  pep - polynomial eigenvalue solver

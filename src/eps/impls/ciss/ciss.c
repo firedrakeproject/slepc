@@ -1232,7 +1232,7 @@ static PetscErrorCode EPSCISSSetSizes_CISS(EPS eps,PetscInt ip,PetscInt bs,Petsc
 /*@
    EPSCISSSetSizes - Sets the values of various size parameters in the CISS solver.
 
-   Logically Collective on EPS
+   Logically Collective on eps
 
    Input Parameters:
 +  eps   - the eigenproblem solver context
@@ -1344,7 +1344,7 @@ static PetscErrorCode EPSCISSSetThreshold_CISS(EPS eps,PetscReal delta,PetscReal
    EPSCISSSetThreshold - Sets the values of various threshold parameters in
    the CISS solver.
 
-   Logically Collective on EPS
+   Logically Collective on eps
 
    Input Parameters:
 +  eps   - the eigenproblem solver context
@@ -1432,7 +1432,7 @@ static PetscErrorCode EPSCISSSetRefinement_CISS(EPS eps,PetscInt inner,PetscInt 
    EPSCISSSetRefinement - Sets the values of various refinement parameters
    in the CISS solver.
 
-   Logically Collective on EPS
+   Logically Collective on eps
 
    Input Parameters:
 +  eps    - the eigenproblem solver context
@@ -1511,7 +1511,7 @@ static PetscErrorCode EPSCISSSetUseST_CISS(EPS eps,PetscBool usest)
    EPSCISSSetUseST - Sets a flag indicating that the CISS solver will
    use the ST object for the linear solves.
 
-   Logically Collective on EPS
+   Logically Collective on eps
 
    Input Parameters:
 +  eps    - the eigenproblem solver context
@@ -1583,7 +1583,7 @@ static PetscErrorCode EPSCISSSetQuadRule_CISS(EPS eps,EPSCISSQuadRule quad)
 /*@
    EPSCISSSetQuadRule - Sets the quadrature rule used in the CISS solver.
 
-   Logically Collective on EPS
+   Logically Collective on eps
 
    Input Parameters:
 +  eps  - the eigenproblem solver context
@@ -1661,7 +1661,7 @@ static PetscErrorCode EPSCISSSetExtraction_CISS(EPS eps,EPSCISSExtraction extrac
 /*@
    EPSCISSSetExtraction - Sets the extraction technique used in the CISS solver.
 
-   Logically Collective on EPS
+   Logically Collective on eps
 
    Input Parameters:
 +  eps        - the eigenproblem solver context

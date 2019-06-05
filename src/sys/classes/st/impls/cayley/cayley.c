@@ -253,7 +253,7 @@ static PetscErrorCode STCayleySetAntishift_Cayley(ST st,PetscScalar newshift)
    STCayleySetAntishift - Sets the value of the anti-shift for the Cayley
    spectral transformation.
 
-   Logically Collective on ST
+   Logically Collective on st
 
    Input Parameters:
 +  st  - the spectral transformation context

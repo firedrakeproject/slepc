@@ -33,7 +33,7 @@ PetscErrorCode LMEMonitor(LME lme,PetscInt it,PetscReal errest)
    LMEMonitorSet - Sets an ADDITIONAL function to be called at every
    iteration to monitor convergence.
 
-   Logically Collective on LME
+   Logically Collective on lme
 
    Input Parameters:
 +  lme     - linear matrix equation solver context obtained from LMECreate()
@@ -80,7 +80,7 @@ PetscErrorCode LMEMonitorSet(LME lme,PetscErrorCode (*monitor)(LME,PetscInt,Pets
 /*@
    LMEMonitorCancel - Clears all monitors for an LME object.
 
-   Logically Collective on LME
+   Logically Collective on lme
 
    Input Parameters:
 .  lme - linear matrix equation solver context obtained from LMECreate()
@@ -138,7 +138,7 @@ PetscErrorCode LMEGetMonitorContext(LME lme,void **ctx)
    LMEMonitorDefault - Print the error estimate of the current approximation at each
    iteration of the linear matrix equation solver.
 
-   Collective on LME
+   Collective on lme
 
    Input Parameters:
 +  lme    - linear matrix equation solver context
@@ -175,7 +175,7 @@ PetscErrorCode LMEMonitorDefault(LME lme,PetscInt its,PetscReal errest,PetscView
    LMEMonitorLGCreate - Creates a line graph context for use with
    LME to monitor convergence.
 
-   Collective on MPI_Comm
+   Collective
 
    Input Parameters:
 +  comm - communicator context

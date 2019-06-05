@@ -256,7 +256,7 @@ static PetscErrorCode MatCreateTile_MPIAIJ(PetscScalar a,Mat A,PetscScalar b,Mat
 /*@
    MatCreateTile - Explicitly build a matrix from four blocks, G = [ a*A b*B; c*C d*D ].
 
-   Collective on Mat
+   Collective on A
 
    Input parameters:
 +  A - matrix for top-left block
@@ -352,7 +352,7 @@ PetscErrorCode MatCreateTile(PetscScalar a,Mat A,PetscScalar b,Mat B,PetscScalar
    MatCreateVecsEmpty - Get vector(s) compatible with the matrix, i.e. with the same
    parallel layout, but without internal array.
 
-   Collective on Mat
+   Collective on mat
 
    Input Parameter:
 .  mat - the matrix

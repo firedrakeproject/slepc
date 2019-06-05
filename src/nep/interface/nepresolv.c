@@ -87,7 +87,7 @@ static PetscErrorCode MatDestroy_Resolvent(Mat M)
 /*@
    NEPApplyResolvent - Applies the resolvent T^{-1}(z) to a given vector.
 
-   Collective on NEP
+   Collective on nep
 
    Input Parameters:
 +  nep   - eigensolver context obtained from NEPCreate()
