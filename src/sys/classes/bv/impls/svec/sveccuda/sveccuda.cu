@@ -78,6 +78,7 @@ PetscErrorCode BVMult_Svec_CUDA(BV Y,PetscScalar alpha,PetscScalar beta,BV X,Mat
     ierr = MatDenseGetArray(Q,&q);CHKERRQ(ierr);
     err = cudaMalloc((void**)&d_q,ldq*mq*sizeof(PetscScalar));CHKERRCUDA(err);
     err = cudaMemcpy(d_q,q,ldq*mq*sizeof(PetscScalar),cudaMemcpyHostToDevice);CHKERRCUDA(err);
+    ierr = PetscLogCpuToGpu(ldq*mq*sizeof(PetscScalar));CHKERRQ(ierr);
     d_B = d_q+Y->l*ldq+X->l;
     cberr = cublasXgemm(cublasv2handle,CUBLAS_OP_N,CUBLAS_OP_N,m,n,k,&alpha,d_A,m,d_B,ldq,&beta,d_C,m);CHKERRCUBLAS(cberr);
     ierr = WaitForGPU();CHKERRCUDA(ierr);
@@ -120,6 +121,7 @@ PetscErrorCode BVMultVec_Svec_CUDA(BV X,PetscScalar alpha,PetscScalar beta,Vec y
   } else {
     ierr = cudaMalloc((void**)&d_q,k*sizeof(PetscScalar));CHKERRQ(ierr);
     ierr = cudaMemcpy(d_q,q,k*sizeof(PetscScalar),cudaMemcpyHostToDevice);CHKERRQ(ierr);
+    ierr = PetscLogCpuToGpu(k*sizeof(PetscScalar));CHKERRQ(ierr);
   }
   d_A = d_px+(X->nc+X->l)*X->n;
   d_x = d_q;
@@ -164,6 +166,7 @@ PetscErrorCode BVMultInPlace_Svec_CUDA(BV V,Mat Q,PetscInt s,PetscInt e)
   ierr = MatDenseGetArray(Q,&q);CHKERRQ(ierr);
   ierr = cudaMalloc((void**)&d_q,ldq*nq*sizeof(PetscScalar));CHKERRQ(ierr);
   ierr = cudaMemcpy(d_q,q,ldq*nq*sizeof(PetscScalar),cudaMemcpyHostToDevice);CHKERRQ(ierr);
+  ierr = PetscLogCpuToGpu(ldq*nq*sizeof(PetscScalar));CHKERRQ(ierr);
   ierr = PetscCUBLASGetHandle(&cublasv2handle);CHKERRQ(ierr);
   /* try to allocate the whole matrix */
   ierr = cudaMemGetInfo(&freemem,&totmem);CHKERRQ(ierr);
@@ -229,6 +232,7 @@ PetscErrorCode BVMultInPlaceTranspose_Svec_CUDA(BV V,Mat Q,PetscInt s,PetscInt e
   ierr = PetscCUBLASGetHandle(&cublasv2handle);CHKERRQ(ierr);
   ierr = cudaMalloc((void**)&d_q,ldq*nq*sizeof(PetscScalar));CHKERRQ(ierr);
   ierr = cudaMemcpy(d_q,q,ldq*nq*sizeof(PetscScalar),cudaMemcpyHostToDevice);CHKERRQ(ierr);
+  ierr = PetscLogCpuToGpu(ldq*nq*sizeof(PetscScalar));CHKERRQ(ierr);
   ierr = cudaMalloc((void**)&d_work,m*n*sizeof(PetscScalar));CHKERRQ(ierr);
   d_A = d_pv+(V->nc+V->l)*m;
   d_B = d_q+V->l*ldq+s;
@@ -277,6 +281,7 @@ PetscErrorCode BVDot_Svec_CUDA(BV X,BV Y,Mat M)
       if (k) {
         cberr = cublasXgemm(cublasv2handle,CUBLAS_OP_C,CUBLAS_OP_N,m,n,k,&sone,d_A,k,d_B,k,&szero,d_work,ldm);CHKERRCUBLAS(cberr);
         ierr = cudaMemcpy(X->work,d_work,m*n*sizeof(PetscScalar),cudaMemcpyDeviceToHost);CHKERRQ(ierr);
+        ierr = PetscLogGpuToCpu(m*n*sizeof(PetscScalar));CHKERRQ(ierr);
       } else {
         ierr = PetscMemzero(X->work,m*n*sizeof(PetscScalar));CHKERRQ(ierr);
       }
@@ -288,6 +293,7 @@ PetscErrorCode BVDot_Svec_CUDA(BV X,BV Y,Mat M)
       if (k) {
         cberr = cublasXgemm(cublasv2handle,CUBLAS_OP_C,CUBLAS_OP_N,m,n,k,&sone,d_A,k,d_B,k,&szero,d_work,m);CHKERRCUBLAS(cberr);
         ierr = cudaMemcpy(X->work,d_work,m*n*sizeof(PetscScalar),cudaMemcpyDeviceToHost);CHKERRQ(ierr);
+        ierr = PetscLogGpuToCpu(m*n*sizeof(PetscScalar));CHKERRQ(ierr);
       } else {
         ierr = PetscMemzero(X->work,m*n*sizeof(PetscScalar));CHKERRQ(ierr);
       }
@@ -302,6 +308,7 @@ PetscErrorCode BVDot_Svec_CUDA(BV X,BV Y,Mat M)
       ierr = BVAllocateWork_Private(X,m*n);CHKERRQ(ierr);
       cberr = cublasXgemm(cublasv2handle,CUBLAS_OP_C,CUBLAS_OP_N,m,n,k,&sone,d_A,k,d_B,k,&szero,d_work,m);CHKERRCUBLAS(cberr);
       ierr = cudaMemcpy(X->work,d_work,m*n*sizeof(PetscScalar),cudaMemcpyDeviceToHost);CHKERRQ(ierr);
+      ierr = PetscLogGpuToCpu(m*n*sizeof(PetscScalar));CHKERRQ(ierr);
       for (j=0;j<n;j++) {
         ierr = PetscMemcpy(C+j*ldm,X->work+j*m,m*sizeof(PetscScalar));CHKERRQ(ierr);
       }
@@ -384,6 +391,7 @@ PetscErrorCode BVDotVec_Svec_CUDA(BV X,Vec y,PetscScalar *q)
       cberr = cublasXgemm(cublasv2handle,CUBLAS_OP_N,CUBLAS_OP_N,one,k,n,&sone,d_x,one,d_A,n,&szero,d_work,one);CHKERRCUBLAS(cberr);
 #endif
       ierr = cudaMemcpy(X->work,d_work,k*sizeof(PetscScalar),cudaMemcpyDeviceToHost);CHKERRQ(ierr);
+      ierr = PetscLogGpuToCpu(k*sizeof(PetscScalar));CHKERRQ(ierr);
     } else {
       ierr = PetscMemzero(X->work,k*sizeof(PetscScalar));CHKERRQ(ierr);
     }
@@ -409,6 +417,7 @@ PetscErrorCode BVDotVec_Svec_CUDA(BV X,Vec y,PetscScalar *q)
       ierr = VecCUDARestoreArrayWrite(X->buffer,&d_work);CHKERRQ(ierr);
     } else {
       ierr = cudaMemcpy(q,d_work,k*sizeof(PetscScalar),cudaMemcpyDeviceToHost);CHKERRQ(ierr);
+      ierr = PetscLogGpuToCpu(k*sizeof(PetscScalar));CHKERRQ(ierr);
       ierr = cudaFree(d_work);CHKERRQ(ierr);
     }
   }
@@ -455,6 +464,7 @@ PetscErrorCode BVDotVec_Local_Svec_CUDA(BV X,Vec y,PetscScalar *m)
 #endif
     ierr = WaitForGPU();CHKERRCUDA(ierr);
     ierr = cudaMemcpy(m,d_y,k*sizeof(PetscScalar),cudaMemcpyDeviceToHost);CHKERRQ(ierr);
+    ierr = PetscLogGpuToCpu(k*sizeof(PetscScalar));CHKERRQ(ierr);
     ierr = cudaFree(d_y);CHKERRQ(ierr);
   }
   ierr = VecCUDARestoreArrayRead(z,&d_py);CHKERRQ(ierr);
