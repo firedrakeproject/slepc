@@ -264,7 +264,7 @@ SLEPC_EXTERN void SlepcGivensPacked(void*,void*,PetscMPIInt*,MPI_Datatype*);
 #include <petsccuda.h>
 #include <cublas_v2.h>
 
-#define WaitForGPU() PetscCUDASynchronize ? cudaThreadSynchronize() : 0
+#define WaitForGPU() PetscCUDASynchronize ? cudaDeviceSynchronize() : 0
 
 /* complex single */
 #if defined(PETSC_USE_COMPLEX)
