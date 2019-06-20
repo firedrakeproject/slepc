@@ -16,7 +16,6 @@ class SLEPc(package.Package):
   def __init__(self,argdb,log):
     self.log       = log
     self.clean     = argdb.PopBool('with-clean')
-    self.cmake     = argdb.PopBool('with-cmake')
     self.prefixdir = argdb.PopPath('prefix')[0]
     self.isinstall = not self.prefixdir==''
     self.datadir   = argdb.PopPath('DATAFILESPATH')[0]
@@ -24,7 +23,6 @@ class SLEPc(package.Package):
   def ShowHelp(self):
     print('''SLEPc:
   --with-clean=<bool>          : Delete prior build files including externalpackages
-  --with-cmake=<bool>          : Enable builds with CMake (disabled by default)
   --prefix=<dir>               : Specify location to install SLEPc (e.g., /usr/local)
   --DATAFILESPATH=<dir>        : Specify location of datafiles (for SLEPc developers)''')
 

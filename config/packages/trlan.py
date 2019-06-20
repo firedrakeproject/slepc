@@ -25,7 +25,7 @@ class Trlan(package.Package):
     self.fortran        = True
     self.ProcessArgs(argdb)
 
-  def Check(self,conf,vars,cmake,petsc):
+  def Check(self,conf,vars,petsc):
     functions = ['trlan77']
     if self.packagelibs:
       libs = [self.packagelibs]
@@ -40,10 +40,10 @@ class Trlan(package.Package):
     else:
       dirs = self.GenerateGuesses('TRLan')
 
-    self.FortranLib(conf,vars,cmake,dirs,libs,functions)
+    self.FortranLib(conf,vars,dirs,libs,functions)
 
 
-  def Install(self,conf,vars,cmake,petsc,archdir):
+  def Install(self,conf,vars,petsc,archdir):
     externdir = os.path.join(archdir,'externalpackages')
     builddir  = os.path.join(externdir,self.dirname)
     self.Download(externdir,builddir)
@@ -82,6 +82,6 @@ class Trlan(package.Package):
       libs = [['-ltrlan_mpi']]
     libDir = os.path.join(archdir,'lib')
     dirs = [libDir]
-    self.FortranLib(conf,vars,cmake,dirs,libs,functions)
+    self.FortranLib(conf,vars,dirs,libs,functions)
     self.havepackage = True
 

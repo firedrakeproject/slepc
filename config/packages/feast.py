@@ -20,7 +20,7 @@ class Feast(package.Package):
     self.supportssingle = True
     self.ProcessArgs(argdb)
 
-  def Check(self,conf,vars,cmake,petsc):
+  def Check(self,conf,vars,petsc):
     functions = ['feastinit']
     if petsc.scalar == 'real':
       if petsc.precision == 'single':
@@ -46,5 +46,5 @@ class Feast(package.Package):
     else:
       dirs = self.GenerateGuesses('Feast')
 
-    self.FortranLib(conf,vars,cmake,dirs,libs,functions)
+    self.FortranLib(conf,vars,dirs,libs,functions)
 

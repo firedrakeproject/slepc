@@ -22,7 +22,7 @@ class Blopex(package.Package):
     self.dirname      = 'blopex-'+self.version
     self.ProcessArgs(argdb)
 
-  def Install(self,conf,vars,cmake,petsc,archdir):
+  def Install(self,conf,vars,petsc,archdir):
     externdir = os.path.join(archdir,'externalpackages')
     builddir  = os.path.join(externdir,self.dirname)
     self.Download(externdir,builddir)
@@ -70,8 +70,6 @@ class Blopex(package.Package):
     # Write configuration files
     conf.write('#ifndef SLEPC_HAVE_BLOPEX\n#define SLEPC_HAVE_BLOPEX 1\n#endif\n\n')
     vars.write('BLOPEX_LIB = ' + l + '\n')
-    cmake.write('set (SLEPC_HAVE_BLOPEX YES)\n')
-    cmake.write('find_library (BLOPEX_LIB BLOPEX HINTS '+ libDir +')\n')
 
     self.havepackage = True
     self.packageflags = [l] + [f]

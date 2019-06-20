@@ -25,7 +25,7 @@ class Primme(package.Package):
     self.supports64bint = True
     self.ProcessArgs(argdb)
 
-  def Check(self,conf,vars,cmake,petsc):
+  def Check(self,conf,vars,petsc):
     functions_base = ['primme_set_method','primme_free','primme_initialize']
     if self.packagedir:
       dirs = [os.path.join(self.packagedir,'lib')]
@@ -60,9 +60,6 @@ class Primme(package.Package):
         conf.write('#ifndef SLEPC_HAVE_PRIMME\n#define SLEPC_HAVE_PRIMME 1\n#endif\n\n')
         vars.write('PRIMME_LIB = ' + ' '.join(l) + '\n')
         vars.write('PRIMME_FLAGS = ' + ' '.join(f) + '\n')
-        cmake.write('set (SLEPC_HAVE_PRIMME YES)\n')
-        cmake.write('find_library (PRIMME_LIB primme HINTS '+ d +')\n')
-        cmake.write('find_path (PRIMME_INCLUDE primme.h ' + d + '/include)\n')
         self.havepackage = True
         self.packageflags = l+f
         return
@@ -74,7 +71,7 @@ class Primme(package.Package):
     self.log.Exit('')
 
 
-  def Install(self,conf,vars,cmake,petsc,archdir):
+  def Install(self,conf,vars,petsc,archdir):
     externdir = os.path.join(archdir,'externalpackages')
     builddir  = os.path.join(externdir,self.dirname)
     self.Download(externdir,builddir,'primme-')
@@ -135,9 +132,6 @@ class Primme(package.Package):
     # Write configuration files
     conf.write('#ifndef SLEPC_HAVE_PRIMME\n#define SLEPC_HAVE_PRIMME 1\n#endif\n\n')
     vars.write('PRIMME_LIB = ' + l + '\n')
-    cmake.write('set (SLEPC_HAVE_PRIMME YES)\n')
-    cmake.write('find_library (PRIMME_LIB primme HINTS '+ libDir +')\n')
-    cmake.write('find_path (PRIMME_INCLUDE primme.h ' + incDir + ')\n')
 
     self.havepackage = True
     self.packageflags = [l] + [f]
