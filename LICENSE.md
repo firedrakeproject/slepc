@@ -22,5 +22,5 @@ ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 This license DOES NOT apply to any software that may be obtained via the
---download-package option of the SLEPc configuration. Each of those
+`--download-package` option of the SLEPc configuration. Each of those
 packages are covered by their own licenses.
