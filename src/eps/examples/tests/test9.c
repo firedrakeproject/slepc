@@ -238,6 +238,6 @@ PetscErrorCode MyEigenSort(PetscScalar ar,PetscScalar ai,PetscScalar br,PetscSca
          args: -eps_ciss_refine_inner 1 -eps_ciss_refine_blocksize 1
       test:
          suffix: 6_bcgs
-         args: -eps_ciss_realmats -eps_ciss_ksp_type bcgs -eps_ciss_pc_type sor
+         args: -eps_ciss_realmats -eps_ciss_ksp_type bcgs -eps_ciss_pc_type sor -eps_ciss_integration_points 12
 
 TEST*/
