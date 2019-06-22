@@ -151,7 +151,7 @@ static PetscErrorCode DSVectors_NHEP_Eigen_Some(DS ds,PetscInt *k,PetscReal *rno
 
   /* accumulate and normalize eigenvectors */
   if (ds->state>=DS_STATE_CONDENSED) {
-    ierr = PetscMemcpy(ds->work,Y,mout*ld*sizeof(PetscScalar));CHKERRQ(ierr);
+    ierr = PetscArraycpy(ds->work,Y,mout*ld);CHKERRQ(ierr);
     PetscStackCallBLAS("BLASgemv",BLASgemv_("N",&n,&n,&done,Q,&ld,ds->work,&inc,&zero,Y,&inc));
 #if !defined(PETSC_USE_COMPLEX)
     if (iscomplex) PetscStackCallBLAS("BLASgemv",BLASgemv_("N",&n,&n,&done,Q,&ld,ds->work+ld,&inc,&zero,Y+ld,&inc));
@@ -210,7 +210,7 @@ static PetscErrorCode DSVectors_NHEP_Eigen_All(DS ds,PetscBool left)
   if (ds->state>=DS_STATE_CONDENSED) {
     /* DSSolve() has been called, backtransform with matrix Q */
     back = "B";
-    ierr = PetscMemcpy(Z,ds->mat[DS_MAT_Q],ld*ld*sizeof(PetscScalar));CHKERRQ(ierr);
+    ierr = PetscArraycpy(Z,ds->mat[DS_MAT_Q],ld*ld);CHKERRQ(ierr);
   } else back = "A";
 #if !defined(PETSC_USE_COMPLEX)
   ierr = DSAllocateWork_Private(ds,3*ld,0,0);CHKERRQ(ierr);
@@ -320,7 +320,7 @@ static PetscErrorCode DSSort_NHEP_Arbitrary(DS ds,PetscScalar *wr,PetscScalar *w
 #endif
   /* Compute the selected eigenvalue to be in the leading position */
   ierr = DSSortEigenvalues_Private(ds,rr,ri,ds->perm,PETSC_FALSE);CHKERRQ(ierr);
-  ierr = PetscMemzero(selection,n*sizeof(PetscBLASInt));CHKERRQ(ierr);
+  ierr = PetscArrayzero(selection,n);CHKERRQ(ierr);
   for (i=0;i<*k;i++) selection[ds->perm[i]] = 1;
 #if !defined(PETSC_USE_COMPLEX)
   PetscStackCallBLAS("LAPACKtrsen",LAPACKtrsen_("N","V",selection,&n,T,&ld,Q,&ld,wr,wi,&mout,NULL,NULL,work,&lwork,iwork,&liwork,&info));
@@ -604,7 +604,7 @@ PetscErrorCode DSSolve_NHEP(DS ds,PetscScalar *wr,PetscScalar *wi)
   lwork = 6*ld;
 
   /* initialize orthogonal matrix */
-  ierr = PetscMemzero(Q,ld*ld*sizeof(PetscScalar));CHKERRQ(ierr);
+  ierr = PetscArrayzero(Q,ld*ld);CHKERRQ(ierr);
   for (i=0;i<n;i++) Q[i+i*ld] = 1.0;
   if (n==1) { /* quick return */
     wr[0] = A[0];
@@ -751,7 +751,7 @@ PetscErrorCode DSCond_NHEP(DS ds,PetscReal *cond)
   /* use workspace matrix W to avoid overwriting A */
   ierr = DSAllocateMat_Private(ds,DS_MAT_W);CHKERRQ(ierr);
   A = ds->mat[DS_MAT_W];
-  ierr = PetscMemcpy(A,ds->mat[DS_MAT_A],sizeof(PetscScalar)*ds->ld*ds->ld);CHKERRQ(ierr);
+  ierr = PetscArraycpy(A,ds->mat[DS_MAT_A],ds->ld*ds->ld);CHKERRQ(ierr);
 
   /* norm of A */
   if (ds->state<DS_STATE_INTERMEDIATE) hn = LAPACKlange_("I",&n,&n,A,&ld,rwork);
@@ -798,10 +798,10 @@ PetscErrorCode DSTranslateHarmonic_NHEP(DS ds,PetscScalar tau,PetscReal beta,Pet
     /* use workspace matrix W to factor A-tau*eye(n) */
     ierr = DSAllocateMat_Private(ds,DS_MAT_W);CHKERRQ(ierr);
     B = ds->mat[DS_MAT_W];
-    ierr = PetscMemcpy(B,A,sizeof(PetscScalar)*ld*ld);CHKERRQ(ierr);
+    ierr = PetscArraycpy(B,A,ld*ld);CHKERRQ(ierr);
 
     /* Vector g initialy stores b = beta*e_n^T */
-    ierr = PetscMemzero(g,n*sizeof(PetscScalar));CHKERRQ(ierr);
+    ierr = PetscArrayzero(g,n);CHKERRQ(ierr);
     g[n-1] = beta;
 
     /* g = (A-tau*eye(n))'\b */

@@ -167,7 +167,7 @@ PetscErrorCode BVCopyColumn_Tensor(BV V,PetscInt j,PetscInt i)
 
   PetscFunctionBegin;
   ierr = MatDenseGetArray(ctx->S,&pS);CHKERRQ(ierr);
-  ierr = PetscMemcpy(pS+(V->nc+i)*lds,pS+(V->nc+j)*lds,lds*sizeof(PetscScalar));CHKERRQ(ierr);
+  ierr = PetscArraycpy(pS+(V->nc+i)*lds,pS+(V->nc+j)*lds,lds);CHKERRQ(ierr);
   ierr = MatDenseRestoreArray(ctx->S,&pS);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -511,7 +511,7 @@ static PetscErrorCode BVTensorCompress_Tensor(BV V,PetscInt newc)
     /* truncate columns associated with new converged eigenpairs */
     for (j=0;j<deg;j++) {
       for (i=lock;i<lock+newc;i++) {
-        ierr = PetscMemcpy(M+(i-lock+j*newc)*nrow,S+i*lds+j*ctx->ld+lock,nrow*sizeof(PetscScalar));CHKERRQ(ierr);
+        ierr = PetscArraycpy(M+(i-lock+j*newc)*nrow,S+i*lds+j*ctx->ld+lock,nrow);CHKERRQ(ierr);
       }
     }
 #if !defined (PETSC_USE_COMPLEX)
@@ -528,8 +528,8 @@ static PetscErrorCode BVTensorCompress_Tensor(BV V,PetscInt newc)
     }
     for (i=0;i<deg;i++) {
       for (j=lock;j<lock+newc;j++) {
-        ierr = PetscMemcpy(S+j*lds+i*ctx->ld+lock,Z+(newc*i+j-lock)*n,rk*sizeof(PetscScalar));CHKERRQ(ierr);
-        ierr = PetscMemzero(S+j*lds+i*ctx->ld+lock+rk,(ctx->ld-lock-rk)*sizeof(PetscScalar));CHKERRQ(ierr);
+        ierr = PetscArraycpy(S+j*lds+i*ctx->ld+lock,Z+(newc*i+j-lock)*n,rk);CHKERRQ(ierr);
+        ierr = PetscArrayzero(S+j*lds+i*ctx->ld+lock+rk,(ctx->ld-lock-rk));CHKERRQ(ierr);
       }
     }
     /*
@@ -549,7 +549,7 @@ static PetscErrorCode BVTensorCompress_Tensor(BV V,PetscInt newc)
   /* truncate columns associated with non-converged eigenpairs */
   for (j=0;j<deg;j++) {
     for (i=lock+newc;i<cs1;i++) {
-      ierr = PetscMemcpy(M+(i-lock-newc+j*nnc)*nrow,S+i*lds+j*ctx->ld+lock,nrow*sizeof(PetscScalar));CHKERRQ(ierr);
+      ierr = PetscArraycpy(M+(i-lock-newc+j*nnc)*nrow,S+i*lds+j*ctx->ld+lock,nrow);CHKERRQ(ierr);
     }
   }
 #if !defined (PETSC_USE_COMPLEX)
@@ -568,12 +568,12 @@ static PetscErrorCode BVTensorCompress_Tensor(BV V,PetscInt newc)
     PetscStackCallBLAS("BLASscal",BLASscal_(&nnctdeg,&t,Z+i,&n_));
   }
   /* update S */
-  ierr = PetscMemzero(S+cs1*lds,(V->m-cs1)*lds*sizeof(PetscScalar));CHKERRQ(ierr);
+  ierr = PetscArrayzero(S+cs1*lds,(V->m-cs1)*lds);CHKERRQ(ierr);
   k = ctx->ld-lock-newc-rk;
   for (i=0;i<deg;i++) {
     for (j=lock+newc;j<cs1;j++) {
-      ierr = PetscMemcpy(S+j*lds+i*ctx->ld+lock+newc,Z+(nnc*i+j-lock-newc)*n,rk*sizeof(PetscScalar));CHKERRQ(ierr);
-      ierr = PetscMemzero(S+j*lds+i*ctx->ld+lock+newc+rk,k*sizeof(PetscScalar));CHKERRQ(ierr);
+      ierr = PetscArraycpy(S+j*lds+i*ctx->ld+lock+newc,Z+(nnc*i+j-lock-newc)*n,rk);CHKERRQ(ierr);
+      ierr = PetscArrayzero(S+j*lds+i*ctx->ld+lock+newc+rk,k);CHKERRQ(ierr);
     }
   }
   if (newc>0) {
@@ -618,10 +618,10 @@ static PetscErrorCode BVTensorCompress_Tensor(BV V,PetscInt newc)
           PetscStackCallBLAS("BLASgemm",BLASgemm_("C","N",&rk_,&rk_,&rs1_,&sone,pQ,&rs1_,work+nwu,&rs1_,&zero,qB,&lds_));
           for (i=0;i<rk;i++) for (j=0;j<i;j++) qB[i+j*lds] = PetscConj(qB[j+i*lds]);
           for (i=rk;i<ctx->ld;i++) {
-            ierr = PetscMemzero(qB+i*lds,ctx->ld*sizeof(PetscScalar));CHKERRQ(ierr);
+            ierr = PetscArrayzero(qB+i*lds,ctx->ld);CHKERRQ(ierr);
           }
           for (i=0;i<rk;i++) {
-            ierr = PetscMemzero(qB+i*lds+rk,(ctx->ld-rk)*sizeof(PetscScalar));CHKERRQ(ierr);
+            ierr = PetscArrayzero(qB+i*lds+rk,(ctx->ld-rk));CHKERRQ(ierr);
           }
           if (c!=r) {
             sqB = ctx->qB+r*ctx->ld*lds+c*ctx->ld;

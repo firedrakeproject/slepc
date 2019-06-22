@@ -126,7 +126,7 @@ static PetscErrorCode LyapunovChol_SLICOT(PetscScalar *H,PetscInt m,PetscInt ldh
 #endif
 
   /* copy r into first column of W */
-  ierr = PetscMemcpy(W,r,m*sizeof(PetscScalar));CHKERRQ(ierr);
+  ierr = PetscArraycpy(W,r,m);CHKERRQ(ierr);
 
   /* solve Lyapunov equation (Hammarling) */
   PetscStackCallBLAS("SLICOTsb03od",SLICOTsb03od_("C","F","N",&n,&ione,H,&ld,Q,&n,W,&n,&scal,wr,wi,work,&lwork,&info));
@@ -241,7 +241,7 @@ static PetscErrorCode CholeskyFactor(PetscScalar *A,PetscInt m,PetscInt lda)
 
   /* save a copy of matrix in S */
   for (i=0;i<m;i++) {
-    ierr = PetscMemcpy(S+i*m,A+i*lda,m*sizeof(PetscScalar));CHKERRQ(ierr);
+    ierr = PetscArraycpy(S+i*m,A+i*lda,m);CHKERRQ(ierr);
   }
 
   /* compute upper Cholesky factor in R */
@@ -250,7 +250,7 @@ static PetscErrorCode CholeskyFactor(PetscScalar *A,PetscInt m,PetscInt lda)
 
   if (info) {  /* LAPACKpotrf failed, retry on diagonally perturbed matrix */
     for (i=0;i<m;i++) {
-      ierr = PetscMemcpy(A+i*lda,S+i*m,m*sizeof(PetscScalar));CHKERRQ(ierr);
+      ierr = PetscArraycpy(A+i*lda,S+i*m,m);CHKERRQ(ierr);
       A[i+i*lda] += 50.0*PETSC_MACHINE_EPSILON;
     }
     PetscStackCallBLAS("LAPACKpotrf",LAPACKpotrf_("L",&n,A,&ld,&info));
@@ -260,7 +260,7 @@ static PetscErrorCode CholeskyFactor(PetscScalar *A,PetscInt m,PetscInt lda)
 
   /* Zero out entries above the diagonal */
   for (i=1;i<m;i++) {
-    ierr = PetscMemzero(A+i*lda,i*sizeof(PetscScalar));CHKERRQ(ierr);
+    ierr = PetscArrayzero(A+i*lda,i);CHKERRQ(ierr);
   }
   ierr = PetscFree(S);CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -387,7 +387,7 @@ PetscErrorCode LMEDenseLyapunovChol(LME lme,PetscScalar *H,PetscInt m,PetscInt l
   if (PetscLogPrintInfo) {
     ierr = PetscMalloc1(m*m,&Hcopy);CHKERRQ(ierr);
     for (i=0;i<m;i++) {
-      ierr = PetscMemcpy(Hcopy+i*m,H+i*ldh,m*sizeof(PetscScalar));CHKERRQ(ierr);
+      ierr = PetscArraycpy(Hcopy+i*m,H+i*ldh,m);CHKERRQ(ierr);
     }
   }
 #endif

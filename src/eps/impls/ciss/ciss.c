@@ -634,7 +634,7 @@ static PetscErrorCode SVD_S(BV S,PetscInt ml,PetscReal delta,PetscReal *sigma,Pe
   ierr = BVGetSizes(S,&local_size,NULL,NULL);CHKERRQ(ierr);
   ierr = BVGetArray(S,&s_data);CHKERRQ(ierr);
   ierr = PetscMalloc7(ml*ml,&temp,ml*ml,&temp2,local_size*ml,&Q1,local_size*ml,&Q2,ml*ml,&B,ml*ml,&tempB,5*ml,&work);CHKERRQ(ierr);
-  ierr = PetscMemzero(B,ml*ml*sizeof(PetscScalar));CHKERRQ(ierr);
+  ierr = PetscArrayzero(B,ml*ml);CHKERRQ(ierr);
 #if defined(PETSC_USE_COMPLEX)
   ierr = PetscMalloc1(5*ml,&rwork);CHKERRQ(ierr);
 #endif
@@ -653,7 +653,7 @@ static PetscErrorCode SVD_S(BV S,PetscInt ml,PetscReal delta,PetscReal *sigma,Pe
     } else {
       PetscStackCallBLAS("BLASgemm",BLASgemm_("C","N",&l,&n,&m,&alpha,Q2,&lda,Q2,&ldb,&beta,temp,&ldc));
     }
-    ierr = PetscMemzero(temp2,ml*ml*sizeof(PetscScalar));CHKERRQ(ierr);
+    ierr = PetscArrayzero(temp2,ml*ml);CHKERRQ(ierr);
     ierr = PetscMPIIntCast(ml*ml,&len);CHKERRQ(ierr);
     ierr = MPI_Allreduce(temp,temp2,len,MPIU_SCALAR,MPIU_SUM,PetscObjectComm((PetscObject)S));CHKERRQ(ierr);
 

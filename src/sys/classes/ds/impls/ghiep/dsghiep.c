@@ -42,8 +42,8 @@ PetscErrorCode DSSwitchFormat_GHIEP(DS ds,PetscBool tocompact)
   n = ds->n;
   ld = ds->ld;
   if (tocompact) { /* switch from dense (arrow) to compact storage */
-    ierr = PetscMemzero(T,3*ld*sizeof(PetscReal));CHKERRQ(ierr);
-    ierr = PetscMemzero(S,ld*sizeof(PetscReal));CHKERRQ(ierr);
+    ierr = PetscArrayzero(T,3*ld);CHKERRQ(ierr);
+    ierr = PetscArrayzero(S,ld);CHKERRQ(ierr);
     for (i=0;i<n-1;i++) {
       T[i]    = PetscRealPart(A[i+i*ld]);
       T[ld+i] = PetscRealPart(A[i+1+i*ld]);
@@ -53,8 +53,8 @@ PetscErrorCode DSSwitchFormat_GHIEP(DS ds,PetscBool tocompact)
     S[n-1] = PetscRealPart(B[n-1+(n-1)*ld]);
     for (i=ds->l;i<ds->k;i++) T[2*ld+i] = PetscRealPart(A[ds->k+i*ld]);
   } else { /* switch from compact (arrow) to dense storage */
-    ierr = PetscMemzero(A,ld*ld*sizeof(PetscScalar));CHKERRQ(ierr);
-    ierr = PetscMemzero(B,ld*ld*sizeof(PetscScalar));CHKERRQ(ierr);
+    ierr = PetscArrayzero(A,ld*ld);CHKERRQ(ierr);
+    ierr = PetscArrayzero(B,ld*ld);CHKERRQ(ierr);
     for (i=0;i<n-1;i++) {
       A[i+i*ld]     = T[i];
       A[i+1+i*ld]   = T[ld+i];
@@ -183,9 +183,9 @@ static PetscErrorCode DSVectors_GHIEP_Eigen_Some(DS ds,PetscInt *idx,PetscReal *
   else e = 0.0;
   if (e == 0.0) { /* Real */
     if (ds->state>=DS_STATE_CONDENSED) {
-      ierr = PetscMemcpy(X+k*ld,Q+k*ld,ld*sizeof(PetscScalar));CHKERRQ(ierr);
+      ierr = PetscArraycpy(X+k*ld,Q+k*ld,ld);CHKERRQ(ierr);
     } else {
-      ierr = PetscMemzero(X+k*ds->ld,ds->ld*sizeof(PetscScalar));CHKERRQ(ierr);
+      ierr = PetscArrayzero(X+k*ds->ld,ds->ld);CHKERRQ(ierr);
       X[k+k*ds->ld] = 1.0;
     }
     if (rnorm) *rnorm = PetscAbsScalar(X[ds->n-1+k*ld]);
@@ -224,7 +224,7 @@ static PetscErrorCode DSVectors_GHIEP_Eigen_Some(DS ds,PetscInt *idx,PetscReal *
         PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&n_,&two,&two,&alpha,ds->mat[DS_MAT_Q]+k*ld,&ld,Y,&two,&zeroS,X+k*ld,&ld));
         if (rnorm) *rnorm = SlepcAbsEigenvalue(X[ds->n-1+k*ld],X[ds->n-1+(k+1)*ld]);
       } else {
-        ierr = PetscMemzero(X+k*ld,2*ld*sizeof(PetscScalar));CHKERRQ(ierr);
+        ierr = PetscArrayzero(X+k*ld,2*ld);CHKERRQ(ierr);
         X[k*ld+k]       = Y[0]*norm;
         X[k*ld+k+1]     = Y[1]*norm;
         X[(k+1)*ld+k]   = Y[2]*norm;
@@ -245,7 +245,7 @@ static PetscErrorCode DSVectors_GHIEP_Eigen_Some(DS ds,PetscInt *idx,PetscReal *
         PetscStackCallBLAS("BLASgemv",BLASgemv_("N",&n_,&two,&alpha,ds->mat[DS_MAT_Q]+k*ld,&ld,Y,&one,&zeroS,X+k*ld,&one));
         if (rnorm) *rnorm = PetscAbsScalar(X[ds->n-1+k*ld]);
       } else {
-        ierr = PetscMemzero(X+k*ld,2*ld*sizeof(PetscScalar));CHKERRQ(ierr);
+        ierr = PetscArrayzero(X+k*ld,2*ld);CHKERRQ(ierr);
         X[k*ld+k]   = Y[0]*norm;
         X[k*ld+k+1] = Y[1]*norm;
       }
@@ -276,9 +276,9 @@ PetscErrorCode DSVectors_GHIEP(DS ds,DSMatType mat,PetscInt *k,PetscReal *rnorm)
           e = (ds->compact)?*(ds->rmat[DS_MAT_T]+ds->ld+i):PetscRealPart(*(ds->mat[DS_MAT_A]+(i+1)+ds->ld*i));
           if (e == 0.0) { /* real */
             if (ds->state >= DS_STATE_CONDENSED) {
-              ierr = PetscMemcpy(ds->mat[mat]+i*ds->ld,ds->mat[DS_MAT_Q]+i*ds->ld,ds->ld*sizeof(PetscScalar));CHKERRQ(ierr);
+              ierr = PetscArraycpy(ds->mat[mat]+i*ds->ld,ds->mat[DS_MAT_Q]+i*ds->ld,ds->ld);CHKERRQ(ierr);
             } else {
-              ierr = PetscMemzero(ds->mat[mat]+i*ds->ld,ds->ld*sizeof(PetscScalar));CHKERRQ(ierr);
+              ierr = PetscArrayzero(ds->mat[mat]+i*ds->ld,ds->ld);CHKERRQ(ierr);
               *(ds->mat[mat]+i+i*ds->ld) = 1.0;
             }
           } else {
@@ -398,18 +398,18 @@ PetscErrorCode DSSort_GHIEP(DS ds,PetscScalar *wr,PetscScalar *wi,PetscScalar *r
   }
   ierr = DSSortEigenvalues_Private(ds,rr,ri,perm,PETSC_TRUE);CHKERRQ(ierr);
   if (!ds->compact) { ierr = DSSwitchFormat_GHIEP(ds,PETSC_TRUE);CHKERRQ(ierr); }
-  ierr = PetscMemcpy(ds->work,wr,n*sizeof(PetscScalar));CHKERRQ(ierr);
+  ierr = PetscArraycpy(ds->work,wr,n);CHKERRQ(ierr);
   for (i=ds->l;i<n;i++) wr[i] = *(ds->work+perm[i]);
 #if !defined(PETSC_USE_COMPLEX)
-  ierr = PetscMemcpy(ds->work,wi,n*sizeof(PetscScalar));CHKERRQ(ierr);
+  ierr = PetscArraycpy(ds->work,wi,n);CHKERRQ(ierr);
   for (i=ds->l;i<n;i++) wi[i] = *(ds->work+perm[i]);
 #endif
-  ierr = PetscMemcpy(ds->rwork,s,n*sizeof(PetscReal));CHKERRQ(ierr);
+  ierr = PetscArraycpy(ds->rwork,s,n);CHKERRQ(ierr);
   for (i=ds->l;i<n;i++) s[i] = *(ds->rwork+perm[i]);
-  ierr = PetscMemcpy(ds->rwork,d,n*sizeof(PetscReal));CHKERRQ(ierr);
+  ierr = PetscArraycpy(ds->rwork,d,n);CHKERRQ(ierr);
   for (i=ds->l;i<n;i++) d[i] = *(ds->rwork+perm[i]);
-  ierr = PetscMemcpy(ds->rwork,e,(n-1)*sizeof(PetscReal));CHKERRQ(ierr);
-  ierr = PetscMemzero(e+ds->l,(n-1-ds->l)*sizeof(PetscScalar));CHKERRQ(ierr);
+  ierr = PetscArraycpy(ds->rwork,e,n-1);CHKERRQ(ierr);
+  ierr = PetscArrayzero(e+ds->l,n-1-ds->l);CHKERRQ(ierr);
   for (i=ds->l;i<n-1;i++) {
     if (perm[i]<n-1) e[i] = *(ds->rwork+perm[i]);
   }
@@ -618,8 +618,8 @@ PetscErrorCode DSGHIEPRealBlocks(DS ds)
           A[i+ld*(i+1)]   = 0.0;
         }
         PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&m,&two,&two,&oneS,ds->mat[DS_MAT_Q]+ds->l+i*ld,&ld,Y,&two,&zeroS,ds->work,&m));
-        ierr = PetscMemcpy(ds->mat[DS_MAT_Q]+ds->l+i*ld,ds->work,m*sizeof(PetscScalar));CHKERRQ(ierr);
-        ierr = PetscMemcpy(ds->mat[DS_MAT_Q]+ds->l+(i+1)*ld,ds->work+m,m*sizeof(PetscScalar));CHKERRQ(ierr);
+        ierr = PetscArraycpy(ds->mat[DS_MAT_Q]+ds->l+i*ld,ds->work,m);CHKERRQ(ierr);
+        ierr = PetscArraycpy(ds->mat[DS_MAT_Q]+ds->l+(i+1)*ld,ds->work+m,m);CHKERRQ(ierr);
       }
       i++;
     }
@@ -789,7 +789,7 @@ PetscErrorCode DSSolve_GHIEP_QR(DS ds,PetscScalar *wr,PetscScalar *wi)
   /* Form pseudo-symmetric matrix */
   H =  ds->work+nwu;
   nwu += n*n;
-  ierr = PetscMemzero(H,n*n*sizeof(PetscScalar));CHKERRQ(ierr);
+  ierr = PetscArrayzero(H,n*n);CHKERRQ(ierr);
   if (ds->compact) {
     for (i=0;i<n-1;i++) {
       H[i+i*n]     = s[ds->l+i]*d[ds->l+i];
@@ -831,7 +831,7 @@ PetscErrorCode DSSolve_GHIEP_QR(DS ds,PetscScalar *wr,PetscScalar *wi)
     } else { /* complex eigenvalue */
       if (j!=i+1) {
         wr[j] = wr[i+1];
-        ierr = PetscMemcpy(X+j*ds->ld,X+(i+1)*ds->ld,ds->ld*sizeof(PetscScalar));CHKERRQ(ierr);
+        ierr = PetscArraycpy(X+j*ds->ld,X+(i+1)*ds->ld,ds->ld);CHKERRQ(ierr);
       }
       if (PetscImaginaryPart(wr[i])<0) {
         wr[i] = PetscConj(wr[i]);

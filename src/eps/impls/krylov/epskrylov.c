@@ -62,7 +62,7 @@ PetscErrorCode EPSBasicArnoldi(EPS eps,PetscBool trans,PetscScalar *H,PetscInt l
   ierr = BVGetBufferVec(U,&buf);CHKERRQ(ierr);
   ierr = VecGetArray(buf,&a);CHKERRQ(ierr);
   for (j=k;j<*M;j++) {
-    ierr = PetscMemcpy(H+j*ldh,a+nc+(j+1)*(nc+n),(j+2)*sizeof(PetscScalar));CHKERRQ(ierr);
+    ierr = PetscArraycpy(H+j*ldh,a+nc+(j+1)*(nc+n),j+2);CHKERRQ(ierr);
   }
   ierr = VecRestoreArray(buf,&a);CHKERRQ(ierr);
   PetscFunctionReturn(0);

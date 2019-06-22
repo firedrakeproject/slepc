@@ -26,8 +26,8 @@ SLEPC_EXTERN void PETSC_STDCALL pepstoargetinertias_(PEP *pep,PetscInt *nshift,P
   CHKFORTRANNULLREAL(shifts);
   CHKFORTRANNULLINTEGER(inertias);
   *ierr = PEPSTOARGetInertias(*pep,&n,&oshifts,&oinertias); if (*ierr) return;
-  if (shifts) { *ierr = PetscMemcpy(shifts,oshifts,n*sizeof(PetscReal)); if (*ierr) return; }
-  if (inertias) { *ierr = PetscMemcpy(inertias,oinertias,n*sizeof(PetscInt)); if (*ierr) return; }
+  if (shifts) { *ierr = PetscArraycpy(shifts,oshifts,n); if (*ierr) return; }
+  if (inertias) { *ierr = PetscArraycpy(inertias,oinertias,n); if (*ierr) return; }
   *nshift = n;
   *ierr = PetscFree(oshifts);if (*ierr) return;
   *ierr = PetscFree(oinertias);

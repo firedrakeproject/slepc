@@ -244,7 +244,7 @@ static PetscErrorCode VecCreate_Comp_Private(Vec v,Vec *x,PetscInt nx,PetscBool 
   /* Allocate the array of Vec, if it is needed to be done */
   if (!x_to_me) {
     if (nx) { ierr = PetscMalloc1(nx,&s->x);CHKERRQ(ierr); }
-    if (x) { ierr = PetscMemcpy(s->x,x,sizeof(Vec)*nx);CHKERRQ(ierr); }
+    if (x) { ierr = PetscArraycpy(s->x,x,nx);CHKERRQ(ierr); }
   } else s->x = x;
 
   s->nx = nx;
@@ -453,7 +453,7 @@ static PetscErrorCode VecCompSetSubVecs_Comp(Vec win,PetscInt n,Vec *x)
     }
   } else if (n > s->nx) SETERRQ1(PetscObjectComm((PetscObject)win),PETSC_ERR_SUP,"Number of child vectors cannot be larger than %D",s->nx);
   if (x) {
-    ierr = PetscMemcpy(s->x,x,sizeof(Vec)*n);CHKERRQ(ierr);
+    ierr = PetscArraycpy(s->x,x,n);CHKERRQ(ierr);
   }
   s->n->n = n;
   PetscFunctionReturn(0);

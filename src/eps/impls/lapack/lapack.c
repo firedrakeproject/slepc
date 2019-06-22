@@ -152,7 +152,7 @@ PetscErrorCode EPSSolve_LAPACK(EPS eps)
     ierr = BVGetColumn(eps->V,i,&v);CHKERRQ(ierr);
     ierr = VecGetOwnershipRange(v,&low,&high);CHKERRQ(ierr);
     ierr = VecGetArray(v,&array);CHKERRQ(ierr);
-    ierr = PetscMemcpy(array,pX+i*n+low,(high-low)*sizeof(PetscScalar));CHKERRQ(ierr);
+    ierr = PetscArraycpy(array,pX+i*n+low,high-low);CHKERRQ(ierr);
     ierr = VecRestoreArray(v,&array);CHKERRQ(ierr);
     ierr = BVRestoreColumn(eps->V,i,&v);CHKERRQ(ierr);
   }
@@ -166,7 +166,7 @@ PetscErrorCode EPSSolve_LAPACK(EPS eps)
       ierr = BVGetColumn(eps->W,i,&w);CHKERRQ(ierr);
       ierr = VecGetOwnershipRange(w,&low,&high);CHKERRQ(ierr);
       ierr = VecGetArray(w,&array);CHKERRQ(ierr);
-      ierr = PetscMemcpy(array,pY+i*n+low,(high-low)*sizeof(PetscScalar));CHKERRQ(ierr);
+      ierr = PetscArraycpy(array,pY+i*n+low,high-low);CHKERRQ(ierr);
       ierr = VecRestoreArray(w,&array);CHKERRQ(ierr);
       ierr = BVRestoreColumn(eps->W,i,&w);CHKERRQ(ierr);
     }

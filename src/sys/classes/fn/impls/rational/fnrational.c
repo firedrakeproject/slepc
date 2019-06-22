@@ -67,24 +67,24 @@ static PetscErrorCode FNEvaluateFunctionMat_Rational_Private(FN fn,PetscScalar *
     P = Ba;
     ierr = PetscMalloc3(m*m,&Q,m*m,&W,ld,&ipiv);CHKERRQ(ierr);
   }
-  ierr = PetscMemzero(P,m*m*sizeof(PetscScalar));CHKERRQ(ierr);
+  ierr = PetscArrayzero(P,m*m);CHKERRQ(ierr);
   if (!ctx->np) {
     for (i=0;i<m;i++) P[i+i*ld] = 1.0;
   } else {
     for (i=0;i<m;i++) P[i+i*ld] = ctx->pcoeff[0];
     for (j=1;j<ctx->np;j++) {
       PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&n,&n,&n,&one,P,&ld,Aa,&ld,&zero,W,&ld));
-      ierr = PetscMemcpy(P,W,m*m*sizeof(PetscScalar));CHKERRQ(ierr);
+      ierr = PetscArraycpy(P,W,m*m);CHKERRQ(ierr);
       for (i=0;i<m;i++) P[i+i*ld] += ctx->pcoeff[j];
     }
     ierr = PetscLogFlops(2.0*n*n*n*(ctx->np-1));CHKERRQ(ierr);
   }
   if (ctx->nq) {
-    ierr = PetscMemzero(Q,m*m*sizeof(PetscScalar));CHKERRQ(ierr);
+    ierr = PetscArrayzero(Q,m*m);CHKERRQ(ierr);
     for (i=0;i<m;i++) Q[i+i*ld] = ctx->qcoeff[0];
     for (j=1;j<ctx->nq;j++) {
       PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&n,&n,&n,&one,Q,&ld,Aa,&ld,&zero,W,&ld));
-      ierr = PetscMemcpy(Q,W,m*m*sizeof(PetscScalar));CHKERRQ(ierr);
+      ierr = PetscArraycpy(Q,W,m*m);CHKERRQ(ierr);
       for (i=0;i<m;i++) Q[i+i*ld] += ctx->qcoeff[j];
     }
     PetscStackCallBLAS("LAPACKgesv",LAPACKgesv_(&n,&k,Q,&ld,ipiv,P,&ld,&info));
@@ -92,7 +92,7 @@ static PetscErrorCode FNEvaluateFunctionMat_Rational_Private(FN fn,PetscScalar *
     ierr = PetscLogFlops(2.0*n*n*n*(ctx->nq-1)+2.0*n*n*n/3.0+2.0*n*n*k);CHKERRQ(ierr);
   }
   if (Aa==Ba) {
-    ierr = PetscMemcpy(Aa,P,m*k*sizeof(PetscScalar));CHKERRQ(ierr);
+    ierr = PetscArraycpy(Aa,P,m*k);CHKERRQ(ierr);
     ierr = PetscFree4(P,Q,W,ipiv);CHKERRQ(ierr);
   } else {
     ierr = PetscFree3(Q,W,ipiv);CHKERRQ(ierr);

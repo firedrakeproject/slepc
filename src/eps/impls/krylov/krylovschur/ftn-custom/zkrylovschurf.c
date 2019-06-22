@@ -39,7 +39,7 @@ SLEPC_EXTERN void PETSC_STDCALL epskrylovschurgetsubintervals_(EPS *eps,PetscRea
   CHKFORTRANNULLREAL(subint);
   *ierr = EPSKrylovSchurGetSubintervals(*eps,&osubint); if (*ierr) return;
   *ierr = EPSKrylovSchurGetPartitions(*eps,&npart); if (*ierr) return;
-  *ierr = PetscMemcpy(subint,osubint,(npart+1)*sizeof(PetscReal)); if (*ierr) return;
+  *ierr = PetscArraycpy(subint,osubint,npart+1); if (*ierr) return;
   *ierr = PetscFree(osubint);
 }
 
@@ -52,8 +52,8 @@ SLEPC_EXTERN void PETSC_STDCALL epskrylovschurgetinertias_(EPS *eps,PetscInt *ns
   CHKFORTRANNULLREAL(shifts);
   CHKFORTRANNULLINTEGER(inertias);
   *ierr = EPSKrylovSchurGetInertias(*eps,&n,&oshifts,&oinertias); if (*ierr) return;
-  if (shifts) { *ierr = PetscMemcpy(shifts,oshifts,n*sizeof(PetscReal)); if (*ierr) return; }
-  if (inertias) { *ierr = PetscMemcpy(inertias,oinertias,n*sizeof(PetscInt)); if (*ierr) return; }
+  if (shifts) { *ierr = PetscArraycpy(shifts,oshifts,n); if (*ierr) return; }
+  if (inertias) { *ierr = PetscArraycpy(inertias,oinertias,n); if (*ierr) return; }
   *nshift = n;
   *ierr = PetscFree(oshifts);if (*ierr) return;
   *ierr = PetscFree(oinertias);

@@ -608,7 +608,7 @@ PETSC_STATIC_INLINE PetscErrorCode BV_StoreCoeffsBlock_Default(BV bv,Mat R,Petsc
   ldb  = bv->m+bv->nc;
   ierr = VecGetArrayRead(bv->buffer,&bb);CHKERRQ(ierr);
   for (j=bv->l;j<bv->k;j++) {
-    ierr = PetscMemcpy(rr+j*ldr,bb+j*ldb,((tri?(j+1):bv->k)+bv->nc)*sizeof(PetscScalar));CHKERRQ(ierr);
+    ierr = PetscArraycpy(rr+j*ldr,bb+j*ldb,(tri?(j+1):bv->k)+bv->nc);CHKERRQ(ierr);
   }
   ierr = VecRestoreArrayRead(bv->buffer,&bb);CHKERRQ(ierr);
   ierr = MatDenseRestoreArray(R,&rr);CHKERRQ(ierr);

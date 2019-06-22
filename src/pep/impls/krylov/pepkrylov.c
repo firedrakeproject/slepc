@@ -126,11 +126,11 @@ PetscErrorCode PEPExtractVectors_TOAR(PEP pep)
           alpha = PetscConj(vals[j]);
 #if !defined(PETSC_USE_COMPLEX)
           if (ei[i]!=0.0) {
-            ierr = PetscMemzero(tr,k*sizeof(PetscScalar));CHKERRQ(ierr);
+            ierr = PetscArrayzero(tr,k);CHKERRQ(ierr);
             PetscStackCallBLAS("BLASaxpy",BLASaxpy_(&k_,&vals[j],X+i*ldds,&one,tr,&one));
             PetscStackCallBLAS("BLASaxpy",BLASaxpy_(&k_,&ivals[j],X+(i+1)*ldds,&one,tr,&one));
             yr = tr;
-            ierr = PetscMemzero(ti,k*sizeof(PetscScalar));CHKERRQ(ierr);
+            ierr = PetscArrayzero(ti,k);CHKERRQ(ierr);
             PetscStackCallBLAS("BLASaxpy",BLASaxpy_(&k_,&vals[j],X+(i+1)*ldds,&one,ti,&one));
             alpha = -ivals[j];
             PetscStackCallBLAS("BLASaxpy",BLASaxpy_(&k_,&alpha,X+i*ldds,&one,ti,&one));
@@ -160,7 +160,7 @@ PetscErrorCode PEPExtractVectors_TOAR(PEP pep)
   ierr = MatCreateSeqDense(PETSC_COMM_SELF,nq,k,NULL,&S0);CHKERRQ(ierr);
   ierr = MatDenseGetArray(S0,&pS0);CHKERRQ(ierr);
   for (i=0;i<k;i++) {
-    ierr = PetscMemcpy(pS0+i*nq,SS+i*nq,nq*sizeof(PetscScalar));CHKERRQ(ierr);
+    ierr = PetscArraycpy(pS0+i*nq,SS+i*nq,nq);CHKERRQ(ierr);
   }
   ierr = MatDenseRestoreArray(S0,&pS0);CHKERRQ(ierr);
   ierr = BVMultInPlace(pep->V,S0,0,k);CHKERRQ(ierr);

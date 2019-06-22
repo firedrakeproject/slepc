@@ -47,7 +47,7 @@ int main(int argc,char **argv)
 
   /* Fill A with Grcar matrix */
   ierr = DSGetArray(ds,DS_MAT_A,&A);CHKERRQ(ierr);
-  ierr = PetscMemzero(A,sizeof(PetscScalar)*ld*n);CHKERRQ(ierr);
+  ierr = PetscArrayzero(A,ld*n);CHKERRQ(ierr);
   for (i=1;i<n;i++) A[i+(i-1)*ld]=-1.0;
   for (j=0;j<4;j++) {
     for (i=0;i<n-j;i++) A[i+(i+j)*ld]=1.0;
@@ -55,7 +55,7 @@ int main(int argc,char **argv)
   ierr = DSRestoreArray(ds,DS_MAT_A,&A);CHKERRQ(ierr);
   /* Fill B with an upper triangular matrix */
   ierr = DSGetArray(ds,DS_MAT_B,&B);CHKERRQ(ierr);
-  ierr = PetscMemzero(B,sizeof(PetscScalar)*ld*n);CHKERRQ(ierr);
+  ierr = PetscArrayzero(B,ld*n);CHKERRQ(ierr);
   B[0+0*ld]=-1.0;
   B[0+1*ld]=2.0;
   for (i=1;i<n;i++) B[i+i*ld]=1.0;

@@ -41,7 +41,7 @@ static PetscErrorCode DSNEPComputeMatrix(DS ds,PetscScalar lambda,PetscBool deri
     ierr = DSGetLeadingDimension(ds,&ld);CHKERRQ(ierr);
     ierr = PetscBLASIntCast(ld*n,&k);CHKERRQ(ierr);
     ierr = DSGetArray(ds,mat,&T);CHKERRQ(ierr);
-    ierr = PetscMemzero(T,k*sizeof(PetscScalar));CHKERRQ(ierr);
+    ierr = PetscArrayzero(T,k);CHKERRQ(ierr);
     for (i=0;i<ctx->nf;i++) {
       if (deriv) {
         ierr = FNEvaluateDerivative(ctx->f[i],lambda,&alpha);CHKERRQ(ierr);
@@ -263,7 +263,7 @@ PetscErrorCode DSSolve_NEP_SLP(DS ds,PetscScalar *wr,PetscScalar *wi)
     if (im!=0.0) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"DSNEP found a complex eigenvalue; try rerunning with complex scalars");
 #endif
     mu = alpha[pos]/beta[pos];
-    ierr = PetscMemcpy(X,W+pos*ld,n*sizeof(PetscScalar));CHKERRQ(ierr);
+    ierr = PetscArraycpy(X,W+pos*ld,n);CHKERRQ(ierr);
     norm = BLASnrm2_(&n,X,&one);
     norm = 1.0/norm;
     PetscStackCallBLAS("BLASscal",BLASscal_(&n,&norm,X,&one));

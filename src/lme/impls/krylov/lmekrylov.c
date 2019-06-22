@@ -73,7 +73,7 @@ PetscErrorCode LMEBasicArnoldi(LME lme,PetscScalar *H,PetscInt ldh,PetscInt k,Pe
   ierr = BVGetBufferVec(lme->V,&buf);CHKERRQ(ierr);
   ierr = VecGetArray(buf,&a);CHKERRQ(ierr);
   for (j=k;j<*M;j++) {
-    ierr = PetscMemcpy(H+j*ldh,a+nc+(j+1)*(nc+n),(j+2)*sizeof(PetscScalar));CHKERRQ(ierr);
+    ierr = PetscArraycpy(H+j*ldh,a+nc+(j+1)*(nc+n),j+2);CHKERRQ(ierr);
   }
   ierr = VecRestoreArray(buf,&a);CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -117,12 +117,12 @@ PetscErrorCode LMESolve_Krylov_Lyapunov_Vec(LME lme,Vec b,PetscBool fixed,PetscI
         ldg = n+m+1;
         ierr = PetscCalloc1(ldg*(n+m),&Gnew);CHKERRQ(ierr);
         for (j=0;j<m;j++) {
-          ierr = PetscMemcpy(Gnew+n+(j+n)*ldg,H+j*ldh,m*sizeof(PetscScalar));CHKERRQ(ierr);
+          ierr = PetscArraycpy(Gnew+n+(j+n)*ldg,H+j*ldh,m);CHKERRQ(ierr);
         }
         Gnew[n+m+(n+m-1)*ldg] = beta;
         if (G) {
           for (j=0;j<n;j++) {
-            ierr = PetscMemcpy(Gnew+j*ldg,G+j*(n+1),(n+1)*sizeof(PetscScalar));CHKERRQ(ierr);
+            ierr = PetscArraycpy(Gnew+j*ldg,G+j*(n+1),n+1);CHKERRQ(ierr);
           }
           ierr = PetscFree(G);CHKERRQ(ierr);
         }
@@ -147,7 +147,7 @@ PetscErrorCode LMESolve_Krylov_Lyapunov_Vec(LME lme,Vec b,PetscBool fixed,PetscI
         ierr = PetscCalloc2(n,&r,ldg*n,&Gcopy);CHKERRQ(ierr);
         ierr = PetscCalloc1(n*n,&L);CHKERRQ(ierr);
         r[0] = bnorm;
-        ierr = PetscMemcpy(Gcopy,G,ldg*n*sizeof(PetscScalar));CHKERRQ(ierr);
+        ierr = PetscArraycpy(Gcopy,G,ldg*n);CHKERRQ(ierr);
         ierr = LMEDenseLyapunovChol(lme,Gcopy,n,ldg,r,L,n,&errest);CHKERRQ(ierr);
         ierr = LMEMonitor(lme,*totalits+its,errest);CHKERRQ(ierr);
         ierr = PetscFree2(r,Gcopy);CHKERRQ(ierr);

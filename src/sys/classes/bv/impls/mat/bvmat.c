@@ -249,7 +249,7 @@ PetscErrorCode BVCopy_Mat(BV V,BV W)
   ierr = MatDenseGetArray(w->A,&pw);CHKERRQ(ierr);
   pvc = pv+(V->nc+V->l)*V->n;
   pwc = pw+(W->nc+W->l)*W->n;
-  ierr = PetscMemcpy(pwc,pvc,(V->k-V->l)*V->n*sizeof(PetscScalar));CHKERRQ(ierr);
+  ierr = PetscArraycpy(pwc,pvc,(V->k-V->l)*V->n);CHKERRQ(ierr);
   ierr = MatDenseRestoreArray(v->A,&pv);CHKERRQ(ierr);
   ierr = MatDenseRestoreArray(w->A,&pw);CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -263,7 +263,7 @@ PetscErrorCode BVCopyColumn_Mat(BV V,PetscInt j,PetscInt i)
 
   PetscFunctionBegin;
   ierr = MatDenseGetArray(v->A,&pv);CHKERRQ(ierr);
-  ierr = PetscMemcpy(pv+(V->nc+i)*V->n,pv+(V->nc+j)*V->n,V->n*sizeof(PetscScalar));CHKERRQ(ierr);
+  ierr = PetscArraycpy(pv+(V->nc+i)*V->n,pv+(V->nc+j)*V->n,V->n);CHKERRQ(ierr);
   ierr = MatDenseRestoreArray(v->A,&pv);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -298,7 +298,7 @@ PetscErrorCode BVResize_Mat(BV bv,PetscInt m,PetscBool copy)
     if (copy) {
       ierr = MatDenseGetArray(ctx->A,&pA);CHKERRQ(ierr);
       ierr = MatDenseGetArray(A,&pnew);CHKERRQ(ierr);
-      ierr = PetscMemcpy(pnew,pA,PetscMin(m,bv->m)*bv->n*sizeof(PetscScalar));CHKERRQ(ierr);
+      ierr = PetscArraycpy(pnew,pA,PetscMin(m,bv->m)*bv->n);CHKERRQ(ierr);
       ierr = MatDenseRestoreArray(ctx->A,&pA);CHKERRQ(ierr);
       ierr = MatDenseRestoreArray(A,&pnew);CHKERRQ(ierr);
     }

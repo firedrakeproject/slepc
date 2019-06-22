@@ -40,7 +40,7 @@ static PetscErrorCode MatMult_Resolvent(Mat M,Vec v,Vec r)
   w = nep->work[0];
   z = nep->work[1];
   if (((PetscObject)v)->id != ctx->vid || ((PetscObject)v)->state != ctx->vstate) {
-    ierr = PetscMemzero(ctx->dots_avail,ctx->nep->nconv*sizeof(PetscBool));CHKERRQ(ierr);
+    ierr = PetscArrayzero(ctx->dots_avail,ctx->nep->nconv);CHKERRQ(ierr);
     ierr = PetscObjectGetId((PetscObject)v,&ctx->vid);CHKERRQ(ierr);
     ierr = PetscObjectStateGet((PetscObject)v,&ctx->vstate);CHKERRQ(ierr);
   }

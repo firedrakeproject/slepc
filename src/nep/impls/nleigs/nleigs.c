@@ -256,7 +256,7 @@ static PetscErrorCode NEPNLEIGSAAAComputation(NEP nep,PetscInt ndpt,PetscScalar 
       C[i+k*ndpt] = 1.0/(ds[i]-ds[idx]);
     }
 
-    ierr = PetscMemzero(A,ndpt*ndpt*sizeof(PetscScalar));CHKERRQ(ierr);
+    ierr = PetscArrayzero(A,ndpt*ndpt);CHKERRQ(ierr);
     cont = 0;
     for (i=0;i<ndpt;i++) {
       if (R[i]!=-1.0) {
@@ -287,8 +287,8 @@ static PetscErrorCode NEPNLEIGSAAAComputation(NEP nep,PetscInt ndpt,PetscScalar 
 
   if (k==ndpt-1) SETERRQ(PetscObjectComm((PetscObject)nep),1,"Failed to determine singularities automatically in general problem");
   /* poles */
-  ierr = PetscMemzero(C,ndpt*ndpt*sizeof(PetscScalar));CHKERRQ(ierr);
-  ierr = PetscMemzero(A,ndpt*ndpt*sizeof(PetscScalar));CHKERRQ(ierr);
+  ierr = PetscArrayzero(C,ndpt*ndpt);CHKERRQ(ierr);
+  ierr = PetscArrayzero(A,ndpt*ndpt);CHKERRQ(ierr);
   for (i=0;i<=k;i++) {
     C[i+ndpt*i] = 1.0;
     A[(i+1)*ndpt] = ww[i];
@@ -1103,7 +1103,7 @@ static PetscErrorCode NEPNLEIGS_RKcontinuation(NEP nep,PetscInt ini,PetscInt end
   PetscFunctionBegin;
   if (!ctx->nshifts || !end) {
     t[0] = 1;
-    ierr = PetscMemcpy(cont,S+end*lds,lds*sizeof(PetscScalar));CHKERRQ(ierr);
+    ierr = PetscArraycpy(cont,S+end*lds,lds);CHKERRQ(ierr);
   } else {
     n   = end-ini;
     n1  = n+1;
@@ -1229,11 +1229,11 @@ PetscErrorCode NEPSolve_NLEIGS(NEP nep)
 
   /* clean projected matrix (including the extra-arrow) */
   ierr = DSGetArray(nep->ds,DS_MAT_A,&H);CHKERRQ(ierr);
-  ierr = PetscMemzero(H,ldds*ldds*sizeof(PetscScalar));CHKERRQ(ierr);
+  ierr = PetscArrayzero(H,ldds*ldds);CHKERRQ(ierr);
   ierr = DSRestoreArray(nep->ds,DS_MAT_A,&H);CHKERRQ(ierr);
   if (ctx->nshifts) {
     ierr = DSGetArray(nep->ds,DS_MAT_B,&H);CHKERRQ(ierr);
-    ierr = PetscMemzero(H,ldds*ldds*sizeof(PetscScalar));CHKERRQ(ierr);
+    ierr = PetscArrayzero(H,ldds*ldds);CHKERRQ(ierr);
     ierr = DSRestoreArray(nep->ds,DS_MAT_B,&H);CHKERRQ(ierr);
   }
   
@@ -1352,7 +1352,7 @@ PetscErrorCode NEPSolve_NLEIGS(NEP nep)
     ierr = MatDenseGetArray(MS,&S);CHKERRQ(ierr);
     ierr = PetscMalloc1(nq*nep->nconv,&pU);CHKERRQ(ierr);
     for (i=0;i<nep->nconv;i++) {
-      ierr = PetscMemcpy(pU+i*nq,S+i*lds,nq*sizeof(PetscScalar));CHKERRQ(ierr);
+      ierr = PetscArraycpy(pU+i*nq,S+i*lds,nq);CHKERRQ(ierr);
     }
     ierr = MatDenseRestoreArray(MS,&S);CHKERRQ(ierr);
     ierr = BVTensorRestoreFactors(ctx->V,NULL,&MS);CHKERRQ(ierr);

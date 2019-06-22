@@ -283,7 +283,7 @@ PetscErrorCode BVDot_Svec_CUDA(BV X,BV Y,Mat M)
         ierr = cudaMemcpy(X->work,d_work,m*n*sizeof(PetscScalar),cudaMemcpyDeviceToHost);CHKERRQ(ierr);
         ierr = PetscLogGpuToCpu(m*n*sizeof(PetscScalar));CHKERRQ(ierr);
       } else {
-        ierr = PetscMemzero(X->work,m*n*sizeof(PetscScalar));CHKERRQ(ierr);
+        ierr = PetscArrayzero(X->work,m*n);CHKERRQ(ierr);
       }
       ierr = PetscMPIIntCast(m*n,&len);CHKERRQ(ierr);
       ierr = MPI_Allreduce(X->work,C,len,MPIU_SCALAR,MPIU_SUM,PetscObjectComm((PetscObject)X));CHKERRQ(ierr);
@@ -295,12 +295,12 @@ PetscErrorCode BVDot_Svec_CUDA(BV X,BV Y,Mat M)
         ierr = cudaMemcpy(X->work,d_work,m*n*sizeof(PetscScalar),cudaMemcpyDeviceToHost);CHKERRQ(ierr);
         ierr = PetscLogGpuToCpu(m*n*sizeof(PetscScalar));CHKERRQ(ierr);
       } else {
-        ierr = PetscMemzero(X->work,m*n*sizeof(PetscScalar));CHKERRQ(ierr);
+        ierr = PetscArrayzero(X->work,m*n);CHKERRQ(ierr);
       }
       ierr = PetscMPIIntCast(m*n,&len);CHKERRQ(ierr);
       ierr = MPI_Allreduce(X->work,CC,len,MPIU_SCALAR,MPIU_SUM,PetscObjectComm((PetscObject)X));CHKERRQ(ierr);
       for (j=0;j<n;j++) {
-        ierr = PetscMemcpy(C+j*ldm,CC+j*m,m*sizeof(PetscScalar));CHKERRQ(ierr);
+        ierr = PetscArraycpy(C+j*ldm,CC+j*m,m);CHKERRQ(ierr);
       }
     }
   } else {
@@ -310,7 +310,7 @@ PetscErrorCode BVDot_Svec_CUDA(BV X,BV Y,Mat M)
       ierr = cudaMemcpy(X->work,d_work,m*n*sizeof(PetscScalar),cudaMemcpyDeviceToHost);CHKERRQ(ierr);
       ierr = PetscLogGpuToCpu(m*n*sizeof(PetscScalar));CHKERRQ(ierr);
       for (j=0;j<n;j++) {
-        ierr = PetscMemcpy(C+j*ldm,X->work+j*m,m*sizeof(PetscScalar));CHKERRQ(ierr);
+        ierr = PetscArraycpy(C+j*ldm,X->work+j*m,m);CHKERRQ(ierr);
       }
     }
   }
@@ -393,7 +393,7 @@ PetscErrorCode BVDotVec_Svec_CUDA(BV X,Vec y,PetscScalar *q)
       ierr = cudaMemcpy(X->work,d_work,k*sizeof(PetscScalar),cudaMemcpyDeviceToHost);CHKERRQ(ierr);
       ierr = PetscLogGpuToCpu(k*sizeof(PetscScalar));CHKERRQ(ierr);
     } else {
-      ierr = PetscMemzero(X->work,k*sizeof(PetscScalar));CHKERRQ(ierr);
+      ierr = PetscArrayzero(X->work,k);CHKERRQ(ierr);
     }
     if (!q) {
       ierr = VecCUDARestoreArrayWrite(X->buffer,&d_work);CHKERRQ(ierr);

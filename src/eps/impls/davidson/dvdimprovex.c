@@ -606,7 +606,7 @@ static PetscErrorCode dvd_improvex_jd_proj_cuv(dvdDashboard *d,PetscInt i_s,Pets
   /* XKZ <- XKZ(rm:rm+max_cX-1,rm:rm+max_cX-1) */
   if (rm > 0) {
     for (i=0;i<lKZ;i++) {
-      ierr = PetscMemcpy(&data->XKZ[i*data->ldXKZ+i],&data->XKZ[(i+rm)*data->ldXKZ+i+rm],sizeof(PetscScalar)*lKZ);CHKERRQ(ierr);
+      ierr = PetscArraycpy(&data->XKZ[i*data->ldXKZ+i],&data->XKZ[(i+rm)*data->ldXKZ+i+rm],lKZ);CHKERRQ(ierr);
     }
   }
   lKZ = PetscMin(0,lKZ+V_new);
@@ -629,10 +629,10 @@ static PetscErrorCode dvd_improvex_jd_proj_cuv(dvdDashboard *d,PetscInt i_s,Pets
   ierr = BVMatProject(data->KZ,NULL,data->U,M);CHKERRQ(ierr);
   ierr = MatDenseGetArray(M,&array);CHKERRQ(ierr);
   for (i=lKZ;i<lKZ+n;i++) { /* upper part */
-    ierr = PetscMemcpy(&data->XKZ[data->ldXKZ*i],&array[i*(lKZ+n)],lKZ*sizeof(PetscScalar));CHKERRQ(ierr);
+    ierr = PetscArraycpy(&data->XKZ[data->ldXKZ*i],&array[i*(lKZ+n)],lKZ);CHKERRQ(ierr);
   }
   for (i=0;i<lKZ+n;i++) { /* lower part */
-    ierr = PetscMemcpy(&data->XKZ[data->ldXKZ*i+lKZ],&array[i*(lKZ+n)+lKZ],n*sizeof(PetscScalar));CHKERRQ(ierr);
+    ierr = PetscArraycpy(&data->XKZ[data->ldXKZ*i+lKZ],&array[i*(lKZ+n)+lKZ],n);CHKERRQ(ierr);
   }
   ierr = MatDenseRestoreArray(M,&array);CHKERRQ(ierr);
   ierr = MatDestroy(&M);CHKERRQ(ierr);
@@ -642,7 +642,7 @@ static PetscErrorCode dvd_improvex_jd_proj_cuv(dvdDashboard *d,PetscInt i_s,Pets
   ierr = PetscBLASIntCast(lKZ+n,&s);CHKERRQ(ierr);
   data->ldiXKZ = data->size_iXKZ = size_KZ;
   for (i=0;i<size_KZ;i++) {
-    ierr = PetscMemcpy(&data->iXKZ[data->ldiXKZ*i],&data->XKZ[data->ldXKZ*i],sizeof(PetscScalar)*size_KZ);CHKERRQ(ierr);
+    ierr = PetscArraycpy(&data->iXKZ[data->ldiXKZ*i],&data->XKZ[data->ldXKZ*i],size_KZ);CHKERRQ(ierr);
   }
   ierr = PetscBLASIntCast(data->ldiXKZ,&ldXKZ);CHKERRQ(ierr);
   ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);

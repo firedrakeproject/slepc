@@ -304,13 +304,13 @@ PetscErrorCode NEPSetUp_NLEIGS_FullBasis(NEP nep)
     for (i=0;i<deg;i++) {
       if (i<-nep->nini) {
         ierr = VecGetArray(nep->IS[i],&neparray);CHKERRQ(ierr);
-        ierr = PetscMemcpy(epsarray+i*nep->nloc,neparray,nep->nloc*sizeof(PetscScalar));CHKERRQ(ierr);
+        ierr = PetscArraycpy(epsarray+i*nep->nloc,neparray,nep->nloc);CHKERRQ(ierr);
         ierr = VecRestoreArray(nep->IS[i],&neparray);CHKERRQ(ierr);
       } else {
         if (!w) { ierr = VecDuplicate(nep->IS[0],&w);CHKERRQ(ierr); }
         ierr = VecSetRandom(w,NULL);CHKERRQ(ierr);
         ierr = VecGetArray(w,&neparray);CHKERRQ(ierr);
-        ierr = PetscMemcpy(epsarray+i*nep->nloc,neparray,nep->nloc*sizeof(PetscScalar));CHKERRQ(ierr);
+        ierr = PetscArraycpy(epsarray+i*nep->nloc,neparray,nep->nloc);CHKERRQ(ierr);
         ierr = VecRestoreArray(w,&neparray);CHKERRQ(ierr);
       }
     }

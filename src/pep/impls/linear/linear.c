@@ -416,13 +416,13 @@ PetscErrorCode PEPSetUp_Linear(PEP pep)
     for (i=0;i<deg;i++) {
       if (i<-pep->nini) {
         ierr = VecGetArray(pep->IS[i],&peparray);CHKERRQ(ierr);
-        ierr = PetscMemcpy(epsarray+i*pep->nloc,peparray,pep->nloc*sizeof(PetscScalar));CHKERRQ(ierr);
+        ierr = PetscArraycpy(epsarray+i*pep->nloc,peparray,pep->nloc);CHKERRQ(ierr);
         ierr = VecRestoreArray(pep->IS[i],&peparray);CHKERRQ(ierr);
       } else {
         if (!w) { ierr = VecDuplicate(pep->IS[0],&w);CHKERRQ(ierr); }
         ierr = VecSetRandom(w,NULL);CHKERRQ(ierr);
         ierr = VecGetArray(w,&peparray);CHKERRQ(ierr);
-        ierr = PetscMemcpy(epsarray+i*pep->nloc,peparray,pep->nloc*sizeof(PetscScalar));CHKERRQ(ierr);
+        ierr = PetscArraycpy(epsarray+i*pep->nloc,peparray,pep->nloc);CHKERRQ(ierr);
         ierr = VecRestoreArray(w,&peparray);CHKERRQ(ierr);
       }
     }

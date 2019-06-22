@@ -286,8 +286,8 @@ static PetscErrorCode PEPEvaluateBasisM(PEP pep,PetscInt k,PetscScalar *T,PetscI
 
   PetscFunctionBegin;
   if (idx==0) {
-    ierr = PetscMemzero(*Tj,k*k*sizeof(PetscScalar));CHKERRQ(ierr);
-    ierr = PetscMemzero(*Tp,k*k*sizeof(PetscScalar));CHKERRQ(ierr);
+    ierr = PetscArrayzero(*Tj,k*k);CHKERRQ(ierr);
+    ierr = PetscArrayzero(*Tp,k*k);CHKERRQ(ierr);
     for (i=0;i<k;i++) (*Tj)[i+i*k] = 1.0;
   } else {
     ierr = PetscBLASIntCast(ldt,&ldt_);CHKERRQ(ierr);
@@ -336,7 +336,7 @@ static PetscErrorCode PEPExtractInvariantPair(PEP pep,PetscScalar sigma,PetscInt
     ierr = PetscMalloc1(k*k,&T);CHKERRQ(ierr);
     ldt = k;
     for (i=0;i<k;i++) {
-      ierr = PetscMemcpy(T+k*i,H+i*ldh,k*sizeof(PetscScalar));CHKERRQ(ierr);
+      ierr = PetscArraycpy(T+k*i,H+i*ldh,k);CHKERRQ(ierr);
     }
     if (flg) {
       PetscStackCallBLAS("LAPACKgetrf",LAPACKgetrf_(&k_,&k_,T,&k_,p,&info));
@@ -377,7 +377,7 @@ static PetscErrorCode PEPExtractInvariantPair(PEP pep,PetscScalar sigma,PetscInt
     if (idxcpy>0) {
       /* copy block idxcpy of S to the first one */
       for (j=0;j<k;j++) {
-        ierr = PetscMemcpy(S+j*lds,S+idxcpy*ld+j*lds,sr*sizeof(PetscScalar));CHKERRQ(ierr);
+        ierr = PetscArraycpy(S+j*lds,S+idxcpy*ld+j*lds,sr);CHKERRQ(ierr);
       }
     }
     break;
@@ -404,7 +404,7 @@ static PetscErrorCode PEPExtractInvariantPair(PEP pep,PetscScalar sigma,PetscInt
         PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&sr_,&k_,&k_,&a,S+i*ld,&lds_,Hj,&k_,&g,At,&sr_));
         ierr = MatDenseGetArray(M,&pM);CHKERRQ(ierr);
         for (jj=0;jj<k;jj++) {
-          ierr = PetscMemcpy(pM+jj*sr,At+jj*sr,sr*sizeof(PetscScalar));CHKERRQ(ierr);
+          ierr = PetscArraycpy(pM+jj*sr,At+jj*sr,sr);CHKERRQ(ierr);
         }
         ierr = MatDenseRestoreArray(M,&pM);CHKERRQ(ierr);
         ierr = BVMult(R[i],1.0,(i==0)?0.0:1.0,Y,M);CHKERRQ(ierr);
@@ -430,7 +430,7 @@ static PetscErrorCode PEPExtractInvariantPair(PEP pep,PetscScalar sigma,PetscInt
     if (idxcpy>0) {
       /* copy block idxcpy of S to the first one */
       for (j=0;j<k;j++) {
-        ierr = PetscMemcpy(S+j*lds,S+idxcpy*ld+j*lds,sr*sizeof(PetscScalar));CHKERRQ(ierr);
+        ierr = PetscArraycpy(S+j*lds,S+idxcpy*ld+j*lds,sr);CHKERRQ(ierr);
       }
     }
     if (flg) PetscFree(A);CHKERRQ(ierr);
@@ -508,7 +508,7 @@ PetscErrorCode PEPSolve_TOAR(PEP pep)
 
   /* clean projected matrix (including the extra-arrow) */
   ierr = DSGetArray(pep->ds,DS_MAT_A,&H);CHKERRQ(ierr);
-  ierr = PetscMemzero(H,ldds*ldds*sizeof(PetscScalar));CHKERRQ(ierr);
+  ierr = PetscArrayzero(H,ldds*ldds);CHKERRQ(ierr);
   ierr = DSRestoreArray(pep->ds,DS_MAT_A,&H);CHKERRQ(ierr);
   
   /* Get the starting Arnoldi vector */

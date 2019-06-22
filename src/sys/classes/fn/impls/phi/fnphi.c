@@ -82,7 +82,7 @@ PetscErrorCode FNEvaluateFunctionMatVec_Phi(FN fn,Mat A,Vec v)
   ierr = MatDenseGetArray(ctx->H,&Ha);CHKERRQ(ierr);
   ierr = MatDenseGetArray(A,&Aa);CHKERRQ(ierr);
   for (j=0;j<m;j++) {
-    ierr = PetscMemcpy(Ha+j*n,Aa+j*m,m*sizeof(PetscScalar));CHKERRQ(ierr);
+    ierr = PetscArraycpy(Ha+j*n,Aa+j*m,m);CHKERRQ(ierr);
   }
   ierr = MatDenseRestoreArray(A,&Aa);CHKERRQ(ierr);
   if (ctx->k) {

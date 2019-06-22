@@ -459,7 +459,7 @@ PetscErrorCode NEPNewtonRefinementSimple(NEP nep,PetscInt *maxits,PetscReal tol,
         ierr = VecGetArrayRead(r,&array);CHKERRQ(ierr);
         if (rank==size-1) {
           ierr = VecGetArray(rr,&array2);CHKERRQ(ierr);
-          ierr = PetscMemcpy(array2,array,n*sizeof(PetscScalar));CHKERRQ(ierr);
+          ierr = PetscArraycpy(array2,array,n);CHKERRQ(ierr);
           array2[n] = 0.0;
           ierr = VecRestoreArray(rr,&array2);CHKERRQ(ierr);
         } else {

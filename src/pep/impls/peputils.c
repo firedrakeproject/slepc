@@ -30,7 +30,7 @@ PetscErrorCode PEPEvaluateBasisMat(PEP pep,PetscInt k,PetscScalar *T,PetscInt ld
   PetscFunctionBegin;
   if (idx==0) {
     for (i=0;i<k;i++) {
-      ierr = PetscMemzero(Tj+i*ldtj,k*sizeof(PetscScalar));CHKERRQ(ierr);
+      ierr = PetscArrayzero(Tj+i*ldtj,k);CHKERRQ(ierr);
       Tj[i+i*ldtj] = 1.0;
     }
   } else {
@@ -42,7 +42,7 @@ PetscErrorCode PEPEvaluateBasisMat(PEP pep,PetscInt k,PetscScalar *T,PetscInt ld
     for (i=0;i<k;i++) T[i*ldt+i] -= cb[idx-1];
     if (idx>1) { 
       for (i=0;i<k;i++) {
-        ierr = PetscMemcpy(Tj+i*ldtj,Tpp+i*ldtpp,k*sizeof(PetscScalar));CHKERRQ(ierr);
+        ierr = PetscArraycpy(Tj+i*ldtj,Tpp+i*ldtpp,k);CHKERRQ(ierr);
       }
     }
     a = 1/ca[idx-1];

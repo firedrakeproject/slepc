@@ -137,7 +137,7 @@ static PetscErrorCode SlepcSqrtmSadeghi(PetscBLASInt n,PetscScalar *A,PetscBLASI
   ierr = PetscBLASIntCast((PetscInt)PetscRealPart(work1),&lwork);CHKERRQ(ierr);
 
   ierr = PetscMalloc5(N,&M,N,&M2,N,&G,lwork,&work,n,&piv);CHKERRQ(ierr);
-  ierr = PetscMemcpy(M,A,N*sizeof(PetscScalar));CHKERRQ(ierr);
+  ierr = PetscArraycpy(M,A,N);CHKERRQ(ierr);
 
   /* scale M */
   nrm = LAPACKlange_("fro",&n,&n,M,&n,rwork);
@@ -150,7 +150,7 @@ static PetscErrorCode SlepcSqrtmSadeghi(PetscBLASInt n,PetscScalar *A,PetscBLASI
   ierr = PetscInfo2(NULL,"||A||_F = %g, new tol: %g\n",(double)nrm,(double)tol);CHKERRQ(ierr);
 
   /* X = I */
-  ierr = PetscMemzero(X,N*sizeof(PetscScalar));CHKERRQ(ierr);
+  ierr = PetscArrayzero(X,N);CHKERRQ(ierr);
   for (i=0;i<n;i++) X[i+i*ld] = 1.0;
 
   for (it=0;it<MAXIT && !converged;it++) {
@@ -163,7 +163,7 @@ static PetscErrorCode SlepcSqrtmSadeghi(PetscBLASInt n,PetscScalar *A,PetscBLASI
     for (i=0;i<n;i++) G[i+i*ld] += 5.0/16.0;
 
     /* X = X*G */
-    ierr = PetscMemcpy(M2,X,N*sizeof(PetscScalar));CHKERRQ(ierr);
+    ierr = PetscArraycpy(M2,X,N);CHKERRQ(ierr);
     PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&n,&n,&n,&sone,M2,&ld,G,&ld,&szero,X,&ld));
 
     /* M = M*inv(G*G) */
@@ -173,11 +173,11 @@ static PetscErrorCode SlepcSqrtmSadeghi(PetscBLASInt n,PetscScalar *A,PetscBLASI
     PetscStackCallBLAS("LAPACKgetri",LAPACKgetri_(&n,M2,&ld,piv,work,&lwork,&info));
     SlepcCheckLapackInfo("getri",info);
 
-    ierr = PetscMemcpy(G,M,N*sizeof(PetscScalar));CHKERRQ(ierr);
+    ierr = PetscArraycpy(G,M,N);CHKERRQ(ierr);
     PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&n,&n,&n,&sone,G,&ld,M2,&ld,&szero,M,&ld));
 
     /* check ||I-M|| */
-    ierr = PetscMemcpy(M2,M,N*sizeof(PetscScalar));CHKERRQ(ierr);
+    ierr = PetscArraycpy(M2,M,N);CHKERRQ(ierr);
     for (i=0;i<n;i++) M2[i+i*ld] -= 1.0;
     Mres = LAPACKlange_("fro",&n,&n,M2,&n,rwork);
     ierr = PetscIsNanReal(Mres);CHKERRQ(ierr);

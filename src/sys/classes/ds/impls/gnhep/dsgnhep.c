@@ -121,7 +121,7 @@ static PetscErrorCode DSVectors_GNHEP_Eigen_Some(DS ds,PetscInt *k,PetscReal *rn
   if (!select[*k] || mout != mm) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Wrong arguments in call to Lapack xTGEVC");
 
   /* accumulate and normalize eigenvectors */
-  ierr = PetscMemcpy(ds->work,Z,mm*ld*sizeof(PetscScalar));CHKERRQ(ierr);
+  ierr = PetscArraycpy(ds->work,Z,mm*ld);CHKERRQ(ierr);
   PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&n,&mm,&n,&fone,ds->mat[left?DS_MAT_Z:DS_MAT_Q],&ld,ds->work,&ld,&fzero,Z,&ld));
   norm = BLASnrm2_(&n,Z,&inc);
 #if !defined(PETSC_USE_COMPLEX)
@@ -181,7 +181,7 @@ static PetscErrorCode DSVectors_GNHEP_Eigen_All(DS ds,PetscBool left)
   if (ds->state>=DS_STATE_CONDENSED) {
     /* DSSolve() has been called, backtransform with matrix Q */
     back = "B";
-    ierr = PetscMemcpy(left?Y:X,ds->mat[left?DS_MAT_Z:DS_MAT_Q],ld*ld*sizeof(PetscScalar));CHKERRQ(ierr);
+    ierr = PetscArraycpy(left?Y:X,ds->mat[left?DS_MAT_Z:DS_MAT_Q],ld*ld);CHKERRQ(ierr);
   } else {
     back = "A";
     ierr = DSSetState(ds,DS_STATE_CONDENSED);CHKERRQ(ierr);
@@ -266,7 +266,7 @@ static PetscErrorCode DSSort_GNHEP_Arbitrary(DS ds,PetscScalar *wr,PetscScalar *
   liwork    = ds->liwork - n;
   /* Compute the selected eigenvalue to be in the leading position */
   ierr = DSSortEigenvalues_Private(ds,rr,ri,ds->perm,PETSC_FALSE);CHKERRQ(ierr);
-  ierr = PetscMemzero(selection,n*sizeof(PetscBLASInt));CHKERRQ(ierr);
+  ierr = PetscArrayzero(selection,n);CHKERRQ(ierr);
   for (i=0; i<*k; i++) selection[ds->perm[i]] = 1;
 #if !defined(PETSC_USE_COMPLEX)
   PetscStackCallBLAS("LAPACKtgsen",LAPACKtgsen_(&zero_,&true_,&true_,selection,&n,S,&ld,T,&ld,wr,wi,beta,Z,&ld,Q,&ld,&mout,NULL,NULL,NULL,work,&lwork,iwork,&liwork,&info));

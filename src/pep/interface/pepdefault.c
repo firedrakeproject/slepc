@@ -273,7 +273,7 @@ PetscErrorCode PEPBuildDiagonalScaling(PEP pep)
   ierr = VecGetArray(pep->Dl,&Dl);CHKERRQ(ierr);
   ierr = VecGetArray(pep->Dr,&Dr);CHKERRQ(ierr);
   ierr = MatSeqAIJGetArray(M,&array);CHKERRQ(ierr);
-  ierr = PetscMemzero(aux,pep->n*sizeof(PetscReal));CHKERRQ(ierr);
+  ierr = PetscArrayzero(aux,pep->n);CHKERRQ(ierr);
   for (j=0;j<nz;j++) {
     /* Search non-zero columns outsize lst-lend */
     if (aux[cidx[j]]==0 && (cidx[j]<lst || lend<=cidx[j])) cols[nc++] = cidx[j];
@@ -285,7 +285,7 @@ PetscErrorCode PEPBuildDiagonalScaling(PEP pep)
     /* Column sum  */
     if (it>0) { /* it=0 has been already done*/
       ierr = MatSeqAIJGetArray(M,&array);CHKERRQ(ierr);
-      ierr = PetscMemzero(aux,pep->n*sizeof(PetscReal));CHKERRQ(ierr);
+      ierr = PetscArrayzero(aux,pep->n);CHKERRQ(ierr);
       for (j=0;j<nz;j++) aux[cidx[j]] += PetscAbsScalar(array[j]);
       ierr = MatSeqAIJRestoreArray(M,&array);CHKERRQ(ierr);
     }
@@ -315,7 +315,7 @@ PetscErrorCode PEPBuildDiagonalScaling(PEP pep)
     }
     ierr = MatSeqAIJRestoreArray(M,&array);CHKERRQ(ierr);
     /* Row sum */
-    ierr = PetscMemzero(rsum,nr*sizeof(PetscReal));CHKERRQ(ierr);
+    ierr = PetscArrayzero(rsum,nr);CHKERRQ(ierr);
     ierr = MatSeqAIJGetArray(M,&array);CHKERRQ(ierr);
     for (i=0;i<nr;i++) {
       for (j=ridx[i];j<ridx[i+1];j++) rsum[i] += PetscAbsScalar(array[j]);

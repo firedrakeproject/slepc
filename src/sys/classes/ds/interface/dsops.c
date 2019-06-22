@@ -381,7 +381,7 @@ PetscErrorCode DSGetMat(DS ds,DSMatType m,Mat *A)
   M  = ds->mat[m];
   ierr = MatDenseGetArray(*A,&pA);CHKERRQ(ierr);
   for (j=0;j<cols;j++) {
-    ierr = PetscMemcpy(pA+j*rows,M+j*ds->ld,rows*sizeof(PetscScalar));CHKERRQ(ierr);
+    ierr = PetscArraycpy(pA+j*rows,M+j*ds->ld,rows);CHKERRQ(ierr);
   }
   ierr = MatDenseRestoreArray(*A,&pA);CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -427,7 +427,7 @@ PetscErrorCode DSRestoreMat(DS ds,DSMatType m,Mat *A)
   M  = ds->mat[m];
   ierr = MatDenseGetArray(*A,&pA);CHKERRQ(ierr);
   for (j=0;j<cols;j++) {
-    ierr = PetscMemcpy(M+j*ds->ld,pA+j*rows,rows*sizeof(PetscScalar));CHKERRQ(ierr);
+    ierr = PetscArraycpy(M+j*ds->ld,pA+j*rows,rows);CHKERRQ(ierr);
   }
   ierr = MatDenseRestoreArray(*A,&pA);CHKERRQ(ierr);
   ierr = MatDestroy(A);CHKERRQ(ierr);
@@ -1022,9 +1022,9 @@ PetscErrorCode DSCopyMat(DS ds,DSMatType m,PetscInt mr,PetscInt mc,Mat A,PetscIn
   ierr = MatDenseGetArray(A,&pA);CHKERRQ(ierr);
   for (j=0;j<cols;j++) {
     if (out) {
-      ierr = PetscMemcpy(pA+(Ac+j)*arows+Ar,M+(mc+j)*ds->ld+mr,rows*sizeof(PetscScalar));CHKERRQ(ierr);
+      ierr = PetscArraycpy(pA+(Ac+j)*arows+Ar,M+(mc+j)*ds->ld+mr,rows);CHKERRQ(ierr);
     } else {
-      ierr = PetscMemcpy(M+(mc+j)*ds->ld+mr,pA+(Ac+j)*arows+Ar,rows*sizeof(PetscScalar));CHKERRQ(ierr);
+      ierr = PetscArraycpy(M+(mc+j)*ds->ld+mr,pA+(Ac+j)*arows+Ar,rows);CHKERRQ(ierr);
     }
   }
   ierr = MatDenseRestoreArray(A,&pA);CHKERRQ(ierr);

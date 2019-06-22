@@ -164,19 +164,19 @@ PetscErrorCode SVDSetUp_Cyclic(SVD svd)
         ierr = VecGetSize(svd->ISL[i],&isl);CHKERRQ(ierr);
         if (isl!=m) SETERRQ(PetscObjectComm((PetscObject)svd),PETSC_ERR_SUP,"Size mismatch for left initial vector");
         ierr = VecGetArrayRead(svd->ISL[i],&isa);CHKERRQ(ierr);
-        ierr = PetscMemcpy(va,isa,sizeof(PetscScalar)*m);CHKERRQ(ierr);
+        ierr = PetscArraycpy(va,isa,m);CHKERRQ(ierr);
         ierr = VecRestoreArrayRead(svd->IS[i],&isa);CHKERRQ(ierr);
       } else {
-        ierr = PetscMemzero(&va,sizeof(PetscScalar)*m);CHKERRQ(ierr);
+        ierr = PetscArrayzero(&va,m);CHKERRQ(ierr);
       }
       if (i<-svd->nini) {
         ierr = VecGetSize(svd->IS[i],&isl);CHKERRQ(ierr);
         if (isl!=n) SETERRQ(PetscObjectComm((PetscObject)svd),PETSC_ERR_SUP,"Size mismatch for right initial vector");
         ierr = VecGetArrayRead(svd->IS[i],&isa);CHKERRQ(ierr);
-        ierr = PetscMemcpy(va+m,isa,sizeof(PetscScalar)*n);CHKERRQ(ierr);
+        ierr = PetscArraycpy(va+m,isa,n);CHKERRQ(ierr);
         ierr = VecRestoreArrayRead(svd->IS[i],&isa);CHKERRQ(ierr);
       } else {
-        ierr = PetscMemzero(va+m,sizeof(PetscScalar)*n);CHKERRQ(ierr);
+        ierr = PetscArrayzero(va+m,n);CHKERRQ(ierr);
       }
       ierr = VecRestoreArray(v,&va);CHKERRQ(ierr);
       ierr = VecDestroy(&svd->IS[i]);CHKERRQ(ierr);

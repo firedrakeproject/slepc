@@ -45,7 +45,7 @@ static PetscErrorCode EPSTwoSidedRQUpdate1(EPS eps,Mat M,PetscInt nv)
   ierr = BVDotVec(eps->W,u,w);CHKERRQ(ierr);
   ierr = BVRestoreColumn(eps->V,nv,&u);CHKERRQ(ierr);
   ierr = MatDenseGetArray(M,&pM);CHKERRQ(ierr);
-  ierr = PetscMemcpy(A,pM,ncv*ncv*sizeof(PetscScalar));CHKERRQ(ierr);
+  ierr = PetscArraycpy(A,pM,ncv*ncv);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(nv,&n_);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(ncv,&ncv_);CHKERRQ(ierr);
   PetscStackCallBLAS("LAPACKgetrf",LAPACKgetrf_(&n_,&n_,A,&ncv_,p,&info));

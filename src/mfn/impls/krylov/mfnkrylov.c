@@ -67,7 +67,7 @@ PetscErrorCode MFNBasicArnoldi(MFN mfn,PetscScalar *H,PetscInt ldh,PetscInt k,Pe
   ierr = BVGetBufferVec(mfn->V,&buf);CHKERRQ(ierr);
   ierr = VecGetArray(buf,&a);CHKERRQ(ierr);
   for (j=k;j<*M;j++) {
-    ierr = PetscMemcpy(H+j*ldh,a+nc+(j+1)*(nc+n),(j+2)*sizeof(PetscScalar));CHKERRQ(ierr);
+    ierr = PetscArraycpy(H+j*ldh,a+nc+(j+1)*(nc+n),j+2);CHKERRQ(ierr);
   }
   ierr = VecRestoreArray(buf,&a);CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -110,12 +110,12 @@ PetscErrorCode MFNSolve_Krylov(MFN mfn,Vec b,Vec x)
     /* glue together the previous H and the new H obtained with Arnoldi */
     ierr = MatDenseGetArray(H,&harray);CHKERRQ(ierr);
     for (j=0;j<m;j++) {
-      ierr = PetscMemcpy(harray+n+(j+n)*ldh,array+j*ld,m*sizeof(PetscScalar));CHKERRQ(ierr);
+      ierr = PetscArraycpy(harray+n+(j+n)*ldh,array+j*ld,m);CHKERRQ(ierr);
     }
     if (mfn->its>1) {
       ierr = MatDenseGetArray(G,&garray);CHKERRQ(ierr);
       for (j=0;j<n;j++) {
-        ierr = PetscMemcpy(harray+j*ldh,garray+j*n,n*sizeof(PetscScalar));CHKERRQ(ierr);
+        ierr = PetscArraycpy(harray+j*ldh,garray+j*n,n);CHKERRQ(ierr);
       }
       ierr = MatDenseRestoreArray(G,&garray);CHKERRQ(ierr);
       ierr = MatDestroy(&G);CHKERRQ(ierr);

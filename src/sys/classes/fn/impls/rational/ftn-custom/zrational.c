@@ -78,7 +78,7 @@ SLEPC_EXTERN void PETSC_STDCALL fnrationalgetnumerator_(FN *fn,PetscInt *np,Pets
 
   CHKFORTRANNULLSCALAR(pcoeff);
   *ierr = FNRationalGetNumerator(*fn,&n,&ocoeff); if (*ierr) return;
-  if (pcoeff) { *ierr = PetscMemcpy(pcoeff,ocoeff,n*sizeof(PetscScalar)); if (*ierr) return; }
+  if (pcoeff) { *ierr = PetscArraycpy(pcoeff,ocoeff,n); if (*ierr) return; }
   *np = n;
   *ierr = PetscFree(ocoeff);
 }
@@ -110,7 +110,7 @@ SLEPC_EXTERN void PETSC_STDCALL fnrationalgetdenominator_(FN *fn,PetscInt *nq,Pe
 
   CHKFORTRANNULLSCALAR(qcoeff);
   *ierr = FNRationalGetDenominator(*fn,&n,&ocoeff); if (*ierr) return;
-  if (qcoeff) { *ierr = PetscMemcpy(qcoeff,ocoeff,n*sizeof(PetscScalar)); if (*ierr) return; }
+  if (qcoeff) { *ierr = PetscArraycpy(qcoeff,ocoeff,n); if (*ierr) return; }
   *nq = n;
   *ierr = PetscFree(ocoeff);
 }

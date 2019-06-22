@@ -50,7 +50,7 @@ PETSC_STATIC_INLINE PetscErrorCode FILTLAN_NewtonPolynomial(PetscInt n,PetscReal
   PetscInt       j,k;
 
   PetscFunctionBegin;
-  ierr = PetscMemcpy(sf,sy,n*sizeof(PetscReal));CHKERRQ(ierr);
+  ierr = PetscArraycpy(sf,sy,n);CHKERRQ(ierr);
 
   /* apply Newton's finite difference method */
   sa[0] = sf[0];
@@ -796,7 +796,7 @@ static PetscErrorCode FILTLAN_FilteredConjugateResidualPolynomial(PetscReal *cpo
   nintv = m-1;
   ld = niter+2;  /* leading dimension */
   ierr = PetscCalloc4(ld*nintv,&ppol,ld*nintv,&rpol,ld*nintv,&appol,ld*nintv,&arpol);CHKERRQ(ierr);
-  ierr = PetscMemzero(cpol,ld*nintv*sizeof(PetscReal));CHKERRQ(ierr);
+  ierr = PetscArrayzero(cpol,ld*nintv);CHKERRQ(ierr);
   /* initialize polynomial ppol to be 1 (i.e. multiplicative identity) in all intervals */
   sppol = 2;
   srpol = 2;

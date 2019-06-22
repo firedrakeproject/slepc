@@ -212,7 +212,7 @@ PetscErrorCode BVCopy_Contiguous(BV V,BV W)
   PetscFunctionBegin;
   pvc = v->array+(V->nc+V->l)*V->n;
   pwc = w->array+(W->nc+W->l)*W->n;
-  ierr = PetscMemcpy(pwc,pvc,(V->k-V->l)*V->n*sizeof(PetscScalar));CHKERRQ(ierr);
+  ierr = PetscArraycpy(pwc,pvc,(V->k-V->l)*V->n);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -222,7 +222,7 @@ PetscErrorCode BVCopyColumn_Contiguous(BV V,PetscInt j,PetscInt i)
   BV_CONTIGUOUS  *v = (BV_CONTIGUOUS*)V->data;
 
   PetscFunctionBegin;
-  ierr = PetscMemcpy(v->array+(V->nc+i)*V->n,v->array+(V->nc+j)*V->n,V->n*sizeof(PetscScalar));CHKERRQ(ierr);
+  ierr = PetscArraycpy(v->array+(V->nc+i)*V->n,v->array+(V->nc+j)*V->n,V->n);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -245,7 +245,7 @@ PetscErrorCode BVResize_Contiguous(BV bv,PetscInt m,PetscBool copy)
   } else if (!bv->issplit) {
     ierr = VecGetBlockSize(bv->t,&bs);CHKERRQ(ierr);
     ierr = PetscMalloc1(m*bv->n,&newarray);CHKERRQ(ierr);
-    ierr = PetscMemzero(newarray,m*bv->n*sizeof(PetscScalar));CHKERRQ(ierr);
+    ierr = PetscArrayzero(newarray,m*bv->n);CHKERRQ(ierr);
     ierr = PetscMalloc1(m,&newV);CHKERRQ(ierr);
     for (j=0;j<m;j++) {
       if (ctx->mpi) {
@@ -262,7 +262,7 @@ PetscErrorCode BVResize_Contiguous(BV bv,PetscInt m,PetscBool copy)
       }
     }
     if (copy) {
-      ierr = PetscMemcpy(newarray,ctx->array,PetscMin(m,bv->m)*bv->n*sizeof(PetscScalar));CHKERRQ(ierr);
+      ierr = PetscArraycpy(newarray,ctx->array,PetscMin(m,bv->m)*bv->n);CHKERRQ(ierr);
     }
     ierr = VecDestroyVecs(bv->m,&ctx->V);CHKERRQ(ierr);
     ctx->V = newV;
@@ -370,7 +370,7 @@ SLEPC_EXTERN PetscErrorCode BVCreate_Contiguous(BV bv)
 
   if (bv->Acreate) {
     ierr = MatDenseGetArray(bv->Acreate,&aa);CHKERRQ(ierr);
-    ierr = PetscMemcpy(ctx->array,aa,bv->m*nloc*sizeof(PetscScalar));CHKERRQ(ierr);
+    ierr = PetscArraycpy(ctx->array,aa,bv->m*nloc);CHKERRQ(ierr);
     ierr = MatDenseRestoreArray(bv->Acreate,&aa);CHKERRQ(ierr);
     ierr = MatDestroy(&bv->Acreate);CHKERRQ(ierr);
   }

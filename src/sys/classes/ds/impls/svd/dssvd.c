@@ -61,7 +61,7 @@ static PetscErrorCode DSSwitchFormat_SVD(DS ds,PetscBool tocompact)
   PetscFunctionBegin;
   if (!m) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_WRONG,"m was not set");
   if (tocompact) { /* switch from dense (arrow) to compact storage */
-    ierr = PetscMemzero(T,3*ld*sizeof(PetscReal));CHKERRQ(ierr);
+    ierr = PetscArrayzero(T,3*ld);CHKERRQ(ierr);
     for (i=0;i<k;i++) {
       T[i]    = PetscRealPart(A[i+i*ld]);
       T[i+ld] = PetscRealPart(A[i+k*ld]);
@@ -72,7 +72,7 @@ static PetscErrorCode DSSwitchFormat_SVD(DS ds,PetscBool tocompact)
     }
     T[m-1] = PetscRealPart(A[m-1+(m-1)*ld]);
   } else { /* switch from compact (arrow) to dense storage */
-    ierr = PetscMemzero(A,ld*ld*sizeof(PetscScalar));CHKERRQ(ierr);
+    ierr = PetscArrayzero(A,ld*ld);CHKERRQ(ierr);
     for (i=0;i<k;i++) {
       A[i+i*ld] = T[i];
       A[i+k*ld] = T[i+ld];
@@ -211,9 +211,9 @@ PetscErrorCode DSSolve_SVD_DC(DS ds,PetscScalar *wr,PetscScalar *wi)
   VT = ds->mat[DS_MAT_VT];
   d  = ds->rmat[DS_MAT_T];
   e  = ds->rmat[DS_MAT_T]+ld;
-  ierr = PetscMemzero(U,ld*ld*sizeof(PetscScalar));CHKERRQ(ierr);
+  ierr = PetscArrayzero(U,ld*ld);CHKERRQ(ierr);
   for (i=0;i<l;i++) U[i+i*ld] = 1.0;
-  ierr = PetscMemzero(VT,ld*ld*sizeof(PetscScalar));CHKERRQ(ierr);
+  ierr = PetscArrayzero(VT,ld*ld);CHKERRQ(ierr);
   for (i=0;i<l;i++) VT[i+i*ld] = 1.0;
 
   if (ds->state>DS_STATE_RAW) {
@@ -266,10 +266,10 @@ PetscErrorCode DSSolve_SVD_DC(DS ds,PetscScalar *wr,PetscScalar *wi)
 
   /* create diagonal matrix as a result */
   if (ds->compact) {
-    ierr = PetscMemzero(e,(n-1)*sizeof(PetscReal));CHKERRQ(ierr);
+    ierr = PetscArrayzero(e,n-1);CHKERRQ(ierr);
   } else {
     for (i=l;i<n;i++) {
-      ierr = PetscMemzero(A+l+i*ld,(n-l)*sizeof(PetscScalar));CHKERRQ(ierr);
+      ierr = PetscArrayzero(A+l+i*ld,n-l);CHKERRQ(ierr);
     }
     for (i=l;i<n;i++) A[i+i*ld] = d[i];
   }

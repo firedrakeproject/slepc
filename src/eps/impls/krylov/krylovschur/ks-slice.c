@@ -841,7 +841,7 @@ static PetscErrorCode EPSPrepareRational(EPS eps)
   }
   /* Copy to DS */
   ierr = DSGetArray(eps->ds,DS_MAT_A,&A);CHKERRQ(ierr);
-  ierr = PetscMemzero(A,ld*ld*sizeof(PetscScalar));CHKERRQ(ierr);
+  ierr = PetscArrayzero(A,ld*ld);CHKERRQ(ierr);
   for (i=0;i<k;i++) {
     A[i*(1+ld)] = sr->S[i];
     A[k+i*ld] = sr->S[sr->nS+i];

@@ -168,13 +168,13 @@ PetscErrorCode DSSolve_PEP_QZ(DS ds,PetscScalar *wr,PetscScalar *wi)
   E = ds->mat[DSMatExtra[ctx->d]];
 
   /* build matrices A and B of the linearization */
-  ierr = PetscMemzero(A,ldd*ldd*sizeof(PetscScalar));CHKERRQ(ierr);
+  ierr = PetscArrayzero(A,ldd*ldd);CHKERRQ(ierr);
   if (!ctx->pbc) { /* monomial basis */
     for (i=0;i<nd-ds->n;i++) A[i+(i+ds->n)*ldd] = 1.0;
     for (i=0;i<ctx->d;i++) {
       off = i*ds->n*ldd+(ctx->d-1)*ds->n;
       for (j=0;j<ds->n;j++) {
-        ierr = PetscMemcpy(A+off+j*ldd,ds->mat[DSMatExtra[i]]+j*ds->ld,ds->n*sizeof(PetscScalar));CHKERRQ(ierr);
+        ierr = PetscArraycpy(A+off+j*ldd,ds->mat[DSMatExtra[i]]+j*ds->ld,ds->n);CHKERRQ(ierr);
       }
     }
   } else {
@@ -206,7 +206,7 @@ PetscErrorCode DSSolve_PEP_QZ(DS ds,PetscScalar *wr,PetscScalar *wi)
       for (k=0;k<ds->n;k++)
         *(A+off+j*ldd+k) = *(ds->mat[DSMatExtra[i]]+j*ds->ld+k)*ca[ctx->d-1]-E[j*ds->ld+k]*cb[ctx->d-1];
   }
-  ierr = PetscMemzero(B,ldd*ldd*sizeof(PetscScalar));CHKERRQ(ierr);
+  ierr = PetscArrayzero(B,ldd*ldd);CHKERRQ(ierr);
   for (i=0;i<nd-ds->n;i++) B[i+i*ldd] = 1.0;
   off = (ctx->d-1)*ds->n*(ldd+1);
   for (j=0;j<ds->n;j++) {
@@ -236,8 +236,8 @@ PetscErrorCode DSSolve_PEP_QZ(DS ds,PetscScalar *wr,PetscScalar *wi)
 
   /* copy and normalize eigenvectors */
   for (j=0;j<nd;j++) {
-    ierr = PetscMemcpy(X+j*ds->ld,W+j*ldd,ds->n*sizeof(PetscScalar));CHKERRQ(ierr);
-    ierr = PetscMemcpy(Y+j*ds->ld,U+ds->n*(ctx->d-1)+j*ldd,ds->n*sizeof(PetscScalar));CHKERRQ(ierr);
+    ierr = PetscArraycpy(X+j*ds->ld,W+j*ldd,ds->n);CHKERRQ(ierr);
+    ierr = PetscArraycpy(Y+j*ds->ld,U+ds->n*(ctx->d-1)+j*ldd,ds->n);CHKERRQ(ierr);
   }
   for (j=0;j<nd;j++) {
 #if !defined(PETSC_USE_COMPLEX)

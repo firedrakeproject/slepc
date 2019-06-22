@@ -92,7 +92,7 @@ PetscErrorCode PEPExtractVectors_QArnoldi(PEP pep)
   ierr = MatCreateSeqDense(PETSC_COMM_SELF,k,k,NULL,&X0);CHKERRQ(ierr);
   ierr = MatDenseGetArray(X0,&pX0);CHKERRQ(ierr);
   for (i=0;i<k;i++) {
-    ierr = PetscMemcpy(pX0+i*k,X+i*ldds,k*sizeof(PetscScalar));CHKERRQ(ierr);
+    ierr = PetscArraycpy(pX0+i*k,X+i*ldds,k);CHKERRQ(ierr);
   }
   ierr = MatDenseRestoreArray(X0,&pX0);CHKERRQ(ierr);
   ierr = BVMultInPlace(pep->V,X0,0,k);CHKERRQ(ierr);
@@ -254,7 +254,7 @@ PetscErrorCode PEPSolve_QArnoldi(PEP pep)
 
   /* clean projected matrix (including the extra-arrow) */
   ierr = DSGetArray(pep->ds,DS_MAT_A,&S);CHKERRQ(ierr);
-  ierr = PetscMemzero(S,ld*ld*sizeof(PetscScalar));CHKERRQ(ierr);
+  ierr = PetscArrayzero(S,ld*ld);CHKERRQ(ierr);
   ierr = DSRestoreArray(pep->ds,DS_MAT_A,&S);CHKERRQ(ierr);
   
    /* Restart loop */

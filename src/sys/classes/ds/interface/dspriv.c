@@ -264,7 +264,7 @@ PetscErrorCode DSCopyMatrix_Private(DS ds,DSMatType dst,DSMatType src)
   S   = ds->mat[src];
   D   = ds->mat[dst];
   for (j=0;j<m;j++) {
-    ierr = PetscMemcpy(D+off+j*ld,S+off+j*ld,m*sizeof(PetscScalar));CHKERRQ(ierr);
+    ierr = PetscArraycpy(D+off+j*ld,S+off+j*ld,m);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }
@@ -372,7 +372,7 @@ PetscErrorCode DSSetIdentity(DS ds,DSMatType mat)
   ierr = DSGetLeadingDimension(ds,&ld);CHKERRQ(ierr);
   ierr = PetscLogEventBegin(DS_Other,ds,0,0,0);CHKERRQ(ierr);
   ierr = DSGetArray(ds,mat,&x);CHKERRQ(ierr);
-  ierr = PetscMemzero(&x[ld*l],ld*(n-l)*sizeof(PetscScalar));CHKERRQ(ierr);
+  ierr = PetscArrayzero(&x[ld*l],ld*(n-l));CHKERRQ(ierr);
   for (i=l;i<n;i++) x[i+i*ld] = 1.0;
   ierr = DSRestoreArray(ds,mat,&x);CHKERRQ(ierr);
   ierr = PetscLogEventEnd(DS_Other,ds,0,0,0);CHKERRQ(ierr);

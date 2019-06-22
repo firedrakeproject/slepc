@@ -137,11 +137,11 @@ PetscErrorCode SVDSolve_PRIMME(SVD svd)
 
   /* Copy left and right singular vectors into svd */
   ierr = BVGetArray(svd->U,&a);CHKERRQ(ierr);
-  ierr = PetscMemcpy(a,svecs,sizeof(PetscScalar)*ops->primme.mLocal*ops->primme.initSize);CHKERRQ(ierr);
+  ierr = PetscArraycpy(a,svecs,ops->primme.mLocal*ops->primme.initSize);CHKERRQ(ierr);
   ierr = BVRestoreArray(svd->U,&a);CHKERRQ(ierr);
 
   ierr = BVGetArray(svd->V,&a);CHKERRQ(ierr);
-  ierr = PetscMemcpy(a,svecs+ops->primme.mLocal*ops->primme.initSize,sizeof(PetscScalar)*ops->primme.nLocal*ops->primme.initSize);CHKERRQ(ierr);
+  ierr = PetscArraycpy(a,svecs+ops->primme.mLocal*ops->primme.initSize,ops->primme.nLocal*ops->primme.initSize);CHKERRQ(ierr);
   ierr = BVRestoreArray(svd->V,&a);CHKERRQ(ierr);
 
   ierr = PetscFree(svecs);CHKERRQ(ierr);

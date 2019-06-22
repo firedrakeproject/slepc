@@ -911,7 +911,7 @@ PETSC_STATIC_INLINE PetscErrorCode BVMatProject_MatMult(BV X,Mat A,BV Y,PetscSca
     ierr = BVDot(W,Y,H);CHKERRQ(ierr);
     ierr = MatDenseGetArray(H,&harray);CHKERRQ(ierr);
     for (j=lx;j<kx;j++) {
-      ierr = PetscMemcpy(marray+j*ldm,harray+j*ly,ly*sizeof(PetscScalar));CHKERRQ(ierr);
+      ierr = PetscArraycpy(marray+j*ldm,harray+j*ly,ly);CHKERRQ(ierr);
     }
     ierr = MatDenseRestoreArray(H,&harray);CHKERRQ(ierr);
     ierr = MatDestroy(&H);CHKERRQ(ierr);
@@ -925,7 +925,7 @@ PETSC_STATIC_INLINE PetscErrorCode BVMatProject_MatMult(BV X,Mat A,BV Y,PetscSca
     ierr = BVDot(W,Y,H);CHKERRQ(ierr);
     ierr = MatDenseGetArray(H,&harray);CHKERRQ(ierr);
     for (j=0;j<kx;j++) {
-      ierr = PetscMemcpy(marray+j*ldm+ly,harray+j*ky+ly,(ky-ly)*sizeof(PetscScalar));CHKERRQ(ierr);
+      ierr = PetscArraycpy(marray+j*ldm+ly,harray+j*ky+ly,ky-ly);CHKERRQ(ierr);
     }
     ierr = MatDenseRestoreArray(H,&harray);CHKERRQ(ierr);
     ierr = MatDestroy(&H);CHKERRQ(ierr);
@@ -964,7 +964,7 @@ PETSC_STATIC_INLINE PetscErrorCode BVMatProject_MatMult_2(BV X,Mat A,BV Y,PetscS
     ierr = BVDot(W,Y,H);CHKERRQ(ierr);
     ierr = MatDenseGetArray(H,&harray);CHKERRQ(ierr);
     for (j=lx;j<kx;j++) {
-      ierr = PetscMemcpy(marray+j*ldm,harray+(j-lx)*ky,ky*sizeof(PetscScalar));CHKERRQ(ierr);
+      ierr = PetscArraycpy(marray+j*ldm,harray+(j-lx)*ky,ky);CHKERRQ(ierr);
     }
     ierr = MatDenseRestoreArray(H,&harray);CHKERRQ(ierr);
     ierr = MatDestroy(&H);CHKERRQ(ierr);
@@ -1025,7 +1025,7 @@ PETSC_STATIC_INLINE PetscErrorCode BVMatProject_Dot(BV X,BV Y,PetscScalar *marra
     ierr = BVDot(X,Y,H);CHKERRQ(ierr);
     ierr = MatDenseGetArray(H,&harray);CHKERRQ(ierr);
     for (j=lx;j<kx;j++) {
-      ierr = PetscMemcpy(marray+j*ldm,harray+j*ly,ly*sizeof(PetscScalar));CHKERRQ(ierr);
+      ierr = PetscArraycpy(marray+j*ldm,harray+j*ly,ly);CHKERRQ(ierr);
     }
     ierr = MatDenseRestoreArray(H,&harray);CHKERRQ(ierr);
     ierr = MatDestroy(&H);CHKERRQ(ierr);
@@ -1039,7 +1039,7 @@ PETSC_STATIC_INLINE PetscErrorCode BVMatProject_Dot(BV X,BV Y,PetscScalar *marra
     ierr = BVDot(X,Y,H);CHKERRQ(ierr);
     ierr = MatDenseGetArray(H,&harray);CHKERRQ(ierr);
     for (j=0;j<kx;j++) {
-      ierr = PetscMemcpy(marray+j*ldm+ly,harray+j*ky+ly,(ky-ly)*sizeof(PetscScalar));CHKERRQ(ierr);
+      ierr = PetscArraycpy(marray+j*ldm+ly,harray+j*ky+ly,ky-ly);CHKERRQ(ierr);
     }
     ierr = MatDenseRestoreArray(H,&harray);CHKERRQ(ierr);
     ierr = MatDestroy(&H);CHKERRQ(ierr);

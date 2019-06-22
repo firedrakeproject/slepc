@@ -73,7 +73,7 @@ static PetscErrorCode dvd_calcpairs_projeig_solve(dvdDashboard *d)
   if (DVD_IS(d->sEP,DVD_EP_INDEFINITE)) {
     ierr = DSGetLeadingDimension(d->eps->ds,&ld);CHKERRQ(ierr);
     ierr = DSGetArray(d->eps->ds,DS_MAT_B,&pA);CHKERRQ(ierr);
-    ierr = PetscMemzero(pA,sizeof(PetscScalar)*n*ld);CHKERRQ(ierr);
+    ierr = PetscArrayzero(pA,n*ld);CHKERRQ(ierr);
     ierr = VecCreateSeq(PETSC_COMM_SELF,kV,&v);CHKERRQ(ierr);
     ierr = BVGetSignature(d->eps->V,v);CHKERRQ(ierr);
     ierr = VecGetArrayRead(v,&pv);CHKERRQ(ierr);
@@ -435,7 +435,7 @@ static PetscErrorCode EPSXDComputeDSConv(dvdDashboard *d)
   if (DVD_IS(d->sEP,DVD_EP_INDEFINITE)) {
     ierr = DSGetLeadingDimension(d->eps->ds,&ld);CHKERRQ(ierr);
     ierr = DSGetArray(d->eps->ds,DS_MAT_B,&pA);CHKERRQ(ierr);
-    ierr = PetscMemzero(pA,sizeof(PetscScalar)*d->eps->nconv*ld);CHKERRQ(ierr);
+    ierr = PetscArrayzero(pA,d->eps->nconv*ld);CHKERRQ(ierr);
     ierr = VecCreateSeq(PETSC_COMM_SELF,d->eps->nconv,&v);CHKERRQ(ierr);
     ierr = BVGetSignature(d->eps->V,v);CHKERRQ(ierr);
     ierr = VecGetArrayRead(v,&pv);CHKERRQ(ierr);

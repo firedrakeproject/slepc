@@ -365,7 +365,7 @@ PetscErrorCode BVResize(BV bv,PetscInt m,PetscBool copy)
     if (copy) {
       ierr = VecGetArray(v,&array);CHKERRQ(ierr);
       ierr = VecGetArrayRead(bv->omega,&omega);CHKERRQ(ierr);
-      ierr = PetscMemcpy(array,omega,PetscMin(m,bv->m)*sizeof(PetscScalar));CHKERRQ(ierr);
+      ierr = PetscArraycpy(array,omega,PetscMin(m,bv->m));CHKERRQ(ierr);
       ierr = VecRestoreArrayRead(bv->omega,&omega);CHKERRQ(ierr);
       ierr = VecRestoreArray(v,&array);CHKERRQ(ierr);
     } else {
@@ -1404,7 +1404,7 @@ PetscErrorCode BVCreateMat(BV bv,Mat *A)
   ierr = MatCreateDense(PetscObjectComm((PetscObject)bv->t),bv->n,PETSC_DECIDE,bv->N,bv->m,NULL,A);CHKERRQ(ierr);
   ierr = MatDenseGetArray(*A,&aa);CHKERRQ(ierr);
   ierr = BVGetArrayRead(bv,&vv);CHKERRQ(ierr);
-  ierr = PetscMemcpy(aa,vv,bv->m*bv->n*sizeof(PetscScalar));CHKERRQ(ierr);
+  ierr = PetscArraycpy(aa,vv,bv->m*bv->n);CHKERRQ(ierr);
   ierr = BVRestoreArrayRead(bv,&vv);CHKERRQ(ierr);
   ierr = MatDenseRestoreArray(*A,&aa);CHKERRQ(ierr);
   ierr = MatAssemblyBegin(*A,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
@@ -1689,7 +1689,7 @@ PetscErrorCode BVCopy(BV V,BV W)
     ierr = BV_AllocateSignature(W);CHKERRQ(ierr);
     ierr = VecGetArrayRead(V->omega,&vomega);CHKERRQ(ierr);
     ierr = VecGetArray(W->omega,&womega);CHKERRQ(ierr);
-    ierr = PetscMemcpy(womega+W->nc+W->l,vomega+V->nc+V->l,(V->k-V->l)*sizeof(PetscScalar));CHKERRQ(ierr);
+    ierr = PetscArraycpy(womega+W->nc+W->l,vomega+V->nc+V->l,V->k-V->l);CHKERRQ(ierr);
     ierr = VecRestoreArray(W->omega,&womega);CHKERRQ(ierr);
     ierr = VecRestoreArrayRead(V->omega,&vomega);CHKERRQ(ierr);
   }

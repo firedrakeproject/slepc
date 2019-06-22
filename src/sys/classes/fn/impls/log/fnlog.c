@@ -116,7 +116,7 @@ static PetscErrorCode logm_params(PetscBLASInt n,PetscScalar *T,PetscBLASInt ld,
 
   /* Troot = T */
   for (j=0;j<n;j++) {
-    ierr = PetscMemcpy(Troot+j*ld,T+j*ld,PetscMin(j+2,n)*sizeof(PetscScalar));CHKERRQ(ierr);
+    ierr = PetscArraycpy(Troot+j*ld,T+j*ld,PetscMin(j+2,n));CHKERRQ(ierr);
   }
   for (k=1;k<=PetscMin(*s,maxroots);k++) {
     ierr = SlepcSqrtmSchur(n,Troot,ld,PETSC_FALSE);CHKERRQ(ierr);
@@ -124,7 +124,7 @@ static PetscErrorCode logm_params(PetscBLASInt n,PetscScalar *T,PetscBLASInt ld,
   /* Compute value of s and m needed */
   /* TrootmI = Troot - I */
   for (j=0;j<n;j++) {
-    ierr = PetscMemcpy(TrootmI+j*ld,Troot+j*ld,PetscMin(j+2,n)*sizeof(PetscScalar));CHKERRQ(ierr);
+    ierr = PetscArraycpy(TrootmI+j*ld,Troot+j*ld,PetscMin(j+2,n));CHKERRQ(ierr);
     TrootmI[j+j*ld] -= 1.0;
   }
   ierr = SlepcNormAm(n,TrootmI,2,work,rand,&d2);CHKERRQ(ierr);
@@ -175,7 +175,7 @@ static PetscErrorCode logm_params(PetscBLASInt n,PetscScalar *T,PetscBLASInt ld,
     ierr = SlepcSqrtmSchur(n,Troot,ld,PETSC_FALSE);CHKERRQ(ierr);
     /* TrootmI = Troot - I */
     for (j=0;j<n;j++) {
-      ierr = PetscMemcpy(TrootmI+j*ld,Troot+j*ld,PetscMin(j+2,n)*sizeof(PetscScalar));CHKERRQ(ierr);
+      ierr = PetscArraycpy(TrootmI+j*ld,Troot+j*ld,PetscMin(j+2,n));CHKERRQ(ierr);
       TrootmI[j+j*ld] -= 1.0;
     }
     *s = *s + 1;
@@ -406,7 +406,7 @@ static PetscErrorCode gauss_legendre(PetscBLASInt n,PetscScalar *x,PetscScalar *
 #endif
 
   PetscFunctionBegin;
-  ierr = PetscMemzero(Q,n*n*sizeof(PetscScalar));CHKERRQ(ierr);
+  ierr = PetscArrayzero(Q,n*n);CHKERRQ(ierr);
   for (k=1;k<n;k++) {
     v = k/PetscSqrtReal(4.0*k*k-1.0);
     Q[k+(k-1)*n] = v;
@@ -469,7 +469,7 @@ static PetscErrorCode pade_approx(PetscBLASInt n,PetscScalar *T,PetscScalar *L,P
     nodes[i] = (nodes[i]+1.0)/2.0;
     wts[i] = wts[i]/2.0;
   }
-  ierr = PetscMemzero(L,n*n*sizeof(PetscScalar));CHKERRQ(ierr);
+  ierr = PetscArrayzero(L,n*n);CHKERRQ(ierr);
   for (k=0;k<m;k++) {
     for (i=0;i<n;i++) for (j=0;j<n;j++) K[i+j*ld] = nodes[k]*T[i+j*ld];
     for (i=0;i<n;i++) K[i+i*ld] += 1.0;

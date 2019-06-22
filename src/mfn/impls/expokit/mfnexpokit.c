@@ -105,7 +105,7 @@ PetscErrorCode MFNSolve_Expokit(MFN mfn,Vec b,Vec x)
       ierr = BVRestoreColumn(mfn->V,m+1,&r);CHKERRQ(ierr);
       ierr = BVNormColumn(mfn->V,m+1,NORM_2,&avnorm);CHKERRQ(ierr);
     }
-    ierr = PetscMemcpy(B,H,ld*ld*sizeof(PetscScalar));CHKERRQ(ierr);
+    ierr = PetscArraycpy(B,H,ld*ld);CHKERRQ(ierr);
 
     ireject = 0;
     while (ireject <= mxrej) {
@@ -119,7 +119,7 @@ PetscErrorCode MFNSolve_Expokit(MFN mfn,Vec b,Vec x)
       ierr = MFN_CreateDenseMat(mx,&K);CHKERRQ(ierr);
       ierr = MatDenseGetArray(M,&F);CHKERRQ(ierr);
       for (j=0;j<mx;j++) {
-        ierr = PetscMemcpy(F+j*mx,H+j*ld,mx*sizeof(PetscScalar));CHKERRQ(ierr);
+        ierr = PetscArraycpy(F+j*mx,H+j*ld,mx);CHKERRQ(ierr);
       }
       ierr = MatDenseRestoreArray(M,&F);CHKERRQ(ierr);
       ierr = FNEvaluateFunctionMat(fn,M,K);CHKERRQ(ierr);

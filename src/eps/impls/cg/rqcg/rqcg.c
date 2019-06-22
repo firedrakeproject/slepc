@@ -99,7 +99,7 @@ static PetscErrorCode ExtractSubmatrix(Mat A,PetscInt k,Mat *B)
   ierr = MatDenseGetArray(A,&pA);CHKERRQ(ierr);
   ierr = MatDenseGetArray(*B,&pB);CHKERRQ(ierr);
   for (j=k;j<n;j++) {
-    ierr = PetscMemcpy(pB+(j-k)*(m-k),pA+j*m+k,(m-k)*sizeof(PetscScalar));CHKERRQ(ierr);
+    ierr = PetscArraycpy(pB+(j-k)*(m-k),pA+j*m+k,m-k);CHKERRQ(ierr);
   }
   ierr = MatDenseRestoreArray(A,&pA);CHKERRQ(ierr);
   ierr = MatDenseRestoreArray(*B,&pB);CHKERRQ(ierr);

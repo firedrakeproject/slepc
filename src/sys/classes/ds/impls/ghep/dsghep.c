@@ -54,16 +54,16 @@ PetscErrorCode DSVectors_GHEP(DS ds,DSMatType mat,PetscInt *j,PetscReal *rnorm)
     case DS_MAT_Y:
       if (j) {
         if (ds->state>=DS_STATE_CONDENSED) {
-          ierr = PetscMemcpy(ds->mat[mat]+(*j)*ld,Q+(*j)*ld,ld*sizeof(PetscScalar));CHKERRQ(ierr);
+          ierr = PetscArraycpy(ds->mat[mat]+(*j)*ld,Q+(*j)*ld,ld);CHKERRQ(ierr);
         } else {
-          ierr = PetscMemzero(ds->mat[mat]+(*j)*ld,ld*sizeof(PetscScalar));CHKERRQ(ierr);
+          ierr = PetscArrayzero(ds->mat[mat]+(*j)*ld,ld);CHKERRQ(ierr);
           *(ds->mat[mat]+(*j)+(*j)*ld) = 1.0;
         }
       } else {
         if (ds->state>=DS_STATE_CONDENSED) {
-          ierr = PetscMemcpy(ds->mat[mat],Q,ld*ld*sizeof(PetscScalar));CHKERRQ(ierr);
+          ierr = PetscArraycpy(ds->mat[mat],Q,ld*ld);CHKERRQ(ierr);
         } else {
-          ierr = PetscMemzero(ds->mat[mat],ld*ld*sizeof(PetscScalar));CHKERRQ(ierr);
+          ierr = PetscArrayzero(ds->mat[mat],ld*ld);CHKERRQ(ierr);
           for (i=0;i<ds->n;i++) *(ds->mat[mat]+i+i*ld) = 1.0;
         }
       }
@@ -143,12 +143,12 @@ PetscErrorCode DSSolve_GHEP(DS ds,PetscScalar *wr,PetscScalar *wi)
   PetscStackCallBLAS("LAPACKsygvd",LAPACKsygvd_(&itype,"V","U",&n1,A+off,&ld,B+off,&ld,wr+ds->l,work,&lwork,iwork,&liwork,&info));
 #endif
   SlepcCheckLapackInfo("sygvd",info);
-  ierr = PetscMemzero(Q+ds->l*ld,n1*ld*sizeof(PetscScalar));CHKERRQ(ierr);
+  ierr = PetscArrayzero(Q+ds->l*ld,n1*ld);CHKERRQ(ierr);
   for (i=ds->l;i<ds->n;i++) {
-    ierr = PetscMemcpy(Q+ds->l+i*ld,A+ds->l+i*ld,n1*sizeof(PetscScalar));CHKERRQ(ierr);
+    ierr = PetscArraycpy(Q+ds->l+i*ld,A+ds->l+i*ld,n1);CHKERRQ(ierr);
   }
-  ierr = PetscMemzero(B+ds->l*ld,n1*ld*sizeof(PetscScalar));CHKERRQ(ierr);
-  ierr = PetscMemzero(A+ds->l*ld,n1*ld*sizeof(PetscScalar));CHKERRQ(ierr);
+  ierr = PetscArrayzero(B+ds->l*ld,n1*ld);CHKERRQ(ierr);
+  ierr = PetscArrayzero(A+ds->l*ld,n1*ld);CHKERRQ(ierr);
   for (i=ds->l;i<ds->n;i++) {
     if (wi) wi[i] = 0.0;
     B[i+i*ld] = 1.0;

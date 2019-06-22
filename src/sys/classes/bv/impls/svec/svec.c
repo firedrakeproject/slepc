@@ -257,7 +257,7 @@ PetscErrorCode BVCopy_Svec(BV V,BV W)
   ierr = VecGetArray(w->v,&pw);CHKERRQ(ierr);
   pvc = pv+(V->nc+V->l)*V->n;
   pwc = pw+(W->nc+W->l)*W->n;
-  ierr = PetscMemcpy(pwc,pvc,(V->k-V->l)*V->n*sizeof(PetscScalar));CHKERRQ(ierr);
+  ierr = PetscArraycpy(pwc,pvc,(V->k-V->l)*V->n);CHKERRQ(ierr);
   ierr = VecRestoreArray(v->v,&pv);CHKERRQ(ierr);
   ierr = VecRestoreArray(w->v,&pw);CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -271,7 +271,7 @@ PetscErrorCode BVCopyColumn_Svec(BV V,PetscInt j,PetscInt i)
 
   PetscFunctionBegin;
   ierr = VecGetArray(v->v,&pv);CHKERRQ(ierr);
-  ierr = PetscMemcpy(pv+(V->nc+i)*V->n,pv+(V->nc+j)*V->n,V->n*sizeof(PetscScalar));CHKERRQ(ierr);
+  ierr = PetscArraycpy(pv+(V->nc+i)*V->n,pv+(V->nc+j)*V->n,V->n);CHKERRQ(ierr);
   ierr = VecRestoreArray(v->v,&pv);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -310,7 +310,7 @@ PetscErrorCode BVResize_Svec(BV bv,PetscInt m,PetscBool copy)
     if (copy) {
       ierr = VecGetArrayRead(ctx->v,&pv);CHKERRQ(ierr);
       ierr = VecGetArray(vnew,&pnew);CHKERRQ(ierr);
-      ierr = PetscMemcpy(pnew,pv,PetscMin(m,bv->m)*bv->n*sizeof(PetscScalar));CHKERRQ(ierr);
+      ierr = PetscArraycpy(pnew,pv,PetscMin(m,bv->m)*bv->n);CHKERRQ(ierr);
       ierr = VecRestoreArrayRead(ctx->v,&pv);CHKERRQ(ierr);
       ierr = VecRestoreArray(vnew,&pnew);CHKERRQ(ierr);
     }
@@ -505,7 +505,7 @@ SLEPC_EXTERN PetscErrorCode BVCreate_Svec(BV bv)
   if (bv->Acreate) {
     ierr = MatDenseGetArray(bv->Acreate,&aa);CHKERRQ(ierr);
     ierr = VecGetArray(ctx->v,&vv);CHKERRQ(ierr);
-    ierr = PetscMemcpy(vv,aa,tlocal*sizeof(PetscScalar));CHKERRQ(ierr);
+    ierr = PetscArraycpy(vv,aa,tlocal);CHKERRQ(ierr);
     ierr = VecRestoreArray(ctx->v,&vv);CHKERRQ(ierr);
     ierr = MatDenseRestoreArray(bv->Acreate,&aa);CHKERRQ(ierr);
     ierr = MatDestroy(&bv->Acreate);CHKERRQ(ierr);
