@@ -50,7 +50,7 @@ int main(int argc,char **argv)
   Mat            A,B;
   PetscContainer container;
   PetscInt       nev,nconv;
-  PetscBool      nonlin;
+  PetscBool      nonlin,flg;
   SNES           snes;
   PetscErrorCode ierr;
 
@@ -69,7 +69,10 @@ int main(int argc,char **argv)
      Compose callback functions and context that will be needed by the solver
   */
   ierr = PetscObjectComposeFunction((PetscObject)A,"formFunction",FormFunctionA);CHKERRQ(ierr);
-  ierr = PetscObjectComposeFunction((PetscObject)A,"formFunctionAB",FormFunctionAB);CHKERRQ(ierr);
+  ierr = PetscOptionsGetBool(NULL,NULL,"-form_function_ab",&flg,NULL);CHKERRQ(ierr);
+  if (flg) {
+    ierr = PetscObjectComposeFunction((PetscObject)A,"formFunctionAB",FormFunctionAB);CHKERRQ(ierr);
+  }
   ierr = PetscObjectComposeFunction((PetscObject)A,"formJacobian",FormJacobianA);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)B,"formFunction",FormFunctionB);CHKERRQ(ierr);
   ierr = PetscContainerCreate(comm,&container);CHKERRQ(ierr);
@@ -441,7 +444,7 @@ PetscErrorCode FormFunctionB(SNES snes,Vec X,Vec F,void *ctx)
 
    test:
       suffix: 2
-      args: -petscspace_degree 1 -petscspace_poly_tensor -eps_power_update
+      args: -petscspace_degree 1 -petscspace_poly_tensor -eps_power_update -form_function_ab {{0 1}}
       requires: double !complex
 
 TEST*/
