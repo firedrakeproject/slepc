@@ -146,8 +146,8 @@ static PetscErrorCode SetPathParameter(NEP nep)
   } else SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"Region must be Ellipse");
   for (i=0;i<ctx->N;i++) {
     theta = ((2*PETSC_PI)/ctx->N)*(i+0.5);
-    ctx->pp[i] = PetscCosReal(theta) + PETSC_i*vscale*PetscSinReal(theta);
-    ctx->weight[i] = radius*(vscale*PetscCosReal(theta) + PETSC_i*PetscSinReal(theta))/(PetscReal)ctx->N;
+    ctx->pp[i] = PetscCMPLX(PetscCosReal(theta),vscale*PetscSinReal(theta));
+    ctx->weight[i] = radius*PetscCMPLX(vscale*PetscCosReal(theta),PetscSinReal(theta))/(PetscReal)ctx->N;
     ctx->omega[i] = rgscale*(center + radius*ctx->pp[i]);
   }
   PetscFunctionReturn(0);

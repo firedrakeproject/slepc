@@ -199,7 +199,7 @@ PetscErrorCode STBackTransform_Exp(ST st,PetscInt n,PetscScalar *eigr,PetscScala
 #if defined(PETSC_USE_COMPLEX)
     eigr[j] = PetscLogComplex(eigr[j]/eta)/tau;
 #else
-    theta   = (eigr[j]+eigi[j]*PETSC_i)/eta;
+    theta   = PetscCMPLX(eigr[j],eigi[j])/eta;
     lambda  = PetscLogComplex(theta)/tau;
     eigr[j] = PetscRealPartComplex(lambda);
     eigi[j] = PetscImaginaryPartComplex(lambda);

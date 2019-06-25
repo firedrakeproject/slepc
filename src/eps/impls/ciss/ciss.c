@@ -239,8 +239,8 @@ static PetscErrorCode SetPathParameter(EPS eps)
     for (i=0;i<ctx->N;i++) {
 #if defined(PETSC_USE_COMPLEX)
       theta = 2.0*PETSC_PI*(i+0.5)/ctx->N;
-      ctx->pp[i] = PetscCosReal(theta)+vscale*PetscSinReal(theta)*PETSC_i;
-      ctx->weight[i] = rgscale*radius*(vscale*PetscCosReal(theta)+PetscSinReal(theta)*PETSC_i)/(PetscReal)ctx->N;
+      ctx->pp[i] = PetscCMPLX(PetscCosReal(theta),vscale*PetscSinReal(theta));
+      ctx->weight[i] = rgscale*radius*(PetscCMPLX(vscale*PetscCosReal(theta),PetscSinReal(theta)))/(PetscReal)ctx->N;
 #else
       theta = (PETSC_PI/ctx->N)*(i+0.5);
       ctx->pp[i] = PetscCosReal(theta);
@@ -273,7 +273,7 @@ static PetscErrorCode SetPathParameter(EPS eps)
       ierr = RGRingGetParameters(eps->rg,&center,&radius,&vscale,&start_ang,&end_ang,NULL);CHKERRQ(ierr);
       for (i=0;i<ctx->N;i++) {
         theta = (start_ang*2.0+(end_ang-start_ang)*(PetscRealPart(ctx->pp[i])+1.0))*PETSC_PI;
-        ctx->omega[i] = rgscale*(center + radius*(PetscCosReal(theta)+PETSC_i*vscale*PetscSinReal(theta)));
+        ctx->omega[i] = rgscale*(center + radius*PetscCMPLX(PetscCosReal(theta),vscale*PetscSinReal(theta)));
       }
 #endif
     }
@@ -817,7 +817,7 @@ static PetscErrorCode rescale_eig(EPS eps,PetscInt nv)
       if (ctx->quad == EPS_CISS_QUADRULE_CHEBYSHEV) {
         for (i=0;i<nv;i++) {
           theta = (start_ang*2.0+(end_ang-start_ang)*(PetscRealPart(eps->eigr[i])+1.0))*PETSC_PI;
-          eps->eigr[i] = rgscale*center + (rgscale*radius+PetscImaginaryPart(eps->eigr[i]))*(PetscCosReal(theta)+PETSC_i*vscale*PetscSinReal(theta));
+          eps->eigr[i] = rgscale*center + (rgscale*radius+PetscImaginaryPart(eps->eigr[i]))*PetscCMPLX(PetscCosReal(theta),vscale*PetscSinReal(theta));
         }
       } else {
         for (i=0;i<nv;i++) eps->eigr[i] = rgscale*(center + radius*eps->eigr[i]);

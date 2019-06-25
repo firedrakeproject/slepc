@@ -179,7 +179,7 @@ PetscErrorCode RGComputeContour_Ellipse(RG rg,PetscInt n,PetscScalar *cr,PetscSc
   for (i=0;i<n;i++) {
     theta = 2.0*PETSC_PI*(i+0.5)/n;
 #if defined(PETSC_USE_COMPLEX)
-    cr[i] = ctx->center + ctx->radius*(PetscCosReal(theta)+ctx->vscale*PetscSinReal(theta)*PETSC_i);
+    cr[i] = ctx->center + ctx->radius*PetscCMPLX(PetscCosReal(theta),ctx->vscale*PetscSinReal(theta));
 #else
     cr[i] = ctx->center + ctx->radius*PetscCosReal(theta);
     ci[i] = ctx->radius*ctx->vscale*PetscSinReal(theta);

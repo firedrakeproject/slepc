@@ -22,7 +22,7 @@ PetscErrorCode CheckPoint(RG rg,PetscReal re,PetscReal im)
 
   PetscFunctionBeginUser;
 #if defined(PETSC_USE_COMPLEX)
-  ar = re+im*PETSC_i;
+  ar = PetscCMPLX(re,im);
 #else
   ar = re; ai = im;
 #endif

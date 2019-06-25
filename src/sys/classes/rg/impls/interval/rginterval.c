@@ -184,7 +184,7 @@ PetscErrorCode RGComputeContour_Interval(RG rg,PetscInt n,PetscScalar *cr,PetscS
     else {hr[0] = (ctx->b-ctx->a)/(n-1); hi[0] = 0.0;}
     for (i=0;i<n;i++) {
 #if defined(PETSC_USE_COMPLEX)
-      cr[i] = ctx->a+hr[0]*i + (ctx->c+hi[0]*i)*PETSC_i;
+      cr[i] = PetscCMPLX(ctx->a+hr[0]*i,ctx->c+hi[0]*i);
 #else
       cr[i] = ctx->a+hr[0]*i; ci[i] = ctx->c+hi[0]*i;
 #endif
@@ -199,7 +199,7 @@ PetscErrorCode RGComputeContour_Interval(RG rg,PetscInt n,PetscScalar *cr,PetscS
     off = 0.0; idx = 0;
     for (i=0;i<4;i++) {
 #if defined(PETSC_USE_COMPLEX)
-      cr[idx] = vr[i]+off*(hr[i]/h)+ (vi[i]+off*(hi[i]/h))*PETSC_i;
+      cr[idx] = PetscCMPLX(vr[i]+off*(hr[i]/h),vi[i]+off*(hi[i]/h));
 #else
       cr[idx] = vr[i]+off*(hr[i]/h); ci[idx]=vi[i]+off*(hi[i]/h);
 #endif
@@ -207,7 +207,7 @@ PetscErrorCode RGComputeContour_Interval(RG rg,PetscInt n,PetscScalar *cr,PetscS
       pt = (d[i]-off)/h+1;
       for (j=1;j<pt && idx<n;j++) {
 #if defined(PETSC_USE_COMPLEX)
-        cr[idx] = cr[idx-1]+(hr[i]+hi[i]*PETSC_i);
+        cr[idx] = cr[idx-1]+PetscCMPLX(hr[i],hi[i]);
 #else
         cr[idx] = cr[idx-1]+hr[i]; ci[idx] = ci[idx-1]+hi[i];
 #endif

@@ -238,7 +238,7 @@ PetscErrorCode EPSSolve_BLOPEX(EPS eps)
 
     for (j=0;j<blopex->bs;j++) {
 #if defined(PETSC_USE_COMPLEX)
-      eps->eigr[eps->nconv+j] = lambda[j].real+PETSC_i*lambda[j].imag;
+      eps->eigr[eps->nconv+j] = PetscCMPLX(lambda[j].real,lambda[j].imag);
 #else
       eps->eigr[eps->nconv+j] = lambda[j];
 #endif
@@ -249,7 +249,7 @@ PetscErrorCode EPSSolve_BLOPEX(EPS eps)
         nconv = 0;
         for (j=0;j<blopex->bs;j++) {
 #if defined(PETSC_USE_COMPLEX)
-          eigr[eps->nconv+j] = lambdahist[j+i*blopex->bs].real+PETSC_i*lambdahist[j+i*blopex->bs].imag;
+          eigr[eps->nconv+j] = PetscCMPLX(lambdahist[j+i*blopex->bs].real,lambdahist[j+i*blopex->bs].imag);
 #else
           eigr[eps->nconv+j] = lambdahist[j+i*blopex->bs];
 #endif

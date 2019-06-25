@@ -176,7 +176,7 @@ int LOBPCG_SetFromOptionsRandomContext(void)
   ierr = PetscRandomSetFromOptions(LOBPCG_RandomContext);CHKERRQ(ierr);
 
 #if defined(PETSC_USE_COMPLEX)
-  ierr = PetscRandomSetInterval(LOBPCG_RandomContext,(PetscScalar)-1.0-1.0*PETSC_i,(PetscScalar)1.0+1.0*PETSC_i);CHKERRQ(ierr);
+  ierr = PetscRandomSetInterval(LOBPCG_RandomContext,(PetscScalar)PetscCMPLX(-1.0,-1.0),(PetscScalar)PetscCMPLX(1.0,1.0));CHKERRQ(ierr);
 #else
   ierr = PetscRandomSetInterval(LOBPCG_RandomContext,(PetscScalar)-1.0,(PetscScalar)1.0);CHKERRQ(ierr);
 #endif
