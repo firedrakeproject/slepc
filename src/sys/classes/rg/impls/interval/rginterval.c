@@ -174,8 +174,7 @@ PetscErrorCode RGComputeContour_Interval(RG rg,PetscInt n,PetscScalar *cr,PetscS
 {
   RG_INTERVAL *ctx = (RG_INTERVAL*)rg->data;
   PetscInt    i,pt,idx,j;
-  PetscReal   hr[4],hi[4],h,off,d[4];
-  PetscScalar vr[4],vi[4];
+  PetscReal   hr[4],hi[4],h,off,d[4],vr[4],vi[4];
 
   PetscFunctionBegin;
   if (!(ctx->a>-PETSC_MAX_REAL && ctx->b<PETSC_MAX_REAL && ctx->c>-PETSC_MAX_REAL && ctx->d<PETSC_MAX_REAL)) SETERRQ(PetscObjectComm((PetscObject)rg),PETSC_ERR_SUP,"Contour not defined in unbounded regions");
@@ -191,7 +190,7 @@ PetscErrorCode RGComputeContour_Interval(RG rg,PetscInt n,PetscScalar *cr,PetscS
     }
   } else {
     d[1] = d[3] = ctx->d-ctx->c; d[0] = d[2] = ctx->b-ctx->a;
-    h = (2*(d[0]+d[1]))/n;
+    h = 2.0*(d[0]+d[1])/n;
     vr[0] = ctx->a; vr[1] = ctx->b; vr[2] = ctx->b; vr[3] = ctx->a;
     vi[0] = ctx->c; vi[1] = ctx->c; vi[2] = ctx->d; vi[3] = ctx->d;
     hr[0] = h;   hr[1] = 0.0; hr[2] = -h;  hr[3] = 0.0;
@@ -201,7 +200,7 @@ PetscErrorCode RGComputeContour_Interval(RG rg,PetscInt n,PetscScalar *cr,PetscS
 #if defined(PETSC_USE_COMPLEX)
       cr[idx] = PetscCMPLX(vr[i]+off*(hr[i]/h),vi[i]+off*(hi[i]/h));
 #else
-      cr[idx] = vr[i]+off*(hr[i]/h); ci[idx]=vi[i]+off*(hi[i]/h);
+      cr[idx] = vr[i]+off*(hr[i]/h); ci[idx] = vi[i]+off*(hi[i]/h);
 #endif
       idx++;
       pt = (d[i]-off)/h+1;
@@ -213,7 +212,7 @@ PetscErrorCode RGComputeContour_Interval(RG rg,PetscInt n,PetscScalar *cr,PetscS
 #endif
         idx++;
       }
-      off = off+pt*h-d[i];
+      off += pt*h-d[i];
       if (off>=d[i+1]) {off -= d[i+1]; i++;}
     }
   }
