@@ -496,7 +496,7 @@ PetscErrorCode NEPSetWhichEigenpairs(NEP nep,NEPWhich which)
 #if defined(PETSC_USE_COMPLEX)
     case NEP_TARGET_IMAGINARY:
 #endif
-    case EPS_ALL:
+    case NEP_ALL:
     case NEP_WHICH_USER:
       if (nep->which != which) {
         nep->state = NEP_STATE_INITIAL;
