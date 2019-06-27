@@ -77,6 +77,6 @@ int main(int argc,char **argv)
    test:
       suffix: 1
       args: -eps_harmonic -eps_conv_norm
-      filter: grep -v tolerance
+      filter: grep -v tolerance | sed -e "s/symmetric/hermitian/"
 
 TEST*/
