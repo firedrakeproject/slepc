@@ -162,10 +162,15 @@ int main(int argc,char **argv)
          suffix: 1_lobpcg
          args: -eps_type lobpcg -st_shift 22 -eps_largest_real
 
-   test:
-      suffix: 2
+   testset:
       requires: !single !complex
-      args: -eps_interval .1,1.1 -eps_tol 1e-10 -st_type sinvert -st_ksp_type preonly -st_pc_type cholesky
+      args: -eps_tol 1e-10 -st_type sinvert -st_ksp_type preonly -st_pc_type cholesky
+      test:
+         suffix: 2
+         args: -eps_interval .1,1.1
+      test:
+         suffix: 2_open
+         args: -eps_interval -inf,1.1
 
    test:
       suffix: 3
