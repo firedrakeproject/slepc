@@ -240,4 +240,10 @@ PetscErrorCode MyEigenSort(PetscScalar ar,PetscScalar ai,PetscScalar br,PetscSca
          suffix: 6_bcgs
          args: -eps_ciss_realmats -eps_ciss_ksp_type bcgs -eps_ciss_pc_type sor -eps_ciss_integration_points 12
 
+   test:
+      suffix: 7
+      args: -eps_nev 4 -eps_two_sided -eps_view_vectors ::ascii_info -eps_view_values draw
+      requires: x !single
+      filter: sed -e "s/\(0x[0-9a-fA-F]*\)/objectid/"
+
 TEST*/
