@@ -112,7 +112,7 @@ PetscErrorCode EPSSolve_RQCG(EPS eps)
   EPS_RQCG       *ctx = (EPS_RQCG*)eps->data;
   PetscInt       i,j,k,ld,nv,ncv = eps->ncv,kini,nmat;
   PetscScalar    *C,*gamma,g,pap,pbp,pbx,pax,nu,mu,alpha,beta;
-  PetscReal      resnorm,a,b,c,disc,t;
+  PetscReal      resnorm,a,b,c,d,disc,t;
   PetscBool      reset;
   Mat            A,B,Q,Q1;
   Vec            v,av,bv,p,w=eps->work[0];
@@ -255,9 +255,10 @@ PetscErrorCode EPSSolve_RQCG(EPS eps)
         c = PetscRealPart(mu*pax-nu*pbx);
         t = PetscMax(PetscMax(PetscAbsReal(a),PetscAbsReal(b)),PetscAbsReal(c));
         if (t!=0.0) { a /= t; b /= t; c /= t; }
-        disc = PetscSqrtReal(PetscAbsReal(b*b-4.0*a*c));
-        if (b>=0.0 && a!=0.0) alpha = (b+disc)/(2.0*a);
-        else if (b!=disc) alpha = 2.0*c/(b-disc);
+        disc = b*b-4.0*a*c;
+        d = PetscSqrtReal(PetscAbsReal(disc));
+        if (b>=0.0 && a!=0.0) alpha = (b+d)/(2.0*a);
+        else if (b!=d) alpha = 2.0*c/(b-d);
         else alpha = 0;
         /* Next iterate */
         if (alpha!=0.0) {

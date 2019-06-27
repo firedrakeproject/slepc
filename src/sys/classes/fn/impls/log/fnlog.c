@@ -101,7 +101,7 @@ static PetscErrorCode logm_params(PetscBLASInt n,PetscScalar *T,PetscBLASInt ld,
       wr[i] = PetscSqrtScalar(wr[i]);
 #else
 #if defined(PETSC_HAVE_COMPLEX)
-      PetscComplex z = PetscSqrtComplex(wr[i]+wi[i]*PETSC_i);
+      PetscComplex z = PetscSqrtComplex(PetscCMPLX(wr[i],wi[i]));
       wr[i] = PetscRealPartComplex(z);
       wi[i] = PetscImaginaryPartComplex(z);
 #else

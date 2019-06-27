@@ -147,8 +147,17 @@ int main(int argc,char **argv)
          suffix: 1_gd2
          args: -eps_type gd -eps_gd_double_expansion
       test:
+         suffix: 1_gd_borth
+         args: -eps_type gd -eps_gd_borth
+      test:
+         suffix: 1_jd_borth
+         args: -eps_type jd -eps_jd_borth
+      test:
          suffix: 1_ciss
          args: -eps_type ciss -rg_interval_endpoints 20.8,22 -eps_largest_real
+      test:
+         suffix: 1_ciss_trapezoidal
+         args: -eps_type ciss -rg_interval_endpoints 20.8,22 -eps_largest_real -eps_ciss_quadrule trapezoidal -eps_ciss_integration_points 24 -eps_ciss_extraction hankel -eps_ciss_delta 1e-10 -eps_tol 1e-11
       test:
          suffix: 1_lobpcg
          args: -eps_type lobpcg -st_shift 22 -eps_largest_real

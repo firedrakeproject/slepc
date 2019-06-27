@@ -36,7 +36,7 @@ int main(int argc,char **argv)
   ierr = RGViewFromOptions(rg,NULL,"-rg_ellipse_view");CHKERRQ(ierr);
   re = 0.1; im = 0.3;
 #if defined(PETSC_USE_COMPLEX)
-  ar = re+im*PETSC_i;
+  ar = PetscCMPLX(re,im);
 #else
   ar = re; ai = im;
 #endif
@@ -72,7 +72,7 @@ int main(int argc,char **argv)
   ierr = RGViewFromOptions(rg,NULL,"-rg_interval_view");CHKERRQ(ierr);
   re = 0.2; im = 0;
 #if defined(PETSC_USE_COMPLEX)
-  ar = re+im*PETSC_i;
+  ar = PetscCMPLX(re,im);
 #else
   ar = re; ai = im;
 #endif
@@ -98,13 +98,13 @@ int main(int argc,char **argv)
 
   /* polygon */
 #if defined(PETSC_USE_COMPLEX)
-  vr[0] = 0.0+2.0*PETSC_i;
-  vr[1] = 1.0+4.0*PETSC_i;
-  vr[2] = 2.0+5.0*PETSC_i;
-  vr[3] = 4.0+3.0*PETSC_i;
-  vr[4] = 5.0+4.0*PETSC_i;
-  vr[5] = 6.0+1.0*PETSC_i;
-  vr[6] = 2.0+0.0*PETSC_i;
+  vr[0] = PetscCMPLX(0.0,2.0);
+  vr[1] = PetscCMPLX(1.0,4.0);
+  vr[2] = PetscCMPLX(2.0,5.0);
+  vr[3] = PetscCMPLX(4.0,3.0);
+  vr[4] = PetscCMPLX(5.0,4.0);
+  vr[5] = PetscCMPLX(6.0,1.0);
+  vr[6] = PetscCMPLX(2.0,0.0);
 #else
   vr[0] = 0.0; vi[0] = 1.0;
   vr[1] = 0.0; vi[1] = -1.0;
@@ -125,7 +125,7 @@ int main(int argc,char **argv)
   ierr = RGViewFromOptions(rg,NULL,"-rg_polygon_view");CHKERRQ(ierr);
   re = 5; im = 0.9;
 #if defined(PETSC_USE_COMPLEX)
-  ar = re+im*PETSC_i;
+  ar = PetscCMPLX(re,im);
 #else
   ar = re; ai = im;
 #endif

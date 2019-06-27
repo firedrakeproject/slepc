@@ -256,7 +256,7 @@ PetscErrorCode RGComputeContour_Ring(RG rg,PetscInt n,PetscScalar *cr,PetscScala
     if (i < n2) {
       theta = ((ctx->end_ang-start_ang)*i/n2 + start_ang)*2.0*PETSC_PI;
 #if defined(PETSC_USE_COMPLEX)
-      cr[i] = ctx->center + (ctx->radius+ctx->width/2.0)*(PetscCosReal(theta)+ctx->vscale*PetscSinReal(theta)*PETSC_i);
+      cr[i] = ctx->center + (ctx->radius+ctx->width/2.0)*PetscCMPLX(PetscCosReal(theta),ctx->vscale*PetscSinReal(theta));
 #else
       cr[i] = ctx->center + (ctx->radius+ctx->width/2.0)*PetscCosReal(theta);
       ci[i] = (ctx->radius+ctx->width/2.0)*ctx->vscale*PetscSinReal(theta);
@@ -264,7 +264,7 @@ PetscErrorCode RGComputeContour_Ring(RG rg,PetscInt n,PetscScalar *cr,PetscScala
     } else {
       theta = ((ctx->end_ang-start_ang)*(n-i)/n2 + start_ang)*2.0*PETSC_PI;
 #if defined(PETSC_USE_COMPLEX)
-      cr[i] = ctx->center + (ctx->radius-ctx->width/2.0)*(PetscCosReal(theta)+ctx->vscale*PetscSinReal(theta)*PETSC_i);
+      cr[i] = ctx->center + (ctx->radius-ctx->width/2.0)*PetscCMPLX(PetscCosReal(theta),ctx->vscale*PetscSinReal(theta));
 #else
       cr[i] = ctx->center + (ctx->radius-ctx->width/2.0)*PetscCosReal(theta);
       ci[i] = (ctx->radius-ctx->width/2.0)*ctx->vscale*PetscSinReal(theta);
