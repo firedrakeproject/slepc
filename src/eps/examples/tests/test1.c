@@ -201,7 +201,7 @@ int main(int argc,char **argv)
 
    testset:
       args: -n 18 -eps_nev 4 -eps_max_it 1500 -mat_type aijcusparse
-      requires: cuda
+      requires: cuda !single
       output_file: output/test1_1.out
       test:
          suffix: 7
@@ -230,7 +230,7 @@ int main(int argc,char **argv)
    testset:
       nsize: 2
       args: -n 18 -eps_nev 7 -eps_ncv 32 -ds_parallel synchronized
-      requires: cuda
+      requires: cuda !single
       filter: grep -v "orthogonality"
       output_file: output/test1_9.out
       test:

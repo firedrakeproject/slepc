@@ -119,6 +119,6 @@ int main(int argc,char **argv)
 
    test:
       suffix: 1
-      args: -mfn_tol 1e-5
+      args: -mfn_tol 1e-4
 
 TEST*/
