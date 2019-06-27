@@ -26,9 +26,12 @@ PetscErrorCode DSAllocate_NHEP(DS ds,PetscInt ld)
 
 PetscErrorCode DSView_NHEP(DS ds,PetscViewer viewer)
 {
-  PetscErrorCode ierr;
+  PetscErrorCode    ierr;
+  PetscViewerFormat format;
 
   PetscFunctionBegin;
+  ierr = PetscViewerGetFormat(viewer,&format);CHKERRQ(ierr);
+  if (format == PETSC_VIEWER_ASCII_INFO || format == PETSC_VIEWER_ASCII_INFO_DETAIL) PetscFunctionReturn(0);
   ierr = DSViewMat(ds,viewer,DS_MAT_A);CHKERRQ(ierr);
   if (ds->state>DS_STATE_INTERMEDIATE) {
     ierr = DSViewMat(ds,viewer,DS_MAT_Q);CHKERRQ(ierr);
