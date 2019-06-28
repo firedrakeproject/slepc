@@ -50,7 +50,7 @@ int main(int argc,char **argv)
   Mat            A,B;
   PetscContainer container;
   PetscInt       nev,nconv;
-  PetscBool      nonlin,flg;
+  PetscBool      nonlin,flg,update;
   SNES           snes;
   PetscErrorCode ierr;
 
@@ -112,7 +112,8 @@ int main(int argc,char **argv)
   */
   ierr = EPSGetType(eps,&type);CHKERRQ(ierr);
   ierr = EPSPowerGetNonlinear(eps,&nonlin);CHKERRQ(ierr);
-  ierr = PetscPrintf(comm," Solution method: %s%s\n\n",type,nonlin?" (nonlinear)":"");CHKERRQ(ierr);
+  ierr = EPSPowerGetUpdate(eps,&update);CHKERRQ(ierr);
+  ierr = PetscPrintf(comm," Solution method: %s%s\n\n",type,nonlin?(update?" (nonlinear with monolithic update)":" (nonlinear)"):"");CHKERRQ(ierr);
   ierr = EPSGetDimensions(eps,&nev,NULL,NULL);CHKERRQ(ierr);
   ierr = PetscPrintf(comm," Number of requested eigenvalues: %D\n",nev);CHKERRQ(ierr);
 
@@ -446,5 +447,6 @@ PetscErrorCode FormFunctionB(SNES snes,Vec X,Vec F,void *ctx)
       suffix: 2
       args: -petscspace_degree 1 -petscspace_poly_tensor -eps_power_update -form_function_ab {{0 1}}
       requires: double !complex
+      filter: sed -e "s/ with monolithic update//"
 
 TEST*/

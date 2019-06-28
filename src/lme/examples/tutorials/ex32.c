@@ -174,4 +174,9 @@ int main(int argc,char **argv)
       suffix: 1
       requires: !single
 
+   test:
+      suffix: 2
+      args: -rank 40
+      requires: !single
+
 TEST*/

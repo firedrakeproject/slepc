@@ -64,4 +64,10 @@ int main(int argc,char **argv)
       requires: !complex !single
       filter: grep -v "tolerance" | sed -e "s/[0-9]\.[0-9]*e-\([0-9]*\)/removed/g"
 
+   test:
+      suffix: 2
+      args: -n 20 -eps_largest_real -eps_monitor
+      requires: !complex !single
+      filter: grep -v "tolerance" | sed -e "s/[0-9]\.[0-9]*e-\([0-9]*\)/removed/g"
+
 TEST*/
