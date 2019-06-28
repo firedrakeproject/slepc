@@ -1,6 +1,12 @@
 
 Markov Model, N=120 (m=15)
 
+ Eigenvalues =
+    1.00000
+    -1.00000
+    0.97137
+    -0.97137
+
 Vec Object: X0_EPS_objectid_0 1 MPI processes
   type: seq
   length=120

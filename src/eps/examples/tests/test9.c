@@ -242,8 +242,8 @@ PetscErrorCode MyEigenSort(PetscScalar ar,PetscScalar ai,PetscScalar br,PetscSca
 
    test:
       suffix: 7
-      args: -eps_nev 4 -eps_two_sided -eps_view_vectors ::ascii_info -eps_view_values draw
-      requires: x !single
+      args: -eps_nev 4 -eps_two_sided -eps_view_vectors ::ascii_info -eps_view_values
+      requires: !single
       filter: sed -e "s/\(0x[0-9a-fA-F]*\)/objectid/"
 
 TEST*/
