@@ -21,7 +21,7 @@ int main(int argc,char **argv)
   ST             st;         /* spectral transformation context */
   KSP            ksp;
   PC             pc;
-  PetscBool      showinertia=PETSC_TRUE,lock,detect;
+  PetscBool      showinertia=PETSC_TRUE,lock,detect,checket;
   PetscInt       n=100,Istart,Iend,i,*inertias,ns,nev,ncv,mpd;
   PetscReal      mu=1,tau=10,kappa=5,int0,int1,*shifts;
   PetscErrorCode ierr;
@@ -126,6 +126,12 @@ int main(int argc,char **argv)
   ierr = PEPSTOARSetLocking(pep,PETSC_TRUE);CHKERRQ(ierr);
   ierr = PEPSTOARGetLocking(pep,&lock);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD," ... changed to %d\n",(int)lock);CHKERRQ(ierr);
+
+  ierr = PEPSTOARGetCheckEigenvalueType(pep,&checket);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD," Check eigenvalue type flag before changing = %d",(int)checket);CHKERRQ(ierr);
+  ierr = PEPSTOARSetCheckEigenvalueType(pep,PETSC_FALSE);CHKERRQ(ierr);
+  ierr = PEPSTOARGetCheckEigenvalueType(pep,&checket);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD," ... changed to %d\n",(int)checket);CHKERRQ(ierr);
 
   ierr = PEPSTOARGetDimensions(pep,&nev,&ncv,&mpd);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD," Sub-solve dimensions before changing = [%D,%D,%D]",nev,ncv,mpd);CHKERRQ(ierr);
