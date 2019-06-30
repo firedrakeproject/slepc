@@ -79,7 +79,7 @@ int main(int argc,char **argv)
   /* test monitors */
   ierr = PetscViewerAndFormatCreate(PETSC_VIEWER_STDOUT_WORLD,PETSC_VIEWER_DEFAULT,&vf);CHKERRQ(ierr);
   ierr = MFNMonitorSet(mfn,(PetscErrorCode (*)(MFN,PetscInt,PetscReal,void*))MFNMonitorDefault,vf,(PetscErrorCode (*)(void**))PetscViewerAndFormatDestroy);CHKERRQ(ierr);
-  /* ierr = SVDMonitorCancel(svd);CHKERRQ(ierr); */
+  /* ierr = MFNMonitorCancel(mfn);CHKERRQ(ierr); */
   ierr = MFNSetFromOptions(mfn);CHKERRQ(ierr);
 
   /* query properties and print them */

@@ -130,5 +130,6 @@ int main(int argc,char **argv)
    test:
       suffix: 3
       args: -mfn_type expokit -t 0.6
+      requires: !__float128
 
 TEST*/
