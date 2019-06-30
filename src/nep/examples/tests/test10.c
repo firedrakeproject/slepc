@@ -224,6 +224,9 @@ int main(int argc,char **argv)
          suffix: 1
          args: -nep_type {{rii narnoldi}} -nep_target 0.55
       test:
+         suffix: 1_narnoldi
+         args: -nep_type narnoldi -nep_target 0.55 -nep_narnoldi_lag_preconditioner 2
+      test:
          suffix: 1_slp
          args: -nep_type slp -nep_slp_st_pc_type redundant
       test:

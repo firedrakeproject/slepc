@@ -17,15 +17,14 @@ static char help[] = "Test MFN interface functions, bsed on ex32.c.\n\n"
 
 int main(int argc,char **argv)
 {
-  Mat                  A,B,C,C1,D,X,X1;
+  Mat                  A,B,C,C1,D;
   LME                  lme;
   PetscReal            tol,errest,error;
   PetscScalar          *u;
-  PetscInt             N,n=10,m,Istart,Iend,II,maxit,its,ncv,i,j;
+  PetscInt             N,n=10,m,Istart,Iend,II,maxit,ncv,i,j;
   PetscErrorCode       ierr;
   PetscBool            flg;
   LMEProblemType       ptype;
-  LMEConvergedReason   reason;
   PetscViewerAndFormat *vf;
 
   ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;

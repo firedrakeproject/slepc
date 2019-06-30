@@ -8,8 +8,8 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-static char help[] = "Spectrum slicing on quadratic symmetric eigenproblem.\n\n"
-  "The command line options are:\n"
+static char help[] = "Test interface functions of spectrum-slicing STOAR.\n\n"
+  "This is based on ex38.c. The command line options are:\n"
   "  -n <n> ... dimension of the matrices.\n\n";
 
 #include <slepcpep.h>
@@ -21,17 +21,15 @@ int main(int argc,char **argv)
   ST             st;         /* spectral transformation context */
   KSP            ksp;
   PC             pc;
-  PEPType        type;
-  PetscBool      show=PETSC_FALSE,terse;
-  PetscInt       n=100,Istart,Iend,nev,i,*inertias,ns;
-  PetscReal      mu=1,tau=10,kappa=5,inta,intb,*shifts;
+  PetscBool      showinertia=PETSC_TRUE,lock,detect;
+  PetscInt       n=100,Istart,Iend,i,*inertias,ns,nev,ncv,mpd;
+  PetscReal      mu=1,tau=10,kappa=5,int0,int1,*shifts;
   PetscErrorCode ierr;
 
   ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
 
   ierr = PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL);CHKERRQ(ierr);
-  ierr = PetscOptionsGetBool(NULL,NULL,"-show_inertias",&show,NULL);CHKERRQ(ierr);
-  ierr = PetscOptionsHasName(NULL,NULL,"-terse",&terse);CHKERRQ(ierr);
+  ierr = PetscOptionsGetBool(NULL,NULL,"-showinertia",&showinertia,NULL);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD,"\nSpectrum slicing on PEP, n=%D\n\n",n);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -94,107 +92,78 @@ int main(int argc,char **argv)
                 Create the eigensolver and solve the problem
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  /*
-     Create eigensolver context
-  */
   ierr = PEPCreate(PETSC_COMM_WORLD,&pep);CHKERRQ(ierr);
-
-  /*
-     Set operators and set problem type
-  */
   A[0] = K; A[1] = C; A[2] = M;
   ierr = PEPSetOperators(pep,3,A);CHKERRQ(ierr);
   ierr = PEPSetProblemType(pep,PEP_HYPERBOLIC);CHKERRQ(ierr);
-
-  /*
-     Set interval for spectrum slicing
-  */
-  inta = -11.3;
-  intb = -9.5;
-  ierr = PEPSetInterval(pep,inta,intb);CHKERRQ(ierr);
-  ierr = PEPSetWhichEigenpairs(pep,PEP_ALL);CHKERRQ(ierr);
-
-  /*
-     Spectrum slicing requires STOAR 
-  */
   ierr = PEPSetType(pep,PEPSTOAR);CHKERRQ(ierr);
 
   /*
-     Set shift-and-invert with Cholesky; select MUMPS if available
+     Set interval and other settings for spectrum slicing
   */
+  int0 = -11.3;
+  int1 = -9.5;
+  ierr = PEPSetInterval(pep,int0,int1);CHKERRQ(ierr);
+  ierr = PEPSetWhichEigenpairs(pep,PEP_ALL);CHKERRQ(ierr);
   ierr = PEPGetST(pep,&st);CHKERRQ(ierr);
   ierr = STSetType(st,STSINVERT);CHKERRQ(ierr);
-
   ierr = STGetKSP(st,&ksp);CHKERRQ(ierr);
   ierr = KSPSetType(ksp,KSPPREONLY);CHKERRQ(ierr);
   ierr = KSPGetPC(ksp,&pc);CHKERRQ(ierr);
   ierr = PCSetType(pc,PCCHOLESKY);CHKERRQ(ierr);
 
-#if defined(PETSC_HAVE_MUMPS)
-#if defined(PETSC_USE_COMPLEX)
-  SETERRQ(PETSC_COMM_WORLD,PETSC_ERR_SUP,"Spectrum slicing with MUMPS is not available for complex scalars");
-#endif
-  ierr = PEPSTOARSetDetectZeros(pep,PETSC_TRUE);CHKERRQ(ierr);  /* enforce zero detection */
-  ierr = PCFactorSetMatSolverType(pc,MATSOLVERMUMPS);CHKERRQ(ierr);
   /*
-     Add several MUMPS options (currently there is no better way of setting this in program):
-     '-mat_mumps_icntl_13 1': turn off ScaLAPACK for matrix inertia
-     '-mat_mumps_icntl_24 1': detect null pivots in factorization (for the case that a shift is equal to an eigenvalue)
-     '-mat_mumps_cntl_3 <tol>': a tolerance used for null pivot detection (must be larger than machine epsilon)
-
-     Note: depending on the interval, it may be necessary also to increase the workspace:
-     '-mat_mumps_icntl_14 <percentage>': increase workspace with a percentage (50, 100 or more)
+     Test interface functions of STOAR solver
   */
-  ierr = PetscOptionsInsertString(NULL,"-mat_mumps_icntl_13 1 -mat_mumps_icntl_24 1 -mat_mumps_cntl_3 1e-12");CHKERRQ(ierr);
-#endif
+  ierr = PEPSTOARGetDetectZeros(pep,&detect);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD," Detect zeros before changing = %d",(int)detect);CHKERRQ(ierr);
+  ierr = PEPSTOARSetDetectZeros(pep,PETSC_TRUE);CHKERRQ(ierr);
+  ierr = PEPSTOARGetDetectZeros(pep,&detect);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD," ... changed to %d\n",(int)detect);CHKERRQ(ierr);
 
-  /*
-     Set solver parameters at runtime
-  */
+  ierr = PEPSTOARGetLocking(pep,&lock);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD," Locking flag before changing = %d",(int)lock);CHKERRQ(ierr);
+  ierr = PEPSTOARSetLocking(pep,PETSC_TRUE);CHKERRQ(ierr);
+  ierr = PEPSTOARGetLocking(pep,&lock);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD," ... changed to %d\n",(int)lock);CHKERRQ(ierr);
+
+  ierr = PEPSTOARGetDimensions(pep,&nev,&ncv,&mpd);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD," Sub-solve dimensions before changing = [%D,%D,%D]",nev,ncv,mpd);CHKERRQ(ierr);
+  ierr = PEPSTOARSetDimensions(pep,30,60,60);CHKERRQ(ierr);
+  ierr = PEPSTOARGetDimensions(pep,&nev,&ncv,&mpd);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD," ... changed to [%D,%D,%D]\n",nev,ncv,mpd);CHKERRQ(ierr);
+
   ierr = PEPSetFromOptions(pep);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-                      Solve the eigensystem
+             Compute all eigenvalues in interval and display info
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
   ierr = PEPSetUp(pep);CHKERRQ(ierr);
-  if (show) {
-    ierr = PEPSTOARGetInertias(pep,&ns,&shifts,&inertias);
-    ierr = PetscPrintf(PETSC_COMM_WORLD,"Subintervals (after setup):\n");CHKERRQ(ierr);
-    for (i=0;i<ns;i++) { ierr = PetscPrintf(PETSC_COMM_WORLD,"Shift %g  Inertia %D \n",(double)shifts[i],inertias[i]);CHKERRQ(ierr); }
-    ierr = PetscPrintf(PETSC_COMM_WORLD,"\n");CHKERRQ(ierr);
-    ierr = PetscFree(shifts);CHKERRQ(ierr);
-    ierr = PetscFree(inertias);CHKERRQ(ierr);
+  ierr = PEPSTOARGetInertias(pep,&ns,&shifts,&inertias);
+  ierr = PetscPrintf(PETSC_COMM_WORLD," Inertias (after setup):\n");CHKERRQ(ierr);
+  for (i=0;i<ns;i++) {
+    ierr = PetscPrintf(PETSC_COMM_WORLD," .. %g (%D)\n",(double)shifts[i],inertias[i]);CHKERRQ(ierr);
   }
+  ierr = PetscFree(shifts);CHKERRQ(ierr);
+  ierr = PetscFree(inertias);CHKERRQ(ierr);
+
   ierr = PEPSolve(pep);CHKERRQ(ierr);
-  if (show && !terse) {
+  ierr = PEPGetDimensions(pep,&nev,NULL,NULL);CHKERRQ(ierr);
+  ierr = PEPGetInterval(pep,&int0,&int1);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD," Found %D eigenvalues in interval [%g,%g]\n",nev,(double)int0,(double)int1);CHKERRQ(ierr);
+
+  if (showinertia) {
     ierr = PEPSTOARGetInertias(pep,&ns,&shifts,&inertias);
-    ierr = PetscPrintf(PETSC_COMM_WORLD,"All shifts (after solve):\n");CHKERRQ(ierr);
-    for (i=0;i<ns;i++) { ierr = PetscPrintf(PETSC_COMM_WORLD,"Shift %g  Inertia %D \n",(double)shifts[i],inertias[i]);CHKERRQ(ierr); }
-    ierr = PetscPrintf(PETSC_COMM_WORLD,"\n");CHKERRQ(ierr);
+    ierr = PetscPrintf(PETSC_COMM_WORLD," Used %D shifts (inertia):\n",ns);CHKERRQ(ierr);
+    for (i=0;i<ns;i++) {
+      ierr = PetscPrintf(PETSC_COMM_WORLD," .. %g (%D)\n",(double)shifts[i],inertias[i]);CHKERRQ(ierr);
+    }
     ierr = PetscFree(shifts);CHKERRQ(ierr);
     ierr = PetscFree(inertias);CHKERRQ(ierr);
   }
 
-  /*
-     Show eigenvalues in interval and print solution
-  */
-  ierr = PEPGetType(pep,&type);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," Solution method: %s\n\n",type);CHKERRQ(ierr);
-  ierr = PEPGetDimensions(pep,&nev,NULL,NULL);CHKERRQ(ierr);
-  ierr = PEPGetInterval(pep,&inta,&intb);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," %D eigenvalues found in [%g, %g]\n",nev,(double)inta,(double)intb);CHKERRQ(ierr);
-
-  /*
-     Show detailed info unless -terse option is given by user
-   */
-  if (terse) {
-    ierr = PEPErrorView(pep,PEP_ERROR_BACKWARD,NULL);CHKERRQ(ierr);
-  } else {
-    ierr = PetscViewerPushFormat(PETSC_VIEWER_STDOUT_WORLD,PETSC_VIEWER_ASCII_INFO_DETAIL);CHKERRQ(ierr);
-    ierr = PEPReasonView(pep,PETSC_VIEWER_STDOUT_WORLD);CHKERRQ(ierr);
-    ierr = PEPErrorView(pep,PEP_ERROR_BACKWARD,PETSC_VIEWER_STDOUT_WORLD);CHKERRQ(ierr);
-    ierr = PetscViewerPopFormat(PETSC_VIEWER_STDOUT_WORLD);CHKERRQ(ierr);
-  }
+  ierr = PEPErrorView(pep,PEP_ERROR_BACKWARD,NULL);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                     Clean up
@@ -209,15 +178,8 @@ int main(int argc,char **argv)
 
 /*TEST
 
-   testset:
-      requires: !single
-      args: -show_inertias -terse
-      output_file: output/ex38_1.out
-      test:
-         suffix: 1
-         requires: !complex
-      test:
-         suffix: 1_complex
-         requires: complex !mumps
+   test:
+      requires: !single !complex
+      args: -showinertia 0
 
 TEST*/

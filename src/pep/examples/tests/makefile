@@ -13,9 +13,9 @@ FFLAGS     =
 CPPFLAGS   =
 FPPFLAGS   =
 LOCDIR     = src/pep/examples/tests/
-EXAMPLESC  = test1.c test2.c test3.c test4.c test5.c test6.c
+EXAMPLESC  = test1.c test2.c test3.c test4.c test5.c test6.c test7.c
 EXAMPLESF  = test3f.F
 MANSEC     = PEP
-TESTS      = test1 test2 test3 test3f test4 test5 test6
+TESTS      = test1 test2 test3 test3f test4 test5 test6 test7
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common
