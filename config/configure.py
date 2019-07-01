@@ -13,7 +13,7 @@ from __future__ import print_function
 import os, sys, time, shutil
 
 def AddDefine(conffile,name,value,prefix='SLEPC_'):
-  conffile.write('#ifndef '+prefix+name+'\n#define '+prefix+name+' "'+value+'"\n#endif\n\n')
+  conffile.write('#define '+prefix+name+' "'+value+'"\n')
 
 def CreateFile(basedir,fname,log):
   ''' Create file basedir/fname and return path string '''
