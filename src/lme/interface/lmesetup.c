@@ -153,7 +153,6 @@ PETSC_STATIC_INLINE PetscErrorCode LMESetCoefficients_Private(LME lme,Mat A,Mat 
 PetscErrorCode LMESetCoefficients(LME lme,Mat A,Mat B,Mat D,Mat E)
 {
   PetscErrorCode ierr;
-  PetscInt       m,n;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(lme,LME_CLASSID,1);
