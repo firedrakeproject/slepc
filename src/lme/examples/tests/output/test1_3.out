@@ -1,5 +1,4 @@
 [0] PetscInitialize(): PETSc successfully started: number of processors = 1
-[0] PetscInitialize(): Running on machine: bastet.dsic.upv.es
 [0] SlepcInitialize(): SLEPc successfully started
 
 Lyapunov equation, N=100 (10x10 grid)

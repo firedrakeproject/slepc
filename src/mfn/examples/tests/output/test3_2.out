@@ -1,6 +1,7 @@
 
 Square root of Laplacian y=sqrt(A)*e_1, N=16 (4x4 grid)
 
+ MFN prefix is currently: check_myprefix_
 Mat Object: 1 MPI processes
   type: seqaij
 row 0: (0, 4.)  (1, -1.)  (4, -1.) 
@@ -22,22 +23,13 @@ row 15: (11, -1.)  (14, -1.)  (15, 4.)
  Tolerance: 0.0001, max iterations: 500
  Subspace dimension: 6
  Erroring out if convergence fails
-MFN Object: 1 MPI processes
-  type: krylov
-  number of column vectors (ncv): 6
-  maximum number of iterations: 500
-  tolerance: 0.0001
-FN Object: 1 MPI processes
-  type: sqrt
-    Square root: sqrt(x)
-    computing matrix functions with: Schur method for the square root
-BV Object: 1 MPI processes
-  type: svec
-  7 columns of global length 16
-  vector orthogonalization method: classical Gram-Schmidt
-  orthogonalization refinement: if needed (eta: 0.7071)
-  block orthogonalization method: GS
-  doing matmult as a single matrix-matrix product
-Matrix function solve converged due to CONVERGED_TOL; iterations 3
+  Error estimates for check_myprefix_ solve.
+  1 MFN Error estimate (removed)
+  Error estimates for check_myprefix_ solve.
+  1 MFN Error estimate (removed)
+  2 MFN Error estimate (removed)
+  2 MFN Error estimate (removed)
+  3 MFN Error estimate (removed)
+  3 MFN Error estimate (removed)
  Finished - converged reason = 1
  sqrt(A)*v has norm 2.

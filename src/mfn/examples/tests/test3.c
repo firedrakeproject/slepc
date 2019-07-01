@@ -23,7 +23,8 @@ int main(int argc,char **argv)
   PetscReal            norm,tol;
   Vec                  v,y;
   PetscInt             N,n=4,Istart,Iend,i,j,II,ncv,its,maxit;
-  PetscBool            flg;
+  PetscBool            flg,testprefix=PETSC_FALSE;
+  const char           *prefix;
   PetscErrorCode       ierr;
   PetscViewerAndFormat *vf;
 
@@ -31,6 +32,7 @@ int main(int argc,char **argv)
   ierr = PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL);CHKERRQ(ierr);
   N = n*n;
   ierr = PetscPrintf(PETSC_COMM_WORLD,"\nSquare root of Laplacian y=sqrt(A)*e_1, N=%D (%Dx%D grid)\n\n",N,n,n);CHKERRQ(ierr);
+  ierr = PetscOptionsGetBool(NULL,NULL,"-test_prefix",&testprefix,NULL);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                  Compute the discrete 2-D Laplacian, A
@@ -69,10 +71,17 @@ int main(int argc,char **argv)
   ierr = MFNGetFN(mfn,&f);CHKERRQ(ierr);
   ierr = FNSetType(f,FNSQRT);CHKERRQ(ierr);
 
+  /* test prefix usage */
+  if (testprefix) {
+    ierr = MFNSetOptionsPrefix(mfn,"check_");CHKERRQ(ierr);
+    ierr = MFNAppendOptionsPrefix(mfn,"myprefix_");CHKERRQ(ierr);
+    ierr = MFNGetOptionsPrefix(mfn,&prefix);CHKERRQ(ierr);
+    ierr = PetscPrintf(PETSC_COMM_WORLD," MFN prefix is currently: %s\n",prefix);CHKERRQ(ierr);
+  }
+
   /* test some interface functions */
   ierr = MFNGetOperator(mfn,&B);CHKERRQ(ierr);
   ierr = MatView(B,PETSC_VIEWER_STDOUT_WORLD);CHKERRQ(ierr);
-  ierr = MFNSetOptionsPrefix(mfn,"myprefix_");CHKERRQ(ierr);
   ierr = MFNSetTolerances(mfn,1e-4,500);CHKERRQ(ierr);
   ierr = MFNSetDimensions(mfn,6);CHKERRQ(ierr);
   ierr = MFNSetErrorIfNotConverged(mfn,PETSC_TRUE);CHKERRQ(ierr);
@@ -117,6 +126,11 @@ int main(int argc,char **argv)
 
    test:
       suffix: 1
-      args: -myprefix_mfn_monitor_cancel -myprefix_mfn_converged_reason -myprefix_mfn_view
+      args: -mfn_monitor_cancel -mfn_converged_reason -mfn_view
+
+   test:
+      suffix: 2
+      args: -test_prefix -check_myprefix_mfn_monitor
+      filter: sed -e "s/estimate [0-9]\.[0-9]*e[+-]\([0-9]*\)/estimate (removed)/g" | sed -e "s/4.0[0-9]*e-10/4.03e-10/"
 
 TEST*/
