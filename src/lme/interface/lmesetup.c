@@ -22,53 +22,12 @@ PETSC_STATIC_INLINE PetscErrorCode LMESetUp_Lyapunov(LME lme)
   PetscFunctionBegin;
   ierr = MatLRCGetMats(lme->C,NULL,&C1,&dc,&C2);CHKERRQ(ierr);
   if (C1!=C2) SETERRQ(PetscObjectComm((PetscObject)lme),PETSC_ERR_ARG_WRONGSTATE,"Lyapunov matrix equation requires symmetric right-hand side C");
-  if (dc) SETERRQ(PetscObjectComm((PetscObject)lme),PETSC_ERR_ARG_WRONGSTATE,"Lyapunov solvers currently requires positive-definite right-hand side C");
+  if (dc) SETERRQ(PetscObjectComm((PetscObject)lme),PETSC_ERR_ARG_WRONGSTATE,"Lyapunov solvers currently require positive-definite right-hand side C");
   if (lme->X) {
     ierr = MatLRCGetMats(lme->X,NULL,&X1,&dx,&X2);CHKERRQ(ierr);
     if (X1!=X2) SETERRQ(PetscObjectComm((PetscObject)lme),PETSC_ERR_ARG_WRONGSTATE,"Lyapunov matrix equation requires symmetric solution X");
-    if (dx) SETERRQ(PetscObjectComm((PetscObject)lme),PETSC_ERR_ARG_WRONGSTATE,"Lyapunov solvers currently assumes a positive-definite solution X");
+    if (dx) SETERRQ(PetscObjectComm((PetscObject)lme),PETSC_ERR_ARG_WRONGSTATE,"Lyapunov solvers currently assume a positive-definite solution X");
   }
-  PetscFunctionReturn(0);
-}
-
-PETSC_STATIC_INLINE PetscErrorCode LMESetUp_Sylvester(LME lme)
-{
-  PetscFunctionBegin;
-  if (!lme->B) SETERRQ(PetscObjectComm((PetscObject)lme),PETSC_ERR_ARG_WRONGSTATE,"Sylvester matrix equation requires coefficient matrix B");
-  SETERRQ(PetscObjectComm((PetscObject)lme),PETSC_ERR_SUP,"There is no solver yet for this matrix equation type");
-  PetscFunctionReturn(0);
-}
-
-PETSC_STATIC_INLINE PetscErrorCode LMESetUp_Gen_Lyapunov(LME lme)
-{
-  PetscFunctionBegin;
-  if (!lme->D) SETERRQ(PetscObjectComm((PetscObject)lme),PETSC_ERR_ARG_WRONGSTATE,"Generalized Lyapunov matrix equation requires coefficient matrix D");
-  SETERRQ(PetscObjectComm((PetscObject)lme),PETSC_ERR_SUP,"There is no solver yet for this matrix equation type");
-  PetscFunctionReturn(0);
-}
-
-PETSC_STATIC_INLINE PetscErrorCode LMESetUp_Gen_Sylvester(LME lme)
-{
-  PetscFunctionBegin;
-  if (!lme->B) SETERRQ(PetscObjectComm((PetscObject)lme),PETSC_ERR_ARG_WRONGSTATE,"Generalized Sylvester matrix equation requires coefficient matrix B");
-  if (!lme->D) SETERRQ(PetscObjectComm((PetscObject)lme),PETSC_ERR_ARG_WRONGSTATE,"Generalized Sylvester matrix equation requires coefficient matrix D");
-  if (!lme->E) SETERRQ(PetscObjectComm((PetscObject)lme),PETSC_ERR_ARG_WRONGSTATE,"Generalized Sylvester matrix equation requires coefficient matrix E");
-  SETERRQ(PetscObjectComm((PetscObject)lme),PETSC_ERR_SUP,"There is no solver yet for this matrix equation type");
-  PetscFunctionReturn(0);
-}
-
-PETSC_STATIC_INLINE PetscErrorCode LMESetUp_Stein(LME lme)
-{
-  PetscFunctionBegin;
-  if (!lme->D) SETERRQ(PetscObjectComm((PetscObject)lme),PETSC_ERR_ARG_WRONGSTATE,"Stein matrix equation requires coefficient matrix D");
-  SETERRQ(PetscObjectComm((PetscObject)lme),PETSC_ERR_SUP,"There is no solver yet for this matrix equation type");
-  PetscFunctionReturn(0);
-}
-
-PETSC_STATIC_INLINE PetscErrorCode LMESetUp_DT_Lyapunov(LME lme)
-{
-  PetscFunctionBegin;
-  SETERRQ(PetscObjectComm((PetscObject)lme),PETSC_ERR_SUP,"There is no solver yet for this matrix equation type");
   PetscFunctionReturn(0);
 }
 
@@ -120,21 +79,23 @@ PetscErrorCode LMESetUp(LME lme)
       ierr = LMESetUp_Lyapunov(lme);CHKERRQ(ierr);
       break;
     case LME_SYLVESTER:
-      ierr = LMESetUp_Sylvester(lme);CHKERRQ(ierr);
+      LMECheckCoeff(lme,lme->B,"B","Sylvester");
       break;
     case LME_GEN_LYAPUNOV:
-      ierr = LMESetUp_Gen_Lyapunov(lme);CHKERRQ(ierr);
+      LMECheckCoeff(lme,lme->D,"D","Generalized Lyapunov");
       break;
     case LME_GEN_SYLVESTER:
-      ierr = LMESetUp_Gen_Sylvester(lme);CHKERRQ(ierr);
+      LMECheckCoeff(lme,lme->B,"B","Generalized Sylvester");
+      LMECheckCoeff(lme,lme->D,"D","Generalized Sylvester");
+      LMECheckCoeff(lme,lme->E,"E","Generalized Sylvester");
       break;
     case LME_DT_LYAPUNOV:
-      ierr = LMESetUp_DT_Lyapunov(lme);CHKERRQ(ierr);
       break;
     case LME_STEIN:
-      ierr = LMESetUp_Stein(lme);CHKERRQ(ierr);
+      LMECheckCoeff(lme,lme->D,"D","Stein");
       break;
   }
+  if (lme->problem_type!=LME_LYAPUNOV) SETERRQ(PetscObjectComm((PetscObject)lme),PETSC_ERR_SUP,"There is no solver yet for this matrix equation type");
 
   /* call specific solver setup */
   ierr = (*lme->ops->setup)(lme);CHKERRQ(ierr);
@@ -144,6 +105,20 @@ PetscErrorCode LMESetUp(LME lme)
 
   ierr = PetscLogEventEnd(LME_SetUp,lme,0,0,0);CHKERRQ(ierr);
   lme->setupcalled = 1;
+  PetscFunctionReturn(0);
+}
+
+PETSC_STATIC_INLINE PetscErrorCode LMESetCoefficients_Private(LME lme,Mat A,Mat *lmeA)
+{
+  PetscErrorCode ierr;
+  PetscInt       m,n;
+
+  PetscFunctionBegin;
+  ierr = MatGetSize(A,&m,&n);CHKERRQ(ierr);
+  if (m!=n) SETERRQ(PetscObjectComm((PetscObject)lme),PETSC_ERR_ARG_WRONG,"Matrix is non-square");
+  if (!lme->setupcalled) { ierr = MatDestroy(lmeA);CHKERRQ(ierr); }
+  ierr = PetscObjectReference((PetscObject)A);CHKERRQ(ierr);
+  *lmeA = A;
   PetscFunctionReturn(0);
 }
 
@@ -199,32 +174,13 @@ PetscErrorCode LMESetCoefficients(LME lme,Mat A,Mat B,Mat D,Mat E)
 
   if (lme->setupcalled) { ierr = LMEReset(lme);CHKERRQ(ierr); }
 
-  ierr = MatGetSize(A,&m,&n);CHKERRQ(ierr);
-  if (m!=n) SETERRQ(PetscObjectComm((PetscObject)lme),PETSC_ERR_ARG_WRONG,"A is a non-square matrix");
-  if (!lme->setupcalled) { ierr = MatDestroy(&lme->A);CHKERRQ(ierr); }
-  ierr = PetscObjectReference((PetscObject)A);CHKERRQ(ierr);
-  lme->A = A;
-  if (B) {
-    ierr = MatGetSize(B,&m,&n);CHKERRQ(ierr);
-    if (m!=n) SETERRQ(PetscObjectComm((PetscObject)lme),PETSC_ERR_ARG_WRONG,"B is a non-square matrix");
-    if (!lme->setupcalled) { ierr = MatDestroy(&lme->B);CHKERRQ(ierr); }
-    ierr = PetscObjectReference((PetscObject)B);CHKERRQ(ierr);
-    lme->B = B;
-  } else if (!lme->setupcalled) { ierr = MatDestroy(&lme->B);CHKERRQ(ierr); }
-  if (D) {
-    ierr = MatGetSize(D,&m,&n);CHKERRQ(ierr);
-    if (m!=n) SETERRQ(PetscObjectComm((PetscObject)lme),PETSC_ERR_ARG_WRONG,"D is a non-square matrix");
-    if (!lme->setupcalled) { ierr = MatDestroy(&lme->D);CHKERRQ(ierr); }
-    ierr = PetscObjectReference((PetscObject)D);CHKERRQ(ierr);
-    lme->D = D;
-  } else if (!lme->setupcalled) { ierr = MatDestroy(&lme->D);CHKERRQ(ierr); }
-  if (E) {
-    ierr = MatGetSize(E,&m,&n);CHKERRQ(ierr);
-    if (m!=n) SETERRQ(PetscObjectComm((PetscObject)lme),PETSC_ERR_ARG_WRONG,"E is a non-square matrix");
-    if (!lme->setupcalled) { ierr = MatDestroy(&lme->E);CHKERRQ(ierr); }
-    ierr = PetscObjectReference((PetscObject)E);CHKERRQ(ierr);
-    lme->E = E;
-  } else if (!lme->setupcalled) { ierr = MatDestroy(&lme->E);CHKERRQ(ierr); }
+  ierr = LMESetCoefficients_Private(lme,A,&lme->A);CHKERRQ(ierr);
+  if (B) { ierr = LMESetCoefficients_Private(lme,B,&lme->B);CHKERRQ(ierr); }
+  else if (!lme->setupcalled) { ierr = MatDestroy(&lme->B);CHKERRQ(ierr); }
+  if (D) { ierr = LMESetCoefficients_Private(lme,D,&lme->D);CHKERRQ(ierr); }
+  else if (!lme->setupcalled) { ierr = MatDestroy(&lme->D);CHKERRQ(ierr); }
+  if (E) { ierr = LMESetCoefficients_Private(lme,E,&lme->E);CHKERRQ(ierr); }
+  else if (!lme->setupcalled) { ierr = MatDestroy(&lme->E);CHKERRQ(ierr); }
 
   lme->setupcalled = 0;
   PetscFunctionReturn(0);

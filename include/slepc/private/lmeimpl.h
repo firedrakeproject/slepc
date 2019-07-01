@@ -71,6 +71,22 @@ struct _p_LME {
 
 SLEPC_INTERN PetscErrorCode LMERankSVD(LME,PetscInt,PetscScalar*,PetscScalar*,PetscInt*);
 
+/*
+    Macros to test valid LME arguments
+*/
+#if !defined(PETSC_USE_DEBUG)
+
+#define LMECheckCoeff(h,A,mat,eq) do {} while (0)
+
+#else
+
+#define LMECheckCoeff(h,A,mat,eq) \
+  do { \
+    if (!A) SETERRQ2(PetscObjectComm((PetscObject)h),PETSC_ERR_ARG_WRONGSTATE,"%s matrix equation requires coefficient matrix %s",eq,mat); \
+  } while (0)
+
+#endif
+
 /* functions interfaced from Fortran library SLICOT */
 #if defined(SLEPC_HAVE_SLICOT)
 
