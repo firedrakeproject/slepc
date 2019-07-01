@@ -142,6 +142,6 @@ int main(int argc,char **argv)
 /*TEST
 
    test:
-      args: -n 12 -pep_nev 2 -pep_ncv 21
+      args: -n 12 -pep_nev 2 -pep_ncv 21 -pep_conv_abs
 
 TEST*/

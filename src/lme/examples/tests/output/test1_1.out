@@ -107,23 +107,24 @@ row 98: (88, 1.)  (97, 1.)  (98, -4.)  (99, 1.)
 row 99: (89, 1.)  (98, 1.)  (99, -4.)
 Mat Object: 1 MPI processes
   type: lrc
+ Solver being used: krylov
  Tolerance: -2., max iterations: 100
  Subspace dimension: 21
  Erroring out if convergence fails
-LME Object: (myprefix_) 1 MPI processes
+LME Object: 1 MPI processes
   type: krylov
   equation type: continuous-time Lyapunov
   number of column vectors (ncv): 21
   maximum number of iterations: 100
   tolerance: 1e-08
-BV Object: (myprefix_) 1 MPI processes
+BV Object: 1 MPI processes
   type: svec
   22 columns of global length 100
   vector orthogonalization method: classical Gram-Schmidt
   orthogonalization refinement: if needed (eta: 0.7071)
   block orthogonalization method: GS
   doing matmult as a single matrix-matrix product
-myprefix_ Linear matrix equation solve converged due to CONVERGED_TOL; iterations 4
+Linear matrix equation solve converged due to CONVERGED_TOL; iterations 4
  Error estimate reported by the solver: 2.948e-10
  Computed residual norm: 4.03e-10
 

@@ -8,7 +8,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-static char help[] = "Test MFN interface functions, bsed on ex32.c.\n\n"
+static char help[] = "Test MFN interface functions, based on ex32.c.\n\n"
   "The command line options are:\n"
   "  -n <n>, where <n> = number of grid subdivisions in x dimension.\n"
   "  -m <m>, where <m> = number of grid subdivisions in y dimension.\n\n";
@@ -23,7 +23,9 @@ int main(int argc,char **argv)
   PetscScalar          *u;
   PetscInt             N,n=10,m,Istart,Iend,II,maxit,ncv,i,j;
   PetscErrorCode       ierr;
-  PetscBool            flg;
+  PetscBool            flg,testprefix=PETSC_FALSE,viewmatrices=PETSC_FALSE;
+  const char           *prefix;
+  LMEType              type;
   LMEProblemType       ptype;
   PetscViewerAndFormat *vf;
 
@@ -34,6 +36,8 @@ int main(int argc,char **argv)
   if (!flg) m=n;
   N = n*m;
   ierr = PetscPrintf(PETSC_COMM_WORLD,"\nLyapunov equation, N=%D (%Dx%D grid)\n\n",N,n,m);CHKERRQ(ierr);
+  ierr = PetscOptionsGetBool(NULL,NULL,"-test_prefix",&testprefix,NULL);CHKERRQ(ierr);
+  ierr = PetscOptionsGetBool(NULL,NULL,"-view_matrices",&viewmatrices,NULL);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                        Create the 2-D Laplacian, A
@@ -90,12 +94,19 @@ int main(int argc,char **argv)
   ierr = LMESetCoefficients(lme,A,NULL,NULL,NULL);CHKERRQ(ierr);
   ierr = LMESetRHS(lme,C);CHKERRQ(ierr);
 
+  /* test prefix usage */
+  if (testprefix) {
+    ierr = LMESetOptionsPrefix(lme,"check_");CHKERRQ(ierr);
+    ierr = LMEAppendOptionsPrefix(lme,"myprefix_");CHKERRQ(ierr);
+    ierr = LMEGetOptionsPrefix(lme,&prefix);CHKERRQ(ierr);
+    ierr = PetscPrintf(PETSC_COMM_WORLD," LME prefix is currently: %s\n",prefix);CHKERRQ(ierr);
+  }
+
   /* test some interface functions */
   ierr = LMEGetCoefficients(lme,&B,NULL,NULL,NULL);CHKERRQ(ierr);
-  ierr = MatView(B,PETSC_VIEWER_STDOUT_WORLD);CHKERRQ(ierr);
+  if (viewmatrices) { ierr = MatView(B,PETSC_VIEWER_STDOUT_WORLD);CHKERRQ(ierr); }
   ierr = LMEGetRHS(lme,&D);CHKERRQ(ierr);
-  ierr = MatView(D,PETSC_VIEWER_STDOUT_WORLD);CHKERRQ(ierr);
-  ierr = LMESetOptionsPrefix(lme,"myprefix_");CHKERRQ(ierr);
+  if (viewmatrices) { ierr = MatView(D,PETSC_VIEWER_STDOUT_WORLD);CHKERRQ(ierr); }
   ierr = LMESetTolerances(lme,PETSC_DEFAULT,100);CHKERRQ(ierr);
   ierr = LMESetDimensions(lme,21);CHKERRQ(ierr);
   ierr = LMESetErrorIfNotConverged(lme,PETSC_TRUE);CHKERRQ(ierr);
@@ -104,6 +115,9 @@ int main(int argc,char **argv)
   ierr = LMEMonitorSet(lme,(PetscErrorCode (*)(LME,PetscInt,PetscReal,void*))LMEMonitorDefault,vf,(PetscErrorCode (*)(void**))PetscViewerAndFormatDestroy);CHKERRQ(ierr);
   /* ierr = LMEMonitorCancel(lme);CHKERRQ(ierr); */
   ierr = LMESetFromOptions(lme);CHKERRQ(ierr);
+
+  ierr = LMEGetType(lme,&type);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD," Solver being used: %s\n",type);CHKERRQ(ierr);
 
   /* query properties and print them */
   ierr = LMEGetTolerances(lme,&tol,&maxit);CHKERRQ(ierr);
@@ -137,7 +151,20 @@ int main(int argc,char **argv)
 
    test:
       suffix: 1
-      args: -myprefix_lme_monitor_cancel -myprefix_lme_converged_reason -myprefix_lme_view
-      requires: !single
+      args: -lme_monitor_cancel -lme_converged_reason -lme_view -view_matrices
+      requires: double
+      filter: sed -e "s/4.0[0-9]*e-10/4.03e-10/"
+
+   test:
+      suffix: 2
+      args: -test_prefix -check_myprefix_lme_monitor
+      requires: double
+      filter: sed -e "s/estimate [0-9]\.[0-9]*e[+-]\([0-9]*\)/estimate (removed)/g" | sed -e "s/4.0[0-9]*e-10/4.03e-10/"
+
+   test:
+      suffix: 3
+      args: -lme_monitor_cancel -info
+      requires: double
+      filter: sed -e "s/equation = [0-9]\.[0-9]*e[+-]\([0-9]*\)/equation = (removed)/g" | sed -e "s/4.0[0-9]*e-10/4.03e-10/" | grep -v Comm
 
 TEST*/
