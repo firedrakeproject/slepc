@@ -20,6 +20,7 @@ int main(int argc,char **argv)
   MFN                  mfn;
   FN                   f;
   MFNConvergedReason   reason;
+  MFNType              type;
   PetscReal            norm,tol;
   Vec                  v,y;
   PetscInt             N,n=4,Istart,Iend,i,j,II,ncv,its,maxit;
@@ -70,6 +71,10 @@ int main(int argc,char **argv)
   ierr = MFNSetOperator(mfn,A);CHKERRQ(ierr);
   ierr = MFNGetFN(mfn,&f);CHKERRQ(ierr);
   ierr = FNSetType(f,FNSQRT);CHKERRQ(ierr);
+
+  ierr = MFNSetType(mfn,MFNKRYLOV);CHKERRQ(ierr);
+  ierr = MFNGetType(mfn,&type);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD," Type set to %s\n",type);CHKERRQ(ierr);
 
   /* test prefix usage */
   if (testprefix) {
@@ -126,7 +131,7 @@ int main(int argc,char **argv)
 
    test:
       suffix: 1
-      args: -mfn_monitor_cancel -mfn_converged_reason -mfn_view
+      args: -mfn_monitor_cancel -mfn_converged_reason -mfn_view -info_exclude mfn,bv,fn -log_exclude mfn,bv,fn
 
    test:
       suffix: 2

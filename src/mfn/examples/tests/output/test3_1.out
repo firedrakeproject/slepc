@@ -1,6 +1,7 @@
 
 Square root of Laplacian y=sqrt(A)*e_1, N=16 (4x4 grid)
 
+ Type set to krylov
 Mat Object: 1 MPI processes
   type: seqaij
 row 0: (0, 4.)  (1, -1.)  (4, -1.) 
