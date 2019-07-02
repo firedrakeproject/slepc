@@ -40,6 +40,8 @@ int main(int argc,char **argv)
 {
   NEP            nep;
   EPS            eps;
+  KSP            ksp;
+  PC             pc;
   Mat            F,J;
   ApplicationCtx ctx;
   PetscInt       n=128;
@@ -59,6 +61,16 @@ int main(int argc,char **argv)
   ierr = EPSCreate(PETSC_COMM_WORLD,&eps);CHKERRQ(ierr);
   ierr = EPSSetType(eps,EPSGD);CHKERRQ(ierr);
   ierr = EPSSetFromOptions(eps);CHKERRQ(ierr);
+
+  /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+        Create a standalone KSP with appropriate settings
+     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+  ierr = KSPCreate(PETSC_COMM_WORLD,&ksp);CHKERRQ(ierr);
+  ierr = KSPSetType(ksp,KSPBCGS);CHKERRQ(ierr);
+  ierr = KSPGetPC(ksp,&pc);CHKERRQ(ierr);
+  ierr = PCSetType(pc,PCSOR);CHKERRQ(ierr);
+  ierr = KSPSetFromOptions(ksp);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                Prepare nonlinear eigensolver context
@@ -85,6 +97,7 @@ int main(int argc,char **argv)
 
   ierr = NEPSetType(nep,NEPSLP);CHKERRQ(ierr);
   ierr = NEPSLPSetEPS(nep,eps);CHKERRQ(ierr);
+  ierr = NEPSLPSetKSP(nep,ksp);CHKERRQ(ierr);
   ierr = NEPSetFromOptions(nep);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -110,6 +123,7 @@ int main(int argc,char **argv)
 
   ierr = NEPDestroy(&nep);CHKERRQ(ierr);
   ierr = EPSDestroy(&eps);CHKERRQ(ierr);
+  ierr = KSPDestroy(&ksp);CHKERRQ(ierr);
   ierr = MatDestroy(&F);CHKERRQ(ierr);
   ierr = MatDestroy(&J);CHKERRQ(ierr);
   ierr = SlepcFinalize();
@@ -261,6 +275,5 @@ PetscErrorCode FormJacobian(NEP nep,PetscScalar lambda,Mat jac,void *ctx)
       suffix: 1
       args: -nep_target 21 -terse
       requires: !single
-      output_file: output/test1_1.out
 
 TEST*/

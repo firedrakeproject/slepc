@@ -22,6 +22,7 @@ int main(int argc,char **argv)
   PetscReal            tol;
   PetscScalar          coeffs[2],target;
   PetscInt             n=20,i,its,nev,ncv,mpd,Istart,Iend,nterm;
+  PetscBool            twoside;
   NEPWhich             which;
   NEPConvergedReason   reason;
   NEPType              type;
@@ -109,6 +110,8 @@ int main(int argc,char **argv)
   ierr = NEPSetType(nep,NEPRII);CHKERRQ(ierr);
   ierr = NEPGetType(nep,&type);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD," Type set to %s\n",type);CHKERRQ(ierr);
+  ierr = NEPGetTwoSided(nep,&twoside);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD," Two-sided flag = %s\n",twoside?"true":"false");CHKERRQ(ierr);
 
   ierr = NEPGetProblemType(nep,&ptype);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD," Problem type before changing = %d",(int)ptype);CHKERRQ(ierr);

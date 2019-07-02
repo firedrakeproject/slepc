@@ -1,9 +1,11 @@
 
 1-D Delay Eigenproblem, n=128, tau=0.001
 
-  Convergence history for myprefix_ solve.
+NEP prefix is currently: check_myprefix_
+
+  Convergence history for check_myprefix_ solve.
   6 NEP converged value (error) #0 0.808885 (removed)
-NEP Object: (myprefix_) 1 MPI processes
+NEP Object: (check_myprefix_) 1 MPI processes
   type: narnoldi
     KSP Object: 1 MPI processes
       type: bcgs
@@ -56,15 +58,16 @@ NEP Object: (myprefix_) 1 MPI processes
   maximum number of iterations: 16
   convergence test: relative to the eigenvalue
   dimension of user-provided initial space: 1
-BV Object: (myprefix_) 1 MPI processes
+BV Object: (check_myprefix_) 1 MPI processes
   type: svec
   16 columns of global length 128
   vector orthogonalization method: classical Gram-Schmidt
   orthogonalization refinement: if needed (eta: 0.7071)
   block orthogonalization method: GS
   doing matmult as a single matrix-matrix product
-DS Object: (myprefix_) 1 MPI processes
+DS Object: (check_myprefix_) 1 MPI processes
   type: nhep
  Number of requested eigenvalues: 1
+ N-Arnoldi lag parameter: 0
      0.80889
 
