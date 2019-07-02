@@ -13,10 +13,10 @@ FFLAGS     =
 CPPFLAGS   =
 FPPFLAGS   =
 LOCDIR     = src/lme/examples/tests/
-EXAMPLESC  = 
+EXAMPLESC  = test1.c
 EXAMPLESF  = 
 MANSEC     = LME
-TESTS      = 
+TESTS      = test1
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common
 

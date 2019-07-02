@@ -120,12 +120,16 @@ int main(int argc,char **argv)
    test:
       suffix: 1
       args: -mfn_type {{krylov expokit}}
-      output_file: output/test2.out
 
    test:
       suffix: 2
       args: -mfn_type {{krylov expokit}} -mat_type aijcusparse
       requires: cuda !complex
-      output_file: output/test2.out
+      output_file: output/test2_1.out
+
+   test:
+      suffix: 3
+      args: -mfn_type expokit -t 0.6
+      requires: !__float128
 
 TEST*/

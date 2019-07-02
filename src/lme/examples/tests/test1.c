@@ -8,7 +8,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-static char help[] = "Solves a Lypunov equation with the 2-D Laplacian.\n\n"
+static char help[] = "Test MFN interface functions, based on ex32.c.\n\n"
   "The command line options are:\n"
   "  -n <n>, where <n> = number of grid subdivisions in x dimension.\n"
   "  -m <m>, where <m> = number of grid subdivisions in y dimension.\n\n";
@@ -17,25 +17,27 @@ static char help[] = "Solves a Lypunov equation with the 2-D Laplacian.\n\n"
 
 int main(int argc,char **argv)
 {
-  Mat                A;           /* problem matrix */
-  Mat                C,C1;        /* right-hand side */
-  Mat                X,X1;        /* solution */
-  LME                lme;
-  PetscReal          tol,errest,error;
-  PetscScalar        *u;
-  PetscInt           N,n=10,m,Istart,Iend,II,maxit,its,ncv,i,j,rank=0;
-  PetscErrorCode     ierr;
-  PetscBool          flag;
-  LMEConvergedReason reason;
+  Mat                  A,B,C,C1,D;
+  LME                  lme;
+  PetscReal            tol,errest,error;
+  PetscScalar          *u;
+  PetscInt             N,n=10,m,Istart,Iend,II,maxit,ncv,i,j;
+  PetscErrorCode       ierr;
+  PetscBool            flg,testprefix=PETSC_FALSE,viewmatrices=PETSC_FALSE;
+  const char           *prefix;
+  LMEType              type;
+  LMEProblemType       ptype;
+  PetscViewerAndFormat *vf;
 
   ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
 
   ierr = PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL);CHKERRQ(ierr);
-  ierr = PetscOptionsGetInt(NULL,NULL,"-m",&m,&flag);CHKERRQ(ierr);
-  if (!flag) m=n;
+  ierr = PetscOptionsGetInt(NULL,NULL,"-m",&m,&flg);CHKERRQ(ierr);
+  if (!flg) m=n;
   N = n*m;
-  ierr = PetscOptionsGetInt(NULL,NULL,"-rank",&rank,NULL);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD,"\nLyapunov equation, N=%D (%Dx%D grid)\n\n",N,n,m);CHKERRQ(ierr);
+  ierr = PetscOptionsGetBool(NULL,NULL,"-test_prefix",&testprefix,NULL);CHKERRQ(ierr);
+  ierr = PetscOptionsGetBool(NULL,NULL,"-view_matrices",&viewmatrices,NULL);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                        Create the 2-D Laplacian, A
@@ -82,77 +84,54 @@ int main(int argc,char **argv)
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                 Create the solver and set various options
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-  /*
-     Create the matrix equation solver context
-  */
   ierr = LMECreate(PETSC_COMM_WORLD,&lme);CHKERRQ(ierr);
-
-  /*
-     Set the type of equation
-  */
+  ierr = LMESetProblemType(lme,LME_SYLVESTER);CHKERRQ(ierr);
+  ierr = LMEGetProblemType(lme,&ptype);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD," Equation type set to %D\n",ptype);CHKERRQ(ierr);
   ierr = LMESetProblemType(lme,LME_LYAPUNOV);CHKERRQ(ierr);
-
-  /*
-     Set the matrix coefficients, the right-hand side, and the solution.
-     In this case, it is a Lyapunov equation A*X+X*A'=-C where both
-     C and X are symmetric and low-rank, C=C1*C1', X=X1*X1'
-  */
+  ierr = LMEGetProblemType(lme,&ptype);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD," Equation type changed to %D\n",ptype);CHKERRQ(ierr);
   ierr = LMESetCoefficients(lme,A,NULL,NULL,NULL);CHKERRQ(ierr);
   ierr = LMESetRHS(lme,C);CHKERRQ(ierr);
 
-  if (rank) {  /* Create X only if the user has specified a nonzero value of rank */
-    ierr = PetscPrintf(PETSC_COMM_WORLD," Computing a solution with prescribed rank=%d\n",rank);CHKERRQ(ierr);
-    ierr = MatCreate(PETSC_COMM_WORLD,&X1);CHKERRQ(ierr);
-    ierr = MatSetSizes(X1,PETSC_DECIDE,PETSC_DECIDE,N,rank);CHKERRQ(ierr);
-    ierr = MatSetType(X1,MATDENSE);CHKERRQ(ierr);
-    ierr = MatSetUp(X1);CHKERRQ(ierr);
-    ierr = MatAssemblyBegin(X1,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
-    ierr = MatAssemblyEnd(X1,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
-    ierr = MatCreateLRC(NULL,X1,NULL,NULL,&X);CHKERRQ(ierr);
-    ierr = MatDestroy(&X1);CHKERRQ(ierr);
-    ierr = LMESetSolution(lme,X);CHKERRQ(ierr);
-    ierr = MatDestroy(&X);CHKERRQ(ierr);
+  /* test prefix usage */
+  if (testprefix) {
+    ierr = LMESetOptionsPrefix(lme,"check_");CHKERRQ(ierr);
+    ierr = LMEAppendOptionsPrefix(lme,"myprefix_");CHKERRQ(ierr);
+    ierr = LMEGetOptionsPrefix(lme,&prefix);CHKERRQ(ierr);
+    ierr = PetscPrintf(PETSC_COMM_WORLD," LME prefix is currently: %s\n",prefix);CHKERRQ(ierr);
   }
 
-  /*
-     (Optional) Set other solver options
-  */
-  ierr = LMESetTolerances(lme,1e-07,PETSC_DEFAULT);CHKERRQ(ierr);
-
-  /*
-     Set solver parameters at runtime
-  */
+  /* test some interface functions */
+  ierr = LMEGetCoefficients(lme,&B,NULL,NULL,NULL);CHKERRQ(ierr);
+  if (viewmatrices) { ierr = MatView(B,PETSC_VIEWER_STDOUT_WORLD);CHKERRQ(ierr); }
+  ierr = LMEGetRHS(lme,&D);CHKERRQ(ierr);
+  if (viewmatrices) { ierr = MatView(D,PETSC_VIEWER_STDOUT_WORLD);CHKERRQ(ierr); }
+  ierr = LMESetTolerances(lme,PETSC_DEFAULT,100);CHKERRQ(ierr);
+  ierr = LMESetDimensions(lme,21);CHKERRQ(ierr);
+  ierr = LMESetErrorIfNotConverged(lme,PETSC_TRUE);CHKERRQ(ierr);
+  /* test monitors */
+  ierr = PetscViewerAndFormatCreate(PETSC_VIEWER_STDOUT_WORLD,PETSC_VIEWER_DEFAULT,&vf);CHKERRQ(ierr);
+  ierr = LMEMonitorSet(lme,(PetscErrorCode (*)(LME,PetscInt,PetscReal,void*))LMEMonitorDefault,vf,(PetscErrorCode (*)(void**))PetscViewerAndFormatDestroy);CHKERRQ(ierr);
+  /* ierr = LMEMonitorCancel(lme);CHKERRQ(ierr); */
   ierr = LMESetFromOptions(lme);CHKERRQ(ierr);
 
+  ierr = LMEGetType(lme,&type);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD," Solver being used: %s\n",type);CHKERRQ(ierr);
+
+  /* query properties and print them */
+  ierr = LMEGetTolerances(lme,&tol,&maxit);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD," Tolerance: %g, max iterations: %D\n",(double)tol,maxit);CHKERRQ(ierr);
+  ierr = LMEGetDimensions(lme,&ncv);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD," Subspace dimension: %D\n",ncv);CHKERRQ(ierr);
+  ierr = LMEGetErrorIfNotConverged(lme,&flg);CHKERRQ(ierr);
+  if (flg) { ierr = PetscPrintf(PETSC_COMM_WORLD," Erroring out if convergence fails\n");CHKERRQ(ierr); }
+
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-                   Solve the matrix equation, A*X+X*A'=-C
+                Solve the matrix equation and compute residual error
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
   ierr = LMESolve(lme);CHKERRQ(ierr);
-  ierr = LMEGetConvergedReason(lme,&reason);CHKERRQ(ierr);
-  if (reason<0) SETERRQ(PETSC_COMM_WORLD,1,"Solver did not converge");
-
-  if (!rank) {  /* X1 was created by the solver, so extract it and see how many columns it has */
-    ierr = LMEGetSolution(lme,&X);CHKERRQ(ierr);
-    ierr = MatLRCGetMats(X,NULL,&X1,NULL,NULL);CHKERRQ(ierr);
-    ierr = MatGetSize(X1,NULL,&rank);CHKERRQ(ierr);
-    ierr = PetscPrintf(PETSC_COMM_WORLD," The solver has computed a solution with rank=%d\n",rank);CHKERRQ(ierr);
-  }
-
-  /*
-     Optional: Get some information from the solver and display it
-  */
-  ierr = LMEGetIterationNumber(lme,&its);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," Number of iterations of the method: %D\n",its);CHKERRQ(ierr);
-  ierr = LMEGetDimensions(lme,&ncv);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," Subspace dimension: %D\n",ncv);CHKERRQ(ierr);
-  ierr = LMEGetTolerances(lme,&tol,&maxit);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," Stopping condition: tol=%.4g, maxit=%D\n",(double)tol,maxit);CHKERRQ(ierr);
-
-  /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-                        Compute residual error
-     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-
   ierr = LMEGetErrorEstimate(lme,&errest);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD," Error estimate reported by the solver: %.4g\n",(double)errest);CHKERRQ(ierr);
   ierr = LMEComputeError(lme,&error);CHKERRQ(ierr);
@@ -172,11 +151,20 @@ int main(int argc,char **argv)
 
    test:
       suffix: 1
-      requires: !single
+      args: -lme_monitor_cancel -lme_converged_reason -lme_view -view_matrices -info_exclude lme,bv -log_exclude lme,bv
+      requires: double
+      filter: sed -e "s/4.0[0-9]*e-10/4.03e-10/"
 
    test:
       suffix: 2
-      args: -rank 40
-      requires: !single
+      args: -test_prefix -check_myprefix_lme_monitor
+      requires: double
+      filter: sed -e "s/estimate [0-9]\.[0-9]*e[+-]\([0-9]*\)/estimate (removed)/g" | sed -e "s/4.0[0-9]*e-10/4.03e-10/"
+
+   test:
+      suffix: 3
+      args: -lme_monitor_cancel -info
+      requires: double
+      filter: sed -e "s/equation = [0-9]\.[0-9]*e[+-]\([0-9]*\)/equation = (removed)/g" | sed -e "s/4.0[0-9]*e-10/4.03e-10/" | grep -v Comm | grep -v machine | grep -v PetscGetHostName
 
 TEST*/

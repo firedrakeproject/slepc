@@ -78,15 +78,14 @@ int main(int argc,char **argv)
    build:
       requires: !__float128
 
-   testset:
-      args: -svd_nsv 7
-      test:
-         args: -svd_type {{lanczos trlanczos cross cyclic lapack}}
-         requires: double
-      test:
-         suffix: 1_primme
-         args: -svd_type primme
-         requires: primme
-         output_file: output/test2_1.out
+   test:
+      args: -svd_nsv 7 -svd_type {{lanczos trlanczos cross cyclic lapack}}
+      requires: double
+
+   test:
+      suffix: 1_primme
+      args: -svd_nsv 7 -svd_type primme
+      requires: primme
+      output_file: output/test2_1.out
 
 TEST*/

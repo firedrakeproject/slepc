@@ -162,10 +162,21 @@ int main(int argc,char **argv)
          suffix: 1_lobpcg
          args: -eps_type lobpcg -st_shift 22 -eps_largest_real
 
-   test:
-      suffix: 2
+   testset:
       requires: !single !complex
-      args: -eps_interval .1,1.1 -eps_tol 1e-10 -st_type sinvert -st_ksp_type preonly -st_pc_type cholesky
+      args: -eps_tol 1e-10 -st_type sinvert -st_ksp_type preonly -st_pc_type cholesky
+      test:
+         suffix: 2
+         args: -eps_interval .1,1.1
+      test:
+         suffix: 2_open
+         args: -eps_interval -inf,1.1
+      test:
+         suffix: 2_parallel
+         requires: mumps
+         nsize: 3
+         args: -eps_interval .1,1.1 -eps_krylovschur_partitions 2 -st_pc_factor_mat_solver_type mumps -mat_mumps_icntl_13 1
+         output_file: output/test1_2.out
 
    test:
       suffix: 3
@@ -201,7 +212,7 @@ int main(int argc,char **argv)
 
    testset:
       args: -n 18 -eps_nev 4 -eps_max_it 1500 -mat_type aijcusparse
-      requires: cuda
+      requires: cuda !single
       output_file: output/test1_1.out
       test:
          suffix: 7
@@ -230,7 +241,7 @@ int main(int argc,char **argv)
    testset:
       nsize: 2
       args: -n 18 -eps_nev 7 -eps_ncv 32 -ds_parallel synchronized
-      requires: cuda
+      requires: cuda !single
       filter: grep -v "orthogonality"
       output_file: output/test1_9.out
       test:

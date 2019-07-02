@@ -89,6 +89,7 @@ int main(int argc,char **argv)
   PetscBool          combine=PETSC_FALSE;
   PetscInt           i,k,Istart,Iend,n=199,steps;
   PetscReal          t,tend=1.0,deltat=0.01,nrmd,nrmu,x,h;
+  const PetscReal    half=0.5;
   PetscScalar        value,c,uval,*warray;
   const PetscScalar *uarray;
   PetscErrorCode     ierr;
@@ -133,7 +134,7 @@ int main(int argc,char **argv)
     x = (i+1)*h;
     value = x*(1.0-x)*PetscExpReal(tend);
     ierr = VecSetValue(yex,i,value,INSERT_VALUES);CHKERRQ(ierr);
-    value = PetscAbsReal(x-0.5)-0.5;
+    value = PetscAbsReal(x-half)-half;
     ierr = VecSetValue(u,i,value,INSERT_VALUES);CHKERRQ(ierr);
   }
   ierr = VecAssemblyBegin(yex);CHKERRQ(ierr);

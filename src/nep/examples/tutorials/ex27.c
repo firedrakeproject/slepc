@@ -276,13 +276,13 @@ PetscErrorCode ComputeSingularities(NEP nep,PetscInt *maxnp,PetscScalar *xi,void
    test:
       suffix: 5
       args: -nep_nev 3 -mat_type aijcusparse -terse
-      requires: cuda
+      requires: cuda !single
       output_file: output/ex27_1.out
 
    test:
       suffix: 6
       args: -split 0 -nep_nev 3 -mat_type aijcusparse -terse
-      requires: cuda
+      requires: cuda !single
       output_file: output/ex27_2.out
 
    test:
