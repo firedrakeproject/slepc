@@ -182,12 +182,12 @@ $(foreach pkg, $(pkgs), $(call concattestlang,$(pkg),F F90)) : $(libslepcall)
 # Testing convenience targets
 .PHONY: test pre-clean
 
-test: pre-clean report_tests
+test: report_tests
 
 pre-clean:
-	@$(eval STARTTIME := $(shell date +%s))
 	@$(RM) -rf $(TESTDIR)/counts $(TESTLOGFILE)
 	@touch $(TESTLOGFILE)
+	@echo "Using MAKEFLAGS:" ${MAKEFLAGS}
 
 .PHONY: $(foreach pkg, $(pkgs), test-$(pkg) $(foreach lang, $(testlangs), test-$(pkg).$(lang) test-rm-$(pkg).$(lang)))
 testpkgs := $(foreach pkg, $(pkgs), test-$(pkg))
@@ -278,7 +278,14 @@ endif
 print-test:
 	-@echo $(TESTTARGETS)
 
-report_tests: $(TESTTARGETS)
+# Don't start running tests until starttime has completed
+$(alltesttargets:%=$(TESTDIR)/counts/%.counts) : starttime
+
+# Ensure that libslepc (if it is a prerequisite) has been built and clean the counts/logs before starting timer
+starttime: pre-clean $(libslepcall)
+	@$(eval STARTTIME := $(shell date +%s))
+
+report_tests: starttime $(TESTTARGETS)
 	@$(eval ENDTIME := $(shell date +%s))
 	@elapsed_time=$$(($(ENDTIME)- $(STARTTIME))) && \
 	$(PYTHON) $(PETSCCONFIGDIR)/report_tests.py -m $(MAKE) -d $(TESTDIR)/counts -t 5 -e $${elapsed_time} | tee ${REPORTFILE} && \
