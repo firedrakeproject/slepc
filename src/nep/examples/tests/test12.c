@@ -30,7 +30,7 @@ int main(int argc,char **argv)
 {
   NEP            nep;             /* nonlinear eigensolver context */
   Mat            A[2];
-  PetscInt       n=100,nev,Istart,Iend,i,ns,nsin;
+  PetscInt       n=100,Istart,Iend,i,ns,nsin;
   PetscErrorCode ierr;
   PetscBool      terse,fb;
   RG             rg;
