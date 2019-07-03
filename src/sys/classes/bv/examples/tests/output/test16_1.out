@@ -9,3 +9,4 @@ BV Object: V 2 MPI processes
   number of tensor blocks (degree): 3
   number of columns of U factor: 8
 Level of orthogonality < 100*eps
+Norm: 6.7787

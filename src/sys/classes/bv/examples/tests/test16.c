@@ -156,6 +156,10 @@ int main(int argc,char **argv)
     ierr = BVView(V,view);CHKERRQ(ierr);
   }
 
+  /* Test BVNorm */
+  ierr = BVNorm(V,NORM_1,&norm);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"Norm: %g\n",(double)norm);CHKERRQ(ierr);
+
   ierr = BVDestroy(&U);CHKERRQ(ierr);
   ierr = BVDestroy(&V);CHKERRQ(ierr);
   ierr = MatDestroy(&Q);CHKERRQ(ierr);
