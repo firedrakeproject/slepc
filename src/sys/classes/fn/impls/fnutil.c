@@ -318,6 +318,285 @@ PetscErrorCode FNSqrtmNewtonSchulz(FN fn,PetscBLASInt n,PetscScalar *A,PetscBLAS
   PetscFunctionReturn(0);
 }
 
+#if defined(PETSC_HAVE_CUDA)
+
+#if defined(PETSC_USE_COMPLEX)
+#if defined(PETSC_USE_REAL_SINGLE)
+#define cublasXgetrfBatched(a,b,c,d,e,f,g)        cublasCgetrfBatched((a),(b),(cuComplex **)(c),(d),(e),(f),(g))
+#define cublasXgetriBatched(a,b,c,d,e,f,g,h,i)    cublasCgetriBatched((a),(b),(cuComplex **)(c),(d),(e),(cuComplex **)(f),(g),(h),(i))
+#define cublasXgemm(a,b,c,d,e,f,g,h,i,j,k,l,m,n)  cublasCgemm((a),(b),(c),(d),(e),(f),(const cuComplex *)(g),(const cuComplex *)(h),(i),(const cuComplex *)(j),(k),(const cuComplex *)(l),(cuComplex *)(m),(n))
+#define cublasXscal(a,b,c,d,e)                    cublasCscal((a),(b),(const cuComplex *)(c),(cuComplex *)(d),(e))
+#define cublasXaxpy(a,b,c,d,e,f,g)                cublasCaxpy((a),(b),(const cuComplex *)(c),(const cuComplex *)(d),(e),(cuComplex *)(f),(g))
+#define cublasXnrm2(a,b,c,d,e)                    cublasCznrm2((a),(b),(const cuComplex *)(c),(d),(e))
+#else
+#define cublasXgetrfBatched(a,b,c,d,e,f,g)        cublasZgetrfBatched((a),(b),(cuDoubleComplex **)(c),(d),(e),(f),(g))
+#define cublasXgetriBatched(a,b,c,d,e,f,g,h,i)    cublasZgetriBatched((a),(b),(const cuDoubleComplex **)(c),(d),(e),(cuDoubleComplex **)(f),(g),(h),(i))
+#define cublasXgemm(a,b,c,d,e,f,g,h,i,j,k,l,m,n)  cublasZgemm((a),(b),(c),(d),(e),(f),(const cuDoubleComplex *)(g),(const cuDoubleComplex *)(h),(i),(const cuDoubleComplex *)(j),(k),(const cuDoubleComplex *)(l),(cuDoubleComplex *)(m),(n))
+#define cublasXscal(a,b,c,d,e)                    cublasZscal((a),(b),(const cuDoubleComplex *)(c),(cuDoubleComplex *)(d),(e))
+#define cublasXaxpy(a,b,c,d,e,f,g)                cublasZaxpy((a),(b),(const cuDoubleComplex *)(c),(const cuDoubleComplex *)(d),(e),(cuDoubleComplex *)(f),(g))
+#define cublasXnrm2(a,b,c,d,e)                    cublasDznrm2((a),(b),(const cuDoubleComplex *)(c),(d),(e))
+#endif
+#else
+#if defined(PETSC_USE_REAL_SINGLE)
+#define cublasXgetrfBatched cublasSgetrfBatched
+#define cublasXgetriBatched cublasSgetriBatched
+#define cublasXgemm         cublasSgemm
+#define cublasXscal         cublasSscal
+#define cublasXaxpy         cublasSaxpy
+#define cublasXnrm2         cublasSnrm2
+#else
+#define cublasXgetrfBatched cublasDgetrfBatched
+#define cublasXgetriBatched cublasDgetriBatched
+#define cublasXgemm         cublasDgemm
+#define cublasXscal         cublasDscal
+#define cublasXaxpy         cublasDaxpy
+#define cublasXnrm2         cublasDnrm2
+#define cublasXnrm2         cublasDnrm2
+#endif
+#endif
+
+#include <cuda_runtime_api.h>
+#include <petsccuda.h>
+#include "cuda/fnutilcuda.h"
+
+#if defined(PETSC_USE_COMPLEX)
+#if defined(PETSC_USE_REAL_SINGLE)
+#define magma_xgetrf_gpu(a,b,c,d,e,f)   magma_cgetrf_gpu((a),(b),(magmaFloatComplex_ptr)(c),(d),(e),(f))
+#define magma_xgetri_gpu(a,b,c,d,e,f,g) magma_cgetri_gpu((a),(magmaFloatComplex_ptr)(b),(c),(d),(magmaFloatComplex_ptr)(e),(f),(g))
+#define magma_get_xgetri_nb             magma_get_cgetri_nb
+#else
+#define magma_xgetrf_gpu(a,b,c,d,e,f)   magma_zgetrf_gpu((a),(b),(magmaDoubleComplex_ptr)(c),(d),(e),(f))
+#define magma_xgetri_gpu(a,b,c,d,e,f,g) magma_zgetri_gpu((a),(magmaDoubleComplex_ptr)(b),(c),(d),(magmaDoubleComplex_ptr)(e),(f),(g))
+#define magma_get_xgetri_nb             magma_get_zgetri_nb
+#endif
+#else
+#if defined(PETSC_USE_REAL_SINGLE)
+#define magma_xgetrf_gpu                magma_sgetrf_gpu
+#define magma_xgetri_gpu                magma_sgetri_gpu
+#define magma_get_xgetri_nb             magma_get_sgetri_nb
+#else
+#define magma_xgetrf_gpu                magma_dgetrf_gpu
+#define magma_xgetri_gpu                magma_dgetri_gpu
+#define magma_get_xgetri_nb             magma_get_dgetri_nb
+#endif
+#endif
+
+#include <magma_v2.h>
+#define CHKMAGMA(mierr) CHKERRABORT(PETSC_COMM_SELF,mierr)
+
+/*
+ * Matrix square root by Newton-Schulz iteration. CUDA version.
+ * Computes the principal square root of the matrix T using the
+ * Newton-Schulz iteration. T is overwritten with sqrtm(T).
+ */
+PetscErrorCode SlepcSqrtmNewtonSchulz_CUDA(PetscBLASInt n,PetscScalar *A,PetscBLASInt ld,PetscBool inv)
+{
+  PetscScalar        *d_A,*d_Yold,*d_Z,*d_Zold,*d_M;
+  PetscReal          nrm,sqrtnrm;
+  const PetscScalar  szero=0.0,sone=1.0,smone=-1.0,spfive=0.5,sneg_two=-2.0,sthree=3.0;
+  PetscReal          tol,Yres=0.0,alpha,sqrtalpha;
+  PetscInt           it;
+  const PetscInt     maxit=500;
+  PetscBLASInt       N;
+  const PetscBLASInt one=1,zero=0;
+  PetscBool          converged=PETSC_FALSE;
+  cublasHandle_t     cublasv2handle;
+  PetscErrorCode     ierr;
+  cublasStatus_t     cberr;
+  cudaError_t        cerr;
+
+  PetscFunctionBegin;
+  ierr = PetscCUBLASGetHandle(&cublasv2handle);CHKERRQ(ierr);
+  N = n*n;
+  tol = PetscSqrtReal((PetscReal)n)*PETSC_MACHINE_EPSILON/2;
+
+  cerr = cudaMalloc((void **)&d_A,sizeof(PetscScalar)*N);CHKERRCUDA(cerr);
+  cerr = cudaMalloc((void **)&d_Yold,sizeof(PetscScalar)*N);CHKERRCUDA(cerr);
+  cerr = cudaMalloc((void **)&d_Z,sizeof(PetscScalar)*N);CHKERRCUDA(cerr);
+  cerr = cudaMalloc((void **)&d_Zold,sizeof(PetscScalar)*N);CHKERRCUDA(cerr);
+  cerr = cudaMalloc((void **)&d_M,sizeof(PetscScalar)*N);CHKERRCUDA(cerr);
+
+  /* Y = A; */
+  cerr = cudaMemcpy(d_A,A,sizeof(PetscScalar)*N,cudaMemcpyHostToDevice);CHKERRCUDA(cerr);
+  /* Z = I; */
+  cerr = cudaMemset(d_Z,zero,sizeof(PetscScalar)*N);CHKERRCUDA(cerr);
+  ierr = set_diagonal(d_Z,n,ld,sone);CHKERRQ(cerr);
+
+  /* scale A so that ||I-A|| < 1 */
+  cberr = cublasXaxpy(cublasv2handle,N,&smone,d_A,one,d_Z,one);CHKERRCUBLAS(cberr);
+  cberr = cublasXnrm2(cublasv2handle,N,d_Z,one,&nrm);CHKERRCUBLAS(cberr);
+  sqrtnrm = PetscSqrtReal(nrm);
+  alpha = 1.0/nrm;
+  cberr = cublasXscal(cublasv2handle,N,&alpha,d_A,one);CHKERRCUBLAS(cberr);
+  tol *= nrm;
+  ierr = PetscInfo2(NULL,"||I-A||_F = %g, new tol: %g\n",(double)nrm,(double)tol);CHKERRQ(ierr);
+  ierr = PetscLogFlops(2.0*n*n);CHKERRQ(ierr);
+
+  /* Z = I; */
+  cerr = cudaMemset(d_Z,zero,sizeof(PetscScalar)*N);CHKERRCUDA(cerr);
+  ierr = set_diagonal(d_Z,n,ld,sone);CHKERRQ(cerr);
+
+  for (it=0;it<NSMAXIT && !converged;it++) {
+    /* Yold = Y, Zold = Z */
+    cerr = cudaMemcpy(d_Yold,d_A,sizeof(PetscScalar)*N,cudaMemcpyDeviceToDevice);CHKERRCUDA(cerr);
+    cerr = cudaMemcpy(d_Zold,d_Z,sizeof(PetscScalar)*N,cudaMemcpyDeviceToDevice);CHKERRCUDA(cerr);
+
+    /* M = (3*I - Zold*Yold) */
+    cerr = cudaMemset(d_M,zero,sizeof(PetscScalar)*N);CHKERRCUDA(cerr);
+    ierr = set_diagonal(d_M,n,ld,sthree);CHKERRQ(cerr);
+    cberr = cublasXgemm(cublasv2handle,CUBLAS_OP_N,CUBLAS_OP_N,n,n,n,&smone,d_Zold,ld,d_Yold,ld,&sone,d_M,ld);CHKERRCUBLAS(cberr);
+
+    /* Y = (1/2) * Yold * M, Z = (1/2) * M * Zold */
+    cberr = cublasXgemm(cublasv2handle,CUBLAS_OP_N,CUBLAS_OP_N,n,n,n,&spfive,d_Yold,ld,d_M,ld,&szero,d_A,ld);CHKERRCUBLAS(cberr);
+    cberr = cublasXgemm(cublasv2handle,CUBLAS_OP_N,CUBLAS_OP_N,n,n,n,&spfive,d_M,ld,d_Zold,ld,&szero,d_Z,ld);CHKERRCUBLAS(cberr);
+
+    /* reldiff = norm(Y-Yold,'fro')/norm(Y,'fro') */
+    cberr = cublasXaxpy(cublasv2handle,N,&smone,d_A,one,d_Yold,one);CHKERRCUBLAS(cberr);
+    cberr = cublasXnrm2(cublasv2handle,N,d_Yold,one,&Yres);CHKERRCUBLAS(cberr);
+    ierr = PetscIsNanReal(Yres);CHKERRQ(ierr);
+    if (Yres<=tol) converged = PETSC_TRUE;
+    ierr = PetscInfo2(NULL,"it: %D res: %g\n",it,(double)Yres);CHKERRQ(ierr);
+
+    ierr = PetscLogFlops(6.0*n*n*n+2.0*n*n);CHKERRQ(ierr);
+  }
+
+  if (Yres>tol) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"SQRTM not converged after %d iterations", maxit);
+
+  /* undo scaling */
+  if (inv) {
+    sqrtnrm = 1.0/sqrtnrm;
+    cberr = cublasXscal(cublasv2handle,N,&sqrtnrm,d_A,one);CHKERRCUBLAS(cberr);
+  } else {
+    cberr = cublasXscal(cublasv2handle,N,&sqrtnrm,d_A,one);CHKERRCUBLAS(cberr);
+  }
+  cerr = cudaMemcpy(A,d_A,sizeof(PetscScalar)*N,cudaMemcpyDeviceToHost);CHKERRCUDA(cerr);
+
+  cerr = cudaFree(d_A);CHKERRCUDA(cerr);
+  cerr = cudaFree(d_Yold);CHKERRCUDA(cerr);
+  cerr = cudaFree(d_Z);CHKERRCUDA(cerr);
+  cerr = cudaFree(d_Zold);CHKERRCUDA(cerr);
+  cerr = cudaFree(d_M);CHKERRCUDA(cerr);
+
+  PetscFunctionReturn(0);
+}
+
+/*
+ * Matrix square root by product form of Denman-Beavers iteration. CUDA version.
+ * Computes the principal square root of the matrix T using the product form
+ * of the Denman-Beavers iteration. T is overwritten with sqrtm(T).
+ */
+PetscErrorCode SlepcSqrtmDenmanBeavers_CUDAm(PetscBLASInt n,PetscScalar *T,PetscBLASInt ld,PetscBool inv)
+{
+  PetscScalar    *d_T,*d_Told,*d_M,*d_invM,*d_work,work1,zero=0.0,sone=1.0,smone=-1.0,spfive=0.5,sneg_pfive=-0.5,sp25=0.25,alpha;
+  PetscReal      tol,Mres=0.0,detM,g,g2,reldiff,fnormdiff,fnormT,prod;
+  PetscInt       i,it,maxit=25,*piv=NULL,info,query=-1,lwork,nb;
+  PetscBLASInt   N,one=1;
+  PetscBool      converged=PETSC_FALSE,scale=PETSC_FALSE;
+  cublasHandle_t cublasv2handle;
+  PetscErrorCode ierr;
+  cublasStatus_t cberr;
+  cudaError_t    cerr;
+  magma_int_t    mierr;
+
+  PetscFunctionBegin;
+  ierr = PetscCUBLASGetHandle(&cublasv2handle);CHKERRQ(ierr);
+  magma_init();
+  N = n*n;
+  tol = PetscSqrtReal((PetscReal)n)*PETSC_MACHINE_EPSILON/2;
+
+    /* query work size */
+  nb = magma_get_xgetri_nb(n);
+  lwork = nb*n;
+  ierr = PetscMalloc1(n,&piv);CHKERRQ(ierr);
+  cerr = cudaMalloc((void **)&d_work,sizeof(PetscScalar)*lwork);CHKERRCUDA(cerr);
+  cerr = cudaMalloc((void **)&d_T,sizeof(PetscScalar)*N);CHKERRCUDA(cerr);
+  cerr = cudaMalloc((void **)&d_Told,sizeof(PetscScalar)*N);CHKERRCUDA(cerr);
+  cerr = cudaMalloc((void **)&d_M,sizeof(PetscScalar)*N);CHKERRCUDA(cerr);
+  cerr = cudaMalloc((void **)&d_invM,sizeof(PetscScalar)*N);CHKERRCUDA(cerr);
+
+  cerr = cudaMemcpy(d_M,T,sizeof(PetscScalar)*N,cudaMemcpyHostToDevice);CHKERRCUDA(cerr);
+  if (inv) {  /* start recurrence with I instead of A */
+    cerr = cudaMemset(d_T,zero,sizeof(PetscScalar)*N);CHKERRCUDA(cerr);
+    ierr = set_diagonal(d_T,n,ld,1.0);CHKERRQ(cerr);
+  } else {
+    cerr = cudaMemcpy(d_T,T,sizeof(PetscScalar)*N,cudaMemcpyHostToDevice);CHKERRCUDA(cerr);
+  }
+
+  for (it=0;it<DBMAXIT && !converged;it++) {
+
+    if (scale) { /* g = (abs(det(M)))^(-1/(2*n)); */
+      cerr = cudaMemcpy(d_invM,d_M,sizeof(PetscScalar)*N,cudaMemcpyDeviceToDevice);CHKERRCUDA(cerr);
+      mierr = magma_xgetrf_gpu(n,n,d_invM,ld,piv,&info);CHKMAGMA(mierr);
+      if (info < 0) SETERRQ1(PETSC_COMM_SELF, PETSC_ERR_LIB, "LAPACKgetrf: Illegal value on argument %d",PetscAbsInt(info));
+      if (info > 0) SETERRQ2(PETSC_COMM_SELF, PETSC_ERR_MAT_LU_ZRPVT, "LAPACKgetrf: Matrix is singular. U(%d,%d) is zero",info,info);
+
+      /* XXX pending */
+//      ierr = mult_diagonal(d_invM,n,ld,&detM);CHKERRQ(cerr);
+      cerr = cudaMemcpy(T,d_invM,sizeof(PetscScalar)*N,cudaMemcpyDeviceToHost);CHKERRCUDA(cerr);
+      prod = T[0];
+      for(i=1;i<n;i++) { prod *= T[i+i*ld]; }
+      detM = PetscAbsReal(prod);
+      g = PetscPowReal(detM,-1.0/(2.0*n));
+      alpha = g;
+      cberr = cublasXscal(cublasv2handle,N,&alpha,d_T,one);CHKERRCUBLAS(cberr);
+      alpha = g*g;
+      cberr = cublasXscal(cublasv2handle,N,&alpha,d_M,one);CHKERRCUBLAS(cberr);
+      ierr = PetscLogFlops(2.0*n*n*n/3.0+2.0*n*n);CHKERRQ(ierr);
+    }
+
+    cerr = cudaMemcpy(d_Told,d_T,sizeof(PetscScalar)*N,cudaMemcpyDeviceToDevice);CHKERRCUDA(cerr);
+    cerr = cudaMemcpy(d_invM,d_M,sizeof(PetscScalar)*N,cudaMemcpyDeviceToDevice);CHKERRCUDA(cerr);
+
+    mierr = magma_xgetrf_gpu(n,n,d_invM,ld,piv,&info);CHKMAGMA(mierr);
+    if (info < 0) SETERRQ1(PETSC_COMM_SELF, PETSC_ERR_LIB, "LAPACKgetrf: Illegal value on argument %d",PetscAbsInt(info));
+    if (info > 0) SETERRQ2(PETSC_COMM_SELF, PETSC_ERR_MAT_LU_ZRPVT, "LAPACKgetrf: Matrix is singular. U(%d,%d) is zero",info,info);
+    mierr = magma_xgetri_gpu(n,d_invM,ld,piv,d_work,lwork,&info);
+    if (info < 0) SETERRQ1(PETSC_COMM_SELF, PETSC_ERR_LIB, "LAPACKgetri: Illegal value on argument %d",PetscAbsInt(info));
+    if (info > 0) SETERRQ2(PETSC_COMM_SELF, PETSC_ERR_MAT_LU_ZRPVT, "LAPACKgetri: Matrix is singular. U(%d,%d) is zero",info,info);
+    ierr = PetscLogFlops(2.0*n*n*n/3.0+4.0*n*n*n/3.0);CHKERRQ(ierr);
+
+    ierr = shift_diagonal(d_invM,n,ld,sone);CHKERRQ(cerr);
+    cberr = cublasXgemm(cublasv2handle,CUBLAS_OP_N,CUBLAS_OP_N,n,n,n,&spfive,d_Told,ld,d_invM,ld,&zero,d_T,ld);CHKERRCUBLAS(cberr);
+    ierr = shift_diagonal(d_invM,n,ld,smone);CHKERRQ(cerr);
+
+    cberr = cublasXaxpy(cublasv2handle,N,&sone,d_invM,one,d_M,one);CHKERRCUBLAS(cberr);
+    cberr = cublasXscal(cublasv2handle,N,&sp25,d_M,one);CHKERRCUBLAS(cberr);
+    ierr = shift_diagonal(d_M,n,ld,sneg_pfive);CHKERRQ(cerr);
+    ierr = PetscLogFlops(2.0*n*n*n+2.0*n*n);CHKERRQ(ierr);
+
+    cberr = cublasXnrm2(cublasv2handle,N,d_M,one,&Mres);CHKERRCUBLAS(cberr);
+    ierr = shift_diagonal(d_M,n,ld,sone);CHKERRQ(cerr);
+
+    // reldiff = norm(T - Told,'fro')/norm(T,'fro');
+    cberr = cublasXaxpy(cublasv2handle,N,&smone,d_T,one,d_Told,one);CHKERRCUBLAS(cberr);
+    cberr = cublasXnrm2(cublasv2handle,N,d_Told,one,&fnormdiff);CHKERRCUBLAS(cberr);
+    cberr = cublasXnrm2(cublasv2handle,N,d_T,one,&fnormT);CHKERRCUBLAS(cberr);
+    ierr = PetscLogFlops(7.0*n*n);CHKERRQ(ierr);
+    reldiff = fnormdiff/fnormT;
+    if (scale) {
+      ierr = PetscInfo4(NULL,"it: %D reldiff: %g scale: %g tol*scale: %g\n",it,(double)reldiff,(double)g,(double)tol*g);CHKERRQ(ierr);
+    } else {
+      ierr = PetscInfo2(NULL,"it: %D reldiff: %g\n",it,(double)reldiff);CHKERRQ(ierr);
+    }
+
+    if (reldiff<1e-2) scale = PETSC_FALSE; /* Switch to no scaling. */
+    if (Mres<=tol) converged = PETSC_TRUE;
+  }
+
+  if (Mres>tol) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"SQRTM not converged after %d iterations", maxit);
+  cerr = cudaMemcpy(T,d_T,sizeof(PetscScalar)*N,cudaMemcpyDeviceToHost);CHKERRCUDA(cerr);
+  ierr = PetscFree(piv);CHKERRQ(ierr);
+  cerr = cudaFree(d_work);CHKERRCUDA(cerr);
+  cerr = cudaFree(d_T);CHKERRCUDA(cerr);
+  cerr = cudaFree(d_Told);CHKERRCUDA(cerr);
+  cerr = cudaFree(d_M);CHKERRCUDA(cerr);
+  cerr = cudaFree(d_invM);CHKERRCUDA(cerr);
+  magma_finalize();
+  PetscFunctionReturn(0);
+}
+
+#endif /* PETSC_HAVE_CUDA */
+
 #define ITMAX 5
 #define SWAP(a,b,t) {t=a;a=b;b=t;}
 

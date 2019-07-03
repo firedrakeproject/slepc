@@ -15,7 +15,7 @@
 #define SLEPCFN_H
 #include <slepcsys.h>
 
-#define FN_MAX_SOLVE 6
+#define FN_MAX_SOLVE 7
 
 SLEPC_EXTERN PetscErrorCode FNInitializePackage(void);
 /*S
