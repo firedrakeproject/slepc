@@ -952,17 +952,364 @@ PetscErrorCode FNEvaluateFunctionMat_Exp_Higham(FN fn,Mat A,Mat B)
   PetscFunctionReturn(0);
 }
 
+#if defined(PETSC_HAVE_CUDA)
+#include <cuda_runtime_api.h>
+#include <petsccuda.h>
+#include "../src/sys/classes/fn/impls/cuda/fnutilcuda.h"
+
+#if defined(PETSC_USE_COMPLEX)
+#if defined(PETSC_USE_REAL_SINGLE)
+#define cublasXgetrfBatched(a,b,c,d,e,f,g)         cublasCgetrfBatched((a),(b),(cuComplex **)(c),(d),(e),(f),(g))
+#define cublasXgetrsBatched(a,b,c,d,e,f,g,h,i,j,k) cublasCgetrsBatched((a),(b),(c),(d),(const cuComplex **)(e),(f),(g),(cuComplex **)(h),(i),(j),(k))
+#define cublasXgemm(a,b,c,d,e,f,g,h,i,j,k,l,m,n)   cublasCgemm((a),(b),(c),(d),(e),(f),(const cuComplex *)(g),(const cuComplex *)(h),(i),(const cuComplex *)(j),(k),(const cuComplex *)(l),(cuComplex *)(m),(n))
+#define cublasXscal(a,b,c,d,e)                     cublasCscal((a),(b),(const cuComplex *)(c),(cuComplex *)(d),(e))
+#define cublasXaxpy(a,b,c,d,e,f,g)                 cublasCaxpy((a),(b),(const cuComplex *)(c),(const cuComplex *)(d),(e),(cuComplex *)(f),(g))
+#define cublasXnrm2(a,b,c,d,e)                     cublasCznrm2((a),(b),(const cuComplex *)(c),(d),(e))
+#else
+#define cublasXgetrfBatched(a,b,c,d,e,f,g)         cublasZgetrfBatched((a),(b),(cuDoubleComplex **)(c),(d),(e),(f),(g))
+#define cublasXgetrsBatched(a,b,c,d,e,f,g,h,i,j,k) cublasZgetrsBatched((a),(b),(c),(d),(const cuDoubleComplex **)(e),(f),(g),(cuDoubleComplex **)(h),(i),(j),(k))
+#define cublasXgemm(a,b,c,d,e,f,g,h,i,j,k,l,m,n)   cublasZgemm((a),(b),(c),(d),(e),(f),(const cuDoubleComplex *)(g),(const cuDoubleComplex *)(h),(i),(const cuDoubleComplex *)(j),(k),(const cuDoubleComplex *)(l),(cuDoubleComplex *)(m),(n))
+#define cublasXscal(a,b,c,d,e)                     cublasZscal((a),(b),(const cuDoubleComplex *)(c),(cuDoubleComplex *)(d),(e))
+#define cublasXaxpy(a,b,c,d,e,f,g)                 cublasZaxpy((a),(b),(const cuDoubleComplex *)(c),(const cuDoubleComplex *)(d),(e),(cuDoubleComplex *)(f),(g))
+#define cublasXnrm2(a,b,c,d,e)                     cublasDznrm2((a),(b),(const cuDoubleComplex *)(c),(d),(e))
+#endif /* COMPLEX DOUBLE */
+#else
+#if defined(PETSC_USE_REAL_SINGLE)
+#define cublasXgetrfBatched                        cublasSgetrfBatched
+#define cublasXgetrsBatched                        cublasSgetrsBatched
+#define cublasXgemm                                cublasSgemm
+#define cublasXscal                                cublasSscal
+#define cublasXaxpy                                cublasSaxpy
+#define cublasXnrm2                                cublasSnrm2
+#else
+#define cublasXgetrfBatched                        cublasDgetrfBatched
+#define cublasXgetrsBatched                        cublasDgetrsBatched
+#define cublasXgemm                                cublasDgemm
+#define cublasXscal                                cublasDscal
+#define cublasXaxpy                                cublasDaxpy
+#define cublasXnrm2                                cublasDnrm2
+#endif /* REAL DOUBLE */
+#endif /* COMPLEX */
+
+PetscErrorCode FNEvaluateFunctionMat_Exp_Pade_CUDA(FN fn,Mat A,Mat B)
+{
+  PetscErrorCode ierr;
+  PetscBLASInt   n,ld,ld2,*d_ipiv,*d_info,info,one=1,zero=0;
+  PetscInt       m,j,k,sexp;
+  PetscBool      odd;
+  const PetscInt p=MAX_PADE;
+  PetscReal      c[MAX_PADE+1],s,*rwork;
+  PetscScalar    scale,smone=-1.0,sone=1.0,stwo=2.0,szero=0.0;
+  PetscScalar    *Aa,*Ba;
+  PetscScalar    *d_Ba,*d_As,*d_A2,*d_Q,*d_P,*d_W,*aux,**ppP,**d_ppP,**ppQ,**d_ppQ;
+  cublasHandle_t cublasv2handle;
+  cublasStatus_t cberr;
+  cudaError_t    cerr;
+
+  PetscFunctionBegin;
+  ierr = PetscCUBLASGetHandle(&cublasv2handle);CHKERRQ(ierr);
+  ierr = MatDenseGetArray(A,&Aa);CHKERRQ(ierr);
+  ierr = MatDenseGetArray(B,&Ba);CHKERRQ(ierr);
+  ierr = MatGetSize(A,&m,NULL);CHKERRQ(ierr);
+  ierr = PetscBLASIntCast(m,&n);CHKERRQ(ierr);
+  ld  = n;
+  ld2 = ld*ld;
+
+  cerr = cudaMalloc((void **)&d_Ba,sizeof(PetscScalar)*m*m);CHKERRCUDA(cerr);
+  cerr = cudaMalloc((void **)&d_Q,sizeof(PetscScalar)*m*m);CHKERRCUDA(cerr);
+  cerr = cudaMalloc((void **)&d_W,sizeof(PetscScalar)*m*m);CHKERRCUDA(cerr);
+  cerr = cudaMalloc((void **)&d_As,sizeof(PetscScalar)*m*m);CHKERRCUDA(cerr);
+  cerr = cudaMalloc((void **)&d_A2,sizeof(PetscScalar)*m*m);CHKERRCUDA(cerr);
+  cerr = cudaMalloc((void **)&d_ipiv,sizeof(PetscBLASInt)*ld);CHKERRCUDA(cerr);
+  cerr = cudaMalloc((void **)&d_info,sizeof(PetscInt));CHKERRCUDA(cerr);
+  cerr = cudaMalloc((void **)&d_ppP,sizeof(PetscScalar *));CHKERRCUDA(cerr);
+  cerr = cudaMalloc((void **)&d_ppQ,sizeof(PetscScalar *));CHKERRCUDA(cerr);
+
+  ierr = PetscMalloc(sizeof(PetscScalar *),&ppP);CHKERRQ(ierr);
+  ierr = PetscMalloc(sizeof(PetscScalar *),&ppQ);CHKERRQ(ierr);
+
+  cerr = cudaMemcpy(d_As,Aa,sizeof(PetscScalar)*ld2,cudaMemcpyHostToDevice);CHKERRCUDA(cerr);
+  cerr = cudaMemcpy(d_Ba,Ba,sizeof(PetscScalar)*ld2,cudaMemcpyHostToDevice);CHKERRCUDA(cerr);
+  d_P = d_Ba;
+
+  /* Pade' coefficients */
+  c[0] = 1.0;
+  for (k=1;k<=p;k++) c[k] = c[k-1]*(p+1-k)/(k*(2*p+1-k));
+
+  /* Scaling */
+  cberr = cublasXnrm2(cublasv2handle,ld2,d_As,one,&s);CHKERRCUBLAS(cberr);
+  if (s>0.5) {
+    sexp = PetscMax(0,(int)(PetscLogReal(s)/PetscLogReal(2.0))+2);
+    scale = PetscPowRealInt(2.0,-sexp);
+    cberr = cublasXscal(cublasv2handle,ld2,&scale,d_As,one);CHKERRCUBLAS(cberr);
+    ierr = PetscLogFlops(1.0*n*n);CHKERRQ(ierr);
+  } else sexp = 0;
+
+  /* Horner evaluation */
+  cberr = cublasXgemm(cublasv2handle,CUBLAS_OP_N,CUBLAS_OP_N,n,n,n,&sone,d_As,ld,d_As,ld,&szero,d_A2,ld);CHKERRCUBLAS(cberr);
+  ierr = PetscLogFlops(2.0*n*n*n);CHKERRQ(ierr);
+  cerr = cudaMemset(d_Q,zero,sizeof(PetscScalar)*ld2);CHKERRCUDA(cerr);
+  cerr = cudaMemset(d_P,zero,sizeof(PetscScalar)*ld2);CHKERRCUDA(cerr);
+  ierr = set_diagonal(d_Q,n,ld,c[p]);CHKERRQ(cerr);
+  ierr = set_diagonal(d_P,n,ld,c[p-1]);CHKERRQ(cerr);
+
+  odd = PETSC_TRUE;
+  for (k=p-1;k>0;k--) {
+    if (odd) {
+      cberr = cublasXgemm(cublasv2handle,CUBLAS_OP_N,CUBLAS_OP_N,n,n,n,&sone,d_Q,ld,d_A2,ld,&szero,d_W,ld);CHKERRCUBLAS(cberr);
+      SWAP(d_Q,d_W,aux);
+      ierr = shift_diagonal(d_Q,n,ld,c[k-1]);CHKERRQ(cerr);
+      odd = PETSC_FALSE;
+    } else {
+      cberr = cublasXgemm(cublasv2handle,CUBLAS_OP_N,CUBLAS_OP_N,n,n,n,&sone,d_P,ld,d_A2,ld,&szero,d_W,ld);CHKERRCUBLAS(cberr);
+      SWAP(d_P,d_W,aux);
+      ierr = shift_diagonal(d_P,n,ld,c[k-1]);CHKERRQ(cerr);
+      odd = PETSC_TRUE;
+    }
+    ierr = PetscLogFlops(2.0*n*n*n);CHKERRQ(ierr);
+  }
+  if (odd) {
+    cberr = cublasXgemm(cublasv2handle,CUBLAS_OP_N,CUBLAS_OP_N,n,n,n,&sone,d_Q,ld,d_As,ld,&szero,d_W,ld);CHKERRCUBLAS(cberr);
+    SWAP(d_Q,d_W,aux);
+    cberr = cublasXaxpy(cublasv2handle,ld2,&smone,d_P,one,d_Q,one);CHKERRCUBLAS(cberr);
+
+    ppQ[0] = d_Q;
+    ppP[0] = d_P;
+    cerr = cudaMemcpy(d_ppQ,ppQ,sizeof(PetscScalar *),cudaMemcpyHostToDevice);CHKERRCUDA(cerr);
+    cerr = cudaMemcpy(d_ppP,ppP,sizeof(PetscScalar *),cudaMemcpyHostToDevice);CHKERRCUDA(cerr);
+
+    cberr = cublasXgetrfBatched(cublasv2handle,n,d_ppQ,ld,d_ipiv,d_info,one);CHKERRCUBLAS(cberr);
+    cerr = cudaMemcpy(&info,d_info,sizeof(PetscInt),cudaMemcpyDeviceToHost);CHKERRCUDA(cerr);
+    if (info < 0) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"LAPACKgetrf: Illegal value on argument %d",PetscAbsInt(info));
+    if (info > 0) SETERRQ2(PETSC_COMM_SELF,PETSC_ERR_MAT_LU_ZRPVT,"LAPACKgetrf: Matrix is singular. U(%d,%d) is zero",info,info);
+#if defined (CUDA_VERSION) && CUDA_VERSION >= 5050
+    cberr = cublasXgetrsBatched(cublasv2handle,CUBLAS_OP_N,n,n,(const PetscScalar **)d_ppQ,ld,d_ipiv,d_ppP,ld,&info,one);CHKERRCUBLAS(cberr);
+    if (info < 0) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"LAPACKgetri: Illegal value on argument %d",PetscAbsInt(info));
+    if (info > 0) SETERRQ2(PETSC_COMM_SELF,PETSC_ERR_MAT_LU_ZRPVT,"LAPACKgetri: Matrix is singular. U(%d,%d) is zero",info,info);
+#else
+    SETERRQ(communicator,PETSC_ERR_LIB,"cublasXgetrsBatched needs CUDA >= 7");
+#endif
+    cberr = cublasXscal(cublasv2handle,ld2,&stwo,d_P,one);CHKERRCUBLAS(cberr);
+    ierr = shift_diagonal(d_P,n,ld,sone);CHKERRQ(cerr);
+    cberr = cublasXscal(cublasv2handle,ld2,&smone,d_P,one);CHKERRCUBLAS(cberr);
+  } else {
+    cberr = cublasXgemm(cublasv2handle,CUBLAS_OP_N,CUBLAS_OP_N,n,n,n,&sone,d_P,ld,d_As,ld,&szero,d_W,ld);CHKERRCUBLAS(cberr);
+    SWAP(d_P,d_W,aux);
+    cberr = cublasXaxpy(cublasv2handle,ld2,&smone,d_P,one,d_Q,one);CHKERRCUBLAS(cberr);
+
+    ppQ[0] = d_Q;
+    ppP[0] = d_P;
+    cerr = cudaMemcpy(d_ppQ,ppQ,sizeof(PetscScalar *),cudaMemcpyHostToDevice);CHKERRCUDA(cerr);
+    cerr = cudaMemcpy(d_ppP,ppP,sizeof(PetscScalar *),cudaMemcpyHostToDevice);CHKERRCUDA(cerr);
+
+    cberr = cublasXgetrfBatched(cublasv2handle,n,d_ppQ,ld,d_ipiv,d_info,one);CHKERRCUBLAS(cberr);
+    cerr = cudaMemcpy(&info,d_info,sizeof(PetscInt),cudaMemcpyDeviceToHost);CHKERRCUDA(cerr);
+    if (info < 0) SETERRQ1(PETSC_COMM_SELF, PETSC_ERR_LIB, "LAPACKgetrf: Illegal value on argument %d",PetscAbsInt(info));
+    if (info > 0) SETERRQ2(PETSC_COMM_SELF, PETSC_ERR_MAT_LU_ZRPVT, "LAPACKgetrf: Matrix is singular. U(%d,%d) is zero",info,info);
+#if defined (CUDA_VERSION) && CUDA_VERSION >= 5050
+    cberr = cublasXgetrsBatched(cublasv2handle,CUBLAS_OP_N,n,n,(const PetscScalar **)d_ppQ,ld,d_ipiv,d_ppP,ld,&info,one);CHKERRCUBLAS(cberr);
+    if (info < 0) SETERRQ1(PETSC_COMM_SELF, PETSC_ERR_LIB, "LAPACKgetri: Illegal value on argument %d",PetscAbsInt(info));
+    if (info > 0) SETERRQ2(PETSC_COMM_SELF, PETSC_ERR_MAT_LU_ZRPVT, "LAPACKgetri: Matrix is singular. U(%d,%d) is zero",info,info);
+#else
+    SETERRQ(communicator,PETSC_ERR_LIB,"cublasXgetrsBatched needs CUDA >= 7");
+#endif
+    cberr = cublasXscal(cublasv2handle,ld2,&stwo,d_P,one);CHKERRCUBLAS(cberr);
+    ierr = shift_diagonal(d_P,n,ld,sone);CHKERRQ(cerr);
+  }
+  ierr = PetscLogFlops(2.0*n*n*n+2.0*n*n*n/3.0+4.0*n*n);CHKERRQ(ierr);
+
+  for (k=1;k<=sexp;k++) {
+    cberr = cublasXgemm(cublasv2handle,CUBLAS_OP_N,CUBLAS_OP_N,n,n,n,&sone,d_P,ld,d_P,ld,&szero,d_W,ld);CHKERRCUBLAS(cberr);
+    cerr = cudaMemcpy(d_P,d_W,sizeof(PetscScalar)*ld2,cudaMemcpyDeviceToDevice);CHKERRCUDA(cerr);
+  }
+  if (d_P!=d_Ba) {
+    cerr = cudaMemcpy(Ba,d_P,sizeof(PetscScalar)*ld2,cudaMemcpyDeviceToHost);CHKERRCUDA(cerr);
+  } else {
+    cerr = cudaMemcpy(Ba,d_Ba,sizeof(PetscScalar)*ld2,cudaMemcpyDeviceToHost);CHKERRCUDA(cerr);
+  }
+  cerr = cudaMemcpy(Aa,d_As,sizeof(PetscScalar)*ld2,cudaMemcpyDeviceToHost);CHKERRCUDA(cerr);
+  ierr = PetscLogFlops(2.0*n*n*n*sexp);CHKERRQ(ierr);
+
+  cerr = cudaFree(d_Ba);CHKERRCUDA(cerr);
+  cerr = cudaFree(d_Q);CHKERRCUDA(cerr);
+  cerr = cudaFree(d_W);CHKERRCUDA(cerr);
+  cerr = cudaFree(d_As);CHKERRCUDA(cerr);
+  cerr = cudaFree(d_A2);CHKERRCUDA(cerr);
+  cerr = cudaFree(d_ipiv);CHKERRCUDA(cerr);
+  cerr = cudaFree(d_info);CHKERRCUDA(cerr);
+  cerr = cudaFree(d_ppP);CHKERRCUDA(cerr);
+  cerr = cudaFree(d_ppQ);CHKERRCUDA(cerr);
+
+  ierr = PetscFree(ppP);CHKERRQ(ierr);
+  ierr = PetscFree(ppQ);CHKERRQ(ierr);
+
+  ierr = MatDenseRestoreArray(A,&Aa);CHKERRQ(ierr);
+  ierr = MatDenseRestoreArray(B,&Ba);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+/* magma */
+#if defined(PETSC_USE_COMPLEX)
+#if defined(PETSC_USE_REAL_SINGLE)
+#define magma_xgesv_gpu(a,b,c,d,e,f,g,h) magma_cgesv_gpu((a),(b),(magmaFloatComplex_ptr)(c),(d),(e),(magmaFloatComplex_ptr)(f),(g),(h))
+#else
+#define magma_xgesv_gpu(a,b,c,d,e,f,g,h) magma_zgesv_gpu((a),(b),(magmaDoubleComplex_ptr)(c),(d),(e),(magmaDoubleComplex_ptr)(f),(g),(h))
+#endif
+#else
+#if defined(PETSC_USE_REAL_SINGLE)
+#define magma_xgesv_gpu                 magma_sgesv_gpu
+#else
+#define magma_xgesv_gpu                 magma_dgesv_gpu
+#endif
+#endif
+
+#include <magma_v2.h>
+#define CHKMAGMA(mierr) CHKERRABORT(PETSC_COMM_SELF,mierr)
+
+PetscErrorCode FNEvaluateFunctionMat_Exp_Pade_CUDAm(FN fn,Mat A,Mat B)
+{
+  PetscErrorCode ierr;
+  PetscBLASInt   n,ld,ld2,*piv,info,one=1,zero=0;
+  PetscInt       m,j,k,sexp,nb,lwork;
+  PetscBool      odd;
+  const PetscInt p=MAX_PADE;
+  PetscReal      c[MAX_PADE+1],s,*rwork;
+  PetscScalar    scale,smone=-1.0,sone=1.0,stwo=2.0,szero=0.0;
+  PetscScalar    *Aa,*Ba;
+  PetscScalar    *d_Ba,*d_As,*d_A2,*d_Q,*d_P,*d_W,*aux;
+  cublasHandle_t cublasv2handle;
+  cublasStatus_t cberr;
+  cudaError_t    cerr;
+  magma_int_t    mierr;
+
+  PetscFunctionBegin;
+  ierr = PetscCUBLASGetHandle(&cublasv2handle);CHKERRQ(ierr);
+  magma_init();
+  ierr = MatDenseGetArray(A,&Aa);CHKERRQ(ierr);
+  ierr = MatDenseGetArray(B,&Ba);CHKERRQ(ierr);
+  ierr = MatGetSize(A,&m,NULL);CHKERRQ(ierr);
+  ierr = PetscBLASIntCast(m,&n);CHKERRQ(ierr);
+  ld  = n;
+  ld2 = ld*ld;
+
+  cerr = cudaMalloc((void **)&d_Ba,sizeof(PetscScalar)*m*m);CHKERRCUDA(cerr);
+  cerr = cudaMalloc((void **)&d_Q,sizeof(PetscScalar)*m*m);CHKERRCUDA(cerr);
+  cerr = cudaMalloc((void **)&d_W,sizeof(PetscScalar)*m*m);CHKERRCUDA(cerr);
+  cerr = cudaMalloc((void **)&d_As,sizeof(PetscScalar)*m*m);CHKERRCUDA(cerr);
+  cerr = cudaMalloc((void **)&d_A2,sizeof(PetscScalar)*m*m);CHKERRCUDA(cerr);
+
+  ierr = PetscMalloc(sizeof(PetscInt)*n,&piv);CHKERRQ(ierr);
+
+  cerr = cudaMemcpy(d_As,Aa,sizeof(PetscScalar)*ld2,cudaMemcpyHostToDevice);CHKERRCUDA(cerr);
+  cerr = cudaMemcpy(d_Ba,Ba,sizeof(PetscScalar)*ld2,cudaMemcpyHostToDevice);CHKERRCUDA(cerr);
+  d_P = d_Ba;
+
+  /* Pade' coefficients */
+  c[0] = 1.0;
+  for (k=1;k<=p;k++) c[k] = c[k-1]*(p+1-k)/(k*(2*p+1-k));
+
+  /* Scaling */
+  cberr = cublasXnrm2(cublasv2handle,ld2,d_As,one,&s);CHKERRCUBLAS(cberr);
+  ierr = PetscLogFlops(1.0*n*n);CHKERRQ(ierr);
+
+  if (s>0.5) {
+    sexp = PetscMax(0,(int)(PetscLogReal(s)/PetscLogReal(2.0))+2);
+    scale = PetscPowRealInt(2.0,-sexp);
+    cberr = cublasXscal(cublasv2handle,ld2,&scale,d_As,one);CHKERRCUBLAS(cberr);
+    ierr = PetscLogFlops(1.0*n*n);CHKERRQ(ierr);
+  } else sexp = 0;
+
+  /* Horner evaluation */
+  cberr = cublasXgemm(cublasv2handle,CUBLAS_OP_N,CUBLAS_OP_N,n,n,n,&sone,d_As,ld,d_As,ld,&szero,d_A2,ld);CHKERRCUBLAS(cberr);
+  ierr = PetscLogFlops(2.0*n*n*n);CHKERRQ(ierr);
+  cerr = cudaMemset(d_Q,zero,sizeof(PetscScalar)*ld2);CHKERRCUDA(cerr);
+  cerr = cudaMemset(d_P,zero,sizeof(PetscScalar)*ld2);CHKERRCUDA(cerr);
+  ierr = set_diagonal(d_Q,n,ld,c[p]);CHKERRQ(cerr);
+  ierr = set_diagonal(d_P,n,ld,c[p-1]);CHKERRQ(cerr);
+
+  odd = PETSC_TRUE;
+  for (k=p-1;k>0;k--) {
+    if (odd) {
+      cberr = cublasXgemm(cublasv2handle,CUBLAS_OP_N,CUBLAS_OP_N,n,n,n,&sone,d_Q,ld,d_A2,ld,&szero,d_W,ld);CHKERRCUBLAS(cberr);
+      SWAP(d_Q,d_W,aux);
+      ierr = shift_diagonal(d_Q,n,ld,c[k-1]);CHKERRQ(cerr);
+      odd = PETSC_FALSE;
+    } else {
+      cberr = cublasXgemm(cublasv2handle,CUBLAS_OP_N,CUBLAS_OP_N,n,n,n,&sone,d_P,ld,d_A2,ld,&szero,d_W,ld);CHKERRCUBLAS(cberr);
+      SWAP(d_P,d_W,aux);
+      ierr = shift_diagonal(d_P,n,ld,c[k-1]);CHKERRQ(cerr);
+      odd = PETSC_TRUE;
+    }
+    ierr = PetscLogFlops(2.0*n*n*n);CHKERRQ(ierr);
+  }
+  if (odd) {
+    cberr = cublasXgemm(cublasv2handle,CUBLAS_OP_N,CUBLAS_OP_N,n,n,n,&sone,d_Q,ld,d_As,ld,&szero,d_W,ld);CHKERRCUBLAS(cberr);
+    SWAP(d_Q,d_W,aux);
+    cberr = cublasXaxpy(cublasv2handle,ld2,&smone,d_P,one,d_Q,one);CHKERRCUBLAS(cberr);
+    mierr = magma_xgesv_gpu(n,n,d_Q,ld,piv,d_P,ld,&info);CHKMAGMA(mierr);
+    if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xGESV %d",info);
+    cberr = cublasXscal(cublasv2handle,ld2,&stwo,d_P,one);CHKERRCUBLAS(cberr);
+    ierr = shift_diagonal(d_P,n,ld,sone);CHKERRQ(cerr);
+    cberr = cublasXscal(cublasv2handle,ld2,&smone,d_P,one);CHKERRCUBLAS(cberr);
+  } else {
+    cberr = cublasXgemm(cublasv2handle,CUBLAS_OP_N,CUBLAS_OP_N,n,n,n,&sone,d_P,ld,d_As,ld,&szero,d_W,ld);CHKERRCUBLAS(cberr);
+    SWAP(d_P,d_W,aux);
+    cberr = cublasXaxpy(cublasv2handle,ld2,&smone,d_P,one,d_Q,one);CHKERRCUBLAS(cberr);
+    mierr = magma_xgesv_gpu(n,n,d_Q,ld,piv,d_P,ld,&info);CHKMAGMA(mierr);
+    if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xGESV %d",info);
+    cberr = cublasXscal(cublasv2handle,ld2,&stwo,d_P,one);CHKERRCUBLAS(cberr);
+    ierr = shift_diagonal(d_P,n,ld,sone);CHKERRQ(cerr);
+  }
+  ierr = PetscLogFlops(2.0*n*n*n+2.0*n*n*n/3.0+4.0*n*n);CHKERRQ(ierr);
+
+  for (k=1;k<=sexp;k++) {
+    cberr = cublasXgemm(cublasv2handle,CUBLAS_OP_N,CUBLAS_OP_N,n,n,n,&sone,d_P,ld,d_P,ld,&szero,d_W,ld);CHKERRCUBLAS(cberr);
+    cerr = cudaMemcpy(d_P,d_W,sizeof(PetscScalar)*ld2,cudaMemcpyDeviceToDevice);CHKERRCUDA(cerr);
+  }
+  if (d_P!=d_Ba) {
+    cerr = cudaMemcpy(Ba,d_P,sizeof(PetscScalar)*ld2,cudaMemcpyDeviceToHost);CHKERRCUDA(cerr);
+  } else {
+    cerr = cudaMemcpy(Ba,d_Ba,sizeof(PetscScalar)*ld2,cudaMemcpyDeviceToHost);CHKERRCUDA(cerr);
+  }
+  cerr = cudaMemcpy(Aa,d_As,sizeof(PetscScalar)*ld2,cudaMemcpyDeviceToHost);CHKERRCUDA(cerr);
+  ierr = PetscLogFlops(2.0*n*n*n*sexp);CHKERRQ(ierr);
+
+  cerr = cudaFree(d_Ba);CHKERRCUDA(cerr);
+  cerr = cudaFree(d_Q);CHKERRCUDA(cerr);
+  cerr = cudaFree(d_W);CHKERRCUDA(cerr);
+  cerr = cudaFree(d_As);CHKERRCUDA(cerr);
+  cerr = cudaFree(d_A2);CHKERRCUDA(cerr);
+  ierr = PetscFree(piv);CHKERRQ(ierr);
+
+  ierr = MatDenseRestoreArray(A,&Aa);CHKERRQ(ierr);
+  ierr = MatDenseRestoreArray(B,&Ba);CHKERRQ(ierr);
+  magma_finalize();
+  PetscFunctionReturn(0);
+}
+#endif /* PETSC_HAVE_CUDA */
+
 PetscErrorCode FNView_Exp(FN fn,PetscViewer viewer)
 {
   PetscErrorCode ierr;
   PetscBool      isascii;
   char           str[50];
+#if !defined(PETSC_HAVE_CUDA)
   const char     *methodname[] = {
                   "scaling & squaring, [m/m] Pade approximant (Higham)",
                   "scaling & squaring, [6/6] Pade approximant",
                   "scaling & squaring, subdiagonal Pade approximant (product form)",
                   "scaling & squaring, subdiagonal Pade approximant (partial fraction)"
   };
+#else
+  const char     *methodname[] = {
+                  "scaling & squaring, [m/m] Pade approximant (Higham)",
+                  "scaling & squaring, [6/6] Pade approximant",
+                  "scaling & squaring, subdiagonal Pade approximant (product form)",
+                  "scaling & squaring, subdiagonal Pade approximant (partial fraction)",
+                  "scaling & squaring, [6/6] Pade approximant CUDA",
+                  "scaling & squaring, [6/6] Pade approximant CUDAm"
+  };
+#endif
   const int      nmeth=sizeof(methodname)/sizeof(methodname[0]);
 
   PetscFunctionBegin;
@@ -1003,6 +1350,10 @@ SLEPC_EXTERN PetscErrorCode FNCreate_Exp(FN fn)
   fn->ops->evaluatefunctionmat[1] = FNEvaluateFunctionMat_Exp_Pade;
   fn->ops->evaluatefunctionmat[2] = FNEvaluateFunctionMat_Exp_GuettelNakatsukasa; /* product form */
   fn->ops->evaluatefunctionmat[3] = FNEvaluateFunctionMat_Exp_GuettelNakatsukasa; /* partial fraction */
+#if defined(PETSC_HAVE_CUDA)
+  fn->ops->evaluatefunctionmat[4] = FNEvaluateFunctionMat_Exp_Pade_CUDA;
+  fn->ops->evaluatefunctionmat[5] = FNEvaluateFunctionMat_Exp_Pade_CUDAm;
+#endif
   fn->ops->view                   = FNView_Exp;
   PetscFunctionReturn(0);
 }
