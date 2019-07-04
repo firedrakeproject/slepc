@@ -1286,6 +1286,174 @@ PetscErrorCode FNEvaluateFunctionMat_Exp_Pade_CUDAm(FN fn,Mat A,Mat B)
   magma_finalize();
   PetscFunctionReturn(0);
 }
+
+
+/*
+ * Matrix exponential implementation based on algorithm and matlab code by N. Higham and co-authors
+ *
+ *     N. J. Higham, "The scaling and squaring method for the matrix exponential
+ *     revisited", SIAM J. Matrix Anal. Appl. 26(4):1179-1193, 2005.
+ */
+PetscErrorCode FNEvaluateFunctionMat_Exp_Higham_CUDAm(FN fn,Mat A,Mat B)
+{
+  PetscErrorCode    ierr;
+  PetscBLASInt      n_,n2,*ipiv,info,one=1;
+  PetscInt          n,m,j,s;
+  PetscScalar       scale,smone=-1.0,sone=1.0,stwo=2.0,szero=0.0;
+  PetscScalar       *Aa,*Ba,*d_Ba,*Apowers[5],*d_Apowers[5],*d_Q,*d_P,*d_W,*work,*d_work,*aux;
+  const PetscScalar *c;
+  const PetscScalar c3[4]   = { 120, 60, 12, 1 };
+  const PetscScalar c5[6]   = { 30240, 15120, 3360, 420, 30, 1 };
+  const PetscScalar c7[8]   = { 17297280, 8648640, 1995840, 277200, 25200, 1512, 56, 1 };
+  const PetscScalar c9[10]  = { 17643225600, 8821612800, 2075673600, 302702400, 30270240,
+    2162160, 110880, 3960, 90, 1 };
+  const PetscScalar c13[14] = { 64764752532480000, 32382376266240000, 7771770303897600,
+    1187353796428800,  129060195264000,   10559470521600,
+    670442572800,      33522128640,       1323241920,
+    40840800,          960960,            16380,  182,  1 };
+  cublasHandle_t    cublasv2handle;
+  cublasStatus_t    cberr;
+  cudaError_t       cerr;
+  magma_int_t       mierr;
+
+  PetscFunctionBegin;
+  ierr = PetscCUBLASGetHandle(&cublasv2handle);CHKERRQ(ierr);
+  magma_init();
+  ierr = MatDenseGetArray(A,&Aa);CHKERRQ(ierr);
+  ierr = MatDenseGetArray(B,&Ba);CHKERRQ(ierr);
+  ierr = MatGetSize(A,&n,NULL);CHKERRQ(ierr);
+  ierr = PetscBLASIntCast(n,&n_);CHKERRQ(ierr);
+  n2 = n_*n_;
+  ierr = PetscMalloc2(8*n*n,&work,n,&ipiv);CHKERRQ(ierr);
+  ierr = cudaMalloc((void**)&d_work,8*n*n*sizeof(PetscScalar));CHKERRQ(ierr);
+  cerr = cudaMalloc((void **)&d_Ba,sizeof(PetscScalar)*n*n);CHKERRCUDA(cerr);
+  ierr = cudaMemcpy(d_Ba,Ba,n2*sizeof(PetscScalar),cudaMemcpyHostToDevice);CHKERRQ(ierr);
+
+  /* Matrix powers */
+  Apowers[0] = work;                  /* Apowers[0] = A   */
+  Apowers[1] = Apowers[0] + n*n;      /* Apowers[1] = A^2 */
+  Apowers[2] = Apowers[1] + n*n;      /* Apowers[2] = A^4 */
+  Apowers[3] = Apowers[2] + n*n;      /* Apowers[3] = A^6 */
+  Apowers[4] = Apowers[3] + n*n;      /* Apowers[4] = A^8 */
+  /* Matrix powers on device */
+  d_Apowers[0] = d_work;                /* d_Apowers[0] = A   */
+  d_Apowers[1] = d_Apowers[0] + n*n;      /* d_Apowers[1] = A^2 */
+  d_Apowers[2] = d_Apowers[1] + n*n;      /* d_Apowers[2] = A^4 */
+  d_Apowers[3] = d_Apowers[2] + n*n;      /* d_Apowers[3] = A^6 */
+  d_Apowers[4] = d_Apowers[3] + n*n;      /* d_Apowers[4] = A^8 */
+
+  ierr = cudaMemcpy(d_Apowers[0],Aa,n2*sizeof(PetscScalar),cudaMemcpyHostToDevice);CHKERRQ(ierr);
+  cberr = cublasXgemm(cublasv2handle,CUBLAS_OP_N,CUBLAS_OP_N,n_,n_,n_,&sone,d_Apowers[0],n_,d_Apowers[0],n_,&szero,d_Apowers[1],n_);CHKERRCUBLAS(cberr);
+  cberr = cublasXgemm(cublasv2handle,CUBLAS_OP_N,CUBLAS_OP_N,n_,n_,n_,&sone,d_Apowers[1],n_,d_Apowers[1],n_,&szero,d_Apowers[2],n_);CHKERRCUBLAS(cberr);
+  cberr = cublasXgemm(cublasv2handle,CUBLAS_OP_N,CUBLAS_OP_N,n_,n_,n_,&sone,d_Apowers[1],n_,d_Apowers[2],n_,&szero,d_Apowers[3],n_);CHKERRCUBLAS(cberr);
+  ierr = PetscLogFlops(6.0*n*n*n);CHKERRQ(ierr);
+
+  ierr = cudaMemcpy(Apowers[0],d_Apowers[0],4*n2*sizeof(PetscScalar),cudaMemcpyDeviceToHost);CHKERRQ(ierr);
+  /* Compute scaling parameter and order of Pade approximant */
+  ierr = expm_params(n,Apowers,&s,&m,Apowers[4]);CHKERRQ(ierr);
+
+  if (s) { /* rescale */
+    for (j=0;j<4;j++) {
+      scale = PetscPowRealInt(2.0,-PetscMax(2*j,1)*s);
+      cberr = cublasXscal(cublasv2handle,n2,&scale,d_Apowers[j],one);CHKERRCUBLAS(cberr);
+    }
+    ierr = PetscLogFlops(4.0*n*n);CHKERRQ(ierr);
+  }
+
+  /* Evaluate the Pade approximant */
+  switch (m) {
+    case 3:  c = c3;  break;
+    case 5:  c = c5;  break;
+    case 7:  c = c7;  break;
+    case 9:  c = c9;  break;
+    case 13: c = c13; break;
+    default: SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Wrong value of m %d",m);
+  }
+  d_P = d_Ba;
+  d_Q = d_Apowers[4] + n*n;
+  d_W = d_Q + n*n;
+  switch (m) {
+    case 3:
+    case 5:
+    case 7:
+    case 9:
+      if (m==9) {cberr = cublasXgemm(cublasv2handle,CUBLAS_OP_N,CUBLAS_OP_N,n_,n_,n_,&sone,d_Apowers[1],n_,d_Apowers[3],n_,&szero,d_Apowers[4],n_);CHKERRCUBLAS(cberr);}
+      cerr = cudaMemset(d_P,szero,sizeof(PetscScalar)*n2);CHKERRCUDA(cerr);
+      cerr = cudaMemset(d_Q,szero,sizeof(PetscScalar)*n2);CHKERRCUDA(cerr);
+      ierr = set_diagonal(d_P,n,n,c[1]);CHKERRQ(cerr);
+      ierr = set_diagonal(d_Q,n,n,c[0]);CHKERRQ(cerr);
+      for (j=m;j>=3;j-=2) {
+        cberr = cublasXaxpy(cublasv2handle,n2,&c[j],d_Apowers[(j+1)/2-1],one,d_P,one);CHKERRCUBLAS(cberr);
+        cberr = cublasXaxpy(cublasv2handle,n2,&c[j-1],d_Apowers[(j+1)/2-1],one,d_Q,one);CHKERRCUBLAS(cberr);
+        ierr = PetscLogFlops(4.0*n*n);CHKERRQ(ierr);
+      }
+      cberr = cublasXgemm(cublasv2handle,CUBLAS_OP_N,CUBLAS_OP_N,n_,n_,n_,&sone,d_Apowers[0],n_,d_P,n_,&szero,d_W,n_);CHKERRCUBLAS(cberr);
+      ierr = PetscLogFlops(2.0*n*n*n);CHKERRQ(ierr);
+      SWAP(d_P,d_W,aux);
+      break;
+    case 13:
+      /*  P = A*(Apowers[3]*(c[13]*Apowers[3] + c[11]*Apowers[2] + c[9]*Apowers[1])
+          + c[7]*Apowers[3] + c[5]*Apowers[2] + c[3]*Apowers[1] + c[1]*I)       */
+      cerr = cudaMemcpy(d_P,d_Apowers[3],n2*sizeof(PetscScalar),cudaMemcpyDeviceToDevice);CHKERRCUDA(cerr);
+      cberr = cublasXscal(cublasv2handle,n2,&c[13],d_P,one);CHKERRCUBLAS(cberr);
+      cberr = cublasXaxpy(cublasv2handle,n2,&c[11],d_Apowers[2],one,d_P,one);CHKERRCUBLAS(cberr);
+      cberr = cublasXaxpy(cublasv2handle,n2,&c[9],d_Apowers[1],one,d_P,one);CHKERRCUBLAS(cberr);
+      cberr = cublasXgemm(cublasv2handle,CUBLAS_OP_N,CUBLAS_OP_N,n_,n_,n_,&sone,d_Apowers[3],n_,d_P,n_,&szero,d_W,n_);CHKERRCUBLAS(cberr);
+      ierr = PetscLogFlops(5.0*n*n+2.0*n*n*n);CHKERRQ(ierr);
+
+      cerr = cudaMemset(d_P,szero,sizeof(PetscScalar)*n2);CHKERRCUDA(cerr);
+      ierr = set_diagonal(d_P,n,n,c[1]);CHKERRQ(cerr);
+      cberr = cublasXaxpy(cublasv2handle,n2,&c[7],d_Apowers[3],one,d_P,one);CHKERRCUBLAS(cberr);
+      cberr = cublasXaxpy(cublasv2handle,n2,&c[5],d_Apowers[2],one,d_P,one);CHKERRCUBLAS(cberr);
+      cberr = cublasXaxpy(cublasv2handle,n2,&c[3],d_Apowers[1],one,d_P,one);CHKERRCUBLAS(cberr);
+      cberr = cublasXaxpy(cublasv2handle,n2,&sone,d_P,one,d_W,one);CHKERRCUBLAS(cberr);
+      cberr = cublasXgemm(cublasv2handle,CUBLAS_OP_N,CUBLAS_OP_N,n_,n_,n_,&sone,d_Apowers[0],n_,d_W,n_,&szero,d_P,n_);CHKERRCUBLAS(cberr);
+      ierr = PetscLogFlops(7.0*n*n+2.0*n*n*n);CHKERRQ(ierr);
+      /*  Q = Apowers[3]*(c[12]*Apowers[3] + c[10]*Apowers[2] + c[8]*Apowers[1])
+          + c[6]*Apowers[3] + c[4]*Apowers[2] + c[2]*Apowers[1] + c[0]*I        */
+      cerr = cudaMemcpy(d_Q,d_Apowers[3],n2*sizeof(PetscScalar),cudaMemcpyDeviceToDevice);CHKERRCUDA(cerr);
+      cberr = cublasXscal(cublasv2handle,n2,&c[12],d_Q,one);CHKERRCUBLAS(cberr);
+      cberr = cublasXaxpy(cublasv2handle,n2,&c[10],d_Apowers[2],one,d_Q,one);CHKERRCUBLAS(cberr);
+      cberr = cublasXaxpy(cublasv2handle,n2,&c[8],d_Apowers[1],one,d_Q,one);CHKERRCUBLAS(cberr);
+      cberr = cublasXgemm(cublasv2handle,CUBLAS_OP_N,CUBLAS_OP_N,n_,n_,n_,&sone,d_Apowers[3],n_,d_Q,n_,&szero,d_W,n_);CHKERRCUBLAS(cberr);
+      ierr = PetscLogFlops(5.0*n*n+2.0*n*n*n);CHKERRQ(ierr);
+      cerr = cudaMemset(d_Q,szero,sizeof(PetscScalar)*n2);CHKERRCUDA(cerr);
+      ierr = set_diagonal(d_Q,n,n,c[0]);CHKERRQ(cerr);
+      cberr = cublasXaxpy(cublasv2handle,n2,&c[6],d_Apowers[3],one,d_Q,one);CHKERRCUBLAS(cberr);
+      cberr = cublasXaxpy(cublasv2handle,n2,&c[4],d_Apowers[2],one,d_Q,one);CHKERRCUBLAS(cberr);
+      cberr = cublasXaxpy(cublasv2handle,n2,&c[2],d_Apowers[1],one,d_Q,one);CHKERRCUBLAS(cberr);
+      cberr = cublasXaxpy(cublasv2handle,n2,&sone,d_W,one,d_Q,one);CHKERRCUBLAS(cberr);
+      ierr = PetscLogFlops(7.0*n*n);CHKERRQ(ierr);
+      break;
+    default: SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Wrong value of m %d",m);
+  }
+  cberr = cublasXaxpy(cublasv2handle,n2,&smone,d_P,one,d_Q,one);CHKERRCUBLAS(cberr);
+
+  mierr = magma_xgesv_gpu(n_,n_,d_Q,n_,ipiv,d_P,n_,&info);CHKMAGMA(mierr);
+  if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in Lapack xGESV %d",info);
+
+  cberr = cublasXscal(cublasv2handle,n2,&stwo,d_P,one);CHKERRCUBLAS(cberr);
+  ierr = shift_diagonal(d_P,n,n,sone);CHKERRQ(ierr);
+  ierr = PetscLogFlops(2.0*n*n*n/3.0+4.0*n*n);CHKERRQ(ierr);
+
+  /* Squaring */
+  for (j=1;j<=s;j++) {
+    cberr = cublasXgemm(cublasv2handle,CUBLAS_OP_N,CUBLAS_OP_N,n_,n_,n_,&sone,d_P,n_,d_P,n_,&szero,d_W,n_);CHKERRCUBLAS(cberr);
+    SWAP(d_P,d_W,aux);
+  }
+  if (d_P!=d_Ba) {
+    cerr = cudaMemcpy(Ba,d_P,n2*sizeof(PetscScalar),cudaMemcpyDeviceToHost);CHKERRCUDA(cerr);
+  } else {
+    cerr = cudaMemcpy(Ba,d_Ba,n2*sizeof(PetscScalar),cudaMemcpyDeviceToHost);CHKERRCUDA(cerr);
+  }
+  ierr = PetscLogFlops(2.0*n*n*n*s);CHKERRQ(ierr);
+
+  ierr = PetscFree2(work,ipiv);CHKERRQ(ierr);
+  ierr = MatDenseRestoreArray(A,&Aa);CHKERRQ(ierr);
+  ierr = MatDenseRestoreArray(B,&Ba);CHKERRQ(ierr);
+  magma_finalize();
+  PetscFunctionReturn(0);
+}
 #endif /* PETSC_HAVE_CUDA */
 
 PetscErrorCode FNView_Exp(FN fn,PetscViewer viewer)
@@ -1306,6 +1474,7 @@ PetscErrorCode FNView_Exp(FN fn,PetscViewer viewer)
                   "scaling & squaring, [6/6] Pade approximant",
                   "scaling & squaring, subdiagonal Pade approximant (product form)",
                   "scaling & squaring, subdiagonal Pade approximant (partial fraction)",
+                  "scaling & squaring, [m/m] Pade approximant (Higham) CUDAm",
                   "scaling & squaring, [6/6] Pade approximant CUDA",
                   "scaling & squaring, [6/6] Pade approximant CUDAm"
   };
@@ -1351,8 +1520,9 @@ SLEPC_EXTERN PetscErrorCode FNCreate_Exp(FN fn)
   fn->ops->evaluatefunctionmat[2] = FNEvaluateFunctionMat_Exp_GuettelNakatsukasa; /* product form */
   fn->ops->evaluatefunctionmat[3] = FNEvaluateFunctionMat_Exp_GuettelNakatsukasa; /* partial fraction */
 #if defined(PETSC_HAVE_CUDA)
-  fn->ops->evaluatefunctionmat[4] = FNEvaluateFunctionMat_Exp_Pade_CUDA;
-  fn->ops->evaluatefunctionmat[5] = FNEvaluateFunctionMat_Exp_Pade_CUDAm;
+  fn->ops->evaluatefunctionmat[4] = FNEvaluateFunctionMat_Exp_Higham_CUDAm;
+  fn->ops->evaluatefunctionmat[5] = FNEvaluateFunctionMat_Exp_Pade_CUDA;
+  fn->ops->evaluatefunctionmat[6] = FNEvaluateFunctionMat_Exp_Pade_CUDAm;
 #endif
   fn->ops->view                   = FNView_Exp;
   PetscFunctionReturn(0);
