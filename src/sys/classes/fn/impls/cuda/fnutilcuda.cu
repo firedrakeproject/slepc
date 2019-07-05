@@ -17,7 +17,7 @@
 
 #if defined(PETSC_HAVE_CUDA)
 
-__global__ void clean_offdiagonal_kernel(PetscScalar *d_pa,PetscInt n,PetscInt ld,PetscScalar v,PetscInt xcount)
+__global__ void clean_offdiagonal_kernel(PetscInt n,PetscScalar *d_pa,PetscInt ld,PetscScalar v,PetscInt xcount)
 {
   PetscInt x,j;
   x = (xcount*gridDim.x*blockDim.x)+blockIdx.x*blockDim.x*TILE_SIZE_X+threadIdx.x*TILE_SIZE_X;
@@ -25,16 +25,15 @@ __global__ void clean_offdiagonal_kernel(PetscScalar *d_pa,PetscInt n,PetscInt l
   if (x<n) {
     for (j=0;j<n;j++){
       if (j != x) {
-        d_pa[x+ld*j] = 0.0;
+        d_pa[x+j*ld] = 0.0;
       } else {
-//        d_pa[x+ld*j] = PetscSqrtScalar(d_pa[x+ld*j]);
-        d_pa[x+ld*j] = d_pa[x+ld*j]*v;
+        d_pa[x+j*ld] = d_pa[x+j*ld]*v;
       }
     }
   }
 }
 
-__host__ PetscErrorCode clean_offdiagonal(PetscScalar *d_pa,PetscInt n, PetscInt ld,PetscScalar v)
+__host__ PetscErrorCode clean_offdiagonal(PetscInt n,PetscScalar *d_pa,PetscInt ld,PetscScalar v)
 {
   /* XXX use 2D TBD */
   PetscInt        i,dimGrid_xcount;
@@ -44,23 +43,23 @@ __host__ PetscErrorCode clean_offdiagonal(PetscScalar *d_pa,PetscInt n, PetscInt
   PetscFunctionBegin;
   get_params_1D(n,&blocks3d,&threads3d,&dimGrid_xcount);
   for (i=0;i<dimGrid_xcount;i++) {
-    clean_offdiagonal_kernel<<<blocks3d, threads3d>>>(d_pa,n,ld,v,i);
+    clean_offdiagonal_kernel<<<blocks3d, threads3d>>>(n,d_pa,ld,v,i);
     cerr = cudaGetLastError(); CHKERRCUDA(cerr);
   }
   PetscFunctionReturn(0);
 }
 
-__global__ void set_diagonal_kernel(PetscScalar *d_pa,PetscInt n,PetscInt ld,PetscScalar v,PetscInt xcount)
+__global__ void set_diagonal_kernel(PetscInt n,PetscScalar *d_pa,PetscInt ld,PetscScalar v,PetscInt xcount)
 {
   PetscInt x;
-  x = (xcount*gridDim.x*blockDim.x)+blockIdx.x*blockDim.x*TILE_SIZE_X+threadIdx.x*TILE_SIZE_X;
+  x = (xcount*gridDim.x*blockDim.x)+blockIdx.x*blockDim.x+threadIdx.x;
 
   if (x<n) {
-    d_pa[x+ld*x] = v;
+    d_pa[x+x*ld] = v;
   }
 }
 
-__host__ PetscErrorCode set_diagonal(PetscScalar *d_pa,PetscInt n, PetscInt ld,PetscScalar v)
+__host__ PetscErrorCode set_diagonal(PetscInt n,PetscScalar *d_pa,PetscInt ld,PetscScalar v)
 {
   PetscInt        i,dimGrid_xcount;
   dim3            blocks3d,threads3d;
@@ -69,23 +68,23 @@ __host__ PetscErrorCode set_diagonal(PetscScalar *d_pa,PetscInt n, PetscInt ld,P
   PetscFunctionBegin;
   get_params_1D(n,&blocks3d,&threads3d,&dimGrid_xcount);
   for (i=0;i<dimGrid_xcount;i++) {
-    set_diagonal_kernel<<<blocks3d, threads3d>>>(d_pa,n,ld,v,i);
+    set_diagonal_kernel<<<blocks3d, threads3d>>>(n,d_pa,ld,v,i);
     cerr = cudaGetLastError(); CHKERRCUDA(cerr);
   }
   PetscFunctionReturn(0);
 }
 
-__global__ void shift_diagonal_kernel(PetscScalar *d_pa,PetscInt n,PetscInt ld,PetscScalar v,PetscInt xcount)
+__global__ void set_Cdiagonal_kernel(PetscInt n,PetscComplex *d_pa,PetscInt ld,PetscComplex v,PetscInt xcount)
 {
   PetscInt x;
-  x = (xcount*gridDim.x*blockDim.x)+blockIdx.x*blockDim.x*TILE_SIZE_X+threadIdx.x*TILE_SIZE_X;
+  x = (xcount*gridDim.x*blockDim.x)+blockIdx.x*blockDim.x+threadIdx.x;
 
   if (x<n) {
-    d_pa[x+ld*x] += v;
+    d_pa[x+x*ld] = v;
   }
 }
 
-__host__ PetscErrorCode shift_diagonal(PetscScalar *d_pa,PetscInt n, PetscInt ld,PetscScalar v)
+__host__ PetscErrorCode set_Cdiagonal(PetscInt n,PetscComplex *d_pa,PetscInt ld,PetscComplex v)
 {
   PetscInt        i,dimGrid_xcount;
   dim3            blocks3d,threads3d;
@@ -94,8 +93,182 @@ __host__ PetscErrorCode shift_diagonal(PetscScalar *d_pa,PetscInt n, PetscInt ld
   PetscFunctionBegin;
   get_params_1D(n,&blocks3d,&threads3d,&dimGrid_xcount);
   for (i=0;i<dimGrid_xcount;i++) {
-    shift_diagonal_kernel<<<blocks3d, threads3d>>>(d_pa,n,ld,v,i);
+    set_Cdiagonal_kernel<<<blocks3d, threads3d>>>(n,d_pa,ld,v,i);
     cerr = cudaGetLastError(); CHKERRCUDA(cerr);
+  }
+  PetscFunctionReturn(0);
+}
+
+__global__ void shift_diagonal_kernel(PetscInt n,PetscScalar *d_pa,PetscInt ld,PetscScalar v,PetscInt xcount)
+{
+  PetscInt x;
+  x = (xcount*gridDim.x*blockDim.x)+blockIdx.x*blockDim.x+threadIdx.x;
+
+  if (x<n) {
+    d_pa[x+x*ld] += v;
+  }
+}
+
+__host__ PetscErrorCode shift_diagonal(PetscInt n,PetscScalar *d_pa,PetscInt ld,PetscScalar v)
+{
+  PetscInt        i,dimGrid_xcount;
+  dim3            blocks3d,threads3d;
+  cudaError_t     cerr;
+
+  PetscFunctionBegin;
+  get_params_1D(n,&blocks3d,&threads3d,&dimGrid_xcount);
+  for (i=0;i<dimGrid_xcount;i++) {
+    shift_diagonal_kernel<<<blocks3d, threads3d>>>(n,d_pa,ld,v,i);
+    cerr = cudaGetLastError(); CHKERRCUDA(cerr);
+  }
+  PetscFunctionReturn(0);
+}
+
+__global__ void shift_Cdiagonal_kernel(PetscInt n,PetscComplex *d_pa,PetscInt ld,PetscComplex v,PetscInt xcount)
+{
+  PetscInt x;
+  x = (xcount*gridDim.x*blockDim.x)+blockIdx.x*blockDim.x+threadIdx.x;
+
+  if (x<n) {
+    d_pa[x+x*ld] += v;
+  }
+}
+
+__host__ PetscErrorCode shift_Cdiagonal(PetscInt n,PetscComplex *d_pa,PetscInt ld,PetscComplex v)
+{
+  PetscInt        i,dimGrid_xcount;
+  dim3            blocks3d,threads3d;
+  cudaError_t     cerr;
+
+  PetscFunctionBegin;
+  get_params_1D(n,&blocks3d,&threads3d,&dimGrid_xcount);
+  for (i=0;i<dimGrid_xcount;i++) {
+    shift_Cdiagonal_kernel<<<blocks3d, threads3d>>>(n,d_pa,ld,v,i);
+    cerr = cudaGetLastError(); CHKERRCUDA(cerr);
+  }
+  PetscFunctionReturn(0);
+}
+
+__global__ void copy_array2D_S2C_kernel(PetscInt m,PetscInt n,PetscComplex *d_pa,PetscInt lda,PetscScalar *d_pb,PetscInt ldb,PetscInt xcount,PetscInt ycount)
+{
+  PetscInt x,y,i,j;
+
+  x = (xcount*gridDim.x*blockDim.x)+blockIdx.x*blockDim.x*TILE_SIZE_X+threadIdx.x*TILE_SIZE_X;
+  y = (ycount*gridDim.y*blockDim.y)+blockIdx.y*blockDim.y*TILE_SIZE_Y+threadIdx.y*TILE_SIZE_Y;
+  for (i=x;i<x+TILE_SIZE_X&&i<m;i++) {
+    for (j=y;j<y+TILE_SIZE_Y&&j<n;j++) {
+      d_pa[i+j*lda] = d_pb[i+j*ldb];
+    }
+  }
+}
+
+__host__ PetscErrorCode copy_array2D_S2C(PetscInt m,PetscInt n,PetscComplex *d_pa,PetscInt lda,PetscScalar *d_pb,PetscInt ldb)
+{
+  PetscInt        i,j,dimGrid_xcount,dimGrid_ycount;
+  dim3            blocks3d,threads3d;
+  cudaError_t     cerr;
+
+  PetscFunctionBegin;
+  get_params_2D(m,n,&blocks3d,&threads3d,&dimGrid_xcount,&dimGrid_ycount);
+  for (i=0;i<dimGrid_xcount;i++) {
+    for (j=0;j<dimGrid_ycount;j++) {
+      copy_array2D_S2C_kernel<<<blocks3d,threads3d>>>(m,n,d_pa,lda,d_pb,ldb,i,j);
+      cerr = cudaGetLastError();CHKERRCUDA(cerr);
+    }
+  }
+  PetscFunctionReturn(0);
+}
+
+__global__ void copy_array2D_C2S_kernel(PetscInt m,PetscInt n,PetscScalar *d_pa,PetscInt lda,PetscComplex *d_pb,PetscInt ldb,PetscInt xcount,PetscInt ycount)
+{
+  PetscInt x,y,i,j;
+
+  x = (xcount*gridDim.x*blockDim.x)+blockIdx.x*blockDim.x*TILE_SIZE_X+threadIdx.x*TILE_SIZE_X;
+  y = (ycount*gridDim.y*blockDim.y)+blockIdx.y*blockDim.y*TILE_SIZE_Y+threadIdx.y*TILE_SIZE_Y;
+  for (i=x;i<x+TILE_SIZE_X&&i<m;i++) {
+    for (j=y;j<y+TILE_SIZE_Y&&j<n;j++) {
+      d_pa[i+j*lda] = PetscRealPartComplex(d_pb[i+j*ldb]);
+    }
+  }
+}
+
+__host__ PetscErrorCode copy_array2D_C2S(PetscInt m,PetscInt n,PetscScalar *d_pa,PetscInt lda,PetscComplex *d_pb,PetscInt ldb)
+{
+  PetscInt        i,j,dimGrid_xcount,dimGrid_ycount;
+  dim3            blocks3d,threads3d;
+  cudaError_t     cerr;
+
+  PetscFunctionBegin;
+  get_params_2D(m,n,&blocks3d,&threads3d,&dimGrid_xcount,&dimGrid_ycount);
+  for (i=0;i<dimGrid_xcount;i++) {
+    for (j=0;j<dimGrid_ycount;j++) {
+      copy_array2D_C2S_kernel<<<blocks3d,threads3d>>>(m,n,d_pa,lda,d_pb,ldb,i,j);
+      cerr = cudaGetLastError();CHKERRCUDA(cerr);
+    }
+  }
+  PetscFunctionReturn(0);
+}
+
+__global__ void add_array2D_Conj_kernel(PetscInt m,PetscInt n,PetscComplex *d_pa,PetscInt lda,PetscInt xcount,PetscInt ycount)
+{
+  PetscInt x,y,i,j;
+
+  x = (xcount*gridDim.x*blockDim.x)+blockIdx.x*blockDim.x*TILE_SIZE_X+threadIdx.x*TILE_SIZE_X;
+  y = (ycount*gridDim.y*blockDim.y)+blockIdx.y*blockDim.y*TILE_SIZE_Y+threadIdx.y*TILE_SIZE_Y;
+  for (i=x;i<x+TILE_SIZE_X&&i<m;i++) {
+    for (j=y;j<y+TILE_SIZE_Y&&j<n;j++) {
+      d_pa[i+j*lda] += PetscConj(d_pa[i+j*lda]);
+    }
+  }
+}
+
+__host__ PetscErrorCode add_array2D_Conj(PetscInt m,PetscInt n,PetscComplex *d_pa,PetscInt lda)
+{
+  PetscInt        i,j,dimGrid_xcount,dimGrid_ycount;
+  dim3            blocks3d,threads3d;
+  cudaError_t     cerr;
+
+  PetscFunctionBegin;
+  get_params_2D(m,n,&blocks3d,&threads3d,&dimGrid_xcount,&dimGrid_ycount);
+  for (i=0;i<dimGrid_xcount;i++) {
+    for (j=0;j<dimGrid_ycount;j++) {
+      add_array2D_Conj_kernel<<<blocks3d,threads3d>>>(m,n,d_pa,lda,i,j);
+      cerr = cudaGetLastError();CHKERRCUDA(cerr);
+    }
+  }
+  PetscFunctionReturn(0);
+}
+
+__global__ void getisreal_array2D_kernel(PetscInt m,PetscInt n,PetscComplex *d_pa,PetscInt lda,PetscBool *d_result,PetscInt xcount,PetscInt ycount)
+{
+  PetscInt x,y,i,j;
+
+  x = (xcount*gridDim.x*blockDim.x)+blockIdx.x*blockDim.x*TILE_SIZE_X+threadIdx.x*TILE_SIZE_X;
+  y = (ycount*gridDim.y*blockDim.y)+blockIdx.y*blockDim.y*TILE_SIZE_Y+threadIdx.y*TILE_SIZE_Y;
+  if (*d_result) {
+    for (i=x;i<x+TILE_SIZE_X&&i<m;i++) {
+      for (j=y;j<y+TILE_SIZE_Y&&j<n;j++) {
+        if (PetscImaginaryPartComplex(d_pa[i+j*lda])) *d_result=PETSC_FALSE;
+      }
+    }
+  }
+}
+
+__host__ PetscErrorCode getisreal_array2D(PetscInt m,PetscInt n,PetscComplex *d_pa,PetscInt lda,PetscBool *d_result)
+{
+  PetscInt        i,j,dimGrid_xcount,dimGrid_ycount;
+  PetscBool       result=PETSC_TRUE;
+  dim3            blocks3d,threads3d;
+  cudaError_t     cerr;
+
+  PetscFunctionBegin;
+  cerr = cudaMemcpy(d_result,&result,sizeof(PetscBool),cudaMemcpyHostToDevice);CHKERRCUDA(cerr);
+  get_params_2D(m,n,&blocks3d,&threads3d,&dimGrid_xcount,&dimGrid_ycount);
+  for (i=0;i<dimGrid_xcount;i++) {
+    for (j=0;j<dimGrid_ycount;j++) {
+      getisreal_array2D_kernel<<<blocks3d,threads3d>>>(m,n,d_pa,lda,d_result,i,j);
+      cerr = cudaGetLastError();CHKERRCUDA(cerr);
+    }
   }
   PetscFunctionReturn(0);
 }
@@ -175,15 +348,58 @@ __host__ PetscErrorCode get_params_1D(PetscInt rows,dim3 *dimGrid,dim3 *dimBlock
   // X axis
   dimGrid->x = 1;
   dimBlock->x = BLOCK_SIZE_X;
-  if (rows>BLOCK_SIZE_X) {
-    dimGrid->x = (rows+((BLOCK_SIZE_X*TILE_SIZE_X)-1))/BLOCK_SIZE_X*TILE_SIZE_X;
+  if (rows>(BLOCK_SIZE_X*TILE_SIZE_X)) {
+    dimGrid->x = (rows+((BLOCK_SIZE_X*TILE_SIZE_X)-1))/(BLOCK_SIZE_X*TILE_SIZE_X);
   } else {
-    dimBlock->x = rows;
+    dimBlock->x = (rows+(TILE_SIZE_X-1))/TILE_SIZE_X;
   }
 
   if (dimGrid->x>(unsigned)devprop.maxGridSize[X_AXIS]) {
     *dimGrid_xcount = (dimGrid->x+(devprop.maxGridSize[X_AXIS]-1))/devprop.maxGridSize[X_AXIS];
     dimGrid->x = devprop.maxGridSize[X_AXIS];
+  }
+
+  PetscFunctionReturn(0);
+}
+
+__host__ PetscErrorCode get_params_2D(PetscInt rows,PetscInt cols,dim3 *dimGrid,dim3 *dimBlock,PetscInt *dimGrid_xcount,PetscInt *dimGrid_ycount)
+{
+  PetscInt              card;
+  cudaError_t           cerr;
+  struct cudaDeviceProp devprop;
+
+  PetscFunctionBegin;
+  cerr = cudaGetDevice(&card); CHKERRCUDA(cerr);
+  cerr = cudaGetDeviceProperties(&devprop, card); CHKERRCUDA(cerr);
+
+  *dimGrid_xcount = *dimGrid_ycount = 1;
+
+  // X axis
+  dimGrid->x = 1;
+  dimBlock->x = BLOCK_SIZE_X;
+  if (rows > (BLOCK_SIZE_X*TILE_SIZE_X)) {
+    dimGrid->x = (rows+((BLOCK_SIZE_X*TILE_SIZE_X)-1))/(BLOCK_SIZE_X*TILE_SIZE_X);
+  } else {
+    dimBlock->x = (rows+(TILE_SIZE_X-1))/TILE_SIZE_X;
+  }
+
+  if (dimGrid->x>(unsigned)devprop.maxGridSize[X_AXIS]) {
+    *dimGrid_xcount = (dimGrid->x+(devprop.maxGridSize[X_AXIS]-1))/devprop.maxGridSize[X_AXIS];
+    dimGrid->x = devprop.maxGridSize[X_AXIS];
+  }
+
+  // Y axis
+  dimGrid->y = 1;
+  dimBlock->y = BLOCK_SIZE_Y;
+  if (cols>(BLOCK_SIZE_Y*TILE_SIZE_Y)) {
+    dimGrid->y = (cols+((BLOCK_SIZE_Y*TILE_SIZE_Y)-1))/(BLOCK_SIZE_Y*TILE_SIZE_Y);
+  } else {
+    dimBlock->y = (cols+(TILE_SIZE_Y-1))/TILE_SIZE_Y;
+  }
+
+  if (dimGrid->y>(unsigned)devprop.maxGridSize[Y_AXIS]) {
+    *dimGrid_ycount = (dimGrid->y+(devprop.maxGridSize[Y_AXIS]-1))/devprop.maxGridSize[Y_AXIS];
+    dimGrid->y = devprop.maxGridSize[Y_AXIS];
   }
 
   PetscFunctionReturn(0);

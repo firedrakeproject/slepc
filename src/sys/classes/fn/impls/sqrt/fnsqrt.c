@@ -310,16 +310,16 @@ PetscErrorCode SlepcSqrtmSadeghi_CUDAm(PetscBLASInt n,PetscScalar *A,PetscBLASIn
 
   /* X = I */
   cerr = cudaMemset(d_X,zero,sizeof(PetscScalar)*N);CHKERRCUDA(cerr);
-  ierr = set_diagonal(d_X,n,ld,sone);CHKERRQ(cerr);
+  ierr = set_diagonal(n,d_X,ld,sone);CHKERRQ(cerr);
 
   for (it=0;it<MAXIT && !converged;it++) {
 
     /* G = (5/16)*I + (1/16)*M*(15*I-5*M+M*M) */
     cberr = cublasXgemm(cublasv2handle,CUBLAS_OP_N,CUBLAS_OP_N,n,n,n,&sone,d_M,ld,d_M,ld,&szero,d_M2,ld);CHKERRCUBLAS(cberr);
     cberr = cublasXaxpy(cublasv2handle,N,&smfive,d_M,one,d_M2,one);CHKERRCUBLAS(cberr);
-    ierr = shift_diagonal(d_M2,n,ld,s15);CHKERRQ(cerr);
+    ierr = shift_diagonal(n,d_M2,ld,s15);CHKERRQ(cerr);
     cberr = cublasXgemm(cublasv2handle,CUBLAS_OP_N,CUBLAS_OP_N,n,n,n,&s1d16,d_M,ld,d_M2,ld,&szero,d_G,ld);CHKERRCUBLAS(cberr);
-    ierr = shift_diagonal(d_G,n,ld,5.0/16.0);CHKERRQ(cerr);
+    ierr = shift_diagonal(n,d_G,ld,5.0/16.0);CHKERRQ(cerr);
 
     /* X = X*G */
     cerr = cudaMemcpy(d_M2,d_X,sizeof(PetscScalar)*N,cudaMemcpyDeviceToDevice);CHKERRCUDA(cerr);
@@ -340,7 +340,7 @@ PetscErrorCode SlepcSqrtmSadeghi_CUDAm(PetscBLASInt n,PetscScalar *A,PetscBLASIn
 
     /* check ||I-M|| */
     cerr = cudaMemcpy(d_M2,d_M,sizeof(PetscScalar)*N,cudaMemcpyDeviceToDevice);CHKERRCUDA(cerr);
-    ierr = shift_diagonal(d_M2,n,ld,-1.0);CHKERRQ(cerr);
+    ierr = shift_diagonal(n,d_M2,ld,-1.0);CHKERRQ(cerr);
     cberr = cublasXnrm2(cublasv2handle,N,d_M2,one,&Mres);CHKERRCUBLAS(cberr);
     ierr = PetscIsNanReal(Mres);CHKERRQ(ierr);
     if (Mres<=tol) converged = PETSC_TRUE;

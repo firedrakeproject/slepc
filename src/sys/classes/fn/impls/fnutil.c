@@ -420,7 +420,7 @@ PetscErrorCode SlepcSqrtmNewtonSchulz_CUDA(PetscBLASInt n,PetscScalar *A,PetscBL
   cerr = cudaMemcpy(d_A,A,sizeof(PetscScalar)*N,cudaMemcpyHostToDevice);CHKERRCUDA(cerr);
   /* Z = I; */
   cerr = cudaMemset(d_Z,zero,sizeof(PetscScalar)*N);CHKERRCUDA(cerr);
-  ierr = set_diagonal(d_Z,n,ld,sone);CHKERRQ(cerr);
+  ierr = set_diagonal(n,d_Z,ld,sone);CHKERRQ(cerr);
 
   /* scale A so that ||I-A|| < 1 */
   cberr = cublasXaxpy(cublasv2handle,N,&smone,d_A,one,d_Z,one);CHKERRCUBLAS(cberr);
@@ -434,7 +434,7 @@ PetscErrorCode SlepcSqrtmNewtonSchulz_CUDA(PetscBLASInt n,PetscScalar *A,PetscBL
 
   /* Z = I; */
   cerr = cudaMemset(d_Z,zero,sizeof(PetscScalar)*N);CHKERRCUDA(cerr);
-  ierr = set_diagonal(d_Z,n,ld,sone);CHKERRQ(cerr);
+  ierr = set_diagonal(n,d_Z,ld,sone);CHKERRQ(cerr);
 
   for (it=0;it<NSMAXIT && !converged;it++) {
     /* Yold = Y, Zold = Z */
@@ -443,7 +443,7 @@ PetscErrorCode SlepcSqrtmNewtonSchulz_CUDA(PetscBLASInt n,PetscScalar *A,PetscBL
 
     /* M = (3*I - Zold*Yold) */
     cerr = cudaMemset(d_M,zero,sizeof(PetscScalar)*N);CHKERRCUDA(cerr);
-    ierr = set_diagonal(d_M,n,ld,sthree);CHKERRQ(cerr);
+    ierr = set_diagonal(n,d_M,ld,sthree);CHKERRQ(cerr);
     cberr = cublasXgemm(cublasv2handle,CUBLAS_OP_N,CUBLAS_OP_N,n,n,n,&smone,d_Zold,ld,d_Yold,ld,&sone,d_M,ld);CHKERRCUBLAS(cberr);
 
     /* Y = (1/2) * Yold * M, Z = (1/2) * M * Zold */
@@ -517,7 +517,7 @@ PetscErrorCode SlepcSqrtmDenmanBeavers_CUDAm(PetscBLASInt n,PetscScalar *T,Petsc
   cerr = cudaMemcpy(d_M,T,sizeof(PetscScalar)*N,cudaMemcpyHostToDevice);CHKERRCUDA(cerr);
   if (inv) {  /* start recurrence with I instead of A */
     cerr = cudaMemset(d_T,zero,sizeof(PetscScalar)*N);CHKERRCUDA(cerr);
-    ierr = set_diagonal(d_T,n,ld,1.0);CHKERRQ(cerr);
+    ierr = set_diagonal(n,d_T,ld,1.0);CHKERRQ(cerr);
   } else {
     cerr = cudaMemcpy(d_T,T,sizeof(PetscScalar)*N,cudaMemcpyHostToDevice);CHKERRCUDA(cerr);
   }
@@ -555,17 +555,17 @@ PetscErrorCode SlepcSqrtmDenmanBeavers_CUDAm(PetscBLASInt n,PetscScalar *T,Petsc
     if (info > 0) SETERRQ2(PETSC_COMM_SELF, PETSC_ERR_MAT_LU_ZRPVT, "LAPACKgetri: Matrix is singular. U(%d,%d) is zero",info,info);
     ierr = PetscLogFlops(2.0*n*n*n/3.0+4.0*n*n*n/3.0);CHKERRQ(ierr);
 
-    ierr = shift_diagonal(d_invM,n,ld,sone);CHKERRQ(cerr);
+    ierr = shift_diagonal(n,d_invM,ld,sone);CHKERRQ(cerr);
     cberr = cublasXgemm(cublasv2handle,CUBLAS_OP_N,CUBLAS_OP_N,n,n,n,&spfive,d_Told,ld,d_invM,ld,&zero,d_T,ld);CHKERRCUBLAS(cberr);
-    ierr = shift_diagonal(d_invM,n,ld,smone);CHKERRQ(cerr);
+    ierr = shift_diagonal(n,d_invM,ld,smone);CHKERRQ(cerr);
 
     cberr = cublasXaxpy(cublasv2handle,N,&sone,d_invM,one,d_M,one);CHKERRCUBLAS(cberr);
     cberr = cublasXscal(cublasv2handle,N,&sp25,d_M,one);CHKERRCUBLAS(cberr);
-    ierr = shift_diagonal(d_M,n,ld,sneg_pfive);CHKERRQ(cerr);
+    ierr = shift_diagonal(n,d_M,ld,sneg_pfive);CHKERRQ(cerr);
     ierr = PetscLogFlops(2.0*n*n*n+2.0*n*n);CHKERRQ(ierr);
 
     cberr = cublasXnrm2(cublasv2handle,N,d_M,one,&Mres);CHKERRCUBLAS(cberr);
-    ierr = shift_diagonal(d_M,n,ld,sone);CHKERRQ(cerr);
+    ierr = shift_diagonal(n,d_M,ld,sone);CHKERRQ(cerr);
 
     // reldiff = norm(T - Told,'fro')/norm(T,'fro');
     cberr = cublasXaxpy(cublasv2handle,N,&smone,d_T,one,d_Told,one);CHKERRCUBLAS(cberr);
