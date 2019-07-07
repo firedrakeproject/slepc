@@ -98,7 +98,7 @@ int main(int argc,char **argv)
   if (flg) {
     ierr = SVDCyclicGetExplicitMatrix(svd,&expmat);CHKERRQ(ierr);
     if (expmat) {
-      ierr = PetscPrintf(PETSC_COMM_WORLD," Using explicit matrix with cyclic solver\n",m,n);CHKERRQ(ierr);
+      ierr = PetscPrintf(PETSC_COMM_WORLD," Using explicit matrix with cyclic solver\n");CHKERRQ(ierr);
     }
   }
   ierr = SVDSolve(svd);CHKERRQ(ierr);

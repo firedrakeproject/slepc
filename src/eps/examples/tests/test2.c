@@ -141,6 +141,7 @@ int main(int argc,char **argv)
          nsize: 2
          suffix: 3_gd
          args: -eps_type gd -eps_gd_krylov_start
+         timeoutfactor: 2
       test:
          suffix: 3_jd
          args: -eps_type jd -eps_jd_krylov_start -eps_ncv 18
