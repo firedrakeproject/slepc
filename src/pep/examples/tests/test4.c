@@ -105,6 +105,7 @@ int main(int argc,char **argv)
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
   ierr = PEPCreate(PETSC_COMM_WORLD,&pep);CHKERRQ(ierr);
+  ierr = PetscObjectSetName((PetscObject)pep,"PEP_solver");CHKERRQ(ierr);
   A[0] = K; A[1] = C; A[2] = M;
   ierr = PEPSetOperators(pep,3,A);CHKERRQ(ierr);
   ierr = PEPSetType(pep,PEPLINEAR);CHKERRQ(ierr);
@@ -138,6 +139,6 @@ int main(int argc,char **argv)
 
    test:
       suffix: 1
-      args: -pep_linear_explicitmatrix
+      args: -pep_linear_explicitmatrix -pep_view_vectors ::ascii_info
 
 TEST*/

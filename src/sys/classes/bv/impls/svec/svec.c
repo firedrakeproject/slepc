@@ -433,7 +433,7 @@ SLEPC_EXTERN PetscErrorCode BVCreate_Svec(BV bv)
 {
   PetscErrorCode    ierr;
   BV_SVEC           *ctx;
-  PetscInt          nloc,N,bs,tglobal,tlocal,lsplit;
+  PetscInt          nloc,N,bs,tglobal=0,tlocal,lsplit;
   PetscBool         seq;
   PetscScalar       *aa,*vv;
   const PetscScalar *array,*ptr;

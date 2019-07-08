@@ -47,6 +47,7 @@ int main(int argc,char **argv)
   PetscReal      c[10] = { 0.6, 1.3, 1.3, 0.1, 0.1, 1.2, 1.0, 1.0, 1.2, 1.0 };
   PetscBool      flg;
   PetscBool      terse;
+  const char     *prefix;
   PetscErrorCode ierr;
 
   ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
@@ -132,6 +133,11 @@ int main(int argc,char **argv)
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
   ierr = PEPCreate(PETSC_COMM_WORLD,&pep);CHKERRQ(ierr);
+  ierr = PEPSetOptionsPrefix(pep,"check_");CHKERRQ(ierr);
+  ierr = PEPAppendOptionsPrefix(pep,"myprefix_");CHKERRQ(ierr);
+  ierr = PEPGetOptionsPrefix(pep,&prefix);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"PEP prefix is currently: %s\n\n",prefix);CHKERRQ(ierr);
+
   ierr = PEPSetOperators(pep,NMAT,A);CHKERRQ(ierr);
   ierr = PEPSetEigenvalueComparison(pep,MyEigenSort,NULL);CHKERRQ(ierr);
   ierr = PEPSetFromOptions(pep);CHKERRQ(ierr);
@@ -162,7 +168,7 @@ int main(int argc,char **argv)
 /*TEST
 
    test:
-      args: -pep_nev 4 -terse
+      args: -check_myprefix_pep_nev 4 -terse
       requires: double
 
 TEST*/
