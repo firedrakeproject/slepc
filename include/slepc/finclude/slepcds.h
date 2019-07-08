@@ -9,8 +9,8 @@
 !
 !  Include file for Fortran use of the DS object in SLEPc
 !
-#if !defined(__SLEPCDSDEF_H)
-#define __SLEPCDSDEF_H
+#if !defined(SLEPCDSDEF_H)
+#define SLEPCDSDEF_H
 
 #include "petsc/finclude/petscmat.h"
 #include "slepc/finclude/slepcfn.h"

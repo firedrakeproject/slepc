@@ -8,8 +8,8 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#if !defined(__SLEPCRGTYPES_H)
-#define __SLEPCRGTYPES_H
+#if !defined(SLEPCRGTYPES_H)
+#define SLEPCRGTYPES_H
 
 /*S
    RG - Region of the complex plane.

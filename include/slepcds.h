@@ -11,8 +11,8 @@
    User interface for the direct solver object in SLEPc
 */
 
-#if !defined(__SLEPCDS_H)
-#define __SLEPCDS_H
+#if !defined(SLEPCDS_H)
+#define SLEPCDS_H
 #include <slepcsc.h>
 #include <slepcfn.h>
 

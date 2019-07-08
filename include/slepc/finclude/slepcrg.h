@@ -9,8 +9,8 @@
 !
 !  Include file for Fortran use of the RG object in SLEPc
 !
-#if !defined(__SLEPCRGDEF_H)
-#define __SLEPCRGDEF_H
+#if !defined(SLEPCRGDEF_H)
+#define SLEPCRGDEF_H
 
 #include "petsc/finclude/petscsys.h"
 

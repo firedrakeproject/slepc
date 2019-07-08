@@ -8,8 +8,8 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#if !defined(_LMEIMPL)
-#define _LMEIMPL
+#if !defined(SLEPCLMEIMPL_H)
+#define SLEPCLMEIMPL_H
 
 #include <slepclme.h>
 #include <slepc/private/slepcimpl.h>

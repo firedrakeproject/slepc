@@ -11,8 +11,8 @@
    Private data structure used by the BLZPACK interface
 */
 
-#if !defined(__BLZPACKP_H)
-#define __BLZPACKP_H
+#if !defined(SLEPC_BLZPACK_H)
+#define SLEPC_BLZPACK_H
 
 typedef struct {
   PetscBLASInt         block_size;      /* block size */

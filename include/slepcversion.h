@@ -1,5 +1,5 @@
-#if !defined(__SLEPCVERSION_H)
-#define __SLEPCVERSION_H
+#if !defined(SLEPCVERSION_H)
+#define SLEPCVERSION_H
 
 #define SLEPC_VERSION_RELEASE    1
 #define SLEPC_VERSION_MAJOR      3

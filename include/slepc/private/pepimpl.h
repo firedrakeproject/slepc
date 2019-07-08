@@ -8,8 +8,8 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#if !defined(_PEPIMPL)
-#define _PEPIMPL
+#if !defined(SLEPCPEPIMPL_H)
+#define SLEPCPEPIMPL_H
 
 #include <slepcpep.h>
 #include <slepc/private/slepcimpl.h>

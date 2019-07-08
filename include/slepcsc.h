@@ -11,8 +11,8 @@
    Sorting criterion for various solvers
 */
 
-#if !defined(__SLEPCSC_H)
-#define __SLEPCSC_H
+#if !defined(SLEPCSC_H)
+#define SLEPCSC_H
 
 #include <slepcsys.h>
 #include <slepcrgtypes.h>

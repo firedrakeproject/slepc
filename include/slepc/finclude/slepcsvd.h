@@ -9,8 +9,8 @@
 !
 !  Include file for Fortran use of the SVD object in SLEPc
 !
-#if !defined(__SLEPCSVDDEF_H)
-#define __SLEPCSVDDEF_H
+#if !defined(SLEPCSVDDEF_H)
+#define SLEPCSVDDEF_H
 
 #include "slepc/finclude/slepcbv.h"
 #include "slepc/finclude/slepcds.h"

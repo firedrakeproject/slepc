@@ -8,8 +8,8 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#if !defined(_EPSIMPL)
-#define _EPSIMPL
+#if !defined(SLEPCEPSIMPL_H)
+#define SLEPCEPSIMPL_H
 
 #include <slepceps.h>
 #include <slepc/private/slepcimpl.h>

@@ -11,8 +11,8 @@
    User interface for SLEPc's nonlinear eigenvalue solvers
 */
 
-#if !defined(__SLEPCNEP_H)
-#define __SLEPCNEP_H
+#if !defined(SLEPCNEP_H)
+#define SLEPCNEP_H
 #include <slepceps.h>
 #include <slepcpep.h>
 #include <slepcfn.h>

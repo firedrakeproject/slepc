@@ -9,8 +9,8 @@
 !
 !  Include file for Fortran use of the ST object in SLEPc
 !
-#if !defined(__SLEPCSTDEF_H)
-#define __SLEPCSTDEF_H
+#if !defined(SLEPCSTDEF_H)
+#define SLEPCSTDEF_H
 
 #include "petsc/finclude/petscksp.h"
 #include "slepc/finclude/slepcbv.h"

@@ -11,8 +11,8 @@
    User interface for SLEPc's polynomial eigenvalue solvers
 */
 
-#if !defined(__SLEPCPEP_H)
-#define __SLEPCPEP_H
+#if !defined(SLEPCPEP_H)
+#define SLEPCPEP_H
 #include <slepceps.h>
 
 SLEPC_EXTERN PetscErrorCode PEPInitializePackage(void);

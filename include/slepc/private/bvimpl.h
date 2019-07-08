@@ -8,8 +8,8 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#if !defined(_BVIMPL)
-#define _BVIMPL
+#if !defined(SLEPCBVIMPL_H)
+#define SLEPCBVIMPL_H
 
 #include <slepcbv.h>
 #include <slepc/private/slepcimpl.h>

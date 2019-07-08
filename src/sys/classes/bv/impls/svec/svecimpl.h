@@ -8,8 +8,8 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#if !defined(__SVECIMPL_H)
-#define __SVECIMPL_H
+#if !defined(SLEPC_SVEC_H)
+#define SLEPC_SVEC_H
 
 typedef struct {
   Vec       v;

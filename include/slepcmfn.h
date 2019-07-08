@@ -11,8 +11,8 @@
    User interface for the SLEPc matrix function solver object
 */
 
-#if !defined(__SLEPCMFN_H)
-#define __SLEPCMFN_H
+#if !defined(SLEPCMFN_H)
+#define SLEPCMFN_H
 #include <slepcbv.h>
 #include <slepcfn.h>
 

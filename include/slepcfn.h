@@ -11,8 +11,8 @@
    User interface for the mathematical function object in SLEPc
 */
 
-#if !defined(__SLEPCFN_H)
-#define __SLEPCFN_H
+#if !defined(SLEPCFN_H)
+#define SLEPCFN_H
 #include <slepcsys.h>
 
 #define FN_MAX_SOLVE 6

@@ -11,8 +11,8 @@
    Private data structure used by the TRLAN interface
 */
 
-#if !defined(__TRLANP_H)
-#define __TRLANP_H
+#if !defined(SLEPC_TRLAN_H)
+#define SLEPC_TRLAN_H
 
 typedef struct {
   PetscBLASInt       maxlan;

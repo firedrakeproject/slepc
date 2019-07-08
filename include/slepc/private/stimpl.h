@@ -8,8 +8,8 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#if !defined(_STIMPL)
-#define _STIMPL
+#if !defined(SLEPCSTIMPL_H)
+#define SLEPCSTIMPL_H
 
 #include <slepcst.h>
 #include <slepc/private/slepcimpl.h>

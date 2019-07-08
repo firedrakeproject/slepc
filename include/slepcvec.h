@@ -11,8 +11,8 @@
    User interface for various vector operations added in SLEPc
 */
 
-#if !defined(__SLEPCVEC_H)
-#define __SLEPCVEC_H
+#if !defined(SLEPCVEC_H)
+#define SLEPCVEC_H
 #include <slepcsys.h>
 
 /* VecComp: Vec composed of several smaller Vecs */

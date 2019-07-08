@@ -12,8 +12,8 @@
    This file is included by slepcsys.h and should not be used directly.
 */
 
-#if !defined(__SLEPCMATH_H)
-#define __SLEPCMATH_H
+#if !defined(SLEPCMATH_H)
+#define SLEPCMATH_H
 
 /*
     Default tolerance for the different solvers, depending on the precision

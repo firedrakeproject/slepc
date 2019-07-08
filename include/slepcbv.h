@@ -11,8 +11,8 @@
    User interface for the basis vectors object in SLEPc
 */
 
-#if !defined(__SLEPCBV_H)
-#define __SLEPCBV_H
+#if !defined(SLEPCBV_H)
+#define SLEPCBV_H
 #include <slepcsys.h>
 
 SLEPC_EXTERN PetscErrorCode BVInitializePackage(void);

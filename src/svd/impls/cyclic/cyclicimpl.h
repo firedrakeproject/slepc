@@ -8,8 +8,8 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#if !defined(__CYCLICIMPL_H)
-#define __CYCLICIMPL_H
+#if !defined(SLEPC_CYCLIC_H)
+#define SLEPC_CYCLIC_H
 
 typedef struct {
   PetscBool explicitmatrix;

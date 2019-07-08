@@ -11,8 +11,8 @@
    Private header for Krylov-Schur
 */
 
-#if !defined(__KRYLOVSCHUR_H)
-#define __KRYLOVSCHUR_H
+#if !defined(SLEPC_KRYLOVSCHUR_H)
+#define SLEPC_KRYLOVSCHUR_H
 
 SLEPC_INTERN PetscErrorCode EPSReset_KrylovSchur_Slice(EPS);
 SLEPC_INTERN PetscErrorCode EPSSolve_KrylovSchur_Default(EPS);
