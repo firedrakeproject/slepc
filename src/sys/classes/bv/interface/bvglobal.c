@@ -28,6 +28,7 @@ PETSC_STATIC_INLINE PetscErrorCode BVDot_Private(BV X,BV Y,Mat M)
   Vec            z;
 
   PetscFunctionBegin;
+  BVCheckOp(Y,1,dotvec);
   ierr = MatGetSize(M,&m,NULL);CHKERRQ(ierr);
   ierr = MatDenseGetArray(M,&marray);CHKERRQ(ierr);
   ierr = PetscObjectGetId((PetscObject)X,&idx);CHKERRQ(ierr);
@@ -165,6 +166,7 @@ PetscErrorCode BVDotVec(BV X,Vec y,PetscScalar m[])
   PetscValidHeaderSpecific(y,VEC_CLASSID,2);
   PetscValidType(X,1);
   BVCheckSizes(X,1);
+  BVCheckOp(X,1,dotvec);
   PetscValidType(y,2);
   PetscCheckSameTypeAndComm(X,1,y,2);
 
@@ -213,6 +215,7 @@ PetscErrorCode BVDotVecBegin(BV X,Vec y,PetscScalar *m)
   if (X->ops->dotvec_begin) {
     ierr = (*X->ops->dotvec_begin)(X,y,m);CHKERRQ(ierr);
   } else {
+    BVCheckOp(X,1,dotvec_local);
     nv = X->k-X->l;
     ierr = PetscObjectGetComm((PetscObject)X,&comm);CHKERRQ(ierr);
     ierr = PetscSplitReductionGet(comm,&sr);CHKERRQ(ierr);
@@ -322,6 +325,7 @@ PetscErrorCode BVDotColumn(BV X,PetscInt j,PetscScalar *q)
   PetscValidLogicalCollectiveInt(X,j,2);
   PetscValidType(X,1);
   BVCheckSizes(X,1);
+  BVCheckOp(X,1,dotvec);
 
   if (j<0) SETERRQ(PetscObjectComm((PetscObject)X),PETSC_ERR_ARG_OUTOFRANGE,"Index j must be non-negative");
   if (j>=X->m) SETERRQ2(PetscObjectComm((PetscObject)X),PETSC_ERR_ARG_OUTOFRANGE,"Index j=%D but BV only has %D columns",j,X->m);
@@ -376,6 +380,7 @@ PetscErrorCode BVDotColumnBegin(BV X,PetscInt j,PetscScalar *m)
   if (X->ops->dotvec_begin) {
     ierr = (*X->ops->dotvec_begin)(X,y,m);CHKERRQ(ierr);
   } else {
+    BVCheckOp(X,1,dotvec_local);
     nv = X->k-X->l;
     ierr = PetscObjectGetComm((PetscObject)X,&comm);CHKERRQ(ierr);
     ierr = PetscSplitReductionGet(comm,&sr);CHKERRQ(ierr);
@@ -761,6 +766,7 @@ PetscErrorCode BVNormColumnBegin(BV bv,PetscInt j,NormType type,PetscReal *val)
   } else if (bv->ops->norm_begin) {
     ierr = (*bv->ops->norm_begin)(bv,j,type,val);CHKERRQ(ierr);
   } else {
+    BVCheckOp(bv,1,norm_local);
     ierr = PetscObjectGetComm((PetscObject)z,&comm);CHKERRQ(ierr);
     ierr = PetscSplitReductionGet(comm,&sr);CHKERRQ(ierr);
     if (sr->state != STATE_BEGIN) SETERRQ(PetscObjectComm((PetscObject)bv),PETSC_ERR_ORDER,"Called before all VecxxxEnd() called");
@@ -851,6 +857,7 @@ PETSC_STATIC_INLINE PetscErrorCode BVMatProject_Vec(BV X,Mat A,BV Y,PetscScalar 
   lx = X->l; kx = X->k;
   ly = Y->l; ky = Y->k;
   ierr = BVCreateVec(X,&f);CHKERRQ(ierr);
+  BVCheckOp(Y,3,dotvec);
   for (j=lx;j<kx;j++) {
     ierr = BVGetColumn(X,j,&z);CHKERRQ(ierr);
     ierr = MatMult(A,z,f);CHKERRQ(ierr);
@@ -863,6 +870,7 @@ PETSC_STATIC_INLINE PetscErrorCode BVMatProject_Vec(BV X,Mat A,BV Y,PetscScalar 
     }
   }
   if (!symm) {
+    BVCheckOp(X,1,dotvec);
     ierr = BV_AllocateCoeffs(Y);CHKERRQ(ierr);
     for (j=ly;j<ky;j++) {
       ierr = BVGetColumn(Y,j,&z);CHKERRQ(ierr);

@@ -61,6 +61,7 @@ PetscErrorCode BVMult(BV Y,PetscScalar alpha,PetscScalar beta,BV X,Mat Q)
   if (Q) PetscValidHeaderSpecific(Q,MAT_CLASSID,5);
   PetscValidType(Y,1);
   BVCheckSizes(Y,1);
+  BVCheckOp(Y,1,mult);
   PetscValidType(X,4);
   BVCheckSizes(X,4);
   if (Q) PetscValidType(Q,5);
@@ -125,6 +126,7 @@ PetscErrorCode BVMultVec(BV X,PetscScalar alpha,PetscScalar beta,Vec y,PetscScal
   PetscValidPointer(q,5);
   PetscValidType(X,1);
   BVCheckSizes(X,1);
+  BVCheckOp(X,1,multvec);
   PetscValidType(y,4);
   PetscCheckSameComm(X,1,y,4);
 
@@ -577,6 +579,7 @@ PetscErrorCode BVMatMult(BV V,Mat A,BV Y)
   PetscValidHeaderSpecific(V,BV_CLASSID,1);
   PetscValidType(V,1);
   BVCheckSizes(V,1);
+  BVCheckOp(V,1,matmult);
   PetscValidHeaderSpecific(A,MAT_CLASSID,2);
   PetscValidType(A,2);
   PetscValidHeaderSpecific(Y,BV_CLASSID,3);
