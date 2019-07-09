@@ -285,7 +285,13 @@ static PetscErrorCode EPSBLOPEXSetBlockSize_BLOPEX(EPS eps,PetscInt bs)
   EPS_BLOPEX *ctx = (EPS_BLOPEX*)eps->data;
 
   PetscFunctionBegin;
-  ctx->bs = bs;
+  if (bs==PETSC_DEFAULT) {
+    ctx->bs    = 0;
+    eps->state = EPS_STATE_INITIAL;
+  } else {
+    if (bs<=0) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ARG_OUTOFRANGE,"Block size must be >0");
+    ctx->bs = bs;
+  }
   PetscFunctionReturn(0);
 }
 

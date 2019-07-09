@@ -283,7 +283,13 @@ static PetscErrorCode EPSRQCGSetReset_RQCG(EPS eps,PetscInt nrest)
   EPS_RQCG *ctx = (EPS_RQCG*)eps->data;
 
   PetscFunctionBegin;
-  ctx->nrest = nrest;
+  if (nrest==PETSC_DEFAULT) {
+    ctx->nrest = 0;
+    eps->state = EPS_STATE_INITIAL;
+  } else {
+    if (nrest<=0) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ARG_OUTOFRANGE,"Reset parameter must be >0");
+    ctx->nrest = nrest;
+  }
   PetscFunctionReturn(0);
 }
 
