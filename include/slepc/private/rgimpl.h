@@ -8,8 +8,8 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#if !defined(_RGIMPL)
-#define _RGIMPL
+#if !defined(SLEPCRGIMPL_H)
+#define SLEPCRGIMPL_H
 
 #include <slepcrg.h>
 #include <slepc/private/slepcimpl.h>

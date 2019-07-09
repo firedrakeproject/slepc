@@ -9,8 +9,8 @@
 !
 !  Include file for Fortran use of the LME object in SLEPc
 !
-#if !defined(__SLEPCLMEDEF_H)
-#define __SLEPCLMEDEF_H
+#if !defined(SLEPCLMEDEF_H)
+#define SLEPCLMEDEF_H
 
 #include "petsc/finclude/petscmat.h"
 #include "slepc/finclude/slepcbv.h"

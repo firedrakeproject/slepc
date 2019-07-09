@@ -11,8 +11,8 @@
    Private header for TOAR and STOAR
 */
 
-#if !defined(__TOAR_H)
-#define __TOAR_H
+#if !defined(SLEPC_TOAR_H)
+#define SLEPC_TOAR_H
 
 SLEPC_INTERN PetscErrorCode PEPExtractVectors_TOAR(PEP);
 SLEPC_INTERN PetscErrorCode PEPSTOARSetUpInnerMatrix(PEP,Mat*);

@@ -8,8 +8,8 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#ifndef _VECIMPLSLEPC
-#define _VECIMPLSLEPC
+#if !defined(SLEPCVECIMPL_H)
+#define SLEPCVECIMPL_H
 
 #include <slepcvec.h>
 #include <slepc/private/slepcimpl.h>

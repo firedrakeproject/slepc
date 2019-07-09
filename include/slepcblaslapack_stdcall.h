@@ -8,8 +8,8 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#if !defined(__SLEPCBLASLAPACK_STDCALL_H)
-#define __SLEPCBLASLAPACK_STDCALL_H
+#if !defined(SLEPCBLASLAPACK_STDCALL_H)
+#define SLEPCBLASLAPACK_STDCALL_H
 
 /* LAPACK functions without string parameters */
 #define BLASrot_     PETSCBLAS(rot,ROT)

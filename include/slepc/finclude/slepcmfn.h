@@ -9,8 +9,8 @@
 !
 !  Include file for Fortran use of the MFN object in SLEPc
 !
-#if !defined(__SLEPCMFNDEF_H)
-#define __SLEPCMFNDEF_H
+#if !defined(SLEPCMFNDEF_H)
+#define SLEPCMFNDEF_H
 
 #include "petsc/finclude/petscmat.h"
 #include "slepc/finclude/slepcfn.h"

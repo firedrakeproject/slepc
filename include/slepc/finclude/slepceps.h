@@ -9,8 +9,8 @@
 !
 !  Include file for Fortran use of the EPS object in SLEPc
 !
-#if !defined(__SLEPCEPSDEF_H)
-#define __SLEPCEPSDEF_H
+#if !defined(SLEPCEPSDEF_H)
+#define SLEPCEPSDEF_H
 
 #include "slepc/finclude/slepcsys.h"
 #include "slepc/finclude/slepcst.h"

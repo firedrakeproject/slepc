@@ -11,8 +11,8 @@
    User interface for the region object in SLEPc
 */
 
-#if !defined(__SLEPCRG_H)
-#define __SLEPCRG_H
+#if !defined(SLEPCRG_H)
+#define SLEPCRG_H
 #include <slepcsys.h>
 #include <slepcrgtypes.h>
 

@@ -11,8 +11,8 @@
    User interface for SLEPc's singular value solvers
 */
 
-#if !defined(__SLEPCSVD_H)
-#define __SLEPCSVD_H
+#if !defined(SLEPCSVD_H)
+#define SLEPCSVD_H
 #include <slepceps.h>
 #include <slepcbv.h>
 #include <slepcds.h>

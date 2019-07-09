@@ -11,8 +11,8 @@
    User interface for various matrix operations added in SLEPc
 */
 
-#if !defined(__SLEPCMAT_H)
-#define __SLEPCMAT_H
+#if !defined(SLEPCMAT_H)
+#define SLEPCMAT_H
 #include <petscmat.h>
 
 SLEPC_EXTERN PetscErrorCode MatCreateTile(PetscScalar,Mat,PetscScalar,Mat,PetscScalar,Mat,PetscScalar,Mat,Mat*);

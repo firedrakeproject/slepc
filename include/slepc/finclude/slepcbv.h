@@ -9,8 +9,8 @@
 !
 !  Include file for Fortran use of the BV object in SLEPc
 !
-#if !defined(__SLEPCBVDEF_H)
-#define __SLEPCBVDEF_H
+#if !defined(SLEPCBVDEF_H)
+#define SLEPCBVDEF_H
 
 #include "petsc/finclude/petscmat.h"
 

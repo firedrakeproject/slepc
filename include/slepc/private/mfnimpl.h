@@ -8,8 +8,8 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#if !defined(_MFNIMPL)
-#define _MFNIMPL
+#if !defined(SLEPCMFNIMPL_H)
+#define SLEPCMFNIMPL_H
 
 #include <slepcmfn.h>
 #include <slepc/private/slepcimpl.h>

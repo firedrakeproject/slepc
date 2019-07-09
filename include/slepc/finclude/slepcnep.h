@@ -9,8 +9,8 @@
 !
 !  Include file for Fortran use of the NEP object in SLEPc
 !
-#if !defined(__SLEPCNEPDEF_H)
-#define __SLEPCNEPDEF_H
+#if !defined(SLEPCNEPDEF_H)
+#define SLEPCNEPDEF_H
 
 #include "slepc/finclude/slepcbv.h"
 #include "slepc/finclude/slepcds.h"

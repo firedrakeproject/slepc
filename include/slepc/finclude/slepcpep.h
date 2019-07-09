@@ -9,8 +9,8 @@
 !
 !  Include file for Fortran use of the PEP object in SLEPc
 !
-#if !defined(__SLEPCPEPDEF_H)
-#define __SLEPCPEPDEF_H
+#if !defined(SLEPCPEPDEF_H)
+#define SLEPCPEPDEF_H
 
 #include "slepc/finclude/slepcbv.h"
 #include "slepc/finclude/slepcst.h"

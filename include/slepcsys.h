@@ -12,8 +12,8 @@
    by all other SLEPc include files.
 */
 
-#if !defined(__SLEPCSYS_H)
-#define __SLEPCSYS_H
+#if !defined(SLEPCSYS_H)
+#define SLEPCSYS_H
 
 #include <petscsys.h>
 

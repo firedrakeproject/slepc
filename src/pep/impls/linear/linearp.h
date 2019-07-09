@@ -11,8 +11,8 @@
    Private header for PEPLINEAR
 */
 
-#if !defined(__LINEARP_H)
-#define __LINEARP_H
+#if !defined(SLEPC_LINEAR_H)
+#define SLEPC_LINEAR_H
 
 typedef struct {
   PetscBool  explicitmatrix;

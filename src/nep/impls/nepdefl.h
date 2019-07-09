@@ -10,8 +10,8 @@
 /*
    Private header for Deflation in NEP
 */
-#if !defined(__NEPDEFL_H)
-#define __NEPDEFL_H
+#if !defined(SLEPC_NEPDEFL_H)
+#define SLEPC_NEPDEFL_H
 
 # define MAX_MINIDX 1
 

@@ -8,8 +8,8 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#if !defined(_SVDIMPL)
-#define _SVDIMPL
+#if !defined(SLEPCSVDIMPL_H)
+#define SLEPCSVDIMPL_H
 
 #include <slepcsvd.h>
 #include <slepc/private/slepcimpl.h>

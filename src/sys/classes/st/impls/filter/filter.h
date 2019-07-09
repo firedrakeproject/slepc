@@ -8,8 +8,8 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#if !defined(__FILTER_H)
-#define __FILTER_H
+#if !defined(SLEPC_FILTER_H)
+#define SLEPC_FILTER_H
 
 /* IntervalOptions structure used by GetIntervals */
 struct _n_FILTLAN_IOP {

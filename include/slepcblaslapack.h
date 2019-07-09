@@ -11,8 +11,8 @@
    Necessary routines in BLAS and LAPACK not included in petscblaslapack.h
 */
 
-#if !defined(__SLEPCBLASLAPACK_H)
-#define __SLEPCBLASLAPACK_H
+#if !defined(SLEPCBLASLAPACK_H)
+#define SLEPCBLASLAPACK_H
 #include <petscblaslapack.h>
 
 /* Macro to check nonzero info after LAPACK call */

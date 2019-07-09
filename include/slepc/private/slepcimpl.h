@@ -8,8 +8,8 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#if !defined(_SLEPCIMPL)
-#define _SLEPCIMPL
+#if !defined(SLEPCIMPL_H)
+#define SLEPCIMPL_H
 
 #include <slepcsys.h>
 #include <petsc/private/petscimpl.h>

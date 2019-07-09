@@ -11,8 +11,8 @@
    Private data structure used by the ARPACK interface
 */
 
-#if !defined(__ARPACKP_H)
-#define __ARPACKP_H
+#if !defined(SLEPC_ARPACK_H)
+#define SLEPC_ARPACK_H
 
 typedef struct {
   PetscBool    *select;

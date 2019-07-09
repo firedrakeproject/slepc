@@ -9,8 +9,8 @@
 !
 !  Include file for Fortran use of the FN object in SLEPc
 !
-#if !defined(__SLEPCFNDEF_H)
-#define __SLEPCFNDEF_H
+#if !defined(SLEPCFNDEF_H)
+#define SLEPCFNDEF_H
 
 #include "petsc/finclude/petscmat.h"
 

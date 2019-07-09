@@ -24,8 +24,6 @@ PetscErrorCode MyArbitrarySelection(PetscScalar eigr,PetscScalar eigi,Vec xr,Vec
   PetscFunctionReturn(0);
 }
 
-#undef __funct__
-#define __funct__ "main"
 int main(int argc,char **argv)
 {
   Mat            A;           /* problem matrices */

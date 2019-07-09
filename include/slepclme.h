@@ -11,8 +11,8 @@
    User interface for the SLEPc object for solving linear matrix equations
 */
 
-#if !defined(__SLEPCLME_H)
-#define __SLEPCLME_H
+#if !defined(SLEPCLME_H)
+#define SLEPCLME_H
 #include <slepcbv.h>
 
 SLEPC_EXTERN PetscErrorCode LMEInitializePackage(void);

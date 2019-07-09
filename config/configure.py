@@ -254,8 +254,8 @@ if slepc.datadir:
   slepcvars.write('DATAFILESPATH = '+slepc.datadir+'\n')
 
 # Write initial part of file slepcconf.h
-slepcconf.write('#if !defined(__SLEPCCONF_H)\n')
-slepcconf.write('#define __SLEPCCONF_H\n\n')
+slepcconf.write('#if !defined(SLEPCCONF_H)\n')
+slepcconf.write('#define SLEPCCONF_H\n\n')
 AddDefine(slepcconf,'PETSC_DIR',petsc.dir)
 AddDefine(slepcconf,'PETSC_ARCH',petsc.arch)
 AddDefine(slepcconf,'DIR',slepc.dir)

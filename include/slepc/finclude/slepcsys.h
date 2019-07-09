@@ -9,8 +9,9 @@
 !
 !  Basic include file for Fortran use of the SLEPc package
 !
-#if !defined(__SLEPCSYSDEF_H)
-#define __SLEPCSYSDEF_H
+#if !defined(SLEPCSYSDEF_H)
+#define SLEPCSYSDEF_H
+
 #include "petscconf.h"
 #include "petsc/finclude/petsc.h"
 #include "slepcversion.h"

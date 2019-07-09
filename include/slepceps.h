@@ -11,8 +11,8 @@
    User interface for the SLEPc linear eigenvalue solvers
 */
 
-#if !defined(__SLEPCEPS_H)
-#define __SLEPCEPS_H
+#if !defined(SLEPCEPS_H)
+#define SLEPCEPS_H
 #include <slepcst.h>
 #include <slepcbv.h>
 #include <slepcds.h>

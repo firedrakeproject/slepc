@@ -11,8 +11,8 @@
    Private data structure used by the FEAST interface
 */
 
-#if !defined(__FEASTP_H)
-#define __FEASTP_H
+#if !defined(SLEPC_FEAST_H)
+#define SLEPC_FEAST_H
 
 typedef struct {
   PetscScalar  *work1,*work2,*Aq,*Bq;   /* workspace */

@@ -8,8 +8,8 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#if !defined(_DSIMPL)
-#define _DSIMPL
+#if !defined(SLEPCDSIMPL_H)
+#define SLEPCDSIMPL_H
 
 #include <slepcds.h>
 #include <slepc/private/slepcimpl.h>

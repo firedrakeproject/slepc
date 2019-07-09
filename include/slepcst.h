@@ -11,8 +11,8 @@
    Spectral transformation module for eigenvalue problems
 */
 
-#if !defined(__SLEPCST_H)
-#define __SLEPCST_H
+#if !defined(SLEPCST_H)
+#define SLEPCST_H
 #include <slepcsys.h>
 #include <slepcbv.h>
 #include <petscksp.h>
