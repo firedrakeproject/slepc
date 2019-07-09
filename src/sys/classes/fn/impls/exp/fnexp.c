@@ -417,7 +417,7 @@ PetscErrorCode FNEvaluateFunctionMat_Exp_GuettelNakatsukasa(FN fn,Mat A,Mat B)
 #else
   PetscInt          i,j,n_,s,k,m,mod;
   PetscBLASInt      n,n2,irsize = 0,rsizediv2,ipsize = 0,iremainsize = 0,info,*piv,minlen,lwork,one=1;
-  PetscReal         nrm,shift;
+  PetscReal         nrm,shift=0.0;
 #if defined(PETSC_USE_COMPLEX) || defined(PETSC_HAVE_ESSL)
   PetscReal         *rwork=NULL;
 #endif
@@ -425,7 +425,7 @@ PetscErrorCode FNEvaluateFunctionMat_Exp_GuettelNakatsukasa(FN fn,Mat A,Mat B)
   PetscScalar       *Ba,*Ba2,*sMaux,*wr,*wi,expshift,sone=1.0,szero=0.0,*saux;
   const PetscScalar *Aa;
   PetscErrorCode    ierr;
-  PetscBool         isreal;
+  PetscBool         isreal,flg;
 #if defined(PETSC_HAVE_ESSL)
   PetscScalar       sdummy,*wri;
   PetscBLASInt      idummy,io=0;
@@ -444,6 +444,8 @@ PetscErrorCode FNEvaluateFunctionMat_Exp_GuettelNakatsukasa(FN fn,Mat A,Mat B)
 
   ierr = PetscMalloc2(n2,&sMaux,n2,&Maux);CHKERRQ(ierr);
   Maux2 = Maux;
+  ierr = PetscOptionsGetReal(NULL,NULL,"-fn_expm_estimated_eig",&shift,&flg);CHKERRQ(ierr);
+  if (!flg) {
   ierr = PetscMalloc2(n,&wr,n,&wi);CHKERRQ(ierr);
   ierr = PetscArraycpy(sMaux,Aa,n2);CHKERRQ(ierr);
   /* estimate rightmost eigenvalue and shift A with it */
@@ -487,18 +489,23 @@ PetscErrorCode FNEvaluateFunctionMat_Exp_GuettelNakatsukasa(FN fn,Mat A,Mat B)
     if (PetscRealPart(wr[i]) > shift) shift = PetscRealPart(wr[i]);
   }
   ierr = PetscFree2(wr,wi);CHKERRQ(ierr);
+  }
   /* shift so that largest real part is (about) 0 */
   ierr = PetscArraycpy(sMaux,Aa,n2);CHKERRQ(ierr);
+  if (shift) {
   for (i=0;i<n;i++) {
     sMaux[i+i*n] -= shift;
   }
   ierr = PetscLogFlops(1.0*n);CHKERRQ(ierr);
+  }
 #if defined(PETSC_USE_COMPLEX)
   ierr = PetscArraycpy(Maux,Aa,n2);CHKERRQ(ierr);
+  if (shift) {
   for (i=0;i<n;i++) {
     Maux[i+i*n] -= shift;
   }
   ierr = PetscLogFlops(1.0*n);CHKERRQ(ierr);
+  }
 #endif
 
   /* estimate norm(A) and select the scaling factor */
@@ -506,10 +513,16 @@ PetscErrorCode FNEvaluateFunctionMat_Exp_GuettelNakatsukasa(FN fn,Mat A,Mat B)
   ierr = PetscLogFlops(1.0*n*n);CHKERRQ(ierr);
   ierr = sexpm_params(nrm,&s,&k,&m);CHKERRQ(ierr);
   if (s==0 && k==1 && m==0) { /* exp(A) = I+A to eps! */
+    if (shift) {
     expshift = PetscExpReal(shift);
+    }
     for (i=0;i<n;i++) sMaux[i+i*n] += 1.0;
+    if (shift) {
     PetscStackCallBLAS("BLASscal",BLASscal_(&n2,&expshift,sMaux,&one));
     ierr = PetscLogFlops(1.0*(n+n2));CHKERRQ(ierr);
+    } else {
+      ierr = PetscLogFlops(1.0*n);CHKERRQ(ierr);
+    }
     ierr = PetscArraycpy(Ba,sMaux,n2);CHKERRQ(ierr);
     ierr = PetscFree2(sMaux,Maux);CHKERRQ(ierr);
     ierr = MatDenseRestoreArrayRead(A,&Aa);CHKERRQ(ierr);
@@ -686,9 +699,11 @@ PetscErrorCode FNEvaluateFunctionMat_Exp_GuettelNakatsukasa(FN fn,Mat A,Mat B)
     ierr = PetscArraycpy(Ba,Ba2,n2);CHKERRQ(ierr);
     sMaux = Ba2;
   }
+  if (shift) {
   expshift = PetscExpReal(shift);
   PetscStackCallBLAS("BLASscal",BLASscal_(&n2,&expshift,Ba,&one));
   ierr = PetscLogFlops(1.0*n2);CHKERRQ(ierr);
+  }
 
   /* restore pointers */
   Maux = Maux2; expmA = expmA2; RR = RR2;
@@ -1492,14 +1507,14 @@ PetscErrorCode FNEvaluateFunctionMat_Exp_GuettelNakatsukasa_CUDAm(FN fn,Mat A,Ma
 #else
   PetscInt       i,j,n_,s,k,m,zero=0,mod;
   PetscBLASInt   n,n2,irsize,rsizediv2,ipsize,iremainsize,query=-1,info,*piv,minlen,lwork,one=1;
-  PetscReal      nrm,shift;
+  PetscReal      nrm,shift=0.0;
 #if defined(PETSC_USE_COMPLEX)
   PetscReal      *rwork=NULL;
 #endif
   PetscComplex   *d_As,*d_RR,*d_RR2,*d_expmA,*d_expmA2,*d_Maux,*d_Maux2,rsize,*r,psize,*p,remainsize,*remainterm,*rootp,*rootq,mult=0.0,scale,cone=1.0,czero=0.0,*aux;
   PetscScalar    *Aa,*Ba,*d_Ba,*d_Ba2,*Maux,*sMaux,*d_sMaux,*wr,*wi,expshift,sone=1.0,szero=0.0,*work,work1,*saux;
   PetscErrorCode ierr;
-  PetscBool      isreal,*d_isreal;
+  PetscBool      isreal,*d_isreal,flg;
   cublasHandle_t cublasv2handle;
   cudaError_t    cerr;
   cublasStatus_t cberr;
@@ -1519,14 +1534,16 @@ PetscErrorCode FNEvaluateFunctionMat_Exp_GuettelNakatsukasa_CUDAm(FN fn,Mat A,Ma
   d_Ba2 = d_Ba;
 
   ierr = PetscMalloc2(n2,&sMaux,n2,&Maux);CHKERRQ(ierr);
-  ierr = PetscMalloc2(n,&wr,n,&wi);CHKERRQ(ierr);
-  ierr = PetscArraycpy(sMaux,Aa,n2);CHKERRQ(ierr);
   cerr = cudaMalloc((void **)&d_isreal,sizeof(PetscBool));CHKERRCUDA(cerr);
   cerr = cudaMalloc((void **)&d_sMaux,sizeof(PetscScalar)*n2);CHKERRCUDA(cerr);
   cerr = cudaMalloc((void **)&d_Maux,sizeof(PetscComplex)*n2);CHKERRCUDA(cerr);
 
   cerr = cudaMemcpy(d_sMaux,Aa,sizeof(PetscScalar)*n2,cudaMemcpyHostToDevice);CHKERRCUDA(cerr);
   d_Maux2 = d_Maux;
+  ierr = PetscOptionsGetReal(NULL,NULL,"-fn_expm_estimated_eig",&shift,&flg);CHKERRQ(ierr);
+  if (!flg) {
+  ierr = PetscMalloc2(n,&wr,n,&wi);CHKERRQ(ierr);
+  ierr = PetscArraycpy(sMaux,Aa,n2);CHKERRQ(ierr);
   /* estimate rightmost eigenvalue and shift A with it */
 #if !defined(PETSC_USE_COMPLEX)
   mierr = magma_xgeev(MagmaNoVec,MagmaNoVec,n,sMaux,n,wr,wi,NULL,n,NULL,n,&work1,query,&info);CHKMAGMA(mierr);
@@ -1552,14 +1569,19 @@ PetscErrorCode FNEvaluateFunctionMat_Exp_GuettelNakatsukasa_CUDAm(FN fn,Mat A,Ma
     if (PetscRealPart(wr[i]) > shift) shift = PetscRealPart(wr[i]);
   }
   ierr = PetscFree2(wr,wi);CHKERRQ(ierr);
+  }
   /* shift so that largest real part is (about) 0 */
   cerr = cudaMemcpy(d_sMaux,Aa,sizeof(PetscScalar)*n2,cudaMemcpyHostToDevice);CHKERRCUDA(cerr);
+  if (shift) {
   ierr = shift_diagonal(n,d_sMaux,n,-shift);CHKERRQ(ierr);
   ierr = PetscLogFlops(1.0*n);CHKERRQ(ierr);
+  }
 #if defined(PETSC_USE_COMPLEX)
   cerr = cudaMemcpy(d_Maux,Aa,sizeof(PetscScalar)*n2,cudaMemcpyHostToDevice);CHKERRCUDA(cerr);
+  if (shift) {
   ierr = shift_diagonal(n,d_Maux,n,-shift);CHKERRQ(ierr);
   ierr = PetscLogFlops(1.0*n);CHKERRQ(ierr);
+  }
 #endif
 
   /* estimate norm(A) and select the scaling factor */
@@ -1567,10 +1589,16 @@ PetscErrorCode FNEvaluateFunctionMat_Exp_GuettelNakatsukasa_CUDAm(FN fn,Mat A,Ma
   ierr = PetscLogFlops(2.0*n*n);CHKERRQ(ierr);
   ierr = sexpm_params(nrm,&s,&k,&m);CHKERRQ(ierr);
   if (s==0 && k==1 && m==0) { /* exp(A) = I+A to eps! */
+    if (shift) {
     expshift = PetscExpReal(shift);
+    }
     ierr = shift_Cdiagonal(n,d_Maux,n,cone);CHKERRQ(ierr);
+    if (shift) {
     cberr = cublasXscal(cublasv2handle,n2,&expshift,d_sMaux,one);CHKERRCUBLAS(cberr);
     ierr = PetscLogFlops(1.0*(n+n2));CHKERRQ(ierr);
+    } else {
+      ierr = PetscLogFlops(1.0*n);CHKERRQ(ierr);
+    }
     cerr = cudaMemcpy(Ba,d_sMaux,sizeof(PetscScalar)*n2,cudaMemcpyDeviceToHost);CHKERRCUDA(cerr);
     cerr = cudaFree(d_sMaux);CHKERRCUDA(cerr);
     cerr = cudaFree(d_Ba);CHKERRCUDA(cerr);
@@ -1725,9 +1753,11 @@ PetscErrorCode FNEvaluateFunctionMat_Exp_GuettelNakatsukasa_CUDAm(FN fn,Mat A,Ma
     cerr = cudaMemcpy(d_Ba,d_Ba2,sizeof(PetscScalar)*n2,cudaMemcpyDeviceToDevice);CHKERRCUDA(cerr);
     d_sMaux = d_Ba2;
   }
+  if (shift) {
   expshift = PetscExpReal(shift);
   cberr = cublasXscal(cublasv2handle,n2,&expshift,d_Ba,one);CHKERRCUBLAS(cberr);
   ierr = PetscLogFlops(1.0*n2);CHKERRQ(ierr);
+  }
 
   cerr = cudaMemcpy(Ba,d_Ba,sizeof(PetscScalar)*n2,cudaMemcpyDeviceToHost);CHKERRCUDA(cerr);
 
