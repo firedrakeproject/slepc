@@ -942,6 +942,15 @@ PetscErrorCode BVCreateTensor(BV U,PetscInt d,BV *V)
   ierr = MatCreateSeqDense(PETSC_COMM_SELF,d*m,m-d+1,NULL,&ctx->S);CHKERRQ(ierr);
   ierr = PetscLogObjectParent((PetscObject)*V,(PetscObject)ctx->S);CHKERRQ(ierr);
   ierr = PetscObjectSetName((PetscObject)ctx->S,"S");CHKERRQ(ierr);
+
+  /* Copy user-provided attributes of U */
+  (*V)->orthog_type  = U->orthog_type;
+  (*V)->orthog_ref   = U->orthog_ref;
+  (*V)->orthog_eta   = U->orthog_eta;
+  (*V)->orthog_block = U->orthog_block;
+  (*V)->indef        = U->indef;
+  (*V)->vmm          = U->vmm;
+  (*V)->rrandom      = U->rrandom;
   PetscFunctionReturn(0);
 }
 

@@ -176,5 +176,6 @@ int main(int argc,char **argv)
       nsize: 2
       args: -bv_type {{vecs contiguous svec mat}shared output}
       output_file: output/test16_1.out
+      filter: grep -v "doing matmult"
 
 TEST*/
