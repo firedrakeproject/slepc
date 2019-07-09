@@ -112,5 +112,6 @@ int main(int argc,char **argv)
          suffix: 2
          args: -check_myprefix_svd_type trlanczos -check_myprefix_svd_monitor -check_myprefix_svd_view_values ::ascii_matlab
          filter: sed -e "s/[0-9]\.[0-9]*e[+-]\([0-9]*\)/removed/g"
+         requires: double
 
 TEST*/

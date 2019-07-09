@@ -336,4 +336,9 @@ PetscErrorCode MatGetDiagonal_Brussel(Mat A,Vec diag)
       args: -eps_nev 2 -eps_target -30 -eps_type jd -st_matmode shell -eps_jd_fix 0.0001 -eps_jd_const_correction_tol 0 -terse
       requires: !complex double
 
+   test:
+      suffix: 9
+      args: -eps_largest_imaginary -eps_ncv 24 -terse
+      requires: !single
+
 TEST*/
