@@ -8,8 +8,8 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-#if !defined(SLEPC_INTERFACE_HEADER)
-#define SLEPC_INTERFACE_HEADER
+#if !defined(SLEPC_BLOPEX_H)
+#define SLEPC_BLOPEX_H
 
 #include <blopex_lobpcg.h>
 #include "petsc-interface.h"

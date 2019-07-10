@@ -12,7 +12,7 @@
 */
 
 #include <slepc/private/bvimpl.h>
-#include "./svecimpl.h"
+#include "svec.h"
 
 PetscErrorCode BVMult_Svec(BV Y,PetscScalar alpha,PetscScalar beta,BV X,Mat Q)
 {

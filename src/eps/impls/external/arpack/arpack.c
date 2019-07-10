@@ -12,7 +12,7 @@
 */
 
 #include <slepc/private/epsimpl.h>
-#include <../src/eps/impls/external/arpack/arpackp.h>
+#include "arpack.h"
 
 PetscErrorCode EPSSetUp_ARPACK(EPS eps)
 {

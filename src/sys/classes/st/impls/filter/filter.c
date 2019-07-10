@@ -12,7 +12,7 @@
 */
 
 #include <slepc/private/stimpl.h>         /*I "slepcst.h" I*/
-#include "./filter.h"
+#include "filter.h"
 
 PetscErrorCode STApply_Filter(ST st,Vec x,Vec y)
 {

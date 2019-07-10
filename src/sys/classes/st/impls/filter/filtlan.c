@@ -21,7 +21,7 @@
 */
 
 #include <slepc/private/stimpl.h>
-#include "./filter.h"
+#include "filter.h"
 
 static PetscErrorCode FILTLAN_FilteredConjugateResidualPolynomial(PetscReal*,PetscReal*,PetscInt,PetscReal*,PetscInt,PetscReal*,PetscInt);
 static PetscReal FILTLAN_PiecewisePolynomialEvaluationInChebyshevBasis(PetscReal*,PetscInt,PetscReal*,PetscInt,PetscReal);

@@ -12,7 +12,7 @@
 */
 
 #include <slepc/private/pepimpl.h>
-#include "linearp.h"
+#include "linear.h"
 
 /*
     Given the quadratic problem (l^2*M + l*C + K)*x = 0 the linearization is

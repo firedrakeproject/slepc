@@ -12,7 +12,7 @@
 */
 
 #include <slepc/private/epsimpl.h>                /*I "slepceps.h" I*/
-#include "slepc-interface.h"
+#include "blopex.h"
 #include <blopex_lobpcg.h>
 #include <blopex_interpreter.h>
 #include <blopex_multivector.h>

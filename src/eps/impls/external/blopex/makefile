@@ -16,7 +16,7 @@ CFLAGS   = ${BLOPEX_INCLUDE} -DBlopexInt=PetscInt
 FFLAGS   =
 SOURCEC  = blopex.c slepc-interface.c petsc-interface.c
 SOURCEF  =
-SOURCEH  = slepc-interface.h petsc-interface.h
+SOURCEH  = blopex.h petsc-interface.h
 LIBBASE  = libslepceps
 DIRS     =
 MANSEC   = EPS

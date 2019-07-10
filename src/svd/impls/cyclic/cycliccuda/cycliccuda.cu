@@ -12,7 +12,7 @@
 */
 
 #include <slepc/private/svdimpl.h>
-#include "../cyclicimpl.h"
+#include "../src/svd/impls/cyclic/cyclic.h"
 #include <petsccuda.h>
 
 PetscErrorCode MatMult_Cyclic_CUDA(Mat B,Vec x,Vec y)

@@ -12,7 +12,7 @@
 */
 
 #include <slepc/private/pepimpl.h>         /*I "slepcpep.h" I*/
-#include "linearp.h"
+#include "linear.h"
 
 static PetscErrorCode MatMult_Linear_Shift(Mat M,Vec x,Vec y)
 {

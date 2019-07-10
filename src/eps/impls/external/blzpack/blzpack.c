@@ -12,7 +12,7 @@
 */
 
 #include <slepc/private/epsimpl.h>    /*I "slepceps.h" I*/
-#include <../src/eps/impls/external/blzpack/blzpackp.h>
+#include "blzpack.h"
 
 const char* blzpack_error[33] = {
   "",

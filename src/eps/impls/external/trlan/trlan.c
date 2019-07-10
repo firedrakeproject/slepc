@@ -12,7 +12,7 @@
 */
 
 #include <slepc/private/epsimpl.h>
-#include <../src/eps/impls/external/trlan/trlanp.h>
+#include "trlan.h"
 
 /* Nasty global variable to access EPS data from TRLan_ */
 static struct {
