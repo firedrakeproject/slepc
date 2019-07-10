@@ -151,6 +151,7 @@ if argdb.PopHelp():
   for pkg in optionspackages:
     pkg.ShowHelp()
   sys.exit(0)
+argdb.ErrorPetscOptions()
 argdb.ErrorIfNotEmpty()
 
 # Check enviroment and PETSc version

@@ -60,8 +60,9 @@ class Package:
       if found:
         self.requested = True
         self.packagelibs = string.split(',')
-      if argdb.PopBool('with-'+self.packagename):
-        self.requested = True
+      value,found = argdb.PopBool('with-'+self.packagename)
+      if found:
+        self.requested = value
     if self.downloadable:
       url,flag,found = argdb.PopUrl('download-'+self.packagename)
       if found:

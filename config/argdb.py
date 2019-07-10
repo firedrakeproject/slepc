@@ -104,7 +104,7 @@ class ArgDB:
           break
       if not found:
         break
-    return value
+    return value,numhits
 
   def PopHelp(self):
     value = False
@@ -121,6 +121,23 @@ class ArgDB:
       if not found:
         break
     return value
+
+  def ErrorPetscOptions(self):
+    petscopts = []
+    strings = ['with-precision','with-scalar-type','with-fc','with-blas-lapack-lib']
+    for s in strings:
+      value,found = self.PopString(s)
+      if found: petscopts.append(s)
+    bools = ['with-fortran-bindings','with-64-bit-indices','with-shared-libraries','with-debugging','with-cuda', 'with-mpi']
+    for s in bools:
+      value,found = self.PopBool(s)
+      if found: petscopts.append(s)
+    urls = ['download-f2cblaslapack','download-mumps']
+    for s in urls:
+      url,flag,found = self.PopUrl(s)
+      if found: petscopts.append(s)
+    if petscopts:
+      sys.exit('ERROR: The following options belong to PETSc configure: '+', '.join(petscopts)+'\nUse -h for help')
 
   def ErrorIfNotEmpty(self):
     if self.argdb:
