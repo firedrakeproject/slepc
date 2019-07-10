@@ -202,7 +202,9 @@ PetscErrorCode NEPSetFromOptions_RII(PetscOptionItems *PetscOptionsObject,NEP ne
   PetscFunctionBegin;
   ierr = PetscOptionsHead(PetscOptionsObject,"NEP RII Options");CHKERRQ(ierr);
 
-    ierr = PetscOptionsInt("-nep_rii_max_it","Maximum number of Newton iterations for updating Rayleigh functional","NEPRIISetMaximumIterations",ctx->max_inner_it,&ctx->max_inner_it,NULL);CHKERRQ(ierr);
+    i = 0;
+    ierr = PetscOptionsInt("-nep_rii_max_it","Maximum number of Newton iterations for updating Rayleigh functional","NEPRIISetMaximumIterations",ctx->max_inner_it,&i,&flg);CHKERRQ(ierr);
+    if (flg) { ierr = NEPRIISetMaximumIterations(nep,i);CHKERRQ(ierr); }
 
     ierr = PetscOptionsBool("-nep_rii_const_correction_tol","Constant correction tolerance for the linear solver","NEPRIISetConstCorrectionTol",ctx->cctol,&ctx->cctol,NULL);CHKERRQ(ierr);
 
@@ -222,7 +224,11 @@ static PetscErrorCode NEPRIISetMaximumIterations_RII(NEP nep,PetscInt its)
   NEP_RII *ctx = (NEP_RII*)nep->data;
 
   PetscFunctionBegin;
-  ctx->max_inner_it = its;
+  if (its==PETSC_DEFAULT) ctx->max_inner_it = 10;
+  else {
+    if (its<=0) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ARG_OUTOFRANGE,"Number of iterations must be >0");
+    ctx->max_inner_it = its;
+  }
   PetscFunctionReturn(0);
 }
 
@@ -540,7 +546,6 @@ PetscErrorCode NEPView_RII(NEP nep,PetscViewer viewer)
   PetscFunctionBegin;
   ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
   if (isascii) {
-    if (!ctx->ksp) { ierr = NEPRIIGetKSP(nep,&ctx->ksp);CHKERRQ(ierr); }
     ierr = PetscViewerASCIIPrintf(viewer,"  maximum number of inner iterations: %D\n",ctx->max_inner_it);CHKERRQ(ierr);
     if (ctx->cctol) {
       ierr = PetscViewerASCIIPrintf(viewer,"  using a constant tolerance for the linear solver\n");CHKERRQ(ierr);
@@ -548,6 +553,7 @@ PetscErrorCode NEPView_RII(NEP nep,PetscViewer viewer)
     if (ctx->lag) {
       ierr = PetscViewerASCIIPrintf(viewer,"  updating the preconditioner every %D iterations\n",ctx->lag);CHKERRQ(ierr);
     }
+    if (!ctx->ksp) { ierr = NEPRIIGetKSP(nep,&ctx->ksp);CHKERRQ(ierr); }
     ierr = PetscViewerASCIIPushTab(viewer);CHKERRQ(ierr);
     ierr = KSPView(ctx->ksp,viewer);CHKERRQ(ierr);
     ierr = PetscViewerASCIIPopTab(viewer);CHKERRQ(ierr);

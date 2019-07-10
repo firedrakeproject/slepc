@@ -345,6 +345,7 @@ PetscErrorCode BVResize(BV bv,PetscInt m,PetscBool copy)
   if (m <= 0) SETERRQ1(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_INCOMP,"Number of columns %D must be positive",m);
   if (bv->nc && !bv->issplit) SETERRQ(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_WRONGSTATE,"Cannot resize a BV with constraints");
   if (bv->m == m) PetscFunctionReturn(0);
+  BVCheckOp(bv,1,resize);
 
   ierr = PetscLogEventBegin(BV_Create,bv,0,0,0);CHKERRQ(ierr);
   ierr = (*bv->ops->resize)(bv,m,copy);CHKERRQ(ierr);
@@ -1139,6 +1140,7 @@ PetscErrorCode BVGetColumn(BV bv,PetscInt j,Vec *v)
   PetscValidHeaderSpecific(bv,BV_CLASSID,1);
   PetscValidType(bv,1);
   BVCheckSizes(bv,1);
+  BVCheckOp(bv,1,getcolumn);
   PetscValidLogicalCollectiveInt(bv,j,2);
   if (j<0 && -j>bv->nc) SETERRQ2(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_OUTOFRANGE,"You requested constraint %D but only %D are available",-j,bv->nc);
   if (j>=bv->m) SETERRQ2(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_OUTOFRANGE,"You requested column %D but only %D are available",j,bv->m);
@@ -1236,6 +1238,7 @@ PetscErrorCode BVGetArray(BV bv,PetscScalar **a)
   PetscValidHeaderSpecific(bv,BV_CLASSID,1);
   PetscValidType(bv,1);
   BVCheckSizes(bv,1);
+  BVCheckOp(bv,1,getarray);
   ierr = (*bv->ops->getarray)(bv,a);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -1305,6 +1308,7 @@ PetscErrorCode BVGetArrayRead(BV bv,const PetscScalar **a)
   PetscValidHeaderSpecific(bv,BV_CLASSID,1);
   PetscValidType(bv,1);
   BVCheckSizes(bv,1);
+  BVCheckOp(bv,1,getarrayread);
   ierr = (*bv->ops->getarrayread)(bv,a);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -1675,6 +1679,7 @@ PetscErrorCode BVCopy(BV V,BV W)
   PetscValidHeaderSpecific(V,BV_CLASSID,1);
   PetscValidType(V,1);
   BVCheckSizes(V,1);
+  BVCheckOp(V,1,copy);
   PetscValidHeaderSpecific(W,BV_CLASSID,2);
   PetscValidType(W,2);
   BVCheckSizes(W,2);

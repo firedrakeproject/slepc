@@ -37,7 +37,7 @@ int main(int argc,char **argv)
   PC             pc;
   PetscInt       m=20,n,Istart,Iend,i,col[2];
   PetscScalar    value[] = { 1, 2 };
-  PetscBool      flg;
+  PetscBool      flg,expmat;
   PetscErrorCode ierr;
 
   ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
@@ -89,6 +89,13 @@ int main(int argc,char **argv)
   ierr = SVDCrossSetEPS(svd,eps);CHKERRQ(ierr);
   ierr = SVDSetWhichSingularTriplets(svd,SVD_SMALLEST);CHKERRQ(ierr);
   ierr = SVDSetFromOptions(svd);CHKERRQ(ierr);
+  ierr = PetscObjectTypeCompare((PetscObject)svd,SVDCROSS,&flg);CHKERRQ(ierr);
+  if (flg) {
+    ierr = SVDCrossGetExplicitMatrix(svd,&expmat);CHKERRQ(ierr);
+    if (expmat) {
+      ierr = PetscPrintf(PETSC_COMM_WORLD," Using explicit matrix with cross solver\n");CHKERRQ(ierr);
+    }
+  }
   ierr = SVDSolve(svd);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

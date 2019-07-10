@@ -433,7 +433,7 @@ SLEPC_EXTERN PetscErrorCode BVCreate_Svec(BV bv)
 {
   PetscErrorCode    ierr;
   BV_SVEC           *ctx;
-  PetscInt          nloc,N,bs,tglobal,tlocal,lsplit;
+  PetscInt          nloc,N,bs,tglobal=0,tlocal,lsplit;
   PetscBool         seq;
   PetscScalar       *aa,*vv;
   const PetscScalar *array,*ptr;
@@ -458,8 +458,7 @@ SLEPC_EXTERN PetscErrorCode BVCreate_Svec(BV bv)
   ierr = VecGetSize(bv->t,&N);CHKERRQ(ierr);
   ierr = VecGetBlockSize(bv->t,&bs);CHKERRQ(ierr);
   tlocal  = bv->m*nloc;
-  tglobal = bv->m*N;
-  if (tglobal<0) SETERRQ2(PetscObjectComm((PetscObject)bv),1,"The product %D times %D overflows the size of PetscInt; consider reducing the number of columns, or use BVVECS instead",bv->m,N);
+  ierr = PetscIntMultError(bv->m,N,&tglobal);CHKERRQ(ierr);
 
   if (bv->issplit) {
     /* split BV: create Vec sharing the memory of the parent BV */

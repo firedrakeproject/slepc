@@ -75,6 +75,7 @@ int main(int argc,char **argv)
 
   ierr = MFNCreate(PETSC_COMM_WORLD,&mfn);CHKERRQ(ierr);
   ierr = MFNSetOperator(mfn,A);CHKERRQ(ierr);
+  ierr = MFNSetBV(mfn,V);CHKERRQ(ierr);
   ierr = MFNGetFN(mfn,&f);CHKERRQ(ierr);
   ierr = FNSetType(f,FNEXP);CHKERRQ(ierr);
   ierr = FNSetScale(f,t,1.0);CHKERRQ(ierr);

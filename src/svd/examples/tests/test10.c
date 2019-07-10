@@ -8,7 +8,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-static char help[] = "SVD via the cyclic matrix with a user-provided EPS.\n\n"
+static char help[] = "Lanczos SVD.\n\n"
   "The command line options are:\n"
   "  -m <m>, where <m> = matrix rows.\n"
   "  -n <n>, where <n> = matrix columns (defaults to m+2).\n\n";
@@ -29,19 +29,15 @@ static char help[] = "SVD via the cyclic matrix with a user-provided EPS.\n\n"
 
 int main(int argc,char **argv)
 {
-  Mat                  A;
-  SVD                  svd;
-  EPS                  eps;
-  ST                   st;
-  KSP                  ksp;
-  PC                   pc;
-  PetscInt             m=20,n,Istart,Iend,i,col[2];
-  PetscScalar          value[] = { 1, 2 };
-  PetscBool            flg,expmat;
-  PetscErrorCode       ierr;
+  Mat            A;
+  SVD            svd;
+  PetscInt       m=20,n,Istart,Iend,i,col[2];
+  PetscScalar    value[] = { 1, 2 };
+  PetscBool      flg,oneside=PETSC_FALSE;
+  const char     *prefix;
+  PetscErrorCode ierr;
 
   ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
-
   ierr = PetscOptionsGetInt(NULL,NULL,"-m",&m,NULL);CHKERRQ(ierr);
   ierr = PetscOptionsGetInt(NULL,NULL,"-n",&n,&flg);CHKERRQ(ierr);
   if (!flg) n=m+2;
@@ -68,39 +64,31 @@ int main(int argc,char **argv)
   ierr = MatAssemblyEnd(A,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-        Create a standalone EPS with appropriate settings
-     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-
-  ierr = EPSCreate(PETSC_COMM_WORLD,&eps);CHKERRQ(ierr);
-  ierr = EPSSetWhichEigenpairs(eps,EPS_TARGET_MAGNITUDE);CHKERRQ(ierr);
-  ierr = EPSSetTarget(eps,1.0);CHKERRQ(ierr);
-  ierr = EPSGetST(eps,&st);CHKERRQ(ierr);
-  ierr = STSetType(st,STSINVERT);CHKERRQ(ierr);
-  ierr = STSetShift(st,1.01);CHKERRQ(ierr);
-  ierr = STGetKSP(st,&ksp);CHKERRQ(ierr);
-  ierr = KSPSetType(ksp,KSPPREONLY);CHKERRQ(ierr);
-  ierr = KSPGetPC(ksp,&pc);CHKERRQ(ierr);
-  ierr = PCSetType(pc,PCLU);CHKERRQ(ierr);
-  ierr = EPSSetFromOptions(eps);CHKERRQ(ierr);
-
-  /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         Compute singular values
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
   ierr = SVDCreate(PETSC_COMM_WORLD,&svd);CHKERRQ(ierr);
+  ierr = SVDSetOptionsPrefix(svd,"check_");CHKERRQ(ierr);
+  ierr = SVDAppendOptionsPrefix(svd,"myprefix_");CHKERRQ(ierr);
+  ierr = SVDGetOptionsPrefix(svd,&prefix);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"SVD prefix is currently: %s\n\n",prefix);CHKERRQ(ierr);
+  ierr = PetscObjectSetName((PetscObject)svd,"SVD_solver");CHKERRQ(ierr);
+
   ierr = SVDSetOperator(svd,A);CHKERRQ(ierr);
-  ierr = SVDSetType(svd,SVDCYCLIC);CHKERRQ(ierr);
-  ierr = SVDCyclicSetEPS(svd,eps);CHKERRQ(ierr);
-  ierr = SVDCyclicSetExplicitMatrix(svd,PETSC_TRUE);CHKERRQ(ierr);
-  ierr = SVDSetWhichSingularTriplets(svd,SVD_SMALLEST);CHKERRQ(ierr);
+  ierr = SVDSetType(svd,SVDLANCZOS);CHKERRQ(ierr);
   ierr = SVDSetFromOptions(svd);CHKERRQ(ierr);
-  ierr = PetscObjectTypeCompare((PetscObject)svd,SVDCYCLIC,&flg);CHKERRQ(ierr);
+
+  ierr = PetscObjectTypeCompare((PetscObject)svd,SVDLANCZOS,&flg);CHKERRQ(ierr);
   if (flg) {
-    ierr = SVDCyclicGetExplicitMatrix(svd,&expmat);CHKERRQ(ierr);
-    if (expmat) {
-      ierr = PetscPrintf(PETSC_COMM_WORLD," Using explicit matrix with cyclic solver\n");CHKERRQ(ierr);
-    }
+    ierr = SVDLanczosGetOneSide(svd,&oneside);CHKERRQ(ierr);
+    ierr = PetscPrintf(PETSC_COMM_WORLD,"Running Lanczos %s\n\n",oneside?"(onesided)":"");CHKERRQ(ierr);
   }
+  ierr = PetscObjectTypeCompare((PetscObject)svd,SVDTRLANCZOS,&flg);CHKERRQ(ierr);
+  if (flg) {
+    ierr = SVDTRLanczosGetOneSide(svd,&oneside);CHKERRQ(ierr);
+    ierr = PetscPrintf(PETSC_COMM_WORLD,"Running thick-restart Lanczos %s\n\n",oneside?"(onesided)":"");CHKERRQ(ierr);
+  }
+
   ierr = SVDSolve(svd);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -108,7 +96,6 @@ int main(int argc,char **argv)
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
   ierr = SVDErrorView(svd,SVD_ERROR_RELATIVE,PETSC_VIEWER_STDOUT_WORLD);CHKERRQ(ierr);
   ierr = SVDDestroy(&svd);CHKERRQ(ierr);
-  ierr = EPSDestroy(&eps);CHKERRQ(ierr);
   ierr = MatDestroy(&A);CHKERRQ(ierr);
   ierr = SlepcFinalize();
   return ierr;
@@ -116,15 +103,15 @@ int main(int argc,char **argv)
 
 /*TEST
 
-   test:
-      suffix: 1
-      args: -info_exclude svd -log_exclude svd
-      requires: !single
-
-   test:
-      suffix: 2_cuda
-      args: -info_exclude svd -log_exclude svd -mat_type aijcusparse
-      requires: cuda !single
-      output_file: output/test7_1.out
+   testset:
+      args: -check_myprefix_svd_nsv 3
+      requires: double
+      test:
+         suffix: 1
+         args: -check_myprefix_svd_view_vectors ::ascii_info
+      test:
+         suffix: 2
+         args: -check_myprefix_svd_type trlanczos -check_myprefix_svd_monitor -check_myprefix_svd_view_values ::ascii_matlab
+         filter: sed -e "s/[0-9]\.[0-9]*e[+-]\([0-9]*\)/removed/g"
 
 TEST*/

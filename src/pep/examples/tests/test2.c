@@ -155,6 +155,9 @@ int main(int argc,char **argv)
          suffix: 1
          args: -pep_type {{toar linear}}
       test:
+         suffix: 1_toar_mgs
+         args: -pep_type toar -bv_orthog_type mgs
+      test:
          suffix: 1_qarnoldi
          args: -pep_type qarnoldi -bv_orthog_refine never
       test:

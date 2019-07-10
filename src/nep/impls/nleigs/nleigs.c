@@ -1730,13 +1730,15 @@ static PetscErrorCode NEPNLEIGSSetRKShifts_NLEIGS(NEP nep,PetscInt ns,PetscScala
   PetscInt       i;
 
   PetscFunctionBegin;
-  if (ns<=0) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_WRONG,"Number of shifts must be positive");
+  if (ns<0) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_WRONG,"Number of shifts must be non-negative");
   if (ctx->nshifts) { ierr = PetscFree(ctx->shifts);CHKERRQ(ierr); }
   for (i=0;i<ctx->nshiftsw;i++) { ierr = KSPDestroy(&ctx->ksp[i]);CHKERRQ(ierr); }
   ierr = PetscFree(ctx->ksp);CHKERRQ(ierr);
   ctx->ksp = NULL;
-  ierr = PetscMalloc1(ns,&ctx->shifts);CHKERRQ(ierr);
-  for (i=0;i<ns;i++) ctx->shifts[i] = shifts[i];
+  if (ns) {
+    ierr = PetscMalloc1(ns,&ctx->shifts);CHKERRQ(ierr);
+    for (i=0;i<ns;i++) ctx->shifts[i] = shifts[i];
+  }
   ctx->nshifts = ns;
   nep->state   = NEP_STATE_INITIAL;
   PetscFunctionReturn(0);
@@ -1766,6 +1768,8 @@ static PetscErrorCode NEPNLEIGSSetRKShifts_NLEIGS(NEP nep,PetscInt ns,PetscScala
    the format [+/-][realnumber][+/-]realnumberi with no spaces, e.g.
    -nep_nleigs_rk_shifts 1.0+2.0i,1.5+2.0i,1.0+1.5i
 
+   Use ns=0 to remove previously set shifts.
+
    Level: advanced
 
 .seealso: NEPNLEIGSGetRKShifts()
@@ -1777,7 +1781,7 @@ PetscErrorCode NEPNLEIGSSetRKShifts(NEP nep,PetscInt ns,PetscScalar *shifts)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
   PetscValidLogicalCollectiveInt(nep,ns,2);
-  PetscValidPointer(nep,shifts);
+  if (ns) PetscValidPointer(nep,shifts);
   ierr = PetscTryMethod(nep,"NEPNLEIGSSetRKShifts_C",(NEP,PetscInt,PetscScalar*),(nep,ns,shifts));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -1809,6 +1813,9 @@ static PetscErrorCode NEPNLEIGSGetRKShifts_NLEIGS(NEP nep,PetscInt *ns,PetscScal
    Output Parameter:
 +  ns     - number of shifts
 -  shifts - array of shifts
+
+   Note:
+   The user is responsible for deallocating the returned array.
 
    Level: advanced
 

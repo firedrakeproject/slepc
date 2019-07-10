@@ -156,6 +156,10 @@ int main(int argc,char **argv)
     ierr = BVView(V,view);CHKERRQ(ierr);
   }
 
+  /* Test BVNorm */
+  ierr = BVNorm(V,NORM_1,&norm);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"Norm: %g\n",(double)norm);CHKERRQ(ierr);
+
   ierr = BVDestroy(&U);CHKERRQ(ierr);
   ierr = BVDestroy(&V);CHKERRQ(ierr);
   ierr = MatDestroy(&Q);CHKERRQ(ierr);
@@ -172,5 +176,6 @@ int main(int argc,char **argv)
       nsize: 2
       args: -bv_type {{vecs contiguous svec mat}shared output}
       output_file: output/test16_1.out
+      filter: grep -v "doing matmult"
 
 TEST*/

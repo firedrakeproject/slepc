@@ -43,9 +43,10 @@ int main(int argc,char **argv)
   FN             f1,f2,f3,funs[3];
   Vec            v0;
   PetscScalar    coeffs[2],b,*pv;
-  PetscInt       n=128,nev,Istart,Iend,i;
+  PetscInt       n=128,nev,Istart,Iend,i,lag;
   PetscReal      tau=0.001,h,a=20,xi;
   PetscBool      terse,initv=PETSC_FALSE;
+  const char     *prefix;
   PetscErrorCode ierr;
 
   ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
@@ -136,7 +137,10 @@ int main(int argc,char **argv)
   ierr = NEPSetSplitOperator(nep,3,mats,funs,SUBSET_NONZERO_PATTERN);CHKERRQ(ierr);
 
   /* Customize nonlinear solver; set runtime options */
-  ierr = NEPSetOptionsPrefix(nep,"myprefix_");CHKERRQ(ierr);
+  ierr = NEPSetOptionsPrefix(nep,"check_");CHKERRQ(ierr);
+  ierr = NEPAppendOptionsPrefix(nep,"myprefix_");CHKERRQ(ierr);
+  ierr = NEPGetOptionsPrefix(nep,&prefix);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"NEP prefix is currently: %s\n\n",prefix);CHKERRQ(ierr);
   ierr = NEPSetType(nep,NEPNARNOLDI);CHKERRQ(ierr);
   ierr = NEPNArnoldiSetKSP(nep,ksp);CHKERRQ(ierr);
   if (initv) { /* initial vector */
@@ -156,6 +160,8 @@ int main(int argc,char **argv)
   ierr = NEPSolve(nep);CHKERRQ(ierr);
   ierr = NEPGetDimensions(nep,&nev,NULL,NULL);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD," Number of requested eigenvalues: %D\n",nev);CHKERRQ(ierr);
+  ierr = NEPNArnoldiGetLagPreconditioner(nep,&lag);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD," N-Arnoldi lag parameter: %D\n",lag);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                     Display solution and clean up
@@ -187,7 +193,7 @@ int main(int argc,char **argv)
 
    test:
       suffix: 1
-      args: -myprefix_nep_view -myprefix_nep_monitor_conv -initv -terse
+      args: -check_myprefix_nep_view -check_myprefix_nep_monitor_conv -initv -terse
       filter: grep -v "tolerance" | sed -e "s/[0-9]\.[0-9]*e[+-]\([0-9]*\)/removed/g"
       requires: double !complex !define(PETSC_USE_64BIT_INDICES)
 

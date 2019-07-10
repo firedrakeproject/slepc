@@ -166,6 +166,7 @@ int main(int argc,char **argv)
       suffix: 4
       args: -n 300 -pep_hyperbolic -pep_interval -9.6,-.527 -pep_type stoar -st_type sinvert -st_pc_type cholesky -terse
       requires: !single
+      timeoutfactor: 2
 
    test:
       suffix: 5
