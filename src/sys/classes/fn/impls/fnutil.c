@@ -396,7 +396,6 @@ PetscErrorCode SlepcSqrtmNewtonSchulz_CUDA(PetscBLASInt n,PetscScalar *A,PetscBL
   const PetscScalar  szero=0.0,sone=1.0,smone=-1.0,spfive=0.5,sneg_two=-2.0,sthree=3.0;
   PetscReal          tol,Yres=0.0,alpha,sqrtalpha;
   PetscInt           it;
-  const PetscInt     maxit=500;
   PetscBLASInt       N;
   const PetscBLASInt one=1,zero=0;
   PetscBool          converged=PETSC_FALSE;
@@ -460,7 +459,7 @@ PetscErrorCode SlepcSqrtmNewtonSchulz_CUDA(PetscBLASInt n,PetscScalar *A,PetscBL
     ierr = PetscLogFlops(6.0*n*n*n+2.0*n*n);CHKERRQ(ierr);
   }
 
-  if (Yres>tol) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"SQRTM not converged after %d iterations", maxit);
+  if (Yres>tol) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"SQRTM not converged after %d iterations", NSMAXIT);
 
   /* undo scaling */
   if (inv) {
@@ -489,7 +488,7 @@ PetscErrorCode SlepcSqrtmDenmanBeavers_CUDAm(PetscBLASInt n,PetscScalar *T,Petsc
 {
   PetscScalar    *d_T,*d_Told,*d_M,*d_invM,*d_work,work1,zero=0.0,sone=1.0,smone=-1.0,spfive=0.5,sneg_pfive=-0.5,sp25=0.25,alpha;
   PetscReal      tol,Mres=0.0,detM,g,g2,reldiff,fnormdiff,fnormT,prod;
-  PetscInt       i,it,maxit=25,*piv=NULL,info,query=-1,lwork,nb;
+  PetscInt       i,it,*piv=NULL,info,query=-1,lwork,nb;
   PetscBLASInt   N,one=1;
   PetscBool      converged=PETSC_FALSE,scale=PETSC_FALSE;
   cublasHandle_t cublasv2handle;
@@ -567,23 +566,22 @@ PetscErrorCode SlepcSqrtmDenmanBeavers_CUDAm(PetscBLASInt n,PetscScalar *T,Petsc
     cberr = cublasXnrm2(cublasv2handle,N,d_M,one,&Mres);CHKERRCUBLAS(cberr);
     ierr = shift_diagonal(n,d_M,ld,sone);CHKERRQ(cerr);
 
-    // reldiff = norm(T - Told,'fro')/norm(T,'fro');
-    cberr = cublasXaxpy(cublasv2handle,N,&smone,d_T,one,d_Told,one);CHKERRCUBLAS(cberr);
-    cberr = cublasXnrm2(cublasv2handle,N,d_Told,one,&fnormdiff);CHKERRCUBLAS(cberr);
-    cberr = cublasXnrm2(cublasv2handle,N,d_T,one,&fnormT);CHKERRCUBLAS(cberr);
-    ierr = PetscLogFlops(7.0*n*n);CHKERRQ(ierr);
-    reldiff = fnormdiff/fnormT;
     if (scale) {
+      // reldiff = norm(T - Told,'fro')/norm(T,'fro');
+      cberr = cublasXaxpy(cublasv2handle,N,&smone,d_T,one,d_Told,one);CHKERRCUBLAS(cberr);
+      cberr = cublasXnrm2(cublasv2handle,N,d_Told,one,&fnormdiff);CHKERRCUBLAS(cberr);
+      cberr = cublasXnrm2(cublasv2handle,N,d_T,one,&fnormT);CHKERRCUBLAS(cberr);
+      ierr = PetscLogFlops(7.0*n*n);CHKERRQ(ierr);
+      reldiff = fnormdiff/fnormT;
       ierr = PetscInfo4(NULL,"it: %D reldiff: %g scale: %g tol*scale: %g\n",it,(double)reldiff,(double)g,(double)tol*g);CHKERRQ(ierr);
-    } else {
-      ierr = PetscInfo2(NULL,"it: %D reldiff: %g\n",it,(double)reldiff);CHKERRQ(ierr);
+      if (reldiff<1e-2) scale = PETSC_FALSE; /* Switch to no scaling. */
     }
 
-    if (reldiff<1e-2) scale = PETSC_FALSE; /* Switch to no scaling. */
+    ierr = PetscInfo2(NULL,"it: %D Mres: %g\n",it,(double)Mres);
     if (Mres<=tol) converged = PETSC_TRUE;
   }
 
-  if (Mres>tol) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"SQRTM not converged after %d iterations", maxit);
+  if (Mres>tol) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"SQRTM not converged after %d iterations", DBMAXIT);
   cerr = cudaMemcpy(T,d_T,sizeof(PetscScalar)*N,cudaMemcpyDeviceToHost);CHKERRCUDA(cerr);
   ierr = PetscFree(piv);CHKERRQ(ierr);
   cerr = cudaFree(d_work);CHKERRCUDA(cerr);

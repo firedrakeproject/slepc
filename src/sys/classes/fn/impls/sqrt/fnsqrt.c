@@ -112,7 +112,7 @@ PetscErrorCode FNEvaluateFunctionMat_Sqrt_NS(FN fn,Mat A,Mat B)
    Computes the principal square root of the matrix A using the
    Sadeghi iteration. A is overwritten with sqrtm(A).
  */
-static PetscErrorCode FNSqrtmSadeghi(FN fn,PetscBLASInt n,PetscScalar *A,PetscBLASInt ld)
+PetscErrorCode FNSqrtmSadeghi(FN fn,PetscBLASInt n,PetscScalar *A,PetscBLASInt ld)
 {
   PetscScalar    *M,*M2,*G,*X=A,*work,work1,sqrtnrm;
   PetscScalar    szero=0.0,sone=1.0,smfive=-5.0,s1d16=1.0/16.0;

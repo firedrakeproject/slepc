@@ -131,16 +131,135 @@ PetscErrorCode FNEvaluateFunctionMat_Invsqrt_NS(FN fn,Mat A,Mat B)
   PetscFunctionReturn(0);
 }
 
+PetscErrorCode FNEvaluateFunctionMat_Invsqrt_Sadeghi(FN fn,Mat A,Mat B)
+{
+#if defined(PETSC_MISSING_LAPACK_GESV)
+  PetscFunctionBegin;
+  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"GESV - Lapack routine is unavailable");
+#else
+  PetscErrorCode ierr;
+  PetscBLASInt   n,ld,*ipiv,info;
+  PetscScalar    *Ba,*Wa;
+  PetscInt       m;
+  Mat            W;
+
+  PetscFunctionBegin;
+  ierr = FN_AllocateWorkMat(fn,A,&W);CHKERRQ(ierr);
+  if (A!=B) { ierr = MatCopy(A,B,SAME_NONZERO_PATTERN);CHKERRQ(ierr); }
+  ierr = MatDenseGetArray(B,&Ba);CHKERRQ(ierr);
+  ierr = MatDenseGetArray(W,&Wa);CHKERRQ(ierr);
+  /* compute B = sqrtm(A) */
+  ierr = MatGetSize(A,&m,NULL);CHKERRQ(ierr);
+  ierr = PetscBLASIntCast(m,&n);CHKERRQ(ierr);
+  ld = n;
+  ierr = FNSqrtmSadeghi(fn,n,Ba,n);CHKERRQ(ierr);
+  /* compute B = A\B */
+  ierr = PetscMalloc1(ld,&ipiv);CHKERRQ(ierr);
+  PetscStackCallBLAS("LAPACKgesv",LAPACKgesv_(&n,&n,Wa,&ld,ipiv,Ba,&ld,&info));
+  SlepcCheckLapackInfo("gesv",info);
+  ierr = PetscLogFlops(2.0*n*n*n/3.0+2.0*n*n*n);CHKERRQ(ierr);
+  ierr = PetscFree(ipiv);CHKERRQ(ierr);
+  ierr = MatDenseRestoreArray(W,&Wa);CHKERRQ(ierr);
+  ierr = MatDenseRestoreArray(B,&Ba);CHKERRQ(ierr);
+  ierr = FN_FreeWorkMat(fn,&W);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+#endif
+}
+
+#if defined(PETSC_HAVE_CUDA)
+PetscErrorCode FNEvaluateFunctionMat_Invsqrt_DBP_CUDAm(FN fn,Mat A,Mat B)
+{
+  PetscErrorCode ierr;
+  PetscBLASInt   n;
+  PetscScalar    *T;
+  PetscInt       m;
+
+  PetscFunctionBegin;
+  if (A!=B) { ierr = MatCopy(A,B,SAME_NONZERO_PATTERN);CHKERRQ(ierr); }
+  ierr = MatDenseGetArray(B,&T);CHKERRQ(ierr);
+  ierr = MatGetSize(A,&m,NULL);CHKERRQ(ierr);
+  ierr = PetscBLASIntCast(m,&n);CHKERRQ(ierr);
+  ierr = SlepcSqrtmDenmanBeavers_CUDAm(n,T,n,PETSC_TRUE);CHKERRQ(ierr);
+  ierr = MatDenseRestoreArray(B,&T);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+PetscErrorCode FNEvaluateFunctionMat_Invsqrt_NS_CUDA(FN fn,Mat A,Mat B)
+{
+  PetscErrorCode ierr;
+  PetscBLASInt   n;
+  PetscScalar    *Ba;
+  PetscInt       m;
+
+  PetscFunctionBegin;
+  if (A!=B) { ierr = MatCopy(A,B,SAME_NONZERO_PATTERN);CHKERRQ(ierr); }
+  ierr = MatDenseGetArray(B,&Ba);CHKERRQ(ierr);
+  ierr = MatGetSize(A,&m,NULL);CHKERRQ(ierr);
+  ierr = PetscBLASIntCast(m,&n);CHKERRQ(ierr);
+  ierr = SlepcSqrtmNewtonSchulz_CUDA(n,Ba,n,PETSC_TRUE);CHKERRQ(ierr);
+  ierr = MatDenseRestoreArray(B,&Ba);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+PetscErrorCode FNEvaluateFunctionMat_Invsqrt_Sadeghi_CUDAm(FN fn,Mat A,Mat B)
+{
+#if defined(PETSC_MISSING_LAPACK_GESV)
+  PetscFunctionBegin;
+  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"GESV - Lapack routine is unavailable");
+#else
+  PetscErrorCode ierr;
+  PetscBLASInt   n,ld,*ipiv,info;
+  PetscScalar    *Ba,*Wa;
+  PetscInt       m;
+  Mat            W;
+
+  PetscFunctionBegin;
+  ierr = FN_AllocateWorkMat(fn,A,&W);CHKERRQ(ierr);
+  if (A!=B) { ierr = MatCopy(A,B,SAME_NONZERO_PATTERN);CHKERRQ(ierr); }
+  ierr = MatDenseGetArray(B,&Ba);CHKERRQ(ierr);
+  ierr = MatDenseGetArray(W,&Wa);CHKERRQ(ierr);
+  /* compute B = sqrtm(A) */
+  ierr = MatGetSize(A,&m,NULL);CHKERRQ(ierr);
+  ierr = PetscBLASIntCast(m,&n);CHKERRQ(ierr);
+  ld = n;
+  ierr = SlepcSqrtmSadeghi_CUDAm(n,Ba,n);CHKERRQ(ierr);
+  /* compute B = A\B */
+  ierr = PetscMalloc1(ld,&ipiv);CHKERRQ(ierr);
+  PetscStackCallBLAS("LAPACKgesv",LAPACKgesv_(&n,&n,Wa,&ld,ipiv,Ba,&ld,&info));
+  SlepcCheckLapackInfo("gesv",info);
+  ierr = PetscLogFlops(2.0*n*n*n/3.0+2.0*n*n*n);CHKERRQ(ierr);
+  ierr = PetscFree(ipiv);CHKERRQ(ierr);
+  ierr = MatDenseRestoreArray(W,&Wa);CHKERRQ(ierr);
+  ierr = MatDenseRestoreArray(B,&Ba);CHKERRQ(ierr);
+  ierr = FN_FreeWorkMat(fn,&W);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+#endif
+}
+#endif
+
 PetscErrorCode FNView_Invsqrt(FN fn,PetscViewer viewer)
 {
   PetscErrorCode ierr;
   PetscBool      isascii;
   char           str[50];
+#if !defined(PETSC_HAVE_CUDA)
   const char     *methodname[] = {
                   "Schur method for inv(A)*sqrtm(A)",
                   "Denman-Beavers (product form)",
-                  "Newton-Schulz iteration"
+                  "Newton-Schulz iteration",
+                  "Sadeghi iteration"
   };
+#else
+  const char     *methodname[] = {
+                  "Schur method for inv(A)*sqrtm(A)",
+                  "Denman-Beavers (product form)",
+                  "Newton-Schulz iteration",
+                  "Sadeghi iteration",
+                  "Denman-Beavers (product form) CUDAm",
+                  "Newton-Schulz iteration CUDA",
+                  "Sadeghi iteration CUDAm"
+  };
+#endif
   const int      nmeth=sizeof(methodname)/sizeof(methodname[0]);
 
   PetscFunctionBegin;
@@ -180,6 +299,12 @@ SLEPC_EXTERN PetscErrorCode FNCreate_Invsqrt(FN fn)
   fn->ops->evaluatefunctionmat[0]    = FNEvaluateFunctionMat_Invsqrt_Schur;
   fn->ops->evaluatefunctionmat[1]    = FNEvaluateFunctionMat_Invsqrt_DBP;
   fn->ops->evaluatefunctionmat[2]    = FNEvaluateFunctionMat_Invsqrt_NS;
+  fn->ops->evaluatefunctionmat[3]    = FNEvaluateFunctionMat_Invsqrt_Sadeghi;
+#if defined(PETSC_HAVE_CUDA)
+  fn->ops->evaluatefunctionmat[4]    = FNEvaluateFunctionMat_Invsqrt_DBP_CUDAm;
+  fn->ops->evaluatefunctionmat[5]    = FNEvaluateFunctionMat_Invsqrt_NS_CUDA;
+  fn->ops->evaluatefunctionmat[6]    = FNEvaluateFunctionMat_Invsqrt_Sadeghi_CUDAm;
+#endif /* defined(PETSC_HAVE_CUDA) */
   fn->ops->evaluatefunctionmatvec[0] = FNEvaluateFunctionMatVec_Invsqrt_Schur;
   fn->ops->view                      = FNView_Invsqrt;
   PetscFunctionReturn(0);

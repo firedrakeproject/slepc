@@ -100,6 +100,7 @@ PETSC_STATIC_INLINE PetscErrorCode FN_FreeWorkMat(FN fn,Mat *M)
 SLEPC_INTERN PetscErrorCode FNSqrtmSchur(FN,PetscBLASInt,PetscScalar*,PetscBLASInt,PetscBool);
 SLEPC_INTERN PetscErrorCode FNSqrtmDenmanBeavers(FN,PetscBLASInt,PetscScalar*,PetscBLASInt,PetscBool);
 SLEPC_INTERN PetscErrorCode FNSqrtmNewtonSchulz(FN,PetscBLASInt,PetscScalar*,PetscBLASInt,PetscBool);
+SLEPC_INTERN PetscErrorCode FNSqrtmSadeghi(FN,PetscBLASInt,PetscScalar*,PetscBLASInt);
 SLEPC_INTERN PetscErrorCode SlepcNormAm(PetscBLASInt,PetscScalar*,PetscInt,PetscScalar*,PetscRandom,PetscReal*);
 SLEPC_INTERN PetscErrorCode FNEvaluateFunctionMat_Private(FN,Mat,Mat,PetscBool);
 SLEPC_INTERN PetscErrorCode FNEvaluateFunctionMatVec_Private(FN,Mat,Vec,PetscBool);
@@ -107,6 +108,7 @@ SLEPC_INTERN PetscErrorCode FNEvaluateFunctionMat_Exp_Higham(FN,Mat,Mat); /* use
 #if defined(PETSC_HAVE_CUDA)
 SLEPC_INTERN PetscErrorCode SlepcSqrtmDenmanBeavers_CUDAm(PetscBLASInt,PetscScalar*,PetscBLASInt,PetscBool);
 SLEPC_INTERN PetscErrorCode SlepcSqrtmNewtonSchulz_CUDA(PetscBLASInt,PetscScalar*,PetscBLASInt,PetscBool);
+SLEPC_INTERN PetscErrorCode SlepcSqrtmSadeghi_CUDAm(PetscBLASInt,PetscScalar*,PetscBLASInt);
 #endif
 
 #endif
