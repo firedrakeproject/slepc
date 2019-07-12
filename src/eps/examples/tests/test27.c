@@ -129,7 +129,7 @@ int main(int argc,char **argv)
 
    test:
       suffix: 2
-      args: -eps_interval .17,1.3 -st_type filter -eps_nev 1 -terse
+      args: -eps_interval .17,1.3 -st_type filter -st_filter_degree 150 -eps_nev 1 -terse
       filter: grep -v "requested"
       requires: !single
 

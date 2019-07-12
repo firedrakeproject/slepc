@@ -88,13 +88,14 @@ int main(int argc,char **argv)
   PetscInt       i,j,n=10;
   PetscScalar    *As;
   PetscViewer    viewer;
-  PetscBool      verbose,inplace,random;
+  PetscBool      verbose,inplace,random,triang;
 
   ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
   ierr = PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL);CHKERRQ(ierr);
   ierr = PetscOptionsHasName(NULL,NULL,"-verbose",&verbose);CHKERRQ(ierr);
   ierr = PetscOptionsHasName(NULL,NULL,"-inplace",&inplace);CHKERRQ(ierr);
   ierr = PetscOptionsHasName(NULL,NULL,"-random",&random);CHKERRQ(ierr);
+  ierr = PetscOptionsHasName(NULL,NULL,"-triang",&triang);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD,"Matrix logarithm, n=%D.\n",n);CHKERRQ(ierr);
 
   /* Create logarithm function object */
@@ -120,7 +121,10 @@ int main(int argc,char **argv)
     ierr = MatDenseGetArray(A,&As);CHKERRQ(ierr);
     for (i=0;i<n;i++) As[i+i*n]=2.0;
     for (j=1;j<3;j++) {
-      for (i=0;i<n-j;i++) { As[i+(i+j)*n]=1.0; As[(i+j)+i*n]=-1.0; }
+      for (i=0;i<n-j;i++) {
+        As[i+(i+j)*n]=1.0;
+        if (!triang) As[(i+j)+i*n]=-1.0;
+      }
     }
     As[(n-1)*n] = -5.0;
     ierr = MatDenseRestoreArray(A,&As);CHKERRQ(ierr);
@@ -141,6 +145,10 @@ int main(int argc,char **argv)
       test:
          suffix: 1
          args: -fn_scale .04,2 -n 75
+         requires: c99_complex !__float128
+      test:
+         suffix: 1_triang
+         args: -fn_scale .04,2 -n 75 -triang
          requires: c99_complex !__float128
       test:
          suffix: 1_random
