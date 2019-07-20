@@ -47,9 +47,6 @@ class SlepcConfig(PetscConfig):
         PetscConfig.configure_extension(self, extension)
         SLEPC_DIR  = self.SLEPC_DIR
         PETSC_ARCH = self.PETSC_ARCH
-        # define macros
-        macros = [('SLEPC_DIR', SLEPC_DIR)]
-        extension.define_macros.extend(macros)
         # includes and libraries
         SLEPC_INCLUDE = [
             os.path.join(SLEPC_DIR, PETSC_ARCH, 'include'),
