@@ -127,6 +127,7 @@ int main(int argc,char **argv)
       }
     }
     As[(n-1)*n] = -5.0;
+    As[0] = 2.01;
     ierr = MatDenseRestoreArray(A,&As);CHKERRQ(ierr);
   }
   ierr = TestMatLog(fn,A,viewer,verbose,inplace);CHKERRQ(ierr);

@@ -96,7 +96,7 @@ PetscErrorCode FNEvaluateFunctionMat_Exp_Pade(FN fn,Mat A,Mat B)
     }
     ierr = PetscLogFlops(2.0*n*n*n);CHKERRQ(ierr);
   }
-  if (odd) {
+  /*if (odd) {
     PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&n,&n,&n,&one,Q,&ld,As,&ld,&zero,W,&ld));
     SWAP(Q,W,aux);
     PetscStackCallBLAS("BLASaxpy",BLASaxpy_(&ld2,&mone,P,&inc,Q,&inc));
@@ -105,7 +105,7 @@ PetscErrorCode FNEvaluateFunctionMat_Exp_Pade(FN fn,Mat A,Mat B)
     PetscStackCallBLAS("BLASscal",BLASscal_(&ld2,&two,P,&inc));
     for (j=0;j<n;j++) P[j+j*ld] += 1.0;
     PetscStackCallBLAS("BLASscal",BLASscal_(&ld2,&mone,P,&inc));
-  } else {
+  } else {*/
     PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&n,&n,&n,&one,P,&ld,As,&ld,&zero,W,&ld));
     SWAP(P,W,aux);
     PetscStackCallBLAS("BLASaxpy",BLASaxpy_(&ld2,&mone,P,&inc,Q,&inc));
@@ -113,7 +113,7 @@ PetscErrorCode FNEvaluateFunctionMat_Exp_Pade(FN fn,Mat A,Mat B)
     SlepcCheckLapackInfo("gesv",info);
     PetscStackCallBLAS("BLASscal",BLASscal_(&ld2,&two,P,&inc));
     for (j=0;j<n;j++) P[j+j*ld] += 1.0;
-  }
+  /*}*/
   ierr = PetscLogFlops(2.0*n*n*n+2.0*n*n*n/3.0+4.0*n*n);CHKERRQ(ierr);
 
   for (k=1;k<=sexp;k++) {
@@ -227,35 +227,19 @@ static PetscErrorCode getcoeffs(PetscInt k,PetscInt m,PetscComplex *r,PetscCompl
   if (query) { /* query about buffer's size */
     if (m==k+1) {
       *remain = 0;
-      if (k==4) {
-        *r = *q = 5;
-      } else if (k==3) {
-        *r = *q = 4;
-      } else if (k==2) {
-        *r = *q = 3;
-      } else if (k==1) {
-        *r = *q = 2;
-      }
+      *r = *q = k+1;
       PetscFunctionReturn(0); /* quick return */
     }
     if (m==k-1) {
-      if (k==5) {
-        *r = *q = 4; *remain = 2;
-      } else if (k==4) {
-        *r = *q = 3; *remain = 2;
-      } else if (k==3) {
-        *r = *q = 2; *remain = 2;
-      } else if (k==2) {
-        *r = *q = 1; *remain = 2;
-      }
+      *remain = 2;
+      if (k==5) *r = *q = 4;
+      else if (k==4) *r = *q = 3;
+      else if (k==3) *r = *q = 2;
+      else if (k==2) *r = *q = 1;
     }
     if (m==0) {
       *r = *q = 0;
-      if (k==3) {
-        *remain = 4;
-      } else if (k==2) {
-        *remain = 3;
-      }
+      *remain = k+1;
     }
   } else {
     if (m==k+1) {
@@ -283,38 +267,28 @@ static PetscErrorCode getcoeffs(PetscInt k,PetscInt m,PetscComplex *r,PetscCompl
         for (i=0;i<4;i++) {
           r[i] = m1r5[i]; q[i] = m1q5[i];
         }
-        for (i=0;i<2;i++) {
-          remain[i] = m1remain5[i];
-        }
+        for (i=0;i<2;i++) remain[i] = m1remain5[i];
       } else if (k==4) {
         for (i=0;i<3;i++) {
           r[i] = m1r4[i]; q[i] = m1q4[i];
         }
-        for (i=0;i<2;i++) {
-          remain[i] = m1remain4[i];
-        }
+        for (i=0;i<2;i++) remain[i] = m1remain4[i];
       } else if (k==3) {
         for (i=0;i<2;i++) {
           r[i] = m1r3[i]; q[i] = m1q3[i]; remain[i] = m1remain3[i];
         }
       } else if (k==2) {
-        r[0] =  -13.5;
-        q[0] =    3;
-        for (i=0;i<2;i++) {
-          remain[i] = m1remain2[i];
-        }
+        r[0] = -13.5;
+        q[0] = 3;
+        for (i=0;i<2;i++) remain[i] = m1remain2[i];
       }
     }
     if (m==0) {
       r = q = 0;
       if (k==3) {
-        for (i=0;i<4;i++) {
-          remain[i] = remain3[i];
-        }
+        for (i=0;i<4;i++) remain[i] = remain3[i];
       } else if (k==2) {
-        for (i=0;i<3;i++) {
-          remain[i] = remain2[i];
-        }
+        for (i=0;i<3;i++) remain[i] = remain2[i];
       }
     }
   }
@@ -381,28 +355,14 @@ static PetscErrorCode getcoeffsproduct(PetscInt k,PetscInt m,PetscComplex *p,Pet
   if (query) {
     if (m == k+1) {
       *mult = 1;
-      if (k==4) {
-        *p = 4; *q = 5;
-      } else if (k==3) {
-        *p = 3; *q = 4;
-      } else if (k==2) {
-        *p = 2; *q = 3;
-      } else if (k==1) {
-        *p = 1; *q = 2;
-      }
+      *p = k;
+      *q = k+1;
       PetscFunctionReturn(0);
     }
     if (m==k-1) {
       *mult = 1;
-      if (k==5) {
-        *p = 5; *q = 4;
-      } else if (k==4) {
-        *p = 4; *q = 3;
-      } else if (k==3) {
-        *p = 3; *q = 2;
-      } else if (k==2) {
-        *p = 2; *q = 1;
-      }
+      *p = k;
+      *q = k-1;
     }
   } else {
     if (m == k+1) {
@@ -425,9 +385,7 @@ static PetscErrorCode getcoeffsproduct(PetscInt k,PetscInt m,PetscComplex *p,Pet
         q[2] = p1q2[2];
       } else if (k==1) {
         p[0] = -3;
-        for (i=0;i<2;i++) {
-          q[i] = p1q1[i];
-        }
+        for (i=0;i<2;i++) q[i] = p1q1[i];
       }
       PetscFunctionReturn(0);
     }
@@ -450,9 +408,7 @@ static PetscErrorCode getcoeffsproduct(PetscInt k,PetscInt m,PetscComplex *p,Pet
         }
         p[2] = m1p3[2];
       } else if (k==2) {
-        for (i=0;i<2;i++) {
-          p[i] = m1p2[i];
-        }
+        for (i=0;i<2;i++) p[i] = m1p2[i];
         q[0] = 3;
       }
     }
@@ -581,9 +537,7 @@ PetscErrorCode FNEvaluateFunctionMat_Exp_GuettelNakatsukasa(FN fn,Mat A,Mat B)
   ierr = sexpm_params(nrm,&s,&k,&m);CHKERRQ(ierr);
   if (s==0 && k==1 && m==0) { /* exp(A) = I+A to eps! */
     expshift = PetscExpReal(shift);
-    for (i=0;i<n;i++) {
-      sMaux[i+i*n] += 1.0;
-    }
+    for (i=0;i<n;i++) sMaux[i+i*n] += 1.0;
     PetscStackCallBLAS("BLASscal",BLASscal_(&n2,&expshift,sMaux,&one));
     ierr = PetscLogFlops(1.0*(n+n2));CHKERRQ(ierr);
     ierr = PetscArraycpy(Ba,sMaux,n2);CHKERRQ(ierr);
@@ -734,10 +688,7 @@ PetscErrorCode FNEvaluateFunctionMat_Exp_GuettelNakatsukasa(FN fn,Mat A,Mat B)
     /* extra denominator */
     for (i=minlen;i<ipsize;i++) {
       ierr = PetscArraycpy(RR,As,n2);CHKERRQ(ierr);
-      for (j=0;j<n;j++) {
-        RR[j+j*n] -= rootq[i];
-      }
-
+      for (j=0;j<n;j++) RR[j+j*n] -= rootq[i];
       PetscStackCallBLAS("LAPACKCOMPLEXgesv",LAPACKCOMPLEXgesv_(&n,&n,RR,&n,piv,expmA,&n,&info));
       SlepcCheckLapackInfo("gesv",info);
       ierr = SlepcLogFlopsComplex(1.0*n+(2.0*n*n*n/3.0+2.0*n*n*n));CHKERRQ(ierr);
