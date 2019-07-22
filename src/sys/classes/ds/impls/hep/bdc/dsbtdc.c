@@ -337,7 +337,6 @@ PetscErrorCode BDC_dsbtdc_(const char *jobz,const char *jobacc,PetscBLASInt n,
   /* dense solver (in this case KSIZES(1) = N). */
 
   if (nblks == 1) {
-    ierr = PetscPrintf(PETSC_COMM_WORLD," dsbtdc: This branch still needs to be checked!\n");CHKERRQ(ierr);
     for (i = 0; i < n; ++i) {
       for (j = 0; j <= i; ++j) {
         z[i + j*ldz] = d[i + j*l1d];

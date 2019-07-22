@@ -90,6 +90,7 @@ int main(int argc,char **argv)
   ierr = VecCreateCompWithVecs(vchild,2,vparent,&vc);CHKERRQ(ierr);
   ierr = VecDestroy(&vchild[0]);CHKERRQ(ierr);
   ierr = VecDestroy(&vchild[1]);CHKERRQ(ierr);
+  ierr = VecView(vc,NULL);CHKERRQ(ierr);
 
   ierr = VecGetSize(vc,&k);CHKERRQ(ierr);
   if (k!=8) SETERRQ(PETSC_COMM_WORLD,1,"Vector global length should be 8");
@@ -190,6 +191,8 @@ int main(int argc,char **argv)
   ierr = VecReciprocal(yc);CHKERRQ(ierr);
   ierr = VecExp(y);CHKERRQ(ierr);
   ierr = VecExp(yc);CHKERRQ(ierr);
+  ierr = VecLog(y);CHKERRQ(ierr);
+  ierr = VecLog(yc);CHKERRQ(ierr);
   ierr = VecNorm(y,NORM_1,&norm);CHKERRQ(ierr);
   ierr = VecNorm(yc,NORM_1,&normc);CHKERRQ(ierr);
   if (PetscAbsReal(norm-normc)>10*PETSC_MACHINE_EPSILON) SETERRQ(PETSC_COMM_WORLD,1,"Norms are different");
@@ -216,6 +219,14 @@ int main(int argc,char **argv)
   ierr = VecNorm(wc,NORM_1_AND_2,norm12c);CHKERRQ(ierr);
   if (PetscAbsReal(norm12[0]-norm12c[0])>10*PETSC_MACHINE_EPSILON || PetscAbsReal(norm12[1]-norm12c[1])>10*PETSC_MACHINE_EPSILON) SETERRQ(PETSC_COMM_WORLD,1,"Norms are different");
 
+  ierr = VecPointwiseMin(w,x,y);CHKERRQ(ierr);
+  ierr = VecPointwiseMin(wc,xc,yc);CHKERRQ(ierr);
+  ierr = VecPointwiseMaxAbs(x,y,w);CHKERRQ(ierr);
+  ierr = VecPointwiseMaxAbs(xc,yc,wc);CHKERRQ(ierr);
+  ierr = VecNorm(x,NORM_INFINITY,&norm);CHKERRQ(ierr);
+  ierr = VecNorm(xc,NORM_INFINITY,&normc);CHKERRQ(ierr);
+  if (PetscAbsReal(norm-normc)>10*PETSC_MACHINE_EPSILON) SETERRQ(PETSC_COMM_WORLD,1,"Norms are different");
+
   ierr = VecDestroy(&v);CHKERRQ(ierr);
   ierr = VecDestroy(&w);CHKERRQ(ierr);
   ierr = VecDestroy(&x);CHKERRQ(ierr);
@@ -233,6 +244,9 @@ int main(int argc,char **argv)
 
    test:
       suffix: 1
-      nsize: {{1 2}}
+
+   test:
+      suffix: 2
+      nsize: 2
 
 TEST*/

@@ -5,6 +5,10 @@ DS Object: 1 MPI processes
   dimensions: ld=12, n=10, l=0, k=0
   flags:
   polynomial degree: 2
+Polynomial coefficients (alpha,beta,gamma) =
+  1.00000  0.00000  0.00000
+  1.00000  0.00000  0.00000
+  1.00000  0.00000  0.00000
 Computed eigenvalues =
   4.50158
   3.13975

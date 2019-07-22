@@ -20,8 +20,8 @@ int main(int argc,char **argv)
   Mat            X;
   Vec            x0;
   PetscScalar    *K,*C,*M,*wr,*wi,z=1.0;
-  PetscReal      re,im,nrm;
-  PetscInt       i,n=10,d=2,ld;
+  PetscReal      re,im,nrm,*pbc;
+  PetscInt       i,j,n=10,d=2,ld;
   PetscViewer    viewer;
   PetscBool      verbose;
 
@@ -85,6 +85,17 @@ int main(int argc,char **argv)
     ierr = PetscPrintf(PETSC_COMM_WORLD,"After solve - - - - - - - - -\n");CHKERRQ(ierr);
     ierr = DSView(ds,viewer);CHKERRQ(ierr);
   }
+
+  /* Print polynomial coefficients */
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"Polynomial coefficients (alpha,beta,gamma) =\n");CHKERRQ(ierr);
+  ierr = DSPEPGetCoefficients(ds,&pbc);CHKERRQ(ierr);
+  for (j=0;j<3;j++) {
+    for (i=0;i<d+1;i++) {
+      ierr = PetscViewerASCIIPrintf(viewer,"  %.5f",(double)pbc[j+3*i]);CHKERRQ(ierr);
+    }
+    ierr = PetscViewerASCIIPrintf(viewer,"\n");CHKERRQ(ierr);
+  }
+  ierr = PetscFree(pbc);CHKERRQ(ierr);
 
   /* Print eigenvalues */
   ierr = PetscPrintf(PETSC_COMM_WORLD,"Computed eigenvalues =\n");CHKERRQ(ierr);

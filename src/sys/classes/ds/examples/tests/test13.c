@@ -94,4 +94,8 @@ int main(int argc,char **argv)
       suffix: 1
       requires: !complex !single
 
+   test:
+      suffix: 2
+      args: -nblks 1
+
 TEST*/
