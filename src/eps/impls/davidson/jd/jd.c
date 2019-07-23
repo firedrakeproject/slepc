@@ -221,7 +221,7 @@ PetscErrorCode EPSJDGetKrylovStart(EPS eps,PetscBool *krylovstart)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  PetscValidPointer(krylovstart,2);
+  PetscValidBoolPointer(krylovstart,2);
   ierr = PetscUseMethod(eps,"EPSJDGetKrylovStart_C",(EPS,PetscBool*),(eps,krylovstart));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -488,7 +488,7 @@ PetscErrorCode EPSJDGetFix(EPS eps,PetscReal *fix)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  PetscValidPointer(fix,2);
+  PetscValidRealPointer(fix,2);
   ierr = PetscUseMethod(eps,"EPSJDGetFix_C",(EPS,PetscReal*),(eps,fix));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -563,7 +563,7 @@ PetscErrorCode EPSJDGetConstCorrectionTol(EPS eps,PetscBool *constant)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  PetscValidPointer(constant,2);
+  PetscValidBoolPointer(constant,2);
   ierr = PetscUseMethod(eps,"EPSJDGetConstCorrectionTol_C",(EPS,PetscBool*),(eps,constant));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -618,7 +618,7 @@ PetscErrorCode EPSJDGetBOrth(EPS eps,PetscBool *borth)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  PetscValidPointer(borth,2);
+  PetscValidBoolPointer(borth,2);
   ierr = PetscUseMethod(eps,"EPSJDGetBOrth_C",(EPS,PetscBool*),(eps,borth));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

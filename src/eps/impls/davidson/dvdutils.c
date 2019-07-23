@@ -274,12 +274,9 @@ static PetscErrorCode dvd_harm_backtrans(dvdHarmonic *data,PetscScalar *ar,Petsc
 #endif
 
   PetscFunctionBegin;
-  PetscValidPointer(ar,2);
   xr = *ar;
 #if !defined(PETSC_USE_COMPLEX)
-  PetscValidPointer(ai,3);
   xi = *ai;
-
   if (xi != 0.0) {
     k = (data->Pa - data->Wa*xr)*(data->Pa - data->Wa*xr) + data->Wa*data->Wa*xi*xi;
     *ar = (data->Pb*data->Pa - (data->Pb*data->Wa + data->Wb*data->Pa)*xr + data->Wb*data->Wa*(xr*xr + xi*xi))/k;

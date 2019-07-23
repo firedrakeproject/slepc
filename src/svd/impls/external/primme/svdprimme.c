@@ -321,7 +321,7 @@ PetscErrorCode SVDPRIMMEGetBlockSize(SVD svd,PetscInt *bs)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
-  PetscValidPointer(bs,2);
+  PetscValidIntPointer(bs,2);
   ierr = PetscUseMethod(svd,"SVDPRIMMEGetBlockSize_C",(SVD,PetscInt*),(svd,bs));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

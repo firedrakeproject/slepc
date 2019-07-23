@@ -879,7 +879,7 @@ PetscErrorCode EPSPowerGetNonlinear(EPS eps,PetscBool *nonlinear)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  PetscValidPointer(nonlinear,2);
+  PetscValidBoolPointer(nonlinear,2);
   ierr = PetscUseMethod(eps,"EPSPowerGetNonlinear_C",(EPS,PetscBool*),(eps,nonlinear));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -954,7 +954,7 @@ PetscErrorCode EPSPowerGetUpdate(EPS eps,PetscBool *update)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  PetscValidPointer(update,2);
+  PetscValidBoolPointer(update,2);
   ierr = PetscUseMethod(eps,"EPSPowerGetUpdate_C",(EPS,PetscBool*),(eps,update));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

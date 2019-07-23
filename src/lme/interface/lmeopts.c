@@ -328,7 +328,7 @@ PetscErrorCode LMEGetDimensions(LME lme,PetscInt *ncv)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(lme,LME_CLASSID,1);
-  PetscValidPointer(ncv,2);
+  PetscValidIntPointer(ncv,2);
   *ncv = lme->ncv;
   PetscFunctionReturn(0);
 }
@@ -418,7 +418,7 @@ PetscErrorCode LMEGetErrorIfNotConverged(LME lme,PetscBool *flag)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(lme,LME_CLASSID,1);
-  PetscValidPointer(flag,2);
+  PetscValidBoolPointer(flag,2);
   *flag = lme->errorifnotconverged;
   PetscFunctionReturn(0);
 }

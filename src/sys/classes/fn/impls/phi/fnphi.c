@@ -186,7 +186,7 @@ PetscErrorCode FNPhiGetIndex(FN fn,PetscInt *k)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(fn,FN_CLASSID,1);
-  PetscValidPointer(k,2);
+  PetscValidIntPointer(k,2);
   ierr = PetscUseMethod(fn,"FNPhiGetIndex_C",(FN,PetscInt*),(fn,k));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

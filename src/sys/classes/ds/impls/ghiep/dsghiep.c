@@ -385,7 +385,7 @@ PetscErrorCode DSSort_GHIEP(DS ds,PetscScalar *wr,PetscScalar *wi,PetscScalar *r
 
   PetscFunctionBegin;
 #if !defined(PETSC_USE_COMPLEX)
-  PetscValidPointer(wi,3);
+  PetscValidScalarPointer(wi,3);
 #endif
   n = ds->n;
   d = ds->rmat[DS_MAT_T];

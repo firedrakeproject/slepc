@@ -626,7 +626,7 @@ PetscErrorCode BVTensorGetDegree(BV bv,PetscInt *d)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(bv,BV_CLASSID,1);
-  PetscValidPointer(d,2);
+  PetscValidIntPointer(d,2);
   ierr = PetscUseMethod(bv,"BVTensorGetDegree_C",(BV,PetscInt*),(bv,d));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

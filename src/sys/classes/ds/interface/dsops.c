@@ -33,7 +33,7 @@ PetscErrorCode DSGetLeadingDimension(DS ds,PetscInt *ld)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
-  PetscValidPointer(ld,2);
+  PetscValidIntPointer(ld,2);
   *ld = ds->ld;
   PetscFunctionReturn(0);
 }
@@ -310,7 +310,7 @@ PetscErrorCode DSMatIsHermitian(DS ds,DSMatType t,PetscBool *flg)
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
   PetscValidType(ds,1);
   DSCheckValidMat(ds,t,2);
-  PetscValidPointer(flg,3);
+  PetscValidBoolPointer(flg,3);
   if (ds->ops->hermitian) {
     ierr = (*ds->ops->hermitian)(ds,t,flg);CHKERRQ(ierr);
   } else *flg = PETSC_FALSE;
@@ -578,7 +578,7 @@ PetscErrorCode DSSolve(DS ds,PetscScalar eigr[],PetscScalar eigi[])
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
   PetscValidType(ds,1);
   DSCheckAlloc(ds,1);
-  PetscValidPointer(eigr,2);
+  PetscValidScalarPointer(eigr,2);
   if (ds->state>=DS_STATE_CONDENSED) PetscFunctionReturn(0);
   if (!ds->ops->solve[ds->method]) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_OUTOFRANGE,"The specified method number does not exist for this DS");
   ierr = PetscLogEventBegin(DS_Solve,ds,0,0,0);CHKERRQ(ierr);
@@ -633,8 +633,8 @@ PetscErrorCode DSSort(DS ds,PetscScalar *eigr,PetscScalar *eigi,PetscScalar *rr,
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
   PetscValidType(ds,1);
   DSCheckSolved(ds,1);
-  PetscValidPointer(eigr,2);
-  if (rr) PetscValidPointer(rr,4);
+  PetscValidScalarPointer(eigr,2);
+  if (rr) PetscValidScalarPointer(rr,4);
   if (ds->state==DS_STATE_TRUNCATED) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ORDER,"Cannot sort a truncated DS");
   if (!ds->ops->sort) SETERRQ1(PetscObjectComm((PetscObject)ds),PETSC_ERR_SUP,"DS type %s",((PetscObject)ds)->type_name);
   if (!ds->sc) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ORDER,"Must provide a sorting criterion first");
@@ -681,8 +681,8 @@ PetscErrorCode DSSortWithPermutation(DS ds,PetscInt *perm,PetscScalar *eigr,Pets
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
   PetscValidType(ds,1);
   DSCheckSolved(ds,1);
-  PetscValidPointer(perm,2);
-  PetscValidPointer(eigr,3);
+  PetscValidIntPointer(perm,2);
+  PetscValidScalarPointer(eigr,3);
   if (ds->state==DS_STATE_TRUNCATED) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ORDER,"Cannot sort a truncated DS");
   if (!ds->ops->sortperm) SETERRQ1(PetscObjectComm((PetscObject)ds),PETSC_ERR_SUP,"DS type %s",((PetscObject)ds)->type_name);
 
@@ -858,7 +858,7 @@ PetscErrorCode DSCond(DS ds,PetscReal *cond)
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
   PetscValidType(ds,1);
   DSCheckAlloc(ds,1);
-  PetscValidPointer(cond,2);
+  PetscValidRealPointer(cond,2);
   if (!ds->ops->cond) SETERRQ1(PetscObjectComm((PetscObject)ds),PETSC_ERR_SUP,"DS type %s",((PetscObject)ds)->type_name);
   ierr = PetscLogEventBegin(DS_Other,ds,0,0,0);CHKERRQ(ierr);
   ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);

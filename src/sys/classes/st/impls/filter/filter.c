@@ -320,7 +320,7 @@ PetscErrorCode STFilterGetDegree(ST st,PetscInt *deg)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
-  PetscValidPointer(deg,2);
+  PetscValidIntPointer(deg,2);
   ierr = PetscUseMethod(st,"STFilterGetDegree_C",(ST,PetscInt*),(st,deg));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -354,7 +354,7 @@ PetscErrorCode STFilterGetThreshold(ST st,PetscReal *gamma)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
-  PetscValidPointer(gamma,2);
+  PetscValidRealPointer(gamma,2);
   ierr = PetscUseMethod(st,"STFilterGetThreshold_C",(ST,PetscReal*),(st,gamma));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

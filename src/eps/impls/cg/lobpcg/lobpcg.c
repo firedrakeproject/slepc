@@ -479,7 +479,7 @@ PetscErrorCode EPSLOBPCGGetBlockSize(EPS eps,PetscInt *bs)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  PetscValidPointer(bs,2);
+  PetscValidIntPointer(bs,2);
   ierr = PetscUseMethod(eps,"EPSLOBPCGGetBlockSize_C",(EPS,PetscInt*),(eps,bs));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -560,7 +560,7 @@ PetscErrorCode EPSLOBPCGGetRestart(EPS eps,PetscReal *restart)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  PetscValidPointer(restart,2);
+  PetscValidRealPointer(restart,2);
   ierr = PetscUseMethod(eps,"EPSLOBPCGGetRestart_C",(EPS,PetscReal*),(eps,restart));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -637,7 +637,7 @@ PetscErrorCode EPSLOBPCGGetLocking(EPS eps,PetscBool *lock)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  PetscValidPointer(lock,2);
+  PetscValidBoolPointer(lock,2);
   ierr = PetscUseMethod(eps,"EPSLOBPCGGetLocking_C",(EPS,PetscBool*),(eps,lock));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

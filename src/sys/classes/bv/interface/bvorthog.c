@@ -481,7 +481,7 @@ PetscErrorCode BVOrthogonalizeSomeColumn(BV bv,PetscInt j,PetscBool *which,Petsc
   PetscFunctionBegin;
   PetscValidHeaderSpecific(bv,BV_CLASSID,1);
   PetscValidLogicalCollectiveInt(bv,j,2);
-  PetscValidPointer(which,3);
+  PetscValidBoolPointer(which,3);
   PetscValidType(bv,1);
   BVCheckSizes(bv,1);
   if (j<0) SETERRQ(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_OUTOFRANGE,"Index j must be non-negative");

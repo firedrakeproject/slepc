@@ -348,7 +348,7 @@ PetscErrorCode STGetTransform(ST st,PetscBool *flg)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
-  PetscValidPointer(flg,2);
+  PetscValidBoolPointer(flg,2);
   *flg = st->transform;
   PetscFunctionReturn(0);
 }

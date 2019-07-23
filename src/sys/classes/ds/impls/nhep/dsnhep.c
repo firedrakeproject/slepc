@@ -595,7 +595,7 @@ PetscErrorCode DSSolve_NHEP(DS ds,PetscScalar *wr,PetscScalar *wi)
 
   PetscFunctionBegin;
 #if !defined(PETSC_USE_COMPLEX)
-  PetscValidPointer(wi,3);
+  PetscValidScalarPointer(wi,3);
 #endif
   ierr = PetscBLASIntCast(ds->n,&n);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(ds->ld,&ld);CHKERRQ(ierr);
@@ -821,7 +821,6 @@ PetscErrorCode DSTranslateHarmonic_NHEP(DS ds,PetscScalar tau,PetscReal beta,Pet
 
   } else { /* recover */
 
-    PetscValidPointer(g,6);
     ierr = DSAllocateWork_Private(ds,ld,0,0);CHKERRQ(ierr);
     ghat = ds->work;
     Q    = ds->mat[DS_MAT_Q];

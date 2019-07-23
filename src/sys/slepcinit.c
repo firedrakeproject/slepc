@@ -332,7 +332,7 @@ PetscErrorCode SlepcInitializeNoArguments(void)
 PetscErrorCode SlepcInitialized(PetscBool *isInitialized)
 {
   PetscFunctionBegin;
-  PetscValidPointer(isInitialized,1);
+  PetscValidBoolPointer(isInitialized,1);
   *isInitialized = SlepcInitializeCalled;
   PetscFunctionReturn(0);
 }

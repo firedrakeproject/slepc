@@ -914,7 +914,7 @@ PetscErrorCode PEPLinearGetExplicitMatrix(PEP pep,PetscBool *explicitmatrix)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
-  PetscValidPointer(explicitmatrix,2);
+  PetscValidBoolPointer(explicitmatrix,2);
   ierr = PetscUseMethod(pep,"PEPLinearGetExplicitMatrix_C",(PEP,PetscBool*),(pep,explicitmatrix));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

@@ -375,7 +375,7 @@ PetscErrorCode DSPEPGetDegree(DS ds,PetscInt *d)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
-  PetscValidPointer(d,2);
+  PetscValidIntPointer(d,2);
   ierr = PetscUseMethod(ds,"DSPEPGetDegree_C",(DS,PetscInt*),(ds,d));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

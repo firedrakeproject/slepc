@@ -467,7 +467,7 @@ PetscErrorCode STIsInjective(ST st,PetscBool* is)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
   PetscValidType(st,1);
-  PetscValidPointer(is,2);
+  PetscValidBoolPointer(is,2);
 
   ierr = PetscObjectTypeCompare((PetscObject)st,STSHELL,&shell);CHKERRQ(ierr);
   if (shell) {

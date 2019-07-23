@@ -726,7 +726,7 @@ PetscErrorCode PEPTOARGetRestart(PEP pep,PetscReal *keep)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
-  PetscValidPointer(keep,2);
+  PetscValidRealPointer(keep,2);
   ierr = PetscUseMethod(pep,"PEPTOARGetRestart_C",(PEP,PetscReal*),(pep,keep));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -804,7 +804,7 @@ PetscErrorCode PEPTOARGetLocking(PEP pep,PetscBool *lock)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
-  PetscValidPointer(lock,2);
+  PetscValidBoolPointer(lock,2);
   ierr = PetscUseMethod(pep,"PEPTOARGetLocking_C",(PEP,PetscBool*),(pep,lock));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

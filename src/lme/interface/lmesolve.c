@@ -162,7 +162,7 @@ PetscErrorCode LMEGetErrorEstimate(LME lme,PetscReal *errest)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(lme,LME_CLASSID,1);
-  PetscValidPointer(errest,2);
+  PetscValidRealPointer(errest,2);
   *errest = lme->errest;
   PetscFunctionReturn(0);
 }
@@ -307,7 +307,7 @@ PetscErrorCode LMEComputeError(LME lme,PetscReal *error)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(lme,LME_CLASSID,1);
-  PetscValidPointer(error,2);
+  PetscValidRealPointer(error,2);
 
   ierr = PetscLogEventBegin(LME_ComputeError,lme,0,0,0);CHKERRQ(ierr);
   /* compute residual norm */

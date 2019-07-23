@@ -629,7 +629,7 @@ PetscErrorCode PEPSTOARGetLocking(PEP pep,PetscBool *lock)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
-  PetscValidPointer(lock,2);
+  PetscValidBoolPointer(lock,2);
   ierr = PetscUseMethod(pep,"PEPSTOARGetLocking_C",(PEP,PetscBool*),(pep,lock));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -809,7 +809,7 @@ PetscErrorCode PEPSTOARGetDetectZeros(PEP pep,PetscBool *detect)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
-  PetscValidPointer(detect,2);
+  PetscValidBoolPointer(detect,2);
   ierr = PetscUseMethod(pep,"PEPSTOARGetDetectZeros_C",(PEP,PetscBool*),(pep,detect));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -1073,7 +1073,7 @@ PetscErrorCode PEPSTOARGetCheckEigenvalueType(PEP pep,PetscBool *checket)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
-  PetscValidPointer(checket,2);
+  PetscValidBoolPointer(checket,2);
   ierr = PetscUseMethod(pep,"PEPSTOARGetCheckEigenvalueType_C",(PEP,PetscBool*),(pep,checket));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

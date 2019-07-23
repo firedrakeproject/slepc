@@ -786,7 +786,7 @@ PetscErrorCode PEPGetTrackAll(PEP pep,PetscBool *trackall)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
-  PetscValidPointer(trackall,2);
+  PetscValidBoolPointer(trackall,2);
   *trackall = pep->trackall;
   PetscFunctionReturn(0);
 }

@@ -307,7 +307,7 @@ PetscErrorCode BVGetNumConstraints(BV bv,PetscInt *nc)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(bv,BV_CLASSID,1);
-  PetscValidPointer(nc,2);
+  PetscValidIntPointer(nc,2);
   *nc = bv->nc;
   PetscFunctionReturn(0);
 }

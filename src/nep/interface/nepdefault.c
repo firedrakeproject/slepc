@@ -51,7 +51,7 @@ PetscErrorCode NEPSetWorkVecs(NEP nep,PetscInt nw)
 PetscErrorCode NEPGetDefaultShift(NEP nep,PetscScalar *sigma)
 {
   PetscFunctionBegin;
-  PetscValidPointer(sigma,2);
+  PetscValidScalarPointer(sigma,2);
   switch (nep->which) {
     case NEP_LARGEST_MAGNITUDE:
     case NEP_LARGEST_IMAGINARY:

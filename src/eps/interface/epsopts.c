@@ -1247,7 +1247,7 @@ PetscErrorCode EPSGetTwoSided(EPS eps,PetscBool *twosided)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  PetscValidPointer(twosided,2);
+  PetscValidBoolPointer(twosided,2);
   *twosided = eps->twosided;
   PetscFunctionReturn(0);
 }
@@ -1308,7 +1308,7 @@ PetscErrorCode EPSGetTrueResidual(EPS eps,PetscBool *trueres)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  PetscValidPointer(trueres,2);
+  PetscValidBoolPointer(trueres,2);
   *trueres = eps->trueres;
   PetscFunctionReturn(0);
 }
@@ -1365,7 +1365,7 @@ PetscErrorCode EPSGetTrackAll(EPS eps,PetscBool *trackall)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  PetscValidPointer(trackall,2);
+  PetscValidBoolPointer(trackall,2);
   *trackall = eps->trackall;
   PetscFunctionReturn(0);
 }
@@ -1424,7 +1424,7 @@ PetscErrorCode EPSGetPurify(EPS eps,PetscBool *purify)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  PetscValidPointer(purify,2);
+  PetscValidBoolPointer(purify,2);
   *purify = eps->purify;
   PetscFunctionReturn(0);
 }

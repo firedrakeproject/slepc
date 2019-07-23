@@ -192,7 +192,7 @@ PetscErrorCode EPSGDGetKrylovStart(EPS eps,PetscBool *krylovstart)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  PetscValidPointer(krylovstart,2);
+  PetscValidBoolPointer(krylovstart,2);
   ierr = PetscUseMethod(eps,"EPSGDGetKrylovStart_C",(EPS,PetscBool*),(eps,krylovstart));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -429,7 +429,7 @@ PetscErrorCode EPSGDGetBOrth(EPS eps,PetscBool *borth)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  PetscValidPointer(borth,2);
+  PetscValidBoolPointer(borth,2);
   ierr = PetscUseMethod(eps,"EPSGDGetBOrth_C",(EPS,PetscBool*),(eps,borth));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -502,7 +502,7 @@ PetscErrorCode EPSGDGetDoubleExpansion(EPS eps,PetscBool *doubleexp)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  PetscValidPointer(doubleexp,2);
+  PetscValidBoolPointer(doubleexp,2);
   ierr = PetscUseMethod(eps,"EPSGDGetDoubleExpansion_C",(EPS,PetscBool*),(eps,doubleexp));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

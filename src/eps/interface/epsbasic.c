@@ -722,7 +722,7 @@ PetscErrorCode EPSIsGeneralized(EPS eps,PetscBool* is)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  PetscValidPointer(is,2);
+  PetscValidBoolPointer(is,2);
   *is = eps->isgeneralized;
   PetscFunctionReturn(0);
 }
@@ -747,7 +747,7 @@ PetscErrorCode EPSIsHermitian(EPS eps,PetscBool* is)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  PetscValidPointer(is,2);
+  PetscValidBoolPointer(is,2);
   *is = eps->ishermitian;
   PetscFunctionReturn(0);
 }
@@ -772,7 +772,7 @@ PetscErrorCode EPSIsPositive(EPS eps,PetscBool* is)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  PetscValidPointer(is,2);
+  PetscValidBoolPointer(is,2);
   *is = eps->ispositive;
   PetscFunctionReturn(0);
 }

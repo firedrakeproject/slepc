@@ -351,7 +351,7 @@ PetscErrorCode SVDComputeError(SVD svd,PetscInt i,SVDErrorType type,PetscReal *e
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
   PetscValidLogicalCollectiveInt(svd,i,2);
   PetscValidLogicalCollectiveEnum(svd,type,3);
-  PetscValidPointer(error,4);
+  PetscValidRealPointer(error,4);
   SVDCheckSolved(svd,1);
   ierr = SVDGetSingularTriplet(svd,i,&sigma,NULL,NULL);CHKERRQ(ierr);
   ierr = SVDComputeResidualNorms_Private(svd,i,&norm1,&norm2);CHKERRQ(ierr);

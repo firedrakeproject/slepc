@@ -577,7 +577,7 @@ PetscErrorCode EPSGetErrorEstimate(EPS eps,PetscInt i,PetscReal *errest)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  PetscValidPointer(errest,3);
+  PetscValidRealPointer(errest,3);
   EPSCheckSolved(eps,1);
   if (i<0 || i>=eps->nconv) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"Argument 2 out of range");
   *errest = eps->errest[eps->perm[i]];
@@ -684,7 +684,7 @@ PetscErrorCode EPSComputeError(EPS eps,PetscInt i,EPSErrorType type,PetscReal *e
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidLogicalCollectiveInt(eps,i,2);
   PetscValidLogicalCollectiveEnum(eps,type,3);
-  PetscValidPointer(error,4);
+  PetscValidRealPointer(error,4);
   EPSCheckSolved(eps,1);
 
   /* allocate work vectors */

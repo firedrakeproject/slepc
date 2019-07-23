@@ -315,7 +315,7 @@ PetscErrorCode SVDCrossGetExplicitMatrix(SVD svd,PetscBool *explicitmatrix)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
-  PetscValidPointer(explicitmatrix,2);
+  PetscValidBoolPointer(explicitmatrix,2);
   ierr = PetscUseMethod(svd,"SVDCrossGetExplicitMatrix_C",(SVD,PetscBool*),(svd,explicitmatrix));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

@@ -312,7 +312,7 @@ PetscErrorCode STPrecondGetKSPHasMat(ST st,PetscBool *setmat)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
-  PetscValidPointer(setmat,2);
+  PetscValidBoolPointer(setmat,2);
   ierr = PetscUseMethod(st,"STPrecondGetKSPHasMat_C",(ST,PetscBool*),(st,setmat));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

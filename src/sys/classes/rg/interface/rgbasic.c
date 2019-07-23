@@ -379,7 +379,7 @@ PetscErrorCode RGIsTrivial(RG rg,PetscBool *trivial)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(rg,RG_CLASSID,1);
   PetscValidType(rg,1);
-  PetscValidPointer(trivial,2);
+  PetscValidBoolPointer(trivial,2);
   if (rg->ops->istrivial) {
     ierr = (*rg->ops->istrivial)(rg,trivial);CHKERRQ(ierr);
   } else *trivial = PETSC_FALSE;
@@ -420,11 +420,11 @@ PetscErrorCode RGCheckInside(RG rg,PetscInt n,PetscScalar *ar,PetscScalar *ai,Pe
   PetscFunctionBegin;
   PetscValidHeaderSpecific(rg,RG_CLASSID,1);
   PetscValidType(rg,1);
-  PetscValidPointer(ar,3);
+  PetscValidScalarPointer(ar,3);
 #if !defined(PETSC_USE_COMPLEX)
-  PetscValidPointer(ai,4);
+  PetscValidScalarPointer(ai,4);
 #endif
-  PetscValidPointer(inside,5);
+  PetscValidIntPointer(inside,5);
 
   for (i=0;i<n;i++) {
 #if defined(PETSC_USE_COMPLEX)
@@ -468,9 +468,9 @@ PetscErrorCode RGComputeContour(RG rg,PetscInt n,PetscScalar cr[],PetscScalar ci
   PetscFunctionBegin;
   PetscValidHeaderSpecific(rg,RG_CLASSID,1);
   PetscValidType(rg,1);
-  PetscValidPointer(cr,3);
+  PetscValidScalarPointer(cr,3);
 #if !defined(PETSC_USE_COMPLEX)
-  PetscValidPointer(ci,4);
+  PetscValidScalarPointer(ci,4);
 #endif
   if (rg->complement) SETERRQ(PetscObjectComm((PetscObject)rg),PETSC_ERR_SUP,"Cannot compute contour of region with complement flag set");
   ierr = (*rg->ops->computecontour)(rg,n,cr,ci);CHKERRQ(ierr);
@@ -572,7 +572,7 @@ PetscErrorCode RGGetComplement(RG rg,PetscBool *flg)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(rg,RG_CLASSID,1);
-  PetscValidPointer(flg,2);
+  PetscValidBoolPointer(flg,2);
   *flg = rg->complement;
   PetscFunctionReturn(0);
 }
@@ -626,7 +626,7 @@ PetscErrorCode RGGetScale(RG rg,PetscReal *sfactor)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(rg,RG_CLASSID,1);
-  PetscValidPointer(sfactor,2);
+  PetscValidRealPointer(sfactor,2);
   *sfactor = rg->sfactor;
   PetscFunctionReturn(0);
 }

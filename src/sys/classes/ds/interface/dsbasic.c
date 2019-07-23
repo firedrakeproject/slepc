@@ -386,7 +386,7 @@ PetscErrorCode DSGetMethod(DS ds,PetscInt *meth)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
-  PetscValidPointer(meth,2);
+  PetscValidIntPointer(meth,2);
   *meth = ds->method;
   PetscFunctionReturn(0);
 }
@@ -500,7 +500,7 @@ PetscErrorCode DSGetCompact(DS ds,PetscBool *comp)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
-  PetscValidPointer(comp,2);
+  PetscValidBoolPointer(comp,2);
   *comp = ds->compact;
   PetscFunctionReturn(0);
 }
@@ -556,7 +556,7 @@ PetscErrorCode DSGetExtraRow(DS ds,PetscBool *ext)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
-  PetscValidPointer(ext,2);
+  PetscValidBoolPointer(ext,2);
   *ext = ds->extrarow;
   PetscFunctionReturn(0);
 }
@@ -613,7 +613,7 @@ PetscErrorCode DSGetRefined(DS ds,PetscBool *ref)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
-  PetscValidPointer(ref,2);
+  PetscValidBoolPointer(ref,2);
   *ref = ds->refined;
   PetscFunctionReturn(0);
 }
@@ -663,7 +663,7 @@ PetscErrorCode DSGetBlockSize(DS ds,PetscInt *bs)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
-  PetscValidPointer(bs,2);
+  PetscValidIntPointer(bs,2);
   *bs = ds->bs;
   PetscFunctionReturn(0);
 }

@@ -449,7 +449,7 @@ PetscErrorCode DSNEPGetNumFN(DS ds,PetscInt *n)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(ds,DS_CLASSID,1);
-  PetscValidPointer(n,2);
+  PetscValidIntPointer(n,2);
   ierr = PetscUseMethod(ds,"DSNEPGetNumFN_C",(DS,PetscInt*),(ds,n));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

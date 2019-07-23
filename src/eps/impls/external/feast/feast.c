@@ -289,7 +289,7 @@ PetscErrorCode EPSFEASTGetNumPoints(EPS eps,PetscInt *npoints)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  PetscValidPointer(npoints,2);
+  PetscValidIntPointer(npoints,2);
   ierr = PetscUseMethod(eps,"EPSFEASTGetNumPoints_C",(EPS,PetscInt*),(eps,npoints));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

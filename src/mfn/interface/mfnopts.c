@@ -227,7 +227,7 @@ PetscErrorCode MFNGetDimensions(MFN mfn,PetscInt *ncv)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(mfn,MFN_CLASSID,1);
-  PetscValidPointer(ncv,2);
+  PetscValidIntPointer(ncv,2);
   *ncv = mfn->ncv;
   PetscFunctionReturn(0);
 }
@@ -317,7 +317,7 @@ PetscErrorCode MFNGetErrorIfNotConverged(MFN mfn,PetscBool *flag)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(mfn,MFN_CLASSID,1);
-  PetscValidPointer(flag,2);
+  PetscValidBoolPointer(flag,2);
   *flag = mfn->errorifnotconverged;
   PetscFunctionReturn(0);
 }

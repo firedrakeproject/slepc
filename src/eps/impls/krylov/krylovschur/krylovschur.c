@@ -436,7 +436,7 @@ PetscErrorCode EPSKrylovSchurGetRestart(EPS eps,PetscReal *keep)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  PetscValidPointer(keep,2);
+  PetscValidRealPointer(keep,2);
   ierr = PetscUseMethod(eps,"EPSKrylovSchurGetRestart_C",(EPS,PetscReal*),(eps,keep));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -515,7 +515,7 @@ PetscErrorCode EPSKrylovSchurGetLocking(EPS eps,PetscBool *lock)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  PetscValidPointer(lock,2);
+  PetscValidBoolPointer(lock,2);
   ierr = PetscUseMethod(eps,"EPSKrylovSchurGetLocking_C",(EPS,PetscBool*),(eps,lock));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -611,7 +611,7 @@ PetscErrorCode EPSKrylovSchurGetPartitions(EPS eps,PetscInt *npart)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  PetscValidPointer(npart,2);
+  PetscValidIntPointer(npart,2);
   ierr = PetscUseMethod(eps,"EPSKrylovSchurGetPartitions_C",(EPS,PetscInt*),(eps,npart));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -694,7 +694,7 @@ PetscErrorCode EPSKrylovSchurGetDetectZeros(EPS eps,PetscBool *detect)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  PetscValidPointer(detect,2);
+  PetscValidBoolPointer(detect,2);
   ierr = PetscUseMethod(eps,"EPSKrylovSchurGetDetectZeros_C",(EPS,PetscBool*),(eps,detect));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

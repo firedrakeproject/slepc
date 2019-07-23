@@ -73,7 +73,7 @@ PetscErrorCode SVDGetImplicitTranspose(SVD svd,PetscBool *impl)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
-  PetscValidPointer(impl,2);
+  PetscValidBoolPointer(impl,2);
   *impl = svd->impltrans;
   PetscFunctionReturn(0);
 }
@@ -801,7 +801,7 @@ PetscErrorCode SVDGetTrackAll(SVD svd,PetscBool *trackall)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
-  PetscValidPointer(trackall,2);
+  PetscValidBoolPointer(trackall,2);
   *trackall = svd->trackall;
   PetscFunctionReturn(0);
 }

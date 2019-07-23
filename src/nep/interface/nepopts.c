@@ -697,7 +697,7 @@ PetscErrorCode NEPGetTwoSided(NEP nep,PetscBool *twosided)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
-  PetscValidPointer(twosided,2);
+  PetscValidBoolPointer(twosided,2);
   *twosided = nep->twosided;
   PetscFunctionReturn(0);
 }
@@ -995,7 +995,7 @@ PetscErrorCode NEPGetTrackAll(NEP nep,PetscBool *trackall)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
-  PetscValidPointer(trackall,2);
+  PetscValidBoolPointer(trackall,2);
   *trackall = nep->trackall;
   PetscFunctionReturn(0);
 }

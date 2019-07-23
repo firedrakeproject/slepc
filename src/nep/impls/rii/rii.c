@@ -288,7 +288,7 @@ PetscErrorCode NEPRIIGetMaximumIterations(NEP nep,PetscInt *its)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
-  PetscValidPointer(its,2);
+  PetscValidIntPointer(its,2);
   ierr = PetscUseMethod(nep,"NEPRIIGetMaximumIterations_C",(NEP,PetscInt*),(nep,its));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -367,7 +367,7 @@ PetscErrorCode NEPRIIGetLagPreconditioner(NEP nep,PetscInt *lag)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
-  PetscValidPointer(lag,2);
+  PetscValidIntPointer(lag,2);
   ierr = PetscUseMethod(nep,"NEPRIIGetLagPreconditioner_C",(NEP,PetscInt*),(nep,lag));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -445,7 +445,7 @@ PetscErrorCode NEPRIIGetConstCorrectionTol(NEP nep,PetscBool *cct)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
-  PetscValidPointer(cct,2);
+  PetscValidBoolPointer(cct,2);
   ierr = PetscUseMethod(nep,"NEPRIIGetConstCorrectionTol_C",(NEP,PetscBool*),(nep,cct));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

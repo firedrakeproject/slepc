@@ -298,7 +298,7 @@ PetscErrorCode DSSolve_GHIEP_HZ(DS ds,PetscScalar *wr,PetscScalar *wi)
 
   PetscFunctionBegin;
 #if !defined(PETSC_USE_COMPLEX)
-  PetscValidPointer(wi,3);
+  PetscValidScalarPointer(wi,3);
 #endif
   ierr = PetscBLASIntCast(ds->ld,&ld);CHKERRQ(ierr);
   n1  = ds->n - ds->l;

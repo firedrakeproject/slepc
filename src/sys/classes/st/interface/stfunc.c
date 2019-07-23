@@ -336,7 +336,7 @@ PetscErrorCode STGetNumMatrices(ST st,PetscInt *n)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
-  PetscValidPointer(n,2);
+  PetscValidIntPointer(n,2);
   *n = st->nmat;
   PetscFunctionReturn(0);
 }

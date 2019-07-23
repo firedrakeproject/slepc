@@ -387,7 +387,7 @@ PetscErrorCode FNGetMethod(FN fn,PetscInt *meth)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(fn,FN_CLASSID,1);
-  PetscValidPointer(meth,2);
+  PetscValidIntPointer(meth,2);
   *meth = fn->method;
   PetscFunctionReturn(0);
 }
@@ -483,7 +483,7 @@ PetscErrorCode FNEvaluateFunction(FN fn,PetscScalar x,PetscScalar *y)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(fn,FN_CLASSID,1);
   PetscValidType(fn,1);
-  PetscValidPointer(y,3);
+  PetscValidScalarPointer(y,3);
   ierr = PetscLogEventBegin(FN_Evaluate,fn,0,0,0);CHKERRQ(ierr);
   xf = fn->alpha*x;
   ierr = (*fn->ops->evaluatefunction)(fn,xf,&yf);CHKERRQ(ierr);
@@ -520,7 +520,7 @@ PetscErrorCode FNEvaluateDerivative(FN fn,PetscScalar x,PetscScalar *y)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(fn,FN_CLASSID,1);
   PetscValidType(fn,1);
-  PetscValidPointer(y,3);
+  PetscValidScalarPointer(y,3);
   ierr = PetscLogEventBegin(FN_Evaluate,fn,0,0,0);CHKERRQ(ierr);
   xf = fn->alpha*x;
   ierr = (*fn->ops->evaluatederivative)(fn,xf,&yf);CHKERRQ(ierr);

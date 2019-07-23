@@ -360,7 +360,7 @@ PetscErrorCode PEPGetNumMatrices(PEP pep,PetscInt *nmat)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
-  PetscValidPointer(nmat,2);
+  PetscValidIntPointer(nmat,2);
   *nmat = pep->nmat;
   PetscFunctionReturn(0);
 }

@@ -123,7 +123,7 @@ PetscErrorCode BVMultVec(BV X,PetscScalar alpha,PetscScalar beta,Vec y,PetscScal
   PetscValidLogicalCollectiveScalar(X,alpha,2);
   PetscValidLogicalCollectiveScalar(X,beta,3);
   PetscValidHeaderSpecific(y,VEC_CLASSID,4);
-  PetscValidPointer(q,5);
+  PetscValidScalarPointer(q,5);
   PetscValidType(X,1);
   BVCheckSizes(X,1);
   BVCheckOp(X,1,multvec);

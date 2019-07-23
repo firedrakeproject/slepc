@@ -1566,7 +1566,7 @@ PetscErrorCode EPSCISSGetUseST(EPS eps,PetscBool *usest)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
-  PetscValidPointer(usest,2);
+  PetscValidBoolPointer(usest,2);
   ierr = PetscUseMethod(eps,"EPSCISSGetUseST_C",(EPS,PetscBool*),(eps,usest));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -1638,7 +1638,7 @@ static PetscErrorCode EPSCISSGetQuadRule_CISS(EPS eps,EPSCISSQuadRule *quad)
 
 .seealso: EPSCISSSetQuadRule() EPSCISSQuadRule
 @*/
-PetscErrorCode EPSCISSGetQuadRule(EPS eps, EPSCISSQuadRule *quad)
+PetscErrorCode EPSCISSGetQuadRule(EPS eps,EPSCISSQuadRule *quad)
 {
   PetscErrorCode ierr;
 
