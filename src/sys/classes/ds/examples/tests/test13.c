@@ -97,5 +97,6 @@ int main(int argc,char **argv)
    test:
       suffix: 2
       args: -nblks 1
+      requires: !complex
 
 TEST*/
