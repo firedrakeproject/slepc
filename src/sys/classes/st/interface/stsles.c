@@ -31,6 +31,40 @@ PetscErrorCode STSetDefaultKSP(ST st)
 }
 
 /*
+   Checks whether the ST matrix is symmetric
+*/
+PETSC_STATIC_INLINE PetscErrorCode STMatIsSymmetricKnown(ST st,PetscBool *symm)
+{
+  PetscErrorCode ierr;
+  PetscInt       i;
+  PetscBool      set,sbaij,asymm;
+
+  PetscFunctionBegin;
+  *symm = PETSC_FALSE;
+  if (!st->nmat) PetscFunctionReturn(0);  /* STSetMatrices() not called yet */
+#if defined(PETSC_USE_COMPLEX)
+  if (PetscImaginaryPart(st->sigma)!=0.0) PetscFunctionReturn(0);
+#endif
+  /* check if problem matrices are all sbaij */
+  for (i=0;i<st->nmat;i++) {
+    ierr = PetscObjectTypeCompareAny((PetscObject)st->A[i],&sbaij,MATSEQSBAIJ,MATMPISBAIJ,"");CHKERRQ(ierr);
+    if (!sbaij) break;
+  }
+  if (sbaij) *symm = PETSC_TRUE;
+  else {
+    /* check if user has set the symmetric flag */
+    for (i=0;i<st->nmat;i++) {
+      ierr = MatIsSymmetricKnown(st->A[i],&set,&asymm);CHKERRQ(ierr);
+      if (!set) asymm = PETSC_FALSE;
+      if (!asymm) PetscFunctionReturn(0);
+      if (PetscRealPart(st->sigma)==0.0) break;
+    }
+    *symm = PETSC_TRUE;
+  }
+  PetscFunctionReturn(0);
+}
+
+/*
    This is done by all ST types except PRECOND.
    The default is an LU direct solver, or GMRES+Jacobi if matmode=shell.
 */
@@ -40,6 +74,7 @@ PetscErrorCode STSetDefaultKSP_Default(ST st)
   PC             pc;
   PCType         pctype;
   KSPType        ksptype;
+  PetscBool      asymm;
 
   PetscFunctionBegin;
   ierr = KSPGetPC(st->ksp,&pc);CHKERRQ(ierr);
@@ -50,8 +85,9 @@ PetscErrorCode STSetDefaultKSP_Default(ST st)
       ierr = KSPSetType(st->ksp,KSPGMRES);CHKERRQ(ierr);
       ierr = PCSetType(pc,PCJACOBI);CHKERRQ(ierr);
     } else {
+      ierr = STMatIsSymmetricKnown(st,&asymm);CHKERRQ(ierr);
       ierr = KSPSetType(st->ksp,KSPPREONLY);CHKERRQ(ierr);
-      ierr = PCSetType(pc,PCLU);CHKERRQ(ierr);
+      ierr = PCSetType(pc,asymm?PCCHOLESKY:PCLU);CHKERRQ(ierr);
     }
   }
   ierr = KSPSetErrorIfNotConverged(st->ksp,PETSC_TRUE);CHKERRQ(ierr);

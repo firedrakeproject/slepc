@@ -10,7 +10,7 @@
 
 static char help[] = "Test EPS view and monitor functionality.\n\n";
 
-#include <slepcpep.h>
+#include <slepceps.h>
 
 int main(int argc,char **argv)
 {
