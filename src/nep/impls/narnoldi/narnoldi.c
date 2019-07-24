@@ -26,7 +26,7 @@
 #include <../src/nep/impls/nepdefl.h>
 
 typedef struct {
-  PetscInt  lag;            /* interval to rebuild preconditioner */
+  PetscInt lag;             /* interval to rebuild preconditioner */
   KSP      ksp;             /* linear solver object */
 } NEP_NARNOLDI;
 
@@ -417,6 +417,9 @@ PetscErrorCode NEPView_NArnoldi(NEP nep,PetscViewer viewer)
   PetscFunctionBegin;
   ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
   if (isascii) {
+    if (ctx->lag) {
+      ierr = PetscViewerASCIIPrintf(viewer,"  updating the preconditioner every %D iterations\n",ctx->lag);CHKERRQ(ierr);
+    }
     if (!ctx->ksp) { ierr = NEPNArnoldiGetKSP(nep,&ctx->ksp);CHKERRQ(ierr); }
     ierr = PetscViewerASCIIPushTab(viewer);CHKERRQ(ierr);
     ierr = KSPView(ctx->ksp,viewer);CHKERRQ(ierr);
@@ -458,6 +461,7 @@ SLEPC_EXTERN PetscErrorCode NEPCreate_NArnoldi(NEP nep)
   PetscFunctionBegin;
   ierr = PetscNewLog(nep,&ctx);CHKERRQ(ierr);
   nep->data = (void*)ctx;
+  ctx->lag  = 1;
 
   nep->useds = PETSC_TRUE;
 
