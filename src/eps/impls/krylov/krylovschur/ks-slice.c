@@ -41,7 +41,13 @@ static const char citation[] =
 
 #define SLICE_PTOL PETSC_SQRT_MACHINE_EPSILON
 
-static PetscErrorCode EPSSliceResetSR(EPS eps) {
+#define InertiaMismatch(h,d) \
+  do { \
+    SETERRQ1(PetscObjectComm((PetscObject)h),1,"Mismatch between number of values found and information from inertia%s",d?"":", consider using EPSKrylovSchurSetDetectZeros()"); \
+  } while (0)
+
+static PetscErrorCode EPSSliceResetSR(EPS eps)
+{
   PetscErrorCode  ierr;
   EPS_KRYLOVSCHUR *ctx=(EPS_KRYLOVSCHUR*)eps->data;
   EPS_SR          sr=ctx->sr;
@@ -816,12 +822,12 @@ static PetscErrorCode EPSCreateShift(EPS eps,PetscReal val,EPS_shift neighb0,EPS
 /* Prepare for Rational Krylov update */
 static PetscErrorCode EPSPrepareRational(EPS eps)
 {
-  EPS_KRYLOVSCHUR  *ctx=(EPS_KRYLOVSCHUR*)eps->data;
-  PetscErrorCode   ierr;
-  PetscInt         dir,i,k,ld,nv;
-  PetscScalar      *A;
-  EPS_SR           sr = ctx->sr;
-  Vec              v;
+  EPS_KRYLOVSCHUR *ctx=(EPS_KRYLOVSCHUR*)eps->data;
+  PetscErrorCode  ierr;
+  PetscInt        dir,i,k,ld,nv;
+  PetscScalar     *A;
+  EPS_SR          sr = ctx->sr;
+  Vec             v;
 
   PetscFunctionBegin;
   ierr = DSGetLeadingDimension(eps->ds,&ld);CHKERRQ(ierr);
@@ -860,12 +866,12 @@ static PetscErrorCode EPSPrepareRational(EPS eps)
 /* Provides next shift to be computed */
 static PetscErrorCode EPSExtractShift(EPS eps)
 {
-  PetscErrorCode   ierr;
-  PetscInt         iner,zeros=0;
-  EPS_KRYLOVSCHUR  *ctx=(EPS_KRYLOVSCHUR*)eps->data;
-  EPS_SR           sr;
-  PetscReal        newShift;
-  EPS_shift        sPres;
+  PetscErrorCode  ierr;
+  PetscInt        iner,zeros=0;
+  EPS_KRYLOVSCHUR *ctx=(EPS_KRYLOVSCHUR*)eps->data;
+  EPS_SR          sr;
+  PetscReal       newShift;
+  EPS_shift       sPres;
 
   PetscFunctionBegin;
   sr = ctx->sr;
@@ -1068,7 +1074,7 @@ static PetscErrorCode EPSKrylovSchur_Slice(EPS eps)
   }
   sPres->comp[0] = PetscNot(count0 < sPres->nsch[0]);
   sPres->comp[1] = PetscNot(count1 < sPres->nsch[1]);
-  if (count0 > sPres->nsch[0] || count1 > sPres->nsch[1]) SETERRQ(PetscObjectComm((PetscObject)eps),1,"Mismatch between number of values found and information from inertia, consider using EPSKrylovSchurSetDetectZeros()");
+  if (count0 > sPres->nsch[0] || count1 > sPres->nsch[1]) InertiaMismatch(eps,ctx->detect);
   ierr = PetscFree(iwork);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -1156,8 +1162,8 @@ static PetscErrorCode EPSGetNewShiftValue(EPS eps,PetscInt side,PetscReal *newS)
 */
 static PetscErrorCode sortRealEigenvalues(PetscScalar *r,PetscInt *perm,PetscInt nr,PetscBool prev,PetscInt dir)
 {
-  PetscReal      re;
-  PetscInt       i,j,tmp;
+  PetscReal re;
+  PetscInt  i,j,tmp;
 
   PetscFunctionBegin;
   if (!prev) for (i=0;i<nr;i++) perm[i] = i;
@@ -1261,12 +1267,12 @@ static PetscErrorCode EPSLookForDeflation(EPS eps)
   /* The number of values on each side are found */
   if (sPres->neighb[0]) {
     sPres->nsch[0] = (sr->dir)*(sPres->inertia - sPres->neighb[0]->inertia)-count0;
-    if (sPres->nsch[0]<0) SETERRQ(PetscObjectComm((PetscObject)eps),1,"Mismatch between number of values found and information from inertia, consider using EPSKrylovSchurSetDetectZeros()");
+    if (sPres->nsch[0]<0) InertiaMismatch(eps,ctx->detect);
   } else sPres->nsch[0] = 0;
 
   if (sPres->neighb[1]) {
     sPres->nsch[1] = (sr->dir)*(sPres->neighb[1]->inertia - sPres->inertia) - count1;
-    if (sPres->nsch[1]<0) SETERRQ(PetscObjectComm((PetscObject)eps),1,"Mismatch between number of values found and information from inertia, consider using EPSKrylovSchurSetDetectZeros()");
+    if (sPres->nsch[1]<0) InertiaMismatch(eps,ctx->detect);
   } else sPres->nsch[1] = (sr->dir)*(sr->inertia1 - sPres->inertia);
 
   /* Completing vector of indexes for deflation */
