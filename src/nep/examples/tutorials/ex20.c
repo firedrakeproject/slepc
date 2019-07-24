@@ -458,4 +458,10 @@ PetscErrorCode FixSign(Vec x)
          args: -rg_interval_endpoints 4,900,-.1,.1
          requires: !single complex
 
+   test:
+      suffix: 4
+      args: -n 256 -nep_nev 2 -nep_target 10
+      filter: sed -e "s/[0-9]\.[0-9]*e-\([0-9]*\)/removed/g" -e "s/ Number of NEP iterations = \([0-9]*\)/ Number of NEP iterations = /"
+      requires: !single
+
 TEST*/
