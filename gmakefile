@@ -72,7 +72,10 @@ endif
 $(generated) : $(slepcconf) $(slepcvariables) $(PETSCCONFIGDIR)/gmakegen.py
 	$(PYTHON) $(PETSCCONFIGDIR)/gmakegen.py --petsc-arch=$(PETSC_ARCH_DIR) --pkg-dir=$(SLEPC_DIR) --pkg-name=slepc --pkg-pkgs=$(spkgs) --pkg-arch=$(PETSC_ARCH)
 
+# Skip including generated files (which triggers rebuilding them) when we're just going to clean anyway.
+ifneq ($(MAKECMDGOALS:clean%=clean),clean)
 -include $(generated)
+endif
 
 # implies shared libraries with MS compilers
 ifeq ($(SL_LINKER_FUNCTION),-LD)
