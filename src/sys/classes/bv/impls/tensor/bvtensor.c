@@ -845,7 +845,6 @@ PetscErrorCode BVCreateTensor(BV U,PetscInt d,BV *V)
   (*V)->orthog_ref   = U->orthog_ref;
   (*V)->orthog_eta   = U->orthog_eta;
   (*V)->orthog_block = U->orthog_block;
-  (*V)->indef        = U->indef;
   (*V)->vmm          = U->vmm;
   (*V)->rrandom      = U->rrandom;
   PetscFunctionReturn(0);

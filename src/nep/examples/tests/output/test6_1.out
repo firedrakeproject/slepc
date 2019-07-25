@@ -69,6 +69,6 @@ BV Object: (check_myprefix_) 1 MPI processes
 DS Object: (check_myprefix_) 1 MPI processes
   type: nhep
  Number of requested eigenvalues: 1
- N-Arnoldi lag parameter: 0
+ N-Arnoldi lag parameter: 1
      0.80889
 
