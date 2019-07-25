@@ -26,7 +26,7 @@
 #include <../src/nep/impls/nepdefl.h>
 
 typedef struct {
-  PetscInt  lag;            /* interval to rebuild preconditioner */
+  PetscInt lag;             /* interval to rebuild preconditioner */
   KSP      ksp;             /* linear solver object */
 } NEP_NARNOLDI;
 
@@ -461,6 +461,7 @@ SLEPC_EXTERN PetscErrorCode NEPCreate_NArnoldi(NEP nep)
   PetscFunctionBegin;
   ierr = PetscNewLog(nep,&ctx);CHKERRQ(ierr);
   nep->data = (void*)ctx;
+  ctx->lag  = 1;
 
   nep->useds = PETSC_TRUE;
 

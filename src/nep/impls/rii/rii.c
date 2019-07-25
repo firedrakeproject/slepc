@@ -311,7 +311,7 @@ static PetscErrorCode NEPRIISetLagPreconditioner_RII(NEP nep,PetscInt lag)
 
    Input Parameters:
 +  nep - nonlinear eigenvalue solver
--   lag - 0 indicates NEVER rebuild, 1 means rebuild every time the Jacobian is
+-  lag - 0 indicates NEVER rebuild, 1 means rebuild every time the Jacobian is
           computed within the nonlinear iteration, 2 means every second time
           the Jacobian is built, etc.
 
