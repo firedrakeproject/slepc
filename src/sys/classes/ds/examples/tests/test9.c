@@ -110,9 +110,11 @@ int main(int argc,char **argv)
   }
 
   /* Eigenvectors */
-  ierr = DSVectors(ds,DS_MAT_X,NULL,NULL);CHKERRQ(ierr);  /* all eigenvectors */
+  j = 0;
+  ierr = DSVectors(ds,DS_MAT_X,&j,NULL);CHKERRQ(ierr);  /* all eigenvectors */
   ierr = ComputeNorm(ds,DS_MAT_X,0,&nrm);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD,"Norm of 1st vector = %.3f\n",(double)nrm);CHKERRQ(ierr);
+  ierr = DSVectors(ds,DS_MAT_X,NULL,NULL);CHKERRQ(ierr);  /* all eigenvectors */
   if (verbose) {
     ierr = PetscPrintf(PETSC_COMM_WORLD,"After vectors - - - - - - - - -\n");CHKERRQ(ierr);
     ierr = DSView(ds,viewer);CHKERRQ(ierr);

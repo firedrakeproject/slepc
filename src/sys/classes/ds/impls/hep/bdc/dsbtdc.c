@@ -275,15 +275,10 @@ PetscErrorCode BDC_dsbtdc_(const char *jobz,const char *jobacc,PetscBLASInt n,
 
   *info = 0;
 
-  if (*(unsigned char *)jobz != 'N' && *(unsigned char *)jobz != 'D') {
-    *info = -1;
-  } else if (*(unsigned char *)jobacc != 'A' && *(unsigned char *)jobacc != 'M') {
-    *info = -2;
-  } else if (n < 1) {
-    *info = -3;
-  } else if (nblks < 1 || nblks > n) {
-    *info = -4;
-  }
+  if (*(unsigned char *)jobz != 'N' && *(unsigned char *)jobz != 'D') *info = -1;
+  else if (*(unsigned char *)jobacc != 'A' && *(unsigned char *)jobacc != 'M') *info = -2;
+  else if (n < 1) *info = -3;
+  else if (nblks < 1 || nblks > n) *info = -4;
   if (*info == 0) {
     ksum = 0;
     kmax = 0;
@@ -297,29 +292,17 @@ PetscErrorCode BDC_dsbtdc_(const char *jobz,const char *jobacc,PetscBLASInt n,
     if (nblks == 1) lwmin = 2*n*n + n*6 + 1;
     else lwmin = n*n + n*3;
     liwmin = n * 5 + nblks * 5 - 4;
-    if (ksum != n || kchk == 1) {
-      *info = -5;
-    } else if (l1d < PetscMax(3,kmax)) {
-      *info = -7;
-    } else if (l2d < PetscMax(3,kmax)) {
-      *info = -8;
-    } else if (l1e < PetscMax(3,2*kmax+1)) {
-      *info = -10;
-    } else if (l2e < PetscMax(3,2*kmax+1)) {
-      *info = -11;
-    } else if (*(unsigned char *)jobacc == 'A' && tol > TOLMAX) {
-      *info = -12;
-    } else if (*(unsigned char *)jobacc == 'M' && tau1 > TOLMAX/2) {
-      *info = -13;
-    } else if (*(unsigned char *)jobacc == 'M' && tau2 > TOLMAX/2) {
-      *info = -14;
-    } else if (ldz < PetscMax(1,n)) {
-      *info = -17;
-    } else if (lwork < lwmin) {
-      *info = -19;
-    } else if (liwork < liwmin) {
-      *info = -21;
-    }
+    if (ksum != n || kchk == 1) *info = -5;
+    else if (l1d < PetscMax(3,kmax)) *info = -7;
+    else if (l2d < PetscMax(3,kmax)) *info = -8;
+    else if (l1e < PetscMax(3,2*kmax+1)) *info = -10;
+    else if (l2e < PetscMax(3,2*kmax+1)) *info = -11;
+    else if (*(unsigned char *)jobacc == 'A' && tol > TOLMAX) *info = -12;
+    else if (*(unsigned char *)jobacc == 'M' && tau1 > TOLMAX/2) *info = -13;
+    else if (*(unsigned char *)jobacc == 'M' && tau2 > TOLMAX/2) *info = -14;
+    else if (ldz < PetscMax(1,n)) *info = -17;
+    else if (lwork < lwmin) *info = -19;
+    else if (liwork < liwmin) *info = -21;
   }
 
   if (*info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Wrong argument %d in DSBTDC",-(*info));
@@ -694,9 +677,8 @@ L20:
   *mingapi = 1;
   for (i = 2; i < n; ++i) {
     absdiff = ev[i] - ev[i-1];
-    if (absdiff < 0.) {
-      SETERRQ2(PETSC_COMM_SELF,1,"dsbtdc: Eigenvalue approximations are not ordered properly. Approximation %d is larger than approximation %d.",i,i+1);
-    } else if (absdiff < *mingap) {
+    if (absdiff < 0.) SETERRQ2(PETSC_COMM_SELF,1,"dsbtdc: Eigenvalue approximations are not ordered properly. Approximation %d is larger than approximation %d.",i,i+1);
+    else if (absdiff < *mingap) {
       *mingap = absdiff;
       *mingapi = i;
     }

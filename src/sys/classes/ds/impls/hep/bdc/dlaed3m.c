@@ -158,17 +158,11 @@ PetscErrorCode BDC_dlaed3m_(const char *jobz,const char *defl,PetscBLASInt k,Pet
   PetscFunctionBegin;
   *info = 0;
 
-  if (k < 0) {
-    *info = -3;
-  } else if (n < k) {
-    *info = -4;
-  } else if (n1 < PetscMin(1,n) || n1 > PetscMax(1,n)) {
-    *info = -5;
-  } else if (ldq < PetscMax(1,n)) {
-    *info = -8;
-  } else if (rho < 0.) {
-    *info = -9;
-  }
+  if (k < 0) *info = -3;
+  else if (n < k) *info = -4;
+  else if (n1 < PetscMin(1,n) || n1 > PetscMax(1,n)) *info = -5;
+  else if (ldq < PetscMax(1,n)) *info = -8;
+  else if (rho < 0.) *info = -9;
   if (*info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Wrong argument %d in DLAED3M",-(*info));
 
   /* Quick return if possible */

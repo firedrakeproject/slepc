@@ -206,15 +206,10 @@ PetscErrorCode BDC_dmerg2_(const char *jobz,PetscBLASInt rkct,PetscBLASInt n,
   *info = 0;
   lwmin = n*n + n * 3;
 
-  if (n < 0) {
-    *info = -3;
-  } else if (ldq < PetscMax(1,n)) {
-    *info = -6;
-  } else if (cutpnt < PetscMin(1,n) || cutpnt > PetscMax(1,n)) {
-    *info = -13;
-  } else if (lwork < lwmin) {
-    *info = -15;
-  }
+  if (n < 0) *info = -3;
+  else if (ldq < PetscMax(1,n)) *info = -6;
+  else if (cutpnt < PetscMin(1,n) || cutpnt > PetscMax(1,n)) *info = -13;
+  else if (lwork < lwmin) *info = -15;
   if (*info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Wrong argument %d in DMERG2",-(*info));
 
 /* **************************************************************************** */
@@ -352,9 +347,7 @@ PetscErrorCode BDC_dmerg2_(const char *jobz,PetscBLASInt rkct,PetscBLASInt n,
     n1 = k;
     n2 = n - k;
     PetscStackCallBLAS("LAPACKlamrg",LAPACKlamrg_(&n1, &n2, ev, &one, &mone, indxq));
-    if (k == 0) {
-      for (i = 0; i < n; ++i) indxq[i] = i+1;
-    }
+    if (k == 0) for (i = 0; i < n; ++i) indxq[i] = i+1;
 
   } else {
 

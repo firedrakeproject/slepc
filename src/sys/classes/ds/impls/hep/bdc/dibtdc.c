@@ -108,13 +108,9 @@ static PetscErrorCode cutlr_(PetscBLASInt start,PetscBLASInt n,PetscBLASInt blkc
   *lsum = 1;
   *cut = start;
 
-  if (start < 1) {
-    *info = -1;
-  } else if (n < 3) {
-    *info = -2;
-  } else if (blkct < 3) {
-    *info = -3;
-  }
+  if (start < 1) *info = -1;
+  else if (n < 3) *info = -2;
+  else if (blkct < 3) *info = -3;
   if (*info == 0) {
     ksum = 0;
     kchk = 0;
@@ -159,13 +155,9 @@ static PetscErrorCode cutlr_(PetscBLASInt start,PetscBLASInt n,PetscBLASInt blkc
     }
   }
 
-  if (*cut < start || *cut >= start + blkct - 1) {
-    *info = 6;
-  } else if (*lsum < 1 || *lsum >= n) {
-    *info = 7;
-  } else if (*lblks < 1 || *lblks >= blkct) {
-    *info = 8;
-  }
+  if (*cut < start || *cut >= start + blkct - 1) *info = 6;
+  else if (*lsum < 1 || *lsum >= n) *info = 7;
+  else if (*lblks < 1 || *lblks >= blkct) *info = 8;
   PetscFunctionReturn(0);
 }
 
@@ -333,13 +325,9 @@ PetscErrorCode BDC_dibtdc_(const char *jobz,PetscBLASInt n,PetscBLASInt nblks,
   PetscFunctionBegin;
   *info = 0;
 
-  if (*(unsigned char *)jobz != 'N' && *(unsigned char *)jobz != 'D') {
-    *info = -1;
-  } else if (n < 2) {
-    *info = -2;
-  } else if (nblks < 2 || nblks > n) {
-    *info = -3;
-  }
+  if (*(unsigned char *)jobz != 'N' && *(unsigned char *)jobz != 'D') *info = -1;
+  else if (n < 2) *info = -2;
+  else if (nblks < 2 || nblks > n) *info = -3;
   if (*info == 0) {
     ksum = 0;
     kmax = 0;
@@ -352,25 +340,15 @@ PetscErrorCode BDC_dibtdc_(const char *jobz,PetscBLASInt n,PetscBLASInt nblks,
     }
     lwmin = n*n + n * 3;
     liwmin = PetscMax(n * 5,kmax * 5 + 3) + 4*nblks - 4;
-    if (ksum != n || kchk == 1) {
-      *info = -4;
-    } else if (l1d < PetscMax(3,kmax)) {
-      *info = -6;
-    } else if (l2d < PetscMax(3,kmax)) {
-      *info = -7;
-    } else if (l1e < PetscMax(3,2*kmax + 1)) {
-      *info = -10;
-    } else if (l2e < PetscMax(3,2*kmax + 1)) {
-      *info = -11;
-    } else if (tol > .1) {
-      *info = -12;
-    } else if (ldz < PetscMax(1,n)) {
-      *info = -15;
-    } else if (lwork < lwmin) {
-      *info = -17;
-    } else if (liwork < liwmin) {
-      *info = -19;
-    }
+    if (ksum != n || kchk == 1) *info = -4;
+    else if (l1d < PetscMax(3,kmax)) *info = -6;
+    else if (l2d < PetscMax(3,kmax)) *info = -7;
+    else if (l1e < PetscMax(3,2*kmax + 1)) *info = -10;
+    else if (l2e < PetscMax(3,2*kmax + 1)) *info = -11;
+    else if (tol > .1) *info = -12;
+    else if (ldz < PetscMax(1,n)) *info = -15;
+    else if (lwork < lwmin) *info = -17;
+    else if (liwork < liwmin) *info = -19;
   }
   if (*info == 0) {
     for (k = 0; k < nblks-1; ++k) {

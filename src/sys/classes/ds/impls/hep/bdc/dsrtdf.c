@@ -181,13 +181,9 @@ PetscErrorCode BDC_dsrtdf_(PetscBLASInt *k,PetscBLASInt n,PetscBLASInt n1,
   PetscFunctionBegin;
   *info = 0;
 
-  if (n < 0) {
-    *info = -2;
-  } else if (n1 < PetscMin(1,n) || n1 > PetscMax(1,n)) {
-    *info = -3;
-  } else if (ldq < PetscMax(1,n)) {
-    *info = -6;
-  }
+  if (n < 0) *info = -2;
+  else if (n1 < PetscMin(1,n) || n1 > PetscMax(1,n)) *info = -3;
+  else if (ldq < PetscMax(1,n)) *info = -6;
   if (*info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_ARG_WRONG,"Wrong argument %d in DSRTDF",-(*info));
 
   /* Initialize deflation counters */
@@ -207,9 +203,7 @@ PetscErrorCode BDC_dsrtdf_(PetscBLASInt *k,PetscBLASInt n,PetscBLASInt n1,
 
   /* Modify Z so that RHO is positive. */
 
-  if (*rho < 0.) {
-    PetscStackCallBLAS("BLASscal",BLASscal_(&n2, &dmone, &z[n1], &one));
-  }
+  if (*rho < 0.) PetscStackCallBLAS("BLASscal",BLASscal_(&n2, &dmone, &z[n1], &one));
 
   /* Normalize z so that norm2(z) = 1.  Since z is the concatenation of */
   /* two normalized vectors, norm2(z) = sqrt(2). (NOTE that this holds also */

@@ -215,6 +215,8 @@ int main(int argc,char **argv)
   ierr = VecPointwiseDivide(wc,xc,yc);CHKERRQ(ierr);
   ierr = VecScale(w,0.3);CHKERRQ(ierr);
   ierr = VecScale(wc,0.3);CHKERRQ(ierr);
+  ierr = VecSqrtAbs(w);CHKERRQ(ierr);
+  ierr = VecSqrtAbs(wc);CHKERRQ(ierr);
   ierr = VecNorm(w,NORM_1_AND_2,norm12);CHKERRQ(ierr);
   ierr = VecNorm(wc,NORM_1_AND_2,norm12c);CHKERRQ(ierr);
   if (PetscAbsReal(norm12[0]-norm12c[0])>10*PETSC_MACHINE_EPSILON || PetscAbsReal(norm12[1]-norm12c[1])>10*PETSC_MACHINE_EPSILON) SETERRQ(PETSC_COMM_WORLD,1,"Norms are different");
