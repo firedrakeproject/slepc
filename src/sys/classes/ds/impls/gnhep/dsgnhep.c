@@ -28,7 +28,7 @@
 */
 
 
-static PetscErrorCode CleanDenseSchur(PetscInt n,PetscInt k,PetscScalar *S,PetscInt ldS,PetscScalar *T,PetscInt ldT,PetscScalar *X,PetscInt ldX,PetscScalar *Y,PetscInt ldY,PetscBool doProd);
+static PetscErrorCode CleanDenseSchur(PetscInt n,PetscInt k,PetscScalar *S,PetscInt ldS,PetscScalar *T,PetscInt ldT,PetscScalar *X,PetscInt ldX,PetscScalar *Y,PetscInt ldY);
 
 PetscErrorCode DSAllocate_GNHEP(DS ds,PetscInt ld)
 {
@@ -59,12 +59,8 @@ PetscErrorCode DSView_GNHEP(DS ds,PetscViewer viewer)
     ierr = DSViewMat(ds,viewer,DS_MAT_Z);CHKERRQ(ierr);
     ierr = DSViewMat(ds,viewer,DS_MAT_Q);CHKERRQ(ierr);
   }
-  if (ds->mat[DS_MAT_X]) {
-    ierr = DSViewMat(ds,viewer,DS_MAT_X);CHKERRQ(ierr);
-  }
-  if (ds->mat[DS_MAT_Y]) {
-    ierr = DSViewMat(ds,viewer,DS_MAT_Y);CHKERRQ(ierr);
-  }
+  if (ds->mat[DS_MAT_X]) { ierr = DSViewMat(ds,viewer,DS_MAT_X);CHKERRQ(ierr); }
+  if (ds->mat[DS_MAT_Y]) { ierr = DSViewMat(ds,viewer,DS_MAT_Y);CHKERRQ(ierr); }
   PetscFunctionReturn(0);
 }
 
@@ -102,10 +98,8 @@ static PetscErrorCode DSVectors_GNHEP_Eigen_Some(DS ds,PetscInt *k,PetscReal *rn
     ierr = DSSetIdentity(ds,DS_MAT_Q);CHKERRQ(ierr);
     ierr = DSSetIdentity(ds,DS_MAT_Z);CHKERRQ(ierr);
   }
-  ierr = CleanDenseSchur(n,0,A,ld,B,ld,ds->mat[DS_MAT_Q],ld,ds->mat[DS_MAT_Z],ld,PETSC_TRUE);CHKERRQ(ierr);
-  if (ds->state < DS_STATE_CONDENSED) {
-    ierr = DSSetState(ds,DS_STATE_CONDENSED);CHKERRQ(ierr);
-  }
+  ierr = CleanDenseSchur(n,0,A,ld,B,ld,ds->mat[DS_MAT_Q],ld,ds->mat[DS_MAT_Z],ld);CHKERRQ(ierr);
+  if (ds->state < DS_STATE_CONDENSED) { ierr = DSSetState(ds,DS_STATE_CONDENSED);CHKERRQ(ierr); }
 
   /* compute k-th eigenvector */
   select[*k] = (PetscBLASInt)PETSC_TRUE;
@@ -180,7 +174,7 @@ static PetscErrorCode DSVectors_GNHEP_Eigen_All(DS ds,PetscBool left)
     ierr = DSSetIdentity(ds,DS_MAT_Q);CHKERRQ(ierr);
     ierr = DSSetIdentity(ds,DS_MAT_Z);CHKERRQ(ierr);
   }
-  ierr = CleanDenseSchur(n,0,A,ld,B,ld,ds->mat[DS_MAT_Q],ld,ds->mat[DS_MAT_Z],ld,PETSC_TRUE);CHKERRQ(ierr);
+  ierr = CleanDenseSchur(n,0,A,ld,B,ld,ds->mat[DS_MAT_Q],ld,ds->mat[DS_MAT_Z],ld);CHKERRQ(ierr);
   if (ds->state>=DS_STATE_CONDENSED) {
     /* DSSolve() has been called, backtransform with matrix Q */
     back = "B";
@@ -406,14 +400,15 @@ PetscErrorCode DSSort_GNHEP(DS ds,PetscScalar *wr,PetscScalar *wi,PetscScalar *r
    matrices S and T, and inside 2-by-2 diagonal blocks of T in order to
    make (S,T) a valid Schur decompositon.
 */
-static PetscErrorCode CleanDenseSchur(PetscInt n,PetscInt k,PetscScalar *S,PetscInt ldS,PetscScalar *T,PetscInt ldT,PetscScalar *X,PetscInt ldX,PetscScalar *Y,PetscInt ldY,PetscBool doProd)
+static PetscErrorCode CleanDenseSchur(PetscInt n,PetscInt k,PetscScalar *S,PetscInt ldS,PetscScalar *T,PetscInt ldT,PetscScalar *X,PetscInt ldX,PetscScalar *Y,PetscInt ldY)
 {
 #if defined(SLEPC_MISSING_LAPACK_LASV2)
   PetscFunctionBegin;
   SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"LASV2 - Lapack routine is unavailable");
 #else
-  PetscInt       i,j;
+  PetscInt       i;
 #if defined(PETSC_USE_COMPLEX)
+  PetscInt       j;
   PetscScalar    s;
 #else
   PetscErrorCode ierr;
@@ -422,15 +417,6 @@ static PetscErrorCode CleanDenseSchur(PetscInt n,PetscInt k,PetscScalar *S,Petsc
 #endif
 
   PetscFunctionBegin;
-  if (!doProd && X) {
-    for (i=0;i<n;i++) for (j=0;j<n;j++) X[ldX*i+j] = 0.0;
-    for (i=0;i<n;i++) X[ldX*i+i] = 1.0;
-  }
-  if (!doProd && Y) {
-    for (i=0;i<n;i++) for (j=0;j<n;j++) Y[ldY*i+j] = 0.0;
-    for (i=0;i<n;i++) Y[ldX*i+i] = 1.0;
-  }
-
 #if defined(PETSC_USE_COMPLEX)
   for (i=k; i<n; i++) {
     /* Some functions need the diagonal elements in T be real */
@@ -461,7 +447,6 @@ static PetscErrorCode CleanDenseSchur(PetscInt n,PetscInt k,PetscScalar *S,Petsc
         if (PetscAbs(T[ldT*(i+1)+i])+PetscAbs(T[ldT*i+i+1]) < (PetscAbs(T[ldT*i+i])+PetscAbs(T[ldT*(i+1)+i+1]))*PETSC_MACHINE_EPSILON) {
           T[ldT*i+i+1] = 0.0;
           T[ldT*(i+1)+i] = 0.0;
-
         } else {
           /* If one of T(i+1,i) or T(i,i+1) is negligible, we make zero the other element */
           if (PetscAbs(T[ldT*i+i+1]) < (PetscAbs(T[ldT*i+i])+PetscAbs(T[ldT*(i+1)+i+1])+PetscAbs(T[ldT*(i+1)+i]))*PETSC_MACHINE_EPSILON) {
@@ -474,10 +459,8 @@ static PetscErrorCode CleanDenseSchur(PetscInt n,PetscInt k,PetscScalar *S,Petsc
           ierr = PetscBLASIntCast(i+2,&i_2);CHKERRQ(ierr);
           ierr = PetscBLASIntCast(i,&i_);CHKERRQ(ierr);
           if (b11 < 0.0) {
-            cr  = -cr;
-            sr  = -sr;
-            b11 = -b11;
-            b22 = -b22;
+            cr = -cr; sr = -sr;
+            b11 = -b11; b22 = -b22;
           }
           PetscStackCallBLAS("BLASrot",BLASrot_(&n_i,&S[ldS*i+i],&ldS_,&S[ldS*i+i+1],&ldS_,&cl,&sl));
           PetscStackCallBLAS("BLASrot",BLASrot_(&i_2,&S[ldS*i],&one,&S[ldS*(i+1)],&one,&cr,&sr));
@@ -485,13 +468,11 @@ static PetscErrorCode CleanDenseSchur(PetscInt n,PetscInt k,PetscScalar *S,Petsc
           PetscStackCallBLAS("BLASrot",BLASrot_(&i_,&T[ldT*i],&one,&T[ldT*(i+1)],&one,&cr,&sr));
           if (X) PetscStackCallBLAS("BLASrot",BLASrot_(&n_,&X[ldX*i],&one,&X[ldX*(i+1)],&one,&cr,&sr));
           if (Y) PetscStackCallBLAS("BLASrot",BLASrot_(&n_,&Y[ldY*i],&one,&Y[ldY*(i+1)],&one,&cl,&sl));
-          T[ldT*i+i] = b11;
-          T[ldT*i+i+1] = 0.0;
-          T[ldT*(i+1)+i] = 0.0;
-          T[ldT*(i+1)+i+1] = b22;
+          T[ldT*i+i] = b11; T[ldT*i+i+1] = 0.0;
+          T[ldT*(i+1)+i] = 0.0; T[ldT*(i+1)+i+1] = b22;
         }
       }
-    i++;
+      i++;
     }
   }
 #endif
