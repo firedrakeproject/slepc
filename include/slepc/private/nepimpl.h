@@ -16,7 +16,7 @@
 
 SLEPC_EXTERN PetscBool NEPRegisterAllCalled;
 SLEPC_EXTERN PetscErrorCode NEPRegisterAll(void);
-SLEPC_EXTERN PetscLogEvent NEP_SetUp,NEP_Solve,NEP_Refine,NEP_FunctionEval,NEP_JacobianEval,NEP_DerivativesEval,NEP_Resolvent;
+SLEPC_EXTERN PetscLogEvent NEP_SetUp,NEP_Solve,NEP_Refine,NEP_FunctionEval,NEP_JacobianEval,NEP_Resolvent;
 
 typedef struct _NEPOps *NEPOps;
 
@@ -45,11 +45,9 @@ typedef enum { NEP_STATE_INITIAL,
      How the problem function T(lambda) has been defined by the user
      - Callback: one callback to build the function matrix, another one for the Jacobian
      - Split: in split form sum_j(A_j*f_j(lambda))
-     - Derivatives: a single callback for all the derivatives (including the 0th derivative)
 */
 typedef enum { NEP_USER_INTERFACE_CALLBACK=1,
-               NEP_USER_INTERFACE_SPLIT,
-               NEP_USER_INTERFACE_DERIVATIVES } NEPUserInterface;
+               NEP_USER_INTERFACE_SPLIT } NEPUserInterface;
 
 /*
    Defines the NEP data structure.
@@ -81,8 +79,6 @@ struct _p_NEP {
   PetscErrorCode (*computejacobian)(NEP,PetscScalar,Mat,void*);
   void           *functionctx;
   void           *jacobianctx;
-  PetscErrorCode (*computederivatives)(NEP,PetscScalar,PetscInt,Mat,void*);
-  void           *derivativesctx;
   PetscErrorCode (*converged)(NEP,PetscScalar,PetscScalar,PetscReal,PetscReal*,void*);
   PetscErrorCode (*convergeduser)(NEP,PetscScalar,PetscScalar,PetscReal,PetscReal*,void*);
   PetscErrorCode (*convergeddestroy)(void*);
@@ -105,7 +101,6 @@ struct _p_NEP {
   Mat            function;         /* function matrix */
   Mat            function_pre;     /* function matrix (preconditioner) */
   Mat            jacobian;         /* Jacobian matrix */
-  Mat            derivatives;      /* derivatives matrix */
   Mat            *A;               /* matrix coefficients of split form */
   FN             *f;               /* matrix functions of split form */
   PetscInt       nt;               /* number of terms in split form */
@@ -159,11 +154,6 @@ struct _p_NEP {
 #define NEPCheckSplit(h,arg) \
   do { \
     if (h->fui!=NEP_USER_INTERFACE_SPLIT) SETERRQ1(PetscObjectComm((PetscObject)h),PETSC_ERR_ARG_WRONGSTATE,"This operation requires the nonlinear eigenproblem in split form. Parameter #%d",arg); \
-  } while (0)
-
-#define NEPCheckDerivatives(h,arg) \
-  do { \
-    if (h->fui!=NEP_USER_INTERFACE_DERIVATIVES) SETERRQ1(PetscObjectComm((PetscObject)h),PETSC_ERR_ARG_WRONGSTATE,"This operation requires the nonlinear eigenproblem specified with derivatives callback. Parameter #%d",arg); \
   } while (0)
 
 #define NEPCheckSolved(h,arg) \

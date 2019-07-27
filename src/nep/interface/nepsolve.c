@@ -736,13 +736,6 @@ PetscErrorCode NEPComputeFunction(NEP nep,PetscScalar lambda,Mat A,Mat B)
     }
     if (A != B) SETERRQ(PetscObjectComm((PetscObject)nep),1,"Not implemented");
     break;
-  case NEP_USER_INTERFACE_DERIVATIVES:
-    ierr = PetscLogEventBegin(NEP_DerivativesEval,nep,A,B,0);CHKERRQ(ierr);
-    PetscStackPush("NEP user Derivatives function");
-    ierr = (*nep->computederivatives)(nep,lambda,0,A,nep->derivativesctx);CHKERRQ(ierr);
-    PetscStackPop;
-    ierr = PetscLogEventEnd(NEP_DerivativesEval,nep,A,B,0);CHKERRQ(ierr);
-    break;
   }
   PetscFunctionReturn(0);
 }
@@ -792,13 +785,6 @@ PetscErrorCode NEPComputeJacobian(NEP nep,PetscScalar lambda,Mat A)
       ierr = FNEvaluateDerivative(nep->f[i],lambda,&alpha);CHKERRQ(ierr);
       ierr = MatAXPY(A,alpha,nep->A[i],nep->mstr);CHKERRQ(ierr);
     }
-    break;
-  case NEP_USER_INTERFACE_DERIVATIVES:
-    ierr = PetscLogEventBegin(NEP_DerivativesEval,nep,A,0,0);CHKERRQ(ierr);
-    PetscStackPush("NEP user Derivatives function");
-    ierr = (*nep->computederivatives)(nep,lambda,1,A,nep->derivativesctx);CHKERRQ(ierr);
-    PetscStackPop;
-    ierr = PetscLogEventEnd(NEP_DerivativesEval,nep,A,0,0);CHKERRQ(ierr);
     break;
   }
   PetscFunctionReturn(0);

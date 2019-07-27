@@ -78,11 +78,6 @@ PetscErrorCode NEPSetUp(NEP nep)
     ierr = MatGetSize(nep->A[0],&nep->n,NULL);CHKERRQ(ierr);
     ierr = MatGetLocalSize(nep->A[0],&nep->nloc,NULL);CHKERRQ(ierr);
     break;
-  case NEP_USER_INTERFACE_DERIVATIVES:
-    ierr = NEPGetDerivatives(nep,&T,NULL,NULL);CHKERRQ(ierr);
-    ierr = MatGetSize(T,&nep->n,NULL);CHKERRQ(ierr);
-    ierr = MatGetLocalSize(T,&nep->nloc,NULL);CHKERRQ(ierr);
-    break;
   }
 
   /* set default problem type */

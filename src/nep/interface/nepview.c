@@ -81,9 +81,6 @@ PetscErrorCode NEPView(NEP nep,PetscViewer viewer)
       case NEP_USER_INTERFACE_SPLIT:
         ierr = PetscViewerASCIIPrintf(viewer,"  nonlinear operator in split form, with %D terms\n",nep->nt);CHKERRQ(ierr);
         break;
-      case NEP_USER_INTERFACE_DERIVATIVES:
-        ierr = PetscViewerASCIIPrintf(viewer,"  nonlinear operator from user callbacks for the successive derivatives\n");CHKERRQ(ierr);
-        break;
       }
     } else {
       ierr = PetscViewerASCIIPrintf(viewer,"  nonlinear operator not specified yet\n");CHKERRQ(ierr);
