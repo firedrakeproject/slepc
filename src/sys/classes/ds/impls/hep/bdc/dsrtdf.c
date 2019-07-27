@@ -270,12 +270,10 @@ PetscErrorCode BDC_dsrtdf_(PetscBLASInt *k,PetscBLASInt n,PetscBLASInt n1,
     /* complete deflation because of small rank-one modifier */
     /* NOTE: in this case we need N*N space in the array Q2 ! */
 
-    *dz = n;
-    *k = 0;
+    *dz = n; *k = 0;
     iq2 = 1;
     for (j = 0; j < n; ++j) {
-      i = indx[j];
-      indxq[j] = i;
+      i = indx[j]; indxq[j] = i;
       PetscStackCallBLAS("BLAScopy",BLAScopy_(&n, &q[(i-1)*ldq], &one, &q2[iq2-1], &one));
       dlamda[j] = d[i-1];
       iq2 += n;

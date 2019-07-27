@@ -49,9 +49,7 @@ PetscErrorCode DSView_PEP(DS ds,PetscViewer viewer)
   for (i=0;i<=ctx->d;i++) {
     ierr = DSViewMat(ds,viewer,DSMatExtra[i]);CHKERRQ(ierr);
   }
-  if (ds->state>DS_STATE_INTERMEDIATE) {
-    ierr = DSViewMat(ds,viewer,DS_MAT_X);CHKERRQ(ierr);
-  }
+  if (ds->state>DS_STATE_INTERMEDIATE) { ierr = DSViewMat(ds,viewer,DS_MAT_X);CHKERRQ(ierr); }
   PetscFunctionReturn(0);
 }
 

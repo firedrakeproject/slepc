@@ -90,9 +90,7 @@ PetscErrorCode DSView_NEP(DS ds,PetscViewer viewer)
     ierr = FNView(ctx->f[i],viewer);CHKERRQ(ierr);
     ierr = DSViewMat(ds,viewer,DSMatExtra[i]);CHKERRQ(ierr);
   }
-  if (ds->state>DS_STATE_INTERMEDIATE) {
-    ierr = DSViewMat(ds,viewer,DS_MAT_X);CHKERRQ(ierr);
-  }
+  if (ds->state>DS_STATE_INTERMEDIATE) { ierr = DSViewMat(ds,viewer,DS_MAT_X);CHKERRQ(ierr); }
   PetscFunctionReturn(0);
 }
 

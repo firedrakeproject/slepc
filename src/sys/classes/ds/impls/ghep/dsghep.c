@@ -35,12 +35,8 @@ PetscErrorCode DSView_GHEP(DS ds,PetscViewer viewer)
   if (format == PETSC_VIEWER_ASCII_INFO || format == PETSC_VIEWER_ASCII_INFO_DETAIL) PetscFunctionReturn(0);
   ierr = DSViewMat(ds,viewer,DS_MAT_A);CHKERRQ(ierr);
   ierr = DSViewMat(ds,viewer,DS_MAT_B);CHKERRQ(ierr);
-  if (ds->state>DS_STATE_INTERMEDIATE) {
-    ierr = DSViewMat(ds,viewer,DS_MAT_Q);CHKERRQ(ierr);
-  }
-  if (ds->mat[DS_MAT_X]) {
-    ierr = DSViewMat(ds,viewer,DS_MAT_X);CHKERRQ(ierr);
-  }
+  if (ds->state>DS_STATE_INTERMEDIATE) { ierr = DSViewMat(ds,viewer,DS_MAT_Q);CHKERRQ(ierr); }
+  if (ds->mat[DS_MAT_X]) { ierr = DSViewMat(ds,viewer,DS_MAT_X);CHKERRQ(ierr); }
   PetscFunctionReturn(0);
 }
 

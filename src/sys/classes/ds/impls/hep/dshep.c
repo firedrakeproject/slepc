@@ -150,9 +150,7 @@ PetscErrorCode DSView_HEP(DS ds,PetscViewer viewer)
   } else {
     ierr = DSViewMat(ds,viewer,DS_MAT_A);CHKERRQ(ierr);
   }
-  if (ds->state>DS_STATE_INTERMEDIATE) {
-    ierr = DSViewMat(ds,viewer,DS_MAT_Q);CHKERRQ(ierr);
-  }
+  if (ds->state>DS_STATE_INTERMEDIATE) { ierr = DSViewMat(ds,viewer,DS_MAT_Q);CHKERRQ(ierr); }
   PetscFunctionReturn(0);
 }
 

@@ -229,6 +229,8 @@ int main(int argc,char **argv)
   ierr = VecNorm(xc,NORM_INFINITY,&normc);CHKERRQ(ierr);
   if (PetscAbsReal(norm-normc)>10*PETSC_MACHINE_EPSILON) SETERRQ(PETSC_COMM_WORLD,1,"Norms are different");
 
+  ierr = VecSetRandom(wc,NULL);CHKERRQ(ierr);
+
   ierr = VecDestroy(&v);CHKERRQ(ierr);
   ierr = VecDestroy(&w);CHKERRQ(ierr);
   ierr = VecDestroy(&x);CHKERRQ(ierr);

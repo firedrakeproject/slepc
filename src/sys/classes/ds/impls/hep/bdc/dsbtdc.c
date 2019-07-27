@@ -262,9 +262,9 @@ PetscErrorCode BDC_dsbtdc_(const char *jobz,const char *jobacc,PetscBLASInt n,
   SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"SYEVD/GESVD/LASET/LASCL - Lapack routine is unavailable");
 #else
   PetscBLASInt   i, j, k, i1, iwspc, lwmin, start;
-  PetscBLASInt   ii, ip, jp, nk, rk, np, iu, rp1, ldu;
-  PetscBLASInt   ksk, ivt, iend, kchk, kmax, one=1, zero=0;
-  PetscBLASInt   ldvt, ksum, kskp1, spneed, nrblks, liwmin, isvals;
+  PetscBLASInt   ii, ip, nk, rk, np, iu, rp1, ldu;
+  PetscBLASInt   ksk, ivt, iend, kchk=0, kmax=0, one=1, zero=0;
+  PetscBLASInt   ldvt, ksum=0, kskp1, spneed, nrblks, liwmin, isvals;
   PetscReal      p, d2, eps, dmax, emax, done = 1.0, dzero = 0.0;
   PetscReal      dnrm, tiny, anorm, exdnrm=0, dropsv, absdiff;
   PetscErrorCode ierr;
@@ -280,9 +280,6 @@ PetscErrorCode BDC_dsbtdc_(const char *jobz,const char *jobacc,PetscBLASInt n,
   else if (n < 1) *info = -3;
   else if (nblks < 1 || nblks > n) *info = -4;
   if (*info == 0) {
-    ksum = 0;
-    kmax = 0;
-    kchk = 0;
     for (k = 0; k < nblks; ++k) {
       ksk = ksizes[k];
       ksum += ksk;
@@ -310,8 +307,7 @@ PetscErrorCode BDC_dsbtdc_(const char *jobz,const char *jobacc,PetscBLASInt n,
   /* Quick return if possible */
 
   if (n == 1) {
-    ev[0] = d[0];
-    z[0] = 1.;
+    ev[0] = d[0]; z[0] = 1.;
     *info = -101;
     PetscFunctionReturn(0);
   }
@@ -400,8 +396,7 @@ L8:
       /* the error caused by dropping singular value RK is */
       /* small enough, try to reduce the rank by one more */
 
-      --rk;
-      if (rk > 0) goto L8;
+      if (--rk > 0) goto L8;
       else iwork[k] = 0;
     } else {
 
@@ -552,10 +547,7 @@ L20:
 
       for (i = 0; i < nk; ++i) {
         ip = np + i + 1;
-        for (j = 0; j <= i; ++j) {
-          jp = np + j + 1;
-          z[ip + jp*ldz] = d[i + (j + start*l2d)*l1d];
-        }
+        for (j = 0; j <= i; ++j) z[ip + (np+j+1)*ldz] = d[i + (j + start*l2d)*l1d];
       }
 
       /* check whether there is enough workspace */

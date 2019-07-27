@@ -151,9 +151,7 @@ PetscErrorCode DSView_GHIEP(DS ds,PetscViewer viewer)
     ierr = DSViewMat(ds,viewer,DS_MAT_A);CHKERRQ(ierr);
     ierr = DSViewMat(ds,viewer,DS_MAT_B);CHKERRQ(ierr);
   }
-  if (ds->state>DS_STATE_INTERMEDIATE) {
-    ierr = DSViewMat(ds,viewer,DS_MAT_Q);CHKERRQ(ierr);
-  }
+  if (ds->state>DS_STATE_INTERMEDIATE) { ierr = DSViewMat(ds,viewer,DS_MAT_Q);CHKERRQ(ierr); }
   PetscFunctionReturn(0);
 }
 
