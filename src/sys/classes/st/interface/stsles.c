@@ -42,9 +42,6 @@ PETSC_STATIC_INLINE PetscErrorCode STMatIsSymmetricKnown(ST st,PetscBool *symm)
   PetscFunctionBegin;
   *symm = PETSC_FALSE;
   if (!st->nmat) PetscFunctionReturn(0);  /* STSetMatrices() not called yet */
-#if defined(PETSC_USE_COMPLEX)
-  if (PetscImaginaryPart(st->sigma)!=0.0) PetscFunctionReturn(0);
-#endif
   /* check if problem matrices are all sbaij */
   for (i=0;i<st->nmat;i++) {
     ierr = PetscObjectTypeCompareAny((PetscObject)st->A[i],&sbaij,MATSEQSBAIJ,MATMPISBAIJ,"");CHKERRQ(ierr);
@@ -285,7 +282,7 @@ PetscErrorCode STMatSolveTranspose(ST st,Vec b,Vec x)
 }
 
 /*
-   STMatSetHermitian - Sets the Hermitian flag to the ST matrix.
+   STMatSetHermitian - Sets the symmetric and/or Hermitian flag to the ST matrix.
 
    Input Parameters:
 .  st - the spectral transformation context
@@ -298,9 +295,17 @@ PetscErrorCode STMatSetHermitian(ST st,Mat M)
   PetscInt       i;
 
   PetscFunctionBegin;
+  if (!st->nmat) PetscFunctionReturn(0);  /* STSetMatrices() not called yet */
+  mherm = PETSC_TRUE;
+  for (i=0;i<st->nmat;i++) {
+    ierr = MatIsSymmetricKnown(st->A[i],&set,&aherm);CHKERRQ(ierr);
+    if (!set) aherm = PETSC_FALSE;
+    if (!aherm) { mherm = PETSC_FALSE; break; }
+    if (PetscRealPart(st->sigma)==0.0) break;
+  }
+  ierr = MatSetOption(M,MAT_SYMMETRIC,mherm);CHKERRQ(ierr);
 #if defined(PETSC_USE_COMPLEX)
-  if (PetscImaginaryPart(st->sigma)!=0.0) mherm = PETSC_FALSE;
-  else {
+  if (PetscImaginaryPart(st->sigma)==0.0) {
     mherm = PETSC_TRUE;
     for (i=0;i<st->nmat;i++) {
       ierr = MatIsHermitianKnown(st->A[i],&set,&aherm);CHKERRQ(ierr);
@@ -308,16 +313,8 @@ PetscErrorCode STMatSetHermitian(ST st,Mat M)
       if (!aherm) { mherm = PETSC_FALSE; break; }
       if (PetscRealPart(st->sigma)==0.0) break;
     }
+    ierr = MatSetOption(M,MAT_HERMITIAN,mherm);CHKERRQ(ierr);
   }
-  ierr = MatSetOption(M,MAT_HERMITIAN,mherm);CHKERRQ(ierr);
-#else
-  mherm = PETSC_TRUE;
-  for (i=0;i<st->nmat;i++) {
-    ierr = MatIsSymmetricKnown(st->A[i],&set,&aherm);CHKERRQ(ierr);
-    if (!set) aherm = PETSC_FALSE;
-    if (!aherm) { mherm = PETSC_FALSE; break; }
-  }
-  ierr = MatSetOption(M,MAT_SYMMETRIC,mherm);CHKERRQ(ierr);
 #endif
   PetscFunctionReturn(0);
 }
