@@ -161,6 +161,9 @@ int main(int argc,char **argv)
       test:
          suffix: 1_lobpcg
          args: -eps_type lobpcg -st_shift 22 -eps_largest_real
+      test:
+         suffix: 1_cholesky
+         args: -mat_type sbaij
 
    testset:
       requires: !single !complex

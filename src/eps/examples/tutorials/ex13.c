@@ -154,4 +154,8 @@ int main(int argc,char **argv)
       args: -n 110 -nulldim 6 -eps_nev 4 -eps_ncv 18 -eps_tol 1e-5 -eps_purify 1 -st_type sinvert -terse
       requires: !single
 
+   test:
+      suffix: 3
+      args: -eps_nev 3 -eps_tol 1e-5 -mat_type sbaij -terse
+
 TEST*/
