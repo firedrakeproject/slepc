@@ -154,7 +154,7 @@ int main(int argc,char **argv)
     ierr = PetscPrintf(PETSC_COMM_WORLD,"\nMatrix E%d = \n",k);CHKERRQ(ierr);
     for (i=0;i<nc;i++) {
       for (j=0;j<nc;j++) {
-        ierr = PetscPrintf(PETSC_COMM_WORLD,"  %.5g",(double)M[i+j*nc]);CHKERRQ(ierr);
+        ierr = PetscPrintf(PETSC_COMM_WORLD,"  %.5g",(double)PetscRealPart(M[i+j*nc]));CHKERRQ(ierr);
       }
       ierr = PetscPrintf(PETSC_COMM_WORLD,"\n");CHKERRQ(ierr);
     }

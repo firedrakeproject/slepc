@@ -51,7 +51,7 @@ PetscErrorCode DSAllocate_SVD(DS ds,PetscInt ld)
     -----------------------------------------
 */
 
-static PetscErrorCode DSSwitchFormat_SVD(DS ds,PetscBool tocompact)
+static PetscErrorCode DSSwitchFormat_SVD(DS ds)
 {
   PetscErrorCode ierr;
   PetscReal      *T = ds->rmat[DS_MAT_T];
@@ -60,28 +60,16 @@ static PetscErrorCode DSSwitchFormat_SVD(DS ds,PetscBool tocompact)
 
   PetscFunctionBegin;
   if (!m) SETERRQ(PetscObjectComm((PetscObject)ds),PETSC_ERR_ARG_WRONG,"m was not set");
-  if (tocompact) { /* switch from dense (arrow) to compact storage */
-    ierr = PetscArrayzero(T,3*ld);CHKERRQ(ierr);
-    for (i=0;i<k;i++) {
-      T[i]    = PetscRealPart(A[i+i*ld]);
-      T[i+ld] = PetscRealPart(A[i+k*ld]);
-    }
-    for (i=k;i<m-1;i++) {
-      T[i]    = PetscRealPart(A[i+i*ld]);
-      T[i+ld] = PetscRealPart(A[i+(i+1)*ld]);
-    }
-    T[m-1] = PetscRealPart(A[m-1+(m-1)*ld]);
-  } else { /* switch from compact (arrow) to dense storage */
-    ierr = PetscArrayzero(A,ld*ld);CHKERRQ(ierr);
-    for (i=0;i<k;i++) {
-      A[i+i*ld] = T[i];
-      A[i+k*ld] = T[i+ld];
-    }
-    A[k+k*ld] = T[k];
-    for (i=k+1;i<m;i++) {
-      A[i+i*ld]   = T[i];
-      A[i-1+i*ld] = T[i-1+ld];
-    }
+  /* switch from compact (arrow) to dense storage */
+  ierr = PetscArrayzero(A,ld*ld);CHKERRQ(ierr);
+  for (i=0;i<k;i++) {
+    A[i+i*ld] = T[i];
+    A[i+k*ld] = T[i+ld];
+  }
+  A[k+k*ld] = T[k];
+  for (i=k+1;i<m;i++) {
+    A[i+i*ld]   = T[i];
+    A[i-1+i*ld] = T[i-1+ld];
   }
   PetscFunctionReturn(0);
 }
@@ -239,7 +227,7 @@ PetscErrorCode DSSolve_SVD_DC(DS ds,PetscScalar *wr,PetscScalar *wi)
 #endif
   } else {
     /* solve general rectangular SVD problem */
-    if (ds->compact) { ierr = DSSwitchFormat_SVD(ds,PETSC_FALSE);CHKERRQ(ierr); }
+    if (ds->compact) { ierr = DSSwitchFormat_SVD(ds);CHKERRQ(ierr); }
     for (i=0;i<l;i++) wr[i] = d[i];
     nm = PetscMin(n,m);
     ierr = DSAllocateWork_Private(ds,0,0,8*nm);CHKERRQ(ierr);
