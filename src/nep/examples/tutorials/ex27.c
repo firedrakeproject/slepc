@@ -97,7 +97,7 @@ int main(int argc,char **argv)
     ierr = MatShift(A[1],1.0);CHKERRQ(ierr);
 
     /*
-       Define funcions for the split form
+       Define functions for the split form
      */
     ierr = FNCreate(PETSC_COMM_WORLD,&f[0]);CHKERRQ(ierr);
     ierr = FNSetType(f[0],FNRATIONAL);CHKERRQ(ierr);
