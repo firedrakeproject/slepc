@@ -207,4 +207,10 @@ int main(int argc,char **argv)
       args: -n 512 -nep_target 10 -nep_nev 3 -nep_type {{rii slp narnoldi}} -terse
       requires: !single
 
+   test:
+      suffix: 3_simpleu
+      args: -n 512 -nep_target 10 -nep_nev 3 -nep_type narnoldi -nep_deflation_simpleu -terse
+      output_file: output/ex22_3.out
+      requires: !single
+
 TEST*/
