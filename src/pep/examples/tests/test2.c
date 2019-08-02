@@ -306,4 +306,10 @@ int main(int argc,char **argv)
       args: -pep_type jd -ds_parallel synchronized -pep_target -0.43 -pep_nev 4 -pep_ncv 20
       requires: !single
 
+   test:
+      suffix: 13
+      args: -pep_nev 12 -pep_view_values draw
+      requires: x !single
+      output_file: output/test2_3.out
+
 TEST*/

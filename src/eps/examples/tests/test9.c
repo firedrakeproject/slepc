@@ -246,4 +246,10 @@ PetscErrorCode MyEigenSort(PetscScalar ar,PetscScalar ai,PetscScalar br,PetscSca
       requires: !single
       filter: sed -e "s/\(0x[0-9a-fA-F]*\)/objectid/"
 
+   test:
+      suffix: 8
+      args: -eps_nev 4 -eps_view_values draw
+      requires: x !single
+      output_file: output/test9_1.out
+
 TEST*/

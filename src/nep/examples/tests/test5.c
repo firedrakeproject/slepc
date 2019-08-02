@@ -193,4 +193,10 @@ int main(int argc,char **argv)
       requires: cuda !single
       output_file: output/test5_1.out
 
+   test:
+      suffix: 3
+      args: -nep_nev 3 -nep_target 5 -terse -nep_view_values draw
+      requires: x !single
+      output_file: output/test5_1.out
+
 TEST*/
