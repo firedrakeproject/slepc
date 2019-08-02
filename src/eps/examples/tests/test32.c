@@ -95,6 +95,7 @@ int main(int argc,char **argv)
    test:
       suffix: 1
       args: -n 18 -eps_nev 3 -st_type sinvert -eps_target 1.02
+      requires: !single
 
    test:
       suffix: 2

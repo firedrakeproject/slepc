@@ -157,5 +157,6 @@ int main(int argc,char **argv)
    test:
       suffix: 3
       args: -eps_nev 3 -eps_tol 1e-5 -mat_type sbaij -terse
+      requires: !single
 
 TEST*/
