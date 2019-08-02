@@ -131,7 +131,7 @@ int main(int argc,char **argv)
 /*TEST
 
    testset:
-      requires: !single
+      requires: double
       suffix: 1
 
 TEST*/

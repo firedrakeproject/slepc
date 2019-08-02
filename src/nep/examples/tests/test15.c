@@ -210,7 +210,7 @@ PetscErrorCode MyStoppingTest(NEP nep,PetscInt its,PetscInt max_it,PetscInt ncon
   PetscFunctionBeginUser;
   /* check usual termination conditions, but ignoring the case nconv>=nev */
   ierr = NEPStoppingBasic(nep,its,max_it,nconv,PETSC_MAX_INT,reason,NULL);CHKERRQ(ierr);
-  if (*reason==PEP_CONVERGED_ITERATING) {
+  if (*reason==NEP_CONVERGED_ITERATING) {
     /* check if nconv is the same as before */
     if (nconv==ctx->lastnconv) ctx->nreps++;
     else {
@@ -228,5 +228,6 @@ PetscErrorCode MyStoppingTest(NEP nep,PetscInt its,PetscInt max_it,PetscInt ncon
    test:
       suffix: 1
       args: -terse
+      requires: !single
 
 TEST*/
