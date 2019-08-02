@@ -248,7 +248,7 @@ PetscErrorCode MyEigenSort(PetscScalar ar,PetscScalar ai,PetscScalar br,PetscSca
 
    test:
       suffix: 8
-      args: -eps_nev 4 -eps_view_values draw
+      args: -eps_nev 4 -eps_view_values draw -eps_monitor_lg
       requires: x !single
       output_file: output/test9_1.out
 

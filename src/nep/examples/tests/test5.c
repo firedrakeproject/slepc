@@ -195,7 +195,7 @@ int main(int argc,char **argv)
 
    test:
       suffix: 3
-      args: -nep_nev 3 -nep_target 5 -terse -nep_view_values draw
+      args: -nep_nev 3 -nep_target 5 -terse -nep_view_values draw -nep_monitor_lg
       requires: x !single
       output_file: output/test5_1.out
 
