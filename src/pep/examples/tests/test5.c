@@ -90,6 +90,6 @@ int main(int argc,char **argv)
       suffix: 2
       args: -n 12 -pep_largest_real -pep_monitor -pep_view_values ::ascii_matlab
       requires: !complex double
-      filter: sed -e "s/[0-9]\.[0-9]*e-\([0-9]*\)/removed/g" | sed -e "s/2\.[0-9]*e+01/2.0000000000000000e+01/"
+      filter: sed -e "s/[0-9]\.[0-9]*e-\([0-9]*\)/removed/g" | sed -e "s/5\.\([49]\)999999[0-9]*e+00/5.\\1999999999999999e+00/"
 
 TEST*/

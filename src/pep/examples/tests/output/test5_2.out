@@ -7,8 +7,8 @@ PEP of diagonal problem, n=12
   4 PEP nconv=0 first unconverged value (error) 6. (removed)
   5 PEP nconv=2 first unconverged value (error) 5. (removed)
 Lambda_pep = [
-5.9999999999661577e+00
-5.4999999912111859e+00
+5.9999999999999999e+00
+5.4999999999999999e+00
 ];
  All requested eigenvalues computed up to the required tolerance:
      6.00000
