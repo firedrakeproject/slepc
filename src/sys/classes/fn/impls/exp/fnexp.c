@@ -541,7 +541,7 @@ PetscErrorCode FNEvaluateFunctionMat_Exp_GuettelNakatsukasa(FN fn,Mat A,Mat B)
     PetscStackCallBLAS("BLASscal",BLASscal_(&n2,&expshift,sMaux,&one));
     ierr = PetscLogFlops(1.0*(n+n2));CHKERRQ(ierr);
     ierr = PetscArraycpy(Ba,sMaux,n2);CHKERRQ(ierr);
-    ierr = PetscFree(sMaux);CHKERRQ(ierr);
+    ierr = PetscFree2(sMaux,Maux);CHKERRQ(ierr);
     ierr = MatDenseRestoreArray(A,&Aa);CHKERRQ(ierr);
     ierr = MatDenseRestoreArray(B,&Ba);CHKERRQ(ierr);
     PetscFunctionReturn(0); /* quick return */
