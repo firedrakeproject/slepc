@@ -91,6 +91,7 @@ PetscErrorCode SVDSetUp(SVD svd)
   PetscInt       M,N,k;
   SlepcSC        sc;
   Vec            *T;
+  BV             bv;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
@@ -146,10 +147,11 @@ PetscErrorCode SVDSetUp(SVD svd)
     }
   }
 
-  /* swap initial vectors if necessary */
   if (M<N) {
+    /* swap initial vectors and basis vectors */
     T=svd->ISL; svd->ISL=svd->IS; svd->IS=T;
     k=svd->ninil; svd->ninil=svd->nini; svd->nini=k;
+    bv=svd->V; svd->V=svd->U; svd->U=bv;
   }
 
   if (svd->ncv > PetscMin(M,N)) svd->ncv = PetscMin(M,N);

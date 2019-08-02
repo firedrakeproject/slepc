@@ -741,8 +741,9 @@ PetscErrorCode SVDSetFromOptions(SVD svd)
     ierr = PetscObjectProcessOptionsHandlers(PetscOptionsObject,(PetscObject)svd);CHKERRQ(ierr);
   ierr = PetscOptionsEnd();CHKERRQ(ierr);
 
-  if (!svd->V) { ierr = SVDGetBV(svd,&svd->V,&svd->U);CHKERRQ(ierr); }
+  if (!svd->V) { ierr = SVDGetBV(svd,&svd->V,NULL);CHKERRQ(ierr); }
   ierr = BVSetFromOptions(svd->V);CHKERRQ(ierr);
+  if (!svd->U) { ierr = SVDGetBV(svd,NULL,&svd->U);CHKERRQ(ierr); }
   ierr = BVSetFromOptions(svd->U);CHKERRQ(ierr);
   if (!svd->ds) { ierr = SVDGetDS(svd,&svd->ds);CHKERRQ(ierr); }
   ierr = DSSetFromOptions(svd->ds);CHKERRQ(ierr);

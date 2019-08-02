@@ -8,7 +8,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-static char help[] = "Lanczos SVD.\n\n"
+static char help[] = "Lanczos SVD. Also illustrates the use of SVDSetBV().\n\n"
   "The command line options are:\n"
   "  -m <m>, where <m> = matrix rows.\n"
   "  -n <n>, where <n> = matrix columns (defaults to m+2).\n\n";
@@ -31,16 +31,19 @@ int main(int argc,char **argv)
 {
   Mat            A;
   SVD            svd;
-  PetscInt       m=20,n,Istart,Iend,i,col[2];
+  PetscInt       m=20,n,Istart,Iend,i,k=6,col[2];
   PetscScalar    value[] = { 1, 2 };
   PetscBool      flg,oneside=PETSC_FALSE;
   const char     *prefix;
+  BV             U,V;
+  Vec            u,v;
   PetscErrorCode ierr;
 
   ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
   ierr = PetscOptionsGetInt(NULL,NULL,"-m",&m,NULL);CHKERRQ(ierr);
   ierr = PetscOptionsGetInt(NULL,NULL,"-n",&n,&flg);CHKERRQ(ierr);
   if (!flg) n=m+2;
+  ierr = PetscOptionsGetInt(NULL,NULL,"-k",&k,NULL);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD,"\nRectangular bidiagonal matrix, m=%D n=%D\n\n",m,n);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -62,6 +65,20 @@ int main(int argc,char **argv)
   }
   ierr = MatAssemblyBegin(A,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
   ierr = MatAssemblyEnd(A,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
+  ierr = MatCreateVecs(A,&v,&u);CHKERRQ(ierr);
+
+  /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+         Create standalone BV objects to illustrate use of SVDSetBV()
+     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+  ierr = BVCreate(PETSC_COMM_WORLD,&U);CHKERRQ(ierr);
+  ierr = PetscObjectSetName((PetscObject)U,"U");CHKERRQ(ierr);
+  ierr = BVSetSizesFromVec(U,u,k);CHKERRQ(ierr);
+  ierr = BVSetFromOptions(U);CHKERRQ(ierr);
+  ierr = BVCreate(PETSC_COMM_WORLD,&V);CHKERRQ(ierr);
+  ierr = PetscObjectSetName((PetscObject)V,"V");CHKERRQ(ierr);
+  ierr = BVSetSizesFromVec(V,v,k);CHKERRQ(ierr);
+  ierr = BVSetFromOptions(V);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         Compute singular values
@@ -75,6 +92,7 @@ int main(int argc,char **argv)
   ierr = PetscObjectSetName((PetscObject)svd,"SVD_solver");CHKERRQ(ierr);
 
   ierr = SVDSetOperator(svd,A);CHKERRQ(ierr);
+  ierr = SVDSetBV(svd,V,U);CHKERRQ(ierr);
   ierr = SVDSetType(svd,SVDLANCZOS);CHKERRQ(ierr);
   ierr = SVDSetFromOptions(svd);CHKERRQ(ierr);
 
@@ -95,6 +113,10 @@ int main(int argc,char **argv)
                     Display solution and clean up
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
   ierr = SVDErrorView(svd,SVD_ERROR_RELATIVE,PETSC_VIEWER_STDOUT_WORLD);CHKERRQ(ierr);
+  ierr = BVDestroy(&U);CHKERRQ(ierr);
+  ierr = BVDestroy(&V);CHKERRQ(ierr);
+  ierr = VecDestroy(&u);CHKERRQ(ierr);
+  ierr = VecDestroy(&v);CHKERRQ(ierr);
   ierr = SVDDestroy(&svd);CHKERRQ(ierr);
   ierr = MatDestroy(&A);CHKERRQ(ierr);
   ierr = SlepcFinalize();
@@ -113,5 +135,8 @@ int main(int argc,char **argv)
          suffix: 2
          args: -check_myprefix_svd_type trlanczos -check_myprefix_svd_monitor -check_myprefix_svd_view_values ::ascii_matlab
          filter: sed -e "s/[0-9]\.[0-9]*e[+-]\([0-9]*\)/removed/g"
+      test:
+         suffix: 3
+         args: -m 22 -n 20
 
 TEST*/
