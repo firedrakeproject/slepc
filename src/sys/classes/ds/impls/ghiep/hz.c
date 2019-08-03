@@ -288,13 +288,10 @@ static PetscErrorCode HZIteration(PetscBLASInt nn,PetscBLASInt cgd,PetscReal *aa
 PetscErrorCode DSSolve_GHIEP_HZ(DS ds,PetscScalar *wr,PetscScalar *wi)
 {
   PetscErrorCode ierr;
-  PetscInt       off;
+  PetscInt       i,off;
   PetscBLASInt   n1,ld;
   PetscScalar    *A,*B,*Q;
   PetscReal      *d,*e,*s;
-#if defined(PETSC_USE_COMPLEX)
-  PetscInt       i;
-#endif
 
   PetscFunctionBegin;
 #if !defined(PETSC_USE_COMPLEX)
@@ -311,7 +308,8 @@ PetscErrorCode DSSolve_GHIEP_HZ(DS ds,PetscScalar *wr,PetscScalar *wi)
   s   = ds->rmat[DS_MAT_D];
   /* Quick return */
   if (n1 == 1) {
-    *(Q+off) = 1;
+    for (i=0;i<=ds->l;i++) Q[i+i*ld] = 1.0;
+    ierr = DSGHIEPComplexEigs(ds,0,ds->l,wr,wi);CHKERRQ(ierr);
     if (ds->compact) {
       wr[ds->l] = d[ds->l]/s[ds->l]; wi[ds->l] = 0.0;
     } else {

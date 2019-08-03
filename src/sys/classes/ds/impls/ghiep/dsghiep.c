@@ -346,11 +346,9 @@ PetscErrorCode DSGHIEPComplexEigs(DS ds,PetscInt n0,PetscInt n1,PetscScalar *wr,
       if (scal1<ep) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_FP,"Nearly infinite eigenvalue");
       if (wi1==0.0) { /* Real eigenvalues */
         if (scal2<ep) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_FP,"Nearly infinite eigenvalue");
-        wr[k]   = wr1/scal1;
-        wr[k+1] = wr2/scal2;
+        wr[k] = wr1/scal1; wr[k+1] = wr2/scal2;
 #if !defined(PETSC_USE_COMPLEX)
-        wi[k]   = 0.0;
-        wi[k+1] = 0.0;
+        wi[k] = wi[k+1] = 0.0;
 #endif
       } else { /* Complex eigenvalues */
 #if !defined(PETSC_USE_COMPLEX)
@@ -552,8 +550,7 @@ PetscErrorCode DSGHIEPRealBlocks(DS ds)
         }
         Y[0] = 1/PetscSqrtReal(1 + t*t); Y[3] = Y[0]; /* c */
         Y[1] = Y[0]*t; Y[2] = -Y[1]; /* s */
-        wr1 = d1+t*e;
-        wr2 = d2-t*e;
+        wr1 = d1+t*e; wr2 = d2-t*e;
         ss1 = s1; ss2 = s2;
         isreal = PETSC_TRUE;
       } else {
@@ -661,7 +658,8 @@ PetscErrorCode DSSolve_GHIEP_QR_II(DS ds,PetscScalar *wr,PetscScalar *wi)
 
   /* Quick return if possible */
   if (n1 == 1) {
-    Q[off] = 1.0;
+    for (i=0;i<=ds->l;i++) Q[i+i*ld] = 1.0;
+    ierr = DSGHIEPComplexEigs(ds,0,ds->l,wr,wi);CHKERRQ(ierr);
     if (!ds->compact) {
       d[ds->l] = PetscRealPart(A[off]);
       s[ds->l] = PetscRealPart(B[off]);
@@ -775,7 +773,8 @@ PetscErrorCode DSSolve_GHIEP_QR(DS ds,PetscScalar *wr,PetscScalar *wi)
   nwru += ld;
   /* Quick return if possible */
   if (n_ == 1) {
-    Q[off] = 1.0;
+    for (i=0;i<=ds->l;i++) Q[i+i*ld] = 1.0;
+    ierr = DSGHIEPComplexEigs(ds,0,ds->l,wr,wi);CHKERRQ(ierr);
     if (!ds->compact) {
       d[ds->l] = PetscRealPart(A[off]);
       s[ds->l] = PetscRealPart(B[off]);

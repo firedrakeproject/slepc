@@ -42,17 +42,13 @@ static PetscErrorCode HRGen(PetscReal x1,PetscReal x2,PetscInt *type,PetscReal *
 
   PetscFunctionBegin;
   if (x2==0.0) {
-    *r = PetscAbsReal(x1);
-    *c = (x1>=0)?1.0:-1.0;
-    *s = 0.0;
+    *r = PetscAbsReal(x1); *c = (x1>=0.0)?1.0:-1.0; *s = 0.0;
     if (type) *type = 1;
     PetscFunctionReturn(0);
   }
   if (PetscAbsReal(x1) == PetscAbsReal(x2)) {
     /* hyperbolic rotation doesn't exist */
-    *c = 0.0;
-    *s = 0.0;
-    *r = 0.0;
+    *c = *s = *r = 0.0;
     if (type) *type = 0;
     *cond = PETSC_MAX_REAL;
     PetscFunctionReturn(0);
@@ -589,16 +585,12 @@ static PetscErrorCode PseudoOrthog_HR(PetscInt *nv,PetscScalar *V,PetscInt ldv,P
       } else {
         k = k+1;
         if (j<n-1) {
-          t1 = perm[j];
-          t2 = perm[j+1];
+          t1 = perm[j]; t2 = perm[j+1];
           for (i=j;i<n-2;i++) perm[i] = perm[i+2];
-          perm[n-2] = t1;
-          perm[n-1] = t2;
-          t1 = cmplxEig[j];
-          t2 = cmplxEig[j+1];
+          perm[n-2] = t1; perm[n-1] = t2;
+          t1 = cmplxEig[j]; t2 = cmplxEig[j+1];
           for (i=j;i<n-2;i++) cmplxEig[i] = cmplxEig[i+2];
-          cmplxEig[n-2] = t1;
-          cmplxEig[n-1] = t2;
+          cmplxEig[n-2] = t1; cmplxEig[n-1] = t2;
           ierr = PetscArraycpy(col1,R+j*ldr,n);CHKERRQ(ierr);
           ierr = PetscArraycpy(col2,R+(j+1)*ldr,n);CHKERRQ(ierr);
           for (i=j;i<n-2;i++) {
