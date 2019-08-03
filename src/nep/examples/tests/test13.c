@@ -8,11 +8,11 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-static char help[] = "Test the INTERPOL solver with a user-provided PEP.\n\n"
+static char help[] = "Test the NEPProjectOperator() operator.\n\n"
   "This is based on ex22.\n"
   "The command line options are:\n"
   "  -n <n>, where <n> = number of grid subdivisions.\n"
-  "  -tau <tau>, where <tau> is the delay parameter.\n\n";
+  "  -tau <tau>, where <tau> is the delay parameter.\n";
 
 /*
    Solve parabolic partial differential equation with time delay tau
@@ -36,36 +36,21 @@ static char help[] = "Test the INTERPOL solver with a user-provided PEP.\n\n"
 int main(int argc,char **argv)
 {
   NEP            nep;
-  PEP            pep;
-  Mat            Id,A,B;
-  FN             f1,f2,f3;
-  RG             rg;
-  Mat            mats[3];
-  FN             funs[3];
-  PetscScalar    coeffs[2],b;
-  PetscInt       n=128,nev,Istart,Iend,i,deg;
-  PetscReal      tau=0.001,h,a=20,xi,tol;
-  PetscBool      terse;
+  Mat            Id,A,B,mats[3];
+  FN             f1,f2,f3,funs[3];
+  BV             V;
+  DS             ds;
+  Vec            v;
+  PetscScalar    coeffs[2],b,*M;
+  PetscInt       n=32,Istart,Iend,i,j,k,nc;
+  PetscReal      tau=0.001,h,a=20,xi;
   PetscErrorCode ierr;
 
   ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
   ierr = PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL);CHKERRQ(ierr);
   ierr = PetscOptionsGetReal(NULL,NULL,"-tau",&tau,NULL);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"\n1-D Delay Eigenproblem, n=%D, tau=%g\n\n",n,(double)tau);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"\n1-D Delay Eigenproblem, n=%D, tau=%g\n",n,(double)tau);CHKERRQ(ierr);
   h = PETSC_PI/(PetscReal)(n+1);
-
-  /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-      Create a standalone PEP and RG objects with appropriate settings
-     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-
-  ierr = PEPCreate(PETSC_COMM_WORLD,&pep);CHKERRQ(ierr);
-  ierr = PEPSetType(pep,PEPTOAR);CHKERRQ(ierr);
-  ierr = PEPSetFromOptions(pep);CHKERRQ(ierr);
-
-  ierr = RGCreate(PETSC_COMM_WORLD,&rg);CHKERRQ(ierr);
-  ierr = RGSetType(rg,RGINTERVAL);CHKERRQ(ierr);
-  ierr = RGIntervalSetEndpoints(rg,5,20,-0.1,0.1);CHKERRQ(ierr);
-  ierr = RGSetFromOptions(rg);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
      Create nonlinear eigensolver context
@@ -136,40 +121,47 @@ int main(int argc,char **argv)
   mats[1] = Id; funs[1] = f1;
   mats[2] = B;  funs[2] = f3;
   ierr = NEPSetSplitOperator(nep,3,mats,funs,SUBSET_NONZERO_PATTERN);CHKERRQ(ierr);
-
-  /* Customize nonlinear solver; set runtime options */
-  ierr = NEPSetType(nep,NEPINTERPOL);CHKERRQ(ierr);
-  ierr = NEPSetRG(nep,rg);CHKERRQ(ierr);
-  ierr = NEPInterpolSetPEP(nep,pep);CHKERRQ(ierr);
-  ierr = NEPInterpolGetInterpolation(nep,&tol,&deg);CHKERRQ(ierr);
-  ierr = NEPInterpolSetInterpolation(nep,tol,deg+2);CHKERRQ(ierr);  /* increase degree of interpolation */
+  ierr = NEPSetType(nep,NEPNARNOLDI);CHKERRQ(ierr);
   ierr = NEPSetFromOptions(nep);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-                      Solve the eigensystem
+                      Project the NEP
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  ierr = NEPSolve(nep);CHKERRQ(ierr);
-  ierr = NEPGetDimensions(nep,&nev,NULL,NULL);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," Number of requested eigenvalues: %D\n",nev);CHKERRQ(ierr);
+  ierr = NEPSetUp(nep);CHKERRQ(ierr);
+  ierr = NEPGetBV(nep,&V);CHKERRQ(ierr);
+  ierr = BVGetSizes(V,NULL,NULL,&nc);CHKERRQ(ierr);
+  for (i=0;i<nc;i++) {
+    ierr = BVGetColumn(V,i,&v);CHKERRQ(ierr);
+    ierr = VecSetValue(v,i,1.0,INSERT_VALUES);CHKERRQ(ierr);
+    ierr = VecAssemblyBegin(v);CHKERRQ(ierr);
+    ierr = VecAssemblyEnd(v);CHKERRQ(ierr);
+    ierr = BVRestoreColumn(V,i,&v);CHKERRQ(ierr);
+  }
+  ierr = NEPGetDS(nep,&ds);CHKERRQ(ierr);
+  ierr = DSSetType(ds,DSNEP);CHKERRQ(ierr);
+  ierr = DSNEPSetFN(ds,3,funs);CHKERRQ(ierr);
+  ierr = DSAllocate(ds,nc);CHKERRQ(ierr);
+  ierr = DSSetDimensions(ds,nc,0,0,0);CHKERRQ(ierr);
+  ierr = NEPProjectOperator(nep,0,nc);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-                    Display solution and clean up
+                Display projected matrices and clean up
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-  /* show detailed info unless -terse option is given by user */
-  ierr = PetscOptionsHasName(NULL,NULL,"-terse",&terse);CHKERRQ(ierr);
-  if (terse) {
-    ierr = NEPErrorView(nep,NEP_ERROR_RELATIVE,NULL);CHKERRQ(ierr);
-  } else {
-    ierr = PetscViewerPushFormat(PETSC_VIEWER_STDOUT_WORLD,PETSC_VIEWER_ASCII_INFO_DETAIL);CHKERRQ(ierr);
-    ierr = NEPReasonView(nep,PETSC_VIEWER_STDOUT_WORLD);CHKERRQ(ierr);
-    ierr = NEPErrorView(nep,NEP_ERROR_RELATIVE,PETSC_VIEWER_STDOUT_WORLD);CHKERRQ(ierr);
-    ierr = PetscViewerPopFormat(PETSC_VIEWER_STDOUT_WORLD);CHKERRQ(ierr);
+  for (k=0;k<3;k++) {
+    ierr = DSGetArray(ds,DSMatExtra[k],&M);CHKERRQ(ierr);
+    ierr = PetscPrintf(PETSC_COMM_WORLD,"\nMatrix E%d = \n",k);CHKERRQ(ierr);
+    for (i=0;i<nc;i++) {
+      for (j=0;j<nc;j++) {
+        ierr = PetscPrintf(PETSC_COMM_WORLD,"  %.5g",(double)PetscRealPart(M[i+j*nc]));CHKERRQ(ierr);
+      }
+      ierr = PetscPrintf(PETSC_COMM_WORLD,"\n");CHKERRQ(ierr);
+    }
+    ierr = DSRestoreArray(ds,DSMatExtra[k],&M);CHKERRQ(ierr);
   }
+
   ierr = NEPDestroy(&nep);CHKERRQ(ierr);
-  ierr = PEPDestroy(&pep);CHKERRQ(ierr);
-  ierr = RGDestroy(&rg);CHKERRQ(ierr);
   ierr = MatDestroy(&Id);CHKERRQ(ierr);
   ierr = MatDestroy(&A);CHKERRQ(ierr);
   ierr = MatDestroy(&B);CHKERRQ(ierr);
@@ -184,19 +176,7 @@ int main(int argc,char **argv)
 
    test:
       suffix: 1
-      args: -nep_nev 3 -nep_target 5 -terse
-      requires: !single
-
-   test:
-      suffix: 2_cuda
-      args: -nep_nev 3 -nep_target 5 -mat_type aijcusparse -terse
-      requires: cuda !single
-      output_file: output/test5_1.out
-
-   test:
-      suffix: 3
-      args: -nep_nev 3 -nep_target 5 -terse -nep_view_values draw
-      requires: x !single
-      output_file: output/test5_1.out
+      args: -nep_ncv 5
+      requires: double !complex !define(PETSC_USE_64BIT_INDICES)
 
 TEST*/

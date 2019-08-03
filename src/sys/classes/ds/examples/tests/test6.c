@@ -112,4 +112,9 @@ int main(int argc,char **argv)
       args: -ds_method {{0 1 2}}
       filter: grep -v "solving the problem"
 
+   test:
+      suffix: 2
+      args: -n 5 -k 4 -l 4 -ds_method {{0 1 2}}
+      filter: grep -v "solving the problem"
+
 TEST*/

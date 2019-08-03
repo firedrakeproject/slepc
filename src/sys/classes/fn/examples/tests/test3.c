@@ -24,7 +24,7 @@ PetscErrorCode TestMatExp(FN fn,Mat A,PetscViewer viewer,PetscBool verbose,Petsc
   Mat            F,R,Finv;
   Vec            v,f0;
   FN             finv;
-  PetscReal      nrm;
+  PetscReal      nrm,nrmf;
 
   PetscFunctionBeginUser;
   ierr = MatGetSize(A,&n,NULL);CHKERRQ(ierr);
@@ -46,8 +46,8 @@ PetscErrorCode TestMatExp(FN fn,Mat A,PetscViewer viewer,PetscBool verbose,Petsc
     ierr = MatView(F,viewer);CHKERRQ(ierr);
   }
   /* print matrix norm for checking */
-  ierr = MatNorm(F,NORM_1,&nrm);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"The 1-norm of f(A) is %g\n",(double)nrm);CHKERRQ(ierr);
+  ierr = MatNorm(F,NORM_1,&nrmf);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"The 1-norm of f(A) is %g\n",(double)nrmf);CHKERRQ(ierr);
   if (checkerror) {
     ierr = MatCreateSeqDense(PETSC_COMM_SELF,n,n,NULL,&R);CHKERRQ(ierr);
     ierr = PetscObjectSetName((PetscObject)R,"R");CHKERRQ(ierr);
@@ -86,7 +86,7 @@ PetscErrorCode TestMatExp(FN fn,Mat A,PetscViewer viewer,PetscBool verbose,Petsc
   ierr = FNEvaluateFunctionMatVec(fn,A,v);CHKERRQ(ierr);
   ierr = VecAXPY(v,-1.0,f0);CHKERRQ(ierr);
   ierr = VecNorm(v,NORM_2,&nrm);CHKERRQ(ierr);
-  if (nrm>100*PETSC_MACHINE_EPSILON) {
+  if (nrm/nrmf>100*PETSC_MACHINE_EPSILON) {
     ierr = PetscPrintf(PETSC_COMM_WORLD,"Warning: the norm of f(A)*e_1-v is %g\n",(double)nrm);CHKERRQ(ierr);
   }
   ierr = MatDestroy(&F);CHKERRQ(ierr);
@@ -217,5 +217,19 @@ int main(int argc,char **argv)
         suffix: 4_subdiagonalpade_partial
         args: -n 120 -fn_scale 0.6,1.5 -fn_method 3
         requires: c99_complex !single
+
+   test:
+      suffix: 5
+      args: -fn_scale 30 -fn_method {{2 3}}
+      filter: grep -v "computing matrix functions"
+      requires: c99_complex !single
+      output_file: output/test3_5.out
+
+   testset:
+      suffix: 6
+      args: -fn_scale 1e-9 -fn_method {{2 3}}
+      filter: grep -v "computing matrix functions"
+      requires: c99_complex !single
+      output_file: output/test3_6.out
 
 TEST*/

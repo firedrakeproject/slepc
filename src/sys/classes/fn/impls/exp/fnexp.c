@@ -244,42 +244,27 @@ static PetscErrorCode getcoeffs(PetscInt k,PetscInt m,PetscComplex *r,PetscCompl
   } else {
     if (m==k+1) {
       if (k==4) {
-        for (i=0;i<5;i++) {
-          r[i] = p1r4[i]; q[i] = p1q4[i];
-        }
+        for (i=0;i<5;i++) { r[i] = p1r4[i]; q[i] = p1q4[i]; }
       } else if (k==3) {
-        for (i=0;i<4;i++) {
-          r[i] = p1r3[i]; q[i] = p1q3[i];
-        }
+        for (i=0;i<4;i++) { r[i] = p1r3[i]; q[i] = p1q3[i]; }
       } else if (k==2) {
-        for (i=0;i<3;i++) {
-          r[i] = p1r2[i]; q[i] = p1q2[i];
-        }
+        for (i=0;i<3;i++) { r[i] = p1r2[i]; q[i] = p1q2[i]; }
       } else if (k==1) {
-        for (i=0;i<2;i++) {
-          r[i] = p1r1[i]; q[i] = p1q1[i];
-        }
+        for (i=0;i<2;i++) { r[i] = p1r1[i]; q[i] = p1q1[i]; }
       }
       PetscFunctionReturn(0); /* quick return */
     }
     if (m==k-1) {
       if (k==5) {
-        for (i=0;i<4;i++) {
-          r[i] = m1r5[i]; q[i] = m1q5[i];
-        }
+        for (i=0;i<4;i++) { r[i] = m1r5[i]; q[i] = m1q5[i]; }
         for (i=0;i<2;i++) remain[i] = m1remain5[i];
       } else if (k==4) {
-        for (i=0;i<3;i++) {
-          r[i] = m1r4[i]; q[i] = m1q4[i];
-        }
+        for (i=0;i<3;i++) { r[i] = m1r4[i]; q[i] = m1q4[i]; }
         for (i=0;i<2;i++) remain[i] = m1remain4[i];
       } else if (k==3) {
-        for (i=0;i<2;i++) {
-          r[i] = m1r3[i]; q[i] = m1q3[i]; remain[i] = m1remain3[i];
-        }
+        for (i=0;i<2;i++) { r[i] = m1r3[i]; q[i] = m1q3[i]; remain[i] = m1remain3[i]; }
       } else if (k==2) {
-        r[0] = -13.5;
-        q[0] = 3;
+        r[0] = -13.5; q[0] = 3;
         for (i=0;i<2;i++) remain[i] = m1remain2[i];
       }
     }
@@ -369,19 +354,13 @@ static PetscErrorCode getcoeffsproduct(PetscInt k,PetscInt m,PetscComplex *p,Pet
       *mult = PetscPowInt(-1,m);
       *mult *= m;
       if (k==4) {
-        for (i=0;i<4;i++) {
-          p[i] = p1p4[i]; q[i] = p1q4[i];
-        }
+        for (i=0;i<4;i++) { p[i] = p1p4[i]; q[i] = p1q4[i]; }
         q[4] = p1q4[4];
       } else if (k==3) {
-        for (i=0;i<3;i++) {
-          p[i] = p1p3[i]; q[i] = p1q3[i];
-        }
+        for (i=0;i<3;i++) { p[i] = p1p3[i]; q[i] = p1q3[i]; }
         q[3] = p1q3[3];
       } else if (k==2) {
-        for (i=0;i<2;i++) {
-          p[i] = p1p2[i]; q[i] = p1q2[i];
-        }
+        for (i=0;i<2;i++) { p[i] = p1p2[i]; q[i] = p1q2[i]; }
         q[2] = p1q2[2];
       } else if (k==1) {
         p[0] = -3;
@@ -393,19 +372,13 @@ static PetscErrorCode getcoeffsproduct(PetscInt k,PetscInt m,PetscComplex *p,Pet
       *mult = PetscPowInt(-1,m);
       *mult /= k;
       if (k==5) {
-        for (i=0;i<4;i++) {
-          p[i] = m1p5[i]; q[i] = m1q5[i];
-        }
+        for (i=0;i<4;i++) { p[i] = m1p5[i]; q[i] = m1q5[i]; }
         p[4] = m1p5[4];
       } else if (k==4) {
-        for (i=0;i<3;i++) {
-          p[i] = m1p4[i]; q[i] = m1q4[i];
-        }
+        for (i=0;i<3;i++) { p[i] = m1p4[i]; q[i] = m1q4[i]; }
         p[3] = m1p4[3];
       } else if (k==3) {
-        for (i=0;i<2;i++) {
-          p[i] = m1p3[i]; q[i] = m1q3[i];
-        }
+        for (i=0;i<2;i++) { p[i] = m1p3[i]; q[i] = m1q3[i]; }
         p[2] = m1p3[2];
       } else if (k==2) {
         for (i=0;i<2;i++) p[i] = m1p2[i];
@@ -541,7 +514,7 @@ PetscErrorCode FNEvaluateFunctionMat_Exp_GuettelNakatsukasa(FN fn,Mat A,Mat B)
     PetscStackCallBLAS("BLASscal",BLASscal_(&n2,&expshift,sMaux,&one));
     ierr = PetscLogFlops(1.0*(n+n2));CHKERRQ(ierr);
     ierr = PetscArraycpy(Ba,sMaux,n2);CHKERRQ(ierr);
-    ierr = PetscFree(sMaux);CHKERRQ(ierr);
+    ierr = PetscFree2(sMaux,Maux);CHKERRQ(ierr);
     ierr = MatDenseRestoreArray(A,&Aa);CHKERRQ(ierr);
     ierr = MatDenseRestoreArray(B,&Ba);CHKERRQ(ierr);
     PetscFunctionReturn(0); /* quick return */
@@ -675,7 +648,7 @@ PetscErrorCode FNEvaluateFunctionMat_Exp_GuettelNakatsukasa(FN fn,Mat A,Mat B)
       /* loop(n) + gemm + loop(n) + gesv */
       ierr = SlepcLogFlopsComplex(1.0*n+(2.0*n*n*n)+1.0*n+(2.0*n*n*n/3.0+2.0*n*n*n));CHKERRQ(ierr);
     }
-    /* extra enumerator */
+    /* extra numerator */
     for (i=minlen;i<irsize;i++) {
       ierr = PetscArraycpy(RR,As,n2);CHKERRQ(ierr);
       for (j=0;j<n;j++) {

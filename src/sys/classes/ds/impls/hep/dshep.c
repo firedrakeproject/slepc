@@ -50,7 +50,7 @@ PetscErrorCode DSAllocate_HEP(DS ds,PetscInt ld)
     -----------------------------------------
 */
 
-static PetscErrorCode DSSwitchFormat_HEP(DS ds,PetscBool tocompact)
+static PetscErrorCode DSSwitchFormat_HEP(DS ds)
 {
   PetscErrorCode ierr;
   PetscReal      *T = ds->rmat[DS_MAT_T];
@@ -58,33 +58,20 @@ static PetscErrorCode DSSwitchFormat_HEP(DS ds,PetscBool tocompact)
   PetscInt       i,n=ds->n,k=ds->k,ld=ds->ld;
 
   PetscFunctionBegin;
-  if (tocompact) { /* switch from dense (arrow) to compact storage */
-    ierr = PetscArrayzero(T,3*ld);CHKERRQ(ierr);
-    for (i=0;i<k;i++) {
-      T[i] = PetscRealPart(A[i+i*ld]);
-      T[i+ld] = PetscRealPart(A[k+i*ld]);
-    }
-    for (i=k;i<n-1;i++) {
-      T[i]    = PetscRealPart(A[i+i*ld]);
-      T[i+ld] = PetscRealPart(A[i+1+i*ld]);
-    }
-    T[n-1] = PetscRealPart(A[n-1+(n-1)*ld]);
-    if (ds->extrarow) T[n-1+ld] = PetscRealPart(A[n+(n-1)*ld]);
-  } else { /* switch from compact (arrow) to dense storage */
-    ierr = PetscArrayzero(A,ld*ld);CHKERRQ(ierr);
-    for (i=0;i<k;i++) {
-      A[i+i*ld] = T[i];
-      A[k+i*ld] = T[i+ld];
-      A[i+k*ld] = T[i+ld];
-    }
-    A[k+k*ld] = T[k];
-    for (i=k+1;i<n;i++) {
-      A[i+i*ld]     = T[i];
-      A[i-1+i*ld]   = T[i-1+ld];
-      A[i+(i-1)*ld] = T[i-1+ld];
-    }
-    if (ds->extrarow) A[n+(n-1)*ld] = T[n-1+ld];
+  /* switch from compact (arrow) to dense storage */
+  ierr = PetscArrayzero(A,ld*ld);CHKERRQ(ierr);
+  for (i=0;i<k;i++) {
+    A[i+i*ld] = T[i];
+    A[k+i*ld] = T[i+ld];
+    A[i+k*ld] = T[i+ld];
   }
+  A[k+k*ld] = T[k];
+  for (i=k+1;i<n;i++) {
+    A[i+i*ld]     = T[i];
+    A[i-1+i*ld]   = T[i-1+ld];
+    A[i+(i-1)*ld] = T[i-1+ld];
+  }
+  if (ds->extrarow) A[n+(n-1)*ld] = T[n-1+ld];
   PetscFunctionReturn(0);
 }
 
@@ -759,7 +746,7 @@ PetscErrorCode DSCond_HEP(DS ds,PetscReal *cond)
   work  = ds->work;
   rwork = ds->rwork;
   ipiv  = ds->iwork;
-  ierr = DSSwitchFormat_HEP(ds,PETSC_FALSE);CHKERRQ(ierr);
+  ierr = DSSwitchFormat_HEP(ds);CHKERRQ(ierr);
 
   /* use workspace matrix W to avoid overwriting A */
   ierr = DSAllocateMat_Private(ds,DS_MAT_W);CHKERRQ(ierr);

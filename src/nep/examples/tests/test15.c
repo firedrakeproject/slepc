@@ -8,7 +8,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-static char help[] = "Test the INTERPOL solver with a user-provided PEP.\n\n"
+static char help[] = "Illustrates the use of a user-defined stopping test.\n\n"
   "This is based on ex22.\n"
   "The command line options are:\n"
   "  -n <n>, where <n> = number of grid subdivisions.\n"
@@ -33,19 +33,30 @@ static char help[] = "Test the INTERPOL solver with a user-provided PEP.\n\n"
 
 #include <slepcnep.h>
 
+/*
+   User-defined routines
+*/
+PetscErrorCode MyStoppingTest(NEP,PetscInt,PetscInt,PetscInt,PetscInt,NEPConvergedReason*,void*);
+
+typedef struct {
+  PetscInt    lastnconv;      /* last value of nconv; used in stopping test */
+  PetscInt    nreps;          /* number of repetitions of nconv; used in stopping test */
+} CTX_DELAY;
+
 int main(int argc,char **argv)
 {
   NEP            nep;
-  PEP            pep;
   Mat            Id,A,B;
   FN             f1,f2,f3;
   RG             rg;
+  CTX_DELAY      *ctx;
   Mat            mats[3];
   FN             funs[3];
   PetscScalar    coeffs[2],b;
-  PetscInt       n=128,nev,Istart,Iend,i,deg;
-  PetscReal      tau=0.001,h,a=20,xi,tol;
+  PetscInt       n=128,Istart,Iend,i,mpd;
+  PetscReal      tau=0.001,h,a=20,xi;
   PetscBool      terse;
+  PetscViewer    viewer;
   PetscErrorCode ierr;
 
   ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
@@ -53,19 +64,6 @@ int main(int argc,char **argv)
   ierr = PetscOptionsGetReal(NULL,NULL,"-tau",&tau,NULL);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD,"\n1-D Delay Eigenproblem, n=%D, tau=%g\n\n",n,(double)tau);CHKERRQ(ierr);
   h = PETSC_PI/(PetscReal)(n+1);
-
-  /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-      Create a standalone PEP and RG objects with appropriate settings
-     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-
-  ierr = PEPCreate(PETSC_COMM_WORLD,&pep);CHKERRQ(ierr);
-  ierr = PEPSetType(pep,PEPTOAR);CHKERRQ(ierr);
-  ierr = PEPSetFromOptions(pep);CHKERRQ(ierr);
-
-  ierr = RGCreate(PETSC_COMM_WORLD,&rg);CHKERRQ(ierr);
-  ierr = RGSetType(rg,RGINTERVAL);CHKERRQ(ierr);
-  ierr = RGIntervalSetEndpoints(rg,5,20,-0.1,0.1);CHKERRQ(ierr);
-  ierr = RGSetFromOptions(rg);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
      Create nonlinear eigensolver context
@@ -137,12 +135,34 @@ int main(int argc,char **argv)
   mats[2] = B;  funs[2] = f3;
   ierr = NEPSetSplitOperator(nep,3,mats,funs,SUBSET_NONZERO_PATTERN);CHKERRQ(ierr);
 
-  /* Customize nonlinear solver; set runtime options */
-  ierr = NEPSetType(nep,NEPINTERPOL);CHKERRQ(ierr);
-  ierr = NEPSetRG(nep,rg);CHKERRQ(ierr);
-  ierr = NEPInterpolSetPEP(nep,pep);CHKERRQ(ierr);
-  ierr = NEPInterpolGetInterpolation(nep,&tol,&deg);CHKERRQ(ierr);
-  ierr = NEPInterpolSetInterpolation(nep,tol,deg+2);CHKERRQ(ierr);  /* increase degree of interpolation */
+  /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+                Customize nonlinear solver; set runtime options
+     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+  ierr = NEPSetType(nep,NEPNLEIGS);CHKERRQ(ierr);
+  ierr = NEPGetRG(nep,&rg);CHKERRQ(ierr);
+  ierr = RGSetType(rg,RGINTERVAL);CHKERRQ(ierr);
+#if defined(PETSC_USE_COMPLEX)
+  ierr = RGIntervalSetEndpoints(rg,5,20,-0.001,0.001);CHKERRQ(ierr);
+#else
+  ierr = RGIntervalSetEndpoints(rg,5,20,-0.0,0.0);CHKERRQ(ierr);
+#endif
+  ierr = NEPSetTarget(nep,15.0);CHKERRQ(ierr);
+  ierr = NEPSetWhichEigenpairs(nep,NEP_TARGET_MAGNITUDE);CHKERRQ(ierr);
+
+  /*
+     Set solver options. In particular, we must allocate sufficient
+     storage for all eigenpairs that may converge (ncv). This is
+     application-dependent.
+  */
+  mpd = 40;
+  ierr = NEPSetDimensions(nep,2*mpd,3*mpd,mpd);CHKERRQ(ierr);
+  ierr = NEPSetTolerances(nep,PETSC_DEFAULT,2000);CHKERRQ(ierr);
+  ierr = PetscNew(&ctx);CHKERRQ(ierr);
+  ctx->lastnconv = 0;
+  ctx->nreps     = 0;
+  ierr = NEPSetStoppingTestFunction(nep,MyStoppingTest,(void*)ctx,NULL);CHKERRQ(ierr);
+
   ierr = NEPSetFromOptions(nep);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -150,53 +170,64 @@ int main(int argc,char **argv)
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
   ierr = NEPSolve(nep);CHKERRQ(ierr);
-  ierr = NEPGetDimensions(nep,&nev,NULL,NULL);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," Number of requested eigenvalues: %D\n",nev);CHKERRQ(ierr);
-
-  /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-                    Display solution and clean up
-     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
   /* show detailed info unless -terse option is given by user */
+  ierr = PetscViewerASCIIGetStdout(PETSC_COMM_WORLD,&viewer);CHKERRQ(ierr);
+  ierr = PetscViewerPushFormat(viewer,PETSC_VIEWER_ASCII_INFO_DETAIL);CHKERRQ(ierr);
+  ierr = NEPReasonView(nep,viewer);CHKERRQ(ierr);
   ierr = PetscOptionsHasName(NULL,NULL,"-terse",&terse);CHKERRQ(ierr);
-  if (terse) {
-    ierr = NEPErrorView(nep,NEP_ERROR_RELATIVE,NULL);CHKERRQ(ierr);
-  } else {
-    ierr = PetscViewerPushFormat(PETSC_VIEWER_STDOUT_WORLD,PETSC_VIEWER_ASCII_INFO_DETAIL);CHKERRQ(ierr);
-    ierr = NEPReasonView(nep,PETSC_VIEWER_STDOUT_WORLD);CHKERRQ(ierr);
-    ierr = NEPErrorView(nep,NEP_ERROR_RELATIVE,PETSC_VIEWER_STDOUT_WORLD);CHKERRQ(ierr);
-    ierr = PetscViewerPopFormat(PETSC_VIEWER_STDOUT_WORLD);CHKERRQ(ierr);
+  if (!terse) {
+    ierr = NEPErrorView(nep,NEP_ERROR_BACKWARD,viewer);CHKERRQ(ierr);
   }
+  ierr = PetscViewerPopFormat(viewer);CHKERRQ(ierr);
+
   ierr = NEPDestroy(&nep);CHKERRQ(ierr);
-  ierr = PEPDestroy(&pep);CHKERRQ(ierr);
-  ierr = RGDestroy(&rg);CHKERRQ(ierr);
   ierr = MatDestroy(&Id);CHKERRQ(ierr);
   ierr = MatDestroy(&A);CHKERRQ(ierr);
   ierr = MatDestroy(&B);CHKERRQ(ierr);
   ierr = FNDestroy(&f1);CHKERRQ(ierr);
   ierr = FNDestroy(&f2);CHKERRQ(ierr);
   ierr = FNDestroy(&f3);CHKERRQ(ierr);
+  ierr = PetscFree(ctx);CHKERRQ(ierr);
   ierr = SlepcFinalize();
   return ierr;
+}
+
+/*
+    Function for user-defined stopping test.
+
+    Ignores the value of nev. It only takes into account the number of
+    eigenpairs that have converged in recent outer iterations (restarts);
+    if no new eigenvalus have converged in the last few restarts,
+    we stop the iteration, assuming that no more eigenvalues are present
+    inside the region.
+*/
+PetscErrorCode MyStoppingTest(NEP nep,PetscInt its,PetscInt max_it,PetscInt nconv,PetscInt nev,NEPConvergedReason *reason,void *ptr)
+{
+  PetscErrorCode ierr;
+  CTX_DELAY      *ctx = (CTX_DELAY*)ptr;
+
+  PetscFunctionBeginUser;
+  /* check usual termination conditions, but ignoring the case nconv>=nev */
+  ierr = NEPStoppingBasic(nep,its,max_it,nconv,PETSC_MAX_INT,reason,NULL);CHKERRQ(ierr);
+  if (*reason==NEP_CONVERGED_ITERATING) {
+    /* check if nconv is the same as before */
+    if (nconv==ctx->lastnconv) ctx->nreps++;
+    else {
+      ctx->lastnconv = nconv;
+      ctx->nreps     = 0;
+    }
+    /* check if no eigenvalues converged in last 10 restarts */
+    if (nconv && ctx->nreps>10) *reason = NEP_CONVERGED_USER;
+  }
+  PetscFunctionReturn(0);
 }
 
 /*TEST
 
    test:
       suffix: 1
-      args: -nep_nev 3 -nep_target 5 -terse
+      args: -terse
       requires: !single
-
-   test:
-      suffix: 2_cuda
-      args: -nep_nev 3 -nep_target 5 -mat_type aijcusparse -terse
-      requires: cuda !single
-      output_file: output/test5_1.out
-
-   test:
-      suffix: 3
-      args: -nep_nev 3 -nep_target 5 -terse -nep_view_values draw
-      requires: x !single
-      output_file: output/test5_1.out
 
 TEST*/

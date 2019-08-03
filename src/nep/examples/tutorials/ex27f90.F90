@@ -124,7 +124,7 @@ PROGRAM main
      call MatAssemblyEnd(A(2),MAT_FINAL_ASSEMBLY,ierr);CHKERRA(ierr)
      call MatShift(A(2),done,ierr);CHKERRA(ierr)
 
-     ! ** Define funcions for the split form
+     ! ** Define functions for the split form
      call FNCreate(PETSC_COMM_WORLD,fn(1),ierr);CHKERRA(ierr)
      call FNSetType(fn(1),FNRATIONAL,ierr);CHKERRA(ierr)
      call FNRationalSetNumerator(fn(1),one,done,ierr);CHKERRA(ierr)

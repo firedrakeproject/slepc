@@ -8,12 +8,13 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-static char help[] = "Lanczos SVD. Also illustrates the use of SVDSetBV().\n\n"
+static char help[] = "SVD problem with user-defined stopping test.\n\n"
   "The command line options are:\n"
   "  -m <m>, where <m> = matrix rows.\n"
   "  -n <n>, where <n> = matrix columns (defaults to m+2).\n\n";
 
 #include <slepcsvd.h>
+#include <petsctime.h>
 
 /*
    This example computes the singular values of a rectangular bidiagonal matrix
@@ -27,24 +28,49 @@ static char help[] = "Lanczos SVD. Also illustrates the use of SVDSetBV().\n\n"
               |                   1  2    |
  */
 
+/*
+    Function for user-defined stopping test.
+
+    Checks that the computing time has not exceeded the deadline.
+*/
+PetscErrorCode MyStoppingTest(SVD svd,PetscInt its,PetscInt max_it,PetscInt nconv,PetscInt nev,SVDConvergedReason *reason,void *ctx)
+{
+  PetscErrorCode ierr;
+  PetscLogDouble now,deadline = *(PetscLogDouble*)ctx;
+
+  PetscFunctionBeginUser;
+  /* check if usual termination conditions are met */
+  ierr = SVDStoppingBasic(svd,its,max_it,nconv,nev,reason,NULL);CHKERRQ(ierr);
+  if (*reason==SVD_CONVERGED_ITERATING) {
+    /* check if deadline has expired */
+    ierr = PetscTime(&now);CHKERRQ(ierr);
+    if (now>deadline) *reason = SVD_CONVERGED_USER;
+  }
+  PetscFunctionReturn(0);
+}
+
 int main(int argc,char **argv)
 {
-  Mat            A;
-  SVD            svd;
-  PetscInt       m=20,n,Istart,Iend,i,k=6,col[2];
-  PetscScalar    value[] = { 1, 2 };
-  PetscBool      flg,oneside=PETSC_FALSE;
-  const char     *prefix;
-  BV             U,V;
-  Vec            u,v;
-  PetscErrorCode ierr;
+  Mat                A;
+  SVD                svd;
+  SVDConvergedReason reason;
+  PetscInt           m=20,n,Istart,Iend,i,col[2],nconv;
+  PetscReal          seconds=2.5;     /* maximum time allowed for computation */
+  PetscLogDouble     deadline;        /* time to abort computation */
+  PetscScalar        value[] = { 1, 2 };
+  PetscBool          terse,flg;
+  PetscViewer        viewer;
+  PetscErrorCode     ierr;
 
   ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
+
   ierr = PetscOptionsGetInt(NULL,NULL,"-m",&m,NULL);CHKERRQ(ierr);
   ierr = PetscOptionsGetInt(NULL,NULL,"-n",&n,&flg);CHKERRQ(ierr);
   if (!flg) n=m+2;
-  ierr = PetscOptionsGetInt(NULL,NULL,"-k",&k,NULL);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD,"\nRectangular bidiagonal matrix, m=%D n=%D\n\n",m,n);CHKERRQ(ierr);
+  ierr = PetscOptionsGetReal(NULL,NULL,"-seconds",&seconds,NULL);CHKERRQ(ierr);
+  deadline = seconds;
+  ierr = PetscTimeAdd(&deadline);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         Generate the matrix
@@ -65,58 +91,43 @@ int main(int argc,char **argv)
   }
   ierr = MatAssemblyBegin(A,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
   ierr = MatAssemblyEnd(A,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
-  ierr = MatCreateVecs(A,&v,&u);CHKERRQ(ierr);
-
-  /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-         Create standalone BV objects to illustrate use of SVDSetBV()
-     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-
-  ierr = BVCreate(PETSC_COMM_WORLD,&U);CHKERRQ(ierr);
-  ierr = PetscObjectSetName((PetscObject)U,"U");CHKERRQ(ierr);
-  ierr = BVSetSizesFromVec(U,u,k);CHKERRQ(ierr);
-  ierr = BVSetFromOptions(U);CHKERRQ(ierr);
-  ierr = BVCreate(PETSC_COMM_WORLD,&V);CHKERRQ(ierr);
-  ierr = PetscObjectSetName((PetscObject)V,"V");CHKERRQ(ierr);
-  ierr = BVSetSizesFromVec(V,v,k);CHKERRQ(ierr);
-  ierr = BVSetFromOptions(V);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         Compute singular values
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
   ierr = SVDCreate(PETSC_COMM_WORLD,&svd);CHKERRQ(ierr);
-  ierr = SVDSetOptionsPrefix(svd,"check_");CHKERRQ(ierr);
-  ierr = SVDAppendOptionsPrefix(svd,"myprefix_");CHKERRQ(ierr);
-  ierr = SVDGetOptionsPrefix(svd,&prefix);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD,"SVD prefix is currently: %s\n\n",prefix);CHKERRQ(ierr);
-  ierr = PetscObjectSetName((PetscObject)svd,"SVD_solver");CHKERRQ(ierr);
-
   ierr = SVDSetOperator(svd,A);CHKERRQ(ierr);
-  ierr = SVDSetBV(svd,V,U);CHKERRQ(ierr);
-  ierr = SVDSetType(svd,SVDLANCZOS);CHKERRQ(ierr);
+  ierr = SVDSetWhichSingularTriplets(svd,SVD_SMALLEST);CHKERRQ(ierr);
+  ierr = SVDSetTolerances(svd,PETSC_DEFAULT,1000);CHKERRQ(ierr);
+  ierr = SVDSetType(svd,SVDTRLANCZOS);CHKERRQ(ierr);
+  ierr = SVDSetStoppingTestFunction(svd,MyStoppingTest,&deadline,NULL);CHKERRQ(ierr);
   ierr = SVDSetFromOptions(svd);CHKERRQ(ierr);
 
-  ierr = PetscObjectTypeCompare((PetscObject)svd,SVDLANCZOS,&flg);CHKERRQ(ierr);
-  if (flg) {
-    ierr = SVDLanczosGetOneSide(svd,&oneside);CHKERRQ(ierr);
-    ierr = PetscPrintf(PETSC_COMM_WORLD,"Running Lanczos %s\n\n",oneside?"(onesided)":"");CHKERRQ(ierr);
-  }
-  ierr = PetscObjectTypeCompare((PetscObject)svd,SVDTRLANCZOS,&flg);CHKERRQ(ierr);
-  if (flg) {
-    ierr = SVDTRLanczosGetOneSide(svd,&oneside);CHKERRQ(ierr);
-    ierr = PetscPrintf(PETSC_COMM_WORLD,"Running thick-restart Lanczos %s\n\n",oneside?"(onesided)":"");CHKERRQ(ierr);
-  }
-
+  /* call the solver */
   ierr = SVDSolve(svd);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                     Display solution and clean up
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-  ierr = SVDErrorView(svd,SVD_ERROR_RELATIVE,PETSC_VIEWER_STDOUT_WORLD);CHKERRQ(ierr);
-  ierr = BVDestroy(&U);CHKERRQ(ierr);
-  ierr = BVDestroy(&V);CHKERRQ(ierr);
-  ierr = VecDestroy(&u);CHKERRQ(ierr);
-  ierr = VecDestroy(&v);CHKERRQ(ierr);
+
+  /* show detailed info unless -terse option is given by user */
+  ierr = PetscOptionsHasName(NULL,NULL,"-terse",&terse);CHKERRQ(ierr);
+  if (terse) {
+    ierr = SVDErrorView(svd,SVD_ERROR_RELATIVE,PETSC_VIEWER_STDOUT_WORLD);CHKERRQ(ierr);
+  } else {
+    ierr = PetscViewerASCIIGetStdout(PETSC_COMM_WORLD,&viewer);CHKERRQ(ierr);
+    ierr = PetscViewerPushFormat(viewer,PETSC_VIEWER_ASCII_INFO_DETAIL);CHKERRQ(ierr);
+    ierr = SVDGetConvergedReason(svd,&reason);CHKERRQ(ierr);
+    if (reason!=SVD_CONVERGED_USER) {
+      ierr = SVDReasonView(svd,viewer);CHKERRQ(ierr);
+      ierr = SVDErrorView(svd,SVD_ERROR_RELATIVE,viewer);CHKERRQ(ierr);
+    } else {
+      ierr = SVDGetConverged(svd,&nconv);CHKERRQ(ierr);
+      ierr = PetscViewerASCIIPrintf(viewer,"SVD solve finished with %D converged eigenpairs; reason=%s\n",nconv,SVDConvergedReasons[reason]);CHKERRQ(ierr);
+    }
+    ierr = PetscViewerPopFormat(viewer);CHKERRQ(ierr);
+  }
   ierr = SVDDestroy(&svd);CHKERRQ(ierr);
   ierr = MatDestroy(&A);CHKERRQ(ierr);
   ierr = SlepcFinalize();
@@ -125,18 +136,8 @@ int main(int argc,char **argv)
 
 /*TEST
 
-   testset:
-      args: -check_myprefix_svd_nsv 3
-      requires: double
-      test:
-         suffix: 1
-         args: -check_myprefix_svd_view_vectors ::ascii_info
-      test:
-         suffix: 2
-         args: -check_myprefix_svd_type trlanczos -check_myprefix_svd_monitor -check_myprefix_svd_view_values ::ascii_matlab
-         filter: sed -e "s/[0-9]\.[0-9]*e[+-]\([0-9]*\)/removed/g"
-      test:
-         suffix: 3
-         args: -m 22 -n 20
+   test:
+      suffix: 1
+      args: -m 750 -seconds 0.5
 
 TEST*/

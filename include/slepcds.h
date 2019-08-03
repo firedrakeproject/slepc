@@ -141,6 +141,7 @@ SLEPC_EXTERN PetscErrorCode DSAppendOptionsPrefix(DS,const char *);
 SLEPC_EXTERN PetscErrorCode DSGetOptionsPrefix(DS,const char *[]);
 SLEPC_EXTERN PetscErrorCode DSSetFromOptions(DS);
 SLEPC_EXTERN PetscErrorCode DSView(DS,PetscViewer);
+PETSC_STATIC_INLINE PetscErrorCode DSViewFromOptions(DS ds,PetscObject obj,const char name[]) {return PetscObjectViewFromOptions((PetscObject)ds,obj,name);}
 SLEPC_EXTERN PetscErrorCode DSViewMat(DS,PetscViewer,DSMatType);
 SLEPC_EXTERN PetscErrorCode DSDestroy(DS*);
 SLEPC_EXTERN PetscErrorCode DSReset(DS);
