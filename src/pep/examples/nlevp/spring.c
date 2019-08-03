@@ -171,7 +171,7 @@ int main(int argc,char **argv)
    test:
       suffix: 5
       args: -n 300 -pep_hyperbolic -pep_interval -.506,-.3 -pep_type stoar -st_type sinvert -st_pc_type cholesky -pep_stoar_nev 10 -terse
-      requires: !single
+      requires: !complex !single
 
    test:
       suffix: 6
