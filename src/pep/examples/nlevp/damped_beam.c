@@ -172,7 +172,7 @@ int main(int argc,char **argv)
 
    testset:
       args: -pep_nev 2 -pep_ncv 12 -pep_target 0 -terse
-      requires: !complex !single
+      requires: !single
       output_file: output/damped_beam_1.out
       test:
          suffix: 1

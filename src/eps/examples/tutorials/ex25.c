@@ -189,7 +189,6 @@ int main(int argc,char **argv)
 
    testset:
       args: -terse
-      requires: !complex
       output_file: output/ex25_1.out
       test:
          suffix: 1

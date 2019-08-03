@@ -70,7 +70,7 @@ int main(int argc,char **argv)
   /* Solve */
   ierr = PetscMalloc2(d*n,&wr,d*n,&wi);CHKERRQ(ierr);
   ierr = DSGetSlepcSC(ds,&sc);CHKERRQ(ierr);
-  sc->comparison    = SlepcCompareLargestReal;
+  sc->comparison    = SlepcCompareLargestImaginary;
   sc->comparisonctx = NULL;
   sc->map           = NULL;
   sc->mapobj        = NULL;
@@ -124,5 +124,10 @@ int main(int argc,char **argv)
       suffix: 1
       args: -n 7
       requires: !complex
+
+   test:
+      suffix: 1_complex
+      args: -n 7
+      requires: complex
 
 TEST*/

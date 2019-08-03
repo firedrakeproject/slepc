@@ -76,7 +76,11 @@ int main(int argc,char **argv)
   rnorm = 0.0;
   ierr = DSGetArray(ds,DS_MAT_X,&X);CHKERRQ(ierr);
   for (i=0;i<n;i++) {
+#if defined(PETSC_USE_COMPLEX)
     aux = PetscAbsScalar(X[i+j*ld]);
+#else
+    aux = SlepcAbsEigenvalue(X[i+j*ld],X[i+(j+1)*ld]);
+#endif
     rnorm += aux*aux;
   }
   ierr = DSRestoreArray(ds,DS_MAT_X,&X);CHKERRQ(ierr);
@@ -96,6 +100,5 @@ int main(int argc,char **argv)
 
    test:
       suffix: 1
-      requires: !complex
 
 TEST*/

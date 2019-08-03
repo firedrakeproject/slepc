@@ -138,7 +138,7 @@ int main(int argc,char **argv)
    testset:
       args: -pep_nev 4 -pep_tol 1e-7 -n 24 -terse
       output_file: output/acoustic_wave_1d_1.out
-      requires: !complex !single
+      requires: !single
       test:
          suffix: 1
          args: -st_type sinvert -st_transform -pep_type {{toar qarnoldi linear}}

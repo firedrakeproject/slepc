@@ -166,7 +166,6 @@ int main(int argc,char **argv)
 
    testset:
       args: -pep_nev 4 -pep_ncv 21 -n 12 -terse
-      requires: !complex
       output_file: output/ex16_1.out
       test:
          suffix: 1
@@ -177,14 +176,14 @@ int main(int argc,char **argv)
       test:
          suffix: 1_linear_symm
          args: -pep_type linear -pep_linear_explicitmatrix -pep_linear_eps_gen_indefinite
-         requires: !single
+         requires: !single !complex
       test:
          suffix: 1_stoar
          args: -pep_type stoar
-         requires: !single
+         requires: !single !complex
       test:
          suffix: 1_stoar_t
          args: -pep_type stoar -st_transform
-         requires: !single
+         requires: !single !complex
 
 TEST*/

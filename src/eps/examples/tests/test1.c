@@ -166,7 +166,7 @@ int main(int argc,char **argv)
          args: -mat_type sbaij
 
    testset:
-      requires: !single !complex
+      requires: !single
       args: -eps_tol 1e-10 -st_type sinvert -st_ksp_type preonly -st_pc_type cholesky
       test:
          suffix: 2

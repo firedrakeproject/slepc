@@ -139,7 +139,7 @@ int main(int argc,char **argv)
    testset:
       args: -pep_nev 2 -pep_ncv 18 -terse
       output_file: output/acoustic_wave_2d_1.out
-      requires: !complex !single
+      requires: !single
       test:
          suffix: 1
          args: -pep_type {{qarnoldi linear}}
@@ -149,5 +149,6 @@ int main(int argc,char **argv)
       test:
          suffix: 1_stoar
          args: -pep_type stoar -pep_hermitian -pep_scale scalar
+         requires: !complex
 
 TEST*/

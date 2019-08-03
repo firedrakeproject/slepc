@@ -296,18 +296,18 @@ PetscErrorCode MatGetDiagonal_Brussel(Mat A,Vec diag)
    test:
       suffix: 1
       args: -n 50 -eps_nev 4 -eps_two_sided {{0 1}} -eps_type {{krylovschur lapack}} -terse
-      requires: !complex !single
+      requires: !single
       filter: grep -v method
 
    test:
       suffix: 2
       args: -eps_nev 8 -eps_max_it 300 -eps_target -28 -rg_type interval -rg_interval_endpoints -40,-20,-.1,.1 -terse
-      requires: !complex !single
+      requires: !single
 
    test:
       suffix: 3
       args: -n 50 -eps_nev 4 -eps_balance twoside -terse
-      requires: double !complex !define(PETSC_USE_64BIT_INDICES)
+      requires: double !define(PETSC_USE_64BIT_INDICES)
       filter: grep -v method
       output_file: output/ex9_1.out
 
@@ -317,9 +317,14 @@ PetscErrorCode MatGetDiagonal_Brussel(Mat A,Vec diag)
       requires: !complex !single
 
    test:
+      suffix: 4_complex
+      args: -eps_smallest_imaginary -eps_ncv 24 -terse
+      requires: complex !single
+
+   test:
       suffix: 5
       args: -eps_nev 4 -eps_target_real -eps_target -3 -terse
-      requires: !complex !single
+      requires: !single
 
    test:
       suffix: 6
@@ -334,7 +339,7 @@ PetscErrorCode MatGetDiagonal_Brussel(Mat A,Vec diag)
    test:
       suffix: 8
       args: -eps_nev 2 -eps_target -30 -eps_type jd -st_matmode shell -eps_jd_fix 0.0001 -eps_jd_const_correction_tol 0 -terse
-      requires: !complex double
+      requires: double
 
    test:
       suffix: 9

@@ -185,7 +185,7 @@ int main(int argc,char **argv)
 /*TEST
 
    test:
-      requires: !single !complex
+      requires: !single
       args: -showinertia 0
 
 TEST*/

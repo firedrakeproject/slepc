@@ -132,6 +132,7 @@ int main(int argc,char **argv)
 
    test:
       suffix: 1
-      requires: !complex
+      filter: sed -e "s/[+-]\([0-9]\.[0-9]*i\)/+-\\1/"
+      filter_output: sed -e "s/[+-]\([0-9]\.[0-9]*i\)/+-\\1/"
 
 TEST*/

@@ -150,7 +150,6 @@ int main(int argc,char **argv)
 
    testset:
       args: -pep_nev 4 -st_type sinvert -pep_target 0.01 -terse
-      requires: !complex
       output_file: output/butterfly_1.out
       test:
          suffix: 1_toar
@@ -162,6 +161,6 @@ int main(int argc,char **argv)
    test:
       suffix: 2
       args: -pep_type {{toar linear}} -pep_nev 4 -terse
-      requires: double !complex !define(PETSC_USE_64BIT_INDICES)
+      requires: double !define(PETSC_USE_64BIT_INDICES)
 
 TEST*/

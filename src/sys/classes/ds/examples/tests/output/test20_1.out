@@ -5,4 +5,4 @@ DS Object: 1 MPI processes
   dimensions: ld=12, n=10, l=0, k=0
   flags:
 Value of rnorm for 2nd vector = 0.000
-Norm of 1st columns = 0.707
+Norm of 1st columns = 1.000

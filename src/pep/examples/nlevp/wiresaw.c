@@ -147,7 +147,7 @@ int main(int argc,char **argv)
 
    testset:
       args: -pep_nev 4 -terse
-      requires: !single !complex
+      requires: !single
       output_file: output/wiresaw_1.out
       test:
          suffix: 1

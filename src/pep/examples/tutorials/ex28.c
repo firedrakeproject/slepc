@@ -248,7 +248,7 @@ PetscErrorCode MatGetDiagonal_Identity(Mat A,Vec diag)
       suffix: 1
       args: -pep_type {{toar qarnoldi linear}} -pep_nev 4 -terse
       filter: grep -v Solution
-      filter_output: grep -v Solution
-      requires: !complex !single
+      requires: !single
+      output_file: output/ex28_1.out
 
 TEST*/

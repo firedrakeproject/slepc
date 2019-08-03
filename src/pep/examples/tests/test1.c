@@ -169,7 +169,7 @@ int main(int argc,char **argv)
 
    testset:
       args: -m 11
-      requires: !single !complex
+      requires: !single
       output_file: output/test1_1.out
       test:
          suffix: 1

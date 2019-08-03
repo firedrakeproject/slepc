@@ -194,7 +194,7 @@ int main(int argc,char **argv)
    test:
       suffix: 1
       args: -check_myprefix_nep_view -check_myprefix_nep_monitor_conv -initv -terse
-      filter: grep -v "tolerance" | sed -e "s/[0-9]\.[0-9]*e[+-]\([0-9]*\)/removed/g"
-      requires: double !complex !define(PETSC_USE_64BIT_INDICES)
+      filter: grep -v "tolerance" | sed -e "s/[0-9]\.[0-9]*e[+-]\([0-9]*\)/removed/g" -e "s/+0i//"
+      requires: double !define(PETSC_USE_64BIT_INDICES)
 
 TEST*/
