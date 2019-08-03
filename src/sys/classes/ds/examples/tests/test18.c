@@ -126,11 +126,13 @@ int main(int argc,char **argv)
       suffix: 1
       nsize: {{1 2 3}}
       args: -ds_parallel redundant
+      filter: sed -e "s/[+-]\([0-9]\.[0-9]*i\)/+-\\1/"
 
    test:
       suffix: 2
       nsize: {{1 2 3}}
       args: -ds_parallel synchronized
+      filter: sed -e "s/[+-]\([0-9]\.[0-9]*i\)/+-\\1/"
       output_file: output/test18_1.out
 
 TEST*/
