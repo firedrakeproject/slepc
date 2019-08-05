@@ -145,6 +145,7 @@ int main(int argc,char **argv)
       test:
          suffix: 1_stoar
          args: -st_type sinvert -st_transform -pep_type stoar -pep_hermitian -pep_stoar_locking 0
+         requires: !complex
       test:
          suffix: 2
          args: -st_type sinvert -st_transform -pep_type toar -pep_extract {{none norm residual}}

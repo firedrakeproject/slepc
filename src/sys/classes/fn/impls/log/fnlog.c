@@ -47,6 +47,9 @@ static PetscErrorCode qtri_struct(PetscBLASInt n,PetscScalar *T,PetscBLASInt ld,
   PetscBLASInt j;
 
   PetscFunctionBegin;
+#if defined(PETSC_USE_COMPLEX)
+  for (j=0;j<n-1;j++) structure[j] = 1;
+#else
   if (n==1) PetscFunctionReturn(0);
   else if (n==2) {
     structure[0] = (T[1]==0.0)? 1: 2;
@@ -68,6 +71,7 @@ static PetscErrorCode qtri_struct(PetscBLASInt n,PetscScalar *T,PetscBLASInt ld,
   } else if (structure[n-3] == 0 || structure[n-3] == 1) {
     structure[n-2] = 1;
   }
+#endif
   PetscFunctionReturn(0);
 }
 
@@ -184,6 +188,7 @@ static PetscErrorCode logm_params(PetscBLASInt n,PetscScalar *T,PetscBLASInt ld,
   PetscFunctionReturn(0);
 }
 
+#if !defined(PETSC_USE_COMPLEX)
 /*
    Computes a^(1/2^s) - 1 accurately, avoiding subtractive cancellation
 */
@@ -213,6 +218,7 @@ static PetscScalar sqrt_obo(PetscScalar a,PetscInt s)
   }
   PetscFunctionReturn(val);
 }
+#endif
 
 /*
    Square root of 2x2 matrix T from block diagonal of Schur form. Overwrites T.
@@ -318,11 +324,15 @@ static PetscScalar powerm2by2(PetscScalar A11,PetscScalar A22,PetscScalar A12,Pe
 static PetscErrorCode recompute_diag_blocks_sqrt(PetscBLASInt n,PetscScalar *Troot,PetscScalar *T,PetscBLASInt ld,PetscInt *blockStruct,PetscInt s)
 {
   PetscErrorCode ierr;
-  PetscScalar    a,A[4],P[4],M[4],Z0[4],det;
+  PetscScalar    A[4],P[4],M[4],Z0[4],det;
   PetscInt       i,j,last_block=0;
+#if !defined(PETSC_USE_COMPLEX)
+  PetscScalar    a;
+#endif
 
   PetscFunctionBegin;
   for (j=0;j<n-1;j++) {
+#if !defined(PETSC_USE_COMPLEX)
     switch (blockStruct[j]) {
       case 0: /* Not start of a block */
         if (last_block != 0) {
@@ -333,6 +343,7 @@ static PetscErrorCode recompute_diag_blocks_sqrt(PetscBLASInt n,PetscScalar *Tro
         }
         break;
       default: /* In a 2x2 block */
+#endif
         last_block = blockStruct[j];
         if (s == 0) {
           Troot[j+j*ld]       = T[j+j*ld]-1.0;
@@ -375,13 +386,17 @@ static PetscErrorCode recompute_diag_blocks_sqrt(PetscBLASInt n,PetscScalar *Tro
         if (T[j+1+j*ld]==0.0 && PetscRealPart(T[j+j*ld])>=0.0 && PetscRealPart(T[j+1+(j+1)*ld])>=0.0) {
           Troot[j+(j+1)*ld] = powerm2by2(T[j+j*ld],T[j+1+(j+1)*ld],T[j+(j+1)*ld],1.0/PetscPowInt(2,s));
         }
+#if !defined(PETSC_USE_COMPLEX)
     }
+#endif
   }
+#if !defined(PETSC_USE_COMPLEX)
   /* If last diagonal entry is not in a block it will have been missed */
   if (blockStruct[n-2] == 0) {
     a = T[n-1+(n-1)*ld];
     Troot[n-1+(n-1)*ld] = sqrt_obo(a,s);
   }
+#endif
   PetscFunctionReturn(0);
 }
 
@@ -493,6 +508,7 @@ static PetscErrorCode recompute_diag_blocks_log(PetscBLASInt n,PetscScalar *L,Pe
 
   PetscFunctionBegin;
   for (j=0;j<n-1;j++) {
+#if !defined(PETSC_USE_COMPLEX)
     switch (blockStruct[j]) {
       case 0: /* Not start of a block */
         if (last_block != 0) {
@@ -502,6 +518,7 @@ static PetscErrorCode recompute_diag_blocks_log(PetscBLASInt n,PetscScalar *L,Pe
         }
         break;
       case 1: /* Start of upper-tri block */
+#endif
         last_block = 1;
         a1 = T[j+j*ld];
         a2 = T[j+1+(j+1)*ld];
@@ -528,20 +545,18 @@ static PetscErrorCode recompute_diag_blocks_log(PetscBLASInt n,PetscScalar *L,Pe
           a12 = T[j+(j+1)*ld]*dd;
         }
         L[j+(j+1)*ld] = a12;
+#if !defined(PETSC_USE_COMPLEX)
         break;
       case 2: /* Start of quasi-tri block */
         last_block = 2;
-#if defined(PETSC_USE_COMPLEX)
-        SETERRQ(PETSC_COMM_SELF,1,"Should not reach this line in complex scalars");
-#else
         f = 0.5*PetscLogScalar(T[j+j*ld]*T[j+j*ld]-T[j+(j+1)*ld]*T[j+1+j*ld]);
         t = PetscAtan2Real(PetscSqrtScalar(-T[j+(j+1)*ld]*T[j+1+j*ld]),T[j+j*ld])/PetscSqrtScalar(-T[j+(j+1)*ld]*T[j+1+j*ld]);
         L[j+j*ld]       = f;
         L[j+1+j*ld]     = t*T[j+1+j*ld];
         L[j+(j+1)*ld]   = t*T[j+(j+1)*ld];
         L[j+1+(j+1)*ld] = f;
-#endif
     }
+#endif
   }
   PetscFunctionReturn(0);
 }
