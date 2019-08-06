@@ -1467,8 +1467,6 @@ PetscErrorCode BVGetMat(BV bv,Mat *A)
     ierr = MatCreateDense(PetscObjectComm((PetscObject)bv),bv->n,PETSC_DECIDE,bv->N,m,vv,&bv->Aget);CHKERRQ(ierr); /* pass a pointer to avoid allocation of storage */
     ierr = MatDensePlaceArray(bv->Aget,NULL);CHKERRQ(ierr);  /* replace with a null pointer, the value after BVRestoreMat */
     ierr = PetscLogObjectParent((PetscObject)bv,(PetscObject)bv->Aget);CHKERRQ(ierr);
-    ierr = MatAssemblyBegin(bv->Aget,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
-    ierr = MatAssemblyEnd(bv->Aget,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
   }
   ierr = MatDensePlaceArray(bv->Aget,vv+(bv->nc+bv->l)*bv->n);CHKERRQ(ierr);  /* set the actual pointer */
   *A = bv->Aget;
