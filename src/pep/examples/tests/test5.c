@@ -83,13 +83,13 @@ int main(int argc,char **argv)
    test:
       suffix: 1
       args: -pep_error_backward ::ascii_info_detail -pep_largest_real -pep_view_values -pep_monitor_conv -pep_error_absolute ::ascii_matlab -pep_monitor_all -pep_converged_reason -pep_view
-      requires: !complex !single
-      filter: grep -v "tolerance" | grep -v "problem type" | sed -e "s/[0-9]\.[0-9]*e-\([0-9]*\)/removed/g"
+      requires: !single
+      filter: grep -v "tolerance" | grep -v "problem type" | sed -e "s/[+-]0.000000i//" -e "s/\([0-9]\.[5]*\)[+-][0-9]\.[0-9]*e-[0-9]*i/\\1/g" -e "s/[0-9]\.[0-9]*e-\([0-9]*\)/removed/g"
 
    test:
       suffix: 2
       args: -n 12 -pep_largest_real -pep_monitor -pep_view_values ::ascii_matlab
-      requires: !complex double
-      filter: sed -e "s/[0-9]\.[0-9]*e-\([0-9]*\)/removed/g" | sed -e "s/5\.\([49]\)999999[0-9]*e+00/5.\\1999999999999999e+00/"
+      requires: double
+      filter: sed -e "s/[+-][0-9]\.[0-9]*e-[0-9]*i//" -e "s/[0-9]\.[0-9]*e-\([0-9]*\)/removed/g" -e "s/5\.\([49]\)999999[0-9]*e+00/5.\\1999999999999999e+00/"
 
 TEST*/

@@ -119,13 +119,13 @@ int main(int argc,char **argv)
    test:
       suffix: 1
       args: -nep_type slp -nep_target -.5 -nep_error_backward ::ascii_info_detail -nep_view_values -nep_error_absolute ::ascii_matlab -nep_monitor_all -nep_converged_reason -nep_view
-      filter: grep -v "tolerance" | grep -v "problem type" | sed -e "s/[0-9]\.[0-9]*e[+-]\([0-9]*\)/removed/g"
-      requires: double !complex !define(PETSC_USE_64BIT_INDICES)
+      filter: grep -v "tolerance" | grep -v "problem type" | sed -e "s/[+-]0.000000i//" -e "s/+0i//" -e "s/[+-][0-9]\.[0-9]*e-[0-9]*i//g" -e "s/[0-9]\.[0-9]*e[+-]\([0-9]*\)/removed/g"
+      requires: double !define(PETSC_USE_64BIT_INDICES)
 
    test:
       suffix: 2
       args: -nep_type rii -nep_target -.5 -nep_monitor -nep_view_values ::ascii_matlab
-      filter: sed -e "s/([0-9]\.[0-9]*e[+-]\([0-9]*\))/(removed)/g"
-      requires: double !complex !define(PETSC_USE_64BIT_INDICES)
+      filter: sed -e "s/[+-][0-9]\.[0-9]*e-[0-9]*i//" -e "s/([0-9]\.[0-9]*e[+-]\([0-9]*\))/(removed)/g"
+      requires: double !define(PETSC_USE_64BIT_INDICES)
 
 TEST*/

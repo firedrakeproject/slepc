@@ -333,8 +333,8 @@ PetscErrorCode MatGetDiagonal_Brussel(Mat A,Vec diag)
 
    test:
       suffix: 7
-      args: -n 40 -eps_nev 1 -eps_type arnoldi -eps_smallest_real -eps_refined -eps_max_it 200 -terse
-      requires: double !complex !define(PETSC_USE_64BIT_INDICES)
+      args: -n 40 -eps_nev 1 -eps_type arnoldi -eps_smallest_real -eps_refined -eps_ncv 40 -eps_max_it 200 -terse
+      requires: double !define(PETSC_USE_64BIT_INDICES)
 
    test:
       suffix: 8

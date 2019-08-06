@@ -262,8 +262,7 @@ int main(int argc,char **argv)
          timeoutfactor: 2
       test:
          suffix: 9_jd_gnhep
-         args: -eps_gen_non_hermitian -eps_type jd -eps_target 0
-         requires: !complex
+         args: -eps_gen_non_hermitian -eps_type jd -eps_target 0 -eps_ncv 64
          timeoutfactor: 2
 
 TEST*/

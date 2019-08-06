@@ -61,13 +61,13 @@ int main(int argc,char **argv)
    test:
       suffix: 1
       args: -eps_error_backward ::ascii_info_detail -eps_largest_real -eps_view_values -eps_monitor_conv -eps_error_absolute ::ascii_matlab -eps_monitor_all -eps_converged_reason -eps_view
-      requires: !complex !single
-      filter: grep -v "tolerance" | sed -e "s/[0-9]\.[0-9]*e-\([0-9]*\)/removed/g"
+      requires: !single
+      filter: grep -v "tolerance" | sed -e "s/hermitian/symmetric/" -e "s/[+-]0.000000i//" -e "s/\([1-6]\.\)[+-][0-9]\.[0-9]*e-[0-9]*i/\\1/g" -e "s/[0-9]\.[0-9]*e-\([0-9]*\)/removed/g"
 
    test:
       suffix: 2
       args: -n 20 -eps_largest_real -eps_monitor -eps_view_values ::ascii_matlab
-      requires: !complex double
-      filter: sed -e "s/[0-9]\.[0-9]*e-\([0-9]*\)/removed/g" | sed -e "s/2\.[0-9]*e+01/2.0000000000000000e+01/"
+      requires: double
+      filter: sed -e "s/[+-][0-9]\.[0-9]*e-[0-9]*i//" -e "s/[0-9]\.[0-9]*e-\([0-9]*\)/removed/g" -e "s/2\.[0-9]*e+01/2.0000000000000000e+01/"
 
 TEST*/
