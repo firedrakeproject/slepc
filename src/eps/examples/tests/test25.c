@@ -109,8 +109,19 @@ int main(int argc,char **argv)
          suffix: 1
          requires: double !complex !define(PETSC_USE_64BIT_INDICES)
       test:
-         suffix: 2_cuda
+         suffix: 1_cuda
          args: -mat_type aijcusparse
          requires: cuda double !complex !define(PETSC_USE_64BIT_INDICES)
+
+   testset:
+      args: -f1 ${DATAFILESPATH}/matrices/complex/qc324.petsc -rg_type ellipse -rg_ellipse_center 1-0.09i -rg_ellipse_radius 0.15 -rg_ellipse_vscale 0.1
+      output_file: output/test25_2.out
+      test:
+         suffix: 2
+         requires: double complex datafilespath !define(PETSC_USE_64BIT_INDICES)
+      test:
+         suffix: 2_cuda
+         args: -mat_type aijcusparse
+         requires: cuda double complex datafilespath !define(PETSC_USE_64BIT_INDICES)
 
 TEST*/

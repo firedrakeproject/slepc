@@ -111,4 +111,9 @@ int main(int argc,char **argv)
       args: -file ${SLEPC_DIR}/share/slepc/datafiles/matrices/bfw62b.petsc -k 12
       requires: double !complex !define(PETSC_USE_64BIT_INDICES)
 
+   test:
+      suffix: 2
+      args: -file ${DATAFILESPATH}/matrices/complex/qc324.petsc -k 12
+      requires: double complex datafilespath !define(PETSC_USE_64BIT_INDICES)
+
 TEST*/

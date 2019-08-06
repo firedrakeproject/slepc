@@ -138,6 +138,6 @@ int main(int argc,char **argv)
 
    test:
       suffix: 1
-      args: -m 750 -seconds 0.5 -svd_max_it 10000
+      args: -m 750 -seconds 0.1 -svd_max_it 10000
 
 TEST*/
