@@ -325,8 +325,9 @@ static PetscErrorCode recompute_diag_blocks_sqrt(PetscBLASInt n,PetscScalar *Tro
 {
   PetscErrorCode ierr;
   PetscScalar    A[4],P[4],M[4],Z0[4],det;
-  PetscInt       i,j,last_block=0;
+  PetscInt       i,j;
 #if !defined(PETSC_USE_COMPLEX)
+  PetscInt       last_block=0;
   PetscScalar    a;
 #endif
 
@@ -343,8 +344,8 @@ static PetscErrorCode recompute_diag_blocks_sqrt(PetscBLASInt n,PetscScalar *Tro
         }
         break;
       default: /* In a 2x2 block */
-#endif
         last_block = blockStruct[j];
+#endif
         if (s == 0) {
           Troot[j+j*ld]       = T[j+j*ld]-1.0;
           Troot[j+1+j*ld]     = T[j+1+j*ld];
@@ -501,8 +502,9 @@ static PetscErrorCode pade_approx(PetscBLASInt n,PetscScalar *T,PetscScalar *L,P
 static PetscErrorCode recompute_diag_blocks_log(PetscBLASInt n,PetscScalar *L,PetscScalar *T,PetscBLASInt ld,PetscInt *blockStruct)
 {
   PetscScalar a1,a2,a12,loga1,loga2,z,dd;
-  PetscInt    j,last_block=0;
+  PetscInt    j;
 #if !defined(PETSC_USE_COMPLEX)
+  PetscInt    last_block=0;
   PetscScalar f,t;
 #endif
 
@@ -518,8 +520,8 @@ static PetscErrorCode recompute_diag_blocks_log(PetscBLASInt n,PetscScalar *L,Pe
         }
         break;
       case 1: /* Start of upper-tri block */
-#endif
         last_block = 1;
+#endif
         a1 = T[j+j*ld];
         a2 = T[j+1+(j+1)*ld];
         loga1 = PetscLogScalar(a1);
