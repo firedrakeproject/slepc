@@ -257,23 +257,6 @@ static PetscErrorCode sqrtm_tbt(PetscScalar *T)
   PetscFunctionReturn(0);
 }
 
-/*
-   Inverse hyperbolic tangent of x
-*/
-PETSC_STATIC_INLINE PetscScalar myatanh(PetscScalar x)
-{
-  PetscScalar t;
-
-  PetscFunctionBegin;
-#if !defined(PETSC_USE_COMPLEX)
-  if (x<=-1.0 || x>=1.0) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_ARG_OUTOFRANGE,"x should be in (-1,1)");
-  t = 0.5*PetscLogScalar((1.0+x)/(1.0-x));
-#else
-  t = 0.5*PetscLogScalar(1.0+x)-0.5*PetscLogScalar(1.0-x);
-#endif
-  PetscFunctionReturn(t);
-}
-
 #if defined(PETSC_USE_COMPLEX)
 /*
    Unwinding number of z
@@ -308,7 +291,7 @@ static PetscScalar powerm2by2(PetscScalar A11,PetscScalar A22,PetscScalar A12,Pe
   } else {  /* Close eigenvalues */
     loga1 = PetscLogScalar(a1);
     loga2 = PetscLogScalar(a2);
-    w = myatanh((a2-a1)/(a2+a1));
+    w = PetscAtanhScalar((a2-a1)/(a2+a1));
 #if defined(PETSC_USE_COMPLEX)
     w += PETSC_i*PETSC_PI*unwinding(loga2-loga1);
 #endif
@@ -539,7 +522,7 @@ static PetscErrorCode recompute_diag_blocks_log(PetscBLASInt n,PetscScalar *L,Pe
           a12 = T[j+(j+1)*ld]*(loga2-loga1)/(a2-a1);
         } else {  /* Close eigenvalues */
           z = (a2-a1)/(a2+a1);
-          dd = 2.0*myatanh(z);
+          dd = 2.0*PetscAtanhScalar(z);
 #if defined(PETSC_USE_COMPLEX)
           dd += 2.0*PETSC_i*PETSC_PI*unwinding(loga2-loga1);
 #endif
