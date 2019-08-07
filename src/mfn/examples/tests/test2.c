@@ -117,15 +117,15 @@ int main(int argc,char **argv)
 
 /*TEST
 
-   test:
-      suffix: 1
+   testset:
       args: -mfn_type {{krylov expokit}}
-
-   test:
-      suffix: 2
-      args: -mfn_type {{krylov expokit}} -mat_type aijcusparse
-      requires: cuda !complex
       output_file: output/test2_1.out
+      test:
+         suffix: 1
+      test:
+         suffix: 1_cuda
+         args: -mat_type aijcusparse
+         requires: cuda
 
    test:
       suffix: 3

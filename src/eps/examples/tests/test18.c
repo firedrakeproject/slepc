@@ -120,6 +120,6 @@ int main(int argc,char **argv)
    test:
       suffix: 1_davidson
       args: -eps_type {{gd jd}} -eps_target 0 -eps_harmonic -eps_nev 4 -eps_ncv 12 -terse
-      requires: !single !complex
+      requires: !single
       output_file: output/test18_1.out
 TEST*/

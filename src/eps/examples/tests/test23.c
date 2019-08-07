@@ -68,6 +68,6 @@ int main(int argc,char **argv)
       suffix: 2
       args: -n 20 -eps_largest_real -eps_monitor -eps_view_values ::ascii_matlab
       requires: double
-      filter: sed -e "s/[+-][0-9]\.[0-9]*e-[0-9]*i//" -e "s/[0-9]\.[0-9]*e-\([0-9]*\)/removed/g" -e "s/2\.[0-9]*e+01/2.0000000000000000e+01/"
+      filter: sed -e "s/[+-][0-9]\.[0-9]*e-[0-9]*i//" -e "s/[0-9]\.[0-9]*e-\([0-9]*\)/removed/g" -e "s/2\.[0-9]*e+01/2.0000000000000000e+01/" -e "s/1\.9999999999[0-9]*e+01/2.0000000000000000e+01/"
 
 TEST*/

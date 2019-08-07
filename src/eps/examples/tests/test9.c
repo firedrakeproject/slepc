@@ -215,8 +215,8 @@ PetscErrorCode MyEigenSort(PetscScalar ar,PetscScalar ai,PetscScalar br,PetscSca
 
    test:
       suffix: 5
-      args: -eps_type jd -eps_nev 3 -eps_target .5 -eps_harmonic -st_ksp_type bicg -eps_jd_minv 2
-      requires: !single !complex
+      args: -eps_type jd -eps_nev 3 -eps_target .5 -eps_harmonic -st_ksp_type bicg -st_pc_type lu -eps_jd_minv 2
+      requires: !single
 
    testset:
       args: -eps_type ciss -eps_tol 1e-9 -rg_type ellipse -rg_ellipse_center 0.55 -rg_ellipse_radius 0.05 -rg_ellipse_vscale 0.1 -eps_ciss_usest 0 -eps_all

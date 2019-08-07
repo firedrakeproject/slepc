@@ -205,10 +205,9 @@ PetscErrorCode MyEigenSort(PetscScalar ar,PetscScalar ai,PetscScalar br,PetscSca
          args: -st_type cayley -st_cayley_antishift 1 
 
    test:
-      suffix: 1_gd
-      args: -eps_type gd -eps_nev 4 -eps_tol 1e-7 -eps_gd_krylov_start
-      requires: !single !complex
-      output_file: output/test11_1.out
-      timeoutfactor: 4
+      suffix: 2
+      args: -target 0.77 -eps_type gd -eps_nev 4 -eps_tol 1e-7 -eps_gd_krylov_start -eps_gd_blocksize 3
+      requires: !single
+      filter: sed -e "s/[+-]0\.00000i//g"
 
 TEST*/

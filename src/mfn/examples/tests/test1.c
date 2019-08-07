@@ -91,16 +91,26 @@ int main(int argc,char **argv)
 
 /*TEST
 
-   test:
-      suffix: 1
+   testset:
       args: -file ${SLEPC_DIR}/share/slepc/datafiles/matrices/bfw62b.petsc -mfn_type {{krylov expokit}}
       requires: double !complex !define(PETSC_USE_64BIT_INDICES)
-      output_file: output/test1.out
+      output_file: output/test1_1.out
+      test:
+         suffix: 1
+      test:
+         suffix: 1_cuda
+         args: -mat_type aijcusparse
+         requires: cuda
 
-   test:
-      suffix: 2
-      args: -file ${SLEPC_DIR}/share/slepc/datafiles/matrices/bfw62b.petsc -mfn_type {{krylov expokit}} -mat_type aijcusparse
-      requires: cuda double !complex !define(PETSC_USE_64BIT_INDICES)
-      output_file: output/test1.out
+   testset:
+      args: -file ${DATAFILESPATH}/matrices/complex/qc324.petsc -mfn_type {{krylov expokit}}
+      requires: double complex datafilespath !define(PETSC_USE_64BIT_INDICES)
+      output_file: output/test1_2.out
+      test:
+         suffix: 2
+      test:
+         suffix: 2_cuda
+         args: -mat_type aijcusparse
+         requires: cuda
 
 TEST*/
