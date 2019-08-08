@@ -192,7 +192,6 @@ int main(int argc,char **argv)
       test:
          suffix: 2_jd
          args: -pep_type jd -st_type precond -pep_max_it 200
-         requires: complex
 
    test:
       suffix: 3
