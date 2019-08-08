@@ -144,7 +144,7 @@ int main(int argc,char **argv)
          args: -st_type sinvert -st_transform -pep_type {{toar qarnoldi linear}}
       test:
          suffix: 1_stoar
-         args: -st_type sinvert -st_transform -pep_type stoar -pep_hermitian -pep_stoar_locking 0 -pep_stoar_nev 11
+         args: -st_type sinvert -st_transform -pep_type stoar -pep_hermitian -pep_stoar_locking 0 -pep_stoar_nev 11 -pep_ncv 10
       test:
          suffix: 2
          args: -st_type sinvert -st_transform -pep_type toar -pep_extract {{none norm residual}}
