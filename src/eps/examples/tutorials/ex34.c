@@ -52,6 +52,7 @@ int main(int argc,char **argv)
   PetscInt       nev,nconv;
   PetscBool      nonlin,flg,update;
   SNES           snes;
+  PetscReal      tol,relerr;
   PetscErrorCode ierr;
 
   ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
@@ -111,6 +112,7 @@ int main(int argc,char **argv)
      Optional: Get some information from the solver and display it
   */
   ierr = EPSGetType(eps,&type);CHKERRQ(ierr);
+  ierr = EPSGetTolerances(eps,&tol,NULL);CHKERRQ(ierr);
   ierr = EPSPowerGetNonlinear(eps,&nonlin);CHKERRQ(ierr);
   ierr = EPSPowerGetUpdate(eps,&update);CHKERRQ(ierr);
   ierr = PetscPrintf(comm," Solution method: %s%s\n\n",type,nonlin?(update?" (nonlinear with monolithic update)":" (nonlinear)"):"");CHKERRQ(ierr);
@@ -132,7 +134,12 @@ int main(int argc,char **argv)
     ierr = VecAXPY(a,-k,b);CHKERRQ(ierr);
     ierr = VecNorm(a,NORM_2,&na);CHKERRQ(ierr);
     ierr = VecNorm(b,NORM_2,&nb);CHKERRQ(ierr);
-    ierr = PetscPrintf(comm,"k: %g error: %g\n",(double)PetscRealPart(k),(double)na/nb);CHKERRQ(ierr);
+    relerr = na/(nb*PetscAbsScalar(k));
+    if (relerr<10*tol) {
+      ierr = PetscPrintf(comm,"k: %g, relative error below tol\n",(double)PetscRealPart(k));CHKERRQ(ierr);
+    } else {
+      ierr = PetscPrintf(comm,"k: %g, relative error: %g\n",(double)PetscRealPart(k),(double)relerr);CHKERRQ(ierr);
+    }
     ierr = VecDestroy(&a);CHKERRQ(ierr);
     ierr = VecDestroy(&b);CHKERRQ(ierr);
     ierr = VecDestroy(&eigen);CHKERRQ(ierr);
@@ -438,15 +445,15 @@ PetscErrorCode FormFunctionB(SNES snes,Vec X,Vec F,void *ctx)
 
 /*TEST
 
-   test:
-      suffix: 1
+   testset:
+      requires: double
       args: -petscspace_degree 1 -petscspace_poly_tensor
-      requires: double !complex
-
-   test:
-      suffix: 2
-      args: -petscspace_degree 1 -petscspace_poly_tensor -eps_power_update -form_function_ab {{0 1}}
-      requires: double !complex
-      filter: sed -e "s/ with monolithic update//"
+      output_file: output/ex34_1.out
+      test:
+         suffix: 1
+      test:
+         suffix: 2
+         args: -eps_power_update -form_function_ab {{0 1}}
+         filter: sed -e "s/ with monolithic update//"
 
 TEST*/

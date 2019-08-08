@@ -159,20 +159,34 @@ PetscErrorCode EPSSetUp_Power(EPS eps)
 static PetscErrorCode Normalize(Vec x,PetscReal norm,PetscScalar *sign)
 {
   PetscErrorCode    ierr;
-  PetscScalar       alpha = 1.0;
-  PetscMPIInt       rank;
+  PetscScalar       alpha=0.0;
+  PetscMPIInt       rank,size,k=0;
+  PetscInt          i,nloc;
   PetscReal         absv;
   const PetscScalar *xx;
 
   PetscFunctionBegin;
   ierr = MPI_Comm_rank(PetscObjectComm((PetscObject)x),&rank);CHKERRQ(ierr);
-  if (!rank) {
-    ierr = VecGetArrayRead(x,&xx);CHKERRQ(ierr);
-    absv = PetscAbsScalar(*xx);
-    if (absv>10*PETSC_MACHINE_EPSILON) alpha = *xx/absv;
-    ierr = VecRestoreArrayRead(x,&xx);CHKERRQ(ierr);
+  ierr = MPI_Comm_size(PetscObjectComm((PetscObject)x),&size);CHKERRQ(ierr);
+  /* find first nonzero entry of x */
+  ierr = VecGetLocalSize(x,&nloc);CHKERRQ(ierr);
+  ierr = VecGetArrayRead(x,&xx);CHKERRQ(ierr);
+  while (k<size) {
+    if (rank==k) {
+      for (i=0;i<nloc;i++) {
+        absv = PetscAbsScalar(xx[i]);
+        if (absv>10*PETSC_MACHINE_EPSILON) {
+          alpha = xx[i]/absv;
+          break;
+        }
+      }
+    }
+    ierr = MPI_Bcast(&alpha,1,MPIU_SCALAR,k,PetscObjectComm((PetscObject)x));CHKERRQ(ierr);
+    if (alpha!=0.0) break;
+    k++;
   }
-  ierr = MPI_Bcast(&alpha,1,MPIU_SCALAR,0,PetscObjectComm((PetscObject)x));CHKERRQ(ierr);
+  ierr = VecRestoreArrayRead(x,&xx);CHKERRQ(ierr);
+  if (k==size) SETERRQ(PetscObjectComm((PetscObject)x),1,"Zero vector found");CHKERRQ(ierr);
   if (sign) *sign = alpha;
   alpha *= norm;
   ierr = VecScale(x,1.0/alpha);CHKERRQ(ierr);
@@ -215,7 +229,7 @@ static PetscErrorCode EPSPowerUpdateFunctionA(EPS eps,Vec x,Vec Ax)
     } else {
       ierr = MatMult(A,x,Ax);CHKERRQ(ierr);
     }
-  } else SETERRQ(PETSC_COMM_WORLD,PETSC_ERR_ARG_NULL,"Matrix A is required for an eigenvalue problem\n");CHKERRQ(ierr);
+  } else SETERRQ(PETSC_COMM_WORLD,PETSC_ERR_ARG_NULL,"Matrix A is required for an eigenvalue problem");
   PetscFunctionReturn(0);
 }
 
@@ -889,7 +903,7 @@ static PetscErrorCode EPSPowerSetUpdate_Power(EPS eps,PetscBool update)
   EPS_POWER *power = (EPS_POWER*)eps->data;
 
   PetscFunctionBegin;
-  if (!power->nonlinear) SETERRQ(PETSC_COMM_WORLD,PETSC_ERR_ARG_INCOMP,"This option does not make sense for linear problems \n");
+  if (!power->nonlinear) SETERRQ(PETSC_COMM_WORLD,PETSC_ERR_ARG_INCOMP,"This option does not make sense for linear problems");
   power->update = update;
   eps->state = EPS_STATE_INITIAL;
   PetscFunctionReturn(0);

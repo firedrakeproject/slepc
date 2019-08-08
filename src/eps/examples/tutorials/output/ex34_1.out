@@ -1,4 +1,4 @@
  Solution method: power (nonlinear)
 
  Number of requested eigenvalues: 1
-k: 64.392 error: 6.91725e-07
+k: 64.392, relative error below tol
