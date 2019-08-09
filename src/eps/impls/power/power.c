@@ -51,6 +51,8 @@ typedef struct {
   PetscErrorCode    (*formFunctionA)(SNES,Vec,Vec,void*);
   void              *formFunctionActx;
   PetscErrorCode    (*formFunctionAB)(SNES,Vec,Vec,Vec,void*);
+  PetscInt          idx;  /* index of the first nonzero entry in the iteration vector */
+  PetscMPIInt       p;    /* process id of the owner of idx */
 } EPS_POWER;
 
 PetscErrorCode EPSSetUp_Power(EPS eps)
@@ -153,40 +155,55 @@ PetscErrorCode EPSSetUp_Power(EPS eps)
 }
 
 /*
-   Normalize a vector x with respect to a given norm as well as the
-   sign of the first entry.
+   Find the index of the first nonzero entry of x, and the process that owns it.
 */
-static PetscErrorCode Normalize(Vec x,PetscReal norm,PetscScalar *sign)
+static PetscErrorCode FirstNonzeroIdx(Vec x,PetscInt *idx,PetscMPIInt *p)
 {
   PetscErrorCode    ierr;
-  PetscScalar       alpha=0.0;
-  PetscMPIInt       rank,size,k=0;
-  PetscInt          i,nloc;
+  PetscMPIInt       size;
+  PetscInt          i,first,last,N;
+  const PetscScalar *xx;
+  const PetscInt    *ranges;
+
+  PetscFunctionBegin;
+  ierr = VecGetSize(x,&N);CHKERRQ(ierr);
+  ierr = VecGetOwnershipRange(x,&first,&last);CHKERRQ(ierr);
+  ierr = VecGetArrayRead(x,&xx);CHKERRQ(ierr);
+  for (i=first;i<last;i++) {
+    if (PetscAbsScalar(xx[i-first])>10*PETSC_MACHINE_EPSILON) break;
+  }
+  ierr = VecRestoreArrayRead(x,&xx);CHKERRQ(ierr);
+  if (i==last) i=N;
+  ierr = MPI_Allreduce(&i,idx,1,MPIU_INT,MPI_MIN,PetscObjectComm((PetscObject)x));CHKERRQ(ierr);
+  if (*idx==N) SETERRQ(PetscObjectComm((PetscObject)x),1,"Zero vector found");CHKERRQ(ierr);
+  ierr = MPI_Comm_size(PetscObjectComm((PetscObject)x),&size);CHKERRQ(ierr);
+  ierr = VecGetOwnershipRanges(x,&ranges);CHKERRQ(ierr);
+  for (*p=0;*p<size;(*p)++) if (*idx>=ranges[*p] && *idx<ranges[*p+1]) break;
+  PetscFunctionReturn(0);
+}
+
+/*
+   Normalize a vector x with respect to a given norm as well as the
+   sign of the first nonzero entry (assumed to be idx in process p).
+*/
+static PetscErrorCode Normalize(Vec x,PetscReal norm,PetscInt idx,PetscMPIInt p,PetscScalar *sign)
+{
+  PetscErrorCode    ierr;
+  PetscScalar       alpha;
+  PetscInt          first,last;
   PetscReal         absv;
   const PetscScalar *xx;
 
   PetscFunctionBegin;
-  ierr = MPI_Comm_rank(PetscObjectComm((PetscObject)x),&rank);CHKERRQ(ierr);
-  ierr = MPI_Comm_size(PetscObjectComm((PetscObject)x),&size);CHKERRQ(ierr);
-  /* find first nonzero entry of x */
-  ierr = VecGetLocalSize(x,&nloc);CHKERRQ(ierr);
-  ierr = VecGetArrayRead(x,&xx);CHKERRQ(ierr);
-  while (k<size) {
-    if (rank==k) {
-      for (i=0;i<nloc;i++) {
-        absv = PetscAbsScalar(xx[i]);
-        if (absv>10*PETSC_MACHINE_EPSILON) {
-          alpha = xx[i]/absv;
-          break;
-        }
-      }
-    }
-    ierr = MPI_Bcast(&alpha,1,MPIU_SCALAR,k,PetscObjectComm((PetscObject)x));CHKERRQ(ierr);
-    if (alpha!=0.0) break;
-    k++;
+  ierr = VecGetOwnershipRange(x,&first,&last);CHKERRQ(ierr);
+  if (idx>=first && idx<last) {
+    ierr = VecGetArrayRead(x,&xx);CHKERRQ(ierr);
+    absv = PetscAbsScalar(xx[idx-first]);
+    if (absv>10*PETSC_MACHINE_EPSILON) alpha = xx[idx-first]/absv;
+    else alpha = 1.0;
+    ierr = VecRestoreArrayRead(x,&xx);CHKERRQ(ierr);
   }
-  ierr = VecRestoreArrayRead(x,&xx);CHKERRQ(ierr);
-  if (k==size) SETERRQ(PetscObjectComm((PetscObject)x),1,"Zero vector found");CHKERRQ(ierr);
+  ierr = MPI_Bcast(&alpha,1,MPIU_SCALAR,p,PetscObjectComm((PetscObject)x));CHKERRQ(ierr);
   if (sign) *sign = alpha;
   alpha *= norm;
   ierr = VecScale(x,1.0/alpha);CHKERRQ(ierr);
@@ -269,7 +286,7 @@ static PetscErrorCode EPSPowerFormFunction_Update(SNES snes,Vec x,Vec y,void *ct
     ierr = EPSPowerUpdateFunctionB(eps,x,Bx);CHKERRQ(ierr);
   }
   ierr = VecNorm(Bx,NORM_2,&bx);CHKERRQ(ierr);
-  ierr = Normalize(Bx,bx,NULL);CHKERRQ(ierr);
+  ierr = Normalize(Bx,bx,power->idx,power->p,NULL);CHKERRQ(ierr);
   ierr = VecAXPY(y,-1.0,Bx);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -382,7 +399,8 @@ PetscErrorCode EPSSolve_Power(EPS eps)
     ierr = BVGetColumn(eps->V,0,&v);CHKERRQ(ierr);
     ierr = EPSPowerUpdateFunctionB(eps,v,Bx);CHKERRQ(ierr);
     ierr = VecNorm(Bx,NORM_2,&norm);CHKERRQ(ierr);
-    ierr = Normalize(Bx,norm,NULL);CHKERRQ(ierr);
+    ierr = FirstNonzeroIdx(Bx,&power->idx,&power->p);CHKERRQ(ierr);
+    ierr = Normalize(Bx,norm,power->idx,power->p,NULL);CHKERRQ(ierr);
     ierr = BVRestoreColumn(eps->V,0,&v);CHKERRQ(ierr);
   }
 
@@ -408,7 +426,7 @@ PetscErrorCode EPSSolve_Power(EPS eps)
     if (power->nonlinear) {
       ierr = EPSPowerUpdateFunctionB(eps,y,Bx);CHKERRQ(ierr);
       ierr = VecNorm(Bx,NORM_2,&norm);CHKERRQ(ierr);
-      ierr = Normalize(Bx,norm,&sign);CHKERRQ(ierr);
+      ierr = Normalize(Bx,norm,power->idx,power->p,&sign);CHKERRQ(ierr);
     } else {
       ierr = DSGetArray(eps->ds,DS_MAT_A,&T);CHKERRQ(ierr);
       ierr = BVSetActiveColumns(eps->V,0,k);CHKERRQ(ierr);
@@ -497,7 +515,7 @@ PetscErrorCode EPSSolve_Power(EPS eps)
     eps->errest[eps->nconv] = relerr;
 
     /* normalize */
-    if (!power->nonlinear) { ierr = Normalize(y,norm,NULL);CHKERRQ(ierr); }
+    if (!power->nonlinear) { ierr = Normalize(y,norm,power->idx,power->p,NULL);CHKERRQ(ierr); }
     ierr = BVInsertVec(eps->V,k,y);CHKERRQ(ierr);
 
     if (power->update) {
