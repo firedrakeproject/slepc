@@ -194,10 +194,10 @@ int main(int argc,char **argv)
       test:
          suffix: 1_stoar
          args: -pep_type stoar -pep_scale scalar
-         requires: double
+         requires: double !cuda
       test:
          suffix: 1_stoar_t
          args: -pep_type stoar -pep_scale scalar -st_transform
-         requires: double
+         requires: double !cuda
 
 TEST*/
