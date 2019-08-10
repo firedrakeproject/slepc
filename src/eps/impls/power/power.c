@@ -52,7 +52,7 @@ typedef struct {
   void              *formFunctionActx;
   PetscErrorCode    (*formFunctionAB)(SNES,Vec,Vec,Vec,void*);
   PetscInt          idx;  /* index of the first nonzero entry in the iteration vector */
-  PetscMPIInt       p;    /* process id of the owner of idx */
+  PetscInt          p;    /* process id of the owner of idx */
 } EPS_POWER;
 
 PetscErrorCode EPSSetUp_Power(EPS eps)
@@ -157,13 +157,12 @@ PetscErrorCode EPSSetUp_Power(EPS eps)
 /*
    Find the index of the first nonzero entry of x, and the process that owns it.
 */
-static PetscErrorCode FirstNonzeroIdx(Vec x,PetscInt *idx,PetscMPIInt *p)
+static PetscErrorCode FirstNonzeroIdx(Vec x,PetscInt *idx,PetscInt *p)
 {
   PetscErrorCode    ierr;
-  PetscMPIInt       size;
   PetscInt          i,first,last,N;
+  PetscLayout       map;
   const PetscScalar *xx;
-  const PetscInt    *ranges;
 
   PetscFunctionBegin;
   ierr = VecGetSize(x,&N);CHKERRQ(ierr);
@@ -176,9 +175,8 @@ static PetscErrorCode FirstNonzeroIdx(Vec x,PetscInt *idx,PetscMPIInt *p)
   if (i==last) i=N;
   ierr = MPI_Allreduce(&i,idx,1,MPIU_INT,MPI_MIN,PetscObjectComm((PetscObject)x));CHKERRQ(ierr);
   if (*idx==N) SETERRQ(PetscObjectComm((PetscObject)x),1,"Zero vector found");CHKERRQ(ierr);
-  ierr = MPI_Comm_size(PetscObjectComm((PetscObject)x),&size);CHKERRQ(ierr);
-  ierr = VecGetOwnershipRanges(x,&ranges);CHKERRQ(ierr);
-  for (*p=0;*p<size;(*p)++) if (*idx>=ranges[*p] && *idx<ranges[*p+1]) break;
+  ierr = VecGetLayout(x,&map);CHKERRQ(ierr);
+  ierr = PetscLayoutFindOwner(map,*idx,p);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -186,7 +184,7 @@ static PetscErrorCode FirstNonzeroIdx(Vec x,PetscInt *idx,PetscMPIInt *p)
    Normalize a vector x with respect to a given norm as well as the
    sign of the first nonzero entry (assumed to be idx in process p).
 */
-static PetscErrorCode Normalize(Vec x,PetscReal norm,PetscInt idx,PetscMPIInt p,PetscScalar *sign)
+static PetscErrorCode Normalize(Vec x,PetscReal norm,PetscInt idx,PetscInt p,PetscScalar *sign)
 {
   PetscErrorCode    ierr;
   PetscScalar       alpha;
