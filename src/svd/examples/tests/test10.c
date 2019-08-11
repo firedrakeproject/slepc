@@ -85,6 +85,7 @@ int main(int argc,char **argv)
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
   ierr = SVDCreate(PETSC_COMM_WORLD,&svd);CHKERRQ(ierr);
+  ierr = SVDSetBV(svd,V,U);CHKERRQ(ierr);
   ierr = SVDSetOptionsPrefix(svd,"check_");CHKERRQ(ierr);
   ierr = SVDAppendOptionsPrefix(svd,"myprefix_");CHKERRQ(ierr);
   ierr = SVDGetOptionsPrefix(svd,&prefix);CHKERRQ(ierr);
@@ -92,7 +93,6 @@ int main(int argc,char **argv)
   ierr = PetscObjectSetName((PetscObject)svd,"SVD_solver");CHKERRQ(ierr);
 
   ierr = SVDSetOperator(svd,A);CHKERRQ(ierr);
-  ierr = SVDSetBV(svd,V,U);CHKERRQ(ierr);
   ierr = SVDSetType(svd,SVDLANCZOS);CHKERRQ(ierr);
   ierr = SVDSetFromOptions(svd);CHKERRQ(ierr);
 
