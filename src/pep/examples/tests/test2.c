@@ -38,7 +38,7 @@ int main(int argc,char **argv)
   PetscInt       n=30,Istart,Iend,i,nev;
   PetscScalar    mu=1.0,tau=10.0,kappa=5.0;
   PetscBool      initv=PETSC_FALSE;
-  Vec            v0;
+  Vec            IV[2];
 
   ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
 
@@ -114,13 +114,19 @@ int main(int argc,char **argv)
   ierr = PEPSetProblemType(pep,PEP_GENERAL);CHKERRQ(ierr);
   ierr = PEPSetTolerances(pep,PETSC_SMALL,PETSC_DEFAULT);CHKERRQ(ierr);
   if (initv) { /* initial vector */
-    ierr = MatCreateVecs(K,&v0,NULL);CHKERRQ(ierr);
-    ierr = VecSetValue(v0,0,-1.0,INSERT_VALUES);CHKERRQ(ierr);
-    ierr = VecSetValue(v0,1,0.5,INSERT_VALUES);CHKERRQ(ierr);
-    ierr = VecAssemblyBegin(v0);CHKERRQ(ierr);
-    ierr = VecAssemblyEnd(v0);CHKERRQ(ierr);
-    ierr = PEPSetInitialSpace(pep,1,&v0);CHKERRQ(ierr);
-    ierr = VecDestroy(&v0);CHKERRQ(ierr);
+    ierr = MatCreateVecs(K,&IV[0],NULL);CHKERRQ(ierr);
+    ierr = VecSetValue(IV[0],0,-1.0,INSERT_VALUES);CHKERRQ(ierr);
+    ierr = VecSetValue(IV[0],1,0.5,INSERT_VALUES);CHKERRQ(ierr);
+    ierr = VecAssemblyBegin(IV[0]);CHKERRQ(ierr);
+    ierr = VecAssemblyEnd(IV[0]);CHKERRQ(ierr);
+    ierr = MatCreateVecs(K,&IV[1],NULL);CHKERRQ(ierr);
+    ierr = VecSetValue(IV[1],0,4.0,INSERT_VALUES);CHKERRQ(ierr);
+    ierr = VecSetValue(IV[1],2,1.5,INSERT_VALUES);CHKERRQ(ierr);
+    ierr = VecAssemblyBegin(IV[1]);CHKERRQ(ierr);
+    ierr = VecAssemblyEnd(IV[1]);CHKERRQ(ierr);
+    ierr = PEPSetInitialSpace(pep,2,IV);CHKERRQ(ierr);
+    ierr = VecDestroy(&IV[0]);CHKERRQ(ierr);
+    ierr = VecDestroy(&IV[1]);CHKERRQ(ierr);
   }
   ierr = PEPSetFromOptions(pep);CHKERRQ(ierr);
 

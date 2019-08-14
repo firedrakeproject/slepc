@@ -104,12 +104,16 @@ int main(int argc,char **argv)
      will have a zero imaginary part. This is not really necessary.
   */
 #if defined(PETSC_USE_COMPLEX)
-  Vec v0;
-  ierr = MatCreateVecs(A[0],NULL,&v0);CHKERRQ(ierr);
-  ierr = VecSetRandom(v0,NULL);CHKERRQ(ierr);
-  ierr = VecRealPart(v0);CHKERRQ(ierr);
-  ierr = PEPSetInitialSpace(pep,1,&v0);CHKERRQ(ierr);
-  ierr = VecDestroy(&v0);CHKERRQ(ierr);
+  Vec IV[2];
+  ierr = MatCreateVecs(A[0],NULL,&IV[0]);CHKERRQ(ierr);
+  ierr = VecSetRandom(IV[0],NULL);CHKERRQ(ierr);
+  ierr = VecRealPart(IV[0]);CHKERRQ(ierr);
+  ierr = MatCreateVecs(A[0],NULL,&IV[1]);CHKERRQ(ierr);
+  ierr = VecSetRandom(IV[1],NULL);CHKERRQ(ierr);
+  ierr = VecRealPart(IV[1]);CHKERRQ(ierr);
+  ierr = PEPSetInitialSpace(pep,2,IV);CHKERRQ(ierr);
+  ierr = VecDestroy(&IV[0]);CHKERRQ(ierr);
+  ierr = VecDestroy(&IV[1]);CHKERRQ(ierr);
 #endif
 
   /*
