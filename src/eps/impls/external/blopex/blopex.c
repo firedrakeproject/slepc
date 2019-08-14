@@ -166,8 +166,10 @@ PetscErrorCode EPSSetUp_BLOPEX(EPS eps)
     ierr = BVSetType(eps->V,BVCONTIGUOUS);CHKERRQ(ierr);
   }
   ierr = EPSAllocateSolution(eps,0);CHKERRQ(ierr);
-  ierr = BVCreateVec(eps->V,&blopex->w);CHKERRQ(ierr);
-  ierr = PetscLogObjectParent((PetscObject)eps,(PetscObject)blopex->w);CHKERRQ(ierr);
+  if (!blopex->w) {
+    ierr = BVCreateVec(eps->V,&blopex->w);CHKERRQ(ierr);
+    ierr = PetscLogObjectParent((PetscObject)eps,(PetscObject)blopex->w);CHKERRQ(ierr);
+  }
 
 #if defined(PETSC_USE_COMPLEX)
   blopex->blap_fn.zpotrf = PETSC_zpotrf_interface;
