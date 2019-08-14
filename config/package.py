@@ -326,7 +326,7 @@ Unable to download package %s from: %s
       self.log.Println('ERROR: With flags '+' '.join(flags))
       self.log.Exit('')
 
-    conf.write('#ifndef SLEPC_HAVE_' + name + '\n#define SLEPC_HAVE_' + name + ' 1\n#define SLEPC_' + name + '_HAVE_'+mangling+' 1\n#endif\n\n')
+    conf.write('#define SLEPC_HAVE_' + name + ' 1\n#define SLEPC_' + name + '_HAVE_'+mangling+' 1\n')
     vars.write(name + '_LIB = '+' '.join(flags)+'\n')
     self.havepackage = True
     self.packageflags = flags

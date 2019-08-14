@@ -121,5 +121,5 @@ class Lapack(package.Package):
           nf = namesubst[i[1:]]
         else:
           nf = i[1:]
-        conf.write('#ifndef SLEPC_MISSING_LAPACK_' + nf.upper() + '\n#define SLEPC_MISSING_LAPACK_' + nf.upper() + ' 1\n#endif\n\n')
+        conf.write('#define SLEPC_MISSING_LAPACK_' + nf.upper() + ' 1\n')
 

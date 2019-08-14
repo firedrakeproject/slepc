@@ -321,7 +321,7 @@ if not slepc.isinstall:
     log.Exit('ERROR: Unable to make reconfigure script executable:\n'+str(e))
 
 # Finish with configuration files (except slepcvars)
-slepcconf.write('#endif\n')
+slepcconf.write('\n#endif\n')
 slepcconf.close()
 pkgconfig.close()
 modules.close()

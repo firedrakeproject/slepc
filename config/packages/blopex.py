@@ -68,7 +68,7 @@ class Blopex(package.Package):
       self.log.Exit('\nERROR: Unable to link with downloaded BLOPEX')
 
     # Write configuration files
-    conf.write('#ifndef SLEPC_HAVE_BLOPEX\n#define SLEPC_HAVE_BLOPEX 1\n#endif\n\n')
+    conf.write('#define SLEPC_HAVE_BLOPEX 1\n')
     vars.write('BLOPEX_LIB = ' + l + '\n')
 
     self.havepackage = True

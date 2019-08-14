@@ -57,7 +57,7 @@ class Primme(package.Package):
         l =  libs
         f = []
       if self.Link(functions,[],l+f):
-        conf.write('#ifndef SLEPC_HAVE_PRIMME\n#define SLEPC_HAVE_PRIMME 1\n#endif\n\n')
+        conf.write('#define SLEPC_HAVE_PRIMME 1\n')
         vars.write('PRIMME_LIB = ' + ' '.join(l) + '\n')
         vars.write('PRIMME_FLAGS = ' + ' '.join(f) + '\n')
         self.havepackage = True
@@ -130,7 +130,7 @@ class Primme(package.Package):
       self.log.Exit('\nERROR: Unable to link with downloaded PRIMME')
 
     # Write configuration files
-    conf.write('#ifndef SLEPC_HAVE_PRIMME\n#define SLEPC_HAVE_PRIMME 1\n#endif\n\n')
+    conf.write('#define SLEPC_HAVE_PRIMME 1\n')
     vars.write('PRIMME_LIB = ' + l + '\n')
 
     self.havepackage = True
