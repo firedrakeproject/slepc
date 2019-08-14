@@ -161,6 +161,6 @@ int main(int argc,char **argv)
    test:
       suffix: 2
       args: -pep_type {{toar linear}} -pep_nev 4 -terse
-      requires: double !define(PETSC_USE_64BIT_INDICES)
+      requires: double
 
 TEST*/

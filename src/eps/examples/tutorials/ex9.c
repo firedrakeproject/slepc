@@ -307,7 +307,7 @@ PetscErrorCode MatGetDiagonal_Brussel(Mat A,Vec diag)
    test:
       suffix: 3
       args: -n 50 -eps_nev 4 -eps_balance twoside -terse
-      requires: double !define(PETSC_USE_64BIT_INDICES)
+      requires: double
       filter: grep -v method
       output_file: output/ex9_1.out
 
@@ -334,7 +334,7 @@ PetscErrorCode MatGetDiagonal_Brussel(Mat A,Vec diag)
    test:
       suffix: 7
       args: -n 40 -eps_nev 1 -eps_type arnoldi -eps_smallest_real -eps_refined -eps_ncv 40 -eps_max_it 200 -terse
-      requires: double !define(PETSC_USE_64BIT_INDICES)
+      requires: double
 
    test:
       suffix: 8
