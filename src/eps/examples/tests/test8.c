@@ -214,10 +214,6 @@ PetscErrorCode MatGetDiagonal_Laplacian2D(Mat A,Vec diag)
          suffix: 2_blzpack
          args: -eps_type blzpack
          requires: blzpack
-      test:
-         suffix: 2_blopex
-         args: -eps_type blopex
-         requires: blopex
 
    testset:
       args: -eps_nev 12 -eps_mpd 9 -eps_smallest_real -eps_max_it 1000

@@ -264,5 +264,9 @@ int main(int argc,char **argv)
       test:
          suffix: 1_lobpcg
          args: -eps_type lobpcg -eps_tol 1e-7
+      test:
+         suffix: 1_blopex
+         args: -eps_type blopex -eps_tol 1e-7
+         requires: blopex
 
 TEST*/

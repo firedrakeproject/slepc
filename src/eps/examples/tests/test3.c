@@ -132,6 +132,10 @@ int main(int argc,char **argv)
          suffix: 1_trlan
          args: -eps_type trlan
          requires: trlan
+      test:
+         suffix: 1_blzpack
+         args: -eps_type blzpack -st_type sinvert -eps_target 2.7
+         requires: blzpack
 
    testset:
       args: -eps_nev 4 -eps_smallest_real -eps_max_it 500
@@ -153,5 +157,9 @@ int main(int argc,char **argv)
          suffix: 2_trlan
          args: -eps_type trlan
          requires: trlan
+      test:
+         suffix: 2_blopex
+         args: -eps_type blopex -eps_conv_abs
+         requires: blopex
 
 TEST*/

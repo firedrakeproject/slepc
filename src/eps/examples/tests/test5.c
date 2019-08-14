@@ -134,6 +134,10 @@ int main(int argc,char **argv)
       requires: double !complex
       output_file: output/test5_2.out
       test:
+        suffix: 2_arpack
+        args: -eps_type arpack
+        requires: arpack
+      test:
         suffix: 2_blopex
         args: -eps_type blopex
         requires: blopex

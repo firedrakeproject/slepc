@@ -201,6 +201,10 @@ int main(int argc,char **argv)
          suffix: 5_lobpcg
          args: -eps_type lobpcg -eps_lobpcg_blocksize 3
          requires: !single
+      test:
+         suffix: 5_blopex
+         args: -eps_type blopex -eps_conv_abs
+         requires: blopex
 
    testset:
       args: -n 18 -eps_nev 12 -eps_mpd 8 -eps_max_it 3000
