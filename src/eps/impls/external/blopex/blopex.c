@@ -203,6 +203,9 @@ PetscErrorCode EPSSolve_BLOPEX(EPS eps)
   }
 
   /* Complete the initial basis with random vectors */
+  for (i=0;i<eps->nini;i++) {  /* in case the initial vectors were also set with VecSetRandom */
+    ierr = BVSetRandomColumn(eps->V,eps->nini);CHKERRQ(ierr);
+  }
   for (i=eps->nini;i<eps->ncv;i++) {
     ierr = BVSetRandomColumn(eps->V,i);CHKERRQ(ierr);
   }
