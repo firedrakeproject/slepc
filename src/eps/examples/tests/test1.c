@@ -203,7 +203,7 @@ int main(int argc,char **argv)
          requires: !single
       test:
          suffix: 5_blopex
-         args: -eps_type blopex -eps_conv_abs
+         args: -eps_type blopex -eps_conv_abs -st_shift 0.1
          requires: blopex
 
    testset:

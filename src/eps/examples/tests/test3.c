@@ -159,7 +159,7 @@ int main(int argc,char **argv)
          requires: trlan
       test:
          suffix: 2_blopex
-         args: -eps_type blopex -eps_conv_abs
+         args: -eps_type blopex -eps_conv_abs -st_shift -2
          requires: blopex
 
 TEST*/
