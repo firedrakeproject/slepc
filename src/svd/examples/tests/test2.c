@@ -82,10 +82,14 @@ int main(int argc,char **argv)
       args: -svd_nsv 7 -svd_type {{lanczos trlanczos cross cyclic lapack}}
       requires: double
 
-   test:
-      suffix: 1_primme
+   testset:
       args: -svd_nsv 7 -svd_type primme
       requires: primme
       output_file: output/test2_1.out
+      test:
+         suffix: 1_primme
+      test:
+         suffix: 1_primme_args
+         args: -svd_primme_blocksize 2 -svd_primme_method hybrid
 
 TEST*/

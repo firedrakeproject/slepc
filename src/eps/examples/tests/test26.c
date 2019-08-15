@@ -88,10 +88,16 @@ int main(int argc,char **argv)
 
 /*TEST
 
-   test:
-      suffix: 1
-      args: -f1 ${SLEPC_DIR}/share/slepc/datafiles/matrices/bfw62a.petsc -f2 ${SLEPC_DIR}/share/slepc/datafiles/matrices/bfw62b.petsc -eps_largest_real -eps_nev 4 -eps_true_residual {{0 1}}
+   testset:
+      args: -f1 ${SLEPC_DIR}/share/slepc/datafiles/matrices/bfw62a.petsc -f2 ${SLEPC_DIR}/share/slepc/datafiles/matrices/bfw62b.petsc -eps_largest_real -eps_nev 4
       requires: double !complex !define(PETSC_USE_64BIT_INDICES)
       output_file: output/test26_1.out
+      test:
+         args: -eps_true_residual {{0 1}}
+         suffix: 1
+      test:
+         args:  -eps_type arpack
+         suffix: 1_arpack
+         requires: arpack
 
 TEST*/

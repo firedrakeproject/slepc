@@ -126,7 +126,7 @@ int main(int argc,char **argv)
          requires: arpack
       test:
          suffix: 1_primme
-         args: -eps_type primme -eps_conv_abs
+         args: -eps_type primme -eps_conv_abs -eps_primme_blocksize 4
          requires: primme
       test:
          suffix: 1_trlan
