@@ -249,7 +249,7 @@ PetscErrorCode BoundaryGlobalIndex(DM dm,const char labelname[],IS *bdis)
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  ierr = DMGetDefaultGlobalSection(dm,&gsection);CHKERRQ(ierr);
+  ierr = DMGetGlobalSection(dm,&gsection);CHKERRQ(ierr);
   ierr = DMGetLabel(dm,labelname,&bdmarker);CHKERRQ(ierr);
   ierr = DMLabelGetStratumIS(bdmarker,1,&bdpoints);CHKERRQ(ierr);
   ierr = ISGetLocalSize(bdpoints,&npoints);CHKERRQ(ierr);
