@@ -216,7 +216,7 @@ PetscErrorCode MatGetDiagonal_Laplacian2D(Mat A,Vec diag)
          requires: blzpack
       test:
          suffix: 2_primme
-         args: -eps_type primme -eps_conv_abs -eps_primme_method lobpcg_orthobasisw
+         args: -eps_type primme -eps_conv_abs -eps_primme_method lobpcg_orthobasisw -eps_ncv 24
          requires: primme
 
    testset:
