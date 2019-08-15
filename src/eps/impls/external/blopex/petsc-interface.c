@@ -12,6 +12,7 @@
 
 static PetscRandom LOBPCG_RandomContext = NULL;
 
+#if !defined(PETSC_USE_COMPLEX)
 BlopexInt PETSC_dpotrf_interface (char *uplo,BlopexInt *n,double *a,BlopexInt * lda,BlopexInt *info)
 {
   PetscBLASInt n_,lda_,info_;
@@ -27,6 +28,23 @@ BlopexInt PETSC_dpotrf_interface (char *uplo,BlopexInt *n,double *a,BlopexInt * 
   return 0;
 }
 
+BlopexInt PETSC_dsygv_interface (BlopexInt *itype,char *jobz,char *uplo,BlopexInt *n,double *a,BlopexInt *lda,double *b,BlopexInt *ldb,double *w,double *work,BlopexInt *lwork,BlopexInt *info)
+{
+  PetscBLASInt itype_,n_,lda_,ldb_,lwork_,info_;
+
+  itype_ = *itype;
+  n_ = *n;
+  lda_ = *lda;
+  ldb_ = *ldb;
+  lwork_ = *lwork;
+  info_ = *info;
+
+  LAPACKsygv_(&itype_,jobz,uplo,&n_,(PetscScalar*)a,&lda_,(PetscScalar*)b,&ldb_,(PetscScalar*)w,(PetscScalar*)work,&lwork_,&info_);
+
+  *info = info_;
+  return 0;
+}
+#else
 BlopexInt PETSC_zpotrf_interface (char *uplo,BlopexInt *n,komplex *a,BlopexInt* lda,BlopexInt *info)
 {
   PetscBLASInt n_,lda_,info_;
@@ -41,28 +59,8 @@ BlopexInt PETSC_zpotrf_interface (char *uplo,BlopexInt *n,komplex *a,BlopexInt* 
   return 0;
 }
 
-BlopexInt PETSC_dsygv_interface (BlopexInt *itype,char *jobz,char *uplo,BlopexInt *n,double *a,BlopexInt *lda,double *b,BlopexInt *ldb,double *w,double *work,BlopexInt *lwork,BlopexInt *info)
-{
-#if !defined(PETSC_USE_COMPLEX)
-  PetscBLASInt itype_,n_,lda_,ldb_,lwork_,info_;
-
-  itype_ = *itype;
-  n_ = *n;
-  lda_ = *lda;
-  ldb_ = *ldb;
-  lwork_ = *lwork;
-  info_ = *info;
-
-  LAPACKsygv_(&itype_,jobz,uplo,&n_,(PetscScalar*)a,&lda_,(PetscScalar*)b,&ldb_,(PetscScalar*)w,(PetscScalar*)work,&lwork_,&info_);
-
-  *info = info_;
-#endif
-  return 0;
-}
-
 BlopexInt PETSC_zsygv_interface (BlopexInt *itype,char *jobz,char *uplo,BlopexInt *n,komplex *a,BlopexInt *lda,komplex *b,BlopexInt *ldb,double *w,komplex *work,BlopexInt *lwork,double *rwork,BlopexInt *info)
 {
-#if defined(PETSC_USE_COMPLEX)
   PetscBLASInt itype_,n_,lda_,ldb_,lwork_,info_;
 
   itype_ = *itype;
@@ -75,9 +73,9 @@ BlopexInt PETSC_zsygv_interface (BlopexInt *itype,char *jobz,char *uplo,BlopexIn
   LAPACKsygv_(&itype_,jobz,uplo,&n_,(PetscScalar*)a,&lda_,(PetscScalar*)b,&ldb_,(PetscReal*)w,(PetscScalar*)work,&lwork_,(PetscReal*)rwork,&info_);
 
   *info = info_;
-#endif
   return 0;
 }
+#endif
 
 void *PETSC_MimicVector(void *vvector)
 {

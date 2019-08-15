@@ -8,17 +8,17 @@
 
 #include "blopex_interpreter.h"
 
+#if !defined(PETSC_USE_COMPLEX)
 BlopexInt PETSC_dpotrf_interface (char *uplo, BlopexInt *n, double *a, BlopexInt * lda, BlopexInt *info);
-
 BlopexInt PETSC_dsygv_interface (BlopexInt *itype, char *jobz, char *uplo, BlopexInt *
                     n, double *a, BlopexInt *lda, double *b, BlopexInt *ldb,
                     double *w, double *work, BlopexInt *lwork, BlopexInt *info);
-
+#else
 BlopexInt PETSC_zpotrf_interface (char *uplo, BlopexInt *n, komplex *a, BlopexInt * lda, BlopexInt *info);
-
 BlopexInt PETSC_zsygv_interface (BlopexInt *itype, char *jobz, char *uplo, BlopexInt *
                     n, komplex *a, BlopexInt *lda, komplex *b, BlopexInt *ldb,
                     double *w, komplex *work, BlopexInt *lwork, double *rwork, BlopexInt *info);
+#endif
 
 void *
 PETSC_MimicVector(void *vvector);
