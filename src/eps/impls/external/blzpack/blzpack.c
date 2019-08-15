@@ -138,7 +138,7 @@ PetscErrorCode EPSSolve_BLZPACK(EPS eps)
   EPS_BLZPACK    *blz = (EPS_BLZPACK*)eps->data;
   PetscInt       nn;
   PetscBLASInt   i,nneig,lflag,nvopu;
-  Vec            x,y,v0;
+  Vec            x,y;
   PetscScalar    sigma,*pV;
   Mat            A,M;
   KSP            ksp;
@@ -149,8 +149,7 @@ PetscErrorCode EPSSolve_BLZPACK(EPS eps)
   ierr = MatCreateVecsEmpty(A,&x,&y);CHKERRQ(ierr);
   ierr = EPSGetStartVector(eps,0,NULL);CHKERRQ(ierr);
   ierr = BVSetActiveColumns(eps->V,0,0);CHKERRQ(ierr);  /* just for deflation space */
-  ierr = BVGetColumn(eps->V,0,&v0);CHKERRQ(ierr);
-  ierr = VecGetArray(v0,&pV);CHKERRQ(ierr);
+  ierr = BVGetArray(eps->V,&pV);CHKERRQ(ierr);
 
   if (eps->isgeneralized && !blz->slice) {
     ierr = STGetShift(eps->st,&sigma);CHKERRQ(ierr); /* shift of origin */
@@ -202,11 +201,7 @@ PetscErrorCode EPSSolve_BLZPACK(EPS eps)
       }
       /* monitor */
       eps->nconv  = BLZistorr_(blz->istor,"NTEIG",5);
-      ierr = EPSMonitor(eps,eps->its,eps->nconv,
-        blz->rstor+BLZistorr_(blz->istor,"IRITZ",5),
-        eps->eigi,
-        blz->rstor+BLZistorr_(blz->istor,"IRITZ",5)+BLZistorr_(blz->istor,"JT",2),
-        BLZistorr_(blz->istor,"NRITZ",5));CHKERRQ(ierr);
+      ierr = EPSMonitor(eps,eps->its,eps->nconv,blz->rstor+BLZistorr_(blz->istor,"IRITZ",5),eps->eigi,blz->rstor+BLZistorr_(blz->istor,"IRITZ",5)+BLZistorr_(blz->istor,"JT",2),BLZistorr_(blz->istor,"NRITZ",5));CHKERRQ(ierr);
       eps->its = eps->its + 1;
       if (eps->its >= eps->max_it || eps->nconv >= eps->nev) lflag = 5;
       break;
@@ -233,27 +228,24 @@ PetscErrorCode EPSSolve_BLZPACK(EPS eps)
     case 4:
       /* copy the initial vector */
       ierr = VecPlaceArray(x,blz->v);CHKERRQ(ierr);
-      ierr = VecCopy(v0,x);CHKERRQ(ierr);
+      ierr = BVCopyVec(eps->V,0,x);CHKERRQ(ierr);
       ierr = VecResetArray(x);CHKERRQ(ierr);
       break;
     }
 
   } while (lflag > 0);
 
-  ierr = VecRestoreArray(v0,&pV);CHKERRQ(ierr);
-  ierr = BVRestoreColumn(eps->V,0,&v0);CHKERRQ(ierr);
+  ierr = BVRestoreArray(eps->V,&pV);CHKERRQ(ierr);
 
   eps->nconv  = BLZistorr_(blz->istor,"NTEIG",5);
   eps->reason = EPS_CONVERGED_TOL;
-
-  for (i=0;i<eps->nconv;i++) {
-    eps->eigr[i]=blz->eig[i];
-  }
+  if (blz->slice) eps->nev = eps->nconv;
+  for (i=0;i<eps->nconv;i++) eps->eigr[i]=blz->eig[i];
 
   if (lflag!=0) {
     char msg[2048] = "";
     for (i = 0; i < 33; i++) {
-      if (blz->istor[15] & (1 << i)) PetscStrcat(msg,blzpack_error[i]);
+      if (blz->istor[15] & (1 << i)) { ierr = PetscStrcat(msg,blzpack_error[i]);CHKERRQ(ierr); }
     }
     SETERRQ2(PetscObjectComm((PetscObject)eps),PETSC_ERR_LIB,"Error in BLZPACK (code=%d): '%s'",blz->istor[15],msg);
   }
@@ -295,7 +287,9 @@ PetscErrorCode EPSDestroy_BLZPACK(EPS eps)
   PetscFunctionBegin;
   ierr = PetscFree(eps->data);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSBlzpackSetBlockSize_C",NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSBlzpackGetBlockSize_C",NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSBlzpackSetNSteps_C",NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSBlzpackGetNSteps_C",NULL);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -378,6 +372,41 @@ PetscErrorCode EPSBlzpackSetBlockSize(EPS eps,PetscInt bs)
   PetscFunctionReturn(0);
 }
 
+static PetscErrorCode EPSBlzpackGetBlockSize_BLZPACK(EPS eps,PetscInt *bs)
+{
+  EPS_BLZPACK *blz = (EPS_BLZPACK*)eps->data;
+
+  PetscFunctionBegin;
+  *bs = blz->block_size;
+  PetscFunctionReturn(0);
+}
+
+/*@
+   EPSBlzpackGetBlockSize - Gets the block size used in the BLZPACK solver.
+
+   Not Collective
+
+   Input Parameter:
+.  eps - the eigenproblem solver context
+
+   Output Parameter:
+.  bs - the block size
+
+   Level: advanced
+
+.seealso: EPSBlzpackSetBlockSize()
+@*/
+PetscErrorCode EPSBlzpackGetBlockSize(EPS eps,PetscInt *bs)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
+  PetscValidIntPointer(bs,2);
+  ierr = PetscUseMethod(eps,"EPSBlzpackGetBlockSize_C",(EPS,PetscInt*),(eps,bs));CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
 static PetscErrorCode EPSBlzpackSetNSteps_BLZPACK(EPS eps,PetscInt nsteps)
 {
   PetscErrorCode ierr;
@@ -418,6 +447,41 @@ PetscErrorCode EPSBlzpackSetNSteps(EPS eps,PetscInt nsteps)
   PetscFunctionReturn(0);
 }
 
+static PetscErrorCode EPSBlzpackGetNSteps_BLZPACK(EPS eps,PetscInt *nsteps)
+{
+  EPS_BLZPACK *blz = (EPS_BLZPACK*)eps->data;
+
+  PetscFunctionBegin;
+  *nsteps = blz->nsteps;
+  PetscFunctionReturn(0);
+}
+
+/*@
+   EPSBlzpackGetNSteps - Gets the maximum number of steps per run in the BLZPACK solver.
+
+   Not Collective
+
+   Input Parameter:
+.  eps - the eigenproblem solver context
+
+   Output Parameter:
+.  nsteps - the maximum number of steps
+
+   Level: advanced
+
+.seealso: EPSBlzpackSetNSteps()
+@*/
+PetscErrorCode EPSBlzpackGetNSteps(EPS eps,PetscInt *nsteps)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
+  PetscValidIntPointer(nsteps,2);
+  ierr = PetscUseMethod(eps,"EPSBlzpackGetNSteps_C",(EPS,PetscInt*),(eps,nsteps));CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
 SLEPC_EXTERN PetscErrorCode EPSCreate_BLZPACK(EPS eps)
 {
   PetscErrorCode ierr;
@@ -436,7 +500,9 @@ SLEPC_EXTERN PetscErrorCode EPSCreate_BLZPACK(EPS eps)
   eps->ops->backtransform  = EPSBackTransform_BLZPACK;
 
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSBlzpackSetBlockSize_C",EPSBlzpackSetBlockSize_BLZPACK);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSBlzpackGetBlockSize_C",EPSBlzpackGetBlockSize_BLZPACK);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSBlzpackSetNSteps_C",EPSBlzpackSetNSteps_BLZPACK);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSBlzpackGetNSteps_C",EPSBlzpackGetNSteps_BLZPACK);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
