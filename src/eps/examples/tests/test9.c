@@ -220,7 +220,7 @@ PetscErrorCode MyEigenSort(PetscScalar ar,PetscScalar ai,PetscScalar br,PetscSca
 
    test:
       suffix: 5_arpack
-      args: -eps_nev 3 -st_type sinvert -eps_target .5 -eps_type arpack
+      args: -eps_nev 3 -st_type sinvert -eps_target .5 -eps_type arpack -eps_ncv 10
       requires: arpack
       output_file: output/test9_5.out
 
