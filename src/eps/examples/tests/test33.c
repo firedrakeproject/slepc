@@ -84,7 +84,7 @@ int main(int argc,char **argv)
      Set interval and other settings for spectrum slicing
   */
   ierr = EPSSetWhichEigenpairs(eps,EPS_ALL);CHKERRQ(ierr);
-  int0 = 1.1; int1 = 1.3;
+  int0 = 1.1; int1 = 1.2;
   ierr = EPSSetInterval(eps,int0,int1);CHKERRQ(ierr);
   ierr = EPSSetDimensions(eps,100,PETSC_DEFAULT,PETSC_DEFAULT);CHKERRQ(ierr);
   ierr = EPSGetST(eps,&st);CHKERRQ(ierr);
