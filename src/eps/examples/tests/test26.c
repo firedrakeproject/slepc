@@ -59,9 +59,12 @@ int main(int argc,char **argv)
   }
 
   /* This example is intended for a matrix pair (A,B) where B is symmetric positive definite;
-     We will load matrices bfw62a/bfw62b, and scale both of them because bfw62b is negative definite */
-  ierr = MatScale(A,-1.0);CHKERRQ(ierr);
-  ierr = MatScale(B,-1.0);CHKERRQ(ierr);
+     If we load matrices bfw62a/bfw62b, scale both of them because bfw62b is negative definite */
+  ierr = PetscStrendswith(filename,"bfw62b.petsc",&flg);CHKERRQ(ierr);
+  if (flg) {
+    ierr = MatScale(A,-1.0);CHKERRQ(ierr);
+    ierr = MatScale(B,-1.0);CHKERRQ(ierr);
+  }
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                 Create the eigensolver and solve the problem
@@ -98,6 +101,17 @@ int main(int argc,char **argv)
       test:
          args:  -eps_type arpack
          suffix: 1_arpack
+         requires: arpack
+
+   testset:
+      args: -f1 ${DATAFILESPATH}/matrices/complex/mhd1280a.petsc -f2 ${DATAFILESPATH}/matrices/complex/mhd1280b.petsc -eps_smallest_real -eps_nev 2
+      requires: complex datafilespath !define(PETSC_USE_64BIT_INDICES)
+      output_file: output/test26_2.out
+      test:
+         suffix: 2
+      test:
+         args:  -eps_type arpack
+         suffix: 2_arpack
          requires: arpack
 
 TEST*/
