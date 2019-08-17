@@ -92,6 +92,9 @@ int main(int argc,char **argv)
 
 /*TEST
 
+   build:
+      requires: primme
+
    test:
       suffix: 1
       args: -svd_nsv 4

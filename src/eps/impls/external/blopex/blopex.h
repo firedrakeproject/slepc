@@ -19,8 +19,5 @@ SLEPC_INTERN PetscInt slepc_blopex_useconstr;
 extern int
 SLEPCSetupInterpreter(mv_InterfaceInterpreter *ii);
 
-extern void
-SLEPCSetupInterpreterForDignifiedDeath(mv_InterfaceInterpreter *i);
-
 #endif
 

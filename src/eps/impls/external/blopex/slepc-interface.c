@@ -56,17 +56,6 @@ static void* mv_TempMultiVectorCreateFromBV(void* ii_,BlopexInt n,void* sample)
   return x;
 }
 
-static void mv_TempMultiPETSCVectorDestroy(void* x_)
-{
-  mv_TempMultiVector* x = (mv_TempMultiVector*)x_;
-
-  if (!x) return;
-
-  if (x->ownsVectors && x->vector) free(x->vector);
-  if (x->mask && x->ownsMask) free(x->mask);
-  free(x);
-}
-
 /*
     Create an InterfaceInterpreter using the PETSc implementation
     but overloading CreateMultiVector that doesn't create any
@@ -78,14 +67,5 @@ int SLEPCSetupInterpreter(mv_InterfaceInterpreter *i)
   i->CreateMultiVector = mv_TempMultiVectorCreateFromBV;
 
   return 0;
-}
-
-/*
-    Change the multivector destructor in order to destroy the multivector
-    structure without destroy the PETSc vectors.
-*/
-void SLEPCSetupInterpreterForDignifiedDeath(mv_InterfaceInterpreter *i)
-{
-  i->DestroyMultiVector = mv_TempMultiPETSCVectorDestroy;
 }
 
