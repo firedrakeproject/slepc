@@ -12,7 +12,7 @@
 
 static PetscBool NEPPackageInitialized = PETSC_FALSE;
 
-const char *NEPErrorTypes[] = {"ABSOLUTE","RELATIVE","NEPErrorType","NEP_ERROR_",0};
+const char *NEPErrorTypes[] = {"ABSOLUTE","RELATIVE","BACKWARD","NEPErrorType","NEP_ERROR_",0};
 const char *NEPRefineTypes[] = {"NONE","SIMPLE","MULTIPLE","NEPRefine","NEP_REFINE_",0};
 const char *NEPRefineSchemes[] = {"","SCHUR","MBE","EXPLICIT","NEPRefineScheme","NEP_REFINE_SCHEME_",0};
 const char *const NEPConvergedReasons_Shifted[] = {"DIVERGED_SUBSPACE_EXHAUSTED","DIVERGED_LINEAR_SOLVE","","DIVERGED_BREAKDOWN","DIVERGED_ITS","CONVERGED_ITERATING","CONVERGED_TOL","CONVERGED_USER","NEPConvergedReason","NEP_",0};
