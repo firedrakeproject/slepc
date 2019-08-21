@@ -17,7 +17,7 @@ class Arpack(package.Package):
     self.packagename    = 'arpack'
     self.installable    = True
     self.downloadable   = True
-    self.version        = '3.6.3'
+    self.version        = '3.7.0'
     self.url            = 'https://github.com/opencollab/arpack-ng/archive/'+self.version+'.tar.gz'
     self.archive        = 'arpack-ng-'+self.version+'.tar.gz'
     self.dirname        = 'arpack-ng-'+self.version
