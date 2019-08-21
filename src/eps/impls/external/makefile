@@ -11,7 +11,7 @@
 ALL: lib
 
 LIBBASE  = libslepceps
-DIRS     = arpack blopex blzpack primme trlan feast
+DIRS     = arpack blopex blzpack primme trlan
 LOCDIR   = src/eps/impls/external/
 MANSEC   = EPS
 

@@ -55,7 +55,6 @@ typedef const char* EPSType;
 #define EPSTRLAN       "trlan"
 #define EPSBLOPEX      "blopex"
 #define EPSPRIMME      "primme"
-#define EPSFEAST       "feast"
 
 /* Logging support */
 SLEPC_EXTERN PetscClassId EPS_CLASSID;
@@ -461,9 +460,6 @@ SLEPC_EXTERN PetscErrorCode EPSCISSGetKSPs(EPS,PetscInt*,KSP**);
 
 SLEPC_EXTERN PetscErrorCode EPSBLOPEXSetBlockSize(EPS,PetscInt);
 SLEPC_EXTERN PetscErrorCode EPSBLOPEXGetBlockSize(EPS,PetscInt*);
-
-SLEPC_EXTERN PetscErrorCode EPSFEASTSetNumPoints(EPS,PetscInt);
-SLEPC_EXTERN PetscErrorCode EPSFEASTGetNumPoints(EPS,PetscInt*);
 
 #endif
 
