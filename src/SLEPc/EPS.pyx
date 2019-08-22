@@ -26,7 +26,6 @@ class EPSType(object):
     - `TRLAN`:
     - `BLOPEX`:
     - `PRIMME`:
-    - `FEAST`:
     """
     # provided implementations
     POWER        = S_(EPSPOWER)
@@ -46,7 +45,6 @@ class EPSType(object):
     TRLAN        = S_(EPSTRLAN)
     BLOPEX       = S_(EPSBLOPEX)
     PRIMME       = S_(EPSPRIMME)
-    FEAST        = S_(EPSFEAST)
 
 class EPSProblemType(object):
     """

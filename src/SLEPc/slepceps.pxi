@@ -17,7 +17,6 @@ cdef extern from * nogil:
     SlepcEPSType EPSTRLAN
     SlepcEPSType EPSBLOPEX
     SlepcEPSType EPSPRIMME
-    SlepcEPSType EPSFEAST
 
     ctypedef enum SlepcEPSProblemType "EPSProblemType":
         EPS_HEP
