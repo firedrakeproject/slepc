@@ -53,7 +53,7 @@ struct _n_SlepcConvMonitor {
 /*
   SlepcPrintEigenvalueASCII - Print an eigenvalue on an ASCII viewer.
 */
-PETSC_STATIC_INLINE PetscErrorCode SlepcPrintEigenvalueASCII(PetscScalar eigr,PetscScalar eigi)
+PETSC_STATIC_INLINE PetscErrorCode SlepcPrintEigenvalueASCII(PetscViewer viewer,PetscScalar eigr,PetscScalar eigi)
 {
   PetscErrorCode ierr;
   PetscReal      re,im;
@@ -71,9 +71,9 @@ PETSC_STATIC_INLINE PetscErrorCode SlepcPrintEigenvalueASCII(PetscScalar eigr,Pe
   if (PetscAbs(re) && PetscAbs(im)/PetscAbs(re)<PETSC_SMALL) im = 0.0;
   /* print as real if imaginary part is zero */
   if (im!=0.0) {
-    ierr = PetscPrintf(PETSC_COMM_WORLD,"%.5f%+.5fi",(double)re,(double)im);CHKERRQ(ierr);
+    ierr = PetscViewerASCIIPrintf(viewer,"%.5f%+.5fi",(double)re,(double)im);CHKERRQ(ierr);
   } else {
-    ierr = PetscPrintf(PETSC_COMM_WORLD,"%.5f",(double)re);CHKERRQ(ierr);
+    ierr = PetscViewerASCIIPrintf(viewer,"%.5f",(double)re);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }

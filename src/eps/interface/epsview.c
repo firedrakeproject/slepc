@@ -322,7 +322,7 @@ static PetscErrorCode EPSErrorView_ASCII(EPS eps,EPSErrorType etype,PetscViewer 
     ierr = PetscViewerASCIIPrintf(viewer,"\n     ");CHKERRQ(ierr);
     for (j=0;j<PetscMin(8,nvals-8*i);j++) {
       k = eps->perm[8*i+j];
-      ierr = SlepcPrintEigenvalueASCII(eps->eigr[k],eps->eigi[k]);CHKERRQ(ierr);
+      ierr = SlepcPrintEigenvalueASCII(viewer,eps->eigr[k],eps->eigi[k]);CHKERRQ(ierr);
       if (8*i+j+1<nvals) { ierr = PetscViewerASCIIPrintf(viewer,", ");CHKERRQ(ierr); }
     }
   }
@@ -539,7 +539,7 @@ static PetscErrorCode EPSValuesView_ASCII(EPS eps,PetscViewer viewer)
   for (i=0;i<eps->nconv;i++) {
     k = eps->perm[i];
     ierr = PetscViewerASCIIPrintf(viewer,"   ");CHKERRQ(ierr);
-    ierr = SlepcPrintEigenvalueASCII(eps->eigr[k],eps->eigi[k]);CHKERRQ(ierr);
+    ierr = SlepcPrintEigenvalueASCII(viewer,eps->eigr[k],eps->eigi[k]);CHKERRQ(ierr);
     ierr = PetscViewerASCIIPrintf(viewer,"\n");CHKERRQ(ierr);
   }
   ierr = PetscViewerASCIIPrintf(viewer,"\n");CHKERRQ(ierr);

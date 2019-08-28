@@ -526,7 +526,7 @@ static PetscErrorCode MatDuplicate_Fun(Mat A,MatDuplicateOption op,Mat *B)
   }
   ierr = MatGetSize(ctx->A[0],&n,NULL);CHKERRQ(ierr);
   ierr = VecDuplicate(ctx->t,&ctxnew->t);CHKERRQ(ierr);
-  ierr = MatCreateShell(PETSC_COMM_WORLD,n,n,n,n,(void*)ctxnew,B);CHKERRQ(ierr);
+  ierr = MatCreateShell(PetscObjectComm((PetscObject)A),n,n,n,n,(void*)ctxnew,B);CHKERRQ(ierr);
   ierr = MatShellSetManageScalingShifts(*B);CHKERRQ(ierr);
   ierr = MatShellGetOperation(A,MATOP_MULT,&fun);CHKERRQ(ierr);
   ierr = MatShellSetOperation(*B,MATOP_MULT,fun);CHKERRQ(ierr);

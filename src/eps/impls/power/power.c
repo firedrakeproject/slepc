@@ -243,7 +243,7 @@ static PetscErrorCode EPSPowerUpdateFunctionA(EPS eps,Vec x,Vec Ax)
     } else {
       ierr = MatMult(A,x,Ax);CHKERRQ(ierr);
     }
-  } else SETERRQ(PETSC_COMM_WORLD,PETSC_ERR_ARG_NULL,"Matrix A is required for an eigenvalue problem");
+  } else SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_NULL,"Matrix A is required for an eigenvalue problem");
   PetscFunctionReturn(0);
 }
 
@@ -257,7 +257,7 @@ static PetscErrorCode SNESLineSearchPostheckFunction(SNESLineSearch linesearch,V
   PetscFunctionBegin;
   ierr = SNESLineSearchGetSNES(linesearch,&snes);CHKERRQ(ierr);
   ierr = PetscObjectQuery((PetscObject)snes,"eps",(PetscObject *)&eps);CHKERRQ(ierr);
-  if (!eps) SETERRQ(PETSC_COMM_WORLD,PETSC_ERR_ARG_NULL,"No composed EPS");
+  if (!eps) SETERRQ(PetscObjectComm((PetscObject)snes),PETSC_ERR_ARG_NULL,"No composed EPS");
   oldx = eps->work[3];
   ierr = VecCopy(x,oldx);CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -273,7 +273,7 @@ static PetscErrorCode EPSPowerFormFunction_Update(SNES snes,Vec x,Vec y,void *ct
 
   PetscFunctionBegin;
   ierr = PetscObjectQuery((PetscObject)snes,"eps",(PetscObject *)&eps);CHKERRQ(ierr);
-  if (!eps) SETERRQ(PETSC_COMM_WORLD,PETSC_ERR_ARG_NULL,"No composed EPS");
+  if (!eps) SETERRQ(PetscObjectComm((PetscObject)snes),PETSC_ERR_ARG_NULL,"No composed EPS");
   power = (EPS_POWER*)eps->data;
   Bx = eps->work[2];
   if (power->formFunctionAB) {
@@ -504,7 +504,7 @@ PetscErrorCode EPSSolve_Power(EPS eps)
           rho *= 1+10*PETSC_MACHINE_EPSILON;
           ierr = STSetShift(eps->st,rho);CHKERRQ(ierr);
           ierr = KSPGetConvergedReason(ksp,&reason);CHKERRQ(ierr);
-          if (reason) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_CONV_FAILED,"Second factorization failed");
+          if (reason) SETERRQ(PetscObjectComm((PetscObject)ksp),PETSC_ERR_CONV_FAILED,"Second factorization failed");
         }
         ierr = KSPSetErrorIfNotConverged(ksp,PETSC_TRUE);CHKERRQ(ierr);
       }
@@ -645,7 +645,7 @@ PetscErrorCode EPSSolve_TS_Power(EPS eps)
           rho *= 1+10*PETSC_MACHINE_EPSILON;
           ierr = STSetShift(eps->st,rho);CHKERRQ(ierr);
           ierr = KSPGetConvergedReason(ksp,&reason);CHKERRQ(ierr);
-          if (reason) SETERRQ(PETSC_COMM_SELF,PETSC_ERR_CONV_FAILED,"Second factorization failed");
+          if (reason) SETERRQ(PetscObjectComm((PetscObject)ksp),PETSC_ERR_CONV_FAILED,"Second factorization failed");
         }
         ierr = KSPSetErrorIfNotConverged(ksp,PETSC_TRUE);CHKERRQ(ierr);
       }
@@ -918,7 +918,7 @@ static PetscErrorCode EPSPowerSetUpdate_Power(EPS eps,PetscBool update)
   EPS_POWER *power = (EPS_POWER*)eps->data;
 
   PetscFunctionBegin;
-  if (!power->nonlinear) SETERRQ(PETSC_COMM_WORLD,PETSC_ERR_ARG_INCOMP,"This option does not make sense for linear problems");
+  if (!power->nonlinear) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_INCOMP,"This option does not make sense for linear problems");
   power->update = update;
   eps->state = EPS_STATE_INITIAL;
   PetscFunctionReturn(0);

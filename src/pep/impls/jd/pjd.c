@@ -1201,7 +1201,7 @@ static PetscErrorCode PEPJDLockConverged(PEP pep,PetscInt *nv,PetscInt sz)
   }
 
   /* Extend search space */
-  ierr = MPI_Comm_size(PETSC_COMM_WORLD,&np);CHKERRQ(ierr);
+  ierr = MPI_Comm_size(PetscObjectComm((PetscObject)pep),&np);CHKERRQ(ierr);
   ierr = PetscCalloc3(nvv,&P,nvv*nvv,&R,nvv*sz,&r);CHKERRQ(ierr);
   ierr = DSGetLeadingDimension(pep->ds,&ldds);CHKERRQ(ierr);
   ierr = DSGetArray(pep->ds,DS_MAT_X,&pX);CHKERRQ(ierr);
