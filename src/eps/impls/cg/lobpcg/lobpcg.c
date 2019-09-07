@@ -100,7 +100,9 @@ PetscErrorCode EPSSolve_LOBPCG(EPS eps)
   if (nmat>1) { ierr = STGetMatrix(eps->st,1,&B);CHKERRQ(ierr); }
   else B = NULL;
 
-  guard = (PetscInt)PetscRoundReal((1.0-ctx->restart)*ctx->bs);  /* number of guard vectors */
+  /* number of guard vectors */
+  if (ctx->bs==1) guard = 0;
+  else guard = PetscMin((PetscInt)((1.0-ctx->restart)*ctx->bs+0.45),ctx->bs-1);
 
   if (eps->which==EPS_LARGEST_REAL) {  /* flip spectrum */
     flip = PETSC_TRUE;
