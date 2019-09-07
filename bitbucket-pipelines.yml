@@ -8,7 +8,7 @@ pipelines:
             - export PETSC_DIR=/usr/local/petsc
             - export PETSC_ARCH=arch-bitbucket-cxx-complex
             - export SLEPC_DIR=$PWD
-            - git clone --depth=1 https://bitbucket.org/petsc/petsc $PETSC_DIR
+            - git clone --depth=1 https://gitlab.com/petsc/petsc $PETSC_DIR
             - cd $PETSC_DIR
             - ./configure --with-clanguage=C++ --with-64-bit-indices=1 --with-scalar-type=complex --with-mpi=0
             - make
