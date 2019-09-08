@@ -82,17 +82,17 @@ PetscErrorCode BuildFNPhi(FN fphi)
 
 int main(int argc,char **argv)
 {
-  Mat                L;
-  Vec                u,w,z,yex;
-  MFN                mfnexp,mfnphi;
-  FN                 fexp,fphi;
-  PetscBool          combine=PETSC_FALSE;
-  PetscInt           i,k,Istart,Iend,n=199,steps;
-  PetscReal          t,tend=1.0,deltat=0.01,nrmd,nrmu,x,h;
-  const PetscReal    half=0.5;
-  PetscScalar        value,c,uval,*warray;
+  Mat               L;
+  Vec               u,w,z,yex;
+  MFN               mfnexp,mfnphi;
+  FN                fexp,fphi;
+  PetscBool         combine=PETSC_FALSE;
+  PetscInt          i,k,Istart,Iend,n=199,steps;
+  PetscReal         t,tend=1.0,deltat=0.01,nrmd,nrmu,x,h;
+  const PetscReal   half=0.5;
+  PetscScalar       value,c,uval,*warray;
   const PetscScalar *uarray;
-  PetscErrorCode     ierr;
+  PetscErrorCode    ierr;
 
   ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
 
@@ -103,6 +103,8 @@ int main(int argc,char **argv)
   h = 1.0/(n+1.0);
   c = (n+1)*(n+1);
 
+  steps = (PetscInt)(tend/deltat);
+  if (PetscAbsReal(tend-steps*deltat)>10*PETSC_MACHINE_EPSILON) SETERRQ(PETSC_COMM_WORLD,1,"This example requires tend being a multiple of deltat");
   ierr = PetscPrintf(PETSC_COMM_WORLD,"\nHeat equation via phi functions, n=%D, tend=%g, deltat=%g%s\n\n",n,(double)tend,(double)deltat,combine?" (combine)":"");CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -171,7 +173,6 @@ int main(int argc,char **argv)
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
              Solve the problem with the Norsett-Euler scheme
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-  steps = PetscRoundReal(tend/deltat);
   t = 0.0;
   for (k=0;k<steps;k++) {
 
