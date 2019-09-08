@@ -34,6 +34,7 @@ typedef struct {
   PetscInt  bs;        /* block size */
   PetscBool lock;      /* soft locking active/inactive */
   PetscReal restart;   /* restart parameter */
+  PetscInt  guard;     /* number of guard vectors */
 } EPS_LOBPCG;
 
 PetscErrorCode EPSSetDimensions_LOBPCG(EPS eps,PetscInt nev,PetscInt *ncv,PetscInt *mpd)
@@ -72,6 +73,10 @@ PetscErrorCode EPSSetUp_LOBPCG(EPS eps)
 
   if (!ctx->restart) ctx->restart = 0.9;
 
+  /* number of guard vectors */
+  if (ctx->bs==1) ctx->guard = 0;
+  else ctx->guard = PetscMin((PetscInt)((1.0-ctx->restart)*ctx->bs+0.45),ctx->bs-1);
+
   ierr = EPSAllocateSolution(eps,0);CHKERRQ(ierr);
   ierr = EPS_SetInnerProduct(eps);CHKERRQ(ierr);
   ierr = DSSetType(eps->ds,DSGHEP);CHKERRQ(ierr);
@@ -84,7 +89,7 @@ PetscErrorCode EPSSolve_LOBPCG(EPS eps)
 {
   PetscErrorCode ierr;
   EPS_LOBPCG     *ctx = (EPS_LOBPCG*)eps->data;
-  PetscInt       i,j,k,ld,nv,ini,nmat,nc,nconv,locked,guard,its;
+  PetscInt       i,j,k,ld,nv,ini,nmat,nc,nconv,locked,its;
   PetscReal      norm;
   PetscScalar    *eigr,dot;
   PetscBool      breakdown,countc,flip=PETSC_FALSE,checkprecond=PETSC_FALSE;
@@ -99,10 +104,6 @@ PetscErrorCode EPSSolve_LOBPCG(EPS eps)
   ierr = STGetMatrix(eps->st,0,&A);CHKERRQ(ierr);
   if (nmat>1) { ierr = STGetMatrix(eps->st,1,&B);CHKERRQ(ierr); }
   else B = NULL;
-
-  /* number of guard vectors */
-  if (ctx->bs==1) guard = 0;
-  else guard = PetscMin((PetscInt)((1.0-ctx->restart)*ctx->bs+0.45),ctx->bs-1);
 
   if (eps->which==EPS_LARGEST_REAL) {  /* flip spectrum */
     flip = PETSC_TRUE;
@@ -124,7 +125,7 @@ PetscErrorCode EPSSolve_LOBPCG(EPS eps)
     ierr = BVDuplicateResize(eps->V,ctx->bs,&BX);CHKERRQ(ierr);
   }
   nc = eps->nds;
-  if (nc>0 || eps->nev>ctx->bs-guard) {
+  if (nc>0 || eps->nev>ctx->bs-ctx->guard) {
     ierr = BVDuplicateResize(eps->V,nc+eps->nev,&Y);CHKERRQ(ierr);
   }
   if (nc>0) {
@@ -216,19 +217,19 @@ PetscErrorCode EPSSolve_LOBPCG(EPS eps)
       ierr = EPSMonitor(eps,eps->its+its,eps->nconv,eps->eigr,eps->eigi,eps->errest,locked+ctx->bs);CHKERRQ(ierr);
     }
     ierr = (*eps->stopping)(eps,eps->its+its,eps->max_it,eps->nconv,eps->nev,&eps->reason,eps->stoppingctx);CHKERRQ(ierr);
-    if (eps->reason != EPS_CONVERGED_ITERATING || nconv >= ctx->bs-guard) {
+    if (eps->reason != EPS_CONVERGED_ITERATING || nconv >= ctx->bs-ctx->guard) {
       ierr = BVSetActiveColumns(eps->V,locked,eps->nconv);CHKERRQ(ierr);
       ierr = BVSetActiveColumns(X,0,nconv);CHKERRQ(ierr);
       ierr = BVCopy(X,eps->V);CHKERRQ(ierr);
     }
     if (eps->reason != EPS_CONVERGED_ITERATING) {
       break;
-    } else if (nconv >= ctx->bs-guard) {
+    } else if (nconv >= ctx->bs-ctx->guard) {
       eps->its += its-1;
       its = 0;
     } else its++;
 
-    if (nconv >= ctx->bs-guard) {  /* force hard locking of vectors and compute new R */
+    if (nconv >= ctx->bs-ctx->guard) {  /* force hard locking of vectors and compute new R */
 
       /* extend constraints */
       ierr = BVSetActiveColumns(Y,nc+locked,nc+locked+nconv);CHKERRQ(ierr);
@@ -404,7 +405,7 @@ diverged:
   if (B) {
     ierr = BVDestroy(&BX);CHKERRQ(ierr);
   }
-  if (nc>0 || eps->nev>ctx->bs-guard) {
+  if (nc>0 || eps->nev>ctx->bs-ctx->guard) {
     ierr = BVDestroy(&Y);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
@@ -491,10 +492,11 @@ static PetscErrorCode EPSLOBPCGSetRestart_LOBPCG(EPS eps,PetscReal restart)
   EPS_LOBPCG *ctx = (EPS_LOBPCG*)eps->data;
 
   PetscFunctionBegin;
-  if (restart==PETSC_DEFAULT) ctx->restart = 0.6;
-  else {
-    if (restart<0.1 || restart>1.0) SETERRQ1(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"The restart argument %g must be in the range [0.1,1.0]",(double)restart);
+  if (restart==PETSC_DEFAULT) restart = 0.9;
+  if (restart<0.1 || restart>1.0) SETERRQ1(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"The restart argument %g must be in the range [0.1,1.0]",(double)restart);
+  if (restart != ctx->restart) {
     ctx->restart = restart;
+    eps->state = EPS_STATE_INITIAL;
   }
   PetscFunctionReturn(0);
 }
@@ -654,7 +656,7 @@ PetscErrorCode EPSView_LOBPCG(EPS eps,PetscViewer viewer)
   ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
   if (isascii) {
     ierr = PetscViewerASCIIPrintf(viewer,"  block size %D\n",ctx->bs);CHKERRQ(ierr);
-    ierr = PetscViewerASCIIPrintf(viewer,"  restart parameter=%g (using %d guard vectors)\n",(double)ctx->restart,(int)PetscRoundReal((1.0-ctx->restart)*ctx->bs));CHKERRQ(ierr);
+    ierr = PetscViewerASCIIPrintf(viewer,"  restart parameter=%g (using %D guard vectors)\n",(double)ctx->restart,ctx->guard);CHKERRQ(ierr);
     ierr = PetscViewerASCIIPrintf(viewer,"  soft locking %sactivated\n",ctx->lock?"":"de");CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
