@@ -110,7 +110,7 @@ PetscErrorCode STSetFromOptions(ST st)
   PetscScalar    s;
   char           type[256];
   PetscBool      flg;
-  const char     *structure_list[3] = {"same","different","subset"};
+  const char     *structure_list[3] = {"different","subset","same"};
   STMatMode      mode;
   MatStructure   mstr;
 
