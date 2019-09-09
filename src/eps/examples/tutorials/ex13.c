@@ -151,7 +151,7 @@ int main(int argc,char **argv)
 
    test:
       suffix: 2
-      args: -n 110 -nulldim 6 -eps_nev 4 -eps_ncv 18 -eps_tol 1e-5 -eps_purify 1 -st_type sinvert -terse
+      args: -n 110 -nulldim 6 -eps_nev 4 -eps_ncv 18 -eps_tol 1e-5 -eps_purify 1 -st_type sinvert -st_matstructure {{different subset}} -terse
       requires: !single
 
 TEST*/
