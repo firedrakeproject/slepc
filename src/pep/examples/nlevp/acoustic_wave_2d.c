@@ -149,6 +149,5 @@ int main(int argc,char **argv)
       test:
          suffix: 1_stoar
          args: -pep_type stoar -pep_hermitian -pep_scale scalar
-         requires: !complex
 
 TEST*/
