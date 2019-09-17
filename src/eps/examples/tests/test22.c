@@ -271,6 +271,6 @@ PetscErrorCode MatGetDiagonal_Brussel(Mat A,Vec diag)
    test:
       suffix: 2
       args: -eps_nev 4 -eps_true_residual -eps_balance oneside -eps_tol 1e-7
-      requires: !complex !single
+      requires: !single
 
 TEST*/

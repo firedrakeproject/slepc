@@ -332,6 +332,8 @@ PetscErrorCode EPSGetInvariantSubspace(EPS eps,Vec *v)
 {
   PetscErrorCode ierr;
   PetscInt       i;
+  BV             V=eps->V;
+  Vec            w;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
@@ -339,12 +341,22 @@ PetscErrorCode EPSGetInvariantSubspace(EPS eps,Vec *v)
   PetscValidHeaderSpecific(*v,VEC_CLASSID,2);
   EPSCheckSolved(eps,1);
   if (!eps->ishermitian && eps->state==EPS_STATE_EIGENVECTORS) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_WRONGSTATE,"EPSGetInvariantSubspace must be called before EPSGetEigenpair,EPSGetEigenvector or EPSComputeError");
-  for (i=0;i<eps->nconv;i++) {
-    ierr = BVCopyVec(eps->V,i,v[i]);CHKERRQ(ierr);
-    if (eps->balance!=EPS_BALANCE_NONE && eps->D) {
-      ierr = VecPointwiseDivide(v[i],v[i],eps->D);CHKERRQ(ierr);
-      ierr = VecNormalize(v[i],NULL);CHKERRQ(ierr);
+  if (eps->balance!=EPS_BALANCE_NONE && eps->D) {
+    ierr = BVDuplicateResize(eps->V,eps->nconv,&V);CHKERRQ(ierr);
+    ierr = BVSetActiveColumns(eps->V,0,eps->nconv);CHKERRQ(ierr);
+    ierr = BVCopy(eps->V,V);CHKERRQ(ierr);
+    for (i=0;i<eps->nconv;i++) {
+      ierr = BVGetColumn(V,i,&w);CHKERRQ(ierr);
+      ierr = VecPointwiseDivide(w,w,eps->D);CHKERRQ(ierr);
+      ierr = BVRestoreColumn(V,i,&w);CHKERRQ(ierr);
     }
+    ierr = BVOrthogonalize(V,NULL);CHKERRQ(ierr);
+  }
+  for (i=0;i<eps->nconv;i++) {
+    ierr = BVCopyVec(V,i,v[i]);CHKERRQ(ierr);
+  }
+  if (eps->balance!=EPS_BALANCE_NONE && eps->D) {
+    ierr = BVDestroy(&V);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }
