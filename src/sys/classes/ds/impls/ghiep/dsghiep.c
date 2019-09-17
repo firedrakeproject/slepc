@@ -703,7 +703,7 @@ PetscErrorCode DSSolve_GHIEP_QR_II(DS ds,PetscScalar *wr,PetscScalar *wi)
   PetscStackCallBLAS("LAPACKhseqr",LAPACKhseqr_("E","N",&n1,&one,&n1,H+off,&ld,wr+ds->l,wi+ds->l,NULL,&ld,ds->work,&lwork,&info));
 #else
   PetscStackCallBLAS("LAPACKhseqr",LAPACKhseqr_("E","N",&n1,&one,&n1,H+off,&ld,wr+ds->l,NULL,&ld,ds->work,&lwork,&info));
-
+  for (i=ds->l;i<ds->n;i++) if (PetscAbsReal(PetscImaginaryPart(wr[i]))<10*PETSC_MACHINE_EPSILON) wr[i] = PetscRealPart(wr[i]);
   /* Sort to have consecutive conjugate pairs */
   for (i=ds->l;i<ds->n;i++) {
       j=i+1;
