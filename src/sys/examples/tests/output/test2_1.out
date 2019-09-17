@@ -42,11 +42,11 @@ Options for all PETSc programs:
  -fp_trap: stop on floating point exceptions
            note on IBM RS6000 this slows run greatly
  -malloc_dump <optional filename>: dump list of unfreed memory at conclusion
- -malloc: use our error checking malloc
- -malloc no: don't use error checking malloc
+ -malloc: use PETSc error checking malloc (deprecated, use -malloc_debug)
+ -malloc no: don't use PETSc error checking malloc (deprecated, use -malloc_debug no)
  -malloc_info: prints total memory usage
- -malloc_log: keeps log of all memory allocations
- -malloc_debug: enables extended checking for memory corruption
+ -malloc_view <optional filename>: keeps log of all memory allocations, displays in PetscFinalize()
+ -malloc_debug <true or false>: enables or disables extended checking for memory corruption
  -options_view: dump list of options inputted
  -options_left: dump list of unused options
  -options_left no: don't dump list of unused options
