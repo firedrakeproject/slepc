@@ -146,7 +146,7 @@ static PetscErrorCode BVTensorNormColumn(BV bv,PetscInt j,PetscReal *norm)
   if (ctx->qB) {
     x = ctx->sw;
     PetscStackCallBLAS("BLASgemv",BLASgemv_("N",&lds_,&lds_,&sone,ctx->qB,&lds_,S+j*lds,&one,&szero,x,&one));
-    dot = BLASdot_(&lds_,S+j*lds,&one,x,&one);
+    dot = PetscRealPart(BLASdot_(&lds_,S+j*lds,&one,x,&one));
     ierr = BV_SafeSqrt(bv,dot,norm);CHKERRQ(ierr);
   } else {
     /* Compute *norm = BLASnrm2_(&lds_,S+j*lds,&one); */
@@ -199,7 +199,7 @@ PetscErrorCode BVOrthogonalizeGS1_Tensor(BV bv,PetscInt k,Vec v,PetscBool *which
       if (which && i>=0 && !which[i]) continue;
       if (ctx->qB) PetscStackCallBLAS("BLASgemv",BLASgemv_("N",&lds_,&lds_,&sone,ctx->qB,&lds_,pS+k*lds,&one,&szero,x,&one));
       /* c_i = ( s_k, s_i ) */
-      dot = BLASdot_(&lds_,pS+i*lds,&one,x,&one);
+      dot = PetscRealPart(BLASdot_(&lds_,pS+i*lds,&one,x,&one));
       if (bv->indef) dot /= PetscRealPart(omega[i]);
       ierr = BV_SetValue(bv,i,0,cc,dot);CHKERRQ(ierr);
       /* s_k = s_k - c_i s_i */
