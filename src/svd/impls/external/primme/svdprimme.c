@@ -128,7 +128,7 @@ PetscErrorCode SVDSolve_PRIMME(SVD svd)
   ops->primme.iseed[3] = -1;
 
   /* Allocating left and right singular vectors contiguously */
-  ierr = PetscMalloc1(ops->primme.numSvals*(ops->primme.mLocal+ops->primme.nLocal),&svecs);CHKERRQ(ierr);
+  ierr = PetscCalloc1(ops->primme.numSvals*(ops->primme.mLocal+ops->primme.nLocal),&svecs);CHKERRQ(ierr);
   ierr = PetscLogObjectMemory((PetscObject)svd,sizeof(PetscReal)*ops->primme.numSvals*(ops->primme.mLocal+ops->primme.nLocal));CHKERRQ(ierr);
   
   /* Call PRIMME solver */
