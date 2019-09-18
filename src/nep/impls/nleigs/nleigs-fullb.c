@@ -253,6 +253,7 @@ PetscErrorCode NEPSetUp_NLEIGS_FullBasis(NEP nep)
   EPSWhich       which;
 
   PetscFunctionBegin;
+  if (ctx->nshifts) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"The full-basis option is not supported with rational Krylov");
   if (!ctx->eps) { ierr = NEPNLEIGSGetEPS(nep,&ctx->eps);CHKERRQ(ierr); }
   ierr = EPSGetST(ctx->eps,&st);CHKERRQ(ierr);
   ierr = EPSSetTarget(ctx->eps,nep->target);CHKERRQ(ierr);
