@@ -146,7 +146,7 @@ static PetscErrorCode BVTensorNormColumn(BV bv,PetscInt j,PetscReal *norm)
   if (ctx->qB) {
     x = ctx->sw;
     PetscStackCallBLAS("BLASgemv",BLASgemv_("N",&lds_,&lds_,&sone,ctx->qB,&lds_,S+j*lds,&one,&szero,x,&one));
-    dot = BLASdot_(&lds_,S+j*lds,&one,x,&one);
+    dot = PetscRealPart(BLASdot_(&lds_,S+j*lds,&one,x,&one));
     ierr = BV_SafeSqrt(bv,dot,norm);CHKERRQ(ierr);
   } else {
     /* Compute *norm = BLASnrm2_(&lds_,S+j*lds,&one); */
@@ -199,7 +199,7 @@ PetscErrorCode BVOrthogonalizeGS1_Tensor(BV bv,PetscInt k,Vec v,PetscBool *which
       if (which && i>=0 && !which[i]) continue;
       if (ctx->qB) PetscStackCallBLAS("BLASgemv",BLASgemv_("N",&lds_,&lds_,&sone,ctx->qB,&lds_,pS+k*lds,&one,&szero,x,&one));
       /* c_i = ( s_k, s_i ) */
-      dot = BLASdot_(&lds_,pS+i*lds,&one,x,&one);
+      dot = PetscRealPart(BLASdot_(&lds_,pS+i*lds,&one,x,&one));
       if (bv->indef) dot /= PetscRealPart(omega[i]);
       ierr = BV_SetValue(bv,i,0,cc,dot);CHKERRQ(ierr);
       /* s_k = s_k - c_i s_i */
@@ -291,6 +291,7 @@ static PetscErrorCode BVTensorUpdateMatrix(BV V,PetscInt ini,PetscInt end)
           ierr = BVDotVec(ctx->U,ctx->u,qB+i*lds);CHKERRQ(ierr);
           ierr = BVRestoreColumn(ctx->U,i,&u);CHKERRQ(ierr);
           for (j=0;j<i;j++) qB[i+j*lds] = PetscConj(qB[j+i*lds]);
+          qB[i*lds+i] = PetscRealPart(qB[i+i*lds]);
         }
         if (c!=r) {
           sqB = ctx->qB+r*ld*lds+c*ld;
@@ -532,7 +533,10 @@ static PetscErrorCode BVTensorCompress_Tensor(BV V,PetscInt newc)
           qB = ctx->qB+r*ctx->ld+c*ctx->ld*lds;
           PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&rs1_,&rk_,&rs1_,&sone,qB,&lds_,pQ,&rs1_,&zero,work+nwu,&rs1_));
           PetscStackCallBLAS("BLASgemm",BLASgemm_("C","N",&rk_,&rk_,&rs1_,&sone,pQ,&rs1_,work+nwu,&rs1_,&zero,qB,&lds_));
-          for (i=0;i<rk;i++) for (j=0;j<i;j++) qB[i+j*lds] = PetscConj(qB[j+i*lds]);
+          for (i=0;i<rk;i++) {
+            for (j=0;j<i;j++) qB[i+j*lds] = PetscConj(qB[j+i*lds]);
+            qB[i+i*lds] = PetscRealPart(qB[i+i*lds]);
+          }
           for (i=rk;i<ctx->ld;i++) {
             ierr = PetscArrayzero(qB+i*lds,ctx->ld);CHKERRQ(ierr);
           }
