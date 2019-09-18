@@ -228,4 +228,10 @@ int main(int argc,char **argv)
       args: -showinertia 0 -info_exclude eps,st,rg,bv,ds -log_exclude eps,st,rg,bv,ds
       requires: !single
 
+   test:
+      suffix: 2
+      nsize: 1
+      args: -showinertia 0 -info_exclude eps,st,rg,bv,ds -log_exclude eps,st,rg,bv,ds
+      requires: !single
+
 TEST*/
