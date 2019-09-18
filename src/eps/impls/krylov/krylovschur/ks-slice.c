@@ -415,7 +415,6 @@ PetscErrorCode EPSSetUp_KrylovSchur_Slice(EPS eps)
     /* create subintervals and initialize auxiliary eps for slicing runs */
     ierr = EPSSliceGetEPS(eps);CHKERRQ(ierr);
     sr_loc = ((EPS_KRYLOVSCHUR*)ctx->eps->data)->sr;
-    sr->dir = sr_loc->dir;
     if (ctx->npart>1) {
       if ((sr->dir>0&&ctx->subc->color==0)||(sr->dir<0&&ctx->subc->color==ctx->npart-1)) sr->inertia0 = sr_loc->inertia0;
       ierr = MPI_Comm_rank(PetscSubcommChild(ctx->subc),&rank);CHKERRQ(ierr);
@@ -447,6 +446,7 @@ PetscErrorCode EPSSetUp_KrylovSchur_Slice(EPS eps)
     } else {
       nEigs = sr_loc->numEigs;
       sr->inertia0 = sr_loc->inertia0;
+      sr->dir = sr_loc->dir;
     }
     sr->inertia1 = sr->inertia0+sr->dir*nEigs;
     sr->numEigs = nEigs;
