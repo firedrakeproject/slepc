@@ -446,6 +446,7 @@ PetscErrorCode EPSSetUp_KrylovSchur_Slice(EPS eps)
     } else {
       nEigs = sr_loc->numEigs;
       sr->inertia0 = sr_loc->inertia0;
+      sr->dir = sr_loc->dir;
     }
     sr->inertia1 = sr->inertia0+sr->dir*nEigs;
     sr->numEigs = nEigs;
