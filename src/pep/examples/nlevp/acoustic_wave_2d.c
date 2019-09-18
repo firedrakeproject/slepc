@@ -146,8 +146,10 @@ int main(int argc,char **argv)
       test:
          suffix: 1_toar
          args: -pep_type toar -pep_toar_locking 0
-      test:
-         suffix: 1_stoar
-         args: -pep_type stoar -pep_hermitian -pep_scale scalar -pep_scale_factor 3
+
+   test:
+      suffix: 2
+      requires: !single
+      args: -pep_nev 2 -pep_ncv 18 -pep_type stoar -pep_hermitian -pep_scale scalar -st_type sinvert -terse
 
 TEST*/

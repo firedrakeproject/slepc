@@ -516,5 +516,6 @@ PetscErrorCode QEPDefiniteCheckError(Mat *A,PEP pep,PetscBool hyperbolic,PetscRe
       test:
          suffix: 1_transform_complex
          requires: complex !mumps
+         args: -transform
 
 TEST*/
