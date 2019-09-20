@@ -2,16 +2,16 @@
 
 # TESTSRCDIR is always relative to gmakefile.test
 #  This must be before includes
-mkfile_path := $(abspath $(MAKEFILE_LIST))
-TESTSRCDIR := $(dir $(abspath $(firstword $(MAKEFILE_LIST))))src
+mkfile_path := $(abspath $(lastword $(MAKEFILE_LIST)))
+TESTSRCDIR := $(dir $(mkfile_path))src
 
 include $(SLEPC_DIR)/$(PETSC_ARCH)/lib/slepc/conf/slepcvariables
 include $(SLEPC_DIR)/lib/slepc/conf/slepc_variables
 
 TESTDIR ?= ./$(PETSC_ARCH)/tests
 MODDIR := $(SLEPC_DIR)/$(PETSC_ARCH)/include
-TESTLOGFILE ?= $(TESTDIR)/examples_$(PETSC_ARCH).log
-REPORTFILE = $(TESTDIR)/report.log
+TESTLOGTAPFILE ?= $(TESTDIR)/test_$(PETSC_ARCH)_tap.log
+TESTLOGERRFILE ?= $(TESTDIR)/test_$(PETSC_ARCH)_err.log
 EXAMPLESDIR := $(TESTSRCDIR)
 
 pkgs  := sys eps svd pep nep mfn lme
@@ -39,6 +39,7 @@ ifeq ($(V),)  # Default
 else ifeq ($(V),0)		# Suppress entire command
   quiet = @$($1)
   quiettest = @
+  TESTFLAGS += -o err_only
 else				# Show the full command line
   quiet = $($1)
   quiettest =
@@ -53,6 +54,9 @@ ifeq ($(VALGRIND),1)
 endif
 ifeq ($(REPLACE),1)
   TESTFLAGS += -m    # Replace results by passing -m to petscdiff
+endif
+ifeq ($(OUTPUT),1)
+  TESTFLAGS += -o 'err_only'    # Show only the errors on stdout
 endif
 ifeq ($(ALT),1)
   TESTFLAGS += -M    # Replace alt files by passing -M to petscdiff
@@ -90,7 +94,7 @@ ifeq ($(wildcard $(PETSCCONFIGDIR)/gmakegentest.py),)
   PETSCCONFIGDIR := $(PETSC_DIR)/share/petsc/examples/config
 endif
 
-$(generatedtest) : $(generated) $(slepcconf) $(slepcvariables) $(PETSCCONFIGDIR)/gmakegentest.py $(TESTDIR)/.DIR | $$(@D)/.DIR
+$(generatedtest) : $(slepcconf) $(slepcvariables) $(PETSCCONFIGDIR)/gmakegentest.py $(TESTDIR)/.DIR | $$(@D)/.DIR
 	$(PYTHON) $(PETSCCONFIGDIR)/gmakegentest.py --petsc-dir=$(PETSC_DIR) --petsc-arch=$(PETSC_ARCH_DIR) --testdir=$(TESTDIR) --srcdir=$(TESTSRCDIR) --pkg-name=slepc --pkg-pkgs=$(spkgs) --pkg-arch=$(PETSC_ARCH) --pkg-dir=$(SLEPC_DIR)
 
 ifneq ($(MAKECMDGOALS:clean%=clean),clean)
@@ -160,7 +164,6 @@ define GFORTRAN_DEP_CLEANUP
 endef
 
 # link line constructed differently for gmakefile vs gmakefile.test invocation
-# XXX
 #ifeq ($(libslepcall),)
 SLEPC_TEST_LIB = $(SLEPC_LIB)
 #else
@@ -184,12 +187,16 @@ $(foreach pkg, $(pkgs), $(call concattestlang,$(pkg),F F90)) : $(libslepcall)
 # Testing convenience targets
 .PHONY: test pre-clean
 
-test: report_tests
+test: report_tests check-test-errors
 
 pre-clean:
-	@$(RM) -rf $(TESTDIR)/counts $(TESTLOGFILE)
-	@touch $(TESTLOGFILE)
+	@$(RM) -rf $(TESTDIR)/counts $(TESTLOGTAPFILE) $(TESTLOGERRFILE)
+	@touch $(TESTLOGTAPFILE) $(TESTLOGERRFILE)
 	@echo "Using MAKEFLAGS:" ${MAKEFLAGS}
+
+check-test-errors:
+	@grep '^not ok' $(TESTLOGTAPFILE) | grep -v 'Exceeded timeout' | tee $(TESTDIR)/allgtests-tap-err.log
+	@test ! -s $(TESTDIR)/allgtests-tap-err.log
 
 .PHONY: $(foreach pkg, $(pkgs), test-$(pkg) $(foreach lang, $(testlangs), test-$(pkg).$(lang) test-rm-$(pkg).$(lang)))
 testpkgs := $(foreach pkg, $(pkgs), test-$(pkg))
@@ -270,7 +277,7 @@ else ifdef searchin
 else ifdef argsearch
   TESTTARGETS := $(foreach v,$(alltesttargets),$(if $(findstring $(argsearch),$($(v)_ARGS)),$(v)))
 else ifdef globsearch
-  TESTTARGETS := $(shell $(PYTHON) -c"import sys,fnmatch; print ' '.join(fnmatch.filter(sys.argv[2].split(),sys.argv[1]))" '$(globsearch)' '$(alltesttargets)')
+  TESTTARGETS := $(shell $(PYTHON) -c"import sys,fnmatch,itertools; m=[fnmatch.filter(sys.argv[2].split(),p) for p in sys.argv[1].split()]; print(' '.join(list(itertools.chain.from_iterable(m))))" '$(globsearch)' '$(alltesttargets)')
 else                            # No filter - run them all, but delete the executables as we go
   TESTTARGETS := $(testpkgs)
 endif
@@ -289,11 +296,11 @@ starttime: pre-clean $(libslepcall)
 
 report_tests: starttime $(TESTTARGETS)
 	@$(eval ENDTIME := $(shell date +%s))
-	@elapsed_time=$$(($(ENDTIME)- $(STARTTIME))) && \
-	$(PYTHON) $(PETSCCONFIGDIR)/report_tests.py -m $(MAKE) -d $(TESTDIR)/counts -t 5 -e $${elapsed_time} | tee ${REPORTFILE} && \
-	if [ x${ALLTESTS_CHECK_FAILURES} = xyes ]; then \
-          cat ${REPORTFILE} | grep '^# FAILED' | wc -l | grep '^[ ]*0$$' > /dev/null; \
-	fi;
+	-@elapsed_time=$$(($(ENDTIME)- $(STARTTIME))) && \
+	$(PYTHON) $(PETSCCONFIGDIR)/report_tests.py -m $(MAKE) -d $(TESTDIR)/counts -t 5 -e $${elapsed_time}
+
+check_output:
+	$(PYTHON) $(PETSCCONFIGDIR)/gmakegentest.py --petsc-dir=$(PETSC_DIR) --petsc-arch=$(PETSC_ARCH) --testdir=$(TESTDIR) --check-output
 
 # Do not how how to invoke test from makefile
 HASGMAKEFILE := $(filter gmakefile,$(MAKEFILE_LIST))
@@ -334,6 +341,7 @@ help-test:
 	-@echo "Options:"
 	-@echo "  NO_RM=1           Do not remove the executables after running"
 	-@echo "  REPLACE=1         Replace the output in SLEPC_DIR source tree (-m to test scripts)"
+	-@echo "  OUTPUT=1          Show only the errors on stdout"
 	-@echo "  ALT=1             Replace 'alt' output in SLEPC_DIR source tree (-M to test scripts)"
 	-@echo "  DIFF_NUMBERS=0    Do not diff numbers in the output (default is to diff numbers, as opposed to PETSc)"
 	-@echo "  VALGRIND=1        Execute the tests using valgrind (-V to test scripts)"

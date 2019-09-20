@@ -222,6 +222,9 @@ allfortranstubs:
 deletefortranstubs:
 	-@find . -type d -name ftn-auto | xargs rm -rf
 
+check_output:
+	-@${OMAKE} -f gmakefile.test check_output
+
 # -------------------------------------------------------------------------------
 #
 # Some macros to check if the Fortran interface is up-to-date.
