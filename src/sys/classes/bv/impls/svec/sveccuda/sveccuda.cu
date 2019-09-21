@@ -13,6 +13,7 @@
 
 #include <slepc/private/bvimpl.h>
 #include "../src/sys/classes/bv/impls/svec/svec.h"
+#include <petsccublas.h>
 
 #if defined(PETSC_USE_COMPLEX)
 #include <thrust/device_ptr.h>

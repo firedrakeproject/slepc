@@ -10,10 +10,8 @@
 /*
    SLEPc singular value solver: "cyclic" (CUDA implementation)
 */
-
 #include <slepc/private/svdimpl.h>
 #include "../src/svd/impls/cyclic/cyclic.h"
-#include <petsccuda.h>
 
 PetscErrorCode MatMult_Cyclic_CUDA(Mat B,Vec x,Vec y)
 {

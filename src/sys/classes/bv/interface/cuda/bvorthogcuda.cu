@@ -13,6 +13,7 @@
 
 #include <slepc/private/bvimpl.h>          /*I   "slepcbv.h"   I*/
 #include <slepcblaslapack.h>
+#include <petsccublas.h>
 
 /*
    BV_CleanCoefficients_CUDA - Sets to zero all entries of column j of the bv buffer

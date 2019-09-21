@@ -267,8 +267,6 @@ SLEPC_EXTERN MPI_Op MPIU_TSQR;
 SLEPC_EXTERN void SlepcGivensPacked(void*,void*,PetscMPIInt*,MPI_Datatype*);
 
 #if defined(PETSC_HAVE_CUDA)
-#include <petsccuda.h>
-#include <cublas_v2.h>
 
 #define WaitForGPU() PetscCUDASynchronize ? cudaDeviceSynchronize() : 0
 
