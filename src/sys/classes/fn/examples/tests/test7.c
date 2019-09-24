@@ -30,8 +30,6 @@ PetscErrorCode TestMatSqrt(FN fn,Mat A,PetscViewer viewer,PetscBool verbose,Pets
   ierr = MatGetSize(A,&n,NULL);CHKERRQ(ierr);
   ierr = MatCreateSeqDense(PETSC_COMM_SELF,n,n,NULL,&S);CHKERRQ(ierr);
   ierr = PetscObjectSetName((PetscObject)S,"S");CHKERRQ(ierr);
-  ierr = MatCreateSeqDense(PETSC_COMM_SELF,n,n,NULL,&R);CHKERRQ(ierr);
-  ierr = PetscObjectSetName((PetscObject)R,"R");CHKERRQ(ierr);
   ierr = FNGetScale(fn,&tau,&eta);CHKERRQ(ierr);
   /* compute square root */
   if (inplace) {
@@ -49,7 +47,7 @@ PetscErrorCode TestMatSqrt(FN fn,Mat A,PetscViewer viewer,PetscBool verbose,Pets
     ierr = MatView(S,viewer);CHKERRQ(ierr);
   }
   /* check error ||S*S-A||_F */
-  ierr = MatMatMult(S,S,MAT_REUSE_MATRIX,PETSC_DEFAULT,&R);CHKERRQ(ierr);
+  ierr = MatMatMult(S,S,MAT_INITIAL_MATRIX,PETSC_DEFAULT,&R);CHKERRQ(ierr);
   if (eta!=1.0) {
     ierr = MatScale(R,1.0/(eta*eta));CHKERRQ(ierr);
   }

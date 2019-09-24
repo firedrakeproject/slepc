@@ -526,12 +526,12 @@ PetscErrorCode BVSetRandomCond(BV bv,PetscReal condn)
   for (i=0;i<bv->k;i++) d[i+i*bv->m] = (1.0/condn+(1.0-1.0/condn)/(bv->k-1)*i)/PetscSqrtScalar(eig[i]);
   ierr = MatDenseRestoreArray(M,&d);CHKERRQ(ierr);
   /* M = X*M*X' */
-  ierr = MatCreateSeqDense(PETSC_COMM_SELF,bv->k,bv->k,NULL,&Y);CHKERRQ(ierr);
   ierr = MatCreateSeqDense(PETSC_COMM_SELF,bv->k,bv->k,NULL,&Xt);CHKERRQ(ierr);
   ierr = DSGetMat(ds,DS_MAT_X,&X);CHKERRQ(ierr);
-  ierr = MatMatMult(X,M,MAT_REUSE_MATRIX,PETSC_DEFAULT,&Y);CHKERRQ(ierr);
+  ierr = MatMatMult(X,M,MAT_INITIAL_MATRIX,PETSC_DEFAULT,&Y);CHKERRQ(ierr);
+  ierr = MatDestroy(&M);CHKERRQ(ierr);
   ierr = MatTranspose(X,MAT_REUSE_MATRIX,&Xt);CHKERRQ(ierr);
-  ierr = MatMatMult(Y,Xt,MAT_REUSE_MATRIX,PETSC_DEFAULT,&M);CHKERRQ(ierr);
+  ierr = MatMatMult(Y,Xt,MAT_INITIAL_MATRIX,PETSC_DEFAULT,&M);CHKERRQ(ierr);
   ierr = MatDestroy(&X);CHKERRQ(ierr);
   /* B = B*M */
   ierr = BVMultInPlace(bv,M,bv->l,bv->k);CHKERRQ(ierr);

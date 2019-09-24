@@ -106,9 +106,6 @@
       call MatCreateSeqDense(PETSC_COMM_SELF,n,n,PETSC_NULL_SCALAR,S,   &
      &     ierr)
       call PetscObjectSetName(S,'S',ierr)
-      call MatCreateSeqDense(PETSC_COMM_SELF,n,n,PETSC_NULL_SCALAR,R,   &
-     &     ierr)
-      call PetscObjectSetName(R,'R',ierr)
       if (inplace) then
         call MatCopy(A,S,SAME_NONZERO_PATTERN,ierr)
         call MatSetOption(S,MAT_HERMITIAN,PETSC_TRUE,ierr)
@@ -124,7 +121,7 @@
       endif
 
 !     *** check error ||S*S-A||_F
-      call MatMatMult(S,S,MAT_REUSE_MATRIX,PETSC_DEFAULT_REAL,R,ierr)
+      call MatMatMult(S,S,MAT_INITIAL_MATRIX,PETSC_DEFAULT_REAL,R,ierr)
       if (eta .ne. 1.0) then
         alpha = 1.0/(eta*eta)
         call MatScale(R,alpha,ierr)

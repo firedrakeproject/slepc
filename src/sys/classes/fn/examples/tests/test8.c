@@ -30,8 +30,6 @@ PetscErrorCode TestMatInvSqrt(FN fn,Mat A,PetscViewer viewer,PetscBool verbose,P
   ierr = MatGetSize(A,&n,NULL);CHKERRQ(ierr);
   ierr = MatCreateSeqDense(PETSC_COMM_SELF,n,n,NULL,&S);CHKERRQ(ierr);
   ierr = PetscObjectSetName((PetscObject)S,"S");CHKERRQ(ierr);
-  ierr = MatCreateSeqDense(PETSC_COMM_SELF,n,n,NULL,&R);CHKERRQ(ierr);
-  ierr = PetscObjectSetName((PetscObject)R,"R");CHKERRQ(ierr);
   ierr = FNGetScale(fn,&tau,&eta);CHKERRQ(ierr);
   /* compute inverse square root */
   if (inplace) {
@@ -49,19 +47,21 @@ PetscErrorCode TestMatInvSqrt(FN fn,Mat A,PetscViewer viewer,PetscBool verbose,P
     ierr = MatView(S,viewer);CHKERRQ(ierr);
   }
   /* check error ||S*S*A-I||_F */
-  ierr = MatMatMult(S,S,MAT_REUSE_MATRIX,PETSC_DEFAULT,&R);CHKERRQ(ierr);
+  ierr = MatMatMult(S,S,MAT_INITIAL_MATRIX,PETSC_DEFAULT,&R);CHKERRQ(ierr);
   if (eta!=1.0) {
     ierr = MatScale(R,1.0/(eta*eta));CHKERRQ(ierr);
   }
   ierr = MatCreateVecs(A,&v,&f0);CHKERRQ(ierr);
   ierr = MatGetColumnVector(S,f0,0);CHKERRQ(ierr);
   ierr = MatCopy(R,S,SAME_NONZERO_PATTERN);CHKERRQ(ierr);
+  ierr = MatDestroy(&R);CHKERRQ(ierr);
   if (tau!=1.0) {
     ierr = MatScale(S,tau);CHKERRQ(ierr);
   }
-  ierr = MatMatMult(S,A,MAT_REUSE_MATRIX,PETSC_DEFAULT,&R);CHKERRQ(ierr);
+  ierr = MatMatMult(S,A,MAT_INITIAL_MATRIX,PETSC_DEFAULT,&R);CHKERRQ(ierr);
   ierr = MatShift(R,-1.0);CHKERRQ(ierr);
   ierr = MatNorm(R,NORM_FROBENIUS,&nrm);CHKERRQ(ierr);
+  ierr = MatDestroy(&R);CHKERRQ(ierr);
   if (nrm<100*PETSC_MACHINE_EPSILON) {
     ierr = PetscPrintf(PETSC_COMM_WORLD,"||S*S*A-I||_F < 100*eps\n");CHKERRQ(ierr);
   } else {
@@ -75,7 +75,6 @@ PetscErrorCode TestMatInvSqrt(FN fn,Mat A,PetscViewer viewer,PetscBool verbose,P
     ierr = PetscPrintf(PETSC_COMM_WORLD,"Warning: the norm of f(A)*e_1-v is %g\n",(double)nrm);CHKERRQ(ierr);
   }
   ierr = MatDestroy(&S);CHKERRQ(ierr);
-  ierr = MatDestroy(&R);CHKERRQ(ierr);
   ierr = VecDestroy(&v);CHKERRQ(ierr);
   ierr = VecDestroy(&f0);CHKERRQ(ierr);
   PetscFunctionReturn(0);

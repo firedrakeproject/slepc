@@ -49,8 +49,6 @@ PetscErrorCode TestMatExp(FN fn,Mat A,PetscViewer viewer,PetscBool verbose,Petsc
   ierr = MatNorm(F,NORM_1,&nrmf);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD,"The 1-norm of f(A) is %g\n",(double)nrmf);CHKERRQ(ierr);
   if (checkerror) {
-    ierr = MatCreateSeqDense(PETSC_COMM_SELF,n,n,NULL,&R);CHKERRQ(ierr);
-    ierr = PetscObjectSetName((PetscObject)R,"R");CHKERRQ(ierr);
     ierr = MatCreateSeqDense(PETSC_COMM_SELF,n,n,NULL,&Finv);CHKERRQ(ierr);
     ierr = PetscObjectSetName((PetscObject)Finv,"Finv");CHKERRQ(ierr);
     ierr = FNGetScale(fn,&tau,&eta);CHKERRQ(ierr);
@@ -69,7 +67,7 @@ PetscErrorCode TestMatExp(FN fn,Mat A,PetscViewer viewer,PetscBool verbose,Petsc
     }
     ierr = FNDestroy(&finv);CHKERRQ(ierr);
     /* check error ||F*Finv-I||_F */
-    ierr = MatMatMult(F,Finv,MAT_REUSE_MATRIX,PETSC_DEFAULT,&R);CHKERRQ(ierr);
+    ierr = MatMatMult(F,Finv,MAT_INITIAL_MATRIX,PETSC_DEFAULT,&R);CHKERRQ(ierr);
     ierr = MatShift(R,-1.0);CHKERRQ(ierr);
     ierr = MatNorm(R,NORM_FROBENIUS,&nrm);CHKERRQ(ierr);
     if (nrm<100*PETSC_MACHINE_EPSILON) {
