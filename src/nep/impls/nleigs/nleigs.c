@@ -124,7 +124,7 @@ static PetscErrorCode NEPNLEIGSAuxiliarRmDuplicates(PetscInt nin,PetscScalar *pi
 
   PetscFunctionBegin;
   for (i=0;i<nin;i++) {
-    if (max && *nout>max) break;
+    if (max && *nout>=max) break;
     pout[(*nout)++] = pin[i];
     for (j=0;j<*nout-1;j++)
       if (PetscAbsScalar(pin[i]-pout[j])<PETSC_MACHINE_EPSILON*100) {
