@@ -128,7 +128,7 @@ PetscErrorCode STSetFromOptions(ST st)
     ierr = PetscOptionsScalar("-st_shift","Value of the shift","STSetShift",st->sigma,&s,&flg);CHKERRQ(ierr);
     if (flg) { ierr = STSetShift(st,s);CHKERRQ(ierr); }
 
-    ierr = PetscOptionsEnum("-st_matmode","Matrix mode for transformed matrices","STSetMatMode",STMatModes,(PetscEnum)st->shift_matrix,(PetscEnum*)&mode,&flg);CHKERRQ(ierr);
+    ierr = PetscOptionsEnum("-st_matmode","Matrix mode for transformed matrices","STSetMatMode",STMatModes,(PetscEnum)st->matmode,(PetscEnum*)&mode,&flg);CHKERRQ(ierr);
     if (flg) { ierr = STSetMatMode(st,mode);CHKERRQ(ierr); }
 
     ierr = PetscOptionsEList("-st_matstructure","Relation of the sparsity pattern of the matrices","STSetMatStructure",structure_list,3,structure_list[st->str],(PetscInt*)&mstr,&flg);CHKERRQ(ierr);
@@ -263,8 +263,8 @@ PetscErrorCode STSetMatMode(ST st,STMatMode mode)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
   PetscValidLogicalCollectiveEnum(st,mode,2);
-  if (st->shift_matrix != mode) {
-    st->shift_matrix = mode;
+  if (st->matmode != mode) {
+    st->matmode = mode;
     st->state = ST_STATE_INITIAL;
   }
   PetscFunctionReturn(0);
@@ -291,7 +291,7 @@ PetscErrorCode STGetMatMode(ST st,STMatMode *mode)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
   PetscValidPointer(mode,2);
-  *mode = st->shift_matrix;
+  *mode = st->matmode;
   PetscFunctionReturn(0);
 }
 

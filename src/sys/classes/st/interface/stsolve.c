@@ -293,7 +293,7 @@ PetscErrorCode STMatMAXPY_Private(ST st,PetscScalar alpha,PetscScalar beta,Petsc
 
   PetscFunctionBegin;
   nmat = st->nmat-k;
-  switch (st->shift_matrix) {
+  switch (st->matmode) {
   case ST_MATMODE_INPLACE:
     if (st->nmat>2) SETERRQ(PetscObjectComm((PetscObject)st),PETSC_ERR_SUP,"ST_MATMODE_INPLACE not supported for polynomial eigenproblems");
     if (initial) {

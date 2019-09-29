@@ -75,7 +75,7 @@ PetscErrorCode STPostSolve_Sinvert(ST st)
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  if (st->shift_matrix == ST_MATMODE_INPLACE) {
+  if (st->matmode == ST_MATMODE_INPLACE) {
     if (st->nmat>1) {
       ierr = MatAXPY(st->A[0],st->sigma,st->A[1],st->str);CHKERRQ(ierr);
     } else {
@@ -142,7 +142,7 @@ PetscErrorCode STSetShift_Sinvert(ST st,PetscScalar newshift)
 
   PetscFunctionBegin;
   if (st->transform) {
-    if (st->shift_matrix == ST_MATMODE_COPY && nmat>2) {
+    if (st->matmode == ST_MATMODE_COPY && nmat>2) {
       nc = (nmat*(nmat+1))/2;
       ierr = PetscMalloc1(nc,&coeffs);CHKERRQ(ierr);
       /* Compute coeffs */
@@ -151,7 +151,7 @@ PetscErrorCode STSetShift_Sinvert(ST st,PetscScalar newshift)
     for (k=1;k<nmat;k++) {
       ierr = STMatMAXPY_Private(st,nmat>2?newshift:-newshift,nmat>2?st->sigma:-st->sigma,nmat-k-1,coeffs?coeffs+(k*(k+1))/2:NULL,PETSC_FALSE,&st->T[k]);CHKERRQ(ierr);
     }
-    if (st->shift_matrix == ST_MATMODE_COPY && nmat>2) {
+    if (st->matmode == ST_MATMODE_COPY && nmat>2) {
       ierr = PetscFree(coeffs);CHKERRQ(ierr);
     }
     if (st->P!=st->T[nmat-1]) {

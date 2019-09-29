@@ -54,7 +54,7 @@ static PetscErrorCode MatMult_Cayley(Mat B,Vec x,Vec y)
   ctx = (ST_CAYLEY*)st->data;
   nu = ctx->nu;
 
-  if (st->shift_matrix == ST_MATMODE_INPLACE) { nu = nu + st->sigma; };
+  if (st->matmode == ST_MATMODE_INPLACE) { nu = nu + st->sigma; };
 
   if (st->nmat>1) {
     /* generalized eigenproblem: y = (A + tB)x */
@@ -81,7 +81,7 @@ static PetscErrorCode MatMultTranspose_Cayley(Mat B,Vec x,Vec y)
   ctx = (ST_CAYLEY*)st->data;
   nu = ctx->nu;
 
-  if (st->shift_matrix == ST_MATMODE_INPLACE) { nu = nu + st->sigma; };
+  if (st->matmode == ST_MATMODE_INPLACE) { nu = nu + st->sigma; };
   nu = PetscConj(nu);
 
   if (st->nmat>1) {
@@ -143,7 +143,7 @@ PetscErrorCode STPostSolve_Cayley(ST st)
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  if (st->shift_matrix == ST_MATMODE_INPLACE) {
+  if (st->matmode == ST_MATMODE_INPLACE) {
     if (st->nmat>1) {
       ierr = MatAXPY(st->A[0],st->sigma,st->A[1],st->str);CHKERRQ(ierr);
     } else {
@@ -172,7 +172,7 @@ PetscErrorCode STSetUp_Cayley(ST st)
   if (ctx->nu == -st->sigma) SETERRQ(PetscObjectComm((PetscObject)st),1,"It is not allowed to set the antishift equal to minus the shift (the target)");
 
   /* T[0] = A+nu*B */
-  if (st->shift_matrix==ST_MATMODE_INPLACE) {
+  if (st->matmode==ST_MATMODE_INPLACE) {
     ierr = MatGetLocalSize(st->A[0],&n,&m);CHKERRQ(ierr);
     ierr = MatCreateShell(PetscObjectComm((PetscObject)st),n,m,PETSC_DETERMINE,PETSC_DETERMINE,st,&st->T[0]);CHKERRQ(ierr);
     ierr = MatShellSetOperation(st->T[0],MATOP_MULT,(void(*)(void))MatMult_Cayley);CHKERRQ(ierr);
@@ -204,7 +204,7 @@ PetscErrorCode STSetShift_Cayley(ST st,PetscScalar newshift)
   if (ctx->nu == -newshift) SETERRQ(PetscObjectComm((PetscObject)st),1,"It is not allowed to set the shift equal to minus the antishift");
 
   if (!ctx->nu_set) {
-    if (st->shift_matrix!=ST_MATMODE_INPLACE) {
+    if (st->matmode!=ST_MATMODE_INPLACE) {
       ierr = STMatMAXPY_Private(st,newshift,ctx->nu,0,NULL,PETSC_FALSE,&st->T[0]);CHKERRQ(ierr);
     }
     ctx->nu = newshift;
@@ -243,7 +243,7 @@ static PetscErrorCode STCayleySetAntishift_Cayley(ST st,PetscScalar newshift)
   ST_CAYLEY *ctx = (ST_CAYLEY*)st->data;
 
   PetscFunctionBegin;
-  if (st->state && st->shift_matrix!=ST_MATMODE_INPLACE) {
+  if (st->state && st->matmode!=ST_MATMODE_INPLACE) {
     ierr = STMatMAXPY_Private(st,newshift,ctx->nu,0,NULL,PETSC_FALSE,&st->T[0]);CHKERRQ(ierr);
   }
   ctx->nu     = newshift;

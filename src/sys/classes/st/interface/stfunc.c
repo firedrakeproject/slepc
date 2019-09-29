@@ -181,7 +181,7 @@ PetscErrorCode STCreate(MPI_Comm comm,ST *newst)
   st->sigma        = 0.0;
   st->sigma_set    = PETSC_FALSE;
   st->defsigma     = 0.0;
-  st->shift_matrix = ST_MATMODE_COPY;
+  st->matmode      = ST_MATMODE_COPY;
   st->str          = DIFFERENT_NONZERO_PATTERN;
   st->transform    = PETSC_FALSE;
 
@@ -791,7 +791,7 @@ PetscErrorCode STView(ST st,PetscViewer viewer)
     ierr = SlepcSNPrintfScalar(str,50,st->sigma,PETSC_FALSE);CHKERRQ(ierr);
     ierr = PetscViewerASCIIPrintf(viewer,"  shift: %s\n",str);CHKERRQ(ierr);
     ierr = PetscViewerASCIIPrintf(viewer,"  number of matrices: %D\n",st->nmat);CHKERRQ(ierr);
-    switch (st->shift_matrix) {
+    switch (st->matmode) {
     case ST_MATMODE_COPY:
       break;
     case ST_MATMODE_INPLACE:
@@ -801,7 +801,7 @@ PetscErrorCode STView(ST st,PetscViewer viewer)
       ierr = PetscViewerASCIIPrintf(viewer,"  using a shell matrix\n");CHKERRQ(ierr);
       break;
     }
-    if (st->nmat>1 && st->shift_matrix != ST_MATMODE_SHELL) {
+    if (st->nmat>1 && st->matmode != ST_MATMODE_SHELL) {
       switch (st->str) {
         case SAME_NONZERO_PATTERN:      pat = "same nonzero pattern";break;
         case DIFFERENT_NONZERO_PATTERN: pat = "different nonzero pattern";break;
