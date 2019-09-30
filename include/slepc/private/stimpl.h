@@ -48,25 +48,26 @@ struct _p_ST {
   PETSCHEADER(struct _STOps);
   /*------------------------- User parameters --------------------------*/
   Mat              *A;               /* matrices that define the eigensystem */
-  PetscObjectState *Astate;          /* state (to identify the original matrices) */
-  Mat              *T;               /* matrices resulting from transformation */
-  Mat              P;                /* matrix from which preconditioner is built */
-  PetscInt         nmat;             /* number of matrices */
+  PetscInt         nmat;             /* number of user-provided matrices */
   PetscScalar      sigma;            /* value of the shift */
-  PetscBool        sigma_set;        /* whether the user provided the shift or not */
   PetscScalar      defsigma;         /* default value of the shift */
-  STMatMode        shift_matrix;
+  STMatMode        matmode;          /* how the transformation matrix is handled */
   MatStructure     str;              /* whether matrices have the same pattern or not */
   PetscBool        transform;        /* whether transformed matrices are computed */
+  Vec              D;                /* diagonal matrix for balancing */
 
   /*------------------------- Misc data --------------------------*/
-  KSP              ksp;
+  KSP              ksp;              /* linear solver used in some ST's */
+  PetscBool        usesksp;          /* whether the KSP object is used or not */
   PetscInt         nwork;            /* number of work vectors */
   Vec              *work;            /* work vectors */
-  Vec              D;                /* diagonal matrix for balancing */
   Vec              wb;               /* balancing requires an extra work vector */
-  void             *data;
   STStateType      state;            /* initial -> setup -> with updated matrices */
+  PetscObjectState *Astate;          /* matrix state (to identify the original matrices) */
+  Mat              *T;               /* matrices resulting from transformation */
+  Mat              P;                /* matrix from which preconditioner is built */
+  PetscBool        sigma_set;        /* whether the user provided the shift or not */
+  void             *data;
 };
 
 /*

@@ -181,11 +181,12 @@ PetscErrorCode STCreate(MPI_Comm comm,ST *newst)
   st->sigma        = 0.0;
   st->sigma_set    = PETSC_FALSE;
   st->defsigma     = 0.0;
-  st->shift_matrix = ST_MATMODE_COPY;
+  st->matmode      = ST_MATMODE_COPY;
   st->str          = DIFFERENT_NONZERO_PATTERN;
   st->transform    = PETSC_FALSE;
 
   st->ksp          = NULL;
+  st->usesksp      = PETSC_FALSE;
   st->nwork        = 0;
   st->work         = NULL;
   st->D            = NULL;
@@ -768,7 +769,7 @@ PetscErrorCode STView(ST st,PetscViewer viewer)
   STType         cstr;
   const char*    pat=NULL;
   char           str[50];
-  PetscBool      isascii,isstring,flg;
+  PetscBool      isascii,isstring;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
@@ -790,7 +791,7 @@ PetscErrorCode STView(ST st,PetscViewer viewer)
     ierr = SlepcSNPrintfScalar(str,50,st->sigma,PETSC_FALSE);CHKERRQ(ierr);
     ierr = PetscViewerASCIIPrintf(viewer,"  shift: %s\n",str);CHKERRQ(ierr);
     ierr = PetscViewerASCIIPrintf(viewer,"  number of matrices: %D\n",st->nmat);CHKERRQ(ierr);
-    switch (st->shift_matrix) {
+    switch (st->matmode) {
     case ST_MATMODE_COPY:
       break;
     case ST_MATMODE_INPLACE:
@@ -800,7 +801,7 @@ PetscErrorCode STView(ST st,PetscViewer viewer)
       ierr = PetscViewerASCIIPrintf(viewer,"  using a shell matrix\n");CHKERRQ(ierr);
       break;
     }
-    if (st->nmat>1 && st->shift_matrix != ST_MATMODE_SHELL) {
+    if (st->nmat>1 && st->matmode != ST_MATMODE_SHELL) {
       switch (st->str) {
         case SAME_NONZERO_PATTERN:      pat = "same nonzero pattern";break;
         case DIFFERENT_NONZERO_PATTERN: pat = "different nonzero pattern";break;
@@ -816,8 +817,7 @@ PetscErrorCode STView(ST st,PetscViewer viewer)
     ierr = PetscViewerStringSPrintf(viewer," %-7.7s",cstr);CHKERRQ(ierr);
     if (st->ops->view) { ierr = (*st->ops->view)(st,viewer);CHKERRQ(ierr); }
   }
-  ierr = PetscObjectTypeCompareAny((PetscObject)st,&flg,STSHIFT,STSHELL,"");CHKERRQ(ierr);
-  if (st->nmat>1 || !flg) {
+  if (st->usesksp) {
     if (!st->ksp) { ierr = STGetKSP(st,&st->ksp);CHKERRQ(ierr); }
     ierr = PetscViewerASCIIPushTab(viewer);CHKERRQ(ierr);
     ierr = KSPView(st->ksp,viewer);CHKERRQ(ierr);

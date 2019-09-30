@@ -62,7 +62,7 @@ PetscErrorCode STPostSolve_Shift(ST st)
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  if (st->shift_matrix == ST_MATMODE_INPLACE) {
+  if (st->matmode == ST_MATMODE_INPLACE) {
     if (st->nmat>1) {
       ierr = MatAXPY(st->A[0],st->sigma,st->A[1],st->str);CHKERRQ(ierr);
     } else {
@@ -84,6 +84,7 @@ PetscErrorCode STSetUp_Shift(ST st)
   if (st->nmat>1) {
     ierr = STSetWorkVecs(st,1);CHKERRQ(ierr);
   }
+  st->usesksp = (st->nmat>1)? PETSC_TRUE: PETSC_FALSE;
   if (nmat<3 || st->transform) {
     if (nmat>2) {
       nc = (nmat*(nmat+1))/2;
@@ -129,7 +130,7 @@ PetscErrorCode STSetShift_Shift(ST st,PetscScalar newshift)
 
   PetscFunctionBegin;
   if (st->transform) {
-    if (st->shift_matrix == ST_MATMODE_COPY && nmat>2) {
+    if (st->matmode == ST_MATMODE_COPY && nmat>2) {
       nc = (nmat*(nmat+1))/2;
       ierr = PetscMalloc1(nc,&coeffs);CHKERRQ(ierr);
       /* Compute coeffs */
@@ -138,7 +139,7 @@ PetscErrorCode STSetShift_Shift(ST st,PetscScalar newshift)
     for (k=0;k<nmat-1;k++) {
       ierr = STMatMAXPY_Private(st,nmat>2?newshift:-newshift,nmat>2?st->sigma:-st->sigma,k,coeffs?coeffs+((nmat-k)*(nmat-k-1))/2:NULL,PETSC_FALSE,&st->T[k]);CHKERRQ(ierr);
     }
-    if (st->shift_matrix == ST_MATMODE_COPY && nmat>2) {
+    if (st->matmode == ST_MATMODE_COPY && nmat>2) {
         ierr = PetscFree(coeffs);CHKERRQ(ierr);
     }
   }
@@ -148,6 +149,8 @@ PetscErrorCode STSetShift_Shift(ST st,PetscScalar newshift)
 SLEPC_EXTERN PetscErrorCode STCreate_Shift(ST st)
 {
   PetscFunctionBegin;
+  st->usesksp = PETSC_TRUE;
+
   st->ops->apply           = STApply_Shift;
   st->ops->getbilinearform = STGetBilinearForm_Default;
   st->ops->applytrans      = STApplyTranspose_Shift;

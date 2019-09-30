@@ -30,7 +30,7 @@ static PetscErrorCode STSetDefaultKSP_Precond(ST st)
   ierr = PetscObjectGetType((PetscObject)pc,&pctype);CHKERRQ(ierr);
   ierr = STPrecondGetMatForPC(st,&P);CHKERRQ(ierr);
   if (!pctype && st->A && st->A[0]) {
-    if (P || st->shift_matrix == ST_MATMODE_SHELL) {
+    if (P || st->matmode == ST_MATMODE_SHELL) {
       ierr = PCSetType(pc,PCJACOBI);CHKERRQ(ierr);
     } else {
       ierr = MatHasOperation(st->A[0],MATOP_DUPLICATE,&t0);CHKERRQ(ierr);
@@ -81,8 +81,8 @@ PetscErrorCode STSetUp_Precond(ST st)
     } else if (st->sigma == 0.0) {
       P = st->A[0];
       destroyP = PETSC_FALSE;
-    } else if (PetscAbsScalar(st->sigma) < PETSC_MAX_REAL && st->shift_matrix != ST_MATMODE_SHELL) {
-      if (st->shift_matrix == ST_MATMODE_INPLACE) {
+    } else if (PetscAbsScalar(st->sigma) < PETSC_MAX_REAL && st->matmode != ST_MATMODE_SHELL) {
+      if (st->matmode == ST_MATMODE_INPLACE) {
         P = st->A[0];
         destroyP = PETSC_FALSE;
       } else {
@@ -115,7 +115,7 @@ PetscErrorCode STSetUp_Precond(ST st)
 
   if (destroyP) {
     ierr = MatDestroy(&P);CHKERRQ(ierr);
-  } else if (st->shift_matrix == ST_MATMODE_INPLACE && builtP) {
+  } else if (st->matmode == ST_MATMODE_INPLACE && builtP) {
     if (st->sigma != 0.0 && PetscAbsScalar(st->sigma) < PETSC_MAX_REAL) {
       if (st->nmat>1) {
         ierr = MatAXPY(st->A[0],st->sigma,st->A[1],st->str);CHKERRQ(ierr);
@@ -135,7 +135,7 @@ PetscErrorCode STSetShift_Precond(ST st,PetscScalar newshift)
   /* Nothing to be done if STSetUp has not been called yet */
   if (!st->state) PetscFunctionReturn(0);
   st->sigma = newshift;
-  if (st->shift_matrix != ST_MATMODE_SHELL) {
+  if (st->matmode != ST_MATMODE_SHELL) {
     ierr = STSetUp_Precond(st);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
@@ -338,6 +338,8 @@ SLEPC_EXTERN PetscErrorCode STCreate_Precond(ST st)
   PetscFunctionBegin;
   ierr = PetscNewLog(st,&ctx);CHKERRQ(ierr);
   st->data = (void*)ctx;
+
+  st->usesksp = PETSC_TRUE;
 
   st->ops->getbilinearform = STGetBilinearForm_Default;
   st->ops->setup           = STSetUp_Precond;
