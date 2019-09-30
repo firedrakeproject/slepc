@@ -1,6 +1,6 @@
 /* @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ */
 /* @@@ BLOPEX (version 1.1) LGPL Version 2.1 or above.See www.gnu.org. */
-/* @@@ Copyright 2010 BLOPEX team http://code.google.com/p/blopex/     */
+/* @@@ Copyright 2010 BLOPEX team https://github.com/lobpcg/blopex     */
 /* @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ */
 
 #if !defined(PETSC_INTERFACE_HEADER)

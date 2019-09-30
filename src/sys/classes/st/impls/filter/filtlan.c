@@ -12,7 +12,7 @@
    Filtered Lanczos Package, authored by Haw-ren Fang and Yousef Saad.
 
    More information at:
-   http://www-users.cs.umn.edu/~saad/software/filtlan
+   https://www-users.cs.umn.edu/~saad/software/filtlan
 
    References:
 

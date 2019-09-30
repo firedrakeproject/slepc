@@ -32,11 +32,11 @@ static const char citation[] =
   "@Article{slepc-slice-qep,\n"
   "   author = \"C. Campos and J. E. Roman\",\n"
   "   title = \"Inertia-based spectrum slicing for symmetric quadratic eigenvalue problems\",\n"
-  "   journal = \"In preparation\",\n"
+  "   journal = \"Submitted\",\n"
   "   volume = \"xx\",\n"
   "   number = \"x\",\n"
   "   pages = \"xx--xx\",\n"
-  "   year = \"2018,\"\n"
+  "   year = \"2019,\"\n"
   "   doi = \"https://doi.org/10.1007/xxx\"\n"
   "}\n";
 

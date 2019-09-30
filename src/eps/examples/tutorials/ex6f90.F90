@@ -12,7 +12,7 @@
 !  Description: This example solves the eigensystem arising in the Ising
 !  model for ferromagnetic materials. The file mvmisg.f must be linked
 !  together. Information about the model can be found at the following
-!  site http://math.nist.gov/MatrixMarket/data/NEP
+!  site https://math.nist.gov/MatrixMarket/data/NEP
 !
 !  The command line options are:
 !    -m <m>, where <m> is the number of 2x2 blocks, i.e. matrix size N=2*m
@@ -177,7 +177,7 @@
 
 ! -------------------------------------------------------------------
 !     The actual routine for the matrix-vector product
-!     See http://math.nist.gov/MatrixMarket/data/NEP/mvmisg/mvmisg.html
+!     See https://math.nist.gov/MatrixMarket/data/NEP/mvmisg/mvmisg.html
 
       SUBROUTINE MVMISG( TRANS, N, M, X, LDX, Y, LDY )
 #include <petsc/finclude/petscsys.h>

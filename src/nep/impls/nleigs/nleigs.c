@@ -665,7 +665,7 @@ static PetscErrorCode NEPNLEIGSNormEstimation(NEP nep,Mat M,PetscReal *norm,Vec 
     ierr = VecNorm(ctx->vrn,NORM_2,&tr);CHKERRQ(ierr);
     ierr = VecScale(ctx->vrn,1/tr);CHKERRQ(ierr);
   }
-  /* matrix-free norm estimator of Ipsen http://www4.ncsu.edu/~ipsen/ps/slides_ima.pdf */
+  /* matrix-free norm estimator of Ipsen https://ipsen.math.ncsu.edu/ps/slides_ima.pdf */
   ierr = MatGetSize(M,&n,NULL);CHKERRQ(ierr);
   ierr = MatMult(M,ctx->vrn,X);CHKERRQ(ierr);
   ierr = VecNorm(X,NORM_2,norm);CHKERRQ(ierr);

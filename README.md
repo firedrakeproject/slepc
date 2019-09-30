@@ -15,7 +15,7 @@ SLEPc, the Scalable Library for Eigenvalue Problem Computations, is a software p
 
 The emphasis of the software is on methods and techniques appropriate for problems in which the associated matrices are sparse. Therefore, most of the methods offered by the library are projection methods such as Krylov-Schur or Jacobi-Davidson. It also provides built-in support for spectral transformation such as shift-and-invert.
 
-SLEPc is built on top of [PETSc](http://www.mcs.anl.gov/petsc), the Portable Extensible Toolkit for Scientific Computation. It can be considered an extension of PETSc providing all the functionality necessary for the solution of eigenvalue problems.
+SLEPc is built on top of [PETSc](https://www.mcs.anl.gov/petsc), the Portable Extensible Toolkit for Scientific Computation. It can be considered an extension of PETSc providing all the functionality necessary for the solution of eigenvalue problems.
 
 
 Documentation

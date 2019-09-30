@@ -69,7 +69,7 @@ where $x$ and $p$ denote the velocity and pressure fields. Similar formulations 
 
 Support for graphics processor unit (GPU) computing is included in \slepc. This is related to \S\ref{sec:supported} because GPU support in \petsc is based on using special types of \texttt{Mat} and \texttt{Vec}. GPU support in \slepc has been tested in all solver classes and most solvers should work, although the performance gain to be expected depends on the particular algorithm. Regarding \petsc, all iterative linear solvers are prepared to run on the GPU, but this is not the case for direct solvers and preconditioners (see \petsc documentation for details). The user must not expect a spectacular performance boost, but in general moderate gains can be achieved by running the eigensolver on the GPU instead of the CPU (in some cases a 10-fold improvement).
 
-\slepc's GPU support currently relies on NVIDIA CUDA Toolkit 4.0\footnote{\url{http://developer.nvidia.com/cuda}} (and later), that provides a C/C++ compiler with CUDA extensions as well as the cuBLAS and cuSPARSE libraries that implement dense and sparse linear algebra operations. For instance, to configure \petsc with GPU support in single precision arithmetic use the following options:
+\slepc's GPU support currently relies on NVIDIA CUDA Toolkit 4.0\footnote{\url{https://developer.nvidia.com/cuda-zone}} (and later), that provides a C/C++ compiler with CUDA extensions as well as the cuBLAS and cuSPARSE libraries that implement dense and sparse linear algebra operations. For instance, to configure \petsc with GPU support in single precision arithmetic use the following options:
 	\begin{Verbatim}[fontsize=\small]
 	$ ./configure --with-precision=single --with-cuda
 	\end{Verbatim}
@@ -449,7 +449,7 @@ For changing the particular algorithm within \primme, use the function \ident{EP
 	\begin{description}
 	\setlength{\itemsep}{0pt}
 	\item[References.]\citep{Marques:1995:BDU}.
-	\item[Website.] \url{http://crd.lbl.gov/\~osni/\#Software}.
+	\item[Website.] \url{https://crd.lbl.gov/\~osni/\#Software}.
 	\item[Version.] 04/00.
 	\item[Summary.] \blzpack\ (Block LancZos PACKage) is a standard Fortran 77 implementation of the block Lanczos algorithm intended for the solution of the standard eigenvalue problem $Ax=\mu x$ or the generalized eigenvalue problem $Ax=\mu Bx$, where A and B are real, sparse symmetric matrices. The development of this eigensolver was motivated by the need to solve large, sparse, generalized problems from free vibration analysis in structural engineering. Several upgrades were performed afterwards aiming at the solution of eigenvalue problems from a wider range of applications.
 
@@ -462,7 +462,7 @@ For changing the particular algorithm within \primme, use the function \ident{EP
 	\begin{description}
 	\setlength{\itemsep}{0pt}
 	\item[References.]\citep{Wu:2000:TLM}.
-	\item[Website.] \url{http://crd.lbl.gov/\~kewu/trlan.html}.
+	\item[Website.] \url{https://crd.lbl.gov/\~kewu/trlan.html}.
 	\item[Version.] 201009.
 	\item[Summary.] This package provides a Fortran 90 implementation of the dynamic thick-restart Lanczos algorithm. This is a specialized version of Lanczos that targets only the case in which one wants both eigenvalues and eigenvectors of a large real symmetric eigenvalue problem that cannot use the shift-and-invert scheme. In this case the standard non-restarted Lanczos algorithm requires to store a large number of Lanczos vectors, what can cause storage problems and make each iteration of the method very expensive.
 
@@ -476,7 +476,7 @@ For changing the particular algorithm within \primme, use the function \ident{EP
 	\begin{description}
 	\setlength{\itemsep}{0pt}
 	\item[References.]\citep{Knyazev:2007:BLO}.
-	\item[Website.] \url{http://github.com/lobpcg/blopex}.
+	\item[Website.] \url{https://github.com/lobpcg/blopex}.
 	\item[Summary.] \blopex is a package that implements the Locally Optimal Block Preconditioned Conjugate Gradient (LOBPCG) method for computing several extreme eigenpairs of symmetric positive generalized eigenproblems. Numerical comparisons suggest that this method is a genuine analog for eigenproblems of the standard preconditioned conjugate gradient method for symmetric linear systems.
 	\item[Installation.] In order to use \blopex from \slepc, it necessary to install it during \slepc's configuration: \Verb!./configure --download-blopex!.
 	\item[Specific options.] Since BLOPEX contains preconditioned solvers, the \slepc interface uses \ident{STPRECOND}, as described in \ref{sec:precond}.
