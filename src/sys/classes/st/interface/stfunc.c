@@ -174,25 +174,25 @@ PetscErrorCode STCreate(MPI_Comm comm,ST *newst)
   ierr = SlepcHeaderCreate(st,ST_CLASSID,"ST","Spectral Transformation","ST",comm,STDestroy,STView);CHKERRQ(ierr);
 
   st->A            = NULL;
-  st->Astate       = NULL;
-  st->T            = NULL;
-  st->P            = NULL;
   st->nmat         = 0;
   st->sigma        = 0.0;
-  st->sigma_set    = PETSC_FALSE;
   st->defsigma     = 0.0;
   st->matmode      = ST_MATMODE_COPY;
   st->str          = DIFFERENT_NONZERO_PATTERN;
   st->transform    = PETSC_FALSE;
+  st->D            = NULL;
 
   st->ksp          = NULL;
   st->usesksp      = PETSC_FALSE;
   st->nwork        = 0;
   st->work         = NULL;
-  st->D            = NULL;
   st->wb           = NULL;
-  st->data         = NULL;
   st->state        = ST_STATE_INITIAL;
+  st->Astate       = NULL;
+  st->T            = NULL;
+  st->P            = NULL;
+  st->sigma_set    = PETSC_FALSE;
+  st->data         = NULL;
 
   *newst = st;
   PetscFunctionReturn(0);
