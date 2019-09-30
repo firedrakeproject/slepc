@@ -37,7 +37,7 @@ PETSC_STATIC_INLINE PetscErrorCode STMatIsSymmetricKnown(ST st,PetscBool *symm)
 {
   PetscErrorCode ierr;
   PetscInt       i;
-  PetscBool      set,sbaij,asymm;
+  PetscBool      set,sbaij=PETSC_FALSE,asymm;
 
   PetscFunctionBegin;
   *symm = PETSC_FALSE;

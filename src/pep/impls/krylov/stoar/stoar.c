@@ -331,7 +331,7 @@ PetscErrorCode PEPSolve_STOAR(PEP pep)
   PetscInt       nconv=0,deg=pep->nmat-1;
   PetscScalar    *Q,*om,sigma;
   PetscReal      beta,norm=1.0,*omega,*a,*b,*r;
-  PetscBool      breakdown,symmlost=PETSC_FALSE,sinv,falselock=PETSC_TRUE,flg;
+  PetscBool      breakdown,symmlost=PETSC_FALSE,sinv=PETSC_FALSE,falselock=PETSC_TRUE,flg;
   Mat            MQ,A;
   Vec            vomega;
 

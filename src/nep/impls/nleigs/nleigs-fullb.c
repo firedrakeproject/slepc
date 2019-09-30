@@ -42,7 +42,7 @@ static PetscErrorCode MatMult_FullBasis_Sinvert(Mat M,Vec x,Vec y)
   ierr = VecPlaceArray(yy,py+(d-2)*m);CHKERRQ(ierr);
   ierr = VecCopy(xxx,yy);CHKERRQ(ierr);
   ierr = VecAXPY(yy,beta[d-1]/xi[d-2],xx);CHKERRQ(ierr);
-  ierr = VecScale(yy,1.0/(s[d-2]-sigma));
+  ierr = VecScale(yy,1.0/(s[d-2]-sigma));CHKERRQ(ierr);
   ierr = VecResetArray(xx);CHKERRQ(ierr);
   ierr = VecResetArray(xxx);CHKERRQ(ierr);
   ierr = VecResetArray(yy);CHKERRQ(ierr);
@@ -54,7 +54,7 @@ static PetscErrorCode MatMult_FullBasis_Sinvert(Mat M,Vec x,Vec y)
     ierr = VecCopy(xxx,yy);CHKERRQ(ierr);
     ierr = VecAXPY(yy,beta[i+1]/xi[i],xx);CHKERRQ(ierr);
     ierr = VecAXPY(yy,-beta[i+1]*(1.0-sigma/xi[i]),yyy);CHKERRQ(ierr);
-    ierr = VecScale(yy,1.0/(s[i]-sigma));
+    ierr = VecScale(yy,1.0/(s[i]-sigma));CHKERRQ(ierr);
     ierr = VecResetArray(xx);CHKERRQ(ierr);
     ierr = VecResetArray(xxx);CHKERRQ(ierr);
     ierr = VecResetArray(yy);CHKERRQ(ierr);

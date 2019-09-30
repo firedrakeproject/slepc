@@ -258,7 +258,7 @@ static PetscErrorCode PEPQSliceCheckEigenvalueType(PEP pep,PetscReal shift,Petsc
     ierr = PEPSetOperators(pep2,pep->nmat,pep->A);CHKERRQ(ierr);
     ierr = PEPSetWhichEigenpairs(pep2,PEP_TARGET_MAGNITUDE);CHKERRQ(ierr);
     ierr = PEPGetRG(pep2,&pep2->rg);CHKERRQ(ierr);
-    ierr = RGSetType(pep2->rg,RGINTERVAL);
+    ierr = RGSetType(pep2->rg,RGINTERVAL);CHKERRQ(ierr);
 #if defined(PETSC_USE_COMPLEX)
     ierr = RGIntervalSetEndpoints(pep2->rg,pep->inta,pep->intb,-PETSC_SQRT_MACHINE_EPSILON,PETSC_SQRT_MACHINE_EPSILON);CHKERRQ(ierr);
 #else
@@ -399,7 +399,7 @@ PetscErrorCode PEPCheckDefiniteQEP(PEP pep,PetscReal *xi,PetscReal *mu,PetscInt 
     ierr = EPSCreate(PetscObjectComm((PetscObject)pep),&eps);CHKERRQ(ierr);
     ierr = EPSSetProblemType(eps,EPS_HEP);CHKERRQ(ierr);
     ierr = EPSSetWhichEigenpairs(eps,EPS_LARGEST_REAL);CHKERRQ(ierr);
-    ierr = EPSSetTolerances(eps,PetscSqrtReal(PETSC_SQRT_MACHINE_EPSILON),PETSC_DECIDE);
+    ierr = EPSSetTolerances(eps,PetscSqrtReal(PETSC_SQRT_MACHINE_EPSILON),PETSC_DECIDE);CHKERRQ(ierr);
     ierr = MatDuplicate(pep->A[0],MAT_DO_NOT_COPY_VALUES,&M);CHKERRQ(ierr);
     ierr = STGetMatStructure(pep->st,&str);CHKERRQ(ierr);
   }
@@ -433,7 +433,7 @@ PetscErrorCode PEPCheckDefiniteQEP(PEP pep,PetscReal *xi,PetscReal *mu,PetscInt 
     omgp = omg;
     ierr = PEPQSliceDiscriminant(pep,u,w,&d,NULL,&omg);CHKERRQ(ierr);
     if (d<0.0) {check = -1; break;}
-    if (omg<omgp) {hyp = -1;}
+    if (omg<omgp) hyp = -1;
   }
   if (check==1) *xi = mut;
   if (hyp==-1 && ptypehyp) SETERRQ(PetscObjectComm((PetscObject)pep),1,"Problem does not satisfy hyperbolic test; consider removing the hyperbolicity flag");
