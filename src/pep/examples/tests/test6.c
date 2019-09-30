@@ -122,7 +122,7 @@ int main(int argc,char **argv)
   ierr = PetscPrintf(PETSC_COMM_WORLD," Number of requested eigenvalues: %D\n",nev);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-                      Display solution of first solve            
+                      Display solution of first solve
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
   ierr = PetscOptionsHasName(NULL,NULL,"-terse",&terse);CHKERRQ(ierr);
   if (terse) {
@@ -140,7 +140,7 @@ int main(int argc,char **argv)
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
      Compute the eigensystem, (k^2*M+k*C+K)x=0 for bigger n
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-  
+
   n *= 2;
   /* K is a tridiagonal */
   ierr = MatCreate(PETSC_COMM_WORLD,&K);CHKERRQ(ierr);

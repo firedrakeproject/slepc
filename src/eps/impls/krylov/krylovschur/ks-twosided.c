@@ -25,7 +25,7 @@
 #include <slepcblaslapack.h>
 
 static PetscErrorCode EPSTwoSidedRQUpdate1(EPS eps,Mat M,PetscInt nv)
-{ 
+{
 #if defined(PETSC_MISSING_LAPACK_GETRF) || defined(PETSC_MISSING_LAPACK_GETRS)
   PetscFunctionBegin;
   SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"GETRF/GETRS - Lapack routines are unavailable");
@@ -201,7 +201,7 @@ PetscErrorCode EPSSolve_KrylovSchur_TwoSided(EPS eps)
     }
     if (cont) {
       for (i=0;i<cont;i++) {
-        t = PETSC_MAX_REAL; 
+        t = PETSC_MAX_REAL;
         for (j=0;j<cont;j++) if (idx2[j]!=-1 && (s=PetscAbsScalar(eigr[idx[j]]-eps->eigr[idx[i]])+PetscAbsScalar(eigi[idx[j]]-eps->eigi[idx[i]]))<t) { id = j; t = s; }
         p[idx[i]] = idx[id];
         idx2[id] = -1;

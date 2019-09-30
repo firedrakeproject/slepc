@@ -205,7 +205,7 @@ PetscErrorCode SlepcSqrtmDenmanBeavers(PetscBLASInt n,PetscScalar *T,PetscBLASIn
       PetscStackCallBLAS("LAPACKgetrf",LAPACKgetrf_(&n,&n,invM,&ld,piv,&info));
       SlepcCheckLapackInfo("getrf",info);
       prod = invM[0];
-      for(i=1;i<n;i++) prod *= invM[i+i*ld];
+      for (i=1;i<n;i++) prod *= invM[i+i*ld];
       detM = PetscAbsScalar(prod);
       g = PetscPowReal(detM,-1.0/(2.0*n));
       alpha = g;

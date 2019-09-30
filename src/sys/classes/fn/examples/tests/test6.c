@@ -10,7 +10,7 @@
 /*
    Define the function
 
-        f(x) = (1-x^2) exp( -x/(1+x^2) )
+        f(x) = (1-x^2) exp(-x/(1+x^2))
 
    with the following tree:
 
@@ -26,7 +26,7 @@ static char help[] = "Test combined function.\n\n";
 #include <slepcfn.h>
 
 /*
-   Compute matrix function B = (I-A^2) exp( -(I+A^2)\A )
+   Compute matrix function B = (I-A^2) exp(-(I+A^2)\A)
  */
 PetscErrorCode TestMatCombine(FN fn,Mat A,PetscViewer viewer,PetscBool verbose,PetscBool inplace)
 {

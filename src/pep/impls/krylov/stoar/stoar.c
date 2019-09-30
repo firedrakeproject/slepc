@@ -87,7 +87,7 @@ PetscErrorCode PEPSTOARSetUpInnerMatrix(PEP pep,Mat *B)
     ierr = STGetMatrixTransformed(pep->st,i,&D[i]);CHKERRQ(ierr); /* D[2] = M */
   }
   ierr = MatGetLocalSize(D[2],&m,&n);CHKERRQ(ierr);
-  
+
   for (j=0;j<3;j++) {
     ierr = PetscNew(ctxMat+j);CHKERRQ(ierr);
     ierr = MatCreateShell(PetscObjectComm((PetscObject)pep),m,n,PETSC_DETERMINE,PETSC_DETERMINE,ctxMat[j],&Bs[j]);CHKERRQ(ierr);
@@ -467,7 +467,7 @@ PetscErrorCode PEPSolve_STOAR(PEP pep)
       ierr = PetscInfo2(pep,"Breakdown TOAR method (it=%D norm=%g)\n",pep->its,(double)beta);CHKERRQ(ierr);
       pep->reason = PEP_DIVERGED_BREAKDOWN;
     }
-    if (pep->reason != PEP_CONVERGED_ITERATING) l--; 
+    if (pep->reason != PEP_CONVERGED_ITERATING) l--;
     ierr = BVGetActiveColumns(pep->V,NULL,&nq);CHKERRQ(ierr);
     if (k+l+deg<=nq) {
       ierr = BVSetActiveColumns(ctx->V,pep->nconv,k+l+1);CHKERRQ(ierr);
@@ -826,7 +826,7 @@ static PetscErrorCode PEPSTOARSetLinearization_STOAR(PEP pep,PetscReal alpha,Pet
 }
 
 /*@
-   PEPSTOARSetLinearization - Set the coefficients that define 
+   PEPSTOARSetLinearization - Set the coefficients that define
    the linearization of a quadratic eigenproblem.
 
    Logically Collective on pep
@@ -870,7 +870,7 @@ static PetscErrorCode PEPSTOARGetLinearization_STOAR(PEP pep,PetscReal *alpha,Pe
 }
 
 /*@
-   PEPSTOARGetLinearization - Returns the coefficients that define 
+   PEPSTOARGetLinearization - Returns the coefficients that define
    the linearization of a quadratic eigenproblem.
 
    Not Collective

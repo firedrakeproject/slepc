@@ -130,7 +130,7 @@ PetscErrorCode SVDSolve_PRIMME(SVD svd)
   /* Allocating left and right singular vectors contiguously */
   ierr = PetscCalloc1(ops->primme.numSvals*(ops->primme.mLocal+ops->primme.nLocal),&svecs);CHKERRQ(ierr);
   ierr = PetscLogObjectMemory((PetscObject)svd,sizeof(PetscReal)*ops->primme.numSvals*(ops->primme.mLocal+ops->primme.nLocal));CHKERRQ(ierr);
-  
+
   /* Call PRIMME solver */
   ierr = PRIMME_DRIVER(svd->sigma,svecs,svd->errest,&ops->primme);
   if (ierr) SETERRQ1(PetscObjectComm((PetscObject)svd),PETSC_ERR_LIB,"PRIMME library failed with error code=%d",ierr);

@@ -256,7 +256,7 @@ PetscErrorCode PEPSolve_QArnoldi(PEP pep)
   ierr = DSGetArray(pep->ds,DS_MAT_A,&S);CHKERRQ(ierr);
   ierr = PetscArrayzero(S,ld*ld);CHKERRQ(ierr);
   ierr = DSRestoreArray(pep->ds,DS_MAT_A,&S);CHKERRQ(ierr);
-  
+
    /* Restart loop */
   l = 0;
   while (pep->reason == PEP_CONVERGED_ITERATING) {

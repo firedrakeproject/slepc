@@ -176,7 +176,7 @@ PetscErrorCode NEPSolve_SLP(NEP nep)
     nep->eigr[nep->nconv] = lambda;
     if (nep->errest[nep->nconv]<=nep->tol) {
       nep->nconv = nep->nconv + 1;
-      skip = PETSC_TRUE;     
+      skip = PETSC_TRUE;
       ierr = NEPDeflationLocking(extop,u,lambda);CHKERRQ(ierr);
     }
     ierr = (*nep->stopping)(nep,nep->its,nep->max_it,nep->nconv,nep->nev,&nep->reason,nep->stoppingctx);CHKERRQ(ierr);

@@ -510,7 +510,7 @@ PetscErrorCode PEPSolve_TOAR(PEP pep)
   ierr = DSGetArray(pep->ds,DS_MAT_A,&H);CHKERRQ(ierr);
   ierr = PetscArrayzero(H,ldds*ldds);CHKERRQ(ierr);
   ierr = DSRestoreArray(pep->ds,DS_MAT_A,&H);CHKERRQ(ierr);
-  
+
   /* Get the starting Arnoldi vector */
   ierr = BVTensorBuildFirstColumn(ctx->V,pep->nini);CHKERRQ(ierr);
 
@@ -570,7 +570,7 @@ PetscErrorCode PEPSolve_TOAR(PEP pep)
       ierr = PetscInfo2(pep,"Breakdown TOAR method (it=%D norm=%g)\n",pep->its,(double)beta);CHKERRQ(ierr);
       pep->reason = PEP_DIVERGED_BREAKDOWN;
     }
-    if (pep->reason != PEP_CONVERGED_ITERATING) l--; 
+    if (pep->reason != PEP_CONVERGED_ITERATING) l--;
     /* truncate S */
     ierr = BVGetActiveColumns(pep->V,NULL,&nq);CHKERRQ(ierr);
     if (k+l+deg<=nq) {

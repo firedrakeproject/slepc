@@ -719,7 +719,7 @@ static PetscInt ell(PetscBLASInt n,PetscScalar *A,PetscReal coeff,PetscInt m,Pet
   PetscFunctionBegin;
   beta = PetscPowReal(coeff,1.0/(2*m+1));
   for (i=0;i<n;i++)
-    for (j=0;j<n;j++) 
+    for (j=0;j<n;j++)
       Ascaled[i+j*n] = beta*PetscAbsScalar(A[i+j*n]);
   nrm = LAPACKlange_("O",&n,&n,A,&n,rwork);
   ierr = PetscLogFlops(2.0*n*n);CHKERRQ(ierr);
@@ -813,7 +813,7 @@ done:
 /*
  * Matrix exponential implementation based on algorithm and matlab code by N. Higham and co-authors
  *
- *     N. J. Higham, "The scaling and squaring method for the matrix exponential 
+ *     N. J. Higham, "The scaling and squaring method for the matrix exponential
  *     revisited", SIAM J. Matrix Anal. Appl. 26(4):1179-1193, 2005.
  */
 PetscErrorCode FNEvaluateFunctionMat_Exp_Higham(FN fn,Mat A,Mat B)
@@ -904,7 +904,7 @@ PetscErrorCode FNEvaluateFunctionMat_Exp_Higham(FN fn,Mat A,Mat B)
       SWAP(P,W,aux);
       break;
     case 13:
-      /*  P = A*(Apowers[3]*(c[13]*Apowers[3] + c[11]*Apowers[2] + c[9]*Apowers[1]) 
+      /*  P = A*(Apowers[3]*(c[13]*Apowers[3] + c[11]*Apowers[2] + c[9]*Apowers[1])
               + c[7]*Apowers[3] + c[5]*Apowers[2] + c[3]*Apowers[1] + c[1]*I)       */
       PetscStackCallBLAS("BLAScopy",BLAScopy_(&n2,Apowers[3],&one,P,&one));
       PetscStackCallBLAS("BLASscal",BLASscal_(&n2,&c[13],P,&one));

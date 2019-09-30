@@ -59,7 +59,7 @@ typedef struct {
   Mat          T;
   BV           U;
   PetscScalar  *A;
-  PetscScalar  *B;  
+  PetscScalar  *B;
   PetscScalar  theta;
   PetscInt     n;
   NEP_EXT_OP   extop;

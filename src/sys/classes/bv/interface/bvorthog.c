@@ -70,7 +70,7 @@ static PetscErrorCode BVOrthogonalizeMGS1(BV bv,PetscInt j,Vec v,PetscBool *whic
   for (i=-bv->nc;i<j;i++) {
     if (which && i>=0 && !which[i]) continue;
     ierr = BVGetColumn(bv,i,&vi);CHKERRQ(ierr);
-    /* h_i = ( v, v_i ) */
+    /* h_i = (v, v_i) */
     if (bv->matrix) {
       ierr = BV_IPMatMult(bv,w);CHKERRQ(ierr);
       z = bv->Bx;

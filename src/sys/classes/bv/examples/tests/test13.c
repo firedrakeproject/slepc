@@ -44,7 +44,7 @@ int main(int argc,char **argv)
   ierr = PetscViewerASCIIGetStdout(PETSC_COMM_WORLD,&view);CHKERRQ(ierr);
   if (verbose) {
     ierr = PetscViewerPushFormat(view,PETSC_VIEWER_ASCII_MATLAB);CHKERRQ(ierr);
-  }    
+  }
 
   /* Fill X entries */
   for (j=0;j<k;j++) {

@@ -155,7 +155,7 @@ int main(int argc,char **argv)
          args: -pep_type qarnoldi -pep_qarnoldi_restart 0.4
 
    testset:
-      args: -n 24 -pep_nev 4 -pep_ncv 9 -pep_target -.62 -terse 
+      args: -n 24 -pep_nev 4 -pep_ncv 9 -pep_target -.62 -terse
       output_file: output/sleeper_2.out
       test:
          suffix: 2_toar

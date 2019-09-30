@@ -130,7 +130,7 @@ PetscErrorCode NEPDeflationSetRandomVec(NEP_EXT_OP extop,Vec v)
   ierr = BVGetRandomContext(extop->nep->V,&rand);CHKERRQ(ierr);
   ierr = VecSetRandom(v,rand);CHKERRQ(ierr);
   if (extop->szd) {
-    ierr = MPI_Comm_size(PetscObjectComm((PetscObject)v),&np);CHKERRQ(ierr);    
+    ierr = MPI_Comm_size(PetscObjectComm((PetscObject)v),&np);CHKERRQ(ierr);
     ierr = BVGetSizes(extop->nep->V,&n,NULL,NULL);CHKERRQ(ierr);
     ierr = VecGetLocalSize(v,&next);CHKERRQ(ierr);
     ierr = VecGetArray(v,&array);CHKERRQ(ierr);
@@ -192,7 +192,7 @@ PetscErrorCode NEPDeflationLocking(NEP_EXT_OP extop,Vec u,PetscScalar lambda)
   ierr = BVRestoreColumn(extop->X,extop->n,&uu);CHKERRQ(ierr);
   ierr = BVNormColumn(extop->X,extop->n,NORM_2,&norm);CHKERRQ(ierr);
   ierr = BVScaleColumn(extop->X,extop->n,1.0/norm);CHKERRQ(ierr);
-  ierr = MPI_Comm_size(PetscObjectComm((PetscObject)u),&np);CHKERRQ(ierr);    
+  ierr = MPI_Comm_size(PetscObjectComm((PetscObject)u),&np);CHKERRQ(ierr);
   for (i=0;i<extop->n;i++) extop->H[extop->n*ld+i] *= PetscSqrtReal(np)/norm;
   extop->H[extop->n*(ld+1)] = lambda;
   extop->n++;
@@ -604,7 +604,7 @@ PetscErrorCode NEPDeflationFunctionSolve(NEP_EXT_OP extop,Vec b,Vec x)
     ierr = BVGetSizes(extop->nep->V,&nloc,NULL,NULL);CHKERRQ(ierr);
     ierr = PetscMalloc2(extop->n,&b2,extop->n,&x2);CHKERRQ(ierr);
     ierr = MPI_Comm_size(PetscObjectComm((PetscObject)b),&np);CHKERRQ(ierr);
-    for (i=0;i<extop->n;i++) b2[i] = bb[nloc+i]*PetscSqrtReal(np); 
+    for (i=0;i<extop->n;i++) b2[i] = bb[nloc+i]*PetscSqrtReal(np);
     w = solve->work; w2 = solve->work+extop->n;
     ierr = MatShellGetContext(solve->sincf?extop->MF:solve->T,(void**)&matctx);CHKERRQ(ierr);
     ierr = PetscArraycpy(w2,b2,extop->n);CHKERRQ(ierr);

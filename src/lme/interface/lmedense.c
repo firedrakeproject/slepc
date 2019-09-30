@@ -80,7 +80,7 @@ static PetscErrorCode LyapunovResidual(PetscScalar *H,PetscInt m,PetscInt ldh,Pe
   PetscStackCallBLAS("BLASgemm",BLASgemm_("N","C",&n,&n,&n,&done,M,&n,L,&n,&done,R,&n));
   /* R = R+L*M' */
   PetscStackCallBLAS("BLASgemm",BLASgemm_("N","C",&n,&n,&n,&done,L,&n,M,&n,&done,R,&n));
-  
+
   *res = LAPACKlange_("F",&n,&n,R,&n,NULL);
   ierr = PetscFree2(M,R);CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -315,7 +315,7 @@ static PetscErrorCode LyapunovChol_LAPACK(PetscScalar *H,PetscInt m,PetscInt ldh
   PetscStackCallBLAS("LAPACKtrsyl",LAPACKtrsyl_("N","C",&ione,&n,&n,H,&ld,H,&ld,C,&ld1,&scal,&info));
   SlepcCheckLapackInfo("trsyl",info);
   if (scal!=1.0) SETERRQ1(PETSC_COMM_SELF,1,"Current implementation cannot handle scale factor %g",scal);
-  
+
   /* back-transform C = Q*C*Q' */
   PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&n,&n,&n,&done,Q,&n,C,&n,&zero,W,&n));
   PetscStackCallBLAS("BLASgemm",BLASgemm_("N","C",&n,&n,&n,&done,W,&n,Q,&n,&zero,C,&ld1));

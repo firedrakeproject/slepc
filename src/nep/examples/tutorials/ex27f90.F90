@@ -67,7 +67,7 @@ PROGRAM main
   one   = 1
   two   = 2
   three = 3
-  
+
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !     Create nonlinear eigensolver context and set options
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -178,7 +178,7 @@ PROGRAM main
     call NEPErrorView(nep,NEP_ERROR_BACKWARD,PETSC_VIEWER_STDOUT_WORLD,ierr);CHKERRA(ierr)
     call PetscViewerPopFormat(PETSC_VIEWER_STDOUT_WORLD,ierr);CHKERRA(ierr)
   end if
-  
+
   if (split) then
     call MatDestroy(A(1),ierr);CHKERRA(ierr)
     call MatDestroy(A(2),ierr);CHKERRA(ierr)

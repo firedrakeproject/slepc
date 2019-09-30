@@ -26,7 +26,7 @@ static PetscErrorCode BVBiorthogonalizeMGS1(BV V,BV W,Vec v,PetscScalar *h,Petsc
   PetscFunctionBegin;
   for (i=-V->nc;i<V->k;i++) {
     ierr = BVGetColumn(W,i,&wi);CHKERRQ(ierr);
-    /* h_i = ( v, w_i ) */
+    /* h_i = (v, w_i) */
     ierr = VecDot(v,wi,&dot);CHKERRQ(ierr);
     ierr = BVRestoreColumn(W,i,&wi);CHKERRQ(ierr);
     /* v <- v - h_i v_i */

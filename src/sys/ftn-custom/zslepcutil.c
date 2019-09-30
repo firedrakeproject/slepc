@@ -41,7 +41,7 @@ SLEPC_EXTERN void PETSC_STDCALL slepcgetversion_(char *version PETSC_MIXED_LEN(l
   FIXRETURNCHAR(PETSC_TRUE,version,len1);
 }
 
-SLEPC_EXTERN void PETSC_STDCALL slepcgetversionnumber_(PetscInt *major,PetscInt *minor,PetscInt *subminor,PetscInt *release,PetscInt *ierr )
+SLEPC_EXTERN void PETSC_STDCALL slepcgetversionnumber_(PetscInt *major,PetscInt *minor,PetscInt *subminor,PetscInt *release,PetscInt *ierr)
 {
   CHKFORTRANNULLINTEGER(major);
   CHKFORTRANNULLINTEGER(minor);

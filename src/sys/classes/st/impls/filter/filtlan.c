@@ -645,7 +645,7 @@ PETSC_STATIC_INLINE PetscReal FILTLAN_PiecewisePolynomialEvaluationInChebyshevBa
        T_0(z) = 1, T_1(z) = z, and T_i(z) = 2*z*T_{i-1}(z) - T_{i-2}(z) for i>=2
 
    the (scaled) j-th interval inner product is defined by
-       <P_j,Q_j> = (Pi/2)*( pp(1,j)*qq(1,j) + sum_{k} pp(k,j)*qq(k,j) ),
+       <P_j,Q_j> = (Pi/2)*(pp(1,j)*qq(1,j) + sum_{k} pp(k,j)*qq(k,j)),
    which comes from the property
        <T_0,T_0>=pi, <T_i,T_i>=pi/2 for i>=1, and <T_i,T_j>=0 for i!=j
 

@@ -629,7 +629,7 @@ PetscErrorCode FNEvaluateFunctionMat_Private(FN fn,Mat A,Mat B,PetscBool sync)
   ierr = MPI_Comm_size(PetscObjectComm((PetscObject)fn),&size);CHKERRQ(ierr);
   ierr = MPI_Comm_rank(PetscObjectComm((PetscObject)fn),&rank);CHKERRQ(ierr);
   if (size==1 || fn->pmode==FN_PARALLEL_REDUNDANT || (fn->pmode==FN_PARALLEL_SYNCHRONIZED && !rank)) {
-    
+
     ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
     if (symm && !fn->method) {  /* prefer diagonalization */
       ierr = PetscInfo(fn,"Computing matrix function via diagonalization\n");CHKERRQ(ierr);
@@ -811,7 +811,7 @@ PetscErrorCode FNEvaluateFunctionMatVec_Private(FN fn,Mat A,Vec v,PetscBool sync
   }
 
   /* synchronize */
-  if (size>1 && fn->pmode==FN_PARALLEL_SYNCHRONIZED && sync) { 
+  if (size>1 && fn->pmode==FN_PARALLEL_SYNCHRONIZED && sync) {
     ierr = MatGetSize(A,&m,&n);CHKERRQ(ierr);
     ierr = VecGetArray(v,&pv);CHKERRQ(ierr);
     ierr = MPI_Bcast(pv,n,MPIU_SCALAR,0,PetscObjectComm((PetscObject)fn));CHKERRQ(ierr);

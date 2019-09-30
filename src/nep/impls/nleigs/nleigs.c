@@ -91,7 +91,7 @@ static PetscErrorCode NEPNLEIGSAuxiliarPRootFinder(PetscInt deg,PetscScalar *pol
     ierr = PetscMalloc1(lwork,&work);CHKERRQ(ierr);
     PetscStackCallBLAS("LAPACKgeev",LAPACKgeev_("N","N",&n_,C,&n_,wr,wi,NULL,&n_,NULL,&n_,work,&lwork,&info));
     if (info) *avail = PETSC_FALSE;
-    ierr = PetscFree(work);CHKERRQ(ierr); 
+    ierr = PetscFree(work);CHKERRQ(ierr);
 #else
     ierr = PetscMalloc2(2*deg,&rwork,lwork,&work);CHKERRQ(ierr);
     PetscStackCallBLAS("LAPACKgeev",LAPACKgeev_("N","N",&n_,C,&n_,wr,NULL,&n_,NULL,&n_,work,&lwork,rwork,&info));
@@ -156,10 +156,10 @@ static PetscErrorCode NEPNLEIGSFNSingularities(FN f,PetscInt *nisol,PetscScalar 
       if (avail) {
         ierr = PetscCalloc1(nq-1,isol);CHKERRQ(ierr);
         *nisol = 0;
-        for (i=0;i<nq-1;i++) 
+        for (i=0;i<nq-1;i++)
 #if !defined(PETSC_USE_COMPLEX)
           if (wi[i]==0)
-#endif 
+#endif
             (*isol)[(*nisol)++] = wr[i];
         nq = *nisol; *nisol = 0;
         for (i=0;i<nq;i++) wr[i] = (*isol)[i];
@@ -177,7 +177,7 @@ static PetscErrorCode NEPNLEIGSFNSingularities(FN f,PetscInt *nisol,PetscScalar 
       ierr = NEPNLEIGSFNSingularities(f2,&nisol2,&isol2,&rat2);CHKERRQ(ierr);
       if (nisol1+nisol2>0) {
         ierr = PetscCalloc1(nisol1+nisol2,isol);CHKERRQ(ierr);
-        *nisol = 0; 
+        *nisol = 0;
         ierr = NEPNLEIGSAuxiliarRmDuplicates(nisol1,isol1,nisol,*isol,0);CHKERRQ(ierr);
         ierr = NEPNLEIGSAuxiliarRmDuplicates(nisol2,isol2,nisol,*isol,0);CHKERRQ(ierr);
       }
@@ -260,7 +260,7 @@ static PetscErrorCode NEPNLEIGSAAAComputation(NEP nep,PetscInt ndpt,PetscScalar 
     cont = 0;
     for (i=0;i<ndpt;i++) {
       if (R[i]!=-1.0) {
-        for(j=0;j<=k;j++)A[cont+j*ndpt] = C[i+j*ndpt]*F[i]-C[i+j*ndpt]*f[j];
+        for (j=0;j<=k;j++)A[cont+j*ndpt] = C[i+j*ndpt]*F[i]-C[i+j*ndpt]*f[j];
         cont++;
       }
     }
@@ -712,7 +712,7 @@ static PetscErrorCode NEPNLEIGSDividedDifferences_split(NEP nep)
     PetscPushErrorHandler(PetscIgnoreErrorHandler,NULL);
     ierr = FNEvaluateFunctionMat(nep->f[j],H,K);
     PetscPopErrorHandler();
-    if (!ierr) { 
+    if (!ierr) {
       for (i=0;i<nmax;i++) { ctx->coeffD[j+i*nep->nt] = pK[i]*beta[0]; }
     } else {
       matrix = PETSC_FALSE;
@@ -842,7 +842,7 @@ static PetscErrorCode NEPNLEIGSDividedDifferences_callback(NEP nep)
     if (has) {
       ierr = MatNorm(D[k],NORM_FROBENIUS,&norm);CHKERRQ(ierr);
     } else {
-      if(!vec) {
+      if (!vec) {
         ierr = MatCreateVecs(D[k],NULL,&w[0]);CHKERRQ(ierr);
         ierr = VecDuplicate(w[0],&w[1]);CHKERRQ(ierr);
         vec = PETSC_TRUE;
@@ -1235,10 +1235,10 @@ PetscErrorCode NEPSolve_NLEIGS(NEP nep)
     ierr = PetscArrayzero(H,ldds*ldds);CHKERRQ(ierr);
     ierr = DSRestoreArray(nep->ds,DS_MAT_B,&H);CHKERRQ(ierr);
   }
-  
+
   /* Get the starting Arnoldi vector */
   ierr = BVTensorBuildFirstColumn(ctx->V,nep->nini);CHKERRQ(ierr);
-  
+
   /* Restart loop */
   l = 0;
   while (nep->reason == NEP_CONVERGED_ITERATING) {

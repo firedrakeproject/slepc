@@ -14,10 +14,10 @@
 #include <slepc/private/pepimpl.h>    /*I "slepcpep.h" I*/
 #include <slepcblaslapack.h>
 
-/* 
+/*
   Computes T_j=phy_idx(T) for a matrix T.
-    Tp (if j>0) and Tpp (if j>1) are the evaluation 
-    of phy_(j-1) and phy(j-2)respectively. 
+    Tp (if j>0) and Tpp (if j>1) are the evaluation
+    of phy_(j-1) and phy(j-2)respectively.
 */
 PetscErrorCode PEPEvaluateBasisMat(PEP pep,PetscInt k,PetscScalar *T,PetscInt ldt,PetscInt idx,PetscScalar *Tpp,PetscInt ldtpp,PetscScalar *Tp,PetscInt ldtp,PetscScalar *Tj,PetscInt ldtj)
 {
@@ -40,7 +40,7 @@ PetscErrorCode PEPEvaluateBasisMat(PEP pep,PetscInt k,PetscScalar *T,PetscInt ld
     ierr = PetscBLASIntCast(k,&k_);CHKERRQ(ierr);
     ca = pep->pbc; cb = pep->pbc+pep->nmat; cg = pep->pbc+2*pep->nmat;
     for (i=0;i<k;i++) T[i*ldt+i] -= cb[idx-1];
-    if (idx>1) { 
+    if (idx>1) {
       for (i=0;i<k;i++) {
         ierr = PetscArraycpy(Tj+i*ldtj,Tpp+i*ldtpp,k);CHKERRQ(ierr);
       }

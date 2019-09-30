@@ -78,7 +78,7 @@ int main(int argc,char **argv)
 
   /* A2 */
   if (Istart<=n-1 && n-1<Iend) {
-    ierr = MatSetValue(A[2],n-1,n-1,kappa,INSERT_VALUES); CHKERRQ(ierr);
+    ierr = MatSetValue(A[2],n-1,n-1,kappa,INSERT_VALUES);CHKERRQ(ierr);
   }
 
   /* assemble matrices */

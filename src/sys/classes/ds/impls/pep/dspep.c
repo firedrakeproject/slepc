@@ -196,11 +196,11 @@ PetscErrorCode DSSolve_PEP_QZ(DS ds,PetscScalar *wr,PetscScalar *wi)
           *(A+off+j*ldd+k) = *(ds->mat[DSMatExtra[i]]+j*ds->ld+k)*ca[ctx->d-1];
     }
     off = i*ds->n*ldd+(ctx->d-1)*ds->n;
-    for (j=0;j<ds->n;j++) 
+    for (j=0;j<ds->n;j++)
       for (k=0;k<ds->n;k++)
         *(A+off+j*ldd+k) = *(ds->mat[DSMatExtra[i]]+j*ds->ld+k)*ca[ctx->d-1]-E[j*ds->ld+k]*cg[ctx->d-1];
     off = (++i)*ds->n*ldd+(ctx->d-1)*ds->n;
-    for (j=0;j<ds->n;j++) 
+    for (j=0;j<ds->n;j++)
       for (k=0;k<ds->n;k++)
         *(A+off+j*ldd+k) = *(ds->mat[DSMatExtra[i]]+j*ds->ld+k)*ca[ctx->d-1]-E[j*ds->ld+k]*cb[ctx->d-1];
   }
@@ -267,14 +267,14 @@ PetscErrorCode DSSolve_PEP_QZ(DS ds,PetscScalar *wr,PetscScalar *wi)
 PetscErrorCode DSSynchronize_PEP(DS ds,PetscScalar eigr[],PetscScalar eigi[])
 {
   PetscErrorCode ierr;
-  DS_PEP         *ctx = (DS_PEP*)ds->data;  
+  DS_PEP         *ctx = (DS_PEP*)ds->data;
   PetscInt       ld=ds->ld,k=0;
   PetscMPIInt    ldnd,rank,off=0,size,dn;
 
   PetscFunctionBegin;
   if (ds->state>=DS_STATE_CONDENSED) k += 2*ctx->d*ds->n*ld;
-  if (eigr) k += ctx->d*ds->n; 
-  if (eigi) k += ctx->d*ds->n; 
+  if (eigr) k += ctx->d*ds->n;
+  if (eigi) k += ctx->d*ds->n;
   ierr = DSAllocateWork_Private(ds,k,0,0);CHKERRQ(ierr);
   ierr = PetscMPIIntCast(k*sizeof(PetscScalar),&size);CHKERRQ(ierr);
   ierr = PetscMPIIntCast(ds->n*ctx->d*ld,&ldnd);CHKERRQ(ierr);
@@ -406,7 +406,7 @@ static PetscErrorCode DSPEPSetCoefficients_PEP(DS ds,PetscReal *pbc)
    This function is required only in the case of a polynomial specified in a
    non-monomial basis, to provide the coefficients that will be used
    during the linearization, multiplying the identity blocks on the three main
-   diagonal blocks. Depending on the polynomial basis (Chebyshev, Legendre, ...) 
+   diagonal blocks. Depending on the polynomial basis (Chebyshev, Legendre, ...)
    the coefficients must be different.
 
    There must be a total of 3*(d+1) coefficients, where d is the degree of the

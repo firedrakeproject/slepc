@@ -115,7 +115,7 @@ int main(int argc,char **argv)
   ierr = PEPSetWhichEigenpairs(pep,PEP_ALL);CHKERRQ(ierr);
 
   /*
-     Spectrum slicing requires STOAR 
+     Spectrum slicing requires STOAR
   */
   ierr = PEPSetType(pep,PEPSTOAR);CHKERRQ(ierr);
 

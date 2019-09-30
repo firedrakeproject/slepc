@@ -181,7 +181,7 @@
 
       SUBROUTINE MVMISG( TRANS, N, M, X, LDX, Y, LDY )
 #include <petsc/finclude/petscsys.h>
-      use petscsys      
+      use petscsys
 !     ..
 !     .. Scalar Arguments ..
       PetscInt     LDY, LDX, M, N, TRANS

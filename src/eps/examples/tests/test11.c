@@ -202,7 +202,7 @@ PetscErrorCode MyEigenSort(PetscScalar ar,PetscScalar ai,PetscScalar br,PetscSca
          args: -eps_type {{krylovschur arnoldi lapack}} -st_type sinvert
       test:
          suffix: 1_ks_cayley
-         args: -st_type cayley -st_cayley_antishift 1 
+         args: -st_type cayley -st_cayley_antishift 1
 
    test:
       suffix: 2

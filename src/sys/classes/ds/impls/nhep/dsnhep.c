@@ -459,7 +459,7 @@ static PetscErrorCode DSSortWithPermutation_NHEP(DS ds,PetscInt *perm,PetscScala
 #endif
     if (pos!=i) {
 #if !defined(PETSC_USE_COMPLEX)
-      if ((T[pos+(pos-1)*ld] != 0.0 && perm[i+1]!=pos-1) || (T[pos+1+pos*ld] != 0.0 && perm[i+1]!=pos+1)) 
+      if ((T[pos+(pos-1)*ld] != 0.0 && perm[i+1]!=pos-1) || (T[pos+1+pos*ld] != 0.0 && perm[i+1]!=pos+1))
  SETERRQ1(PETSC_COMM_SELF,1,"Invalid permutation due to a 2x2 block at position %D",pos);
 #endif
 
@@ -532,7 +532,7 @@ PetscErrorCode DSUpdateExtraRow_NHEP(DS ds)
   where S is an upper (quasi-)triangular matrix of order k, H is an upper Hessenberg
   matrix of order n-k, and R is all zeros except the first row (the arrow).
   The algorithm uses elementary reflectors to annihilate entries in the arrow, and
-  then proceeds upwards. 
+  then proceeds upwards.
   If ilo>1, then it is assumed that the first ilo-1 entries of the arrow are zero, and
   hence the first ilo-1 rows and columns of Q are set to the identity matrix.
 
@@ -663,8 +663,8 @@ PetscErrorCode DSSynchronize_NHEP(DS ds,PetscScalar eigr[],PetscScalar eigi[])
   PetscFunctionBegin;
   k = (ds->n-l)*ld;
   if (ds->state>DS_STATE_RAW) k += (ds->n-l)*ld;
-  if (eigr) k += ds->n-l; 
-  if (eigi) k += ds->n-l; 
+  if (eigr) k += ds->n-l;
+  if (eigi) k += ds->n-l;
   ierr = DSAllocateWork_Private(ds,k,0,0);CHKERRQ(ierr);
   ierr = PetscMPIIntCast(k*sizeof(PetscScalar),&size);CHKERRQ(ierr);
   ierr = PetscMPIIntCast(ds->n-l,&n);CHKERRQ(ierr);

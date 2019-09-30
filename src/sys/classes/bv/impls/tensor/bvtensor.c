@@ -198,7 +198,7 @@ PetscErrorCode BVOrthogonalizeGS1_Tensor(BV bv,PetscInt k,Vec v,PetscBool *which
     for (i=-bv->nc;i<k;i++) {
       if (which && i>=0 && !which[i]) continue;
       if (ctx->qB) PetscStackCallBLAS("BLASgemv",BLASgemv_("N",&lds_,&lds_,&sone,ctx->qB,&lds_,pS+k*lds,&one,&szero,x,&one));
-      /* c_i = ( s_k, s_i ) */
+      /* c_i = (s_k, s_i) */
       dot = PetscRealPart(BLASdot_(&lds_,pS+i*lds,&one,x,&one));
       if (bv->indef) dot /= PetscRealPart(omega[i]);
       ierr = BV_SetValue(bv,i,0,cc,dot);CHKERRQ(ierr);

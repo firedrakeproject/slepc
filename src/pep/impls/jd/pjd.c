@@ -1016,7 +1016,7 @@ static PetscErrorCode PEPJDMatSetUp(PEP pep,PetscInt sz,PetscScalar *theta)
     matctx->theta[0] = theta[0];
 #if !defined(PETSC_USE_COMPLEX)
     if (sz==2) {
-      if (!matctx->Pi ) {
+      if (!matctx->Pi) {
         ierr = MatDuplicate(pep->A[0],MAT_COPY_VALUES,&matctx->Pi);CHKERRQ(ierr);
       } else {
         ierr = MatCopy(pep->A[1],matctx->Pi,str);CHKERRQ(ierr);

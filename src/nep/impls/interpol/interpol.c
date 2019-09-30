@@ -174,7 +174,7 @@ PetscErrorCode NEPSolve_Interpol(NEP nep)
   ierr = PEPGetConvergedReason(ctx->pep,(PEPConvergedReason*)&nep->reason);CHKERRQ(ierr);
   ierr = BVSetActiveColumns(nep->V,0,nep->nconv);CHKERRQ(ierr);
   ierr = BVCreateVec(nep->V,&vr);CHKERRQ(ierr);
-#if !defined(PETSC_USE_COMPLEX)   
+#if !defined(PETSC_USE_COMPLEX)
   ierr = VecDuplicate(vr,&vi);CHKERRQ(ierr);
 #endif
   s = 2.0/(b-a);
@@ -184,7 +184,7 @@ PetscErrorCode NEPSolve_Interpol(NEP nep)
     nep->eigr[i] += (a+b)/2.0;
     nep->eigi[i] /= s;
     ierr = BVInsertVec(nep->V,i,vr);CHKERRQ(ierr);
-#if !defined(PETSC_USE_COMPLEX)   
+#if !defined(PETSC_USE_COMPLEX)
     if (nep->eigi[i]!=0.0) {
       ierr = BVInsertVec(nep->V,++i,vi);CHKERRQ(ierr);
     }

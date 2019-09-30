@@ -308,7 +308,7 @@ SLEPC_EXTERN void PETSC_STDCALL svdgetdimensions_(SVD *svd,PetscInt *nev,PetscIn
 {
   CHKFORTRANNULLINTEGER(nev);
   CHKFORTRANNULLINTEGER(ncv);
-  CHKFORTRANNULLINTEGER(mpd);  
+  CHKFORTRANNULLINTEGER(mpd);
   *ierr = SVDGetDimensions(*svd,nev,ncv,mpd);
 }
 

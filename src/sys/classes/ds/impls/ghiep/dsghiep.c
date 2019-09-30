@@ -874,8 +874,8 @@ PetscErrorCode DSSynchronize_GHIEP(DS ds,PetscScalar eigr[],PetscScalar eigi[])
   if (ds->compact) kr = 4*ld;
   else k = 2*(ds->n-l)*ld;
   if (ds->state>DS_STATE_RAW) k += (ds->n-l)*ld;
-  if (eigr) k += (ds->n-l); 
-  if (eigi) k += (ds->n-l); 
+  if (eigr) k += (ds->n-l);
+  if (eigi) k += (ds->n-l);
   ierr = DSAllocateWork_Private(ds,k+kr,0,0);CHKERRQ(ierr);
   ierr = PetscMPIIntCast(k*sizeof(PetscScalar)+kr*sizeof(PetscReal),&size);CHKERRQ(ierr);
   ierr = PetscMPIIntCast(ds->n-l,&n);CHKERRQ(ierr);

@@ -388,7 +388,7 @@ static PetscErrorCode NRefSysSolve_mbe(PetscInt k,PetscInt sz,BV W,PetscScalar *
     ierr = BVGetColumn(T,i,&t);CHKERRQ(ierr);
     ierr = VecAXPY(xx1,-y[i],t);CHKERRQ(ierr);
     ierr = BVRestoreColumn(T,i,&t);CHKERRQ(ierr);
-    for(j=0;j<=i;j++) xx2[j] -= y[i]*T4[j*incf+incc*i+(i*incf+incc*j)*k];
+    for (j=0;j<=i;j++) xx2[j] -= y[i]*T4[j*incf+incc*i+(i*incf+incc*j)*k];
     g[i] = xx2[i];
   }
   if (trans) {

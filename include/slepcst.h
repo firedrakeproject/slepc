@@ -65,7 +65,7 @@ PETSC_DEPRECATED_FUNCTION("Use STSetMatrices()") PETSC_STATIC_INLINE PetscErrorC
 PETSC_DEPRECATED_FUNCTION("Use STGetMatrix()") PETSC_STATIC_INLINE PetscErrorCode STGetOperators(ST st,PetscInt k,Mat *A) {return STGetMatrix(st,k,A);}
 PETSC_DEPRECATED_FUNCTION("Use STGetMatrixTransformed()") PETSC_STATIC_INLINE PetscErrorCode STGetTOperators(ST st,PetscInt k,Mat *A) {return STGetMatrixTransformed(st,k,A);}
 PETSC_DEPRECATED_FUNCTION("Use STGetOperator() followed by MatComputeOperator()") PETSC_STATIC_INLINE PetscErrorCode STComputeExplicitOperator(ST st,Mat *A) {
-  PetscErrorCode ierr; Mat Op; 
+  PetscErrorCode ierr; Mat Op;
   ierr = STGetOperator(st,&Op);CHKERRQ(ierr);
   ierr = MatComputeOperator(Op,MATAIJ,A);CHKERRQ(ierr);
   ierr = MatDestroy(&Op);CHKERRQ(ierr);
