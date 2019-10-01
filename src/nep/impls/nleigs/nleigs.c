@@ -753,7 +753,7 @@ static PetscErrorCode NEPNLEIGSDividedDifferences_split(NEP nep)
       norm = 0.0;
       for (j=0;j<nep->nt;j++) norm = PetscMax(PetscAbsScalar(ctx->coeffD[k*nep->nt+j]),norm);
     }
-    if (norm/norm0 < ctx->ddtol) {
+    if (k>1 && norm/norm0 < ctx->ddtol) {
       ctx->nmat = k+1;
       break;
     }
@@ -849,7 +849,7 @@ static PetscErrorCode NEPNLEIGSDividedDifferences_callback(NEP nep)
       }
       ierr = NEPNLEIGSNormEstimation(nep,D[k],&norm,w);CHKERRQ(ierr);
     }
-    if (norm/norm0 < ctx->ddtol && k>1) {
+    if (k>1 && norm/norm0 < ctx->ddtol && k>1) {
       ctx->nmat = k+1;
       break;
     }

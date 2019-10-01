@@ -158,7 +158,7 @@ PetscErrorCode NEPSolve_Interpol(NEP nep)
       ierr = MatAXPY(A[k],t,nep->A[j],nep->mstr);CHKERRQ(ierr);
     }
     if (k==0) aprox0 = aprox;
-    if (aprox/aprox0<ctx->tol) { ctx->deg = k; deg = k; break; }
+    if (k>1 && aprox/aprox0<ctx->tol) { ctx->deg = k; deg = k; break; }
   }
 
   ierr = PEPSetOperators(ctx->pep,deg+1,A);CHKERRQ(ierr);
