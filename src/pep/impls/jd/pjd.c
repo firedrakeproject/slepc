@@ -792,7 +792,7 @@ static PetscErrorCode PEPJDShellMatMult(Mat P,Vec x,Vec y)
     }
   }
 #endif
-  if (nconv) {
+  if (nconv>0) {
     ierr = PEPEvaluateBasis(matctx->pep,theta[0],theta[1],val,vali);CHKERRQ(ierr);
     for (i=0;i<nmat;i++) {
       ierr = PEPJDEvaluateHatBasis(matctx->pep,nconv,pjd->T,ncv,val,x2,i,i>1?qj+(i-2)*nconv:NULL,i>0?qj+(i-1)*nconv:NULL,qj+i*nconv);CHKERRQ(ierr);

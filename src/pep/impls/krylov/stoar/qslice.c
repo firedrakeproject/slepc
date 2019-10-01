@@ -289,7 +289,7 @@ static PetscErrorCode PEPQSliceCheckEigenvalueType(PEP pep,PetscReal shift,Petsc
 
 PETSC_STATIC_INLINE PetscErrorCode PEPQSliceDiscriminant(PEP pep,Vec u,Vec w,PetscReal *d,PetscReal *smas,PetscReal *smenos)
 {
-  PetscReal      ap,bp,cp;
+  PetscReal      ap,bp,cp,dis;
   PetscScalar    ts;
   PetscErrorCode ierr;
 
@@ -303,23 +303,24 @@ PETSC_STATIC_INLINE PetscErrorCode PEPQSliceDiscriminant(PEP pep,Vec u,Vec w,Pet
   ierr = MatMult(pep->A[2],u,w);CHKERRQ(ierr);
   ierr = VecDot(w,u,&ts);CHKERRQ(ierr);
   ap = PetscRealPart(ts);
-  if (d) *d = bp*bp-4*ap*cp;
-  if (*d>=0.0 && smas) {
-    if (ap>0) *smas = (-bp+PetscSqrtReal(*d))/(2*ap);
-    else if (ap<0) *smas = (-bp-PetscSqrtReal(*d))/(2*ap);
+  dis = bp*bp-4*ap*cp;
+  if (dis>=0.0 && smas) {
+    if (ap>0) *smas = (-bp+PetscSqrtReal(dis))/(2*ap);
+    else if (ap<0) *smas = (-bp-PetscSqrtReal(dis))/(2*ap);
     else {
       if (bp >0) *smas = -cp/bp;
       else *smas = PETSC_MAX_REAL;
     }
   }
-  if (*d>=0.0 && smenos) {
-    if (ap>0) *smenos = (-bp-PetscSqrtReal(*d))/(2*ap);
-    else if (ap<0) *smenos = (-bp+PetscSqrtReal(*d))/(2*ap);
+  if (dis>=0.0 && smenos) {
+    if (ap>0) *smenos = (-bp-PetscSqrtReal(dis))/(2*ap);
+    else if (ap<0) *smenos = (-bp+PetscSqrtReal(dis))/(2*ap);
     else {
       if (bp<0) *smenos = -cp/bp;
       else *smenos = PETSC_MAX_REAL;
     }
   }
+  if (d) *d = dis;
   PetscFunctionReturn(0);
 }
 
@@ -371,7 +372,7 @@ PetscErrorCode PEPCheckDefiniteQEP(PEP pep,PetscReal *xi,PetscReal *mu,PetscInt 
   PetscErrorCode ierr;
   PetscRandom    rand;
   Vec            u,w;
-  PetscReal      d,s,sp,mut=0.0,omg=0.0,omgp;
+  PetscReal      d,s=0.0,sp,mut=0.0,omg=0.0,omgp;
   PetscInt       k,its=10,hyp=0,check=0,nconv,inertia,n;
   Mat            M=NULL;
   MatStructure   str;
@@ -471,7 +472,6 @@ PetscErrorCode PEPCheckDefiniteQEP(PEP pep,PetscReal *xi,PetscReal *mu,PetscInt 
       ierr = EPSGetConverged(eps,&nconv);CHKERRQ(ierr);
       if (!nconv) break;
       ierr = EPSGetEigenpair(eps,0,NULL,NULL,u,w);CHKERRQ(ierr);
-      omgp = omg;
       ierr = PEPQSliceDiscriminant(pep,u,w,&d,NULL,&omg);CHKERRQ(ierr);
       if (d<0.0) {check = -1; break;}
     }

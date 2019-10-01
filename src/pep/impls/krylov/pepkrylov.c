@@ -122,6 +122,9 @@ PetscErrorCode PEPExtractVectors_TOAR(PEP pep)
         t = 0.0;
         ierr = PEPEvaluateBasis(pep,er[i],ei[i],vals,ivals);CHKERRQ(ierr);
         yr = X+i*ldds; yi = NULL;
+#if !defined(PETSC_USE_COMPLEX)
+        if (ei[i]!=0.0) { yr = tr; yi = ti; }
+#endif
         for (j=0;j<deg;j++) {
           alpha = PetscConj(vals[j]);
 #if !defined(PETSC_USE_COMPLEX)
@@ -129,14 +132,12 @@ PetscErrorCode PEPExtractVectors_TOAR(PEP pep)
             ierr = PetscArrayzero(tr,k);CHKERRQ(ierr);
             PetscStackCallBLAS("BLASaxpy",BLASaxpy_(&k_,&vals[j],X+i*ldds,&one,tr,&one));
             PetscStackCallBLAS("BLASaxpy",BLASaxpy_(&k_,&ivals[j],X+(i+1)*ldds,&one,tr,&one));
-            yr = tr;
             ierr = PetscArrayzero(ti,k);CHKERRQ(ierr);
             PetscStackCallBLAS("BLASaxpy",BLASaxpy_(&k_,&vals[j],X+(i+1)*ldds,&one,ti,&one));
             alpha = -ivals[j];
             PetscStackCallBLAS("BLASaxpy",BLASaxpy_(&k_,&alpha,X+i*ldds,&one,ti,&one));
-            yi = ti;
             alpha = 1.0;
-          } else { yr = X+i*ldds; yi = NULL; }
+          }
 #endif
           PetscStackCallBLAS("BLASgemv",BLASgemv_("N",&nq_,&k_,&alpha,S+j*ld,&lds_,yr,&one,&sone,SS+i*nq,&one));
           t += SlepcAbsEigenvalue(vals[j],ivals[j])*SlepcAbsEigenvalue(vals[j],ivals[j]);

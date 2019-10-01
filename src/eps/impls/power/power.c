@@ -551,7 +551,7 @@ PetscErrorCode EPSSolve_TS_Power(EPS eps)
   PetscInt           k,ld;
   Vec                v,w,y,e,z;
   KSP                ksp;
-  PetscReal          relerr,relerrl,delta;
+  PetscReal          relerr=1.0,relerrl,delta;
   PetscScalar        theta,rho,alpha,sigma;
   PetscBool          breakdown;
   KSPConvergedReason reason;

@@ -194,7 +194,7 @@ PetscErrorCode LMESolve_Krylov_Lyapunov(LME lme)
 {
   PetscErrorCode ierr;
   PetscBool      fail,fixed = lme->X? PETSC_TRUE: PETSC_FALSE;
-  PetscInt       i,k,rank,col=0;
+  PetscInt       i,k,rank=0,col=0;
   Vec            b;
   BV             X1=NULL,C1;
   Mat            X1m,X1t,C1m;

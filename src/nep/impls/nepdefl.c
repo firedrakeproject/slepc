@@ -597,7 +597,7 @@ PetscErrorCode NEPDeflationFunctionSolve(NEP_EXT_OP extop,Vec b,Vec x)
     b1 = b; x1 = x;
   }
   ierr = KSPSolve(extop->solve->ksp,b1,x1);CHKERRQ(ierr);
-  if (extop->n) {
+  if (extop->szd && extop->n) {
     ierr = PetscBLASIntCast(extop->szd,&szd_);CHKERRQ(ierr);
     ierr = PetscBLASIntCast(extop->n,&n_);CHKERRQ(ierr);
     ierr = PetscBLASIntCast(extop->szd+1,&ldh_);CHKERRQ(ierr);
@@ -809,7 +809,7 @@ PetscErrorCode NEPDeflationDSNEPComputeMatrix(DS ds,PetscScalar lambda,PetscBool
     basisv = proj->work+nwork; nwork += szd;
     hH     = proj->work+nwork; nwork += szd*szd;
     hHprev = proj->work+nwork; nwork += szd*szd;
-    AB     = proj->work+nwork; nwork += szd*szd;
+    AB     = proj->work+nwork;
     ierr = NEPDeflationEvaluateBasis(extop,lambda,n,basisv,deriv);CHKERRQ(ierr);
     if (!deriv) for (i=0;i<n;i++) AB[i*(szd+1)] = 1.0;
     for (j=0;j<n;j++)
