@@ -167,7 +167,7 @@ static PetscErrorCode DenseTridiagonal(PetscInt n_,PetscReal *D,PetscReal *E,Pet
   const char     *jobz;
 #if defined(PETSC_USE_COMPLEX)
   PetscInt       i,j;
-  PetscReal      *VV;
+  PetscReal      *VV=NULL;
 #endif
 
   PetscFunctionBegin;
@@ -392,7 +392,7 @@ static PetscErrorCode EPSPartialLanczos(EPS eps,PetscReal *alpha,PetscReal *beta
     anorm = 1.0;
     estimate_anorm = PETSC_TRUE;
   }
-  for (i=0;i<m-k;i++) omega[i] = omega_old[i] = 0.0;
+  for (i=0;i<PetscMax(100,m);i++) omega[i] = omega_old[i] = 0.0;
   for (i=0;i<k;i++) which[i] = PETSC_TRUE;
 
   ierr = BVSetActiveColumns(eps->V,0,m);CHKERRQ(ierr);

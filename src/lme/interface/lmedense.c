@@ -378,7 +378,7 @@ PetscErrorCode LMEDenseLyapunovChol(LME lme,PetscScalar *H,PetscInt m,PetscInt l
   PetscErrorCode ierr;
 #if defined(PETSC_USE_INFO)
   PetscInt       i;
-  PetscScalar    *Hcopy;
+  PetscScalar    *Hcopy=NULL;
   PetscReal      error;
 #endif
 

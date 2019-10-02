@@ -249,7 +249,7 @@ static PetscErrorCode VecCreate_Comp_Private(Vec v,Vec *x,PetscInt nx,PetscBool 
 
   s->nx = nx;
 
-  if (nx) {
+  if (nx && x) {
     /* Allocate the shared structure, if it is not given */
     if (!n) {
       for (i=0;i<nx;i++) {
@@ -355,6 +355,9 @@ PetscErrorCode VecCreateCompWithVecs(Vec *x,PetscInt n,Vec Vparent,Vec *V)
   PetscInt       i;
 
   PetscFunctionBegin;
+  PetscValidPointer(x,1);
+  PetscValidHeaderSpecific(*x,VEC_CLASSID,1);
+  PetscValidLogicalCollectiveInt(*x,n,2);
   ierr = VecCreate(PetscObjectComm((PetscObject)x[0]),V);CHKERRQ(ierr);
   for (i=0;i<n;i++) {
     ierr = PetscObjectReference((PetscObject)x[i]);CHKERRQ(ierr);

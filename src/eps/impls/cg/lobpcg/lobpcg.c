@@ -95,7 +95,7 @@ PetscErrorCode EPSSolve_LOBPCG(EPS eps)
   PetscBool      breakdown,countc,flip=PETSC_FALSE,checkprecond=PETSC_FALSE;
   Mat            A,B,M;
   Vec            v,z,w=eps->work[0];
-  BV             X,Y,Z,R,P,AX,BX;
+  BV             X,Y=NULL,Z,R,P,AX,BX;
   SlepcSC        sc;
 
   PetscFunctionBegin;
