@@ -15,15 +15,18 @@
    Algorithm:
 
        Jacobi-Davidson for polynomial eigenvalue problems.
-       Based on code contributed by the authors of [2] below.
 
    References:
 
-       [1] G.L.G. Sleijpen et al., "Jacobi-Davidson type methods for
+       [1] C. Campos and J.E. Roman, "A polynomial Jacobi–Davidson solver
+           with support for non-monomial bases and deflation", BIT (in
+           press), 2019.
+
+       [2] G.L.G. Sleijpen et al., "Jacobi-Davidson type methods for
            generalized eigenproblems and polynomial eigenproblems", BIT
            36(3):595-633, 1996.
 
-       [2] Feng-Nan Hwang, Zih-Hao Wei, Tsung-Ming Huang, Weichung Wang,
+       [3] Feng-Nan Hwang, Zih-Hao Wei, Tsung-Ming Huang, Weichung Wang,
            "A Parallel Additive Schwarz Preconditioned Jacobi-Davidson
            Algorithm for Polynomial Eigenvalue Problems in Quantum Dot
            Simulation", J. Comput. Phys. 229(8):2932-2947, 2010.
@@ -31,6 +34,19 @@
 
 #include <slepc/private/pepimpl.h>    /*I "slepcpep.h" I*/
 #include <slepcblaslapack.h>
+
+static PetscBool  cited = PETSC_FALSE;
+static const char citation[] =
+  "@Article{slepc-slice-qep,\n"
+  "   author = \"C. Campos and J. E. Roman\",\n"
+  "   title = \"A polynomial Jacobi–Davidson solver with support for non-monomial bases and deflation\",\n"
+  "   journal = \"{BIT} Numer. Math.\",\n"
+  "   volume = \"IP\",\n"
+  "   number = \"-\",\n"
+  "   pages = \"1--24\",\n"
+  "   year = \"2019,\"\n"
+  "   doi = \"https://doi.org/10.1007/s10543-019-00778-z\"\n"
+  "}\n";
 
 typedef struct {
   PetscReal   keep;          /* restart parameter */
@@ -1304,6 +1320,7 @@ PetscErrorCode PEPSolve_JD(PEP pep)
 #endif
 
   PetscFunctionBegin;
+  ierr = PetscCitationsRegister(citation,&cited);CHKERRQ(ierr);
   ierr = MPI_Comm_size(PetscObjectComm((PetscObject)pep),&np);CHKERRQ(ierr);
   ierr = BVGetSizes(pep->V,&nloc,NULL,NULL);CHKERRQ(ierr);
   ierr = DSGetLeadingDimension(pep->ds,&ld);CHKERRQ(ierr);
