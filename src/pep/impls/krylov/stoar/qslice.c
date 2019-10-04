@@ -1111,8 +1111,6 @@ static PetscErrorCode PEPSTOAR_QSlice(PEP pep,Mat B)
   BVOrthogBlockType obtype;
 
   PetscFunctionBegin;
-  ierr = PetscCitationsRegister(citation,&cited);CHKERRQ(ierr);
-
   /* Resize if needed for deflating vectors  */
   sr = ctx->sr;
   sigma = sr->sPres->value;
@@ -1435,6 +1433,8 @@ PetscErrorCode PEPSolve_STOAR_QSlice(PEP pep)
   PetscScalar    *pS;
 
   PetscFunctionBegin;
+  ierr = PetscCitationsRegister(citation,&cited);CHKERRQ(ierr);
+
   /* Only with eigenvalues present in the interval ...*/
   if (sr->numEigs==0) {
     pep->reason = PEP_CONVERGED_TOL;
