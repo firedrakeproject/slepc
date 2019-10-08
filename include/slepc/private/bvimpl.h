@@ -264,7 +264,7 @@ SLEPC_INTERN PetscErrorCode BVOrthogonalize_LAPACK_TSQR_OnlyR(BV,PetscInt,PetscI
 
 /* reduction operation used in BVOrthogonalize */
 SLEPC_EXTERN MPI_Op MPIU_TSQR;
-SLEPC_EXTERN void SlepcGivensPacked(void*,void*,PetscMPIInt*,MPI_Datatype*);
+SLEPC_EXTERN void MPIAPI SlepcGivensPacked(void*,void*,PetscMPIInt*,MPI_Datatype*);
 
 #if defined(PETSC_HAVE_CUDA)
 

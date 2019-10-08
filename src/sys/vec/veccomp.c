@@ -61,7 +61,7 @@ PETSC_STATIC_INLINE void AddNorm2(PetscReal *ssq,PetscReal *scale,PetscReal x)
   }
 }
 
-SLEPC_EXTERN void SlepcSumNorm2_Local(void *in,void *out,PetscMPIInt *cnt,MPI_Datatype *datatype)
+SLEPC_EXTERN void MPIAPI SlepcSumNorm2_Local(void *in,void *out,PetscMPIInt *cnt,MPI_Datatype *datatype)
 {
   PetscInt  i,count = *cnt;
   PetscReal *xin = (PetscReal*)in,*xout = (PetscReal*)out;
