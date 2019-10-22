@@ -307,8 +307,6 @@ if slepc.isinstall:
 else:
   WriteModulesFile(modules,slepc.lversion,slepc.dir)
 log.write('pkg-config file in '+pkgconfdir)
-slflag = ''
-if petsc.buildsharedlib: slflag = petsc.slflag
 WritePkgconfigFile(pkgconfig,slepc.lversion,petsc.version,slepc.dir,slepc.isinstall,slepc.prefixdir,petsc.singlelib)
 
 # Write reconfigure file

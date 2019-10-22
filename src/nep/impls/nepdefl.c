@@ -699,6 +699,7 @@ PetscErrorCode NEPDeflationInitialize(NEP nep,BV X,KSP ksp,PetscBool sincfun,Pet
   if (op->szd) {
     op->simpU = PETSC_FALSE;
     if (nep->fui==NEP_USER_INTERFACE_SPLIT) {
+      /* undocumented option to use the simple expression for U = T*X*inv(lambda-H) */
       ierr = PetscOptionsGetBool(NULL,NULL,"-nep_deflation_simpleu",&op->simpU,NULL);CHKERRQ(ierr);
     } else {
       op->simpU = PETSC_TRUE;

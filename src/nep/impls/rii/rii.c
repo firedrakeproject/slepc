@@ -29,6 +29,7 @@ typedef struct {
   PetscInt  max_inner_it;     /* maximum number of Newton iterations */
   PetscInt  lag;              /* interval to rebuild preconditioner */
   PetscBool cctol;            /* constant correction tolerance */
+  PetscBool herm;             /* whether the Hermitian version of the scalar equation must be used */
   KSP       ksp;              /* linear solver object */
 } NEP_RII;
 
@@ -207,6 +208,8 @@ PetscErrorCode NEPSetFromOptions_RII(PetscOptionItems *PetscOptionsObject,NEP ne
     if (flg) { ierr = NEPRIISetMaximumIterations(nep,i);CHKERRQ(ierr); }
 
     ierr = PetscOptionsBool("-nep_rii_const_correction_tol","Constant correction tolerance for the linear solver","NEPRIISetConstCorrectionTol",ctx->cctol,&ctx->cctol,NULL);CHKERRQ(ierr);
+
+    ierr = PetscOptionsBool("-nep_rii_hermitian","Use Hermitian version of the scalar nonlinear equation","NEPRIISetHermitian",ctx->herm,&ctx->herm,NULL);CHKERRQ(ierr);
 
     i = 0;
     ierr = PetscOptionsInt("-nep_rii_lag_preconditioner","Interval to rebuild preconditioner","NEPRIISetLagPreconditioner",ctx->lag,&i,&flg);CHKERRQ(ierr);
@@ -450,6 +453,85 @@ PetscErrorCode NEPRIIGetConstCorrectionTol(NEP nep,PetscBool *cct)
   PetscFunctionReturn(0);
 }
 
+static PetscErrorCode NEPRIISetHermitian_RII(NEP nep,PetscBool herm)
+{
+  NEP_RII *ctx = (NEP_RII*)nep->data;
+
+  PetscFunctionBegin;
+  ctx->herm = herm;
+  PetscFunctionReturn(0);
+}
+
+/*@
+   NEPRIISetHermitian - Sets a flag to indicate if the Hermitian version of the
+   scalar nonlinear equation must be used by the solver.
+
+   Logically Collective on nep
+
+   Input Parameters:
++  nep  - nonlinear eigenvalue solver
+-  herm - a boolean value
+
+   Options Database Keys:
+.  -nep_rii_hermitian <bool> - set the boolean flag
+
+   Notes:
+   By default, the scalar nonlinear equation x'*inv(T(sigma))*T(z)*x=0 is solved
+   at each step of the nonlinear iteration. When this flag is set the simpler
+   form x'*T(z)*x=0 is used, which is supposed to be valid only for Hermitian
+   problems.
+
+   Level: intermediate
+
+.seealso: NEPRIIGetHermitian()
+@*/
+PetscErrorCode NEPRIISetHermitian(NEP nep,PetscBool herm)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
+  PetscValidLogicalCollectiveInt(nep,herm,2);
+  ierr = PetscTryMethod(nep,"NEPRIISetHermitian_C",(NEP,PetscBool),(nep,herm));CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+static PetscErrorCode NEPRIIGetHermitian_RII(NEP nep,PetscBool *herm)
+{
+  NEP_RII *ctx = (NEP_RII*)nep->data;
+
+  PetscFunctionBegin;
+  *herm = ctx->herm;
+  PetscFunctionReturn(0);
+}
+
+/*@
+   NEPRIIGetHermitian - Returns the flag about using the Hermitian version of
+   the scalar nonlinear equation.
+
+   Not Collective
+
+   Input Parameter:
+.  nep - nonlinear eigenvalue solver
+
+   Output Parameter:
+.  herm - the value of the hermitian flag
+
+   Level: intermediate
+
+.seealso: NEPRIISetHermitian()
+@*/
+PetscErrorCode NEPRIIGetHermitian(NEP nep,PetscBool *herm)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
+  PetscValidBoolPointer(herm,2);
+  ierr = PetscUseMethod(nep,"NEPRIIGetHermitian_C",(NEP,PetscBool*),(nep,herm));CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
 static PetscErrorCode NEPRIISetKSP_RII(NEP nep,KSP ksp)
 {
   PetscErrorCode ierr;
@@ -550,6 +632,9 @@ PetscErrorCode NEPView_RII(NEP nep,PetscViewer viewer)
     if (ctx->cctol) {
       ierr = PetscViewerASCIIPrintf(viewer,"  using a constant tolerance for the linear solver\n");CHKERRQ(ierr);
     }
+    if (ctx->herm) {
+      ierr = PetscViewerASCIIPrintf(viewer,"  using the Hermitian version of the scalar nonlinear equation\n");CHKERRQ(ierr);
+    }
     if (ctx->lag) {
       ierr = PetscViewerASCIIPrintf(viewer,"  updating the preconditioner every %D iterations\n",ctx->lag);CHKERRQ(ierr);
     }
@@ -585,6 +670,8 @@ PetscErrorCode NEPDestroy_RII(NEP nep)
   ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPRIIGetLagPreconditioner_C",NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPRIISetConstCorrectionTol_C",NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPRIIGetConstCorrectionTol_C",NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPRIISetHermitian_C",NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPRIIGetHermitian_C",NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPRIISetKSP_C",NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPRIIGetKSP_C",NULL);CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -601,6 +688,7 @@ SLEPC_EXTERN PetscErrorCode NEPCreate_RII(NEP nep)
   ctx->max_inner_it = 10;
   ctx->lag          = 1;
   ctx->cctol        = PETSC_FALSE;
+  ctx->herm         = PETSC_FALSE;
 
   nep->useds = PETSC_TRUE;
 
@@ -618,6 +706,8 @@ SLEPC_EXTERN PetscErrorCode NEPCreate_RII(NEP nep)
   ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPRIIGetLagPreconditioner_C",NEPRIIGetLagPreconditioner_RII);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPRIISetConstCorrectionTol_C",NEPRIISetConstCorrectionTol_RII);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPRIIGetConstCorrectionTol_C",NEPRIIGetConstCorrectionTol_RII);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPRIISetHermitian_C",NEPRIISetHermitian_RII);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPRIIGetHermitian_C",NEPRIIGetHermitian_RII);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPRIISetKSP_C",NEPRIISetKSP_RII);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPRIIGetKSP_C",NEPRIIGetKSP_RII);CHKERRQ(ierr);
   PetscFunctionReturn(0);
