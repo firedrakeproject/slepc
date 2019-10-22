@@ -30,6 +30,7 @@ typedef struct {
   PetscInt  lag;              /* interval to rebuild preconditioner */
   PetscBool cctol;            /* constant correction tolerance */
   PetscBool herm;             /* whether the Hermitian version of the scalar equation must be used */
+  PetscReal deftol;           /* tolerance for the deflation (threshold) */
   KSP       ksp;              /* linear solver object */
 } NEP_RII;
 
@@ -199,6 +200,7 @@ PetscErrorCode NEPSetFromOptions_RII(PetscOptionItems *PetscOptionsObject,NEP ne
   NEP_RII        *ctx = (NEP_RII*)nep->data;
   PetscBool      flg;
   PetscInt       i;
+  PetscReal      r;
 
   PetscFunctionBegin;
   ierr = PetscOptionsHead(PetscOptionsObject,"NEP RII Options");CHKERRQ(ierr);
@@ -214,6 +216,10 @@ PetscErrorCode NEPSetFromOptions_RII(PetscOptionItems *PetscOptionsObject,NEP ne
     i = 0;
     ierr = PetscOptionsInt("-nep_rii_lag_preconditioner","Interval to rebuild preconditioner","NEPRIISetLagPreconditioner",ctx->lag,&i,&flg);CHKERRQ(ierr);
     if (flg) { ierr = NEPRIISetLagPreconditioner(nep,i);CHKERRQ(ierr); }
+
+    r = 0.0;
+    ierr = PetscOptionsReal("-nep_rii_deflation_threshold","Tolerance used as a threshold for including deflated eigenpairs","NEPRIISetDeflationThreshold",ctx->deftol,&r,&flg);CHKERRQ(ierr);
+    if (flg) { ierr = NEPRIISetDeflationThreshold(nep,r);CHKERRQ(ierr); }
 
   ierr = PetscOptionsTail();CHKERRQ(ierr);
 
@@ -413,7 +419,7 @@ PetscErrorCode NEPRIISetConstCorrectionTol(NEP nep,PetscBool cct)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
-  PetscValidLogicalCollectiveInt(nep,cct,2);
+  PetscValidLogicalCollectiveBool(nep,cct,2);
   ierr = PetscTryMethod(nep,"NEPRIISetConstCorrectionTol_C",(NEP,PetscBool),(nep,cct));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -491,7 +497,7 @@ PetscErrorCode NEPRIISetHermitian(NEP nep,PetscBool herm)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
-  PetscValidLogicalCollectiveInt(nep,herm,2);
+  PetscValidLogicalCollectiveBool(nep,herm,2);
   ierr = PetscTryMethod(nep,"NEPRIISetHermitian_C",(NEP,PetscBool),(nep,herm));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -529,6 +535,86 @@ PetscErrorCode NEPRIIGetHermitian(NEP nep,PetscBool *herm)
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
   PetscValidBoolPointer(herm,2);
   ierr = PetscUseMethod(nep,"NEPRIIGetHermitian_C",(NEP,PetscBool*),(nep,herm));CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+static PetscErrorCode NEPRIISetDeflationThreshold_RII(NEP nep,PetscBool deftol)
+{
+  NEP_RII *ctx = (NEP_RII*)nep->data;
+
+  PetscFunctionBegin;
+  ctx->deftol = deftol;
+  PetscFunctionReturn(0);
+}
+
+/*@
+   NEPRIISetDeflationThreshold - Sets the threshold value used to switch between
+   deflated and non-deflated iteration.
+
+   Logically Collective on nep
+
+   Input Parameters:
++  nep    - nonlinear eigenvalue solver
+-  deftol - the threshold value
+
+   Options Database Keys:
+.  -nep_rii_delfation_threshold <deftol> - set the threshold
+
+   Notes:
+   Normally, the solver iterates on the extended problem in order to deflate
+   previously converged eigenpairs. If this threshold is set to a nonzero value,
+   then once the residual error is below this threshold the solver will
+   continue the iteration without deflation. The intention is to be able to
+   improve the current eigenpair further, despite having previous eigenpairs
+   with somewhat bad precision.
+
+   Level: advanced
+
+.seealso: NEPRIIGetDeflationThreshold()
+@*/
+PetscErrorCode NEPRIISetDeflationThreshold(NEP nep,PetscReal deftol)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
+  PetscValidLogicalCollectiveReal(nep,deftol,2);
+  ierr = PetscTryMethod(nep,"NEPRIISetDeflationThreshold_C",(NEP,PetscReal),(nep,deftol));CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+static PetscErrorCode NEPRIIGetDeflationThreshold_RII(NEP nep,PetscReal *deftol)
+{
+  NEP_RII *ctx = (NEP_RII*)nep->data;
+
+  PetscFunctionBegin;
+  *deftol = ctx->deftol;
+  PetscFunctionReturn(0);
+}
+
+/*@
+   NEPRIIGetDeflationThreshold - Returns the threshold value that controls deflation.
+
+   Not Collective
+
+   Input Parameter:
+.  nep - nonlinear eigenvalue solver
+
+   Output Parameter:
+.  deftol - the threshold
+
+   Level: advanced
+
+.seealso: NEPRIISetDeflationThreshold()
+@*/
+PetscErrorCode NEPRIIGetDeflationThreshold(NEP nep,PetscReal *deftol)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
+  PetscValidBoolPointer(deftol,2);
+  ierr = PetscUseMethod(nep,"NEPRIIGetDeflationThreshold_C",(NEP,PetscReal*),(nep,deftol));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -638,6 +724,9 @@ PetscErrorCode NEPView_RII(NEP nep,PetscViewer viewer)
     if (ctx->lag) {
       ierr = PetscViewerASCIIPrintf(viewer,"  updating the preconditioner every %D iterations\n",ctx->lag);CHKERRQ(ierr);
     }
+    if (ctx->deftol) {
+      ierr = PetscViewerASCIIPrintf(viewer,"  deflation threshold: %g\n",(double)ctx->deftol);CHKERRQ(ierr);
+    }
     if (!ctx->ksp) { ierr = NEPRIIGetKSP(nep,&ctx->ksp);CHKERRQ(ierr); }
     ierr = PetscViewerASCIIPushTab(viewer);CHKERRQ(ierr);
     ierr = KSPView(ctx->ksp,viewer);CHKERRQ(ierr);
@@ -672,6 +761,8 @@ PetscErrorCode NEPDestroy_RII(NEP nep)
   ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPRIIGetConstCorrectionTol_C",NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPRIISetHermitian_C",NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPRIIGetHermitian_C",NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPRIISetDeflationThreshold_C",NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPRIIGetDeflationThreshold_C",NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPRIISetKSP_C",NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPRIIGetKSP_C",NULL);CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -689,6 +780,7 @@ SLEPC_EXTERN PetscErrorCode NEPCreate_RII(NEP nep)
   ctx->lag          = 1;
   ctx->cctol        = PETSC_FALSE;
   ctx->herm         = PETSC_FALSE;
+  ctx->deftol       = 0.0;
 
   nep->useds = PETSC_TRUE;
 
@@ -708,6 +800,8 @@ SLEPC_EXTERN PetscErrorCode NEPCreate_RII(NEP nep)
   ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPRIIGetConstCorrectionTol_C",NEPRIIGetConstCorrectionTol_RII);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPRIISetHermitian_C",NEPRIISetHermitian_RII);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPRIIGetHermitian_C",NEPRIIGetHermitian_RII);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPRIISetDeflationThreshold_C",NEPRIISetDeflationThreshold_RII);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPRIIGetDeflationThreshold_C",NEPRIIGetDeflationThreshold_RII);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPRIISetKSP_C",NEPRIISetKSP_RII);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPRIIGetKSP_C",NEPRIIGetKSP_RII);CHKERRQ(ierr);
   PetscFunctionReturn(0);

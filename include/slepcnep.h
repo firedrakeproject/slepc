@@ -276,9 +276,15 @@ SLEPC_EXTERN PetscErrorCode NEPRIISetLagPreconditioner(NEP,PetscInt);
 SLEPC_EXTERN PetscErrorCode NEPRIIGetLagPreconditioner(NEP,PetscInt*);
 SLEPC_EXTERN PetscErrorCode NEPRIISetConstCorrectionTol(NEP,PetscBool);
 SLEPC_EXTERN PetscErrorCode NEPRIIGetConstCorrectionTol(NEP,PetscBool*);
+SLEPC_EXTERN PetscErrorCode NEPRIISetHermitian(NEP,PetscBool);
+SLEPC_EXTERN PetscErrorCode NEPRIIGetHermitian(NEP,PetscBool*);
+SLEPC_EXTERN PetscErrorCode NEPRIISetDeflationThreshold(NEP,PetscReal);
+SLEPC_EXTERN PetscErrorCode NEPRIIGetDeflationThreshold(NEP,PetscReal*);
 SLEPC_EXTERN PetscErrorCode NEPRIISetKSP(NEP,KSP);
 SLEPC_EXTERN PetscErrorCode NEPRIIGetKSP(NEP,KSP*);
 
+SLEPC_EXTERN PetscErrorCode NEPSLPSetDeflationThreshold(NEP,PetscReal);
+SLEPC_EXTERN PetscErrorCode NEPSLPGetDeflationThreshold(NEP,PetscReal*);
 SLEPC_EXTERN PetscErrorCode NEPSLPSetEPS(NEP,EPS);
 SLEPC_EXTERN PetscErrorCode NEPSLPGetEPS(NEP,EPS*);
 SLEPC_EXTERN PetscErrorCode NEPSLPSetKSP(NEP,KSP);
