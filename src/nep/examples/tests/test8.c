@@ -124,7 +124,7 @@ int main(int argc,char **argv)
 
    test:
       suffix: 2
-      args: -nep_type rii -nep_target -.5 -nep_monitor -nep_view_values ::ascii_matlab
+      args: -nep_type rii -nep_target -.5 -nep_rii_hermitian -nep_monitor -nep_view_values ::ascii_matlab
       filter: sed -e "s/[+-][0-9]\.[0-9]*e-[0-9]*i//" -e "s/([0-9]\.[0-9]*e[+-]\([0-9]*\))/(removed)/g"
       requires: double
 

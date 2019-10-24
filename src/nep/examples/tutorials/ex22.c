@@ -202,16 +202,22 @@ int main(int argc,char **argv)
       args: -nep_type interpol -nep_interpol_pep_extract {{none norm residual}} -rg_type interval -rg_interval_endpoints 5,20,-.1,.1 -nep_nev 3 -nep_target 5 -terse
       requires: !single
 
-   test:
-      suffix: 3
-      args: -n 512 -nep_target 10 -nep_nev 3 -nep_type {{rii slp narnoldi}} -terse
+   testset:
+      args: -n 512 -nep_target 10 -nep_nev 3 -terse
       requires: !single
-
-   test:
-      suffix: 3_simpleu
-      args: -n 512 -nep_target 10 -nep_nev 3 -nep_type narnoldi -nep_deflation_simpleu -terse
       output_file: output/ex22_3.out
-      requires: !single
+      test:
+         suffix: 3
+         args: -nep_type {{rii slp narnoldi}} -nep_deflation_simpleu
+      test:
+         suffix: 3_simpleu
+         args: -nep_type narnoldi -nep_deflation_simpleu
+      test:
+         suffix: 3_slp_thres
+         args: -nep_type slp -nep_slp_deflation_threshold 1e-8
+      test:
+         suffix: 3_rii_thres
+         args: -nep_type rii -nep_rii_deflation_threshold 1e-8
 
    test:
       suffix: 4

@@ -222,7 +222,10 @@ int main(int argc,char **argv)
       output_file: output/test10_1.out
       test:
          suffix: 1
-         args: -nep_type {{rii narnoldi}} -nep_target 0.55
+         args: -nep_type narnoldi -nep_target 0.55
+      test:
+         suffix: 1_rii
+         args: -nep_type rii -nep_target 0.55 -nep_rii_hermitian
       test:
          suffix: 1_narnoldi
          args: -nep_type narnoldi -nep_target 0.55 -nep_narnoldi_lag_preconditioner 2

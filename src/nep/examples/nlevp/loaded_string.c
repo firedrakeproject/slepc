@@ -210,9 +210,19 @@ int main(int argc,char **argv)
       requires: complex double
       output_file: output/loaded_string_7.out
 
-   test:
-      suffix: 8
-      args: -nep_target 10 -nep_nev 3 -nep_tol 5e-10 -nep_type {{rii slp narnoldi}} -terse
+   testset:
+      args: -nep_target 10 -nep_nev 3 -nep_tol 5e-10 -terse
       requires: !single
+      output_file: output/loaded_string_8.out
+      filter: sed -e "s/[+-]0\.00000i//g"
+      test:
+         suffix: 8
+         args: -nep_type {{rii slp narnoldi}}
+      test:
+         suffix: 8_rii_thres
+         args: -nep_type rii -nep_rii_deflation_threshold 5e-10
+      test:
+         suffix: 8_slp_thres
+         args: -nep_type slp -nep_slp_deflation_threshold 5e-10
 
 TEST*/
