@@ -145,7 +145,7 @@ PetscErrorCode NEPSolve_SLP(NEP nep)
   PetscScalar    sigma,lambda,mu,im,*Hp,*Ap;
   PetscReal      resnorm;
   PetscInt       nconv,ldh,ldds,i,j;
-  PetscBool      skip=PETSC_FALSE;
+  PetscBool      skip=PETSC_FALSE,lock=PETSC_FALSE;
   NEP_EXT_OP     extop=NULL;    /* Extended operator for deflation */
 
   PetscFunctionBegin;
@@ -175,9 +175,22 @@ PetscErrorCode NEPSolve_SLP(NEP nep)
     ierr = VecNorm(r,NORM_2,&resnorm);CHKERRQ(ierr);
     ierr = (*nep->converged)(nep,lambda,0,resnorm,&nep->errest[nep->nconv],nep->convergedctx);CHKERRQ(ierr);
     nep->eigr[nep->nconv] = lambda;
-    if (nep->errest[nep->nconv]<=nep->tol) {
+    if (nep->errest[nep->nconv]<=nep->tol || nep->errest[nep->nconv]<=ctx->deftol) {
+      if (nep->errest[nep->nconv]<=ctx->deftol&&!extop->ref && nep->nconv) {
+        ierr = NEPDeflationExtractEigenpair(extop,nep->nconv,u,lambda,nep->ds);CHKERRQ(ierr);
+        ierr = NEPDeflationSetRefine(extop,PETSC_TRUE);CHKERRQ(ierr);
+        ierr = MatMult(F,u,r);CHKERRQ(ierr);
+        ierr = VecNorm(r,NORM_2,&resnorm);CHKERRQ(ierr);
+        ierr = (*nep->converged)(nep,lambda,0,resnorm,&nep->errest[nep->nconv],nep->convergedctx);CHKERRQ(ierr);
+        if (nep->errest[nep->nconv]<=nep->tol) lock = PETSC_TRUE;
+      } else if (nep->errest[nep->nconv]<=nep->tol) lock = PETSC_TRUE;
+    }
+
+    if (lock) {
+      ierr = NEPDeflationSetRefine(extop,PETSC_FALSE);CHKERRQ(ierr);
       nep->nconv = nep->nconv + 1;
       skip = PETSC_TRUE;
+      lock = PETSC_FALSE;  
       ierr = NEPDeflationLocking(extop,u,lambda);CHKERRQ(ierr);
     }
     ierr = (*nep->stopping)(nep,nep->its,nep->max_it,nep->nconv,nep->nev,&nep->reason,nep->stoppingctx);CHKERRQ(ierr);
@@ -219,6 +232,7 @@ PetscErrorCode NEPSolve_SLP(NEP nep)
   }
   ierr = NEPDeflationGetInvariantPair(extop,NULL,&H);CHKERRQ(ierr);
   ierr = MatGetSize(H,NULL,&ldh);CHKERRQ(ierr);
+  ierr = DSReset(nep->ds);CHKERRQ(ierr);
   ierr = DSSetType(nep->ds,DSNHEP);CHKERRQ(ierr);
   ierr = DSAllocate(nep->ds,PetscMax(nep->nconv,1));CHKERRQ(ierr);
   ierr = DSGetLeadingDimension(nep->ds,&ldds);CHKERRQ(ierr);
@@ -260,7 +274,7 @@ PetscErrorCode NEPSetFromOptions_SLP(PetscOptionItems *PetscOptionsObject,NEP ne
   PetscFunctionReturn(0);
 }
 
-static PetscErrorCode NEPSLPSetDeflationThreshold_SLP(NEP nep,PetscBool deftol)
+static PetscErrorCode NEPSLPSetDeflationThreshold_SLP(NEP nep,PetscReal deftol)
 {
   NEP_SLP *ctx = (NEP_SLP*)nep->data;
 

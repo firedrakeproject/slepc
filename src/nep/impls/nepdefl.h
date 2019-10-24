@@ -30,6 +30,7 @@ struct _n_nep_ext_op {
   PetscInt          max_midx;
   PetscInt          szd;    /* maximum size for deflation */
   PetscInt          n;      /* invariant pair size */
+  PetscBool         ref;    /* refine with original size */
   Mat               MF;     /* function shell matrix */
   Mat               MJ;     /* Jacobian shell matrix */
   PetscBool         simpU;  /* the way U is computed */
@@ -39,6 +40,8 @@ struct _n_nep_ext_op {
   BV                W;
   PetscScalar       *Hj;    /* matrix containing the powers of the invariant pair matrix */
   PetscScalar       *XpX;   /* X^*X */
+  DS                ds;
+  Vec               w;
 };
 
 struct _n_nep_def_fun_solve {
@@ -109,3 +112,5 @@ SLEPC_INTERN PetscErrorCode NEPDeflationLocking(NEP_EXT_OP,Vec,PetscScalar);
 SLEPC_INTERN PetscErrorCode NEPDeflationSetRandomVec(NEP_EXT_OP,Vec);
 SLEPC_INTERN PetscErrorCode NEPDeflationProjectOperator(NEP_EXT_OP,BV,DS,PetscInt,PetscInt);
 SLEPC_INTERN PetscErrorCode NEPDeflationCreateBV(NEP_EXT_OP,PetscInt,BV*);
+SLEPC_INTERN PetscErrorCode NEPDeflationSetRefine(NEP_EXT_OP,PetscBool);
+SLEPC_INTERN PetscErrorCode NEPDeflationExtractEigenpair(NEP_EXT_OP,PetscInt,Vec,PetscScalar,DS);
