@@ -63,12 +63,12 @@ PETSC_STATIC_INLINE PetscErrorCode NEPNLEIGSSetShifts(NEP nep,PetscInt *nshiftsw
   PetscFunctionReturn(0);
 }
 
-SLEPC_EXTERN PetscErrorCode NEPSetUp_NLEIGS_FullBasis(NEP);
-SLEPC_EXTERN PetscErrorCode NEPNLEIGSSetEPS_NLEIGS(NEP,EPS);
-SLEPC_EXTERN PetscErrorCode NEPNLEIGSGetEPS_NLEIGS(NEP,EPS*);
-SLEPC_EXTERN PetscErrorCode NEPNLEIGSBackTransform(PetscObject,PetscInt,PetscScalar*,PetscScalar *vali);
-SLEPC_EXTERN PetscErrorCode NEPNLEIGSEvalNRTFunct(NEP,PetscInt,PetscScalar,PetscScalar*);
-SLEPC_EXTERN PetscErrorCode NEPSolve_NLEIGS_FullBasis(NEP);
-SLEPC_EXTERN PetscErrorCode NEPSolve_NLEIGS(NEP);
+SLEPC_INTERN PetscErrorCode NEPSetUp_NLEIGS_FullBasis(NEP);
+SLEPC_INTERN PetscErrorCode NEPNLEIGSSetEPS_NLEIGS(NEP,EPS);
+SLEPC_INTERN PetscErrorCode NEPNLEIGSGetEPS_NLEIGS(NEP,EPS*);
+SLEPC_INTERN PetscErrorCode NEPNLEIGSBackTransform(PetscObject,PetscInt,PetscScalar*,PetscScalar *vali);
+SLEPC_INTERN PetscErrorCode NEPNLEIGSEvalNRTFunct(NEP,PetscInt,PetscScalar,PetscScalar*);
+SLEPC_INTERN PetscErrorCode NEPSolve_NLEIGS_FullBasis(NEP);
+SLEPC_INTERN PetscErrorCode NEPSolve_NLEIGS(NEP);
 
 #endif

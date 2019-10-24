@@ -77,7 +77,6 @@ PetscErrorCode NEPDeflationExtractEigenpair(NEP_EXT_OP extop,PetscInt k,Vec u,Pe
   PetscFunctionReturn(0);
 }
 
-
 PetscErrorCode NEPDeflationCopyToExtendedVec(NEP_EXT_OP extop,Vec v,PetscScalar *a,Vec vex,PetscBool back)
 {
   PetscErrorCode ierr;
@@ -583,7 +582,7 @@ PetscErrorCode NEPDeflationSolveSetUp(NEP_EXT_OP extop,PetscScalar lambda)
     Mshell = (solve->sincf)?extop->MF:solve->T;
     ierr = MatShellGetContext(Mshell,(void**)&matctx);CHKERRQ(ierr);
     ierr = KSPSetOperators(solve->ksp,matctx->T,matctx->T);CHKERRQ(ierr);
-    if (!extop->ref&&n) {
+    if (!extop->ref && n) {
       ierr = PetscBLASIntCast(n,&n_);CHKERRQ(ierr);
       ierr = PetscBLASIntCast(extop->szd,&szd_);CHKERRQ(ierr);
       ierr = PetscBLASIntCast(extop->szd+1,&ldh_);CHKERRQ(ierr);
@@ -871,7 +870,7 @@ PetscErrorCode NEPDeflationDSNEPComputeMatrix(DS ds,PetscScalar lambda,PetscBool
     basisv = proj->work+nwork; nwork += szd;
     hH     = proj->work+nwork; nwork += szd*szd;
     hHprev = proj->work+nwork; nwork += szd*szd;
-    AB     = proj->work+nwork; nwork += szd*szd;
+    AB     = proj->work+nwork;
     ierr = NEPDeflationEvaluateBasis(extop,lambda,n,basisv,deriv);CHKERRQ(ierr);
     if (!deriv) for (i=0;i<n;i++) AB[i*(szd+1)] = 1.0;
     for (j=0;j<n;j++)

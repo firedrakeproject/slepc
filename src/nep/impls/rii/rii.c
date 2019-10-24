@@ -140,8 +140,8 @@ PetscErrorCode NEPSolve_RII(NEP nep)
     ierr = VecNorm(r,NORM_2,&resnorm);CHKERRQ(ierr);
     ierr = (*nep->converged)(nep,lambda,0,resnorm,&nep->errest[nep->nconv],nep->convergedctx);CHKERRQ(ierr);
     nep->eigr[nep->nconv] = lambda;
-    if (its>1 && ( nep->errest[nep->nconv]<=nep->tol || nep->errest[nep->nconv]<=ctx->deftol)) {
-      if (nep->errest[nep->nconv]<=ctx->deftol&&!extop->ref && nep->nconv) {
+    if (its>1 && (nep->errest[nep->nconv]<=nep->tol || nep->errest[nep->nconv]<=ctx->deftol)) {
+      if (nep->errest[nep->nconv]<=ctx->deftol && !extop->ref && nep->nconv) {
         ierr = NEPDeflationExtractEigenpair(extop,nep->nconv,u,lambda,nep->ds);CHKERRQ(ierr);
         ierr = NEPDeflationSetRefine(extop,PETSC_TRUE);CHKERRQ(ierr);
         ierr = MatMult(T,u,r);CHKERRQ(ierr);
