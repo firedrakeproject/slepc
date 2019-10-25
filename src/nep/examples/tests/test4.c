@@ -44,7 +44,8 @@ int main(int argc,char **argv)
   Mat            F,J;
   ApplicationCtx ctx;
   PetscInt       n=128,lag,its;
-  PetscBool      terse,flg,cct;
+  PetscBool      terse,flg,cct,herm;
+  PetscReal      thres;
   PetscErrorCode ierr;
 
   ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
@@ -90,6 +91,7 @@ int main(int argc,char **argv)
   ierr = NEPRIISetKSP(nep,ksp);CHKERRQ(ierr);
   ierr = NEPRIISetMaximumIterations(nep,6);CHKERRQ(ierr);
   ierr = NEPRIISetConstCorrectionTol(nep,PETSC_TRUE);CHKERRQ(ierr);
+  ierr = NEPRIISetHermitian(nep,PETSC_TRUE);CHKERRQ(ierr);
   ierr = NEPSetFromOptions(nep);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -101,10 +103,14 @@ int main(int argc,char **argv)
   if (flg) {
     ierr = NEPRIIGetMaximumIterations(nep,&its);CHKERRQ(ierr);
     ierr = NEPRIIGetLagPreconditioner(nep,&lag);CHKERRQ(ierr);
+    ierr = NEPRIIGetDeflationThreshold(nep,&thres);CHKERRQ(ierr);
     ierr = NEPRIIGetConstCorrectionTol(nep,&cct);CHKERRQ(ierr);
+    ierr = NEPRIIGetHermitian(nep,&herm);CHKERRQ(ierr);
     ierr = PetscPrintf(PETSC_COMM_WORLD," Maximum inner iterations of RII is %D\n",its);CHKERRQ(ierr);
     ierr = PetscPrintf(PETSC_COMM_WORLD," Preconditioner rebuilt every %D iterations\n",lag);CHKERRQ(ierr);
+    if (thres>0.0) { ierr = PetscPrintf(PETSC_COMM_WORLD," Using deflation threshold=%g\n",(double)thres);CHKERRQ(ierr); }
     if (cct) { ierr = PetscPrintf(PETSC_COMM_WORLD," Using a constant correction tolerance\n");CHKERRQ(ierr); }
+    if (herm) { ierr = PetscPrintf(PETSC_COMM_WORLD," Hermitian version of scalar equation\n");CHKERRQ(ierr); }
     ierr = PetscPrintf(PETSC_COMM_WORLD,"\n");CHKERRQ(ierr);
   }
 
