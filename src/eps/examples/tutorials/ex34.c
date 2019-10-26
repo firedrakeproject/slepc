@@ -50,7 +50,7 @@ int main(int argc,char **argv)
   Mat            A,B;
   PetscContainer container;
   PetscInt       nev,nconv;
-  PetscBool      nonlin,flg,update;
+  PetscBool      nonlin,flg=PETSC_FALSE,update;
   SNES           snes;
   PetscReal      tol,relerr;
   PetscErrorCode ierr;
