@@ -189,6 +189,7 @@ static PetscErrorCode Normalize(Vec x,PetscReal norm,PetscInt idx,PetscInt p,Pet
   PetscErrorCode    ierr;
   PetscScalar       alpha=1.0;
   PetscInt          first,last;
+  PetscMPIInt       pp;
   PetscReal         absv;
   const PetscScalar *xx;
 
@@ -200,7 +201,8 @@ static PetscErrorCode Normalize(Vec x,PetscReal norm,PetscInt idx,PetscInt p,Pet
     if (absv>10*PETSC_MACHINE_EPSILON) alpha = xx[idx-first]/absv;
     ierr = VecRestoreArrayRead(x,&xx);CHKERRQ(ierr);
   }
-  ierr = MPI_Bcast(&alpha,1,MPIU_SCALAR,p,PetscObjectComm((PetscObject)x));CHKERRQ(ierr);
+  ierr = PetscMPIIntCast(p,&pp);CHKERRQ(ierr);
+  ierr = MPI_Bcast(&alpha,1,MPIU_SCALAR,pp,PetscObjectComm((PetscObject)x));CHKERRQ(ierr);
   if (sign) *sign = alpha;
   alpha *= norm;
   ierr = VecScale(x,1.0/alpha);CHKERRQ(ierr);
