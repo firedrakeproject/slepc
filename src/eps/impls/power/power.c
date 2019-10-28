@@ -52,7 +52,7 @@ typedef struct {
   void              *formFunctionActx;
   PetscErrorCode    (*formFunctionAB)(SNES,Vec,Vec,Vec,void*);
   PetscInt          idx;  /* index of the first nonzero entry in the iteration vector */
-  PetscInt          p;    /* process id of the owner of idx */
+  PetscMPIInt       p;    /* process id of the owner of idx */
 } EPS_POWER;
 
 PetscErrorCode EPSSetUp_Power(EPS eps)
@@ -157,7 +157,7 @@ PetscErrorCode EPSSetUp_Power(EPS eps)
 /*
    Find the index of the first nonzero entry of x, and the process that owns it.
 */
-static PetscErrorCode FirstNonzeroIdx(Vec x,PetscInt *idx,PetscInt *p)
+static PetscErrorCode FirstNonzeroIdx(Vec x,PetscInt *idx,PetscMPIInt *p)
 {
   PetscErrorCode    ierr;
   PetscInt          i,first,last,N;
@@ -184,12 +184,11 @@ static PetscErrorCode FirstNonzeroIdx(Vec x,PetscInt *idx,PetscInt *p)
    Normalize a vector x with respect to a given norm as well as the
    sign of the first nonzero entry (assumed to be idx in process p).
 */
-static PetscErrorCode Normalize(Vec x,PetscReal norm,PetscInt idx,PetscInt p,PetscScalar *sign)
+static PetscErrorCode Normalize(Vec x,PetscReal norm,PetscInt idx,PetscMPIInt p,PetscScalar *sign)
 {
   PetscErrorCode    ierr;
   PetscScalar       alpha=1.0;
   PetscInt          first,last;
-  PetscMPIInt       pp;
   PetscReal         absv;
   const PetscScalar *xx;
 
@@ -201,8 +200,7 @@ static PetscErrorCode Normalize(Vec x,PetscReal norm,PetscInt idx,PetscInt p,Pet
     if (absv>10*PETSC_MACHINE_EPSILON) alpha = xx[idx-first]/absv;
     ierr = VecRestoreArrayRead(x,&xx);CHKERRQ(ierr);
   }
-  ierr = PetscMPIIntCast(p,&pp);CHKERRQ(ierr);
-  ierr = MPI_Bcast(&alpha,1,MPIU_SCALAR,pp,PetscObjectComm((PetscObject)x));CHKERRQ(ierr);
+  ierr = MPI_Bcast(&alpha,1,MPIU_SCALAR,p,PetscObjectComm((PetscObject)x));CHKERRQ(ierr);
   if (sign) *sign = alpha;
   alpha *= norm;
   ierr = VecScale(x,1.0/alpha);CHKERRQ(ierr);
