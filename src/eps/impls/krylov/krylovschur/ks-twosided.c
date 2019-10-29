@@ -128,7 +128,7 @@ PetscErrorCode EPSSolve_KrylovSchur_TwoSided(EPS eps)
   PetscReal       norm,norm2,beta,betat,s,t;
   PetscScalar     *pM,*S,*T,*eigr,*eigi,*Q;
   PetscInt        ld,l,nv,ncv=eps->ncv,i,j,k,nconv,*p,cont,*idx,*idx2,id=0;
-  PetscBool       breakdownt,breakdown;
+  PetscBool       breakdownt,breakdown,breakdownl;
 #if defined(PETSC_USE_COMPLEX)
   Mat             A;
 #endif
@@ -137,9 +137,7 @@ PetscErrorCode EPSSolve_KrylovSchur_TwoSided(EPS eps)
   ctx->lock = PETSC_FALSE; /* TO DO */
   ierr = DSGetLeadingDimension(eps->ds,&ld);CHKERRQ(ierr);
   ierr = EPSGetStartVector(eps,0,NULL);CHKERRQ(ierr);
-  ierr = BVSetRandomColumn(eps->W,0);CHKERRQ(ierr);
-  ierr = BVNormColumn(eps->W,0,NORM_2,&norm);CHKERRQ(ierr);
-  ierr = BVScaleColumn(eps->W,0,1.0/norm);CHKERRQ(ierr);
+  ierr = EPSGetLeftStartVector(eps,0,NULL);CHKERRQ(ierr);
   l = 0;
   ierr = PetscMalloc6(ncv*ncv,&pM,ncv,&eigr,ncv,&eigi,ncv,&idx,ncv,&idx2,ncv,&p);CHKERRQ(ierr);
   ierr = MatCreateSeqDense(PETSC_COMM_SELF,eps->ncv,eps->ncv,pM,&M);CHKERRQ(ierr);
@@ -261,7 +259,8 @@ PetscErrorCode EPSSolve_KrylovSchur_TwoSided(EPS eps)
         ierr = PetscInfo2(eps,"Breakdown in Krylov-Schur method (it=%D norm=%g)\n",eps->its,(double)beta);CHKERRQ(ierr);
         if (k<eps->nev) {
           ierr = EPSGetStartVector(eps,k,&breakdown);CHKERRQ(ierr);
-          if (breakdown) {
+          ierr = EPSGetLeftStartVector(eps,k,&breakdownl);CHKERRQ(ierr);
+          if (breakdown || breakdownl) {
             eps->reason = EPS_DIVERGED_BREAKDOWN;
             ierr = PetscInfo(eps,"Unable to generate more start vectors\n");CHKERRQ(ierr);
           }

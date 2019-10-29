@@ -296,6 +296,13 @@ PetscErrorCode EPSSetUp(EPS eps)
     ierr = SlepcBasisDestroy_Private(&eps->nini,&eps->IS);CHKERRQ(ierr);
     eps->nini = k;
   }
+  if (eps->twosided && eps->ninil<0) {
+    k = -eps->ninil;
+    if (k>eps->ncv) SETERRQ(PetscObjectComm((PetscObject)eps),1,"The number of left initial vectors is larger than ncv");
+    ierr = BVInsertVecs(eps->W,0,&k,eps->ISL,PETSC_TRUE);CHKERRQ(ierr);
+    ierr = SlepcBasisDestroy_Private(&eps->ninil,&eps->ISL);CHKERRQ(ierr);
+    eps->ninil = k;
+  }
 
   ierr = PetscLogEventEnd(EPS_SetUp,eps,0,0,0);CHKERRQ(ierr);
   eps->state = EPS_STATE_SETUP;
@@ -459,7 +466,7 @@ PetscErrorCode EPSSetDeflationSpace(EPS eps,PetscInt n,Vec *v)
 
    Level: intermediate
 
-.seealso: EPSSetDeflationSpace()
+.seealso: EPSSetLeftInitialSpace(), EPSSetDeflationSpace()
 @*/
 PetscErrorCode EPSSetInitialSpace(EPS eps,PetscInt n,Vec *is)
 {
@@ -470,6 +477,41 @@ PetscErrorCode EPSSetInitialSpace(EPS eps,PetscInt n,Vec *is)
   PetscValidLogicalCollectiveInt(eps,n,2);
   if (n<0) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"Argument n cannot be negative");
   ierr = SlepcBasisReference_Private(n,is,&eps->nini,&eps->IS);CHKERRQ(ierr);
+  if (n>0) eps->state = EPS_STATE_INITIAL;
+  PetscFunctionReturn(0);
+}
+
+/*@C
+   EPSSetLeftInitialSpace - Specify a basis of vectors that constitute the left
+   initial space, used by two-sided solvers to start the left subspace.
+
+   Collective on eps
+
+   Input Parameter:
++  eps - the eigenproblem solver context
+.  n   - number of vectors
+-  isl - set of basis vectors of the left initial space
+
+   Notes:
+   Left initial vectors are used to initiate the left search space in two-sided
+   eigensolvers. Users should pass here an approximation of the left eigenspace,
+   if available.
+
+   The same comments in EPSSetInitialSpace() are applicable here.
+
+   Level: intermediate
+
+.seealso: EPSSetInitialSpace(), EPSSetTwoSided()
+@*/
+PetscErrorCode EPSSetLeftInitialSpace(EPS eps,PetscInt n,Vec *isl)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
+  PetscValidLogicalCollectiveInt(eps,n,2);
+  if (n<0) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"Argument n cannot be negative");
+  ierr = SlepcBasisReference_Private(n,isl,&eps->ninil,&eps->ISL);CHKERRQ(ierr);
   if (n>0) eps->state = EPS_STATE_INITIAL;
   PetscFunctionReturn(0);
 }

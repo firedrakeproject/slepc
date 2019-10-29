@@ -553,7 +553,7 @@ PetscErrorCode EPSSolve_TS_Power(EPS eps)
   KSP                ksp;
   PetscReal          relerr=1.0,relerrl,delta;
   PetscScalar        theta,rho,alpha,sigma;
-  PetscBool          breakdown;
+  PetscBool          breakdown,breakdownl;
   KSPConvergedReason reason;
 
   PetscFunctionBegin;
@@ -564,7 +564,7 @@ PetscErrorCode EPSSolve_TS_Power(EPS eps)
   if (power->shift_type != EPS_POWER_SHIFT_CONSTANT) { ierr = STGetKSP(eps->st,&ksp);CHKERRQ(ierr); }
   ierr = DSGetLeadingDimension(eps->ds,&ld);CHKERRQ(ierr);
   ierr = EPSGetStartVector(eps,0,NULL);CHKERRQ(ierr);
-  ierr = BVSetRandomColumn(eps->W,0);CHKERRQ(ierr);
+  ierr = EPSGetLeftStartVector(eps,0,NULL);CHKERRQ(ierr);
   ierr = BVBiorthonormalizeColumn(eps->V,eps->W,0,NULL);CHKERRQ(ierr);
   ierr = BVCopyVec(eps->V,0,v);CHKERRQ(ierr);
   ierr = BVCopyVec(eps->W,0,w);CHKERRQ(ierr);
@@ -657,12 +657,12 @@ PetscErrorCode EPSSolve_TS_Power(EPS eps)
       eps->nconv = eps->nconv + 1;
       if (eps->nconv<eps->nev) {
         ierr = EPSGetStartVector(eps,eps->nconv,&breakdown);CHKERRQ(ierr);
-        if (breakdown) {
+        ierr = EPSGetLeftStartVector(eps,eps->nconv,&breakdownl);CHKERRQ(ierr);
+        if (breakdown || breakdownl) {
           eps->reason = EPS_DIVERGED_BREAKDOWN;
           ierr = PetscInfo(eps,"Unable to generate more start vectors\n");CHKERRQ(ierr);
           break;
         }
-        ierr = BVSetRandomColumn(eps->W,eps->nconv);CHKERRQ(ierr);
         ierr = BVBiorthonormalizeColumn(eps->V,eps->W,eps->nconv,NULL);CHKERRQ(ierr);
       }
     }

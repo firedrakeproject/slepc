@@ -236,3 +236,20 @@
         end subroutine
       end interface EPSSetInitialSpace
 
+      interface EPSSetLeftInitialSpace
+        subroutine EPSSetLeftInitialSpace0(a,b,c,z)
+          use slepcepsdef
+          EPS a
+          PetscInt b
+          Vec c
+          integer z
+        end subroutine
+        subroutine EPSSetLeftInitialSpace1(a,b,c,z)
+          use slepcepsdef
+          EPS a
+          PetscInt b
+          Vec c(*)
+          integer z
+        end subroutine
+      end interface EPSSetLeftInitialSpace
+

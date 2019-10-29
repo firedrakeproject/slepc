@@ -23,6 +23,7 @@ PetscErrorCode ComputeResidualNorm(Mat,PetscBool,PetscScalar,PetscScalar,Vec,Vec
 
 int main(int argc,char **argv)
 {
+  Vec            v0,w0;           /* initial vectors */
   Mat            A;               /* operator matrix */
   EPS            eps;             /* eigenproblem solver context */
   EPSType        type;
@@ -31,6 +32,7 @@ int main(int argc,char **argv)
   PetscReal      nrmr,nrml=0.0,re,im,lev;
   PetscScalar    *kr,*ki;
   Vec            t,*xr,*xi,*yr,*yi;
+  PetscMPIInt    rank;
   PetscErrorCode ierr;
 
   ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
@@ -64,6 +66,27 @@ int main(int argc,char **argv)
   /* allow user to change settings at run time */
   ierr = EPSSetFromOptions(eps);CHKERRQ(ierr);
   ierr = EPSGetTwoSided(eps,&twosided);CHKERRQ(ierr);
+
+  /*
+     Set the initial vectors. This is optional, if not done the initial
+     vectors are set to random values
+  */
+  ierr = MatCreateVecs(A,&v0,&w0);CHKERRQ(ierr);
+  ierr = MPI_Comm_rank(PETSC_COMM_WORLD,&rank);CHKERRQ(ierr);
+  if (!rank) {
+    ierr = VecSetValue(v0,0,1.0,INSERT_VALUES);CHKERRQ(ierr);
+    ierr = VecSetValue(v0,1,1.0,INSERT_VALUES);CHKERRQ(ierr);
+    ierr = VecSetValue(v0,2,1.0,INSERT_VALUES);CHKERRQ(ierr);
+    ierr = VecSetValue(w0,0,2.0,INSERT_VALUES);CHKERRQ(ierr);
+    ierr = VecSetValue(w0,1,-1.0,INSERT_VALUES);CHKERRQ(ierr);
+    ierr = VecSetValue(w0,2,0.5,INSERT_VALUES);CHKERRQ(ierr);
+  }
+  ierr = VecAssemblyBegin(v0);CHKERRQ(ierr);
+  ierr = VecAssemblyBegin(w0);CHKERRQ(ierr);
+  ierr = VecAssemblyEnd(v0);CHKERRQ(ierr);
+  ierr = VecAssemblyEnd(w0);CHKERRQ(ierr);
+  ierr = EPSSetInitialSpace(eps,1,&v0);CHKERRQ(ierr);
+  ierr = EPSSetLeftInitialSpace(eps,1,&w0);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                       Solve the eigensystem
@@ -148,6 +171,8 @@ int main(int argc,char **argv)
 
   ierr = EPSDestroy(&eps);CHKERRQ(ierr);
   ierr = MatDestroy(&A);CHKERRQ(ierr);
+  ierr = VecDestroy(&v0);CHKERRQ(ierr);
+  ierr = VecDestroy(&w0);CHKERRQ(ierr);
   ierr = VecDestroy(&t);CHKERRQ(ierr);
   ierr = PetscFree2(kr,ki);CHKERRQ(ierr);
   ierr = VecDestroyVecs(nconv,&xr);CHKERRQ(ierr);

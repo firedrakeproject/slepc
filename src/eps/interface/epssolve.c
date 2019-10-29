@@ -822,3 +822,33 @@ PetscErrorCode EPSGetStartVector(EPS eps,PetscInt i,PetscBool *breakdown)
   PetscFunctionReturn(0);
 }
 
+/*
+   EPSGetLeftStartVector - Generate a suitable vector to be used as the left starting
+   vector for the recurrence that builds the left subspace. See EPSGetStartVector().
+*/
+PetscErrorCode EPSGetLeftStartVector(EPS eps,PetscInt i,PetscBool *breakdown)
+{
+  PetscErrorCode ierr;
+  PetscReal      norm;
+  PetscBool      lindep;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
+  PetscValidLogicalCollectiveInt(eps,i,2);
+
+  /* For the first step, use the first initial vector, otherwise a random one */
+  if (i>0 || eps->ninil==0) {
+    ierr = BVSetRandomColumn(eps->W,i);CHKERRQ(ierr);
+  }
+
+  /* Orthonormalize the vector with respect to previous vectors */
+  ierr = BVOrthogonalizeColumn(eps->W,i,NULL,&norm,&lindep);CHKERRQ(ierr);
+  if (breakdown) *breakdown = lindep;
+  else if (lindep || norm == 0.0) {
+    if (i==0) SETERRQ(PetscObjectComm((PetscObject)eps),1,"Left initial vector is zero");
+    else SETERRQ(PetscObjectComm((PetscObject)eps),1,"Unable to generate more left start vectors");
+  }
+  ierr = BVScaleColumn(eps->W,i,1.0/norm);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+

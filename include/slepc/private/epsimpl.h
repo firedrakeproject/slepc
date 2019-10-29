@@ -64,7 +64,7 @@ struct _p_EPS {
   PetscInt       nev;              /* number of eigenvalues to compute */
   PetscInt       ncv;              /* number of basis vectors */
   PetscInt       mpd;              /* maximum dimension of projected problem */
-  PetscInt       nini;             /* number of initial vectors (negative means not copied yet) */
+  PetscInt       nini,ninil;       /* number of initial vectors (negative means not copied yet) */
   PetscInt       nds;              /* number of basis vectors of deflation space */
   PetscScalar    target;           /* target value */
   PetscReal      tol;              /* tolerance */
@@ -107,7 +107,7 @@ struct _p_EPS {
   RG             rg;               /* optional region for filtering */
   SlepcSC        sc;               /* sorting criterion data */
   Vec            D;                /* diagonal matrix for balancing */
-  Vec            *IS;              /* references to user-provided initial space */
+  Vec            *IS,*ISL;         /* references to user-provided initial spaces */
   Vec            *defl;            /* references to user-provided deflation space */
   PetscScalar    *eigr,*eigi;      /* real and imaginary parts of eigenvalues */
   PetscReal      *errest;          /* error estimates */
@@ -201,6 +201,7 @@ SLEPC_INTERN PetscErrorCode EPSComputeVectors_Slice(EPS);
 SLEPC_INTERN PetscErrorCode EPSComputeResidualNorm_Private(EPS,PetscBool,PetscScalar,PetscScalar,Vec,Vec,Vec*,PetscReal*);
 SLEPC_INTERN PetscErrorCode EPSComputeRitzVector(EPS,PetscScalar*,PetscScalar*,BV,Vec,Vec);
 SLEPC_INTERN PetscErrorCode EPSGetStartVector(EPS,PetscInt,PetscBool*);
+SLEPC_INTERN PetscErrorCode EPSGetLeftStartVector(EPS,PetscInt,PetscBool*);
 
 /* Private functions of the solver implementations */
 
