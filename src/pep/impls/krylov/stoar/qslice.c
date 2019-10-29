@@ -1127,6 +1127,7 @@ static PetscErrorCode PEPSTOAR_QSlice(PEP pep,Mat B)
   ierr = DSGetLeadingDimension(pep->ds,&ldds);CHKERRQ(ierr);
   ierr = BVSetMatrix(ctx->V,B,PETSC_TRUE);CHKERRQ(ierr);
   if (ctx->lock) {
+    /* undocumented option to use a cheaper locking instead of the true locking */
     ierr = PetscOptionsGetBool(NULL,NULL,"-pep_stoar_falselocking",&falselock,NULL);CHKERRQ(ierr);
   } else SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"A locking variant is needed for spectrum slicing");
   ierr = PetscObjectTypeCompare((PetscObject)pep->st,STSINVERT,&sinv);CHKERRQ(ierr);

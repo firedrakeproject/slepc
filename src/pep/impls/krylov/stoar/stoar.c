@@ -341,6 +341,7 @@ PetscErrorCode PEPSolve_STOAR(PEP pep)
   ierr = BVSetMatrix(ctx->V,A,PETSC_TRUE);CHKERRQ(ierr);
   ierr = MatDestroy(&A);CHKERRQ(ierr);
   if (ctx->lock) {
+    /* undocumented option to use a cheaper locking instead of the true locking */
     ierr = PetscOptionsGetBool(NULL,NULL,"-pep_stoar_falselocking",&falselock,NULL);CHKERRQ(ierr);
   }
   ierr = BVGetSizes(pep->V,NULL,NULL,&ld);CHKERRQ(ierr);

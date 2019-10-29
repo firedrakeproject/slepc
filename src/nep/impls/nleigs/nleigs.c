@@ -1214,6 +1214,7 @@ PetscErrorCode NEPSolve_NLEIGS(NEP nep)
 
   PetscFunctionBegin;
   if (ctx->lock) {
+    /* undocumented option to use a cheaper locking instead of the true locking */
     ierr = PetscOptionsGetBool(NULL,NULL,"-nep_nleigs_falselocking",&falselock,NULL);CHKERRQ(ierr);
   }
 

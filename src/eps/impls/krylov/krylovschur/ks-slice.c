@@ -358,13 +358,12 @@ PetscErrorCode EPSSetUp_KrylovSchur_Slice(EPS eps)
   PetscBool       issinv;
   EPS_KRYLOVSCHUR *ctx = (EPS_KRYLOVSCHUR*)eps->data,*ctx_glob;
   EPS_SR          sr,sr_loc,sr_glob;
-  PetscInt        nEigs,dssz=1,i,zeros=0,off=0,method;
+  PetscInt        nEigs,dssz=1,i,zeros=0,off=0,method,hiteig=0;
   PetscMPIInt     nproc,rank=0,aux;
   PetscReal       r;
   MPI_Request     req;
   Mat             A,B=NULL;
   SlepcSC         sc;
-  PetscInt        flg=0;
   DSParallelType  ptype;
 
   PetscFunctionBegin;
@@ -466,12 +465,19 @@ PetscErrorCode EPSSetUp_KrylovSchur_Slice(EPS eps)
 
     /* compute inertia0 */
     ierr = EPSSliceGetInertia(eps,sr->int0,&sr->inertia0,ctx->detect?&zeros:NULL);CHKERRQ(ierr);
-    ierr = PetscOptionsGetInt(NULL,NULL,"-eps_krylovschur_hiteigenvalue",&flg,NULL);CHKERRQ(ierr);
+    /* undocumented option to control what to do when an eigenvalue is found:
+       - error out if it's the endpoint of the user-provided interval (or sub-interval)
+       - if it's an endpoint computed internally:
+          + if hiteig=0 error out
+          + else if hiteig=1 the subgroup that hit the eigenvalue does nothing
+          + otherwise the subgroup that hit the eigenvalue perturbs the shift and recomputes inertia
+    */
+    ierr = PetscOptionsGetInt(NULL,NULL,"-eps_krylovschur_hiteigenvalue",&hiteig,NULL);CHKERRQ(ierr);
     if (zeros) { /* error in factorization */
       if (sr->int0==ctx->eps->inta || sr->int0==ctx->eps->intb) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_USER,"Found singular matrix for the transformed problem in the interval endpoint");
-      else if (ctx_glob->subintset && !flg) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_USER,"Found singular matrix for the transformed problem in an interval endpoint defined by user");
+      else if (ctx_glob->subintset && !hiteig) SETERRQ(((PetscObject)eps)->comm,PETSC_ERR_USER,"Found singular matrix for the transformed problem in an interval endpoint defined by user");
       else {
-        if (flg==1) { /* idle subgroup */
+        if (hiteig==1) { /* idle subgroup */
           sr->inertia0 = -1;
         } else { /* perturb shift */
           sr->int0 *= (1.0+SLICE_PTOL);

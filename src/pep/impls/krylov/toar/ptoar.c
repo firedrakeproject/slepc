@@ -479,6 +479,7 @@ PetscErrorCode PEPSolve_TOAR(PEP pep)
   PetscFunctionBegin;
   ierr = PetscCitationsRegister(citation,&cited);CHKERRQ(ierr);
   if (ctx->lock) {
+    /* undocumented option to use a cheaper locking instead of the true locking */
     ierr = PetscOptionsGetBool(NULL,NULL,"-pep_toar_falselocking",&falselock,NULL);CHKERRQ(ierr);
   }
   ierr = DSGetLeadingDimension(pep->ds,&ldds);CHKERRQ(ierr);
