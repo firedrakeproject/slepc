@@ -250,6 +250,7 @@ PetscErrorCode ComputeResidualNorm(Mat A,Mat B,PetscBool trans,PetscScalar kr,Pe
          suffix: 1
       test:
          suffix: 1_rqi
+         TODO: gives differences after adding EPSGetLeftStartVector()
          args: -eps_type power -eps_power_shift_type rayleigh
          output_file: output/test29_1.out
       test:

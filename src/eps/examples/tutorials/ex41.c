@@ -78,7 +78,6 @@ int main(int argc,char **argv)
     ierr = VecSetValue(v0,1,1.0,INSERT_VALUES);CHKERRQ(ierr);
     ierr = VecSetValue(v0,2,1.0,INSERT_VALUES);CHKERRQ(ierr);
     ierr = VecSetValue(w0,0,2.0,INSERT_VALUES);CHKERRQ(ierr);
-    ierr = VecSetValue(w0,1,-1.0,INSERT_VALUES);CHKERRQ(ierr);
     ierr = VecSetValue(w0,2,0.5,INSERT_VALUES);CHKERRQ(ierr);
   }
   ierr = VecAssemblyBegin(v0);CHKERRQ(ierr);
@@ -308,6 +307,6 @@ PetscErrorCode ComputeResidualNorm(Mat A,PetscBool trans,PetscScalar kr,PetscSca
          args: -eps_type {{power krylovschur}}
       test:
          suffix: 1_balance
-         args: -eps_balance {{oneside twoside}} -eps_ncv 16
+         args: -eps_balance {{oneside twoside}} -eps_ncv 18
 
 TEST*/
