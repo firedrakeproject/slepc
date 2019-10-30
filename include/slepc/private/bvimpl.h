@@ -268,8 +268,6 @@ SLEPC_EXTERN void MPIAPI SlepcGivensPacked(void*,void*,PetscMPIInt*,MPI_Datatype
 
 #if defined(PETSC_HAVE_CUDA)
 
-#define WaitForGPU() PetscCUDASynchronize ? cudaDeviceSynchronize() : 0
-
 /* complex single */
 #if defined(PETSC_USE_COMPLEX)
 #if defined(PETSC_USE_REAL_SINGLE)
