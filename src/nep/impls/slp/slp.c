@@ -24,12 +24,7 @@
 
 #include <slepc/private/nepimpl.h>         /*I "slepcnep.h" I*/
 #include <../src/nep/impls/nepdefl.h>
-
-typedef struct {
-  EPS       eps;      /* linear eigensolver for T*z = mu*Tp*z */
-  KSP       ksp;
-  PetscReal deftol;   /* tolerance for the deflation (threshold) */
-} NEP_SLP;
+#include "slp.h"
 
 typedef struct {
   NEP_EXT_OP extop;
@@ -62,7 +57,13 @@ PetscErrorCode NEPSetUp_SLP(NEP nep)
   ierr = EPSSetDimensions(ctx->eps,1,PETSC_DECIDE,PETSC_DECIDE);CHKERRQ(ierr);
   ierr = EPSSetWhichEigenpairs(ctx->eps,EPS_LARGEST_MAGNITUDE);CHKERRQ(ierr);
   ierr = EPSSetTolerances(ctx->eps,nep->tol==PETSC_DEFAULT?SLEPC_DEFAULT_TOL/10.0:nep->tol/10.0,nep->max_it?nep->max_it:PETSC_DEFAULT);CHKERRQ(ierr);
-
+  if (nep->twosided) {
+    nep->ops->solve = NEPSolve_SLP_Twosided;    
+    nep->ops->computevectors = NULL;
+  } else {
+    nep->ops->solve = NEPSolve_SLP;    
+    nep->ops->computevectors = NEPComputeVectors_Schur;
+  }
   ierr = NEPAllocateSolution(nep,0);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -566,6 +567,7 @@ PetscErrorCode NEPDestroy_SLP(NEP nep)
   PetscFunctionBegin;
   ierr = KSPDestroy(&ctx->ksp);CHKERRQ(ierr);
   ierr = EPSDestroy(&ctx->eps);CHKERRQ(ierr);
+  ierr = EPSDestroy(&ctx->epsts);CHKERRQ(ierr);
   ierr = PetscFree(nep->data);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPSLPSetDeflationThreshold_C",NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPSLPGetDeflationThreshold_C",NULL);CHKERRQ(ierr);
@@ -588,6 +590,7 @@ SLEPC_EXTERN PetscErrorCode NEPCreate_SLP(NEP nep)
   nep->useds = PETSC_TRUE;
 
   ctx->deftol = 0.0;
+  nep->hasts = PETSC_TRUE;
 
   nep->ops->solve          = NEPSolve_SLP;
   nep->ops->setup          = NEPSetUp_SLP;
