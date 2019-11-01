@@ -74,17 +74,17 @@ __host__ PetscErrorCode set_diagonal(PetscInt n,PetscScalar *d_pa,PetscInt ld,Pe
   PetscFunctionReturn(0);
 }
 
-__global__ void set_Cdiagonal_kernel(PetscInt n,PetscComplex *d_pa,PetscInt ld,PetscComplex v,PetscInt xcount)
+__global__ void set_Cdiagonal_kernel(PetscInt n,PetscComplex *d_pa,PetscInt ld,PetscReal vr,PetscReal vi,PetscInt xcount)
 {
   PetscInt x;
   x = (xcount*gridDim.x*blockDim.x)+blockIdx.x*blockDim.x+threadIdx.x;
 
   if (x<n) {
-    d_pa[x+x*ld] = v;
+    d_pa[x+x*ld] = thrust::complex<PetscReal>(vr, vi);
   }
 }
 
-__host__ PetscErrorCode set_Cdiagonal(PetscInt n,PetscComplex *d_pa,PetscInt ld,PetscComplex v)
+__host__ PetscErrorCode set_Cdiagonal(PetscInt n,PetscComplex *d_pa,PetscInt ld,PetscReal vr,PetscReal vi)
 {
   PetscInt        i,dimGrid_xcount;
   dim3            blocks3d,threads3d;
@@ -93,7 +93,7 @@ __host__ PetscErrorCode set_Cdiagonal(PetscInt n,PetscComplex *d_pa,PetscInt ld,
   PetscFunctionBegin;
   get_params_1D(n,&blocks3d,&threads3d,&dimGrid_xcount);
   for (i=0;i<dimGrid_xcount;i++) {
-    set_Cdiagonal_kernel<<<blocks3d, threads3d>>>(n,d_pa,ld,v,i);
+    set_Cdiagonal_kernel<<<blocks3d, threads3d>>>(n,d_pa,ld,vr,vi,i);
     cerr = cudaGetLastError(); CHKERRCUDA(cerr);
   }
   PetscFunctionReturn(0);
@@ -124,17 +124,17 @@ __host__ PetscErrorCode shift_diagonal(PetscInt n,PetscScalar *d_pa,PetscInt ld,
   PetscFunctionReturn(0);
 }
 
-__global__ void shift_Cdiagonal_kernel(PetscInt n,PetscComplex *d_pa,PetscInt ld,PetscComplex v,PetscInt xcount)
+__global__ void shift_Cdiagonal_kernel(PetscInt n,PetscComplex *d_pa,PetscInt ld,PetscReal vr,PetscReal vi,PetscInt xcount)
 {
   PetscInt x;
   x = (xcount*gridDim.x*blockDim.x)+blockIdx.x*blockDim.x+threadIdx.x;
 
   if (x<n) {
-    d_pa[x+x*ld] += v;
+    d_pa[x+x*ld] += thrust::complex<PetscReal>(vr, vi);
   }
 }
 
-__host__ PetscErrorCode shift_Cdiagonal(PetscInt n,PetscComplex *d_pa,PetscInt ld,PetscComplex v)
+__host__ PetscErrorCode shift_Cdiagonal(PetscInt n,PetscComplex *d_pa,PetscInt ld,PetscReal vr,PetscReal vi)
 {
   PetscInt        i,dimGrid_xcount;
   dim3            blocks3d,threads3d;
@@ -143,7 +143,7 @@ __host__ PetscErrorCode shift_Cdiagonal(PetscInt n,PetscComplex *d_pa,PetscInt l
   PetscFunctionBegin;
   get_params_1D(n,&blocks3d,&threads3d,&dimGrid_xcount);
   for (i=0;i<dimGrid_xcount;i++) {
-    shift_Cdiagonal_kernel<<<blocks3d, threads3d>>>(n,d_pa,ld,v,i);
+    shift_Cdiagonal_kernel<<<blocks3d, threads3d>>>(n,d_pa,ld,vr,vi,i);
     cerr = cudaGetLastError(); CHKERRCUDA(cerr);
   }
   PetscFunctionReturn(0);

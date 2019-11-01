@@ -30,12 +30,12 @@ __global__ void clean_offdiagonal_kernel(PetscInt,PetscScalar*,PetscInt,PetscSca
 SLEPC_INTERN __host__ PetscErrorCode clean_offdiagonal(PetscInt,PetscScalar*,PetscInt,PetscScalar);
 __global__ void set_diagonal_kernel(PetscInt,PetscScalar*,PetscInt,PetscScalar,PetscInt);
 SLEPC_INTERN __host__ PetscErrorCode set_diagonal(PetscInt,PetscScalar*,PetscInt,PetscScalar);
-__global__ void set_Cdiagonal_kernel(PetscInt,PetscComplex*,PetscInt,PetscComplex,PetscInt);
-SLEPC_INTERN __host__ PetscErrorCode set_Cdiagonal(PetscInt,PetscComplex*,PetscInt,PetscComplex);
+__global__ void set_Cdiagonal_kernel(PetscInt,PetscComplex*,PetscInt,PetscReal,PetscReal,PetscInt);
+SLEPC_INTERN __host__ PetscErrorCode set_Cdiagonal(PetscInt,PetscComplex*,PetscInt,PetscReal,PetscReal);
 __global__ void shift_diagonal_kernel(PetscInt,PetscScalar*,PetscInt,PetscScalar,PetscInt);
 SLEPC_INTERN __host__ PetscErrorCode shift_diagonal(PetscInt,PetscScalar*,PetscInt,PetscScalar);
 __global__ void shift_Cdiagonal_kernel(PetscInt,PetscComplex*,PetscInt,PetscComplex,PetscInt);
-SLEPC_INTERN __host__ PetscErrorCode shift_Cdiagonal(PetscInt,PetscComplex*,PetscInt,PetscComplex);
+SLEPC_INTERN __host__ PetscErrorCode shift_Cdiagonal(PetscInt,PetscComplex*,PetscInt,PetscReal,PetscReal);
 __global__ void copy_array2D_S2C_kernel(PetscInt,PetscInt,PetscComplex*,PetscInt,PetscScalar*,PetscInt,PetscInt,PetscInt);
 SLEPC_INTERN __host__ PetscErrorCode copy_array2D_S2C(PetscInt,PetscInt,PetscComplex*,PetscInt,PetscScalar*,PetscInt);
 __global__ void copy_array2D_C2S_kernel(PetscInt,PetscInt,PetscScalar*,PetscInt,PetscComplex*,PetscInt,PetscInt,PetscInt);
