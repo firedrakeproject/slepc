@@ -50,7 +50,6 @@ PetscErrorCode BV_AddCoefficients_CUDA(BV bv,PetscInt j,PetscScalar *h,PetscScal
   PetscBLASInt   one=1;
   cublasStatus_t cberr;
   cublasHandle_t cublasv2handle;
-  cudaError_t    cerr;
 
   PetscFunctionBegin;
   if (!h) {
@@ -61,7 +60,6 @@ PetscErrorCode BV_AddCoefficients_CUDA(BV bv,PetscInt j,PetscScalar *h,PetscScal
     cberr = cublasXaxpy(cublasv2handle,bv->nc+j,&sone,d_c,one,d_h,one);CHKERRCUBLAS(cberr);
     ierr = PetscLogGpuTimeEnd();CHKERRQ(ierr);
     ierr = PetscLogGpuFlops(1.0*bv->nc+j);CHKERRQ(ierr);
-    cerr = WaitForGPU();CHKERRCUDA(cerr);
     ierr = VecCUDARestoreArray(bv->buffer,&d_c);CHKERRQ(ierr);
   } else { /* cpu memory */
     for (i=0;i<bv->nc+j;i++) h[i] += c[i];
@@ -107,7 +105,6 @@ PetscErrorCode BV_SquareSum_CUDA(BV bv,PetscInt j,PetscScalar *h,PetscReal *sum)
   PetscBLASInt      one=1;
   cublasStatus_t    cberr;
   cublasHandle_t    cublasv2handle;
-  cudaError_t       cerr;
 
   PetscFunctionBegin;
   if (!h) {
@@ -117,7 +114,6 @@ PetscErrorCode BV_SquareSum_CUDA(BV bv,PetscInt j,PetscScalar *h,PetscReal *sum)
     cberr = cublasXdotc(cublasv2handle,bv->nc+j,d_h,one,d_h,one,&dot);CHKERRCUBLAS(cberr);
     ierr = PetscLogGpuTimeEnd();CHKERRQ(ierr);
     ierr = PetscLogGpuFlops(2.0*bv->nc+j);CHKERRQ(ierr);
-    cerr = WaitForGPU();CHKERRCUDA(cerr);
     *sum = PetscRealPart(dot);
     ierr = VecCUDARestoreArrayRead(bv->buffer,&d_h);CHKERRQ(ierr);
   } else { /* cpu memory */

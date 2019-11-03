@@ -32,7 +32,6 @@ static PetscErrorCode BVAXPY_BLAS_CUDA(BV bv,PetscInt n_,PetscInt k_,PetscScalar
   PetscBLASInt   m,one=1;
   cublasStatus_t cberr;
   cublasHandle_t cublasv2handle;
-  cudaError_t    cerr;
 
   PetscFunctionBegin;
   ierr = PetscCUBLASGetHandle(&cublasv2handle);CHKERRQ(ierr);
@@ -44,7 +43,6 @@ static PetscErrorCode BVAXPY_BLAS_CUDA(BV bv,PetscInt n_,PetscInt k_,PetscScalar
   }
   cberr = cublasXaxpy(cublasv2handle,m,&alpha,d_A,one,d_B,one);CHKERRCUBLAS(cberr);
   ierr = PetscLogGpuTimeEnd();CHKERRQ(ierr);
-  cerr = WaitForGPU();CHKERRCUDA(cerr);
   ierr = PetscLogGpuFlops(2.0*m);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -87,7 +85,6 @@ PetscErrorCode BVMult_Svec_CUDA(BV Y,PetscScalar alpha,PetscScalar beta,BV X,Mat
     ierr = PetscLogGpuTimeBegin();CHKERRQ(ierr);
     cberr = cublasXgemm(cublasv2handle,CUBLAS_OP_N,CUBLAS_OP_N,m,n,k,&alpha,d_A,m,d_B,ldq,&beta,d_C,m);CHKERRCUBLAS(cberr);
     ierr = PetscLogGpuTimeEnd();CHKERRQ(ierr);
-    cerr = WaitForGPU();CHKERRCUDA(cerr);
     ierr = MatDenseRestoreArray(Q,&q);CHKERRQ(ierr);
     cerr = cudaFree(d_q);CHKERRCUDA(cerr);
     ierr = PetscLogGpuFlops(2.0*m*n*k);CHKERRQ(ierr);
@@ -136,7 +133,6 @@ PetscErrorCode BVMultVec_Svec_CUDA(BV X,PetscScalar alpha,PetscScalar beta,Vec y
   ierr = PetscLogGpuTimeBegin();CHKERRQ(ierr);
   cberr = cublasXgemv(cublasv2handle,CUBLAS_OP_N,n,k,&alpha,d_A,n,d_x,one,&beta,d_y,one);CHKERRCUBLAS(cberr);
   ierr = PetscLogGpuTimeEnd();CHKERRQ(ierr);
-  cerr = WaitForGPU();CHKERRCUDA(cerr);
   ierr = VecCUDARestoreArrayRead(x->v,&d_px);CHKERRQ(ierr);
   if (beta==(PetscScalar)0.0) {
     ierr = VecCUDARestoreArrayWrite(y,&d_py);CHKERRQ(ierr);
@@ -491,7 +487,6 @@ PetscErrorCode BVDotVec_Local_Svec_CUDA(BV X,Vec y,PetscScalar *m)
     cberr = cublasXgemm(cublasv2handle,CUBLAS_OP_N,CUBLAS_OP_N,one,k,n,&sone,d_x,one,d_A,n,&szero,d_y,one);CHKERRCUBLAS(cberr);
 #endif
     ierr = PetscLogGpuTimeEnd();CHKERRQ(ierr);
-    cerr = WaitForGPU();CHKERRCUDA(cerr);
     cerr = cudaMemcpy(m,d_y,k*sizeof(PetscScalar),cudaMemcpyDeviceToHost);CHKERRCUDA(cerr);
     ierr = PetscLogGpuToCpu(k*sizeof(PetscScalar));CHKERRQ(ierr);
     cerr = cudaFree(d_y);CHKERRCUDA(cerr);
@@ -531,7 +526,6 @@ PetscErrorCode BVScale_Svec_CUDA(BV bv,PetscInt j,PetscScalar alpha)
     ierr = PetscLogGpuTimeBegin();CHKERRQ(ierr);
     cberr = cublasXscal(cublasv2handle,n,&alpha,d_A,one);CHKERRCUBLAS(cberr);
     ierr = PetscLogGpuTimeEnd();CHKERRQ(ierr);
-    cerr = WaitForGPU();CHKERRCUDA(cerr);
     ierr = PetscLogGpuFlops(1.0*n);CHKERRQ(ierr);
   }
   ierr = VecCUDARestoreArray(ctx->v,&d_array);CHKERRQ(ierr);
