@@ -114,8 +114,8 @@ test_build:
 
 # Compare ABI/API of two versions of PETSc library with the old one defined by PETSC_{DIR,ARCH}_ABI_OLD
 abitest:
-	@if [ "${SLEPC_DIR_ABI_OLD}" == "" ] || [ "${SLEPC_ARCH_ABI_OLD}" == "" ]; \
-		then printf "You must set environment variables SLEPC_DIR_ABI_OLD and SLEPC_ARCH_ABI_OLD to run abitest\n"; \
+	@if [ "x${SLEPC_DIR_ABI_OLD}" = "x" ] || [ "x${PETSC_ARCH_ABI_OLD}" = "x" ] || [ "x${PETSC_DIR_ABI_OLD}" = "x" ]; \
+		then printf "You must set environment variables SLEPC_DIR_ABI_OLD, PETSC_ARCH_ABI_OLD and PETSC_DIR_ABI_OLD to run abitest\n"; \
 		exit 1; \
 	fi;
 	-@echo "Comparing ABI/API of the following two SLEPc versions (you must have already configured and built them using GCC and with -g):"
