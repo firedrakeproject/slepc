@@ -112,6 +112,25 @@ test_build:
          fi
 	-@echo "Completed test examples"
 
+# Compare ABI/API of two versions of PETSc library with the old one defined by PETSC_{DIR,ARCH}_ABI_OLD
+abitest:
+	@if [ "${SLEPC_DIR_ABI_OLD}" == "" ] || [ "${SLEPC_ARCH_ABI_OLD}" == "" ]; \
+		then printf "You must set environment variables SLEPC_DIR_ABI_OLD and SLEPC_ARCH_ABI_OLD to run abitest\n"; \
+		exit 1; \
+	fi;
+	-@echo "Comparing ABI/API of the following two SLEPc versions (you must have already configured and built them using GCC and with -g):"
+	-@echo "========================================================================================="
+	-@echo "    Old: SLEPC_DIR_ABI_OLD  = ${SLEPC_DIR_ABI_OLD}"
+	-@echo "         PETSC_ARCH_ABI_OLD = ${PETSC_ARCH_ABI_OLD}"
+	-@echo "         PETSC_DIR_ABI_OLD  = ${PETSC_DIR_ABI_OLD}"
+	-@cd ${SLEPC_DIR_ABI_OLD}; echo "         Branch             = "`git rev-parse --abbrev-ref HEAD`
+	-@echo "    New: SLEPC_DIR          = ${SLEPC_DIR}"
+	-@echo "         PETSC_ARCH         = ${PETSC_ARCH}"
+	-@echo "         PETSC_DIR          = ${PETSC_DIR}"
+	-@echo "         Branch             = "`git rev-parse --abbrev-ref HEAD`
+	-@echo "========================================================================================="
+	-@$(PYTHON)	${SLEPC_DIR}/lib/slepc/bin/maint/abicheck.py -old_dir ${SLEPC_DIR_ABI_OLD} -old_arch ${PETSC_ARCH_ABI_OLD} -old_petsc_dir ${PETSC_DIR_ABI_OLD} -new_dir ${SLEPC_DIR} -new_arch ${PETSC_ARCH} -new_petsc_dir ${PETSC_DIR} -report_format html
+
 # Deletes SLEPc library
 deletelibs:
 	-${RM} -r ${SLEPC_LIB_DIR}/libslepc*.*
