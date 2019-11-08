@@ -38,8 +38,6 @@
    PetscViewerASCIIOpen() - output to a specified file.
 
    Level: beginner
-
-.seealso: PetscViewerASCIIOpen()
 @*/
 PetscErrorCode NEPView(NEP nep,PetscViewer viewer)
 {
@@ -197,11 +195,35 @@ PetscErrorCode NEPView(NEP nep,PetscViewer viewer)
 }
 
 /*@C
+   NEPViewFromOptions - View from options
+
+   Collective on NEP
+
+   Input Parameters:
++  nep  - the nonlinear eigensolver context
+.  obj  - optional object
+-  name - command line option
+
+   Level: intermediate
+
+.seealso: NEPView(), NEPCreate()
+@*/
+PetscErrorCode NEPViewFromOptions(NEP nep,PetscObject obj,const char name[])
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
+  ierr = PetscObjectViewFromOptions((PetscObject)nep,obj,name);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+/*@C
    NEPReasonView - Displays the reason a NEP solve converged or diverged.
 
    Collective on nep
 
-   Parameter:
+   Input Parameters:
 +  nep - the nonlinear eigensolver context
 -  viewer - the viewer to display the reason
 
@@ -237,7 +259,7 @@ PetscErrorCode NEPReasonView(NEP nep,PetscViewer viewer)
 
    Collective on nep
 
-   Input Parameters:
+   Input Parameter:
 .  nep - the nonlinear eigensolver context
 
    Level: developer
@@ -432,7 +454,7 @@ PetscErrorCode NEPErrorView(NEP nep,NEPErrorType etype,PetscViewer viewer)
 
    Collective on nep
 
-   Input Parameters:
+   Input Parameter:
 .  nep - the nonlinear eigensolver context
 
    Level: developer
@@ -607,7 +629,7 @@ PetscErrorCode NEPValuesView(NEP nep,PetscViewer viewer)
 
    Collective on nep
 
-   Input Parameters:
+   Input Parameter:
 .  nep - the nonlinear eigensolver context
 
    Level: developer
@@ -639,7 +661,7 @@ PetscErrorCode NEPValuesViewFromOptions(NEP nep)
 
    Collective on nep
 
-   Parameter:
+   Input Parameters:
 +  nep    - the nonlinear eigensolver context
 -  viewer - the viewer
 
@@ -704,7 +726,7 @@ PetscErrorCode NEPVectorsView(NEP nep,PetscViewer viewer)
 
    Collective on nep
 
-   Input Parameters:
+   Input Parameter:
 .  nep - the nonlinear eigensolver context
 
    Level: developer

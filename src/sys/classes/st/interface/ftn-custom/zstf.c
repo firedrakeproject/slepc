@@ -18,6 +18,7 @@
 #define stappendoptionsprefix_    STAPPENDOPTIONSPREFIX
 #define stgetoptionsprefix_       STGETOPTIONSPREFIX
 #define stview_                   STVIEW
+#define stviewfromoptions_        STVIEWFROMOPTIONS
 #elif !defined(PETSC_HAVE_FORTRAN_UNDERSCORE)
 #define stsettype_                stsettype
 #define stgettype_                stgettype
@@ -25,6 +26,7 @@
 #define stappendoptionsprefix_    stappendoptionsprefix
 #define stgetoptionsprefix_       stgetoptionsprefix
 #define stview_                   stview
+#define stviewfromoptions_        stviewfromoptions
 #endif
 
 SLEPC_EXTERN void PETSC_STDCALL stsettype_(ST *st,char *type PETSC_MIXED_LEN(len),PetscErrorCode *ierr PETSC_END_LEN(len))
@@ -77,5 +79,14 @@ SLEPC_EXTERN void PETSC_STDCALL stview_(ST *st,PetscViewer *viewer,PetscErrorCod
   PetscViewer v;
   PetscPatchDefaultViewers_Fortran(viewer,v);
   *ierr = STView(*st,v);
+}
+
+SLEPC_EXTERN void PETSC_STDCALL stviewfromoptions_(ST *st,PetscObject obj,char* type PETSC_MIXED_LEN(len),PetscErrorCode *ierr PETSC_END_LEN(len))
+{
+  char *t;
+
+  FIXCHAR(type,len,t);
+  *ierr = STViewFromOptions(*st,obj,t);if (*ierr) return;
+  FREECHAR(type,t);
 }
 

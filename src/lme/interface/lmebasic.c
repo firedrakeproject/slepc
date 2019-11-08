@@ -42,8 +42,6 @@ PetscLogEvent     LME_SetUp = 0,LME_Solve = 0,LME_ComputeError = 0;
    PetscViewerASCIIOpen() - output to a specified file.
 
    Level: beginner
-
-.seealso: PetscViewerASCIIOpen()
 @*/
 PetscErrorCode LMEView(LME lme,PetscViewer viewer)
 {
@@ -91,11 +89,34 @@ PetscErrorCode LMEView(LME lme,PetscViewer viewer)
 }
 
 /*@C
+   LMEViewFromOptions - View from options
+
+   Collective on LME
+
+   Input Parameters:
++  lme  - the linear matrix equation context
+.  obj  - optional object
+-  name - command line option
+
+   Level: intermediate
+
+.seealso: LMEView(), LMECreate()
+@*/
+PetscErrorCode LMEViewFromOptions(LME lme,PetscObject obj,const char name[])
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(lme,LME_CLASSID,1);
+  ierr = PetscObjectViewFromOptions((PetscObject)lme,obj,name);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+/*@C
    LMEReasonView - Displays the reason an LME solve converged or diverged.
 
    Collective on lme
 
-   Parameter:
+   Input Parameters:
 +  lme - the linear matrix equation context
 -  viewer - the viewer to display the reason
 
@@ -131,7 +152,7 @@ PetscErrorCode LMEReasonView(LME lme,PetscViewer viewer)
 
    Collective on lme
 
-   Input Parameters:
+   Input Parameter:
 .  lme - the linear matrix equation context
 
    Level: developer

@@ -13,6 +13,7 @@
 
 #if defined(PETSC_HAVE_FORTRAN_CAPS)
 #define lmeview_                          LMEVIEW
+#define lmeviewfromoptions_               LMEVIEWFROMOPTIONS
 #define lmereasonview_                    LMEREASONVIEW
 #define lmesetoptionsprefix_              LMESETOPTIONSPREFIX
 #define lmeappendoptionsprefix_           LMEAPPENDOPTIONSPREFIX
@@ -27,6 +28,7 @@
 #define lmegettolerances01_               LMEGETTOLERANCES01
 #elif !defined(PETSC_HAVE_FORTRAN_UNDERSCORE)
 #define lmeview_                          lmeview
+#define lmeviewfromoptions_               lmeviewfromoptions
 #define lmereasonview_                    lmereasonview
 #define lmesetoptionsprefix_              lmesetoptionsprefix
 #define lmeappendoptionsprefix_           lmeappendoptionsprefix
@@ -77,6 +79,15 @@ SLEPC_EXTERN void PETSC_STDCALL lmeview_(LME *lme,PetscViewer *viewer,PetscError
   PetscViewer v;
   PetscPatchDefaultViewers_Fortran(viewer,v);
   *ierr = LMEView(*lme,v);
+}
+
+SLEPC_EXTERN void PETSC_STDCALL lmeviewfromoptions_(LME *lme,PetscObject obj,char* type PETSC_MIXED_LEN(len),PetscErrorCode *ierr PETSC_END_LEN(len))
+{
+  char *t;
+
+  FIXCHAR(type,len,t);
+  *ierr = LMEViewFromOptions(*lme,obj,t);if (*ierr) return;
+  FREECHAR(type,t);
 }
 
 SLEPC_EXTERN void PETSC_STDCALL lmereasonview_(LME *lme,PetscViewer *viewer,PetscErrorCode *ierr)

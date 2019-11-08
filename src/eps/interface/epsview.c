@@ -39,7 +39,7 @@
 
    Level: beginner
 
-.seealso: STView(), PetscViewerASCIIOpen()
+.seealso: STView()
 @*/
 PetscErrorCode EPSView(EPS eps,PetscViewer viewer)
 {
@@ -223,11 +223,35 @@ PetscErrorCode EPSView(EPS eps,PetscViewer viewer)
 }
 
 /*@C
+   EPSViewFromOptions - View from options
+
+   Collective on EPS
+
+   Input Parameters:
++  eps  - the eigensolver context
+.  obj  - optional object
+-  name - command line option
+
+   Level: intermediate
+
+.seealso: EPSView(), EPSCreate()
+@*/
+PetscErrorCode EPSViewFromOptions(EPS eps,PetscObject obj,const char name[])
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
+  ierr = PetscObjectViewFromOptions((PetscObject)eps,obj,name);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+/*@C
    EPSReasonView - Displays the reason an EPS solve converged or diverged.
 
    Collective on eps
 
-   Parameter:
+   Input Parameters:
 +  eps - the eigensolver context
 -  viewer - the viewer to display the reason
 
@@ -263,7 +287,7 @@ PetscErrorCode EPSReasonView(EPS eps,PetscViewer viewer)
 
    Collective on eps
 
-   Input Parameters:
+   Input Parameter:
 .  eps - the eigensolver context
 
    Level: developer
@@ -458,7 +482,7 @@ PetscErrorCode EPSErrorView(EPS eps,EPSErrorType etype,PetscViewer viewer)
 
    Collective on eps
 
-   Input Parameters:
+   Input Parameter:
 .  eps - the eigensolver context
 
    Level: developer
@@ -730,7 +754,7 @@ PetscErrorCode EPSVectorsView(EPS eps,PetscViewer viewer)
 
    Collective on eps
 
-   Input Parameters:
+   Input Parameter:
 .  eps - the eigensolver context
 
    Level: developer

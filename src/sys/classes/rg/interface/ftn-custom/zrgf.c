@@ -18,6 +18,7 @@
 #define rgappendoptionsprefix_    RGAPPENDOPTIONSPREFIX
 #define rggetoptionsprefix_       RGGETOPTIONSPREFIX
 #define rgview_                   RGVIEW
+#define rgviewfromoptions_        RGVIEWFROMOPTIONS
 #elif !defined(PETSC_HAVE_FORTRAN_UNDERSCORE)
 #define rgsettype_                rgsettype
 #define rggettype_                rggettype
@@ -25,6 +26,7 @@
 #define rgappendoptionsprefix_    rgappendoptionsprefix
 #define rggetoptionsprefix_       rggetoptionsprefix
 #define rgview_                   rgview
+#define rgviewfromoptions_        rgviewfromoptions
 #endif
 
 SLEPC_EXTERN void PETSC_STDCALL rgsettype_(RG *rg,char *type PETSC_MIXED_LEN(len),PetscErrorCode *ierr PETSC_END_LEN(len))
@@ -77,5 +79,14 @@ SLEPC_EXTERN void PETSC_STDCALL rgview_(RG *rg,PetscViewer *viewer,PetscErrorCod
   PetscViewer v;
   PetscPatchDefaultViewers_Fortran(viewer,v);
   *ierr = RGView(*rg,v);
+}
+
+SLEPC_EXTERN void PETSC_STDCALL rgviewfromoptions_(RG *rg,PetscObject obj,char* type PETSC_MIXED_LEN(len),PetscErrorCode *ierr PETSC_END_LEN(len))
+{
+  char *t;
+
+  FIXCHAR(type,len,t);
+  *ierr = RGViewFromOptions(*rg,obj,t);if (*ierr) return;
+  FREECHAR(type,t);
 }
 

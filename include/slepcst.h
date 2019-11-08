@@ -60,6 +60,7 @@ SLEPC_EXTERN PetscErrorCode STGetOperator(ST,Mat*);
 SLEPC_EXTERN PetscErrorCode STSetUp(ST);
 SLEPC_EXTERN PetscErrorCode STSetFromOptions(ST);
 SLEPC_EXTERN PetscErrorCode STView(ST,PetscViewer);
+SLEPC_EXTERN PetscErrorCode STViewFromOptions(ST,PetscObject,const char[]);
 
 PETSC_DEPRECATED_FUNCTION("Use STSetMatrices()") PETSC_STATIC_INLINE PetscErrorCode STSetOperators(ST st,PetscInt n,Mat *A) {return STSetMatrices(st,n,A);}
 PETSC_DEPRECATED_FUNCTION("Use STGetMatrix()") PETSC_STATIC_INLINE PetscErrorCode STGetOperators(ST st,PetscInt k,Mat *A) {return STGetMatrix(st,k,A);}

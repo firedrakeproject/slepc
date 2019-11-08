@@ -190,7 +190,7 @@ SLEPC_EXTERN PetscErrorCode EPSSetFromOptions(EPS);
 SLEPC_EXTERN PetscErrorCode EPSSetUp(EPS);
 SLEPC_EXTERN PetscErrorCode EPSSolve(EPS);
 SLEPC_EXTERN PetscErrorCode EPSView(EPS,PetscViewer);
-PETSC_STATIC_INLINE PetscErrorCode EPSViewFromOptions(EPS eps,PetscObject obj,const char name[]) {return PetscObjectViewFromOptions((PetscObject)eps,obj,name);}
+SLEPC_EXTERN PetscErrorCode EPSViewFromOptions(EPS,PetscObject,const char[]);
 SLEPC_EXTERN PetscErrorCode EPSErrorView(EPS,EPSErrorType,PetscViewer);
 PETSC_DEPRECATED_FUNCTION("Use EPSErrorView()") PETSC_STATIC_INLINE PetscErrorCode EPSPrintSolution(EPS eps,PetscViewer v) {return EPSErrorView(eps,EPS_ERROR_RELATIVE,v);}
 SLEPC_EXTERN PetscErrorCode EPSErrorViewFromOptions(EPS);

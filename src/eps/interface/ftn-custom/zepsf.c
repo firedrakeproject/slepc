@@ -14,6 +14,7 @@
 
 #if defined(PETSC_HAVE_FORTRAN_CAPS)
 #define epsview_                          EPSVIEW
+#define epsviewfromoptions_               EPSVIEWFROMOPTIONS
 #define epserrorview_                     EPSERRORVIEW
 #define epsreasonview_                    EPSREASONVIEW
 #define epsvaluesview_                    EPSVALUESVIEW
@@ -66,6 +67,7 @@
 #define epssetleftinitialspace1_          EPSSETLEFTINITIALSPACE1
 #elif !defined(PETSC_HAVE_FORTRAN_UNDERSCORE)
 #define epsview_                          epsview
+#define epsviewfromoptions_               epsviewfromoptions
 #define epserrorview_                     epserrorview
 #define epsreasonview_                    epsreasonview
 #define epsvaluesview_                    epsvaluesview
@@ -209,6 +211,15 @@ SLEPC_EXTERN void PETSC_STDCALL epsview_(EPS *eps,PetscViewer *viewer,PetscError
   PetscViewer v;
   PetscPatchDefaultViewers_Fortran(viewer,v);
   *ierr = EPSView(*eps,v);
+}
+
+SLEPC_EXTERN void PETSC_STDCALL epsviewfromoptions_(EPS *eps,PetscObject obj,char* type PETSC_MIXED_LEN(len),PetscErrorCode *ierr PETSC_END_LEN(len))
+{
+  char *t;
+
+  FIXCHAR(type,len,t);
+  *ierr = EPSViewFromOptions(*eps,obj,t);if (*ierr) return;
+  FREECHAR(type,t);
 }
 
 SLEPC_EXTERN void PETSC_STDCALL epsreasonview_(EPS *eps,PetscViewer *viewer,PetscErrorCode *ierr)

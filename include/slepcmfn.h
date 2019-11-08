@@ -52,7 +52,7 @@ SLEPC_EXTERN PetscErrorCode MFNSetFromOptions(MFN);
 SLEPC_EXTERN PetscErrorCode MFNSetUp(MFN);
 SLEPC_EXTERN PetscErrorCode MFNSolve(MFN,Vec,Vec);
 SLEPC_EXTERN PetscErrorCode MFNView(MFN,PetscViewer);
-PETSC_STATIC_INLINE PetscErrorCode MFNViewFromOptions(MFN mfn,PetscObject obj,const char name[]) {return PetscObjectViewFromOptions((PetscObject)mfn,obj,name);}
+SLEPC_EXTERN PetscErrorCode MFNViewFromOptions(MFN,PetscObject,const char[]);
 SLEPC_EXTERN PetscErrorCode MFNReasonView(MFN,PetscViewer);
 SLEPC_EXTERN PetscErrorCode MFNReasonViewFromOptions(MFN);
 

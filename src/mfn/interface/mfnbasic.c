@@ -42,8 +42,6 @@ PetscLogEvent     MFN_SetUp = 0,MFN_Solve = 0;
    PetscViewerASCIIOpen() - output to a specified file.
 
    Level: beginner
-
-.seealso: PetscViewerASCIIOpen()
 @*/
 PetscErrorCode MFNView(MFN mfn,PetscViewer viewer)
 {
@@ -84,11 +82,34 @@ PetscErrorCode MFNView(MFN mfn,PetscViewer viewer)
 }
 
 /*@C
+   MFNViewFromOptions - View from options
+
+   Collective on MFN
+
+   Input Parameters:
++  mfn  - the matrix function context
+.  obj  - optional object
+-  name - command line option
+
+   Level: intermediate
+
+.seealso: MFNView(), MFNCreate()
+@*/
+PetscErrorCode MFNViewFromOptions(MFN mfn,PetscObject obj,const char name[])
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(mfn,MFN_CLASSID,1);
+  ierr = PetscObjectViewFromOptions((PetscObject)mfn,obj,name);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+/*@C
    MFNReasonView - Displays the reason an MFN solve converged or diverged.
 
    Collective on mfn
 
-   Parameter:
+   Input Parameters:
 +  mfn - the matrix function context
 -  viewer - the viewer to display the reason
 
@@ -124,7 +145,7 @@ PetscErrorCode MFNReasonView(MFN mfn,PetscViewer viewer)
 
    Collective on mfn
 
-   Input Parameters:
+   Input Parameter:
 .  mfn - the matrix function context
 
    Level: developer

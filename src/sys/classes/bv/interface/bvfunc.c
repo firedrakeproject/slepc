@@ -583,8 +583,6 @@ static PetscErrorCode BVView_Default(BV bv,PetscViewer viewer)
    PetscViewerASCIIOpen() (output to a specified file).
 
    Level: beginner
-
-.seealso: PetscViewerASCIIOpen()
 @*/
 PetscErrorCode BVView(BV bv,PetscViewer viewer)
 {
@@ -656,6 +654,30 @@ PetscErrorCode BVView(BV bv,PetscViewer viewer)
   } else {
     ierr = (*bv->ops->view)(bv,viewer);CHKERRQ(ierr);
   }
+  PetscFunctionReturn(0);
+}
+
+/*@C
+   BVViewFromOptions - View from options
+
+   Collective on BV
+
+   Input Parameters:
++  bv   - the basis vectors context
+.  obj  - optional object
+-  name - command line option
+
+   Level: intermediate
+
+.seealso: BVView(), BVCreate()
+@*/
+PetscErrorCode BVViewFromOptions(BV bv,PetscObject obj,const char name[])
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(bv,BV_CLASSID,1);
+  ierr = PetscObjectViewFromOptions((PetscObject)bv,obj,name);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

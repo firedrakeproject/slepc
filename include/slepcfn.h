@@ -77,6 +77,7 @@ SLEPC_EXTERN PetscErrorCode FNAppendOptionsPrefix(FN,const char *);
 SLEPC_EXTERN PetscErrorCode FNGetOptionsPrefix(FN,const char *[]);
 SLEPC_EXTERN PetscErrorCode FNSetFromOptions(FN);
 SLEPC_EXTERN PetscErrorCode FNView(FN,PetscViewer);
+SLEPC_EXTERN PetscErrorCode FNViewFromOptions(FN,PetscObject,const char[]);
 SLEPC_EXTERN PetscErrorCode FNDestroy(FN*);
 SLEPC_EXTERN PetscErrorCode FNDuplicate(FN,MPI_Comm,FN*);
 

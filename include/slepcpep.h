@@ -212,7 +212,7 @@ SLEPC_EXTERN PetscErrorCode PEPSetFromOptions(PEP);
 SLEPC_EXTERN PetscErrorCode PEPSetUp(PEP);
 SLEPC_EXTERN PetscErrorCode PEPSolve(PEP);
 SLEPC_EXTERN PetscErrorCode PEPView(PEP,PetscViewer);
-PETSC_STATIC_INLINE PetscErrorCode PEPViewFromOptions(PEP pep,PetscObject obj,const char name[]) {return PetscObjectViewFromOptions((PetscObject)pep,obj,name);}
+SLEPC_EXTERN PetscErrorCode PEPViewFromOptions(PEP,PetscObject,const char[]);
 SLEPC_EXTERN PetscErrorCode PEPErrorView(PEP,PEPErrorType,PetscViewer);
 PETSC_DEPRECATED_FUNCTION("Use PEPErrorView()") PETSC_STATIC_INLINE PetscErrorCode PEPPrintSolution(PEP pep,PetscViewer v) {return PEPErrorView(pep,PEP_ERROR_BACKWARD,v);}
 SLEPC_EXTERN PetscErrorCode PEPErrorViewFromOptions(PEP);

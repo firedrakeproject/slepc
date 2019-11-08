@@ -18,6 +18,7 @@
 #define bvappendoptionsprefix_    BVAPPENDOPTIONSPREFIX
 #define bvgetoptionsprefix_       BVGETOPTIONSPREFIX
 #define bvview_                   BVVIEW
+#define bvviewfromoptions_        BVVIEWFROMOPTIONS
 #elif !defined(PETSC_HAVE_FORTRAN_UNDERSCORE)
 #define bvsettype_                bvsettype
 #define bvgettype_                bvgettype
@@ -25,6 +26,7 @@
 #define bvappendoptionsprefix_    bvappendoptionsprefix
 #define bvgetoptionsprefix_       bvgetoptionsprefix
 #define bvview_                   bvview
+#define bvviewfromoptions_        bvviewfromoptions
 #endif
 
 SLEPC_EXTERN void PETSC_STDCALL bvsettype_(BV *bv,char *type PETSC_MIXED_LEN(len),PetscErrorCode *ierr PETSC_END_LEN(len))
@@ -77,5 +79,14 @@ SLEPC_EXTERN void PETSC_STDCALL bvview_(BV *bv,PetscViewer *viewer,PetscErrorCod
   PetscViewer v;
   PetscPatchDefaultViewers_Fortran(viewer,v);
   *ierr = BVView(*bv,v);
+}
+
+SLEPC_EXTERN void PETSC_STDCALL bvviewfromoptions_(BV *bv,PetscObject obj,char* type PETSC_MIXED_LEN(len),PetscErrorCode *ierr PETSC_END_LEN(len))
+{
+  char *t;
+
+  FIXCHAR(type,len,t);
+  *ierr = BVViewFromOptions(*bv,obj,t);if (*ierr) return;
+  FREECHAR(type,t);
 }
 

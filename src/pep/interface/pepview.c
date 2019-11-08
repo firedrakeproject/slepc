@@ -38,8 +38,6 @@
    PetscViewerASCIIOpen() - output to a specified file.
 
    Level: beginner
-
-.seealso: PetscViewerASCIIOpen()
 @*/
 PetscErrorCode PEPView(PEP pep,PetscViewer viewer)
 {
@@ -211,11 +209,35 @@ PetscErrorCode PEPView(PEP pep,PetscViewer viewer)
 }
 
 /*@C
+   PEPViewFromOptions - View from options
+
+   Collective on PEP
+
+   Input Parameters:
++  pep  - the eigensolver context
+.  obj  - optional object
+-  name - command line option
+
+   Level: intermediate
+
+.seealso: PEPView(), PEPCreate()
+@*/
+PetscErrorCode PEPViewFromOptions(PEP pep,PetscObject obj,const char name[])
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
+  ierr = PetscObjectViewFromOptions((PetscObject)pep,obj,name);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+/*@C
    PEPReasonView - Displays the reason a PEP solve converged or diverged.
 
    Collective on pep
 
-   Parameter:
+   Input Parameters:
 +  pep - the eigensolver context
 -  viewer - the viewer to display the reason
 
@@ -251,7 +273,7 @@ PetscErrorCode PEPReasonView(PEP pep,PetscViewer viewer)
 
    Collective on pep
 
-   Input Parameters:
+   Input Parameter:
 .  pep - the eigensolver context
 
    Level: developer
@@ -437,7 +459,7 @@ PetscErrorCode PEPErrorView(PEP pep,PEPErrorType etype,PetscViewer viewer)
 
    Collective on pep
 
-   Input Parameters:
+   Input Parameter:
 .  pep - the eigensolver context
 
    Level: developer
@@ -612,7 +634,7 @@ PetscErrorCode PEPValuesView(PEP pep,PetscViewer viewer)
 
    Collective on pep
 
-   Input Parameters:
+   Input Parameter:
 .  pep - the eigensolver context
 
    Level: developer
@@ -644,7 +666,7 @@ PetscErrorCode PEPValuesViewFromOptions(PEP pep)
 
    Collective on pep
 
-   Parameter:
+   Input Parameters:
 +  pep    - the eigensolver context
 -  viewer - the viewer
 
@@ -698,7 +720,7 @@ PetscErrorCode PEPVectorsView(PEP pep,PetscViewer viewer)
 
    Collective on pep
 
-   Input Parameters:
+   Input Parameter:
 .  pep - the eigensolver context
 
    Level: developer
