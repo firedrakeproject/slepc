@@ -222,7 +222,7 @@ PetscErrorCode BVBiorthonormalizeColumn(BV V,BV W,PetscInt j,PetscReal *delta)
   ierr = PetscLogEventBegin(BV_Scale,V,0,0,0);CHKERRQ(ierr);
   ierr = BVGetColumn(V,j,&y);CHKERRQ(ierr);
   ierr = BVGetColumn(W,j,&z);CHKERRQ(ierr);
-  ierr = VecDot(y,z,&alpha);CHKERRQ(ierr);
+  ierr = VecDot(z,y,&alpha);CHKERRQ(ierr);
   ierr = BVRestoreColumn(V,j,&y);CHKERRQ(ierr);
   ierr = BVRestoreColumn(W,j,&z);CHKERRQ(ierr);
   deltat = PetscSqrtReal(PetscAbsScalar(alpha));
