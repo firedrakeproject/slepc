@@ -168,7 +168,7 @@ SLEPC_EXTERN PetscErrorCode NEPSetFromOptions(NEP);
 SLEPC_EXTERN PetscErrorCode NEPSetUp(NEP);
 SLEPC_EXTERN PetscErrorCode NEPSolve(NEP);
 SLEPC_EXTERN PetscErrorCode NEPView(NEP,PetscViewer);
-PETSC_STATIC_INLINE PetscErrorCode NEPViewFromOptions(NEP nep,PetscObject obj,const char name[]) {return PetscObjectViewFromOptions((PetscObject)nep,obj,name);}
+SLEPC_EXTERN PetscErrorCode NEPViewFromOptions(NEP,PetscObject,const char[]);
 SLEPC_EXTERN PetscErrorCode NEPErrorView(NEP,NEPErrorType,PetscViewer);
 SLEPC_EXTERN PetscErrorCode NEPErrorViewFromOptions(NEP);
 SLEPC_EXTERN PetscErrorCode NEPReasonView(NEP,PetscViewer);

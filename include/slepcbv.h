@@ -115,7 +115,7 @@ SLEPC_EXTERN PetscErrorCode BVGetSizes(BV,PetscInt*,PetscInt*,PetscInt*);
 SLEPC_EXTERN PetscErrorCode BVResize(BV,PetscInt,PetscBool);
 SLEPC_EXTERN PetscErrorCode BVSetFromOptions(BV);
 SLEPC_EXTERN PetscErrorCode BVView(BV,PetscViewer);
-PETSC_STATIC_INLINE PetscErrorCode BVViewFromOptions(BV bv,PetscObject obj,const char name[]) {return PetscObjectViewFromOptions((PetscObject)bv,obj,name);}
+SLEPC_EXTERN PetscErrorCode BVViewFromOptions(BV,PetscObject,const char[]);
 
 SLEPC_EXTERN PetscErrorCode BVGetColumn(BV,PetscInt,Vec*);
 SLEPC_EXTERN PetscErrorCode BVRestoreColumn(BV,PetscInt,Vec*);

@@ -71,7 +71,7 @@ SLEPC_EXTERN PetscErrorCode LMESetFromOptions(LME);
 SLEPC_EXTERN PetscErrorCode LMESetUp(LME);
 SLEPC_EXTERN PetscErrorCode LMESolve(LME);
 SLEPC_EXTERN PetscErrorCode LMEView(LME,PetscViewer);
-PETSC_STATIC_INLINE PetscErrorCode LMEViewFromOptions(LME lme,PetscObject obj,const char name[]) {return PetscObjectViewFromOptions((PetscObject)lme,obj,name);}
+SLEPC_EXTERN PetscErrorCode LMEViewFromOptions(LME,PetscObject,const char[]);
 SLEPC_EXTERN PetscErrorCode LMEReasonView(LME,PetscViewer);
 SLEPC_EXTERN PetscErrorCode LMEReasonViewFromOptions(LME);
 

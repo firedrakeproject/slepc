@@ -972,6 +972,30 @@ PetscErrorCode FNView(FN fn,PetscViewer viewer)
   PetscFunctionReturn(0);
 }
 
+/*@C
+   FNViewFromOptions - View from options
+
+   Collective on FN
+
+   Input Parameters:
++  fn   - the math function context
+.  obj  - optional object
+-  name - command line option
+
+   Level: intermediate
+
+.seealso: FNView(), FNCreate()
+@*/
+PetscErrorCode FNViewFromOptions(FN fn,PetscObject obj,const char name[])
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(fn,FN_CLASSID,1);
+  ierr = PetscObjectViewFromOptions((PetscObject)fn,obj,name);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
 /*@
    FNDuplicate - Duplicates a math function, copying all parameters, possibly with a
    different communicator.

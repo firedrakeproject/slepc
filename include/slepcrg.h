@@ -42,7 +42,7 @@ SLEPC_EXTERN PetscErrorCode RGAppendOptionsPrefix(RG,const char *);
 SLEPC_EXTERN PetscErrorCode RGGetOptionsPrefix(RG,const char *[]);
 SLEPC_EXTERN PetscErrorCode RGSetFromOptions(RG);
 SLEPC_EXTERN PetscErrorCode RGView(RG,PetscViewer);
-PETSC_STATIC_INLINE PetscErrorCode RGViewFromOptions(RG rg,PetscObject obj,const char name[]) {return PetscObjectViewFromOptions((PetscObject)rg,obj,name);}
+SLEPC_EXTERN PetscErrorCode RGViewFromOptions(RG,PetscObject,const char[]);
 SLEPC_EXTERN PetscErrorCode RGDestroy(RG*);
 
 SLEPC_EXTERN PetscErrorCode RGIsTrivial(RG,PetscBool*);

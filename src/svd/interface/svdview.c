@@ -38,8 +38,6 @@
    PetscViewerASCIIOpen() - output to a specified file.
 
    Level: beginner
-
-.seealso: STView(), PetscViewerASCIIOpen()
 @*/
 PetscErrorCode SVDView(SVD svd,PetscViewer viewer)
 {
@@ -108,11 +106,35 @@ PetscErrorCode SVDView(SVD svd,PetscViewer viewer)
 }
 
 /*@C
+   SVDViewFromOptions - View from options
+
+   Collective on SVD
+
+   Input Parameters:
++  svd  - the singular value solver context
+.  obj  - optional object
+-  name - command line option
+
+   Level: intermediate
+
+.seealso: SVDView(), SVDCreate()
+@*/
+PetscErrorCode SVDViewFromOptions(SVD svd,PetscObject obj,const char name[])
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(svd,SVD_CLASSID,1);
+  ierr = PetscObjectViewFromOptions((PetscObject)svd,obj,name);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+/*@C
    SVDReasonView - Displays the reason an SVD solve converged or diverged.
 
    Collective on svd
 
-   Parameter:
+   Input Parameters:
 +  svd - the singular value solver context
 -  viewer - the viewer to display the reason
 
@@ -148,7 +170,7 @@ PetscErrorCode SVDReasonView(SVD svd,PetscViewer viewer)
 
    Collective on svd
 
-   Input Parameters:
+   Input Parameter:
 .  svd - the singular value solver context
 
    Level: developer
@@ -318,7 +340,7 @@ PetscErrorCode SVDErrorView(SVD svd,SVDErrorType etype,PetscViewer viewer)
 
    Collective on svd
 
-   Input Parameters:
+   Input Parameter:
 .  svd - the singular value solver context
 
    Level: developer
@@ -463,7 +485,7 @@ PetscErrorCode SVDValuesView(SVD svd,PetscViewer viewer)
 
    Collective on svd
 
-   Input Parameters:
+   Input Parameter:
 .  svd - the singular value solver context
 
    Level: developer
@@ -495,7 +517,7 @@ PetscErrorCode SVDValuesViewFromOptions(SVD svd)
 
    Collective on svd
 
-   Parameter:
+   Input Parameters:
 +  svd    - the singular value solver context
 -  viewer - the viewer
 
@@ -553,7 +575,7 @@ PetscErrorCode SVDVectorsView(SVD svd,PetscViewer viewer)
 
    Collective on svd
 
-   Input Parameters:
+   Input Parameter:
 .  svd - the singular value solver context
 
    Level: developer

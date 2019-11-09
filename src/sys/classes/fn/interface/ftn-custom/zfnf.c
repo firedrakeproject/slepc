@@ -14,6 +14,7 @@
 
 #if defined(PETSC_HAVE_FORTRAN_CAPS)
 #define fnview_                    FNVIEW
+#define fnviewfromoptions_         FNVIEWFROMOPTIONS
 #define fnsetoptionsprefix_        FNSETOPTIONSPREFIX
 #define fnappendoptionsprefix_     FNAPPENDOPTIONSPREFIX
 #define fngetoptionsprefix_        FNGETOPTIONSPREFIX
@@ -21,6 +22,7 @@
 #define fngettype_                 FNGETTYPE
 #elif !defined(PETSC_HAVE_FORTRAN_UNDERSCORE)
 #define fnview_                    fnview
+#define fnviewfromoptions_         fnviewfromoptions
 #define fnsetoptionsprefix_        fnsetoptionsprefix
 #define fnappendoptionsprefix_     fnappendoptionsprefix
 #define fngetoptionsprefix_        fngetoptionsprefix
@@ -33,6 +35,15 @@ SLEPC_EXTERN void PETSC_STDCALL fnview_(FN *fn,PetscViewer *viewer,PetscErrorCod
   PetscViewer v;
   PetscPatchDefaultViewers_Fortran(viewer,v);
   *ierr = FNView(*fn,v);
+}
+
+SLEPC_EXTERN void PETSC_STDCALL fnviewfromoptions_(FN *fn,PetscObject obj,char* type PETSC_MIXED_LEN(len),PetscErrorCode *ierr PETSC_END_LEN(len))
+{
+  char *t;
+
+  FIXCHAR(type,len,t);
+  *ierr = FNViewFromOptions(*fn,obj,t);if (*ierr) return;
+  FREECHAR(type,t);
 }
 
 SLEPC_EXTERN void PETSC_STDCALL fnsetoptionsprefix_(FN *fn,char *prefix PETSC_MIXED_LEN(len),PetscErrorCode *ierr PETSC_END_LEN(len))

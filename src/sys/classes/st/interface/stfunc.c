@@ -761,7 +761,7 @@ PetscErrorCode STGetOptionsPrefix(ST st,const char *prefix[])
 
    Level: beginner
 
-.seealso: EPSView(), PetscViewerASCIIOpen()
+.seealso: EPSView()
 @*/
 PetscErrorCode STView(ST st,PetscViewer viewer)
 {
@@ -823,6 +823,30 @@ PetscErrorCode STView(ST st,PetscViewer viewer)
     ierr = KSPView(st->ksp,viewer);CHKERRQ(ierr);
     ierr = PetscViewerASCIIPopTab(viewer);CHKERRQ(ierr);
   }
+  PetscFunctionReturn(0);
+}
+
+/*@C
+   STViewFromOptions - View from options
+
+   Collective on ST
+
+   Input Parameters:
++  st   - the spectral transformation context
+.  obj  - optional object
+-  name - command line option
+
+   Level: intermediate
+
+.seealso: STView(), STCreate()
+@*/
+PetscErrorCode STViewFromOptions(ST st,PetscObject obj,const char name[])
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(st,ST_CLASSID,1);
+  ierr = PetscObjectViewFromOptions((PetscObject)st,obj,name);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

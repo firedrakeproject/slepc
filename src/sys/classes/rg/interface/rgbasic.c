@@ -357,6 +357,30 @@ PetscErrorCode RGView(RG rg,PetscViewer viewer)
   PetscFunctionReturn(0);
 }
 
+/*@C
+   RGViewFromOptions - View from options
+
+   Collective on RG
+
+   Input Parameters:
++  rg   - the region context
+.  obj  - optional object
+-  name - command line option
+
+   Level: intermediate
+
+.seealso: RGView(), RGCreate()
+@*/
+PetscErrorCode RGViewFromOptions(RG rg,PetscObject obj,const char name[])
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(rg,RG_CLASSID,1);
+  ierr = PetscObjectViewFromOptions((PetscObject)rg,obj,name);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
 /*@
    RGIsTrivial - Whether it is the trivial region (whole complex plane).
 

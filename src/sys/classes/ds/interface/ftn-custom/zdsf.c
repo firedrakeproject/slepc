@@ -18,6 +18,7 @@
 #define dsappendoptionsprefix_    DSAPPENDOPTIONSPREFIX
 #define dsgetoptionsprefix_       DSGETOPTIONSPREFIX
 #define dsview_                   DSVIEW
+#define dsviewfromoptions_        DSVIEWFROMOPTIONS
 #define dsviewmat_                DSVIEWMAT
 #define dsvectors_                DSVECTORS
 #define dssort_                   DSSORT
@@ -28,6 +29,7 @@
 #define dsappendoptionsprefix_    dsappendoptionsprefix
 #define dsgetoptionsprefix_       dsgetoptionsprefix
 #define dsview_                   dsview
+#define dsviewfromoptions_        dsviewfromoptions
 #define dsviewmat_                dsviewmat
 #define dsvectors_                dsvectors
 #define dssort_                   dssort
@@ -83,6 +85,15 @@ SLEPC_EXTERN void PETSC_STDCALL dsview_(DS *ds,PetscViewer *viewer,PetscErrorCod
   PetscViewer v;
   PetscPatchDefaultViewers_Fortran(viewer,v);
   *ierr = DSView(*ds,v);
+}
+
+SLEPC_EXTERN void PETSC_STDCALL dsviewfromoptions_(DS *ds,PetscObject obj,char* type PETSC_MIXED_LEN(len),PetscErrorCode *ierr PETSC_END_LEN(len))
+{
+  char *t;
+
+  FIXCHAR(type,len,t);
+  *ierr = DSViewFromOptions(*ds,obj,t);if (*ierr) return;
+  FREECHAR(type,t);
 }
 
 SLEPC_EXTERN void PETSC_STDCALL dsviewmat_(DS *ds,PetscViewer *viewer,DSMatType *m,PetscErrorCode *ierr)

@@ -14,6 +14,7 @@
 
 #if defined(PETSC_HAVE_FORTRAN_CAPS)
 #define pepview_                          PEPVIEW
+#define pepviewfromoptions_               PEPVIEWFROMOPTIONS
 #define peperrorview_                     PEPERRORVIEW
 #define pepreasonview_                    PEPREASONVIEW
 #define pepvaluesview_                    PEPVALUESVIEW
@@ -68,6 +69,7 @@
 #define pepsetinitialspace1_              PEPSETINITIALSPACE1
 #elif !defined(PETSC_HAVE_FORTRAN_UNDERSCORE)
 #define pepview_                          pepview
+#define pepviewfromoptions_               pepviewfromoptions
 #define peperrorview_                     peperrorview
 #define pepreasonview_                    pepreasonview
 #define pepvaluesview_                    pepvaluesview
@@ -197,8 +199,8 @@ static PetscErrorCode ourstopdestroy(void *ctx)
 
 static PetscErrorCode oureigenvaluecomparison(PetscScalar ar,PetscScalar ai,PetscScalar br,PetscScalar bi,PetscInt *r,void *ctx)
 {
-  PEP eps = (PEP)ctx;
-  PetscObjectUseFortranCallback(eps,_cb.comparison,(PetscScalar*,PetscScalar*,PetscScalar*,PetscScalar*,PetscInt*,void*,PetscErrorCode*),(&ar,&ai,&br,&bi,r,_ctx,&ierr));
+  PEP pep = (PEP)ctx;
+  PetscObjectUseFortranCallback(pep,_cb.comparison,(PetscScalar*,PetscScalar*,PetscScalar*,PetscScalar*,PetscInt*,void*,PetscErrorCode*),(&ar,&ai,&br,&bi,r,_ctx,&ierr));
 }
 
 SLEPC_EXTERN void PETSC_STDCALL pepview_(PEP *pep,PetscViewer *viewer,PetscErrorCode *ierr)
@@ -206,6 +208,15 @@ SLEPC_EXTERN void PETSC_STDCALL pepview_(PEP *pep,PetscViewer *viewer,PetscError
   PetscViewer v;
   PetscPatchDefaultViewers_Fortran(viewer,v);
   *ierr = PEPView(*pep,v);
+}
+
+SLEPC_EXTERN void PETSC_STDCALL pepviewfromoptions_(PEP *pep,PetscObject obj,char* type PETSC_MIXED_LEN(len),PetscErrorCode *ierr PETSC_END_LEN(len))
+{
+  char *t;
+
+  FIXCHAR(type,len,t);
+  *ierr = PEPViewFromOptions(*pep,obj,t);if (*ierr) return;
+  FREECHAR(type,t);
 }
 
 SLEPC_EXTERN void PETSC_STDCALL pepreasonview_(PEP *pep,PetscViewer *viewer,PetscErrorCode *ierr)

@@ -838,6 +838,30 @@ PetscErrorCode DSView(DS ds,PetscViewer viewer)
   PetscFunctionReturn(0);
 }
 
+/*@C
+   DSViewFromOptions - View from options
+
+   Collective on DS
+
+   Input Parameters:
++  ds   - the direct solver context
+.  obj  - optional object
+-  name - command line option
+
+   Level: intermediate
+
+.seealso: DSView(), DSCreate()
+@*/
+PetscErrorCode DSViewFromOptions(DS ds,PetscObject obj,const char name[])
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(ds,DS_CLASSID,1);
+  ierr = PetscObjectViewFromOptions((PetscObject)ds,obj,name);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
 /*@
    DSAllocate - Allocates memory for internal storage or matrices in DS.
 
