@@ -60,6 +60,9 @@ int main(int argc,char **argv)
       for (i=0;i<=n/2;i++) {
         if (i+j<n) {
           alpha = (3.0*i+j-2)/(2*(i+j+1));
+#if defined(PETSC_USE_COMPLEX)
+          alpha += (1.2*i+j-2)/(0.1*(i+j+1))*PETSC_i;
+#endif
           ierr = VecSetValue(v,i+j,alpha,INSERT_VALUES);CHKERRQ(ierr);
         }
       }
@@ -116,8 +119,8 @@ int main(int argc,char **argv)
   }
   ierr = MatShift(M,-1.0);CHKERRQ(ierr);
   ierr = MatNorm(M,NORM_1,&norm);CHKERRQ(ierr);
-  if (norm<100*PETSC_MACHINE_EPSILON) {
-    ierr = PetscPrintf(PETSC_COMM_WORLD,"Level of bi-orthogonality < 100*eps\n");CHKERRQ(ierr);
+  if (norm<200*PETSC_MACHINE_EPSILON) {
+    ierr = PetscPrintf(PETSC_COMM_WORLD,"Level of bi-orthogonality < 200*eps\n");CHKERRQ(ierr);
   } else {
     ierr = PetscPrintf(PETSC_COMM_WORLD,"Level of bi-orthogonality: %g\n",(double)norm);CHKERRQ(ierr);
   }
