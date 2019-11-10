@@ -119,8 +119,8 @@ int main(int argc,char **argv)
   }
   ierr = MatShift(M,-1.0);CHKERRQ(ierr);
   ierr = MatNorm(M,NORM_1,&norm);CHKERRQ(ierr);
-  if (norm<100*PETSC_MACHINE_EPSILON) {
-    ierr = PetscPrintf(PETSC_COMM_WORLD,"Level of bi-orthogonality < 100*eps\n");CHKERRQ(ierr);
+  if (norm<200*PETSC_MACHINE_EPSILON) {
+    ierr = PetscPrintf(PETSC_COMM_WORLD,"Level of bi-orthogonality < 200*eps\n");CHKERRQ(ierr);
   } else {
     ierr = PetscPrintf(PETSC_COMM_WORLD,"Level of bi-orthogonality: %g\n",(double)norm);CHKERRQ(ierr);
   }
