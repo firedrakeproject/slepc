@@ -369,6 +369,7 @@ PetscErrorCode MatDestroy_Jac(Mat A)
       args: -terse
       requires: !single
       output_file: output/ex21_1.out
+      filter: sed -e "s/[+-]0.00000i//" -e "s/+0i//"
       test:
          suffix: 1_rii
          args: -nep_type rii -nep_target 4
