@@ -29,6 +29,7 @@ typedef struct _n_nep_def_ctx *NEP_NEDEF_CTX;
 
 struct _n_nep_def_ctx {
   PetscInt    n;
+  PetscBool   ref;
   PetscScalar *eig;
   BV          V,W;
 };
@@ -148,6 +149,7 @@ PetscErrorCode NEPDeflationNEInitialize(NEP nep,BV V,BV W,PetscInt sz,NEP_NEDEF_
   ierr = PetscNew(&op);CHKERRQ(ierr);
   *defctx = op;
   op->n   = 0;
+  op->ref = PETSC_FALSE;
   ierr = PetscCalloc1(sz,&op->eig);CHKERRQ(ierr);
   ierr = PetscObjectStateIncrease((PetscObject)V);CHKERRQ(ierr);
   ierr = PetscObjectStateIncrease((PetscObject)W);CHKERRQ(ierr);
@@ -181,7 +183,7 @@ PetscErrorCode NEPDeflationNEShellOp_MMult(Mat M,Vec x,Vec r)
 
   PetscFunctionBegin;
   ierr = MatShellGetContext(M,(void**)&matctx);CHKERRQ(ierr);
-  if (matctx->defctx->n) {
+  if (matctx->defctx->n && !matctx->defctx->ref) {
     k = matctx->defctx->n;
     lambda = matctx->lambda;
     eig = matctx->defctx->eig;
@@ -219,7 +221,7 @@ PetscErrorCode NEPDeflationNEShellOp_MMultTrans(Mat M,Vec x,Vec r)
   ierr = MatShellGetContext(M,(void**)&matctx);CHKERRQ(ierr);
   t    = matctx->w[0];
   ierr = VecCopy(x,t);CHKERRQ(ierr);
-  if (matctx->defctx->n) {
+  if (matctx->defctx->n && !matctx->defctx->ref) {
     ierr = VecConjugate(t);CHKERRQ(ierr);
     k = matctx->defctx->n;
     lambda = matctx->lambda;
@@ -260,7 +262,7 @@ PetscErrorCode NEPDeflationNEShellOp_MSolve(Mat M,Vec b,Vec x)
     PetscFunctionReturn(0);
   }
   ierr = KSPSolve(matctx->ksp,b,x);CHKERRQ(ierr);
-  if (matctx->defctx->n) {
+  if (matctx->defctx->n && !matctx->defctx->ref) {
     k = matctx->defctx->n;
     lambda = matctx->lambda;
     eig = matctx->defctx->eig;
@@ -288,7 +290,7 @@ PetscErrorCode NEPDeflationNEShellOp_MSolveTrans(Mat M,Vec b,Vec x)
     PetscFunctionReturn(0);
   }
   ierr = KSPSolveTranspose(matctx->ksp,b,x);CHKERRQ(ierr);
-  if (matctx->defctx->n) {
+  if (matctx->defctx->n && !matctx->defctx->ref) {
     ierr = VecConjugate(x);CHKERRQ(ierr);
     k = matctx->defctx->n;
     lambda = matctx->lambda;
@@ -364,7 +366,7 @@ PetscErrorCode NEPDeflationNERecoverEigenvectors(NEP_NEDEF_CTX defctx,Vec u,Vec 
 
   PetscFunctionBegin;
   if (w) { ierr = VecConjugate(w);CHKERRQ(ierr); }
-  if (defctx->n) {
+  if (defctx->n && !defctx->ref) {
     eig = defctx->eig;
     k = defctx->n;
     ierr = PetscMalloc2(k,&h,k,&alpha);CHKERRQ(ierr);
@@ -391,7 +393,6 @@ PetscErrorCode NEPDeflationNELocking(NEP nep,NEP_NEDEF_CTX defctx,Vec u,Vec w,Pe
   PetscInt       n;
 
   PetscFunctionBegin;
-  ierr = NEPDeflationNERecoverEigenvectors(defctx,u,w,lambda);CHKERRQ(ierr);
   n = defctx->n++;
   defctx->eig[n] = lambda;
   ierr = BVInsertVec(defctx->V,n,u);CHKERRQ(ierr);
@@ -399,6 +400,13 @@ PetscErrorCode NEPDeflationNELocking(NEP nep,NEP_NEDEF_CTX defctx,Vec u,Vec w,Pe
   ierr = BVSetActiveColumns(defctx->V,0,defctx->n);CHKERRQ(ierr);
   ierr = BVSetActiveColumns(defctx->W,0,defctx->n);CHKERRQ(ierr);
   ierr = BVBiorthonormalizeColumn(defctx->V,defctx->W,n,NULL);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+PetscErrorCode NEPDeflationNESetRefine(NEP_NEDEF_CTX defctx,PetscBool ref)
+{
+  PetscFunctionBegin;
+  defctx->ref = ref;
   PetscFunctionReturn(0);
 }
 
@@ -412,7 +420,7 @@ PetscErrorCode NEPSolve_SLP_Twosided(NEP nep)
   PetscScalar    sigma,lambda,mu,im=0.0,mu2,im2;
   PetscReal      resnorm,resl;
   PetscInt       nconv,nconv2,i;
-  PetscBool      skip=PETSC_FALSE;
+  PetscBool      skip=PETSC_FALSE,lock=PETSC_FALSE;
   NEP_NEDEF_CTX  defctx=NULL;    /* Extended operator for deflation */
 
   PetscFunctionBegin;
@@ -457,11 +465,29 @@ PetscErrorCode NEPSolve_SLP_Twosided(NEP nep)
 
     /* convergence test */
     ierr = VecNorm(r,NORM_2,&resnorm);CHKERRQ(ierr);
+    resnorm = PetscMax(resnorm,resl);
     ierr = (*nep->converged)(nep,lambda,0,resnorm,&nep->errest[nep->nconv],nep->convergedctx);CHKERRQ(ierr);
     nep->eigr[nep->nconv] = lambda;
-    if (nep->errest[nep->nconv]<=nep->tol) {
+    if (nep->errest[nep->nconv]<=nep->tol || nep->errest[nep->nconv]<=ctx->deftol) {
+      if (nep->errest[nep->nconv]<=ctx->deftol && !defctx->ref && nep->nconv) {
+        ierr = NEPDeflationNERecoverEigenvectors(defctx,u,w,lambda);CHKERRQ(ierr);
+        ierr = VecConjugate(w);CHKERRQ(ierr);
+        ierr = NEPDeflationNESetRefine(defctx,PETSC_TRUE);CHKERRQ(ierr);
+        ierr = MatMultTranspose(mF,w,r);CHKERRQ(ierr);
+        ierr = VecNorm(r,NORM_2,&resl);CHKERRQ(ierr);
+        ierr = MatMult(mF,u,r);CHKERRQ(ierr);
+        ierr = VecNorm(r,NORM_2,&resnorm);CHKERRQ(ierr);
+        resnorm = PetscMax(resnorm,resl);
+        ierr = (*nep->converged)(nep,lambda,0,resnorm,&nep->errest[nep->nconv],nep->convergedctx);CHKERRQ(ierr);
+        if (nep->errest[nep->nconv]<=nep->tol) lock = PETSC_TRUE;
+      } else if (nep->errest[nep->nconv]<=nep->tol) lock = PETSC_TRUE;
+    }
+    if (lock) {
+      lock = PETSC_FALSE;
       skip = PETSC_TRUE;
+      ierr = NEPDeflationNERecoverEigenvectors(defctx,u,w,lambda);CHKERRQ(ierr);
       ierr = NEPDeflationNELocking(nep,defctx,u,w,lambda);CHKERRQ(ierr);
+      ierr = NEPDeflationNESetRefine(defctx,PETSC_FALSE);CHKERRQ(ierr);
       ierr = BVInsertVec(nep->V,nep->nconv,u);CHKERRQ(ierr);
       ierr = BVInsertVec(nep->W,nep->nconv,w);CHKERRQ(ierr);
       ierr = VecConjugate(w);CHKERRQ(ierr);
@@ -492,8 +518,8 @@ PetscErrorCode NEPSolve_SLP_Twosided(NEP nep)
         }
         ierr = EPSGetEigenpair(ctx->eps,0,&mu,&im,u,NULL);CHKERRQ(ierr);
         for (i=0;i<nconv2;i++) {
-          ierr = EPSGetEigenpair(ctx->epsts,0,&mu2,&im2,w,NULL);CHKERRQ(ierr);
-          if (SlepcAbs(mu-mu2,im-im2)/SlepcAbs(mu,im)<nep->tol*100) break;
+          ierr = EPSGetEigenpair(ctx->epsts,i,&mu2,&im2,w,NULL);CHKERRQ(ierr);
+          if (SlepcAbs(mu-mu2,im-im2)/SlepcAbs(mu,im)<nep->tol*1000) break;
         }
         if (i==nconv2) {
           ierr = PetscInfo1(nep,"iter=%D, inner iteration failed, stopping solve\n",nep->its);CHKERRQ(ierr);
