@@ -68,7 +68,7 @@ PetscErrorCode NEPSetUp_SLP(NEP nep)
   PetscFunctionReturn(0);
 }
 
-PetscErrorCode NEPSLPEPSMatShell_MatMult(Mat M,Vec x,Vec y)
+static PetscErrorCode MatMult_SLP(Mat M,Vec x,Vec y)
 {
   PetscErrorCode     ierr;
   NEP_SLP_EPS_MSHELL *ctx;
@@ -80,7 +80,7 @@ PetscErrorCode NEPSLPEPSMatShell_MatMult(Mat M,Vec x,Vec y)
   PetscFunctionReturn(0);
 }
 
-PetscErrorCode NEPSLPEPSMatShell_Destroy(Mat M)
+static PetscErrorCode MatDestroy_SLP(Mat M)
 {
   PetscErrorCode     ierr;
   NEP_SLP_EPS_MSHELL *ctx;
@@ -92,7 +92,7 @@ PetscErrorCode NEPSLPEPSMatShell_Destroy(Mat M)
   PetscFunctionReturn(0);
 }
 
-PetscErrorCode NEPSLPEPSMatShell_CreateVecs(Mat M,Vec *left,Vec *right)
+static PetscErrorCode MatCreateVecs_SLP(Mat M,Vec *left,Vec *right)
 {
   PetscErrorCode     ierr;
   NEP_SLP_EPS_MSHELL *ctx;
@@ -125,9 +125,9 @@ static PetscErrorCode NEPSLPSetUpLinearEP(NEP nep,NEP_EXT_OP extop,PetscScalar l
     ierr = MatGetLocalSize(nep->function,&mloc,&nloc);CHKERRQ(ierr);
     nloc += extop->szd; mloc += extop->szd;
     ierr = MatCreateShell(PetscObjectComm((PetscObject)nep),nloc,mloc,PETSC_DETERMINE,PETSC_DETERMINE,shellctx,&Mshell);CHKERRQ(ierr);
-    ierr = MatShellSetOperation(Mshell,MATOP_MULT,(void(*)(void))NEPSLPEPSMatShell_MatMult);CHKERRQ(ierr);
-    ierr = MatShellSetOperation(Mshell,MATOP_DESTROY,(void(*)(void))NEPSLPEPSMatShell_Destroy);CHKERRQ(ierr);
-    ierr = MatShellSetOperation(Mshell,MATOP_CREATE_VECS,(void(*)(void))NEPSLPEPSMatShell_CreateVecs);CHKERRQ(ierr);
+    ierr = MatShellSetOperation(Mshell,MATOP_MULT,(void(*)(void))MatMult_SLP);CHKERRQ(ierr);
+    ierr = MatShellSetOperation(Mshell,MATOP_DESTROY,(void(*)(void))MatDestroy_SLP);CHKERRQ(ierr);
+    ierr = MatShellSetOperation(Mshell,MATOP_CREATE_VECS,(void(*)(void))MatCreateVecs_SLP);CHKERRQ(ierr);
     ierr = EPSSetOperators(slpctx->eps,Mshell,NULL);CHKERRQ(ierr);
     ierr = MatDestroy(&Mshell);CHKERRQ(ierr);
   }

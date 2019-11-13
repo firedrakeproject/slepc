@@ -8,18 +8,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 /*
-   SLEPc nonlinear eigensolver: "slp"
-
-   Method: Succesive linear problems
-
-   Algorithm:
-
-       Newton-type iteration based on first order Taylor approximation.
-
-   References:
-
-       [1] A. Ruhe, "Algorithms for the nonlinear eigenvalue problem", SIAM J.
-           Numer. Anal. 10(4):674-689, 1973.
+   Two-sided variant of the NEPSLP solver.
 */
 
 #include <slepc/private/nepimpl.h>         /*I "slepcnep.h" I*/
@@ -50,7 +39,7 @@ typedef struct {
   Vec         w[2];
 } NEP_NEDEF_MSHELL;
 
-PetscErrorCode NEPSLPTwoSEPSMatShell_MatMult(Mat M,Vec x,Vec y)
+static PetscErrorCode MatMult_SLPTS_Right(Mat M,Vec x,Vec y)
 {
   PetscErrorCode         ierr;
   NEP_SLP_TWO_EPS_MSHELL *ctx;
@@ -62,7 +51,7 @@ PetscErrorCode NEPSLPTwoSEPSMatShell_MatMult(Mat M,Vec x,Vec y)
   PetscFunctionReturn(0);
 }
 
-PetscErrorCode NEPSLPTwoSEPStsMatShell_MatMult(Mat M,Vec x,Vec y)
+static PetscErrorCode MatMult_SLPTS_Left(Mat M,Vec x,Vec y)
 {
   PetscErrorCode         ierr;
   NEP_SLP_TWO_EPS_MSHELL *ctx;
@@ -74,7 +63,7 @@ PetscErrorCode NEPSLPTwoSEPStsMatShell_MatMult(Mat M,Vec x,Vec y)
   PetscFunctionReturn(0);
 }
 
-PetscErrorCode NEPSLPTwoSEPSMatShell_Destroy(Mat M)
+static PetscErrorCode MatDestroy_SLPTS(Mat M)
 {
   PetscErrorCode         ierr;
   NEP_SLP_TWO_EPS_MSHELL *ctx;
@@ -86,7 +75,7 @@ PetscErrorCode NEPSLPTwoSEPSMatShell_Destroy(Mat M)
   PetscFunctionReturn(0);
 }
 
-PetscErrorCode NEPSLPTwoSEPSMatShell_CreateVecs(Mat M,Vec *left,Vec *right)
+static PetscErrorCode MatCreateVecs_SLPTS(Mat M,Vec *left,Vec *right)
 {
   PetscErrorCode         ierr;
   NEP_SLP_TWO_EPS_MSHELL *ctx;
@@ -102,7 +91,7 @@ PetscErrorCode NEPSLPTwoSEPSMatShell_CreateVecs(Mat M,Vec *left,Vec *right)
   PetscFunctionReturn(0);
 }
 
-static PetscErrorCode NEPSLPTwoSSetUpLinearEP(NEP nep,Mat F,Mat J,PetscBool ts,Mat *M)
+static PetscErrorCode NEPSLPSetUpEPSMat(NEP nep,Mat F,Mat J,PetscBool left,Mat *M)
 {
   PetscErrorCode         ierr;
   Mat                    Mshell;
@@ -116,22 +105,22 @@ static PetscErrorCode NEPSLPTwoSSetUpLinearEP(NEP nep,Mat F,Mat J,PetscBool ts,M
   shellctx->Jt = J;
   ierr = MatGetLocalSize(nep->function,&mloc,&nloc);CHKERRQ(ierr);
   ierr = MatCreateShell(PetscObjectComm((PetscObject)nep),nloc,mloc,PETSC_DETERMINE,PETSC_DETERMINE,shellctx,&Mshell);CHKERRQ(ierr);
-  if (!ts) {
-    ierr = MatShellSetOperation(Mshell,MATOP_MULT,(void(*)(void))NEPSLPTwoSEPSMatShell_MatMult);CHKERRQ(ierr);
+  if (left) {
+    ierr = MatShellSetOperation(Mshell,MATOP_MULT,(void(*)(void))MatMult_SLPTS_Left);CHKERRQ(ierr);
   } else {
-    ierr = MatShellSetOperation(Mshell,MATOP_MULT,(void(*)(void))NEPSLPTwoSEPStsMatShell_MatMult);CHKERRQ(ierr);
+    ierr = MatShellSetOperation(Mshell,MATOP_MULT,(void(*)(void))MatMult_SLPTS_Right);CHKERRQ(ierr);
   }
-  ierr = MatShellSetOperation(Mshell,MATOP_DESTROY,(void(*)(void))NEPSLPTwoSEPSMatShell_Destroy);CHKERRQ(ierr);
-  ierr = MatShellSetOperation(Mshell,MATOP_CREATE_VECS,(void(*)(void))NEPSLPTwoSEPSMatShell_CreateVecs);CHKERRQ(ierr);
+  ierr = MatShellSetOperation(Mshell,MATOP_DESTROY,(void(*)(void))MatDestroy_SLPTS);CHKERRQ(ierr);
+  ierr = MatShellSetOperation(Mshell,MATOP_CREATE_VECS,(void(*)(void))MatCreateVecs_SLPTS);CHKERRQ(ierr);
   *M = Mshell;
   ierr = MatCreateVecs(nep->function,&shellctx->w,NULL);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
 /* Functions for deflation */
-PetscErrorCode NEPDeflationNEReset(NEP_NEDEF_CTX defctx)
+static PetscErrorCode NEPDeflationNEDestroy(NEP_NEDEF_CTX defctx)
 {
-  PetscErrorCode    ierr;
+  PetscErrorCode ierr;
 
   PetscFunctionBegin;
   if (!defctx) PetscFunctionReturn(0);
@@ -140,10 +129,10 @@ PetscErrorCode NEPDeflationNEReset(NEP_NEDEF_CTX defctx)
   PetscFunctionReturn(0);
 }
 
-PetscErrorCode NEPDeflationNEInitialize(NEP nep,BV V,BV W,PetscInt sz,NEP_NEDEF_CTX *defctx)
+static PetscErrorCode NEPDeflationNECreate(NEP nep,BV V,BV W,PetscInt sz,NEP_NEDEF_CTX *defctx)
 {
-  PetscErrorCode    ierr;
-  NEP_NEDEF_CTX       op;
+  PetscErrorCode ierr;
+  NEP_NEDEF_CTX  op;
 
   PetscFunctionBegin;
   ierr = PetscNew(&op);CHKERRQ(ierr);
@@ -158,7 +147,7 @@ PetscErrorCode NEPDeflationNEInitialize(NEP nep,BV V,BV W,PetscInt sz,NEP_NEDEF_
   PetscFunctionReturn(0);
 }
 
-PetscErrorCode NEPDeflationNEComputeFunction(NEP nep,Mat M,PetscScalar lambda)
+static PetscErrorCode NEPDeflationNEComputeFunction(NEP nep,Mat M,PetscScalar lambda)
 {
   PetscErrorCode   ierr;
   NEP_NEDEF_MSHELL *matctx;
@@ -173,7 +162,7 @@ PetscErrorCode NEPDeflationNEComputeFunction(NEP nep,Mat M,PetscScalar lambda)
   PetscFunctionReturn(0);
 }
 
-PetscErrorCode NEPDeflationNEShellOp_MMult(Mat M,Vec x,Vec r)
+static PetscErrorCode MatMult_NEPDeflationNE(Mat M,Vec x,Vec r)
 {
   Vec              t,tt;
   PetscScalar      *h,*alpha,lambda,*eig;  
@@ -209,7 +198,7 @@ PetscErrorCode NEPDeflationNEShellOp_MMult(Mat M,Vec x,Vec r)
   PetscFunctionReturn(0);
 }
 
-PetscErrorCode NEPDeflationNEShellOp_MMultTrans(Mat M,Vec x,Vec r)
+static PetscErrorCode MatMultTranspose_NEPDeflationNE(Mat M,Vec x,Vec r)
 {
   Vec              t,tt;
   PetscScalar      *h,*alphaC,lambda,*eig;  
@@ -248,7 +237,7 @@ PetscErrorCode NEPDeflationNEShellOp_MMultTrans(Mat M,Vec x,Vec r)
   PetscFunctionReturn(0);
 }
 
-PetscErrorCode NEPDeflationNEShellOp_MSolve(Mat M,Vec b,Vec x)
+static PetscErrorCode MatSolve_NEPDeflationNE(Mat M,Vec b,Vec x)
 {
   PetscErrorCode   ierr;
   PetscScalar      *h,*alpha,lambda,*eig;
@@ -256,7 +245,7 @@ PetscErrorCode NEPDeflationNEShellOp_MSolve(Mat M,Vec b,Vec x)
   NEP_NEDEF_MSHELL *matctx;
 
   PetscFunctionBegin;
-  ierr = MatShellGetContext(M, (void**)&matctx);CHKERRQ(ierr);
+  ierr = MatShellGetContext(M,(void**)&matctx);CHKERRQ(ierr);
   if (!matctx->ksp) {
     ierr = VecCopy(b,x);CHKERRQ(ierr);
     PetscFunctionReturn(0);
@@ -276,7 +265,7 @@ PetscErrorCode NEPDeflationNEShellOp_MSolve(Mat M,Vec b,Vec x)
   PetscFunctionReturn(0);
 }
 
-PetscErrorCode NEPDeflationNEShellOp_MSolveTrans(Mat M,Vec b,Vec x)
+static PetscErrorCode MatSolveTranspose_NEPDeflationNE(Mat M,Vec b,Vec x)
 {
   PetscErrorCode   ierr;
   PetscScalar      *h,*alphaC,lambda,*eig;
@@ -284,7 +273,7 @@ PetscErrorCode NEPDeflationNEShellOp_MSolveTrans(Mat M,Vec b,Vec x)
   NEP_NEDEF_MSHELL *matctx;
 
   PetscFunctionBegin;
-  ierr = MatShellGetContext(M, (void**)&matctx);CHKERRQ(ierr);
+  ierr = MatShellGetContext(M,(void**)&matctx);CHKERRQ(ierr);
   if (!matctx->ksp) {
     ierr = VecCopy(b,x);CHKERRQ(ierr);
     PetscFunctionReturn(0);
@@ -306,31 +295,31 @@ PetscErrorCode NEPDeflationNEShellOp_MSolveTrans(Mat M,Vec b,Vec x)
   PetscFunctionReturn(0);
 }
 
-PetscErrorCode NEPDeflationNEShellOp_Destroy(Mat M)
+static PetscErrorCode MatDestroy_NEPDeflationNE(Mat M)
 {
   PetscErrorCode   ierr;
   NEP_NEDEF_MSHELL *matctx;
   
   PetscFunctionBegin;
-  ierr = MatShellGetContext(M, (void**)&matctx);CHKERRQ(ierr);
+  ierr = MatShellGetContext(M,(void**)&matctx);CHKERRQ(ierr);
   ierr = VecDestroy(&matctx->w[0]);CHKERRQ(ierr);
   ierr = VecDestroy(&matctx->w[1]);CHKERRQ(ierr);
   ierr = PetscFree(matctx);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
-PetscErrorCode NEPDeflationNEMatShell_CreateVecs(Mat M,Vec *right,Vec *left)
+static PetscErrorCode MatCreateVecs_NEPDeflationNE(Mat M,Vec *right,Vec *left)
 {
   PetscErrorCode   ierr;
   NEP_NEDEF_MSHELL *matctx;
 
   PetscFunctionBegin;
-  ierr = MatShellGetContext(M, (void**)&matctx);CHKERRQ(ierr);
+  ierr = MatShellGetContext(M,(void**)&matctx);CHKERRQ(ierr);
   ierr = MatCreateVecs(matctx->F,right,left);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
-PetscErrorCode NEPDeflationNEFunctionCreate(NEP nep,NEP_NEDEF_CTX defctx,Mat F,Mat J,KSP ksp,PetscBool isJ,Mat *Mshell)
+static PetscErrorCode NEPDeflationNEFunctionCreate(NEP_NEDEF_CTX defctx,NEP nep,Mat F,Mat J,KSP ksp,PetscBool isJ,Mat *Mshell)
 {
   NEP_NEDEF_MSHELL *matctx;
   PetscErrorCode   ierr;
@@ -349,16 +338,16 @@ PetscErrorCode NEPDeflationNEFunctionCreate(NEP nep,NEP_NEDEF_CTX defctx,Mat F,M
   matctx->lambda = PETSC_MAX_REAL;
   ierr = MatCreateVecs(F,&matctx->w[0],NULL);CHKERRQ(ierr); 
   ierr = VecDuplicate(matctx->w[0],&matctx->w[1]);CHKERRQ(ierr);
-  ierr = MatShellSetOperation(*Mshell,MATOP_MULT,(void(*)(void))NEPDeflationNEShellOp_MMult);CHKERRQ(ierr);
-  ierr = MatShellSetOperation(*Mshell,MATOP_MULT_TRANSPOSE,(void(*)(void))NEPDeflationNEShellOp_MMultTrans);CHKERRQ(ierr);
-  ierr = MatShellSetOperation(*Mshell,MATOP_SOLVE,(void(*)(void))NEPDeflationNEShellOp_MSolve);CHKERRQ(ierr);
-  ierr = MatShellSetOperation(*Mshell,MATOP_SOLVE_TRANSPOSE,(void(*)(void))NEPDeflationNEShellOp_MSolveTrans);CHKERRQ(ierr);
-  ierr = MatShellSetOperation(*Mshell,MATOP_DESTROY,(void(*)(void))NEPDeflationNEShellOp_Destroy);CHKERRQ(ierr);
-  ierr = MatShellSetOperation(*Mshell,MATOP_CREATE_VECS,(void(*)(void))NEPDeflationNEMatShell_CreateVecs);CHKERRQ(ierr);
+  ierr = MatShellSetOperation(*Mshell,MATOP_MULT,(void(*)(void))MatMult_NEPDeflationNE);CHKERRQ(ierr);
+  ierr = MatShellSetOperation(*Mshell,MATOP_MULT_TRANSPOSE,(void(*)(void))MatMultTranspose_NEPDeflationNE);CHKERRQ(ierr);
+  ierr = MatShellSetOperation(*Mshell,MATOP_SOLVE,(void(*)(void))MatSolve_NEPDeflationNE);CHKERRQ(ierr);
+  ierr = MatShellSetOperation(*Mshell,MATOP_SOLVE_TRANSPOSE,(void(*)(void))MatSolveTranspose_NEPDeflationNE);CHKERRQ(ierr);
+  ierr = MatShellSetOperation(*Mshell,MATOP_DESTROY,(void(*)(void))MatDestroy_NEPDeflationNE);CHKERRQ(ierr);
+  ierr = MatShellSetOperation(*Mshell,MATOP_CREATE_VECS,(void(*)(void))MatCreateVecs_NEPDeflationNE);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
-PetscErrorCode NEPDeflationNERecoverEigenvectors(NEP_NEDEF_CTX defctx,Vec u,Vec w,PetscScalar lambda)
+static PetscErrorCode NEPDeflationNERecoverEigenvectors(NEP_NEDEF_CTX defctx,Vec u,Vec w,PetscScalar lambda)
 {
   PetscErrorCode ierr;
   PetscScalar    *h,*alpha,*eig;
@@ -387,7 +376,7 @@ PetscErrorCode NEPDeflationNERecoverEigenvectors(NEP_NEDEF_CTX defctx,Vec u,Vec 
   PetscFunctionReturn(0);
 }
  
-PetscErrorCode NEPDeflationNELocking(NEP nep,NEP_NEDEF_CTX defctx,Vec u,Vec w,PetscScalar lambda)
+static PetscErrorCode NEPDeflationNELocking(NEP_NEDEF_CTX defctx,Vec u,Vec w,PetscScalar lambda)
 {
   PetscErrorCode ierr;
   PetscInt       n;
@@ -403,7 +392,7 @@ PetscErrorCode NEPDeflationNELocking(NEP nep,NEP_NEDEF_CTX defctx,Vec u,Vec w,Pe
   PetscFunctionReturn(0);
 }
 
-PetscErrorCode NEPDeflationNESetRefine(NEP_NEDEF_CTX defctx,PetscBool ref)
+static PetscErrorCode NEPDeflationNESetRefine(NEP_NEDEF_CTX defctx,PetscBool ref)
 {
   PetscFunctionBegin;
   defctx->ref = ref;
@@ -434,7 +423,7 @@ PetscErrorCode NEPSolve_SLP_Twosided(NEP nep)
   if (!ctx->ksp) { ierr = NEPSLPGetKSP(nep,&ctx->ksp);CHKERRQ(ierr); }
   ierr = BVDuplicate(nep->V,&X);CHKERRQ(ierr);
   ierr = BVDuplicate(nep->W,&Y);CHKERRQ(ierr);
-  ierr = NEPDeflationNEInitialize(nep,X,Y,nep->nev,&defctx);CHKERRQ(ierr);
+  ierr = NEPDeflationNECreate(nep,X,Y,nep->nev,&defctx);CHKERRQ(ierr);
   ierr = BVGetColumn(nep->V,0,&t);CHKERRQ(ierr);
   ierr = VecDuplicate(t,&u);CHKERRQ(ierr);
   ierr = VecDuplicate(t,&w);CHKERRQ(ierr);
@@ -442,10 +431,10 @@ PetscErrorCode NEPSolve_SLP_Twosided(NEP nep)
   ierr = BVCopyVec(nep->V,0,u);CHKERRQ(ierr);
   ierr = BVCopyVec(nep->W,0,w);CHKERRQ(ierr);
   ierr = VecDuplicate(u,&r);CHKERRQ(ierr);
-  ierr = NEPDeflationNEFunctionCreate(nep,defctx,nep->function,NULL,ctx->ksp,PETSC_FALSE,&mF);CHKERRQ(ierr);
-  ierr = NEPDeflationNEFunctionCreate(nep,defctx,nep->function,nep->jacobian,NULL,PETSC_TRUE,&mJ);CHKERRQ(ierr);
-  ierr = NEPSLPTwoSSetUpLinearEP(nep,mF,mJ,PETSC_FALSE,&M);CHKERRQ(ierr);
-  ierr = NEPSLPTwoSSetUpLinearEP(nep,mF,mJ,PETSC_TRUE,&Mt);CHKERRQ(ierr);
+  ierr = NEPDeflationNEFunctionCreate(defctx,nep,nep->function,NULL,ctx->ksp,PETSC_FALSE,&mF);CHKERRQ(ierr);
+  ierr = NEPDeflationNEFunctionCreate(defctx,nep,nep->function,nep->jacobian,NULL,PETSC_TRUE,&mJ);CHKERRQ(ierr);
+  ierr = NEPSLPSetUpEPSMat(nep,mF,mJ,PETSC_FALSE,&M);CHKERRQ(ierr);
+  ierr = NEPSLPSetUpEPSMat(nep,mF,mJ,PETSC_TRUE,&Mt);CHKERRQ(ierr);
   ierr = EPSSetOperators(ctx->eps,M,NULL);CHKERRQ(ierr);
   ierr = MatDestroy(&M);CHKERRQ(ierr);
   ierr = EPSCreate(PetscObjectComm((PetscObject)nep),&ctx->epsts);CHKERRQ(ierr);
@@ -486,7 +475,7 @@ PetscErrorCode NEPSolve_SLP_Twosided(NEP nep)
       lock = PETSC_FALSE;
       skip = PETSC_TRUE;
       ierr = NEPDeflationNERecoverEigenvectors(defctx,u,w,lambda);CHKERRQ(ierr);
-      ierr = NEPDeflationNELocking(nep,defctx,u,w,lambda);CHKERRQ(ierr);
+      ierr = NEPDeflationNELocking(defctx,u,w,lambda);CHKERRQ(ierr);
       ierr = NEPDeflationNESetRefine(defctx,PETSC_FALSE);CHKERRQ(ierr);
       ierr = BVInsertVec(nep->V,nep->nconv,u);CHKERRQ(ierr);
       ierr = BVInsertVec(nep->W,nep->nconv,w);CHKERRQ(ierr);
@@ -557,7 +546,7 @@ PetscErrorCode NEPSolve_SLP_Twosided(NEP nep)
   ierr = MatDestroy(&mJ);CHKERRQ(ierr);
   ierr = BVDestroy(&X);CHKERRQ(ierr);
   ierr = BVDestroy(&Y);CHKERRQ(ierr);
-  ierr = NEPDeflationNEReset(defctx);CHKERRQ(ierr);
+  ierr = NEPDeflationNEDestroy(defctx);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
