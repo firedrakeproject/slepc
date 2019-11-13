@@ -60,6 +60,13 @@ PetscErrorCode NEPSetUp_SLP(NEP nep)
   if (nep->twosided) {
     nep->ops->solve = NEPSolve_SLP_Twosided;    
     nep->ops->computevectors = NULL;
+    if (!ctx->epsts) { ierr = NEPSLPGetEPSLeft(nep,&ctx->epsts);CHKERRQ(ierr); }
+    ierr = EPSGetST(ctx->epsts,&st);CHKERRQ(ierr);
+    ierr = PetscObjectTypeCompareAny((PetscObject)st,&flg,STSINVERT,STCAYLEY,"");CHKERRQ(ierr);
+    if (flg) SETERRQ(PetscObjectComm((PetscObject)nep),1,"SLP does not support spectral transformation");
+    ierr = EPSSetDimensions(ctx->epsts,1,PETSC_DECIDE,PETSC_DECIDE);CHKERRQ(ierr);
+    ierr = EPSSetWhichEigenpairs(ctx->epsts,EPS_LARGEST_MAGNITUDE);CHKERRQ(ierr);
+    ierr = EPSSetTolerances(ctx->epsts,nep->tol==PETSC_DEFAULT?SLEPC_DEFAULT_TOL/10.0:nep->tol/10.0,nep->max_it?nep->max_it:PETSC_DEFAULT);CHKERRQ(ierr);
   } else {
     nep->ops->solve = NEPSolve_SLP;    
     nep->ops->computevectors = NEPComputeVectors_Schur;
@@ -270,6 +277,10 @@ PetscErrorCode NEPSetFromOptions_SLP(PetscOptionItems *PetscOptionsObject,NEP ne
 
   if (!ctx->eps) { ierr = NEPSLPGetEPS(nep,&ctx->eps);CHKERRQ(ierr); }
   ierr = EPSSetFromOptions(ctx->eps);CHKERRQ(ierr);
+  if (nep->twosided) {
+    if (!ctx->epsts) { ierr = NEPSLPGetEPSLeft(nep,&ctx->epsts);CHKERRQ(ierr); }
+    ierr = EPSSetFromOptions(ctx->epsts);CHKERRQ(ierr);
+  }
   if (!ctx->ksp) { ierr = NEPSLPGetKSP(nep,&ctx->ksp);CHKERRQ(ierr); }
   ierr = KSPSetFromOptions(ctx->ksp);CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -440,6 +451,93 @@ PetscErrorCode NEPSLPGetEPS(NEP nep,EPS *eps)
   PetscFunctionReturn(0);
 }
 
+static PetscErrorCode NEPSLPSetEPSLeft_SLP(NEP nep,EPS eps)
+{
+  PetscErrorCode ierr;
+  NEP_SLP        *ctx = (NEP_SLP*)nep->data;
+
+  PetscFunctionBegin;
+  ierr = PetscObjectReference((PetscObject)eps);CHKERRQ(ierr);
+  ierr = EPSDestroy(&ctx->epsts);CHKERRQ(ierr);
+  ctx->epsts = eps;
+  ierr = PetscLogObjectParent((PetscObject)nep,(PetscObject)ctx->epsts);CHKERRQ(ierr);
+  nep->state = NEP_STATE_INITIAL;
+  PetscFunctionReturn(0);
+}
+
+/*@
+   NEPSLPSetEPSLeft - Associate a linear eigensolver object (EPS) to the
+   nonlinear eigenvalue solver, used to compute left eigenvectors in the
+   two-sided variant of SLP.
+
+   Collective on nep
+
+   Input Parameters:
++  nep - nonlinear eigenvalue solver
+-  eps - the eigensolver object
+
+   Level: advanced
+
+.seealso: NEPSLPGetEPSLeft(), NEPSetTwoSided()
+@*/
+PetscErrorCode NEPSLPSetEPSLeft(NEP nep,EPS eps)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
+  PetscValidHeaderSpecific(eps,EPS_CLASSID,2);
+  PetscCheckSameComm(nep,1,eps,2);
+  ierr = PetscTryMethod(nep,"NEPSLPSetEPSLeft_C",(NEP,EPS),(nep,eps));CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+static PetscErrorCode NEPSLPGetEPSLeft_SLP(NEP nep,EPS *eps)
+{
+  PetscErrorCode ierr;
+  NEP_SLP        *ctx = (NEP_SLP*)nep->data;
+
+  PetscFunctionBegin;
+  if (!ctx->epsts) {
+    ierr = EPSCreate(PetscObjectComm((PetscObject)nep),&ctx->epsts);CHKERRQ(ierr);
+    ierr = PetscObjectIncrementTabLevel((PetscObject)ctx->epsts,(PetscObject)nep,1);CHKERRQ(ierr);
+    ierr = EPSSetOptionsPrefix(ctx->epsts,((PetscObject)nep)->prefix);CHKERRQ(ierr);
+    ierr = EPSAppendOptionsPrefix(ctx->epsts,"nep_slp_left_");CHKERRQ(ierr);
+    ierr = PetscLogObjectParent((PetscObject)nep,(PetscObject)ctx->epsts);CHKERRQ(ierr);
+    ierr = PetscObjectSetOptions((PetscObject)ctx->epsts,((PetscObject)nep)->options);CHKERRQ(ierr);
+  }
+  *eps = ctx->epsts;
+  PetscFunctionReturn(0);
+}
+
+/*@
+   NEPSLPGetEPSLeft - Retrieve the linear eigensolver object (EPS) associated
+   to the nonlinear eigenvalue solver, used to compute left eigenvectors in the
+   two-sided variant of SLP.
+
+   Not Collective
+
+   Input Parameter:
+.  nep - nonlinear eigenvalue solver
+
+   Output Parameter:
+.  eps - the eigensolver object
+
+   Level: advanced
+
+.seealso: NEPSLPSetEPSLeft(), NEPSetTwoSided()
+@*/
+PetscErrorCode NEPSLPGetEPSLeft(NEP nep,EPS *eps)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
+  PetscValidPointer(eps,2);
+  ierr = PetscUseMethod(nep,"NEPSLPGetEPSLeft_C",(NEP,EPS*),(nep,eps));CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
 static PetscErrorCode NEPSLPSetKSP_SLP(NEP nep,KSP ksp)
 {
   PetscErrorCode ierr;
@@ -541,6 +639,10 @@ PetscErrorCode NEPView_SLP(NEP nep,PetscViewer viewer)
     if (!ctx->eps) { ierr = NEPSLPGetEPS(nep,&ctx->eps);CHKERRQ(ierr); }
     ierr = PetscViewerASCIIPushTab(viewer);CHKERRQ(ierr);
     ierr = EPSView(ctx->eps,viewer);CHKERRQ(ierr);
+    if (nep->twosided) {
+      if (!ctx->epsts) { ierr = NEPSLPGetEPSLeft(nep,&ctx->epsts);CHKERRQ(ierr); }
+      ierr = EPSView(ctx->epsts,viewer);CHKERRQ(ierr);
+    }
     if (!ctx->ksp) { ierr = NEPSLPGetKSP(nep,&ctx->ksp);CHKERRQ(ierr); }
     ierr = KSPView(ctx->ksp,viewer);CHKERRQ(ierr);
     ierr = PetscViewerASCIIPopTab(viewer);CHKERRQ(ierr);
@@ -555,6 +657,7 @@ PetscErrorCode NEPReset_SLP(NEP nep)
 
   PetscFunctionBegin;
   ierr = EPSReset(ctx->eps);CHKERRQ(ierr);
+  if (nep->twosided) { ierr = EPSReset(ctx->epsts);CHKERRQ(ierr); }
   ierr = KSPReset(ctx->ksp);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -573,6 +676,8 @@ PetscErrorCode NEPDestroy_SLP(NEP nep)
   ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPSLPGetDeflationThreshold_C",NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPSLPSetEPS_C",NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPSLPGetEPS_C",NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPSLPSetEPSLeft_C",NULL);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPSLPGetEPSLeft_C",NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPSLPSetKSP_C",NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPSLPGetKSP_C",NULL);CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -588,9 +693,9 @@ SLEPC_EXTERN PetscErrorCode NEPCreate_SLP(NEP nep)
   nep->data = (void*)ctx;
 
   nep->useds = PETSC_TRUE;
+  nep->hasts = PETSC_TRUE;
 
   ctx->deftol = 0.0;
-  nep->hasts = PETSC_TRUE;
 
   nep->ops->solve          = NEPSolve_SLP;
   nep->ops->setup          = NEPSetUp_SLP;
@@ -604,6 +709,8 @@ SLEPC_EXTERN PetscErrorCode NEPCreate_SLP(NEP nep)
   ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPSLPGetDeflationThreshold_C",NEPSLPGetDeflationThreshold_SLP);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPSLPSetEPS_C",NEPSLPSetEPS_SLP);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPSLPGetEPS_C",NEPSLPGetEPS_SLP);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPSLPSetEPSLeft_C",NEPSLPSetEPSLeft_SLP);CHKERRQ(ierr);
+  ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPSLPGetEPSLeft_C",NEPSLPGetEPSLeft_SLP);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPSLPSetKSP_C",NEPSLPSetKSP_SLP);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)nep,"NEPSLPGetKSP_C",NEPSLPGetKSP_SLP);CHKERRQ(ierr);
   PetscFunctionReturn(0);

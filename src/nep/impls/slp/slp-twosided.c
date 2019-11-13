@@ -437,10 +437,8 @@ PetscErrorCode NEPSolve_SLP_Twosided(NEP nep)
   ierr = NEPSLPSetUpEPSMat(nep,mF,mJ,PETSC_TRUE,&Mt);CHKERRQ(ierr);
   ierr = EPSSetOperators(ctx->eps,M,NULL);CHKERRQ(ierr);
   ierr = MatDestroy(&M);CHKERRQ(ierr);
-  ierr = EPSCreate(PetscObjectComm((PetscObject)nep),&ctx->epsts);CHKERRQ(ierr);
   ierr = EPSSetOperators(ctx->epsts,Mt,NULL);CHKERRQ(ierr);
   ierr = MatDestroy(&Mt);CHKERRQ(ierr);
-  ierr = EPSSetFromOptions(ctx->epsts);CHKERRQ(ierr);
 
   /* Restart loop */
   while (nep->reason == NEP_CONVERGED_ITERATING) {
