@@ -159,7 +159,6 @@ PetscErrorCode EPSSetUp_KrylovSchur(EPS eps)
   if (!eps->extraction) {
     ierr = EPSSetExtraction(eps,EPS_RITZ);CHKERRQ(ierr);
   } else if (eps->extraction!=EPS_RITZ && eps->extraction!=EPS_HARMONIC) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Unsupported extraction type");
-  if (eps->extraction==EPS_HARMONIC && ctx->lock) { ierr = PetscInfo(eps,"Locking was requested but will be deactivated since is not supported with harmonic extraction\n");CHKERRQ(ierr); }
 
   if (!ctx->keep) ctx->keep = 0.5;
 
@@ -308,7 +307,7 @@ PetscErrorCode EPSSolve_KrylovSchur_Default(EPS eps)
       ierr = DSRestoreArray(eps->ds,DS_MAT_A,&S);CHKERRQ(ierr);
 #endif
     }
-    if ((!ctx->lock || harmonic) && l>0) { l += k; k = 0; } /* non-locking variant: reset no. of converged pairs */
+    if (!ctx->lock && l>0) { l += k; k = 0; } /* non-locking variant: reset no. of converged pairs */
 
     if (eps->reason == EPS_CONVERGED_ITERATING) {
       if (breakdown || k==nv) {
@@ -327,8 +326,10 @@ PetscErrorCode EPSSolve_KrylovSchur_Default(EPS eps)
           ierr = DSSetDimensions(eps->ds,nv,0,k,l);CHKERRQ(ierr);
           ierr = DSTranslateHarmonic(eps->ds,0.0,beta,PETSC_TRUE,g,&gamma);CHKERRQ(ierr);
           /* gamma u^ = u - U*g~ */
+          ierr = BVSetActiveColumns(eps->V,0,nv);CHKERRQ(ierr);
           ierr = BVMultColumn(eps->V,-1.0,1.0,nv,g);CHKERRQ(ierr);
           ierr = BVScaleColumn(eps->V,nv,1.0/gamma);CHKERRQ(ierr);
+          ierr = BVSetActiveColumns(eps->V,eps->nconv,nv);CHKERRQ(ierr);
         }
         /* Prepare the Rayleigh quotient for restart */
         ierr = DSGetArray(eps->ds,DS_MAT_A,&S);CHKERRQ(ierr);

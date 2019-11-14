@@ -33,12 +33,13 @@ static PetscErrorCode EPSTwoSidedRQUpdate1(EPS eps,Mat M,PetscInt nv)
   PetscErrorCode ierr;
   PetscScalar    *T,*S,*A,*w,*pM,beta;
   Vec            u;
-  PetscInt       ld,ncv=eps->ncv,i;
+  PetscInt       ld,ncv=eps->ncv,i,l,nnv;
   PetscBLASInt   info,n_,ncv_,*p,one=1;
 
   PetscFunctionBegin;
   ierr = DSGetLeadingDimension(eps->ds,&ld);CHKERRQ(ierr);
   ierr = PetscMalloc3(nv,&p,ncv*ncv,&A,ncv,&w);CHKERRQ(ierr);
+  ierr = BVGetActiveColumns(eps->V,&l,&nnv);CHKERRQ(ierr);
   ierr = BVSetActiveColumns(eps->V,0,nv);CHKERRQ(ierr);
   ierr = BVSetActiveColumns(eps->W,0,nv);CHKERRQ(ierr);
   ierr = BVGetColumn(eps->V,nv,&u);CHKERRQ(ierr);
@@ -69,6 +70,8 @@ static PetscErrorCode EPSTwoSidedRQUpdate1(EPS eps,Mat M,PetscInt nv)
   for (i=0;i<nv;i++) T[(nv-1)*ld+i] += beta*w[i];
   ierr = DSRestoreArray(eps->dsts,DS_MAT_A,&T);CHKERRQ(ierr);
   ierr = PetscFree3(p,A,w);CHKERRQ(ierr);
+  ierr = BVSetActiveColumns(eps->V,l,nnv);CHKERRQ(ierr);
+  ierr = BVSetActiveColumns(eps->W,l,nnv);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 #endif
 }
@@ -84,6 +87,8 @@ static PetscErrorCode EPSTwoSidedRQUpdate2(EPS eps,Mat M,PetscInt k)
   PetscFunctionBegin;
   ierr = DSGetLeadingDimension(eps->ds,&ld);CHKERRQ(ierr);
   ierr = BVGetActiveColumns(eps->V,&l,&nv);CHKERRQ(ierr);
+  ierr = BVSetActiveColumns(eps->V,0,nv);CHKERRQ(ierr);
+  ierr = BVSetActiveColumns(eps->W,0,nv);CHKERRQ(ierr);
   ierr = PetscMalloc2(ncv*ncv,&w,ncv,&c);CHKERRQ(ierr);
   /* u = u - V*V'*u */
   ierr = BVOrthogonalizeColumn(eps->V,k,c,&norm,NULL);CHKERRQ(ierr);
@@ -117,6 +122,8 @@ static PetscErrorCode EPSTwoSidedRQUpdate2(EPS eps,Mat M,PetscInt k)
   PetscStackCallBLAS("BLASgemm",BLASgemm_("C","N",&n_,&n_,&n_,&sone,Q,&ld_,w,&ncv_,&zero,pM,&ncv_));
   ierr = DSRestoreArray(eps->dsts,DS_MAT_Q,&Q);CHKERRQ(ierr);
   ierr = PetscFree2(w,c);CHKERRQ(ierr);
+  ierr = BVSetActiveColumns(eps->V,l,nv);CHKERRQ(ierr);
+  ierr = BVSetActiveColumns(eps->W,l,nv);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -134,7 +141,6 @@ PetscErrorCode EPSSolve_KrylovSchur_TwoSided(EPS eps)
 #endif
 
   PetscFunctionBegin;
-  ctx->lock = PETSC_FALSE; /* TO DO */
   ierr = DSGetLeadingDimension(eps->ds,&ld);CHKERRQ(ierr);
   ierr = EPSGetStartVector(eps,0,NULL);CHKERRQ(ierr);
   ierr = EPSGetLeftStartVector(eps,0,NULL);CHKERRQ(ierr);

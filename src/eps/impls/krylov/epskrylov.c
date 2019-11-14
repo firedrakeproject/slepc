@@ -281,7 +281,7 @@ PetscErrorCode EPSKrylovConvergence_Filter(EPS eps,PetscBool getall,PetscInt kin
 PetscErrorCode EPSKrylovConvergence(EPS eps,PetscBool getall,PetscInt kini,PetscInt nits,PetscReal beta,PetscReal betat,PetscReal corrf,PetscInt *kout)
 {
   PetscErrorCode ierr;
-  PetscInt       k,newk,marker,ld,inside;
+  PetscInt       k,newk,newk2,marker,ld,inside;
   PetscScalar    re,im,*Zr,*Zi,*X;
   PetscReal      resnorm,gamma,lerrest;
   PetscBool      isshift,isfilter,refined,istrivial;
@@ -344,8 +344,8 @@ PetscErrorCode EPSKrylovConvergence(EPS eps,PetscBool getall,PetscInt kini,Petsc
     ierr = (*eps->converged)(eps,re,im,resnorm,&eps->errest[k],eps->convergedctx);CHKERRQ(ierr);
     if (marker==-1 && eps->errest[k] >= eps->tol) marker = k;
     if (eps->twosided) {
-      newk = k;
-      ierr = DSVectors(eps->dsts,DS_MAT_X,&newk,&resnorm);CHKERRQ(ierr);
+      newk2 = k;
+      ierr = DSVectors(eps->dsts,DS_MAT_X,&newk2,&resnorm);CHKERRQ(ierr);
       resnorm *= betat;
       ierr = (*eps->converged)(eps,re,im,resnorm,&lerrest,eps->convergedctx);CHKERRQ(ierr);
       eps->errest[k] = PetscMax(eps->errest[k],lerrest);
