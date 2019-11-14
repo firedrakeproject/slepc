@@ -114,11 +114,14 @@ int main(int argc,char **argv)
       output_file: output/test2_1.out
       test:
          suffix: 1
-         args: -eps_type {{krylovschur arnoldi gd jd lapack}}
+         args: -eps_type {{arnoldi gd jd lapack}}
       test:
          suffix: 1_gd2
          args: -eps_type gd -eps_gd_double_expansion
          timeoutfactor: 2
+      test:
+         suffix: 1_krylovschur
+         args: -eps_type krylovschur -eps_krylovschur_locking {{0 1}}
 
    testset:
       args: -eps_type lanczos -eps_nev 4
