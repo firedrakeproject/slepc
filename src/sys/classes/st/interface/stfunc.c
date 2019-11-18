@@ -451,7 +451,10 @@ PetscErrorCode STSetDefaultShift(ST st,PetscScalar defaultshift)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
   PetscValidLogicalCollectiveScalar(st,defaultshift,2);
-  st->defsigma = defaultshift;
+  if (st->defsigma != defaultshift) {
+    st->defsigma = defaultshift;
+    st->state = ST_STATE_INITIAL;
+  }
   PetscFunctionReturn(0);
 }
 
@@ -507,6 +510,7 @@ PetscErrorCode STSetBalanceMatrix(ST st,Vec D)
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
+  if (st->D == D) PetscFunctionReturn(0);
   if (D) {
     PetscValidHeaderSpecific(D,VEC_CLASSID,2);
     PetscCheckSameComm(st,1,D,2);
