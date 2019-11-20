@@ -102,7 +102,7 @@ int main(int argc,char **argv)
   ierr = EPSSetWhichEigenpairs(eps,EPS_SMALLEST_REAL);CHKERRQ(ierr);
   ierr = EPSSetFromOptions(eps);CHKERRQ(ierr);
 
-  ierr = PetscObjectTypeCompareAny((PetscObject)eps,&flag,EPSBLOPEX,EPSRQCG,"");CHKERRQ(ierr);
+  ierr = PetscObjectTypeCompareAny((PetscObject)eps,&flag,EPSGD,EPSJD,EPSBLOPEX,EPSLOBPCG,EPSRQCG,"");CHKERRQ(ierr);
   if (flag) {
     /*
        Build preconditioner specific for this application (diagonal of A^2)
@@ -246,8 +246,14 @@ PetscErrorCode ComputeResidualNorm(Mat A,PetscScalar lambda,Vec x,PetscReal *r)
 
 /*TEST
 
-   test:
-      suffix: 1
+   testset:
       args: -n 15 -eps_nev 1 -eps_ncv 12 -eps_max_it 1000 -eps_tol 1e-5 -terse
+      filter: grep -v Solution
+      output_file: output/ex24_1.out
+      test:
+         suffix: 1
+      test:
+         suffix: 1_precond
+         args: -eps_type {{lobpcg gd}}
 
 TEST*/
