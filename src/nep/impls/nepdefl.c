@@ -311,7 +311,7 @@ static PetscErrorCode NEPDeflationEvaluateHatFunction(NEP_EXT_OP extop, PetscInt
   PetscFunctionReturn(0);
 }
 
-static PetscErrorCode NEPDeflationMatShell_MatMult(Mat M,Vec x,Vec y)
+static PetscErrorCode MatMult_NEPDeflation(Mat M,Vec x,Vec y)
 {
   NEP_DEF_MATSHELL  *matctx;
   PetscErrorCode    ierr;
@@ -359,7 +359,7 @@ static PetscErrorCode NEPDeflationMatShell_MatMult(Mat M,Vec x,Vec y)
   PetscFunctionReturn(0);
 }
 
-static PetscErrorCode NEPDeflationMatShell_CreateVecs(Mat M,Vec *right,Vec *left)
+static PetscErrorCode MatCreateVecs_NEPDeflation(Mat M,Vec *right,Vec *left)
 {
   PetscErrorCode   ierr;
   NEP_DEF_MATSHELL *matctx;
@@ -375,7 +375,7 @@ static PetscErrorCode NEPDeflationMatShell_CreateVecs(Mat M,Vec *right,Vec *left
   PetscFunctionReturn(0);
 }
 
-static PetscErrorCode NEPDeflationMatShell_Destroy(Mat M)
+static PetscErrorCode MatDestroy_NEPDeflation(Mat M)
 {
   PetscErrorCode   ierr;
   NEP_DEF_MATSHELL *matctx;
@@ -436,9 +436,9 @@ static PetscErrorCode NEPDeflationComputeShellMat(NEP_EXT_OP extop,PetscScalar l
     ierr = MatGetLocalSize(extop->nep->function,&mloc,&nloc);CHKERRQ(ierr);
     nloc += szd; mloc += szd;
     ierr = MatCreateShell(PetscObjectComm((PetscObject)extop->nep),nloc,mloc,PETSC_DETERMINE,PETSC_DETERMINE,matctx,&Mshell);CHKERRQ(ierr);
-    ierr = MatShellSetOperation(Mshell,MATOP_MULT,(void(*)(void))NEPDeflationMatShell_MatMult);CHKERRQ(ierr);
-    ierr = MatShellSetOperation(Mshell,MATOP_CREATE_VECS,(void(*)(void))NEPDeflationMatShell_CreateVecs);CHKERRQ(ierr);
-    ierr = MatShellSetOperation(Mshell,MATOP_DESTROY,(void(*)(void))NEPDeflationMatShell_Destroy);CHKERRQ(ierr);
+    ierr = MatShellSetOperation(Mshell,MATOP_MULT,(void(*)(void))MatMult_NEPDeflation);CHKERRQ(ierr);
+    ierr = MatShellSetOperation(Mshell,MATOP_CREATE_VECS,(void(*)(void))MatCreateVecs_NEPDeflation);CHKERRQ(ierr);
+    ierr = MatShellSetOperation(Mshell,MATOP_DESTROY,(void(*)(void))MatDestroy_NEPDeflation);CHKERRQ(ierr);
     matctx->nep = extop->nep;
     matctx->extop = extop;
     if (!M) {

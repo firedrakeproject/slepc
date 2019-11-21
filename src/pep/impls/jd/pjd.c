@@ -740,7 +740,7 @@ static PetscErrorCode PEPJDProcessInitialSpace(PEP pep,Vec *w)
   PetscFunctionReturn(0);
 }
 
-static PetscErrorCode PEPJDShellMatMult(Mat P,Vec x,Vec y)
+static PetscErrorCode MatMult_PEPJD(Mat P,Vec x,Vec y)
 {
   PetscErrorCode  ierr;
   PEP_JD_MATSHELL *matctx;
@@ -882,7 +882,7 @@ static PetscErrorCode PEPJDShellMatMult(Mat P,Vec x,Vec y)
   PetscFunctionReturn(0);
 }
 
-static PetscErrorCode PEPJDSellMatCreateVecs(Mat A,Vec *right,Vec *left)
+static PetscErrorCode MatCreateVecs_PEPJD(Mat A,Vec *right,Vec *left)
 {
   PetscErrorCode  ierr;
   PEP_JD_MATSHELL *matctx;
@@ -1097,8 +1097,8 @@ static PetscErrorCode PEPJDCreateShellPC(PEP pep,Vec *ww)
   }
   ierr = PetscNew(&matctx);CHKERRQ(ierr);
   ierr = MatCreateShell(PetscObjectComm((PetscObject)pep),kspsf*nloc,kspsf*mloc,PETSC_DETERMINE,PETSC_DETERMINE,matctx,&pjd->Pshell);CHKERRQ(ierr);
-  ierr = MatShellSetOperation(pjd->Pshell,MATOP_MULT,(void(*)(void))PEPJDShellMatMult);CHKERRQ(ierr);
-  ierr = MatShellSetOperation(pjd->Pshell,MATOP_CREATE_VECS,(void(*)(void))PEPJDSellMatCreateVecs);CHKERRQ(ierr);
+  ierr = MatShellSetOperation(pjd->Pshell,MATOP_MULT,(void(*)(void))MatMult_PEPJD);CHKERRQ(ierr);
+  ierr = MatShellSetOperation(pjd->Pshell,MATOP_CREATE_VECS,(void(*)(void))MatCreateVecs_PEPJD);CHKERRQ(ierr);
   matctx->pep = pep;
   target[0] = pep->target; target[1] = 0.0;
   ierr = PEPJDMatSetUp(pep,1,target);CHKERRQ(ierr);

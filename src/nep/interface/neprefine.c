@@ -29,7 +29,7 @@ typedef struct {
   PetscScalar  M4,m3;
 } FSubctx;
 
-static PetscErrorCode MatFSMult(Mat M ,Vec x,Vec y)
+static PetscErrorCode MatMult_FS(Mat M ,Vec x,Vec y)
 {
   PetscErrorCode ierr;
   FSubctx        *ctx;
@@ -212,7 +212,7 @@ static PetscErrorCode NEPSimpleNRefSetUpSystem(NEP nep,NEPSimpNRefctx *ctx,Mat *
       ierr = PetscCalloc1(1,&fctx);CHKERRQ(ierr);
       ierr = MatGetSize(A[0],&m0,&n0);CHKERRQ(ierr);
       ierr = MatCreateShell(PetscObjectComm((PetscObject)A[0]),PETSC_DECIDE,PETSC_DECIDE,m0,n0,fctx,T);CHKERRQ(ierr);
-      ierr = MatShellSetOperation(*T,MATOP_MULT,(void(*)(void))MatFSMult);CHKERRQ(ierr);
+      ierr = MatShellSetOperation(*T,MATOP_MULT,(void(*)(void))MatMult_FS);CHKERRQ(ierr);
     } else {
       ierr = MatShellGetContext(*T,&fctx);CHKERRQ(ierr);
     }

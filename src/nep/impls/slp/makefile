@@ -12,7 +12,7 @@ ALL: lib
 
 CFLAGS   =
 FFLAGS   =
-SOURCEC  = slp.c
+SOURCEC  = slp.c slp-twosided.c
 SOURCEF  =
 SOURCEH  =
 LIBBASE  = libslepcnep

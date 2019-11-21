@@ -50,7 +50,7 @@ typedef struct {
   PetscInt     idx,*cols;
 } MatExplicitCtx;
 
-static PetscErrorCode MatFSMult(Mat M ,Vec x,Vec y)
+static PetscErrorCode MatMult_FS(Mat M ,Vec x,Vec y)
 {
 #if defined(PETSC_MISSING_LAPACK_GETRS)
   PetscFunctionBegin;
@@ -1201,7 +1201,7 @@ static PetscErrorCode PEPNRefSetUp(PEP pep,PetscInt k,PetscScalar *H,PetscInt ld
       for (i=0;i<nmat;i++) ctx->A[i] = At[i];
       ierr = PetscArrayzero(ctx->M4,k*k);CHKERRQ(ierr);
       ierr = MatCreateShell(comm,PETSC_DECIDE,PETSC_DECIDE,m0,n0,ctx,&M);CHKERRQ(ierr);
-      ierr = MatShellSetOperation(M,MATOP_MULT,(void(*)(void))MatFSMult);CHKERRQ(ierr);
+      ierr = MatShellSetOperation(M,MATOP_MULT,(void(*)(void))MatMult_FS);CHKERRQ(ierr);
       ierr = BVDuplicateResize(ctx->V,PetscMax(k,pep->nmat),&ctx->W);CHKERRQ(ierr);
       ierr = BVDuplicateResize(ctx->V,k,&ctx->M2);CHKERRQ(ierr);
       ierr = BVDuplicate(ctx->M2,&ctx->M3);CHKERRQ(ierr);

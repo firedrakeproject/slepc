@@ -225,4 +225,7 @@ int main(int argc,char **argv)
          suffix: 8_slp_thres
          args: -nep_type slp -nep_slp_deflation_threshold 5e-10
 
+      test:
+         suffix: 8_slp_two_thres
+         args: -nep_type slp -nep_slp_deflation_threshold 5e-10 -nep_two_sided
 TEST*/
