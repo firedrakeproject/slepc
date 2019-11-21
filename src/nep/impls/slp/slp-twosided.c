@@ -506,7 +506,7 @@ PetscErrorCode NEPSolve_SLP_Twosided(NEP nep)
         ierr = EPSGetEigenpair(ctx->eps,0,&mu,&im,u,NULL);CHKERRQ(ierr);
         for (i=0;i<nconv2;i++) {
           ierr = EPSGetEigenpair(ctx->epsts,i,&mu2,&im2,w,NULL);CHKERRQ(ierr);
-          if (SlepcAbs(mu-mu2,im-im2)/SlepcAbs(mu,im)<nep->tol*1000) break;
+          if (SlepcAbsEigenvalue(mu-mu2,im-im2)/SlepcAbsEigenvalue(mu,im)<nep->tol*1000) break;
         }
         if (i==nconv2) {
           ierr = PetscInfo1(nep,"iter=%D, inner iteration failed, stopping solve\n",nep->its);CHKERRQ(ierr);
