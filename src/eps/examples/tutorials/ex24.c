@@ -255,5 +255,6 @@ PetscErrorCode ComputeResidualNorm(Mat A,PetscScalar lambda,Vec x,PetscReal *r)
       test:
          suffix: 1_precond
          args: -eps_type {{lobpcg gd}}
+         requires: !single
 
 TEST*/
