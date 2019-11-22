@@ -359,6 +359,7 @@ PetscErrorCode STSetKSP(ST st,KSP ksp)
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
   PetscValidHeaderSpecific(ksp,KSP_CLASSID,2);
   PetscCheckSameComm(st,1,ksp,2);
+  STCheckNotSeized(st,1);
   ierr = PetscObjectReference((PetscObject)ksp);CHKERRQ(ierr);
   ierr = KSPDestroy(&st->ksp);CHKERRQ(ierr);
   st->ksp = ksp;

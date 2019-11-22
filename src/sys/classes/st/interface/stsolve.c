@@ -176,23 +176,47 @@ static PetscErrorCode MatMultTranspose_STOperator(Mat Op,Vec x,Vec y)
 }
 
 /*@
-   STGetOperator - Returns a shell matrix that represents the spectral transformation.
+   STGetOperator - Returns a shell matrix that represents the operator of the
+   spectral transformation.
 
    Collective on st
 
-   Input Parameters:
+   Input Parameter:
 .  st - the spectral transformation context
 
    Output Parameter:
-.  Op - output matrix
+.  Op - operator matrix
 
    Notes:
+   The operator is defined in linear eigenproblems only, not in polynomial ones,
+   so the call will fail if more than 2 matrices were passed in STSetMatrices().
+
    The returned shell matrix is essentially a wrapper to the STApply() and
-   STApplyTranspose() operations. It must be destroyed after use.
+   STApplyTranspose() operations. The operator can often be expressed as
+
+.vb
+      Op = alpha*D*inv(K)*M*inv(D)
+.ve
+
+   where D is the balancing matrix, and M and K are two matrices corresponding
+   to the numerator and denominator for spectral transformations that represent
+   a rational matrix function. In the case of STSHELL, the inner part inv(K)*M
+   is replaced by the user-provided operation from STShellSetApply().
+
+   The preconditioner matrix K typically depends on the value of the shift, and
+   its inverse is handled via an internal KSP object. Normal usage does not
+   require explicitly calling STGetOperator(), but it can be used to force the
+   creation of K and M, and then setting options associated with the PCFactor
+   (to set MUMPS options, for instance).
+
+   The returned matrix must NOT be destroyed by the user. Instead, when no
+   longer needed it must be returned with STRestoreOperator(). In particular,
+   this is required before modifying the ST matrices or the shift.
 
    Level: advanced
 
-.seealso: STApply(), STApplyTranspose()
+.seealso: STApply(), STApplyTranspose(), STSetBalanceMatrix(), STShellSetApply(),
+          STGetKSP(), STSetShift(), STRestoreOperator(), STSetMatrices()
 @*/
 PetscErrorCode STGetOperator(ST st,Mat *Op)
 {
@@ -204,12 +228,45 @@ PetscErrorCode STGetOperator(ST st,Mat *Op)
   PetscValidType(st,1);
   PetscValidPointer(Op,2);
   STCheckMatrices(st,1);
+  STCheckNotSeized(st,1);
+  if (st->nmat>2) SETERRQ(PetscObjectComm((PetscObject)st),PETSC_ERR_ARG_WRONGSTATE,"The operator is not defined in polynomial eigenproblems");
+  if (!st->Op) {
+    ierr = MatGetLocalSize(st->A[0],&m,&n);CHKERRQ(ierr);
+    ierr = MatGetSize(st->A[0],&M,&N);CHKERRQ(ierr);
+    ierr = MatCreateShell(PetscObjectComm((PetscObject)st),m,n,M,N,st,&st->Op);CHKERRQ(ierr);
+    ierr = MatShellSetOperation(st->Op,MATOP_MULT,(void(*)(void))MatMult_STOperator);CHKERRQ(ierr);
+    ierr = MatShellSetOperation(st->Op,MATOP_MULT_TRANSPOSE,(void(*)(void))MatMultTranspose_STOperator);CHKERRQ(ierr);
+  }
+  *Op = st->Op;
+  st->opseized = PETSC_TRUE;
+  PetscFunctionReturn(0);
+}
 
-  ierr = MatGetLocalSize(st->A[0],&m,&n);CHKERRQ(ierr);
-  ierr = MatGetSize(st->A[0],&M,&N);CHKERRQ(ierr);
-  ierr = MatCreateShell(PetscObjectComm((PetscObject)st),m,n,M,N,st,Op);CHKERRQ(ierr);
-  ierr = MatShellSetOperation(*Op,MATOP_MULT,(void(*)(void))MatMult_STOperator);CHKERRQ(ierr);
-  ierr = MatShellSetOperation(*Op,MATOP_MULT_TRANSPOSE,(void(*)(void))MatMultTranspose_STOperator);CHKERRQ(ierr);
+/*@
+   STRestoreOperator - Restore the previously seized operator matrix.
+
+   Collective on st
+
+   Input Parameters:
++  st - the spectral transformation context
+-  Op - operator matrix
+
+   Notes:
+   The arguments must match the corresponding call to STGetOperator().
+
+   Level: advanced
+
+.seealso: STGetOperator()
+@*/
+PetscErrorCode STRestoreOperator(ST st,Mat *Op)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(st,ST_CLASSID,1);
+  PetscValidPointer(Op,2);
+  PetscValidHeaderSpecific(*Op,MAT_CLASSID,2);
+  if (!st->opseized) SETERRQ(PetscObjectComm((PetscObject)st),PETSC_ERR_ARG_WRONGSTATE,"Must be called after STGetOperator()");
+  *Op = NULL;
+  st->opseized = PETSC_FALSE;
   PetscFunctionReturn(0);
 }
 

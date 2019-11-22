@@ -180,6 +180,7 @@ static PetscErrorCode STPrecondSetMatForPC_Precond(ST st,Mat mat)
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
+  STCheckNotSeized(st,1);
   ierr = PetscObjectReference((PetscObject)mat);CHKERRQ(ierr);
   ierr = MatDestroy(&ctx->mat);CHKERRQ(ierr);
   ctx->mat    = mat;

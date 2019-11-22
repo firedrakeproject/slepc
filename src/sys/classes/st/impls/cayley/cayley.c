@@ -243,10 +243,13 @@ static PetscErrorCode STCayleySetAntishift_Cayley(ST st,PetscScalar newshift)
   ST_CAYLEY *ctx = (ST_CAYLEY*)st->data;
 
   PetscFunctionBegin;
-  if (st->state && st->matmode!=ST_MATMODE_INPLACE) {
-    ierr = STMatMAXPY_Private(st,newshift,ctx->nu,0,NULL,PETSC_FALSE,&st->T[0]);CHKERRQ(ierr);
+  if (ctx->nu != newshift) {
+    STCheckNotSeized(st,1);
+    if (st->state && st->matmode!=ST_MATMODE_INPLACE) {
+      ierr = STMatMAXPY_Private(st,newshift,ctx->nu,0,NULL,PETSC_FALSE,&st->T[0]);CHKERRQ(ierr);
+    }
+    ctx->nu = newshift;
   }
-  ctx->nu     = newshift;
   ctx->nu_set = PETSC_TRUE;
   PetscFunctionReturn(0);
 }

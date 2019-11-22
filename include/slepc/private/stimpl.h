@@ -65,7 +65,10 @@ struct _p_ST {
   STStateType      state;            /* initial -> setup -> with updated matrices */
   PetscObjectState *Astate;          /* matrix state (to identify the original matrices) */
   Mat              *T;               /* matrices resulting from transformation */
+  Mat              Op;               /* shell matrix for operator = alpha*D*inv(P)*M*inv(D) */
+  PetscBool        opseized;         /* whether Op has been seized by user */
   Mat              P;                /* matrix from which preconditioner is built */
+  Mat              M;                /* matrix corresponding to the non-inverted part of the operator */
   PetscBool        sigma_set;        /* whether the user provided the shift or not */
   void             *data;
 };
@@ -76,12 +79,17 @@ struct _p_ST {
 #if !defined(PETSC_USE_DEBUG)
 
 #define STCheckMatrices(h,arg) do {} while (0)
+#define STCheckNotSeized(h,arg) do {} while (0)
 
 #else
 
 #define STCheckMatrices(h,arg) \
   do { \
     if (!(h)->A) SETERRQ1(PetscObjectComm((PetscObject)(h)),PETSC_ERR_ARG_WRONGSTATE,"ST matrices have not been set: Parameter #%d",arg); \
+  } while (0)
+#define STCheckNotSeized(h,arg) \
+  do { \
+    if (h->opseized) SETERRQ1(PetscObjectComm((PetscObject)h),PETSC_ERR_ARG_WRONGSTATE,"Must call STRestoreOperator() first: Parameter #%d",arg); \
   } while (0)
 
 #endif

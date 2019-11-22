@@ -54,6 +54,7 @@ PetscErrorCode STSetType(ST st,STType type)
 
   ierr = PetscObjectTypeCompare((PetscObject)st,type,&match);CHKERRQ(ierr);
   if (match) PetscFunctionReturn(0);
+  STCheckNotSeized(st,1);
 
   ierr =  PetscFunctionListFind(STList,type,&r);CHKERRQ(ierr);
   if (!r) SETERRQ1(PetscObjectComm((PetscObject)st),PETSC_ERR_ARG_UNKNOWN_TYPE,"Unable to find requested ST type %s",type);
@@ -109,7 +110,7 @@ PetscErrorCode STSetFromOptions(ST st)
   PetscErrorCode ierr;
   PetscScalar    s;
   char           type[256];
-  PetscBool      flg;
+  PetscBool      flg,bval;
   const char     *structure_list[3] = {"different","subset","same"};
   STMatMode      mode;
   MatStructure   mstr;
@@ -134,7 +135,8 @@ PetscErrorCode STSetFromOptions(ST st)
     ierr = PetscOptionsEList("-st_matstructure","Relation of the sparsity pattern of the matrices","STSetMatStructure",structure_list,3,structure_list[st->str],(PetscInt*)&mstr,&flg);CHKERRQ(ierr);
     if (flg) { ierr = STSetMatStructure(st,mstr);CHKERRQ(ierr); }
 
-    ierr = PetscOptionsBool("-st_transform","Whether transformed matrices are computed or not","STSetTransform",st->transform,&st->transform,&flg);CHKERRQ(ierr);
+    ierr = PetscOptionsBool("-st_transform","Whether transformed matrices are computed or not","STSetTransform",st->transform,&bval,&flg);CHKERRQ(ierr);
+    if (flg) { ierr = STSetTransform(st,bval);CHKERRQ(ierr); }
 
     if (st->ops->setfromoptions) {
       ierr = (*st->ops->setfromoptions)(PetscOptionsObject,st);CHKERRQ(ierr);
@@ -264,6 +266,7 @@ PetscErrorCode STSetMatMode(ST st,STMatMode mode)
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
   PetscValidLogicalCollectiveEnum(st,mode,2);
   if (st->matmode != mode) {
+    STCheckNotSeized(st,1);
     st->matmode = mode;
     st->state = ST_STATE_INITIAL;
   }

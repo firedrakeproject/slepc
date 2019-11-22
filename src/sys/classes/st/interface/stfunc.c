@@ -106,12 +106,15 @@ PetscErrorCode STReset(ST st)
   PetscFunctionBegin;
   if (st) PetscValidHeaderSpecific(st,ST_CLASSID,1);
   if (!st) PetscFunctionReturn(0);
+  STCheckNotSeized(st,1);
   if (st->ops->reset) { ierr = (*st->ops->reset)(st);CHKERRQ(ierr); }
   if (st->ksp) { ierr = KSPReset(st->ksp);CHKERRQ(ierr); }
   ierr = MatDestroyMatrices(PetscMax(2,st->nmat),&st->T);CHKERRQ(ierr);
   ierr = MatDestroyMatrices(PetscMax(2,st->nmat),&st->A);CHKERRQ(ierr);
   ierr = PetscFree(st->Astate);CHKERRQ(ierr);
+  ierr = MatDestroy(&st->Op);CHKERRQ(ierr);
   ierr = MatDestroy(&st->P);CHKERRQ(ierr);
+  ierr = MatDestroy(&st->M);CHKERRQ(ierr);
   ierr = VecDestroyVecs(st->nwork,&st->work);CHKERRQ(ierr);
   st->nwork = 0;
   ierr = VecDestroy(&st->wb);CHKERRQ(ierr);
@@ -190,7 +193,10 @@ PetscErrorCode STCreate(MPI_Comm comm,ST *newst)
   st->state        = ST_STATE_INITIAL;
   st->Astate       = NULL;
   st->T            = NULL;
+  st->Op           = NULL;
+  st->opseized     = PETSC_FALSE;
   st->P            = NULL;
+  st->M            = NULL;
   st->sigma_set    = PETSC_FALSE;
   st->data         = NULL;
 
@@ -228,6 +234,8 @@ PetscErrorCode STSetMatrices(ST st,PetscInt n,Mat A[])
   if (n <= 0) SETERRQ1(PetscObjectComm((PetscObject)st),PETSC_ERR_ARG_OUTOFRANGE,"Must have one or more matrices, you have %D",n);
   PetscValidPointer(A,3);
   PetscCheckSameComm(st,1,*A,3);
+  STCheckNotSeized(st,1);
+
   if (st->state) {
     if (n!=st->nmat) same = PETSC_FALSE;
     for (i=0;same&&i<n;i++) {
@@ -398,12 +406,13 @@ PetscErrorCode STSetShift(ST st,PetscScalar shift)
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
   PetscValidType(st,1);
   PetscValidLogicalCollectiveScalar(st,shift,2);
-  if (st->state==ST_STATE_SETUP && st->sigma != shift) {
-    if (st->ops->setshift) {
+  if (st->sigma != shift) {
+    STCheckNotSeized(st,1);
+    if (st->state==ST_STATE_SETUP && st->ops->setshift) {
       ierr = (*st->ops->setshift)(st,shift);CHKERRQ(ierr);
     }
+    st->sigma = shift;
   }
-  st->sigma = shift;
   st->sigma_set = PETSC_TRUE;
   PetscFunctionReturn(0);
 }
@@ -511,6 +520,7 @@ PetscErrorCode STSetBalanceMatrix(ST st,Vec D)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
   if (st->D == D) PetscFunctionReturn(0);
+  STCheckNotSeized(st,1);
   if (D) {
     PetscValidHeaderSpecific(D,VEC_CLASSID,2);
     PetscCheckSameComm(st,1,D,2);

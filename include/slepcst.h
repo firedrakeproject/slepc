@@ -57,6 +57,7 @@ SLEPC_EXTERN PetscErrorCode STGetMatrix(ST,PetscInt,Mat*);
 SLEPC_EXTERN PetscErrorCode STGetMatrixTransformed(ST,PetscInt,Mat*);
 SLEPC_EXTERN PetscErrorCode STGetNumMatrices(ST,PetscInt*);
 SLEPC_EXTERN PetscErrorCode STGetOperator(ST,Mat*);
+SLEPC_EXTERN PetscErrorCode STRestoreOperator(ST,Mat*);
 SLEPC_EXTERN PetscErrorCode STSetUp(ST);
 SLEPC_EXTERN PetscErrorCode STSetFromOptions(ST);
 SLEPC_EXTERN PetscErrorCode STView(ST,PetscViewer);
