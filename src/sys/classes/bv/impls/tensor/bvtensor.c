@@ -640,6 +640,7 @@ static PetscErrorCode BVTensorGetFactors_Tensor(BV V,BV *U,Mat *S)
   BV_TENSOR *ctx = (BV_TENSOR*)V->data;
 
   PetscFunctionBegin;
+  if (ctx->puk>-1) SETERRQ(PetscObjectComm((PetscObject)V),PETSC_ERR_ORDER,"Previous call to BVTensonGetFactors without a BVTensorRestoreFactors call");
   ctx->puk = ctx->U->k;
   if (U) *U = ctx->U;
   if (S) *S = ctx->S;
@@ -677,11 +678,9 @@ static PetscErrorCode BVTensorGetFactors_Tensor(BV V,BV *U,Mat *S)
 PetscErrorCode BVTensorGetFactors(BV V,BV *U,Mat *S)
 {
   PetscErrorCode ierr;
-  BV_TENSOR      *ctx = (BV_TENSOR*)V->data;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(V,BV_CLASSID,1);
-  if (ctx->puk>-1) SETERRQ(PetscObjectComm((PetscObject)V),PETSC_ERR_ORDER,"Previous call to BVTensonGetFactors without a BVTensorRestoreFactors call");
   ierr = PetscUseMethod(V,"BVTensorGetFactors_C",(BV,BV*,Mat*),(V,U,S));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
