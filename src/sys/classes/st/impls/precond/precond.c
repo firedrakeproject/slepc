@@ -15,6 +15,7 @@
 
 typedef struct {
   PetscBool setmat;
+  Mat       mat;
 } ST_PRECOND;
 
 static PetscErrorCode STSetDefaultKSP_Precond(ST st)
@@ -48,7 +49,8 @@ PetscErrorCode STSetUp_Precond(ST st)
 {
   Mat            P;
   PC             pc;
-  PetscBool      t0,setmat,destroyP=PETSC_FALSE,builtP;
+  PetscBool      t0,destroyP=PETSC_FALSE,builtP;
+  ST_PRECOND     *ctx = (ST_PRECOND*)st->data;
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
@@ -61,8 +63,7 @@ PetscErrorCode STSetUp_Precond(ST st)
   ierr = PetscObjectTypeCompare((PetscObject)pc,PCSHELL,&t0);CHKERRQ(ierr);
   if (t0) PetscFunctionReturn(0);
   ierr = PetscObjectTypeCompare((PetscObject)pc,PCNONE,&t0);CHKERRQ(ierr);
-  ierr = STPrecondGetKSPHasMat(st,&setmat);CHKERRQ(ierr);
-  if (t0 && !setmat) PetscFunctionReturn(0);
+  if (t0 && !ctx->setmat) PetscFunctionReturn(0);
 
   /* Check if a user matrix is set */
   ierr = STPrecondGetMatForPC(st,&P);CHKERRQ(ierr);
@@ -104,14 +105,14 @@ PetscErrorCode STSetUp_Precond(ST st)
     ierr = PCSetType(pc,PCNONE);CHKERRQ(ierr);
 
     /* If some matrix has to be set to ksp, a shell matrix is created */
-    if (setmat) {
+    if (ctx->setmat) {
       ierr = STMatShellCreate(st,-st->sigma,0,NULL,NULL,&P);CHKERRQ(ierr);
       ierr = STMatSetHermitian(st,P);CHKERRQ(ierr);
       destroyP = PETSC_TRUE;
     }
   }
 
-  ierr = KSPSetOperators(st->ksp,setmat?P:NULL,P);CHKERRQ(ierr);
+  ierr = KSPSetOperators(st->ksp,ctx->setmat?P:NULL,P);CHKERRQ(ierr);
 
   if (destroyP) {
     ierr = MatDestroy(&P);CHKERRQ(ierr);
@@ -143,17 +144,10 @@ PetscErrorCode STSetShift_Precond(ST st,PetscScalar newshift)
 
 static PetscErrorCode STPrecondGetMatForPC_Precond(ST st,Mat *mat)
 {
-  PetscErrorCode ierr;
-  PC             pc;
-  PetscBool      flag;
+  ST_PRECOND *ctx = (ST_PRECOND*)st->data;
 
   PetscFunctionBegin;
-  if (!st->ksp) { ierr = STGetKSP(st,&st->ksp);CHKERRQ(ierr); }
-  ierr = KSPGetPC(st->ksp,&pc);CHKERRQ(ierr);
-  ierr = PCGetOperatorsSet(pc,NULL,&flag);CHKERRQ(ierr);
-  if (flag) {
-    ierr = PCGetOperators(pc,NULL,mat);CHKERRQ(ierr);
-  } else *mat = NULL;
+  *mat = ctx->mat;
   PetscFunctionReturn(0);
 }
 
@@ -189,9 +183,14 @@ static PetscErrorCode STPrecondSetMatForPC_Precond(ST st,Mat mat)
   PC             pc;
   Mat            A;
   PetscBool      flag;
+  ST_PRECOND     *ctx = (ST_PRECOND*)st->data;
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
+  ierr = PetscObjectReference((PetscObject)mat);CHKERRQ(ierr);
+  ierr = MatDestroy(&ctx->mat);CHKERRQ(ierr);
+  ctx->mat    = mat;
+  ctx->setmat = PETSC_TRUE;
   if (!st->ksp) { ierr = STGetKSP(st,&st->ksp);CHKERRQ(ierr); }
   ierr = KSPGetPC(st->ksp,&pc);CHKERRQ(ierr);
   /* Yes, all these lines are needed to safely set mat as the preconditioner
@@ -201,11 +200,8 @@ static PetscErrorCode STPrecondSetMatForPC_Precond(ST st,Mat mat)
     ierr = PCGetOperators(pc,&A,NULL);CHKERRQ(ierr);
     ierr = PetscObjectReference((PetscObject)A);CHKERRQ(ierr);
   } else A = NULL;
-  ierr = PetscObjectReference((PetscObject)mat);CHKERRQ(ierr);
   ierr = PCSetOperators(pc,A,mat);CHKERRQ(ierr);
   ierr = MatDestroy(&A);CHKERRQ(ierr);
-  ierr = MatDestroy(&mat);CHKERRQ(ierr);
-  ierr = STPrecondSetKSPHasMat(st,PETSC_TRUE);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -242,10 +238,10 @@ PetscErrorCode STPrecondSetMatForPC(ST st,Mat mat)
 
 static PetscErrorCode STPrecondSetKSPHasMat_Precond(ST st,PetscBool setmat)
 {
-  ST_PRECOND *data = (ST_PRECOND*)st->data;
+  ST_PRECOND *ctx = (ST_PRECOND*)st->data;
 
   PetscFunctionBegin;
-  data->setmat = setmat;
+  ctx->setmat = setmat;
   PetscFunctionReturn(0);
 }
 
@@ -282,10 +278,10 @@ PetscErrorCode STPrecondSetKSPHasMat(ST st,PetscBool setmat)
 
 static PetscErrorCode STPrecondGetKSPHasMat_Precond(ST st,PetscBool *setmat)
 {
-  ST_PRECOND *data = (ST_PRECOND*)st->data;
+  ST_PRECOND *ctx = (ST_PRECOND*)st->data;
 
   PetscFunctionBegin;
-  *setmat = data->setmat;
+  *setmat = ctx->setmat;
   PetscFunctionReturn(0);
 }
 
@@ -319,9 +315,11 @@ PetscErrorCode STPrecondGetKSPHasMat(ST st,PetscBool *setmat)
 
 PetscErrorCode STDestroy_Precond(ST st)
 {
+  ST_PRECOND     *ctx = (ST_PRECOND*)st->data;
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
+  ierr = MatDestroy(&ctx->mat);CHKERRQ(ierr);
   ierr = PetscFree(st->data);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)st,"STPrecondGetMatForPC_C",NULL);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)st,"STPrecondSetMatForPC_C",NULL);CHKERRQ(ierr);
