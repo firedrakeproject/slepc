@@ -280,7 +280,7 @@ PetscErrorCode STSetUp(ST st)
 
    alpha - value of the parameter of the transformed polynomial
    beta - value of the previous shift (only used in inplace mode)
-   k - number of A matrices involved in the computation
+   k - index of first matrix included in the computation
    coeffs - coefficients of the expansion
    initial - true if this is the first time (only relevant for shell mode)
 */

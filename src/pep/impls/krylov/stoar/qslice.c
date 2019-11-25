@@ -153,7 +153,6 @@ static PetscErrorCode PEPQSliceMatGetInertia(PEP pep,PetscReal shift,PetscInt *i
   } else {
     ierr = PEPEvaluateBasis(pep,shift,0,pep->solvematcoeffs,NULL);CHKERRQ(ierr);
   }
-  ierr = STSetUp(pep->st);CHKERRQ(ierr);
   ierr = STMatSetUp(pep->st,pep->sfactor,pep->solvematcoeffs);CHKERRQ(ierr);
   ierr = STGetKSP(pep->st,&ksp);CHKERRQ(ierr);
   ierr = KSPGetPC(ksp,&pc);CHKERRQ(ierr);

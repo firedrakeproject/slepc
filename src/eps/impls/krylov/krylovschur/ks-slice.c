@@ -334,7 +334,6 @@ static PetscErrorCode EPSSliceGetInertia(EPS eps,PetscReal shift,PetscInt *inert
        the symbolic factorizations */
     nzshift = (shift==0.0)? 10.0/PETSC_MAX_REAL: shift;
     ierr = STSetShift(eps->st,nzshift);CHKERRQ(ierr);
-    ierr = STSetUp(eps->st);CHKERRQ(ierr);
     ierr = STGetKSP(eps->st,&ksp);CHKERRQ(ierr);
     ierr = KSPGetPC(ksp,&pc);CHKERRQ(ierr);
     ierr = PCFactorGetMatrix(pc,&F);CHKERRQ(ierr);
@@ -462,6 +461,7 @@ PetscErrorCode EPSSetUp_KrylovSchur_Slice(EPS eps)
       if ((sr->dir>0&&ctx->subc->color==ctx->npart-1)||(sr->dir<0&&ctx->subc->color==0)) sr->hasEnd = sr_glob->hasEnd;
       else sr->hasEnd = PETSC_TRUE;
     }
+    ierr = STSetUp(eps->st);CHKERRQ(ierr);
 
     /* compute inertia0 */
     ierr = EPSSliceGetInertia(eps,sr->int0,&sr->inertia0,ctx->detect?&zeros:NULL);CHKERRQ(ierr);
