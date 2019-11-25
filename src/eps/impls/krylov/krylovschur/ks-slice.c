@@ -800,6 +800,10 @@ static PetscErrorCode EPSCreateShift(EPS eps,PetscReal val,EPS_shift neighb0,EPS
 
   PetscFunctionBegin;
   sr = ctx->sr;
+  if ((neighb0 && val==neighb0->value) || (neighb1 && val==neighb1->value)) {
+    sr->nPend++;
+    PetscFunctionReturn(0);
+  }
   ierr = PetscNewLog(eps,&s);CHKERRQ(ierr);
   s->value = val;
   s->neighb[0] = neighb0;
@@ -877,18 +881,26 @@ static PetscErrorCode EPSExtractShift(EPS eps)
   PetscInt        iner,zeros=0;
   EPS_KRYLOVSCHUR *ctx=(EPS_KRYLOVSCHUR*)eps->data;
   EPS_SR          sr;
-  PetscReal       newShift;
+  PetscReal       newShift,diam,ptol;
   EPS_shift       sPres;
 
   PetscFunctionBegin;
   sr = ctx->sr;
   if (sr->nPend > 0) {
+    if (sr->sPres==sr->pending[sr->nPend-1]) {
+      eps->reason = EPS_CONVERGED_ITERATING;
+      eps->its = 0;
+      sr->nPend--;
+      PetscFunctionReturn(0);
+    }
     sr->sPrev = sr->sPres;
     sr->sPres = sr->pending[--sr->nPend];
     sPres = sr->sPres;
     ierr = EPSSliceGetInertia(eps,sPres->value,&iner,ctx->detect?&zeros:NULL);CHKERRQ(ierr);
     if (zeros) {
-      newShift = sPres->value*(1.0+SLICE_PTOL);
+      diam = PetscMin(PetscAbsReal(sPres->neighb[0]->value-sPres->value),PetscAbsReal(sPres->neighb[1]->value-sPres->value));
+      ptol = PetscMin(SLICE_PTOL,diam/2);
+      newShift = sPres->value*(1.0+ptol);
       if (sr->dir*(sPres->neighb[0] && newShift-sPres->neighb[0]->value) < 0) newShift = (sPres->value+sPres->neighb[0]->value)/2;
       else if (sPres->neighb[1] && sr->dir*(sPres->neighb[1]->value-newShift) < 0) newShift = (sPres->value+sPres->neighb[1]->value)/2;
       ierr = EPSSliceGetInertia(eps,newShift,&iner,&zeros);CHKERRQ(ierr);
@@ -921,7 +933,7 @@ static PetscErrorCode EPSKrylovSchur_Slice(EPS eps)
   PetscReal       lambda;
   EPS_shift       sPres;
   PetscBool       complIterating;
-  PetscBool       sch0,sch1;
+  PetscBool       sch0,sch1,rep=PETSC_FALSE;
   PetscInt        iterCompl=0,n0,n1;
   EPS_SR          sr = ctx->sr;
 
@@ -933,7 +945,8 @@ static PetscErrorCode EPSKrylovSchur_Slice(EPS eps)
   ierr = DSGetLeadingDimension(eps->ds,&ld);CHKERRQ(ierr);
   ierr = PetscMalloc1(2*ld,&iwork);CHKERRQ(ierr);
   count0=0;count1=0; /* Found on both sides */
-  if (sr->nS > 0 && (sPres->neighb[0] == sr->sPrev || sPres->neighb[1] == sr->sPrev)) {
+  rep = (sPres==sr->pending[sr->nPend]);
+  if (!rep && sr->nS > 0 && (sPres->neighb[0] == sr->sPrev || sPres->neighb[1] == sr->sPrev)) {
     /* Rational Krylov */
     ierr = DSTranslateRKS(eps->ds,sr->sPrev->value-sPres->value);CHKERRQ(ierr);
     ierr = DSGetDimensions(eps->ds,NULL,NULL,NULL,&l,NULL);CHKERRQ(ierr);
@@ -1101,11 +1114,9 @@ static PetscErrorCode EPSGetNewShiftValue(EPS eps,PetscInt side,PetscReal *newS)
   sr = ctx->sr;
   sPres = sr->sPres;
   if (sPres->neighb[side]) {
-  /* Completing a previous interval */
-    if (!sPres->neighb[side]->neighb[side] && sPres->neighb[side]->nconv[side]==0) { /* One of the ends might be too far from eigenvalues */
-      if (side) *newS = (sPres->value + PetscRealPart(sr->eigr[sr->perm[sr->indexEig-1]]))/2;
-      else *newS = (sPres->value + PetscRealPart(sr->eigr[sr->perm[0]]))/2;
-    } else *newS=(sPres->value + sPres->neighb[side]->value)/2;
+    /* Completing a previous interval */
+    *newS = (sPres->value + sPres->neighb[side]->value)/2;
+    if (PetscAbsReal(sPres->value - *newS)/PetscAbsReal(sPres->value)<=100*PETSC_SQRT_MACHINE_EPSILON) *newS = sPres->value;
   } else { /* (Only for side=1). Creating a new interval. */
     if (sPres->neigs==0) {/* No value has been accepted*/
       if (sPres->neighb[0]) {
