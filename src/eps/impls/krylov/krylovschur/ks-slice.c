@@ -891,6 +891,7 @@ static PetscErrorCode EPSExtractShift(EPS eps)
       eps->reason = EPS_CONVERGED_ITERATING;
       eps->its = 0;
       sr->nPend--;
+      sr->sPres->rep = PETSC_TRUE;
       PetscFunctionReturn(0);
     }
     sr->sPrev = sr->sPres;
@@ -929,7 +930,7 @@ static PetscErrorCode EPSKrylovSchur_Slice(EPS eps)
   PetscScalar     *Q,*A;
   PetscReal       *a,*b,beta,lambda;
   EPS_shift       sPres;
-  PetscBool       breakdown,complIterating,sch0,sch1,rep=PETSC_FALSE;
+  PetscBool       breakdown,complIterating,sch0,sch1;
   EPS_SR          sr = ctx->sr;
 
   PetscFunctionBegin;
@@ -940,8 +941,7 @@ static PetscErrorCode EPSKrylovSchur_Slice(EPS eps)
   ierr = DSGetLeadingDimension(eps->ds,&ld);CHKERRQ(ierr);
   ierr = PetscMalloc1(2*ld,&iwork);CHKERRQ(ierr);
   count0=0;count1=0; /* Found on both sides */
-  rep = (sPres==sr->pending[sr->nPend])? PETSC_TRUE: PETSC_FALSE;
-  if (!rep && sr->nS > 0 && (sPres->neighb[0] == sr->sPrev || sPres->neighb[1] == sr->sPrev)) {
+  if (!sPres->rep && sr->nS > 0 && (sPres->neighb[0] == sr->sPrev || sPres->neighb[1] == sr->sPrev)) {
     /* Rational Krylov */
     ierr = DSTranslateRKS(eps->ds,sr->sPrev->value-sPres->value);CHKERRQ(ierr);
     ierr = DSGetDimensions(eps->ds,NULL,NULL,NULL,&l,NULL);CHKERRQ(ierr);
