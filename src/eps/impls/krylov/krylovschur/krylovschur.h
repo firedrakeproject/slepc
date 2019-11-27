@@ -35,6 +35,7 @@ struct _n_shift {
   PetscReal     ext[2];       /* Limits for accepted values */
   PetscInt      nsch[2];      /* Number of missing values for each subinterval */
   PetscInt      nconv[2];     /* Converged on each side (accepted or not) */
+  PetscBool     rep;          /* Present shift is reused */
 };
 
 /* Structure for storing the state of spectrum slicing */
