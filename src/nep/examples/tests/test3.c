@@ -45,7 +45,8 @@ int main(int argc,char **argv)
   Mat            F,J;
   ApplicationCtx ctx;
   PetscInt       n=128;
-  PetscBool      terse;
+  PetscReal      deftol;
+  PetscBool      terse,flag,ts;
   PetscErrorCode ierr;
 
   ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
@@ -69,7 +70,7 @@ int main(int argc,char **argv)
   ierr = KSPCreate(PETSC_COMM_WORLD,&ksp);CHKERRQ(ierr);
   ierr = KSPSetType(ksp,KSPBCGS);CHKERRQ(ierr);
   ierr = KSPGetPC(ksp,&pc);CHKERRQ(ierr);
-  ierr = PCSetType(pc,PCSOR);CHKERRQ(ierr);
+  ierr = PCSetType(pc,PCBJACOBI);CHKERRQ(ierr);
   ierr = KSPSetFromOptions(ksp);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -95,10 +96,21 @@ int main(int argc,char **argv)
   ierr = MatSetUp(J);CHKERRQ(ierr);
   ierr = NEPSetJacobian(nep,J,FormJacobian,&ctx);CHKERRQ(ierr);
 
+  /* Set options */
   ierr = NEPSetType(nep,NEPSLP);CHKERRQ(ierr);
   ierr = NEPSLPSetEPS(nep,eps);CHKERRQ(ierr);
   ierr = NEPSLPSetKSP(nep,ksp);CHKERRQ(ierr);
   ierr = NEPSetFromOptions(nep);CHKERRQ(ierr);
+
+  /* Print some options */
+  ierr = PetscObjectTypeCompare((PetscObject)nep,NEPSLP,&flag);CHKERRQ(ierr);
+  if (flag) {
+    ierr = NEPGetTwoSided(nep,&ts);CHKERRQ(ierr);
+    if (ts) {
+      ierr = NEPSLPGetDeflationThreshold(nep,&deftol);CHKERRQ(ierr);
+      ierr = PetscPrintf(PETSC_COMM_WORLD," Two-sided solve with deflation threshold=%g\n",(double)deftol);CHKERRQ(ierr);
+    }
+  }
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                       Solve the eigensystem
@@ -272,8 +284,12 @@ PetscErrorCode FormJacobian(NEP nep,PetscScalar lambda,Mat jac,void *ctx)
 /*TEST
 
    test:
-      suffix: 1
       args: -nep_target 21 -terse
       requires: !single
+      test:
+         suffix: 1
+      test:
+         suffix: 1_ts
+         args: -nep_two_sided
 
 TEST*/
