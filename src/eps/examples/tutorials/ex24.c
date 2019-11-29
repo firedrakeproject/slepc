@@ -45,7 +45,7 @@ int main(int argc,char **argv)
   PetscInt       nconv,N,n=10,m,nloc,mloc,Istart,Iend,II,i,j;
   PetscReal      *error,*evals,target=0.0,tol;
   PetscScalar    lambda;
-  PetscBool      flag,terse,errok;
+  PetscBool      flag,terse,errok,hasmat;
   PetscErrorCode ierr;
 
   ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
@@ -125,6 +125,8 @@ int main(int argc,char **argv)
     ierr = STGetKSP(st,&ksp);CHKERRQ(ierr);
     ierr = KSPGetPC(ksp,&pc);CHKERRQ(ierr);
     ierr = PCSetType(pc,PCJACOBI);CHKERRQ(ierr);
+    ierr = STPrecondGetKSPHasMat(st,&hasmat);CHKERRQ(ierr);
+    ierr = PetscPrintf(PETSC_COMM_WORLD," Preconditioned solver, hasmat=%s\n",hasmat?"true":"false");CHKERRQ(ierr);
   }
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -249,7 +251,6 @@ PetscErrorCode ComputeResidualNorm(Mat A,PetscScalar lambda,Vec x,PetscReal *r)
    testset:
       args: -n 15 -eps_nev 1 -eps_ncv 12 -eps_max_it 1000 -eps_tol 1e-5 -terse
       filter: grep -v Solution
-      output_file: output/ex24_1.out
       test:
          suffix: 1
       test:
