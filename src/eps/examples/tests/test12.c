@@ -66,7 +66,6 @@ int main(int argc,char **argv)
   ierr = KSPGetPC(ksp,&pc);CHKERRQ(ierr);
   ierr = PCSetType(pc,PCSHELL);CHKERRQ(ierr);
   ierr = PCShellSetApply(pc,PCApply_User);CHKERRQ(ierr);
-  ierr = STPrecondSetMatForPC(st,A);CHKERRQ(ierr);
 
   /* set random initial vector */
   ierr = MatCreateVecs(A,&v0,NULL);CHKERRQ(ierr);
