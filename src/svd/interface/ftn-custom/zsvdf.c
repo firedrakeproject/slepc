@@ -45,10 +45,6 @@
 #define svdgettolerances00_               SVDGETTOLERANCES00
 #define svdgettolerances10_               SVDGETTOLERANCES10
 #define svdgettolerances01_               SVDGETTOLERANCES01
-#define svdsetinitialspaces00_            SVDSETINITIALSPACES00
-#define svdsetinitialspaces01_            SVDSETINITIALSPACES01
-#define svdsetinitialspaces10_            SVDSETINITIALSPACES10
-#define svdsetinitialspaces11_            SVDSETINITIALSPACES11
 #elif !defined(PETSC_HAVE_FORTRAN_UNDERSCORE)
 #define svdmonitorall_                    svdmonitorall
 #define svdmonitorlg_                     svdmonitorlg
@@ -82,10 +78,6 @@
 #define svdgettolerances00_               svdgettolerances00
 #define svdgettolerances10_               svdgettolerances10
 #define svdgettolerances01_               svdgettolerances01
-#define svdsetinitialspaces00_            svdsetinitialspaces00
-#define svdsetinitialspaces01_            svdsetinitialspaces01
-#define svdsetinitialspaces10_            svdsetinitialspaces10
-#define svdsetinitialspaces11_            svdsetinitialspaces11
 #endif
 
 /*
@@ -383,32 +375,5 @@ SLEPC_EXTERN void PETSC_STDCALL svdgettolerances10_(SVD *svd,PetscReal *tol,Pets
 SLEPC_EXTERN void PETSC_STDCALL svdgettolerances01_(SVD *svd,PetscReal *tol,PetscInt *maxits,int *ierr)
 {
   svdgettolerances_(svd,tol,maxits,ierr);
-}
-
-SLEPC_EXTERN void PETSC_STDCALL svdsetinitialspaces_(SVD *svd,PetscInt *nr,Vec *isr,PetscInt *nl,Vec *isl,int *ierr)
-{
-  CHKFORTRANNULLOBJECT(isr);
-  CHKFORTRANNULLOBJECT(isl);
-  *ierr = SVDSetInitialSpaces(*svd,*nr,isr,*nl,isl);
-}
-
-SLEPC_EXTERN void PETSC_STDCALL svdsetinitialspaces00_(SVD *svd,PetscInt *nr,Vec *isr,PetscInt *nl,Vec *isl,int *ierr)
-{
-  svdsetinitialspaces_(svd,nr,isr,nl,isl,ierr);
-}
-
-SLEPC_EXTERN void PETSC_STDCALL svdsetinitialspaces01_(SVD *svd,PetscInt *nr,Vec *isr,PetscInt *nl,Vec *isl,int *ierr)
-{
-  svdsetinitialspaces_(svd,nr,isr,nl,isl,ierr);
-}
-
-SLEPC_EXTERN void PETSC_STDCALL svdsetinitialspaces10_(SVD *svd,PetscInt *nr,Vec *isr,PetscInt *nl,Vec *isl,int *ierr)
-{
-  svdsetinitialspaces_(svd,nr,isr,nl,isl,ierr);
-}
-
-SLEPC_EXTERN void PETSC_STDCALL svdsetinitialspaces11_(SVD *svd,PetscInt *nr,Vec *isr,PetscInt *nl,Vec *isl,int *ierr)
-{
-  svdsetinitialspaces_(svd,nr,isr,nl,isl,ierr);
 }
 

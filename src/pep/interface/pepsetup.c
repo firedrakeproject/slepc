@@ -365,7 +365,7 @@ PetscErrorCode PEPGetNumMatrices(PEP pep,PetscInt *nmat)
   PetscFunctionReturn(0);
 }
 
-/*@C
+/*@
    PEPSetInitialSpace - Specify a basis of vectors that constitute the initial
    space, that is, the subspace from which the solver starts to iterate.
 
@@ -391,7 +391,7 @@ PetscErrorCode PEPGetNumMatrices(PEP pep,PetscInt *nmat)
 
    Level: intermediate
 @*/
-PetscErrorCode PEPSetInitialSpace(PEP pep,PetscInt n,Vec *is)
+PetscErrorCode PEPSetInitialSpace(PEP pep,PetscInt n,Vec is[])
 {
   PetscErrorCode ierr;
 
@@ -399,6 +399,10 @@ PetscErrorCode PEPSetInitialSpace(PEP pep,PetscInt n,Vec *is)
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
   PetscValidLogicalCollectiveInt(pep,n,2);
   if (n<0) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"Argument n cannot be negative");
+  if (n>0) {
+    PetscValidPointer(is,3);
+    PetscValidHeaderSpecific(*is,VEC_CLASSID,3);
+  }
   ierr = SlepcBasisReference_Private(n,is,&pep->nini,&pep->IS);CHKERRQ(ierr);
   if (n>0) pep->state = PEP_STATE_INITIAL;
   PetscFunctionReturn(0);

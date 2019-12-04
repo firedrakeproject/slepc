@@ -1744,7 +1744,7 @@ static PetscErrorCode NEPNLEIGSSetRKShifts_NLEIGS(NEP nep,PetscInt ns,PetscScala
   PetscFunctionReturn(0);
 }
 
-/*@C
+/*@
    NEPNLEIGSSetRKShifts - Sets a list of shifts to be used in the Rational
    Krylov method.
 
@@ -1774,7 +1774,7 @@ static PetscErrorCode NEPNLEIGSSetRKShifts_NLEIGS(NEP nep,PetscInt ns,PetscScala
 
 .seealso: NEPNLEIGSGetRKShifts()
 @*/
-PetscErrorCode NEPNLEIGSSetRKShifts(NEP nep,PetscInt ns,PetscScalar *shifts)
+PetscErrorCode NEPNLEIGSSetRKShifts(NEP nep,PetscInt ns,PetscScalar shifts[])
 {
   PetscErrorCode ierr;
 
@@ -1821,7 +1821,7 @@ static PetscErrorCode NEPNLEIGSGetRKShifts_NLEIGS(NEP nep,PetscInt *ns,PetscScal
 
 .seealso: NEPNLEIGSSetRKShifts()
 @*/
-PetscErrorCode NEPNLEIGSGetRKShifts(NEP nep,PetscInt *ns,PetscScalar **shifts)
+PetscErrorCode NEPNLEIGSGetRKShifts(NEP nep,PetscInt *ns,PetscScalar *shifts[])
 {
   PetscErrorCode ierr;
 

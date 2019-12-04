@@ -449,7 +449,7 @@ where $\theta(x,\tilde{x})$ is the angle between the computed and exact eigenvec
 	In the case of non-Hermitian problems, \slepc provides the alternative of retrieving an orthonormal basis of an invariant subspace instead of getting individual eigenvectors. This is done with function
 	\findex{EPSGetInvariantSubspace}
 	\begin{Verbatim}[fontsize=\small]
-	EPSGetInvariantSubspace(EPS eps,Vec *v);
+	EPSGetInvariantSubspace(EPS eps,Vec v[]);
 	\end{Verbatim}
 This is sufficient in some applications and is safer from the numerical point of view.
 
@@ -646,7 +646,7 @@ Finally, the option for showing the converged reason is:
 	Most of the algorithms implemented in \ident{EPS} iteratively build and improve a basis of a certain subspace, which will eventually become an eigenspace corresponding to the wanted eigenvalues. In some solvers such as those of Krylov type, this basis is constructed starting from an initial vector, $v_1$, whereas in other solvers such as those of Davidson type, an arbitrary subspace can be used to start the method. By default, \ident{EPS} initializes the starting vector or the initial subspace randomly. This default is a reasonable choice. However, it is also possible to supply an initial subspace with the command
 	\findex{EPSSetInitialSpace}
 	\begin{Verbatim}[fontsize=\small]
-	EPSSetInitialSpace(EPS eps,PetscInt n,Vec *is);
+	EPSSetInitialSpace(EPS eps,PetscInt n,Vec is[]);
 	\end{Verbatim}
 In some cases, a suitable initial space can accelerate convergence significantly, for instance when the eigenvalue calculation is one of a sequence of closely related problems, where the eigenspace of one problem is fed as the initial guess for the next problem.
 
@@ -667,7 +667,7 @@ where $d(v_i)$ is the degree of vertex $v_i$. This matrix is singular since all 
 	The following function can be used to provide the \ident{EPS} object with some basis vectors corresponding to a subspace that should be deflated during the solution process.
 	\findex{EPSSetDeflationSpace}
 	\begin{Verbatim}[fontsize=\small]
-	EPSSetDeflationSpace(EPS eps,PetscInt n,Vec *defl)
+	EPSSetDeflationSpace(EPS eps,PetscInt n,Vec defl[])
 	\end{Verbatim}
 The value \texttt{n} indicates how many vectors are passed in argument \texttt{defl}.
 

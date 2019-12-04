@@ -244,7 +244,7 @@ SLEPC_EXTERN PetscErrorCode PEPSetStoppingTestFunction(PEP,PetscErrorCode (*)(PE
 SLEPC_EXTERN PetscErrorCode PEPSetStoppingTest(PEP,PEPStop);
 SLEPC_EXTERN PetscErrorCode PEPGetStoppingTest(PEP,PEPStop*);
 SLEPC_EXTERN PetscErrorCode PEPStoppingBasic(PEP,PetscInt,PetscInt,PetscInt,PetscInt,PEPConvergedReason*,void*);
-SLEPC_EXTERN PetscErrorCode PEPGetConvergedReason(PEP,PEPConvergedReason *);
+SLEPC_EXTERN PetscErrorCode PEPGetConvergedReason(PEP,PEPConvergedReason*);
 
 SLEPC_EXTERN PetscErrorCode PEPSetDimensions(PEP,PetscInt,PetscInt,PetscInt);
 SLEPC_EXTERN PetscErrorCode PEPGetDimensions(PEP,PetscInt*,PetscInt*,PetscInt*);
@@ -272,7 +272,7 @@ SLEPC_EXTERN PetscErrorCode PEPMonitorCancel(PEP);
 SLEPC_EXTERN PetscErrorCode PEPGetMonitorContext(PEP,void **);
 SLEPC_EXTERN PetscErrorCode PEPGetIterationNumber(PEP,PetscInt*);
 
-SLEPC_EXTERN PetscErrorCode PEPSetInitialSpace(PEP,PetscInt,Vec*);
+SLEPC_EXTERN PetscErrorCode PEPSetInitialSpace(PEP,PetscInt,Vec[]);
 SLEPC_EXTERN PetscErrorCode PEPSetWhichEigenpairs(PEP,PEPWhich);
 SLEPC_EXTERN PetscErrorCode PEPGetWhichEigenpairs(PEP,PEPWhich*);
 SLEPC_EXTERN PetscErrorCode PEPSetEigenvalueComparison(PEP,PetscErrorCode (*func)(PetscScalar,PetscScalar,PetscScalar,PetscScalar,PetscInt*,void*),void*);

@@ -54,7 +54,7 @@ PetscErrorCode VecNormalizeComplex(Vec xr,Vec xi,PetscBool iscomplex,PetscReal *
   PetscFunctionReturn(0);
 }
 
-/*@C
+/*@
    VecCheckOrthogonality - Checks (or prints) the level of (bi-)orthogonality
    of a set of vectors.
 
@@ -84,7 +84,7 @@ PetscErrorCode VecNormalizeComplex(Vec xr,Vec xi,PetscBool iscomplex,PetscReal *
 
    Level: developer
 @*/
-PetscErrorCode VecCheckOrthogonality(Vec *V,PetscInt nv,Vec *W,PetscInt nw,Mat B,PetscViewer viewer,PetscReal *lev)
+PetscErrorCode VecCheckOrthogonality(Vec V[],PetscInt nv,Vec W[],PetscInt nw,Mat B,PetscViewer viewer,PetscReal *lev)
 {
   PetscErrorCode ierr;
   PetscInt       i,j;

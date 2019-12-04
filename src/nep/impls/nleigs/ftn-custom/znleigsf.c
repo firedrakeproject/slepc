@@ -12,9 +12,11 @@
 #include <slepc/private/nepimpl.h>
 
 #if defined(PETSC_HAVE_FORTRAN_CAPS)
-#define nepnleigssetsingularitiesfunction_ nEPNLEIGSSETSINGULARITIESFUNCTION
+#define nepnleigssetsingularitiesfunction_ NEPNLEIGSSETSINGULARITIESFUNCTION
+#define nepnleigsgetrkshifts_              NEPNLEIGSGETRKSHIFTS
 #elif !defined(PETSC_HAVE_FORTRAN_UNDERSCORE)
 #define nepnleigssetsingularitiesfunction_ nepnleigssetsingularitiesfunction
+#define nepnleigsgetrkshifts_              nepnleigsgetrkshifts
 #endif
 
 static struct {
@@ -31,5 +33,17 @@ SLEPC_EXTERN void PETSC_STDCALL nepnleigssetsingularitiesfunction_(NEP *nep,void
   CHKFORTRANNULLOBJECT(ctx);
   *ierr = PetscObjectSetFortranCallback((PetscObject)*nep,PETSC_FORTRAN_CALLBACK_CLASS,&_cb.singularities,(PetscVoidFunction)func,ctx); if (*ierr) return;
   *ierr = NEPNLEIGSSetSingularitiesFunction(*nep,oursingularitiesfunc,*nep);
+}
+
+SLEPC_EXTERN void PETSC_STDCALL nepnleigsgetrkshifts_(NEP *nep,PetscInt *ns,PetscScalar *pshifts,int *ierr)
+{
+  PetscScalar *oshifts;
+  PetscInt    n;
+
+  CHKFORTRANNULLSCALAR(pshifts);
+  *ierr = NEPNLEIGSGetRKShifts(*nep,&n,&oshifts); if (*ierr) return;
+  if (pshifts) { *ierr = PetscArraycpy(pshifts,oshifts,n); if (*ierr) return; }
+  *ns = n;
+  *ierr = PetscFree(oshifts);
 }
 

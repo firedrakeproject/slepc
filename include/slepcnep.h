@@ -184,7 +184,7 @@ SLEPC_EXTERN PetscErrorCode NEPSetJacobian(NEP,Mat,PetscErrorCode (*)(NEP,PetscS
 SLEPC_EXTERN PetscErrorCode NEPGetJacobian(NEP,Mat*,PetscErrorCode (**)(NEP,PetscScalar,Mat,void*),void**);
 PETSC_DEPRECATED_FUNCTION("Use NEPSetFunction() and NEPSetJacobian") PETSC_STATIC_INLINE PetscErrorCode NEPSetDerivatives(NEP nep,Mat A,PetscErrorCode (*fun)(NEP,PetscScalar,PetscInt,Mat,void*),void *ctx) {SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"Not implemented in this version");}
 PETSC_DEPRECATED_FUNCTION("Use NEPGetFunction() and NEPGetJacobian") PETSC_STATIC_INLINE PetscErrorCode NEPGetDerivatives(NEP nep,Mat *A,PetscErrorCode (**fun)(NEP,PetscScalar,PetscInt,Mat,void*),void **ctx) {SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"Not implemented in this version");}
-SLEPC_EXTERN PetscErrorCode NEPSetSplitOperator(NEP,PetscInt,Mat*,FN*,MatStructure);
+SLEPC_EXTERN PetscErrorCode NEPSetSplitOperator(NEP,PetscInt,Mat[],FN[],MatStructure);
 SLEPC_EXTERN PetscErrorCode NEPGetSplitOperatorTerm(NEP,PetscInt,Mat*,FN*);
 SLEPC_EXTERN PetscErrorCode NEPGetSplitOperatorInfo(NEP,PetscInt*,MatStructure*);
 
@@ -236,7 +236,7 @@ SLEPC_EXTERN PetscErrorCode NEPMonitorCancel(NEP);
 SLEPC_EXTERN PetscErrorCode NEPGetMonitorContext(NEP,void **);
 SLEPC_EXTERN PetscErrorCode NEPGetIterationNumber(NEP,PetscInt*);
 
-SLEPC_EXTERN PetscErrorCode NEPSetInitialSpace(NEP,PetscInt,Vec*);
+SLEPC_EXTERN PetscErrorCode NEPSetInitialSpace(NEP,PetscInt,Vec[]);
 SLEPC_EXTERN PetscErrorCode NEPSetWhichEigenpairs(NEP,NEPWhich);
 SLEPC_EXTERN PetscErrorCode NEPGetWhichEigenpairs(NEP,NEPWhich*);
 SLEPC_EXTERN PetscErrorCode NEPSetTwoSided(NEP,PetscBool);
@@ -260,7 +260,7 @@ SLEPC_EXTERN PetscErrorCode NEPSetOptionsPrefix(NEP,const char*);
 SLEPC_EXTERN PetscErrorCode NEPAppendOptionsPrefix(NEP,const char*);
 SLEPC_EXTERN PetscErrorCode NEPGetOptionsPrefix(NEP,const char*[]);
 
-SLEPC_EXTERN PetscErrorCode NEPGetConvergedReason(NEP,NEPConvergedReason *);
+SLEPC_EXTERN PetscErrorCode NEPGetConvergedReason(NEP,NEPConvergedReason*);
 
 SLEPC_EXTERN PetscFunctionList NEPList;
 SLEPC_EXTERN PetscErrorCode NEPRegister(const char[],PetscErrorCode(*)(NEP));
@@ -325,8 +325,8 @@ SLEPC_EXTERN PetscErrorCode NEPNLEIGSSetLocking(NEP,PetscBool);
 SLEPC_EXTERN PetscErrorCode NEPNLEIGSGetLocking(NEP,PetscBool*);
 SLEPC_EXTERN PetscErrorCode NEPNLEIGSSetInterpolation(NEP,PetscReal,PetscInt);
 SLEPC_EXTERN PetscErrorCode NEPNLEIGSGetInterpolation(NEP,PetscReal*,PetscInt*);
-SLEPC_EXTERN PetscErrorCode NEPNLEIGSSetRKShifts(NEP,PetscInt,PetscScalar*);
-SLEPC_EXTERN PetscErrorCode NEPNLEIGSGetRKShifts(NEP,PetscInt*,PetscScalar**);
+SLEPC_EXTERN PetscErrorCode NEPNLEIGSSetRKShifts(NEP,PetscInt,PetscScalar[]);
+SLEPC_EXTERN PetscErrorCode NEPNLEIGSGetRKShifts(NEP,PetscInt*,PetscScalar*[]);
 SLEPC_EXTERN PetscErrorCode NEPNLEIGSGetKSPs(NEP,PetscInt*,KSP**);
 SLEPC_EXTERN PetscErrorCode NEPNLEIGSSetFullBasis(NEP,PetscBool);
 SLEPC_EXTERN PetscErrorCode NEPNLEIGSGetFullBasis(NEP,PetscBool*);

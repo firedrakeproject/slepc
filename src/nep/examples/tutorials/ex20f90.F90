@@ -51,7 +51,7 @@
 !     ctx       user-defined context
 
       NEP            nep
-      Vec            x
+      Vec            x, v(1)
       PetscScalar    lambda
       Mat            F, J
       type(User)     ctx
@@ -132,10 +132,12 @@
 
 !     ** Evaluate initial guess
       call MatCreateVecs(F,x,PETSC_NULL_VEC,ierr);CHKERRA(ierr)
+      call VecDuplicate(x,v(1),ierr);CHKERRA(ierr)
       alpha = 1.0
-      call VecSet(x,alpha,ierr);CHKERRA(ierr)
+      call VecSet(v(1),alpha,ierr);CHKERRA(ierr)
       k = 1
-      call NEPSetInitialSpace(nep,k,x,ierr);CHKERRA(ierr)
+      call NEPSetInitialSpace(nep,k,v,ierr);CHKERRA(ierr)
+      call VecDestroy(v(1),ierr);CHKERRA(ierr)
 
 !     ** Call the solver
       call NEPSolve(nep,ierr);CHKERRA(ierr)

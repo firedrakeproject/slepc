@@ -197,7 +197,7 @@ PetscErrorCode SVDSetUp(SVD svd)
   PetscFunctionReturn(0);
 }
 
-/*@C
+/*@
    SVDSetInitialSpaces - Specify two basis of vectors that constitute the initial
    right and/or left spaces, that is, a rough approximation to the right and/or
    left singular subspaces from which the solver starts to iterate.
@@ -228,7 +228,7 @@ PetscErrorCode SVDSetUp(SVD svd)
 
    Level: intermediate
 @*/
-PetscErrorCode SVDSetInitialSpaces(SVD svd,PetscInt nr,Vec *isr,PetscInt nl,Vec *isl)
+PetscErrorCode SVDSetInitialSpaces(SVD svd,PetscInt nr,Vec isr[],PetscInt nl,Vec isl[])
 {
   PetscErrorCode ierr;
 
@@ -237,7 +237,15 @@ PetscErrorCode SVDSetInitialSpaces(SVD svd,PetscInt nr,Vec *isr,PetscInt nl,Vec 
   PetscValidLogicalCollectiveInt(svd,nr,2);
   PetscValidLogicalCollectiveInt(svd,nl,4);
   if (nr<0) SETERRQ(PetscObjectComm((PetscObject)svd),PETSC_ERR_ARG_OUTOFRANGE,"Argument nr cannot be negative");
+  if (nr>0) {
+    PetscValidPointer(isr,3);
+    PetscValidHeaderSpecific(*isr,VEC_CLASSID,3);
+  }
   if (nl<0) SETERRQ(PetscObjectComm((PetscObject)svd),PETSC_ERR_ARG_OUTOFRANGE,"Argument nl cannot be negative");
+  if (nl>0) {
+    PetscValidPointer(isl,5);
+    PetscValidHeaderSpecific(*isl,VEC_CLASSID,5);
+  }
   ierr = SlepcBasisReference_Private(nr,isr,&svd->nini,&svd->IS);CHKERRQ(ierr);
   ierr = SlepcBasisReference_Private(nl,isl,&svd->ninil,&svd->ISL);CHKERRQ(ierr);
   if (nr>0 || nl>0) svd->state = SVD_STATE_INITIAL;
