@@ -320,7 +320,7 @@ static PetscErrorCode EPSSliceGetInertia(EPS eps,PetscReal shift,PetscInt *inert
   KSP            ksp;
   PC             pc;
   Mat            F;
-  PetscReal      nzshift;
+  PetscReal      nzshift=shift;
 
   PetscFunctionBegin;
   if (shift >= PETSC_MAX_REAL) { /* Right-open interval */
