@@ -61,6 +61,8 @@
 #define nepgetrefine011_                  NEPGETREFINE011
 #define nepgetrefine101_                  NEPGETREFINE101
 #define nepgetrefine111_                  NEPGETREFINE111
+#define nepsetinitialspace0_              NEPSETINITIALSPACE0
+#define nepsetinitialspace1_              NEPSETINITIALSPACE1
 #elif !defined(PETSC_HAVE_FORTRAN_UNDERSCORE)
 #define nepview_                          nepview
 #define neperrorview_                     neperrorview
@@ -109,6 +111,8 @@
 #define nepgetrefine011_                  nepgetrefine011
 #define nepgetrefine101_                  nepgetrefine101
 #define nepgetrefine111_                  nepgetrefine111
+#define nepsetinitialspace0_              nepsetinitialspace0
+#define nepsetinitialspace1_              nepsetinitialspace1
 #endif
 
 /*
@@ -535,5 +539,17 @@ SLEPC_EXTERN void PETSC_STDCALL nepgetrefine101_(NEP *nep,NEPRefine *refine,Pets
 SLEPC_EXTERN void PETSC_STDCALL nepgetrefine111_(NEP *nep,NEPRefine *refine,PetscInt *npart,PetscReal *tol,PetscInt *its,NEPRefineScheme *scheme,int *ierr)
 {
   nepgetrefine_(nep,refine,npart,tol,its,scheme,ierr);
+}
+
+SLEPC_EXTERN void PETSC_STDCALL nepsetinitialspace0_(NEP *nep,PetscInt *n,Vec *is,int *ierr)
+{
+  CHKFORTRANNULLOBJECT(is);
+  *ierr = NEPSetInitialSpace(*nep,*n,is);
+}
+
+SLEPC_EXTERN void PETSC_STDCALL nepsetinitialspace1_(NEP *nep,PetscInt *n,Vec *is,int *ierr)
+{
+  CHKFORTRANNULLOBJECT(is);
+  *ierr = NEPSetInitialSpace(*nep,*n,is);
 }
 

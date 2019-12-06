@@ -60,6 +60,10 @@
 #define epsgetbalance110_                 EPSGETBALANCE110
 #define epsgetbalance011_                 EPSGETBALANCE011
 #define epsgetbalance101_                 EPSGETBALANCE101
+#define epssetdeflationspace0_            EPSSETDEFLATIONSPACE0
+#define epssetdeflationspace1_            EPSSETDEFLATIONSPACE1
+#define epssetinitialspace0_              EPSSETINITIALSPACE0
+#define epssetinitialspace1_              EPSSETINITIALSPACE1
 #elif !defined(PETSC_HAVE_FORTRAN_UNDERSCORE)
 #define epsview_                          epsview
 #define epserrorview_                     epserrorview
@@ -108,6 +112,10 @@
 #define epsgetbalance110_                 epsgetbalance110
 #define epsgetbalance011_                 epsgetbalance011
 #define epsgetbalance101_                 epsgetbalance101
+#define epssetdeflationspace0_            epssetdeflationspace0
+#define epssetdeflationspace1_            epssetdeflationspace1
+#define epssetinitialspace0_              epssetinitialspace0
+#define epssetinitialspace1_              epssetinitialspace1
 #endif
 
 /*
@@ -516,5 +524,29 @@ SLEPC_EXTERN void PETSC_STDCALL epsgetbalance011_(EPS *eps,EPSBalance *bal,Petsc
 SLEPC_EXTERN void PETSC_STDCALL epsgetbalance101_(EPS *eps,EPSBalance *bal,PetscInt *its,PetscReal *cutoff,int *ierr)
 {
   epsgetbalance_(eps,bal,its,cutoff,ierr);
+}
+
+SLEPC_EXTERN void PETSC_STDCALL epssetdeflationspace0_(EPS *eps,PetscInt *n,Vec *ds,int *ierr)
+{
+  CHKFORTRANNULLOBJECT(ds);
+  *ierr = EPSSetDeflationSpace(*eps,*n,ds);
+}
+
+SLEPC_EXTERN void PETSC_STDCALL epssetdeflationspace1_(EPS *eps,PetscInt *n,Vec *ds,int *ierr)
+{
+  CHKFORTRANNULLOBJECT(ds);
+  *ierr = EPSSetDeflationSpace(*eps,*n,ds);
+}
+
+SLEPC_EXTERN void PETSC_STDCALL epssetinitialspace0_(EPS *eps,PetscInt *n,Vec *is,int *ierr)
+{
+  CHKFORTRANNULLOBJECT(is);
+  *ierr = EPSSetInitialSpace(*eps,*n,is);
+}
+
+SLEPC_EXTERN void PETSC_STDCALL epssetinitialspace1_(EPS *eps,PetscInt *n,Vec *is,int *ierr)
+{
+  CHKFORTRANNULLOBJECT(is);
+  *ierr = EPSSetInitialSpace(*eps,*n,is);
 }
 
