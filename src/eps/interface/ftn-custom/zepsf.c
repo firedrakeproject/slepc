@@ -567,11 +567,13 @@ SLEPC_EXTERN void PETSC_STDCALL epssetinitialspace1_(EPS *eps,PetscInt *n,Vec *i
 
 SLEPC_EXTERN void PETSC_STDCALL epssetleftinitialspace0_(EPS *eps,PetscInt *n,Vec *isl,int *ierr)
 {
+  CHKFORTRANNULLOBJECT(isl);
   *ierr = EPSSetLeftInitialSpace(*eps,*n,isl);
 }
 
 SLEPC_EXTERN void PETSC_STDCALL epssetleftinitialspace1_(EPS *eps,PetscInt *n,Vec *isl,int *ierr)
 {
+  CHKFORTRANNULLOBJECT(isl);
   *ierr = EPSSetLeftInitialSpace(*eps,*n,isl);
 }
 

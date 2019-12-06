@@ -511,7 +511,7 @@ PetscErrorCode EPSSetInitialSpace(EPS eps,PetscInt n,Vec is[])
 
 .seealso: EPSSetInitialSpace(), EPSSetTwoSided()
 @*/
-PetscErrorCode EPSSetLeftInitialSpace(EPS eps,PetscInt n,Vec *isl)
+PetscErrorCode EPSSetLeftInitialSpace(EPS eps,PetscInt n,Vec isl[])
 {
   PetscErrorCode ierr;
 
@@ -519,6 +519,10 @@ PetscErrorCode EPSSetLeftInitialSpace(EPS eps,PetscInt n,Vec *isl)
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidLogicalCollectiveInt(eps,n,2);
   if (n<0) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"Argument n cannot be negative");
+  if (n>0) {
+    PetscValidPointer(isl,3);
+    PetscValidHeaderSpecific(*isl,VEC_CLASSID,3);
+  }
   ierr = SlepcBasisReference_Private(n,isl,&eps->ninil,&eps->ISL);CHKERRQ(ierr);
   if (n>0) eps->state = EPS_STATE_INITIAL;
   PetscFunctionReturn(0);

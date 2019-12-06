@@ -276,7 +276,7 @@ SLEPC_EXTERN PetscErrorCode EPSGetTrackAll(EPS,PetscBool*);
 
 SLEPC_EXTERN PetscErrorCode EPSSetDeflationSpace(EPS,PetscInt,Vec[]);
 SLEPC_EXTERN PetscErrorCode EPSSetInitialSpace(EPS,PetscInt,Vec[]);
-SLEPC_EXTERN PetscErrorCode EPSSetLeftInitialSpace(EPS,PetscInt,Vec*);
+SLEPC_EXTERN PetscErrorCode EPSSetLeftInitialSpace(EPS,PetscInt,Vec[]);
 
 SLEPC_EXTERN PetscErrorCode EPSSetOptionsPrefix(EPS,const char*);
 SLEPC_EXTERN PetscErrorCode EPSAppendOptionsPrefix(EPS,const char*);

@@ -194,6 +194,9 @@ PetscErrorCode EPSView(EPS eps,PetscViewer viewer)
     if (eps->nini) {
       ierr = PetscViewerASCIIPrintf(viewer,"  dimension of user-provided initial space: %D\n",PetscAbs(eps->nini));CHKERRQ(ierr);
     }
+    if (eps->ninil) {
+      ierr = PetscViewerASCIIPrintf(viewer,"  dimension of user-provided left initial space: %D\n",PetscAbs(eps->ninil));CHKERRQ(ierr);
+    }
     if (eps->nds) {
       ierr = PetscViewerASCIIPrintf(viewer,"  dimension of user-provided deflation space: %D\n",PetscAbs(eps->nds));CHKERRQ(ierr);
     }
