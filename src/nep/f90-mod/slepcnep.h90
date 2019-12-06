@@ -216,20 +216,3 @@
         end subroutine
       end interface NEPGetRefine
 
-      interface NEPSetInitialSpace
-        subroutine NEPSetInitialSpace0(a,b,c,z)
-          use slepcnepdef
-          NEP a
-          PetscInt b
-          Vec c
-          integer z
-        end subroutine
-        subroutine NEPSetInitialSpace1(a,b,c,z)
-          use slepcnepdef
-          NEP a
-          PetscInt b
-          Vec c(*)
-          integer z
-        end subroutine
-      end interface NEPSetInitialSpace
-

@@ -328,7 +328,7 @@ PetscErrorCode EPSGetConvergedReason(EPS eps,EPSConvergedReason *reason)
 
 .seealso: EPSGetEigenpair(), EPSGetConverged(), EPSSolve()
 @*/
-PetscErrorCode EPSGetInvariantSubspace(EPS eps,Vec *v)
+PetscErrorCode EPSGetInvariantSubspace(EPS eps,Vec v[])
 {
   PetscErrorCode ierr;
   PetscInt       i;

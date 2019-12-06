@@ -427,7 +427,7 @@ PetscErrorCode EPSGetOperators(EPS eps,Mat *A,Mat *B)
 
 .seealso: EPSSetInitialSpace()
 @*/
-PetscErrorCode EPSSetDeflationSpace(EPS eps,PetscInt n,Vec *v)
+PetscErrorCode EPSSetDeflationSpace(EPS eps,PetscInt n,Vec v[])
 {
   PetscErrorCode ierr;
 
@@ -435,12 +435,16 @@ PetscErrorCode EPSSetDeflationSpace(EPS eps,PetscInt n,Vec *v)
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidLogicalCollectiveInt(eps,n,2);
   if (n<0) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"Argument n out of range");
+  if (n>0) {
+    PetscValidPointer(v,3);
+    PetscValidHeaderSpecific(*v,VEC_CLASSID,3);
+  }
   ierr = SlepcBasisReference_Private(n,v,&eps->nds,&eps->defl);CHKERRQ(ierr);
   if (n>0) eps->state = EPS_STATE_INITIAL;
   PetscFunctionReturn(0);
 }
 
-/*@C
+/*@
    EPSSetInitialSpace - Specify a basis of vectors that constitute the initial
    space, that is, the subspace from which the solver starts to iterate.
 
@@ -468,7 +472,7 @@ PetscErrorCode EPSSetDeflationSpace(EPS eps,PetscInt n,Vec *v)
 
 .seealso: EPSSetLeftInitialSpace(), EPSSetDeflationSpace()
 @*/
-PetscErrorCode EPSSetInitialSpace(EPS eps,PetscInt n,Vec *is)
+PetscErrorCode EPSSetInitialSpace(EPS eps,PetscInt n,Vec is[])
 {
   PetscErrorCode ierr;
 
@@ -476,6 +480,10 @@ PetscErrorCode EPSSetInitialSpace(EPS eps,PetscInt n,Vec *is)
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
   PetscValidLogicalCollectiveInt(eps,n,2);
   if (n<0) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"Argument n cannot be negative");
+  if (n>0) {
+    PetscValidPointer(is,3);
+    PetscValidHeaderSpecific(*is,VEC_CLASSID,3);
+  }
   ierr = SlepcBasisReference_Private(n,is,&eps->nini,&eps->IS);CHKERRQ(ierr);
   if (n>0) eps->state = EPS_STATE_INITIAL;
   PetscFunctionReturn(0);

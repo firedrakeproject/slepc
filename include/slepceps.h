@@ -239,7 +239,7 @@ SLEPC_EXTERN PetscErrorCode EPSGetLeftEigenvector(EPS,PetscInt,Vec,Vec);
 SLEPC_EXTERN PetscErrorCode EPSComputeError(EPS,PetscInt,EPSErrorType,PetscReal*);
 PETSC_DEPRECATED_FUNCTION("Use EPSComputeError()") PETSC_STATIC_INLINE PetscErrorCode EPSComputeRelativeError(EPS eps,PetscInt i,PetscReal *r) {return EPSComputeError(eps,i,EPS_ERROR_RELATIVE,r);}
 PETSC_DEPRECATED_FUNCTION("Use EPSComputeError() with EPS_ERROR_ABSOLUTE") PETSC_STATIC_INLINE PetscErrorCode EPSComputeResidualNorm(EPS eps,PetscInt i,PetscReal *r) {return EPSComputeError(eps,i,EPS_ERROR_ABSOLUTE,r);}
-SLEPC_EXTERN PetscErrorCode EPSGetInvariantSubspace(EPS,Vec*);
+SLEPC_EXTERN PetscErrorCode EPSGetInvariantSubspace(EPS,Vec[]);
 SLEPC_EXTERN PetscErrorCode EPSGetErrorEstimate(EPS,PetscInt,PetscReal*);
 
 SLEPC_EXTERN PetscErrorCode EPSMonitor(EPS,PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscReal*,PetscInt);
@@ -274,8 +274,8 @@ SLEPC_EXTERN PetscErrorCode EPSMonitorLGAll(EPS,PetscInt,PetscInt,PetscScalar*,P
 SLEPC_EXTERN PetscErrorCode EPSSetTrackAll(EPS,PetscBool);
 SLEPC_EXTERN PetscErrorCode EPSGetTrackAll(EPS,PetscBool*);
 
-SLEPC_EXTERN PetscErrorCode EPSSetDeflationSpace(EPS,PetscInt,Vec*);
-SLEPC_EXTERN PetscErrorCode EPSSetInitialSpace(EPS,PetscInt,Vec*);
+SLEPC_EXTERN PetscErrorCode EPSSetDeflationSpace(EPS,PetscInt,Vec[]);
+SLEPC_EXTERN PetscErrorCode EPSSetInitialSpace(EPS,PetscInt,Vec[]);
 SLEPC_EXTERN PetscErrorCode EPSSetLeftInitialSpace(EPS,PetscInt,Vec*);
 
 SLEPC_EXTERN PetscErrorCode EPSSetOptionsPrefix(EPS,const char*);

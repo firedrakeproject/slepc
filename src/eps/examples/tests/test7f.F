@@ -41,7 +41,7 @@
       PetscErrorCode ierr
       PetscBool      flg
       PetscScalar    value(3), one
-      Vec            v
+      Vec            v(1)
 
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !     Beginning of program
@@ -102,9 +102,9 @@
       call MatAssemblyBegin(A,MAT_FINAL_ASSEMBLY,ierr)
       call MatAssemblyEnd(A,MAT_FINAL_ASSEMBLY,ierr)
 
-      call MatCreateVecs(A,v,PETSC_NULL_VEC,ierr)
+      call MatCreateVecs(A,v(1),PETSC_NULL_VEC,ierr)
       one = 1.0
-      call VecSet(v,one,ierr)
+      call VecSet(v(1),one,ierr)
 
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !     Create the eigensolver and display info
@@ -150,7 +150,7 @@
       call EPSErrorView(eps,EPS_ERROR_RELATIVE,PETSC_NULL_VIEWER,ierr)
       call EPSDestroy(eps,ierr)
       call MatDestroy(A,ierr)
-      call VecDestroy(v,ierr)
+      call VecDestroy(v(1),ierr)
 
       call SlepcFinalize(ierr)
       end
