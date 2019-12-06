@@ -400,7 +400,7 @@ PetscErrorCode EPSGetOperators(EPS eps,Mat *A,Mat *B)
   PetscFunctionReturn(0);
 }
 
-/*@
+/*@C
    EPSSetDeflationSpace - Specify a basis of vectors that constitute the deflation
    space.
 
@@ -444,7 +444,7 @@ PetscErrorCode EPSSetDeflationSpace(EPS eps,PetscInt n,Vec v[])
   PetscFunctionReturn(0);
 }
 
-/*@
+/*@C
    EPSSetInitialSpace - Specify a basis of vectors that constitute the initial
    space, that is, the subspace from which the solver starts to iterate.
 

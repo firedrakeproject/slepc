@@ -111,3 +111,38 @@
         end subroutine
       end interface SVDGetTolerances
 
+      interface SVDSetInitialSpaces
+        subroutine SVDSetInitialSpaces00(a,b,c,d,z)
+          use slepcsvddef
+          SVD a
+          PetscInt b
+          Vec c
+          Vec d
+          integer z
+        end subroutine
+        subroutine SVDSetInitialSpaces01(a,b,c,d,z)
+          use slepcsvddef
+          SVD a
+          PetscInt b
+          Vec c
+          Vec d(*)
+          integer z
+        end subroutine
+        subroutine SVDSetInitialSpaces10(a,b,c,d,z)
+          use slepcsvddef
+          SVD a
+          PetscInt b
+          Vec c(*)
+          Vec d
+          integer z
+        end subroutine
+        subroutine SVDSetInitialSpaces11(a,b,c,d,z)
+          use slepcsvddef
+          SVD a
+          PetscInt b
+          Vec c(*)
+          Vec d(*)
+          integer z
+        end subroutine
+      end interface SVDSetInitialSpaces
+
