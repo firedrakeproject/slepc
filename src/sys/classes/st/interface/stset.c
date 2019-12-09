@@ -63,6 +63,7 @@ PetscErrorCode STSetType(ST st,STType type)
   ierr = PetscMemzero(st->ops,sizeof(struct _STOps));CHKERRQ(ierr);
 
   st->state = ST_STATE_INITIAL;
+  st->opready = PETSC_FALSE;
   ierr = PetscObjectChangeTypeName((PetscObject)st,type);CHKERRQ(ierr);
   ierr = (*r)(st);CHKERRQ(ierr);
   PetscFunctionReturn(0);

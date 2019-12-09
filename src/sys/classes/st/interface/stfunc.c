@@ -14,7 +14,7 @@
 #include <slepc/private/stimpl.h>            /*I "slepcst.h" I*/
 
 PetscClassId     ST_CLASSID = 0;
-PetscLogEvent    ST_SetUp = 0,ST_Apply = 0,ST_ApplyTranspose = 0,ST_MatSetUp = 0,ST_MatMult = 0,ST_MatMultTranspose = 0,ST_MatSolve = 0,ST_MatSolveTranspose = 0;
+PetscLogEvent    ST_SetUp = 0,ST_ComputeOperator = 0,ST_Apply = 0,ST_ApplyTranspose = 0,ST_MatSetUp = 0,ST_MatMult = 0,ST_MatMultTranspose = 0,ST_MatSolve = 0,ST_MatSolveTranspose = 0;
 static PetscBool STPackageInitialized = PETSC_FALSE;
 
 const char *STMatModes[] = {"COPY","INPLACE","SHELL","STMatMode","ST_MATMODE_",0};
@@ -62,6 +62,7 @@ PetscErrorCode STInitializePackage(void)
   ierr = STRegisterAll();CHKERRQ(ierr);
   /* Register Events */
   ierr = PetscLogEventRegister("STSetUp",ST_CLASSID,&ST_SetUp);CHKERRQ(ierr);
+  ierr = PetscLogEventRegister("STComputeOperator",ST_CLASSID,&ST_ComputeOperator);CHKERRQ(ierr);
   ierr = PetscLogEventRegister("STApply",ST_CLASSID,&ST_Apply);CHKERRQ(ierr);
   ierr = PetscLogEventRegister("STApplyTranspose",ST_CLASSID,&ST_ApplyTranspose);CHKERRQ(ierr);
   ierr = PetscLogEventRegister("STMatSetUp",ST_CLASSID,&ST_MatSetUp);CHKERRQ(ierr);
@@ -195,6 +196,7 @@ PetscErrorCode STCreate(MPI_Comm comm,ST *newst)
   st->T            = NULL;
   st->Op           = NULL;
   st->opseized     = PETSC_FALSE;
+  st->opready      = PETSC_FALSE;
   st->P            = NULL;
   st->M            = NULL;
   st->sigma_set    = PETSC_FALSE;
@@ -265,6 +267,7 @@ PetscErrorCode STSetMatrices(ST st,PetscInt n,Mat A[])
   st->nmat = n;
   if (same) st->state = ST_STATE_UPDATED;
   else st->state = ST_STATE_INITIAL;
+  st->opready = PETSC_FALSE;
   PetscFunctionReturn(0);
 }
 
@@ -529,6 +532,7 @@ PetscErrorCode STSetBalanceMatrix(ST st,Vec D)
   ierr = VecDestroy(&st->D);CHKERRQ(ierr);
   st->D = D;
   st->state = ST_STATE_INITIAL;
+  st->opready = PETSC_FALSE;
   PetscFunctionReturn(0);
 }
 

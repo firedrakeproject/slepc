@@ -270,6 +270,48 @@ PetscErrorCode STRestoreOperator(ST st,Mat *Op)
   PetscFunctionReturn(0);
 }
 
+/*
+   STComputeOperator - Computes the matrices that constitute the operator
+
+      Op = alpha*D*inv(K)*M*inv(D).
+
+   K and M are computed here (alpha and D are user-provided) from the system
+   matrices and the shift sigma (whenever these are changed, this function
+   recomputes K and M). This is used only in linear eigenproblems (nmat<3).
+
+   K is the "preconditioner matrix": it is the denominator in rational operators,
+   e.g. (A-sigma*B) in shift-and-invert. In non-rational transformations such
+   as STFILTER, K=NULL which means identity. After computing K, it is passed to
+   the internal KSP object via KSPSetOperators.
+
+   M is the numerator in rational operators. If unused it is set to NULL (e.g.
+   in STPRECOND or in polynomial problems).
+
+   STSHELL does not compute anything here, but sets the flag as it was ready.
+*/
+PetscErrorCode STComputeOperator(ST st)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(st,ST_CLASSID,1);
+  PetscValidType(st,1);
+  if (!st->opready && st->ops->computeoperator) {
+    STCheckMatrices(st,1);
+    ierr = PetscLogEventBegin(ST_ComputeOperator,st,0,0,0);CHKERRQ(ierr);
+    ierr = (*st->ops->computeoperator)(st);CHKERRQ(ierr);
+    ierr = PetscLogEventEnd(ST_ComputeOperator,st,0,0,0);CHKERRQ(ierr);
+    if (st->P && st->usesksp) {
+      if (!st->ksp) { ierr = STGetKSP(st,&st->ksp);CHKERRQ(ierr); }
+      ierr = STSetDefaultKSP(st);CHKERRQ(ierr);
+      ierr = STCheckFactorPackage(st);CHKERRQ(ierr);
+      ierr = KSPSetOperators(st->ksp,st->P,st->P);CHKERRQ(ierr);
+    }
+  }
+  st->opready = PETSC_TRUE;
+  PetscFunctionReturn(0);
+}
+
 /*@
    STSetUp - Prepares for the use of a spectral transformation.
 
@@ -306,10 +348,9 @@ PetscErrorCode STSetUp(ST st)
   }
   ierr = PetscLogEventBegin(ST_SetUp,st,0,0,0);CHKERRQ(ierr);
   if (!st->T) {
-    ierr = PetscMalloc1(PetscMax(2,st->nmat),&st->T);CHKERRQ(ierr);
+    ierr = PetscCalloc1(PetscMax(2,st->nmat),&st->T);CHKERRQ(ierr);
     ierr = PetscLogObjectMemory((PetscObject)st,PetscMax(2,st->nmat)*sizeof(Mat));CHKERRQ(ierr);
-    for (i=0;i<PetscMax(2,st->nmat);i++) st->T[i] = NULL;
-  } else if (st->state!=ST_STATE_UPDATED) {
+  } else if (st->state!=ST_STATE_UPDATED && !(st->nmat<3 && st->opready)) {
     for (i=0;i<PetscMax(2,st->nmat);i++) {
       ierr = MatDestroy(&st->T[i]);CHKERRQ(ierr);
     }
@@ -324,7 +365,7 @@ PetscErrorCode STSetUp(ST st)
       ierr = PetscLogObjectParent((PetscObject)st,(PetscObject)st->wb);CHKERRQ(ierr);
     }
   }
-  if (st->usesksp) { ierr = STSetDefaultKSP(st);CHKERRQ(ierr); }
+  if (st->nmat<3 && st->transform) { ierr = STComputeOperator(st);CHKERRQ(ierr); }
   if (st->ops->setup) { ierr = (*st->ops->setup)(st);CHKERRQ(ierr); }
   st->state = ST_STATE_SETUP;
   ierr = PetscLogEventEnd(ST_SetUp,st,0,0,0);CHKERRQ(ierr);

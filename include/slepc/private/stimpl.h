@@ -16,19 +16,20 @@
 
 SLEPC_EXTERN PetscBool STRegisterAllCalled;
 SLEPC_EXTERN PetscErrorCode STRegisterAll(void);
-SLEPC_EXTERN PetscLogEvent ST_SetUp,ST_Apply,ST_ApplyTranspose,ST_MatSetUp,ST_MatMult,ST_MatMultTranspose,ST_MatSolve,ST_MatSolveTranspose;
+SLEPC_EXTERN PetscLogEvent ST_SetUp,ST_ComputeOperator,ST_Apply,ST_ApplyTranspose,ST_MatSetUp,ST_MatMult,ST_MatMultTranspose,ST_MatSolve,ST_MatSolveTranspose;
 
 typedef struct _STOps *STOps;
 
 struct _STOps {
-  PetscErrorCode (*setup)(ST);
   PetscErrorCode (*apply)(ST,Vec,Vec);
-  PetscErrorCode (*getbilinearform)(ST,Mat*);
   PetscErrorCode (*applytrans)(ST,Vec,Vec);
+  PetscErrorCode (*backtransform)(ST,PetscInt,PetscScalar*,PetscScalar*);
   PetscErrorCode (*setshift)(ST,PetscScalar);
+  PetscErrorCode (*getbilinearform)(ST,Mat*);
+  PetscErrorCode (*setup)(ST);
+  PetscErrorCode (*computeoperator)(ST);
   PetscErrorCode (*setfromoptions)(PetscOptionItems*,ST);
   PetscErrorCode (*postsolve)(ST);
-  PetscErrorCode (*backtransform)(ST,PetscInt,PetscScalar*,PetscScalar*);
   PetscErrorCode (*destroy)(ST);
   PetscErrorCode (*reset)(ST);
   PetscErrorCode (*view)(ST,PetscViewer);
@@ -67,6 +68,7 @@ struct _p_ST {
   Mat              *T;               /* matrices resulting from transformation */
   Mat              Op;               /* shell matrix for operator = alpha*D*inv(P)*M*inv(D) */
   PetscBool        opseized;         /* whether Op has been seized by user */
+  PetscBool        opready;          /* whether Op is up-to-date or need be computed  */
   Mat              P;                /* matrix from which preconditioner is built */
   Mat              M;                /* matrix corresponding to the non-inverted part of the operator */
   PetscBool        sigma_set;        /* whether the user provided the shift or not */
@@ -105,5 +107,6 @@ SLEPC_INTERN PetscErrorCode STCoeffs_Monomial(ST,PetscScalar*);
 SLEPC_INTERN PetscErrorCode STSetDefaultKSP(ST);
 SLEPC_INTERN PetscErrorCode STSetDefaultKSP_Default(ST);
 SLEPC_INTERN PetscErrorCode STIsInjective_Shell(ST,PetscBool*);
+SLEPC_INTERN PetscErrorCode STComputeOperator(ST);
 
 #endif

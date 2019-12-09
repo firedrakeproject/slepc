@@ -74,49 +74,62 @@ PetscErrorCode STPostSolve_Shift(ST st)
   PetscFunctionReturn(0);
 }
 
+PetscErrorCode STComputeOperator_Shift(ST st)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  st->usesksp = (st->nmat>1)? PETSC_TRUE: PETSC_FALSE;
+  ierr = PetscObjectReference((PetscObject)st->A[1]);CHKERRQ(ierr);
+  ierr = MatDestroy(&st->T[1]);CHKERRQ(ierr);
+  st->T[1] = st->A[1];
+  ierr = STMatMAXPY_Private(st,-st->sigma,0.0,0,NULL,PetscNot(st->state==ST_STATE_UPDATED),&st->T[0]);CHKERRQ(ierr);
+  ierr = PetscObjectReference((PetscObject)st->T[1]);CHKERRQ(ierr);
+  ierr = MatDestroy(&st->P);CHKERRQ(ierr);
+  st->P = st->T[1];
+  PetscFunctionReturn(0);
+}
+
 PetscErrorCode STSetUp_Shift(ST st)
 {
   PetscErrorCode ierr;
-  PetscInt       k,nc,nmat=PetscMax(st->nmat,2);
+  PetscInt       k,nc,nmat=st->nmat;
   PetscScalar    *coeffs=NULL;
 
   PetscFunctionBegin;
-  if (st->nmat>1) {
+  if (nmat>1) {
     ierr = STSetWorkVecs(st,1);CHKERRQ(ierr);
   }
-  st->usesksp = (st->nmat>1)? PETSC_TRUE: PETSC_FALSE;
-  if (nmat<3 || st->transform) {
-    if (nmat>2) {
+  if (nmat>2) {  /* set-up matrices for polynomial eigenproblems */
+    if (st->transform) {
       nc = (nmat*(nmat+1))/2;
       ierr = PetscMalloc1(nc,&coeffs);CHKERRQ(ierr);
       /* Compute coeffs */
       ierr = STCoeffs_Monomial(st,coeffs);CHKERRQ(ierr);
-    }
-    /* T[n] = A_n */
-    k = nmat-1;
-    ierr = PetscObjectReference((PetscObject)st->A[k]);CHKERRQ(ierr);
-    ierr = MatDestroy(&st->T[k]);CHKERRQ(ierr);
-    st->T[k] = st->A[k];
-    for (k=0;k<nmat-1;k++) {
-      ierr = STMatMAXPY_Private(st,nmat>2?st->sigma:-st->sigma,0.0,k,coeffs?coeffs+((nmat-k)*(nmat-k-1))/2:NULL,PetscNot(st->state==ST_STATE_UPDATED),&st->T[k]);CHKERRQ(ierr);
-    }
-     if (nmat>2) { ierr = PetscFree(coeffs);CHKERRQ(ierr); }
-  } else {
-    for (k=0;k<nmat;k++) {
+      /* T[n] = A_n */
+      k = nmat-1;
       ierr = PetscObjectReference((PetscObject)st->A[k]);CHKERRQ(ierr);
       ierr = MatDestroy(&st->T[k]);CHKERRQ(ierr);
       st->T[k] = st->A[k];
+      for (k=0;k<nmat-1;k++) {
+        ierr = STMatMAXPY_Private(st,nmat>2?st->sigma:-st->sigma,0.0,k,coeffs?coeffs+((nmat-k)*(nmat-k-1))/2:NULL,PetscNot(st->state==ST_STATE_UPDATED),&st->T[k]);CHKERRQ(ierr);
+      }
+      ierr = PetscFree(coeffs);CHKERRQ(ierr);
+      ierr = PetscObjectReference((PetscObject)st->T[nmat-1]);CHKERRQ(ierr);
+      ierr = MatDestroy(&st->P);CHKERRQ(ierr);
+      st->P = st->T[nmat-1];
+      if (!st->ksp) { ierr = STGetKSP(st,&st->ksp);CHKERRQ(ierr); }
+      ierr = STCheckFactorPackage(st);CHKERRQ(ierr);
+      ierr = KSPSetOperators(st->ksp,st->P,st->P);CHKERRQ(ierr);
+    } else {
+      for (k=0;k<nmat;k++) {
+        ierr = PetscObjectReference((PetscObject)st->A[k]);CHKERRQ(ierr);
+        ierr = MatDestroy(&st->T[k]);CHKERRQ(ierr);
+        st->T[k] = st->A[k];
+      }
     }
   }
-  if (nmat>=2 && st->transform) {
-    ierr = PetscObjectReference((PetscObject)st->T[nmat-1]);CHKERRQ(ierr);
-    ierr = MatDestroy(&st->P);CHKERRQ(ierr);
-    st->P = st->T[nmat-1];
-  }
   if (st->P) {
-    if (!st->ksp) { ierr = STGetKSP(st,&st->ksp);CHKERRQ(ierr); }
-    ierr = STCheckFactorPackage(st);CHKERRQ(ierr);
-    ierr = KSPSetOperators(st->ksp,st->P,st->P);CHKERRQ(ierr);
     ierr = KSPSetUp(st->ksp);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
@@ -152,12 +165,13 @@ SLEPC_EXTERN PetscErrorCode STCreate_Shift(ST st)
   st->usesksp = PETSC_TRUE;
 
   st->ops->apply           = STApply_Shift;
-  st->ops->getbilinearform = STGetBilinearForm_Default;
   st->ops->applytrans      = STApplyTranspose_Shift;
-  st->ops->postsolve       = STPostSolve_Shift;
   st->ops->backtransform   = STBackTransform_Shift;
-  st->ops->setup           = STSetUp_Shift;
   st->ops->setshift        = STSetShift_Shift;
+  st->ops->getbilinearform = STGetBilinearForm_Default;
+  st->ops->setup           = STSetUp_Shift;
+  st->ops->computeoperator = STComputeOperator_Shift;
+  st->ops->postsolve       = STPostSolve_Shift;
   st->ops->setdefaultksp   = STSetDefaultKSP_Default;
   PetscFunctionReturn(0);
 }

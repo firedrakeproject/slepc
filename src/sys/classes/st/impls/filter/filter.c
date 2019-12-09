@@ -23,13 +23,12 @@ PetscErrorCode STApply_Filter(ST st,Vec x,Vec y)
   PetscFunctionReturn(0);
 }
 
-PetscErrorCode STSetUp_Filter(ST st)
+PetscErrorCode STComputeOperator_Filter(ST st)
 {
   PetscErrorCode ierr;
   ST_FILTER      *ctx = (ST_FILTER*)st->data;
 
   PetscFunctionBegin;
-  ierr = STSetWorkVecs(st,4);CHKERRQ(ierr);
   if (st->nmat>1) SETERRQ(PetscObjectComm((PetscObject)st),1,"Only implemented for standard eigenvalue problem");
   if (ctx->intb >= PETSC_MAX_REAL && ctx->inta <= PETSC_MIN_REAL) SETERRQ(PetscObjectComm((PetscObject)st),1,"Must pass an interval with STFilterSetInterval()");
   if (ctx->right == 0.0 && ctx->left == 0.0) SETERRQ(PetscObjectComm((PetscObject)st),1,"Must pass an approximate numerical range with STFilterSetRange()");
@@ -40,6 +39,15 @@ PetscErrorCode STSetUp_Filter(ST st)
   ctx->frame[2] = ctx->intb;
   ctx->frame[3] = ctx->right;
   ierr = STFilter_FILTLAN_setFilter(st);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+PetscErrorCode STSetUp_Filter(ST st)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  ierr = STSetWorkVecs(st,4);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -450,12 +458,13 @@ SLEPC_EXTERN PetscErrorCode STCreate_Filter(ST st)
   ierr = PetscNewLog(st,&pfi);CHKERRQ(ierr);
   ctx->filterInfo         = pfi;
 
-  st->ops->apply          = STApply_Filter;
-  st->ops->setfromoptions = STSetFromOptions_Filter;
-  st->ops->setup          = STSetUp_Filter;
-  st->ops->destroy        = STDestroy_Filter;
-  st->ops->reset          = STReset_Filter;
-  st->ops->view           = STView_Filter;
+  st->ops->apply           = STApply_Filter;
+  st->ops->setup           = STSetUp_Filter;
+  st->ops->computeoperator = STComputeOperator_Filter;
+  st->ops->setfromoptions  = STSetFromOptions_Filter;
+  st->ops->destroy         = STDestroy_Filter;
+  st->ops->reset           = STReset_Filter;
+  st->ops->view            = STView_Filter;
 
   ierr = PetscObjectComposeFunction((PetscObject)st,"STFilterSetInterval_C",STFilterSetInterval_Filter);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)st,"STFilterGetInterval_C",STFilterGetInterval_Filter);CHKERRQ(ierr);

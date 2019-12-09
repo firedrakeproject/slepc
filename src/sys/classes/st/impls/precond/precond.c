@@ -46,6 +46,13 @@ static PetscErrorCode STSetDefaultKSP_Precond(ST st)
   PetscFunctionReturn(0);
 }
 
+PetscErrorCode STComputeOperator_Precond(ST st)
+{
+  PetscFunctionBegin;
+  /* TODO */
+  PetscFunctionReturn(0);
+}
+
 PetscErrorCode STSetUp_Precond(ST st)
 {
   PC             pc;
@@ -327,9 +334,10 @@ SLEPC_EXTERN PetscErrorCode STCreate_Precond(ST st)
 
   st->usesksp = PETSC_TRUE;
 
+  st->ops->setshift        = STSetShift_Precond;
   st->ops->getbilinearform = STGetBilinearForm_Default;
   st->ops->setup           = STSetUp_Precond;
-  st->ops->setshift        = STSetShift_Precond;
+  st->ops->computeoperator = STComputeOperator_Precond;
   st->ops->destroy         = STDestroy_Precond;
   st->ops->setdefaultksp   = STSetDefaultKSP_Precond;
 

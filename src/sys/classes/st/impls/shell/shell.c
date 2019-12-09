@@ -309,6 +309,7 @@ SLEPC_EXTERN PetscErrorCode STCreate_Shell(ST st)
   st->ops->applytrans      = STApplyTranspose_Shell;
   st->ops->backtransform   = STBackTransform_Shell;
   st->ops->destroy         = STDestroy_Shell;
+
   ierr = PetscObjectComposeFunction((PetscObject)st,"STShellSetApply_C",STShellSetApply_Shell);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)st,"STShellSetApplyTranspose_C",STShellSetApplyTranspose_Shell);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)st,"STShellSetBackTransform_C",STShellSetBackTransform_Shell);CHKERRQ(ierr);
