@@ -170,7 +170,7 @@ if not petsc.precision in ['double','single','__float128']:
 # Check for empty PETSC_ARCH
 emptyarch = not ('PETSC_ARCH' in os.environ and os.environ['PETSC_ARCH'])
 if emptyarch:
-  pseudoarch = 'arch-' + sys.platform.replace('cygwin','mswin')+ '-' + petsc.language
+  pseudoarch = 'arch-' + sys.platform.replace('cygwin','mswin')+ '-' + petsc.language.lower().replace('+','x')
   if petsc.debug:
     pseudoarch += '-debug'
   else:
