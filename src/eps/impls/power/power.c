@@ -61,7 +61,7 @@ PetscErrorCode EPSSetUp_Power(EPS eps)
   EPS_POWER      *power = (EPS_POWER*)eps->data;
   PetscBool      flg,istrivial;
   STMatMode      mode;
-  Mat            A,B;
+  Mat            A,B,P;
   Vec            res;
   PetscContainer container;
   PetscErrorCode (*formFunctionA)(SNES,Vec,Vec,void*);
@@ -122,7 +122,12 @@ PetscErrorCode EPSSetUp_Power(EPS eps)
     if (container) {
       ierr = PetscContainerGetPointer(container,&ctx);CHKERRQ(ierr);
     } else ctx = NULL;
-    ierr = SNESSetJacobian(power->snes,A,A,formJacobianA,ctx);CHKERRQ(ierr);
+    /* This allows users to compute a different preconditioning matrix than A.
+     * It is useful when A and B are shell matrices.
+     */
+    ierr = STPrecondGetMatForPC(eps->st,&P);CHKERRQ(ierr);
+    /* If users do not provide a matrix, we simply use A */
+    ierr = SNESSetJacobian(power->snes,A,P? P:A,formJacobianA,ctx);CHKERRQ(ierr);
     ierr = SNESSetFromOptions(power->snes);CHKERRQ(ierr);
     ierr = SNESGetLineSearch(power->snes,&linesearch);CHKERRQ(ierr);
     if (power->update) {
@@ -314,7 +319,7 @@ static PetscErrorCode EPSPowerApply_SNES(EPS eps,Vec x,Vec y)
 static PetscErrorCode EPSPowerComputeInitialGuess_Update(EPS eps)
 {
   EPS            powereps;
-  Mat            A,B;
+  Mat            A,B,P;
   Vec            v1,v2;
   SNES           snes;
   DM             dm,newdm;
@@ -331,7 +336,8 @@ static PetscErrorCode EPSPowerComputeInitialGuess_Update(EPS eps)
   ierr = EPSSetProblemType(powereps,EPS_GNHEP);CHKERRQ(ierr);
   ierr = EPSSetWhichEigenpairs(powereps,EPS_TARGET_MAGNITUDE);CHKERRQ(ierr);
   ierr = EPSPowerSetNonlinear(powereps,PETSC_TRUE);CHKERRQ(ierr);
-  ierr = STSetType(powereps->st,STSINVERT);CHKERRQ(ierr);
+  ierr = STPrecondGetMatForPC(eps->st,&P);CHKERRQ(ierr);
+  /*ierr = STSetType(powereps->st,STPRECOND);CHKERRQ(ierr);*/
   /* attach dm to initial solve */
   ierr = EPSPowerGetSNES(eps,&snes);CHKERRQ(ierr);
   ierr = SNESGetDM(snes,&dm);CHKERRQ(ierr);
@@ -343,6 +349,7 @@ static PetscErrorCode EPSPowerComputeInitialGuess_Update(EPS eps)
   ierr = EPSPowerGetSNES(powereps,&snes);CHKERRQ(ierr);
   ierr = SNESSetDM(snes,dm);CHKERRQ(ierr);
   ierr = EPSSetFromOptions(powereps);CHKERRQ(ierr);
+  ierr = STPrecondSetMatForPC(powereps->st,P);CHKERRQ(ierr);
   ierr = EPSSolve(powereps);CHKERRQ(ierr);
   ierr = BVGetColumn(eps->V,0,&v2);CHKERRQ(ierr);
   ierr = BVGetColumn(powereps->V,0,&v1);CHKERRQ(ierr);
@@ -438,7 +445,8 @@ PetscErrorCode EPSSolve_Power(EPS eps)
       ierr = DSRestoreArray(eps->ds,DS_MAT_A,&T);CHKERRQ(ierr);
     }
 
-    if (power->nonlinear) theta = norm*sign;
+    /* Eigenvalue: 1/|Bx| */
+    if (power->nonlinear) theta = 1.0/norm*sign;
 
     if (power->shift_type == EPS_POWER_SHIFT_CONSTANT) { /* direct & inverse iteration */
 
@@ -451,7 +459,10 @@ PetscErrorCode EPSSolve_Power(EPS eps)
       ierr = VecAXPY(e,power->nonlinear?-1.0:-theta,v);CHKERRQ(ierr);
       ierr = BVRestoreColumn(eps->V,k,&v);CHKERRQ(ierr);
       ierr = VecNorm(e,NORM_2,&relerr);CHKERRQ(ierr);
-      relerr /= PetscAbsScalar(theta);
+      if (power->nonlinear)
+        relerr *= PetscAbsScalar(theta);
+      else
+        relerr /= PetscAbsScalar(theta);
 
     } else {  /* RQI */
 
@@ -1161,7 +1172,12 @@ PetscErrorCode EPSSetDefaultST_Power(EPS eps)
 
   PetscFunctionBegin;
   if (power->nonlinear) {
+    eps->categ=EPS_CATEGORY_PRECOND;
     ierr = STGetKSP(eps->st,&ksp);CHKERRQ(ierr);
+    /* Set ST as STPRECOND so it can carry one preconditioning matrix
+     * It is useful when A and B are shell matrices
+     */
+    ierr = STSetType(eps->st,STPRECOND);CHKERRQ(ierr);
     ierr = KSPGetPC(ksp,&pc);CHKERRQ(ierr);
     ierr = PCSetType(pc,PCNONE);CHKERRQ(ierr);
   }
@@ -1201,4 +1217,3 @@ SLEPC_EXTERN PetscErrorCode EPSCreate_Power(EPS eps)
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSPowerGetSNES_C",EPSPowerGetSNES_Power);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
-
