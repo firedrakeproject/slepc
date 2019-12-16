@@ -52,12 +52,13 @@ int main(int argc,char **argv)
   ST             st;
   EPSType        type;
   Mat            A,B,P;
+  Vec            v0;
   PetscContainer container;
   PetscInt       nev,nconv,m,n,M,N;
   PetscBool      nonlin,flg=PETSC_FALSE,update;
   SNES           snes;
   PetscReal      tol,relerr;
-  PetscBool      use_shell_matrix=PETSC_FALSE;
+  PetscBool      use_shell_matrix=PETSC_FALSE,test_init_sol=PETSC_FALSE;
   PetscErrorCode ierr;
 
   ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
@@ -131,6 +132,30 @@ int main(int argc,char **argv)
 
   ierr = EPSSolve(eps);CHKERRQ(ierr);
 
+  ierr = EPSGetConverged(eps,&nconv);CHKERRQ(ierr);
+  ierr = PetscOptionsGetBool(NULL,NULL,"-test_init_sol",&test_init_sol,NULL);CHKERRQ(ierr);
+  if (nconv && test_init_sol) {
+    PetscScalar   k;
+    PetscReal     norm0;
+    PetscInt      nits;
+
+    ierr = MatCreateVecs(A,&v0,NULL);CHKERRQ(ierr);
+    ierr = EPSGetEigenpair(eps,0,&k,NULL,v0,NULL);CHKERRQ(ierr);
+    ierr = EPSSetInitialSpace(eps,1,&v0);CHKERRQ(ierr);
+    ierr = VecDestroy(&v0);CHKERRQ(ierr);
+    /* Norm of the previous residual */
+    ierr = SNESGetFunctionNorm(snes,&norm0);CHKERRQ(ierr);
+    /* Make the tolerance smaller than the last residual
+       SNES will converge right away if the initial is setup correctly */
+    ierr = SNESSetTolerances(snes,norm0*1.2,PETSC_DEFAULT,PETSC_DEFAULT,PETSC_DEFAULT,PETSC_DEFAULT);CHKERRQ(ierr);
+    ierr = EPSSolve(eps);CHKERRQ(ierr);
+    /* Number of Newton iterations supposes to be zero */
+    ierr = SNESGetIterationNumber(snes,&nits);CHKERRQ(ierr);
+    if (nits) {
+      ierr = PetscPrintf(comm," Number of Newtoniterations %D should be zero \n",nits);CHKERRQ(ierr);
+    }
+  }
+
   /*
      Optional: Get some information from the solver and display it
   */
@@ -172,7 +197,9 @@ int main(int argc,char **argv)
 
   ierr = MatDestroy(&A);CHKERRQ(ierr);
   ierr = MatDestroy(&B);CHKERRQ(ierr);
-  ierr = MatDestroy(&P);CHKERRQ(ierr);
+  if (use_shell_matrix) {
+    ierr = MatDestroy(&P);CHKERRQ(ierr);
+  }
   ierr = DMDestroy(&dm);CHKERRQ(ierr);
   ierr = EPSDestroy(&eps);CHKERRQ(ierr);
   ierr = ISDestroy(&user.bdis);CHKERRQ(ierr);
@@ -222,6 +249,7 @@ static void g3_uu(PetscInt dim, PetscInt Nf, PetscInt NfAux,
                   PetscReal t, PetscReal u_tShift, const PetscReal x[], PetscInt numConstants, const PetscScalar constants[], PetscScalar g3[])
 {
   PetscInt d;
+
   for (d = 0; d < dim; ++d) g3[d*dim+d] = 1.0;
 }
 
@@ -503,10 +531,14 @@ PetscErrorCode MatMult_B(Mat B,Vec x,Vec y)
          filter: sed -e "s/ with monolithic update//"
       test:
          suffix: 3
-         args: -use_shell_matrix
+         args: -use_shell_matrix -eps_power_snes_mf_operator 1
       test:
          suffix: 4
-         args: -use_shell_matrix -eps_power_update -eps_power_snes_mf_operator 1 -form_function_ab {{0 1}}
+         args: -use_shell_matrix -eps_power_update -init_eps_power_snes_mf_operator 1 -eps_power_snes_mf_operator 1 -form_function_ab {{0 1}}
+         filter: sed -e "s/ with monolithic update//"
+      test:
+         suffix: 5
+         args: -use_shell_matrix -eps_power_update -init_eps_power_snes_mf_operator 1 -eps_power_snes_mf_operator 1 -form_function_ab {{0 1}} -test_init_sol 1
          filter: sed -e "s/ with monolithic update//"
 
 TEST*/
