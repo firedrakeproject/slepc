@@ -73,6 +73,44 @@ PetscErrorCode EPSSetDefaultST_GMRES(EPS eps)
   PetscFunctionReturn(0);
 }
 
+/*
+   Check that the ST selected by the user is compatible with the EPS solver and options
+*/
+PetscErrorCode EPSCheckCompatibleST(EPS eps)
+{
+  PetscErrorCode ierr;
+  PetscBool      precond,shift,sinvert,cayley,lyapii;
+
+  PetscFunctionBegin;
+  ierr = PetscObjectTypeCompare((PetscObject)eps->st,STPRECOND,&precond);CHKERRQ(ierr);
+  ierr = PetscObjectTypeCompare((PetscObject)eps->st,STSHIFT,&shift);CHKERRQ(ierr);
+  ierr = PetscObjectTypeCompare((PetscObject)eps->st,STSINVERT,&sinvert);CHKERRQ(ierr);
+  ierr = PetscObjectTypeCompare((PetscObject)eps->st,STCAYLEY,&cayley);CHKERRQ(ierr);
+
+  /* preconditioned eigensolvers */
+  if (eps->categ==EPS_CATEGORY_PRECOND && !precond) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"This solver requires ST=PRECOND");
+  if (eps->categ!=EPS_CATEGORY_PRECOND && precond) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"STPRECOND is intended for preconditioned eigensolvers only");
+
+  /* harmonic extraction */
+  if (!(precond || shift) && eps->extraction && eps->extraction!=EPS_RITZ) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Cannot use a spectral transformation combined with harmonic extraction");
+
+  /* real shifts in Hermitian problems */
+#if defined(PETSC_USE_COMPLEX)
+  ierr = STGetShift(eps->st,&sigma);CHKERRQ(ierr);
+  if (eps->ishermitian && PetscImaginaryPart(sigma) != 0.0) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Hermitian problems are not compatible with complex shifts");
+#endif
+
+  /* Cayley with PGNHEP */
+  if (cayley && eps->problem_type == EPS_PGNHEP) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Cayley spectral transformation is not compatible with PGNHEP");
+
+  /* make sure that the user does not specify smallest magnitude with shift-and-invert */
+  if ((cayley || sinvert) && (eps->categ==EPS_CATEGORY_KRYLOV || eps->categ==EPS_CATEGORY_OTHER)) {
+    ierr = PetscObjectTypeCompare((PetscObject)eps,EPSLYAPII,&lyapii);CHKERRQ(ierr);
+    if (!lyapii && eps->which!=EPS_TARGET_MAGNITUDE && eps->which!=EPS_TARGET_REAL && eps->which!=EPS_TARGET_IMAGINARY && eps->which!=EPS_ALL && eps->which!=EPS_WHICH_USER) SETERRQ(PetscObjectComm((PetscObject)eps),1,"Shift-and-invert requires a target 'which' (see EPSSetWhichEigenpairs), for instance -st_type sinvert -eps_target 0 -eps_target_magnitude");
+  }
+  PetscFunctionReturn(0);
+}
+
 /*@
    EPSSetUp - Sets up all the internal data structures necessary for the
    execution of the eigensolver. Then calls STSetUp() for any set-up
@@ -98,7 +136,7 @@ PetscErrorCode EPSSetUp(EPS eps)
   Mat            A,B;
   SlepcSC        sc;
   PetscInt       k,nmat;
-  PetscBool      flg,istrivial,precond;
+  PetscBool      flg,istrivial;
 #if defined(PETSC_USE_COMPLEX)
   PetscScalar    sigma;
 #endif
@@ -117,10 +155,6 @@ PetscErrorCode EPSSetUp(EPS eps)
   }
   if (!eps->st) { ierr = EPSGetST(eps,&eps->st);CHKERRQ(ierr); }
   ierr = EPSSetDefaultST(eps);CHKERRQ(ierr);
-
-  ierr = PetscObjectTypeCompare((PetscObject)eps->st,STPRECOND,&precond);CHKERRQ(ierr);
-  if (eps->categ==EPS_CATEGORY_PRECOND && !precond) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"This solver requires ST=PRECOND");
-  if (eps->categ!=EPS_CATEGORY_PRECOND && precond) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"STPRECOND is intended for preconditioned eigensolvers only");
 
   ierr = STSetTransform(eps->st,PETSC_TRUE);CHKERRQ(ierr);
   if (eps->useds && !eps->ds) { ierr = EPSGetDS(eps,&eps->ds);CHKERRQ(ierr); }
@@ -183,10 +217,6 @@ PetscErrorCode EPSSetUp(EPS eps)
       }
     }
   }
-
-  /* check extraction */
-  ierr = PetscObjectTypeCompareAny((PetscObject)eps->st,&flg,STPRECOND,STSHIFT,"");CHKERRQ(ierr);
-  if (!flg && eps->extraction && eps->extraction!=EPS_RITZ) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Cannot use a spectral transformation combined with harmonic extraction");
 
   /* set tolerance if not yet set */
   if (eps->tol==PETSC_DEFAULT) eps->tol = SLEPC_DEFAULT_TOL;
@@ -270,15 +300,7 @@ PetscErrorCode EPSSetUp(EPS eps)
 
   /* Setup ST */
   ierr = STSetUp(eps->st);CHKERRQ(ierr);
-
-#if defined(PETSC_USE_COMPLEX)
-  ierr = STGetShift(eps->st,&sigma);CHKERRQ(ierr);
-  if (eps->ishermitian && PetscImaginaryPart(sigma) != 0.0) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Hermitian problems are not compatible with complex shifts");
-#endif
-  ierr = PetscObjectTypeCompare((PetscObject)eps->st,STCAYLEY,&flg);CHKERRQ(ierr);
-  if (flg && eps->problem_type == EPS_PGNHEP) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Cayley spectral transformation is not compatible with PGNHEP");
-  ierr = PetscObjectTypeCompareAny((PetscObject)eps->st,&flg,STSINVERT,STCAYLEY,"");CHKERRQ(ierr);
-  if (flg && (eps->categ==EPS_CATEGORY_KRYLOV || eps->categ==EPS_CATEGORY_OTHER) && (eps->which!=EPS_TARGET_MAGNITUDE && eps->which!=EPS_TARGET_REAL && eps->which!=EPS_TARGET_IMAGINARY && eps->which!=EPS_ALL && eps->which!=EPS_WHICH_USER)) SETERRQ(PetscObjectComm((PetscObject)eps),1,"Shift-and-invert requires a target 'which' (see EPSSetWhichEigenpairs), for instance -st_type sinvert -eps_target 0 -eps_target_magnitude");
+  ierr = EPSCheckCompatibleST(eps);CHKERRQ(ierr);
 
   /* process deflation and initial vectors */
   if (eps->nds<0) {
