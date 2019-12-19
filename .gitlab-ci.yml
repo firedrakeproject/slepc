@@ -62,6 +62,7 @@ variables:
     - export PETSC_DIR=$PWD
     - ${PYTHON} ./configure --with-debugging=0 COPTFLAGS='-O -march=native' CXXOPTFLAGS='-O -march=native' FOPTFLAGS='-O -march=native' ${CONFIG_OPTS}
     - make CFLAGS=-Werror CXXFLAGS=-Werror
+    - export PETSC_ARCH=`ls -d arch-*`
     - cd $SLEPC_DIR
     - ${PYTHON} ./configure
     - make CFLAGS=-Werror CXXFLAGS=-Werror
