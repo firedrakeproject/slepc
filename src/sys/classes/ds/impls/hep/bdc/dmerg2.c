@@ -43,7 +43,7 @@ PetscErrorCode BDC_dmerg2_(const char *jobz,PetscBLASInt rkct,PetscBLASInt n,
 /*  The dimension of the first subproblem is CUTPNT, the dimension of */
 /*  the second subproblem is N-CUTPNT. */
 
-/*  T = Q(in) ( EV(in) + RHO * Z*Z' ) Q'(in) = Q(out) * EV(out) * Q'(out) */
+/*  T = Q(in) (EV(in) + RHO * Z*Z') Q'(in) = Q(out) * EV(out) * Q'(out) */
 
 /*     where Z = Q'[V U']', where V is a row vector and U is a column */
 /*     vector with dimensions corresponding to the two underlying */
@@ -64,7 +64,7 @@ PetscErrorCode BDC_dmerg2_(const char *jobz,PetscBLASInt rkct,PetscBLASInt n,
 /*        This routine also calculates the eigenvectors of the current */
 /*        problem. */
 
-/*        If( JOBZ.EQ.'D' ) then the final stage consists */
+/*        If(JOBZ.EQ.'D') then the final stage consists */
 /*        of computing the updated eigenvectors directly using the updated */
 /*        eigenvalues. The eigenvectors for the current problem are multiplied */
 /*        with the eigenvectors from the overall problem. */
@@ -107,7 +107,7 @@ PetscErrorCode BDC_dmerg2_(const char *jobz,PetscBLASInt rkct,PetscBLASInt n,
 /*         subproblems in EV into ascending order. */
 /*         On exit, the permutation which will reintegrate the */
 /*         subproblems back into sorted order, */
-/*         i.e. EV( INDXQ( I = 1, N ) ) will be in ascending order. */
+/*         i.e. EV(INDXQ(I = 1, N)) will be in ascending order. */
 
 /*  RHO    (input/output) DOUBLE PRECISION */
 /*         The scalar in the rank-1 perturbation. Modified (multiplied */
@@ -150,9 +150,9 @@ PetscErrorCode BDC_dmerg2_(const char *jobz,PetscBLASInt rkct,PetscBLASInt n,
 /*  LWORK  (input) INTEGER */
 /*         The dimension of the array WORK. */
 /*         In order to guarantee correct results in all cases, */
-/*         LWORK must be at least ( 2*N**2 + 3*N  ). In many cases, */
+/*         LWORK must be at least (2*N**2 + 3*N). In many cases, */
 /*         less workspace is required. The absolute minimum required is */
-/*         ( N**2 + 3*N ). */
+/*         (N**2 + 3*N). */
 /*         If the workspace provided is not sufficient, the routine will */
 /*         return a corresponding error code and report how much workspace */
 /*         was missing (see INFO). */
@@ -160,7 +160,7 @@ PetscErrorCode BDC_dmerg2_(const char *jobz,PetscBLASInt rkct,PetscBLASInt n,
 /*               workspace is provided, and, if not, for computing how */
 /*               much workspace is needed. */
 
-/*  IWORK  (workspace) INTEGER array, dimension ( 4*N ) */
+/*  IWORK  (workspace) INTEGER array, dimension (4*N) */
 
 /*  TOL    (input) DOUBLE PRECISION */
 /*         User specified deflation tolerance for the routine DSRTDF. */
@@ -239,7 +239,7 @@ PetscErrorCode BDC_dmerg2_(const char *jobz,PetscBLASInt rkct,PetscBLASInt n,
   indxp = coltyp + n;
 
   /* If eigenvectors are to be accumulated in the divide-and-conquer */
-  /* process ( JOBZ.EQ.'D' ) form the z-vector which consists of */
+  /* process (JOBZ.EQ.'D') form the z-vector which consists of */
   /* Q_1^T * V and Q_2^T * U. */
 
   cpp1 = cutpnt + 1;

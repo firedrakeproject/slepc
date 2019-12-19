@@ -91,7 +91,7 @@ PetscErrorCode BDC_dsbtdc_(const char *jobz,const char *jobacc,PetscBLASInt n,
 /*  L1D     (input) INTEGER */
 /*          The leading dimension of the array D.  L1D >= max(3,KMAX), */
 /*          where KMAX is the dimension of the largest diagonal block, */
-/*          i.e.,  KMAX = max_I ( KSIZES(I) ). */
+/*          i.e.,  KMAX = max_I (KSIZES(I)). */
 
 /*  L2D     (input) INTEGER */
 /*          The second dimension of the array D.  L2D >= max(3,KMAX), */
@@ -114,7 +114,7 @@ PetscErrorCode BDC_dsbtdc_(const char *jobz,const char *jobacc,PetscBLASInt n,
 /*          the corresponding off-diagonal block in E(*,*,K) and therefore */
 /*          there are no restrictions on the rank of the approximation */
 /*          (only the "natural" restriction */
-/*          RANK( K ) .LE. MIN( KSIZES( K ),KSIZES( K+1 ) )). */
+/*          RANK(K) .LE. MIN(KSIZES(K),KSIZES(K+1))). */
 
 /*  L2E     (input) INTEGER */
 /*          The second dimension of the array E.  L2E >= max(3,2*KMAX+1), */
@@ -123,13 +123,13 @@ PetscErrorCode BDC_dsbtdc_(const char *jobz,const char *jobacc,PetscBLASInt n,
 /*          the corresponding off-diagonal block in E(*,*,K) and therefore */
 /*          there are no restrictions on the rank of the approximation */
 /*          (only the "natural" restriction */
-/*          RANK( K ) .LE. MIN( KSIZES( K ),KSIZES( K+1 ) )). */
+/*          RANK(K) .LE. MIN(KSIZES(K),KSIZES(K+1))). */
 
 /*  TOL     (input) DOUBLE PRECISION, TOL.LE.TOLMAX */
 /*          User specified tolerance for the residuals of the computed */
-/*          eigenpairs. If ( JOBACC.EQ.'A' ) then it is used to determine */
+/*          eigenpairs. If (JOBACC.EQ.'A') then it is used to determine */
 /*          TAU1 and TAU2; ignored otherwise. */
-/*          If ( TOL.LT.40*EPS .AND. JOBACC.EQ.'A' ) then TAU1 is set to machine */
+/*          If (TOL.LT.40*EPS .AND. JOBACC.EQ.'A') then TAU1 is set to machine */
 /*          epsilon and TAU2 is set to the standard deflation tolerance from */
 /*          LAPACK. */
 
@@ -139,20 +139,20 @@ PetscErrorCode BDC_dsbtdc_(const char *jobz,const char *jobacc,PetscBLASInt n,
 /*          The rank for each off-diagonal block is determined such that */
 /*          the resulting absolute eigenvalue error is less than or equal */
 /*          to TAU1. */
-/*          If ( JOBACC.EQ.'A' ) then TAU1 is determined automatically from */
+/*          If (JOBACC.EQ.'A') then TAU1 is determined automatically from */
 /*             TOL and the input value is ignored. */
-/*          If ( JOBACC.EQ.'M' .AND. TAU1.LT.20*EPS ) then TAU1 is set to */
+/*          If (JOBACC.EQ.'M' .AND. TAU1.LT.20*EPS) then TAU1 is set to */
 /*             machine epsilon. */
 
 /*  TAU2    (input) DOUBLE PRECISION, TAU2.LE.TOLMAX/2 */
 /*          User specified deflation tolerance for the routine DIBTDC. */
-/*          If ( 1.0D-1.GT.TAU2.GT.20*EPS ) then TAU2 is used as */
+/*          If (1.0D-1.GT.TAU2.GT.20*EPS) then TAU2 is used as */
 /*          the deflation tolerance in DSRTDF (EPS is the machine epsilon). */
-/*          If ( TAU2.LE.20*EPS ) then the standard deflation tolerance from */
+/*          If (TAU2.LE.20*EPS) then the standard deflation tolerance from */
 /*          LAPACK is used as the deflation tolerance in DSRTDF. */
-/*          If ( JOBACC.EQ.'A' ) then TAU2 is determined automatically from */
+/*          If (JOBACC.EQ.'A') then TAU2 is determined automatically from */
 /*             TOL and the input value is ignored. */
-/*          If ( JOBACC.EQ.'M' .AND. TAU2.LT.20*EPS ) then TAU2 is set to */
+/*          If (JOBACC.EQ.'M' .AND. TAU2.LT.20*EPS) then TAU2 is set to */
 /*             the standard deflation tolerance from LAPACK. */
 
 /*  EV      (output) DOUBLE PRECISION array, dimension (N) */
@@ -160,11 +160,11 @@ PetscErrorCode BDC_dsbtdc_(const char *jobz,const char *jobacc,PetscBLASInt n,
 /*          symmetric block tridiagonal matrix in ascending order. */
 
 /*  Z       (output) DOUBLE PRECISION array, dimension (LDZ,N) */
-/*          If ( JOBZ.EQ.'D' .AND. INFO = 0 ) */
+/*          If (JOBZ.EQ.'D' .AND. INFO = 0) */
 /*          then Z contains the orthonormal eigenvectors of the symmetric */
 /*          block tridiagonal matrix computed by the routine DIBTDC */
 /*          (accumulated in the divide-and-conquer process). */
-/*          If ( -199 < INFO < -99 ) then Z contains the orthonormal */
+/*          If (-199 < INFO < -99) then Z contains the orthonormal */
 /*          eigenvectors of the symmetric block tridiagonal matrix, */
 /*          computed without divide-and-conquer (quick returns). */
 /*          Otherwise not referenced. */
@@ -178,27 +178,27 @@ PetscErrorCode BDC_dsbtdc_(const char *jobz,const char *jobacc,PetscBLASInt n,
 /*          The dimension of the array WORK. */
 /*          If NBLKS.EQ.1, then LWORK has to be at least 2N^2+6N+1 */
 /*          (for the call of DSYEVD). */
-/*          If NBLKS.GE.2 and ( JOBZ.EQ.'D' ) then the absolute minimum */
-/*             required for DIBTDC is ( N**2 + 3*N ). This will not always */
+/*          If NBLKS.GE.2 and (JOBZ.EQ.'D') then the absolute minimum */
+/*             required for DIBTDC is (N**2 + 3*N). This will not always */
 /*             suffice, though, the routine will return a corresponding */
 /*             error code and report how much work space was missing (see */
 /*             INFO). */
 /*          In order to guarantee correct results in all cases where */
-/*          NBLKS.GE.2, LWORK must be at least ( 2*N**2 + 3*N ). */
+/*          NBLKS.GE.2, LWORK must be at least (2*N**2 + 3*N). */
 
 /*  IWORK   (workspace/output) INTEGER array, dimension (LIWORK) */
 
 /*  LIWORK  (input) INTEGER */
 /*          The dimension of the array IWORK. */
-/*          LIWORK must be at least ( 5*N + 5*NBLKS - 1 ) (for DIBTDC) */
+/*          LIWORK must be at least (5*N + 5*NBLKS - 1) (for DIBTDC) */
 /*          Note that this should also suffice for the call of DSYEVD on a */
-/*          diagonal block which requires ( 5*KMAX + 3 ). */
+/*          diagonal block which requires (5*KMAX + 3). */
 
 
 /*  MINGAP  (output) DOUBLE PRECISION */
 /*          The minimum "gap" between the approximate eigenvalues */
-/*          computed, i.e., MIN( ABS( EV( I+1 )-EV( I ) ) for I=1,2,..., N-1 */
-/*          IF ( MINGAP.LE.TOL/10 ) THEN a warning flag is returned in INFO, */
+/*          computed, i.e., MIN( ABS(EV(I+1)-EV(I)) for I=1,2,..., N-1 */
+/*          IF (MINGAP.LE.TOL/10) THEN a warning flag is returned in INFO, */
 /*          because the computed eigenvectors may be unreliable individually */
 /*          (only the subspaces spanned are approximated reliably). */
 
@@ -343,7 +343,7 @@ PetscErrorCode BDC_dsbtdc_(const char *jobz,const char *jobacc,PetscBLASInt n,
 
   /* Determine the off-diagonal ranks, form and store the lower rank */
   /* approximations based on the tolerance parameters, the */
-  /* RANK( K ) largest singular values and the associated singular */
+  /* RANK(K) largest singular values and the associated singular */
   /* vectors of each subdiagonal block. Also find the maximum norm of */
   /* the subdiagonal blocks (in EMAX). */
 
@@ -383,7 +383,7 @@ PetscErrorCode BDC_dsbtdc_(const char *jobz,const char *jobacc,PetscBLASInt n,
     if (*info) SETERRQ1(PETSC_COMM_SELF,1,"dsbtdc: Error in DGESVD, info = %d",*info);
 
     /* Note that after the return from DGESVD U is stored in */
-    /* E(*,*,K), and V^{\top} is stored in WORK( IVT, IVT+1, .... ) */
+    /* E(*,*,K), and V^{\top} is stored in WORK(IVT, IVT+1, ....) */
 
     /* determine the ranks RANK() for the approximations */
 
@@ -409,7 +409,7 @@ L8:
 
 /* ************************************************************************** */
 
-    /* Store the first RANK( K ) terms of the SVD of the current */
+    /* Store the first RANK(K) terms of the SVD of the current */
     /* off-diagonal block. */
     /* NOTE that here it is required that L1E, L2E >= 2*KMAX+1 in order */
     /* to have enough space for storing singular vectors and values up */
@@ -423,7 +423,7 @@ L8:
     rp1 = iwork[k];
     for (j = 0; j < iwork[k]; ++j) {
 
-      /* store sigma_J in E( J,RANK( K )+1,K ) */
+      /* store sigma_J in E(J,RANK(K)+1,K) */
 
       e[j + (rp1 + k*l2e)* l1e] = work[isvals + j];
 
@@ -433,7 +433,7 @@ L8:
         emax = e[j + (rp1 + k*l2e)*l1e];
       }
 
-      /* store v_J in E( :,RANK( K )+1+J,K ) */
+      /* store v_J in E(:,RANK(K)+1+J,K) */
       /* (note that WORK contains V^{\top} and therefore */
       /* we need to read rowwise !) */
 
@@ -473,7 +473,7 @@ L8:
 /* **************************************************************** */
 
   /* ....Identify irreducible parts of the block tridiagonal matrix */
-  /* [while ( START <= NBLKS )].... */
+  /* [while (START <= NBLKS)].... */
 
   start = 0;
   np = 0;
@@ -492,7 +492,7 @@ L20:
     if (iend < nblks) {
       rk = iwork[iend];
 
-      /* NOTE: if RANK( IEND ).EQ.0 then decoupling happens due to */
+      /* NOTE: if RANK(IEND).EQ.0 then decoupling happens due to */
       /*       reduced accuracy requirements ! (because in this case */
       /*       we would not merge the corresponding two diagonal blocks) */
 
@@ -640,7 +640,7 @@ L20:
   /* (and the associated eigenvectors) across the irreducible parts */
   /* into ascending order.... */
 
-  /*  IF( NRBLKS.LT.NBLKS )THEN */
+  /*  IF(NRBLKS.LT.NBLKS)THEN */
 
   /*    Use Selection Sort to minimize swaps of eigenvectors */
 

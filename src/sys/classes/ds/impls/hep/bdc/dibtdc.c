@@ -51,7 +51,7 @@ static PetscErrorCode cutlr_(PetscBLASInt start,PetscBLASInt n,PetscBLASInt blkc
 
 /*  N      (input) INTEGER */
 /*         The sum of all the block sizes of the sequence to be cut = */
-/*         = sum_{i=1}^{BLKCT} BSIZES( I ). */
+/*         = sum_{i=1}^{BLKCT} BSIZES(I). */
 /*         N >= 3. */
 
 /*  BLKCT  (input) INTEGER */
@@ -60,7 +60,7 @@ static PetscErrorCode cutlr_(PetscBLASInt start,PetscBLASInt n,PetscBLASInt blkc
 
 /*  BSIZES (input) INTEGER array, dimension (BLKCT) */
 /*         The dimensions of the (quadratic) blocks of the sequence to be */
-/*         cut. sum_{i=1}^{BLKCT} BSIZES( I ) = N. */
+/*         cut. sum_{i=1}^{BLKCT} BSIZES(I) = N. */
 
 /*  RANKS  (input) INTEGER array, dimension (BLKCT-1) */
 /*         The ranks determining the approximations of the off-diagonal */
@@ -236,7 +236,7 @@ PetscErrorCode BDC_dibtdc_(const char *jobz,PetscBLASInt n,PetscBLASInt nblks,
 
 /*  RANK   (input) INTEGER array, dimension (NBLKS-1). */
 /*         The ranks of all the subdiagonal blocks contained in the array E. */
-/*         RANK( K ) <= MIN( KSIZES( K ), KSIZES( K+1 ) ) */
+/*         RANK(K) <= MIN(KSIZES(K), KSIZES(K+1)) */
 
 /*  L1E    (input) INTEGER */
 /*         The leading dimension of the array E.  L1E >= max(3,2*KMAX+1), */
@@ -248,9 +248,9 @@ PetscErrorCode BDC_dibtdc_(const char *jobz,PetscBLASInt n,PetscBLASInt nblks,
 
 /*  TOL    (input) DOUBLE PRECISION, TOL <= 1.0D-1 */
 /*         User specified deflation tolerance for the routine DMERG2. */
-/*         If ( 1.0D-1 >= TOL >= 20*EPS ) then TOL is used as */
+/*         If (1.0D-1 >= TOL >= 20*EPS) then TOL is used as */
 /*         the deflation tolerance in DSRTDF. */
-/*         If ( TOL < 20*EPS ) then the standard deflation tolerance from */
+/*         If (TOL < 20*EPS) then the standard deflation tolerance from */
 /*         LAPACK is used as the deflation tolerance in DSRTDF. */
 
 /*  EV     (output) DOUBLE PRECISION array, dimension (N) */
@@ -270,9 +270,9 @@ PetscErrorCode BDC_dibtdc_(const char *jobz,PetscBLASInt n,PetscBLASInt nblks,
 /*  LWORK   (input) INTEGER */
 /*          The dimension of the array WORK. */
 /*          In order to guarantee correct results in all cases, */
-/*          LWORK must be at least ( 2*N**2 + 3*N ). In many cases, */
+/*          LWORK must be at least (2*N**2 + 3*N). In many cases, */
 /*          less workspace is required. The absolute minimum required is */
-/*          ( N**2 + 3*N ). */
+/*          (N**2 + 3*N). */
 /*          If the workspace provided is not sufficient, the routine will */
 /*          return a corresponding error code and report how much workspace */
 /*          was missing (see INFO). */
@@ -281,11 +281,11 @@ PetscErrorCode BDC_dibtdc_(const char *jobz,PetscBLASInt n,PetscBLASInt nblks,
 
 /*  LIWORK  (input) INTEGER */
 /*          The dimension of the array IWORK. */
-/*          LIWORK must be at least ( 5*N + 3 + 4*NBLKS - 4 ): */
+/*          LIWORK must be at least (5*N + 3 + 4*NBLKS - 4): */
 /*                 5*KMAX+3 for DSYEVD, 5*N for ????, */
 /*                 4*NBLKS-4 for the preprocessing (merging order) */
 /*          Summarizing, the minimum integer workspace needed is */
-/*          MAX( 5*N, 5*KMAX + 3 ) + 4*NBLKS - 4 */
+/*          MAX(5*N, 5*KMAX + 3) + 4*NBLKS - 4 */
 
 /*  INFO   (output) INTEGER */
 /*          = 0:  successful exit. */
@@ -508,8 +508,8 @@ L200:
     goto L200;
   }
 
-  /*  SIZE = IWORK( ISIZE+NBLKS-2 ) */
-  /*  MAT1 = IWORK( ILSUM+NBLKS-2 ) */
+  /*  SIZE = IWORK(ISIZE+NBLKS-2) */
+  /*  MAT1 = IWORK(ILSUM+NBLKS-2) */
 
   /* Note: after the dimensions SIZE and MAT1 of the last merging */
   /* operation have been determined, an upper bound for the workspace */
@@ -517,15 +517,15 @@ L200:
   /* the last merging operation could be determined as follows */
   /* (based on (3.15) and (3.19) from UT-CS-00-447): */
 
-  /*  IF( MAT1.LE.N/2 ) THEN */
-  /*     WSPREQ = 3*N + 3/2*( SIZE-MAT1 )**2 + N*N/2 + MAT1*MAT1 */
+  /*  IF(MAT1.LE.N/2) THEN */
+  /*     WSPREQ = 3*N + 3/2*(SIZE-MAT1)**2 + N*N/2 + MAT1*MAT1 */
   /*  ELSE */
-  /*     WSPREQ = 3*N + 3/2*MAT1*MAT1 + N*N/2 + ( SIZE-MAT1 )**2 */
+  /*     WSPREQ = 3*N + 3/2*MAT1*MAT1 + N*N/2 + (SIZE-MAT1)**2 */
   /*  END IF */
 
-  /*  IF( LWORK-WSPREQ.LT.0 )THEN */
+  /*  IF(LWORK-WSPREQ.LT.0)THEN */
   /*          not enough work space provided */
-  /*     INFO = -200 - ( WSPREQ-LWORK ) */
+  /*     INFO = -200 - (WSPREQ-LWORK) */
   /*     RETURN */
   /*  END IF */
   /*  However, this is not really useful, since the actual check whether */
@@ -564,7 +564,7 @@ L200:
     PetscStackCallBLAS("BLASscal",BLASscal_(&ksk, &e[i + rp1*l1e], &d[i*l1d], &one));
   }
 
-  /* multiply the first RANK( 1 ) columns of D1 with V1^T and */
+  /* multiply the first RANK(1) columns of D1 with V1^T and */
   /* subtract the result from the proper part of Z (previously */
   /* initialized with D1) */
 
@@ -580,7 +580,7 @@ L200:
   PetscStackCallBLAS("LAPACKsyev",LAPACKsyev_("V", "L", &ksk, z, &ldz, ev, work, &lwork, info));
   if (*info) SETERRQ1(PETSC_COMM_SELF,1,"dibtdc: Error in DSYEVD for block 1, info = %d",*info);
 
-  /* EV( 1: ) contains the eigenvalues in ascending order */
+  /* EV(1:) contains the eigenvalues in ascending order */
   /* (they are returned this way by DSYEVD) */
 
   for (i = 0; i < ksk; ++i) iwork[i] = i+1;
@@ -636,7 +636,7 @@ L200:
 
       /* multiply the first RANK(K) columns of Dk with Vk^T and */
       /* subtract the result from the proper part of Z (previously */
-      /* updated with [- U(k-1) \Sigma(k-1) U(k-1)^T] ) */
+      /* updated with [- U(k-1) \Sigma(k-1) U(k-1)^T]) */
 
       PetscStackCallBLAS("BLASgemm",BLASgemm_("N", "T", &ksk, &ksk, &rank[k],
                     &dmone, &d[k*l1d*l2d], &l1d,
@@ -652,7 +652,7 @@ L200:
                      &ldz, &ev[np], work, &lwork, info));
       if (*info) SETERRQ2(PETSC_COMM_SELF,1,"dibtdc: Error in DSYEVD for block %d, info = %d",k,*info);
 
-      /* EV( NPP1: ) contains the eigenvalues in ascending order */
+      /* EV(NPP1:) contains the eigenvalues in ascending order */
       /* (they are returned this way by DSYEVD) */
 
       for (i = 0; i < ksk; ++i) iwork[np + i] = i+1;
@@ -692,7 +692,7 @@ L200:
 
   /* multiply the first RANK(nblks-1) columns of D(nblks) with U(nblks-1)^T */
   /* and subtract the result from the proper part of Z (previously */
-  /* initialized with D(nblks) ) */
+  /* initialized with D(nblks)) */
 
   PetscStackCallBLAS("BLASgemm",BLASgemm_("N", "T", &ksk, &ksk, &rank[nblks - 2],
           &dmone, &d[(nblks-1)*l1d*l2d], &l1d,
@@ -707,7 +707,7 @@ L200:
   PetscStackCallBLAS("LAPACKsyev",LAPACKsyev_("V", "L", &ksk, &z[np+np*ldz], &ldz, &ev[np], work, &lwork, info));
   if (*info) SETERRQ2(PETSC_COMM_SELF,1,"dibtdc: Error in DSYEVD for block %d, info = %d",nblks,*info);
 
-  /* EV( NPP1: ) contains the eigenvalues in ascending order */
+  /* EV(NPP1:) contains the eigenvalues in ascending order */
   /* (they are returned this way by DSYEVD) */
 
   for (i = 0; i < ksk; ++i) iwork[np + i] = i+1;
@@ -732,17 +732,17 @@ L200:
 
       /* NOTE: The parameter RHO in DMERG2 is modified in DSRTDF */
       /*       (multiplied by 2) ! In order not to change the */
-      /*       singular value stored in E( :, RANK( KBRK )+1, KBRK ), */
+      /*       singular value stored in E(:, RANK(KBRK)+1, KBRK), */
       /*       we do not pass on this variable as an argument to DMERG2, */
       /*       but we assign a separate variable RHO here which is passed */
       /*       on to DMERG2. */
       /*       Alternative solution in F90: */
-      /*       pass E( :,RANK( KBRK )+1,KBRK ) to an INTENT( IN ) parameter */
+      /*       pass E(:,RANK(KBRK)+1,KBRK) to an INTENT(IN) parameter */
       /*       in DMERG2. */
 
       rho = e[j + (rank[kbrk-1] + (kbrk-1)*l2e)*l1e];
 
-      /* eigenvectors are accumulated ( JOBZ.EQ.'D' ) */
+      /* eigenvectors are accumulated (JOBZ.EQ.'D') */
 
       ierr = BDC_dmerg2_(jobz, j+1, matsiz, &ev[np-1], &z[np-1+(np-1)*ldz],
                     ldz, &iwork[np-1], &rho, &e[(j + (kbrk-1)*l2e)*l1e],
@@ -752,7 +752,7 @@ L200:
       if (*info) SETERRQ1(PETSC_COMM_SELF,1,"dibtdc: Error in dmerg2, info = %d",*info);
     }
 
-    /* at this point all RANK( KBRK ) rank-one modifications corresponding */
+    /* at this point all RANK(KBRK) rank-one modifications corresponding */
     /* to the current off-diagonal block are finished. */
     /* Move on to the next off-diagonal block. */
 
@@ -763,7 +763,7 @@ L200:
   /* to the permutation stored in IWORK. */
 
   /* copy eigenvalues and eigenvectors in ordered form into WORK */
-  /* (eigenvalues into WORK( 1:N ), eigenvectors into WORK( N+1:N+1+N^2 ) ) */
+  /* (eigenvalues into WORK(1:N), eigenvectors into WORK(N+1:N+1+N^2)) */
 
   for (i = 0; i < n; ++i) {
     j = iwork[i];
@@ -771,11 +771,11 @@ L200:
     PetscStackCallBLAS("BLAScopy",BLAScopy_(&n, &z[(j-1)*ldz], &one, &work[n*(i+1)], &one));
   }
 
-  /* copy ordered eigenvalues back from WORK( 1:N ) into EV */
+  /* copy ordered eigenvalues back from WORK(1:N) into EV */
 
   PetscStackCallBLAS("BLAScopy",BLAScopy_(&n, work, &one, ev, &one));
 
-  /* copy ordered eigenvectors back from WORK( N+1:N+1+N^2 ) into Z */
+  /* copy ordered eigenvectors back from WORK(N+1:N+1+N^2) into Z */
 
   PetscStackCallBLAS("LAPACKlacpy",LAPACKlacpy_("A", &n, &n, &work[n], &n, z, &ldz));
   PetscFunctionReturn(0);

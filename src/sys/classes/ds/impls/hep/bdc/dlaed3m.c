@@ -120,7 +120,7 @@ PetscErrorCode BDC_dlaed3m_(const char *jobz,const char *defl,PetscBLASInt k,Pet
 /*          output. */
 
 /*  S       (workspace) DOUBLE PRECISION array, dimension */
-/*          ( MAX(CTOT(1)+CTOT(2),CTOT(2)+CTOT(3)) + 1 )*K */
+/*          (MAX(CTOT(1)+CTOT(2),CTOT(2)+CTOT(3)) + 1)*K */
 /*          Will contain parts of the eigenvectors of the repaired matrix */
 /*          which will be multiplied by the previously accumulated */
 /*          eigenvectors to update the system. This array is a major */
@@ -283,7 +283,7 @@ L110:
     /* Compute the updated eigenvectors. (NOTE that every call of */
     /* DGEMM requires three DISTINCT arrays) */
 
-    /* copy Q( CTOT(1)+1:K,1:K ) to S */
+    /* copy Q(CTOT(1)+1:K,1:K) to S */
 
     PetscStackCallBLAS("LAPACKlacpy",LAPACKlacpy_("A", &n23, &k, &q[ctot[0]], &ldq, s, &n23));
     iq2 = n1 * n12 + 1;
@@ -292,7 +292,7 @@ L110:
 
       /* multiply the second part of Q2 (the eigenvectors of the */
       /* lower block) with S and write the result into the lower part of */
-      /* Q, i.e., Q( N1+1:N,1:K ) */
+      /* Q, i.e., Q(N1+1:N,1:K) */
 
       PetscStackCallBLAS("BLASgemm",BLASgemm_("N", "N", &n2, &k, &n23, &done,
                   &q2[iq2-1], &n2, s, &n23, &dzero, &q[n1], &ldq));
@@ -300,7 +300,7 @@ L110:
       PetscStackCallBLAS("LAPACKlaset",LAPACKlaset_("A", &n2, &k, &dzero, &dzero, &q[n1], &ldq));
     }
 
-    /* copy Q( 1:CTOT(1)+CTOT(2),1:K ) to S */
+    /* copy Q(1:CTOT(1)+CTOT(2),1:K) to S */
 
     PetscStackCallBLAS("LAPACKlacpy",LAPACKlacpy_("A", &n12, &k, q, &ldq, s, &n12));
 
@@ -308,7 +308,7 @@ L110:
 
       /* multiply the first part of Q2 (the eigenvectors of the */
       /* upper block) with S and write the result into the upper part of */
-      /* Q, i.e., Q( 1:N1,1:K ) */
+      /* Q, i.e., Q(1:N1,1:K) */
 
       PetscStackCallBLAS("BLASgemm",BLASgemm_("N", "N", &n1, &k, &n12, &done,
                   q2, &n1, s, &n12, &dzero, q, &ldq));

@@ -165,7 +165,7 @@ static PetscErrorCode NEPDeflationNEComputeFunction(NEP nep,Mat M,PetscScalar la
 static PetscErrorCode MatMult_NEPDeflationNE(Mat M,Vec x,Vec r)
 {
   Vec              t,tt;
-  PetscScalar      *h,*alpha,lambda,*eig;  
+  PetscScalar      *h,*alpha,lambda,*eig;
   PetscInt         i,k;
   PetscErrorCode   ierr;
   NEP_NEDEF_MSHELL *matctx;
@@ -201,7 +201,7 @@ static PetscErrorCode MatMult_NEPDeflationNE(Mat M,Vec x,Vec r)
 static PetscErrorCode MatMultTranspose_NEPDeflationNE(Mat M,Vec x,Vec r)
 {
   Vec              t,tt;
-  PetscScalar      *h,*alphaC,lambda,*eig;  
+  PetscScalar      *h,*alphaC,lambda,*eig;
   PetscInt         i,k;
   PetscErrorCode   ierr;
   NEP_NEDEF_MSHELL *matctx;
@@ -299,7 +299,7 @@ static PetscErrorCode MatDestroy_NEPDeflationNE(Mat M)
 {
   PetscErrorCode   ierr;
   NEP_NEDEF_MSHELL *matctx;
-  
+
   PetscFunctionBegin;
   ierr = MatShellGetContext(M,(void**)&matctx);CHKERRQ(ierr);
   ierr = VecDestroy(&matctx->w[0]);CHKERRQ(ierr);
@@ -336,7 +336,7 @@ static PetscErrorCode NEPDeflationNEFunctionCreate(NEP_NEDEF_CTX defctx,NEP nep,
   matctx->ksp = ksp;
   matctx->defctx = defctx;
   matctx->lambda = PETSC_MAX_REAL;
-  ierr = MatCreateVecs(F,&matctx->w[0],NULL);CHKERRQ(ierr); 
+  ierr = MatCreateVecs(F,&matctx->w[0],NULL);CHKERRQ(ierr);
   ierr = VecDuplicate(matctx->w[0],&matctx->w[1]);CHKERRQ(ierr);
   ierr = MatShellSetOperation(*Mshell,MATOP_MULT,(void(*)(void))MatMult_NEPDeflationNE);CHKERRQ(ierr);
   ierr = MatShellSetOperation(*Mshell,MATOP_MULT_TRANSPOSE,(void(*)(void))MatMultTranspose_NEPDeflationNE);CHKERRQ(ierr);
@@ -375,7 +375,7 @@ static PetscErrorCode NEPDeflationNERecoverEigenvectors(NEP_NEDEF_CTX defctx,Vec
   }
   PetscFunctionReturn(0);
 }
- 
+
 static PetscErrorCode NEPDeflationNELocking(NEP_NEDEF_CTX defctx,Vec u,Vec w,PetscScalar lambda)
 {
   PetscErrorCode ierr;

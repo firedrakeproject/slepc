@@ -103,8 +103,8 @@ PetscErrorCode BDC_dsrtdf_(PetscBLASInt *k,PetscBLASInt n,PetscBLASInt n1,
 /*         which will be passed to DLAED3M. */
 
 /*  Q2     (output) DOUBLE PRECISION array, dimension */
-/*         ( N*N ) (if everything is deflated) or */
-/*         ( N1*(COLTYP(1)+COLTYP(2)) + (N-N1)*(COLTYP(2)+COLTYP(3)) ) */
+/*         (N*N) (if everything is deflated) or */
+/*         (N1*(COLTYP(1)+COLTYP(2)) + (N-N1)*(COLTYP(2)+COLTYP(3))) */
 /*         (if not everything is deflated) */
 /*         If everything is deflated, then N*N intermediate workspace */
 /*         is needed in Q2. */

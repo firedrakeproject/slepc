@@ -58,7 +58,7 @@ PetscErrorCode NEPSetUp_SLP(NEP nep)
   ierr = EPSSetWhichEigenpairs(ctx->eps,EPS_LARGEST_MAGNITUDE);CHKERRQ(ierr);
   ierr = EPSSetTolerances(ctx->eps,nep->tol==PETSC_DEFAULT?SLEPC_DEFAULT_TOL/10.0:nep->tol/10.0,nep->max_it?nep->max_it:PETSC_DEFAULT);CHKERRQ(ierr);
   if (nep->twosided) {
-    nep->ops->solve = NEPSolve_SLP_Twosided;    
+    nep->ops->solve = NEPSolve_SLP_Twosided;
     nep->ops->computevectors = NULL;
     if (!ctx->epsts) { ierr = NEPSLPGetEPSLeft(nep,&ctx->epsts);CHKERRQ(ierr); }
     ierr = EPSGetST(ctx->epsts,&st);CHKERRQ(ierr);
@@ -68,7 +68,7 @@ PetscErrorCode NEPSetUp_SLP(NEP nep)
     ierr = EPSSetWhichEigenpairs(ctx->epsts,EPS_LARGEST_MAGNITUDE);CHKERRQ(ierr);
     ierr = EPSSetTolerances(ctx->epsts,nep->tol==PETSC_DEFAULT?SLEPC_DEFAULT_TOL/10.0:nep->tol/10.0,nep->max_it?nep->max_it:PETSC_DEFAULT);CHKERRQ(ierr);
   } else {
-    nep->ops->solve = NEPSolve_SLP;    
+    nep->ops->solve = NEPSolve_SLP;
     nep->ops->computevectors = NEPComputeVectors_Schur;
   }
   ierr = NEPAllocateSolution(nep,0);CHKERRQ(ierr);
@@ -198,7 +198,7 @@ PetscErrorCode NEPSolve_SLP(NEP nep)
       ierr = NEPDeflationSetRefine(extop,PETSC_FALSE);CHKERRQ(ierr);
       nep->nconv = nep->nconv + 1;
       skip = PETSC_TRUE;
-      lock = PETSC_FALSE;  
+      lock = PETSC_FALSE;
       ierr = NEPDeflationLocking(extop,u,lambda);CHKERRQ(ierr);
     }
     ierr = (*nep->stopping)(nep,nep->its,nep->max_it,nep->nconv,nep->nev,&nep->reason,nep->stoppingctx);CHKERRQ(ierr);

@@ -179,7 +179,7 @@
 !     The actual routine for the matrix-vector product
 !     See https://math.nist.gov/MatrixMarket/data/NEP/mvmisg/mvmisg.html
 
-      SUBROUTINE MVMISG( TRANS, N, M, X, LDX, Y, LDY )
+      SUBROUTINE MVMISG(TRANS, N, M, X, LDX, Y, LDY)
 #include <petsc/finclude/petscsys.h>
       use petscsys
 !     ..
@@ -187,7 +187,7 @@
       PetscInt     LDY, LDX, M, N, TRANS
 !     ..
 !     .. Array Arguments ..
-      PetscScalar  Y( LDY, * ), X( LDX, * )
+      PetscScalar  Y(LDY, *), X(LDX, *)
 !     ..
 !
 !  Purpose
@@ -213,17 +213,17 @@
 !  M       (input) INTEGER
 !          The number of columns of X to multiply.
 !
-!  X       (input) DOUBLE PRECISION array, dimension ( LDX, M )
+!  X       (input) DOUBLE PRECISION array, dimension (LDX, M)
 !          X contains the matrix (vectors) X.
 !
 !  LDX     (input) INTEGER
-!          The leading dimension of array X, LDX >= max( 1, N )
+!          The leading dimension of array X, LDX >= max(1, N)
 !
-!  Y       (output) DOUBLE PRECISION array, dimension (LDX, M )
+!  Y       (output) DOUBLE PRECISION array, dimension (LDX, M)
 !          contains the product of the matrix op(A) with X.
 !
 !  LDY     (input) INTEGER
-!          The leading dimension of array Y, LDY >= max( 1, N )
+!          The leading dimension of array Y, LDY >= max(1, N)
 !
 !  ===================================================================
 !
@@ -240,50 +240,50 @@
 !
       ALPHA = PETSC_PI/4
       BETA = PETSC_PI/4
-      COSA = COS( ALPHA )
-      SINA = SIN( ALPHA )
-      COSB = COS( BETA )
-      SINB = SIN( BETA )
+      COSA = COS(ALPHA)
+      SINA = SIN(ALPHA)
+      COSB = COS(BETA)
+      SINB = SIN(BETA)
 !
-      IF ( TRANS.EQ.0 ) THEN
+      IF (TRANS.EQ.0) THEN
 !
 !     Compute Y(:,1:M) = A*X(:,1:M)
 
          DO 30 K = 1, M
 !
-            Y( 1, K ) = COSB*X( 1, K ) - SINB*X( N, K )
+            Y(1, K) = COSB*X(1, K) - SINB*X(N, K)
             DO 10 I = 2, N-1, 2
-               Y( I, K )   =  COSB*X( I, K ) + SINB*X( I+1, K )
-               Y( I+1, K ) = -SINB*X( I, K ) + COSB*X( I+1, K )
+               Y(I, K)   =  COSB*X(I, K) + SINB*X(I+1, K)
+               Y(I+1, K) = -SINB*X(I, K) + COSB*X(I+1, K)
    10       CONTINUE
-            Y( N, K ) = SINB*X( 1, K ) + COSB*X( N, K )
+            Y(N, K) = SINB*X(1, K) + COSB*X(N, K)
 !
             DO 20 I = 1, N, 2
-               TEMP        =  COSA*Y( I, K ) + SINA*Y( I+1, K )
-               Y( I+1, K ) = -SINA*Y( I, K ) + COSA*Y( I+1, K )
-               Y( I, K )   = TEMP
+               TEMP      =  COSA*Y(I, K) + SINA*Y(I+1, K)
+               Y(I+1, K) = -SINA*Y(I, K) + COSA*Y(I+1, K)
+               Y(I, K)   = TEMP
    20       CONTINUE
 !
    30    CONTINUE
 !
-      ELSE IF ( TRANS.EQ.1 ) THEN
+      ELSE IF (TRANS.EQ.1) THEN
 !
 !        Compute Y(:1:M) = A'*X(:,1:M)
 !
          DO 60 K = 1, M
 !
             DO 40 I = 1, N, 2
-               Y( I, K )   =  COSA*X( I, K ) - SINA*X( I+1, K )
-               Y( I+1, K ) =  SINA*X( I, K ) + COSA*X( I+1, K )
+               Y(I, K)   =  COSA*X(I, K) - SINA*X(I+1, K)
+               Y(I+1, K) =  SINA*X(I, K) + COSA*X(I+1, K)
    40       CONTINUE
             TEMP  = COSB*Y(1,K) + SINB*Y(N,K)
             DO 50 I = 2, N-1, 2
-               TEMP1       =  COSB*Y( I, K ) - SINB*Y( I+1, K )
-               Y( I+1, K ) =  SINB*Y( I, K ) + COSB*Y( I+1, K )
-               Y( I, K )   =  TEMP1
+               TEMP1     =  COSB*Y(I, K) - SINB*Y(I+1, K)
+               Y(I+1, K) =  SINB*Y(I, K) + COSB*Y(I+1, K)
+               Y(I, K)   =  TEMP1
    50       CONTINUE
-            Y( N, K ) = -SINB*Y( 1, K ) + COSB*Y( N, K )
-            Y( 1, K ) = TEMP
+            Y(N, K) = -SINB*Y(1, K) + COSB*Y(N, K)
+            Y(1, K) = TEMP
 !
    60    CONTINUE
 !

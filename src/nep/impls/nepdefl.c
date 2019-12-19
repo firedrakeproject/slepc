@@ -39,7 +39,7 @@ PetscErrorCode NEPDeflationExtendInvariantPair(NEP_EXT_OP extop,Vec u,PetscScala
   ierr = BVRestoreColumn(extop->X,k,&uu);CHKERRQ(ierr);
   ierr = BVNormColumn(extop->X,k,NORM_2,&norm);CHKERRQ(ierr);
   ierr = BVScaleColumn(extop->X,k,1.0/norm);CHKERRQ(ierr);
-  ierr = MPI_Comm_size(PetscObjectComm((PetscObject)u),&np);CHKERRQ(ierr);    
+  ierr = MPI_Comm_size(PetscObjectComm((PetscObject)u),&np);CHKERRQ(ierr);
   for (i=0;i<k;i++) extop->H[k*ld+i] *= PetscSqrtReal(np)/norm;
   extop->H[k*(ld+1)] = lambda;
   PetscFunctionReturn(0);
@@ -54,7 +54,7 @@ PetscErrorCode NEPDeflationExtractEigenpair(NEP_EXT_OP extop,PetscInt k,Vec u,Pe
   Vec            x;
 
   PetscFunctionBegin;
-  ierr = NEPDeflationExtendInvariantPair(extop,u,lambda,k);CHKERRQ(ierr); 
+  ierr = NEPDeflationExtendInvariantPair(extop,u,lambda,k);CHKERRQ(ierr);
   ierr = PetscCalloc3(k1,&eigr,k1,&eigi,extop->szd,&t);CHKERRQ(ierr);
   ierr = DSReset(ds);CHKERRQ(ierr);
   ierr = DSSetType(ds,DSNHEP);CHKERRQ(ierr);

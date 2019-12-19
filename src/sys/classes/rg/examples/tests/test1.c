@@ -153,11 +153,12 @@ int main(int argc,char **argv)
   ierr = RGPolygonGetVertices(rg,&nv,&pr,&pi);CHKERRQ(ierr);
   if (nv!=7) SETERRQ1(PETSC_COMM_WORLD,1,"Wrong number of vertices: %D",nv);
   for (i=0;i<nv;i++) {
-    if (pr[i]!=vr[i]
 #if !defined(PETSC_USE_COMPLEX)
-        || pi[i]!=vi[i]
+    if (pr[i]!=vr[i] || pi[i]!=vi[i])
+#else
+    if (pr[i]!=vr[i])
 #endif
-       ) SETERRQ1(PETSC_COMM_WORLD,1,"Vertex number %D does not match",i);
+       SETERRQ1(PETSC_COMM_WORLD,1,"Vertex number %D does not match",i);
   }
 
   ierr = RGDestroy(&rg);CHKERRQ(ierr);
