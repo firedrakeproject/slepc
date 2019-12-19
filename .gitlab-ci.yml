@@ -1,0 +1,98 @@
+#
+# stage-1 take only a few minutes and generally run on the cloud; they do not run the full test suite or external packages.
+#
+# stage-2 runs on MCS systems and may take 10 to 15 minutes. They run the full test suite but with limited mixture of external packages
+#
+# stage-3 runs on MCS systems and may take an hour or more. They run the full test suite and heavily test external packages, utilize valgrind etc
+#         (not yet implemented)
+#
+# The stage-(n) tests are only started if all of the stage-(n-1) tests run without error
+#   You can limit the testing by using the variable STAGE with value 1 or 2
+#
+# By default the test branch is merged to master before testing. (not yet implemented)
+#   You can limite this by using the variable MERGETOMASTER with value 0 (not yet implemented)
+#
+
+stages:
+  - stage-1
+variables:
+  GIT_STRATEGY: fetch
+  GIT_CLEAN_FLAGS: -ffdxq
+  PETSC_OPTIONS: -check_pointer_intensity 0 -error_output_stdout -nox -nox_warning -malloc_dump
+  TIMEOUT: 600
+
+#
+# The most basic template that most tests will expand upon. In particular merge requests and branch pushes DO NOT trigger testing
+#
+
+.test:
+  only:
+    refs:
+#     Set with CI/CD Shedules - New Schedule
+      - schedules
+#     Set with CI/CD Pipelines - Run Pipeline
+      - web
+  dependencies: []
+
+#
+#  This provides the basic order of operations and options template for cloud based stage 1 tests.
+#  Not all test-short need to follow this template but most will.
+#
+
+.stage-1:
+  extends: .test
+  stage: stage-1
+  image: jedbrown/mpich-ccache
+  tags:
+    - docker
+  before_script:
+    - date
+    - echo nproc=$(nproc)
+    - cat /proc/cpuinfo
+    - export CCACHE_COMPILERCHECK=content
+    - export CCACHE_DIR=$(pwd)/.ccache
+    - ccache --show-stats
+    - ccache --zero-stats
+    - echo CONFIG_OPTS=$(CONFIG_OPTS)
+  script:
+    - export SLEPC_DIR=$PWD
+    - cd ..
+    - git clone https://gitlab.com/petsc/petsc.git
+    - cd petsc
+    - export PETSC_DIR=$PWD
+    - ${PYTHON} ./configure --with-debugging=0 COPTFLAGS='-O -march=native' CXXOPTFLAGS='-O -march=native' FOPTFLAGS='-O -march=native' ${CONFIG_OPTS}
+    - make CFLAGS=-Werror CXXFLAGS=-Werror
+    - cd $SLEPC_DIR
+    - ${PYTHON} ./configure
+    - make CFLAGS=-Werror CXXFLAGS=-Werror
+    - make CFLAGS=-Werror CXXFLAGS=-Werror allgtests-tap search="${TEST_SEARCH}" TIMEOUT=${TIMEOUT}
+  after_script:
+    - date
+    - CCACHE_DIR=$(pwd)/.ccache ccache --show-stats
+  artifacts:
+    reports:
+      junit: arch-*/tests/testresults.xml
+    name: "$CI_JOB_NAME"
+    when: always
+    paths:
+    - arch-*/lib/slepc/conf/*.log
+    - arch-*/tests/testresults.xml
+    - arch-*/tests/test_*_tap.log
+    - arch-*/tests/test_*_err.log
+    expire_in: 4 days
+  cache:
+    paths:
+      - .ccache/
+    key: "${CI_JOB_NAME}"
+
+#
+# The following tests run on the cloud as part of stage-1.
+#
+
+mpich-cxx-py3:
+  extends: .stage-1
+  variables:
+    PYTHON: python3
+    CONFIG_OPTS: --with-mpi-dir=/usr/local --with-clanguage=cxx --with-fc=0
+    TEST_SEARCH: eps_tests-test10_1
+
