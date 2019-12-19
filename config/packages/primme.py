@@ -17,8 +17,8 @@ class Primme(package.Package):
     self.packagename    = 'primme'
     self.installable    = True
     self.downloadable   = True
-    self.version        = '2.1'
-    self.url            = 'https://github.com/primme/primme/tarball/release-2.1'
+    self.version        = '3.0'
+    self.url            = 'https://github.com/primme/primme/tarball/release-'+self.version
     self.archive        = 'primme-'+self.version+'.tar.gz'
     self.dirname        = 'PRIMME'
     self.supportssingle = True
