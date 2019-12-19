@@ -80,6 +80,9 @@ PetscErrorCode EPSCheckCompatibleST(EPS eps)
 {
   PetscErrorCode ierr;
   PetscBool      precond,shift,sinvert,cayley,lyapii;
+#if defined(PETSC_USE_COMPLEX)
+  PetscScalar    sigma;
+#endif
 
   PetscFunctionBegin;
   ierr = PetscObjectTypeCompare((PetscObject)eps->st,STPRECOND,&precond);CHKERRQ(ierr);
@@ -137,9 +140,6 @@ PetscErrorCode EPSSetUp(EPS eps)
   SlepcSC        sc;
   PetscInt       k,nmat;
   PetscBool      flg,istrivial;
-#if defined(PETSC_USE_COMPLEX)
-  PetscScalar    sigma;
-#endif
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(eps,EPS_CLASSID,1);
