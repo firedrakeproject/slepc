@@ -59,8 +59,9 @@ variables:
   script:
     - export SLEPC_DIR=$PWD
     - cd ..
-    - git clone https://gitlab.com/petsc/petsc.git
+    - if [ ! -d petsc ]; then git clone https://gitlab.com/petsc/petsc.git; fi
     - cd petsc
+    - git pull
     - export PETSC_DIR=$PWD
     - ${PYTHON} ./configure --with-debugging=0 COPTFLAGS='-O -march=native' CXXOPTFLAGS='-O -march=native' FOPTFLAGS='-O -march=native' ${PETSC_CONFIG_OPTS}
     - make CFLAGS=-Werror CXXFLAGS=-Werror
@@ -129,8 +130,9 @@ checksource:
   script:
     - export SLEPC_DIR=$PWD
     - cd ..
-    - git clone https://gitlab.com/petsc/petsc.git
+    - if [ ! -d petsc ]; then git clone https://gitlab.com/petsc/petsc.git; fi
     - cd petsc
+    - git pull
     - export PETSC_DIR=$PWD
     - python3 ./configure --with-mpi=0 --with-fc=0 --with-cxx=0
     - make
@@ -160,8 +162,9 @@ checksource:
     - printf "SLEPC_CONFIG_OPTS=${SLEPC_CONFIG_OPTS}\n"
     - export SLEPC_DIR=$PWD
     - cd ..
-    - git clone https://gitlab.com/petsc/petsc.git
+    - if [ ! -d petsc ]; then git clone https://gitlab.com/petsc/petsc.git; fi
     - cd petsc
+    - git pull
     - export PETSC_DIR=$PWD
     - ${PYTHON} ./configure ${PETSC_CONFIG_OPTS}
     - make CFLAGS=${MAKE_CFLAGS} CXXFLAGS=${MAKE_CXXFLAGS}
