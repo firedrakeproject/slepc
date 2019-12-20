@@ -290,13 +290,12 @@ linux-gcc-complex-opt:
     PETSC_CONFIG_OPTS: --with-debugging=0 --with-scalar-type=complex
     SLEPC_CONFIG_OPTS: --download-blopex
 
-#linux-cuda-double:
-#  extends:
-#    - .stage-2
-#    - .linux_test
-#  tags:
-#    - linux-ubuntu
-#  variables:
-#    PETSC_CONFIG_OPTS: --with-debugging=0 --with-cuda CUDAFLAGS='-ccbin gcc-5'
-#    SLEPC_CONFIG_OPTS: --download-blopex
-#
+linux-cuda-double:
+  extends:
+    - .stage-2
+    - .linux_test
+  tags:
+    - linux-ubuntu
+  variables:
+    PETSC_CONFIG_OPTS: --with-debugging=0 --with-cuda CUDAFLAGS='-ccbin gcc-5'
+
