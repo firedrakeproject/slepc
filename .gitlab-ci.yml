@@ -118,6 +118,14 @@ checksource:
   extends: .test
   image: jedbrown/mpich-ccache
   stage: stage-1
+  tags:
+    - docker
+  before_script:
+    - date
+    - export CCACHE_COMPILERCHECK=content
+    - export CCACHE_DIR=$(pwd)/.ccache
+    - ccache --show-stats
+    - ccache --zero-stats
   script:
     - export SLEPC_DIR=$PWD
     - cd ..
@@ -131,6 +139,13 @@ checksource:
     - python3 ./configure
     - make checkbadSource SHELL=bash
     - make check_output SHELL=bash
+  after_script:
+    - date
+    - CCACHE_DIR=$(pwd)/.ccache ccache --show-stats
+  cache:
+    paths:
+      - .ccache/
+    key: "${CI_JOB_NAME}"
 
 #
 # This provides the basic order of operations and options template for stage-2,3 tests.
@@ -141,8 +156,8 @@ checksource:
   script:
     - printf "PATH:$PATH\n"
     - printf "PETSC_OPTIONS:$PETSC_OPTIONS\n"
-    - printf "PETSC_CONFIG_OPTS=${PETSC_CONFIG_OPTS}"
-    - printf "SLEPC_CONFIG_OPTS=${SLEPC_CONFIG_OPTS}"
+    - printf "PETSC_CONFIG_OPTS=${PETSC_CONFIG_OPTS}\n"
+    - printf "SLEPC_CONFIG_OPTS=${SLEPC_CONFIG_OPTS}\n"
     - export SLEPC_DIR=$PWD
     - cd ..
     - git clone https://gitlab.com/petsc/petsc.git
