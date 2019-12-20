@@ -107,13 +107,13 @@ uni-complex-float-int64:
     PETSC_CONFIG_OPTS: --with-mpi=0 --with-scalar-type=complex --with-precision=single --with-64-bit-indices
     TEST_SEARCH: pep_tests-test1_1
 
-c89-mlib-static-py2:
-  extends: .stage-1
-  image: jedbrown/mpich-ccache:python2
-  variables:
-    PYTHON: python2
-    PETSC_CONFIG_OPTS: --with-mpi-dir=/usr/local --with-single-library=0 --with-shared-libraries=0 CFLAGS=-std=c89
-    TEST_SEARCH: sys_classes_bv_tests-test2_1
+#c89-mlib-static-py2:
+#  extends: .stage-1
+#  image: jedbrown/mpich-ccache:python2
+#  variables:
+#    PYTHON: python2
+#    PETSC_CONFIG_OPTS: --with-mpi-dir=/usr/local --with-single-library=0 --with-shared-libraries=0 CFLAGS=-std=c89
+#    TEST_SEARCH: sys_classes_bv_tests-test2_1
 
 checksource:
   extends: .test
@@ -280,7 +280,17 @@ checksource:
 # (in a blue box beneath it)
 #
 
-linux-gcc-complex-opt:
+linux-gnu-c-multilib:
+  extends:
+    - .stage-2
+    - .linux_test
+  tags:
+    - linux-debian
+  variables:
+    PETSC_CONFIG_OPTS: --with-debugging=0 --with-single-library=0 --with-visibility=1
+    SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --with-arpack-dir=/usr/local/opt/ARPACK --with-primme-dir=/usr/local/opt/primme --download-blopex --with-blzpack-dir=/usr/local/opt/blzpack/lib --with-trlan-dir=/usr/local/opt/trlan-201009
+
+linux-gnu-c-complex:
   extends:
     - .stage-2
     - .linux_test
@@ -288,14 +298,23 @@ linux-gcc-complex-opt:
     - linux-debian
   variables:
     PETSC_CONFIG_OPTS: --with-debugging=0 --with-scalar-type=complex
-    SLEPC_CONFIG_OPTS: --download-blopex
+    SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --with-arpack-dir=/usr/local/opt/ARPACK --with-primme-dir=/usr/local/opt/primme --download-blopex
 
-linux-cuda-double:
+linux-gnu-c-cuda:
   extends:
     - .stage-2
     - .linux_test
   tags:
     - linux-ubuntu
   variables:
-    PETSC_CONFIG_OPTS: --with-debugging=0 --with-cuda CUDAFLAGS='-ccbin gcc-5'
+    PETSC_CONFIG_OPTS: --with-debugging=0 --with-cuda CUDAFLAGS="-ccbin gcc-5"
+
+linux-clang-c:
+  extends:
+    - .stage-2
+    - .linux_test
+  tags:
+    - linux-ubuntu
+  variables:
+    PETSC_CONFIG_OPTS: --with-debugging=0 --with-cc=/usr/local/mpich-3.3.1-clang/bin/mpicc --with-cxx=0 --with-fc=0
 
