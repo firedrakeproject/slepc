@@ -298,5 +298,4 @@ linux-cuda-double:
     - linux-ubuntu
   variables:
     PETSC_CONFIG_OPTS: --with-debugging=0 --with-cuda CUDAFLAGS="-ccbin gcc-5"
-    SLEPC_CONFIG_OPTS:
 
