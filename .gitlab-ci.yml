@@ -166,7 +166,7 @@ checksource:
     - cd petsc
     - git pull
     - export PETSC_DIR=$PWD
-    - ${PYTHON} ./configure ${PETSC_CONFIG_OPTS}
+    - ${PYTHON} ./configure --with-debugging=0 COPTFLAGS='-O -g' CXXOPTFLAGS='-O -g' FOPTFLAGS='-O -g' CUDAFLAGS='-ccbin gcc-5' ${PETSC_CONFIG_OPTS}
     - make CFLAGS=${MAKE_CFLAGS} CXXFLAGS=${MAKE_CXXFLAGS}
     - export PETSC_ARCH=`ls -d arch-*`
     - cd $SLEPC_DIR
@@ -287,7 +287,7 @@ linux-gnu-c-multilib:
   tags:
     - linux-debian
   variables:
-    PETSC_CONFIG_OPTS: --with-debugging=0 --with-single-library=0 --with-visibility=1
+    PETSC_CONFIG_OPTS: --with-single-library=0 --with-visibility=1
     SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --with-arpack-dir=/usr/local/opt/ARPACK --with-primme-dir=/usr/local/opt/primme --download-blopex --with-blzpack-dir=/usr/local/opt/blzpack/lib --with-trlan-dir=/usr/local/opt/trlan-201009
 
 linux-gnu-c-complex:
@@ -297,7 +297,7 @@ linux-gnu-c-complex:
   tags:
     - linux-debian
   variables:
-    PETSC_CONFIG_OPTS: --with-debugging=0 --with-scalar-type=complex
+    PETSC_CONFIG_OPTS: --with-scalar-type=complex
     SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --with-arpack-dir=/usr/local/opt/ARPACK --with-primme-dir=/usr/local/opt/primme --download-blopex
 
 linux-gnu-c-cuda:
@@ -307,7 +307,7 @@ linux-gnu-c-cuda:
   tags:
     - linux-ubuntu
   variables:
-    PETSC_CONFIG_OPTS: --with-debugging=0 --with-cuda CUDAFLAGS="-ccbin gcc-5"
+    PETSC_CONFIG_OPTS: --with-cuda
 
 linux-clang-c:
   extends:
