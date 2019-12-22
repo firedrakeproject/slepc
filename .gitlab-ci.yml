@@ -172,7 +172,7 @@ checksource:
     - cd $SLEPC_DIR
     - ${PYTHON} ./configure ${SLEPC_CONFIG_OPTS}
     - make CFLAGS=${MAKE_CFLAGS} CXXFLAGS=${MAKE_CXXFLAGS}
-    - make CFLAGS=${MAKE_CFLAGS} CXXFLAGS=${MAKE_CXXFLAGS} check
+    - make CFLAGS=${MAKE_CFLAGS} CXXFLAGS=${MAKE_CXXFLAGS} test_build
     - make CFLAGS=${MAKE_CFLAGS} CXXFLAGS=${MAKE_CXXFLAGS} cleantest allgtests-tap TIMEOUT=${TIMEOUT}
   artifacts:
     reports:
@@ -300,6 +300,18 @@ linux-gnu-c-complex:
     PETSC_CONFIG_OPTS: --with-scalar-type=complex
     SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --with-arpack-dir=/usr/local/opt/ARPACK --with-primme-dir=/usr/local/opt/primme --download-blopex
 
+linux-icc-c-complex-mkl:
+  extends:
+    - .stage-2
+    - .linux_test
+  tags:
+    - linux-debian
+  variables:
+    PETSC_CONFIG_OPTS: --with-cc=/usr/local/opt/mpich-3.3-icc/bin/mpicc --with-fc=/usr/local/opt/mpich-3.3-icc/bin/mpifort --with-cxx=0 --with-blas-lapack-dir=/opt/intel/mkl/ --with-mkl_pardiso=1 --with-scalar-type=complex
+    SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local
+
+#
+
 linux-gnu-c-cuda:
   extends:
     - .stage-2
@@ -307,7 +319,7 @@ linux-gnu-c-cuda:
   tags:
     - linux-ubuntu
   variables:
-    PETSC_CONFIG_OPTS: --with-cuda
+    PETSC_CONFIG_OPTS: --with-cuda --with-openmp
 
 linux-clang-c:
   extends:
@@ -317,4 +329,163 @@ linux-clang-c:
     - linux-ubuntu
   variables:
     PETSC_CONFIG_OPTS: --with-cc=/usr/local/mpich-3.3.1-clang/bin/mpicc --with-cxx=0 --with-fc=0
+
+linux-gnu-c-complex-multilib:
+  extends:
+    - .stage-2
+    - .linux_test
+  tags:
+    - linux-ubuntu
+  variables:
+    PETSC_CONFIG_OPTS: --with-scalar-type=complex --with-single-library=0 --with-visibility=1
+
+linux-icc-c-complex-mkl:
+  extends:
+    - .stage-2
+    - .linux_test
+  tags:
+    - linux-ubuntu
+  variables:
+    PETSC_CONFIG_OPTS: --with-scalar-type=complex --with-cc=/usr/local/mpich-3.2.1/bin/mpicc --with-fc=/usr/local/mpich-3.2.1/bin/mpifort --with-cxx=0 --with-blas-lapack-dir=/opt/intel/mkl/ --with-mkl_pardiso=1
+
+linux-pgi-c-nompi:
+  extends:
+    - .stage-2
+    - .linux_test
+  tags:
+    - linux-ubuntu
+  variables:
+    PETSC_CONFIG_OPTS: --with-cc=/opt/pgi/linux86-64/2019/bin/pgcc --with-fc=/opt/pgi/linux86-64/2019/bin/pgfortran --with-cxx=/opt/pgi/linux86-64/2019/bin/pgc++ --with-blaslapack-dir=/opt/pgi/linux86-64/2019/lib --with-mpi=0
+
+#
+# The following tests run as part of stage-3.
+#
+
+linux-clang-c-valgrind:
+  extends:
+    - .stage-3
+    - .linux_test
+  tags:
+    - linux-debian
+  variables:
+    PETSC_CONFIG_OPTS: --with-cc=/usr/local/opt/mpich-3.3b3-clang/bin/mpicc --with-cxx=0 --with-fc=/usr/local/opt/mpich-3.3b3-clang/bin/mpifort --with-shared-libraries=0
+    SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local
+
+linux-gnu-c:
+  extends:
+    - .stage-3
+    - .linux_test
+  tags:
+    - linux-debian
+  variables:
+    SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --with-arpack-dir=/usr/local/opt/ARPACK --with-primme-dir=/usr/local/opt/primme --download-blopex --with-blzpack-dir=/usr/local/opt/blzpack/lib --with-trlan-dir=/usr/local/opt/trlan-201009
+
+linux-gnu-c-c89:
+  extends:
+    - .stage-3
+    - .linux_test
+  tags:
+    - linux-debian
+  variables:
+    PETSC_CONFIG_OPTS: --CFLAGS='-std=c89 -pedantic -Wno-long-long -Wno-overlength-strings' --with-fortran-bindings=0
+    SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --with-arpack-flags=/usr/local/opt/ARPACK/libparpack.a,/usr/local/opt/ARPACK/libarpack.a,-lgfortran,-lmpi_usempif08,-lmpi_usempi_ignore_tkr,-lmpi_mpifh,-lmpi --download-blopex --with-blzpack-dir=/usr/local/opt/blzpack/lib --with-trlan-dir=/usr/local/opt/trlan-201009
+
+linux-gnu-c-debug:
+  extends:
+    - .stage-3
+    - .linux_test
+  tags:
+    - linux-debian
+  variables:
+    PETSC_CONFIG_OPTS: --with-debugging=1
+    SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --download-arpack --download-primme --download-trlan --download-blopex
+
+linux-gnu-c-float128:
+  extends:
+    - .stage-3
+    - .linux_test
+  tags:
+    - linux-debian
+  variables:
+    PETSC_CONFIG_OPTS: --download-f2cblaslapack --with-precision=__float128
+    SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local
+
+linux-gnu-c-nompi:
+  extends:
+    - .stage-3
+    - .linux_test
+  tags:
+    - linux-debian
+  variables:
+    PETSC_CONFIG_OPTS: --with-mpi=0
+    SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --with-arpack-dir=/usr/local/opt/ARPACK --with-primme-dir=/usr/local/opt/primme --download-blopex --with-trlan-dir=/usr/local/opt/trlan-201009
+
+linux-gnu-c-single:
+  extends:
+    - .stage-3
+    - .linux_test
+  tags:
+    - linux-debian
+  variables:
+    PETSC_CONFIG_OPTS: --with-precision=single
+    SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --with-arpack-dir=/usr/local/opt/ARPACK
+
+linux-gnu-cxx-complex:
+  extends:
+    - .stage-3
+    - .linux_test
+  tags:
+    - linux-debian
+  variables:
+    PETSC_CONFIG_OPTS: --with-clanguage=C++ --with-scalar-type=complex
+    SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --with-arpack-dir=/usr/local/opt/ARPACK --with-primme-dir=/usr/local/opt/primme --download-blopex
+
+linux-gnu-cxx-int64:
+  extends:
+    - .stage-3
+    - .linux_test
+  tags:
+    - linux-debian
+  variables:
+    PETSC_CONFIG_OPTS: --with-clanguage=C++ --with-64-bit-indices=1
+    SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --with-primme-dir=/usr/local/opt/primme
+
+linux-icc-cxx-mkl:
+  extends:
+    - .stage-3
+    - .linux_test
+  tags:
+    - linux-debian
+  variables:
+    PETSC_CONFIG_OPTS: --with-cc=/usr/local/opt/mpich-3.3-icc/bin/mpicc --with-fc=/usr/local/opt/mpich-3.3-icc/bin/mpifort --with-cxx=/usr/local/opt/mpich-3.3-icc/bin/mpicxx --with-blas-lapack-dir=/opt/intel/mkl/ --with-mkl_pardiso=1 --with-clanguage=C++
+    SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local
+
+#
+
+linux-gnu-c-cuda-complex:
+  extends:
+    - .stage-3
+    - .linux_test
+  tags:
+    - linux-ubuntu
+  variables:
+    PETSC_CONFIG_OPTS: --with-scalar-type=complex --with-cuda --with-openmp
+
+linux-gnu-c-cuda-single:
+  extends:
+    - .stage-3
+    - .linux_test
+  tags:
+    - linux-ubuntu
+  variables:
+    PETSC_CONFIG_OPTS: --with-precision=single --with-single-library=0 --with-visibility=1 --with-cuda --with-openmp
+
+linux-icc-c-complex-int64-mkl:
+  extends:
+    - .stage-3
+    - .linux_test
+  tags:
+    - linux-ubuntu
+  variables:
+    PETSC_CONFIG_OPTS: --with-cc=/usr/local/mpich-3.2.1/bin/mpicc --with-fc=/usr/local/mpich-3.2.1/bin/mpifort --with-cxx=0 --with-blas-lapack-dir=/opt/intel/mkl/ --with-mkl_pardiso=1 --with-scalar-type=complex
 
