@@ -300,15 +300,25 @@ linux-gnu-c-complex:
     PETSC_CONFIG_OPTS: --with-scalar-type=complex
     SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --with-arpack-dir=/usr/local/opt/ARPACK --with-primme-dir=/usr/local/opt/primme --download-blopex
 
-linux-icc-c-complex-mkl:
+linux-icc-cxx-mkl:
   extends:
     - .stage-2
     - .linux_test
   tags:
     - linux-debian
   variables:
-    PETSC_CONFIG_OPTS: --with-cc=/usr/local/opt/mpich-3.3-icc/bin/mpicc --with-fc=/usr/local/opt/mpich-3.3-icc/bin/mpifort --with-cxx=0 --with-blas-lapack-dir=/opt/intel/mkl/ --with-mkl_pardiso=1 --with-scalar-type=complex
+    PETSC_CONFIG_OPTS: --with-cc=/usr/local/opt/mpich-3.3-icc/bin/mpicc --with-fc=/usr/local/opt/mpich-3.3-icc/bin/mpifort --with-cxx=/usr/local/opt/mpich-3.3-icc/bin/mpicxx --with-blas-lapack-dir=/opt/intel/mkl/ --with-mkl_pardiso=1 --with-clanguage=C++
     SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local
+
+#linux-icc-c-complex-mkl:
+#  extends:
+#    - .stage-2
+#    - .linux_test
+#  tags:
+#    - linux-debian
+#  variables:
+#    PETSC_CONFIG_OPTS: --with-cc=/usr/local/opt/mpich-3.3-icc/bin/mpicc --with-fc=/usr/local/opt/mpich-3.3-icc/bin/mpifort --with-cxx=0 --with-blas-lapack-dir=/opt/intel/mkl/ --with-mkl_pardiso=1 --with-scalar-type=complex
+#    SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local
 
 #
 
@@ -320,6 +330,7 @@ linux-gnu-c-cuda:
     - linux-ubuntu
   variables:
     PETSC_CONFIG_OPTS: --with-cuda --with-openmp
+  allow_failure: true
 
 linux-clang-c:
   extends:
@@ -355,6 +366,8 @@ linux-pgi-c-nompi:
   tags:
     - linux-ubuntu
   variables:
+    MAKE_CFLAGS: ''
+    MAKE_CXXFLAGS: ''
     PETSC_CONFIG_OPTS: --with-cc=/opt/pgi/linux86-64/2019/bin/pgcc --with-fc=/opt/pgi/linux86-64/2019/bin/pgfortran --with-cxx=/opt/pgi/linux86-64/2019/bin/pgc++ --with-blaslapack-dir=/opt/pgi/linux86-64/2019/lib --with-mpi=0
 
 #
@@ -450,16 +463,6 @@ linux-gnu-cxx-int64:
     PETSC_CONFIG_OPTS: --with-clanguage=C++ --with-64-bit-indices=1
     SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --with-primme-dir=/usr/local/opt/primme
 
-linux-icc-cxx-mkl:
-  extends:
-    - .stage-3
-    - .linux_test
-  tags:
-    - linux-debian
-  variables:
-    PETSC_CONFIG_OPTS: --with-cc=/usr/local/opt/mpich-3.3-icc/bin/mpicc --with-fc=/usr/local/opt/mpich-3.3-icc/bin/mpifort --with-cxx=/usr/local/opt/mpich-3.3-icc/bin/mpicxx --with-blas-lapack-dir=/opt/intel/mkl/ --with-mkl_pardiso=1 --with-clanguage=C++
-    SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local
-
 #
 
 linux-gnu-c-cuda-complex:
@@ -470,6 +473,7 @@ linux-gnu-c-cuda-complex:
     - linux-ubuntu
   variables:
     PETSC_CONFIG_OPTS: --with-scalar-type=complex --with-cuda --with-openmp
+  allow_failure: true
 
 linux-gnu-c-cuda-single:
   extends:
@@ -479,6 +483,7 @@ linux-gnu-c-cuda-single:
     - linux-ubuntu
   variables:
     PETSC_CONFIG_OPTS: --with-precision=single --with-single-library=0 --with-visibility=1 --with-cuda --with-openmp
+  allow_failure: true
 
 linux-icc-c-complex-int64-mkl:
   extends:
