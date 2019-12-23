@@ -300,15 +300,15 @@ linux-gnu-c-complex:
     PETSC_CONFIG_OPTS: --with-scalar-type=complex
     SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --with-arpack-dir=/usr/local/opt/ARPACK --with-primme-dir=/usr/local/opt/primme --download-blopex
 
-linux-icc-cxx-mkl:
-  extends:
-    - .stage-2
-    - .linux_test
-  tags:
-    - linux-debian
-  variables:
-    PETSC_CONFIG_OPTS: --with-cc=/usr/local/opt/mpich-3.3-icc/bin/mpicc --with-fc=/usr/local/opt/mpich-3.3-icc/bin/mpifort --with-cxx=/usr/local/opt/mpich-3.3-icc/bin/mpicxx --with-blas-lapack-dir=/opt/intel/mkl/ --with-mkl_pardiso=1 --with-clanguage=C++
-    SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local
+#linux-icc-cxx-mkl:
+#  extends:
+#    - .stage-2
+#    - .linux_test
+#  tags:
+#    - linux-debian
+#  variables:
+#    PETSC_CONFIG_OPTS: --with-cc=/usr/local/opt/mpich-3.3-icc/bin/mpicc --with-fc=/usr/local/opt/mpich-3.3-icc/bin/mpifort --with-cxx=/usr/local/opt/mpich-3.3-icc/bin/mpicxx --with-blas-lapack-dir=/opt/intel/mkl/ --with-mkl_pardiso=1 --with-clanguage=C++
+#    SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local
 
 #linux-icc-c-complex-mkl:
 #  extends:
