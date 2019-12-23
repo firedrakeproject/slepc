@@ -403,15 +403,25 @@ linux-gnu-c:
 #    PETSC_CONFIG_OPTS: --CFLAGS=-std=c89 --with-fortran-bindings=0
 #    SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --with-arpack-flags=/usr/local/opt/ARPACK/libparpack.a,/usr/local/opt/ARPACK/libarpack.a,-lgfortran,-lmpi_usempif08,-lmpi_usempi_ignore_tkr,-lmpi_mpifh,-lmpi --download-blopex --with-blzpack-dir=/usr/local/opt/blzpack/lib --with-trlan-dir=/usr/local/opt/trlan-201009
 
-linux-gnu-c-nompi:
+linux-gnu-c-debug:
   extends:
     - .stage-3
     - .linux_test
   tags:
     - linux-debian
   variables:
-    PETSC_CONFIG_OPTS: --with-mpi=0
-    SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --with-arpack-dir=/usr/local/opt/ARPACK --with-primme-dir=/usr/local/opt/primme --download-blopex --with-trlan-dir=/usr/local/opt/trlan-201009
+    PETSC_CONFIG_OPTS: --with-debugging=1
+    SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --download-arpack --download-primme --download-trlan --download-blopex
+
+#linux-gnu-c-nompi:
+#  extends:
+#    - .stage-3
+#    - .linux_test
+#  tags:
+#    - linux-debian
+#  variables:
+#    PETSC_CONFIG_OPTS: --with-mpi=0
+#    SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --with-arpack-dir=/usr/local/opt/ARPACK --with-primme-dir=/usr/local/opt/primme --download-blopex --with-trlan-dir=/usr/local/opt/trlan-201009
 
 linux-gnu-cxx-complex:
   extends:
@@ -471,18 +481,8 @@ linux-clang-c-valgrind:
   tags:
     - linux-ubuntu
   variables:
-    PETSC_CONFIG_OPTS: --with-cc=/usr/local/opt/mpich-3.3.1-clang/bin/mpicc --with-cxx=0 --with-fc=0 --with-shared-libraries=0
+    PETSC_CONFIG_OPTS: --with-cc=/usr/local/mpich-3.3.1-clang/bin/mpicc --with-cxx=0 --with-fc=0 --with-shared-libraries=0
     SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local
-
-linux-gnu-c-debug:
-  extends:
-    - .stage-3
-    - .linux_test
-  tags:
-    - linux-ubuntu
-  variables:
-    PETSC_CONFIG_OPTS: --with-debugging=1
-    SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --download-arpack --download-primme --download-trlan --download-blopex
 
 linux-gnu-c-float128:
   extends:
