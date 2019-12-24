@@ -62,6 +62,7 @@ class Primme(package.Package):
         vars.write('PRIMME_FLAGS = ' + ' '.join(f) + '\n')
         self.havepackage = True
         self.packageflags = l+f
+        self.location = os.path.dirname(d)
         return
 
     self.log.Println('\nERROR: Unable to link with PRIMME library')
@@ -133,6 +134,24 @@ class Primme(package.Package):
     conf.write('#define SLEPC_HAVE_PRIMME 1\n')
     vars.write('PRIMME_LIB = ' + l + '\n')
 
+    self.location = archdir
     self.havepackage = True
     self.packageflags = [l] + [f]
+
+
+  def LoadVersion(self,conf):
+    try:
+      f = open(os.path.join(self.location,'include','primme.h'))
+      for l in f.readlines():
+        l = l.split()
+        if len(l) == 3:
+          if l[1] == 'PRIMME_VERSION_MAJOR':
+            major = l[2]
+          elif l[1] == 'PRIMME_VERSION_MINOR':
+            minor = l[2]
+      f.close()
+      self.iversion = major + '.' + minor
+      if major=='3':
+        conf.write('#define SLEPC_HAVE_PRIMME3 1\n')
+    except: pass
 
