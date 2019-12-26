@@ -32,14 +32,17 @@
 typedef struct {
   primme_params primme;           /* param struc */
   primme_preset_method method;    /* primme method */
-  Mat       A;                    /* problem matrix */
+  Mat       A,B;                  /* problem matrices */
   KSP       ksp;                  /* linear solver and preconditioner */
   Vec       x,y;                  /* auxiliary vectors */
   double    target;               /* a copy of eps's target */
 } EPS_PRIMME;
 
-static void multMatvec_PRIMME(void*,PRIMME_INT*,void*,PRIMME_INT*,int*,struct primme_params*,int*);
+static void matrixMatvec_PRIMME(void*,PRIMME_INT*,void*,PRIMME_INT*,int*,struct primme_params*,int*);
 static void applyPreconditioner_PRIMME(void*,PRIMME_INT*,void*,PRIMME_INT*,int*,struct primme_params*,int*);
+#if defined(SLEPC_HAVE_PRIMME3)
+static void massMatrixMatvec_PRIMME(void*,PRIMME_INT*,void*,PRIMME_INT*,int*,struct primme_params*,int*);
+#endif
 
 static void par_GlobalSumReal(void *sendBuf,void *recvBuf,int *count,primme_params *primme,int *ierr)
 {
@@ -66,7 +69,13 @@ PetscErrorCode EPSSetUp_PRIMME(EPS eps)
   if (!eps->max_it) eps->max_it = PetscMax(1000,eps->n);
   ierr = STGetMatrix(eps->st,0,&ops->A);CHKERRQ(ierr);
   if (!eps->ishermitian) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"PRIMME is only available for Hermitian problems");
-  if (eps->isgeneralized) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"PRIMME is not available for generalized problems");
+  if (eps->isgeneralized) {
+#if defined(SLEPC_HAVE_PRIMME3)
+    ierr = STGetMatrix(eps->st,1,&ops->B);CHKERRQ(ierr);
+#else
+    SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"This version of PRIMME is not available for generalized problems");
+#endif
+  }
   if (eps->arbitrary) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Arbitrary selection of eigenpairs not supported in this solver");
   if (eps->stopping!=EPSStoppingBasic) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"External packages do not support user-defined stopping test");
   if (!eps->which) eps->which = EPS_LARGEST_REAL;
@@ -75,16 +84,23 @@ PetscErrorCode EPSSetUp_PRIMME(EPS eps)
   if (!istrivial) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"This solver does not support region filtering");
 
   /* Transfer SLEPc options to PRIMME options */
-  primme->n          = eps->n;
-  primme->nLocal     = eps->nloc;
-  primme->numEvals   = eps->nev;
-  primme->matrix     = ops;
-  primme->commInfo   = eps;
-  primme->maxMatvecs = eps->max_it;
-  primme->eps        = eps->tol==PETSC_DEFAULT?SLEPC_DEFAULT_TOL:eps->tol;
-  primme->numProcs   = numProcs;
-  primme->procID     = procID;
-  primme->printLevel = 0;
+  primme->n                             = eps->n;
+  primme->nLocal                        = eps->nloc;
+  primme->numEvals                      = eps->nev;
+  primme->matrix                        = ops;
+  primme->matrixMatvec                  = matrixMatvec_PRIMME;
+#if defined(SLEPC_HAVE_PRIMME3)
+  if (eps->isgeneralized) {
+    primme->massMatrix                  = ops;
+    primme->massMatrixMatvec            = massMatrixMatvec_PRIMME;
+  }
+#endif
+  primme->commInfo                      = eps;
+  primme->maxMatvecs                    = eps->max_it;
+  primme->eps                           = eps->tol==PETSC_DEFAULT?SLEPC_DEFAULT_TOL:eps->tol;
+  primme->numProcs                      = numProcs;
+  primme->procID                        = procID;
+  primme->printLevel                    = 0;
   primme->correctionParams.precondition = 1;
 
   switch (eps->which) {
@@ -118,8 +134,6 @@ PetscErrorCode EPSSetUp_PRIMME(EPS eps)
 
   /* Set workspace */
   ierr = EPSAllocateSolution(eps,0);CHKERRQ(ierr);
-  ierr = PetscObjectTypeCompare((PetscObject)eps->V,BVVECS,&flg);CHKERRQ(ierr);
-  if (flg) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"This solver requires a BV with contiguous storage");
 
   /* Setup the preconditioner */
   if (primme->correctionParams.precondition) {
@@ -144,7 +158,6 @@ PetscErrorCode EPSSolve_PRIMME(EPS eps)
   PetscErrorCode ierr;
   EPS_PRIMME     *ops = (EPS_PRIMME*)eps->data;
   PetscScalar    *a;
-  Vec            v0;
 #if defined(PETSC_USE_COMPLEX)
   PetscInt       i;
   PetscReal      *evals;
@@ -157,8 +170,7 @@ PetscErrorCode EPSSolve_PRIMME(EPS eps)
   ops->primme.iseed[0] = -1;
 
   /* Call PRIMME solver */
-  ierr = BVGetColumn(eps->V,0,&v0);CHKERRQ(ierr);
-  ierr = VecGetArray(v0,&a);CHKERRQ(ierr);
+  ierr = BVGetArray(eps->V,&a);CHKERRQ(ierr);
 #if !defined(PETSC_USE_COMPLEX)
   ierr = PRIMME_DRIVER(eps->eigr,a,eps->errest,&ops->primme);
   if (ierr) SETERRQ1(PetscObjectComm((PetscObject)eps),PETSC_ERR_LIB,"PRIMME library failed with error code=%d",ierr);
@@ -170,8 +182,7 @@ PetscErrorCode EPSSolve_PRIMME(EPS eps)
   for (i=0;i<eps->ncv;i++) eps->eigr[i] = evals[i];
   ierr = PetscFree(evals);CHKERRQ(ierr);
 #endif
-  ierr = VecRestoreArray(v0,&a);CHKERRQ(ierr);
-  ierr = BVRestoreColumn(eps->V,0,&v0);CHKERRQ(ierr);
+  ierr = BVRestoreArray(eps->V,&a);CHKERRQ(ierr);
 
   eps->nconv  = ops->primme.initSize >= 0 ? ops->primme.initSize : 0;
   eps->reason = eps->ncv >= eps->nev ? EPS_CONVERGED_TOL: EPS_DIVERGED_ITS;
@@ -179,7 +190,7 @@ PetscErrorCode EPSSolve_PRIMME(EPS eps)
   PetscFunctionReturn(0);
 }
 
-static void multMatvec_PRIMME(void *xa,PRIMME_INT *ldx,void *ya,PRIMME_INT *ldy,int *blockSize,struct primme_params *primme,int *ierr)
+static void matrixMatvec_PRIMME(void *xa,PRIMME_INT *ldx,void *ya,PRIMME_INT *ldy,int *blockSize,struct primme_params *primme,int *ierr)
 {
   PetscInt   i;
   EPS_PRIMME *ops = (EPS_PRIMME*)primme->matrix;
@@ -196,6 +207,26 @@ static void multMatvec_PRIMME(void *xa,PRIMME_INT *ldx,void *ya,PRIMME_INT *ldy,
   }
   PetscFunctionReturnVoid();
 }
+
+#if defined(SLEPC_HAVE_PRIMME3)
+static void massMatrixMatvec_PRIMME(void *xa,PRIMME_INT *ldx,void *ya,PRIMME_INT *ldy,int *blockSize,struct primme_params *primme,int *ierr)
+{
+  PetscInt   i;
+  EPS_PRIMME *ops = (EPS_PRIMME*)primme->massMatrix;
+  Vec        x = ops->x,y = ops->y;
+  Mat        B = ops->B;
+
+  PetscFunctionBegin;
+  for (i=0;i<*blockSize;i++) {
+    *ierr = VecPlaceArray(x,(PetscScalar*)xa+(*ldx)*i);CHKERRABORT(PetscObjectComm((PetscObject)B),*ierr);
+    *ierr = VecPlaceArray(y,(PetscScalar*)ya+(*ldy)*i);CHKERRABORT(PetscObjectComm((PetscObject)B),*ierr);
+    *ierr = MatMult(B,x,y);CHKERRABORT(PetscObjectComm((PetscObject)B),*ierr);
+    *ierr = VecResetArray(x);CHKERRABORT(PetscObjectComm((PetscObject)B),*ierr);
+    *ierr = VecResetArray(y);CHKERRABORT(PetscObjectComm((PetscObject)B),*ierr);
+  }
+  PetscFunctionReturnVoid();
+}
+#endif
 
 static void applyPreconditioner_PRIMME(void *xa,PRIMME_INT *ldx,void *ya,PRIMME_INT *ldy,int *blockSize,struct primme_params *primme,int *ierr)
 {
@@ -448,7 +479,6 @@ SLEPC_EXTERN PetscErrorCode EPSCreate_PRIMME(EPS eps)
   eps->data = (void*)primme;
 
   primme_initialize(&primme->primme);
-  primme->primme.matrixMatvec = multMatvec_PRIMME;
   primme->primme.globalSumReal = par_GlobalSumReal;
   primme->method = (primme_preset_method)EPS_PRIMME_DEFAULT_MIN_TIME;
 
