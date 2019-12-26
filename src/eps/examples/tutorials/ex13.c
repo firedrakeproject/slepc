@@ -23,7 +23,6 @@ int main(int argc,char **argv)
 {
   Mat            A,B;         /* matrices */
   EPS            eps;         /* eigenproblem solver context */
-  ST             st;          /* spectral transformation context */
   EPSType        type;
   PetscInt       N,n=10,m,Istart,Iend,II,nev,i,j,nulldim=0;
   PetscBool      flag,terse;
@@ -88,26 +87,6 @@ int main(int argc,char **argv)
   */
   ierr = EPSSetFromOptions(eps);CHKERRQ(ierr);
 
-  ierr = PetscObjectTypeCompareAny((PetscObject)eps,&flag,EPSBLOPEX,EPSLOBPCG,EPSRQCG,"");CHKERRQ(ierr);
-  if (flag) {
-    ierr = EPSSetWhichEigenpairs(eps,EPS_SMALLEST_REAL);CHKERRQ(ierr);
-  } else {
-    /*
-       Select portion of spectrum
-    */
-    ierr = EPSSetTarget(eps,0.0);CHKERRQ(ierr);
-    ierr = EPSSetWhichEigenpairs(eps,EPS_TARGET_MAGNITUDE);CHKERRQ(ierr);
-    /*
-       Use shift-and-invert to avoid solving linear systems with a singular B
-       in case nulldim>0
-    */
-    ierr = PetscObjectTypeCompareAny((PetscObject)eps,&flag,EPSGD,EPSJD,"");CHKERRQ(ierr);
-    if (!flag) {
-      ierr = EPSGetST(eps,&st);CHKERRQ(ierr);
-      ierr = STSetType(st,STSINVERT);CHKERRQ(ierr);
-    }
-  }
-
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                       Solve the eigensystem
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
@@ -147,7 +126,8 @@ int main(int argc,char **argv)
 
    test:
       suffix: 1
-      args: -eps_nev 4 -eps_ncv 22 -eps_tol 1e-5 -terse
+      args: -eps_nev 4 -eps_ncv 22 -eps_tol 1e-5 -st_type sinvert -terse
+      filter: grep -v Solution
 
    test:
       suffix: 2
@@ -156,7 +136,18 @@ int main(int argc,char **argv)
 
    test:
       suffix: 3
-      args: -eps_nev 3 -eps_tol 1e-5 -mat_type sbaij -terse
+      args: -eps_nev 3 -eps_tol 1e-5 -mat_type sbaij -st_type sinvert -terse
       requires: !single
+
+   test:
+      suffix: 4
+      args: -eps_nev 4 -eps_tol 1e-5 -eps_smallest_real -eps_type {{gd lobpcg rqcg}} -terse
+      output_file: output/ex13_1.out
+      filter: grep -v Solution
+
+   test:
+      suffix: 5_primme
+      args: -n 10 -m 12 -eps_nev 4 -eps_target 0.9 -eps_max_it 15000 -eps_type primme -terse
+      requires: primme
 
 TEST*/
