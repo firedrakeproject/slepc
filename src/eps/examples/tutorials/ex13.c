@@ -148,6 +148,6 @@ int main(int argc,char **argv)
    test:
       suffix: 5_primme
       args: -n 10 -m 12 -eps_nev 4 -eps_target 0.9 -eps_max_it 15000 -eps_type primme -terse
-      requires: primme
+      requires: primme define(SLEPC_HAVE_PRIMME3)
 
 TEST*/
