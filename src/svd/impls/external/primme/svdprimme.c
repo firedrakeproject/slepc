@@ -47,6 +47,64 @@ static void par_GlobalSumReal(void *sendBuf,void *recvBuf,int *count,primme_svds
   }
 }
 
+#if defined(SLEPC_HAVE_PRIMME3)
+static void par_broadcastReal(void *buf,int *count,primme_svds_params *primme,int *ierr)
+{
+  *ierr = MPI_Bcast(buf,*count,MPIU_REAL,0/*root*/,PetscObjectComm((PetscObject)primme->commInfo));CHKERRABORT(PetscObjectComm((PetscObject)primme->commInfo),*ierr);
+}
+#endif
+
+static void convTestFun(double *sval,void *leftsvec,void *rightsvec,double *resNorm,int *method,int *isconv,struct primme_svds_params *primme,int *err) {
+  PetscErrorCode ierr;
+  SVD            svd=primme->commInfo;
+
+  *err = 1;
+  PetscReal sigma=sval?*sval:0.0;
+  PetscReal r=resNorm?*resNorm:HUGE_VAL,errest;
+  ierr = (*svd->converged)(svd,sigma,r,&errest,svd->convergedctx);CHKERRABORT(PetscObjectComm((PetscObject)svd),ierr);
+  *isconv = (errest<=svd->tol?1:0);
+  *err = 0;
+}
+
+static void monitorFun(void *basisSvals,int *basisSize,int *basisFlags,int *iblock,int *blockSize,void *basisNorms,int *numConverged,void *lockedSvals,int *numLocked,int *lockedFlags,void *lockedNorms,int *inner_its,void *LSRes,
+#if defined(SLEPC_HAVE_PRIMME3)
+                       const char *msg,double *time,
+#endif
+                       primme_event *event,int *stage,struct primme_svds_params *primme,int *err) {
+
+  PetscErrorCode ierr;
+  SVD            svd=primme->commInfo;
+  PetscInt       i,k,nerrest;
+
+  *err = 1;
+  switch(*event) {
+    case primme_event_outer_iteration:
+      /* Update EPS */
+      svd->its = primme->stats.numOuterIterations;
+      if (numConverged) svd->nconv = *numConverged;
+      k=0;
+      if (lockedSvals && numLocked) for (i=0; i<*numLocked && k<svd->ncv; i++) svd->sigma[k++] = ((PetscReal*)lockedSvals)[i];
+      nerrest=k;
+      if (iblock && blockSize) {
+        for (i=0; i<*blockSize && k+iblock[i]<svd->ncv; i++) svd->errest[k+iblock[i]] = ((PetscReal*)basisNorms)[i];
+        nerrest=k+(*blockSize>0?1+iblock[*blockSize-1]:0);
+      }
+      if (basisSvals && basisSize) for (i=0; i<*basisSize && k<svd->ncv; i++) svd->sigma[k++] = ((PetscReal*)basisSvals)[i];
+      /* Show progress */
+      ierr = SVDMonitor(svd,svd->its,numConverged?*numConverged:0,svd->sigma,svd->errest,nerrest);CHKERRABORT(PetscObjectComm((PetscObject)svd),ierr);
+      break;
+#if defined(SLEPC_HAVE_PRIMME3)
+    case primme_event_message:
+      /* Print PRIMME information messages */
+      ierr = PetscInfo(svd,msg);CHKERRABORT(PetscObjectComm((PetscObject)svd),ierr);
+      break;
+#endif
+    default:
+      break;
+  }
+  *err = 0;
+}
+
 PetscErrorCode SVDSetUp_PRIMME(SVD svd)
 {
   PetscErrorCode     ierr;
@@ -63,7 +121,7 @@ PetscErrorCode SVDSetUp_PRIMME(SVD svd)
   ierr = SVDMatGetSize(svd,&m,&n);CHKERRQ(ierr);
   ierr = SVDMatGetLocalSize(svd,&mloc,&nloc);CHKERRQ(ierr);
   ierr = SVDSetDimensions_Default(svd);CHKERRQ(ierr);
-  if (!svd->max_it) svd->max_it = PetscMax(n/svd->ncv,1000);
+  if (!svd->max_it) svd->max_it = PETSC_MAX_INT;
   svd->leftbasis = PETSC_TRUE;
   if (svd->stopping!=SVDStoppingBasic) SETERRQ(PetscObjectComm((PetscObject)svd),PETSC_ERR_SUP,"External packages do not support user-defined stopping test");
   if (svd->converged != SVDConvergedAbsolute) { ierr = PetscInfo(svd,"Warning: using absolute convergence test\n");CHKERRQ(ierr); }
@@ -77,11 +135,10 @@ PetscErrorCode SVDSetUp_PRIMME(SVD svd)
   primme->matrix     = ops;
   primme->commInfo   = svd;
   primme->maxMatvecs = svd->max_it;
-  primme->eps        = svd->tol==PETSC_DEFAULT?SLEPC_DEFAULT_TOL:svd->tol;
   primme->numProcs   = numProcs;
   primme->procID     = procID;
   primme->locking    = 1;
-  primme->printLevel = 0;
+  primme->printLevel = 1;
 
   switch (svd->which) {
     case SVD_LARGEST:
@@ -95,14 +152,14 @@ PetscErrorCode SVDSetUp_PRIMME(SVD svd)
       break;
   }
 
-  /* If user sets mpd or ncv, maxBasisSize is modified */
+  /* If user sets mpd, maxBasisSize is modified */
   if (svd->mpd) primme->maxBasisSize = svd->mpd;
-  else if (svd->ncv) primme->maxBasisSize = svd->ncv;
+  if (svd->ncv) { ierr = PetscInfo(svd,"Warning: 'ncv' is ignored by PRIMME\n");CHKERRQ(ierr); }
 
   if (primme_svds_set_method(ops->method,(primme_preset_method)EPS_PRIMME_DEFAULT_MIN_TIME,(primme_preset_method)EPS_PRIMME_DEFAULT_MIN_TIME,primme) < 0) SETERRQ(PetscObjectComm((PetscObject)svd),PETSC_ERR_SUP,"PRIMME method not valid");
 
   svd->mpd = primme->maxBasisSize;
-  svd->ncv = svd->nsv;
+  svd->ncv = (primme->locking?svd->nsv:0)+primme->maxBasisSize;
 
   /* Set workspace */
   ierr = SVDAllocateSolution(svd,0);CHKERRQ(ierr);
@@ -416,6 +473,11 @@ SLEPC_EXTERN PetscErrorCode SVDCreate_PRIMME(SVD svd)
   primme_svds_initialize(&primme->primme);
   primme->primme.matrixMatvec = multMatvec_PRIMME;
   primme->primme.globalSumReal = par_GlobalSumReal;
+#if defined(SLEPC_HAVE_PRIMME3)
+  primme->primme.broadcastReal = par_broadcastReal;
+#endif
+  primme->primme.convTestFun = convTestFun;
+  primme->primme.monitorFun = monitorFun;
   primme->method = (primme_svds_preset_method)SVD_PRIMME_HYBRID;
   primme->svd = svd;
 
