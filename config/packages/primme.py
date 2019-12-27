@@ -17,8 +17,8 @@ class Primme(package.Package):
     self.packagename    = 'primme'
     self.installable    = True
     self.downloadable   = True
-    self.version        = '2.1'
-    self.url            = 'https://github.com/primme/primme/tarball/release-2.1'
+    self.version        = '3.0'
+    self.url            = 'https://github.com/primme/primme/tarball/release-'+self.version
     self.archive        = 'primme-'+self.version+'.tar.gz'
     self.dirname        = 'PRIMME'
     self.supportssingle = True
@@ -62,6 +62,7 @@ class Primme(package.Package):
         vars.write('PRIMME_FLAGS = ' + ' '.join(f) + '\n')
         self.havepackage = True
         self.packageflags = l+f
+        self.location = os.path.dirname(d)
         return
 
     self.log.Println('\nERROR: Unable to link with PRIMME library')
@@ -78,8 +79,10 @@ class Primme(package.Package):
 
     # Configure
     g = open(os.path.join(builddir,'Make_flags'),'w')
+    g.write('MAJORVERSION= '+self.version[0]+'\n')
     g.write('LIBRARY     = libprimme.'+petsc.ar_lib_suffix+'\n')
     g.write('SOLIBRARY   = libprimme.'+petsc.sl_suffix+'\n')
+    g.write('SONAMELIBRARY = libprimme.'+petsc.sl_suffix+self.version+'\n')
     g.write('CC          = '+petsc.cc+'\n')
     if hasattr(petsc,'fc'):
       g.write('F77         = '+petsc.fc+'\n')
@@ -90,12 +93,16 @@ class Primme(package.Package):
       g.write('-DPRIMME_BLASINT_SIZE=64')
     g.write('\n')
     g.write('INCLUDE     = \n')
-    g.write('CFLAGS      = '+petsc.cc_flags.replace('-Wall','').replace('-Wshadow','')+'\n')
+    g.write('CFLAGS      = '+petsc.cc_flags.replace('-Wall','').replace('-Wshadow','').replace('-fvisibility=hidden','')+'\n')
     g.write('RANLIB      = '+petsc.ranlib+'\n')
+    g.write('PREFIX      = '+archdir+'\n')
+    g.write('includedir ?= $(DESTDIR)$(PREFIX)/include\n')
+    g.write('libdir     ?= $(DESTDIR)$(PREFIX)/lib\n')
     g.close()
 
     # Build package
-    result,output = self.RunCommand('cd '+builddir+'&&'+petsc.make+' clean &&'+petsc.make)
+    target = ' install' if petsc.buildsharedlib else ' lib'
+    result,output = self.RunCommand('cd '+builddir+'&&'+petsc.make+' clean &&'+petsc.make+target)
     self.log.write(output)
     if result:
       self.log.Exit('ERROR: installation of PRIMME failed.')
@@ -103,10 +110,11 @@ class Primme(package.Package):
     # Move files
     incDir = os.path.join(archdir,'include')
     libDir = os.path.join(archdir,'lib')
-    os.rename(os.path.join(builddir,'lib','libprimme.'+petsc.ar_lib_suffix),os.path.join(libDir,'libprimme.'+petsc.ar_lib_suffix))
-    for root, dirs, files in os.walk(os.path.join(builddir,'include')):
-      for name in files:
-        shutil.copyfile(os.path.join(builddir,'include',name),os.path.join(incDir,name))
+    if not petsc.buildsharedlib:
+      os.rename(os.path.join(builddir,'lib','libprimme.'+petsc.ar_lib_suffix),os.path.join(libDir,'libprimme.'+petsc.ar_lib_suffix))
+      for root, dirs, files in os.walk(os.path.join(builddir,'include')):
+        for name in files:
+          shutil.copyfile(os.path.join(builddir,'include',name),os.path.join(incDir,name))
 
     if petsc.buildsharedlib:
       l = petsc.slflag + libDir + ' -L' + libDir + ' -lprimme'
@@ -133,6 +141,24 @@ class Primme(package.Package):
     conf.write('#define SLEPC_HAVE_PRIMME 1\n')
     vars.write('PRIMME_LIB = ' + l + '\n')
 
+    self.location = archdir
     self.havepackage = True
     self.packageflags = [l] + [f]
+
+
+  def LoadVersion(self,conf):
+    try:
+      f = open(os.path.join(self.location,'include','primme.h'))
+      for l in f.readlines():
+        l = l.split()
+        if len(l) == 3:
+          if l[1] == 'PRIMME_VERSION_MAJOR':
+            major = l[2]
+          elif l[1] == 'PRIMME_VERSION_MINOR':
+            minor = l[2]
+      f.close()
+      self.iversion = major + '.' + minor
+      if major=='3':
+        conf.write('#define SLEPC_HAVE_PRIMME3 1\n')
+    except: pass
 

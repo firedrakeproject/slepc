@@ -90,6 +90,11 @@ class Package:
         self.log.NewSection('Checking '+name+'...')
         self.Precondition(petsc)
         self.Check(conf,vars,petsc)
+      try:
+        self.LoadVersion(conf)
+        self.log.write('Version number for '+name+' is '+self.iversion)
+      except AttributeError:
+        pass
 
   def Precondition(self,petsc):
     package = self.packagename.upper()
