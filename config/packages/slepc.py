@@ -21,10 +21,11 @@ class SLEPc(package.Package):
     self.datadir   = argdb.PopPath('DATAFILESPATH')[0]
 
   def ShowHelp(self):
-    print('''SLEPc:
-  --with-clean=<bool>          : Delete prior build files including externalpackages
-  --prefix=<dir>               : Specify location to install SLEPc (e.g., /usr/local)
-  --DATAFILESPATH=<dir>        : Specify location of datafiles (for SLEPc developers)''')
+    wd = package.Package.wd
+    print('SLEPc:')
+    print('  --with-clean=<bool>'.ljust(wd)+': Delete prior build files including externalpackages')
+    print('  --prefix=<dir>'.ljust(wd)+': Specify location to install SLEPc (e.g., /usr/local)')
+    print('  --DATAFILESPATH=<dir>'.ljust(wd)+': Specify location of datafiles (for SLEPc developers)')
 
   def InitDir(self):
     if 'SLEPC_DIR' in os.environ:
