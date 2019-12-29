@@ -57,10 +57,10 @@ static void par_broadcastReal(void *buf,int *count,primme_svds_params *primme,in
 static void convTestFun(double *sval,void *leftsvec,void *rightsvec,double *resNorm,int *method,int *isconv,struct primme_svds_params *primme,int *err) {
   PetscErrorCode ierr;
   SVD            svd=primme->commInfo;
+  PetscReal      sigma=sval?*sval:0.0;
+  PetscReal      r=resNorm?*resNorm:HUGE_VAL,errest;
 
   *err = 1;
-  PetscReal sigma=sval?*sval:0.0;
-  PetscReal r=resNorm?*resNorm:HUGE_VAL,errest;
   ierr = (*svd->converged)(svd,sigma,r,&errest,svd->convergedctx);CHKERRABORT(PetscObjectComm((PetscObject)svd),ierr);
   *isconv = (errest<=svd->tol?1:0);
   *err = 0;

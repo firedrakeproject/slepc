@@ -63,10 +63,10 @@ static void par_broadcastReal(void *buf,int *count,primme_params *primme,int *ie
 static void convTestFun(double *eval,void *evec,double *resNorm,int *isconv,primme_params *primme,int *err) {
   PetscErrorCode ierr;
   EPS            eps=primme->commInfo;
-
-  *err = 1;
   PetscScalar eigvr = eval?*eval:0.0;
   PetscReal r = resNorm?*resNorm:HUGE_VAL,errest;
+
+  *err = 1;
   ierr = (*eps->converged)(eps,eigvr,0.0,r,&errest,eps->convergedctx);CHKERRABORT(PetscObjectComm((PetscObject)eps),ierr);
   *isconv = (errest<=eps->tol?1:0);
   *err = 0;
