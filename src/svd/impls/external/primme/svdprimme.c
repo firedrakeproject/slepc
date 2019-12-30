@@ -28,6 +28,9 @@
 #define PRIMME_DRIVER dprimme_svds
 #endif
 #endif
+#if defined(PRIMME_MAJOR_VERSION) && PRIMME_MAJOR_VERSION >= 2 && PRIMME_MINOR_VERSION >= 2
+#define SLEPC_HAVE_PRIMME2p2
+#endif
 
 typedef struct {
   primme_svds_params primme;         /* param struct */
@@ -54,11 +57,13 @@ static void par_broadcastReal(void *buf,int *count,primme_svds_params *primme,in
 }
 #endif
 
-static void convTestFun(double *sval,void *leftsvec,void *rightsvec,double *resNorm,int *method,int *isconv,struct primme_svds_params *primme,int *err) {
+#if defined(SLEPC_HAVE_PRIMME2p2)
+static void convTestFun(double *sval,void *leftsvec,void *rightsvec,double *resNorm,int *method,int *isconv,struct primme_svds_params *primme,int *err)
+{
   PetscErrorCode ierr;
-  SVD            svd=primme->commInfo;
-  PetscReal      sigma=sval?*sval:0.0;
-  PetscReal      r=resNorm?*resNorm:HUGE_VAL,errest;
+  SVD            svd = primme->commInfo;
+  PetscReal      sigma = sval?*sval:0.0;
+  PetscReal      r = resNorm?*resNorm:HUGE_VAL,errest;
 
   *err = 1;
   ierr = (*svd->converged)(svd,sigma,r,&errest,svd->convergedctx);CHKERRABORT(PetscObjectComm((PetscObject)svd),ierr);
@@ -70,10 +75,11 @@ static void monitorFun(void *basisSvals,int *basisSize,int *basisFlags,int *iblo
 #if defined(SLEPC_HAVE_PRIMME3)
                        const char *msg,double *time,
 #endif
-                       primme_event *event,int *stage,struct primme_svds_params *primme,int *err) {
+                       primme_event *event,int *stage,struct primme_svds_params *primme,int *err)
+{
 
   PetscErrorCode ierr;
-  SVD            svd=primme->commInfo;
+  SVD            svd = primme->commInfo;
   PetscInt       i,k,nerrest;
 
   *err = 1;
@@ -82,12 +88,12 @@ static void monitorFun(void *basisSvals,int *basisSize,int *basisFlags,int *iblo
       /* Update EPS */
       svd->its = primme->stats.numOuterIterations;
       if (numConverged) svd->nconv = *numConverged;
-      k=0;
+      k = 0;
       if (lockedSvals && numLocked) for (i=0; i<*numLocked && k<svd->ncv; i++) svd->sigma[k++] = ((PetscReal*)lockedSvals)[i];
-      nerrest=k;
+      nerrest = k;
       if (iblock && blockSize) {
         for (i=0; i<*blockSize && k+iblock[i]<svd->ncv; i++) svd->errest[k+iblock[i]] = ((PetscReal*)basisNorms)[i];
-        nerrest=k+(*blockSize>0?1+iblock[*blockSize-1]:0);
+        nerrest = k+(*blockSize>0?1+iblock[*blockSize-1]:0);
       }
       if (basisSvals && basisSize) for (i=0; i<*basisSize && k<svd->ncv; i++) svd->sigma[k++] = ((PetscReal*)basisSvals)[i];
       /* Show progress */
@@ -104,6 +110,7 @@ static void monitorFun(void *basisSvals,int *basisSize,int *basisFlags,int *iblo
   }
   *err = 0;
 }
+#endif /* SLEPC_HAVE_PRIMME2p2 */
 
 PetscErrorCode SVDSetUp_PRIMME(SVD svd)
 {
@@ -135,6 +142,9 @@ PetscErrorCode SVDSetUp_PRIMME(SVD svd)
   primme->matrix     = ops;
   primme->commInfo   = svd;
   primme->maxMatvecs = svd->max_it;
+#if !defined(SLEPC_HAVE_PRIMME2p2)
+  primme->eps        = svd->tol==PETSC_DEFAULT?SLEPC_DEFAULT_TOL:svd->tol;
+#endif
   primme->numProcs   = numProcs;
   primme->procID     = procID;
   primme->locking    = 1;
@@ -152,9 +162,14 @@ PetscErrorCode SVDSetUp_PRIMME(SVD svd)
       break;
   }
 
-  /* If user sets mpd, maxBasisSize is modified */
-  if (svd->mpd) primme->maxBasisSize = svd->mpd;
-  if (svd->ncv) { ierr = PetscInfo(svd,"Warning: 'ncv' is ignored by PRIMME\n");CHKERRQ(ierr); }
+  /* If user sets mpd or ncv, maxBasisSize is modified */
+  if (svd->mpd) {
+    primme->maxBasisSize = svd->mpd;
+    if (svd->ncv) { ierr = PetscInfo(svd,"Warning: 'ncv' is ignored by PRIMME\n");CHKERRQ(ierr); }
+  } else if (svd->ncv) {
+    primme->maxBasisSize = svd->ncv;
+    primme->locking = 0;
+  }
 
   if (primme_svds_set_method(ops->method,(primme_preset_method)EPS_PRIMME_DEFAULT_MIN_TIME,(primme_preset_method)EPS_PRIMME_DEFAULT_MIN_TIME,primme) < 0) SETERRQ(PetscObjectComm((PetscObject)svd),PETSC_ERR_SUP,"PRIMME method not valid");
 
@@ -476,8 +491,10 @@ SLEPC_EXTERN PetscErrorCode SVDCreate_PRIMME(SVD svd)
 #if defined(SLEPC_HAVE_PRIMME3)
   primme->primme.broadcastReal = par_broadcastReal;
 #endif
+#if defined(SLEPC_HAVE_PRIMME2p2)
   primme->primme.convTestFun = convTestFun;
   primme->primme.monitorFun = monitorFun;
+#endif
   primme->method = (primme_svds_preset_method)SVD_PRIMME_HYBRID;
   primme->svd = svd;
 

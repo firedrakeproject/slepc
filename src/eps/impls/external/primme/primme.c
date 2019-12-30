@@ -29,6 +29,10 @@
 #endif
 #endif
 
+#if defined(PRIMME_MAJOR_VERSION) && PRIMME_MAJOR_VERSION >= 2 && PRIMME_MINOR_VERSION >= 2
+#define SLEPC_HAVE_PRIMME2p2
+#endif
+
 typedef struct {
   primme_params primme;           /* param struc */
   primme_preset_method method;    /* primme method */
@@ -60,11 +64,13 @@ static void par_broadcastReal(void *buf,int *count,primme_params *primme,int *ie
 }
 #endif
 
-static void convTestFun(double *eval,void *evec,double *resNorm,int *isconv,primme_params *primme,int *err) {
+#if defined(SLEPC_HAVE_PRIMME2p2)
+static void convTestFun(double *eval,void *evec,double *resNorm,int *isconv,primme_params *primme,int *err)
+{
   PetscErrorCode ierr;
-  EPS            eps=primme->commInfo;
-  PetscScalar eigvr = eval?*eval:0.0;
-  PetscReal r = resNorm?*resNorm:HUGE_VAL,errest;
+  EPS            eps = primme->commInfo;
+  PetscScalar    eigvr = eval?*eval:0.0;
+  PetscReal      r = resNorm?*resNorm:HUGE_VAL,errest;
 
   *err = 1;
   ierr = (*eps->converged)(eps,eigvr,0.0,r,&errest,eps->convergedctx);CHKERRABORT(PetscObjectComm((PetscObject)eps),ierr);
@@ -76,9 +82,10 @@ static void monitorFun(void *basisEvals,int *basisSize,int *basisFlags,int *iblo
 #if defined(SLEPC_HAVE_PRIMME3)
                        const char *msg,double *time,
 #endif
-                       primme_event *event,struct primme_params *primme,int *err) {
+                       primme_event *event,struct primme_params *primme,int *err)
+{
   PetscErrorCode ierr;
-  EPS            eps=primme->commInfo;
+  EPS            eps = primme->commInfo;
   PetscInt       i,k,nerrest;
 
   *err = 1;
@@ -89,10 +96,10 @@ static void monitorFun(void *basisEvals,int *basisSize,int *basisFlags,int *iblo
       eps->nconv = primme->initSize;
       k=0;
       if (lockedEvals && numLocked) for (i=0; i<*numLocked && k<eps->ncv; i++) eps->eigr[k++] = ((PetscReal*)lockedEvals)[i];
-      nerrest=k;
+      nerrest = k;
       if (iblock && blockSize) {
         for (i=0; i<*blockSize && k+iblock[i]<eps->ncv; i++) eps->errest[k+iblock[i]] = ((PetscReal*)basisNorms)[i];
-        nerrest=k+(*blockSize>0?1+iblock[*blockSize-1]:0);
+        nerrest = k+(*blockSize>0?1+iblock[*blockSize-1]:0);
       }
       if (basisEvals && basisSize) for (i=0; i<*basisSize && k<eps->ncv; i++) eps->eigr[k++] = ((PetscReal*)basisEvals)[i];
       /* Show progress */
@@ -109,6 +116,7 @@ static void monitorFun(void *basisEvals,int *basisSize,int *basisFlags,int *iblo
   }
   *err = 0;
 }
+#endif /* SLEPC_HAVE_PRIMME2p2 */
 
 PetscErrorCode EPSSetUp_PRIMME(EPS eps)
 {
@@ -136,6 +144,9 @@ PetscErrorCode EPSSetUp_PRIMME(EPS eps)
   if (eps->arbitrary) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Arbitrary selection of eigenpairs not supported in this solver");
   if (eps->stopping!=EPSStoppingBasic) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"External packages do not support user-defined stopping test");
   if (!eps->which) eps->which = EPS_LARGEST_REAL;
+#if !defined(SLEPC_HAVE_PRIMME2p2)
+  if (eps->converged != EPSConvergedAbsolute) { ierr = PetscInfo(eps,"Warning: using absolute convergence test\n");CHKERRQ(ierr); }
+#endif
   ierr = RGIsTrivial(eps->rg,&istrivial);CHKERRQ(ierr);
   if (!istrivial) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"This solver does not support region filtering");
 
@@ -153,9 +164,12 @@ PetscErrorCode EPSSetUp_PRIMME(EPS eps)
 #endif
   primme->commInfo                      = eps;
   primme->maxOuterIterations            = eps->max_it;
+#if !defined(SLEPC_HAVE_PRIMME2p2)
+  primme->eps                           = eps->tol==PETSC_DEFAULT?SLEPC_DEFAULT_TOL:eps->tol;
+#endif
   primme->numProcs                      = numProcs;
   primme->procID                        = procID;
-  primme->printLevel                    = 1;
+  primme->printLevel                    = 3;
   primme->correctionParams.precondition = 1;
 
   switch (eps->which) {
@@ -204,9 +218,14 @@ PetscErrorCode EPSSetUp_PRIMME(EPS eps)
       break;
   }
 
-  /* If user sets mpd, maxBasisSize is modified */
-  if (eps->mpd) primme->maxBasisSize = eps->mpd;
-  if (eps->ncv) { ierr = PetscInfo(eps,"Warning: 'ncv' is ignored by PRIMME\n");CHKERRQ(ierr); }
+  /* If user sets mpd or ncv, maxBasisSize is modified */
+  if (eps->mpd) {
+    primme->maxBasisSize = eps->mpd;
+    if (eps->ncv) { ierr = PetscInfo(eps,"Warning: 'ncv' is ignored by PRIMME\n");CHKERRQ(ierr); }
+  } else if (eps->ncv) {
+    primme->maxBasisSize = eps->ncv;
+    primme->locking = 0;
+  }
 
   if (primme_set_method(ops->method,primme) < 0) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"PRIMME method not valid");
 
@@ -246,7 +265,12 @@ PetscErrorCode EPSSolve_PRIMME(EPS eps)
 
   PetscFunctionBegin;
   /* Reset some parameters left from previous runs */
-  ops->primme.aNorm    = 0.0;
+#if defined(SLEPC_HAVE_PRIMME2p2)
+  ops->primme.aNorm    = 1.0;
+#else
+  /* Force PRIMME to stop by absolute error */
+  ops->primme.aNorm    = 1.0;
+#endif
   ops->primme.initSize = eps->nini;
   ops->primme.iseed[0] = -1;
   ops->primme.iseed[1] = -1;
@@ -567,8 +591,10 @@ SLEPC_EXTERN PetscErrorCode EPSCreate_PRIMME(EPS eps)
 #if defined(SLEPC_HAVE_PRIMME3)
   primme->primme.broadcastReal = par_broadcastReal;
 #endif
+#if defined(SLEPC_HAVE_PRIMME2p2)
   primme->primme.convTestFun = convTestFun;
   primme->primme.monitorFun = monitorFun;
+#endif
   primme->method = (primme_preset_method)EPS_PRIMME_DEFAULT_MIN_TIME;
 
   eps->categ = EPS_CATEGORY_PRECOND;
