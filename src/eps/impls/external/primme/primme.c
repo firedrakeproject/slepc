@@ -169,7 +169,7 @@ PetscErrorCode EPSSetUp_PRIMME(EPS eps)
 #endif
   primme->numProcs                      = numProcs;
   primme->procID                        = procID;
-  primme->printLevel                    = 3;
+  primme->printLevel                    = 1;
   primme->correctionParams.precondition = 1;
 
   switch (eps->which) {
