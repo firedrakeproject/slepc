@@ -87,7 +87,7 @@ static void monitorFun(void *basisSvals,int *basisSize,int *basisFlags,int *iblo
   *err = 1;
   switch(*event) {
     case primme_event_outer_iteration:
-      /* Update EPS */
+      /* Update SVD */
       svd->its = primme->stats.numOuterIterations;
       if (numConverged) svd->nconv = *numConverged;
       k = 0;
