@@ -105,6 +105,7 @@ int main(int argc,char **argv)
   }
   ierr = SVDSetDimensions(svd,1,PETSC_DEFAULT,PETSC_DEFAULT);CHKERRQ(ierr);
   ierr = SVDSetTolerances(svd,1e-6,1000);CHKERRQ(ierr);
+  ierr = SVDSetFromOptions(svd);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                       Compute the singular values
