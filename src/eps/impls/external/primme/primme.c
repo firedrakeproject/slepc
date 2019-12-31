@@ -326,7 +326,7 @@ PetscErrorCode EPSSolve_PRIMME(EPS eps)
   PetscFunctionBegin;
   /* Reset some parameters left from previous runs */
 #if defined(SLEPC_HAVE_PRIMME2p2)
-  ops->primme.aNorm    = 1.0;
+  ops->primme.aNorm    = 0.0;
 #else
   /* Force PRIMME to stop by absolute error */
   ops->primme.aNorm    = 1.0;
