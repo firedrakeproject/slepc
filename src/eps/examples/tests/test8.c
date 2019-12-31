@@ -196,7 +196,7 @@ PetscErrorCode MatGetDiagonal_Laplacian2D(Mat A,Vec diag)
          requires: primme
 
    testset:
-      args: -eps_nev 4 -eps_smallest_real -eps_max_it 500
+      args: -eps_nev 4 -eps_smallest_real -eps_max_it 600
       output_file: output/test8_2.out
       test:
          suffix: 2
