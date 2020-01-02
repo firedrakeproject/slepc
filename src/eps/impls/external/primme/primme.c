@@ -84,7 +84,7 @@ static void monitorFun(void *basisEvals,int *basisSize,int *basisFlags,int *iblo
   PetscInt       i,k,nerrest;
 
   *err = 1;
-  switch(*event) {
+  switch (*event) {
     case primme_event_outer_iteration:
       /* Update EPS */
       eps->its = primme->stats.numOuterIterations;
@@ -167,7 +167,6 @@ static void applyPreconditioner_PRIMME(void *xa,PRIMME_INT *ldx,void *ya,PRIMME_
   }
   PetscFunctionReturnVoid();
 }
-
 
 PetscErrorCode EPSSetUp_PRIMME(EPS eps)
 {
@@ -284,9 +283,7 @@ PetscErrorCode EPSSetUp_PRIMME(EPS eps)
   if (eps->mpd) {
     primme->maxBasisSize = eps->mpd;
     if (eps->ncv) { ierr = PetscInfo(eps,"Warning: 'ncv' is ignored by PRIMME\n");CHKERRQ(ierr); }
-  } else if (eps->ncv) {
-    primme->maxBasisSize = eps->ncv;
-  }
+  } else if (eps->ncv) primme->maxBasisSize = eps->ncv;
 
   if (primme_set_method(ops->method,primme) < 0) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"PRIMME method not valid");
 
@@ -339,13 +336,11 @@ PetscErrorCode EPSSolve_PRIMME(EPS eps)
 
   /* Call PRIMME solver */
   ierr = BVGetArray(eps->V,&a);CHKERRQ(ierr);
-  ierr = PetscMalloc1(eps->ncv,&evals);CHKERRQ(ierr);
-  ierr = PetscMalloc1(eps->ncv,&rnorms);CHKERRQ(ierr);
+  ierr = PetscMalloc2(eps->ncv,&evals,eps->ncv,&rnorms);CHKERRQ(ierr);
   ierrprimme = PRIMME_DRIVER(evals,a,rnorms,&ops->primme);
   for (i=0;i<eps->ncv;i++) eps->eigr[i] = evals[i];
   for (i=0;i<eps->ncv;i++) eps->errest[i] = rnorms[i];
-  ierr = PetscFree(evals);CHKERRQ(ierr);
-  ierr = PetscFree(rnorms);CHKERRQ(ierr);
+  ierr = PetscFree2(evals,rnorms);CHKERRQ(ierr);
   ierr = BVRestoreArray(eps->V,&a);CHKERRQ(ierr);
 
   eps->nconv  = ops->primme.initSize >= 0 ? ops->primme.initSize : 0;
@@ -355,18 +350,12 @@ PetscErrorCode EPSSolve_PRIMME(EPS eps)
   /* Process PRIMME error code */
   if (ierrprimme == 0) {
     /* no error */
-  } else if (ierrprimme == -1) {
-    SETERRQ1(PetscObjectComm((PetscObject)eps),PETSC_ERR_LIB,"PRIMME library failed with error code=%d: unexpected error",ierrprimme);
-  } else if (ierrprimme == -2) {
-    SETERRQ1(PetscObjectComm((PetscObject)eps),PETSC_ERR_LIB,"PRIMME library failed with error code=%d: allocation error",ierrprimme);
-  } else if (ierrprimme == -3) {
+  } else if (ierrprimme == -1) SETERRQ1(PetscObjectComm((PetscObject)eps),PETSC_ERR_LIB,"PRIMME library failed with error code=%d: unexpected error",ierrprimme);
+  else if (ierrprimme == -2) SETERRQ1(PetscObjectComm((PetscObject)eps),PETSC_ERR_LIB,"PRIMME library failed with error code=%d: allocation error",ierrprimme);
+  else if (ierrprimme == -3) {
     /* stop by maximum number of iteration or matvecs */
-  } else if (ierrprimme >= -39) {
-    SETERRQ1(PetscObjectComm((PetscObject)eps),PETSC_ERR_LIB,"PRIMME library failed with error code=%d: configuration error; check PRIMME's manual",ierrprimme);
-  } else {
-    SETERRQ1(PetscObjectComm((PetscObject)eps),PETSC_ERR_LIB,"PRIMME library failed with error code=%d: runtime error; check PRIMME's manual",ierrprimme);
-  }
-  
+  } else if (ierrprimme >= -39) SETERRQ1(PetscObjectComm((PetscObject)eps),PETSC_ERR_LIB,"PRIMME library failed with error code=%d: configuration error; check PRIMME's manual",ierrprimme);
+  else SETERRQ1(PetscObjectComm((PetscObject)eps),PETSC_ERR_LIB,"PRIMME library failed with error code=%d: runtime error; check PRIMME's manual",ierrprimme);
   PetscFunctionReturn(0);
 }
 
@@ -397,24 +386,20 @@ PetscErrorCode EPSDestroy_PRIMME(EPS eps)
 
 PetscErrorCode EPSView_PRIMME(EPS eps,PetscViewer viewer)
 {
-  PetscErrorCode  ierr;
-  PetscBool       isascii;
-  primme_params   *primme = &((EPS_PRIMME*)eps->data)->primme;
-  PetscInt        bs;
-  EPSPRIMMEMethod methodn;
-  PetscMPIInt     rank;
+  PetscErrorCode ierr;
+  PetscBool      isascii;
+  EPS_PRIMME     *ctx = (EPS_PRIMME*)eps->data;
+  PetscMPIInt    rank;
 
   PetscFunctionBegin;
   ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
   if (isascii) {
-    ierr = EPSPRIMMEGetBlockSize(eps,&bs);CHKERRQ(ierr);
-    ierr = PetscViewerASCIIPrintf(viewer,"  block size=%D\n",bs);CHKERRQ(ierr);
-    ierr = EPSPRIMMEGetMethod(eps,&methodn);CHKERRQ(ierr);
-    ierr = PetscViewerASCIIPrintf(viewer,"  solver method: %s\n",EPSPRIMMEMethods[methodn]);CHKERRQ(ierr);
+    ierr = PetscViewerASCIIPrintf(viewer,"  block size=%D\n",ctx->bs);CHKERRQ(ierr);
+    ierr = PetscViewerASCIIPrintf(viewer,"  solver method: %s\n",EPSPRIMMEMethods[(EPSPRIMMEMethod)ctx->method]);CHKERRQ(ierr);
 
     /* Display PRIMME params */
     ierr = MPI_Comm_rank(PetscObjectComm((PetscObject)eps),&rank);CHKERRQ(ierr);
-    if (!rank) primme_display_params(*primme);
+    if (!rank) primme_display_params(ctx->primme);
   }
   PetscFunctionReturn(0);
 }

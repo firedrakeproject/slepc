@@ -85,7 +85,7 @@ static void monitorFun(void *basisSvals,int *basisSize,int *basisFlags,int *iblo
   PetscInt       i,k,nerrest;
 
   *err = 1;
-  switch(*event) {
+  switch (*event) {
     case primme_event_outer_iteration:
       /* Update SVD */
       svd->its = primme->stats.numOuterIterations;
@@ -137,7 +137,6 @@ static void multMatvec_PRIMME(void *xa,PRIMME_INT *ldx,void *ya,PRIMME_INT *ldy,
   }
   PetscFunctionReturnVoid();
 }
-
 
 PetscErrorCode SVDSetUp_PRIMME(SVD svd)
 {
@@ -206,9 +205,7 @@ PetscErrorCode SVDSetUp_PRIMME(SVD svd)
   if (svd->mpd) {
     primme->maxBasisSize = svd->mpd;
     if (svd->ncv) { ierr = PetscInfo(svd,"Warning: 'ncv' is ignored by PRIMME\n");CHKERRQ(ierr); }
-  } else if (svd->ncv) {
-    primme->maxBasisSize = svd->ncv;
-  }
+  } else if (svd->ncv) primme->maxBasisSize = svd->ncv;
 
   if (primme_svds_set_method(ops->method,(primme_preset_method)EPS_PRIMME_DEFAULT_MIN_TIME,PRIMME_DEFAULT_METHOD,primme) < 0) SETERRQ(PetscObjectComm((PetscObject)svd),PETSC_ERR_SUP,"PRIMME method not valid");
 
@@ -230,11 +227,11 @@ PetscErrorCode SVDSetUp_PRIMME(SVD svd)
 
 PetscErrorCode SVDSolve_PRIMME(SVD svd)
 {
-  PetscErrorCode     ierr;
-  SVD_PRIMME         *ops = (SVD_PRIMME*)svd->data;
-  PetscScalar        *svecs, *a;
-  PetscInt           i,ierrprimme;
-  PetscReal          *svals,*rnorms;
+  PetscErrorCode ierr;
+  SVD_PRIMME     *ops = (SVD_PRIMME*)svd->data;
+  PetscScalar    *svecs, *a;
+  PetscInt       i,ierrprimme;
+  PetscReal      *svals,*rnorms;
 
   PetscFunctionBegin;
   /* Reset some parameters left from previous runs */
@@ -250,13 +247,11 @@ PetscErrorCode SVDSolve_PRIMME(SVD svd)
   ierr = PetscLogObjectMemory((PetscObject)svd,sizeof(PetscReal)*ops->primme.numSvals*(ops->primme.mLocal+ops->primme.nLocal));CHKERRQ(ierr);
 
   /* Call PRIMME solver */
-  ierr = PetscMalloc1(svd->ncv,&svals);CHKERRQ(ierr);
-  ierr = PetscMalloc1(svd->ncv,&rnorms);CHKERRQ(ierr);
+  ierr = PetscMalloc2(svd->ncv,&svals,svd->ncv,&rnorms);CHKERRQ(ierr);
   ierrprimme = PRIMME_DRIVER(svals,svecs,rnorms,&ops->primme);
   for (i=0;i<svd->ncv;i++) svd->sigma[i] = svals[i];
   for (i=0;i<svd->ncv;i++) svd->errest[i] = rnorms[i];
-  ierr = PetscFree(svals);CHKERRQ(ierr);
-  ierr = PetscFree(rnorms);CHKERRQ(ierr);
+  ierr = PetscFree2(svals,rnorms);CHKERRQ(ierr);
 
   /* Copy left and right singular vectors into svd */
   ierr = BVGetArray(svd->U,&a);CHKERRQ(ierr);
@@ -276,17 +271,12 @@ PetscErrorCode SVDSolve_PRIMME(SVD svd)
   /* Process PRIMME error code */
   if (ierrprimme == 0) {
     /* no error */
-  } else if (ierrprimme%100 == -1) {
-    SETERRQ1(PetscObjectComm((PetscObject)svd),PETSC_ERR_LIB,"PRIMME library failed with error code=%d: unexpected error",ierrprimme);
-  } else if (ierrprimme%100 == -2) {
-    SETERRQ1(PetscObjectComm((PetscObject)svd),PETSC_ERR_LIB,"PRIMME library failed with error code=%d: allocation error",ierrprimme);
-  } else if (ierrprimme%100 == -3) {
+  } else if (ierrprimme%100 == -1) SETERRQ1(PetscObjectComm((PetscObject)svd),PETSC_ERR_LIB,"PRIMME library failed with error code=%d: unexpected error",ierrprimme);
+  else if (ierrprimme%100 == -2) SETERRQ1(PetscObjectComm((PetscObject)svd),PETSC_ERR_LIB,"PRIMME library failed with error code=%d: allocation error",ierrprimme);
+  else if (ierrprimme%100 == -3) {
     /* stop by maximum number of iteration or matvecs */
-  } else if (ierrprimme%100 >= -39) {
-    SETERRQ1(PetscObjectComm((PetscObject)svd),PETSC_ERR_LIB,"PRIMME library failed with error code=%d: configuration error; check PRIMME's manual",ierrprimme);
-  } else {
-    SETERRQ1(PetscObjectComm((PetscObject)svd),PETSC_ERR_LIB,"PRIMME library failed with error code=%d: runtime error; check PRIMME's manual",ierrprimme);
-  }
+  } else if (ierrprimme%100 >= -39) SETERRQ1(PetscObjectComm((PetscObject)svd),PETSC_ERR_LIB,"PRIMME library failed with error code=%d: configuration error; check PRIMME's manual",ierrprimme);
+  else SETERRQ1(PetscObjectComm((PetscObject)svd),PETSC_ERR_LIB,"PRIMME library failed with error code=%d: runtime error; check PRIMME's manual",ierrprimme);
   PetscFunctionReturn(0);
 }
 
@@ -317,24 +307,20 @@ PetscErrorCode SVDDestroy_PRIMME(SVD svd)
 
 PetscErrorCode SVDView_PRIMME(SVD svd,PetscViewer viewer)
 {
-  PetscErrorCode     ierr;
-  PetscBool          isascii;
-  primme_svds_params *primme = &((SVD_PRIMME*)svd->data)->primme;
-  PetscInt           bs;
-  SVDPRIMMEMethod    methodn;
-  PetscMPIInt        rank;
+  PetscErrorCode ierr;
+  PetscBool      isascii;
+  SVD_PRIMME     *ctx = (SVD_PRIMME*)svd->data;
+  PetscMPIInt    rank;
 
   PetscFunctionBegin;
   ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
   if (isascii) {
-    ierr = SVDPRIMMEGetBlockSize(svd,&bs);CHKERRQ(ierr);
-    ierr = PetscViewerASCIIPrintf(viewer,"  block size=%D\n",bs);CHKERRQ(ierr);
-    ierr = SVDPRIMMEGetMethod(svd,&methodn);CHKERRQ(ierr);
-    ierr = PetscViewerASCIIPrintf(viewer,"  solver method: %s\n",SVDPRIMMEMethods[methodn]);CHKERRQ(ierr);
+    ierr = PetscViewerASCIIPrintf(viewer,"  block size=%D\n",ctx->bs);CHKERRQ(ierr);
+    ierr = PetscViewerASCIIPrintf(viewer,"  solver method: %s\n",SVDPRIMMEMethods[(SVDPRIMMEMethod)ctx->method]);CHKERRQ(ierr);
 
     /* Display PRIMME params */
     ierr = MPI_Comm_rank(PetscObjectComm((PetscObject)svd),&rank);CHKERRQ(ierr);
-    if (!rank) primme_svds_display_params(*primme);
+    if (!rank) primme_svds_display_params(ctx->primme);
   }
   PetscFunctionReturn(0);
 }
