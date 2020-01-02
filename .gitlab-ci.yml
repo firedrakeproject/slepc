@@ -167,7 +167,7 @@ checksource:
     - git pull
     - export PETSC_DIR=$PWD
     - export PETSC_ARCH=arch-$CI_JOB_NAME
-    - ${PYTHON} ./configure --with-debugging=0 --COPTFLAGS='-O -g' --CXXOPTFLAGS='-O -g' --FOPTFLAGS='-O -g' --CUDAOPTFLAGS='-O' --CUDAFLAGS='-ccbin gcc-5' ${PETSC_CONFIG_OPTS}
+    - bash -c "${PYTHON} ./configure --with-debugging=0 --COPTFLAGS='-O -g' --CXXOPTFLAGS='-O -g' --FOPTFLAGS='-O -g' --CUDAOPTFLAGS='-O' --CUDAFLAGS='-ccbin gcc-5' ${PETSC_CONFIG_OPTS}"
     - make CFLAGS=${MAKE_CFLAGS} CXXFLAGS=${MAKE_CXXFLAGS}
     - cd $SLEPC_DIR
     - ${PYTHON} ./configure ${SLEPC_CONFIG_OPTS}
@@ -393,15 +393,15 @@ linux-gnu-c:
   variables:
     SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --with-arpack-dir=/usr/local/opt/ARPACK --with-primme-dir=/usr/local/opt/primme --download-blopex --with-blzpack-dir=/usr/local/opt/blzpack/lib --with-trlan-dir=/usr/local/opt/trlan-201009
 
-#linux-gnu-c-c89:
-#  extends:
-#    - .stage-3
-#    - .linux_test
-#  tags:
-#    - linux-debian
-#  variables:
-#    PETSC_CONFIG_OPTS: --CFLAGS=-std=c89 --with-fortran-bindings=0
-#    SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --with-arpack-flags=/usr/local/opt/ARPACK/libparpack.a,/usr/local/opt/ARPACK/libarpack.a,-lgfortran,-lmpi_usempif08,-lmpi_usempi_ignore_tkr,-lmpi_mpifh,-lmpi --download-blopex --with-blzpack-dir=/usr/local/opt/blzpack/lib --with-trlan-dir=/usr/local/opt/trlan-201009
+linux-gnu-c-c89:
+  extends:
+    - .stage-3
+    - .linux_test
+  tags:
+    - linux-debian
+  variables:
+    PETSC_CONFIG_OPTS: --CFLAGS='-std=c89 -pedantic -Wno-long-long -Wno-overlength-strings' --with-fortran-bindings=0
+    SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --with-arpack-flags=/usr/local/opt/ARPACK/libparpack.a,/usr/local/opt/ARPACK/libarpack.a,-lgfortran,-lmpi_usempif08,-lmpi_usempi_ignore_tkr,-lmpi_mpifh,-lmpi --download-blopex --with-blzpack-dir=/usr/local/opt/blzpack/lib --with-trlan-dir=/usr/local/opt/trlan-201009 --download-primme --download-primme-cflags=-std=c99
 
 linux-gnu-c-debug:
   extends:
