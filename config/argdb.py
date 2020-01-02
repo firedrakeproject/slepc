@@ -42,7 +42,7 @@ class ArgDB:
       found = 0
       for i, s in enumerate(self.argdb):
         if s.startswith('--'+keyword+'='):
-          string = s.split('=')[1]
+          string = s.split('=',1)[1]
           found = 1
           numhits = numhits + 1
           self.useda.append(self.argdb[i])

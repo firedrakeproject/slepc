@@ -17,6 +17,7 @@ class Primme(package.Package):
     self.packagename    = 'primme'
     self.installable    = True
     self.downloadable   = True
+    self.buildflags     = ''
     self.version        = '3.0'
     self.url            = 'https://github.com/primme/primme/tarball/release-'+self.version
     self.archive        = 'primme-'+self.version+'.tar.gz'
@@ -25,6 +26,16 @@ class Primme(package.Package):
     self.supports64bint = True
     self.ProcessArgs(argdb)
 
+  def ProcessArgs(self,argdb):
+    string,found = argdb.PopString('download-'+self.packagename+'-cflags')
+    if found:
+      self.buildflags = string
+    package.Package.ProcessArgs(self,argdb)
+
+  def ShowHelp(self):
+    package.Package.ShowHelp(self)
+    print(('  --download-'+self.packagename+'-cflags=<flags>').ljust(package.Package.wd)+': Extra flags to compile '+self.packagename.upper())
+ 
   def Check(self,conf,vars,petsc):
     functions_base = ['primme_set_method','primme_free','primme_initialize']
     if self.packagedir:
@@ -93,7 +104,7 @@ class Primme(package.Package):
       g.write('-DPRIMME_BLASINT_SIZE=64')
     g.write('\n')
     g.write('INCLUDE     = \n')
-    g.write('CFLAGS      = '+petsc.cc_flags.replace('-Wall','').replace('-Wshadow','').replace('-fvisibility=hidden','')+'\n')
+    g.write('CFLAGS      = '+petsc.cc_flags.replace('-Wall','').replace('-Wshadow','').replace('-fvisibility=hidden','')+' '+self.buildflags+'\n')
     g.write('RANLIB      = '+petsc.ranlib+'\n')
     g.write('PREFIX      = '+archdir+'\n')
     g.write('includedir ?= $(DESTDIR)$(PREFIX)/include\n')

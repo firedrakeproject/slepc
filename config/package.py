@@ -175,8 +175,10 @@ Unable to download package %s from: %s
           if filename.startswith(prefix):
             os.rename(os.path.join(externdir,filename),builddir)
 
+  wd = 35
+
   def ShowHelp(self):
-    wd = 31
+    wd = Package.wd
     if self.downloadable or self.installable:
       print(self.packagename.upper()+':')
     if self.downloadable:

@@ -29,20 +29,19 @@
 #endif
 #endif
 
-typedef struct {
-  primme_params primme;           /* param struc */
-  primme_preset_method method;    /* primme method */
-  Mat       A,B;                  /* problem matrices */
-  KSP       ksp;                  /* linear solver and preconditioner */
-  Vec       x,y;                  /* auxiliary vectors */
-  double    target;               /* a copy of eps's target */
-} EPS_PRIMME;
-
-static void matrixMatvec_PRIMME(void*,PRIMME_INT*,void*,PRIMME_INT*,int*,struct primme_params*,int*);
-static void applyPreconditioner_PRIMME(void*,PRIMME_INT*,void*,PRIMME_INT*,int*,struct primme_params*,int*);
-#if defined(SLEPC_HAVE_PRIMME3)
-static void massMatrixMatvec_PRIMME(void*,PRIMME_INT*,void*,PRIMME_INT*,int*,struct primme_params*,int*);
+#if defined(PRIMME_VERSION_MAJOR) && PRIMME_VERSION_MAJOR*100+PRIMME_VERSION_MINOR >= 202
+#define SLEPC_HAVE_PRIMME2p2
 #endif
+
+typedef struct {
+  primme_params        primme;    /* param struc */
+  PetscInt             bs;        /* block size */
+  primme_preset_method method;    /* primme method */
+  Mat                  A,B;       /* problem matrices */
+  KSP                  ksp;       /* linear solver and preconditioner */
+  Vec                  x,y;       /* auxiliary vectors */
+  double               target;    /* a copy of eps's target */
+} EPS_PRIMME;
 
 static void par_GlobalSumReal(void *sendBuf,void *recvBuf,int *count,primme_params *primme,int *ierr)
 {
@@ -53,142 +52,66 @@ static void par_GlobalSumReal(void *sendBuf,void *recvBuf,int *count,primme_para
   }
 }
 
-PetscErrorCode EPSSetUp_PRIMME(EPS eps)
+#if defined(SLEPC_HAVE_PRIMME3)
+static void par_broadcastReal(void *buf,int *count,primme_params *primme,int *ierr)
+{
+  *ierr = MPI_Bcast(buf,*count,MPIU_REAL,0/*root*/,PetscObjectComm((PetscObject)primme->commInfo));CHKERRABORT(PetscObjectComm((PetscObject)primme->commInfo),*ierr);
+}
+#endif
+
+#if defined(SLEPC_HAVE_PRIMME2p2)
+static void convTestFun(double *eval,void *evec,double *resNorm,int *isconv,primme_params *primme,int *err)
 {
   PetscErrorCode ierr;
-  PetscMPIInt    numProcs,procID;
-  EPS_PRIMME     *ops = (EPS_PRIMME*)eps->data;
-  primme_params  *primme = &ops->primme;
-  PetscBool      istrivial,flg;
+  EPS            eps = primme->commInfo;
+  PetscScalar    eigvr = eval?*eval:0.0;
+  PetscReal      r = resNorm?*resNorm:HUGE_VAL,errest;
 
-  PetscFunctionBegin;
-  ierr = MPI_Comm_size(PetscObjectComm((PetscObject)eps),&numProcs);CHKERRQ(ierr);
-  ierr = MPI_Comm_rank(PetscObjectComm((PetscObject)eps),&procID);CHKERRQ(ierr);
+  *err = 1;
+  ierr = (*eps->converged)(eps,eigvr,0.0,r,&errest,eps->convergedctx);CHKERRABORT(PetscObjectComm((PetscObject)eps),ierr);
+  *isconv = (errest<=eps->tol?1:0);
+  *err = 0;
+}
 
-  /* Check some constraints and set some default values */
-  if (!eps->max_it) eps->max_it = PetscMax(1000,eps->n);
-  ierr = STGetMatrix(eps->st,0,&ops->A);CHKERRQ(ierr);
-  if (!eps->ishermitian) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"PRIMME is only available for Hermitian problems");
-  if (eps->isgeneralized) {
+static void monitorFun(void *basisEvals,int *basisSize,int *basisFlags,int *iblock,int *blockSize,void *basisNorms,int *numConverged,void *lockedEvals,int *numLocked,int *lockedFlags,void *lockedNorms,int *inner_its,void *LSRes,
 #if defined(SLEPC_HAVE_PRIMME3)
-    ierr = STGetMatrix(eps->st,1,&ops->B);CHKERRQ(ierr);
-#else
-    SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"This version of PRIMME is not available for generalized problems");
+                       const char *msg,double *time,
 #endif
-  }
-  if (eps->arbitrary) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Arbitrary selection of eigenpairs not supported in this solver");
-  if (eps->stopping!=EPSStoppingBasic) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"External packages do not support user-defined stopping test");
-  if (!eps->which) eps->which = EPS_LARGEST_REAL;
-  if (eps->converged != EPSConvergedAbsolute) { ierr = PetscInfo(eps,"Warning: using absolute convergence test\n");CHKERRQ(ierr); }
-  ierr = RGIsTrivial(eps->rg,&istrivial);CHKERRQ(ierr);
-  if (!istrivial) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"This solver does not support region filtering");
+                       primme_event *event,struct primme_params *primme,int *err)
+{
+  PetscErrorCode ierr;
+  EPS            eps = primme->commInfo;
+  PetscInt       i,k,nerrest;
 
-  /* Transfer SLEPc options to PRIMME options */
-  primme->n                             = eps->n;
-  primme->nLocal                        = eps->nloc;
-  primme->numEvals                      = eps->nev;
-  primme->matrix                        = ops;
-  primme->matrixMatvec                  = matrixMatvec_PRIMME;
+  *err = 1;
+  switch (*event) {
+    case primme_event_outer_iteration:
+      /* Update EPS */
+      eps->its = primme->stats.numOuterIterations;
+      eps->nconv = primme->initSize;
+      k=0;
+      if (lockedEvals && numLocked) for (i=0; i<*numLocked && k<eps->ncv; i++) eps->eigr[k++] = ((PetscReal*)lockedEvals)[i];
+      nerrest = k;
+      if (iblock && blockSize) {
+        for (i=0; i<*blockSize && k+iblock[i]<eps->ncv; i++) eps->errest[k+iblock[i]] = ((PetscReal*)basisNorms)[i];
+        nerrest = k+(*blockSize>0?1+iblock[*blockSize-1]:0);
+      }
+      if (basisEvals && basisSize) for (i=0; i<*basisSize && k<eps->ncv; i++) eps->eigr[k++] = ((PetscReal*)basisEvals)[i];
+      /* Show progress */
+      ierr = EPSMonitor(eps,eps->its,numConverged?*numConverged:0,eps->eigr,eps->eigi,eps->errest,nerrest);CHKERRABORT(PetscObjectComm((PetscObject)eps),ierr);
+      break;
 #if defined(SLEPC_HAVE_PRIMME3)
-  if (eps->isgeneralized) {
-    primme->massMatrix                  = ops;
-    primme->massMatrixMatvec            = massMatrixMatvec_PRIMME;
-  }
+    case primme_event_message:
+      /* Print PRIMME information messages */
+      ierr = PetscInfo(eps,msg);CHKERRABORT(PetscObjectComm((PetscObject)eps),ierr);
+      break;
 #endif
-  primme->commInfo                      = eps;
-  primme->maxMatvecs                    = eps->max_it;
-  primme->eps                           = eps->tol==PETSC_DEFAULT?SLEPC_DEFAULT_TOL:eps->tol;
-  primme->numProcs                      = numProcs;
-  primme->procID                        = procID;
-  primme->printLevel                    = 0;
-  primme->correctionParams.precondition = 1;
-
-  switch (eps->which) {
-    case EPS_LARGEST_REAL:
-      primme->target = primme_largest;
-      break;
-    case EPS_SMALLEST_REAL:
-      primme->target = primme_smallest;
-      break;
-    case EPS_TARGET_MAGNITUDE:
-    case EPS_TARGET_REAL:
-      primme->target = primme_closest_abs;
-      primme->numTargetShifts = 1;
-      ops->target = PetscRealPart(eps->target);
-      primme->targetShifts = &ops->target;
-      break;
     default:
-      SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"'which' value not supported by PRIMME");
       break;
   }
-
-  if (primme_set_method(ops->method,primme) < 0) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"PRIMME method not valid");
-
-  /* If user sets ncv, maxBasisSize is modified. If not, ncv is set as maxBasisSize */
-  if (eps->ncv) primme->maxBasisSize = eps->ncv;
-  else eps->ncv = primme->maxBasisSize;
-  if (eps->ncv < eps->nev+primme->maxBlockSize) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"PRIMME needs ncv >= nev+maxBlockSize");
-  if (eps->mpd) { ierr = PetscInfo(eps,"Warning: parameter mpd ignored\n");CHKERRQ(ierr); }
-
-  if (eps->extraction) { ierr = PetscInfo(eps,"Warning: extraction type ignored\n");CHKERRQ(ierr); }
-
-  /* Set workspace */
-  ierr = EPSAllocateSolution(eps,0);CHKERRQ(ierr);
-
-  /* Setup the preconditioner */
-  if (primme->correctionParams.precondition) {
-    ierr = STGetKSP(eps->st,&ops->ksp);CHKERRQ(ierr);
-    ierr = PetscObjectTypeCompare((PetscObject)ops->ksp,KSPPREONLY,&flg);CHKERRQ(ierr);
-    if (!flg) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"PRIMME only works with KSPPREONLY");
-    primme->preconditioner = NULL;
-    primme->applyPreconditioner = applyPreconditioner_PRIMME;
-  }
-
-  /* Prepare auxiliary vectors */
-  if (!ops->x) {
-    ierr = MatCreateVecsEmpty(ops->A,&ops->x,&ops->y);CHKERRQ(ierr);
-    ierr = PetscLogObjectParent((PetscObject)eps,(PetscObject)ops->x);CHKERRQ(ierr);
-    ierr = PetscLogObjectParent((PetscObject)eps,(PetscObject)ops->y);CHKERRQ(ierr);
-  }
-  PetscFunctionReturn(0);
+  *err = 0;
 }
-
-PetscErrorCode EPSSolve_PRIMME(EPS eps)
-{
-  PetscErrorCode ierr;
-  EPS_PRIMME     *ops = (EPS_PRIMME*)eps->data;
-  PetscScalar    *a;
-#if defined(PETSC_USE_COMPLEX)
-  PetscInt       i;
-  PetscReal      *evals;
-#endif
-
-  PetscFunctionBegin;
-  /* Reset some parameters left from previous runs */
-  ops->primme.aNorm    = 1.0;
-  ops->primme.initSize = eps->nini;
-  ops->primme.iseed[0] = -1;
-
-  /* Call PRIMME solver */
-  ierr = BVGetArray(eps->V,&a);CHKERRQ(ierr);
-#if !defined(PETSC_USE_COMPLEX)
-  ierr = PRIMME_DRIVER(eps->eigr,a,eps->errest,&ops->primme);
-  if (ierr) SETERRQ1(PetscObjectComm((PetscObject)eps),PETSC_ERR_LIB,"PRIMME library failed with error code=%d",ierr);
-#else
-  /* PRIMME returns real eigenvalues, but SLEPc works with complex ones */
-  ierr = PetscMalloc1(eps->ncv,&evals);CHKERRQ(ierr);
-  ierr = PRIMME_DRIVER(evals,a,eps->errest,&ops->primme);
-  if (ierr) SETERRQ1(PetscObjectComm((PetscObject)eps),PETSC_ERR_LIB,"PRIMME library failed with error code=%d",ierr);
-  for (i=0;i<eps->ncv;i++) eps->eigr[i] = evals[i];
-  ierr = PetscFree(evals);CHKERRQ(ierr);
-#endif
-  ierr = BVRestoreArray(eps->V,&a);CHKERRQ(ierr);
-
-  eps->nconv  = ops->primme.initSize >= 0 ? ops->primme.initSize : 0;
-  eps->reason = eps->ncv >= eps->nev ? EPS_CONVERGED_TOL: EPS_DIVERGED_ITS;
-  eps->its    = ops->primme.stats.numOuterIterations;
-  PetscFunctionReturn(0);
-}
+#endif /* SLEPC_HAVE_PRIMME2p2 */
 
 static void matrixMatvec_PRIMME(void *xa,PRIMME_INT *ldx,void *ya,PRIMME_INT *ldy,int *blockSize,struct primme_params *primme,int *ierr)
 {
@@ -245,6 +168,197 @@ static void applyPreconditioner_PRIMME(void *xa,PRIMME_INT *ldx,void *ya,PRIMME_
   PetscFunctionReturnVoid();
 }
 
+PetscErrorCode EPSSetUp_PRIMME(EPS eps)
+{
+  PetscErrorCode ierr;
+  PetscMPIInt    numProcs,procID;
+  EPS_PRIMME     *ops = (EPS_PRIMME*)eps->data;
+  primme_params  *primme = &ops->primme;
+  PetscBool      istrivial,flg;
+
+  PetscFunctionBegin;
+  ierr = MPI_Comm_size(PetscObjectComm((PetscObject)eps),&numProcs);CHKERRQ(ierr);
+  ierr = MPI_Comm_rank(PetscObjectComm((PetscObject)eps),&procID);CHKERRQ(ierr);
+
+  /* Check some constraints and set some default values */
+  if (!eps->max_it) eps->max_it = PETSC_MAX_INT;
+  ierr = STGetMatrix(eps->st,0,&ops->A);CHKERRQ(ierr);
+  if (!eps->ishermitian) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"PRIMME is only available for Hermitian problems");
+  if (eps->isgeneralized) {
+#if defined(SLEPC_HAVE_PRIMME3)
+    ierr = STGetMatrix(eps->st,1,&ops->B);CHKERRQ(ierr);
+#else
+    SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"This version of PRIMME is not available for generalized problems");
+#endif
+  }
+  if (eps->arbitrary) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Arbitrary selection of eigenpairs not supported in this solver");
+  if (eps->stopping!=EPSStoppingBasic) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"External packages do not support user-defined stopping test");
+  if (!eps->which) eps->which = EPS_LARGEST_REAL;
+#if !defined(SLEPC_HAVE_PRIMME2p2)
+  if (eps->converged != EPSConvergedAbsolute) { ierr = PetscInfo(eps,"Warning: using absolute convergence test\n");CHKERRQ(ierr); }
+#endif
+  ierr = RGIsTrivial(eps->rg,&istrivial);CHKERRQ(ierr);
+  if (!istrivial) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"This solver does not support region filtering");
+
+  /* Transfer SLEPc options to PRIMME options */
+  primme_free(primme);
+  primme_initialize(primme);
+  primme->n                             = eps->n;
+  primme->nLocal                        = eps->nloc;
+  primme->numEvals                      = eps->nev;
+  primme->matrix                        = ops;
+  primme->matrixMatvec                  = matrixMatvec_PRIMME;
+#if defined(SLEPC_HAVE_PRIMME3)
+  if (eps->isgeneralized) {
+    primme->massMatrix                  = ops;
+    primme->massMatrixMatvec            = massMatrixMatvec_PRIMME;
+  }
+#endif
+  primme->commInfo                      = eps;
+  primme->maxOuterIterations            = eps->max_it;
+#if !defined(SLEPC_HAVE_PRIMME2p2)
+  primme->eps                           = eps->tol==PETSC_DEFAULT?SLEPC_DEFAULT_TOL:eps->tol;
+#endif
+  primme->numProcs                      = numProcs;
+  primme->procID                        = procID;
+  primme->printLevel                    = 1;
+  primme->correctionParams.precondition = 1;
+  primme->globalSumReal                 = par_GlobalSumReal;
+#if defined(SLEPC_HAVE_PRIMME3)
+  primme->broadcastReal                 = par_broadcastReal;
+#endif
+#if defined(SLEPC_HAVE_PRIMME2p2)
+  primme->convTestFun                   = convTestFun;
+  primme->monitorFun                    = monitorFun;
+#endif
+  if (ops->bs > 0) primme->maxBlockSize = ops->bs;
+
+  switch (eps->which) {
+    case EPS_LARGEST_REAL:
+      primme->target = primme_largest;
+      break;
+    case EPS_SMALLEST_REAL:
+      primme->target = primme_smallest;
+      break;
+    case EPS_LARGEST_MAGNITUDE:
+      primme->target = primme_largest_abs;
+      ops->target = 0.0;
+      primme->numTargetShifts = 1;
+      primme->targetShifts = &ops->target;
+      break;
+    case EPS_SMALLEST_MAGNITUDE:
+      primme->target = primme_closest_abs;
+      ops->target = 0.0;
+      primme->numTargetShifts = 1;
+      primme->targetShifts = &ops->target;
+      break;
+    case EPS_TARGET_MAGNITUDE:
+    case EPS_TARGET_REAL:
+      primme->target = primme_closest_abs;
+      primme->numTargetShifts = 1;
+      ops->target = PetscRealPart(eps->target);
+      primme->targetShifts = &ops->target;
+      break;
+    default:
+      SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"'which' value not supported by PRIMME");
+      break;
+  }
+
+  switch (eps->extraction) {
+    case EPS_RITZ:
+      primme->projectionParams.projection = primme_proj_RR;
+      break;
+    case EPS_HARMONIC:
+      primme->projectionParams.projection = primme_proj_harmonic;
+      break;
+    case EPS_REFINED:
+      primme->projectionParams.projection = primme_proj_refined;
+      break;
+    default:
+      SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"'extraction' value not supported by PRIMME");
+      break;
+  }
+
+  /* If user sets mpd or ncv, maxBasisSize is modified */
+  if (eps->mpd) {
+    primme->maxBasisSize = eps->mpd;
+    if (eps->ncv) { ierr = PetscInfo(eps,"Warning: 'ncv' is ignored by PRIMME\n");CHKERRQ(ierr); }
+  } else if (eps->ncv) primme->maxBasisSize = eps->ncv;
+
+  if (primme_set_method(ops->method,primme) < 0) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"PRIMME method not valid");
+
+  eps->mpd = primme->maxBasisSize;
+  eps->ncv = (primme->locking?eps->nev:0)+primme->maxBasisSize;
+  ops->bs  = primme->maxBlockSize;
+
+  /* Set workspace */
+  ierr = EPSAllocateSolution(eps,0);CHKERRQ(ierr);
+
+  /* Setup the preconditioner */
+  if (primme->correctionParams.precondition) {
+    ierr = STGetKSP(eps->st,&ops->ksp);CHKERRQ(ierr);
+    ierr = PetscObjectTypeCompare((PetscObject)ops->ksp,KSPPREONLY,&flg);CHKERRQ(ierr);
+    if (!flg) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"PRIMME only works with KSPPREONLY");
+    primme->preconditioner = NULL;
+    primme->applyPreconditioner = applyPreconditioner_PRIMME;
+  }
+
+  /* Prepare auxiliary vectors */
+  if (!ops->x) {
+    ierr = MatCreateVecsEmpty(ops->A,&ops->x,&ops->y);CHKERRQ(ierr);
+    ierr = PetscLogObjectParent((PetscObject)eps,(PetscObject)ops->x);CHKERRQ(ierr);
+    ierr = PetscLogObjectParent((PetscObject)eps,(PetscObject)ops->y);CHKERRQ(ierr);
+  }
+  PetscFunctionReturn(0);
+}
+
+PetscErrorCode EPSSolve_PRIMME(EPS eps)
+{
+  PetscErrorCode ierr;
+  EPS_PRIMME     *ops = (EPS_PRIMME*)eps->data;
+  PetscScalar    *a;
+  PetscInt       i,ierrprimme;
+  PetscReal      *evals,*rnorms;
+
+  PetscFunctionBegin;
+  /* Reset some parameters left from previous runs */
+#if defined(SLEPC_HAVE_PRIMME2p2)
+  ops->primme.aNorm    = 0.0;
+#else
+  /* Force PRIMME to stop by absolute error */
+  ops->primme.aNorm    = 1.0;
+#endif
+  ops->primme.initSize = eps->nini;
+  ops->primme.iseed[0] = -1;
+  ops->primme.iseed[1] = -1;
+  ops->primme.iseed[2] = -1;
+  ops->primme.iseed[3] = -1;
+
+  /* Call PRIMME solver */
+  ierr = BVGetArray(eps->V,&a);CHKERRQ(ierr);
+  ierr = PetscMalloc2(eps->ncv,&evals,eps->ncv,&rnorms);CHKERRQ(ierr);
+  ierrprimme = PRIMME_DRIVER(evals,a,rnorms,&ops->primme);
+  for (i=0;i<eps->ncv;i++) eps->eigr[i] = evals[i];
+  for (i=0;i<eps->ncv;i++) eps->errest[i] = rnorms[i];
+  ierr = PetscFree2(evals,rnorms);CHKERRQ(ierr);
+  ierr = BVRestoreArray(eps->V,&a);CHKERRQ(ierr);
+
+  eps->nconv  = ops->primme.initSize >= 0 ? ops->primme.initSize : 0;
+  eps->reason = eps->nconv >= eps->nev ? EPS_CONVERGED_TOL: EPS_DIVERGED_ITS;
+  eps->its    = ops->primme.stats.numOuterIterations;
+
+  /* Process PRIMME error code */
+  if (ierrprimme == 0) {
+    /* no error */
+  } else if (ierrprimme == -1) SETERRQ1(PetscObjectComm((PetscObject)eps),PETSC_ERR_LIB,"PRIMME library failed with error code=%d: unexpected error",ierrprimme);
+  else if (ierrprimme == -2) SETERRQ1(PetscObjectComm((PetscObject)eps),PETSC_ERR_LIB,"PRIMME library failed with error code=%d: allocation error",ierrprimme);
+  else if (ierrprimme == -3) {
+    /* stop by maximum number of iteration or matvecs */
+  } else if (ierrprimme >= -39) SETERRQ1(PetscObjectComm((PetscObject)eps),PETSC_ERR_LIB,"PRIMME library failed with error code=%d: configuration error; check PRIMME's manual",ierrprimme);
+  else SETERRQ1(PetscObjectComm((PetscObject)eps),PETSC_ERR_LIB,"PRIMME library failed with error code=%d: runtime error; check PRIMME's manual",ierrprimme);
+  PetscFunctionReturn(0);
+}
+
 PetscErrorCode EPSReset_PRIMME(EPS eps)
 {
   PetscErrorCode ierr;
@@ -272,22 +386,20 @@ PetscErrorCode EPSDestroy_PRIMME(EPS eps)
 
 PetscErrorCode EPSView_PRIMME(EPS eps,PetscViewer viewer)
 {
-  PetscErrorCode  ierr;
-  PetscBool       isascii;
-  primme_params   *primme = &((EPS_PRIMME*)eps->data)->primme;
-  EPSPRIMMEMethod methodn;
-  PetscMPIInt     rank;
+  PetscErrorCode ierr;
+  PetscBool      isascii;
+  EPS_PRIMME     *ctx = (EPS_PRIMME*)eps->data;
+  PetscMPIInt    rank;
 
   PetscFunctionBegin;
   ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
   if (isascii) {
-    ierr = PetscViewerASCIIPrintf(viewer,"  block size=%D\n",primme->maxBlockSize);CHKERRQ(ierr);
-    ierr = EPSPRIMMEGetMethod(eps,&methodn);CHKERRQ(ierr);
-    ierr = PetscViewerASCIIPrintf(viewer,"  solver method: %s\n",EPSPRIMMEMethods[methodn]);CHKERRQ(ierr);
+    ierr = PetscViewerASCIIPrintf(viewer,"  block size=%D\n",ctx->bs);CHKERRQ(ierr);
+    ierr = PetscViewerASCIIPrintf(viewer,"  solver method: %s\n",EPSPRIMMEMethods[(EPSPRIMMEMethod)ctx->method]);CHKERRQ(ierr);
 
     /* Display PRIMME params */
     ierr = MPI_Comm_rank(PetscObjectComm((PetscObject)eps),&rank);CHKERRQ(ierr);
-    if (!rank) primme_display_params(*primme);
+    if (!rank) primme_display_params(ctx->primme);
   }
   PetscFunctionReturn(0);
 }
@@ -303,7 +415,7 @@ PetscErrorCode EPSSetFromOptions_PRIMME(PetscOptionItems *PetscOptionsObject,EPS
   PetscFunctionBegin;
   ierr = PetscOptionsHead(PetscOptionsObject,"EPS PRIMME Options");CHKERRQ(ierr);
 
-    ierr = PetscOptionsInt("-eps_primme_blocksize","Maximum block size","EPSPRIMMESetBlockSize",ctx->primme.maxBlockSize,&bs,&flg);CHKERRQ(ierr);
+    ierr = PetscOptionsInt("-eps_primme_blocksize","Maximum block size","EPSPRIMMESetBlockSize",ctx->bs,&bs,&flg);CHKERRQ(ierr);
     if (flg) { ierr = EPSPRIMMESetBlockSize(eps,bs);CHKERRQ(ierr); }
 
     ierr = PetscOptionsEnum("-eps_primme_method","Method for solving the eigenproblem","EPSPRIMMESetMethod",EPSPRIMMEMethods,(PetscEnum)ctx->method,(PetscEnum*)&meth,&flg);CHKERRQ(ierr);
@@ -318,9 +430,9 @@ static PetscErrorCode EPSPRIMMESetBlockSize_PRIMME(EPS eps,PetscInt bs)
   EPS_PRIMME *ops = (EPS_PRIMME*)eps->data;
 
   PetscFunctionBegin;
-  if (bs == PETSC_DEFAULT) ops->primme.maxBlockSize = 1;
+  if (bs == PETSC_DEFAULT) ops->bs = 0;
   else if (bs <= 0) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"PRIMME: block size must be positive");
-  else ops->primme.maxBlockSize = bs;
+  else ops->bs = bs;
   PetscFunctionReturn(0);
 }
 
@@ -365,7 +477,7 @@ static PetscErrorCode EPSPRIMMEGetBlockSize_PRIMME(EPS eps,PetscInt *bs)
   EPS_PRIMME *ops = (EPS_PRIMME*)eps->data;
 
   PetscFunctionBegin;
-  *bs = ops->primme.maxBlockSize;
+  *bs = ops->bs;
   PetscFunctionReturn(0);
 }
 
@@ -480,6 +592,13 @@ SLEPC_EXTERN PetscErrorCode EPSCreate_PRIMME(EPS eps)
 
   primme_initialize(&primme->primme);
   primme->primme.globalSumReal = par_GlobalSumReal;
+#if defined(SLEPC_HAVE_PRIMME3)
+  primme->primme.broadcastReal = par_broadcastReal;
+#endif
+#if defined(SLEPC_HAVE_PRIMME2p2)
+  primme->primme.convTestFun = convTestFun;
+  primme->primme.monitorFun = monitorFun;
+#endif
   primme->method = (primme_preset_method)EPS_PRIMME_DEFAULT_MIN_TIME;
 
   eps->categ = EPS_CATEGORY_PRECOND;
