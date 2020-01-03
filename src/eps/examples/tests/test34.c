@@ -103,9 +103,18 @@ int main(int argc,char **argv)
    build:
       requires: primme
 
-   test:
-      suffix: 1
+   testset:
       args: -eps_nev 4
       requires: primme
+      output_file: output/test34_1.out
+      test:
+         suffix: 1
+      test:
+         suffix: 2
+         args: -st_pc_type bjacobi -eps_target 0.01 -eps_target_real -eps_refined
+         nsize: 2
+      test:
+         suffix: 3
+         args: -eps_smallest_magnitude -eps_harmonic
 
 TEST*/
