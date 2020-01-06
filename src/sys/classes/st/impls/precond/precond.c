@@ -179,9 +179,6 @@ PetscErrorCode STPrecondGetMatForPC(ST st,Mat *mat)
 
 static PetscErrorCode STPrecondSetMatForPC_Precond(ST st,Mat mat)
 {
-  PC             pc;
-  Mat            A;
-  PetscBool      flag;
   ST_PRECOND     *ctx = (ST_PRECOND*)st->data;
   PetscErrorCode ierr;
 
@@ -190,17 +187,7 @@ static PetscErrorCode STPrecondSetMatForPC_Precond(ST st,Mat mat)
   ierr = MatDestroy(&ctx->mat);CHKERRQ(ierr);
   ctx->mat    = mat;
   ctx->setmat = mat? PETSC_TRUE: PETSC_FALSE;
-  if (!st->ksp) { ierr = STGetKSP(st,&st->ksp);CHKERRQ(ierr); }
-  ierr = KSPGetPC(st->ksp,&pc);CHKERRQ(ierr);
-  /* Yes, all these lines are needed to safely set mat as the preconditioner
-     matrix in pc */
-  ierr = PCGetOperatorsSet(pc,&flag,NULL);CHKERRQ(ierr);
-  if (flag) {
-    ierr = PCGetOperators(pc,&A,NULL);CHKERRQ(ierr);
-    ierr = PetscObjectReference((PetscObject)A);CHKERRQ(ierr);
-  } else A = NULL;
-  ierr = PCSetOperators(pc,A,mat);CHKERRQ(ierr);
-  ierr = MatDestroy(&A);CHKERRQ(ierr);
+  st->state   = ST_STATE_INITIAL;
   PetscFunctionReturn(0);
 }
 
@@ -240,7 +227,10 @@ static PetscErrorCode STPrecondSetKSPHasMat_Precond(ST st,PetscBool setmat)
   ST_PRECOND *ctx = (ST_PRECOND*)st->data;
 
   PetscFunctionBegin;
-  ctx->setmat = setmat;
+  if (ctx->setmat != setmat) {
+    ctx->setmat = setmat;
+    st->state   = ST_STATE_INITIAL;
+  }
   PetscFunctionReturn(0);
 }
 
