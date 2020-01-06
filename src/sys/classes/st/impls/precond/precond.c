@@ -21,6 +21,7 @@ typedef struct {
 static PetscErrorCode STSetDefaultKSP_Precond(ST st)
 {
   PetscErrorCode ierr;
+  ST_PRECOND     *ctx = (ST_PRECOND*)st->data;
   PC             pc;
   PCType         pctype;
   Mat            P;
@@ -29,7 +30,7 @@ static PetscErrorCode STSetDefaultKSP_Precond(ST st)
   PetscFunctionBegin;
   ierr = KSPGetPC(st->ksp,&pc);CHKERRQ(ierr);
   ierr = PetscObjectGetType((PetscObject)pc,&pctype);CHKERRQ(ierr);
-  ierr = STPrecondGetMatForPC(st,&P);CHKERRQ(ierr);
+  P = ctx->mat;
   if (!pctype && st->A && st->A[0]) {
     if (P || st->matmode == ST_MATMODE_SHELL) {
       ierr = PCSetType(pc,PCJACOBI);CHKERRQ(ierr);
@@ -66,7 +67,7 @@ PetscErrorCode STSetUp_Precond(ST st)
   if (t0 && !ctx->setmat) PetscFunctionReturn(0);
 
   /* Check if a user matrix is set */
-  ierr = STPrecondGetMatForPC(st,&P);CHKERRQ(ierr);
+  P = ctx->mat;
 
   /* If not, create A - shift*B */
   if (P) {
@@ -133,8 +134,6 @@ PetscErrorCode STSetShift_Precond(ST st,PetscScalar newshift)
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
-  /* Nothing to be done if STSetUp has not been called yet */
-  if (!st->state) PetscFunctionReturn(0);
   st->sigma = newshift;
   if (st->matmode != ST_MATMODE_SHELL) {
     ierr = STSetUp_Precond(st);CHKERRQ(ierr);
@@ -190,7 +189,7 @@ static PetscErrorCode STPrecondSetMatForPC_Precond(ST st,Mat mat)
   ierr = PetscObjectReference((PetscObject)mat);CHKERRQ(ierr);
   ierr = MatDestroy(&ctx->mat);CHKERRQ(ierr);
   ctx->mat    = mat;
-  ctx->setmat = PETSC_TRUE;
+  ctx->setmat = mat? PETSC_TRUE: PETSC_FALSE;
   if (!st->ksp) { ierr = STGetKSP(st,&st->ksp);CHKERRQ(ierr); }
   ierr = KSPGetPC(st->ksp,&pc);CHKERRQ(ierr);
   /* Yes, all these lines are needed to safely set mat as the preconditioner
