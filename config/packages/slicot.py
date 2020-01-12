@@ -41,7 +41,7 @@ class Slicot(package.Package):
     self.FortranLib(conf,vars,dirs,libs,functions)
 
 
-  def Install(self,conf,vars,petsc,archdir):
+  def Install(self,conf,vars,slepc,petsc,archdir):
     externdir = os.path.join(archdir,'externalpackages')
     builddir  = os.path.join(externdir,self.dirname)
     self.Download(externdir,builddir)

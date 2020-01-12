@@ -99,6 +99,10 @@ class PETSc(package.Package):
           self.cc = v
         elif k == 'CC_FLAGS':
           self.cc_flags = v
+        elif k == 'CXX':
+          self.cxx = v
+        elif k == 'CXX_FLAGS':
+          self.cxx_flags = v
         elif k == 'FC' and not v=='':
           self.fc = v
         elif k == 'FC_FLAGS':
@@ -130,6 +134,8 @@ class PETSc(package.Package):
     self.blaslapackmangling = ''
     self.blaslapackint64 = False
     self.fortran = False
+    self.cxxdialectcxx11 = False
+    self.hpddm = False
     try:
       f = open(petscconf_h)
       for l in f.readlines():
@@ -152,6 +158,10 @@ class PETSc(package.Package):
           self.blaslapackint64 = True
         elif len(l)==3 and l[0]=='#define' and l[1]=='PETSC_HAVE_FORTRAN' and l[2]=='1':
           self.fortran = True
+        elif len(l)==3 and l[0]=='#define' and l[1]=='PETSC_HAVE_CXX_DIALECT_CXX11' and l[2]=='1':
+          self.cxxdialectcxx11 = True
+        elif len(l)==3 and l[0]=='#define' and l[1]=='PETSC_HAVE_HPDDM' and l[2]=='1':
+          self.hpddm = True
         elif self.isinstall and len(l)==3 and l[0]=='#define' and l[1]=='PETSC_ARCH':
           self.arch = l[2].strip('"')
       f.close()

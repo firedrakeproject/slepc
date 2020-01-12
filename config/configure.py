@@ -127,7 +127,7 @@ argdb = argdb.ArgDB(sys.argv)
 log   = log.Log()
 
 # Load classes for packages and process command-line options
-import slepc, petsc, arpack, blzpack, trlan, primme, blopex, sowing, lapack, slicot
+import slepc, petsc, arpack, blzpack, trlan, primme, blopex, sowing, lapack, slicot, hpddm
 slepc   = slepc.SLEPc(argdb,log)
 petsc   = petsc.PETSc(argdb,log)
 arpack  = arpack.Arpack(argdb,log)
@@ -138,10 +138,11 @@ trlan   = trlan.Trlan(argdb,log)
 sowing  = sowing.Sowing(argdb,log)
 lapack  = lapack.Lapack(argdb,log)
 slicot  = slicot.Slicot(argdb,log)
+hpddm   = hpddm.HPDDM(argdb,log)
 
-externalpackages = [arpack, blopex, blzpack, primme, slicot, trlan]
-optionspackages  = [slepc, arpack, blopex, blzpack, primme, slicot, trlan, sowing]
-checkpackages    = [arpack, blopex, blzpack, primme, slicot, trlan, lapack]
+externalpackages = [arpack, blopex, blzpack, primme, slicot, trlan, hpddm]
+optionspackages  = [slepc, arpack, blopex, blzpack, primme, slicot, trlan, hpddm, sowing]
+checkpackages    = [arpack, blopex, blzpack, primme, slicot, trlan, lapack, hpddm]
 
 # Print help if requested and check for wrong command-line options
 if argdb.PopHelp():
@@ -299,7 +300,7 @@ if petsc.singlelib:
 
 # Check for external packages and for missing LAPACK functions
 for pkg in checkpackages:
-  pkg.Process(slepcconf,slepcvars,petsc,archdir)
+  pkg.Process(slepcconf,slepcvars,slepc,petsc,archdir)
 
 # Write Modules and pkg-config configuration files
 log.NewSection('Writing various configuration files...')
