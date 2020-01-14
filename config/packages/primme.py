@@ -89,31 +89,30 @@ class Primme(package.Package):
     self.Download(externdir,builddir,'primme-')
 
     # Configure
-    g = open(os.path.join(builddir,'Make_flags'),'w')
-    g.write('MAJORVERSION= '+self.version[0]+'\n')
-    g.write('LIBRARY     = libprimme.'+petsc.ar_lib_suffix+'\n')
-    g.write('SOLIBRARY   = libprimme.'+petsc.sl_suffix+'\n')
-    g.write('SONAMELIBRARY = libprimme.'+petsc.sl_suffix+self.version+'\n')
-    g.write('CC          = '+petsc.cc+'\n')
+    g = open(os.path.join(builddir,'mymake_flags'),'w')
+    g.write('export LIBRARY     = libprimme.'+petsc.ar_lib_suffix+'\n')
+    g.write('export SOLIBRARY   = libprimme.'+petsc.sl_suffix+'\n')
+    g.write('export SONAMELIBRARY = libprimme.'+petsc.sl_suffix+self.version+'\n')
+    g.write('export CC          = '+petsc.cc+'\n')
     if hasattr(petsc,'fc'):
-      g.write('F77         = '+petsc.fc+'\n')
-    g.write('DEFINES     = ')
+      g.write('export F77         = '+petsc.fc+'\n')
+    g.write('export DEFINES     = ')
     if petsc.blaslapackmangling == 'underscore':
       g.write('-DF77UNDERSCORE ')
     if petsc.blaslapackint64:
       g.write('-DPRIMME_BLASINT_SIZE=64')
     g.write('\n')
-    g.write('INCLUDE     = \n')
-    g.write('CFLAGS      = '+petsc.cc_flags.replace('-Wall','').replace('-Wshadow','').replace('-fvisibility=hidden','')+' '+self.buildflags+'\n')
-    g.write('RANLIB      = '+petsc.ranlib+'\n')
-    g.write('PREFIX      = '+archdir+'\n')
-    g.write('includedir ?= $(DESTDIR)$(PREFIX)/include\n')
-    g.write('libdir     ?= $(DESTDIR)$(PREFIX)/lib\n')
+    g.write('export INCLUDE     = \n')
+    g.write('export CFLAGS      = '+petsc.cc_flags.replace('-Wall','').replace('-Wshadow','').replace('-fvisibility=hidden','')+' '+self.buildflags+'\n')
+    g.write('export RANLIB      = '+petsc.ranlib+'\n')
+    g.write('export PREFIX      = '+archdir+'\n')
+    g.write('include makefile\n')
     g.close()
 
     # Build package
     target = ' install' if petsc.buildsharedlib else ' lib'
-    result,output = self.RunCommand('cd '+builddir+'&&'+petsc.make+' clean &&'+petsc.make+target)
+    mymake = petsc.make + ' -f mymake_flags '
+    result,output = self.RunCommand('cd '+builddir+'&&'+mymake+' clean && '+mymake+target)
     self.log.write(output)
     if result:
       self.log.Exit('ERROR: installation of PRIMME failed.')
