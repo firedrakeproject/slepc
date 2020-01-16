@@ -53,6 +53,7 @@ typedef struct {
   PetscErrorCode    (*formFunctionAB)(SNES,Vec,Vec,Vec,void*);
   PetscInt          idx;  /* index of the first nonzero entry in the iteration vector */
   PetscMPIInt       p;    /* process id of the owner of idx */
+  PetscReal         norm0; /* norm of initial vector */
 } EPS_POWER;
 
 PetscErrorCode EPSSetUp_Power(EPS eps)
@@ -61,7 +62,7 @@ PetscErrorCode EPSSetUp_Power(EPS eps)
   EPS_POWER      *power = (EPS_POWER*)eps->data;
   PetscBool      flg,istrivial;
   STMatMode      mode;
-  Mat            A,B;
+  Mat            A,B,P;
   Vec            res;
   PetscContainer container;
   PetscErrorCode (*formFunctionA)(SNES,Vec,Vec,void*);
@@ -96,8 +97,17 @@ PetscErrorCode EPSSetUp_Power(EPS eps)
     if (eps->nev>1) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Nonlinear inverse iteration cannot compute more than one eigenvalue");
     ierr = EPSSetWorkVecs(eps,4);CHKERRQ(ierr);
 
-    /* set up SNES solver */
-    if (!power->snes) { ierr = EPSPowerGetSNES(eps,&power->snes);CHKERRQ(ierr); }
+    /* Set up SNES solver */
+    /* If SNES was setup, we need to reset it so that it will be consistent with the current EPS */
+    if (power->snes) { ierr = SNESReset(power->snes);CHKERRQ(ierr); }
+    else { ierr = EPSPowerGetSNES(eps,&power->snes);CHKERRQ(ierr); }
+
+    /* For nonlinear solver (Newton), we should scale the initial vector back.
+       The initial vector will be scaled in EPSSetUp. */
+    if (eps->IS) {
+      ierr = VecNorm((eps->IS)[0],NORM_2,&power->norm0);CHKERRQ(ierr);
+    }
+
     ierr = EPSGetOperators(eps,&A,&B);CHKERRQ(ierr);
 
     ierr = PetscObjectQueryFunction((PetscObject)A,"formFunction",&formFunctionA);CHKERRQ(ierr);
@@ -122,7 +132,12 @@ PetscErrorCode EPSSetUp_Power(EPS eps)
     if (container) {
       ierr = PetscContainerGetPointer(container,&ctx);CHKERRQ(ierr);
     } else ctx = NULL;
-    ierr = SNESSetJacobian(power->snes,A,A,formJacobianA,ctx);CHKERRQ(ierr);
+    /* This allows users to compute a different preconditioning matrix than A.
+     * It is useful when A and B are shell matrices.
+     */
+    ierr = STPrecondGetMatForPC(eps->st,&P);CHKERRQ(ierr);
+    /* If users do not provide a matrix, we simply use A */
+    ierr = SNESSetJacobian(power->snes,A,P? P:A,formJacobianA,ctx);CHKERRQ(ierr);
     ierr = SNESSetFromOptions(power->snes);CHKERRQ(ierr);
     ierr = SNESGetLineSearch(power->snes,&linesearch);CHKERRQ(ierr);
     if (power->update) {
@@ -314,7 +329,7 @@ static PetscErrorCode EPSPowerApply_SNES(EPS eps,Vec x,Vec y)
 static PetscErrorCode EPSPowerComputeInitialGuess_Update(EPS eps)
 {
   EPS            powereps;
-  Mat            A,B;
+  Mat            A,B,P;
   Vec            v1,v2;
   SNES           snes;
   DM             dm,newdm;
@@ -331,7 +346,7 @@ static PetscErrorCode EPSPowerComputeInitialGuess_Update(EPS eps)
   ierr = EPSSetProblemType(powereps,EPS_GNHEP);CHKERRQ(ierr);
   ierr = EPSSetWhichEigenpairs(powereps,EPS_TARGET_MAGNITUDE);CHKERRQ(ierr);
   ierr = EPSPowerSetNonlinear(powereps,PETSC_TRUE);CHKERRQ(ierr);
-  ierr = STSetType(powereps->st,STSINVERT);CHKERRQ(ierr);
+  ierr = STPrecondGetMatForPC(eps->st,&P);CHKERRQ(ierr);
   /* attach dm to initial solve */
   ierr = EPSPowerGetSNES(eps,&snes);CHKERRQ(ierr);
   ierr = SNESGetDM(snes,&dm);CHKERRQ(ierr);
@@ -343,6 +358,9 @@ static PetscErrorCode EPSPowerComputeInitialGuess_Update(EPS eps)
   ierr = EPSPowerGetSNES(powereps,&snes);CHKERRQ(ierr);
   ierr = SNESSetDM(snes,dm);CHKERRQ(ierr);
   ierr = EPSSetFromOptions(powereps);CHKERRQ(ierr);
+  if (P) {
+    ierr = STPrecondSetMatForPC(powereps->st,P);CHKERRQ(ierr);
+  }
   ierr = EPSSolve(powereps);CHKERRQ(ierr);
   ierr = BVGetColumn(eps->V,0,&v2);CHKERRQ(ierr);
   ierr = BVGetColumn(powereps->V,0,&v1);CHKERRQ(ierr);
@@ -383,7 +401,8 @@ PetscErrorCode EPSSolve_Power(EPS eps)
   if (power->shift_type != EPS_POWER_SHIFT_CONSTANT) { ierr = STGetKSP(eps->st,&ksp);CHKERRQ(ierr); }
   if (power->nonlinear) {
     ierr = PetscObjectCompose((PetscObject)power->snes,"eps",(PetscObject)eps);CHKERRQ(ierr);
-    if (power->update) {
+    /* Compute an intial guess only when users do not provide one */
+    if (power->update && !eps->nini) {
       ierr = EPSPowerComputeInitialGuess_Update(eps);CHKERRQ(ierr);
     }
   } else {
@@ -394,6 +413,10 @@ PetscErrorCode EPSSolve_Power(EPS eps)
   }
   if (power->nonlinear) {
     ierr = BVGetColumn(eps->V,0,&v);CHKERRQ(ierr);
+    if (eps->nini) {
+      /* We scale the initial vector back if the initial vector was provided by users */
+      ierr = VecScale(v,power->norm0);CHKERRQ(ierr);
+    }
     ierr = EPSPowerUpdateFunctionB(eps,v,Bx);CHKERRQ(ierr);
     ierr = VecNorm(Bx,NORM_2,&norm);CHKERRQ(ierr);
     ierr = FirstNonzeroIdx(Bx,&power->idx,&power->p);CHKERRQ(ierr);
@@ -438,7 +461,8 @@ PetscErrorCode EPSSolve_Power(EPS eps)
       ierr = DSRestoreArray(eps->ds,DS_MAT_A,&T);CHKERRQ(ierr);
     }
 
-    if (power->nonlinear) theta = norm*sign;
+    /* Eigenvalue: 1/|Bx| */
+    if (power->nonlinear) theta = 1.0/norm*sign;
 
     if (power->shift_type == EPS_POWER_SHIFT_CONSTANT) { /* direct & inverse iteration */
 
@@ -451,7 +475,10 @@ PetscErrorCode EPSSolve_Power(EPS eps)
       ierr = VecAXPY(e,power->nonlinear?-1.0:-theta,v);CHKERRQ(ierr);
       ierr = BVRestoreColumn(eps->V,k,&v);CHKERRQ(ierr);
       ierr = VecNorm(e,NORM_2,&relerr);CHKERRQ(ierr);
-      relerr /= PetscAbsScalar(theta);
+      if (power->nonlinear)
+        relerr *= PetscAbsScalar(theta);
+      else
+        relerr /= PetscAbsScalar(theta);
 
     } else {  /* RQI */
 
@@ -1161,7 +1188,12 @@ PetscErrorCode EPSSetDefaultST_Power(EPS eps)
 
   PetscFunctionBegin;
   if (power->nonlinear) {
+    eps->categ=EPS_CATEGORY_PRECOND;
     ierr = STGetKSP(eps->st,&ksp);CHKERRQ(ierr);
+    /* Set ST as STPRECOND so it can carry one preconditioning matrix
+     * It is useful when A and B are shell matrices
+     */
+    ierr = STSetType(eps->st,STPRECOND);CHKERRQ(ierr);
     ierr = KSPGetPC(ksp,&pc);CHKERRQ(ierr);
     ierr = PCSetType(pc,PCNONE);CHKERRQ(ierr);
   }
@@ -1201,4 +1233,3 @@ SLEPC_EXTERN PetscErrorCode EPSCreate_Power(EPS eps)
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSPowerGetSNES_C",EPSPowerGetSNES_Power);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
-
