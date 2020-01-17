@@ -29,7 +29,7 @@ static PetscErrorCode STSetDefaultKSP_Precond(ST st)
 
   PetscFunctionBegin;
   ierr = KSPGetPC(st->ksp,&pc);CHKERRQ(ierr);
-  ierr = PetscObjectGetType((PetscObject)pc,&pctype);CHKERRQ(ierr);
+  ierr = PCGetType(pc,&pctype);CHKERRQ(ierr);
   P = ctx->mat;
   if (!pctype && st->A && st->A[0]) {
     if (P || st->matmode == ST_MATMODE_SHELL) {
@@ -48,26 +48,23 @@ static PetscErrorCode STSetDefaultKSP_Precond(ST st)
 
 PetscErrorCode STSetUp_Precond(ST st)
 {
-  Mat            P;
   PC             pc;
   PetscBool      t0,destroyP=PETSC_FALSE,builtP;
   ST_PRECOND     *ctx = (ST_PRECOND*)st->data;
+  Mat            P = ctx->mat;
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
   /* if the user did not set the shift, use the target value */
   if (!st->sigma_set) st->sigma = st->defsigma;
 
-  /* If either pc is none and no matrix has to be set, or pc is shell , exit */
+  /* If either pc is none and no matrix has to be set, or pc is shell, exit */
   if (!st->ksp) { ierr = STGetKSP(st,&st->ksp);CHKERRQ(ierr); }
   ierr = KSPGetPC(st->ksp,&pc);CHKERRQ(ierr);
   ierr = PetscObjectTypeCompare((PetscObject)pc,PCSHELL,&t0);CHKERRQ(ierr);
   if (t0) PetscFunctionReturn(0);
   ierr = PetscObjectTypeCompare((PetscObject)pc,PCNONE,&t0);CHKERRQ(ierr);
   if (t0 && !ctx->setmat) PetscFunctionReturn(0);
-
-  /* Check if a user matrix is set */
-  P = ctx->mat;
 
   /* If not, create A - shift*B */
   if (P) {
@@ -325,6 +322,7 @@ SLEPC_EXTERN PetscErrorCode STCreate_Precond(ST st)
   PetscFunctionBegin;
   ierr = PetscNewLog(st,&ctx);CHKERRQ(ierr);
   st->data = (void*)ctx;
+  ctx->setmat = PETSC_TRUE;
 
   st->usesksp = PETSC_TRUE;
 
@@ -338,8 +336,6 @@ SLEPC_EXTERN PetscErrorCode STCreate_Precond(ST st)
   ierr = PetscObjectComposeFunction((PetscObject)st,"STPrecondSetMatForPC_C",STPrecondSetMatForPC_Precond);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)st,"STPrecondGetKSPHasMat_C",STPrecondGetKSPHasMat_Precond);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)st,"STPrecondSetKSPHasMat_C",STPrecondSetKSPHasMat_Precond);CHKERRQ(ierr);
-
-  ierr = STPrecondSetKSPHasMat_Precond(st,PETSC_TRUE);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
