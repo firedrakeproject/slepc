@@ -65,6 +65,7 @@ variables:
     - git pull
     - export PETSC_DIR=$PWD
     - ${PYTHON} ./configure --with-debugging=0 COPTFLAGS='-O -march=native' CXXOPTFLAGS='-O -march=native' FOPTFLAGS='-O -march=native' ${PETSC_CONFIG_OPTS}
+    - make allfortranstubs
     - make CFLAGS=-Werror CXXFLAGS=-Werror
     - export PETSC_ARCH=`ls -d arch-*`
     - cd $SLEPC_DIR
@@ -98,7 +99,7 @@ mpich-cxx-py3:
   extends: .stage-1
   variables:
     PYTHON: python3
-    PETSC_CONFIG_OPTS: --with-mpi-dir=/usr/local --with-clanguage=cxx --with-fc=0
+    PETSC_CONFIG_OPTS: --with-mpi-dir=/usr/local --with-clanguage=cxx --with-fc=0 --download-sowing
     TEST_SEARCH: eps_tests-test10_1
 
 uni-complex-float-int64:
@@ -136,7 +137,8 @@ checksource:
     - if [ $(awk '/define SLEPC_VERSION_RELEASE/{print $3}' $SLEPC_DIR/include/slepcversion.h) == 1 ]; then git checkout maint; else git checkout master; fi
     - git pull
     - export PETSC_DIR=$PWD
-    - python3 ./configure --with-mpi=0 --with-fc=0 --with-cxx=0
+    - python3 ./configure --with-mpi=0 --with-fc=0 --with-cxx=0 --download-sowing
+    - make allfortranstubs
     - make
     - export PETSC_ARCH=`ls -d arch-*`
     - cd $SLEPC_DIR
@@ -171,6 +173,7 @@ checksource:
     - export PETSC_DIR=$PWD
     - export PETSC_ARCH=arch-$CI_JOB_NAME
     - bash -c "${PYTHON} ./configure --with-debugging=0 --COPTFLAGS='-O -g' --CXXOPTFLAGS='-O -g' --FOPTFLAGS='-O -g' --CUDAOPTFLAGS='-O' --CUDAFLAGS='-ccbin gcc-5' ${PETSC_CONFIG_OPTS}"
+    - make allfortranstubs
     - make CFLAGS=${MAKE_CFLAGS} CXXFLAGS=${MAKE_CXXFLAGS}
     - cd $SLEPC_DIR
     - ${PYTHON} ./configure ${SLEPC_CONFIG_OPTS}
@@ -352,7 +355,7 @@ linux-clang-c:
   tags:
     - linux-ubuntu
   variables:
-    PETSC_CONFIG_OPTS: --with-cc=/usr/local/mpich-3.3.1-clang/bin/mpicc --with-cxx=0 --with-fc=0
+    PETSC_CONFIG_OPTS: --with-cc=/usr/local/mpich-3.3.1-clang/bin/mpicc --with-cxx=0 --with-fc=0 --download-sowing
 
 linux-gnu-c-complex-multilib:
   extends:
@@ -403,7 +406,7 @@ linux-gnu-c-c89:
   tags:
     - linux-debian
   variables:
-    PETSC_CONFIG_OPTS: --CFLAGS='-std=c89 -pedantic -Wno-long-long -Wno-overlength-strings' --with-fortran-bindings=0
+    PETSC_CONFIG_OPTS: --CFLAGS='-std=c89 -pedantic -Wno-long-long -Wno-overlength-strings' --with-fortran-bindings=0 --download-sowing
     SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --with-arpack-flags=/usr/local/opt/ARPACK/libparpack.a,/usr/local/opt/ARPACK/libarpack.a,-lgfortran,-lmpi_usempif08,-lmpi_usempi_ignore_tkr,-lmpi_mpifh,-lmpi --download-blopex --with-blzpack-dir=/usr/local/opt/blzpack/lib --with-trlan-dir=/usr/local/opt/trlan-201009
 
 linux-gnu-c-debug:
@@ -484,7 +487,7 @@ linux-clang-c-valgrind:
   tags:
     - linux-ubuntu
   variables:
-    PETSC_CONFIG_OPTS: --with-cc=/usr/local/mpich-3.3.1-clang/bin/mpicc --with-cxx=0 --with-fc=0 --with-shared-libraries=0
+    PETSC_CONFIG_OPTS: --with-cc=/usr/local/mpich-3.3.1-clang/bin/mpicc --with-cxx=0 --with-fc=0 --with-shared-libraries=0 --download-sowing
     SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local
 
 linux-gnu-c-float128:
