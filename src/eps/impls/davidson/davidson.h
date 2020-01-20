@@ -18,6 +18,28 @@
 #include <slepc/private/epsimpl.h>
 #include <slepc/private/vecimplslepc.h>
 
+typedef PetscInt MatType_t;
+#define DVD_MAT_HERMITIAN (1<<1)
+#define DVD_MAT_NEG_DEF (1<<2)
+#define DVD_MAT_POS_DEF (1<<3)
+#define DVD_MAT_SINGULAR (1<<4)
+#define DVD_MAT_COMPLEX (1<<5)
+#define DVD_MAT_IMPLICIT (1<<6)
+#define DVD_MAT_IDENTITY (1<<7)
+#define DVD_MAT_DIAG (1<<8)
+#define DVD_MAT_TRIANG (1<<9)
+#define DVD_MAT_UTRIANG (1<<9)
+#define DVD_MAT_LTRIANG (1<<10)
+#define DVD_MAT_UNITARY (1<<11)
+
+typedef PetscInt EPType_t;
+#define DVD_EP_STD (1<<1)
+#define DVD_EP_HERMITIAN (1<<2)
+#define DVD_EP_INDEFINITE (1<<3)
+
+#define DVD_IS(T,P) ((T) & (P))
+#define DVD_ISNOT(T,P) (((T) & (P)) ^ (P))
+
 struct _dvdDashboard;
 typedef PetscErrorCode (*dvdCallback)(struct _dvdDashboard*);
 typedef struct _dvdFunctionList {
