@@ -133,7 +133,7 @@ struct _p_PEP {
 
 #define PEPCheckSolved(h,arg) \
   do { \
-    if (h->state<PEP_STATE_SOLVED) SETERRQ1(PetscObjectComm((PetscObject)h),PETSC_ERR_ARG_WRONGSTATE,"Must call PEPSolve() first: Parameter #%d",arg); \
+    if ((h)->state<PEP_STATE_SOLVED) SETERRQ1(PetscObjectComm((PetscObject)(h)),PETSC_ERR_ARG_WRONGSTATE,"Must call PEPSolve() first: Parameter #%d",arg); \
   } while (0)
 
 #endif

@@ -143,7 +143,7 @@ struct _p_EPS {
 
 #define EPSCheckSolved(h,arg) \
   do { \
-    if (h->state<EPS_STATE_SOLVED) SETERRQ1(PetscObjectComm((PetscObject)h),PETSC_ERR_ARG_WRONGSTATE,"Must call EPSSolve() first: Parameter #%d",arg); \
+    if ((h)->state<EPS_STATE_SOLVED) SETERRQ1(PetscObjectComm((PetscObject)(h)),PETSC_ERR_ARG_WRONGSTATE,"Must call EPSSolve() first: Parameter #%d",arg); \
   } while (0)
 
 #endif

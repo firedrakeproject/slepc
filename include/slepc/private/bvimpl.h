@@ -233,12 +233,12 @@ PETSC_STATIC_INLINE PetscErrorCode BV_AllocateSignature(BV bv)
 
 #define BVCheckSizes(h,arg) \
   do { \
-    if (!h->m) SETERRQ1(PetscObjectComm((PetscObject)h),PETSC_ERR_ARG_WRONGSTATE,"BV sizes have not been defined: Parameter #%d",arg); \
+    if (!(h)->m) SETERRQ1(PetscObjectComm((PetscObject)(h)),PETSC_ERR_ARG_WRONGSTATE,"BV sizes have not been defined: Parameter #%d",arg); \
   } while (0)
 
 #define BVCheckOp(h,arg,op) \
   do { \
-    if (!h->ops->op) SETERRQ1(PetscObjectComm((PetscObject)h),PETSC_ERR_SUP,"Operation not implemented in this BV type: Parameter #%d",arg); \
+    if (!(h)->ops->op) SETERRQ1(PetscObjectComm((PetscObject)(h)),PETSC_ERR_SUP,"Operation not implemented in this BV type: Parameter #%d",arg); \
   } while (0)
 
 #endif
