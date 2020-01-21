@@ -252,7 +252,7 @@ PetscErrorCode STApply_Exp(ST st,Vec x,Vec y)
       args: -n 56 -eps_nev 2 -st_type sinvert -eps_target -390 -eps_target_magnitude -eps_type power
       args: -eps_power_shift_type {{constant rayleigh}} -eps_two_sided {{0 1}} -eps_tol 1e-14 -terse
       requires: c99_complex !single
-      filter: sed -e "s/[+-]0.0*i//"
+      filter: sed -e "s/[+-]0\.0*i//g"
       output_file: output/ex36_2.out
 
 TEST*/
