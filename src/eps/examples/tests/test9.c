@@ -258,4 +258,16 @@ PetscErrorCode MyEigenSort(PetscScalar ar,PetscScalar ai,PetscScalar br,PetscSca
       requires: x !single
       output_file: output/test9_1.out
 
+   test:
+      suffix: 9
+      args: -eps_nev 3 -st_type sinvert -eps_target .5 -st_ksp_type hpddm -st_ksp_hpddm_type gcrodr -eps_ncv 10
+      requires: hpddm
+      output_file: output/test9_5.out
+
+   test:
+      suffix: 10
+      args: -eps_nev 3 -st_type sinvert -eps_target .5 -st_pc_type hpddm -st_pc_hpddm_coarse_pc_type lu -eps_ncv 10
+      requires: hpddm
+      output_file: output/test9_5.out
+
 TEST*/

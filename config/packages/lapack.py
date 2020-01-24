@@ -26,7 +26,7 @@ class Lapack(package.Package):
       self.log.Println('WARNING: Some SLEPc functionality will not be available')
       self.log.Println('PLEASE reconfigure and recompile PETSc with a full LAPACK implementation')
 
-  def Process(self,conf,vars,petsc,archdir=''):
+  def Process(self,conf,vars,slepc,petsc,archdir=''):
     self.make = petsc.make
     self.mangling = petsc.blaslapackmangling
     if petsc.buildsharedlib:

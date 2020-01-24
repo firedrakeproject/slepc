@@ -73,7 +73,7 @@ class Package:
         self.packageurl = url
         self.downloadpackage = flag
 
-  def Process(self,conf,vars,petsc,archdir=''):
+  def Process(self,conf,vars,slepc,petsc,archdir=''):
     self.make = petsc.make
     if petsc.buildsharedlib:
       self.slflag = petsc.slflag
@@ -85,7 +85,7 @@ class Package:
         else:
           self.log.NewSection('Installing '+name+'...')
         self.Precondition(petsc)
-        self.Install(conf,vars,petsc,archdir)
+        self.Install(conf,vars,slepc,petsc,archdir)
       elif self.installable:
         self.log.NewSection('Checking '+name+'...')
         self.Precondition(petsc)

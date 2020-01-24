@@ -10,6 +10,12 @@
 
 #include <slepc/private/slepcimpl.h>           /*I "slepcsys.h" I*/
 
+#if defined(SLEPC_HAVE_HPDDM)
+#include <petscksp.h>
+SLEPC_EXTERN PetscErrorCode KSPCreate_HPDDM(KSP);
+SLEPC_EXTERN PetscErrorCode PCCreate_HPDDM(PC);
+#endif
+
 /*@C
     SlepcGetVersion - Gets the SLEPc version information in a string.
 
@@ -199,6 +205,11 @@ PetscErrorCode SlepcInitialize_DynamicLibraries(void)
   ierr = NEPInitializePackage();CHKERRQ(ierr);
   ierr = MFNInitializePackage();CHKERRQ(ierr);
   ierr = LMEInitializePackage();CHKERRQ(ierr);
+#endif
+
+#if defined(SLEPC_HAVE_HPDDM)
+  ierr = KSPRegister(KSPHPDDM,KSPCreate_HPDDM);CHKERRQ(ierr);
+  ierr = PCRegister(PCHPDDM,PCCreate_HPDDM);CHKERRQ(ierr);
 #endif
   PetscFunctionReturn(0);
 }
