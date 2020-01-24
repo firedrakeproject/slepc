@@ -19,4 +19,4 @@ Symmetric-definite problem with two intervals, N=1225 (35x35 grid)
      1.57097, 1.57361, 1.57644, 1.57677, 1.57738, 1.57738, 1.57837, 1.58355, 
      1.58780, 1.58873, 1.58897, 1.59245, 1.59435, 1.59594
 
- Found 38 eigenvalues in interval [1.5,1.6]
+ Found 38 eigenvalues in interval [1.499,1.6]

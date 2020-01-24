@@ -114,7 +114,7 @@ int main(int argc,char **argv)
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                  Solve for second interval and display info
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-  ierr = EPSSetInterval(eps,1.5,1.6);CHKERRQ(ierr);
+  ierr = EPSSetInterval(eps,1.499,1.6);CHKERRQ(ierr);
   ierr = EPSSolve(eps);CHKERRQ(ierr);
   ierr = EPSGetDimensions(eps,&nev,NULL,NULL);CHKERRQ(ierr);
   ierr = EPSGetInterval(eps,&int0,&int1);CHKERRQ(ierr);
