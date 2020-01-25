@@ -25,7 +25,7 @@ class Trlan(package.Package):
     self.fortran        = True
     self.ProcessArgs(argdb)
 
-  def Check(self,conf,vars,petsc):
+  def Check(self,conf,vars,petsc,archdir):
     functions = ['trlan77']
     if self.packagelibs:
       libs = [self.packagelibs]
@@ -38,7 +38,7 @@ class Trlan(package.Package):
     if self.packagedir:
       dirs = [self.packagedir]
     else:
-      dirs = self.GenerateGuesses('TRLan')
+      dirs = self.GenerateGuesses('TRLan',archdir)
 
     self.FortranLib(conf,vars,dirs,libs,functions)
 

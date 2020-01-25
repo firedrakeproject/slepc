@@ -51,7 +51,7 @@ class Arpack(package.Package):
     return functions
 
 
-  def Check(self,conf,vars,petsc):
+  def Check(self,conf,vars,petsc,archdir):
     functions = self.Functions(petsc)
     if self.packagelibs:
       libs = [self.packagelibs]
@@ -64,7 +64,7 @@ class Arpack(package.Package):
     if self.packagedir:
       dirs = [self.packagedir]
     else:
-      dirs = self.GenerateGuesses('Arpack')
+      dirs = self.GenerateGuesses('Arpack',archdir)
 
     self.FortranLib(conf,vars,dirs,libs,functions)
 

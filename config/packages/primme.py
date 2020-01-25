@@ -36,12 +36,12 @@ class Primme(package.Package):
     package.Package.ShowHelp(self)
     print(('  --download-'+self.packagename+'-cflags=<flags>').ljust(package.Package.wd)+': Extra flags to compile '+self.packagename.upper())
  
-  def Check(self,conf,vars,petsc):
+  def Check(self,conf,vars,petsc,archdir):
     functions_base = ['primme_set_method','primme_free','primme_initialize']
     if self.packagedir:
       dirs = [os.path.join(self.packagedir,'lib')]
     else:
-      dirs = self.GenerateGuesses('Primme')
+      dirs = self.GenerateGuesses('Primme',archdir)
 
     libs = self.packagelibs
     if not libs:

@@ -20,7 +20,7 @@ class Blzpack(package.Package):
     self.supportssingle = True
     self.ProcessArgs(argdb)
 
-  def Check(self,conf,vars,petsc):
+  def Check(self,conf,vars,petsc,archdir):
     if petsc.precision == 'single':
       functions = ['blzdrs']
     else:
@@ -34,7 +34,7 @@ class Blzpack(package.Package):
     if self.packagedir:
       dirs = [self.packagedir]
     else:
-      dirs = self.GenerateGuesses('Blzpack')
+      dirs = self.GenerateGuesses('Blzpack',archdir)
 
     self.FortranLib(conf,vars,dirs,libs,functions)
 

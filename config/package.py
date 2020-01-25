@@ -89,7 +89,7 @@ class Package:
       elif self.installable:
         self.log.NewSection('Checking '+name+'...')
         self.Precondition(petsc)
-        self.Check(conf,vars,petsc)
+        self.Check(conf,vars,petsc,archdir)
       try:
         self.LoadVersion(conf)
         self.log.write('Version number for '+name+' is '+self.iversion)
@@ -287,7 +287,7 @@ Unable to download package %s from: %s
 
     return ('',output + output1 + output2 + output3)
 
-  def GenerateGuesses(self,name):
+  def GenerateGuesses(self,name,archdir):
     installdirs = [os.path.join(os.path.sep,'usr','local'),os.path.join(os.path.sep,'opt')]
     if 'HOME' in os.environ:
       installdirs.insert(0,os.environ['HOME'])
@@ -303,7 +303,7 @@ Unable to download package %s from: %s
     for d in dirs[:]:
       if not os.path.exists(d):
         dirs.remove(d)
-    dirs = [''] + dirs
+    dirs = [''] + dirs + [os.path.join(archdir,'lib')]
     return dirs
 
   def FortranLib(self,conf,vars,dirs,libs,functions,callbacks = []):

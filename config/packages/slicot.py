@@ -26,7 +26,7 @@ class Slicot(package.Package):
     self.ProcessArgs(argdb)
 
 
-  def Check(self,conf,vars,petsc):
+  def Check(self,conf,vars,petsc,archdir):
     functions = ['sb03od']
     if self.packagelibs:
       libs = [self.packagelibs]
@@ -36,7 +36,7 @@ class Slicot(package.Package):
     if self.packagedir:
       dirs = [self.packagedir]
     else:
-      dirs = self.GenerateGuesses('slicot')
+      dirs = self.GenerateGuesses('slicot',archdir)
 
     self.FortranLib(conf,vars,dirs,libs,functions)
 
