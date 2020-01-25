@@ -140,9 +140,9 @@ lapack  = lapack.Lapack(argdb,log)
 slicot  = slicot.Slicot(argdb,log)
 hpddm   = hpddm.HPDDM(argdb,log)
 
-externalpackages = [arpack, blopex, blzpack, primme, slicot, trlan, hpddm]
-optionspackages  = [slepc, arpack, blopex, blzpack, primme, slicot, trlan, hpddm, sowing]
-checkpackages    = [arpack, blopex, blzpack, primme, slicot, trlan, lapack, hpddm]
+externalpackages = [arpack, blopex, blzpack, hpddm, primme, slicot, trlan]
+optionspackages  = [slepc, sowing] + externalpackages
+checkpackages    = externalpackages + [lapack]
 
 # Print help if requested and check for wrong command-line options
 if argdb.PopHelp():
