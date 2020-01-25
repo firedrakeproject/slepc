@@ -330,14 +330,14 @@ if not slepc.isinstall: reconfig.close()
 # Download sowing if requested and make Fortran stubs if necessary
 bfort = petsc.bfort
 if sowing.downloadpackage:
-  bfort = sowing.Install(archdir,petsc.make)
+  bfort = sowing.DownloadAndInstall(archdir,petsc.make)
 
 if slepc.isrepo and petsc.fortran:
   try:
     if not os.path.exists(bfort):
       bfort = os.path.join(archdir,'bin','bfort')
     if not os.path.exists(bfort):
-      bfort = sowing.Install(archdir,petsc.make)
+      bfort = sowing.DownloadAndInstall(archdir,petsc.make)
     log.NewSection('Generating Fortran stubs...')
     log.write('Using BFORT='+bfort)
     sys.path.insert(0, os.path.abspath(os.path.join('lib','slepc','bin','maint')))

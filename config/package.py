@@ -27,8 +27,8 @@ else:
 class Package:
 
   def __init__(self,argdb,log):
-    self.installable     = False
-    self.downloadable    = False
+    self.installable     = False  # an already installed package can be picked --with-xxx-dir
+    self.downloadable    = False  # package can be downloaded and installed with --download-xxx
     self.downloadpackage = 0
     self.packagedir      = ''
     self.packagelibs     = []
@@ -85,7 +85,7 @@ class Package:
         else:
           self.log.NewSection('Installing '+name+'...')
         self.Precondition(petsc)
-        self.Install(conf,vars,slepc,petsc,archdir)
+        self.DownloadAndInstall(conf,vars,slepc,petsc,archdir)
       elif self.installable:
         self.log.NewSection('Checking '+name+'...')
         self.Precondition(petsc)

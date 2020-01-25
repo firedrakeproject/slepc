@@ -38,7 +38,7 @@ class HPDDM(package.Package):
       self.log.Exit('ERROR: '+pkg+' requires PETSc to be built without '+pkg+'.')
     package.Package.Precondition(self,petsc)
 
-  def Install(self,conf,vars,slepc,petsc,archdir):
+  def DownloadAndInstall(self,conf,vars,slepc,petsc,archdir):
     externdir = os.path.join(archdir,'externalpackages')
     builddir  = os.path.join(externdir,self.dirname)
     if slepc.prefixdir:

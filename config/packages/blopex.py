@@ -22,7 +22,7 @@ class Blopex(package.Package):
     self.dirname      = 'blopex-'+self.version
     self.ProcessArgs(argdb)
 
-  def Install(self,conf,vars,slepc,petsc,archdir):
+  def DownloadAndInstall(self,conf,vars,slepc,petsc,archdir):
     externdir = os.path.join(archdir,'externalpackages')
     builddir  = os.path.join(externdir,self.dirname)
     self.Download(externdir,builddir)
