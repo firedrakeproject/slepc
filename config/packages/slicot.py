@@ -16,7 +16,6 @@ class Slicot(package.Package):
     package.Package.__init__(self,argdb,log)
     self.packagename    = 'slicot'
     self.installable    = True
-    self.downloadable   = True
     self.version        = '4.5'
     self.url            = 'http://slicot.org/objects/software/shared/slicot45.tar.gz'
     self.archive        = 'slicot45.tar.gz'
