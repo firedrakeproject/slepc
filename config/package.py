@@ -32,12 +32,16 @@ class Package:
     self.downloadpackage = 0
     self.packagedir      = ''
     self.packagelibs     = []
+    self.packageincludes = []
     self.packageurl      = ''
+    self.buildflags      = ''
     self.log             = log
     self.supportsscalar  = ['real', 'complex']
     self.supportssingle  = False
     self.supports64bint  = False
     self.fortran         = False
+    self.hasheaders      = False
+    self.hasdloadflags   = False
 
   def RunCommand(self,instr):
     try:
@@ -56,14 +60,20 @@ class Package:
       if found:
         self.requested = True
         self.packagedir = string
-      string,found = argdb.PopString('with-'+self.packagename+'-flags')
+      string,found = argdb.PopString('with-'+self.packagename+'-lib')
       if found:
         self.requested = True
         self.packagelibs = string.split(',')
+      if self.hasheaders:
+        string,found = argdb.PopString('with-'+self.packagename+'-include')
+        if found:
+          self.requested = True
+          self.packageincludes = string.split(',')
       value,found = argdb.PopBool('with-'+self.packagename)
       if found:
         self.requested = value
     if self.downloadable:
+      string,cflagsfound = argdb.PopString('download-'+self.packagename+'-cflags')
       url,flag,found = argdb.PopUrl('download-'+self.packagename)
       if found:
         if self.requested:
@@ -72,6 +82,10 @@ class Package:
         self.download = True
         self.packageurl = url
         self.downloadpackage = flag
+      if cflagsfound:
+        if not hasattr(self,'download') or not self.download:
+          self.log.Exit('ERROR: --download-'+self.packagename+'-cflags must be used together with --download-'+self.packagename)
+        self.buildflags = string
 
   def Process(self,conf,vars,slepc,petsc,archdir=''):
     self.make = petsc.make
@@ -182,11 +196,15 @@ Unable to download package %s from: %s
     if self.downloadable or self.installable:
       print(self.packagename.upper()+':')
     if self.downloadable:
-      print(('  --download-'+self.packagename+'[=<fname>]').ljust(wd)+': Download and install '+self.packagename.upper()+' in SLEPc directory')
+      print(('  --download-'+self.packagename+'[=<fname>]').ljust(wd)+': Download and install '+self.packagename.upper())
+      if self.hasdloadflags:
+        print(('  --download-'+self.packagename+'-cflags=<flags>').ljust(wd)+': Indicate extra flags to compile '+self.packagename.upper())
     if self.installable:
       print(('  --with-'+self.packagename+'=<bool>').ljust(wd)+': Indicate if you wish to test for '+self.packagename.upper())
-      print(('  --with-'+self.packagename+'-dir=<dir>').ljust(wd)+': Indicate the directory for '+self.packagename.upper()+' libraries')
-      print(('  --with-'+self.packagename+'-flags=<flags>').ljust(wd)+': Indicate comma-separated flags for linking '+self.packagename.upper())
+      print(('  --with-'+self.packagename+'-dir=<dir>').ljust(wd)+': Indicate the root directory of the '+self.packagename.upper()+' installation')
+      print(('  --with-'+self.packagename+'-lib=<libraries>').ljust(wd)+': Indicate comma-separated libraries and link flags for '+self.packagename.upper())
+      if self.hasheaders:
+        print(('  --with-'+self.packagename+'-include=<dirs>').ljust(wd)+': Indicate the directory of the '+self.packagename.upper()+' include files')
 
   def ShowInfo(self):
     if self.havepackage:
@@ -199,7 +217,7 @@ Unable to download package %s from: %s
     else:
       return []
 
-  def LinkWithOutput(self,functions,callbacks,flags,givencode=''):
+  def LinkWithOutput(self,functions,callbacks,flags,givencode='',cflags=''):
 
     # Create temporary directory and makefile
     try:
@@ -209,8 +227,9 @@ Unable to download package %s from: %s
       self.log.Exit('ERROR: Cannot create temporary directory')
     try:
       makefile = open(os.path.join(tmpdir,'makefile'),'w')
+      if cflags!='': makefile.write('CFLAGS='+cflags+'\n')
       makefile.write('checklink: checklink.o\n')
-      makefile.write('\t${CLINKER} -o checklink checklink.o ${TESTFLAGS} ${PETSC_SNES_LIB}\n')
+      makefile.write('\t${CLINKER} -o checklink checklink.o ${LINKFLAGS} ${PETSC_SNES_LIB}\n')
       makefile.write('\t@${RM} -f checklink checklink.o\n')
       makefile.write('LOCDIR = ./\n')
       makefile.write('include '+os.path.join('${PETSC_DIR}','lib','petsc','conf','variables')+'\n')
@@ -245,7 +264,7 @@ Unable to download package %s from: %s
     cfile.close()
 
     # Try to compile test program
-    (result, output) = self.RunCommand('cd ' + tmpdir + ';' + self.make + ' checklink TESTFLAGS="'+' '.join(flags)+'"')
+    (result, output) = self.RunCommand('cd ' + tmpdir + ';' + self.make + ' checklink LINKFLAGS="'+' '.join(flags)+'"')
     shutil.rmtree(tmpdir)
 
     if result:
@@ -287,23 +306,23 @@ Unable to download package %s from: %s
 
     return ('',output + output1 + output2 + output3)
 
-  def GenerateGuesses(self,name,archdir):
+  def GenerateGuesses(self,name,archdir,word='lib'):
     installdirs = [os.path.join(os.path.sep,'usr','local'),os.path.join(os.path.sep,'opt')]
     if 'HOME' in os.environ:
       installdirs.insert(0,os.environ['HOME'])
 
     dirs = []
     for i in installdirs:
-      dirs = dirs + [os.path.join(i,'lib')]
+      dirs = dirs + [os.path.join(i,word)]
       for d in [name,name.upper(),name.lower()]:
         dirs = dirs + [os.path.join(i,d)]
-        dirs = dirs + [os.path.join(i,d,'lib')]
-        dirs = dirs + [os.path.join(i,'lib',d)]
+        dirs = dirs + [os.path.join(i,d,word)]
+        dirs = dirs + [os.path.join(i,word,d)]
 
     for d in dirs[:]:
       if not os.path.exists(d):
         dirs.remove(d)
-    dirs = [''] + dirs + [os.path.join(archdir,'lib')]
+    dirs = [''] + dirs + [os.path.join(archdir,word)]
     return dirs
 
   def FortranLib(self,conf,vars,dirs,libs,functions,callbacks = []):
@@ -330,7 +349,7 @@ Unable to download package %s from: %s
       self.log.write(error)
       self.log.Println('\nERROR: Unable to link with library '+ name)
       self.log.Println('ERROR: In directories '+' '.join(dirs))
-      self.log.Println('ERROR: With flags '+' '.join(flags))
+      self.log.Println('ERROR: With libraries and link flags '+' '.join(flags))
       self.log.Exit('')
 
     conf.write('#define SLEPC_HAVE_' + name + ' 1\n#define SLEPC_' + name + '_HAVE_'+mangling+' 1\n')

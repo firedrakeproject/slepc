@@ -77,9 +77,11 @@ class HPDDM(package.Package):
       for name in files:
         shutil.copyfile(os.path.join(builddir,'include',name),os.path.join(installdir,'include',name))
     l = petsc.slflag+d+' -L'+d+' -lhpddm_petsc'
+    f = '-I'+os.path.join(installdir,'include')
+    # Write configuration files
     conf.write('#define SLEPC_HAVE_HPDDM 1\n')
     vars.write('HPDDM_LIB = '+l+'\n')
-    vars.write('HPDDM_INCLUDE = -I'+os.path.join(installdir,'include')+'\n')
-    self.packageflags = [l]
+    vars.write('HPDDM_INCLUDE = '+f+'\n')
+    self.packageflags = [l] + [f]
     self.havepackage = True
 

@@ -20,6 +20,7 @@ class Blopex(package.Package):
     self.url          = 'http://slepc.upv.es/download/external/blopex-'+self.version+'.tar.gz'
     self.archive      = 'blopex.tar.gz'
     self.dirname      = 'blopex-'+self.version
+    self.hasheaders   = True
     self.ProcessArgs(argdb)
 
   def DownloadAndInstall(self,conf,vars,slepc,petsc,archdir):
@@ -70,6 +71,7 @@ class Blopex(package.Package):
     # Write configuration files
     conf.write('#define SLEPC_HAVE_BLOPEX 1\n')
     vars.write('BLOPEX_LIB = ' + l + '\n')
+    vars.write('BLOPEX_INCLUDE = ' + f + '\n')
 
     self.havepackage = True
     self.packageflags = [l] + [f]

@@ -65,7 +65,6 @@ class Arpack(package.Package):
       dirs = [self.packagedir]
     else:
       dirs = self.GenerateGuesses('Arpack',archdir)
-
     self.FortranLib(conf,vars,dirs,libs,functions)
 
 
@@ -99,5 +98,4 @@ class Arpack(package.Package):
     libDir = os.path.join(archdir,'lib')
     dirs = [libDir]
     self.FortranLib(conf,vars,dirs,libs,functions)
-    self.havepackage = True
 

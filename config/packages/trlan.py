@@ -83,5 +83,4 @@ class Trlan(package.Package):
     libDir = os.path.join(archdir,'lib')
     dirs = [libDir]
     self.FortranLib(conf,vars,dirs,libs,functions)
-    self.havepackage = True
 
