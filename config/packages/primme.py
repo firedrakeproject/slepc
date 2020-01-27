@@ -91,7 +91,7 @@ class Primme(package.Package):
     self.log.Exit('')
 
 
-  def DownloadAndInstall(self,conf,vars,slepc,petsc,archdir):
+  def DownloadAndInstall(self,conf,vars,slepc,petsc,archdir,prefixdir):
     externdir = os.path.join(archdir,'externalpackages')
     builddir  = os.path.join(externdir,self.dirname)
     self.Download(externdir,builddir,'primme-')
@@ -113,7 +113,7 @@ class Primme(package.Package):
     g.write('export INCLUDE     = \n')
     g.write('export CFLAGS      = '+petsc.cc_flags.replace('-Wall','').replace('-Wshadow','').replace('-fvisibility=hidden','')+' '+self.buildflags+'\n')
     g.write('export RANLIB      = '+petsc.ranlib+'\n')
-    g.write('export PREFIX      = '+archdir+'\n')
+    g.write('export PREFIX      = '+prefixdir+'\n')
     g.write('include makefile\n')
     g.close()
 
@@ -126,19 +126,18 @@ class Primme(package.Package):
       self.log.Exit('ERROR: installation of PRIMME failed.')
 
     # Move files
-    incDir = os.path.join(archdir,'include')
-    libDir = os.path.join(archdir,'lib')
+    incdir,libdir = self.CreatePrefixDirs(prefixdir)
     if not petsc.buildsharedlib:
-      os.rename(os.path.join(builddir,'lib','libprimme.'+petsc.ar_lib_suffix),os.path.join(libDir,'libprimme.'+petsc.ar_lib_suffix))
+      os.rename(os.path.join(builddir,'lib','libprimme.'+petsc.ar_lib_suffix),os.path.join(libdir,'libprimme.'+petsc.ar_lib_suffix))
       for root, dirs, files in os.walk(os.path.join(builddir,'include')):
         for name in files:
-          shutil.copyfile(os.path.join(builddir,'include',name),os.path.join(incDir,name))
+          shutil.copyfile(os.path.join(builddir,'include',name),os.path.join(incdir,name))
 
     if petsc.buildsharedlib:
-      l = petsc.slflag + libDir + ' -L' + libDir + ' -lprimme'
+      l = petsc.slflag + libdir + ' -L' + libdir + ' -lprimme'
     else:
-      l = '-L' + libDir + ' -lprimme'
-    f = '-I' + incDir
+      l = '-L' + libdir + ' -lprimme'
+    f = '-I' + incdir
 
     # Check build
     code = self.SampleCode(petsc)
@@ -152,7 +151,7 @@ class Primme(package.Package):
     vars.write('PRIMME_LIB = ' + l + '\n')
     vars.write('PRIMME_INCLUDE = ' + f + '\n')
 
-    self.location = incDir
+    self.location = incdir
     self.havepackage = True
     self.packageflags = [l] + [f]
 

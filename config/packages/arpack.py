@@ -68,7 +68,7 @@ class Arpack(package.Package):
     self.FortranLib(conf,vars,dirs,libs,functions)
 
 
-  def DownloadAndInstall(self,conf,vars,slepc,petsc,archdir):
+  def DownloadAndInstall(self,conf,vars,slepc,petsc,archdir,prefixdir):
     externdir = os.path.join(archdir,'externalpackages')
     builddir  = os.path.join(externdir,self.dirname)
     self.Download(externdir,builddir)
@@ -79,7 +79,7 @@ class Arpack(package.Package):
       self.log.Exit('ERROR: --download-arpack requires that the command autoreconf is available on your PATH.')
 
     # Build package
-    confopt = '--prefix='+archdir+' CC="'+petsc.cc+'" CFLAGS="'+petsc.cc_flags+'" F77="'+petsc.fc+'" FFLAGS="'+petsc.fc_flags.replace('-Wall','').replace('-Wshadow','')+'"'
+    confopt = '--prefix='+prefixdir+' CC="'+petsc.cc+'" CFLAGS="'+petsc.cc_flags+'" F77="'+petsc.fc+'" FFLAGS="'+petsc.fc_flags.replace('-Wall','').replace('-Wshadow','')+'"'
     if not petsc.mpiuni:
       confopt = confopt+' --enable-mpi'
     if not petsc.buildsharedlib:
@@ -95,7 +95,7 @@ class Arpack(package.Package):
       libs = [['-larpack']]
     else:
       libs = [['-lparpack','-larpack']]
-    libDir = os.path.join(archdir,'lib')
-    dirs = [libDir]
+    libdir = os.path.join(prefixdir,'lib')
+    dirs = [libdir]
     self.FortranLib(conf,vars,dirs,libs,functions)
 

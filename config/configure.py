@@ -47,7 +47,7 @@ def CreateDirTwo(basedir,dir1,dir2,log):
     try:
       os.mkdir(newdir)
     except:
-      log.Exit('ERROR: Cannot create '+dirname+' directory: '+newdir)
+      log.Exit('ERROR: Cannot create '+dir2+' directory: '+newdir)
   return newdir
 
 def CreateDirTest(basedir,dirname,log):

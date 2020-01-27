@@ -23,7 +23,7 @@ class Blopex(package.Package):
     self.hasheaders   = True
     self.ProcessArgs(argdb)
 
-  def DownloadAndInstall(self,conf,vars,slepc,petsc,archdir):
+  def DownloadAndInstall(self,conf,vars,slepc,petsc,archdir,prefixdir):
     externdir = os.path.join(archdir,'externalpackages')
     builddir  = os.path.join(externdir,self.dirname)
     self.Download(externdir,builddir)
@@ -47,18 +47,17 @@ class Blopex(package.Package):
       self.log.Exit('ERROR: installation of BLOPEX failed.')
 
     # Move files
-    incDir = os.path.join(archdir,'include')
-    libDir = os.path.join(archdir,'lib')
+    incdir,libDir = self.CreatePrefixDirs(prefixdir)
     os.rename(os.path.join(builddir,'lib','libBLOPEX.'+petsc.ar_lib_suffix),os.path.join(libDir,'libBLOPEX.'+petsc.ar_lib_suffix))
     for root, dirs, files in os.walk(os.path.join(builddir,'include')):
       for name in files:
-        shutil.copyfile(os.path.join(builddir,'include',name),os.path.join(incDir,name))
+        shutil.copyfile(os.path.join(builddir,'include',name),os.path.join(incdir,name))
 
     if petsc.buildsharedlib:
       l = petsc.slflag + libDir + ' -L' + libDir + ' -lBLOPEX'
     else:
       l = '-L' + libDir + ' -lBLOPEX'
-    f = '-I' + incDir
+    f = '-I' + incdir
 
     # Check build
     if petsc.scalar == 'real':

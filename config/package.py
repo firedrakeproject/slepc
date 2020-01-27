@@ -99,7 +99,7 @@ class Package:
         else:
           self.log.NewSection('Installing '+name+'...')
         self.Precondition(petsc)
-        self.DownloadAndInstall(conf,vars,slepc,petsc,archdir)
+        self.DownloadAndInstall(conf,vars,slepc,petsc,archdir,slepc.prefixdir)
       elif self.installable:
         self.log.NewSection('Checking '+name+'...')
         self.Precondition(petsc)
@@ -356,4 +356,25 @@ Unable to download package %s from: %s
     vars.write(name + '_LIB = '+' '.join(flags)+'\n')
     self.havepackage = True
     self.packageflags = flags
+
+  def CreatePrefixDirs(self,prefixdir):
+    ''' Create directories include and lib under prefixdir, and return path strings '''
+    if not os.path.exists(prefixdir):
+      try:
+        os.mkdir(prefixdir)
+      except:
+        self.log.Exit('ERROR: Cannot create prefix directory: '+prefixdir)
+    incdir = os.path.join(prefixdir,'include')
+    if not os.path.exists(incdir):
+      try:
+        os.mkdir(incdir)
+      except:
+        self.log.Exit('ERROR: Cannot create include directory: '+incdir)
+    libdir = os.path.join(prefixdir,'lib')
+    if not os.path.exists(libdir):
+      try:
+        os.mkdir(libdir)
+      except:
+        self.log.Exit('ERROR: Cannot create lib directory: '+libdir)
+    return incdir,libdir
 

@@ -40,7 +40,7 @@ class Slicot(package.Package):
     self.FortranLib(conf,vars,dirs,libs,functions)
 
 
-  def DownloadAndInstall(self,conf,vars,slepc,petsc,archdir):
+  def DownloadAndInstall(self,conf,vars,slepc,petsc,archdir,prefixdir):
     externdir = os.path.join(archdir,'externalpackages')
     builddir  = os.path.join(externdir,self.dirname)
     self.Download(externdir,builddir)
@@ -63,13 +63,12 @@ class Slicot(package.Package):
       self.log.Exit('ERROR: installation of SLICOT failed.')
 
     # Move files
-    libDir = os.path.join(archdir,'lib')
-    os.rename(os.path.join(builddir,libname),os.path.join(libDir,libname))
+    incdir,libdir = self.CreatePrefixDirs(prefixdir)
+    os.rename(os.path.join(builddir,libname),os.path.join(libdir,libname))
 
     # Check build
     functions = ['sb03od']
     libs = [['-lslicot']]
-    libDir = os.path.join(archdir,'lib')
-    dirs = [libDir]
+    dirs = [libdir]
     self.FortranLib(conf,vars,dirs,libs,functions)
 

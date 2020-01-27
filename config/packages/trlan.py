@@ -43,7 +43,7 @@ class Trlan(package.Package):
     self.FortranLib(conf,vars,dirs,libs,functions)
 
 
-  def DownloadAndInstall(self,conf,vars,slepc,petsc,archdir):
+  def DownloadAndInstall(self,conf,vars,slepc,petsc,archdir,prefixdir):
     externdir = os.path.join(archdir,'externalpackages')
     builddir  = os.path.join(externdir,self.dirname)
     self.Download(externdir,builddir)
@@ -67,12 +67,12 @@ class Trlan(package.Package):
       self.log.Exit('ERROR: installation of TRLAN failed.')
 
     # Move files
-    libDir = os.path.join(archdir,'lib')
+    incdir,libdir = self.CreatePrefixDirs(prefixdir)
     if petsc.mpiuni:
       libName = 'libtrlan.a'
     else:
       libName = 'libtrlan_mpi.a'
-    os.rename(os.path.join(builddir,libName),os.path.join(libDir,libName))
+    os.rename(os.path.join(builddir,libName),os.path.join(libdir,libName))
 
     # Check build
     functions = ['trlan77']
@@ -80,7 +80,6 @@ class Trlan(package.Package):
       libs = [['-ltrlan']]
     else:
       libs = [['-ltrlan_mpi']]
-    libDir = os.path.join(archdir,'lib')
-    dirs = [libDir]
+    dirs = [libdir]
     self.FortranLib(conf,vars,dirs,libs,functions)
 
