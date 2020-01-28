@@ -16,16 +16,15 @@ class Blopex(package.Package):
     package.Package.__init__(self,argdb,log)
     self.packagename  = 'blopex'
     self.downloadable = True
-    self.version      = '1.1.2'
-    self.url          = 'http://slepc.upv.es/download/external/blopex-'+self.version+'.tar.gz'
-    self.archive      = 'blopex.tar.gz'
-    self.dirname      = 'blopex-'+self.version
+    self.url          = 'https://github.com/lobpcg/blopex/archive/master.tar.gz'
+    self.archive      = 'blopex-master.tar.gz'
+    self.dirname      = 'blopex-master'
     self.hasheaders   = True
     self.ProcessArgs(argdb)
 
   def DownloadAndInstall(self,conf,vars,slepc,petsc,archdir,prefixdir):
     externdir = os.path.join(archdir,'externalpackages')
-    builddir  = os.path.join(externdir,self.dirname)
+    builddir  = os.path.join(externdir,self.dirname,'blopex_abstract')
     self.Download(externdir,builddir)
 
     # Configure
@@ -48,16 +47,22 @@ class Blopex(package.Package):
 
     # Move files
     incdir,libDir = self.CreatePrefixDirs(prefixdir)
+    incblopexdir = os.path.join(incdir,'blopex')
+    if not os.path.exists(incblopexdir):
+      try:
+        os.mkdir(incblopexdir)
+      except:
+        self.log.Exit('ERROR: Cannot create directory: '+incblopexdir)
     os.rename(os.path.join(builddir,'lib','libBLOPEX.'+petsc.ar_lib_suffix),os.path.join(libDir,'libBLOPEX.'+petsc.ar_lib_suffix))
     for root, dirs, files in os.walk(os.path.join(builddir,'include')):
       for name in files:
-        shutil.copyfile(os.path.join(builddir,'include',name),os.path.join(incdir,name))
+        shutil.copyfile(os.path.join(builddir,'include',name),os.path.join(incblopexdir,name))
 
     if petsc.buildsharedlib:
       l = petsc.slflag + libDir + ' -L' + libDir + ' -lBLOPEX'
     else:
       l = '-L' + libDir + ' -lBLOPEX'
-    f = '-I' + incdir
+    f = '-I' + incdir + ' -I' + incblopexdir
 
     # Check build
     if petsc.scalar == 'real':

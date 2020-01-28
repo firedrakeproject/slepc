@@ -6,9 +6,9 @@
 
 #include <petscvec.h>
 #include <petscblaslapack.h>
-#include "blopex_interpreter.h"
-#include "blopex_temp_multivector.h"
-#include "blopex_fortran_matrix.h"
+#include "blopex/interpreter.h"
+#include "blopex/temp_multivector.h"
+#include "blopex/fortran_matrix.h"
 
 static PetscRandom LOBPCG_RandomContext = NULL;
 
