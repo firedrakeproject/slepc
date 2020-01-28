@@ -30,9 +30,7 @@ class Blopex(package.Package):
     # Configure
     g = open(os.path.join(builddir,'Makefile.inc'),'w')
     g.write('CC          = '+petsc.cc+'\n')
-    if petsc.ind64: blopexint = ' -DBlopexInt="long long" '
-    else: blopexint = ''
-    g.write('CFLAGS      = '+petsc.cc_flags.replace('-Wall','').replace('-Wshadow','')+blopexint+'\n')
+    g.write('CFLAGS      = '+petsc.cc_flags.replace('-Wall','').replace('-Wshadow','')+'\n')
     g.write('AR          = '+petsc.ar+' '+petsc.ar_flags+'\n')
     g.write('AR_LIB_SUFFIX = '+petsc.ar_lib_suffix+'\n')
     g.write('RANLIB      = '+petsc.ranlib+'\n')

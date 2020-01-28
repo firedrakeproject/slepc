@@ -22,6 +22,7 @@ class Arpack(package.Package):
     self.archive        = 'arpack-ng-'+self.version+'.tar.gz'
     self.dirname        = 'arpack-ng-'+self.version
     self.supportssingle = True
+    self.supports64bint = True
     self.fortran        = True
     self.ProcessArgs(argdb)
 
@@ -84,6 +85,10 @@ class Arpack(package.Package):
       confopt = confopt+' --enable-mpi MPICC="'+petsc.cc+'" MPIF77="'+petsc.fc+'" MPIFC="'+petsc.fc+'"'
     if not petsc.buildsharedlib:
       confopt = confopt+' --disable-shared'
+    if petsc.ind64:
+      if not petsc.blaslapackint64:
+        self.log.Exit('ERROR: to install ARPACK with 64-bit integers you also need a BLAS with 64-bit integers.')
+      confopt = confopt+' INTERFACE64=1'
     result,output = self.RunCommand('cd '+builddir+'&& sh bootstrap && ./configure '+confopt+' && '+petsc.make+' && '+petsc.make+' install')
     self.log.write(output)
     if result:
