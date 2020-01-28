@@ -272,8 +272,8 @@ Unable to download package %s from: %s
     else:
       return (1,code + output)
 
-  def Link(self,functions,callbacks,flags):
-    (result, output) = self.LinkWithOutput(functions,callbacks,flags)
+  def Link(self,functions,callbacks,flags,givencode='',cflags=''):
+    (result, output) = self.LinkWithOutput(functions,callbacks,flags,givencode,cflags)
     self.log.write(output)
     return result
 

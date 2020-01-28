@@ -73,8 +73,7 @@ class Primme(package.Package):
       else:
         l = libs
         f = ['-I' + includes[0]]
-      (result, output) = self.LinkWithOutput([],[],l+f,code,' '.join(f))
-      self.log.write(output)
+      result = self.Link([],[],l+f,code,' '.join(f))
       if result:
         conf.write('#define SLEPC_HAVE_PRIMME 1\n')
         vars.write('PRIMME_LIB = ' + ' '.join(l) + '\n')
@@ -141,8 +140,7 @@ class Primme(package.Package):
 
     # Check build
     code = self.SampleCode(petsc)
-    (result, output) = self.LinkWithOutput([],[],[l]+[f],code,f)
-    self.log.write(output)
+    result = self.Link([],[],[l]+[f],code,f)
     if not result:
       self.log.Exit('\nERROR: Unable to link with downloaded PRIMME')
 
