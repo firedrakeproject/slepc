@@ -76,7 +76,6 @@ class PETSc(package.Package):
       petscconf_h = os.path.join(self.dir,'include','petscconf.h')
 
     self.buildsharedlib = False
-    self.language = 'c'
     self.bfort = 'nobfortinpetsc'
     try:
       f = open(petscvariables)
@@ -121,8 +120,6 @@ class PETSc(package.Package):
           self.sl_suffix = v
         elif k == 'RANLIB':
           self.ranlib = v
-        elif k == 'PETSC_LANGUAGE' and v=='CXXONLY':
-          self.language = 'c++'
       f.close()
     except:
       self.log.Exit('ERROR: cannot process file ' + petscvariables)
@@ -134,6 +131,7 @@ class PETSc(package.Package):
     self.blaslapackmangling = ''
     self.blaslapackint64 = False
     self.fortran = False
+    self.language = 'c'
     self.cxxdialectcxx11 = False
     self.hpddm = False
     try:
@@ -158,6 +156,8 @@ class PETSc(package.Package):
           self.blaslapackint64 = True
         elif len(l)==3 and l[0]=='#define' and l[1]=='PETSC_HAVE_FORTRAN' and l[2]=='1':
           self.fortran = True
+        elif len(l)==3 and l[0]=='#define' and l[1]=='PETSC_CLANGUAGE_CXX' and l[2]=='1':
+          self.language = 'c++'
         elif len(l)==3 and l[0]=='#define' and l[1]=='PETSC_HAVE_CXX_DIALECT_CXX11' and l[2]=='1':
           self.cxxdialectcxx11 = True
         elif len(l)==3 and l[0]=='#define' and l[1]=='PETSC_HAVE_HPDDM' and l[2]=='1':

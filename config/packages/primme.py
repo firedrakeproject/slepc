@@ -20,7 +20,7 @@ class Primme(package.Package):
     self.version        = '3.0'
     self.url            = 'https://github.com/primme/primme/tarball/release-'+self.version
     self.archive        = 'primme-'+self.version+'.tar.gz'
-    self.dirname        = 'PRIMME'
+    self.dirname        = 'primme-'+self.version
     self.supportssingle = True
     self.supports64bint = True
     self.hasheaders     = True
@@ -29,15 +29,27 @@ class Primme(package.Package):
 
   def SampleCode(self,petsc):
     if petsc.scalar == 'real':
-      if petsc.precision == 'single': function = 'sprimme'
-      else: function = 'dprimme'
+      if petsc.precision == 'single':
+        function = 'sprimme'
+        rdtype = 'float'
+      else:
+        function = 'dprimme'
+        rdtype = 'double'
+      cdtype = rdtype
     else:
-      if petsc.precision == 'single': function = 'cprimme'
-      else: function = 'zprimme'
+      if petsc.precision == 'single':
+        function = 'cprimme'
+        rdtype = 'float'
+        cdtype = 'PRIMME_COMPLEX_FLOAT'
+      else:
+        function = 'zprimme'
+        rdtype = 'double'
+        cdtype = 'PRIMME_COMPLEX_DOUBLE'
 
     code = '#include "primme.h"\n'
     code += 'int main() {\n'
-    code += '  double *a=NULL,*b=NULL,*c=NULL;\n'
+    code += '  ' + rdtype + ' *a=NULL,*c=NULL;\n'
+    code += '  ' + cdtype + ' *b=NULL;\n'
     code += '  primme_params primme;\n'
     code += '  primme_initialize(&primme);\n'
     code += '  primme_set_method(PRIMME_DYNAMIC,&primme);\n'
@@ -73,7 +85,7 @@ class Primme(package.Package):
       else:
         l = libs
         f = ['-I' + includes[0]]
-      result = self.Link([],[],l+f,code,' '.join(f))
+      result = self.Link([],[],l+f,code,' '.join(f),petsc.language)
       if result:
         conf.write('#define SLEPC_HAVE_PRIMME 1\n')
         vars.write('PRIMME_LIB = ' + ' '.join(l) + '\n')
@@ -140,7 +152,7 @@ class Primme(package.Package):
 
     # Check build
     code = self.SampleCode(petsc)
-    result = self.Link([],[],[l]+[f],code,f)
+    result = self.Link([],[],[l]+[f],code,f,petsc.language)
     if not result:
       self.log.Exit('\nERROR: Unable to link with downloaded PRIMME')
 

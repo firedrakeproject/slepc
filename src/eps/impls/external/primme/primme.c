@@ -63,7 +63,7 @@ static void par_broadcastReal(void *buf,int *count,primme_params *primme,int *ie
 static void convTestFun(double *eval,void *evec,double *resNorm,int *isconv,primme_params *primme,int *err)
 {
   PetscErrorCode ierr;
-  EPS            eps = primme->commInfo;
+  EPS            eps = (EPS)primme->commInfo;
   PetscScalar    eigvr = eval?*eval:0.0;
   PetscReal      r = resNorm?*resNorm:HUGE_VAL,errest;
 
@@ -80,7 +80,7 @@ static void monitorFun(void *basisEvals,int *basisSize,int *basisFlags,int *iblo
                        primme_event *event,struct primme_params *primme,int *err)
 {
   PetscErrorCode ierr;
-  EPS            eps = primme->commInfo;
+  EPS            eps = (EPS)primme->commInfo;
   PetscInt       i,k,nerrest;
 
   *err = 1;

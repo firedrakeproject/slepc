@@ -217,7 +217,7 @@ Unable to download package %s from: %s
     else:
       return []
 
-  def LinkWithOutput(self,functions,callbacks,flags,givencode='',cflags=''):
+  def LinkWithOutput(self,functions,callbacks,flags,givencode='',cflags='',clanguage='c'):
 
     # Create temporary directory and makefile
     try:
@@ -227,7 +227,9 @@ Unable to download package %s from: %s
       self.log.Exit('ERROR: Cannot create temporary directory')
     try:
       makefile = open(os.path.join(tmpdir,'makefile'),'w')
-      if cflags!='': makefile.write('CFLAGS='+cflags+'\n')
+      if cflags!='':
+        if clanguage=='c++': makefile.write('CXXFLAGS='+cflags+'\n')
+        else: makefile.write('CFLAGS='+cflags+'\n')
       makefile.write('checklink: checklink.o\n')
       makefile.write('\t${CLINKER} -o checklink checklink.o ${LINKFLAGS} ${PETSC_SNES_LIB}\n')
       makefile.write('\t@${RM} -f checklink checklink.o\n')
@@ -272,8 +274,8 @@ Unable to download package %s from: %s
     else:
       return (1,code + output)
 
-  def Link(self,functions,callbacks,flags,givencode='',cflags=''):
-    (result, output) = self.LinkWithOutput(functions,callbacks,flags,givencode,cflags)
+  def Link(self,functions,callbacks,flags,givencode='',cflags='',clanguage='c'):
+    (result, output) = self.LinkWithOutput(functions,callbacks,flags,givencode,cflags,clanguage)
     self.log.write(output)
     return result
 

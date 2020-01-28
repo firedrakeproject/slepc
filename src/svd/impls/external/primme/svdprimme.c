@@ -67,7 +67,7 @@ static void convTestFun(double *sval,void *leftsvec,void *rightsvec,double *resN
                         int *isconv,struct primme_svds_params *primme,int *err)
 {
   PetscErrorCode ierr;
-  SVD            svd = primme->commInfo;
+  SVD            svd = (SVD)primme->commInfo;
   PetscReal      sigma = sval?*sval:0.0;
   PetscReal      r = resNorm?*resNorm:HUGE_VAL,errest;
 
@@ -85,7 +85,7 @@ static void monitorFun(void *basisSvals,int *basisSize,int *basisFlags,int *iblo
 {
 
   PetscErrorCode ierr;
-  SVD            svd = primme->commInfo;
+  SVD            svd = (SVD)primme->commInfo;
   PetscInt       i,k,nerrest;
 
   *err = 1;
