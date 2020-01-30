@@ -37,7 +37,7 @@ static PetscErrorCode STSetDefaultKSP_Precond(ST st)
       if (st->nmat>1) {
         ierr = MatHasOperation(st->A[0],MATOP_AXPY,&t1);CHKERRQ(ierr);
       } else t1 = PETSC_TRUE;
-      ierr = PCSetType(pc,(t0 && t1)?PCJACOBI:PCNONE);CHKERRQ(ierr);
+      ierr = PCSetType(pc,(t0 && t1)?PCBJACOBI:PCNONE);CHKERRQ(ierr);
     }
   }
   ierr = KSPSetErrorIfNotConverged(st->ksp,PETSC_FALSE);CHKERRQ(ierr);
@@ -65,19 +65,11 @@ PetscErrorCode STPostSolve_Precond(ST st)
 PetscErrorCode STComputeOperator_Precond(ST st)
 {
   PetscErrorCode ierr;
-  PC             pc;
-  PetscBool      t0;
   ST_PRECOND     *ctx = (ST_PRECOND*)st->data;
 
   PetscFunctionBegin;
   /* if the user did not set the shift, use the target value */
   if (!st->sigma_set) st->sigma = st->defsigma;
-
-  /* exit if PCNONE and no matrix has been set */
-  if (!st->ksp) { ierr = STGetKSP(st,&st->ksp);CHKERRQ(ierr); }
-  ierr = KSPGetPC(st->ksp,&pc);CHKERRQ(ierr);
-  ierr = PetscObjectTypeCompare((PetscObject)pc,PCNONE,&t0);CHKERRQ(ierr);
-  if (t0 && !ctx->setmat) PetscFunctionReturn(0);
 
   /* P = A-sigma*B */
   if (ctx->mat) {
@@ -98,10 +90,6 @@ PetscErrorCode STComputeOperator_Precond(ST st)
       ierr = MatDestroy(&st->P);CHKERRQ(ierr);
       st->P = st->T[1];
     }
-  }
-  /* If P was not possible to obtain, set pc to PCNONE */
-  if (!st->P) {
-    ierr = PCSetType(pc,PCNONE);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }

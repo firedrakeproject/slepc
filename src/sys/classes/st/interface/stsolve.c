@@ -292,6 +292,7 @@ PetscErrorCode STRestoreOperator(ST st,Mat *Op)
 PetscErrorCode STComputeOperator(ST st)
 {
   PetscErrorCode ierr;
+  PC             pc;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
@@ -301,11 +302,17 @@ PetscErrorCode STComputeOperator(ST st)
     ierr = PetscLogEventBegin(ST_ComputeOperator,st,0,0,0);CHKERRQ(ierr);
     ierr = (*st->ops->computeoperator)(st);CHKERRQ(ierr);
     ierr = PetscLogEventEnd(ST_ComputeOperator,st,0,0,0);CHKERRQ(ierr);
-    if (st->P && st->usesksp) {
+    if (st->usesksp) {
       if (!st->ksp) { ierr = STGetKSP(st,&st->ksp);CHKERRQ(ierr); }
-      ierr = STSetDefaultKSP(st);CHKERRQ(ierr);
-      ierr = STCheckFactorPackage(st);CHKERRQ(ierr);
-      ierr = KSPSetOperators(st->ksp,st->P,st->P);CHKERRQ(ierr);
+      if (st->P) {
+        ierr = STSetDefaultKSP(st);CHKERRQ(ierr);
+        ierr = STCheckFactorPackage(st);CHKERRQ(ierr);
+        ierr = KSPSetOperators(st->ksp,st->P,st->P);CHKERRQ(ierr);
+      } else {
+        /* STPRECOND defaults to PCNONE if st->P is empty */
+        ierr = KSPGetPC(st->ksp,&pc);CHKERRQ(ierr);
+        ierr = PCSetType(pc,PCNONE);CHKERRQ(ierr);
+      }
     }
   }
   st->opready = PETSC_TRUE;
