@@ -38,24 +38,21 @@ class HPDDM(package.Package):
       self.log.Exit('ERROR: '+pkg+' requires PETSc to be built without '+pkg+'.')
     package.Package.Precondition(self,petsc)
 
-  def Install(self,conf,vars,slepc,petsc,archdir):
+  def DownloadAndInstall(self,conf,vars,slepc,petsc,archdir,prefixdir):
     externdir = os.path.join(archdir,'externalpackages')
     builddir  = os.path.join(externdir,self.dirname)
-    if slepc.prefixdir:
-      installdir = slepc.prefixdir
-    else:
-      installdir = archdir
+    incdir,libdir = self.CreatePrefixDirs(prefixdir)
     self.Download(externdir,builddir)
     g = open(os.path.join(builddir,'SONAME_SL_LINKER'),'w')
     g.write('include '+os.path.join(petsc.dir,petsc.arch,'lib','petsc','conf','petscvariables')+'\n')
     g.write('soname:\n')
-    g.write('\t@echo $(call SONAME_FUNCTION,'+os.path.join(installdir,'lib','libhpddm_petsc')+',0)\n')
+    g.write('\t@echo $(call SONAME_FUNCTION,'+os.path.join(libdir,'libhpddm_petsc')+',0)\n')
     g.write('sl_linker:\n')
-    g.write('\t@echo $(call SL_LINKER_FUNCTION,'+os.path.join(installdir,'lib','libhpddm_petsc')+',0,0)\n')
+    g.write('\t@echo $(call SL_LINKER_FUNCTION,'+os.path.join(libdir,'libhpddm_petsc')+',0,0)\n')
     g.close()
-    d = petsc.dir+'/'+petsc.arch+'/lib'
+    d = os.path.join(petsc.dir,petsc.arch,'lib')
     l = petsc.slflag+d+' -L'+d+' -lpetsc'
-    d = installdir+'/lib'
+    d = libdir
     if petsc.arch is "":
       urlretrieve('https://www.mcs.anl.gov/petsc/petsc-master/src/ksp/ksp/impls/hpddm/hpddm.cxx',os.path.join(builddir,'interface','ksphpddm.cxx'));
       urlretrieve('https://www.mcs.anl.gov/petsc/petsc-master/src/ksp/pc/impls/hpddm/hpddm.cxx',os.path.join(builddir,'interface','pchpddm.cxx'));
@@ -75,11 +72,13 @@ class HPDDM(package.Package):
       self.log.Exit('ERROR: installation of HPDDM failed.')
     for root, dirs, files in os.walk(os.path.join(builddir,'include')):
       for name in files:
-        shutil.copyfile(os.path.join(builddir,'include',name),os.path.join(installdir,'include',name))
+        shutil.copyfile(os.path.join(builddir,'include',name),os.path.join(incdir,name))
     l = petsc.slflag+d+' -L'+d+' -lhpddm_petsc'
+    f = '-I'+incdir
+    # Write configuration files
     conf.write('#define SLEPC_HAVE_HPDDM 1\n')
     vars.write('HPDDM_LIB = '+l+'\n')
-    vars.write('HPDDM_INCLUDE = -I'+os.path.join(installdir,'include')+'\n')
-    self.packageflags = [l]
+    vars.write('HPDDM_INCLUDE = '+f+'\n')
+    self.packageflags = [l] + [f]
     self.havepackage = True
 

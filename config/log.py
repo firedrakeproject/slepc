@@ -21,7 +21,7 @@ class Log:
     except AttributeError:
       self.filename = filename
     try: # symbolic link to log file in current directory
-      if os.path.isfile(fname): os.remove(fname)
+      if os.path.isfile(fname) or os.path.islink(fname): os.remove(fname)
       os.symlink(self.filename,fname)
     except: pass
 

@@ -16,23 +16,21 @@ class Blopex(package.Package):
     package.Package.__init__(self,argdb,log)
     self.packagename  = 'blopex'
     self.downloadable = True
-    self.version      = '1.1.2'
-    self.url          = 'http://slepc.upv.es/download/external/blopex-'+self.version+'.tar.gz'
-    self.archive      = 'blopex.tar.gz'
-    self.dirname      = 'blopex-'+self.version
+    self.url          = 'https://github.com/lobpcg/blopex/archive/master.tar.gz'
+    self.archive      = 'blopex-master.tar.gz'
+    self.dirname      = 'blopex-master'
+    self.hasheaders   = True
     self.ProcessArgs(argdb)
 
-  def Install(self,conf,vars,slepc,petsc,archdir):
+  def DownloadAndInstall(self,conf,vars,slepc,petsc,archdir,prefixdir):
     externdir = os.path.join(archdir,'externalpackages')
-    builddir  = os.path.join(externdir,self.dirname)
+    builddir  = os.path.join(externdir,self.dirname,'blopex_abstract')
     self.Download(externdir,builddir)
 
     # Configure
     g = open(os.path.join(builddir,'Makefile.inc'),'w')
     g.write('CC          = '+petsc.cc+'\n')
-    if petsc.ind64: blopexint = ' -DBlopexInt="long long" '
-    else: blopexint = ''
-    g.write('CFLAGS      = '+petsc.cc_flags.replace('-Wall','').replace('-Wshadow','')+blopexint+'\n')
+    g.write('CFLAGS      = '+petsc.cc_flags.replace('-Wall','').replace('-Wshadow','')+'\n')
     g.write('AR          = '+petsc.ar+' '+petsc.ar_flags+'\n')
     g.write('AR_LIB_SUFFIX = '+petsc.ar_lib_suffix+'\n')
     g.write('RANLIB      = '+petsc.ranlib+'\n')
@@ -46,18 +44,23 @@ class Blopex(package.Package):
       self.log.Exit('ERROR: installation of BLOPEX failed.')
 
     # Move files
-    incDir = os.path.join(archdir,'include')
-    libDir = os.path.join(archdir,'lib')
+    incdir,libDir = self.CreatePrefixDirs(prefixdir)
+    incblopexdir = os.path.join(incdir,'blopex')
+    if not os.path.exists(incblopexdir):
+      try:
+        os.mkdir(incblopexdir)
+      except:
+        self.log.Exit('ERROR: Cannot create directory: '+incblopexdir)
     os.rename(os.path.join(builddir,'lib','libBLOPEX.'+petsc.ar_lib_suffix),os.path.join(libDir,'libBLOPEX.'+petsc.ar_lib_suffix))
     for root, dirs, files in os.walk(os.path.join(builddir,'include')):
       for name in files:
-        shutil.copyfile(os.path.join(builddir,'include',name),os.path.join(incDir,name))
+        shutil.copyfile(os.path.join(builddir,'include',name),os.path.join(incblopexdir,name))
 
     if petsc.buildsharedlib:
       l = petsc.slflag + libDir + ' -L' + libDir + ' -lBLOPEX'
     else:
       l = '-L' + libDir + ' -lBLOPEX'
-    f = '-I' + incDir
+    f = '-I' + incdir + ' -I' + incblopexdir
 
     # Check build
     if petsc.scalar == 'real':
@@ -70,6 +73,7 @@ class Blopex(package.Package):
     # Write configuration files
     conf.write('#define SLEPC_HAVE_BLOPEX 1\n')
     vars.write('BLOPEX_LIB = ' + l + '\n')
+    vars.write('BLOPEX_INCLUDE = ' + f + '\n')
 
     self.havepackage = True
     self.packageflags = [l] + [f]

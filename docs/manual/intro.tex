@@ -203,7 +203,7 @@ In \slepc, configure options have the following purposes:
 \item Enable external eigensolver packages. For example, to use \arpack, specify the following options (with the appropriate paths):
 	\begin{Verbatim}[fontsize=\small]
 	$ ./configure --with-arpack-dir=/usr/software/ARPACK
-	              --with-arpack-flags=-lparpack,-larpack
+	              --with-arpack-lib=-lparpack,-larpack
 	\end{Verbatim}
 Some of the external packages also support the \Verb!--download-xxxx! option. Section \ref{sec:wrap} provides more details related to use of external libraries.
 \end{itemize}

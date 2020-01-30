@@ -6,7 +6,7 @@
 #if !defined(PETSC_INTERFACE_HEADER)
 #define PETSC_INTERFACE_HEADER
 
-#include "blopex_interpreter.h"
+#include "blopex/interpreter.h"
 
 #if !defined(PETSC_USE_COMPLEX)
 BlopexInt PETSC_dpotrf_interface (char *uplo, BlopexInt *n, double *a, BlopexInt * lda, BlopexInt *info);

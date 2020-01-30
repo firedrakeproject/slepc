@@ -17,63 +17,82 @@ class Primme(package.Package):
     self.packagename    = 'primme'
     self.installable    = True
     self.downloadable   = True
-    self.buildflags     = ''
     self.version        = '3.0'
     self.url            = 'https://github.com/primme/primme/tarball/release-'+self.version
     self.archive        = 'primme-'+self.version+'.tar.gz'
-    self.dirname        = 'PRIMME'
+    self.dirname        = 'primme-'+self.version
     self.supportssingle = True
     self.supports64bint = True
+    self.hasheaders     = True
+    self.hasdloadflags  = True
     self.ProcessArgs(argdb)
 
-  def ProcessArgs(self,argdb):
-    string,found = argdb.PopString('download-'+self.packagename+'-cflags')
-    if found:
-      self.buildflags = string
-    package.Package.ProcessArgs(self,argdb)
+  def SampleCode(self,petsc):
+    if petsc.scalar == 'real':
+      if petsc.precision == 'single':
+        function = 'sprimme'
+        rdtype = 'float'
+      else:
+        function = 'dprimme'
+        rdtype = 'double'
+      cdtype = rdtype
+    else:
+      if petsc.precision == 'single':
+        function = 'cprimme'
+        rdtype = 'float'
+        cdtype = 'PRIMME_COMPLEX_FLOAT'
+      else:
+        function = 'zprimme'
+        rdtype = 'double'
+        cdtype = 'PRIMME_COMPLEX_DOUBLE'
 
-  def ShowHelp(self):
-    package.Package.ShowHelp(self)
-    print(('  --download-'+self.packagename+'-cflags=<flags>').ljust(package.Package.wd)+': Extra flags to compile '+self.packagename.upper())
- 
-  def Check(self,conf,vars,petsc):
-    functions_base = ['primme_set_method','primme_free','primme_initialize']
+    code = '#include "primme.h"\n'
+    code += 'int main() {\n'
+    code += '  ' + rdtype + ' *a=NULL,*c=NULL;\n'
+    code += '  ' + cdtype + ' *b=NULL;\n'
+    code += '  primme_params primme;\n'
+    code += '  primme_initialize(&primme);\n'
+    code += '  primme_set_method(PRIMME_DYNAMIC,&primme);\n'
+    code += '  ' + function + '(a,b,c,&primme);\n'
+    code += '  primme_free(&primme);\n'
+    code += '  return 0;\n}\n'
+    return code
+
+
+  def Check(self,conf,vars,petsc,archdir):
+    code = self.SampleCode(petsc)
     if self.packagedir:
       dirs = [os.path.join(self.packagedir,'lib')]
+      incdirs = [os.path.join(self.packagedir,'include')]
     else:
-      dirs = self.GenerateGuesses('Primme')
+      dirs = self.GenerateGuesses('Primme',archdir)
+      incdirs = self.GenerateGuesses('Primme',archdir,'include')
 
     libs = self.packagelibs
     if not libs:
       libs = ['-lprimme']
-    if petsc.scalar == 'real':
-      if petsc.precision == 'single':
-        functions = functions_base + ['sprimme']
-      else:
-        functions = functions_base + ['dprimme']
-    else:
-      if petsc.precision == 'single':
-        functions = functions_base + ['cprimme']
-      else:
-        functions = functions_base + ['zprimme']
+    includes = self.packageincludes
+    if not includes:
+      includes = ['.']
 
-    for d in dirs:
+    for (d,i) in zip(dirs,incdirs):
       if d:
         if petsc.buildsharedlib:
           l = [petsc.slflag + d] + ['-L' + d] + libs
         else:
           l = ['-L' + d] + libs
-        f = ['-I' + os.path.join(os.path.dirname(d),'include')]
+        f = ['-I' + i]
       else:
-        l =  libs
-        f = []
-      if self.Link(functions,[],l+f):
+        l = libs
+        f = ['-I' + includes[0]]
+      result = self.Link([],[],l+f,code,' '.join(f),petsc.language)
+      if result:
         conf.write('#define SLEPC_HAVE_PRIMME 1\n')
         vars.write('PRIMME_LIB = ' + ' '.join(l) + '\n')
-        vars.write('PRIMME_FLAGS = ' + ' '.join(f) + '\n')
+        vars.write('PRIMME_INCLUDE = ' + ' '.join(f) + '\n')
         self.havepackage = True
         self.packageflags = l+f
-        self.location = os.path.dirname(d)
+        self.location = includes[0] if self.packageincludes else i
         return
 
     self.log.Println('\nERROR: Unable to link with PRIMME library')
@@ -83,7 +102,7 @@ class Primme(package.Package):
     self.log.Exit('')
 
 
-  def Install(self,conf,vars,slepc,petsc,archdir):
+  def DownloadAndInstall(self,conf,vars,slepc,petsc,archdir,prefixdir):
     externdir = os.path.join(archdir,'externalpackages')
     builddir  = os.path.join(externdir,self.dirname)
     self.Download(externdir,builddir,'primme-')
@@ -105,7 +124,7 @@ class Primme(package.Package):
     g.write('export INCLUDE     = \n')
     g.write('export CFLAGS      = '+petsc.cc_flags.replace('-Wall','').replace('-Wshadow','').replace('-fvisibility=hidden','')+' '+self.buildflags+'\n')
     g.write('export RANLIB      = '+petsc.ranlib+'\n')
-    g.write('export PREFIX      = '+archdir+'\n')
+    g.write('export PREFIX      = '+prefixdir+'\n')
     g.write('include makefile\n')
     g.close()
 
@@ -118,47 +137,38 @@ class Primme(package.Package):
       self.log.Exit('ERROR: installation of PRIMME failed.')
 
     # Move files
-    incDir = os.path.join(archdir,'include')
-    libDir = os.path.join(archdir,'lib')
+    incdir,libdir = self.CreatePrefixDirs(prefixdir)
     if not petsc.buildsharedlib:
-      os.rename(os.path.join(builddir,'lib','libprimme.'+petsc.ar_lib_suffix),os.path.join(libDir,'libprimme.'+petsc.ar_lib_suffix))
+      os.rename(os.path.join(builddir,'lib','libprimme.'+petsc.ar_lib_suffix),os.path.join(libdir,'libprimme.'+petsc.ar_lib_suffix))
       for root, dirs, files in os.walk(os.path.join(builddir,'include')):
         for name in files:
-          shutil.copyfile(os.path.join(builddir,'include',name),os.path.join(incDir,name))
+          shutil.copyfile(os.path.join(builddir,'include',name),os.path.join(incdir,name))
 
     if petsc.buildsharedlib:
-      l = petsc.slflag + libDir + ' -L' + libDir + ' -lprimme'
+      l = petsc.slflag + libdir + ' -L' + libdir + ' -lprimme'
     else:
-      l = '-L' + libDir + ' -lprimme'
-    f = '-I' + incDir
+      l = '-L' + libdir + ' -lprimme'
+    f = '-I' + incdir
 
     # Check build
-    functions_base = ['primme_set_method','primme_free','primme_initialize']
-    if petsc.scalar == 'real':
-      if petsc.precision == 'single':
-        functions = functions_base + ['sprimme']
-      else:
-        functions = functions_base + ['dprimme']
-    else:
-      if petsc.precision == 'single':
-        functions = functions_base + ['cprimme']
-      else:
-        functions = functions_base + ['zprimme']
-    if not self.Link(functions,[],[l]+[f]):
+    code = self.SampleCode(petsc)
+    result = self.Link([],[],[l]+[f],code,f,petsc.language)
+    if not result:
       self.log.Exit('\nERROR: Unable to link with downloaded PRIMME')
 
     # Write configuration files
     conf.write('#define SLEPC_HAVE_PRIMME 1\n')
     vars.write('PRIMME_LIB = ' + l + '\n')
+    vars.write('PRIMME_INCLUDE = ' + f + '\n')
 
-    self.location = archdir
+    self.location = incdir
     self.havepackage = True
     self.packageflags = [l] + [f]
 
 
   def LoadVersion(self,conf):
     try:
-      f = open(os.path.join(self.location,'include','primme.h'))
+      f = open(os.path.join(self.location,'primme.h'))
       for l in f.readlines():
         l = l.split()
         if len(l) == 3:

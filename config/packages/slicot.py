@@ -16,7 +16,6 @@ class Slicot(package.Package):
     package.Package.__init__(self,argdb,log)
     self.packagename    = 'slicot'
     self.installable    = True
-    self.downloadable   = True
     self.version        = '4.5'
     self.url            = 'http://slicot.org/objects/software/shared/slicot45.tar.gz'
     self.archive        = 'slicot45.tar.gz'
@@ -26,7 +25,7 @@ class Slicot(package.Package):
     self.ProcessArgs(argdb)
 
 
-  def Check(self,conf,vars,petsc):
+  def Check(self,conf,vars,petsc,archdir):
     functions = ['sb03od']
     if self.packagelibs:
       libs = [self.packagelibs]
@@ -36,12 +35,12 @@ class Slicot(package.Package):
     if self.packagedir:
       dirs = [self.packagedir]
     else:
-      dirs = self.GenerateGuesses('slicot')
+      dirs = self.GenerateGuesses('slicot',archdir)
 
     self.FortranLib(conf,vars,dirs,libs,functions)
 
 
-  def Install(self,conf,vars,slepc,petsc,archdir):
+  def DownloadAndInstall(self,conf,vars,slepc,petsc,archdir,prefixdir):
     externdir = os.path.join(archdir,'externalpackages')
     builddir  = os.path.join(externdir,self.dirname)
     self.Download(externdir,builddir)
@@ -64,14 +63,12 @@ class Slicot(package.Package):
       self.log.Exit('ERROR: installation of SLICOT failed.')
 
     # Move files
-    libDir = os.path.join(archdir,'lib')
-    os.rename(os.path.join(builddir,libname),os.path.join(libDir,libname))
+    incdir,libdir = self.CreatePrefixDirs(prefixdir)
+    os.rename(os.path.join(builddir,libname),os.path.join(libdir,libname))
 
     # Check build
     functions = ['sb03od']
     libs = [['-lslicot']]
-    libDir = os.path.join(archdir,'lib')
-    dirs = [libDir]
+    dirs = [libdir]
     self.FortranLib(conf,vars,dirs,libs,functions)
-    self.havepackage = True
 

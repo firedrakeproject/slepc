@@ -12,7 +12,7 @@ ALL: lib
 
 #requiresdefine  'SLEPC_HAVE_PRIMME'
 
-CFLAGS   = ${PRIMME_FLAGS}
+CFLAGS   = ${PRIMME_INCLUDE}
 FFLAGS   =
 SOURCEC  = primme.c
 SOURCEF  =

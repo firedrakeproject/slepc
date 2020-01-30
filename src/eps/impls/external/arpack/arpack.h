@@ -15,11 +15,11 @@
 #define SLEPC_ARPACK_H
 
 typedef struct {
-  PetscBool    *select;
+  PetscInt     *select;
   PetscScalar  *workev;
   PetscScalar  *workd;
   PetscScalar  *workl;
-  PetscBLASInt lworkl;
+  PetscInt     lworkl;
   PetscReal    *rwork;
 } EPS_ARPACK;
 
@@ -171,15 +171,15 @@ typedef struct {
 
 #endif
 
-SLEPC_EXTERN void   SLEPC_ARPACK(saupd,SAUPD)(COMM_ARG PetscBLASInt*,char*,PetscBLASInt*,const char*,PetscBLASInt*,PetscReal*,PetscScalar*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscBLASInt*,PetscBLASInt*,PetscScalar*,PetscScalar*,PetscBLASInt*,PetscBLASInt*,int,int);
-SLEPC_EXTERN void   SLEPC_ARPACK(seupd,SEUPD)(COMM_ARG PetscBool*,char*,PetscBool*,PetscReal*,PetscReal*,PetscBLASInt*,PetscReal*,char*,PetscBLASInt*,const char*,PetscBLASInt*,PetscReal*,PetscScalar*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscBLASInt*,PetscBLASInt*,PetscScalar*,PetscScalar*,PetscBLASInt*,PetscBLASInt*,int,int,int);
+SLEPC_EXTERN void   SLEPC_ARPACK(saupd,SAUPD)(COMM_ARG PetscInt*,char*,PetscInt*,const char*,PetscInt*,PetscReal*,PetscScalar*,PetscInt*,PetscScalar*,PetscInt*,PetscInt*,PetscInt*,PetscScalar*,PetscScalar*,PetscInt*,PetscInt*,int,int);
+SLEPC_EXTERN void   SLEPC_ARPACK(seupd,SEUPD)(COMM_ARG PetscInt*,char*,PetscInt*,PetscReal*,PetscReal*,PetscInt*,PetscReal*,char*,PetscInt*,const char*,PetscInt*,PetscReal*,PetscScalar*,PetscInt*,PetscScalar*,PetscInt*,PetscInt*,PetscInt*,PetscScalar*,PetscScalar*,PetscInt*,PetscInt*,int,int,int);
 
 #if !defined(PETSC_USE_COMPLEX)
-SLEPC_EXTERN void   SLEPC_ARPACK(naupd,NAUPD)(COMM_ARG PetscBLASInt*,char*,PetscBLASInt*,const char*,PetscBLASInt*,PetscReal*,PetscScalar*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscBLASInt*,PetscBLASInt*,PetscScalar*,PetscScalar*,PetscBLASInt*,PetscBLASInt*,int,int);
-SLEPC_EXTERN void   SLEPC_ARPACK(neupd,NEUPD)(COMM_ARG PetscBool*,char*,PetscBool*,PetscReal*,PetscReal*,PetscReal*,PetscBLASInt*,PetscReal*,PetscReal*,PetscReal*,char*,PetscBLASInt*,const char*,PetscBLASInt*,PetscReal*,PetscScalar*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscBLASInt*,PetscBLASInt*,PetscScalar*,PetscScalar*,PetscBLASInt*,PetscBLASInt*,int,int,int);
+SLEPC_EXTERN void   SLEPC_ARPACK(naupd,NAUPD)(COMM_ARG PetscInt*,char*,PetscInt*,const char*,PetscInt*,PetscReal*,PetscScalar*,PetscInt*,PetscScalar*,PetscInt*,PetscInt*,PetscInt*,PetscScalar*,PetscScalar*,PetscInt*,PetscInt*,int,int);
+SLEPC_EXTERN void   SLEPC_ARPACK(neupd,NEUPD)(COMM_ARG PetscInt*,char*,PetscInt*,PetscReal*,PetscReal*,PetscReal*,PetscInt*,PetscReal*,PetscReal*,PetscReal*,char*,PetscInt*,const char*,PetscInt*,PetscReal*,PetscScalar*,PetscInt*,PetscScalar*,PetscInt*,PetscInt*,PetscInt*,PetscScalar*,PetscScalar*,PetscInt*,PetscInt*,int,int,int);
 #else
-SLEPC_EXTERN void   SLEPC_ARPACK(naupd,NAUPD)(COMM_ARG PetscBLASInt*,char*,PetscBLASInt*,const char*,PetscBLASInt*,PetscReal*,PetscScalar*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscBLASInt*,PetscBLASInt*,PetscScalar*,PetscScalar*,PetscBLASInt*,PetscReal*,PetscBLASInt*,int,int);
-SLEPC_EXTERN void   SLEPC_ARPACK(neupd,NEUPD)(COMM_ARG PetscBool*,char*,PetscBool*,PetscScalar*,PetscScalar*,PetscBLASInt*,PetscScalar*,PetscScalar*,char*,PetscBLASInt*,const char*,PetscBLASInt*,PetscReal*,PetscScalar*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscBLASInt*,PetscBLASInt*,PetscScalar*,PetscScalar*,PetscBLASInt*,PetscReal*,PetscBLASInt*,int,int,int);
+SLEPC_EXTERN void   SLEPC_ARPACK(naupd,NAUPD)(COMM_ARG PetscInt*,char*,PetscInt*,const char*,PetscInt*,PetscReal*,PetscScalar*,PetscInt*,PetscScalar*,PetscInt*,PetscInt*,PetscInt*,PetscScalar*,PetscScalar*,PetscInt*,PetscReal*,PetscInt*,int,int);
+SLEPC_EXTERN void   SLEPC_ARPACK(neupd,NEUPD)(COMM_ARG PetscInt*,char*,PetscInt*,PetscScalar*,PetscScalar*,PetscInt*,PetscScalar*,PetscScalar*,char*,PetscInt*,const char*,PetscInt*,PetscReal*,PetscScalar*,PetscInt*,PetscScalar*,PetscInt*,PetscInt*,PetscInt*,PetscScalar*,PetscScalar*,PetscInt*,PetscReal*,PetscInt*,int,int,int);
 #endif
 
 #endif

@@ -19,7 +19,7 @@ class Sowing(package.Package):
     self.url          = 'https://bitbucket.org/petsc/pkg-sowing.git'
     self.ProcessArgs(argdb)
 
-  def Install(self,archdir,make):
+  def DownloadAndInstall(self,archdir,make):
     name = self.packagename.upper()
     self.log.NewSection('Installing '+name+'...')
 

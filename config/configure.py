@@ -47,7 +47,7 @@ def CreateDirTwo(basedir,dir1,dir2,log):
     try:
       os.mkdir(newdir)
     except:
-      log.Exit('ERROR: Cannot create '+dirname+' directory: '+newdir)
+      log.Exit('ERROR: Cannot create '+dir2+' directory: '+newdir)
   return newdir
 
 def CreateDirTest(basedir,dirname,log):
@@ -140,9 +140,9 @@ lapack  = lapack.Lapack(argdb,log)
 slicot  = slicot.Slicot(argdb,log)
 hpddm   = hpddm.HPDDM(argdb,log)
 
-externalpackages = [arpack, blopex, blzpack, primme, slicot, trlan, hpddm]
-optionspackages  = [slepc, arpack, blopex, blzpack, primme, slicot, trlan, hpddm, sowing]
-checkpackages    = [arpack, blopex, blzpack, primme, slicot, trlan, lapack, hpddm]
+externalpackages = [arpack, blopex, blzpack, hpddm, primme, slicot, trlan]
+optionspackages  = [slepc, sowing] + externalpackages
+checkpackages    = externalpackages + [lapack]
 
 # Print help if requested and check for wrong command-line options
 if argdb.PopHelp():
@@ -330,14 +330,14 @@ if not slepc.isinstall: reconfig.close()
 # Download sowing if requested and make Fortran stubs if necessary
 bfort = petsc.bfort
 if sowing.downloadpackage:
-  bfort = sowing.Install(archdir,petsc.make)
+  bfort = sowing.DownloadAndInstall(archdir,petsc.make)
 
 if slepc.isrepo and petsc.fortran:
   try:
     if not os.path.exists(bfort):
       bfort = os.path.join(archdir,'bin','bfort')
     if not os.path.exists(bfort):
-      bfort = sowing.Install(archdir,petsc.make)
+      bfort = sowing.DownloadAndInstall(archdir,petsc.make)
     log.NewSection('Generating Fortran stubs...')
     log.write('Using BFORT='+bfort)
     sys.path.insert(0, os.path.abspath(os.path.join('lib','slepc','bin','maint')))

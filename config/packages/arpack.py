@@ -22,6 +22,7 @@ class Arpack(package.Package):
     self.archive        = 'arpack-ng-'+self.version+'.tar.gz'
     self.dirname        = 'arpack-ng-'+self.version
     self.supportssingle = True
+    self.supports64bint = True
     self.fortran        = True
     self.ProcessArgs(argdb)
 
@@ -51,7 +52,7 @@ class Arpack(package.Package):
     return functions
 
 
-  def Check(self,conf,vars,petsc):
+  def Check(self,conf,vars,petsc,archdir):
     functions = self.Functions(petsc)
     if self.packagelibs:
       libs = [self.packagelibs]
@@ -64,12 +65,11 @@ class Arpack(package.Package):
     if self.packagedir:
       dirs = [self.packagedir]
     else:
-      dirs = self.GenerateGuesses('Arpack')
-
+      dirs = self.GenerateGuesses('Arpack',archdir)
     self.FortranLib(conf,vars,dirs,libs,functions)
 
 
-  def Install(self,conf,vars,slepc,petsc,archdir):
+  def DownloadAndInstall(self,conf,vars,slepc,petsc,archdir,prefixdir):
     externdir = os.path.join(archdir,'externalpackages')
     builddir  = os.path.join(externdir,self.dirname)
     self.Download(externdir,builddir)
@@ -80,11 +80,15 @@ class Arpack(package.Package):
       self.log.Exit('ERROR: --download-arpack requires that the command autoreconf is available on your PATH.')
 
     # Build package
-    confopt = '--prefix='+archdir+' CC="'+petsc.cc+'" CFLAGS="'+petsc.cc_flags+'" F77="'+petsc.fc+'" FFLAGS="'+petsc.fc_flags.replace('-Wall','').replace('-Wshadow','')+'"'
+    confopt = '--prefix='+prefixdir+' CC="'+petsc.cc+'" CFLAGS="'+petsc.cc_flags+'" F77="'+petsc.fc+'" FFLAGS="'+petsc.fc_flags.replace('-Wall','').replace('-Wshadow','')+'" FC="'+petsc.fc+'" FCFLAGS="'+petsc.fc_flags.replace('-Wall','').replace('-Wshadow','')+'"'
     if not petsc.mpiuni:
-      confopt = confopt+' --enable-mpi'
+      confopt = confopt+' --enable-mpi MPICC="'+petsc.cc+'" MPIF77="'+petsc.fc+'" MPIFC="'+petsc.fc+'"'
     if not petsc.buildsharedlib:
       confopt = confopt+' --disable-shared'
+    if petsc.ind64:
+      if not petsc.blaslapackint64:
+        self.log.Exit('ERROR: to install ARPACK with 64-bit integers you also need a BLAS with 64-bit integers.')
+      confopt = confopt+' INTERFACE64=1'
     result,output = self.RunCommand('cd '+builddir+'&& sh bootstrap && ./configure '+confopt+' && '+petsc.make+' && '+petsc.make+' install')
     self.log.write(output)
     if result:
@@ -96,8 +100,7 @@ class Arpack(package.Package):
       libs = [['-larpack']]
     else:
       libs = [['-lparpack','-larpack']]
-    libDir = os.path.join(archdir,'lib')
-    dirs = [libDir]
+    libdir = os.path.join(prefixdir,'lib')
+    dirs = [libdir]
     self.FortranLib(conf,vars,dirs,libs,functions)
-    self.havepackage = True
 

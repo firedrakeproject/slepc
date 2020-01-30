@@ -34,15 +34,15 @@ PetscErrorCode EPSSetUp_ARPACK(EPS eps)
   ierr = PetscFree(ar->rwork);CHKERRQ(ierr);
   ierr = PetscMalloc1(ncv,&ar->rwork);CHKERRQ(ierr);
   ierr = PetscLogObjectMemory((PetscObject)eps,ncv*sizeof(PetscReal));CHKERRQ(ierr);
-  ierr = PetscBLASIntCast(3*ncv*ncv+5*ncv,&ar->lworkl);CHKERRQ(ierr);
+  ar->lworkl = 3*ncv*ncv+5*ncv;
   ierr = PetscFree(ar->workev);CHKERRQ(ierr);
   ierr = PetscMalloc1(3*ncv,&ar->workev);CHKERRQ(ierr);
   ierr = PetscLogObjectMemory((PetscObject)eps,3*ncv*sizeof(PetscScalar));CHKERRQ(ierr);
 #else
   if (eps->ishermitian) {
-    ierr = PetscBLASIntCast(ncv*(ncv+8),&ar->lworkl);CHKERRQ(ierr);
+    ar->lworkl = ncv*(ncv+8);
   } else {
-    ierr = PetscBLASIntCast(3*ncv*ncv+6*ncv,&ar->lworkl);CHKERRQ(ierr);
+    ar->lworkl = 3*ncv*ncv+6*ncv;
     ierr = PetscFree(ar->workev);CHKERRQ(ierr);
     ierr = PetscMalloc1(3*ncv,&ar->workev);CHKERRQ(ierr);
     ierr = PetscLogObjectMemory((PetscObject)eps,3*ncv*sizeof(PetscScalar));CHKERRQ(ierr);
@@ -53,7 +53,7 @@ PetscErrorCode EPSSetUp_ARPACK(EPS eps)
   ierr = PetscLogObjectMemory((PetscObject)eps,ar->lworkl*sizeof(PetscScalar));CHKERRQ(ierr);
   ierr = PetscFree(ar->select);CHKERRQ(ierr);
   ierr = PetscMalloc1(ncv,&ar->select);CHKERRQ(ierr);
-  ierr = PetscLogObjectMemory((PetscObject)eps,ncv*sizeof(PetscBool));CHKERRQ(ierr);
+  ierr = PetscLogObjectMemory((PetscObject)eps,ncv*sizeof(PetscInt));CHKERRQ(ierr);
   ierr = PetscFree(ar->workd);CHKERRQ(ierr);
   ierr = PetscMalloc1(3*eps->nloc,&ar->workd);CHKERRQ(ierr);
   ierr = PetscLogObjectMemory((PetscObject)eps,3*eps->nloc*sizeof(PetscScalar));CHKERRQ(ierr);
@@ -79,25 +79,25 @@ PetscErrorCode EPSSolve_ARPACK(EPS eps)
   EPS_ARPACK     *ar = (EPS_ARPACK*)eps->data;
   char           bmat[1],howmny[] = "A";
   const char     *which;
-  PetscBLASInt   n,iparam[11],ipntr[14],ido,info,nev,ncv;
+  PetscInt       n,iparam[11],ipntr[14],ido,info,nev,ncv,rvec;
 #if !defined(PETSC_HAVE_MPIUNI)
-  PetscBLASInt   fcomm;
+  MPI_Fint       fcomm;
 #endif
   PetscScalar    sigmar,*pV,*resid;
   Vec            x,y,w = eps->work[0];
   Mat            A;
-  PetscBool      isSinv,isShift,rvec;
+  PetscBool      isSinv,isShift;
 #if !defined(PETSC_USE_COMPLEX)
   PetscScalar    sigmai = 0.0;
 #endif
 
   PetscFunctionBegin;
-  ierr = PetscBLASIntCast(eps->nev,&nev);CHKERRQ(ierr);
-  ierr = PetscBLASIntCast(eps->ncv,&ncv);CHKERRQ(ierr);
+  nev = eps->nev;
+  ncv = eps->ncv;
 #if !defined(PETSC_HAVE_MPIUNI)
-  ierr = PetscBLASIntCast(MPI_Comm_c2f(PetscObjectComm((PetscObject)eps)),&fcomm);CHKERRQ(ierr);
+  fcomm = MPI_Comm_c2f(PetscObjectComm((PetscObject)eps));
 #endif
-  ierr = PetscBLASIntCast(eps->nloc,&n);CHKERRQ(ierr);
+  n = eps->nloc;
   ierr = EPSGetStartVector(eps,0,NULL);CHKERRQ(ierr);
   ierr = BVSetActiveColumns(eps->V,0,0);CHKERRQ(ierr);  /* just for deflation space */
   ierr = BVCopyVec(eps->V,0,eps->work[1]);CHKERRQ(ierr);
@@ -107,7 +107,7 @@ PetscErrorCode EPSSolve_ARPACK(EPS eps)
   ido  = 0;            /* first call to reverse communication interface */
   info = 1;            /* indicates an initial vector is provided */
   iparam[0] = 1;       /* use exact shifts */
-  ierr = PetscBLASIntCast(eps->max_it,&iparam[2]);CHKERRQ(ierr);  /* max Arnoldi iterations */
+  iparam[2] = eps->max_it;  /* max Arnoldi iterations */
   iparam[3] = 1;       /* blocksize */
   iparam[4] = 0;       /* number of converged Ritz values */
 

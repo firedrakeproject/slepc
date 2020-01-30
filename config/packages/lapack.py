@@ -45,8 +45,7 @@ class Lapack(package.Package):
     for f in functions:
       code += f + '();\n'
     code += 'return 0;\n}\n'
-    (result, output) = self.LinkWithOutput(functions,callbacks,flags,code)
-    self.log.write(output)
+    result = self.Link(functions,callbacks,flags,code)
     return result
 
   def Check(self,conf,vars,petsc):
