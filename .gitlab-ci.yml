@@ -66,12 +66,12 @@ variables:
     - export PETSC_DIR=$PWD
     - ${PYTHON} ./configure --with-debugging=0 COPTFLAGS='-O -march=native' CXXOPTFLAGS='-O -march=native' FOPTFLAGS='-O -march=native' ${PETSC_CONFIG_OPTS}
     - make allfortranstubs
-    - make CFLAGS=-Werror CXXFLAGS=-Werror
+    - make CFLAGS=-Werror CXXFLAGS=-Werror FFLAGS=-Werror
     - export PETSC_ARCH=`ls -d arch-*`
     - cd $SLEPC_DIR
     - ${PYTHON} ./configure
-    - make CFLAGS=-Werror CXXFLAGS=-Werror
-    - make CFLAGS=-Werror CXXFLAGS=-Werror allgtests-tap search="${TEST_SEARCH}" TIMEOUT=${TIMEOUT}
+    - make CFLAGS=-Werror CXXFLAGS=-Werror FFLAGS=-Werror
+    - make CFLAGS=-Werror CXXFLAGS=-Werror FFLAGS=-Werror allgtests-tap search="${TEST_SEARCH}" TIMEOUT=${TIMEOUT}
   after_script:
     - date
     - CCACHE_DIR=$(pwd)/.ccache ccache --show-stats
@@ -174,12 +174,12 @@ checksource:
     - export PETSC_ARCH=arch-$CI_JOB_NAME
     - bash -c "${PYTHON} ./configure --with-debugging=0 --COPTFLAGS='-O -g' --CXXOPTFLAGS='-O -g' --FOPTFLAGS='-O -g' --CUDAOPTFLAGS='-O' --CUDAFLAGS='-ccbin gcc-5' ${PETSC_CONFIG_OPTS}"
     - make allfortranstubs
-    - make CFLAGS=${MAKE_CFLAGS} CXXFLAGS=${MAKE_CXXFLAGS}
+    - make CFLAGS=${MAKE_CFLAGS} CXXFLAGS=${MAKE_CXXFLAGS} FFLAGS=${MAKE_FFLAGS}
     - cd $SLEPC_DIR
     - ${PYTHON} ./configure ${SLEPC_CONFIG_OPTS}
-    - make CFLAGS=${MAKE_CFLAGS} CXXFLAGS=${MAKE_CXXFLAGS}
-    - make CFLAGS=${MAKE_CFLAGS} CXXFLAGS=${MAKE_CXXFLAGS} check
-    - make CFLAGS=${MAKE_CFLAGS} CXXFLAGS=${MAKE_CXXFLAGS} cleantest allgtests-tap TIMEOUT=${TIMEOUT}
+    - make CFLAGS=${MAKE_CFLAGS} CXXFLAGS=${MAKE_CXXFLAGS} FFLAGS=${MAKE_FFLAGS}
+    - make CFLAGS=${MAKE_CFLAGS} CXXFLAGS=${MAKE_CXXFLAGS} FFLAGS=${MAKE_FFLAGS} check
+    - make CFLAGS=${MAKE_CFLAGS} CXXFLAGS=${MAKE_CXXFLAGS} FFLAGS=${MAKE_FFLAGS} cleantest allgtests-tap TIMEOUT=${TIMEOUT}
   artifacts:
     reports:
       junit: arch-*/tests/testresults.xml
@@ -230,11 +230,13 @@ checksource:
   variables:
     MAKE_CFLAGS: -Werror
     MAKE_CXXFLAGS: -Werror
+    MAKE_FFLAGS: -Werror
 
 .freebsd_test:
   variables:
     MAKE_CFLAGS: -Werror
     MAKE_CXXFLAGS: -Werror
+    MAKE_FFLAGS: -Werror
   before_script:
     - date
     - hostname
@@ -249,6 +251,7 @@ checksource:
   variables:
     MAKE_CFLAGS: -Werror
     MAKE_CXXFLAGS: -Werror
+    MAKE_FFLAGS: -Werror
   before_script:
     - date
     - hostname
@@ -384,6 +387,7 @@ linux-pgi-c-nompi:
   variables:
     MAKE_CFLAGS: ''
     MAKE_CXXFLAGS: ''
+    MAKE_FFLAGS: ''
     PETSC_CONFIG_OPTS: --with-cc=/opt/pgi/linux86-64/2019/bin/pgcc --with-fc=/opt/pgi/linux86-64/2019/bin/pgfortran --with-cxx=/opt/pgi/linux86-64/2019/bin/pgc++ --with-blaslapack-dir=/opt/pgi/linux86-64/2019/lib --with-mpi=0
 
 #
