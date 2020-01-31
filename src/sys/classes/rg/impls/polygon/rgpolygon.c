@@ -150,7 +150,7 @@ static PetscErrorCode RGPolygonGetVertices_Polygon(RG rg,PetscInt *n,PetscScalar
   PetscFunctionReturn(0);
 }
 
-/*@
+/*@C
    RGPolygonGetVertices - Gets the vertices that define the polygon region.
 
    Not Collective
