@@ -469,7 +469,7 @@ PetscErrorCode RGCheckInside(RG rg,PetscInt n,PetscScalar *ar,PetscScalar *ai,Pe
 }
 
 /*@
-   RGComputeContour - Computes the coordinates of several points lying in the
+   RGComputeContour - Computes the coordinates of several points lying on the
    contour of the region.
 
    Not Collective

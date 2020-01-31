@@ -14,7 +14,7 @@
           PetscInt b
           PetscInt c
           PetscInt d
-          integer z
+          PetscErrorCode z
         end subroutine
         subroutine PEPGetDimensions100(a,b,c,d,z)
         use slepcpepdef
@@ -22,7 +22,7 @@
           PetscInt b(*)
           PetscInt c
           PetscInt d
-          integer z
+          PetscErrorCode z
         end subroutine
         subroutine PEPGetDimensions010(a,b,c,d,z)
         use slepcpepdef
@@ -30,7 +30,7 @@
           PetscInt b
           PetscInt c(*)
           PetscInt d
-          integer z
+          PetscErrorCode z
         end subroutine
         subroutine PEPGetDimensions001(a,b,c,d,z)
         use slepcpepdef
@@ -38,7 +38,7 @@
           PetscInt b
           PetscInt c
           PetscInt d(*)
-          integer z
+          PetscErrorCode z
         end subroutine
         subroutine PEPGetDimensions110(a,b,c,d,z)
         use slepcpepdef
@@ -46,7 +46,7 @@
           PetscInt b(*)
           PetscInt c(*)
           PetscInt d
-          integer z
+          PetscErrorCode z
         end subroutine
         subroutine PEPGetDimensions011(a,b,c,d,z)
         use slepcpepdef
@@ -54,7 +54,7 @@
           PetscInt b
           PetscInt c(*)
           PetscInt d(*)
-          integer z
+          PetscErrorCode z
         end subroutine
         subroutine PEPGetDimensions101(a,b,c,d,z)
         use slepcpepdef
@@ -62,7 +62,7 @@
           PetscInt b(*)
           PetscInt c
           PetscInt d(*)
-          integer z
+          PetscErrorCode z
         end subroutine
         end interface PEPGetDimensions
 
@@ -75,7 +75,7 @@
           PetscScalar d
           Vec e
           Vec f
-          integer z
+          PetscErrorCode z
         end subroutine
         subroutine PEPGetEigenpair10(a,b,c,d,e,f,z)
           use slepcpepdef
@@ -85,7 +85,7 @@
           PetscScalar d
           Vec e
           Vec f
-          integer z
+          PetscErrorCode z
         end subroutine
         subroutine PEPGetEigenpair01(a,b,c,d,e,f,z)
           use slepcpepdef
@@ -95,7 +95,7 @@
           PetscScalar d(*)
           Vec e
           Vec f
-          integer z
+          PetscErrorCode z
         end subroutine
         subroutine PEPGetEigenpair11(a,b,c,d,e,f,z)
           use slepcpepdef
@@ -105,7 +105,7 @@
           PetscScalar d(*)
           Vec e
           Vec f
-          integer z
+          PetscErrorCode z
         end subroutine
       end interface PEPGetEigenpair
 
@@ -115,21 +115,21 @@
           PEP a
           PetscReal b
           PetscInt c
-          integer z
+          PetscErrorCode z
         end subroutine
         subroutine PEPGetTolerances10(a,b,c,z)
           use slepcpepdef
           PEP a
           PetscReal b(*)
           PetscInt c
-          integer z
+          PetscErrorCode z
         end subroutine
         subroutine PEPGetTolerances01(a,b,c,z)
           use slepcpepdef
           PEP a
           PetscReal b
           PetscInt c(*)
-          integer z
+          PetscErrorCode z
         end subroutine
       end interface PEPGetTolerances
 
@@ -142,7 +142,7 @@
           Vec d,e
           PetscInt f
           PetscReal g
-          integer z
+          PetscErrorCode z
         end subroutine
         subroutine PEPGetScale100(a,b,c,d,e,f,g,z)
           use slepcpepdef
@@ -152,7 +152,7 @@
           Vec d,e
           PetscInt f
           PetscReal g
-          integer z
+          PetscErrorCode z
         end subroutine
         subroutine PEPGetScale010(a,b,c,d,e,f,g,z)
           use slepcpepdef
@@ -162,7 +162,7 @@
           Vec d,e
           PetscInt f(*)
           PetscReal g
-          integer z
+          PetscErrorCode z
         end subroutine
         subroutine PEPGetScale001(a,b,c,d,e,f,g,z)
           use slepcpepdef
@@ -172,7 +172,7 @@
           Vec d,e
           PetscInt f
           PetscReal g(*)
-          integer z
+          PetscErrorCode z
         end subroutine
         subroutine PEPGetScale110(a,b,c,d,e,f,g,z)
           use slepcpepdef
@@ -182,7 +182,7 @@
           Vec d,e
           PetscInt f(*)
           PetscReal g
-          integer z
+          PetscErrorCode z
         end subroutine
         subroutine PEPGetScale011(a,b,c,d,e,f,g,z)
           use slepcpepdef
@@ -192,7 +192,7 @@
           Vec d,e
           PetscInt f(*)
           PetscReal g(*)
-          integer z
+          PetscErrorCode z
         end subroutine
         subroutine PEPGetScale101(a,b,c,d,e,f,g,z)
           use slepcpepdef
@@ -202,7 +202,7 @@
           Vec d,e
           PetscInt f
           PetscReal g(*)
-          integer z
+          PetscErrorCode z
         end subroutine
         subroutine PEPGetScale111(a,b,c,d,e,f,g,z)
           use slepcpepdef
@@ -212,7 +212,7 @@
           Vec d,e
           PetscInt f(*)
           PetscReal g(*)
-          integer z
+          PetscErrorCode z
         end subroutine
       end interface PEPGetScale
 
@@ -225,7 +225,7 @@
           PetscReal d
           PetscInt e
           PEPRefineScheme f
-          integer z
+          PetscErrorCode z
         end subroutine
         subroutine PEPGetRefine100(a,b,c,d,e,f,z)
           use slepcpepdef
@@ -235,7 +235,7 @@
           PetscReal d
           PetscInt e
           PEPRefineScheme f
-          integer z
+          PetscErrorCode z
         end subroutine
         subroutine PEPGetRefine010(a,b,c,d,e,f,z)
           use slepcpepdef
@@ -245,7 +245,7 @@
           PetscReal d(*)
           PetscInt e
           PEPRefineScheme f
-          integer z
+          PetscErrorCode z
         end subroutine
         subroutine PEPGetRefine001(a,b,c,d,e,f,z)
           use slepcpepdef
@@ -255,7 +255,7 @@
           PetscReal d
           PetscInt e(*)
           PEPRefineScheme f
-          integer z
+          PetscErrorCode z
         end subroutine
         subroutine PEPGetRefine110(a,b,c,d,e,f,z)
           use slepcpepdef
@@ -265,7 +265,7 @@
           PetscReal d(*)
           PetscInt e
           PEPRefineScheme f
-          integer z
+          PetscErrorCode z
         end subroutine
         subroutine PEPGetRefine011(a,b,c,d,e,f,z)
           use slepcpepdef
@@ -275,7 +275,7 @@
           PetscReal d(*)
           PetscInt e(*)
           PEPRefineScheme f
-          integer z
+          PetscErrorCode z
         end subroutine
         subroutine PEPGetRefine101(a,b,c,d,e,f,z)
           use slepcpepdef
@@ -285,7 +285,7 @@
           PetscReal d
           PetscInt e(*)
           PEPRefineScheme f
-          integer z
+          PetscErrorCode z
         end subroutine
         subroutine PEPGetRefine111(a,b,c,d,e,f,z)
           use slepcpepdef
@@ -295,7 +295,7 @@
           PetscReal d(*)
           PetscInt e(*)
           PEPRefineScheme f
-          integer z
+          PetscErrorCode z
         end subroutine
       end interface PEPGetRefine
 
@@ -305,14 +305,14 @@
           PEP a
           PetscInt b
           Vec c
-          integer z
+          PetscErrorCode z
         end subroutine
         subroutine PEPSetInitialSpace1(a,b,c,z)
           use slepcpepdef
           PEP a
           PetscInt b
           Vec c(*)
-          integer z
+          PetscErrorCode z
         end subroutine
       end interface PEPSetInitialSpace
 

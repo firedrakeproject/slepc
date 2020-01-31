@@ -157,24 +157,24 @@ SLEPC_EXTERN void PETSC_STDCALL lmemonitorset_(LME *lme,void (PETSC_STDCALL *mon
   }
 }
 
-SLEPC_EXTERN void PETSC_STDCALL lmegettolerances_(LME *lme,PetscReal *tol,PetscInt *maxits,int *ierr)
+SLEPC_EXTERN void PETSC_STDCALL lmegettolerances_(LME *lme,PetscReal *tol,PetscInt *maxits,PetscErrorCode *ierr)
 {
   CHKFORTRANNULLREAL(tol);
   CHKFORTRANNULLINTEGER(maxits);
   *ierr = LMEGetTolerances(*lme,tol,maxits);
 }
 
-SLEPC_EXTERN void PETSC_STDCALL lmegettolerances00_(LME *lme,PetscReal *tol,PetscInt *maxits,int *ierr)
+SLEPC_EXTERN void PETSC_STDCALL lmegettolerances00_(LME *lme,PetscReal *tol,PetscInt *maxits,PetscErrorCode *ierr)
 {
   lmegettolerances_(lme,tol,maxits,ierr);
 }
 
-SLEPC_EXTERN void PETSC_STDCALL lmegettolerances10_(LME *lme,PetscReal *tol,PetscInt *maxits,int *ierr)
+SLEPC_EXTERN void PETSC_STDCALL lmegettolerances10_(LME *lme,PetscReal *tol,PetscInt *maxits,PetscErrorCode *ierr)
 {
   lmegettolerances_(lme,tol,maxits,ierr);
 }
 
-SLEPC_EXTERN void PETSC_STDCALL lmegettolerances01_(LME *lme,PetscReal *tol,PetscInt *maxits,int *ierr)
+SLEPC_EXTERN void PETSC_STDCALL lmegettolerances01_(LME *lme,PetscReal *tol,PetscInt *maxits,PetscErrorCode *ierr)
 {
   lmegettolerances_(lme,tol,maxits,ierr);
 }

@@ -14,7 +14,7 @@
           PetscInt b
           PetscInt c
           PetscInt d
-          integer z
+          PetscErrorCode z
         end subroutine
         subroutine EPSGetDimensions100(a,b,c,d,z)
           use slepcepsdef
@@ -22,7 +22,7 @@
           PetscInt b(*)
           PetscInt c
           PetscInt d
-          integer z
+          PetscErrorCode z
         end subroutine
         subroutine EPSGetDimensions010(a,b,c,d,z)
           use slepcepsdef
@@ -30,7 +30,7 @@
           PetscInt b
           PetscInt c(*)
           PetscInt d
-          integer z
+          PetscErrorCode z
         end subroutine
         subroutine EPSGetDimensions001(a,b,c,d,z)
           use slepcepsdef
@@ -38,7 +38,7 @@
           PetscInt b
           PetscInt c
           PetscInt d(*)
-          integer z
+          PetscErrorCode z
         end subroutine
         subroutine EPSGetDimensions110(a,b,c,d,z)
           use slepcepsdef
@@ -46,7 +46,7 @@
           PetscInt b(*)
           PetscInt c(*)
           PetscInt d
-          integer z
+          PetscErrorCode z
         end subroutine
         subroutine EPSGetDimensions011(a,b,c,d,z)
           use slepcepsdef
@@ -54,7 +54,7 @@
           PetscInt b
           PetscInt c(*)
           PetscInt d(*)
-          integer z
+          PetscErrorCode z
         end subroutine
         subroutine EPSGetDimensions101(a,b,c,d,z)
           use slepcepsdef
@@ -62,7 +62,7 @@
           PetscInt b(*)
           PetscInt c
           PetscInt d(*)
-          integer z
+          PetscErrorCode z
         end subroutine
       end interface EPSGetDimensions
 
@@ -75,7 +75,7 @@
           PetscScalar d
           Vec e
           Vec f
-          integer z
+          PetscErrorCode z
         end subroutine
         subroutine EPSGetEigenpair10(a,b,c,d,e,f,z)
           use slepcepsdef
@@ -85,7 +85,7 @@
           PetscScalar d
           Vec e
           Vec f
-          integer z
+          PetscErrorCode z
         end subroutine
         subroutine EPSGetEigenpair01(a,b,c,d,e,f,z)
           use slepcepsdef
@@ -95,7 +95,7 @@
           PetscScalar d(*)
           Vec e
           Vec f
-          integer z
+          PetscErrorCode z
         end subroutine
         subroutine EPSGetEigenpair11(a,b,c,d,e,f,z)
           use slepcepsdef
@@ -105,7 +105,7 @@
           PetscScalar d(*)
           Vec e
           Vec f
-          integer z
+          PetscErrorCode z
         end subroutine
       end interface EPSGetEigenpair
 
@@ -116,7 +116,7 @@
           PetscInt b
           PetscScalar c
           PetscScalar d
-          integer z
+          PetscErrorCode z
         end subroutine
         subroutine EPSGetEigenvalue10(a,b,c,d,z)
           use slepcepsdef
@@ -124,7 +124,7 @@
           PetscInt b
           PetscScalar c(*)
           PetscScalar d
-          integer z
+          PetscErrorCode z
         end subroutine
         subroutine EPSGetEigenvalue01(a,b,c,d,z)
           use slepcepsdef
@@ -132,7 +132,7 @@
           PetscInt b
           PetscScalar c
           PetscScalar d(*)
-          integer z
+          PetscErrorCode z
         end subroutine
       end interface EPSGetEigenvalue
 
@@ -142,21 +142,21 @@
           EPS a
           PetscReal b
           PetscInt c
-          integer z
+          PetscErrorCode z
         end subroutine
         subroutine EPSGetTolerances10(a,b,c,z)
           use slepcepsdef
           EPS a
           PetscReal b(*)
           PetscInt c
-          integer z
+          PetscErrorCode z
         end subroutine
         subroutine EPSGetTolerances01(a,b,c,z)
           use slepcepsdef
           EPS a
           PetscReal b
           PetscInt c(*)
-          integer z
+          PetscErrorCode z
         end subroutine
       end interface EPSGetTolerances
 
@@ -167,7 +167,7 @@
           EPSBalance b
           PetscInt c
           PetscReal d
-          integer z
+          PetscErrorCode z
         end subroutine
         subroutine EPSGetBalance100(a,b,c,d,z)
           use slepcepsdef
@@ -175,7 +175,7 @@
           EPSBalance b(*)
           PetscInt c
           PetscReal d
-          integer z
+          PetscErrorCode z
         end subroutine
         subroutine EPSGetBalance010(a,b,c,d,z)
           use slepcepsdef
@@ -183,7 +183,7 @@
           EPSBalance b
           PetscInt c(*)
           PetscReal d
-          integer z
+          PetscErrorCode z
         end subroutine
         subroutine EPSGetBalance001(a,b,c,d,z)
           use slepcepsdef
@@ -191,7 +191,7 @@
           EPSBalance b
           PetscInt c
           PetscReal d(*)
-          integer z
+          PetscErrorCode z
         end subroutine
         subroutine EPSGetBalance110(a,b,c,d,z)
           use slepcepsdef
@@ -199,7 +199,7 @@
           EPSBalance b(*)
           PetscInt c(*)
           PetscReal d
-          integer z
+          PetscErrorCode z
         end subroutine
         subroutine EPSGetBalance011(a,b,c,d,z)
           use slepcepsdef
@@ -207,7 +207,7 @@
           EPSBalance b
           PetscInt c(*)
           PetscReal d(*)
-          integer z
+          PetscErrorCode z
         end subroutine
         subroutine EPSGetBalance101(a,b,c,d,z)
           use slepcepsdef
@@ -215,7 +215,7 @@
           EPSBalance b(*)
           PetscInt c
           PetscReal d(*)
-          integer z
+          PetscErrorCode z
         end subroutine
       end interface EPSGetBalance
 
@@ -225,14 +225,14 @@
           EPS a
           PetscInt b
           Vec c
-          integer z
+          PetscErrorCode z
         end subroutine
         subroutine EPSSetDeflationSpace1(a,b,c,z)
           use slepcepsdef
           EPS a
           PetscInt b
           Vec c(*)
-          integer z
+          PetscErrorCode z
         end subroutine
       end interface EPSSetDeflationSpace
 
@@ -242,14 +242,14 @@
           EPS a
           PetscInt b
           Vec c
-          integer z
+          PetscErrorCode z
         end subroutine
         subroutine EPSSetInitialSpace1(a,b,c,z)
           use slepcepsdef
           EPS a
           PetscInt b
           Vec c(*)
-          integer z
+          PetscErrorCode z
         end subroutine
       end interface EPSSetInitialSpace
 
@@ -259,14 +259,14 @@
           EPS a
           PetscInt b
           Vec c
-          integer z
+          PetscErrorCode z
         end subroutine
         subroutine EPSSetLeftInitialSpace1(a,b,c,z)
           use slepcepsdef
           EPS a
           PetscInt b
           Vec c(*)
-          integer z
+          PetscErrorCode z
         end subroutine
       end interface EPSSetLeftInitialSpace
 

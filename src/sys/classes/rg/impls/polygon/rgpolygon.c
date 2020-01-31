@@ -125,16 +125,32 @@ PetscErrorCode RGPolygonSetVertices(RG rg,PetscInt n,PetscScalar vr[],PetscScala
 
 static PetscErrorCode RGPolygonGetVertices_Polygon(RG rg,PetscInt *n,PetscScalar **vr,PetscScalar **vi)
 {
-  RG_POLYGON *ctx = (RG_POLYGON*)rg->data;
+  PetscErrorCode ierr;
+  RG_POLYGON     *ctx = (RG_POLYGON*)rg->data;
+  PetscInt       i;
 
   PetscFunctionBegin;
-  if (n)  *n  = ctx->n;
-  if (vr) *vr = ctx->vr;
-  if (vi) *vi = ctx->vi;
+  if (n) *n  = ctx->n;
+  if (vr) {
+    if (!ctx->n) *vr = NULL;
+    else {
+      ierr = PetscMalloc1(ctx->n,vr);CHKERRQ(ierr);
+      for (i=0;i<ctx->n;i++) (*vr)[i] = ctx->vr[i];
+    }
+  }
+#if !defined(PETSC_USE_COMPLEX)
+  if (vi) {
+    if (!ctx->n) *vi = NULL;
+    else {
+      ierr = PetscMalloc1(ctx->n,vi);CHKERRQ(ierr);
+      for (i=0;i<ctx->n;i++) (*vi)[i] = ctx->vi[i];
+    }
+  }
+#endif
   PetscFunctionReturn(0);
 }
 
-/*@
+/*@C
    RGPolygonGetVertices - Gets the vertices that define the polygon region.
 
    Not Collective
@@ -148,7 +164,9 @@ static PetscErrorCode RGPolygonGetVertices_Polygon(RG rg,PetscInt *n,PetscScalar
 -  vi - array of vertices (imaginary part)
 
    Notes:
-   The returned arrays must NOT be freed by the calling application.
+   The values passed by user with RGPolygonSetVertices() are returned (or null
+   pointers otherwise).
+   The returned arrays should be freed by the user when no longer needed.
 
    Level: advanced
 
