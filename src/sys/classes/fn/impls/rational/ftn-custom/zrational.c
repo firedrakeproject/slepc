@@ -16,121 +16,95 @@
 #define fnrationalsetnumerator1_    FNRATIONALSETNUMERATOR1
 #define fnrationalsetdenominator0_  FNRATIONALSETDENOMINATOR0
 #define fnrationalsetdenominator1_  FNRATIONALSETDENOMINATOR1
-#define fnrationalgetnumerator00_   FNRATIONALGETNUMERATOR00
-#define fnrationalgetnumerator10_   FNRATIONALGETNUMERATOR10
-#define fnrationalgetnumerator01_   FNRATIONALGETNUMERATOR01
-#define fnrationalgetnumerator11_   FNRATIONALGETNUMERATOR11
-#define fnrationalgetdenominator00_ FNRATIONALGETDENOMINATOR00
-#define fnrationalgetdenominator10_ FNRATIONALGETDENOMINATOR10
-#define fnrationalgetdenominator01_ FNRATIONALGETDENOMINATOR01
-#define fnrationalgetdenominator11_ FNRATIONALGETDENOMINATOR11
+#define fnrationalgetnumerator0_    FNRATIONALGETNUMERATOR0
+#define fnrationalgetnumerator1_    FNRATIONALGETNUMERATOR1
+#define fnrationalgetdenominator0_  FNRATIONALGETDENOMINATOR0
+#define fnrationalgetdenominator1_  FNRATIONALGETDENOMINATOR1
 #elif !defined(PETSC_HAVE_FORTRAN_UNDERSCORE)
 #define fnrationalsetnumerator0_    fnrationalsetnumerator0
 #define fnrationalsetnumerator1_    fnrationalsetnumerator1
 #define fnrationalsetdenominator0_  fnrationalsetdenominator0
 #define fnrationalsetdenominator1_  fnrationalsetdenominator1
-#define fnrationalgetnumerator00_   fnrationalgetnumerator00
-#define fnrationalgetnumerator10_   fnrationalgetnumerator10
-#define fnrationalgetnumerator01_   fnrationalgetnumerator01
-#define fnrationalgetnumerator11_   fnrationalgetnumerator11
-#define fnrationalgetdenominator00_ fnrationalgetdenominator00
-#define fnrationalgetdenominator10_ fnrationalgetdenominator10
-#define fnrationalgetdenominator01_ fnrationalgetdenominator01
-#define fnrationalgetdenominator11_ fnrationalgetdenominator11
+#define fnrationalgetnumerator0_    fnrationalgetnumerator0
+#define fnrationalgetnumerator1_    fnrationalgetnumerator1
+#define fnrationalgetdenominator0_  fnrationalgetdenominator0
+#define fnrationalgetdenominator1_  fnrationalgetdenominator1
 #endif
 
-SLEPC_EXTERN void PETSC_STDCALL fnrationalsetnumerator_(FN *fn,PetscInt *np,PetscScalar *pcoeff,int *ierr)
+SLEPC_EXTERN void PETSC_STDCALL fnrationalsetnumerator_(FN *fn,PetscInt *np,PetscScalar *pcoeff,PetscErrorCode *ierr)
 {
   CHKFORTRANNULLSCALAR(pcoeff);
   *ierr = FNRationalSetNumerator(*fn,*np,pcoeff);
 }
 
-SLEPC_EXTERN void PETSC_STDCALL fnrationalsetnumerator0_(FN *fn,PetscInt *np,PetscScalar *pcoeff,int *ierr)
+SLEPC_EXTERN void PETSC_STDCALL fnrationalsetnumerator0_(FN *fn,PetscInt *np,PetscScalar *pcoeff,PetscErrorCode *ierr)
 {
   fnrationalsetnumerator_(fn,np,pcoeff,ierr);
 }
 
-SLEPC_EXTERN void PETSC_STDCALL fnrationalsetnumerator1_(FN *fn,PetscInt *np,PetscScalar *pcoeff,int *ierr)
+SLEPC_EXTERN void PETSC_STDCALL fnrationalsetnumerator1_(FN *fn,PetscInt *np,PetscScalar *pcoeff,PetscErrorCode *ierr)
 {
   fnrationalsetnumerator_(fn,np,pcoeff,ierr);
 }
 
-SLEPC_EXTERN void PETSC_STDCALL fnrationalsetdenominator_(FN *fn,PetscInt *nq,PetscScalar *qcoeff,int *ierr)
+SLEPC_EXTERN void PETSC_STDCALL fnrationalsetdenominator_(FN *fn,PetscInt *nq,PetscScalar *qcoeff,PetscErrorCode *ierr)
 {
   CHKFORTRANNULLSCALAR(qcoeff);
   *ierr = FNRationalSetDenominator(*fn,*nq,qcoeff);
 }
 
-SLEPC_EXTERN void PETSC_STDCALL fnrationalsetdenominator0_(FN *fn,PetscInt *nq,PetscScalar *qcoeff,int *ierr)
+SLEPC_EXTERN void PETSC_STDCALL fnrationalsetdenominator0_(FN *fn,PetscInt *nq,PetscScalar *qcoeff,PetscErrorCode *ierr)
 {
   fnrationalsetdenominator_(fn,nq,qcoeff,ierr);
 }
 
-SLEPC_EXTERN void PETSC_STDCALL fnrationalsetdenominator1_(FN *fn,PetscInt *nq,PetscScalar *qcoeff,int *ierr)
+SLEPC_EXTERN void PETSC_STDCALL fnrationalsetdenominator1_(FN *fn,PetscInt *nq,PetscScalar *qcoeff,PetscErrorCode *ierr)
 {
   fnrationalsetdenominator_(fn,nq,qcoeff,ierr);
 }
 
-SLEPC_EXTERN void PETSC_STDCALL fnrationalgetnumerator_(FN *fn,PetscInt *np,PetscScalar *pcoeff,int *ierr)
+SLEPC_EXTERN void PETSC_STDCALL fnrationalgetnumerator_(FN *fn,PetscInt *np,PetscScalar *pcoeff,PetscErrorCode *ierr)
 {
   PetscScalar *ocoeff;
   PetscInt    n;
 
+  CHKFORTRANNULLINTEGER(np);
   CHKFORTRANNULLSCALAR(pcoeff);
   *ierr = FNRationalGetNumerator(*fn,&n,&ocoeff); if (*ierr) return;
-  if (pcoeff) { *ierr = PetscArraycpy(pcoeff,ocoeff,n); if (*ierr) return; }
-  *np = n;
+  if (pcoeff && ocoeff) { *ierr = PetscArraycpy(pcoeff,ocoeff,n); if (*ierr) return; }
+  if (np) *np = n;
   *ierr = PetscFree(ocoeff);
 }
 
-SLEPC_EXTERN void PETSC_STDCALL fnrationalgetnumerator00_(FN *fn,PetscInt *np,PetscScalar *qcoeff,int *ierr)
+SLEPC_EXTERN void PETSC_STDCALL fnrationalgetnumerator0_(FN *fn,PetscInt *np,PetscScalar *qcoeff,PetscErrorCode *ierr)
 {
   fnrationalgetnumerator_(fn,np,qcoeff,ierr);
 }
 
-SLEPC_EXTERN void PETSC_STDCALL fnrationalgetnumerator10_(FN *fn,PetscInt *np,PetscScalar *qcoeff,int *ierr)
+SLEPC_EXTERN void PETSC_STDCALL fnrationalgetnumerator1_(FN *fn,PetscInt *np,PetscScalar *qcoeff,PetscErrorCode *ierr)
 {
   fnrationalgetnumerator_(fn,np,qcoeff,ierr);
 }
 
-SLEPC_EXTERN void PETSC_STDCALL fnrationalgetnumerator01_(FN *fn,PetscInt *np,PetscScalar *qcoeff,int *ierr)
-{
-  fnrationalgetnumerator_(fn,np,qcoeff,ierr);
-}
-
-SLEPC_EXTERN void PETSC_STDCALL fnrationalgetnumerator11_(FN *fn,PetscInt *np,PetscScalar *qcoeff,int *ierr)
-{
-  fnrationalgetnumerator_(fn,np,qcoeff,ierr);
-}
-
-SLEPC_EXTERN void PETSC_STDCALL fnrationalgetdenominator_(FN *fn,PetscInt *nq,PetscScalar *qcoeff,int *ierr)
+SLEPC_EXTERN void PETSC_STDCALL fnrationalgetdenominator_(FN *fn,PetscInt *nq,PetscScalar *qcoeff,PetscErrorCode *ierr)
 {
   PetscScalar *ocoeff;
   PetscInt    n;
 
+  CHKFORTRANNULLINTEGER(nq);
   CHKFORTRANNULLSCALAR(qcoeff);
   *ierr = FNRationalGetDenominator(*fn,&n,&ocoeff); if (*ierr) return;
-  if (qcoeff) { *ierr = PetscArraycpy(qcoeff,ocoeff,n); if (*ierr) return; }
-  *nq = n;
+  if (qcoeff && ocoeff) { *ierr = PetscArraycpy(qcoeff,ocoeff,n); if (*ierr) return; }
+  if (nq) *nq = n;
   *ierr = PetscFree(ocoeff);
 }
 
-SLEPC_EXTERN void PETSC_STDCALL fnrationalgetdenominator00_(FN *fn,PetscInt *nq,PetscScalar *qcoeff,int *ierr)
+SLEPC_EXTERN void PETSC_STDCALL fnrationalgetdenominator0_(FN *fn,PetscInt *nq,PetscScalar *qcoeff,PetscErrorCode *ierr)
 {
   fnrationalgetdenominator_(fn,nq,qcoeff,ierr);
 }
 
-SLEPC_EXTERN void PETSC_STDCALL fnrationalgetdenominator10_(FN *fn,PetscInt *nq,PetscScalar *qcoeff,int *ierr)
-{
-  fnrationalgetdenominator_(fn,nq,qcoeff,ierr);
-}
-
-SLEPC_EXTERN void PETSC_STDCALL fnrationalgetdenominator01_(FN *fn,PetscInt *nq,PetscScalar *qcoeff,int *ierr)
-{
-  fnrationalgetdenominator_(fn,nq,qcoeff,ierr);
-}
-
-SLEPC_EXTERN void PETSC_STDCALL fnrationalgetdenominator11_(FN *fn,PetscInt *nq,PetscScalar *qcoeff,int *ierr)
+SLEPC_EXTERN void PETSC_STDCALL fnrationalgetdenominator1_(FN *fn,PetscInt *nq,PetscScalar *qcoeff,PetscErrorCode *ierr)
 {
   fnrationalgetdenominator_(fn,nq,qcoeff,ierr);
 }
