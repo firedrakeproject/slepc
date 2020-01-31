@@ -35,7 +35,7 @@ SLEPC_EXTERN void PETSC_STDCALL nepnleigssetsingularitiesfunction_(NEP *nep,void
   *ierr = NEPNLEIGSSetSingularitiesFunction(*nep,oursingularitiesfunc,*nep);
 }
 
-SLEPC_EXTERN void PETSC_STDCALL nepnleigsgetrkshifts_(NEP *nep,PetscInt *ns,PetscScalar *pshifts,int *ierr)
+SLEPC_EXTERN void PETSC_STDCALL nepnleigsgetrkshifts_(NEP *nep,PetscInt *ns,PetscScalar *pshifts,PetscErrorCode *ierr)
 {
   PetscScalar *oshifts;
   PetscInt    n;
