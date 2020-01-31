@@ -13,14 +13,14 @@
           FN a
           PetscInt b
           PetscScalar c
-          integer z
+          PetscErrorCode z
         end subroutine
         subroutine FNRationalSetNumerator1(a,b,c,z)
           use slepcfndef
           FN a
           PetscInt b
           PetscScalar c(*)
-          integer z
+          PetscErrorCode z
         end subroutine
       end interface FNRationalSetNumerator
 
@@ -30,14 +30,14 @@
           FN a
           PetscInt b
           PetscScalar c
-          integer z
+          PetscErrorCode z
         end subroutine
         subroutine FNRationalSetDenominator1(a,b,c,z)
           use slepcfndef
           FN a
           PetscInt b
           PetscScalar c(*)
-          integer z
+          PetscErrorCode z
         end subroutine
       end interface FNRationalSetDenominator
 
@@ -47,28 +47,28 @@
           FN a
           PetscInt b
           PetscScalar c
-          integer z
+          PetscErrorCode z
         end subroutine
         subroutine FNRationalGetNumerator10(a,b,c,z)
           use slepcfndef
           FN a
           PetscInt b(*)
           PetscScalar c
-          integer z
+          PetscErrorCode z
         end subroutine
         subroutine FNRationalGetNumerator01(a,b,c,z)
           use slepcfndef
           FN a
           PetscInt b
           PetscScalar c(*)
-          integer z
+          PetscErrorCode z
         end subroutine
         subroutine FNRationalGetNumerator11(a,b,c,z)
           use slepcfndef
           FN a
           PetscInt b(*)
           PetscScalar c(*)
-          integer z
+          PetscErrorCode z
         end subroutine
       end interface FNRationalGetNumerator
 
@@ -78,28 +78,28 @@
           FN a
           PetscInt b
           PetscScalar c
-          integer z
+          PetscErrorCode z
         end subroutine
         subroutine FNRationalGetDenominator10(a,b,c,z)
           use slepcfndef
           FN a
           PetscInt b(*)
           PetscScalar c
-          integer z
+          PetscErrorCode z
         end subroutine
         subroutine FNRationalGetDenominator01(a,b,c,z)
           use slepcfndef
           FN a
           PetscInt b
           PetscScalar c(*)
-          integer z
+          PetscErrorCode z
         end subroutine
         subroutine FNRationalGetDenominator11(a,b,c,z)
           use slepcfndef
           FN a
           PetscInt b(*)
           PetscScalar c(*)
-          integer z
+          PetscErrorCode z
         end subroutine
       end interface FNRationalGetDenominator
 

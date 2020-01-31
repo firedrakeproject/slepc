@@ -13,21 +13,21 @@
           MFN a
           PetscReal b
           PetscInt c
-          integer z
+          PetscErrorCode z
         end subroutine
         subroutine MFNGetTolerances10(a,b,c,z)
           use slepcmfndef
           MFN a
           PetscReal b(*)
           PetscInt c
-          integer z
+          PetscErrorCode z
         end subroutine
         subroutine MFNGetTolerances01(a,b,c,z)
           use slepcmfndef
           MFN a
           PetscReal b
           PetscInt c(*)
-          integer z
+          PetscErrorCode z
         end subroutine
       end interface MFNGetTolerances
 

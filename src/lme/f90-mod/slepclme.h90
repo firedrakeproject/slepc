@@ -13,21 +13,21 @@
           LME a
           PetscReal b
           PetscInt c
-          integer z
+          PetscErrorCode z
         end subroutine
         subroutine LMEGetTolerances10(a,b,c,z)
           use slepclmedef
           LME a
           PetscReal b(*)
           PetscInt c
-          integer z
+          PetscErrorCode z
         end subroutine
         subroutine LMEGetTolerances01(a,b,c,z)
           use slepclmedef
           LME a
           PetscReal b
           PetscInt c(*)
-          integer z
+          PetscErrorCode z
         end subroutine
       end interface LMEGetTolerances
 
