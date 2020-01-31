@@ -161,6 +161,10 @@ int main(int argc,char **argv)
        SETERRQ1(PETSC_COMM_WORLD,1,"Vertex number %D does not match",i);
   }
 
+  ierr = PetscFree(pr);CHKERRQ(ierr);
+#if !defined(PETSC_USE_COMPLEX)
+  ierr = PetscFree(pi);CHKERRQ(ierr);
+#endif
   ierr = RGDestroy(&rg);CHKERRQ(ierr);
   ierr = SlepcFinalize();
   return ierr;

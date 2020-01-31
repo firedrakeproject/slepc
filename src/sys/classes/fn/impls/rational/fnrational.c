@@ -426,8 +426,8 @@ static PetscErrorCode FNRationalGetDenominator_Rational(FN fn,PetscInt *nq,Petsc
 -  qcoeff - coefficients (array of scalar values, length nq)
 
    Notes:
-   The values passed by user with FNRationalSetDenominator() are returned (or null
-   pointers otherwise).
+   The values passed by user with FNRationalSetDenominator() are returned (or a null
+   pointer otherwise).
    The qcoeff array should be freed by the user when no longer needed.
 
    Level: intermediate
