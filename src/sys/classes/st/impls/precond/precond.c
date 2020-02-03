@@ -62,6 +62,12 @@ PetscErrorCode STPostSolve_Precond(ST st)
   PetscFunctionReturn(0);
 }
 
+/*
+   Operator (precond):
+               Op        P         M
+   if nmat=1:  ---       A-sI      NULL
+   if nmat=2:  ---       A-sB      NULL
+*/
 PetscErrorCode STComputeOperator_Precond(ST st)
 {
   PetscErrorCode ierr;
@@ -70,6 +76,7 @@ PetscErrorCode STComputeOperator_Precond(ST st)
   PetscFunctionBegin;
   /* if the user did not set the shift, use the target value */
   if (!st->sigma_set) st->sigma = st->defsigma;
+  st->M = NULL;
 
   /* P = A-sigma*B */
   if (ctx->mat) {

@@ -14,15 +14,11 @@
 #include <slepc/private/stimpl.h>         /*I "slepcst.h" I*/
 #include "filter.h"
 
-PetscErrorCode STApply_Filter(ST st,Vec x,Vec y)
-{
-  PetscErrorCode ierr;
-
-  PetscFunctionBegin;
-  ierr = STFilter_FILTLAN_Apply(st,x,y);CHKERRQ(ierr);
-  PetscFunctionReturn(0);
-}
-
+/*
+   Operator (filter):
+               Op               P         M
+   if nmat=1:  p(A)             NULL      p(A)
+*/
 PetscErrorCode STComputeOperator_Filter(ST st)
 {
   PetscErrorCode ierr;
@@ -38,7 +34,9 @@ PetscErrorCode STComputeOperator_Filter(ST st)
   ctx->frame[1] = ctx->inta;
   ctx->frame[2] = ctx->intb;
   ctx->frame[3] = ctx->right;
-  ierr = STFilter_FILTLAN_setFilter(st);CHKERRQ(ierr);
+  ierr = STFilter_FILTLAN_setFilter(st,&st->T[0]);CHKERRQ(ierr);
+  st->M = st->T[0];
+  ierr = MatDestroy(&st->P);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -369,11 +367,13 @@ PetscErrorCode STFilterGetThreshold(ST st,PetscReal *gamma)
 
 PetscErrorCode STReset_Filter(ST st)
 {
-  ST_FILTER *ctx = (ST_FILTER*)st->data;
+  PetscErrorCode ierr;
+  ST_FILTER      *ctx = (ST_FILTER*)st->data;
 
   PetscFunctionBegin;
   ctx->left  = 0.0;
   ctx->right = 0.0;
+  ierr = MatDestroy(&ctx->T);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -458,7 +458,7 @@ SLEPC_EXTERN PetscErrorCode STCreate_Filter(ST st)
   ierr = PetscNewLog(st,&pfi);CHKERRQ(ierr);
   ctx->filterInfo         = pfi;
 
-  st->ops->apply           = STApply_Filter;
+  st->ops->apply           = STApply_Generic;
   st->ops->setup           = STSetUp_Filter;
   st->ops->computeoperator = STComputeOperator_Filter;
   st->ops->setfromoptions  = STSetFromOptions_Filter;

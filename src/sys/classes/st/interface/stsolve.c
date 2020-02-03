@@ -13,6 +13,22 @@
 
 #include <slepc/private/stimpl.h>            /*I "slepcst.h" I*/
 
+PetscErrorCode STApply_Generic(ST st,Vec x,Vec y)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  if (st->M && st->P) {
+    ierr = MatMult(st->M,x,st->work[0]);CHKERRQ(ierr);
+    ierr = STMatSolve(st,st->work[0],y);CHKERRQ(ierr);
+  } else if (st->M) {
+    ierr = MatMult(st->M,x,y);CHKERRQ(ierr);
+  } else {
+    ierr = STMatSolve(st,x,y);CHKERRQ(ierr);
+  }
+  PetscFunctionReturn(0);
+}
+
 /*@
    STApply - Applies the spectral transformation operator to a vector, for
    instance (A - sB)^-1 B in the case of the shift-and-invert transformation
@@ -58,6 +74,22 @@ PetscErrorCode STApply(ST st,Vec x,Vec y)
   }
   ierr = PetscLogEventEnd(ST_Apply,st,x,y,0);CHKERRQ(ierr);
   ierr = VecLockReadPop(x);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+PetscErrorCode STApplyTranspose_Generic(ST st,Vec x,Vec y)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  if (st->M && st->P) {
+    ierr = STMatSolveTranspose(st,x,st->work[0]);CHKERRQ(ierr);
+    ierr = MatMultTranspose(st->M,st->work[0],y);CHKERRQ(ierr);
+  } else if (st->M) {
+    ierr = MatMultTranspose(st->M,x,y);CHKERRQ(ierr);
+  } else {
+    ierr = STMatSolveTranspose(st,x,y);CHKERRQ(ierr);
+  }
   PetscFunctionReturn(0);
 }
 
@@ -175,6 +207,22 @@ static PetscErrorCode MatMultTranspose_STOperator(Mat Op,Vec x,Vec y)
   PetscFunctionReturn(0);
 }
 
+PetscErrorCode STGetOperator_Private(ST st,Mat *Op)
+{
+  PetscErrorCode ierr;
+  PetscInt       m,n,M,N;
+
+  if (!st->Op) {
+    ierr = MatGetLocalSize(st->A[0],&m,&n);CHKERRQ(ierr);
+    ierr = MatGetSize(st->A[0],&M,&N);CHKERRQ(ierr);
+    ierr = MatCreateShell(PetscObjectComm((PetscObject)st),m,n,M,N,st,&st->Op);CHKERRQ(ierr);
+    ierr = MatShellSetOperation(st->Op,MATOP_MULT,(void(*)(void))MatMult_STOperator);CHKERRQ(ierr);
+    ierr = MatShellSetOperation(st->Op,MATOP_MULT_TRANSPOSE,(void(*)(void))MatMultTranspose_STOperator);CHKERRQ(ierr);
+  }
+  *Op = st->Op;
+  PetscFunctionReturn(0);
+}
+
 /*@
    STGetOperator - Returns a shell matrix that represents the operator of the
    spectral transformation.
@@ -221,7 +269,6 @@ static PetscErrorCode MatMultTranspose_STOperator(Mat Op,Vec x,Vec y)
 PetscErrorCode STGetOperator(ST st,Mat *Op)
 {
   PetscErrorCode ierr;
-  PetscInt       m,n,M,N;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
@@ -230,14 +277,7 @@ PetscErrorCode STGetOperator(ST st,Mat *Op)
   STCheckMatrices(st,1);
   STCheckNotSeized(st,1);
   if (st->nmat>2) SETERRQ(PetscObjectComm((PetscObject)st),PETSC_ERR_ARG_WRONGSTATE,"The operator is not defined in polynomial eigenproblems");
-  if (!st->Op) {
-    ierr = MatGetLocalSize(st->A[0],&m,&n);CHKERRQ(ierr);
-    ierr = MatGetSize(st->A[0],&M,&N);CHKERRQ(ierr);
-    ierr = MatCreateShell(PetscObjectComm((PetscObject)st),m,n,M,N,st,&st->Op);CHKERRQ(ierr);
-    ierr = MatShellSetOperation(st->Op,MATOP_MULT,(void(*)(void))MatMult_STOperator);CHKERRQ(ierr);
-    ierr = MatShellSetOperation(st->Op,MATOP_MULT_TRANSPOSE,(void(*)(void))MatMultTranspose_STOperator);CHKERRQ(ierr);
-  }
-  *Op = st->Op;
+  ierr = STGetOperator_Private(st,Op);CHKERRQ(ierr);
   st->opseized = PETSC_TRUE;
   PetscFunctionReturn(0);
 }
@@ -285,9 +325,9 @@ PetscErrorCode STRestoreOperator(ST st,Mat *Op)
    the internal KSP object via KSPSetOperators.
 
    M is the numerator in rational operators. If unused it is set to NULL (e.g.
-   in STPRECOND or in polynomial problems).
+   in STPRECOND).
 
-   STSHELL does not compute anything here, but sets the flag as it was ready.
+   STSHELL does not compute anything here, but sets the flag as if it was ready.
 */
 PetscErrorCode STComputeOperator(ST st)
 {

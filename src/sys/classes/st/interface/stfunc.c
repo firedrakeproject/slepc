@@ -115,7 +115,6 @@ PetscErrorCode STReset(ST st)
   ierr = PetscFree(st->Astate);CHKERRQ(ierr);
   ierr = MatDestroy(&st->Op);CHKERRQ(ierr);
   ierr = MatDestroy(&st->P);CHKERRQ(ierr);
-  ierr = MatDestroy(&st->M);CHKERRQ(ierr);
   ierr = VecDestroyVecs(st->nwork,&st->work);CHKERRQ(ierr);
   st->nwork = 0;
   ierr = VecDestroy(&st->wb);CHKERRQ(ierr);

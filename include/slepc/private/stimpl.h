@@ -108,5 +108,8 @@ SLEPC_INTERN PetscErrorCode STSetDefaultKSP(ST);
 SLEPC_INTERN PetscErrorCode STSetDefaultKSP_Default(ST);
 SLEPC_INTERN PetscErrorCode STIsInjective_Shell(ST,PetscBool*);
 SLEPC_INTERN PetscErrorCode STComputeOperator(ST);
+SLEPC_INTERN PetscErrorCode STGetOperator_Private(ST,Mat*);
+SLEPC_INTERN PetscErrorCode STApply_Generic(ST,Vec,Vec);
+SLEPC_INTERN PetscErrorCode STApplyTranspose_Generic(ST,Vec,Vec);
 
 #endif

@@ -65,10 +65,11 @@ typedef struct {
                                       the j-th interval is [intervals(j),intervals(j+1)) */
   PetscReal   intervals2[6];       /* modified intervals */
   PetscReal   *baseFilter;         /* coefficients of the base filter (a piecewise polynomial) */
+  Mat         T;                   /* the matrix used to build the filter */
 } ST_FILTER;
 
 SLEPC_INTERN PetscErrorCode STFilter_FILTLAN_Apply(ST,Vec,Vec);
-SLEPC_INTERN PetscErrorCode STFilter_FILTLAN_setFilter(ST);
+SLEPC_INTERN PetscErrorCode STFilter_FILTLAN_setFilter(ST,Mat*);
 
 #endif
 

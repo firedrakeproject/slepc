@@ -174,7 +174,7 @@ static PetscErrorCode STShellSetApply_Shell(ST st,PetscErrorCode (*apply)(ST,Vec
 -  apply - the application-provided transformation routine
 
    Calling sequence of apply:
-$   apply(ST st,Vec xin,Vec xout)
+$  PetscErrorCode apply(ST st,Vec xin,Vec xout)
 
 +  st   - the spectral transformation context
 .  xin  - input vector
@@ -214,7 +214,7 @@ static PetscErrorCode STShellSetApplyTranspose_Shell(ST st,PetscErrorCode (*appl
 -  applytrans - the application-provided transformation routine
 
    Calling sequence of applytrans:
-$   applytrans(ST st,Vec xin,Vec xout)
+$  PetscErrorCode applytrans(ST st,Vec xin,Vec xout)
 
 +  st   - the spectral transformation context
 .  xin  - input vector
@@ -255,7 +255,7 @@ static PetscErrorCode STShellSetBackTransform_Shell(ST st,PetscErrorCode (*backt
 -  backtr - the application-provided backtransform routine
 
    Calling sequence of backtr:
-$   backtr(ST st,PetscScalar *eigr,PetscScalar *eigi)
+$  PetscErrorCode backtr(ST st,PetscScalar *eigr,PetscScalar *eigi)
 
 +  st   - the spectral transformation context
 .  eigr - pointer ot the real part of the eigenvalue to transform back
@@ -283,14 +283,16 @@ PetscErrorCode STShellSetBackTransform(ST st,PetscErrorCode (*backtr)(ST,PetscIn
   Level: advanced
 
   Usage:
-$             PetscErrorCode (*apply)(void*,Vec,Vec);
-$             PetscErrorCode (*applytrans)(void*,Vec,Vec);
-$             PetscErrorCode (*backtr)(void*,PetscScalar*,PetscScalar*);
+$             extern PetscErrorCode (*apply)(void*,Vec,Vec);
+$             extern PetscErrorCode (*applytrans)(void*,Vec,Vec);
+$             extern PetscErrorCode (*backtr)(void*,PetscScalar*,PetscScalar*);
+$
 $             STCreate(comm,&st);
 $             STSetType(st,STSHELL);
+$             STShellSetContext(st,ctx);
 $             STShellSetApply(st,apply);
-$             STShellSetApplyTranspose(st,applytrans);
-$             STShellSetBackTransform(st,backtr);    (optional)
+$             STShellSetApplyTranspose(st,applytrans);  (optional)
+$             STShellSetBackTransform(st,backtr);       (optional)
 
 M*/
 
