@@ -50,6 +50,7 @@ PetscErrorCode STApply_Generic(ST st,Vec x,Vec y)
 PetscErrorCode STApply(ST st,Vec x,Vec y)
 {
   PetscErrorCode ierr;
+  Mat            Op;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
@@ -59,21 +60,9 @@ PetscErrorCode STApply(ST st,Vec x,Vec y)
   STCheckMatrices(st,1);
   if (x == y) SETERRQ(PetscObjectComm((PetscObject)st),PETSC_ERR_ARG_IDN,"x and y must be different vectors");
   ierr = VecSetErrorIfLocked(y,3);CHKERRQ(ierr);
-
-  if (st->state!=ST_STATE_SETUP) { ierr = STSetUp(st);CHKERRQ(ierr); }
-
   if (!st->ops->apply) SETERRQ(PetscObjectComm((PetscObject)st),PETSC_ERR_SUP,"ST does not have apply");
-  ierr = VecLockReadPush(x);CHKERRQ(ierr);
-  ierr = PetscLogEventBegin(ST_Apply,st,x,y,0);CHKERRQ(ierr);
-  if (st->D) { /* with balancing */
-    ierr = VecPointwiseDivide(st->wb,x,st->D);CHKERRQ(ierr);
-    ierr = (*st->ops->apply)(st,st->wb,y);CHKERRQ(ierr);
-    ierr = VecPointwiseMult(y,y,st->D);CHKERRQ(ierr);
-  } else {
-    ierr = (*st->ops->apply)(st,x,y);CHKERRQ(ierr);
-  }
-  ierr = PetscLogEventEnd(ST_Apply,st,x,y,0);CHKERRQ(ierr);
-  ierr = VecLockReadPop(x);CHKERRQ(ierr);
+  ierr = STGetOperator_Private(st,&Op);CHKERRQ(ierr);
+  ierr = MatMult(Op,x,y);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -114,6 +103,7 @@ PetscErrorCode STApplyTranspose_Generic(ST st,Vec x,Vec y)
 PetscErrorCode STApplyTranspose(ST st,Vec x,Vec y)
 {
   PetscErrorCode ierr;
+  Mat            Op;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
@@ -123,21 +113,9 @@ PetscErrorCode STApplyTranspose(ST st,Vec x,Vec y)
   STCheckMatrices(st,1);
   if (x == y) SETERRQ(PetscObjectComm((PetscObject)st),PETSC_ERR_ARG_IDN,"x and y must be different vectors");
   ierr = VecSetErrorIfLocked(y,3);CHKERRQ(ierr);
-
-  if (st->state!=ST_STATE_SETUP) { ierr = STSetUp(st);CHKERRQ(ierr); }
-
   if (!st->ops->applytrans) SETERRQ(PetscObjectComm((PetscObject)st),PETSC_ERR_SUP,"ST does not have applytrans");
-  ierr = VecLockReadPush(x);CHKERRQ(ierr);
-  ierr = PetscLogEventBegin(ST_ApplyTranspose,st,x,y,0);CHKERRQ(ierr);
-  if (st->D) { /* with balancing */
-    ierr = VecPointwiseMult(st->wb,x,st->D);CHKERRQ(ierr);
-    ierr = (*st->ops->applytrans)(st,st->wb,y);CHKERRQ(ierr);
-    ierr = VecPointwiseDivide(y,y,st->D);CHKERRQ(ierr);
-  } else {
-    ierr = (*st->ops->applytrans)(st,x,y);CHKERRQ(ierr);
-  }
-  ierr = PetscLogEventEnd(ST_ApplyTranspose,st,x,y,0);CHKERRQ(ierr);
-  ierr = VecLockReadPop(x);CHKERRQ(ierr);
+  ierr = STGetOperator_Private(st,&Op);CHKERRQ(ierr);
+  ierr = MatMultTranspose(Op,x,y);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -192,7 +170,16 @@ static PetscErrorCode MatMult_STOperator(Mat Op,Vec x,Vec y)
 
   PetscFunctionBegin;
   ierr = MatShellGetContext(Op,(void**)&st);CHKERRQ(ierr);
-  ierr = STApply(st,x,y);CHKERRQ(ierr);
+  ierr = STSetUp(st);CHKERRQ(ierr);
+  ierr = PetscLogEventBegin(ST_Apply,st,x,y,0);CHKERRQ(ierr);
+  if (st->D) { /* with balancing */
+    ierr = VecPointwiseDivide(st->wb,x,st->D);CHKERRQ(ierr);
+    ierr = (*st->ops->apply)(st,st->wb,y);CHKERRQ(ierr);
+    ierr = VecPointwiseMult(y,y,st->D);CHKERRQ(ierr);
+  } else {
+    ierr = (*st->ops->apply)(st,x,y);CHKERRQ(ierr);
+  }
+  ierr = PetscLogEventEnd(ST_Apply,st,x,y,0);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -203,7 +190,16 @@ static PetscErrorCode MatMultTranspose_STOperator(Mat Op,Vec x,Vec y)
 
   PetscFunctionBegin;
   ierr = MatShellGetContext(Op,(void**)&st);CHKERRQ(ierr);
-  ierr = STApplyTranspose(st,x,y);CHKERRQ(ierr);
+  ierr = STSetUp(st);CHKERRQ(ierr);
+  ierr = PetscLogEventBegin(ST_ApplyTranspose,st,x,y,0);CHKERRQ(ierr);
+  if (st->D) { /* with balancing */
+    ierr = VecPointwiseMult(st->wb,x,st->D);CHKERRQ(ierr);
+    ierr = (*st->ops->applytrans)(st,st->wb,y);CHKERRQ(ierr);
+    ierr = VecPointwiseDivide(y,y,st->D);CHKERRQ(ierr);
+  } else {
+    ierr = (*st->ops->applytrans)(st,x,y);CHKERRQ(ierr);
+  }
+  ierr = PetscLogEventEnd(ST_ApplyTranspose,st,x,y,0);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
