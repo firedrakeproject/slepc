@@ -203,8 +203,6 @@ PetscErrorCode STMatMultTranspose(ST st,PetscInt k,Vec x,Vec y)
 PetscErrorCode STMatSolve(ST st,Vec b,Vec x)
 {
   PetscErrorCode ierr;
-  PetscInt       its;
-  PetscBool      flg;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
@@ -217,15 +215,11 @@ PetscErrorCode STMatSolve(ST st,Vec b,Vec x)
   if (st->state!=ST_STATE_SETUP) { ierr = STSetUp(st);CHKERRQ(ierr); }
   ierr = VecLockReadPush(b);CHKERRQ(ierr);
   ierr = PetscLogEventBegin(ST_MatSolve,st,b,x,0);CHKERRQ(ierr);
-  ierr = PetscObjectTypeCompareAny((PetscObject)st,&flg,STPRECOND,STSHELL,"");CHKERRQ(ierr);
-  if (!flg && !st->P) {
+  if (!st->P) {
     /* P=NULL means identity matrix */
     ierr = VecCopy(b,x);CHKERRQ(ierr);
   } else {
-    if (!st->ksp) { ierr = STGetKSP(st,&st->ksp);CHKERRQ(ierr); }
     ierr = KSPSolve(st->ksp,b,x);CHKERRQ(ierr);
-    ierr = KSPGetIterationNumber(st->ksp,&its);CHKERRQ(ierr);
-    ierr = PetscInfo1(st,"Linear solve iterations=%D\n",its);CHKERRQ(ierr);
   }
   ierr = PetscLogEventEnd(ST_MatSolve,st,b,x,0);CHKERRQ(ierr);
   ierr = VecLockReadPop(b);CHKERRQ(ierr);
@@ -252,8 +246,6 @@ PetscErrorCode STMatSolve(ST st,Vec b,Vec x)
 PetscErrorCode STMatSolveTranspose(ST st,Vec b,Vec x)
 {
   PetscErrorCode ierr;
-  PetscInt       its;
-  PetscBool      flg;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
@@ -266,15 +258,11 @@ PetscErrorCode STMatSolveTranspose(ST st,Vec b,Vec x)
   if (st->state!=ST_STATE_SETUP) { ierr = STSetUp(st);CHKERRQ(ierr); }
   ierr = VecLockReadPush(b);CHKERRQ(ierr);
   ierr = PetscLogEventBegin(ST_MatSolveTranspose,st,b,x,0);CHKERRQ(ierr);
-  ierr = PetscObjectTypeCompareAny((PetscObject)st,&flg,STPRECOND,STSHELL,"");CHKERRQ(ierr);
-  if (!flg && !st->P) {
+  if (!st->P) {
     /* P=NULL means identity matrix */
     ierr = VecCopy(b,x);CHKERRQ(ierr);
   } else {
-    if (!st->ksp) { ierr = STGetKSP(st,&st->ksp);CHKERRQ(ierr); }
     ierr = KSPSolveTranspose(st->ksp,b,x);CHKERRQ(ierr);
-    ierr = KSPGetIterationNumber(st->ksp,&its);CHKERRQ(ierr);
-    ierr = PetscInfo1(st,"Linear solve iterations=%D\n",its);CHKERRQ(ierr);
   }
   ierr = PetscLogEventEnd(ST_MatSolveTranspose,st,b,x,0);CHKERRQ(ierr);
   ierr = VecLockReadPop(b);CHKERRQ(ierr);
