@@ -118,6 +118,7 @@ PetscErrorCode STReset(ST st)
   ierr = VecDestroyVecs(st->nwork,&st->work);CHKERRQ(ierr);
   st->nwork = 0;
   ierr = VecDestroy(&st->wb);CHKERRQ(ierr);
+  ierr = VecDestroy(&st->wht);CHKERRQ(ierr);
   ierr = VecDestroy(&st->D);CHKERRQ(ierr);
   st->state = ST_STATE_INITIAL;
   PetscFunctionReturn(0);
@@ -190,6 +191,7 @@ PetscErrorCode STCreate(MPI_Comm comm,ST *newst)
   st->nwork        = 0;
   st->work         = NULL;
   st->wb           = NULL;
+  st->wht          = NULL;
   st->state        = ST_STATE_INITIAL;
   st->Astate       = NULL;
   st->T            = NULL;

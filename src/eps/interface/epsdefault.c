@@ -505,7 +505,7 @@ PetscErrorCode EPSBuildBalance_Krylov(EPS eps)
       }
       /* Compute r=D\(A'Dz) */
       ierr = VecPointwiseMult(z,z,eps->D);CHKERRQ(ierr);
-      ierr = STApplyTranspose(eps->st,z,r);CHKERRQ(ierr);
+      ierr = STApplyHermitianTranspose(eps->st,z,r);CHKERRQ(ierr);
       ierr = VecPointwiseDivide(r,r,eps->D);CHKERRQ(ierr);
     }
 

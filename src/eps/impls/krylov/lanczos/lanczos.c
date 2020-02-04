@@ -101,7 +101,7 @@ static PetscErrorCode EPSLocalLanczos(EPS eps,PetscReal *alpha,PetscReal *beta,P
 {
   PetscErrorCode ierr;
   PetscInt       i,j,m = *M;
-  Vec            vj,vj1;
+  Mat            Op;
   PetscBool      *which,lwhich[100];
   PetscScalar    *hwork,lhwork[100];
 
@@ -115,12 +115,9 @@ static PetscErrorCode EPSLocalLanczos(EPS eps,PetscReal *alpha,PetscReal *beta,P
   for (i=0;i<k;i++) which[i] = PETSC_TRUE;
 
   ierr = BVSetActiveColumns(eps->V,0,m);CHKERRQ(ierr);
+  ierr = STGetOperator(eps->st,&Op);CHKERRQ(ierr);
   for (j=k;j<m;j++) {
-    ierr = BVGetColumn(eps->V,j,&vj);CHKERRQ(ierr);
-    ierr = BVGetColumn(eps->V,j+1,&vj1);CHKERRQ(ierr);
-    ierr = STApply(eps->st,vj,vj1);CHKERRQ(ierr);
-    ierr = BVRestoreColumn(eps->V,j,&vj);CHKERRQ(ierr);
-    ierr = BVRestoreColumn(eps->V,j+1,&vj1);CHKERRQ(ierr);
+    ierr = BVMatMultColumn(eps->V,Op,j);CHKERRQ(ierr);
     which[j] = PETSC_TRUE;
     if (j-2>=k) which[j-2] = PETSC_FALSE;
     ierr = BVOrthogonalizeSomeColumn(eps->V,j+1,which,hwork,beta+j,breakdown);CHKERRQ(ierr);
@@ -132,6 +129,7 @@ static PetscErrorCode EPSLocalLanczos(EPS eps,PetscReal *alpha,PetscReal *beta,P
       ierr = BVScaleColumn(eps->V,j+1,1/beta[j]);CHKERRQ(ierr);
     }
   }
+  ierr = STRestoreOperator(eps->st,&Op);CHKERRQ(ierr);
   if (m > 100) {
     ierr = PetscFree2(which,hwork);CHKERRQ(ierr);
   }
@@ -210,7 +208,8 @@ static PetscErrorCode EPSSelectiveLanczos(EPS eps,PetscReal *alpha,PetscReal *be
   PetscErrorCode ierr;
   EPS_LANCZOS    *lanczos = (EPS_LANCZOS*)eps->data;
   PetscInt       i,j,m = *M,n,nritz=0,nritzo;
-  Vec            vj,vj1,av;
+  Vec            vj1,av;
+  Mat            Op;
   PetscReal      *d,*e,*ritz,norm;
   PetscScalar    *Y,*hwork;
   PetscBool      *which;
@@ -218,16 +217,13 @@ static PetscErrorCode EPSSelectiveLanczos(EPS eps,PetscReal *alpha,PetscReal *be
   PetscFunctionBegin;
   ierr = PetscCalloc6(m+1,&d,m,&e,m,&ritz,m*m,&Y,m,&which,m,&hwork);CHKERRQ(ierr);
   for (i=0;i<k;i++) which[i] = PETSC_TRUE;
+  ierr = STGetOperator(eps->st,&Op);CHKERRQ(ierr);
 
   for (j=k;j<m;j++) {
     ierr = BVSetActiveColumns(eps->V,0,m);CHKERRQ(ierr);
 
     /* Lanczos step */
-    ierr = BVGetColumn(eps->V,j,&vj);CHKERRQ(ierr);
-    ierr = BVGetColumn(eps->V,j+1,&vj1);CHKERRQ(ierr);
-    ierr = STApply(eps->st,vj,vj1);CHKERRQ(ierr);
-    ierr = BVRestoreColumn(eps->V,j,&vj);CHKERRQ(ierr);
-    ierr = BVRestoreColumn(eps->V,j+1,&vj1);CHKERRQ(ierr);
+    ierr = BVMatMultColumn(eps->V,Op,j);CHKERRQ(ierr);
     which[j] = PETSC_TRUE;
     if (j-2>=k) which[j-2] = PETSC_FALSE;
     ierr = BVOrthogonalizeSomeColumn(eps->V,j+1,which,hwork,&norm,breakdown);CHKERRQ(ierr);
@@ -280,6 +276,7 @@ static PetscErrorCode EPSSelectiveLanczos(EPS eps,PetscReal *alpha,PetscReal *be
     ierr = BVScaleColumn(eps->V,j+1,1.0/norm);CHKERRQ(ierr);
   }
 
+  ierr = STRestoreOperator(eps->st,&Op);CHKERRQ(ierr);
   ierr = PetscFree6(d,e,ritz,Y,which,hwork);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -367,7 +364,7 @@ static PetscErrorCode EPSPartialLanczos(EPS eps,PetscReal *alpha,PetscReal *beta
   PetscErrorCode ierr;
   EPS_LANCZOS    *lanczos = (EPS_LANCZOS*)eps->data;
   PetscInt       i,j,m = *M;
-  Vec            vj,vj1;
+  Mat            Op;
   PetscReal      norm,*omega,lomega[100],*omega_old,lomega_old[100],eps1,delta,eta;
   PetscBool      *which,lwhich[100],*which2,lwhich2[100];
   PetscBool      reorth = PETSC_FALSE,force_reorth = PETSC_FALSE;
@@ -396,12 +393,9 @@ static PetscErrorCode EPSPartialLanczos(EPS eps,PetscReal *alpha,PetscReal *beta
   for (i=0;i<k;i++) which[i] = PETSC_TRUE;
 
   ierr = BVSetActiveColumns(eps->V,0,m);CHKERRQ(ierr);
+  ierr = STGetOperator(eps->st,&Op);CHKERRQ(ierr);
   for (j=k;j<m;j++) {
-    ierr = BVGetColumn(eps->V,j,&vj);CHKERRQ(ierr);
-    ierr = BVGetColumn(eps->V,j+1,&vj1);CHKERRQ(ierr);
-    ierr = STApply(eps->st,vj,vj1);CHKERRQ(ierr);
-    ierr = BVRestoreColumn(eps->V,j,&vj);CHKERRQ(ierr);
-    ierr = BVRestoreColumn(eps->V,j+1,&vj1);CHKERRQ(ierr);
+    ierr = BVMatMultColumn(eps->V,Op,j);CHKERRQ(ierr);
     if (fro) {
       /* Lanczos step with full reorthogonalization */
       ierr = BVOrthogonalizeColumn(eps->V,j+1,hwork,&norm,breakdown);CHKERRQ(ierr);
@@ -463,6 +457,7 @@ static PetscErrorCode EPSPartialLanczos(EPS eps,PetscReal *alpha,PetscReal *beta
     ierr = BVScaleColumn(eps->V,j+1,1.0/norm);CHKERRQ(ierr);
   }
 
+  ierr = STRestoreOperator(eps->st,&Op);CHKERRQ(ierr);
   if (m>100) {
     ierr = PetscFree5(omega,omega_old,which,which2,hwork);CHKERRQ(ierr);
   }

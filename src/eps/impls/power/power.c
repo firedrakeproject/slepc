@@ -607,10 +607,7 @@ PetscErrorCode EPSSolve_TS_Power(EPS eps)
     ierr = STApply(eps->st,v,y);CHKERRQ(ierr);
     ierr = BVRestoreColumn(eps->V,k,&y);CHKERRQ(ierr);
     ierr = BVGetColumn(eps->W,k,&z);CHKERRQ(ierr);
-    ierr = VecConjugate(w);CHKERRQ(ierr);
-    ierr = STApplyTranspose(eps->st,w,z);CHKERRQ(ierr);
-    ierr = VecConjugate(w);CHKERRQ(ierr);
-    ierr = VecConjugate(z);CHKERRQ(ierr);
+    ierr = STApplyHermitianTranspose(eps->st,w,z);CHKERRQ(ierr);
     ierr = BVRestoreColumn(eps->W,k,&z);CHKERRQ(ierr);
 
     /* purge previously converged eigenvectors */

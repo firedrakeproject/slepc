@@ -63,6 +63,7 @@ struct _p_ST {
   PetscInt         nwork;            /* number of work vectors */
   Vec              *work;            /* work vectors */
   Vec              wb;               /* balancing requires an extra work vector */
+  Vec              wht;              /* extra work vector for hermitian transpose apply */
   STStateType      state;            /* initial -> setup -> with updated matrices */
   PetscObjectState *Astate;          /* matrix state (to identify the original matrices) */
   Mat              *T;               /* matrices resulting from transformation */

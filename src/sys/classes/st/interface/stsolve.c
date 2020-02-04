@@ -45,7 +45,7 @@ PetscErrorCode STApply_Generic(ST st,Vec x,Vec y)
 
    Level: developer
 
-.seealso: STApplyTranspose()
+.seealso: STApplyTranspose(), STApplyHermitianTranspose()
 @*/
 PetscErrorCode STApply(ST st,Vec x,Vec y)
 {
@@ -98,7 +98,7 @@ PetscErrorCode STApplyTranspose_Generic(ST st,Vec x,Vec y)
 
    Level: developer
 
-.seealso: STApply()
+.seealso: STApply(), STApplyHermitianTranspose()
 @*/
 PetscErrorCode STApplyTranspose(ST st,Vec x,Vec y)
 {
@@ -116,6 +116,46 @@ PetscErrorCode STApplyTranspose(ST st,Vec x,Vec y)
   if (!st->ops->applytrans) SETERRQ(PetscObjectComm((PetscObject)st),PETSC_ERR_SUP,"ST does not have applytrans");
   ierr = STGetOperator_Private(st,&Op);CHKERRQ(ierr);
   ierr = MatMultTranspose(Op,x,y);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+/*@
+   STApplyHermitianTranspose - Applies the hermitian-transpose of the operator
+   to a vector, for instance B^H(A - sB)^-H in the case of the shift-and-invert
+   transformation and generalized eigenproblem.
+
+   Collective on st
+
+   Input Parameters:
++  st - the spectral transformation context
+-  x  - input vector
+
+   Output Parameter:
+.  y - output vector
+
+   Note:
+   Currently implemented via STApplyTranspose() with appropriate conjugation.
+
+   Level: developer
+
+.seealso: STApply(), STApplyTranspose()
+@*/
+PetscErrorCode STApplyHermitianTranspose(ST st,Vec x,Vec y)
+{
+  PetscErrorCode ierr;
+  Mat            Op;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(st,ST_CLASSID,1);
+  PetscValidHeaderSpecific(x,VEC_CLASSID,2);
+  PetscValidHeaderSpecific(y,VEC_CLASSID,3);
+  PetscValidType(st,1);
+  STCheckMatrices(st,1);
+  if (x == y) SETERRQ(PetscObjectComm((PetscObject)st),PETSC_ERR_ARG_IDN,"x and y must be different vectors");
+  ierr = VecSetErrorIfLocked(y,3);CHKERRQ(ierr);
+  if (!st->ops->applytrans) SETERRQ(PetscObjectComm((PetscObject)st),PETSC_ERR_SUP,"ST does not have applytrans");
+  ierr = STGetOperator_Private(st,&Op);CHKERRQ(ierr);
+  ierr = MatMultHermitianTranspose(Op,x,y);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -203,6 +243,35 @@ static PetscErrorCode MatMultTranspose_STOperator(Mat Op,Vec x,Vec y)
   PetscFunctionReturn(0);
 }
 
+#if defined(PETSC_USE_COMPLEX)
+static PetscErrorCode MatMultHermitianTranspose_STOperator(Mat Op,Vec x,Vec y)
+{
+  PetscErrorCode ierr;
+  ST             st;
+
+  PetscFunctionBegin;
+  ierr = MatShellGetContext(Op,(void**)&st);CHKERRQ(ierr);
+  ierr = STSetUp(st);CHKERRQ(ierr);
+  ierr = PetscLogEventBegin(ST_ApplyTranspose,st,x,y,0);CHKERRQ(ierr);
+  if (!st->wht) {
+    ierr = MatCreateVecs(st->A[0],&st->wht,NULL);CHKERRQ(ierr);
+    ierr = PetscLogObjectParent((PetscObject)st,(PetscObject)st->wht);CHKERRQ(ierr);
+  }
+  ierr = VecCopy(x,st->wht);CHKERRQ(ierr);
+  ierr = VecConjugate(st->wht);CHKERRQ(ierr);
+  if (st->D) { /* with balancing */
+    ierr = VecPointwiseMult(st->wb,st->wht,st->D);CHKERRQ(ierr);
+    ierr = (*st->ops->applytrans)(st,st->wb,y);CHKERRQ(ierr);
+    ierr = VecPointwiseDivide(y,y,st->D);CHKERRQ(ierr);
+  } else {
+    ierr = (*st->ops->applytrans)(st,st->wht,y);CHKERRQ(ierr);
+  }
+  ierr = VecConjugate(y);CHKERRQ(ierr);
+  ierr = PetscLogEventEnd(ST_ApplyTranspose,st,x,y,0);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+#endif
+
 PetscErrorCode STGetOperator_Private(ST st,Mat *Op)
 {
   PetscErrorCode ierr;
@@ -214,6 +283,11 @@ PetscErrorCode STGetOperator_Private(ST st,Mat *Op)
     ierr = MatCreateShell(PetscObjectComm((PetscObject)st),m,n,M,N,st,&st->Op);CHKERRQ(ierr);
     ierr = MatShellSetOperation(st->Op,MATOP_MULT,(void(*)(void))MatMult_STOperator);CHKERRQ(ierr);
     ierr = MatShellSetOperation(st->Op,MATOP_MULT_TRANSPOSE,(void(*)(void))MatMultTranspose_STOperator);CHKERRQ(ierr);
+#if defined(PETSC_USE_COMPLEX)
+    ierr = MatShellSetOperation(st->Op,MATOP_MULT_HERMITIAN_TRANSPOSE,(void(*)(void))MatMultHermitianTranspose_STOperator);CHKERRQ(ierr);
+#else
+    ierr = MatShellSetOperation(st->Op,MATOP_MULT_HERMITIAN_TRANSPOSE,(void(*)(void))MatMultTranspose_STOperator);CHKERRQ(ierr);
+#endif
   }
   *Op = st->Op;
   PetscFunctionReturn(0);
