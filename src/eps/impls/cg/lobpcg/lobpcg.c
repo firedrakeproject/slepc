@@ -309,7 +309,7 @@ PetscErrorCode EPSSolve_LOBPCG(EPS eps)
     /* 9. Apply preconditioner to the residuals */
     for (j=ini;j<ctx->bs;j++) {
       ierr = BVGetColumn(R,j,&v);CHKERRQ(ierr);
-      ierr = STMatSolve(eps->st,v,w);CHKERRQ(ierr);
+      ierr = STApply(eps->st,v,w);CHKERRQ(ierr);
       if (checkprecond) {
         ierr = VecDot(v,w,&dot);CHKERRQ(ierr);
         if (PetscRealPart(dot)<0.0) {

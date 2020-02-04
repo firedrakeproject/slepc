@@ -324,6 +324,8 @@ SLEPC_EXTERN PetscErrorCode STCreate_Precond(ST st)
 
   st->usesksp = PETSC_TRUE;
 
+  st->ops->apply           = STApply_Generic;
+  st->ops->applytrans      = STApplyTranspose_Generic;
   st->ops->setshift        = STSetShift_Precond;
   st->ops->getbilinearform = STGetBilinearForm_Default;
   st->ops->setup           = STSetUp_Precond;

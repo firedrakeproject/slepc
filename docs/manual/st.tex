@@ -218,7 +218,7 @@ K^{-1}\approx (A-\sigma B)^{-1}.
 \end{equation}
 where the system is solved approximately with a preconditioned iterative linear solver. For building the preconditioner of this linear system, the projectors $I-x_ix_i^*$ are ignored, and again it is not recomputed in each iteration. Therefore, the preconditioner is built as in \eqref{eq:precon} as well.
 
-	It should be clear from the previous discussion, that \ident{STPRECOND} does not work in the same way as the rest of spectral transformations. In particular, it is not intended to be used on the basis of operator applications with \ident{STApply}, and it does not rely on \ident{STBackTransform} either. It is rather a convenient mechanism for handling the preconditioner and linear solver (see examples in \S\ref{sec:lin}). The expressions shown in Tables \ref{tab:transforms} and \ref{tab:op} are just a reference to indicate from which matrix the preconditioner is built by default.
+	It should be clear from the previous discussion, that \ident{STPRECOND} does not work in the same way as the rest of spectral transformations. In particular, it does not rely on \ident{STBackTransform}. It is rather a convenient mechanism for handling the preconditioner and linear solver (see examples in \S\ref{sec:lin}). The expressions shown in Tables \ref{tab:transforms} and \ref{tab:op} are just a reference to indicate from which matrix the preconditioner is built by default.
 
 	There is the possibility that the user overrides the default behaviour, that is, to explicitly supply a matrix from which the preconditioner is to be built, with
 	\findex{STPrecondSetMatForPC}

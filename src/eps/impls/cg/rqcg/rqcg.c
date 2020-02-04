@@ -214,7 +214,7 @@ PetscErrorCode EPSSolve_RQCG(EPS eps)
       /* Search direction */
       for (i=0;i<nv-eps->nconv;i++) {
         ierr = BVGetColumn(ctx->G,i,&v);CHKERRQ(ierr);
-        ierr = STMatSolve(eps->st,v,w);CHKERRQ(ierr);
+        ierr = STApply(eps->st,v,w);CHKERRQ(ierr);
         ierr = VecDot(w,v,&g);CHKERRQ(ierr);
         ierr = BVRestoreColumn(ctx->G,i,&v);CHKERRQ(ierr);
         beta = (!reset && eps->its>1)? g/gamma[i]: 0.0;
