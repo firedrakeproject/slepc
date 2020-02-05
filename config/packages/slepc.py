@@ -18,7 +18,7 @@ class SLEPc(package.Package):
     self.clean     = argdb.PopBool('with-clean')[0]
     self.prefixdir = argdb.PopPath('prefix')[0]
     self.isinstall = not self.prefixdir==''
-    self.datadir   = argdb.PopPath('DATAFILESPATH')[0]
+    self.datadir   = argdb.PopPath('DATAFILESPATH',exist=True)[0]
 
   def ShowHelp(self):
     wd = package.Package.wd

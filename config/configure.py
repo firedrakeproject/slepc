@@ -252,8 +252,6 @@ slepcvars.write('SLEPC_INSTALLDIR = '+slepc.prefixdir+'\n')
 if emptyarch:
   slepcvars.write('INSTALLED_PETSC = 1\n')
 if slepc.datadir:
-  if not os.path.exists(slepc.datadir):
-    log.Exit('ERROR: Directory '+slepc.datadir+' does not exist')
   slepcvars.write('DATAFILESPATH = '+slepc.datadir+'\n')
 
 # Write initial part of file slepcconf.h

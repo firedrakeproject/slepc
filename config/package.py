@@ -56,7 +56,7 @@ class Package:
     self.requested = False
     self.havepackage = False
     if self.installable:
-      string,found = argdb.PopPath('with-'+self.packagename+'-dir')
+      string,found = argdb.PopPath('with-'+self.packagename+'-dir',exist=True)
       if found:
         self.requested = True
         self.packagedir = string

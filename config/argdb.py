@@ -52,7 +52,7 @@ class ArgDB:
         break
     return string,numhits
 
-  def PopPath(self,keyword):
+  def PopPath(self,keyword,exist=False):
     string = ''
     numhits = 0
     while True:
@@ -67,6 +67,8 @@ class ArgDB:
           break
       if not found:
         break
+    if exist and numhits and not os.path.exists(string):
+      sys.exit('ERROR: The path given to --'+keyword+' does not exist: '+string)
     return string,numhits
 
   def PopUrl(self,keyword):
