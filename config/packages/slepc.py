@@ -14,11 +14,12 @@ import argdb, os, sys, package
 class SLEPc(package.Package):
 
   def __init__(self,argdb,log):
-    self.log       = log
-    self.clean     = argdb.PopBool('with-clean')[0]
-    self.prefixdir = argdb.PopPath('prefix')[0]
-    self.isinstall = not self.prefixdir==''
-    self.datadir   = argdb.PopPath('DATAFILESPATH',exist=True)[0]
+    self.log         = log
+    self.clean       = argdb.PopBool('with-clean')[0]
+    self.prefixdir   = argdb.PopPath('prefix')[0]
+    self.isinstall   = not self.prefixdir==''
+    self.datadir     = argdb.PopPath('DATAFILESPATH',exist=True)[0]
+    self.downloaddir = argdb.PopPath('with-packages-download-dir',exist=True)[0]
 
   def ShowHelp(self):
     wd = package.Package.wd
@@ -26,6 +27,7 @@ class SLEPc(package.Package):
     print('  --with-clean=<bool>'.ljust(wd)+': Delete prior build files including externalpackages')
     print('  --prefix=<dir>'.ljust(wd)+': Specify location to install SLEPc (e.g., /usr/local)')
     print('  --DATAFILESPATH=<dir>'.ljust(wd)+': Specify location of datafiles (for SLEPc developers)')
+    print('  --with-packages-download-dir=<dir>'.ljust(wd)+': Skip network download of tarballs and locate them in specified dir')
 
   def InitDir(self):
     if 'SLEPC_DIR' in os.environ:

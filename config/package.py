@@ -128,7 +128,7 @@ class Package:
     if self.downloadpackage and self.fortran and not hasattr(petsc,'fc'):
       self.log.Exit('ERROR: option --download-'+self.packagename+' requires a Fortran compiler.')
 
-  def Download(self,externdir,builddir,prefix=None):
+  def Download(self,externdir,builddir,downloaddir,prefix=None):
     # Create externalpackages directory
     if not os.path.exists(externdir):
       try:
@@ -141,27 +141,33 @@ class Package:
       self.log.write('Using '+builddir)
     else:
 
-      # Download tarball
-      url = self.packageurl
-      if url=='':
-        url = self.url
-      localFile = os.path.join(externdir,self.archive)
-      self.log.write('Downloading '+url+' to '+localFile)
+      if downloaddir:
+        # Get tarball from download dir
+        localFile = os.path.join(downloaddir,self.archive)
+        if not os.path.exists(localFile):
+          self.log.Exit('Could not find file '+self.archive+' under '+downloaddir)
+      else:
+        # Download tarball
+        url = self.packageurl
+        if url=='':
+          url = self.url
+        localFile = os.path.join(externdir,self.archive)
+        self.log.write('Downloading '+url+' to '+localFile)
 
-      if os.path.exists(localFile):
-        os.remove(localFile)
-      try:
-        urlretrieve(url, localFile)
-      except Exception as e:
-        filename = os.path.basename(urlparse.urlparse(url)[2])
-        failureMessage = '''\
+        if os.path.exists(localFile):
+          os.remove(localFile)
+        try:
+          urlretrieve(url, localFile)
+        except Exception as e:
+          filename = os.path.basename(urlparse.urlparse(url)[2])
+          failureMessage = '''\
 Unable to download package %s from: %s
 * If your network is disconnected - please reconnect and rerun ./configure
 * Alternatively, you can download the above URL manually, to /yourselectedlocation/%s
   and use the configure option:
   --download-%s=/yourselectedlocation/%s
 ''' % (self.packagename, url, filename, self.packagename, filename)
-        self.log.Exit(failureMessage)
+          self.log.Exit(failureMessage)
 
       # Uncompress tarball
       self.log.write('Uncompressing '+localFile+' to directory '+builddir)
@@ -176,10 +182,10 @@ Unable to download package %s from: %s
           tar = tarfile.open(localFile, 'r:gz')
           tar.extractall(path=externdir)
           tar.close()
-          os.remove(localFile)
+          if not downloaddir: os.remove(localFile)
         else:
           result,output = self.RunCommand('cd '+externdir+'; gunzip '+self.archive+'; tar -xf '+self.archive.split('.gz')[0])
-          os.remove(localFile.split('.gz')[0])
+          if not downloaddir: os.remove(localFile.split('.gz')[0])
       except RuntimeError as e:
         self.log.Exit('Error uncompressing '+self.archive+': '+str(e))
 
@@ -189,7 +195,7 @@ Unable to download package %s from: %s
           if filename.startswith(prefix):
             os.rename(os.path.join(externdir,filename),builddir)
 
-  wd = 35
+  wd = 36
 
   def ShowHelp(self):
     wd = Package.wd

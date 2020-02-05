@@ -43,7 +43,7 @@ class Slicot(package.Package):
   def DownloadAndInstall(self,conf,vars,slepc,petsc,archdir,prefixdir):
     externdir = os.path.join(archdir,'externalpackages')
     builddir  = os.path.join(externdir,self.dirname)
-    self.Download(externdir,builddir)
+    self.Download(externdir,builddir,slepc.downloaddir)
     libname = 'libslicot.a'
 
     # Configure

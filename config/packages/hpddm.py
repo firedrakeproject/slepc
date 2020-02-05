@@ -42,7 +42,7 @@ class HPDDM(package.Package):
     externdir = os.path.join(archdir,'externalpackages')
     builddir  = os.path.join(externdir,self.dirname)
     incdir,libdir = self.CreatePrefixDirs(prefixdir)
-    self.Download(externdir,builddir)
+    self.Download(externdir,builddir,slepc.downloaddir)
     g = open(os.path.join(builddir,'SONAME_SL_LINKER'),'w')
     g.write('include '+os.path.join(petsc.dir,petsc.arch,'lib','petsc','conf','petscvariables')+'\n')
     g.write('soname:\n')
