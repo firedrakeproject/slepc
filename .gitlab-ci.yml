@@ -324,7 +324,7 @@ gnu-c-single:
 #  tags:
 #    - linux-debian
 #  variables:
-#    PETSC_CONFIG_OPTS: --with-cc=/usr/local/opt/mpich-3.3-icc/bin/mpicc --with-fc=/usr/local/opt/mpich-3.3-icc/bin/mpifort --with-cxx=/usr/local/opt/mpich-3.3-icc/bin/mpicxx --with-blas-lapack-dir=/opt/intel/mkl/ --with-mkl_pardiso=1 --with-clanguage=C++
+#    PETSC_CONFIG_OPTS: --with-cc=/opt/mpich/3.3.2-intel/bin/mpicc --with-fc=/opt/mpich/3.3.2-intel/bin/mpifort --with-cxx=/opt/mpich/3.3.2-intel/bin/mpicxx --with-blas-lapack-dir=/opt/intel/mkl/ --with-mkl_pardiso=1 --with-clanguage=C++
 #    SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local
 
 #intel-c-complex-mkl:
@@ -334,7 +334,7 @@ gnu-c-single:
 #  tags:
 #    - linux-debian
 #  variables:
-#    PETSC_CONFIG_OPTS: --with-cc=/usr/local/opt/mpich-3.3-icc/bin/mpicc --with-fc=/usr/local/opt/mpich-3.3-icc/bin/mpifort --with-cxx=0 --with-blas-lapack-dir=/opt/intel/mkl/ --with-mkl_pardiso=1 --with-scalar-type=complex
+#    PETSC_CONFIG_OPTS: --with-cc=/opt/mpich/3.3.2-intel/bin/mpicc --with-fc=/opt/mpich/3.3.2-intel/bin/mpifort --with-cxx=0 --with-blas-lapack-dir=/opt/intel/mkl/ --with-mkl_pardiso=1 --with-scalar-type=complex
 #    SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local
 
 #
@@ -374,7 +374,7 @@ intel-c-complex-mkl:
   tags:
     - linux-ubuntu
   variables:
-    PETSC_CONFIG_OPTS: --with-scalar-type=complex --with-cc=/usr/local/mpich-3.2.1/bin/mpicc --with-fc=/usr/local/mpich-3.2.1/bin/mpifort --with-cxx=0 --with-blas-lapack-dir=/opt/intel/mkl/ --with-mkl_pardiso=1
+    PETSC_CONFIG_OPTS: --with-scalar-type=complex --with-cc=/usr/local/mpich-3.3.2-intel/bin/mpicc --with-fc=/usr/local/mpich-3.3.2-intel/bin/mpifort --with-cxx=0 --with-blas-lapack-dir=/opt/intel/mkl/ --with-mkl_pardiso=1
 
 pgi-c-nompi:
   extends:
@@ -490,7 +490,7 @@ intel-c-complex-int64-mkl:
   tags:
     - linux-ubuntu
   variables:
-    PETSC_CONFIG_OPTS: --with-cc=/usr/local/mpich-3.2.1/bin/mpicc --with-fc=/usr/local/mpich-3.2.1/bin/mpifort --with-cxx=0 --with-blas-lapack-dir=/opt/intel/mkl/ --with-mkl_pardiso=1 --with-scalar-type=complex
+    PETSC_CONFIG_OPTS: --with-cc=/usr/local/mpich-3.3.2-intel/bin/mpicc --with-fc=/usr/local/mpich-3.3.2-intel/bin/mpifort --with-cxx=0 --with-blas-lapack-dir=/opt/intel/mkl/ --with-mkl_pardiso=1 --with-scalar-type=complex
 
 clang-c-valgrind:
   extends:
