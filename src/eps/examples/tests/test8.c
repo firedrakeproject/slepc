@@ -205,7 +205,7 @@ PetscErrorCode MatGetDiagonal_Laplacian2D(Mat A,Vec diag)
       test:
          suffix: 2_single
          args: -eps_type {{rqcg lobpcg lanczos}} -eps_tol 1e-5
-         requires: single
+         requires: single !cuda
       test:
          suffix: 2_arpack
          args: -eps_type arpack -eps_ncv 6
