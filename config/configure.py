@@ -79,12 +79,13 @@ argdb = argdb.ArgDB(sys.argv)
 log   = log.Log()
 
 # Load classes for packages and process command-line options
-import slepc, petsc, arpack, blzpack, trlan, primme, blopex, sowing, lapack, slicot, hpddm
+import slepc, petsc, arpack, blopex, blzpack, feast, hpddm, primme, slicot, trlan, sowing, lapack
 slepc   = slepc.SLEPc(argdb,log)
 petsc   = petsc.PETSc(argdb,log)
 arpack  = arpack.Arpack(argdb,log)
 blopex  = blopex.Blopex(argdb,log)
 blzpack = blzpack.Blzpack(argdb,log)
+feast   = feast.Feast(argdb,log)
 primme  = primme.Primme(argdb,log)
 trlan   = trlan.Trlan(argdb,log)
 sowing  = sowing.Sowing(argdb,log)
@@ -92,7 +93,7 @@ lapack  = lapack.Lapack(argdb,log)
 slicot  = slicot.Slicot(argdb,log)
 hpddm   = hpddm.HPDDM(argdb,log)
 
-externalpackages = [arpack, blopex, blzpack, hpddm, primme, slicot, trlan]
+externalpackages = [arpack, blopex, blzpack, feast, hpddm, primme, slicot, trlan]
 optionspackages  = [slepc, sowing] + externalpackages
 checkpackages    = externalpackages + [lapack]
 

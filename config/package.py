@@ -28,6 +28,7 @@ class Package:
 
   def __init__(self,argdb,log):
     self.installable     = False  # an already installed package can be picked --with-xxx-dir
+    self.frommkl         = False  # it is included in MKL
     self.downloadable    = False  # package can be downloaded and installed with --download-xxx
     self.downloadpackage = 0
     self.packagedir      = ''
@@ -55,7 +56,7 @@ class Package:
   def ProcessArgs(self,argdb):
     self.requested = False
     self.havepackage = False
-    if self.installable:
+    if self.installable and not self.frommkl:
       string,found = argdb.PopPath('with-'+self.packagename+'-dir',exist=True)
       if found:
         self.requested = True
@@ -69,6 +70,7 @@ class Package:
         if found:
           self.requested = True
           self.packageincludes = string.split(',')
+    if self.installable:
       value,found = argdb.PopBool('with-'+self.packagename)
       if found:
         self.requested = value
@@ -209,7 +211,8 @@ Unable to download package %s from: %s
       if self.hasdloadflags:
         print(('  --download-'+self.packagename+'-cflags=<flags>').ljust(wd)+': Indicate extra flags to compile '+self.packagename.upper())
     if self.installable:
-      print(('  --with-'+self.packagename+'=<bool>').ljust(wd)+': Indicate if you wish to test for '+self.packagename.upper())
+      print(('  --with-'+self.packagename+'=<bool>').ljust(wd)+': Indicate if you wish to test for '+self.packagename.upper()+(' (requires PETSc with MKL)' if self.frommkl else ''))
+    if self.installable and not self.frommkl:
       print(('  --with-'+self.packagename+'-dir=<dir>').ljust(wd)+': Indicate the root directory of the '+self.packagename.upper()+' installation')
       print(('  --with-'+self.packagename+'-lib=<libraries>').ljust(wd)+': Indicate comma-separated libraries and link flags for '+self.packagename.upper())
       if self.hasheaders:
@@ -217,14 +220,11 @@ Unable to download package %s from: %s
 
   def ShowInfo(self):
     if self.havepackage:
-      self.log.Println(self.packagename.upper()+' library flags:')
-      self.log.Println(' '+' '.join(self.packageflags))
-
-  def TestRuns(self,petsc):
-    if self.havepackage:
-      return [self.packagename.upper()]
-    else:
-      return []
+      if self.frommkl:
+        self.log.Println(self.packagename.upper()+' from MKL linked by PETSc')
+      else:
+        self.log.Println(self.packagename.upper()+' library flags:')
+        self.log.Println(' '+' '.join(self.packageflags))
 
   def LinkWithOutput(self,functions,callbacks,flags,givencode='',cflags='',clanguage='c'):
 

@@ -15,10 +15,16 @@ SLEPC_EXTERN PetscErrorCode EPSCreate_Subspace(EPS);
 SLEPC_EXTERN PetscErrorCode EPSCreate_Arnoldi(EPS);
 SLEPC_EXTERN PetscErrorCode EPSCreate_Lanczos(EPS);
 SLEPC_EXTERN PetscErrorCode EPSCreate_KrylovSchur(EPS);
+SLEPC_EXTERN PetscErrorCode EPSCreate_GD(EPS);
+SLEPC_EXTERN PetscErrorCode EPSCreate_JD(EPS);
+SLEPC_EXTERN PetscErrorCode EPSCreate_RQCG(EPS);
+SLEPC_EXTERN PetscErrorCode EPSCreate_LOBPCG(EPS);
+SLEPC_EXTERN PetscErrorCode EPSCreate_CISS(EPS);
+SLEPC_EXTERN PetscErrorCode EPSCreate_LyapII(EPS);
+SLEPC_EXTERN PetscErrorCode EPSCreate_LAPACK(EPS);
 #if defined(SLEPC_HAVE_ARPACK)
 SLEPC_EXTERN PetscErrorCode EPSCreate_ARPACK(EPS);
 #endif
-SLEPC_EXTERN PetscErrorCode EPSCreate_LAPACK(EPS);
 #if defined(SLEPC_HAVE_BLZPACK)
 SLEPC_EXTERN PetscErrorCode EPSCreate_BLZPACK(EPS);
 #endif
@@ -31,12 +37,9 @@ SLEPC_EXTERN PetscErrorCode EPSCreate_BLOPEX(EPS);
 #if defined(SLEPC_HAVE_PRIMME)
 SLEPC_EXTERN PetscErrorCode EPSCreate_PRIMME(EPS);
 #endif
-SLEPC_EXTERN PetscErrorCode EPSCreate_GD(EPS);
-SLEPC_EXTERN PetscErrorCode EPSCreate_JD(EPS);
-SLEPC_EXTERN PetscErrorCode EPSCreate_RQCG(EPS);
-SLEPC_EXTERN PetscErrorCode EPSCreate_LOBPCG(EPS);
-SLEPC_EXTERN PetscErrorCode EPSCreate_CISS(EPS);
-SLEPC_EXTERN PetscErrorCode EPSCreate_LyapII(EPS);
+#if defined(SLEPC_HAVE_FEAST)
+SLEPC_EXTERN PetscErrorCode EPSCreate_FEAST(EPS);
+#endif
 
 /*@C
   EPSRegisterAll - Registers all the eigenvalue solvers in the EPS package.
@@ -54,11 +57,11 @@ PetscErrorCode EPSRegisterAll(void)
   PetscFunctionBegin;
   if (EPSRegisterAllCalled) PetscFunctionReturn(0);
   EPSRegisterAllCalled = PETSC_TRUE;
-  ierr = EPSRegister(EPSKRYLOVSCHUR,EPSCreate_KrylovSchur);CHKERRQ(ierr);
   ierr = EPSRegister(EPSPOWER,EPSCreate_Power);CHKERRQ(ierr);
   ierr = EPSRegister(EPSSUBSPACE,EPSCreate_Subspace);CHKERRQ(ierr);
   ierr = EPSRegister(EPSARNOLDI,EPSCreate_Arnoldi);CHKERRQ(ierr);
   ierr = EPSRegister(EPSLANCZOS,EPSCreate_Lanczos);CHKERRQ(ierr);
+  ierr = EPSRegister(EPSKRYLOVSCHUR,EPSCreate_KrylovSchur);CHKERRQ(ierr);
   ierr = EPSRegister(EPSGD,EPSCreate_GD);CHKERRQ(ierr);
   ierr = EPSRegister(EPSJD,EPSCreate_JD);CHKERRQ(ierr);
   ierr = EPSRegister(EPSRQCG,EPSCreate_RQCG);CHKERRQ(ierr);
@@ -80,6 +83,9 @@ PetscErrorCode EPSRegisterAll(void)
 #endif
 #if defined(SLEPC_HAVE_PRIMME)
   ierr = EPSRegister(EPSPRIMME,EPSCreate_PRIMME);CHKERRQ(ierr);
+#endif
+#if defined(SLEPC_HAVE_FEAST)
+  ierr = EPSRegister(EPSFEAST,EPSCreate_FEAST);CHKERRQ(ierr);
 #endif
   PetscFunctionReturn(0);
 }
