@@ -287,9 +287,10 @@ PetscErrorCode STGetOperator_Private(ST st,Mat *Op)
     ierr = MatShellSetOperation(st->Op,MATOP_MULT_HERMITIAN_TRANSPOSE,(void(*)(void))MatMultHermitianTranspose_STOperator);CHKERRQ(ierr);
 #else
     ierr = MatShellSetOperation(st->Op,MATOP_MULT_HERMITIAN_TRANSPOSE,(void(*)(void))MatMultTranspose_STOperator);CHKERRQ(ierr);
+    ierr = STComputeOperator(st);CHKERRQ(ierr);
 #endif
   }
-  *Op = st->Op;
+  if (Op) *Op = st->Op;
   PetscFunctionReturn(0);
 }
 
@@ -324,12 +325,16 @@ PetscErrorCode STGetOperator_Private(ST st,Mat *Op)
    The preconditioner matrix K typically depends on the value of the shift, and
    its inverse is handled via an internal KSP object. Normal usage does not
    require explicitly calling STGetOperator(), but it can be used to force the
-   creation of K and M, and then setting options associated with the PCFactor
-   (to set MUMPS options, for instance).
+   creation of K and M, and then K is passed to the KSP. This is useful for
+   setting options associated with the PCFactor (to set MUMPS options, for instance).
 
    The returned matrix must NOT be destroyed by the user. Instead, when no
    longer needed it must be returned with STRestoreOperator(). In particular,
    this is required before modifying the ST matrices or the shift.
+
+   A NULL pointer can be passed in Op in case the matrix is not required but we
+   want to force its creation. In this case, STRestoreOperator() should not be
+   called.
 
    Level: advanced
 
@@ -343,12 +348,11 @@ PetscErrorCode STGetOperator(ST st,Mat *Op)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
   PetscValidType(st,1);
-  PetscValidPointer(Op,2);
   STCheckMatrices(st,1);
   STCheckNotSeized(st,1);
   if (st->nmat>2) SETERRQ(PetscObjectComm((PetscObject)st),PETSC_ERR_ARG_WRONGSTATE,"The operator is not defined in polynomial eigenproblems");
   ierr = STGetOperator_Private(st,Op);CHKERRQ(ierr);
-  st->opseized = PETSC_TRUE;
+  if (Op) st->opseized = PETSC_TRUE;
   PetscFunctionReturn(0);
 }
 
@@ -409,6 +413,10 @@ PetscErrorCode STComputeOperator(ST st)
   PetscValidType(st,1);
   if (!st->opready && st->ops->computeoperator) {
     STCheckMatrices(st,1);
+    if (!st->T) {
+      ierr = PetscCalloc1(PetscMax(2,st->nmat),&st->T);CHKERRQ(ierr);
+      ierr = PetscLogObjectMemory((PetscObject)st,PetscMax(2,st->nmat)*sizeof(Mat));CHKERRQ(ierr);
+    }
     ierr = PetscLogEventBegin(ST_ComputeOperator,st,0,0,0);CHKERRQ(ierr);
     ierr = (*st->ops->computeoperator)(st);CHKERRQ(ierr);
     ierr = PetscLogEventEnd(ST_ComputeOperator,st,0,0,0);CHKERRQ(ierr);
@@ -464,15 +472,16 @@ PetscErrorCode STSetUp(ST st)
       break;
   }
   ierr = PetscLogEventBegin(ST_SetUp,st,0,0,0);CHKERRQ(ierr);
-  if (!st->T) {
-    ierr = PetscCalloc1(PetscMax(2,st->nmat),&st->T);CHKERRQ(ierr);
-    ierr = PetscLogObjectMemory((PetscObject)st,PetscMax(2,st->nmat)*sizeof(Mat));CHKERRQ(ierr);
-  } else if (st->state!=ST_STATE_UPDATED && !(st->nmat<3 && st->opready)) {
-    for (i=0;i<PetscMax(2,st->nmat);i++) {
-      ierr = MatDestroy(&st->T[i]);CHKERRQ(ierr);
+  if (st->state!=ST_STATE_UPDATED) {
+    if (!(st->nmat<3 && st->opready)) {
+      if (st->T) {
+        for (i=0;i<PetscMax(2,st->nmat);i++) {
+          ierr = MatDestroy(&st->T[i]);CHKERRQ(ierr);
+        }
+      }
+      ierr = MatDestroy(&st->P);CHKERRQ(ierr);
     }
   }
-  if (st->state!=ST_STATE_UPDATED) { ierr = MatDestroy(&st->P);CHKERRQ(ierr); }
   if (st->D) {
     ierr = MatGetLocalSize(st->A[0],NULL,&n);CHKERRQ(ierr);
     ierr = VecGetLocalSize(st->D,&k);CHKERRQ(ierr);
@@ -482,7 +491,14 @@ PetscErrorCode STSetUp(ST st)
       ierr = PetscLogObjectParent((PetscObject)st,(PetscObject)st->wb);CHKERRQ(ierr);
     }
   }
-  if (st->nmat<3 && st->transform) { ierr = STComputeOperator(st);CHKERRQ(ierr); }
+  if (st->nmat<3 && st->transform) {
+    ierr = STComputeOperator(st);CHKERRQ(ierr);
+  } else {
+    if (!st->T) {
+      ierr = PetscCalloc1(PetscMax(2,st->nmat),&st->T);CHKERRQ(ierr);
+      ierr = PetscLogObjectMemory((PetscObject)st,PetscMax(2,st->nmat)*sizeof(Mat));CHKERRQ(ierr);
+    }
+  }
   if (st->ops->setup) { ierr = (*st->ops->setup)(st);CHKERRQ(ierr); }
   st->state = ST_STATE_SETUP;
   ierr = PetscLogEventEnd(ST_SetUp,st,0,0,0);CHKERRQ(ierr);

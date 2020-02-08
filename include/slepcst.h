@@ -70,7 +70,7 @@ PETSC_DEPRECATED_FUNCTION("Use STGetOperator() followed by MatComputeOperator()"
   PetscErrorCode ierr; Mat Op;
   ierr = STGetOperator(st,&Op);CHKERRQ(ierr);
   ierr = MatComputeOperator(Op,MATAIJ,A);CHKERRQ(ierr);
-  ierr = MatDestroy(&Op);CHKERRQ(ierr);
+  ierr = STRestoreOperator(st,&Op);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
