@@ -464,7 +464,7 @@ gnu-c-debug-complex:
     - linux-ubuntu
   variables:
     PETSC_CONFIG_OPTS: --with-debugging=1 --with-scalar-type=complex
-    SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --with-packages-download-dir=/var/local/downloads --download-arpack --download-primme --download-blopex
+    SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --with-packages-download-dir=/var/local/downloads --download-primme --download-blopex
 
 gnu-c-cuda-complex:
   extends:
