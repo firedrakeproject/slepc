@@ -314,7 +314,7 @@ PetscErrorCode STGetOperator_Private(ST st,Mat *Op)
    STApplyTranspose() operations. The operator can often be expressed as
 
 .vb
-      Op = alpha*D*inv(K)*M*inv(D)
+      Op = D*inv(K)*M*inv(D)
 .ve
 
    where D is the balancing matrix, and M and K are two matrices corresponding
@@ -387,11 +387,11 @@ PetscErrorCode STRestoreOperator(ST st,Mat *Op)
 /*
    STComputeOperator - Computes the matrices that constitute the operator
 
-      Op = alpha*D*inv(K)*M*inv(D).
+      Op = D*inv(K)*M*inv(D).
 
-   K and M are computed here (alpha and D are user-provided) from the system
-   matrices and the shift sigma (whenever these are changed, this function
-   recomputes K and M). This is used only in linear eigenproblems (nmat<3).
+   K and M are computed here (D is user-provided) from the system matrices
+   and the shift sigma (whenever these are changed, this function recomputes
+   K and M). This is used only in linear eigenproblems (nmat<3).
 
    K is the "preconditioner matrix": it is the denominator in rational operators,
    e.g. (A-sigma*B) in shift-and-invert. In non-rational transformations such
