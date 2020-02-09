@@ -201,9 +201,46 @@ PetscErrorCode STCreate(MPI_Comm comm,ST *newst)
   st->P            = NULL;
   st->M            = NULL;
   st->sigma_set    = PETSC_FALSE;
+  st->asymm        = PETSC_FALSE;
+  st->aherm        = PETSC_FALSE;
   st->data         = NULL;
 
   *newst = st;
+  PetscFunctionReturn(0);
+}
+
+/*
+   Checks whether the ST matrices are all symmetric or hermitian.
+*/
+PETSC_STATIC_INLINE PetscErrorCode STMatIsSymmetricKnown(ST st,PetscBool *symm,PetscBool *herm)
+{
+  PetscErrorCode ierr;
+  PetscInt       i;
+  PetscBool      sbaij=PETSC_FALSE,set,flg=PETSC_FALSE;
+
+  PetscFunctionBegin;
+  /* check if problem matrices are all sbaij */
+  for (i=0;i<st->nmat;i++) {
+    ierr = PetscObjectTypeCompareAny((PetscObject)st->A[i],&sbaij,MATSEQSBAIJ,MATMPISBAIJ,"");CHKERRQ(ierr);
+    if (!sbaij) break;
+  }
+  /* check if user has set the symmetric flag */
+  *symm = PETSC_TRUE;
+  for (i=0;i<st->nmat;i++) {
+    ierr = MatIsSymmetricKnown(st->A[i],&set,&flg);CHKERRQ(ierr);
+    if (!set || !flg) { *symm = PETSC_FALSE; break; }
+  }
+  if (sbaij) *symm = PETSC_TRUE;
+#if defined(PETSC_USE_COMPLEX)
+  /* check if user has set the hermitian flag */
+  *herm = PETSC_TRUE;
+  for (i=0;i<st->nmat;i++) {
+    ierr = MatIsHermitianKnown(st->A[i],&set,&flg);CHKERRQ(ierr);
+    if (!set || !flg) { *herm = PETSC_FALSE; break; }
+  }
+#else
+  *herm = *symm;
+#endif
   PetscFunctionReturn(0);
 }
 
@@ -269,6 +306,9 @@ PetscErrorCode STSetMatrices(ST st,PetscInt n,Mat A[])
   if (same) st->state = ST_STATE_UPDATED;
   else st->state = ST_STATE_INITIAL;
   st->opready = PETSC_FALSE;
+  if (!same) {
+    ierr = STMatIsSymmetricKnown(st,&st->asymm,&st->aherm);CHKERRQ(ierr);
+  }
   PetscFunctionReturn(0);
 }
 

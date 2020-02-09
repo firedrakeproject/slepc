@@ -73,6 +73,8 @@ struct _p_ST {
   Mat              P;                /* matrix from which preconditioner is built */
   Mat              M;                /* matrix corresponding to the non-inverted part of the operator */
   PetscBool        sigma_set;        /* whether the user provided the shift or not */
+  PetscBool        asymm;            /* the user matrices are all symmetric */
+  PetscBool        aherm;            /* the user matrices are all hermitian */
   void             *data;
 };
 
@@ -101,7 +103,6 @@ SLEPC_INTERN PetscErrorCode STGetBilinearForm_Default(ST,Mat*);
 SLEPC_INTERN PetscErrorCode STCheckNullSpace_Default(ST,BV);
 SLEPC_INTERN PetscErrorCode STMatShellCreate(ST,PetscScalar,PetscInt,PetscInt*,PetscScalar*,Mat*);
 SLEPC_INTERN PetscErrorCode STMatShellShift(Mat,PetscScalar);
-SLEPC_INTERN PetscErrorCode STMatSetHermitian(ST,Mat);
 SLEPC_INTERN PetscErrorCode STCheckFactorPackage(ST);
 SLEPC_INTERN PetscErrorCode STMatMAXPY_Private(ST,PetscScalar,PetscScalar,PetscInt,PetscScalar*,PetscBool,Mat*);
 SLEPC_INTERN PetscErrorCode STCoeffs_Monomial(ST,PetscScalar*);

@@ -593,7 +593,8 @@ PetscErrorCode STMatMAXPY_Private(ST st,PetscScalar alpha,PetscScalar beta,Petsc
       }
     }
   }
-  ierr = STMatSetHermitian(st,*S);CHKERRQ(ierr);
+  ierr = MatSetOption(*S,MAT_SYMMETRIC,st->asymm);CHKERRQ(ierr);
+  ierr = MatSetOption(*S,MAT_HERMITIAN,(PetscImaginaryPart(st->sigma)==0.0)?st->aherm:PETSC_FALSE);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
