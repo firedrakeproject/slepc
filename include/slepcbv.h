@@ -157,6 +157,8 @@ SLEPC_EXTERN PetscErrorCode BVMatMult(BV,Mat,BV);
 SLEPC_EXTERN PetscErrorCode BVMatMultTranspose(BV,Mat,BV);
 SLEPC_EXTERN PetscErrorCode BVMatMultHermitianTranspose(BV,Mat,BV);
 SLEPC_EXTERN PetscErrorCode BVMatMultColumn(BV,Mat,PetscInt);
+SLEPC_EXTERN PetscErrorCode BVMatMultTransposeColumn(BV,Mat,PetscInt);
+SLEPC_EXTERN PetscErrorCode BVMatMultHermitianTransposeColumn(BV,Mat,PetscInt);
 SLEPC_EXTERN PetscErrorCode BVMatProject(BV,Mat,BV,Mat);
 SLEPC_EXTERN PetscErrorCode BVDot(BV,BV,Mat);
 SLEPC_EXTERN PetscErrorCode BVDotVec(BV,Vec,PetscScalar*);
