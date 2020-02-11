@@ -51,6 +51,7 @@ SLEPC_EXTERN PetscErrorCode MFNGetOperator(MFN,Mat*);
 SLEPC_EXTERN PetscErrorCode MFNSetFromOptions(MFN);
 SLEPC_EXTERN PetscErrorCode MFNSetUp(MFN);
 SLEPC_EXTERN PetscErrorCode MFNSolve(MFN,Vec,Vec);
+SLEPC_EXTERN PetscErrorCode MFNSolveTranspose(MFN,Vec,Vec);
 SLEPC_EXTERN PetscErrorCode MFNView(MFN,PetscViewer);
 SLEPC_EXTERN PetscErrorCode MFNViewFromOptions(MFN,PetscObject,const char[]);
 SLEPC_EXTERN PetscErrorCode MFNReasonView(MFN,PetscViewer);

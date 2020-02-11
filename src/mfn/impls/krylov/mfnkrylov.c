@@ -45,16 +45,16 @@ PetscErrorCode MFNBasicArnoldi(MFN mfn,PetscScalar *H,PetscInt ldh,PetscInt k,Pe
   PetscErrorCode ierr;
   PetscScalar    *a;
   PetscInt       j,nc,n,m = *M;
-  Vec            vj,vj1,buf;
+  Vec            buf;
 
   PetscFunctionBegin;
   ierr = BVSetActiveColumns(mfn->V,0,m);CHKERRQ(ierr);
   for (j=k;j<m;j++) {
-    ierr = BVGetColumn(mfn->V,j,&vj);CHKERRQ(ierr);
-    ierr = BVGetColumn(mfn->V,j+1,&vj1);CHKERRQ(ierr);
-    ierr = MatMult(mfn->A,vj,vj1);CHKERRQ(ierr);
-    ierr = BVRestoreColumn(mfn->V,j,&vj);CHKERRQ(ierr);
-    ierr = BVRestoreColumn(mfn->V,j+1,&vj1);CHKERRQ(ierr);
+    if (mfn->transpose_solve) {
+      ierr = BVMatMultTransposeColumn(mfn->V,mfn->A,j);CHKERRQ(ierr);
+    } else {
+      ierr = BVMatMultColumn(mfn->V,mfn->A,j);CHKERRQ(ierr);
+    }
     ierr = BVOrthonormalizeColumn(mfn->V,j+1,PETSC_FALSE,beta,breakdown);CHKERRQ(ierr);
     if (*breakdown) {
       *M = j+1;

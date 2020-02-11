@@ -41,11 +41,11 @@ struct _MFNOps {
 struct _p_MFN {
   PETSCHEADER(struct _MFNOps);
   /*------------------------- User parameters ---------------------------*/
-  Mat            A;              /* the problem matrix */
-  FN             fn;             /* which function to compute */
-  PetscInt       max_it;         /* maximum number of iterations */
-  PetscInt       ncv;            /* number of basis vectors */
-  PetscReal      tol;            /* tolerance */
+  Mat            A;                /* the problem matrix */
+  FN             fn;               /* which function to compute */
+  PetscInt       max_it;           /* maximum number of iterations */
+  PetscInt       ncv;              /* number of basis vectors */
+  PetscReal      tol;              /* tolerance */
   PetscBool      errorifnotconverged;    /* error out if MFNSolve() does not converge */
 
   /*-------------- User-provided functions and contexts -----------------*/
@@ -55,16 +55,17 @@ struct _p_MFN {
   PetscInt       numbermonitors;
 
   /*----------------- Child objects and working data -------------------*/
-  BV             V;              /* set of basis vectors */
-  PetscInt       nwork;          /* number of work vectors */
-  Vec            *work;          /* work vectors */
-  void           *data;          /* placeholder for solver-specific stuff */
+  BV             V;                /* set of basis vectors */
+  PetscInt       nwork;            /* number of work vectors */
+  Vec            *work;            /* work vectors */
+  void           *data;            /* placeholder for solver-specific stuff */
 
   /* ----------------------- Status variables -------------------------- */
-  PetscInt       its;            /* number of iterations so far computed */
-  PetscInt       nv;             /* size of current Schur decomposition */
-  PetscReal      errest;         /* error estimate */
-  PetscReal      bnorm;          /* computed norm of right-hand side in current solve */
+  PetscInt       its;              /* number of iterations so far computed */
+  PetscInt       nv;               /* size of current Schur decomposition */
+  PetscReal      errest;           /* error estimate */
+  PetscReal      bnorm;            /* computed norm of right-hand side in current solve */
+  PetscBool      transpose_solve;  /* solve transpose system instead */
   PetscInt       setupcalled;
   MFNConvergedReason reason;
 };

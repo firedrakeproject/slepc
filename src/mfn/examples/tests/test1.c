@@ -76,7 +76,17 @@ int main(int argc,char **argv)
   ierr = MFNGetConvergedReason(mfn,&reason);CHKERRQ(ierr);
   if (reason<0) SETERRQ(PETSC_COMM_WORLD,1,"Solver did not converge");
   ierr = VecNorm(y,NORM_2,&norm);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," Computed vector at time t=%.4g has norm %g\n\n",(double)PetscRealPart(t),(double)norm);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD," Computed vector at time t=%.4g has norm %g\n",(double)PetscRealPart(t),(double)norm);CHKERRQ(ierr);
+
+  /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+                      Solve the problem, y=exp(t*A^T)*v
+     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+  ierr = MFNSolveTranspose(mfn,v,y);CHKERRQ(ierr);
+  ierr = MFNGetConvergedReason(mfn,&reason);CHKERRQ(ierr);
+  if (reason<0) SETERRQ(PETSC_COMM_WORLD,1,"Solver did not converge");
+  ierr = VecNorm(y,NORM_2,&norm);CHKERRQ(ierr);
+  ierr = PetscPrintf(PETSC_COMM_WORLD," With transpose: computed vector has norm %g\n\n",(double)norm);CHKERRQ(ierr);
 
   /*
      Free work space
@@ -92,8 +102,8 @@ int main(int argc,char **argv)
 /*TEST
 
    testset:
-      args: -file ${SLEPC_DIR}/share/slepc/datafiles/matrices/bfw62b.petsc -mfn_type {{krylov expokit}}
-      requires: double !complex !define(PETSC_USE_64BIT_INDICES)
+      args: -file ${DATAFILESPATH}/matrices/real/bfw782a.petsc -mfn_type {{krylov expokit}} -t 0.05
+      requires: double !complex datafilespath !define(PETSC_USE_64BIT_INDICES)
       output_file: output/test1_1.out
       test:
          suffix: 1
