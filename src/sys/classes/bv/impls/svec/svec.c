@@ -206,11 +206,10 @@ PetscErrorCode BVNorm_Local_Svec(BV bv,PetscInt j,NormType type,PetscReal *val)
 PetscErrorCode BVMatMult_Svec(BV V,Mat A,BV W)
 {
   PetscErrorCode   ierr;
-  BV_SVEC          *v = (BV_SVEC*)V->data,*w = (BV_SVEC*)W->data;
-  PetscScalar      *pv,*pw;
   PetscInt         j;
   PetscBool        flg;
   Mat              Vmat,Wmat,aux;
+  Vec              vv,ww;
   PetscObjectState Astate;
 
   PetscFunctionBegin;
@@ -231,17 +230,13 @@ PetscErrorCode BVMatMult_Svec(BV V,Mat A,BV W)
     ierr = BVRestoreMat(V,&Vmat);CHKERRQ(ierr);
     ierr = BVRestoreMat(W,&Wmat);CHKERRQ(ierr);
   } else {
-    ierr = VecGetArray(v->v,&pv);CHKERRQ(ierr);
-    ierr = VecGetArray(w->v,&pw);CHKERRQ(ierr);
     for (j=0;j<V->k-V->l;j++) {
-      ierr = VecPlaceArray(V->cv[1],pv+(V->nc+V->l+j)*V->n);CHKERRQ(ierr);
-      ierr = VecPlaceArray(W->cv[1],pw+(W->nc+W->l+j)*W->n);CHKERRQ(ierr);
-      ierr = MatMult(A,V->cv[1],W->cv[1]);CHKERRQ(ierr);
-      ierr = VecResetArray(V->cv[1]);CHKERRQ(ierr);
-      ierr = VecResetArray(W->cv[1]);CHKERRQ(ierr);
+      ierr = BVGetColumn(V,V->l+j,&vv);CHKERRQ(ierr);
+      ierr = BVGetColumn(W,W->l+j,&ww);CHKERRQ(ierr);
+      ierr = MatMult(A,vv,ww);CHKERRQ(ierr);
+      ierr = BVRestoreColumn(V,V->l+j,&vv);CHKERRQ(ierr);
+      ierr = BVRestoreColumn(W,W->l+j,&ww);CHKERRQ(ierr);
     }
-    ierr = VecRestoreArray(v->v,&pv);CHKERRQ(ierr);
-    ierr = VecRestoreArray(w->v,&pw);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }
