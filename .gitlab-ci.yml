@@ -145,6 +145,7 @@ checksource:
     - python3 ./configure
     - make checkbadSource SHELL=bash
     - make check_output SHELL=bash
+    - make check_ascii SHELL=bash
   after_script:
     - date
     - CCACHE_DIR=$(pwd)/.ccache ccache --show-stats
