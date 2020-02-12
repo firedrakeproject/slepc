@@ -57,6 +57,7 @@ SLEPC_EXTERN PetscErrorCode STGetMatrix(ST,PetscInt,Mat*);
 SLEPC_EXTERN PetscErrorCode STGetMatrixTransformed(ST,PetscInt,Mat*);
 SLEPC_EXTERN PetscErrorCode STGetNumMatrices(ST,PetscInt*);
 SLEPC_EXTERN PetscErrorCode STGetOperator(ST,Mat*);
+SLEPC_EXTERN PetscErrorCode STRestoreOperator(ST,Mat*);
 SLEPC_EXTERN PetscErrorCode STSetUp(ST);
 SLEPC_EXTERN PetscErrorCode STSetFromOptions(ST);
 SLEPC_EXTERN PetscErrorCode STView(ST,PetscViewer);
@@ -69,17 +70,18 @@ PETSC_DEPRECATED_FUNCTION("Use STGetOperator() followed by MatComputeOperator()"
   PetscErrorCode ierr; Mat Op;
   ierr = STGetOperator(st,&Op);CHKERRQ(ierr);
   ierr = MatComputeOperator(Op,MATAIJ,A);CHKERRQ(ierr);
-  ierr = MatDestroy(&Op);CHKERRQ(ierr);
+  ierr = STRestoreOperator(st,&Op);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
 SLEPC_EXTERN PetscErrorCode STApply(ST,Vec,Vec);
+SLEPC_EXTERN PetscErrorCode STApplyTranspose(ST,Vec,Vec);
+SLEPC_EXTERN PetscErrorCode STApplyHermitianTranspose(ST,Vec,Vec);
 SLEPC_EXTERN PetscErrorCode STMatMult(ST,PetscInt,Vec,Vec);
 SLEPC_EXTERN PetscErrorCode STMatMultTranspose(ST,PetscInt,Vec,Vec);
 SLEPC_EXTERN PetscErrorCode STMatSolve(ST,Vec,Vec);
 SLEPC_EXTERN PetscErrorCode STMatSolveTranspose(ST,Vec,Vec);
 SLEPC_EXTERN PetscErrorCode STGetBilinearForm(ST,Mat*);
-SLEPC_EXTERN PetscErrorCode STApplyTranspose(ST,Vec,Vec);
 SLEPC_EXTERN PetscErrorCode STMatSetUp(ST,PetscScalar,PetscScalar*);
 SLEPC_EXTERN PetscErrorCode STPostSolve(ST);
 SLEPC_EXTERN PetscErrorCode STResetMatrixState(ST);

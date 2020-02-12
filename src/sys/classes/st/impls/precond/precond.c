@@ -24,104 +24,92 @@ static PetscErrorCode STSetDefaultKSP_Precond(ST st)
   ST_PRECOND     *ctx = (ST_PRECOND*)st->data;
   PC             pc;
   PCType         pctype;
-  Mat            P;
   PetscBool      t0,t1;
 
   PetscFunctionBegin;
   ierr = KSPGetPC(st->ksp,&pc);CHKERRQ(ierr);
   ierr = PCGetType(pc,&pctype);CHKERRQ(ierr);
-  P = ctx->mat;
   if (!pctype && st->A && st->A[0]) {
-    if (P || st->matmode == ST_MATMODE_SHELL) {
+    if (ctx->setmat || st->matmode == ST_MATMODE_SHELL) {
       ierr = PCSetType(pc,PCJACOBI);CHKERRQ(ierr);
     } else {
       ierr = MatHasOperation(st->A[0],MATOP_DUPLICATE,&t0);CHKERRQ(ierr);
       if (st->nmat>1) {
         ierr = MatHasOperation(st->A[0],MATOP_AXPY,&t1);CHKERRQ(ierr);
       } else t1 = PETSC_TRUE;
-      ierr = PCSetType(pc,(t0 && t1)?PCJACOBI:PCNONE);CHKERRQ(ierr);
+      ierr = PCSetType(pc,(t0 && t1)?PCBJACOBI:PCNONE);CHKERRQ(ierr);
     }
   }
   ierr = KSPSetErrorIfNotConverged(st->ksp,PETSC_FALSE);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
-PetscErrorCode STSetUp_Precond(ST st)
+PetscErrorCode STPostSolve_Precond(ST st)
 {
-  PC             pc;
-  PetscBool      t0,destroyP=PETSC_FALSE,builtP;
-  ST_PRECOND     *ctx = (ST_PRECOND*)st->data;
-  Mat            P = ctx->mat;
   PetscErrorCode ierr;
+  ST_PRECOND     *ctx = (ST_PRECOND*)st->data;
+
+  PetscFunctionBegin;
+  if (st->matmode == ST_MATMODE_INPLACE && !(ctx->mat || (PetscAbsScalar(st->sigma)>=PETSC_MAX_REAL && st->nmat>1))) {
+    if (st->nmat>1) {
+      ierr = MatAXPY(st->A[0],st->sigma,st->A[1],st->str);CHKERRQ(ierr);
+    } else {
+      ierr = MatShift(st->A[0],st->sigma);CHKERRQ(ierr);
+    }
+    st->Astate[0] = ((PetscObject)st->A[0])->state;
+    st->state = ST_STATE_INITIAL;
+  }
+  PetscFunctionReturn(0);
+}
+
+/*
+   Operator (precond):
+               Op        P         M
+   if nmat=1:  ---       A-sI      NULL
+   if nmat=2:  ---       A-sB      NULL
+*/
+PetscErrorCode STComputeOperator_Precond(ST st)
+{
+  PetscErrorCode ierr;
+  ST_PRECOND     *ctx = (ST_PRECOND*)st->data;
 
   PetscFunctionBegin;
   /* if the user did not set the shift, use the target value */
   if (!st->sigma_set) st->sigma = st->defsigma;
+  st->M = NULL;
 
-  /* If either pc is none and no matrix has to be set, or pc is shell, exit */
-  if (!st->ksp) { ierr = STGetKSP(st,&st->ksp);CHKERRQ(ierr); }
-  ierr = KSPGetPC(st->ksp,&pc);CHKERRQ(ierr);
-  ierr = PetscObjectTypeCompare((PetscObject)pc,PCSHELL,&t0);CHKERRQ(ierr);
-  if (t0) PetscFunctionReturn(0);
-  ierr = PetscObjectTypeCompare((PetscObject)pc,PCNONE,&t0);CHKERRQ(ierr);
-  if (t0 && !ctx->setmat) PetscFunctionReturn(0);
-
-  /* If not, create A - shift*B */
-  if (P) {
-    builtP = PETSC_FALSE;
-    destroyP = PETSC_TRUE;
-    ierr = PetscObjectReference((PetscObject)P);CHKERRQ(ierr);
+  /* P = A-sigma*B */
+  if (ctx->mat) {
+    ierr = PetscObjectReference((PetscObject)ctx->mat);CHKERRQ(ierr);
+    ierr = MatDestroy(&st->P);CHKERRQ(ierr);
+    st->P = ctx->mat;
   } else {
-    builtP = PETSC_TRUE;
-
+    ierr = PetscObjectReference((PetscObject)st->A[1]);CHKERRQ(ierr);
+    ierr = MatDestroy(&st->T[0]);CHKERRQ(ierr);
+    st->T[0] = st->A[1];
     if (!(PetscAbsScalar(st->sigma) < PETSC_MAX_REAL) && st->nmat>1) {
-      P = st->A[1];
-      destroyP = PETSC_FALSE;
-    } else if (st->sigma == 0.0) {
-      P = st->A[0];
-      destroyP = PETSC_FALSE;
-    } else if (PetscAbsScalar(st->sigma) < PETSC_MAX_REAL && st->matmode != ST_MATMODE_SHELL) {
-      if (st->matmode == ST_MATMODE_INPLACE) {
-        P = st->A[0];
-        destroyP = PETSC_FALSE;
-      } else {
-        ierr = MatDuplicate(st->A[0],MAT_COPY_VALUES,&P);CHKERRQ(ierr);
-        destroyP = PETSC_TRUE;
-      }
-      if (st->nmat>1) {
-        ierr = MatAXPY(P,-st->sigma,st->A[1],st->str);CHKERRQ(ierr);
-      } else {
-        ierr = MatShift(P,-st->sigma);CHKERRQ(ierr);
-      }
-      /* TODO: in case of ST_MATMODE_INPLACE should keep the Hermitian flag of st->A and restore at the end */
-      ierr = STMatSetHermitian(st,P);CHKERRQ(ierr);
-    } else builtP = PETSC_FALSE;
-  }
-
-  /* If P was not possible to obtain, set pc to PCNONE */
-  if (!P) {
-    ierr = PCSetType(pc,PCNONE);CHKERRQ(ierr);
-
-    /* If some matrix has to be set to ksp, a shell matrix is created */
-    if (ctx->setmat) {
-      ierr = STMatShellCreate(st,-st->sigma,0,NULL,NULL,&P);CHKERRQ(ierr);
-      ierr = STMatSetHermitian(st,P);CHKERRQ(ierr);
-      destroyP = PETSC_TRUE;
+      ierr = PetscObjectReference((PetscObject)st->T[0]);CHKERRQ(ierr);
+      ierr = MatDestroy(&st->P);CHKERRQ(ierr);
+      st->P = st->T[0];
+    } else if (PetscAbsScalar(st->sigma)<PETSC_MAX_REAL) {
+      ierr = STMatMAXPY_Private(st,-st->sigma,0.0,0,NULL,PetscNot(st->state==ST_STATE_UPDATED),&st->T[1]);CHKERRQ(ierr);
+      ierr = PetscObjectReference((PetscObject)st->T[1]);CHKERRQ(ierr);
+      ierr = MatDestroy(&st->P);CHKERRQ(ierr);
+      st->P = st->T[1];
     }
   }
+  PetscFunctionReturn(0);
+}
 
-  ierr = KSPSetOperators(st->ksp,ctx->setmat?P:NULL,P);CHKERRQ(ierr);
+PetscErrorCode STSetUp_Precond(ST st)
+{
+  PetscErrorCode ierr;
+  ST_PRECOND     *ctx = (ST_PRECOND*)st->data;
 
-  if (destroyP) {
-    ierr = MatDestroy(&P);CHKERRQ(ierr);
-  } else if (st->matmode == ST_MATMODE_INPLACE && builtP) {
-    if (st->sigma != 0.0 && PetscAbsScalar(st->sigma) < PETSC_MAX_REAL) {
-      if (st->nmat>1) {
-        ierr = MatAXPY(st->A[0],st->sigma,st->A[1],st->str);CHKERRQ(ierr);
-      } else {
-        ierr = MatShift(st->A[0],st->sigma);CHKERRQ(ierr);
-      }
-    }
+  PetscFunctionBegin;
+  if (st->P) {
+    ierr = KSPSetOperators(st->ksp,ctx->setmat?st->P:NULL,st->P);CHKERRQ(ierr);
+    /* NOTE: we do not call KSPSetUp() here because some eigensolvers such as JD require a lazy setup */
   }
   PetscFunctionReturn(0);
 }
@@ -129,11 +117,20 @@ PetscErrorCode STSetUp_Precond(ST st)
 PetscErrorCode STSetShift_Precond(ST st,PetscScalar newshift)
 {
   PetscErrorCode ierr;
+  ST_PRECOND     *ctx = (ST_PRECOND*)st->data;
 
   PetscFunctionBegin;
-  st->sigma = newshift;
-  if (st->matmode != ST_MATMODE_SHELL) {
-    ierr = STSetUp_Precond(st);CHKERRQ(ierr);
+  if (st->transform && !ctx->mat) {
+    ierr = STMatMAXPY_Private(st,-newshift,-st->sigma,0,NULL,PETSC_FALSE,&st->T[1]);CHKERRQ(ierr);
+    if (st->P!=st->T[1]) {
+      ierr = PetscObjectReference((PetscObject)st->T[1]);CHKERRQ(ierr);
+      ierr = MatDestroy(&st->P);CHKERRQ(ierr);
+      st->P = st->T[1];
+    }
+  }
+  if (st->P) {
+    if (!st->ksp) { ierr = STGetKSP(st,&st->ksp);CHKERRQ(ierr); }
+    ierr = KSPSetOperators(st->ksp,ctx->setmat?st->P:NULL,st->P);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }
@@ -180,6 +177,7 @@ static PetscErrorCode STPrecondSetMatForPC_Precond(ST st,Mat mat)
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
+  STCheckNotSeized(st,1);
   ierr = PetscObjectReference((PetscObject)mat);CHKERRQ(ierr);
   ierr = MatDestroy(&ctx->mat);CHKERRQ(ierr);
   ctx->mat    = mat;
@@ -326,9 +324,13 @@ SLEPC_EXTERN PetscErrorCode STCreate_Precond(ST st)
 
   st->usesksp = PETSC_TRUE;
 
+  st->ops->apply           = STApply_Generic;
+  st->ops->applytrans      = STApplyTranspose_Generic;
+  st->ops->setshift        = STSetShift_Precond;
   st->ops->getbilinearform = STGetBilinearForm_Default;
   st->ops->setup           = STSetUp_Precond;
-  st->ops->setshift        = STSetShift_Precond;
+  st->ops->computeoperator = STComputeOperator_Precond;
+  st->ops->postsolve       = STPostSolve_Precond;
   st->ops->destroy         = STDestroy_Precond;
   st->ops->setdefaultksp   = STSetDefaultKSP_Precond;
 

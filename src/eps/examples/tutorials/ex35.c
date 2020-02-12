@@ -93,11 +93,11 @@ int main (int argc,char **argv)
 
     /* Create the context for the user-defined spectral transform */
     ierr = STCreate_Fold(A,target,&fold);CHKERRQ(ierr);
+    ierr = STShellSetContext(st,fold);CHKERRQ(ierr);
 
     /* Set callback function for applying the operator (in this case we do not
        provide a back-transformation callback since the mapping is not one-to-one) */
     ierr = STShellSetApply(st,STApply_Fold);CHKERRQ(ierr);
-    ierr = STShellSetContext(st,fold);CHKERRQ(ierr);
     ierr = PetscObjectSetName((PetscObject)st,"STFOLD");CHKERRQ(ierr);
   }
 

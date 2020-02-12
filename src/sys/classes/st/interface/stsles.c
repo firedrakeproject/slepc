@@ -31,37 +31,6 @@ PetscErrorCode STSetDefaultKSP(ST st)
 }
 
 /*
-   Checks whether the ST matrix is symmetric
-*/
-PETSC_STATIC_INLINE PetscErrorCode STMatIsSymmetricKnown(ST st,PetscBool *symm)
-{
-  PetscErrorCode ierr;
-  PetscInt       i;
-  PetscBool      set,sbaij=PETSC_FALSE,asymm;
-
-  PetscFunctionBegin;
-  *symm = PETSC_FALSE;
-  if (!st->nmat) PetscFunctionReturn(0);  /* STSetMatrices() not called yet */
-  /* check if problem matrices are all sbaij */
-  for (i=0;i<st->nmat;i++) {
-    ierr = PetscObjectTypeCompareAny((PetscObject)st->A[i],&sbaij,MATSEQSBAIJ,MATMPISBAIJ,"");CHKERRQ(ierr);
-    if (!sbaij) break;
-  }
-  if (sbaij) *symm = PETSC_TRUE;
-  else {
-    /* check if user has set the symmetric flag */
-    for (i=0;i<st->nmat;i++) {
-      ierr = MatIsSymmetricKnown(st->A[i],&set,&asymm);CHKERRQ(ierr);
-      if (!set) asymm = PETSC_FALSE;
-      if (!asymm) PetscFunctionReturn(0);
-      if (PetscRealPart(st->sigma)==0.0) break;
-    }
-    *symm = PETSC_TRUE;
-  }
-  PetscFunctionReturn(0);
-}
-
-/*
    This is done by all ST types except PRECOND.
    The default is an LU direct solver, or GMRES+Jacobi if matmode=shell.
 */
@@ -71,7 +40,6 @@ PetscErrorCode STSetDefaultKSP_Default(ST st)
   PC             pc;
   PCType         pctype;
   KSPType        ksptype;
-  PetscBool      asymm;
 
   PetscFunctionBegin;
   ierr = KSPGetPC(st->ksp,&pc);CHKERRQ(ierr);
@@ -82,9 +50,8 @@ PetscErrorCode STSetDefaultKSP_Default(ST st)
       ierr = KSPSetType(st->ksp,KSPGMRES);CHKERRQ(ierr);
       ierr = PCSetType(pc,PCJACOBI);CHKERRQ(ierr);
     } else {
-      ierr = STMatIsSymmetricKnown(st,&asymm);CHKERRQ(ierr);
       ierr = KSPSetType(st->ksp,KSPPREONLY);CHKERRQ(ierr);
-      ierr = PCSetType(pc,asymm?PCCHOLESKY:PCLU);CHKERRQ(ierr);
+      ierr = PCSetType(pc,st->asymm?PCCHOLESKY:PCLU);CHKERRQ(ierr);
     }
   }
   ierr = KSPSetErrorIfNotConverged(st->ksp,PETSC_TRUE);CHKERRQ(ierr);
@@ -203,8 +170,6 @@ PetscErrorCode STMatMultTranspose(ST st,PetscInt k,Vec x,Vec y)
 PetscErrorCode STMatSolve(ST st,Vec b,Vec x)
 {
   PetscErrorCode ierr;
-  PetscInt       its;
-  PetscBool      flg;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
@@ -217,15 +182,11 @@ PetscErrorCode STMatSolve(ST st,Vec b,Vec x)
   if (st->state!=ST_STATE_SETUP) { ierr = STSetUp(st);CHKERRQ(ierr); }
   ierr = VecLockReadPush(b);CHKERRQ(ierr);
   ierr = PetscLogEventBegin(ST_MatSolve,st,b,x,0);CHKERRQ(ierr);
-  ierr = PetscObjectTypeCompareAny((PetscObject)st,&flg,STPRECOND,STSHELL,"");CHKERRQ(ierr);
-  if (!flg && !st->P) {
+  if (!st->P) {
     /* P=NULL means identity matrix */
     ierr = VecCopy(b,x);CHKERRQ(ierr);
   } else {
-    if (!st->ksp) { ierr = STGetKSP(st,&st->ksp);CHKERRQ(ierr); }
     ierr = KSPSolve(st->ksp,b,x);CHKERRQ(ierr);
-    ierr = KSPGetIterationNumber(st->ksp,&its);CHKERRQ(ierr);
-    ierr = PetscInfo1(st,"Linear solve iterations=%D\n",its);CHKERRQ(ierr);
   }
   ierr = PetscLogEventEnd(ST_MatSolve,st,b,x,0);CHKERRQ(ierr);
   ierr = VecLockReadPop(b);CHKERRQ(ierr);
@@ -252,8 +213,6 @@ PetscErrorCode STMatSolve(ST st,Vec b,Vec x)
 PetscErrorCode STMatSolveTranspose(ST st,Vec b,Vec x)
 {
   PetscErrorCode ierr;
-  PetscInt       its;
-  PetscBool      flg;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
@@ -266,56 +225,14 @@ PetscErrorCode STMatSolveTranspose(ST st,Vec b,Vec x)
   if (st->state!=ST_STATE_SETUP) { ierr = STSetUp(st);CHKERRQ(ierr); }
   ierr = VecLockReadPush(b);CHKERRQ(ierr);
   ierr = PetscLogEventBegin(ST_MatSolveTranspose,st,b,x,0);CHKERRQ(ierr);
-  ierr = PetscObjectTypeCompareAny((PetscObject)st,&flg,STPRECOND,STSHELL,"");CHKERRQ(ierr);
-  if (!flg && !st->P) {
+  if (!st->P) {
     /* P=NULL means identity matrix */
     ierr = VecCopy(b,x);CHKERRQ(ierr);
   } else {
-    if (!st->ksp) { ierr = STGetKSP(st,&st->ksp);CHKERRQ(ierr); }
     ierr = KSPSolveTranspose(st->ksp,b,x);CHKERRQ(ierr);
-    ierr = KSPGetIterationNumber(st->ksp,&its);CHKERRQ(ierr);
-    ierr = PetscInfo1(st,"Linear solve iterations=%D\n",its);CHKERRQ(ierr);
   }
   ierr = PetscLogEventEnd(ST_MatSolveTranspose,st,b,x,0);CHKERRQ(ierr);
   ierr = VecLockReadPop(b);CHKERRQ(ierr);
-  PetscFunctionReturn(0);
-}
-
-/*
-   STMatSetHermitian - Sets the symmetric and/or Hermitian flag to the ST matrix.
-
-   Input Parameters:
-.  st - the spectral transformation context
-.  M  - matrix
-*/
-PetscErrorCode STMatSetHermitian(ST st,Mat M)
-{
-  PetscErrorCode ierr;
-  PetscBool      set,aherm,mherm;
-  PetscInt       i;
-
-  PetscFunctionBegin;
-  if (!st->nmat) PetscFunctionReturn(0);  /* STSetMatrices() not called yet */
-  mherm = PETSC_TRUE;
-  for (i=0;i<st->nmat;i++) {
-    ierr = MatIsSymmetricKnown(st->A[i],&set,&aherm);CHKERRQ(ierr);
-    if (!set) aherm = PETSC_FALSE;
-    if (!aherm) { mherm = PETSC_FALSE; break; }
-    if (PetscRealPart(st->sigma)==0.0) break;
-  }
-  ierr = MatSetOption(M,MAT_SYMMETRIC,mherm);CHKERRQ(ierr);
-#if defined(PETSC_USE_COMPLEX)
-  if (PetscImaginaryPart(st->sigma)==0.0) {
-    mherm = PETSC_TRUE;
-    for (i=0;i<st->nmat;i++) {
-      ierr = MatIsHermitianKnown(st->A[i],&set,&aherm);CHKERRQ(ierr);
-      if (!set) aherm = PETSC_FALSE;
-      if (!aherm) { mherm = PETSC_FALSE; break; }
-      if (PetscRealPart(st->sigma)==0.0) break;
-    }
-    ierr = MatSetOption(M,MAT_HERMITIAN,mherm);CHKERRQ(ierr);
-  }
-#endif
   PetscFunctionReturn(0);
 }
 
@@ -359,6 +276,7 @@ PetscErrorCode STSetKSP(ST st,KSP ksp)
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
   PetscValidHeaderSpecific(ksp,KSP_CLASSID,2);
   PetscCheckSameComm(st,1,ksp,2);
+  STCheckNotSeized(st,1);
   ierr = PetscObjectReference((PetscObject)ksp);CHKERRQ(ierr);
   ierr = KSPDestroy(&st->ksp);CHKERRQ(ierr);
   st->ksp = ksp;

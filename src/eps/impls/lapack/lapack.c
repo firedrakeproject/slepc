@@ -102,7 +102,7 @@ PetscErrorCode EPSSetUp_LAPACK(EPS eps)
     ierr = PetscInfo(eps,"Using slow explicit operator\n");CHKERRQ(ierr);
     ierr = STGetOperator(eps->st,&shell);CHKERRQ(ierr);
     ierr = MatComputeOperator(shell,MATDENSE,&OP);CHKERRQ(ierr);
-    ierr = MatDestroy(&shell);CHKERRQ(ierr);
+    ierr = STRestoreOperator(eps->st,&shell);CHKERRQ(ierr);
     ierr = MatDestroy(&Adense);CHKERRQ(ierr);
     ierr = MatCreateRedundantMatrix(OP,0,PETSC_COMM_SELF,MAT_INITIAL_MATRIX,&Adense);CHKERRQ(ierr);
     ierr = MatDestroy(&OP);CHKERRQ(ierr);

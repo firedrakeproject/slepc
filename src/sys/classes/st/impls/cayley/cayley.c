@@ -18,30 +18,6 @@ typedef struct {
   PetscBool   nu_set;
 } ST_CAYLEY;
 
-PetscErrorCode STApply_Cayley(ST st,Vec x,Vec y)
-{
-  PetscErrorCode ierr;
-
-  PetscFunctionBegin;
-  /* standard eigenproblem: y = (A - sI)^-1 (A + tI)x */
-  /* generalized eigenproblem: y = (A - sB)^-1 (A + tB)x */
-  ierr = MatMult(st->T[0],x,st->work[0]);CHKERRQ(ierr);
-  ierr = STMatSolve(st,st->work[0],y);CHKERRQ(ierr);
-  PetscFunctionReturn(0);
-}
-
-PetscErrorCode STApplyTranspose_Cayley(ST st,Vec x,Vec y)
-{
-  PetscErrorCode ierr;
-
-  PetscFunctionBegin;
-  /* standard eigenproblem: y =  (A + tI)^T (A - sI)^-T x */
-  /* generalized eigenproblem: y = (A + tB)^T (A - sB)^-T x */
-  ierr = STMatSolveTranspose(st,x,st->work[0]);CHKERRQ(ierr);
-  ierr = MatMultTranspose(st->T[0],st->work[0],y);CHKERRQ(ierr);
-  PetscFunctionReturn(0);
-}
-
 static PetscErrorCode MatMult_Cayley(Mat B,Vec x,Vec y)
 {
   PetscErrorCode ierr;
@@ -155,15 +131,19 @@ PetscErrorCode STPostSolve_Cayley(ST st)
   PetscFunctionReturn(0);
 }
 
-PetscErrorCode STSetUp_Cayley(ST st)
+/*
+   Operator (cayley):
+               Op                  P         M
+   if nmat=1:  (A-sI)^-1 (A+tI)    A-sI      A+tI
+   if nmat=2:  (A-sB)^-1 (A+tB)    A-sB      A+tI
+*/
+PetscErrorCode STComputeOperator_Cayley(ST st)
 {
   PetscErrorCode ierr;
   PetscInt       n,m;
   ST_CAYLEY      *ctx = (ST_CAYLEY*)st->data;
 
   PetscFunctionBegin;
-  ierr = STSetWorkVecs(st,2);CHKERRQ(ierr);
-
   /* if the user did not set the shift, use the target value */
   if (!st->sigma_set) st->sigma = st->defsigma;
 
@@ -181,15 +161,23 @@ PetscErrorCode STSetUp_Cayley(ST st)
   } else {
     ierr = STMatMAXPY_Private(st,ctx->nu,0.0,0,NULL,PetscNot(st->state==ST_STATE_UPDATED),&st->T[0]);CHKERRQ(ierr);
   }
+  st->M = st->T[0];
 
   /* T[1] = A-sigma*B */
   ierr = STMatMAXPY_Private(st,-st->sigma,0.0,0,NULL,PetscNot(st->state==ST_STATE_UPDATED),&st->T[1]);CHKERRQ(ierr);
   ierr = PetscObjectReference((PetscObject)st->T[1]);CHKERRQ(ierr);
   ierr = MatDestroy(&st->P);CHKERRQ(ierr);
   st->P = st->T[1];
-  if (!st->ksp) { ierr = STGetKSP(st,&st->ksp);CHKERRQ(ierr); }
-  ierr = STCheckFactorPackage(st);CHKERRQ(ierr);
-  ierr = KSPSetOperators(st->ksp,st->P,st->P);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+PetscErrorCode STSetUp_Cayley(ST st)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  if (st->nmat>2) SETERRQ(PetscObjectComm((PetscObject)st),PETSC_ERR_SUP,"Cayley transform cannot be used in polynomial eigenproblems");
+  ierr = STSetWorkVecs(st,2);CHKERRQ(ierr);
   ierr = KSPSetUp(st->ksp);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -243,10 +231,13 @@ static PetscErrorCode STCayleySetAntishift_Cayley(ST st,PetscScalar newshift)
   ST_CAYLEY *ctx = (ST_CAYLEY*)st->data;
 
   PetscFunctionBegin;
-  if (st->state && st->matmode!=ST_MATMODE_INPLACE) {
-    ierr = STMatMAXPY_Private(st,newshift,ctx->nu,0,NULL,PETSC_FALSE,&st->T[0]);CHKERRQ(ierr);
+  if (ctx->nu != newshift) {
+    STCheckNotSeized(st,1);
+    if (st->state && st->matmode!=ST_MATMODE_INPLACE) {
+      ierr = STMatMAXPY_Private(st,newshift,ctx->nu,0,NULL,PETSC_FALSE,&st->T[0]);CHKERRQ(ierr);
+    }
+    ctx->nu = newshift;
   }
-  ctx->nu     = newshift;
   ctx->nu_set = PETSC_TRUE;
   PetscFunctionReturn(0);
 }
@@ -358,18 +349,20 @@ SLEPC_EXTERN PetscErrorCode STCreate_Cayley(ST st)
 
   st->usesksp = PETSC_TRUE;
 
-  st->ops->apply           = STApply_Cayley;
-  st->ops->getbilinearform = STGetBilinearForm_Cayley;
-  st->ops->applytrans      = STApplyTranspose_Cayley;
-  st->ops->postsolve       = STPostSolve_Cayley;
+  st->ops->apply           = STApply_Generic;
+  st->ops->applytrans      = STApplyTranspose_Generic;
   st->ops->backtransform   = STBackTransform_Cayley;
-  st->ops->setfromoptions  = STSetFromOptions_Cayley;
-  st->ops->setup           = STSetUp_Cayley;
   st->ops->setshift        = STSetShift_Cayley;
+  st->ops->getbilinearform = STGetBilinearForm_Cayley;
+  st->ops->setup           = STSetUp_Cayley;
+  st->ops->computeoperator = STComputeOperator_Cayley;
+  st->ops->setfromoptions  = STSetFromOptions_Cayley;
+  st->ops->postsolve       = STPostSolve_Cayley;
   st->ops->destroy         = STDestroy_Cayley;
   st->ops->view            = STView_Cayley;
   st->ops->checknullspace  = STCheckNullSpace_Default;
   st->ops->setdefaultksp   = STSetDefaultKSP_Default;
+
   ierr = PetscObjectComposeFunction((PetscObject)st,"STCayleySetAntishift_C",STCayleySetAntishift_Cayley);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)st,"STCayleyGetAntishift_C",STCayleyGetAntishift_Cayley);CHKERRQ(ierr);
   PetscFunctionReturn(0);

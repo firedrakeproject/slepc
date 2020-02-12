@@ -961,57 +961,63 @@ static PetscErrorCode FILTLAN_FilteredConjugateResidualMatrixPolynomialVectorPro
 /*
    Gateway to FILTLAN for evaluating y=p(A)*x
 */
-PetscErrorCode STFilter_FILTLAN_Apply(ST st,Vec x,Vec y)
+PetscErrorCode MatMult_FILTLAN(Mat A,Vec x,Vec y)
 {
   PetscErrorCode ierr;
-  ST_FILTER      *ctx = (ST_FILTER*)st->data;
+  ST             st;
+  ST_FILTER      *ctx;
   PetscInt       npoints;
 
   PetscFunctionBegin;
+  ierr = MatShellGetContext(A,(void**)&st);CHKERRQ(ierr);
+  ctx = (ST_FILTER*)st->data;
   npoints = (ctx->filterInfo->filterType == 2)? 6: 4;
-  ierr = FILTLAN_FilteredConjugateResidualMatrixPolynomialVectorProduct(st->T[0],x,y,ctx->baseFilter,2*ctx->baseDegree+2,ctx->intervals,npoints-1,ctx->opts->intervalWeights,ctx->polyDegree,st->work);CHKERRQ(ierr);
+  ierr = FILTLAN_FilteredConjugateResidualMatrixPolynomialVectorProduct(ctx->T,x,y,ctx->baseFilter,2*ctx->baseDegree+2,ctx->intervals,npoints-1,ctx->opts->intervalWeights,ctx->polyDegree,st->work);CHKERRQ(ierr);
   ierr = VecCopy(y,st->work[0]);CHKERRQ(ierr);
-  ierr = MatMult(st->T[0],st->work[0],y);CHKERRQ(ierr);
+  ierr = MatMult(ctx->T,st->work[0],y);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
 /*
    FILTLAN function PolynomialFilterInterface::setFilter
 
-   Creates the shifted (and scaled) matrix and the base filter P(z)
+   Creates the shifted (and scaled) matrix and the base filter P(z).
+   M is a shell matrix whose MatMult() applies the filter.
 */
-PetscErrorCode STFilter_FILTLAN_setFilter(ST st)
+PetscErrorCode STFilter_FILTLAN_setFilter(ST st,Mat *G)
 {
   PetscErrorCode ierr;
   ST_FILTER      *ctx = (ST_FILTER*)st->data;
-  PetscInt       i,npoints;
+  PetscInt       i,npoints,n,m,N,M;
   PetscReal      frame2[4];
   PetscScalar    alpha;
   const PetscInt HighLowFlags[5] = { 1, -1, 0, -1, 1 };
 
   PetscFunctionBegin;
-  ierr = MatDestroy(&st->T[0]);CHKERRQ(ierr);
   if (ctx->frame[0] == ctx->frame[1]) {  /* low pass filter, convert it to high pass filter */
     /* T = frame[3]*eye(n) - A */
-    ierr = MatDuplicate(st->A[0],MAT_COPY_VALUES,&st->T[0]);CHKERRQ(ierr);
-    ierr = MatScale(st->T[0],-1.0);CHKERRQ(ierr);
+    ierr = MatDestroy(&ctx->T);CHKERRQ(ierr);
+    ierr = MatDuplicate(st->A[0],MAT_COPY_VALUES,&ctx->T);CHKERRQ(ierr);
+    ierr = MatScale(ctx->T,-1.0);CHKERRQ(ierr);
     alpha = ctx->frame[3];
-    ierr = MatShift(st->T[0],alpha);CHKERRQ(ierr);
+    ierr = MatShift(ctx->T,alpha);CHKERRQ(ierr);
     for (i=0;i<4;i++) frame2[i] = ctx->frame[3] - ctx->frame[3-i];
     ierr = FILTLAN_GetIntervals(ctx->intervals,frame2,ctx->polyDegree,ctx->baseDegree,ctx->opts,ctx->filterInfo);CHKERRQ(ierr);
     /* translate the intervals back */
     for (i=0;i<4;i++) ctx->intervals2[i] = ctx->frame[3] - ctx->intervals[3-i];
   } else {  /* it can be a mid-pass filter or a high-pass filter */
-      if (ctx->frame[0] == 0.0) {
+    if (ctx->frame[0] == 0.0) {
       ierr = PetscObjectReference((PetscObject)st->A[0]);CHKERRQ(ierr);
-      st->T[0] = st->A[0];
+      ierr = MatDestroy(&ctx->T);CHKERRQ(ierr);
+      ctx->T = st->A[0];
       ierr = FILTLAN_GetIntervals(ctx->intervals,ctx->frame,ctx->polyDegree,ctx->baseDegree,ctx->opts,ctx->filterInfo);CHKERRQ(ierr);
       for (i=0;i<6;i++) ctx->intervals2[i] = ctx->intervals[i];
     } else {
       /* T = A - frame[0]*eye(n) */
-      ierr = MatDuplicate(st->A[0],MAT_COPY_VALUES,&st->T[0]);CHKERRQ(ierr);
+      ierr = MatDestroy(&ctx->T);CHKERRQ(ierr);
+      ierr = MatDuplicate(st->A[0],MAT_COPY_VALUES,&ctx->T);CHKERRQ(ierr);
       alpha = -ctx->frame[0];
-      ierr = MatShift(st->T[0],alpha);CHKERRQ(ierr);
+      ierr = MatShift(ctx->T,alpha);CHKERRQ(ierr);
       for (i=0;i<4;i++) frame2[i] = ctx->frame[i] - ctx->frame[0];
       ierr = FILTLAN_GetIntervals(ctx->intervals,frame2,ctx->polyDegree,ctx->baseDegree,ctx->opts,ctx->filterInfo);CHKERRQ(ierr);
       /* translate the intervals back */
@@ -1023,6 +1029,13 @@ PetscErrorCode STFilter_FILTLAN_setFilter(ST st)
   ierr = PetscMalloc1((2*ctx->baseDegree+2)*(npoints-1),&ctx->baseFilter);CHKERRQ(ierr);
   ierr = FILTLAN_HermiteBaseFilterInChebyshevBasis(ctx->baseFilter,ctx->intervals,npoints,HighLowFlags,ctx->baseDegree);CHKERRQ(ierr);
   ierr = PetscInfo1(st,"Computed value of yLimit = %g\n",ctx->filterInfo->yLimit);CHKERRQ(ierr);
+
+  /* create shell matrix*/
+  ierr = MatGetSize(ctx->T,&N,&M);CHKERRQ(ierr);
+  ierr = MatGetLocalSize(ctx->T,&n,&m);CHKERRQ(ierr);
+  ierr = MatCreateShell(PetscObjectComm((PetscObject)st),n,m,N,M,st,G);CHKERRQ(ierr);
+  ierr = MatShellSetOperation(*G,MATOP_MULT,(void(*)(void))MatMult_FILTLAN);CHKERRQ(ierr);
+  ierr = PetscLogObjectParent((PetscObject)st,(PetscObject)*G);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

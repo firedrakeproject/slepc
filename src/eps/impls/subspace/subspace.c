@@ -274,7 +274,7 @@ PetscErrorCode EPSSolve_Subspace(EPS eps)
 
   ierr = PetscFree3(rsd,itrsd,itrsdold);CHKERRQ(ierr);
   ierr = BVDestroy(&AV);CHKERRQ(ierr);
-  ierr = MatDestroy(&S);CHKERRQ(ierr);
+  ierr = STRestoreOperator(eps->st,&S);CHKERRQ(ierr);
   /* truncate Schur decomposition and change the state to raw so that
      DSVectors() computes eigenvectors from scratch */
   ierr = DSSetDimensions(eps->ds,eps->nconv,0,0,0);CHKERRQ(ierr);

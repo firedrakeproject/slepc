@@ -93,13 +93,13 @@ int main (int argc,char **argv)
        closest to 0 */
     ierr = EPSSetWhichEigenpairs(eps,EPS_SMALLEST_REAL);CHKERRQ(ierr);
 
-    /* (Optional) Create a context for the user-defined spectral transform;
+    /* (Required) Create a context for the user-defined spectral transform;
        this context can be defined to contain any application-specific data. */
     ierr = STCreate_User(&shell);CHKERRQ(ierr);
+    ierr = STShellSetContext(st,shell);CHKERRQ(ierr);
 
     /* (Required) Set the user-defined routine for applying the operator */
     ierr = STShellSetApply(st,STApply_User);CHKERRQ(ierr);
-    ierr = STShellSetContext(st,shell);CHKERRQ(ierr);
 
     /* (Optional) Set the user-defined routine for applying the transposed operator */
     ierr = STShellSetApplyTranspose(st,STApplyTranspose_User);CHKERRQ(ierr);

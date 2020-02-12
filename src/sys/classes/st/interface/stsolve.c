@@ -13,6 +13,22 @@
 
 #include <slepc/private/stimpl.h>            /*I "slepcst.h" I*/
 
+PetscErrorCode STApply_Generic(ST st,Vec x,Vec y)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  if (st->M && st->P) {
+    ierr = MatMult(st->M,x,st->work[0]);CHKERRQ(ierr);
+    ierr = STMatSolve(st,st->work[0],y);CHKERRQ(ierr);
+  } else if (st->M) {
+    ierr = MatMult(st->M,x,y);CHKERRQ(ierr);
+  } else {
+    ierr = STMatSolve(st,x,y);CHKERRQ(ierr);
+  }
+  PetscFunctionReturn(0);
+}
+
 /*@
    STApply - Applies the spectral transformation operator to a vector, for
    instance (A - sB)^-1 B in the case of the shift-and-invert transformation
@@ -29,11 +45,12 @@
 
    Level: developer
 
-.seealso: STApplyTranspose()
+.seealso: STApplyTranspose(), STApplyHermitianTranspose()
 @*/
 PetscErrorCode STApply(ST st,Vec x,Vec y)
 {
   PetscErrorCode ierr;
+  Mat            Op;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
@@ -43,21 +60,25 @@ PetscErrorCode STApply(ST st,Vec x,Vec y)
   STCheckMatrices(st,1);
   if (x == y) SETERRQ(PetscObjectComm((PetscObject)st),PETSC_ERR_ARG_IDN,"x and y must be different vectors");
   ierr = VecSetErrorIfLocked(y,3);CHKERRQ(ierr);
-
-  if (st->state!=ST_STATE_SETUP) { ierr = STSetUp(st);CHKERRQ(ierr); }
-
   if (!st->ops->apply) SETERRQ(PetscObjectComm((PetscObject)st),PETSC_ERR_SUP,"ST does not have apply");
-  ierr = VecLockReadPush(x);CHKERRQ(ierr);
-  ierr = PetscLogEventBegin(ST_Apply,st,x,y,0);CHKERRQ(ierr);
-  if (st->D) { /* with balancing */
-    ierr = VecPointwiseDivide(st->wb,x,st->D);CHKERRQ(ierr);
-    ierr = (*st->ops->apply)(st,st->wb,y);CHKERRQ(ierr);
-    ierr = VecPointwiseMult(y,y,st->D);CHKERRQ(ierr);
+  ierr = STGetOperator_Private(st,&Op);CHKERRQ(ierr);
+  ierr = MatMult(Op,x,y);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+PetscErrorCode STApplyTranspose_Generic(ST st,Vec x,Vec y)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  if (st->M && st->P) {
+    ierr = STMatSolveTranspose(st,x,st->work[0]);CHKERRQ(ierr);
+    ierr = MatMultTranspose(st->M,st->work[0],y);CHKERRQ(ierr);
+  } else if (st->M) {
+    ierr = MatMultTranspose(st->M,x,y);CHKERRQ(ierr);
   } else {
-    ierr = (*st->ops->apply)(st,x,y);CHKERRQ(ierr);
+    ierr = STMatSolveTranspose(st,x,y);CHKERRQ(ierr);
   }
-  ierr = PetscLogEventEnd(ST_Apply,st,x,y,0);CHKERRQ(ierr);
-  ierr = VecLockReadPop(x);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -77,11 +98,12 @@ PetscErrorCode STApply(ST st,Vec x,Vec y)
 
    Level: developer
 
-.seealso: STApply()
+.seealso: STApply(), STApplyHermitianTranspose()
 @*/
 PetscErrorCode STApplyTranspose(ST st,Vec x,Vec y)
 {
   PetscErrorCode ierr;
+  Mat            Op;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
@@ -91,21 +113,49 @@ PetscErrorCode STApplyTranspose(ST st,Vec x,Vec y)
   STCheckMatrices(st,1);
   if (x == y) SETERRQ(PetscObjectComm((PetscObject)st),PETSC_ERR_ARG_IDN,"x and y must be different vectors");
   ierr = VecSetErrorIfLocked(y,3);CHKERRQ(ierr);
-
-  if (st->state!=ST_STATE_SETUP) { ierr = STSetUp(st);CHKERRQ(ierr); }
-
   if (!st->ops->applytrans) SETERRQ(PetscObjectComm((PetscObject)st),PETSC_ERR_SUP,"ST does not have applytrans");
-  ierr = VecLockReadPush(x);CHKERRQ(ierr);
-  ierr = PetscLogEventBegin(ST_ApplyTranspose,st,x,y,0);CHKERRQ(ierr);
-  if (st->D) { /* with balancing */
-    ierr = VecPointwiseMult(st->wb,x,st->D);CHKERRQ(ierr);
-    ierr = (*st->ops->applytrans)(st,st->wb,y);CHKERRQ(ierr);
-    ierr = VecPointwiseDivide(y,y,st->D);CHKERRQ(ierr);
-  } else {
-    ierr = (*st->ops->applytrans)(st,x,y);CHKERRQ(ierr);
-  }
-  ierr = PetscLogEventEnd(ST_ApplyTranspose,st,x,y,0);CHKERRQ(ierr);
-  ierr = VecLockReadPop(x);CHKERRQ(ierr);
+  ierr = STGetOperator_Private(st,&Op);CHKERRQ(ierr);
+  ierr = MatMultTranspose(Op,x,y);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+/*@
+   STApplyHermitianTranspose - Applies the hermitian-transpose of the operator
+   to a vector, for instance B^H(A - sB)^-H in the case of the shift-and-invert
+   transformation and generalized eigenproblem.
+
+   Collective on st
+
+   Input Parameters:
++  st - the spectral transformation context
+-  x  - input vector
+
+   Output Parameter:
+.  y - output vector
+
+   Note:
+   Currently implemented via STApplyTranspose() with appropriate conjugation.
+
+   Level: developer
+
+.seealso: STApply(), STApplyTranspose()
+@*/
+PetscErrorCode STApplyHermitianTranspose(ST st,Vec x,Vec y)
+{
+  PetscErrorCode ierr;
+  Mat            Op;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(st,ST_CLASSID,1);
+  PetscValidHeaderSpecific(x,VEC_CLASSID,2);
+  PetscValidHeaderSpecific(y,VEC_CLASSID,3);
+  PetscValidType(st,1);
+  STCheckMatrices(st,1);
+  if (x == y) SETERRQ(PetscObjectComm((PetscObject)st),PETSC_ERR_ARG_IDN,"x and y must be different vectors");
+  ierr = VecSetErrorIfLocked(y,3);CHKERRQ(ierr);
+  if (!st->ops->applytrans) SETERRQ(PetscObjectComm((PetscObject)st),PETSC_ERR_SUP,"ST does not have applytrans");
+  ierr = STGetOperator_Private(st,&Op);CHKERRQ(ierr);
+  ierr = MatMultHermitianTranspose(Op,x,y);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -160,7 +210,16 @@ static PetscErrorCode MatMult_STOperator(Mat Op,Vec x,Vec y)
 
   PetscFunctionBegin;
   ierr = MatShellGetContext(Op,(void**)&st);CHKERRQ(ierr);
-  ierr = STApply(st,x,y);CHKERRQ(ierr);
+  ierr = STSetUp(st);CHKERRQ(ierr);
+  ierr = PetscLogEventBegin(ST_Apply,st,x,y,0);CHKERRQ(ierr);
+  if (st->D) { /* with balancing */
+    ierr = VecPointwiseDivide(st->wb,x,st->D);CHKERRQ(ierr);
+    ierr = (*st->ops->apply)(st,st->wb,y);CHKERRQ(ierr);
+    ierr = VecPointwiseMult(y,y,st->D);CHKERRQ(ierr);
+  } else {
+    ierr = (*st->ops->apply)(st,x,y);CHKERRQ(ierr);
+  }
+  ierr = PetscLogEventEnd(ST_Apply,st,x,y,0);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -171,45 +230,210 @@ static PetscErrorCode MatMultTranspose_STOperator(Mat Op,Vec x,Vec y)
 
   PetscFunctionBegin;
   ierr = MatShellGetContext(Op,(void**)&st);CHKERRQ(ierr);
-  ierr = STApplyTranspose(st,x,y);CHKERRQ(ierr);
+  ierr = STSetUp(st);CHKERRQ(ierr);
+  ierr = PetscLogEventBegin(ST_ApplyTranspose,st,x,y,0);CHKERRQ(ierr);
+  if (st->D) { /* with balancing */
+    ierr = VecPointwiseMult(st->wb,x,st->D);CHKERRQ(ierr);
+    ierr = (*st->ops->applytrans)(st,st->wb,y);CHKERRQ(ierr);
+    ierr = VecPointwiseDivide(y,y,st->D);CHKERRQ(ierr);
+  } else {
+    ierr = (*st->ops->applytrans)(st,x,y);CHKERRQ(ierr);
+  }
+  ierr = PetscLogEventEnd(ST_ApplyTranspose,st,x,y,0);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
-/*@
-   STGetOperator - Returns a shell matrix that represents the spectral transformation.
+#if defined(PETSC_USE_COMPLEX)
+static PetscErrorCode MatMultHermitianTranspose_STOperator(Mat Op,Vec x,Vec y)
+{
+  PetscErrorCode ierr;
+  ST             st;
 
-   Collective on st
+  PetscFunctionBegin;
+  ierr = MatShellGetContext(Op,(void**)&st);CHKERRQ(ierr);
+  ierr = STSetUp(st);CHKERRQ(ierr);
+  ierr = PetscLogEventBegin(ST_ApplyTranspose,st,x,y,0);CHKERRQ(ierr);
+  if (!st->wht) {
+    ierr = MatCreateVecs(st->A[0],&st->wht,NULL);CHKERRQ(ierr);
+    ierr = PetscLogObjectParent((PetscObject)st,(PetscObject)st->wht);CHKERRQ(ierr);
+  }
+  ierr = VecCopy(x,st->wht);CHKERRQ(ierr);
+  ierr = VecConjugate(st->wht);CHKERRQ(ierr);
+  if (st->D) { /* with balancing */
+    ierr = VecPointwiseMult(st->wb,st->wht,st->D);CHKERRQ(ierr);
+    ierr = (*st->ops->applytrans)(st,st->wb,y);CHKERRQ(ierr);
+    ierr = VecPointwiseDivide(y,y,st->D);CHKERRQ(ierr);
+  } else {
+    ierr = (*st->ops->applytrans)(st,st->wht,y);CHKERRQ(ierr);
+  }
+  ierr = VecConjugate(y);CHKERRQ(ierr);
+  ierr = PetscLogEventEnd(ST_ApplyTranspose,st,x,y,0);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+#endif
 
-   Input Parameters:
-.  st - the spectral transformation context
-
-   Output Parameter:
-.  Op - output matrix
-
-   Notes:
-   The returned shell matrix is essentially a wrapper to the STApply() and
-   STApplyTranspose() operations. It must be destroyed after use.
-
-   Level: advanced
-
-.seealso: STApply(), STApplyTranspose()
-@*/
-PetscErrorCode STGetOperator(ST st,Mat *Op)
+PetscErrorCode STGetOperator_Private(ST st,Mat *Op)
 {
   PetscErrorCode ierr;
   PetscInt       m,n,M,N;
 
+  if (!st->Op) {
+    ierr = MatGetLocalSize(st->A[0],&m,&n);CHKERRQ(ierr);
+    ierr = MatGetSize(st->A[0],&M,&N);CHKERRQ(ierr);
+    ierr = MatCreateShell(PetscObjectComm((PetscObject)st),m,n,M,N,st,&st->Op);CHKERRQ(ierr);
+    ierr = MatShellSetOperation(st->Op,MATOP_MULT,(void(*)(void))MatMult_STOperator);CHKERRQ(ierr);
+    ierr = MatShellSetOperation(st->Op,MATOP_MULT_TRANSPOSE,(void(*)(void))MatMultTranspose_STOperator);CHKERRQ(ierr);
+#if defined(PETSC_USE_COMPLEX)
+    ierr = MatShellSetOperation(st->Op,MATOP_MULT_HERMITIAN_TRANSPOSE,(void(*)(void))MatMultHermitianTranspose_STOperator);CHKERRQ(ierr);
+#else
+    ierr = MatShellSetOperation(st->Op,MATOP_MULT_HERMITIAN_TRANSPOSE,(void(*)(void))MatMultTranspose_STOperator);CHKERRQ(ierr);
+    ierr = STComputeOperator(st);CHKERRQ(ierr);
+#endif
+  }
+  if (Op) *Op = st->Op;
+  PetscFunctionReturn(0);
+}
+
+/*@
+   STGetOperator - Returns a shell matrix that represents the operator of the
+   spectral transformation.
+
+   Collective on st
+
+   Input Parameter:
+.  st - the spectral transformation context
+
+   Output Parameter:
+.  Op - operator matrix
+
+   Notes:
+   The operator is defined in linear eigenproblems only, not in polynomial ones,
+   so the call will fail if more than 2 matrices were passed in STSetMatrices().
+
+   The returned shell matrix is essentially a wrapper to the STApply() and
+   STApplyTranspose() operations. The operator can often be expressed as
+
+.vb
+      Op = D*inv(K)*M*inv(D)
+.ve
+
+   where D is the balancing matrix, and M and K are two matrices corresponding
+   to the numerator and denominator for spectral transformations that represent
+   a rational matrix function. In the case of STSHELL, the inner part inv(K)*M
+   is replaced by the user-provided operation from STShellSetApply().
+
+   The preconditioner matrix K typically depends on the value of the shift, and
+   its inverse is handled via an internal KSP object. Normal usage does not
+   require explicitly calling STGetOperator(), but it can be used to force the
+   creation of K and M, and then K is passed to the KSP. This is useful for
+   setting options associated with the PCFactor (to set MUMPS options, for instance).
+
+   The returned matrix must NOT be destroyed by the user. Instead, when no
+   longer needed it must be returned with STRestoreOperator(). In particular,
+   this is required before modifying the ST matrices or the shift.
+
+   A NULL pointer can be passed in Op in case the matrix is not required but we
+   want to force its creation. In this case, STRestoreOperator() should not be
+   called.
+
+   Level: advanced
+
+.seealso: STApply(), STApplyTranspose(), STSetBalanceMatrix(), STShellSetApply(),
+          STGetKSP(), STSetShift(), STRestoreOperator(), STSetMatrices()
+@*/
+PetscErrorCode STGetOperator(ST st,Mat *Op)
+{
+  PetscErrorCode ierr;
+
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
   PetscValidType(st,1);
-  PetscValidPointer(Op,2);
   STCheckMatrices(st,1);
+  STCheckNotSeized(st,1);
+  if (st->nmat>2) SETERRQ(PetscObjectComm((PetscObject)st),PETSC_ERR_ARG_WRONGSTATE,"The operator is not defined in polynomial eigenproblems");
+  ierr = STGetOperator_Private(st,Op);CHKERRQ(ierr);
+  if (Op) st->opseized = PETSC_TRUE;
+  PetscFunctionReturn(0);
+}
 
-  ierr = MatGetLocalSize(st->A[0],&m,&n);CHKERRQ(ierr);
-  ierr = MatGetSize(st->A[0],&M,&N);CHKERRQ(ierr);
-  ierr = MatCreateShell(PetscObjectComm((PetscObject)st),m,n,M,N,st,Op);CHKERRQ(ierr);
-  ierr = MatShellSetOperation(*Op,MATOP_MULT,(void(*)(void))MatMult_STOperator);CHKERRQ(ierr);
-  ierr = MatShellSetOperation(*Op,MATOP_MULT_TRANSPOSE,(void(*)(void))MatMultTranspose_STOperator);CHKERRQ(ierr);
+/*@
+   STRestoreOperator - Restore the previously seized operator matrix.
+
+   Collective on st
+
+   Input Parameters:
++  st - the spectral transformation context
+-  Op - operator matrix
+
+   Notes:
+   The arguments must match the corresponding call to STGetOperator().
+
+   Level: advanced
+
+.seealso: STGetOperator()
+@*/
+PetscErrorCode STRestoreOperator(ST st,Mat *Op)
+{
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(st,ST_CLASSID,1);
+  PetscValidPointer(Op,2);
+  PetscValidHeaderSpecific(*Op,MAT_CLASSID,2);
+  if (!st->opseized) SETERRQ(PetscObjectComm((PetscObject)st),PETSC_ERR_ARG_WRONGSTATE,"Must be called after STGetOperator()");
+  *Op = NULL;
+  st->opseized = PETSC_FALSE;
+  PetscFunctionReturn(0);
+}
+
+/*
+   STComputeOperator - Computes the matrices that constitute the operator
+
+      Op = D*inv(K)*M*inv(D).
+
+   K and M are computed here (D is user-provided) from the system matrices
+   and the shift sigma (whenever these are changed, this function recomputes
+   K and M). This is used only in linear eigenproblems (nmat<3).
+
+   K is the "preconditioner matrix": it is the denominator in rational operators,
+   e.g. (A-sigma*B) in shift-and-invert. In non-rational transformations such
+   as STFILTER, K=NULL which means identity. After computing K, it is passed to
+   the internal KSP object via KSPSetOperators.
+
+   M is the numerator in rational operators. If unused it is set to NULL (e.g.
+   in STPRECOND).
+
+   STSHELL does not compute anything here, but sets the flag as if it was ready.
+*/
+PetscErrorCode STComputeOperator(ST st)
+{
+  PetscErrorCode ierr;
+  PC             pc;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(st,ST_CLASSID,1);
+  PetscValidType(st,1);
+  if (!st->opready && st->ops->computeoperator) {
+    STCheckMatrices(st,1);
+    if (!st->T) {
+      ierr = PetscCalloc1(PetscMax(2,st->nmat),&st->T);CHKERRQ(ierr);
+      ierr = PetscLogObjectMemory((PetscObject)st,PetscMax(2,st->nmat)*sizeof(Mat));CHKERRQ(ierr);
+    }
+    ierr = PetscLogEventBegin(ST_ComputeOperator,st,0,0,0);CHKERRQ(ierr);
+    ierr = (*st->ops->computeoperator)(st);CHKERRQ(ierr);
+    ierr = PetscLogEventEnd(ST_ComputeOperator,st,0,0,0);CHKERRQ(ierr);
+    if (st->usesksp) {
+      if (!st->ksp) { ierr = STGetKSP(st,&st->ksp);CHKERRQ(ierr); }
+      if (st->P) {
+        ierr = STSetDefaultKSP(st);CHKERRQ(ierr);
+        ierr = STCheckFactorPackage(st);CHKERRQ(ierr);
+        ierr = KSPSetOperators(st->ksp,st->P,st->P);CHKERRQ(ierr);
+      } else {
+        /* STPRECOND defaults to PCNONE if st->P is empty */
+        ierr = KSPGetPC(st->ksp,&pc);CHKERRQ(ierr);
+        ierr = PCSetType(pc,PCNONE);CHKERRQ(ierr);
+      }
+    }
+  }
+  st->opready = PETSC_TRUE;
   PetscFunctionReturn(0);
 }
 
@@ -248,16 +472,16 @@ PetscErrorCode STSetUp(ST st)
       break;
   }
   ierr = PetscLogEventBegin(ST_SetUp,st,0,0,0);CHKERRQ(ierr);
-  if (!st->T) {
-    ierr = PetscMalloc1(PetscMax(2,st->nmat),&st->T);CHKERRQ(ierr);
-    ierr = PetscLogObjectMemory((PetscObject)st,PetscMax(2,st->nmat)*sizeof(Mat));CHKERRQ(ierr);
-    for (i=0;i<PetscMax(2,st->nmat);i++) st->T[i] = NULL;
-  } else if (st->state!=ST_STATE_UPDATED) {
-    for (i=0;i<PetscMax(2,st->nmat);i++) {
-      ierr = MatDestroy(&st->T[i]);CHKERRQ(ierr);
+  if (st->state!=ST_STATE_UPDATED) {
+    if (!(st->nmat<3 && st->opready)) {
+      if (st->T) {
+        for (i=0;i<PetscMax(2,st->nmat);i++) {
+          ierr = MatDestroy(&st->T[i]);CHKERRQ(ierr);
+        }
+      }
+      ierr = MatDestroy(&st->P);CHKERRQ(ierr);
     }
   }
-  if (st->state!=ST_STATE_UPDATED) { ierr = MatDestroy(&st->P);CHKERRQ(ierr); }
   if (st->D) {
     ierr = MatGetLocalSize(st->A[0],NULL,&n);CHKERRQ(ierr);
     ierr = VecGetLocalSize(st->D,&k);CHKERRQ(ierr);
@@ -267,7 +491,14 @@ PetscErrorCode STSetUp(ST st)
       ierr = PetscLogObjectParent((PetscObject)st,(PetscObject)st->wb);CHKERRQ(ierr);
     }
   }
-  if (st->usesksp) { ierr = STSetDefaultKSP(st);CHKERRQ(ierr); }
+  if (st->nmat<3 && st->transform) {
+    ierr = STComputeOperator(st);CHKERRQ(ierr);
+  } else {
+    if (!st->T) {
+      ierr = PetscCalloc1(PetscMax(2,st->nmat),&st->T);CHKERRQ(ierr);
+      ierr = PetscLogObjectMemory((PetscObject)st,PetscMax(2,st->nmat)*sizeof(Mat));CHKERRQ(ierr);
+    }
+  }
   if (st->ops->setup) { ierr = (*st->ops->setup)(st);CHKERRQ(ierr); }
   st->state = ST_STATE_SETUP;
   ierr = PetscLogEventEnd(ST_SetUp,st,0,0,0);CHKERRQ(ierr);
@@ -362,7 +593,8 @@ PetscErrorCode STMatMAXPY_Private(ST st,PetscScalar alpha,PetscScalar beta,Petsc
       }
     }
   }
-  ierr = STMatSetHermitian(st,*S);CHKERRQ(ierr);
+  ierr = MatSetOption(*S,MAT_SYMMETRIC,st->asymm);CHKERRQ(ierr);
+  ierr = MatSetOption(*S,MAT_HERMITIAN,(PetscImaginaryPart(st->sigma)==0.0)?st->aherm:PETSC_FALSE);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

@@ -14,7 +14,7 @@
 #include <slepc/private/stimpl.h>            /*I "slepcst.h" I*/
 
 PetscClassId     ST_CLASSID = 0;
-PetscLogEvent    ST_SetUp = 0,ST_Apply = 0,ST_ApplyTranspose = 0,ST_MatSetUp = 0,ST_MatMult = 0,ST_MatMultTranspose = 0,ST_MatSolve = 0,ST_MatSolveTranspose = 0;
+PetscLogEvent    ST_SetUp = 0,ST_ComputeOperator = 0,ST_Apply = 0,ST_ApplyTranspose = 0,ST_MatSetUp = 0,ST_MatMult = 0,ST_MatMultTranspose = 0,ST_MatSolve = 0,ST_MatSolveTranspose = 0;
 static PetscBool STPackageInitialized = PETSC_FALSE;
 
 const char *STMatModes[] = {"COPY","INPLACE","SHELL","STMatMode","ST_MATMODE_",0};
@@ -62,6 +62,7 @@ PetscErrorCode STInitializePackage(void)
   ierr = STRegisterAll();CHKERRQ(ierr);
   /* Register Events */
   ierr = PetscLogEventRegister("STSetUp",ST_CLASSID,&ST_SetUp);CHKERRQ(ierr);
+  ierr = PetscLogEventRegister("STComputeOperator",ST_CLASSID,&ST_ComputeOperator);CHKERRQ(ierr);
   ierr = PetscLogEventRegister("STApply",ST_CLASSID,&ST_Apply);CHKERRQ(ierr);
   ierr = PetscLogEventRegister("STApplyTranspose",ST_CLASSID,&ST_ApplyTranspose);CHKERRQ(ierr);
   ierr = PetscLogEventRegister("STMatSetUp",ST_CLASSID,&ST_MatSetUp);CHKERRQ(ierr);
@@ -106,15 +107,18 @@ PetscErrorCode STReset(ST st)
   PetscFunctionBegin;
   if (st) PetscValidHeaderSpecific(st,ST_CLASSID,1);
   if (!st) PetscFunctionReturn(0);
+  STCheckNotSeized(st,1);
   if (st->ops->reset) { ierr = (*st->ops->reset)(st);CHKERRQ(ierr); }
   if (st->ksp) { ierr = KSPReset(st->ksp);CHKERRQ(ierr); }
   ierr = MatDestroyMatrices(PetscMax(2,st->nmat),&st->T);CHKERRQ(ierr);
   ierr = MatDestroyMatrices(PetscMax(2,st->nmat),&st->A);CHKERRQ(ierr);
   ierr = PetscFree(st->Astate);CHKERRQ(ierr);
+  ierr = MatDestroy(&st->Op);CHKERRQ(ierr);
   ierr = MatDestroy(&st->P);CHKERRQ(ierr);
   ierr = VecDestroyVecs(st->nwork,&st->work);CHKERRQ(ierr);
   st->nwork = 0;
   ierr = VecDestroy(&st->wb);CHKERRQ(ierr);
+  ierr = VecDestroy(&st->wht);CHKERRQ(ierr);
   ierr = VecDestroy(&st->D);CHKERRQ(ierr);
   st->state = ST_STATE_INITIAL;
   PetscFunctionReturn(0);
@@ -187,14 +191,56 @@ PetscErrorCode STCreate(MPI_Comm comm,ST *newst)
   st->nwork        = 0;
   st->work         = NULL;
   st->wb           = NULL;
+  st->wht          = NULL;
   st->state        = ST_STATE_INITIAL;
   st->Astate       = NULL;
   st->T            = NULL;
+  st->Op           = NULL;
+  st->opseized     = PETSC_FALSE;
+  st->opready      = PETSC_FALSE;
   st->P            = NULL;
+  st->M            = NULL;
   st->sigma_set    = PETSC_FALSE;
+  st->asymm        = PETSC_FALSE;
+  st->aherm        = PETSC_FALSE;
   st->data         = NULL;
 
   *newst = st;
+  PetscFunctionReturn(0);
+}
+
+/*
+   Checks whether the ST matrices are all symmetric or hermitian.
+*/
+PETSC_STATIC_INLINE PetscErrorCode STMatIsSymmetricKnown(ST st,PetscBool *symm,PetscBool *herm)
+{
+  PetscErrorCode ierr;
+  PetscInt       i;
+  PetscBool      sbaij=PETSC_FALSE,set,flg=PETSC_FALSE;
+
+  PetscFunctionBegin;
+  /* check if problem matrices are all sbaij */
+  for (i=0;i<st->nmat;i++) {
+    ierr = PetscObjectTypeCompareAny((PetscObject)st->A[i],&sbaij,MATSEQSBAIJ,MATMPISBAIJ,"");CHKERRQ(ierr);
+    if (!sbaij) break;
+  }
+  /* check if user has set the symmetric flag */
+  *symm = PETSC_TRUE;
+  for (i=0;i<st->nmat;i++) {
+    ierr = MatIsSymmetricKnown(st->A[i],&set,&flg);CHKERRQ(ierr);
+    if (!set || !flg) { *symm = PETSC_FALSE; break; }
+  }
+  if (sbaij) *symm = PETSC_TRUE;
+#if defined(PETSC_USE_COMPLEX)
+  /* check if user has set the hermitian flag */
+  *herm = PETSC_TRUE;
+  for (i=0;i<st->nmat;i++) {
+    ierr = MatIsHermitianKnown(st->A[i],&set,&flg);CHKERRQ(ierr);
+    if (!set || !flg) { *herm = PETSC_FALSE; break; }
+  }
+#else
+  *herm = *symm;
+#endif
   PetscFunctionReturn(0);
 }
 
@@ -228,6 +274,8 @@ PetscErrorCode STSetMatrices(ST st,PetscInt n,Mat A[])
   if (n <= 0) SETERRQ1(PetscObjectComm((PetscObject)st),PETSC_ERR_ARG_OUTOFRANGE,"Must have one or more matrices, you have %D",n);
   PetscValidPointer(A,3);
   PetscCheckSameComm(st,1,*A,3);
+  STCheckNotSeized(st,1);
+
   if (st->state) {
     if (n!=st->nmat) same = PETSC_FALSE;
     for (i=0;same&&i<n;i++) {
@@ -257,6 +305,10 @@ PetscErrorCode STSetMatrices(ST st,PetscInt n,Mat A[])
   st->nmat = n;
   if (same) st->state = ST_STATE_UPDATED;
   else st->state = ST_STATE_INITIAL;
+  st->opready = PETSC_FALSE;
+  if (!same) {
+    ierr = STMatIsSymmetricKnown(st,&st->asymm,&st->aherm);CHKERRQ(ierr);
+  }
   PetscFunctionReturn(0);
 }
 
@@ -398,12 +450,13 @@ PetscErrorCode STSetShift(ST st,PetscScalar shift)
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
   PetscValidType(st,1);
   PetscValidLogicalCollectiveScalar(st,shift,2);
-  if (st->state==ST_STATE_SETUP && st->sigma != shift) {
-    if (st->ops->setshift) {
+  if (st->sigma != shift) {
+    STCheckNotSeized(st,1);
+    if (st->state==ST_STATE_SETUP && st->ops->setshift) {
       ierr = (*st->ops->setshift)(st,shift);CHKERRQ(ierr);
     }
+    st->sigma = shift;
   }
-  st->sigma = shift;
   st->sigma_set = PETSC_TRUE;
   PetscFunctionReturn(0);
 }
@@ -511,6 +564,7 @@ PetscErrorCode STSetBalanceMatrix(ST st,Vec D)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
   if (st->D == D) PetscFunctionReturn(0);
+  STCheckNotSeized(st,1);
   if (D) {
     PetscValidHeaderSpecific(D,VEC_CLASSID,2);
     PetscCheckSameComm(st,1,D,2);
@@ -519,6 +573,7 @@ PetscErrorCode STSetBalanceMatrix(ST st,Vec D)
   ierr = VecDestroy(&st->D);CHKERRQ(ierr);
   st->D = D;
   st->state = ST_STATE_INITIAL;
+  st->opready = PETSC_FALSE;
   PetscFunctionReturn(0);
 }
 

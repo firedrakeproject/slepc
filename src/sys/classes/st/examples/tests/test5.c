@@ -108,7 +108,7 @@ int main (int argc,char **argv)
   ierr = VecView(w,NULL);CHKERRQ(ierr);
   ierr = MatMultTranspose(Op,v,w);CHKERRQ(ierr);
   ierr = VecView(w,NULL);CHKERRQ(ierr);
-  ierr = MatDestroy(&Op);CHKERRQ(ierr);
+  ierr = STRestoreOperator(st,&Op);CHKERRQ(ierr);
 
   ierr = STDestroy(&st);CHKERRQ(ierr);
   ierr = MatDestroy(&A);CHKERRQ(ierr);

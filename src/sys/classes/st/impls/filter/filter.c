@@ -14,22 +14,17 @@
 #include <slepc/private/stimpl.h>         /*I "slepcst.h" I*/
 #include "filter.h"
 
-PetscErrorCode STApply_Filter(ST st,Vec x,Vec y)
-{
-  PetscErrorCode ierr;
-
-  PetscFunctionBegin;
-  ierr = STFilter_FILTLAN_Apply(st,x,y);CHKERRQ(ierr);
-  PetscFunctionReturn(0);
-}
-
-PetscErrorCode STSetUp_Filter(ST st)
+/*
+   Operator (filter):
+               Op               P         M
+   if nmat=1:  p(A)             NULL      p(A)
+*/
+PetscErrorCode STComputeOperator_Filter(ST st)
 {
   PetscErrorCode ierr;
   ST_FILTER      *ctx = (ST_FILTER*)st->data;
 
   PetscFunctionBegin;
-  ierr = STSetWorkVecs(st,4);CHKERRQ(ierr);
   if (st->nmat>1) SETERRQ(PetscObjectComm((PetscObject)st),1,"Only implemented for standard eigenvalue problem");
   if (ctx->intb >= PETSC_MAX_REAL && ctx->inta <= PETSC_MIN_REAL) SETERRQ(PetscObjectComm((PetscObject)st),1,"Must pass an interval with STFilterSetInterval()");
   if (ctx->right == 0.0 && ctx->left == 0.0) SETERRQ(PetscObjectComm((PetscObject)st),1,"Must pass an approximate numerical range with STFilterSetRange()");
@@ -39,7 +34,18 @@ PetscErrorCode STSetUp_Filter(ST st)
   ctx->frame[1] = ctx->inta;
   ctx->frame[2] = ctx->intb;
   ctx->frame[3] = ctx->right;
-  ierr = STFilter_FILTLAN_setFilter(st);CHKERRQ(ierr);
+  ierr = STFilter_FILTLAN_setFilter(st,&st->T[0]);CHKERRQ(ierr);
+  st->M = st->T[0];
+  ierr = MatDestroy(&st->P);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+PetscErrorCode STSetUp_Filter(ST st)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  ierr = STSetWorkVecs(st,4);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -361,11 +367,13 @@ PetscErrorCode STFilterGetThreshold(ST st,PetscReal *gamma)
 
 PetscErrorCode STReset_Filter(ST st)
 {
-  ST_FILTER *ctx = (ST_FILTER*)st->data;
+  PetscErrorCode ierr;
+  ST_FILTER      *ctx = (ST_FILTER*)st->data;
 
   PetscFunctionBegin;
   ctx->left  = 0.0;
   ctx->right = 0.0;
+  ierr = MatDestroy(&ctx->T);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -450,12 +458,13 @@ SLEPC_EXTERN PetscErrorCode STCreate_Filter(ST st)
   ierr = PetscNewLog(st,&pfi);CHKERRQ(ierr);
   ctx->filterInfo         = pfi;
 
-  st->ops->apply          = STApply_Filter;
-  st->ops->setfromoptions = STSetFromOptions_Filter;
-  st->ops->setup          = STSetUp_Filter;
-  st->ops->destroy        = STDestroy_Filter;
-  st->ops->reset          = STReset_Filter;
-  st->ops->view           = STView_Filter;
+  st->ops->apply           = STApply_Generic;
+  st->ops->setup           = STSetUp_Filter;
+  st->ops->computeoperator = STComputeOperator_Filter;
+  st->ops->setfromoptions  = STSetFromOptions_Filter;
+  st->ops->destroy         = STDestroy_Filter;
+  st->ops->reset           = STReset_Filter;
+  st->ops->view            = STView_Filter;
 
   ierr = PetscObjectComposeFunction((PetscObject)st,"STFilterSetInterval_C",STFilterSetInterval_Filter);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)st,"STFilterGetInterval_C",STFilterGetInterval_Filter);CHKERRQ(ierr);
