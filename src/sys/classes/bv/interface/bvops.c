@@ -557,7 +557,7 @@ PetscErrorCode BVSetRandomCond(BV bv,PetscReal condn)
    Output Parameter:
 .  Y - the result
 
-   Note:
+   Notes:
    Both V and Y must be distributed in the same manner. Only active columns
    (excluding the leading ones) are processed.
    In the result Y, columns are overwritten starting from the leading ones.
@@ -569,7 +569,7 @@ PetscErrorCode BVSetRandomCond(BV bv,PetscReal condn)
 
    Level: beginner
 
-.seealso: BVCopy(), BVSetActiveColumns(), BVMatMultColumn(), BVMatMultHermitianTranspose(), BVSetMatMultMethod()
+.seealso: BVCopy(), BVSetActiveColumns(), BVMatMultColumn(), BVMatMultTranspose(), BVMatMultHermitianTranspose(), BVSetMatMultMethod()
 @*/
 PetscErrorCode BVMatMult(BV V,Mat A,BV Y)
 {
@@ -598,6 +598,57 @@ PetscErrorCode BVMatMult(BV V,Mat A,BV Y)
 }
 
 /*@
+   BVMatMultTranspose - Computes the matrix-vector product with the transpose
+   of a matrix for each column, Y=A^T*V.
+
+   Neighbor-wise Collective on A
+
+   Input Parameters:
++  V - basis vectors context
+-  A - the matrix
+
+   Output Parameter:
+.  Y - the result
+
+   Notes:
+   Both V and Y must be distributed in the same manner. Only active columns
+   (excluding the leading ones) are processed.
+   In the result Y, columns are overwritten starting from the leading ones.
+   The number of active columns in V and Y should match, although they need
+   not be the same columns.
+
+   Currently implemented via MatCreateTranspose().
+
+   Level: beginner
+
+.seealso: BVMatMult(), BVMatMultHermitianTranspose()
+@*/
+PetscErrorCode BVMatMultTranspose(BV V,Mat A,BV Y)
+{
+  PetscErrorCode ierr;
+  Mat            AT;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(V,BV_CLASSID,1);
+  PetscValidType(V,1);
+  BVCheckSizes(V,1);
+  PetscValidHeaderSpecific(A,MAT_CLASSID,2);
+  PetscValidType(A,2);
+  PetscValidHeaderSpecific(Y,BV_CLASSID,3);
+  PetscValidType(Y,3);
+  BVCheckSizes(Y,3);
+  PetscCheckSameComm(V,1,A,2);
+  PetscCheckSameTypeAndComm(V,1,Y,3);
+  if (V->n!=Y->n) SETERRQ2(PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_INCOMP,"Mismatching local dimension V %D, Y %D",V->n,Y->n);
+  if (V->k-V->l>Y->m-Y->l) SETERRQ2(PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_SIZ,"Y has %D non-leading columns, not enough to store %D columns",Y->m-Y->l,V->k-V->l);
+
+  ierr = MatCreateTranspose(A,&AT);CHKERRQ(ierr);
+  ierr = BVMatMult(V,AT,Y);CHKERRQ(ierr);
+  ierr = MatDestroy(&AT);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+/*@
    BVMatMultHermitianTranspose - Computes the matrix-vector product with the
    conjugate transpose of a matrix for each column, Y=A^H*V.
 
@@ -614,19 +665,19 @@ PetscErrorCode BVMatMult(BV V,Mat A,BV Y)
    Both V and Y must be distributed in the same manner. Only active columns
    (excluding the leading ones) are processed.
    In the result Y, columns are overwritten starting from the leading ones.
+   The number of active columns in V and Y should match, although they need
+   not be the same columns.
 
-   As opposed to BVMatMult(), this operation is always done column by column,
-   with a sequence of calls to MatMultHermitianTranspose().
+   Currently implemented via MatCreateHermitianTranspose().
 
    Level: beginner
 
-.seealso: BVCopy(), BVSetActiveColumns(), BVMatMult(), BVMatMultColumn()
+.seealso: BVMatMult(), BVMatMultTranspose()
 @*/
 PetscErrorCode BVMatMultHermitianTranspose(BV V,Mat A,BV Y)
 {
   PetscErrorCode ierr;
-  PetscInt       j;
-  Vec            z,f;
+  Mat            AH;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(V,BV_CLASSID,1);
@@ -642,16 +693,9 @@ PetscErrorCode BVMatMultHermitianTranspose(BV V,Mat A,BV Y)
   if (V->n!=Y->n) SETERRQ2(PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_INCOMP,"Mismatching local dimension V %D, Y %D",V->n,Y->n);
   if (V->k-V->l>Y->m-Y->l) SETERRQ2(PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_SIZ,"Y has %D non-leading columns, not enough to store %D columns",Y->m-Y->l,V->k-V->l);
 
-  ierr = PetscLogEventBegin(BV_MatMult,V,A,Y,0);CHKERRQ(ierr);
-  for (j=0;j<V->k-V->l;j++) {
-    ierr = BVGetColumn(V,V->l+j,&z);CHKERRQ(ierr);
-    ierr = BVGetColumn(Y,Y->l+j,&f);CHKERRQ(ierr);
-    ierr = MatMultHermitianTranspose(A,z,f);CHKERRQ(ierr);
-    ierr = BVRestoreColumn(V,V->l+j,&z);CHKERRQ(ierr);
-    ierr = BVRestoreColumn(Y,Y->l+j,&f);CHKERRQ(ierr);
-  }
-  ierr = PetscLogEventEnd(BV_MatMult,V,A,Y,0);CHKERRQ(ierr);
-  ierr = PetscObjectStateIncrease((PetscObject)Y);CHKERRQ(ierr);
+  ierr = MatCreateHermitianTranspose(A,&AH);CHKERRQ(ierr);
+  ierr = BVMatMult(V,AH,Y);CHKERRQ(ierr);
+  ierr = MatDestroy(&AH);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -666,12 +710,9 @@ PetscErrorCode BVMatMultHermitianTranspose(BV V,Mat A,BV Y)
 .  A - the matrix
 -  j - the column
 
-   Output Parameter:
-.  Y - the result
-
    Level: beginner
 
-.seealso: BVMatMult()
+.seealso: BVMatMult(), BVMatMultTransposeColumn(), BVMatMultHermitianTransposeColumn()
 @*/
 PetscErrorCode BVMatMultColumn(BV V,Mat A,PetscInt j)
 {
@@ -684,6 +725,7 @@ PetscErrorCode BVMatMultColumn(BV V,Mat A,PetscInt j)
   BVCheckSizes(V,1);
   PetscValidHeaderSpecific(A,MAT_CLASSID,2);
   PetscCheckSameComm(V,1,A,2);
+  PetscValidLogicalCollectiveInt(V,j,3);
   if (j<0) SETERRQ(PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_OUTOFRANGE,"Index j must be non-negative");
   if (j+1>=V->m) SETERRQ2(PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_OUTOFRANGE,"Result should go in index j+1=%D but BV only has %D columns",j+1,V->m);
 
@@ -691,6 +733,88 @@ PetscErrorCode BVMatMultColumn(BV V,Mat A,PetscInt j)
   ierr = BVGetColumn(V,j,&vj);CHKERRQ(ierr);
   ierr = BVGetColumn(V,j+1,&vj1);CHKERRQ(ierr);
   ierr = MatMult(A,vj,vj1);CHKERRQ(ierr);
+  ierr = BVRestoreColumn(V,j,&vj);CHKERRQ(ierr);
+  ierr = BVRestoreColumn(V,j+1,&vj1);CHKERRQ(ierr);
+  ierr = PetscLogEventEnd(BV_MatMultVec,V,A,0,0);CHKERRQ(ierr);
+  ierr = PetscObjectStateIncrease((PetscObject)V);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+/*@
+   BVMatMultTransposeColumn - Computes the transpose matrix-vector product for a
+   specified column, storing the result in the next column: v_{j+1}=A^T*v_j.
+
+   Neighbor-wise Collective on A
+
+   Input Parameters:
++  V - basis vectors context
+.  A - the matrix
+-  j - the column
+
+   Level: beginner
+
+.seealso: BVMatMult(), BVMatMultColumn(), BVMatMultHermitianTransposeColumn()
+@*/
+PetscErrorCode BVMatMultTransposeColumn(BV V,Mat A,PetscInt j)
+{
+  PetscErrorCode ierr;
+  Vec            vj,vj1;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(V,BV_CLASSID,1);
+  PetscValidType(V,1);
+  BVCheckSizes(V,1);
+  PetscValidHeaderSpecific(A,MAT_CLASSID,2);
+  PetscCheckSameComm(V,1,A,2);
+  PetscValidLogicalCollectiveInt(V,j,3);
+  if (j<0) SETERRQ(PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_OUTOFRANGE,"Index j must be non-negative");
+  if (j+1>=V->m) SETERRQ2(PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_OUTOFRANGE,"Result should go in index j+1=%D but BV only has %D columns",j+1,V->m);
+
+  ierr = PetscLogEventBegin(BV_MatMultVec,V,A,0,0);CHKERRQ(ierr);
+  ierr = BVGetColumn(V,j,&vj);CHKERRQ(ierr);
+  ierr = BVGetColumn(V,j+1,&vj1);CHKERRQ(ierr);
+  ierr = MatMultTranspose(A,vj,vj1);CHKERRQ(ierr);
+  ierr = BVRestoreColumn(V,j,&vj);CHKERRQ(ierr);
+  ierr = BVRestoreColumn(V,j+1,&vj1);CHKERRQ(ierr);
+  ierr = PetscLogEventEnd(BV_MatMultVec,V,A,0,0);CHKERRQ(ierr);
+  ierr = PetscObjectStateIncrease((PetscObject)V);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+/*@
+   BVMatMultHermitianTransposeColumn - Computes the matrix-vector product for a specified
+   column, storing the result in the next column: v_{j+1}=A*v_j.
+
+   Neighbor-wise Collective on A
+
+   Input Parameters:
++  V - basis vectors context
+.  A - the matrix
+-  j - the column
+
+   Level: beginner
+
+.seealso: BVMatMult(), BVMatMultColumn(), BVMatMultTransposeColumn()
+@*/
+PetscErrorCode BVMatMultHermitianTransposeColumn(BV V,Mat A,PetscInt j)
+{
+  PetscErrorCode ierr;
+  Vec            vj,vj1;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(V,BV_CLASSID,1);
+  PetscValidType(V,1);
+  BVCheckSizes(V,1);
+  PetscValidHeaderSpecific(A,MAT_CLASSID,2);
+  PetscCheckSameComm(V,1,A,2);
+  PetscValidLogicalCollectiveInt(V,j,3);
+  if (j<0) SETERRQ(PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_OUTOFRANGE,"Index j must be non-negative");
+  if (j+1>=V->m) SETERRQ2(PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_OUTOFRANGE,"Result should go in index j+1=%D but BV only has %D columns",j+1,V->m);
+
+  ierr = PetscLogEventBegin(BV_MatMultVec,V,A,0,0);CHKERRQ(ierr);
+  ierr = BVGetColumn(V,j,&vj);CHKERRQ(ierr);
+  ierr = BVGetColumn(V,j+1,&vj1);CHKERRQ(ierr);
+  ierr = MatMultHermitianTranspose(A,vj,vj1);CHKERRQ(ierr);
   ierr = BVRestoreColumn(V,j,&vj);CHKERRQ(ierr);
   ierr = BVRestoreColumn(V,j+1,&vj1);CHKERRQ(ierr);
   ierr = PetscLogEventEnd(BV_MatMultVec,V,A,0,0);CHKERRQ(ierr);

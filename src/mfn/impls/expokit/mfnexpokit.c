@@ -100,7 +100,11 @@ PetscErrorCode MFNSolve_Expokit(MFN mfn,Vec b,Vec x)
       H[m+1+ld*m] = 1.0;
       ierr = BVGetColumn(mfn->V,m,&v);CHKERRQ(ierr);
       ierr = BVGetColumn(mfn->V,m+1,&r);CHKERRQ(ierr);
-      ierr = MatMult(mfn->A,v,r);CHKERRQ(ierr);
+      if (mfn->transpose_solve) {
+        ierr = MatMultTranspose(mfn->A,v,r);CHKERRQ(ierr);
+      } else {
+        ierr = MatMult(mfn->A,v,r);CHKERRQ(ierr);
+      }
       ierr = BVRestoreColumn(mfn->V,m,&v);CHKERRQ(ierr);
       ierr = BVRestoreColumn(mfn->V,m+1,&r);CHKERRQ(ierr);
       ierr = BVNormColumn(mfn->V,m+1,NORM_2,&avnorm);CHKERRQ(ierr);

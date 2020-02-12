@@ -13,6 +13,43 @@
 
 #include <slepc/private/mfnimpl.h>   /*I "slepcmfn.h" I*/
 
+static PetscErrorCode MFNSolve_Private(MFN mfn,Vec b,Vec x)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  ierr = VecSetErrorIfLocked(x,3);CHKERRQ(ierr);
+
+  /* call setup */
+  ierr = MFNSetUp(mfn);CHKERRQ(ierr);
+  mfn->its = 0;
+
+  ierr = MFNViewFromOptions(mfn,NULL,"-mfn_view_pre");CHKERRQ(ierr);
+
+  /* check nonzero right-hand side */
+  ierr = VecNorm(b,NORM_2,&mfn->bnorm);CHKERRQ(ierr);
+  if (!mfn->bnorm) SETERRQ(PetscObjectComm((PetscObject)mfn),PETSC_ERR_ARG_WRONG,"Cannot pass a zero b vector to MFNSolve()");
+
+  /* call solver */
+  ierr = PetscLogEventBegin(MFN_Solve,mfn,b,x,0);CHKERRQ(ierr);
+  if (b!=x) { ierr = VecLockReadPush(b);CHKERRQ(ierr); }
+  ierr = (*mfn->ops->solve)(mfn,b,x);CHKERRQ(ierr);
+  if (b!=x) { ierr = VecLockReadPop(b);CHKERRQ(ierr); }
+  ierr = PetscLogEventEnd(MFN_Solve,mfn,b,x,0);CHKERRQ(ierr);
+
+  if (!mfn->reason) SETERRQ(PetscObjectComm((PetscObject)mfn),PETSC_ERR_PLIB,"Internal error, solver returned without setting converged reason");
+
+  if (mfn->errorifnotconverged && mfn->reason < 0) SETERRQ(PetscObjectComm((PetscObject)mfn),PETSC_ERR_NOT_CONVERGED,"MFNSolve has not converged");
+
+  /* various viewers */
+  ierr = MFNViewFromOptions(mfn,NULL,"-mfn_view");CHKERRQ(ierr);
+  ierr = MFNReasonViewFromOptions(mfn);CHKERRQ(ierr);
+  ierr = MatViewFromOptions(mfn->A,(PetscObject)mfn,"-mfn_view_mat");CHKERRQ(ierr);
+  ierr = VecViewFromOptions(b,(PetscObject)mfn,"-mfn_view_rhs");CHKERRQ(ierr);
+  ierr = VecViewFromOptions(x,(PetscObject)mfn,"-mfn_view_solution");CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
 /*@
    MFNSolve - Solves the matrix function problem. Given a vector b, the
    vector x = f(A)*b is returned.
@@ -53,35 +90,44 @@ PetscErrorCode MFNSolve(MFN mfn,Vec b,Vec x)
   PetscCheckSameComm(mfn,1,b,2);
   if (b!=x) PetscValidHeaderSpecific(x,VEC_CLASSID,3);
   if (b!=x) PetscCheckSameComm(mfn,1,x,3);
-  ierr = VecSetErrorIfLocked(x,3);CHKERRQ(ierr);
+  mfn->transpose_solve = PETSC_FALSE;
+  ierr = MFNSolve_Private(mfn,b,x);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
 
-  /* call setup */
-  ierr = MFNSetUp(mfn);CHKERRQ(ierr);
-  mfn->its = 0;
+/*@
+   MFNSolveTranspose - Solves the transpose matrix function problem. Given a vector b,
+   the vector x = f(A^T)*b is returned.
 
-  ierr = MFNViewFromOptions(mfn,NULL,"-mfn_view_pre");CHKERRQ(ierr);
+   Collective on mfn
 
-  /* check nonzero right-hand side */
-  ierr = VecNorm(b,NORM_2,&mfn->bnorm);CHKERRQ(ierr);
-  if (!mfn->bnorm) SETERRQ(PetscObjectComm((PetscObject)mfn),PETSC_ERR_ARG_WRONG,"Cannot pass a zero b vector to MFNSolve()");
+   Input Parameters:
++  mfn - matrix function context obtained from MFNCreate()
+-  b   - the right hand side vector
 
-  /* call solver */
-  ierr = PetscLogEventBegin(MFN_Solve,mfn,b,x,0);CHKERRQ(ierr);
-  if (b!=x) { ierr = VecLockReadPush(b);CHKERRQ(ierr); }
-  ierr = (*mfn->ops->solve)(mfn,b,x);CHKERRQ(ierr);
-  if (b!=x) { ierr = VecLockReadPop(b);CHKERRQ(ierr); }
-  ierr = PetscLogEventEnd(MFN_Solve,mfn,b,x,0);CHKERRQ(ierr);
+   Output Parameter:
+.  x   - the solution (this may be the same vector as b, then b will be
+         overwritten with the answer)
 
-  if (!mfn->reason) SETERRQ(PetscObjectComm((PetscObject)mfn),PETSC_ERR_PLIB,"Internal error, solver returned without setting converged reason");
+   Note:
+   See available options at MFNSolve().
 
-  if (mfn->errorifnotconverged && mfn->reason < 0) SETERRQ(PetscObjectComm((PetscObject)mfn),PETSC_ERR_NOT_CONVERGED,"MFNSolve has not converged");
+   Level: beginner
 
-  /* various viewers */
-  ierr = MFNViewFromOptions(mfn,NULL,"-mfn_view");CHKERRQ(ierr);
-  ierr = MFNReasonViewFromOptions(mfn);CHKERRQ(ierr);
-  ierr = MatViewFromOptions(mfn->A,(PetscObject)mfn,"-mfn_view_mat");CHKERRQ(ierr);
-  ierr = VecViewFromOptions(b,(PetscObject)mfn,"-mfn_view_rhs");CHKERRQ(ierr);
-  ierr = VecViewFromOptions(x,(PetscObject)mfn,"-mfn_view_solution");CHKERRQ(ierr);
+.seealso: MFNSolve()
+@*/
+PetscErrorCode MFNSolveTranspose(MFN mfn,Vec b,Vec x)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(mfn,MFN_CLASSID,1);
+  PetscValidHeaderSpecific(b,VEC_CLASSID,2);
+  PetscCheckSameComm(mfn,1,b,2);
+  if (b!=x) PetscValidHeaderSpecific(x,VEC_CLASSID,3);
+  if (b!=x) PetscCheckSameComm(mfn,1,x,3);
+  mfn->transpose_solve = PETSC_TRUE;
+  ierr = MFNSolve_Private(mfn,b,x);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
