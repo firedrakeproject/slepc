@@ -298,7 +298,7 @@ PetscErrorCode EPSSetUp_PRIMME(EPS eps)
   if (primme->correctionParams.precondition) {
     ierr = STGetKSP(eps->st,&ops->ksp);CHKERRQ(ierr);
     ierr = PetscObjectTypeCompare((PetscObject)ops->ksp,KSPPREONLY,&flg);CHKERRQ(ierr);
-    if (!flg) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"PRIMME only works with KSPPREONLY");
+    if (!flg) { ierr = PetscInfo(eps,"Warning: ignoring KSP, should use KSPPREONLY\n");CHKERRQ(ierr); }
     primme->preconditioner = NULL;
     primme->applyPreconditioner = applyPreconditioner_PRIMME;
   }
@@ -610,7 +610,7 @@ SLEPC_EXTERN PetscErrorCode EPSCreate_PRIMME(EPS eps)
   eps->ops->reset          = EPSReset_PRIMME;
   eps->ops->view           = EPSView_PRIMME;
   eps->ops->backtransform  = EPSBackTransform_Default;
-  eps->ops->setdefaultst   = EPSSetDefaultST_Precond;
+  eps->ops->setdefaultst   = EPSSetDefaultST_GMRES;
 
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSPRIMMESetBlockSize_C",EPSPRIMMESetBlockSize_PRIMME);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSPRIMMESetMethod_C",EPSPRIMMESetMethod_PRIMME);CHKERRQ(ierr);

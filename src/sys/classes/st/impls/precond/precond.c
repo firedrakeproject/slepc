@@ -14,14 +14,14 @@
 #include <slepc/private/stimpl.h>          /*I "slepcst.h" I*/
 
 typedef struct {
-  PetscBool setmat;
-  Mat       mat;
+  PetscBool ksphasmat;  /* the KSP must have the same matrix as PC */
+  PetscBool usermat;    /* the user has set a matrix */
+  Mat       mat;        /* user-provided matrix */
 } ST_PRECOND;
 
 static PetscErrorCode STSetDefaultKSP_Precond(ST st)
 {
   PetscErrorCode ierr;
-  ST_PRECOND     *ctx = (ST_PRECOND*)st->data;
   PC             pc;
   PCType         pctype;
   PetscBool      t0,t1;
@@ -30,7 +30,7 @@ static PetscErrorCode STSetDefaultKSP_Precond(ST st)
   ierr = KSPGetPC(st->ksp,&pc);CHKERRQ(ierr);
   ierr = PCGetType(pc,&pctype);CHKERRQ(ierr);
   if (!pctype && st->A && st->A[0]) {
-    if (ctx->setmat || st->matmode == ST_MATMODE_SHELL) {
+    if (st->matmode == ST_MATMODE_SHELL) {
       ierr = PCSetType(pc,PCJACOBI);CHKERRQ(ierr);
     } else {
       ierr = MatHasOperation(st->A[0],MATOP_DUPLICATE,&t0);CHKERRQ(ierr);
@@ -108,7 +108,7 @@ PetscErrorCode STSetUp_Precond(ST st)
 
   PetscFunctionBegin;
   if (st->P) {
-    ierr = KSPSetOperators(st->ksp,ctx->setmat?st->P:NULL,st->P);CHKERRQ(ierr);
+    ierr = KSPSetOperators(st->ksp,ctx->ksphasmat?st->P:NULL,st->P);CHKERRQ(ierr);
     /* NOTE: we do not call KSPSetUp() here because some eigensolvers such as JD require a lazy setup */
   }
   PetscFunctionReturn(0);
@@ -130,7 +130,7 @@ PetscErrorCode STSetShift_Precond(ST st,PetscScalar newshift)
   }
   if (st->P) {
     if (!st->ksp) { ierr = STGetKSP(st,&st->ksp);CHKERRQ(ierr); }
-    ierr = KSPSetOperators(st->ksp,ctx->setmat?st->P:NULL,st->P);CHKERRQ(ierr);
+    ierr = KSPSetOperators(st->ksp,ctx->ksphasmat?st->P:NULL,st->P);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }
@@ -180,9 +180,9 @@ static PetscErrorCode STPrecondSetMatForPC_Precond(ST st,Mat mat)
   STCheckNotSeized(st,1);
   ierr = PetscObjectReference((PetscObject)mat);CHKERRQ(ierr);
   ierr = MatDestroy(&ctx->mat);CHKERRQ(ierr);
-  ctx->mat    = mat;
-  ctx->setmat = mat? PETSC_TRUE: PETSC_FALSE;
-  st->state   = ST_STATE_INITIAL;
+  ctx->mat     = mat;
+  ctx->usermat = mat? PETSC_TRUE: PETSC_FALSE;
+  st->state    = ST_STATE_INITIAL;
   PetscFunctionReturn(0);
 }
 
@@ -217,55 +217,55 @@ PetscErrorCode STPrecondSetMatForPC(ST st,Mat mat)
   PetscFunctionReturn(0);
 }
 
-static PetscErrorCode STPrecondSetKSPHasMat_Precond(ST st,PetscBool setmat)
+static PetscErrorCode STPrecondSetKSPHasMat_Precond(ST st,PetscBool ksphasmat)
 {
   ST_PRECOND *ctx = (ST_PRECOND*)st->data;
 
   PetscFunctionBegin;
-  if (ctx->setmat != setmat) {
-    ctx->setmat = setmat;
-    st->state   = ST_STATE_INITIAL;
+  if (ctx->ksphasmat != ksphasmat) {
+    ctx->ksphasmat = ksphasmat;
+    st->state      = ST_STATE_INITIAL;
   }
   PetscFunctionReturn(0);
 }
 
 /*@
    STPrecondSetKSPHasMat - Sets a flag indicating that during STSetUp the coefficient
-   matrix of the KSP linear system (A) must be set to be the same matrix as the
+   matrix of the KSP linear solver (A) must be set to be the same matrix as the
    preconditioner (P).
 
    Collective on st
 
    Input Parameter:
 +  st - the spectral transformation context
--  setmat - the flag
+-  ksphasmat - the flag
 
    Notes:
-   In most cases, the preconditioner matrix is used only in the PC object, but
-   in external solvers this matrix must be provided also as the A-matrix in
+   Often, the preconditioner matrix is used only in the PC object, but
+   in some solvers this matrix must be provided also as the A-matrix in
    the KSP object.
 
    Level: developer
 
 .seealso: STPrecondGetKSPHasMat(), STSetShift()
 @*/
-PetscErrorCode STPrecondSetKSPHasMat(ST st,PetscBool setmat)
+PetscErrorCode STPrecondSetKSPHasMat(ST st,PetscBool ksphasmat)
 {
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
-  PetscValidLogicalCollectiveBool(st,setmat,2);
-  ierr = PetscTryMethod(st,"STPrecondSetKSPHasMat_C",(ST,PetscBool),(st,setmat));CHKERRQ(ierr);
+  PetscValidLogicalCollectiveBool(st,ksphasmat,2);
+  ierr = PetscTryMethod(st,"STPrecondSetKSPHasMat_C",(ST,PetscBool),(st,ksphasmat));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
-static PetscErrorCode STPrecondGetKSPHasMat_Precond(ST st,PetscBool *setmat)
+static PetscErrorCode STPrecondGetKSPHasMat_Precond(ST st,PetscBool *ksphasmat)
 {
   ST_PRECOND *ctx = (ST_PRECOND*)st->data;
 
   PetscFunctionBegin;
-  *setmat = ctx->setmat;
+  *ksphasmat = ctx->ksphasmat;
   PetscFunctionReturn(0);
 }
 
@@ -280,20 +280,20 @@ static PetscErrorCode STPrecondGetKSPHasMat_Precond(ST st,PetscBool *setmat)
 .  st - the spectral transformation context
 
    Output Parameter:
-.  setmat - the flag
+.  ksphasmat - the flag
 
    Level: developer
 
 .seealso: STPrecondSetKSPHasMat(), STSetShift()
 @*/
-PetscErrorCode STPrecondGetKSPHasMat(ST st,PetscBool *setmat)
+PetscErrorCode STPrecondGetKSPHasMat(ST st,PetscBool *ksphasmat)
 {
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
-  PetscValidBoolPointer(setmat,2);
-  ierr = PetscUseMethod(st,"STPrecondGetKSPHasMat_C",(ST,PetscBool*),(st,setmat));CHKERRQ(ierr);
+  PetscValidBoolPointer(ksphasmat,2);
+  ierr = PetscUseMethod(st,"STPrecondGetKSPHasMat_C",(ST,PetscBool*),(st,ksphasmat));CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -320,7 +320,6 @@ SLEPC_EXTERN PetscErrorCode STCreate_Precond(ST st)
   PetscFunctionBegin;
   ierr = PetscNewLog(st,&ctx);CHKERRQ(ierr);
   st->data = (void*)ctx;
-  ctx->setmat = PETSC_TRUE;
 
   st->usesksp = PETSC_TRUE;
 
