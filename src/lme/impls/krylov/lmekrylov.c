@@ -46,39 +46,6 @@ PetscErrorCode LMESetUp_Krylov(LME lme)
   PetscFunctionReturn(0);
 }
 
-PetscErrorCode LMEBasicArnoldi(LME lme,PetscScalar *H,PetscInt ldh,PetscInt k,PetscInt *M,PetscReal *beta,PetscBool *breakdown)
-{
-  PetscErrorCode ierr;
-  PetscScalar    *a;
-  PetscInt       j,nc,n,m = *M;
-  Vec            vj,vj1,buf;
-
-  PetscFunctionBegin;
-  ierr = BVSetActiveColumns(lme->V,0,m);CHKERRQ(ierr);
-  for (j=k;j<m;j++) {
-    ierr = BVGetColumn(lme->V,j,&vj);CHKERRQ(ierr);
-    ierr = BVGetColumn(lme->V,j+1,&vj1);CHKERRQ(ierr);
-    ierr = MatMult(lme->A,vj,vj1);CHKERRQ(ierr);
-    ierr = BVRestoreColumn(lme->V,j,&vj);CHKERRQ(ierr);
-    ierr = BVRestoreColumn(lme->V,j+1,&vj1);CHKERRQ(ierr);
-    ierr = BVOrthonormalizeColumn(lme->V,j+1,PETSC_FALSE,beta,breakdown);CHKERRQ(ierr);
-    if (*breakdown) {
-      *M = j+1;
-      break;
-    }
-  }
-  /* extract Hessenberg matrix from the BV object */
-  ierr = BVGetNumConstraints(lme->V,&nc);CHKERRQ(ierr);
-  ierr = BVGetSizes(lme->V,NULL,NULL,&n);CHKERRQ(ierr);
-  ierr = BVGetBufferVec(lme->V,&buf);CHKERRQ(ierr);
-  ierr = VecGetArray(buf,&a);CHKERRQ(ierr);
-  for (j=k;j<*M;j++) {
-    ierr = PetscArraycpy(H+j*ldh,a+nc+(j+1)*(nc+n),j+2);CHKERRQ(ierr);
-  }
-  ierr = VecRestoreArray(buf,&a);CHKERRQ(ierr);
-  PetscFunctionReturn(0);
-}
-
 PetscErrorCode LMESolve_Krylov_Lyapunov_Vec(LME lme,Vec b,PetscBool fixed,PetscInt rrank,BV C1,BV *X1,PetscInt *col,PetscBool *fail,PetscInt *totalits)
 {
   PetscErrorCode ierr;
@@ -110,7 +77,7 @@ PetscErrorCode LMESolve_Krylov_Lyapunov_Vec(LME lme,Vec b,PetscBool fixed,PetscI
       its++;
 
       /* compute Arnoldi factorization */
-      ierr = LMEBasicArnoldi(lme,H,ldh,0,&m,&beta,&breakdown);CHKERRQ(ierr);
+      ierr = BVMatArnoldi(lme->V,lme->A,H,ldh,0,&m,&beta,&breakdown);CHKERRQ(ierr);
 
       if (pass==0) {
         /* glue together the previous H and the new H obtained with Arnoldi */

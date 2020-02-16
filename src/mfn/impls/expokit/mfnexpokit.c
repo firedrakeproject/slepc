@@ -91,7 +91,7 @@ PetscErrorCode MFNSolve_Expokit(MFN mfn,Vec b,Vec x)
     t_step = PetscMin(t_out-t_now,t_new);
     ierr = BVInsertVec(mfn->V,0,x);CHKERRQ(ierr);
     ierr = BVScaleColumn(mfn->V,0,1.0/beta);CHKERRQ(ierr);
-    ierr = MFNBasicArnoldi(mfn,mfn->transpose_solve?mfn->AT:mfn->A,H,ld,0,&mb,&beta2,&breakdown);CHKERRQ(ierr);
+    ierr = BVMatArnoldi(mfn->V,mfn->transpose_solve?mfn->AT:mfn->A,H,ld,0,&mb,&beta2,&breakdown);CHKERRQ(ierr);
     if (breakdown) {
       k1 = 0;
       t_step = t_out-t_now;
