@@ -143,10 +143,10 @@ int main(int argc,char **argv)
       output_file: output/test3_2.out
       test:
          suffix: 2_rqcg
-         args: -eps_type rqcg -eps_rqcg_reset 5 -eps_ncv 32 -st_pc_type bjacobi
+         args: -eps_type rqcg -eps_rqcg_reset 5 -eps_ncv 32
       test:
          suffix: 2_lobpcg
-         args: -eps_type lobpcg -eps_lobpcg_blocksize 6 -st_ksp_type preonly
+         args: -eps_type lobpcg -eps_lobpcg_blocksize 6 -st_pc_type none
       test:
          suffix: 2_lanczos
          args: -eps_type lanczos

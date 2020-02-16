@@ -43,7 +43,6 @@ PetscErrorCode EPSSetDefaultST_Precond(EPS eps)
   PetscFunctionBegin;
   if (!((PetscObject)eps->st)->type_name) {
     ierr = STSetType(eps->st,STPRECOND);CHKERRQ(ierr);
-    ierr = STPrecondSetKSPHasMat(eps->st,PETSC_TRUE);CHKERRQ(ierr);
   }
   ierr = STGetKSP(eps->st,&ksp);CHKERRQ(ierr);
   if (!((PetscObject)ksp)->type_name) {
@@ -64,8 +63,8 @@ PetscErrorCode EPSSetDefaultST_GMRES(EPS eps)
   PetscFunctionBegin;
   if (!((PetscObject)eps->st)->type_name) {
     ierr = STSetType(eps->st,STPRECOND);CHKERRQ(ierr);
-    ierr = STPrecondSetKSPHasMat(eps->st,PETSC_TRUE);CHKERRQ(ierr);
   }
+  ierr = STPrecondSetKSPHasMat(eps->st,PETSC_TRUE);CHKERRQ(ierr);
   ierr = STGetKSP(eps->st,&ksp);CHKERRQ(ierr);
   if (!((PetscObject)ksp)->type_name) {
     ierr = KSPSetType(ksp,KSPGMRES);CHKERRQ(ierr);

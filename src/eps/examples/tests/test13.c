@@ -98,7 +98,7 @@ int main(int argc,char **argv)
 /*TEST
 
    testset:
-      args: -eps_max_it 5000
+      args: -eps_max_it 5000 -st_pc_type jacobi
       output_file: output/test13_1.out
       test:
          suffix: 1

@@ -133,6 +133,7 @@ PetscErrorCode EPSSetUp_BLOPEX(EPS eps)
   PetscErrorCode ierr;
   EPS_BLOPEX     *blopex = (EPS_BLOPEX*)eps->data;
   PetscBool      istrivial,flg;
+  KSP            ksp;
 
   PetscFunctionBegin;
   if (!eps->ishermitian || (eps->isgeneralized && !eps->ispositive)) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"blopex only works for Hermitian problems");
@@ -158,6 +159,10 @@ PetscErrorCode EPSSetUp_BLOPEX(EPS eps)
   } else SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Convergence test not supported in this solver");
 
   SLEPCSetupInterpreter(&blopex->ii);
+
+  ierr = STGetKSP(eps->st,&ksp);CHKERRQ(ierr);
+  ierr = PetscObjectTypeCompare((PetscObject)ksp,KSPPREONLY,&flg);CHKERRQ(ierr);
+  if (!flg) { ierr = PetscInfo(eps,"Warning: ignoring KSP, should use KSPPREONLY\n");CHKERRQ(ierr); }
 
   /* allocate memory */
   if (!eps->V) { ierr = EPSGetBV(eps,&eps->V);CHKERRQ(ierr); }
@@ -434,7 +439,7 @@ SLEPC_EXTERN PetscErrorCode EPSCreate_BLOPEX(EPS eps)
   eps->ops->reset          = EPSReset_BLOPEX;
   eps->ops->view           = EPSView_BLOPEX;
   eps->ops->backtransform  = EPSBackTransform_Default;
-  eps->ops->setdefaultst   = EPSSetDefaultST_Precond;
+  eps->ops->setdefaultst   = EPSSetDefaultST_GMRES;
 
   LOBPCG_InitRandomContext(PetscObjectComm((PetscObject)eps),NULL);
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSBLOPEXSetBlockSize_C",EPSBLOPEXSetBlockSize_BLOPEX);CHKERRQ(ierr);

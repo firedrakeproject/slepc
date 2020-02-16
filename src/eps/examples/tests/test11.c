@@ -207,7 +207,7 @@ PetscErrorCode MyEigenSort(PetscScalar ar,PetscScalar ai,PetscScalar br,PetscSca
    test:
       suffix: 2
       args: -target 0.77 -eps_type gd -eps_nev 4 -eps_tol 1e-7 -eps_gd_krylov_start -eps_gd_blocksize 3
-      requires: !single
+      requires: double
       filter: sed -e "s/[+-]0\.00000i//g"
 
 TEST*/

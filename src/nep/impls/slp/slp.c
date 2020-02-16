@@ -99,22 +99,6 @@ static PetscErrorCode MatDestroy_SLP(Mat M)
   PetscFunctionReturn(0);
 }
 
-static PetscErrorCode MatCreateVecs_SLP(Mat M,Vec *left,Vec *right)
-{
-  PetscErrorCode     ierr;
-  NEP_SLP_EPS_MSHELL *ctx;
-
-  PetscFunctionBegin;
-  ierr = MatShellGetContext(M,(void**)&ctx);CHKERRQ(ierr);
-  if (right) {
-    ierr = VecDuplicate(ctx->w,right);CHKERRQ(ierr);
-  }
-  if (left) {
-    ierr = VecDuplicate(ctx->w,left);CHKERRQ(ierr);
-  }
-  PetscFunctionReturn(0);
-}
-
 static PetscErrorCode NEPSLPSetUpLinearEP(NEP nep,NEP_EXT_OP extop,PetscScalar lambda,Vec u,PetscBool ini)
 {
   PetscErrorCode     ierr;
@@ -134,7 +118,6 @@ static PetscErrorCode NEPSLPSetUpLinearEP(NEP nep,NEP_EXT_OP extop,PetscScalar l
     ierr = MatCreateShell(PetscObjectComm((PetscObject)nep),nloc,mloc,PETSC_DETERMINE,PETSC_DETERMINE,shellctx,&Mshell);CHKERRQ(ierr);
     ierr = MatShellSetOperation(Mshell,MATOP_MULT,(void(*)(void))MatMult_SLP);CHKERRQ(ierr);
     ierr = MatShellSetOperation(Mshell,MATOP_DESTROY,(void(*)(void))MatDestroy_SLP);CHKERRQ(ierr);
-    ierr = MatShellSetOperation(Mshell,MATOP_CREATE_VECS,(void(*)(void))MatCreateVecs_SLP);CHKERRQ(ierr);
     ierr = EPSSetOperators(slpctx->eps,Mshell,NULL);CHKERRQ(ierr);
     ierr = MatDestroy(&Mshell);CHKERRQ(ierr);
   }
