@@ -390,6 +390,7 @@ PetscErrorCode MFNDestroy(MFN *mfn)
   ierr = MFNReset(*mfn);CHKERRQ(ierr);
   if ((*mfn)->ops->destroy) { ierr = (*(*mfn)->ops->destroy)(*mfn);CHKERRQ(ierr); }
   ierr = FNDestroy(&(*mfn)->fn);CHKERRQ(ierr);
+  ierr = MatDestroy(&(*mfn)->AT);CHKERRQ(ierr);
   ierr = MFNMonitorCancel(*mfn);CHKERRQ(ierr);
   ierr = PetscHeaderDestroy(mfn);CHKERRQ(ierr);
   PetscFunctionReturn(0);

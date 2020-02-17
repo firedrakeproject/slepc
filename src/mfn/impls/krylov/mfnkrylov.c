@@ -40,7 +40,7 @@ PetscErrorCode MFNSetUp_Krylov(MFN mfn)
   PetscFunctionReturn(0);
 }
 
-PetscErrorCode MFNBasicArnoldi(MFN mfn,PetscScalar *H,PetscInt ldh,PetscInt k,PetscInt *M,PetscReal *beta,PetscBool *breakdown)
+PetscErrorCode MFNBasicArnoldi(MFN mfn,Mat A,PetscScalar *H,PetscInt ldh,PetscInt k,PetscInt *M,PetscReal *beta,PetscBool *breakdown)
 {
   PetscErrorCode ierr;
   PetscScalar    *a;
@@ -50,11 +50,7 @@ PetscErrorCode MFNBasicArnoldi(MFN mfn,PetscScalar *H,PetscInt ldh,PetscInt k,Pe
   PetscFunctionBegin;
   ierr = BVSetActiveColumns(mfn->V,0,m);CHKERRQ(ierr);
   for (j=k;j<m;j++) {
-    if (mfn->transpose_solve) {
-      ierr = BVMatMultTransposeColumn(mfn->V,mfn->A,j);CHKERRQ(ierr);
-    } else {
-      ierr = BVMatMultColumn(mfn->V,mfn->A,j);CHKERRQ(ierr);
-    }
+    ierr = BVMatMultColumn(mfn->V,A,j);CHKERRQ(ierr);
     ierr = BVOrthonormalizeColumn(mfn->V,j+1,PETSC_FALSE,beta,breakdown);CHKERRQ(ierr);
     if (*breakdown) {
       *M = j+1;
@@ -99,7 +95,7 @@ PetscErrorCode MFNSolve_Krylov(MFN mfn,Vec b,Vec x)
     mfn->its++;
 
     /* compute Arnoldi factorization */
-    ierr = MFNBasicArnoldi(mfn,array,ld,0,&m,&beta,&breakdown);CHKERRQ(ierr);
+    ierr = MFNBasicArnoldi(mfn,mfn->transpose_solve?mfn->AT:mfn->A,array,ld,0,&m,&beta,&breakdown);CHKERRQ(ierr);
 
     /* save previous Hessenberg matrix in G; allocate new storage for H and f(H) */
     if (mfn->its>1) { G = H; H = NULL; }

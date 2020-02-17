@@ -91,7 +91,7 @@ PetscErrorCode MFNSolve_Expokit(MFN mfn,Vec b,Vec x)
     t_step = PetscMin(t_out-t_now,t_new);
     ierr = BVInsertVec(mfn->V,0,x);CHKERRQ(ierr);
     ierr = BVScaleColumn(mfn->V,0,1.0/beta);CHKERRQ(ierr);
-    ierr = MFNBasicArnoldi(mfn,H,ld,0,&mb,&beta2,&breakdown);CHKERRQ(ierr);
+    ierr = MFNBasicArnoldi(mfn,mfn->transpose_solve?mfn->AT:mfn->A,H,ld,0,&mb,&beta2,&breakdown);CHKERRQ(ierr);
     if (breakdown) {
       k1 = 0;
       t_step = t_out-t_now;
@@ -100,11 +100,7 @@ PetscErrorCode MFNSolve_Expokit(MFN mfn,Vec b,Vec x)
       H[m+1+ld*m] = 1.0;
       ierr = BVGetColumn(mfn->V,m,&v);CHKERRQ(ierr);
       ierr = BVGetColumn(mfn->V,m+1,&r);CHKERRQ(ierr);
-      if (mfn->transpose_solve) {
-        ierr = MatMultTranspose(mfn->A,v,r);CHKERRQ(ierr);
-      } else {
-        ierr = MatMult(mfn->A,v,r);CHKERRQ(ierr);
-      }
+      ierr = MatMult(mfn->transpose_solve?mfn->AT:mfn->A,v,r);CHKERRQ(ierr);
       ierr = BVRestoreColumn(mfn->V,m,&v);CHKERRQ(ierr);
       ierr = BVRestoreColumn(mfn->V,m+1,&r);CHKERRQ(ierr);
       ierr = BVNormColumn(mfn->V,m+1,NORM_2,&avnorm);CHKERRQ(ierr);

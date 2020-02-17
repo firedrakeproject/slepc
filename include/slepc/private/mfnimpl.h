@@ -56,6 +56,7 @@ struct _p_MFN {
 
   /*----------------- Child objects and working data -------------------*/
   BV             V;                /* set of basis vectors */
+  Mat            AT;               /* the transpose of A, used in MFNSolveTranspose */
   PetscInt       nwork;            /* number of work vectors */
   Vec            *work;            /* work vectors */
   void           *data;            /* placeholder for solver-specific stuff */
@@ -118,6 +119,6 @@ PETSC_STATIC_INLINE PetscErrorCode MFN_CreateVec(PetscInt k,Vec *v)
   PetscFunctionReturn(0);
 }
 
-SLEPC_INTERN PetscErrorCode MFNBasicArnoldi(MFN,PetscScalar*,PetscInt,PetscInt,PetscInt*,PetscReal*,PetscBool*);
+SLEPC_INTERN PetscErrorCode MFNBasicArnoldi(MFN,Mat,PetscScalar*,PetscInt,PetscInt,PetscInt*,PetscReal*,PetscBool*);
 
 #endif
