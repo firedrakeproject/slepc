@@ -56,8 +56,8 @@ PetscErrorCode EPSSolve_Arnoldi(EPS eps)
 {
   PetscErrorCode     ierr;
   PetscInt           k,nv,ld;
-  Mat                U,Op;
-  PetscScalar        *H;
+  Mat                U,Op,H;
+  PetscScalar        *Harray;
   PetscReal          beta,gamma=1.0;
   PetscBool          breakdown,harmonic,refined;
   BVOrthogRefineType orthog_ref;
@@ -79,17 +79,21 @@ PetscErrorCode EPSSolve_Arnoldi(EPS eps)
     /* Compute an nv-step Arnoldi factorization */
     nv = PetscMin(eps->nconv+eps->mpd,eps->ncv);
     ierr = DSSetDimensions(eps->ds,nv,eps->nconv,0);CHKERRQ(ierr);
-    ierr = DSGetArray(eps->ds,DS_MAT_A,&H);CHKERRQ(ierr);
     if (!arnoldi->delayed) {
       ierr = STGetOperator(eps->st,&Op);CHKERRQ(ierr);
-      ierr = BVMatArnoldi(eps->V,Op,H,ld,eps->nconv,&nv,&beta,&breakdown);CHKERRQ(ierr);
+      ierr = DSGetMat(eps->ds,DS_MAT_A,&H);CHKERRQ(ierr);
+      ierr = BVMatArnoldi(eps->V,Op,H,eps->nconv,&nv,&beta,&breakdown);CHKERRQ(ierr);
+      ierr = DSRestoreMat(eps->ds,DS_MAT_A,&H);CHKERRQ(ierr);
       ierr = STRestoreOperator(eps->st,&Op);CHKERRQ(ierr);
     } else if (orthog_ref == BV_ORTHOG_REFINE_NEVER) {
-      ierr = EPSDelayedArnoldi1(eps,H,ld,eps->nconv,&nv,&beta,&breakdown);CHKERRQ(ierr);
+      ierr = DSGetArray(eps->ds,DS_MAT_A,&Harray);CHKERRQ(ierr);
+      ierr = EPSDelayedArnoldi1(eps,Harray,ld,eps->nconv,&nv,&beta,&breakdown);CHKERRQ(ierr);
+      ierr = DSRestoreArray(eps->ds,DS_MAT_A,&Harray);CHKERRQ(ierr);
     } else {
-      ierr = EPSDelayedArnoldi(eps,H,ld,eps->nconv,&nv,&beta,&breakdown);CHKERRQ(ierr);
+      ierr = DSGetArray(eps->ds,DS_MAT_A,&Harray);CHKERRQ(ierr);
+      ierr = EPSDelayedArnoldi(eps,Harray,ld,eps->nconv,&nv,&beta,&breakdown);CHKERRQ(ierr);
+      ierr = DSRestoreArray(eps->ds,DS_MAT_A,&Harray);CHKERRQ(ierr);
     }
-    ierr = DSRestoreArray(eps->ds,DS_MAT_A,&H);CHKERRQ(ierr);
     ierr = DSSetState(eps->ds,DS_STATE_INTERMEDIATE);CHKERRQ(ierr);
     ierr = BVSetActiveColumns(eps->V,eps->nconv,nv);CHKERRQ(ierr);
 

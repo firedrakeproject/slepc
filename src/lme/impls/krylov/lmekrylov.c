@@ -52,16 +52,17 @@ PetscErrorCode LMESolve_Krylov_Lyapunov_Vec(LME lme,Vec b,PetscBool fixed,PetscI
   PetscInt       n=0,m,ldh,ldg=0,i,j,rank=0,lrank,pass,nouter=0,its;
   PetscReal      bnorm,beta,errest;
   PetscBool      breakdown;
-  PetscScalar    *H,*G=NULL,*Gnew=NULL,*L,*U,*r,*Qarray,sone=1.0,zero=0.0;
+  PetscScalar    *Harray,*G=NULL,*Gnew=NULL,*L,*U,*r,*Qarray,sone=1.0,zero=0.0;
   PetscBLASInt   n_,m_,rk_;
-  Mat            Q;
+  Mat            Q,H;
 
   PetscFunctionBegin;
   *fail = PETSC_FALSE;
   its = 0;
   m  = lme->ncv;
   ldh = m+1;
-  ierr = PetscCalloc1(ldh*m,&H);CHKERRQ(ierr);
+  ierr = MatCreateSeqDense(PETSC_COMM_SELF,ldh,m,NULL,&H);CHKERRQ(ierr);
+  ierr = MatDenseGetArray(H,&Harray);CHKERRQ(ierr);
 
   ierr = VecNorm(b,NORM_2,&bnorm);CHKERRQ(ierr);
   if (!bnorm) SETERRQ(PetscObjectComm((PetscObject)lme),PETSC_ERR_ARG_WRONG,"Cannot process a zero vector in the right-hand side");
@@ -77,14 +78,14 @@ PetscErrorCode LMESolve_Krylov_Lyapunov_Vec(LME lme,Vec b,PetscBool fixed,PetscI
       its++;
 
       /* compute Arnoldi factorization */
-      ierr = BVMatArnoldi(lme->V,lme->A,H,ldh,0,&m,&beta,&breakdown);CHKERRQ(ierr);
+      ierr = BVMatArnoldi(lme->V,lme->A,H,0,&m,&beta,&breakdown);CHKERRQ(ierr);
 
       if (pass==0) {
         /* glue together the previous H and the new H obtained with Arnoldi */
         ldg = n+m+1;
         ierr = PetscCalloc1(ldg*(n+m),&Gnew);CHKERRQ(ierr);
         for (j=0;j<m;j++) {
-          ierr = PetscArraycpy(Gnew+n+(j+n)*ldg,H+j*ldh,m);CHKERRQ(ierr);
+          ierr = PetscArraycpy(Gnew+n+(j+n)*ldg,Harray+j*ldh,m);CHKERRQ(ierr);
         }
         Gnew[n+m+(n+m-1)*ldg] = beta;
         if (G) {
@@ -159,7 +160,8 @@ PetscErrorCode LMESolve_Krylov_Lyapunov_Vec(LME lme,Vec b,PetscBool fixed,PetscI
 
   *col += rank;
   *totalits += its+1;
-  ierr = PetscFree(H);CHKERRQ(ierr);
+  ierr = MatDenseRestoreArray(H,&Harray);CHKERRQ(ierr);
+  ierr = MatDestroy(&H);CHKERRQ(ierr);
   if (L) { ierr = PetscFree(L);CHKERRQ(ierr); }
   if (U) { ierr = PetscFree(U);CHKERRQ(ierr); }
   PetscFunctionReturn(0);

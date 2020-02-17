@@ -24,10 +24,10 @@
 #include "krylovschur.h"
 #include <slepcblaslapack.h>
 
-static PetscErrorCode EPSTwoSidedRQUpdate1(EPS eps,Mat M,PetscInt nv)
+static PetscErrorCode EPSTwoSidedRQUpdate1(EPS eps,Mat M,PetscInt nv,PetscReal beta,PetscReal betat)
 {
   PetscErrorCode    ierr;
-  PetscScalar       *T,*S,*A,*w,beta;
+  PetscScalar       *T,*S,*A,*w;
   const PetscScalar *pM;
   Vec               u;
   PetscInt          ld,ncv=eps->ncv,i,l,nnv;
@@ -56,7 +56,6 @@ static PetscErrorCode EPSTwoSidedRQUpdate1(EPS eps,Mat M,PetscInt nv)
   ierr = PetscLogFlops(2.0*n_*n_-n_);CHKERRQ(ierr);
   ierr = BVMultColumn(eps->V,-1.0,1.0,nv,w);CHKERRQ(ierr);
   ierr = DSGetArray(eps->ds,DS_MAT_A,&S);CHKERRQ(ierr);
-  beta = S[(nv-1)*ld+nv];
   for (i=0;i<nv;i++) S[(nv-1)*ld+i] += beta*w[i];
   ierr = DSRestoreArray(eps->ds,DS_MAT_A,&S);CHKERRQ(ierr);
   ierr = BVGetColumn(eps->W,nv,&u);CHKERRQ(ierr);
@@ -66,8 +65,7 @@ static PetscErrorCode EPSTwoSidedRQUpdate1(EPS eps,Mat M,PetscInt nv)
   ierr = PetscFPTrapPop();CHKERRQ(ierr);
   ierr = BVMultColumn(eps->W,-1.0,1.0,nv,w);CHKERRQ(ierr);
   ierr = DSGetArray(eps->ds,DS_MAT_B,&T);CHKERRQ(ierr);
-  beta = T[(nv-1)*ld+nv];
-  for (i=0;i<nv;i++) T[(nv-1)*ld+i] += beta*w[i];
+  for (i=0;i<nv;i++) T[(nv-1)*ld+i] += betat*w[i];
   ierr = DSRestoreArray(eps->ds,DS_MAT_B,&T);CHKERRQ(ierr);
   ierr = PetscFree3(p,A,w);CHKERRQ(ierr);
   ierr = BVSetActiveColumns(eps->V,l,nnv);CHKERRQ(ierr);
@@ -131,9 +129,8 @@ PetscErrorCode EPSSolve_KrylovSchur_TwoSided(EPS eps)
 {
   PetscErrorCode  ierr;
   EPS_KRYLOVSCHUR *ctx = (EPS_KRYLOVSCHUR*)eps->data;
-  Mat             M,U,Op,OpHT;
+  Mat             M,U,Op,OpHT,S,T;
   PetscReal       norm,norm2,beta,betat;
-  PetscScalar     *S,*T;
   PetscInt        ld,l,nv,nvt,k,nconv,dsn,dsk;
   PetscBool       breakdownt,breakdown,breakdownl;
 
@@ -153,15 +150,17 @@ PetscErrorCode EPSSolve_KrylovSchur_TwoSided(EPS eps)
 
     /* Compute an nv-step Arnoldi factorization for Op */
     nv = PetscMin(eps->nconv+eps->mpd,eps->ncv);
-    ierr = DSGetArray(eps->ds,DS_MAT_A,&S);CHKERRQ(ierr);
-    ierr = BVMatArnoldi(eps->V,Op,S,ld,eps->nconv+l,&nv,&beta,&breakdown);CHKERRQ(ierr);
-    ierr = DSRestoreArray(eps->ds,DS_MAT_A,&S);CHKERRQ(ierr);
+    ierr = DSSetDimensions(eps->ds,nv,eps->nconv,eps->nconv+l);CHKERRQ(ierr);
+    ierr = DSGetMat(eps->ds,DS_MAT_A,&S);CHKERRQ(ierr);
+    ierr = BVMatArnoldi(eps->V,Op,S,eps->nconv+l,&nv,&beta,&breakdown);CHKERRQ(ierr);
+    ierr = DSRestoreMat(eps->ds,DS_MAT_A,&S);CHKERRQ(ierr);
 
     /* Compute an nv-step Arnoldi factorization for Op' */
     nvt = nv;
-    ierr = DSGetArray(eps->ds,DS_MAT_B,&T);CHKERRQ(ierr);
-    ierr = BVMatArnoldi(eps->W,OpHT,T,ld,eps->nconv+l,&nvt,&betat,&breakdownt);CHKERRQ(ierr);
-    ierr = DSRestoreArray(eps->ds,DS_MAT_B,&T);CHKERRQ(ierr);
+    ierr = DSSetDimensions(eps->ds,nv,eps->nconv,eps->nconv+l);CHKERRQ(ierr);
+    ierr = DSGetMat(eps->ds,DS_MAT_B,&T);CHKERRQ(ierr);
+    ierr = BVMatArnoldi(eps->W,OpHT,T,eps->nconv+l,&nvt,&betat,&breakdownt);CHKERRQ(ierr);
+    ierr = DSRestoreMat(eps->ds,DS_MAT_B,&T);CHKERRQ(ierr);
 
     /* Make sure both factorizations have the same length */
     nv = PetscMin(nv,nvt);
@@ -178,7 +177,7 @@ PetscErrorCode EPSSolve_KrylovSchur_TwoSided(EPS eps)
     ierr = BVSetActiveColumns(eps->W,eps->nconv+l,nv);CHKERRQ(ierr);
     ierr = BVMatProject(eps->V,NULL,eps->W,M);CHKERRQ(ierr);
 
-    ierr = EPSTwoSidedRQUpdate1(eps,M,nv);CHKERRQ(ierr);
+    ierr = EPSTwoSidedRQUpdate1(eps,M,nv,beta,betat);CHKERRQ(ierr);
 
     /* Solve projected problem */
     ierr = DSSolve(eps->ds,eps->eigr,eps->eigi);CHKERRQ(ierr);

@@ -268,8 +268,8 @@ PetscErrorCode EPSSolve_KrylovSchur_Default(EPS eps)
   PetscErrorCode  ierr;
   EPS_KRYLOVSCHUR *ctx = (EPS_KRYLOVSCHUR*)eps->data;
   PetscInt        j,*pj,k,l,nv,ld,nconv;
-  Mat             U,Op;
-  PetscScalar     *S,*g;
+  Mat             U,Op,H;
+  PetscScalar     *g;
   PetscReal       beta,gamma=1.0,*a,*b;
   PetscBool       breakdown,harmonic,hermitian;
 
@@ -291,6 +291,7 @@ PetscErrorCode EPSSolve_KrylovSchur_Default(EPS eps)
 
     /* Compute an nv-step Arnoldi factorization */
     nv = PetscMin(eps->nconv+eps->mpd,eps->ncv);
+    ierr = DSSetDimensions(eps->ds,nv,eps->nconv,eps->nconv+l);CHKERRQ(ierr);
     ierr = STGetOperator(eps->st,&Op);CHKERRQ(ierr);
     if (hermitian) {
       ierr = DSGetArrayReal(eps->ds,DS_MAT_T,&a);CHKERRQ(ierr);
@@ -299,9 +300,9 @@ PetscErrorCode EPSSolve_KrylovSchur_Default(EPS eps)
       beta = b[nv-1];
       ierr = DSRestoreArrayReal(eps->ds,DS_MAT_T,&a);CHKERRQ(ierr);
     } else {
-      ierr = DSGetArray(eps->ds,DS_MAT_A,&S);CHKERRQ(ierr);
-      ierr = BVMatArnoldi(eps->V,Op,S,ld,eps->nconv+l,&nv,&beta,&breakdown);CHKERRQ(ierr);
-      ierr = DSRestoreArray(eps->ds,DS_MAT_A,&S);CHKERRQ(ierr);
+      ierr = DSGetMat(eps->ds,DS_MAT_A,&H);CHKERRQ(ierr);
+      ierr = BVMatArnoldi(eps->V,Op,H,eps->nconv+l,&nv,&beta,&breakdown);CHKERRQ(ierr);
+      ierr = DSRestoreMat(eps->ds,DS_MAT_A,&H);CHKERRQ(ierr);
     }
     ierr = STRestoreOperator(eps->st,&Op);CHKERRQ(ierr);
     ierr = DSSetDimensions(eps->ds,nv,eps->nconv,eps->nconv+l);CHKERRQ(ierr);

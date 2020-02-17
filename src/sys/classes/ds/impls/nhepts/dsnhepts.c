@@ -432,6 +432,14 @@ PetscErrorCode DSDestroy_NHEPTS(DS ds)
   PetscFunctionReturn(0);
 }
 
+PetscErrorCode DSMatGetSize_NHEPTS(DS ds,DSMatType t,PetscInt *rows,PetscInt *cols)
+{
+  PetscFunctionBegin;
+  *rows = ((t==DS_MAT_A || t==DS_MAT_B) && ds->extrarow)? ds->n+1: ds->n;
+  *cols = ds->n;
+  PetscFunctionReturn(0);
+}
+
 /*MC
    DSNHEPTS - Dense Non-Hermitian Eigenvalue Problem (special variant intended
    for two-sided Krylov solvers).
@@ -484,6 +492,7 @@ SLEPC_EXTERN PetscErrorCode DSCreate_NHEPTS(DS ds)
   ds->ops->truncate        = DSTruncate_NHEPTS;
   ds->ops->update          = DSUpdateExtraRow_NHEPTS;
   ds->ops->destroy         = DSDestroy_NHEPTS;
+  ds->ops->matgetsize      = DSMatGetSize_NHEPTS;
   PetscFunctionReturn(0);
 }
 
