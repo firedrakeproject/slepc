@@ -318,54 +318,6 @@ PetscErrorCode EPSKrylovConvergence(EPS eps,PetscBool getall,PetscInt kini,Petsc
   PetscFunctionReturn(0);
 }
 
-/*
-   EPSFullLanczos - Computes an m-step Lanczos factorization with full
-   reorthogonalization.  At each Lanczos step, the corresponding Lanczos
-   vector is orthogonalized with respect to all previous Lanczos vectors.
-   This is equivalent to computing an m-step Arnoldi factorization and
-   exploting symmetry of the operator.
-
-   The first k columns are assumed to be locked and therefore they are
-   not modified. On exit, the following relation is satisfied:
-
-                    OP * V - V * T = beta_m*v_m * e_m^T
-
-   where the columns of V are the Lanczos vectors (which are B-orthonormal),
-   T is a real symmetric tridiagonal matrix, and e_m is the m-th vector of
-   the canonical basis. The tridiagonal is stored as two arrays: alpha
-   contains the diagonal elements, beta the off-diagonal. On exit, the last
-   element of beta contains the B-norm of V[m] before normalization.
-*/
-PetscErrorCode EPSFullLanczos(EPS eps,PetscReal *alpha,PetscReal *beta,PetscInt k,PetscInt *M,PetscBool *breakdown)
-{
-  PetscErrorCode ierr;
-  PetscScalar    *a;
-  PetscInt       j,nc,n,m = *M;
-  Vec            buf;
-  Mat            Op;
-
-  PetscFunctionBegin;
-  ierr = BVSetActiveColumns(eps->V,0,m);CHKERRQ(ierr);
-  ierr = STGetOperator(eps->st,&Op);CHKERRQ(ierr);
-  for (j=k;j<m;j++) {
-    ierr = BVMatMultColumn(eps->V,Op,j);CHKERRQ(ierr);
-    ierr = BVOrthonormalizeColumn(eps->V,j+1,PETSC_FALSE,beta+j,breakdown);CHKERRQ(ierr);
-    if (*breakdown) {
-      *M = j+1;
-      break;
-    }
-  }
-  ierr = STRestoreOperator(eps->st,&Op);CHKERRQ(ierr);
-  /* extract tridiagonal matrix from the BV object (only alpha, beta is already in its place) */
-  ierr = BVGetNumConstraints(eps->V,&nc);CHKERRQ(ierr);
-  ierr = BVGetSizes(eps->V,NULL,NULL,&n);CHKERRQ(ierr);
-  ierr = BVGetBufferVec(eps->V,&buf);CHKERRQ(ierr);
-  ierr = VecGetArray(buf,&a);CHKERRQ(ierr);
-  for (j=k;j<*M;j++) alpha[j] = PetscRealPart(a[nc+j+(j+1)*(nc+n)]);
-  ierr = VecRestoreArray(buf,&a);CHKERRQ(ierr);
-  PetscFunctionReturn(0);
-}
-
 PetscErrorCode EPSPseudoLanczos(EPS eps,PetscReal *alpha,PetscReal *beta,PetscReal *omega,PetscInt k,PetscInt *M,PetscBool *breakdown,PetscBool *symmlost,PetscReal *cos,Vec w)
 {
   PetscErrorCode ierr;

@@ -21,7 +21,7 @@ PetscErrorCode EPSSolve_KrylovSchur_Symm(EPS eps)
   PetscErrorCode  ierr;
   EPS_KRYLOVSCHUR *ctx = (EPS_KRYLOVSCHUR*)eps->data;
   PetscInt        k,l,ld,nv,nconv;
-  Mat             U;
+  Mat             U,Op;
   PetscReal       *a,*b,beta;
   PetscBool       breakdown;
 
@@ -40,7 +40,9 @@ PetscErrorCode EPSSolve_KrylovSchur_Symm(EPS eps)
     nv = PetscMin(eps->nconv+eps->mpd,eps->ncv);
     ierr = DSGetArrayReal(eps->ds,DS_MAT_T,&a);CHKERRQ(ierr);
     b = a + ld;
-    ierr = EPSFullLanczos(eps,a,b,eps->nconv+l,&nv,&breakdown);CHKERRQ(ierr);
+    ierr = STGetOperator(eps->st,&Op);CHKERRQ(ierr);
+    ierr = BVMatLanczos(eps->V,Op,a,b,eps->nconv+l,&nv,&breakdown);CHKERRQ(ierr);
+    ierr = STRestoreOperator(eps->st,&Op);CHKERRQ(ierr);
     beta = b[nv-1];
     ierr = DSRestoreArrayReal(eps->ds,DS_MAT_T,&a);CHKERRQ(ierr);
     ierr = DSSetDimensions(eps->ds,nv,0,eps->nconv,eps->nconv+l);CHKERRQ(ierr);

@@ -927,7 +927,7 @@ static PetscErrorCode EPSKrylovSchur_Slice(EPS eps)
   PetscErrorCode  ierr;
   EPS_KRYLOVSCHUR *ctx=(EPS_KRYLOVSCHUR*)eps->data;
   PetscInt        i,k,l,ld,nv,*iwork,j,count0,count1,iterCompl=0,n0,n1;
-  Mat             U;
+  Mat             U,Op;
   PetscScalar     *Q,*A;
   PetscReal       *a,*b,beta,lambda;
   EPS_shift       sPres;
@@ -965,7 +965,9 @@ static PetscErrorCode EPSKrylovSchur_Slice(EPS eps)
     nv = PetscMin(eps->nconv+eps->mpd,eps->ncv);
     ierr = DSGetArrayReal(eps->ds,DS_MAT_T,&a);CHKERRQ(ierr);
     b = a + ld;
-    ierr = EPSFullLanczos(eps,a,b,eps->nconv+l,&nv,&breakdown);CHKERRQ(ierr);
+    ierr = STGetOperator(eps->st,&Op);CHKERRQ(ierr);
+    ierr = BVMatLanczos(eps->V,Op,a,b,eps->nconv+l,&nv,&breakdown);CHKERRQ(ierr);
+    ierr = STRestoreOperator(eps->st,&Op);CHKERRQ(ierr);
     sr->nv = nv;
     beta = b[nv-1];
     ierr = DSRestoreArrayReal(eps->ds,DS_MAT_T,&a);CHKERRQ(ierr);
