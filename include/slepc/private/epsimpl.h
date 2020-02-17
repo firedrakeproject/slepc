@@ -205,7 +205,6 @@ SLEPC_INTERN PetscErrorCode EPSGetLeftStartVector(EPS,PetscInt,PetscBool*);
 
 /* Private functions of the solver implementations */
 
-SLEPC_INTERN PetscErrorCode EPSBasicArnoldi(EPS,PetscBool,PetscScalar*,PetscInt,PetscInt,PetscInt*,PetscReal*,PetscBool*);
 SLEPC_INTERN PetscErrorCode EPSDelayedArnoldi(EPS,PetscScalar*,PetscInt,PetscInt,PetscInt*,PetscReal*,PetscBool*);
 SLEPC_INTERN PetscErrorCode EPSDelayedArnoldi1(EPS,PetscScalar*,PetscInt,PetscInt,PetscInt*,PetscReal*,PetscBool*);
 SLEPC_INTERN PetscErrorCode EPSKrylovConvergence(EPS,PetscBool,PetscInt,PetscInt,PetscReal,PetscReal,PetscReal,PetscInt*);

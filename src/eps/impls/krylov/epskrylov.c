@@ -16,60 +16,7 @@
 #include <slepcblaslapack.h>
 
 /*
-   EPSBasicArnoldi - Computes an m-step Arnoldi factorization. The first k
-   columns are assumed to be locked and therefore they are not modified. On
-   exit, the following relation is satisfied:
-
-                    OP * V - V * H = beta*v_m * e_m^T
-
-   where the columns of V are the Arnoldi vectors (which are B-orthonormal),
-   H is an upper Hessenberg matrix, e_m is the m-th vector of the canonical basis.
-   On exit, beta contains the B-norm of V[m] before normalization.
-*/
-PetscErrorCode EPSBasicArnoldi(EPS eps,PetscBool trans,PetscScalar *H,PetscInt ldh,PetscInt k,PetscInt *M,PetscReal *beta,PetscBool *breakdown)
-{
-  PetscErrorCode ierr;
-  PetscScalar    *a;
-  PetscInt       j,nc,n,m = *M;
-  Vec            vj,vj1,buf;
-  Mat            Op;
-  BV             U;
-
-  PetscFunctionBegin;
-  U = (trans)?eps->W:eps->V;
-  ierr = BVSetActiveColumns(U,0,m);CHKERRQ(ierr);
-  ierr = STGetOperator(eps->st,&Op);CHKERRQ(ierr);
-  for (j=k;j<m;j++) {
-    ierr = BVGetColumn(U,j,&vj);CHKERRQ(ierr);
-    ierr = BVGetColumn(U,j+1,&vj1);CHKERRQ(ierr);
-    if (trans) {
-      ierr = MatMultHermitianTranspose(Op,vj,vj1);CHKERRQ(ierr);
-    } else {
-      ierr = MatMult(Op,vj,vj1);CHKERRQ(ierr);
-    }
-    ierr = BVRestoreColumn(U,j,&vj);CHKERRQ(ierr);
-    ierr = BVRestoreColumn(U,j+1,&vj1);CHKERRQ(ierr);
-    ierr = BVOrthonormalizeColumn(U,j+1,PETSC_FALSE,beta,breakdown);CHKERRQ(ierr);
-    if (*breakdown) {
-      *M = j+1;
-      break;
-    }
-  }
-  ierr = STRestoreOperator(eps->st,&Op);CHKERRQ(ierr);
-  /* extract Hessenberg matrix from the BV object */
-  ierr = BVGetNumConstraints(U,&nc);CHKERRQ(ierr);
-  ierr = BVGetSizes(U,NULL,NULL,&n);CHKERRQ(ierr);
-  ierr = BVGetBufferVec(U,&buf);CHKERRQ(ierr);
-  ierr = VecGetArray(buf,&a);CHKERRQ(ierr);
-  for (j=k;j<*M;j++) {
-    ierr = PetscArraycpy(H+j*ldh,a+nc+(j+1)*(nc+n),j+2);CHKERRQ(ierr);
-  }
-  ierr = VecRestoreArray(buf,&a);CHKERRQ(ierr);
-  PetscFunctionReturn(0);
-}
-
-/*
-   EPSDelayedArnoldi - This function is equivalent to EPSBasicArnoldi but
+   EPSDelayedArnoldi - This function is equivalent to BVMatArnoldi but
    performs the computation in a different way. The main idea is that
    reorthogonalization is delayed to the next Arnoldi step. This version is
    more scalable but in some cases convergence may stagnate.
