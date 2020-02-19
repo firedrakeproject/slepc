@@ -172,7 +172,10 @@ slepc_tree: ${ACTION}
             ${OMAKE} slepc_tree ACTION=${ACTION}  PETSC_ARCH=${PETSC_ARCH} LOC=${LOC} DATAFILESPATH=${DATAFILESPATH} BASE_DIR=${BASE_DIR} PRINT_PROGRESS=${PRINT_PROGRESS});\
 	  done
 
-slepc_libs:
+${SLEPC_DIR}/${PETSC_ARCH}/lib/slepc/conf/files:
+	@touch -t 197102020000 ${SLEPC_DIR}/${PETSC_ARCH}/lib/slepc/conf/files
+
+slepc_libs: ${SLEPC_DIR}/${PETSC_ARCH}/lib/slepc/conf/files ./${PETSC_ARCH}/tests/testfiles
 	+@cd ${SLEPC_DIR} && MAKEFLAGS="-j$(MAKE_NP) -l$(MAKE_LOAD) $(MAKEFLAGS)" ${OMAKE_PRINTDIR} -f gmakefile ${MAKE_PAR_OUT_FLG} V=${V}
 
 getlinklibs_slepc:

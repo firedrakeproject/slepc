@@ -8,13 +8,11 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 #requiresdefine   'PETSC_HAVE_FORTRAN'
-#requiresdefine   'PETSC_USING_F90'
-#
 
 CFLAGS     =
 FFLAGS     =
 SOURCEC    =
-SOURCEF    = slepcepsmod.F
+SOURCEF90  = slepcepsmod.F90
 SOURCEH    = slepceps.h slepceps.h90
 LIBBASE    = libslepceps
 MANSEC     = EPS

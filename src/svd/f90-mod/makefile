@@ -8,13 +8,11 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 #requiresdefine   'PETSC_HAVE_FORTRAN'
-#requiresdefine   'PETSC_USING_F90'
-#
 
 CFLAGS     =
 FFLAGS     =
 SOURCEC    =
-SOURCEF    = slepcsvdmod.F
+SOURCEF90  = slepcsvdmod.F90
 SOURCEH    = slepcsvd.h slepcsvd.h90
 LIBBASE    = libslepcsvd
 MANSEC     = SVD

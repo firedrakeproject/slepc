@@ -13,10 +13,10 @@ SONAME_FUNCTION ?= $(1).$(SL_LINKER_SUFFIX).$(2)
 # $(call SL_LINKER_FUNCTION,libfoo,abiversion,libversion)
 SL_LINKER_FUNCTION ?= -shared -Wl,-soname,$(call SONAME_FUNCTION,$(notdir $(1)),$(2))
 
-SLEPC_VERSION_MAJOR := $(shell awk '/\#define SLEPC_VERSION_MAJOR/{print $$3;}' ./include/slepcversion.h)
-SLEPC_VERSION_MINOR := $(shell awk '/\#define SLEPC_VERSION_MINOR/{print $$3;}' ./include/slepcversion.h)
-SLEPC_VERSION_SUBMINOR := $(shell awk '/\#define SLEPC_VERSION_SUBMINOR/{print $$3;}' ./include/slepcversion.h)
-SLEPC_VERSION_RELEASE := $(shell awk '/\#define SLEPC_VERSION_RELEASE/{print $$3;}' ./include/slepcversion.h)
+SLEPC_VERSION_MAJOR := $(shell awk '/define SLEPC_VERSION_MAJOR/{print $$3;}' ./include/slepcversion.h)
+SLEPC_VERSION_MINOR := $(shell awk '/define SLEPC_VERSION_MINOR/{print $$3;}' ./include/slepcversion.h)
+SLEPC_VERSION_SUBMINOR := $(shell awk '/define SLEPC_VERSION_SUBMINOR/{print $$3;}' ./include/slepcversion.h)
+SLEPC_VERSION_RELEASE := $(shell awk '/define SLEPC_VERSION_RELEASE/{print $$3;}' ./include/slepcversion.h)
 
 libslepc_abi_version := $(SLEPC_VERSION_MAJOR).$(if $(filter $(SLEPC_VERSION_RELEASE), 0 -2 -3 -4 -5),0)$(SLEPC_VERSION_MINOR)
 libslepc_lib_version := $(libslepc_abi_version).$(SLEPC_VERSION_SUBMINOR)
@@ -74,7 +74,7 @@ $(generated) : $(slepcconf) $(slepcvariables) $(PETSCCONFIGDIR)/gmakegen.py
 
 # Skip including generated files (which triggers rebuilding them) when we're just going to clean anyway.
 ifneq ($(MAKECMDGOALS:clean%=clean),clean)
--include $(generated)
+include $(generated)
 endif
 
 # implies shared libraries with MS compilers
@@ -82,7 +82,7 @@ ifeq ($(SL_LINKER_FUNCTION),-LD)
 $(OBJDIR)/%.o : CCPPFLAGS+=-Dslepc_EXPORTS
 endif
 
-langs := F cu cxx c
+langs := F F90 cu cxx c
 concatlang = $(foreach lang, $(langs), $(srcs-$(1).$(lang):src/%.$(lang)=$(OBJDIR)/%.o))
 srcs.o := $(foreach pkg, $(pkgs), $(call concatlang,$(pkg)))
 

@@ -8,13 +8,11 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 #requiresdefine   'PETSC_HAVE_FORTRAN'
-#requiresdefine   'PETSC_USING_F90'
-#
 
 CFLAGS     =
 FFLAGS     =
 SOURCEC    =
-SOURCEF    = slepcrgmod.F
+SOURCEF90  = slepcrgmod.F90
 SOURCEH    = slepcrg.h slepcrg.h90
 LIBBASE    = libslepcsys
 MANSEC     = RG

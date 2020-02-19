@@ -17,13 +17,9 @@
 
       ST, parameter :: SLEPC_NULL_ST = tST(0)
 
-      PetscEnum ST_MATMODE_COPY
-      PetscEnum ST_MATMODE_INPLACE
-      PetscEnum ST_MATMODE_SHELL
-
-      parameter (ST_MATMODE_COPY          =  0)
-      parameter (ST_MATMODE_INPLACE       =  1)
-      parameter (ST_MATMODE_SHELL         =  2)
+      PetscEnum, parameter :: ST_MATMODE_COPY          =  0
+      PetscEnum, parameter :: ST_MATMODE_INPLACE       =  1
+      PetscEnum, parameter :: ST_MATMODE_SHELL         =  2
 
 !
 !  End of Fortran include file for the ST package in SLEPc

@@ -17,15 +17,10 @@
 
       FN, parameter :: SLEPC_NULL_FN = tFN(0)
 
-      PetscEnum FN_COMBINE_ADD
-      PetscEnum FN_COMBINE_MULTIPLY
-      PetscEnum FN_COMBINE_DIVIDE
-      PetscEnum FN_COMBINE_COMPOSE
-
-      parameter (FN_COMBINE_ADD           =  0)
-      parameter (FN_COMBINE_MULTIPLY      =  1)
-      parameter (FN_COMBINE_DIVIDE        =  2)
-      parameter (FN_COMBINE_COMPOSE       =  3)
+      PetscEnum, parameter :: FN_COMBINE_ADD           =  0
+      PetscEnum, parameter :: FN_COMBINE_MULTIPLY      =  1
+      PetscEnum, parameter :: FN_COMBINE_DIVIDE        =  2
+      PetscEnum, parameter :: FN_COMBINE_COMPOSE       =  3
 
 !
 !  End of Fortran include file for the FN package in SLEPc

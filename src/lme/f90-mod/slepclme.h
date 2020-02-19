@@ -18,29 +18,17 @@
 
       LME, parameter :: SLEPC_NULL_LME = tLME(0)
 
-      PetscEnum LME_CONVERGED_TOL
-      PetscEnum LME_DIVERGED_ITS
-      PetscEnum LME_DIVERGED_BREAKDOWN
-      PetscEnum LME_CONVERGED_ITERATING
+      PetscEnum, parameter :: LME_CONVERGED_TOL          =  1
+      PetscEnum, parameter :: LME_DIVERGED_ITS           = -1
+      PetscEnum, parameter :: LME_DIVERGED_BREAKDOWN     = -2
+      PetscEnum, parameter :: LME_CONVERGED_ITERATING    =  0
 
-      parameter (LME_CONVERGED_TOL          =  1)
-      parameter (LME_DIVERGED_ITS           = -1)
-      parameter (LME_DIVERGED_BREAKDOWN     = -2)
-      parameter (LME_CONVERGED_ITERATING    =  0)
-
-      PetscEnum LME_LYAPUNOV
-      PetscEnum LME_SYLVESTER
-      PetscEnum LME_GEN_LYAPUNOV
-      PetscEnum LME_GEN_SYLVESTER
-      PetscEnum LME_DT_LYAPUNOV
-      PetscEnum LME_STEIN
-
-      parameter (LME_LYAPUNOV               =  0)
-      parameter (LME_SYLVESTER              =  1)
-      parameter (LME_GEN_LYAPUNOV           =  2)
-      parameter (LME_GEN_SYLVESTER          =  3)
-      parameter (LME_DT_LYAPUNOV            =  4)
-      parameter (LME_STEIN                  =  5)
+      PetscEnum, parameter :: LME_LYAPUNOV               =  0
+      PetscEnum, parameter :: LME_SYLVESTER              =  1
+      PetscEnum, parameter :: LME_GEN_LYAPUNOV           =  2
+      PetscEnum, parameter :: LME_GEN_SYLVESTER          =  3
+      PetscEnum, parameter :: LME_DT_LYAPUNOV            =  4
+      PetscEnum, parameter :: LME_STEIN                  =  5
 
 !
 !   Possible arguments to LMEMonitorSet()
