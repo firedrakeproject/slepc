@@ -17,39 +17,22 @@
 
       BV, parameter :: SLEPC_NULL_BV = tBV(0)
 
-      PetscEnum BV_ORTHOG_CGS
-      PetscEnum BV_ORTHOG_MGS
+      PetscEnum, parameter :: BV_ORTHOG_CGS             =  0
+      PetscEnum, parameter :: BV_ORTHOG_MGS             =  1
 
-      parameter (BV_ORTHOG_CGS             =  0)
-      parameter (BV_ORTHOG_MGS             =  1)
+      PetscEnum, parameter :: BV_ORTHOG_REFINE_IFNEEDED =  0
+      PetscEnum, parameter :: BV_ORTHOG_REFINE_NEVER    =  1
+      PetscEnum, parameter :: BV_ORTHOG_REFINE_ALWAYS   =  2
 
-      PetscEnum BV_ORTHOG_REFINE_IFNEEDED
-      PetscEnum BV_ORTHOG_REFINE_NEVER
-      PetscEnum BV_ORTHOG_REFINE_ALWAYS
+      PetscEnum, parameter :: BV_ORTHOG_BLOCK_GS        =  0
+      PetscEnum, parameter :: BV_ORTHOG_BLOCK_CHOL      =  1
+      PetscEnum, parameter :: BV_ORTHOG_BLOCK_TSQR      =  2
+      PetscEnum, parameter :: BV_ORTHOG_BLOCK_TSQRCHOL  =  3
+      PetscEnum, parameter :: BV_ORTHOG_BLOCK_SVQB      =  4
 
-      parameter (BV_ORTHOG_REFINE_IFNEEDED =  0)
-      parameter (BV_ORTHOG_REFINE_NEVER    =  1)
-      parameter (BV_ORTHOG_REFINE_ALWAYS   =  2)
-
-      PetscEnum BV_ORTHOG_BLOCK_GS
-      PetscEnum BV_ORTHOG_BLOCK_CHOL
-      PetscEnum BV_ORTHOG_BLOCK_TSQR
-      PetscEnum BV_ORTHOG_BLOCK_TSQRCHOL
-      PetscEnum BV_ORTHOG_BLOCK_SVQB
-
-      parameter (BV_ORTHOG_BLOCK_GS        =  0)
-      parameter (BV_ORTHOG_BLOCK_CHOL      =  1)
-      parameter (BV_ORTHOG_BLOCK_TSQR      =  2)
-      parameter (BV_ORTHOG_BLOCK_TSQRCHOL  =  3)
-      parameter (BV_ORTHOG_BLOCK_SVQB      =  4)
-
-      PetscEnum BV_MATMULT_VECS
-      PetscEnum BV_MATMULT_MAT
-      PetscEnum BV_MATMULT_MAT_SAVE
-
-      parameter (BV_MATMULT_VECS           =  0)
-      parameter (BV_MATMULT_MAT            =  1)
-      parameter (BV_MATMULT_MAT_SAVE       =  2)
+      PetscEnum, parameter :: BV_MATMULT_VECS           =  0
+      PetscEnum, parameter :: BV_MATMULT_MAT            =  1
+      PetscEnum, parameter :: BV_MATMULT_MAT_SAVE       =  2
 
 !
 !  End of Fortran include file for the BV package in SLEPc
