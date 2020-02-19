@@ -75,6 +75,24 @@ static PetscErrorCode MatDestroy_SLPTS(Mat M)
   PetscFunctionReturn(0);
 }
 
+#if defined(PETSC_HAVE_CUDA)
+static PetscErrorCode MatCreateVecs_SLPTS(Mat M,Vec *left,Vec *right)
+{
+  PetscErrorCode         ierr;
+  NEP_SLP_TWO_EPS_MSHELL *ctx;
+
+  PetscFunctionBegin;
+  ierr = MatShellGetContext(M,(void**)&ctx);CHKERRQ(ierr);
+  if (right) {
+    ierr = VecDuplicate(ctx->w,right);CHKERRQ(ierr);
+  }
+  if (left) {
+    ierr = VecDuplicate(ctx->w,left);CHKERRQ(ierr);
+  }
+  PetscFunctionReturn(0);
+}
+#endif
+
 static PetscErrorCode NEPSLPSetUpEPSMat(NEP nep,Mat F,Mat J,PetscBool left,Mat *M)
 {
   PetscErrorCode         ierr;
@@ -95,6 +113,9 @@ static PetscErrorCode NEPSLPSetUpEPSMat(NEP nep,Mat F,Mat J,PetscBool left,Mat *
     ierr = MatShellSetOperation(Mshell,MATOP_MULT,(void(*)(void))MatMult_SLPTS_Right);CHKERRQ(ierr);
   }
   ierr = MatShellSetOperation(Mshell,MATOP_DESTROY,(void(*)(void))MatDestroy_SLPTS);CHKERRQ(ierr);
+#if defined(PETSC_HAVE_CUDA)
+  ierr = MatShellSetOperation(Mshell,MATOP_CREATE_VECS,(void(*)(void))MatCreateVecs_SLPTS);CHKERRQ(ierr);
+#endif
   *M = Mshell;
   ierr = MatCreateVecs(nep->function,&shellctx->w,NULL);CHKERRQ(ierr);
   PetscFunctionReturn(0);
