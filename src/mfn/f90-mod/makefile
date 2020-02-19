@@ -14,7 +14,7 @@
 CFLAGS     =
 FFLAGS     =
 SOURCEC    =
-SOURCEF    = slepcmfnmod.F
+SOURCEF90  = slepcmfnmod.F90
 SOURCEH    = slepcmfn.h slepcmfn.h90
 LIBBASE    = libslepcmfn
 MANSEC     = MFN

@@ -14,7 +14,7 @@
 CFLAGS     =
 FFLAGS     =
 SOURCEC    =
-SOURCEF    = slepcdsmod.F
+SOURCEF90  = slepcdsmod.F90
 SOURCEH    = slepcds.h slepcds.h90
 LIBBASE    = libslepcsys
 MANSEC     = DS

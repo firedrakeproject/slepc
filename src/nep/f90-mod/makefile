@@ -14,7 +14,7 @@
 CFLAGS     =
 FFLAGS     =
 SOURCEC    =
-SOURCEF    = slepcnepmod.F
+SOURCEF90  = slepcnepmod.F90
 SOURCEH    = slepcnep.h slepcnep.h90
 LIBBASE    = libslepcnep
 MANSEC     = NEP
