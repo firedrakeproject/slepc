@@ -131,7 +131,7 @@ PetscErrorCode EPSSolve_KrylovSchur_TwoSided(EPS eps)
 {
   PetscErrorCode  ierr;
   EPS_KRYLOVSCHUR *ctx = (EPS_KRYLOVSCHUR*)eps->data;
-  Mat             M,U;
+  Mat             M,U,Op,OpHT;
   PetscReal       norm,norm2,beta,betat,s,t;
   PetscScalar     *pM,*S,*T,*eigr,*eigi,*Q;
   PetscInt        ld,l,nv,ncv=eps->ncv,i,j,k,nconv,*p,cont,*idx,*idx2,id=0;
@@ -148,6 +148,9 @@ PetscErrorCode EPSSolve_KrylovSchur_TwoSided(EPS eps)
   ierr = PetscMalloc6(ncv*ncv,&pM,ncv,&eigr,ncv,&eigi,ncv,&idx,ncv,&idx2,ncv,&p);CHKERRQ(ierr);
   ierr = MatCreateSeqDense(PETSC_COMM_SELF,eps->ncv,eps->ncv,pM,&M);CHKERRQ(ierr);
 
+  ierr = STGetOperator(eps->st,&Op);CHKERRQ(ierr);
+  ierr = MatCreateHermitianTranspose(Op,&OpHT);CHKERRQ(ierr);
+
   /* Restart loop */
   while (eps->reason == EPS_CONVERGED_ITERATING) {
     eps->its++;
@@ -155,7 +158,7 @@ PetscErrorCode EPSSolve_KrylovSchur_TwoSided(EPS eps)
     /* Compute an nv-step Arnoldi factorization */
     nv = PetscMin(eps->nconv+eps->mpd,eps->ncv);
     ierr = DSGetArray(eps->ds,DS_MAT_A,&S);CHKERRQ(ierr);
-    ierr = EPSBasicArnoldi(eps,PETSC_FALSE,S,ld,eps->nconv+l,&nv,&beta,&breakdown);CHKERRQ(ierr);
+    ierr = BVMatArnoldi(eps->V,Op,S,ld,eps->nconv+l,&nv,&beta,&breakdown);CHKERRQ(ierr);
     ierr = DSRestoreArray(eps->ds,DS_MAT_A,&S);CHKERRQ(ierr);
     ierr = DSSetDimensions(eps->ds,nv,0,eps->nconv,eps->nconv+l);CHKERRQ(ierr);
     if (l==0) {
@@ -166,7 +169,7 @@ PetscErrorCode EPSSolve_KrylovSchur_TwoSided(EPS eps)
 
     /* Compute an nv-step Arnoldi factorization */
     ierr = DSGetArray(eps->dsts,DS_MAT_A,&T);CHKERRQ(ierr);
-    ierr = EPSBasicArnoldi(eps,PETSC_TRUE,T,ld,eps->nconv+l,&nv,&betat,&breakdownt);CHKERRQ(ierr);
+    ierr = BVMatArnoldi(eps->W,OpHT,T,ld,eps->nconv+l,&nv,&betat,&breakdownt);CHKERRQ(ierr);
     ierr = DSRestoreArray(eps->dsts,DS_MAT_A,&T);CHKERRQ(ierr);
     ierr = DSSetDimensions(eps->dsts,nv,0,eps->nconv,eps->nconv+l);CHKERRQ(ierr);
     if (l==0) {
@@ -289,6 +292,9 @@ PetscErrorCode EPSSolve_KrylovSchur_TwoSided(EPS eps)
     eps->nconv = k;
     ierr = EPSMonitor(eps,eps->its,nconv,eps->eigr,eps->eigi,eps->errest,nv);CHKERRQ(ierr);
   }
+
+  ierr = STRestoreOperator(eps->st,&Op);CHKERRQ(ierr);
+  ierr = MatDestroy(&OpHT);CHKERRQ(ierr);
 
   /* truncate Schur decomposition and change the state to raw so that
      DSVectors() computes eigenvectors from scratch */

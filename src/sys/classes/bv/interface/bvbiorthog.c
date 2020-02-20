@@ -148,6 +148,7 @@ PetscErrorCode BVBiorthogonalizeColumn(BV V,BV W,PetscInt j)
   ierr = PetscObjectStateIncrease((PetscObject)W);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
+
 /*@
    BVBiorthonormalizeColumn - Bi-orthonormalize a column of two BV objects.
 

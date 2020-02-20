@@ -127,6 +127,7 @@ PetscErrorCode MFNSolveTranspose(MFN mfn,Vec b,Vec x)
   if (b!=x) PetscValidHeaderSpecific(x,VEC_CLASSID,3);
   if (b!=x) PetscCheckSameComm(mfn,1,x,3);
   mfn->transpose_solve = PETSC_TRUE;
+  if (!mfn->AT) { ierr = MatCreateTranspose(mfn->A,&mfn->AT);CHKERRQ(ierr); }
   ierr = MFNSolve_Private(mfn,b,x);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

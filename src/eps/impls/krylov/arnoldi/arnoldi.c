@@ -61,7 +61,7 @@ PetscErrorCode EPSSolve_Arnoldi(EPS eps)
 {
   PetscErrorCode     ierr;
   PetscInt           k,nv,ld;
-  Mat                U;
+  Mat                U,Op;
   PetscScalar        *H;
   PetscReal          beta,gamma=1.0;
   PetscBool          breakdown,harmonic,refined;
@@ -86,7 +86,9 @@ PetscErrorCode EPSSolve_Arnoldi(EPS eps)
     ierr = DSSetDimensions(eps->ds,nv,0,eps->nconv,0);CHKERRQ(ierr);
     ierr = DSGetArray(eps->ds,DS_MAT_A,&H);CHKERRQ(ierr);
     if (!arnoldi->delayed) {
-      ierr = EPSBasicArnoldi(eps,PETSC_FALSE,H,ld,eps->nconv,&nv,&beta,&breakdown);CHKERRQ(ierr);
+      ierr = STGetOperator(eps->st,&Op);CHKERRQ(ierr);
+      ierr = BVMatArnoldi(eps->V,Op,H,ld,eps->nconv,&nv,&beta,&breakdown);CHKERRQ(ierr);
+      ierr = STRestoreOperator(eps->st,&Op);CHKERRQ(ierr);
     } else if (orthog_ref == BV_ORTHOG_REFINE_NEVER) {
       ierr = EPSDelayedArnoldi1(eps,H,ld,eps->nconv,&nv,&beta,&breakdown);CHKERRQ(ierr);
     } else {

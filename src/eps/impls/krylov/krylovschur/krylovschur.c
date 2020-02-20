@@ -242,7 +242,7 @@ PetscErrorCode EPSSolve_KrylovSchur_Default(EPS eps)
   PetscErrorCode  ierr;
   EPS_KRYLOVSCHUR *ctx = (EPS_KRYLOVSCHUR*)eps->data;
   PetscInt        i,j,*pj,k,l,nv,ld,nconv;
-  Mat             U;
+  Mat             U,Op;
   PetscScalar     *S,*Q,*g;
   PetscReal       beta,gamma=1.0;
   PetscBool       breakdown,harmonic;
@@ -264,9 +264,11 @@ PetscErrorCode EPSSolve_KrylovSchur_Default(EPS eps)
 
     /* Compute an nv-step Arnoldi factorization */
     nv = PetscMin(eps->nconv+eps->mpd,eps->ncv);
+    ierr = STGetOperator(eps->st,&Op);CHKERRQ(ierr);
     ierr = DSGetArray(eps->ds,DS_MAT_A,&S);CHKERRQ(ierr);
-    ierr = EPSBasicArnoldi(eps,PETSC_FALSE,S,ld,eps->nconv+l,&nv,&beta,&breakdown);CHKERRQ(ierr);
+    ierr = BVMatArnoldi(eps->V,Op,S,ld,eps->nconv+l,&nv,&beta,&breakdown);CHKERRQ(ierr);
     ierr = DSRestoreArray(eps->ds,DS_MAT_A,&S);CHKERRQ(ierr);
+    ierr = STRestoreOperator(eps->st,&Op);CHKERRQ(ierr);
     ierr = DSSetDimensions(eps->ds,nv,0,eps->nconv,eps->nconv+l);CHKERRQ(ierr);
     if (l==0) {
       ierr = DSSetState(eps->ds,DS_STATE_INTERMEDIATE);CHKERRQ(ierr);

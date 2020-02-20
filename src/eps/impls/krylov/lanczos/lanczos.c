@@ -489,6 +489,7 @@ static PetscErrorCode EPSBasicLanczos(EPS eps,PetscReal *alpha,PetscReal *beta,P
   PetscInt           i,n=*m;
   PetscReal          betam;
   BVOrthogRefineType orthog_ref;
+  Mat                Op;
 
   PetscFunctionBegin;
   switch (lanczos->reorthog) {
@@ -496,7 +497,9 @@ static PetscErrorCode EPSBasicLanczos(EPS eps,PetscReal *alpha,PetscReal *beta,P
       ierr = EPSLocalLanczos(eps,alpha,beta,k,m,breakdown);CHKERRQ(ierr);
       break;
     case EPS_LANCZOS_REORTHOG_FULL:
-      ierr = EPSFullLanczos(eps,alpha,beta,k,m,breakdown);CHKERRQ(ierr);
+      ierr = STGetOperator(eps->st,&Op);CHKERRQ(ierr);
+      ierr = BVMatLanczos(eps->V,Op,alpha,beta,k,m,breakdown);CHKERRQ(ierr);
+      ierr = STRestoreOperator(eps->st,&Op);CHKERRQ(ierr);
       break;
     case EPS_LANCZOS_REORTHOG_SELECTIVE:
       ierr = EPSSelectiveLanczos(eps,alpha,beta,k,m,breakdown,anorm);CHKERRQ(ierr);
