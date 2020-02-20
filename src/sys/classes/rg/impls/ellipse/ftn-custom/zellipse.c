@@ -29,7 +29,7 @@
 #define rgellipsegetparameters011_ rgellipsegetparameters011
 #endif
 
-SLEPC_EXTERN void PETSC_STDCALL rgellipsegetparameters_(RG *rg,PetscScalar *center,PetscReal *radius,PetscReal *vscale,PetscErrorCode *ierr)
+SLEPC_EXTERN void rgellipsegetparameters_(RG *rg,PetscScalar *center,PetscReal *radius,PetscReal *vscale,PetscErrorCode *ierr)
 {
   CHKFORTRANNULLSCALAR(center);
   CHKFORTRANNULLREAL(radius);
@@ -37,37 +37,37 @@ SLEPC_EXTERN void PETSC_STDCALL rgellipsegetparameters_(RG *rg,PetscScalar *cent
   *ierr = RGEllipseGetParameters(*rg,center,radius,vscale);
 }
 
-SLEPC_EXTERN void PETSC_STDCALL rgellipsegetparameters000_(RG *rg,PetscScalar *center,PetscReal *radius,PetscReal *vscale,PetscErrorCode *ierr)
+SLEPC_EXTERN void rgellipsegetparameters000_(RG *rg,PetscScalar *center,PetscReal *radius,PetscReal *vscale,PetscErrorCode *ierr)
 {
   rgellipsegetparameters_(rg,center,radius,vscale,ierr);
 }
 
-SLEPC_EXTERN void PETSC_STDCALL rgellipsegetparameters100_(RG *rg,PetscScalar *center,PetscReal *radius,PetscReal *vscale,PetscErrorCode *ierr)
+SLEPC_EXTERN void rgellipsegetparameters100_(RG *rg,PetscScalar *center,PetscReal *radius,PetscReal *vscale,PetscErrorCode *ierr)
 {
   rgellipsegetparameters_(rg,center,radius,vscale,ierr);
 }
 
-SLEPC_EXTERN void PETSC_STDCALL rgellipsegetparameters010_(RG *rg,PetscScalar *center,PetscReal *radius,PetscReal *vscale,PetscErrorCode *ierr)
+SLEPC_EXTERN void rgellipsegetparameters010_(RG *rg,PetscScalar *center,PetscReal *radius,PetscReal *vscale,PetscErrorCode *ierr)
 {
   rgellipsegetparameters_(rg,center,radius,vscale,ierr);
 }
 
-SLEPC_EXTERN void PETSC_STDCALL rgellipsegetparameters110_(RG *rg,PetscScalar *center,PetscReal *radius,PetscReal *vscale,PetscErrorCode *ierr)
+SLEPC_EXTERN void rgellipsegetparameters110_(RG *rg,PetscScalar *center,PetscReal *radius,PetscReal *vscale,PetscErrorCode *ierr)
 {
   rgellipsegetparameters_(rg,center,radius,vscale,ierr);
 }
 
-SLEPC_EXTERN void PETSC_STDCALL rgellipsegetparameters001_(RG *rg,PetscScalar *center,PetscReal *radius,PetscReal *vscale,PetscErrorCode *ierr)
+SLEPC_EXTERN void rgellipsegetparameters001_(RG *rg,PetscScalar *center,PetscReal *radius,PetscReal *vscale,PetscErrorCode *ierr)
 {
   rgellipsegetparameters_(rg,center,radius,vscale,ierr);
 }
 
-SLEPC_EXTERN void PETSC_STDCALL rgellipsegetparameters101_(RG *rg,PetscScalar *center,PetscReal *radius,PetscReal *vscale,PetscErrorCode *ierr)
+SLEPC_EXTERN void rgellipsegetparameters101_(RG *rg,PetscScalar *center,PetscReal *radius,PetscReal *vscale,PetscErrorCode *ierr)
 {
   rgellipsegetparameters_(rg,center,radius,vscale,ierr);
 }
 
-SLEPC_EXTERN void PETSC_STDCALL rgellipsegetparameters011_(RG *rg,PetscScalar *center,PetscReal *radius,PetscReal *vscale,PetscErrorCode *ierr)
+SLEPC_EXTERN void rgellipsegetparameters011_(RG *rg,PetscScalar *center,PetscReal *radius,PetscReal *vscale,PetscErrorCode *ierr)
 {
   rgellipsegetparameters_(rg,center,radius,vscale,ierr);
 }

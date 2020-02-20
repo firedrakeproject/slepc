@@ -30,14 +30,14 @@
 #define fngettype_                 fngettype
 #endif
 
-SLEPC_EXTERN void PETSC_STDCALL fnview_(FN *fn,PetscViewer *viewer,PetscErrorCode *ierr)
+SLEPC_EXTERN void fnview_(FN *fn,PetscViewer *viewer,PetscErrorCode *ierr)
 {
   PetscViewer v;
   PetscPatchDefaultViewers_Fortran(viewer,v);
   *ierr = FNView(*fn,v);
 }
 
-SLEPC_EXTERN void PETSC_STDCALL fnviewfromoptions_(FN *fn,PetscObject obj,char* type PETSC_MIXED_LEN(len),PetscErrorCode *ierr PETSC_END_LEN(len))
+SLEPC_EXTERN void fnviewfromoptions_(FN *fn,PetscObject obj,char* type,PetscErrorCode *ierr,PETSC_FORTRAN_CHARLEN_T len)
 {
   char *t;
 
@@ -46,7 +46,7 @@ SLEPC_EXTERN void PETSC_STDCALL fnviewfromoptions_(FN *fn,PetscObject obj,char* 
   FREECHAR(type,t);
 }
 
-SLEPC_EXTERN void PETSC_STDCALL fnsetoptionsprefix_(FN *fn,char *prefix PETSC_MIXED_LEN(len),PetscErrorCode *ierr PETSC_END_LEN(len))
+SLEPC_EXTERN void fnsetoptionsprefix_(FN *fn,char *prefix,PetscErrorCode *ierr,PETSC_FORTRAN_CHARLEN_T len)
 {
   char *t;
 
@@ -55,7 +55,7 @@ SLEPC_EXTERN void PETSC_STDCALL fnsetoptionsprefix_(FN *fn,char *prefix PETSC_MI
   FREECHAR(prefix,t);
 }
 
-SLEPC_EXTERN void PETSC_STDCALL fnappendoptionsprefix_(FN *fn,char *prefix PETSC_MIXED_LEN(len),PetscErrorCode *ierr PETSC_END_LEN(len))
+SLEPC_EXTERN void fnappendoptionsprefix_(FN *fn,char *prefix,PetscErrorCode *ierr,PETSC_FORTRAN_CHARLEN_T len)
 {
   char *t;
 
@@ -64,7 +64,7 @@ SLEPC_EXTERN void PETSC_STDCALL fnappendoptionsprefix_(FN *fn,char *prefix PETSC
   FREECHAR(prefix,t);
 }
 
-SLEPC_EXTERN void PETSC_STDCALL fngetoptionsprefix_(FN *fn,char *prefix PETSC_MIXED_LEN(len),PetscErrorCode *ierr PETSC_END_LEN(len))
+SLEPC_EXTERN void fngetoptionsprefix_(FN *fn,char *prefix,PetscErrorCode *ierr,PETSC_FORTRAN_CHARLEN_T len)
 {
   const char *tname;
 
@@ -73,7 +73,7 @@ SLEPC_EXTERN void PETSC_STDCALL fngetoptionsprefix_(FN *fn,char *prefix PETSC_MI
   FIXRETURNCHAR(PETSC_TRUE,prefix,len);
 }
 
-SLEPC_EXTERN void PETSC_STDCALL fnsettype_(FN *fn,char *type PETSC_MIXED_LEN(len),PetscErrorCode *ierr PETSC_END_LEN(len))
+SLEPC_EXTERN void fnsettype_(FN *fn,char *type,PetscErrorCode *ierr,PETSC_FORTRAN_CHARLEN_T len)
 {
   char *t;
 
@@ -82,7 +82,7 @@ SLEPC_EXTERN void PETSC_STDCALL fnsettype_(FN *fn,char *type PETSC_MIXED_LEN(len
   FREECHAR(type,t);
 }
 
-SLEPC_EXTERN void PETSC_STDCALL fngettype_(FN *fn,char *name PETSC_MIXED_LEN(len),PetscErrorCode *ierr PETSC_END_LEN(len))
+SLEPC_EXTERN void fngettype_(FN *fn,char *name,PetscErrorCode *ierr,PETSC_FORTRAN_CHARLEN_T len)
 {
   FNType tname;
 

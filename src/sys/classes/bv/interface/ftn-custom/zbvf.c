@@ -29,7 +29,7 @@
 #define bvviewfromoptions_        bvviewfromoptions
 #endif
 
-SLEPC_EXTERN void PETSC_STDCALL bvsettype_(BV *bv,char *type PETSC_MIXED_LEN(len),PetscErrorCode *ierr PETSC_END_LEN(len))
+SLEPC_EXTERN void bvsettype_(BV *bv,char *type,PetscErrorCode *ierr,PETSC_FORTRAN_CHARLEN_T len)
 {
   char *t;
 
@@ -38,7 +38,7 @@ SLEPC_EXTERN void PETSC_STDCALL bvsettype_(BV *bv,char *type PETSC_MIXED_LEN(len
   FREECHAR(type,t);
 }
 
-SLEPC_EXTERN void PETSC_STDCALL bvgettype_(BV *bv,char *name PETSC_MIXED_LEN(len),PetscErrorCode *ierr PETSC_END_LEN(len))
+SLEPC_EXTERN void bvgettype_(BV *bv,char *name,PetscErrorCode *ierr,PETSC_FORTRAN_CHARLEN_T len)
 {
   BVType tname;
 
@@ -47,7 +47,7 @@ SLEPC_EXTERN void PETSC_STDCALL bvgettype_(BV *bv,char *name PETSC_MIXED_LEN(len
   FIXRETURNCHAR(PETSC_TRUE,name,len);
 }
 
-SLEPC_EXTERN void PETSC_STDCALL bvsetoptionsprefix_(BV *bv,char *prefix PETSC_MIXED_LEN(len),PetscErrorCode *ierr PETSC_END_LEN(len))
+SLEPC_EXTERN void bvsetoptionsprefix_(BV *bv,char *prefix,PetscErrorCode *ierr,PETSC_FORTRAN_CHARLEN_T len)
 {
   char *t;
 
@@ -56,7 +56,7 @@ SLEPC_EXTERN void PETSC_STDCALL bvsetoptionsprefix_(BV *bv,char *prefix PETSC_MI
   FREECHAR(prefix,t);
 }
 
-SLEPC_EXTERN void PETSC_STDCALL bvappendoptionsprefix_(BV *bv,char *prefix PETSC_MIXED_LEN(len),PetscErrorCode *ierr PETSC_END_LEN(len))
+SLEPC_EXTERN void bvappendoptionsprefix_(BV *bv,char *prefix,PetscErrorCode *ierr,PETSC_FORTRAN_CHARLEN_T len)
 {
   char *t;
 
@@ -65,7 +65,7 @@ SLEPC_EXTERN void PETSC_STDCALL bvappendoptionsprefix_(BV *bv,char *prefix PETSC
   FREECHAR(prefix,t);
 }
 
-SLEPC_EXTERN void PETSC_STDCALL bvgetoptionsprefix_(BV *bv,char *prefix PETSC_MIXED_LEN(len),PetscErrorCode *ierr PETSC_END_LEN(len))
+SLEPC_EXTERN void bvgetoptionsprefix_(BV *bv,char *prefix,PetscErrorCode *ierr,PETSC_FORTRAN_CHARLEN_T len)
 {
   const char *tname;
 
@@ -74,14 +74,14 @@ SLEPC_EXTERN void PETSC_STDCALL bvgetoptionsprefix_(BV *bv,char *prefix PETSC_MI
   FIXRETURNCHAR(PETSC_TRUE,prefix,len);
 }
 
-SLEPC_EXTERN void PETSC_STDCALL bvview_(BV *bv,PetscViewer *viewer,PetscErrorCode *ierr)
+SLEPC_EXTERN void bvview_(BV *bv,PetscViewer *viewer,PetscErrorCode *ierr)
 {
   PetscViewer v;
   PetscPatchDefaultViewers_Fortran(viewer,v);
   *ierr = BVView(*bv,v);
 }
 
-SLEPC_EXTERN void PETSC_STDCALL bvviewfromoptions_(BV *bv,PetscObject obj,char* type PETSC_MIXED_LEN(len),PetscErrorCode *ierr PETSC_END_LEN(len))
+SLEPC_EXTERN void bvviewfromoptions_(BV *bv,PetscObject obj,char* type,PetscErrorCode *ierr,PETSC_FORTRAN_CHARLEN_T len)
 {
   char *t;
 

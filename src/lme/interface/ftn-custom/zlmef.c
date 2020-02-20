@@ -45,7 +45,7 @@
 
 /*
    These are not usually called from Fortran but allow Fortran users
-   to transparently set these monitors from .F code, hence no STDCALL
+   to transparently set these monitors from .F code
 */
 SLEPC_EXTERN void lmemonitordefault_(LME *lme,PetscInt *it,PetscReal *errest,PetscViewerAndFormat **ctx,PetscErrorCode *ierr)
 {
@@ -74,14 +74,14 @@ static PetscErrorCode ourdestroy(void** ctx)
   PetscObjectUseFortranCallback(lme,_cb.monitordestroy,(void*,PetscErrorCode*),(_ctx,&ierr));
 }
 
-SLEPC_EXTERN void PETSC_STDCALL lmeview_(LME *lme,PetscViewer *viewer,PetscErrorCode *ierr)
+SLEPC_EXTERN void lmeview_(LME *lme,PetscViewer *viewer,PetscErrorCode *ierr)
 {
   PetscViewer v;
   PetscPatchDefaultViewers_Fortran(viewer,v);
   *ierr = LMEView(*lme,v);
 }
 
-SLEPC_EXTERN void PETSC_STDCALL lmeviewfromoptions_(LME *lme,PetscObject obj,char* type PETSC_MIXED_LEN(len),PetscErrorCode *ierr PETSC_END_LEN(len))
+SLEPC_EXTERN void lmeviewfromoptions_(LME *lme,PetscObject obj,char* type,PetscErrorCode *ierr,PETSC_FORTRAN_CHARLEN_T len)
 {
   char *t;
 
@@ -90,14 +90,14 @@ SLEPC_EXTERN void PETSC_STDCALL lmeviewfromoptions_(LME *lme,PetscObject obj,cha
   FREECHAR(type,t);
 }
 
-SLEPC_EXTERN void PETSC_STDCALL lmereasonview_(LME *lme,PetscViewer *viewer,PetscErrorCode *ierr)
+SLEPC_EXTERN void lmereasonview_(LME *lme,PetscViewer *viewer,PetscErrorCode *ierr)
 {
   PetscViewer v;
   PetscPatchDefaultViewers_Fortran(viewer,v);
   *ierr = LMEReasonView(*lme,v);
 }
 
-SLEPC_EXTERN void PETSC_STDCALL lmesettype_(LME *lme,char *type PETSC_MIXED_LEN(len),PetscErrorCode *ierr PETSC_END_LEN(len))
+SLEPC_EXTERN void lmesettype_(LME *lme,char *type,PetscErrorCode *ierr,PETSC_FORTRAN_CHARLEN_T len)
 {
   char *t;
 
@@ -106,7 +106,7 @@ SLEPC_EXTERN void PETSC_STDCALL lmesettype_(LME *lme,char *type PETSC_MIXED_LEN(
   FREECHAR(type,t);
 }
 
-SLEPC_EXTERN void PETSC_STDCALL lmegettype_(LME *lme,char *name PETSC_MIXED_LEN(len),PetscErrorCode *ierr PETSC_END_LEN(len))
+SLEPC_EXTERN void lmegettype_(LME *lme,char *name,PetscErrorCode *ierr,PETSC_FORTRAN_CHARLEN_T len)
 {
   LMEType tname;
 
@@ -115,7 +115,7 @@ SLEPC_EXTERN void PETSC_STDCALL lmegettype_(LME *lme,char *name PETSC_MIXED_LEN(
   FIXRETURNCHAR(PETSC_TRUE,name,len);
 }
 
-SLEPC_EXTERN void PETSC_STDCALL lmesetoptionsprefix_(LME *lme,char *prefix PETSC_MIXED_LEN(len),PetscErrorCode *ierr PETSC_END_LEN(len))
+SLEPC_EXTERN void lmesetoptionsprefix_(LME *lme,char *prefix,PetscErrorCode *ierr,PETSC_FORTRAN_CHARLEN_T len)
 {
   char *t;
 
@@ -124,7 +124,7 @@ SLEPC_EXTERN void PETSC_STDCALL lmesetoptionsprefix_(LME *lme,char *prefix PETSC
   FREECHAR(prefix,t);
 }
 
-SLEPC_EXTERN void PETSC_STDCALL lmeappendoptionsprefix_(LME *lme,char *prefix PETSC_MIXED_LEN(len),PetscErrorCode *ierr PETSC_END_LEN(len))
+SLEPC_EXTERN void lmeappendoptionsprefix_(LME *lme,char *prefix,PetscErrorCode *ierr,PETSC_FORTRAN_CHARLEN_T len)
 {
   char *t;
 
@@ -133,7 +133,7 @@ SLEPC_EXTERN void PETSC_STDCALL lmeappendoptionsprefix_(LME *lme,char *prefix PE
   FREECHAR(prefix,t);
 }
 
-SLEPC_EXTERN void PETSC_STDCALL lmegetoptionsprefix_(LME *lme,char *prefix PETSC_MIXED_LEN(len),PetscErrorCode *ierr PETSC_END_LEN(len))
+SLEPC_EXTERN void lmegetoptionsprefix_(LME *lme,char *prefix,PetscErrorCode *ierr,PETSC_FORTRAN_CHARLEN_T len)
 {
   const char *tname;
 
@@ -142,7 +142,7 @@ SLEPC_EXTERN void PETSC_STDCALL lmegetoptionsprefix_(LME *lme,char *prefix PETSC
   FIXRETURNCHAR(PETSC_TRUE,prefix,len);
 }
 
-SLEPC_EXTERN void PETSC_STDCALL lmemonitorset_(LME *lme,void (PETSC_STDCALL *monitor)(LME*,PetscInt*,PetscReal*,void*,PetscErrorCode*),void *mctx,void (PETSC_STDCALL *monitordestroy)(void *,PetscErrorCode*),PetscErrorCode *ierr)
+SLEPC_EXTERN void lmemonitorset_(LME *lme,void (*monitor)(LME*,PetscInt*,PetscReal*,void*,PetscErrorCode*),void *mctx,void (*monitordestroy)(void *,PetscErrorCode*),PetscErrorCode *ierr)
 {
   CHKFORTRANNULLOBJECT(mctx);
   CHKFORTRANNULLFUNCTION(monitordestroy);
@@ -157,24 +157,24 @@ SLEPC_EXTERN void PETSC_STDCALL lmemonitorset_(LME *lme,void (PETSC_STDCALL *mon
   }
 }
 
-SLEPC_EXTERN void PETSC_STDCALL lmegettolerances_(LME *lme,PetscReal *tol,PetscInt *maxits,PetscErrorCode *ierr)
+SLEPC_EXTERN void lmegettolerances_(LME *lme,PetscReal *tol,PetscInt *maxits,PetscErrorCode *ierr)
 {
   CHKFORTRANNULLREAL(tol);
   CHKFORTRANNULLINTEGER(maxits);
   *ierr = LMEGetTolerances(*lme,tol,maxits);
 }
 
-SLEPC_EXTERN void PETSC_STDCALL lmegettolerances00_(LME *lme,PetscReal *tol,PetscInt *maxits,PetscErrorCode *ierr)
+SLEPC_EXTERN void lmegettolerances00_(LME *lme,PetscReal *tol,PetscInt *maxits,PetscErrorCode *ierr)
 {
   lmegettolerances_(lme,tol,maxits,ierr);
 }
 
-SLEPC_EXTERN void PETSC_STDCALL lmegettolerances10_(LME *lme,PetscReal *tol,PetscInt *maxits,PetscErrorCode *ierr)
+SLEPC_EXTERN void lmegettolerances10_(LME *lme,PetscReal *tol,PetscInt *maxits,PetscErrorCode *ierr)
 {
   lmegettolerances_(lme,tol,maxits,ierr);
 }
 
-SLEPC_EXTERN void PETSC_STDCALL lmegettolerances01_(LME *lme,PetscReal *tol,PetscInt *maxits,PetscErrorCode *ierr)
+SLEPC_EXTERN void lmegettolerances01_(LME *lme,PetscReal *tol,PetscInt *maxits,PetscErrorCode *ierr)
 {
   lmegettolerances_(lme,tol,maxits,ierr);
 }

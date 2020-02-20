@@ -126,7 +126,7 @@
 
 /*
    These are not usually called from Fortran but allow Fortran users
-   to transparently set these monitors from .F code, hence no STDCALL
+   to transparently set these monitors from .F code
 */
 SLEPC_EXTERN void pepmonitorall_(PEP *pep,PetscInt *it,PetscInt *nconv,PetscScalar *eigr,PetscScalar *eigi,PetscReal *errest,PetscInt *nest,PetscViewerAndFormat **ctx,PetscErrorCode *ierr)
 {
@@ -203,14 +203,14 @@ static PetscErrorCode oureigenvaluecomparison(PetscScalar ar,PetscScalar ai,Pets
   PetscObjectUseFortranCallback(pep,_cb.comparison,(PetscScalar*,PetscScalar*,PetscScalar*,PetscScalar*,PetscInt*,void*,PetscErrorCode*),(&ar,&ai,&br,&bi,r,_ctx,&ierr));
 }
 
-SLEPC_EXTERN void PETSC_STDCALL pepview_(PEP *pep,PetscViewer *viewer,PetscErrorCode *ierr)
+SLEPC_EXTERN void pepview_(PEP *pep,PetscViewer *viewer,PetscErrorCode *ierr)
 {
   PetscViewer v;
   PetscPatchDefaultViewers_Fortran(viewer,v);
   *ierr = PEPView(*pep,v);
 }
 
-SLEPC_EXTERN void PETSC_STDCALL pepviewfromoptions_(PEP *pep,PetscObject obj,char* type PETSC_MIXED_LEN(len),PetscErrorCode *ierr PETSC_END_LEN(len))
+SLEPC_EXTERN void pepviewfromoptions_(PEP *pep,PetscObject obj,char* type,PetscErrorCode *ierr,PETSC_FORTRAN_CHARLEN_T len)
 {
   char *t;
 
@@ -219,35 +219,35 @@ SLEPC_EXTERN void PETSC_STDCALL pepviewfromoptions_(PEP *pep,PetscObject obj,cha
   FREECHAR(type,t);
 }
 
-SLEPC_EXTERN void PETSC_STDCALL pepreasonview_(PEP *pep,PetscViewer *viewer,PetscErrorCode *ierr)
+SLEPC_EXTERN void pepreasonview_(PEP *pep,PetscViewer *viewer,PetscErrorCode *ierr)
 {
   PetscViewer v;
   PetscPatchDefaultViewers_Fortran(viewer,v);
   *ierr = PEPReasonView(*pep,v);
 }
 
-SLEPC_EXTERN void PETSC_STDCALL peperrorview_(PEP *pep,PEPErrorType *etype,PetscViewer *viewer,PetscErrorCode *ierr)
+SLEPC_EXTERN void peperrorview_(PEP *pep,PEPErrorType *etype,PetscViewer *viewer,PetscErrorCode *ierr)
 {
   PetscViewer v;
   PetscPatchDefaultViewers_Fortran(viewer,v);
   *ierr = PEPErrorView(*pep,*etype,v);
 }
 
-SLEPC_EXTERN void PETSC_STDCALL pepvaluesview_(PEP *pep,PetscViewer *viewer,PetscErrorCode *ierr)
+SLEPC_EXTERN void pepvaluesview_(PEP *pep,PetscViewer *viewer,PetscErrorCode *ierr)
 {
   PetscViewer v;
   PetscPatchDefaultViewers_Fortran(viewer,v);
   *ierr = PEPValuesView(*pep,v);
 }
 
-SLEPC_EXTERN void PETSC_STDCALL pepvectorsview_(PEP *pep,PetscViewer *viewer,PetscErrorCode *ierr)
+SLEPC_EXTERN void pepvectorsview_(PEP *pep,PetscViewer *viewer,PetscErrorCode *ierr)
 {
   PetscViewer v;
   PetscPatchDefaultViewers_Fortran(viewer,v);
   *ierr = PEPVectorsView(*pep,v);
 }
 
-SLEPC_EXTERN void PETSC_STDCALL pepsettype_(PEP *pep,char *type PETSC_MIXED_LEN(len),PetscErrorCode *ierr PETSC_END_LEN(len))
+SLEPC_EXTERN void pepsettype_(PEP *pep,char *type,PetscErrorCode *ierr,PETSC_FORTRAN_CHARLEN_T len)
 {
   char *t;
 
@@ -256,7 +256,7 @@ SLEPC_EXTERN void PETSC_STDCALL pepsettype_(PEP *pep,char *type PETSC_MIXED_LEN(
   FREECHAR(type,t);
 }
 
-SLEPC_EXTERN void PETSC_STDCALL pepgettype_(PEP *pep,char *name PETSC_MIXED_LEN(len),PetscErrorCode *ierr PETSC_END_LEN(len))
+SLEPC_EXTERN void pepgettype_(PEP *pep,char *name,PetscErrorCode *ierr,PETSC_FORTRAN_CHARLEN_T len)
 {
   PEPType tname;
 
@@ -265,7 +265,7 @@ SLEPC_EXTERN void PETSC_STDCALL pepgettype_(PEP *pep,char *name PETSC_MIXED_LEN(
   FIXRETURNCHAR(PETSC_TRUE,name,len);
 }
 
-SLEPC_EXTERN void PETSC_STDCALL pepsetoptionsprefix_(PEP *pep,char *prefix PETSC_MIXED_LEN(len),PetscErrorCode *ierr PETSC_END_LEN(len))
+SLEPC_EXTERN void pepsetoptionsprefix_(PEP *pep,char *prefix,PetscErrorCode *ierr,PETSC_FORTRAN_CHARLEN_T len)
 {
   char *t;
 
@@ -274,7 +274,7 @@ SLEPC_EXTERN void PETSC_STDCALL pepsetoptionsprefix_(PEP *pep,char *prefix PETSC
   FREECHAR(prefix,t);
 }
 
-SLEPC_EXTERN void PETSC_STDCALL pepappendoptionsprefix_(PEP *pep,char *prefix PETSC_MIXED_LEN(len),PetscErrorCode *ierr PETSC_END_LEN(len))
+SLEPC_EXTERN void pepappendoptionsprefix_(PEP *pep,char *prefix,PetscErrorCode *ierr,PETSC_FORTRAN_CHARLEN_T len)
 {
   char *t;
 
@@ -283,7 +283,7 @@ SLEPC_EXTERN void PETSC_STDCALL pepappendoptionsprefix_(PEP *pep,char *prefix PE
   FREECHAR(prefix,t);
 }
 
-SLEPC_EXTERN void PETSC_STDCALL pepgetoptionsprefix_(PEP *pep,char *prefix PETSC_MIXED_LEN(len),PetscErrorCode *ierr PETSC_END_LEN(len))
+SLEPC_EXTERN void pepgetoptionsprefix_(PEP *pep,char *prefix,PetscErrorCode *ierr,PETSC_FORTRAN_CHARLEN_T len)
 {
   const char *tname;
 
@@ -292,7 +292,7 @@ SLEPC_EXTERN void PETSC_STDCALL pepgetoptionsprefix_(PEP *pep,char *prefix PETSC
   FIXRETURNCHAR(PETSC_TRUE,prefix,len);
 }
 
-SLEPC_EXTERN void PETSC_STDCALL pepmonitorset_(PEP *pep,void (PETSC_STDCALL *monitor)(PEP*,PetscInt*,PetscInt*,PetscScalar*,PetscScalar*,PetscReal*,PetscInt*,void*,PetscErrorCode*),void *mctx,void (PETSC_STDCALL *monitordestroy)(void *,PetscErrorCode*),PetscErrorCode *ierr)
+SLEPC_EXTERN void pepmonitorset_(PEP *pep,void (*monitor)(PEP*,PetscInt*,PetscInt*,PetscScalar*,PetscScalar*,PetscReal*,PetscInt*,void*,PetscErrorCode*),void *mctx,void (*monitordestroy)(void *,PetscErrorCode*),PetscErrorCode *ierr)
 {
   CHKFORTRANNULLOBJECT(mctx);
   CHKFORTRANNULLFUNCTION(monitordestroy);
@@ -313,17 +313,17 @@ SLEPC_EXTERN void PETSC_STDCALL pepmonitorset_(PEP *pep,void (PETSC_STDCALL *mon
   }
 }
 
-SLEPC_EXTERN void PETSC_STDCALL pepconvergedabsolute_(PEP *pep,PetscScalar *eigr,PetscScalar *eigi,PetscReal *res,PetscReal *errest,void *ctx,PetscErrorCode *ierr)
+SLEPC_EXTERN void pepconvergedabsolute_(PEP *pep,PetscScalar *eigr,PetscScalar *eigi,PetscReal *res,PetscReal *errest,void *ctx,PetscErrorCode *ierr)
 {
   *ierr = PEPConvergedAbsolute(*pep,*eigr,*eigi,*res,errest,ctx);
 }
 
-SLEPC_EXTERN void PETSC_STDCALL pepconvergedrelative_(PEP *pep,PetscScalar *eigr,PetscScalar *eigi,PetscReal *res,PetscReal *errest,void *ctx,PetscErrorCode *ierr)
+SLEPC_EXTERN void pepconvergedrelative_(PEP *pep,PetscScalar *eigr,PetscScalar *eigi,PetscReal *res,PetscReal *errest,void *ctx,PetscErrorCode *ierr)
 {
   *ierr = PEPConvergedRelative(*pep,*eigr,*eigi,*res,errest,ctx);
 }
 
-SLEPC_EXTERN void PETSC_STDCALL pepsetconvergencetestfunction_(PEP *pep,void (PETSC_STDCALL *func)(PEP*,PetscScalar*,PetscScalar*,PetscReal*,PetscReal*,void*,PetscErrorCode*),void* ctx,void (PETSC_STDCALL *destroy)(void*,PetscErrorCode*),PetscErrorCode *ierr)
+SLEPC_EXTERN void pepsetconvergencetestfunction_(PEP *pep,void (*func)(PEP*,PetscScalar*,PetscScalar*,PetscReal*,PetscReal*,void*,PetscErrorCode*),void* ctx,void (*destroy)(void*,PetscErrorCode*),PetscErrorCode *ierr)
 {
   CHKFORTRANNULLOBJECT(ctx);
   CHKFORTRANNULLFUNCTION(destroy);
@@ -338,12 +338,12 @@ SLEPC_EXTERN void PETSC_STDCALL pepsetconvergencetestfunction_(PEP *pep,void (PE
   }
 }
 
-SLEPC_EXTERN void PETSC_STDCALL pepstoppingbasic_(PEP *pep,PetscInt *its,PetscInt *max_it,PetscInt *nconv,PetscInt *nev,PEPConvergedReason *reason,void *ctx,PetscErrorCode *ierr)
+SLEPC_EXTERN void pepstoppingbasic_(PEP *pep,PetscInt *its,PetscInt *max_it,PetscInt *nconv,PetscInt *nev,PEPConvergedReason *reason,void *ctx,PetscErrorCode *ierr)
 {
   *ierr = PEPStoppingBasic(*pep,*its,*max_it,*nconv,*nev,reason,ctx);
 }
 
-SLEPC_EXTERN void PETSC_STDCALL pepsetstoppingtestfunction_(PEP *pep,void (PETSC_STDCALL *func)(PEP*,PetscInt,PetscInt,PetscInt,PetscInt,PEPConvergedReason*,void*,PetscErrorCode*),void* ctx,void (PETSC_STDCALL *destroy)(void*,PetscErrorCode*),PetscErrorCode *ierr)
+SLEPC_EXTERN void pepsetstoppingtestfunction_(PEP *pep,void (*func)(PEP*,PetscInt,PetscInt,PetscInt,PetscInt,PEPConvergedReason*,void*,PetscErrorCode*),void* ctx,void (*destroy)(void*,PetscErrorCode*),PetscErrorCode *ierr)
 {
   CHKFORTRANNULLOBJECT(ctx);
   CHKFORTRANNULLFUNCTION(destroy);
@@ -356,14 +356,14 @@ SLEPC_EXTERN void PETSC_STDCALL pepsetstoppingtestfunction_(PEP *pep,void (PETSC
   }
 }
 
-SLEPC_EXTERN void PETSC_STDCALL pepseteigenvaluecomparison_(PEP *pep,void (PETSC_STDCALL *func)(PetscScalar*,PetscScalar*,PetscScalar*,PetscScalar*,PetscInt*,void*),void* ctx,PetscErrorCode *ierr)
+SLEPC_EXTERN void pepseteigenvaluecomparison_(PEP *pep,void (*func)(PetscScalar*,PetscScalar*,PetscScalar*,PetscScalar*,PetscInt*,void*),void* ctx,PetscErrorCode *ierr)
 {
   CHKFORTRANNULLOBJECT(ctx);
   *ierr = PetscObjectSetFortranCallback((PetscObject)*pep,PETSC_FORTRAN_CALLBACK_CLASS,&_cb.comparison,(PetscVoidFunction)func,ctx); if (*ierr) return;
   *ierr = PEPSetEigenvalueComparison(*pep,oureigenvaluecomparison,*pep);
 }
 
-SLEPC_EXTERN void PETSC_STDCALL pepgetdimensions_(PEP *pep,PetscInt *nev,PetscInt *ncv,PetscInt *mpd,PetscErrorCode *ierr)
+SLEPC_EXTERN void pepgetdimensions_(PEP *pep,PetscInt *nev,PetscInt *ncv,PetscInt *mpd,PetscErrorCode *ierr)
 {
   CHKFORTRANNULLINTEGER(nev);
   CHKFORTRANNULLINTEGER(ncv);
@@ -371,86 +371,86 @@ SLEPC_EXTERN void PETSC_STDCALL pepgetdimensions_(PEP *pep,PetscInt *nev,PetscIn
   *ierr = PEPGetDimensions(*pep,nev,ncv,mpd);
 }
 
-SLEPC_EXTERN void PETSC_STDCALL pepgetdimensions000_(PEP *pep,PetscInt *nev,PetscInt *ncv,PetscInt *mpd,PetscErrorCode *ierr)
+SLEPC_EXTERN void pepgetdimensions000_(PEP *pep,PetscInt *nev,PetscInt *ncv,PetscInt *mpd,PetscErrorCode *ierr)
 {
   pepgetdimensions_(pep,nev,ncv,mpd,ierr);
 }
 
-SLEPC_EXTERN void PETSC_STDCALL pepgetdimensions100_(PEP *pep,PetscInt *nev,PetscInt *ncv,PetscInt *mpd,PetscErrorCode *ierr)
+SLEPC_EXTERN void pepgetdimensions100_(PEP *pep,PetscInt *nev,PetscInt *ncv,PetscInt *mpd,PetscErrorCode *ierr)
 {
   pepgetdimensions_(pep,nev,ncv,mpd,ierr);
 }
 
-SLEPC_EXTERN void PETSC_STDCALL pepgetdimensions010_(PEP *pep,PetscInt *nev,PetscInt *ncv,PetscInt *mpd,PetscErrorCode *ierr)
+SLEPC_EXTERN void pepgetdimensions010_(PEP *pep,PetscInt *nev,PetscInt *ncv,PetscInt *mpd,PetscErrorCode *ierr)
 {
   pepgetdimensions_(pep,nev,ncv,mpd,ierr);
 }
 
-SLEPC_EXTERN void PETSC_STDCALL pepgetdimensions001_(PEP *pep,PetscInt *nev,PetscInt *ncv,PetscInt *mpd,PetscErrorCode *ierr)
+SLEPC_EXTERN void pepgetdimensions001_(PEP *pep,PetscInt *nev,PetscInt *ncv,PetscInt *mpd,PetscErrorCode *ierr)
 {
   pepgetdimensions_(pep,nev,ncv,mpd,ierr);
 }
 
-SLEPC_EXTERN void PETSC_STDCALL pepgetdimensions110_(PEP *pep,PetscInt *nev,PetscInt *ncv,PetscInt *mpd,PetscErrorCode *ierr)
+SLEPC_EXTERN void pepgetdimensions110_(PEP *pep,PetscInt *nev,PetscInt *ncv,PetscInt *mpd,PetscErrorCode *ierr)
 {
   pepgetdimensions_(pep,nev,ncv,mpd,ierr);
 }
 
-SLEPC_EXTERN void PETSC_STDCALL pepgetdimensions011_(PEP *pep,PetscInt *nev,PetscInt *ncv,PetscInt *mpd,PetscErrorCode *ierr)
+SLEPC_EXTERN void pepgetdimensions011_(PEP *pep,PetscInt *nev,PetscInt *ncv,PetscInt *mpd,PetscErrorCode *ierr)
 {
   pepgetdimensions_(pep,nev,ncv,mpd,ierr);
 }
 
-SLEPC_EXTERN void PETSC_STDCALL pepgeteigenpair_(PEP *pep,PetscInt *i,PetscScalar *eigr,PetscScalar *eigi,Vec *Vr,Vec *Vi,PetscErrorCode *ierr)
+SLEPC_EXTERN void pepgeteigenpair_(PEP *pep,PetscInt *i,PetscScalar *eigr,PetscScalar *eigi,Vec *Vr,Vec *Vi,PetscErrorCode *ierr)
 {
   CHKFORTRANNULLSCALAR(eigr);
   CHKFORTRANNULLSCALAR(eigi);
   *ierr = PEPGetEigenpair(*pep,*i,eigr,eigi,*Vr,*Vi);
 }
 
-SLEPC_EXTERN void PETSC_STDCALL pepgeteigenpair00_(PEP *pep,PetscInt *i,PetscScalar *eigr,PetscScalar *eigi,Vec *Vr,Vec *Vi,PetscErrorCode *ierr)
+SLEPC_EXTERN void pepgeteigenpair00_(PEP *pep,PetscInt *i,PetscScalar *eigr,PetscScalar *eigi,Vec *Vr,Vec *Vi,PetscErrorCode *ierr)
 {
   pepgeteigenpair_(pep,i,eigr,eigi,Vr,Vi,ierr);
 }
 
-SLEPC_EXTERN void PETSC_STDCALL pepgeteigenpair10_(PEP *pep,PetscInt *i,PetscScalar *eigr,PetscScalar *eigi,Vec *Vr,Vec *Vi,PetscErrorCode *ierr)
+SLEPC_EXTERN void pepgeteigenpair10_(PEP *pep,PetscInt *i,PetscScalar *eigr,PetscScalar *eigi,Vec *Vr,Vec *Vi,PetscErrorCode *ierr)
 {
   pepgeteigenpair_(pep,i,eigr,eigi,Vr,Vi,ierr);
 }
 
-SLEPC_EXTERN void PETSC_STDCALL pepgeteigenpair01_(PEP *pep,PetscInt *i,PetscScalar *eigr,PetscScalar *eigi,Vec *Vr,Vec *Vi,PetscErrorCode *ierr)
+SLEPC_EXTERN void pepgeteigenpair01_(PEP *pep,PetscInt *i,PetscScalar *eigr,PetscScalar *eigi,Vec *Vr,Vec *Vi,PetscErrorCode *ierr)
 {
   pepgeteigenpair_(pep,i,eigr,eigi,Vr,Vi,ierr);
 }
 
-SLEPC_EXTERN void PETSC_STDCALL pepgeteigenpair11_(PEP *pep,PetscInt *i,PetscScalar *eigr,PetscScalar *eigi,Vec *Vr,Vec *Vi,PetscErrorCode *ierr)
+SLEPC_EXTERN void pepgeteigenpair11_(PEP *pep,PetscInt *i,PetscScalar *eigr,PetscScalar *eigi,Vec *Vr,Vec *Vi,PetscErrorCode *ierr)
 {
   pepgeteigenpair_(pep,i,eigr,eigi,Vr,Vi,ierr);
 }
 
-SLEPC_EXTERN void PETSC_STDCALL pepgettolerances_(PEP *pep,PetscReal *tol,PetscInt *maxits,PetscErrorCode *ierr)
+SLEPC_EXTERN void pepgettolerances_(PEP *pep,PetscReal *tol,PetscInt *maxits,PetscErrorCode *ierr)
 {
   CHKFORTRANNULLREAL(tol);
   CHKFORTRANNULLINTEGER(maxits);
   *ierr = PEPGetTolerances(*pep,tol,maxits);
 }
 
-SLEPC_EXTERN void PETSC_STDCALL pepgettolerances00_(PEP *pep,PetscReal *tol,PetscInt *maxits,PetscErrorCode *ierr)
+SLEPC_EXTERN void pepgettolerances00_(PEP *pep,PetscReal *tol,PetscInt *maxits,PetscErrorCode *ierr)
 {
   pepgettolerances_(pep,tol,maxits,ierr);
 }
 
-SLEPC_EXTERN void PETSC_STDCALL pepgettolerances10_(PEP *pep,PetscReal *tol,PetscInt *maxits,PetscErrorCode *ierr)
+SLEPC_EXTERN void pepgettolerances10_(PEP *pep,PetscReal *tol,PetscInt *maxits,PetscErrorCode *ierr)
 {
   pepgettolerances_(pep,tol,maxits,ierr);
 }
 
-SLEPC_EXTERN void PETSC_STDCALL pepgettolerances01_(PEP *pep,PetscReal *tol,PetscInt *maxits,PetscErrorCode *ierr)
+SLEPC_EXTERN void pepgettolerances01_(PEP *pep,PetscReal *tol,PetscInt *maxits,PetscErrorCode *ierr)
 {
   pepgettolerances_(pep,tol,maxits,ierr);
 }
 
-SLEPC_EXTERN void PETSC_STDCALL pepgetscale_(PEP *pep,PEPScale *scale,PetscReal *alpha,Vec *Dl,Vec *Dr,PetscInt *its,PetscReal *lambda,PetscErrorCode *ierr)
+SLEPC_EXTERN void pepgetscale_(PEP *pep,PEPScale *scale,PetscReal *alpha,Vec *Dl,Vec *Dr,PetscInt *its,PetscReal *lambda,PetscErrorCode *ierr)
 {
   CHKFORTRANNULLREAL(alpha);
   CHKFORTRANNULLINTEGER(its);
@@ -458,47 +458,47 @@ SLEPC_EXTERN void PETSC_STDCALL pepgetscale_(PEP *pep,PEPScale *scale,PetscReal 
   *ierr = PEPGetScale(*pep,scale,alpha,Dl,Dr,its,lambda);
 }
 
-SLEPC_EXTERN void PETSC_STDCALL pepgetscale000_(PEP *pep,PEPScale *scale,PetscReal *alpha,Vec *Dl,Vec *Dr,PetscInt *its,PetscReal *lambda,PetscErrorCode *ierr)
+SLEPC_EXTERN void pepgetscale000_(PEP *pep,PEPScale *scale,PetscReal *alpha,Vec *Dl,Vec *Dr,PetscInt *its,PetscReal *lambda,PetscErrorCode *ierr)
 {
   pepgetscale_(pep,scale,alpha,Dl,Dr,its,lambda,ierr);
 }
 
-SLEPC_EXTERN void PETSC_STDCALL pepgetscale100_(PEP *pep,PEPScale *scale,PetscReal *alpha,Vec *Dl,Vec *Dr,PetscInt *its,PetscReal *lambda,PetscErrorCode *ierr)
+SLEPC_EXTERN void pepgetscale100_(PEP *pep,PEPScale *scale,PetscReal *alpha,Vec *Dl,Vec *Dr,PetscInt *its,PetscReal *lambda,PetscErrorCode *ierr)
 {
   pepgetscale_(pep,scale,alpha,Dl,Dr,its,lambda,ierr);
 }
 
-SLEPC_EXTERN void PETSC_STDCALL pepgetscale010_(PEP *pep,PEPScale *scale,PetscReal *alpha,Vec *Dl,Vec *Dr,PetscInt *its,PetscReal *lambda,PetscErrorCode *ierr)
+SLEPC_EXTERN void pepgetscale010_(PEP *pep,PEPScale *scale,PetscReal *alpha,Vec *Dl,Vec *Dr,PetscInt *its,PetscReal *lambda,PetscErrorCode *ierr)
 {
   pepgetscale_(pep,scale,alpha,Dl,Dr,its,lambda,ierr);
 }
 
-SLEPC_EXTERN void PETSC_STDCALL pepgetscale001_(PEP *pep,PEPScale *scale,PetscReal *alpha,Vec *Dl,Vec *Dr,PetscInt *its,PetscReal *lambda,PetscErrorCode *ierr)
+SLEPC_EXTERN void pepgetscale001_(PEP *pep,PEPScale *scale,PetscReal *alpha,Vec *Dl,Vec *Dr,PetscInt *its,PetscReal *lambda,PetscErrorCode *ierr)
 {
   pepgetscale_(pep,scale,alpha,Dl,Dr,its,lambda,ierr);
 }
 
-SLEPC_EXTERN void PETSC_STDCALL pepgetscale110_(PEP *pep,PEPScale *scale,PetscReal *alpha,Vec *Dl,Vec *Dr,PetscInt *its,PetscReal *lambda,PetscErrorCode *ierr)
+SLEPC_EXTERN void pepgetscale110_(PEP *pep,PEPScale *scale,PetscReal *alpha,Vec *Dl,Vec *Dr,PetscInt *its,PetscReal *lambda,PetscErrorCode *ierr)
 {
   pepgetscale_(pep,scale,alpha,Dl,Dr,its,lambda,ierr);
 }
 
-SLEPC_EXTERN void PETSC_STDCALL pepgetscale011_(PEP *pep,PEPScale *scale,PetscReal *alpha,Vec *Dl,Vec *Dr,PetscInt *its,PetscReal *lambda,PetscErrorCode *ierr)
+SLEPC_EXTERN void pepgetscale011_(PEP *pep,PEPScale *scale,PetscReal *alpha,Vec *Dl,Vec *Dr,PetscInt *its,PetscReal *lambda,PetscErrorCode *ierr)
 {
   pepgetscale_(pep,scale,alpha,Dl,Dr,its,lambda,ierr);
 }
 
-SLEPC_EXTERN void PETSC_STDCALL pepgetscale101_(PEP *pep,PEPScale *scale,PetscReal *alpha,Vec *Dl,Vec *Dr,PetscInt *its,PetscReal *lambda,PetscErrorCode *ierr)
+SLEPC_EXTERN void pepgetscale101_(PEP *pep,PEPScale *scale,PetscReal *alpha,Vec *Dl,Vec *Dr,PetscInt *its,PetscReal *lambda,PetscErrorCode *ierr)
 {
   pepgetscale_(pep,scale,alpha,Dl,Dr,its,lambda,ierr);
 }
 
-SLEPC_EXTERN void PETSC_STDCALL pepgetscale111_(PEP *pep,PEPScale *scale,PetscReal *alpha,Vec *Dl,Vec *Dr,PetscInt *its,PetscReal *lambda,PetscErrorCode *ierr)
+SLEPC_EXTERN void pepgetscale111_(PEP *pep,PEPScale *scale,PetscReal *alpha,Vec *Dl,Vec *Dr,PetscInt *its,PetscReal *lambda,PetscErrorCode *ierr)
 {
   pepgetscale_(pep,scale,alpha,Dl,Dr,its,lambda,ierr);
 }
 
-SLEPC_EXTERN void PETSC_STDCALL pepgetrefine_(PEP *pep,PEPRefine *refine,PetscInt *npart,PetscReal *tol,PetscInt *its,PEPRefineScheme *scheme,PetscErrorCode *ierr)
+SLEPC_EXTERN void pepgetrefine_(PEP *pep,PEPRefine *refine,PetscInt *npart,PetscReal *tol,PetscInt *its,PEPRefineScheme *scheme,PetscErrorCode *ierr)
 {
   CHKFORTRANNULLINTEGER(npart);
   CHKFORTRANNULLREAL(tol);
@@ -506,53 +506,53 @@ SLEPC_EXTERN void PETSC_STDCALL pepgetrefine_(PEP *pep,PEPRefine *refine,PetscIn
   *ierr = PEPGetRefine(*pep,refine,npart,tol,its,scheme);
 }
 
-SLEPC_EXTERN void PETSC_STDCALL pepgetrefine000_(PEP *pep,PEPRefine *refine,PetscInt *npart,PetscReal *tol,PetscInt *its,PEPRefineScheme *scheme,PetscErrorCode *ierr)
+SLEPC_EXTERN void pepgetrefine000_(PEP *pep,PEPRefine *refine,PetscInt *npart,PetscReal *tol,PetscInt *its,PEPRefineScheme *scheme,PetscErrorCode *ierr)
 {
   pepgetrefine_(pep,refine,npart,tol,its,scheme,ierr);
 }
 
-SLEPC_EXTERN void PETSC_STDCALL pepgetrefine100_(PEP *pep,PEPRefine *refine,PetscInt *npart,PetscReal *tol,PetscInt *its,PEPRefineScheme *scheme,PetscErrorCode *ierr)
+SLEPC_EXTERN void pepgetrefine100_(PEP *pep,PEPRefine *refine,PetscInt *npart,PetscReal *tol,PetscInt *its,PEPRefineScheme *scheme,PetscErrorCode *ierr)
 {
   pepgetrefine_(pep,refine,npart,tol,its,scheme,ierr);
 }
 
-SLEPC_EXTERN void PETSC_STDCALL pepgetrefine010_(PEP *pep,PEPRefine *refine,PetscInt *npart,PetscReal *tol,PetscInt *its,PEPRefineScheme *scheme,PetscErrorCode *ierr)
+SLEPC_EXTERN void pepgetrefine010_(PEP *pep,PEPRefine *refine,PetscInt *npart,PetscReal *tol,PetscInt *its,PEPRefineScheme *scheme,PetscErrorCode *ierr)
 {
   pepgetrefine_(pep,refine,npart,tol,its,scheme,ierr);
 }
 
-SLEPC_EXTERN void PETSC_STDCALL pepgetrefine001_(PEP *pep,PEPRefine *refine,PetscInt *npart,PetscReal *tol,PetscInt *its,PEPRefineScheme *scheme,PetscErrorCode *ierr)
+SLEPC_EXTERN void pepgetrefine001_(PEP *pep,PEPRefine *refine,PetscInt *npart,PetscReal *tol,PetscInt *its,PEPRefineScheme *scheme,PetscErrorCode *ierr)
 {
   pepgetrefine_(pep,refine,npart,tol,its,scheme,ierr);
 }
 
-SLEPC_EXTERN void PETSC_STDCALL pepgetrefine110_(PEP *pep,PEPRefine *refine,PetscInt *npart,PetscReal *tol,PetscInt *its,PEPRefineScheme *scheme,PetscErrorCode *ierr)
+SLEPC_EXTERN void pepgetrefine110_(PEP *pep,PEPRefine *refine,PetscInt *npart,PetscReal *tol,PetscInt *its,PEPRefineScheme *scheme,PetscErrorCode *ierr)
 {
   pepgetrefine_(pep,refine,npart,tol,its,scheme,ierr);
 }
 
-SLEPC_EXTERN void PETSC_STDCALL pepgetrefine011_(PEP *pep,PEPRefine *refine,PetscInt *npart,PetscReal *tol,PetscInt *its,PEPRefineScheme *scheme,PetscErrorCode *ierr)
+SLEPC_EXTERN void pepgetrefine011_(PEP *pep,PEPRefine *refine,PetscInt *npart,PetscReal *tol,PetscInt *its,PEPRefineScheme *scheme,PetscErrorCode *ierr)
 {
   pepgetrefine_(pep,refine,npart,tol,its,scheme,ierr);
 }
 
-SLEPC_EXTERN void PETSC_STDCALL pepgetrefine101_(PEP *pep,PEPRefine *refine,PetscInt *npart,PetscReal *tol,PetscInt *its,PEPRefineScheme *scheme,PetscErrorCode *ierr)
+SLEPC_EXTERN void pepgetrefine101_(PEP *pep,PEPRefine *refine,PetscInt *npart,PetscReal *tol,PetscInt *its,PEPRefineScheme *scheme,PetscErrorCode *ierr)
 {
   pepgetrefine_(pep,refine,npart,tol,its,scheme,ierr);
 }
 
-SLEPC_EXTERN void PETSC_STDCALL pepgetrefine111_(PEP *pep,PEPRefine *refine,PetscInt *npart,PetscReal *tol,PetscInt *its,PEPRefineScheme *scheme,PetscErrorCode *ierr)
+SLEPC_EXTERN void pepgetrefine111_(PEP *pep,PEPRefine *refine,PetscInt *npart,PetscReal *tol,PetscInt *its,PEPRefineScheme *scheme,PetscErrorCode *ierr)
 {
   pepgetrefine_(pep,refine,npart,tol,its,scheme,ierr);
 }
 
-SLEPC_EXTERN void PETSC_STDCALL pepsetinitialspace0_(PEP *pep,PetscInt *n,Vec *is,PetscErrorCode *ierr)
+SLEPC_EXTERN void pepsetinitialspace0_(PEP *pep,PetscInt *n,Vec *is,PetscErrorCode *ierr)
 {
   CHKFORTRANNULLOBJECT(is);
   *ierr = PEPSetInitialSpace(*pep,*n,is);
 }
 
-SLEPC_EXTERN void PETSC_STDCALL pepsetinitialspace1_(PEP *pep,PetscInt *n,Vec *is,PetscErrorCode *ierr)
+SLEPC_EXTERN void pepsetinitialspace1_(PEP *pep,PetscInt *n,Vec *is,PetscErrorCode *ierr)
 {
   CHKFORTRANNULLOBJECT(is);
   *ierr = PEPSetInitialSpace(*pep,*n,is);

@@ -60,10 +60,6 @@
 #  define PETSCBLASMIXED(x,X) PETSC_PASTE3(PETSC_BLASLAPACK_MIXEDPREFIX_, x, PETSC_BLASLAPACK_SUFFIX_)
 #endif
 
-#if defined(PETSC_BLASLAPACK_STDCALL)
-#include <slepcblaslapack_stdcall.h>
-#else
-
 #include <slepcblaslapack_mangle.h>
 
 /* LAPACK functions without string parameters */
@@ -156,8 +152,6 @@ BLAS_EXTERN void     LAPACKlascl_(const char*,PetscBLASInt*,PetscBLASInt*,PetscR
 BLAS_EXTERN void BLASCOMPLEXgemm_(const char*,const char*,const PetscBLASInt*,const PetscBLASInt*,const PetscBLASInt*,const PetscComplex*,const PetscComplex*,const PetscBLASInt*,const PetscComplex*,const PetscBLASInt*,const PetscComplex*,PetscComplex*,const PetscBLASInt*);
 BLAS_EXTERN void BLASCOMPLEXscal_(const PetscBLASInt*,const PetscComplex*,PetscComplex*,const PetscBLASInt*);
 BLAS_EXTERN void LAPACKCOMPLEXgesv_(const PetscBLASInt*,const PetscBLASInt*,PetscComplex*,const PetscBLASInt*,PetscBLASInt*,PetscComplex*,const PetscBLASInt*,PetscBLASInt*);
-#endif
-
 #endif
 
 #endif

@@ -308,11 +308,7 @@ Unable to download package %s from: %s
     output2 = '\n====== With capital Fortran names\n' + output2
     if result: return ('CAPS',output2)
 
-    (result, output3) = self.LinkWithOutput(functions,callbacks,flags)
-    output3 = '\n====== With unmodified Fortran names\n' + output3
-    if result: return ('STDCALL',output3)
-
-    return ('',output + output1 + output2 + output3)
+    return ('',output + output1 + output2)
 
   def GenerateGuesses(self,name,archdir,word='lib'):
     installdirs = [os.path.join(os.path.sep,'usr','local'),os.path.join(os.path.sep,'opt')]
