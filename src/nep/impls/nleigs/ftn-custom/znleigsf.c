@@ -28,14 +28,14 @@ static PetscErrorCode oursingularitiesfunc(NEP nep,PetscInt *maxnp,PetscScalar *
   PetscObjectUseFortranCallback(nep,_cb.singularities,(NEP*,PetscInt*,PetscScalar*,void*,PetscErrorCode*),(&nep,maxnp,xi,_ctx,&ierr));
 }
 
-SLEPC_EXTERN void PETSC_STDCALL nepnleigssetsingularitiesfunction_(NEP *nep,void (PETSC_STDCALL *func)(NEP*,PetscInt*,PetscScalar*,void*,PetscErrorCode*),void *ctx,PetscErrorCode *ierr)
+SLEPC_EXTERN void nepnleigssetsingularitiesfunction_(NEP *nep,void (*func)(NEP*,PetscInt*,PetscScalar*,void*,PetscErrorCode*),void *ctx,PetscErrorCode *ierr)
 {
   CHKFORTRANNULLOBJECT(ctx);
   *ierr = PetscObjectSetFortranCallback((PetscObject)*nep,PETSC_FORTRAN_CALLBACK_CLASS,&_cb.singularities,(PetscVoidFunction)func,ctx); if (*ierr) return;
   *ierr = NEPNLEIGSSetSingularitiesFunction(*nep,oursingularitiesfunc,*nep);
 }
 
-SLEPC_EXTERN void PETSC_STDCALL nepnleigsgetrkshifts_(NEP *nep,PetscInt *ns,PetscScalar *pshifts,PetscErrorCode *ierr)
+SLEPC_EXTERN void nepnleigsgetrkshifts_(NEP *nep,PetscInt *ns,PetscScalar *pshifts,PetscErrorCode *ierr)
 {
   PetscScalar *oshifts;
   PetscInt    n;

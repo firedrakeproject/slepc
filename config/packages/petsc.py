@@ -150,8 +150,6 @@ class PETSc(package.Package):
           self.blaslapackmangling = 'underscore'
         elif len(l)==3 and l[0]=='#define' and l[1]=='PETSC_BLASLAPACK_CAPS' and l[2]=='1':
           self.blaslapackmangling = 'caps'
-        elif len(l)==3 and l[0]=='#define' and l[1]=='PETSC_BLASLAPACK_STDCALL' and l[2]=='1':
-          self.blaslapackmangling = 'stdcall'
         elif len(l)==3 and l[0]=='#define' and l[1]=='PETSC_HAVE_64BIT_BLAS_INDICES' and l[2]=='1':
           self.blaslapackint64 = True
         elif len(l)==3 and l[0]=='#define' and l[1]=='PETSC_HAVE_FORTRAN' and l[2]=='1':

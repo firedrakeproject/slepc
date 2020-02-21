@@ -19,7 +19,7 @@
 #define rgpolygongetvertices1_ rgpolygongetvertices1
 #endif
 
-SLEPC_EXTERN void PETSC_STDCALL rgpolygongetvertices_(RG *rg,PetscInt *n,PetscScalar *vr,PetscScalar *vi,PetscErrorCode *ierr)
+SLEPC_EXTERN void rgpolygongetvertices_(RG *rg,PetscInt *n,PetscScalar *vr,PetscScalar *vi,PetscErrorCode *ierr)
 {
   PetscScalar *ovr,*ovi;
   PetscInt    n_;
@@ -35,12 +35,12 @@ SLEPC_EXTERN void PETSC_STDCALL rgpolygongetvertices_(RG *rg,PetscInt *n,PetscSc
   *ierr = PetscFree(ovi);
 }
 
-SLEPC_EXTERN void PETSC_STDCALL rgpolygongetvertices0_(RG *rg,PetscInt *n,PetscScalar *vr,PetscScalar *vi,PetscErrorCode *ierr)
+SLEPC_EXTERN void rgpolygongetvertices0_(RG *rg,PetscInt *n,PetscScalar *vr,PetscScalar *vi,PetscErrorCode *ierr)
 {
   rgpolygongetvertices_(rg,n,vr,vi,ierr);
 }
 
-SLEPC_EXTERN void PETSC_STDCALL rgpolygongetvertices1_(RG *rg,PetscInt *n,PetscScalar *vr,PetscScalar *vi,PetscErrorCode *ierr)
+SLEPC_EXTERN void rgpolygongetvertices1_(RG *rg,PetscInt *n,PetscScalar *vr,PetscScalar *vi,PetscErrorCode *ierr)
 {
   rgpolygongetvertices_(rg,n,vr,vi,ierr);
 }

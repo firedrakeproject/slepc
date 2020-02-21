@@ -92,7 +92,7 @@ class Lapack(package.Package):
     for i in functions:
       if self.mangling == 'underscore':
         f = i + '_'
-      elif self.mangling == 'caps' or self.mangling == 'stdcall':
+      elif self.mangling == 'caps':
         f = i.upper()
       else:
         f = i
@@ -107,7 +107,7 @@ class Lapack(package.Package):
     for i in functions:
       if self.mangling == 'underscore':
         f = i + '_\n'
-      elif self.mangling == 'caps' or self.mangling == 'stdcall':
+      elif self.mangling == 'caps':
         f = i.upper() + '\n'
       else:
         f = i + '\n'

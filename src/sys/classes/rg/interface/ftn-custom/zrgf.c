@@ -29,7 +29,7 @@
 #define rgviewfromoptions_        rgviewfromoptions
 #endif
 
-SLEPC_EXTERN void PETSC_STDCALL rgsettype_(RG *rg,char *type PETSC_MIXED_LEN(len),PetscErrorCode *ierr PETSC_END_LEN(len))
+SLEPC_EXTERN void rgsettype_(RG *rg,char *type,PetscErrorCode *ierr,PETSC_FORTRAN_CHARLEN_T len)
 {
   char *t;
 
@@ -38,7 +38,7 @@ SLEPC_EXTERN void PETSC_STDCALL rgsettype_(RG *rg,char *type PETSC_MIXED_LEN(len
   FREECHAR(type,t);
 }
 
-SLEPC_EXTERN void PETSC_STDCALL rggettype_(RG *rg,char *name PETSC_MIXED_LEN(len),PetscErrorCode *ierr PETSC_END_LEN(len))
+SLEPC_EXTERN void rggettype_(RG *rg,char *name,PetscErrorCode *ierr,PETSC_FORTRAN_CHARLEN_T len)
 {
   RGType tname;
 
@@ -47,7 +47,7 @@ SLEPC_EXTERN void PETSC_STDCALL rggettype_(RG *rg,char *name PETSC_MIXED_LEN(len
   FIXRETURNCHAR(PETSC_TRUE,name,len);
 }
 
-SLEPC_EXTERN void PETSC_STDCALL rgsetoptionsprefix_(RG *rg,char *prefix PETSC_MIXED_LEN(len),PetscErrorCode *ierr PETSC_END_LEN(len))
+SLEPC_EXTERN void rgsetoptionsprefix_(RG *rg,char *prefix,PetscErrorCode *ierr,PETSC_FORTRAN_CHARLEN_T len)
 {
   char *t;
 
@@ -56,7 +56,7 @@ SLEPC_EXTERN void PETSC_STDCALL rgsetoptionsprefix_(RG *rg,char *prefix PETSC_MI
   FREECHAR(prefix,t);
 }
 
-SLEPC_EXTERN void PETSC_STDCALL rgappendoptionsprefix_(RG *rg,char *prefix PETSC_MIXED_LEN(len),PetscErrorCode *ierr PETSC_END_LEN(len))
+SLEPC_EXTERN void rgappendoptionsprefix_(RG *rg,char *prefix,PetscErrorCode *ierr,PETSC_FORTRAN_CHARLEN_T len)
 {
   char *t;
 
@@ -65,7 +65,7 @@ SLEPC_EXTERN void PETSC_STDCALL rgappendoptionsprefix_(RG *rg,char *prefix PETSC
   FREECHAR(prefix,t);
 }
 
-SLEPC_EXTERN void PETSC_STDCALL rggetoptionsprefix_(RG *rg,char *prefix PETSC_MIXED_LEN(len),PetscErrorCode *ierr PETSC_END_LEN(len))
+SLEPC_EXTERN void rggetoptionsprefix_(RG *rg,char *prefix,PetscErrorCode *ierr,PETSC_FORTRAN_CHARLEN_T len)
 {
   const char *tname;
 
@@ -74,14 +74,14 @@ SLEPC_EXTERN void PETSC_STDCALL rggetoptionsprefix_(RG *rg,char *prefix PETSC_MI
   FIXRETURNCHAR(PETSC_TRUE,prefix,len);
 }
 
-SLEPC_EXTERN void PETSC_STDCALL rgview_(RG *rg,PetscViewer *viewer,PetscErrorCode *ierr)
+SLEPC_EXTERN void rgview_(RG *rg,PetscViewer *viewer,PetscErrorCode *ierr)
 {
   PetscViewer v;
   PetscPatchDefaultViewers_Fortran(viewer,v);
   *ierr = RGView(*rg,v);
 }
 
-SLEPC_EXTERN void PETSC_STDCALL rgviewfromoptions_(RG *rg,PetscObject obj,char* type PETSC_MIXED_LEN(len),PetscErrorCode *ierr PETSC_END_LEN(len))
+SLEPC_EXTERN void rgviewfromoptions_(RG *rg,PetscObject obj,char* type,PetscErrorCode *ierr,PETSC_FORTRAN_CHARLEN_T len)
 {
   char *t;
 

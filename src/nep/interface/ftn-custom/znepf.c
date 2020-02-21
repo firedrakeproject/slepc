@@ -119,7 +119,7 @@
 
 /*
    These are not usually called from Fortran but allow Fortran users
-   to transparently set these monitors from .F code, hence no STDCALL
+   to transparently set these monitors from .F code
 */
 SLEPC_EXTERN void nepmonitorall_(NEP *nep,PetscInt *it,PetscInt *nconv,PetscScalar *eigr,PetscScalar *eigi,PetscReal *errest,PetscInt *nest,PetscViewerAndFormat **ctx,PetscErrorCode *ierr)
 {
@@ -220,14 +220,14 @@ static PetscErrorCode ournepjacobian(NEP nep,PetscScalar lambda,Mat J,void *ctx)
   PetscObjectUseFortranCallback(nep,_cb.jacobian,(NEP*,PetscScalar*,Mat*,void*,PetscErrorCode* PETSC_F90_2PTR_PROTO_NOVAR),(&nep,&lambda,&J,_ctx,&ierr PETSC_F90_2PTR_PARAM(ptr)));
 }
 
-SLEPC_EXTERN void PETSC_STDCALL nepview_(NEP *nep,PetscViewer *viewer,PetscErrorCode *ierr)
+SLEPC_EXTERN void nepview_(NEP *nep,PetscViewer *viewer,PetscErrorCode *ierr)
 {
   PetscViewer v;
   PetscPatchDefaultViewers_Fortran(viewer,v);
   *ierr = NEPView(*nep,v);
 }
 
-SLEPC_EXTERN void PETSC_STDCALL nepviewfromoptions_(NEP *nep,PetscObject obj,char* type PETSC_MIXED_LEN(len),PetscErrorCode *ierr PETSC_END_LEN(len))
+SLEPC_EXTERN void nepviewfromoptions_(NEP *nep,PetscObject obj,char* type,PetscErrorCode *ierr,PETSC_FORTRAN_CHARLEN_T len)
 {
   char *t;
 
@@ -236,35 +236,35 @@ SLEPC_EXTERN void PETSC_STDCALL nepviewfromoptions_(NEP *nep,PetscObject obj,cha
   FREECHAR(type,t);
 }
 
-SLEPC_EXTERN void PETSC_STDCALL nepreasonview_(NEP *nep,PetscViewer *viewer,PetscErrorCode *ierr)
+SLEPC_EXTERN void nepreasonview_(NEP *nep,PetscViewer *viewer,PetscErrorCode *ierr)
 {
   PetscViewer v;
   PetscPatchDefaultViewers_Fortran(viewer,v);
   *ierr = NEPReasonView(*nep,v);
 }
 
-SLEPC_EXTERN void PETSC_STDCALL neperrorview_(NEP *nep,NEPErrorType *etype,PetscViewer *viewer,PetscErrorCode *ierr)
+SLEPC_EXTERN void neperrorview_(NEP *nep,NEPErrorType *etype,PetscViewer *viewer,PetscErrorCode *ierr)
 {
   PetscViewer v;
   PetscPatchDefaultViewers_Fortran(viewer,v);
   *ierr = NEPErrorView(*nep,*etype,v);
 }
 
-SLEPC_EXTERN void PETSC_STDCALL nepvaluesview_(NEP *nep,PetscViewer *viewer,PetscErrorCode *ierr)
+SLEPC_EXTERN void nepvaluesview_(NEP *nep,PetscViewer *viewer,PetscErrorCode *ierr)
 {
   PetscViewer v;
   PetscPatchDefaultViewers_Fortran(viewer,v);
   *ierr = NEPValuesView(*nep,v);
 }
 
-SLEPC_EXTERN void PETSC_STDCALL nepvectorsview_(NEP *nep,PetscViewer *viewer,PetscErrorCode *ierr)
+SLEPC_EXTERN void nepvectorsview_(NEP *nep,PetscViewer *viewer,PetscErrorCode *ierr)
 {
   PetscViewer v;
   PetscPatchDefaultViewers_Fortran(viewer,v);
   *ierr = NEPVectorsView(*nep,v);
 }
 
-SLEPC_EXTERN void PETSC_STDCALL nepsettype_(NEP *nep,char *type PETSC_MIXED_LEN(len),PetscErrorCode *ierr PETSC_END_LEN(len))
+SLEPC_EXTERN void nepsettype_(NEP *nep,char *type,PetscErrorCode *ierr,PETSC_FORTRAN_CHARLEN_T len)
 {
   char *t;
 
@@ -273,7 +273,7 @@ SLEPC_EXTERN void PETSC_STDCALL nepsettype_(NEP *nep,char *type PETSC_MIXED_LEN(
   FREECHAR(type,t);
 }
 
-SLEPC_EXTERN void PETSC_STDCALL nepgettype_(NEP *nep,char *name PETSC_MIXED_LEN(len),PetscErrorCode *ierr PETSC_END_LEN(len))
+SLEPC_EXTERN void nepgettype_(NEP *nep,char *name,PetscErrorCode *ierr,PETSC_FORTRAN_CHARLEN_T len)
 {
   NEPType tname;
 
@@ -282,7 +282,7 @@ SLEPC_EXTERN void PETSC_STDCALL nepgettype_(NEP *nep,char *name PETSC_MIXED_LEN(
   FIXRETURNCHAR(PETSC_TRUE,name,len);
 }
 
-SLEPC_EXTERN void PETSC_STDCALL nepsetoptionsprefix_(NEP *nep,char *prefix PETSC_MIXED_LEN(len),PetscErrorCode *ierr PETSC_END_LEN(len))
+SLEPC_EXTERN void nepsetoptionsprefix_(NEP *nep,char *prefix,PetscErrorCode *ierr,PETSC_FORTRAN_CHARLEN_T len)
 {
   char *t;
 
@@ -291,7 +291,7 @@ SLEPC_EXTERN void PETSC_STDCALL nepsetoptionsprefix_(NEP *nep,char *prefix PETSC
   FREECHAR(prefix,t);
 }
 
-SLEPC_EXTERN void PETSC_STDCALL nepappendoptionsprefix_(NEP *nep,char *prefix PETSC_MIXED_LEN(len),PetscErrorCode *ierr PETSC_END_LEN(len))
+SLEPC_EXTERN void nepappendoptionsprefix_(NEP *nep,char *prefix,PetscErrorCode *ierr,PETSC_FORTRAN_CHARLEN_T len)
 {
   char *t;
 
@@ -300,7 +300,7 @@ SLEPC_EXTERN void PETSC_STDCALL nepappendoptionsprefix_(NEP *nep,char *prefix PE
   FREECHAR(prefix,t);
 }
 
-SLEPC_EXTERN void PETSC_STDCALL nepgetoptionsprefix_(NEP *nep,char *prefix PETSC_MIXED_LEN(len),PetscErrorCode *ierr PETSC_END_LEN(len))
+SLEPC_EXTERN void nepgetoptionsprefix_(NEP *nep,char *prefix,PetscErrorCode *ierr,PETSC_FORTRAN_CHARLEN_T len)
 {
   const char *tname;
 
@@ -309,7 +309,7 @@ SLEPC_EXTERN void PETSC_STDCALL nepgetoptionsprefix_(NEP *nep,char *prefix PETSC
   FIXRETURNCHAR(PETSC_TRUE,prefix,len);
 }
 
-SLEPC_EXTERN void PETSC_STDCALL nepmonitorset_(NEP *nep,void (PETSC_STDCALL *monitor)(NEP*,PetscInt*,PetscInt*,PetscScalar*,PetscScalar*,PetscReal*,PetscInt*,void*,PetscErrorCode*),void *mctx,void (PETSC_STDCALL *monitordestroy)(void *,PetscErrorCode*),PetscErrorCode *ierr)
+SLEPC_EXTERN void nepmonitorset_(NEP *nep,void (*monitor)(NEP*,PetscInt*,PetscInt*,PetscScalar*,PetscScalar*,PetscReal*,PetscInt*,void*,PetscErrorCode*),void *mctx,void (*monitordestroy)(void *,PetscErrorCode*),PetscErrorCode *ierr)
 {
   CHKFORTRANNULLOBJECT(mctx);
   CHKFORTRANNULLFUNCTION(monitordestroy);
@@ -330,17 +330,17 @@ SLEPC_EXTERN void PETSC_STDCALL nepmonitorset_(NEP *nep,void (PETSC_STDCALL *mon
   }
 }
 
-SLEPC_EXTERN void PETSC_STDCALL nepconvergedabsolute_(NEP *nep,PetscScalar *eigr,PetscScalar *eigi,PetscReal *res,PetscReal *errest,void *ctx,PetscErrorCode *ierr)
+SLEPC_EXTERN void nepconvergedabsolute_(NEP *nep,PetscScalar *eigr,PetscScalar *eigi,PetscReal *res,PetscReal *errest,void *ctx,PetscErrorCode *ierr)
 {
   *ierr = NEPConvergedAbsolute(*nep,*eigr,*eigi,*res,errest,ctx);
 }
 
-SLEPC_EXTERN void PETSC_STDCALL nepconvergedrelative_(NEP *nep,PetscScalar *eigr,PetscScalar *eigi,PetscReal *res,PetscReal *errest,void *ctx,PetscErrorCode *ierr)
+SLEPC_EXTERN void nepconvergedrelative_(NEP *nep,PetscScalar *eigr,PetscScalar *eigi,PetscReal *res,PetscReal *errest,void *ctx,PetscErrorCode *ierr)
 {
   *ierr = NEPConvergedRelative(*nep,*eigr,*eigi,*res,errest,ctx);
 }
 
-SLEPC_EXTERN void PETSC_STDCALL nepsetconvergencetestfunction_(NEP *nep,void (PETSC_STDCALL *func)(NEP*,PetscScalar*,PetscScalar*,PetscReal*,PetscReal*,void*,PetscErrorCode*),void* ctx,void (PETSC_STDCALL *destroy)(void*,PetscErrorCode*),PetscErrorCode *ierr)
+SLEPC_EXTERN void nepsetconvergencetestfunction_(NEP *nep,void (*func)(NEP*,PetscScalar*,PetscScalar*,PetscReal*,PetscReal*,void*,PetscErrorCode*),void* ctx,void (*destroy)(void*,PetscErrorCode*),PetscErrorCode *ierr)
 {
   CHKFORTRANNULLOBJECT(ctx);
   CHKFORTRANNULLFUNCTION(destroy);
@@ -355,12 +355,12 @@ SLEPC_EXTERN void PETSC_STDCALL nepsetconvergencetestfunction_(NEP *nep,void (PE
   }
 }
 
-SLEPC_EXTERN void PETSC_STDCALL nepstoppingbasic_(NEP *nep,PetscInt *its,PetscInt *max_it,PetscInt *nconv,PetscInt *nev,NEPConvergedReason *reason,void *ctx,PetscErrorCode *ierr)
+SLEPC_EXTERN void nepstoppingbasic_(NEP *nep,PetscInt *its,PetscInt *max_it,PetscInt *nconv,PetscInt *nev,NEPConvergedReason *reason,void *ctx,PetscErrorCode *ierr)
 {
   *ierr = NEPStoppingBasic(*nep,*its,*max_it,*nconv,*nev,reason,ctx);
 }
 
-SLEPC_EXTERN void PETSC_STDCALL nepsetstoppingtestfunction_(NEP *nep,void (PETSC_STDCALL *func)(NEP*,PetscInt,PetscInt,PetscInt,PetscInt,NEPConvergedReason*,void*,PetscErrorCode*),void* ctx,void (PETSC_STDCALL *destroy)(void*,PetscErrorCode*),PetscErrorCode *ierr)
+SLEPC_EXTERN void nepsetstoppingtestfunction_(NEP *nep,void (*func)(NEP*,PetscInt,PetscInt,PetscInt,PetscInt,NEPConvergedReason*,void*,PetscErrorCode*),void* ctx,void (*destroy)(void*,PetscErrorCode*),PetscErrorCode *ierr)
 {
   CHKFORTRANNULLOBJECT(ctx);
   CHKFORTRANNULLFUNCTION(destroy);
@@ -373,14 +373,14 @@ SLEPC_EXTERN void PETSC_STDCALL nepsetstoppingtestfunction_(NEP *nep,void (PETSC
   }
 }
 
-SLEPC_EXTERN void PETSC_STDCALL nepseteigenvaluecomparison_(NEP *nep,void (PETSC_STDCALL *func)(PetscScalar*,PetscScalar*,PetscScalar*,PetscScalar*,PetscInt*,void*),void* ctx,PetscErrorCode *ierr)
+SLEPC_EXTERN void nepseteigenvaluecomparison_(NEP *nep,void (*func)(PetscScalar*,PetscScalar*,PetscScalar*,PetscScalar*,PetscInt*,void*),void* ctx,PetscErrorCode *ierr)
 {
   CHKFORTRANNULLOBJECT(ctx);
   *ierr = PetscObjectSetFortranCallback((PetscObject)*nep,PETSC_FORTRAN_CALLBACK_CLASS,&_cb.comparison,(PetscVoidFunction)func,ctx); if (*ierr) return;
   *ierr = NEPSetEigenvalueComparison(*nep,oureigenvaluecomparison,*nep);
 }
 
-SLEPC_EXTERN void PETSC_STDCALL nepsetfunction_(NEP *nep,Mat *A,Mat *B,void (PETSC_STDCALL *func)(NEP*,PetscScalar*,Mat*,Mat*,void*,PetscErrorCode*),void *ctx,PetscErrorCode *ierr PETSC_F90_2PTR_PROTO(ptr))
+SLEPC_EXTERN void nepsetfunction_(NEP *nep,Mat *A,Mat *B,void (*func)(NEP*,PetscScalar*,Mat*,Mat*,void*,PetscErrorCode*),void *ctx,PetscErrorCode *ierr PETSC_F90_2PTR_PROTO(ptr))
 {
   *ierr = PetscObjectSetFortranCallback((PetscObject)*nep,PETSC_FORTRAN_CALLBACK_CLASS,&_cb.function,(PetscVoidFunction)func,ctx);if (*ierr) return;
 #if defined(PETSC_HAVE_F90_2PTR_ARG)
@@ -390,7 +390,7 @@ SLEPC_EXTERN void PETSC_STDCALL nepsetfunction_(NEP *nep,Mat *A,Mat *B,void (PET
 }
 
 /* func is currently ignored from Fortran */
-SLEPC_EXTERN void PETSC_STDCALL nepgetfunction_(NEP *nep,Mat *A,Mat *B,void *func,void **ctx,PetscErrorCode *ierr)
+SLEPC_EXTERN void nepgetfunction_(NEP *nep,Mat *A,Mat *B,void *func,void **ctx,PetscErrorCode *ierr)
 {
   CHKFORTRANNULLINTEGER(ctx);
   CHKFORTRANNULLOBJECT(A);
@@ -399,7 +399,7 @@ SLEPC_EXTERN void PETSC_STDCALL nepgetfunction_(NEP *nep,Mat *A,Mat *B,void *fun
   *ierr = PetscObjectGetFortranCallback((PetscObject)*nep,PETSC_FORTRAN_CALLBACK_CLASS,_cb.function,NULL,ctx);
 }
 
-SLEPC_EXTERN void PETSC_STDCALL nepsetjacobian_(NEP *nep,Mat *J,void (PETSC_STDCALL *func)(NEP*,PetscScalar*,Mat*,void*,PetscErrorCode*),void *ctx,PetscErrorCode *ierr PETSC_F90_2PTR_PROTO(ptr))
+SLEPC_EXTERN void nepsetjacobian_(NEP *nep,Mat *J,void (*func)(NEP*,PetscScalar*,Mat*,void*,PetscErrorCode*),void *ctx,PetscErrorCode *ierr PETSC_F90_2PTR_PROTO(ptr))
 {
   *ierr = PetscObjectSetFortranCallback((PetscObject)*nep,PETSC_FORTRAN_CALLBACK_CLASS,&_cb.jacobian,(PetscVoidFunction)func,ctx);if (*ierr) return;
 #if defined(PETSC_HAVE_F90_2PTR_ARG)
@@ -409,7 +409,7 @@ SLEPC_EXTERN void PETSC_STDCALL nepsetjacobian_(NEP *nep,Mat *J,void (PETSC_STDC
 }
 
 /* func is currently ignored from Fortran */
-SLEPC_EXTERN void PETSC_STDCALL nepgetjacobian_(NEP *nep,Mat *J,void *func,void **ctx,PetscErrorCode *ierr)
+SLEPC_EXTERN void nepgetjacobian_(NEP *nep,Mat *J,void *func,void **ctx,PetscErrorCode *ierr)
 {
   CHKFORTRANNULLINTEGER(ctx);
   CHKFORTRANNULLOBJECT(J);
@@ -417,7 +417,7 @@ SLEPC_EXTERN void PETSC_STDCALL nepgetjacobian_(NEP *nep,Mat *J,void *func,void 
   *ierr = PetscObjectGetFortranCallback((PetscObject)*nep,PETSC_FORTRAN_CALLBACK_CLASS,_cb.jacobian,NULL,ctx);
 }
 
-SLEPC_EXTERN void PETSC_STDCALL nepgetdimensions_(NEP *nep,PetscInt *nev,PetscInt *ncv,PetscInt *mpd,PetscErrorCode *ierr)
+SLEPC_EXTERN void nepgetdimensions_(NEP *nep,PetscInt *nev,PetscInt *ncv,PetscInt *mpd,PetscErrorCode *ierr)
 {
   CHKFORTRANNULLINTEGER(nev);
   CHKFORTRANNULLINTEGER(ncv);
@@ -425,86 +425,86 @@ SLEPC_EXTERN void PETSC_STDCALL nepgetdimensions_(NEP *nep,PetscInt *nev,PetscIn
   *ierr = NEPGetDimensions(*nep,nev,ncv,mpd);
 }
 
-SLEPC_EXTERN void PETSC_STDCALL nepgetdimensions000_(NEP *nep,PetscInt *nev,PetscInt *ncv,PetscInt *mpd,PetscErrorCode *ierr)
+SLEPC_EXTERN void nepgetdimensions000_(NEP *nep,PetscInt *nev,PetscInt *ncv,PetscInt *mpd,PetscErrorCode *ierr)
 {
   nepgetdimensions_(nep,nev,ncv,mpd,ierr);
 }
 
-SLEPC_EXTERN void PETSC_STDCALL nepgetdimensions100_(NEP *nep,PetscInt *nev,PetscInt *ncv,PetscInt *mpd,PetscErrorCode *ierr)
+SLEPC_EXTERN void nepgetdimensions100_(NEP *nep,PetscInt *nev,PetscInt *ncv,PetscInt *mpd,PetscErrorCode *ierr)
 {
   nepgetdimensions_(nep,nev,ncv,mpd,ierr);
 }
 
-SLEPC_EXTERN void PETSC_STDCALL nepgetdimensions010_(NEP *nep,PetscInt *nev,PetscInt *ncv,PetscInt *mpd,PetscErrorCode *ierr)
+SLEPC_EXTERN void nepgetdimensions010_(NEP *nep,PetscInt *nev,PetscInt *ncv,PetscInt *mpd,PetscErrorCode *ierr)
 {
   nepgetdimensions_(nep,nev,ncv,mpd,ierr);
 }
 
-SLEPC_EXTERN void PETSC_STDCALL nepgetdimensions001_(NEP *nep,PetscInt *nev,PetscInt *ncv,PetscInt *mpd,PetscErrorCode *ierr)
+SLEPC_EXTERN void nepgetdimensions001_(NEP *nep,PetscInt *nev,PetscInt *ncv,PetscInt *mpd,PetscErrorCode *ierr)
 {
   nepgetdimensions_(nep,nev,ncv,mpd,ierr);
 }
 
-SLEPC_EXTERN void PETSC_STDCALL nepgetdimensions110_(NEP *nep,PetscInt *nev,PetscInt *ncv,PetscInt *mpd,PetscErrorCode *ierr)
+SLEPC_EXTERN void nepgetdimensions110_(NEP *nep,PetscInt *nev,PetscInt *ncv,PetscInt *mpd,PetscErrorCode *ierr)
 {
   nepgetdimensions_(nep,nev,ncv,mpd,ierr);
 }
 
-SLEPC_EXTERN void PETSC_STDCALL nepgetdimensions011_(NEP *nep,PetscInt *nev,PetscInt *ncv,PetscInt *mpd,PetscErrorCode *ierr)
+SLEPC_EXTERN void nepgetdimensions011_(NEP *nep,PetscInt *nev,PetscInt *ncv,PetscInt *mpd,PetscErrorCode *ierr)
 {
   nepgetdimensions_(nep,nev,ncv,mpd,ierr);
 }
 
-SLEPC_EXTERN void PETSC_STDCALL nepgeteigenpair_(NEP *nep,PetscInt *i,PetscScalar *eigr,PetscScalar *eigi,Vec *Vr,Vec *Vi,PetscErrorCode *ierr)
+SLEPC_EXTERN void nepgeteigenpair_(NEP *nep,PetscInt *i,PetscScalar *eigr,PetscScalar *eigi,Vec *Vr,Vec *Vi,PetscErrorCode *ierr)
 {
   CHKFORTRANNULLSCALAR(eigr);
   CHKFORTRANNULLSCALAR(eigi);
   *ierr = NEPGetEigenpair(*nep,*i,eigr,eigi,*Vr,*Vi);
 }
 
-SLEPC_EXTERN void PETSC_STDCALL nepgeteigenpair00_(NEP *nep,PetscInt *i,PetscScalar *eigr,PetscScalar *eigi,Vec *Vr,Vec *Vi,PetscErrorCode *ierr)
+SLEPC_EXTERN void nepgeteigenpair00_(NEP *nep,PetscInt *i,PetscScalar *eigr,PetscScalar *eigi,Vec *Vr,Vec *Vi,PetscErrorCode *ierr)
 {
   nepgeteigenpair_(nep,i,eigr,eigi,Vr,Vi,ierr);
 }
 
-SLEPC_EXTERN void PETSC_STDCALL nepgeteigenpair10_(NEP *nep,PetscInt *i,PetscScalar *eigr,PetscScalar *eigi,Vec *Vr,Vec *Vi,PetscErrorCode *ierr)
+SLEPC_EXTERN void nepgeteigenpair10_(NEP *nep,PetscInt *i,PetscScalar *eigr,PetscScalar *eigi,Vec *Vr,Vec *Vi,PetscErrorCode *ierr)
 {
   nepgeteigenpair_(nep,i,eigr,eigi,Vr,Vi,ierr);
 }
 
-SLEPC_EXTERN void PETSC_STDCALL nepgeteigenpair01_(NEP *nep,PetscInt *i,PetscScalar *eigr,PetscScalar *eigi,Vec *Vr,Vec *Vi,PetscErrorCode *ierr)
+SLEPC_EXTERN void nepgeteigenpair01_(NEP *nep,PetscInt *i,PetscScalar *eigr,PetscScalar *eigi,Vec *Vr,Vec *Vi,PetscErrorCode *ierr)
 {
   nepgeteigenpair_(nep,i,eigr,eigi,Vr,Vi,ierr);
 }
 
-SLEPC_EXTERN void PETSC_STDCALL nepgeteigenpair11_(NEP *nep,PetscInt *i,PetscScalar *eigr,PetscScalar *eigi,Vec *Vr,Vec *Vi,PetscErrorCode *ierr)
+SLEPC_EXTERN void nepgeteigenpair11_(NEP *nep,PetscInt *i,PetscScalar *eigr,PetscScalar *eigi,Vec *Vr,Vec *Vi,PetscErrorCode *ierr)
 {
   nepgeteigenpair_(nep,i,eigr,eigi,Vr,Vi,ierr);
 }
 
-SLEPC_EXTERN void PETSC_STDCALL nepgettolerances_(NEP *nep,PetscReal *tol,PetscInt *maxits,PetscErrorCode *ierr)
+SLEPC_EXTERN void nepgettolerances_(NEP *nep,PetscReal *tol,PetscInt *maxits,PetscErrorCode *ierr)
 {
   CHKFORTRANNULLREAL(tol);
   CHKFORTRANNULLINTEGER(maxits);
   *ierr = NEPGetTolerances(*nep,tol,maxits);
 }
 
-SLEPC_EXTERN void PETSC_STDCALL nepgettolerances00_(NEP *nep,PetscReal *tol,PetscInt *maxits,PetscErrorCode *ierr)
+SLEPC_EXTERN void nepgettolerances00_(NEP *nep,PetscReal *tol,PetscInt *maxits,PetscErrorCode *ierr)
 {
   nepgettolerances_(nep,tol,maxits,ierr);
 }
 
-SLEPC_EXTERN void PETSC_STDCALL nepgettolerances10_(NEP *nep,PetscReal *tol,PetscInt *maxits,PetscErrorCode *ierr)
+SLEPC_EXTERN void nepgettolerances10_(NEP *nep,PetscReal *tol,PetscInt *maxits,PetscErrorCode *ierr)
 {
   nepgettolerances_(nep,tol,maxits,ierr);
 }
 
-SLEPC_EXTERN void PETSC_STDCALL nepgettolerances01_(NEP *nep,PetscReal *tol,PetscInt *maxits,PetscErrorCode *ierr)
+SLEPC_EXTERN void nepgettolerances01_(NEP *nep,PetscReal *tol,PetscInt *maxits,PetscErrorCode *ierr)
 {
   nepgettolerances_(nep,tol,maxits,ierr);
 }
 
-SLEPC_EXTERN void PETSC_STDCALL nepgetrefine_(NEP *nep,NEPRefine *refine,PetscInt *npart,PetscReal *tol,PetscInt *its,NEPRefineScheme *scheme,PetscErrorCode *ierr)
+SLEPC_EXTERN void nepgetrefine_(NEP *nep,NEPRefine *refine,PetscInt *npart,PetscReal *tol,PetscInt *its,NEPRefineScheme *scheme,PetscErrorCode *ierr)
 {
   CHKFORTRANNULLINTEGER(npart);
   CHKFORTRANNULLREAL(tol);
@@ -512,53 +512,53 @@ SLEPC_EXTERN void PETSC_STDCALL nepgetrefine_(NEP *nep,NEPRefine *refine,PetscIn
   *ierr = NEPGetRefine(*nep,refine,npart,tol,its,scheme);
 }
 
-SLEPC_EXTERN void PETSC_STDCALL nepgetrefine000_(NEP *nep,NEPRefine *refine,PetscInt *npart,PetscReal *tol,PetscInt *its,NEPRefineScheme *scheme,PetscErrorCode *ierr)
+SLEPC_EXTERN void nepgetrefine000_(NEP *nep,NEPRefine *refine,PetscInt *npart,PetscReal *tol,PetscInt *its,NEPRefineScheme *scheme,PetscErrorCode *ierr)
 {
   nepgetrefine_(nep,refine,npart,tol,its,scheme,ierr);
 }
 
-SLEPC_EXTERN void PETSC_STDCALL nepgetrefine100_(NEP *nep,NEPRefine *refine,PetscInt *npart,PetscReal *tol,PetscInt *its,NEPRefineScheme *scheme,PetscErrorCode *ierr)
+SLEPC_EXTERN void nepgetrefine100_(NEP *nep,NEPRefine *refine,PetscInt *npart,PetscReal *tol,PetscInt *its,NEPRefineScheme *scheme,PetscErrorCode *ierr)
 {
   nepgetrefine_(nep,refine,npart,tol,its,scheme,ierr);
 }
 
-SLEPC_EXTERN void PETSC_STDCALL nepgetrefine010_(NEP *nep,NEPRefine *refine,PetscInt *npart,PetscReal *tol,PetscInt *its,NEPRefineScheme *scheme,PetscErrorCode *ierr)
+SLEPC_EXTERN void nepgetrefine010_(NEP *nep,NEPRefine *refine,PetscInt *npart,PetscReal *tol,PetscInt *its,NEPRefineScheme *scheme,PetscErrorCode *ierr)
 {
   nepgetrefine_(nep,refine,npart,tol,its,scheme,ierr);
 }
 
-SLEPC_EXTERN void PETSC_STDCALL nepgetrefine001_(NEP *nep,NEPRefine *refine,PetscInt *npart,PetscReal *tol,PetscInt *its,NEPRefineScheme *scheme,PetscErrorCode *ierr)
+SLEPC_EXTERN void nepgetrefine001_(NEP *nep,NEPRefine *refine,PetscInt *npart,PetscReal *tol,PetscInt *its,NEPRefineScheme *scheme,PetscErrorCode *ierr)
 {
   nepgetrefine_(nep,refine,npart,tol,its,scheme,ierr);
 }
 
-SLEPC_EXTERN void PETSC_STDCALL nepgetrefine110_(NEP *nep,NEPRefine *refine,PetscInt *npart,PetscReal *tol,PetscInt *its,NEPRefineScheme *scheme,PetscErrorCode *ierr)
+SLEPC_EXTERN void nepgetrefine110_(NEP *nep,NEPRefine *refine,PetscInt *npart,PetscReal *tol,PetscInt *its,NEPRefineScheme *scheme,PetscErrorCode *ierr)
 {
   nepgetrefine_(nep,refine,npart,tol,its,scheme,ierr);
 }
 
-SLEPC_EXTERN void PETSC_STDCALL nepgetrefine011_(NEP *nep,NEPRefine *refine,PetscInt *npart,PetscReal *tol,PetscInt *its,NEPRefineScheme *scheme,PetscErrorCode *ierr)
+SLEPC_EXTERN void nepgetrefine011_(NEP *nep,NEPRefine *refine,PetscInt *npart,PetscReal *tol,PetscInt *its,NEPRefineScheme *scheme,PetscErrorCode *ierr)
 {
   nepgetrefine_(nep,refine,npart,tol,its,scheme,ierr);
 }
 
-SLEPC_EXTERN void PETSC_STDCALL nepgetrefine101_(NEP *nep,NEPRefine *refine,PetscInt *npart,PetscReal *tol,PetscInt *its,NEPRefineScheme *scheme,PetscErrorCode *ierr)
+SLEPC_EXTERN void nepgetrefine101_(NEP *nep,NEPRefine *refine,PetscInt *npart,PetscReal *tol,PetscInt *its,NEPRefineScheme *scheme,PetscErrorCode *ierr)
 {
   nepgetrefine_(nep,refine,npart,tol,its,scheme,ierr);
 }
 
-SLEPC_EXTERN void PETSC_STDCALL nepgetrefine111_(NEP *nep,NEPRefine *refine,PetscInt *npart,PetscReal *tol,PetscInt *its,NEPRefineScheme *scheme,PetscErrorCode *ierr)
+SLEPC_EXTERN void nepgetrefine111_(NEP *nep,NEPRefine *refine,PetscInt *npart,PetscReal *tol,PetscInt *its,NEPRefineScheme *scheme,PetscErrorCode *ierr)
 {
   nepgetrefine_(nep,refine,npart,tol,its,scheme,ierr);
 }
 
-SLEPC_EXTERN void PETSC_STDCALL nepsetinitialspace0_(NEP *nep,PetscInt *n,Vec *is,PetscErrorCode *ierr)
+SLEPC_EXTERN void nepsetinitialspace0_(NEP *nep,PetscInt *n,Vec *is,PetscErrorCode *ierr)
 {
   CHKFORTRANNULLOBJECT(is);
   *ierr = NEPSetInitialSpace(*nep,*n,is);
 }
 
-SLEPC_EXTERN void PETSC_STDCALL nepsetinitialspace1_(NEP *nep,PetscInt *n,Vec *is,PetscErrorCode *ierr)
+SLEPC_EXTERN void nepsetinitialspace1_(NEP *nep,PetscInt *n,Vec *is,PetscErrorCode *ierr)
 {
   CHKFORTRANNULLOBJECT(is);
   *ierr = NEPSetInitialSpace(*nep,*n,is);

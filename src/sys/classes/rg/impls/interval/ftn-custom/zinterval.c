@@ -45,7 +45,7 @@
 #define rgintervalgetendpoints0111_ rgintervalgetendpoints0111
 #endif
 
-SLEPC_EXTERN void PETSC_STDCALL rgintervalgetendpoints_(RG *rg,PetscReal *a,PetscReal *b,PetscReal *c,PetscReal *d,PetscErrorCode *ierr)
+SLEPC_EXTERN void rgintervalgetendpoints_(RG *rg,PetscReal *a,PetscReal *b,PetscReal *c,PetscReal *d,PetscErrorCode *ierr)
 {
   CHKFORTRANNULLREAL(a);
   CHKFORTRANNULLREAL(b);
@@ -54,77 +54,77 @@ SLEPC_EXTERN void PETSC_STDCALL rgintervalgetendpoints_(RG *rg,PetscReal *a,Pets
   *ierr = RGIntervalGetEndpoints(*rg,a,b,c,d);
 }
 
-SLEPC_EXTERN void PETSC_STDCALL rgintervalgetendpoints0000_(RG *rg,PetscReal *a,PetscReal *b,PetscReal *c,PetscReal *d,PetscErrorCode *ierr)
+SLEPC_EXTERN void rgintervalgetendpoints0000_(RG *rg,PetscReal *a,PetscReal *b,PetscReal *c,PetscReal *d,PetscErrorCode *ierr)
 {
   rgintervalgetendpoints_(rg,a,b,c,d,ierr);
 }
 
-SLEPC_EXTERN void PETSC_STDCALL rgintervalgetendpoints1000_(RG *rg,PetscReal *a,PetscReal *b,PetscReal *c,PetscReal *d,PetscErrorCode *ierr)
+SLEPC_EXTERN void rgintervalgetendpoints1000_(RG *rg,PetscReal *a,PetscReal *b,PetscReal *c,PetscReal *d,PetscErrorCode *ierr)
 {
   rgintervalgetendpoints_(rg,a,b,c,d,ierr);
 }
 
-SLEPC_EXTERN void PETSC_STDCALL rgintervalgetendpoints0100_(RG *rg,PetscReal *a,PetscReal *b,PetscReal *c,PetscReal *d,PetscErrorCode *ierr)
+SLEPC_EXTERN void rgintervalgetendpoints0100_(RG *rg,PetscReal *a,PetscReal *b,PetscReal *c,PetscReal *d,PetscErrorCode *ierr)
 {
   rgintervalgetendpoints_(rg,a,b,c,d,ierr);
 }
 
-SLEPC_EXTERN void PETSC_STDCALL rgintervalgetendpoints1100_(RG *rg,PetscReal *a,PetscReal *b,PetscReal *c,PetscReal *d,PetscErrorCode *ierr)
+SLEPC_EXTERN void rgintervalgetendpoints1100_(RG *rg,PetscReal *a,PetscReal *b,PetscReal *c,PetscReal *d,PetscErrorCode *ierr)
 {
   rgintervalgetendpoints_(rg,a,b,c,d,ierr);
 }
 
-SLEPC_EXTERN void PETSC_STDCALL rgintervalgetendpoints0010_(RG *rg,PetscReal *a,PetscReal *b,PetscReal *c,PetscReal *d,PetscErrorCode *ierr)
+SLEPC_EXTERN void rgintervalgetendpoints0010_(RG *rg,PetscReal *a,PetscReal *b,PetscReal *c,PetscReal *d,PetscErrorCode *ierr)
 {
   rgintervalgetendpoints_(rg,a,b,c,d,ierr);
 }
 
-SLEPC_EXTERN void PETSC_STDCALL rgintervalgetendpoints1010_(RG *rg,PetscReal *a,PetscReal *b,PetscReal *c,PetscReal *d,PetscErrorCode *ierr)
+SLEPC_EXTERN void rgintervalgetendpoints1010_(RG *rg,PetscReal *a,PetscReal *b,PetscReal *c,PetscReal *d,PetscErrorCode *ierr)
 {
   rgintervalgetendpoints_(rg,a,b,c,d,ierr);
 }
 
-SLEPC_EXTERN void PETSC_STDCALL rgintervalgetendpoints0110_(RG *rg,PetscReal *a,PetscReal *b,PetscReal *c,PetscReal *d,PetscErrorCode *ierr)
+SLEPC_EXTERN void rgintervalgetendpoints0110_(RG *rg,PetscReal *a,PetscReal *b,PetscReal *c,PetscReal *d,PetscErrorCode *ierr)
 {
   rgintervalgetendpoints_(rg,a,b,c,d,ierr);
 }
 
-SLEPC_EXTERN void PETSC_STDCALL rgintervalgetendpoints1110_(RG *rg,PetscReal *a,PetscReal *b,PetscReal *c,PetscReal *d,PetscErrorCode *ierr)
+SLEPC_EXTERN void rgintervalgetendpoints1110_(RG *rg,PetscReal *a,PetscReal *b,PetscReal *c,PetscReal *d,PetscErrorCode *ierr)
 {
   rgintervalgetendpoints_(rg,a,b,c,d,ierr);
 }
 
-SLEPC_EXTERN void PETSC_STDCALL rgintervalgetendpoints0001_(RG *rg,PetscReal *a,PetscReal *b,PetscReal *c,PetscReal *d,PetscErrorCode *ierr)
+SLEPC_EXTERN void rgintervalgetendpoints0001_(RG *rg,PetscReal *a,PetscReal *b,PetscReal *c,PetscReal *d,PetscErrorCode *ierr)
 {
   rgintervalgetendpoints_(rg,a,b,c,d,ierr);
 }
 
-SLEPC_EXTERN void PETSC_STDCALL rgintervalgetendpoints1001_(RG *rg,PetscReal *a,PetscReal *b,PetscReal *c,PetscReal *d,PetscErrorCode *ierr)
+SLEPC_EXTERN void rgintervalgetendpoints1001_(RG *rg,PetscReal *a,PetscReal *b,PetscReal *c,PetscReal *d,PetscErrorCode *ierr)
 {
   rgintervalgetendpoints_(rg,a,b,c,d,ierr);
 }
 
-SLEPC_EXTERN void PETSC_STDCALL rgintervalgetendpoints0101_(RG *rg,PetscReal *a,PetscReal *b,PetscReal *c,PetscReal *d,PetscErrorCode *ierr)
+SLEPC_EXTERN void rgintervalgetendpoints0101_(RG *rg,PetscReal *a,PetscReal *b,PetscReal *c,PetscReal *d,PetscErrorCode *ierr)
 {
   rgintervalgetendpoints_(rg,a,b,c,d,ierr);
 }
 
-SLEPC_EXTERN void PETSC_STDCALL rgintervalgetendpoints1101_(RG *rg,PetscReal *a,PetscReal *b,PetscReal *c,PetscReal *d,PetscErrorCode *ierr)
+SLEPC_EXTERN void rgintervalgetendpoints1101_(RG *rg,PetscReal *a,PetscReal *b,PetscReal *c,PetscReal *d,PetscErrorCode *ierr)
 {
   rgintervalgetendpoints_(rg,a,b,c,d,ierr);
 }
 
-SLEPC_EXTERN void PETSC_STDCALL rgintervalgetendpoints0011_(RG *rg,PetscReal *a,PetscReal *b,PetscReal *c,PetscReal *d,PetscErrorCode *ierr)
+SLEPC_EXTERN void rgintervalgetendpoints0011_(RG *rg,PetscReal *a,PetscReal *b,PetscReal *c,PetscReal *d,PetscErrorCode *ierr)
 {
   rgintervalgetendpoints_(rg,a,b,c,d,ierr);
 }
 
-SLEPC_EXTERN void PETSC_STDCALL rgintervalgetendpoints1011_(RG *rg,PetscReal *a,PetscReal *b,PetscReal *c,PetscReal *d,PetscErrorCode *ierr)
+SLEPC_EXTERN void rgintervalgetendpoints1011_(RG *rg,PetscReal *a,PetscReal *b,PetscReal *c,PetscReal *d,PetscErrorCode *ierr)
 {
   rgintervalgetendpoints_(rg,a,b,c,d,ierr);
 }
 
-SLEPC_EXTERN void PETSC_STDCALL rgintervalgetendpoints0111_(RG *rg,PetscReal *a,PetscReal *b,PetscReal *c,PetscReal *d,PetscErrorCode *ierr)
+SLEPC_EXTERN void rgintervalgetendpoints0111_(RG *rg,PetscReal *a,PetscReal *b,PetscReal *c,PetscReal *d,PetscErrorCode *ierr)
 {
   rgintervalgetendpoints_(rg,a,b,c,d,ierr);
 }

@@ -23,7 +23,7 @@
 #define slepcgetversionnumber_        slepcgetversionnumber
 #endif
 
-SLEPC_EXTERN void PETSC_STDCALL slepcconvmonitorcreate_(PetscViewer *vin,PetscViewerFormat *format,SlepcConvMonitor *ctx,PetscErrorCode *ierr)
+SLEPC_EXTERN void slepcconvmonitorcreate_(PetscViewer *vin,PetscViewerFormat *format,SlepcConvMonitor *ctx,PetscErrorCode *ierr)
 {
   PetscViewer v;
   PetscPatchDefaultViewers_Fortran(vin,v);
@@ -35,13 +35,13 @@ SLEPC_EXTERN void slepcconvmonitordestroy_(SlepcConvMonitor *ctx,PetscErrorCode 
   *ierr = SlepcConvMonitorDestroy(ctx);
 }
 
-SLEPC_EXTERN void PETSC_STDCALL slepcgetversion_(char *version PETSC_MIXED_LEN(len1),PetscErrorCode *ierr PETSC_END_LEN(len1))
+SLEPC_EXTERN void slepcgetversion_(char *version,PetscErrorCode *ierr,PETSC_FORTRAN_CHARLEN_T len1)
 {
   *ierr = SlepcGetVersion(version,len1);if (*ierr) return;
   FIXRETURNCHAR(PETSC_TRUE,version,len1);
 }
 
-SLEPC_EXTERN void PETSC_STDCALL slepcgetversionnumber_(PetscInt *major,PetscInt *minor,PetscInt *subminor,PetscInt *release,PetscInt *ierr)
+SLEPC_EXTERN void slepcgetversionnumber_(PetscInt *major,PetscInt *minor,PetscInt *subminor,PetscInt *release,PetscInt *ierr)
 {
   CHKFORTRANNULLINTEGER(major);
   CHKFORTRANNULLINTEGER(minor);
