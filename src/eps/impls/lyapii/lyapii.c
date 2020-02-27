@@ -114,26 +114,6 @@ static PetscErrorCode MatCreateVecs_EPSLyapIIOperator(Mat M,Vec *right,Vec *left
   PetscFunctionReturn(0);
 }
 
-static PetscErrorCode EPSLyapIIGetOperator(EPS eps,Mat *Mshell,BV *Q)
-{
-  EPS_LYAPII_MSHELL *matctx;
-  PetscErrorCode    ierr;
-  PetscInt          nloc,mloc;
-
-  PetscFunctionBegin;
-  /* Create mat shell */
-  ierr = PetscNew(&matctx);CHKERRQ(ierr);
-  ierr = STGetOperator(eps->st,&matctx->S);CHKERRQ(ierr);
-  ierr = MatGetLocalSize(matctx->S,&mloc,&nloc);CHKERRQ(ierr);
-  ierr = MatCreateShell(PetscObjectComm((PetscObject)eps),nloc,mloc,PETSC_DETERMINE,PETSC_DETERMINE,matctx,Mshell);CHKERRQ(ierr);
-  ierr = BVDuplicateResize(eps->V,eps->nev+1,&matctx->Q);CHKERRQ(ierr);
-  ierr = MatShellSetOperation(*Mshell,MATOP_MULT,(void(*)(void))MatMult_EPSLyapIIOperator);CHKERRQ(ierr);
-  ierr = MatShellSetOperation(*Mshell,MATOP_DESTROY,(void(*)(void))MatDestroy_EPSLyapIIOperator);CHKERRQ(ierr);
-  ierr = MatShellSetOperation(*Mshell,MATOP_CREATE_VECS,(void(*)(void))MatCreateVecs_EPSLyapIIOperator);CHKERRQ(ierr);
-  if (Q) *Q = matctx->Q;
-  PetscFunctionReturn(0);
-}
-
 static PetscErrorCode EV2x2(PetscScalar *M,PetscInt ld,PetscScalar *wr,PetscScalar *wi,PetscScalar *vec)
 {
 #if defined(PETSC_MISSING_LAPACK_GEEV)
@@ -216,7 +196,7 @@ PetscErrorCode EPSSolve_LyapII(EPS eps)
 {
   PetscErrorCode     ierr;
   EPS_LYAPII         *ctx = (EPS_LYAPII*)eps->data;
-  PetscInt           off,f,c,i,j,ldds,ldS,rk,nloc,nv,idx,k;
+  PetscInt           off,f,c,i,j,ldds,ldS,rk,nloc,mloc,nv,idx,k;
   Vec                v,w,t[2];
   Mat                S,C,Ux[2],Y,Y1,R,U,W,X,A,B;
   BV                 Q,V;
@@ -227,6 +207,7 @@ PetscErrorCode EPSSolve_LyapII(EPS eps)
   PetscReal          eta;
   EPS                epsrr;
   PetscReal          norm;
+  EPS_LYAPII_MSHELL  *matctx;
 
   PetscFunctionBegin;
   ierr = DSCreate(PetscObjectComm((PetscObject)eps),&ctx->ds);CHKERRQ(ierr);
@@ -237,7 +218,15 @@ PetscErrorCode EPSSolve_LyapII(EPS eps)
   ierr = DSGetLeadingDimension(ctx->ds,&ldS);CHKERRQ(ierr);
 
   /* Operator for the Lyapunov equation */
-  ierr = EPSLyapIIGetOperator(eps,&S,&Q);CHKERRQ(ierr);
+  ierr = PetscNew(&matctx);CHKERRQ(ierr);
+  ierr = STGetOperator(eps->st,&matctx->S);CHKERRQ(ierr);
+  ierr = MatGetLocalSize(matctx->S,&mloc,&nloc);CHKERRQ(ierr);
+  ierr = MatCreateShell(PetscObjectComm((PetscObject)eps),nloc,mloc,PETSC_DETERMINE,PETSC_DETERMINE,matctx,&S);CHKERRQ(ierr);
+  ierr = BVDuplicateResize(eps->V,eps->nev+1,&matctx->Q);CHKERRQ(ierr);
+  ierr = MatShellSetOperation(S,MATOP_MULT,(void(*)(void))MatMult_EPSLyapIIOperator);CHKERRQ(ierr);
+  ierr = MatShellSetOperation(S,MATOP_DESTROY,(void(*)(void))MatDestroy_EPSLyapIIOperator);CHKERRQ(ierr);
+  ierr = MatShellSetOperation(S,MATOP_CREATE_VECS,(void(*)(void))MatCreateVecs_EPSLyapIIOperator);CHKERRQ(ierr);
+  Q = matctx->Q;
   ierr = LMESetCoefficients(ctx->lme,S,NULL,NULL,NULL);CHKERRQ(ierr);
 
   /* Right-hand side */
@@ -438,6 +427,7 @@ PetscErrorCode EPSSolve_LyapII(EPS eps)
     ierr = (*eps->stopping)(eps,eps->its,eps->max_it,eps->nconv,eps->nev,&eps->reason,eps->stoppingctx);CHKERRQ(ierr);
     ierr = EPSMonitor(eps,eps->its,eps->nconv,eps->eigr,eps->eigi,eps->errest,eps->nconv+1);CHKERRQ(ierr);
   }
+  ierr = STRestoreOperator(eps->st,&matctx->S);CHKERRQ(ierr);
   ierr = MatDestroy(&S);CHKERRQ(ierr);
   ierr = MatDestroy(&Y1);CHKERRQ(ierr);
   ierr = MatDestroy(&Ux[0]);CHKERRQ(ierr);
