@@ -16,7 +16,7 @@
 
 .. _petsc4py:     http://bitbucket.org/petsc/petsc4py
 
-.. _slepc4py:     http://bitbucket.org/slepc/slepc4py
+.. _slepc4py:     http://gitlab.com/slepc/slepc4py
 
 .. Local Variables:
 .. mode: rst

@@ -63,11 +63,11 @@ project website generously hosted by Bitbucket. You can use
 
 * Using :program:`curl`::
 
-    $ curl -O https://bitbucket.org/slepc/slepc4py/downloads/slepc4py-X.Y.tar.gz
+    $ curl -O https://gitlab.com/slepc/slepc4py/-/archive/X.Y.Z.tar.gz
 
 * Using :program:`wget`::
 
-    $ wget https://bitbucket.org/slepc/slepc4py/downloads/slepc4py-X.Y.tar.gz
+    $ wget https://gitlab.com/slepc/slepc4py/-/archive/X.Y.Z.tar.gz
 
 Building
 ^^^^^^^^
