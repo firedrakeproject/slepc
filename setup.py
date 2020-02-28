@@ -226,7 +226,7 @@ def version():
 def tarball():
     VERSION = version()
     if '.dev' in VERSION: return None
-    return ('http://slepc.upv.es/download/distrib/'
+    return ('https://slepc.upv.es/download/distrib/'
             'slepc-%s.tar.gz#egg=slepc-%s' % (VERSION, VERSION))
 
 description = __doc__.split('\n')[1:-1]; del description[1:3]
@@ -258,7 +258,7 @@ setup(name='slepc',
       platforms=['POSIX'],
       license='BSD',
 
-      url='http://slepc.upv.es/',
+      url='https://slepc.upv.es/',
       download_url=tarball(),
 
       author='SLEPc Team',

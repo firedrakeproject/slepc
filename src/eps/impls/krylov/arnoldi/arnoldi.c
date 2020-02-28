@@ -19,7 +19,7 @@
    References:
 
        [1] "Arnoldi Methods in SLEPc", SLEPc Technical Report STR-4,
-           available at http://slepc.upv.es.
+           available at https://slepc.upv.es.
 */
 
 #include <slepc/private/epsimpl.h>                /*I "slepceps.h" I*/

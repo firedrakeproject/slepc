@@ -21,7 +21,7 @@
    References:
 
        [1] "Lanczos Methods in SLEPc", SLEPc Technical Report STR-5,
-           available at http://slepc.upv.es.
+           available at https://slepc.upv.es.
 */
 
 #include <slepc/private/epsimpl.h>                /*I "slepceps.h" I*/

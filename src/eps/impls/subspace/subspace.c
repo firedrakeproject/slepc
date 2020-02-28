@@ -20,7 +20,7 @@
    References:
 
        [1] "Subspace Iteration in SLEPc", SLEPc Technical Report STR-3,
-           available at http://slepc.upv.es.
+           available at https://slepc.upv.es.
 */
 
 #include <slepc/private/epsimpl.h>

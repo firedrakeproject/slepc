@@ -68,7 +68,7 @@ def WriteModulesFile(modules,version,sdir):
   modules.write('#%Module\n\n')
   modules.write('proc ModulesHelp { } {\n')
   modules.write('    puts stderr "This module sets the path and environment variables for slepc-%s"\n' % version)
-  modules.write('    puts stderr "     see http://slepc.upv.es/ for more information"\n')
+  modules.write('    puts stderr "     see https://slepc.upv.es/ for more information"\n')
   modules.write('    puts stderr ""\n}\n')
   modules.write('module-whatis "SLEPc - Scalable Library for Eigenvalue Problem Computations"\n\n')
   modules.write('module load petsc\n')

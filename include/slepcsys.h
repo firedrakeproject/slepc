@@ -47,7 +47,7 @@
     slepcversion.h contains version info
 */
 #include <slepcversion.h>
-#define SLEPC_AUTHOR_INFO "       The SLEPc Team\n    slepc-maint@upv.es\n http://slepc.upv.es\n"
+#define SLEPC_AUTHOR_INFO "       The SLEPc Team\n    slepc-maint@upv.es\n https://slepc.upv.es\n"
 
 /* ========================================================================== */
 /*

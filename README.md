@@ -4,7 +4,7 @@ SLEPc: Scalable Library for Eigenvalue Problem Computations
 
 - Authors: Jose E. Roman, Carmen Campos, Eloy Romero, Andres Tomas
 - Organization: Universitat Politecnica de Valencia, Spain
-- Website: http://slepc.upv.es
+- Website: https://slepc.upv.es
 - Contact: slepc-maint@upv.es
 
 
@@ -21,7 +21,7 @@ SLEPc is built on top of [PETSc](https://www.mcs.anl.gov/petsc), the Portable Ex
 Documentation
 -------------
 
-The Users Manual as well as the HTML man pages for the detailed reference of each individual SLEPc routines are included in the SLEPc distribution and can also be found at the [online documentation](http://slepc.upv.es/documentation).
+The Users Manual as well as the HTML man pages for the detailed reference of each individual SLEPc routines are included in the SLEPc distribution and can also be found at the [online documentation](https://slepc.upv.es/documentation).
 
 The main reference for SLEPc is the following paper (see other references at the SLEPc website):
 
@@ -31,7 +31,7 @@ The main reference for SLEPc is the following paper (see other references at the
 Installation
 ------------
 
-The installation procedure of SLEPc is very similar to that of PETSc. Briefly, the environment variables `$SLEPC_DIR` and `$PETSC_DIR` must be set, then the `configure` script is executed and finally the libraries are built with the command `make`. More details can be found in the Users Manual or in the online [installation instructions](http://slepc.upv.es/documentation/instal.htm).
+The installation procedure of SLEPc is very similar to that of PETSc. Briefly, the environment variables `$SLEPC_DIR` and `$PETSC_DIR` must be set, then the `configure` script is executed and finally the libraries are built with the command `make`. More details can be found in the Users Manual or in the online [installation instructions](https://slepc.upv.es/documentation/instal.htm).
 
 
 Funding

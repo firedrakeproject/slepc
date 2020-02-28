@@ -27,7 +27,7 @@
    References:
 
        [1] "Single Vector Iteration Methods in SLEPc", SLEPc Technical Report
-           STR-2, available at http://slepc.upv.es.
+           STR-2, available at https://slepc.upv.es.
 */
 
 #include <slepc/private/epsimpl.h>                /*I "slepceps.h" I*/

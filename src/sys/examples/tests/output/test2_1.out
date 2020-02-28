@@ -4,7 +4,7 @@ Tests functions intended to be used from a debugger.
 SLEPc version
        The SLEPc Team
     slepc-maint@upv.es
- http://slepc.upv.es
+ https://slepc.upv.es
 See docs/manual.html for help.
 SLEPc libraries linked from PATH
 --------------------------------------------------------------------------

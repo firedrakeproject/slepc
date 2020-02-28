@@ -219,7 +219,7 @@ docsetdate: chk_petscdir
         export gitver; \
         find * -type d -wholename 'arch-*' -prune -o -type f -name \*.html \
           -exec perl -pi -e 's^(<body.*>)^$$1\n   <div id=\"version\" align=right><b>$$ENV{slepcversion} $$ENV{datestr}</b></div>\n   <div id="bugreport" align=right><a href="mailto:slepc-maint\@upv.es?subject=Typo or Error in Documentation &body=Please describe the typo or error in the documentation: $$ENV{slepcversion} $$ENV{gitver} {} "><small>Report Typos and Errors</small></a></div>^i' {} \; \
-          -exec perl -pi -e 's^(<head>)^$$1 <link rel="canonical" href="http://slepc.upv.es/documentation/current/{}" />^i' {} \; ; \
+          -exec perl -pi -e 's^(<head>)^$$1 <link rel="canonical" href="https://slepc.upv.es/documentation/current/{}" />^i' {} \; ; \
         echo "Done fixing version number, date, canonical URL info"
 
 # Deletes documentation
