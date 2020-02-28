@@ -25,7 +25,7 @@ Dependencies
 
 .. _Python:   http://www.python.org
 .. _NumPy:    http://www.numpy.org
-.. _SLEPc:    http://slepc.upv.es
+.. _SLEPc:    https://slepc.upv.es
 .. _PETSc:    http://www.mcs.anl.gov/petsc/
 .. _petsc4py: http://bitbucket.org/petsc/petsc4py
 .. _Cython:   http://www.cython.org
@@ -35,4 +35,4 @@ Documentation
 
 * http://slepc4py.readthedocs.org/, This does not contain the epydoc-generated API reference.
 
-* http://slepc.upv.es/slepc4py-current/docs/, This is for the last release, not the in-development version.
+* https://slepc.upv.es/slepc4py-current/docs/, This is for the last release, not the in-development version.

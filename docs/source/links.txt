@@ -6,7 +6,7 @@
 
 .. _PETSc:        http://www.mcs.anl.gov/petsc/
 
-.. _SLEPc:        http://slepc.upv.es
+.. _SLEPc:        https://slepc.upv.es
 
 .. _Python:       http://www.python.org
 

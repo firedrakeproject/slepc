@@ -16,7 +16,7 @@ be used for either standard or generalized eigenproblems, with real or
 complex arithmetic. It can also be used for computing a partial SVD of
 a large, sparse, rectangular matrix.
 
-.. _SLEPc: http://slepc.upv.es
+.. _SLEPc: https://slepc.upv.es
 .. _PETSc: http://www.mcs.anl.gov/petsc
 """
 
