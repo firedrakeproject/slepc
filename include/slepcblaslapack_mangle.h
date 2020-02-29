@@ -16,13 +16,11 @@
 #define BLASMIXEDrot_ PETSCBLASMIXED(rot,ROT)
 #define LAPACKlaev2_ PETSCBLAS(laev2,LAEV2)
 #define LAPACKgehrd_ PETSCBLAS(gehrd,GEHRD)
-#define LAPACKgelqf_ PETSCBLAS(gelqf,GELQF)
 #define LAPACKlarfg_ PETSCBLAS(larfg,LARFG)
 #define LAPACKlag2_  PETSCBLASREAL(lag2,LAG2)
 #define LAPACKlasv2_ PETSCBLASREAL(lasv2,LASV2)
 #define LAPACKlartg_ PETSCBLAS(lartg,LARTG)
 #define LAPACKREALlartg_ PETSCBLASREAL(lartg,LARTG)
-#define LAPACKlaln2_ PETSCBLASREAL(laln2,LALN2)
 #define LAPACKlaed4_ PETSCBLASREAL(laed4,LAED4)
 #define LAPACKlamrg_ PETSCBLASREAL(lamrg,LAMRG)
 #define LAPACKlapy2_ PETSCBLASREAL(lapy2,LAPY2)
@@ -40,7 +38,6 @@
 #define BLAStrmm_    PETSCBLAS(trmm,TRMM)
 #define LAPACKlanhs_ PETSCBLAS(lanhs,LANHS)
 #define LAPACKlange_ PETSCBLAS(lange,LANGE)
-#define LAPACKpbtrf_ PETSCBLAS(pbtrf,PBTRF)
 #define LAPACKlarf_  PETSCBLAS(larf,LARF)
 #define LAPACKlacpy_ PETSCBLAS(lacpy,LACPY)
 #define LAPACKlansy_ PETSCBLAS(lansy,LANSY)
@@ -56,23 +53,18 @@
 
 /* subroutines with different name in real/complex */
 #if !defined(PETSC_USE_COMPLEX)
-#define LAPACKormlq_ PETSCBLAS(ormlq,ORMLQ)
 #define LAPACKorgtr_ PETSCBLAS(orgtr,ORGTR)
 #define LAPACKsytrd_ PETSCBLAS(sytrd,SYTRD)
-#define LAPACKsyevr_ PETSCBLAS(syevr,SYEVR)
 #define LAPACKsyevd_ PETSCBLAS(syevd,SYEVD)
 #define LAPACKsygvd_ PETSCBLAS(sygvd,SYGVD)
 #else
-#define LAPACKormlq_ PETSCBLAS(unmlq,UNMLQ)
 #define LAPACKorgtr_ PETSCBLAS(ungtr,UNGTR)
 #define LAPACKsytrd_ PETSCBLAS(hetrd,HETRD)
-#define LAPACKsyevr_ PETSCBLAS(heevr,HEEVR)
 #define LAPACKsyevd_ PETSCBLAS(heevd,HEEVD)
 #define LAPACKsygvd_ PETSCBLAS(hegvd,HEGVD)
 #endif
 
 /* subroutines with different signature in real/complex */
-#define LAPACKggevx_ PETSCBLAS(ggevx,GGEVX)
 #define LAPACKggev_  PETSCBLAS(ggev,GGEV)
 #define LAPACKtrevc_ PETSCBLAS(trevc,TREVC)
 #define LAPACKgeevx_ PETSCBLAS(geevx,GEEVX)
