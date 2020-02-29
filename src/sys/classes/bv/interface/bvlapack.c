@@ -214,7 +214,7 @@ PetscErrorCode BVMatTriInv_LAPACK_Private(BV bv,Mat R,Mat S)
  */
 PetscErrorCode BVMatSVQB_LAPACK_Private(BV bv,Mat R,Mat S)
 {
-#if defined(SLEPC_MISSING_LAPACK_SYEV)
+#if defined(PETSC_MISSING_LAPACK_SYEV)
   PetscFunctionBegin;
   SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"SYEV - Lapack routine is unavailable");
 #else

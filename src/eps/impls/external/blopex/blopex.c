@@ -126,7 +126,7 @@ PetscErrorCode EPSSetDimensions_BLOPEX(EPS eps,PetscInt nev,PetscInt *ncv,PetscI
 
 PetscErrorCode EPSSetUp_BLOPEX(EPS eps)
 {
-#if defined(PETSC_MISSING_LAPACK_POTRF) || defined(PETSC_MISSING_LAPACK_SYGV)
+#if defined(PETSC_MISSING_LAPACK_POTRF) || defined(SLEPC_MISSING_LAPACK_SYGV)
   PetscFunctionBegin;
   SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"POTRF/SYGV - Lapack routines are unavailable");
 #else

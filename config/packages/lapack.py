@@ -53,9 +53,9 @@ class Lapack(package.Package):
     # LAPACK standard functions
     l = ['laev2','gehrd','lanhs','lange','trexc','trevc','geevx','gees','ggev','ggevx','gelqf','geqp3','gesdd','tgexc','tgevc','pbtrf','stedc','hsein','larfg','larf','lacpy','lascl','lansy','laset','trsyl','trtri']
 
-    # LAPACK functions with different real and complex versions
+    # LAPACK functions with different real and complex names
     if petsc.scalar == 'real':
-      l += ['orghr','syevr','syevd','sytrd','sygvd','ormlq','orgtr']
+      l += ['orghr','syevr','syevd','sytrd','sygv','sygvd','ormlq','orgtr']
       if petsc.precision == 'single':
         prefix = 's'
       elif petsc.precision == '__float128':
@@ -63,7 +63,7 @@ class Lapack(package.Package):
       else:
         prefix = 'd'
     else:
-      l += ['unghr','heevr','heevd','hetrd','hegvd','unmlq','ungtr']
+      l += ['unghr','heevr','heevd','hetrd','hegv','hegvd','unmlq','ungtr']
       if petsc.precision == 'single':
         prefix = 'c'
       elif petsc.precision == '__float128':
@@ -77,15 +77,18 @@ class Lapack(package.Package):
       functions.append(prefix + i)
 
     # in this case, the real name represents both versions
-    namesubst = {'unghr':'orghr', 'heevr':'syevr', 'heevd':'syevd', 'hetrd':'sytrd', 'hegvd':'sygvd', 'unmlq':'ormlq', 'ungtr':'orgtr'}
+    namesubst = {'unghr':'orghr', 'heevr':'syevr', 'heevd':'syevd', 'hetrd':'sytrd', 'hegv':'sygv', 'hegvd':'sygvd', 'unmlq':'ormlq', 'ungtr':'orgtr'}
 
     # LAPACK functions which are always used in real version
+    l = ['stevr','bdsdc','lamch','lag2','lasv2','lartg','laln2','laed4','lamrg','lapy2']
     if petsc.precision == 'single':
-      functions += ['sstevr','sbdsdc','slamch','slag2','slasv2','slartg','slaln2','slaed4','slamrg','slapy2']
+      prefix = 's'
     elif petsc.precision == '__float128':
-      functions += ['qstevr','qbdsdc','qlamch','qlag2','qlasv2','qlartg','qlaln2','qlaed4','qlamrg','qlapy2']
+      prefix = 'q'
     else:
-      functions += ['dstevr','dbdsdc','dlamch','dlag2','dlasv2','dlartg','dlaln2','dlaed4','dlamrg','dlapy2']
+      prefix = 'd'
+    for i in l:
+      functions.append(prefix + i)
 
     # check for all functions at once
     allf = []
