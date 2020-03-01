@@ -157,10 +157,6 @@ PetscErrorCode DSView_GHIEP(DS ds,PetscViewer viewer)
 
 static PetscErrorCode DSVectors_GHIEP_Eigen_Some(DS ds,PetscInt *idx,PetscReal *rnorm)
 {
-#if defined(SLEPC_MISSING_LAPACK_LAG2)
-  PetscFunctionBegin;
-  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"LAG2 - Lapack routine is unavailable");
-#else
   PetscErrorCode ierr;
   PetscReal      b[4],M[4],d1,d2,s1,s2,e;
   PetscReal      scal1,scal2,wr1,wr2,wi,ep,norm;
@@ -254,7 +250,6 @@ static PetscErrorCode DSVectors_GHIEP_Eigen_Some(DS ds,PetscInt *idx,PetscReal *
     }
   }
   PetscFunctionReturn(0);
-#endif
 }
 
 PetscErrorCode DSVectors_GHIEP(DS ds,DSMatType mat,PetscInt *k,PetscReal *rnorm)
@@ -301,10 +296,6 @@ PetscErrorCode DSVectors_GHIEP(DS ds,DSMatType mat,PetscInt *k,PetscReal *rnorm)
 */
 PetscErrorCode DSGHIEPComplexEigs(DS ds,PetscInt n0,PetscInt n1,PetscScalar *wr,PetscScalar *wi)
 {
-#if defined(SLEPC_MISSING_LAPACK_LAG2)
-  PetscFunctionBegin;
-  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"LAG2 - Lapack routine is unavailable");
-#else
   PetscInt     k,ld;
   PetscBLASInt two=2;
   PetscScalar  *A,*B;
@@ -370,7 +361,6 @@ PetscErrorCode DSGHIEPComplexEigs(DS ds,PetscInt n0,PetscInt n1,PetscScalar *wr,
   }
 #endif
   PetscFunctionReturn(0);
-#endif
 }
 
 PetscErrorCode DSSort_GHIEP(DS ds,PetscScalar *wr,PetscScalar *wi,PetscScalar *rr,PetscScalar *ri,PetscInt *k)
@@ -421,10 +411,6 @@ PetscErrorCode DSSort_GHIEP(DS ds,PetscScalar *wr,PetscScalar *wi,PetscScalar *r
 */
 PetscErrorCode DSGHIEPInverseIteration(DS ds,PetscScalar *wr,PetscScalar *wi)
 {
-#if defined(SLEPC_MISSING_LAPACK_HSEIN)
-  PetscFunctionBegin;
-  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"HSEIN - Lapack routine is unavailable");
-#else
   PetscErrorCode ierr;
   PetscInt       i,off;
   PetscBLASInt   *select,*infoC,ld,n1,mout,info;
@@ -494,7 +480,6 @@ PetscErrorCode DSGHIEPInverseIteration(DS ds,PetscScalar *wr,PetscScalar *wi)
   SlepcCheckLapackInfo("hsein",info);
   ierr = DSGHIEPOrthogEigenv(ds,DS_MAT_X,wr,wi,PETSC_TRUE);CHKERRQ(ierr);
   PetscFunctionReturn(0);
-#endif
 }
 
 /*
@@ -502,10 +487,6 @@ PetscErrorCode DSGHIEPInverseIteration(DS ds,PetscScalar *wr,PetscScalar *wi)
 */
 PetscErrorCode DSGHIEPRealBlocks(DS ds)
 {
-#if defined(SLEPC_MISSING_LAPACK_LAG2)
-  PetscFunctionBegin;
-  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"LAG2 - Lapack routine is unavailable");
-#else
   PetscErrorCode ierr;
   PetscInt       i;
   PetscReal      e,d1,d2,s1,s2,ss1,ss2,t,dd,ss;
@@ -621,15 +602,10 @@ PetscErrorCode DSGHIEPRealBlocks(DS ds)
     }
   }
   PetscFunctionReturn(0);
-#endif
 }
 
 PetscErrorCode DSSolve_GHIEP_QR_II(DS ds,PetscScalar *wr,PetscScalar *wi)
 {
-#if defined(PETSC_MISSING_LAPACK_HSEQR)
-  PetscFunctionBegin;
-  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"HSEQR - Lapack routine is unavailable");
-#else
   PetscErrorCode ierr;
   PetscInt       i,off;
   PetscBLASInt   n1,ld,one,info,lwork;
@@ -731,7 +707,6 @@ PetscErrorCode DSSolve_GHIEP_QR_II(DS ds,PetscScalar *wr,PetscScalar *wi)
   }
 #endif
   PetscFunctionReturn(0);
-#endif
 }
 
 PetscErrorCode DSSolve_GHIEP_QR(DS ds,PetscScalar *wr,PetscScalar *wi)

@@ -15,21 +15,39 @@
 #define BLASrot_     PETSCBLAS(rot,ROT)
 #define BLASMIXEDrot_ PETSCBLASMIXED(rot,ROT)
 #define LAPACKlaev2_ PETSCBLAS(laev2,LAEV2)
+#if !defined(SLEPC_MISSING_LAPACK_GEHRD)
 #define LAPACKgehrd_ PETSCBLAS(gehrd,GEHRD)
+#endif
+#if !defined(SLEPC_MISSING_LAPACK_LARFG)
 #define LAPACKlarfg_ PETSCBLAS(larfg,LARFG)
+#endif
+#if !defined(SLEPC_MISSING_LAPACK_LAG2)
 #define LAPACKlag2_  PETSCBLASREAL(lag2,LAG2)
+#endif
+#if !defined(SLEPC_MISSING_LAPACK_LASV2)
 #define LAPACKlasv2_ PETSCBLASREAL(lasv2,LASV2)
+#endif
+#if !defined(SLEPC_MISSING_LAPACK_LARTG)
 #define LAPACKlartg_ PETSCBLAS(lartg,LARTG)
 #define LAPACKREALlartg_ PETSCBLASREAL(lartg,LARTG)
+#endif
+#if !defined(SLEPC_MISSING_LAPACK_LAED4)
 #define LAPACKlaed4_ PETSCBLASREAL(laed4,LAED4)
+#endif
+#if !defined(SLEPC_MISSING_LAPACK_LAMRG)
 #define LAPACKlamrg_ PETSCBLASREAL(lamrg,LAMRG)
+#endif
 #define LAPACKlapy2_ PETSCBLASREAL(lapy2,LAPY2)
+#if !defined(SLEPC_MISSING_LAPACK_ORGHR)
 #if !defined(PETSC_USE_COMPLEX)
 #define LAPACKorghr_ PETSCBLAS(orghr,ORGHR)
 #else
 #define LAPACKorghr_ PETSCBLAS(unghr,UNGHR)
 #endif
+#endif
+#if !defined(SLEPC_MISSING_LAPACK_TGEXC)
 #define LAPACKtgexc_ PETSCBLAS(tgexc,TGEXC)
+#endif
 #define LAPACKgeqp3_ PETSCBLAS(geqp3,GEQP3)
 
 /* LAPACK functions with string parameters */
@@ -38,27 +56,41 @@
 #define BLAStrmm_    PETSCBLAS(trmm,TRMM)
 #define LAPACKlanhs_ PETSCBLAS(lanhs,LANHS)
 #define LAPACKlange_ PETSCBLAS(lange,LANGE)
+#if !defined(SLEPC_MISSING_LAPACK_LARF)
 #define LAPACKlarf_  PETSCBLAS(larf,LARF)
+#endif
 #define LAPACKlacpy_ PETSCBLAS(lacpy,LACPY)
 #define LAPACKlansy_ PETSCBLAS(lansy,LANSY)
 #define LAPACKlaset_ PETSCBLAS(laset,LASET)
+#if !defined(SLEPC_MISSING_LAPACK_TRSYL)
 #define LAPACKtrsyl_ PETSCBLAS(trsyl,TRSYL)
+#endif
 #define LAPACKtrtri_ PETSCBLAS(trtri,TRTRI)
 
 /* subroutines in which we use only the real version, do not care whether they have different name */
+#if !defined(SLEPC_MISSING_LAPACK_STEVR)
 #define LAPACKstevr_ PETSCBLASREAL(stevr,STEVR)
+#endif
+#if !defined(SLEPC_MISSING_LAPACK_BDSDC)
 #define LAPACKbdsdc_ PETSCBLASREAL(bdsdc,BDSDC)
+#endif
 #define LAPACKlamch_ PETSCBLASREAL(lamch,LAMCH)
 #define LAPACKlamc3_ PETSCBLASREAL(lamc3,LAMC3)
 
 /* subroutines with different name in real/complex */
 #if !defined(PETSC_USE_COMPLEX)
+#if !defined(SLEPC_MISSING_LAPACK_ORGTR)
 #define LAPACKorgtr_ PETSCBLAS(orgtr,ORGTR)
+#endif
+#if !defined(SLEPC_MISSING_LAPACK_SYTRD)
 #define LAPACKsytrd_ PETSCBLAS(sytrd,SYTRD)
+#endif
 #define LAPACKsyevd_ PETSCBLAS(syevd,SYEVD)
 #define LAPACKsygvd_ PETSCBLAS(sygvd,SYGVD)
 #else
+#if !defined(SLEPC_MISSING_LAPACK_ORGTR)
 #define LAPACKorgtr_ PETSCBLAS(ungtr,UNGTR)
+#endif
 #define LAPACKsytrd_ PETSCBLAS(hetrd,HETRD)
 #define LAPACKsyevd_ PETSCBLAS(heevd,HEEVD)
 #define LAPACKsygvd_ PETSCBLAS(hegvd,HEGVD)
@@ -66,15 +98,27 @@
 
 /* subroutines with different signature in real/complex */
 #define LAPACKggev_  PETSCBLAS(ggev,GGEV)
+#if !defined(SLEPC_MISSING_LAPACK_TREVC)
 #define LAPACKtrevc_ PETSCBLAS(trevc,TREVC)
+#endif
 #define LAPACKgeevx_ PETSCBLAS(geevx,GEEVX)
 #define LAPACKgees_  PETSCBLAS(gees,GEES)
+#if !defined(SLEPC_MISSING_LAPACK_TREXC)
 #define LAPACKtrexc_ PETSCBLAS(trexc,TREXC)
+#endif
 #define LAPACKgesdd_ PETSCBLAS(gesdd,GESDD)
+#if !defined(SLEPC_MISSING_LAPACK_TGEVC)
 #define LAPACKtgevc_ PETSCBLAS(tgevc,TGEVC)
+#endif
+#if !defined(SLEPC_MISSING_LAPACK_HSEIN)
 #define LAPACKhsein_ PETSCBLAS(hsein,HSEIN)
+#endif
+#if !defined(SLEPC_MISSING_LAPACK_STEDC)
 #define LAPACKstedc_ PETSCBLAS(stedc,STEDC)
+#endif
+#if !defined(SLEPC_MISSING_LAPACK_LASCL)
 #define LAPACKlascl_ PETSCBLAS(lascl,LASCL)
+#endif
 
 #if defined(PETSC_HAVE_COMPLEX)
 /* complex subroutines to be called with scalar-type=real */

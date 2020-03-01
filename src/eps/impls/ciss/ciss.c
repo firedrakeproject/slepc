@@ -527,10 +527,6 @@ static PetscErrorCode BlockHankel(EPS eps,PetscScalar *Mu,PetscInt s,PetscScalar
 
 static PetscErrorCode SVD_H0(EPS eps,PetscScalar *S,PetscInt *K)
 {
-#if defined(PETSC_MISSING_LAPACK_GESVD)
-  PetscFunctionBegin;
-  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"GESVD - Lapack routine is unavailable");
-#else
   PetscErrorCode ierr;
   EPS_CISS       *ctx = (EPS_CISS*)eps->data;
   PetscInt       i,ml=ctx->L*ctx->M;
@@ -564,7 +560,6 @@ static PetscErrorCode SVD_H0(EPS eps,PetscScalar *S,PetscInt *K)
   ierr = PetscFree(rwork);CHKERRQ(ierr);
 #endif
   PetscFunctionReturn(0);
-#endif
 }
 
 static PetscErrorCode ConstructS(EPS eps)
@@ -617,10 +612,6 @@ static PetscErrorCode ConstructS(EPS eps)
 
 static PetscErrorCode SVD_S(BV S,PetscInt ml,PetscReal delta,PetscReal *sigma,PetscInt *K)
 {
-#if defined(PETSC_MISSING_LAPACK_GESVD)
-  PetscFunctionBegin;
-  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"GESVD - Lapack routine is unavailable");
-#else
   PetscErrorCode ierr;
   PetscInt       i,j,k,local_size;
   PetscMPIInt    len;
@@ -722,7 +713,6 @@ static PetscErrorCode SVD_S(BV S,PetscInt ml,PetscReal delta,PetscReal *sigma,Pe
   ierr = PetscFree(rwork);CHKERRQ(ierr);
 #endif
   PetscFunctionReturn(0);
-#endif
 }
 
 static PetscErrorCode isGhost(EPS eps,PetscInt ld,PetscInt nv,PetscBool *fl)

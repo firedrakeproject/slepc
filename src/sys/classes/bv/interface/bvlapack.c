@@ -75,9 +75,9 @@ PetscErrorCode BVNorm_LAPACK_Private(BV bv,PetscInt m_,PetscInt n_,const PetscSc
  */
 PetscErrorCode BVMatCholInv_LAPACK_Private(BV bv,Mat R,Mat S)
 {
-#if defined(PETSC_MISSING_LAPACK_POTRF) || defined(SLEPC_MISSING_LAPACK_TRTRI)
+#if defined(SLEPC_MISSING_LAPACK_TRTRI)
   PetscFunctionBegin;
-  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"POTRF/TRTRI - Lapack routine is unavailable");
+  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"TRTRI - Lapack routine is unavailable");
 #else
   PetscErrorCode ierr;
   PetscInt       i,k,l,n,m,ld,lds;
@@ -214,10 +214,6 @@ PetscErrorCode BVMatTriInv_LAPACK_Private(BV bv,Mat R,Mat S)
  */
 PetscErrorCode BVMatSVQB_LAPACK_Private(BV bv,Mat R,Mat S)
 {
-#if defined(PETSC_MISSING_LAPACK_SYEV)
-  PetscFunctionBegin;
-  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"SYEV - Lapack routine is unavailable");
-#else
   PetscErrorCode ierr;
   PetscInt       i,j,k,l,n,m,ld,lds;
   PetscScalar    *pR,*pS,*D,*work,a;
@@ -296,7 +292,6 @@ PetscErrorCode BVMatSVQB_LAPACK_Private(BV bv,Mat R,Mat S)
   ierr = MatDenseRestoreArray(R,&pR);CHKERRQ(ierr);
   if (S!=R) { ierr = MatDenseRestoreArray(S,&pS);CHKERRQ(ierr); }
   PetscFunctionReturn(0);
-#endif
 }
 
 /*
@@ -304,10 +299,6 @@ PetscErrorCode BVMatSVQB_LAPACK_Private(BV bv,Mat R,Mat S)
 */
 PetscErrorCode BVOrthogonalize_LAPACK_TSQR(BV bv,PetscInt m_,PetscInt n_,PetscScalar *Q,PetscScalar *R,PetscInt ldr)
 {
-#if defined(PETSC_MISSING_LAPACK_GEQRF) || defined(PETSC_MISSING_LAPACK_ORGQR)
-  PetscFunctionBegin;
-  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"GEQRF/ORGQR - Lapack routines are unavailable");
-#else
   PetscErrorCode ierr;
   PetscInt       level,plevel,nlevels,powtwo,lda,worklen;
   PetscBLASInt   m,n,i,j,k,l,s,nb,sz,lwork,info;
@@ -438,7 +429,6 @@ PetscErrorCode BVOrthogonalize_LAPACK_TSQR(BV bv,PetscInt m_,PetscInt n_,PetscSc
   ierr = PetscLogFlops(3.0*m*n*n);CHKERRQ(ierr);
   ierr = PetscFPTrapPop();CHKERRQ(ierr);
   PetscFunctionReturn(0);
-#endif
 }
 
 /*
@@ -473,10 +463,6 @@ SLEPC_EXTERN void MPIAPI SlepcGivensPacked(void *in,void *inout,PetscMPIInt *len
 */
 PetscErrorCode BVOrthogonalize_LAPACK_TSQR_OnlyR(BV bv,PetscInt m_,PetscInt n_,PetscScalar *Q,PetscScalar *R,PetscInt ldr)
 {
-#if defined(PETSC_MISSING_LAPACK_GEQRF)
-  PetscFunctionBegin;
-  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"GEQRF - Lapack routine is unavailable");
-#else
   PetscErrorCode ierr;
   PetscInt       worklen;
   PetscBLASInt   m,n,i,j,s,nb,lwork,info;
@@ -530,6 +516,5 @@ PetscErrorCode BVOrthogonalize_LAPACK_TSQR_OnlyR(BV bv,PetscInt m_,PetscInt n_,P
   ierr = PetscLogFlops(3.0*m*n*n);CHKERRQ(ierr);
   ierr = PetscFPTrapPop();CHKERRQ(ierr);
   PetscFunctionReturn(0);
-#endif
 }
 

@@ -155,10 +155,6 @@ static PetscErrorCode EPSLocalLanczos(EPS eps,PetscReal *alpha,PetscReal *beta,P
 */
 static PetscErrorCode DenseTridiagonal(PetscInt n_,PetscReal *D,PetscReal *E,PetscReal *w,PetscScalar *V)
 {
-#if defined(SLEPC_MISSING_LAPACK_STEVR)
-  PetscFunctionBegin;
-  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"STEVR - Lapack routine is unavailable");
-#else
   PetscErrorCode ierr;
   PetscReal      abstol = 0.0,vl,vu,*work;
   PetscBLASInt   il,iu,m,*isuppz,n,lwork,*iwork,liwork,info;
@@ -197,7 +193,6 @@ static PetscErrorCode DenseTridiagonal(PetscInt n_,PetscReal *D,PetscReal *E,Pet
 #endif
   ierr = PetscFree3(isuppz,work,iwork);CHKERRQ(ierr);
   PetscFunctionReturn(0);
-#endif
 }
 
 /*

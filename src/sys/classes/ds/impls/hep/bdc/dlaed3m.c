@@ -148,9 +148,9 @@ PetscErrorCode BDC_dlaed3m_(const char *jobz,const char *defl,PetscBLASInt k,Pet
 
 /*  ===================================================================== */
 
-#if defined(SLEPC_MISSING_LAPACK_LAED4) || defined(SLEPC_MISSING_LAPACK_LACPY) || defined(SLEPC_MISSING_LAPACK_LASET)
+#if defined(SLEPC_MISSING_LAPACK_LACPY) || defined(SLEPC_MISSING_LAPACK_LASET)
   PetscFunctionBegin;
-  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"LAED4/LACPY/LASET - Lapack routine is unavailable");
+  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"LACPY/LASET - Lapack routine is unavailable");
 #else
   PetscReal    temp, done = 1.0, dzero = 0.0;
   PetscBLASInt i, j, n2, n12, ii, n23, iq2, i1, one=1;

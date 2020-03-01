@@ -33,9 +33,9 @@ PetscErrorCode FNEvaluateDerivative_Exp(FN fn,PetscScalar x,PetscScalar *y)
 
 PetscErrorCode FNEvaluateFunctionMat_Exp_Pade(FN fn,Mat A,Mat B)
 {
-#if defined(PETSC_MISSING_LAPACK_GESV) || defined(SLEPC_MISSING_LAPACK_LANGE)
+#if defined(SLEPC_MISSING_LAPACK_LANGE)
   PetscFunctionBegin;
-  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"GESV/LANGE - Lapack routines are unavailable");
+  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"LANGE - Lapack routines are unavailable");
 #else
   PetscErrorCode ierr;
   PetscBLASInt   n,ld,ld2,*ipiv,info,inc=1;
@@ -418,9 +418,9 @@ PetscErrorCode FNEvaluateFunctionMat_Exp_GuettelNakatsukasa(FN fn,Mat A,Mat B)
 #if !defined(PETSC_HAVE_COMPLEX)
   PetscFunctionBegin;
   SETERRQ(PETSC_COMM_SELF,1,"This function requires C99 or C++ complex support");
-#elif defined(PETSC_MISSING_LAPACK_GEEV) || defined(PETSC_MISSING_LAPACK_GESV) || defined(SLEPC_MISSING_LAPACK_LANGE)
+#elif defined(SLEPC_MISSING_LAPACK_LANGE)
   PetscFunctionBegin;
-  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"GEEV/GESV/LANGE - Lapack routines are unavailable");
+  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"LANGE - Lapack routines are unavailable");
 #else
   PetscInt       i,j,n_,s,k,m,mod;
   PetscBLASInt   n,n2,irsize,rsizediv2,ipsize,iremainsize,query=-1,info,*piv,minlen,lwork,one=1;
@@ -818,9 +818,9 @@ done:
  */
 PetscErrorCode FNEvaluateFunctionMat_Exp_Higham(FN fn,Mat A,Mat B)
 {
-#if defined(PETSC_MISSING_LAPACK_GESV) || defined(SLEPC_MISSING_LAPACK_LANGE)
+#if defined(SLEPC_MISSING_LAPACK_LANGE)
   PetscFunctionBegin;
-  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"GESV/LANGE - Lapack routines are unavailable");
+  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"LANGE - Lapack routines are unavailable");
 #else
   PetscErrorCode    ierr;
   PetscBLASInt      n_,n2,*ipiv,info,one=1;

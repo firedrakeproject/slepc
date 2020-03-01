@@ -26,10 +26,6 @@
 
 static PetscErrorCode EPSTwoSidedRQUpdate1(EPS eps,Mat M,PetscInt nv)
 {
-#if defined(PETSC_MISSING_LAPACK_GETRF) || defined(PETSC_MISSING_LAPACK_GETRS)
-  PetscFunctionBegin;
-  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"GETRF/GETRS - Lapack routines are unavailable");
-#else
   PetscErrorCode ierr;
   PetscScalar    *T,*S,*A,*w,*pM,beta;
   Vec            u;
@@ -73,7 +69,6 @@ static PetscErrorCode EPSTwoSidedRQUpdate1(EPS eps,Mat M,PetscInt nv)
   ierr = BVSetActiveColumns(eps->V,l,nnv);CHKERRQ(ierr);
   ierr = BVSetActiveColumns(eps->W,l,nnv);CHKERRQ(ierr);
   PetscFunctionReturn(0);
-#endif
 }
 
 static PetscErrorCode EPSTwoSidedRQUpdate2(EPS eps,Mat M,PetscInt k)

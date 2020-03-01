@@ -305,10 +305,6 @@ static PetscErrorCode PEPEvaluateBasisM(PEP pep,PetscInt k,PetscScalar *T,PetscI
 
 static PetscErrorCode PEPExtractInvariantPair(PEP pep,PetscScalar sigma,PetscInt sr,PetscInt k,PetscScalar *S,PetscInt ld,PetscInt deg,PetscScalar *H,PetscInt ldh)
 {
-#if defined(PETSC_MISSING_LAPACK_GESV) || defined(PETSC_MISSING_LAPACK_GETRI) || defined(PETSC_MISSING_LAPACK_GETRF)
-  PetscFunctionBegin;
-  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"GESV/GETRI/GETRF - Lapack routine is unavailable");
-#else
   PetscErrorCode ierr;
   PetscInt       i,j,jj,lds,ldt,d=pep->nmat-1,idxcpy=0;
   PetscScalar    *At,*Bt,*Hj,*Hp,*T,sone=1.0,g,a,*pM,*work;
@@ -462,7 +458,6 @@ static PetscErrorCode PEPExtractInvariantPair(PEP pep,PetscScalar sigma,PetscInt
   if (transf) { ierr = PetscFree(T);CHKERRQ(ierr); }
   ierr = PetscFree6(p,At,Bt,Hj,Hp,work);CHKERRQ(ierr);
   PetscFunctionReturn(0);
-#endif
 }
 
 PetscErrorCode PEPSolve_TOAR(PEP pep)

@@ -114,10 +114,6 @@ PetscErrorCode FNEvaluateFunctionMat_Sqrt_NS(FN fn,Mat A,Mat B)
  */
 static PetscErrorCode SlepcSqrtmSadeghi(PetscBLASInt n,PetscScalar *A,PetscBLASInt ld)
 {
-#if defined(PETSC_MISSING_LAPACK_GETRF) || defined(PETSC_MISSING_LAPACK_GETRI)
-  PetscFunctionBegin;
-  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"GETRF/GETRI - Lapack routine is unavailable");
-#else
   PetscScalar        *M,*M2,*G,*X=A,*work,work1,alpha,sqrtnrm;
   PetscScalar        szero=0.0,sone=1.0,smfive=-5.0,s1d16=1.0/16.0;
   PetscReal          tol,Mres=0.0,nrm,rwork[1];
@@ -194,7 +190,6 @@ static PetscErrorCode SlepcSqrtmSadeghi(PetscBLASInt n,PetscScalar *A,PetscBLASI
   ierr = PetscFree5(M,M2,G,work,piv);CHKERRQ(ierr);
   ierr = SlepcResetFlushToZero(&ftz);CHKERRQ(ierr);
   PetscFunctionReturn(0);
-#endif
 }
 
 PetscErrorCode FNEvaluateFunctionMat_Sqrt_Sadeghi(FN fn,Mat A,Mat B)

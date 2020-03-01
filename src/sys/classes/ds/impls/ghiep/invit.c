@@ -113,10 +113,6 @@ static PetscErrorCode HRApply(PetscInt n,PetscScalar *x1,PetscInt inc1,PetscScal
 */
 static PetscErrorCode TridiagDiag_HHR(PetscInt n,PetscScalar *A,PetscInt lda,PetscReal *s,PetscScalar* Q,PetscInt ldq,PetscBool flip,PetscReal *d,PetscReal *e,PetscInt *perm_,PetscScalar *work,PetscReal *rwork,PetscBLASInt *iwork)
 {
-#if defined(SLEPC_MISSING_LAPACK_LARFG) || defined(SLEPC_MISSING_LAPACK_LARF)
-  PetscFunctionBegin;
-  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"LARFG/LARF - Lapack routines are unavailable");
-#else
   PetscErrorCode ierr;
   PetscInt       i,j,k,*ii,*jj,i0=0,ik=0,tmp,type;
   PetscInt       nwu=0;
@@ -281,15 +277,10 @@ static PetscErrorCode TridiagDiag_HHR(PetscInt n,PetscScalar *A,PetscInt lda,Pet
     d[n-1] = PetscRealPart(A[n-1 + (n-1)*lda]);
   }
   PetscFunctionReturn(0);
-#endif
 }
 
 static PetscErrorCode MadeHRtr(PetscInt sz,PetscInt n,PetscInt idx0,PetscInt n0,PetscInt idx1,PetscInt n1,struct HRtr *tr1,struct HRtr *tr2,PetscReal *ncond,PetscScalar *work)
 {
-#if defined(SLEPC_MISSING_LAPACK_LARFG) || defined(SLEPC_MISSING_LAPACK_LARF)
-  PetscFunctionBegin;
-  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"LARFG/LARF - Lapack routines are unavailable");
-#else
   PetscErrorCode ierr;
   PetscScalar    *x,*y;
   PetscReal      ncond2=1.0;
@@ -361,7 +352,6 @@ static PetscErrorCode MadeHRtr(PetscInt sz,PetscInt n,PetscInt idx0,PetscInt n0,
     if (ncond2>*ncond) *ncond = ncond2;
   }
   PetscFunctionReturn(0);
-#endif
 }
 
 /*
@@ -372,10 +362,6 @@ static PetscErrorCode MadeHRtr(PetscInt sz,PetscInt n,PetscInt idx0,PetscInt n0,
 */
 static PetscErrorCode TryHRIt(PetscInt n,PetscInt j,PetscInt sz,PetscScalar *H,PetscInt ldh,PetscScalar *R,PetscInt ldr,PetscReal *s,PetscBool *exg,PetscBool *ok,PetscInt *n0,PetscInt *n1,PetscInt *idx0,PetscInt *idx1,PetscReal *cond,PetscScalar *work)
 {
-#if defined(SLEPC_MISSING_LAPACK_LARF)
-  PetscFunctionBegin;
-  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"LARF - Lapack routine is unavailable");
-#else
   PetscErrorCode ierr;
   struct HRtr    *tr1,*tr2,tr1_t,tr2_t,tr1_te,tr2_te;
   PetscScalar    *x,*y;
@@ -513,7 +499,6 @@ static PetscErrorCode TryHRIt(PetscInt n,PetscInt j,PetscInt sz,PetscScalar *H,P
     }
   }
   PetscFunctionReturn(0);
-#endif
 }
 
 /*

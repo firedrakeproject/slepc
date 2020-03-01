@@ -66,21 +66,62 @@
 BLAS_EXTERN void     BLASrot_(PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscReal*,PetscScalar*);
 BLAS_EXTERN void     BLASMIXEDrot_(PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscReal*,PetscReal*);
 BLAS_EXTERN void     LAPACKlaev2_(PetscScalar*,PetscScalar*,PetscScalar*,PetscReal*,PetscReal*,PetscReal*,PetscScalar*);
+#if !defined(SLEPC_MISSING_LAPACK_GEHRD)
 BLAS_EXTERN void     LAPACKgehrd_(PetscBLASInt*,PetscBLASInt*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscScalar*,PetscScalar*,PetscBLASInt*,PetscBLASInt*);
+#else
+#define LAPACKgehrd_(a,b,c,d,e,f,g,h,i) PetscMissingLapack("GEHRD",a,b,c,d,e,f,g,h,i);
+#endif
+#if !defined(SLEPC_MISSING_LAPACK_LARFG)
 BLAS_EXTERN void     LAPACKlarfg_(PetscBLASInt*,PetscScalar*,PetscScalar*,PetscBLASInt*,PetscScalar*);
+#else
+#define LAPACKlarfg_(a,b,c,d,e) PetscMissingLapack("LARFG",a,b,c,d,e);
+#endif
+#if !defined(SLEPC_MISSING_LAPACK_LAG2)
 BLAS_EXTERN void     LAPACKlag2_(PetscReal*,PetscBLASInt*,PetscReal*,PetscBLASInt*,PetscReal*,PetscReal*,PetscReal*,PetscReal*,PetscReal*,PetscReal*);
+#else
+#define LAPACKlag2_(a,b,c,d,e,f,g,h,i,j) PetscMissingLapack("LAG2",a,b,c,d,e,f,g,h,i,j);
+#endif
+#if !defined(SLEPC_MISSING_LAPACK_LASV2)
 BLAS_EXTERN void     LAPACKlasv2_(PetscReal*,PetscReal*,PetscReal*,PetscReal*,PetscReal*,PetscReal*,PetscReal*,PetscReal*,PetscReal*);
+#else
+#define LAPACKlasv2_(a,b,c,d,e,f,g,h,i) PetscMissingLapack("LASV2",a,b,c,d,e,f,g,h,i);
+#endif
+#if !defined(SLEPC_MISSING_LAPACK_LARTG)
 BLAS_EXTERN void     LAPACKlartg_(PetscScalar*,PetscScalar*,PetscReal*,PetscScalar*,PetscScalar*);
 BLAS_EXTERN void     LAPACKREALlartg_(PetscReal*,PetscReal*,PetscReal*,PetscReal*,PetscReal*);
+#else
+#define LAPACKlartg_(a,b,c,d,e) PetscMissingLapack("LARTG",a,b,c,d,e);
+#define LAPACKREALlartg_(a,b,c,d,e) PetscMissingLapack("LARTG",a,b,c,d,e);
+#endif
+#if !defined(SLEPC_MISSING_LAPACK_LAED4)
 BLAS_EXTERN void     LAPACKlaed4_(PetscBLASInt*,PetscBLASInt*,PetscReal*,PetscReal*,PetscReal*,PetscReal*,PetscReal*,PetscBLASInt*);
+#else
+#define LAPACKlaed4_(a,b,c,d,e,f,g,h) PetscMissingLapack("LAED4",a,b,c,d,e,f,g,h);
+#endif
+#if !defined(SLEPC_MISSING_LAPACK_LAMRG)
 BLAS_EXTERN void     LAPACKlamrg_(PetscBLASInt*,PetscBLASInt*,PetscReal*,PetscBLASInt*,PetscBLASInt*,PetscBLASInt*);
+#else
+#define LAPACKlamrg_(a,b,c,d,e,f) PetscMissingLapack("LAMRG",a,b,c,d,e,f);
+#endif
 BLAS_EXTERN SlepcLRT LAPACKlapy2_(PetscReal*,PetscReal*);
+#if !defined(SLEPC_MISSING_LAPACK_ORGHR)
 BLAS_EXTERN void     LAPACKorghr_(PetscBLASInt*,PetscBLASInt*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscScalar*,PetscScalar*,PetscBLASInt*,PetscBLASInt*);
+#else
+#define LAPACKorghr_(a,b,c,d,e,f,g,h,i) PetscMissingLapack("ORGHR",a,b,c,d,e,f,g,h,i);
+#endif
 #if !defined(PETSC_USE_COMPLEX)
+#if !defined(SLEPC_MISSING_LAPACK_TGEXC)
 BLAS_EXTERN void     LAPACKtgexc_(PetscBLASInt*,PetscBLASInt*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscBLASInt*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscBLASInt*);
+#else
+#define LAPACKtgexc_(a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p) PetscMissingLapack("TGEXC",a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p);
+#endif
 BLAS_EXTERN void     LAPACKgeqp3_(PetscBLASInt*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscBLASInt*,PetscScalar*,PetscScalar*,PetscBLASInt*,PetscBLASInt*);
 #else
+#if !defined(SLEPC_MISSING_LAPACK_TGEXC)
 BLAS_EXTERN void     LAPACKtgexc_(PetscBLASInt*,PetscBLASInt*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscBLASInt*,PetscBLASInt*,PetscBLASInt*);
+#else
+#define LAPACKtgexc_(a,b,c,d,e,f,g,h,i,j,k,l,m,n) PetscMissingLapack("TGEXC",a,b,c,d,e,f,g,h,i,j,k,l,m,n);
+#endif
 BLAS_EXTERN void     LAPACKgeqp3_(PetscBLASInt*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscBLASInt*,PetscScalar*,PetscScalar*,PetscBLASInt*,PetscReal*,PetscBLASInt*);
 #endif
 
@@ -90,22 +131,46 @@ BLAS_EXTERN void     LAPACKgeqp3_(PetscBLASInt*,PetscBLASInt*,PetscScalar*,Petsc
 BLAS_EXTERN void     BLAStrmm_(const char*,const char*,const char*,const char*,PetscBLASInt*,PetscBLASInt*,PetscScalar*,PetscScalar*,PetscBLASInt*,PetscScalar*,PetscBLASInt*);
 BLAS_EXTERN SlepcLRT LAPACKlanhs_(const char*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscReal*);
 BLAS_EXTERN SlepcLRT LAPACKlange_(const char*,PetscBLASInt*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscReal*);
+#if !defined(SLEPC_MISSING_LAPACK_LARF)
 BLAS_EXTERN void     LAPACKlarf_(const char*,PetscBLASInt*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscScalar*,PetscScalar*,PetscBLASInt*,PetscScalar*);
+#else
+#define LAPACKlarf_(a,b,c,d,e,f,g,h,i) PetscMissingLapack("LARF",a,b,c,d,e,f,g,h,i);
+#endif
 BLAS_EXTERN void     LAPACKlacpy_(const char*,PetscBLASInt*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscScalar*,PetscBLASInt*);
 BLAS_EXTERN SlepcLRT LAPACKlansy_(const char*,const char*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscReal*);
 BLAS_EXTERN void     LAPACKlaset_(const char*,PetscBLASInt*,PetscBLASInt*,PetscScalar*,PetscScalar*,PetscScalar*,PetscBLASInt*);
+#if !defined(SLEPC_MISSING_LAPACK_TRSYL)
 BLAS_EXTERN void     LAPACKtrsyl_(const char*,const char*,PetscBLASInt*,PetscBLASInt*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscReal*,PetscBLASInt*);
+#else
+#define LAPACKtrsyl_(a,b,c,d,e,f,g,h,i,j,k,l,m) PetscMissingLapack("TRSYL",a,b,c,d,e,f,g,h,i,j,k,l,m);
+#endif
 BLAS_EXTERN void     LAPACKtrtri_(const char*,const char*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscBLASInt*);
 
 /* subroutines in which we use only the real version, do not care whether they have different name */
+#if !defined(SLEPC_MISSING_LAPACK_STEVR)
 BLAS_EXTERN void     LAPACKstevr_(const char*,const char*,PetscBLASInt*,PetscReal*,PetscReal*,PetscReal*,PetscReal*,PetscBLASInt*,PetscBLASInt*,PetscReal*,PetscBLASInt*,PetscReal*,PetscReal*,PetscBLASInt*,PetscBLASInt*,PetscReal*,PetscBLASInt*,PetscBLASInt*,PetscBLASInt*,PetscBLASInt*);
+#else
+#define LAPACKstevr_(a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t) PetscMissingLapack("STEVR",a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t);
+#endif
+#if !defined(SLEPC_MISSING_LAPACK_BDSDC)
 BLAS_EXTERN void     LAPACKbdsdc_(const char*,const char*,PetscBLASInt*,PetscReal*,PetscReal*,PetscReal*,PetscBLASInt*,PetscReal*,PetscBLASInt*,PetscReal*,PetscBLASInt*,PetscReal*,PetscBLASInt*,PetscBLASInt*);
+#else
+#define LAPACKbdsdc_(a,b,c,d,e,f,g,h,i,j,k,l,m,n) PetscMissingLapack("BDSDC",a,b,c,d,e,f,g,h,i,j,k,l,m,n);
+#endif
 BLAS_EXTERN SlepcLRT LAPACKlamch_(const char*);
 BLAS_EXTERN SlepcLRT LAPACKlamc3_(PetscReal*,PetscReal*);
 
 /* subroutines with different name in real/complex */
+#if !defined(SLEPC_MISSING_LAPACK_ORGTR)
 BLAS_EXTERN void     LAPACKorgtr_(const char*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscScalar*,PetscScalar*,PetscBLASInt*,PetscBLASInt*);
+#else
+#define LAPACKorgtr_(a,b,c,d,e,f,g,h) PetscMissingLapack("ORGTR",a,b,c,d,e,f,g,h);
+#endif
+#if !defined(SLEPC_MISSING_LAPACK_SYTRD)
 BLAS_EXTERN void     LAPACKsytrd_(const char*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscReal*,PetscReal*,PetscScalar*,PetscScalar*,PetscBLASInt*,PetscBLASInt*);
+#else
+#define LAPACKsytrd_(a,b,c,d,e,f,g,h,i,j) PetscMissingLapack("SYTRD",a,b,c,d,e,f,g,h,i,j);
+#endif
 #if !defined(PETSC_USE_COMPLEX)
 BLAS_EXTERN void     LAPACKsyevd_(const char*,const char*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscScalar*,PetscScalar*,PetscBLASInt*,PetscBLASInt*,PetscBLASInt*,PetscBLASInt*);
 BLAS_EXTERN void     LAPACKsygvd_(PetscBLASInt*,const char*,const char*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscScalar*,PetscScalar*,PetscBLASInt*,PetscBLASInt*,PetscBLASInt*,PetscBLASInt*);
@@ -117,26 +182,74 @@ BLAS_EXTERN void     LAPACKsygvd_(PetscBLASInt*,const char*,const char*,PetscBLA
 /* subroutines with different signature in real/complex */
 #if !defined(PETSC_USE_COMPLEX)
 BLAS_EXTERN void     LAPACKggev_(const char*,const char*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscScalar*,PetscScalar*,PetscScalar*,PetscScalar*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscBLASInt*);
+#if !defined(SLEPC_MISSING_LAPACK_TREVC)
 BLAS_EXTERN void     LAPACKtrevc_(const char*,const char*,PetscBLASInt*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscBLASInt*,PetscBLASInt*,PetscScalar*,PetscBLASInt*);
+#else
+#define LAPACKtrevc_(a,b,c,d,e,f,g,h,i,j,k,l,m,n) PetscMissingLapack("TREVC",a,b,c,d,e,f,g,h,i,j,k,l,m,n);
+#endif
 BLAS_EXTERN void     LAPACKgeevx_(const char*,const char*,const char*,const char*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscScalar*,PetscScalar*,PetscScalar*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscBLASInt*,PetscBLASInt*,PetscScalar*,PetscScalar*,PetscScalar*,PetscScalar*,PetscScalar*,PetscBLASInt*,PetscBLASInt*,PetscBLASInt*);
 BLAS_EXTERN void     LAPACKgees_(const char*,const char*,PetscBLASInt(*)(PetscReal,PetscReal),PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscBLASInt*,PetscScalar*,PetscScalar*,PetscScalar*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscBLASInt*,PetscBLASInt*);
+#if !defined(SLEPC_MISSING_LAPACK_TREXC)
 BLAS_EXTERN void     LAPACKtrexc_(const char*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscBLASInt*,PetscBLASInt*,PetscScalar*,PetscBLASInt*);
+#else
+#define LAPACKtrexc_(a,b,c,d,e,f,g,h,i,j) PetscMissingLapack("TREXC",a,b,c,d,e,f,g,h,i,j);
+#endif
 BLAS_EXTERN void     LAPACKgesdd_(const char*,PetscBLASInt*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscReal*,PetscScalar*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscBLASInt*,PetscBLASInt*);
+#if !defined(SLEPC_MISSING_LAPACK_TGEVC)
 BLAS_EXTERN void     LAPACKtgevc_(const char*,const char*,PetscBLASInt*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscBLASInt*,PetscBLASInt*,PetscScalar*,PetscBLASInt*);
+#else
+#define LAPACKtgevc_(a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p) PetscMissingLapack("TGEVC",a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p);
+#endif
+#if !defined(SLEPC_MISSING_LAPACK_HSEIN)
 BLAS_EXTERN void     LAPACKhsein_(const char*,const char*,const char*,PetscBLASInt*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscScalar*,PetscScalar*,PetscScalar*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscBLASInt*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscBLASInt*,PetscBLASInt*);
+#else
+#define LAPACKhsein_(a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s) PetscMissingLapack("HSEIN",a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s);
+#endif
+#if !defined(SLEPC_MISSING_LAPACK_STEDC)
 BLAS_EXTERN void     LAPACKstedc_(const char*,PetscBLASInt*,PetscReal*,PetscReal*,PetscScalar*,PetscBLASInt*,PetscReal*,PetscBLASInt*,PetscBLASInt*,PetscBLASInt*,PetscBLASInt*);
+#else
+#define LAPACKstedc_(a,b,c,d,e,f,g,h,i,j,k) PetscMissingLapack("STEDC",a,b,c,d,e,f,g,h,i,j,k);
+#endif
+#if !defined(SLEPC_MISSING_LAPACK_LASCL)
 BLAS_EXTERN void     LAPACKlascl_(const char*,PetscBLASInt*,PetscBLASInt*,PetscScalar*,PetscScalar*,PetscBLASInt*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscBLASInt*);
 #else
+#define LAPACKlascl_(a,b,c,d,e,f,g,h,i,j) PetscMissingLapack("LASCL",a,b,c,d,e,f,g,h,i,j);
+#endif
+#else
 BLAS_EXTERN void     LAPACKggev_(const char*,const char*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscScalar*,PetscScalar*,PetscScalar*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscReal*,PetscBLASInt*);
+#if !defined(SLEPC_MISSING_LAPACK_TREVC)
 BLAS_EXTERN void     LAPACKtrevc_(const char*,const char*,PetscBLASInt*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscBLASInt*,PetscBLASInt*,PetscScalar*,PetscReal*,PetscBLASInt*);
+#else
+#define LAPACKtrevc_(a,b,c,d,e,f,g,h,i,j,k,l,m,n,o) PetscMissingLapack("TREVC",a,b,c,d,e,f,g,h,i,j,k,l,m,n,o);
+#endif
 BLAS_EXTERN void     LAPACKgeevx_(const char*,const char*,const char*,const char*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscScalar*,PetscScalar*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscBLASInt*,PetscBLASInt*,PetscReal*,PetscReal*,PetscReal*,PetscReal*,PetscScalar*,PetscBLASInt*,PetscReal*,PetscBLASInt*);
 BLAS_EXTERN void     LAPACKgees_(const char*,const char*,PetscBLASInt(*)(PetscScalar),PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscBLASInt*,PetscScalar*,PetscScalar*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscReal*,PetscBLASInt*,PetscBLASInt*);
+#if !defined(SLEPC_MISSING_LAPACK_TREXC)
 BLAS_EXTERN void     LAPACKtrexc_(const char*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscBLASInt*,PetscBLASInt*,PetscBLASInt*);
+#else
+#define LAPACKtrexc_(a,b,c,d,e,f,g,h,i) PetscMissingLapack("TREXC",a,b,c,d,e,f,g,h,i);
+#endif
 BLAS_EXTERN void     LAPACKgesdd_(const char*,PetscBLASInt*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscReal*,PetscScalar*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscReal*,PetscBLASInt*,PetscBLASInt*);
+#if !defined(SLEPC_MISSING_LAPACK_TGEVC)
 BLAS_EXTERN void     LAPACKtgevc_(const char*,const char*,PetscBLASInt*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscBLASInt*,PetscBLASInt*,PetscScalar*,PetscReal*,PetscBLASInt*);
+#else
+#define LAPACKtgevc_(a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q) PetscMissingLapack("TGEVC",a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q);
+#endif
+#if !defined(SLEPC_MISSING_LAPACK_HSEIN)
 BLAS_EXTERN void     LAPACKhsein_(const char*,const char*,const char*,PetscBLASInt*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscScalar*,PetscScalar*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscBLASInt*,PetscBLASInt*,PetscScalar*,PetscReal*,PetscBLASInt*,PetscBLASInt*,PetscBLASInt*);
+#else
+#define LAPACKhsein_(a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s) PetscMissingLapack("HSEIN",a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s);
+#endif
+#if !defined(SLEPC_MISSING_LAPACK_STEDC)
 BLAS_EXTERN void     LAPACKstedc_(const char*,PetscBLASInt*,PetscReal*,PetscReal*,PetscScalar*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscReal*,PetscBLASInt*,PetscBLASInt*,PetscBLASInt*,PetscBLASInt*);
+#else
+#define LAPACKstedc_(a,b,c,d,e,f,g,h,i,j,k,l,m) PetscMissingLapack("STEDC",a,b,c,d,e,f,g,h,i,j,k,l,m);
+#endif
+#if !defined(SLEPC_MISSING_LAPACK_LASCL)
 BLAS_EXTERN void     LAPACKlascl_(const char*,PetscBLASInt*,PetscBLASInt*,PetscReal*,PetscReal*,PetscBLASInt*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscBLASInt*);
+#else
+#define LAPACKlascl_(a,b,c,d,e,f,g,h,i,j) PetscMissingLapack("LASCL",a,b,c,d,e,f,g,h,i,j);
+#endif
 #endif
 
 #if defined(PETSC_HAVE_COMPLEX)

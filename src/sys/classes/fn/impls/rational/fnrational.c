@@ -47,10 +47,6 @@ PetscErrorCode FNEvaluateFunction_Rational(FN fn,PetscScalar x,PetscScalar *y)
 
 static PetscErrorCode FNEvaluateFunctionMat_Rational_Private(FN fn,PetscScalar *Aa,PetscScalar *Ba,PetscInt m,PetscBool firstonly)
 {
-#if defined(PETSC_MISSING_LAPACK_GESV)
-  PetscFunctionBegin;
-  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"GESV - Lapack routines are unavailable");
-#else
   PetscErrorCode ierr;
   FN_RATIONAL    *ctx = (FN_RATIONAL*)fn->data;
   PetscBLASInt   n,k,ld,*ipiv,info;
@@ -98,7 +94,6 @@ static PetscErrorCode FNEvaluateFunctionMat_Rational_Private(FN fn,PetscScalar *
     ierr = PetscFree3(Q,W,ipiv);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
-#endif
 }
 
 PetscErrorCode FNEvaluateFunctionMat_Rational(FN fn,Mat A,Mat B)

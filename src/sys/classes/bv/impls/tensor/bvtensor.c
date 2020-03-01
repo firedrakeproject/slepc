@@ -384,10 +384,6 @@ PetscErrorCode BVTensorBuildFirstColumn(BV V,PetscInt k)
 
 static PetscErrorCode BVTensorCompress_Tensor(BV V,PetscInt newc)
 {
-#if defined(PETSC_MISSING_LAPACK_GESVD) || defined(PETSC_MISSING_LAPACK_GEQRF) || defined(PETSC_MISSING_LAPACK_ORGQR)
-  PetscFunctionBegin;
-  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"GESVD/GEQRF/ORGQR - Lapack routine is unavailable");
-#else
   PetscErrorCode ierr;
   BV_TENSOR      *ctx = (BV_TENSOR*)V->data;
   PetscInt       nwu=0,nnc,nrow,lwa,r,c;
@@ -560,7 +556,6 @@ static PetscErrorCode BVTensorCompress_Tensor(BV V,PetscInt newc)
   if (newc) ctx->U->l += newc;
   ctx->U->k = rk;
   PetscFunctionReturn(0);
-#endif
 }
 
 /*@

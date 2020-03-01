@@ -290,9 +290,9 @@ static PetscErrorCode PEPJDUpdateTV(PEP pep,PetscInt low,PetscInt high,Vec *w)
 */
 static PetscErrorCode PEPJDOrthogonalize(PetscInt row,PetscInt col,PetscScalar *X,PetscInt ldx,PetscInt *rk,PetscInt *P,PetscScalar *R,PetscInt ldr)
 {
-#if defined(SLEPC_MISSING_LAPACK_GEQP3) || defined(PETSC_MISSING_LAPACK_ORGQR)
+#if defined(SLEPC_MISSING_LAPACK_GEQP3)
   PetscFunctionBegin;
-  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"GEQP3/QRGQR - Lapack routines are unavailable");
+  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"GEQP3 - Lapack routines are unavailable");
 #else
   PetscErrorCode ierr;
   PetscInt       i,j,n,r;
@@ -913,10 +913,6 @@ static PetscErrorCode MatCreateVecs_PEPJD(Mat A,Vec *right,Vec *left)
 
 static PetscErrorCode PEPJDUpdateExtendedPC(PEP pep,PetscScalar theta)
 {
-#if defined(PETSC_MISSING_LAPACK_GESVD) || defined(PETSC_MISSING_LAPACK_GETRI) || defined(PETSC_MISSING_LAPACK_GETRF)
-  PetscFunctionBegin;
-  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"GESVD/GETRI/GETRF - Lapack routines are unavailable");
-#else
   PetscErrorCode ierr;
   PEP_JD         *pjd = (PEP_JD*)pep->data;
   PEP_JD_PCSHELL *pcctx;
@@ -988,7 +984,6 @@ static PetscErrorCode PEPJDUpdateExtendedPC(PEP pep,PetscScalar theta)
     }
   }
   PetscFunctionReturn(0);
-#endif
 }
 
 static PetscErrorCode PEPJDMatSetUp(PEP pep,PetscInt sz,PetscScalar *theta)
@@ -1130,10 +1125,6 @@ static PetscErrorCode PEPJDCreateShellPC(PEP pep,Vec *ww)
 
 static PetscErrorCode PEPJDEigenvectors(PEP pep)
 {
-#if defined(SLEPC_MISSING_LAPACK_TREVC)
-  PetscFunctionBegin;
-  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"TREVC - Lapack routine is unavailable");
-#else
   PetscErrorCode ierr;
   PEP_JD         *pjd = (PEP_JD*)pep->data;
   PetscBLASInt   ld,nconv,info,nc;
@@ -1177,7 +1168,6 @@ static PetscErrorCode PEPJDEigenvectors(PEP pep)
   ierr = MatDestroy(&U);CHKERRQ(ierr);
   ierr = PetscFree3(Z,wr,w);CHKERRQ(ierr);
   PetscFunctionReturn(0);
-#endif
 }
 
 static PetscErrorCode PEPJDLockConverged(PEP pep,PetscInt *nv,PetscInt sz)

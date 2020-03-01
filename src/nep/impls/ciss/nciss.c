@@ -314,10 +314,6 @@ static PetscErrorCode BlockHankel(NEP nep,PetscScalar *Mu,PetscInt s,PetscScalar
 
 static PetscErrorCode SVD_H0(NEP nep,PetscScalar *S,PetscInt *K)
 {
-#if defined(PETSC_MISSING_LAPACK_GESVD)
-  PetscFunctionBegin;
-  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"GESVD - Lapack routine is unavailable");
-#else
   PetscErrorCode ierr;
   NEP_CISS       *ctx = (NEP_CISS*)nep->data;
   PetscInt       i,ml=ctx->L*ctx->M;
@@ -351,7 +347,6 @@ static PetscErrorCode SVD_H0(NEP nep,PetscScalar *S,PetscInt *K)
   ierr = PetscFree(rwork);CHKERRQ(ierr);
 #endif
   PetscFunctionReturn(0);
-#endif
 }
 
 static PetscErrorCode ConstructS(NEP nep)
