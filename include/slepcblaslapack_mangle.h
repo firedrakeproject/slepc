@@ -53,7 +53,9 @@
 
 /* same name for real and complex */
 #define BLAStrmm_    PETSCBLAS(trmm,TRMM)
+#if !defined(SLEPC_MISSING_LAPACK_LANHS)
 #define LAPACKlanhs_ PETSCBLAS(lanhs,LANHS)
+#endif
 #define LAPACKlange_ PETSCBLAS(lange,LANGE)
 #if !defined(SLEPC_MISSING_LAPACK_LARF)
 #define LAPACKlarf_  PETSCBLAS(larf,LARF)

@@ -128,7 +128,11 @@ BLAS_EXTERN void     LAPACKgeqp3_(PetscBLASInt*,PetscBLASInt*,PetscScalar*,Petsc
 
 /* same name for real and complex */
 BLAS_EXTERN void     BLAStrmm_(const char*,const char*,const char*,const char*,PetscBLASInt*,PetscBLASInt*,PetscScalar*,PetscScalar*,PetscBLASInt*,PetscScalar*,PetscBLASInt*);
+#if !defined(SLEPC_MISSING_LAPACK_LANHS)
 BLAS_EXTERN SlepcLRT LAPACKlanhs_(const char*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscReal*);
+#else
+PETSC_STATIC_INLINE SlepcLRT LAPACKlanhs_(const char *norm,PetscBLASInt *n,PetscScalar *A,PetscBLASInt *lda,PetscReal *work) {return LAPACKlange_(norm,n,n,A,lda,work);}
+#endif
 BLAS_EXTERN SlepcLRT LAPACKlange_(const char*,PetscBLASInt*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscReal*);
 #if !defined(SLEPC_MISSING_LAPACK_LARF)
 BLAS_EXTERN void     LAPACKlarf_(const char*,PetscBLASInt*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscScalar*,PetscScalar*,PetscBLASInt*,PetscScalar*);
