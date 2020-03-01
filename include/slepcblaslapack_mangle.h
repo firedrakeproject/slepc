@@ -37,7 +37,6 @@
 #if !defined(SLEPC_MISSING_LAPACK_LAMRG)
 #define LAPACKlamrg_ PETSCBLASREAL(lamrg,LAMRG)
 #endif
-#define LAPACKlapy2_ PETSCBLASREAL(lapy2,LAPY2)
 #if !defined(SLEPC_MISSING_LAPACK_ORGHR)
 #if !defined(PETSC_USE_COMPLEX)
 #define LAPACKorghr_ PETSCBLAS(orghr,ORGHR)
@@ -59,9 +58,7 @@
 #if !defined(SLEPC_MISSING_LAPACK_LARF)
 #define LAPACKlarf_  PETSCBLAS(larf,LARF)
 #endif
-#define LAPACKlacpy_ PETSCBLAS(lacpy,LACPY)
 #define LAPACKlansy_ PETSCBLAS(lansy,LANSY)
-#define LAPACKlaset_ PETSCBLAS(laset,LASET)
 #if !defined(SLEPC_MISSING_LAPACK_TRSYL)
 #define LAPACKtrsyl_ PETSCBLAS(trsyl,TRSYL)
 #endif

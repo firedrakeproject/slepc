@@ -562,7 +562,7 @@ static PetscErrorCode FNEvaluateFunctionMat_Sym_Private(FN fn,PetscScalar *As,Pe
 #endif
 
   /* compute eigendecomposition */
-  PetscStackCallBLAS("LAPACKlacpy",LAPACKlacpy_("L",&n,&n,As,&ld,Q,&ld));
+  for (j=0;j<n;j++) for (i=j;i<n;i++) Q[i+j*ld] = As[i+j*ld];
 #if defined(PETSC_USE_COMPLEX)
   PetscStackCallBLAS("LAPACKsyev",LAPACKsyev_("V","L",&n,Q,&ld,eig,work,&lwork,rwork,&info));
 #else

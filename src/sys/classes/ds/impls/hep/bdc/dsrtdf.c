@@ -278,7 +278,7 @@ PetscErrorCode BDC_dsrtdf_(PetscBLASInt *k,PetscBLASInt n,PetscBLASInt n1,
       dlamda[j] = d[i-1];
       iq2 += n;
     }
-    PetscStackCallBLAS("LAPACKlacpy",LAPACKlacpy_("A", &n, &n, q2, &n, q, &ldq));
+    for (j=0;j<n;j++) for (i=0;i<n;i++) q[i+j*ldq] = q2[i+j*n];
     PetscStackCallBLAS("BLAScopy",BLAScopy_(&n, dlamda, &one, d, &one));
     PetscFunctionReturn(0);
   }
@@ -340,7 +340,7 @@ L80:
     /* Find sqrt(a**2+b**2) without overflow or */
     /* destructive underflow. */
 
-    tau = LAPACKlapy2_(&c, &s);
+    tau = SlepcAbs(c, s);
     t = d[nj] - d[pj];
     c /= tau;
     s = -s / tau;
@@ -484,7 +484,7 @@ L100:
   /* The deflated eigenvalues and their corresponding vectors go back */
   /* into the last N - K slots of D and Q respectively. */
 
-  PetscStackCallBLAS("LAPACKlacpy",LAPACKlacpy_("A", &n, &ctot[3], &q2[iq1], &n, &q[*k*ldq], &ldq));
+  for (j=0;j<ctot[3];j++) for (i=0;i<n;i++) q[i+(j+*k)*ldq] = q2[iq1+i+j*n];
   i1 = n - *k;
   PetscStackCallBLAS("BLAScopy",BLAScopy_(&i1, &z[*k], &one, &d[*k], &one));
 

@@ -550,11 +550,11 @@ L200:
   /* (the correction will be made in Z and then the call of DSYEVD will */
   /*  overwrite it with the eigenvectors) */
 
-  PetscStackCallBLAS("LAPACKlacpy",LAPACKlacpy_("L", &ksk, &ksk, d, &l1d, z, &ldz));
+  for (j=0;j<ksk;j++) for (i=j;i<ksk;i++) z[i+j*ldz] = d[i+j*l1d];
 
   /* copy D1 into WORK (in order to be able to restore it afterwards) */
 
-  PetscStackCallBLAS("LAPACKlacpy",LAPACKlacpy_("L", &ksk, &ksk, d, &l1d, work, &ksk));
+  for (j=0;j<ksk;j++) for (i=j;i<ksk;i++) work[i+j*ksk] = d[i+j*l1d];
 
   /* copy V1 into the first RANK(1) columns of D1 and then */
   /* multiply with \Sigma1 */
@@ -573,7 +573,7 @@ L200:
 
   /* restore the original D1 from WORK */
 
-  PetscStackCallBLAS("LAPACKlacpy",LAPACKlacpy_("L", &ksk, &ksk, work, &ksk, d, &l1d));
+  for (j=0;j<ksk;j++) for (i=j;i<ksk;i++) d[i+j*l1d] = work[i+j*ksk];
 
   /* eigenanalysis of block 1 (using DSYEVD) */
 
@@ -604,11 +604,11 @@ L200:
       /* (the correction will be made in Z and then the call of DSYEVD will */
       /*  overwrite it with the eigenvectors) */
 
-      PetscStackCallBLAS("LAPACKlacpy",LAPACKlacpy_("L", &ksk, &ksk, &d[k*l1d*l2d], &l1d, &z[np+np*ldz], &ldz));
+      for (j=0;j<ksk;j++) for (i=j;i<ksk;i++) z[np+i+(np+j)*ldz] = d[i+(j+k*l2d)*l1d];
 
       /* copy Dk into WORK (in order to be able to restore it afterwards) */
 
-      PetscStackCallBLAS("LAPACKlacpy",LAPACKlacpy_("L", &ksk, &ksk, &d[k*l1d*l2d], &l1d, work, &ksk));
+      for (j=0;j<ksk;j++) for (i=j;i<ksk;i++) work[i+j*ksk] = d[i+(j+k*l2d)*l1d];
 
       /* copy U(K-1) into the first RANK(K-1) columns of Dk and then */
       /* multiply with \Sigma(K-1) */
@@ -644,7 +644,7 @@ L200:
 
       /* restore the original Dk from WORK */
 
-      PetscStackCallBLAS("LAPACKlacpy",LAPACKlacpy_("L", &ksk, &ksk, work, &ksk, &d[k*l1d*l2d], &l1d));
+      for (j=0;j<ksk;j++) for (i=j;i<ksk;i++) d[i+(j+k*l2d)*l1d] = work[i+j*ksk];
 
       /* eigenanalysis of block K (using dsyevd) */
 
@@ -673,11 +673,11 @@ L200:
   /* (the correction will be made in Z and then the call of DSYEVD will */
   /* overwrite it with the eigenvectors) */
 
-  PetscStackCallBLAS("LAPACKlacpy",LAPACKlacpy_("L", &ksk, &ksk, &d[(nblks-1)*l1d*l2d], &l1d, &z[np+np*ldz], &ldz));
+  for (j=0;j<ksk;j++) for (i=j;i<ksk;i++) z[np+i+(np+j)*ldz] = d[i+(j+(nblks-1)*l2d)*l1d];
 
   /* copy D(nblks) into WORK (in order to be able to restore it afterwards) */
 
-  PetscStackCallBLAS("LAPACKlacpy",LAPACKlacpy_("L", &ksk, &ksk, &d[(nblks-1)*l1d*l2d], &l1d, work, &ksk));
+  for (j=0;j<ksk;j++) for (i=j;i<ksk;i++) work[i+j*ksk] = d[i+(j+(nblks-1)*l2d)*l1d];
 
   /* copy U(nblks-1) into the first RANK(nblks-1) columns of D(nblks) and then */
   /* multiply with \Sigma(nblks-1) */
@@ -700,7 +700,7 @@ L200:
 
   /* restore the original D(nblks) from WORK */
 
-  PetscStackCallBLAS("LAPACKlacpy",LAPACKlacpy_("L", &ksk, &ksk, work, &ksk, &d[(nblks-1)*l1d*l2d], &l1d));
+  for (j=0;j<ksk;j++) for (i=j;i<ksk;i++) d[i+(j+(nblks-1)*l2d)*l1d] = work[i+j*ksk];
 
   /* eigenanalysis of block NBLKS (using dsyevd) */
 
@@ -777,7 +777,7 @@ L200:
 
   /* copy ordered eigenvectors back from WORK(N+1:N+1+N^2) into Z */
 
-  PetscStackCallBLAS("LAPACKlacpy",LAPACKlacpy_("A", &n, &n, &work[n], &n, z, &ldz));
+  for (j=0;j<n;j++) for (i=0;i<n;i++) z[i+j*ldz] = work[i+(j+1)*n];
   PetscFunctionReturn(0);
 #endif
 }

@@ -186,7 +186,7 @@ static PetscErrorCode AbsEig(PetscScalar *A,PetscInt m)
 #endif
 
   /* compute eigendecomposition */
-  PetscStackCallBLAS("LAPACKlacpy",LAPACKlacpy_("L",&n,&n,A,&ld,Q,&ld));
+  for (j=0;j<n;j++) for (i=j;i<n;i++) Q[i+j*ld] = A[i+j*ld];
 #if defined(PETSC_USE_COMPLEX)
   PetscStackCallBLAS("LAPACKsyev",LAPACKsyev_("V","L",&n,Q,&ld,eig,work,&lwork,rwork,&info));
 #else

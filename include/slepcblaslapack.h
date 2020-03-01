@@ -103,7 +103,6 @@ BLAS_EXTERN void     LAPACKlamrg_(PetscBLASInt*,PetscBLASInt*,PetscReal*,PetscBL
 #else
 #define LAPACKlamrg_(a,b,c,d,e,f) PetscMissingLapack("LAMRG",a,b,c,d,e,f);
 #endif
-BLAS_EXTERN SlepcLRT LAPACKlapy2_(PetscReal*,PetscReal*);
 #if !defined(SLEPC_MISSING_LAPACK_ORGHR)
 BLAS_EXTERN void     LAPACKorghr_(PetscBLASInt*,PetscBLASInt*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscScalar*,PetscScalar*,PetscBLASInt*,PetscBLASInt*);
 #else
@@ -136,9 +135,7 @@ BLAS_EXTERN void     LAPACKlarf_(const char*,PetscBLASInt*,PetscBLASInt*,PetscSc
 #else
 #define LAPACKlarf_(a,b,c,d,e,f,g,h,i) PetscMissingLapack("LARF",a,b,c,d,e,f,g,h,i);
 #endif
-BLAS_EXTERN void     LAPACKlacpy_(const char*,PetscBLASInt*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscScalar*,PetscBLASInt*);
 BLAS_EXTERN SlepcLRT LAPACKlansy_(const char*,const char*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscReal*);
-BLAS_EXTERN void     LAPACKlaset_(const char*,PetscBLASInt*,PetscBLASInt*,PetscScalar*,PetscScalar*,PetscScalar*,PetscBLASInt*);
 #if !defined(SLEPC_MISSING_LAPACK_TRSYL)
 BLAS_EXTERN void     LAPACKtrsyl_(const char*,const char*,PetscBLASInt*,PetscBLASInt*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscReal*,PetscBLASInt*);
 #else

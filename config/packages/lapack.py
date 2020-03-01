@@ -51,7 +51,7 @@ class Lapack(package.Package):
   def Check(self,conf,vars,petsc):
 
     # LAPACK standard functions
-    l = ['laev2','gehrd','lanhs','trexc','trevc','tgexc','tgevc','stedc','hsein','larfg','larf','lacpy','lascl','laset','trsyl']
+    l = ['laev2','gehrd','lanhs','trexc','trevc','tgexc','tgevc','stedc','hsein','larfg','larf','lascl','trsyl']
 
     # LAPACK functions with different real and complex names
     if petsc.scalar == 'real':
@@ -80,7 +80,7 @@ class Lapack(package.Package):
     namesubst = {'unghr':'orghr','hetrd':'sytrd','ungtr':'orgtr'}
 
     # LAPACK functions which are always used in real version
-    l = ['stevr','bdsdc','lag2','lasv2','lartg','laed4','lamrg','lapy2']
+    l = ['stevr','bdsdc','lag2','lasv2','lartg','laed4','lamrg']
     if petsc.precision == 'single':
       prefix = 's'
     elif petsc.precision == '__float128':
