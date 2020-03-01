@@ -701,10 +701,6 @@ PetscErrorCode DSSynchronize_HEP(DS ds,PetscScalar eigr[],PetscScalar eigi[])
 
 PetscErrorCode DSCond_HEP(DS ds,PetscReal *cond)
 {
-#if defined(SLEPC_MISSING_LAPACK_LANGE)
-  PetscFunctionBegin;
-  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"LANGE - Lapack routines are unavailable");
-#else
   PetscErrorCode ierr;
   PetscScalar    *work;
   PetscReal      *rwork;
@@ -740,7 +736,6 @@ PetscErrorCode DSCond_HEP(DS ds,PetscReal *cond)
 
   *cond = hn*hin;
   PetscFunctionReturn(0);
-#endif
 }
 
 PetscErrorCode DSTranslateRKS_HEP(DS ds,PetscScalar alpha)

@@ -711,10 +711,6 @@ PetscErrorCode DSSolve_GHIEP_QR_II(DS ds,PetscScalar *wr,PetscScalar *wi)
 
 PetscErrorCode DSSolve_GHIEP_QR(DS ds,PetscScalar *wr,PetscScalar *wi)
 {
-#if defined(SLEPC_MISSING_LAPACK_GEEVX)
-  PetscFunctionBegin;
-  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"GEEVX - Lapack routine is unavailable");
-#else
   PetscErrorCode ierr;
   PetscInt       i,j,off,nwu=0,n,lw,lwr,nwru=0;
   PetscBLASInt   n_,ld,info,lwork,ilo,ihi;
@@ -836,7 +832,6 @@ PetscErrorCode DSSolve_GHIEP_QR(DS ds,PetscScalar *wr,PetscScalar *wi)
   }
 #endif
   PetscFunctionReturn(0);
-#endif
 }
 
 PetscErrorCode DSSynchronize_GHIEP(DS ds,PetscScalar eigr[],PetscScalar eigi[])

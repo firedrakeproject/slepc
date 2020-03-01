@@ -81,10 +81,6 @@ PetscErrorCode SlepcMatDenseSqrt(PetscBLASInt n,PetscScalar *T,PetscBLASInt ld)
  */
 PetscErrorCode SlepcSqrtmSchur(PetscBLASInt n,PetscScalar *T,PetscBLASInt ld,PetscBool firstonly)
 {
-#if defined(SLEPC_MISSING_LAPACK_GEES)
-  PetscFunctionBegin;
-  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"GEES - Lapack routines are unavailable");
-#else
   PetscErrorCode ierr;
   PetscBLASInt   i,j,k,r,ione=1,sdim,lwork,*s,*p,info,bs=BLOCKSIZE;
   PetscScalar    *wr,*W,*Q,*work,one=1.0,zero=0.0,mone=-1.0;
@@ -152,7 +148,6 @@ PetscErrorCode SlepcSqrtmSchur(PetscBLASInt n,PetscScalar *T,PetscBLASInt ld,Pet
   ierr = PetscFree7(wr,rwork,W,Q,work,s,p);CHKERRQ(ierr);
 #endif
   PetscFunctionReturn(0);
-#endif
 }
 
 #define DBMAXIT 25

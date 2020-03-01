@@ -75,10 +75,6 @@ PetscErrorCode BVNorm_LAPACK_Private(BV bv,PetscInt m_,PetscInt n_,const PetscSc
  */
 PetscErrorCode BVMatCholInv_LAPACK_Private(BV bv,Mat R,Mat S)
 {
-#if defined(SLEPC_MISSING_LAPACK_TRTRI)
-  PetscFunctionBegin;
-  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"TRTRI - Lapack routine is unavailable");
-#else
   PetscErrorCode ierr;
   PetscInt       i,k,l,n,m,ld,lds;
   PetscScalar    *pR,*pS;
@@ -146,7 +142,6 @@ PetscErrorCode BVMatCholInv_LAPACK_Private(BV bv,Mat R,Mat S)
   ierr = MatDenseRestoreArray(R,&pR);CHKERRQ(ierr);
   if (S!=R) { ierr = MatDenseRestoreArray(S,&pS);CHKERRQ(ierr); }
   PetscFunctionReturn(0);
-#endif
 }
 
 /*
@@ -155,10 +150,6 @@ PetscErrorCode BVMatCholInv_LAPACK_Private(BV bv,Mat R,Mat S)
  */
 PetscErrorCode BVMatTriInv_LAPACK_Private(BV bv,Mat R,Mat S)
 {
-#if defined(SLEPC_MISSING_LAPACK_TRTRI)
-  PetscFunctionBegin;
-  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"TRTRI - Lapack routine is unavailable");
-#else
   PetscErrorCode ierr;
   PetscInt       i,k,l,n,m,ld,lds;
   PetscScalar    *pR,*pS;
@@ -202,7 +193,6 @@ PetscErrorCode BVMatTriInv_LAPACK_Private(BV bv,Mat R,Mat S)
   ierr = MatDenseRestoreArray(R,&pR);CHKERRQ(ierr);
   if (S!=R) { ierr = MatDenseRestoreArray(S,&pS);CHKERRQ(ierr); }
   PetscFunctionReturn(0);
-#endif
 }
 
 /*

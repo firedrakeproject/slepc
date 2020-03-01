@@ -126,10 +126,6 @@ PetscErrorCode EPSSetDimensions_BLOPEX(EPS eps,PetscInt nev,PetscInt *ncv,PetscI
 
 PetscErrorCode EPSSetUp_BLOPEX(EPS eps)
 {
-#if defined(SLEPC_MISSING_LAPACK_SYGV)
-  PetscFunctionBegin;
-  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"SYGV - Lapack routines are unavailable");
-#else
   PetscErrorCode ierr;
   EPS_BLOPEX     *blopex = (EPS_BLOPEX*)eps->data;
   PetscBool      istrivial,flg;
@@ -184,7 +180,6 @@ PetscErrorCode EPSSetUp_BLOPEX(EPS eps)
   blopex->blap_fn.dsygv = PETSC_dsygv_interface;
 #endif
   PetscFunctionReturn(0);
-#endif
 }
 
 PetscErrorCode EPSSolve_BLOPEX(EPS eps)

@@ -271,10 +271,6 @@ static PetscErrorCode DSSort_GNHEP_Arbitrary(DS ds,PetscScalar *wr,PetscScalar *
 
 static PetscErrorCode DSSort_GNHEP_Total(DS ds,PetscScalar *wr,PetscScalar *wi)
 {
-#if !defined(PETSC_USE_COMPLEX) && defined(SLEPC_MISSING_LAPACK_LAMCH)
-  PetscFunctionBegin;
-  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"LAMCH - Lapack routines are unavailable");
-#else
   PetscErrorCode ierr;
   PetscScalar    re;
   PetscInt       i,j,pos,result;
@@ -364,7 +360,6 @@ static PetscErrorCode DSSort_GNHEP_Total(DS ds,PetscScalar *wr,PetscScalar *wi)
 #endif
   }
   PetscFunctionReturn(0);
-#endif
 }
 
 PetscErrorCode DSSort_GNHEP(DS ds,PetscScalar *wr,PetscScalar *wi,PetscScalar *rr,PetscScalar *ri,PetscInt *k)

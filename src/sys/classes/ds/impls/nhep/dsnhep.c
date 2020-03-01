@@ -684,10 +684,6 @@ PetscErrorCode DSTruncate_NHEP(DS ds,PetscInt n)
 
 PetscErrorCode DSCond_NHEP(DS ds,PetscReal *cond)
 {
-#if defined(SLEPC_MISSING_LAPACK_LANGE) || defined(SLEPC_MISSING_LAPACK_LANHS)
-  PetscFunctionBegin;
-  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"LANGE/LANHS - Lapack routines are unavailable");
-#else
   PetscErrorCode ierr;
   PetscScalar    *work;
   PetscReal      *rwork;
@@ -723,7 +719,6 @@ PetscErrorCode DSCond_NHEP(DS ds,PetscReal *cond)
 
   *cond = hn*hin;
   PetscFunctionReturn(0);
-#endif
 }
 
 PetscErrorCode DSTranslateHarmonic_NHEP(DS ds,PetscScalar tau,PetscReal beta,PetscBool recover,PetscScalar *gin,PetscReal *gamma)

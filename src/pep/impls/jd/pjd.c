@@ -290,10 +290,6 @@ static PetscErrorCode PEPJDUpdateTV(PEP pep,PetscInt low,PetscInt high,Vec *w)
 */
 static PetscErrorCode PEPJDOrthogonalize(PetscInt row,PetscInt col,PetscScalar *X,PetscInt ldx,PetscInt *rk,PetscInt *P,PetscScalar *R,PetscInt ldr)
 {
-#if defined(SLEPC_MISSING_LAPACK_GEQP3)
-  PetscFunctionBegin;
-  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"GEQP3 - Lapack routines are unavailable");
-#else
   PetscErrorCode ierr;
   PetscInt       i,j,n,r;
   PetscBLASInt   row_,col_,ldx_,*p,lwork,info,n_;
@@ -340,7 +336,6 @@ static PetscErrorCode PEPJDOrthogonalize(PetscInt row,PetscInt col,PetscScalar *
   SlepcCheckLapackInfo("orgqr",info);
   ierr = PetscFree4(p,tau,work,rwork);CHKERRQ(ierr);
   PetscFunctionReturn(0);
-#endif
 }
 
 /*

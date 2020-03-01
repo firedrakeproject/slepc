@@ -51,11 +51,11 @@ class Lapack(package.Package):
   def Check(self,conf,vars,petsc):
 
     # LAPACK standard functions
-    l = ['laev2','gehrd','lanhs','lange','trexc','trevc','geevx','gees','ggev','geqp3','gesdd','tgexc','tgevc','stedc','hsein','larfg','larf','lacpy','lascl','lansy','laset','trsyl','trtri']
+    l = ['laev2','gehrd','lanhs','trexc','trevc','tgexc','tgevc','stedc','hsein','larfg','larf','lacpy','lascl','laset','trsyl']
 
     # LAPACK functions with different real and complex names
     if petsc.scalar == 'real':
-      l += ['orghr','syevd','sytrd','sygv','sygvd','orgtr']
+      l += ['orghr','sytrd','orgtr']
       if petsc.precision == 'single':
         prefix = 's'
       elif petsc.precision == '__float128':
@@ -63,7 +63,7 @@ class Lapack(package.Package):
       else:
         prefix = 'd'
     else:
-      l += ['unghr','heevd','hetrd','hegv','hegvd','ungtr']
+      l += ['unghr','hetrd','ungtr']
       if petsc.precision == 'single':
         prefix = 'c'
       elif petsc.precision == '__float128':
@@ -77,10 +77,10 @@ class Lapack(package.Package):
       functions.append(prefix + i)
 
     # in this case, the real name represents both versions
-    namesubst = {'unghr':'orghr', 'heevd':'syevd', 'hetrd':'sytrd', 'hegv':'sygv', 'hegvd':'sygvd', 'ungtr':'orgtr'}
+    namesubst = {'unghr':'orghr','hetrd':'sytrd','ungtr':'orgtr'}
 
     # LAPACK functions which are always used in real version
-    l = ['stevr','bdsdc','lamch','lag2','lasv2','lartg','laed4','lamrg','lapy2']
+    l = ['stevr','bdsdc','lag2','lasv2','lartg','laed4','lamrg','lapy2']
     if petsc.precision == 'single':
       prefix = 's'
     elif petsc.precision == '__float128':

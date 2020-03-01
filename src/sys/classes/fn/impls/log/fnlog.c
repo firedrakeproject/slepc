@@ -551,9 +551,6 @@ static PetscErrorCode SlepcLogmPade(PetscBLASInt n,PetscScalar *T,PetscBLASInt l
 #if !defined(PETSC_HAVE_COMPLEX)
   PetscFunctionBegin;
   SETERRQ(PETSC_COMM_SELF,1,"This function requires C99 or C++ complex support");
-#elif defined(SLEPC_MISSING_LAPACK_GEES)
-  PetscFunctionBegin;
-  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"GEES - Lapack routine is unavailable");
 #else
   PetscErrorCode ierr;
   PetscBLASInt   k,sdim,lwork,info;
