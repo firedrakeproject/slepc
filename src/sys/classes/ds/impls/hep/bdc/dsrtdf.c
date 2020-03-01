@@ -170,10 +170,6 @@ PetscErrorCode BDC_dsrtdf_(PetscBLASInt *k,PetscBLASInt n,PetscBLASInt n1,
 
 /*  ===================================================================== */
 
-#if defined(SLEPC_MISSING_LAPACK_LACPY)
-  PetscFunctionBegin;
-  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"LACPY - Lapack routine is unavailable");
-#else
   PetscReal    c, s, t, eps, tau, tol, dmax, dmone = -1.;
   PetscBLASInt i, j, i1, k2, n2, ct, nj, pj=0, js, iq1, iq2;
   PetscBLASInt psm[4], imax, jmax, ctot[4], factmp=1, one=1;
@@ -492,6 +488,5 @@ L100:
 
   for (j = 0; j < 4; ++j) coltyp[j] = ctot[j];
   PetscFunctionReturn(0);
-#endif
 }
 

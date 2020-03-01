@@ -14,7 +14,9 @@
 /* LAPACK functions without string parameters */
 #define BLASrot_     PETSCBLAS(rot,ROT)
 #define BLASMIXEDrot_ PETSCBLASMIXED(rot,ROT)
+#if !defined(SLEPC_MISSING_LAPACK_LAEV2)
 #define LAPACKlaev2_ PETSCBLAS(laev2,LAEV2)
+#endif
 #if !defined(SLEPC_MISSING_LAPACK_GEHRD)
 #define LAPACKgehrd_ PETSCBLAS(gehrd,GEHRD)
 #endif
@@ -90,7 +92,9 @@
 #if !defined(SLEPC_MISSING_LAPACK_ORGTR)
 #define LAPACKorgtr_ PETSCBLAS(ungtr,UNGTR)
 #endif
+#if !defined(SLEPC_MISSING_LAPACK_SYTRD)
 #define LAPACKsytrd_ PETSCBLAS(hetrd,HETRD)
+#endif
 #define LAPACKsyevd_ PETSCBLAS(heevd,HEEVD)
 #define LAPACKsygvd_ PETSCBLAS(hegvd,HEGVD)
 #endif

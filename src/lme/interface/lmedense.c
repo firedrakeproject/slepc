@@ -156,10 +156,6 @@ static PetscErrorCode LyapunovChol_SLICOT(PetscScalar *H,PetscInt m,PetscInt ldh
 */
 static PetscErrorCode AbsEig(PetscScalar *A,PetscInt m)
 {
-#if defined(SLEPC_MISSING_LAPACK_LACPY)
-  PetscFunctionBegin;
-  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"LACPY - Lapack routines are unavailable");
-#else
   PetscErrorCode ierr;
   PetscInt       i,j;
   PetscBLASInt   n,ld,lwork,info;
@@ -206,7 +202,6 @@ static PetscErrorCode AbsEig(PetscScalar *A,PetscInt m)
   ierr = PetscFree4(eig,Q,W,work);CHKERRQ(ierr);
 #endif
   PetscFunctionReturn(0);
-#endif
 }
 #endif
 

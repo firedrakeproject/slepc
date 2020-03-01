@@ -65,7 +65,11 @@
 /* LAPACK functions without string parameters */
 BLAS_EXTERN void     BLASrot_(PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscReal*,PetscScalar*);
 BLAS_EXTERN void     BLASMIXEDrot_(PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscReal*,PetscReal*);
+#if !defined(SLEPC_MISSING_LAPACK_LAEV2)
 BLAS_EXTERN void     LAPACKlaev2_(PetscScalar*,PetscScalar*,PetscScalar*,PetscReal*,PetscReal*,PetscReal*,PetscScalar*);
+#else
+#define LAPACKlaev2_(a,b,c,d,e,f,g) PetscMissingLapack("LAEV2",a,b,c,d,e,f,g);
+#endif
 #if !defined(SLEPC_MISSING_LAPACK_GEHRD)
 BLAS_EXTERN void     LAPACKgehrd_(PetscBLASInt*,PetscBLASInt*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscScalar*,PetscScalar*,PetscBLASInt*,PetscBLASInt*);
 #else

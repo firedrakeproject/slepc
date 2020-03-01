@@ -310,10 +310,6 @@ PetscErrorCode BDC_dibtdc_(const char *jobz,PetscBLASInt n,PetscBLASInt nblks,
 
 /*  ===================================================================== */
 
-#if defined(SLEPC_MISSING_LAPACK_LACPY)
-  PetscFunctionBegin;
-  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"LACPY - Lapack routine is unavailable");
-#else
   PetscBLASInt   i, j, k, np, rp1, ksk, one=1;
   PetscBLASInt   cut, mat1, kchk, kbrk, blks, kmax, icut, size, ksum, lsum;
   PetscBLASInt   lblks, rblks, isize, lwmin, ilsum;
@@ -779,6 +775,5 @@ L200:
 
   for (j=0;j<n;j++) for (i=0;i<n;i++) z[i+j*ldz] = work[i+(j+1)*n];
   PetscFunctionReturn(0);
-#endif
 }
 

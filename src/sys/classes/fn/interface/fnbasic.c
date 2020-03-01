@@ -531,10 +531,6 @@ PetscErrorCode FNEvaluateDerivative(FN fn,PetscScalar x,PetscScalar *y)
 
 static PetscErrorCode FNEvaluateFunctionMat_Sym_Private(FN fn,PetscScalar *As,PetscScalar *Bs,PetscInt m,PetscBool firstonly)
 {
-#if defined(SLEPC_MISSING_LAPACK_LACPY)
-  PetscFunctionBegin;
-  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"LACPY - Lapack routines are unavailable");
-#else
   PetscErrorCode ierr;
   PetscInt       i,j;
   PetscBLASInt   n,k,ld,lwork,info;
@@ -585,7 +581,6 @@ static PetscErrorCode FNEvaluateFunctionMat_Sym_Private(FN fn,PetscScalar *As,Pe
 #endif
   ierr = PetscLogFlops(9.0*n*n*n+2.0*n*n*n);CHKERRQ(ierr);
   PetscFunctionReturn(0);
-#endif
 }
 
 /*
