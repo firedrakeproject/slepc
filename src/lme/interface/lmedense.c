@@ -110,7 +110,7 @@ static PetscErrorCode LyapunovChol_SLICOT(PetscScalar *H,PetscInt m,PetscInt ldh
   PetscStackCallBLAS("LAPACKhseqr",LAPACKhseqr_("S","I",&n,&ilo,&n,W,&n,wr,wi,Q,&n,work,&lwork,&info));
   SlepcCheckLapackInfo("hseqr",info);
 #if defined(PETSC_USE_DEBUG)
-  for (i=0;i<m;i++) if (PetscRealPart(wr[i])>0.0) SETERRQ(PETSC_COMM_SELF,1,"Positive eigenvalue found, the coefficient matrix is not stable");
+  for (i=0;i<m;i++) if (PetscRealPart(wr[i])>=0.0) SETERRQ(PETSC_COMM_SELF,1,"Eigenvalue with non-negative real part, the coefficient matrix is not stable");
 #endif
 
   /* copy r into first row of L */
@@ -118,7 +118,7 @@ static PetscErrorCode LyapunovChol_SLICOT(PetscScalar *H,PetscInt m,PetscInt ldh
 
   /* solve Lyapunov equation (Hammarling) */
   PetscStackCallBLAS("SLICOTsb03od",SLICOTsb03od_("C","F","N",&n,&ione,W,&n,Q,&n,L,&ld1,&scal,wr,wi,work,&lwork,&info));
-  if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in SLICOT subroutine SB03OD %d",(int)info);
+  if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in SLICOT subroutine SB03OD: info=%d",(int)info);
   if (scal!=1.0) SETERRQ1(PETSC_COMM_SELF,1,"Current implementation cannot handle scale factor %g",scal);
 
   /* Tranpose L */
@@ -271,7 +271,7 @@ static PetscErrorCode LyapunovChol_LAPACK(PetscScalar *H,PetscInt m,PetscInt ldh
 #endif
   SlepcCheckLapackInfo("hseqr",info);
 #if defined(PETSC_USE_DEBUG)
-  for (i=0;i<m;i++) if (PetscRealPart(wr[i])>0.0) SETERRQ(PETSC_COMM_SELF,1,"Positive eigenvalue found, the coefficient matrix is not stable");
+  for (i=0;i<m;i++) if (PetscRealPart(wr[i])>=0.0) SETERRQ(PETSC_COMM_SELF,1,"Eigenvalue with non-negative real part, the coefficient matrix is not stable");
 #endif
 
   /* C = z*z', z = Q'*r */

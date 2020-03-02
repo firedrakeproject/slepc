@@ -80,7 +80,7 @@ PetscErrorCode EPSSetUp_LyapII(EPS eps)
 
 static PetscErrorCode MatMult_EPSLyapIIOperator(Mat M,Vec x,Vec r)
 {
-  PetscErrorCode   ierr;
+  PetscErrorCode    ierr;
   EPS_LYAPII_MSHELL *matctx;
 
   PetscFunctionBegin;
@@ -92,7 +92,7 @@ static PetscErrorCode MatMult_EPSLyapIIOperator(Mat M,Vec x,Vec r)
 
 static PetscErrorCode MatDestroy_EPSLyapIIOperator(Mat M)
 {
-  PetscErrorCode   ierr;
+  PetscErrorCode    ierr;
   EPS_LYAPII_MSHELL *matctx;
   
   PetscFunctionBegin;
@@ -105,7 +105,7 @@ static PetscErrorCode MatDestroy_EPSLyapIIOperator(Mat M)
 
 static PetscErrorCode MatCreateVecs_EPSLyapIIOperator(Mat M,Vec *right,Vec *left)
 {
-  PetscErrorCode   ierr;
+  PetscErrorCode    ierr;
   EPS_LYAPII_MSHELL *matctx;
 
   PetscFunctionBegin;
@@ -122,13 +122,14 @@ static PetscErrorCode EV2x2(PetscScalar *M,PetscInt ld,PetscScalar *wr,PetscScal
 #else
   PetscErrorCode ierr;
   PetscScalar    work[10];
-  PetscBLASInt   two=2,info,lwork=10,ld_;
+  PetscBLASInt   lwork=10,ld_;
+#if !defined(PETSC_HAVE_ESSL)
+  PetscBLASInt   two=2,info;
 #if defined(PETSC_USE_COMPLEX)
   PetscReal      rwork[4];
 #endif
-#if defined(PETSC_HAVE_ESSL)
+#else
   PetscInt       i;
-  PetscScalar    sdummy;
   PetscBLASInt   idummy,io=1;
   PetscScalar    wri[4];
 #endif
@@ -139,23 +140,22 @@ static PetscErrorCode EV2x2(PetscScalar *M,PetscInt ld,PetscScalar *wr,PetscScal
 #if !defined(PETSC_HAVE_ESSL)
 #if !defined(PETSC_USE_COMPLEX)
   PetscStackCallBLAS("LAPACKgeev",LAPACKgeev_("N","V",&two,M,&ld_,wr,wi,NULL,&ld_,vec,&ld_,work,&lwork,&info));
-    SlepcCheckLapackInfo("geev",info);
 #else
-    PetscStackCallBLAS("LAPACKgeev",LAPACKgeev_("N","V",&two,M,&ld_,wr,NULL,&ld_,vec,&ld_,work,&lwork,rwork,&info));
-    SlepcCheckLapackInfo("geev",info);
+  PetscStackCallBLAS("LAPACKgeev",LAPACKgeev_("N","V",&two,M,&ld_,wr,NULL,&ld_,vec,&ld_,work,&lwork,rwork,&info));
 #endif
-#else
-    PetscStackCallBLAS("LAPACKgeev",LAPACKgeev_(&io,M,&ld_,wri,vec,ld_,&idummy,&ld_,work,&lwork));
+  SlepcCheckLapackInfo("geev",info);
+#else /* defined(PETSC_HAVE_ESSL) */
+  PetscStackCallBLAS("LAPACKgeev",LAPACKgeev_(&io,M,&ld_,wri,vec,ld_,&idummy,&ld_,work,&lwork));
 #if !defined(PETSC_USE_COMPLEX)
-    for (i=0;i<2;i++) {
-      wr[i] = wri[2*i];
-      wi[i] = wri[2*i+1];
-    }
+  for (i=0;i<2;i++) {
+    wr[i] = wri[2*i];
+    wi[i] = wri[2*i+1];
+  }
 #else
-    for (i=0;i<2;i++) wr[i] = wri[i];
+  for (i=0;i<2;i++) wr[i] = wri[i];
 #endif
 #endif
-    ierr = PetscFPTrapPop();CHKERRQ(ierr);
+  ierr = PetscFPTrapPop();CHKERRQ(ierr);
 #endif
   PetscFunctionReturn(0);
 }
@@ -377,7 +377,7 @@ PetscErrorCode EPSSolve_LyapII(EPS eps)
       ierr = MatDestroy(&X);CHKERRQ(ierr);
 #if !defined(PETSC_USE_COMPLEX)
       norm = eigr[0]*eigr[0]+eigi[0]*eigi[0];
-      er = eigr[0]/norm; ei = (PetscImaginaryPart(eigr[0]) + eigi[0])/-norm;
+      er = eigr[0]/norm; ei = -eigi[0]/norm;
 #else
       er =1.0/eigr[0]; ei = 0.0;
 #endif
@@ -396,7 +396,7 @@ PetscErrorCode EPSSolve_LyapII(EPS eps)
     if (eps->errest[eps->nconv]<eps->tol) {
       k++;
       if (ei!=0.0) {
-#if !defined (PETSC_USES_COMPLEX)
+#if !defined (PETSC_USE_COMPLEX)
         eps->eigr[eps->nconv+k] = eigr[0]; eps->eigi[eps->nconv+k] = -eigi[0];
 #else
         eps->eigr[eps->nconv+k] = PetscConj(eps->eigr[eps->nconv]);
