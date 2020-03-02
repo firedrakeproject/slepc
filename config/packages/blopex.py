@@ -16,9 +16,10 @@ class Blopex(package.Package):
     package.Package.__init__(self,argdb,log)
     self.packagename  = 'blopex'
     self.downloadable = True
-    self.url          = 'https://github.com/lobpcg/blopex/archive/master.tar.gz'
-    self.archive      = 'blopex-master.tar.gz'
-    self.dirname      = 'blopex-master'
+    self.gitcommit    = '6eba31f0e071f134a6e4be8eccfb8d9d7bdd5ac7'  #master dec-2019
+    self.url          = 'https://github.com/lobpcg/blopex/archive/'+self.gitcommit+'.tar.gz'
+    self.archive      = 'blopex-'+self.gitcommit+'.tar.gz'
+    self.dirname      = 'blopex-'+self.gitcommit
     self.hasheaders   = True
     self.ProcessArgs(argdb)
 
