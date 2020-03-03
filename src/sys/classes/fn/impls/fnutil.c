@@ -20,10 +20,6 @@
  */
 PetscErrorCode SlepcMatDenseSqrt(PetscBLASInt n,PetscScalar *T,PetscBLASInt ld)
 {
-#if defined(SLEPC_MISSING_LAPACK_TRSYL)
-  PetscFunctionBegin;
-  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"TRSYL - Lapack routine unavailable");
-#else
   PetscScalar  one=1.0,mone=-1.0;
   PetscReal    scal;
   PetscBLASInt i,j,si,sj,r,ione=1,info;
@@ -74,7 +70,6 @@ PetscErrorCode SlepcMatDenseSqrt(PetscBLASInt n,PetscScalar *T,PetscBLASInt ld)
     if (sj==2) j++;
   }
   PetscFunctionReturn(0);
-#endif
 }
 
 #define BLOCKSIZE 64
@@ -86,10 +81,6 @@ PetscErrorCode SlepcMatDenseSqrt(PetscBLASInt n,PetscScalar *T,PetscBLASInt ld)
  */
 PetscErrorCode SlepcSqrtmSchur(PetscBLASInt n,PetscScalar *T,PetscBLASInt ld,PetscBool firstonly)
 {
-#if defined(SLEPC_MISSING_LAPACK_GEES) || defined(SLEPC_MISSING_LAPACK_TRSYL)
-  PetscFunctionBegin;
-  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"GEES/TRSYL - Lapack routines are unavailable");
-#else
   PetscErrorCode ierr;
   PetscBLASInt   i,j,k,r,ione=1,sdim,lwork,*s,*p,info,bs=BLOCKSIZE;
   PetscScalar    *wr,*W,*Q,*work,one=1.0,zero=0.0,mone=-1.0;
@@ -157,7 +148,6 @@ PetscErrorCode SlepcSqrtmSchur(PetscBLASInt n,PetscScalar *T,PetscBLASInt ld,Pet
   ierr = PetscFree7(wr,rwork,W,Q,work,s,p);CHKERRQ(ierr);
 #endif
   PetscFunctionReturn(0);
-#endif
 }
 
 #define DBMAXIT 25
@@ -169,10 +159,6 @@ PetscErrorCode SlepcSqrtmSchur(PetscBLASInt n,PetscScalar *T,PetscBLASInt ld,Pet
  */
 PetscErrorCode SlepcSqrtmDenmanBeavers(PetscBLASInt n,PetscScalar *T,PetscBLASInt ld,PetscBool inv)
 {
-#if defined(PETSC_MISSING_LAPACK_GETRF) || defined(PETSC_MISSING_LAPACK_GETRI)
-  PetscFunctionBegin;
-  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"GETRF/GETRI - Lapack routine is unavailable");
-#else
   PetscScalar        *Told,*M=NULL,*invM,*work,work1,prod,alpha;
   PetscScalar        szero=0.0,sone=1.0,smone=-1.0,spfive=0.5,sp25=0.25;
   PetscReal          tol,Mres=0.0,detM,g,reldiff,fnormdiff,fnormT,rwork[1];
@@ -254,7 +240,6 @@ PetscErrorCode SlepcSqrtmDenmanBeavers(PetscBLASInt n,PetscScalar *T,PetscBLASIn
   ierr = PetscFree5(work,piv,Told,M,invM);CHKERRQ(ierr);
   ierr = SlepcResetFlushToZero(&ftz);CHKERRQ(ierr);
   PetscFunctionReturn(0);
-#endif
 }
 
 #define NSMAXIT 50

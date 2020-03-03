@@ -257,15 +257,11 @@ PetscErrorCode BDC_dsbtdc_(const char *jobz,const char *jobacc,PetscBLASInt n,
 /*                          NOTE: in the routine DIBTDC, the value */
 /*                                1.D-1 is hardcoded for TOLMAX ! */
 
-#if defined(SLEPC_MISSING_LAPACK_SYEVD) || defined(PETSC_MISSING_LAPACK_GESVD) || defined(SLEPC_MISSING_LAPACK_LASET) || defined(SLEPC_MISSING_LAPACK_LASCL)
-  PetscFunctionBegin;
-  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"SYEVD/GESVD/LASET/LASCL - Lapack routine is unavailable");
-#else
   PetscBLASInt   i, j, k, i1, iwspc, lwmin, start;
   PetscBLASInt   ii, ip, nk, rk, np, iu, rp1, ldu;
   PetscBLASInt   ksk, ivt, iend, kchk=0, kmax=0, one=1, zero=0;
   PetscBLASInt   ldvt, ksum=0, kskp1, spneed, nrblks, liwmin, isvals;
-  PetscReal      p, d2, eps, dmax, emax, done = 1.0, dzero = 0.0;
+  PetscReal      p, d2, eps, dmax, emax, done = 1.0;
   PetscReal      dnrm, tiny, anorm, exdnrm=0, dropsv, absdiff;
   PetscErrorCode ierr;
 
@@ -338,7 +334,8 @@ PetscErrorCode BDC_dsbtdc_(const char *jobz,const char *jobacc,PetscBLASInt n,
   /* Initialize Z as the identity matrix */
 
   if (*(unsigned char *)jobz == 'D') {
-    PetscStackCallBLAS("LAPACKlaset",LAPACKlaset_("Full", &n, &n, &dzero, &done, z, &ldz));
+    for (j=0;j<n;j++) for (i=0;i<n;i++) z[i+j*ldz] = 0.0;
+    for (i=0;i<n;i++) z[i+i*ldz] = 1.0;
   }
 
   /* Determine the off-diagonal ranks, form and store the lower rank */
@@ -681,6 +678,5 @@ L20:
 
   if (*mingap <= tol / 10) *info = -103;
   PetscFunctionReturn(0);
-#endif
 }
 

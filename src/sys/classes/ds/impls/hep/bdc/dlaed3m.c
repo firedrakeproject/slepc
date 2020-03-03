@@ -148,10 +148,6 @@ PetscErrorCode BDC_dlaed3m_(const char *jobz,const char *defl,PetscBLASInt k,Pet
 
 /*  ===================================================================== */
 
-#if defined(SLEPC_MISSING_LAPACK_LAED4) || defined(SLEPC_MISSING_LAPACK_LACPY) || defined(SLEPC_MISSING_LAPACK_LASET)
-  PetscFunctionBegin;
-  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"LAED4/LACPY/LASET - Lapack routine is unavailable");
-#else
   PetscReal    temp, done = 1.0, dzero = 0.0;
   PetscBLASInt i, j, n2, n12, ii, n23, iq2, i1, one=1;
 
@@ -285,7 +281,7 @@ L110:
 
     /* copy Q(CTOT(1)+1:K,1:K) to S */
 
-    PetscStackCallBLAS("LAPACKlacpy",LAPACKlacpy_("A", &n23, &k, &q[ctot[0]], &ldq, s, &n23));
+    for (j=0;j<k;j++) for (i=0;i<n23;i++) s[i+j*n23] = q[ctot[0]+i+j*ldq];
     iq2 = n1 * n12 + 1;
 
     if (n23 != 0) {
@@ -297,12 +293,12 @@ L110:
       PetscStackCallBLAS("BLASgemm",BLASgemm_("N", "N", &n2, &k, &n23, &done,
                   &q2[iq2-1], &n2, s, &n23, &dzero, &q[n1], &ldq));
     } else {
-      PetscStackCallBLAS("LAPACKlaset",LAPACKlaset_("A", &n2, &k, &dzero, &dzero, &q[n1], &ldq));
+      for (j=0;j<k;j++) for (i=0;i<n2;i++) q[n1+i+j*ldq] = 0.0;
     }
 
     /* copy Q(1:CTOT(1)+CTOT(2),1:K) to S */
 
-    PetscStackCallBLAS("LAPACKlacpy",LAPACKlacpy_("A", &n12, &k, q, &ldq, s, &n12));
+    for (j=0;j<k;j++) for (i=0;i<n12;i++) s[i+j*n12] = q[i+j*ldq];
 
     if (n12 != 0) {
 
@@ -313,10 +309,9 @@ L110:
       PetscStackCallBLAS("BLASgemm",BLASgemm_("N", "N", &n1, &k, &n12, &done,
                   q2, &n1, s, &n12, &dzero, q, &ldq));
     } else {
-      PetscStackCallBLAS("LAPACKlaset",LAPACKlaset_("A", &n1, &k, &dzero, &dzero, q, &ldq));
+      for (j=0;j<k;j++) for (i=0;i<n1;i++) q[i+j*ldq] = 0.0;
     }
   }
   PetscFunctionReturn(0);
-#endif
 }
 

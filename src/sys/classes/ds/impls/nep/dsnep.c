@@ -153,10 +153,6 @@ PetscErrorCode DSSort_NEP(DS ds,PetscScalar *wr,PetscScalar *wi,PetscScalar *rr,
 
 PetscErrorCode DSSolve_NEP_SLP(DS ds,PetscScalar *wr,PetscScalar *wi)
 {
-#if defined(SLEPC_MISSING_LAPACK_GGEV)
-  PetscFunctionBegin;
-  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"GGEV - Lapack routine is unavailable");
-#else
   PetscErrorCode ierr;
   DS_NEP         *ctx = (DS_NEP*)ds->data;
   PetscScalar    *A,*B,*W,*X,*work,*alpha,*beta;
@@ -275,7 +271,6 @@ PetscErrorCode DSSolve_NEP_SLP(DS ds,PetscScalar *wr,PetscScalar *wi)
   wr[0] = lambda;
   if (wi) wi[0] = 0.0;
   PetscFunctionReturn(0);
-#endif
 }
 
 PetscErrorCode DSSynchronize_NEP(DS ds,PetscScalar eigr[],PetscScalar eigi[])

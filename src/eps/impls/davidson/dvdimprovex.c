@@ -51,10 +51,6 @@ typedef struct {
 */
 static PetscErrorCode dvd_improvex_apply_proj(dvdDashboard *d,Vec *V,PetscInt cV)
 {
-#if defined(PETSC_MISSING_LAPACK_GETRS)
-  PetscFunctionBegin;
-  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"GETRS - Lapack routine is unavailable");
-#else
   PetscErrorCode ierr;
   dvdImprovex_jd *data = (dvdImprovex_jd*)d->improveX_data;
   PetscInt       i,ldh,k,l;
@@ -99,7 +95,6 @@ static PetscErrorCode dvd_improvex_apply_proj(dvdDashboard *d,Vec *V,PetscInt cV
   ierr = BVSetActiveColumns(data->KZ,l,k);CHKERRQ(ierr);
   ierr = PetscFree(h);CHKERRQ(ierr);
   PetscFunctionReturn(0);
-#endif
 }
 
 /*
@@ -109,11 +104,6 @@ static PetscErrorCode dvd_improvex_apply_proj(dvdDashboard *d,Vec *V,PetscInt cV
 */
 static PetscErrorCode dvd_improvex_applytrans_proj(dvdDashboard *d,Vec *V,PetscInt cV)
 {
-#if defined(PETSC_MISSING_LAPACK_GETRS)
-  PetscFunctionBegin;
-  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"GETRS - Lapack routine is unavailable");
-  PetscFunctionReturn(0);
-#else
   PetscErrorCode ierr;
   dvdImprovex_jd *data = (dvdImprovex_jd*)d->improveX_data;
   PetscInt       i,ldh,k,l;
@@ -158,7 +148,6 @@ static PetscErrorCode dvd_improvex_applytrans_proj(dvdDashboard *d,Vec *V,PetscI
   ierr = BVSetActiveColumns(data->U,l,k);CHKERRQ(ierr);
   ierr = PetscFree(h);CHKERRQ(ierr);
   PetscFunctionReturn(0);
-#endif
 }
 
 static PetscErrorCode dvd_improvex_jd_end(dvdDashboard *d)
@@ -573,10 +562,6 @@ static PetscErrorCode dvd_improvex_jd_start(dvdDashboard *d)
 */
 static PetscErrorCode dvd_improvex_jd_proj_cuv(dvdDashboard *d,PetscInt i_s,PetscInt i_e,Vec *kr,PetscScalar *theta,PetscScalar *thetai,PetscScalar *pX,PetscScalar *pY,PetscInt ld)
 {
-#if defined(PETSC_MISSING_LAPACK_GETRF)
-  PetscFunctionBegin;
-  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"GETRF - Lapack routine is unavailable");
-#else
   PetscErrorCode ierr;
   PetscInt       n=i_e-i_s,size_KZ,V_new,rm,i,lv,kv,lKZ,kKZ;
   dvdImprovex_jd *data = (dvdImprovex_jd*)d->improveX_data;
@@ -650,7 +635,6 @@ static PetscErrorCode dvd_improvex_jd_proj_cuv(dvdDashboard *d,PetscInt i_s,Pets
   ierr = PetscFPTrapPop();CHKERRQ(ierr);
   SlepcCheckLapackInfo("getrf",info);
   PetscFunctionReturn(0);
-#endif
 }
 
 static PetscErrorCode dvd_improvex_jd_gen(dvdDashboard *d,PetscInt r_s,PetscInt r_e,PetscInt *size_D)

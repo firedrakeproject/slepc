@@ -33,10 +33,6 @@ PetscErrorCode FNEvaluateDerivative_Exp(FN fn,PetscScalar x,PetscScalar *y)
 
 PetscErrorCode FNEvaluateFunctionMat_Exp_Pade(FN fn,Mat A,Mat B)
 {
-#if defined(PETSC_MISSING_LAPACK_GESV) || defined(SLEPC_MISSING_LAPACK_LANGE)
-  PetscFunctionBegin;
-  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"GESV/LANGE - Lapack routines are unavailable");
-#else
   PetscErrorCode ierr;
   PetscBLASInt   n,ld,ld2,*ipiv,info,inc=1;
   PetscInt       m,j,k,sexp;
@@ -127,7 +123,6 @@ PetscErrorCode FNEvaluateFunctionMat_Exp_Pade(FN fn,Mat A,Mat B)
   ierr = MatDenseRestoreArray(A,&Aa);CHKERRQ(ierr);
   ierr = MatDenseRestoreArray(B,&Ba);CHKERRQ(ierr);
   PetscFunctionReturn(0);
-#endif
 }
 
 /*
@@ -418,24 +413,23 @@ PetscErrorCode FNEvaluateFunctionMat_Exp_GuettelNakatsukasa(FN fn,Mat A,Mat B)
 #if !defined(PETSC_HAVE_COMPLEX)
   PetscFunctionBegin;
   SETERRQ(PETSC_COMM_SELF,1,"This function requires C99 or C++ complex support");
-#elif defined(PETSC_MISSING_LAPACK_GEEV) || defined(PETSC_MISSING_LAPACK_GESV) || defined(SLEPC_MISSING_LAPACK_LANGE)
-  PetscFunctionBegin;
-  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"GEEV/GESV/LANGE - Lapack routines are unavailable");
 #else
   PetscInt       i,j,n_,s,k,m,mod;
-  PetscBLASInt   n,n2,irsize,rsizediv2,ipsize,iremainsize,query=-1,info,*piv,minlen,lwork,one=1;
+  PetscBLASInt   n,n2,irsize,rsizediv2,ipsize,iremainsize,info,*piv,minlen,lwork,one=1;
   PetscReal      nrm,shift;
-#if defined(PETSC_USE_COMPLEX)
+#if defined(PETSC_USE_COMPLEX) || defined(PETSC_HAVE_ESSL)
   PetscReal      *rwork=NULL;
 #endif
   PetscComplex   *As,*RR,*RR2,*expmA,*expmA2,*Maux,*Maux2,rsize,*r,psize,*p,remainsize,*remainterm,*rootp,*rootq,mult=0.0,scale,cone=1.0,czero=0.0,*aux;
-  PetscScalar    *Aa,*Ba,*Ba2,*sMaux,*wr,*wi,expshift,sone=1.0,szero=0.0,*work,work1,*saux;
+  PetscScalar    *Aa,*Ba,*Ba2,*sMaux,*wr,*wi,expshift,sone=1.0,szero=0.0,*saux;
   PetscErrorCode ierr;
   PetscBool      isreal;
 #if defined(PETSC_HAVE_ESSL)
-  PetscScalar    sdummy;
+  PetscScalar    sdummy,*wri;
   PetscBLASInt   idummy,io=0;
-  PetscScalar    *wri;
+#else
+  PetscBLASInt   query=-1;
+  PetscScalar    work1,*work;
 #endif
 
   PetscFunctionBegin;
@@ -470,18 +464,19 @@ PetscErrorCode FNEvaluateFunctionMat_Exp_GuettelNakatsukasa(FN fn,Mat A,Mat B)
 #endif
   SlepcCheckLapackInfo("geev",info);
 #else /* defined(PETSC_HAVE_ESSL) */
-  ierr = PetscBLASIntCast(3*n,&lwork);CHKERRQ(ierr);
-  ierr = PetscMalloc2(lwork,&work,2*n,&wri);CHKERRQ(ierr);
-  PetscStackCallBLAS("LAPACKgeev",LAPACKgeev_(&io,Maux,&n,wri,&sdummy,&idummy,&idummy,&n,work,&lwork));
+  ierr = PetscBLASIntCast(4*n,&lwork);CHKERRQ(ierr);
+  ierr = PetscMalloc2(lwork,&rwork,2*n,&wri);CHKERRQ(ierr);
 #if !defined(PETSC_USE_COMPLEX)
+  PetscStackCallBLAS("LAPACKgeev",LAPACKgeev_(&io,sMaux,&n,wri,&sdummy,&idummy,&idummy,&n,rwork,&lwork));
   for (i=0;i<n;i++) {
     wr[i] = wri[2*i];
     wi[i] = wri[2*i+1];
   }
 #else
+  PetscStackCallBLAS("LAPACKgeev",LAPACKgeev_(&io,Maux,&n,wri,&sdummy,&idummy,&idummy,&n,rwork,&lwork));
   for (i=0;i<n;i++) wr[i] = wri[i];
 #endif
-  ierr = PetscFree2(work,wri);CHKERRQ(ierr);
+  ierr = PetscFree2(rwork,wri);CHKERRQ(ierr);
 #endif
   ierr = PetscLogFlops(25.0*n*n*n+(n*n*n)/3.0+1.0*n*n*n);CHKERRQ(ierr);
 
@@ -818,10 +813,6 @@ done:
  */
 PetscErrorCode FNEvaluateFunctionMat_Exp_Higham(FN fn,Mat A,Mat B)
 {
-#if defined(PETSC_MISSING_LAPACK_GESV) || defined(SLEPC_MISSING_LAPACK_LANGE)
-  PetscFunctionBegin;
-  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"GESV/LANGE - Lapack routines are unavailable");
-#else
   PetscErrorCode    ierr;
   PetscBLASInt      n_,n2,*ipiv,info,one=1;
   PetscInt          n,m,j,s;
@@ -957,7 +948,6 @@ PetscErrorCode FNEvaluateFunctionMat_Exp_Higham(FN fn,Mat A,Mat B)
   ierr = MatDenseRestoreArray(A,&Aa);CHKERRQ(ierr);
   ierr = MatDenseRestoreArray(B,&Ba);CHKERRQ(ierr);
   PetscFunctionReturn(0);
-#endif
 }
 
 PetscErrorCode FNView_Exp(FN fn,PetscViewer viewer)

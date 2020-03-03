@@ -103,10 +103,6 @@ PetscErrorCode DSSort_GHEP(DS ds,PetscScalar *wr,PetscScalar *wi,PetscScalar *rr
 
 PetscErrorCode DSSolve_GHEP(DS ds,PetscScalar *wr,PetscScalar *wi)
 {
-#if defined(SLEPC_MISSING_LAPACK_SYGVD)
-  PetscFunctionBegin;
-  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"SYGVD - Lapack routine is unavailable");
-#else
   PetscErrorCode ierr;
   PetscScalar    *work,*A,*B,*Q;
   PetscBLASInt   itype = 1,*iwork,info,n1,liwork,ld,lrwork=0,lwork;
@@ -154,7 +150,6 @@ PetscErrorCode DSSolve_GHEP(DS ds,PetscScalar *wr,PetscScalar *wi)
     A[i+i*ld] = wr[i];
   }
   PetscFunctionReturn(0);
-#endif
 }
 
 PetscErrorCode DSSynchronize_GHEP(DS ds,PetscScalar eigr[],PetscScalar eigi[])

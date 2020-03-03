@@ -392,10 +392,6 @@ static PetscErrorCode recompute_diag_blocks_sqrt(PetscBLASInt n,PetscScalar *Tro
 */
 static PetscErrorCode gauss_legendre(PetscBLASInt n,PetscScalar *x,PetscScalar *w,PetscScalar *Q)
 {
-#if defined(PETSC_MISSING_LAPACK_SYEV)
-  PetscFunctionBegin;
-  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"SYEV - Lapack routine is unavailable");
-#else
   PetscErrorCode ierr;
   PetscScalar    v,a,*work;
   PetscReal      *eig,dummy;
@@ -443,7 +439,6 @@ static PetscErrorCode gauss_legendre(PetscBLASInt n,PetscScalar *x,PetscScalar *
 #endif
   ierr = PetscLogFlops(9.0*n*n*n+2.0*n*n*n);CHKERRQ(ierr);
   PetscFunctionReturn(0);
-#endif
 }
 
 /*
@@ -556,9 +551,6 @@ static PetscErrorCode SlepcLogmPade(PetscBLASInt n,PetscScalar *T,PetscBLASInt l
 #if !defined(PETSC_HAVE_COMPLEX)
   PetscFunctionBegin;
   SETERRQ(PETSC_COMM_SELF,1,"This function requires C99 or C++ complex support");
-#elif defined(SLEPC_MISSING_LAPACK_GEES)
-  PetscFunctionBegin;
-  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"GEES - Lapack routine is unavailable");
 #else
   PetscErrorCode ierr;
   PetscBLASInt   k,sdim,lwork,info;

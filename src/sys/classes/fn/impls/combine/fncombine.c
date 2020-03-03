@@ -94,10 +94,6 @@ PetscErrorCode FNEvaluateDerivative_Combine(FN fn,PetscScalar x,PetscScalar *yp)
 
 PetscErrorCode FNEvaluateFunctionMat_Combine(FN fn,Mat A,Mat B)
 {
-#if defined(PETSC_MISSING_LAPACK_GESV)
-  PetscFunctionBegin;
-  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"GESV - Lapack routines are unavailable");
-#else
   PetscErrorCode ierr;
   FN_COMBINE     *ctx = (FN_COMBINE*)fn->data;
   PetscScalar    *Aa,*Ba,*Wa,*Za,one=1.0,zero=0.0;
@@ -152,15 +148,10 @@ PetscErrorCode FNEvaluateFunctionMat_Combine(FN fn,Mat A,Mat B)
   ierr = MatDenseRestoreArray(W,&Wa);CHKERRQ(ierr);
   ierr = FN_FreeWorkMat(fn,&W);CHKERRQ(ierr);
   PetscFunctionReturn(0);
-#endif
 }
 
 PetscErrorCode FNEvaluateFunctionMatVec_Combine(FN fn,Mat A,Vec v)
 {
-#if defined(PETSC_MISSING_LAPACK_GESV)
-  PetscFunctionBegin;
-  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"GESV - Lapack routines are unavailable");
-#else
   PetscErrorCode ierr;
   FN_COMBINE     *ctx = (FN_COMBINE*)fn->data;
   PetscScalar    *va,*Za;
@@ -216,7 +207,6 @@ PetscErrorCode FNEvaluateFunctionMatVec_Combine(FN fn,Mat A,Vec v)
       break;
   }
   PetscFunctionReturn(0);
-#endif
 }
 
 PetscErrorCode FNView_Combine(FN fn,PetscViewer viewer)

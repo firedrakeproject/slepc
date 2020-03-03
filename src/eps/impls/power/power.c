@@ -376,10 +376,6 @@ static PetscErrorCode EPSPowerComputeInitialGuess_Update(EPS eps)
 
 PetscErrorCode EPSSolve_Power(EPS eps)
 {
-#if defined(SLEPC_MISSING_LAPACK_LAEV2)
-  PetscFunctionBegin;
-  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"LAEV2 - Lapack routine is unavailable");
-#else
   PetscErrorCode      ierr;
   EPS_POWER           *power = (EPS_POWER*)eps->data;
   PetscInt            k,ld;
@@ -568,7 +564,6 @@ PetscErrorCode EPSSolve_Power(EPS eps)
     ierr = DSSetState(eps->ds,DS_STATE_RAW);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
-#endif
 }
 
 PetscErrorCode EPSSolve_TS_Power(EPS eps)

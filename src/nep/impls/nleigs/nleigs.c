@@ -58,22 +58,21 @@ PetscErrorCode NEPNLEIGSBackTransform(PetscObject ob,PetscInt n,PetscScalar *val
 static PetscErrorCode NEPNLEIGSAuxiliarPRootFinder(PetscInt deg,PetscScalar *polcoeffs,PetscScalar *wr,PetscScalar *wi,PetscBool *avail)
 {
   PetscErrorCode ierr;
-  PetscScalar    *C,*work;
-  PetscBLASInt   n_,info,lwork;
+  PetscScalar    *C;
+  PetscBLASInt   n_,lwork;
   PetscInt       i;
-#if defined(PETSC_USE_COMPLEX)
-  PetscReal      *rwork;
+#if defined(PETSC_USE_COMPLEX) || defined(PETSC_HAVE_ESSL)
+  PetscReal      *rwork=NULL;
 #endif
 #if defined(PETSC_HAVE_ESSL)
-  PetscScalar    sdummy;
+  PetscScalar    sdummy,*wri;
   PetscBLASInt   idummy,io=0;
-  PetscScalar    *wri;
+#else
+  PetscScalar    *work;
+  PetscBLASInt   info;
 #endif
 
   PetscFunctionBegin;
-#if defined(PETSC_MISSING_LAPACK_GEEV)
-  *avail = PETSC_FALSE;
-#else
   *avail = PETSC_TRUE;
   if (deg>0) {
     ierr = PetscCalloc1(deg*deg,&C);CHKERRQ(ierr);
@@ -98,9 +97,9 @@ static PetscErrorCode NEPNLEIGSAuxiliarPRootFinder(PetscInt deg,PetscScalar *pol
     if (info) *avail = PETSC_FALSE;
     ierr = PetscFree2(rwork,work);CHKERRQ(ierr);
 #endif
-#else
-    ierr = PetscMalloc2(lwork,&work,2*deg,&wri);CHKERRQ(ierr);
-    PetscStackCallBLAS("LAPACKgeev",LAPACKgeev_(&io,C,&n_,wri,&sdummy,&idummy,&idummy,&n_,work,&lwork));
+#else /* defined(PETSC_HAVE_ESSL) */
+    ierr = PetscMalloc2(lwork,&rwork,2*deg,&wri);CHKERRQ(ierr);
+    PetscStackCallBLAS("LAPACKgeev",LAPACKgeev_(&io,C,&n_,wri,&sdummy,&idummy,&idummy,&n_,rwork,&lwork));
 #if !defined(PETSC_USE_COMPLEX)
     for (i=0;i<deg;i++) {
       wr[i] = wri[2*i];
@@ -109,12 +108,11 @@ static PetscErrorCode NEPNLEIGSAuxiliarPRootFinder(PetscInt deg,PetscScalar *pol
 #else
     for (i=0;i<deg;i++) wr[i] = wri[i];
 #endif
-    ierr = PetscFree2(work,wri);CHKERRQ(ierr);
+    ierr = PetscFree2(rwork,wri);CHKERRQ(ierr);
 #endif
     ierr = PetscFPTrapPop();CHKERRQ(ierr);
     ierr = PetscFree(C);CHKERRQ(ierr);
   }
-#endif
   PetscFunctionReturn(0);
 }
 
@@ -216,10 +214,6 @@ static PetscErrorCode NEPNLEIGSRationalSingularities(NEP nep,PetscInt *ndptx,Pet
 /*  Adaptive Anderson-Antoulas algorithm */
 static PetscErrorCode NEPNLEIGSAAAComputation(NEP nep,PetscInt ndpt,PetscScalar *ds,PetscScalar *F,PetscInt *ndptx,PetscScalar *dxi)
 {
-#if defined(SLEPC_MISSING_LAPACK_GGEV) || defined(PETSC_MISSING_LAPACK_GESVD)
-  PetscFunctionBegin;
-  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"GEEV/GESVD - Lapack routines are unavailable");
-#else
   PetscErrorCode ierr;
   NEP_NLEIGS     *ctx=(NEP_NLEIGS*)nep->data;
   PetscScalar    mean=0.0,*z,*f,*C,*A,*VT,*work,*ww,szero=0.0,sone=1.0;
@@ -312,7 +306,6 @@ static PetscErrorCode NEPNLEIGSAAAComputation(NEP nep,PetscInt ndpt,PetscScalar 
   ierr = PetscFree6(A,S,VT,work,D,N);CHKERRQ(ierr);
 #if defined(PETSC_USE_COMPLEX)
   ierr = PetscFree(rwork);CHKERRQ(ierr);
-#endif
 #endif
   PetscFunctionReturn(0);
 }
@@ -1089,10 +1082,6 @@ static PetscErrorCode NEPTOARCoefficients(NEP nep,PetscScalar sigma,PetscInt nv,
 */
 static PetscErrorCode NEPNLEIGS_RKcontinuation(NEP nep,PetscInt ini,PetscInt end,PetscScalar *K,PetscScalar *H,PetscInt ld,PetscScalar sigma,PetscScalar *S,PetscInt lds,PetscScalar *cont,PetscScalar *t,PetscScalar *work)
 {
-#if defined(PETSC_MISSING_LAPACK_GEQRF) || defined(SLEPC_MISSING_LAPACK_LARF)
-  PetscFunctionBegin;
-  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"GEQRF/LARF - Lapack routines are unavailable");
-#else
   PetscErrorCode ierr;
   PetscScalar    *x,*W,*tau,sone=1.0,szero=0.0;
   PetscInt       i,j,n1,n,nwu=0;
@@ -1133,7 +1122,6 @@ static PetscErrorCode NEPNLEIGS_RKcontinuation(NEP nep,PetscInt ini,PetscInt end
     PetscStackCallBLAS("BLASgemv",BLASgemv_("N",&lds_,&n1_,&sone,S,&lds_,t,&one,&szero,cont,&one));
   }
   PetscFunctionReturn(0);
-#endif
 }
 
 /*

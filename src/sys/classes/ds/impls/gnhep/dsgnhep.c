@@ -66,10 +66,6 @@ PetscErrorCode DSView_GNHEP(DS ds,PetscViewer viewer)
 
 static PetscErrorCode DSVectors_GNHEP_Eigen_Some(DS ds,PetscInt *k,PetscReal *rnorm,PetscBool left)
 {
-#if defined(SLEPC_MISSING_LAPACK_TGEVC)
-  PetscFunctionBegin;
-  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"TGEVC - Lapack routine is unavailable");
-#else
   PetscErrorCode ierr;
   PetscInt       i;
   PetscBLASInt   n,ld,mout,info,*select,mm,inc = 1;
@@ -140,15 +136,10 @@ static PetscErrorCode DSVectors_GNHEP_Eigen_Some(DS ds,PetscInt *k,PetscReal *rn
     else *rnorm = PetscAbsScalar(Z[n-1]);
   }
   PetscFunctionReturn(0);
-#endif
 }
 
 static PetscErrorCode DSVectors_GNHEP_Eigen_All(DS ds,PetscBool left)
 {
-#if defined(SLEPC_MISSING_LAPACK_TGEVC)
-  PetscFunctionBegin;
-  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"TGEVC - Lapack routine is unavailable");
-#else
   PetscErrorCode ierr;
   PetscInt       i;
   PetscBLASInt   n,ld,mout,info,inc = 1;
@@ -210,7 +201,6 @@ static PetscErrorCode DSVectors_GNHEP_Eigen_All(DS ds,PetscBool left)
     if (iscomplex) i++;
   }
   PetscFunctionReturn(0);
-#endif
 }
 
 PetscErrorCode DSVectors_GNHEP(DS ds,DSMatType mat,PetscInt *k,PetscReal *rnorm)
@@ -235,10 +225,6 @@ PetscErrorCode DSVectors_GNHEP(DS ds,DSMatType mat,PetscInt *k,PetscReal *rnorm)
 
 static PetscErrorCode DSSort_GNHEP_Arbitrary(DS ds,PetscScalar *wr,PetscScalar *wi,PetscScalar *rr,PetscScalar *ri,PetscInt *k)
 {
-#if defined(PETSC_MISSING_LAPACK_TGSEN)
-  PetscFunctionBegin;
-  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"TGSEN - Lapack routine is unavailable");
-#else
   PetscErrorCode ierr;
   PetscInt       i;
   PetscBLASInt   info,n,ld,mout,lwork,liwork,*iwork,*selection,zero_=0,true_=1;
@@ -281,15 +267,10 @@ static PetscErrorCode DSSort_GNHEP_Arbitrary(DS ds,PetscScalar *wr,PetscScalar *
 #endif
   }
   PetscFunctionReturn(0);
-#endif
 }
 
 static PetscErrorCode DSSort_GNHEP_Total(DS ds,PetscScalar *wr,PetscScalar *wi)
 {
-#if defined(SLEPC_MISSING_LAPACK_TGEXC) || !defined(PETSC_USE_COMPLEX) && (defined(SLEPC_MISSING_LAPACK_LAMCH) || defined(SLEPC_MISSING_LAPACK_LAG2))
-  PetscFunctionBegin;
-  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"TGEXC/LAMCH/LAG2 - Lapack routines are unavailable");
-#else
   PetscErrorCode ierr;
   PetscScalar    re;
   PetscInt       i,j,pos,result;
@@ -379,7 +360,6 @@ static PetscErrorCode DSSort_GNHEP_Total(DS ds,PetscScalar *wr,PetscScalar *wi)
 #endif
   }
   PetscFunctionReturn(0);
-#endif
 }
 
 PetscErrorCode DSSort_GNHEP(DS ds,PetscScalar *wr,PetscScalar *wi,PetscScalar *rr,PetscScalar *ri,PetscInt *k)
@@ -402,10 +382,6 @@ PetscErrorCode DSSort_GNHEP(DS ds,PetscScalar *wr,PetscScalar *wi,PetscScalar *r
 */
 static PetscErrorCode CleanDenseSchur(PetscInt n,PetscInt k,PetscScalar *S,PetscInt ldS,PetscScalar *T,PetscInt ldT,PetscScalar *X,PetscInt ldX,PetscScalar *Y,PetscInt ldY)
 {
-#if defined(SLEPC_MISSING_LAPACK_LASV2)
-  PetscFunctionBegin;
-  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"LASV2 - Lapack routine is unavailable");
-#else
   PetscInt       i;
 #if defined(PETSC_USE_COMPLEX)
   PetscInt       j;
@@ -477,15 +453,10 @@ static PetscErrorCode CleanDenseSchur(PetscInt n,PetscInt k,PetscScalar *S,Petsc
   }
 #endif
   PetscFunctionReturn(0);
-#endif
 }
 
 PetscErrorCode DSSolve_GNHEP(DS ds,PetscScalar *wr,PetscScalar *wi)
 {
-#if defined(PETSC_MISSING_LAPACK_GGES)
-  PetscFunctionBegin;
-  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"GGES - Lapack routines are unavailable");
-#else
   PetscErrorCode ierr;
   PetscScalar    *work,*beta,a;
   PetscInt       i;
@@ -528,7 +499,6 @@ PetscErrorCode DSSolve_GNHEP(DS ds,PetscScalar *wr,PetscScalar *wi)
 #endif
   }
   PetscFunctionReturn(0);
-#endif
 }
 
 PetscErrorCode DSSynchronize_GNHEP(DS ds,PetscScalar eigr[],PetscScalar eigi[])

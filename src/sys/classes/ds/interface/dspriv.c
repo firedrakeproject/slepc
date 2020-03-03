@@ -398,10 +398,6 @@ PetscErrorCode DSSetIdentity(DS ds,DSMatType mat)
 @*/
 PetscErrorCode DSOrthogonalize(DS ds,DSMatType mat,PetscInt cols,PetscInt *lindcols)
 {
-#if defined(PETSC_MISSING_LAPACK_GEQRF) || defined(PETSC_MISSING_LAPACK_ORGQR)
-  PetscFunctionBegin;
-  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"GEQRF/ORGQR - Lapack routine is unavailable");
-#else
   PetscErrorCode ierr;
   PetscInt       n,l,ld;
   PetscBLASInt   ld_,rA,cA,info,ltau,lw;
@@ -445,7 +441,6 @@ PetscErrorCode DSOrthogonalize(DS ds,DSMatType mat,PetscInt cols,PetscInt *lindc
   ierr = DSRestoreArray(ds,mat,&A);CHKERRQ(ierr);
   ierr = PetscObjectStateIncrease((PetscObject)ds);CHKERRQ(ierr);
   PetscFunctionReturn(0);
-#endif
 }
 
 /*

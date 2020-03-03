@@ -20,10 +20,6 @@
 */
 PetscErrorCode LMERankSVD(LME lme,PetscInt n,PetscScalar *L,PetscScalar *U,PetscInt *rank)
 {
-#if defined(PETSC_MISSING_LAPACK_GESVD)
-  PetscFunctionBegin;
-  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"GESVD - Lapack routine is unavailable");
-#else
   PetscErrorCode ierr;
   PetscInt       i,j,rk=0;
   PetscScalar    *work;
@@ -50,7 +46,6 @@ PetscErrorCode LMERankSVD(LME lme,PetscInt n,PetscScalar *L,PetscScalar *U,Petsc
   *rank = rk;
   ierr = PetscFree3(sg,work,rwork);CHKERRQ(ierr);
   PetscFunctionReturn(0);
-#endif
 }
 
 #if defined(PETSC_USE_INFO)
@@ -93,10 +88,6 @@ static PetscErrorCode LyapunovResidual(PetscScalar *H,PetscInt m,PetscInt ldh,Pe
 */
 static PetscErrorCode LyapunovChol_SLICOT(PetscScalar *H,PetscInt m,PetscInt ldh,PetscScalar *r,PetscScalar *L,PetscInt ldl,PetscReal *res)
 {
-#if defined(PETSC_MISSING_LAPACK_HSEQR)
-  PetscFunctionBegin;
-  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"HSEQR - Lapack routine is unavailable");
-#else
   PetscErrorCode ierr;
   PetscBLASInt   ilo=1,lwork,info,n,ld,ld1,ione=1;
   PetscInt       i,j;
@@ -154,7 +145,6 @@ static PetscErrorCode LyapunovChol_SLICOT(PetscScalar *H,PetscInt m,PetscInt ldh
   ierr = PetscFree5(Q,W,z,wr,work);CHKERRQ(ierr);
 #endif
   PetscFunctionReturn(0);
-#endif
 }
 
 #else
@@ -166,10 +156,6 @@ static PetscErrorCode LyapunovChol_SLICOT(PetscScalar *H,PetscInt m,PetscInt ldh
 */
 static PetscErrorCode AbsEig(PetscScalar *A,PetscInt m)
 {
-#if defined(PETSC_MISSING_LAPACK_SYEV) || defined(SLEPC_MISSING_LAPACK_LACPY)
-  PetscFunctionBegin;
-  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"SYEV/LACPY - Lapack routines are unavailable");
-#else
   PetscErrorCode ierr;
   PetscInt       i,j;
   PetscBLASInt   n,ld,lwork,info;
@@ -196,7 +182,7 @@ static PetscErrorCode AbsEig(PetscScalar *A,PetscInt m)
 #endif
 
   /* compute eigendecomposition */
-  PetscStackCallBLAS("LAPACKlacpy",LAPACKlacpy_("L",&n,&n,A,&ld,Q,&ld));
+  for (j=0;j<n;j++) for (i=j;i<n;i++) Q[i+j*ld] = A[i+j*ld];
 #if defined(PETSC_USE_COMPLEX)
   PetscStackCallBLAS("LAPACKsyev",LAPACKsyev_("V","L",&n,Q,&ld,eig,work,&lwork,rwork,&info));
 #else
@@ -216,7 +202,6 @@ static PetscErrorCode AbsEig(PetscScalar *A,PetscInt m)
   ierr = PetscFree4(eig,Q,W,work);CHKERRQ(ierr);
 #endif
   PetscFunctionReturn(0);
-#endif
 }
 #endif
 
@@ -225,10 +210,6 @@ static PetscErrorCode AbsEig(PetscScalar *A,PetscInt m)
  */
 static PetscErrorCode CholeskyFactor(PetscScalar *A,PetscInt m,PetscInt lda)
 {
-#if defined(PETSC_MISSING_LAPACK_POTRF)
-  PetscFunctionBegin;
-  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"POTRF - Lapack routine is unavailable");
-#else
   PetscErrorCode ierr;
   PetscInt       i;
   PetscScalar    *S;
@@ -264,7 +245,6 @@ static PetscErrorCode CholeskyFactor(PetscScalar *A,PetscInt m,PetscInt lda)
   }
   ierr = PetscFree(S);CHKERRQ(ierr);
   PetscFunctionReturn(0);
-#endif
 }
 
 /*
@@ -272,10 +252,6 @@ static PetscErrorCode CholeskyFactor(PetscScalar *A,PetscInt m,PetscInt lda)
 */
 static PetscErrorCode LyapunovChol_LAPACK(PetscScalar *H,PetscInt m,PetscInt ldh,PetscScalar *r,PetscScalar *L,PetscInt ldl,PetscReal *res)
 {
-#if defined(PETSC_MISSING_LAPACK_HSEQR) || defined(SLEPC_MISSING_LAPACK_TRSYL)
-  PetscFunctionBegin;
-  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"HSEQR/TRSYL - Lapack routines are unavailable");
-#else
   PetscErrorCode ierr;
   PetscBLASInt   ilo=1,lwork,info,n,ld,ld1,ione=1;
   PetscInt       i,j;
@@ -338,7 +314,6 @@ static PetscErrorCode LyapunovChol_LAPACK(PetscScalar *H,PetscInt m,PetscInt ldh
   ierr = PetscFree5(Q,W,z,wr,work);CHKERRQ(ierr);
 #endif
   PetscFunctionReturn(0);
-#endif
 }
 
 #endif /* SLEPC_HAVE_SLICOT */

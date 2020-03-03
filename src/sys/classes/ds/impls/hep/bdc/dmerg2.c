@@ -191,10 +191,6 @@ PetscErrorCode BDC_dmerg2_(const char *jobz,PetscBLASInt rkct,PetscBLASInt n,
 
 /*  ===================================================================== */
 
-#if defined(SLEPC_MISSING_LAPACK_LAMRG)
-  PetscFunctionBegin;
-  SETERRQ(PETSC_COMM_SELF,PETSC_ERR_SUP,"LAMRG - Lapack routine is unavailable");
-#else
   PetscBLASInt   i, k, n1, n2, de, is, dz, iw, iz, iq2, nmc, cpp1;
   PetscBLASInt   indx, indxc, indxp, lwmin, idlmda;
   PetscBLASInt   spneed, coltyp, tmpcut, i__1, i__2, one=1, mone=-1;
@@ -356,6 +352,5 @@ PetscErrorCode BDC_dmerg2_(const char *jobz,PetscBLASInt rkct,PetscBLASInt n,
     for (i = 0; i < n; ++i) indxq[i] = i+1;
   }
   PetscFunctionReturn(0);
-#endif
 }
 
