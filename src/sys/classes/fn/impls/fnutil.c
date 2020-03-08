@@ -356,7 +356,7 @@ PetscErrorCode FNSqrtmNewtonSchulz(FN fn,PetscBLASInt n,PetscScalar *A,PetscBLAS
 #endif
 
 #include <cuda_runtime_api.h>
-#include <petsccuda.h>
+#include <petsccublas.h>
 #include "cuda/fnutilcuda.h"
 
 #if defined(PETSC_USE_COMPLEX)

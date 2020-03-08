@@ -969,7 +969,7 @@ PetscErrorCode FNEvaluateFunctionMat_Exp_Higham(FN fn,Mat A,Mat B)
 
 #if defined(PETSC_HAVE_CUDA)
 #include <cuda_runtime_api.h>
-#include <petsccuda.h>
+#include <petsccublas.h>
 #include "../src/sys/classes/fn/impls/cuda/fnutilcuda.h"
 
 #if defined(PETSC_USE_COMPLEX)

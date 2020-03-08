@@ -11,7 +11,7 @@
    Utility subroutines common to several impls
 */
 
-#include <petsccuda.h>
+#include <petsccublas.h>
 #include <slepcsys.h>
 
 #if !defined(__FNUTILCUDA_H)
