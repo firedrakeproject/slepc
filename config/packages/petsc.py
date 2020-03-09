@@ -23,13 +23,13 @@ class PETSc(package.Package):
     if 'PETSC_DIR' in os.environ:
       self.dir = os.environ['PETSC_DIR']
       if not os.path.exists(self.dir):
-        sys.exit('ERROR: PETSC_DIR enviroment variable is not valid')
+        self.log.Exit('ERROR: PETSC_DIR enviroment variable is not valid')
     else:
       if prefixdir:
         self.dir = prefixdir
         os.environ['PETSC_DIR'] = self.dir
       else:
-        sys.exit('ERROR: PETSC_DIR enviroment variable is not set')
+        self.log.Exit('ERROR: PETSC_DIR enviroment variable is not set')
 
   def LoadVersion(self):
     try:

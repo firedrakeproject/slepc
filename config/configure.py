@@ -161,12 +161,12 @@ slepc.InitDir()
 petsc.LoadVersion()
 slepc.LoadVersion()
 if petsc.nversion < slepc.nversion:
-  sys.exit('ERROR: This SLEPc version is not compatible with PETSc version '+petsc.version)
+  log.Exit('ERROR: This SLEPc version is not compatible with PETSc version '+petsc.version)
 
 # Check some information about PETSc configuration
 petsc.LoadConf()
 if not petsc.precision in ['double','single','__float128']:
-  sys.exit('ERROR: This SLEPc version does not work with '+petsc.precision+' precision')
+  log.Exit('ERROR: This SLEPc version does not work with '+petsc.precision+' precision')
 
 # Check for empty PETSC_ARCH
 emptyarch = not ('PETSC_ARCH' in os.environ and os.environ['PETSC_ARCH'])
