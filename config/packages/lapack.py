@@ -18,13 +18,7 @@ class Lapack(package.Package):
 
   def ShowInfo(self):
     if hasattr(self,'missing'):
-      self.log.Println('LAPACK missing functions:')
-      self.log.Print('  ')
-      for i in self.missing: self.log.Print(i)
-      self.log.Println('')
-      self.log.Println('')
-      self.log.Println('WARNING: Some SLEPc functionality will not be available')
-      self.log.Println('PLEASE reconfigure and recompile PETSc with a full LAPACK implementation')
+      self.log.Warn('Missing LAPACK functions: %s.\nSome SLEPc functionality will not be available.\nPlease reconfigure and recompile PETSc with a full LAPACK implementation'%(' '.join(self.missing)))
 
   def Process(self,conf,vars,slepc,petsc,archdir=''):
     self.make = petsc.make

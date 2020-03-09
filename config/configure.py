@@ -155,7 +155,7 @@ argdb.ErrorPetscOptions()
 argdb.ErrorIfNotEmpty()
 
 # Check enviroment and PETSc version
-print('Checking environment...', end=' ')
+log.Print('Checking environment...')
 petsc.InitDir(slepc.prefixdir)
 slepc.InitDir()
 petsc.LoadVersion()
@@ -213,7 +213,7 @@ if archdirexisted:
       searchlines = f.readlines()
       f.close()
       if any(pkg.packagename.upper() in ''.join(searchlines) for pkg in externalpackages) and not any(pkg.requested for pkg in externalpackages):
-        log.Print('\nWARNING: forcing --with-clean=1 because previous configuration had external packages')
+        log.Warn('Forcing --with-clean=1 because previous configuration had external packages')
         slepc.clean = True
     except: pass
   if slepc.clean:
@@ -276,14 +276,14 @@ if emptyarch:
 # Check if PETSc is working
 log.NewSection('Checking PETSc installation...')
 if petsc.nversion > slepc.nversion:
-  log.Println('\nWARNING: PETSc version '+petsc.version+' is newer than SLEPc version '+slepc.version)
+  log.Warn('PETSc version '+petsc.version+' is newer than SLEPc version '+slepc.version)
 if slepc.release=='1' and not petsc.release=='1':
   log.Exit('ERROR: a release version of SLEPc requires a release version of PETSc, not a development version')
 if slepc.release=='0' and petsc.release=='1':
   log.Exit('ERROR: a development version of SLEPc cannot be built with a release version of PETSc')
 if petsc.isinstall:
   if os.path.realpath(petsc.prefixdir) != os.path.realpath(petsc.dir):
-    log.Println('\nWARNING: PETSC_DIR does not point to PETSc installation path')
+    log.Warn('PETSC_DIR does not point to PETSc installation path')
 petsc.Check()
 if not petsc.havepackage:
   log.Exit('ERROR: Unable to link with PETSc')
@@ -371,9 +371,7 @@ if petsc.isrepo:
       petscdate = dateutil.parser.parse(petsc.gitdate)
       slepcdate = dateutil.parser.parse(slepc.gitdate)
       if abs(petscdate-slepcdate)>datetime.timedelta(days=30):
-        log.Println('xxx'+'='*74+'xxx')
-        log.Println('WARNING: your PETSc and SLEPc repos may not be in sync (more than 30 days apart)')
-        log.Println('xxx'+'='*74+'xxx')
+        log.Warn('Your PETSc and SLEPc repos may not be in sync (more than 30 days apart)')
     except ImportError: pass
 if emptyarch and slepc.isinstall:
   log.Println('Prefix install with '+petsc.precision+' precision '+petsc.scalar+' numbers')
