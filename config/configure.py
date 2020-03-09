@@ -59,7 +59,7 @@ if 'LC_LOCAL' in os.environ and os.environ['LC_LOCAL'] != '' and os.environ['LC_
 if 'LANG' in os.environ and os.environ['LANG'] != '' and os.environ['LANG'] != 'en_US' and os.environ['LANG'] != 'en_US.UTF-8': os.environ['LANG'] = 'en_US.UTF-8'
 
 # Check python version
-if sys.version_info < (2,6):
+if sys.version_info < (2,6) or (sys.version_info >= (3,0) and sys.version_info < (3,4)):
   print('*******************************************************************************')
   print('*        Python version 2.6+ or 3.4+ is required to run ./configure           *')
   print('*           Try: "python2.7 ./configure" or "python3 ./configure"             *')
@@ -112,13 +112,9 @@ petsc.InitDir(slepc.prefixdir)
 slepc.InitDir()
 petsc.LoadVersion()
 slepc.LoadVersion()
-if petsc.nversion < slepc.nversion:
-  log.Exit('This SLEPc version is not compatible with PETSc version '+petsc.version)
 
-# Check some information about PETSc configuration
+# Load PETSc configuration
 petsc.LoadConf()
-if not petsc.precision in ['double','single','__float128']:
-  log.Exit('This SLEPc version does not work with '+petsc.precision+' precision')
 
 # Check for empty PETSC_ARCH
 emptyarch = not ('PETSC_ARCH' in os.environ and os.environ['PETSC_ARCH'])
@@ -147,6 +143,14 @@ log.write('Configure Options: '+' '.join(sys.argv[1:]))
 log.write('Working directory: '+os.getcwd())
 log.write('Python version:\n'+sys.version)
 log.write('make: '+petsc.make)
+
+# Some checks related to PETSc configuration
+if petsc.nversion < slepc.nversion:
+  log.Exit('This SLEPc version is not compatible with PETSc version '+petsc.version)
+if not petsc.precision in ['double','single','__float128']:
+  log.Exit('This SLEPc version does not work with '+petsc.precision+' precision')
+
+# Display versions and paths
 log.write('PETSc source directory: '+petsc.dir)
 log.write('PETSc install directory: '+petsc.prefixdir)
 log.write('PETSc version: '+petsc.lversion)
