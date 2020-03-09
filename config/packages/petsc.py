@@ -23,13 +23,13 @@ class PETSc(package.Package):
     if 'PETSC_DIR' in os.environ:
       self.dir = os.environ['PETSC_DIR']
       if not os.path.exists(self.dir):
-        sys.exit('ERROR: PETSC_DIR enviroment variable is not valid')
+        self.log.Exit('PETSC_DIR enviroment variable is not valid')
     else:
       if prefixdir:
         self.dir = prefixdir
         os.environ['PETSC_DIR'] = self.dir
       else:
-        sys.exit('ERROR: PETSC_DIR enviroment variable is not set')
+        self.log.Exit('PETSC_DIR enviroment variable is not set')
 
   def LoadVersion(self):
     try:
@@ -50,7 +50,7 @@ class PETSc(package.Package):
       self.lversion = major + '.' + minor + '.' + subminor
       self.nversion = int(major)*100 + int(minor)
     except:
-      self.log.Exit('ERROR: File error while reading PETSc version')
+      self.log.Exit('File error while reading PETSc version')
 
     # Check whether this is a working copy of the repository
     self.isrepo = False
@@ -67,7 +67,7 @@ class PETSc(package.Package):
       self.isinstall = False
       self.arch = os.environ['PETSC_ARCH']
       if os.path.basename(self.arch) != self.arch:
-        self.log.Exit(('ERROR: variable PETSC_ARCH must not be a full path\nYou set PETSC_ARCH=%s\nMaybe you meant PETSC_ARCH=%s'% (self.arch,os.path.basename(self.arch))))
+        self.log.Exit('Variable PETSC_ARCH must not be a full path\nYou set PETSC_ARCH=%s, maybe you meant PETSC_ARCH=%s'% (self.arch,os.path.basename(self.arch)))
       petscvariables = os.path.join(self.dir,self.arch,'lib','petsc','conf','petscvariables')
       petscconf_h = os.path.join(self.dir,self.arch,'include','petscconf.h')
     else:
@@ -122,7 +122,7 @@ class PETSc(package.Package):
           self.ranlib = v
       f.close()
     except:
-      self.log.Exit('ERROR: cannot process file ' + petscvariables)
+      self.log.Exit('Cannot process file ' + petscvariables)
 
     self.ind64 = False
     self.mpiuni = False
@@ -165,7 +165,7 @@ class PETSc(package.Package):
       f.close()
     except:
       if self.isinstall:
-        self.log.Exit('ERROR: cannot process file ' + petscconf_h + ', maybe you forgot to set PETSC_ARCH')
+        self.log.Exit('Cannot process file ' + petscconf_h + ', maybe you forgot to set PETSC_ARCH')
       else:
-        self.log.Exit('ERROR: cannot process file ' + petscconf_h)
+        self.log.Exit('Cannot process file ' + petscconf_h)
 

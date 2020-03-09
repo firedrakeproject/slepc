@@ -27,11 +27,13 @@ class Log:
 
   def Println(self,string):
     print(string)
-    self.fd.write(string+'\n')
+    if hasattr(self,'fd'):
+      self.fd.write(string+'\n')
 
   def Print(self,string):
     print(string, end=' ')
-    self.fd.write(string+' ')
+    if hasattr(self,'fd'):
+      self.fd.write(string+' ')
 
   def NewSection(self,string):
     print('done\n'+string, end=' ')
@@ -41,10 +43,17 @@ class Log:
   def write(self,string):
     self.fd.write(string+'\n')
 
-  def Exit(self,string):
-    print('\n'+string)
+  def Warn(self,string):
+    msg = '\nxxx'+'='*74+'xxx\nWARNING: '+string+'\nxxx'+'='*74+'xxx'
+    print(msg)
     if hasattr(self,'fd'):
-      self.fd.write('\n'+string+'\n')
+      self.fd.write(msg+'\n')
+
+  def Exit(self,string):
+    msg = '\nERROR: '+string
+    print(msg)
+    if hasattr(self,'fd'):
+      self.fd.write(msg+'\n')
       self.fd.close()
       msg = 'ERROR: See "' + self.filename + '" file for details'
     else:

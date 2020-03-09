@@ -15,54 +15,6 @@ import os, sys, time, shutil
 def AddDefine(conffile,name,value,prefix='SLEPC_'):
   conffile.write('#define '+prefix+name+' "'+value+'"\n')
 
-def CreateFile(basedir,fname,log):
-  ''' Create file basedir/fname and return path string '''
-  newfile = os.path.join(basedir,fname)
-  try:
-    newfile = open(newfile,'w')
-  except:
-    log.Exit('ERROR: Cannot create '+fname+' file in '+basedir)
-  return newfile
-
-def CreateDir(basedir,dirname,log):
-  ''' Create directory basedir/dirname and return path string '''
-  newdir = os.path.join(basedir,dirname)
-  if not os.path.exists(newdir):
-    try:
-      os.mkdir(newdir)
-    except:
-      log.Exit('ERROR: Cannot create '+dirname+' directory: '+newdir)
-  return newdir
-
-def CreateDirTwo(basedir,dir1,dir2,log):
-  ''' Create directory basedir/dir1/dir2 and return path string '''
-  newbasedir = os.path.join(basedir,dir1)
-  if not os.path.exists(newbasedir):
-    try:
-      os.mkdir(newbasedir)
-    except:
-      log.Exit('ERROR: Cannot create '+dir1+' directory: '+newbasedir)
-  newdir = os.path.join(newbasedir,dir2)
-  if not os.path.exists(newdir):
-    try:
-      os.mkdir(newdir)
-    except:
-      log.Exit('ERROR: Cannot create '+dir2+' directory: '+newdir)
-  return newdir
-
-def CreateDirTest(basedir,dirname,log):
-  ''' Create directory, return path string and flag indicating if already existed '''
-  newdir = os.path.join(basedir,dirname)
-  if not os.path.exists(newdir):
-    existed = False
-    try:
-      os.mkdir(newdir)
-    except:
-      log.Exit('ERROR: Cannot create '+dirname+' directory: '+newdir)
-  else:
-    existed = True
-  return newdir, existed
-
 def WriteModulesFile(modules,version,sdir):
   ''' Write the contents of the Modules file '''
   modules.write('#%Module\n\n')
@@ -107,7 +59,7 @@ if 'LC_LOCAL' in os.environ and os.environ['LC_LOCAL'] != '' and os.environ['LC_
 if 'LANG' in os.environ and os.environ['LANG'] != '' and os.environ['LANG'] != 'en_US' and os.environ['LANG'] != 'en_US.UTF-8': os.environ['LANG'] = 'en_US.UTF-8'
 
 # Check python version
-if sys.version_info < (2,6):
+if sys.version_info < (2,6) or (sys.version_info >= (3,0) and sys.version_info < (3,4)):
   print('*******************************************************************************')
   print('*        Python version 2.6+ or 3.4+ is required to run ./configure           *')
   print('*           Try: "python2.7 ./configure" or "python3 ./configure"             *')
@@ -155,18 +107,14 @@ argdb.ErrorPetscOptions()
 argdb.ErrorIfNotEmpty()
 
 # Check enviroment and PETSc version
-print('Checking environment...', end=' ')
+log.Print('Checking environment...')
 petsc.InitDir(slepc.prefixdir)
 slepc.InitDir()
 petsc.LoadVersion()
 slepc.LoadVersion()
-if petsc.nversion < slepc.nversion:
-  sys.exit('ERROR: This SLEPc version is not compatible with PETSc version '+petsc.version)
 
-# Check some information about PETSc configuration
+# Load PETSc configuration
 petsc.LoadConf()
-if not petsc.precision in ['double','single','__float128']:
-  sys.exit('ERROR: This SLEPc version does not work with '+petsc.precision+' precision')
 
 # Check for empty PETSC_ARCH
 emptyarch = not ('PETSC_ARCH' in os.environ and os.environ['PETSC_ARCH'])
@@ -183,9 +131,9 @@ else:
   archname = petsc.arch
 
 # Create directories for configuration files
-archdir, archdirexisted = CreateDirTest(slepc.dir,archname,log)
-libdir  = CreateDir(archdir,'lib',log)
-confdir = CreateDirTwo(libdir,'slepc','conf',log)
+archdir, archdirexisted = slepc.CreateDirTest(slepc.dir,archname)
+libdir  = slepc.CreateDir(archdir,'lib')
+confdir = slepc.CreateDirTwo(libdir,'slepc','conf')
 
 # Open log file
 log.Open(confdir,'configure.log')
@@ -195,6 +143,14 @@ log.write('Configure Options: '+' '.join(sys.argv[1:]))
 log.write('Working directory: '+os.getcwd())
 log.write('Python version:\n'+sys.version)
 log.write('make: '+petsc.make)
+
+# Some checks related to PETSc configuration
+if petsc.nversion < slepc.nversion:
+  log.Exit('This SLEPc version is not compatible with PETSc version '+petsc.version)
+if not petsc.precision in ['double','single','__float128']:
+  log.Exit('This SLEPc version does not work with '+petsc.precision+' precision')
+
+# Display versions and paths
 log.write('PETSc source directory: '+petsc.dir)
 log.write('PETSc install directory: '+petsc.prefixdir)
 log.write('PETSc version: '+petsc.lversion)
@@ -213,7 +169,7 @@ if archdirexisted:
       searchlines = f.readlines()
       f.close()
       if any(pkg.packagename.upper() in ''.join(searchlines) for pkg in externalpackages) and not any(pkg.requested for pkg in externalpackages):
-        log.Print('\nWARNING: forcing --with-clean=1 because previous configuration had external packages')
+        log.Warn('Forcing --with-clean=1 because previous configuration had external packages')
         slepc.clean = True
     except: pass
   if slepc.clean:
@@ -224,7 +180,7 @@ if archdirexisted:
           if name!='configure.log':
             os.remove(os.path.join(root,name))
     except:
-      log.Exit('ERROR: Cannot remove existing files in '+archdir)
+      log.Exit('Cannot remove existing files in '+archdir)
     for rdir in ['obj','externalpackages']:
       try:
         shutil.rmtree(os.path.join(archdir,rdir))
@@ -233,17 +189,17 @@ if archdirexisted:
 # Create other directories and configuration files
 if not slepc.prefixdir:
   slepc.prefixdir = archdir
-includedir = CreateDir(archdir,'include',log)
-modulesdir = CreateDirTwo(confdir,'modules','slepc',log)
-pkgconfdir = CreateDir(libdir,'pkgconfig',log)
-slepcvars  = CreateFile(confdir,'slepcvariables',log)
-slepcconf  = CreateFile(includedir,'slepcconf.h',log)
-pkgconfig  = CreateFile(pkgconfdir,'SLEPc.pc',log)
+includedir = slepc.CreateDir(archdir,'include')
+modulesdir = slepc.CreateDirTwo(confdir,'modules','slepc')
+pkgconfdir = slepc.CreateDir(libdir,'pkgconfig')
+slepcvars  = slepc.CreateFile(confdir,'slepcvariables')
+slepcconf  = slepc.CreateFile(includedir,'slepcconf.h')
+pkgconfig  = slepc.CreateFile(pkgconfdir,'SLEPc.pc')
 if slepc.isinstall:
-  modules  = CreateFile(modulesdir,slepc.lversion,log)
+  modules  = slepc.CreateFile(modulesdir,slepc.lversion)
 else:
-  modules  = CreateFile(modulesdir,slepc.lversion+'-'+archname,log)
-  reconfig = CreateFile(confdir,'reconfigure-'+archname+'.py',log)
+  modules  = slepc.CreateFile(modulesdir,slepc.lversion+'-'+archname)
+  reconfig = slepc.CreateFile(confdir,'reconfigure-'+archname+'.py')
   reconfigpath = os.path.join(confdir,'reconfigure-'+archname+'.py')
 
 # Write initial part of file slepcvariables
@@ -268,7 +224,7 @@ if slepc.isrepo:
 
 # Create global configuration file for the case of empty PETSC_ARCH
 if emptyarch:
-  globconf = CreateFile(os.path.join(slepc.dir,'lib','slepc','conf'),'slepcvariables',log)
+  globconf = slepc.CreateFile(os.path.join(slepc.dir,'lib','slepc','conf'),'slepcvariables')
   globconf.write('SLEPC_DIR = '+slepc.dir+'\n')
   globconf.write('PETSC_ARCH = '+archname+'\n')
   globconf.close()
@@ -276,17 +232,17 @@ if emptyarch:
 # Check if PETSc is working
 log.NewSection('Checking PETSc installation...')
 if petsc.nversion > slepc.nversion:
-  log.Println('\nWARNING: PETSc version '+petsc.version+' is newer than SLEPc version '+slepc.version)
+  log.Warn('PETSc version '+petsc.version+' is newer than SLEPc version '+slepc.version)
 if slepc.release=='1' and not petsc.release=='1':
-  log.Exit('ERROR: a release version of SLEPc requires a release version of PETSc, not a development version')
+  log.Exit('A release version of SLEPc requires a release version of PETSc, not a development version')
 if slepc.release=='0' and petsc.release=='1':
-  log.Exit('ERROR: a development version of SLEPc cannot be built with a release version of PETSc')
+  log.Exit('A development version of SLEPc cannot be built with a release version of PETSc')
 if petsc.isinstall:
   if os.path.realpath(petsc.prefixdir) != os.path.realpath(petsc.dir):
-    log.Println('\nWARNING: PETSC_DIR does not point to PETSc installation path')
+    log.Warn('PETSC_DIR does not point to PETSc installation path')
 petsc.Check()
 if not petsc.havepackage:
-  log.Exit('ERROR: Unable to link with PETSc')
+  log.Exit('Unable to link with PETSc')
 
 # Single library installation
 if petsc.singlelib:
@@ -316,7 +272,7 @@ if not slepc.isinstall:
   try:
     os.chmod(reconfigpath,0o775)
   except OSError as e:
-    log.Exit('ERROR: Unable to make reconfigure script executable:\n'+str(e))
+    log.Exit('Unable to make reconfigure script executable:\n'+str(e))
 
 # Finish with configuration files (except slepcvars)
 slepcconf.write('\n#endif\n')
@@ -328,14 +284,14 @@ if not slepc.isinstall: reconfig.close()
 # Download sowing if requested and make Fortran stubs if necessary
 bfort = petsc.bfort
 if sowing.downloadpackage:
-  bfort = sowing.DownloadAndInstall(archdir,petsc.make)
+  bfort = sowing.DownloadAndInstall(slepc,petsc,archdir)
 
 if slepc.isrepo and petsc.fortran:
   try:
     if not os.path.exists(bfort):
       bfort = os.path.join(archdir,'bin','bfort')
     if not os.path.exists(bfort):
-      bfort = sowing.DownloadAndInstall(archdir,petsc.make)
+      bfort = sowing.DownloadAndInstall(slepc,petsc,archdir)
     log.NewSection('Generating Fortran stubs...')
     log.write('Using BFORT='+bfort)
     sys.path.insert(0, os.path.abspath(os.path.join('lib','slepc','bin','maint')))
@@ -343,7 +299,7 @@ if slepc.isrepo and petsc.fortran:
     generatefortranstubs.main(slepc.dir,bfort,os.getcwd(),0)
     generatefortranstubs.processf90interfaces(slepc.dir,0)
   except:
-    log.Exit('ERROR: Try configuring with --download-sowing or use a git version of PETSc')
+    log.Exit('Try configuring with --download-sowing or use a git version of PETSc')
 
 if bfort != petsc.bfort:
   slepcvars.write('BFORT = '+bfort+'\n')
@@ -371,9 +327,7 @@ if petsc.isrepo:
       petscdate = dateutil.parser.parse(petsc.gitdate)
       slepcdate = dateutil.parser.parse(slepc.gitdate)
       if abs(petscdate-slepcdate)>datetime.timedelta(days=30):
-        log.Println('xxx'+'='*74+'xxx')
-        log.Println('WARNING: your PETSc and SLEPc repos may not be in sync (more than 30 days apart)')
-        log.Println('xxx'+'='*74+'xxx')
+        log.Warn('Your PETSc and SLEPc repos may not be in sync (more than 30 days apart)')
     except ImportError: pass
 if emptyarch and slepc.isinstall:
   log.Println('Prefix install with '+petsc.precision+' precision '+petsc.scalar+' numbers')

@@ -95,17 +95,13 @@ class Primme(package.Package):
         self.location = includes[0] if self.packageincludes else i
         return
 
-    self.log.Println('\nERROR: Unable to link with PRIMME library')
-    self.log.Println('ERROR: In directories '+' '.join(dirs))
-    self.log.Println('ERROR: With flags '+' '.join(libs))
-    self.log.Println('NOTE: make sure PRIMME version is 2.0 at least')
-    self.log.Exit('')
+    self.log.Exit('Unable to link with PRIMME library in directories '+' '.join(dirs)+' with libraries and link flags '+' '.join(flags)+' [NOTE: make sure PRIMME version is 2.0 at least]')
 
 
   def DownloadAndInstall(self,conf,vars,slepc,petsc,archdir,prefixdir):
-    externdir = os.path.join(archdir,'externalpackages')
+    externdir = slepc.CreateDir(archdir,'externalpackages')
     builddir  = os.path.join(externdir,self.dirname)
-    self.Download(externdir,builddir,slepc.downloaddir,'primme-')
+    self.Download(externdir,builddir,slepc.downloaddir)
 
     # Configure
     g = open(os.path.join(builddir,'mymake_flags'),'w')
@@ -134,10 +130,10 @@ class Primme(package.Package):
     result,output = self.RunCommand('cd '+builddir+'&&'+mymake+' clean && '+mymake+target)
     self.log.write(output)
     if result:
-      self.log.Exit('ERROR: installation of PRIMME failed.')
+      self.log.Exit('Installation of PRIMME failed')
 
     # Move files
-    incdir,libdir = self.CreatePrefixDirs(prefixdir)
+    incdir,libdir = slepc.CreatePrefixDirs(prefixdir)
     if not petsc.buildsharedlib:
       os.rename(os.path.join(builddir,'lib','libprimme.'+petsc.ar_lib_suffix),os.path.join(libdir,'libprimme.'+petsc.ar_lib_suffix))
       for root, dirs, files in os.walk(os.path.join(builddir,'include')):
@@ -154,7 +150,7 @@ class Primme(package.Package):
     code = self.SampleCode(petsc)
     result = self.Link([],[],[l]+[f],code,f,petsc.language)
     if not result:
-      self.log.Exit('\nERROR: Unable to link with downloaded PRIMME')
+      self.log.Exit('Unable to link with downloaded PRIMME')
 
     # Write configuration files
     conf.write('#define SLEPC_HAVE_PRIMME 1\n')

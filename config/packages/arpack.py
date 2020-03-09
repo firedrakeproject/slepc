@@ -70,14 +70,14 @@ class Arpack(package.Package):
 
 
   def DownloadAndInstall(self,conf,vars,slepc,petsc,archdir,prefixdir):
-    externdir = os.path.join(archdir,'externalpackages')
+    externdir = slepc.CreateDir(archdir,'externalpackages')
     builddir  = os.path.join(externdir,self.dirname)
     self.Download(externdir,builddir,slepc.downloaddir)
 
     # Check for autoreconf
     result,output = self.RunCommand('autoreconf --help')
     if result:
-      self.log.Exit('ERROR: --download-arpack requires that the command autoreconf is available on your PATH.')
+      self.log.Exit('--download-arpack requires that the command autoreconf is available on your PATH')
 
     # Build package
     confopt = '--prefix='+prefixdir+' CC="'+petsc.cc+'" CFLAGS="'+petsc.cc_flags+'" F77="'+petsc.fc+'" FFLAGS="'+petsc.fc_flags.replace('-Wall','').replace('-Wshadow','')+'" FC="'+petsc.fc+'" FCFLAGS="'+petsc.fc_flags.replace('-Wall','').replace('-Wshadow','')+'"'
@@ -87,12 +87,12 @@ class Arpack(package.Package):
       confopt = confopt+' --disable-shared'
     if petsc.ind64:
       if not petsc.blaslapackint64:
-        self.log.Exit('ERROR: to install ARPACK with 64-bit integers you also need a BLAS with 64-bit integers.')
+        self.log.Exit('To install ARPACK with 64-bit integers you also need a BLAS with 64-bit integers')
       confopt = confopt+' INTERFACE64=1'
     result,output = self.RunCommand('cd '+builddir+'&& sh bootstrap && ./configure '+confopt+' && '+petsc.make+' && '+petsc.make+' install')
     self.log.write(output)
     if result:
-      self.log.Exit('ERROR: installation of ARPACK failed.')
+      self.log.Exit('Installation of ARPACK failed')
 
     # Check build
     functions = self.Functions(petsc)
