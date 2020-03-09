@@ -129,13 +129,6 @@ class Package:
       self.log.Exit('Option --download-'+self.packagename+' requires a Fortran compiler')
 
   def Download(self,externdir,builddir,downloaddir,prefix=None):
-    # Create externalpackages directory
-    if not os.path.exists(externdir):
-      try:
-        os.mkdir(externdir)
-      except:
-        self.log.Exit('Cannot create directory ' + externdir)
-
     # Check if source is already available
     if os.path.exists(builddir):
       self.log.write('Using '+builddir)
@@ -357,25 +350,4 @@ Unable to download package %s from: %s
     vars.write(name + '_LIB = '+' '.join(flags)+'\n')
     self.havepackage = True
     self.packageflags = flags
-
-  def CreatePrefixDirs(self,prefixdir):
-    ''' Create directories include and lib under prefixdir, and return path strings '''
-    if not os.path.exists(prefixdir):
-      try:
-        os.mkdir(prefixdir)
-      except:
-        self.log.Exit('Cannot create prefix directory: '+prefixdir)
-    incdir = os.path.join(prefixdir,'include')
-    if not os.path.exists(incdir):
-      try:
-        os.mkdir(incdir)
-      except:
-        self.log.Exit('Cannot create include directory: '+incdir)
-    libdir = os.path.join(prefixdir,'lib')
-    if not os.path.exists(libdir):
-      try:
-        os.mkdir(libdir)
-      except:
-        self.log.Exit('Cannot create lib directory: '+libdir)
-    return incdir,libdir
 

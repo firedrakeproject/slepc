@@ -99,7 +99,7 @@ class Primme(package.Package):
 
 
   def DownloadAndInstall(self,conf,vars,slepc,petsc,archdir,prefixdir):
-    externdir = os.path.join(archdir,'externalpackages')
+    externdir = slepc.CreateDir(archdir,'externalpackages')
     builddir  = os.path.join(externdir,self.dirname)
     self.Download(externdir,builddir,slepc.downloaddir,'primme-')
 
@@ -133,7 +133,7 @@ class Primme(package.Package):
       self.log.Exit('Installation of PRIMME failed')
 
     # Move files
-    incdir,libdir = self.CreatePrefixDirs(prefixdir)
+    incdir,libdir = slepc.CreatePrefixDirs(prefixdir)
     if not petsc.buildsharedlib:
       os.rename(os.path.join(builddir,'lib','libprimme.'+petsc.ar_lib_suffix),os.path.join(libdir,'libprimme.'+petsc.ar_lib_suffix))
       for root, dirs, files in os.walk(os.path.join(builddir,'include')):

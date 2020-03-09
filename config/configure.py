@@ -15,54 +15,6 @@ import os, sys, time, shutil
 def AddDefine(conffile,name,value,prefix='SLEPC_'):
   conffile.write('#define '+prefix+name+' "'+value+'"\n')
 
-def CreateFile(basedir,fname,log):
-  ''' Create file basedir/fname and return path string '''
-  newfile = os.path.join(basedir,fname)
-  try:
-    newfile = open(newfile,'w')
-  except:
-    log.Exit('Cannot create '+fname+' file in '+basedir)
-  return newfile
-
-def CreateDir(basedir,dirname,log):
-  ''' Create directory basedir/dirname and return path string '''
-  newdir = os.path.join(basedir,dirname)
-  if not os.path.exists(newdir):
-    try:
-      os.mkdir(newdir)
-    except:
-      log.Exit('Cannot create '+dirname+' directory: '+newdir)
-  return newdir
-
-def CreateDirTwo(basedir,dir1,dir2,log):
-  ''' Create directory basedir/dir1/dir2 and return path string '''
-  newbasedir = os.path.join(basedir,dir1)
-  if not os.path.exists(newbasedir):
-    try:
-      os.mkdir(newbasedir)
-    except:
-      log.Exit('Cannot create '+dir1+' directory: '+newbasedir)
-  newdir = os.path.join(newbasedir,dir2)
-  if not os.path.exists(newdir):
-    try:
-      os.mkdir(newdir)
-    except:
-      log.Exit('Cannot create '+dir2+' directory: '+newdir)
-  return newdir
-
-def CreateDirTest(basedir,dirname,log):
-  ''' Create directory, return path string and flag indicating if already existed '''
-  newdir = os.path.join(basedir,dirname)
-  if not os.path.exists(newdir):
-    existed = False
-    try:
-      os.mkdir(newdir)
-    except:
-      log.Exit('Cannot create '+dirname+' directory: '+newdir)
-  else:
-    existed = True
-  return newdir, existed
-
 def WriteModulesFile(modules,version,sdir):
   ''' Write the contents of the Modules file '''
   modules.write('#%Module\n\n')
@@ -183,9 +135,9 @@ else:
   archname = petsc.arch
 
 # Create directories for configuration files
-archdir, archdirexisted = CreateDirTest(slepc.dir,archname,log)
-libdir  = CreateDir(archdir,'lib',log)
-confdir = CreateDirTwo(libdir,'slepc','conf',log)
+archdir, archdirexisted = slepc.CreateDirTest(slepc.dir,archname)
+libdir  = slepc.CreateDir(archdir,'lib')
+confdir = slepc.CreateDirTwo(libdir,'slepc','conf')
 
 # Open log file
 log.Open(confdir,'configure.log')
@@ -233,17 +185,17 @@ if archdirexisted:
 # Create other directories and configuration files
 if not slepc.prefixdir:
   slepc.prefixdir = archdir
-includedir = CreateDir(archdir,'include',log)
-modulesdir = CreateDirTwo(confdir,'modules','slepc',log)
-pkgconfdir = CreateDir(libdir,'pkgconfig',log)
-slepcvars  = CreateFile(confdir,'slepcvariables',log)
-slepcconf  = CreateFile(includedir,'slepcconf.h',log)
-pkgconfig  = CreateFile(pkgconfdir,'SLEPc.pc',log)
+includedir = slepc.CreateDir(archdir,'include')
+modulesdir = slepc.CreateDirTwo(confdir,'modules','slepc')
+pkgconfdir = slepc.CreateDir(libdir,'pkgconfig')
+slepcvars  = slepc.CreateFile(confdir,'slepcvariables')
+slepcconf  = slepc.CreateFile(includedir,'slepcconf.h')
+pkgconfig  = slepc.CreateFile(pkgconfdir,'SLEPc.pc')
 if slepc.isinstall:
-  modules  = CreateFile(modulesdir,slepc.lversion,log)
+  modules  = slepc.CreateFile(modulesdir,slepc.lversion)
 else:
-  modules  = CreateFile(modulesdir,slepc.lversion+'-'+archname,log)
-  reconfig = CreateFile(confdir,'reconfigure-'+archname+'.py',log)
+  modules  = slepc.CreateFile(modulesdir,slepc.lversion+'-'+archname)
+  reconfig = slepc.CreateFile(confdir,'reconfigure-'+archname+'.py')
   reconfigpath = os.path.join(confdir,'reconfigure-'+archname+'.py')
 
 # Write initial part of file slepcvariables
@@ -268,7 +220,7 @@ if slepc.isrepo:
 
 # Create global configuration file for the case of empty PETSC_ARCH
 if emptyarch:
-  globconf = CreateFile(os.path.join(slepc.dir,'lib','slepc','conf'),'slepcvariables',log)
+  globconf = slepc.CreateFile(os.path.join(slepc.dir,'lib','slepc','conf'),'slepcvariables')
   globconf.write('SLEPC_DIR = '+slepc.dir+'\n')
   globconf.write('PETSC_ARCH = '+archname+'\n')
   globconf.close()
@@ -328,14 +280,14 @@ if not slepc.isinstall: reconfig.close()
 # Download sowing if requested and make Fortran stubs if necessary
 bfort = petsc.bfort
 if sowing.downloadpackage:
-  bfort = sowing.DownloadAndInstall(archdir,petsc.make)
+  bfort = sowing.DownloadAndInstall(slepc,petsc,archdir)
 
 if slepc.isrepo and petsc.fortran:
   try:
     if not os.path.exists(bfort):
       bfort = os.path.join(archdir,'bin','bfort')
     if not os.path.exists(bfort):
-      bfort = sowing.DownloadAndInstall(archdir,petsc.make)
+      bfort = sowing.DownloadAndInstall(slepc,petsc,archdir)
     log.NewSection('Generating Fortran stubs...')
     log.write('Using BFORT='+bfort)
     sys.path.insert(0, os.path.abspath(os.path.join('lib','slepc','bin','maint')))

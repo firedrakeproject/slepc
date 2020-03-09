@@ -39,10 +39,10 @@ class HPDDM(package.Package):
     package.Package.Precondition(self,petsc)
 
   def DownloadAndInstall(self,conf,vars,slepc,petsc,archdir,prefixdir):
-    externdir = os.path.join(archdir,'externalpackages')
+    externdir = slepc.CreateDir(archdir,'externalpackages')
     builddir  = os.path.join(externdir,self.dirname)
-    incdir,libdir = self.CreatePrefixDirs(prefixdir)
     self.Download(externdir,builddir,slepc.downloaddir)
+    incdir,libdir = slepc.CreatePrefixDirs(prefixdir)
     g = open(os.path.join(builddir,'SONAME_SL_LINKER'),'w')
     g.write('include '+os.path.join(petsc.dir,petsc.arch,'lib','petsc','conf','petscvariables')+'\n')
     g.write('soname:\n')

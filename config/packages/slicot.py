@@ -41,7 +41,7 @@ class Slicot(package.Package):
 
 
   def DownloadAndInstall(self,conf,vars,slepc,petsc,archdir,prefixdir):
-    externdir = os.path.join(archdir,'externalpackages')
+    externdir = slepc.CreateDir(archdir,'externalpackages')
     builddir  = os.path.join(externdir,self.dirname)
     self.Download(externdir,builddir,slepc.downloaddir)
     libname = 'libslicot.a'
@@ -63,7 +63,7 @@ class Slicot(package.Package):
       self.log.Exit('Installation of SLICOT failed')
 
     # Move files
-    incdir,libdir = self.CreatePrefixDirs(prefixdir)
+    incdir,libdir = slepc.CreatePrefixDirs(prefixdir)
     os.rename(os.path.join(builddir,libname),os.path.join(libdir,libname))
 
     # Check build

@@ -79,3 +79,72 @@ class SLEPc(package.Package):
         (status, self.gitdate) = self.RunCommand('git log -1 --pretty=format:%ci')
         (status, self.branch) = self.RunCommand('git describe --contains --all HEAD')
 
+  def CreateFile(self,basedir,fname):
+    ''' Create file basedir/fname and return path string '''
+    newfile = os.path.join(basedir,fname)
+    try:
+      newfile = open(newfile,'w')
+    except:
+      self.log.Exit('Cannot create '+fname+' file in '+basedir)
+    return newfile
+
+  def CreateDir(self,basedir,dirname):
+    ''' Create directory basedir/dirname and return path string '''
+    newdir = os.path.join(basedir,dirname)
+    if not os.path.exists(newdir):
+      try:
+        os.mkdir(newdir)
+      except:
+        self.log.Exit('Cannot create '+dirname+' directory: '+newdir)
+    return newdir
+
+  def CreateDirTwo(self,basedir,dir1,dir2):
+    ''' Create directory basedir/dir1/dir2 and return path string '''
+    newbasedir = os.path.join(basedir,dir1)
+    if not os.path.exists(newbasedir):
+      try:
+        os.mkdir(newbasedir)
+      except:
+        self.log.Exit('Cannot create '+dir1+' directory: '+newbasedir)
+    newdir = os.path.join(newbasedir,dir2)
+    if not os.path.exists(newdir):
+      try:
+        os.mkdir(newdir)
+      except:
+        self.log.Exit('Cannot create '+dir2+' directory: '+newdir)
+    return newdir
+
+  def CreateDirTest(self,basedir,dirname):
+    ''' Create directory, return path string and flag indicating if already existed '''
+    newdir = os.path.join(basedir,dirname)
+    if not os.path.exists(newdir):
+      existed = False
+      try:
+        os.mkdir(newdir)
+      except:
+        self.log.Exit('Cannot create '+dirname+' directory: '+newdir)
+    else:
+      existed = True
+    return newdir, existed
+
+  def CreatePrefixDirs(self,prefixdir):
+    ''' Create directories include and lib under prefixdir, and return path strings '''
+    if not os.path.exists(prefixdir):
+      try:
+        os.mkdir(prefixdir)
+      except:
+        self.log.Exit('Cannot create prefix directory: '+prefixdir)
+    incdir = os.path.join(prefixdir,'include')
+    if not os.path.exists(incdir):
+      try:
+        os.mkdir(incdir)
+      except:
+        self.log.Exit('Cannot create include directory: '+incdir)
+    libdir = os.path.join(prefixdir,'lib')
+    if not os.path.exists(libdir):
+      try:
+        os.mkdir(libdir)
+      except:
+        self.log.Exit('Cannot create lib directory: '+libdir)
+    return incdir,libdir
+

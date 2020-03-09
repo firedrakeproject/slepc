@@ -24,7 +24,7 @@ class Blopex(package.Package):
     self.ProcessArgs(argdb)
 
   def DownloadAndInstall(self,conf,vars,slepc,petsc,archdir,prefixdir):
-    externdir = os.path.join(archdir,'externalpackages')
+    externdir = slepc.CreateDir(archdir,'externalpackages')
     builddir  = os.path.join(externdir,self.dirname,'blopex_abstract')
     self.Download(externdir,builddir,slepc.downloaddir)
 
@@ -45,13 +45,8 @@ class Blopex(package.Package):
       self.log.Exit('Installation of BLOPEX failed')
 
     # Move files
-    incdir,libDir = self.CreatePrefixDirs(prefixdir)
-    incblopexdir = os.path.join(incdir,'blopex')
-    if not os.path.exists(incblopexdir):
-      try:
-        os.mkdir(incblopexdir)
-      except:
-        self.log.Exit('Cannot create directory: '+incblopexdir)
+    incdir,libDir = slepc.CreatePrefixDirs(prefixdir)
+    incblopexdir  = slepc.CreateDir(incdir,'blopex')
     os.rename(os.path.join(builddir,'lib','libBLOPEX.'+petsc.ar_lib_suffix),os.path.join(libDir,'libBLOPEX.'+petsc.ar_lib_suffix))
     for root, dirs, files in os.walk(os.path.join(builddir,'include')):
       for name in files:
