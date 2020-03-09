@@ -31,11 +31,11 @@ class HPDDM(package.Package):
   def Precondition(self,petsc):
     pkg = self.packagename.upper()
     if petsc.cxxdialectcxx11 == False:
-      self.log.Exit('ERROR: '+pkg+' requires C++11.')
+      self.log.Exit(pkg+' requires C++11')
     if petsc.buildsharedlib == False:
-      self.log.Exit('ERROR: '+pkg+' requires a shared library build.')
+      self.log.Exit(pkg+' requires a shared library build')
     if petsc.hpddm == True:
-      self.log.Exit('ERROR: '+pkg+' requires PETSc to be built without '+pkg+'.')
+      self.log.Exit(pkg+' requires PETSc to be built without '+pkg)
     package.Package.Precondition(self,petsc)
 
   def DownloadAndInstall(self,conf,vars,slepc,petsc,archdir,prefixdir):
@@ -62,14 +62,14 @@ class HPDDM(package.Package):
     cmd = petsc.cxx+' '+petsc.cxx_flags+' -I'+os.path.join('.','include')+' -I'+os.path.join(petsc.dir,petsc.arch,'include')+' -I'+os.path.join(slepc.dir,'include')+' -I'+os.path.join(archdir,'include')+' -I'+os.path.join(petsc.dir,'include')+' -DPETSC_HAVE_SLEPC=1 -DSLEPC_LIB_DIR="'+d+'" -DPETSC_HAVE_SLEPC=1 '
     result,output = self.RunCommand('cd '+builddir+'&&'+cmd+' '+os.path.join('interface','ksphpddm.cxx')+' -c -o '+os.path.join('interface','ksphpddm.o')+'&&'+cmd+' '+os.path.join('interface','pchpddm.cxx')+' -c -o '+os.path.join('interface','pchpddm.o')+'&&'+cmd+' '+os.path.join('interface','hpddm_petsc.cpp')+' -c -o '+os.path.join('interface','hpddm_petsc.o'))
     if result:
-      self.log.Exit('ERROR: compilation of HPDDM failed.')
+      self.log.Exit('Compilation of HPDDM failed')
     result,output = self.RunCommand('cd '+builddir+'&& make -f SONAME_SL_LINKER soname && make -f SONAME_SL_LINKER sl_linker')
     if result:
-      self.log.Exit('ERROR: calling PETSc SONAME_FUNCTION or SL_LINKER_FUNCTION failed.')
+      self.log.Exit('Calling PETSc SONAME_FUNCTION or SL_LINKER_FUNCTION failed')
     lines = output.splitlines()
     result,output = self.RunCommand('cd '+builddir+'&& '+petsc.cxx+' '+petsc.cxx_flags+' '+os.path.join('interface','hpddm_petsc.o')+' '+os.path.join('interface','pchpddm.o')+' '+os.path.join('interface','ksphpddm.o')+' -o '+lines[0]+' '+lines[1]+' '+l+' && ln -sf '+lines[0]+' '+os.path.join(d,'libhpddm_petsc.'+petsc.sl_suffix))
     if result:
-      self.log.Exit('ERROR: installation of HPDDM failed.')
+      self.log.Exit('Installation of HPDDM failed')
     for root, dirs, files in os.walk(os.path.join(builddir,'include')):
       for name in files:
         shutil.copyfile(os.path.join(builddir,'include',name),os.path.join(incdir,name))

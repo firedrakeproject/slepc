@@ -64,7 +64,7 @@ class Trlan(package.Package):
     result,output = self.RunCommand('cd '+builddir+'&&'+petsc.make+' clean &&'+petsc.make+' '+target)
     self.log.write(output)
     if result:
-      self.log.Exit('ERROR: installation of TRLAN failed.')
+      self.log.Exit('Installation of TRLAN failed')
 
     # Move files
     incdir,libdir = self.CreatePrefixDirs(prefixdir)

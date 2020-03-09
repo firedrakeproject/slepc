@@ -21,7 +21,7 @@ def CreateFile(basedir,fname,log):
   try:
     newfile = open(newfile,'w')
   except:
-    log.Exit('ERROR: Cannot create '+fname+' file in '+basedir)
+    log.Exit('Cannot create '+fname+' file in '+basedir)
   return newfile
 
 def CreateDir(basedir,dirname,log):
@@ -31,7 +31,7 @@ def CreateDir(basedir,dirname,log):
     try:
       os.mkdir(newdir)
     except:
-      log.Exit('ERROR: Cannot create '+dirname+' directory: '+newdir)
+      log.Exit('Cannot create '+dirname+' directory: '+newdir)
   return newdir
 
 def CreateDirTwo(basedir,dir1,dir2,log):
@@ -41,13 +41,13 @@ def CreateDirTwo(basedir,dir1,dir2,log):
     try:
       os.mkdir(newbasedir)
     except:
-      log.Exit('ERROR: Cannot create '+dir1+' directory: '+newbasedir)
+      log.Exit('Cannot create '+dir1+' directory: '+newbasedir)
   newdir = os.path.join(newbasedir,dir2)
   if not os.path.exists(newdir):
     try:
       os.mkdir(newdir)
     except:
-      log.Exit('ERROR: Cannot create '+dir2+' directory: '+newdir)
+      log.Exit('Cannot create '+dir2+' directory: '+newdir)
   return newdir
 
 def CreateDirTest(basedir,dirname,log):
@@ -58,7 +58,7 @@ def CreateDirTest(basedir,dirname,log):
     try:
       os.mkdir(newdir)
     except:
-      log.Exit('ERROR: Cannot create '+dirname+' directory: '+newdir)
+      log.Exit('Cannot create '+dirname+' directory: '+newdir)
   else:
     existed = True
   return newdir, existed
@@ -161,12 +161,12 @@ slepc.InitDir()
 petsc.LoadVersion()
 slepc.LoadVersion()
 if petsc.nversion < slepc.nversion:
-  log.Exit('ERROR: This SLEPc version is not compatible with PETSc version '+petsc.version)
+  log.Exit('This SLEPc version is not compatible with PETSc version '+petsc.version)
 
 # Check some information about PETSc configuration
 petsc.LoadConf()
 if not petsc.precision in ['double','single','__float128']:
-  log.Exit('ERROR: This SLEPc version does not work with '+petsc.precision+' precision')
+  log.Exit('This SLEPc version does not work with '+petsc.precision+' precision')
 
 # Check for empty PETSC_ARCH
 emptyarch = not ('PETSC_ARCH' in os.environ and os.environ['PETSC_ARCH'])
@@ -224,7 +224,7 @@ if archdirexisted:
           if name!='configure.log':
             os.remove(os.path.join(root,name))
     except:
-      log.Exit('ERROR: Cannot remove existing files in '+archdir)
+      log.Exit('Cannot remove existing files in '+archdir)
     for rdir in ['obj','externalpackages']:
       try:
         shutil.rmtree(os.path.join(archdir,rdir))
@@ -278,15 +278,15 @@ log.NewSection('Checking PETSc installation...')
 if petsc.nversion > slepc.nversion:
   log.Warn('PETSc version '+petsc.version+' is newer than SLEPc version '+slepc.version)
 if slepc.release=='1' and not petsc.release=='1':
-  log.Exit('ERROR: a release version of SLEPc requires a release version of PETSc, not a development version')
+  log.Exit('A release version of SLEPc requires a release version of PETSc, not a development version')
 if slepc.release=='0' and petsc.release=='1':
-  log.Exit('ERROR: a development version of SLEPc cannot be built with a release version of PETSc')
+  log.Exit('A development version of SLEPc cannot be built with a release version of PETSc')
 if petsc.isinstall:
   if os.path.realpath(petsc.prefixdir) != os.path.realpath(petsc.dir):
     log.Warn('PETSC_DIR does not point to PETSc installation path')
 petsc.Check()
 if not petsc.havepackage:
-  log.Exit('ERROR: Unable to link with PETSc')
+  log.Exit('Unable to link with PETSc')
 
 # Single library installation
 if petsc.singlelib:
@@ -316,7 +316,7 @@ if not slepc.isinstall:
   try:
     os.chmod(reconfigpath,0o775)
   except OSError as e:
-    log.Exit('ERROR: Unable to make reconfigure script executable:\n'+str(e))
+    log.Exit('Unable to make reconfigure script executable:\n'+str(e))
 
 # Finish with configuration files (except slepcvars)
 slepcconf.write('\n#endif\n')
@@ -343,7 +343,7 @@ if slepc.isrepo and petsc.fortran:
     generatefortranstubs.main(slepc.dir,bfort,os.getcwd(),0)
     generatefortranstubs.processf90interfaces(slepc.dir,0)
   except:
-    log.Exit('ERROR: Try configuring with --download-sowing or use a git version of PETSc')
+    log.Exit('Try configuring with --download-sowing or use a git version of PETSc')
 
 if bfort != petsc.bfort:
   slepcvars.write('BFORT = '+bfort+'\n')

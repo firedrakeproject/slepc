@@ -33,13 +33,13 @@ class SLEPc(package.Package):
     if 'SLEPC_DIR' in os.environ:
       self.dir = os.environ['SLEPC_DIR']
       if not os.path.exists(self.dir) or not os.path.exists(os.path.join(self.dir,'config')):
-        self.log.Exit('ERROR: SLEPC_DIR enviroment variable is not valid')
+        self.log.Exit('SLEPC_DIR enviroment variable is not valid')
       if os.path.realpath(os.getcwd()) != os.path.realpath(self.dir):
-        self.log.Exit('ERROR: SLEPC_DIR is not the current directory')
+        self.log.Exit('SLEPC_DIR is not the current directory')
     else:
       self.dir = os.getcwd()
       if not os.path.exists(os.path.join(self.dir,'config')):
-        self.log.Exit('ERROR: Current directory is not valid')
+        self.log.Exit('Current directory is not valid')
 
   def LoadVersion(self):
     try:
@@ -60,7 +60,7 @@ class SLEPc(package.Package):
       self.lversion = major + '.' + minor + '.' + subminor
       self.nversion = int(major)*100 + int(minor)
     except:
-      self.log.Exit('ERROR: file error while reading SLEPc version')
+      self.log.Exit('File error while reading SLEPc version')
 
     # Check whether this is a working copy of the repository
     self.isrepo = False

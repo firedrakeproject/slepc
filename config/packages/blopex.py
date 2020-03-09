@@ -42,7 +42,7 @@ class Blopex(package.Package):
     result,output = self.RunCommand('cd '+builddir+'&&'+petsc.make+' clean &&'+petsc.make)
     self.log.write(output)
     if result:
-      self.log.Exit('ERROR: installation of BLOPEX failed.')
+      self.log.Exit('Installation of BLOPEX failed')
 
     # Move files
     incdir,libDir = self.CreatePrefixDirs(prefixdir)
@@ -51,7 +51,7 @@ class Blopex(package.Package):
       try:
         os.mkdir(incblopexdir)
       except:
-        self.log.Exit('ERROR: Cannot create directory: '+incblopexdir)
+        self.log.Exit('Cannot create directory: '+incblopexdir)
     os.rename(os.path.join(builddir,'lib','libBLOPEX.'+petsc.ar_lib_suffix),os.path.join(libDir,'libBLOPEX.'+petsc.ar_lib_suffix))
     for root, dirs, files in os.walk(os.path.join(builddir,'include')):
       for name in files:
@@ -69,7 +69,7 @@ class Blopex(package.Package):
     else:
       functions = ['lobpcg_solve_complex']
     if not self.Link(functions,[],[l]+[f]):
-      self.log.Exit('\nERROR: Unable to link with downloaded BLOPEX')
+      self.log.Exit('Unable to link with downloaded BLOPEX')
 
     # Write configuration files
     conf.write('#define SLEPC_HAVE_BLOPEX 1\n')

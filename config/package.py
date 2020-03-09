@@ -77,14 +77,14 @@ class Package:
       url,flag,found = argdb.PopUrl('download-'+self.packagename)
       if found:
         if self.requested:
-          self.log.Exit('ERROR: Cannot request both download and install simultaneously')
+          self.log.Exit('Cannot request both download and install simultaneously')
         self.requested = True
         self.download = True
         self.packageurl = url
         self.downloadpackage = flag
       if cflagsfound:
         if not hasattr(self,'download') or not self.download:
-          self.log.Exit('ERROR: --download-'+self.packagename+'-cflags must be used together with --download-'+self.packagename)
+          self.log.Exit('--download-'+self.packagename+'-cflags must be used together with --download-'+self.packagename)
         self.buildflags = string
 
   def Process(self,conf,vars,slepc,petsc,archdir=''):
@@ -114,19 +114,19 @@ class Package:
     package = self.packagename.upper()
     if petsc.scalar == 'complex':
       if 'complex' not in self.supportsscalar:
-        self.log.Exit('ERROR: '+package+' does not support complex scalars.')
+        self.log.Exit(package+' does not support complex scalars')
     elif petsc.scalar == 'real':
       if 'real' not in self.supportsscalar:
-        self.log.Exit('ERROR: '+package+' is supported only with complex scalars.')
+        self.log.Exit(package+' is supported only with complex scalars')
     if petsc.precision == 'single':
       if not self.supportssingle:
-        self.log.Exit('ERROR: '+package+' is supported only in double precision.')
+        self.log.Exit(package+' is supported only in double precision')
     elif petsc.precision != 'double':
-      self.log.Exit('ERROR: precision '+petsc.precision+' is not supported for external packages.')
+      self.log.Exit('Precision '+petsc.precision+' is not supported for external packages')
     if petsc.ind64 and not self.supports64bint:
-      self.log.Exit('ERROR: '+package+' cannot be used with 64-bit integers.')
+      self.log.Exit(package+' cannot be used with 64-bit integers')
     if self.downloadpackage and self.fortran and not hasattr(petsc,'fc'):
-      self.log.Exit('ERROR: option --download-'+self.packagename+' requires a Fortran compiler.')
+      self.log.Exit('Option --download-'+self.packagename+' requires a Fortran compiler')
 
   def Download(self,externdir,builddir,downloaddir,prefix=None):
     # Create externalpackages directory
@@ -134,7 +134,7 @@ class Package:
       try:
         os.mkdir(externdir)
       except:
-        self.log.Exit('ERROR: Cannot create directory ' + externdir)
+        self.log.Exit('Cannot create directory ' + externdir)
 
     # Check if source is already available
     if os.path.exists(builddir):
@@ -187,7 +187,7 @@ Unable to download package %s from: %s
           result,output = self.RunCommand('cd '+externdir+'; gunzip '+self.archive+'; tar -xf '+self.archive.split('.gz')[0])
           if not downloaddir: os.remove(localFile.split('.gz')[0])
       except RuntimeError as e:
-        self.log.Exit('Error uncompressing '+self.archive+': '+str(e))
+        self.log.Exit('Cannot uncompress '+self.archive+': '+str(e))
 
       # Rename directory
       if prefix is not None:
@@ -230,7 +230,7 @@ Unable to download package %s from: %s
       tmpdir = tempfile.mkdtemp(prefix='slepc-')
       if not os.path.isdir(tmpdir): os.mkdir(tmpdir)
     except:
-      self.log.Exit('ERROR: Cannot create temporary directory')
+      self.log.Exit('Cannot create temporary directory')
     try:
       makefile = open(os.path.join(tmpdir,'makefile'),'w')
       if cflags!='':
@@ -244,7 +244,7 @@ Unable to download package %s from: %s
       makefile.write('include '+os.path.join('${PETSC_DIR}','lib','petsc','conf','rules')+'\n')
       makefile.close()
     except:
-      self.log.Exit('ERROR: Cannot create makefile in temporary directory')
+      self.log.Exit('Cannot create makefile in temporary directory')
 
     # Create source file
     if givencode == '':
@@ -351,10 +351,7 @@ Unable to download package %s from: %s
       self.log.write(output)
     else:
       self.log.write(error)
-      self.log.Println('\nERROR: Unable to link with library '+ name)
-      self.log.Println('ERROR: In directories '+' '.join(dirs))
-      self.log.Println('ERROR: With libraries and link flags '+' '.join(flags))
-      self.log.Exit('')
+      self.log.Exit('Unable to link with '+name+' library in directories '+' '.join(dirs)+' with libraries and link flags '+' '.join(flags))
 
     conf.write('#define SLEPC_HAVE_' + name + ' 1\n#define SLEPC_' + name + '_HAVE_'+mangling+' 1\n')
     vars.write(name + '_LIB = '+' '.join(flags)+'\n')
@@ -367,18 +364,18 @@ Unable to download package %s from: %s
       try:
         os.mkdir(prefixdir)
       except:
-        self.log.Exit('ERROR: Cannot create prefix directory: '+prefixdir)
+        self.log.Exit('Cannot create prefix directory: '+prefixdir)
     incdir = os.path.join(prefixdir,'include')
     if not os.path.exists(incdir):
       try:
         os.mkdir(incdir)
       except:
-        self.log.Exit('ERROR: Cannot create include directory: '+incdir)
+        self.log.Exit('Cannot create include directory: '+incdir)
     libdir = os.path.join(prefixdir,'lib')
     if not os.path.exists(libdir):
       try:
         os.mkdir(libdir)
       except:
-        self.log.Exit('ERROR: Cannot create lib directory: '+libdir)
+        self.log.Exit('Cannot create lib directory: '+libdir)
     return incdir,libdir
 

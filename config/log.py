@@ -50,9 +50,10 @@ class Log:
       self.fd.write(msg+'\n')
 
   def Exit(self,string):
-    print('\n'+string)
+    msg = '\nERROR: '+string
+    print(msg)
     if hasattr(self,'fd'):
-      self.fd.write('\n'+string+'\n')
+      self.fd.write(msg+'\n')
       self.fd.close()
       msg = 'ERROR: See "' + self.filename + '" file for details'
     else:

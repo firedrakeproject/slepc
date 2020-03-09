@@ -95,11 +95,7 @@ class Primme(package.Package):
         self.location = includes[0] if self.packageincludes else i
         return
 
-    self.log.Println('\nERROR: Unable to link with PRIMME library')
-    self.log.Println('ERROR: In directories '+' '.join(dirs))
-    self.log.Println('ERROR: With flags '+' '.join(libs))
-    self.log.Println('NOTE: make sure PRIMME version is 2.0 at least')
-    self.log.Exit('')
+    self.log.Exit('Unable to link with PRIMME library in directories '+' '.join(dirs)+' with libraries and link flags '+' '.join(flags)+' [NOTE: make sure PRIMME version is 2.0 at least]')
 
 
   def DownloadAndInstall(self,conf,vars,slepc,petsc,archdir,prefixdir):
@@ -134,7 +130,7 @@ class Primme(package.Package):
     result,output = self.RunCommand('cd '+builddir+'&&'+mymake+' clean && '+mymake+target)
     self.log.write(output)
     if result:
-      self.log.Exit('ERROR: installation of PRIMME failed.')
+      self.log.Exit('Installation of PRIMME failed')
 
     # Move files
     incdir,libdir = self.CreatePrefixDirs(prefixdir)
@@ -154,7 +150,7 @@ class Primme(package.Package):
     code = self.SampleCode(petsc)
     result = self.Link([],[],[l]+[f],code,f,petsc.language)
     if not result:
-      self.log.Exit('\nERROR: Unable to link with downloaded PRIMME')
+      self.log.Exit('Unable to link with downloaded PRIMME')
 
     # Write configuration files
     conf.write('#define SLEPC_HAVE_PRIMME 1\n')
