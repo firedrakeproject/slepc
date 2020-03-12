@@ -495,7 +495,12 @@ PetscErrorCode BVOrthogonalize_LAPACK_TSQR_OnlyR(BV bv,PetscInt m_,PetscInt n_,P
     for (i=0;i<n;i++) {
       for (j=i;j<n;j++) R1[(2*n-i-1)*i/2+j] = (i<m)?A[i+j*m]:0.0;
     }
+#if defined(PETSC_HAVE_I_MPI_NUMVERSION)
+    ierr = MPI_Reduce(R1,R2,1,tmat,MPIU_TSQR,0,PetscObjectComm((PetscObject)bv));CHKERRQ(ierr);
+    ierr = MPI_Bcast(R2,1,tmat,0,PetscObjectComm((PetscObject)bv));CHKERRQ(ierr);
+#else
     ierr = MPI_Allreduce(R1,R2,1,tmat,MPIU_TSQR,PetscObjectComm((PetscObject)bv));CHKERRQ(ierr);
+#endif
     for (i=0;i<n;i++) {
       for (j=0;j<i;j++) R[i+j*ldr] = 0.0;
       for (j=i;j<n;j++) R[i+j*ldr] = R2[(2*n-i-1)*i/2+j];
