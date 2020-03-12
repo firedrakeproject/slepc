@@ -1020,10 +1020,10 @@ PetscErrorCode FNEvaluateFunctionMat_Exp_Pade_CUDA(FN fn,Mat A,Mat B)
 {
   PetscErrorCode ierr;
   PetscBLASInt   n,ld,ld2,*d_ipiv,*d_info,info,one=1,zero=0;
-  PetscInt       m,j,k,sexp;
+  PetscInt       m,k,sexp;
   PetscBool      odd;
   const PetscInt p=MAX_PADE;
-  PetscReal      c[MAX_PADE+1],s,*rwork;
+  PetscReal      c[MAX_PADE+1],s;
   PetscScalar    scale,smone=-1.0,sone=1.0,stwo=2.0,szero=0.0;
   PetscScalar    *Aa,*Ba;
   PetscScalar    *d_Ba,*d_As,*d_A2,*d_Q,*d_P,*d_W,*aux,**ppP,**d_ppP,**ppQ,**d_ppQ;
