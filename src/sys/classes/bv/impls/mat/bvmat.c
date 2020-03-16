@@ -218,7 +218,11 @@ PetscErrorCode BVMatMult_Mat(BV V,Mat A,BV W)
   if (V->vmm && flg) {
     ierr = BVGetMat(V,&Vmat);CHKERRQ(ierr);
     ierr = BVGetMat(W,&Wmat);CHKERRQ(ierr);
-    ierr = MatMatMult(A,Vmat,MAT_REUSE_MATRIX,PETSC_DEFAULT,&Wmat);CHKERRQ(ierr);
+    ierr = MatProductCreateWithMat(A,Vmat,NULL,Wmat);CHKERRQ(ierr);
+    ierr = MatProductSetType(Wmat,MATPRODUCT_AB);CHKERRQ(ierr);
+    ierr = MatProductSetFromOptions(Wmat);CHKERRQ(ierr);
+    ierr = MatProductSymbolic(Wmat);CHKERRQ(ierr);
+    ierr = MatProductNumeric(Wmat);CHKERRQ(ierr);
     ierr = BVRestoreMat(V,&Vmat);CHKERRQ(ierr);
     ierr = BVRestoreMat(W,&Wmat);CHKERRQ(ierr);
   } else {

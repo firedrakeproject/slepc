@@ -114,18 +114,24 @@ PetscErrorCode SVDSetUp_Cross(SVD svd)
   if (!cross->mat) {
     if (cross->explicitmatrix) {
       if (svd->A && svd->AT) {  /* explicit transpose */
-        ierr = MatMatMult(svd->AT,svd->A,MAT_INITIAL_MATRIX,PETSC_DEFAULT,&cross->mat);CHKERRQ(ierr);
+        ierr = MatProductCreate(svd->AT,svd->A,NULL,&cross->mat);CHKERRQ(ierr);
+        ierr = MatProductSetType(cross->mat,MATPRODUCT_AB);CHKERRQ(ierr);
       } else {  /* implicit transpose */
 #if defined(PETSC_USE_COMPLEX)
         SETERRQ(PetscObjectComm((PetscObject)svd),PETSC_ERR_SUP,"Must use explicit transpose with complex scalars");
 #else
         if (svd->A) {
-          ierr = MatTransposeMatMult(svd->A,svd->A,MAT_INITIAL_MATRIX,PETSC_DEFAULT,&cross->mat);CHKERRQ(ierr);
+          ierr = MatProductCreate(svd->A,svd->A,NULL,&cross->mat);CHKERRQ(ierr);
+          ierr = MatProductSetType(cross->mat,MATPRODUCT_AtB);CHKERRQ(ierr);
         } else {
-          ierr = MatMatTransposeMult(svd->AT,svd->AT,MAT_INITIAL_MATRIX,PETSC_DEFAULT,&cross->mat);CHKERRQ(ierr);
+          ierr = MatProductCreate(svd->AT,svd->AT,NULL,&cross->mat);CHKERRQ(ierr);
+          ierr = MatProductSetType(cross->mat,MATPRODUCT_ABt);CHKERRQ(ierr);
         }
 #endif
       }
+      ierr = MatProductSetFromOptions(cross->mat);CHKERRQ(ierr);
+      ierr = MatProductSymbolic(cross->mat);CHKERRQ(ierr);
+      ierr = MatProductNumeric(cross->mat);CHKERRQ(ierr);
     } else {
       ierr = SVDMatGetLocalSize(svd,NULL,&n);CHKERRQ(ierr);
       ierr = MatCreateShell(PetscObjectComm((PetscObject)svd),n,n,PETSC_DETERMINE,PETSC_DETERMINE,svd,&cross->mat);CHKERRQ(ierr);
