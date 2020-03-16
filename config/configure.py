@@ -136,7 +136,7 @@ libdir  = slepc.CreateDir(archdir,'lib')
 confdir = slepc.CreateDirTwo(libdir,'slepc','conf')
 
 # Open log file
-log.Open(confdir,'configure.log')
+log.Open(slepc.dir,confdir,'configure.log')
 log.write('='*80)
 log.write('Starting Configure Run at '+time.ctime(time.time()))
 log.write('Configure Options: '+' '.join(sys.argv[1:]))
