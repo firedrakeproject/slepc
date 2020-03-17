@@ -95,7 +95,7 @@ class Primme(package.Package):
         self.location = includes[0] if self.packageincludes else i
         return
 
-    self.log.Exit('Unable to link with PRIMME library in directories '+' '.join(dirs)+' with libraries and link flags '+' '.join(flags)+' [NOTE: make sure PRIMME version is 2.0 at least]')
+    self.log.Exit('Unable to link with PRIMME library in directories'+' '.join(dirs)+' with libraries and link flags '+' '.join(libs)+' [NOTE: make sure PRIMME version is 2.0 at least]')
 
 
   def DownloadAndInstall(self,conf,vars,slepc,petsc,archdir,prefixdir):

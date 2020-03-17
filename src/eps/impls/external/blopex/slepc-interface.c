@@ -14,8 +14,8 @@
 
 #include <slepc/private/bvimpl.h>
 #include <stdlib.h>
-#include <blopex/interpreter.h>
-#include <blopex/temp_multivector.h>
+#include <interpreter.h>
+#include <temp_multivector.h>
 #include "blopex.h"
 
 static void* mv_TempMultiVectorCreateFromBV(void* ii_,BlopexInt n,void* sample)

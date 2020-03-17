@@ -11,7 +11,7 @@
 #if !defined(SLEPC_BLOPEX_H)
 #define SLEPC_BLOPEX_H
 
-#include <blopex/lobpcg.h>
+#include <lobpcg.h>
 #include "petsc-interface.h"
 
 SLEPC_INTERN PetscInt slepc_blopex_useconstr;

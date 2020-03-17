@@ -15,6 +15,7 @@ class Blopex(package.Package):
   def __init__(self,argdb,log):
     package.Package.__init__(self,argdb,log)
     self.packagename  = 'blopex'
+    self.installable  = True
     self.downloadable = True
     self.gitcommit    = '6eba31f0e071f134a6e4be8eccfb8d9d7bdd5ac7'  #master dec-2019
     self.url          = 'https://github.com/lobpcg/blopex/archive/'+self.gitcommit+'.tar.gz'
@@ -22,6 +23,58 @@ class Blopex(package.Package):
     self.dirname      = 'blopex-'+self.gitcommit
     self.hasheaders   = True
     self.ProcessArgs(argdb)
+
+  def SampleCode(self,petsc):
+    if petsc.scalar == 'real':
+      function = 'lobpcg_solve_double'
+    else:
+      function = 'lobpcg_solve_complex'
+    code =  '#include <stdlib.h>\n'
+    code += '#include <lobpcg.h>\n'
+    code += 'int main() {\n'
+    code += '  lobpcg_BLASLAPACKFunctions fn;\n'
+    code += '  lobpcg_Tolerance           tol;\n'
+    code += '  ' + function + '(NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,fn,tol,0,0,NULL,NULL,NULL,0,NULL,NULL,0);\n'
+    code += '  return 0;\n}\n'
+    return code
+
+  def Check(self,conf,vars,petsc,archdir):
+    code = self.SampleCode(petsc)
+    if self.packagedir:
+      dirs = [os.path.join(self.packagedir,'blopex_abstract','lib')]
+      incdirs = [os.path.join(self.packagedir,'blopex_abstract','include')]
+    else:
+      dirs = self.GenerateGuesses('blopex',archdir)
+      incdirs = self.GenerateGuesses('blopex',archdir,'include')
+
+    libs = self.packagelibs
+    if not libs:
+      libs = ['-lBLOPEX']
+    includes = self.packageincludes
+    if not includes:
+      includes = ['.']
+
+    for (d,i) in zip(dirs,incdirs):
+      if d:
+        if petsc.buildsharedlib:
+          l = [petsc.slflag + d] + ['-L' + d] + libs
+        else:
+          l = ['-L' + d] + libs
+        f = ['-I' + i]
+      else:
+        l = libs
+        f = ['-I' + includes[0]]
+      result = self.Link([],[],l+f,code,' '.join(f),petsc.language)
+      if result:
+        conf.write('#define SLEPC_HAVE_BLOPEX 1\n')
+        vars.write('BLOPEX_LIB = ' + ' '.join(l) + '\n')
+        vars.write('BLOPEX_INCLUDE = ' + ' '.join(f) + '\n')
+        self.havepackage = True
+        self.packageflags = l+f
+        self.location = includes[0] if self.packageincludes else i
+        return
+
+    self.log.Exit('Unable to link with BLOPEX library in directories'+' '.join(dirs)+' with libraries and link flags '+' '.join(libs))
 
   def DownloadAndInstall(self,conf,vars,slepc,petsc,archdir,prefixdir):
     externdir = slepc.CreateDir(archdir,'externalpackages')
@@ -59,11 +112,9 @@ class Blopex(package.Package):
     f = '-I' + incdir + ' -I' + incblopexdir
 
     # Check build
-    if petsc.scalar == 'real':
-      functions = ['lobpcg_solve_double']
-    else:
-      functions = ['lobpcg_solve_complex']
-    if not self.Link(functions,[],[l]+[f]):
+    code = self.SampleCode(petsc)
+    result = self.Link([],[],l+f,code,' '.join(f),petsc.language)
+    if result:
       self.log.Exit('Unable to link with downloaded BLOPEX')
 
     # Write configuration files

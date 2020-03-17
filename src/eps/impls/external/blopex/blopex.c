@@ -13,10 +13,10 @@
 
 #include <slepc/private/epsimpl.h>                /*I "slepceps.h" I*/
 #include "blopex.h"
-#include <blopex/lobpcg.h>
-#include <blopex/interpreter.h>
-#include <blopex/multivector.h>
-#include <blopex/temp_multivector.h>
+#include <lobpcg.h>
+#include <interpreter.h>
+#include <multivector.h>
+#include <temp_multivector.h>
 
 PetscInt slepc_blopex_useconstr = -1;
 
