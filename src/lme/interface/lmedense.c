@@ -84,7 +84,7 @@ static PetscErrorCode LyapunovResidual(PetscScalar *H,PetscInt m,PetscInt ldh,Pe
 
 #if defined(SLEPC_HAVE_SLICOT)
 /*
-   LyapunovFact_SLICOT - implementation used when SLICOT is available
+   LyapunovChol_SLICOT - implementation used when SLICOT is available
 */
 static PetscErrorCode LyapunovChol_SLICOT(PetscScalar *H,PetscInt m,PetscInt ldh,PetscScalar *r,PetscScalar *L,PetscInt ldl,PetscReal *res)
 {
@@ -92,58 +92,51 @@ static PetscErrorCode LyapunovChol_SLICOT(PetscScalar *H,PetscInt m,PetscInt ldh
   PetscBLASInt   ilo=1,lwork,info,n,ld,ld1,ione=1;
   PetscInt       i,j;
   PetscReal      scal;
-  PetscScalar    *Q,*W,*z,*wr,*work,zero=0.0,done=1.0,alpha,beta;
-#if !defined(PETSC_USE_COMPLEX)
-  PetscScalar    *wi;
-#endif
+  PetscScalar    *Q,*W,*wr,*wi,*work;
 
   PetscFunctionBegin;
   ierr = PetscBLASIntCast(ldh,&ld);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(ldl,&ld1);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(m,&n);CHKERRQ(ierr);
-  ierr = PetscBLASIntCast(5*m,&lwork);CHKERRQ(ierr);
+  ierr = PetscBLASIntCast(6*m,&lwork);CHKERRQ(ierr);
 
-  /* compute the (real) Schur form of H */
-#if !defined(PETSC_USE_COMPLEX)
-  ierr = PetscCalloc6(m*m,&Q,m*m,&W,m,&z,m,&wr,m,&wi,5*m,&work);CHKERRQ(ierr);
-  PetscStackCallBLAS("LAPACKhseqr",LAPACKhseqr_("S","I",&n,&ilo,&n,H,&ld,wr,wi,Q,&n,work,&lwork,&info));
-#else
-  ierr = PetscCalloc5(m*m,&Q,m*m,&W,m,&z,m,&wr,5*m,&work);CHKERRQ(ierr);
-  PetscStackCallBLAS("LAPACKhseqr",LAPACKhseqr_("S","I",&n,&ilo,&n,H,&ld,wr,Q,&n,work,&lwork,&info));
-#endif
+  /* Tranpose W = H' */
+  ierr = PetscMalloc5(m*m,&W,m*m,&Q,m,&wr,m,&wi,lwork,&work);CHKERRQ(ierr);
+  for (j=0;j<m;j++) {
+    for (i=0;i<m;i++) W[i+j*m] = H[j+i*ldh];
+  }
+
+  /* compute the real Schur form of W */
+  PetscStackCallBLAS("LAPACKhseqr",LAPACKhseqr_("S","I",&n,&ilo,&n,W,&n,wr,wi,Q,&n,work,&lwork,&info));
   SlepcCheckLapackInfo("hseqr",info);
 #if defined(PETSC_USE_DEBUG)
   for (i=0;i<m;i++) if (PetscRealPart(wr[i])>0.0) SETERRQ(PETSC_COMM_SELF,1,"Positive eigenvalue found, the coefficient matrix is not stable");
 #endif
 
-  /* copy r into first column of W */
-  ierr = PetscArraycpy(W,r,m);CHKERRQ(ierr);
+  /* copy r into first row of L */
+  for (j=0;j<m;j++) L[j*ldl] = r[j];
 
   /* solve Lyapunov equation (Hammarling) */
-  PetscStackCallBLAS("SLICOTsb03od",SLICOTsb03od_("C","F","N",&n,&ione,H,&ld,Q,&n,W,&n,&scal,wr,wi,work,&lwork,&info));
+  PetscStackCallBLAS("SLICOTsb03od",SLICOTsb03od_("C","F","N",&n,&ione,W,&n,Q,&n,L,&ld1,&scal,wr,wi,work,&lwork,&info));
   if (info) SETERRQ1(PETSC_COMM_SELF,PETSC_ERR_LIB,"Error in SLICOT subroutine SB03OD %d",(int)info);
   if (scal!=1.0) SETERRQ1(PETSC_COMM_SELF,1,"Current implementation cannot handle scale factor %g",scal);
 
-  /* Tranpose L = W' */
+  /* Tranpose L */
   for (j=0;j<m;j++) {
-    for (i=j;i<m;i++) L[i+j*ldl] = W[j+i*m];
+    for (i=j+1;i<m;i++) {
+      L[i+j*ldl] = L[j+i*ldl];
+      L[j+i*ldl] = 0.0;
+    }
   }
 
-  /* resnorm = norm(H(m+1,:)*L*L'), use z = L*L(m,:)' */
-  PetscStackCallBLAS("BLASgemv",BLASgemv_("N",&n,&n,&done,L,&ld1,W+(m-1)*m,&ione,&zero,z,&ione));
+  /* resnorm = norm(H(m+1,:)*L*L'), use W(:,1) = L*L(m,:)' */
+  for (j=0;j<m;j++) W[j] = L[m-1+j*ldl];
+  PetscStackCallBLAS("BLAStrmv",BLAStrmv_("L","N","N",&n,L,&ld1,W,&ione));
   *res = 0.0;
-  beta = H[m+(m-1)*ldh];
-  for (j=0;j<m;j++) {
-    alpha = beta*z[j];
-    *res += alpha*alpha;
-  }
-  *res = PetscSqrtReal(*res);
+  for (j=0;j<m;j++) *res += W[j]*W[j];
+  *res = H[m+(m-1)*ldh]*PetscSqrtReal(*res);
 
-#if !defined(PETSC_USE_COMPLEX)
-  ierr = PetscFree6(Q,W,z,wr,wi,work);CHKERRQ(ierr);
-#else
-  ierr = PetscFree5(Q,W,z,wr,work);CHKERRQ(ierr);
-#endif
+  ierr = PetscFree5(W,Q,wr,wi,work);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -265,15 +258,15 @@ static PetscErrorCode LyapunovChol_LAPACK(PetscScalar *H,PetscInt m,PetscInt ldh
   ierr = PetscBLASIntCast(ldh,&ld);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(ldl,&ld1);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(m,&n);CHKERRQ(ierr);
-  lwork = n;
+  ierr = PetscBLASIntCast(6*m,&lwork);CHKERRQ(ierr);
   C = L;
 
   /* compute the (real) Schur form of H */
 #if !defined(PETSC_USE_COMPLEX)
-  ierr = PetscMalloc6(m*m,&Q,m*m,&W,m,&z,m,&wr,m,&wi,m,&work);CHKERRQ(ierr);
+  ierr = PetscMalloc6(m*m,&Q,m*m,&W,m,&z,m,&wr,m,&wi,lwork,&work);CHKERRQ(ierr);
   PetscStackCallBLAS("LAPACKhseqr",LAPACKhseqr_("S","I",&n,&ilo,&n,H,&ld,wr,wi,Q,&n,work,&lwork,&info));
 #else
-  ierr = PetscMalloc5(m*m,&Q,m*m,&W,m,&z,m,&wr,m,&work);CHKERRQ(ierr);
+  ierr = PetscMalloc5(m*m,&Q,m*m,&W,m,&z,m,&wr,lwork,&work);CHKERRQ(ierr);
   PetscStackCallBLAS("LAPACKhseqr",LAPACKhseqr_("S","I",&n,&ilo,&n,H,&ld,wr,Q,&n,work,&lwork,&info));
 #endif
   SlepcCheckLapackInfo("hseqr",info);
@@ -319,7 +312,7 @@ static PetscErrorCode LyapunovChol_LAPACK(PetscScalar *H,PetscInt m,PetscInt ldh
 #endif /* SLEPC_HAVE_SLICOT */
 
 /*@C
-   LMEDenseLyapunovFact - Computes the Cholesky factor of the solution of a
+   LMEDenseLyapunovChol - Computes the Cholesky factor of the solution of a
    dense Lyapunov equation with rank-1 right-hand side.
 
    Logically Collective on lme
