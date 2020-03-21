@@ -97,12 +97,12 @@ PetscErrorCode LMESolve_Krylov_Lyapunov_Vec(LME lme,Vec b,PetscBool fixed,PetscI
         n += m;
       } else {
         /* update Z = Z + V(:,1:m)*Q    with   Q=U(blk,:)*P(1:nrk,:)'  */
-        ierr = MatCreateDense(PETSC_COMM_SELF,m,*col+rank,m,*col+rank,NULL,&Q);CHKERRQ(ierr);
+        ierr = MatCreateSeqDense(PETSC_COMM_SELF,m,*col+rank,NULL,&Q);CHKERRQ(ierr);
         ierr = MatDenseGetArray(Q,&Qarray);CHKERRQ(ierr);
         ierr = PetscBLASIntCast(m,&m_);CHKERRQ(ierr);
         ierr = PetscBLASIntCast(n,&n_);CHKERRQ(ierr);
         ierr = PetscBLASIntCast(rank,&rk_);CHKERRQ(ierr);
-        PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&m_,&rk_,&n_,&sone,U+its*m,&n_,L,&n_,&zero,Qarray+(*col)*m,&m_));
+        PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&m_,&rk_,&rk_,&sone,U+its*m,&n_,L,&n_,&zero,Qarray+(*col)*m,&m_));
         ierr = MatDenseRestoreArray(Q,&Qarray);CHKERRQ(ierr);
         ierr = BVSetActiveColumns(*X1,*col,*col+rank);CHKERRQ(ierr);
         ierr = BVMult(*X1,1.0,1.0,lme->V,Q);CHKERRQ(ierr);
@@ -124,6 +124,7 @@ PetscErrorCode LMESolve_Krylov_Lyapunov_Vec(LME lme,Vec b,PetscBool fixed,PetscI
           lme->errest += errest;
           ierr = PetscMalloc1(n*n,&U);CHKERRQ(ierr);
           ierr = LMERankSVD(lme,n,L,U,&lrank);CHKERRQ(ierr);
+          ierr = PetscInfo1(lme,"Rank of the Cholesky factor = %D\n",lrank);CHKERRQ(ierr);
           nouter = its;
           its = -1;
           if (!fixed) {  /* X1 was not set by user, allocate it with rank columns */
