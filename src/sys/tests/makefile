@@ -8,13 +8,15 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-ALL: lib
-
-SOURCEH  = ../../include/slepc/private/svdimpl.h ../../include/slepcsvd.h
-DIRS     = interface impls tests tutorials f90-mod
-LOCDIR   = src/svd/
-MANSEC   = SVD
+CFLAGS     =
+FFLAGS     =
+CPPFLAGS   =
+FPPFLAGS   =
+LOCDIR     = src/sys/tests/
+EXAMPLESC  = test1.c test2.c
+EXAMPLESF  =
+MANSEC     = sys
+TESTS      = test1 test2
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common
-
 

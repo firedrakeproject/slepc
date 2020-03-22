@@ -11,7 +11,7 @@
 ALL: lib
 
 SOURCEH  = ../../../../include/slepc/private/rgimpl.h ../../../../include/slepcrg.h ../../../../include/slepcrgtypes.h
-DIRS     = interface impls examples f90-mod
+DIRS     = interface impls tests f90-mod
 LOCDIR   = src/sys/classes/rg/
 MANSEC   = RG
 

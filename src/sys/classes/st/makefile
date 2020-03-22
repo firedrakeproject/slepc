@@ -11,7 +11,7 @@
 ALL: lib
 
 SOURCEH  = ../../../../include/slepc/private/stimpl.h ../../../../include/slepcst.h
-DIRS     = interface impls examples f90-mod
+DIRS     = interface impls tests f90-mod
 LOCDIR   = src/sys/classes/st/
 MANSEC   = ST
 

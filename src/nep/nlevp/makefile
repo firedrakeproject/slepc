@@ -8,13 +8,15 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-ALL: lib
-
-SOURCEH  = ../../include/slepc/private/svdimpl.h ../../include/slepcsvd.h
-DIRS     = interface impls tests tutorials f90-mod
-LOCDIR   = src/svd/
-MANSEC   = SVD
+CFLAGS     =
+FFLAGS     =
+CPPFLAGS   =
+FPPFLAGS   =
+LOCDIR     = src/nep/nlevp/
+EXAMPLESC  = loaded_string.c gun.c
+EXAMPLESF  =
+MANSEC     = NEP
+TESTS      = loaded_string gun
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common
-
 

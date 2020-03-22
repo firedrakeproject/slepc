@@ -8,13 +8,17 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-ALL: lib
-
-SOURCEH  = ../../include/slepc/private/svdimpl.h ../../include/slepcsvd.h
-DIRS     = interface impls tests tutorials f90-mod
-LOCDIR   = src/svd/
-MANSEC   = SVD
+CFLAGS     =
+FFLAGS     =
+CPPFLAGS   =
+FPPFLAGS   =
+LOCDIR     = src/pep/nlevp/
+EXAMPLESC  = acoustic_wave_1d.c acoustic_wave_2d.c butterfly.c damped_beam.c \
+             pdde_stability.c planar_waveguide.c sleeper.c spring.c wiresaw.c loaded_string.c
+EXAMPLESF  =
+MANSEC     = PEP
+TESTS      = acoustic_wave_1d acoustic_wave_2d butterfly damped_beam \
+             pdde_stability planar_waveguide sleeper spring wiresaw loaded_string
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common
-
 

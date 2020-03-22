@@ -18,7 +18,7 @@ SOURCEH  =
 LIBBASE  = libslepcsys
 MANSEC   = sys
 LOCDIR   = src/sys/
-DIRS     = f90-mod vec mat classes examples
+DIRS     = f90-mod vec mat classes tests tutorials
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common
 
