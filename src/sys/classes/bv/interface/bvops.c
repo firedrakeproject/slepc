@@ -494,7 +494,7 @@ PetscErrorCode BVSetRandomCond(BV bv,PetscReal condn)
   PetscInt       k,i;
   PetscScalar    *eig,*d;
   DS             ds;
-  Mat            A,X,Y,Xt,M;
+  Mat            A,X,Xt,M,G;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(bv,BV_CLASSID,1);
@@ -525,19 +525,21 @@ PetscErrorCode BVSetRandomCond(BV bv,PetscReal condn)
   ierr = MatDenseGetArray(M,&d);CHKERRQ(ierr);
   for (i=0;i<bv->k;i++) d[i+i*bv->m] = (1.0/condn+(1.0-1.0/condn)/(bv->k-1)*i)/PetscSqrtScalar(eig[i]);
   ierr = MatDenseRestoreArray(M,&d);CHKERRQ(ierr);
-  /* M = X*M*X' */
+  /* G = X*M*X' */
   ierr = MatCreateSeqDense(PETSC_COMM_SELF,bv->k,bv->k,NULL,&Xt);CHKERRQ(ierr);
   ierr = DSGetMat(ds,DS_MAT_X,&X);CHKERRQ(ierr);
-  ierr = MatMatMult(X,M,MAT_INITIAL_MATRIX,PETSC_DEFAULT,&Y);CHKERRQ(ierr);
-  ierr = MatDestroy(&M);CHKERRQ(ierr);
   ierr = MatTranspose(X,MAT_REUSE_MATRIX,&Xt);CHKERRQ(ierr);
-  ierr = MatMatMult(Y,Xt,MAT_INITIAL_MATRIX,PETSC_DEFAULT,&M);CHKERRQ(ierr);
+  ierr = MatProductCreate(Xt,M,NULL,&G);CHKERRQ(ierr);
+  ierr = MatProductSetType(G,MATPRODUCT_PtAP);CHKERRQ(ierr);
+  ierr = MatProductSetFromOptions(G);CHKERRQ(ierr);
+  ierr = MatProductSymbolic(G);CHKERRQ(ierr);
+  ierr = MatProductNumeric(G);CHKERRQ(ierr);
   ierr = MatDestroy(&X);CHKERRQ(ierr);
-  /* B = B*M */
-  ierr = BVMultInPlace(bv,M,bv->l,bv->k);CHKERRQ(ierr);
-  ierr = MatDestroy(&Y);CHKERRQ(ierr);
   ierr = MatDestroy(&Xt);CHKERRQ(ierr);
   ierr = MatDestroy(&M);CHKERRQ(ierr);
+  /* B = B*G */
+  ierr = BVMultInPlace(bv,G,bv->l,bv->k);CHKERRQ(ierr);
+  ierr = MatDestroy(&G);CHKERRQ(ierr);
   ierr = PetscFree(eig);CHKERRQ(ierr);
   ierr = DSDestroy(&ds);CHKERRQ(ierr);
   ierr = PetscLogEventEnd(BV_SetRandom,bv,0,0,0);CHKERRQ(ierr);

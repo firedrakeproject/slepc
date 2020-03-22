@@ -11,7 +11,7 @@
 ALL: lib
 
 SOURCEH  = ../../include/slepc/private/svdimpl.h ../../include/slepcsvd.h
-DIRS     = interface impls examples f90-mod
+DIRS     = interface impls tests tutorials f90-mod
 LOCDIR   = src/svd/
 MANSEC   = SVD
 

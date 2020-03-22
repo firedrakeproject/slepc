@@ -96,8 +96,6 @@ struct _p_BV {
   PetscRandom        rand;         /* random number generator */
   Mat                Acreate;      /* matrix given at BVCreateFromMat() */
   Mat                Aget;         /* matrix returned for BVGetMat() */
-  Mat                Amult;        /* matrix argument of last call to BVMatMult() */
-  PetscObjectState   Amultstate;   /* state of Amult */
   PetscBool          cuda;         /* true if GPU must be used in SVEC */
   PetscScalar        *work;
   PetscInt           lwork;

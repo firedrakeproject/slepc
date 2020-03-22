@@ -16,7 +16,7 @@ SOURCEC  = veccomp.c pool.c vecutil.c
 SOURCEF  =
 SOURCEH  = veccomp0.h
 LIBBASE  = libslepcsys
-DIRS     = examples
+DIRS     = tests
 MANSEC   = sys
 LOCDIR   = src/sys/vec/
 

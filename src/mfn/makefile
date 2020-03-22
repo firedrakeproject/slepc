@@ -11,7 +11,7 @@
 ALL: lib
 
 SOURCEH  = ../../include/slepc/private/mfnimpl.h ../../include/slepcmfn.h
-DIRS     = interface impls examples f90-mod
+DIRS     = interface impls tests tutorials f90-mod
 LOCDIR   = src/mfn/
 MANSEC   = MFN
 

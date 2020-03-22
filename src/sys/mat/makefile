@@ -16,7 +16,7 @@ SOURCEC  = matutil.c
 SOURCEF  =
 SOURCEH  =
 LIBBASE  = libslepcsys
-DIRS     = examples
+DIRS     = tests
 MANSEC   = sys
 LOCDIR   = src/sys/mat/
 

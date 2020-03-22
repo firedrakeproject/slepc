@@ -34,6 +34,7 @@ variables:
       - schedules
 #     Set with CI/CD Pipelines - Run Pipeline
       - web
+      - merge_requests
   dependencies: []
 
 #
@@ -51,15 +52,11 @@ variables:
     - date
     - echo nproc=$(nproc)
     - cat /proc/cpuinfo
-    - export CCACHE_COMPILERCHECK=content
-    - export CCACHE_DIR=$(pwd)/.ccache
-    - ccache --show-stats
-    - ccache --zero-stats
     - echo PETSC_CONFIG_OPTS=$(PETSC_CONFIG_OPTS)
   script:
     - export SLEPC_DIR=$PWD
     - cd ..
-    - if [ ! -d petsc ]; then git clone https://gitlab.com/petsc/petsc.git; fi
+    - if [ ! -d petsc ]; then git clone --depth 1 https://gitlab.com/petsc/petsc.git; fi
     - cd petsc
     - if [ $(awk '/define SLEPC_VERSION_RELEASE/{print $3}' $SLEPC_DIR/include/slepcversion.h) == 1 ]; then git checkout maint; else git checkout master; fi
     - git pull
@@ -74,7 +71,6 @@ variables:
     - make CFLAGS=-Werror CXXFLAGS=-Werror FFLAGS=-Werror allgtests-tap search="${TEST_SEARCH}" TIMEOUT=${TIMEOUT}
   after_script:
     - date
-    - CCACHE_DIR=$(pwd)/.ccache ccache --show-stats
   artifacts:
     reports:
       junit: arch-*/tests/testresults.xml
@@ -82,14 +78,11 @@ variables:
     when: always
     paths:
     - arch-*/lib/slepc/conf/*.log
+    - arch-*/lib/pkgconfig/SLEPc.pc
     - arch-*/tests/testresults.xml
     - arch-*/tests/test_*_tap.log
     - arch-*/tests/test_*_err.log
     expire_in: 4 days
-  cache:
-    paths:
-      - .ccache/
-    key: "${CI_JOB_NAME}"
 
 #
 # The following tests run on the cloud as part of stage-1.
@@ -125,14 +118,10 @@ checksource:
     - docker
   before_script:
     - date
-    - export CCACHE_COMPILERCHECK=content
-    - export CCACHE_DIR=$(pwd)/.ccache
-    - ccache --show-stats
-    - ccache --zero-stats
   script:
     - export SLEPC_DIR=$PWD
     - cd ..
-    - if [ ! -d petsc ]; then git clone https://gitlab.com/petsc/petsc.git; fi
+    - if [ ! -d petsc ]; then git clone --depth 1 https://gitlab.com/petsc/petsc.git; fi
     - cd petsc
     - if [ $(awk '/define SLEPC_VERSION_RELEASE/{print $3}' $SLEPC_DIR/include/slepcversion.h) == 1 ]; then git checkout maint; else git checkout master; fi
     - git pull
@@ -148,11 +137,6 @@ checksource:
     - make check_ascii SHELL=bash
   after_script:
     - date
-    - CCACHE_DIR=$(pwd)/.ccache ccache --show-stats
-  cache:
-    paths:
-      - .ccache/
-    key: "${CI_JOB_NAME}"
 
 #
 # This provides the basic order of operations and options template for stage-2,3 tests.
@@ -167,7 +151,7 @@ checksource:
     - printf "SLEPC_CONFIG_OPTS=${SLEPC_CONFIG_OPTS}\n"
     - export SLEPC_DIR=$PWD
     - cd ..
-    - if [ ! -d petsc ]; then git clone https://gitlab.com/petsc/petsc.git; fi
+    - if [ ! -d petsc ]; then git clone --depth 1 https://gitlab.com/petsc/petsc.git; fi
     - cd petsc
     - if [ $(awk '/define SLEPC_VERSION_RELEASE/{print $3}' $SLEPC_DIR/include/slepcversion.h) == 1 ]; then git checkout maint; else git checkout master; fi
     - git pull
@@ -188,6 +172,7 @@ checksource:
     when: always
     paths:
     - arch-*/lib/slepc/conf/*.log
+    - arch-*/lib/pkgconfig/SLEPc.pc
     - arch-*/tests/testresults.xml
     - arch-*/tests/test_*_tap.log
     - arch-*/tests/test_*_err.log
@@ -350,6 +335,7 @@ gnu-c-cuda:
     - linux-ubuntu
   variables:
     PETSC_CONFIG_OPTS: --with-cuda --with-openmp --download-mumps --download-scalapack --download-metis --download-parmetis
+    PETSC_OPTIONS: -check_pointer_intensity 0 -error_output_stdout -nox -nox_warning -malloc_dump -cuda_initialize 0 -use_gpu_aware_mpi 0
   allow_failure: true
 
 clang-c:
@@ -475,6 +461,7 @@ gnu-c-cuda-complex:
     - linux-ubuntu
   variables:
     PETSC_CONFIG_OPTS: --with-scalar-type=complex --with-cuda --with-openmp
+    PETSC_OPTIONS: -check_pointer_intensity 0 -error_output_stdout -nox -nox_warning -malloc_dump -cuda_initialize 0 -use_gpu_aware_mpi 0
   allow_failure: true
 
 gnu-c-cuda-single:
@@ -485,6 +472,7 @@ gnu-c-cuda-single:
     - linux-ubuntu
   variables:
     PETSC_CONFIG_OPTS: --with-precision=single --with-single-library=0 --with-visibility=1 --with-cuda --with-openmp
+    PETSC_OPTIONS: -check_pointer_intensity 0 -error_output_stdout -nox -nox_warning -malloc_dump -cuda_initialize 0 -use_gpu_aware_mpi 0
   allow_failure: true
 
 intel-c-complex-int64-mkl:

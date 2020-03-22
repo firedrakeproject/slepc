@@ -394,6 +394,6 @@ help-test:
 	-@echo "    make -f ${makefile} print VAR=TESTTARGETS search='sys%'"
 	-@echo
 	-@echo "  To build an executable, give full path to location:"
-	-@echo '    make -f ${makefile} $${PETSC_ARCH}/tests/sys/examples/tests/ex1'
+	-@echo '    make -f ${makefile} $${PETSC_ARCH}/tests/sys/tests/ex1'
 	-@echo "  or make the test with NO_RM=1"
 	-@echo
