@@ -54,6 +54,7 @@ PetscErrorCode PEPInitializePackage(void)
 {
   char           logList[256];
   PetscBool      opt,pkg;
+  PetscClassId   classids[1];
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
@@ -67,12 +68,9 @@ PetscErrorCode PEPInitializePackage(void)
   ierr = PetscLogEventRegister("PEPSetUp",PEP_CLASSID,&PEP_SetUp);CHKERRQ(ierr);
   ierr = PetscLogEventRegister("PEPSolve",PEP_CLASSID,&PEP_Solve);CHKERRQ(ierr);
   ierr = PetscLogEventRegister("PEPRefine",PEP_CLASSID,&PEP_Refine);CHKERRQ(ierr);
-  /* Process info exclusions */
-  ierr = PetscOptionsGetString(NULL,NULL,"-info_exclude",logList,sizeof(logList),&opt);CHKERRQ(ierr);
-  if (opt) {
-    ierr = PetscStrInList("pep",logList,',',&pkg);CHKERRQ(ierr);
-    if (pkg) { ierr = PetscInfoDeactivateClass(PEP_CLASSID);CHKERRQ(ierr); }
-  }
+  /* Process Info */
+  classids[0] = PEP_CLASSID;
+  ierr = PetscInfoProcessClass("pep",1,&classids[0]);CHKERRQ(ierr);
   /* Process summary exclusions */
   ierr = PetscOptionsGetString(NULL,NULL,"-log_exclude",logList,sizeof(logList),&opt);CHKERRQ(ierr);
   if (opt) {

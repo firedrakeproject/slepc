@@ -50,6 +50,7 @@ PetscErrorCode NEPInitializePackage(void)
 {
   char           logList[256];
   PetscBool      opt,pkg;
+  PetscClassId   classids[1];
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
@@ -66,12 +67,9 @@ PetscErrorCode NEPInitializePackage(void)
   ierr = PetscLogEventRegister("NEPFunctionEval",NEP_CLASSID,&NEP_FunctionEval);CHKERRQ(ierr);
   ierr = PetscLogEventRegister("NEPJacobianEval",NEP_CLASSID,&NEP_JacobianEval);CHKERRQ(ierr);
   ierr = PetscLogEventRegister("NEPResolvent",NEP_CLASSID,&NEP_Resolvent);CHKERRQ(ierr);
-  /* Process info exclusions */
-  ierr = PetscOptionsGetString(NULL,NULL,"-info_exclude",logList,sizeof(logList),&opt);CHKERRQ(ierr);
-  if (opt) {
-    ierr = PetscStrInList("nep",logList,',',&pkg);CHKERRQ(ierr);
-    if (pkg) { ierr = PetscInfoDeactivateClass(NEP_CLASSID);CHKERRQ(ierr); }
-  }
+  /* Process Info */
+  classids[0] = NEP_CLASSID;
+  ierr = PetscInfoProcessClass("nep",1,&classids[0]);CHKERRQ(ierr);
   /* Process summary exclusions */
   ierr = PetscOptionsGetString(NULL,NULL,"-log_exclude",logList,sizeof(logList),&opt);CHKERRQ(ierr);
   if (opt) {

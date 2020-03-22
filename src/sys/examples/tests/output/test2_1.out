@@ -57,14 +57,13 @@ Options for all PETSc programs:
  -get_total_flops: total flops over all processors
  -log_view [:filename:[format]]: logging objects and events
  -log_trace [filename]: prints trace of all PETSc calls
- -info <optional filename>: print informative messages about the calculations
+ -info [filename][:[[~]list,of,classnames][:[[~]'self']]]: print informative messages
  -v: prints PETSc version number and release date
  -options_file <file>: reads options from file
  -petsc_sleep n: sleeps n seconds before running program
 -----------------------------------------------
 ------Additional PETSc component options--------
  -log_exclude: <vec,mat,pc,ksp,snes,tao,ts>
- -info_exclude: <null,vec,mat,pc,ksp,snes,tao,ts>
 -----------------------------------------------
 Options for handling options -------------------------------------------------
   -options_monitor <now stdout : formerly stdout>: Monitor options database (PetscOptionsMonitorSet)

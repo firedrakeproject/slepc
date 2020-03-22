@@ -49,6 +49,7 @@ PetscErrorCode SVDInitializePackage(void)
 {
   char           logList[256];
   PetscBool      opt,pkg;
+  PetscClassId   classids[1];
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
@@ -61,12 +62,9 @@ PetscErrorCode SVDInitializePackage(void)
   /* Register Events */
   ierr = PetscLogEventRegister("SVDSetUp",SVD_CLASSID,&SVD_SetUp);CHKERRQ(ierr);
   ierr = PetscLogEventRegister("SVDSolve",SVD_CLASSID,&SVD_Solve);CHKERRQ(ierr);
-  /* Process info exclusions */
-  ierr = PetscOptionsGetString(NULL,NULL,"-info_exclude",logList,sizeof(logList),&opt);CHKERRQ(ierr);
-  if (opt) {
-    ierr = PetscStrInList("svd",logList,',',&pkg);CHKERRQ(ierr);
-    if (pkg) { ierr = PetscInfoDeactivateClass(SVD_CLASSID);CHKERRQ(ierr); }
-  }
+  /* Process Info */
+  classids[0] = SVD_CLASSID;
+  ierr = PetscInfoProcessClass("svd",1,&classids[0]);CHKERRQ(ierr);
   /* Process summary exclusions */
   ierr = PetscOptionsGetString(NULL,NULL,"-log_exclude",logList,sizeof(logList),&opt);CHKERRQ(ierr);
   if (opt) {

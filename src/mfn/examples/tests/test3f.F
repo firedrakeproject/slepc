@@ -171,6 +171,6 @@
 !
 !   test:
 !      suffix: 1
-!      args: -info_exclude mfn -log_exclude mfn
+!      args: -log_exclude mfn
 !
 !TEST*/

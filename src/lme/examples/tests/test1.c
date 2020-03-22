@@ -151,7 +151,7 @@ int main(int argc,char **argv)
 
    test:
       suffix: 1
-      args: -lme_monitor_cancel -lme_converged_reason -lme_view -view_matrices -info_exclude lme,bv -log_exclude lme,bv
+      args: -lme_monitor_cancel -lme_converged_reason -lme_view -view_matrices -log_exclude lme,bv
       requires: double
       filter: sed -e "s/4.0[0-9]*e-10/4.03e-10/"
 

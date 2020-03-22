@@ -48,6 +48,7 @@ PetscErrorCode LMEInitializePackage(void)
 {
   char           logList[256];
   PetscBool      opt,pkg;
+  PetscClassId   classids[1];
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
@@ -61,12 +62,9 @@ PetscErrorCode LMEInitializePackage(void)
   ierr = PetscLogEventRegister("LMESetUp",LME_CLASSID,&LME_SetUp);CHKERRQ(ierr);
   ierr = PetscLogEventRegister("LMESolve",LME_CLASSID,&LME_Solve);CHKERRQ(ierr);
   ierr = PetscLogEventRegister("LMEComputeError",LME_CLASSID,&LME_ComputeError);CHKERRQ(ierr);
-  /* Process info exclusions */
-  ierr = PetscOptionsGetString(NULL,NULL,"-info_exclude",logList,sizeof(logList),&opt);CHKERRQ(ierr);
-  if (opt) {
-    ierr = PetscStrInList("lme",logList,',',&pkg);CHKERRQ(ierr);
-    if (pkg) { ierr = PetscInfoDeactivateClass(LME_CLASSID);CHKERRQ(ierr); }
-  }
+  /* Process Info */
+  classids[0] = LME_CLASSID;
+  ierr = PetscInfoProcessClass("lme",1,&classids[0]);CHKERRQ(ierr);
   /* Process summary exclusions */
   ierr = PetscOptionsGetString(NULL,NULL,"-log_exclude",logList,sizeof(logList),&opt);CHKERRQ(ierr);
   if (opt) {

@@ -56,6 +56,7 @@ PetscErrorCode BVInitializePackage(void)
 {
   char           logList[256];
   PetscBool      opt,pkg;
+  PetscClassId   classids[1];
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
@@ -84,12 +85,9 @@ PetscErrorCode BVInitializePackage(void)
   ierr = PetscLogEventRegister("BVMatProject",BV_CLASSID,&BV_MatProject);CHKERRQ(ierr);
   /* MPI reduction operation used in BVOrthogonalize */
   ierr = MPI_Op_create(SlepcGivensPacked,PETSC_TRUE,&MPIU_TSQR);CHKERRQ(ierr);
-  /* Process info exclusions */
-  ierr = PetscOptionsGetString(NULL,NULL,"-info_exclude",logList,sizeof(logList),&opt);CHKERRQ(ierr);
-  if (opt) {
-    ierr = PetscStrInList("bv",logList,',',&pkg);CHKERRQ(ierr);
-    if (pkg) { ierr = PetscInfoDeactivateClass(BV_CLASSID);CHKERRQ(ierr); }
-  }
+  /* Process Info */
+  classids[0] = BV_CLASSID;
+  ierr = PetscInfoProcessClass("bv",1,&classids[0]);CHKERRQ(ierr);
   /* Process summary exclusions */
   ierr = PetscOptionsGetString(NULL,NULL,"-log_exclude",logList,sizeof(logList),&opt);CHKERRQ(ierr);
   if (opt) {

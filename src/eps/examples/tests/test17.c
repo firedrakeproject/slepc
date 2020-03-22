@@ -225,13 +225,13 @@ int main(int argc,char **argv)
    test:
       suffix: 1
       nsize: 2
-      args: -showinertia 0 -info_exclude eps,st,rg,bv,ds -log_exclude eps,st,rg,bv,ds
+      args: -showinertia 0 -log_exclude eps,st,rg,bv,ds
       requires: !single
 
    test:
       suffix: 2
       nsize: 1
-      args: -showinertia 0 -info_exclude eps,st,rg,bv,ds -log_exclude eps,st,rg,bv,ds
+      args: -showinertia 0 -log_exclude eps,st,rg,bv,ds
       requires: !single
 
 TEST*/
