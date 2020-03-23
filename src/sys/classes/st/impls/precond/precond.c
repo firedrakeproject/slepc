@@ -183,6 +183,7 @@ static PetscErrorCode STPrecondSetMatForPC_Precond(ST st,Mat mat)
   ctx->mat     = mat;
   ctx->usermat = mat? PETSC_TRUE: PETSC_FALSE;
   st->state    = ST_STATE_INITIAL;
+  st->opready  = PETSC_FALSE;
   PetscFunctionReturn(0);
 }
 
