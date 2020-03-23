@@ -31,6 +31,7 @@ PetscErrorCode STMatShellShift(Mat A,PetscScalar alpha)
   PetscFunctionBegin;
   ierr = MatShellGetContext(A,(void**)&ctx);CHKERRQ(ierr);
   ctx->alpha = alpha;
+  ierr = PetscObjectStateIncrease((PetscObject)A);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
