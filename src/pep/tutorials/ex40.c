@@ -141,7 +141,7 @@ int main(int argc,char **argv)
 #endif
   ierr = PCFactorSetMatSolverType(pc,MATSOLVERMUMPS);CHKERRQ(ierr);
   /*
-     Add several MUMPS options (currently there is no better way of setting this in program):
+     Add several MUMPS options (see ex43.c for a better way of setting them in program):
      '-mat_mumps_icntl_13 1': turn off ScaLAPACK for matrix inertia
   */
   ierr = PetscOptionsInsertString(NULL,"-mat_mumps_icntl_13 1 -mat_mumps_icntl_24 1 -mat_mumps_cntl_3 1e-12");CHKERRQ(ierr);

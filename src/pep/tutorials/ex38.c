@@ -137,7 +137,7 @@ int main(int argc,char **argv)
   ierr = PEPSTOARSetDetectZeros(pep,PETSC_TRUE);CHKERRQ(ierr);  /* enforce zero detection */
   ierr = PCFactorSetMatSolverType(pc,MATSOLVERMUMPS);CHKERRQ(ierr);
   /*
-     Add several MUMPS options (currently there is no better way of setting this in program):
+     Add several MUMPS options (see ex43.c for a better way of setting them in program):
      '-mat_mumps_icntl_13 1': turn off ScaLAPACK for matrix inertia
      '-mat_mumps_icntl_24 1': detect null pivots in factorization (for the case that a shift is equal to an eigenvalue)
      '-mat_mumps_cntl_3 <tol>': a tolerance used for null pivot detection (must be larger than machine epsilon)
