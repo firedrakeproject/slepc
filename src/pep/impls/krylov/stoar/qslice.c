@@ -371,7 +371,7 @@ PetscErrorCode PEPCheckDefiniteQEP(PEP pep,PetscReal *xi,PetscReal *mu,PetscInt 
   PetscErrorCode ierr;
   PetscRandom    rand;
   Vec            u,w;
-  PetscReal      d,s=0.0,sp,mut=0.0,omg=0.0,omgp;
+  PetscReal      d=0.0,s=0.0,sp,mut=0.0,omg=0.0,omgp;
   PetscInt       k,its=10,hyp=0,check=0,nconv,inertia,n;
   Mat            M=NULL;
   MatStructure   str;
