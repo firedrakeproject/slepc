@@ -11,7 +11,7 @@
 ALL: lib
 
 SOURCEH  = ../../include/slepc/private/pepimpl.h ../../include/slepcpep.h
-DIRS     = interface impls nlevp tests tutorials f90-mod
+DIRS     = interface impls tests tutorials f90-mod
 LOCDIR   = src/pep/
 MANSEC   = PEP
 

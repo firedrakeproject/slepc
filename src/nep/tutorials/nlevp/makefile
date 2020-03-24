@@ -12,13 +12,11 @@ CFLAGS     =
 FFLAGS     =
 CPPFLAGS   =
 FPPFLAGS   =
-LOCDIR     = src/pep/nlevp/
-EXAMPLESC  = acoustic_wave_1d.c acoustic_wave_2d.c butterfly.c damped_beam.c \
-             pdde_stability.c planar_waveguide.c sleeper.c spring.c wiresaw.c loaded_string.c
+LOCDIR     = src/nep/tutorials/nlevp/
+EXAMPLESC  = loaded_string.c gun.c
 EXAMPLESF  =
-MANSEC     = PEP
-TESTS      = acoustic_wave_1d acoustic_wave_2d butterfly damped_beam \
-             pdde_stability planar_waveguide sleeper spring wiresaw loaded_string
+MANSEC     = NEP
+TESTS      = loaded_string gun
 
 include ${SLEPC_DIR}/lib/slepc/conf/slepc_common
 
