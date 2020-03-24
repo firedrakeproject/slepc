@@ -85,9 +85,10 @@ static PetscErrorCode STFilterSetInterval_Filter(ST st,PetscReal inta,PetscReal 
   PetscFunctionBegin;
   if (inta>intb) SETERRQ(PetscObjectComm((PetscObject)st),PETSC_ERR_ARG_WRONG,"Badly defined interval, must be inta<intb");
   if (ctx->inta != inta || ctx->intb != intb) {
-    ctx->inta = inta;
-    ctx->intb = intb;
-    st->state = ST_STATE_INITIAL;
+    ctx->inta   = inta;
+    ctx->intb   = intb;
+    st->state   = ST_STATE_INITIAL;
+    st->opready = PETSC_FALSE;
   }
   PetscFunctionReturn(0);
 }
@@ -174,9 +175,10 @@ static PetscErrorCode STFilterSetRange_Filter(ST st,PetscReal left,PetscReal rig
   PetscFunctionBegin;
   if (left>right) SETERRQ(PetscObjectComm((PetscObject)st),PETSC_ERR_ARG_WRONG,"Badly defined interval, must be left<right");
   if (ctx->left != left || ctx->right != right) {
-    ctx->left  = left;
-    ctx->right = right;
-    st->state  = ST_STATE_INITIAL;
+    ctx->left   = left;
+    ctx->right  = right;
+    st->state   = ST_STATE_INITIAL;
+    st->opready = PETSC_FALSE;
   }
   PetscFunctionReturn(0);
 }
@@ -258,12 +260,14 @@ static PetscErrorCode STFilterSetDegree_Filter(ST st,PetscInt deg)
   PetscFunctionBegin;
   if (deg == PETSC_DEFAULT || deg == PETSC_DECIDE) {
     ctx->polyDegree = 0;
-    st->state = ST_STATE_INITIAL;
+    st->state       = ST_STATE_INITIAL;
+    st->opready     = PETSC_FALSE;
   } else {
     if (deg<=0) SETERRQ(PetscObjectComm((PetscObject)st),PETSC_ERR_ARG_OUTOFRANGE,"Illegal value of degree. Must be > 0");
     if (ctx->polyDegree != deg) {
       ctx->polyDegree = deg;
-      st->state = ST_STATE_INITIAL;
+      st->state       = ST_STATE_INITIAL;
+      st->opready     = PETSC_FALSE;
     }
   }
   PetscFunctionReturn(0);

@@ -118,7 +118,8 @@ PetscErrorCode STReset(ST st)
   ierr = VecDestroy(&st->wb);CHKERRQ(ierr);
   ierr = VecDestroy(&st->wht);CHKERRQ(ierr);
   ierr = VecDestroy(&st->D);CHKERRQ(ierr);
-  st->state = ST_STATE_INITIAL;
+  st->state   = ST_STATE_INITIAL;
+  st->opready = PETSC_FALSE;
   PetscFunctionReturn(0);
 }
 
@@ -504,7 +505,8 @@ PetscErrorCode STSetDefaultShift(ST st,PetscScalar defaultshift)
   PetscValidLogicalCollectiveScalar(st,defaultshift,2);
   if (st->defsigma != defaultshift) {
     st->defsigma = defaultshift;
-    st->state = ST_STATE_INITIAL;
+    st->state    = ST_STATE_INITIAL;
+    st->opready  = PETSC_FALSE;
   }
   PetscFunctionReturn(0);
 }
@@ -570,7 +572,7 @@ PetscErrorCode STSetBalanceMatrix(ST st,Vec D)
   }
   ierr = VecDestroy(&st->D);CHKERRQ(ierr);
   st->D = D;
-  st->state = ST_STATE_INITIAL;
+  st->state   = ST_STATE_INITIAL;
   st->opready = PETSC_FALSE;
   PetscFunctionReturn(0);
 }

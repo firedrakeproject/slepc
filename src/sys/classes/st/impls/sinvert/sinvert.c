@@ -50,7 +50,8 @@ PetscErrorCode STPostSolve_Sinvert(ST st)
       ierr = MatShift(st->A[0],st->sigma);CHKERRQ(ierr);
     }
     st->Astate[0] = ((PetscObject)st->A[0])->state;
-    st->state = ST_STATE_INITIAL;
+    st->state   = ST_STATE_INITIAL;
+    st->opready = PETSC_FALSE;
   }
   PetscFunctionReturn(0);
 }
