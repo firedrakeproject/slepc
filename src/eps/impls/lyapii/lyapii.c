@@ -400,11 +400,12 @@ PetscErrorCode EPSSolve_LyapII(EPS eps)
       ierr = BVGetColumn(V,1,&w);CHKERRQ(ierr);
     } else w = NULL;
     eps->eigr[eps->nconv] = eigr[0]; eps->eigi[eps->nconv] = eigi[0];
-    ierr = EPSComputeResidualNorm_Private(eps,PETSC_FALSE,er,ei,v,w,eps->work,&eps->errest[eps->nconv]);
+    ierr = EPSComputeResidualNorm_Private(eps,PETSC_FALSE,er,ei,v,w,eps->work,&norm);
     ierr = BVRestoreColumn(V,0,&v);CHKERRQ(ierr);
     if (w) {
       ierr = BVRestoreColumn(V,1,&w);CHKERRQ(ierr);
     }
+    ierr = (*eps->converged)(eps,er,ei,norm,&eps->errest[eps->nconv],eps->convergedctx);CHKERRQ(ierr);
     k = 0;
     if (eps->errest[eps->nconv]<eps->tol) {
       k++;
