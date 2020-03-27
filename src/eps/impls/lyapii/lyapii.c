@@ -46,7 +46,6 @@ PetscErrorCode EPSSetUp_LyapII(EPS eps)
 {
   PetscErrorCode ierr;
   EPS_LYAPII     *ctx = (EPS_LYAPII*)eps->data;
-  SlepcSC        sc;
   PetscBool      istrivial,issinv;
 
   PetscFunctionBegin;
@@ -81,11 +80,6 @@ PetscErrorCode EPSSetUp_LyapII(EPS eps)
 
   ierr = EPSAllocateSolution(eps,0);CHKERRQ(ierr);
   ierr = EPSSetWorkVecs(eps,3);CHKERRQ(ierr);
-  ierr = EPSGetDS(eps,&eps->ds);CHKERRQ(ierr);
-  ierr = DSSetType(eps->ds,DSGNHEP);CHKERRQ(ierr);
-  ierr = DSAllocate(eps->ds,ctx->rkc*ctx->rkc);CHKERRQ(ierr);
-  ierr = DSGetSlepcSC(eps->ds,&sc);CHKERRQ(ierr);
-  sc->comparison = SlepcCompareSmallestMagnitude;
   PetscFunctionReturn(0);
 }
 
@@ -208,26 +202,71 @@ static PetscErrorCode LyapIIBuildRHS(Mat S,PetscInt rk,Mat U,BV V,Vec *work)
   PetscFunctionReturn(0);
 }
 
+/*
+   LyapIIBuildEigenMat: compute matrices A = kron(I,S)+kron(S,I), B = -2*kron(S,S)
+   where S is a sequential square dense matrix of order n
+ */
+static PetscErrorCode LyapIIBuildEigenMat(Mat S,Mat *A,Mat *B)
+{
+  PetscErrorCode ierr;
+  PetscScalar    theta,*aa,*bb,*ss;
+  PetscInt       i,j,f,c,n,m,off,ld;
+  PetscBool      create=PETSC_FALSE;
+
+  PetscFunctionBegin;
+  ierr = MatGetSize(S,&n,NULL);CHKERRQ(ierr);
+  if (!*A) create=PETSC_TRUE;
+  else {
+    ierr = MatGetSize(*A,&m,NULL);CHKERRQ(ierr);
+    if (m!=n*n) create=PETSC_TRUE;
+  }
+  if (create) {
+    ierr = MatDestroy(A);CHKERRQ(ierr);
+    ierr = MatDestroy(B);CHKERRQ(ierr);
+    ierr = MatCreateSeqDense(PETSC_COMM_SELF,n*n,n*n,NULL,A);CHKERRQ(ierr);
+    ierr = MatCreateSeqDense(PETSC_COMM_SELF,n*n,n*n,NULL,B);CHKERRQ(ierr);
+  } else {
+    ierr = MatZeroEntries(*A);CHKERRQ(ierr);
+  }
+  ierr = MatDenseGetArray(*A,&aa);CHKERRQ(ierr);
+  ierr = MatDenseGetArray(*B,&bb);CHKERRQ(ierr);
+  ierr = MatDenseGetArray(S,&ss);CHKERRQ(ierr);
+  ld = n*n;
+  for (f=0;f<n;f++) {
+    off = f*n+f*n*ld;
+    for (i=0;i<n;i++) for (j=0;j<n;j++) aa[off+i+j*ld] = ss[i+j*n];
+    for (c=0;c<n;c++) {
+      off = f*n+c*n*ld;
+      theta = ss[f+c*n];
+      for (i=0;i<n;i++) aa[off+i+i*ld] += theta;
+      for (i=0;i<n;i++) for (j=0;j<n;j++) bb[off+i+j*ld] = -2*theta*ss[i+j*n];
+    }
+  }
+  ierr = MatDenseRestoreArray(*A,&aa);CHKERRQ(ierr);
+  ierr = MatDenseRestoreArray(*B,&bb);CHKERRQ(ierr);
+  ierr = MatDenseRestoreArray(S,&ss);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
 PetscErrorCode EPSSolve_LyapII(EPS eps)
 {
   PetscErrorCode     ierr;
   EPS_LYAPII         *ctx = (EPS_LYAPII*)eps->data;
-  PetscInt           off,f,c,i,j,ldds,ldS,rk,nloc,mloc,nv,idx,k;
+  PetscInt           i,ldds,rk,nloc,mloc,nv,idx,k;
   Vec                v,w,z=eps->work[0];
-  Mat                S,C,Ux[2],Y,Y1,R,U,W,X,A,B;
+  Mat                S,C,Ux[2],Y,Y1,R,U,W,X,A=NULL,B=NULL;
   BV                 V;
   ST                 st;
   BVOrthogType       type;
   BVOrthogRefineType refine;
-  PetscScalar        theta,*eigr,*eigi,*array,er,ei,*uu,*pV,*s,*xx,*aa,*bb,*pS,pM[4],vec[4];
+  PetscScalar        *eigr,*eigi,*array,er,ei,*uu,*pV,*s,*xx,*aa,pM[4],vec[4];
   PetscReal          eta;
   EPS                epsrr;
   PetscReal          norm;
   EPS_LYAPII_MSHELL  *matctx;
 
   PetscFunctionBegin;
-  ierr = DSGetLeadingDimension(eps->ds,&ldds);CHKERRQ(ierr);
-  ierr = DSGetLeadingDimension(ctx->ds,&ldS);CHKERRQ(ierr);
+  ierr = DSGetLeadingDimension(ctx->ds,&ldds);CHKERRQ(ierr);
 
   /* Operator for the Lyapunov equation */
   ierr = PetscNew(&matctx);CHKERRQ(ierr);
@@ -308,39 +347,16 @@ PetscErrorCode EPSSolve_LyapII(EPS eps)
     ierr = DSSetDimensions(ctx->ds,rk,rk,0,0);CHKERRQ(ierr);
     ierr = DSGetMat(ctx->ds,DS_MAT_A,&W);CHKERRQ(ierr);
     ierr = BVMatProject(V,S,V,W);CHKERRQ(ierr);
-    ierr = MatDenseGetArray(W,&pS);CHKERRQ(ierr);
-    ierr = DSGetArray(eps->ds,DS_MAT_A,&aa);CHKERRQ(ierr);
-    ierr = DSGetArray(eps->ds,DS_MAT_B,&bb);CHKERRQ(ierr);
-    /* A = kron(I,S)+kron(S,I),  B = -2*kron(S,S) */
-    ierr = PetscMemzero(aa,ldds*rk*rk*sizeof(PetscScalar));CHKERRQ(ierr);
-    ierr = PetscMemzero(bb,ldds*rk*rk*sizeof(PetscScalar));CHKERRQ(ierr);
-    for (f=0;f<rk;f++) {
-      off = f*rk+f*rk*ldds;
-      for (i=0;i<rk;i++) for (j=0;j<rk;j++) aa[off+i+j*ldds] = pS[i+j*rk];
-      for (c=0;c<rk;c++) {
-        off = f*rk+c*rk*ldds;
-        theta = pS[f+c*rk];
-        for (i=0;i<rk;i++) aa[off+i+i*ldds] += theta;
-        for (i=0;i<rk;i++) for (j=0;j<rk;j++) bb[off+i+j*ldds] = -2*theta*pS[i+j*rk];
-      }
-    }
-    ierr = DSRestoreArray(eps->ds,DS_MAT_A,&aa);CHKERRQ(ierr);
-    ierr = DSRestoreArray(eps->ds,DS_MAT_B,&bb);CHKERRQ(ierr);
-    ierr = MatDenseRestoreArray(W,&pS);CHKERRQ(ierr);
+    ierr = LyapIIBuildEigenMat(W,&A,&B);CHKERRQ(ierr); /* A = kron(I,S)+kron(S,I),  B = -2*kron(S,S) */
     ierr = MatDestroy(&W);CHKERRQ(ierr);
-    ierr = DSSetDimensions(eps->ds,rk*rk,rk*rk,0,0);CHKERRQ(ierr);
-    ierr = DSGetMat(eps->ds,DS_MAT_A,&A);CHKERRQ(ierr);
-    ierr = DSGetMat(eps->ds,DS_MAT_B,&B);CHKERRQ(ierr);
     ierr = EPSSetOperators(epsrr,A,B);CHKERRQ(ierr);
-    ierr = MatDestroy(&A);CHKERRQ(ierr);
-    ierr = MatDestroy(&B);CHKERRQ(ierr);
     ierr = EPSSolve(epsrr);CHKERRQ(ierr);
     ierr = EPSComputeVectors(epsrr);CHKERRQ(ierr);
     /* Copy first eigenvector, vec(A)=x */
     ierr = BVGetArray(epsrr->V,&xx);CHKERRQ(ierr);
     ierr = DSGetArray(ctx->ds,DS_MAT_A,&aa);CHKERRQ(ierr);
     for (i=0;i<rk;i++) {
-      ierr = PetscMemcpy(aa+i*ldS,xx+i*rk,rk*sizeof(PetscScalar));CHKERRQ(ierr);
+      ierr = PetscMemcpy(aa+i*ldds,xx+i*rk,rk*sizeof(PetscScalar));CHKERRQ(ierr);
     }
     ierr = DSRestoreArray(ctx->ds,DS_MAT_A,&aa);CHKERRQ(ierr);
     ierr = BVRestoreArray(epsrr->V,&xx);CHKERRQ(ierr);
@@ -445,6 +461,8 @@ PetscErrorCode EPSSolve_LyapII(EPS eps)
   ierr = MatDestroy(&S);CHKERRQ(ierr);
   ierr = MatDestroy(&Ux[0]);CHKERRQ(ierr);
   ierr = MatDestroy(&Ux[1]);CHKERRQ(ierr);
+  ierr = MatDestroy(&A);CHKERRQ(ierr);
+  ierr = MatDestroy(&B);CHKERRQ(ierr);
   ierr = BVDestroy(&V);CHKERRQ(ierr);
   ierr = EPSDestroy(&epsrr);CHKERRQ(ierr);
   ierr = PetscFree3(s,eigr,eigi);CHKERRQ(ierr);
