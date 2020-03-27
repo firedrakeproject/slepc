@@ -259,6 +259,8 @@ PetscErrorCode EPSSolve_LyapII(EPS eps)
 
   /* EPS for rank reduction */
   ierr = EPSCreate(PETSC_COMM_SELF,&epsrr);CHKERRQ(ierr);
+  ierr = EPSSetOptionsPrefix(epsrr,((PetscObject)eps)->prefix);CHKERRQ(ierr);
+  ierr = EPSAppendOptionsPrefix(epsrr,"eps_lyapii_");CHKERRQ(ierr);
   ierr = EPSGetST(epsrr,&st);CHKERRQ(ierr);
   ierr = STSetType(st,STSINVERT);CHKERRQ(ierr);
   ierr = EPSSetDimensions(epsrr,1,PETSC_DEFAULT,PETSC_DEFAULT);CHKERRQ(ierr);
