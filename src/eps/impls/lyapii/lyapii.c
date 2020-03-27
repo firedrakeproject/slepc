@@ -409,7 +409,7 @@ PetscErrorCode EPSSolve_LyapII(EPS eps)
     k = 0;
     if (eps->errest[eps->nconv]<eps->tol) {
       k++;
-      if (ei!=0.0) {
+      if (rk==2) {
 #if !defined (PETSC_USE_COMPLEX)
         eps->eigr[eps->nconv+k] = eigr[0]; eps->eigi[eps->nconv+k] = -eigi[0];
 #else
