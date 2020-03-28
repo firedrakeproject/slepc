@@ -280,7 +280,7 @@ gnu-c-multilib:
     - linux-debian
   variables:
     PETSC_CONFIG_OPTS: --with-single-library=0 --with-visibility=1
-    SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --with-arpack-dir=/usr/local/opt/ARPACK --with-primme-dir=/usr/local/opt/primme --with-blopex-dir=/usr/local/opt/blopex --with-blzpack-dir=/usr/local/opt/blzpack/lib --with-trlan-dir=/usr/local/opt/trlan-201009 --with-slicot
+    SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --with-arpack-dir=/usr/local/opt/ARPACK --with-primme-dir=/usr/local/opt/primme --with-blopex-dir=/usr/local/opt/blopex --with-blzpack-dir=/usr/local/opt/blzpack/lib --with-trlan-dir=/usr/local/opt/trlan-201009
 
 gnu-c-complex:
   extends:
@@ -492,7 +492,7 @@ clang-c-valgrind:
     - linux-ubuntu
   variables:
     PETSC_CONFIG_OPTS: --with-cc=/usr/local/mpich-3.3.1-clang/bin/mpicc --with-cxx=0 --with-fc=0 --with-shared-libraries=0 --download-sowing
-    SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --with-slicot
+    SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local
 
 gnu-c-float128:
   extends:
