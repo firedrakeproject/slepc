@@ -139,7 +139,7 @@ int main(int argc,char **argv)
    test:
       suffix: 1
       args: -eps_nev 6 -shift 0.1 -eps_type {{krylovschur lyapii}} -terse
-      requires: !single
+      requires: double
       filter: grep -v method | sed -e "s/-0.09981-2.13938i, -0.09981+2.13938i/-0.09981+2.13938i, -0.09981-2.13938i/" | sed -e "s/-0.77192-2.52712i, -0.77192+2.52712i/-0.77192+2.52712i, -0.77192-2.52712i/" | sed -e "s/-1.88445-3.02666i, -1.88445+3.02666i/-1.88445+3.02666i, -1.88445-3.02666i/"
 
 TEST*/

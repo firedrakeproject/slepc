@@ -72,6 +72,9 @@ int main(int argc,char **argv)
 
 /*TEST
 
+   build:
+      requires: complex
+
    test:
       suffix: 1
       args: -m 18 -n 19 -eps_nev 4 -eps_max_it 1000 -eps_type {{krylovschur subspace arnoldi gd jd lapack}}
