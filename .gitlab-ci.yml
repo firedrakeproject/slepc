@@ -34,7 +34,6 @@ variables:
       - schedules
 #     Set with CI/CD Pipelines - Run Pipeline
       - web
-      - merge_requests
   dependencies: []
 
 #
