@@ -16,11 +16,10 @@ See docs/changes/index.html for recent updates.
 See docs/faq.html for problems.
 See docs/manualpages/index.html for help.
 Libraries linked from PATH
---------------------------------------------------------------------------
 SLEPc help information includes that for the PETSc libraries, which provide
 low-level system infrastructure and linear algebra tools.
 --------------------------------------------------------------------------
-    -log_view
+-------------------------------------------------
 Options for all PETSc programs:
  -help: prints help method for each option
  -on_error_abort: cause an abort when an error is detected. Useful
@@ -57,15 +56,13 @@ Options for all PETSc programs:
  -get_total_flops: total flops over all processors
  -log_view [:filename:[format]]: logging objects and events
  -log_trace [filename]: prints trace of all PETSc calls
- -info [filename][:[[~]list,of,classnames][:[[~]'self']]]: print informative messages
+ -log_exclude <list,of,classnames>: exclude given classes from logging
+ -info [filename][:[~]<list,of,classnames>[:[~]self]]: print verbose information
  -v: prints PETSc version number and release date
  -options_file <file>: reads options from file
  -petsc_sleep n: sleeps n seconds before running program
------------------------------------------------
-------Additional PETSc component options--------
- -log_exclude: <vec,mat,pc,ksp,snes,tao,ts>
------------------------------------------------
-Options for handling options -------------------------------------------------
+-------------------------------------------------
+Options for handling options:
   -options_monitor <now stdout : formerly stdout>: Monitor options database (PetscOptionsMonitorSet)
   -options_monitor_cancel: <FALSE : FALSE> Cancel all options database monitors (PetscOptionsMonitorCancel)
 M = [
