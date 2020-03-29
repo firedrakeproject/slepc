@@ -69,7 +69,7 @@ struct _p_LME {
   LMEConvergedReason reason;
 };
 
-SLEPC_INTERN PetscErrorCode LMERankSVD(LME,PetscInt,PetscScalar*,PetscScalar*,PetscInt*);
+SLEPC_INTERN PetscErrorCode LMEDenseRankSVD(LME,PetscInt,PetscScalar*,PetscInt,PetscScalar*,PetscInt,PetscInt*);
 
 /*
     Macros to test valid LME arguments
