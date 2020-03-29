@@ -40,12 +40,12 @@ typedef struct {
 typedef struct {
   Mat      S;        /* the operator matrix, S=A^{-1}*B */
   BV       Q;        /* orthogonal basis of converged eigenvectors */
-} EPS_LYAPII_MSHELL;
+} EPS_LYAPII_MATSHELL;
 
 typedef struct {
   Mat      A,B;
   Vec      w;
-} EPS_EIG_MSHELL;
+} EPS_EIG_MATSHELL;
 
 PetscErrorCode EPSSetUp_LyapII(EPS eps)
 {
@@ -90,8 +90,8 @@ PetscErrorCode EPSSetUp_LyapII(EPS eps)
 
 static PetscErrorCode MatMult_EPSLyapIIOperator(Mat M,Vec x,Vec r)
 {
-  PetscErrorCode    ierr;
-  EPS_LYAPII_MSHELL *matctx;
+  PetscErrorCode      ierr;
+  EPS_LYAPII_MATSHELL *matctx;
 
   PetscFunctionBegin;
   ierr = MatShellGetContext(M,(void**)&matctx);CHKERRQ(ierr);
@@ -102,8 +102,8 @@ static PetscErrorCode MatMult_EPSLyapIIOperator(Mat M,Vec x,Vec r)
 
 static PetscErrorCode MatDestroy_EPSLyapIIOperator(Mat M)
 {
-  PetscErrorCode    ierr;
-  EPS_LYAPII_MSHELL *matctx;
+  PetscErrorCode      ierr;
+  EPS_LYAPII_MATSHELL *matctx;
 
   PetscFunctionBegin;
   ierr = MatShellGetContext(M,(void**)&matctx);CHKERRQ(ierr);
@@ -115,8 +115,8 @@ static PetscErrorCode MatDestroy_EPSLyapIIOperator(Mat M)
 
 static PetscErrorCode MatCreateVecs_EPSLyapIIOperator(Mat M,Vec *right,Vec *left)
 {
-  PetscErrorCode    ierr;
-  EPS_LYAPII_MSHELL *matctx;
+  PetscErrorCode      ierr;
+  EPS_LYAPII_MATSHELL *matctx;
 
   PetscFunctionBegin;
   ierr = MatShellGetContext(M,(void**)&matctx);CHKERRQ(ierr);
@@ -126,11 +126,11 @@ static PetscErrorCode MatCreateVecs_EPSLyapIIOperator(Mat M,Vec *right,Vec *left
 
 static PetscErrorCode MatMult_EigOperator(Mat M,Vec x,Vec y)
 {
-  PetscErrorCode ierr;
-  EPS_EIG_MSHELL *matctx;
-  Mat            F;
-  IS             perm;
-  PetscInt       n;
+  PetscErrorCode   ierr;
+  EPS_EIG_MATSHELL *matctx;
+  Mat              F;
+  IS               perm;
+  PetscInt         n;
 
   PetscFunctionBegin;
   ierr = MatShellGetContext(M,(void**)&matctx);CHKERRQ(ierr);
@@ -147,8 +147,8 @@ static PetscErrorCode MatMult_EigOperator(Mat M,Vec x,Vec y)
 
 static PetscErrorCode MatDestroy_EigOperator(Mat M)
 {
-  PetscErrorCode ierr;
-  EPS_EIG_MSHELL *matctx;
+  PetscErrorCode   ierr;
+  EPS_EIG_MATSHELL *matctx;
 
   PetscFunctionBegin;
   ierr = MatShellGetContext(M,(void**)&matctx);CHKERRQ(ierr);
@@ -249,11 +249,11 @@ static PetscErrorCode LyapIIBuildRHS(Mat S,PetscInt rk,Mat U,BV V,Vec *work)
  */
 static PetscErrorCode LyapIIBuildEigenMat(Mat S,Mat *Op,Vec *v0)
 {
-  PetscErrorCode ierr;
-  PetscScalar    theta,*aa,*bb,*ss;
-  PetscInt       i,j,f,c,n,m,off,ld;
-  PetscBool      create=PETSC_FALSE;
-  EPS_EIG_MSHELL *matctx;
+  PetscErrorCode   ierr;
+  PetscScalar      theta,*aa,*bb,*ss;
+  PetscInt         i,j,f,c,n,m,off,ld;
+  PetscBool        create=PETSC_FALSE;
+  EPS_EIG_MATSHELL *matctx;
 
   PetscFunctionBegin;
   ierr = MatGetSize(S,&n,NULL);CHKERRQ(ierr);
@@ -300,19 +300,19 @@ static PetscErrorCode LyapIIBuildEigenMat(Mat S,Mat *Op,Vec *v0)
 
 PetscErrorCode EPSSolve_LyapII(EPS eps)
 {
-  PetscErrorCode     ierr;
-  EPS_LYAPII         *ctx = (EPS_LYAPII*)eps->data;
-  PetscInt           i,ldds,rk,nloc,mloc,nv,idx,k;
-  Vec                v,w,z=eps->work[0],v0=NULL;
-  Mat                S,C,Ux[2],Y,Y1,R,U,W,X,Op=NULL;
-  BV                 V;
-  BVOrthogType       type;
-  BVOrthogRefineType refine;
-  PetscScalar        *eigr,*eigi,*array,er,ei,*uu,*pV,*s,*xx,*aa,pM[4],vec[4];
-  PetscReal          eta;
-  EPS                epsrr;
-  PetscReal          norm;
-  EPS_LYAPII_MSHELL  *matctx;
+  PetscErrorCode      ierr;
+  EPS_LYAPII          *ctx = (EPS_LYAPII*)eps->data;
+  PetscInt            i,ldds,rk,nloc,mloc,nv,idx,k;
+  Vec                 v,w,z=eps->work[0],v0=NULL;
+  Mat                 S,C,Ux[2],Y,Y1,R,U,W,X,Op=NULL;
+  BV                  V;
+  BVOrthogType        type;
+  BVOrthogRefineType  refine;
+  PetscScalar         *eigr,*eigi,*array,er,ei,*uu,*pV,*s,*xx,*aa,pM[4],vec[4];
+  PetscReal           eta;
+  EPS                 epsrr;
+  PetscReal           norm;
+  EPS_LYAPII_MATSHELL *matctx;
 
   PetscFunctionBegin;
   ierr = DSGetLeadingDimension(ctx->ds,&ldds);CHKERRQ(ierr);

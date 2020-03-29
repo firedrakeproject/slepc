@@ -450,9 +450,9 @@ PetscErrorCode NEPNLEIGSEvalNRTFunct(NEP nep,PetscInt k,PetscScalar sigma,PetscS
 
 static PetscErrorCode MatMult_Fun(Mat A,Vec x,Vec y)
 {
-  PetscErrorCode ierr;
-  ShellMatCtx    *ctx;
-  PetscInt       i;
+  PetscErrorCode      ierr;
+  NEP_NLEIGS_MATSHELL *ctx;
+  PetscInt            i;
 
   PetscFunctionBeginUser;
   ierr = MatShellGetContext(A,(void**)&ctx);CHKERRQ(ierr);
@@ -467,9 +467,9 @@ static PetscErrorCode MatMult_Fun(Mat A,Vec x,Vec y)
 
 static PetscErrorCode MatMultTranspose_Fun(Mat A,Vec x,Vec y)
 {
-  PetscErrorCode ierr;
-  ShellMatCtx    *ctx;
-  PetscInt       i;
+  PetscErrorCode      ierr;
+  NEP_NLEIGS_MATSHELL *ctx;
+  PetscInt            i;
 
   PetscFunctionBeginUser;
   ierr = MatShellGetContext(A,(void**)&ctx);CHKERRQ(ierr);
@@ -484,9 +484,9 @@ static PetscErrorCode MatMultTranspose_Fun(Mat A,Vec x,Vec y)
 
 static PetscErrorCode MatGetDiagonal_Fun(Mat A,Vec diag)
 {
-  PetscErrorCode ierr;
-  ShellMatCtx    *ctx;
-  PetscInt       i;
+  PetscErrorCode      ierr;
+  NEP_NLEIGS_MATSHELL *ctx;
+  PetscInt            i;
 
   PetscFunctionBeginUser;
   ierr = MatShellGetContext(A,(void**)&ctx);CHKERRQ(ierr);
@@ -501,10 +501,10 @@ static PetscErrorCode MatGetDiagonal_Fun(Mat A,Vec diag)
 
 static PetscErrorCode MatDuplicate_Fun(Mat A,MatDuplicateOption op,Mat *B)
 {
-  PetscInt       n,i;
-  ShellMatCtx    *ctxnew,*ctx;
-  void           (*fun)(void);
-  PetscErrorCode ierr;
+  PetscInt            n,i;
+  NEP_NLEIGS_MATSHELL *ctxnew,*ctx;
+  void                (*fun)(void);
+  PetscErrorCode      ierr;
 
   PetscFunctionBeginUser;
   ierr = MatShellGetContext(A,(void**)&ctx);CHKERRQ(ierr);
@@ -538,9 +538,9 @@ static PetscErrorCode MatDuplicate_Fun(Mat A,MatDuplicateOption op,Mat *B)
 
 static PetscErrorCode MatDestroy_Fun(Mat A)
 {
-  ShellMatCtx    *ctx;
-  PetscErrorCode ierr;
-  PetscInt       i;
+  NEP_NLEIGS_MATSHELL *ctx;
+  PetscErrorCode      ierr;
+  PetscInt            i;
 
   PetscFunctionBeginUser;
   if (A) {
@@ -557,10 +557,10 @@ static PetscErrorCode MatDestroy_Fun(Mat A)
 
 static PetscErrorCode MatAXPY_Fun(Mat Y,PetscScalar a,Mat X,MatStructure str)
 {
-  ShellMatCtx    *ctxY,*ctxX;
-  PetscErrorCode ierr;
-  PetscInt       i,j;
-  PetscBool      found;
+  NEP_NLEIGS_MATSHELL *ctxY,*ctxX;
+  PetscErrorCode      ierr;
+  PetscInt            i,j;
+  PetscBool           found;
 
   PetscFunctionBeginUser;
   ierr = MatShellGetContext(Y,(void**)&ctxY);CHKERRQ(ierr);
@@ -584,9 +584,9 @@ static PetscErrorCode MatAXPY_Fun(Mat Y,PetscScalar a,Mat X,MatStructure str)
 
 static PetscErrorCode MatScale_Fun(Mat M,PetscScalar a)
 {
-  ShellMatCtx    *ctx;
-  PetscErrorCode ierr;
-  PetscInt       i;
+  NEP_NLEIGS_MATSHELL *ctx;
+  PetscErrorCode      ierr;
+  PetscInt            i;
 
   PetscFunctionBeginUser;
   ierr = MatShellGetContext(M,(void**)&ctx);CHKERRQ(ierr);
@@ -596,10 +596,10 @@ static PetscErrorCode MatScale_Fun(Mat M,PetscScalar a)
 
 static PetscErrorCode NLEIGSMatToMatShellArray(Mat M,Mat *Ms,PetscInt maxnmat)
 {
-  PetscErrorCode ierr;
-  ShellMatCtx    *ctx;
-  PetscInt       n;
-  PetscBool      has;
+  PetscErrorCode      ierr;
+  NEP_NLEIGS_MATSHELL *ctx;
+  PetscInt            n;
+  PetscBool           has;
 
   PetscFunctionBegin;
   ierr = MatHasOperation(M,MATOP_DUPLICATE,&has);CHKERRQ(ierr);

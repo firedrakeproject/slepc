@@ -23,26 +23,26 @@ struct _n_nep_def_ctx {
   BV          V,W;
 };
 
-typedef struct {
+typedef struct {   /* context for two-sided solver */
   Mat         Ft;
   Mat         Jt;
   Vec         w;
-} NEP_SLP_TWO_EPS_MSHELL;
+} NEP_SLPTS_MATSHELL;
 
-typedef struct {
+typedef struct {   /* context for non-equivalence deflation */
   NEP_NEDEF_CTX defctx;
-  Mat         F;
-  Mat         J;
-  KSP         ksp;
-  PetscBool   isJ;
-  PetscScalar lambda;
-  Vec         w[2];
-} NEP_NEDEF_MSHELL;
+  Mat           F;
+  Mat           J;
+  KSP           ksp;
+  PetscBool     isJ;
+  PetscScalar   lambda;
+  Vec           w[2];
+} NEP_NEDEF_MATSHELL;
 
 static PetscErrorCode MatMult_SLPTS_Right(Mat M,Vec x,Vec y)
 {
-  PetscErrorCode         ierr;
-  NEP_SLP_TWO_EPS_MSHELL *ctx;
+  PetscErrorCode     ierr;
+  NEP_SLPTS_MATSHELL *ctx;
 
   PetscFunctionBegin;
   ierr = MatShellGetContext(M,(void**)&ctx);CHKERRQ(ierr);
@@ -53,8 +53,8 @@ static PetscErrorCode MatMult_SLPTS_Right(Mat M,Vec x,Vec y)
 
 static PetscErrorCode MatMult_SLPTS_Left(Mat M,Vec x,Vec y)
 {
-  PetscErrorCode         ierr;
-  NEP_SLP_TWO_EPS_MSHELL *ctx;
+  PetscErrorCode     ierr;
+  NEP_SLPTS_MATSHELL *ctx;
 
   PetscFunctionBegin;
   ierr = MatShellGetContext(M,(void**)&ctx);CHKERRQ(ierr);
@@ -65,8 +65,8 @@ static PetscErrorCode MatMult_SLPTS_Left(Mat M,Vec x,Vec y)
 
 static PetscErrorCode MatDestroy_SLPTS(Mat M)
 {
-  PetscErrorCode         ierr;
-  NEP_SLP_TWO_EPS_MSHELL *ctx;
+  PetscErrorCode     ierr;
+  NEP_SLPTS_MATSHELL *ctx;
 
   PetscFunctionBegin;
   ierr = MatShellGetContext(M,(void**)&ctx);CHKERRQ(ierr);
@@ -78,8 +78,8 @@ static PetscErrorCode MatDestroy_SLPTS(Mat M)
 #if defined(PETSC_HAVE_CUDA)
 static PetscErrorCode MatCreateVecs_SLPTS(Mat M,Vec *left,Vec *right)
 {
-  PetscErrorCode         ierr;
-  NEP_SLP_TWO_EPS_MSHELL *ctx;
+  PetscErrorCode     ierr;
+  NEP_SLPTS_MATSHELL *ctx;
 
   PetscFunctionBegin;
   ierr = MatShellGetContext(M,(void**)&ctx);CHKERRQ(ierr);
@@ -95,10 +95,10 @@ static PetscErrorCode MatCreateVecs_SLPTS(Mat M,Vec *left,Vec *right)
 
 static PetscErrorCode NEPSLPSetUpEPSMat(NEP nep,Mat F,Mat J,PetscBool left,Mat *M)
 {
-  PetscErrorCode         ierr;
-  Mat                    Mshell;
-  PetscInt               nloc,mloc;
-  NEP_SLP_TWO_EPS_MSHELL *shellctx;
+  PetscErrorCode     ierr;
+  Mat                Mshell;
+  PetscInt           nloc,mloc;
+  NEP_SLPTS_MATSHELL *shellctx;
 
   PetscFunctionBegin;
   /* Create mat shell */
@@ -153,8 +153,8 @@ static PetscErrorCode NEPDeflationNECreate(NEP nep,BV V,BV W,PetscInt sz,NEP_NED
 
 static PetscErrorCode NEPDeflationNEComputeFunction(NEP nep,Mat M,PetscScalar lambda)
 {
-  PetscErrorCode   ierr;
-  NEP_NEDEF_MSHELL *matctx;
+  PetscErrorCode     ierr;
+  NEP_NEDEF_MATSHELL *matctx;
 
   PetscFunctionBegin;
   ierr = MatShellGetContext(M,(void**)&matctx);CHKERRQ(ierr);
@@ -168,11 +168,11 @@ static PetscErrorCode NEPDeflationNEComputeFunction(NEP nep,Mat M,PetscScalar la
 
 static PetscErrorCode MatMult_NEPDeflationNE(Mat M,Vec x,Vec r)
 {
-  Vec              t,tt;
-  PetscScalar      *h,*alpha,lambda,*eig;
-  PetscInt         i,k;
-  PetscErrorCode   ierr;
-  NEP_NEDEF_MSHELL *matctx;
+  Vec                t,tt;
+  PetscScalar        *h,*alpha,lambda,*eig;
+  PetscInt           i,k;
+  PetscErrorCode     ierr;
+  NEP_NEDEF_MATSHELL *matctx;
 
   PetscFunctionBegin;
   ierr = MatShellGetContext(M,(void**)&matctx);CHKERRQ(ierr);
@@ -204,11 +204,11 @@ static PetscErrorCode MatMult_NEPDeflationNE(Mat M,Vec x,Vec r)
 
 static PetscErrorCode MatMultTranspose_NEPDeflationNE(Mat M,Vec x,Vec r)
 {
-  Vec              t,tt;
-  PetscScalar      *h,*alphaC,lambda,*eig;
-  PetscInt         i,k;
-  PetscErrorCode   ierr;
-  NEP_NEDEF_MSHELL *matctx;
+  Vec                t,tt;
+  PetscScalar        *h,*alphaC,lambda,*eig;
+  PetscInt           i,k;
+  PetscErrorCode     ierr;
+  NEP_NEDEF_MATSHELL *matctx;
 
   PetscFunctionBegin;
   ierr = MatShellGetContext(M,(void**)&matctx);CHKERRQ(ierr);
@@ -243,10 +243,10 @@ static PetscErrorCode MatMultTranspose_NEPDeflationNE(Mat M,Vec x,Vec r)
 
 static PetscErrorCode MatSolve_NEPDeflationNE(Mat M,Vec b,Vec x)
 {
-  PetscErrorCode   ierr;
-  PetscScalar      *h,*alpha,lambda,*eig;
-  PetscInt         i,k;
-  NEP_NEDEF_MSHELL *matctx;
+  PetscErrorCode     ierr;
+  PetscScalar        *h,*alpha,lambda,*eig;
+  PetscInt           i,k;
+  NEP_NEDEF_MATSHELL *matctx;
 
   PetscFunctionBegin;
   ierr = MatShellGetContext(M,(void**)&matctx);CHKERRQ(ierr);
@@ -271,10 +271,10 @@ static PetscErrorCode MatSolve_NEPDeflationNE(Mat M,Vec b,Vec x)
 
 static PetscErrorCode MatSolveTranspose_NEPDeflationNE(Mat M,Vec b,Vec x)
 {
-  PetscErrorCode   ierr;
-  PetscScalar      *h,*alphaC,lambda,*eig;
-  PetscInt         i,k;
-  NEP_NEDEF_MSHELL *matctx;
+  PetscErrorCode     ierr;
+  PetscScalar        *h,*alphaC,lambda,*eig;
+  PetscInt           i,k;
+  NEP_NEDEF_MATSHELL *matctx;
 
   PetscFunctionBegin;
   ierr = MatShellGetContext(M,(void**)&matctx);CHKERRQ(ierr);
@@ -301,8 +301,8 @@ static PetscErrorCode MatSolveTranspose_NEPDeflationNE(Mat M,Vec b,Vec x)
 
 static PetscErrorCode MatDestroy_NEPDeflationNE(Mat M)
 {
-  PetscErrorCode   ierr;
-  NEP_NEDEF_MSHELL *matctx;
+  PetscErrorCode     ierr;
+  NEP_NEDEF_MATSHELL *matctx;
 
   PetscFunctionBegin;
   ierr = MatShellGetContext(M,(void**)&matctx);CHKERRQ(ierr);
@@ -314,8 +314,8 @@ static PetscErrorCode MatDestroy_NEPDeflationNE(Mat M)
 
 static PetscErrorCode MatCreateVecs_NEPDeflationNE(Mat M,Vec *right,Vec *left)
 {
-  PetscErrorCode   ierr;
-  NEP_NEDEF_MSHELL *matctx;
+  PetscErrorCode     ierr;
+  NEP_NEDEF_MATSHELL *matctx;
 
   PetscFunctionBegin;
   ierr = MatShellGetContext(M,(void**)&matctx);CHKERRQ(ierr);
@@ -325,9 +325,9 @@ static PetscErrorCode MatCreateVecs_NEPDeflationNE(Mat M,Vec *right,Vec *left)
 
 static PetscErrorCode NEPDeflationNEFunctionCreate(NEP_NEDEF_CTX defctx,NEP nep,Mat F,Mat J,KSP ksp,PetscBool isJ,Mat *Mshell)
 {
-  NEP_NEDEF_MSHELL *matctx;
-  PetscErrorCode   ierr;
-  PetscInt         nloc,mloc;
+  NEP_NEDEF_MATSHELL *matctx;
+  PetscErrorCode     ierr;
+  PetscInt           nloc,mloc;
 
   PetscFunctionBegin;
   /* Create mat shell */

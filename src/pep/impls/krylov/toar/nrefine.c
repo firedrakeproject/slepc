@@ -32,7 +32,7 @@ typedef struct {
   PetscBLASInt *pM4;
   PetscBool    compM1;
   Vec          t;
-} FSubctx;
+} PEP_REFINE_MATSHELL;
 
 typedef struct {
   Mat          E[2],M1;
@@ -48,15 +48,15 @@ typedef struct {
   PetscScalar  *M4,*w,*wt,*d,*dt;
   Vec          t,tg,Rv,Vi,tp,tpg;
   PetscInt     idx,*cols;
-} MatExplicitCtx;
+} PEP_REFINE_EXPLICIT;
 
 static PetscErrorCode MatMult_FS(Mat M ,Vec x,Vec y)
 {
-  PetscErrorCode ierr;
-  FSubctx        *ctx;
-  PetscInt       k,i;
-  PetscScalar    *c;
-  PetscBLASInt   k_,one=1,info;
+  PetscErrorCode      ierr;
+  PEP_REFINE_MATSHELL *ctx;
+  PetscInt            k,i;
+  PetscScalar         *c;
+  PetscBLASInt        k_,one=1,info;
 
   PetscFunctionBegin;
   ierr = MatShellGetContext(M,&ctx);CHKERRQ(ierr);
@@ -122,7 +122,7 @@ static PetscErrorCode PEPEvaluateBasisforMatrix(PEP pep,PetscInt nm,PetscInt k,P
   PetscFunctionReturn(0);
 }
 
-static PetscErrorCode NRefSysSetup_shell(PEP pep,PetscInt k,PetscScalar *fH,PetscScalar *S,PetscInt lds,PetscScalar *fh,PetscScalar h,FSubctx *ctx)
+static PetscErrorCode NRefSysSetup_shell(PEP pep,PetscInt k,PetscScalar *fH,PetscScalar *S,PetscInt lds,PetscScalar *fh,PetscScalar h,PEP_REFINE_MATSHELL *ctx)
 {
   PetscErrorCode    ierr;
   PetscScalar       *DHii,*T12,*Tr,*Ts,*array,s,ss,sone=1.0,zero=0.0,*M4=ctx->M4,t,*v,*T;
@@ -226,12 +226,12 @@ static PetscErrorCode NRefSysSetup_shell(PEP pep,PetscInt k,PetscScalar *fH,Pets
 
 static PetscErrorCode NRefSysSolve_shell(KSP ksp,PetscInt nmat,Vec Rv,PetscScalar *Rh,PetscInt k,Vec dVi,PetscScalar *dHi)
 {
-  PetscErrorCode ierr;
-  PetscScalar    *t0;
-  PetscBLASInt   k_,one=1,info,lda_;
-  PetscInt       i,lda=nmat*k;
-  Mat            M;
-  FSubctx        *ctx;
+  PetscErrorCode      ierr;
+  PetscScalar         *t0;
+  PetscBLASInt        k_,one=1,info,lda_;
+  PetscInt            i,lda=nmat*k;
+  Mat                 M;
+  PEP_REFINE_MATSHELL *ctx;
 
   PetscFunctionBegin;
   ierr = KSPGetOperators(ksp,&M,NULL);CHKERRQ(ierr);
@@ -404,7 +404,7 @@ static PetscErrorCode NRefSysSolve_mbe(PetscInt k,PetscInt sz,BV W,PetscScalar *
   PetscFunctionReturn(0);
 }
 
-static PetscErrorCode NRefSysSetup_mbe(PEP pep,PetscInt k,KSP ksp,PetscScalar *fH,PetscScalar *S,PetscInt lds,PetscScalar *fh,PetscScalar h,BV V,MatExplicitCtx *matctx)
+static PetscErrorCode NRefSysSetup_mbe(PEP pep,PetscInt k,KSP ksp,PetscScalar *fH,PetscScalar *S,PetscInt lds,PetscScalar *fh,PetscScalar h,BV V,PEP_REFINE_EXPLICIT *matctx)
 {
   PetscErrorCode ierr;
   PetscInt       i,j,l,nmat=pep->nmat,lda=nmat*k,deg=nmat-1;
@@ -535,7 +535,7 @@ static PetscErrorCode NRefSysSetup_mbe(PEP pep,PetscInt k,KSP ksp,PetscScalar *f
   PetscFunctionReturn(0);
 }
 
-static PetscErrorCode NRefSysSetup_explicit(PEP pep,PetscInt k,KSP ksp,PetscScalar *fH,PetscScalar *S,PetscInt lds,PetscScalar *fh,PetscScalar h,BV V,MatExplicitCtx *matctx,BV W)
+static PetscErrorCode NRefSysSetup_explicit(PEP pep,PetscInt k,KSP ksp,PetscScalar *fH,PetscScalar *S,PetscInt lds,PetscScalar *fh,PetscScalar h,BV V,PEP_REFINE_EXPLICIT *matctx,BV W)
 {
   PetscErrorCode    ierr;
   PetscInt          i,j,d,n,n0,m0,n1,m1,nmat=pep->nmat,lda=nmat*k,deg=nmat-1;
@@ -680,7 +680,7 @@ static PetscErrorCode NRefSysSetup_explicit(PEP pep,PetscInt k,KSP ksp,PetscScal
   PetscFunctionReturn(0);
 }
 
-static PetscErrorCode NRefSysSolve_explicit(PetscInt k,KSP ksp,Vec Rv,PetscScalar *Rh,Vec dVi,PetscScalar *dHi,MatExplicitCtx *matctx)
+static PetscErrorCode NRefSysSolve_explicit(PetscInt k,KSP ksp,Vec Rv,PetscScalar *Rh,Vec dVi,PetscScalar *dHi,PEP_REFINE_EXPLICIT *matctx)
 {
   PetscErrorCode    ierr;
   PetscInt          n0,m0,n1,m1,i;
@@ -721,16 +721,16 @@ static PetscErrorCode NRefSysSolve_explicit(PetscInt k,KSP ksp,Vec Rv,PetscScala
   PetscFunctionReturn(0);
 }
 
-static PetscErrorCode NRefSysIter(PetscInt i,PEP pep,PetscInt k,KSP ksp,PetscScalar *fH,PetscScalar *S,PetscInt lds,PetscScalar *fh,PetscScalar *H,PetscInt ldh,Vec Rv,PetscScalar *Rh,BV V,Vec dVi,PetscScalar *dHi,MatExplicitCtx *matctx,BV W)
+static PetscErrorCode NRefSysIter(PetscInt i,PEP pep,PetscInt k,KSP ksp,PetscScalar *fH,PetscScalar *S,PetscInt lds,PetscScalar *fh,PetscScalar *H,PetscInt ldh,Vec Rv,PetscScalar *Rh,BV V,Vec dVi,PetscScalar *dHi,PEP_REFINE_EXPLICIT *matctx,BV W)
 {
-  PetscErrorCode    ierr;
-  PetscInt          j,m,lda=pep->nmat*k,n0,m0,idx;
-  PetscMPIInt       root,len;
-  PetscScalar       *array2,h;
-  const PetscScalar *array;
-  Vec               R,Vi;
-  FSubctx           *ctx;
-  Mat               M;
+  PetscErrorCode      ierr;
+  PetscInt            j,m,lda=pep->nmat*k,n0,m0,idx;
+  PetscMPIInt         root,len;
+  PetscScalar         *array2,h;
+  const PetscScalar   *array;
+  Vec                 R,Vi;
+  PEP_REFINE_MATSHELL *ctx;
+  Mat                 M;
 
   PetscFunctionBegin;
   if (!matctx || !matctx->subc) {
@@ -831,17 +831,17 @@ static PetscErrorCode NRefSysIter(PetscInt i,PEP pep,PetscInt k,KSP ksp,PetscSca
   PetscFunctionReturn(0);
 }
 
-static PetscErrorCode PEPNRefForwardSubstitution(PEP pep,PetscInt k,PetscScalar *S,PetscInt lds,PetscScalar *H,PetscInt ldh,PetscScalar *fH,BV dV,PetscScalar *dVS,PetscInt *rds,PetscScalar *dH,PetscInt lddh,KSP ksp,MatExplicitCtx *matctx)
+static PetscErrorCode PEPNRefForwardSubstitution(PEP pep,PetscInt k,PetscScalar *S,PetscInt lds,PetscScalar *H,PetscInt ldh,PetscScalar *fH,BV dV,PetscScalar *dVS,PetscInt *rds,PetscScalar *dH,PetscInt lddh,KSP ksp,PEP_REFINE_EXPLICIT *matctx)
 {
-  PetscErrorCode ierr;
-  PetscInt       i,nmat=pep->nmat,lda=nmat*k;
-  PetscScalar    *fh,*Rh,*DfH;
-  PetscReal      norm;
-  BV             W;
-  Vec            Rv,t,dvi;
-  FSubctx        *ctx;
-  Mat            M,*At;
-  PetscBool      flg,lindep;
+  PetscErrorCode      ierr;
+  PetscInt            i,nmat=pep->nmat,lda=nmat*k;
+  PetscScalar         *fh,*Rh,*DfH;
+  PetscReal           norm;
+  BV                  W;
+  Vec                 Rv,t,dvi;
+  PEP_REFINE_MATSHELL *ctx;
+  Mat                 M,*At;
+  PetscBool           flg,lindep;
 
   PetscFunctionBegin;
   ierr = PetscMalloc2(nmat*k*k,&DfH,k,&Rh);CHKERRQ(ierr);
@@ -1009,22 +1009,22 @@ static PetscErrorCode PEPNRefUpdateInvPair(PEP pep,PetscInt k,PetscScalar *H,Pet
   PetscFunctionReturn(0);
 }
 
-static PetscErrorCode PEPNRefSetUp(PEP pep,PetscInt k,PetscScalar *H,PetscInt ldh,MatExplicitCtx *matctx,PetscBool ini)
+static PetscErrorCode PEPNRefSetUp(PEP pep,PetscInt k,PetscScalar *H,PetscInt ldh,PEP_REFINE_EXPLICIT *matctx,PetscBool ini)
 {
-  PetscErrorCode    ierr;
-  FSubctx           *ctx;
-  PetscScalar       t,*coef;
-  const PetscScalar *array;
-  MatStructure      str;
-  PetscInt          j,nmat=pep->nmat,n0,m0,n1,m1,n0_,m0_,n1_,m1_,N0,N1,p,*idx1,*idx2,count,si,i,l0;
-  MPI_Comm          comm;
-  PetscMPIInt       np;
-  const PetscInt    *rgs0,*rgs1;
-  Mat               B,C,*E,*A,*At;
-  IS                is1,is2;
-  Vec               v;
-  PetscBool         flg;
-  Mat               M,P;
+  PetscErrorCode      ierr;
+  PEP_REFINE_MATSHELL *ctx;
+  PetscScalar         t,*coef;
+  const PetscScalar   *array;
+  MatStructure        str;
+  PetscInt            j,nmat=pep->nmat,n0,m0,n1,m1,n0_,m0_,n1_,m1_,N0,N1,p,*idx1,*idx2,count,si,i,l0;
+  MPI_Comm            comm;
+  PetscMPIInt         np;
+  const PetscInt      *rgs0,*rgs1;
+  Mat                 B,C,*E,*A,*At;
+  IS                  is1,is2;
+  Vec                 v;
+  PetscBool           flg;
+  Mat                 M,P;
 
   PetscFunctionBegin;
   ierr = PetscMalloc1(nmat,&coef);CHKERRQ(ierr);
@@ -1225,7 +1225,7 @@ static PetscErrorCode PEPNRefSetUp(PEP pep,PetscInt k,PetscScalar *H,PetscInt ld
   PetscFunctionReturn(0);
 }
 
-static PetscErrorCode NRefSubcommSetup(PEP pep,PetscInt k,MatExplicitCtx *matctx,PetscInt nsubc)
+static PetscErrorCode NRefSubcommSetup(PEP pep,PetscInt k,PEP_REFINE_EXPLICIT *matctx,PetscInt nsubc)
 {
   PetscErrorCode    ierr;
   PetscInt          i,si,j,m0,n0,nloc0,nloc_sub,*idx1,*idx2;
@@ -1314,7 +1314,7 @@ static PetscErrorCode NRefSubcommSetup(PEP pep,PetscInt k,MatExplicitCtx *matctx
   PetscFunctionReturn(0);
 }
 
-static PetscErrorCode NRefSubcommDestroy(PEP pep,MatExplicitCtx *matctx)
+static PetscErrorCode NRefSubcommDestroy(PEP pep,PEP_REFINE_EXPLICIT *matctx)
 {
   PetscErrorCode ierr;
   PetscInt       i;
@@ -1346,16 +1346,16 @@ static PetscErrorCode NRefSubcommDestroy(PEP pep,MatExplicitCtx *matctx)
 
 PetscErrorCode PEPNewtonRefinement_TOAR(PEP pep,PetscScalar sigma,PetscInt *maxits,PetscReal *tol,PetscInt k,PetscScalar *S,PetscInt lds)
 {
-  PetscErrorCode ierr;
-  PetscScalar    *H,*work,*dH,*fH,*dVS;
-  PetscInt       ldh,i,j,its=1,nmat=pep->nmat,nsubc=pep->npart,rds;
-  PetscBLASInt   k_,ld_,*p,info;
-  BV             dV;
-  PetscBool      sinvert,flg;
-  MatExplicitCtx *matctx=NULL;
-  Vec            v;
-  Mat            M,P;
-  FSubctx        *ctx;
+  PetscErrorCode      ierr;
+  PetscScalar         *H,*work,*dH,*fH,*dVS;
+  PetscInt            ldh,i,j,its=1,nmat=pep->nmat,nsubc=pep->npart,rds;
+  PetscBLASInt        k_,ld_,*p,info;
+  BV                  dV;
+  PetscBool           sinvert,flg;
+  PEP_REFINE_EXPLICIT *matctx=NULL;
+  Vec                 v;
+  Mat                 M,P;
+  PEP_REFINE_MATSHELL *ctx;
 
   PetscFunctionBegin;
   ierr = PetscLogEventBegin(PEP_Refine,pep,0,0,0);CHKERRQ(ierr);
