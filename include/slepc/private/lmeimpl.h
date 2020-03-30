@@ -100,6 +100,8 @@ SLEPC_INTERN PetscErrorCode LMEDenseRankSVD(LME,PetscInt,PetscScalar*,PetscInt,P
 
 #define SLICOTsb03od_(a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q) SLEPC_SLICOT(sb03od,SB03OD) ((a),(b),(c),(d),(e),(f),(g),(h),(i),(j),(k),(l),(m),(n),(o),(p),(q),1,1,1)
 SLEPC_EXTERN void SLEPC_SLICOT(sb03od,SB03OD)(const char*,const char*,const char*,PetscBLASInt*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscReal*,PetscScalar*,PetscScalar*,PetscReal*,PetscBLASInt*,PetscBLASInt*,PetscBLASInt,PetscBLASInt,PetscBLASInt);
+#define SLICOTsb03md_(a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t) SLEPC_SLICOT(sb03md,SB03MD) ((a),(b),(c),(d),(e),(f),(g),(h),(i),(j),(k),(l),(m),(n),(o),(p),(q),(r),(s),(t),1,1,1,1)
+SLEPC_EXTERN void SLEPC_SLICOT(sb03md,SB03MD)(const char*,const char*,const char*,const char*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscScalar*,PetscBLASInt*,PetscReal*,PetscReal*,PetscReal*,PetscScalar*,PetscScalar*,PetscBLASInt*,PetscReal*,PetscBLASInt*,PetscBLASInt*,PetscBLASInt,PetscBLASInt,PetscBLASInt,PetscBLASInt);
 
 #endif
 

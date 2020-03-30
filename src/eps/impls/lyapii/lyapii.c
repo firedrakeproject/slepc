@@ -43,8 +43,13 @@ typedef struct {
 } EPS_LYAPII_MATSHELL;
 
 typedef struct {
+  Mat      S;        /* the matrix from which the implicit operator is built */
+  PetscInt n;        /* the size of matrix S, the operator is nxn */
+  LME      lme;      /* dummy LME object */
+#if defined(PETSC_USE_COMPLEX)
   Mat      A,B;
   Vec      w;
+#endif
 } EPS_EIG_MATSHELL;
 
 PetscErrorCode EPSSetUp_LyapII(EPS eps)
@@ -126,14 +131,22 @@ static PetscErrorCode MatCreateVecs_EPSLyapIIOperator(Mat M,Vec *right,Vec *left
 
 static PetscErrorCode MatMult_EigOperator(Mat M,Vec x,Vec y)
 {
-  PetscErrorCode   ierr;
-  EPS_EIG_MATSHELL *matctx;
-  Mat              F;
-  IS               perm;
-  PetscInt         n;
+  PetscErrorCode    ierr;
+  EPS_EIG_MATSHELL  *matctx;
+  PetscInt          n;
+#if defined(PETSC_USE_COMPLEX)
+  Mat               F;
+  IS                perm;
+#else
+  PetscScalar       *S,*Y,*C,zero=0.0,done=1.0,dtwo=2.0;
+  const PetscScalar *X;
+  PetscBLASInt      n_;
+#endif
 
   PetscFunctionBegin;
   ierr = MatShellGetContext(M,(void**)&matctx);CHKERRQ(ierr);
+
+#if defined(PETSC_USE_COMPLEX)
   ierr = MatMult(matctx->B,x,matctx->w);CHKERRQ(ierr);
   ierr = MatGetSize(matctx->A,&n,NULL);CHKERRQ(ierr);
   ierr = ISCreateStride(PETSC_COMM_SELF,n,0,1,&perm);CHKERRQ(ierr);
@@ -142,6 +155,27 @@ static PetscErrorCode MatMult_EigOperator(Mat M,Vec x,Vec y)
   ierr = MatSolve(F,matctx->w,y);CHKERRQ(ierr);
   ierr = MatDestroy(&F);CHKERRQ(ierr);
   ierr = ISDestroy(&perm);CHKERRQ(ierr);
+#else
+  ierr = VecGetArrayRead(x,&X);CHKERRQ(ierr);
+  ierr = VecGetArray(y,&Y);CHKERRQ(ierr);
+  ierr = MatDenseGetArray(matctx->S,&S);CHKERRQ(ierr);
+
+  n = matctx->n;
+  ierr = PetscCalloc1(n*n,&C);CHKERRQ(ierr);
+  ierr = PetscBLASIntCast(n,&n_);CHKERRQ(ierr);
+
+  /* C = 2*S*X*S.' */
+  PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&n_,&n_,&n_,&dtwo,S,&n_,X,&n_,&zero,Y,&n_));
+  PetscStackCallBLAS("BLASgemm",BLASgemm_("N","T",&n_,&n_,&n_,&done,Y,&n_,S,&n_,&zero,C,&n_));
+
+  /* Solve S*Y + Y*S' = -C */
+  ierr = LMEDenseLyapunov(matctx->lme,n,S,n,C,n,Y,n);CHKERRQ(ierr);
+
+  ierr = PetscFree(C);CHKERRQ(ierr);
+  ierr = VecRestoreArrayRead(x,&X);CHKERRQ(ierr);
+  ierr = VecRestoreArray(y,&Y);CHKERRQ(ierr);
+  ierr = MatDenseRestoreArray(matctx->S,&S);CHKERRQ(ierr);
+#endif
   PetscFunctionReturn(0);
 }
 
@@ -152,9 +186,11 @@ static PetscErrorCode MatDestroy_EigOperator(Mat M)
 
   PetscFunctionBegin;
   ierr = MatShellGetContext(M,(void**)&matctx);CHKERRQ(ierr);
+#if defined(PETSC_USE_COMPLEX)
   ierr = MatDestroy(&matctx->A);CHKERRQ(ierr);
   ierr = MatDestroy(&matctx->B);CHKERRQ(ierr);
   ierr = VecDestroy(&matctx->w);CHKERRQ(ierr);
+#endif
   ierr = PetscFree(matctx);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -247,13 +283,16 @@ static PetscErrorCode LyapIIBuildRHS(Mat S,PetscInt rk,Mat U,BV V,Vec *work)
    where S is a sequential square dense matrix of order n.
    v0 is the initial vector, should have the form v0 = w*w' (for instance 1*1')
  */
-static PetscErrorCode LyapIIBuildEigenMat(Mat S,Mat *Op,Vec *v0)
+static PetscErrorCode LyapIIBuildEigenMat(LME lme,Mat S,Mat *Op,Vec *v0)
 {
   PetscErrorCode   ierr;
-  PetscScalar      theta,*aa,*bb,*ss;
-  PetscInt         i,j,f,c,n,m,off,ld;
+  PetscInt         n,m;
   PetscBool        create=PETSC_FALSE;
   EPS_EIG_MATSHELL *matctx;
+#if defined(PETSC_USE_COMPLEX)
+  PetscScalar      theta,*aa,*bb,*ss;
+  PetscInt         i,j,f,c,off,ld;
+#endif
 
   PetscFunctionBegin;
   ierr = MatGetSize(S,&n,NULL);CHKERRQ(ierr);
@@ -266,18 +305,22 @@ static PetscErrorCode LyapIIBuildEigenMat(Mat S,Mat *Op,Vec *v0)
     ierr = MatDestroy(Op);CHKERRQ(ierr);
     ierr = VecDestroy(v0);CHKERRQ(ierr);
     ierr = PetscNew(&matctx);CHKERRQ(ierr);
+#if defined(PETSC_USE_COMPLEX)
     ierr = MatCreateSeqDense(PETSC_COMM_SELF,n*n,n*n,NULL,&matctx->A);CHKERRQ(ierr);
     ierr = MatCreateSeqDense(PETSC_COMM_SELF,n*n,n*n,NULL,&matctx->B);CHKERRQ(ierr);
     ierr = MatCreateVecs(matctx->A,NULL,&matctx->w);CHKERRQ(ierr);
+#endif
     ierr = MatCreateShell(PETSC_COMM_SELF,n*n,n*n,PETSC_DETERMINE,PETSC_DETERMINE,matctx,Op);CHKERRQ(ierr);
     ierr = MatShellSetOperation(*Op,MATOP_MULT,(void(*)(void))MatMult_EigOperator);CHKERRQ(ierr);
     ierr = MatShellSetOperation(*Op,MATOP_DESTROY,(void(*)(void))MatDestroy_EigOperator);CHKERRQ(ierr);
     ierr = MatCreateVecs(*Op,NULL,v0);CHKERRQ(ierr);
-    ierr = VecSet(*v0,1.0);CHKERRQ(ierr);
   } else {
     ierr = MatShellGetContext(*Op,(void**)&matctx);CHKERRQ(ierr);
+#if defined(PETSC_USE_COMPLEX)
     ierr = MatZeroEntries(matctx->A);CHKERRQ(ierr);
+#endif
   }
+#if defined(PETSC_USE_COMPLEX)
   ierr = MatDenseGetArray(matctx->A,&aa);CHKERRQ(ierr);
   ierr = MatDenseGetArray(matctx->B,&bb);CHKERRQ(ierr);
   ierr = MatDenseGetArray(S,&ss);CHKERRQ(ierr);
@@ -295,6 +338,11 @@ static PetscErrorCode LyapIIBuildEigenMat(Mat S,Mat *Op,Vec *v0)
   ierr = MatDenseRestoreArray(matctx->A,&aa);CHKERRQ(ierr);
   ierr = MatDenseRestoreArray(matctx->B,&bb);CHKERRQ(ierr);
   ierr = MatDenseRestoreArray(S,&ss);CHKERRQ(ierr);
+#endif
+  matctx->lme = lme;
+  matctx->S = S;
+  matctx->n = n;
+  ierr = VecSet(*v0,1.0);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -394,11 +442,11 @@ PetscErrorCode EPSSolve_LyapII(EPS eps)
     ierr = DSSetDimensions(ctx->ds,rk,rk,0,0);CHKERRQ(ierr);
     ierr = DSGetMat(ctx->ds,DS_MAT_A,&W);CHKERRQ(ierr);
     ierr = BVMatProject(V,S,V,W);CHKERRQ(ierr);
-    ierr = LyapIIBuildEigenMat(W,&Op,&v0);CHKERRQ(ierr); /* Op=A\B, A=kron(I,S)+kron(S,I), B=-2*kron(S,S) */
-    ierr = MatDestroy(&W);CHKERRQ(ierr);
+    ierr = LyapIIBuildEigenMat(ctx->lme,W,&Op,&v0);CHKERRQ(ierr); /* Op=A\B, A=kron(I,S)+kron(S,I), B=-2*kron(S,S) */
     ierr = EPSSetOperators(epsrr,Op,NULL);CHKERRQ(ierr);
     ierr = EPSSetInitialSpace(epsrr,1,&v0);CHKERRQ(ierr);
     ierr = EPSSolve(epsrr);CHKERRQ(ierr);
+    ierr = MatDestroy(&W);CHKERRQ(ierr);
     ierr = EPSComputeVectors(epsrr);CHKERRQ(ierr);
     /* Copy first eigenvector, vec(A)=x */
     ierr = BVGetArray(epsrr->V,&xx);CHKERRQ(ierr);
