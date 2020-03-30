@@ -16,10 +16,10 @@ Lyapunov equation, N=100 (10x10 grid)
  Tolerance: -2., max iterations: 100
  Subspace dimension: 21
  Erroring out if convergence fails
-[0] LMEDenseLyapunovChol(): Residual norm of dense Lyapunov equation = (removed)
-[0] LMEDenseLyapunovChol(): Residual norm of dense Lyapunov equation = (removed)
-[0] LMEDenseLyapunovChol(): Residual norm of dense Lyapunov equation = (removed)
-[0] LMEDenseLyapunovChol(): Residual norm of dense Lyapunov equation = (removed)
+[0] LMEDenseHessLyapunovChol(): Residual norm of dense Lyapunov equation = (removed)
+[0] LMEDenseHessLyapunovChol(): Residual norm of dense Lyapunov equation = (removed)
+[0] LMEDenseHessLyapunovChol(): Residual norm of dense Lyapunov equation = (removed)
+[0] LMEDenseHessLyapunovChol(): Residual norm of dense Lyapunov equation = (removed)
  Error estimate reported by the solver: 2.948e-10
 [0] VecScatterCreate_SF(): Using StarForest for vector scatter
 [0] VecScatterSetFromOptions(): For GPU vectors, pack needed entries on GPU, then copy packed data to CPU, then do MPI

@@ -114,7 +114,8 @@ PetscErrorCode LMESolve_Krylov_Lyapunov_Vec(LME lme,Vec b,PetscBool fixed,PetscI
         ierr = PetscCalloc1(n,&r);CHKERRQ(ierr);
         ierr = PetscCalloc1(n*n,&L);CHKERRQ(ierr);
         r[0] = bnorm;
-        ierr = LMEDenseLyapunovChol(lme,n,G,ldg,r,L,n,&errest);CHKERRQ(ierr);
+        errest = PetscAbsScalar(G[n+(n-1)*ldg]);
+        ierr = LMEDenseHessLyapunovChol(lme,n,G,ldg,1,r,n,L,n,&errest);CHKERRQ(ierr);
         ierr = LMEMonitor(lme,*totalits+its,errest);CHKERRQ(ierr);
         ierr = PetscFree(r);CHKERRQ(ierr);
 

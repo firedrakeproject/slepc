@@ -94,7 +94,7 @@ SLEPC_EXTERN PetscErrorCode LMEComputeError(LME,PetscReal*);
 SLEPC_EXTERN PetscErrorCode LMESetErrorIfNotConverged(LME,PetscBool);
 SLEPC_EXTERN PetscErrorCode LMEGetErrorIfNotConverged(LME,PetscBool*);
 
-SLEPC_EXTERN PetscErrorCode LMEDenseLyapunovChol(LME,PetscInt,PetscScalar*,PetscInt,PetscScalar*,PetscScalar*,PetscInt,PetscReal*);
+SLEPC_EXTERN PetscErrorCode LMEDenseHessLyapunovChol(LME,PetscInt,PetscScalar*,PetscInt,PetscInt,PetscScalar*,PetscInt,PetscScalar*,PetscInt,PetscReal*);
 
 SLEPC_EXTERN PetscErrorCode LMEMonitorDefault(LME,PetscInt,PetscReal,PetscViewerAndFormat*);
 SLEPC_EXTERN PetscErrorCode LMEMonitorLGCreate(MPI_Comm,const char[],const char[],int,int,int,int,PetscDrawLG*);
