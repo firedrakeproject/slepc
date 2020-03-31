@@ -56,7 +56,7 @@ int main(int argc,char **argv)
        - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
     ierr = PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL);CHKERRQ(ierr);
     ierr = PetscPrintf(PETSC_COMM_WORLD,"\nBrusselator wave model, n=%D\n\n",n);CHKERRQ(ierr);
-  
+
     alpha  = 2.0;
     beta   = 5.45;
     delta1 = 0.008;
