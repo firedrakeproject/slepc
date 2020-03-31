@@ -348,6 +348,7 @@ Ring                   & \texttt{RGRING}     & \texttt{ring} \\\hline
 \item[\texttt{pep}] - polynomial eigenvalue problem solver.
 \item[\texttt{nep}] - nonlinear eigenvalue problem solver.
 \item[\texttt{mfn}] - matrix function.
+\item[\texttt{lme}] - linear matrix equations.
 \end{description}
 \item[\texttt{\$PETSC\_ARCH}] - For each value of \ident{PETSC\_ARCH}, a directory exists containing files generated during installation of that particular configuration. The following subdirectories exist:
 \begin{description}
@@ -362,12 +363,8 @@ Each \slepc source code component directory has the following subdirectories:
 \begin{description}
 \item[\texttt{interface}] - The calling sequences for the abstract interface to the components. Code here does not know about particular implementations.
 \item[\texttt{impls}] - Source code for the different implementations.
-\item[\texttt{examples}] - Example programs, classified in:
-\begin{description}
-\setlength{\itemsep}{0mm}
-\item[\texttt{tutorials}] - examples intended for learning to use \slepc.
-\item[\texttt{tests}] - examples used by testing scripts.
-\end{description}
+\item[\texttt{tutorials}] - Example programs intended for learning to use \slepc.
+\item[\texttt{tests}] - Example programs used by testing scripts.
 \end{description}
 
 %---------------------------------------------------
