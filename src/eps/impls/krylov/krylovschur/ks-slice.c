@@ -339,7 +339,7 @@ static PetscErrorCode EPSSliceGetInertia(EPS eps,PetscReal shift,PetscInt *inert
     ierr = PCFactorGetMatrix(pc,&F);CHKERRQ(ierr);
     ierr = MatGetInertia(F,inertia,zeros,NULL);CHKERRQ(ierr);
   }
-  ierr = PetscInfo2(eps,"Computed inertia at shift %g: %D\n",(double)nzshift,*inertia);CHKERRQ(ierr);
+  if (inertia) { ierr = PetscInfo2(eps,"Computed inertia at shift %g: %D\n",(double)nzshift,*inertia);CHKERRQ(ierr); }
   PetscFunctionReturn(0);
 }
 

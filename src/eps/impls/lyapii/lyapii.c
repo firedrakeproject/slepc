@@ -269,7 +269,7 @@ static PetscErrorCode LyapIIBuildRHS(Mat S,PetscInt rk,Mat U,BV V,Vec *work)
     } else {
       ierr = VecResetArray(v);CHKERRQ(ierr);
     }
-    ierr = VecScale(u,PetscSqrtReal(2.0));
+    ierr = VecScale(u,PetscSqrtReal(2.0));CHKERRQ(ierr);
     ierr = VecGetArray(u,&uu);CHKERRQ(ierr);
     ierr = PetscMemcpy(array,uu,nloc*sizeof(PetscScalar));CHKERRQ(ierr);
     ierr = VecRestoreArray(u,&uu);CHKERRQ(ierr);
@@ -512,7 +512,7 @@ PetscErrorCode EPSSolve_LyapII(EPS eps)
       ierr = BVGetColumn(V,1,&w);CHKERRQ(ierr);
     } else w = NULL;
     eps->eigr[eps->nconv] = eigr[0]; eps->eigi[eps->nconv] = eigi[0];
-    ierr = EPSComputeResidualNorm_Private(eps,PETSC_FALSE,er,ei,v,w,eps->work,&norm);
+    ierr = EPSComputeResidualNorm_Private(eps,PETSC_FALSE,er,ei,v,w,eps->work,&norm);CHKERRQ(ierr);
     ierr = BVRestoreColumn(V,0,&v);CHKERRQ(ierr);
     if (w) {
       ierr = BVRestoreColumn(V,1,&w);CHKERRQ(ierr);
@@ -540,7 +540,7 @@ PetscErrorCode EPSSolve_LyapII(EPS eps)
       if (eps->nconv<eps->nev) {
         ierr = BVSetActiveColumns(matctx->Q,eps->nconv-rk,eps->nconv);CHKERRQ(ierr);
         ierr = BVOrthogonalize(matctx->Q,NULL);CHKERRQ(ierr);
-        rk = 1; idx = 0;
+        idx = 0;
         ierr = BVSetRandomColumn(V,0);CHKERRQ(ierr);
         ierr = BVNormColumn(V,0,NORM_2,&norm);CHKERRQ(ierr);
         ierr = BVScaleColumn(V,0,1.0/norm);CHKERRQ(ierr);
