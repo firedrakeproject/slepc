@@ -49,10 +49,10 @@ PetscErrorCode LMESetUp_Krylov(LME lme)
 PetscErrorCode LMESolve_Krylov_Lyapunov_Vec(LME lme,Vec b,PetscBool fixed,PetscInt rrank,BV C1,BV *X1,PetscInt *col,PetscBool *fail,PetscInt *totalits)
 {
   PetscErrorCode ierr;
-  PetscInt       n=0,m,ldh,ldg=0,j,rank=0,lrank,pass,nouter=0,its;
+  PetscInt       n=0,m,ldh,ldg=0,i,j,rank=0,lrank,pass,nouter=0,its;
   PetscReal      bnorm,beta,errest;
   PetscBool      breakdown;
-  PetscScalar    *H,*G=NULL,*Gnew=NULL,*Gcopy,*L,*U,*r,*Qarray,sone=1.0,zero=0.0;
+  PetscScalar    *H,*G=NULL,*Gnew=NULL,*L,*U,*r,*Qarray,sone=1.0,zero=0.0;
   PetscBLASInt   n_,m_,rk_;
   Mat            Q;
 
@@ -111,19 +111,26 @@ PetscErrorCode LMESolve_Krylov_Lyapunov_Vec(LME lme,Vec b,PetscBool fixed,PetscI
 
       if (pass==0) {
         /* solve compressed Lyapunov equation */
-        ierr = PetscCalloc2(n,&r,ldg*n,&Gcopy);CHKERRQ(ierr);
+        ierr = PetscCalloc1(n,&r);CHKERRQ(ierr);
         ierr = PetscCalloc1(n*n,&L);CHKERRQ(ierr);
         r[0] = bnorm;
-        ierr = PetscArraycpy(Gcopy,G,ldg*n);CHKERRQ(ierr);
-        ierr = LMEDenseLyapunovChol(lme,Gcopy,n,ldg,r,L,n,&errest);CHKERRQ(ierr);
+        errest = PetscAbsScalar(G[n+(n-1)*ldg]);
+        ierr = LMEDenseHessLyapunovChol(lme,n,G,ldg,1,r,n,L,n,&errest);CHKERRQ(ierr);
         ierr = LMEMonitor(lme,*totalits+its,errest);CHKERRQ(ierr);
-        ierr = PetscFree2(r,Gcopy);CHKERRQ(ierr);
+        ierr = PetscFree(r);CHKERRQ(ierr);
 
         /* check convergence */
         if (errest<lme->tol) {
           lme->errest += errest;
           ierr = PetscMalloc1(n*n,&U);CHKERRQ(ierr);
-          ierr = LMERankSVD(lme,n,L,U,&lrank);CHKERRQ(ierr);
+          /* transpose L */
+          for (j=0;j<n;j++) {
+            for (i=j+1;i<n;i++) {
+              L[i+j*n] = PetscConj(L[j+i*n]);
+              L[j+i*n] = 0.0;
+            }
+          }
+          ierr = LMEDenseRankSVD(lme,n,L,n,U,n,&lrank);CHKERRQ(ierr);
           ierr = PetscInfo1(lme,"Rank of the Cholesky factor = %D\n",lrank);CHKERRQ(ierr);
           nouter = its;
           its = -1;

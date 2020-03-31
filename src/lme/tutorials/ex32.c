@@ -8,7 +8,7 @@
    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 */
 
-static char help[] = "Solves a Lypunov equation with the 2-D Laplacian.\n\n"
+static char help[] = "Solves a Lypunov equation with the shifted 2-D Laplacian.\n\n"
   "The command line options are:\n"
   "  -n <n>, where <n> = number of grid subdivisions in x dimension.\n"
   "  -m <m>, where <m> = number of grid subdivisions in y dimension.\n\n";
@@ -22,7 +22,7 @@ int main(int argc,char **argv)
   Mat                X,X1;        /* solution */
   LME                lme;
   PetscReal          tol,errest,error;
-  PetscScalar        *u;
+  PetscScalar        *u,sigma=0.0;
   PetscInt           N,n=10,m,Istart,Iend,II,maxit,its,ncv,i,j,rank=0;
   PetscErrorCode     ierr;
   PetscBool          flag;
@@ -34,6 +34,7 @@ int main(int argc,char **argv)
   ierr = PetscOptionsGetInt(NULL,NULL,"-m",&m,&flag);CHKERRQ(ierr);
   if (!flag) m=n;
   N = n*m;
+  ierr = PetscOptionsGetScalar(NULL,NULL,"-sigma",&sigma,NULL);CHKERRQ(ierr);
   ierr = PetscOptionsGetInt(NULL,NULL,"-rank",&rank,NULL);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD,"\nLyapunov equation, N=%D (%Dx%D grid)\n\n",N,n,m);CHKERRQ(ierr);
 
@@ -52,7 +53,7 @@ int main(int argc,char **argv)
     if (i<m-1) { ierr = MatSetValue(A,II,II+n,1.0,INSERT_VALUES);CHKERRQ(ierr); }
     if (j>0) { ierr = MatSetValue(A,II,II-1,1.0,INSERT_VALUES);CHKERRQ(ierr); }
     if (j<n-1) { ierr = MatSetValue(A,II,II+1,1.0,INSERT_VALUES);CHKERRQ(ierr); }
-    ierr = MatSetValue(A,II,II,-4.0,INSERT_VALUES);CHKERRQ(ierr);
+    ierr = MatSetValue(A,II,II,-4.0-sigma,INSERT_VALUES);CHKERRQ(ierr);
   }
   ierr = MatAssemblyBegin(A,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
   ierr = MatAssemblyEnd(A,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
@@ -155,8 +156,12 @@ int main(int argc,char **argv)
 
   ierr = LMEGetErrorEstimate(lme,&errest);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD," Error estimate reported by the solver: %.4g\n",(double)errest);CHKERRQ(ierr);
-  ierr = LMEComputeError(lme,&error);CHKERRQ(ierr);
-  ierr = PetscPrintf(PETSC_COMM_WORLD," Computed residual norm: %.4g\n\n",(double)error);CHKERRQ(ierr);
+  if (n<=150) {
+    ierr = LMEComputeError(lme,&error);CHKERRQ(ierr);
+    ierr = PetscPrintf(PETSC_COMM_WORLD," Computed residual norm: %.4g\n\n",(double)error);CHKERRQ(ierr);
+  } else {
+    ierr = PetscPrintf(PETSC_COMM_WORLD," Matrix too large to compute residual norm\n\n");CHKERRQ(ierr);
+  }
 
   /*
      Free work space

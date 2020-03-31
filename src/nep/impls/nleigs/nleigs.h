@@ -49,7 +49,7 @@ typedef struct {
   PetscScalar *coeff;
   Mat         *A;
   Vec         t;
-} ShellMatCtx;
+} NEP_NLEIGS_MATSHELL;
 
 PETSC_STATIC_INLINE PetscErrorCode NEPNLEIGSSetShifts(NEP nep,PetscInt *nshiftsw)
 {

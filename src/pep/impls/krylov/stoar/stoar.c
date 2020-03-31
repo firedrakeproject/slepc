@@ -44,12 +44,12 @@ typedef struct {
   PetscReal   scal[2];
   Mat         A[2];
   Vec         t;
-} ShellMatCtx;
+} PEP_STOAR_MATSHELL;
 
 static PetscErrorCode MatMult_STOAR(Mat A,Vec x,Vec y)
 {
-  PetscErrorCode ierr;
-  ShellMatCtx    *ctx;
+  PetscErrorCode     ierr;
+  PEP_STOAR_MATSHELL *ctx;
 
   PetscFunctionBegin;
   ierr = MatShellGetContext(A,&ctx);CHKERRQ(ierr);
@@ -64,8 +64,8 @@ static PetscErrorCode MatMult_STOAR(Mat A,Vec x,Vec y)
 
 static PetscErrorCode MatDestroy_STOAR(Mat A)
 {
-  ShellMatCtx    *ctx;
-  PetscErrorCode ierr;
+  PEP_STOAR_MATSHELL *ctx;
+  PetscErrorCode     ierr;
 
   PetscFunctionBegin;
   ierr = MatShellGetContext(A,(void**)&ctx);CHKERRQ(ierr);
@@ -76,11 +76,11 @@ static PetscErrorCode MatDestroy_STOAR(Mat A)
 
 PetscErrorCode PEPSTOARSetUpInnerMatrix(PEP pep,Mat *B)
 {
-  Mat            pB[4],Bs[3],D[3];
-  PetscInt       i,j,n,m;
-  ShellMatCtx    *ctxMat[3];
-  PEP_STOAR      *ctx=(PEP_STOAR*)pep->data;
-  PetscErrorCode ierr;
+  Mat                pB[4],Bs[3],D[3];
+  PetscInt           i,j,n,m;
+  PEP_STOAR_MATSHELL *ctxMat[3];
+  PEP_STOAR          *ctx=(PEP_STOAR*)pep->data;
+  PetscErrorCode     ierr;
 
   PetscFunctionBegin;
   for (i=0;i<3;i++) {

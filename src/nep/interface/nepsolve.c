@@ -15,6 +15,16 @@
 #include <slepc/private/bvimpl.h>        /*I "slepcbv.h" I*/
 #include <petscdraw.h>
 
+static PetscBool  cited = PETSC_FALSE;
+static const char citation[] =
+  "@Article{slepc-nep,\n"
+  "   author = \"C. Campos and J. E. Roman\",\n"
+  "   title = \"{NEP}: a module for the parallel solution of nonlinear eigenvalue problems in {SLEPc}\",\n"
+  "   journal = \"arXiv:1910.11712\",\n"
+  "   url = \"https://arxiv.org/abs/1910.11712\",\n"
+  "   year = \"2019\"\n"
+  "}\n";
+
 PetscErrorCode NEPComputeVectors(NEP nep)
 {
   PetscErrorCode ierr;
@@ -56,6 +66,7 @@ PetscErrorCode NEPSolve(NEP nep)
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);
   if (nep->state>=NEP_STATE_SOLVED) PetscFunctionReturn(0);
+  ierr = PetscCitationsRegister(citation,&cited);CHKERRQ(ierr);
   ierr = PetscLogEventBegin(NEP_Solve,nep,0,0,0);CHKERRQ(ierr);
 
   /* call setup */

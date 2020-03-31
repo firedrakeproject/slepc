@@ -126,7 +126,7 @@ By default, \texttt{nev}=1 (and some solvers will return only one eigenpair, eve
 \texttt{NEP\_SMALLEST\_IMAGINARY}  & \texttt{-nep\_smallest\_imaginary} & Smallest $\mathrm{Im}(\lambda)$ \\\hline
 \texttt{NEP\_TARGET\_MAGNITUDE}    & \texttt{-nep\_target\_magnitude}   & Smallest $|\lambda-\tau|$ \\
 \texttt{NEP\_TARGET\_REAL}         & \texttt{-nep\_target\_real}        & Smallest $|\mathrm{Re}(\lambda-\tau)|$ \\
-\texttt{NEP\_TARGET\_IMAGINARY}    & \texttt{-nep\_target\_imaginary}   & Smallest $|\mathrm{Im}(\lambda-\tau)|$ \\
+\texttt{NEP\_TARGET\_IMAGINARY}    & \texttt{-nep\_target\_imaginary}   & Smallest $|\mathrm{Im}(\lambda-\tau)|$ \\\hline
 \texttt{NEP\_ALL}                  & \texttt{-nep\_all}                 & All $\lambda\in\Omega$\\\hline
 \end{tabular} }
 \caption{\label{tab:portionn}Available possibilities for selection of the eigenvalues of interest in \ident{NEP}.}
@@ -238,7 +238,7 @@ or via the options database command \Verb!-nep_type! followed by the name of the
                    &                      & {\footnotesize Options}  & {\footnotesize Need}  \\
 Method             & \ident{NEPType}      & {\footnotesize Database} & {\footnotesize $T'(\cdot)$} & {\footnotesize Eigenvalues} & Two-sided \\\hline
 Residual inverse iteration & \texttt{NEPRII}      & \texttt{rii}      & no  & only one\\
-Successive linear problems & \texttt{NEPSLP}      & \texttt{slp}      & yes & only one\\
+Successive linear problems & \texttt{NEPSLP}      & \texttt{slp}      & yes & only one & yes\\
 Nonlinear Arnoldi          & \texttt{NEPNARNOLDI} & \texttt{narnoldi} & no  & only one\\
 Rational Krylov (NLEIGS)   & \texttt{NEPNLEIGS}   & \texttt{nleigs}   & no  & many & yes\\
 Contour integral SS        & \texttt{NEPCISS}     & \texttt{ciss}     & yes & many\\

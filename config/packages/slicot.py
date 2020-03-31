@@ -26,7 +26,7 @@ class Slicot(package.Package):
 
 
   def Check(self,conf,vars,petsc,archdir):
-    functions = ['sb03od']
+    functions = ['sb03od','sb03md']
     if self.packagelibs:
       libs = [self.packagelibs]
     else:

@@ -251,8 +251,8 @@ Finally, we mention the possibility of defining an arbitrary sorting criterion b
 \texttt{EPS\_TARGET\_MAGNITUDE}    & \texttt{-eps\_target\_magnitude}   & Smallest $|\lambda-\tau|$ \\
 \texttt{EPS\_TARGET\_REAL}         & \texttt{-eps\_target\_real}        & Smallest $|\mathrm{Re}(\lambda-\tau)|$ \\
 \texttt{EPS\_TARGET\_IMAGINARY}    & \texttt{-eps\_target\_imaginary}   & Smallest $|\mathrm{Im}(\lambda-\tau)|$ \\
-\texttt{EPS\_ALL}                  & \texttt{-eps\_all}                 & All $\lambda\in[a,b]$ or $\lambda\in\Omega$\\
 \hline
+\texttt{EPS\_ALL}                  & \texttt{-eps\_all}                 & All $\lambda\in[a,b]$ or $\lambda\in\Omega$\\
 \texttt{EPS\_WHICH\_USER}          &                                    & \emph{user-defined} \\\hline
 \end{tabular} }
 \caption{\label{tab:portion}Available possibilities for selection of the eigenvalues of interest.}
@@ -291,6 +291,7 @@ Note that support for left eigenvectors is available only for non-Hermitian prob
 \item RQCG, a basic conjugate gradient iteration for the minimization of the Rayleigh quotient.
 \item LOBPCG, the locally-optimal block preconditioned conjugate gradient.
 \item CISS, a contour-integral solver that allows computing all eigenvalues in a given region.
+\item Lyapunov inverse iteration, to compute rightmost eigenvalues.
 \end{itemize}
 
 \begin{table}
@@ -308,6 +309,7 @@ Jacobi-Davidson            & \texttt{EPSJD}       & \texttt{jd} \\
 Rayleigh quotient CG       & \texttt{EPSRQCG}     & \texttt{rqcg} \\
 LOBPCG                     & \texttt{EPSLOBPCG}   & \texttt{lobpcg} \\
 Contour integral SS        & \texttt{EPSCISS}     & \texttt{ciss} \\
+Lyapunov Inverse Iteration & \texttt{EPSLYAPII}   & \texttt{lyapii} \\
 \hline
 \lapack solver             & \texttt{EPSLAPACK}   & \texttt{lapack} \\
 Wrapper to \arpack         & \texttt{EPSARPACK}   & \texttt{arpack} \\
@@ -346,6 +348,7 @@ Method   &  Portion of spectrum & Problem type & \!Real/complex\! & \!Two-sided\
 \texttt{rqcg}        & Smallest $\mathrm{Re}(\lambda)$ & \Verb!EPS_HEP!, \Verb!EPS_GHEP! & both & \\
 \texttt{lobpcg}      & Smallest $\mathrm{Re}(\lambda)$ & \Verb!EPS_HEP!, \Verb!EPS_GHEP! & both & \\
 \texttt{ciss}        & All $\lambda$ in region & any & both & \\
+\texttt{lyapii}      & Largest $\mathrm{Re}(\lambda)$ & any & both & \\
 \hline
 \texttt{lapack}      & any    & any & both & yes \\
 \texttt{arpack}      & any    & any & both & \\

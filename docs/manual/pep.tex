@@ -148,6 +148,7 @@ where $\phi_i$ are the members of a given polynomial basis, for instance, some k
 \paragraph{Avoiding the Linearization.}
 
 An alternative to linearization is to directly perform a projection of the polynomial eigenproblem. These methods enforce a Galerkin condition on the polynomial residual, $P(\theta)u\perp \mathcal{K}$. Here, the subspace $\mathcal{K}$ can be built in various ways, for instance with the Jacobi-Davidson method. This family of methods need not worry about operating with vectors of dimension $dn$. The downside is that computing more than one eigenvalue is more difficult, since usual deflation strategies cannot be applied.
+For a detailed description of the polynomial Jacobi-Davidson method in \slepc, see \citep{Campos:2020:PJS}.
 
 %---------------------------------------------------
 \section{Basic Usage}
@@ -434,6 +435,8 @@ A command line example is the following:
 \end{Verbatim}
 
 In hyperbolic problems, where eigenvalues form two separate groups of $n$ eigenvalues, it will be necessary to explicitly set the problem type to \texttt{-pep\_hyperbolic} if the interval $[a,b]$ includes eigenvalues from both groups.
+
+Additional details can be found in \citep{Campos:2020:ISS}.
 
 %---------------------------------------------------
 \section{Retrieving the Solution}

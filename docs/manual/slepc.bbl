@@ -16,16 +16,16 @@ Bai, Z., J.~Demmel, J.~Dongarra, A.~Ruhe, and H.~van~der Vorst (eds.) (2000).
   Practical Guide\/}.
 \newblock SIAM, Philadelphia.
 
-\bibitem[{Balay {\em et~al.\/}(2019)Balay, Abhyankar, Adams, Brown, Brune,
+\bibitem[{Balay {\em et~al.\/}(2020)Balay, Abhyankar, Adams, Brown, Brune,
   Buschelman, Dalcin, Eijkhout, Gropp, Karpeyev, Kaushik, Knepley, May,
   McInnes, Mills, Munson, Rupp, Sanan, Smith, Zampini, Zhang, and
-  Zhang}]{Balay:2019:PUM}
+  Zhang}]{Balay:2020:PUM}
 Balay, S., S.~Abhyankar, M.~Adams, J.~Brown, P.~Brune, K.~Buschelman,
   L.~Dalcin, A.~Dener,V.~Eijkhout, W.~Gropp, D.~Karpeyev, D.~Kaushik, M.~Knepley,
   D.~May, L.~C. McInnes, R.~Mills, T.~Munson, K.~Rupp, P.~Sanan, B.~Smith,
-  S.~Zampini, H.~Zhang, and H.~Zhang (2019).
+  S.~Zampini, H.~Zhang, and H.~Zhang (2020).
 \newblock {PETSc} Users Manual.
-\newblock Technical Report ANL-95/11 - Revision 3.12, Argonne National
+\newblock Technical Report ANL-95/11 - Revision 3.13, Argonne National
   Laboratory.
 
 \bibitem[{Balay {\em et~al.\/}(1997)Balay, Gropp, McInnes, and
@@ -67,6 +67,17 @@ Campos, C. and J.~E. Roman (2016{\natexlab{b}}).
 \newblock Parallel {Krylov} solvers for the polynomial eigenvalue problem in
   {SLEPc}.
 \newblock {\em {SIAM} J. Sci. Comput.\/}, 38(5):S385--S411.
+
+\bibitem[{Campos and Roman(2020{\natexlab{a}})}]{Campos:2020:PJS}
+Campos, C. and J.~E. Roman (2020{\natexlab{a}}).
+\newblock A polynomial {Jacobi--Davidson} solver with support for non-monomial
+  bases and deflation.
+\newblock {\em {BIT} Numer. Math.\/}, (in press).
+
+\bibitem[{Campos and Roman(2020{\natexlab{b}})}]{Campos:2020:ISS}
+Campos, C. and J.~E. Roman (2020{\natexlab{b}}).
+\newblock Inertia-based spectrum slicing for symmetric quadratic eigenvalue problems.
+\newblock {\em Numer. Linear Algebra Appl.\/}, (in press).
 
 \bibitem[{Canning {\em et~al.\/}(2000)Canning, Wang, Williamson, and
   Zunger}]{Canning:2000:PEP}

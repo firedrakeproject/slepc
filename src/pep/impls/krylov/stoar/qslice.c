@@ -19,8 +19,8 @@
    References:
 
        [1] C. Campos and J.E. Roman, "Inertia-based spectrum slicing
-           for symmetric quadratic eigenvalue problems", submitted,
-           2019.
+           for symmetric quadratic eigenvalue problems", Numer. Linear
+           Algebra Appl. (in press), 2020.
 */
 
 #include <slepc/private/pepimpl.h>         /*I "slepcpep.h" I*/
@@ -32,12 +32,12 @@ static const char citation[] =
   "@Article{slepc-slice-qep,\n"
   "   author = \"C. Campos and J. E. Roman\",\n"
   "   title = \"Inertia-based spectrum slicing for symmetric quadratic eigenvalue problems\",\n"
-  "   journal = \"Submitted\",\n"
-  "   volume = \"xx\",\n"
+  "   journal = \"Numer. Linear Algebra Appl.\",\n"
+  "   volume = \"IP\",\n"
   "   number = \"x\",\n"
   "   pages = \"xx--xx\",\n"
-  "   year = \"2019,\"\n"
-  "   doi = \"https://doi.org/10.1007/xxx\"\n"
+  "   year = \"2020,\"\n"
+  "   doi = \"https://doi.org/10.1002/nla.2293\"\n"
   "}\n";
 
 #define SLICE_PTOL PETSC_SQRT_MACHINE_EPSILON

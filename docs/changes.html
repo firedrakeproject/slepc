@@ -180,9 +180,11 @@ Changes in Version 3.13</font></b>
 </p>
 
 <ul class=changes>
+  <li> EPS: new solver 'lyapii' (Lyapunov inverse iteration) to compute rightmost eigenvalues.
   <li> NEP: add a two-sided version of SLP.
   <li> configure: the options --with-xxx-flags have been renamed to --with-xxx-lib (see ./configure --help).
-  <li> Interface changes: STGetOperator now has to be used with STRestoreOperator; now the arrays returned by RGPolygonGetVertices() must be freed by the user.
+  <li> New functions: EPSSetLeftInitialSpace(), MFNSolveTranspose().
+  <li> Interface changes: STGetOperator() now has to be used with STRestoreOperator(); now the arrays returned by RGPolygonGetVertices() must be freed by the user.
 </ul>
 
 <p>

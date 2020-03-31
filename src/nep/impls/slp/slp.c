@@ -29,7 +29,7 @@
 typedef struct {
   NEP_EXT_OP extop;
   Vec        w;
-} NEP_SLP_EPS_MSHELL;
+} NEP_SLP_MATSHELL;
 
 PetscErrorCode NEPSetUp_SLP(NEP nep)
 {
@@ -77,8 +77,8 @@ PetscErrorCode NEPSetUp_SLP(NEP nep)
 
 static PetscErrorCode MatMult_SLP(Mat M,Vec x,Vec y)
 {
-  PetscErrorCode     ierr;
-  NEP_SLP_EPS_MSHELL *ctx;
+  PetscErrorCode   ierr;
+  NEP_SLP_MATSHELL *ctx;
 
   PetscFunctionBegin;
   ierr = MatShellGetContext(M,(void**)&ctx);CHKERRQ(ierr);
@@ -89,8 +89,8 @@ static PetscErrorCode MatMult_SLP(Mat M,Vec x,Vec y)
 
 static PetscErrorCode MatDestroy_SLP(Mat M)
 {
-  PetscErrorCode     ierr;
-  NEP_SLP_EPS_MSHELL *ctx;
+  PetscErrorCode   ierr;
+  NEP_SLP_MATSHELL *ctx;
 
   PetscFunctionBegin;
   ierr = MatShellGetContext(M,(void**)&ctx);CHKERRQ(ierr);
@@ -102,8 +102,8 @@ static PetscErrorCode MatDestroy_SLP(Mat M)
 #if defined(PETSC_HAVE_CUDA)
 static PetscErrorCode MatCreateVecs_SLP(Mat M,Vec *left,Vec *right)
 {
-  PetscErrorCode     ierr;
-  NEP_SLP_EPS_MSHELL *ctx;
+  PetscErrorCode   ierr;
+  NEP_SLP_MATSHELL *ctx;
 
   PetscFunctionBegin;
   ierr = MatShellGetContext(M,(void**)&ctx);CHKERRQ(ierr);
@@ -119,11 +119,11 @@ static PetscErrorCode MatCreateVecs_SLP(Mat M,Vec *left,Vec *right)
 
 static PetscErrorCode NEPSLPSetUpLinearEP(NEP nep,NEP_EXT_OP extop,PetscScalar lambda,Vec u,PetscBool ini)
 {
-  PetscErrorCode     ierr;
-  NEP_SLP            *slpctx = (NEP_SLP*)nep->data;
-  Mat                Mshell;
-  PetscInt           nloc,mloc;
-  NEP_SLP_EPS_MSHELL *shellctx;
+  PetscErrorCode   ierr;
+  NEP_SLP          *slpctx = (NEP_SLP*)nep->data;
+  Mat              Mshell;
+  PetscInt         nloc,mloc;
+  NEP_SLP_MATSHELL *shellctx;
 
   PetscFunctionBegin;
   if (ini) {

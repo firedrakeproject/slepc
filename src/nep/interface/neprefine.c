@@ -27,13 +27,13 @@ typedef struct {
   Mat          M1;
   Vec          M2,M3;
   PetscScalar  M4,m3;
-} FSubctx;
+} NEP_REFINE_MATSHELL;
 
 static PetscErrorCode MatMult_FS(Mat M ,Vec x,Vec y)
 {
-  PetscErrorCode ierr;
-  FSubctx        *ctx;
-  PetscScalar    t;
+  PetscErrorCode      ierr;
+  NEP_REFINE_MATSHELL *ctx;
+  PetscScalar         t;
 
   PetscFunctionBegin;
   ierr = MatShellGetContext(M,&ctx);CHKERRQ(ierr);
@@ -192,17 +192,17 @@ static PetscErrorCode NEPSimpleNRefScatterEigenvector(NEP nep,NEPSimpNRefctx *ct
 
 static PetscErrorCode NEPSimpleNRefSetUpSystem(NEP nep,NEPSimpNRefctx *ctx,Mat *A,PetscInt idx,Mat *Mt,Mat *T,Mat *P,PetscBool ini,Vec t,Vec v)
 {
-  PetscErrorCode    ierr;
-  PetscInt          i,st,ml,m0,n0,m1,mg;
-  PetscInt          *dnz,*onz,ncols,*cols2=NULL,*nnz,nt=nep->nt;
-  PetscScalar       zero=0.0,*coeffs,*coeffs2;
-  PetscMPIInt       rank,size;
-  MPI_Comm          comm;
-  const PetscInt    *cols;
-  const PetscScalar *vals,*array;
-  FSubctx           *fctx;
-  Vec               w=ctx->w;
-  Mat               M;
+  PetscErrorCode      ierr;
+  PetscInt            i,st,ml,m0,n0,m1,mg;
+  PetscInt            *dnz,*onz,ncols,*cols2=NULL,*nnz,nt=nep->nt;
+  PetscScalar         zero=0.0,*coeffs,*coeffs2;
+  PetscMPIInt         rank,size;
+  MPI_Comm            comm;
+  const PetscInt      *cols;
+  const PetscScalar   *vals,*array;
+  NEP_REFINE_MATSHELL *fctx;
+  Vec                 w=ctx->w;
+  Mat                 M;
 
   PetscFunctionBegin;
   ierr = PetscMalloc2(nt,&coeffs,nt,&coeffs2);CHKERRQ(ierr);
@@ -367,19 +367,19 @@ static PetscErrorCode NEPSimpleNRefSetUpSystem(NEP nep,NEPSimpNRefctx *ctx,Mat *
 
 PetscErrorCode NEPNewtonRefinementSimple(NEP nep,PetscInt *maxits,PetscReal tol,PetscInt k)
 {
-  PetscErrorCode    ierr;
-  PetscInt          i,n,its,idx=0,*idx_sc,*its_sc,color,*fail_sc;
-  PetscMPIInt       rank,size;
-  Mat               Mt=NULL,T=NULL,P=NULL;
-  MPI_Comm          comm;
-  Vec               r,v,dv,rr=NULL,dvv=NULL,t[2];
-  const PetscScalar *array;
-  PetscScalar       *array2,deig=0.0,tt[2],ttt;
-  PetscReal         norm,error;
-  PetscBool         ini=PETSC_TRUE,sc_pend,solved=PETSC_FALSE;
-  NEPSimpNRefctx    *ctx;
-  FSubctx            *fctx=NULL;
-  KSPConvergedReason reason;
+  PetscErrorCode      ierr;
+  PetscInt            i,n,its,idx=0,*idx_sc,*its_sc,color,*fail_sc;
+  PetscMPIInt         rank,size;
+  Mat                 Mt=NULL,T=NULL,P=NULL;
+  MPI_Comm            comm;
+  Vec                 r,v,dv,rr=NULL,dvv=NULL,t[2];
+  const PetscScalar   *array;
+  PetscScalar         *array2,deig=0.0,tt[2],ttt;
+  PetscReal           norm,error;
+  PetscBool           ini=PETSC_TRUE,sc_pend,solved=PETSC_FALSE;
+  NEPSimpNRefctx      *ctx;
+  NEP_REFINE_MATSHELL *fctx=NULL;
+  KSPConvergedReason  reason;
 
   PetscFunctionBegin;
   ierr = PetscLogEventBegin(NEP_Refine,nep,0,0,0);CHKERRQ(ierr);

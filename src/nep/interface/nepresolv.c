@@ -23,16 +23,16 @@ typedef struct {
   PetscBool        *dots_avail;
   PetscObjectId    vid;
   PetscObjectState vstate;
-} ResolventCtx;
+} NEP_RESOLVENT_MATSHELL;
 
 static PetscErrorCode MatMult_Resolvent(Mat M,Vec v,Vec r)
 {
-  PetscErrorCode ierr;
-  ResolventCtx   *ctx;
-  NEP            nep;
-  PetscInt       i,inside=1;
-  PetscScalar    alpha;
-  Vec            x,y,z,w;
+  PetscErrorCode         ierr;
+  NEP_RESOLVENT_MATSHELL *ctx;
+  NEP                    nep;
+  PetscInt               i,inside=1;
+  PetscScalar            alpha;
+  Vec                    x,y,z,w;
 
   PetscFunctionBegin;
   ierr = MatShellGetContext(M,(void**)&ctx);CHKERRQ(ierr);
@@ -72,8 +72,8 @@ static PetscErrorCode MatMult_Resolvent(Mat M,Vec v,Vec r)
 
 static PetscErrorCode MatDestroy_Resolvent(Mat M)
 {
-  PetscErrorCode ierr;
-  ResolventCtx   *ctx;
+  PetscErrorCode         ierr;
+  NEP_RESOLVENT_MATSHELL *ctx;
 
   PetscFunctionBegin;
   if (M) {
@@ -112,8 +112,8 @@ static PetscErrorCode MatDestroy_Resolvent(Mat M)
 @*/
 PetscErrorCode NEPApplyResolvent(NEP nep,RG rg,PetscScalar omega,Vec v,Vec r)
 {
-  PetscErrorCode ierr;
-  ResolventCtx   *ctx;
+  PetscErrorCode         ierr;
+  NEP_RESOLVENT_MATSHELL *ctx;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(nep,NEP_CLASSID,1);

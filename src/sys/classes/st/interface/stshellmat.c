@@ -21,12 +21,12 @@ typedef struct {
   Vec         z;
   PetscInt    nmat;
   PetscInt    *matIdx;
-} ST_SHELLMAT;
+} ST_MATSHELL;
 
 PetscErrorCode STMatShellShift(Mat A,PetscScalar alpha)
 {
   PetscErrorCode ierr;
-  ST_SHELLMAT    *ctx;
+  ST_MATSHELL    *ctx;
 
   PetscFunctionBegin;
   ierr = MatShellGetContext(A,(void**)&ctx);CHKERRQ(ierr);
@@ -42,7 +42,7 @@ PetscErrorCode STMatShellShift(Mat A,PetscScalar alpha)
 static PetscErrorCode MatMult_Shell(Mat A,Vec x,Vec y)
 {
   PetscErrorCode ierr;
-  ST_SHELLMAT    *ctx;
+  ST_MATSHELL    *ctx;
   ST             st;
   PetscInt       i;
   PetscScalar    t=1.0,c;
@@ -71,7 +71,7 @@ static PetscErrorCode MatMult_Shell(Mat A,Vec x,Vec y)
 static PetscErrorCode MatMultTranspose_Shell(Mat A,Vec x,Vec y)
 {
   PetscErrorCode ierr;
-  ST_SHELLMAT    *ctx;
+  ST_MATSHELL    *ctx;
   ST             st;
   PetscInt       i;
   PetscScalar    t=1.0,c;
@@ -100,7 +100,7 @@ static PetscErrorCode MatMultTranspose_Shell(Mat A,Vec x,Vec y)
 static PetscErrorCode MatGetDiagonal_Shell(Mat A,Vec diag)
 {
   PetscErrorCode ierr;
-  ST_SHELLMAT    *ctx;
+  ST_MATSHELL    *ctx;
   ST             st;
   Vec            diagb;
   PetscInt       i;
@@ -133,7 +133,7 @@ static PetscErrorCode MatGetDiagonal_Shell(Mat A,Vec diag)
 static PetscErrorCode MatDestroy_Shell(Mat A)
 {
   PetscErrorCode ierr;
-  ST_SHELLMAT    *ctx;
+  ST_MATSHELL    *ctx;
 
   PetscFunctionBegin;
   ierr = MatShellGetContext(A,(void**)&ctx);CHKERRQ(ierr);
@@ -149,7 +149,7 @@ PetscErrorCode STMatShellCreate(ST st,PetscScalar alpha,PetscInt nmat,PetscInt *
   PetscErrorCode ierr;
   PetscInt       n,m,N,M,i;
   PetscBool      has=PETSC_FALSE,hasA,hasB;
-  ST_SHELLMAT    *ctx;
+  ST_MATSHELL    *ctx;
 
   PetscFunctionBegin;
   ierr = MatGetSize(st->A[0],&M,&N);CHKERRQ(ierr);
