@@ -240,10 +240,14 @@ deletefortranstubs:
 	-@find . -type d -name ftn-auto | xargs rm -rf
 
 check_output:
-	-@${OMAKE} -f gmakefile.test check_output
+	-@${OMAKE} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} SLEPC_DIR=${SLEPC_DIR} -f gmakefile.test check_output
 
 check_ascii:
 	@ ! git --no-pager grep -l -I -P "[^\x00-\x7F]"
+
+checkbadSource_slepc:
+	-@${OMAKE} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} SLEPC_DIR=${SLEPC_DIR} checkbadSource 2>&1
+	@ exit `grep -c 'files with errors' checkbadSource.out`
 
 # -------------------------------------------------------------------------------
 #
