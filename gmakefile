@@ -2,8 +2,8 @@
 
 include ./lib/slepc/conf/slepc_variables
 
-OBJDIR := ./$(PETSC_ARCH)/obj
-LIBDIR := $(abspath $(PETSC_ARCH)/lib)
+OBJDIR := $(PETSC_ARCH)/obj
+LIBDIR := $(PETSC_ARCH)/lib
 
 pkgs  := sys eps svd pep nep mfn lme
 spkgs := sys,eps,svd,pep,nep,mfn,lme
@@ -22,8 +22,8 @@ libslepc_abi_version := $(SLEPC_VERSION_MAJOR).$(if $(filter $(SLEPC_VERSION_REL
 libslepc_lib_version := $(libslepc_abi_version).$(SLEPC_VERSION_SUBMINOR)
 soname_function = $(call SONAME_FUNCTION,$(1),$(libslepc_abi_version))
 libname_function = $(call SONAME_FUNCTION,$(1),$(libslepc_lib_version))
-basename_all = $(basename $(basename $(basename $(basename $(abspath $(1))))))# arch/lib/libpetsc.so.3.8.0 -> /path/to/arch/lib/libpetsc
-sl_linker_args = $(call SL_LINKER_FUNCTION,$(call basename_all,$@),$(libslepc_abi_version),$(libslepc_lib_version))
+absbasename_all = $(basename $(basename $(basename $(basename $(abspath $(1))))))# arch/lib/libpetsc.so.3.8.0 -> /path/to/arch/lib/libpetsc
+sl_linker_args = $(call SL_LINKER_FUNCTION,$(call absbasename_all,$@),$(libslepc_abi_version),$(libslepc_lib_version))
 
 libslepc_shared  := $(LIBDIR)/libslepc.$(SL_LINKER_SUFFIX)
 libslepc_soname  := $(call soname_function,$(LIBDIR)/libslepc)
@@ -45,18 +45,17 @@ else
   libslepcall_libname := $(libslepc_libname)
   libslepcall_static  := $(libslepc_static)
 endif
-libslepcall := $(if $(filter-out no,$(BUILDSHAREDLIB)),$(libslepcall_shared) $(libslepcall_soname),$(libslepcall_static))
+libslepcall := $(if $(filter-out no,$(BUILDSHAREDLIB)),$(libslepcall_shared),$(libslepcall_static))
 
-generated      := ./$(PETSC_ARCH)/lib/slepc/conf/files
-slepcconf      := ./$(PETSC_ARCH)/include/slepcconf.h
-slepcvariables := ./$(PETSC_ARCH)/lib/slepc/conf/slepcvariables
+generated      := $(PETSC_ARCH)/lib/slepc/conf/files
 
-all : $(generated) $(libslepcall)
+slepc_libs : $(libslepcall)
+.PHONY: slepc_libs
 
 .SECONDEXPANSION:		# to expand $$(@D)/.DIR
 
 # Test framework includes rules and variables relevant to both build and test
-include ./gmakefile.test        # This must be below the all target
+include ./gmakefile.test        # This must be below the slepc_libs target because it includes rules
 
 ifneq ($(INSTALLED_PETSC),)
   PETSC_ARCH_DIR=
@@ -73,7 +72,7 @@ $(generated) : $(slepcconf) $(slepcvariables) $(PETSCCONFIGDIR)/gmakegen.py
 	$(PYTHON) $(PETSCCONFIGDIR)/gmakegen.py --petsc-arch=$(PETSC_ARCH_DIR) --pkg-dir=$(SLEPC_DIR) --pkg-name=slepc --pkg-pkgs=$(spkgs) --pkg-arch=$(PETSC_ARCH)
 
 # Skip including generated files (which triggers rebuilding them) when we're just going to clean anyway.
-ifneq ($(MAKECMDGOALS:clean%=clean),clean)
+ifneq ($(filter-out clean check,$(MAKECMDGOALS:clean%=clean)),)
 include $(generated)
 endif
 

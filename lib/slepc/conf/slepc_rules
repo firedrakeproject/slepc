@@ -176,7 +176,7 @@ ${SLEPC_DIR}/${PETSC_ARCH}/lib/slepc/conf/files:
 	@touch -t 197102020000 ${SLEPC_DIR}/${PETSC_ARCH}/lib/slepc/conf/files
 
 slepc_libs: ${SLEPC_DIR}/${PETSC_ARCH}/lib/slepc/conf/files ./${PETSC_ARCH}/tests/testfiles
-	+@cd ${SLEPC_DIR} && MAKEFLAGS="-j$(MAKE_NP) -l$(MAKE_LOAD) $(MAKEFLAGS)" ${OMAKE_PRINTDIR} -f gmakefile ${MAKE_PAR_OUT_FLG} V=${V}
+	+@cd ${SLEPC_DIR} && MAKEFLAGS="-j$(MAKE_NP) -l$(MAKE_LOAD) $(MAKEFLAGS)" ${OMAKE_PRINTDIR} -f gmakefile ${MAKE_PAR_OUT_FLG} V=${V} slepc_libs
 
 getlinklibs_slepc:
 	-@echo ${SLEPC_LIB}
