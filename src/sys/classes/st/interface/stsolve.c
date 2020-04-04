@@ -277,7 +277,9 @@ PetscErrorCode STGetOperator_Private(ST st,Mat *Op)
   PetscErrorCode ierr;
   PetscInt       m,n,M,N;
 
+  PetscFunctionBegin;
   if (!st->Op) {
+    if (Op) *Op = NULL;
     ierr = MatGetLocalSize(st->A[0],&m,&n);CHKERRQ(ierr);
     ierr = MatGetSize(st->A[0],&M,&N);CHKERRQ(ierr);
     ierr = MatCreateShell(PetscObjectComm((PetscObject)st),m,n,M,N,st,&st->Op);CHKERRQ(ierr);
