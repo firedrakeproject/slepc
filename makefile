@@ -25,9 +25,9 @@ include ${SLEPC_DIR}/lib/slepc/conf/slepc_common
 #
 # Basic targets to build SLEPc library
 all:
-	@${OMAKE} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} SLEPC_DIR=${SLEPC_DIR} chk_petscdir chk_slepcdir | tee ${PETSC_ARCH}/lib/slepc/conf/make.log
+	+@${OMAKE} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} SLEPC_DIR=${SLEPC_DIR} chk_petscdir chk_slepcdir | tee ${PETSC_ARCH}/lib/slepc/conf/make.log
 	@ln -sf ${PETSC_ARCH}/lib/slepc/conf/make.log make.log
-	+@${OMAKE_PRINTDIR} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} SLEPC_DIR=${SLEPC_DIR} all-local 2>&1 | tee -a ${PETSC_ARCH}/lib/slepc/conf/make.log;
+	+@${OMAKE} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} SLEPC_DIR=${SLEPC_DIR} all-local 2>&1 | tee -a ${PETSC_ARCH}/lib/slepc/conf/make.log;
 	@egrep -i "( error | error: |no such file or directory)" ${PETSC_ARCH}/lib/slepc/conf/make.log | tee ./${PETSC_ARCH}/lib/slepc/conf/error.log > /dev/null
 	+@if test -s ./${PETSC_ARCH}/lib/slepc/conf/error.log; then \
            printf ${PETSC_TEXT_HILIGHT}"*******************************ERROR************************************\n" 2>&1 | tee -a ${PETSC_ARCH}/lib/slepc/conf/make.log; \
@@ -94,8 +94,9 @@ info:
 	-@echo "=========================================="
 
 # Simple test examples for checking a correct installation
+check_install: check
 check:
-	-@${OMAKE} PATH="${PETSC_DIR}/${PETSC_ARCH}/lib:${SLEPC_DIR}/${PETSC_ARCH}/lib:${PATH}" PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} SLEPC_DIR=${SLEPC_DIR} check_build 2>&1 | tee ./${PETSC_ARCH}/lib/slepc/conf/check.log
+	-+@${OMAKE} PATH="${PETSC_DIR}/${PETSC_ARCH}/lib:${SLEPC_DIR}/${PETSC_ARCH}/lib:${PATH}" PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} SLEPC_DIR=${SLEPC_DIR} check_build 2>&1 | tee ./${PETSC_ARCH}/lib/slepc/conf/check.log
 check_build:
 	-@echo "Running test examples to verify correct installation"
 	-@echo "Using SLEPC_DIR=${SLEPC_DIR}, PETSC_DIR=${PETSC_DIR} and PETSC_ARCH=${PETSC_ARCH}"
@@ -143,28 +144,6 @@ clean:: allclean
 reconfigure:
 	@unset MAKEFLAGS && ${PYTHON} ${PETSC_ARCH}/lib/slepc/conf/reconfigure-${PETSC_ARCH}.py
 
-#
-# Check if PETSC_DIR variable specified is valid
-#
-chk_petsc_dir:
-	@if [ ! -f ${PETSC_DIR}/include/petscversion.h ]; then \
-          printf ${PETSC_TEXT_HILIGHT}"*************************ERROR**************************************\n"; \
-	  echo "Incorrect PETSC_DIR specified: ${PETSC_DIR}!                             "; \
-	  echo "You need to use / to separate directories, not \\!                       "; \
-	  echo "Aborting build                                                           "; \
-          printf "********************************************************************"${PETSC_TEXT_NORMAL}"\n"; \
-	  false; fi
-#
-# Check if SLEPC_DIR variable specified is valid
-#
-chk_slepc_dir:
-	@if [ ! -f ${SLEPC_DIR}/include/slepcversion.h ]; then \
-          printf ${PETSC_TEXT_HILIGHT}"*************************ERROR**************************************\n"; \
-	  echo "Incorrect SLEPC_DIR specified: ${SLEPC_DIR}!                             "; \
-	  echo "You need to use / to separate directories, not \\!                       "; \
-	  echo "Aborting build                                                           "; \
-          printf "********************************************************************"${PETSC_TEXT_NORMAL}"\n"; \
-	  false; fi
 #
 # Install relevant files in the prefix directory
 #
