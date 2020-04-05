@@ -55,10 +55,14 @@ variables:
   script:
     - export SLEPC_DIR=$PWD
     - cd ..
-    - if [ ! -d petsc ]; then git clone --depth 1 https://gitlab.com/petsc/petsc.git; fi
+    - |
+        if [ $(awk '/define SLEPC_VERSION_RELEASE/{print $3}' $SLEPC_DIR/include/slepcversion.h) == 1 ];
+        then
+          if [ ! -d petsc ]; then git clone --depth 1 --branch maint https://gitlab.com/petsc/petsc.git; fi
+        else
+          if [ ! -d petsc ]; then git clone --depth 1 --branch master https://gitlab.com/petsc/petsc.git; fi
+        fi
     - cd petsc
-    - if [ $(awk '/define SLEPC_VERSION_RELEASE/{print $3}' $SLEPC_DIR/include/slepcversion.h) == 1 ]; then git checkout maint; else git checkout master; fi
-    - git pull
     - export PETSC_DIR=$PWD
     - ${PYTHON} ./configure --with-debugging=0 COPTFLAGS='-O -march=native' CXXOPTFLAGS='-O -march=native' FOPTFLAGS='-O -march=native' ${PETSC_CONFIG_OPTS}
     - make allfortranstubs
@@ -120,10 +124,14 @@ checksource:
   script:
     - export SLEPC_DIR=$PWD
     - cd ..
-    - if [ ! -d petsc ]; then git clone --depth 1 https://gitlab.com/petsc/petsc.git; fi
+    - |
+        if [ $(awk '/define SLEPC_VERSION_RELEASE/{print $3}' $SLEPC_DIR/include/slepcversion.h) == 1 ];
+        then
+          if [ ! -d petsc ]; then git clone --depth 1 --branch maint https://gitlab.com/petsc/petsc.git; fi
+        else
+          if [ ! -d petsc ]; then git clone --depth 1 --branch master https://gitlab.com/petsc/petsc.git; fi
+        fi
     - cd petsc
-    - if [ $(awk '/define SLEPC_VERSION_RELEASE/{print $3}' $SLEPC_DIR/include/slepcversion.h) == 1 ]; then git checkout maint; else git checkout master; fi
-    - git pull
     - export PETSC_DIR=$PWD
     - python3 ./configure --with-mpi=0 --with-fc=0 --with-cxx=0 --download-sowing
     - make allfortranstubs
@@ -150,7 +158,7 @@ checksource:
     - printf "SLEPC_CONFIG_OPTS=${SLEPC_CONFIG_OPTS}\n"
     - export SLEPC_DIR=$PWD
     - cd ..
-    - if [ ! -d petsc ]; then git clone --depth 1 https://gitlab.com/petsc/petsc.git; fi
+    - if [ ! -d petsc ]; then git clone https://gitlab.com/petsc/petsc.git; fi
     - cd petsc
     - if [ $(awk '/define SLEPC_VERSION_RELEASE/{print $3}' $SLEPC_DIR/include/slepcversion.h) == 1 ]; then git checkout maint; else git checkout master; fi
     - git pull
@@ -292,16 +300,6 @@ gnu-c-complex:
     PETSC_CONFIG_OPTS: --with-scalar-type=complex
     SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --with-arpack-dir=/usr/local/opt/ARPACK --with-primme-dir=/usr/local/opt/primme --with-blopex-dir=/usr/local/opt/blopex
 
-gnu-c-single:
-  extends:
-    - .stage-2
-    - .linux_test
-  tags:
-    - linux-debian
-  variables:
-    PETSC_CONFIG_OPTS: --with-precision=single
-    SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --with-arpack-dir=/usr/local/opt/ARPACK
-
 #intel-cxx-mkl:
 #  extends:
 #    - .stage-2
@@ -381,6 +379,36 @@ pgi-c-nompi:
 # The following tests run as part of stage-3.
 #
 
+gnu-cxx-complex:
+  extends:
+    - .stage-3
+    - .linux_test
+  tags:
+    - linux-debian
+  variables:
+    PETSC_CONFIG_OPTS: --with-clanguage=C++ --with-scalar-type=complex
+    SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --with-arpack-dir=/usr/local/opt/ARPACK --with-primme-dir=/usr/local/opt/primme --with-blopex-dir=/usr/local/opt/blopex
+
+gnu-cxx-int64:
+  extends:
+    - .stage-3
+    - .linux_test
+  tags:
+    - linux-debian
+  variables:
+    PETSC_CONFIG_OPTS: --with-clanguage=C++ --with-64-bit-indices=1
+    SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --with-primme-dir=/usr/local/opt/primme
+
+gnu-c-single:
+  extends:
+    - .stage-3
+    - .linux_test
+  tags:
+    - linux-debian
+  variables:
+    PETSC_CONFIG_OPTS: --with-precision=single
+    SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --with-arpack-dir=/usr/local/opt/ARPACK
+
 gnu-c:
   extends:
     - .stage-3
@@ -419,26 +447,6 @@ gnu-c-debug:
 #  variables:
 #    PETSC_CONFIG_OPTS: --with-mpi=0
 #    SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --with-arpack-dir=/usr/local/opt/ARPACK --with-primme-dir=/usr/local/opt/primme --download-blopex --with-trlan-dir=/usr/local/opt/trlan-201009
-
-gnu-cxx-complex:
-  extends:
-    - .stage-3
-    - .linux_test
-  tags:
-    - linux-debian
-  variables:
-    PETSC_CONFIG_OPTS: --with-clanguage=C++ --with-scalar-type=complex
-    SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --with-arpack-dir=/usr/local/opt/ARPACK --with-primme-dir=/usr/local/opt/primme --with-blopex-dir=/usr/local/opt/blopex
-
-gnu-cxx-int64:
-  extends:
-    - .stage-3
-    - .linux_test
-  tags:
-    - linux-debian
-  variables:
-    PETSC_CONFIG_OPTS: --with-clanguage=C++ --with-64-bit-indices=1
-    SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --with-primme-dir=/usr/local/opt/primme
 
 #
 

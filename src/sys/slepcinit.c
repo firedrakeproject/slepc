@@ -89,7 +89,6 @@ static PetscErrorCode SlepcPrintVersion(MPI_Comm comm)
 
   PetscFunctionBegin;
   ierr = SlepcGetVersion(version,256);CHKERRQ(ierr);
-  ierr = (*PetscHelpPrintf)(comm,"--------------------------------------------------------------------------\n");CHKERRQ(ierr);
   ierr = (*PetscHelpPrintf)(comm,"%s\n",version);CHKERRQ(ierr);
   ierr = (*PetscHelpPrintf)(comm,SLEPC_AUTHOR_INFO);CHKERRQ(ierr);
   ierr = (*PetscHelpPrintf)(comm,"See docs/manual.html for help.\n");CHKERRQ(ierr);
@@ -109,7 +108,7 @@ static PetscErrorCode SlepcPrintHelpIntro(MPI_Comm comm)
   PetscFunctionBegin;
   ierr = (*PetscHelpPrintf)(comm,"SLEPc help information includes that for the PETSc libraries, which provide\n");CHKERRQ(ierr);
   ierr = (*PetscHelpPrintf)(comm,"low-level system infrastructure and linear algebra tools.\n");CHKERRQ(ierr);
-  ierr = (*PetscHelpPrintf)(comm,"--------------------------------------------------------------------------\n");CHKERRQ(ierr);
+  ierr = (*PetscHelpPrintf)(comm,"----------------------------------------\n");CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
