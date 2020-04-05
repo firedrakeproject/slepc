@@ -39,7 +39,7 @@ ST Object: 1 MPI processes
     type: bjacobi
     PC has not been set up so information may be incomplete
       number of blocks = -1
-      Local solve is same for all blocks, in the following KSP and PC objects:
+      Local solver is the same for all blocks, as in the following KSP and PC objects on rank 0:
 EPS Object: 1 MPI processes
   type: gd
     search subspace is orthogonalized
@@ -77,7 +77,7 @@ ST Object: 1 MPI processes
   PC Object: (st_) 1 MPI processes
     type: bjacobi
       number of blocks = 1
-      Local solve is same for all blocks, in the following KSP and PC objects:
+      Local solver is the same for all blocks, as in the following KSP and PC objects on rank 0:
       KSP Object: (st_sub_) 1 MPI processes
         type: preonly
         maximum iterations=10000, initial guess is zero
