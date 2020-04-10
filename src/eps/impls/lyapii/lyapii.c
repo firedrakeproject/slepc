@@ -118,17 +118,6 @@ static PetscErrorCode MatDestroy_EPSLyapIIOperator(Mat M)
   PetscFunctionReturn(0);
 }
 
-static PetscErrorCode MatCreateVecs_EPSLyapIIOperator(Mat M,Vec *right,Vec *left)
-{
-  PetscErrorCode      ierr;
-  EPS_LYAPII_MATSHELL *matctx;
-
-  PetscFunctionBegin;
-  ierr = MatShellGetContext(M,(void**)&matctx);CHKERRQ(ierr);
-  ierr = MatCreateVecs(matctx->S,right,left);CHKERRQ(ierr);
-  PetscFunctionReturn(0);
-}
-
 static PetscErrorCode MatMult_EigOperator(Mat M,Vec x,Vec y)
 {
   PetscErrorCode    ierr;
@@ -371,7 +360,6 @@ PetscErrorCode EPSSolve_LyapII(EPS eps)
   ierr = BVDuplicateResize(eps->V,eps->nev+1,&matctx->Q);CHKERRQ(ierr);
   ierr = MatShellSetOperation(S,MATOP_MULT,(void(*)(void))MatMult_EPSLyapIIOperator);CHKERRQ(ierr);
   ierr = MatShellSetOperation(S,MATOP_DESTROY,(void(*)(void))MatDestroy_EPSLyapIIOperator);CHKERRQ(ierr);
-  ierr = MatShellSetOperation(S,MATOP_CREATE_VECS,(void(*)(void))MatCreateVecs_EPSLyapIIOperator);CHKERRQ(ierr);
   ierr = LMESetCoefficients(ctx->lme,S,NULL,NULL,NULL);CHKERRQ(ierr);
 
   /* Right-hand side */
