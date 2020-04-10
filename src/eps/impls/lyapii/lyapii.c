@@ -47,7 +47,7 @@ typedef struct {
   PetscInt n;        /* the size of matrix S, the operator is nxn */
   LME      lme;      /* dummy LME object */
 #if defined(PETSC_USE_COMPLEX)
-  Mat      A,B;
+  Mat      A,B,F;
   Vec      w;
 #endif
 } EPS_EIG_MATSHELL;
@@ -133,11 +133,8 @@ static PetscErrorCode MatMult_EigOperator(Mat M,Vec x,Vec y)
 {
   PetscErrorCode    ierr;
   EPS_EIG_MATSHELL  *matctx;
+#if !defined(PETSC_USE_COMPLEX)
   PetscInt          n;
-#if defined(PETSC_USE_COMPLEX)
-  Mat               F;
-  IS                perm;
-#else
   PetscScalar       *S,*Y,*C,zero=0.0,done=1.0,dtwo=2.0;
   const PetscScalar *X;
   PetscBLASInt      n_;
@@ -148,13 +145,7 @@ static PetscErrorCode MatMult_EigOperator(Mat M,Vec x,Vec y)
 
 #if defined(PETSC_USE_COMPLEX)
   ierr = MatMult(matctx->B,x,matctx->w);CHKERRQ(ierr);
-  ierr = MatGetSize(matctx->A,&n,NULL);CHKERRQ(ierr);
-  ierr = ISCreateStride(PETSC_COMM_SELF,n,0,1,&perm);CHKERRQ(ierr);
-  ierr = MatDuplicate(matctx->A,MAT_COPY_VALUES,&F);CHKERRQ(ierr);
-  ierr = MatLUFactor(F,perm,perm,0);CHKERRQ(ierr);
-  ierr = MatSolve(F,matctx->w,y);CHKERRQ(ierr);
-  ierr = MatDestroy(&F);CHKERRQ(ierr);
-  ierr = ISDestroy(&perm);CHKERRQ(ierr);
+  ierr = MatSolve(matctx->F,matctx->w,y);CHKERRQ(ierr);
 #else
   ierr = VecGetArrayRead(x,&X);CHKERRQ(ierr);
   ierr = VecGetArray(y,&Y);CHKERRQ(ierr);
@@ -189,6 +180,7 @@ static PetscErrorCode MatDestroy_EigOperator(Mat M)
 #if defined(PETSC_USE_COMPLEX)
   ierr = MatDestroy(&matctx->A);CHKERRQ(ierr);
   ierr = MatDestroy(&matctx->B);CHKERRQ(ierr);
+  ierr = MatDestroy(&matctx->F);CHKERRQ(ierr);
   ierr = VecDestroy(&matctx->w);CHKERRQ(ierr);
 #endif
   ierr = PetscFree(matctx);CHKERRQ(ierr);
@@ -292,6 +284,7 @@ static PetscErrorCode LyapIIBuildEigenMat(LME lme,Mat S,Mat *Op,Vec *v0)
 #if defined(PETSC_USE_COMPLEX)
   PetscScalar      theta,*aa,*bb,*ss;
   PetscInt         i,j,f,c,off,ld;
+  IS               perm;
 #endif
 
   PetscFunctionBegin;
@@ -338,6 +331,11 @@ static PetscErrorCode LyapIIBuildEigenMat(LME lme,Mat S,Mat *Op,Vec *v0)
   ierr = MatDenseRestoreArray(matctx->A,&aa);CHKERRQ(ierr);
   ierr = MatDenseRestoreArray(matctx->B,&bb);CHKERRQ(ierr);
   ierr = MatDenseRestoreArray(S,&ss);CHKERRQ(ierr);
+  ierr = ISCreateStride(PETSC_COMM_SELF,n*n,0,1,&perm);CHKERRQ(ierr);
+  ierr = MatDestroy(&matctx->F);CHKERRQ(ierr);
+  ierr = MatDuplicate(matctx->A,MAT_COPY_VALUES,&matctx->F);CHKERRQ(ierr);
+  ierr = MatLUFactor(matctx->F,perm,perm,0);CHKERRQ(ierr);
+  ierr = ISDestroy(&perm);CHKERRQ(ierr);
 #endif
   matctx->lme = lme;
   matctx->S = S;
