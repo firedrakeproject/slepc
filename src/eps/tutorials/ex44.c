@@ -136,10 +136,15 @@ int main(int argc,char **argv)
 
 /*TEST
 
-   test:
-      suffix: 1
+   testset:
       args: -eps_nev 6 -shift 0.1 -eps_type {{krylovschur lyapii}} -terse
       requires: double
       filter: grep -v method | sed -e "s/-0.09981-2.13938i, -0.09981+2.13938i/-0.09981+2.13938i, -0.09981-2.13938i/" | sed -e "s/-0.77192-2.52712i, -0.77192+2.52712i/-0.77192+2.52712i, -0.77192-2.52712i/" | sed -e "s/-1.88445-3.02666i, -1.88445+3.02666i/-1.88445+3.02666i, -1.88445-3.02666i/"
+      output_file: output/ex44_1.out
+      test:
+         suffix: 1
+      test:
+         suffix: 2
+         args: -eps_lyapii_ranks 8,20 -options_left no
 
 TEST*/
