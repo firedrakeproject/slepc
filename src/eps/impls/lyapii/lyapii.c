@@ -88,6 +88,9 @@ PetscErrorCode EPSSetUp_LyapII(EPS eps)
   }
   ierr = DSAllocate(ctx->ds,ctx->rkl);CHKERRQ(ierr);
 
+  ierr = DSSetType(eps->ds,DSNHEP);CHKERRQ(ierr);
+  ierr = DSAllocate(eps->ds,eps->ncv);CHKERRQ(ierr);
+
   ierr = EPSAllocateSolution(eps,0);CHKERRQ(ierr);
   ierr = EPSSetWorkVecs(eps,3);CHKERRQ(ierr);
   PetscFunctionReturn(0);
@@ -113,7 +116,6 @@ static PetscErrorCode MatDestroy_EPSLyapIIOperator(Mat M)
   PetscFunctionBegin;
   ierr = MatShellGetContext(M,(void**)&matctx);CHKERRQ(ierr);
   ierr = MatDestroy(&matctx->S);CHKERRQ(ierr);
-  ierr = BVDestroy(&matctx->Q);CHKERRQ(ierr);
   ierr = PetscFree(matctx);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
@@ -357,7 +359,7 @@ PetscErrorCode EPSSolve_LyapII(EPS eps)
   ierr = STGetOperator(eps->st,&matctx->S);CHKERRQ(ierr);
   ierr = MatGetLocalSize(matctx->S,&mloc,&nloc);CHKERRQ(ierr);
   ierr = MatCreateShell(PetscObjectComm((PetscObject)eps),mloc,nloc,PETSC_DETERMINE,PETSC_DETERMINE,matctx,&S);CHKERRQ(ierr);
-  ierr = BVDuplicateResize(eps->V,eps->nev+1,&matctx->Q);CHKERRQ(ierr);
+  matctx->Q = eps->V;
   ierr = MatShellSetOperation(S,MATOP_MULT,(void(*)(void))MatMult_EPSLyapIIOperator);CHKERRQ(ierr);
   ierr = MatShellSetOperation(S,MATOP_DESTROY,(void(*)(void))MatDestroy_EPSLyapIIOperator);CHKERRQ(ierr);
   ierr = LMESetCoefficients(ctx->lme,S,NULL,NULL,NULL);CHKERRQ(ierr);
@@ -376,6 +378,7 @@ PetscErrorCode EPSSolve_LyapII(EPS eps)
   ierr = BVGetColumn(eps->V,0,&v);CHKERRQ(ierr);
   ierr = BVInsertVec(V,0,v);CHKERRQ(ierr);
   ierr = BVRestoreColumn(eps->V,0,&v);CHKERRQ(ierr);
+  ierr = BVSetActiveColumns(eps->V,0,0);CHKERRQ(ierr);  /* no deflation at the beginning */
   ierr = LyapIIBuildRHS(S,1,Ux[0],V,eps->work);CHKERRQ(ierr);
   idx = 0;
 
@@ -517,13 +520,16 @@ PetscErrorCode EPSSolve_LyapII(EPS eps)
       for (i=0;i<k;i++) {
         ierr = BVGetColumn(V,i,&v);CHKERRQ(ierr);
         ierr = BVInsertVec(eps->V,eps->nconv+i,v);CHKERRQ(ierr);
-        ierr = BVInsertVec(matctx->Q,eps->nconv+i,v);CHKERRQ(ierr);
         ierr = BVRestoreColumn(V,i,&v);CHKERRQ(ierr);
       }
       eps->nconv += k;
+      ierr = BVSetActiveColumns(eps->V,eps->nconv-rk,eps->nconv);CHKERRQ(ierr);
+      ierr = BVOrthogonalize(eps->V,NULL);CHKERRQ(ierr);
+      ierr = DSSetDimensions(eps->ds,eps->nconv,0,0,0);CHKERRQ(ierr);
+      ierr = DSGetMat(eps->ds,DS_MAT_A,&W);CHKERRQ(ierr);
+      ierr = BVMatProject(eps->V,matctx->S,eps->V,W);CHKERRQ(ierr);
+      ierr = DSRestoreMat(eps->ds,DS_MAT_A,&W);CHKERRQ(ierr);
       if (eps->nconv<eps->nev) {
-        ierr = BVSetActiveColumns(matctx->Q,eps->nconv-rk,eps->nconv);CHKERRQ(ierr);
-        ierr = BVOrthogonalize(matctx->Q,NULL);CHKERRQ(ierr);
         idx = 0;
         ierr = BVSetRandomColumn(V,0);CHKERRQ(ierr);
         ierr = BVNormColumn(V,0,NORM_2,&norm);CHKERRQ(ierr);
@@ -812,6 +818,8 @@ PETSC_EXTERN PetscErrorCode EPSCreate_LyapII(EPS eps)
   ierr = PetscNewLog(eps,&ctx);CHKERRQ(ierr);
   eps->data = (void*)ctx;
 
+  eps->useds = PETSC_TRUE;
+
   eps->ops->solve          = EPSSolve_LyapII;
   eps->ops->setup          = EPSSetUp_LyapII;
   eps->ops->setfromoptions = EPSSetFromOptions_LyapII;
@@ -820,6 +828,7 @@ PETSC_EXTERN PetscErrorCode EPSCreate_LyapII(EPS eps)
   eps->ops->view           = EPSView_LyapII;
   eps->ops->setdefaultst   = EPSSetDefaultST_LyapII;
   eps->ops->backtransform  = EPSBackTransform_Default;
+  eps->ops->computevectors = EPSComputeVectors_Schur;
 
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSLyapIISetLME_C",EPSLyapIISetLME_LyapII);CHKERRQ(ierr);
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSLyapIIGetLME_C",EPSLyapIIGetLME_LyapII);CHKERRQ(ierr);
