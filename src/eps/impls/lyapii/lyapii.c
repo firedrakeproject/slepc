@@ -343,7 +343,7 @@ PetscErrorCode EPSSolve_LyapII(EPS eps)
   BV                  V;
   BVOrthogType        type;
   BVOrthogRefineType  refine;
-  PetscScalar         *eigr,*eigi,*array,er,ei,*uu,*pV,*s,*xx,*aa,pM[4],vec[4];
+  PetscScalar         eigr[2],eigi[2],*array,er,ei,*uu,*s,*xx,*aa,pM[4],vec[4];
   PetscReal           eta;
   EPS                 epsrr;
   PetscReal           norm;
@@ -369,7 +369,7 @@ PetscErrorCode EPSSolve_LyapII(EPS eps)
   ierr = MatCreateDense(PetscObjectComm((PetscObject)eps),eps->nloc,PETSC_DECIDE,PETSC_DECIDE,1,NULL,&Ux[0]);CHKERRQ(ierr);
   ierr = MatCreateDense(PetscObjectComm((PetscObject)eps),eps->nloc,PETSC_DECIDE,PETSC_DECIDE,2,NULL,&Ux[1]);CHKERRQ(ierr);
   nv = ctx->rkl;
-  ierr = PetscMalloc3(nv,&s,nv*nv,&eigr,nv*nv,&eigi);CHKERRQ(ierr);
+  ierr = PetscMalloc1(nv,&s);CHKERRQ(ierr);
 
   /* Initialize first column */
   ierr = EPSGetStartVector(eps,0,NULL);CHKERRQ(ierr);
@@ -390,11 +390,10 @@ PetscErrorCode EPSSolve_LyapII(EPS eps)
     eps->its++;
 
     /* Matrix for placing the solution of the Lyapunov equation (an alias of V) */
-    ierr = BVGetArray(V,&pV);CHKERRQ(ierr);
-    ierr = PetscMemzero(pV,nv*eps->nloc*sizeof(PetscScalar));CHKERRQ(ierr);
-    ierr = MatCreateDense(PetscObjectComm((PetscObject)eps),eps->nloc,PETSC_DECIDE,PETSC_DECIDE,nv,pV,&Y1);CHKERRQ(ierr);
+    ierr = BVSetActiveColumns(V,0,nv);CHKERRQ(ierr);
+    ierr = BVGetMat(V,&Y1);CHKERRQ(ierr);
+    ierr = MatZeroEntries(Y1);CHKERRQ(ierr);
     ierr = MatCreateLRC(NULL,Y1,NULL,NULL,&Y);CHKERRQ(ierr);
-    ierr = MatDestroy(&Y1);CHKERRQ(ierr);
     ierr = LMESetSolution(ctx->lme,Y);CHKERRQ(ierr);
 
     /* Solve the Lyapunov equation SY + YS' = -2*S*Z*S' */
@@ -402,13 +401,12 @@ PetscErrorCode EPSSolve_LyapII(EPS eps)
     ierr = LMESetRHS(ctx->lme,C);CHKERRQ(ierr);
     ierr = MatDestroy(&C);CHKERRQ(ierr);
     ierr = LMESolve(ctx->lme);CHKERRQ(ierr);
-    ierr = BVRestoreArray(V,&pV);CHKERRQ(ierr);
+    ierr = BVRestoreMat(V,&Y1);CHKERRQ(ierr);
     ierr = MatDestroy(&Y);CHKERRQ(ierr);
 
     /* SVD of the solution: [Q,R]=qr(V); [U,Sigma,~]=svd(R) */
     ierr = DSSetDimensions(ctx->ds,nv,nv,0,0);CHKERRQ(ierr);
     ierr = DSGetMat(ctx->ds,DS_MAT_A,&R);CHKERRQ(ierr);
-    ierr = BVSetActiveColumns(V,0,nv);CHKERRQ(ierr);
     ierr = BVOrthogonalize(V,R);CHKERRQ(ierr);
     ierr = DSRestoreMat(ctx->ds,DS_MAT_A,&R);CHKERRQ(ierr);
     ierr = DSSetState(ctx->ds,DS_STATE_RAW);CHKERRQ(ierr);
@@ -547,7 +545,7 @@ PetscErrorCode EPSSolve_LyapII(EPS eps)
   ierr = VecDestroy(&v0);CHKERRQ(ierr);
   ierr = BVDestroy(&V);CHKERRQ(ierr);
   ierr = EPSDestroy(&epsrr);CHKERRQ(ierr);
-  ierr = PetscFree3(s,eigr,eigi);CHKERRQ(ierr);
+  ierr = PetscFree(s);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
