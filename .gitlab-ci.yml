@@ -54,6 +54,7 @@ variables:
     - echo PETSC_CONFIG_OPTS=${PETSC_CONFIG_OPTS}
   script:
     - export SLEPC_DIR=$PWD
+    - echo -e "section_start:`date +%s`:build_petsc\r\e[0KPETSc configure and make"
     - cd ..
     - |
         if [ $(awk '/define SLEPC_VERSION_RELEASE/{print $3}' $SLEPC_DIR/include/slepcversion.h) == 1 ];
@@ -67,11 +68,16 @@ variables:
     - ${PYTHON} ./configure --with-debugging=0 COPTFLAGS='-O -march=native' CXXOPTFLAGS='-O -march=native' FOPTFLAGS='-O -march=native' ${PETSC_CONFIG_OPTS}
     - make allfortranstubs
     - make CFLAGS=-Werror CXXFLAGS=-Werror FFLAGS=-Werror
+    - echo -e "section_end:`date +%s`:build_petsc\r\e[0K"
+    - echo -e "section_start:`date +%s`:build_slepc\r\e[0KSLEPc configure and make"
     - export PETSC_ARCH=`ls -d arch-*`
     - cd $SLEPC_DIR
     - ${PYTHON} ./configure
     - make CFLAGS=-Werror CXXFLAGS=-Werror FFLAGS=-Werror
+    - echo -e "section_end:`date +%s`:build_slepc\r\e[0K"
+    - echo -e "section_start:`date +%s`:tests_petsc\r\e[0KSLEPc test suite"
     - make CFLAGS=-Werror CXXFLAGS=-Werror FFLAGS=-Werror allgtests-tap search="${TEST_SEARCH}" TIMEOUT=${TIMEOUT}
+    - echo -e "section_end:`date +%s`:tests_slepc\r\e[0K"
   after_script:
     - date
   artifacts:
@@ -123,6 +129,7 @@ checksource:
     - date
   script:
     - export SLEPC_DIR=$PWD
+    - echo -e "section_start:`date +%s`:build_petsc\r\e[0KPETSc configure and make"
     - cd ..
     - |
         if [ $(awk '/define SLEPC_VERSION_RELEASE/{print $3}' $SLEPC_DIR/include/slepcversion.h) == 1 ];
@@ -136,6 +143,7 @@ checksource:
     - python3 ./configure --with-mpi=0 --with-fc=0 --with-cxx=0 --download-sowing
     - make allfortranstubs
     - make
+    - echo -e "section_end:`date +%s`:build_petsc\r\e[0K"
     - export PETSC_ARCH=`ls -d arch-*`
     - cd $SLEPC_DIR
     - python3 ./configure
@@ -157,6 +165,7 @@ checksource:
     - printf "PETSC_CONFIG_OPTS=${PETSC_CONFIG_OPTS}\n"
     - printf "SLEPC_CONFIG_OPTS=${SLEPC_CONFIG_OPTS}\n"
     - export SLEPC_DIR=$PWD
+    - echo -e "section_start:`date +%s`:build_petsc\r\e[0KPETSc configure and make"
     - cd ..
     - if [ ! -d petsc ]; then git clone https://gitlab.com/petsc/petsc.git; fi
     - cd petsc
@@ -167,11 +176,16 @@ checksource:
     - bash -c "${PYTHON} ./configure --with-debugging=0 --COPTFLAGS='-O -g' --CXXOPTFLAGS='-O -g' --FOPTFLAGS='-O -g' --CUDAOPTFLAGS='-O' --CUDAFLAGS='-ccbin gcc-5' ${PETSC_CONFIG_OPTS}"
     - make allfortranstubs
     - make CFLAGS=${MAKE_CFLAGS} CXXFLAGS=${MAKE_CXXFLAGS} FFLAGS=${MAKE_FFLAGS}
+    - echo -e "section_end:`date +%s`:build_petsc\r\e[0K"
+    - echo -e "section_start:`date +%s`:build_slepc\r\e[0KSLEPc configure and make"
     - cd $SLEPC_DIR
     - ${PYTHON} ./configure ${SLEPC_CONFIG_OPTS}
     - make CFLAGS=${MAKE_CFLAGS} CXXFLAGS=${MAKE_CXXFLAGS} FFLAGS=${MAKE_FFLAGS}
     - make CFLAGS=${MAKE_CFLAGS} CXXFLAGS=${MAKE_CXXFLAGS} FFLAGS=${MAKE_FFLAGS} check
+    - echo -e "section_end:`date +%s`:build_slepc\r\e[0K"
+    - echo -e "section_start:`date +%s`:tests_petsc\r\e[0KSLEPc test suite"
     - make CFLAGS=${MAKE_CFLAGS} CXXFLAGS=${MAKE_CXXFLAGS} FFLAGS=${MAKE_FFLAGS} cleantest allgtests-tap TIMEOUT=${TIMEOUT}
+    - echo -e "section_end:`date +%s`:tests_slepc\r\e[0K"
   artifacts:
     reports:
       junit: arch-*/tests/testresults.xml
@@ -288,7 +302,7 @@ gnu-c-multilib:
     - linux-debian
   variables:
     PETSC_CONFIG_OPTS: --with-single-library=0 --with-visibility=1
-    SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --with-arpack-dir=/usr/local/opt/ARPACK --with-primme-dir=/usr/local/opt/primme --with-blopex-dir=/usr/local/opt/blopex --with-blzpack-dir=/usr/local/opt/blzpack/lib --with-trlan-dir=/usr/local/opt/trlan-201009
+    SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --with-arpack-dir=/usr/local/opt/ARPACK --with-primme-dir=/usr/local/opt/primme --with-blopex-dir=/usr/local/opt/blopex --with-blzpack-dir=/usr/local/opt/blzpack/lib --with-trlan-dir=/usr/local/opt/trlan-201009 --with-slicot
 
 gnu-c-complex:
   extends:
@@ -500,7 +514,7 @@ clang-c-valgrind:
     - linux-ubuntu
   variables:
     PETSC_CONFIG_OPTS: --with-cc=/usr/local/mpich-3.3.1-clang/bin/mpicc --with-cxx=0 --with-fc=0 --with-shared-libraries=0 --download-sowing
-    SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local
+    SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --with-slicot
 
 gnu-c-float128:
   extends:

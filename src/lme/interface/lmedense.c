@@ -122,7 +122,7 @@ static PetscErrorCode LyapunovResidual(PetscInt m,PetscScalar *A,PetscInt lda,Pe
 static PetscErrorCode HessLyapunovChol_SLICOT(PetscInt m,PetscScalar *H,PetscInt ldh,PetscInt k,PetscScalar *B,PetscInt ldb,PetscScalar *U,PetscInt ldu,PetscReal *res)
 {
   PetscErrorCode ierr;
-  PetscBLASInt   ilo=1,lwork,info,n,kk,lu,ione=1;
+  PetscBLASInt   lwork,info,n,kk,lu,ione=1,sdim;
   PetscInt       i,j;
   PetscReal      scal;
   PetscScalar    *Q,*W,*wr,*wi,*work;
@@ -140,8 +140,8 @@ static PetscErrorCode HessLyapunovChol_SLICOT(PetscInt m,PetscScalar *H,PetscInt
   }
 
   /* compute the real Schur form of W */
-  PetscStackCallBLAS("LAPACKhseqr",LAPACKhseqr_("S","I",&n,&ilo,&n,W,&n,wr,wi,Q,&n,work,&lwork,&info));
-  SlepcCheckLapackInfo("hseqr",info);
+  PetscStackCallBLAS("LAPACKgees",LAPACKgees_("V","N",NULL,&n,W,&n,&sdim,wr,wi,Q,&n,work,&lwork,NULL,&info));
+  SlepcCheckLapackInfo("gees",info);
 #if defined(PETSC_USE_DEBUG)
   for (i=0;i<m;i++) if (PetscRealPart(wr[i])>=0.0) SETERRQ(PETSC_COMM_SELF,1,"Eigenvalue with non-negative real part, the coefficient matrix is not stable");
 #endif
@@ -372,7 +372,7 @@ static PetscErrorCode Lyapunov_SLICOT(PetscInt m,PetscScalar *H,PetscInt ldh,Pet
   PetscFunctionBegin;
   ierr = PetscBLASIntCast(ldx,&lx);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(m,&n);CHKERRQ(ierr);
-  ierr = PetscBLASIntCast(m*m,&lwork);CHKERRQ(ierr);
+  ierr = PetscBLASIntCast(PetscMax(20,m*m),&lwork);CHKERRQ(ierr);
 
   /* transpose W = H' */
   ierr = PetscMalloc6(m*m,&W,m*m,&Q,m,&wr,m,&wi,m*m,&iwork,lwork,&work);CHKERRQ(ierr);
