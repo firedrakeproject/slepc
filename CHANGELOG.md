@@ -1,18 +1,16 @@
-**Changelog of SLEPc versions**
-
-[[_TOC_]]
+# Changelog of SLEPc versions
 
 ## [Unreleased]
 
 ## [3.13] - 2020-03-31
 
-#### Added
+### Added
 
 - `EPS`: new solver `lyapii` (Lyapunov inverse iteration) to compute rightmost eigenvalues.
 - `NEP`: add a two-sided version of SLP.
 - New functions: `EPSSetLeftInitialSpace()`, `MFNSolveTranspose()`.
 
-#### Changes
+### Changes
 
 - `configure`: the options `--with-xxx-flags` have been renamed to `--with-xxx-lib` (see
   `./configure --help`).
