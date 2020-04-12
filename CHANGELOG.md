@@ -1,4 +1,4 @@
-# Changelog of SLEPc versions
+**Changelog of SLEPc versions**
 
 [[_TOC_]]
 
@@ -6,13 +6,13 @@
 
 ## [3.13] - 2020-03-31
 
-### Added
+#### Added
 
 - `EPS`: new solver `lyapii` (Lyapunov inverse iteration) to compute rightmost eigenvalues.
 - `NEP`: add a two-sided version of SLP.
 - New functions: `EPSSetLeftInitialSpace()`, `MFNSolveTranspose()`.
 
-### Changes
+#### Changes
 
 - `configure`: the options `--with-xxx-flags` have been renamed to `--with-xxx-lib` (see
   `./configure --help`).
@@ -48,7 +48,7 @@
 
 - `PEP`: add spectrum slicing for Hermitian quadratic eigenvalue problems via STOAR.
 - `PEP`: add support for non-monomial bases in JD.
-- `BV`: add `BVTENSOR` to represent subspace bases with compact representation $`V = (I \otimes; U) S`$.
+- `BV`: add `BVTENSOR` to represent subspace bases with compact representation $`V = (I \otimes U) S`$.
 - `BV`: improved implementation of block orthogonalization, including TSQR and SVQB.
 - `BV`: add `BVGetSplit()` operation to split a given `BV` object in two.
 
