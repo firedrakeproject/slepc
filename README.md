@@ -17,13 +17,25 @@ The emphasis of the software is on methods and techniques appropriate for proble
 
 SLEPc is built on top of [PETSc](https://www.mcs.anl.gov/petsc), the Portable Extensible Toolkit for Scientific Computation. It can be considered an extension of PETSc providing all the functionality necessary for the solution of eigenvalue problems.
 
+### Supported problem classes
+
+| Problem class                 | Model equation                               | Module |
+| ----------------------------- | -------------------------------------------- | ------ |
+| Linear eigenvalue problem     | $`Ax=\lambda x,\quad Ax=\lambda Bx`$         | `EPS`  |
+| Quadratic eigenvalue problem  | $`(K+\lambda C+\lambda^2M)x=0`$              | `PEP`  |
+| Polynomial eigenvalue problem | $`(A_0+\lambda A_1+\cdots+\lambda^dA_d)x=0`$ | `PEP`  |
+| Nonlinear eigenvalue problem  | $`T(\lambda)x=0`$                            | `NEP`  |
+| Singular value decomposition  | $`Av=\sigma u`$                              | `SVD`  |
+| Matrix function (action of)   | $`y=f(A)v`$                                  | `MFN`  |
+| Linear matrix equation        | $`AXE+DXB=C`$                                | `LME`  |
+
 
 Documentation
 -------------
 
 The Users Manual as well as the HTML man pages for the detailed reference of each individual SLEPc routines are included in the SLEPc distribution and can also be found at the [online documentation](https://slepc.upv.es/documentation).
 
-The main reference for SLEPc is the following paper (see other references at the SLEPc website):
+The main reference for SLEPc is the following paper (see [other references at the SLEPc website](https://slepc.upv.es/documentation/material)):
 
 - V. Hernandez, J. E. Roman, and V. Vidal, *SLEPc: A scalable and flexible toolkit for the solution of eigenvalue problems*, ACM Trans. Math. Software 31: 351-362 (2005). [DOI](https://doi.org/10.1145%2F1089014.1089019)
 
