@@ -129,7 +129,7 @@ PetscErrorCode EPSSolve_KrylovSchur_TwoSided(EPS eps)
   Mat             M,U,Op,OpHT;
   PetscReal       norm,norm2,beta,betat,s,t;
   PetscScalar     *pM,*S,*T,*eigr,*eigi,*Q;
-  PetscInt        ld,l,nv,ncv=eps->ncv,i,j,k,nconv,*p,cont,*idx,*idx2,id=0;
+  PetscInt        ld,l,nv,nvt,ncv=eps->ncv,i,j,k,nconv,*p,cont,*idx,*idx2,id=0;
   PetscBool       breakdownt,breakdown,breakdownl;
 #if defined(PETSC_USE_COMPLEX)
   Mat             A;
@@ -150,28 +150,30 @@ PetscErrorCode EPSSolve_KrylovSchur_TwoSided(EPS eps)
   while (eps->reason == EPS_CONVERGED_ITERATING) {
     eps->its++;
 
-    /* Compute an nv-step Arnoldi factorization */
+    /* Compute an nv-step Arnoldi factorization for Op */
     nv = PetscMin(eps->nconv+eps->mpd,eps->ncv);
     ierr = DSGetArray(eps->ds,DS_MAT_A,&S);CHKERRQ(ierr);
     ierr = BVMatArnoldi(eps->V,Op,S,ld,eps->nconv+l,&nv,&beta,&breakdown);CHKERRQ(ierr);
     ierr = DSRestoreArray(eps->ds,DS_MAT_A,&S);CHKERRQ(ierr);
-    ierr = DSSetDimensions(eps->ds,nv,0,eps->nconv,eps->nconv+l);CHKERRQ(ierr);
-    if (l==0) {
-      ierr = DSSetState(eps->ds,DS_STATE_INTERMEDIATE);CHKERRQ(ierr);
-    } else {
-      ierr = DSSetState(eps->ds,DS_STATE_RAW);CHKERRQ(ierr);
-    }
 
-    /* Compute an nv-step Arnoldi factorization */
+    /* Compute an nv-step Arnoldi factorization for Op' */
+    nvt = nv;
     ierr = DSGetArray(eps->dsts,DS_MAT_A,&T);CHKERRQ(ierr);
-    ierr = BVMatArnoldi(eps->W,OpHT,T,ld,eps->nconv+l,&nv,&betat,&breakdownt);CHKERRQ(ierr);
+    ierr = BVMatArnoldi(eps->W,OpHT,T,ld,eps->nconv+l,&nvt,&betat,&breakdownt);CHKERRQ(ierr);
     ierr = DSRestoreArray(eps->dsts,DS_MAT_A,&T);CHKERRQ(ierr);
+
+    /* Make sure both factorizations have the same length */
+    nv = PetscMin(nv,nvt);
+    ierr = DSSetDimensions(eps->ds,nv,0,eps->nconv,eps->nconv+l);CHKERRQ(ierr);
     ierr = DSSetDimensions(eps->dsts,nv,0,eps->nconv,eps->nconv+l);CHKERRQ(ierr);
     if (l==0) {
+      ierr = DSSetState(eps->ds,DS_STATE_INTERMEDIATE);CHKERRQ(ierr);
       ierr = DSSetState(eps->dsts,DS_STATE_INTERMEDIATE);CHKERRQ(ierr);
     } else {
+      ierr = DSSetState(eps->ds,DS_STATE_RAW);CHKERRQ(ierr);
       ierr = DSSetState(eps->dsts,DS_STATE_RAW);CHKERRQ(ierr);
     }
+    breakdown = (breakdown || breakdownt)? PETSC_TRUE: PETSC_FALSE;
 
     /* Update M, modify Rayleigh quotients S and T */
     ierr = BVSetActiveColumns(eps->V,eps->nconv+l,nv);CHKERRQ(ierr);
@@ -198,13 +200,13 @@ PetscErrorCode EPSSolve_KrylovSchur_TwoSided(EPS eps)
     /* check correct eigenvalue correspondence */
     cont = 0;
     for (i=0;i<nv;i++) {
-      if (PetscAbsScalar(eigr[i]-eps->eigr[i])+PetscAbsScalar(eigi[i]-eps->eigi[i])>PETSC_SQRT_MACHINE_EPSILON) {idx2[cont] =i; idx[cont++] = i;}
+      if (SlepcAbsEigenvalue(eigr[i]-eps->eigr[i],eigi[i]-eps->eigi[i])>PETSC_SQRT_MACHINE_EPSILON) {idx2[cont] = i; idx[cont++] = i;}
       p[i] = -1;
     }
     if (cont) {
       for (i=0;i<cont;i++) {
         t = PETSC_MAX_REAL;
-        for (j=0;j<cont;j++) if (idx2[j]!=-1 && (s=PetscAbsScalar(eigr[idx[j]]-eps->eigr[idx[i]])+PetscAbsScalar(eigi[idx[j]]-eps->eigi[idx[i]]))<t) { id = j; t = s; }
+        for (j=0;j<cont;j++) if (idx2[j]!=-1 && (s=SlepcAbsEigenvalue(eigr[idx[j]]-eps->eigr[idx[i]],eigi[idx[j]]-eps->eigi[idx[i]]))<t) { id = j; t = s; }
         p[idx[i]] = idx[id];
         idx2[id] = -1;
       }

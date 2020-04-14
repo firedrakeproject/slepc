@@ -203,7 +203,7 @@ PetscErrorCode RGComputeContour_Interval(RG rg,PetscInt n,PetscScalar *cr,PetscS
       cr[idx] = vr[i]+off*(hr[i]/h); ci[idx] = vi[i]+off*(hi[i]/h);
 #endif
       idx++;
-      pt = (d[i]-off)/h+1;
+      pt = (PetscInt)((d[i]-off)/h)+1;
       for (j=1;j<pt && idx<n;j++) {
 #if defined(PETSC_USE_COMPLEX)
         cr[idx] = cr[idx-1]+PetscCMPLX(hr[i],hi[i]);

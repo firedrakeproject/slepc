@@ -75,7 +75,7 @@ variables:
     - ${PYTHON} ./configure
     - make CFLAGS=-Werror CXXFLAGS=-Werror FFLAGS=-Werror
     - echo -e "section_end:`date +%s`:build_slepc\r\e[0K"
-    - echo -e "section_start:`date +%s`:tests_petsc\r\e[0KSLEPc test suite"
+    - echo -e "section_start:`date +%s`:tests_slepc\r\e[0KSLEPc test suite"
     - make CFLAGS=-Werror CXXFLAGS=-Werror FFLAGS=-Werror allgtests-tap search="${TEST_SEARCH}" TIMEOUT=${TIMEOUT}
     - echo -e "section_end:`date +%s`:tests_slepc\r\e[0K"
   after_script:
@@ -183,7 +183,7 @@ checksource:
     - make CFLAGS=${MAKE_CFLAGS} CXXFLAGS=${MAKE_CXXFLAGS} FFLAGS=${MAKE_FFLAGS}
     - make CFLAGS=${MAKE_CFLAGS} CXXFLAGS=${MAKE_CXXFLAGS} FFLAGS=${MAKE_FFLAGS} check
     - echo -e "section_end:`date +%s`:build_slepc\r\e[0K"
-    - echo -e "section_start:`date +%s`:tests_petsc\r\e[0KSLEPc test suite"
+    - echo -e "section_start:`date +%s`:tests_slepc\r\e[0KSLEPc test suite"
     - make CFLAGS=${MAKE_CFLAGS} CXXFLAGS=${MAKE_CXXFLAGS} FFLAGS=${MAKE_FFLAGS} cleantest allgtests-tap TIMEOUT=${TIMEOUT}
     - echo -e "section_end:`date +%s`:tests_slepc\r\e[0K"
   artifacts:
@@ -365,7 +365,7 @@ gnu-c-complex-multilib:
   tags:
     - linux-ubuntu
   variables:
-    PETSC_CONFIG_OPTS: --with-scalar-type=complex --with-single-library=0 --with-visibility=1
+    PETSC_CONFIG_OPTS: --with-scalar-type=complex --with-single-library=0 --with-visibility=1 --with-fortran-bindings=0 --download-sowing
 
 intel-c-complex-mkl:
   extends:
@@ -400,7 +400,7 @@ gnu-cxx-complex:
   tags:
     - linux-debian
   variables:
-    PETSC_CONFIG_OPTS: --with-clanguage=C++ --with-scalar-type=complex
+    PETSC_CONFIG_OPTS: --with-clanguage=C++ --with-scalar-type=complex --with-fortran-bindings=0 --download-sowing
     SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --with-arpack-dir=/usr/local/opt/ARPACK --with-primme-dir=/usr/local/opt/primme --with-blopex-dir=/usr/local/opt/blopex
 
 gnu-cxx-int64:
@@ -504,7 +504,7 @@ intel-c-complex-int64-mkl:
     - linux-ubuntu
   variables:
     MAKE_FFLAGS: ''
-    PETSC_CONFIG_OPTS: --with-cc=/usr/local/mpich-3.3.2-intel/bin/mpicc --with-fc=/usr/local/mpich-3.3.2-intel/bin/mpifort --with-cxx=0 --with-blas-lapack-dir=/opt/intel/mkl/ --with-mkl_pardiso=1 --with-scalar-type=complex
+    PETSC_CONFIG_OPTS: --with-cc=/usr/local/mpich-3.3.2-intel/bin/mpicc --with-fc=/usr/local/mpich-3.3.2-intel/bin/mpifort --with-cxx=0 --with-blas-lapack-dir=/opt/intel/mkl/ --with-mkl_pardiso=1 --with-scalar-type=complex --with-64-bit-indices=1
 
 clang-c-valgrind:
   extends:
