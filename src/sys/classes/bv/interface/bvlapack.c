@@ -352,7 +352,7 @@ PetscErrorCode BVOrthogonalize_LAPACK_TSQR(BV bv,PetscInt m_,PetscInt n_,PetscSc
     for (level=nlevels;level>=1;level--) {
 
       plevel = PetscPowInt(2,level);
-      s = plevel*PetscFloorReal(rank/(PetscReal)plevel)+(rank+PetscPowInt(2,level-1))%plevel;
+      ierr = PetscBLASIntCast(plevel*PetscFloorReal(rank/(PetscReal)plevel)+(rank+PetscPowInt(2,level-1))%plevel,&s);CHKERRQ(ierr);
 
       /* Stack triangular matrices */
       if (rank<s && s<size) {  /* send top part, receive bottom part */
@@ -395,7 +395,7 @@ PetscErrorCode BVOrthogonalize_LAPACK_TSQR(BV bv,PetscInt m_,PetscInt n_,PetscSc
     /* Accumulate orthogonal matrices */
     for (level=1;level<=nlevels;level++) {
       plevel = PetscPowInt(2,level);
-      s = plevel*PetscFloorReal(rank/(PetscReal)plevel)+(rank+PetscPowInt(2,level-1))%plevel;
+      ierr = PetscBLASIntCast(plevel*PetscFloorReal(rank/(PetscReal)plevel)+(rank+PetscPowInt(2,level-1))%plevel,&s);CHKERRQ(ierr);
       Qhalf = (rank<s)? QQ+(level-1)*n*lda: QQ+(level-1)*n*lda+n;
       if (level<nlevels) {
         PetscStackCallBLAS("BLASgemm",BLASgemm_("N","N",&l,&n,&n,&one,QQ+level*n*lda,&l,Qhalf,&l,&zero,C,&l));

@@ -350,7 +350,7 @@ static PetscErrorCode PEPJDExtendedPCApply(PC pc,Vec x,Vec y)
   PetscErrorCode    ierr;
   const PetscScalar *array1;
   PetscScalar       *x2=NULL,*t=NULL,*ps=NULL,*array2,zero=0.0,sone=1.0;
-  PetscBLASInt      one=1.0,ld_,n_,ncv_;
+  PetscBLASInt      one=1,ld_,n_,ncv_;
   PEP_JD            *pjd=NULL;
 
   PetscFunctionBegin;
