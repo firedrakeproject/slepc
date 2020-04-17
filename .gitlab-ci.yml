@@ -294,16 +294,6 @@ checksource:
 # listed on the left hand side of https://gitlab.com/slepc/slepc/-/settings/ci_cd.
 #
 
-gnu-c-multilib:
-  extends:
-    - .stage-2
-    - .linux_test
-  tags:
-    - linux-debian
-  variables:
-    PETSC_CONFIG_OPTS: --with-single-library=0 --with-visibility=1
-    SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --with-arpack-dir=/usr/local/opt/ARPACK --with-primme-dir=/usr/local/opt/primme --with-blopex-dir=/usr/local/opt/blopex --with-blzpack-dir=/usr/local/opt/blzpack/lib --with-trlan-dir=/usr/local/opt/trlan-201009 --with-slicot
-
 gnu-cxx-complex:
   extends:
     - .stage-2
@@ -313,6 +303,16 @@ gnu-cxx-complex:
   variables:
     PETSC_CONFIG_OPTS: --with-clanguage=C++ --with-scalar-type=complex --with-fortran-bindings=0 --download-sowing
     SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --with-arpack-dir=/usr/local/opt/ARPACK --with-primme-dir=/usr/local/opt/primme --with-blopex-dir=/usr/local/opt/blopex
+
+gnu-c-multilib:
+  extends:
+    - .stage-2
+    - .linux_test
+  tags:
+    - linux-debian
+  variables:
+    PETSC_CONFIG_OPTS: --with-single-library=0 --with-visibility=1
+    SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --with-arpack-dir=/usr/local/opt/ARPACK --with-primme-dir=/usr/local/opt/primme --with-blopex-dir=/usr/local/opt/blopex --with-blzpack-dir=/usr/local/opt/blzpack/lib --with-trlan-dir=/usr/local/opt/trlan-201009 --with-slicot
 
 #intel-cxx-mkl:
 #  extends:
