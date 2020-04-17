@@ -1,0 +1,72 @@
+
+Shifted 2-D Laplacian Eigenproblem, N=100 (10x10 grid) sigma=8.0
+
+EPS Object: 1 MPI processes
+  type: lyapii
+    ranks: for Lyapunov solver=30, after compression=10
+    LME Object: (eps_lyapii_) 1 MPI processes
+      type: krylov
+      equation type: continuous-time Lyapunov
+      number of column vectors (ncv): 30
+      maximum number of iterations: 100
+      tolerance: 1e-08
+    BV Object: (eps_lyapii_) 1 MPI processes
+      type: svec
+      31 columns of global length 100
+      vector orthogonalization method: classical Gram-Schmidt
+      orthogonalization refinement: if needed (eta: 0.7071)
+      block orthogonalization method: GS
+      doing matmult as a single matrix-matrix product
+  problem type: hermitian eigenvalue problem
+  selected portion of the spectrum: largest real parts
+  number of eigenvalues (nev): 1
+  number of column vectors (ncv): 2
+  maximum dimension of projected problem (mpd): 0
+  maximum number of iterations: 10000
+  tolerance: 1e-07
+  convergence test: relative to the eigenvalue
+BV Object: 1 MPI processes
+  type: svec
+  2 columns of global length 100
+  vector orthogonalization method: classical Gram-Schmidt
+  orthogonalization refinement: if needed (eta: 0.7071)
+  block orthogonalization method: GS
+  doing matmult as a single matrix-matrix product
+DS Object: 1 MPI processes
+  type: nhep
+ST Object: 1 MPI processes
+  type: sinvert
+  shift: 0.
+  number of matrices: 1
+  KSP Object: (st_) 1 MPI processes
+    type: preonly
+    maximum iterations=10000, initial guess is zero
+    tolerances:  relative=1e-08, absolute=1e-50, divergence=10000.
+    left preconditioning
+    using NONE norm type for convergence test
+  PC Object: (st_) 1 MPI processes
+    type: lu
+      out-of-place factorization
+      tolerance for zero pivot 2.22045e-14
+      matrix ordering: nd
+      factor fill ratio given 5., needed 2.95217
+        Factored matrix follows:
+          Mat Object: 1 MPI processes
+            type: seqaij
+            rows=100, cols=100
+            package used to perform factorization: petsc
+            total: nonzeros=1358, allocated nonzeros=1358
+            total number of mallocs used during MatSetValues calls=0
+              not using I-node routines
+    linear system matrix = precond matrix:
+    Mat Object: 1 MPI processes
+      type: seqaij
+      rows=100, cols=100
+      total: nonzeros=460, allocated nonzeros=500
+      total number of mallocs used during MatSetValues calls=0
+        not using I-node routines
+ EPSLYAPII ranks: for Lyapunov solver=30, after compression=10
+
+ All requested eigenvalues computed up to the required tolerance:
+     -0.16203
+
