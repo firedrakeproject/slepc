@@ -128,6 +128,16 @@ class Package:
     if self.downloadpackage and self.fortran and not hasattr(petsc,'fc'):
       self.log.Exit('Option --download-'+self.packagename+' requires a Fortran compiler')
 
+  def MissingTarball(self,downloaddir):
+    '''Check if tarball is missing in downloaddir'''
+    if self.downloadable and hasattr(self,'download') and self.download:
+      localFile = os.path.join(downloaddir,self.archive)
+      if not os.path.exists(localFile):
+        url = self.packageurl
+        if url=='':
+          url = self.url
+        return self.packagename+': '+url+' --> '+localFile
+
   def Download(self,externdir,builddir,downloaddir,prefix=None):
     # Check if source is already available
     if os.path.exists(builddir):

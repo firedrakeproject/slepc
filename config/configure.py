@@ -106,6 +106,14 @@ if argdb.PopHelp():
 argdb.ErrorPetscOptions()
 argdb.ErrorIfNotEmpty()
 
+# Check if packages-download directory contains requested packages
+if slepc.downloaddir:
+  l = filter(None, [pkg.MissingTarball(slepc.downloaddir) for pkg in externalpackages])
+  if l:
+    log.Println('Download the following packages and run the script again:')
+    for pkg in l: log.Println(pkg)
+    log.Exit('Missing files in packages-download directory')
+
 # Check enviroment and PETSc version
 log.Print('Checking environment...')
 petsc.InitDir(slepc.prefixdir)
