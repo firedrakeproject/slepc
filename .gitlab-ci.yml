@@ -304,14 +304,14 @@ gnu-c-multilib:
     PETSC_CONFIG_OPTS: --with-single-library=0 --with-visibility=1
     SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --with-arpack-dir=/usr/local/opt/ARPACK --with-primme-dir=/usr/local/opt/primme --with-blopex-dir=/usr/local/opt/blopex --with-blzpack-dir=/usr/local/opt/blzpack/lib --with-trlan-dir=/usr/local/opt/trlan-201009 --with-slicot
 
-gnu-c-complex:
+gnu-cxx-complex:
   extends:
     - .stage-2
     - .linux_test
   tags:
     - linux-debian
   variables:
-    PETSC_CONFIG_OPTS: --with-scalar-type=complex
+    PETSC_CONFIG_OPTS: --with-clanguage=C++ --with-scalar-type=complex --with-fortran-bindings=0 --download-sowing
     SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --with-arpack-dir=/usr/local/opt/ARPACK --with-primme-dir=/usr/local/opt/primme --with-blopex-dir=/usr/local/opt/blopex
 
 #intel-cxx-mkl:
@@ -393,14 +393,14 @@ pgi-c-nompi:
 # The following tests run as part of stage-3.
 #
 
-gnu-cxx-complex:
+gnu-c-complex:
   extends:
     - .stage-3
     - .linux_test
   tags:
     - linux-debian
   variables:
-    PETSC_CONFIG_OPTS: --with-clanguage=C++ --with-scalar-type=complex --with-fortran-bindings=0 --download-sowing
+    PETSC_CONFIG_OPTS: --with-scalar-type=complex
     SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --with-arpack-dir=/usr/local/opt/ARPACK --with-primme-dir=/usr/local/opt/primme --with-blopex-dir=/usr/local/opt/blopex
 
 gnu-cxx-int64:
