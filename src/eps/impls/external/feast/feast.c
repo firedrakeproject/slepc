@@ -137,7 +137,7 @@ PetscErrorCode EPSSolve_FEAST(EPS eps)
       /* set new quadrature point */
       ierr = STSetShift(eps->st,Ze.real);CHKERRQ(ierr);
     } else if (ijob == 20) {
-      /* set new quadrature point */
+      /* use same quadrature point and factorization for transpose solve */
     } else if (ijob == 11 || ijob == 21) {
       /* linear solve (A-sigma*B)\work2, overwrite work2 */
       for (k=0;k<ncv;k++) {

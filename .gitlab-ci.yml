@@ -376,6 +376,7 @@ intel-c-complex-mkl:
   variables:
     MAKE_FFLAGS: ''
     PETSC_CONFIG_OPTS: --with-scalar-type=complex --with-cc=/usr/local/mpich-3.3.2-intel/bin/mpicc --with-fc=/usr/local/mpich-3.3.2-intel/bin/mpifort --with-cxx=0 --with-blas-lapack-dir=/opt/intel/mkl/ --with-mkl_pardiso=1
+    SLEPC_CONFIG_OPTS: --with-feast
 
 pgi-c-nompi:
   extends:
@@ -410,8 +411,8 @@ gnu-cxx-int64:
   tags:
     - linux-debian
   variables:
-    PETSC_CONFIG_OPTS: --with-clanguage=C++ --with-64-bit-indices=1
-    SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --with-primme-dir=/usr/local/opt/primme
+    PETSC_CONFIG_OPTS: --with-clanguage=C++ --with-64-bit-indices=1 --with-blas-lapack-dir=/opt/intel/mkl/
+    SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --with-primme-dir=/usr/local/opt/primme --with-feast
 
 gnu-c-single:
   extends:

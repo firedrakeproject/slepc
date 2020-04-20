@@ -269,4 +269,9 @@ int main(int argc,char **argv)
          args: -eps_gen_non_hermitian -eps_type jd -eps_target 0 -eps_ncv 64
          timeoutfactor: 2
 
+   test:
+      suffix: 10_feast
+      args: -n 25 -eps_type feast -eps_interval .95,1.1 -eps_tol 1e-6
+      requires: feast
+
 TEST*/

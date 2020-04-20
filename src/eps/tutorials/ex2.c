@@ -124,6 +124,7 @@ int main(int argc,char **argv)
       args: -n 30 -eps_type ciss -terse
       requires: double
       output_file: output/ex2_ciss.out
+      filter: grep -v method
       test:
          suffix: ciss_1
          nsize: 1
@@ -132,5 +133,9 @@ int main(int argc,char **argv)
          suffix: ciss_2
          nsize: 2
          args: -rg_type ellipse -rg_ellipse_center 1.175 -rg_ellipse_radius 0.075 -eps_ciss_partitions 2
+      test:
+         suffix: feast
+         args: -eps_type feast -eps_interval 1.1,1.25 -eps_ncv 64
+         requires: feast
 
 TEST*/
