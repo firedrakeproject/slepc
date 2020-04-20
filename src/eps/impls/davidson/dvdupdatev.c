@@ -317,7 +317,7 @@ static PetscErrorCode dvd_updateV_extrapol(dvdDashboard *d)
 
     /* If no vector were converged, exit */
     /* For GHEP without B-ortho, converge all of the requested pairs at once */
-    ierr = PetscObjectTypeCompareAny((PetscObject)d->eps->ds,&t,DSGHEP,"");CHKERRQ(ierr);
+    ierr = PetscObjectTypeCompare((PetscObject)d->eps->ds,DSGHEP,&t);CHKERRQ(ierr);
     if (d->nconv+d->npreconv < d->nev && (t || d->npreconv == 0)) PetscFunctionReturn(0);
   }
 
