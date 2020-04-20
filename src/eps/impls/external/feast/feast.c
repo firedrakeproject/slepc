@@ -36,7 +36,7 @@
 #endif
 
 typedef struct {
-  PetscBLASInt  npoints;          /* number of contour points */
+  PetscInt      npoints;          /* number of contour points */
   PetscScalar   *work1,*Aq,*Bq;   /* workspace */
 #if defined(PETSC_USE_REAL_SINGLE)
   MKL_Complex8  *work2;
@@ -89,7 +89,7 @@ PetscErrorCode EPSSolve_FEAST(EPS eps)
 {
   PetscErrorCode ierr;
   EPS_FEAST      *ctx = (EPS_FEAST*)eps->data;
-  PetscBLASInt   n,fpm[128],ijob,info,nconv,ncv,loop;
+  MKL_INT        fpm[128],ijob,n,ncv,nconv,loop,info;
   PetscReal      *evals,epsout=0.0;
   PetscInt       i,k,nmat;
   PetscScalar    *pV,*pz;
@@ -102,8 +102,8 @@ PetscErrorCode EPSSolve_FEAST(EPS eps)
 #endif
 
   PetscFunctionBegin;
-  ierr = PetscBLASIntCast(eps->ncv,&ncv);CHKERRQ(ierr);
-  ierr = PetscBLASIntCast(eps->nloc,&n);CHKERRQ(ierr);
+  ncv = eps->ncv;
+  n   = eps->nloc;
 
   /* parameters */
   feastinit(fpm);
@@ -271,14 +271,11 @@ PetscErrorCode EPSSetDefaultST_FEAST(EPS eps)
 
 static PetscErrorCode EPSFEASTSetNumPoints_FEAST(EPS eps,PetscInt npoints)
 {
-  PetscErrorCode ierr;
-  EPS_FEAST      *ctx = (EPS_FEAST*)eps->data;
+  EPS_FEAST *ctx = (EPS_FEAST*)eps->data;
 
   PetscFunctionBegin;
   if (npoints == PETSC_DEFAULT) ctx->npoints = 8;
-  else {
-    ierr = PetscBLASIntCast(npoints,&ctx->npoints);CHKERRQ(ierr);
-  }
+  else ctx->npoints = npoints;
   PetscFunctionReturn(0);
 }
 
