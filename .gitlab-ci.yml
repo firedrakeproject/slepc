@@ -164,6 +164,7 @@ checksource:
     - printf "PETSC_OPTIONS:$PETSC_OPTIONS\n"
     - printf "PETSC_CONFIG_OPTS=${PETSC_CONFIG_OPTS}\n"
     - printf "SLEPC_CONFIG_OPTS=${SLEPC_CONFIG_OPTS}\n"
+    - source /opt/intel/bin/compilervars.sh intel64
     - export SLEPC_DIR=$PWD
     - echo -e "section_start:`date +%s`:build_petsc\r\e[0KPETSc configure and make"
     - cd ..
@@ -314,16 +315,16 @@ gnu-c-multilib:
     PETSC_CONFIG_OPTS: --with-single-library=0 --with-visibility=1
     SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --with-arpack-dir=/usr/local/opt/ARPACK --with-primme-dir=/usr/local/opt/primme --with-blopex-dir=/usr/local/opt/blopex --with-blzpack-dir=/usr/local/opt/blzpack/lib --with-trlan-dir=/usr/local/opt/trlan-201009 --with-slicot
 
-#intel-cxx-mkl:
-#  extends:
-#    - .stage-2
-#    - .linux_test
-#  tags:
-#    - linux-debian
-#  variables:
-#    MAKE_FFLAGS: ''
-#    PETSC_CONFIG_OPTS: --with-cc=/opt/mpich/3.3.2-intel/bin/mpicc --with-fc=/opt/mpich/3.3.2-intel/bin/mpifort --with-cxx=/opt/mpich/3.3.2-intel/bin/mpicxx --with-blas-lapack-dir=/opt/intel/mkl/ --with-mkl_pardiso=1 --with-clanguage=C++
-#    SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local
+intel-cxx-mkl:
+  extends:
+    - .stage-2
+    - .linux_test
+  tags:
+    - linux-debian
+  variables:
+    MAKE_FFLAGS: ''
+    PETSC_CONFIG_OPTS: --with-cc=/opt/mpich/3.3.2-intel/bin/mpicc --with-fc=/opt/mpich/3.3.2-intel/bin/mpifort --with-cxx=/opt/mpich/3.3.2-intel/bin/mpicxx --with-blaslapack-dir=/opt/intel/mkl/ --with-mkl_pardiso=1 --with-clanguage=C++
+    SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --with-feast
 
 #intel-c-complex-mkl:
 #  extends:
@@ -333,7 +334,7 @@ gnu-c-multilib:
 #    - linux-debian
 #  variables:
 #    MAKE_FFLAGS: ''
-#    PETSC_CONFIG_OPTS: --with-cc=/opt/mpich/3.3.2-intel/bin/mpicc --with-fc=/opt/mpich/3.3.2-intel/bin/mpifort --with-cxx=0 --with-blas-lapack-dir=/opt/intel/mkl/ --with-mkl_pardiso=1 --with-scalar-type=complex
+#    PETSC_CONFIG_OPTS: --with-cc=/opt/mpich/3.3.2-intel/bin/mpicc --with-fc=/opt/mpich/3.3.2-intel/bin/mpifort --with-cxx=0 --with-blaslapack-dir=/opt/intel/mkl/ --with-mkl_pardiso=1 --with-scalar-type=complex
 #    SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local
 
 #
@@ -375,8 +376,7 @@ intel-c-complex-mkl:
     - linux-ubuntu
   variables:
     MAKE_FFLAGS: ''
-    PETSC_CONFIG_OPTS: --with-scalar-type=complex --with-cc=/usr/local/mpich-3.3.2-intel/bin/mpicc --with-fc=/usr/local/mpich-3.3.2-intel/bin/mpifort --with-cxx=0 --with-blas-lapack-dir=/opt/intel/mkl/ --with-mkl_pardiso=1
-    SLEPC_CONFIG_OPTS: --with-feast
+    PETSC_CONFIG_OPTS: --with-scalar-type=complex --with-cc=/usr/local/mpich-3.3.2-intel/bin/mpicc --with-fc=/usr/local/mpich-3.3.2-intel/bin/mpifort --with-cxx=0 --with-blaslapack-dir=/opt/intel/mkl/ --with-mkl_pardiso=1
 
 pgi-c-nompi:
   extends:
@@ -411,7 +411,7 @@ gnu-cxx-int64:
   tags:
     - linux-debian
   variables:
-    PETSC_CONFIG_OPTS: --with-clanguage=C++ --with-64-bit-indices=1 --with-blas-lapack-dir=/opt/intel/mkl/
+    PETSC_CONFIG_OPTS: --with-clanguage=C++ --with-64-bit-indices=1 --with-blaslapack-dir=/opt/intel/mkl/
     SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --with-primme-dir=/usr/local/opt/primme --with-feast
 
 gnu-c-single:
@@ -505,7 +505,7 @@ intel-c-complex-int64-mkl:
     - linux-ubuntu
   variables:
     MAKE_FFLAGS: ''
-    PETSC_CONFIG_OPTS: --with-cc=/usr/local/mpich-3.3.2-intel/bin/mpicc --with-fc=/usr/local/mpich-3.3.2-intel/bin/mpifort --with-cxx=0 --with-blas-lapack-dir=/opt/intel/mkl/ --with-mkl_pardiso=1 --with-scalar-type=complex --with-64-bit-indices=1
+    PETSC_CONFIG_OPTS: --with-cc=/usr/local/mpich-3.3.2-intel/bin/mpicc --with-fc=/usr/local/mpich-3.3.2-intel/bin/mpifort --with-cxx=0 --with-blaslapack-dir=/opt/intel/mkl/ --with-mkl_pardiso=1 --with-scalar-type=complex --with-64-bit-indices=1
 
 clang-c-valgrind:
   extends:
