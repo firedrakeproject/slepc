@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Added
+
+- Reintroduce interface to FEAST external solver via MKL.
+
 ## [3.13] - 2020-03-31
 
 ### Added
@@ -10,7 +14,7 @@
 - `NEP`: add a two-sided version of SLP.
 - New functions: `EPSSetLeftInitialSpace()`, `MFNSolveTranspose()`.
 
-### Changes
+### Changed
 
 - `configure`: the options `--with-xxx-flags` have been renamed to `--with-xxx-lib` (see
   `./configure --help`).

@@ -1,0 +1,9 @@
+
+Brusselator wave model, n=30
+
+ Solution method: feast
+
+ Number of requested eigenvalues: 1
+ Found 3 eigenvalues, all of them computed up to the required tolerance:
+     -101.42951, -97.78576, -93.68212
+

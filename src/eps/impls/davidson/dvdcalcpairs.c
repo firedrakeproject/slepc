@@ -174,7 +174,7 @@ static PetscErrorCode dvd_calcpairs_updateproj(dvdDashboard *d)
     ierr = BVSetActiveColumns(d->BX?d->BX:d->eps->V,lV,lV+d->V_tra_s);CHKERRQ(ierr);
     ierr = BVDot(d->BX?d->BX:d->eps->V,d->W?d->W:d->eps->V,d->G);CHKERRQ(ierr);
   }
-  ierr = PetscObjectTypeCompareAny((PetscObject)d->eps->ds,&symm,DSGHEP,"");CHKERRQ(ierr);
+  ierr = PetscObjectTypeCompare((PetscObject)d->eps->ds,DSGHEP,&symm);CHKERRQ(ierr);
   if (!symm) {
     ierr = BVSetActiveColumns(d->W?d->W:d->eps->V,lV,lV+d->V_tra_s);CHKERRQ(ierr);
     ierr = BVSetActiveColumns(d->AX,0,lV);CHKERRQ(ierr);
@@ -424,7 +424,7 @@ static PetscErrorCode EPSXDComputeDSConv(dvdDashboard *d)
 
   PetscFunctionBegin;
   ierr = BVSetActiveColumns(d->eps->V,0,d->eps->nconv);CHKERRQ(ierr);
-  ierr = PetscObjectTypeCompareAny((PetscObject)d->eps->ds,&symm,DSHEP,"");CHKERRQ(ierr);
+  ierr = PetscObjectTypeCompare((PetscObject)d->eps->ds,DSHEP,&symm);CHKERRQ(ierr);
   if (symm) PetscFunctionReturn(0);
   ierr = DSSetDimensions(d->eps->ds,d->eps->nconv,0,0,0);CHKERRQ(ierr);
   ierr = DSCopyMat(d->eps->ds,DS_MAT_A,0,0,d->H,0,0,d->eps->nconv,d->eps->nconv,PETSC_FALSE);CHKERRQ(ierr);

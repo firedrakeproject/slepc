@@ -134,6 +134,7 @@ class PETSc(package.Package):
     self.language = 'c'
     self.cxxdialectcxx11 = False
     self.hpddm = False
+    self.mkl = False
     try:
       f = open(petscconf_h)
       for l in f.readlines():
@@ -160,6 +161,8 @@ class PETSc(package.Package):
           self.cxxdialectcxx11 = True
         elif len(l)==3 and l[0]=='#define' and l[1]=='PETSC_HAVE_HPDDM' and l[2]=='1':
           self.hpddm = True
+        elif len(l)==3 and l[0]=='#define' and l[1]=='PETSC_HAVE_MKL' and l[2]=='1':
+          self.mkl = True
         elif self.isinstall and len(l)==3 and l[0]=='#define' and l[1]=='PETSC_ARCH':
           self.arch = l[2].strip('"')
       f.close()

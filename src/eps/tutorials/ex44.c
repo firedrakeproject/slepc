@@ -147,4 +147,9 @@ int main(int argc,char **argv)
          suffix: 2
          args: -eps_lyapii_ranks 8,20 -options_left no
 
+   test:
+      suffix: 2_feast
+      args: -eps_type feast -eps_interval -103,-90 -terse
+      requires: feast
+
 TEST*/

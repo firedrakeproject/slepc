@@ -1,7 +1,6 @@
 
 2-D Laplacian Eigenproblem, N=900 (30x30 grid)
 
- Solution method: ciss
 
  Number of requested eigenvalues: 1
  Found 15 eigenvalues, all of them computed up to the required tolerance:
