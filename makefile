@@ -157,19 +157,42 @@ install:
 #
 
 # Builds all the documentation
-alldoc: alldoc1 alldoc2
+alldoc: allcite allpdf alldoc1 alldoc2 docsetdate
 
-# Build everything that goes into 'doc' dir except html sources
-alldoc1: chk_loc deletemanualpages
+# Build just citations
+allcite: chk_loc deletemanualpages
 	-${OMAKE} ACTION=manualpages_buildcite tree_basic LOC=${LOC}
 	-@sed -e s%man+../%man+manualpages/% ${LOC}/docs/manualpages/manualpages.cit > ${LOC}/docs/manualpages/htmlmap
 	-@cat ${PETSC_DIR}/src/docs/mpi.www.index >> ${LOC}/docs/manualpages/htmlmap
+
+# Build just PDF manual + prerequisites
+allpdf:
+	-cd docs/manual; ${OMAKE} slepc.pdf clean; mv slepc.pdf ../../docs
+
+# Build just manual pages + prerequisites
+allmanpages: chk_loc allcite
 	-${OMAKE} ACTION=slepc_manualpages tree_basic LOC=${LOC}
-	-${PYTHON} ${PETSC_DIR}/lib/petsc/bin/maint/wwwindex.py ${SLEPC_DIR} ${LOC}
+
+# Build just manual examples + prerequisites
+allmanexamples: chk_loc allmanpages
 	-${OMAKE} ACTION=slepc_manexamples tree_basic LOC=${LOC}
 
+# Build everything that goes into 'doc' dir except html sources
+alldoc1: chk_loc allcite allmanpages allmanexamples
+	-${PYTHON} ${PETSC_DIR}/lib/petsc/bin/maint/wwwindex.py ${SLEPC_DIR} ${LOC}
+	-@echo "<html>" > singleindex.html
+	-@echo "<head>" >> singleindex.html
+	-@echo "  <title>Subroutine Index</title>" >> singleindex.html
+	-@echo "  <meta http-equiv=\"Content-Type\" content=\"text/html; charset=iso-8859-1\">" >> singleindex.html
+	-@echo "  <link rel=\"stylesheet\" href=\"/slepc.css\" type=\"text/css\">" >> singleindex.html
+	-@echo "</head>" >> singleindex.html
+	-@echo "<body>" > singleindex.html
+	-@cat ${LOC}/docs/manualpages/singleindex.html >> singleindex.html
+	-@sed -e 's/CC3333/883300/' singleindex.html > ${LOC}/docs/manualpages/singleindex.html
+	-@${RM} singleindex.html
+
 # Builds .html versions of the source
-alldoc2: chk_loc
+alldoc2: chk_loc allcite
 	-${OMAKE} ACTION=slepc_html PETSC_DIR=${PETSC_DIR} alltree LOC=${LOC}
 	cp ${LOC}/docs/manual.html ${LOC}/docs/index.html
 
@@ -181,7 +204,7 @@ docsetdate: chk_petscdir
         version_minor=`grep '^#define SLEPC_VERSION_MINOR ' include/slepcversion.h |tr -s ' ' | cut -d ' ' -f 3`; \
         version_subminor=`grep '^#define SLEPC_VERSION_SUBMINOR ' include/slepcversion.h |tr -s ' ' | cut -d ' ' -f 3`; \
         if  [ $${version_release} = 0 ]; then \
-          slepcversion=slepc-dev; \
+          slepcversion=slepc-master; \
           export slepcversion; \
         elif [ $${version_release} = 1 ]; then \
           slepcversion=slepc-$${version_major}.$${version_minor}.$${version_subminor}; \
@@ -192,7 +215,7 @@ docsetdate: chk_petscdir
         fi; \
         datestr=`git log -1 --pretty=format:%ci | cut -d ' ' -f 1`; \
         export datestr; \
-        gitver=`git describe`; \
+        gitver=`git describe --match "v*"`; \
         export gitver; \
         find * -type d -wholename 'arch-*' -prune -o -type f -name \*.html \
           -exec perl -pi -e 's^(<body.*>)^$$1\n   <div id=\"version\" align=right><b>$$ENV{slepcversion} $$ENV{datestr}</b></div>\n   <div id="bugreport" align=right><a href="mailto:slepc-maint\@upv.es?subject=Typo or Error in Documentation &body=Please describe the typo or error in the documentation: $$ENV{slepcversion} $$ENV{gitver} {} "><small>Report Typos and Errors</small></a></div>^i' {} \; \

@@ -7,7 +7,7 @@ slepc-maint@upv.es.  If you are planning a large contribution, we
 encourage you to discuss the concept with us and interact frequently
 to ensure that your effort is well-directed.
 
-PETSc is distributed under a 2-clause BSD license (see LICENSE.md). The
+SLEPc is distributed under a 2-clause BSD license (see LICENSE.md). The
 act of submitting a pull request or patch (with or without an explicit
 Signed-off-by tag) will be understood as an affirmation of the
 following:
