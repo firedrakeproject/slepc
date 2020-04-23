@@ -188,7 +188,7 @@ alldoc1: chk_loc allcite allmanpages allmanexamples
 	-@echo "  <meta http-equiv=\"Content-Type\" content=\"text/html; charset=iso-8859-1\">" >> singleindex.html
 	-@echo "  <link rel=\"stylesheet\" href=\"/slepc.css\" type=\"text/css\">" >> singleindex.html
 	-@echo "</head>" >> singleindex.html
-	-@echo "<body>" > singleindex.html
+	-@echo "<body>" >> singleindex.html
 	-@cat ${LOC}/docs/manualpages/singleindex.html >> singleindex.html
 	-@sed -e 's/CC3333/883300/' singleindex.html > ${LOC}/docs/manualpages/singleindex.html
 	-@${RM} singleindex.html
@@ -228,8 +228,8 @@ docsetdate: chk_petscdir
 alldocclean: deletemanualpages allcleanhtml
 deletemanualpages: chk_loc
 	-@if [ -d ${LOC} -a -d ${LOC}/docs/manualpages ]; then \
-          find ${LOC}/docs/manualpages -type f -name "*.html" -exec ${RM} {} \; ;\
-          ${RM} ${LOC}/docs/manualpages/manualpages.cit ;\
+          ${RM} -rf ${LOC}/docs/manualpages ;\
+          ${RM} -f ${LOC}/docs/slepc.pdf ;\
         fi
 allcleanhtml:
 	-${OMAKE_SELF} ACTION=cleanhtml PETSC_DIR=${PETSC_DIR} alltree
