@@ -39,7 +39,7 @@ slepc_manexamples:
                    -printmatch-link -o /dev/null| cut -f 2 | cut -d '#' -f 1 |sed -e s~^../~~  | sort | uniq` ;  \
               for j in $$a ; do \
                 b=`ls ${LOC}/docs/manualpages/$${j} | grep -v /all/ | cut -f9` ; \
-                l=`grep -e tutorials -e nlevp $${b} | wc -l`; \
+                l=`grep -e "^<A HREF=\"\.\./\.\./\.\..*/tutorials/" -e "^<A HREF=\"\.\./\.\./\.\..*/nlevp/" $${b} | wc -l`; \
                 if [ $$l -le 10 ] ; then \
                   if [ $$l -eq 0 ] ; then \
                     echo "<P><H3><FONT COLOR=\"#883300\">Examples</FONT></H3>" >> $$b; \
@@ -58,7 +58,7 @@ slepc_html: chk_c2html
 	-@sed -e s?man+../?man+ROOT/docs/manualpages/? ${LOC}/docs/manualpages/manualpages.cit > /tmp/$$USER.htmlmap
 	-@cat ${PETSC_DIR}/src/docs/mpi.www.index >> /tmp/$$USER.htmlmap
 	-@ROOT=`echo ${LOCDIR} | sed -e s?/[a-z]*?/..?g -e s?src/??g -e s?include/??g` ;\
-          loc=`pwd | sed -e s?\$${PETSC_DIR}?$${LOC}/?g -e s?/disks??g`;  \
+          loc=`pwd | sed -e s?\$${SLEPC_DIR}?$${LOC}/?g -e s?/disks??g`;  \
           ${MKDIR} -p $${loc} ;\
           for i in ${SOURCEALL} ${EXAMPLESC} ${EXAMPLESF} ${EXAMPLESCH} ${EXAMPLESFH} ${EXAMPLESMATLAB} foo ; do\
 	    if [ -f $$i ]; then \
@@ -74,16 +74,16 @@ slepc_html: chk_c2html
               ${RM} $${loc}/$$i.html; \
               echo "<center><a href=\"$${iroot}\">Actual source code: $${iroot}</a></center><br>" > $${loc}/$$i.html; \
               sed -e "s/CHKERRQ(ierr);//g" -e "s/PetscFunctionReturn(0)/return(0)/g" -e "s/ierr [ ]*= //g"  -e "s/PETSC[A-Z]*_DLLEXPORT//g" $$i | ${C2HTML} -n  | \
-              awk '{ sub(/<pre width=\"80\">/,"<pre width=\"80\">\n"); print }'  | ${PETSC_DIR}/lib/petsc/bin/maint/fixinclude $$i $${PETSC_DIR} | \
+              awk '{ sub(/<pre width=\"80\">/,"<pre width=\"80\">\n"); print }'  | ${PYTHON} ${PETSC_DIR}/lib/petsc/bin/maint/fixinclude.py $$i $${SLEPC_DIR} | \
               egrep -v '(PetscValid|PetscFunctionBegin|PetscCheck|PetscErrorCode ierr;|#if !defined\(__|#define __|#undef __|EXTERN_C )' | \
               ${MAPNAMES} -map /tmp/$$USER.htmlmap -inhtml | sed -e s?ROOT?$${IROOT}?g >> $${loc}/$$i.html ; \
 	    fi; \
          done
 	-@ROOT=`echo ${LOCDIR} | sed -e s?/[a-z]*?/..?g -e s?src/??g -e s?include/??g` ;\
-          loc=`pwd | sed -e s?\$${PETSC_DIR}?$${LOC}/?g -e s?/disks??g`; ${RM} $${loc}/index.html; \
-          cat ${SLEPC_DIR}/src/docs/manualpages-sec/header_${MANSEC} | sed -e "s?<A HREF=\"PETSC_DIR[a-z/]*\">Examples</A>?<A HREF=\"$${ROOT}/docs/manualpages/${MANSEC}\">Manual pages</A>?g" -e "s?PETSC_DIR?$${ROOT}/?g"> $${loc}/index.html; \
+          loc=`pwd | sed -e s?\$${SLEPC_DIR}?$${LOC}/?g -e s?/disks??g`; ${RM} $${loc}/index.html; \
+          cat ${SLEPC_DIR}/src/docs/manualpages-sec/header_${MANSEC} | sed -e "s?<A HREF=\"SLEPC_DIR[a-z/]*\">Examples</A>?<A HREF=\"$${ROOT}/docs/manualpages/${MANSEC}\">Manual pages</A>?g" -e "s?SLEPC_DIR?$${ROOT}/?g"> $${loc}/index.html; \
           echo "<p>" >> $${loc}/index.html
-	-@loc=`pwd | sed -e s?\$${PETSC_DIR}?$${LOC}/?g -e s?/disks??g`;\
+	-@loc=`pwd | sed -e s?\$${SLEPC_DIR}?$${LOC}/?g -e s?/disks??g`;\
             if [ "${EXAMPLESC}" != "" ] ; then \
                for file in ${EXAMPLESC} foo ; do \
 		if [ -f $$file ]; then \
@@ -107,7 +107,7 @@ slepc_html: chk_c2html
             fi ;\
             echo " " >> $${loc}/index.html; \
             echo "<a href=\"makefile.html\">makefile</a><br>" >> $${loc}/index.html
-	-@loc=`pwd | sed -e s?\$${PETSC_DIR}?$${LOC}/?g -e s?/disks??g`;  \
+	-@loc=`pwd | sed -e s?\$${SLEPC_DIR}?$${LOC}/?g -e s?/disks??g`;  \
 	   cat makefile | ${C2HTML}  | ${MAPNAMES} -map /tmp/$$USER.htmlmap -inhtml > $${loc}/makefile.html
 	-@${RM} /tmp/$$USER.htmlmap
 
