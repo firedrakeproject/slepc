@@ -104,9 +104,9 @@ slepc_html: chk_c2html
                    echo "<a href=\"$${file}.html\">$${file}</a><br>" >> $${loc}/index.html; \
 		 fi; \
                done; \
-            fi ;\
-            echo " " >> $${loc}/index.html; \
-            echo "<a href=\"makefile.html\">makefile</a><br>" >> $${loc}/index.html
+               echo " " >> $${loc}/index.html; \
+               echo "<a href=\"makefile.html\">makefile</a><br>" >> $${loc}/index.html; \
+            fi
 	-@loc=`pwd | sed -e s?\$${SLEPC_DIR}?$${LOC}/?g -e s?/disks??g`;  \
 	   cat makefile | ${C2HTML}  | ${MAPNAMES} -map /tmp/$$USER.htmlmap -inhtml > $${loc}/makefile.html
 	-@${RM} /tmp/$$USER.htmlmap
