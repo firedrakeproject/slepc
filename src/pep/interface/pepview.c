@@ -56,11 +56,6 @@ PetscErrorCode PEPView(PEP pep,PetscViewer viewer)
   PetscValidHeaderSpecific(viewer,PETSC_VIEWER_CLASSID,2);
   PetscCheckSameComm(pep,1,viewer,2);
 
-#if defined(PETSC_USE_COMPLEX)
-#define HERM "hermitian"
-#else
-#define HERM "symmetric"
-#endif
   ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
   if (isascii) {
     ierr = PetscObjectPrintClassNamePrefixType((PetscObject)pep,viewer);CHKERRQ(ierr);
@@ -72,7 +67,7 @@ PetscErrorCode PEPView(PEP pep,PetscViewer viewer)
     if (pep->problem_type) {
       switch (pep->problem_type) {
         case PEP_GENERAL:    type = "general polynomial eigenvalue problem"; break;
-        case PEP_HERMITIAN:  type = HERM " polynomial eigenvalue problem"; break;
+        case PEP_HERMITIAN:  type = SLEPC_STRING_HERMITIAN " polynomial eigenvalue problem"; break;
         case PEP_HYPERBOLIC: type = "hyperbolic polynomial eigenvalue problem"; break;
         case PEP_GYROSCOPIC: type = "gyroscopic polynomial eigenvalue problem"; break;
       }
