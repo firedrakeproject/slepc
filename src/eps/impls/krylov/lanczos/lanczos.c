@@ -47,14 +47,7 @@ PetscErrorCode EPSSetUp_Lanczos(EPS eps)
   if (eps->ncv>eps->nev+eps->mpd) SETERRQ(PetscObjectComm((PetscObject)eps),1,"The value of ncv must not be larger than nev+mpd");
   if (!eps->max_it) eps->max_it = PetscMax(100,2*eps->n/eps->ncv);
   if (!eps->which) { ierr = EPSSetWhichEigenpairs_Default(eps);CHKERRQ(ierr); }
-  switch (eps->which) {
-    case EPS_LARGEST_IMAGINARY:
-    case EPS_SMALLEST_IMAGINARY:
-    case EPS_TARGET_IMAGINARY:
-    case EPS_ALL:
-      SETERRQ(PetscObjectComm((PetscObject)eps),1,"Wrong value of eps->which");
-    default: ; /* default case to remove warning */
-  }
+  if (eps->which==EPS_ALL) SETERRQ(PetscObjectComm((PetscObject)eps),1,"Wrong value of eps->which");
   if (!eps->extraction) {
     ierr = EPSSetExtraction(eps,EPS_RITZ);CHKERRQ(ierr);
   } else if (eps->extraction!=EPS_RITZ) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Unsupported extraction type");

@@ -540,6 +540,10 @@ PetscErrorCode EPSSetWhichEigenpairs(EPS eps,EPSWhich which)
         eps->which = which;
       }
       break;
+#if !defined(PETSC_USE_COMPLEX)
+    case EPS_TARGET_IMAGINARY:
+      SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"EPS_TARGET_IMAGINARY can be used only with complex scalars");
+#endif
     default:
       SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"Invalid 'which' value");
   }

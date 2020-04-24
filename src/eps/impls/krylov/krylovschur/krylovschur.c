@@ -154,7 +154,6 @@ PetscErrorCode EPSSetUp_KrylovSchur(EPS eps)
   if (!ctx->lock && eps->mpd<eps->ncv) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Should not use mpd parameter in non-locking variant");
 
   EPSCheckDefiniteCondition(eps,eps->arbitrary," with arbitrary selection of eigenpairs");
-  if (eps->ishermitian && eps->ispositive && (eps->which==EPS_LARGEST_IMAGINARY || eps->which==EPS_SMALLEST_IMAGINARY)) SETERRQ(PetscObjectComm((PetscObject)eps),1,"Wrong value of eps->which");
 
   if (!eps->extraction) {
     ierr = EPSSetExtraction(eps,EPS_RITZ);CHKERRQ(ierr);

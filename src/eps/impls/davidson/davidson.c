@@ -54,7 +54,6 @@ PetscErrorCode EPSSetUp_XD(EPS eps)
   if (eps->mpd < 2) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"The mpd has to be greater than 2");
   if (!eps->max_it) eps->max_it = PetscMax(100*eps->ncv,2*eps->n);
   if (!eps->which) eps->which = EPS_LARGEST_MAGNITUDE;
-  if (eps->ishermitian && (eps->which==EPS_LARGEST_IMAGINARY || eps->which==EPS_SMALLEST_IMAGINARY)) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Wrong value of eps->which");
   if (!(eps->nev + bs <= eps->ncv)) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"The ncv has to be greater than nev plus blocksize");
   if (eps->trueres) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"-eps_true_residual is temporally disable in this solver.");
 
