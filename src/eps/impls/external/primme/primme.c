@@ -177,13 +177,13 @@ PetscErrorCode EPSSetUp_PRIMME(EPS eps)
   PetscBool      istrivial,flg;
 
   PetscFunctionBegin;
+  EPSCheckHermitianDefinite(eps);
   ierr = MPI_Comm_size(PetscObjectComm((PetscObject)eps),&numProcs);CHKERRQ(ierr);
   ierr = MPI_Comm_rank(PetscObjectComm((PetscObject)eps),&procID);CHKERRQ(ierr);
 
   /* Check some constraints and set some default values */
   if (!eps->max_it) eps->max_it = PETSC_MAX_INT;
   ierr = STGetMatrix(eps->st,0,&ops->A);CHKERRQ(ierr);
-  if (!eps->ishermitian) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"PRIMME is only available for Hermitian problems");
   if (eps->isgeneralized) {
 #if defined(SLEPC_HAVE_PRIMME3)
     ierr = STGetMatrix(eps->st,1,&ops->B);CHKERRQ(ierr);

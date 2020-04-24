@@ -42,6 +42,7 @@ PetscErrorCode EPSSetUp_Lanczos(EPS eps)
   PetscErrorCode     ierr;
 
   PetscFunctionBegin;
+  EPSCheckHermitianDefinite(eps);
   ierr = EPSSetDimensions_Default(eps,eps->nev,&eps->ncv,&eps->mpd);CHKERRQ(ierr);
   if (eps->ncv>eps->nev+eps->mpd) SETERRQ(PetscObjectComm((PetscObject)eps),1,"The value of ncv must not be larger than nev+mpd");
   if (!eps->max_it) eps->max_it = PetscMax(100,2*eps->n/eps->ncv);
@@ -82,9 +83,6 @@ PetscErrorCode EPSSetUp_Lanczos(EPS eps)
   if (lanczos->reorthog == EPS_LANCZOS_REORTHOG_LOCAL) {
     ierr = EPSSetWorkVecs(eps,1);CHKERRQ(ierr);
   }
-
-  if (!eps->ishermitian) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Requested method is only available for Hermitian problems");
-  if (eps->isgeneralized && eps->ishermitian && !eps->ispositive) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Requested method does not work for indefinite problems");
   PetscFunctionReturn(0);
 }
 

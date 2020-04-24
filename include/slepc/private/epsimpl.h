@@ -149,6 +149,47 @@ struct _p_EPS {
 #endif
 
 /*
+    Macros to check settings at EPSSetUp()
+*/
+
+/* EPSCheckHermitianDefinite: the problem is HEP or GHEP */
+#define EPSCheckHermitianDefiniteCondition(eps,condition,msg) \
+  do { \
+    if (condition) { \
+      if (!(eps)->ishermitian) SETERRQ3(PetscObjectComm((PetscObject)(eps)),PETSC_ERR_SUP,"The solver '%s'%s cannot be used for non-%s problems",((PetscObject)(eps))->type_name,(msg),SLEPC_STRING_HERMITIAN); \
+      else if ((eps)->isgeneralized && !(eps)->ispositive) SETERRQ3(PetscObjectComm((PetscObject)(eps)),PETSC_ERR_SUP,"The solver '%s'%s requires that the problem is %s-definite",((PetscObject)(eps))->type_name,(msg),SLEPC_STRING_HERMITIAN); \
+    } \
+  } while (0)
+#define EPSCheckHermitianDefinite(eps) EPSCheckHermitianDefiniteCondition(eps,PETSC_TRUE,"")
+
+/* EPSCheckHermitian: the problem is HEP, GHEP, or GHIEP */
+#define EPSCheckHermitianCondition(eps,condition,msg) \
+  do { \
+    if (condition) { \
+      if (!(eps)->ishermitian) SETERRQ3(PetscObjectComm((PetscObject)(eps)),PETSC_ERR_SUP,"The solver '%s'%s cannot be used for non-%s problems",((PetscObject)(eps))->type_name,(msg),SLEPC_STRING_HERMITIAN); \
+    } \
+  } while (0)
+#define EPSCheckHermitian(eps) EPSCheckHermitianCondition(eps,PETSC_TRUE,"")
+
+/* EPSCheckDefinite: the problem is not GHIEP */
+#define EPSCheckDefiniteCondition(eps,condition,msg) \
+  do { \
+    if (condition) { \
+      if ((eps)->isgeneralized && (eps)->ishermitian && !(eps)->ispositive) SETERRQ3(PetscObjectComm((PetscObject)(eps)),PETSC_ERR_SUP,"The solver '%s'%s cannot be used for %s-indefinite problems",((PetscObject)(eps))->type_name,(msg),SLEPC_STRING_HERMITIAN); \
+    } \
+  } while (0)
+#define EPSCheckDefinite(eps) EPSCheckDefiniteCondition(eps,PETSC_TRUE,"")
+
+/* EPSCheckStandard: the problem is HEP or NHEP */
+#define EPSCheckStandardCondition(eps,condition,msg) \
+  do { \
+    if (condition) { \
+      if ((eps)->isgeneralized) SETERRQ2(PetscObjectComm((PetscObject)(eps)),PETSC_ERR_SUP,"The solver '%s'%s cannot be used for generalized problems",((PetscObject)(eps))->type_name,(msg)); \
+    } \
+  } while (0)
+#define EPSCheckStandard(eps) EPSCheckStandardCondition(eps,PETSC_TRUE,"")
+
+/*
   EPS_SetInnerProduct - set B matrix for inner product if appropriate.
 */
 PETSC_STATIC_INLINE PetscErrorCode EPS_SetInnerProduct(EPS eps)

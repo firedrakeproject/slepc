@@ -30,6 +30,7 @@ PetscErrorCode EPSSetUp_Subspace(EPS eps)
   PetscErrorCode ierr;
 
   PetscFunctionBegin;
+  EPSCheckDefinite(eps);
   ierr = EPSSetDimensions_Default(eps,eps->nev,&eps->ncv,&eps->mpd);CHKERRQ(ierr);
   if (!eps->max_it) eps->max_it = PetscMax(100,2*eps->n/eps->ncv);
   if (!eps->which) { ierr = EPSSetWhichEigenpairs_Default(eps);CHKERRQ(ierr); }
@@ -48,8 +49,6 @@ PetscErrorCode EPSSetUp_Subspace(EPS eps)
   }
   ierr = DSAllocate(eps->ds,eps->ncv);CHKERRQ(ierr);
   ierr = EPSSetWorkVecs(eps,1);CHKERRQ(ierr);
-
-  if (eps->isgeneralized && eps->ishermitian && !eps->ispositive) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Requested method does not work for indefinite problems");
   PetscFunctionReturn(0);
 }
 

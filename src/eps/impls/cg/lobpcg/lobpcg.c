@@ -59,7 +59,7 @@ PetscErrorCode EPSSetUp_LOBPCG(EPS eps)
   PetscBool      istrivial;
 
   PetscFunctionBegin;
-  if (!eps->ishermitian || (eps->isgeneralized && !eps->ispositive)) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"LOBPCG only works for Hermitian problems");
+  EPSCheckHermitianDefinite(eps);
   if (!ctx->bs) ctx->bs = PetscMin(16,eps->nev);
   if (eps->n-eps->nds<5*ctx->bs) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"The problem size is too small relative to the block size");
   ierr = EPSSetDimensions_LOBPCG(eps,eps->nev,&eps->ncv,&eps->mpd);CHKERRQ(ierr);

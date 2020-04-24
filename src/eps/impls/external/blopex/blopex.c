@@ -132,7 +132,7 @@ PetscErrorCode EPSSetUp_BLOPEX(EPS eps)
   KSP            ksp;
 
   PetscFunctionBegin;
-  if (!eps->ishermitian || (eps->isgeneralized && !eps->ispositive)) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"blopex only works for Hermitian problems");
+  EPSCheckHermitianDefinite(eps);
   if (!blopex->bs) blopex->bs = PetscMin(16,eps->nev);
   ierr = EPSSetDimensions_BLOPEX(eps,eps->nev,&eps->ncv,&eps->mpd);CHKERRQ(ierr);
   if (!eps->max_it) eps->max_it = PetscMax(100,2*eps->n/eps->ncv);
