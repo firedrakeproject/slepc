@@ -56,7 +56,6 @@ PetscErrorCode EPSSetUp_LOBPCG(EPS eps)
 {
   PetscErrorCode ierr;
   EPS_LOBPCG     *ctx = (EPS_LOBPCG*)eps->data;
-  PetscBool      istrivial;
 
   PetscFunctionBegin;
   EPSCheckHermitianDefinite(eps);
@@ -66,10 +65,8 @@ PetscErrorCode EPSSetUp_LOBPCG(EPS eps)
   if (!eps->max_it) eps->max_it = PetscMax(100,2*eps->n/eps->ncv);
   if (!eps->which) eps->which = EPS_SMALLEST_REAL;
   if (eps->which!=EPS_SMALLEST_REAL && eps->which!=EPS_LARGEST_REAL) SETERRQ(PetscObjectComm((PetscObject)eps),1,"Wrong value of eps->which");
-  if (eps->arbitrary) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Arbitrary selection of eigenpairs not supported in this solver");
-  if (eps->extraction) { ierr = PetscInfo(eps,"Warning: extraction type ignored\n");CHKERRQ(ierr); }
-  ierr = RGIsTrivial(eps->rg,&istrivial);CHKERRQ(ierr);
-  if (!istrivial) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"This solver does not support region filtering");
+  EPSCheckUnsupported(eps,EPS_FEATURE_ARBITRARY | EPS_FEATURE_REGION | EPS_FEATURE_EXTRACTION);
+  EPSCheckIgnored(eps,EPS_FEATURE_BALANCE);
 
   if (!ctx->restart) ctx->restart = 0.9;
 

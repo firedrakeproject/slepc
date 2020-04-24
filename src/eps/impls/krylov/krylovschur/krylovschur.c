@@ -102,7 +102,7 @@ static PetscErrorCode EPSSetUp_KrylovSchur_Filter(EPS eps)
   EPSCheckHermitianCondition(eps,PETSC_TRUE," with polynomial filter");
   EPSCheckStandardCondition(eps,PETSC_TRUE," with polynomial filter");
   if (eps->intb >= PETSC_MAX_REAL && eps->inta <= PETSC_MIN_REAL) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_WRONG,"The defined computational interval should have at least one of their sides bounded");
-  if (eps->arbitrary) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Arbitrary selection of eigenpairs cannot be used with polynomial filters");
+  EPSCheckUnsupportedCondition(eps,EPS_FEATURE_ARBITRARY | EPS_FEATURE_REGION | EPS_FEATURE_EXTRACTION,PETSC_TRUE," with polynomial filter");
   if (eps->tol==PETSC_DEFAULT) eps->tol = SLEPC_DEFAULT_TOL*1e-2;  /* use tighter tolerance */
   ierr = STFilterSetInterval(eps->st,eps->inta,eps->intb);CHKERRQ(ierr);
   ierr = STGetMatrix(eps->st,0,&A);CHKERRQ(ierr);
@@ -155,9 +155,7 @@ PetscErrorCode EPSSetUp_KrylovSchur(EPS eps)
 
   EPSCheckDefiniteCondition(eps,eps->arbitrary," with arbitrary selection of eigenpairs");
 
-  if (!eps->extraction) {
-    ierr = EPSSetExtraction(eps,EPS_RITZ);CHKERRQ(ierr);
-  } else if (eps->extraction!=EPS_RITZ && eps->extraction!=EPS_HARMONIC) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Unsupported extraction type");
+  if (eps->extraction!=EPS_RITZ && eps->extraction!=EPS_HARMONIC) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Unsupported extraction type");
 
   if (!ctx->keep) ctx->keep = 0.5;
 
@@ -209,7 +207,6 @@ PetscErrorCode EPSSetUp_KrylovSchur(EPS eps)
       ierr = DSAllocate(eps->ds,eps->ncv+1);CHKERRQ(ierr);
       break;
     case EPS_KS_SLICE:
-      if (eps->stopping!=EPSStoppingBasic) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Spectrum slicing does not support user-defined stopping test");
       eps->ops->solve = EPSSolve_KrylovSchur_Slice;
       eps->ops->computevectors = EPSComputeVectors_Slice;
       break;

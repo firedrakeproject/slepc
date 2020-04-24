@@ -55,7 +55,7 @@ PetscErrorCode EPSSetUp_BLZPACK(EPS eps)
   PetscErrorCode ierr;
   PetscInt       listor,lrstor,ncuv,k1,k2,k3,k4;
   EPS_BLZPACK    *blz = (EPS_BLZPACK*)eps->data;
-  PetscBool      issinv,istrivial,flg;
+  PetscBool      issinv,flg;
 
   PetscFunctionBegin;
   EPSCheckHermitianDefinite(eps);
@@ -87,7 +87,8 @@ PetscErrorCode EPSSetUp_BLZPACK(EPS eps)
     else eps->which = EPS_SMALLEST_REAL;
   }
   if ((issinv && eps->which!=EPS_TARGET_REAL && eps->which!=EPS_TARGET_MAGNITUDE && eps->which!=EPS_ALL) || (!issinv && eps->which!=EPS_SMALLEST_REAL)) SETERRQ(PetscObjectComm((PetscObject)eps),1,"Wrong value of eps->which");
-  if (eps->arbitrary) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Arbitrary selection of eigenpairs not supported in this solver");
+  EPSCheckUnsupported(eps,EPS_FEATURE_ARBITRARY | EPS_FEATURE_REGION | EPS_FEATURE_CONVERGENCE | EPS_FEATURE_STOPPING);
+  EPSCheckIgnored(eps,EPS_FEATURE_BALANCE | EPS_FEATURE_EXTRACTION);
 
   k1 = PetscMin(eps->n,180);
   k2 = blz->block_size;
@@ -120,15 +121,10 @@ lrstor*=10;
   ierr = PetscMalloc1(2*eps->ncv,&blz->eig);CHKERRQ(ierr);
   ierr = PetscLogObjectMemory((PetscObject)eps,2*eps->ncv*sizeof(PetscReal));CHKERRQ(ierr);
 
-  if (eps->extraction) { ierr = PetscInfo(eps,"Warning: extraction type ignored\n");CHKERRQ(ierr); }
-
   ierr = EPSAllocateSolution(eps,0);CHKERRQ(ierr);
   ierr = EPS_SetInnerProduct(eps);CHKERRQ(ierr);
   ierr = PetscObjectTypeCompare((PetscObject)eps->V,BVVECS,&flg);CHKERRQ(ierr);
   if (flg) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"This solver requires a BV with contiguous storage");
-  ierr = RGIsTrivial(eps->rg,&istrivial);CHKERRQ(ierr);
-  if (!istrivial) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"This solver does not support region filtering");
-  if (eps->stopping!=EPSStoppingBasic) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"External packages do not support user-defined stopping test");
   PetscFunctionReturn(0);
 }
 

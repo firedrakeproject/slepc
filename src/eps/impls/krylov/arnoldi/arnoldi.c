@@ -40,10 +40,7 @@ PetscErrorCode EPSSetUp_Arnoldi(EPS eps)
   if (!eps->which) { ierr = EPSSetWhichEigenpairs_Default(eps);CHKERRQ(ierr); }
   if (eps->which==EPS_ALL) SETERRQ(PetscObjectComm((PetscObject)eps),1,"Wrong value of eps->which");
 
-  if (!eps->extraction) {
-    ierr = EPSSetExtraction(eps,EPS_RITZ);CHKERRQ(ierr);
-  }
-  if (eps->arbitrary) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Arbitrary selection of eigenpairs not supported in this solver");
+  EPSCheckUnsupported(eps,EPS_FEATURE_ARBITRARY);
 
   ierr = EPSAllocateSolution(eps,1);CHKERRQ(ierr);
   ierr = EPS_SetInnerProduct(eps);CHKERRQ(ierr);

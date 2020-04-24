@@ -55,6 +55,17 @@ typedef enum { EPS_CATEGORY_KRYLOV,      /* Krylov solver: relies on STApply and
                EPS_CATEGORY_OTHER } EPSSolverType;
 
 /*
+   To check for unsupported features at EPSSetUp_XXX()
+*/
+typedef enum { EPS_FEATURE_BALANCE=1,       /* balancing */
+               EPS_FEATURE_ARBITRARY=2,     /* arbitrary selection of eigepairs */
+               EPS_FEATURE_REGION=4,        /* nontrivial region for filtering */
+               EPS_FEATURE_EXTRACTION=8,    /* extraction technique different from Ritz */
+               EPS_FEATURE_CONVERGENCE=16,  /* convergence test selected by user */
+               EPS_FEATURE_STOPPING=32      /* stopping test */
+             } EPSFeatureType;
+
+/*
    Defines the EPS data structure
 */
 struct _p_EPS {
@@ -188,6 +199,43 @@ struct _p_EPS {
     } \
   } while (0)
 #define EPSCheckStandard(eps) EPSCheckStandardCondition(eps,PETSC_TRUE,"")
+
+/* Check for unsupported features */
+#define EPSCheckUnsupportedCondition(eps,mask,condition,msg) \
+  do { \
+    if (condition) { \
+      if (((mask) & EPS_FEATURE_BALANCE) && (eps)->balance!=EPS_BALANCE_NONE) SETERRQ2(PetscObjectComm((PetscObject)(eps)),PETSC_ERR_SUP,"The solver '%s'%s does not support balancing",((PetscObject)(eps))->type_name,(msg)); \
+      if (((mask) & EPS_FEATURE_ARBITRARY) && (eps)->arbitrary) SETERRQ2(PetscObjectComm((PetscObject)(eps)),PETSC_ERR_SUP,"The solver '%s'%s does not support arbitrary selection of eigenpairs",((PetscObject)(eps))->type_name,(msg)); \
+      if ((mask) & EPS_FEATURE_REGION) { \
+        PetscBool      __istrivial; \
+        PetscErrorCode __ierr = RGIsTrivial((eps)->rg,&__istrivial);CHKERRQ(__ierr); \
+        if (!__istrivial) SETERRQ2(PetscObjectComm((PetscObject)(eps)),PETSC_ERR_SUP,"The solver '%s'%s does not support region filtering",((PetscObject)(eps))->type_name,(msg)); \
+      } \
+      if (((mask) & EPS_FEATURE_EXTRACTION) && (eps)->extraction!=EPS_RITZ) SETERRQ2(PetscObjectComm((PetscObject)(eps)),PETSC_ERR_SUP,"The solver '%s'%s only supports Ritz extraction",((PetscObject)(eps))->type_name,(msg)); \
+      if (((mask) & EPS_FEATURE_CONVERGENCE) && (eps)->converged!=EPSConvergedRelative) SETERRQ2(PetscObjectComm((PetscObject)(eps)),PETSC_ERR_SUP,"The solver '%s'%s only supports the default convergence test",((PetscObject)(eps))->type_name,(msg)); \
+      if (((mask) & EPS_FEATURE_STOPPING) && (eps)->stopping!=EPSStoppingBasic) SETERRQ2(PetscObjectComm((PetscObject)(eps)),PETSC_ERR_SUP,"The solver '%s'%s only supports the default stopping test",((PetscObject)(eps))->type_name,(msg)); \
+    } \
+  } while (0)
+#define EPSCheckUnsupported(eps,mask) EPSCheckUnsupportedCondition(eps,mask,PETSC_TRUE,"")
+
+/* Check for ignored features */
+#define EPSCheckIgnoredCondition(eps,mask,condition,msg) \
+  do { \
+    PetscErrorCode __ierr; \
+    if (condition) { \
+      if (((mask) & EPS_FEATURE_BALANCE) && (eps)->balance!=EPS_BALANCE_NONE) { __ierr = PetscInfo2((eps),"The solver '%s'%s ignores the balancing settings\n",((PetscObject)(eps))->type_name,(msg)); } \
+      if (((mask) & EPS_FEATURE_ARBITRARY) && (eps)->arbitrary) { __ierr = PetscInfo2((eps),"The solver '%s'%s ignores the settings for arbitrary selection of eigenpairs\n",((PetscObject)(eps))->type_name,(msg)); } \
+      if ((mask) & EPS_FEATURE_REGION) { \
+        PetscBool __istrivial; \
+        __ierr = RGIsTrivial((eps)->rg,&__istrivial);CHKERRQ(__ierr); \
+        if (!__istrivial) { __ierr = PetscInfo2((eps),"The solver '%s'%s ignores the specified region\n",((PetscObject)(eps))->type_name,(msg)); } \
+      } \
+      if (((mask) & EPS_FEATURE_EXTRACTION) && (eps)->extraction!=EPS_RITZ) { __ierr = PetscInfo2((eps),"The solver '%s'%s ignores the extraction settings\n",((PetscObject)(eps))->type_name,(msg)); } \
+      if (((mask) & EPS_FEATURE_CONVERGENCE) && (eps)->converged!=EPSConvergedRelative) { __ierr = PetscInfo2((eps),"The solver '%s'%s ignores the convergence test settings\n",((PetscObject)(eps))->type_name,(msg)); } \
+      if (((mask) & EPS_FEATURE_STOPPING) && (eps)->stopping!=EPSStoppingBasic) { __ierr = PetscInfo2((eps),"The solver '%s'%s ignores the stopping test settings\n",((PetscObject)(eps))->type_name,(msg)); } \
+    } \
+  } while (0)
+#define EPSCheckIgnored(eps,mask) EPSCheckIgnoredCondition(eps,mask,PETSC_TRUE,"")
 
 /*
   EPS_SetInnerProduct - set B matrix for inner product if appropriate.

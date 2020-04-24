@@ -23,7 +23,6 @@ static struct {
 PetscErrorCode EPSSetUp_TRLAN(EPS eps)
 {
   PetscErrorCode ierr;
-  PetscBool      istrivial;
   EPS_TRLAN      *tr = (EPS_TRLAN*)eps->data;
 
   PetscFunctionBegin;
@@ -38,8 +37,8 @@ PetscErrorCode EPSSetUp_TRLAN(EPS eps)
 
   if (!eps->which) eps->which = EPS_LARGEST_REAL;
   if (eps->which!=EPS_LARGEST_REAL && eps->which!=EPS_SMALLEST_REAL && eps->which!=EPS_TARGET_REAL) SETERRQ(PetscObjectComm((PetscObject)eps),1,"Wrong value of eps->which");
-  if (eps->arbitrary) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Arbitrary selection of eigenpairs not supported in this solver");
-  if (eps->stopping!=EPSStoppingBasic) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"External packages do not support user-defined stopping test");
+  EPSCheckUnsupported(eps,EPS_FEATURE_ARBITRARY | EPS_FEATURE_REGION | EPS_FEATURE_CONVERGENCE | EPS_FEATURE_STOPPING);
+  EPSCheckIgnored(eps,EPS_FEATURE_BALANCE | EPS_FEATURE_EXTRACTION);
 
   tr->restart = 0;
   if (tr->maxlan+1-eps->ncv<=0) {
@@ -50,10 +49,6 @@ PetscErrorCode EPSSetUp_TRLAN(EPS eps)
   if (tr->work) { ierr = PetscFree(tr->work);CHKERRQ(ierr); }
   ierr = PetscMalloc1(tr->lwork,&tr->work);CHKERRQ(ierr);
   ierr = PetscLogObjectMemory((PetscObject)eps,tr->lwork*sizeof(PetscReal));CHKERRQ(ierr);
-
-  if (eps->extraction) { ierr = PetscInfo(eps,"Warning: extraction type ignored\n");CHKERRQ(ierr); }
-  ierr = RGIsTrivial(eps->rg,&istrivial);CHKERRQ(ierr);
-  if (!istrivial) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"This solver does not support region filtering");
 
   ierr = EPSAllocateSolution(eps,0);CHKERRQ(ierr);
   PetscFunctionReturn(0);
