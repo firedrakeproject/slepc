@@ -278,11 +278,6 @@ PetscErrorCode SlepcInitialize(int *argc,char ***args,const char file[],const ch
   /* Load the dynamic libraries (on machines that support them), this registers all the solvers etc. */
   ierr = SlepcInitialize_DynamicLibraries();CHKERRQ(ierr);
 
-#if defined(PETSC_HAVE_DRAND48)
-  /* work-around for Cygwin drand48() initialization bug */
-  srand48(0);
-#endif
-
   SlepcInitializeCalled = PETSC_TRUE;
   ierr = PetscInfo(0,"SLEPc successfully started\n");CHKERRQ(ierr);
   PetscFunctionReturn(0);

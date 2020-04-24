@@ -69,11 +69,6 @@ static void slepcinitialize_internal(char *filename,PetscInt len,PetscBool argum
   if (*ierr) { (*PetscErrorPrintf)("SlepcInitialize:Initializing dynamic libraries\n");return; }
 #endif
 
-#if defined(PETSC_HAVE_DRAND48)
-  /* work-around for Cygwin drand48() initialization bug */
-  srand48(0);
-#endif
-
   SlepcInitializeCalled = PETSC_TRUE;
   *ierr = PetscInfo(0,"SLEPc successfully started from Fortran\n");
   if (*ierr) { (*PetscErrorPrintf)("SlepcInitialize:Calling PetscInfo()");return; }
