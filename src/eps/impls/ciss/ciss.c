@@ -865,9 +865,7 @@ PetscErrorCode EPSSetUp_CISS(EPS eps)
   if (useconj!=ctx->useconj) { ierr = EPSCISSResetSubcomm(eps);CHKERRQ(ierr); }
 
 #if !defined(PETSC_USE_COMPLEX)
-  if (isring) {
-    SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Ring region only supported for complex scalars");
-  }
+  if (isring) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Ring region only supported for complex scalars");
 #endif
   if (isinterval) {
     ierr = RGIntervalGetEndpoints(eps->rg,NULL,NULL,&c,&d);CHKERRQ(ierr);

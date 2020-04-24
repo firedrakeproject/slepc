@@ -144,32 +144,32 @@ PetscErrorCode EPSSolve_ARPACK(EPS eps)
   }
 
 #if !defined(PETSC_USE_COMPLEX)
-    if (eps->ishermitian) {
-      switch (eps->which) {
-        case EPS_TARGET_MAGNITUDE:
-        case EPS_LARGEST_MAGNITUDE:  which = "LM"; break;
-        case EPS_SMALLEST_MAGNITUDE: which = "SM"; break;
-        case EPS_TARGET_REAL:
-        case EPS_LARGEST_REAL:       which = "LA"; break;
-        case EPS_SMALLEST_REAL:      which = "SA"; break;
-        default: SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_WRONG,"Wrong value of eps->which");
-      }
-    } else {
-#endif
-      switch (eps->which) {
-        case EPS_TARGET_MAGNITUDE:
-        case EPS_LARGEST_MAGNITUDE:  which = "LM"; break;
-        case EPS_SMALLEST_MAGNITUDE: which = "SM"; break;
-        case EPS_TARGET_REAL:
-        case EPS_LARGEST_REAL:       which = "LR"; break;
-        case EPS_SMALLEST_REAL:      which = "SR"; break;
-        case EPS_TARGET_IMAGINARY:
-        case EPS_LARGEST_IMAGINARY:  which = "LI"; break;
-        case EPS_SMALLEST_IMAGINARY: which = "SI"; break;
-        default: SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_WRONG,"Wrong value of eps->which");
-      }
-#if !defined(PETSC_USE_COMPLEX)
+  if (eps->ishermitian) {
+    switch (eps->which) {
+      case EPS_TARGET_MAGNITUDE:
+      case EPS_LARGEST_MAGNITUDE:  which = "LM"; break;
+      case EPS_SMALLEST_MAGNITUDE: which = "SM"; break;
+      case EPS_TARGET_REAL:
+      case EPS_LARGEST_REAL:       which = "LA"; break;
+      case EPS_SMALLEST_REAL:      which = "SA"; break;
+      default: SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_WRONG,"Wrong value of eps->which");
     }
+  } else {
+#endif
+    switch (eps->which) {
+      case EPS_TARGET_MAGNITUDE:
+      case EPS_LARGEST_MAGNITUDE:  which = "LM"; break;
+      case EPS_SMALLEST_MAGNITUDE: which = "SM"; break;
+      case EPS_TARGET_REAL:
+      case EPS_LARGEST_REAL:       which = "LR"; break;
+      case EPS_SMALLEST_REAL:      which = "SR"; break;
+      case EPS_TARGET_IMAGINARY:
+      case EPS_LARGEST_IMAGINARY:  which = "LI"; break;
+      case EPS_SMALLEST_IMAGINARY: which = "SI"; break;
+      default: SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_WRONG,"Wrong value of eps->which");
+    }
+#if !defined(PETSC_USE_COMPLEX)
+  }
 #endif
 
   do {
