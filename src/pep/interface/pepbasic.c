@@ -711,7 +711,7 @@ PetscErrorCode PEPSetInterval(PEP pep,PetscReal inta,PetscReal intb)
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
   PetscValidLogicalCollectiveReal(pep,inta,2);
   PetscValidLogicalCollectiveReal(pep,intb,3);
-  if (inta>intb) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_WRONG,"Badly defined interval, must be inta<intb");
+  if (inta>=intb) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_WRONG,"Badly defined interval, must be inta<intb");
   if (pep->inta != inta || pep->intb != intb) {
     pep->inta = inta;
     pep->intb = intb;
