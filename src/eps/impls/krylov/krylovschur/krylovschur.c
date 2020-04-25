@@ -1398,7 +1398,6 @@ SLEPC_EXTERN PetscErrorCode EPSCreate_KrylovSchur(EPS eps)
   ctx->global = PETSC_TRUE;
 
   eps->useds = PETSC_TRUE;
-  eps->hasts = PETSC_TRUE;
 
   /* solve and computevectors determined at setup */
   eps->ops->setup          = EPSSetUp_KrylovSchur;

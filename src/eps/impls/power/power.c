@@ -1199,7 +1199,6 @@ SLEPC_EXTERN PetscErrorCode EPSCreate_Power(EPS eps)
   eps->data = (void*)ctx;
 
   eps->useds = PETSC_TRUE;
-  eps->hasts = PETSC_TRUE;
   eps->categ = EPS_CATEGORY_OTHER;
 
   eps->ops->setup          = EPSSetUp_Power;

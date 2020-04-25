@@ -182,7 +182,6 @@ SLEPC_EXTERN PetscErrorCode EPSCreate_LAPACK(EPS eps)
 {
   PetscFunctionBegin;
   eps->useds = PETSC_TRUE;
-  eps->hasts = PETSC_TRUE;
   eps->categ = EPS_CATEGORY_OTHER;
 
   eps->ops->solve          = EPSSolve_LAPACK;

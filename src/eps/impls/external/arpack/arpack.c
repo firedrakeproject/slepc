@@ -58,7 +58,7 @@ PetscErrorCode EPSSetUp_ARPACK(EPS eps)
   ierr = PetscMalloc1(3*eps->nloc,&ar->workd);CHKERRQ(ierr);
   ierr = PetscLogObjectMemory((PetscObject)eps,3*eps->nloc*sizeof(PetscScalar));CHKERRQ(ierr);
 
-  EPSCheckUnsupported(eps,EPS_FEATURE_BALANCE | EPS_FEATURE_ARBITRARY | EPS_FEATURE_REGION | EPS_FEATURE_CONVERGENCE | EPS_FEATURE_STOPPING);
+  EPSCheckUnsupported(eps,EPS_FEATURE_BALANCE | EPS_FEATURE_ARBITRARY | EPS_FEATURE_REGION | EPS_FEATURE_CONVERGENCE | EPS_FEATURE_STOPPING | EPS_FEATURE_TWOSIDED);
   EPSCheckIgnored(eps,EPS_FEATURE_EXTRACTION);
 
   ierr = EPSAllocateSolution(eps,0);CHKERRQ(ierr);

@@ -110,7 +110,6 @@ PetscErrorCode EPSCreate(MPI_Comm comm,EPS *outeps)
   eps->nrma            = 0.0;
   eps->nrmb            = 0.0;
   eps->useds           = PETSC_FALSE;
-  eps->hasts           = PETSC_FALSE;
   eps->isgeneralized   = PETSC_FALSE;
   eps->ispositive      = PETSC_FALSE;
   eps->ishermitian     = PETSC_FALSE;

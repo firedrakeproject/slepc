@@ -40,7 +40,7 @@ PetscErrorCode EPSSetUp_Arnoldi(EPS eps)
   if (!eps->which) { ierr = EPSSetWhichEigenpairs_Default(eps);CHKERRQ(ierr); }
   if (eps->which==EPS_ALL) SETERRQ(PetscObjectComm((PetscObject)eps),1,"Wrong value of eps->which");
 
-  EPSCheckUnsupported(eps,EPS_FEATURE_ARBITRARY);
+  EPSCheckUnsupported(eps,EPS_FEATURE_ARBITRARY | EPS_FEATURE_TWOSIDED);
 
   ierr = EPSAllocateSolution(eps,1);CHKERRQ(ierr);
   ierr = EPS_SetInnerProduct(eps);CHKERRQ(ierr);

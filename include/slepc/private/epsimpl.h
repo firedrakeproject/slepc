@@ -62,7 +62,8 @@ typedef enum { EPS_FEATURE_BALANCE=1,       /* balancing */
                EPS_FEATURE_REGION=4,        /* nontrivial region for filtering */
                EPS_FEATURE_EXTRACTION=8,    /* extraction technique different from Ritz */
                EPS_FEATURE_CONVERGENCE=16,  /* convergence test selected by user */
-               EPS_FEATURE_STOPPING=32      /* stopping test */
+               EPS_FEATURE_STOPPING=32,     /* stopping test */
+               EPS_FEATURE_TWOSIDED=64      /* two-sided variant */
              } EPSFeatureType;
 
 /*
@@ -136,7 +137,6 @@ struct _p_EPS {
   PetscInt       n,nloc;           /* problem dimensions (global, local) */
   PetscReal      nrma,nrmb;        /* computed matrix norms */
   PetscBool      useds;            /* whether the solver uses the DS object or not */
-  PetscBool      hasts;            /* whether the solver has two-sided variant */
   PetscBool      isgeneralized;
   PetscBool      ispositive;
   PetscBool      ishermitian;
@@ -214,6 +214,7 @@ struct _p_EPS {
       if (((mask) & EPS_FEATURE_EXTRACTION) && (eps)->extraction!=EPS_RITZ) SETERRQ2(PetscObjectComm((PetscObject)(eps)),PETSC_ERR_SUP,"The solver '%s'%s only supports Ritz extraction",((PetscObject)(eps))->type_name,(msg)); \
       if (((mask) & EPS_FEATURE_CONVERGENCE) && (eps)->converged!=EPSConvergedRelative) SETERRQ2(PetscObjectComm((PetscObject)(eps)),PETSC_ERR_SUP,"The solver '%s'%s only supports the default convergence test",((PetscObject)(eps))->type_name,(msg)); \
       if (((mask) & EPS_FEATURE_STOPPING) && (eps)->stopping!=EPSStoppingBasic) SETERRQ2(PetscObjectComm((PetscObject)(eps)),PETSC_ERR_SUP,"The solver '%s'%s only supports the default stopping test",((PetscObject)(eps))->type_name,(msg)); \
+      if (((mask) & EPS_FEATURE_TWOSIDED) && (eps)->twosided) SETERRQ2(PetscObjectComm((PetscObject)(eps)),PETSC_ERR_SUP,"The solver '%s'%s cannot compute left eigenvectors (no two-sided variant)",((PetscObject)(eps))->type_name,(msg)); \
     } \
   } while (0)
 #define EPSCheckUnsupported(eps,mask) EPSCheckUnsupportedCondition(eps,mask,PETSC_TRUE,"")
@@ -233,6 +234,7 @@ struct _p_EPS {
       if (((mask) & EPS_FEATURE_EXTRACTION) && (eps)->extraction!=EPS_RITZ) { __ierr = PetscInfo2((eps),"The solver '%s'%s ignores the extraction settings\n",((PetscObject)(eps))->type_name,(msg)); } \
       if (((mask) & EPS_FEATURE_CONVERGENCE) && (eps)->converged!=EPSConvergedRelative) { __ierr = PetscInfo2((eps),"The solver '%s'%s ignores the convergence test settings\n",((PetscObject)(eps))->type_name,(msg)); } \
       if (((mask) & EPS_FEATURE_STOPPING) && (eps)->stopping!=EPSStoppingBasic) { __ierr = PetscInfo2((eps),"The solver '%s'%s ignores the stopping test settings\n",((PetscObject)(eps))->type_name,(msg)); } \
+      if (((mask) & EPS_FEATURE_TWOSIDED) && (eps)->twosided) { __ierr = PetscInfo2((eps),"The solver '%s'%s ignores the two-sided flag\n",((PetscObject)(eps))->type_name,(msg)); } \
     } \
   } while (0)
 #define EPSCheckIgnored(eps,mask) EPSCheckIgnoredCondition(eps,mask,PETSC_TRUE,"")

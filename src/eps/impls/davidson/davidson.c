@@ -56,7 +56,7 @@ PetscErrorCode EPSSetUp_XD(EPS eps)
   if (!eps->which) eps->which = EPS_LARGEST_MAGNITUDE;
   if (!(eps->nev + bs <= eps->ncv)) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"The ncv has to be greater than nev plus blocksize");
   if (eps->trueres) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"-eps_true_residual is temporally disable in this solver.");
-  EPSCheckUnsupported(eps,EPS_FEATURE_REGION);
+  EPSCheckUnsupported(eps,EPS_FEATURE_REGION | EPS_FEATURE_TWOSIDED);
 
   ierr = EPSXDSetRestart_XD(eps,data->minv,data->plusk);CHKERRQ(ierr);
   min_size_V = data->minv;

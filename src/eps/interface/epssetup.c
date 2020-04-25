@@ -159,8 +159,7 @@ PetscErrorCode EPSSetUp(EPS eps)
   ierr = STSetTransform(eps->st,PETSC_TRUE);CHKERRQ(ierr);
   if (eps->useds && !eps->ds) { ierr = EPSGetDS(eps,&eps->ds);CHKERRQ(ierr); }
   if (eps->twosided) {
-    if (!eps->hasts) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"This solver does not support computing left eigenvectors (no two-sided variant)");
-    if (eps->ishermitian) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Two-sided methods are not intended for symmetric problems");
+    if (eps->ishermitian && (!eps->isgeneralized || eps->ispositive)) SETERRQ1(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Two-sided methods are not intended for %s problems",SLEPC_STRING_HERMITIAN);
     if (!eps->dsts) { ierr = DSDuplicate(eps->ds,&eps->dsts);CHKERRQ(ierr); }
   }
   if (!eps->rg) { ierr = EPSGetRG(eps,&eps->rg);CHKERRQ(ierr); }
