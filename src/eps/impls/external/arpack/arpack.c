@@ -27,7 +27,9 @@ PetscErrorCode EPSSetUp_ARPACK(EPS eps)
   } else eps->ncv = PetscMin(PetscMax(20,2*eps->nev+1),eps->n); /* set default value of ncv */
   if (eps->mpd) { ierr = PetscInfo(eps,"Warning: parameter mpd ignored\n");CHKERRQ(ierr); }
   if (!eps->max_it) eps->max_it = PetscMax(300,(PetscInt)(2*eps->n/eps->ncv));
-  if (!eps->which) eps->which = EPS_LARGEST_MAGNITUDE;
+  if (!eps->which) { ierr = EPSSetWhichEigenpairs_Default(eps);CHKERRQ(ierr); }
+  if (eps->which==EPS_ALL) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"This solver does not support computing all eigenvalues");
+  if (eps->which==EPS_WHICH_USER) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"This solver does not support user-defined ordering of eigenvalues");
 
   ncv = eps->ncv;
 #if defined(PETSC_USE_COMPLEX)

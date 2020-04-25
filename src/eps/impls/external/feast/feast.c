@@ -62,19 +62,17 @@ PetscErrorCode EPSSetUp_FEAST(EPS eps)
   if (eps->mpd) { ierr = PetscInfo(eps,"Warning: parameter mpd ignored\n");CHKERRQ(ierr); }
   if (!eps->max_it) eps->max_it = 20;
   if (!eps->which) eps->which = EPS_ALL;
+  if (eps->which!=EPS_ALL || eps->inta==eps->intb) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"This solver must be used with a computational interval");
+  EPSCheckUnsupported(eps,EPS_FEATURE_BALANCE | EPS_FEATURE_ARBITRARY | EPS_FEATURE_CONVERGENCE | EPS_FEATURE_STOPPING | EPS_FEATURE_TWOSIDED);
+  EPSCheckIgnored(eps,EPS_FEATURE_EXTRACTION);
+
+  ierr = PetscObjectTypeCompareAny((PetscObject)eps->st,&issinv,STSINVERT,STCAYLEY,"");CHKERRQ(ierr);
+  if (!issinv) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Shift-and-invert or Cayley ST is needed for FEAST");
 
   ncv = eps->ncv;
   ierr = PetscFree4(ctx->work1,ctx->work2,ctx->Aq,ctx->Bq);CHKERRQ(ierr);
   ierr = PetscMalloc4(eps->nloc*ncv,&ctx->work1,eps->nloc*ncv,&ctx->work2,ncv*ncv,&ctx->Aq,ncv*ncv,&ctx->Bq);CHKERRQ(ierr);
   ierr = PetscLogObjectMemory((PetscObject)eps,(2*eps->nloc*ncv+2*ncv*ncv)*sizeof(PetscScalar));CHKERRQ(ierr);
-
-  ierr = PetscObjectTypeCompareAny((PetscObject)eps->st,&issinv,STSINVERT,STCAYLEY,"");CHKERRQ(ierr);
-  if (!issinv) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Shift-and-invert or Cayley ST is needed for FEAST");
-
-  EPSCheckUnsupported(eps,EPS_FEATURE_BALANCE | EPS_FEATURE_ARBITRARY | EPS_FEATURE_CONVERGENCE | EPS_FEATURE_STOPPING | EPS_FEATURE_TWOSIDED);
-  EPSCheckIgnored(eps,EPS_FEATURE_EXTRACTION);
-
-  if (eps->which!=EPS_ALL || (eps->inta==0.0 && eps->intb==0.0)) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_WRONG,"FEAST must be used with a computational interval");
 
   if (!ctx->npoints) ctx->npoints = 8;
 

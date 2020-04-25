@@ -369,6 +369,7 @@ PetscErrorCode EPSSetUp_KrylovSchur_Slice(EPS eps)
   PetscFunctionBegin;
   if (ctx->global) {
     EPSCheckHermitianDefiniteCondition(eps,PETSC_TRUE," with spectrum slicing");
+    if (eps->inta==eps->intb) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"This solver does not support computing all eigenvalues unless you provide a computational interval with EPSSetInterval()");
     if (eps->intb >= PETSC_MAX_REAL && eps->inta <= PETSC_MIN_REAL) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_WRONG,"The defined computational interval should have at least one of their sides bounded");
   EPSCheckUnsupportedCondition(eps,EPS_FEATURE_ARBITRARY | EPS_FEATURE_REGION | EPS_FEATURE_STOPPING,PETSC_TRUE," with spectrum slicing");
   EPSCheckIgnoredCondition(eps,EPS_FEATURE_BALANCE,PETSC_TRUE," with spectrum slicing");

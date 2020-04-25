@@ -121,7 +121,7 @@ PetscErrorCode EPSSetUp_XD(EPS eps)
       dvd->target[1] = 1.0;
       break;
     case EPS_ALL:
-      SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Unsupported option: which == EPS_ALL");
+      SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"This solver does not support computing all eigenvalues");
       break;
     default:
       SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Unsupported value of option 'which'");

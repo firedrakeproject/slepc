@@ -38,7 +38,7 @@ PetscErrorCode EPSSetUp_Arnoldi(EPS eps)
   if (eps->ncv>eps->nev+eps->mpd) SETERRQ(PetscObjectComm((PetscObject)eps),1,"The value of ncv must not be larger than nev+mpd");
   if (!eps->max_it) eps->max_it = PetscMax(100,2*eps->n/eps->ncv);
   if (!eps->which) { ierr = EPSSetWhichEigenpairs_Default(eps);CHKERRQ(ierr); }
-  if (eps->which==EPS_ALL) SETERRQ(PetscObjectComm((PetscObject)eps),1,"Wrong value of eps->which");
+  if (eps->which==EPS_ALL) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"This solver does not support computing all eigenvalues");
 
   EPSCheckUnsupported(eps,EPS_FEATURE_ARBITRARY | EPS_FEATURE_TWOSIDED);
 

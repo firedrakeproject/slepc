@@ -29,7 +29,7 @@ PetscErrorCode EPSSetUp_LAPACK(EPS eps)
   eps->ncv = eps->n;
   if (eps->mpd) { ierr = PetscInfo(eps,"Warning: parameter mpd ignored\n");CHKERRQ(ierr); }
   if (!eps->which) { ierr = EPSSetWhichEigenpairs_Default(eps);CHKERRQ(ierr); }
-  if (eps->which==EPS_ALL && eps->inta!=eps->intb) SETERRQ(PetscObjectComm((PetscObject)eps),1,"This solver does not support interval computation");
+  if (eps->which==EPS_ALL && eps->inta!=eps->intb) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"This solver does not support interval computation");
   EPSCheckUnsupported(eps,EPS_FEATURE_BALANCE | EPS_FEATURE_ARBITRARY | EPS_FEATURE_REGION | EPS_FEATURE_STOPPING);
   EPSCheckIgnored(eps,EPS_FEATURE_EXTRACTION | EPS_FEATURE_CONVERGENCE);
   ierr = EPSAllocateSolution(eps,0);CHKERRQ(ierr);

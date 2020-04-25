@@ -65,12 +65,20 @@ PetscErrorCode EPSSetUp_BLZPACK(EPS eps)
   if (eps->mpd) { ierr = PetscInfo(eps,"Warning: parameter mpd ignored\n");CHKERRQ(ierr); }
   if (!eps->max_it) eps->max_it = PetscMax(1000,eps->n);
 
+  ierr = PetscObjectTypeCompare((PetscObject)eps->st,STSINVERT,&issinv);CHKERRQ(ierr);
+  if (!eps->which) {
+    if (issinv) eps->which = EPS_TARGET_REAL;
+    else eps->which = EPS_SMALLEST_REAL;
+  }
+  if ((issinv && eps->which!=EPS_TARGET_REAL && eps->which!=EPS_TARGET_MAGNITUDE && eps->which!=EPS_ALL) || (!issinv && eps->which!=EPS_SMALLEST_REAL)) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Wrong value of eps->which");
+  EPSCheckUnsupported(eps,EPS_FEATURE_ARBITRARY | EPS_FEATURE_REGION | EPS_FEATURE_CONVERGENCE | EPS_FEATURE_STOPPING);
+  EPSCheckIgnored(eps,EPS_FEATURE_BALANCE | EPS_FEATURE_EXTRACTION);
+
   if (!blz->block_size) blz->block_size = 3;
   if (eps->which==EPS_ALL) {
-    if (eps->inta==0.0 && eps->intb==0.0) SETERRQ(PetscObjectComm((PetscObject)eps),1,"Must define a computational interval when using EPS_ALL");
+    if (eps->inta==eps->intb) SETERRQ(PetscObjectComm((PetscObject)eps),1,"Must define a computational interval when using EPS_ALL");
     blz->slice = 1;
   }
-  ierr = PetscObjectTypeCompare((PetscObject)eps->st,STSINVERT,&issinv);CHKERRQ(ierr);
   if (blz->slice || eps->isgeneralized) {
     if (!issinv) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Shift-and-invert ST is needed for generalized problems or spectrum slicing");
   }
@@ -82,13 +90,6 @@ PetscErrorCode EPSSetUp_BLZPACK(EPS eps)
       ierr = STSetDefaultShift(eps->st,eps->intb);CHKERRQ(ierr);
     }
   }
-  if (!eps->which) {
-    if (issinv) eps->which = EPS_TARGET_REAL;
-    else eps->which = EPS_SMALLEST_REAL;
-  }
-  if ((issinv && eps->which!=EPS_TARGET_REAL && eps->which!=EPS_TARGET_MAGNITUDE && eps->which!=EPS_ALL) || (!issinv && eps->which!=EPS_SMALLEST_REAL)) SETERRQ(PetscObjectComm((PetscObject)eps),1,"Wrong value of eps->which");
-  EPSCheckUnsupported(eps,EPS_FEATURE_ARBITRARY | EPS_FEATURE_REGION | EPS_FEATURE_CONVERGENCE | EPS_FEATURE_STOPPING);
-  EPSCheckIgnored(eps,EPS_FEATURE_BALANCE | EPS_FEATURE_EXTRACTION);
 
   k1 = PetscMin(eps->n,180);
   k2 = blz->block_size;

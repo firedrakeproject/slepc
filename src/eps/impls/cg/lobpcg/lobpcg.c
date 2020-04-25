@@ -64,7 +64,7 @@ PetscErrorCode EPSSetUp_LOBPCG(EPS eps)
   ierr = EPSSetDimensions_LOBPCG(eps,eps->nev,&eps->ncv,&eps->mpd);CHKERRQ(ierr);
   if (!eps->max_it) eps->max_it = PetscMax(100,2*eps->n/eps->ncv);
   if (!eps->which) eps->which = EPS_SMALLEST_REAL;
-  if (eps->which!=EPS_SMALLEST_REAL && eps->which!=EPS_LARGEST_REAL) SETERRQ(PetscObjectComm((PetscObject)eps),1,"Wrong value of eps->which");
+  if (eps->which!=EPS_SMALLEST_REAL && eps->which!=EPS_LARGEST_REAL) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"This solver supports only smallest real or largest real eigenvalues");
   EPSCheckUnsupported(eps,EPS_FEATURE_ARBITRARY | EPS_FEATURE_REGION | EPS_FEATURE_EXTRACTION);
   EPSCheckIgnored(eps,EPS_FEATURE_BALANCE);
 
