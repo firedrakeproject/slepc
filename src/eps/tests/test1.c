@@ -153,17 +153,25 @@ int main(int argc,char **argv)
          suffix: 1_jd_borth
          args: -eps_type jd -eps_jd_borth
       test:
-         suffix: 1_ciss
-         args: -eps_type ciss -rg_interval_endpoints 20.8,22 -eps_largest_real
-      test:
-         suffix: 1_ciss_trapezoidal
-         args: -eps_type ciss -rg_interval_endpoints 20.8,22 -eps_largest_real -eps_ciss_quadrule trapezoidal -eps_ciss_integration_points 24 -eps_ciss_extraction hankel -eps_ciss_delta 1e-10 -eps_tol 1e-11
-      test:
          suffix: 1_lobpcg
          args: -eps_type lobpcg -st_shift 22 -eps_largest_real
       test:
          suffix: 1_cholesky
          args: -mat_type sbaij
+
+   testset:
+      args: -n 18 -eps_type ciss -rg_interval_endpoints 20.8,22
+      requires: double
+      output_file: output/test1_1_ciss.out
+      test:
+         suffix: 1_ciss
+      test:
+         suffix: 1_ciss_trapezoidal
+         args: -eps_ciss_quadrule trapezoidal -eps_ciss_integration_points 24 -eps_ciss_extraction hankel -eps_ciss_delta 1e-10 -eps_tol 1e-11
+      test:
+         suffix: 1_ciss_cuda
+         args: -mat_type aijcusparse
+         requires: cuda
 
    testset:
       requires: !single
@@ -230,9 +238,6 @@ int main(int argc,char **argv)
       test:
          suffix: 7_lanczos
          args: -eps_type lanczos -eps_lanczos_reorthog full
-      test:
-         suffix: 7_ciss
-         args: -eps_type ciss -rg_interval_endpoints 20.8,22 -eps_largest_real
 
    testset:
       args: -n 18 -eps_nev 3 -eps_smallest_real -eps_max_it 500 -st_pc_type sor -mat_type aijcusparse

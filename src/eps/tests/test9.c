@@ -165,7 +165,7 @@ PetscErrorCode MatMarkovModel(PetscInt m,Mat A)
 
     Given two eigenvalues ar+i*ai and br+i*bi, the subroutine must choose
     one of them as the preferred one according to the criterion.
-    In this example, the preferred value is the one furthest to the origin.
+    In this example, the preferred value is the one furthest away from the origin.
 */
 PetscErrorCode MyEigenSort(PetscScalar ar,PetscScalar ai,PetscScalar br,PetscScalar bi,PetscInt *r,void *ctx)
 {
