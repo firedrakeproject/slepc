@@ -55,7 +55,7 @@ PetscErrorCode EPSSetUp_BLZPACK(EPS eps)
   PetscErrorCode ierr;
   PetscInt       listor,lrstor,ncuv,k1,k2,k3,k4;
   EPS_BLZPACK    *blz = (EPS_BLZPACK*)eps->data;
-  PetscBool      issinv,flg;
+  PetscBool      issinv;
 
   PetscFunctionBegin;
   EPSCheckHermitianDefinite(eps);
@@ -124,8 +124,6 @@ lrstor*=10;
 
   ierr = EPSAllocateSolution(eps,0);CHKERRQ(ierr);
   ierr = EPS_SetInnerProduct(eps);CHKERRQ(ierr);
-  ierr = PetscObjectTypeCompare((PetscObject)eps->V,BVVECS,&flg);CHKERRQ(ierr);
-  if (flg) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"This solver requires a BV with contiguous storage");
   PetscFunctionReturn(0);
 }
 
