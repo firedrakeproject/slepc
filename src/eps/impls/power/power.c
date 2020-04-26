@@ -60,7 +60,6 @@ PetscErrorCode EPSSetUp_Power(EPS eps)
 {
   PetscErrorCode ierr;
   EPS_POWER      *power = (EPS_POWER*)eps->data;
-  PetscBool      flg;
   STMatMode      mode;
   Mat            A,B,P;
   Vec            res;
@@ -80,8 +79,7 @@ PetscErrorCode EPSSetUp_Power(EPS eps)
   if (eps->which!=EPS_LARGEST_MAGNITUDE && eps->which!=EPS_TARGET_MAGNITUDE) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"This solver supports only largest magnitude or target magnitude eigenvalues");
   if (power->shift_type != EPS_POWER_SHIFT_CONSTANT) {
     if (power->nonlinear) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Variable shifts not allowed in nonlinear problems");
-    ierr = PetscObjectTypeCompareAny((PetscObject)eps->st,&flg,STSINVERT,STCAYLEY,"");CHKERRQ(ierr);
-    if (!flg) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Variable shifts only allowed in shift-and-invert or Cayley ST");
+    EPSCheckSinvertCayleyCondition(eps,PETSC_TRUE," (with variable shifts)");
     ierr = STGetMatMode(eps->st,&mode);CHKERRQ(ierr);
     if (mode == ST_MATMODE_INPLACE) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"ST matrix mode inplace does not work with variable shifts");
   }

@@ -822,7 +822,7 @@ PetscErrorCode EPSSetUp_CISS(EPS eps)
 {
   PetscErrorCode ierr;
   EPS_CISS       *ctx = (EPS_CISS*)eps->data;
-  PetscBool      issinvert,istrivial,isring,isellipse,isinterval,flg,useconj;
+  PetscBool      istrivial,isring,isellipse,isinterval,flg,useconj;
   PetscReal      c,d;
   Mat            A;
 
@@ -908,10 +908,7 @@ PetscErrorCode EPSSetUp_CISS(EPS eps)
     ierr = PetscLogObjectParent((PetscObject)eps,(PetscObject)ctx->pV);CHKERRQ(ierr);
   }
 
-  if (ctx->usest) {
-    ierr = PetscObjectTypeCompare((PetscObject)eps->st,STSINVERT,&issinvert);CHKERRQ(ierr);
-    if (!issinvert) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"If the usest flag is set, you must select the STSINVERT spectral transformation");
-  }
+  EPSCheckSinvertCondition(eps,ctx->usest," (with the usest flag set)");
 
   ierr = BVDestroy(&ctx->Y);CHKERRQ(ierr);
   if (ctx->pA) {

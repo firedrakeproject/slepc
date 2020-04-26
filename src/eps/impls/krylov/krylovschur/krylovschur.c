@@ -137,8 +137,7 @@ PetscErrorCode EPSSetUp_KrylovSchur(EPS eps)
   enum { EPS_KS_DEFAULT,EPS_KS_SYMM,EPS_KS_SLICE,EPS_KS_FILTER,EPS_KS_INDEF,EPS_KS_TWOSIDED } variant;
 
   PetscFunctionBegin;
-  /* spectrum slicing requires special treatment of default values */
-  if (eps->which==EPS_ALL) {
+  if (eps->which==EPS_ALL) {  /* default values in case of spectrum slicing or polynomial filter  */
     ierr = PetscObjectTypeCompare((PetscObject)eps->st,STFILTER,&isfilt);CHKERRQ(ierr);
     if (isfilt) {
       ierr = EPSSetUp_KrylovSchur_Filter(eps);CHKERRQ(ierr);

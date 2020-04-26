@@ -200,6 +200,28 @@ struct _p_EPS {
   } while (0)
 #define EPSCheckStandard(eps) EPSCheckStandardCondition(eps,PETSC_TRUE,"")
 
+/* EPSCheckSinvert: shift-and-invert ST */
+#define EPSCheckSinvertCondition(eps,condition,msg) \
+  do { \
+    if (condition) { \
+      PetscBool __flg; \
+      ierr = PetscObjectTypeCompare((PetscObject)(eps)->st,STSINVERT,&__flg);CHKERRQ(ierr); \
+      if (!__flg) SETERRQ2(PetscObjectComm((PetscObject)(eps)),PETSC_ERR_SUP,"The solver '%s'%s requires a shift-and-invert spectral transform",((PetscObject)(eps))->type_name,(msg)); \
+    } \
+  } while (0)
+#define EPSCheckSinvert(eps) EPSCheckSinvertCondition(eps,PETSC_TRUE,"")
+
+/* EPSCheckSinvertCayley: shift-and-invert or Cayley ST */
+#define EPSCheckSinvertCayleyCondition(eps,condition,msg) \
+  do { \
+    if (condition) { \
+      PetscBool __flg; \
+      ierr = PetscObjectTypeCompareAny((PetscObject)(eps)->st,&__flg,STSINVERT,STCAYLEY,"");CHKERRQ(ierr); \
+      if (!__flg) SETERRQ2(PetscObjectComm((PetscObject)(eps)),PETSC_ERR_SUP,"The solver '%s'%s requires shift-and-invert or Cayley transform",((PetscObject)(eps))->type_name,(msg)); \
+    } \
+  } while (0)
+#define EPSCheckSinvertCayley(eps) EPSCheckSinvertCayleyCondition(eps,PETSC_TRUE,"")
+
 /* Check for unsupported features */
 #define EPSCheckUnsupportedCondition(eps,mask,condition,msg) \
   do { \

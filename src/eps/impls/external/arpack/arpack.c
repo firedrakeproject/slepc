@@ -30,6 +30,8 @@ PetscErrorCode EPSSetUp_ARPACK(EPS eps)
   if (!eps->which) { ierr = EPSSetWhichEigenpairs_Default(eps);CHKERRQ(ierr); }
   if (eps->which==EPS_ALL) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"This solver does not support computing all eigenvalues");
   if (eps->which==EPS_WHICH_USER) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"This solver does not support user-defined ordering of eigenvalues");
+  EPSCheckUnsupported(eps,EPS_FEATURE_BALANCE | EPS_FEATURE_ARBITRARY | EPS_FEATURE_REGION | EPS_FEATURE_CONVERGENCE | EPS_FEATURE_STOPPING | EPS_FEATURE_TWOSIDED);
+  EPSCheckIgnored(eps,EPS_FEATURE_EXTRACTION);
 
   ncv = eps->ncv;
 #if defined(PETSC_USE_COMPLEX)
@@ -59,9 +61,6 @@ PetscErrorCode EPSSetUp_ARPACK(EPS eps)
   ierr = PetscFree(ar->workd);CHKERRQ(ierr);
   ierr = PetscMalloc1(3*eps->nloc,&ar->workd);CHKERRQ(ierr);
   ierr = PetscLogObjectMemory((PetscObject)eps,3*eps->nloc*sizeof(PetscScalar));CHKERRQ(ierr);
-
-  EPSCheckUnsupported(eps,EPS_FEATURE_BALANCE | EPS_FEATURE_ARBITRARY | EPS_FEATURE_REGION | EPS_FEATURE_CONVERGENCE | EPS_FEATURE_STOPPING | EPS_FEATURE_TWOSIDED);
-  EPSCheckIgnored(eps,EPS_FEATURE_EXTRACTION);
 
   ierr = EPSAllocateSolution(eps,0);CHKERRQ(ierr);
   ierr = EPS_SetInnerProduct(eps);CHKERRQ(ierr);
