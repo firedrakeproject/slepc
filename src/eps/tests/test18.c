@@ -119,7 +119,7 @@ int main(int argc,char **argv)
 
    test:
       suffix: 1_davidson
-      args: -eps_type {{gd jd}} -eps_target 0 -eps_harmonic -eps_nev 4 -eps_ncv 18 -terse
+      args: -eps_type {{gd jd}} -eps_target 0 -eps_harmonic -eps_nev 4 -eps_ncv 16 -terse
       requires: !single
       filter: sed -e "s/[+-]0\.0*i//g"
       output_file: output/test18_1.out
