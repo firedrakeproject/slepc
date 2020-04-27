@@ -133,7 +133,6 @@ PetscErrorCode PEPSetUp_JD(PEP pep)
   PetscInt       i;
 
   PetscFunctionBegin;
-  pep->lineariz = PETSC_FALSE;
   ierr = PEPSetDimensions_Default(pep,pep->nev,&pep->ncv,&pep->mpd);CHKERRQ(ierr);
   if (!pep->max_it) pep->max_it = PetscMax(100,2*pep->n/pep->ncv);
   if (!pep->which) pep->which = PEP_TARGET_MAGNITUDE;
@@ -2090,8 +2089,9 @@ SLEPC_EXTERN PetscErrorCode PEPCreate_JD(PEP pep)
   ierr = PetscNewLog(pep,&pjd);CHKERRQ(ierr);
   pep->data = (void*)pjd;
 
-  pjd->fix   = 0.01;
-  pjd->mmidx = 0;
+  pep->lineariz = PETSC_FALSE;
+  pjd->fix      = 0.01;
+  pjd->mmidx    = 0;
 
   pep->ops->solve          = PEPSolve_JD;
   pep->ops->setup          = PEPSetUp_JD;

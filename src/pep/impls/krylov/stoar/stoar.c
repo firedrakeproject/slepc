@@ -159,7 +159,6 @@ PetscErrorCode PEPSetUp_STOAR(PEP pep)
     }
   }
 
-  pep->lineariz = PETSC_TRUE;
   ierr = PetscObjectTypeCompare((PetscObject)pep->st,STSHIFT,&shift);CHKERRQ(ierr);
   ierr = PetscObjectTypeCompare((PetscObject)pep->st,STSINVERT,&sinv);CHKERRQ(ierr);
   if (!shift && !sinv) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Only STSHIFT and STSINVERT spectral transformations can be used");
@@ -1138,11 +1137,13 @@ SLEPC_EXTERN PetscErrorCode PEPCreate_STOAR(PEP pep)
   PetscFunctionBegin;
   ierr = PetscNewLog(pep,&ctx);CHKERRQ(ierr);
   pep->data = (void*)ctx;
-  ctx->lock    = PETSC_TRUE;
-  ctx->nev     = 1;
-  ctx->alpha   = 1.0;
-  ctx->beta    = 0.0;
-  ctx->checket = PETSC_TRUE;
+
+  pep->lineariz = PETSC_TRUE;
+  ctx->lock     = PETSC_TRUE;
+  ctx->nev      = 1;
+  ctx->alpha    = 1.0;
+  ctx->beta     = 0.0;
+  ctx->checket  = PETSC_TRUE;
 
   pep->ops->setup          = PEPSetUp_STOAR;
   pep->ops->setfromoptions = PEPSetFromOptions_STOAR;

@@ -263,7 +263,6 @@ PetscErrorCode PEPSetUp_Linear(PEP pep)
 
   PetscFunctionBegin;
   if (pep->stopping!=PEPStoppingBasic) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"User-defined stopping test not supported");
-  pep->lineariz = PETSC_TRUE;
   ierr = STGetTransform(pep->st,&transf);CHKERRQ(ierr);
   ierr = PetscObjectTypeCompare((PetscObject)pep->st,STSHIFT,&shift);CHKERRQ(ierr);
   ierr = PetscObjectTypeCompare((PetscObject)pep->st,STSINVERT,&sinv);CHKERRQ(ierr);
@@ -1067,10 +1066,12 @@ SLEPC_EXTERN PetscErrorCode PEPCreate_Linear(PEP pep)
 
   PetscFunctionBegin;
   ierr = PetscNewLog(pep,&ctx);CHKERRQ(ierr);
-  ctx->explicitmatrix = PETSC_FALSE;
   pep->data = (void*)ctx;
-  ctx->alpha = 1.0;
-  ctx->beta  = 0.0;
+
+  pep->lineariz       = PETSC_TRUE;
+  ctx->explicitmatrix = PETSC_FALSE;
+  ctx->alpha          = 1.0;
+  ctx->beta           = 0.0;
 
   pep->ops->solve          = PEPSolve_Linear;
   pep->ops->setup          = PEPSetUp_Linear;
