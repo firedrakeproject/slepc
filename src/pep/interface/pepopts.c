@@ -1207,13 +1207,14 @@ PetscErrorCode PEPSetExtract(PEP pep,PEPExtract extract)
 
    Level: intermediate
 
-.seealso: PEPSetExtract()
+.seealso: PEPSetExtract(), PEPExtract
 @*/
 PetscErrorCode PEPGetExtract(PEP pep,PEPExtract *extract)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
-  if (extract) *extract = pep->extract;
+  PetscValidPointer(extract,2);
+  *extract = pep->extract;
   PetscFunctionReturn(0);
 }
 

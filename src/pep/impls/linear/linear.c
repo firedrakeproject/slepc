@@ -251,7 +251,7 @@ PetscErrorCode PEPSetUp_Linear(PEP pep)
   PetscInt       i=0,deg=pep->nmat-1;
   EPSWhich       which = EPS_LARGEST_MAGNITUDE;
   EPSProblemType ptype;
-  PetscBool      trackall,istrivial,transf,shift,sinv,ks;
+  PetscBool      trackall,istrivial,transf,sinv,ks;
   PetscScalar    sigma,*epsarray,*peparray;
   Vec            veps,w=NULL;
   /* function tables */
@@ -262,16 +262,13 @@ PetscErrorCode PEPSetUp_Linear(PEP pep)
   };
 
   PetscFunctionBegin;
-  if (pep->stopping!=PEPStoppingBasic) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"User-defined stopping test not supported");
+  PEPCheckShiftSinvert(pep);
+  PEPCheckUnsupported(pep,PEP_FEATURE_STOPPING);
+  PEPCheckIgnored(pep,PEP_FEATURE_CONVERGENCE);
   ierr = STGetTransform(pep->st,&transf);CHKERRQ(ierr);
-  ierr = PetscObjectTypeCompare((PetscObject)pep->st,STSHIFT,&shift);CHKERRQ(ierr);
   ierr = PetscObjectTypeCompare((PetscObject)pep->st,STSINVERT,&sinv);CHKERRQ(ierr);
-  if (!shift && !sinv) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Only STSHIFT and STSINVERT spectral transformations can be used");
-  if (!pep->which) {
-    if (sinv) pep->which = PEP_TARGET_MAGNITUDE;
-    else pep->which = PEP_LARGEST_MAGNITUDE;
-  }
-  if (pep->which==PEP_ALL) SETERRQ(PetscObjectComm((PetscObject)pep),1,"Wrong value of pep->which");
+  if (!pep->which) { ierr = PEPSetWhichEigenpairs_Default(pep);CHKERRQ(ierr); }
+  if (pep->which==PEP_ALL) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"This solver does not support computing all eigenvalues");
   ierr = STSetUp(pep->st);CHKERRQ(ierr);
   if (!ctx->eps) { ierr = PEPLinearGetEPS(pep,&ctx->eps);CHKERRQ(ierr); }
   ierr = EPSGetST(ctx->eps,&st);CHKERRQ(ierr);
@@ -281,9 +278,9 @@ PetscErrorCode PEPSetUp_Linear(PEP pep)
   ierr = PEPComputeScaleFactor(pep);CHKERRQ(ierr);
 
   if (ctx->explicitmatrix) {
+    PEPCheckQuadraticCondition(pep,PETSC_TRUE," (with explicit matrix)");
+    PEPCheckUnsupportedCondition(pep,PEP_FEATURE_NONMONOMIAL,PETSC_TRUE," (with explicit matrix)");
     if (transf) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Explicit matrix option is not implemented with st-transform flag active");
-    if (pep->nmat!=3) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Explicit matrix option only available for quadratic problems");
-    if (pep->basis!=PEP_BASIS_MONOMIAL) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Explicit matrix option not implemented for non-monomial bases");
     if (pep->scale==PEP_SCALE_DIAGONAL || pep->scale==PEP_SCALE_BOTH) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Diagonal scaling not allowed in PEPLINEAR with explicit matrices");
     if (sinv && !transf) { ierr = STSetType(st,STSINVERT);CHKERRQ(ierr); }
     ierr = RGPushScale(pep->rg,1.0/pep->sfactor);CHKERRQ(ierr);

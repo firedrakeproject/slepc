@@ -116,7 +116,7 @@ PetscErrorCode PEPSTOARSetUpInnerMatrix(PEP pep,Mat *B)
 PetscErrorCode PEPSetUp_STOAR(PEP pep)
 {
   PetscErrorCode    ierr;
-  PetscBool         shift,sinv,flg;
+  PetscBool         sinv,flg;
   PEP_STOAR         *ctx = (PEP_STOAR*)pep->data;
   PetscInt          ld,i;
   PetscReal         eta;
@@ -124,13 +124,11 @@ PetscErrorCode PEPSetUp_STOAR(PEP pep)
   BVOrthogBlockType obtype;
 
   PetscFunctionBegin;
-  if (pep->problem_type!=PEP_HERMITIAN && pep->problem_type!=PEP_HYPERBOLIC) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Requested method is only available for Hermitian (or hyperbolic) problems");
-  if (pep->nmat!=3) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Solver only available for quadratic problems");
-  if (pep->basis!=PEP_BASIS_MONOMIAL) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Solver not implemented for non-monomial bases");
+  PEPCheckHermitian(pep);
+  PEPCheckQuadratic(pep);
+  PEPCheckShiftSinvert(pep);
   /* spectrum slicing requires special treatment of default values */
-  ierr = PetscObjectTypeCompare((PetscObject)pep->st,STSINVERT,&sinv);CHKERRQ(ierr);
   if (pep->which==PEP_ALL) {
-    if (pep->stopping!=PEPStoppingBasic) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Spectrum slicing does not support user-defined stopping test");
     pep->ops->solve = PEPSolve_STOAR_QSlice;
     pep->ops->extractvectors = NULL;
     pep->ops->setdefaultst   = NULL;
@@ -150,6 +148,7 @@ PetscErrorCode PEPSetUp_STOAR(PEP pep)
       ierr = PetscFree(pep->solvematcoeffs);CHKERRQ(ierr);
       ierr = PetscMalloc1(pep->nmat,&pep->solvematcoeffs);CHKERRQ(ierr);
       ierr = PetscLogObjectMemory((PetscObject)pep,pep->nmat*sizeof(PetscScalar));CHKERRQ(ierr);
+      ierr = PetscObjectTypeCompare((PetscObject)pep->st,STSINVERT,&sinv);CHKERRQ(ierr);
       if (sinv) {
         ierr = PEPEvaluateBasis(pep,pep->target,0,pep->solvematcoeffs,NULL);CHKERRQ(ierr);
       } else {
@@ -158,14 +157,8 @@ PetscErrorCode PEPSetUp_STOAR(PEP pep)
       }
     }
   }
-
-  ierr = PetscObjectTypeCompare((PetscObject)pep->st,STSHIFT,&shift);CHKERRQ(ierr);
-  ierr = PetscObjectTypeCompare((PetscObject)pep->st,STSINVERT,&sinv);CHKERRQ(ierr);
-  if (!shift && !sinv) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Only STSHIFT and STSINVERT spectral transformations can be used");
-  if (!pep->which) {
-    if (sinv) pep->which = PEP_TARGET_MAGNITUDE;
-    else pep->which = PEP_LARGEST_MAGNITUDE;
-  }
+  if (!pep->which) { ierr = PEPSetWhichEigenpairs_Default(pep);CHKERRQ(ierr); }
+  PEPCheckUnsupported(pep,PEP_FEATURE_NONMONOMIAL | PEP_FEATURE_REGION);
 
   ierr = PEPAllocateSolution(pep,2);CHKERRQ(ierr);
   ierr = PEPSetWorkVecs(pep,4);CHKERRQ(ierr);

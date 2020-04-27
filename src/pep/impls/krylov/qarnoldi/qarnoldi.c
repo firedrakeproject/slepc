@@ -35,32 +35,23 @@ PetscErrorCode PEPSetUp_QArnoldi(PEP pep)
 {
   PetscErrorCode ierr;
   PEP_QARNOLDI   *ctx = (PEP_QARNOLDI*)pep->data;
-  PetscBool      shift,sinv,flg;
+  PetscBool      flg;
 
   PetscFunctionBegin;
+  PEPCheckQuadratic(pep);
+  PEPCheckShiftSinvert(pep);
   ierr = PEPSetDimensions_Default(pep,pep->nev,&pep->ncv,&pep->mpd);CHKERRQ(ierr);
   if (!ctx->lock && pep->mpd<pep->ncv) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Should not use mpd parameter in non-locking variant");
   if (!pep->max_it) pep->max_it = PetscMax(100,4*pep->n/pep->ncv);
+  if (!pep->which) { ierr = PEPSetWhichEigenpairs_Default(pep);CHKERRQ(ierr); }
+  if (pep->which==PEP_ALL) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"This solver does not support computing all eigenvalues");
 
-  ierr = PetscObjectTypeCompare((PetscObject)pep->st,STSHIFT,&shift);CHKERRQ(ierr);
-  ierr = PetscObjectTypeCompare((PetscObject)pep->st,STSINVERT,&sinv);CHKERRQ(ierr);
-  if (!shift && !sinv) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Only STSHIFT and STSINVERT spectral transformations can be used");
-  if (!pep->which) {
-    if (sinv) pep->which = PEP_TARGET_MAGNITUDE;
-    else pep->which = PEP_LARGEST_MAGNITUDE;
-  }
-  if (pep->which==PEP_ALL) SETERRQ(PetscObjectComm((PetscObject)pep),1,"Wrong value of pep->which");
-
-  if (pep->nmat!=3) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Solver only available for quadratic problems");
-  if (pep->basis!=PEP_BASIS_MONOMIAL) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Solver not implemented for non-monomial bases");
   ierr = STGetTransform(pep->st,&flg);CHKERRQ(ierr);
   if (!flg) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Solver requires the ST transformation flag set, see STSetTransform()");
 
   /* set default extraction */
-  if (!pep->extract) {
-    pep->extract = PEP_EXTRACT_NONE;
-  }
-  if (pep->extract!=PEP_EXTRACT_NONE) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Solver does not support requested extraction");
+  if (!pep->extract) pep->extract = PEP_EXTRACT_NONE;
+  PEPCheckUnsupported(pep,PEP_FEATURE_NONMONOMIAL | PEP_FEATURE_EXTRACT);
 
   if (!ctx->keep) ctx->keep = 0.5;
 
