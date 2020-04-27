@@ -461,10 +461,10 @@ SLEPC_EXTERN PetscErrorCode EPSCISSSetUseST(EPS,PetscBool);
 SLEPC_EXTERN PetscErrorCode EPSCISSGetUseST(EPS,PetscBool*);
 SLEPC_EXTERN PetscErrorCode EPSCISSGetKSPs(EPS,PetscInt*,KSP**);
 
-PETSC_EXTERN PetscErrorCode EPSLyapIISetLME(EPS,LME);
-PETSC_EXTERN PetscErrorCode EPSLyapIIGetLME(EPS,LME*);
-PETSC_EXTERN PetscErrorCode EPSLyapIISetRanks(EPS,PetscInt,PetscInt);
-PETSC_EXTERN PetscErrorCode EPSLyapIIGetRanks(EPS,PetscInt*,PetscInt*);
+SLEPC_EXTERN PetscErrorCode EPSLyapIISetLME(EPS,LME);
+SLEPC_EXTERN PetscErrorCode EPSLyapIIGetLME(EPS,LME*);
+SLEPC_EXTERN PetscErrorCode EPSLyapIISetRanks(EPS,PetscInt,PetscInt);
+SLEPC_EXTERN PetscErrorCode EPSLyapIIGetRanks(EPS,PetscInt*,PetscInt*);
 
 SLEPC_EXTERN PetscErrorCode EPSBLOPEXSetBlockSize(EPS,PetscInt);
 SLEPC_EXTERN PetscErrorCode EPSBLOPEXGetBlockSize(EPS,PetscInt*);
