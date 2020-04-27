@@ -809,7 +809,7 @@ PetscErrorCode EPSSetDefaultST_LyapII(EPS eps)
   PetscFunctionReturn(0);
 }
 
-PETSC_EXTERN PetscErrorCode EPSCreate_LyapII(EPS eps)
+SLEPC_EXTERN PetscErrorCode EPSCreate_LyapII(EPS eps)
 {
   EPS_LYAPII     *ctx;
   PetscErrorCode ierr;

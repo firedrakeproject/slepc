@@ -22,12 +22,14 @@ include ${SLEPC_DIR}/lib/slepc/conf/slepc_common
 # This makefile doesn't really do any work. Sub-makes still benefit from parallelism.
 .NOTPARALLEL:
 
+OMAKE_SELF = $(OMAKE) -f makefile
+
 #
 # Basic targets to build SLEPc library
 all:
-	+@${OMAKE} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} SLEPC_DIR=${SLEPC_DIR} chk_petscdir chk_slepcdir | tee ${PETSC_ARCH}/lib/slepc/conf/make.log
+	+@${OMAKE_SELF} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} SLEPC_DIR=${SLEPC_DIR} chk_petscdir chk_slepcdir | tee ${PETSC_ARCH}/lib/slepc/conf/make.log
 	@ln -sf ${PETSC_ARCH}/lib/slepc/conf/make.log make.log
-	+@${OMAKE} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} SLEPC_DIR=${SLEPC_DIR} all-local 2>&1 | tee -a ${PETSC_ARCH}/lib/slepc/conf/make.log;
+	+@${OMAKE_SELF} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} SLEPC_DIR=${SLEPC_DIR} all-local 2>&1 | tee -a ${PETSC_ARCH}/lib/slepc/conf/make.log;
 	@egrep -i "( error | error: |no such file or directory)" ${PETSC_ARCH}/lib/slepc/conf/make.log | tee ./${PETSC_ARCH}/lib/slepc/conf/error.log > /dev/null
 	+@if test -s ./${PETSC_ARCH}/lib/slepc/conf/error.log; then \
            printf ${PETSC_TEXT_HILIGHT}"*******************************ERROR************************************\n" 2>&1 | tee -a ${PETSC_ARCH}/lib/slepc/conf/make.log; \
@@ -96,18 +98,18 @@ info:
 # Simple test examples for checking a correct installation
 check_install: check
 check:
-	-+@${OMAKE} PATH="${PETSC_DIR}/${PETSC_ARCH}/lib:${SLEPC_DIR}/${PETSC_ARCH}/lib:${PATH}" PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} SLEPC_DIR=${SLEPC_DIR} check_build 2>&1 | tee ./${PETSC_ARCH}/lib/slepc/conf/check.log
+	-+@${OMAKE_SELF} PATH="${PETSC_DIR}/${PETSC_ARCH}/lib:${SLEPC_DIR}/${PETSC_ARCH}/lib:${PATH}" PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} SLEPC_DIR=${SLEPC_DIR} check_build 2>&1 | tee ./${PETSC_ARCH}/lib/slepc/conf/check.log
 check_build:
 	-@echo "Running test examples to verify correct installation"
 	-@echo "Using SLEPC_DIR=${SLEPC_DIR}, PETSC_DIR=${PETSC_DIR} and PETSC_ARCH=${PETSC_ARCH}"
 	+@cd src/eps/tests && \
-         ${OMAKE} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} SLEPC_DIR=${SLEPC_DIR} testtest10 && \
+         ${OMAKE_SELF} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} SLEPC_DIR=${SLEPC_DIR} testtest10 && \
 	 egrep "^#define PETSC_HAVE_FORTRAN 1" ${PETSCCONF_H} | tee .ftn.log > /dev/null; \
          if test -s .ftn.log; then \
-           ${OMAKE} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} SLEPC_DIR=${SLEPC_DIR} testtest7f; \
+           ${OMAKE_SELF} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} SLEPC_DIR=${SLEPC_DIR} testtest7f; \
          fi ; ${RM} .ftn.log && \
 	 if [ "${BLOPEX_LIB}" != "" ]; then \
-           ${OMAKE} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} SLEPC_DIR=${SLEPC_DIR} testtest5_blopex; \
+           ${OMAKE_SELF} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} SLEPC_DIR=${SLEPC_DIR} testtest5_blopex; \
          fi
 	-@echo "Completed test examples"
 
@@ -161,21 +163,21 @@ alldoc: allcite allpdf alldoc1 alldoc2 docsetdate
 
 # Build just citations
 allcite: chk_loc deletemanualpages
-	-${OMAKE} ACTION=manualpages_buildcite tree_basic LOC=${LOC}
+	-${OMAKE_SELF} ACTION=manualpages_buildcite tree_basic LOC=${LOC}
 	-@sed -e s%man+../%man+manualpages/% ${LOC}/docs/manualpages/manualpages.cit > ${LOC}/docs/manualpages/htmlmap
 	-@cat ${PETSC_DIR}/src/docs/mpi.www.index >> ${LOC}/docs/manualpages/htmlmap
 
 # Build just PDF manual + prerequisites
 allpdf:
-	-cd docs/manual; ${OMAKE} slepc.pdf clean; mv slepc.pdf ../../docs
+	-cd docs/manual; ${OMAKE_SELF} slepc.pdf clean; mv slepc.pdf ../../docs
 
 # Build just manual pages + prerequisites
 allmanpages: chk_loc allcite
-	-${OMAKE} ACTION=slepc_manualpages tree_basic LOC=${LOC}
+	-${OMAKE_SELF} ACTION=slepc_manualpages tree_basic LOC=${LOC}
 
 # Build just manual examples + prerequisites
 allmanexamples: chk_loc allmanpages
-	-${OMAKE} ACTION=slepc_manexamples tree_basic LOC=${LOC}
+	-${OMAKE_SELF} ACTION=slepc_manexamples tree_basic LOC=${LOC}
 
 # Build everything that goes into 'doc' dir except html sources
 alldoc1: chk_loc allcite allmanpages allmanexamples
@@ -193,7 +195,7 @@ alldoc1: chk_loc allcite allmanpages allmanexamples
 
 # Builds .html versions of the source
 alldoc2: chk_loc allcite
-	-${OMAKE} ACTION=slepc_html PETSC_DIR=${PETSC_DIR} alltree LOC=${LOC}
+	-${OMAKE_SELF} ACTION=slepc_html PETSC_DIR=${PETSC_DIR} alltree LOC=${LOC}
 	cp ${LOC}/docs/manual.html ${LOC}/docs/index.html
 
 # modify all generated html files and add in version number, date, canonical URL info.
@@ -230,7 +232,7 @@ deletemanualpages: chk_loc
           ${RM} ${LOC}/docs/manualpages/manualpages.cit ;\
         fi
 allcleanhtml:
-	-${OMAKE} ACTION=cleanhtml PETSC_DIR=${PETSC_DIR} alltree
+	-${OMAKE_SELF} ACTION=cleanhtml PETSC_DIR=${PETSC_DIR} alltree
 
 # Builds Fortran stub files
 allfortranstubs:
@@ -248,7 +250,7 @@ check_ascii:
 	@ ! git --no-pager grep -l -I -P "[^\x00-\x7F]"
 
 checkbadSource_slepc:
-	-@${OMAKE} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} SLEPC_DIR=${SLEPC_DIR} checkbadSource 2>&1
+	-@${OMAKE_SELF} PETSC_ARCH=${PETSC_ARCH} PETSC_DIR=${PETSC_DIR} SLEPC_DIR=${SLEPC_DIR} checkbadSource 2>&1
 	@ exit `grep -c 'files with errors' checkbadSource.out`
 
 # -------------------------------------------------------------------------------
