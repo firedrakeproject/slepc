@@ -506,6 +506,7 @@ PetscErrorCode PEPSetUp_STOAR_QSlice(PEP pep)
   PetscReal      r;
 
   PetscFunctionBegin;
+  if (pep->inta==pep->intb) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"This solver does not support computing all eigenvalues unless you provide a computational interval with PEPSetInterval()");
   if (pep->intb >= PETSC_MAX_REAL && pep->inta <= PETSC_MIN_REAL) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_WRONG,"The defined computational interval should have at least one of their sides bounded");
   ierr = PetscObjectTypeCompareAny((PetscObject)pep->st,&issinv,STSINVERT,STCAYLEY,"");CHKERRQ(ierr);
   if (!issinv) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Shift-and-invert or Cayley ST is needed for spectrum slicing");

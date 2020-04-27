@@ -208,8 +208,10 @@ PetscErrorCode PEPSetFromOptions(PEP pep)
     if (flg) { ierr = PEPSetWhichEigenpairs(pep,PEP_TARGET_MAGNITUDE);CHKERRQ(ierr); }
     ierr = PetscOptionsBoolGroup("-pep_target_real","Compute eigenvalues with real parts closest to target","PEPSetWhichEigenpairs",&flg);CHKERRQ(ierr);
     if (flg) { ierr = PEPSetWhichEigenpairs(pep,PEP_TARGET_REAL);CHKERRQ(ierr); }
-    ierr = PetscOptionsBoolGroupEnd("-pep_target_imaginary","Compute eigenvalues with imaginary parts closest to target","PEPSetWhichEigenpairs",&flg);CHKERRQ(ierr);
+    ierr = PetscOptionsBoolGroup("-pep_target_imaginary","Compute eigenvalues with imaginary parts closest to target","PEPSetWhichEigenpairs",&flg);CHKERRQ(ierr);
     if (flg) { ierr = PEPSetWhichEigenpairs(pep,PEP_TARGET_IMAGINARY);CHKERRQ(ierr); }
+    ierr = PetscOptionsBoolGroupEnd("-pep_all","Compute all eigenvalues in an interval or a region","PEPSetWhichEigenpairs",&flg);CHKERRQ(ierr);
+    if (flg) { ierr = PEPSetWhichEigenpairs(pep,PEP_ALL);CHKERRQ(ierr); }
 
     ierr = PetscOptionsScalar("-pep_target","Value of the target","PEPSetTarget",pep->target,&s,&flg);CHKERRQ(ierr);
     if (flg) {
