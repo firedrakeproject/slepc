@@ -77,8 +77,9 @@ include $(generated)
 endif
 
 # implies shared libraries with MS compilers
-ifeq ($(SL_LINKER_FUNCTION),-LD)
+ifeq ($(PETSC_DLL_EXPORTS),1)
 $(OBJDIR)/%.o : CCPPFLAGS+=-Dslepc_EXPORTS
+$(OBJDIR)/%.o : CXXCPPFLAGS+=-Dslepc_EXPORTS
 endif
 
 langs := F F90 cu cxx c
