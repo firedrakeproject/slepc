@@ -61,7 +61,6 @@ PetscErrorCode NEPSetUp(NEP nep)
   if (!((PetscObject)nep->rg)->type_name) {
     ierr = RGSetType(nep->rg,RGINTERVAL);CHKERRQ(ierr);
   }
-  if (nep->twosided && !nep->hasts) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"This solver does not support computing left eigenvectors (no two-sided variant)");
 
   /* set problem dimensions */
   switch (nep->fui) {
@@ -118,10 +117,6 @@ PetscErrorCode NEPSetUp(NEP nep)
   }
   /* call specific solver setup */
   ierr = (*nep->ops->setup)(nep);CHKERRQ(ierr);
-
-  /* by default, compute eigenvalues close to target */
-  /* nep->target should contain the initial guess for the eigenvalue */
-  if (!nep->which) nep->which = NEP_TARGET_MAGNITUDE;
 
   /* set tolerance if not yet set */
   if (nep->tol==PETSC_DEFAULT) nep->tol = SLEPC_DEFAULT_TOL;

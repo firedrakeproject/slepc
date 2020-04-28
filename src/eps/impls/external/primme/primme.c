@@ -197,7 +197,7 @@ PetscErrorCode EPSSetUp_PRIMME(EPS eps)
 #if !defined(SLEPC_HAVE_PRIMME2p2)
   if (eps->converged != EPSConvergedAbsolute) { ierr = PetscInfo(eps,"Warning: using absolute convergence test\n");CHKERRQ(ierr); }
 #else
-  ierr = PetscInfo(eps,"The solver 'primme' ignores the convergence test settings\n");CHKERRQ(ierr);
+  EPSCheckIgnored(eps,EPS_FEATURE_CONVERGENCE);
 #endif
 
   /* Transfer SLEPc options to PRIMME options */

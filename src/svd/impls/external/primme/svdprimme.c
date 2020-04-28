@@ -160,7 +160,7 @@ PetscErrorCode SVDSetUp_PRIMME(SVD svd)
   ierr = SVDSetDimensions_Default(svd);CHKERRQ(ierr);
   if (!svd->max_it) svd->max_it = PETSC_MAX_INT;
   svd->leftbasis = PETSC_TRUE;
-  if (svd->stopping!=SVDStoppingBasic) SETERRQ(PetscObjectComm((PetscObject)svd),PETSC_ERR_SUP,"External packages do not support user-defined stopping test");
+  SVDCheckUnsupported(svd,SVD_FEATURE_STOPPING);
 #if !defined(SLEPC_HAVE_PRIMME2p2)
   if (svd->converged != SVDConvergedAbsolute) { ierr = PetscInfo(svd,"Warning: using absolute convergence test\n");CHKERRQ(ierr); }
 #endif
