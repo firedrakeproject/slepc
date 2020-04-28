@@ -78,6 +78,13 @@ PETSC_STATIC_INLINE PetscErrorCode SlepcPrintEigenvalueASCII(PetscViewer viewer,
   PetscFunctionReturn(0);
 }
 
+/* Macros for strings with different value in real and complex */
+#if defined(PETSC_USE_COMPLEX)
+#define SLEPC_STRING_HERMITIAN "hermitian"
+#else
+#define SLEPC_STRING_HERMITIAN "symmetric"
+#endif
+
 /* Private functions that are shared by several classes */
 SLEPC_EXTERN PetscErrorCode SlepcBasisReference_Private(PetscInt,Vec*,PetscInt*,Vec**);
 SLEPC_EXTERN PetscErrorCode SlepcBasisDestroy_Private(PetscInt*,Vec**);

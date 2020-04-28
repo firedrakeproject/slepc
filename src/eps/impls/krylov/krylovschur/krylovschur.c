@@ -99,10 +99,10 @@ static PetscErrorCode EPSSetUp_KrylovSchur_Filter(EPS eps)
   Mat            A;
 
   PetscFunctionBegin;
+  EPSCheckHermitianCondition(eps,PETSC_TRUE," with polynomial filter");
+  EPSCheckStandardCondition(eps,PETSC_TRUE," with polynomial filter");
   if (eps->intb >= PETSC_MAX_REAL && eps->inta <= PETSC_MIN_REAL) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_WRONG,"The defined computational interval should have at least one of their sides bounded");
-  if (!eps->ishermitian) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Polynomial filter only available for symmetric/Hermitian eigenproblems");
-  if (eps->isgeneralized) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Polynomial filters not available for generalized eigenproblems");
-  if (eps->arbitrary) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Arbitrary selection of eigenpairs cannot be used with polynomial filters");
+  EPSCheckUnsupportedCondition(eps,EPS_FEATURE_ARBITRARY | EPS_FEATURE_REGION | EPS_FEATURE_EXTRACTION,PETSC_TRUE," with polynomial filter");
   if (eps->tol==PETSC_DEFAULT) eps->tol = SLEPC_DEFAULT_TOL*1e-2;  /* use tighter tolerance */
   ierr = STFilterSetInterval(eps->st,eps->inta,eps->intb);CHKERRQ(ierr);
   ierr = STGetMatrix(eps->st,0,&A);CHKERRQ(ierr);
@@ -137,8 +137,7 @@ PetscErrorCode EPSSetUp_KrylovSchur(EPS eps)
   enum { EPS_KS_DEFAULT,EPS_KS_SYMM,EPS_KS_SLICE,EPS_KS_FILTER,EPS_KS_INDEF,EPS_KS_TWOSIDED } variant;
 
   PetscFunctionBegin;
-  /* spectrum slicing requires special treatment of default values */
-  if (eps->which==EPS_ALL) {
+  if (eps->which==EPS_ALL) {  /* default values in case of spectrum slicing or polynomial filter  */
     ierr = PetscObjectTypeCompare((PetscObject)eps->st,STFILTER,&isfilt);CHKERRQ(ierr);
     if (isfilt) {
       ierr = EPSSetUp_KrylovSchur_Filter(eps);CHKERRQ(ierr);
@@ -153,12 +152,9 @@ PetscErrorCode EPSSetUp_KrylovSchur(EPS eps)
   }
   if (!ctx->lock && eps->mpd<eps->ncv) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Should not use mpd parameter in non-locking variant");
 
-  if (eps->isgeneralized && eps->ishermitian && !eps->ispositive && eps->arbitrary) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Arbitrary selection of eigenpairs not implemented for indefinite problems");
-  if (eps->ishermitian && eps->ispositive && (eps->which==EPS_LARGEST_IMAGINARY || eps->which==EPS_SMALLEST_IMAGINARY)) SETERRQ(PetscObjectComm((PetscObject)eps),1,"Wrong value of eps->which");
+  EPSCheckDefiniteCondition(eps,eps->arbitrary," with arbitrary selection of eigenpairs");
 
-  if (!eps->extraction) {
-    ierr = EPSSetExtraction(eps,EPS_RITZ);CHKERRQ(ierr);
-  } else if (eps->extraction!=EPS_RITZ && eps->extraction!=EPS_HARMONIC) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Unsupported extraction type");
+  if (eps->extraction!=EPS_RITZ && eps->extraction!=EPS_HARMONIC) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Unsupported extraction type");
 
   if (!ctx->keep) ctx->keep = 0.5;
 
@@ -210,7 +206,6 @@ PetscErrorCode EPSSetUp_KrylovSchur(EPS eps)
       ierr = DSAllocate(eps->ds,eps->ncv+1);CHKERRQ(ierr);
       break;
     case EPS_KS_SLICE:
-      if (eps->stopping!=EPSStoppingBasic) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Spectrum slicing does not support user-defined stopping test");
       eps->ops->solve = EPSSolve_KrylovSchur_Slice;
       eps->ops->computevectors = EPSComputeVectors_Slice;
       break;
@@ -1402,7 +1397,6 @@ SLEPC_EXTERN PetscErrorCode EPSCreate_KrylovSchur(EPS eps)
   ctx->global = PETSC_TRUE;
 
   eps->useds = PETSC_TRUE;
-  eps->hasts = PETSC_TRUE;
 
   /* solve and computevectors determined at setup */
   eps->ops->setup          = EPSSetUp_KrylovSchur;

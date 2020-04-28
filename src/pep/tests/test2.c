@@ -197,7 +197,7 @@ int main(int argc,char **argv)
          requires: !single
       test:
          suffix: 2_jd
-         args: -pep_type jd -st_type precond -pep_max_it 200
+         args: -pep_type jd -st_type precond -pep_max_it 200 -pep_ncv 24
          requires: !single
 
    test:

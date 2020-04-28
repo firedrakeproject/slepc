@@ -503,6 +503,10 @@ PetscErrorCode NEPSetWhichEigenpairs(NEP nep,NEPWhich which)
         nep->which = which;
       }
       break;
+#if !defined(PETSC_USE_COMPLEX)
+    case NEP_TARGET_IMAGINARY:
+      SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"NEP_TARGET_IMAGINARY can be used only with complex scalars");
+#endif
     default:
       SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_ARG_OUTOFRANGE,"Invalid 'which' value");
   }

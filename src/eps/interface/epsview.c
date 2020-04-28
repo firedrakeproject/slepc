@@ -56,11 +56,6 @@ PetscErrorCode EPSView(EPS eps,PetscViewer viewer)
   PetscValidHeaderSpecific(viewer,PETSC_VIEWER_CLASSID,2);
   PetscCheckSameComm(eps,1,viewer,2);
 
-#if defined(PETSC_USE_COMPLEX)
-#define HERM "hermitian"
-#else
-#define HERM "symmetric"
-#endif
   ierr = PetscObjectTypeCompare((PetscObject)viewer,PETSCVIEWERASCII,&isascii);CHKERRQ(ierr);
   if (isascii) {
     ierr = PetscObjectPrintClassNamePrefixType((PetscObject)eps,viewer);CHKERRQ(ierr);
@@ -71,12 +66,12 @@ PetscErrorCode EPSView(EPS eps,PetscViewer viewer)
     }
     if (eps->problem_type) {
       switch (eps->problem_type) {
-        case EPS_HEP:    type = HERM " eigenvalue problem"; break;
-        case EPS_GHEP:   type = "generalized " HERM " eigenvalue problem"; break;
-        case EPS_NHEP:   type = "non-" HERM " eigenvalue problem"; break;
-        case EPS_GNHEP:  type = "generalized non-" HERM " eigenvalue problem"; break;
-        case EPS_PGNHEP: type = "generalized non-" HERM " eigenvalue problem with " HERM " positive definite B"; break;
-        case EPS_GHIEP:  type = "generalized " HERM "-indefinite eigenvalue problem"; break;
+        case EPS_HEP:    type = SLEPC_STRING_HERMITIAN " eigenvalue problem"; break;
+        case EPS_GHEP:   type = "generalized " SLEPC_STRING_HERMITIAN " eigenvalue problem"; break;
+        case EPS_NHEP:   type = "non-" SLEPC_STRING_HERMITIAN " eigenvalue problem"; break;
+        case EPS_GNHEP:  type = "generalized non-" SLEPC_STRING_HERMITIAN " eigenvalue problem"; break;
+        case EPS_PGNHEP: type = "generalized non-" SLEPC_STRING_HERMITIAN " eigenvalue problem with " SLEPC_STRING_HERMITIAN " positive definite B"; break;
+        case EPS_GHIEP:  type = "generalized " SLEPC_STRING_HERMITIAN "-indefinite eigenvalue problem"; break;
       }
     } else type = "not yet set";
     ierr = PetscViewerASCIIPrintf(viewer,"  problem type: %s\n",type);CHKERRQ(ierr);

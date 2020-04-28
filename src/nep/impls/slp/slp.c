@@ -35,7 +35,7 @@ PetscErrorCode NEPSetUp_SLP(NEP nep)
 {
   PetscErrorCode ierr;
   NEP_SLP        *ctx = (NEP_SLP*)nep->data;
-  PetscBool      istrivial,flg;
+  PetscBool      flg;
   ST             st;
 
   PetscFunctionBegin;
@@ -45,10 +45,9 @@ PetscErrorCode NEPSetUp_SLP(NEP nep)
   nep->mpd = nep->nev;
   if (nep->ncv>nep->nev+nep->mpd) SETERRQ(PetscObjectComm((PetscObject)nep),1,"The value of ncv must not be larger than nev+mpd");
   if (!nep->max_it) nep->max_it = PetscMax(5000,2*nep->n/nep->ncv);
-  if (nep->which && nep->which!=NEP_TARGET_MAGNITUDE) SETERRQ(PetscObjectComm((PetscObject)nep),1,"Wrong value of which");
-
-  ierr = RGIsTrivial(nep->rg,&istrivial);CHKERRQ(ierr);
-  if (!istrivial) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"This solver does not support region filtering");
+  if (!nep->which) nep->which = NEP_TARGET_MAGNITUDE;
+  if (nep->which!=NEP_TARGET_MAGNITUDE) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"This solver supports only target magnitude eigenvalues");
+  NEPCheckUnsupported(nep,NEP_FEATURE_REGION);
 
   if (!ctx->eps) { ierr = NEPSLPGetEPS(nep,&ctx->eps);CHKERRQ(ierr); }
   ierr = EPSGetST(ctx->eps,&st);CHKERRQ(ierr);
@@ -697,8 +696,6 @@ SLEPC_EXTERN PetscErrorCode NEPCreate_SLP(NEP nep)
   nep->data = (void*)ctx;
 
   nep->useds = PETSC_TRUE;
-  nep->hasts = PETSC_TRUE;
-
   ctx->deftol = 0.0;
 
   nep->ops->solve          = NEPSolve_SLP;

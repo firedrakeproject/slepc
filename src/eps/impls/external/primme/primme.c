@@ -174,16 +174,16 @@ PetscErrorCode EPSSetUp_PRIMME(EPS eps)
   PetscMPIInt    numProcs,procID;
   EPS_PRIMME     *ops = (EPS_PRIMME*)eps->data;
   primme_params  *primme = &ops->primme;
-  PetscBool      istrivial,flg;
+  PetscBool      flg;
 
   PetscFunctionBegin;
+  EPSCheckHermitianDefinite(eps);
   ierr = MPI_Comm_size(PetscObjectComm((PetscObject)eps),&numProcs);CHKERRQ(ierr);
   ierr = MPI_Comm_rank(PetscObjectComm((PetscObject)eps),&procID);CHKERRQ(ierr);
 
   /* Check some constraints and set some default values */
   if (!eps->max_it) eps->max_it = PETSC_MAX_INT;
   ierr = STGetMatrix(eps->st,0,&ops->A);CHKERRQ(ierr);
-  if (!eps->ishermitian) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"PRIMME is only available for Hermitian problems");
   if (eps->isgeneralized) {
 #if defined(SLEPC_HAVE_PRIMME3)
     ierr = STGetMatrix(eps->st,1,&ops->B);CHKERRQ(ierr);
@@ -191,14 +191,14 @@ PetscErrorCode EPSSetUp_PRIMME(EPS eps)
     SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"This version of PRIMME is not available for generalized problems");
 #endif
   }
-  if (eps->arbitrary) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Arbitrary selection of eigenpairs not supported in this solver");
-  if (eps->stopping!=EPSStoppingBasic) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"External packages do not support user-defined stopping test");
+  EPSCheckUnsupported(eps,EPS_FEATURE_ARBITRARY | EPS_FEATURE_REGION | EPS_FEATURE_STOPPING);
+  EPSCheckIgnored(eps,EPS_FEATURE_BALANCE);
   if (!eps->which) eps->which = EPS_LARGEST_REAL;
 #if !defined(SLEPC_HAVE_PRIMME2p2)
   if (eps->converged != EPSConvergedAbsolute) { ierr = PetscInfo(eps,"Warning: using absolute convergence test\n");CHKERRQ(ierr); }
+#else
+  EPSCheckIgnored(eps,EPS_FEATURE_CONVERGENCE);
 #endif
-  ierr = RGIsTrivial(eps->rg,&istrivial);CHKERRQ(ierr);
-  if (!istrivial) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"This solver does not support region filtering");
 
   /* Transfer SLEPc options to PRIMME options */
   primme_free(primme);

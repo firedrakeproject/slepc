@@ -50,6 +50,16 @@ typedef enum { NEP_USER_INTERFACE_CALLBACK=1,
                NEP_USER_INTERFACE_SPLIT } NEPUserInterface;
 
 /*
+   To check for unsupported features at NEPSetUp_XXX()
+*/
+typedef enum { NEP_FEATURE_CALLBACK=1,      /* callback user interface */
+               NEP_FEATURE_REGION=4,        /* nontrivial region for filtering */
+               NEP_FEATURE_CONVERGENCE=16,  /* convergence test selected by user */
+               NEP_FEATURE_STOPPING=32,     /* stopping test */
+               NEP_FEATURE_TWOSIDED=64      /* two-sided variant */
+             } NEPFeatureType;
+
+/*
    Defines the NEP data structure.
 */
 struct _p_NEP {
@@ -123,7 +133,6 @@ struct _p_NEP {
   PetscReal      *nrma;            /* computed matrix norms */
   NEPUserInterface fui;            /* how the user has defined the nonlinear operator */
   PetscBool      useds;            /* whether the solver uses the DS object or not */
-  PetscBool      hasts;            /* whether the solver has two-sided variant */
   Mat            resolvent;        /* shell matrix to be used in NEPApplyResolvent */
   NEPConvergedReason reason;
 };
@@ -162,6 +171,41 @@ struct _p_NEP {
   } while (0)
 
 #endif
+
+/* Check for unsupported features */
+#define NEPCheckUnsupportedCondition(nep,mask,condition,msg) \
+  do { \
+    if (condition) { \
+      if (((mask) & NEP_FEATURE_CALLBACK) && (nep)->fui==NEP_USER_INTERFACE_CALLBACK) SETERRQ2(PetscObjectComm((PetscObject)(nep)),PETSC_ERR_SUP,"The solver '%s'%s cannot be used with callback functions (use the split operator)",((PetscObject)(nep))->type_name,(msg)); \
+      if ((mask) & NEP_FEATURE_REGION) { \
+        PetscBool      __istrivial; \
+        PetscErrorCode __ierr = RGIsTrivial((nep)->rg,&__istrivial);CHKERRQ(__ierr); \
+        if (!__istrivial) SETERRQ2(PetscObjectComm((PetscObject)(nep)),PETSC_ERR_SUP,"The solver '%s'%s does not support region filtering",((PetscObject)(nep))->type_name,(msg)); \
+      } \
+      if (((mask) & NEP_FEATURE_CONVERGENCE) && (nep)->converged!=NEPConvergedRelative) SETERRQ2(PetscObjectComm((PetscObject)(nep)),PETSC_ERR_SUP,"The solver '%s'%s only supports the default convergence test",((PetscObject)(nep))->type_name,(msg)); \
+      if (((mask) & NEP_FEATURE_STOPPING) && (nep)->stopping!=NEPStoppingBasic) SETERRQ2(PetscObjectComm((PetscObject)(nep)),PETSC_ERR_SUP,"The solver '%s'%s only supports the default stopping test",((PetscObject)(nep))->type_name,(msg)); \
+      if (((mask) & NEP_FEATURE_TWOSIDED) && (nep)->twosided) SETERRQ2(PetscObjectComm((PetscObject)(nep)),PETSC_ERR_SUP,"The solver '%s'%s cannot compute left eigenvectors (no two-sided variant)",((PetscObject)(nep))->type_name,(msg)); \
+    } \
+  } while (0)
+#define NEPCheckUnsupported(nep,mask) NEPCheckUnsupportedCondition(nep,mask,PETSC_TRUE,"")
+
+/* Check for ignored features */
+#define NEPCheckIgnoredCondition(nep,mask,condition,msg) \
+  do { \
+    PetscErrorCode __ierr; \
+    if (condition) { \
+      if (((mask) & NEP_FEATURE_CALLBACK) && (nep)->fui==NEP_USER_INTERFACE_CALLBACK) { __ierr = PetscInfo2((nep),"The solver '%s'%s ignores the user interface settings\n",((PetscObject)(nep))->type_name,(msg)); } \
+      if ((mask) & NEP_FEATURE_REGION) { \
+        PetscBool __istrivial; \
+        __ierr = RGIsTrivial((nep)->rg,&__istrivial);CHKERRQ(__ierr); \
+        if (!__istrivial) { __ierr = PetscInfo2((nep),"The solver '%s'%s ignores the specified region\n",((PetscObject)(nep))->type_name,(msg)); } \
+      } \
+      if (((mask) & NEP_FEATURE_CONVERGENCE) && (nep)->converged!=NEPConvergedRelative) { __ierr = PetscInfo2((nep),"The solver '%s'%s ignores the convergence test settings\n",((PetscObject)(nep))->type_name,(msg)); } \
+      if (((mask) & NEP_FEATURE_STOPPING) && (nep)->stopping!=NEPStoppingBasic) { __ierr = PetscInfo2((nep),"The solver '%s'%s ignores the stopping test settings\n",((PetscObject)(nep))->type_name,(msg)); } \
+      if (((mask) & NEP_FEATURE_TWOSIDED) && (nep)->twosided) { __ierr = PetscInfo2((nep),"The solver '%s'%s ignores the two-sided flag\n",((PetscObject)(nep))->type_name,(msg)); } \
+    } \
+  } while (0)
+#define NEPCheckIgnored(nep,mask) NEPCheckIgnoredCondition(nep,mask,PETSC_TRUE,"")
 
 SLEPC_INTERN PetscErrorCode NEPSetDimensions_Default(NEP,PetscInt,PetscInt*,PetscInt*);
 SLEPC_INTERN PetscErrorCode NEPComputeVectors(NEP);

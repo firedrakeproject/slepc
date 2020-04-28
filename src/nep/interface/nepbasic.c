@@ -105,7 +105,6 @@ PetscErrorCode NEPCreate(MPI_Comm comm,NEP *outnep)
   nep->nrma            = NULL;
   nep->fui             = (NEPUserInterface)0;
   nep->useds           = PETSC_FALSE;
-  nep->hasts           = PETSC_FALSE;
   nep->resolvent       = NULL;
   nep->reason          = NEP_CONVERGED_ITERATING;
 

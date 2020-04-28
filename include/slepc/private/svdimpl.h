@@ -41,6 +41,13 @@ typedef enum { SVD_STATE_INITIAL,
                SVD_STATE_VECTORS } SVDStateType;
 
 /*
+   To check for unsupported features at SVDSetUp_XXX()
+*/
+typedef enum { SVD_FEATURE_CONVERGENCE=16,  /* convergence test selected by user */
+               SVD_FEATURE_STOPPING=32      /* stopping test */
+             } SVDFeatureType;
+
+/*
    Defines the SVD data structure.
 */
 struct _p_SVD {
@@ -108,6 +115,27 @@ struct _p_SVD {
   } while (0)
 
 #endif
+
+/* Check for unsupported features */
+#define SVDCheckUnsupportedCondition(svd,mask,condition,msg) \
+  do { \
+    if (condition) { \
+      if (((mask) & SVD_FEATURE_CONVERGENCE) && (svd)->converged!=SVDConvergedRelative) SETERRQ2(PetscObjectComm((PetscObject)(svd)),PETSC_ERR_SUP,"The solver '%s'%s only supports the default convergence test",((PetscObject)(svd))->type_name,(msg)); \
+      if (((mask) & SVD_FEATURE_STOPPING) && (svd)->stopping!=SVDStoppingBasic) SETERRQ2(PetscObjectComm((PetscObject)(svd)),PETSC_ERR_SUP,"The solver '%s'%s only supports the default stopping test",((PetscObject)(svd))->type_name,(msg)); \
+    } \
+  } while (0)
+#define SVDCheckUnsupported(svd,mask) SVDCheckUnsupportedCondition(svd,mask,PETSC_TRUE,"")
+
+/* Check for ignored features */
+#define SVDCheckIgnoredCondition(svd,mask,condition,msg) \
+  do { \
+    PetscErrorCode __ierr; \
+    if (condition) { \
+      if (((mask) & SVD_FEATURE_CONVERGENCE) && (svd)->converged!=SVDConvergedRelative) { __ierr = PetscInfo2((svd),"The solver '%s'%s ignores the convergence test settings\n",((PetscObject)(svd))->type_name,(msg)); } \
+      if (((mask) & SVD_FEATURE_STOPPING) && (svd)->stopping!=SVDStoppingBasic) { __ierr = PetscInfo2((svd),"The solver '%s'%s ignores the stopping test settings\n",((PetscObject)(svd))->type_name,(msg)); } \
+    } \
+  } while (0)
+#define SVDCheckIgnored(svd,mask) SVDCheckIgnoredCondition(svd,mask,PETSC_TRUE,"")
 
 PETSC_STATIC_INLINE PetscErrorCode SVDMatMult(SVD svd,PetscBool trans,Vec x,Vec y)
 {

@@ -86,6 +86,22 @@ PetscErrorCode PEPConvergedNorm(PEP pep,PetscScalar eigr,PetscScalar eigi,PetscR
 }
 
 /*
+  PEPSetWhichEigenpairs_Default - Sets the default value for which,
+  depending on the ST.
+ */
+PetscErrorCode PEPSetWhichEigenpairs_Default(PEP pep)
+{
+  PetscBool      target;
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  ierr = PetscObjectTypeCompare((PetscObject)pep->st,STSINVERT,&target);CHKERRQ(ierr);
+  if (target) pep->which = PEP_TARGET_MAGNITUDE;
+  else pep->which = PEP_LARGEST_MAGNITUDE;
+  PetscFunctionReturn(0);
+}
+
+/*
   PEPConvergedAbsolute - Checks convergence absolutely.
 */
 PetscErrorCode PEPConvergedAbsolute(PEP pep,PetscScalar eigr,PetscScalar eigi,PetscReal res,PetscReal *errest,void *ctx)

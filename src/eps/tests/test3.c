@@ -146,7 +146,7 @@ int main(int argc,char **argv)
          args: -eps_type rqcg -eps_rqcg_reset 5 -eps_ncv 32
       test:
          suffix: 2_lobpcg
-         args: -eps_type lobpcg -eps_lobpcg_blocksize 6 -st_pc_type none
+         args: -eps_type lobpcg -eps_lobpcg_blocksize 5 -st_pc_type none
       test:
          suffix: 2_lanczos
          args: -eps_type lanczos

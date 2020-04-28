@@ -133,17 +133,17 @@ PetscErrorCode PEPSetUp_JD(PEP pep)
   PetscInt       i;
 
   PetscFunctionBegin;
-  pep->lineariz = PETSC_FALSE;
   ierr = PEPSetDimensions_Default(pep,pep->nev,&pep->ncv,&pep->mpd);CHKERRQ(ierr);
   if (!pep->max_it) pep->max_it = PetscMax(100,2*pep->n/pep->ncv);
   if (!pep->which) pep->which = PEP_TARGET_MAGNITUDE;
-  if (pep->which!=PEP_TARGET_MAGNITUDE && pep->which!=PEP_TARGET_REAL && pep->which!=PEP_TARGET_IMAGINARY) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Wrong value of pep->which");
+  if (pep->which!=PEP_TARGET_MAGNITUDE && pep->which!=PEP_TARGET_REAL && pep->which!=PEP_TARGET_IMAGINARY) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"The JD solver supports only target which, see PEPSetWhichEigenpairs()");
 
   ierr = PetscObjectTypeCompare((PetscObject)pep->st,STPRECOND,&isprecond);CHKERRQ(ierr);
-  if (!isprecond) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"JD only works with PRECOND spectral transformation");
+  if (!isprecond) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"The JD solver only works with PRECOND spectral transformation");
 
   ierr = STGetTransform(pep->st,&flg);CHKERRQ(ierr);
-  if (flg) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"Solver requires the ST transformation flag unset, see STSetTransform()");
+  if (flg) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"The JD solver requires the ST transform flag unset, see STSetTransform()");
+  PEPCheckIgnored(pep,PEP_FEATURE_EXTRACT);
 
   if (!pjd->mmidx) pjd->mmidx = pep->nmat-1;
   pjd->mmidx = PetscMin(pjd->mmidx,pep->nmat-1);
@@ -2090,8 +2090,9 @@ SLEPC_EXTERN PetscErrorCode PEPCreate_JD(PEP pep)
   ierr = PetscNewLog(pep,&pjd);CHKERRQ(ierr);
   pep->data = (void*)pjd;
 
-  pjd->fix   = 0.01;
-  pjd->mmidx = 0;
+  pep->lineariz = PETSC_FALSE;
+  pjd->fix      = 0.01;
+  pjd->mmidx    = 0;
 
   pep->ops->solve          = PEPSolve_JD;
   pep->ops->setup          = PEPSetUp_JD;

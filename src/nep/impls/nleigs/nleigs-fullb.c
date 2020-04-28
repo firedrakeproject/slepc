@@ -286,7 +286,7 @@ PetscErrorCode NEPSetUp_NLEIGS_FullBasis(NEP nep)
     case NEP_WHICH_USER:         which = EPS_WHICH_USER;
       ierr = EPSSetEigenvalueComparison(ctx->eps,nep->sc->comparison,nep->sc->comparisonctx);CHKERRQ(ierr);
       break;
-    default: SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"Should set a target selection in NEPSetWhichEigenvalues()");
+    default: SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_SUP,"Should set a target selection in NEPSetWhichEigenpairs()");
   }
   ierr = EPSSetWhichEigenpairs(ctx->eps,which);CHKERRQ(ierr);
   ierr = RGIsTrivial(nep->rg,&istrivial);CHKERRQ(ierr);

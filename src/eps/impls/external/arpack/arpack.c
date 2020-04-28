@@ -18,16 +18,20 @@ PetscErrorCode EPSSetUp_ARPACK(EPS eps)
 {
   PetscErrorCode ierr;
   PetscInt       ncv;
-  PetscBool      istrivial;
   EPS_ARPACK     *ar = (EPS_ARPACK*)eps->data;
 
   PetscFunctionBegin;
+  EPSCheckDefinite(eps);
   if (eps->ncv) {
     if (eps->ncv<eps->nev+2) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_OUTOFRANGE,"The value of ncv must be at least nev+2");
   } else eps->ncv = PetscMin(PetscMax(20,2*eps->nev+1),eps->n); /* set default value of ncv */
   if (eps->mpd) { ierr = PetscInfo(eps,"Warning: parameter mpd ignored\n");CHKERRQ(ierr); }
   if (!eps->max_it) eps->max_it = PetscMax(300,(PetscInt)(2*eps->n/eps->ncv));
-  if (!eps->which) eps->which = EPS_LARGEST_MAGNITUDE;
+  if (!eps->which) { ierr = EPSSetWhichEigenpairs_Default(eps);CHKERRQ(ierr); }
+  if (eps->which==EPS_ALL) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"This solver does not support computing all eigenvalues");
+  if (eps->which==EPS_WHICH_USER) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"This solver does not support user-defined ordering of eigenvalues");
+  EPSCheckUnsupported(eps,EPS_FEATURE_BALANCE | EPS_FEATURE_ARBITRARY | EPS_FEATURE_REGION | EPS_FEATURE_CONVERGENCE | EPS_FEATURE_STOPPING | EPS_FEATURE_TWOSIDED);
+  EPSCheckIgnored(eps,EPS_FEATURE_EXTRACTION);
 
   ncv = eps->ncv;
 #if defined(PETSC_USE_COMPLEX)
@@ -58,18 +62,9 @@ PetscErrorCode EPSSetUp_ARPACK(EPS eps)
   ierr = PetscMalloc1(3*eps->nloc,&ar->workd);CHKERRQ(ierr);
   ierr = PetscLogObjectMemory((PetscObject)eps,3*eps->nloc*sizeof(PetscScalar));CHKERRQ(ierr);
 
-  if (eps->extraction) { ierr = PetscInfo(eps,"Warning: extraction type ignored\n");CHKERRQ(ierr); }
-
-  if (eps->balance!=EPS_BALANCE_NONE) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Balancing not supported in the Arpack interface");
-  if (eps->arbitrary) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Arbitrary selection of eigenpairs not supported in this solver");
-  if (eps->stopping!=EPSStoppingBasic) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"External packages do not support user-defined stopping test");
-
   ierr = EPSAllocateSolution(eps,0);CHKERRQ(ierr);
   ierr = EPS_SetInnerProduct(eps);CHKERRQ(ierr);
   ierr = EPSSetWorkVecs(eps,2);CHKERRQ(ierr);
-
-  ierr = RGIsTrivial(eps->rg,&istrivial);CHKERRQ(ierr);
-  if (!istrivial) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"This solver does not support region filtering");
   PetscFunctionReturn(0);
 }
 
@@ -144,32 +139,32 @@ PetscErrorCode EPSSolve_ARPACK(EPS eps)
   }
 
 #if !defined(PETSC_USE_COMPLEX)
-    if (eps->ishermitian) {
-      switch (eps->which) {
-        case EPS_TARGET_MAGNITUDE:
-        case EPS_LARGEST_MAGNITUDE:  which = "LM"; break;
-        case EPS_SMALLEST_MAGNITUDE: which = "SM"; break;
-        case EPS_TARGET_REAL:
-        case EPS_LARGEST_REAL:       which = "LA"; break;
-        case EPS_SMALLEST_REAL:      which = "SA"; break;
-        default: SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_WRONG,"Wrong value of eps->which");
-      }
-    } else {
-#endif
-      switch (eps->which) {
-        case EPS_TARGET_MAGNITUDE:
-        case EPS_LARGEST_MAGNITUDE:  which = "LM"; break;
-        case EPS_SMALLEST_MAGNITUDE: which = "SM"; break;
-        case EPS_TARGET_REAL:
-        case EPS_LARGEST_REAL:       which = "LR"; break;
-        case EPS_SMALLEST_REAL:      which = "SR"; break;
-        case EPS_TARGET_IMAGINARY:
-        case EPS_LARGEST_IMAGINARY:  which = "LI"; break;
-        case EPS_SMALLEST_IMAGINARY: which = "SI"; break;
-        default: SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_WRONG,"Wrong value of eps->which");
-      }
-#if !defined(PETSC_USE_COMPLEX)
+  if (eps->ishermitian) {
+    switch (eps->which) {
+      case EPS_TARGET_MAGNITUDE:
+      case EPS_LARGEST_MAGNITUDE:  which = "LM"; break;
+      case EPS_SMALLEST_MAGNITUDE: which = "SM"; break;
+      case EPS_TARGET_REAL:
+      case EPS_LARGEST_REAL:       which = "LA"; break;
+      case EPS_SMALLEST_REAL:      which = "SA"; break;
+      default: SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_WRONG,"Wrong value of eps->which");
     }
+  } else {
+#endif
+    switch (eps->which) {
+      case EPS_TARGET_MAGNITUDE:
+      case EPS_LARGEST_MAGNITUDE:  which = "LM"; break;
+      case EPS_SMALLEST_MAGNITUDE: which = "SM"; break;
+      case EPS_TARGET_REAL:
+      case EPS_LARGEST_REAL:       which = "LR"; break;
+      case EPS_SMALLEST_REAL:      which = "SR"; break;
+      case EPS_TARGET_IMAGINARY:
+      case EPS_LARGEST_IMAGINARY:  which = "LI"; break;
+      case EPS_SMALLEST_IMAGINARY: which = "SI"; break;
+      default: SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_WRONG,"Wrong value of eps->which");
+    }
+#if !defined(PETSC_USE_COMPLEX)
+  }
 #endif
 
   do {

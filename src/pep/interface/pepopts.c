@@ -208,8 +208,10 @@ PetscErrorCode PEPSetFromOptions(PEP pep)
     if (flg) { ierr = PEPSetWhichEigenpairs(pep,PEP_TARGET_MAGNITUDE);CHKERRQ(ierr); }
     ierr = PetscOptionsBoolGroup("-pep_target_real","Compute eigenvalues with real parts closest to target","PEPSetWhichEigenpairs",&flg);CHKERRQ(ierr);
     if (flg) { ierr = PEPSetWhichEigenpairs(pep,PEP_TARGET_REAL);CHKERRQ(ierr); }
-    ierr = PetscOptionsBoolGroupEnd("-pep_target_imaginary","Compute eigenvalues with imaginary parts closest to target","PEPSetWhichEigenpairs",&flg);CHKERRQ(ierr);
+    ierr = PetscOptionsBoolGroup("-pep_target_imaginary","Compute eigenvalues with imaginary parts closest to target","PEPSetWhichEigenpairs",&flg);CHKERRQ(ierr);
     if (flg) { ierr = PEPSetWhichEigenpairs(pep,PEP_TARGET_IMAGINARY);CHKERRQ(ierr); }
+    ierr = PetscOptionsBoolGroupEnd("-pep_all","Compute all eigenvalues in an interval or a region","PEPSetWhichEigenpairs",&flg);CHKERRQ(ierr);
+    if (flg) { ierr = PEPSetWhichEigenpairs(pep,PEP_ALL);CHKERRQ(ierr); }
 
     ierr = PetscOptionsScalar("-pep_target","Value of the target","PEPSetTarget",pep->target,&s,&flg);CHKERRQ(ierr);
     if (flg) {
@@ -534,6 +536,10 @@ PetscErrorCode PEPSetWhichEigenpairs(PEP pep,PEPWhich which)
         pep->which = which;
       }
       break;
+#if !defined(PETSC_USE_COMPLEX)
+    case PEP_TARGET_IMAGINARY:
+      SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"PEP_TARGET_IMAGINARY can be used only with complex scalars");
+#endif
     default:
       SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_OUTOFRANGE,"Invalid 'which' value");
   }
@@ -1201,13 +1207,14 @@ PetscErrorCode PEPSetExtract(PEP pep,PEPExtract extract)
 
    Level: intermediate
 
-.seealso: PEPSetExtract()
+.seealso: PEPSetExtract(), PEPExtract
 @*/
 PetscErrorCode PEPGetExtract(PEP pep,PEPExtract *extract)
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(pep,PEP_CLASSID,1);
-  if (extract) *extract = pep->extract;
+  PetscValidPointer(extract,2);
+  *extract = pep->extract;
   PetscFunctionReturn(0);
 }
 

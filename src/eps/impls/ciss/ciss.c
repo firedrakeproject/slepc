@@ -822,7 +822,7 @@ PetscErrorCode EPSSetUp_CISS(EPS eps)
 {
   PetscErrorCode ierr;
   EPS_CISS       *ctx = (EPS_CISS*)eps->data;
-  PetscBool      issinvert,istrivial,isring,isellipse,isinterval,flg,useconj;
+  PetscBool      istrivial,isring,isellipse,isinterval,flg,useconj;
   PetscReal      c,d;
   Mat            A;
 
@@ -846,10 +846,8 @@ PetscErrorCode EPSSetUp_CISS(EPS eps)
   if (!eps->max_it) eps->max_it = 1;
   if (!eps->mpd) eps->mpd = eps->ncv;
   if (!eps->which) eps->which = EPS_ALL;
-  if (!eps->extraction) { ierr = EPSSetExtraction(eps,EPS_RITZ);CHKERRQ(ierr); }
-  else if (eps->extraction!=EPS_RITZ) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Unsupported extraction type");
-  if (eps->arbitrary) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Arbitrary selection of eigenpairs not supported in this solver");
-  if (eps->stopping!=EPSStoppingBasic) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"This solver does not support user-defined stopping test");
+  if (eps->which!=EPS_ALL) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"This solver supports only computing all eigenvalues");
+  EPSCheckUnsupported(eps,EPS_FEATURE_BALANCE | EPS_FEATURE_ARBITRARY | EPS_FEATURE_EXTRACTION | EPS_FEATURE_STOPPING | EPS_FEATURE_TWOSIDED);
 
   /* check region */
   ierr = RGIsTrivial(eps->rg,&istrivial);CHKERRQ(ierr);
@@ -865,9 +863,7 @@ PetscErrorCode EPSSetUp_CISS(EPS eps)
   if (useconj!=ctx->useconj) { ierr = EPSCISSResetSubcomm(eps);CHKERRQ(ierr); }
 
 #if !defined(PETSC_USE_COMPLEX)
-  if (isring) {
-    SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Ring region only supported for complex scalars");
-  }
+  if (isring) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Ring region only supported for complex scalars");
 #endif
   if (isinterval) {
     ierr = RGIntervalGetEndpoints(eps->rg,NULL,NULL,&c,&d);CHKERRQ(ierr);
@@ -912,10 +908,7 @@ PetscErrorCode EPSSetUp_CISS(EPS eps)
     ierr = PetscLogObjectParent((PetscObject)eps,(PetscObject)ctx->pV);CHKERRQ(ierr);
   }
 
-  if (ctx->usest) {
-    ierr = PetscObjectTypeCompare((PetscObject)eps->st,STSINVERT,&issinvert);CHKERRQ(ierr);
-    if (!issinvert) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"If the usest flag is set, you must select the STSINVERT spectral transformation");
-  }
+  EPSCheckSinvertCondition(eps,ctx->usest," (with the usest flag set)");
 
   ierr = BVDestroy(&ctx->Y);CHKERRQ(ierr);
   if (ctx->pA) {
