@@ -132,10 +132,11 @@ class Package:
     if self.downloadpackage and self.fortran and not hasattr(petsc,'fc'):
       self.log.Exit('Option --download-'+self.packagename+' requires a Fortran compiler')
 
-  def Download(self,externdir,builddir,downloaddir,prefix=None):
+  def Download(self,externdir,downloaddir):
     # Check if source is already available
-    if os.path.exists(builddir):
-      self.log.write('Using '+builddir)
+    if os.path.exists(os.path.join(externdir,self.dirname)):
+      self.log.write('Using '+os.path.join(externdir,self.dirname))
+      dirname = self.dirname
     else:
 
       if downloaddir:
@@ -174,9 +175,10 @@ Unable to download package %s from: %s
           self.log.Exit(failureMessage)
 
       # Uncompress tarball
-      self.log.write('Uncompressing '+localFile+' to directory '+builddir)
-      if os.path.exists(builddir):
-        for root, dirs, files in os.walk(builddir, topdown=False):
+      extractdir = os.path.join(externdir,self.dirname)
+      self.log.write('Uncompressing '+localFile+' to directory '+extractdir)
+      if os.path.exists(extractdir):
+        for root, dirs, files in os.walk(extractdir, topdown=False):
           for name in files:
             os.remove(os.path.join(root,name))
           for name in dirs:
@@ -220,12 +222,7 @@ Downloaded package %s from: %s is not a tarball.
       except RuntimeError as e:
         self.log.Exit('Error changing permissions for '+dirname+' obtained from '+localFile+ ' : '+str(e))
       os.remove(localFile)
-
-      # Rename directory
-      if prefix is not None:
-        for filename in os.listdir(externdir):
-          if filename.startswith(prefix):
-            os.rename(os.path.join(externdir,filename),builddir)
+    return os.path.join(externdir,dirname)
 
   wd = 36
 
