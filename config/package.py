@@ -171,14 +171,10 @@ Unable to download package %s from: %s
           for name in dirs:
             os.rmdir(os.path.join(root,name))
       try:
-        if sys.version_info >= (2,5):
-          tar = tarfile.open(localFile, 'r:gz')
-          tar.extractall(path=externdir)
-          tar.close()
-          if not downloaddir: os.remove(localFile)
-        else:
-          result,output = self.RunCommand('cd '+externdir+'; gunzip '+self.archive+'; tar -xf '+self.archive.split('.gz')[0])
-          if not downloaddir: os.remove(localFile.split('.gz')[0])
+        tar = tarfile.open(localFile)
+        tar.extractall(path=externdir)
+        tar.close()
+        if not downloaddir: os.remove(localFile)
       except RuntimeError as e:
         self.log.Exit('Cannot uncompress '+self.archive+': '+str(e))
 
