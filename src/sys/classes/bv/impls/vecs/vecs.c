@@ -308,6 +308,7 @@ PetscErrorCode BVMatMult_Vecs(BV V,Mat A,BV W)
     ierr = MatProductSetFromOptions(Wmat);CHKERRQ(ierr);
     ierr = MatProductSymbolic(Wmat);CHKERRQ(ierr);
     ierr = MatProductNumeric(Wmat);CHKERRQ(ierr);
+    ierr = MatProductClear(Wmat);CHKERRQ(ierr);
     ierr = BVRestoreMat(V,&Vmat);CHKERRQ(ierr);
     ierr = BVRestoreMat(W,&Wmat);CHKERRQ(ierr);
   } else {
