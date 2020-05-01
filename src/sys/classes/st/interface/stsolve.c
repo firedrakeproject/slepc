@@ -414,6 +414,7 @@ PetscErrorCode STComputeOperator(ST st)
   PetscValidHeaderSpecific(st,ST_CLASSID,1);
   PetscValidType(st,1);
   if (!st->opready && st->ops->computeoperator) {
+    ierr = PetscInfo(st,"Building the operator matrices\n");CHKERRQ(ierr);
     STCheckMatrices(st,1);
     if (!st->T) {
       ierr = PetscCalloc1(PetscMax(2,st->nmat),&st->T);CHKERRQ(ierr);

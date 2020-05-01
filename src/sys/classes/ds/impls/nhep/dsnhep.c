@@ -659,8 +659,9 @@ PetscErrorCode DSSynchronize_NHEP(DS ds,PetscScalar eigr[],PetscScalar eigi[])
 
 PetscErrorCode DSTruncate_NHEP(DS ds,PetscInt n)
 {
-  PetscInt    i,newn,ld=ds->ld,l=ds->l;
-  PetscScalar *A;
+  PetscErrorCode ierr;
+  PetscInt       i,newn,ld=ds->ld,l=ds->l;
+  PetscScalar    *A;
 
   PetscFunctionBegin;
   if (ds->state==DS_STATE_CONDENSED) ds->t = ds->n;
@@ -678,6 +679,7 @@ PetscErrorCode DSTruncate_NHEP(DS ds,PetscInt n)
   }
   ds->k = 0;
   ds->n = newn;
+  ierr = PetscInfo1(ds,"Decomposition truncated to size n=%D\n",newn);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

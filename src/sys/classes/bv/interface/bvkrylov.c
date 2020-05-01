@@ -92,6 +92,7 @@ PetscErrorCode BVMatArnoldi(BV V,Mat A,PetscScalar *H,PetscInt ldh,PetscInt k,Pe
     }
   }
   if (breakdown) *breakdown = lindep;
+  if (lindep) { ierr = PetscInfo1(V,"Arnoldi finished early at m=%D\n",*m);CHKERRQ(ierr); }
   /* extract Hessenberg matrix from the BV object */
   ierr = BVGetBufferVec(V,&buf);CHKERRQ(ierr);
   ierr = VecGetArray(buf,&a);CHKERRQ(ierr);

@@ -305,6 +305,7 @@ PetscErrorCode EPSSolve_KrylovSchur_Default(EPS eps)
 #endif
     }
     if (!ctx->lock && l>0) { l += k; k = 0; } /* non-locking variant: reset no. of converged pairs */
+    if (l) { ierr = PetscInfo1(eps,"Preparing to restart keeping l=%D vectors\n",l);CHKERRQ(ierr); }
 
     if (eps->reason == EPS_CONVERGED_ITERATING) {
       if (breakdown || k==nv) {

@@ -636,8 +636,9 @@ PetscErrorCode DSSolve_HEP_BDC(DS ds,PetscScalar *wr,PetscScalar *wi)
 
 PetscErrorCode DSTruncate_HEP(DS ds,PetscInt n)
 {
-  PetscInt    i,ld=ds->ld,l=ds->l;
-  PetscScalar *A;
+  PetscErrorCode ierr;
+  PetscInt       i,ld=ds->ld,l=ds->l;
+  PetscScalar    *A;
 
   PetscFunctionBegin;
   if (ds->state==DS_STATE_CONDENSED) ds->t = ds->n;
@@ -648,6 +649,7 @@ PetscErrorCode DSTruncate_HEP(DS ds,PetscInt n)
   if (ds->extrarow) ds->k = n;
   else ds->k = 0;
   ds->n = n;
+  ierr = PetscInfo1(ds,"Decomposition truncated to size n=%D\n",n);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
