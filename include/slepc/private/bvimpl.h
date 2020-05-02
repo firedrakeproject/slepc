@@ -476,6 +476,28 @@ PETSC_STATIC_INLINE PetscErrorCode BV_GetEigenvector(BV V,PetscInt k,PetscScalar
   PetscFunctionReturn(0);
 }
 
+/*
+   BV_OrthogonalizeColumn_Safe - this is intended for cases where we know that
+   the resulting vector is going to be numerically zero, so normalization or
+   iterative refinement may cause problems in parallel (collective operation
+   not being called by all processes)
+*/
+PETSC_STATIC_INLINE PetscErrorCode BV_OrthogonalizeColumn_Safe(BV bv,PetscInt j,PetscScalar *H,PetscReal *norm,PetscBool *lindep)
+{
+  PetscErrorCode     ierr;
+  BVOrthogRefineType orthog_ref;
+
+  PetscFunctionBegin;
+  ierr = PetscInfo1(bv,"Orthogonalizing column %D without refinement\n",j);CHKERRQ(ierr);
+  orthog_ref     = bv->orthog_ref;
+  bv->orthog_ref = BV_ORTHOG_REFINE_NEVER;  /* avoid refinement */
+  ierr = BVOrthogonalizeColumn(bv,j,H,NULL,NULL);CHKERRQ(ierr);
+  bv->orthog_ref = orthog_ref;  /* restore refinement setting */
+  if (norm)   *norm  = 0.0;
+  if (lindep) *lindep = PETSC_TRUE;
+  PetscFunctionReturn(0);
+}
+
 #if defined(PETSC_HAVE_CUDA)
 #define BV_CleanCoefficients(a,b,c)   ((a)->cuda?BV_CleanCoefficients_CUDA:BV_CleanCoefficients_Default)((a),(b),(c))
 #define BV_AddCoefficients(a,b,c,d)   ((a)->cuda?BV_AddCoefficients_CUDA:BV_AddCoefficients_Default)((a),(b),(c),(d))
