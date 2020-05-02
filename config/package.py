@@ -23,6 +23,10 @@ if sys.version_info < (3,):
   import commands
 else:
   import subprocess
+import socket
+
+# Fix parsing for nonstandard schemes
+urlparse.uses_netloc.extend(['bk', 'ssh', 'svn'])
 
 class Package:
 
@@ -140,65 +144,103 @@ class Package:
           url = self.url
         return self.packagename+': '+url+' --> '+localFile
 
-  def Download(self,externdir,builddir,downloaddir,prefix=None):
+  def Download(self,externdir,downloaddir):
     # Check if source is already available
-    if os.path.exists(builddir):
-      self.log.write('Using '+builddir)
+    if os.path.exists(os.path.join(externdir,self.dirname)):
+      self.log.write('Using '+os.path.join(externdir,self.dirname))
+      dirname = self.dirname
     else:
 
       if downloaddir:
         # Get tarball from download dir
-        localFile = os.path.join(downloaddir,self.archive)
+        if self.packageurl=='':
+          localFile = os.path.join(downloaddir,self.archive)
+        else:
+          localFile = os.path.join(downloaddir,self.packageurl)
         if not os.path.exists(localFile):
           self.log.Exit('Could not find file '+self.archive+' under '+downloaddir)
+        url = localFile
+        filename = os.path.basename(url)
       else:
         # Download tarball
         url = self.packageurl
         if url=='':
           url = self.url
+        filename = os.path.basename(urlparse.urlparse(url)[2])
         localFile = os.path.join(externdir,self.archive)
         self.log.write('Downloading '+url+' to '+localFile)
 
         if os.path.exists(localFile):
           os.remove(localFile)
         try:
+          sav_timeout = socket.getdefaulttimeout()
+          socket.setdefaulttimeout(30)
           urlretrieve(url, localFile)
+          socket.setdefaulttimeout(sav_timeout)
         except Exception as e:
-          filename = os.path.basename(urlparse.urlparse(url)[2])
+          socket.setdefaulttimeout(sav_timeout)
           failureMessage = '''\
 Unable to download package %s from: %s
+* If URL specified manually - perhaps there is a typo?
 * If your network is disconnected - please reconnect and rerun ./configure
-* Alternatively, you can download the above URL manually, to /yourselectedlocation/%s
+* Or perhaps you have a firewall blocking the download
+* You can run with --with-packages-download-dir=/adirectory and ./configure will instruct you what packages to download manually
+* or you can download the above URL manually, to /yourselectedlocation/%s
   and use the configure option:
   --download-%s=/yourselectedlocation/%s
-''' % (self.packagename, url, filename, self.packagename, filename)
+''' % (self.packagename.upper(), url, filename, self.packagename, filename)
           self.log.Exit(failureMessage)
 
       # Uncompress tarball
-      self.log.write('Uncompressing '+localFile+' to directory '+builddir)
-      if os.path.exists(builddir):
-        for root, dirs, files in os.walk(builddir, topdown=False):
+      extractdir = os.path.join(externdir,self.dirname)
+      self.log.write('Uncompressing '+localFile+' to directory '+extractdir)
+      if os.path.exists(extractdir):
+        for root, dirs, files in os.walk(extractdir, topdown=False):
           for name in files:
             os.remove(os.path.join(root,name))
           for name in dirs:
             os.rmdir(os.path.join(root,name))
+      failureMessage = '''\
+Downloaded package %s from: %s is not a tarball.
+[or installed python cannot process compressed files]
+* If you are behind a firewall - please fix your proxy and rerun ./configure
+  For example at LANL you may need to set the environmental variable http_proxy (or HTTP_PROXY?) to  http://proxyout.lanl.gov
+* You can run with --with-packages-download-dir=/adirectory and ./configure will instruct you what packages to download manually
+* or you can download the above URL manually, to /yourselectedlocation/%s
+  and use the configure option:
+  --download-%s=/yourselectedlocation/%s
+''' % (self.packagename.upper(), url, filename, self.packagename, filename)
       try:
-        if sys.version_info >= (2,5):
-          tar = tarfile.open(localFile, 'r:gz')
-          tar.extractall(path=externdir)
-          tar.close()
-          if not downloaddir: os.remove(localFile)
-        else:
-          result,output = self.RunCommand('cd '+externdir+'; gunzip '+self.archive+'; tar -xf '+self.archive.split('.gz')[0])
-          if not downloaddir: os.remove(localFile.split('.gz')[0])
-      except RuntimeError as e:
-        self.log.Exit('Cannot uncompress '+self.archive+': '+str(e))
+        tf = tarfile.open(localFile)
+      except tarfile.ReadError as e:
+        self.log.Exit(str(e)+'\n'+failureMessage)
+      if not tf: self.log.Exit(failureMessage)
+      #git puts 'pax_global_header' as the first entry and some tar utils process this as a file
+      firstname = tf.getnames()[0]
+      if firstname == 'pax_global_header':
+        firstmember = tf.getmembers()[1]
+      else:
+        firstmember = tf.getmembers()[0]
+      # some tarfiles list packagename/ but some list packagename/filename in the first entry
+      if firstmember.isdir():
+        dirname = firstmember.name
+      else:
+        dirname = os.path.dirname(firstmember.name)
+      tf.extractall(path=externdir)
+      tf.close()
 
-      # Rename directory
-      if prefix is not None:
-        for filename in os.listdir(externdir):
-          if filename.startswith(prefix):
-            os.rename(os.path.join(externdir,filename),builddir)
+      # fix file permissions for the untared tarballs
+      try:
+        # check if 'dirname' is set'
+        if dirname:
+          result,output = self.RunCommand('cd '+externdir+'; chmod -R a+r '+dirname+'; find '+dirname+' -type d -name "*" -exec chmod a+rx {} \;')
+        else:
+          self.log.Warn('Could not determine dirname extracted by '+localFile+' to fix file permissions')
+      except RuntimeError as e:
+        self.log.Exit('Error changing permissions for '+dirname+' obtained from '+localFile+ ' : '+str(e))
+      if not downloaddir:
+        os.remove(localFile)
+    return os.path.join(externdir,dirname)
 
   wd = 36
 

@@ -188,7 +188,7 @@ alldoc1: chk_loc allcite allmanpages allmanexamples
 	-@echo "  <meta http-equiv=\"Content-Type\" content=\"text/html; charset=iso-8859-1\">" >> singleindex.html
 	-@echo "  <link rel=\"stylesheet\" href=\"/slepc.css\" type=\"text/css\">" >> singleindex.html
 	-@echo "</head>" >> singleindex.html
-	-@echo "<body>" > singleindex.html
+	-@echo "<body>" >> singleindex.html
 	-@cat ${LOC}/docs/manualpages/singleindex.html >> singleindex.html
 	-@sed -e 's/CC3333/883300/' singleindex.html > ${LOC}/docs/manualpages/singleindex.html
 	-@${RM} singleindex.html
@@ -219,7 +219,7 @@ docsetdate: chk_petscdir
         export datestr; \
         gitver=`git describe --match "v*"`; \
         export gitver; \
-        find * -type d -wholename 'arch-*' -prune -o -type f -name \*.html \
+        find include src docs/manualpages -type f -name \*.html \
           -exec perl -pi -e 's^(<body.*>)^$$1\n   <div id=\"version\" align=right><b>$$ENV{slepcversion} $$ENV{datestr}</b></div>\n   <div id="bugreport" align=right><a href="mailto:slepc-maint\@upv.es?subject=Typo or Error in Documentation &body=Please describe the typo or error in the documentation: $$ENV{slepcversion} $$ENV{gitver} {} "><small>Report Typos and Errors</small></a></div>^i' {} \; \
           -exec perl -pi -e 's^(<head>)^$$1 <link rel="canonical" href="https://slepc.upv.es/documentation/current/{}" />^i' {} \; ; \
         echo "Done fixing version number, date, canonical URL info"
@@ -228,8 +228,8 @@ docsetdate: chk_petscdir
 alldocclean: deletemanualpages allcleanhtml
 deletemanualpages: chk_loc
 	-@if [ -d ${LOC} -a -d ${LOC}/docs/manualpages ]; then \
-          find ${LOC}/docs/manualpages -type f -name "*.html" -exec ${RM} {} \; ;\
-          ${RM} ${LOC}/docs/manualpages/manualpages.cit ;\
+          ${RM} -rf ${LOC}/docs/manualpages ;\
+          ${RM} -f ${LOC}/docs/slepc.pdf ;\
         fi
 allcleanhtml:
 	-${OMAKE_SELF} ACTION=cleanhtml PETSC_DIR=${PETSC_DIR} alltree

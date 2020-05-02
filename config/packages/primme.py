@@ -100,8 +100,7 @@ class Primme(package.Package):
 
   def DownloadAndInstall(self,conf,vars,slepc,petsc,archdir,prefixdir):
     externdir = slepc.CreateDir(archdir,'externalpackages')
-    builddir  = os.path.join(externdir,self.dirname)
-    self.Download(externdir,builddir,slepc.downloaddir)
+    builddir  = self.Download(externdir,slepc.downloaddir)
 
     # Configure
     g = open(os.path.join(builddir,'mymake_flags'),'w')
