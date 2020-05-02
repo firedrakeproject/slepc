@@ -78,8 +78,8 @@ class Blopex(package.Package):
 
   def DownloadAndInstall(self,conf,vars,slepc,petsc,archdir,prefixdir):
     externdir = slepc.CreateDir(archdir,'externalpackages')
-    builddir  = os.path.join(externdir,self.dirname,'blopex_abstract')
-    self.Download(externdir,builddir,slepc.downloaddir)
+    downloadd = self.Download(externdir,slepc.downloaddir)
+    builddir  = os.path.join(downloadd,'blopex_abstract')
 
     # Configure
     g = open(os.path.join(builddir,'Makefile.inc'),'w')
