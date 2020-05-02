@@ -141,9 +141,14 @@ class Package:
 
       if downloaddir:
         # Get tarball from download dir
-        localFile = os.path.join(downloaddir,self.archive)
+        if self.packageurl=='':
+          localFile = os.path.join(downloaddir,self.archive)
+        else:
+          localFile = os.path.join(downloaddir,self.packageurl)
         if not os.path.exists(localFile):
           self.log.Exit('Could not find file '+self.archive+' under '+downloaddir)
+        url = localFile
+        filename = os.path.basename(url)
       else:
         # Download tarball
         url = self.packageurl
@@ -221,7 +226,8 @@ Downloaded package %s from: %s is not a tarball.
           self.log.Warn('Could not determine dirname extracted by '+localFile+' to fix file permissions')
       except RuntimeError as e:
         self.log.Exit('Error changing permissions for '+dirname+' obtained from '+localFile+ ' : '+str(e))
-      os.remove(localFile)
+      if not downloaddir:
+        os.remove(localFile)
     return os.path.join(externdir,dirname)
 
   wd = 36
