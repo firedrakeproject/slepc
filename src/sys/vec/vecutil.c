@@ -164,7 +164,7 @@ PetscErrorCode VecCheckOrthogonality(Vec V[],PetscInt nv,Vec W[],PetscInt nw,Mat
 PetscErrorCode VecDuplicateEmpty(Vec v,Vec *newv)
 {
   PetscErrorCode ierr;
-  PetscBool      sup,cuda,mpi;
+  PetscBool      standard,cuda,mpi;
   PetscInt       N,nloc,bs;
 
   PetscFunctionBegin;
@@ -172,28 +172,30 @@ PetscErrorCode VecDuplicateEmpty(Vec v,Vec *newv)
   PetscValidPointer(newv,2);
   PetscValidType(v,1);
 
-  ierr = PetscObjectTypeCompareAny((PetscObject)v,&sup,VECSEQ,VECMPI,VECSEQCUDA,VECMPICUDA,"");CHKERRQ(ierr);
-  if (!sup) SETERRQ1(PetscObjectComm((PetscObject)v),PETSC_ERR_SUP,"Vector type %s not supported",((PetscObject)v)->type_name);
+  ierr = PetscObjectTypeCompareAny((PetscObject)v,&standard,VECSEQ,VECMPI,"");CHKERRQ(ierr);
   ierr = PetscObjectTypeCompareAny((PetscObject)v,&cuda,VECSEQCUDA,VECMPICUDA,"");CHKERRQ(ierr);
-  ierr = PetscObjectTypeCompareAny((PetscObject)v,&mpi,VECMPI,VECMPICUDA,"");CHKERRQ(ierr);
-  ierr = VecGetLocalSize(v,&nloc);CHKERRQ(ierr);
-  ierr = VecGetSize(v,&N);CHKERRQ(ierr);
-  ierr = VecGetBlockSize(v,&bs);CHKERRQ(ierr);
-
-  if (cuda) {
+  if (standard || cuda) {
+    ierr = PetscObjectTypeCompareAny((PetscObject)v,&mpi,VECMPI,VECMPICUDA,"");CHKERRQ(ierr);
+    ierr = VecGetLocalSize(v,&nloc);CHKERRQ(ierr);
+    ierr = VecGetSize(v,&N);CHKERRQ(ierr);
+    ierr = VecGetBlockSize(v,&bs);CHKERRQ(ierr);
+    if (cuda) {
 #if defined(PETSC_HAVE_CUDA)
-    if (mpi) {
-      ierr = VecCreateMPICUDAWithArray(PetscObjectComm((PetscObject)v),bs,nloc,N,NULL,newv);CHKERRQ(ierr);
-    } else {
-      ierr = VecCreateSeqCUDAWithArray(PetscObjectComm((PetscObject)v),bs,N,NULL,newv);CHKERRQ(ierr);
-    }
+      if (mpi) {
+        ierr = VecCreateMPICUDAWithArray(PetscObjectComm((PetscObject)v),bs,nloc,N,NULL,newv);CHKERRQ(ierr);
+      } else {
+        ierr = VecCreateSeqCUDAWithArray(PetscObjectComm((PetscObject)v),bs,N,NULL,newv);CHKERRQ(ierr);
+      }
 #endif
-  } else {
-    if (mpi) {
-      ierr = VecCreateMPIWithArray(PetscObjectComm((PetscObject)v),bs,nloc,N,NULL,newv);CHKERRQ(ierr);
     } else {
-      ierr = VecCreateSeqWithArray(PetscObjectComm((PetscObject)v),bs,N,NULL,newv);CHKERRQ(ierr);
+      if (mpi) {
+        ierr = VecCreateMPIWithArray(PetscObjectComm((PetscObject)v),bs,nloc,N,NULL,newv);CHKERRQ(ierr);
+      } else {
+        ierr = VecCreateSeqWithArray(PetscObjectComm((PetscObject)v),bs,N,NULL,newv);CHKERRQ(ierr);
+      }
     }
+  } else {  /* standard duplicate, with internal array */
+    ierr = VecDuplicate(v,newv);CHKERRQ(ierr);
   }
   PetscFunctionReturn(0);
 }
