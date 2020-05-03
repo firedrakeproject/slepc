@@ -122,7 +122,6 @@ PetscErrorCode EPSSetUp_XD(EPS eps)
       break;
     case EPS_ALL:
       SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"This solver does not support computing all eigenvalues");
-      break;
     default:
       SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"Unsupported value of option 'which'");
   }

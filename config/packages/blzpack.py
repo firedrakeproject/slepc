@@ -8,7 +8,7 @@
 #  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 
-import log, package
+import os, log, package
 
 class Blzpack(package.Package):
 
@@ -32,7 +32,7 @@ class Blzpack(package.Package):
       libs = [['-lblzpack']]
 
     if self.packagedir:
-      dirs = [self.packagedir]
+      dirs = [os.path.join(self.packagedir,'lib'),self.packagedir]
     else:
       dirs = self.GenerateGuesses('Blzpack',archdir)
 

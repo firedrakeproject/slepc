@@ -17,7 +17,7 @@ class Primme(package.Package):
     self.packagename    = 'primme'
     self.installable    = True
     self.downloadable   = True
-    self.version        = '3.0.2'
+    self.version        = '3.1'
     self.url            = 'https://github.com/primme/primme/archive/v'+self.version+'.tar.gz'
     self.archive        = 'primme-'+self.version+'.tar.gz'
     self.dirname        = 'primme-'+self.version
@@ -62,8 +62,8 @@ class Primme(package.Package):
   def Check(self,conf,vars,petsc,archdir):
     code = self.SampleCode(petsc)
     if self.packagedir:
-      dirs = [os.path.join(self.packagedir,'lib')]
-      incdirs = [os.path.join(self.packagedir,'include')]
+      dirs = [os.path.join(self.packagedir,'lib'),self.packagedir]
+      incdirs = [os.path.join(self.packagedir,'include'),self.packagedir]
     else:
       dirs = self.GenerateGuesses('Primme',archdir)
       incdirs = self.GenerateGuesses('Primme',archdir,'include')

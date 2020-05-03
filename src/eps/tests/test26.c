@@ -104,7 +104,7 @@ int main(int argc,char **argv)
          requires: arpack
 
    testset:
-      args: -f1 ${DATAFILESPATH}/matrices/complex/mhd1280a.petsc -f2 ${DATAFILESPATH}/matrices/complex/mhd1280b.petsc -eps_smallest_real -eps_nev 2
+      args: -f1 ${DATAFILESPATH}/matrices/complex/mhd1280a.petsc -f2 ${DATAFILESPATH}/matrices/complex/mhd1280b.petsc -eps_smallest_real -eps_nev 4
       requires: complex datafilespath !define(PETSC_USE_64BIT_INDICES)
       output_file: output/test26_2.out
       test:
@@ -112,6 +112,6 @@ int main(int argc,char **argv)
       test:
          args:  -eps_type arpack
          suffix: 2_arpack
-         requires: arpack
+         requires: arpack !debug
 
 TEST*/

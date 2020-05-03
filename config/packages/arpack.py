@@ -63,7 +63,7 @@ class Arpack(package.Package):
         libs = [['-lparpack','-larpack'],['-lparpack_MPI','-larpack'],['-lparpack_MPI-LINUX','-larpack_LINUX'],['-lparpack_MPI-SUN4','-larpack_SUN4']]
 
     if self.packagedir:
-      dirs = [self.packagedir]
+      dirs = [os.path.join(self.packagedir,'lib'),self.packagedir]
     else:
       dirs = self.GenerateGuesses('Arpack',archdir)
     self.FortranLib(conf,vars,dirs,libs,functions)

@@ -33,7 +33,7 @@ class Slicot(package.Package):
       libs = [['-lslicot']]
 
     if self.packagedir:
-      dirs = [self.packagedir]
+      dirs = [os.path.join(self.packagedir,'lib'),self.packagedir]
     else:
       dirs = self.GenerateGuesses('slicot',archdir)
 
