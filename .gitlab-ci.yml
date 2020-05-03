@@ -302,7 +302,7 @@ gnu-c-multilib:
     - linux-debian
   variables:
     PETSC_CONFIG_OPTS: --with-single-library=0 --with-visibility=1
-    SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --with-arpack-dir=/usr/local/opt/ARPACK --with-primme-dir=/usr/local/opt/primme --with-blopex-dir=/usr/local/opt/blopex --with-blzpack-dir=/usr/local/opt/blzpack/lib --with-trlan-dir=/usr/local/opt/trlan-201009 --with-slicot
+    SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --with-arpack-dir=/usr/local/opt/ARPACK --with-primme-dir=/usr/local/opt/primme-2.1 --with-blopex-dir=/usr/local/opt/blopex --with-blzpack-dir=/usr/local/opt/blzpack --with-trlan-dir=/usr/local/opt/trlan-201009 --with-slicot
 
 gnu-c-complex:
   extends:
@@ -312,7 +312,7 @@ gnu-c-complex:
     - linux-debian
   variables:
     PETSC_CONFIG_OPTS: --with-scalar-type=complex
-    SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --with-arpack-dir=/usr/local/opt/ARPACK --with-primme-dir=/usr/local/opt/primme --with-blopex-dir=/usr/local/opt/blopex
+    SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --with-arpack-dir=/usr/local/opt/arpack-ng-3.7.0 --with-primme-dir=/usr/local/opt/primme-3.1 --with-blopex-dir=/usr/local/opt/blopex
 
 #intel-cxx-mkl:
 #  extends:
@@ -357,6 +357,7 @@ clang-c:
     - linux-ubuntu
   variables:
     PETSC_CONFIG_OPTS: --with-cc=/usr/local/mpich-3.3.1-clang/bin/mpicc --with-cxx=0 --with-fc=0 --download-sowing
+    SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --with-packages-download-dir=/var/local/downloads --download-primme --download-blopex
 
 gnu-c-complex-multilib:
   extends:
@@ -376,6 +377,7 @@ intel-c-complex-mkl:
   variables:
     MAKE_FFLAGS: ''
     PETSC_CONFIG_OPTS: --with-scalar-type=complex --with-cc=/usr/local/mpich-3.3.2-intel/bin/mpicc --with-fc=/usr/local/mpich-3.3.2-intel/bin/mpifort --with-cxx=0 --with-blas-lapack-dir=/opt/intel/mkl/ --with-mkl_pardiso=1
+    SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --with-packages-download-dir=/var/local/downloads --download-arpack --download-primme --download-blopex
 
 pgi-c-nompi:
   extends:
@@ -388,6 +390,7 @@ pgi-c-nompi:
     MAKE_CXXFLAGS: ''
     MAKE_FFLAGS: ''
     PETSC_CONFIG_OPTS: --with-cc=/opt/pgi/linux86-64/2019/bin/pgcc --with-fc=/opt/pgi/linux86-64/2019/bin/pgfortran --with-cxx=/opt/pgi/linux86-64/2019/bin/pgc++ --with-blaslapack-dir=/opt/pgi/linux86-64/2019/lib --with-mpi=0
+    SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --with-packages-download-dir=/var/local/downloads --download-arpack --download-blopex
 
 #
 # The following tests run as part of stage-3.
@@ -401,7 +404,7 @@ gnu-cxx-complex:
     - linux-debian
   variables:
     PETSC_CONFIG_OPTS: --with-clanguage=C++ --with-scalar-type=complex --with-fortran-bindings=0 --download-sowing
-    SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --with-arpack-dir=/usr/local/opt/ARPACK --with-primme-dir=/usr/local/opt/primme --with-blopex-dir=/usr/local/opt/blopex
+    SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --with-arpack-dir=/usr/local/opt/arpack-ng-3.7.0 --with-primme-dir=/usr/local/opt/primme-3.1 --with-blopex-dir=/usr/local/opt/blopex
 
 gnu-cxx-int64:
   extends:
@@ -410,8 +413,8 @@ gnu-cxx-int64:
   tags:
     - linux-debian
   variables:
-    PETSC_CONFIG_OPTS: --with-clanguage=C++ --with-64-bit-indices=1
-    SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --with-primme-dir=/usr/local/opt/primme
+    PETSC_CONFIG_OPTS: --with-clanguage=C++ --with-64-bit-indices
+    SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --with-primme-dir=/usr/local/opt/primme-2.2
 
 gnu-c-single:
   extends:
@@ -421,7 +424,7 @@ gnu-c-single:
     - linux-debian
   variables:
     PETSC_CONFIG_OPTS: --with-precision=single
-    SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --with-arpack-dir=/usr/local/opt/ARPACK
+    SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --with-arpack-dir=/usr/local/opt/arpack-ng-3.7.0
 
 gnu-c:
   extends:
@@ -430,7 +433,7 @@ gnu-c:
   tags:
     - linux-debian
   variables:
-    SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --with-arpack-dir=/usr/local/opt/ARPACK --with-primme-dir=/usr/local/opt/primme --with-blopex-dir=/usr/local/opt/blopex --with-blzpack-dir=/usr/local/opt/blzpack/lib --with-trlan-dir=/usr/local/opt/trlan-201009
+    SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --with-arpack-dir=/usr/local/opt/arpack-ng-3.7.0 --with-primme-dir=/usr/local/opt/primme-3.1 --with-blopex-dir=/usr/local/opt/blopex --with-blzpack-dir=/usr/local/opt/blzpack --with-trlan-dir=/usr/local/opt/trlan-201009
 
 gnu-c-c89:
   extends:
@@ -440,7 +443,7 @@ gnu-c-c89:
     - linux-debian
   variables:
     PETSC_CONFIG_OPTS: --CFLAGS='-std=c89 -pedantic -Wno-long-long -Wno-overlength-strings' --with-fortran-bindings=0 --download-sowing
-    SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --with-arpack-lib=/usr/local/opt/ARPACK/libparpack.a,/usr/local/opt/ARPACK/libarpack.a,-lgfortran,-lmpi_usempif08,-lmpi_usempi_ignore_tkr,-lmpi_mpifh,-lmpi --with-blopex-dir=/usr/local/opt/blopex --with-blzpack-dir=/usr/local/opt/blzpack/lib --with-trlan-dir=/usr/local/opt/trlan-201009 --download-primme --download-primme-cflags=-std=c99
+    SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --with-arpack-lib=/usr/local/opt/ARPACK/libparpack.a,/usr/local/opt/ARPACK/libarpack.a,-lgfortran,-lmpi_usempif08,-lmpi_usempi_ignore_tkr,-lmpi_mpifh,-lmpi --with-blopex-dir=/usr/local/opt/blopex --with-blzpack-dir=/usr/local/opt/blzpack --with-trlan-dir=/usr/local/opt/trlan-201009 --with-packages-download-dir=/var/local/downloads --download-primme --download-primme-cflags=-std=c99
 
 gnu-c-debug:
   extends:
@@ -472,7 +475,7 @@ gnu-c-debug-complex:
     - linux-ubuntu
   variables:
     PETSC_CONFIG_OPTS: --with-debugging=1 --with-scalar-type=complex
-    SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --with-packages-download-dir=/var/local/downloads --download-primme --download-blopex
+    SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --with-packages-download-dir=/var/local/downloads --download-primme --download-blopex --download-arpack
 
 gnu-c-cuda-complex:
   extends:
@@ -504,7 +507,8 @@ intel-c-complex-int64-mkl:
     - linux-ubuntu
   variables:
     MAKE_FFLAGS: ''
-    PETSC_CONFIG_OPTS: --with-cc=/usr/local/mpich-3.3.2-intel/bin/mpicc --with-fc=/usr/local/mpich-3.3.2-intel/bin/mpifort --with-cxx=0 --with-blas-lapack-dir=/opt/intel/mkl/ --with-mkl_pardiso=1 --with-scalar-type=complex --with-64-bit-indices=1
+    PETSC_CONFIG_OPTS: --with-cc=/usr/local/mpich-3.3.2-intel/bin/mpicc --with-fc=/usr/local/mpich-3.3.2-intel/bin/mpifort --with-cxx=0 --with-blas-lapack-dir=/opt/intel/mkl/ --with-mkl_pardiso=1 --with-scalar-type=complex --with-64-bit-indices --with-64-bit-blas-indices
+    SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --with-packages-download-dir=/var/local/downloads --download-primme
 
 clang-c-valgrind:
   extends:
