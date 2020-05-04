@@ -81,7 +81,11 @@ PetscErrorCode BVMatArnoldi(BV V,Mat A,PetscScalar *H,PetscInt ldh,PetscInt k,Pe
   ierr = BVSetActiveColumns(V,0,*m);CHKERRQ(ierr);
   for (j=k;j<*m;j++) {
     ierr = BVMatMultColumn(V,A,j);CHKERRQ(ierr);
-    ierr = BVOrthonormalizeColumn(V,j+1,PETSC_FALSE,beta,&lindep);CHKERRQ(ierr);
+    if (PetscUnlikely(j==V->N-1)) {   /* safeguard in case the full basis is requested */
+      ierr = BV_OrthogonalizeColumn_Safe(V,j+1,NULL,beta,&lindep);CHKERRQ(ierr);
+    } else {
+      ierr = BVOrthonormalizeColumn(V,j+1,PETSC_FALSE,beta,&lindep);CHKERRQ(ierr);
+    }
     if (lindep) {
       *m = j+1;
       break;
@@ -178,7 +182,11 @@ PetscErrorCode BVMatLanczos(BV V,Mat A,PetscReal *alpha,PetscReal *beta,PetscInt
   ierr = BVSetActiveColumns(V,0,*m);CHKERRQ(ierr);
   for (j=k;j<*m;j++) {
     ierr = BVMatMultColumn(V,A,j);CHKERRQ(ierr);
-    ierr = BVOrthonormalizeColumn(V,j+1,PETSC_FALSE,beta+j,&lindep);CHKERRQ(ierr);
+    if (PetscUnlikely(j==V->N-1)) {   /* safeguard in case the full basis is requested */
+      ierr = BV_OrthogonalizeColumn_Safe(V,j+1,NULL,beta+j,&lindep);CHKERRQ(ierr);
+    } else {
+      ierr = BVOrthonormalizeColumn(V,j+1,PETSC_FALSE,beta+j,&lindep);CHKERRQ(ierr);
+    }
     if (lindep) {
       *m = j+1;
       break;
