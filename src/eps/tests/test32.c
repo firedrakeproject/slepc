@@ -103,4 +103,28 @@ int main(int argc,char **argv)
       suffix: 2
       args: -n 18 -eps_type ciss -rg_interval_endpoints 1.0,1.2
 
+   testset:
+      nsize: {{1 4}}
+      args: -n 8 -eps_nev 60 -st_pc_type redundant
+      filter: grep -v Using
+      requires: !single
+      output_file: output/test32_3.out
+      test:
+         suffix: 3
+      test:
+         suffix: 3_gnhep
+         args: -eps_gen_non_hermitian
+
+   testset:
+      nsize: {{1 4}}
+      args: -n 8 -eps_nev 64 -st_pc_type redundant
+      filter: grep -v Using
+      requires: !single
+      output_file: output/test32_4.out
+      test:
+         suffix: 4
+      test:
+         suffix: 4_gnhep
+         args: -eps_gen_non_hermitian
+
 TEST*/
