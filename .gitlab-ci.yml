@@ -164,6 +164,7 @@ checksource:
     - printf "PETSC_OPTIONS:$PETSC_OPTIONS\n"
     - printf "PETSC_CONFIG_OPTS=${PETSC_CONFIG_OPTS}\n"
     - printf "SLEPC_CONFIG_OPTS=${SLEPC_CONFIG_OPTS}\n"
+    - source /opt/intel/bin/compilervars.sh intel64
     - export SLEPC_DIR=$PWD
     - echo -e "section_start:`date +%s`:build_petsc\r\e[0KPETSc configure and make"
     - cd ..
@@ -294,6 +295,16 @@ checksource:
 # listed on the left hand side of https://gitlab.com/slepc/slepc/-/settings/ci_cd.
 #
 
+gnu-cxx-complex:
+  extends:
+    - .stage-2
+    - .linux_test
+  tags:
+    - linux-debian
+  variables:
+    PETSC_CONFIG_OPTS: --with-clanguage=C++ --with-scalar-type=complex --with-fortran-bindings=0 --download-sowing
+    SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --with-arpack-dir=/usr/local/opt/arpack-ng-3.7.0 --with-primme-dir=/usr/local/opt/primme-3.1.1 --with-blopex-dir=/usr/local/opt/blopex
+
 gnu-c-multilib:
   extends:
     - .stage-2
@@ -303,16 +314,6 @@ gnu-c-multilib:
   variables:
     PETSC_CONFIG_OPTS: --with-single-library=0 --with-visibility=1
     SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --with-arpack-dir=/usr/local/opt/ARPACK --with-primme-dir=/usr/local/opt/primme-2.1 --with-blopex-dir=/usr/local/opt/blopex --with-blzpack-dir=/usr/local/opt/blzpack --with-trlan-dir=/usr/local/opt/trlan-201009 --with-slicot
-
-gnu-c-complex:
-  extends:
-    - .stage-2
-    - .linux_test
-  tags:
-    - linux-debian
-  variables:
-    PETSC_CONFIG_OPTS: --with-scalar-type=complex
-    SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --with-arpack-dir=/usr/local/opt/arpack-ng-3.7.0 --with-primme-dir=/usr/local/opt/primme-3.1.1 --with-blopex-dir=/usr/local/opt/blopex
 
 #intel-cxx-mkl:
 #  extends:
@@ -396,14 +397,14 @@ pgi-c-nompi:
 # The following tests run as part of stage-3.
 #
 
-gnu-cxx-complex:
+gnu-c-complex:
   extends:
     - .stage-3
     - .linux_test
   tags:
     - linux-debian
   variables:
-    PETSC_CONFIG_OPTS: --with-clanguage=C++ --with-scalar-type=complex --with-fortran-bindings=0 --download-sowing
+    PETSC_CONFIG_OPTS: --with-scalar-type=complex
     SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --with-arpack-dir=/usr/local/opt/arpack-ng-3.7.0 --with-primme-dir=/usr/local/opt/primme-3.1.1 --with-blopex-dir=/usr/local/opt/blopex
 
 gnu-cxx-int64:
