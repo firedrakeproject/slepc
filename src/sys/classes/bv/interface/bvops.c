@@ -534,6 +534,7 @@ PetscErrorCode BVSetRandomCond(BV bv,PetscReal condn)
   ierr = MatProductSetFromOptions(G);CHKERRQ(ierr);
   ierr = MatProductSymbolic(G);CHKERRQ(ierr);
   ierr = MatProductNumeric(G);CHKERRQ(ierr);
+  ierr = MatProductClear(G);CHKERRQ(ierr);
   ierr = MatDestroy(&X);CHKERRQ(ierr);
   ierr = MatDestroy(&Xt);CHKERRQ(ierr);
   ierr = MatDestroy(&M);CHKERRQ(ierr);
