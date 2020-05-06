@@ -157,7 +157,7 @@ int main(int argc,char **argv)
          args: -eps_type ciss -rg_interval_endpoints 20.8,22 -eps_largest_real
       test:
          suffix: 1_ciss_trapezoidal
-         args: -eps_type ciss -rg_interval_endpoints 20.8,22 -eps_largest_real -eps_ciss_quadrule trapezoidal -eps_ciss_integration_points 24 -eps_ciss_extraction hankel -eps_ciss_delta 1e-10 -eps_tol 1e-11
+         args: -eps_type ciss -rg_interval_endpoints 20.8,22 -eps_largest_real -eps_ciss_quadrule trapezoidal -eps_ciss_integration_points 24 -eps_ciss_extraction hankel -eps_ciss_delta 1e-10 -eps_tol 5e-11
       test:
          suffix: 1_lobpcg
          args: -eps_type lobpcg -st_shift 22 -eps_largest_real
