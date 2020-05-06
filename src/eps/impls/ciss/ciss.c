@@ -417,12 +417,10 @@ static PetscErrorCode EstimateNumberEigs(EPS eps,PetscInt *L_add)
   PetscInt       i,j,p_id;
   PetscScalar    tmp,m = 1,sum = 0.0;
   PetscReal      eta;
-  Vec            v,vtemp,vj,yj;
+  Vec            v,vtemp,vj;
 
   PetscFunctionBegin;
-  ierr = BVGetColumn(ctx->Y,0,&yj);CHKERRQ(ierr);
-  ierr = VecDuplicate(yj,&v);CHKERRQ(ierr);
-  ierr = BVRestoreColumn(ctx->Y,0,&yj);CHKERRQ(ierr);
+  ierr = BVCreateVec(ctx->Y,&v);CHKERRQ(ierr);
   ierr = BVCreateVec(ctx->V,&vtemp);CHKERRQ(ierr);
   for (j=0;j<ctx->L;j++) {
     ierr = VecSet(v,0);CHKERRQ(ierr);
@@ -567,16 +565,14 @@ static PetscErrorCode ConstructS(EPS eps)
   PetscErrorCode ierr;
   EPS_CISS       *ctx = (EPS_CISS*)eps->data;
   PetscInt       i,j,k,vec_local_size,p_id;
-  Vec            v,sj,yj;
+  Vec            v,sj;
   PetscScalar    *ppk, *v_data, m = 1;
 
   PetscFunctionBegin;
   ierr = BVGetSizes(ctx->Y,&vec_local_size,NULL,NULL);CHKERRQ(ierr);
   ierr = PetscMalloc1(ctx->num_solve_point,&ppk);CHKERRQ(ierr);
   for (i=0;i<ctx->num_solve_point;i++) ppk[i] = 1;
-  ierr = BVGetColumn(ctx->Y,0,&yj);CHKERRQ(ierr);
-  ierr = VecDuplicate(yj,&v);CHKERRQ(ierr);
-  ierr = BVRestoreColumn(ctx->Y,0,&yj);CHKERRQ(ierr);
+  ierr = BVCreateVec(ctx->Y,&v);CHKERRQ(ierr);
   for (k=0;k<ctx->M;k++) {
     for (j=0;j<ctx->L;j++) {
       ierr = VecSet(v,0);CHKERRQ(ierr);
@@ -952,7 +948,7 @@ PetscErrorCode EPSSolve_CISS(EPS eps)
   Mat            A,B,X,M,pA,pB;
   PetscInt       i,j,ld,nmat,L_add=0,nv=0,L_base=ctx->L,inner,nlocal,*inside;
   PetscScalar    *Mu,*H0,*H1=NULL,*rr,*temp;
-  PetscReal      error,max_error;
+  PetscReal      error,max_error,norm;
   PetscBool      *fl1;
   Vec            si,w[3];
   SlepcSC        sc;
@@ -1127,6 +1123,10 @@ PetscErrorCode EPSSolve_CISS(EPS eps)
       for (i=0;i<eps->nconv;i++) {
         ierr = BVGetColumn(ctx->S,i,&si);CHKERRQ(ierr);
         ierr = EPSComputeResidualNorm_Private(eps,PETSC_FALSE,eps->eigr[i],eps->eigi[i],si,NULL,w,&error);CHKERRQ(ierr);
+        if (ctx->extraction == EPS_CISS_EXTRACTION_HANKEL) {  /* vector is not normalized */
+          ierr = VecNorm(si,NORM_2,&norm);CHKERRQ(ierr);
+          error /= norm;
+        }
         ierr = (*eps->converged)(eps,eps->eigr[i],eps->eigi[i],error,&error,eps->convergedctx);CHKERRQ(ierr);
         ierr = BVRestoreColumn(ctx->S,i,&si);CHKERRQ(ierr);
         max_error = PetscMax(max_error,error);
@@ -1162,6 +1162,30 @@ PetscErrorCode EPSSolve_CISS(EPS eps)
     ierr = PetscFree(H1);CHKERRQ(ierr);
   }
   ierr = PetscFree2(Mu,H0);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+PetscErrorCode EPSComputeVectors_CISS(EPS eps)
+{
+  PetscErrorCode ierr;
+  EPS_CISS       *ctx = (EPS_CISS*)eps->data;
+  PetscReal      norm;
+  PetscInt       i;
+  Mat            B=NULL;
+
+  PetscFunctionBegin;
+  ierr = EPSComputeVectors_Schur(eps);CHKERRQ(ierr);
+  if (ctx->extraction == EPS_CISS_EXTRACTION_HANKEL) { /* normalize */
+    if (eps->isgeneralized && eps->ishermitian && eps->ispositive) {
+      ierr = STGetMatrix(eps->st,1,&B);CHKERRQ(ierr);
+      ierr = BVSetMatrix(eps->V,B,PETSC_FALSE);CHKERRQ(ierr);
+    }
+    for (i=0;i<eps->nconv;i++) {
+      ierr = BVNormColumn(eps->V,i,NORM_2,&norm);CHKERRQ(ierr);
+      ierr = BVScaleColumn(eps->V,i,1.0/norm);CHKERRQ(ierr);
+    }
+    if (B) { ierr = BVSetMatrix(eps->V,NULL,PETSC_FALSE);CHKERRQ(ierr); }
+  }
   PetscFunctionReturn(0);
 }
 
@@ -1946,7 +1970,7 @@ SLEPC_EXTERN PetscErrorCode EPSCreate_CISS(EPS eps)
   eps->ops->destroy        = EPSDestroy_CISS;
   eps->ops->reset          = EPSReset_CISS;
   eps->ops->view           = EPSView_CISS;
-  eps->ops->computevectors = EPSComputeVectors_Schur;
+  eps->ops->computevectors = EPSComputeVectors_CISS;
   eps->ops->setdefaultst   = EPSSetDefaultST_CISS;
 
   ierr = PetscObjectComposeFunction((PetscObject)eps,"EPSCISSSetSizes_C",EPSCISSSetSizes_CISS);CHKERRQ(ierr);
