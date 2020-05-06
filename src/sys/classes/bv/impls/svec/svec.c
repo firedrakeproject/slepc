@@ -221,13 +221,11 @@ PetscErrorCode BVMatMult_Svec(BV V,Mat A,BV W)
 {
   PetscErrorCode ierr;
   PetscInt       j;
-  PetscBool      flg;
   Mat            Vmat,Wmat;
   Vec            vv,ww;
 
   PetscFunctionBegin;
-  ierr = MatHasOperation(A,MATOP_MAT_MULT,&flg);CHKERRQ(ierr);
-  if (V->vmm && flg) {
+  if (V->vmm) {
     ierr = BVGetMat(V,&Vmat);CHKERRQ(ierr);
     ierr = BVGetMat(W,&Wmat);CHKERRQ(ierr);
     ierr = MatProductCreateWithMat(A,Vmat,NULL,Wmat);CHKERRQ(ierr);

@@ -295,12 +295,10 @@ PetscErrorCode BVMatMult_Vecs(BV V,Mat A,BV W)
   PetscErrorCode ierr;
   BV_VECS        *v = (BV_VECS*)V->data,*w = (BV_VECS*)W->data;
   PetscInt       j;
-  PetscBool      flg;
   Mat            Vmat,Wmat;
 
   PetscFunctionBegin;
-  ierr = MatHasOperation(A,MATOP_MAT_MULT,&flg);CHKERRQ(ierr);
-  if (V->vmm && flg) {
+  if (V->vmm) {
     ierr = BVGetMat(V,&Vmat);CHKERRQ(ierr);
     ierr = BVGetMat(W,&Wmat);CHKERRQ(ierr);
     ierr = MatProductCreateWithMat(A,Vmat,NULL,Wmat);CHKERRQ(ierr);

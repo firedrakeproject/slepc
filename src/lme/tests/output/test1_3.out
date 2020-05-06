@@ -23,6 +23,7 @@ Lyapunov equation, N=100 (10x10 grid)
  Error estimate reported by the solver: 2.948e-10
 [0] VecScatterCreate_SF(): Using StarForest for vector scatter
 [0] VecScatterSetFromOptions(): For GPU vectors, pack needed entries on GPU, then copy packed data to CPU, then do MPI
+[0] MatProductSetFromOptions_Private(): MatProductType AB for A seqaij, B seqdense
  Computed residual norm: 4.03e-10
 
 [0] SlepcFinalize(): SlepcFinalize() called
