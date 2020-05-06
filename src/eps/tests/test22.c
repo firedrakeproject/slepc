@@ -175,7 +175,7 @@ int main(int argc,char **argv)
     ierr = MatCreateVecs(A,&v,NULL);CHKERRQ(ierr);
     ierr = VecDuplicateVecs(v,nconv,&Q);CHKERRQ(ierr);
     ierr = EPSGetInvariantSubspace(eps,Q);CHKERRQ(ierr);
-    ierr = VecCheckOrthogonality(Q,nconv,NULL,nconv,NULL,NULL,&lev);CHKERRQ(ierr);
+    ierr = VecCheckOrthonormality(Q,nconv,NULL,nconv,NULL,NULL,&lev);CHKERRQ(ierr);
     if (lev<10*tol) {
       ierr = PetscPrintf(PETSC_COMM_WORLD,"Level of orthogonality below the tolerance\n");CHKERRQ(ierr);
     } else {

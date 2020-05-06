@@ -54,37 +54,7 @@ PetscErrorCode VecNormalizeComplex(Vec xr,Vec xi,PetscBool iscomplex,PetscReal *
   PetscFunctionReturn(0);
 }
 
-/*@
-   VecCheckOrthogonality - Checks (or prints) the level of (bi-)orthogonality
-   of a set of vectors.
-
-   Collective on V
-
-   Input parameters:
-+  V  - a set of vectors
-.  nv - number of V vectors
-.  W  - an alternative set of vectors (optional)
-.  nw - number of W vectors
-.  B  - matrix defining the inner product (optional)
--  viewer - optional visualization context
-
-   Output parameter:
-.  lev - level of orthogonality (optional)
-
-   Notes:
-   This function computes W'*V and prints the result. It is intended to check
-   the level of bi-orthogonality of the vectors in the two sets. If W is equal
-   to NULL then V is used, thus checking the orthogonality of the V vectors.
-
-   If matrix B is provided then the check uses the B-inner product, W'*B*V.
-
-   If lev is not NULL, it will contain the maximum entry of matrix
-   W'*V - I (in absolute value) omitting the diagonal. Otherwise, the matrix W'*V
-   is printed.
-
-   Level: developer
-@*/
-PetscErrorCode VecCheckOrthogonality(Vec V[],PetscInt nv,Vec W[],PetscInt nw,Mat B,PetscViewer viewer,PetscReal *lev)
+static PetscErrorCode VecCheckOrthogonality_Private(Vec V[],PetscInt nv,Vec W[],PetscInt nw,Mat B,PetscViewer viewer,PetscReal *lev,PetscBool norm)
 {
   PetscErrorCode ierr;
   PetscInt       i,j;
@@ -93,9 +63,6 @@ PetscErrorCode VecCheckOrthogonality(Vec V[],PetscInt nv,Vec W[],PetscInt nw,Mat
   Vec            w;
 
   PetscFunctionBegin;
-  if (nv<=0 || nw<=0) PetscFunctionReturn(0);
-  PetscValidPointer(V,1);
-  PetscValidHeaderSpecific(*V,VEC_CLASSID,1);
   if (!lev) {
     if (!viewer) {
       ierr = PetscViewerASCIIGetStdout(PetscObjectComm((PetscObject)*V),&viewer);CHKERRQ(ierr);
@@ -126,6 +93,7 @@ PetscErrorCode VecCheckOrthogonality(Vec V[],PetscInt nv,Vec W[],PetscInt nw,Mat
     for (j=0;j<nv;j++) {
       if (lev) {
         if (i!=j) *lev = PetscMax(*lev,PetscAbsScalar(vals[j]));
+        else if (norm) *lev = PetscMax(*lev,PetscAbsScalar(vals[j]-1.0));
       } else {
 #if !defined(PETSC_USE_COMPLEX)
         ierr = PetscViewerASCIIPrintf(viewer," %12g  ",(double)vals[j]);CHKERRQ(ierr);
@@ -140,6 +108,101 @@ PetscErrorCode VecCheckOrthogonality(Vec V[],PetscInt nv,Vec W[],PetscInt nw,Mat
   if (B) {
     ierr = VecDestroy(&w);CHKERRQ(ierr);
   }
+  PetscFunctionReturn(0);
+}
+
+/*@
+   VecCheckOrthogonality - Checks (or prints) the level of (bi-)orthogonality
+   of a set of vectors.
+
+   Collective on V
+
+   Input parameters:
++  V  - a set of vectors
+.  nv - number of V vectors
+.  W  - an alternative set of vectors (optional)
+.  nw - number of W vectors
+.  B  - matrix defining the inner product (optional)
+-  viewer - optional visualization context
+
+   Output parameter:
+.  lev - level of orthogonality (optional)
+
+   Notes:
+   This function computes W'*V and prints the result. It is intended to check
+   the level of bi-orthogonality of the vectors in the two sets. If W is equal
+   to NULL then V is used, thus checking the orthogonality of the V vectors.
+
+   If matrix B is provided then the check uses the B-inner product, W'*B*V.
+
+   If lev is not NULL, it will contain the maximum entry of matrix
+   W'*V - I (in absolute value) omitting the diagonal. Otherwise, the matrix W'*V
+   is printed.
+
+   Level: developer
+
+.seealso: VecCheckOrthonormality()
+@*/
+PetscErrorCode VecCheckOrthogonality(Vec V[],PetscInt nv,Vec W[],PetscInt nw,Mat B,PetscViewer viewer,PetscReal *lev)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidPointer(V,1);
+  PetscValidHeaderSpecific(*V,VEC_CLASSID,1);
+  PetscValidLogicalCollectiveInt(*V,nv,2);
+  PetscValidLogicalCollectiveInt(*V,nw,4);
+  if (nv<=0 || nw<=0) PetscFunctionReturn(0);
+  if (W) {
+    PetscValidPointer(W,3);
+    PetscValidHeaderSpecific(*W,VEC_CLASSID,3);
+    PetscCheckSameComm(*V,1,*W,3);
+  }
+  ierr = VecCheckOrthogonality_Private(V,nv,W,nw,B,viewer,lev,PETSC_FALSE);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+/*@
+   VecCheckOrthonormality - Checks (or prints) the level of (bi-)orthonormality
+   of a set of vectors.
+
+   Collective on V
+
+   Input parameters:
++  V  - a set of vectors
+.  nv - number of V vectors
+.  W  - an alternative set of vectors (optional)
+.  nw - number of W vectors
+.  B  - matrix defining the inner product (optional)
+-  viewer - optional visualization context
+
+   Output parameter:
+.  lev - level of orthogonality (optional)
+
+   Notes:
+   This function is equivalent to VecCheckOrthonormality(), but in addition it checks
+   that the diagonal of W'*V (or W'*B*V) is equal to all ones.
+
+   Level: developer
+
+.seealso: VecCheckOrthogonality()
+@*/
+PetscErrorCode VecCheckOrthonormality(Vec V[],PetscInt nv,Vec W[],PetscInt nw,Mat B,PetscViewer viewer,PetscReal *lev)
+{
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  PetscValidPointer(V,1);
+  PetscValidHeaderSpecific(*V,VEC_CLASSID,1);
+  PetscValidLogicalCollectiveInt(*V,nv,2);
+  PetscValidLogicalCollectiveInt(*V,nw,4);
+  if (nv<=0 || nw<=0) PetscFunctionReturn(0);
+  if (W) {
+    PetscValidPointer(W,3);
+    PetscValidHeaderSpecific(*W,VEC_CLASSID,3);
+    PetscCheckSameComm(*V,1,*W,3);
+  }
+  ierr = VecCheckOrthogonality_Private(V,nv,W,nw,B,viewer,lev,PETSC_TRUE);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

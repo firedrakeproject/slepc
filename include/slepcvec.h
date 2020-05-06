@@ -26,6 +26,7 @@ SLEPC_EXTERN PetscErrorCode VecCompSetSubVecs(Vec,PetscInt,Vec*);
 /* Some auxiliary functions */
 SLEPC_EXTERN PetscErrorCode VecNormalizeComplex(Vec,Vec,PetscBool,PetscReal*);
 SLEPC_EXTERN PetscErrorCode VecCheckOrthogonality(Vec[],PetscInt,Vec[],PetscInt,Mat,PetscViewer,PetscReal*);
+SLEPC_EXTERN PetscErrorCode VecCheckOrthonormality(Vec[],PetscInt,Vec[],PetscInt,Mat,PetscViewer,PetscReal*);
 SLEPC_EXTERN PetscErrorCode VecDuplicateEmpty(Vec,Vec*);
 
 /* Deprecated functions */
