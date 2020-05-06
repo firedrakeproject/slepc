@@ -31,11 +31,9 @@ PetscErrorCode EPSComputeVectors_Hermitian(EPS eps)
 {
   PetscErrorCode ierr;
   PetscInt       i;
-  PetscScalar    dot;
   PetscReal      norm;
-  PetscBool      iscayley;
-  Mat            B;
-  Vec            w,x;
+  PetscBool      iscayley,indef;
+  Mat            B,C;
 
   PetscFunctionBegin;
   if (eps->purify) {
@@ -49,15 +47,14 @@ PetscErrorCode EPSComputeVectors_Hermitian(EPS eps)
     ierr = PetscObjectTypeCompare((PetscObject)eps->st,STCAYLEY,&iscayley);CHKERRQ(ierr);
     if (iscayley && eps->isgeneralized) {
       ierr = STGetMatrix(eps->st,1,&B);CHKERRQ(ierr);
-      ierr = MatCreateVecs(B,NULL,&w);CHKERRQ(ierr);
+      ierr = BVGetMatrix(eps->V,&C,&indef);CHKERRQ(ierr);
+      if (indef) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_WRONGSTATE,"The inner product should not be indefinite");
+      ierr = BVSetMatrix(eps->V,B,PETSC_FALSE);CHKERRQ(ierr);
       for (i=0;i<eps->nconv;i++) {
-        ierr = BVGetColumn(eps->V,i,&x);CHKERRQ(ierr);
-        ierr = MatMult(B,x,w);CHKERRQ(ierr);
-        ierr = VecDot(w,x,&dot);CHKERRQ(ierr);
-        ierr = VecScale(x,1.0/PetscSqrtScalar(dot));CHKERRQ(ierr);
-        ierr = BVRestoreColumn(eps->V,i,&x);CHKERRQ(ierr);
+        ierr = BVNormColumn(eps->V,i,NORM_2,&norm);CHKERRQ(ierr);
+        ierr = BVScaleColumn(eps->V,i,1.0/norm);CHKERRQ(ierr);
       }
-      ierr = VecDestroy(&w);CHKERRQ(ierr);
+      ierr = BVSetMatrix(eps->V,C,PETSC_FALSE);CHKERRQ(ierr);  /* restore original matrix */
     }
   }
   PetscFunctionReturn(0);
