@@ -173,7 +173,7 @@ int main(int argc,char **argv)
          suffix: 1_ciss
       test:
          suffix: 1_ciss_trapezoidal
-         args: -eps_ciss_quadrule trapezoidal -eps_ciss_integration_points 24 -eps_ciss_extraction hankel -eps_ciss_delta 1e-10 -eps_tol 1e-11
+         args: -eps_ciss_quadrule trapezoidal -eps_ciss_integration_points 24 -eps_ciss_extraction hankel -eps_ciss_delta 1e-10 -eps_tol 5e-11
       test:
          suffix: 1_ciss_cuda
          args: -mat_type aijcusparse
