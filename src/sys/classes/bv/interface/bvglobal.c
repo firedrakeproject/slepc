@@ -517,7 +517,7 @@ PETSC_STATIC_INLINE PetscErrorCode BVNorm_End_Private(BV bv,Vec z,NormType type,
 
    Level: intermediate
 
-.seealso: BVNormVec(), BVNormColumn(), BVSetActiveColumns(), BVSetMatrix()
+.seealso: BVNormVec(), BVNormColumn(), BVNormalize(), BVSetActiveColumns(), BVSetMatrix()
 @*/
 PetscErrorCode BVNorm(BV bv,NormType type,PetscReal *val)
 {
@@ -694,7 +694,7 @@ PetscErrorCode BVNormVecEnd(BV bv,Vec v,NormType type,PetscReal *val)
 
    Level: intermediate
 
-.seealso: BVNorm(), BVNormVec(), BVSetActiveColumns(), BVSetMatrix()
+.seealso: BVNorm(), BVNormVec(), BVNormalize(), BVSetActiveColumns(), BVSetMatrix()
 @*/
 PetscErrorCode BVNormColumn(BV bv,PetscInt j,NormType type,PetscReal *val)
 {
@@ -840,6 +840,80 @@ PetscErrorCode BVNormColumnEnd(BV bv,PetscInt j,NormType type,PetscReal *val)
     }
   }
   ierr = BVRestoreColumn(bv,j,&z);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+/*@
+   BVNormalize - Normalize all columns (starting from the leading ones).
+
+   Collective on bv
+
+   Input Parameters:
++  bv   - basis vectors
+-  eigi - (optional) imaginary parts of eigenvalues
+
+   Notes:
+   On output, all columns will have unit norm. The normalization is done with
+   respect to the 2-norm, or to the B-norm if a non-standard inner product has
+   been specified with BVSetMatrix(), see BVNormColumn().
+
+   If the optional argument eigi is passed (taken into account only in real
+   scalars) it is interpreted as the imaginary parts of the eigenvalues and
+   the BV is supposed to contain the corresponding eigenvectors. Suppose the
+   first three values are eigi = { 0, alpha, -alpha }, then the first column
+   is normalized as usual, but the second and third ones are normalized assuming
+   that they contain the real and imaginary parts of a complex conjugate pair of
+   eigenvectors.
+
+   If eigi is passed, the inner-product matrix is ignored.
+
+   If there are leading columns, they are not modified (are assumed to be already
+   normalized).
+
+   Level: intermediate
+
+.seealso: BVNormColumn()
+@*/
+PetscErrorCode BVNormalize(BV bv,PetscScalar *eigi)
+{
+  PetscErrorCode ierr;
+  PetscReal      norm;
+  PetscInt       i;
+  Vec            v;
+#if !defined(PETSC_USE_COMPLEX)
+  Vec            v1;
+#endif
+
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(bv,BV_CLASSID,1);
+  PetscValidType(bv,1);
+  BVCheckSizes(bv,1);
+
+  if (bv->matrix && !eigi) {
+    for (i=bv->l;i<bv->k;i++) {
+      ierr = BVNormColumn(bv,i,NORM_2,&norm);CHKERRQ(ierr);
+      ierr = BVScaleColumn(bv,i,1.0/norm);CHKERRQ(ierr);
+    }
+  } else {
+    for (i=bv->l;i<bv->k;i++) {
+#if !defined(PETSC_USE_COMPLEX)
+      if (eigi && eigi[i] != 0.0) {
+        ierr = BVGetColumn(bv,i,&v);CHKERRQ(ierr);
+        ierr = BVGetColumn(bv,i+1,&v1);CHKERRQ(ierr);
+        ierr = VecNormalizeComplex(v,v1,PETSC_TRUE,NULL);CHKERRQ(ierr);
+        ierr = BVRestoreColumn(bv,i,&v);CHKERRQ(ierr);
+        ierr = BVRestoreColumn(bv,i+1,&v1);CHKERRQ(ierr);
+        i++;
+      } else
+#endif
+      {
+        ierr = BVGetColumn(bv,i,&v);CHKERRQ(ierr);
+        ierr = VecNormalize(v,NULL);CHKERRQ(ierr);
+        ierr = BVRestoreColumn(bv,i,&v);CHKERRQ(ierr);
+      }
+    }
+  }
+  ierr = PetscObjectStateIncrease((PetscObject)bv);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
