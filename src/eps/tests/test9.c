@@ -22,6 +22,47 @@ static char help[] = "Eigenvalue problem associated with a Markov model of a ran
 PetscErrorCode MatMarkovModel(PetscInt m,Mat A);
 PetscErrorCode MyEigenSort(PetscScalar ar,PetscScalar ai,PetscScalar br,PetscScalar bi,PetscInt *r,void *ctx);
 
+/*
+   Check if computed eigenvectors have unit norm
+*/
+PetscErrorCode CheckNormalizedVectors(EPS eps)
+{
+  PetscErrorCode ierr;
+  PetscInt       i,nconv;
+  Mat            A;
+  Vec            xr,xi;
+  PetscReal      error=0.0,normr;
+#if !defined(PETSC_USE_COMPLEX)
+  PetscReal      normi;
+#endif
+
+  PetscFunctionBeginUser;
+  ierr = EPSGetConverged(eps,&nconv);CHKERRQ(ierr);
+  if (nconv>0) {
+    ierr = EPSGetOperators(eps,&A,NULL);CHKERRQ(ierr);
+    ierr = MatCreateVecs(A,&xr,&xi);CHKERRQ(ierr);
+    for (i=0;i<nconv;i++) {
+      ierr = EPSGetEigenvector(eps,i,xr,xi);CHKERRQ(ierr);
+#if defined(PETSC_USE_COMPLEX)
+      ierr = VecNorm(xr,NORM_2,&normr);CHKERRQ(ierr);
+      error = PetscMax(error,PetscAbsReal(normr-1.0));
+#else
+      ierr = VecNormBegin(xr,NORM_2,&normr);CHKERRQ(ierr);
+      ierr = VecNormBegin(xi,NORM_2,&normi);CHKERRQ(ierr);
+      ierr = VecNormEnd(xr,NORM_2,&normr);CHKERRQ(ierr);
+      ierr = VecNormEnd(xi,NORM_2,&normi);CHKERRQ(ierr);
+      error = PetscMax(error,PetscAbsReal(SlepcAbsEigenvalue(normr,normi)-1.0));
+#endif
+    }
+    ierr = VecDestroy(&xr);CHKERRQ(ierr);
+    ierr = VecDestroy(&xi);CHKERRQ(ierr);
+    if (error>100*PETSC_MACHINE_EPSILON) {
+      ierr = PetscPrintf(PETSC_COMM_WORLD,"Vectors are not normalized. Error=%g\n",(double)error);CHKERRQ(ierr);
+    }
+  }
+  PetscFunctionReturn(0);
+}
+
 int main(int argc,char **argv)
 {
   Vec            v0;              /* initial vector */
@@ -30,7 +71,7 @@ int main(int argc,char **argv)
   PetscReal      tol=1000*PETSC_MACHINE_EPSILON;
   PetscInt       N,m=15,nev;
   PetscScalar    origin=0.0;
-  PetscBool      flg,delay;
+  PetscBool      flg,delay,skipnorm=PETSC_FALSE;
   PetscErrorCode ierr;
 
   ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
@@ -38,6 +79,7 @@ int main(int argc,char **argv)
   ierr = PetscOptionsGetInt(NULL,NULL,"-m",&m,NULL);CHKERRQ(ierr);
   N = m*(m+1)/2;
   ierr = PetscPrintf(PETSC_COMM_WORLD,"\nMarkov Model, N=%D (m=%D)\n\n",N,m);CHKERRQ(ierr);
+  ierr = PetscOptionsGetBool(NULL,NULL,"-skipnorm",&skipnorm,NULL);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
      Compute the operator matrix that defines the eigensystem, Ax=kx
@@ -108,6 +150,7 @@ int main(int argc,char **argv)
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
   ierr = EPSErrorView(eps,EPS_ERROR_RELATIVE,NULL);CHKERRQ(ierr);
+  if (!skipnorm) { ierr = CheckNormalizedVectors(eps);CHKERRQ(ierr); }
   ierr = EPSDestroy(&eps);CHKERRQ(ierr);
   ierr = MatDestroy(&A);CHKERRQ(ierr);
   ierr = VecDestroy(&v0);CHKERRQ(ierr);
@@ -203,7 +246,7 @@ PetscErrorCode MyEigenSort(PetscScalar ar,PetscScalar ai,PetscScalar br,PetscSca
    test:
       suffix: 3
       nsize: 2
-      args: -eps_type arnoldi -eps_arnoldi_delayed -eps_largest_real -eps_nev 3 -eps_tol 1e-7 -bv_orthog_refine {{never ifneeded}}
+      args: -eps_type arnoldi -eps_arnoldi_delayed -eps_largest_real -eps_nev 3 -eps_tol 1e-7 -bv_orthog_refine {{never ifneeded}} -skipnorm
       requires: !single
       output_file: output/test9_3.out
 
@@ -226,7 +269,7 @@ PetscErrorCode MyEigenSort(PetscScalar ar,PetscScalar ai,PetscScalar br,PetscSca
 
    testset:
       args: -eps_type ciss -eps_tol 1e-9 -rg_type ellipse -rg_ellipse_center 0.55 -rg_ellipse_radius 0.05 -rg_ellipse_vscale 0.1 -eps_ciss_usest 0 -eps_all
-      requires: !single
+      requires: double
       output_file: output/test9_6.out
       test:
          suffix: 6
