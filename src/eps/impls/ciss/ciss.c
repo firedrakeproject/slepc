@@ -1169,21 +1169,37 @@ PetscErrorCode EPSComputeVectors_CISS(EPS eps)
 {
   PetscErrorCode ierr;
   EPS_CISS       *ctx = (EPS_CISS*)eps->data;
-  PetscReal      norm;
-  PetscInt       i;
-  Mat            B=NULL;
+  PetscInt       n;
+  Mat            Z,B=NULL;
 
   PetscFunctionBegin;
-  ierr = EPSComputeVectors_Schur(eps);CHKERRQ(ierr);
-  if (ctx->extraction == EPS_CISS_EXTRACTION_HANKEL) { /* normalize */
+  if (eps->ishermitian) {
+    if (eps->isgeneralized && !eps->ispositive) {
+      ierr = EPSComputeVectors_Indefinite(eps);CHKERRQ(ierr);
+    } else {
+      ierr = EPSComputeVectors_Hermitian(eps);CHKERRQ(ierr);
+    }
+    PetscFunctionReturn(0);
+  }
+  ierr = DSGetDimensions(eps->ds,&n,NULL,NULL,NULL,NULL);CHKERRQ(ierr);
+  ierr = BVSetActiveColumns(eps->V,0,n);CHKERRQ(ierr);
+
+  /* right eigenvectors */
+  ierr = DSVectors(eps->ds,DS_MAT_X,NULL,NULL);CHKERRQ(ierr);
+
+  /* V = V * Z */
+  ierr = DSGetMat(eps->ds,DS_MAT_X,&Z);CHKERRQ(ierr);
+  ierr = BVMultInPlace(eps->V,Z,0,n);CHKERRQ(ierr);
+  ierr = MatDestroy(&Z);CHKERRQ(ierr);
+  ierr = BVSetActiveColumns(eps->V,0,eps->nconv);CHKERRQ(ierr);
+
+  /* normalize */
+  if (ctx->extraction == EPS_CISS_EXTRACTION_HANKEL) {
     if (eps->isgeneralized && eps->ishermitian && eps->ispositive) {
       ierr = STGetMatrix(eps->st,1,&B);CHKERRQ(ierr);
       ierr = BVSetMatrix(eps->V,B,PETSC_FALSE);CHKERRQ(ierr);
     }
-    for (i=0;i<eps->nconv;i++) {
-      ierr = BVNormColumn(eps->V,i,NORM_2,&norm);CHKERRQ(ierr);
-      ierr = BVScaleColumn(eps->V,i,1.0/norm);CHKERRQ(ierr);
-    }
+    ierr = BVNormalize(eps->V,NULL);CHKERRQ(ierr);
     if (B) { ierr = BVSetMatrix(eps->V,NULL,PETSC_FALSE);CHKERRQ(ierr); }
   }
   PetscFunctionReturn(0);

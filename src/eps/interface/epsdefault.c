@@ -30,18 +30,13 @@ PetscErrorCode EPSBackTransform_Default(EPS eps)
 PetscErrorCode EPSComputeVectors_Hermitian(EPS eps)
 {
   PetscErrorCode ierr;
-  PetscInt       i;
-  PetscReal      norm;
   PetscBool      iscayley,indef;
   Mat            B,C;
 
   PetscFunctionBegin;
   if (eps->purify) {
     ierr = EPS_Purify(eps,eps->nconv);CHKERRQ(ierr);
-    for (i=0;i<eps->nconv;i++) {
-      ierr = BVNormColumn(eps->V,i,NORM_2,&norm);CHKERRQ(ierr);
-      ierr = BVScaleColumn(eps->V,i,1.0/norm);CHKERRQ(ierr);
-    }
+    ierr = BVNormalize(eps->V,NULL);CHKERRQ(ierr);
   } else {
     /* In the case of Cayley transform, eigenvectors need to be B-normalized */
     ierr = PetscObjectTypeCompare((PetscObject)eps->st,STCAYLEY,&iscayley);CHKERRQ(ierr);
@@ -50,10 +45,7 @@ PetscErrorCode EPSComputeVectors_Hermitian(EPS eps)
       ierr = BVGetMatrix(eps->V,&C,&indef);CHKERRQ(ierr);
       if (indef) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_WRONGSTATE,"The inner product should not be indefinite");
       ierr = BVSetMatrix(eps->V,B,PETSC_FALSE);CHKERRQ(ierr);
-      for (i=0;i<eps->nconv;i++) {
-        ierr = BVNormColumn(eps->V,i,NORM_2,&norm);CHKERRQ(ierr);
-        ierr = BVScaleColumn(eps->V,i,1.0/norm);CHKERRQ(ierr);
-      }
+      ierr = BVNormalize(eps->V,NULL);CHKERRQ(ierr);
       ierr = BVSetMatrix(eps->V,C,PETSC_FALSE);CHKERRQ(ierr);  /* restore original matrix */
     }
   }
@@ -67,18 +59,13 @@ PetscErrorCode EPSComputeVectors_Hermitian(EPS eps)
 PetscErrorCode EPSComputeVectors_Indefinite(EPS eps)
 {
   PetscErrorCode ierr;
-  PetscInt       n,i;
+  PetscInt       n;
   Mat            X;
-  Vec            v;
-#if !defined(PETSC_USE_COMPLEX)
-  Vec            v1;
-#endif
 
   PetscFunctionBegin;
   ierr = DSGetDimensions(eps->ds,&n,NULL,NULL,NULL,NULL);CHKERRQ(ierr);
   ierr = DSVectors(eps->ds,DS_MAT_X,NULL,NULL);CHKERRQ(ierr);
   ierr = DSGetMat(eps->ds,DS_MAT_X,&X);CHKERRQ(ierr);
-  ierr = BVSetActiveColumns(eps->V,0,n);CHKERRQ(ierr);
   ierr = BVMultInPlace(eps->V,X,0,n);CHKERRQ(ierr);
   ierr = MatDestroy(&X);CHKERRQ(ierr);
 
@@ -86,23 +73,7 @@ PetscErrorCode EPSComputeVectors_Indefinite(EPS eps)
   if (eps->purify) { ierr = EPS_Purify(eps,eps->nconv);CHKERRQ(ierr); }
 
   /* normalization */
-  for (i=0;i<n;i++) {
-#if !defined(PETSC_USE_COMPLEX)
-    if (eps->eigi[i] != 0.0) {
-      ierr = BVGetColumn(eps->V,i,&v);CHKERRQ(ierr);
-      ierr = BVGetColumn(eps->V,i+1,&v1);CHKERRQ(ierr);
-      ierr = VecNormalizeComplex(v,v1,PETSC_TRUE,NULL);CHKERRQ(ierr);
-      ierr = BVRestoreColumn(eps->V,i,&v);CHKERRQ(ierr);
-      ierr = BVRestoreColumn(eps->V,i+1,&v1);CHKERRQ(ierr);
-      i++;
-    } else
-#endif
-    {
-      ierr = BVGetColumn(eps->V,i,&v);CHKERRQ(ierr);
-      ierr = VecNormalize(v,NULL);CHKERRQ(ierr);
-      ierr = BVRestoreColumn(eps->V,i,&v);CHKERRQ(ierr);
-    }
-  }
+  ierr = BVNormalize(eps->V,eps->eigi);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -141,31 +112,26 @@ PetscErrorCode EPSComputeVectors_Twosided(EPS eps)
 PetscErrorCode EPSComputeVectors_Schur(EPS eps)
 {
   PetscErrorCode ierr;
-  PetscInt       n,i;
+  PetscInt       i;
   Mat            Z;
-  Vec            z,v;
-#if !defined(PETSC_USE_COMPLEX)
-  Vec            v1;
-#endif
+  Vec            z;
 
   PetscFunctionBegin;
   if (eps->ishermitian) {
     if (eps->isgeneralized && !eps->ispositive) {
-      ierr =  EPSComputeVectors_Indefinite(eps);CHKERRQ(ierr);
+      ierr = EPSComputeVectors_Indefinite(eps);CHKERRQ(ierr);
     } else {
       ierr = EPSComputeVectors_Hermitian(eps);CHKERRQ(ierr);
     }
     PetscFunctionReturn(0);
   }
-  ierr = DSGetDimensions(eps->ds,&n,NULL,NULL,NULL,NULL);CHKERRQ(ierr);
 
   /* right eigenvectors */
   ierr = DSVectors(eps->ds,DS_MAT_X,NULL,NULL);CHKERRQ(ierr);
 
   /* V = V * Z */
   ierr = DSGetMat(eps->ds,DS_MAT_X,&Z);CHKERRQ(ierr);
-  ierr = BVSetActiveColumns(eps->V,0,n);CHKERRQ(ierr);
-  ierr = BVMultInPlace(eps->V,Z,0,n);CHKERRQ(ierr);
+  ierr = BVMultInPlace(eps->V,Z,0,eps->nconv);CHKERRQ(ierr);
   ierr = MatDestroy(&Z);CHKERRQ(ierr);
 
   /* Purify eigenvectors */
@@ -173,7 +139,7 @@ PetscErrorCode EPSComputeVectors_Schur(EPS eps)
 
   /* Fix eigenvectors if balancing was used */
   if (eps->balance!=EPS_BALANCE_NONE && eps->D) {
-    for (i=0;i<n;i++) {
+    for (i=0;i<eps->nconv;i++) {
       ierr = BVGetColumn(eps->V,i,&z);CHKERRQ(ierr);
       ierr = VecPointwiseDivide(z,z,eps->D);CHKERRQ(ierr);
       ierr = BVRestoreColumn(eps->V,i,&z);CHKERRQ(ierr);
@@ -182,23 +148,7 @@ PetscErrorCode EPSComputeVectors_Schur(EPS eps)
 
   /* normalize eigenvectors (when using purification or balancing) */
   if (eps->purify || (eps->balance!=EPS_BALANCE_NONE && eps->D)) {
-    for (i=0;i<n;i++) {
-#if !defined(PETSC_USE_COMPLEX)
-      if (eps->eigi[i] != 0.0) {
-        ierr = BVGetColumn(eps->V,i,&v);CHKERRQ(ierr);
-        ierr = BVGetColumn(eps->V,i+1,&v1);CHKERRQ(ierr);
-        ierr = VecNormalizeComplex(v,v1,PETSC_TRUE,NULL);CHKERRQ(ierr);
-        ierr = BVRestoreColumn(eps->V,i,&v);CHKERRQ(ierr);
-        ierr = BVRestoreColumn(eps->V,i+1,&v1);CHKERRQ(ierr);
-        i++;
-      } else
-#endif
-      {
-        ierr = BVGetColumn(eps->V,i,&v);CHKERRQ(ierr);
-        ierr = VecNormalize(v,NULL);CHKERRQ(ierr);
-        ierr = BVRestoreColumn(eps->V,i,&v);CHKERRQ(ierr);
-      }
-    }
+    ierr = BVNormalize(eps->V,eps->eigi);CHKERRQ(ierr);
   }
 
   /* left eigenvectors from eps->dsts */
@@ -206,12 +156,11 @@ PetscErrorCode EPSComputeVectors_Schur(EPS eps)
     ierr = DSVectors(eps->dsts,DS_MAT_X,NULL,NULL);CHKERRQ(ierr);
     /* W = W * Z */
     ierr = DSGetMat(eps->dsts,DS_MAT_X,&Z);CHKERRQ(ierr);
-    ierr = BVSetActiveColumns(eps->W,0,n);CHKERRQ(ierr);
-    ierr = BVMultInPlace(eps->W,Z,0,n);CHKERRQ(ierr);
+    ierr = BVMultInPlace(eps->W,Z,0,eps->nconv);CHKERRQ(ierr);
     ierr = MatDestroy(&Z);CHKERRQ(ierr);
     /* Fix left eigenvectors if balancing was used */
     if (eps->balance!=EPS_BALANCE_NONE && eps->D) {
-      for (i=0;i<n;i++) {
+      for (i=0;i<eps->nconv;i++) {
         ierr = BVGetColumn(eps->W,i,&z);CHKERRQ(ierr);
         ierr = VecPointwiseMult(z,z,eps->D);CHKERRQ(ierr);
         ierr = BVRestoreColumn(eps->W,i,&z);CHKERRQ(ierr);
@@ -219,23 +168,7 @@ PetscErrorCode EPSComputeVectors_Schur(EPS eps)
     }
     ierr = EPSComputeVectors_Twosided(eps);CHKERRQ(ierr);
     /* normalize */
-    for (i=0;i<eps->nconv;i++) {
-#if !defined(PETSC_USE_COMPLEX)
-      if (eps->eigi[i]!=0.0) {   /* first eigenvalue of a complex conjugate pair */
-        ierr = BVGetColumn(eps->W,i,&v);CHKERRQ(ierr);
-        ierr = BVGetColumn(eps->W,i+1,&v1);CHKERRQ(ierr);
-        ierr = VecNormalizeComplex(v,v1,PETSC_TRUE,NULL);CHKERRQ(ierr);
-        ierr = BVRestoreColumn(eps->W,i,&v);CHKERRQ(ierr);
-        ierr = BVRestoreColumn(eps->W,i+1,&v1);CHKERRQ(ierr);
-        i++;
-      } else   /* real eigenvalue */
-#endif
-      {
-        ierr = BVGetColumn(eps->W,i,&v);CHKERRQ(ierr);
-        ierr = VecNormalize(v,NULL);CHKERRQ(ierr);
-        ierr = BVRestoreColumn(eps->W,i,&v);CHKERRQ(ierr);
-      }
-    }
+    ierr = BVNormalize(eps->W,eps->eigi);CHKERRQ(ierr);
 #if !defined(PETSC_USE_COMPLEX)
     for (i=0;i<eps->nconv-1;i++) {
       if (eps->eigi[i] != 0.0) {
