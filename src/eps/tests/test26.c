@@ -112,6 +112,6 @@ int main(int argc,char **argv)
       test:
          args:  -eps_type arpack
          suffix: 2_arpack
-         requires: arpack !debug
+         requires: arpack
 
 TEST*/
