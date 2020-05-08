@@ -546,22 +546,36 @@ PetscErrorCode BVMatMult_Svec_CUDA(BV V,Mat A,BV W)
 {
   PetscErrorCode    ierr;
   BV_SVEC           *v = (BV_SVEC*)V->data,*w = (BV_SVEC*)W->data;
+  Mat               Vmat,Wmat;
   const PetscScalar *d_pv;
   PetscScalar       *d_pw;
   PetscInt          j;
 
   PetscFunctionBegin;
-  ierr = VecCUDAGetArrayRead(v->v,&d_pv);CHKERRQ(ierr);
-  ierr = VecCUDAGetArrayWrite(w->v,&d_pw);CHKERRQ(ierr);
-  for (j=0;j<V->k-V->l;j++) {
-    ierr = VecCUDAPlaceArray(V->cv[1],(PetscScalar *)d_pv+(V->nc+V->l+j)*V->n);CHKERRQ(ierr);
-    ierr = VecCUDAPlaceArray(W->cv[1],d_pw+(W->nc+W->l+j)*W->n);CHKERRQ(ierr);
-    ierr = MatMult(A,V->cv[1],W->cv[1]);CHKERRQ(ierr);
-    ierr = VecCUDAResetArray(V->cv[1]);CHKERRQ(ierr);
-    ierr = VecCUDAResetArray(W->cv[1]);CHKERRQ(ierr);
+  if (V->vmm) {
+    ierr = BVGetMat(V,&Vmat);CHKERRQ(ierr);
+    ierr = BVGetMat(W,&Wmat);CHKERRQ(ierr);
+    ierr = MatProductCreateWithMat(A,Vmat,NULL,Wmat);CHKERRQ(ierr);
+    ierr = MatProductSetType(Wmat,MATPRODUCT_AB);CHKERRQ(ierr);
+    ierr = MatProductSetFromOptions(Wmat);CHKERRQ(ierr);
+    ierr = MatProductSymbolic(Wmat);CHKERRQ(ierr);
+    ierr = MatProductNumeric(Wmat);CHKERRQ(ierr);
+    ierr = MatProductClear(Wmat);CHKERRQ(ierr);
+    ierr = BVRestoreMat(V,&Vmat);CHKERRQ(ierr);
+    ierr = BVRestoreMat(W,&Wmat);CHKERRQ(ierr);
+  } else {
+    ierr = VecCUDAGetArrayRead(v->v,&d_pv);CHKERRQ(ierr);
+    ierr = VecCUDAGetArrayWrite(w->v,&d_pw);CHKERRQ(ierr);
+    for (j=0;j<V->k-V->l;j++) {
+      ierr = VecCUDAPlaceArray(V->cv[1],(PetscScalar *)d_pv+(V->nc+V->l+j)*V->n);CHKERRQ(ierr);
+      ierr = VecCUDAPlaceArray(W->cv[1],d_pw+(W->nc+W->l+j)*W->n);CHKERRQ(ierr);
+      ierr = MatMult(A,V->cv[1],W->cv[1]);CHKERRQ(ierr);
+      ierr = VecCUDAResetArray(V->cv[1]);CHKERRQ(ierr);
+      ierr = VecCUDAResetArray(W->cv[1]);CHKERRQ(ierr);
+    }
+    ierr = VecCUDARestoreArrayRead(v->v,&d_pv);CHKERRQ(ierr);
+    ierr = VecCUDARestoreArrayWrite(w->v,&d_pw);CHKERRQ(ierr);
   }
-  ierr = VecCUDARestoreArrayRead(v->v,&d_pv);CHKERRQ(ierr);
-  ierr = VecCUDARestoreArrayWrite(w->v,&d_pw);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -703,5 +717,51 @@ PetscErrorCode BVRestoreSplit_Svec_CUDA(BV bv,BV *L,BV *R)
     ierr = VecCUDAGetArray(v,(PetscScalar **)&d_pv);CHKERRQ(ierr);
     ierr = VecCUDARestoreArray(v,(PetscScalar **)&d_pv);CHKERRQ(ierr);
   }
+  PetscFunctionReturn(0);
+}
+
+PetscErrorCode BVGetMat_Svec_CUDA(BV bv,Mat *A)
+{
+  PetscErrorCode ierr;
+  BV_SVEC        *ctx = (BV_SVEC*)bv->data;
+  PetscScalar    *vv,*aa;
+  PetscBool      create=PETSC_FALSE;
+  PetscInt       m,cols;
+
+  PetscFunctionBegin;
+  m = bv->k-bv->l;
+  if (!bv->Aget) create=PETSC_TRUE;
+  else {
+    ierr = MatDenseCUDAGetArray(bv->Aget,&aa);CHKERRQ(ierr);
+    if (aa) SETERRQ(PetscObjectComm((PetscObject)bv),PETSC_ERR_ARG_WRONGSTATE,"BVGetMat already called on this BV");
+    ierr = MatGetSize(bv->Aget,NULL,&cols);CHKERRQ(ierr);
+    if (cols!=m) {
+      ierr = MatDestroy(&bv->Aget);CHKERRQ(ierr);
+      create=PETSC_TRUE;
+    }
+  }
+  ierr = VecCUDAGetArray(ctx->v,&vv);CHKERRQ(ierr);
+  if (create) {
+    ierr = MatCreateDenseCUDA(PetscObjectComm((PetscObject)bv),bv->n,PETSC_DECIDE,bv->N,m,vv,&bv->Aget);CHKERRQ(ierr); /* pass a pointer to avoid allocation of storage */
+    ierr = MatDenseCUDAReplaceArray(bv->Aget,NULL);CHKERRQ(ierr);  /* replace with a null pointer, the value after BVRestoreMat */
+    ierr = PetscLogObjectParent((PetscObject)bv,(PetscObject)bv->Aget);CHKERRQ(ierr);
+  }
+  ierr = MatDenseCUDAPlaceArray(bv->Aget,vv+(bv->nc+bv->l)*bv->n);CHKERRQ(ierr);  /* set the actual pointer */
+  *A = bv->Aget;
+  PetscFunctionReturn(0);
+}
+
+PetscErrorCode BVRestoreMat_Svec_CUDA(BV bv,Mat *A)
+{
+  PetscErrorCode ierr;
+  BV_SVEC        *ctx = (BV_SVEC*)bv->data;
+  PetscScalar    *vv,*aa;
+
+  PetscFunctionBegin;
+  ierr = MatDenseCUDAGetArray(bv->Aget,&aa);CHKERRQ(ierr);
+  vv = aa-(bv->nc+bv->l)*bv->n;
+  ierr = MatDenseCUDAResetArray(bv->Aget);CHKERRQ(ierr);
+  ierr = VecCUDARestoreArray(ctx->v,&vv);CHKERRQ(ierr);
+  *A = NULL;
   PetscFunctionReturn(0);
 }

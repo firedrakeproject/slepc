@@ -276,10 +276,13 @@ PetscErrorCode STGetOperator_Private(ST st,Mat *Op)
 {
   PetscErrorCode ierr;
   PetscInt       m,n,M,N;
+  Vec            v;
+  VecType        vtype;
 
   PetscFunctionBegin;
   if (!st->Op) {
     if (Op) *Op = NULL;
+    /* create the shell matrix */
     ierr = MatGetLocalSize(st->A[0],&m,&n);CHKERRQ(ierr);
     ierr = MatGetSize(st->A[0],&M,&N);CHKERRQ(ierr);
     ierr = MatCreateShell(PetscObjectComm((PetscObject)st),m,n,M,N,st,&st->Op);CHKERRQ(ierr);
@@ -290,6 +293,12 @@ PetscErrorCode STGetOperator_Private(ST st,Mat *Op)
 #else
     ierr = MatShellSetOperation(st->Op,MATOP_MULT_HERMITIAN_TRANSPOSE,(void(*)(void))MatMultTranspose_STOperator);CHKERRQ(ierr);
 #endif
+    /* make sure the shell matrix generates a vector of the same type as the problem matrices */
+    ierr = MatCreateVecs(st->A[0],&v,NULL);CHKERRQ(ierr);
+    ierr = VecGetType(v,&vtype);CHKERRQ(ierr);
+    ierr = MatShellSetVecType(st->Op,vtype);CHKERRQ(ierr);
+    ierr = VecDestroy(&v);CHKERRQ(ierr);
+    /* build the operator matrices */
     ierr = STComputeOperator(st);CHKERRQ(ierr);
   }
   if (Op) *Op = st->Op;

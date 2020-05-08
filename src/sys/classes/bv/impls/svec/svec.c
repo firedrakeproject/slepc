@@ -532,6 +532,8 @@ SLEPC_EXTERN PetscErrorCode BVCreate_Svec(BV bv)
     bv->ops->getcolumn        = BVGetColumn_Svec_CUDA;
     bv->ops->restorecolumn    = BVRestoreColumn_Svec_CUDA;
     bv->ops->restoresplit     = BVRestoreSplit_Svec_CUDA;
+    bv->ops->getmat           = BVGetMat_Svec_CUDA;
+    bv->ops->restoremat       = BVRestoreMat_Svec_CUDA;
 #endif
   } else {
     bv->ops->mult             = BVMult_Svec;
