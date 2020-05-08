@@ -18,9 +18,9 @@ int main(int argc,char **argv)
   EPS               eps;        /* eigenproblem solver context */
   ST                st;
   Vec               *X,v;
-  PetscReal         lev,tol=1000*PETSC_MACHINE_EPSILON;
+  PetscReal         lev=0.0,tol=1000*PETSC_MACHINE_EPSILON;
   PetscInt          N,n=45,m,Istart,Iend,II,i,j,nconv;
-  PetscBool         flag;
+  PetscBool         flag,skiporth=PETSC_FALSE;
   EPSPowerShiftType variant;
   PetscErrorCode    ierr;
 
@@ -30,6 +30,7 @@ int main(int argc,char **argv)
   if (!flag) m=n;
   N = n*m;
   ierr = PetscPrintf(PETSC_COMM_WORLD,"\nGeneralized Symmetric Eigenproblem, N=%D (%Dx%D grid)\n\n",N,n,m);CHKERRQ(ierr);
+  ierr = PetscOptionsGetBool(NULL,NULL,"-skiporth",&skiporth,NULL);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
      Compute the matrices that define the eigensystem, Ax=kBx
@@ -102,7 +103,7 @@ int main(int argc,char **argv)
     for (i=0;i<nconv;i++) {
       ierr = EPSGetEigenvector(eps,i,X[i],NULL);CHKERRQ(ierr);
     }
-    ierr = VecCheckOrthogonality(X,nconv,NULL,nconv,B,NULL,&lev);CHKERRQ(ierr);
+    if (!skiporth) { ierr = VecCheckOrthogonality(X,nconv,NULL,nconv,B,NULL,&lev);CHKERRQ(ierr); }
     if (lev<10*tol) {
       ierr = PetscPrintf(PETSC_COMM_WORLD,"Level of orthogonality below the tolerance\n");CHKERRQ(ierr);
     } else {
@@ -167,7 +168,7 @@ int main(int argc,char **argv)
          suffix: 1_ciss
       test:
          suffix: 1_ciss_trapezoidal
-         args: -eps_ciss_quadrule trapezoidal -eps_ciss_integration_points 24 -eps_ciss_extraction hankel -eps_ciss_delta 1e-10 -eps_tol 5e-11
+         args: -eps_ciss_quadrule trapezoidal -eps_ciss_integration_points 24 -eps_ciss_extraction hankel -eps_ciss_delta 1e-10 -eps_tol 5e-11 -skiporth
       test:
          suffix: 1_ciss_cuda
          args: -mat_type aijcusparse
