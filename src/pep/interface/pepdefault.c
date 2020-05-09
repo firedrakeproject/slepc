@@ -173,9 +173,6 @@ PetscErrorCode PEPComputeVectors_Default(PEP pep)
   PetscErrorCode ierr;
   PetscInt       i;
   Vec            v;
-#if !defined(PETSC_USE_COMPLEX)
-  Vec            v1;
-#endif
 
   PetscFunctionBegin;
   ierr = PEPExtractVectors(pep);CHKERRQ(ierr);
@@ -190,23 +187,7 @@ PetscErrorCode PEPComputeVectors_Default(PEP pep)
   }
 
   /* normalization */
-  for (i=0;i<pep->nconv;i++) {
-#if !defined(PETSC_USE_COMPLEX)
-    if (pep->eigi[i]!=0.0) {   /* first eigenvalue of a complex conjugate pair */
-      ierr = BVGetColumn(pep->V,i,&v);CHKERRQ(ierr);
-      ierr = BVGetColumn(pep->V,i+1,&v1);CHKERRQ(ierr);
-      ierr = VecNormalizeComplex(v,v1,PETSC_TRUE,NULL);CHKERRQ(ierr);
-      ierr = BVRestoreColumn(pep->V,i,&v);CHKERRQ(ierr);
-      ierr = BVRestoreColumn(pep->V,i+1,&v1);CHKERRQ(ierr);
-      i++;
-    } else   /* real eigenvalue */
-#endif
-    {
-      ierr = BVGetColumn(pep->V,i,&v);CHKERRQ(ierr);
-      ierr = VecNormalizeComplex(v,NULL,PETSC_FALSE,NULL);CHKERRQ(ierr);
-      ierr = BVRestoreColumn(pep->V,i,&v);CHKERRQ(ierr);
-    }
-  }
+  ierr = BVNormalize(pep->V,pep->eigi);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 

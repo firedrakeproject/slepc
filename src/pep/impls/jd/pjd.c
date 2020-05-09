@@ -1123,45 +1123,34 @@ static PetscErrorCode PEPJDEigenvectors(PEP pep)
   PetscErrorCode ierr;
   PEP_JD         *pjd = (PEP_JD*)pep->data;
   PetscBLASInt   ld,nconv,info,nc;
-  PetscScalar    *Z,*w;
-  PetscReal      *wr,norm;
-  PetscInt       i;
+  PetscScalar    *Z;
+  PetscReal      *wr;
   Mat            U;
-#if !defined(PETSC_USE_COMPLEX)
-  Vec            v,v1;
+#if defined(PETSC_USE_COMPLEX)
+  PetscScalar    *w;
 #endif
 
   PetscFunctionBegin;
-  ierr = PetscMalloc3(pep->nconv*pep->nconv,&Z,3*pep->ncv,&wr,2*pep->ncv,&w);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(pep->ncv,&ld);CHKERRQ(ierr);
   ierr = PetscBLASIntCast(pep->nconv,&nconv);CHKERRQ(ierr);
 #if !defined(PETSC_USE_COMPLEX)
+  ierr = PetscMalloc2(pep->nconv*pep->nconv,&Z,3*pep->ncv,&wr);CHKERRQ(ierr);
   PetscStackCallBLAS("LAPACKtrevc",LAPACKtrevc_("R","A",NULL,&nconv,pjd->T,&ld,NULL,&nconv,Z,&nconv,&nconv,&nc,wr,&info));
 #else
+  ierr = PetscMalloc3(pep->nconv*pep->nconv,&Z,3*pep->ncv,&wr,2*pep->ncv,&w);CHKERRQ(ierr);
   PetscStackCallBLAS("LAPACKtrevc",LAPACKtrevc_("R","A",NULL,&nconv,pjd->T,&ld,NULL,&nconv,Z,&nconv,&nconv,&nc,w,wr,&info));
 #endif
   SlepcCheckLapackInfo("trevc",info);
   ierr = MatCreateSeqDense(PETSC_COMM_SELF,nconv,nconv,Z,&U);CHKERRQ(ierr);
   ierr = BVSetActiveColumns(pjd->X,0,pep->nconv);CHKERRQ(ierr);
   ierr = BVMultInPlace(pjd->X,U,0,pep->nconv);CHKERRQ(ierr);
-  for (i=0;i<pep->nconv;i++) {
-#if !defined(PETSC_USE_COMPLEX)
-    if (pep->eigi[i]!=0.0) {   /* first eigenvalue of a complex conjugate pair */
-      ierr = BVGetColumn(pjd->X,i,&v);CHKERRQ(ierr);
-      ierr = BVGetColumn(pjd->X,i+1,&v1);CHKERRQ(ierr);
-      ierr = VecNormalizeComplex(v,v1,PETSC_TRUE,NULL);CHKERRQ(ierr);
-      ierr = BVRestoreColumn(pjd->X,i,&v);CHKERRQ(ierr);
-      ierr = BVRestoreColumn(pjd->X,i+1,&v1);CHKERRQ(ierr);
-      i++;
-    } else   /* real eigenvalue */
-#endif
-    {
-      ierr = BVNormColumn(pjd->X,i,NORM_2,&norm);CHKERRQ(ierr);
-      ierr = BVScaleColumn(pjd->X,i,1.0/norm);CHKERRQ(ierr);
-    }
-  }
+  ierr = BVNormalize(pjd->X,pep->eigi);CHKERRQ(ierr);
   ierr = MatDestroy(&U);CHKERRQ(ierr);
+#if !defined(PETSC_USE_COMPLEX)
+  ierr = PetscFree2(Z,wr);CHKERRQ(ierr);
+#else
   ierr = PetscFree3(Z,wr,w);CHKERRQ(ierr);
+#endif
   PetscFunctionReturn(0);
 }
 
