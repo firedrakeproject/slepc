@@ -304,10 +304,9 @@ static PetscErrorCode PEPExtractInvariantPair(PEP pep,PetscScalar sigma,PetscInt
   PetscScalar    *At,*Bt,*Hj,*Hp,*T,sone=1.0,g,a,*pM,*work;
   PetscBLASInt   k_,sr_,lds_,ldh_,info,*p,lwork,ldt_;
   PetscBool      transf=PETSC_FALSE,flg;
-  PetscReal      nrm,norm,maxnrm,*rwork;
+  PetscReal      norm,maxnrm,*rwork;
   BV             *R,Y;
   Mat            M,*A;
-  Vec            v;
 
   PetscFunctionBegin;
   if (k==0) PetscFunctionReturn(0);
@@ -404,14 +403,7 @@ static PetscErrorCode PEPExtractInvariantPair(PEP pep,PetscScalar sigma,PetscInt
     /* frobenius norm */
     maxnrm = 0.0;
     for (i=0;i<pep->nmat-1;i++) {
-      norm = 0.0;
-      for (j=0;j<k;j++) {
-        ierr = BVGetColumn(R[i],j,&v);CHKERRQ(ierr);
-        ierr = VecNorm(v,NORM_2,&nrm);CHKERRQ(ierr);
-        ierr = BVRestoreColumn(R[i],j,&v);CHKERRQ(ierr);
-        norm += nrm*nrm;
-      }
-      norm = PetscSqrtReal(norm);
+      ierr = BVNorm(R[i],NORM_FROBENIUS,&norm);CHKERRQ(ierr);
       if (maxnrm > norm) {
         maxnrm = norm;
         idxcpy = i;
