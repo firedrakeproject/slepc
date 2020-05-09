@@ -30,6 +30,47 @@ static char help[] = "Test the solution of a PEP from a finite element model of 
 
 #include <slepcpep.h>
 
+/*
+   Check if computed eigenvectors have unit norm
+*/
+PetscErrorCode CheckNormalizedVectors(PEP pep)
+{
+  PetscErrorCode ierr;
+  PetscInt       i,nconv;
+  Mat            A;
+  Vec            xr,xi;
+  PetscReal      error=0.0,normr;
+#if !defined(PETSC_USE_COMPLEX)
+  PetscReal      normi;
+#endif
+
+  PetscFunctionBeginUser;
+  ierr = PEPGetConverged(pep,&nconv);CHKERRQ(ierr);
+  if (nconv>0) {
+    ierr = PEPGetOperators(pep,0,&A);CHKERRQ(ierr);
+    ierr = MatCreateVecs(A,&xr,&xi);CHKERRQ(ierr);
+    for (i=0;i<nconv;i++) {
+      ierr = PEPGetEigenpair(pep,i,NULL,NULL,xr,xi);CHKERRQ(ierr);
+#if defined(PETSC_USE_COMPLEX)
+      ierr = VecNorm(xr,NORM_2,&normr);CHKERRQ(ierr);
+      error = PetscMax(error,PetscAbsReal(normr-1.0));
+#else
+      ierr = VecNormBegin(xr,NORM_2,&normr);CHKERRQ(ierr);
+      ierr = VecNormBegin(xi,NORM_2,&normi);CHKERRQ(ierr);
+      ierr = VecNormEnd(xr,NORM_2,&normr);CHKERRQ(ierr);
+      ierr = VecNormEnd(xi,NORM_2,&normi);CHKERRQ(ierr);
+      error = PetscMax(error,PetscAbsReal(SlepcAbsEigenvalue(normr,normi)-1.0));
+#endif
+    }
+    ierr = VecDestroy(&xr);CHKERRQ(ierr);
+    ierr = VecDestroy(&xi);CHKERRQ(ierr);
+    if (error>100*PETSC_MACHINE_EPSILON) {
+      ierr = PetscPrintf(PETSC_COMM_WORLD,"Vectors are not normalized. Error=%g\n",(double)error);CHKERRQ(ierr);
+    }
+  }
+  PetscFunctionReturn(0);
+}
+
 int main(int argc,char **argv)
 {
   Mat            M,C,K,A[3];      /* problem matrices */
@@ -37,7 +78,7 @@ int main(int argc,char **argv)
   PetscErrorCode ierr;
   PetscInt       n=30,Istart,Iend,i,nev;
   PetscScalar    mu=1.0,tau=10.0,kappa=5.0;
-  PetscBool      initv=PETSC_FALSE;
+  PetscBool      initv=PETSC_FALSE,skipnorm=PETSC_FALSE;
   Vec            IV[2];
 
   ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
@@ -47,6 +88,7 @@ int main(int argc,char **argv)
   ierr = PetscOptionsGetScalar(NULL,NULL,"-tau",&tau,NULL);CHKERRQ(ierr);
   ierr = PetscOptionsGetScalar(NULL,NULL,"-kappa",&kappa,NULL);CHKERRQ(ierr);
   ierr = PetscOptionsGetBool(NULL,NULL,"-initv",&initv,NULL);CHKERRQ(ierr);
+  ierr = PetscOptionsGetBool(NULL,NULL,"-skipnorm",&skipnorm,NULL);CHKERRQ(ierr);
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
      Compute the matrices that define the eigensystem, (k^2*M+k*C+K)x=0
@@ -143,6 +185,7 @@ int main(int argc,char **argv)
      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
   ierr = PEPErrorView(pep,PEP_ERROR_BACKWARD,NULL);CHKERRQ(ierr);
+  if (!skipnorm) { ierr = CheckNormalizedVectors(pep);CHKERRQ(ierr); }
   ierr = PEPDestroy(&pep);CHKERRQ(ierr);
   ierr = MatDestroy(&M);CHKERRQ(ierr);
   ierr = MatDestroy(&C);CHKERRQ(ierr);
