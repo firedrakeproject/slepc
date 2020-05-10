@@ -262,9 +262,10 @@ SLEPC_INTERN PetscErrorCode BVMatSVQB_LAPACK_Private(BV,Mat,Mat);
 SLEPC_INTERN PetscErrorCode BVOrthogonalize_LAPACK_TSQR(BV,PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscInt);
 SLEPC_INTERN PetscErrorCode BVOrthogonalize_LAPACK_TSQR_OnlyR(BV,PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscInt);
 
-/* reduction operation used in BVOrthogonalize */
-SLEPC_EXTERN MPI_Op MPIU_TSQR;
+/* reduction operations used in BVOrthogonalize and BVNormalize */
+SLEPC_EXTERN MPI_Op MPIU_TSQR, MPIU_LAPY2;
 SLEPC_EXTERN void MPIAPI SlepcGivensPacked(void*,void*,PetscMPIInt*,MPI_Datatype*);
+SLEPC_EXTERN void MPIAPI SlepcPythag(void*,void*,PetscMPIInt*,MPI_Datatype*);
 
 #if defined(PETSC_HAVE_CUDA)
 
