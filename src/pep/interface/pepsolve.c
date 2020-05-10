@@ -103,9 +103,13 @@ PetscErrorCode PEPSolve(PEP pep)
   ierr = PEPViewFromOptions(pep,NULL,"-pep_view_pre");CHKERRQ(ierr);
   ierr = RGViewFromOptions(pep->rg,NULL,"-rg_view");CHKERRQ(ierr);
 
+  /* Call solver */
   ierr = (*pep->ops->solve)(pep);CHKERRQ(ierr);
-
   if (!pep->reason) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_PLIB,"Internal error, solver returned without setting converged reason");
+  pep->state = PEP_STATE_SOLVED;
+
+  /* Only the first nconv columns contain useful information */
+  ierr = BVSetActiveColumns(pep->V,0,pep->nconv);CHKERRQ(ierr);
 
   ierr = PetscObjectTypeCompare((PetscObject)pep,PEPLINEAR,&islinear);CHKERRQ(ierr);
   if (!islinear) {
@@ -116,8 +120,6 @@ PetscErrorCode PEPSolve(PEP pep)
       ierr = (*pep->ops->backtransform)(pep);CHKERRQ(ierr);
     }
   }
-
-  pep->state = PEP_STATE_SOLVED;
 
 #if !defined(PETSC_USE_COMPLEX)
   /* reorder conjugate eigenvalues (positive imaginary first) */

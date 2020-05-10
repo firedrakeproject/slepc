@@ -1,0 +1,4 @@
+Test BV normalization with 15 columns of length 250.
+Deviation from normalized vectors < 100*eps
+Deviation from B-normalized vectors < 100*eps
+Deviation from normalized conjugate vectors < 100*eps

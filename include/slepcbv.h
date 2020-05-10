@@ -179,6 +179,7 @@ SLEPC_EXTERN PetscErrorCode BVNormVecEnd(BV,Vec,NormType,PetscReal*);
 SLEPC_EXTERN PetscErrorCode BVNormColumn(BV,PetscInt,NormType,PetscReal*);
 SLEPC_EXTERN PetscErrorCode BVNormColumnBegin(BV,PetscInt,NormType,PetscReal*);
 SLEPC_EXTERN PetscErrorCode BVNormColumnEnd(BV,PetscInt,NormType,PetscReal*);
+SLEPC_EXTERN PetscErrorCode BVNormalize(BV,PetscScalar*);
 SLEPC_EXTERN PetscErrorCode BVSetRandom(BV);
 SLEPC_EXTERN PetscErrorCode BVSetRandomColumn(BV,PetscInt);
 SLEPC_EXTERN PetscErrorCode BVSetRandomCond(BV,PetscReal);

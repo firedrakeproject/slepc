@@ -32,6 +32,47 @@ static char help[] = "Tests multiple calls to NEPSolve(). Based on ex22.c.\n\n"
 
 #include <slepcnep.h>
 
+/*
+   Check if computed eigenvectors have unit norm
+*/
+PetscErrorCode CheckNormalizedVectors(NEP nep)
+{
+  PetscErrorCode ierr;
+  PetscInt       i,nconv;
+  Mat            A;
+  Vec            xr,xi;
+  PetscReal      error=0.0,normr;
+#if !defined(PETSC_USE_COMPLEX)
+  PetscReal      normi;
+#endif
+
+  PetscFunctionBeginUser;
+  ierr = NEPGetConverged(nep,&nconv);CHKERRQ(ierr);
+  if (nconv>0) {
+    ierr = NEPGetSplitOperatorTerm(nep,0,&A,NULL);CHKERRQ(ierr);
+    ierr = MatCreateVecs(A,&xr,&xi);CHKERRQ(ierr);
+    for (i=0;i<nconv;i++) {
+      ierr = NEPGetEigenpair(nep,i,NULL,NULL,xr,xi);CHKERRQ(ierr);
+#if defined(PETSC_USE_COMPLEX)
+      ierr = VecNorm(xr,NORM_2,&normr);CHKERRQ(ierr);
+      error = PetscMax(error,PetscAbsReal(normr-1.0));
+#else
+      ierr = VecNormBegin(xr,NORM_2,&normr);CHKERRQ(ierr);
+      ierr = VecNormBegin(xi,NORM_2,&normi);CHKERRQ(ierr);
+      ierr = VecNormEnd(xr,NORM_2,&normr);CHKERRQ(ierr);
+      ierr = VecNormEnd(xi,NORM_2,&normi);CHKERRQ(ierr);
+      error = PetscMax(error,PetscAbsReal(SlepcAbsEigenvalue(normr,normi)-1.0));
+#endif
+    }
+    ierr = VecDestroy(&xr);CHKERRQ(ierr);
+    ierr = VecDestroy(&xi);CHKERRQ(ierr);
+    if (error>100*PETSC_MACHINE_EPSILON) {
+      ierr = PetscPrintf(PETSC_COMM_WORLD,"Vectors are not normalized. Error=%g\n",(double)error);CHKERRQ(ierr);
+    }
+  }
+  PetscFunctionReturn(0);
+}
+
 int main(int argc,char **argv)
 {
   NEP            nep;             /* nonlinear eigensolver context */
@@ -42,11 +83,13 @@ int main(int argc,char **argv)
   PetscScalar    coeffs[2],b;
   PetscInt       n=128,Istart,Iend,i;
   PetscReal      tau=0.001,h,a=20,xi;
+  PetscBool      skipnorm=PETSC_FALSE;
   PetscErrorCode ierr;
 
   ierr = SlepcInitialize(&argc,&argv,(char*)0,help);if (ierr) return ierr;
   ierr = PetscOptionsGetInt(NULL,NULL,"-n",&n,NULL);CHKERRQ(ierr);
   ierr = PetscOptionsGetReal(NULL,NULL,"-tau",&tau,NULL);CHKERRQ(ierr);
+  ierr = PetscOptionsGetBool(NULL,NULL,"-skipnorm",&skipnorm,NULL);CHKERRQ(ierr);
   ierr = PetscPrintf(PETSC_COMM_WORLD,"\n1-D Delay Eigenproblem, n=%D, tau=%g\n\n",n,(double)tau);CHKERRQ(ierr);
   h = PETSC_PI/(PetscReal)(n+1);
 
@@ -136,6 +179,7 @@ int main(int argc,char **argv)
 
   ierr = NEPSolve(nep);CHKERRQ(ierr);
   ierr = NEPErrorView(nep,NEP_ERROR_RELATIVE,NULL);CHKERRQ(ierr);
+  if (!skipnorm) { ierr = CheckNormalizedVectors(nep);CHKERRQ(ierr); }
 
   /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                    Create problem matrices of size 2*n
@@ -202,6 +246,7 @@ int main(int argc,char **argv)
   ierr = NEPSetSplitOperator(nep,3,mats,funs,SUBSET_NONZERO_PATTERN);CHKERRQ(ierr);
   ierr = NEPSolve(nep);CHKERRQ(ierr);
   ierr = NEPErrorView(nep,NEP_ERROR_RELATIVE,NULL);CHKERRQ(ierr);
+  if (!skipnorm) { ierr = CheckNormalizedVectors(nep);CHKERRQ(ierr); }
 
   ierr = NEPDestroy(&nep);CHKERRQ(ierr);
   ierr = MatDestroy(&Id);CHKERRQ(ierr);
@@ -239,9 +284,20 @@ int main(int argc,char **argv)
          suffix: 1_narnoldi_sync
          args: -nep_type narnoldi -ds_parallel synchronized
 
-   test:
-      suffix: 2
-      args: -nep_nev 2 -nep_type interpol -rg_type interval -rg_interval_endpoints .5,15,-.1,.1 -nep_target .7 -nep_interpol_pep_type jd -nep_interpol_st_pc_type sor
+   testset:
+      args: -nep_nev 2 -rg_type interval -rg_interval_endpoints .5,15,-.1,.1 -nep_target .7
       requires: !single
+      output_file: output/test10_2.out
+      test:
+         suffix: 2_interpol
+         args: -nep_type interpol -nep_interpol_pep_type jd -nep_interpol_st_pc_type sor
+      test:
+         suffix: 2_nleigs
+         args: -nep_type nleigs
+         requires: complex
+      test:
+         suffix: 2_nleigs_real
+         args: -nep_type nleigs -rg_interval_endpoints .5,15
+         requires: !complex
 
 TEST*/

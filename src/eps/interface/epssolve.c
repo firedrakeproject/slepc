@@ -132,7 +132,7 @@ PetscErrorCode EPSSolve(EPS eps)
   if (eps->state>=EPS_STATE_SOLVED) PetscFunctionReturn(0);
   ierr = PetscLogEventBegin(EPS_Solve,eps,0,0,0);CHKERRQ(ierr);
 
-  /* call setup */
+  /* Call setup */
   ierr = EPSSetUp(eps);CHKERRQ(ierr);
   eps->nconv = 0;
   eps->its   = 0;
@@ -145,24 +145,27 @@ PetscErrorCode EPSSolve(EPS eps)
   ierr = EPSViewFromOptions(eps,NULL,"-eps_view_pre");CHKERRQ(ierr);
   ierr = RGViewFromOptions(eps->rg,NULL,"-rg_view");CHKERRQ(ierr);
 
-  /* call solver */
+  /* Call solver */
   ierr = (*eps->ops->solve)(eps);CHKERRQ(ierr);
+  if (!eps->reason) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_PLIB,"Internal error, solver returned without setting converged reason");
   eps->state = EPS_STATE_SOLVED;
 
+  /* Only the first nconv columns contain useful information (except in CISS) */
+  ierr = BVSetActiveColumns(eps->V,0,eps->nconv);CHKERRQ(ierr);
+  if (eps->twosided) { ierr = BVSetActiveColumns(eps->W,0,eps->nconv);CHKERRQ(ierr); }
+
+  /* If inplace, purify eigenvectors before reverting operator */
   ierr = STGetMatMode(eps->st,&matmode);CHKERRQ(ierr);
   if (matmode == ST_MATMODE_INPLACE && eps->ispositive) {
-    /* Purify eigenvectors before reverting operator */
     ierr = EPSComputeVectors(eps);CHKERRQ(ierr);
   }
   ierr = STPostSolve(eps->st);CHKERRQ(ierr);
-
-  if (!eps->reason) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_PLIB,"Internal error, solver returned without setting converged reason");
 
   /* Map eigenvalues back to the original problem if appropriate */
   ierr = EPSComputeValues(eps);CHKERRQ(ierr);
 
 #if !defined(PETSC_USE_COMPLEX)
-  /* reorder conjugate eigenvalues (positive imaginary first) */
+  /* Reorder conjugate eigenvalues (positive imaginary first) */
   for (i=0;i<eps->nconv-1;i++) {
     if (eps->eigi[i] != 0) {
       if (eps->eigi[i] < 0) {
@@ -177,11 +180,11 @@ PetscErrorCode EPSSolve(EPS eps)
   }
 #endif
 
-  /* sort eigenvalues according to eps->which parameter */
+  /* Sort eigenvalues according to eps->which parameter */
   ierr = SlepcSortEigenvalues(eps->sc,eps->nconv,eps->eigr,eps->eigi,eps->perm);CHKERRQ(ierr);
   ierr = PetscLogEventEnd(EPS_Solve,eps,0,0,0);CHKERRQ(ierr);
 
-  /* various viewers */
+  /* Various viewers */
   ierr = EPSViewFromOptions(eps,NULL,"-eps_view");CHKERRQ(ierr);
   ierr = EPSReasonViewFromOptions(eps);CHKERRQ(ierr);
   ierr = EPSErrorViewFromOptions(eps);CHKERRQ(ierr);

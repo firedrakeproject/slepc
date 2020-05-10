@@ -203,6 +203,20 @@ PetscErrorCode BVNorm_Local_Svec(BV bv,PetscInt j,NormType type,PetscReal *val)
   PetscFunctionReturn(0);
 }
 
+PetscErrorCode BVNormalize_Svec(BV bv,PetscScalar *eigi)
+{
+  PetscErrorCode ierr;
+  BV_SVEC        *ctx = (BV_SVEC*)bv->data;
+  PetscScalar    *array,*wi=NULL;
+
+  PetscFunctionBegin;
+  ierr = VecGetArray(ctx->v,&array);CHKERRQ(ierr);
+  if (eigi) wi = eigi+bv->l;
+  ierr = BVNormalize_LAPACK_Private(bv,bv->n,bv->k-bv->l,array+(bv->nc+bv->l)*bv->n,wi,ctx->mpi);CHKERRQ(ierr);
+  ierr = VecRestoreArray(ctx->v,&array);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
 PetscErrorCode BVMatMult_Svec(BV V,Mat A,BV W)
 {
   PetscErrorCode ierr;
@@ -539,6 +553,7 @@ SLEPC_EXTERN PetscErrorCode BVCreate_Svec(BV bv)
   }
   bv->ops->norm             = BVNorm_Svec;
   bv->ops->norm_local       = BVNorm_Local_Svec;
+  bv->ops->normalize        = BVNormalize_Svec;
   bv->ops->getarray         = BVGetArray_Svec;
   bv->ops->restorearray     = BVRestoreArray_Svec;
   bv->ops->getarrayread     = BVGetArrayRead_Svec;

@@ -15,6 +15,23 @@
 #include <slepcblaslapack.h>
 
 /*
+    Reduction operation to compute sqrt(x**2+y**2) when normalizing vectors
+*/
+SLEPC_EXTERN void MPIAPI SlepcPythag(void *in,void *inout,PetscMPIInt *len,MPI_Datatype *datatype)
+{
+  PetscBLASInt i,n=*len;
+  PetscReal    *x = (PetscReal*)in,*y = (PetscReal*)inout;
+
+  PetscFunctionBegin;
+  if (PetscUnlikely(*datatype!=MPIU_REAL)) {
+    (*PetscErrorPrintf)("Only implemented for MPIU_REAL data type");
+    MPI_Abort(MPI_COMM_WORLD,1);
+  }
+  for (i=0;i<n;i++) y[i] = SlepcAbs(x[i],y[i]);
+  PetscFunctionReturnVoid();
+}
+
+/*
     Compute ||A|| for an mxn matrix
 */
 PetscErrorCode BVNorm_LAPACK_Private(BV bv,PetscInt m_,PetscInt n_,const PetscScalar *A,NormType type,PetscReal *nrm,PetscBool mpi)
@@ -31,9 +48,7 @@ PetscErrorCode BVNorm_LAPACK_Private(BV bv,PetscInt m_,PetscInt n_,const PetscSc
   if (type==NORM_FROBENIUS || type==NORM_2) {
     lnrm = LAPACKlange_("F",&m,&n,(PetscScalar*)A,&m,rwork);
     if (mpi) {
-      lnrm = lnrm*lnrm;
-      ierr = MPI_Allreduce(&lnrm,nrm,1,MPIU_REAL,MPIU_SUM,PetscObjectComm((PetscObject)bv));CHKERRQ(ierr);
-      *nrm = PetscSqrtReal(*nrm);
+      ierr = MPI_Allreduce(&lnrm,nrm,1,MPIU_REAL,MPIU_LAPY2,PetscObjectComm((PetscObject)bv));CHKERRQ(ierr);
     } else *nrm = lnrm;
     ierr = PetscLogFlops(2.0*m*n);CHKERRQ(ierr);
   } else if (type==NORM_1) {
@@ -65,6 +80,54 @@ PetscErrorCode BVNorm_LAPACK_Private(BV bv,PetscInt m_,PetscInt n_,const PetscSc
     } else *nrm = lnrm;
     ierr = PetscLogFlops(1.0*m*n);CHKERRQ(ierr);
   }
+  ierr = PetscFPTrapPop();CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+/*
+    Normalize the columns of an mxn matrix A
+*/
+PetscErrorCode BVNormalize_LAPACK_Private(BV bv,PetscInt m_,PetscInt n_,const PetscScalar *A,PetscScalar *eigi,PetscBool mpi)
+{
+  PetscErrorCode ierr;
+  PetscBLASInt   m,n,j,k,info,zero=0;
+  PetscMPIInt    len;
+  PetscReal      *norms,*rwork=NULL,*rwork2=NULL,done=1.0;
+
+  PetscFunctionBegin;
+  ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
+  ierr = PetscBLASIntCast(m_,&m);CHKERRQ(ierr);
+  ierr = PetscBLASIntCast(n_,&n);CHKERRQ(ierr);
+  ierr = BVAllocateWork_Private(bv,2*n_);CHKERRQ(ierr);
+  rwork = (PetscReal*)bv->work;
+  rwork2 = rwork+n_;
+  /* compute local norms */
+  for (j=0;j<n_;j++) {
+    k = 1;
+#if !defined(PETSC_USE_COMPLEX)
+    if (eigi && eigi[j] != 0.0) k = 2;
+#endif
+    rwork[j] = LAPACKlange_("F",&m,&k,(PetscScalar*)(A+j*m_),&m,rwork2);
+    if (k==2) { rwork[j+1] = rwork[j]; j++; }
+  }
+  /* reduction to get global norms */
+  if (mpi) {
+    ierr = PetscMPIIntCast(n_,&len);CHKERRQ(ierr);
+    ierr = PetscArrayzero(rwork2,n_);CHKERRQ(ierr);
+    ierr = MPI_Allreduce(rwork,rwork2,len,MPIU_REAL,MPIU_LAPY2,PetscObjectComm((PetscObject)bv));CHKERRQ(ierr);
+    norms = rwork2;
+  } else norms = rwork;
+  /* scale columns */
+  for (j=0;j<n_;j++) {
+    k = 1;
+#if !defined(PETSC_USE_COMPLEX)
+    if (eigi && eigi[j] != 0.0) k = 2;
+#endif
+    PetscStackCallBLAS("LAPACKlascl",LAPACKlascl_("G",&zero,&zero,norms+j,&done,&m,&k,(PetscScalar*)(A+j*m_),&m,&info));
+    SlepcCheckLapackInfo("lascl",info);
+    if (k==2) j++;
+  }
+  ierr = PetscLogFlops(3.0*m*n);CHKERRQ(ierr);
   ierr = PetscFPTrapPop();CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }

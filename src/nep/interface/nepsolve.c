@@ -82,10 +82,14 @@ PetscErrorCode NEPSolve(NEP nep)
   ierr = NEPViewFromOptions(nep,NULL,"-nep_view_pre");CHKERRQ(ierr);
   ierr = RGViewFromOptions(nep->rg,NULL,"-rg_view");CHKERRQ(ierr);
 
+  /* call solver */
   ierr = (*nep->ops->solve)(nep);CHKERRQ(ierr);
+  if (!nep->reason) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_PLIB,"Internal error, solver returned without setting converged reason");
   nep->state = NEP_STATE_SOLVED;
 
-  if (!nep->reason) SETERRQ(PetscObjectComm((PetscObject)nep),PETSC_ERR_PLIB,"Internal error, solver returned without setting converged reason");
+  /* Only the first nconv columns contain useful information */
+  ierr = BVSetActiveColumns(nep->V,0,nep->nconv);CHKERRQ(ierr);
+  if (nep->twosided) { ierr = BVSetActiveColumns(nep->W,0,nep->nconv);CHKERRQ(ierr); }
 
   if (nep->refine==NEP_REFINE_SIMPLE && nep->rits>0 && nep->nconv>0) {
     ierr = NEPComputeVectors(nep);CHKERRQ(ierr);

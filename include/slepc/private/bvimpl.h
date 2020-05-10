@@ -17,7 +17,7 @@
 SLEPC_EXTERN PetscBool BVRegisterAllCalled;
 SLEPC_EXTERN PetscErrorCode BVRegisterAll(void);
 
-SLEPC_EXTERN PetscLogEvent BV_Create,BV_Copy,BV_Mult,BV_MultVec,BV_MultInPlace,BV_Dot,BV_DotVec,BV_Orthogonalize,BV_OrthogonalizeVec,BV_Scale,BV_Norm,BV_NormVec,BV_SetRandom,BV_MatMult,BV_MatMultVec,BV_MatProject;
+SLEPC_EXTERN PetscLogEvent BV_Create,BV_Copy,BV_Mult,BV_MultVec,BV_MultInPlace,BV_Dot,BV_DotVec,BV_Orthogonalize,BV_OrthogonalizeVec,BV_Scale,BV_Norm,BV_NormVec,BV_Normalize,BV_SetRandom,BV_MatMult,BV_MatMultVec,BV_MatProject;
 
 typedef struct _BVOps *BVOps;
 
@@ -36,6 +36,7 @@ struct _BVOps {
   PetscErrorCode (*norm_local)(BV,PetscInt,NormType,PetscReal*);
   PetscErrorCode (*norm_begin)(BV,PetscInt,NormType,PetscReal*);
   PetscErrorCode (*norm_end)(BV,PetscInt,NormType,PetscReal*);
+  PetscErrorCode (*normalize)(BV,PetscScalar*);
   PetscErrorCode (*matmult)(BV,Mat,BV);
   PetscErrorCode (*copy)(BV,BV);
   PetscErrorCode (*copycolumn)(BV,PetscInt,PetscInt);
@@ -254,15 +255,17 @@ SLEPC_INTERN PetscErrorCode BVDot_BLAS_Private(BV,PetscInt,PetscInt,PetscInt,Pet
 SLEPC_INTERN PetscErrorCode BVDotVec_BLAS_Private(BV,PetscInt,PetscInt,const PetscScalar*,const PetscScalar*,PetscScalar*,PetscBool);
 SLEPC_INTERN PetscErrorCode BVScale_BLAS_Private(BV,PetscInt,PetscScalar*,PetscScalar);
 SLEPC_INTERN PetscErrorCode BVNorm_LAPACK_Private(BV,PetscInt,PetscInt,const PetscScalar*,NormType,PetscReal*,PetscBool);
+SLEPC_INTERN PetscErrorCode BVNormalize_LAPACK_Private(BV,PetscInt,PetscInt,const PetscScalar*,PetscScalar*,PetscBool);
 SLEPC_INTERN PetscErrorCode BVMatCholInv_LAPACK_Private(BV,Mat,Mat);
 SLEPC_INTERN PetscErrorCode BVMatTriInv_LAPACK_Private(BV,Mat,Mat);
 SLEPC_INTERN PetscErrorCode BVMatSVQB_LAPACK_Private(BV,Mat,Mat);
 SLEPC_INTERN PetscErrorCode BVOrthogonalize_LAPACK_TSQR(BV,PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscInt);
 SLEPC_INTERN PetscErrorCode BVOrthogonalize_LAPACK_TSQR_OnlyR(BV,PetscInt,PetscInt,PetscScalar*,PetscScalar*,PetscInt);
 
-/* reduction operation used in BVOrthogonalize */
-SLEPC_EXTERN MPI_Op MPIU_TSQR;
+/* reduction operations used in BVOrthogonalize and BVNormalize */
+SLEPC_EXTERN MPI_Op MPIU_TSQR, MPIU_LAPY2;
 SLEPC_EXTERN void MPIAPI SlepcGivensPacked(void*,void*,PetscMPIInt*,MPI_Datatype*);
+SLEPC_EXTERN void MPIAPI SlepcPythag(void*,void*,PetscMPIInt*,MPI_Datatype*);
 
 #if defined(PETSC_HAVE_CUDA)
 

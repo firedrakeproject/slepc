@@ -1147,19 +1147,12 @@ PetscErrorCode EPSComputeVectors_Power(EPS eps)
 {
   PetscErrorCode ierr;
   EPS_POWER      *power = (EPS_POWER*)eps->data;
-  PetscReal      norm;
-  PetscInt       i;
 
   PetscFunctionBegin;
   if (eps->twosided) {
     ierr = EPSComputeVectors_Twosided(eps);CHKERRQ(ierr);
-    /* normalize (no need to take care of 2x2 blocks */
-    for (i=0;i<eps->nconv;i++) {
-      ierr = BVNormColumn(eps->V,i,NORM_2,&norm);CHKERRQ(ierr);
-      ierr = BVScaleColumn(eps->V,i,1.0/norm);CHKERRQ(ierr);
-      ierr = BVNormColumn(eps->W,i,NORM_2,&norm);CHKERRQ(ierr);
-      ierr = BVScaleColumn(eps->W,i,1.0/norm);CHKERRQ(ierr);
-    }
+    ierr = BVNormalize(eps->V,NULL);CHKERRQ(ierr);
+    ierr = BVNormalize(eps->W,NULL);CHKERRQ(ierr);
   } else if (!power->nonlinear) {
     ierr = EPSComputeVectors_Schur(eps);CHKERRQ(ierr);
   }

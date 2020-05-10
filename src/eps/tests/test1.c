@@ -103,7 +103,7 @@ int main(int argc,char **argv)
     for (i=0;i<nconv;i++) {
       ierr = EPSGetEigenvector(eps,i,X[i],NULL);CHKERRQ(ierr);
     }
-    if (!skiporth) { ierr = VecCheckOrthogonality(X,nconv,NULL,nconv,B,NULL,&lev);CHKERRQ(ierr); }
+    if (!skiporth) { ierr = VecCheckOrthonormality(X,nconv,NULL,nconv,B,NULL,&lev);CHKERRQ(ierr); }
     if (lev<10*tol) {
       ierr = PetscPrintf(PETSC_COMM_WORLD,"Level of orthogonality below the tolerance\n");CHKERRQ(ierr);
     } else {

@@ -179,6 +179,18 @@ PetscErrorCode BVNorm_Local_Contiguous(BV bv,PetscInt j,NormType type,PetscReal 
   PetscFunctionReturn(0);
 }
 
+PetscErrorCode BVNormalize_Contiguous(BV bv,PetscScalar *eigi)
+{
+  PetscErrorCode ierr;
+  BV_CONTIGUOUS  *ctx = (BV_CONTIGUOUS*)bv->data;
+  PetscScalar    *wi=NULL;
+
+  PetscFunctionBegin;
+  if (eigi) wi = eigi+bv->l;
+  ierr = BVNormalize_LAPACK_Private(bv,bv->n,bv->k-bv->l,ctx->array+(bv->nc+bv->l)*bv->n,wi,ctx->mpi);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
 PetscErrorCode BVMatMult_Contiguous(BV V,Mat A,BV W)
 {
   PetscErrorCode ierr;
@@ -390,6 +402,7 @@ SLEPC_EXTERN PetscErrorCode BVCreate_Contiguous(BV bv)
   bv->ops->scale            = BVScale_Contiguous;
   bv->ops->norm             = BVNorm_Contiguous;
   bv->ops->norm_local       = BVNorm_Local_Contiguous;
+  bv->ops->normalize        = BVNormalize_Contiguous;
   bv->ops->matmult          = BVMatMult_Contiguous;
   bv->ops->copy             = BVCopy_Contiguous;
   bv->ops->copycolumn       = BVCopyColumn_Contiguous;

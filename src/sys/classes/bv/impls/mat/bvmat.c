@@ -205,6 +205,20 @@ PetscErrorCode BVNorm_Local_Mat(BV bv,PetscInt j,NormType type,PetscReal *val)
   PetscFunctionReturn(0);
 }
 
+PetscErrorCode BVNormalize_Mat(BV bv,PetscScalar *eigi)
+{
+  PetscErrorCode ierr;
+  BV_MAT         *ctx = (BV_MAT*)bv->data;
+  PetscScalar    *array,*wi=NULL;
+
+  PetscFunctionBegin;
+  ierr = MatDenseGetArray(ctx->A,&array);CHKERRQ(ierr);
+  if (eigi) wi = eigi+bv->l;
+  ierr = BVNormalize_LAPACK_Private(bv,bv->n,bv->k-bv->l,array+(bv->nc+bv->l)*bv->n,wi,ctx->mpi);CHKERRQ(ierr);
+  ierr = MatDenseRestoreArray(ctx->A,&array);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
 PetscErrorCode BVMatMult_Mat(BV V,Mat A,BV W)
 {
   PetscErrorCode ierr;
@@ -478,6 +492,7 @@ SLEPC_EXTERN PetscErrorCode BVCreate_Mat(BV bv)
   bv->ops->scale            = BVScale_Mat;
   bv->ops->norm             = BVNorm_Mat;
   bv->ops->norm_local       = BVNorm_Local_Mat;
+  bv->ops->normalize        = BVNormalize_Mat;
   bv->ops->matmult          = BVMatMult_Mat;
   bv->ops->copy             = BVCopy_Mat;
   bv->ops->copycolumn       = BVCopyColumn_Mat;
