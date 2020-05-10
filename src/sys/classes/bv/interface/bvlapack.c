@@ -70,6 +70,57 @@ PetscErrorCode BVNorm_LAPACK_Private(BV bv,PetscInt m_,PetscInt n_,const PetscSc
 }
 
 /*
+    Normalize the columns of an mxn matrix A
+*/
+PetscErrorCode BVNormalize_LAPACK_Private(BV bv,PetscInt m_,PetscInt n_,const PetscScalar *A,PetscScalar *eigi,PetscBool mpi)
+{
+  PetscErrorCode ierr;
+  PetscBLASInt   m,n,j,k,info,zero=0;
+  PetscMPIInt    len;
+  PetscReal      *rwork=NULL,*rwork2=NULL;
+  PetscScalar    alpha,sone=1.0;
+
+  PetscFunctionBegin;
+  ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
+  ierr = PetscBLASIntCast(m_,&m);CHKERRQ(ierr);
+  ierr = PetscBLASIntCast(n_,&n);CHKERRQ(ierr);
+  ierr = BVAllocateWork_Private(bv,2*n_);CHKERRQ(ierr);
+  rwork = (PetscReal*)bv->work;
+  rwork2 = rwork+n_;
+  /* compute local norms */
+  for (j=0;j<n_;j++) {
+    k = 1;
+#if !defined(PETSC_USE_COMPLEX)
+    if (eigi && eigi[j] != 0.0) k = 2;
+#endif
+    rwork[j] = LAPACKlange_("F",&m,&k,(PetscScalar*)(A+j*m_),&m,rwork2);
+    if (k==2) { rwork[j+1] = rwork[j]; j++; }
+  }
+  /* reduction to get global norms */
+  if (mpi) {
+    for (j=0;j<n_;j++) rwork[j] = rwork[j]*rwork[j];
+    ierr = PetscMPIIntCast(n_,&len);CHKERRQ(ierr);
+    ierr = PetscArrayzero(rwork2,n_);CHKERRQ(ierr);
+    ierr = MPI_Allreduce(rwork,rwork2,len,MPIU_REAL,MPIU_SUM,PetscObjectComm((PetscObject)bv));CHKERRQ(ierr);
+    for (j=0;j<n_;j++) rwork[j] = PetscSqrtReal(rwork2[j]);
+  }
+  /* scale columns */
+  for (j=0;j<n_;j++) {
+    k = 1;
+#if !defined(PETSC_USE_COMPLEX)
+    if (eigi && eigi[j] != 0.0) k = 2;
+#endif
+    alpha = rwork[j];
+    PetscStackCallBLAS("LAPACKlascl",LAPACKlascl_("G",&zero,&zero,&alpha,&sone,&m,&k,(PetscScalar*)(A+j*m_),&m,&info));
+    SlepcCheckLapackInfo("lascl",info);
+    if (k==2) j++;
+  }
+  ierr = PetscLogFlops(3.0*m*n);CHKERRQ(ierr);
+  ierr = PetscFPTrapPop();CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+/*
    Compute the upper Cholesky factor in R and its inverse in S.
    If S == R then the inverse overwrites the Cholesky factor.
  */

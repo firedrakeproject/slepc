@@ -889,11 +889,14 @@ PetscErrorCode BVNormalize(BV bv,PetscScalar *eigi)
   PetscValidType(bv,1);
   BVCheckSizes(bv,1);
 
+  ierr = PetscLogEventBegin(BV_Normalize,bv,0,0,0);CHKERRQ(ierr);
   if (bv->matrix && !eigi) {
     for (i=bv->l;i<bv->k;i++) {
       ierr = BVNormColumn(bv,i,NORM_2,&norm);CHKERRQ(ierr);
       ierr = BVScaleColumn(bv,i,1.0/norm);CHKERRQ(ierr);
     }
+  } else if (bv->ops->normalize) {
+    ierr = (*bv->ops->normalize)(bv,eigi);CHKERRQ(ierr);
   } else {
     for (i=bv->l;i<bv->k;i++) {
 #if !defined(PETSC_USE_COMPLEX)
@@ -913,6 +916,7 @@ PetscErrorCode BVNormalize(BV bv,PetscScalar *eigi)
       }
     }
   }
+  ierr = PetscLogEventBegin(BV_Normalize,bv,0,0,0);CHKERRQ(ierr);
   ierr = PetscObjectStateIncrease((PetscObject)bv);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
