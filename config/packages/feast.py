@@ -16,13 +16,13 @@ class Feast(package.Package):
     package.Package.__init__(self,argdb,log)
     self.packagename    = 'feast'
     self.installable    = True
-    self.frommkl        = True
+    self.petscdepend    = 'mkl'
     self.supportssingle = True
     self.supports64bint = True
     self.ProcessArgs(argdb)
 
   def Check(self,slepcconf,slepcvars,petsc,archdir):
-    if not petsc.mkl:
+    if not 'mkl' in petsc.packages:
       self.log.Exit('The FEAST interface requires that PETSc has been built with Intel MKL')
     functions = ['feastinit']
     if petsc.scalar == 'real':

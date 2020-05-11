@@ -135,8 +135,7 @@ class PETSc(package.Package):
     self.fortran = False
     self.language = 'c'
     self.cxxdialectcxx11 = False
-    self.hpddm = False
-    self.mkl = False
+    self.packages = []
     try:
       f = open(petscconf_h)
       for l in f.readlines():
@@ -161,12 +160,12 @@ class PETSc(package.Package):
           self.language = 'c++'
         elif len(l)==3 and l[0]=='#define' and l[1]=='PETSC_HAVE_CXX_DIALECT_CXX11' and l[2]=='1':
           self.cxxdialectcxx11 = True
-        elif len(l)==3 and l[0]=='#define' and l[1]=='PETSC_HAVE_HPDDM' and l[2]=='1':
-          self.hpddm = True
-        elif len(l)==3 and l[0]=='#define' and l[1]=='PETSC_HAVE_MKL' and l[2]=='1':
-          self.mkl = True
         elif self.isinstall and len(l)==3 and l[0]=='#define' and l[1]=='PETSC_ARCH':
           self.arch = l[2].strip('"')
+        else:
+          for p in ['hpddm','mkl']:
+            if len(l)==3 and l[0]=='#define' and l[1]=='PETSC_HAVE_'+p.upper() and l[2]=='1':
+              self.packages.append(p)
       f.close()
     except:
       if self.isinstall:

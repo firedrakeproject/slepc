@@ -34,7 +34,7 @@ class HPDDM(package.Package):
       self.log.Exit(pkg+' requires C++11')
     if petsc.buildsharedlib == False:
       self.log.Exit(pkg+' requires a shared library build')
-    if petsc.hpddm == True:
+    if self.packagename in petsc.packages:
       self.log.Exit(pkg+' requires PETSc to be built without '+pkg)
     package.Package.Precondition(self,petsc)
 
