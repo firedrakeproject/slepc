@@ -19,6 +19,11 @@ class Sowing(package.Package):
     self.url          = 'https://bitbucket.org/petsc/pkg-sowing.git'
     self.ProcessArgs(argdb)
 
+  def ShowHelp(self):
+    wd = package.Package.wd
+    print('  --download-sowing[=<fname>]'.ljust(wd)+': Download and install SOWING')
+    print('  The latter is needed (for Fortran) only if using a git version of SLEPc and a non-git version of PETSc')
+
   def DownloadAndInstall(self,slepc,petsc,archdir):
     name = self.packagename.upper()
     self.log.NewSection('Installing '+name+'...')

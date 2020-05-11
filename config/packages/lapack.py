@@ -16,6 +16,10 @@ class Lapack(package.Package):
     package.Package.__init__(self,argdb,log)
     self.packagename = 'lapack'
 
+  def ShowHelp(self):
+    print('BLAS/LAPACK:')
+    print('  [Not optional, always checked]')
+
   def ShowInfo(self):
     if hasattr(self,'missing'):
       self.log.Warn('Missing LAPACK functions: %s.\nSome SLEPc functionality will not be available.\nPlease reconfigure and recompile PETSc with a full LAPACK implementation'%(' '.join(self.missing)))

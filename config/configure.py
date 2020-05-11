@@ -93,16 +93,31 @@ lapack  = lapack.Lapack(argdb,log)
 slicot  = slicot.Slicot(argdb,log)
 hpddm   = hpddm.HPDDM(argdb,log)
 
-externalpackages = [arpack, blopex, blzpack, feast, hpddm, primme, slicot, trlan]
-optionspackages  = [slepc, sowing] + externalpackages
-checkpackages    = externalpackages + [lapack]
+externalpackages = [arpack, blopex, blzpack, hpddm, primme, slicot, trlan]
+petscpackages    = [lapack, feast]
+checkpackages    = petscpackages + externalpackages
 
 # Print help if requested and check for wrong command-line options
 if argdb.PopHelp():
-  print('SLEPc Configure Help')
-  print('-'*80)
-  for pkg in optionspackages:
+  slepc.InitDir()
+  slepc.LoadVersion()
+  print('\nConfiguration script for SLEPc '+slepc.version)
+  print('\nUsage: ./configure [OPTION]...\n')
+  print('  Brackets indicate an optional part')
+  print('  <bool> means a boolean, use either 0 or 1')
+  print('  <dir> means a directory')
+  print('  <fname> means a file name, can also include the full path or url')
+  print('  <libraries> means a comma-separated list of libraries, e.g., --with-arpack-lib=-lparpack,-larpack')
+  print('  <flags> means a string of flags, e.g., --download-primme-cflags="-std=c99 -g"')
+  slepc.ShowHelp()
+  sowing.ShowHelp()
+  print('\nOptional packages via PETSc (these are tested by default if present in PETSc\'s configuration):\n')
+  for pkg in petscpackages:
     pkg.ShowHelp()
+  print('\nOptional packages (external):\n')
+  for pkg in externalpackages:
+    pkg.ShowHelp()
+  print('')
   sys.exit(0)
 argdb.ErrorPetscOptions()
 argdb.ErrorIfNotEmpty()

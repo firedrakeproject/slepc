@@ -23,11 +23,13 @@ class SLEPc(package.Package):
 
   def ShowHelp(self):
     wd = package.Package.wd
-    print('SLEPc:')
+    print('\nConfiguration:')
+    print('  --help, -h'.ljust(wd)+': Display this help and exit')
     print('  --with-clean=<bool>'.ljust(wd)+': Delete prior build files including externalpackages')
+    print('  --with-packages-download-dir=<dir>'.ljust(wd)+': Skip network download of tarballs and locate them in specified dir')
+    print('\nSLEPc:')
     print('  --prefix=<dir>'.ljust(wd)+': Specify location to install SLEPc (e.g., /usr/local)')
     print('  --DATAFILESPATH=<dir>'.ljust(wd)+': Specify location of datafiles (for SLEPc developers)')
-    print('  --with-packages-download-dir=<dir>'.ljust(wd)+': Skip network download of tarballs and locate them in specified dir')
 
   def InitDir(self):
     if 'SLEPC_DIR' in os.environ:
