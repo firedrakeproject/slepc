@@ -12,14 +12,14 @@ import log, package
 
 class Feast(package.Package):
 
-  def __init__(self,argdb,log):
+  def __init__(self,argdb,log,petscpackages):
     package.Package.__init__(self,argdb,log)
     self.packagename    = 'feast'
     self.installable    = True
     self.petscdepend    = 'mkl'
     self.supportssingle = True
     self.supports64bint = True
-    self.ProcessArgs(argdb)
+    self.ProcessArgs(argdb,petscpackages)
 
   def Check(self,slepcconf,slepcvars,petsc,archdir):
     if not 'mkl' in petsc.packages:

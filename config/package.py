@@ -56,8 +56,11 @@ class Package:
     else:
       return subprocess.getstatusoutput(instr)
 
-  def ProcessArgs(self,argdb):
-    self.requested = False
+  def ProcessArgs(self,argdb,petscpackages=''):
+    if hasattr(self,'petscdepend') and self.petscdepend in petscpackages:
+      self.requested = True
+    else:
+      self.requested = False
     self.havepackage = False
     if self.installable and not hasattr(self,'petscdepend'):
       string,found = argdb.PopPath('with-'+self.packagename+'-dir',exist=True)

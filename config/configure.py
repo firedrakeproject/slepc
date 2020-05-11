@@ -78,14 +78,34 @@ import argdb, log
 argdb = argdb.ArgDB(sys.argv)
 log   = log.Log()
 
-# Load classes for packages and process command-line options
-import slepc, petsc, arpack, blopex, blzpack, feast, hpddm, primme, slicot, trlan, sowing, lapack
+showhelp = argdb.PopHelp()
+
+# Load main classes, process the corresponding command-line options
+import slepc, petsc
 slepc   = slepc.SLEPc(argdb,log)
 petsc   = petsc.PETSc(argdb,log)
+
+# Check enviroment and PETSc version
+if not showhelp:
+  log.Print('Checking environment...')
+  petsc.InitDir(slepc.prefixdir)
+  petsc.LoadVersion()
+slepc.InitDir()
+slepc.LoadVersion()
+
+# Load PETSc configuration
+if not showhelp:
+  petsc.LoadConf()
+  packagesinpetsc = petsc.packages
+else:
+  packagesinpetsc = ''
+
+# Load classes for packages and process their command-line options
+import arpack, blopex, blzpack, feast, hpddm, primme, slicot, trlan, sowing, lapack
 arpack  = arpack.Arpack(argdb,log)
 blopex  = blopex.Blopex(argdb,log)
 blzpack = blzpack.Blzpack(argdb,log)
-feast   = feast.Feast(argdb,log)
+feast   = feast.Feast(argdb,log,packagesinpetsc)
 primme  = primme.Primme(argdb,log)
 trlan   = trlan.Trlan(argdb,log)
 sowing  = sowing.Sowing(argdb,log)
@@ -98,9 +118,7 @@ petscpackages    = [lapack, feast]
 checkpackages    = petscpackages + externalpackages
 
 # Print help if requested and check for wrong command-line options
-if argdb.PopHelp():
-  slepc.InitDir()
-  slepc.LoadVersion()
+if showhelp:
   print('\nConfiguration script for SLEPc '+slepc.version)
   print('\nUsage: ./configure [OPTION]...\n')
   print('  Brackets indicate an optional part')
@@ -126,19 +144,9 @@ argdb.ErrorIfNotEmpty()
 if slepc.downloaddir:
   l = filter(None, [pkg.MissingTarball(slepc.downloaddir) for pkg in externalpackages])
   if l:
-    log.Println('Download the following packages and run the script again:')
+    log.Println('\n\nDownload the following packages and run the script again:')
     for pkg in l: log.Println(pkg)
     log.Exit('Missing files in packages-download directory')
-
-# Check enviroment and PETSc version
-log.Print('Checking environment...')
-petsc.InitDir(slepc.prefixdir)
-slepc.InitDir()
-petsc.LoadVersion()
-slepc.LoadVersion()
-
-# Load PETSc configuration
-petsc.LoadConf()
 
 # Check for empty PETSC_ARCH
 emptyarch = not ('PETSC_ARCH' in os.environ and os.environ['PETSC_ARCH'])
