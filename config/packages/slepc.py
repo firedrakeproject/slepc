@@ -33,7 +33,7 @@ class SLEPc(package.Package):
 
   def InitDir(self):
     if 'SLEPC_DIR' in os.environ:
-      self.dir = os.environ['SLEPC_DIR']
+      self.dir = os.path.normpath(os.environ['SLEPC_DIR'])
       if not os.path.exists(self.dir) or not os.path.exists(os.path.join(self.dir,'config')):
         self.log.Exit('SLEPC_DIR enviroment variable is not valid')
       if os.path.realpath(os.getcwd()) != os.path.realpath(self.dir):

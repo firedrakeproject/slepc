@@ -21,7 +21,7 @@ class PETSc(package.Package):
 
   def InitDir(self,prefixdir):
     if 'PETSC_DIR' in os.environ:
-      self.dir = os.environ['PETSC_DIR']
+      self.dir = os.path.normpath(os.environ['PETSC_DIR'])
       if not os.path.exists(self.dir):
         self.log.Exit('PETSC_DIR enviroment variable is not valid')
     else:
