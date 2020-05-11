@@ -454,7 +454,7 @@ gnu-c-debug:
     - linux-debian
   variables:
     PETSC_CONFIG_OPTS: --with-debugging=1 --CXXFLAGS='-O -g -std=c++11' --with-cxx-dialect=C++11
-    SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --download-arpack --download-primme --download-trlan --download-blopex --download-hpddm
+    SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --download-arpack --download-primme --download-trlan=https://codeforge.lbl.gov/frs/download.php/210/trlan-201009.tar.gz --download-blopex --download-hpddm
 
 #gnu-c-nompi:
 #  extends:
@@ -509,7 +509,7 @@ intel-c-complex-int64-mkl:
   variables:
     MAKE_FFLAGS: ''
     PETSC_CONFIG_OPTS: --with-cc=/usr/local/mpich-3.3.2-intel/bin/mpicc --with-fc=/usr/local/mpich-3.3.2-intel/bin/mpifort --with-cxx=0 --with-blaslapack-dir=/opt/intel/mkl/ --with-mkl_pardiso=1 --with-scalar-type=complex --with-64-bit-indices --with-64-bit-blas-indices
-    SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --with-packages-download-dir=/var/local/downloads --download-primme
+    SLEPC_CONFIG_OPTS: --DATAFILESPATH=/var/local --download-primme=/var/local/downloads/primme-3.1.1.tar.gz
 
 clang-c-valgrind:
   extends:
