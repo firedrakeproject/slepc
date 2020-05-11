@@ -25,7 +25,7 @@ class Trlan(package.Package):
     self.fortran        = True
     self.ProcessArgs(argdb)
 
-  def Check(self,conf,vars,petsc,archdir):
+  def Check(self,slepcconf,slepcvars,petsc,archdir):
     functions = ['trlan77']
     if self.packagelibs:
       libs = [self.packagelibs]
@@ -40,10 +40,10 @@ class Trlan(package.Package):
     else:
       dirs = self.GenerateGuesses('TRLan',archdir)
 
-    self.FortranLib(conf,vars,dirs,libs,functions)
+    self.FortranLib(slepcconf,slepcvars,dirs,libs,functions)
 
 
-  def DownloadAndInstall(self,conf,vars,slepc,petsc,archdir,prefixdir):
+  def DownloadAndInstall(self,slepcconf,slepcvars,slepc,petsc,archdir,prefixdir):
     externdir = slepc.CreateDir(archdir,'externalpackages')
     builddir  = self.Download(externdir,slepc.downloaddir)
 
@@ -80,5 +80,5 @@ class Trlan(package.Package):
     else:
       libs = [['-ltrlan_mpi']]
     dirs = [libdir]
-    self.FortranLib(conf,vars,dirs,libs,functions)
+    self.FortranLib(slepcconf,slepcvars,dirs,libs,functions)
 

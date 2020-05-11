@@ -38,7 +38,7 @@ class HPDDM(package.Package):
       self.log.Exit(pkg+' requires PETSc to be built without '+pkg)
     package.Package.Precondition(self,petsc)
 
-  def DownloadAndInstall(self,conf,vars,slepc,petsc,archdir,prefixdir):
+  def DownloadAndInstall(self,slepcconf,slepcvars,slepc,petsc,archdir,prefixdir):
     externdir = slepc.CreateDir(archdir,'externalpackages')
     builddir  = self.Download(externdir,slepc.downloaddir)
     incdir,libdir = slepc.CreatePrefixDirs(prefixdir)
@@ -80,9 +80,9 @@ class HPDDM(package.Package):
     l = petsc.slflag+d+' -L'+d+' -lhpddm_petsc'
     f = '-I'+incdir
     # Write configuration files
-    conf.write('#define SLEPC_HAVE_HPDDM 1\n')
-    vars.write('HPDDM_LIB = '+l+'\n')
-    vars.write('HPDDM_INCLUDE = '+f+'\n')
+    slepcconf.write('#define SLEPC_HAVE_HPDDM 1\n')
+    slepcvars.write('HPDDM_LIB = '+l+'\n')
+    slepcvars.write('HPDDM_INCLUDE = '+f+'\n')
     self.packageflags = [l] + [f]
     self.havepackage = True
 

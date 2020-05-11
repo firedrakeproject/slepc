@@ -21,7 +21,7 @@ class Feast(package.Package):
     self.supports64bint = True
     self.ProcessArgs(argdb)
 
-  def Check(self,conf,vars,petsc,archdir):
+  def Check(self,slepcconf,slepcvars,petsc,archdir):
     if not petsc.mkl:
       self.log.Exit('The FEAST interface requires that PETSc has been built with Intel MKL')
     functions = ['feastinit']
@@ -40,6 +40,6 @@ class Feast(package.Package):
     if not result:
       self.log.Exit('Unable to link with FEAST, maybe your MKL version does not contain it')
 
-    conf.write('#define SLEPC_HAVE_FEAST 1\n')
+    slepcconf.write('#define SLEPC_HAVE_FEAST 1\n')
     self.havepackage = True
 

@@ -38,7 +38,7 @@ class Blopex(package.Package):
     code += '  return 0;\n}\n'
     return code
 
-  def Check(self,conf,vars,petsc,archdir):
+  def Check(self,slepcconf,slepcvars,petsc,archdir):
     code = self.SampleCode(petsc)
     if self.packagedir:
       dirs = [os.path.join(self.packagedir,'blopex_abstract','lib')]
@@ -66,9 +66,9 @@ class Blopex(package.Package):
         f = ['-I' + includes[0]]
       result = self.Link([],[],l+f,code,' '.join(f),petsc.language)
       if result:
-        conf.write('#define SLEPC_HAVE_BLOPEX 1\n')
-        vars.write('BLOPEX_LIB = ' + ' '.join(l) + '\n')
-        vars.write('BLOPEX_INCLUDE = ' + ' '.join(f) + '\n')
+        slepcconf.write('#define SLEPC_HAVE_BLOPEX 1\n')
+        slepcvars.write('BLOPEX_LIB = ' + ' '.join(l) + '\n')
+        slepcvars.write('BLOPEX_INCLUDE = ' + ' '.join(f) + '\n')
         self.havepackage = True
         self.packageflags = l+f
         self.location = includes[0] if self.packageincludes else i
@@ -76,7 +76,7 @@ class Blopex(package.Package):
 
     self.log.Exit('Unable to link with BLOPEX library in directories'+' '.join(dirs)+' with libraries and link flags '+' '.join(libs))
 
-  def DownloadAndInstall(self,conf,vars,slepc,petsc,archdir,prefixdir):
+  def DownloadAndInstall(self,slepcconf,slepcvars,slepc,petsc,archdir,prefixdir):
     externdir = slepc.CreateDir(archdir,'externalpackages')
     downloadd = self.Download(externdir,slepc.downloaddir)
     builddir  = os.path.join(downloadd,'blopex_abstract')
@@ -118,9 +118,9 @@ class Blopex(package.Package):
       self.log.Exit('Unable to link with downloaded BLOPEX')
 
     # Write configuration files
-    conf.write('#define SLEPC_HAVE_BLOPEX 1\n')
-    vars.write('BLOPEX_LIB = ' + l + '\n')
-    vars.write('BLOPEX_INCLUDE = ' + f + '\n')
+    slepcconf.write('#define SLEPC_HAVE_BLOPEX 1\n')
+    slepcvars.write('BLOPEX_LIB = ' + l + '\n')
+    slepcvars.write('BLOPEX_INCLUDE = ' + f + '\n')
 
     self.havepackage = True
     self.packageflags = [l] + [f]

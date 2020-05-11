@@ -59,7 +59,7 @@ class Primme(package.Package):
     return code
 
 
-  def Check(self,conf,vars,petsc,archdir):
+  def Check(self,slepcconf,slepcvars,petsc,archdir):
     code = self.SampleCode(petsc)
     if self.packagedir:
       dirs = [os.path.join(self.packagedir,'lib'),self.packagedir]
@@ -87,9 +87,9 @@ class Primme(package.Package):
         f = ['-I' + includes[0]]
       result = self.Link([],[],l+f,code,' '.join(f),petsc.language)
       if result:
-        conf.write('#define SLEPC_HAVE_PRIMME 1\n')
-        vars.write('PRIMME_LIB = ' + ' '.join(l) + '\n')
-        vars.write('PRIMME_INCLUDE = ' + ' '.join(f) + '\n')
+        slepcconf.write('#define SLEPC_HAVE_PRIMME 1\n')
+        slepcvars.write('PRIMME_LIB = ' + ' '.join(l) + '\n')
+        slepcvars.write('PRIMME_INCLUDE = ' + ' '.join(f) + '\n')
         self.havepackage = True
         self.packageflags = l+f
         self.location = includes[0] if self.packageincludes else i
@@ -98,7 +98,7 @@ class Primme(package.Package):
     self.log.Exit('Unable to link with PRIMME library in directories'+' '.join(dirs)+' with libraries and link flags '+' '.join(libs)+' [NOTE: make sure PRIMME version is 2.0 at least]')
 
 
-  def DownloadAndInstall(self,conf,vars,slepc,petsc,archdir,prefixdir):
+  def DownloadAndInstall(self,slepcconf,slepcvars,slepc,petsc,archdir,prefixdir):
     externdir = slepc.CreateDir(archdir,'externalpackages')
     builddir  = self.Download(externdir,slepc.downloaddir)
 
@@ -152,16 +152,16 @@ class Primme(package.Package):
       self.log.Exit('Unable to link with downloaded PRIMME')
 
     # Write configuration files
-    conf.write('#define SLEPC_HAVE_PRIMME 1\n')
-    vars.write('PRIMME_LIB = ' + l + '\n')
-    vars.write('PRIMME_INCLUDE = ' + f + '\n')
+    slepcconf.write('#define SLEPC_HAVE_PRIMME 1\n')
+    slepcvars.write('PRIMME_LIB = ' + l + '\n')
+    slepcvars.write('PRIMME_INCLUDE = ' + f + '\n')
 
     self.location = incdir
     self.havepackage = True
     self.packageflags = [l] + [f]
 
 
-  def LoadVersion(self,conf):
+  def LoadVersion(self,slepcconf):
     try:
       f = open(os.path.join(self.location,'primme.h'))
       for l in f.readlines():
@@ -174,6 +174,6 @@ class Primme(package.Package):
       f.close()
       self.iversion = major + '.' + minor
       if major=='3':
-        conf.write('#define SLEPC_HAVE_PRIMME3 1\n')
+        slepcconf.write('#define SLEPC_HAVE_PRIMME3 1\n')
     except: pass
 

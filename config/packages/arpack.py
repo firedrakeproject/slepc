@@ -52,7 +52,7 @@ class Arpack(package.Package):
     return functions
 
 
-  def Check(self,conf,vars,petsc,archdir):
+  def Check(self,slepcconf,slepcvars,petsc,archdir):
     functions = self.Functions(petsc)
     if self.packagelibs:
       libs = [self.packagelibs]
@@ -66,10 +66,10 @@ class Arpack(package.Package):
       dirs = [os.path.join(self.packagedir,'lib'),self.packagedir]
     else:
       dirs = self.GenerateGuesses('Arpack',archdir)
-    self.FortranLib(conf,vars,dirs,libs,functions)
+    self.FortranLib(slepcconf,slepcvars,dirs,libs,functions)
 
 
-  def DownloadAndInstall(self,conf,vars,slepc,petsc,archdir,prefixdir):
+  def DownloadAndInstall(self,slepcconf,slepcvars,slepc,petsc,archdir,prefixdir):
     externdir = slepc.CreateDir(archdir,'externalpackages')
     builddir  = self.Download(externdir,slepc.downloaddir)
 
@@ -101,5 +101,5 @@ class Arpack(package.Package):
       libs = [['-lparpack','-larpack']]
     libdir = os.path.join(prefixdir,'lib')
     dirs = [libdir]
-    self.FortranLib(conf,vars,dirs,libs,functions)
+    self.FortranLib(slepcconf,slepcvars,dirs,libs,functions)
 

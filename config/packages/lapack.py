@@ -20,13 +20,13 @@ class Lapack(package.Package):
     if hasattr(self,'missing'):
       self.log.Warn('Missing LAPACK functions: %s.\nSome SLEPc functionality will not be available.\nPlease reconfigure and recompile PETSc with a full LAPACK implementation'%(' '.join(self.missing)))
 
-  def Process(self,conf,vars,slepc,petsc,archdir=''):
+  def Process(self,slepcconf,slepcvars,slepc,petsc,archdir=''):
     self.make = petsc.make
     self.mangling = petsc.blaslapackmangling
     if petsc.buildsharedlib:
       self.slflag = petsc.slflag
     self.log.NewSection('Checking LAPACK library...')
-    self.Check(conf,vars,petsc)
+    self.Check(slepcconf,slepcvars,petsc)
 
   def LinkBlasLapack(self,functions,callbacks,flags,petsc):
     code = ''
@@ -42,7 +42,7 @@ class Lapack(package.Package):
     result = self.Link(functions,callbacks,flags,code)
     return result
 
-  def Check(self,conf,vars,petsc):
+  def Check(self,slepcconf,slepcvars,petsc):
 
     # LAPACK standard functions
     l = ['laev2','gehrd','lanhs','trexc','trevc','tgexc','tgevc','stedc','hsein','larfg','larf','lascl','trsyl']
@@ -117,5 +117,5 @@ class Lapack(package.Package):
           nf = namesubst[i[1:]]
         else:
           nf = i[1:]
-        conf.write('#define SLEPC_MISSING_LAPACK_' + nf.upper() + ' 1\n')
+        slepcconf.write('#define SLEPC_MISSING_LAPACK_' + nf.upper() + ' 1\n')
 
