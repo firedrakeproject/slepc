@@ -112,6 +112,7 @@ class Package:
         self.log.NewSection('Checking '+name+'...')
         self.Precondition(petsc)
         self.Check(slepcconf,slepcvars,petsc,archdir)
+        if not self.havepackage: self.log.setLastFailed()
       try:
         self.LoadVersion(slepcconf)
         self.log.write('Version number for '+name+' is '+self.iversion)

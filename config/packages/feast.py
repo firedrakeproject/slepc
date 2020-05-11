@@ -38,8 +38,10 @@ class Feast(package.Package):
 
     result = self.Link(functions,[],[])
     if not result:
-      self.log.Exit('Unable to link with FEAST, maybe your MKL version does not contain it')
-
-    slepcconf.write('#define SLEPC_HAVE_FEAST 1\n')
-    self.havepackage = True
+      self.log.write('ERROR: Unable to link with FEAST, maybe your MKL version does not contain it')
+      self.log.write('If you do not want to check for FEAST, rerun configure adding --with-feast=0')
+      self.havepackage = False
+    else:
+      slepcconf.write('#define SLEPC_HAVE_FEAST 1\n')
+      self.havepackage = True
 

@@ -13,6 +13,9 @@ import os, sys
 
 class Log:
 
+  def __init__(self):
+    self.lastfailed = False
+
   def Open(self,slepcdir,confdir,fname):
     filename = os.path.join(confdir,fname)
     self.fd = open(filename,'w')
@@ -36,9 +39,15 @@ class Log:
       self.fd.write(string+' ')
 
   def NewSection(self,string):
-    print('done\n'+string, end=' ')
+    if self.lastfailed:
+      colorfail = '\033[91m'
+      colornorm = '\033[0m'
+      print(colorfail+'failed'+colornorm+'\n'+string, end=' ')
+    else:
+      print('done\n'+string, end=' ')
     sys.stdout.flush()
     self.fd.write('='*80+'\n'+string+'\n')
+    self.lastfailed = False
 
   def write(self,string):
     self.fd.write(string+'\n')
@@ -59,4 +68,7 @@ class Log:
     else:
       msg = 'ERROR during configure (log file not open yet)'
     sys.exit(msg)
+
+  def setLastFailed(self):
+    self.lastfailed = True
 
