@@ -23,15 +23,17 @@ class SLEPc(package.Package):
 
   def ShowHelp(self):
     wd = package.Package.wd
-    print('SLEPc:')
+    print('\nConfiguration:')
+    print('  --help, -h'.ljust(wd)+': Display this help and exit')
     print('  --with-clean=<bool>'.ljust(wd)+': Delete prior build files including externalpackages')
+    print('  --with-packages-download-dir=<dir>'.ljust(wd)+': Skip network download of tarballs and locate them in specified dir')
+    print('\nSLEPc:')
     print('  --prefix=<dir>'.ljust(wd)+': Specify location to install SLEPc (e.g., /usr/local)')
     print('  --DATAFILESPATH=<dir>'.ljust(wd)+': Specify location of datafiles (for SLEPc developers)')
-    print('  --with-packages-download-dir=<dir>'.ljust(wd)+': Skip network download of tarballs and locate them in specified dir')
 
   def InitDir(self):
     if 'SLEPC_DIR' in os.environ:
-      self.dir = os.environ['SLEPC_DIR']
+      self.dir = os.path.normpath(os.environ['SLEPC_DIR'])
       if not os.path.exists(self.dir) or not os.path.exists(os.path.join(self.dir,'config')):
         self.log.Exit('SLEPC_DIR enviroment variable is not valid')
       if os.path.realpath(os.getcwd()) != os.path.realpath(self.dir):

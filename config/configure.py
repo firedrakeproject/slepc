@@ -78,14 +78,34 @@ import argdb, log
 argdb = argdb.ArgDB(sys.argv)
 log   = log.Log()
 
-# Load classes for packages and process command-line options
-import slepc, petsc, arpack, blopex, blzpack, feast, hpddm, primme, slicot, trlan, sowing, lapack
+showhelp = argdb.PopHelp()
+
+# Load main classes, process the corresponding command-line options
+import slepc, petsc
 slepc   = slepc.SLEPc(argdb,log)
 petsc   = petsc.PETSc(argdb,log)
+
+# Check enviroment and PETSc version
+if not showhelp:
+  log.Print('Checking environment...')
+  petsc.InitDir(slepc.prefixdir)
+  petsc.LoadVersion()
+slepc.InitDir()
+slepc.LoadVersion()
+
+# Load PETSc configuration
+if not showhelp:
+  petsc.LoadConf()
+  packagesinpetsc = petsc.packages
+else:
+  packagesinpetsc = ''
+
+# Load classes for packages and process their command-line options
+import arpack, blopex, blzpack, feast, hpddm, primme, slicot, trlan, sowing, lapack
 arpack  = arpack.Arpack(argdb,log)
 blopex  = blopex.Blopex(argdb,log)
 blzpack = blzpack.Blzpack(argdb,log)
-feast   = feast.Feast(argdb,log)
+feast   = feast.Feast(argdb,log,packagesinpetsc)
 primme  = primme.Primme(argdb,log)
 trlan   = trlan.Trlan(argdb,log)
 sowing  = sowing.Sowing(argdb,log)
@@ -93,16 +113,29 @@ lapack  = lapack.Lapack(argdb,log)
 slicot  = slicot.Slicot(argdb,log)
 hpddm   = hpddm.HPDDM(argdb,log)
 
-externalpackages = [arpack, blopex, blzpack, feast, hpddm, primme, slicot, trlan]
-optionspackages  = [slepc, sowing] + externalpackages
-checkpackages    = externalpackages + [lapack]
+externalpackages = [arpack, blopex, blzpack, hpddm, primme, slicot, trlan]
+petscpackages    = [lapack, feast]
+checkpackages    = petscpackages + externalpackages
 
 # Print help if requested and check for wrong command-line options
-if argdb.PopHelp():
-  print('SLEPc Configure Help')
-  print('-'*80)
-  for pkg in optionspackages:
+if showhelp:
+  print('\nConfiguration script for SLEPc '+slepc.version)
+  print('\nUsage: ./configure [OPTION]...\n')
+  print('  Brackets indicate an optional part')
+  print('  <bool> means a boolean, use either 0 or 1')
+  print('  <dir> means a directory')
+  print('  <fname> means a file name, can also include the full path or url')
+  print('  <libraries> means a comma-separated list of libraries, e.g., --with-arpack-lib=-lparpack,-larpack')
+  print('  <flags> means a string of flags, e.g., --download-primme-cflags="-std=c99 -g"')
+  slepc.ShowHelp()
+  sowing.ShowHelp()
+  print('\nOptional packages via PETSc (these are tested by default if present in PETSc\'s configuration):\n')
+  for pkg in petscpackages:
     pkg.ShowHelp()
+  print('\nOptional packages (external):\n')
+  for pkg in externalpackages:
+    pkg.ShowHelp()
+  print('')
   sys.exit(0)
 argdb.ErrorPetscOptions()
 argdb.ErrorIfNotEmpty()
@@ -111,19 +144,9 @@ argdb.ErrorIfNotEmpty()
 if slepc.downloaddir:
   l = filter(None, [pkg.MissingTarball(slepc.downloaddir) for pkg in externalpackages])
   if l:
-    log.Println('Download the following packages and run the script again:')
+    log.Println('\n\nDownload the following packages and run the script again:')
     for pkg in l: log.Println(pkg)
     log.Exit('Missing files in packages-download directory')
-
-# Check enviroment and PETSc version
-log.Print('Checking environment...')
-petsc.InitDir(slepc.prefixdir)
-slepc.InitDir()
-petsc.LoadVersion()
-slepc.LoadVersion()
-
-# Load PETSc configuration
-petsc.LoadConf()
 
 # Check for empty PETSC_ARCH
 emptyarch = not ('PETSC_ARCH' in os.environ and os.environ['PETSC_ARCH'])

@@ -25,7 +25,7 @@ class Slicot(package.Package):
     self.ProcessArgs(argdb)
 
 
-  def Check(self,conf,vars,petsc,archdir):
+  def Check(self,slepcconf,slepcvars,petsc,archdir):
     functions = ['sb03od','sb03md']
     if self.packagelibs:
       libs = [self.packagelibs]
@@ -37,10 +37,10 @@ class Slicot(package.Package):
     else:
       dirs = self.GenerateGuesses('slicot',archdir)
 
-    self.FortranLib(conf,vars,dirs,libs,functions)
+    self.FortranLib(slepcconf,slepcvars,dirs,libs,functions)
 
 
-  def DownloadAndInstall(self,conf,vars,slepc,petsc,archdir,prefixdir):
+  def DownloadAndInstall(self,slepcconf,slepcvars,slepc,petsc,archdir,prefixdir):
     externdir = slepc.CreateDir(archdir,'externalpackages')
     builddir  = self.Download(externdir,slepc.downloaddir)
     libname = 'libslicot.a'
@@ -69,5 +69,5 @@ class Slicot(package.Package):
     functions = ['sb03od']
     libs = [['-lslicot']]
     dirs = [libdir]
-    self.FortranLib(conf,vars,dirs,libs,functions)
+    self.FortranLib(slepcconf,slepcvars,dirs,libs,functions)
 

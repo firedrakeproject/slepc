@@ -32,7 +32,6 @@ class Package:
 
   def __init__(self,argdb,log):
     self.installable     = False  # an already installed package can be picked --with-xxx-dir
-    self.frommkl         = False  # it is included in MKL
     self.downloadable    = False  # package can be downloaded and installed with --download-xxx
     self.downloadpackage = 0
     self.packagedir      = ''
@@ -57,10 +56,13 @@ class Package:
     else:
       return subprocess.getstatusoutput(instr)
 
-  def ProcessArgs(self,argdb):
-    self.requested = False
+  def ProcessArgs(self,argdb,petscpackages=''):
+    if hasattr(self,'petscdepend') and self.petscdepend in petscpackages:
+      self.requested = True
+    else:
+      self.requested = False
     self.havepackage = False
-    if self.installable and not self.frommkl:
+    if self.installable and not hasattr(self,'petscdepend'):
       string,found = argdb.PopPath('with-'+self.packagename+'-dir',exist=True)
       if found:
         self.requested = True
@@ -93,7 +95,7 @@ class Package:
           self.log.Exit('--download-'+self.packagename+'-cflags must be used together with --download-'+self.packagename)
         self.buildflags = string
 
-  def Process(self,conf,vars,slepc,petsc,archdir=''):
+  def Process(self,slepcconf,slepcvars,slepc,petsc,archdir=''):
     self.make = petsc.make
     if petsc.buildsharedlib:
       self.slflag = petsc.slflag
@@ -105,13 +107,14 @@ class Package:
         else:
           self.log.NewSection('Installing '+name+'...')
         self.Precondition(petsc)
-        self.DownloadAndInstall(conf,vars,slepc,petsc,archdir,slepc.prefixdir)
+        self.DownloadAndInstall(slepcconf,slepcvars,slepc,petsc,archdir,slepc.prefixdir)
       elif self.installable:
         self.log.NewSection('Checking '+name+'...')
         self.Precondition(petsc)
-        self.Check(conf,vars,petsc,archdir)
+        self.Check(slepcconf,slepcvars,petsc,archdir)
+        if not self.havepackage: self.log.setLastFailed()
       try:
-        self.LoadVersion(conf)
+        self.LoadVersion(slepcconf)
         self.log.write('Version number for '+name+' is '+self.iversion)
       except AttributeError:
         pass
@@ -253,8 +256,8 @@ Downloaded package %s from: %s is not a tarball.
       if self.hasdloadflags:
         print(('  --download-'+self.packagename+'-cflags=<flags>').ljust(wd)+': Indicate extra flags to compile '+self.packagename.upper())
     if self.installable:
-      print(('  --with-'+self.packagename+'=<bool>').ljust(wd)+': Indicate if you wish to test for '+self.packagename.upper()+(' (requires PETSc with MKL)' if self.frommkl else ''))
-    if self.installable and not self.frommkl:
+      print(('  --with-'+self.packagename+'=<bool>').ljust(wd)+': Indicate if you wish to test for '+self.packagename.upper()+(' (requires PETSc with %s)'%self.petscdepend.upper() if hasattr(self,'petscdepend') else ''))
+    if self.installable and not hasattr(self,'petscdepend'):
       print(('  --with-'+self.packagename+'-dir=<dir>').ljust(wd)+': Indicate the root directory of the '+self.packagename.upper()+' installation')
       print(('  --with-'+self.packagename+'-lib=<libraries>').ljust(wd)+': Indicate comma-separated libraries and link flags for '+self.packagename.upper())
       if self.hasheaders:
@@ -262,8 +265,8 @@ Downloaded package %s from: %s is not a tarball.
 
   def ShowInfo(self):
     if self.havepackage:
-      if self.frommkl:
-        self.log.Println(self.packagename.upper()+' from MKL linked by PETSc')
+      if hasattr(self,'petscdepend'):
+        self.log.Println(self.packagename.upper()+' from %s linked by PETSc' % self.petscdepend.upper())
       else:
         self.log.Println(self.packagename.upper()+' library flags:')
         self.log.Println(' '+' '.join(self.packageflags))
@@ -374,7 +377,7 @@ Downloaded package %s from: %s is not a tarball.
     dirs = [''] + dirs + [os.path.join(archdir,word)]
     return dirs
 
-  def FortranLib(self,conf,vars,dirs,libs,functions,callbacks = []):
+  def FortranLib(self,slepcconf,slepcvars,dirs,libs,functions,callbacks = []):
     name = self.packagename.upper()
     error = ''
     mangling = ''
@@ -398,8 +401,8 @@ Downloaded package %s from: %s is not a tarball.
       self.log.write(error)
       self.log.Exit('Unable to link with '+name+' library in directories '+' '.join(dirs)+' with libraries and link flags '+' '.join(flags))
 
-    conf.write('#define SLEPC_HAVE_' + name + ' 1\n#define SLEPC_' + name + '_HAVE_'+mangling+' 1\n')
-    vars.write(name + '_LIB = '+' '.join(flags)+'\n')
+    slepcconf.write('#define SLEPC_HAVE_' + name + ' 1\n#define SLEPC_' + name + '_HAVE_'+mangling+' 1\n')
+    slepcvars.write(name + '_LIB = '+' '.join(flags)+'\n')
     self.havepackage = True
     self.packageflags = flags
 
