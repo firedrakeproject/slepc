@@ -557,7 +557,7 @@ PetscErrorCode NEPSolve_CISS(NEP nep)
     }
 
     nep->nconv = 0;
-    if (nv == 0) break;
+    if (nv == 0) { nep->reason = NEP_CONVERGED_TOL; break; }
     ierr = BlockHankel(nep,Mu,0,H0);CHKERRQ(ierr);
     ierr = BlockHankel(nep,Mu,1,H1);CHKERRQ(ierr);
     ierr = DSSetDimensions(nep->ds,nv,0,0,0);CHKERRQ(ierr);
