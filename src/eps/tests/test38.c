@@ -97,8 +97,7 @@ int main(int argc,char **argv)
 /*TEST
 
    test:
-      args: -eps_tol 1e-7 -eps_view -terse
-      requires: double
-      filter: sed -e "s/symmetric/hermitian/"
+      args: -eps_view -terse
+      filter: grep -v tolerance | sed -e "s/symmetric/hermitian/"
 
 TEST*/

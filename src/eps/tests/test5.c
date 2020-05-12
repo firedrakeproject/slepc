@@ -91,7 +91,7 @@ int main(int argc,char **argv)
 
    testset:
       args: -eps_nev 3
-      requires: double !complex
+      requires: !single !complex
       output_file: output/test5_1.out
       test:
          suffix: 1

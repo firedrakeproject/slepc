@@ -139,7 +139,6 @@ int main(int argc,char **argv)
 
    testset:
       args: -eps_nev 4 -eps_smallest_real -eps_max_it 500
-      requires: !single
       output_file: output/test3_2.out
       test:
          suffix: 2_rqcg
@@ -153,6 +152,7 @@ int main(int argc,char **argv)
       test:
          suffix: 2_lanczos_delayed
          args: -eps_type lanczos -eps_lanczos_reorthog delayed -eps_tol 1e-8
+         requires: !single
       test:
          suffix: 2_trlan
          args: -eps_type trlan

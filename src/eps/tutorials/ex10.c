@@ -302,7 +302,6 @@ PetscErrorCode STDestroy_User(SampleShellST *shell)
 
    testset:
       args: -eps_nev 5 -eps_non_hermitian -terse
-      requires: !single
       output_file: output/ex10_1.out
       test:
          suffix: 1_sinvert
@@ -313,6 +312,7 @@ PetscErrorCode STDestroy_User(SampleShellST *shell)
       test:
          suffix: 1_shell
          args: -st_type shell
+         requires: !single
       test:
          suffix: 1_shell_twoside
          args: -st_type shell -eps_balance twoside

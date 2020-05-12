@@ -80,7 +80,7 @@ int main(int argc,char **argv)
 
    test:
       args: -svd_nsv 7 -svd_type {{lanczos trlanczos cross cyclic lapack}}
-      requires: double
+      requires: !single
 
    testset:
       args: -svd_nsv 7 -svd_type primme

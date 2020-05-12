@@ -119,12 +119,11 @@ int main(int argc,char **argv)
    test:
       suffix: 1
       args: -log_exclude svd
-      requires: !single
 
    test:
       suffix: 2_cuda
       args: -log_exclude svd -mat_type aijcusparse
-      requires: cuda !single
+      requires: cuda
       output_file: output/test7_1.out
 
 TEST*/

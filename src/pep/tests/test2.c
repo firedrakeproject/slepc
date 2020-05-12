@@ -237,7 +237,6 @@ int main(int argc,char **argv)
       test:
          suffix: 2_stoar
          args: -pep_type stoar -pep_hermitian
-         requires: !single
       test:
          suffix: 2_jd
          args: -pep_type jd -st_type precond -pep_max_it 200 -pep_ncv 24
@@ -269,6 +268,7 @@ int main(int argc,char **argv)
       test:
          suffix: 4_multiple_explicit
          args: -pep_refine multiple -pep_refine_scheme explicit
+         requires: !single
 
    test:
       suffix: 5
@@ -314,7 +314,6 @@ int main(int argc,char **argv)
       nsize: 2
       args: -st_type sinvert -pep_target -0.49 -pep_nev 4 -pep_refine_partitions 2 -st_ksp_type bcgs -st_pc_type bjacobi -pep_scale diagonal -pep_scale_its 4
       output_file: output/test2_2.out
-      requires: !single
       test:
          suffix: 9_mbe
          args: -pep_refine simple -pep_refine_scheme mbe -pep_refine_ksp_type preonly -pep_refine_pc_type lu
@@ -324,15 +323,16 @@ int main(int argc,char **argv)
       test:
          suffix: 9_multiple_mbe
          args: -pep_refine multiple -pep_refine_scheme mbe -pep_refine_ksp_type preonly -pep_refine_pc_type lu
+         requires: !single
       test:
          suffix: 9_multiple_explicit
          args: -pep_refine multiple -pep_refine_scheme explicit
+         requires: !single
 
    test:
       suffix: 10
       nsize: 4
       args: -st_type sinvert -pep_target -0.43 -pep_nev 4 -pep_refine simple -pep_refine_scheme explicit -pep_refine_partitions 2 -st_ksp_type bcgs -st_pc_type bjacobi -pep_scale diagonal -pep_scale_its 4
-      requires: double
       output_file: output/test2_2.out
 
    testset:

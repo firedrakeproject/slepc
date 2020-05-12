@@ -228,6 +228,5 @@ PetscErrorCode MyStoppingTest(NEP nep,PetscInt its,PetscInt max_it,PetscInt ncon
    test:
       suffix: 1
       args: -terse
-      requires: !single
 
 TEST*/

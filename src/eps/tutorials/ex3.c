@@ -184,6 +184,5 @@ PetscErrorCode MatGetDiagonal_Laplacian2D(Mat A,Vec diag)
    test:
       suffix: 1
       args: -n 72 -eps_nev 4 -eps_ncv 20 -terse
-      requires: !single
 
 TEST*/

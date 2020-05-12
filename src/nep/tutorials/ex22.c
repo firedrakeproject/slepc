@@ -195,7 +195,7 @@ int main(int argc,char **argv)
    test:
       suffix: 1_ciss
       args: -nep_type ciss -rg_type ellipse -rg_ellipse_center 10 -rg_ellipse_radius 9.5 -nep_ncv 24 -terse
-      requires: complex
+      requires: complex !single
 
    test:
       suffix: 2

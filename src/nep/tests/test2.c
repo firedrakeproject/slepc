@@ -177,6 +177,5 @@ int main(int argc,char **argv)
 
    test:
       suffix: 1
-      requires: !single
 
 TEST*/

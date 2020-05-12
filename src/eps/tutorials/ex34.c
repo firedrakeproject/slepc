@@ -152,7 +152,7 @@ int main(int argc,char **argv)
     /* Number of Newton iterations supposes to be zero */
     ierr = SNESGetIterationNumber(snes,&nits);CHKERRQ(ierr);
     if (nits) {
-      ierr = PetscPrintf(comm," Number of Newtoniterations %D should be zero \n",nits);CHKERRQ(ierr);
+      ierr = PetscPrintf(comm," Number of Newton iterations %D should be zero \n",nits);CHKERRQ(ierr);
     }
   }
 

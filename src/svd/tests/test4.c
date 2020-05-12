@@ -151,7 +151,6 @@ int main(int argc,char **argv)
       test:
          suffix: 1_lapack
          args: -svd_type lapack
-         requires: !single
 
    testset:
       args: -svd_monitor_cancel  -mat_type aijcusparse

@@ -150,6 +150,6 @@ int main(int argc,char **argv)
    test:
       suffix: 2_feast
       args: -eps_type feast -eps_interval -103,-90 -terse
-      requires: feast
+      requires: feast !single
 
 TEST*/

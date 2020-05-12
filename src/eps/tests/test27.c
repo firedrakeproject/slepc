@@ -124,8 +124,6 @@ int main(int argc,char **argv)
    test:
       suffix: 1
       args: -eps_type {{gd jd rqcg lobpcg}} -terse
-      requires: !single
-      output_file: output/test27_1.out
 
    test:
       suffix: 2

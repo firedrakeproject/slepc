@@ -100,22 +100,21 @@ int main(int argc,char **argv)
 
    testset:
       args: -eps_nev 4 -eps_ncv 12 -terse -st_type sinvert -eps_krylovschur_restart .3
+      requires: !single
       output_file: output/test18_1.out
       test:
          suffix: 1_ks
-         requires: !single
       test:
          suffix: 1_ks_gnhep
          args: -eps_gen_non_hermitian
-         requires: !single
       test:
          suffix: 2_cuda_ks
          args: -mat_type aijcusparse
-         requires: cuda !single
+         requires: cuda
       test:
          suffix: 2_cuda_ks_gnhep
          args: -eps_gen_non_hermitian -mat_type aijcusparse
-         requires: cuda !single
+         requires: cuda
 
    test:
       suffix: 1_davidson

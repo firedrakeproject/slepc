@@ -209,7 +209,6 @@ int main(int argc,char **argv)
       test:
          suffix: 5_lobpcg
          args: -eps_type lobpcg -eps_lobpcg_blocksize 3
-         requires: !single
       test:
          suffix: 5_blopex
          args: -eps_type blopex -eps_conv_abs -st_shift 0.1
@@ -258,7 +257,6 @@ int main(int argc,char **argv)
    testset:
       nsize: 2
       args: -n 18 -eps_nev 7 -eps_ncv 32 -ds_parallel synchronized
-      requires: !single
       filter: grep -v "orthogonality"
       output_file: output/test1_9.out
       test:
@@ -270,6 +268,7 @@ int main(int argc,char **argv)
       test:
          suffix: 9_ks_ghiep
          args: -eps_gen_indefinite -st_pc_type redundant -st_type sinvert
+         requires: !single
       test:
          suffix: 9_lobpcg_ghep
          args: -eps_gen_hermitian -eps_type lobpcg -eps_max_it 200 -eps_lobpcg_blocksize 6
@@ -277,6 +276,7 @@ int main(int argc,char **argv)
       test:
          suffix: 9_jd_gnhep
          args: -eps_gen_non_hermitian -eps_type jd -eps_target 0 -eps_ncv 64
+         requires: !single
          timeoutfactor: 2
 
    test:

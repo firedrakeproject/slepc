@@ -509,7 +509,14 @@ PetscErrorCode PEPSetUp_STOAR_QSlice(PEP pep)
   if (pep->inta==pep->intb) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_SUP,"This solver does not support computing all eigenvalues unless you provide a computational interval with PEPSetInterval()");
   if (pep->intb >= PETSC_MAX_REAL && pep->inta <= PETSC_MIN_REAL) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_WRONG,"The defined computational interval should have at least one of their sides bounded");
   PEPCheckUnsupportedCondition(pep,PEP_FEATURE_STOPPING,PETSC_TRUE," (with spectrum slicing)");
-  if (pep->tol==PETSC_DEFAULT) pep->tol = SLEPC_DEFAULT_TOL*1e-2;  /* use tighter tolerance */
+  if (pep->tol==PETSC_DEFAULT) {
+#if defined(PETSC_USE_REAL_SINGLE)
+    pep->tol = SLEPC_DEFAULT_TOL;
+#else
+    /* use tighter tolerance */
+    pep->tol = SLEPC_DEFAULT_TOL*1e-2;
+#endif
+  }
   if (ctx->nev==1) ctx->nev = PetscMin(20,pep->n);  /* nev not set, use default value */
   if (pep->n>10 && ctx->nev<10) SETERRQ(PetscObjectComm((PetscObject)pep),PETSC_ERR_ARG_WRONG,"nev cannot be less than 10 in spectrum slicing runs");
   pep->ops->backtransform = PEPBackTransform_Skip;
