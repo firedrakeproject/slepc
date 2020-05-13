@@ -373,7 +373,14 @@ PetscErrorCode EPSSetUp_KrylovSchur_Slice(EPS eps)
     if (eps->intb >= PETSC_MAX_REAL && eps->inta <= PETSC_MIN_REAL) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_WRONG,"The defined computational interval should have at least one of their sides bounded");
     EPSCheckUnsupportedCondition(eps,EPS_FEATURE_ARBITRARY | EPS_FEATURE_REGION | EPS_FEATURE_STOPPING,PETSC_TRUE," with spectrum slicing");
     EPSCheckIgnoredCondition(eps,EPS_FEATURE_BALANCE,PETSC_TRUE," with spectrum slicing");
-    if (eps->tol==PETSC_DEFAULT) eps->tol = SLEPC_DEFAULT_TOL*1e-2;  /* use tighter tolerance */
+    if (eps->tol==PETSC_DEFAULT) {
+ #if defined(PETSC_USE_REAL_SINGLE)
+      eps->tol = SLEPC_DEFAULT_TOL;
+#else
+      /* use tighter tolerance */
+      eps->tol = SLEPC_DEFAULT_TOL*1e-2;
+#endif
+    }
     if (!eps->max_it) eps->max_it = 100;
     if (ctx->nev==1) ctx->nev = PetscMin(40,eps->n);  /* nev not set, use default value */
     if (eps->n>10 && ctx->nev<10) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_ARG_WRONG,"nev cannot be less than 10 in spectrum slicing runs");

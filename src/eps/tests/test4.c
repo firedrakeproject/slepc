@@ -108,7 +108,6 @@ int main(int argc,char **argv)
 /*TEST
 
    testset:
-      requires: !single
       output_file: output/test4_1.out
       test:
          suffix: 1

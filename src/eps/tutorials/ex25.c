@@ -187,15 +187,8 @@ int main(int argc,char **argv)
 
 /*TEST
 
-   testset:
+   test:
       args: -terse
-      output_file: output/ex25_1.out
-      test:
-         suffix: 1
-         requires: !single
-      test:
-         suffix: 1_single
-         args: -eps_tol 1e-5
-         requires: single
+      suffix: 1
 
 TEST*/

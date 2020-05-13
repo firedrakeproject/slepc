@@ -247,8 +247,6 @@ PetscErrorCode MatGetDiagonal_Identity(Mat A,Vec diag)
    test:
       suffix: 1
       args: -pep_type {{toar qarnoldi linear}} -pep_nev 4 -terse
-      filter: grep -v Solution
-      requires: !single
-      output_file: output/ex28_1.out
+      filter: grep -v Solution | sed -e "s/2.7996[1-8]i/2.79964i/g" | sed -e "s/2.7570[5-9]i/2.75708i/g" | sed -e "s/0.00000-2.79964i, 0.00000+2.79964i/0.00000+2.79964i, 0.00000-2.79964i/" | sed -e "s/0.00000-2.75708i, 0.00000+2.75708i/0.00000+2.75708i, 0.00000-2.75708i/"
 
 TEST*/

@@ -116,11 +116,14 @@ int main (int argc,char **argv)
 
    testset:
       args: -eps_nev 4 -m 11 -eps_max_it 500
-      requires: !single
       output_file: output/test10_1.out
       test:
          suffix: 1
-         args: -eps_type {{krylovschur arnoldi lanczos gd jd rqcg lobpcg}}
+         args: -eps_type {{krylovschur arnoldi gd jd rqcg lobpcg}}
+      test:
+         suffix: 1_lanczos
+         args: -eps_type lanczos
+         requires: !single
       test:
          suffix: 1_gd2
          args: -eps_type gd -eps_gd_double_expansion

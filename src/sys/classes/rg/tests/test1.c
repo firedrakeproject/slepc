@@ -189,7 +189,7 @@ int main(int argc,char **argv)
 
    test:
       suffix: 2_complex
-      requires: complex
+      requires: complex !single
       args: -rg_ellipse_view draw:tikz:ellipse.tikz -rg_interval_view draw:tikz:interval.tikz -rg_polygon_view draw:tikz:polygon.tikz
       filter: cat - ellipse.tikz interval.tikz polygon.tikz
 

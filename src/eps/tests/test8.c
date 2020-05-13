@@ -201,11 +201,6 @@ PetscErrorCode MatGetDiagonal_Laplacian2D(Mat A,Vec diag)
       test:
          suffix: 2
          args: -eps_type {{rqcg lobpcg lanczos}}
-         requires: !single
-      test:
-         suffix: 2_single
-         args: -eps_type {{rqcg lobpcg lanczos}} -eps_tol 1e-5
-         requires: single !cuda
       test:
          suffix: 2_arpack
          args: -eps_type arpack -eps_ncv 6
@@ -225,23 +220,10 @@ PetscErrorCode MatGetDiagonal_Laplacian2D(Mat A,Vec diag)
       test:
          suffix: 3
          args: -eps_type {{rqcg lanczos}}
-         requires: double
       test:
          suffix: 3_lobpcg
          args: -eps_type lobpcg -eps_lobpcg_blocksize 3 -eps_lobpcg_locking 0 -st_ksp_type preonly -st_pc_type jacobi
-         requires: double
-      test:
-         suffix: 3_single
-         args: -eps_type {{rqcg lanczos}} -eps_tol 1e-5
-         requires: single
-      test:
-         suffix: 3_lobpcg_single
-         args: -eps_type lobpcg -eps_lobpcg_blocksize 3 -eps_lobpcg_locking 0 -st_ksp_type preonly -st_pc_type jacobi -eps_tol 1e-5
-         requires: single
-      test:
-         suffix: 3_quad
-         args: -eps_type {{rqcg lanczos}} -eps_tol 1e-25
-         requires: __float128
+         requires: !__float128
       test:
          suffix: 3_lobpcg_quad
          args: -eps_type lobpcg -eps_lobpcg_blocksize 3 -eps_lobpcg_locking 0 -st_ksp_type preonly -st_pc_type jacobi -eps_tol 1e-25

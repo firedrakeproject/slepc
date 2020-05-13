@@ -288,12 +288,12 @@ PetscErrorCode ComputeSingularities(NEP nep,PetscInt *maxnp,PetscScalar *xi,void
    test:
       suffix: 7
       args: -split 0 -nep_type ciss -rg_type ellipse -rg_ellipse_center 8 -rg_ellipse_radius .7 -rg_ellipse_vscale 0.1 -terse
-      requires: complex
+      requires: complex !single
 
    test:
       suffix: 8
       args: -nep_type ciss -rg_type ellipse -rg_ellipse_center 8 -rg_ellipse_radius .7 -rg_ellipse_vscale 0.1 -terse
-      requires: complex
+      requires: complex !single
       filter: sed -e "s/ (in split form)//"
       output_file: output/ex27_7.out
 

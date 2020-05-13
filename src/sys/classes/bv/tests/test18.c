@@ -93,7 +93,7 @@ int main(int argc,char **argv)
   error = 0.0;
   for (j=l;j<k;j++) {
     ierr = BVNormColumn(X,j,NORM_2,&norm);CHKERRQ(ierr);
-    error = PetscMax(error,PetscAbsReal(norm-1.0));
+    error = PetscMax(error,PetscAbsReal(norm-PetscRealConstant(1.0)));
   }
   if (error<100*PETSC_MACHINE_EPSILON) {
     ierr = PetscPrintf(PETSC_COMM_WORLD,"Deviation from normalized vectors < 100*eps\n");CHKERRQ(ierr);
@@ -131,7 +131,7 @@ int main(int argc,char **argv)
   error = 0.0;
   for (j=l;j<k;j++) {
     ierr = BVNormColumn(Y,j,NORM_2,&norm);CHKERRQ(ierr);
-    error = PetscMax(error,PetscAbsReal(norm-1.0));
+    error = PetscMax(error,PetscAbsReal(norm-PetscRealConstant(1.0)));
   }
   if (error<100*PETSC_MACHINE_EPSILON) {
     ierr = PetscPrintf(PETSC_COMM_WORLD,"Deviation from B-normalized vectors < 100*eps\n");CHKERRQ(ierr);
@@ -179,7 +179,7 @@ int main(int argc,char **argv)
       ierr = VecNorm(v,NORM_2,&norm);CHKERRQ(ierr);
       ierr = BVRestoreColumn(Z,j,&v);CHKERRQ(ierr);
     }
-    error = PetscMax(error,PetscAbsReal(norm-1.0));
+    error = PetscMax(error,PetscAbsReal(norm-PetscRealConstant(1.0)));
   }
   if (error<100*PETSC_MACHINE_EPSILON) {
     ierr = PetscPrintf(PETSC_COMM_WORLD,"Deviation from normalized conjugate vectors < 100*eps\n");CHKERRQ(ierr);

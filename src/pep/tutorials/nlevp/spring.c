@@ -140,7 +140,6 @@ int main(int argc,char **argv)
 
    testset:
       args: -pep_nev 4 -n 24 -pep_ncv 18 -pep_target -.5 -st_type sinvert -pep_scale diagonal -terse
-      requires: !single
       output_file: output/spring_1.out
       test:
          suffix: 1
@@ -160,7 +159,6 @@ int main(int argc,char **argv)
    test:
       suffix: 3
       args: -n 300 -pep_hermitian -pep_interval -10.1,-9.5 -pep_type stoar -st_type sinvert -st_pc_type cholesky -terse
-      requires: !single
 
    test:
       suffix: 4

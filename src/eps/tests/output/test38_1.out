@@ -9,7 +9,6 @@ EPS Object: 1 MPI processes
       equation type: continuous-time Lyapunov
       number of column vectors (ncv): 30
       maximum number of iterations: 100
-      tolerance: 1e-08
     BV Object: (eps_lyapii_) 1 MPI processes
       type: svec
       31 columns of global length 100
@@ -23,7 +22,6 @@ EPS Object: 1 MPI processes
   number of column vectors (ncv): 2
   maximum dimension of projected problem (mpd): 0
   maximum number of iterations: 10000
-  tolerance: 1e-07
   convergence test: relative to the eigenvalue
 BV Object: 1 MPI processes
   type: svec
@@ -41,13 +39,11 @@ ST Object: 1 MPI processes
   KSP Object: (st_) 1 MPI processes
     type: preonly
     maximum iterations=10000, initial guess is zero
-    tolerances:  relative=1e-08, absolute=1e-50, divergence=10000.
     left preconditioning
     using NONE norm type for convergence test
   PC Object: (st_) 1 MPI processes
     type: lu
       out-of-place factorization
-      tolerance for zero pivot 2.22045e-14
       matrix ordering: nd
       factor fill ratio given 5., needed 2.95217
         Factored matrix follows:
@@ -67,6 +63,5 @@ ST Object: 1 MPI processes
         not using I-node routines
  EPSLYAPII ranks: for Lyapunov solver=30, after compression=10
 
- All requested eigenvalues computed up to the required tolerance:
      -0.16203
 

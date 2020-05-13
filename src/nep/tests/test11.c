@@ -179,6 +179,6 @@ int main(int argc,char **argv)
    test:
       suffix: 1
       args: -terse
-      requires: complex
+      requires: complex !single
 
 TEST*/

@@ -45,13 +45,13 @@ PetscErrorCode CheckNormalizedVectors(EPS eps)
       ierr = EPSGetEigenvector(eps,i,xr,xi);CHKERRQ(ierr);
 #if defined(PETSC_USE_COMPLEX)
       ierr = VecNorm(xr,NORM_2,&normr);CHKERRQ(ierr);
-      error = PetscMax(error,PetscAbsReal(normr-1.0));
+      error = PetscMax(error,PetscAbsReal(normr-PetscRealConstant(1.0)));
 #else
       ierr = VecNormBegin(xr,NORM_2,&normr);CHKERRQ(ierr);
       ierr = VecNormBegin(xi,NORM_2,&normi);CHKERRQ(ierr);
       ierr = VecNormEnd(xr,NORM_2,&normr);CHKERRQ(ierr);
       ierr = VecNormEnd(xi,NORM_2,&normi);CHKERRQ(ierr);
-      error = PetscMax(error,PetscAbsReal(SlepcAbsEigenvalue(normr,normi)-1.0));
+      error = PetscMax(error,PetscAbsReal(SlepcAbsEigenvalue(normr,normi)-PetscRealConstant(1.0)));
 #endif
     }
     ierr = VecDestroy(&xr);CHKERRQ(ierr);
@@ -253,7 +253,6 @@ PetscErrorCode MyEigenSort(PetscScalar ar,PetscScalar ai,PetscScalar br,PetscSca
    test:
       suffix: 4
       args: -eps_nev 4 -eps_true_residual
-      requires: !single
       output_file: output/test9_1.out
 
    test:
@@ -298,7 +297,7 @@ PetscErrorCode MyEigenSort(PetscScalar ar,PetscScalar ai,PetscScalar br,PetscSca
    test:
       suffix: 8
       args: -eps_nev 4 -eps_view_values draw -eps_monitor_lg
-      requires: x !single
+      requires: x
       output_file: output/test9_1.out
 
    test:

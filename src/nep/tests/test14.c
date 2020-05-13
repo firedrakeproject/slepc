@@ -120,6 +120,5 @@ int main(int argc,char **argv)
    test:
       suffix: 1
       args: -nep_type slp -nep_nev 2 -terse
-      requires: double
 
 TEST*/

@@ -140,5 +140,6 @@ int main(int argc,char **argv)
    test:
       suffix: 1
       args: -pep_linear_explicitmatrix -pep_view_vectors ::ascii_info
+      requires: !single
 
 TEST*/

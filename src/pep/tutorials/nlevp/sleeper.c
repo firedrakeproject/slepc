@@ -160,7 +160,6 @@ int main(int argc,char **argv)
       test:
          suffix: 2_toar
          args: -pep_type toar -pep_toar_restart .3 -st_type sinvert
-         requires: !single
       test:
          suffix: 2_jd
          args: -pep_type jd -pep_jd_restart .3 -pep_jd_projection orthogonal

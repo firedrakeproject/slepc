@@ -132,7 +132,6 @@ int main (int argc,char **argv)
 
    testset:
       args: -eps_nev 4 -terse
-      requires: !single
       output_file: output/ex11_1.out
       test:
          suffix: 1

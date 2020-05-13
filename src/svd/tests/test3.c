@@ -101,7 +101,6 @@ int main(int argc,char **argv)
 
    testset:
       args: -svd_nsv 4
-      requires: !single
       output_file: output/test3_1.out
       test:
          suffix: 1_lanczos
@@ -143,7 +142,6 @@ int main(int argc,char **argv)
 
    testset:
       args: -svd_implicittranspose -svd_nsv 4 -svd_tol 1e-5
-      requires: !single
       output_file: output/test3_1.out
       test:
          suffix: 2_lanczos
@@ -179,7 +177,7 @@ int main(int argc,char **argv)
 
    testset:
       args: -svd_nsv 4 -mat_type aijcusparse
-      requires: cuda !single
+      requires: cuda
       output_file: output/test3_1.out
       test:
          suffix: 3_cuda_lanczos
@@ -211,7 +209,6 @@ int main(int argc,char **argv)
 
    test:
       suffix: 4
-      requires: !single
       args: -svd_type lapack -svd_nsv 4
       output_file: output/test3_1.out
       nsize: 2
@@ -219,7 +216,7 @@ int main(int argc,char **argv)
    test:
       suffix: 5
       args: -svd_nsv 4 -svd_view_values draw -svd_monitor_lg
-      requires: x !single
+      requires: x
       output_file: output/test3_1.out
 
 TEST*/

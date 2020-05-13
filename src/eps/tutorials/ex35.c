@@ -204,15 +204,8 @@ PetscErrorCode STDestroy_Fold(FoldShellST *fold)
 
 /*TEST
 
-   testset:
+   test:
       args: -m 11 -eps_nev 4 -terse
-      output_file: output/ex35_1.out
-      test:
-         suffix: 1
-         requires: !single
-      test:
-         suffix: 1_single
-         args: -eps_tol 1e-5
-         requires: single
+      suffix: 1
 
 TEST*/

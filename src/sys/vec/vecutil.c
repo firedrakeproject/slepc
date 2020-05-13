@@ -93,7 +93,7 @@ static PetscErrorCode VecCheckOrthogonality_Private(Vec V[],PetscInt nv,Vec W[],
     for (j=0;j<nv;j++) {
       if (lev) {
         if (i!=j) *lev = PetscMax(*lev,PetscAbsScalar(vals[j]));
-        else if (norm) *lev = PetscMax(*lev,PetscAbsScalar(vals[j]-1.0));
+        else if (norm) *lev = PetscMax(*lev,PetscAbsScalar(vals[j]-PetscRealConstant(1.0)));
       } else {
 #if !defined(PETSC_USE_COMPLEX)
         ierr = PetscViewerASCIIPrintf(viewer," %12g  ",(double)vals[j]);CHKERRQ(ierr);
