@@ -55,13 +55,13 @@ PetscErrorCode CheckNormalizedVectors(NEP nep)
       ierr = NEPGetEigenpair(nep,i,NULL,NULL,xr,xi);CHKERRQ(ierr);
 #if defined(PETSC_USE_COMPLEX)
       ierr = VecNorm(xr,NORM_2,&normr);CHKERRQ(ierr);
-      error = PetscMax(error,PetscAbsReal(normr-1.0));
+      error = PetscMax(error,PetscAbsReal(normr-PetscRealConstant(1.0)));
 #else
       ierr = VecNormBegin(xr,NORM_2,&normr);CHKERRQ(ierr);
       ierr = VecNormBegin(xi,NORM_2,&normi);CHKERRQ(ierr);
       ierr = VecNormEnd(xr,NORM_2,&normr);CHKERRQ(ierr);
       ierr = VecNormEnd(xi,NORM_2,&normi);CHKERRQ(ierr);
-      error = PetscMax(error,PetscAbsReal(SlepcAbsEigenvalue(normr,normi)-1.0));
+      error = PetscMax(error,PetscAbsReal(SlepcAbsEigenvalue(normr,normi)-PetscRealConstant(1.0)));
 #endif
     }
     ierr = VecDestroy(&xr);CHKERRQ(ierr);

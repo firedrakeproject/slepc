@@ -97,8 +97,8 @@ static PetscErrorCode logm_params(PetscBLASInt n,PetscScalar *T,PetscBLASInt ld,
   /* get initial s0 so that T^(1/2^s0) < xvals(mmax) */
   *s = 0;
   do {
-    inrm = SlepcAbsEigenvalue(wr[0]-1.0,wi[0]);
-    for (i=1;i<n;i++) inrm = PetscMax(inrm,SlepcAbsEigenvalue(wr[i]-1.0,wi[i]));
+    inrm = SlepcAbsEigenvalue(wr[0]-PetscRealConstant(1.0),wi[0]);
+    for (i=1;i<n;i++) inrm = PetscMax(inrm,SlepcAbsEigenvalue(wr[i]-PetscRealConstant(1.0),wi[i]));
     if (inrm < xvals[mmax-1]) break;
     for (i=0;i<n;i++) {
 #if defined(PETSC_USE_COMPLEX)
