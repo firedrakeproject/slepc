@@ -266,11 +266,14 @@ PetscErrorCode MatGetDiagonal_Brussel(Mat A,Vec diag)
       suffix: 1
       args: -eps_nev 4 -eps_true_residual {{0 1}}
       requires: !single
-      output_file: output/test22_1.out
 
    test:
       suffix: 2
       args: -eps_nev 4 -eps_true_residual -eps_balance oneside -eps_tol 1e-7
       requires: !single
+
+   test:
+      suffix: 3
+      args: -n 50 -eps_nev 4 -eps_ncv 16 -eps_type subspace -eps_largest_magnitude -bv_orthog_block {{gs tsqr chol tsqrchol svqb}}
 
 TEST*/
