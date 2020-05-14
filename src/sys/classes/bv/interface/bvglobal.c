@@ -916,7 +916,7 @@ PetscErrorCode BVNormalize(BV bv,PetscScalar *eigi)
       }
     }
   }
-  ierr = PetscLogEventBegin(BV_Normalize,bv,0,0,0);CHKERRQ(ierr);
+  ierr = PetscLogEventEnd(BV_Normalize,bv,0,0,0);CHKERRQ(ierr);
   ierr = PetscObjectStateIncrease((PetscObject)bv);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
