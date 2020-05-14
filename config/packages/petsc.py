@@ -86,6 +86,7 @@ class PETSc(package.Package):
         if len(r)!=2: continue
         k = r[0].strip()
         v = r[1].strip()
+        v = v.replace('${PETSC_DIR}',self.dir)  # needed in some Cray installations
         if k == 'PETSC_SCALAR':
           self.scalar = v
         elif k == 'PETSC_PRECISION':
