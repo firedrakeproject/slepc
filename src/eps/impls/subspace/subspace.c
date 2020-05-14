@@ -125,17 +125,18 @@ static PetscErrorCode EPSSubspaceResidualNorms(BV R,BV V,Mat T,PetscInt l,PetscI
 PetscErrorCode EPSSolve_Subspace(EPS eps)
 {
   PetscErrorCode ierr;
-  Mat            H,Q,S,T;
+  Mat            H,Q,S,T,B;
   BV             AV,R;
+  PetscBool      indef;
   PetscInt       i,k,ld,ngrp,nogrp,*itrsd,*itrsdold;
   PetscInt       nxtsrr,idsrr,idort,nxtort,nv,ncv = eps->ncv,its;
-  PetscReal      arsd,oarsd,ctr,octr,ae,oae,*rsd,norm,tcond=1.0;
+  PetscReal      arsd,oarsd,ctr,octr,ae,oae,*rsd,tcond=1.0;
   /* Parameters */
   PetscInt       init = 5;        /* Number of initial iterations */
   PetscReal      stpfac = 1.5;    /* Max num of iter before next SRR step */
   PetscReal      alpha = 1.0;     /* Used to predict convergence of next residual */
   PetscReal      beta = 1.1;      /* Used to predict convergence of next residual */
-  PetscReal      grptol = 1e-8;   /* Tolerance for EPSSubspaceFindGroup */
+  PetscReal      grptol = SLEPC_DEFAULT_TOL;   /* Tolerance for EPSSubspaceFindGroup */
   PetscReal      cnvtol = 1e-6;   /* Convergence criterion for cnv */
   PetscInt       orttol = 2;      /* Number of decimal digits whose loss
                                      can be tolerated in orthogonalization */
@@ -243,16 +244,16 @@ PetscErrorCode EPSSolve_Subspace(EPS eps)
 
     /* Orthogonalization loop */
     do {
+      ierr = BVGetMatrix(eps->V,&B,&indef);CHKERRQ(ierr);
+      ierr = BVSetMatrix(eps->V,NULL,PETSC_FALSE);CHKERRQ(ierr);
       while (its<nxtort) {
         /* A(:,idx) = OP*V(:,idx) with normalization */
         ierr = BVMatMult(eps->V,S,AV);CHKERRQ(ierr);
         ierr = BVCopy(AV,eps->V);CHKERRQ(ierr);
-        for (i=eps->nconv;i<nv;i++) {
-          ierr = BVNormColumn(eps->V,i,NORM_INFINITY,&norm);CHKERRQ(ierr);
-          ierr = BVScaleColumn(eps->V,i,1/norm);CHKERRQ(ierr);
-        }
+        ierr = BVNormalize(eps->V,NULL);CHKERRQ(ierr);
         its++;
       }
+      ierr = BVSetMatrix(eps->V,B,indef);CHKERRQ(ierr);
       /* Orthonormalize vectors */
       ierr = BVOrthogonalize(eps->V,NULL);CHKERRQ(ierr);
       nxtort = PetscMin(its+idort,nxtsrr);
