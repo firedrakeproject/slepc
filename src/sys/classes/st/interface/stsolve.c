@@ -289,8 +289,8 @@ PetscErrorCode STGetOperator_Private(ST st,Mat *Op)
     ierr = MatShellSetOperation(st->Op,MATOP_MULT_HERMITIAN_TRANSPOSE,(void(*)(void))MatMultHermitianTranspose_STOperator);CHKERRQ(ierr);
 #else
     ierr = MatShellSetOperation(st->Op,MATOP_MULT_HERMITIAN_TRANSPOSE,(void(*)(void))MatMultTranspose_STOperator);CHKERRQ(ierr);
-    ierr = STComputeOperator(st);CHKERRQ(ierr);
 #endif
+    ierr = STComputeOperator(st);CHKERRQ(ierr);
   }
   if (Op) *Op = st->Op;
   PetscFunctionReturn(0);
