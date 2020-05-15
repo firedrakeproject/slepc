@@ -1686,7 +1686,7 @@ PetscErrorCode BVCopy(BV V,BV W)
   PetscCheckSameTypeAndComm(V,1,W,2);
   if (V->n!=W->n) SETERRQ2(PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_INCOMP,"Mismatching local dimension V %D, W %D",V->n,W->n);
   if (V->k-V->l>W->m-W->l) SETERRQ2(PetscObjectComm((PetscObject)V),PETSC_ERR_ARG_SIZ,"W has %D non-leading columns, not enough to store %D columns",W->m-W->l,V->k-V->l);
-  if (!V->n) PetscFunctionReturn(0);
+  if (V==W || !V->n) PetscFunctionReturn(0);
 
   ierr = PetscLogEventBegin(BV_Copy,V,W,0,0);CHKERRQ(ierr);
   if (V->indef && V->matrix && V->indef==W->indef && V->matrix==W->matrix) {
