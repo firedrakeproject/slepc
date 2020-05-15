@@ -20,7 +20,7 @@ class HPDDM(package.Package):
     package.Package.__init__(self,argdb,log)
     self.packagename    = 'hpddm'
     self.downloadable   = True
-    self.gitcommit      = '1ff6b2325bc033d0371805078394c47a7fc694a2'
+    self.gitcommit      = '21c972f2488edbbd4948c937d7c929b38de9def7'
     self.url            = 'https://github.com/hpddm/hpddm/archive/'+self.gitcommit+'.tar.gz'
     self.archive        = self.gitcommit+'.tar.gz'
     self.dirname        = 'hpddm-'+self.gitcommit
@@ -60,6 +60,9 @@ class HPDDM(package.Package):
       result,output = self.RunCommand('sed -i \'\' -e \'s@../src/ksp/pc/impls/bjacobi/@@\' -e \'s@../src/ksp/pc/impls/asm/@@\' '+os.path.join(builddir,'interface','ksphpddm.cxx'))
       if result:
         self.log.Exit('Patching petsc/src/ksp/ksp/impls/hpddm/hpddm.cxx failed')
+      result,output = self.RunCommand('sed -i \'\' \'s@../src/ksp/pc/impls/asm/@@\' '+os.path.join(builddir,'include','HPDDM_PETSc.hpp'))
+      if result:
+        self.log.Exit('Patching '+os.path.join(builddir,'include','HPDDM_PETSc.hpp')+' failed')
     else:
       shutil.copyfile(os.path.join(petsc.dir,'src','ksp','ksp','impls','hpddm','hpddm.cxx'),os.path.join(builddir,'interface','ksphpddm.cxx'))
       shutil.copyfile(os.path.join(petsc.dir,'src','ksp','pc','impls','hpddm','hpddm.cxx'),os.path.join(builddir,'interface','pchpddm.cxx'))
