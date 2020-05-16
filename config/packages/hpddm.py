@@ -30,11 +30,11 @@ class HPDDM(package.Package):
 
   def Precondition(self,petsc):
     pkg = self.packagename.upper()
-    if petsc.cxxdialectcxx11 == False:
+    if not petsc.cxxdialectcxx11:
       self.log.Exit(pkg+' requires C++11')
-    if petsc.buildsharedlib == False:
+    if not petsc.buildsharedlib:
       self.log.Exit(pkg+' requires a shared library build')
-    if petsc.hpddm == True:
+    if petsc.hpddm:
       self.log.Exit(pkg+' requires PETSc to be built without '+pkg)
     package.Package.Precondition(self,petsc)
 
@@ -52,15 +52,15 @@ class HPDDM(package.Package):
     d = os.path.join(petsc.dir,petsc.arch,'lib')
     l = petsc.slflag+d+' -L'+d+' -lpetsc'
     d = libdir
-    if petsc.arch == "":
+    if petsc.isinstall:
       urlretrieve('https://www.mcs.anl.gov/petsc/petsc-current/src/ksp/ksp/impls/hpddm/hpddm.cxx',os.path.join(builddir,'interface','ksphpddm.cxx'));
       urlretrieve('https://www.mcs.anl.gov/petsc/petsc-current/src/ksp/pc/impls/hpddm/hpddm.cxx',os.path.join(builddir,'interface','pchpddm.cxx'));
       urlretrieve('https://www.mcs.anl.gov/petsc/petsc-master/src/ksp/pc/impls/bjacobi/bjacobi.h',os.path.join(builddir,'include','bjacobi.h'));
       urlretrieve('https://www.mcs.anl.gov/petsc/petsc-master/src/ksp/pc/impls/asm/asm.h',os.path.join(builddir,'include','asm.h'));
-      (result,output) = self.RunCommand('sed -i \'\' -e \'s@../src/ksp/pc/impls/bjacobi/@@\' -e \'s@../src/ksp/pc/impls/asm/@@\' '+os.path.join(builddir,'interface','ksphpddm.cxx'))
+      (result,output) = self.RunCommand('sed -i.bak -e \'s@../src/ksp/pc/impls/bjacobi/@@\' -e \'s@../src/ksp/pc/impls/asm/@@\' '+os.path.join(builddir,'interface','ksphpddm.cxx'))
       if result:
         self.log.Exit('Patching petsc/src/ksp/ksp/impls/hpddm/hpddm.cxx failed')
-      result,output = self.RunCommand('sed -i \'\' \'s@../src/ksp/pc/impls/asm/@@\' '+os.path.join(builddir,'include','HPDDM_PETSc.hpp'))
+      result,output = self.RunCommand('sed -i.bak \'s@../src/ksp/pc/impls/asm/@@\' '+os.path.join(builddir,'include','HPDDM_PETSc.hpp'))
       if result:
         self.log.Exit('Patching '+os.path.join(builddir,'include','HPDDM_PETSc.hpp')+' failed')
     else:
