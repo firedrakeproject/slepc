@@ -57,7 +57,7 @@ class HPDDM(package.Package):
       urlretrieve('https://www.mcs.anl.gov/petsc/petsc-current/src/ksp/pc/impls/hpddm/hpddm.cxx',os.path.join(builddir,'interface','pchpddm.cxx'));
       urlretrieve('https://www.mcs.anl.gov/petsc/petsc-master/src/ksp/pc/impls/bjacobi/bjacobi.h',os.path.join(builddir,'include','bjacobi.h'));
       urlretrieve('https://www.mcs.anl.gov/petsc/petsc-master/src/ksp/pc/impls/asm/asm.h',os.path.join(builddir,'include','asm.h'));
-      result,output = self.RunCommand('sed -i \'\' -e \'s@../src/ksp/pc/impls/bjacobi/@@\' -e \'s@../src/ksp/pc/impls/asm/@@\' '+os.path.join(builddir,'interface','ksphpddm.cxx'))
+      (result,output) = self.RunCommand('sed -i \'\' -e \'s@../src/ksp/pc/impls/bjacobi/@@\' -e \'s@../src/ksp/pc/impls/asm/@@\' '+os.path.join(builddir,'interface','ksphpddm.cxx'))
       if result:
         self.log.Exit('Patching petsc/src/ksp/ksp/impls/hpddm/hpddm.cxx failed')
       result,output = self.RunCommand('sed -i \'\' \'s@../src/ksp/pc/impls/asm/@@\' '+os.path.join(builddir,'include','HPDDM_PETSc.hpp'))
@@ -67,14 +67,14 @@ class HPDDM(package.Package):
       shutil.copyfile(os.path.join(petsc.dir,'src','ksp','ksp','impls','hpddm','hpddm.cxx'),os.path.join(builddir,'interface','ksphpddm.cxx'))
       shutil.copyfile(os.path.join(petsc.dir,'src','ksp','pc','impls','hpddm','hpddm.cxx'),os.path.join(builddir,'interface','pchpddm.cxx'))
     cmd = petsc.cxx+' '+petsc.cxx_flags+' -I'+os.path.join('.','include')+' -I'+os.path.join(petsc.dir,petsc.arch,'include')+' -I'+os.path.join(slepc.dir,'include')+' -I'+os.path.join(archdir,'include')+' -I'+os.path.join(petsc.dir,'include')+' -DPETSC_HAVE_SLEPC=1 -DSLEPC_LIB_DIR="'+d+'"'
-    result,output = self.RunCommand('cd '+builddir+'&&'+cmd+' '+os.path.join('interface','ksphpddm.cxx')+' -c -o '+os.path.join('interface','ksphpddm.o')+'&&'+cmd+' '+os.path.join('interface','pchpddm.cxx')+' -c -o '+os.path.join('interface','pchpddm.o')+'&&'+cmd+' '+os.path.join('interface','hpddm_petsc.cpp')+' -c -o '+os.path.join('interface','hpddm_petsc.o'))
+    (result,output) = self.RunCommand('cd '+builddir+'&&'+cmd+' '+os.path.join('interface','ksphpddm.cxx')+' -c -o '+os.path.join('interface','ksphpddm.o')+'&&'+cmd+' '+os.path.join('interface','pchpddm.cxx')+' -c -o '+os.path.join('interface','pchpddm.o')+'&&'+cmd+' '+os.path.join('interface','hpddm_petsc.cpp')+' -c -o '+os.path.join('interface','hpddm_petsc.o'))
     if result:
       self.log.Exit('Compilation of HPDDM failed')
-    result,output = self.RunCommand('cd '+builddir+'&& make -f SONAME_SL_LINKER soname && make -f SONAME_SL_LINKER sl_linker')
+    (result,output) = self.RunCommand('cd '+builddir+'&& make -f SONAME_SL_LINKER soname && make -f SONAME_SL_LINKER sl_linker')
     if result:
       self.log.Exit('Calling PETSc SONAME_FUNCTION or SL_LINKER_FUNCTION failed')
     lines = output.splitlines()
-    result,output = self.RunCommand('cd '+builddir+'&& '+petsc.cxx+' '+petsc.cxx_flags+' '+os.path.join('interface','hpddm_petsc.o')+' '+os.path.join('interface','pchpddm.o')+' '+os.path.join('interface','ksphpddm.o')+' -o '+lines[0]+' '+lines[1]+' '+l+' && ln -sf '+lines[0]+' '+os.path.join(d,'libhpddm_petsc.'+petsc.sl_suffix))
+    (result,output) = self.RunCommand('cd '+builddir+'&& '+petsc.cxx+' '+petsc.cxx_flags+' '+os.path.join('interface','hpddm_petsc.o')+' '+os.path.join('interface','pchpddm.o')+' '+os.path.join('interface','ksphpddm.o')+' -o '+lines[0]+' '+lines[1]+' '+l+' && ln -sf '+lines[0]+' '+os.path.join(d,'libhpddm_petsc.'+petsc.sl_suffix))
     if result:
       self.log.Exit('Installation of HPDDM failed')
     for root,dirs,files in os.walk(os.path.join(builddir,'include')):

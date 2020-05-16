@@ -52,9 +52,13 @@ class Package:
       self.log.write('- '*35+'\nRunning command:\n'+instr+'\n'+'- '*35)
     except AttributeError: pass
     if sys.version_info < (3,):
-      return commands.getstatusoutput(instr)
+      (result,output) = commands.getstatusoutput(instr)
     else:
-      return subprocess.getstatusoutput(instr)
+      (result,output) = subprocess.getstatusoutput(instr)
+    try:
+      self.log.write(output)
+    except AttributeError: pass
+    return (result,output)
 
   def ProcessArgs(self,argdb):
     self.requested = False
@@ -221,7 +225,7 @@ Downloaded package %s from: %s is not a tarball.
       try:
         # check if 'dirname' is set'
         if dirname:
-          result,output = self.RunCommand('cd '+externdir+'; chmod -R a+r '+dirname+'; find '+dirname+' -type d -name "*" -exec chmod a+rx {} \;')
+          (result,output) = self.RunCommand('cd '+externdir+'; chmod -R a+r '+dirname+'; find '+dirname+' -type d -name "*" -exec chmod a+rx {} \;')
         else:
           self.log.Warn('Could not determine dirname extracted by '+localFile+' to fix file permissions')
       except RuntimeError as e:

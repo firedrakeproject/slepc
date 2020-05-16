@@ -74,7 +74,7 @@ class Arpack(package.Package):
     builddir  = self.Download(externdir,slepc.downloaddir)
 
     # Check for autoreconf
-    result,output = self.RunCommand('autoreconf --help')
+    (result,output) = self.RunCommand('autoreconf --help')
     if result:
       self.log.Exit('--download-arpack requires that the command autoreconf is available on your PATH')
 
@@ -88,7 +88,7 @@ class Arpack(package.Package):
       if not petsc.blaslapackint64:
         self.log.Exit('To install ARPACK with 64-bit integers you also need a BLAS with 64-bit integers')
       confopt = confopt+' INTERFACE64=1'
-    result,output = self.RunCommand('cd '+builddir+'&& sh bootstrap && ./configure '+confopt+' && '+petsc.make+' && '+petsc.make+' install')
+    (result,output) = self.RunCommand('cd '+builddir+'&& sh bootstrap && ./configure '+confopt+' && '+petsc.make+' && '+petsc.make+' install')
     self.log.write(output)
     if result:
       self.log.Exit('Installation of ARPACK failed')

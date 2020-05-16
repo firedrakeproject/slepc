@@ -58,9 +58,9 @@ class PETSc(package.Package):
       (status, output) = self.RunCommand('cd '+self.dir+';git rev-parse')
       if not status:
         self.isrepo = True
-        (status, self.gitrev) = self.RunCommand('cd '+self.dir+';git log -1 --pretty=format:%H')
+        (status, self.gitrev)  = self.RunCommand('cd '+self.dir+';git log -1 --pretty=format:%H')
         (status, self.gitdate) = self.RunCommand('cd '+self.dir+';git log -1 --pretty=format:%ci')
-        (status, self.branch) = self.RunCommand('cd '+self.dir+';git describe --contains --all HEAD')
+        (status, self.branch)  = self.RunCommand('cd '+self.dir+';git describe --contains --all HEAD')
 
   def LoadConf(self):
     if 'PETSC_ARCH' in os.environ and os.environ['PETSC_ARCH']:
