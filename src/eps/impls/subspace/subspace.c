@@ -36,6 +36,7 @@ PetscErrorCode EPSSetUp_Subspace(EPS eps)
   if (!eps->which) { ierr = EPSSetWhichEigenpairs_Default(eps);CHKERRQ(ierr); }
   if (eps->which!=EPS_LARGEST_MAGNITUDE && eps->which!=EPS_TARGET_MAGNITUDE) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"This solver supports only largest magnitude or target magnitude eigenvalues");
   EPSCheckUnsupported(eps,EPS_FEATURE_ARBITRARY | EPS_FEATURE_EXTRACTION | EPS_FEATURE_TWOSIDED);
+  if (eps->converged != EPSConvergedRelative) SETERRQ(PetscObjectComm((PetscObject)eps),PETSC_ERR_SUP,"This solver only supports relative convergence test");
 
   ierr = EPSAllocateSolution(eps,0);CHKERRQ(ierr);
   ierr = EPS_SetInnerProduct(eps);CHKERRQ(ierr);
@@ -45,7 +46,6 @@ PetscErrorCode EPSSetUp_Subspace(EPS eps)
     ierr = DSSetType(eps->ds,DSNHEP);CHKERRQ(ierr);
   }
   ierr = DSAllocate(eps->ds,eps->ncv);CHKERRQ(ierr);
-  ierr = EPSSetWorkVecs(eps,1);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -99,55 +99,44 @@ static PetscErrorCode EPSSubspaceFindGroup(PetscInt l,PetscInt m,PetscScalar *wr
 /*
    EPSSubspaceResidualNorms - Computes the column norms of residual vectors
    OP*V(1:n,l:m) - V*T(1:m,l:m), where, on entry, OP*V has been computed and
-   stored in AV. ldt is the leading dimension of T. On exit, rsd(l) to
-   rsd(m) contain the computed norms.
+   stored in R. On exit, rsd(l) to rsd(m) contain the computed norms.
 */
-static PetscErrorCode EPSSubspaceResidualNorms(BV V,BV AV,PetscScalar *T,PetscInt l,PetscInt m,PetscInt ldt,Vec w,PetscReal *rsd)
+static PetscErrorCode EPSSubspaceResidualNorms(BV R,BV V,Mat T,PetscInt l,PetscInt m,PetscScalar *eigi,PetscReal *rsd)
 {
   PetscErrorCode ierr;
-  PetscInt       i,k;
-  PetscScalar    t;
+  PetscInt       i;
 
   PetscFunctionBegin;
-  for (i=l;i<m;i++) {
-    if (i==m-1 || T[i+1+ldt*i]==0.0) k=i+1;
-    else k=i+2;
-    ierr = BVSetActiveColumns(V,0,k);CHKERRQ(ierr);
-    ierr = BVCopyVec(AV,i,w);CHKERRQ(ierr);
-    ierr = BVMultVec(V,-1.0,1.0,w,T+ldt*i);CHKERRQ(ierr);
-    ierr = VecDot(w,w,&t);CHKERRQ(ierr);
-    rsd[i] = PetscRealPart(t);
-  }
-  for (i=l;i<m;i++) {
-    if (i == m-1) {
-      rsd[i] = PetscSqrtReal(rsd[i]);
-    } else if (T[i+1+(ldt*i)]==0.0) {
-      rsd[i] = PetscSqrtReal(rsd[i]);
-    } else {
-      rsd[i] = PetscSqrtReal((rsd[i]+rsd[i+1])/2.0);
+  ierr = BVMult(R,-1.0,1.0,V,T);CHKERRQ(ierr);
+  for (i=l;i<m;i++) { ierr = BVNormColumnBegin(R,i,NORM_2,rsd+i);CHKERRQ(ierr); }
+  for (i=l;i<m;i++) { ierr = BVNormColumnEnd(R,i,NORM_2,rsd+i);CHKERRQ(ierr); }
+#if !defined(PETSC_USE_COMPLEX)
+  for (i=l;i<m-1;i++) {
+    if (eigi[i]!=0.0) {
+      rsd[i]   = SlepcAbs(rsd[i],rsd[i+1]);
       rsd[i+1] = rsd[i];
       i++;
     }
   }
+#endif
   PetscFunctionReturn(0);
 }
 
 PetscErrorCode EPSSolve_Subspace(EPS eps)
 {
   PetscErrorCode ierr;
-  Vec            w=eps->work[0];
-  Mat            H,Q,S;
-  BV             AV;
+  Mat            H,Q,S,T,B;
+  BV             AV,R;
+  PetscBool      indef;
   PetscInt       i,k,ld,ngrp,nogrp,*itrsd,*itrsdold;
   PetscInt       nxtsrr,idsrr,idort,nxtort,nv,ncv = eps->ncv,its;
-  PetscScalar    *T;
-  PetscReal      arsd,oarsd,ctr,octr,ae,oae,*rsd,norm,tcond=1.0;
+  PetscReal      arsd,oarsd,ctr,octr,ae,oae,*rsd,tcond=1.0;
   /* Parameters */
   PetscInt       init = 5;        /* Number of initial iterations */
   PetscReal      stpfac = 1.5;    /* Max num of iter before next SRR step */
   PetscReal      alpha = 1.0;     /* Used to predict convergence of next residual */
   PetscReal      beta = 1.1;      /* Used to predict convergence of next residual */
-  PetscReal      grptol = 1e-8;   /* Tolerance for EPSSubspaceFindGroup */
+  PetscReal      grptol = SLEPC_DEFAULT_TOL;   /* Tolerance for EPSSubspaceFindGroup */
   PetscReal      cnvtol = 1e-6;   /* Convergence criterion for cnv */
   PetscInt       orttol = 2;      /* Number of decimal digits whose loss
                                      can be tolerated in orthogonalization */
@@ -157,6 +146,7 @@ PetscErrorCode EPSSolve_Subspace(EPS eps)
   ierr = PetscMalloc3(ncv,&rsd,ncv,&itrsd,ncv,&itrsdold);CHKERRQ(ierr);
   ierr = DSGetLeadingDimension(eps->ds,&ld);CHKERRQ(ierr);
   ierr = BVDuplicate(eps->V,&AV);CHKERRQ(ierr);
+  ierr = BVDuplicate(eps->V,&R);CHKERRQ(ierr);
   ierr = STGetOperator(eps->st,&S);CHKERRQ(ierr);
 
   for (i=0;i<ncv;i++) {
@@ -198,14 +188,16 @@ PetscErrorCode EPSSolve_Subspace(EPS eps)
     /* Update vectors V(:,idx) = V * U(:,idx) */
     ierr = DSGetMat(eps->ds,DS_MAT_Q,&Q);CHKERRQ(ierr);
     ierr = BVSetActiveColumns(AV,0,nv);CHKERRQ(ierr);
+    ierr = BVSetActiveColumns(R,0,nv);CHKERRQ(ierr);
     ierr = BVMultInPlace(eps->V,Q,eps->nconv,nv);CHKERRQ(ierr);
     ierr = BVMultInPlace(AV,Q,eps->nconv,nv);CHKERRQ(ierr);
+    ierr = BVCopy(AV,R);CHKERRQ(ierr);
     ierr = MatDestroy(&Q);CHKERRQ(ierr);
 
     /* Convergence check */
-    ierr = DSGetArray(eps->ds,DS_MAT_A,&T);CHKERRQ(ierr);
-    ierr = EPSSubspaceResidualNorms(eps->V,AV,T,eps->nconv,nv,ld,w,rsd);CHKERRQ(ierr);
-    ierr = DSRestoreArray(eps->ds,DS_MAT_A,&T);CHKERRQ(ierr);
+    ierr = DSGetMat(eps->ds,DS_MAT_A,&T);CHKERRQ(ierr);
+    ierr = EPSSubspaceResidualNorms(R,eps->V,T,eps->nconv,nv,eps->eigi,rsd);CHKERRQ(ierr);
+    ierr = DSRestoreMat(eps->ds,DS_MAT_A,&T);CHKERRQ(ierr);
 
     for (i=eps->nconv;i<nv;i++) {
       itrsdold[i] = itrsd[i];
@@ -252,16 +244,16 @@ PetscErrorCode EPSSolve_Subspace(EPS eps)
 
     /* Orthogonalization loop */
     do {
+      ierr = BVGetMatrix(eps->V,&B,&indef);CHKERRQ(ierr);
+      ierr = BVSetMatrix(eps->V,NULL,PETSC_FALSE);CHKERRQ(ierr);
       while (its<nxtort) {
         /* A(:,idx) = OP*V(:,idx) with normalization */
         ierr = BVMatMult(eps->V,S,AV);CHKERRQ(ierr);
         ierr = BVCopy(AV,eps->V);CHKERRQ(ierr);
-        for (i=eps->nconv;i<nv;i++) {
-          ierr = BVNormColumn(eps->V,i,NORM_INFINITY,&norm);CHKERRQ(ierr);
-          ierr = BVScaleColumn(eps->V,i,1/norm);CHKERRQ(ierr);
-        }
+        ierr = BVNormalize(eps->V,NULL);CHKERRQ(ierr);
         its++;
       }
+      ierr = BVSetMatrix(eps->V,B,indef);CHKERRQ(ierr);
       /* Orthonormalize vectors */
       ierr = BVOrthogonalize(eps->V,NULL);CHKERRQ(ierr);
       nxtort = PetscMin(its+idort,nxtsrr);
@@ -270,6 +262,7 @@ PetscErrorCode EPSSolve_Subspace(EPS eps)
 
   ierr = PetscFree3(rsd,itrsd,itrsdold);CHKERRQ(ierr);
   ierr = BVDestroy(&AV);CHKERRQ(ierr);
+  ierr = BVDestroy(&R);CHKERRQ(ierr);
   ierr = STRestoreOperator(eps->st,&S);CHKERRQ(ierr);
   /* truncate Schur decomposition and change the state to raw so that
      DSVectors() computes eigenvectors from scratch */

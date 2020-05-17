@@ -128,7 +128,10 @@ int main(int argc,char **argv)
       output_file: output/test1_1.out
       test:
          suffix: 1
-         args: -eps_type {{krylovschur subspace arnoldi gd jd lapack}}
+         args: -eps_type {{krylovschur arnoldi gd jd lapack}}
+      test:
+         suffix: 1_subspace
+         args: -eps_type subspace -eps_conv_rel
       test:
          suffix: 1_ks_nopurify
          args: -eps_purify 0
@@ -220,10 +223,13 @@ int main(int argc,char **argv)
       output_file: output/test1_6.out
       test:
          suffix: 6
-         args: -eps_type {{krylovschur subspace arnoldi gd}}
+         args: -eps_type {{krylovschur arnoldi gd}}
       test:
          suffix: 6_lanczos
          args: -eps_type lanczos -eps_lanczos_reorthog full
+      test:
+         suffix: 6_subspace
+         args: -eps_type subspace -eps_conv_rel
 
    testset:
       args: -n 18 -eps_nev 4 -eps_max_it 1500 -mat_type aijcusparse
@@ -231,7 +237,10 @@ int main(int argc,char **argv)
       output_file: output/test1_1.out
       test:
          suffix: 7
-         args: -eps_type {{krylovschur subspace arnoldi gd jd}}
+         args: -eps_type {{krylovschur arnoldi gd jd}}
+      test:
+         suffix: 7_subspace
+         args: -eps_type subspace -eps_conv_rel
       test:
          suffix: 7_ks_sinvert
          args: -st_type sinvert -eps_target 22

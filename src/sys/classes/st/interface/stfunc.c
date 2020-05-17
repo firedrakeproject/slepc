@@ -63,7 +63,7 @@ PetscErrorCode STInitializePackage(void)
   ierr = STRegisterAll();CHKERRQ(ierr);
   /* Register Events */
   ierr = PetscLogEventRegister("STSetUp",ST_CLASSID,&ST_SetUp);CHKERRQ(ierr);
-  ierr = PetscLogEventRegister("STComputeOperator",ST_CLASSID,&ST_ComputeOperator);CHKERRQ(ierr);
+  ierr = PetscLogEventRegister("STComputeOperatr",ST_CLASSID,&ST_ComputeOperator);CHKERRQ(ierr);
   ierr = PetscLogEventRegister("STApply",ST_CLASSID,&ST_Apply);CHKERRQ(ierr);
   ierr = PetscLogEventRegister("STApplyTranspose",ST_CLASSID,&ST_ApplyTranspose);CHKERRQ(ierr);
   ierr = PetscLogEventRegister("STMatSetUp",ST_CLASSID,&ST_MatSetUp);CHKERRQ(ierr);

@@ -875,12 +875,12 @@ PetscErrorCode DSCond(DS ds,PetscReal *cond)
   DSCheckAlloc(ds,1);
   PetscValidRealPointer(cond,2);
   if (!ds->ops->cond) SETERRQ1(PetscObjectComm((PetscObject)ds),PETSC_ERR_SUP,"DS type %s",((PetscObject)ds)->type_name);
-  ierr = PetscInfo(ds,"Computing condition number\n");CHKERRQ(ierr);
   ierr = PetscLogEventBegin(DS_Other,ds,0,0,0);CHKERRQ(ierr);
   ierr = PetscFPTrapPush(PETSC_FP_TRAP_OFF);CHKERRQ(ierr);
   ierr = (*ds->ops->cond)(ds,cond);CHKERRQ(ierr);
   ierr = PetscFPTrapPop();CHKERRQ(ierr);
   ierr = PetscLogEventEnd(DS_Other,ds,0,0,0);CHKERRQ(ierr);
+  ierr = PetscInfo1(ds,"Computed condition number = %g\n",(double)*cond);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
