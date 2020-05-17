@@ -138,7 +138,8 @@ int main(int argc,char **argv)
     errok = PETSC_TRUE;
     for (i=0;i<nev;i++) {
       ierr = EPSGetErrorEstimate(eps,i,&errest);CHKERRQ(ierr);
-      errok = (errok && errest<5.0*tol)? PETSC_TRUE: PETSC_FALSE;
+      ierr = EPSGetEigenpair(eps,i,&kr,&ki,NULL,NULL);CHKERRQ(ierr);
+      errok = (errok && errest<5.0*SlepcAbsEigenvalue(kr,ki)*tol)? PETSC_TRUE: PETSC_FALSE;
     }
     if (!errok) {
       ierr = PetscPrintf(PETSC_COMM_WORLD," Problem: some of the first %D relative errors are higher than the tolerance\n\n",nev);CHKERRQ(ierr);
@@ -275,5 +276,6 @@ PetscErrorCode MatGetDiagonal_Brussel(Mat A,Vec diag)
    test:
       suffix: 3
       args: -n 50 -eps_nev 4 -eps_ncv 16 -eps_type subspace -eps_largest_magnitude -bv_orthog_block {{gs tsqr chol tsqrchol svqb}}
+      requires: !single
 
 TEST*/
