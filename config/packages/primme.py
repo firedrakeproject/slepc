@@ -126,8 +126,7 @@ class Primme(package.Package):
     # Build package
     target = ' install' if petsc.buildsharedlib else ' lib'
     mymake = petsc.make + ' -f mymake_flags '
-    (result,output) = self.RunCommand('cd '+builddir+'&&'+mymake+' clean && '+mymake+target)
-    self.log.write(output)
+    (result, output) = self.RunCommand('cd '+builddir+'&&'+mymake+' clean && '+mymake+target)
     if result:
       self.log.Exit('Installation of PRIMME failed')
 
@@ -147,7 +146,7 @@ class Primme(package.Package):
 
     # Check build
     code = self.SampleCode(petsc)
-    result = self.Link([],[],[l]+[f],code,f,petsc.language)
+    (result, output) = self.Link([],[],[l]+[f],code,f,petsc.language)
     if not result:
       self.log.Exit('Unable to link with downloaded PRIMME')
 
