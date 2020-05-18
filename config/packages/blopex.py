@@ -34,6 +34,8 @@ class Blopex(package.Package):
     code += 'int main() {\n'
     code += '  lobpcg_BLASLAPACKFunctions fn;\n'
     code += '  lobpcg_Tolerance           tol;\n'
+    code += '  tol.absolute=1e-20; tol.relative=1e-7;\n'
+    code += '  fn.dpotrf=NULL; fn.dsygv=NULL;\n'
     code += '  ' + function + '(NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,fn,tol,0,0,NULL,NULL,NULL,0,NULL,NULL,0);\n'
     code += '  return 0;\n}\n'
     return code
@@ -64,7 +66,7 @@ class Blopex(package.Package):
       else:
         l = libs
         f = ['-I' + includes[0]]
-      result = self.Link([],[],l+f,code,' '.join(f),petsc.language)
+      (result, output) = self.Link([],[],l+f,code,' '.join(f),petsc.language)
       if result:
         conf.write('#define SLEPC_HAVE_BLOPEX 1\n')
         vars.write('BLOPEX_LIB = ' + ' '.join(l) + '\n')
@@ -93,7 +95,6 @@ class Blopex(package.Package):
 
     # Build package
     (result,output) = self.RunCommand('cd '+builddir+'&&'+petsc.make+' clean &&'+petsc.make)
-    self.log.write(output)
     if result:
       self.log.Exit('Installation of BLOPEX failed')
 
@@ -113,8 +114,8 @@ class Blopex(package.Package):
 
     # Check build
     code = self.SampleCode(petsc)
-    result = self.Link([],[],l+f,code,' '.join(f),petsc.language)
-    if result:
+    (result, output) = self.Link([],[],[l]+[f],code,f,petsc.language)
+    if not result:
       self.log.Exit('Unable to link with downloaded BLOPEX')
 
     # Write configuration files
